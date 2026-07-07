@@ -1,5 +1,19 @@
 [
   {
+    "id": "bmw-x3-sis-farlari-kapagi-cifti",
+    "kategori": "Otomobil",
+    "marka": ["BMW"],
+    "baslik": "BMW X3 E83 LCI Sis Farı Kapağı Çifti (51113423789 / 51113423790)",
+    "aciklama": "BMW X3 E83 LCI (2007-2010) için sağ ve sol sis farı kapağı çifti. Kırılan/aşınan orijinal kapakların birebir yedeğidir. Orijinal 51113423789 (sol) ve 51113423790 (sağ) numaralı parçalar. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bmw-x3-sis-farlari-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/bmw-x3-sis-farlari-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/bmw-x3-sis-farlari-kapagi-3.jpg",
+      "https://media.pruvo3d.com/urunler/bmw-x3-sis-farlari-kapagi-4.jpg"
+    ]
+  },
+  {
     "id": "yakit-pompasi-kilit-halkasi-b478g",
     "kategori": "Otomobil",
     "marka": ["Mazda", "Ford", "Jaguar", "Mercury"],
