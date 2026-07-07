@@ -1,5 +1,19 @@
 [
   {
+    "id": "audi-q7-xenon-lamba-tutucu",
+    "kategori": "Otomobil",
+    "marka": ["Audi"],
+    "baslik": "Audi Q7 Xenon Lamba Tutucu / Montaj Klipsi (OSRAM 66340HBI)",
+    "aciklama": "Audi Q7 için xenon far ampulünü far gövdesine sabitleyen montaj klipsi (tutucu). OSRAM 66340HBI xenon ampulüyle uyumludur. Kırılan/aşınan orijinal tutucunun birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-q7-xenon-lamba-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-q7-xenon-lamba-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-q7-xenon-lamba-tutucu-3.jpg",
+      "https://media.pruvo3d.com/urunler/audi-q7-xenon-lamba-tutucu-4.jpg"
+    ]
+  },
+  {
     "id": "toyota-vitz-rs-sis-lambasi-kapagi",
     "kategori": "Otomobil",
     "marka": ["Toyota"],
