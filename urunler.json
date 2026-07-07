@@ -1,5 +1,18 @@
 [
   {
+    "id": "volkswagen-bagaj-kilit-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Volkswagen"],
+    "baslik": "Volkswagen Bagaj Kilit Mekanizması Dişlisi (Sonsuz Vida + Dişli)",
+    "aciklama": "Volkswagen bagaj/kaput kilit modülünde (lock module) elektrikli kilitleme mekanizmasını hareket ettiren sonsuz vida ve dişli parçası. Zamanla aşınıp kırılan orijinal plastik dişlinin birebir yedeğidir; kilit açılmama/kapanmama sorununu çözer. Touran (2003-2015), Golf V/VI/VII (2004-2015), Passat B6/B7 (2005-2014), Polo 9N (2001-2009) ve Tiguan (2007-2016) dahil birçok modelin kilit modülüne uyar (1T0827505H, 1K6827505A, 5K0827505A, 5ND827505 vb.). Ölçüleri birebir doğrulanmış, dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/volkswagen-bagaj-kilit-dislisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/volkswagen-bagaj-kilit-dislisi-2.jpg",
+      "https://media.pruvo3d.com/urunler/volkswagen-bagaj-kilit-dislisi-3.jpg"
+    ]
+  },
+  {
     "id": "skoda-octavia-far-yikama-kapagi-1z0955109",
     "kategori": "Otomobil",
     "marka": ["Skoda"],
