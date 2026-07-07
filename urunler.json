@@ -1,5 +1,19 @@
 [
   {
+    "id": "citroen-peugeot-klape-aktuator-kolu-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Citroën", "Peugeot"],
+    "baslik": "Citroën/Peugeot Kalorifer Klapesi Aktüatör Kolu Dişlisi (1607488280)",
+    "aciklama": "Citroën C4, Berlingo ve Peugeot 307, Partner için kalorifer/klima klapesi aktüatöründeki kol dişlisi. Aktüatör hareketini HVAC sistemindeki hava dağıtım klapesine aktarır. Kırılan orijinal parçanın birebir yedeğidir. Orijinal 1607488280 / 5E2222400 / 5E2222300 / 5E2222600 / 5E2222700 / 6447XA numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/citroen-peugeot-klape-kolu-1.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-peugeot-klape-kolu-2.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-peugeot-klape-kolu-3.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-peugeot-klape-kolu-4.jpg"
+    ]
+  },
+  {
     "id": "audi-q5-8r-on-camurluk-list-uzatmasi",
     "kategori": "Otomobil",
     "marka": ["Audi"],
