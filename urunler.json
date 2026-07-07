@@ -1,5 +1,16 @@
 [
   {
+    "id": "toyota-corolla-isitma-motoru-braketi",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota Corolla Verso Isıtma Motoru Kılavuz Braketi (063700-8930)",
+    "aciklama": "Toyota Corolla Verso (2001.11 - 2004.02) için kalorifer/ısıtma motoru kılavuz braketi. Isıtma motorunun montajında destek ve kılavuzluk sağlar. Orijinal 063700-8930 numaralı parçanın yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-corolla-isitma-motoru-braketi-1.jpg"
+    ]
+  },
+  {
     "id": "ford-galaxy-jant-gobek-kapagi",
     "kategori": "Otomobil",
     "marka": ["Ford"],
