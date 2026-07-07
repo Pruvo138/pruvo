@@ -1,5 +1,18 @@
 [
   {
+    "id": "audi-rs6-sis-far-cercevesi",
+    "kategori": "Otomobil",
+    "marka": ["Audi"],
+    "baslik": "Audi RS6 Ön Tampon Sis Farı Izgara Çerçevesi (Sağ/Sol)",
+    "aciklama": "Audi RS6 (2013-2018) ön tamponda sis farı bölgesindeki petek (honeycomb) ızgara çerçevesi. Kırılan/kaybolan orijinal çerçevenin birebir yedeğidir; klipsleriyle tampona oturur. Sağ ve sol taraf için üretilir, tampon rengine boyanabilir. Ölçüleri birebir doğrulanmış, dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-rs6-sis-far-cercevesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-rs6-sis-far-cercevesi-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-rs6-sis-far-cercevesi-3.jpg"
+    ]
+  },
+  {
     "id": "audi-a6-c5-far-yikama-kapagi-sag-4b0955276d",
     "kategori": "Otomobil",
     "marka": ["Audi"],
