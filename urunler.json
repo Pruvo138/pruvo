@@ -1,5 +1,17 @@
 [
   {
+    "id": "yakit-pompasi-kilit-halkasi-b478g",
+    "kategori": "Otomobil",
+    "marka": ["Mazda", "Ford", "Jaguar", "Mercury"],
+    "baslik": "Yakıt Pompası Kilit Halkası (B478G)",
+    "aciklama": "Mazda Tribute, Ford Escape, Ford Maverick, Jaguar S-Type ve Mercury Mariner için yakıt pompası modülü kilit halkası. Yakıt pompası modülünü tank contasına karşı sabitler ve kilitler. Dış çap 155 mm, iç çap 126 mm, diş adımı 6 mm. Orijinal B478G numaralı parçanın yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/yakit-pompasi-kilit-halkasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/yakit-pompasi-kilit-halkasi-2.jpg"
+    ]
+  },
+  {
     "id": "ford-ranger-everest-kaput-acma-kolu",
     "kategori": "Otomobil",
     "marka": ["Ford"],
