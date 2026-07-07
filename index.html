@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRUVO — Endüstriyel Parça Üretimi</title>
+<style>
+  :root{
+    --navy:#12294d;        /* ana renk - lacivert */
+    --navy-2:#1c3a6b;      /* açık lacivert */
+    --navy-dark:#0d1e3a;   /* koyu lacivert */
+    --gray-bg:#eef1f5;     /* arka plan gri */
+    --gray-card:#ffffff;   /* kart */
+    --gray-line:#d7dde6;   /* çizgi/kenar */
+    --gray-text:#5b6675;   /* ikincil metin */
+    --red:#d1332e;         /* aksan - az kullan */
+    --red-dark:#b12723;
+    --radius:10px;
+    --shadow:0 2px 10px rgba(18,41,77,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--gray-bg);
+    color:var(--navy);
+    line-height:1.5;
+  }
+
+  /* ---------- HEADER ---------- */
+  header{
+    background:var(--navy);
+    color:#fff;
+    padding:26px 20px 0;
+    box-shadow:var(--shadow);
+  }
+  .header-inner{max-width:1100px;margin:0 auto}
+  .brand{
+    font-size:44px;
+    font-weight:800;
+    letter-spacing:3px;
+    line-height:1;
+    color:#fff;
+  }
+  .brand-sub{
+    font-size:13px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:#b9c6dc;
+    margin-top:6px;
+  }
+  /* kategori menüsü */
+  nav.cats{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:20px;
+    padding-bottom:0;
+  }
+  .cat-btn{
+    background:transparent;
+    color:#cdd8ea;
+    border:none;
+    border-bottom:3px solid transparent;
+    padding:10px 14px;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .cat-btn:hover{color:#fff}
+  .cat-btn.active{
+    color:#fff;
+    border-bottom-color:var(--red);   /* aktif kategori = kırmızı vurgu */
+  }
+
+  /* ---------- MAIN ---------- */
+  main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+
+  .section-title{
+    font-size:20px;
+    font-weight:700;
+    margin-bottom:18px;
+    color:var(--navy);
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:20px;
+  }
+
+  .card{
+    background:var(--gray-card);
+    border:1px solid var(--gray-line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    box-shadow:var(--shadow);
+    transition:transform .15s, box-shadow .15s;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(18,41,77,.14)}
+
+  .card-img{
+    width:100%;
+    aspect-ratio:4/3;
+    object-fit:cover;
+    background:#dbe2ec;
+    display:block;
+  }
+  .card-body{padding:14px 15px 16px;display:flex;flex-direction:column;flex:1}
+  .card-cat{
+    display:inline-block;
+    align-self:flex-start;
+    background:var(--navy);
+    color:#fff;
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    padding:3px 9px;
+    border-radius:20px;
+    margin-bottom:9px;
+  }
+  .card-title{font-size:16px;font-weight:700;margin-bottom:6px}
+  .card-desc{font-size:13.5px;color:var(--gray-text);flex:1;margin-bottom:12px}
+  .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .card-price.empty{color:var(--gray-text);font-weight:600;font-size:13px}
+
+  .order-btn{
+    background:var(--red);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:11px;
+    font-size:14.5px;
+    font-weight:700;
+    cursor:pointer;
+    text-decoration:none;
+    text-align:center;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    transition:.15s;
+  }
+  .order-btn:hover{background:var(--red-dark)}
+  .order-btn svg{width:17px;height:17px;fill:#fff}
+
+  .card-admin{display:flex;gap:8px;margin-top:8px}
+  .edit-btn{
+    flex:1;
+    background:transparent;
+    color:var(--navy);
+    border:1px solid var(--gray-line);
+    border-radius:7px;
+    padding:7px;
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .edit-btn:hover{border-color:var(--navy-2);background:#f2f5fa}
+
+  /* gizli yönetici modu bilgi çubuğu */
+  .admin-bar{display:none;margin-bottom:16px}
+  .admin-bar.on{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:#fdece9;color:var(--red-dark);
+    border:1px solid #f3c9c4;border-radius:8px;
+    padding:9px 14px;font-size:13px;font-weight:600;
+  }
+  .admin-bar a{color:var(--red-dark);cursor:pointer;text-decoration:underline}
+
+  .empty-state{
+    text-align:center;
+    color:var(--gray-text);
+    padding:60px 20px;
+    font-size:15px;
+  }
+
+  /* ---------- ÜRÜN EKLEME ---------- */
+  .add-toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    margin:36px 0 0;
+    background:var(--navy);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:11px 18px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .add-toggle:hover{background:var(--navy-2)}
+
+  .add-panel{
+    display:none;
+    margin-top:18px;
+    background:var(--gray-card);
+    border:1px solid var(--gray-line);
+    border-radius:var(--radius);
+    padding:22px;
+    box-shadow:var(--shadow);
+    max-width:560px;
+  }
+  .add-panel.open{display:block}
+  .add-panel h3{margin-bottom:16px;font-size:17px}
+  .form-row{margin-bottom:14px}
+  .form-row label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;color:var(--navy)}
+  .form-row input[type=text],
+  .form-row input[type=file],
+  .form-row textarea,
+  .form-row select{
+    width:100%;
+    border:1px solid var(--gray-line);
+    border-radius:7px;
+    padding:9px 11px;
+    font-size:14px;
+    font-family:inherit;
+    background:#fff;
+    color:var(--navy);
+  }
+  .form-row textarea{resize:vertical;min-height:70px}
+  .form-row input:focus,.form-row textarea:focus,.form-row select:focus{
+    outline:none;border-color:var(--navy-2);
+  }
+  .hint{font-size:11.5px;color:var(--gray-text);margin-top:4px}
+  .img-preview{
+    margin-top:10px;max-width:140px;border-radius:7px;border:1px solid var(--gray-line);display:none;
+  }
+  .form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .submit-btn{
+    background:var(--navy);
+    color:#fff;border:none;border-radius:8px;
+    padding:12px 22px;font-size:15px;font-weight:700;cursor:pointer;
+  }
+  .submit-btn:hover{background:var(--navy-2)}
+  .delete-btn{
+    background:transparent;color:var(--red);
+    border:1px solid var(--red);border-radius:8px;
+    padding:12px 22px;font-size:15px;font-weight:700;cursor:pointer;
+  }
+  .delete-btn:hover{background:var(--red);color:#fff}
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    background:var(--navy-dark);
+    color:#aeb9cd;
+    text-align:center;
+    padding:22px 20px;
+    font-size:13.5px;
+    letter-spacing:.5px;
+  }
+
+  @media (max-width:520px){
+    .brand{font-size:34px}
+    .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">PRUVO</div>
+    <div class="brand-sub">Endüstriyel Parça Üretimi</div>
+    <nav class="cats" id="cats"><!-- kategoriler JS ile --></nav>
+  </div>
+</header>
+
+<main>
+  <div class="admin-bar" id="adminBar">
+    <span>🔧 Yönetici modu açık — ürünleri düzenleyebilir ve ekleyebilirsin.</span>
+    <a id="adminExit">Çıkış</a>
+  </div>
+  <div class="section-title" id="sectionTitle">Tüm Ürünler</div>
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="emptyState" style="display:none">
+    Bu kategoride henüz ürün yok.
+  </div>
+
+  <!-- ÜRÜN EKLEME (yönetici) -->
+  <button class="add-toggle" id="addToggle">+ Ürün Ekle</button>
+  <div class="add-panel" id="addPanel">
+    <h3 id="addPanelTitle">Yeni Ürün Ekle</h3>
+    <form id="addForm">
+      <div class="form-row">
+        <label>Görsel (dosya yükle)</label>
+        <input type="file" id="fImgFile" accept="image/*">
+        <img class="img-preview" id="imgPreview" alt="önizleme">
+      </div>
+      <div class="form-row">
+        <label>veya Görsel URL</label>
+        <input type="text" id="fImgUrl" placeholder="https://...">
+        <div class="hint">Dosya yüklersen URL yok sayılır.</div>
+      </div>
+      <div class="form-row">
+        <label>Başlık *</label>
+        <input type="text" id="fTitle" required placeholder="Ürün adı">
+      </div>
+      <div class="form-row">
+        <label>Açıklama</label>
+        <textarea id="fDesc" placeholder="Ürün açıklaması"></textarea>
+      </div>
+      <div class="form-row">
+        <label>Kategori *</label>
+        <select id="fCat" required>
+          <option value="Marin">Marin</option>
+          <option value="Otomobil">Otomobil</option>
+          <option value="Motosiklet">Motosiklet</option>
+          <option value="Ev">Ev</option>
+          <option value="Elektronik">Elektronik</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Fiyat (opsiyonel)</label>
+        <input type="text" id="fPrice" placeholder="örn. 250 ₺ (boş bırakılabilir)">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="submit-btn" id="submitBtn">Ekle</button>
+        <button type="button" class="delete-btn" id="deleteBtn" style="display:none">Ürünü Sil</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<footer>
+  PRUVO — Endüstriyel Parça Üretimi | Fethiye
+</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "pruvo_urunler_v1";
+  var WHATSAPP = "905325954005";
+  var CATEGORIES = ["Marin","Otomobil","Motosiklet","Ev","Elektronik"];
+
+  // Başlangıç örnek ürünleri (localStorage boşsa yüklenir)
+  var SEED = [
+    {
+      id: "seed-1",
+      kategori: "Marin",
+      baslik: "Tekne Küpeştesi Bağlantı Aparatı",
+      aciklama: "Paslanmaz görünümlü, deniz koşullarına dayanıklı 3D baskı küpeşte bağlantı parçası. Standart 25mm boru için uygun.",
+      fiyat: "",
+      gorselURL: "data:image/svg+xml;utf8," + encodeURIComponent(placeholder("Marin"))
+    },
+    {
+      id: "seed-2",
+      kategori: "Otomobil",
+      baslik: "Torpido Bardaklık İç Kızağı",
+      aciklama: "Kırılan orijinal bardaklık kızağının birebir yedeği. Dayanıklı PETG malzeme ile üretilir.",
+      fiyat: "180 ₺",
+      gorselURL: "data:image/svg+xml;utf8," + encodeURIComponent(placeholder("Otomobil"))
+    },
+    {
+      id: "seed-4",
+      kategori: "Otomobil",
+      baslik: "Skoda Octavia vRS Far Yıkama Fıskiyesi (5E0955101C)",
+      aciklama: "Skoda Octavia vRS için orijinal 5E0955101C numaralı far yıkama fıskiyesinin birebir yedeği. Far yıkama sisteminin ön parçası olup su püskürterek farlardaki kir, toz ve pislikleri temizler. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+      fiyat: "2000 TL",
+      gorselURL: "gorseller/octavia-fiskiye.jpg"
+    },
+    {
+      id: "seed-3",
+      kategori: "Ev",
+      aciklama: "Duvara monte, kablo düzenleyici çok amaçlı organizatör. Priz ve şarj istasyonu için ideal.",
+      baslik: "Duvar Tipi Kablo Organizatörü",
+      fiyat: "",
+      gorselURL: "data:image/svg+xml;utf8," + encodeURIComponent(placeholder("Ev"))
+    }
+  ];
+
+  // Basit yer tutucu görsel (lacivert zemin + kategori adı)
+  function placeholder(txt){
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">' +
+           '<rect width="400" height="300" fill="#1c3a6b"/>' +
+           '<text x="50%" y="50%" fill="#9db1d4" font-family="Arial" font-size="26" ' +
+           'font-weight="bold" text-anchor="middle" dominant-baseline="middle">PRUVO · ' + txt + '</text></svg>';
+  }
+
+  var products = load();
+  var activeCat = "Tümü";
+  var adminMode = (location.hash.toLowerCase() === "#admin");
+  var editingId = null;
+
+  // gizli yönetici modu: adres sonuna #admin ekleyince açılır
+  function applyAdminUI(){
+    document.getElementById("adminBar").className = "admin-bar" + (adminMode ? " on" : "");
+    document.getElementById("addToggle").style.display = adminMode ? "inline-flex" : "none";
+    if(!adminMode){
+      document.getElementById("addPanel").classList.remove("open");
+      cancelEdit();
+    }
+  }
+  window.addEventListener("hashchange", function(){
+    adminMode = (location.hash.toLowerCase() === "#admin");
+    applyAdminUI();
+    renderGrid();
+  });
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){ return JSON.parse(raw); }
+    }catch(e){}
+    // ilk açılış -> seed kaydet
+    save(SEED);
+    return SEED.slice();
+  }
+  function save(list){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); }catch(e){}
+  }
+
+  function uid(){
+    return "p-" + Math.random().toString(36).slice(2,9) + "-" + (products.length);
+  }
+
+  // ---------- KATEGORİ MENÜSÜ ----------
+  function renderCats(){
+    var el = document.getElementById("cats");
+    var all = ["Tümü"].concat(CATEGORIES);
+    el.innerHTML = "";
+    all.forEach(function(c){
+      var b = document.createElement("button");
+      b.className = "cat-btn" + (c === activeCat ? " active" : "");
+      b.textContent = c;
+      b.onclick = function(){
+        activeCat = c;
+        renderCats();
+        renderGrid();
+      };
+      el.appendChild(b);
+    });
+  }
+
+  // ---------- ÜRÜN GRID ----------
+  function renderGrid(){
+    var grid = document.getElementById("grid");
+    var empty = document.getElementById("emptyState");
+    var title = document.getElementById("sectionTitle");
+    title.textContent = (activeCat === "Tümü") ? "Tüm Ürünler" : activeCat + " Ürünleri";
+
+    var list = products.filter(function(p){
+      return activeCat === "Tümü" || p.kategori === activeCat;
+    });
+
+    grid.innerHTML = "";
+    if(list.length === 0){
+      empty.style.display = "block";
+      return;
+    }
+    empty.style.display = "none";
+
+    list.forEach(function(p){
+      var card = document.createElement("div");
+      card.className = "card";
+
+      var img = document.createElement("img");
+      img.className = "card-img";
+      img.alt = p.baslik;
+      img.src = p.gorselURL || ("data:image/svg+xml;utf8," + encodeURIComponent(placeholder(p.kategori)));
+      img.onerror = function(){ this.src = "data:image/svg+xml;utf8," + encodeURIComponent(placeholder(p.kategori)); };
+
+      var body = document.createElement("div");
+      body.className = "card-body";
+
+      var cat = document.createElement("span");
+      cat.className = "card-cat";
+      cat.textContent = p.kategori;
+
+      var h = document.createElement("div");
+      h.className = "card-title";
+      h.textContent = p.baslik;
+
+      var d = document.createElement("div");
+      d.className = "card-desc";
+      d.textContent = p.aciklama || "";
+
+      var pr = document.createElement("div");
+      if(p.fiyat && p.fiyat.trim() !== ""){
+        pr.className = "card-price";
+        pr.textContent = p.fiyat;
+      }else{
+        pr.className = "card-price empty";
+        pr.textContent = "Fiyat için sipariş verin";
+      }
+
+      var order = document.createElement("a");
+      order.className = "order-btn";
+      order.href = "https://wa.me/" + WHATSAPP + "?text=" +
+                   encodeURIComponent("Merhaba, şu ürünle ilgileniyorum: " + p.baslik);
+      order.target = "_blank";
+      order.rel = "noopener";
+      order.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.42 1.31-1.96 1.35-.5.05-.98.24-3.3-.69-2.77-1.09-4.56-3.9-4.7-4.08-.14-.19-1.12-1.49-1.12-2.84 0-1.35.71-2.02.96-2.29.24-.27.53-.34.71-.34.18 0 .35 0 .51.01.16.01.38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45.21.51.32.06.11.06.64-.18 1.32z"/></svg> Sipariş Ver';
+
+      body.appendChild(cat);
+      body.appendChild(h);
+      body.appendChild(d);
+      body.appendChild(pr);
+      body.appendChild(order);
+
+      // yönetici modu: düzenle butonu
+      if(adminMode){
+        var admin = document.createElement("div");
+        admin.className = "card-admin";
+        var edit = document.createElement("button");
+        edit.className = "edit-btn";
+        edit.textContent = "Düzenle";
+        edit.onclick = function(){ startEdit(p); };
+        admin.appendChild(edit);
+        body.appendChild(admin);
+      }
+
+      card.appendChild(img);
+      card.appendChild(body);
+      grid.appendChild(card);
+    });
+  }
+
+  // ---------- ÜRÜN EKLEME FORMU ----------
+  var uploadedDataUrl = null;
+
+  document.getElementById("addToggle").onclick = function(){
+    cancelEdit(); // "Ekle" moduna dön
+    var panel = document.getElementById("addPanel");
+    panel.classList.toggle("open");
+    if(panel.classList.contains("open")){
+      panel.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+  };
+
+  document.getElementById("adminExit").onclick = function(){
+    if(location.hash){ location.hash = ""; }
+    adminMode = false;
+    applyAdminUI();
+    renderGrid();
+  };
+
+  // düzenlemeyi başlat: formu ürün bilgileriyle doldur
+  function startEdit(p){
+    editingId = p.id;
+    document.getElementById("fTitle").value = p.baslik || "";
+    document.getElementById("fDesc").value = p.aciklama || "";
+    document.getElementById("fCat").value = p.kategori;
+    document.getElementById("fPrice").value = p.fiyat || "";
+    document.getElementById("fImgUrl").value = "";
+    uploadedDataUrl = null;
+    document.getElementById("imgPreview").style.display = "none";
+    document.getElementById("addPanelTitle").textContent = "Ürün Düzenle";
+    document.getElementById("submitBtn").textContent = "Kaydet";
+    document.getElementById("deleteBtn").style.display = "inline-block";
+    var panel = document.getElementById("addPanel");
+    panel.classList.add("open");
+    panel.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  // düzenlenen ürünü sil (yalnızca düzenleme sırasında)
+  document.getElementById("deleteBtn").onclick = function(){
+    if(!editingId){ return; }
+    var prod = products.filter(function(x){ return x.id === editingId; })[0];
+    var ad = prod ? prod.baslik : "Bu ürün";
+    if(confirm('"' + ad + '" silinsin mi? Bu işlem geri alınamaz.')){
+      products = products.filter(function(x){ return x.id !== editingId; });
+      save(products);
+      cancelEdit();
+      renderGrid();
+      document.getElementById("addPanel").classList.remove("open");
+      document.querySelector("main").scrollIntoView({behavior:"smooth", block:"start"});
+    }
+  };
+
+  // düzenlemeyi iptal et: formu "Ekle" moduna döndür
+  function cancelEdit(){
+    editingId = null;
+    var f = document.getElementById("addForm");
+    if(f){ f.reset(); }
+    uploadedDataUrl = null;
+    var prev = document.getElementById("imgPreview");
+    if(prev){ prev.style.display = "none"; }
+    document.getElementById("addPanelTitle").textContent = "Yeni Ürün Ekle";
+    document.getElementById("submitBtn").textContent = "Ekle";
+    var db = document.getElementById("deleteBtn");
+    if(db){ db.style.display = "none"; }
+  }
+
+  document.getElementById("fImgFile").onchange = function(e){
+    var file = e.target.files[0];
+    var prev = document.getElementById("imgPreview");
+    if(!file){ uploadedDataUrl = null; prev.style.display="none"; return; }
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      uploadedDataUrl = ev.target.result;
+      prev.src = uploadedDataUrl;
+      prev.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  };
+
+  document.getElementById("addForm").onsubmit = function(e){
+    e.preventDefault();
+    var title = document.getElementById("fTitle").value.trim();
+    if(!title){ return; }
+
+    var imgUrl = document.getElementById("fImgUrl").value.trim();
+    var cat = document.getElementById("fCat").value;
+    var desc = document.getElementById("fDesc").value.trim();
+    var price = document.getElementById("fPrice").value.trim();
+    var yeniGorsel = uploadedDataUrl || imgUrl; // yalnızca yeni verildiyse
+
+    if(editingId){
+      // mevcut ürünü güncelle
+      for(var i=0;i<products.length;i++){
+        if(products[i].id === editingId){
+          products[i].kategori = cat;
+          products[i].baslik = title;
+          products[i].aciklama = desc;
+          products[i].fiyat = price;
+          // görsel sadece yeni verildiyse değişir, yoksa eski kalır
+          if(yeniGorsel){ products[i].gorselURL = yeniGorsel; }
+          break;
+        }
+      }
+      save(products);
+    }else{
+      // yeni ürün ekle
+      products.unshift({
+        id: uid(),
+        kategori: cat,
+        baslik: title,
+        aciklama: desc,
+        fiyat: price,
+        gorselURL: yeniGorsel || ("data:image/svg+xml;utf8," + encodeURIComponent(placeholder(cat)))
+      });
+      save(products);
+    }
+
+    cancelEdit();
+    activeCat = "Tümü";
+    renderCats();
+    renderGrid();
+    document.getElementById("addPanel").classList.remove("open");
+    document.querySelector("main").scrollIntoView({behavior:"smooth", block:"start"});
+  };
+
+  // ilk render
+  applyAdminUI();
+  renderCats();
+  renderGrid();
+})();
+</script>
+
+</body>
+</html>
