@@ -1,5 +1,18 @@
 [
   {
+    "id": "opel-astra-h-geri-vites-tamir-kiti",
+    "kategori": "Otomobil",
+    "marka": ["Opel"],
+    "baslik": "Opel Astra H Geri Vites Kilit Onarım Kiti (55562398)",
+    "aciklama": "Opel Astra H manuel şanzıman vites seçici mekanizmasında geri vites kilidini ve bağlantısını sağlayan onarım kiti. Kırılan/aşınan orijinal parçanın birebir yedeğidir. Orijinal 55562398 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/opel-astra-h-geri-vites-tamir-kiti-1.jpg",
+      "https://media.pruvo3d.com/urunler/opel-astra-h-geri-vites-tamir-kiti-2.jpg",
+      "https://media.pruvo3d.com/urunler/opel-astra-h-geri-vites-tamir-kiti-3.jpg"
+    ]
+  },
+  {
     "id": "vw-far-yikama-kapagi",
     "kategori": "Otomobil",
     "marka": ["Volkswagen"],
