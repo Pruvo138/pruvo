@@ -1,5 +1,17 @@
 [
   {
+    "id": "mercedes-vito-bagaj-kilit-parcasi",
+    "kategori": "Otomobil",
+    "marka": ["Mercedes-Benz"],
+    "baslik": "Mercedes-Benz Vito Bagaj Kapağı Kilit Mandalı Parçası (A6387430488)",
+    "aciklama": "Mercedes-Benz Vito W638 (1996-2003) 2.0L için arka bagaj kapağı kilit mekanizmasının parçası. Kırılan/aşınan orijinal parçanın birebir yedeğidir. Orijinal A6387430488 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-vito-bagaj-kilit-parcasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-vito-bagaj-kilit-parcasi-2.jpg"
+    ]
+  },
+  {
     "id": "honda-clarity-ayna-mentesesi",
     "kategori": "Otomobil",
     "marka": ["Honda"],
