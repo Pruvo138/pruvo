@@ -1,5 +1,16 @@
 [
   {
+    "id": "ford-galaxy-jant-gobek-kapagi",
+    "kategori": "Otomobil",
+    "marka": ["Ford"],
+    "baslik": "Ford Galaxy Jant Göbek Kapağı (UK1727649-77)",
+    "aciklama": "Ford Galaxy (2000-2006) için jant göbek (poyra) kapağı. İç kilitleme geometrisiyle alttaki mekanik göbeği kapatıp sabitler, çevresindeki vidalarla monte edilir. Orijinal UK1727649-77 numaralı parçanın yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ford-galaxy-jant-gobek-kapagi-1.jpg"
+    ]
+  },
+  {
     "id": "vag-gaz-kelebek-dislisi",
     "kategori": "Otomobil",
     "marka": ["Audi", "Volkswagen"],
