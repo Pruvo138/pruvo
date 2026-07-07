@@ -1,5 +1,18 @@
 [
   {
+    "id": "rial-ms10-jant-gobek-kapagi",
+    "kategori": "Otomobil",
+    "marka": ["Rial"],
+    "baslik": "Rial MS10 Jant Göbek Kapağı",
+    "aciklama": "Rial MS10 jantlara uygun jant göbek kapağı (hub/lug cover). Jant somunlarını toz ve nemden korur, jantın görünümünü tamamlar. Kırılan/kaybolan orijinal kapağın birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir, boyanmaya uygundur.",
+    "fiyat": "1850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/rial-ms10-jant-gobek-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/rial-ms10-jant-gobek-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/rial-ms10-jant-gobek-kapagi-3.jpg"
+    ]
+  },
+  {
     "id": "toyota-avensis-verso-havalandirma-izgara-onarim",
     "kategori": "Otomobil",
     "marka": ["Toyota"],
