@@ -1,5 +1,18 @@
 [
   {
+    "id": "volvo-xc90-kapi-basamak-pedi",
+    "kategori": "Otomobil",
+    "marka": ["Volvo"],
+    "baslik": "Volvo XC90 Kapı Basamağı Pedi (30744487)",
+    "aciklama": "Volvo XC90 (2007-2012, 3.2L L6 / 4.4L V8) için yan basamak (running board) üzerindeki kauçuk basamak pedi. Kırılan/aşınan orijinal pedin birebir yedeğidir. Orijinal 30744487 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/volvo-xc90-kapi-basamak-pedi-1.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-xc90-kapi-basamak-pedi-2.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-xc90-kapi-basamak-pedi-3.jpg"
+    ]
+  },
+  {
     "id": "audi-q7-cati-rafi-uc-kapagi",
     "kategori": "Otomobil",
     "marka": ["Audi"],
