@@ -1,5 +1,16 @@
 [
   {
+    "id": "opel-astra-j-bagaj-pim-kilavuzu",
+    "kategori": "Otomobil",
+    "marka": ["Opel"],
+    "baslik": "Opel Astra J Bagaj Bölmesi Pim Kılavuzu (9918010024)",
+    "aciklama": "Opel Astra J için bagaj bölmesindeki pim kılavuzu; bagaj alanında sabitleme/hizalama görevi görür. Kırılan orijinal parçanın birebir yedeğidir. Orijinal 9918010024 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/opel-astra-j-bagaj-pim-kilavuzu-1.jpg"
+    ]
+  },
+  {
     "id": "vw-passat-octavia3-kalorifer-aktuator-dislisi",
     "kategori": "Otomobil",
     "marka": ["Volkswagen", "Skoda"],
