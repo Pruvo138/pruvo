@@ -1,5 +1,19 @@
 [
   {
+    "id": "ford-ranger-everest-kaput-acma-kolu",
+    "kategori": "Otomobil",
+    "marka": ["Ford"],
+    "baslik": "Ford Ranger PX / Everest UA Kaput Açma Kolu (AB3Z-16916-C)",
+    "aciklama": "Ford Ranger PX (T6) ve Ford Everest UA için iç mekan kaput açma kolu. Kaput kilidi kablosunu elle çekerek açmayı sağlar, sürücü tarafı alt torpido bölgesine monte edilir. Kırılan orijinal kolun birebir yedeğidir. Orijinal AB3Z-16916-C numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ford-ranger-kaput-acma-kolu-1.jpg",
+      "https://media.pruvo3d.com/urunler/ford-ranger-kaput-acma-kolu-2.jpg",
+      "https://media.pruvo3d.com/urunler/ford-ranger-kaput-acma-kolu-3.jpg",
+      "https://media.pruvo3d.com/urunler/ford-ranger-kaput-acma-kolu-4.jpg"
+    ]
+  },
+  {
     "id": "nodet-mibzer-ekim-bobini",
     "kategori": "Bahçe",
     "marka": ["NODET"],
