@@ -1,5 +1,19 @@
 [
   {
+    "id": "mercedes-vaneo-hava-filtre-boru-halkasi",
+    "kategori": "Otomobil",
+    "marka": ["Mercedes-Benz"],
+    "baslik": "Mercedes-Benz Vaneo Hava Filtresi Boru Halkası (6680940308)",
+    "aciklama": "Mercedes-Benz Vaneo (W414, 2002-2005) için emme manifoldu hava filtresi boru halkası (conta bileziği). Kırılan/aşınan orijinal halkanın birebir yedeğidir. Orijinal 6680940308 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-hava-filtre-boru-halkasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-hava-filtre-boru-halkasi-2.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-hava-filtre-boru-halkasi-3.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-hava-filtre-boru-halkasi-4.jpg"
+    ]
+  },
+  {
     "id": "toyota-corolla-isitma-motoru-braketi",
     "kategori": "Otomobil",
     "marka": ["Toyota"],
