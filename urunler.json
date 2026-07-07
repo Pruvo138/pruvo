@@ -1,5 +1,19 @@
 [
   {
+    "id": "nodet-mibzer-ekim-bobini",
+    "kategori": "Bahçe",
+    "marka": ["NODET"],
+    "baslik": "NODET Mibzer Ekim Bobini (MJX0068D)",
+    "aciklama": "NODET, KUHN, HASSIA ve SIMULTA tohum ekim makineleri için ekim bobini (dağıtıcı dişli) ve kapak seti. Kırılan/aşınan orijinal parçanın birebir yedeğidir. Orijinal MJX0068D numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mibzer-ekim-bobini-1.jpg",
+      "https://media.pruvo3d.com/urunler/mibzer-ekim-bobini-2.jpg",
+      "https://media.pruvo3d.com/urunler/mibzer-ekim-bobini-3.jpg",
+      "https://media.pruvo3d.com/urunler/mibzer-ekim-bobini-4.jpg"
+    ]
+  },
+  {
     "id": "lexus-lx470-jant-gobek-kapagi",
     "kategori": "Otomobil",
     "marka": ["Lexus"],
