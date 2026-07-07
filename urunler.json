@@ -1,5 +1,19 @@
 [
   {
+    "id": "nissan-qashqai-j12-far-susu",
+    "kategori": "Otomobil",
+    "marka": ["Nissan"],
+    "baslik": "Nissan Qashqai J12 Far Süsü / Kaş (7650U100)",
+    "aciklama": "Nissan Qashqai J12 (2021-günümüz) için far kenar süslemesi (kaş). Ön tampona şık ve derli toplu bir görünüm kazandırır, far grubunun kenarlarını küçük darbe ve kir/tozdan korur. Orijinal 7650U100 numaralı parçanın birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2950 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/nissan-qashqai-far-susu-1.jpg",
+      "https://media.pruvo3d.com/urunler/nissan-qashqai-far-susu-2.jpg",
+      "https://media.pruvo3d.com/urunler/nissan-qashqai-far-susu-3.jpg",
+      "https://media.pruvo3d.com/urunler/nissan-qashqai-far-susu-4.jpg"
+    ]
+  },
+  {
     "id": "bmw-x3-sis-farlari-kapagi-cifti",
     "kategori": "Otomobil",
     "marka": ["BMW"],
