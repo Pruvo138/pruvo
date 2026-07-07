@@ -1,5 +1,16 @@
 [
   {
+    "id": "vag-gaz-kelebek-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Audi", "Volkswagen"],
+    "baslik": "VAG Gaz Kelebeği Dişli Onarım Kiti (Audi/VW)",
+    "aciklama": "Audi (A4, A5, A6, A8, Q5, Q7) ve Volkswagen (Phaeton, Touareg) modelleri için gaz kelebeği (throttle) mekanizması dişli onarım kiti. Kırılan/aşınan orijinal dişlinin birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vag-gaz-kelebek-dislisi-1.jpg"
+    ]
+  },
+  {
     "id": "karcher-k720-kontrol-pistonu",
     "kategori": "Elektronik",
     "marka": ["Kärcher"],
