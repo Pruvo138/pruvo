@@ -1,5 +1,19 @@
 [
   {
+    "id": "vw-golf7-hvac-flap-aktuator-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Volkswagen"],
+    "baslik": "VW Golf 7 Kalorifer Klapesi Aktüatör Dişlisi (5Q0 907 511 H)",
+    "aciklama": "Volkswagen Golf 7 için kalorifer/klima klapesi (HVAC flap) aktüatöründeki motor dişlisi. Valeo VW AG VL1 aktüatörde motorun dönüşünü klape mekanizmasına aktarır. Kırılan orijinal dişlinin birebir yedeğidir. Orijinal 5Q0 907 511 H numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-hvac-flap-aktuator-disli-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-hvac-flap-aktuator-disli-2.jpg",
+      "https://media.pruvo3d.com/urunler/vw-hvac-flap-aktuator-disli-3.jpg",
+      "https://media.pruvo3d.com/urunler/vw-hvac-flap-aktuator-disli-4.jpg"
+    ]
+  },
+  {
     "id": "einhell-cim-bicme-makinesi-dislisi",
     "kategori": "Bahçe",
     "marka": ["Einhell"],
