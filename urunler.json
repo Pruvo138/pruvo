@@ -1,5 +1,18 @@
 [
   {
+    "id": "toyota-avensis-tourer-parcel-shelf-pivot-stopper",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota Avensis Tourer Bagaj Rafı Pim Tutucu (Sağ/Sol)",
+    "aciklama": "Toyota Avensis Tourer (Estate/Station Wagon) araçlarda bagaj kapama rafının (parcel shelf) mekanizmasındaki pim tutucu/durdurucu parçası. Bagaj perdesinin milini raf yuvasında sabitler; sağ ve sol taraf için kullanılabilir. Kırılan/aşınan orijinal plastik tutucunun birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-avensis-tourer-parcel-shelf-pivot-stopper-1.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-avensis-tourer-parcel-shelf-pivot-stopper-2.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-avensis-tourer-parcel-shelf-pivot-stopper-3.jpg"
+    ]
+  },
+  {
     "id": "volvo-xc90-kapi-basamak-pedi",
     "kategori": "Otomobil",
     "marka": ["Volvo"],
