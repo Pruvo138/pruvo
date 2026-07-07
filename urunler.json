@@ -1,5 +1,18 @@
 [
   {
+    "id": "audi-q7-cati-rafi-uc-kapagi",
+    "kategori": "Otomobil",
+    "marka": ["Audi"],
+    "baslik": "Audi Q7 Çatı Rafı Ayağı Uç Kapağı",
+    "aciklama": "Audi Q7 4M (2015-2019) için orijinal çatı rafı (rail) ayağını kapatan uç kapak. Çatı rafı mekanizmasını korur ve dış görünümü tamamlar. Kırılan/kaybolan orijinal kapağın birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-cati-rafi-uc-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-cati-rafi-uc-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-cati-rafi-uc-kapagi-3.jpg"
+    ]
+  },
+  {
     "id": "rial-ms10-jant-gobek-kapagi",
     "kategori": "Otomobil",
     "marka": ["Rial"],
