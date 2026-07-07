@@ -1,5 +1,19 @@
 [
   {
+    "id": "lexus-lx470-jant-gobek-kapagi",
+    "kategori": "Otomobil",
+    "marka": ["Lexus"],
+    "baslik": "Lexus LX470 Jant Göbek Kapağı (42603-60600)",
+    "aciklama": "Lexus LX470 (2002-2006) için Lexus logolu jant göbek kapağı. Tekerlek göbeğini toz ve nemden korur, aracın görünümünü tamamlar. Orijinal 42603-60600 numaralı parçanın (Ornament Sub-Assy, Wheel Hub) birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/lexus-lx470-jant-gobek-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/lexus-lx470-jant-gobek-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/lexus-lx470-jant-gobek-kapagi-3.jpg",
+      "https://media.pruvo3d.com/urunler/lexus-lx470-jant-gobek-kapagi-4.jpg"
+    ]
+  },
+  {
     "id": "mercedes-sprinter-kamera-kapagi",
     "kategori": "Otomobil",
     "marka": ["Mercedes-Benz"],
