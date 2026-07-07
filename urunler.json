@@ -1,5 +1,19 @@
 [
   {
+    "id": "honda-clarity-ayna-mentesesi",
+    "kategori": "Otomobil",
+    "marka": ["Honda"],
+    "baslik": "Honda Clarity Dış Ayna Menteşesi (76258-TRV-A01 / 76208-TRV-A02)",
+    "aciklama": "Honda Clarity (2018-2021) için dış dikiz aynası menteşesi/bağlantı mili. Kırılan orijinal menteşenin birebir yedeğidir. Orijinal 76258-TRV-A01 (sol/sürücü tarafı) ve 76208-TRV-A02 (sağ/yolcu tarafı) numaralı parçalar. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/honda-clarity-ayna-mentesesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/honda-clarity-ayna-mentesesi-2.jpg",
+      "https://media.pruvo3d.com/urunler/honda-clarity-ayna-mentesesi-3.jpg",
+      "https://media.pruvo3d.com/urunler/honda-clarity-ayna-mentesesi-4.jpg"
+    ]
+  },
+  {
     "id": "opel-astra-h-cekme-gozu-kapagi",
     "kategori": "Otomobil",
     "marka": ["Opel"],
