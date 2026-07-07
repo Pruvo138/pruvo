@@ -1,5 +1,16 @@
 [
   {
+    "id": "bbs-rc-rs2-jant-gobek-kapagi-audi-a6",
+    "kategori": "Otomobil",
+    "marka": ["Audi", "BBS"],
+    "baslik": "BBS RC/RS2 Jant Göbek Kapağı - Audi A6 4B (0923519)",
+    "aciklama": "BBS RC jantlar için jant göbeği orta kapak plakası. Audi A6 ve A6 4B Allroad (2001-2004) modellerinde, 5x100 ve 5x112 PCD ölçülerindeki BBS RC/RS2 jantlarla uyumludur. Kırılan/kaybolan orijinal göbek kapağının birebir yedeğidir. Orijinal 0923519 / 0924511 / 0924154 / 0924383 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "3500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bbs-jant-gobek-kapagi-1.jpg"
+    ]
+  },
+  {
     "id": "mercedes-kaput-kilit-kablo-klipsi",
     "kategori": "Otomobil",
     "marka": ["Mercedes-Benz"],
