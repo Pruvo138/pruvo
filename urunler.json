@@ -1,5 +1,19 @@
 [
   {
+    "id": "mercedes-w124-kol-dayama-kapagi",
+    "kategori": "Otomobil",
+    "marka": ["Mercedes-Benz"],
+    "baslik": "Mercedes-Benz W124 Ön Konsol Kol Dayama Kapağı (1246800852)",
+    "aciklama": "Mercedes-Benz W124 (E320, E420, 1986-1995) için ön koltuklar arası konsol saklama bölmesinin ahşap panelli kol dayama kapağı. Menteşe, yay ve vidalarıyla birlikte tam takım olarak basılabilir. Kırılan/aşınan orijinal kapağın birebir yedeğidir. Orijinal 1246800852 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-w124-kol-dayama-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-w124-kol-dayama-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-w124-kol-dayama-kapagi-3.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-w124-kol-dayama-kapagi-4.jpg"
+    ]
+  },
+  {
     "id": "vag-cam-krikosu-dislisi",
     "kategori": "Otomobil",
     "marka": ["Volkswagen", "Audi", "Skoda", "Seat"],
