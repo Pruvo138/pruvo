@@ -1,5 +1,19 @@
 [
   {
+    "id": "saeco-royal-professional-disli-seti",
+    "kategori": "Ev",
+    "marka": ["Saeco"],
+    "baslik": "Saeco Royal Professional Vites Kutusu Dişli Seti",
+    "aciklama": "Saeco Royal Professional serisi (RI8171, RI8172, RI9701, RI9722 ve SUP005-SUP021YTDR arası birçok model) tam otomatik kahve makineleri için vites kutusu dişli seti. Set içeriği: eksen, 11mm 108T taban dişlisi, 11mm 108T krown dişli ve 12T/90T dişli. Kırılan/aşınan orijinal dişlilerin birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "3000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/saeco-royal-disli-seti-1.jpg",
+      "https://media.pruvo3d.com/urunler/saeco-royal-disli-seti-2.jpg",
+      "https://media.pruvo3d.com/urunler/saeco-royal-disli-seti-3.jpg",
+      "https://media.pruvo3d.com/urunler/saeco-royal-disli-seti-4.jpg"
+    ]
+  },
+  {
     "id": "nissan-qashqai-j12-far-susu",
     "kategori": "Otomobil",
     "marka": ["Nissan"],
