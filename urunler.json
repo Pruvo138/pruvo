@@ -1,5 +1,19 @@
 [
   {
+    "id": "mercedes-vito-aktuator-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Mercedes-Benz", "Volkswagen"],
+    "baslik": "Mercedes-Benz Vito Merkezi Kilit Aktüatör Dişlisi (406-205-007-022V)",
+    "aciklama": "Mercedes-Benz Vito ve VW modellerinde kullanılan VDO 406-205-007-022V merkezi kilit kumanda motoru için onarım dişli seti. Bagaj/arka kapı kilidinin açılıp kapanmasını sağlayan aktüatör motorunun dişlilerini yeniler. Kırılan/aşınan orijinal dişlilerin birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-vito-aktuator-dislisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-vito-aktuator-dislisi-2.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-vito-aktuator-dislisi-3.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-vito-aktuator-dislisi-4.jpg"
+    ]
+  },
+  {
     "id": "saeco-royal-professional-disli-seti",
     "kategori": "Ev",
     "marka": ["Saeco"],
