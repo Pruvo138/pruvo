@@ -1,5 +1,19 @@
 [
   {
+    "id": "toyota-yaris-vitz-sis-far-cercevesi",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota Sis Farı Çerçevesi (52437-52050)",
+    "aciklama": "Toyota Yaris XP90 ve Vitz XP90 için ön tampon sis farı çerçevesi. Sis farı boşluğunu çevreleyip sabitler, fabrika dış görünümünü sağlar. Orijinal 52437-52050 / 52436-52050 numaralı parçanın birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-sis-far-cercevesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-sis-far-cercevesi-2.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-sis-far-cercevesi-3.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-sis-far-cercevesi-4.jpg"
+    ]
+  },
+  {
     "id": "vw-golf7-hvac-flap-aktuator-dislisi",
     "kategori": "Otomobil",
     "marka": ["Volkswagen"],
