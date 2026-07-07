@@ -1,5 +1,19 @@
 [
   {
+    "id": "toyota-avensis-verso-havalandirma-izgara-onarim",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota Avensis Verso Torpido Havalandırma Izgarası Onarım Kiti (55650-44080)",
+    "aciklama": "Toyota Avensis Verso (2001-2003) için torpido gözü hava çıkış ızgarası ayar kolu onarım kiti, sağ ve sol. Havalandırma kanadının doğru konumlanmasını ve hava akışını sağlar. Kırılan/aşınan orijinal kolun birebir yedeğidir. Orijinal 55650-44080 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-avensis-verso-havalandirma-izgara-1.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-avensis-verso-havalandirma-izgara-2.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-avensis-verso-havalandirma-izgara-3.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-avensis-verso-havalandirma-izgara-4.jpg"
+    ]
+  },
+  {
     "id": "opel-astra-h-geri-vites-tamir-kiti",
     "kategori": "Otomobil",
     "marka": ["Opel"],
