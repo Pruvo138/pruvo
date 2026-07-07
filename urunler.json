@@ -1,5 +1,19 @@
 [
   {
+    "id": "toyota-lexus-koltuk-motor-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Toyota", "Lexus"],
+    "baslik": "Elektrikli Koltuk Ayar Motoru Dişlisi (Toyota/Lexus)",
+    "aciklama": "Toyota Camry, Avalon, RAV4, Venza ve Lexus (2002-2017) modellerinde elektrikli koltuk ayar motorunda kullanılan dişli. Koltuk ayar motorunun hareketini aktaran dişlinin kırılması/aşınması durumunda birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/koltuk-motor-dislisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/koltuk-motor-dislisi-2.jpg",
+      "https://media.pruvo3d.com/urunler/koltuk-motor-dislisi-3.jpg",
+      "https://media.pruvo3d.com/urunler/koltuk-motor-dislisi-4.jpg"
+    ]
+  },
+  {
     "id": "audi-q7-xenon-lamba-tutucu",
     "kategori": "Otomobil",
     "marka": ["Audi"],
