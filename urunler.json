@@ -1,5 +1,19 @@
 [
   {
+    "id": "opel-astra-h-cekme-gozu-kapagi",
+    "kategori": "Otomobil",
+    "marka": ["Opel"],
+    "baslik": "Opel Astra H Ön Tampon Çekme Gözü Kapağı (90559482)",
+    "aciklama": "Opel Astra H (2004-2012) için ön tampondaki çekme gözünü (çeki demiri deliği) kapatan kapak. Kırılan/kaybolan orijinal kapağın birebir yedeğidir. Orijinal 90559482 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/opel-astra-cekme-gozu-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/opel-astra-cekme-gozu-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/opel-astra-cekme-gozu-kapagi-3.jpg",
+      "https://media.pruvo3d.com/urunler/opel-astra-cekme-gozu-kapagi-4.jpg"
+    ]
+  },
+  {
     "id": "lexus-gs-es-is-ayna-dislisi",
     "kategori": "Otomobil",
     "marka": ["Lexus", "Toyota"],
