@@ -1,5 +1,18 @@
 [
   {
+    "id": "lexus-gs-es-is-ayna-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Lexus", "Toyota"],
+    "baslik": "Lexus GS/ES/IS Ayna Rotasyon Dişlisi",
+    "aciklama": "Lexus IS, GS ve Toyota Aristo (JZZ30), SC300, SC400 modellerinde dış ayna rotasyon mekanizmasında kullanılan dişli ve vida seti. Ayna motoru içindeki kırılan/aşınan dişlinin birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/lexus-ayna-dislisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/lexus-ayna-dislisi-2.jpg",
+      "https://media.pruvo3d.com/urunler/lexus-ayna-dislisi-3.jpg"
+    ]
+  },
+  {
     "id": "toyota-lexus-koltuk-motor-dislisi",
     "kategori": "Otomobil",
     "marka": ["Toyota", "Lexus"],
