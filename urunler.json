@@ -1,5 +1,18 @@
 [
   {
+    "id": "opel-astra-h-zafira-b-silecek-motoru-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Opel"],
+    "baslik": "Opel Astra H / Zafira B Silecek Motoru Onarım Dişlisi (0390241538)",
+    "aciklama": "Opel Astra H ve Zafira B için ön cam silecek motoru dişli kutusundaki plastik onarım dişlisi. Silecek motoru içindeki mekanik tahriki ve tork aktarımını geri kazandırır. Kırılan/aşınan orijinal dişlinin birebir yedeğidir. Orijinal 0390241538 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/opel-silecek-disli-1.jpg",
+      "https://media.pruvo3d.com/urunler/opel-silecek-disli-2.jpg",
+      "https://media.pruvo3d.com/urunler/opel-silecek-disli-3.jpg"
+    ]
+  },
+  {
     "id": "toyota-chr-yakit-kapagi-mandali",
     "kategori": "Otomobil",
     "marka": ["Toyota"],
