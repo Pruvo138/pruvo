@@ -1,5 +1,19 @@
 [
   {
+    "id": "audi-q5-8r-on-camurluk-list-uzatmasi",
+    "kategori": "Otomobil",
+    "marka": ["Audi"],
+    "baslik": "Audi Q5 (8R) Ön Çamurluk Kaplama Listesi Uzatması",
+    "aciklama": "Audi Q5 (8R) için ön çamurluk kaplamasının üst kısmındaki dekoratif liste uzatma parçası. Çamurluk kenarını korur ve tamponun dış kaplama görünümünü tamamlar. Kırılan/eskiyen orijinal parçanın birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-q5-camurluk-list-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-q5-camurluk-list-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-q5-camurluk-list-3.jpg",
+      "https://media.pruvo3d.com/urunler/audi-q5-camurluk-list-4.jpg"
+    ]
+  },
+  {
     "id": "skoda-octavia2-1z-far-yikama-kapak",
     "kategori": "Otomobil",
     "marka": ["Skoda"],
