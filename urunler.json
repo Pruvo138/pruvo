@@ -1,5 +1,16 @@
 [
   {
+    "id": "toyota-chr-yakit-kapagi-mandali",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota C-HR Yakıt Kapağı Mandalı / Kilidi (77030F4010)",
+    "aciklama": "Toyota C-HR X1 (2018, 1.8 Hybrid, 2ZR-FXE motor) için yakıt (depo) kapağı açma mandalı mekanizması. Kırılan orijinal mandalın birebir yedeğidir. Orijinal 77030F4010 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-chr-yakit-kapak-mandali-1.jpg"
+    ]
+  },
+  {
     "id": "opel-astra-j-bagaj-pim-kilavuzu",
     "kategori": "Otomobil",
     "marka": ["Opel"],
