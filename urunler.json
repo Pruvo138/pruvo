@@ -1,5 +1,19 @@
 [
   {
+    "id": "toyota-vitz-rs-sis-lambasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota Vitz / Yaris RS Sis Lambası Kapağı (81482-52010)",
+    "aciklama": "Toyota Vitz (Yaris) RS (1999-2005) için ön sis lambası kapağı. Sis lambasını korur ve ön tampona düzgün bir görünüm kazandırır. Orijinal 81482-52010 numaralı parçanın birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-vitz-sis-lambasi-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-vitz-sis-lambasi-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-vitz-sis-lambasi-kapagi-3.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-vitz-sis-lambasi-kapagi-4.jpg"
+    ]
+  },
+  {
     "id": "toyota-corolla-e12-tampon-izgarasi",
     "kategori": "Otomobil",
     "marka": ["Toyota"],
