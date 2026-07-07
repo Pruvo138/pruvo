@@ -1,5 +1,18 @@
 [
   {
+    "id": "toyota-corolla-e12-tampon-izgarasi",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota Corolla E12 Ön Tampon Izgarası (52127-02130 / 52127-02160)",
+    "aciklama": "Toyota Corolla E12 (2004-2007) için ön tampon hava giriş ızgarası, sağ ve sol. Kırılan/aşınan orijinal ızgaranın birebir yedeğidir. Orijinal 52127-02130 (sol) ve 52127-02160 (sağ) numaralı parçalar. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-corolla-tampon-izgara-1.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-corolla-tampon-izgara-2.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-corolla-tampon-izgara-3.jpg"
+    ]
+  },
+  {
     "id": "mercedes-vito-aktuator-dislisi",
     "kategori": "Otomobil",
     "marka": ["Mercedes-Benz", "Volkswagen"],
