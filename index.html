@@ -384,10 +384,65 @@
 
   var products = load();
   var activeCat = "Tümü";
-  var adminMode = (location.hash.toLowerCase() === "#admin");
+  // Yönetici şifresinin SHA-256 hash'i (düz şifre kodda saklanmaz)
+  var ADMIN_HASH = "b71bedb33fb3175b40e98b8698852f2b4f8283191b6aa297033836e9948a46a2";
+  var adminMode = false;
+  var adminUnlocked = false;
+  try{ adminUnlocked = (sessionStorage.getItem("pruvo_admin_ok") === "1"); }catch(e){}
   var editingId = null;
 
-  // gizli yönetici modu: adres sonuna #admin ekleyince açılır
+  // metnin SHA-256 hash'ini hex olarak döndürür (Web Crypto, harici kütüphane yok)
+  function sha256(str){
+    var data = new TextEncoder().encode(str);
+    return crypto.subtle.digest("SHA-256", data).then(function(buf){
+      return Array.prototype.map.call(new Uint8Array(buf), function(b){
+        return ("0" + b.toString(16)).slice(-2);
+      }).join("");
+    });
+  }
+
+  function isAdminHash(){ return location.hash.toLowerCase() === "#admin"; }
+
+  // gizli yönetici modu: #admin + doğru şifre gerekir
+  function evalAdmin(){
+    if(!isAdminHash()){
+      adminMode = false;
+      applyAdminUI();
+      renderGrid();
+      return;
+    }
+    if(adminUnlocked){
+      adminMode = true;
+      applyAdminUI();
+      renderGrid();
+      return;
+    }
+    var pw = prompt("Yönetici şifresi:");
+    if(pw === null){ // iptal
+      adminMode = false;
+      applyAdminUI();
+      renderGrid();
+      return;
+    }
+    sha256(pw).then(function(h){
+      if(h === ADMIN_HASH){
+        adminUnlocked = true;
+        try{ sessionStorage.setItem("pruvo_admin_ok", "1"); }catch(e){}
+        adminMode = true;
+      }else{
+        alert("Hatalı şifre.");
+        adminMode = false;
+      }
+      applyAdminUI();
+      renderGrid();
+    })["catch"](function(){
+      alert("Şifre doğrulanamadı (tarayıcı güvenlik kısıtı). Lütfen siteyi https adresinden açın.");
+      adminMode = false;
+      applyAdminUI();
+      renderGrid();
+    });
+  }
+
   function applyAdminUI(){
     document.getElementById("adminBar").className = "admin-bar" + (adminMode ? " on" : "");
     document.getElementById("addToggle").style.display = adminMode ? "inline-flex" : "none";
@@ -396,11 +451,7 @@
       cancelEdit();
     }
   }
-  window.addEventListener("hashchange", function(){
-    adminMode = (location.hash.toLowerCase() === "#admin");
-    applyAdminUI();
-    renderGrid();
-  });
+  window.addEventListener("hashchange", evalAdmin);
 
   function load(){
     try{
@@ -534,8 +585,10 @@
   };
 
   document.getElementById("adminExit").onclick = function(){
-    if(location.hash){ location.hash = ""; }
+    adminUnlocked = false;
+    try{ sessionStorage.removeItem("pruvo_admin_ok"); }catch(e){}
     adminMode = false;
+    if(location.hash){ location.hash = ""; } // hashchange -> evalAdmin
     applyAdminUI();
     renderGrid();
   };
@@ -647,9 +700,8 @@
   };
 
   // ilk render
-  applyAdminUI();
   renderCats();
-  renderGrid();
+  evalAdmin(); // #admin ise şifre sorar, değilse normal vitrin (applyAdminUI + renderGrid içeride)
 })();
 </script>
 
