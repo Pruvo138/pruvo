@@ -1,5 +1,16 @@
 [
   {
+    "id": "karcher-k720-kontrol-pistonu",
+    "kategori": "Elektronik",
+    "marka": ["Kärcher"],
+    "baslik": "Kärcher K 7.20 Basınçlı Yıkama Kontrol Pistonu",
+    "aciklama": "Kärcher K 7.20, K 7.20 MX ve K 7.20 MXS yüksek basınçlı yıkama makineleri için kontrol pistonu (kumanda pistonu) parçası. Kırılan/aşınan orijinal pistonun birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/karcher-kontrol-piston-1.jpg"
+    ]
+  },
+  {
     "id": "opel-astra-h-zafira-b-silecek-motoru-dislisi",
     "kategori": "Otomobil",
     "marka": ["Opel"],
