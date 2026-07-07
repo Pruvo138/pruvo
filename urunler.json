@@ -1,5 +1,19 @@
 [
   {
+    "id": "mercedes-kaput-kilit-kablo-klipsi",
+    "kategori": "Otomobil",
+    "marka": ["Mercedes-Benz"],
+    "baslik": "Mercedes-Benz Kaput Kilidi Kablo Klips Braketi (A1688870060)",
+    "aciklama": "Mercedes-Benz A-Class W168 ve Vaneo W414 için kaput kilidi açma kablosunu sabitleyen ve yönlendiren klips braketi. Kaput kilidi çalışırken kablonun doğru konumda kalmasını sağlar. Kırılan orijinal parçanın birebir yedeğidir. Orijinal A1688870060 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-kaput-kablo-klips-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-kaput-kablo-klips-2.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-kaput-kablo-klips-3.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-kaput-kablo-klips-4.jpg"
+    ]
+  },
+  {
     "id": "citroen-peugeot-klape-aktuator-kolu-dislisi",
     "kategori": "Otomobil",
     "marka": ["Citroën", "Peugeot"],
