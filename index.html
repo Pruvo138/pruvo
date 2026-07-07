@@ -530,7 +530,7 @@
 
   // ürün verisini dış JSON'dan yükle, sonra ilk render'ı yap
   renderCats();
-  fetch("urunler.json")
+  fetch("urunler.json", { cache: "no-store" })
     .then(function(r){ return r.json(); })
     .then(function(data){
       PRODUCTS = data;
