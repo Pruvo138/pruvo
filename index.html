@@ -77,6 +77,39 @@
   /* ---------- MAIN ---------- */
   main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
 
+  .brand-row{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px 10px;
+    margin-bottom:18px;
+  }
+  .brand-label{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.5px;
+    text-transform:uppercase;
+    color:var(--gray-text);
+  }
+  .brand-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .brand-btn{
+    background:var(--gray-card);
+    color:var(--navy);
+    border:1px solid var(--gray-line);
+    border-radius:20px;
+    padding:6px 13px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.15s;
+  }
+  .brand-btn:hover{border-color:var(--navy-2)}
+  .brand-btn.active{
+    background:var(--navy);
+    color:#fff;
+    border-color:var(--navy);
+  }
+
   .section-title{
     font-size:20px;
     font-weight:700;
@@ -231,6 +264,10 @@
 </header>
 
 <main>
+  <div class="brand-row" id="brandRow">
+    <span class="brand-label">Marka:</span>
+    <div class="brand-chips" id="brandChips"></div>
+  </div>
   <div class="section-title" id="sectionTitle">Tüm Ürünler</div>
   <div class="grid" id="grid"></div>
   <div class="empty-state" id="emptyState" style="display:none">
@@ -285,6 +322,7 @@
     {
       id: "mercedes-glk-x204-kapikolu-cerceve",
       kategori: "Otomobil",
+      marka: ["Mercedes-Benz"],
       baslik: "Mercedes-Benz GLK X204 İç Kapı Kolu Dekoratif Çerçeve Seti",
       aciklama: "Mercedes-Benz GLK X204 (2008-2015) için ön ve arka kapı iç açma kolu çevresindeki dekoratif çerçeve seti. Kapı kolu boşluğunu fabrika görünümünde kaplayıp tamamlar. Kırılan/çatlayan orijinal çerçevenin birebir yedeğidir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "1500 TL",
@@ -298,6 +336,7 @@
     {
       id: "cam-kriko-motor-dislisi-65-dis",
       kategori: "Otomobil",
+      marka: ["Geely", "Chery"],
       baslik: "Cam Kriko Motor Dişlisi (65 Diş, 53×20 mm)",
       aciklama: "Geely MK, Chery A5, ZAZ Forza, Chery Tiggo FL/3, Renault Kangoo ve Dacia modelleri için cam kriko (elektrikli cam) motor dişlisi. 65 diş, 53 mm dış çap, 20 mm merkez delik, 13 mm genişlik. Kriko motorundan gelen torku cam kaldırma mekanizmasına aktarır. Kırılan/aşınan orijinal dişlinin birebir yedeği. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "1500 TL",
@@ -311,6 +350,7 @@
     {
       id: "briggs-stratton-ip-cekmeli-mars",
       kategori: "Bahçe",
+      marka: ["Briggs & Stratton"],
       baslik: "Briggs & Stratton İp Çekmeli Marş / Recoil Starter (593959)",
       aciklama: "Briggs & Stratton benzinli küçük motorlar (450E, 500E, 550E, 575E, 625E) için ip çekmeli (manuel) marş grubu. İple çekilen kuvveti motor kranküne aktararak motoru çalıştırır; kasnak, yay, ip ve gövde parçalarını kapsar. Çim biçme makinesi, jeneratör vb. B&S motorlarında kullanılır. Orijinal 593959 / 90-1076 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "1250 TL",
@@ -324,6 +364,7 @@
     {
       id: "kahve-makinesi-disli-seti",
       kategori: "Elektronik",
+      marka: ["Beko", "Grundig"],
       baslik: "Kahve Makinesi Dişli Seti (22+10 diş)",
       aciklama: "Kahve makineleri için yedek dişli seti: bir büyük dişli (22 diş) ve üç küçük dişli (10 diş) içerir. Makinenin PEI dişli kutusu (gearbox) içinde çalışır; motor dönüşünü dişli grubu üzerinden makine mekanizmasına aktarır. Uyumlu markalar: Thomson, Carrera, Redmond, Beko, Kambrook, Grundig, Maunfeld. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "1000 TL",
@@ -337,6 +378,7 @@
     {
       id: "vag-motor-kapak-lastik-takozu",
       kategori: "Otomobil",
+      marka: ["Audi", "Volkswagen", "Skoda", "SEAT"],
       baslik: "Motor Kapağı Lastik Takoz / Grommet (07C103226)",
       aciklama: "Audi (A6 C8, A4 B9, A5 F5, Q5 FY), Volkswagen, Skoda ve SEAT modelleri için dekoratif motor üst kapağı lastik takozu (grommet). Motor kapağını motordaki bilyalı pime sabitler ve kapak ile motor arasındaki titreşimi azaltır. Ölçü: 23,5 × 21,3 × 15 mm. Orijinal 07C103226 / 07C103226B / 03L103184 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "500 TL",
@@ -350,6 +392,7 @@
     {
       id: "audi-a6-intercooler-hortum-tutucu",
       kategori: "Otomobil",
+      marka: ["Audi"],
       baslik: "Audi A6 C8 Intercooler Hortum Tutucu Onarım Parçası (06L129616C)",
       aciklama: "Audi A6 C8 / 4K (45 TFSI mild hybrid quattro) için intercooler (turbo hava soğutucu) hortumunun kırılan bağlantı noktasını onaran tutucu parça. Motor bölmesindeki şarj havası hortumunun orijinal montaj noktasını geri kazandırır. Orijinal 06L129616C numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "500 TL",
@@ -363,6 +406,7 @@
     {
       id: "ktm-rxc-300-emme-manifoldu",
       kategori: "Motosiklet",
+      marka: ["KTM"],
       baslik: "KTM RXC 300 Karbüratör Emme Manifoldu (54830050000)",
       aciklama: "KTM RXC 300, 250/300 EXC, 250 SX, 300 XC, XC-W ve MXC modelleri için karbüratör emme manifoldu (flanş). Karbüratörü V-Force reed (dil) valf grubuna bağlar ve karbüratör ile emme sistemi arasında sızdırmaz bir bağlantı sağlar. Orijinal 54830050000 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "2000 TL",
@@ -376,6 +420,7 @@
     {
       id: "kia-ceed-jd-ic-kapi-kolu",
       kategori: "Otomobil",
+      marka: ["Kia"],
       baslik: "Kia Ceed JD İç Kapı Açma Kolu (82612-A2010)",
       aciklama: "Kia Ceed JD, Ceed SW JD ve Pro_Cee'd JD (2012-2018) için iç kapı açma kolu. Kırılan orijinal kolun birebir yedeğidir; fabrika menteşe/mekanizmasını yeniden kullanarak kapıyı içeriden açma işlevini geri kazandırır. Orijinal 82612-A2010 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "1650 TL",
@@ -389,6 +434,7 @@
     {
       id: "audi-a6-a7-c8-park-sensoru-tutucu",
       kategori: "Otomobil",
+      marka: ["Audi"],
       baslik: "Audi A6/A7 C8 Park Sensörü Tutucusu (4K0807125)",
       aciklama: "Audi A6/A7 C8 (ve S6, RS6, S7, RS7 C8) tamponlarındaki ultrasonik park sensörünü (PDC) doğru konumda sabitleyen tutucu braket. Orijinal 4K0807125 numaralı parçanın birebir yedeği; ön veya arka tampona takılır. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "1850 TL",
@@ -402,6 +448,7 @@
     {
       id: "storm-racing-jant-kapagi",
       kategori: "Otomobil",
+      marka: ["STORM Racing"],
       baslik: "STORM Racing Stil Jant Kapağı (Hubcap)",
       aciklama: "Çelik jantlar için STORM Racing tarzı dekoratif jant kapağı. Jantın ön yüzünü kaplayarak yüzeyi korur, çelik jantı gizler ve aracın dış görünümünü yeniler. Geçmeli (snap-fit) tırnaklarla kolayca monte edilir. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "2250 TL",
@@ -415,6 +462,7 @@
     {
       id: "skoda-octavia-far-fiskiye",
       kategori: "Otomobil",
+      marka: ["Skoda"],
       baslik: "Skoda Octavia vRS Far Yıkama Fıskiyesi (5E0955101C)",
       aciklama: "Skoda Octavia vRS için orijinal 5E0955101C numaralı far yıkama fıskiyesinin birebir yedeği. Far yıkama sisteminin ön parçası olup su püskürterek farlardaki kir, toz ve pislikleri temizler. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
       fiyat: "2000 TL",
@@ -446,6 +494,36 @@
   function coverOf(p){ return imagesOf(p)[0]; }
 
   var activeCat = "Tümü";
+  var activeBrand = "Tümü";
+
+  // ---------- MARKA FİLTRESİ ----------
+  // ürünlerdeki tüm markaları tekilleştirip alfabetik sırala (elle liste tutmaya gerek yok)
+  function allBrands(){
+    var seen = {};
+    var list = [];
+    PRODUCTS.forEach(function(p){
+      (p.marka || []).forEach(function(b){
+        if(!seen[b]){ seen[b] = true; list.push(b); }
+      });
+    });
+    return list.sort(function(a, b){ return a.localeCompare(b, "tr"); });
+  }
+  function renderBrands(){
+    var el = document.getElementById("brandChips");
+    var all = ["Tümü"].concat(allBrands());
+    el.innerHTML = "";
+    all.forEach(function(m){
+      var b = document.createElement("button");
+      b.className = "brand-btn" + (m === activeBrand ? " active" : "");
+      b.textContent = m;
+      b.onclick = function(){
+        activeBrand = m;
+        renderBrands();
+        renderGrid();
+      };
+      el.appendChild(b);
+    });
+  }
 
   // ---------- KATEGORİ MENÜSÜ ----------
   function renderCats(){
@@ -473,7 +551,9 @@
     title.textContent = (activeCat === "Tümü") ? "Tüm Ürünler" : activeCat + " Ürünleri";
 
     var list = PRODUCTS.filter(function(p){
-      return activeCat === "Tümü" || p.kategori === activeCat;
+      var catOk = activeCat === "Tümü" || p.kategori === activeCat;
+      var brandOk = activeBrand === "Tümü" || (p.marka && p.marka.indexOf(activeBrand) !== -1);
+      return catOk && brandOk;
     });
 
     grid.innerHTML = "";
@@ -605,6 +685,7 @@
 
   // ilk render
   renderCats();
+  renderBrands();
   renderGrid();
   openFromHash();
 })();
