@@ -1,5 +1,16 @@
 [
   {
+    "id": "vw-passat-octavia3-kalorifer-aktuator-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Volkswagen", "Skoda"],
+    "baslik": "VW Passat / Skoda Octavia III Kalorifer Klape Aktüatör Dişlisi (5Q0907511K)",
+    "aciklama": "Volkswagen Passat (2015-2019) ve Skoda Octavia III Combi için kalorifer/klima üfleme klapesi aktüatöründeki dişli. HVAC sisteminde ısıtma/soğutma hava yönünü kontrol eder. Kırılan orijinal dişlinin birebir yedeğidir. Orijinal 5Q0907511K / CZ1168807351 / DENSO CZ116880-7351 numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-passat-kalorifer-aktuator-disli-1.jpg"
+    ]
+  },
+  {
     "id": "bbs-rc-rs2-jant-gobek-kapagi-audi-a6",
     "kategori": "Otomobil",
     "marka": ["Audi", "BBS"],
