@@ -1,5 +1,18 @@
 [
   {
+    "id": "vag-cam-krikosu-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Volkswagen", "Audi", "Skoda", "Seat"],
+    "baslik": "VAG Cam Krikosu (Cam Motoru) Dişlisi (1K0959792J)",
+    "aciklama": "Volkswagen, Audi, Škoda ve Seat (VAG grubu) araçlarda elektrikli cam motoru krikosunda kullanılan dişli. Cam açma/kapama mekanizmasının kırılan/aşınan dişlisinin birebir yedeğidir. Orijinal 1K0959792J numaralı parça. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vag-cam-krikosu-dislisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/vag-cam-krikosu-dislisi-2.jpg",
+      "https://media.pruvo3d.com/urunler/vag-cam-krikosu-dislisi-3.jpg"
+    ]
+  },
+  {
     "id": "mercedes-vito-bagaj-kilit-parcasi",
     "kategori": "Otomobil",
     "marka": ["Mercedes-Benz"],
