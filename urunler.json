@@ -1,5 +1,19 @@
 [
   {
+    "id": "vw-far-yikama-kapagi",
+    "kategori": "Otomobil",
+    "marka": ["Volkswagen"],
+    "baslik": "Volkswagen Sharan Far Yıkama Kapağı (7N0807937 / 7N0807938)",
+    "aciklama": "Volkswagen Sharan MK2 / Sharan Syncro 4Motion (2011-2022) için ön tampondaki far yıkama fıskiyesi kapağı, sağ ve sol. Astarlı (boyaya hazır) olarak üretilir. Kırılan/kaybolan orijinal kapağın birebir yedeğidir. Orijinal 7N0807937 (sol) ve 7N0807938 (sağ) numaralı parçalar. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "2250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-far-yikama-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-far-yikama-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/vw-far-yikama-kapagi-3.jpg",
+      "https://media.pruvo3d.com/urunler/vw-far-yikama-kapagi-4.jpg"
+    ]
+  },
+  {
     "id": "mercedes-w124-kol-dayama-kapagi",
     "kategori": "Otomobil",
     "marka": ["Mercedes-Benz"],
