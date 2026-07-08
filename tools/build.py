@@ -127,6 +127,9 @@ PAGE_CSS = """
 
   footer{background:var(--navy-dark);color:#aeb9cd;text-align:center;padding:22px 20px;
     font-size:13.5px;letter-spacing:.5px}
+  .foot-nav{margin-top:8px}
+  .foot-nav a{color:#c7d2e4;text-decoration:none;margin:0 8px}
+  .foot-nav a:hover{color:#fff;text-decoration:underline}
 
   @media (max-width:760px){
     .detail{grid-template-columns:1fr;gap:22px}
@@ -345,6 +348,9 @@ def render_product(p, all_products):
 
 <footer>
   PRUVO &mdash; Endüstriyel Parça Üretimi | Fethiye
+  <div class="foot-nav">
+    <a href="/hakkimizda/">Hakkımızda</a> &middot; <a href="/sss/">Sıkça Sorulan Sorular</a>
+  </div>
 </footer>
 
 <script>
@@ -387,6 +393,8 @@ function pv(el,src){{
 def render_sitemap(products):
     urls = []
     urls.append((SITE + "/", "1.0", "daily"))
+    urls.append((SITE + "/hakkimizda/", "0.5", "monthly"))
+    urls.append((SITE + "/sss/", "0.5", "monthly"))
     for p in products:
         urls.append((product_url(p["id"]), "0.8", "weekly"))
     items = []
