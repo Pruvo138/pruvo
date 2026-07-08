@@ -1,5 +1,18 @@
 [
   {
+    "id": "zelmer-kiyma-makinesi-plastik-disli",
+    "kategori": "Elektronik",
+    "marka": ["Zelmer", "Bosch", "Philips", "Vitek", "Ariete"],
+    "baslik": "Zelmer Kıyma Makinesi Plastik Dişli - 12 Diş 35 mm (Emniyet Dişlisi)",
+    "aciklama": "Zelmer ve uyumlu kıyma makinelerinde motor milini helezona bağlayan plastik emniyet dişlisi (kavrama dişlisi). Makine sıkıştığında/aşırı yüklendiğinde önce bu dişli kırılarak motoru korur - yani zorlanmada bilerek feda olan parçadır. Kırıldığında makine döner ama et itmez; bu dişli değişince makine yeniden çalışır. Ölçüler: 12 diş, 35 mm çap, 5,0 mm mil deliği, 23 mm yükseklik, 14 mm kare geçme. Almadan önce eski dişlinizin diş sayısını, çapını ve kare geçme ölçüsünü karşılaştırın. Uyumlu modeller: Zelmer 586.5 / 686.5 / 786.5 ve ZMM serisi, Symbio, Vitek, Ariete, Bosch MFW3850B / MFW3540W, Melissa MGP1, Philips HR7752 / HR7754 dahil 40'tan fazla model. Dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/zelmer-kiyma-makinesi-plastik-disli-1.jpg",
+      "https://media.pruvo3d.com/urunler/zelmer-kiyma-makinesi-plastik-disli-2.jpg",
+      "https://media.pruvo3d.com/urunler/zelmer-kiyma-makinesi-plastik-disli-3.jpg"
+    ]
+  },
+  {
     "id": "sac-kurutma-makinesi-fan-pervanesi-60mm-7-kanat",
     "kategori": "Elektronik",
     "marka": [],
