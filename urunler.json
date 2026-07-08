@@ -1,5 +1,18 @@
 [
   {
+    "id": "opel-omega-vectra-far-ayar-adjuster",
+    "kategori": "Otomobil",
+    "marka": ["Opel"],
+    "baslik": "Opel Omega B / Vectra / Calibra Far Ayar Motoru Piston Ucu (Headlight Adjuster)",
+    "aciklama": "Far yükseklik ayar (far seviye) mekanizmasının plastik piston/aktuatör ucu. Bilyalı kol far reflektörüne oturur; ayar motoru döndükçe far demeti aşağı-yukarı yönlenir. Bu parça kırıldığında/aşındığında far ayarı tutmaz, reflektör oynar ya da far ayarı yapılamaz. Uzunluk ~21mm, bilyalı mafsal ~8mm. Aşınmaya dayanıklı malzeme (PA6/PA12) ile 3D baskı olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu araçlar: Opel Omega B, Vectra, Calibra. Almadan önce eski parçanızın ölçüsünü ve bilya çapını karşılaştırın.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/opel-omega-vectra-far-ayar-adjuster-1.jpg",
+      "https://media.pruvo3d.com/urunler/opel-omega-vectra-far-ayar-adjuster-2.jpg",
+      "https://media.pruvo3d.com/urunler/opel-omega-vectra-far-ayar-adjuster-3.jpg"
+    ]
+  },
+  {
     "id": "huter-yikama-valf",
     "kategori": "Elektronik",
     "marka": ["Huter", "Champion", "Vortex", "Sturm"],
