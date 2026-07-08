@@ -1,5 +1,18 @@
 [
   {
+    "id": "toyota-auris-bardaklik-kapagi",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota Auris Bardaklık Kapağı",
+    "aciklama": "Toyota Auris orta konsolundaki bardaklık (cup holder) kapağı/örtüsü. Kırılan/kaybolan orijinal kapağın birebir yedeğidir; klipsleriyle yerine oturur ve konsola şık, tamamlanmış bir görünüm verir. Ölçüleri birebir doğrulanmış, dayanıklı ABS malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-auris-bardaklik-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-auris-bardaklik-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-auris-bardaklik-kapagi-3.jpg"
+    ]
+  },
+  {
     "id": "vw-golf-superb-klima-hava-dagitim-dislisi-5q0898001",
     "kategori": "Otomobil",
     "marka": ["Volkswagen", "Skoda"],
