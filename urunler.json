@@ -1,5 +1,18 @@
 [
   {
+    "id": "volvo-aktuator-tahrik-mili-drive-31293737",
+    "kategori": "Otomobil",
+    "marka": ["Volvo"],
+    "baslik": "Volvo Gaz Kelebeği / Emme Aktüatör Tahrik Mili (Drive) - 31293737",
+    "aciklama": "Volvo'da gaz kelebeği / emme manifold (kelebek) aktüatörünün içinde, motor dişlisinden gelen hareketi kelebek/kanat miline aktaran plastik tahrik mili (drive). Üstteki kare geçme aktüatör mekanizmasına, alttaki delikli kol ise kelebek koluna bağlanır. Bu küçük parça aşındığında/sıyrıldığında aktüatör motoru döner ama kelebek hareket etmez; motor arıza lambası yanar, güç kaybı ya da rölanti sorunu olur. Genelde tüm aktüatörü değiştirmek yerine sadece bu parçayı takmak sorunu çözer. Orijinal parça numarası: 31293737. Almadan önce eski parçanızla kare geçme ve delik ölçülerini karşılaştırın. Uyumlu araç: Volvo (Bosch aktüatörlü modeller). Dayanıklı malzeme ile 3D baskı olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/volvo-aktuator-tahrik-mili-drive-31293737-1.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-aktuator-tahrik-mili-drive-31293737-2.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-aktuator-tahrik-mili-drive-31293737-3.jpg"
+    ]
+  },
+  {
     "id": "seat-alhambra-vw-sharan-jant-gobek-kapagi-7m7601149a",
     "kategori": "Otomobil",
     "marka": ["Seat", "Volkswagen"],
