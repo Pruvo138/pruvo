@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>İletişim — PRUVO 3D Baskı Yedek Parça | Fethiye</title>
-<meta name="description" content="PRUVO iletişim: telefon +90 532 595 4005, e-posta info@pruvo3d.com, adres Adnan Menderes Blv. No:303, 48300 Fethiye/Muğla. Çalışma saatleri Pazartesi–Cumartesi 09:00–18:00.">
+<meta name="description" content="PRUVO iletişim: WhatsApp, telefon, e-posta ve adres bilgilerimiz. Adnan Menderes Blv. No:303, 48300 Fethiye/Muğla. Çalışma saatleri Pazartesi–Cumartesi 09:00–18:00.">
 <link rel="canonical" href="https://pruvo3d.com/iletisim/">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2312294d'/><text x='50' y='55' font-family='Arial,Helvetica,sans-serif' font-size='72' font-weight='800' fill='%23ffffff' text-anchor='middle' dominant-baseline='central'>P</text></svg>">
@@ -15,7 +15,7 @@
 <meta property="og:description" content="Telefon, WhatsApp, e-posta ve adres bilgilerimiz. Fethiye.">
 <meta property="og:url" content="https://pruvo3d.com/iletisim/">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"LocalBusiness","name":"PRUVO","description":"3D baskı ile tekne, otomobil, motosiklet ve ev/sanayi cihazları için yedek parça üretimi.","url":"https://pruvo3d.com/","email":"info@pruvo3d.com","telephone":"+905325954005","areaServed":"TR","address":{"@type":"PostalAddress","streetAddress":"Adnan Menderes Blv. No:303","postalCode":"48300","addressLocality":"Fethiye","addressRegion":"Muğla","addressCountry":"TR"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"09:00","closes":"18:00"}]}
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"PRUVO","description":"3D baskı ile tekne, otomobil, motosiklet ve ev/sanayi cihazları için yedek parça üretimi.","url":"https://pruvo3d.com/","telephone":"+905325954005","areaServed":"TR","address":{"@type":"PostalAddress","streetAddress":"Adnan Menderes Blv. No:303","postalCode":"48300","addressLocality":"Fethiye","addressRegion":"Muğla","addressCountry":"TR"},"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"09:00","closes":"18:00"}]}
 </script>
 <style>
   :root{
@@ -118,11 +118,11 @@
       </span>
     </a>
 
-    <a class="c-row" href="mailto:info@pruvo3d.com">
+    <a class="c-row" id="emailRow" href="#" rel="nofollow">
       <span class="c-ic"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg></span>
       <span class="c-body">
         <span class="c-label">E-posta</span>
-        <span class="c-value">info@pruvo3d.com</span>
+        <span class="c-value" id="emailText">e-posta için tıklayın</span>
       </span>
     </a>
 
@@ -156,6 +156,18 @@
     </a>
   </div>
 </main>
+
+<script>
+// E-posta adresi kaynağa düz yazılmaz; botlara karşı tarayıcıda birleştirilir.
+(function(){
+  var u = "info", d = ["pruvo3d", "com"].join(".");
+  var addr = u + "@" + d;
+  var row = document.getElementById("emailRow");
+  var txt = document.getElementById("emailText");
+  if(row){ row.setAttribute("href", "mailto:" + addr); }
+  if(txt){ txt.textContent = addr; }
+})();
+</script>
 
 <footer>
   PRUVO &mdash; Endüstriyel Parça Üretimi | Fethiye
