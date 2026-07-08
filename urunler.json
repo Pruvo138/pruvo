@@ -1,5 +1,18 @@
 [
   {
+    "id": "kayo-k2-yakit-deposu-destegi-sag-sol",
+    "kategori": "Motosiklet",
+    "marka": ["Kayo"],
+    "baslik": "Kayo K2 Motosiklet Yakıt Deposu (Depo) Desteği Seti - Sağ ve Sol",
+    "aciklama": "Kayo K2 motosikletlerde yakıt deposunu şasiye bağlayan sağ ve sol depo destek (kulak) parçası seti. Zamanla kırılan orijinal destek parçalarının yerine takılır; deponun sağlam ve titremeden sabitlenmesini sağlar. Set sağ + sol olarak gelir. Ölçüleri birebir doğrulanmış, baskısı test edilmiştir; dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kayo-k2-yakit-deposu-destegi-1.jpg",
+      "https://media.pruvo3d.com/urunler/kayo-k2-yakit-deposu-destegi-2.jpg",
+      "https://media.pruvo3d.com/urunler/kayo-k2-yakit-deposu-destegi-3.jpg"
+    ]
+  },
+  {
     "id": "toyota-4runner-hilux-avm-413-hub-halkasi",
     "kategori": "Otomobil",
     "marka": ["Toyota"],
