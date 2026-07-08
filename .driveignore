@@ -1,0 +1,5 @@
+# Google Drive for Desktop güvenlik ağı.
+# Bu repo ASLA Google Drive/iCloud/Dropbox gibi senkronlu bir klasöre konmamalı.
+# Yine de bir gün yanlışlıkla mirror'a eklenirse, Drive bu klasördeki
+# HİÇBİR şeyi senkronlamasın diye her şeyi yok sayıyoruz.
+*
