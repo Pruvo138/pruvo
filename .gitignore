@@ -5,3 +5,10 @@ CLAUDE.md
 urun-kaynaklari.json
 .urun-kaynaklari.json
 gorseller/
+
+# build.py çıktıları — artık GitHub Actions (CI) üretip yayınlıyor,
+# git'te/lokalde tutulmuyor (repo minimum kalsın diye).
+/urun/
+/sitemap.xml
+/robots.txt
+/.nojekyll
