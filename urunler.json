@@ -1,5 +1,18 @@
 [
   {
+    "id": "saab-9-3-9-5-gaz-kelebegi-disli-tamir-seti",
+    "kategori": "Otomobil",
+    "marka": ["Saab"],
+    "baslik": "Saab 9-3 / 9-5 Gaz Kelebeği (Throttle Body) Dişli Tamir Seti",
+    "aciklama": "Saab araçların elektronik gaz kelebeği (throttle body) gövdesinde zamanla dişleri aşınan/kırılan yay şeklindeki dişli sektörünün tamir seti. Bu dişli bozulunca araç arıza lambası yakar, gaz tutmaz ya da rölantide düzensiz çalışır; komple gaz kelebeğini değiştirmek yerine bu seti takarak sorunu çözersiniz. Set birden fazla parçadan oluşur, montaj M3 cıvata ile yapılır ve adım adım sökme/takma gerektirir. Ölçüleri birebir doğrulanmış, baskısı test edilmiştir; yüksek dayanımlı malzeme (PA6, PA12 veya PETG) ile 3D baskı olarak üretilir.",
+    "fiyat": "2250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/saab-gaz-kelebegi-disli-tamir-seti-1.jpg",
+      "https://media.pruvo3d.com/urunler/saab-gaz-kelebegi-disli-tamir-seti-2.jpg",
+      "https://media.pruvo3d.com/urunler/saab-gaz-kelebegi-disli-tamir-seti-3.jpg"
+    ]
+  },
+  {
     "id": "grunhelm-kiyma-makinesi-sebze-dograyici-kavramasi",
     "kategori": "Elektronik",
     "marka": ["Grunhelm"],
