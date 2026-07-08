@@ -1,5 +1,18 @@
 [
   {
+    "id": "generic-trigger-50-sm-benzin-depo-kapagi",
+    "kategori": "Motosiklet",
+    "marka": ["Generic"],
+    "baslik": "Generic Trigger 50 SM Motosiklet Benzin Depo Kapağı (Conta Dahil)",
+    "aciklama": "Generic Trigger 50 SM motosiklet için benzin (yakıt) deposu kapağı - conta ile birlikte. Çevirmeli tırtıklı kapak, ortasında havalandırma deliği bulunur; alttaki conta sızdırmazlığı sağlar. Orijinali kırıldığında, kapağı kaybolduğunda ya da conta sertleşip yakıt/koku kaçırdığında bu set takılır. Almadan önce eski kapağınızın çapını ve geçme/vida ölçüsünü karşılaştırın. Uyumlu: Generic Trigger 50 SM. Yakıta dayanıklı malzeme ile 3D baskı olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/generic-trigger-50-sm-benzin-depo-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/generic-trigger-50-sm-benzin-depo-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/generic-trigger-50-sm-benzin-depo-kapagi-3.jpg"
+    ]
+  },
+  {
     "id": "vag-merkezi-kilit-pompasi-modul-dislisi-701959783a",
     "kategori": "Otomobil",
     "marka": ["Volkswagen", "Audi", "Seat", "Skoda"],
