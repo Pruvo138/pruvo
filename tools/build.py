@@ -349,7 +349,7 @@ def render_product(p, all_products):
 <footer>
   PRUVO &mdash; Endüstriyel Parça Üretimi | Fethiye
   <div class="foot-nav">
-    <a href="/hakkimizda/">Hakkımızda</a> &middot; <a href="/sss/">Sıkça Sorulan Sorular</a>
+    <a href="/hakkimizda/">Hakkımızda</a> &middot; <a href="/sss/">Sıkça Sorulan Sorular</a> &middot; <a href="/iletisim/">İletişim</a>
   </div>
 </footer>
 
@@ -395,6 +395,7 @@ def render_sitemap(products):
     urls.append((SITE + "/", "1.0", "daily"))
     urls.append((SITE + "/hakkimizda/", "0.5", "monthly"))
     urls.append((SITE + "/sss/", "0.5", "monthly"))
+    urls.append((SITE + "/iletisim/", "0.6", "monthly"))
     for p in products:
         urls.append((product_url(p["id"]), "0.8", "weekly"))
     items = []
