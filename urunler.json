@@ -1,5 +1,18 @@
 [
   {
+    "id": "hyundai-santa-fe-bagaj-rafi-kolu",
+    "kategori": "Otomobil",
+    "marka": ["Hyundai"],
+    "baslik": "Hyundai Santa Fe Bagaj Rafı (Portbagaj Kapağı) Kolu",
+    "aciklama": "Hyundai Santa Fe araçlarda bagaj rafını (portbagaj kapağını / arka parselini) kaldırırken tutulan plastik kol. Menteşe/tutucu ayağı kırılan, yorulan orijinal kolun birebir yedeğidir; vidalarıyla yerine monte edilir. Baskı kolaylığı için iki parça hâlinde basılıp yapıştırılabilir. Ölçüleri birebir doğrulanmış; dayanıklı ABS malzeme ile 3D baskı olarak üretilir. Baskısı test edilmiştir.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/hyundai-santa-fe-bagaj-rafi-kolu-1.jpg",
+      "https://media.pruvo3d.com/urunler/hyundai-santa-fe-bagaj-rafi-kolu-2.jpg",
+      "https://media.pruvo3d.com/urunler/hyundai-santa-fe-bagaj-rafi-kolu-3.jpg"
+    ]
+  },
+  {
     "id": "toyota-avensis-t210-220-bagaj-kolu-trim",
     "kategori": "Otomobil",
     "marka": ["Toyota"],
