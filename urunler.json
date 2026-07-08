@@ -1,5 +1,18 @@
 [
   {
+    "id": "husqvarna-236-mars-ip-makarasi",
+    "kategori": "Bahçe",
+    "marka": ["Husqvarna"],
+    "baslik": "Husqvarna 236 Motorlu Testere Marş İpi Makarası (Geri Sarma Makarası)",
+    "aciklama": "Motorlu testerenin marş (starter) ip makarası / geri sarma makarası. Marş ipi bu makaraya sarılır; ip çekilince makara döner ve motoru çalıştırır, yay ile geri sarar. Makara çatladığında/kırıldığında ip sarmaz, çekiş boşa gider ya da motor marş almaz. Aşınmaya dayanıklı malzeme (PA6/PA12/PETG) ile 3D baskı olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu: Husqvarna 236 motorlu testere. Almadan önce eski makaranızın çapını ve mil yuvasını karşılaştırın.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/husqvarna-236-mars-ip-makarasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/husqvarna-236-mars-ip-makarasi-2.jpg",
+      "https://media.pruvo3d.com/urunler/husqvarna-236-mars-ip-makarasi-3.jpg"
+    ]
+  },
+  {
     "id": "bosch-arm-cim-bicme-fan-makara",
     "kategori": "Bahçe",
     "marka": ["Bosch"],
