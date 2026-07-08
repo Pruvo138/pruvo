@@ -1,5 +1,18 @@
 [
   {
+    "id": "canon-efs-18-135mm-parasoley-lens-hood",
+    "kategori": "Elektronik",
+    "marka": ["Canon"],
+    "baslik": "Canon EF-S 18-135mm Lens Parasoleyi (Lens Hood)",
+    "aciklama": "Canon EF-S 18-135mm zoom lensler için tasarlanmış yaprak (petal) tipi parasoley (lens hood). Yan taraftan gelen istenmeyen ışığı keserek parlama/leke (flare) oluşumunu azaltır ve kontrastı artırır; ayrıca lens ön camını darbe ve çiziklere karşı korur. Orijinal parasoley gibi bayonet ile lense oturur. Ölçüleri birebir doğrulanmış ve gerçek lens üzerinde test edilmiştir; dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/canon-efs-18-135mm-parasoley-lens-hood-1.jpg",
+      "https://media.pruvo3d.com/urunler/canon-efs-18-135mm-parasoley-lens-hood-2.jpg",
+      "https://media.pruvo3d.com/urunler/canon-efs-18-135mm-parasoley-lens-hood-3.jpg"
+    ]
+  },
+  {
     "id": "line6-pil-kapagi-kablosuz-mikrofon",
     "kategori": "Elektronik",
     "marka": ["Line 6"],
