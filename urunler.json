@@ -1,5 +1,18 @@
 [
   {
+    "id": "dpm-sl8808-dilimleme-makinesi-dislisi",
+    "kategori": "Elektronik",
+    "marka": ["DPM", "Clatronic"],
+    "baslik": "DPM SL8808 / Clatronic MA 2964 Dilimleme Makinesi Dişlisi (Çift Kademeli)",
+    "aciklama": "Elektrikli dilimleme (jambon/ekmek) makinelerinde motoru bıçağa bağlayan çift kademeli plastik dişli. Bir tarafında büyük dişli, diğer tarafında küçük pinyon aynı gövdede birleşik. Dişleri aşınan/kırılan orijinal dişli yüzünden makine döner ama bıçak dönmez ya da ses yapar; bu parça takılınca hareket düzgün aktarılır. Ölçüler: büyük dişli 43 mm çap - 40 diş, küçük dişli (pinyon) 21,5 mm çap - 14 diş, toplam yükseklik 34 mm, mil deliği 6 mm. Almadan önce eski dişlinizin diş sayılarını, çaplarını ve mil deliğini karşılaştırın. Uyumlu modeller: DPM SL8808, Clatronic MA 2964. Dayanıklı malzeme ile 3D baskı olarak üretilir; ölçüleri birebir doğrulanmıştır.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dpm-sl8808-dilimleme-makinesi-dislisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/dpm-sl8808-dilimleme-makinesi-dislisi-2.jpg",
+      "https://media.pruvo3d.com/urunler/dpm-sl8808-dilimleme-makinesi-dislisi-3.jpg"
+    ]
+  },
+  {
     "id": "zelmer-kiyma-makinesi-plastik-disli",
     "kategori": "Elektronik",
     "marka": ["Zelmer", "Bosch", "Philips", "Vitek", "Ariete"],
