@@ -1,5 +1,18 @@
 [
   {
+    "id": "bosch-arm-cim-bicme-fan-makara",
+    "kategori": "Bahçe",
+    "marka": ["Bosch"],
+    "baslik": "Bosch ARM Çim Biçme Makinesi Motor Fanı (İmpeller) + Kayış Makarası Seti",
+    "aciklama": "Bosch ARM serisi elektrikli çim biçme makinesinin motor soğutma fanı (impeller) ve kayış makarası (pulley) ikilisi. Fan motoru soğutur, makara bıçak tahrikini döndürür; bu parçalar kırıldığında/aşındığında makine ısınır, titreşir ya da bıçak dönmez. Set 2 parçadır: fan PETG'den, makara PA6'dan basılır. Montaj: motor mili 15mm derinliğe kadar taşlanıp M8 diş açılır, ardından M8 kilitli (naylon contalı) somunla sabitlenir. Ölçüleri doğrulanmış, basılıp test edilmiştir. Almadan önce eski parçalarınızın ölçüsünü ve mil çapını karşılaştırın.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bosch-arm-cim-bicme-fan-makara-1.jpg",
+      "https://media.pruvo3d.com/urunler/bosch-arm-cim-bicme-fan-makara-2.jpg",
+      "https://media.pruvo3d.com/urunler/bosch-arm-cim-bicme-fan-makara-3.jpg"
+    ]
+  },
+  {
     "id": "bmw-e30-e36-motor-kapagi-tutucu-1180507",
     "kategori": "Otomobil",
     "marka": ["BMW"],
