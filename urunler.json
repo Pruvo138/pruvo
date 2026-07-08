@@ -1,5 +1,18 @@
 [
   {
+    "id": "mitsubishi-pajero-sport-kilit-aktuator-dislisi",
+    "kategori": "Otomobil",
+    "marka": ["Mitsubishi"],
+    "baslik": "Mitsubishi Pajero Sport Kapı Kilit Aktüatör (Merkezi Kilit Motoru) Dişlisi",
+    "aciklama": "Mitsubishi Pajero Sport araçlarda kapı merkezi kilit aktüatörünün (kilit motoru) içindeki dişli parçası. Zamanla dişleri aşınan/kırılan orijinal dişli yüzünden kilit çalışmaz ya da boşa döner; bu parça takılınca kapı kilidi tekrar düzgün açılıp kapanır. Aktüatörün tamamını değiştirmek yerine sadece dişliyi yenileyerek tasarruf sağlar. Ölçüleri birebir doğrulanmış, baskısı test edilmiştir; yüksek dayanımlı takviyeli malzeme (PA6+GF30 cam elyaf katkılı) ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mitsubishi-pajero-sport-kilit-dislisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mitsubishi-pajero-sport-kilit-dislisi-2.jpg",
+      "https://media.pruvo3d.com/urunler/mitsubishi-pajero-sport-kilit-dislisi-3.jpg"
+    ]
+  },
+  {
     "id": "kayo-k2-yakit-deposu-destegi-sag-sol",
     "kategori": "Motosiklet",
     "marka": ["Kayo"],
