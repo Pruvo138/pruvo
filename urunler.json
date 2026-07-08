@@ -1,5 +1,18 @@
 [
   {
+    "id": "renault-scenic-2-bagaj-kilit-motoru-disli-somun",
+    "kategori": "Otomobil",
+    "marka": ["Renault"],
+    "baslik": "Renault Scenic 2 Bagaj Kilit Motoru Dişli Somunu (Trunk Lock Actuator Gear Nut)",
+    "aciklama": "Renault Scenic 2 bagaj kilidi motorunun (actuator) içindeki çift dişli plastik somun. Motorun dönüşünü mile aktararak kilit dilini çeker; iç dişleri sıyırdığında/kırıldığında bagaj kilidi çalışmaz, motor döner ama kilit açılmaz/kapanmaz ya da boşta döner. İçindeki çift yönlü vida dişi ve yan kanatları orijinaline birebir uyar. Aşınmaya dayanıklı malzeme (PA6/PETG) ile 3D baskı olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu araç: Renault Scenic 2. Almadan önce eski parçanızla karşılaştırın.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/renault-scenic-2-bagaj-kilit-motoru-disli-somun-1.jpg",
+      "https://media.pruvo3d.com/urunler/renault-scenic-2-bagaj-kilit-motoru-disli-somun-2.jpg",
+      "https://media.pruvo3d.com/urunler/renault-scenic-2-bagaj-kilit-motoru-disli-somun-3.jpg"
+    ]
+  },
+  {
     "id": "ebike-motor-dislisi-31dis-41-5mm-625",
     "kategori": "Elektronik",
     "marka": [],
