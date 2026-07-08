@@ -1,5 +1,18 @@
 [
   {
+    "id": "toyota-land-cruiser-100-yakit-hatti-konnektoru",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota Land Cruiser 100 Serisi Yakıt Hattı Konnektörü (L Dirsek)",
+    "aciklama": "Toyota Land Cruiser 100 serisi araçlarda yakıtı depodan motora taşıyan hat üzerindeki L (dirsek) tipi hızlı bağlantı konnektörü. Yakıt filtresi gibi parçaların bakım/değişiminde hattın kolayca sökülüp takılmasını sağlar. Zamanla sararan, sertleşip çatlayan orijinal konnektörün birebir yedeğidir. Ölçüleri birebir doğrulanmış; yakıta ve sıcaklığa dayanıklı malzeme ile 3D baskı olarak üretilir. Baskısı test edilmiştir.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-land-cruiser-100-yakit-hatti-konnektoru-1.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-land-cruiser-100-yakit-hatti-konnektoru-2.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-land-cruiser-100-yakit-hatti-konnektoru-3.jpg"
+    ]
+  },
+  {
     "id": "hyundai-galloper-cam-krikosu-dislisi-824503k011",
     "kategori": "Otomobil",
     "marka": ["Hyundai", "Kia"],
