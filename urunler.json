@@ -1,5 +1,18 @@
 [
   {
+    "id": "baier-bdb832-karot-makinesi-vites-topuzu-56416",
+    "kategori": "Elektronik",
+    "marka": ["Baier"],
+    "baslik": "Baier BDB832 Elmas Karot (Delme) Makinesi Vites / Kademe Topuzu 56416",
+    "aciklama": "Baier BDB832 elmas karot (beton delme) makinesinde vitesi (kademe/hız) değiştiren kumanda topuzu - orijinal katalogda 'Schaltgriff komplett 56416' olarak geçer. Zamanla kırılan/aşınan orijinal topuzun yerine takılır; şanzımanın kademeleri arasında geçişi tekrar sağlar. Orijinal parça no 56416 (e0056416). Ölçüleri birebir doğrulanmış, baskısı test edilmiştir; dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/baier-bdb832-karot-vites-topuzu-1.jpg",
+      "https://media.pruvo3d.com/urunler/baier-bdb832-karot-vites-topuzu-2.jpg",
+      "https://media.pruvo3d.com/urunler/baier-bdb832-karot-vites-topuzu-3.jpg"
+    ]
+  },
+  {
     "id": "moulinex-hv6-kiyma-makinesi-reduktor-dislisi",
     "kategori": "Elektronik",
     "marka": ["Moulinex"],
