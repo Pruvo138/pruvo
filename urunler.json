@@ -1,5 +1,18 @@
 [
   {
+    "id": "hyundai-santafe-bagaj-perde-kancasi",
+    "kategori": "Otomobil",
+    "marka": ["Hyundai"],
+    "baslik": "Hyundai Santa Fe Bagaj Perdesi (Bagaj Rafı) Askı Kancası Sağ-Sol",
+    "aciklama": "Bagaj perdesinin (bagaj kapağı / sapka rafı) uçlarını bagaj yan panellerindeki yuvaya oturtan plastik askı kancası. Kanca kırıldığında/aşındığında perde oturmaz, düşer ya da rafta oynar. Model aynalanarak hem sağ hem sol taraf basılabilir (set). Aşınmaya dayanıklı malzeme (PETG/ABS) ile 3D baskı olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu: Hyundai Santa Fe. Almadan önce eski kancanızla karşılaştırın.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/hyundai-santafe-bagaj-perde-kancasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/hyundai-santafe-bagaj-perde-kancasi-2.jpg",
+      "https://media.pruvo3d.com/urunler/hyundai-santafe-bagaj-perde-kancasi-3.jpg"
+    ]
+  },
+  {
     "id": "husqvarna-236-mars-ip-makarasi",
     "kategori": "Bahçe",
     "marka": ["Husqvarna"],
