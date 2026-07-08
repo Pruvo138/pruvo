@@ -1,5 +1,18 @@
 [
   {
+    "id": "bmw-park-sensoru-yuvasi-66209261594-duz",
+    "kategori": "Otomobil",
+    "marka": ["BMW"],
+    "baslik": "BMW Park Sensörü (PDC) Tampon Yuvası / Tutucusu 66209261594 (Düz Flanşlı Tip)",
+    "aciklama": "BMW 3 Serisi (F30/F31), 4 Serisi (F32/F33/F36), M3 (F80) ve M4 (F82/F83) — 2012-2021 (320i, 328i, 330i, 335i, 340i, 428i, 430i, 435i, 440i) araçlarda ön/arka tampon içine park sensörünü (PDC) sabitleyen plastik yuva/tutucu. Bu, uzun düz flanşlı tampon konumu içindir (farklı tampon bölgesi için üçgen flanşlı tip ayrı üründür). Klipsleri kırılan/kaybolan orijinal yuvanın birebir yedeğidir. Orijinal parça no 66209261594. Ölçüleri birebir doğrulanmış ve sensörle uyumu test edilmiştir; dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bmw-park-sensoru-yuvasi-66209261594-duz-1.jpg",
+      "https://media.pruvo3d.com/urunler/bmw-park-sensoru-yuvasi-66209261594-duz-2.jpg",
+      "https://media.pruvo3d.com/urunler/bmw-park-sensoru-yuvasi-66209261594-duz-3.jpg"
+    ]
+  },
+  {
     "id": "citroen-c3-mk2-sis-lambasi-kapagi-9687573480",
     "kategori": "Otomobil",
     "marka": ["Citroën"],
@@ -250,8 +263,8 @@
     "id": "bmw-park-sensoru-yuvasi-66209261594",
     "kategori": "Otomobil",
     "marka": ["BMW"],
-    "baslik": "BMW Park Sensörü (PDC) Tampon Yuvası / Tutucusu 66209261594",
-    "aciklama": "BMW 3, 4 ve M Serisi (2012-2021) araçlarda tampon içine park sensörünü (PDC) sabitleyen plastik yuva/tutucu braketi. Sensörü doğru açı ve konumda tamponda tutar; klipsleri kırılan veya kaybolan orijinal yuvanın birebir yedeğidir. Orijinal parça no 66209261594. Ölçüleri birebir doğrulanmış ve sensörle uyumu test edilmiştir; dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "baslik": "BMW Park Sensörü (PDC) Tampon Yuvası / Tutucusu 66209261594 (Üçgen Flanşlı Tip)",
+    "aciklama": "BMW 3, 4 ve M Serisi (2012-2021) araçlarda tampon içine park sensörünü (PDC) sabitleyen plastik yuva/tutucu braketi. Bu, üçgen flanşlı tampon konumu içindir (farklı tampon bölgesi için düz uzun flanşlı tip ayrı üründür). Sensörü doğru açı ve konumda tamponda tutar; klipsleri kırılan veya kaybolan orijinal yuvanın birebir yedeğidir. Orijinal parça no 66209261594. Ölçüleri birebir doğrulanmış ve sensörle uyumu test edilmiştir; dayanıklı malzeme ile 3D baskı olarak üretilir.",
     "fiyat": "1000 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/bmw-park-sensoru-yuvasi-66209261594-1.jpg",
