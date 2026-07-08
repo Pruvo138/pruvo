@@ -1,5 +1,18 @@
 [
   {
+    "id": "huter-yikama-valf",
+    "kategori": "Elektronik",
+    "marka": ["Huter", "Champion", "Vortex", "Sturm"],
+    "baslik": "Huter Yüksek Basınçlı Yıkama Makinesi Anahtar Valfi (Switch Valve)",
+    "aciklama": "Yüksek basınçlı yıkama makinelerinde (basınçlı su/hidrolik yıkama) su akışını yöneten anahtar valf parçası. Vidalı (dişli) gövdesiyle pompa bloğuna oturur; içindeki valf, tetiğe basıldığında suyu geçirir. Bu parça çatladığında/aşındığında makine su kaçırır, basınç düşer ya da tetik çekilince su gelmez. Orijinaline birebir ölçülerde 3D baskı ile üretilir; basılıp test edilmiştir. Uyumlu markalar: Huter, Champion, Vortex, Sturm ve benzeri modeller. Almadan önce eski valfinizin dış çapını ve diş ölçüsünü karşılaştırın.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/huter-yikama-valf-1.jpg",
+      "https://media.pruvo3d.com/urunler/huter-yikama-valf-2.jpg",
+      "https://media.pruvo3d.com/urunler/huter-yikama-valf-3.jpg"
+    ]
+  },
+  {
     "id": "vw-audi-koltuk-kizak-makarasi-1j0882260a",
     "kategori": "Otomobil",
     "marka": ["Volkswagen", "Audi"],
