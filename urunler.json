@@ -1,5 +1,18 @@
 [
   {
+    "id": "grunhelm-kiyma-makinesi-sebze-dograyici-kavramasi",
+    "kategori": "Elektronik",
+    "marka": ["Grunhelm"],
+    "baslik": "Grunhelm Kıyma Makinesi Sebze Doğrayıcı Kavraması (Kaplin) - AMG / AU Serisi",
+    "aciklama": "Grunhelm kıyma makinelerinde sebze doğrayıcı (rende) ataşmanını motor miline bağlayan kavrama (kaplin) parçası. Zamanla çatlayan/aşınan orijinal kavrama yüzünden ataşman boşta döner ve doğramaz; bu parça takılınca doğrayıcı tekrar güçle çalışır. Uyumlu modeller: Grunhelm AMG20, AMG23, AMG140, AMG180, AU464 ve Aurora. Ölçüleri birebir doğrulanmış, baskısı test edilmiştir; dayanıklı malzeme ile 3D baskı olarak üretilir.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/grunhelm-sebze-dograyici-kavramasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/grunhelm-sebze-dograyici-kavramasi-2.jpg",
+      "https://media.pruvo3d.com/urunler/grunhelm-sebze-dograyici-kavramasi-3.jpg"
+    ]
+  },
+  {
     "id": "bosch-siemens-kiyma-makinesi-kavrama-dislisi",
     "kategori": "Elektronik",
     "marka": ["Bosch", "Siemens"],
