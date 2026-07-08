@@ -1,5 +1,18 @@
 [
   {
+    "id": "karavan-ev-kapi-sabitleyici-bilyali-tutucu",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Karavan / Kapı Sabitleyici - Bilyalı Kapı Tutucu (Açık Tutma Mandalı)",
+    "aciklama": "Kapıyı açık konumda sabit tutan bilya-yuva (ball-socket) mekanizmalı tutucu. Bir parça bilyalı pim plakası kapıya, diğer parça yuva kapağı duvara/çerçeveye vidalanır; kapı açılınca bilya yuvaya oturur ve kapı rüzgârda ya da araç hareketinde çarpmadan açık kalır. Özellikle karavan/çadır-römork kapıları için idealdir ama normal ev kapılarında da kullanılabilir. İki delikten vidayla kolayca monte edilir. Tutucu (yuva) parçası esnek TPU, pim ise PLA/PETG malzemeden 3D baskı olarak üretilir; sağlam ve sessiz tutar. İstenen renkte üretilebilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/karavan-ev-kapi-sabitleyici-bilyali-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/karavan-ev-kapi-sabitleyici-bilyali-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/karavan-ev-kapi-sabitleyici-bilyali-tutucu-3.jpg"
+    ]
+  },
+  {
     "id": "mercedes-sprinter-vito-egr-valfi-damper-burc-a6421401760",
     "kategori": "Otomobil",
     "marka": ["Mercedes-Benz", "Dodge", "Freightliner"],
