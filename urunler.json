@@ -1,5 +1,18 @@
 [
   {
+    "id": "toyota-4runner-hilux-avm-413-hub-halkasi",
+    "kategori": "Otomobil",
+    "marka": ["Toyota"],
+    "baslik": "Toyota 4Runner / Hilux AVM-413 Manuel Kilit Göbeği (Free-Wheel Hub) Tırnaklı Halkası",
+    "aciklama": "Toyota 4Runner ve Hilux 4x4 araçların ön tekerlek AVM-413 manuel kilitleme göbeğinin (free-wheel / avara göbeği) içindeki tırnaklı kilit halkası. Zamanla kırılan ya da tırnakları aşınan orijinal halkanın yerine takılır; göbeğin 4x4 konumuna düzgün geçip kilitlenmesini sağlar. AVM-413 tipi göbek kullanan 1986-1996 Hilux/4Runner ve 1998 IFS modellerine uygundur. Ölçüleri birebir doğrulanmış, baskısı test edilmiştir; yüksek dayanımlı takviyeli malzeme (PA6+GF cam elyaf katkılı) ile 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toyota-avm-413-hub-halkasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-avm-413-hub-halkasi-2.jpg",
+      "https://media.pruvo3d.com/urunler/toyota-avm-413-hub-halkasi-3.jpg"
+    ]
+  },
+  {
     "id": "bmw-r1200gs-yan-canta-braketi-46547680363",
     "kategori": "Motosiklet",
     "marka": ["BMW"],
