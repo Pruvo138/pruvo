@@ -1,5 +1,18 @@
 [
   {
+    "id": "nissan-primera-p12-kolcak-mandali",
+    "kategori": "Otomobil",
+    "marka": ["Nissan"],
+    "baslik": "Nissan Primera P12 Kolçak Kapağı Kilit Mandalı Tamir Seti",
+    "aciklama": "Nissan Primera P12 orta konsol kolçak (kol dayama) kapağının açılıp kapanmasını sağlayan kilit mandalı. Zamanla kırılan orijinal metal mandalın yerine takılır; kolçak kapağının tekrar düzgün açılıp kilitlenmesini sağlar. Set 4 parçadan oluşur ve montaj için 3 mm çapında bir metal mil gerektirir (yay orijinalinden kullanılabilir). Ölçüleri birebir doğrulanmış, baskısı test edilmiştir; PLA, ABS veya PETG malzeme ile dayanıklı şekilde 3D baskı olarak üretilir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/nissan-primera-p12-kolcak-mandali-1.jpg",
+      "https://media.pruvo3d.com/urunler/nissan-primera-p12-kolcak-mandali-2.jpg",
+      "https://media.pruvo3d.com/urunler/nissan-primera-p12-kolcak-mandali-3.jpg"
+    ]
+  },
+  {
     "id": "fiat-punto-alfa-mito-kaput-acma-kolu-735410607",
     "kategori": "Otomobil",
     "marka": ["Fiat", "Alfa Romeo"],
