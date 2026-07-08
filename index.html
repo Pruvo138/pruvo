@@ -3,8 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PRUVO — Endüstriyel Parça Üretimi</title>
+<title>PRUVO — 3D Baskı Endüstriyel & Oto Yedek Parça Üretimi | Fethiye</title>
+<meta name="description" content="PRUVO — tekne, otomobil, motosiklet ve endüstriyel cihazlar için 3D baskı yedek parça üretimi. Kırılan/aşınan orijinal parçanızın birebir yedeğini üretiyoruz. Fethiye.">
+<link rel="canonical" href="https://pruvo3d.com/">
+<meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%2312294d'/><text x='50' y='55' font-family='Arial,Helvetica,sans-serif' font-size='72' font-weight='800' fill='%23ffffff' text-anchor='middle' dominant-baseline='central'>P</text></svg>">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PRUVO">
+<meta property="og:locale" content="tr_TR">
+<meta property="og:title" content="PRUVO — 3D Baskı Endüstriyel & Oto Yedek Parça Üretimi">
+<meta property="og:description" content="Tekne, otomobil, motosiklet ve endüstriyel cihazlar için 3D baskı yedek parça üretimi. Fethiye.">
+<meta property="og:url" content="https://pruvo3d.com/">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Organization","name":"PRUVO","url":"https://pruvo3d.com/","slogan":"Endüstriyel Parça Üretimi","description":"3D baskı ile tekne/sanayi ve genel endüstriyel yedek parça üretimi.","areaServed":"TR","address":{"@type":"PostalAddress","addressLocality":"Fethiye","addressCountry":"TR"},"contactPoint":{"@type":"ContactPoint","contactType":"sales","telephone":"+905325954005"}}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"PRUVO","url":"https://pruvo3d.com/","potentialAction":{"@type":"SearchAction","target":{"@type":"EntryPoint","urlTemplate":"https://pruvo3d.com/?ara={search_term_string}"},"query-input":"required name=search_term_string"}}
+</script>
 <style>
   :root{
     --navy:#12294d;        /* ana renk - lacivert */
@@ -49,12 +64,42 @@
     color:#b9c6dc;
     margin-top:6px;
   }
+
+  /* ---------- ARAMA ---------- */
+  .search-wrap{
+    max-width:1100px;margin:20px auto 0;position:relative;
+  }
+  .search-box{
+    width:100%;
+    background:#fff;
+    border:1px solid var(--navy-2);
+    border-radius:26px;
+    padding:14px 46px 14px 46px;
+    font-size:16px;
+    color:var(--navy);
+    outline:none;
+    box-shadow:0 4px 14px rgba(0,0,0,.12);
+  }
+  .search-box::placeholder{color:#8a97a8}
+  .search-icon{
+    position:absolute;left:17px;top:50%;transform:translateY(-50%);
+    width:20px;height:20px;fill:#8a97a8;pointer-events:none;
+  }
+  .search-clear{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    width:30px;height:30px;border-radius:50%;border:none;background:var(--gray-bg);
+    color:var(--gray-text);font-size:18px;line-height:1;cursor:pointer;display:none;
+    align-items:center;justify-content:center;
+  }
+  .search-clear.show{display:flex}
+  .search-clear:hover{background:var(--gray-line)}
+
   /* kategori menüsü */
   nav.cats{
     display:flex;
     flex-wrap:wrap;
     gap:8px;
-    margin-top:20px;
+    margin-top:18px;
     padding-bottom:0;
   }
   .cat-btn{
@@ -113,8 +158,11 @@
   .section-title{
     font-size:20px;
     font-weight:700;
-    margin-bottom:18px;
+    margin-bottom:4px;
     color:var(--navy);
+  }
+  .result-count{
+    font-size:13px;color:var(--gray-text);margin-bottom:18px;
   }
 
   .grid{
@@ -132,10 +180,13 @@
     flex-direction:column;
     box-shadow:var(--shadow);
     transition:transform .15s, box-shadow .15s;
-    cursor:pointer;
   }
   .card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(18,41,77,.14)}
 
+  .card-main{
+    display:flex;flex-direction:column;flex:1;
+    text-decoration:none;color:inherit;
+  }
   .card-img{
     width:100%;
     aspect-ratio:4/3;
@@ -143,7 +194,7 @@
     background:#dbe2ec;
     display:block;
   }
-  .card-body{padding:14px 15px 16px;display:flex;flex-direction:column;flex:1}
+  .card-body{padding:14px 15px 6px;display:flex;flex-direction:column;flex:1}
   .card-cat{
     display:inline-block;
     align-self:flex-start;
@@ -157,9 +208,9 @@
     border-radius:20px;
     margin-bottom:9px;
   }
-  .card-title{font-size:16px;font-weight:700;margin-bottom:6px}
+  .card-title{font-size:16px;font-weight:700;margin-bottom:6px;line-height:1.3}
   .card-desc{font-size:13.5px;color:var(--gray-text);flex:1;margin-bottom:12px}
-  .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:4px}
   .card-price.empty{color:var(--gray-text);font-weight:600;font-size:13px}
 
   .order-btn{
@@ -167,6 +218,7 @@
     color:#fff;
     border:none;
     border-radius:8px;
+    margin:8px 15px 16px;
     padding:11px;
     font-size:14.5px;
     font-weight:700;
@@ -187,54 +239,6 @@
     color:var(--gray-text);
     padding:60px 20px;
     font-size:15px;
-  }
-
-  /* ---------- ÜRÜN DETAY PENCERESİ (MODAL) ---------- */
-  .modal-overlay{
-    display:none;
-    position:fixed;inset:0;z-index:100;
-    background:rgba(13,30,58,.66);
-    padding:20px;overflow-y:auto;
-  }
-  .modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
-  .modal{
-    background:#fff;border-radius:14px;
-    max-width:760px;width:100%;margin:auto;
-    box-shadow:0 20px 60px rgba(0,0,0,.35);
-    overflow:hidden;position:relative;
-  }
-  .modal-close{
-    position:absolute;top:12px;right:12px;z-index:2;
-    width:38px;height:38px;border-radius:50%;
-    background:rgba(255,255,255,.92);border:1px solid var(--gray-line);
-    font-size:22px;line-height:1;cursor:pointer;color:var(--navy);
-    display:flex;align-items:center;justify-content:center;
-  }
-  .modal-close:hover{background:#fff;color:var(--red)}
-  .modal-img{
-    width:100%;max-height:440px;object-fit:contain;
-    background:#eef1f5;display:block;
-  }
-  .modal-thumbs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 26px 0}
-  .modal-thumb{
-    width:62px;height:62px;object-fit:cover;border-radius:8px;
-    border:2px solid transparent;cursor:pointer;background:#eef1f5;
-  }
-  .modal-thumb:hover{border-color:var(--gray-line)}
-  .modal-thumb.active{border-color:var(--navy)}
-  .modal-body{padding:24px 26px 28px}
-  .modal-title{font-size:24px;font-weight:800;margin:12px 0 8px;color:var(--navy)}
-  .modal-price{font-size:22px;font-weight:800;color:var(--navy);margin:6px 0 18px}
-  .modal-price.empty{font-size:15px;font-weight:600;color:var(--gray-text)}
-  .modal-desc{
-    font-size:15px;color:#39434f;line-height:1.65;
-    margin-bottom:24px;white-space:pre-wrap;
-  }
-  .modal .order-btn{max-width:280px;font-size:16px;padding:14px}
-  @media (max-width:520px){
-    .modal-body{padding:18px 18px 22px}
-    .modal-title{font-size:20px}
-    .modal .order-btn{max-width:none}
   }
 
   /* ---------- FOOTER ---------- */
@@ -259,6 +263,15 @@
   <div class="header-inner">
     <div class="brand">PRUVO</div>
     <div class="brand-sub">Endüstriyel Parça Üretimi</div>
+
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+      <input id="search" class="search-box" type="search" autocomplete="off"
+             placeholder="Ürün, marka veya parça numarası ara… (örn. Mazda, silecek dişlisi, 5Q0898001)"
+             aria-label="Ürün ara">
+      <button id="searchClear" class="search-clear" aria-label="Aramayı temizle">&times;</button>
+    </div>
+
     <nav class="cats" id="cats"><!-- kategoriler JS ile --></nav>
   </div>
 </header>
@@ -269,31 +282,16 @@
     <div class="brand-chips" id="brandChips"></div>
   </div>
   <div class="section-title" id="sectionTitle">Tüm Ürünler</div>
+  <div class="result-count" id="resultCount"></div>
   <div class="grid" id="grid"></div>
   <div class="empty-state" id="emptyState" style="display:none">
-    Bu kategoride henüz ürün yok.
+    Aramanıza uygun ürün bulunamadı.
   </div>
 </main>
 
 <footer>
   PRUVO — Endüstriyel Parça Üretimi | Fethiye
 </footer>
-
-<!-- ÜRÜN DETAY PENCERESİ -->
-<div class="modal-overlay" id="detailModal">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
-    <button class="modal-close" id="detailClose" aria-label="Kapat">&times;</button>
-    <img class="modal-img" id="detailImg" alt="">
-    <div class="modal-thumbs" id="detailThumbs"></div>
-    <div class="modal-body">
-      <span class="card-cat" id="detailCat"></span>
-      <h2 class="modal-title" id="detailTitle"></h2>
-      <div id="detailPrice"></div>
-      <p class="modal-desc" id="detailDesc"></p>
-      <a class="order-btn" id="detailOrder" target="_blank" rel="noopener"></a>
-    </div>
-  </div>
-</div>
 
 <script>
 (function(){
@@ -302,7 +300,6 @@
   var WHATSAPP = "905325954005";
   var CATEGORIES = ["Marin","Otomobil","Motosiklet","Ev","Elektronik","Bahçe"];
 
-  // Basit yer tutucu görsel (lacivert zemin + kategori adı)
   function placeholder(txt){
     return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">' +
            '<rect width="400" height="300" fill="#1c3a6b"/>' +
@@ -313,39 +310,43 @@
     return "data:image/svg+xml;utf8," + encodeURIComponent(placeholder(kat));
   }
 
-  // ============================================================
-  //  ÜRÜNLER — dış dosyadan (urunler.json) yüklenir.
-  //  Görseller Cloudflare R2'de (media.pruvo3d.com), git'e görsel eklenmez.
-  //  Yeni ürün eklemek: urunler.json içine bir obje ekle.
-  // ============================================================
   var PRODUCTS = [];
 
-  // WhatsApp ikonu + sipariş linki
   var WA_ICON = '<svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.42 1.31-1.96 1.35-.5.05-.98.24-3.3-.69-2.77-1.09-4.56-3.9-4.7-4.08-.14-.19-1.12-1.49-1.12-2.84 0-1.35.71-2.02.96-2.29.24-.27.53-.34.71-.34.18 0 .35 0 .51.01.16.01.38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45.21.51.32.06.11.06.64-.18 1.32z"/></svg>';
-  // sitenin bu ürüne doğrudan linki (#urun=<id>) — canlıda gerçek adres olur
-  function productUrl(p){
-    return location.href.split("#")[0] + "#urun=" + p.id;
-  }
+
+  // her ürünün kendi kalıcı adresi — Google'da bu sayfa çıkar
+  function productUrl(p){ return "/urun/" + p.id + "/"; }
+  function productAbs(p){ return "https://pruvo3d.com/urun/" + p.id + "/"; }
   function waHref(p){
-    var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + p.baslik + "\n" + productUrl(p);
+    var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + p.baslik + "\n" + productAbs(p);
     return "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(mesaj);
   }
 
-  // ürünün görsel listesi: gorseller doluysa onu, yoksa yer tutucu
   function imagesOf(p){
     if(p.gorseller && p.gorseller.length){ return p.gorseller; }
     return [phData(p.kategori)];
   }
   function coverOf(p){ return imagesOf(p)[0]; }
 
+  // Türkçe duyarlı normalize: küçült + aksan/işaret sadeleştir
+  function norm(s){
+    return (s || "").toLocaleLowerCase("tr")
+      .replace(/ı/g,"i").replace(/İ/g,"i")
+      .replace(/ç/g,"c").replace(/ğ/g,"g").replace(/ö/g,"o")
+      .replace(/ş/g,"s").replace(/ü/g,"u").replace(/â/g,"a").replace(/î/g,"i");
+  }
+  // ürünün aranabilir metni (başlık + açıklama + marka + kategori + id/parça no)
+  function haystack(p){
+    return norm([p.baslik, p.aciklama, (p.marka||[]).join(" "),
+                 p.kategori, (p.id||"").replace(/-/g," ")].join(" "));
+  }
+
   var activeCat = "Tümü";
   var activeBrand = "Tümü";
+  var query = "";
 
-  // ---------- MARKA FİLTRESİ ----------
-  // ürünlerdeki tüm markaları tekilleştirip alfabetik sırala (elle liste tutmaya gerek yok)
   function allBrands(){
-    var seen = {};
-    var list = [];
+    var seen = {}, list = [];
     PRODUCTS.forEach(function(p){
       (p.marka || []).forEach(function(b){
         if(!seen[b]){ seen[b] = true; list.push(b); }
@@ -361,16 +362,11 @@
       var b = document.createElement("button");
       b.className = "brand-btn" + (m === activeBrand ? " active" : "");
       b.textContent = m;
-      b.onclick = function(){
-        activeBrand = m;
-        renderBrands();
-        renderGrid();
-      };
+      b.onclick = function(){ activeBrand = m; renderBrands(); renderGrid(); };
       el.appendChild(b);
     });
   }
 
-  // ---------- KATEGORİ MENÜSÜ ----------
   function renderCats(){
     var el = document.getElementById("cats");
     var all = ["Tümü"].concat(CATEGORIES);
@@ -379,27 +375,38 @@
       var b = document.createElement("button");
       b.className = "cat-btn" + (c === activeCat ? " active" : "");
       b.textContent = c;
-      b.onclick = function(){
-        activeCat = c;
-        renderCats();
-        renderGrid();
-      };
+      b.onclick = function(){ activeCat = c; renderCats(); renderGrid(); };
       el.appendChild(b);
     });
   }
 
-  // ---------- ÜRÜN GRID ----------
+  function filtered(){
+    var tokens = norm(query).split(/\s+/).filter(Boolean);
+    return PRODUCTS.filter(function(p){
+      var catOk = activeCat === "Tümü" || p.kategori === activeCat;
+      var brandOk = activeBrand === "Tümü" || (p.marka && p.marka.indexOf(activeBrand) !== -1);
+      if(!catOk || !brandOk){ return false; }
+      if(tokens.length === 0){ return true; }
+      var hs = haystack(p);
+      for(var i=0;i<tokens.length;i++){ if(hs.indexOf(tokens[i]) === -1){ return false; } }
+      return true;
+    });
+  }
+
   function renderGrid(){
     var grid = document.getElementById("grid");
     var empty = document.getElementById("emptyState");
     var title = document.getElementById("sectionTitle");
-    title.textContent = (activeCat === "Tümü") ? "Tüm Ürünler" : activeCat + " Ürünleri";
+    var count = document.getElementById("resultCount");
 
-    var list = PRODUCTS.filter(function(p){
-      var catOk = activeCat === "Tümü" || p.kategori === activeCat;
-      var brandOk = activeBrand === "Tümü" || (p.marka && p.marka.indexOf(activeBrand) !== -1);
-      return catOk && brandOk;
-    });
+    var list = filtered();
+
+    if(query.trim() !== ""){
+      title.textContent = '"' + query.trim() + '" araması';
+    }else{
+      title.textContent = (activeCat === "Tümü") ? "Tüm Ürünler" : activeCat + " Ürünleri";
+    }
+    count.textContent = list.length + " ürün";
 
     grid.innerHTML = "";
     if(list.length === 0){
@@ -411,11 +418,16 @@
     list.forEach(function(p){
       var card = document.createElement("div");
       card.className = "card";
-      card.onclick = function(){ openDetail(p); };
+
+      // kartın tıklanan kısmı = ürünün kendi sayfasına giden gerçek link
+      var main = document.createElement("a");
+      main.className = "card-main";
+      main.href = productUrl(p);
 
       var img = document.createElement("img");
       img.className = "card-img";
       img.alt = p.baslik;
+      img.loading = "lazy";
       img.src = coverOf(p);
       img.onerror = function(){ this.src = phData(p.kategori); };
 
@@ -436,12 +448,17 @@
 
       var pr = document.createElement("div");
       if(p.fiyat && p.fiyat.trim() !== ""){
-        pr.className = "card-price";
-        pr.textContent = p.fiyat;
+        pr.className = "card-price"; pr.textContent = p.fiyat;
       }else{
-        pr.className = "card-price empty";
-        pr.textContent = "Fiyat için sipariş verin";
+        pr.className = "card-price empty"; pr.textContent = "Fiyat için sipariş verin";
       }
+
+      body.appendChild(cat);
+      body.appendChild(h);
+      body.appendChild(d);
+      body.appendChild(pr);
+      main.appendChild(img);
+      main.appendChild(body);
 
       var order = document.createElement("a");
       order.className = "order-btn";
@@ -449,94 +466,51 @@
       order.target = "_blank";
       order.rel = "noopener";
       order.innerHTML = WA_ICON + ' Sipariş Ver';
-      order.onclick = function(e){ e.stopPropagation(); }; // kart detayını açma
 
-      body.appendChild(cat);
-      body.appendChild(h);
-      body.appendChild(d);
-      body.appendChild(pr);
-      body.appendChild(order);
-
-      card.appendChild(img);
-      card.appendChild(body);
+      card.appendChild(main);
+      card.appendChild(order);
       grid.appendChild(card);
     });
   }
 
-  // ---------- ÜRÜN DETAY PENCERESİ ----------
-  function openDetail(p){
-    var img = document.getElementById("detailImg");
-    var ph = phData(p.kategori);
-    var imgs = imagesOf(p);
-    img.src = imgs[0];
-    img.onerror = function(){ this.src = ph; };
-    img.alt = p.baslik;
-
-    // thumbnail şeridi (birden fazla görsel varsa)
-    var thumbs = document.getElementById("detailThumbs");
-    thumbs.innerHTML = "";
-    if(imgs.length > 1){
-      imgs.forEach(function(src, i){
-        var t = document.createElement("img");
-        t.className = "modal-thumb" + (i === 0 ? " active" : "");
-        t.src = src;
-        t.alt = p.baslik + " görsel " + (i + 1);
-        t.onclick = function(){
-          img.src = src;
-          var all = thumbs.querySelectorAll(".modal-thumb");
-          for(var k = 0; k < all.length; k++){ all[k].className = "modal-thumb"; }
-          t.className = "modal-thumb active";
-        };
-        thumbs.appendChild(t);
-      });
-    }
-
-    document.getElementById("detailCat").textContent = p.kategori;
-    document.getElementById("detailTitle").textContent = p.baslik;
-    var pr = document.getElementById("detailPrice");
-    if(p.fiyat && p.fiyat.trim() !== ""){
-      pr.className = "modal-price"; pr.textContent = p.fiyat;
-    }else{
-      pr.className = "modal-price empty"; pr.textContent = "Fiyat için sipariş verin";
-    }
-    document.getElementById("detailDesc").textContent = p.aciklama || "";
-    var order = document.getElementById("detailOrder");
-    order.href = waHref(p);
-    order.innerHTML = WA_ICON + ' Sipariş Ver';
-    document.getElementById("detailModal").classList.add("open");
-    document.body.style.overflow = "hidden";
-  }
-  function closeDetail(){
-    document.getElementById("detailModal").classList.remove("open");
-    document.body.style.overflow = "";
-  }
-  document.getElementById("detailClose").onclick = closeDetail;
-  document.getElementById("detailModal").onclick = function(e){
-    if(e.target === this){ closeDetail(); } // sadece dışına tıklayınca kapat
-  };
-  document.addEventListener("keydown", function(e){
-    if(e.key === "Escape"){ closeDetail(); }
+  // ---------- ARAMA KUTUSU ----------
+  var searchEl = document.getElementById("search");
+  var clearEl = document.getElementById("searchClear");
+  searchEl.addEventListener("input", function(){
+    query = searchEl.value;
+    clearEl.className = "search-clear" + (query ? " show" : "");
+    renderGrid();
   });
+  clearEl.onclick = function(){
+    query = ""; searchEl.value = ""; clearEl.className = "search-clear";
+    searchEl.focus(); renderGrid();
+  };
 
-  // ürün linkiyle (#urun=<id>) gelindiyse o ürünün detayını aç
-  function openFromHash(){
+  // ---------- URL PARAMETRELERİ (ürün sayfalarından dönüş + eski linkler) ----------
+  function applyUrlParams(){
+    // eski #urun=<id> linklerini yeni kalıcı adrese yönlendir
     var m = location.hash.match(/^#urun=(.+)$/);
-    if(!m){ return; }
-    var id = decodeURIComponent(m[1]);
-    var p = PRODUCTS.filter(function(x){ return x.id === id; })[0];
-    if(p){ openDetail(p); }
-  }
-  window.addEventListener("hashchange", openFromHash);
+    if(m){ location.replace("/urun/" + decodeURIComponent(m[1]) + "/"); return true; }
 
-  // ürün verisini dış JSON'dan yükle, sonra ilk render'ı yap
+    var params = new URLSearchParams(location.search);
+    var kat = params.get("kategori");
+    if(kat && (["Tümü"].concat(CATEGORIES)).indexOf(kat) !== -1){ activeCat = kat; }
+    var mar = params.get("marka");
+    if(mar){ activeBrand = mar; }
+    var ara = params.get("ara");
+    if(ara){ query = ara; searchEl.value = ara; clearEl.className = "search-clear show"; }
+    return false;
+  }
+
   renderCats();
   fetch("urunler.json", { cache: "no-store" })
     .then(function(r){ return r.json(); })
     .then(function(data){
       PRODUCTS = data;
+      if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
+      renderCats();
       renderBrands();
       renderGrid();
-      openFromHash();
     })
     .catch(function(err){
       console.error("Ürünler yüklenemedi:", err);
