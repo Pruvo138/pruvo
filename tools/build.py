@@ -282,7 +282,7 @@ def render_product(p, all_products):
             '<div class="rel-grid">%s</div></section>'
             % (esc(kategori), "".join(cards)))
 
-    title_tag = esc(baslik) + " — PRUVO 3D Baskı Yedek Parça"
+    title_tag = esc(baslik) + " — PRUVO Özel Tasarım Yedek Parça"
 
     doc = u"""<!DOCTYPE html>
 <html lang="tr">
@@ -339,7 +339,7 @@ def render_product(p, all_products):
       {price}
       <p class="desc">{aciklama}</p>
       <a class="order-btn" href="{wa}" target="_blank" rel="noopener">{icon} Sipariş Ver</a>
-      <div class="note">WhatsApp üzerinden sipariş alınır. Ürün talep üzerine 3D baskı ile üretilir.</div>
+      <div class="note">WhatsApp üzerinden sipariş alınır. Ürün talep üzerine özel olarak üretilir.</div>
     </div>
   </div>
 </main>
