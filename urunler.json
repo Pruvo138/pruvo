@@ -1,5 +1,19 @@
 [
   {
+    "id": "olcuye-ozel-profil-beam",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Ölçüye Özel Profil / Kiriş / Ekstrüzyon (I-Beam, T-Slot, Boru)",
+    "aciklama": "Kırılan ya da tam ölçüsü bulunamayan profil, kiriş, çubuk veya ekstrüzyonu ölçüsüne göre üretiyoruz. Klasik I-kiriş (I-beam), U-kanal, kare/dikdörtgen boru, köşebent ve alüminyum tarzı T-slot profiller — hepsi gerçek mühendislik ölçüleriyle.\n\nNeyi ayarlıyoruz?\n• Kesit tipi — I-beam, U-kanal, kutu/boru, köşebent, T-slot\n• Ölçü — en, yükseklik, uzunluk, et kalınlığı\n• İçi dolu ya da boşluklu (hafif)\n• Malzeme & dayanıklılık — PLA+, PETG, ASA, karbon/cam fiber takviyeli; farklı renk seçenekleri\n\nNasıl sipariş edilir?\nİhtiyacınız olan kesiti ve ölçüleri WhatsApp'tan gönderin; ölçüye göre üretip adresinize gönderelim.\n\nNot: baskı plastik profiller hafif / yük-dışı işler içindir (çerçeve, kızak, tutucu, maket, jig); ağır taşıyıcı yapısal yük için uygun değildir — kullanım yerine göre malzeme öneririz.",
+    "fiyat": "",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-profil-beam-1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-profil-beam-2.jpg"
+    ],
+    "parametrik": true,
+    "uyelik": "*****"
+  },
+  {
     "id": "olcuye-ozel-ramp-sim-takoz",
     "kategori": "Ev",
     "marka": [],
