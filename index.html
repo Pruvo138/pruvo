@@ -143,26 +143,35 @@
 
   /* ---------- YARDIM / PARÇA BUL CTA ---------- */
   .help-cta{
-    background:var(--gray-card);
-    border-bottom:1px solid var(--gray-line);
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy-2) 100%);
+    border-bottom:1px solid var(--navy-dark);
     box-shadow:var(--shadow);
   }
   .help-cta-inner{
     max-width:1100px;
     margin:0 auto;
-    padding:16px 20px;
+    padding:18px 20px;
     display:flex;
     align-items:center;
-    justify-content:center;
+    justify-content:space-between;
     flex-wrap:wrap;
-    gap:12px 18px;
-    text-align:center;
+    gap:14px 24px;
   }
-  .help-cta-text{
-    font-size:15.5px;
-    color:var(--navy);
+  .help-cta-main{flex:1 1 auto;min-width:min(100%,420px)}
+  .help-cta-title{
+    font-size:19px;font-weight:700;color:#fff;line-height:1.25;letter-spacing:.2px;
   }
-  .help-cta-text strong{font-weight:800}
+  .help-cta-title strong{font-weight:800}
+  .help-cta-feats{display:flex;flex-wrap:wrap;gap:8px 10px;margin-top:11px}
+  .hc-feat{
+    display:inline-flex;align-items:center;gap:7px;
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.18);
+    color:#d5deec;font-size:12.5px;line-height:1.3;
+    padding:6px 12px;border-radius:20px;
+  }
+  .hc-feat b{color:#fff;font-weight:700;white-space:nowrap}
+  .hc-feat::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--red);flex:none}
   .help-cta-btn{
     background:#25D366;              /* WhatsApp yeşili */
     color:#fff;
@@ -494,12 +503,18 @@
 
 <section class="help-cta">
   <div class="help-cta-inner">
-    <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
+    <div class="help-cta-main">
+      <div class="help-cta-title">Aradığınız parça yok mu? <strong>Ölçüye özel üretiyoruz.</strong></div>
+      <div class="help-cta-feats">
+        <span class="hc-feat"><b>Tam ölçü</b>&nbsp;— parçanızı milimetrik ölçüp birebir üretiriz</span>
+        <span class="hc-feat"><b>Her malzeme &amp; renk</b>&nbsp;— PLA'dan karbon fibere; ısı, UV ve deniz koşuluna dayanıklı</span>
+      </div>
+    </div>
     <a class="help-cta-btn"
-       href="https://wa.me/905325954005?text=Merhaba%2C%20arad%C4%B1%C4%9F%C4%B1m%20bir%20yedek%20par%C3%A7a%20var.%20%C3%9Cretebilir%20misiniz%3F"
+       href="https://wa.me/905325954005?text=Merhaba%2C%20arad%C4%B1%C4%9F%C4%B1m%20bir%20par%C3%A7a%20var.%20%C3%96l%C3%A7%C3%BCye%20%C3%B6zel%20%C3%BCretebilir%20misiniz%3F"
        target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.42 1.31-1.96 1.35-.5.05-.98.24-3.3-.69-2.77-1.09-4.56-3.9-4.7-4.08-.14-.19-1.12-1.49-1.12-2.84 0-1.35.71-2.02.96-2.29.24-.27.53-.34.71-.34.18 0 .35 0 .51.01.16.01.38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45.21.51.32.06.11.06.64-.18 1.32z"/></svg>
-      Bizimle İletişime Geçin
+      Ölçünü Gönder
     </a>
   </div>
 </section>
