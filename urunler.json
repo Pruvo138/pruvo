@@ -1,5 +1,21 @@
 [
   {
+    "id": "ozel-egri-boyunlu-huni",
+    "kategori": "Otomobil",
+    "marka": [],
+    "baslik": "Özel Eğri Boyunlu Huni (Dar Alan İçin — Ölçüye Özel)",
+    "aciklama": "Standart huninin sığmadığı dar ve zor noktalar için tasarlanmış, boynu kıvrımlı (S) özel huni. Motor yağı, şanzıman/diferansiyel yağı, antifriz, cam suyu gibi sıvıları köşesi dar bölmelerde dökülmeden doldurmanızı sağlar; eğri boyun sayesinde doğrudan ulaşamadığınız ağızlara sıvıyı yönlendirir. Boyun açısı, uzunluğu ve ağız/çıkış çapı ihtiyacınıza göre üretilir — sipariş verirken doldurmak istediğiniz yeri (ör. araç/motor ve dolum ağzı) belirtmeniz yeterli. Yakıt ve yağa dayanıklı malzeme (PETG) ile özel olarak üretilir. Not: gıda teması / içme suyu için önerilmez.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ozel-egri-boyunlu-huni-1.jpg",
+      "https://media.pruvo3d.com/urunler/ozel-egri-boyunlu-huni-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stensino",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "hortum-rakoru-baglanti-eki",
     "kategori": "Bahçe",
     "marka": [],
