@@ -1,5 +1,20 @@
 [
   {
+    "id": "olcuye-ozel-huni",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Ölçüye Özel Huni (Mutfak · Atölye · Eğri Boyun · Laboratuvar)",
+    "aciklama": "İhtiyacınız olan huniyi ölçüsüne göre üretiyoruz — mutfak, atölye, yağ/yakıt dolumu, laboratuvar ya da dar alan için eğri boyunlu. Geniş ağızlıdan ince uzun boyna, düz ya da açılı çıkışa kadar.\n\nNeyi ayarlıyoruz?\n• Ağız çapı & yükseklik — dolum hacmine göre\n• Boyun — uzunluk ve çap (hortuma/ağza tam), düz ya da eğri/açılı\n• Çıkış — hızlı akış için geniş, damla için ince; havalandırma kanalı opsiyonel\n• Askı deliği, süzgeç/filtre opsiyonu\n• Malzeme & dayanıklılık — PLA+, PETG (yakıta), ASA; farklı renk seçenekleri\n\nNasıl sipariş edilir?\nDolum yapacağınız ağzın ölçüsünü ve huninin kullanılacağı yeri WhatsApp'tan söyleyin; ölçüye özel üretip adresinize gönderelim.\n\nNot: gıda teması / içme suyu için malzeme uygunluğunu birlikte değerlendiririz.",
+    "fiyat": "",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-huni-1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-huni-2.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-huni-3.jpg"
+    ],
+    "parametrik": true,
+    "uyelik": "*****"
+  },
+  {
     "id": "olcuye-ozel-izgara-menfez-kapak",
     "kategori": "Tamirat",
     "marka": [],
