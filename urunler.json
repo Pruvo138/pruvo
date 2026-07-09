@@ -1,7 +1,7 @@
 [
   {
     "id": "olcuye-ozel-profil-beam",
-    "kategori": "Ev",
+    "kategori": "Tamirat",
     "marka": [],
     "baslik": "Ölçüye Özel Profil / Kiriş / Ekstrüzyon (I-Beam, T-Slot, Boru)",
     "aciklama": "Kırılan ya da tam ölçüsü bulunamayan profil, kiriş, çubuk veya ekstrüzyonu ölçüsüne göre üretiyoruz. Klasik I-kiriş (I-beam), U-kanal, kare/dikdörtgen boru, köşebent ve alüminyum tarzı T-slot profiller — hepsi gerçek mühendislik ölçüleriyle.\n\nNeyi ayarlıyoruz?\n• Kesit tipi — I-beam, U-kanal, kutu/boru, köşebent, T-slot\n• Ölçü — en, yükseklik, uzunluk, et kalınlığı\n• İçi dolu ya da boşluklu (hafif)\n• Malzeme & dayanıklılık — PLA+, PETG, ASA, karbon/cam fiber takviyeli; farklı renk seçenekleri\n\nNasıl sipariş edilir?\nİhtiyacınız olan kesiti ve ölçüleri WhatsApp'tan gönderin; ölçüye göre üretip adresinize gönderelim.\n\nNot: baskı plastik profiller hafif / yük-dışı işler içindir (çerçeve, kızak, tutucu, maket, jig); ağır taşıyıcı yapısal yük için uygun değildir — kullanım yerine göre malzeme öneririz.",
@@ -17,7 +17,7 @@
   },
   {
     "id": "olcuye-ozel-ramp-sim-takoz",
-    "kategori": "Ev",
+    "kategori": "Tamirat",
     "marka": [],
     "baslik": "Ölçüye Özel Rampa / Şim / Takoz (Seviye & Denge)",
     "aciklama": "Kapı takozu, seviye/denge şimi, yükseltici blok, rampa ya da bir düzeneğe özel takoz — hangi ölçüyü isterseniz ona göre üretiyoruz.\n\nNeyi ayarlıyoruz?\n• Ölçü — en, boy ve yükseklik birebir\n• Eğim / açı — rampa veya takoz açısı\n• Üst yüzey — düz, kademeli ya da tırtıklı (kaymaz)\n• Köşeler — keskin veya yuvarlatılmış\n• Malzeme & dayanıklılık — yüke/zemine göre (PLA+, PETG, ASA); farklı renk seçenekleri\n• İçi dolu ya da hafifletilmiş\n\nNasıl sipariş edilir?\nKullanacağınız yerin ölçülerini (en · boy · yükseklik, gerekiyorsa açı) WhatsApp'tan gönderin; ölçüye göre üretip adresinize gönderelim.\n\nNot: ağır yük altında yapısal/taşıyıcı kullanım için malzeme ve dolgu oranını birlikte belirleriz.",
@@ -32,7 +32,7 @@
   },
   {
     "id": "olcuye-ozel-oring-conta",
-    "kategori": "Ev",
+    "kategori": "Tamirat",
     "marka": [],
     "baslik": "Ölçüye Özel O-Ring / Conta (Sızdırmazlık Halkası)",
     "aciklama": "Sızdıran pompa, valf, kapak ya da bağlantıdaki O-ring / conta çoğu zaman tam ölçüde bulunamaz. Biz ölçünüze göre üretiyoruz — esnek malzemeden, yuvasına tam oturan sızdırmazlık.\n\nNeyi ayarlıyoruz?\n• İç çap — birebir ölçünüze göre\n• Kesit çapı (kalınlık) — yuvaya tam\n• Kesit profili — yuvarlak, kare, D-ring, X-ring veya pahlı\n• Sertlik & malzeme — esnek TPU (Shore A); ısı, yakıt ve UV durumuna göre seçim\n• Renk — farklı renk seçenekleri\n\nNasıl sipariş edilir?\nEski contanızın ölçülerini (iç çap + kesit) ya da parçanın fotoğrafını WhatsApp'tan gönderin; ölçüye göre üretip adresinize gönderelim.\n\nNot: içme suyu / gıda teması ve yüksek basınç için malzeme uygunluğunu birlikte değerlendiririz.",
@@ -47,7 +47,7 @@
   },
   {
     "id": "ozel-disli-kramayer-uretimi",
-    "kategori": "Elektronik",
+    "kategori": "Tamirat",
     "marka": [],
     "baslik": "Ölçüye Özel Dişli & Kramayer (Düz · Helis · Konik · Sonsuz · İç Dişli)",
     "aciklama": "Kırılan, dişi sıyrılan veya aşınan her tür plastik dişliyi ölçüsüne göre özel üretiyoruz. Düz (spur), helis (helical), çift helis (herringbone), konik (bevel), sonsuz (worm), iç dişli / halka (ring), taç (crown) dişli ve kramayer (rack) — hepsi gerçek dişli parametreleriyle (modül / diş adımı, diş sayısı, basınç açısı, helis açısı) üretilir. Kahve makinesinden aktüatöre, oyuncaktan beyaz eşyaya kadar artık bulunamayan ya da tek başına satılmayan dişlilerin birebir yedeğini çıkarırız. Sipariş verirken eski dişlinizin fotoğrafını ve ölçülerini (diş sayısı, dış çap, kalınlık, delik çapı) gönderin veya parçayı gösterin; ölçüleri çıkarıp aşınmaya dayanıklı malzeme (POM / PA6+GF / PETG) ile üretiriz. Fiyat parçanın boyutuna ve tipine göre belirlenir; eski dişlinizi ya da ölçülerinizi gönderin, teklif verelim.",
