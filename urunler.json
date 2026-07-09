@@ -1,8 +1,30 @@
 [
   {
+    "id": "vag-egr-gaz-kelebegi-disli-tamir-kiti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen",
+      "Seat",
+      "Skoda",
+      "Hyundai",
+      "Kia"
+    ],
+    "baslik": "VAG Gaz Kelebeği / EGR Dişli Tamir Kiti (Siemens VDO)",
+    "aciklama": "Siemens/VDO gaz kelebeği (throttle body) veya EGR valfi içindeki plastik dişli tamir kiti. Motorun hareketini kelebek/valf miline aktaran dişliler zamanla aşınır, dişlerini sıyırır ya da çatlar; bu durumda kelebek tam açılıp kapanmaz, rölanti dalgalanır, motor arıza lambası yanar ve araç hataya (limp mode) düşebilir. Kit; büyük dişli, sektör (kısmi) dişli ve pinyon dişliden oluşur; ölçüleri orijinaline birebir uyar. Sektör dişli, ön delme sonrası yapıştırılarak veya cıvatayla sabitlenir. Aşınmaya dayanıklı naylon (PA) malzeme ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu parça no: 4E0145950C / 4E0145950D / 4E0145950F / 4E0145950G / 4E0145950H / 4E0145950J. Uyumlu markalar: Audi, Volkswagen, Seat, Skoda, Hyundai, Kia. Almadan önce eski parçanızın dişli sayısını ve parça numarasını karşılaştırın.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vag-egr-gaz-kelebegi-dislisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/vag-egr-gaz-kelebegi-dislisi-2.jpg",
+      "https://media.pruvo3d.com/urunler/vag-egr-gaz-kelebegi-dislisi-3.jpg"
+    ]
+  },
+  {
     "id": "yunteng-vct-288-monopod-telefon-tutucu",
     "kategori": "Ev",
-    "marka": ["Yunteng"],
+    "marka": [
+      "Yunteng"
+    ],
     "baslik": "Yunteng VCT-288 Monopod / Selfie Çubuğu Telefon Tutucu (Holder / Retainer)",
     "aciklama": "Yunteng VCT-288 monopod (tek ayak / selfie çubuğu) üzerine geçen yedek telefon tutucu tepsisi. Telefonu kavrayıp monopodun başına kızaklı klipsle sabitler; orijinal tutucu kırılıp esnediğinde ya da kaybolduğunda telefon güvenli tutulamaz. Alt kızak (dovetail) ve arka vida bağlantısı orijinale birebir uyar. Sağlam gövde ABS/PLA/PETG, kavrama yüzeyi isteğe bağlı TPU (A70-A90) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu: Yunteng VCT-288. Almadan önce eski tutucunuzla ve monopod başı ölçüsüyle karşılaştırın.",
     "fiyat": "500 TL",
@@ -15,7 +37,9 @@
   {
     "id": "renault-scenic-2-bagaj-kilit-motoru-disli-somun",
     "kategori": "Otomobil",
-    "marka": ["Renault"],
+    "marka": [
+      "Renault"
+    ],
     "baslik": "Renault Scenic 2 Bagaj Kilit Motoru Dişli Somunu (Trunk Lock Actuator Gear Nut)",
     "aciklama": "Renault Scenic 2 bagaj kilidi motorunun (actuator) içindeki çift dişli plastik somun. Motorun dönüşünü mile aktararak kilit dilini çeker; iç dişleri sıyırdığında/kırıldığında bagaj kilidi çalışmaz, motor döner ama kilit açılmaz/kapanmaz ya da boşta döner. İçindeki çift yönlü vida dişi ve yan kanatları orijinaline birebir uyar. Aşınmaya dayanıklı malzeme (PA6/PETG) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu araç: Renault Scenic 2. Almadan önce eski parçanızla karşılaştırın.",
     "fiyat": "500 TL",
@@ -41,7 +65,9 @@
   {
     "id": "vw-golf4-bora-cam-kizak-kelepce-1j4837461",
     "kategori": "Otomobil",
-    "marka": ["Volkswagen"],
+    "marka": [
+      "Volkswagen"
+    ],
     "baslik": "VW Golf 4 / Bora Cam Kızağı Kelepçesi (Cam Tutucu / Carriage) 1J4837461 / 1J4837462",
     "aciklama": "VW Golf 4 ve Bora modellerinde kapı cam krikosu ile camı birbirine bağlayan plastik cam kızağı/tutucu (carriage). Camın alt kenarını kavrar, krikonun rayında yukarı-aşağı kayar. Kırıldığında cam kızaktan çıkar, yamuk iner/kalkar, aşağı düşer ya da hiç hareket etmez. Aşınmaya dayanıklı malzeme (Nylon/PA6 veya PETG) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Orijinal parça no: 1J4837461 (sol) / 1J4837462 (sağ). Uyumlu araçlar: VW Golf 4, Bora. Almadan önce eski parçanızla ve sağ/sol yönüyle karşılaştırın.",
     "fiyat": "500 TL",
@@ -67,7 +93,9 @@
   {
     "id": "volvo-s60-v60-far-braketi-31294522",
     "kategori": "Otomobil",
-    "marka": ["Volvo"],
+    "marka": [
+      "Volvo"
+    ],
     "baslik": "Volvo S60 / V60 Far (Farlar) Tutucu Braketi 31294522 / 89093257",
     "aciklama": "Volvo S60 ve V60 modellerinde farı gövdeye sabitleyen plastik tutucu braket. Farın alt/yan kulağını çamurluk-ön panele bağlar; kaza, darbe ya da plastik yorgunluğuyla kırıldığında far oynar, boşluk yapar ve titrer. Genelde ince uç kısmından ikiye ayrılır (görselde kırık orijinal ile özel üretim yeni parça bir arada). Cam elyaf takviyeli dayanıklı malzeme (PA6+GF veya PA12+GF) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Orijinal parça no: 31294522 / 89093257. Uyumlu araçlar: Volvo S60, V60. Almadan önce eski braketinizle ve montaj yönüyle karşılaştırın (sağ/sol farkı olabilir).",
     "fiyat": "1250 TL",
@@ -80,7 +108,9 @@
   {
     "id": "borbet-jant-gobek-kapagi-3221",
     "kategori": "Otomobil",
-    "marka": ["Borbet"],
+    "marka": [
+      "Borbet"
+    ],
     "baslik": "Borbet Alaşım Jant Göbek Kapağı 3221 (15\" / 16\" / 17\")",
     "aciklama": "Borbet alaşım jantların ortasındaki göbek kapağı. Jantın merkez göbeğini kapatır, arkasındaki tırnaklarıyla içeriden geçer. Kapak kaybolduğunda/kırıldığında göbek açıkta kalır, kir/su girer ve görüntü bozulur. Arka yüzünde orijinaldeki gibi 'BORBET' ve 3221 kabartması bulunur. Aşınmaya dayanıklı malzeme (ABS/PP+GF) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir (görselde orijinal ile basılan yeni parça bir arada). Uyumlu: Borbet 15\", 16\" ve 17\" jantlar, parça no 3221. Almadan önce eski kapağınızın çapını ve tırnak yapısını karşılaştırın.",
     "fiyat": "2250 TL",
@@ -93,7 +123,9 @@
   {
     "id": "magic-bullet-blender-kavrama-kaplin-mb4-1149m",
     "kategori": "Elektronik",
-    "marka": ["Magic Bullet"],
+    "marka": [
+      "Magic Bullet"
+    ],
     "baslik": "Magic Bullet Blender Motor Kavraması (Kaplin / Clutch) MB4-1149M / MB1002",
     "aciklama": "Magic Bullet blender/smoothie makinesinde, motor tabanının dönüşünü bıçak/bardak grubuna aktaran plastik kavrama (kaplin / clutch). Kanatlı yapısı üstteki bardak kavramasına, alttaki göbek motora oturur. Orijinali genelde şeffaf plastiktir ve çatlayıp ikiye ayrılır (görselde kırık orijinal); kırıldığında motor döner ama bıçak dönmez ya da boşta kalır. Aşınmaya dayanıklı malzeme (PA6/POM/PETG) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu modeller: Magic Bullet MB4-1149M, MB1002. Almadan önce eski kavramanızla karşılaştırın.",
     "fiyat": "850 TL",
@@ -106,7 +138,12 @@
   {
     "id": "vw-audi-seat-skoda-jant-gobek-kapagi-1c0071213",
     "kategori": "Otomobil",
-    "marka": ["Volkswagen", "Audi", "Seat", "Skoda"],
+    "marka": [
+      "Volkswagen",
+      "Audi",
+      "Seat",
+      "Skoda"
+    ],
     "baslik": "VW / Audi / Seat / Skoda Jant Göbek Kapağı 1C0071213",
     "aciklama": "Alaşım (çelik/alüminyum) jantın ortasındaki göbek kapağı. Jantın merkez deliğini kapatır, yaylı tırnaklarıyla içeriden geçer. Kapak kaybolduğunda/kırıldığında göbek açıkta kalır, kir/su girer ve görüntü bozulur. Aşınmaya dayanıklı ABS ile özel olarak üretilir; yaylı tırnaklı arka yapısı orijinaline birebir uyar; ölçüleri doğrulanmış ve test edilmiştir. Orijinal parça numaraları: VW 1C0071213, Audi 8L4071213, Skoda 1U0071213, Seat 1M0071213. Uyumlu markalar: Volkswagen, Audi, Seat, Skoda. Almadan önce eski kapağınızın çapını ve tırnak yapısını karşılaştırın.",
     "fiyat": "1000 TL",
@@ -132,7 +169,9 @@
   {
     "id": "honda-denso-kalorifer-kapak-motoru-sonsuz-disli-1138002320",
     "kategori": "Otomobil",
-    "marka": ["Honda"],
+    "marka": [
+      "Honda"
+    ],
     "baslik": "Honda Denso Kalorifer/Klima Kapak Ayar Motoru (Servo) Sonsuz Vida Dişlisi 1138002320",
     "aciklama": "Klima/kalorifer kutusundaki hava kapağını (flap) çeviren Denso ayar motorunun (servo) motor mili üzerindeki sonsuz vida dişlisi (worm gear). Motorun dönüşünü redüksiyon dişlisine aktarır; diş sıyırdığında/aşındığında motor döner ama kapak hareket etmez, sıcaklık/üfleme ayarı takılır ya da servo boşta döner. Üst yarık ve artı (haç) mil yuvası orijinaline birebir uyar. Aşınmaya dayanıklı malzeme (POM/PA6) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Servo etiketi: Denso MF113800-2320. Orijinal parça no 1138002320. Uyumlu araçlar: Honda Accord 7 (2002-2008), Civic 4D Hybrid, Civic VIII Sedan, CR-V (2008). Almadan önce eski dişlinizle karşılaştırın.",
     "fiyat": "850 TL",
@@ -145,7 +184,10 @@
   {
     "id": "vw-audi-kalorifer-kapak-motoru-kol-1k1907511c",
     "kategori": "Otomobil",
-    "marka": ["Volkswagen", "Audi"],
+    "marka": [
+      "Volkswagen",
+      "Audi"
+    ],
     "baslik": "VW Passat B6/B7 - Golf 5/6 - Audi Kalorifer/Klima Kapak Ayar Motoru (Servo) Plastik Kolu 1K1907511C",
     "aciklama": "Klima/kalorifer kutusundaki hava yönlendirme veya sıcaklık kapağını (flap) çeviren ayar motorunun (servo/stellmotor) içindeki plastik çıkış kolu / dişli kaplini. Yıldız (torx) geçmeli ucu kapak miline oturur; bu kol sıyırdığında/kırıldığında motor döner ama kapak dönmez, sıcaklık veya üfleme yönü ayarı takılır. Cam elyaf katkılı dayanıklı malzeme (PP+GF30 / PA6+GF) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Orijinal parça no 1K1907511C ve muadilleri: 2Q0907511E, 3C0907511, 5Q0907511L, Audi 8E1820511; Bosch 0132801362/363/370/386. Uyumlu: VW Passat B6/B7, Golf 5/6 ve Audi modelleri. Almadan önce eski parçanızla karşılaştırın.",
     "fiyat": "1000 TL",
@@ -158,7 +200,9 @@
   {
     "id": "huter-m165pw-motor-rulman-firca-yatagi",
     "kategori": "Elektronik",
-    "marka": ["Huter"],
+    "marka": [
+      "Huter"
+    ],
     "baslik": "Huter M 165 PW Basınçlı Yıkama Makinesi Motor Rulman + Kömür Fırça Yatağı",
     "aciklama": "Yüksek basınçlı yıkama makinesinin (motorlu) elektrik motorunda, motor milini taşıyan rulmanı (ortada) ve iki kömür fırçayı (yandaki kare yuvalar) tutan plastik yatak/braket. Bu parça çatladığında/kırıldığında motor mili merkezini kaybeder, fırçalar oynar, motor titrer, kıvılcım atar ya da hiç dönmez. Orijinaline birebir ölçülerde özel olarak üretilir; basılıp test edilmiştir (görselde kırık orijinal ile basılan yeni parça bir arada). Uyumlu: Huter M 165 PW yüksek basınçlı yıkama makinesi. Almadan önce eski parçanızla ve rulman ölçüsüyle karşılaştırın.",
     "fiyat": "1000 TL",
@@ -184,7 +228,9 @@
   {
     "id": "samsung-mikrodalga-kapi-mandali-ge711kr",
     "kategori": "Elektronik",
-    "marka": ["Samsung"],
+    "marka": [
+      "Samsung"
+    ],
     "baslik": "Samsung Mikrodalga Fırın Kapı Mandalı (Kilit Dili) GE711KR ve Uyumlu Modeller",
     "aciklama": "Mikrodalga fırının kapı kilit mandalı (latch). Kapı kapatıldığında bu dil gövdedeki emniyet svicine girer ve fırının çalışmasını sağlar; mandal kırıldığında kapı kilitlenmez, fırın çalışmaz ya da 'kapı açık' verir. Orijinaline birebir ölçülerde özel olarak üretilir; basılıp test edilmiştir. Malzeme ABS/PETG. Uyumlu modeller: Samsung GE711KR, GE711KRBWT, GE712BRBWT, GE712KRBWT, GE712MRBWT, GE733KR. Almadan önce eski mandalınızla karşılaştırın.",
     "fiyat": "1000 TL",
@@ -210,7 +256,9 @@
   {
     "id": "hyundai-santafe-bagaj-perde-kancasi",
     "kategori": "Otomobil",
-    "marka": ["Hyundai"],
+    "marka": [
+      "Hyundai"
+    ],
     "baslik": "Hyundai Santa Fe Bagaj Perdesi (Bagaj Rafı) Askı Kancası Sağ-Sol",
     "aciklama": "Bagaj perdesinin (bagaj kapağı / sapka rafı) uçlarını bagaj yan panellerindeki yuvaya oturtan plastik askı kancası. Kanca kırıldığında/aşındığında perde oturmaz, düşer ya da rafta oynar. Model aynalanarak hem sağ hem sol taraf basılabilir (set). Aşınmaya dayanıklı malzeme (PETG/ABS) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu: Hyundai Santa Fe. Almadan önce eski kancanızla karşılaştırın.",
     "fiyat": "1000 TL",
@@ -223,7 +271,9 @@
   {
     "id": "husqvarna-236-mars-ip-makarasi",
     "kategori": "Bahçe",
-    "marka": ["Husqvarna"],
+    "marka": [
+      "Husqvarna"
+    ],
     "baslik": "Husqvarna 236 Motorlu Testere Marş İpi Makarası (Geri Sarma Makarası)",
     "aciklama": "Motorlu testerenin marş (starter) ip makarası / geri sarma makarası. Marş ipi bu makaraya sarılır; ip çekilince makara döner ve motoru çalıştırır, yay ile geri sarar. Makara çatladığında/kırıldığında ip sarmaz, çekiş boşa gider ya da motor marş almaz. Aşınmaya dayanıklı malzeme (PA6/PA12/PETG) ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu: Husqvarna 236 motorlu testere. Almadan önce eski makaranızın çapını ve mil yuvasını karşılaştırın.",
     "fiyat": "1000 TL",
@@ -236,7 +286,9 @@
   {
     "id": "bosch-arm-cim-bicme-fan-makara",
     "kategori": "Bahçe",
-    "marka": ["Bosch"],
+    "marka": [
+      "Bosch"
+    ],
     "baslik": "Bosch ARM Çim Biçme Makinesi Motor Fanı (İmpeller) + Kayış Makarası Seti",
     "aciklama": "Bosch ARM serisi elektrikli çim biçme makinesinin motor soğutma fanı (impeller) ve kayış makarası (pulley) ikilisi. Fan motoru soğutur, makara bıçak tahrikini döndürür; bu parçalar kırıldığında/aşındığında makine ısınır, titreşir ya da bıçak dönmez. Set 2 parçadır: fan PETG'den, makara PA6'dan basılır. Montaj: motor mili 15mm derinliğe kadar taşlanıp M8 diş açılır, ardından M8 kilitli (naylon contalı) somunla sabitlenir. Ölçüleri doğrulanmış, basılıp test edilmiştir. Almadan önce eski parçalarınızın ölçüsünü ve mil çapını karşılaştırın.",
     "fiyat": "1500 TL",
@@ -249,7 +301,9 @@
   {
     "id": "bmw-e30-e36-motor-kapagi-tutucu-1180507",
     "kategori": "Otomobil",
-    "marka": ["BMW"],
+    "marka": [
+      "BMW"
+    ],
     "baslik": "BMW 3 Serisi E30 / E36 Motor (Yakıt) Kapağı Tutucusu 1180507",
     "aciklama": "Motor üstü dekoratif kapağı (enjeksiyon/yakıt sistemi kapağı) yerinde tutan plastik soket/tutucu. Kapak bu tutucuya oturur ve tırnaklarıyla sabitlenir; tutucu kırıldığında/yıprandığında kapak oturmaz, oynar ya da düşer. Orijinal parça numarası: 1180507. Aşınmaya dayanıklı malzeme ile özel olarak üretilir; ölçüleri doğrulanmış ve test edilmiştir. Uyumlu araçlar: BMW 3 Serisi E30 ve E36 (Sedan, Cabrio, Coupe, Compact, Touring), 316i-328i motor seçenekleri, 1990-2000. Almadan önce eski parçanızla karşılaştırın.",
     "fiyat": "1000 TL",
