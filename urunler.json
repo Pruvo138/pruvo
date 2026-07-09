@@ -1,5 +1,22 @@
 [
   {
+    "id": "hortum-rakoru-baglanti-eki",
+    "kategori": "Bahçe",
+    "marka": [],
+    "baslik": "Hortum Rakoru / Bağlantı Eki (Hose Barb — Ölçüye Özel)",
+    "aciklama": "İki hortumu birbirine ekleyen çift taraflı dişli (barb) rakor / bağlantı parçası. Kademeli dişli uçlar hortumun içine sıkıca girip kelepçesiz dahi kaçak yapmadan tutar; kopan, çatlayan veya kaybolan orijinal rakorun yerine kullanılır. Bahçe sulama, su transferi ve genel düşük basınçlı hortum hatları için uygundur. En büyük avantajı: hortumunuzun iç çapına göre TAM ÖLÇÜDE üretilir — sipariş verirken bağlayacağınız hortumların iç çapını (mm) belirtmeniz yeterli, gerekirse iki farklı çapı birbirine indirgeyen redüksiyon olarak da üretilir. Dayanıklı malzeme (PETG/PLA+) ile özel olarak üretilir. Not: içme suyu / gıda teması için önerilmez.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/hortum-rakoru-baglanti-eki-1.jpg",
+      "https://media.pruvo3d.com/urunler/hortum-rakoru-baglanti-eki-2.jpg",
+      "https://media.pruvo3d.com/urunler/hortum-rakoru-baglanti-eki-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stensino",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tekne-capa-demir-locasi-makarasi",
     "kategori": "Marin",
     "marka": [],
