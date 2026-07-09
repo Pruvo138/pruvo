@@ -1,5 +1,22 @@
 [
   {
+    "id": "tekne-capa-demir-locasi-makarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Çapa / Demir Loçası Makarası (Anchor Roller, 25 mm)",
+    "aciklama": "Tekne baş tarafındaki korkuluk/loça borusuna geçen çapa (demir) halatı makarası — anchor roller. Demir alırken ve atarken halatı/zinciri makara üzerinden yönlendirir; halatın güverteye veya boruya sürtünüp aşınmasını önler, düzgün ve sessiz kayar. 25 mm boru için tasarlanmıştır; yan destek (kelepçe) parçaları dahildir ancak halatı düz çektiğinizde şart değildir. Makara cıvatası M6x50 ISO 7047, yan destek cıvatası M6x30 ISO 7047 ölçüsündedir; teknelerde AISI 316L paslanmaz cıvata önerilir (cıvatalar ürüne dahil değildir). UV ve deniz koşullarına dayanıklı malzeme (ASA/PETG) ile özel olarak üretilir. Farklı boru çapı gerekiyorsa ölçüye göre üretilebilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tekne-capa-demir-locasi-makarasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/tekne-capa-demir-locasi-makarasi-2.jpg",
+      "https://media.pruvo3d.com/urunler/tekne-capa-demir-locasi-makarasi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stensino",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "yelken-bagi-cleat-lastik-halat-kilidi",
     "kategori": "Marin",
     "marka": [],
