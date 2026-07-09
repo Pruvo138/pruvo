@@ -35,6 +35,20 @@ TODAY = datetime.date.today().isoformat()
 PRICE_VALID = (datetime.date.today().replace(month=12, day=31)
                + datetime.timedelta(days=365)).isoformat()
 
+# Kaynak model CC lisanslıysa (MakerWorld / Thingiverse / Printables) atıf ZORUNLU.
+# urunler.json'da ürüne "lisans": {"tasarimci": "Ad", "tur": "CC BY 4.0"} eklenir;
+# "url" verilmezse tür kodundan aşağıdaki tablodan otomatik CC linki türetilir.
+# (******** royalty-free lisanslı ürünlerde CC atıfı yoktur; "lisans" alanı eklenmez.)
+CC_URLS = {
+    "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
+    "CC BY-SA 4.0": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "CC BY-ND 4.0": "https://creativecommons.org/licenses/by-nd/4.0/",
+    "CC BY-NC 4.0": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "CC BY-NC-SA 4.0": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+    "CC BY-NC-ND 4.0": "https://creativecommons.org/licenses/by-nc-nd/4.0/",
+    "CC0 1.0": "https://creativecommons.org/publicdomain/zero/1.0/",
+}
+
 FAVICON = ("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' "
            "viewBox='0 0 100 100'><rect width='100' height='100' rx='20' "
            "fill='%2312294d'/><text x='50' y='55' font-family='Arial,"
@@ -130,6 +144,8 @@ PAGE_CSS = """
   .foot-nav{margin-top:8px}
   .foot-nav a{color:#c7d2e4;text-decoration:none;margin:0 8px}
   .foot-nav a:hover{color:#fff;text-decoration:underline}
+  .attribution{margin-top:12px;font-size:11px;letter-spacing:.3px;color:#7d8aa3}
+  .attribution a{color:#93a1bd;text-decoration:underline}
 
   @media (max-width:760px){
     .detail{grid-template-columns:1fr;gap:22px}
@@ -174,6 +190,27 @@ def wa_href(p, url):
 
 def product_url(pid):
     return SITE + "/urun/" + pid + "/"
+
+
+def attribution_html(p):
+    """CC lisanslı kaynaklar için tasarımcı + lisans atıfı (küçük, sayfa altı).
+    Format: 'Design by <Ad>, licensed under <CC BY 4.0>.'  (isim linksiz,
+    lisans türü creativecommons linkine bağlı)."""
+    lis = p.get("lisans")
+    if not lis:
+        return ""
+    tasarimci = (lis.get("tasarimci") or "").strip()
+    tur = (lis.get("tur") or "").strip()
+    url = (lis.get("url") or CC_URLS.get(tur) or "").strip()
+    if not (tasarimci and tur):
+        return ""
+    if url:
+        lic = ('<a href="%s" target="_blank" rel="license noopener nofollow">%s</a>'
+               % (esc(url), esc(tur)))
+    else:
+        lic = esc(tur)
+    return ('<div class="attribution">Design by %s, licensed under %s.</div>'
+            % (esc(tasarimci), lic))
 
 
 # ------------------------------------------------------------------ ürün sayfası
@@ -351,6 +388,7 @@ def render_product(p, all_products):
   <div class="foot-nav">
     <a href="/hakkimizda/">Hakkımızda</a> &middot; <a href="/sss/">Sıkça Sorulan Sorular</a> &middot; <a href="/iletisim/">İletişim</a>
   </div>
+  {attribution}
 </footer>
 
 <script>
@@ -385,6 +423,7 @@ function pv(el,src){{
         wa=esc(wa_href(p, url)),
         icon=WA_ICON,
         related=rel_html,
+        attribution=attribution_html(p),
     )
     return doc
 
