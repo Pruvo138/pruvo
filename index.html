@@ -280,6 +280,15 @@
   .card-main{
     display:flex;flex-direction:column;flex:1;
     text-decoration:none;color:inherit;
+    position:relative;
+  }
+  /* Ölçüye özel (parametrik / sarı seri) rozeti */
+  .card-badge{
+    position:absolute;top:10px;left:10px;z-index:2;
+    background:#f7b500;color:#12294d;
+    font-size:11px;font-weight:800;letter-spacing:.3px;
+    padding:5px 11px;border-radius:14px;
+    box-shadow:0 2px 7px rgba(0,0,0,.20);
   }
   .card-img{
     width:100%;
@@ -566,6 +575,13 @@
   }
 
   var PRODUCTS = [];
+  var FEATURED = [];   // ana sayfada öne çıkan parametrik ("ölçüye özel") ürünler, her açılışta karışık
+
+  function shuffle(a){
+    a = a.slice();
+    for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; }
+    return a;
+  }
 
   var WA_ICON = '<svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.42 1.31-1.96 1.35-.5.05-.98.24-3.3-.69-2.77-1.09-4.56-3.9-4.7-4.08-.14-.19-1.12-1.49-1.12-2.84 0-1.35.71-2.02.96-2.29.24-.27.53-.34.71-.34.18 0 .35 0 .51.01.16.01.38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45.21.51.32.06.11.06.64-.18 1.32z"/></svg>';
 
@@ -797,6 +813,14 @@
 
     var list = filtered();
 
+    // Ana sayfa varsayılan görünümü: "ölçüye özel" ürünleri en üste, her açılışta değişen sırayla
+    if(activeCat === "Tümü" && query.trim() === "" && FEATURED.length){
+      var fid = {};
+      FEATURED.forEach(function(p){ fid[p.id] = true; });
+      var rest = list.filter(function(p){ return !fid[p.id]; });
+      list = FEATURED.concat(rest);
+    }
+
     if(query.trim() !== ""){
       title.textContent = '"' + query.trim() + '" araması';
     }else{
@@ -848,7 +872,7 @@
       if(p.fiyat && p.fiyat.trim() !== ""){
         pr.className = "card-price"; pr.textContent = p.fiyat;
       }else{
-        pr.className = "card-price empty"; pr.textContent = "Fiyat için sipariş verin";
+        pr.className = "card-price empty"; pr.textContent = p.parametrik ? "Ölçüye özel fiyat" : "Fiyat için sipariş verin";
       }
 
       body.appendChild(cat);
@@ -857,6 +881,12 @@
       body.appendChild(pr);
       main.appendChild(img);
       main.appendChild(body);
+      if(p.parametrik){
+        var badge = document.createElement("span");
+        badge.className = "card-badge";
+        badge.textContent = "Ölçüye Özel";
+        main.appendChild(badge);
+      }
 
       var order = document.createElement("button");
       order.setAttribute("data-id", p.id);
@@ -929,6 +959,7 @@
     .then(function(r){ return r.json(); })
     .then(function(data){
       PRODUCTS = data;
+      FEATURED = shuffle(PRODUCTS.filter(function(p){ return p.parametrik; })).slice(0, 4);
       loadCart();
       if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
       renderCats();

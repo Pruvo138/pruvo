@@ -110,6 +110,8 @@ PAGE_CSS = """
   .cat{display:inline-block;background:var(--navy);color:#fff;font-size:11px;
     font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:4px 11px;
     border-radius:20px}
+  .ozel-badge{display:inline-block;background:#f7b500;color:#12294d;font-size:11px;
+    font-weight:800;letter-spacing:.3px;padding:4px 11px;border-radius:20px;margin-left:8px}
   h1{font-size:27px;font-weight:800;margin:14px 0 10px;color:var(--navy);line-height:1.25}
   .brands{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
   .brand-chip{background:var(--gray-card);border:1px solid var(--gray-line);
@@ -290,9 +292,15 @@ def render_product(p, all_products):
             for b in markalar)
         brand_html = '<div class="brands">' + chips + "</div>"
 
-    # --- fiyat
+    # --- parametrik ("ölçüye özel") rozeti
+    parametrik = bool(p.get("parametrik"))
+    badge_html = '<span class="ozel-badge">Ölçüye Özel</span>' if parametrik else ''
+
+    # --- fiyat  (parametrik/sarı seride fiyat gösterilmez)
     if fiyat:
         price_html = '<div class="price">%s</div>' % esc(fiyat)
+    elif parametrik:
+        price_html = '<div class="price empty">Ölçüye özel fiyat &mdash; teklif için sipariş verin</div>'
     else:
         price_html = '<div class="price empty">Fiyat için sipariş verin</div>'
 
@@ -370,7 +378,7 @@ def render_product(p, all_products):
       {thumbs}
     </div>
     <div class="info">
-      <span class="cat">{kategori}</span>
+      <span class="cat">{kategori}</span>{badge}
       <h1>{h1}</h1>
       {brands}
       {price}
@@ -419,6 +427,7 @@ function pv(el,src){{
         h1=esc(baslik),
         brands=brand_html,
         price=price_html,
+        badge=badge_html,
         aciklama=aciklama_html,
         wa=esc(wa_href(p, url)),
         icon=WA_ICON,
