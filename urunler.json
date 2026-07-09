@@ -49,14 +49,17 @@
     "id": "ozel-disli-kramayer-uretimi",
     "kategori": "Elektronik",
     "marka": [],
-    "baslik": "Özel Dişli & Kramayer Üretimi (Düz, Helis, Konik, Sonsuz, İç Dişli)",
-    "aciklama": "Kırılan, dişi sıyrılan veya aşınan her tür plastik dişliyi ölçüsüne göre özel üretiyoruz. Düz (spur), helis (helical), çift helis (herringbone), konik (bevel), sonsuz (worm), iç dişli / halka (ring), taç (crown) dişli ve kramayer (rack) — hepsi gerçek dişli parametreleriyle (modül / diş adımı, diş sayısı, basınç açısı, helis açısı) üretilir. Kahve makinesinden aktüatöre, oyuncaktan beyaz eşyaya kadar artık bulunamayan ya da tek başına satılmayan dişlilerin birebir yedeğini çıkarırız. Sipariş verirken eski dişlinizin fotoğrafını ve ölçülerini (diş sayısı, dış çap, kalınlık, delik çapı) gönderin veya parçayı gösterin; ölçüleri çıkarıp aşınmaya dayanıklı malzeme (POM / PA6+GF / PETG) ile üretiriz. Fiyat parçanın boyutuna ve tipine göre değişir; buradaki fiyat küçük/orta boy dişliler için başlangıç fiyatıdır.",
-    "fiyat": "300 TL",
+    "baslik": "Ölçüye Özel Dişli & Kramayer (Düz · Helis · Konik · Sonsuz · İç Dişli)",
+    "aciklama": "Kırılan, dişi sıyrılan veya aşınan her tür plastik dişliyi ölçüsüne göre özel üretiyoruz. Düz (spur), helis (helical), çift helis (herringbone), konik (bevel), sonsuz (worm), iç dişli / halka (ring), taç (crown) dişli ve kramayer (rack) — hepsi gerçek dişli parametreleriyle (modül / diş adımı, diş sayısı, basınç açısı, helis açısı) üretilir. Kahve makinesinden aktüatöre, oyuncaktan beyaz eşyaya kadar artık bulunamayan ya da tek başına satılmayan dişlilerin birebir yedeğini çıkarırız. Sipariş verirken eski dişlinizin fotoğrafını ve ölçülerini (diş sayısı, dış çap, kalınlık, delik çapı) gönderin veya parçayı gösterin; ölçüleri çıkarıp aşınmaya dayanıklı malzeme (POM / PA6+GF / PETG) ile üretiriz. Fiyat parçanın boyutuna ve tipine göre belirlenir; eski dişlinizi ya da ölçülerinizi gönderin, teklif verelim.",
+    "fiyat": "",
     "gorseller": [
-      "https://media.pruvo3d.com/urunler/ozel-disli-kramayer-uretimi-banner.jpg",
+      "https://media.pruvo3d.com/urunler/ozel-disli-kramayer-uretimi-y1.jpg",
+      "https://media.pruvo3d.com/urunler/ozel-disli-kramayer-uretimi-y2.jpg",
+      "https://media.pruvo3d.com/urunler/ozel-disli-kramayer-uretimi-y3.jpg",
       "https://media.pruvo3d.com/urunler/ozel-disli-kramayer-uretimi-kapak.jpg"
     ],
-    "uyelik": "*****"
+    "uyelik": "*****",
+    "parametrik": true
   },
   {
     "id": "ozel-egri-boyunlu-huni",
