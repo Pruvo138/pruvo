@@ -1,5 +1,20 @@
 [
   {
+    "id": "olcuye-ozel-rulman",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Ölçüye Özel Rulman / Bilyalı Yatak (Plastik Bearing)",
+    "aciklama": "Bulunamayan ya da özel ölçü gereken bir rulmanı ölçüsüne göre üretiyoruz — iç bilezik, dış bilezik ve bilyalar tek parça olarak, ölçüye göre tasarlanmış plastik bilyalı yatak. İç çap, dış çap ve genişlik milinize ve yuvanıza tam otursun diye ayarlanır.\n\nNeyi ayarlıyoruz?\n• Ölçü — iç çap (mil), dış çap (yuva) ve genişlik (ör. 608, 6001, 6200 ölçülerine denk)\n• Bilya sayısı & boşluk — dönüş yumuşaklığına göre\n• Malzeme & dayanıklılık — düşük sürtünmeli PETG / POM benzeri ya da esnek seçenek; farklı renk seçenekleri\n\nNasıl sipariş edilir?\nİç çap · dış çap · genişlik ölçülerini (ya da rulman kodunu / eski rulmanı) WhatsApp'tan gönderin; ölçüye özel üretip adresinize gönderelim.\n\nNot: baskı plastik rulmanlar düşük hız / düşük yük, kuru ve temiz çalışma (klape, makara, hobi, prototip) içindir; yüksek devir, yüksek yük ya da ısı gerektiren yerlerde çelik rulmanın yerine geçmez — kullanım yerine göre öneri veririz.",
+    "fiyat": "",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-rulman-1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-rulman-2.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-rulman-3.jpg"
+    ],
+    "parametrik": true,
+    "uyelik": "*****"
+  },
+  {
     "id": "olcuye-ozel-triger-kayisi",
     "kategori": "Tamirat",
     "marka": [],
