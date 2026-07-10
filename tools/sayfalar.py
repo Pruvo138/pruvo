@@ -1,0 +1,268 @@
+# -*- coding: utf-8 -*-
+"""
+PRUVO statik içerik/yasal sayfaları + ödeme logoları.
+build.py bu modülü import eder ve her sayfayı /<slug>/index.html olarak üretir.
+
+NOT: Yasal metinler standart e-ticaret şablonudur; satıcı bilgileri gerçek
+mükellefiyete göre doldurulmuştur. Yayına almadan mali müşavir/avukata
+kontrol ettirmek önerilir.
+"""
+
+# ------------------------------------------------------------------ satıcı bilgileri
+SELLER = {
+    "unvan": "Okan Gemalmaz",
+    "tur": "Şahıs firması",
+    "adres": "Akarca Mah. Adnan Menderes (BBT) Blv. No:303 Daire No:203, Fethiye / Muğla",
+    "vd": "Fethiye Vergi Dairesi",
+    "vkn": "3910052435",
+    "tel": "+90 532 595 4005",
+    "eposta": "info@pruvo3d.com",
+    "kargo": "Yurtiçi Kargo",
+    "teslim": "5-7 iş günü",
+    "site": "https://pruvo3d.com",
+}
+
+# ------------------------------------------------------------------ ödeme logoları (footer)
+# Güvenli, her zaman render olan inline SVG rozetler. iyzico resmi "logo band"
+# varsa panelden alıp değiştirilebilir.
+PAY_BAND_HTML = """<div class="pay-band">
+  <span class="pay-label">Güvenli Ödeme</span>
+  <span class="pay-logos">
+    <span class="pay-pill pay-iyzico">iyzico<b>&nbsp;ile Öde</b></span>
+    <span class="pay-pill"><svg viewBox="0 0 48 16" width="46" height="15" role="img" aria-label="Visa"><text x="24" y="13" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="14" font-style="italic" font-weight="700" fill="#1a1f71">VISA</text></svg></span>
+    <span class="pay-pill"><svg viewBox="0 0 40 24" width="38" height="23" role="img" aria-label="Mastercard"><circle cx="15" cy="12" r="9" fill="#EB001B"/><circle cx="25" cy="12" r="9" fill="#F79E1B"/><path d="M20 5.2a9 9 0 0 0 0 13.6 9 9 0 0 0 0-13.6z" fill="#FF5F00"/></svg></span>
+  </span>
+</div>"""
+
+# footer alt navigasyon (yasal + kurumsal linkler)
+FOOT_NAV_HTML = (
+    '<div class="foot-nav">'
+    '<a href="/hakkimizda/">Hakkımızda</a> &middot; '
+    '<a href="/iletisim/">İletişim</a> &middot; '
+    '<a href="/sss/">S.S.S.</a> &middot; '
+    '<a href="/gizlilik/">Gizlilik Politikası</a> &middot; '
+    '<a href="/teslimat-iade/">Teslimat ve İade</a> &middot; '
+    '<a href="/mesafeli-satis/">Mesafeli Satış Sözleşmesi</a>'
+    '</div>'
+)
+
+# ------------------------------------------------------------------ içerik sayfaları için ek CSS
+CONTENT_CSS = """
+  .content{max-width:820px;margin:0 auto;padding:34px 20px 56px}
+  .content h1{font-size:26px;color:var(--navy);margin:0 0 6px}
+  .content .lead{color:var(--gray-text);font-size:14px;margin-bottom:26px}
+  .content h2{font-size:18px;color:var(--navy);margin:28px 0 10px}
+  .content p,.content li{font-size:15px;color:#39434f;line-height:1.75}
+  .content ul{padding-left:20px;margin:8px 0}
+  .content a{color:var(--navy-2)}
+  .content .info-table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:14.5px}
+  .content .info-table td{padding:8px 10px;border:1px solid var(--gray-line);vertical-align:top}
+  .content .info-table td:first-child{background:var(--gray-card);font-weight:600;color:var(--navy);width:38%}
+  .content .upd{margin-top:30px;font-size:12.5px;color:var(--gray-text)}
+  .pay-band{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .pay-label{font-size:12px;color:#8996ad;letter-spacing:.4px}
+  .pay-logos{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pay-pill{display:inline-flex;align-items:center;background:#fff;border-radius:6px;
+    padding:5px 9px;height:26px;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+  .pay-iyzico{font-weight:800;font-size:13px;color:#1e64ff;letter-spacing:-.3px}
+  .pay-iyzico b{color:#12294d;font-weight:700}
+"""
+
+
+def _seller_table():
+    s = SELLER
+    return (
+        '<table class="info-table"><tbody>'
+        '<tr><td>Satıcı</td><td>%s (%s)</td></tr>'
+        '<tr><td>Adres</td><td>%s</td></tr>'
+        '<tr><td>Vergi Dairesi / No</td><td>%s &ndash; %s</td></tr>'
+        '<tr><td>Telefon</td><td>%s</td></tr>'
+        '<tr><td>E-posta</td><td>%s</td></tr>'
+        '<tr><td>Web</td><td>pruvo3d.com</td></tr>'
+        '</tbody></table>'
+        % (s["unvan"], s["tur"], s["adres"], s["vd"], s["vkn"],
+           s["tel"], s["eposta"])
+    )
+
+
+# ------------------------------------------------------------------ sayfa gövdeleri
+def _hakkimizda():
+    return (
+        "<h1>Hakkımızda</h1>"
+        '<p class="lead">Fethiye merkezli özel tasarım üretim atölyesi.</p>'
+        "<p>PRUVO, tekne/marin, otomobil, motosiklet, ev ve endüstriyel cihazlar için "
+        "<strong>özel tasarım üretimle yedek parça</strong> ve kişiye özel ürünler üretir. "
+        "Piyasada bulunamayan, kırılan ya da aşınan bir parçanın birebir yedeğini çıkarır; "
+        "ölçüye özel parçalar ve dekoratif/hobi ürünleri hazırlar.</p>"
+        "<p>Amacımız; doğru malzeme ve hassas ölçüyle, ihtiyacınıza tam uyan parçayı "
+        "üretip güvenle adresinize ulaştırmaktır.</p>"
+        "<h2>Satıcı Bilgileri</h2>" + _seller_table()
+    )
+
+
+def _iletisim():
+    s = SELLER
+    return (
+        "<h1>İletişim</h1>"
+        '<p class="lead">Siparişler ve sorularınız için bize ulaşın.</p>'
+        "<p>Sipariş ve bilgi almak için en hızlı yol WhatsApp'tır. "
+        "Mesai saatleri içinde en kısa sürede dönüş yapıyoruz.</p>"
+        '<h2>Bize Ulaşın</h2>'
+        '<p><strong>WhatsApp / Telefon:</strong> %s<br>'
+        '<strong>E-posta:</strong> %s<br>'
+        '<strong>Adres:</strong> %s</p>'
+        '<p><strong>Çalışma saatleri:</strong> Pazartesi&ndash;Cumartesi 09:00&ndash;18:00 '
+        '(Pazar kapalı).</p>'
+        "<h2>Satıcı Bilgileri</h2>" % (s["tel"], s["eposta"], s["adres"])
+        + _seller_table()
+    )
+
+
+def _sss():
+    return (
+        "<h1>Sıkça Sorulan Sorular</h1>"
+        '<p class="lead">Sipariş, üretim, kargo ve iade hakkında merak edilenler.</p>'
+        "<h2>Nasıl sipariş verebilirim?</h2>"
+        "<p>Ürün sayfasındaki <em>Sipariş Ver</em> butonuyla WhatsApp üzerinden bize "
+        "ulaşırsınız. İhtiyacınızı netleştirip ölçü/renk gibi detayları aldıktan sonra "
+        "üretim ve teslimat sürecini birlikte planlarız.</p>"
+        "<h2>Ürünler nasıl üretiliyor?</h2>"
+        "<p>Ürünler talep üzerine, ölçüye/isteğe özel olarak üretilir. Kullanım yerine göre "
+        "uygun ve dayanıklı malzeme öneririz.</p>"
+        "<h2>Teslimat ne kadar sürer?</h2>"
+        "<p>Üretim + kargo süresi ürüne göre değişmekle birlikte genellikle "
+        "<strong>%s</strong> içindedir. Kargo: %s.</p>"
+        "<h2>İade / değişim yapabilir miyim?</h2>"
+        "<p>Standart ürünlerde teslim tarihinden itibaren 14 gün içinde cayma hakkınız "
+        "vardır. Kişiye/ölçüye özel üretilen ürünlerde mevzuat gereği cayma hakkı "
+        "istisnaları geçerli olabilir; ayrıntılar için "
+        '<a href="/teslimat-iade/">Teslimat ve İade</a> sayfamıza bakın.</p>'
+        "<h2>Ödeme nasıl yapılıyor?</h2>"
+        "<p>Sipariş detayları netleştikten sonra ödeme adımları tarafınıza iletilir. "
+        "Ödemeleriniz güvenli altyapı üzerinden alınır.</p>"
+        % (SELLER["teslim"], SELLER["kargo"])
+    )
+
+
+def _gizlilik():
+    s = SELLER
+    return (
+        "<h1>Gizlilik Politikası ve KVKK Aydınlatma Metni</h1>"
+        '<p class="lead">Kişisel verilerinizin korunması bizim için önemlidir.</p>'
+        "<p>Bu politika, %s (\"Satıcı\") tarafından pruvo3d.com üzerinden toplanan kişisel "
+        "verilerin 6698 sayılı Kişisel Verilerin Korunması Kanunu (KVKK) kapsamında nasıl "
+        "işlendiğini açıklar. Veri sorumlusu Satıcı'dır.</p>"
+        "<h2>Toplanan Veriler</h2>"
+        "<ul><li>Ad-soyad, telefon, e-posta ve teslimat adresi (sipariş için).</li>"
+        "<li>Sipariş ve iletişim içeriği.</li>"
+        "<li>Site kullanımına dair teknik veriler (çerezler aracılığıyla, aşağıya bkz.).</li></ul>"
+        "<h2>İşleme Amaçları</h2>"
+        "<ul><li>Siparişin alınması, üretilmesi, teslimi ve faturalandırılması.</li>"
+        "<li>Müşteri iletişimi ve destek.</li>"
+        "<li>Yasal yükümlülüklerin yerine getirilmesi.</li></ul>"
+        "<h2>Aktarım</h2>"
+        "<p>Verileriniz yalnızca hizmetin gerektirdiği ölçüde; kargo firması ve ödeme "
+        "kuruluşu gibi iş ortaklarıyla ve yetkili kamu kurumlarıyla paylaşılabilir. "
+        "Üçüncü kişilere pazarlama amacıyla satılmaz.</p>"
+        "<h2>Ödeme Güvenliği</h2>"
+        "<p>Kart bilgileriniz Satıcı tarafından saklanmaz; ödemeler lisanslı ödeme "
+        "kuruluşunun güvenli altyapısı üzerinden işlenir.</p>"
+        "<h2>Çerezler</h2>"
+        "<p>Sitenin düzgün çalışması ve deneyiminizin iyileştirilmesi için çerezler "
+        "kullanılabilir. Tarayıcı ayarlarından çerezleri yönetebilirsiniz.</p>"
+        "<h2>Haklarınız (KVKK m.11)</h2>"
+        "<p>Kişisel verilerinize erişme, düzeltilmesini/silinmesini isteme ve işlemeye "
+        "itiraz etme haklarına sahipsiniz. Talepleriniz için: %s</p>"
+        "<h2>İletişim</h2>" + _seller_table()
+    ) % (s["unvan"], s["eposta"])
+
+
+def _teslimat_iade():
+    s = SELLER
+    return (
+        "<h1>Teslimat ve İade Koşulları</h1>"
+        '<p class="lead">Kargo, teslimat süresi ve iade/cayma hakkı.</p>'
+        "<h2>Teslimat</h2>"
+        "<ul>"
+        "<li>Ürünler talep üzerine üretildiğinden teslim süresi üretim + kargo süresini "
+        "kapsar; genellikle <strong>%s</strong> içindedir. Özel/karmaşık işlerde süre "
+        "sipariş sırasında bildirilir.</li>"
+        "<li>Gönderiler <strong>%s</strong> ile yapılır. Kargo ücreti ve varsa ücretsiz "
+        "kargo koşulu sipariş onayında belirtilir.</li>"
+        "<li>Teslimatta pakedi kontrol edin; hasarlıysa tutanak tutturup teslim almayın "
+        "ve bizimle iletişime geçin.</li>"
+        "</ul>"
+        "<h2>Cayma Hakkı ve İade</h2>"
+        "<ul>"
+        "<li>Standart (stok/seri) ürünlerde, teslim tarihinden itibaren <strong>14 gün</strong> "
+        "içinde gerekçe göstermeden cayma hakkınız vardır.</li>"
+        "<li>Cayma bildirimini %s adresinden ya da %s numarasından iletin. Ürünü kullanılmamış "
+        "ve tekrar satılabilir durumda iade edin.</li>"
+        "<li>İade onayından sonra bedel, ödeme yönteminize 14 gün içinde iade edilir.</li>"
+        "</ul>"
+        "<h2>Cayma Hakkının İstisnası</h2>"
+        "<p>Mesafeli Sözleşmeler Yönetmeliği m.15 uyarınca <strong>kişiye/ölçüye özel "
+        "üretilen, müşteri talepleri doğrultusunda hazırlanan ürünlerde</strong> cayma "
+        "hakkı kullanılamaz. Bu ürünler açıkça özel üretim olarak sipariş edilir. Ayıplı "
+        "(kusurlu) ürün elbette ücretsiz onarılır ya da değiştirilir.</p>"
+        "<h2>Ayıplı / Yanlış Ürün</h2>"
+        "<p>Hatalı, hasarlı ya da siparişten farklı bir ürün ulaşırsa; fotoğrafla birlikte "
+        "bize ulaşın, kargo masrafı bize ait olacak şekilde değişim/iade sağlarız.</p>"
+        "<h2>İletişim</h2>" + _seller_table()
+    ) % (s["teslim"], s["kargo"], s["eposta"], s["tel"])
+
+
+def _mesafeli_satis():
+    s = SELLER
+    return (
+        "<h1>Mesafeli Satış Sözleşmesi</h1>"
+        '<p class="lead">İşbu sözleşme, 6502 sayılı Tüketicinin Korunması Hakkında Kanun ve '
+        'Mesafeli Sözleşmeler Yönetmeliği uyarınca düzenlenmiştir.</p>'
+        "<h2>1. Taraflar</h2>"
+        "<p><strong>SATICI:</strong></p>" + _seller_table() +
+        "<p><strong>ALICI:</strong> Sipariş sırasında bildirilen ad-soyad, adres ve "
+        "iletişim bilgilerine sahip müşteri.</p>"
+        "<h2>2. Konu</h2>"
+        "<p>İşbu sözleşmenin konusu, ALICI'nın pruvo3d.com üzerinden siparişini verdiği, "
+        "nitelikleri ve satış fiyatı sipariş sırasında belirtilen ürünün satışı ve teslimi "
+        "ile tarafların hak ve yükümlülüklerinin belirlenmesidir.</p>"
+        "<h2>3. Ürün ve Ödeme</h2>"
+        "<p>Ürünün türü, miktarı, özellikleri ve tüm vergiler dâhil satış fiyatı sipariş "
+        "onayında belirtilir. Ödeme, Satıcı'nın sunduğu güvenli ödeme yöntemleriyle yapılır; "
+        "kart bilgileri Satıcı tarafından saklanmaz.</p>"
+        "<h2>4. Teslimat</h2>"
+        "<p>Ürün, üretim tamamlandıktan sonra <strong>%s</strong> ile ALICI'nın bildirdiği "
+        "adrese gönderilir. Teslim süresi genellikle <strong>%s</strong> olup özel üretimlerde "
+        "sipariş sırasında bildirilir; yasal azami süre 30 gündür.</p>"
+        "<h2>5. Cayma Hakkı</h2>"
+        "<p>ALICI, standart ürünlerde teslim tarihinden itibaren <strong>14 gün</strong> içinde "
+        "gerekçe göstermeksizin cayma hakkına sahiptir. Cayma bildirimi %s / %s üzerinden "
+        "yapılır; ürün kullanılmamış ve tekrar satılabilir olmalıdır. Bedel 14 gün içinde iade "
+        "edilir.</p>"
+        "<h2>6. Cayma Hakkının İstisnaları</h2>"
+        "<p>Yönetmelik m.15 gereği <strong>ALICI'nın istekleri doğrultusunda kişiye/ölçüye "
+        "özel hazırlanan ürünlerde</strong> cayma hakkı kullanılamaz. Bu ürünler sipariş "
+        "sırasında açıkça özel üretim olarak teyit edilir.</p>"
+        "<h2>7. Genel Hükümler</h2>"
+        "<p>ALICI, ürün nitelikleri ve satış fiyatını okuyup bilgi sahibi olduğunu ve "
+        "elektronik ortamda siparişi onayladığını kabul eder. Ayıplı üründe ALICI'nın "
+        "6502 sayılı Kanun'dan doğan hakları saklıdır.</p>"
+        "<h2>8. Uyuşmazlık</h2>"
+        "<p>İşbu sözleşmeden doğan uyuşmazlıklarda, Ticaret Bakanlığı'nca ilan edilen "
+        "değerlere kadar Tüketici Hakem Heyetleri, aşan uyuşmazlıklarda Tüketici Mahkemeleri "
+        "yetkilidir.</p>"
+        "<p class=\"upd\">Sipariş onayıyla işbu sözleşme kurulmuş sayılır.</p>"
+    ) % (s["kargo"], s["teslim"], s["eposta"], s["tel"])
+
+
+# build.py'nin ÜRETTİĞİ yeni sayfalar (hakkimizda/iletisim/sss/gizlilik zaten
+# elle yapılmış statik dosya olarak repo'da; onlar üretilmez, korunur).
+# slug -> (başlık, meta açıklama, gövde fonksiyonu)
+CONTENT_PAGES = [
+    ("teslimat-iade", "Teslimat ve İade", "PRUVO teslimat, kargo ve iade/cayma hakkı koşulları.", _teslimat_iade),
+    ("mesafeli-satis", "Mesafeli Satış Sözleşmesi", "PRUVO mesafeli satış sözleşmesi.", _mesafeli_satis),
+]
+
+# sitemap için TÜM içerik/yasal sayfa slug'ları (statik + üretilen)
+SITEMAP_SLUGS = ["hakkimizda", "iletisim", "sss", "gizlilik",
+                 "teslimat-iade", "mesafeli-satis"]

@@ -76,6 +76,12 @@
   .foot-nav{margin-top:8px}
   .foot-nav a{color:#c7d2e4;text-decoration:none;margin:0 8px}
   .foot-nav a:hover{color:#fff;text-decoration:underline}
+  .pay-band{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .pay-label{font-size:12px;color:#8996ad;letter-spacing:.4px}
+  .pay-logos{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .pay-pill{display:inline-flex;align-items:center;background:#fff;border-radius:6px;padding:5px 9px;height:26px;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+  .pay-iyzico{font-weight:800;font-size:13px;color:#1e64ff;letter-spacing:-.3px}
+  .pay-iyzico b{color:#12294d;font-weight:700}
 
   @media (max-width:560px){ .brand{font-size:28px} h1{font-size:24px} }
 </style>
@@ -172,7 +178,15 @@
 <footer>
   PRUVO &mdash; Endüstriyel Parça Üretimi | Fethiye
   <div class="foot-nav">
-    <a href="/">Ana Sayfa</a> · <a href="/hakkimizda/">Hakkımızda</a> · <a href="/sss/">Sıkça Sorulan Sorular</a> · <a href="/iletisim/">İletişim</a>
+    <a href="/">Ana Sayfa</a> &middot; <a href="/hakkimizda/">Hakkımızda</a> &middot; <a href="/iletisim/">İletişim</a> &middot; <a href="/sss/">S.S.S.</a> &middot; <a href="/gizlilik/">Gizlilik Politikası</a> &middot; <a href="/teslimat-iade/">Teslimat ve İade</a> &middot; <a href="/mesafeli-satis/">Mesafeli Satış Sözleşmesi</a>
+  </div>
+  <div class="pay-band">
+    <span class="pay-label">Güvenli Ödeme</span>
+    <span class="pay-logos">
+      <span class="pay-pill pay-iyzico">iyzico<b>&nbsp;ile Öde</b></span>
+      <span class="pay-pill"><svg viewBox="0 0 48 16" width="46" height="15" role="img" aria-label="Visa"><text x="24" y="13" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="14" font-style="italic" font-weight="700" fill="#1a1f71">VISA</text></svg></span>
+      <span class="pay-pill"><svg viewBox="0 0 40 24" width="38" height="23" role="img" aria-label="Mastercard"><circle cx="15" cy="12" r="9" fill="#EB001B"/><circle cx="25" cy="12" r="9" fill="#F79E1B"/><path d="M20 5.2a9 9 0 0 0 0 13.6 9 9 0 0 0 0-13.6z" fill="#FF5F00"/></svg></span>
+    </span>
   </div>
 </footer>
 </body>

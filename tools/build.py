@@ -22,6 +22,10 @@ import json
 import shutil
 import html
 import datetime
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
+                      CONTENT_CSS, CONTENT_PAGES, SITEMAP_SLUGS)
 
 # ------------------------------------------------------------------ ayarlar
 SITE = "https://pruvo3d.com"
@@ -156,6 +160,7 @@ PAGE_CSS = """
     .order-btn{max-width:none}
   }
 """
+PAGE_CSS += CONTENT_CSS
 
 
 # ------------------------------------------------------------------ yardımcılar
@@ -393,9 +398,8 @@ def render_product(p, all_products):
 
 <footer>
   PRUVO &mdash; Endüstriyel Parça Üretimi | Fethiye
-  <div class="foot-nav">
-    <a href="/hakkimizda/">Hakkımızda</a> &middot; <a href="/sss/">Sıkça Sorulan Sorular</a> &middot; <a href="/iletisim/">İletişim</a>
-  </div>
+  {foot_nav}
+  {pay_band}
   {attribution}
 </footer>
 
@@ -432,19 +436,75 @@ function pv(el,src){{
         wa=esc(wa_href(p, url)),
         icon=WA_ICON,
         related=rel_html,
+        foot_nav=FOOT_NAV_HTML,
+        pay_band=PAY_BAND_HTML,
         attribution=attribution_html(p),
     )
     return doc
+
+
+# ------------------------------------------------------------------ içerik/yasal sayfa
+def render_content_page(slug, title, meta, body_html):
+    title_tag = esc(title) + " — PRUVO"
+    url = SITE + "/" + slug + "/"
+    return u"""<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<link rel="canonical" href="{url}">
+<meta name="robots" content="index,follow">
+<link rel="icon" href="{favicon}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="PRUVO">
+<meta property="og:title" content="{ogtitle}">
+<meta property="og:description" content="{desc}">
+<meta property="og:url" content="{url}">
+<style>{css}</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a class="brand-link" href="/">
+      <div class="brand">PRUVO</div>
+      <div class="brand-sub">Endüstriyel Parça Üretimi</div>
+    </a>
+    <a class="top-back" href="/">&larr; Tüm Ürünler</a>
+  </div>
+</header>
+
+<main class="content">
+{body}
+</main>
+
+<footer>
+  PRUVO &mdash; Endüstriyel Parça Üretimi | Fethiye
+  {foot_nav}
+  {pay_band}
+</footer>
+</body>
+</html>
+""".format(
+        title=title_tag,
+        desc=esc(meta),
+        ogtitle=esc(title),
+        url=esc(url),
+        favicon=FAVICON,
+        css=PAGE_CSS,
+        body=body_html,
+        foot_nav=FOOT_NAV_HTML,
+        pay_band=PAY_BAND_HTML,
+    )
 
 
 # ------------------------------------------------------------------ sitemap
 def render_sitemap(products):
     urls = []
     urls.append((SITE + "/", "1.0", "daily"))
-    urls.append((SITE + "/hakkimizda/", "0.5", "monthly"))
-    urls.append((SITE + "/sss/", "0.5", "monthly"))
-    urls.append((SITE + "/iletisim/", "0.6", "monthly"))
-    urls.append((SITE + "/gizlilik/", "0.3", "yearly"))
+    for slug in SITEMAP_SLUGS:
+        urls.append((SITE + "/" + slug + "/", "0.4", "monthly"))
     for p in products:
         urls.append((product_url(p["id"]), "0.8", "weekly"))
     items = []
@@ -476,6 +536,13 @@ def main():
         os.makedirs(pdir, exist_ok=True)
         with open(os.path.join(pdir, "index.html"), "w", encoding="utf-8") as f:
             f.write(render_product(p, products))
+
+    # içerik/yasal sayfalar (/<slug>/index.html)
+    for slug, title, meta, fn in CONTENT_PAGES:
+        cdir = os.path.join(ROOT, slug)
+        os.makedirs(cdir, exist_ok=True)
+        with open(os.path.join(cdir, "index.html"), "w", encoding="utf-8") as f:
+            f.write(render_content_page(slug, title, meta, fn()))
 
     # sitemap.xml
     with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
