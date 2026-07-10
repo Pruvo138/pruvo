@@ -828,12 +828,23 @@
 
     var list = filtered();
 
-    // Ana sayfa varsayılan görünümü: "ölçüye özel" ürünleri en üste, her açılışta değişen sırayla
+    // Ana sayfa varsayılan görünümü: ilk 4 "ölçüye özel" (FEATURED) en üste; kalan ürünler
+    // KATEGORİ HİYERARŞİSİNE göre (Tamirat > Marin > ... > Oyun/Hobi), kategori içinde
+    // en yeni üstte olacak şekilde sıralanır.
     if(activeCat === "Tümü" && query.trim() === "" && FEATURED.length){
       var fid = {};
       FEATURED.forEach(function(p){ fid[p.id] = true; });
-      var rest = list.filter(function(p){ return !fid[p.id]; });
-      list = FEATURED.concat(rest);
+      var catRank = {};
+      CATEGORIES.forEach(function(c, i){ catRank[c] = i; });
+      var rest = list.filter(function(p){ return !fid[p.id]; })
+        .map(function(p, i){ return { p: p, i: i }; });
+      rest.sort(function(a, b){
+        var ra = (a.p.kategori in catRank) ? catRank[a.p.kategori] : 999;
+        var rb = (b.p.kategori in catRank) ? catRank[b.p.kategori] : 999;
+        if(ra !== rb){ return ra - rb; }
+        return a.i - b.i;   // aynı kategoride: özgün sıra (en yeni üstte)
+      });
+      list = FEATURED.concat(rest.map(function(x){ return x.p; }));
     }
 
     if(query.trim() !== ""){
