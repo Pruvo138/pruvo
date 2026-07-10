@@ -29,7 +29,7 @@ WHATSAPP = "905325954005"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(ROOT, "urunler.json")
 URUN_DIR = os.path.join(ROOT, "urun")
-CATEGORIES = ["Tamirat", "Marin", "Otomobil", "Motosiklet", "Ev", "Elektronik", "Bahçe", "Dekorasyon"]
+CATEGORIES = ["Tamirat", "Marin", "Otomobil", "Motosiklet", "Ev", "Ofis", "Elektronik", "Bahçe", "Dekorasyon"]
 
 TODAY = datetime.date.today().isoformat()
 PRICE_VALID = (datetime.date.today().replace(month=12, day=31)
