@@ -152,8 +152,8 @@
     "id": "olcuye-ozel-huni",
     "kategori": "Tamirat",
     "marka": [],
-    "baslik": "Ölçüye Özel Huni (Mutfak · Atölye · Eğri Boyun · Laboratuvar)",
-    "aciklama": "İhtiyacınız olan huniyi ölçüsüne göre üretiyoruz — mutfak, atölye, yağ/yakıt dolumu, laboratuvar ya da dar alan için eğri boyunlu. Geniş ağızlıdan ince uzun boyna, düz ya da açılı çıkışa kadar.\n\nNeyi ayarlıyoruz?\n• Ağız çapı & yükseklik — dolum hacmine göre\n• Boyun — uzunluk ve çap (hortuma/ağza tam), düz ya da eğri/açılı\n• Çıkış — hızlı akış için geniş, damla için ince; havalandırma kanalı opsiyonel\n• Askı deliği, süzgeç/filtre opsiyonu\n• Malzeme & dayanıklılık — PLA+, PETG (yakıta), ASA; farklı renk seçenekleri\n\nNasıl sipariş edilir?\nDolum yapacağınız ağzın ölçüsünü ve huninin kullanılacağı yeri WhatsApp'tan söyleyin; ölçüye özel üretip adresinize gönderelim.\n\nNot: gıda teması / içme suyu için malzeme uygunluğunu birlikte değerlendiririz.",
+    "baslik": "Ölçüye Özel Huni (Mutfak · Atölye · Açılı Uç · Laboratuvar)",
+    "aciklama": "İhtiyacınız olan huniyi ölçüsüne göre üretiyoruz — mutfak, atölye, yağ/yakıt dolumu, laboratuvar ya da dar alan için. Geniş ağızlıdan ince uzun uca, düz ya da açılı uçla.\n\nNeyi ayarlıyoruz?\n• Ağız çapı & yükseklik — dolum hacmine göre\n• Akıtma ucu — çap ve boy (hortuma/ağza tam); dar ağızlara girmesi için açılı (eğik) uç kesimi\n• Akış — hızlı akış için geniş, damla için ince uç\n• Hava kanalı — sıvının 'glık-glık' yapmadan akması için (anti-glug), opsiyonel\n• Ekstra — tutma kenarı, asma deliği ve iç yönlendirici kanat opsiyonel\n• Malzeme & dayanıklılık — PLA+, PETG (yakıta), ASA; farklı renk seçenekleri\n\nNasıl sipariş edilir?\nDolum yapacağınız ağzın ölçüsünü ve huninin kullanılacağı yeri WhatsApp'tan söyleyin; ölçüye özel üretip adresinize gönderelim.\n\nNot: gıda teması / içme suyu için malzeme uygunluğunu birlikte değerlendiririz.",
     "fiyat": "",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/olcuye-ozel-huni-1.jpg",
