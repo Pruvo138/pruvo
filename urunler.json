@@ -1,5 +1,20 @@
 [
   {
+    "id": "olcuye-ozel-baglanti-konektor",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Ölçüye Özel Bağlantı Parçası / Konektör (Boru · Hortum · Profil Eki)",
+    "aciklama": "Kırılan ya da satılmayan bir bağlantı parçasını ölçüsüne göre üretiyoruz — düz kaplin (ekleme), dirsek (açılı dönüş), T / Y / artı (X) bağlantı ve redüksiyon (çap düşürücü). Her uç parçanıza tam otursun diye ölçüye göre tasarlanır.\n\nNeyi ayarlıyoruz?\n• Tip — düz kaplin, dirsek, T / Y / X bağlantı, redüksiyon\n• Ölçü — iç/dış çap, et kalınlığı, kol uzunluğu, dönüş açısı\n• Geçme — sıkı geçme, boşluklu ya da dişli/vidalı uç\n• Malzeme & dayanıklılık — sağlam PETG / PLA+, esnek TPU ya da ısıya dayanıklı seçenek; farklı renk seçenekleri\n\nNasıl sipariş edilir?\nBağlanacak boru / hortum / profilin çaplarını (iç · dış) ve varsa açıyı, ya da eski parçayı WhatsApp'tan gönderin; ölçüye özel üretip adresinize gönderelim.\n\nNot: yüksek basınçlı su / gaz ya da sıcak hat için malzeme ve sızdırmazlık ihtiyacını birlikte belirleriz.",
+    "fiyat": "",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-baglanti-konektor-1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-baglanti-konektor-2.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-baglanti-konektor-3.jpg"
+    ],
+    "parametrik": true,
+    "uyelik": "*****"
+  },
+  {
     "id": "olcuye-ozel-yay-dalga-flexure",
     "kategori": "Tamirat",
     "marka": [],
