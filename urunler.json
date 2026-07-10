@@ -1,5 +1,20 @@
 [
   {
+    "id": "kisiye-ozel-oyun-zari",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Kişiye Özel Oyun Zarı (RPG · D&D · d4–d60)",
+    "aciklama": "Size özel oyun zarı üretiyoruz — d4, d6, d8, d10, d12, d20 ve daha fazlası. RPG / D&D seti, masa oyunu, öğretici zar ya da özel yüzlü (harf/kelime) zar olarak.\n\nNeyi seçiyorsunuz?\n• Tip — d4, d6, d8, d10, d12, d20, d32, d60\n• Yüzler — sayı, klasik nokta ya da özel yazı (isim, harf, özel değerler)\n• Boyut — küçük cepten büyük gösteriş zarına\n• Renk — gövde ve yazı için farklı renk seçenekleri\n\nFiyat: adet 100 TL; RPG 7'li set ve özel setler için toplu fiyat.\n\nNasıl sipariş edilir?\nZar tipini (ya da set), yüz içeriğini, boyut ve rengi WhatsApp'tan gönderin; üretip adresinize gönderelim.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kisiye-ozel-oyun-zari-1.jpg",
+      "https://media.pruvo3d.com/urunler/kisiye-ozel-oyun-zari-2.jpg",
+      "https://media.pruvo3d.com/urunler/kisiye-ozel-oyun-zari-3.jpg"
+    ],
+    "parametrik": false,
+    "uyelik": "*****"
+  },
+  {
     "id": "dekoratif-zincir",
     "kategori": "Dekorasyon",
     "marka": [],
