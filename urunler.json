@@ -1,5 +1,20 @@
 [
   {
+    "id": "olcuye-ozel-triger-kayisi",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Ölçüye Özel Triger / Kayış (GT2 · HTD · Kapalı Döngü Timing Belt)",
+    "aciklama": "Kırılan ya da bulunamayan bir kayışı ölçüsüne göre üretiyoruz — GT2, HTD, T/AT ve benzeri triger (zamanlama) kayışları, kapalı döngü olarak. Diş profili, çevre uzunluğu ve genişlik makaranıza tam otursun diye ölçüye göre tasarlanır; esnek TPU ile basılır.\n\nNeyi ayarlıyoruz?\n• Profil — GT2, HTD 3M/5M, T2.5/T5, AT ve benzeri diş tipleri\n• Uzunluk — çevre (mm) ya da diş sayısı; iki kasnak arası mesafeye göre\n• Genişlik — kanalınıza uygun kayış eni\n• Malzeme & esneklik — esnek TPU (shore sertliği seçilir); farklı renk seçenekleri\n\nNasıl sipariş edilir?\nKayış tipini (GT2/HTD…), çevre uzunluğunu ya da diş sayısını ve genişliği (ya da eski kayışı) WhatsApp'tan gönderin; ölçüye özel üretip adresinize gönderelim. İstersen kasnağıyla birlikte set halinde üretiriz.\n\nNot: baskı TPU kayışlar düşük/orta yük, hafif tahrik ve prototip işleri içindir; yüksek hız ya da yüksek torklu takviyeli çelik kordonlu kayışların yerine geçmez — kullanım yerine göre öneri veririz.",
+    "fiyat": "",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-triger-kayisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-triger-kayisi-2.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-triger-kayisi-3.jpg"
+    ],
+    "parametrik": true,
+    "uyelik": "*****"
+  },
+  {
     "id": "olcuye-ozel-triger-kasnagi",
     "kategori": "Tamirat",
     "marka": [],
