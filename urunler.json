@@ -1,5 +1,20 @@
 [
   {
+    "id": "olcuye-ozel-vida-civata-somun-pul",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Ölçüye Özel Vida / Cıvata · Somun · Pul · Dişli Mil (Saplama)",
+    "aciklama": "Bulunamayan ya da özel ölçü gereken bağlantı elemanlarını ölçüsüne göre üretiyoruz — altı köşe (hex) cıvata, dişli mil / saplama, somun, kelebek somun ve pul. Diş adımı, çap ve boy parçanıza tam otursun diye standart ya da özel ölçüde tasarlanır.\n\nNeyi ayarlıyoruz?\n• Tip — hex cıvata, dişli mil (saplama), somun, kelebek somun, pul\n• Ölçü — çap ve diş adımı (metrik M3–M20 vb. ya da özel), boy\n• Diş — standart metrik ya da özel adım; sıkı/gevşek geçme toleransı\n• Malzeme & dayanıklılık — sağlam PETG / PLA+ ya da esnek/kimyasala dayanıklı seçenek; farklı renk seçenekleri\n\nNasıl sipariş edilir?\nÇap · diş adımı · boy ölçüsünü (ya da örnek parçayı / cıvata kodunu) WhatsApp'tan gönderin; ölçüye özel üretip adresinize gönderelim. Cıvata + somun + pul set halinde de üretilir.\n\nNot: baskı plastik bağlantı elemanları hafif/orta yük, korozyona duyarlı ya da yalıtım gereken yerler (metal istenmeyen, elektriksel yalıtım, hobi, prototip, ayar civatası) içindir; yüksek tork / taşıyıcı bağlantılarda çelik cıvatanın yerine geçmez — kullanım yerine göre öneri veririz.",
+    "fiyat": "",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-vida-civata-somun-pul-1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-vida-civata-somun-pul-2.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-vida-civata-somun-pul-3.jpg"
+    ],
+    "parametrik": true,
+    "uyelik": "*****"
+  },
+  {
     "id": "olcuye-ozel-rulman",
     "kategori": "Tamirat",
     "marka": [],
