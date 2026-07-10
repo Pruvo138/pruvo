@@ -29,7 +29,7 @@ from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
 
 # ------------------------------------------------------------------ ayarlar
 SITE = "https://pruvo3d.com"
-WHATSAPP = "905325954005"
+WHATSAPP = "905451386526"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(ROOT, "urunler.json")
 URUN_DIR = os.path.join(ROOT, "urun")
