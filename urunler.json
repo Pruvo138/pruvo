@@ -1,5 +1,20 @@
 [
   {
+    "id": "olcuye-ozel-triger-kasnagi",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Ölçüye Özel Triger / Kayış Kasnağı (GT2 · HTD · Timing Pulley)",
+    "aciklama": "Kırılan ya da bulunamayan bir kayış kasnağını ölçüsüne göre üretiyoruz — GT2, HTD, T/AT ve benzeri triger (zamanlama) kayışı kasnakları. Diş profili, diş sayısı ve mil deliği kayışınıza ve milinize tam otursun diye ölçüye göre tasarlanır.\n\nNeyi ayarlıyoruz?\n• Profil — GT2, HTD 3M/5M, T2.5/T5, AT ve benzeri kayış tipleri\n• Diş sayısı & çap — istenen tur oranına göre\n• Mil deliği — çap, kanal (keyway) ya da D-lama, set vida yuvası\n• Flanş — kayışın kaçmaması için tek/çift yan flanş (opsiyonel)\n• Malzeme & dayanıklılık — sağlam PETG / PLA+ ya da aşınmaya dayanıklı seçenek; farklı renk seçenekleri\n\nNasıl sipariş edilir?\nKayış tipini (GT2/HTD…), diş sayısını, kayış genişliğini ve mil çapını (ya da eski kasnağı) WhatsApp'tan gönderin; ölçüye özel üretip adresinize gönderelim.\n\nNot: yüksek tork / sürekli yük gerektiren tahriklerde malzeme ve diş dayanımını birlikte belirleriz.",
+    "fiyat": "",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-triger-kasnagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-triger-kasnagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-triger-kasnagi-3.jpg"
+    ],
+    "parametrik": true,
+    "uyelik": "*****"
+  },
+  {
     "id": "olcuye-ozel-montaj-braketi",
     "kategori": "Tamirat",
     "marka": [],
