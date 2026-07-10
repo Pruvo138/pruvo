@@ -1,5 +1,20 @@
 [
   {
+    "id": "dekoratif-zincir",
+    "kategori": "Dekorasyon",
+    "marka": [],
+    "baslik": "Dekoratif / Takı Zinciri (Kolye · Bileklik · Anahtarlık)",
+    "aciklama": "Tek parça basılan, baklaları hareketli dekoratif zincir üretiyoruz — kolye, bileklik, anahtarlık ya da dekor zinciri olarak. Bakla şekli, boyut, uzunluk ve renk size özel.\n\nNeyi seçiyorsunuz?\n• Bakla şekli — altıgen, daire ya da yıldız\n• Uzunluk — bileklikten uzun kolyeye; istediğiniz boyda\n• Boyut — ince zarif ya da iri gösterişli baklalar\n• Renk — altın/gümüş tonu ya da farklı renk seçenekleri\n\nFiyat: 30 cm 300 TL; farklı boylar uzunluğa göre orantılı fiyatlanır.\n\nNasıl sipariş edilir?\nNe için (kolye/bileklik/anahtarlık), uzunluğu, bakla şeklini ve rengi WhatsApp'tan gönderin; üretip adresinize gönderelim.",
+    "fiyat": "300 TL (30 cm)",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dekoratif-zincir-1.jpg",
+      "https://media.pruvo3d.com/urunler/dekoratif-zincir-2.jpg",
+      "https://media.pruvo3d.com/urunler/dekoratif-zincir-3.jpg"
+    ],
+    "parametrik": false,
+    "uyelik": "*****"
+  },
+  {
     "id": "kisiye-ozel-masa-tabelasi",
     "kategori": "Dekorasyon",
     "marka": [],
