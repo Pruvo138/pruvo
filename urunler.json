@@ -1,5 +1,76 @@
 [
   {
+    "id": "vw-audi-dsg-yag-dolum-adaptoru",
+    "kategori": "Tamirat",
+    "marka": [
+      "Volkswagen",
+      "Audi"
+    ],
+    "baslik": "VW/Audi DSG Şanzıman Yağ Dolum Adaptörü",
+    "aciklama": "VAG grubu (VW, Audi, Skoda, Seat) araçlardaki DSG şanzımanlara yağ doldurmak için özel üretim dolum adaptörü. Şanzıman dolum ağzına takılır; 16 mm (5/8\") hortumla temiz ve sızdırmaz dolum sağlar.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 50 × 38 × 38 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; şanzıman/araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-audi-dsg-yag-dolum-adaptoru-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-audi-dsg-yag-dolum-adaptoru-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "thingirob",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "alfa-romeo-giulia-torpido-kilit-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Alfa Romeo"
+    ],
+    "baslik": "Alfa Romeo Giulia Torpido Gözü Kilit Mandalı (Parmak Parçası)",
+    "aciklama": "Alfa Romeo Giulia torpido gözü kilidinin, kilit silindirine geçen plastik mandal/parmak parçasının özel üretim yedeği. Kolayca kırılan bu zayıf parça yenilenince torpido kapağı yeniden düzgün açılıp kilitlenir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 21 × 21 × 21 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/alfa-romeo-giulia-torpido-kilit-mandali-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "thingirob",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-b5-s4-far-braketi-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi B5 S4 Far Braketi Pimi (İç Alt Tutucu)",
+    "aciklama": "Audi B5 S4 far kutusunun iç-alt kısmındaki pim/tutucu braketinin özel üretim yedeği. Kırılan orijinal braketin yerine geçer; farın gövdeye sağlam oturmasını sağlar.\n\nYerine yapıştırılarak monte edilir. Model sağ taraf içindir; sol taraf için aynalanarak üretilir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 43 × 32 × 29 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; sağ/sol tarafı belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-b5-s4-far-braketi-pimi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "thingirob",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-b5-s4-vites-topuzu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi B5 S4 Vites Kolu Küre (Ball) Burcu Onarımı",
+    "aciklama": "Audi B5 S4 (erken tip, ~2000) vites kolunun küresel mafsalındaki (ball) aşınan burcun özel üretim onarım seti. Vites kolundaki boşluğu ve takırtıyı giderir; vites hissini netleştirir.\n\nAynı döneme ait birçok vites mekanizmasına uyar (6 ileri S4 ve Allroad'da denenmiştir; A4 5 ileri için garanti edilmez).\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 50 × 50 × 20 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-b5-s4-vites-topuzu-burcu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-b5-s4-vites-topuzu-burcu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "thingirob",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a3-pako-raf-tapasi",
     "kategori": "Otomobil",
     "marka": [
