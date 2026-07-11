@@ -1,5 +1,20 @@
 [
   {
+    "id": "tablo-asma-aparati",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Tablo / Resim Asma Aparatı (Hizalama Şablonu)",
+    "aciklama": "Tabloları ve çerçeveleri duvara doğru yükseklikte ve düzgün hizada asmayı kolaylaştıran pratik şablon. Birden fazla tabloyu aynı seviyede asmak için idealdir.\n\nNasıl kullanılır?\n• Tabloyu aparatın çıkıntısına (askı noktasına) as\n• Aparatı duvarda istediğin konuma yerleştir\n• Tabloyu kaldır, iki delikten işaretle\n• Çiviyi/askıyı işaretlerin arasına, alt kenarı hizalayarak çak\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 150 × 50 × 44 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tablo-asma-aparati-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stockers9",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "fiamma-turbovent-dugmesi",
     "kategori": "Otomobil",
     "marka": [
