@@ -1,5 +1,22 @@
 [
   {
+    "id": "masaustu-mengene-kelepceli",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "Masaya Kelepçeli Mini Mengene (Tezgah / Hobi Mengenesi)",
+    "aciklama": "Masanızın kenarına kelepçeyle sabitlenen, çenesi vida-dişli mekanizmayla açılıp kapanan mini mengene üretiyoruz. Küçük parçaları sabitleyip iki elinizi serbest bırakır — lehimleme, model/maket, takı, elektronik, zımparalama ve ince tamir işleri için ideal.\n\nÖzellikler:\n• Masaya kelepçeyle sabitlenir; delik açmaya gerek yok, taşınabilir.\n• En fazla 45 mm kalınlığındaki masa/tezgah kenarına takılır.\n• Çene vida-dişli ile hassas sıkar; parçayı gevşetmeden tutar.\n• Sağlam, tok malzemeyle özel üretilir; farklı renk seçenekleri.\n\nNasıl sipariş edilir?\nMasanızın kalınlığını ve istediğiniz rengi WhatsApp'tan yazın; üretip adresinize gönderelim.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/masaustu-mengene-kelepceli-1.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-mengene-kelepceli-2.jpg",
+      "https://media.pruvo3d.com/urunler/masaustu-mengene-kelepceli-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ender_3_Boi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "sony-a7ii-flas-kizak-kapagi",
     "kategori": "Elektronik",
     "marka": [
