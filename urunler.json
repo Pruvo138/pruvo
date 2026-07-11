@@ -1,5 +1,20 @@
 [
   {
+    "id": "elektrik-kutusu-plastik-vida",
+    "kategori": "Elektronik",
+    "marka": [],
+    "baslik": "Şalter / Akü Ayırıcı Kutusu Plastik Vidası (Coupe-Circuit)",
+    "aciklama": "Elektrik pano kutusu veya akü ayırıcı şalterinde (coupe-circuit) kullanılan yalıtkan plastik vida/pim — kırılan orijinalin yerine geçen özel üretim yedek.\n\nİletken olmayan plastikten üretilir; devreyi elle açıp kapatan düğme/pim işlevini güvenle görür. Ucundaki geçme ve baştaki tutma kısmı orijinaline uygundur.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 32 × 14 × 14 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; eski parçanızın ölçüsünü belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/elektrik-kutusu-plastik-vida-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "gopro-telefon-tutucu-mount",
     "kategori": "Elektronik",
     "marka": [
