@@ -1,5 +1,24 @@
 [
   {
+    "id": "audi-a3-8l-radyo-cercevesi-pioneer",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 8L Oto Teyp / Radyo Çerçevesi (Pioneer DEH Uyumlu)",
+    "aciklama": "Audi A3 8L konsoluna aftermarket (satış sonrası) tek DIN oto teyp taktığınızda oluşan boşluğu kapatan özel üretim radyo çerçevesi. Pioneer DEH-XXX serisine (ör. DEH-S040BT) birebir oturacak şekilde tasarlanmıştır; teybi konsola düzgün ve fabrika görünümünde sabitler.\n\nFarklı marka/model teyp kullananlar için deliksiz (düz) versiyon da mevcuttur — teybinizin ölçüsüne göre uyarlanabilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 233 × 58 × 18 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve teyp modelinizi belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-8l-radyo-cercevesi-pioneer-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a3-8l-radyo-cercevesi-pioneer-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a3-8l-radyo-cercevesi-pioneer-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Diolum",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a3-8l-8p-telefon-tutucu",
     "kategori": "Otomobil",
     "marka": [
