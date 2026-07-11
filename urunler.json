@@ -1,5 +1,22 @@
 [
   {
+    "id": "kucuk-mandal-klips",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Küçük Mandal / Klips (Yaysız · Farklı Boyutlar)",
+    "aciklama": "Ev ve atölye için küçük yaysız mandal/klips — tek parça esnek tasarım, metal yay yoktur, iki kolu sıkıp bırakırsınız. Poşet ağzı, kablo düzeni, kağıt, atkı/örtü gibi işleri hızlıca tutturur.\n\nFarklı boyutlarda basılabilir (en büyüğü yaklaşık 25 mm). Dayanıklı malzemeyle üretilir; ince kolları kolay kırılmaz.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler (en büyük boy): 25 × 14 × 8 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kaç adet ve hangi boyut istediğinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kucuk-mandal-klips-1.jpg",
+      "https://media.pruvo3d.com/urunler/kucuk-mandal-klips-2.jpg",
+      "https://media.pruvo3d.com/urunler/kucuk-mandal-klips-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "candidogarcia",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "tekne-guverte-su-prizi-m42",
     "kategori": "Marin",
     "marka": [
