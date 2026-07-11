@@ -1,5 +1,22 @@
 [
   {
+    "id": "shimano-centerlock-anahtari",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Shimano"
+    ],
+    "baslik": "Shimano Centerlock Disk Rotor Anahtarı (Kilit Halkası Aparatı)",
+    "aciklama": "Shimano Centerlock disk fren rotorlarını sökmek/takmak için kilitleme halkası (lockring) anahtarı — rotorun merkezindeki kilit halkasının dişlerine oturur, döndürerek açıp kapatmanızı sağlar.\n\nKalın duvar ve yüksek dolguyla, tork altında dayansın diye sağlam basılır. Pahalı özel takım almadan disk rotor bakımı yapmanızı sağlar.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 55 × 55 × 25 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/shimano-centerlock-anahtari-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tekne-tahliye-tapasi-37mm",
     "kategori": "Marin",
     "marka": [
