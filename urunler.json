@@ -1,5 +1,80 @@
 [
   {
+    "id": "vw-aab-yag-dolum-flansi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen",
+      "Audi"
+    ],
+    "baslik": "VW AAB Yağ Dolum Ağzı Flanşı (Motor Swap Adaptörü)",
+    "aciklama": "VW AAB motorlarda yağ dolum ağzı (fill neck) flanşı — özellikle VW dizel motorun Audi'ye takıldığı motor swap projeleri için kısa dolum ağzı adaptörü. Yağ dolumunu pratik ve sızdırmaz hale getirir.\n\nDayanıklı malzemeyle üretilir (kaynak PLA ile sorunsuz kullanmış); farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 73 × 71 × 40 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motor/araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-aab-yag-dolum-flansi-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-aab-yag-dolum-flansi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-klasik-jant-bijon-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi Klasik Jant Merkez Bijon Kapağı (Audi Logolu)",
+    "aciklama": "Klasik Audi jantlarında merkez bijon/somununu örten göbek kapağının özel üretim yedeği; üzerinde Audi logosu. Kaybolan/kırılan orijinal kapağın yerine geçer, janta temiz bir görünüm verir.\n\nKlips sayısı artırılıp klips tasarımı iyileştirilerek takıp çıkarırken kırılma önlenmiştir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 55 × 55 × 29 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; jant/kapak ölçünüzü belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-klasik-jant-bijon-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-klasik-jant-bijon-kapagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-vw-distributor-rotor-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "Audi/VW 3B/AAN Distribütör Kapama (Blockoff) Kapağı",
+    "aciklama": "Audi/VW 3B ve AAN motorlarda, artık kullanılmayan distribütör yuvasını kapatan özel üretim blockoff kapağı. Distribütör rotoru sökülür, rotor mili yerinde kalabilir; yuva sızdırmaz şekilde kapatılır.\n\nRotoru sökmek istemeyenler için rotorun takılı kalmasına izin veren varyant da mevcuttur.\n\nIsıya dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 82 × 77 × 31 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motor/araç modelinizi belirtin.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-vw-distributor-rotor-kapak-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-vw-distributor-rotor-kapak-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-5000-vites-korugu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 5000 Vites Körüğü (Boot) Klips Çerçevesi",
+    "aciklama": "Audi 5000 vites körüğünü (shifter boot) konsola tutturan plastik klips çerçevesinin özel üretim yedeği. Zamanla kırılan/gevşeyen orijinal klipsin yerine geçer; körük yeniden gergin ve düzgün oturur. İyileştirilmiş klipsli tasarım.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 165 × 139 × 16 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-5000-vites-korugu-klipsi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-5000-vites-korugu-klipsi-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-5000-vites-korugu-klipsi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "GNU GPL"
+    }
+  },
+  {
     "id": "audi-4000-5000-arka-park-lambasi-duyu",
     "kategori": "Otomobil",
     "marka": [
