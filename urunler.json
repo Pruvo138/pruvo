@@ -1,5 +1,20 @@
 [
   {
+    "id": "karavan-merdiven-kelepcesi",
+    "kategori": "Otomobil",
+    "marka": [],
+    "baslik": "Karavan / Motokaravan Merdiven Kelepçesi (1 inç Boru)",
+    "aciklama": "Karavan (motokaravan / RV) arka merdivenlerinde kullanılan, iki parçalı merdiveni birbirine kenetleyen özel üretim kelepçe — kırılan orijinal parçanın yerine geçer.\n\n1 inç (~2,5 cm) çapında boru merdiven için tasarlanmıştır; cıvata/yay ve kelebek somun ile sıkıştırılarak merdiveni sabitler.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; merdiven boru çapınızı belirtmeniz yeterli.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/karavan-merdiven-kelepcesi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stockers9",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "dimplex-elektrikli-somine-ayagi",
     "kategori": "Elektronik",
     "marka": [
