@@ -1,5 +1,20 @@
 [
   {
+    "id": "kum-kuregi-elek",
+    "kategori": "Bahçe",
+    "marka": [],
+    "baslik": "Kum Küreği ve Eleği (Plaj · Dedektör · Bahçe)",
+    "aciklama": "Kumu kazıp aynı anda eleyen özel üretim kürek. Yan ve alt delikleri gevşek kumu süzer; kürekte sadece iri parçalar (taş, kabuk, metal detektör buluntusu) kalır. Plajda, kum havuzunda ve bahçede kazma-eleme işini tek hamlede yapar.\n\nGüçlü, tutması rahat saplı tasarım. Sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 248 × 130 × 130 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kum-kuregi-elek-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MrLugeman",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "matkap-toz-tutucu",
     "kategori": "Ev",
     "marka": [],
