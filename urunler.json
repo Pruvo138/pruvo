@@ -1,5 +1,57 @@
 [
   {
+    "id": "zimpara-blogu-vidasiz-a4",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Zımpara Bloğu (Vidasız · A4 Zımpara Kağıdı)",
+    "aciklama": "Vidasız, pratik zımpara bloğu — A4 zımpara kağıdına göre ölçülendirilmiştir. Kağıdı iki yandan sıkıştırıp gerer, üstteki mandalı kapatınca sabitlenir; hiç vida/alet gerekmez, kağıdı saniyeler içinde değiştirirsiniz.\n\nEle oturan kavrama topuzu ile ahşap, macun ve metal yüzeyleri rahatça zımparalarsınız. Sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 129 × 56 × 16 mm (zımpara yüzeyi).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/zimpara-blogu-vidasiz-a4-1.jpg",
+      "https://media.pruvo3d.com/urunler/zimpara-blogu-vidasiz-a4-2.jpg",
+      "https://media.pruvo3d.com/urunler/zimpara-blogu-vidasiz-a4-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gumo_design",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sigma-sa-arka-lens-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Sigma"
+    ],
+    "baslik": "Sigma SA Arka Lens Kapağı (Rear Cap)",
+    "aciklama": "Sigma SA bağlantılı objektifler için özel üretim arka lens kapağı. Objektifin arka bayonetine geçer, arka merceği ve elektronik kontakları toz, çizik ve darbeden korur. Kaybolan veya kırılan orijinal kapağın yerine geçer.\n\nSADECE Sigma SA bağlantısı içindir. Mat malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 60 × 60 × 12 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; objektif bağlantınızı belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sigma-sa-arka-lens-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/sigma-sa-arka-lens-kapagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gumo_design",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kulaklik-tasima-kutusu-universal",
+    "kategori": "Elektronik",
+    "marka": [],
+    "baslik": "Universal Kulaklık Taşıma Kutusu (Kablo Sarmalı)",
+    "aciklama": "Kablolu kulak içi (IEM) kulaklıklar için özel üretim taşıma kutusu. İç bölmeler kulaklıkları ve küçük bir DAC/dongle'ı ayrı ayrı tutar; kabloyu kutunun dışına sararak düzenli taşırsınız (wrap tasarım). Menteşeli kapak güvenle kapanır.\n\nKulaklıklarınızı çizilme ve darbeden korur. NOT: iç yüzeye ince kumaş veya deri kaplamanız, kulaklıkların çizilmemesi için önerilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 90 × 81 × 27 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kulaklik-tasima-kutusu-universal-1.jpg",
+      "https://media.pruvo3d.com/urunler/kulaklik-tasima-kutusu-universal-2.jpg",
+      "https://media.pruvo3d.com/urunler/kulaklik-tasima-kutusu-universal-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gumo_design",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "canon-ef-tilt-adaptor-eosm-fuji",
     "kategori": "Kamera",
     "marka": [
