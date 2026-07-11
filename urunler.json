@@ -1,5 +1,20 @@
 [
   {
+    "id": "karavan-arka-cam-tutucu",
+    "kategori": "Otomobil",
+    "marka": [],
+    "baslik": "Karavan Arka Cam Açık Tutucu (Cam Sabitleyici)",
+    "aciklama": "Karavan (motokaravan) arka camını açık konumda sabit tutan özel üretim tutucu. Camın kolları açık pozisyonda kilitlenemiyorsa ya da bisiklet taşıyıcı gibi bir engel camın tam açılmasını engelliyorsa idealdir.\n\nBasit çalışır: Bir ucu pencere mandalına, diğer ucu çerçeveye geçer ve camı açık tutar; bu sırada perde ve sinekliği kullanmaya devam edebilirsiniz.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; cam mandal ölçünüzü belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/karavan-arka-cam-tutucu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stockers9",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "dus-kapisi-alt-kilavuz-kancasi",
     "kategori": "Ev",
     "marka": [],
