@@ -1,5 +1,59 @@
 [
   {
+    "id": "audi-jant-gobek-kapagi-spacer-ara-halka",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi Jant Göbek Kapağı Sıkılaştırma Ara Halkası (Spacer)",
+    "aciklama": "Boş/gevşek oturan Audi jant göbek kapaklarını (özellikle satın alınan muadil/AliExpress kapaklar) jant yuvasına sıkı oturtan özel üretim ara halka (spacer). Kapağın arkasına geçer; 56 mm için tasarlanmış kapağı 59 mm jant yuvasına sıkıca oturtur.\n\nDayanıklı malzemeyle (ABS, %100 dolgu önerilir) üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 62 × 62 × 12 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kapak ve jant yuva ölçünüzü belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-jant-gobek-kapagi-spacer-ara-halka-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-jant-gobek-kapagi-spacer-ara-halka-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "projek_01",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a3-mandal-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 Mandal / Kilit Parçası (Latch)",
+    "aciklama": "Audi A3 için özel üretim mandal/kilit (latch) parçası. Kırılan orijinal parçanın yerine geçer; ilgili kapak/mekanizmanın yeniden düzgün kilitlenmesini sağlar.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 70 × 20 × 19 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-mandal-parcasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "projek_01",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-vw-ccv-karter-havalandirma-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "Audi/VW CCV Karter Havalandırma Kapağı (Dizel AHF/ALH)",
+    "aciklama": "Audi/VW dizel motorlar için CCV (Crank Case Ventilation — karter havalandırma) kapağının özel üretim yedeği. Kırılan/kaybolan orijinal kapağın yerine geçer; karter gazlarının yönlendirilmesini sağlar.\n\nAHF motordan çıkarılmıştır; ALH ve benzeri motorlarla da uyumludur. Isıya dayanıklı malzemeyle (ABS önerilir; yüksek dolgu ve çok duvar/kat ile) üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 110 × 90 × 44 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motor modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-vw-ccv-karter-havalandirma-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-vw-ccv-karter-havalandirma-kapagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Layerz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "vw-audi-dsg-yag-dolum-adaptoru",
     "kategori": "Tamirat",
     "marka": [
