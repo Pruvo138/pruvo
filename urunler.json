@@ -1,5 +1,24 @@
 [
   {
+    "id": "audi-a3-8l-8p-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 8L / 8P Telefon Tutucu Yuvası (Bardaklık Yerine)",
+    "aciklama": "Audi A3 8L (ve 8P) için özel üretim telefon tutucu yuvası. Orta konsoldaki bardaklık yuvasına oturur; kalıcı değişiklik veya delik gerektirmez.\n\nPiyasadaki manyetik/mafsallı (ball-head) telefon tutucularla birlikte kullanılır: standart ayaklı bir tutucudan mafsal başlığını söküp bu parçaya takarsınız, telefonunuz sürücünün rahatça göreceği bir konumda sabitlenir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 85 × 51 × 29 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-8l-8p-telefon-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a3-8l-8p-telefon-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a3-8l-8p-telefon-tutucu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Diolum",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a3-8l-bardaklik-insert-taban",
     "kategori": "Otomobil",
     "marka": [
