@@ -1,5 +1,36 @@
 [
   {
+    "id": "vw-golf-mk1-kapi-tutma-surtunme-blogu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "VW Golf / Caddy / Jetta MK1 Kapı Tutma Sürtünme Bloğu",
+    "aciklama": "Erken dönem VW Golf / Caddy / Jetta MK1 modellerinde kapı tutma (door stay) mekanizmasının içindeki plastik sürtünme bloğunun özel üretim yedeği. Aşınan/kırılan orijinal blok yüzünden kapının kademelerde durmaması sorununu giderir; kapıyı açık konumda tutar.\n\nDayanıklılık için sağlam (yüksek dolgulu) baskıyla üretilir; daha uzun ömür için naylon gibi dayanıklı malzeme de tercih edilebilir. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 27 × 20 × 16 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-golf-mk1-kapi-tutma-surtunme-blogu-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-golf-mk1-kapi-tutma-surtunme-blogu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Snabel_a",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bmw-e82-bagaj-arma-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "BMW"
+    ],
+    "baslik": "BMW E82 (1 Serisi) Bagaj Arması Tutucu / Taban",
+    "aciklama": "BMW E82 (1 Serisi) bagaj kapağındaki arma (badge) altındaki krom plastik taban aşındıysa ya da kırıldıysa, standart 73 mm armayı bagaj kapağına yeniden monte etmenizi sağlayan özel üretim taban seti.\n\nİki parçadan oluşur; parçalar birbirine yapıştırılır, armanız üzerine takılır ve tüm grup bagaj kapağına yapıştırılır. (Mevcut krom taban sağlamsa, sadece yeni 73 mm arma üstüne takılabilir.) Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nStandart 73 mm arma ölçüsüne göredir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve arma ölçünüzü belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bmw-e82-bagaj-arma-tutucu-1.jpg"
+    ]
+  },
+  {
     "id": "bmw-e82-telefon-tutucu",
     "kategori": "Otomobil",
     "marka": [
