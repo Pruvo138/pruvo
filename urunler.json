@@ -1,5 +1,41 @@
 [
   {
+    "id": "audi-a6-4f-yakit-kapagi-bandi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6 4F Yakıt Deposu Kapağı Bandı (Tank Kapağı İpi)",
+    "aciklama": "Audi A6 4F yakıt deposu kapağını depo kapağına bağlayan bandın (orijinal 8E0 201 556) özel üretim yedeği. Yıllar içinde ufalanan/kopan orijinal bandın yerine geçer; depo kapağı açıkken düşmez, kaybolmaz.\n\nEsneklik için TPU (esnek malzeme) ile üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık ölçüler: 127 × 11 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-4f-yakit-kapagi-bandi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-4f-yakit-kapagi-bandi-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-4f-yakit-kapagi-bandi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Maxi3",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a2-yakit-kapagi-bandi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A2 Yakıt Deposu Kapağı Bandı (Tank Kapağı İpi)",
+    "aciklama": "Audi A2 yakıt deposu kapağını depo kapağına bağlayan bandın özel üretim yedeği; kopan orijinalin birebir kopyası. Depo kapağı açıkken düşmez, kaybolmaz. Aynı dönem diğer VAG grubu araçlara da uyabilir.\n\nEsneklik için TPU (esnek malzeme) ile üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık ölçüler: 129 × 11 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a2-yakit-kapagi-bandi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "autophilia",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b6-kalorifer-hortum-tapasi",
     "kategori": "Otomobil",
     "marka": [
