@@ -1,5 +1,25 @@
 [
   {
+    "id": "vw-audi-skoda-seat-30mm-govde-kor-tapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen",
+      "Audi",
+      "Skoda",
+      "Seat"
+    ],
+    "baslik": "VW/Audi/Skoda/Seat (VAG) 30mm Gövde/Taban Kör Tapası (Grommet)",
+    "aciklama": "VAG grubu (VW, Audi, Skoda, Seat) araçlarda gövde/taban sacındaki 30 mm'lik delikleri kapatan özel üretim kör tapa (grommet plug). Kaybolan/kırılan orijinal tapanın yerine geçer; deliği kapatıp su, toz ve yol gürültüsünün içeri girmesini engeller.\n\n30 mm delik için tasarlanmıştır. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 42 × 42 × 7 mm (30 mm deliğe uygun).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; delik ölçünüzü belirtin.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-audi-skoda-seat-30mm-govde-kor-tapa-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "eanderl",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "audi-80-b4-tutamak-vida-kapagi",
     "kategori": "Otomobil",
     "marka": [
