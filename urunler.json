@@ -1,5 +1,41 @@
 [
   {
+    "id": "audi-b8-a4-a5-maf-sensor-uzatma-fisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi B8 (A4/A5) MAF (Hava Akış) Sensörü Uzatma Fişi Gövdesi",
+    "aciklama": "Audi B8 (A4/A5) hava kütle akış (MAF) sensörü kablolamasını uzatmak için özel üretim fiş gövdesi. Aracın orijinal MAF konnektörünün takılabileceği karşı ucu oluşturur; hazır bir MAF konnektörü + kablo ile birlikte kullanılarak sensör kablolamasını uzatmanızı ve istediğinizde geri sökmenizi sağlar (geri dönüşü olan çözüm).\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 26 × 19 × 11 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-b8-a4-a5-maf-sensor-uzatma-fisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-b8-a4-a5-maf-sensor-uzatma-fisi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "amneonline",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a5-10-25-carplay-ekran-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A5 (B8) 10,25\" CarPlay/Android Ekran Montaj Braketi",
+    "aciklama": "Audi A5 (B8) orijinal ekranını 10,25\" Android/CarPlay ekranla değiştirenler için özel üretim montaj braketi. Yeni ekranı konsola sağlam sabitlerken, orijinal plastik ekran kapağını (silver cover) kırmadan/parçalamadan tekrar takabilmenizi sağlar; vida noktaları orijinal kapağa uyacak şekilde biraz dışarı alınmıştır.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 205 × 100 × 27 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve ekran modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a5-10-25-carplay-ekran-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a5-10-25-carplay-ekran-braketi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tchgrbr",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-b8-bo-amfi-su-koruma-kiti",
     "kategori": "Otomobil",
     "marka": [
