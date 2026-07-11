@@ -1,5 +1,22 @@
 [
   {
+    "id": "jeanneau-camarat-capa-tapasi",
+    "kategori": "Marin",
+    "marka": [
+      "Jeanneau"
+    ],
+    "baslik": "Jeanneau Cap Camarat 515 Çapa Deliği Tapası (İsimli · Halatlı)",
+    "aciklama": "Jeanneau Cap Camarat 515 teknelerde güvertedeki çapa (demir) haznesi deliğini kapatan tapa — kaybolan orijinalin yerine geçen özel üretim yedek. Deliğe su, kir ve halat girmesini önler.\n\nKolay açılıp kapanması için üstünde halat tutamak yeri vardır. İsterseniz üzerine teknenizin adını kabartma olarak işleyebiliriz (görseldeki 'RIGA' örnektir) ya da düz bırakabiliriz. Esnek TPU ile üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 121 × 60 × 26 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; tekne adını ve delik ölçünüzü belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/jeanneau-camarat-capa-tapasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tekne-beyaz-fener-tabani-gopro",
     "kategori": "Marin",
     "marka": [],
