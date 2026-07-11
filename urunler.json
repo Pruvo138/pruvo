@@ -1,5 +1,22 @@
 [
   {
+    "id": "tekne-guverte-su-prizi-m42",
+    "kategori": "Marin",
+    "marka": [
+      "Beneteau"
+    ],
+    "baslik": "Tekne Güverte Su Prizi Adaptörü (M42 · Hızlı Bağlantı)",
+    "aciklama": "Beneteau (ve M42 dişli benzeri) teknelerin güverte su alma (dolum) prizine takılan özel üretim adaptör — M42 dişiyle prize vidalanır, üstteki hızlı bağlantı memesi standart bahçe hortumu kaplinine geçer. İskelede su almayı kolaylaştırır.\n\nOrijinal priz ölçüsüne göre üretilir. Suya ve dış koşullara dayanıklı malzemeyle basılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 46 × 45 × 45 mm (M42 diş).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; priz diş ölçünüzü belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tekne-guverte-su-prizi-m42-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rius93",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tekne-tahliye-tapasi",
     "kategori": "Marin",
     "marka": [],
