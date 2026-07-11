@@ -1,5 +1,59 @@
 [
   {
+    "id": "audi-b2-far-anahtari-soketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi B2 (4000/Coupe) Far/Aydınlatma Anahtarı Soketi",
+    "aciklama": "Audi B2 (4000/Fox/Coupe vb.) far/aydınlatma anahtarının zamanla eriyen, ufalanan konnektör soketinin (plug) özel üretim yedeği. Erimiş orijinal soketin yerine geçer; kabloları güvenli ve düzenli bağlar.\n\nNot: Erimeyi önlemek için far devresini röle ile beslemeniz önerilir.\n\nIsıya dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 40 × 26 × 17 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-b2-far-anahtari-soketi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-2-pin-diagnostik-soket",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 2 Pin Diagnostik (OBD) Konnektörü",
+    "aciklama": "Audi 3B ve AAN motorlu araçlarda (200 ve S4/S6) kullanılan 2 pinli diagnostik (OBD) konnektörünün özel üretim yedeği. Kırılan/kaybolan orijinal soketin yerine geçer. Ayrıca 4k Quattro fren hidroliği seviye sensörü gibi çeşitli gövde konnektörlerinde de kullanılır.\n\nTekli veya çiftli kilit pimiyle çalışır. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 20 × 13 × 6 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç/uygulama modelinizi belirtmeniz yeterli.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-2-pin-diagnostik-soket-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-2-pin-diagnostik-soket-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-01e-vites-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi C4 (S4/S6) 01E Şanzıman Vites Kolu Burcu (Shifter Bushing)",
+    "aciklama": "Audi C4 (S4/S6) 01E şanzımanlarda vites kolu küresel mafsalını tutan burcun (shifter bushing) özel üretim yedeği. Zamanla aşınan/boşluk yapan orijinal burcun yerine geçer; vites geçişlerindeki boşluğu ve takırtıyı giderir, viteslerin oturmasını netleştirir.\n\nKüresel mafsala sıkı ve düzgün oturacak şekilde tasarlanmıştır. Aşınmaya dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 34 × 34 × 22 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; şanzıman/araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-01e-vites-burcu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-01e-vites-burcu-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-01e-vites-burcu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "audi-b2-tampon-alt-izgara",
     "kategori": "Otomobil",
     "marka": [
