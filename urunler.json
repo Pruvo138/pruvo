@@ -1,5 +1,57 @@
 [
   {
+    "id": "audi-a4-b6-kalorifer-hortum-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 B6 Kalorifer Hortumu Hızlı Bağlantı Acil Tapası",
+    "aciklama": "Audi A4 B6 kalorifer (heater) hortumu ile soğutma suyu flanşı arasındaki hızlı bağlantı parçası çatlayıp koptuğunda, soğutma suyunu geçici olarak tutan özel üretim acil tapa. Flanş tarafındaki kırık konnektöre sıkıca oturur; yedek parça gelene kadar aracın su kaybetmesini önler.\n\nSıkı geçme için birkaç derece koniktir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 20 × 20 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-kalorifer-hortum-tapasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "carlfxy",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-3-0-v6-emme-manifold-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 3.0L V6 Emme Manifold Tapası",
+    "aciklama": "Audi 3.0L V6 motorlarda emme (intake) manifoldundaki bir ağzı/deliği kapatan özel üretim tapa. Kırılan/kaybolan orijinal tapanın yerine geçer; emme yolunu sızdırmaz şekilde kapatır.\n\nIsıya dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 55 × 27 × 24 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motor modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-3-0-v6-emme-manifold-tapasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stefrush",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-fren-kaliper-keci-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi Fren Kaliper Keçe (Seal) Tapası",
+    "aciklama": "Audi araçlar için fren kaliperi keçe (seal) tapası — özel üretim. Kaliper keçesinin oturduğu yuvaya geçer; keçenin/pistonun tozdan korunmasına yardımcı olur. Audi A3'te kullanılmış olup çoğu Audi kaliperine uyar.\n\nÇaplar: üst 17 mm / 13 mm, taban 20 mm. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 20 × 20 × 12 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kaliper modelinizi belirtin.",
+    "fiyat": "750 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-fren-kaliper-keci-tapasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-fren-kaliper-keci-tapasi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_andy_",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-vw-motor-boru-tutucu-burcu",
     "kategori": "Otomobil",
     "marka": [
