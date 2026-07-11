@@ -1,5 +1,62 @@
 [
   {
+    "id": "raspberry-pi-kamera-mount-chiron",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anycubic",
+      "Raspberry Pi"
+    ],
+    "baslik": "Raspberry Pi Kamera + Spool Montaj Seti (Anycubic Chiron)",
+    "aciklama": "Anycubic Chiron 3D yazıcıya Raspberry Pi kamerayla baskı takibi (OctoPrint vb.) kurmak için özel üretim montaj seti — Pi kamera kolu, Pi kutusu, spool (Raspberry) kutusu, yatak kelepçesi ve 2020 profil klipsleri dahil.\n\nKamera kolu baskı tablasını yandan görecek şekilde kısaltılmış; ekstruder görüşü engellemez. Klipsler profile geçmeli, az filament harcar. Çok parçalı komple set.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; yazıcı ve kamera modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/raspberry-pi-kamera-mount-chiron-1.jpg",
+      "https://media.pruvo3d.com/urunler/raspberry-pi-kamera-mount-chiron-2.jpg",
+      "https://media.pruvo3d.com/urunler/raspberry-pi-kamera-mount-chiron-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "raspberry-pi-10inch-ekran-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Raspberry Pi"
+    ],
+    "baslik": "Raspberry Pi 10\" Dokunmatik Ekran Arka Panel + Stand",
+    "aciklama": "Raspberry Pi 10 inç dokunmatik ekranın kırılan arka panelinin (backplane) ve ayak standının özel üretim yedeği. Orijinal parçalarla uyumludur ve tüm vida delikleri olabildiğince hassas ölçülmüştür.\n\nArka panel Pi'yi ve ekranı taşır; katlanır ayak ekranı masaüstünde dik tutar. Sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler (arka panel): 273 × 173 × 5 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; ekran modelinizi belirtmeniz yeterli.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/raspberry-pi-10inch-ekran-standi-1.jpg",
+      "https://media.pruvo3d.com/urunler/raspberry-pi-10inch-ekran-standi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "raspberry-pi-kamera-mount-anet-a8",
+    "kategori": "Elektronik",
+    "marka": [
+      "Anet",
+      "Raspberry Pi"
+    ],
+    "baslik": "Raspberry Pi Kamera Montajı (Anet A8 · Ayarlı Kol)",
+    "aciklama": "Anet A8 3D yazıcıya Raspberry Pi kamera modülü takmak için özel üretim montaj — Çin üretimi Pi kamera modülüne uyacak şekilde vida delikleri ve aralıkları düzenlenmiştir.\n\nKamerayı baskı tablasına doğru yönlendiren ayarlanabilir eğim kolu, montaj sırasında kolay kırılmasın diye güçlendirilmiştir. Baskılarınızı Pi kameradan izlemenizi sağlar.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler (kamera kutusu): 30 × 29 × 7 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kamera modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/raspberry-pi-kamera-mount-anet-a8-1.jpg",
+      "https://media.pruvo3d.com/urunler/raspberry-pi-kamera-mount-anet-a8-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "rode-videomic-masa-standi",
     "kategori": "Elektronik",
     "marka": [
