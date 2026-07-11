@@ -1,5 +1,22 @@
 [
   {
+    "id": "ctc-yazici-ust-kablo-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "CTC"
+    ],
+    "baslik": "CTC 3D Yazıcı Üst Kablo Tutucu (Teflon Tüp Yuvalı)",
+    "aciklama": "CTC 3D yazıcıların baskı kafası kablo demetini tutan üst destek — sık yaşanan kablo kopmalarına karşı geliştirilmiş, standart CTC parçasının birebir muadili özel üretim yedek.\n\n6 mm Teflon (PTFE) tüp için iki yuvası vardır; bu da filament beslemesini belirgin şekilde iyileştirir. Kablo demetini düzenli tutarak kopma riskini azaltır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 44 × 31 × 28 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; yazıcı modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ctc-yazici-ust-kablo-tutucu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stockers9",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tablo-asma-aparati",
     "kategori": "Ev",
     "marka": [],
