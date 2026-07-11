@@ -159,7 +159,7 @@
   },
   {
     "id": "vw-audi-17mm-bijon-kapagi-sokme-aleti",
-    "kategori": "Tamirat",
+    "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
       "Audi"
@@ -205,7 +205,7 @@
   },
   {
     "id": "audi-a3-vites-mili-kilavuz-cekme-aleti",
-    "kategori": "Tamirat",
+    "kategori": "Otomobil",
     "marka": [
       "Audi"
     ],
@@ -218,7 +218,7 @@
   },
   {
     "id": "audi-a3-vites-mili-delme-aleti",
-    "kategori": "Tamirat",
+    "kategori": "Otomobil",
     "marka": [
       "Audi"
     ],
@@ -269,7 +269,7 @@
   },
   {
     "id": "audi-a3-vites-cubugu-kilavuz-cekme-aleti",
-    "kategori": "Tamirat",
+    "kategori": "Otomobil",
     "marka": [
       "Audi"
     ],
@@ -282,7 +282,7 @@
   },
   {
     "id": "audi-a3-vites-cubugu-delme-aleti",
-    "kategori": "Tamirat",
+    "kategori": "Otomobil",
     "marka": [
       "Audi"
     ],
