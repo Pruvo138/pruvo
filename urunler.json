@@ -1,5 +1,22 @@
 [
   {
+    "id": "rode-videomic-masa-standi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Rode"
+    ],
+    "baslik": "Rode VideoMic Pro Masa Standı (Shoe Adaptörlü)",
+    "aciklama": "Rode VideoMic Pro mikrofonu masa üstünde sabit tutmak için özel üretim stand — mikrofonu kameraya değil, doğrudan masaya kurup podcast/yayın/kayıt yapmanızı sağlar.\n\nAyak (stand) ve mikrofonun ayakkabı (shoe) bağlantısına geçen adaptör parçalarından oluşur. Birleştirmek için bir-iki M4 vida yeterlidir; delik sıkı olduğu için somuna genelde gerek kalmaz. Sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler (ayak): 87 × 82 × 12 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; mikrofon modelinizi belirtmeniz yeterli.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/rode-videomic-masa-standi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "casus-ayna-kolu",
     "kategori": "Ev",
     "marka": [],
