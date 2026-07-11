@@ -1,5 +1,22 @@
 [
   {
+    "id": "skyteam-dax-yakit-deposu-conta",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Skyteam"
+    ],
+    "baslik": "Skyteam DAX Yakıt Deposu Contası (Sızdırmazlık Halkası)",
+    "aciklama": "Skyteam DAX motosikletlerde yakıt deposu ağzının sızdırmazlığını sağlayan ek conta — orijinal contanın üzerine eklenerek yakıt kaçağını (sızıntıyı) önler.\n\nEsnek TPU malzemeyle (230/60 °C) üretilir; benzine dayanıklı, yumuşak ve tam oturur. Depo kapağı çevresindeki damlamayı ve kokuyu keser.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 47 × 47 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motosiklet modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/skyteam-dax-yakit-deposu-conta-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "gopro-acili-adaptor-45",
     "kategori": "Elektronik",
     "marka": [
