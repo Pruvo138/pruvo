@@ -1,5 +1,20 @@
 [
   {
+    "id": "motosiklet-canta-klips-sabitleyici",
+    "kategori": "Motosiklet",
+    "marka": [],
+    "baslik": "Motosiklet Yan Çanta Klips Sabitleyici (Dönme Önleyici)",
+    "aciklama": "Motosiklet yan/heybe çantalarının bağlantı klipslerinin sürüş sırasında dönüp gevşemesini ve neredeyse düşmesini önleyen özel üretim sabitleyici disk.\n\nKlipsin arkasına geçer, çantayı yerinde ve oynamadan tutar. Küçük ama işlevsel bir parça; sağlam malzemeyle üretilir. Genellikle çift kullanılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 30 × 30 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; çanta klips tipinizi belirtmeniz yeterli.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/motosiklet-canta-klips-sabitleyici-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "shimano-centerlock-anahtari",
     "kategori": "Bisiklet",
     "marka": [
