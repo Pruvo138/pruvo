@@ -1,5 +1,37 @@
 [
   {
+    "id": "tirtikli-civata-somun-klasik",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Tırtıklı (Knurling) Cıvata ve Somun — Klasik",
+    "aciklama": "Elle sıkılıp gevşetilen klasik tırtıklı cıvata ve somun seti — alet gerekmez. Silindirik, çapraz tırtıklı başı parmakla güçlü kavranır; jig ve şablonlarda, ayarlı montajlarda, kapak/panel sabitlemede ve hobi işlerinde pratik kullanım sağlar.\n\nFarklı cıvata uzunlukları mevcuttur (20–80 mm dişli boy); somunla birlikte kullanılır. Baş çapı yaklaşık 30 mm. Dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler — baş çapı 30 mm · cıvata boyu 20–80 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kaç adet ve hangi boy istediğinizi belirtmeniz yeterli.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tirtikli-civata-somun-klasik-1.jpg",
+      "https://media.pruvo3d.com/urunler/tirtikli-civata-somun-klasik-2.jpg",
+      "https://media.pruvo3d.com/urunler/tirtikli-civata-somun-klasik-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "akira3dp0",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "hizli-sikistirma-mengenesi",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Hızlı Sıkıştırma Mengenesi (Masaüstü · Kaba + İnce Ayar)",
+    "aciklama": "Masaüstü çalışmalar için özel üretim hızlı mengene. Çeneyi elle kaydırıp parçaya kaba ayar yaparsınız, ardından topuzu çevirerek ince sıkarsınız — sürekli vida çevirmeden saniyeler içinde bağlar ve açarsınız.\n\nKüçük parça tutma, elektronik lehimleme, model ve hobi işleri için idealdir. Çeneler hassas işlere uygundur. Sağlam malzemeyle üretilir; standart cıvata donanımıyla çalışır (birlikte gönderilir).\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/hizli-sikistirma-mengenesi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bitsplusatoms",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tirtikli-civata-somun",
     "kategori": "Ev",
     "marka": [],
