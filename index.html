@@ -992,6 +992,8 @@
       renderBrands();
       renderGrid();
       updateCartFab();
+      // Ürün sayfasından "Sepetim" ile gelindiyse sepeti otomatik aç
+      if(new URLSearchParams(location.search).get("sepet")){ openCart(); }
     })
     .catch(function(err){
       console.error("Ürünler yüklenemedi:", err);

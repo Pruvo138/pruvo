@@ -72,6 +72,11 @@ WA_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 '
            '.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45'
            '.21.51.32.06.11.06.64-.18 1.32z"/></svg>')
 
+CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 '
+             '7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 '
+             '0-.25-.11-.25-.25l.03-.12L8.1 15h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 6H5.21l-.94-2H1zm16 '
+             '16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>')
+
 # ------------------------------------------------------------------ ortak CSS
 PAGE_CSS = """
   :root{
@@ -131,6 +136,21 @@ PAGE_CSS = """
     gap:9px;transition:.15s;max-width:320px;width:100%}
   .order-btn:hover{background:var(--red-dark)}
   .order-btn svg{width:19px;height:19px;fill:#fff}
+  .cart-btn{background:var(--navy);color:#fff;border:none;border-radius:9px;
+    padding:15px 22px;font-size:16px;font-weight:700;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    transition:.15s;max-width:320px;width:100%}
+  .cart-btn:hover{background:var(--navy-2)}
+  .cart-btn svg{width:19px;height:19px;fill:#fff}
+  .cart-btn.added{background:#e8f6ee;color:#178a44}
+  .cart-btn.added svg{fill:#178a44}
+  .order-alt{display:inline-block;margin-top:11px;font-size:13.5px;color:var(--gray-text);text-decoration:underline}
+  .order-alt:hover{color:var(--navy)}
+  .cart-fab{position:fixed;right:18px;bottom:18px;z-index:60;background:#25a35a;color:#fff;
+    border-radius:30px;padding:12px 20px;font-size:15px;font-weight:700;text-decoration:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.22);align-items:center;gap:8px;display:none}
+  .cart-fab:hover{background:#1ebe5a}
+  .cart-fab svg{width:19px;height:19px;fill:#fff}
   .note{font-size:12.5px;color:var(--gray-text);margin-top:12px}
 
   .related{max-width:1100px;margin:0 auto;padding:0 20px 60px}
@@ -157,7 +177,7 @@ PAGE_CSS = """
     .detail{grid-template-columns:1fr;gap:22px}
     .gallery{position:static}
     h1{font-size:22px}.price{font-size:22px}
-    .order-btn{max-width:none}
+    .order-btn,.cart-btn{max-width:none}
   }
 """
 PAGE_CSS += CONTENT_CSS
@@ -388,8 +408,9 @@ def render_product(p, all_products):
       {brands}
       {price}
       <p class="desc">{aciklama}</p>
-      <a class="order-btn" href="{wa}" target="_blank" rel="noopener">{icon} Sipariş Ver</a>
-      <div class="note">WhatsApp üzerinden sipariş alınır. Ürün talep üzerine özel olarak üretilir.</div>
+      <button class="cart-btn" id="cartBtn" data-id="{pid}">{cart_icon}<span class="cart-label">Sepete Ekle</span></button>
+      <a class="order-alt" href="{wa}" target="_blank" rel="noopener">veya WhatsApp'tan bu ürünü tek tek sor</a>
+      <div class="note">Sepete ekleyip birden çok ürünü tek WhatsApp mesajıyla sipariş edebilirsiniz. Ürünler talep üzerine özel üretilir.</div>
     </div>
   </div>
 </main>
@@ -403,6 +424,8 @@ def render_product(p, all_products):
   {attribution}
 </footer>
 
+<a id="cartFab" class="cart-fab" href="/?sepet=1">{cart_icon}Sepetim (<span id="cartCount">0</span>)</a>
+
 <script>
 function pv(el,src){{
   document.getElementById('mainImg').src=src;
@@ -410,6 +433,30 @@ function pv(el,src){{
   for(var i=0;i<t.length;i++){{t[i].className='thumb';}}
   el.className='thumb active';
 }}
+/* Sepet: bu ürünü index.html ile ortak localStorage sepetine (pruvo_sepet) ekle/çıkar */
+(function(){{
+  var KEY="pruvo_sepet";
+  function load(){{ try{{ return JSON.parse(localStorage.getItem(KEY)||"[]")||[]; }}catch(e){{ return []; }} }}
+  function save(c){{ try{{ localStorage.setItem(KEY, JSON.stringify(c)); }}catch(e){{}} }}
+  var btn=document.getElementById("cartBtn"); if(!btn){{ return; }}
+  var id=btn.getAttribute("data-id");
+  var label=btn.querySelector(".cart-label");
+  var fab=document.getElementById("cartFab");
+  var count=document.getElementById("cartCount");
+  function render(){{
+    var c=load(); var has=c.indexOf(id)!==-1;
+    btn.classList.toggle("added", has);
+    if(label){{ label.textContent = has ? "Sepette ✓" : "Sepete Ekle"; }}
+    if(count){{ count.textContent = c.length; }}
+    if(fab){{ fab.style.display = c.length ? "inline-flex" : "none"; }}
+  }}
+  btn.addEventListener("click", function(){{
+    var c=load(); var i=c.indexOf(id);
+    if(i===-1){{ c.push(id); }} else {{ c.splice(i,1); }}
+    save(c); render();
+  }});
+  render();
+}})();
 </script>
 </body>
 </html>
@@ -435,6 +482,8 @@ function pv(el,src){{
         aciklama=aciklama_html,
         wa=esc(wa_href(p, url)),
         icon=WA_ICON,
+        pid=esc(p.get("id") or ""),
+        cart_icon=CART_ICON,
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
