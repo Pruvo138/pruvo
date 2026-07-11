@@ -1,5 +1,110 @@
 [
   {
+    "id": "bmw-f700gs-boru-kelepcesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW"
+    ],
+    "baslik": "BMW F700GS Boru / Hat Ayırıcı Kelepçe",
+    "aciklama": "BMW F700GS için özel üretim boru hattı ayırıcı kelepçe (pipe spacer). İki hattı/boruyu birbirinden ayrı, titremeden sabit tutar; sürtünme ve takırtıyı önler.\n\nOrijinal ölçülere göre üretilir. Dayanıklı malzemeyle basılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 23 × 12 × 8 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bmw-f700gs-boru-kelepcesi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Monk22",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-kaput-kapak-klipsi-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi Q5 / A4 / A5 Kapak Klipsi Pimi (4D0807300) — 4'lü Set",
+    "aciklama": "Audi Q5, A4 ve A5 modellerinde motor/ön kaput alt kapağını tutan klips piminin (orijinal 4D0807300) özel üretim muadili. Zamanla kırılan/kaybolan pimlerin yerine geçer; kapağı yeniden sıkıca sabitler.\n\n4 adetlik set olarak gönderilir. Orijinal ölçülere göre üretilir; dayanıklı malzemeyle basılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler (tek pim): 21 × 5 × 5 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-kaput-kapak-klipsi-pimi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-kaput-kapak-klipsi-pimi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Monk22",
+      "tur": "GNU GPL"
+    }
+  },
+  {
+    "id": "kalorifer-vana-adaptoru-m30",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Kalorifer Vana Termostat Adaptörü (M30×1.5 · FAR FT 1941)",
+    "aciklama": "Kalorifer/petek termostatik vana başlığını farklı diş ölçüsündeki vanaya bağlamak için özel üretim adaptör. M30×1.5 dişe sahiptir; FAR FT 1941 tipi vana ile uyumludur. Termostat başlığını sökmeden uygun vanaya oturtursunuz.\n\nSıcağa dayanıklı malzemeyle (PLA değil, PETG/ABS önerilir) üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 30 × 30 × 21 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; vana ve termostat tipinizi belirtmeniz yeterli.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kalorifer-vana-adaptoru-m30-1.jpg",
+      "https://media.pruvo3d.com/urunler/kalorifer-vana-adaptoru-m30-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Monk22",
+      "tur": "GNU GPL"
+    }
+  },
+  {
+    "id": "audi-a4-arka-koltuk-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "Audi A4 B8 Arka Koltuk Sabitleme Klipsi (4L0886373 · 2'li)",
+    "aciklama": "Audi A4 B8 (ve uyumlu VW/Audi modelleri) arka koltuk/oturağı yerine kilitleyen sabitleme klipsinin (orijinal 4L0886373 · CL-00987) özel üretim muadili. Kırılan klipsin yerine geçer; koltuğun oynamasını, gıcırdamasını önler.\n\nUyumlu: Audi Q7 (2007-2015), A4/S4 (2008-2015), A6 (2011-2016). 2 adetlik set olarak gönderilir. Dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 40 × 39 × 28 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-arka-koltuk-klipsi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bergfuerst",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-ucgen-reflektor-kapak-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 Reflektör (Uyarı Üçgeni) Bölmesi Kapak Topuzu",
+    "aciklama": "Audi A4 bagaj kapağındaki uyarı üçgeni (reflektör) bölmesinin kapağını açan döner topuzun özel üretim yedeği. Kırılan orijinal topuzun yerine geçer; orijinalin birebir ölçülmüş ölçülerine göre üretilir, tam oturur.\n\nDayanıklı malzemeyle basılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 25 × 25 × 25 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-ucgen-reflektor-kapak-topuzu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-ucgen-reflektor-kapak-topuzu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rairoumaru",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-bagaj-torba-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 B8 Bagaj Torba / Poşet Kancası (Güçlendirilmiş)",
+    "aciklama": "Audi A4 B8 bagajındaki zayıf orijinal torba kancalarının yerine geçen güçlendirilmiş özel üretim kanca. Orijinal parçanın birebir muadilidir; alışveriş poşetlerini ve çantaları çok daha güvenli tutar, savrulmalarını önler.\n\nGeliştirilmiş 2. sürüm — kancanın ucu poşeti düşürmeyecek şekilde tasarlanmıştır. Dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 82 × 45 × 40 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-bagaj-torba-kancasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-bagaj-torba-kancasi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rota",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "divetalk-go-adv-kapak-anahtari",
     "kategori": "Marin",
     "marka": [
