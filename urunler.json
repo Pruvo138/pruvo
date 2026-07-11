@@ -1,5 +1,39 @@
 [
   {
+    "id": "matkap-toz-tutucu",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Matkap Toz Tutucu (Delerken Toz Toplayıcı)",
+    "aciklama": "Duvara veya tavana matkapla delik açarken çıkan tozu toplayan özel üretim tutucu. Matkap ucunun etrafına gelir; delme sırasında düşen tozu alttaki kaşıkta toplar, ortam ve zemin temiz kalır — süpürme derdi biter.\n\nOrtadaki delikten matkap ucu geçer; farklı çaplarda (32 / 34 / 35 / 38 mm) üretilebilir. Esnek, dayanıklı malzemeyle basılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 161 × 97 × 59 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; matkap/uç çapınızı belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/matkap-toz-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/matkap-toz-tutucu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Renba",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ryobi-one-batarya-tutucu",
+    "kategori": "Ev",
+    "marka": [
+      "Ryobi"
+    ],
+    "baslik": "Ryobi ONE+ 18V Batarya Duvar Tutucu",
+    "aciklama": "Ryobi ONE+ 18V bataryaları duvara ya da rafa asmak için özel üretim tutucu. Batarya kızak yuvasına oturur; iki vidayla duvara sabitlenir. Atölyede bataryaları düzenli, el altında ve şarj sırasında toplu tutar.\n\nTabanda güçlendirilmiş montaj kulakları vardır. Sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 77 × 54 × 54 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kaç adet istediğinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ryobi-one-batarya-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/ryobi-one-batarya-tutucu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Guitardude",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "nikon-18-55-lens-parasoleyi",
     "kategori": "Kamera",
     "marka": [
