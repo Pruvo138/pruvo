@@ -1,5 +1,22 @@
 [
   {
+    "id": "dimplex-elektrikli-somine-ayagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Dimplex"
+    ],
+    "baslik": "Dimplex Elektrikli Şömine Ayağı (Duvar Tipini Yere Koymak İçin)",
+    "aciklama": "Duvara monte Dimplex elektrikli şömineyi (ısıtıcıyı) yere ayakta durdurmak için özel üretim ayak. Fabrikadan ayak gelmeyen ya da ayağı kaybolan modeller için idealdir.\n\nMontajı kolay: Her ayak tek bir vida ile takılır, iki adet çıkıntı (tırnak) ile yerine kilitlenip kaymadan sabit durur.\n\nFarklı renk seçenekleriyle üretilebilir. Genellikle bir çift (2 adet) kullanılır.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; şömine modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dimplex-elektrikli-somine-ayagi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stockers9",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "yamaha-dijital-davul-boru-tutucu",
     "kategori": "Elektronik",
     "marka": [
