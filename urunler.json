@@ -1,5 +1,22 @@
 [
   {
+    "id": "audi-a4-tpms-modul-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4/S4/RS4 B9 TPMS (Lastik Basınç Sensörü) Modül Tutucusu",
+    "aciklama": "Audi A4/S4/RS4 B9 (ve muhtemelen A5/S5/RS5) için TPMS lastik basınç izleme modülünün (orijinal 8S0 907 273) özel üretim tutucu braketi. Modülü sağ arka teker yakınında sabit ve güvenli tutar.\n\nOrijinal montaj yeri aracın altındadır; bu braketle daha derli toplu, kolay erişilir bir konuma alır, modülü ve kabloları korursunuz. Modülü brakete tutturmak için 2 küçük sac vidası gerekir.\n\nDış koşullara dayanıklı malzemeyle (PETG) üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 86 × 71 × 65 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-tpms-modul-tutucu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PBolton",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b6-b7-kolcak-kapak-kilidi",
     "kategori": "Otomobil",
     "marka": [
