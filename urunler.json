@@ -1,5 +1,38 @@
 [
   {
+    "id": "mini-matkap-tezgahi",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Mini Matkap Tezgahı (Masaüstü · El Matkabı / Rotary Standı)",
+    "aciklama": "Masaüstü mini matkap tezgahı — küçük el matkabınızı veya rotary motorunuzu sabitleyip tam dik, hassas delikler açmanızı sağlar. Kremayer (dişli-çubuk) mekanizmasıyla mil yukarı-aşağı iner, koldan kontrol edersiniz.\n\nBaskılı devre kartı, ahşap, model ve hobi işleri için idealdir. 8 mm çelik boru raylar ve 85 mm M6 civata (mil) ile kurulur — bu donanım standarttır, siz temin eder ya da birlikte gönderilir. Çok parçalı komple set.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; matkap/motor modelinizi belirtmeniz yeterli.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mini-matkap-tezgahi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mini-matkap-tezgahi-2.jpg",
+      "https://media.pruvo3d.com/urunler/mini-matkap-tezgahi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "luchkinAS",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dus-kabini-kulpu",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Duş Kabini Kulpu (Cam Kapı · Çift Taraflı)",
+    "aciklama": "Duş kabini cam kapısı için özel üretim kulp — kırılan veya eksik orijinal kulbun yerine geçer. Kapının her iki yüzünden tutulacak şekilde çift taraflıdır; camı arasına alıp 2 adet M6 vida ile sıkılır.\n\nVidalar arası mesafe 140 mm (standart kabin kulbu deliğine uyumlu). Neme ve suya dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; cam kalınlığınızı belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dus-kabini-kulpu-1.jpg",
+      "https://media.pruvo3d.com/urunler/dus-kabini-kulpu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "luchkinAS",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "opel-astra-j-cam-cita-klipsi",
     "kategori": "Otomobil",
     "marka": [
