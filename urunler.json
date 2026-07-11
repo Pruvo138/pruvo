@@ -1,5 +1,43 @@
 [
   {
+    "id": "audi-a6-a8-jant-gobek-kapagi-63mm",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6/A8 Jant Göbek Kapağı 63mm (4D0601170)",
+    "aciklama": "Audi A6/A8 alaşım jantlar için 63 mm merkez göbek (center cap) kapağı — orijinal 4D0601170 muadili; ortada Audi logosu. Kaybolan veya aşınan pahalı orijinal kapağın yerine geçer.\n\nArkasındaki klipsler orijinaldeki gibi yay görevi görüp janta sıkıca tutunur; hizalama için arka işaretler bulunur, merkeze bir damla yapıştırıcı ile sabitlenir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış çap: 63 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; jant/kapak ölçünüzü belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-a8-jant-gobek-kapagi-63mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-a8-jant-gobek-kapagi-63mm-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ekto",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "vw-audi-17mm-bijon-kapagi-sokme-aleti",
+    "kategori": "Tamirat",
+    "marka": [
+      "Volkswagen",
+      "Audi"
+    ],
+    "baslik": "VW/Audi 17mm Bijon Kapağı Sökme Aleti (Somun Kapağı Çıkarıcı)",
+    "aciklama": "VW ve Audi araçlarda bijon (tekerlek somunu) üzerindeki 17 mm plastik kapakları çıkarmak için özel üretim sökme aleti. Özellikle kış/yaz lastik değişiminde bu kapakları çizmeden, kolayca çıkarmayı sağlar.\n\nKancaları kapağa doğru itip kilitlenmesini sağlayın, sonra kapağı dışarı çekin. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 41 × 27 × 7 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kapak ölçünüzü belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-audi-17mm-bijon-kapagi-sokme-aleti-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-audi-17mm-bijon-kapagi-sokme-aleti-2.jpg",
+      "https://media.pruvo3d.com/urunler/vw-audi-17mm-bijon-kapagi-sokme-aleti-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ekto",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a3-vites-cubugu-ucu",
     "kategori": "Otomobil",
     "marka": [
