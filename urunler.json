@@ -1,5 +1,60 @@
 [
   {
+    "id": "audi-b9-a5-s5-izgara-kamera-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A5/S5 B9 Ön Izgara Aftermarket Kamera Tutucusu",
+    "aciklama": "Audi A5/S5 B9 için ön ızgaraya (radyatör ızgarası arkasına) aftermarket ön kamera monte etmenizi sağlayan özel üretim kamera tutucu braketi. Kamerayı ızgaranın arkasında gizli, sabit ve doğru açıyla tutar.\n\nOrijinal Audi ızgara montaj vidalarını kullanır, ek donanım gerektirmez. Montaj için Audi logosu altındaki yatay ızgara çıtasının çıkarılması gerekir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 66 × 50 × 44 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve kamera tipinizi belirtmeniz yeterli.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-b9-a5-s5-izgara-kamera-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-b9-a5-s5-izgara-kamera-tutucu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "darioism",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-a5-b8-arka-koltuk-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4/A5 B8 Arka Koltuk Bardaklığı (Kol Dayama Aparatı)",
+    "aciklama": "Audi A4/A5 B8 arka orta kol dayamaya (armrest) takılan çift gözlü bardaklık aparatı. Arka yolcular için kutu/kupa/şişe koyacak sağlam bir yer sağlar; kol dayamaya oturur, matkap veya delik gerektirmez.\n\nÇift göz standart teneke kutu ve bardak ölçülerine uygundur.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 156 × 123 × 65 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-a5-b8-arka-koltuk-bardaklik-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-a5-b8-arka-koltuk-bardaklik-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-a5-b8-arka-koltuk-bardaklik-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dudeson49",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-a3-8p-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 8P Ön Konsol Bardaklığı",
+    "aciklama": "Audi A3 8P ön orta konsola takılan tekli bardaklık aparatı. Termos, kupa, teneke kutu veya bardak için sağlam ve sabit bir yer sağlar; konsol kenarına oturur.\n\nKablo bağı (zip tie) için iki delik bulunur; istenirse konsola ekstra sabitlenebilir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 115 × 90 × 70 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-8p-bardaklik-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a3-8p-bardaklik-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MichiKehler",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a4-tpms-modul-tutucu",
     "kategori": "Otomobil",
     "marka": [
