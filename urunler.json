@@ -1,5 +1,20 @@
 [
   {
+    "id": "casus-ayna-kolu",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Köşe Gözetleme Aynası Kolu (Pencere Montajlı · Ayarlanabilir)",
+    "aciklama": "Pencereden dışarı bakmadan köşeyi, kapı önünü veya sokağı görmenizi sağlayan ayarlanabilir ayna kolu — pencere parmaklığına/çerçevesine kelepçeyle tutturulur, aynayı istediğiniz açıya çevirirsiniz.\n\nEklemli (mafsallı) kol sistemi sayesinde uzatıp döndürebilir, görüş açısını ayarlayabilirsiniz. Çok parçalı set (kelepçe, kollar, mafsal, ayna tutucu, vida-somun) olarak üretilir. Ayna olarak IKEA Lönas veya benzeri küçük bir ayna kullanılır (aynayı siz temin edebilir ya da birlikte konuşabiliriz).\n\nFarklı renk seçenekleriyle üretilebilir.\n\nKol uzunlukları 60 / 90 / 150 mm seçenekleriyle ayarlanır.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; montaj yerinizi (parmaklık/çerçeve ölçüsü) belirtmeniz yeterli.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/casus-ayna-kolu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "motosiklet-canta-klips-sabitleyici",
     "kategori": "Motosiklet",
     "marka": [],
