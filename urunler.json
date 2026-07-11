@@ -1,5 +1,20 @@
 [
   {
+    "id": "karavan-su-dolum-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [],
+    "baslik": "Karavan Su Dolum Hortum Adaptörü",
+    "aciklama": "Karavana (motokaravana) temiz su doldururken suyun etrafa sıçramasını ve ıslanmayı önleyen özel üretim hortum adaptörü.\n\nAdaptör karavanın su dolum ağzına vidalanır; üzerine standart bir hortum rakoru takılarak bastırmalı hortum bağlantısı yapılır. Yanlardaki parmak girintileri sıkıca kavrayıp kolayca çevirmenizi sağlar.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; dolum ağzı diş ölçünüzü belirtmeniz yeterli.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/karavan-su-dolum-adaptoru-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stockers9",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "karavan-arka-cam-tutucu",
     "kategori": "Otomobil",
     "marka": [],
