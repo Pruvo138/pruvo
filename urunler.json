@@ -1,5 +1,23 @@
 [
   {
+    "id": "audi-radyo-yuvasi-3lu-gosterge-paneli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi Radyo Yuvası 3'lü Ek Gösterge (Saat) Paneli",
+    "aciklama": "Audi radyo/konsol yuvasına takılan, 3 adet ek gösterge (yağ basıncı, voltaj, turbo/boost vb.) barındıran özel üretim gösterge paneli/braketi. Klasik Audi'lere sportif bir gösterge kokpiti kazandırır.\n\nStandart 52 mm göstergelere uygun 3 yuva. Kullanılmayan delikler için kapama tıpası da birlikte üretilebilir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 190 × 60 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve gösterge çapınızı belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-radyo-yuvasi-3lu-gosterge-paneli-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-radyo-yuvasi-3lu-gosterge-paneli-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "vw-aab-yag-dolum-flansi",
     "kategori": "Otomobil",
     "marka": [
