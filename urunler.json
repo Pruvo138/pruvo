@@ -1,5 +1,20 @@
 [
   {
+    "id": "bisiklet-zincir-muhafazasi",
+    "kategori": "Bisiklet",
+    "marka": [],
+    "baslik": "Bisiklet Zincir Muhafazası (Zincir Kapağı)",
+    "aciklama": "Bisiklet aynakol/zincir bölgesini örten zincir muhafazası — kırılan veya olmayan orijinalin yerine geçen özel üretim yedek. Pantolon paçasının zincire kaptırmasını, yağ bulaşmasını ve zincire çamur girmesini önler.\n\nTek parça basılan geniş bir kapaktır. Vida konumları/ölçüleri bisiklet modelinize göre ayarlanabilir. Sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 484 × 143 × 30 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; bisiklet modelinizi ve vida konumlarını belirtmeniz yeterli.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bisiklet-zincir-muhafazasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "torba-poset-klipsi",
     "kategori": "Ev",
     "marka": [],
