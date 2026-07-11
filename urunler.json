@@ -1,5 +1,24 @@
 [
   {
+    "id": "audi-a4-s4-b5-redbull-kutu-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4/S4 B5 Bardaklık Redbull (250 ml Kutu) Tutucu Adaptörü",
+    "aciklama": "Audi A4/S4 B5 orta konsol bardaklığına takılan, ince 250 ml enerji içeceği (Redbull) kutularını sabit tutan özel üretim adaptör. Kutu artık devrilmez, sallanmaz; bardaklığa tam oturur.\n\nSade halka tasarım; bardaklık yuvasına yerleştirilir, ek montaj gerektirmez. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 66 × 66 × 42 mm (250 ml ince kutuya uygun).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve kutu ölçünüzü belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-s4-b5-redbull-kutu-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-s4-b5-redbull-kutu-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-s4-b5-redbull-kutu-tutucu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jcnoe",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b5-tablet-tutucu-bardaklik",
     "kategori": "Otomobil",
     "marka": [
