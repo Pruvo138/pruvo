@@ -1,5 +1,22 @@
 [
   {
+    "id": "fiamma-bisiklet-tasiyici-ray-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Fiamma"
+    ],
+    "baslik": "Fiamma Bisiklet Taşıyıcı Ray Kapağı (End Cap)",
+    "aciklama": "Fiamma bisiklet taşıyıcılarının ray uçlarına takılan kapak (end cap) — kaybolan veya kırılan orijinal parçanın yerine geçen, ölçüsü test edilmiş özel üretim yedek. Piyasadaki muadiller çoğu zaman ya çok sıkı ya da hiç oturmuyor; bu tasarım tam oturur.\n\nOrijinal plastik tutucu (klips) için delik içerir ve eski tip raylara uygundur.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; taşıyıcı model/ray tipinizi belirtmeniz yeterli.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/fiamma-bisiklet-tasiyici-ray-kapagi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stockers9",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "karavan-su-dolum-adaptoru",
     "kategori": "Otomobil",
     "marka": [],
