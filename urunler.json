@@ -1,5 +1,20 @@
 [
   {
+    "id": "tekne-beyaz-fener-tabani-gopro",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Beyaz Seyir Feneri Tabanı + GoPro Bağlantısı",
+    "aciklama": "Teknelerde beyaz seyir fenerini (demir/pupa feneri) sabitlemek için özel üretim taban (soket) — kırılan orijinalin yerine geçer. Ayrıca GoPro tipi bir bağlantı parçası da içerir; aynı yuvaya aksiyon kamerası takabilirsiniz.\n\nİki parçadan oluşur: fener tabanı (soket) + GoPro tutucu. Sağlam PLA ile üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler — taban: 60 × 60 × 36 mm · GoPro tutucu: 50 × 21 × 21 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; fener soketi ölçünüzü belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tekne-beyaz-fener-tabani-gopro-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "jeanneau-camarat-capa-makarasi-koruma",
     "kategori": "Marin",
     "marka": [
