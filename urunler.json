@@ -1,5 +1,41 @@
 [
   {
+    "id": "motorola-moto-g-arac-bardaklik-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Motorola"
+    ],
+    "baslik": "Araç Bardaklık Telefon Tutucu (Motorola Moto G / Kılıfsız)",
+    "aciklama": "Aracın bardaklığına oturan özel üretim telefon tutucu. Alt kısmı bardaklık ölçüsüne uyacak şekilde tasarlanmıştır ve birçok araçta oturur; telefonu (kılıfsız Motorola Moto G vb.) sabit ve dik tutar.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 107 × 78 × 67 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; telefon modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/motorola-moto-g-arac-bardaklik-telefon-tutucu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FechuGarcia",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a6-c6-4f-telefon-tutucu-kanca",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6 C6 (4F) Telefon Tutucu / Kablosuz Şarj Braketi",
+    "aciklama": "Audi A6 C6 (4F) far anahtarı yanındaki panele oturan özel üretim telefon tutucu/kanca braketi. Ultra-özel geçme ile araca sabitlenir; manyetik kablosuz şarj cihazıyla birlikte kullanılmak üzere tasarlanmıştır (yıllardır sorunsuz test edilmiş).\n\nDış koşullara dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 102 × 54 × 42 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-c6-4f-telefon-tutucu-kanca-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-c6-4f-telefon-tutucu-kanca-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-c6-4f-telefon-tutucu-kanca-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "xorgon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a6-a8-jant-gobek-kapagi-63mm",
     "kategori": "Otomobil",
     "marka": [
