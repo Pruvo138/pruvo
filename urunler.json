@@ -1,5 +1,22 @@
 [
   {
+    "id": "toplife-e8000-far-tutucu",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Toplife"
+    ],
+    "baslik": "Toplife E8000 Bisiklet Far / Işık Tutucu (LED Kit Montajı)",
+    "aciklama": "Toplife E8000 bisiklette LED far/ışık kitini sabitlemek için özel üretim tutucu — örneğin Decathlon ST 540 ön/arka aydınlatma setini bisiklete monte etmenizi sağlar.\n\nİki parçadan (ön + arka kelepçe) oluşur; ışığı gövdesine sıkıca kavrar ve bisiklete titremeden sabitler. Sağlam PLA ile üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 70 × 62 × 29 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; bisiklet ve ışık modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/toplife-e8000-far-tutucu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "airtag-tpu-kayis",
     "kategori": "Elektronik",
     "marka": [
