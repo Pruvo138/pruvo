@@ -1,5 +1,42 @@
 [
   {
+    "id": "audi-b2-tampon-alt-izgara",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi B2 Tampon Alt Izgarası (Köşe / Orta Parça)",
+    "aciklama": "Audi B2 (80/90/Coupe) ön tampon alt havalandırma ızgarasının özel üretim yedeği. Kaybolan, kırılan veya çatlayan orijinal ızgaranın yerine geçer; tampona temiz, orijinal görünümünü geri kazandırır.\n\nAlt köşe parçası sağ veya sol (aynalanarak) kullanılabilir. İntercooler kullananlar için delikli varyant da mevcuttur. Orijinal parçadan 3D tarama ile çıkarılmıştır.\n\nDış koşullara dayanıklı malzemeyle (ASA/ABS) üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık ölçüler (köşe parçası): 297 × 79 × 70 mm. (Orta ızgara parçası ayrıca mevcuttur.)\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve hangi parçayı (köşe/orta, sağ/sol) istediğinizi belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-b2-tampon-alt-izgara-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-b2-tampon-alt-izgara-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-b2-b3-viraj-demiri-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi B2/B3 Ön Viraj Demiri (Stabilizatör) Burcu",
+    "aciklama": "Küçük şasili Audi B2/B3 modellerinde ön viraj demiri (stabilizatör/swaybar) burcunun özel üretim yedeği. Zamanla sertleşen/aşınan orijinal kauçuk burcun yerine geçer; virajda salınımı, takırtıyı ve boşluğu giderir, direksiyon hissini netleştirir.\n\nViraj demiri çapına tam oturacak şekilde tasarlanmıştır. Aşınmaya dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 41 × 41 × 34 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve viraj demiri çapınızı belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-b2-b3-viraj-demiri-burcu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-b2-b3-viraj-demiri-burcu-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-b2-b3-viraj-demiri-burcu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "audi-016-vites-burcu",
     "kategori": "Otomobil",
     "marka": [
