@@ -1,5 +1,23 @@
 [
   {
+    "id": "audi-a3-8l-bardaklik-insert-taban",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 8L Bardaklık Yuvası Insert (Montaj Tabanı)",
+    "aciklama": "Audi A3 8L bardaklık yuvasına oturan özel üretim taban/insert parçası. Bardaklık yuvasını kullanarak buraya farklı ekler monte etmenizi sağlar — anahtar/düğme paneli, telefon tutucu, kapak plakası veya istediğiniz başka bir aparat.\n\nYuvaya sıkıca oturur, kalıcı değişiklik gerektirmez. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 85 × 36 × 29 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve üzerine ne takmak istediğinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-8l-bardaklik-insert-taban-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a3-8l-bardaklik-insert-taban-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Diolum",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a6-2020-kolcak-organizer",
     "kategori": "Otomobil",
     "marka": [
