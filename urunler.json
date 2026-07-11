@@ -1,5 +1,59 @@
 [
   {
+    "id": "audi-a4-s4-rs4-b9-tpms-modul-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4/S4/RS4 B9 TPMS (Lastik Basınç) Modülü Tutucusu",
+    "aciklama": "Audi A4/S4/RS4 B9 (muhtemelen A5/S5/RS5 de) TPMS lastik basınç izleme modülünü (orijinal 8S0 907 273) sağ arka tekerlek bölgesinde güvenle sabitleyen özel üretim tutucu. Modülü ve kablolamayı korur; fabrikanın araç altındaki konumuna göre daha derli toplu ve kolay bir montaj sağlar.\n\nIsıya dayanıklı malzemeyle (PETG) üretilir; farklı renk seçenekleriyle üretilebilir. Modülü tutucuya sabitlemek için 2 küçük sac vidası gerekir.\n\nYaklaşık dış ölçüler: 86 × 71 × 65 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-s4-rs4-b9-tpms-modul-tutucu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PBolton",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-gunesluk-vizor-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi Güneşlik (Vizör) Tutma Klipsi — Çoğu Audi Modeli",
+    "aciklama": "Audi araçlarda ön güneşliği (vizör) tavana sabitleyen tutma klipsinin özel üretim yedeği. Kırılan orijinal klips yüzünden güneşliğin sallanması/düşmesi sorununu giderir; orijinaliyle birebir aynı çalışır. Çoğu Audi modeline uyar (A1/S1, A3/S3, A4/S4 B6-B7-B8, A5/S5, Q3, Q5).\n\nMontaj kolaydır: kırık klipsteki gri kutu ve küçük metal parçayı yeni klipse takıp tavana bastırmanız yeterli (yapıştırma gerekmez). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 42 × 34 × 26 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-gunesluk-vizor-klipsi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-gunesluk-vizor-klipsi-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-gunesluk-vizor-klipsi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Papillote",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a5-arka-raf-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A5 Arka Raf (Şapka Rafı) Tutucu / Menteşesi (Sağ + Sol)",
+    "aciklama": "Audi A5 arka bagaj rafını (şapka rafı / parcel shelf) taşıyan yan tutucu/menteşe parçasının özel üretim yedeği. Kırılan orijinal tutucu yüzünden sarkan ya da düzgün oturmayan rafı yeniden yerine sabitler. Sağ ve sol versiyon olarak üretilir.\n\nOrijinal parçanın şekline uygun modellenmiştir. Sağlamlık için yüksek dolguyla üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 77 × 70 × 55 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve sağ/sol tarafı belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a5-arka-raf-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a5-arka-raf-tutucu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ViperMcLure",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "audi-b9-a5-s5-kicker-amfi-montaj-braketi",
     "kategori": "Otomobil",
     "marka": [
