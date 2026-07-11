@@ -1,5 +1,22 @@
 [
   {
+    "id": "jeanneau-camarat-capa-makarasi-koruma",
+    "kategori": "Marin",
+    "marka": [
+      "Jeanneau"
+    ],
+    "baslik": "Jeanneau Cap Camarat 515 Çapa Makarası Koruması (Mini Usturmaça)",
+    "aciklama": "Jeanneau Cap Camarat 515 teknelerde baş taraftaki çapa (demir) makarasını ve gövdeyi koruyan kapak — mini usturmaça (pare-battage) görevi görür. Çapanın tekneye çarpıp çizmesini, vurmasını önleyen özel üretim koruma.\n\nMakara yuvasına geçme tırnaklarıyla oturur, esnek TPU ile üretildiği için darbeyi emer. Baş tarafın boyasını ve jelkotunu korur.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 110 × 58 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; tekne modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/jeanneau-camarat-capa-makarasi-koruma-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "elektrik-kutusu-plastik-vida",
     "kategori": "Elektronik",
     "marka": [],
