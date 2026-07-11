@@ -1,5 +1,22 @@
 [
   {
+    "id": "tekne-tahliye-tapasi-37mm",
+    "kategori": "Marin",
+    "marka": [
+      "Zodiac"
+    ],
+    "baslik": "Tekne Su Tahliye Tıpası Ø37 mm (Dişli Kapak)",
+    "aciklama": "Şişme bot / teknelerde (ör. Zodiac) su tahliye deliğini kapatan dişli tıpa — kaybolan orijinalin yerine geçer, içeri su girmesini engeller.\n\nØ37 mm dişe vidalanarak sızdırmaz şekilde oturur. İki adet M5 vida ile tam olarak kapatılıp iyice sıkıştırılabilir. Su geçirmez, dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 40 × 40 × 32 mm (Ø37 mm diş).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; tahliye deliği çapınızı belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tekne-tahliye-tapasi-37mm-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "bisiklet-zincir-muhafazasi",
     "kategori": "Bisiklet",
     "marka": [],
