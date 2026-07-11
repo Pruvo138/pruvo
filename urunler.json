@@ -1,5 +1,26 @@
 [
   {
+    "id": "canon-ef-tilt-adaptor-eosm-fuji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Canon",
+      "Fujifilm"
+    ],
+    "baslik": "Canon EF → EOS M / Fujifilm X Ayarlı Tilt Lens Adaptörü",
+    "aciklama": "Canon EF / EF-S objektifleri Canon EOS M (EF-M) veya Fujifilm X gövdelere takmak için özel üretim ayarlı tilt (eğim) adaptörü. Tilt fonksiyonu ile seçici odak ve minyatür (tilt-shift) etkileri yakalar; yandaki topuzla eğimi istediğiniz açıda kilitlersiniz.\n\nModüler tasarım: hem EF-M hem Fujifilm X bağlantı halkası dahildir, gövdenize uygun olanı kullanırsınız. Kurulum için 4 adet M2x10 ve 1 adet M5x10 vida gerekir (siz temin eder veya birlikte gönderilir).\n\nNOT: EVF'li (elektronik vizörlü) M5, M50, X-T1 gibi gövdelerde kullanıma uygun değildir. Baskı hassasiyetine göre hafif alıştırma gerekebilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler (kurulu): 68 × 58 × 35 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; gövde (EOS M / Fujifilm X) modelinizi belirtmeniz yeterli.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/canon-ef-tilt-adaptor-eosm-fuji-1.jpg",
+      "https://media.pruvo3d.com/urunler/canon-ef-tilt-adaptor-eosm-fuji-2.jpg",
+      "https://media.pruvo3d.com/urunler/canon-ef-tilt-adaptor-eosm-fuji-3.jpg",
+      "https://media.pruvo3d.com/urunler/canon-ef-tilt-adaptor-eosm-fuji-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gumo_design",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "canon-efm-18-150-lens-baslik",
     "kategori": "Elektronik",
     "marka": [
