@@ -1,5 +1,22 @@
 [
   {
+    "id": "vw-telefon-tutucu-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "VW Telefon Tutucu Adaptörü (Orijinal VW ↔ Gravity Tutucu)",
+    "aciklama": "Volkswagen araçların orijinal telefon tutucu bağlantısı ile \"This is one\" gibi yerçekimli (gravity) telefon tutucuları birbirine bağlayan geçiş adaptörü — orijinal yuvaya oturur, üstündeki top mafsala yerçekimli tutucuyu takarsınız.\n\nBöylece sevdiğiniz telefon tutucuyu deliksiz, hasarsız şekilde aracın orijinal noktasına monte edebilirsiniz. Sağlam PLA ile üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 74 × 43 × 29 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve tutucu modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-telefon-tutucu-adaptoru-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "dus-basligi-yukseltme",
     "kategori": "Ev",
     "marka": [],
