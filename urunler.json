@@ -1,5 +1,39 @@
 [
   {
+    "id": "audi-b8-bo-amfi-su-koruma-kiti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi B8 (A5 vb.) B&O Amfi Su Koruma / Pleksi Tutma Kiti",
+    "aciklama": "Audi B8 (2009+ A5 3.2 Quattro vb.) Bang & Olufsen amplifikatörünü su damlamasına karşı koruyan özel üretim parça seti. Eski B8 modellerinde bilinen bir tasarım kusuru nedeniyle sızan su zamanla amfiye damlayıp pahalı amfiyi yakabiliyor; bu kit amfinin üzerine bir pleksiglas levha tutturarak suyu uzak tutar.\n\nSette pleksi levhayı tutan klipsler, alt kenara yapıştırılıp fazla suyu toplayan oluk (gutter) parçası, mesnet ve fan montaj parçası bulunur (pleksi levhayı siz temin edersiniz). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler (klips): 43 × 30 × 26 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve amfi modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-b8-bo-amfi-su-koruma-kiti-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "makerjake_net",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a5-bagaj-kapak-plastik-vida",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A5 Sportback Bagaj Kapağı Plastik Tutma Vidası",
+    "aciklama": "Audi A5 Sportback bagaj kapağı/örtüsünü sabitleyen plastik tutma vidasının özel üretim yedeği. Kırılan/kaybolan orijinal parça yerine, OEM parça gelene kadar geçici çözüm olarak kapağı yerinde tutar.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 29 × 21 × 21 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a5-bagaj-kapak-plastik-vida-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mrmhger",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "audi-a4-s4-rs4-b9-tpms-modul-tutucu",
     "kategori": "Otomobil",
     "marka": [
