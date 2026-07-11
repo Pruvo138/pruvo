@@ -1,5 +1,22 @@
 [
   {
+    "id": "airtag-tpu-kayis",
+    "kategori": "Elektronik",
+    "marka": [
+      "Apple"
+    ],
+    "baslik": "AirTag TPU Kayış / Bileklik (Ayarlanabilir)",
+    "aciklama": "Apple AirTag'i bileğe, çantaya, bavula veya evcil hayvan tasmasına takmak için esnek kayış — ortadaki yuvaya AirTag oturur, saat kayışı gibi delikli kısımdan ayarlanıp kilitlenir.\n\nYumuşak ve dayanıklı TPU malzemeyle üretilir; su ve tere dayanıklıdır, cilde rahat gelir. Çocuk, yaşlı, evcil hayvan veya bagaj takibi için pratiktir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 140 × 35 × 6 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/airtag-tpu-kayis-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "airtag-cuzdan-tutucu",
     "kategori": "Elektronik",
     "marka": [
