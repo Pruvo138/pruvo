@@ -1,5 +1,20 @@
 [
   {
+    "id": "torba-poset-klipsi",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Poşet / Torba Ağzı Kapatma Klipsi (Askılı · Farklı Boylar)",
+    "aciklama": "Açılan gıda poşetlerini, cips-atıştırmalık paketlerini veya dondurucu torbalarını sıkıca kapatan V şekilli klips — içeriği taze tutar, dökülmeyi önler.\n\nKolay açılması için ucunda askı/tırnak (lash) vardır. Farklı ağız genişlikleri için üç boyda üretilir:\n• Küçük (50 mm) — küçük paketler\n• Orta (100 mm) — cips, atıştırmalık\n• Büyük (150 mm) — geniş donmuş gıda/ekmek torbaları\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; istediğiniz boyu belirtmeniz yeterli.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/torba-poset-klipsi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phyti1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "nordlinger-bariyer-tutucu",
     "kategori": "Ev",
     "marka": [
