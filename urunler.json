@@ -1,5 +1,22 @@
 [
   {
+    "id": "airtag-cuzdan-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Apple"
+    ],
+    "baslik": "AirTag Cüzdan İçi Kart Tutucu (Kredi Kartı Boyutu)",
+    "aciklama": "Apple AirTag'i cüzdanınızda gizlice taşımak için kredi kartı boyutunda tutucu — cüzdanın kart gözüne kayar, AirTag'i güvenle içinde tutar. Cüzdanınızı kaybederseniz telefondan bulmanızı sağlar.\n\nEsnek TPU malzemeyle üretilir; ince ve bükülebilir olduğu için kart gözünde yer kaplamaz. AirTag yuvaya sıkıca oturur, düşmez.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 86 × 54 × 7 mm (standart kredi kartı boyutu).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/airtag-cuzdan-tutucu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "mazda-mx5-nc-usb-tutucu",
     "kategori": "Otomobil",
     "marka": [
