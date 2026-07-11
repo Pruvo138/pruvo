@@ -1,5 +1,22 @@
 [
   {
+    "id": "v29-duduk-yuksek-ses",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "V29 Düdük — Ekstra Yüksek Ses (118 dB+)",
+    "aciklama": "Dünyanın en yüksek sesli, tek parça üretilebilen düdüğü olarak bilinen V29 tasarımı. Ölçülen ses seviyesi 118 dB'nin üzerindedir (bkz. görsel) — çok uzaktan duyulur, içinde hareketli top/parça yoktur, tıkanmaz.\n\nAcil durum ve hayatta kalma, hakem/antrenör, kamp, tekne, avcılık ve çağrı düdüğü olarak idealdir. Sağlam malzemeyle üretilir; boyna asmak için delik vardır.\n\nFarklı renk seçenekleriyle üretilebilir (dikkat çekici turuncu önerilir).\n\nYaklaşık dış ölçüler: 64 × 25 × 22 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/v29-duduk-yuksek-ses-1.jpg",
+      "https://media.pruvo3d.com/urunler/v29-duduk-yuksek-ses-2.jpg",
+      "https://media.pruvo3d.com/urunler/v29-duduk-yuksek-ses-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jzisa",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "kucuk-mandal-klips",
     "kategori": "Ev",
     "marka": [],
