@@ -1,5 +1,25 @@
 [
   {
+    "id": "audi-016-vites-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "Audi/VW 016 Şanzıman Vites Kolu Burcu (Shifter Bushing)",
+    "aciklama": "Audi/VW 016 (5 ileri) şanzımanlarda vites kolu küresel mafsalını tutan burcun (shifter bushing) özel üretim yedeği. Zamanla aşınan/boşluk yapan orijinal burcun yerine geçer; vites geçişlerindeki boşluğu ve takırtıyı giderir, viteslerin oturmasını netleştirir.\n\nKüresel mafsala sıkı ve düzgün oturacak şekilde tasarlanmıştır. Aşınmaya dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 32 × 32 × 18 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; şanzıman/araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-016-vites-burcu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-016-vites-burcu-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-016-vites-burcu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "GNU GPL"
+    }
+  },
+  {
     "id": "audi-a4-s4-b5-redbull-kutu-tutucu",
     "kategori": "Otomobil",
     "marka": [
