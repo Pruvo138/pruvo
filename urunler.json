@@ -1,5 +1,56 @@
 [
   {
+    "id": "opel-astra-j-cam-cita-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel"
+    ],
+    "baslik": "Opel Astra J Cam Çıtası (Molding) Klipsi — GM 13280305",
+    "aciklama": "Opel Astra J cam çıtası / bordür (molding) klipsinin özel üretim yedeği — orijinal GM 13280305 parçasının muadili. Zamanla kırılan bu klipsler cam çıtasının gevşemesine yol açar; bu yedekle çıtayı yeniden sabitlersiniz.\n\nOrijinal ölçülere göre üretilir, yerine geçme (klipsleme) tasarım. Dayanıklı malzemeyle basılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 23 × 22 × 17 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modeli ve parça numarasını belirtmeniz yeterli.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/opel-astra-j-cam-cita-klipsi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "luchkinAS",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-astra-j-bagaj-kilit-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Vauxhall"
+    ],
+    "baslik": "Opel/Vauxhall Astra J Bagaj Kilit Kapağı (Shutter)",
+    "aciklama": "Opel / Vauxhall Astra J bagaj kilidinin orijinal kapağının (shutter) özel üretim yedeği. Kırılan veya kaybolan orijinal kapağın yerine geçer; kilit mekanizmasını toz ve sudan korur.\n\nOrijinal parçayla uyumlu ölçülerde üretilir. Dayanıklı malzemeyle basılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 124 × 72 × 11 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/opel-astra-j-bagaj-kilit-kapagi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "luchkinAS",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "zimpara-blogu-110x22",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Zımpara Bloğu (110 × 22 mm · Ayarlı Kıskaç)",
+    "aciklama": "El zımparası için özel üretim zımpara bloğu — zımpara kağıdını gergin tutan kıskaç mekanizmasıyla; kağıt aşındıkça sökmeden kaydırıp yenilersiniz. Ahşap, macun ve metal yüzeylerde düzgün, rahat zımparalama sağlar.\n\nTırtıllı knob ile kıskaç sıkılır (standart M6 civata/somun ile çalışır). Ele oturan gövde, sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık zımpara yüzeyi: 110 × 22 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/zimpara-blogu-110x22-1.jpg",
+      "https://media.pruvo3d.com/urunler/zimpara-blogu-110x22-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "luchkinAS",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "irisli-mekanizma-diyafram",
     "kategori": "Dekorasyon",
     "marka": [],
