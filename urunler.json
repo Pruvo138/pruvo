@@ -1,5 +1,23 @@
 [
   {
+    "id": "audi-a4-b5-radyo-montaj-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 B5 Radyo (Teyp) Montaj Klipsi / Çerçeve Parçası",
+    "aciklama": "Audi A4 B5 konsoluna aftermarket 1-DIN radyo/teyp takarken kullanılan özel üretim montaj klipsi/çerçeve parçası. Radyonun yuvaya sağlam ve boşluksuz oturmasını sağlar.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 59 × 28 × 24 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç/radyo modelinizi belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b5-radyo-montaj-klipsi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b5-radyo-montaj-klipsi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "maintumanov",
+      "tur": "GNU GPL"
+    }
+  },
+  {
     "id": "audi-jant-gobek-kapagi-spacer-ara-halka",
     "kategori": "Otomobil",
     "marka": [
