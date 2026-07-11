@@ -1,5 +1,39 @@
 [
   {
+    "id": "audi-80-b4-tutamak-vida-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 80 B4 Tavan Tutamağı Vida Kapağı (Kapak Rozeti)",
+    "aciklama": "Audi 80 B4 iç tavan tutamaklarının (asidero) vidalarını gizleyen kapak/rozetin özel üretim yedeği. Kaybolan/kırılan orijinal kapağın yerine geçer; vidayı örtüp temiz bir görünüm verir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 13 × 13 × 3 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-80-b4-tutamak-vida-kapagi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Queve_96",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "canora-kompresor-purge-tapasi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Canora"
+    ],
+    "baslik": "Canora Endüstriyel Kompresör Purge (Su Boşaltma) Tapası",
+    "aciklama": "Canora endüstriyel hava kompresörü için özel üretim purge (su/yoğuşma boşaltma) tapası. Kırılan/kaybolan orijinal boşaltma tapasının yerine geçer; tank içindeki suyu boşaltıp sızdırmaz şekilde kapatır.\n\nDiş: 26 diş/inç (British Standard Brass, BSB). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 30 × 25 × 14 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kompresör/diş ölçünüzü belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/canora-kompresor-purge-tapasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Queve_96",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-tt-8n-cam-suyu-deposu-kapagi",
     "kategori": "Otomobil",
     "marka": [
