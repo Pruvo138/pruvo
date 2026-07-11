@@ -1,5 +1,20 @@
 [
   {
+    "id": "dus-basligi-yukseltme",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Duş Başlığı Yükseltme / Uzatma Aparatı",
+    "aciklama": "Duş başlığını alçak konumdan yüksek konuma taşıyan uzatma aparatı — duş başlığını elinizde tutmak zorunda kalmadan, sabit ve yüksek bir noktadan yıkanmanızı sağlar.\n\nÜstteki tutucu (C kelepçe) duş başlığını/borusunu kavrar, alttaki parça duvardaki mevcut aparata geçer. Sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler (üst tutucu): 82 × 46 × 37 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; duş başlığı/boru çapınızı belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dus-basligi-yukseltme-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "toplife-e8000-far-tutucu",
     "kategori": "Bisiklet",
     "marka": [
