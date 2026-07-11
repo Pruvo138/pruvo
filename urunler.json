@@ -1,5 +1,20 @@
 [
   {
+    "id": "tekne-tahliye-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Tahliye Tapası (Flanşlı · Dişli Vidalı)",
+    "aciklama": "Teknelerde su tahliye (drain) deliği için özel üretim tapa seti — flanşlı gövde tekne gövdesine vidalanır, dişli vidalı tapa elle sökülüp takılır. Çekek yerinde / kışlamada tekne içindeki suyu boşaltmak için açar, suda sızdırmaz şekilde kapatırsınız.\n\nFlanşın iki vida deliği vardır; contayla birlikte sağlam sabitlenir. Suya ve dış koşullara dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler (flanş gövde): 58 × 46 × 28 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; tahliye deliği çapınızı belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tekne-tahliye-tapasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "luchkinAS",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "mini-matkap-tezgahi",
     "kategori": "Ev",
     "marka": [],
