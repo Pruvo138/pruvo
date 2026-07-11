@@ -1,5 +1,63 @@
 [
   {
+    "id": "audi-vw-plastik-somun-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "Audi / VW Plastik Somun Yuvası (Captive Nut, 811807577C)",
+    "aciklama": "Audi / VW araçlarda bagaj ve iç panellerde kullanılan plastik somun yuvasının (captive nut, orijinal parça no. 811807577C) özel üretim yedeği. Kırılan/kaybolan orijinalin yerine geçer; aftermarket bagaj poşet/çanta kancası kitlerinin (kanca setleri) araca sağlam vidalanmasını sağlar.\n\nÜç farklı cıvata/vida ölçüsüne göre üretilir: M5 (5 mm) için 4,6 mm delik, 3,5 mm sac vidası için 3,0 mm delik, 3,0 mm sac vidası için 2,5 mm delik. Sağlamlık için uygun yönde/dolguyla üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 15 × 12 × 9 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve vida ölçünüzü belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-vw-plastik-somun-yuvasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-vw-plastik-somun-yuvasi-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-vw-plastik-somun-yuvasi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "karl_phobit",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-hayabusa-telefon-tutucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki"
+    ],
+    "baslik": "Suzuki Hayabusa (GSX1300R) Telefon Tutucu (Direksiyon Göbeği)",
+    "aciklama": "Suzuki Hayabusa (GSX1300R) için özel üretim telefon tutucu. Direksiyon göbeğindeki (triple clamp) mevcut deliğe oturarak telefonunuzu göz hizasında, faktori anahtar gibi çıkıntıların üzerinden net görünür konumda tutar.\n\nMontaj: cıvata üstten geçer (baş kısmı telefonu korumak için gömülür), gövde alttan oturur; küçük bir lastik hortum ve somunla sıkıldıkça tutucu göbek pimine sıkıca kenetlenir (iPhone 6 Plus / 6s Plus ölçüsüne göredir, uyarlanabilir). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 124 × 110 × 55 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motosiklet ve telefon modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/suzuki-hayabusa-telefon-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/suzuki-hayabusa-telefon-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/suzuki-hayabusa-telefon-tutucu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MSHax",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "baofeng-telsiz-arac-tutucu",
+    "kategori": "Elektronik",
+    "marka": [
+      "Baofeng"
+    ],
+    "baslik": "Baofeng El Telsizi Araç Tutucusu (UV-5R Uyumlu)",
+    "aciklama": "Baofeng el telsizini (UV-5R vb.) araç içinde sabit tutan özel üretim tutucu. Telsizi sürüş sırasında elinizin altında ve görünür konumda tutar; araçtan ayrılırken kolayca çıkarabilirsiniz.\n\nDüz tabanı ve havşalı vida delikleri sayesinde hemen her yüzeye kolayca monte edilir (vidayla ya da çift taraflı bantla). Sağlamlık için yüksek dolguyla üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 72 × 26 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; telsiz modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/baofeng-telsiz-arac-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/baofeng-telsiz-arac-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/baofeng-telsiz-arac-tutucu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MSHax",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a3-8p-kolcak-mandali",
     "kategori": "Otomobil",
     "marka": [
