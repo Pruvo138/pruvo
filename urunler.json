@@ -1,5 +1,98 @@
 [
   {
+    "id": "audi-4000-5000-arka-park-lambasi-duyu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 4000/5000 Arka Park/Stop Lambası Duyu (Ampul Soketi)",
+    "aciklama": "Audi 4000/5000 arka park/stop lambası ampul duyunun (soket) özel üretim yedeği. Zamanla ısınıp sararan, kırılan orijinal duyun yerine geçer.\n\nMontaj kolay: eski duydaki metal kontakları dikkatlice çıkarıp yenisine takın — tak-çalıştır.\n\nIsıya dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 46 × 44 × 30 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-4000-5000-arka-park-lambasi-duyu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-4000-5000-arka-park-lambasi-duyu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-5-silindir-eksantrik-sensor-blogu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 5 Silindir (AAN/3B) Zamanlama Sensörü Bloğu",
+    "aciklama": "Audi 5 silindir AAN veya 3B motorlarda zamanlama (timing/krank-eksantrik konum) sensörünü tutan metal sensör bloğunun özel üretim yedeği. Kırılan orijinal bloğun yerine geçer; sensörü doğru konumda sabit tutar.\n\nIsıya ve mekanik yüke dayanıklı malzemeyle (ABS/Naylon) üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 59 × 42 × 27 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motor/araç modelinizi belirtin.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-5-silindir-eksantrik-sensor-blogu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-5-silindir-eksantrik-sensor-blogu-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-5-silindir-eksantrik-sensor-blogu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "vw-audi-b1-b2-mk1-mk2-kapi-kolu-cerceve",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen",
+      "Audi"
+    ],
+    "baslik": "VW/Audi Mk1-Mk2 / B1-B2 Dış Kapı Kolu Çerçevesi (2 Parça)",
+    "aciklama": "VW/Audi Mk1-Mk2 ve B1-B2 modellerde dış kapı kolunun çevresindeki trim/çerçeve parçalarının özel üretim yedeği. Kırılan/kaybolan orijinal çerçevenin yerine geçer; kapı koluna temiz, orijinal görünümünü geri verir. Her iki parça (kol + kilit çerçevesi) dahildir.\n\nDış koşullara dayanıklı malzemeyle (ABS/Naylon) üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık ölçüler: 123 × 32 mm (kol çerçevesi).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-audi-b1-b2-mk1-mk2-kapi-kolu-cerceve-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-audi-b1-b2-mk1-mk2-kapi-kolu-cerceve-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-4000-5000-torpido-kilidi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 4000/5000 Quattro Torpido Gözü Kilidi (Mandal)",
+    "aciklama": "Audi 4000/5000 Quattro torpido gözü (glove box) kilit mandalının özel üretim yedeği. Sık kırılan orijinal mandalın yerine geçer; torpido kapağı yeniden düzgün kilitlenip açılır.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 88 × 38 × 28 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-4000-5000-torpido-kilidi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-4000-5000-torpido-kilidi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-vw-4-pin-cok-fonksiyonlu-sensor-soket",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "Audi/VW 4 Pin Çok Fonksiyonlu Sıcaklık Sensörü Konnektörü",
+    "aciklama": "Audi/VW çok fonksiyonlu sıcaklık sensörünün (Multi-Function Temperature Sensor) zamanla ufalanan 4 pinli konnektörünün özel üretim yedeği. Dağılan orijinal soketin yerine geçer; kabloları güvenli bağlar.\n\nDesteksiz basılabilir, sıkı geçme. Isıya dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 27 × 24 × 21 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-vw-4-pin-cok-fonksiyonlu-sensor-soket-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-vw-4-pin-cok-fonksiyonlu-sensor-soket-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CommieGIR",
+      "tur": "GNU GPL"
+    }
+  },
+  {
     "id": "audi-b2-far-anahtari-soketi",
     "kategori": "Otomobil",
     "marka": [
