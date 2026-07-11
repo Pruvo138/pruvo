@@ -1,5 +1,39 @@
 [
   {
+    "id": "el-sikma-fani-grip-fan",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "El Sıkma Fanı (Cool Squeeze · Dişli Mekanizmalı)",
+    "aciklama": "Elle sıkarak çalıştırdığınız mekanik fan — pil ya da motor yoktur. Kolu sıktıkça dişli mekanizma pervaneyi hızla döndürür ve hafif bir esinti üretir. Eğlenceli bir mekanik gösteri, STEM oyuncağı ve ilginç bir hediye.\n\nTamamen mekaniktir; M3 vidalarla birleştirilir (donanım birlikte gönderilir). Pürüzsüz dönüş için yataklar hafifçe yağlanır. Avuç içi boyutunda, çok parçalı set.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/el-sikma-fani-grip-fan-1.jpg",
+      "https://media.pruvo3d.com/urunler/el-sikma-fani-grip-fan-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zippitybamba",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "black-decker-zimpara-vakum-adaptoru",
+    "kategori": "Elektronik",
+    "marka": [
+      "Black and Decker"
+    ],
+    "baslik": "Black+Decker 20V Zımpara — Vakum Hortumu Adaptörü (2.5\")",
+    "aciklama": "Black+Decker 20V kablosuz (mouse) zımpara makinesini atölye vakumuna bağlamak için özel üretim adaptör. Zımparalarken tozu doğrudan vakuma çeker; ortam temiz kalır, zımpara verimi artar.\n\nStandart 2.5\" (≈63 mm) shop-vac hortumuna geçer. Büyük bataryayı aşacak şekilde uzatılmış tasarım; makinenin toz çıkışına oturur. Dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 245 × 98 × 67 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; zımpara ve hortum modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/black-decker-zimpara-vakum-adaptoru-1.jpg",
+      "https://media.pruvo3d.com/urunler/black-decker-zimpara-vakum-adaptoru-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DestrucSean",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "tirtikli-civata-somun-klasik",
     "kategori": "Tamirat",
     "marka": [],
