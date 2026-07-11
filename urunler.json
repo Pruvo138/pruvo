@@ -1,5 +1,59 @@
 [
   {
+    "id": "divetalk-go-adv-kapak-anahtari",
+    "kategori": "Marin",
+    "marka": [
+      "DiveTalk"
+    ],
+    "baslik": "DiveTalk GO - ADV Kapak Açma Anahtarı (Kare Uçlu T-Anahtar)",
+    "aciklama": "DiveTalk GO - ADV dalış iletişim cihazının muhafazasını (housing) doğru şekilde açıp kapatmak için özel üretim kare uçlu T-anahtar. Kavraması rahat, tork uygulaması kolaydır.\n\nİpucu: kapağı önce O-ring contaya doğru bastırın, sonra anahtarı çevirmeye başlayın. Uyguladığınız kuvvete dikkat edin — cihazdaki diş de plastiktir. Dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 90 × 70 × 30 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/divetalk-go-adv-kapak-anahtari-1.jpg",
+      "https://media.pruvo3d.com/urunler/divetalk-go-adv-kapak-anahtari-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mophi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "flashforge-5m-lm2596s-modul-montaji",
+    "kategori": "Elektronik",
+    "marka": [
+      "Flashforge"
+    ],
+    "baslik": "Flashforge Adventurer 5M — LM2596S DC-DC Modül Montaj Braketi",
+    "aciklama": "Flashforge Adventurer 5M cihazına LED beslemesi için LM2596S DC-DC voltaj düşürücü modülünü sabitleyen özel üretim braket. Modülü ana kartın üzerine düzgün ve güvenli şekilde oturtur; kablolar dağılmaz.\n\nModülün eski, kalın 47 × 26 mm sürümüne göre tasarlanmıştır. Sıcağa dayanıklı malzeme (PETG) önerilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 70 × 47 × 8 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; modül ölçünüzü belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/flashforge-5m-lm2596s-modul-montaji-1.jpg",
+      "https://media.pruvo3d.com/urunler/flashforge-5m-lm2596s-modul-montaji-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Monk22",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bmw-f700gs-plastik-pul",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW"
+    ],
+    "baslik": "BMW F700GS Plastik Pul (p/n 46 63 7 714 241)",
+    "aciklama": "BMW F700GS için orijinal plastik pulun (parça no 46 63 7 714 241) özel üretim muadili. Kaybolan veya eskiyen orijinal pulun yerine geçer; ilgili bağlantıda doğru boşluğu ve yalıtımı sağlar.\n\nOrijinal ölçülere göre üretilir. Dayanıklı malzemeyle basılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 13 × 13 × 1 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kaç adet istediğinizi belirtmeniz yeterli.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bmw-f700gs-plastik-pul-1.jpg",
+      "https://media.pruvo3d.com/urunler/bmw-f700gs-plastik-pul-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Monk22",
+      "tur": "GNU GPL"
+    }
+  },
+  {
     "id": "atv-kontak-anahtari-gidon-tutucu",
     "kategori": "Motosiklet",
     "marka": [],
