@@ -1,5 +1,22 @@
 [
   {
+    "id": "mazda-mx5-nc-usb-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mazda"
+    ],
+    "baslik": "Mazda MX-5 NC USB Yuvası / Tutucu (Tek Parça)",
+    "aciklama": "Mazda MX-5 (Miata) NC FL2 araçlarda USB soketini/kablosunu düzgün konumda tutan yuva — kırılan veya olmayan orijinalin yerine geçen özel üretim parça. Tek parça tasarım.\n\nUSB modülünü konsola sıkıca sabitler, dağınık kablo görüntüsünü ortadan kaldırır. İsteğe bağlı ışıklı USB göbeği (inlay) ile uyumludur. Sağlam PLA ile üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 33 × 23 × 23 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mazda-mx5-nc-usb-tutucu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "mazda-mx5-nc-mikrofon-tutucu",
     "kategori": "Otomobil",
     "marka": [
