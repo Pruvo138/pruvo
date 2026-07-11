@@ -1,5 +1,22 @@
 [
   {
+    "id": "jeanneau-camarat-seyir-feneri-kutusu",
+    "kategori": "Marin",
+    "marka": [
+      "Jeanneau"
+    ],
+    "baslik": "Jeanneau Cap Camarat 515 Seyir Feneri (Kırmızı/Yeşil) Kutusu",
+    "aciklama": "Jeanneau Cap Camarat 515 teknelerde iskele/sancak seyir fenerinin (kırmızı/yeşil navigasyon ışığı) kutusu (boitier) — kırılan veya güneşten kavlayan orijinalin yerine geçen özel üretim yedek.\n\nFeneri ve kablolarını içine alıp korur, sancak (yeşil) ve iskele (kırmızı) ışığını düzgün konumda tutar. Esnek TPU ile üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 68 × 63 × 52 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; tekne modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/jeanneau-camarat-seyir-feneri-kutusu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raynoxis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "jeanneau-camarat-on-cam-silentblok",
     "kategori": "Marin",
     "marka": [
