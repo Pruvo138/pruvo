@@ -1,5 +1,56 @@
 [
   {
+    "id": "nikon-18-55-lens-parasoleyi",
+    "kategori": "Kamera",
+    "marka": [
+      "Nikon"
+    ],
+    "baslik": "Nikon 18-55mm AF Lens Parasoleyi (Hood)",
+    "aciklama": "Nikon 18-55mm AF objektif için özel üretim parasoley (lens hood). Yan ışıkta parlamayı (flare) engeller, kontrastı artırır ve ön merceği darbe, parmak izi ve yağmurdan korur.\n\nObjektifin ön kısmına geçer; lale (petal) tasarımı geniş açıda görüntüye gölge düşürmez. Mat malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 90 × 85 × 51 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; objektif modelinizi belirtmeniz yeterli.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/nikon-18-55-lens-parasoleyi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PrototypeProfessor",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kalorifer-purjor-anahtari",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Kalorifer / Petek Hava Alma (Purjör) Anahtarı",
+    "aciklama": "Kalorifer peteklerinin havasını almak için özel üretim purjör anahtarı. Peteğin üzerindeki dörtgen (kare) hava alma valfine geçer; çevirerek içerideki havayı boşaltır, ısınmayan/şırıldayan peteği çözersiniz.\n\nAnahtarlık deliği vardır; kaybolmaz. Farklı valf ölçülerine göre üretilebilir. Dayanıklı malzemeyle basılır.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 26 × 21 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; petek valf tipinizi belirtmeniz yeterli.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kalorifer-purjor-anahtari-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "petres",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "roborock-s50-ucurum-sensoru-kapagi",
+    "kategori": "Elektronik",
+    "marka": [
+      "Xiaomi",
+      "Roborock"
+    ],
+    "baslik": "Xiaomi Roborock S50 Uçurum Sensörü Kapağı (V2)",
+    "aciklama": "Xiaomi Roborock S50 (ve Mi Robot) robot süpürgenin uçurum (cliff / düşme) sensörleri için özel üretim kapak seti. Koyu renkli paspas ve zeminleri robot yanlışlıkla \"boşluk\" sanıp durmasın diye sensörün önüne oturur; makine karanlık yüzeylerde takılmadan çalışır.\n\nV2 tasarım: yan döner fırçaya değmeyecek şekilde daha küçük ve daha sıkı oturur. Sensörün çalışması için açık/parlak renkte basılır (beyaz önerilir).\n\nYaklaşık dış ölçüler (tek kapak): 29 × 11 × 9 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; robot modelinizi belirtmeniz yeterli.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/roborock-s50-ucurum-sensoru-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/roborock-s50-ucurum-sensoru-kapagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kihrao",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "el-sikma-fani-grip-fan",
     "kategori": "Ev",
     "marka": [],
