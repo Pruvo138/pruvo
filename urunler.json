@@ -1,5 +1,24 @@
 [
   {
+    "id": "audi-a1-gen1-mmi-telefon-tutucu-mesnet",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A1 (1. Nesil) Telefon Tutucu Mesnedi (MMI Ekran Yuvasına)",
+    "aciklama": "Audi A1 (1. nesil) için özel üretim telefon tutucu mesnedi. Öndeki MMI ekranının önündeki boşluğa oturur; yapıştırma veya vida gerektirmez, sadece yuvaya oturarak sabit durur. Ekranın çerçevesi sayesinde mesnet ekrana değmez, çizmez.\n\nTelefon klipsi, tabandan geçen tek bir kısa M6 cıvata ile mesnede takılır (piyasadaki standart telefon klipsleriyle kullanılır). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 176 × 85 × 44 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a1-gen1-mmi-telefon-tutucu-mesnet-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a1-gen1-mmi-telefon-tutucu-mesnet-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a1-gen1-mmi-telefon-tutucu-mesnet-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fergusykes",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "xbox-one-kinect-tv-standi",
     "kategori": "Elektronik",
     "marka": [
