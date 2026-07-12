@@ -1,5 +1,21 @@
 [
   {
+    "id": "cift-boru-kelepcesi-vidali",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Çift Boru Kelepçesi (Vidalı, Kablo Bağı Yuvalı)",
+    "aciklama": "İki boruyu/hortumu yan yana bir yüzeye sabitleyen özel üretim çift boru kelepçesi. Ortadaki havşalı vida deliğinden bir vidayla yüzeye tutturulur; orta noktadaki yarıktan geçen bir kablo bağı (cırt kelepçe) ile de boruları ekstra sıkı tutar. Giriş-çıkış (in-out) boru hatlarını (ör. güneş enerjili havuz ısıtıcısı) düzenli tutmak için idealdir.\n\nDayanıklı malzemeyle üretilir; boru çapınıza göre uyarlanabilir, farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 55 × 19 × 11 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; boru çapınızı belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cift-boru-kelepcesi-vidali-1.jpg",
+      "https://media.pruvo3d.com/urunler/cift-boru-kelepcesi-vidali-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fpinczuk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b6-ic-dikiz-ayna-tutucu-klipsi",
     "kategori": "Otomobil",
     "marka": [
