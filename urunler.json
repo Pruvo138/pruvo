@@ -1,5 +1,57 @@
 [
   {
+    "id": "audi-a4-b6-b7-radyator-tutucu-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 (2002-2008) Radyatör Üst Tutucu Pimi",
+    "aciklama": "Audi A4 (2002-2008) radyatörü ön panele (core support) sabitleyen üst tutucu pimin özel üretim yedeği. Orijinal parça numarası 4B3 121 200 olan bu küçük pim, radyatörü yerinde tutar; kırıldığında/kaybolduğunda radyatör üstten oynar. Ucuz ama bulması zor olabilen bu parçayı hemen yenileyin.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 33 × 20 × 20 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-b7-radyator-tutucu-pimi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-b7-radyator-tutucu-pimi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "alphaseinor",
+      "tur": "BSD License",
+      "url": "https://opensource.org/license/bsd-3-clause"
+    }
+  },
+  {
+    "id": "su-pompasi-6mm-hortum-adaptoru-bsp",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Su Pompası 6 mm Hortum Adaptörü (BSP 1/2\")",
+    "aciklama": "İç çapı 6 mm olan su hortumunu BSP 1/2\" dişli bir su pompasına (ya da benzeri dişli çıkışa) bağlamak için özel üretim adaptör. Bir ucu BSP 1/2\" dış dişli, diğer ucu 6 mm hortum ağzıdır. İndüksiyon ısıtma, sıvı soğutma ve genel pompa/hortum projelerinde kullanılır.\n\nSu geçirmezlik için diş bandı (teflon) ile sarılması önerilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. Ölçü/diş (BSP, hortum çapı) isteğe göre ayarlanabilir.\n\nYaklaşık dış ölçüler: Ø25 × 33 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; diş ve hortum ölçünüzü belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/su-pompasi-6mm-hortum-adaptoru-bsp-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "drummerdimitri",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-q3-sigorta-kutusu-kapak-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi Q3 Sigorta Kutusu Kapağı Mandalı",
+    "aciklama": "Audi Q3 torpido yanındaki sigorta kutusu kapağının kırılan açma mandalının özel üretim yedeği. Kırık mandal yüzünden kapanmayan/tutmayan kapağı yeniden düzgün kilitler; komple sigorta kutusu kapağını değiştirmeye gerek kalmaz.\n\nMukavemet için aseton buharıyla yüzey pürüzsüzleştirme (vapor smoothing) uygulanabilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 80 × 39 × 33 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-q3-sigorta-kutusu-kapak-mandali-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-q3-sigorta-kutusu-kapak-mandali-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "thomaswoerner1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a3-kapak-kilit-mandali",
     "kategori": "Otomobil",
     "marka": [
