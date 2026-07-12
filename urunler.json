@@ -1,5 +1,40 @@
 [
   {
+    "id": "audi-a3-havalandirma-telefon-tutucu-bilyali-mesnet",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 Havalandırma Telefon Tutucu Bilyalı Mesnet",
+    "aciklama": "Audi A3 havalandırma ızgaralarından birinin yerine geçen, ucunda bilya (ball mount) olan özel üretim telefon tutucu mesnedi. Havalandırmayı söküp bu mesnedi takarsınız; piyasadaki bilyalı telefon tutucuların (ör. vantuzsuz ball-joint tutucular) kolunu bu bilyaya geçirirsiniz. Böylece telefon sağlam ve titremeden durur.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. (Telefon tutucu kafası ürüne dahil değildir.)\n\nYaklaşık dış ölçüler: Ø86 × 70 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve tutucu modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-havalandirma-telefon-tutucu-bilyali-mesnet-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a3-havalandirma-telefon-tutucu-bilyali-mesnet-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FruitNinja20",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dji-o4-pro-fpv-drone-kamera-montaji-25mm",
+    "kategori": "Kamera",
+    "marka": [
+      "DJI"
+    ],
+    "baslik": "DJI O4 Pro FPV Kamera Montaj Aparatı (25 mm Standoff)",
+    "aciklama": "FPV dronlar için DJI O4 Pro kamera/verici ünitesini gövdeye sabitleyen özel üretim montaj aparatı. Standart 25 mm standoff'ların (ara direklerin) üzerine geçer; bu ölçüde ya da daha büyük standoff'lu her drona uyar. Aslen Grinderino frame için yapılmıştır.\n\nHafif ama sağlam olacak şekilde dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 26 × 24 × 22 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; drone ve standoff ölçünüzü belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dji-o4-pro-fpv-drone-kamera-montaji-25mm-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cborrow",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "banyo-tras-makinesi-tutucu-klips",
     "kategori": "Ev",
     "marka": [],
