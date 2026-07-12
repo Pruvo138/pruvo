@@ -1,5 +1,39 @@
 [
   {
+    "id": "vw-corrado-kaput-yan-kilavuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "VW Corrado Kaput Yan Kılavuzu (Hood Side Guide)",
+    "aciklama": "VW Corrado kaputunu kapanırken doğru konuma oturtan yan kılavuz parçasının özel üretim yedeği. Kaputun her kapanışta aynı hizada, boşluksuz oturmasını sağlar; kırılan/kaybolan orijinalin yerine geçer. İki vida deliğiyle sabitlenir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-corrado-kaput-yan-kilavuzu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kurcze666",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "vw-corrado-kaput-kanca-korumasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "VW Corrado Kaput Kanca Koruması (Hood Hook Protection)",
+    "aciklama": "VW Corrado kaput kilit kancası bölgesini koruyan özel üretim parça. Kaput kapanırken kancanın sac/boyaya sürtünüp aşındırmasını ve tıkırtı/gıcırtı yapmasını önler; kaybolan/yıpranan orijinal parçanın yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-corrado-kaput-kanca-korumasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kurcze666",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a3-s3-jant-blank-gobek-kapagi",
     "kategori": "Otomobil",
     "marka": [
