@@ -1,5 +1,38 @@
 [
   {
+    "id": "breadboard-jumper-kablo-tutucu",
+    "kategori": "Elektronik",
+    "marka": [],
+    "baslik": "Breadboard / Dupont Jumper Kablo Tutucu Organizatör",
+    "aciklama": "Elektronik çalışma masası için özel üretim dupont / breadboard jumper kablo tutucu. Erkek ve dişi jumper kablolarını tarak şeklindeki yuvalara asarak düzenli tutar; kabloların birbirine dolaşmasını önler, aradığınızı hemen bulursunuz. Arduino / Raspberry Pi ve prototip çalışmalarında masayı toplar.\n\nMasaya konur ya da duvara/panele monte edilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 118 × 20 × 17 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/breadboard-jumper-kablo-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/breadboard-jumper-kablo-tutucu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bray",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-80-b1-gunesluk-tutucu-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 80 B1 Güneşlik (Vizör) Tutucu Klipsi",
+    "aciklama": "Audi 80 B1 güneşliğini (vizörünü) tavana sabitleyen, zamanla kırılan orijinal tutucu klipsin özel üretim yedeği. Kırık klips yüzünden düşüp sallanan güneşliği yeniden yerine sabitler.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 27 × 23 × 22 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-80-b1-gunesluk-tutucu-klips-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bray",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "bisiklet-gidon-boru-kapagi-entegre-spacer",
     "kategori": "Bisiklet",
     "marka": [],
