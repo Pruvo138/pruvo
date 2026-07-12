@@ -1,5 +1,59 @@
 [
   {
+    "id": "audi-vw-sabit-boru-hatti-tutucu-burc",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "Audi / VW Sabit Boru Hattı Tutucu Burç (Lastik Yastık)",
+    "aciklama": "Audi / Volkswagen araçlarda motor bölmesi duvarı (firewall) boyunca uzanan sabit boruları (fren/yakıt hard line) yerinde tutan lastik burcun/yastığın özel üretim yedeği. Aşınan orijinal burç boruların takırdamasına ve titreşmesine yol açar; bu parça boruyu yeniden sıkı ve sessiz şekilde sabitler.\n\nOrijinaline benzer esnek (TPU) malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 36 × 20 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-vw-sabit-boru-hatti-tutucu-burc-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-vw-sabit-boru-hatti-tutucu-burc-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bynbyn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-b6-hava-kutusu-alt-montaj-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 (B6) Hava Kutusu Alt Montaj Pimi / Ayağı",
+    "aciklama": "Audi A4 (B6) hava kutusunun (airbox) alt montaj pimlerinin özel üretim yedeği. Orijinal pimler zamanla kırılır ve hava kutusu boşta oynar; bu parça kırık pimin etrafına geçip orijinal montaj deliğine oturarak hava kutusunu yeniden sağlam sabitler.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 35 × 21 × 21 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-hava-kutusu-alt-montaj-pimi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-hava-kutusu-alt-montaj-pimi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bynbyn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a3-8l-yag-cubugu-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 (8L) Yağ Çubuğu (Dipstick) Tutamağı",
+    "aciklama": "Audi A3 (8L) motor yağ çubuğunun (dipstick) kırılan plastik tutamağının özel üretim yedeği. Orijinal turuncu tutamak zamanla kırılır; bu parça metal yağ çubuğu bıçağına oturarak çubuğu yeniden rahatça tutup çekmenizi sağlar. (Metal çubuk dahil değildir.)\n\nIsıya ve yağa dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 108 × 31 × 22 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç/motor modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-8l-yag-cubugu-tapasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fleyky",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b6-kalorifer-hortum-konektor-tapasi",
     "kategori": "Otomobil",
     "marka": [
