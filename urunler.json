@@ -1,5 +1,60 @@
 [
   {
+    "id": "vag-bosch-boost-basinc-sensoru-adaptor-borusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "VAG (VW/Audi) Bosch Boost Basınç Sensörü Adaptör Borusu",
+    "aciklama": "VW/Audi (VAG) araçlarda turbo boost basıncını orijinal Bosch basınç sensörüyle ölçmek/loglamak için özel üretim adaptör borusu. Boruyu hava hattına (ör. intercooler öncesi) bağlar, üzerine OEM basınç sensörünü takarsınız; sensörü farklı bir konuma taşımak için de kullanılır. Modifiyeli araçlarda Arduino vb. ile veri toplamak için idealdir.\n\nSızdırmazlık için O-ring kullanılması önerilir. Farklı sensör/hortum çaplarına göre ölçü ayarlanabilir. Dayanıklı, sıcaklığa uygun malzemeyle üretilir. (Sensör ve O-ring dahil değildir.)\n\nYaklaşık dış ölçüler: 130 × 42 × 35 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; sensör ve hortum ölçünüzü belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vag-bosch-boost-basinc-sensoru-adaptor-borusu-1.jpg",
+      "https://media.pruvo3d.com/urunler/vag-bosch-boost-basinc-sensoru-adaptor-borusu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "zCruuz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "vw-audi-radyo-konsol-sokme-anahtari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "VW / Audi Radyo ve Konsol Gözü Sökme Anahtarı (Takım)",
+    "aciklama": "VW ve Audi araçlarda orta konsol gözünü, radyoyu ve benzeri geçmeli parçaları çizmeden sökmek için özel üretim sökme anahtarı. Parçanın yan yuvalarına sokulup mandalları bastırarak parçayı hasarsız çıkarmanızı sağlar; tornavidayla zorlayıp kırmaya son.\n\nDayanıklı malzemeyle (PETG/ABS/PLA) üretilir. Genelde çift kullanılır.\n\nYaklaşık dış ölçüler: 119 × 54 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-audi-radyo-konsol-sokme-anahtari-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dmmaggio",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a3-havalandirma-52mm-gosterge-yuvasi-boost",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 Yuvarlak Havalandırma 52 mm Gösterge Yuvası (Boost/Yağ/Su)",
+    "aciklama": "Audi A3 orta yuvarlak havalandırmasına 52 mm gösterge (turbo boost basıncı, yağ, su sıcaklığı vb.) takmak için özel üretim yuva/destek. Göstergeyi şık ve fabrika görünümünde, havalandırmanın içine yerleştirir.\n\nMontaj biraz özen ister: dış krom çıtayı ve hava yönlendirme kanatlarını dikkatlice sökün, göstergeyi desteğe takıp desteği havalandırmaya oturtun, halkayı doğru konumda yerleştirin (zorlamadan çevirerek). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. (Gösterge dahil değildir.)\n\nYaklaşık dış ölçüler: 70 × 56 mm (52 mm gösterge için).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve gösterge ölçünüzü belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-havalandirma-52mm-gosterge-yuvasi-boost-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a3-havalandirma-52mm-gosterge-yuvasi-boost-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SamDorovich",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b6-ceki-demiri-kapagi",
     "kategori": "Otomobil",
     "marka": [
