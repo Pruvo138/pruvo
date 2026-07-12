@@ -1,5 +1,76 @@
 [
   {
+    "id": "audi-a1-bagaj-perde-tutucu-parcalari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A1 Bagaj Rafı / Perde Tutucu Parçaları",
+    "aciklama": "Audi A1 bagaj kapatma rafının (parcel shelf / load cover) yan tutucu / mafsal parçalarının özel üretim yedeği. Kırılan orijinal parçalar rafın oynamasına veya düşmesine yol açar; bu parçalar rafı yeniden düzgün ve sabit konumda tutar.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 100 × 60 × 6 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a1-bagaj-perde-tutucu-parcalari-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a1-bagaj-perde-tutucu-parcalari-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FiveNights",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-a1-yakit-deposu-kapagi-baglanti-ipi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A1 Yakıt Deposu Kapağı Bağlantı Şeridi (Tutucu İp)",
+    "aciklama": "Audi A1 yakıt (depo) kapağını yakıt kapağı kapağına bağlayan kırılan bağlantı şeridinin (tether/lastik ip) özel üretim yedeği. Bu şerit koptuğunda depo kapağı serbest kalıp düşebilir/kaybolabilir; parça kapağı yeniden yerinde tutar. Orijinal kırık parçadan modellenmiştir.\n\nEsnek, dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 123 × 12 × 3 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a1-yakit-deposu-kapagi-baglanti-ipi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a1-yakit-deposu-kapagi-baglanti-ipi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lorenzodroid",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-2006-torpido-mentesesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 (2006) Torpido Gözü Menteşesi — Sağ + Sol Takım",
+    "aciklama": "Audi A4 (2006) torpido gözünü (eldiven bölmesi) taşıyan menteşelerin özel üretim yedeği. Yıllanan orijinal menteşeler kırıldığında torpido kapağı düşer/sarkar; bu menteşeler kapağı yeniden düzgün ve sağlam açıp kapatır. Sağ (Dx) ve sol (Sx) için iki parça birlikte gelir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: sol 79 × 62 × 15 mm; sağ 66 × 62 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-2006-torpido-mentesesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-2006-torpido-mentesesi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NikiKaccia",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-2006-tavan-manuel-anahtar-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 (2006) Tavan (Sunroof) Manuel Açma Anahtarı Erişim Kapağı",
+    "aciklama": "Audi A4 (2006) tavan/sunroof mekanizmasının manuel (elle) açma noktasını örten erişim kapağının özel üretim yedeği. Arıza durumunda tavan elle açılan bu noktanın kapağı kırıldığında veya kaybolduğunda çirkin bir boşluk kalır; bu parça noktayı yeniden şık şekilde kapatır.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 30 × 18 × 9 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-2006-tavan-manuel-anahtar-kapagi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NikiKaccia",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "renault-arkana-bagaj-canta-kancasi",
     "kategori": "Otomobil",
     "marka": [
