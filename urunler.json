@@ -1,5 +1,24 @@
 [
   {
+    "id": "audi-a6-4k-c8-kulluk-yukseltme-tabani",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6 4K (C8) Küllük Yükseltme Tabanı (Spacer)",
+    "aciklama": "Audi A6 4K (C8, MY2018+) için özel üretim küllük yükseltme tabanı. Orijinal Audi küllüğünü (parça no. 4K0/4N0 857 951) bardaklık/eşya yuvasına takarken doğru yükseklikte oturmasını sağlar; küllük yuvaya gömülmek yerine düzgün ve erişilebilir konumda durur.\n\nMontaj: basılan tabanı çift taraflı bantla küllüğün altına sabitlemeniz önerilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 62 × 62 × 28 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-4k-c8-kulluk-yukseltme-tabani-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-4k-c8-kulluk-yukseltme-tabani-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-4k-c8-kulluk-yukseltme-tabani-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "enry68",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "vw-transporter-hali-panel-klipsi",
     "kategori": "Otomobil",
     "marka": [
