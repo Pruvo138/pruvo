@@ -1,5 +1,22 @@
 [
   {
+    "id": "bisiklet-v-brake-mesnet-kapagi",
+    "kategori": "Bisiklet",
+    "marka": [],
+    "baslik": "Bisiklet V-Brake (Cantilever) Mesnet Deliği Kapağı",
+    "aciklama": "Disk frene geçen bisiklet kadrolarında boşta kalan V-brake (linear-pull / cantilever) fren mesnetlerinin deliğini kapatan özel üretim tapa. Fren pimleri söküldüğünde kadroda kalan çirkin delikleri gizler; içeri su ve kir girmesini engeller.\n\nDeliğe geçer ve tıpkı orijinal fren pimi gibi bir M5 cıvatayla sabitlenir. Dönmesini önleyen bir hizalama tırnağı yayı deliğine oturur. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 23 × 14 × 12 mm (bir adet). Genelde çift takılır.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kaç adet gerektiğini belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bisiklet-v-brake-mesnet-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/bisiklet-v-brake-mesnet-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/bisiklet-v-brake-mesnet-kapagi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "radare",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-b6-b7-havalandirma-izgara-tamir-parcasi",
     "kategori": "Otomobil",
     "marka": [
