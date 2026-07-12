@@ -1,5 +1,59 @@
 [
   {
+    "id": "audi-a4-b6-valeo-far-projektor-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 B6 Valeo Far Projektör (Mercek) Braketi",
+    "aciklama": "Audi A4 B6 Valeo bi-xenon farlarda orijinal projektörü (merceği) Koito Q5-r replika / D1S bi-xenon projektörlerle değiştirmek için özel üretim braket. Farın içindeki OEM mercek yuvasına geçer; yeni projektörü doğru konum ve açıda sabitler. D1S balast ve ampulünüzü kullanmaya devam edersiniz.\n\nIsıya dayanıklı malzemeyle (PETG/ABS) üretilir — far içi ısındığı için PLA önerilmez. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 105 × 96 × 3 mm (çerçeve).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve projektör modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-valeo-far-projektor-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-valeo-far-projektor-braketi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fr3zno",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-b6-motor-konnektor-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 B6 Motor Bölmesi Konnektör Braketi (Bi-Xenon Dönüşümü)",
+    "aciklama": "Audi A4 B6'ya bi-xenon far takarken fan modülü konnektörünü yukarı taşıyan özel üretim braket. Doğru orijinal parça numarası 8E0971845AB olmayan araçlarda (halojen/tek-xenon PN 4B0971845S) konnektör yeni farla çakışır; bu braket konnektörü sıkışmadan doğru konuma alır.\n\nTasarımın V2 sürümünde klipsler braketten ayrı basılır — bu sayede parça daha sağlam olur ve klipsler yana yük altında kırılmaz. Isıya dayanıklı malzemeyle (PETG/ABS) üretilir.\n\nYaklaşık dış ölçüler: 117 × 90 × 11 mm (braket) + ayrı klipsler.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-motor-konnektor-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-motor-konnektor-braketi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fr3zno",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-b6-far-ayar-dislileri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 / S4 B6 Far Yükseklik Ayar Dişlileri (Bi-Xenon)",
+    "aciklama": "Audi A4 / S4 B6 bi-xenon farların içindeki, farı yukarı-aşağı ayarlayan mekanizmanın aşınıp kırılan plastik dişlilerinin özel üretim yedeği. Bu dişliler bozulunca farın otomatik seviye ayarı çalışmaz; komple far yerine sadece dişlileri değiştirerek tamir edersiniz.\n\nOrijinali cam elyaf takviyeli naylondandır (PA66 GF30); biz de dayanıklı mühendislik malzemesiyle (PETG / naylon) üretiriz — PLA bu bölgede ısıyla deforme olur. Pinyon ve büyük dişli birlikte gelir.\n\nYaklaşık ölçüler: büyük dişli Ø21 mm, pinyon dişli Ø14 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-far-ayar-dislileri-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-far-ayar-dislileri-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fr3zno",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b6-havalandirma-gosterge-yuvasi-52mm",
     "kategori": "Otomobil",
     "marka": [
