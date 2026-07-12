@@ -1,5 +1,22 @@
 [
   {
+    "id": "camasir-makinesi-hortum-duvar-tutucu",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Çamaşır Makinesi Hortum Duvar Tutucusu (Çift Hortum)",
+    "aciklama": "Çamaşır makinesine giden sıcak/soğuk su hortumlarını duvarda düzenli ve sabit tutan özel üretim tutucu. İki hortumu yan yana kavrar, sarkmalarını ve karışmalarını önler; makine arkasındaki görüntüyü toparlar.\n\nDuvara 3M yapışkanlı bantla ya da alçıpan/duvar vidasıyla monte edilebilir. Kapak parçası hortumların üstüne oturup vidayla kilitlenir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 117 × 74 × 23 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; hortum çapınızı belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/camasir-makinesi-hortum-duvar-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/camasir-makinesi-hortum-duvar-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/camasir-makinesi-hortum-duvar-tutucu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fpinczuk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "cift-boru-kelepcesi-vidali",
     "kategori": "Tamirat",
     "marka": [],
