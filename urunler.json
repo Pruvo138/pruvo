@@ -1,5 +1,57 @@
 [
   {
+    "id": "audi-a4-b6-ceki-demiri-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 / A4 B6 (2001-2005) Ön Tampon Çeki Demiri Kapağı",
+    "aciklama": "Audi A3 / A4 B6 (2001-2005) ön tampondaki çeki demiri (tow hook) yuvasını kapatan kapağın özel üretim yedeği. Çekici şoförlerinin sık kırdığı bu kapak koptuğunda tamponda çirkin bir delik kalır; bu parça yuvayı yeniden şık şekilde kapatır.\n\nÜç parçadan oluşur: kapağın kendisi, kapağı tampona tutturan kanca ve kapağı araca sabitleyen emniyet pimi. Kanca kapağın arkasına yapıştırılır (orijinal metal kancanız varsa onu da kullanabilirsiniz). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: kapak 67 × 49 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-ceki-demiri-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-ceki-demiri-kapagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "eoyilmaz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-e-tron-sarj-kapagi-plastik-dislileri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi e-tron Şarj Kapağı Mekanizması Plastik Dişlileri",
+    "aciklama": "Audi e-tron (SUV) şarj kapağını açan çift kollu mekanizmanın kırılan plastik parçalarının özel üretim yedeği. Mekanizma bir motor, iki plastik parça ve bunları bağlayan çelik bir koldan oluşur. Plastik parçalar kırıldığında şarj kapağı açılmaz ve göstergede uyarı çıkar; komple mekanizma yerine sadece bu iki dişliyi değiştirerek tamir edersiniz.\n\nOrijinaline uygun, dayanıklı mühendislik malzemesiyle üretilir; farklı renk seçenekleriyle üretilebilir. Tahrik (drive) ve tahrik edilen (driven) parça birlikte gelir.\n\nYaklaşık ölçüler: 57 × 22 × 20 mm ve 50 × 25 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-e-tron-sarj-kapagi-plastik-dislileri-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-e-tron-sarj-kapagi-plastik-dislileri-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rkoptev",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sprey-kutusu-tetik-tabancasi-boya",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Sprey / Aerosol Kutusu Tetik Tabancası (Boya Spreyi Tutacağı)",
+    "aciklama": "Standart sprey/aerosol kutularına (boya spreyi, sızıntı bulucu, yağ spreyi vb.) geçen özel üretim tetikli tutacak. Kutunun başlığını parmakla bastırmak yerine tabanca gibi rahat bir tetikle sıkarsınız; uzun süre boya/sprey atarken parmak yorgunluğunu önler, daha kontrollü ve düzgün bir sprey sağlar.\n\nGövde ve tetik olmak üzere iki parçadan oluşur. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. (Sprey kutusu dahil değildir.)\n\nYaklaşık dış ölçüler: 158 × 99 × 42 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; sprey kutusu ölçünüzü belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sprey-kutusu-tetik-tabancasi-boya-1.jpg",
+      "https://media.pruvo3d.com/urunler/sprey-kutusu-tetik-tabancasi-boya-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jarda88",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a3-bardaklik-cup-holder",
     "kategori": "Otomobil",
     "marka": [
