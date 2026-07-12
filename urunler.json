@@ -1,5 +1,57 @@
 [
   {
+    "id": "renault-arkana-bagaj-canta-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Arkana Bagaj Çanta / Poşet Kancası (Vidalı, Sökülebilir)",
+    "aciklama": "Renault Arkana (EU) bagajında poşet/çantaları asmak için özel üretim kanca seti. Bagaj kaplamasının mevcut montaj noktalarına, orijinal plastiğe zarar vermeden takılır. Vidalı (dişli) bağlantı sayesinde kancayı hızlıca sökebilir, böylece bagaj tabanını (bagaj altı gözü) kolayca açabilirsiniz.\n\nİki parçadan oluşur: montaj noktasına oturan dişli iç geçme (insert) ve ona vidalanan kanca (diş M18×2,5). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: dişli geçme 40 × 36 × 36 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/renault-arkana-bagaj-canta-kancasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/renault-arkana-bagaj-canta-kancasi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "filichev",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "ebike-350w-kontrol-kartu-muhafazasi",
+    "kategori": "Bisiklet",
+    "marka": [],
+    "baslik": "Elektrikli Bisiklet (E-bike) Kontrol Kartı + Batarya Muhafaza Seti (350W)",
+    "aciklama": "Katlanır/şehir bisikletini elektrikliye çevirirken kontrol kartını (ör. Zemake 350W sürücü) ve 48V bataryayı bisiklet kadrosuna düzgün, korumalı şekilde monte etmek için özel üretim muhafaza seti. Kontrol kartı kutusu, batarya yuvası/kelepçesi, kadro kelepçesi ve kapaklardan oluşan çok parçalı bir settir; elektronikleri toz, çamur ve darbeye karşı korur.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. Bisiklet kadrosuna ve batarya ölçünüze göre uyarlanabilir. (Elektronik parçalar ve batarya dahil değildir; bazı kurulumlarda arka çamurluğun 4-5 mm kaydırılması gerekebilir.)\n\nYaklaşık ölçüler: kontrol kutusu 210 × 62 × 51 mm; batarya yuvası 200 × 159 × 76 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; sürücü, batarya ve kadro ölçünüzü belirtin.",
+    "fiyat": "2000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ebike-350w-kontrol-kartu-muhafazasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/ebike-350w-kontrol-kartu-muhafazasi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "filichev",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-e-tron-silecek-adaptoru-gwb072",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi e-tron Silecek Adaptörü (Fıskiyeli Silecek) — GWB072",
+    "aciklama": "Audi e-tron araçlarda ön cam sileceğini değiştirirken kullanılan özel üretim silecek adaptörü. e-tron sileceğinde su fıskiyesi (spray nozzle) silecek koluna entegre olduğundan standart silecekler doğrudan uymaz; bu adaptör (GWB072 tipi bağlantı) uygun sileceğin araca doğru ve sağlam takılmasını sağlar.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. (Silecek dahil değildir.)\n\nYaklaşık dış ölçüler: 33 × 24 × 13 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve silecek modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-e-tron-silecek-adaptoru-gwb072-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-e-tron-silecek-adaptoru-gwb072-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "filichev",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "vw-audi-karter-havalandirma-pcv-adaptoru",
     "kategori": "Otomobil",
     "marka": [
