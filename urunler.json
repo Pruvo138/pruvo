@@ -1,5 +1,22 @@
 [
   {
+    "id": "audi-a6-c7-emniyet-kemeri-tokasi-bagaj",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6 C7 Emniyet Kemeri Toka Dili (Koltuk Yükü Uyarısı İçin)",
+    "aciklama": "Audi A6 C7 (S/RS dahil) için özel üretim emniyet kemeri toka dili. Yolcu koltuğuna ağır bagaj/eşya koyduğunuzda devreye giren koltuk ağırlık sensörü uyarısını (kemer takma ikazı) susturmak için tokaya takılır.\n\nÖNEMLİ: Bu parça yalnızca koltukta eşya/bagaj taşırken uyarıyı kapatmak içindir. Araç kullanırken emniyet kemerinizi HER ZAMAN takın — güvenliğiniz için bu parça kemer yerine kullanılmamalıdır.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 62 × 52 × 3 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-c7-emniyet-kemeri-tokasi-bagaj-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "edris_01",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "pololu-25mm-d-motor-tutucu",
     "kategori": "Elektronik",
     "marka": [],
