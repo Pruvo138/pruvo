@@ -1,5 +1,22 @@
 [
   {
+    "id": "audi-a3-s3-jant-blank-gobek-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 / S3 Jant Göbek Kapağı (Düz / Logosuz)",
+    "aciklama": "Audi A3 / S3 jantları için düz (logosuz / blank) merkez göbek kapağı — özel üretim. Kaybolan/kırılan orijinal kapağın yerine geçer; janta temiz, sade bir görünüm verir. İstenirse üzeri boyanabilir veya sticker/amblem uygulanabilir.\n\nArkasındaki klipslerle janta geçme yapar. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış çap: 57 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; jant/kapak yuva ölçünüzü belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-s3-jant-blank-gobek-kapagi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kurcze666",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-b8-a4-a5-maf-sensor-uzatma-fisi",
     "kategori": "Otomobil",
     "marka": [
