@@ -1,5 +1,41 @@
 [
   {
+    "id": "vw-audi-jant-merkezleme-halkasi-571-721",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "VW / Audi Jant Merkezleme Halkası (57,1 → 72,1 mm)",
+    "aciklama": "VW ve Audi araçlarda aftermarket (yan sanayi) jant kullanırken jantı göbeğe tam ortalamak için özel üretim merkezleme halkası (centric / hub ring). Jantın göbek deliği araç göbeğinden büyük olduğunda titreşim ve merkezleme sorunu olur; bu halka boşluğu doldurur, jantı titreşimsiz ve merkezli oturtur.\n\nÖlçü: araç göbeği 57,1 mm → jant göbek deliği 72,1 mm. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. Genelde 4'lü takım halinde kullanılır. Farklı göbek/jant ölçülerine göre de üretilebilir.\n\nYaklaşık dış ölçüler: 72 × 72 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç göbeği ve jant ölçünüzü belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-audi-jant-merkezleme-halkasi-571-721-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sifuko",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-tt-8n-tavan-tasiyici-ayagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi TT 8N (MK1) Tavan Taşıyıcı (Port Bagaj) Ayağı — Çift (Sağ + Sol)",
+    "aciklama": "Audi TT 8N (MK1) için özel üretim tavan taşıyıcı / port bagaj ayağı. Aracın tavan hattına oturur ve alüminyum taşıyıcı barları güvenli şekilde tutar; kendi tavan taşıyıcınızı kurmanıza olanak tanır. Sağ ve sol için iki parça (çift) olarak gelir.\n\nKurulum için Yakima A-Pad, M6 cıvatalar ve alüminyum bar gerekir (bunlar dahil değildir). Sıcaklığa ve yüke dayanıklı, yüksek dolgulu sağlam malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nNOT: Bu bir amatör/DIY (kendin yap) tasarımıdır; ticari onaylı bir ürün değildir. Yük güvenliğinden kullanıcı sorumludur — ağır/kritik yüklerde profesyonel taşıyıcı önerilir. Kendi sorumluluğunuzda kullanın.\n\nYaklaşık dış ölçüler (taban): 160 × 115 × 64 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "3000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-tt-8n-tavan-tasiyici-ayagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-tt-8n-tavan-tasiyici-ayagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sifuko",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-tt-8n-havalandirma-52mm-gosterge-yuvasi",
     "kategori": "Otomobil",
     "marka": [
