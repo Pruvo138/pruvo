@@ -1,5 +1,24 @@
 [
   {
+    "id": "vw-audi-karter-havalandirma-pcv-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "VW / Audi (VAG) Karter Havalandırma (PCV) Hortum Uzatma Adaptörü",
+    "aciklama": "VW/Audi (VAG) motorlarda karter havalandırma (crankcase breather / PCV) hortumunu uzatmak için özel üretim adaptör. Stok hortum, emme borusuna ulaşamayacak kadar kısa kaldığında (ör. modifiye kurulumlarda) araya girer. OEM konnektörün geometrisini birebir taklit ettiğinden orijinal VAG geçmeli (slip-on) hortum bağlantıları takılabilir.\n\nÖNEMLİ: Motor bölmesi ısısına dayanması için yüksek ısı dayanımlı malzeme (ör. karbon takviyeli ABS/PC) kullanılır — sıradan filament erir ve motora zarar verebilir. Tam kullanım için ayrı bir hortum gerekir (ör. 06F 103 212 D veya 06F 103 235 A). OD farkı nedeniyle 07K PCV hortumu UYMAYABİLİR. Bazı hortumların (genelde turuncu) O-ringi büyük gelebilir; montajı kolaylaştırmak için biraz motor yağı kullanılabilir. Farklı renk seçenekleriyle üretilebilir. (Hortum dahil değildir.)\n\nYaklaşık dış ölçüler: 46 × 28 × 28 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motor ve hortum ölçünüzü belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-audi-karter-havalandirma-pcv-adaptoru-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-audi-karter-havalandirma-pcv-adaptoru-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Likelei",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-allroad-a6-c5-bagaj-perde-ucu-kapagi",
     "kategori": "Otomobil",
     "marka": [
