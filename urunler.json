@@ -1,5 +1,72 @@
 [
   {
+    "id": "audi-a6-cocuk-koltugu-isofix-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6 Çocuk Koltuğu (ISOFIX) Yuva Kapağı",
+    "aciklama": "Audi arka koltuğundaki ISOFIX çocuk koltuğu bağlantı yuvalarını kapatan kapağın özel üretim yedeği. Orijinal kapaklar iyi tasarlanmadığından yerinde durmaz, sürekli çıkar. Bu tasarım Fusion 360 ile daha sıkı bir klips ile modellenmiştir; yuvaya daha iyi oturur.\n\nTam oturması için yüzde bir-iki büyütüp küçültmek gerekebilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 57 × 32 × 25 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-cocuk-koltugu-isofix-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-cocuk-koltugu-isofix-kapagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AlBravo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a6-4g-koltuk-basligi-tablet-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6 4G Koltuk Başlığı Tablet Tutucu (Kindle Fire HD)",
+    "aciklama": "Audi A6 Avant 4G ön koltuk başlığına vidasız takılan özel üretim tablet tutucu. Arka koltuktaki çocukların tabletini (Kindle Fire HD ve benzeri) yolculuk boyunca güvenle başlık direklerine sabitler. Benzer koltuk/başlık yapısına sahip başka araçlara da uyabilir.\n\nHer koltuk/tablet için sol ve sağ olmak üzere iki parça birlikte kullanılır. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. (Tablet dahil değildir.)\n\nYaklaşık dış ölçüler: her parça 125 × 94 × 20 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve tablet modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-4g-koltuk-basligi-tablet-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-4g-koltuk-basligi-tablet-tutucu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Carbonia1981",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a6-4g-qi-kablosuz-sarj-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6 4G Telefon Kutusu (Phonebox) QI Kablosuz Şarj Adaptörü",
+    "aciklama": "Audi A6 4G telefon kutusuna (phonebox) MLine QI kablosuz şarj ünitesi entegre etmek için özel üretim adaptör tepsisi. QI şarj pedini kutuya düzgün ve sabit yerleştirir; telefonunuzu kutuya koyunca kablosuz şarj olur.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. (QI şarj ünitesi ürüne dahil değildir.)\n\nYaklaşık dış ölçüler: 151 × 84 × 12 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve şarj ünitesi modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-4g-qi-kablosuz-sarj-adaptoru-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Carbonia1981",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-b5-usb-aux-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 B5 Orta Konsol USB / AUX Tutucu Plakası",
+    "aciklama": "Audi A4 B5 orta konsoluna USB/AUX girişi eklemek için özel üretim adaptör plakası. Piyasada (ör. Amazon'da) bulunan geçmeli USB/AUX montaj kablosunu konsol gözüne düzgün ve sabit oturtur; dağınık kablolar yerine fabrika görünümlü bir giriş elde edersiniz.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. (USB/AUX kablosu ürüne dahil değildir.)\n\nYaklaşık dış ölçüler: 182 × 71 × 17 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b5-usb-aux-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b5-usb-aux-tutucu-2.jpg"
+    ]
+  },
+  {
     "id": "audi-a4-b6-b7-radyator-tutucu-pimi",
     "kategori": "Otomobil",
     "marka": [
