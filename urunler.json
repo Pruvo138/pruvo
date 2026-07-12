@@ -1,5 +1,56 @@
 [
   {
+    "id": "audi-a4-b6-kalorifer-hortum-konektor-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 (B6) Kalorifer Hortumu Konektör Kör Tapası (Geçici Acil)",
+    "aciklama": "Audi A4 (B6) kalorifer hortumu hızlı bağlantı konektörü sıklıkla çatlar/kırılır ve antifriz sızıntısına yol açar. Bu kör tapa, kırılan konektöre flanş tarafından oturarak yedek parça gelene kadar antifrizi tutar; hafif konik yapısı sıkı geçme sağlar.\n\nGEÇİCİ acil çözümdür; kalıcı onarım için orijinal konektör değişmelidir. Dayanımı artırmak için baskı tavlanabilir (fırında ~70°C, 1 saat). Isıya/antifrize dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 20 × 20 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-kalorifer-hortum-konektor-tapasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "carlfxy",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-3-0-v6-emme-manifold-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 3.0 V6 Emme Manifoldu Kör Tapası",
+    "aciklama": "Audi 3.0 litre V6 motorlarda emme manifoldundaki açık ağzı/portu kapatan kör tapanın özel üretim parçası. Söküm/bakım sonrası ya da eksik orijinal tapada, manifold ağzını sızdırmaz şekilde kapatır.\n\nIsıya ve yakıta dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 55 × 27 × 24 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç/motor modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-3-0-v6-emme-manifold-tapasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stefrush",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a2-yakit-depo-kapagi-seridi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A2 Yakıt Depo Kapağı Bağlantı Şeridi",
+    "aciklama": "Audi A2 yakıt depo kapağını dolum kapağına bağlayan tutma şeridinin özel üretim yedeği. Kırıldığında depo kapağı serbest kalıp düşebilir; bu parça kapağı yeniden yerine bağlar.\n\nOrijinaline benzer esnek (TPU) malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 129 × 11 × 3 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a2-yakit-depo-kapagi-seridi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "autophilia",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "audi-80-b3-b4-coupe-aero-jant-gobek-kapagi",
     "kategori": "Otomobil",
     "marka": [
