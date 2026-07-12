@@ -1,5 +1,59 @@
 [
   {
+    "id": "audi-vw-gunesluk-tutucu-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "Audi A6 / VW Grubu Güneşlik (Vizör) Tutucu Klipsi",
+    "aciklama": "Audi A6 ve VW grubu araçlarda güneşliği (vizörü) tavana sabitleyen küçük tutucu klipsin özel üretim yedeği. Kırılan orijinal klips yüzünden düşen/sarkan güneşliği yeniden yerine sabitler. İki versiyon halinde tasarlanmıştır.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 20 × 7 × 4 mm (bir adet).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-vw-gunesluk-tutucu-klips-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-vw-gunesluk-tutucu-klips-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zolkick",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-transit-isitma-ayar-dugmesi-scroll",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Transit (9 Kişilik) Isıtma / Klima Ayar Düğmesi (Scroll)",
+    "aciklama": "Ford Transit (9 kişilik minibüs vb.) ısıtma/klima kumandasının kırılan ya da aşınan yuvarlak ayar/scroll düğmesinin özel üretim yedeği. Sıcaklık/fan ayar milini yeniden kavrar; kumandayı rahatça çevirirsiniz.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: Ø34 × 13 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve kumanda modelinizi belirtin.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ford-transit-isitma-ayar-dugmesi-scroll-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zolkick",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "audi-a6-c5-bardaklik-cup-holder",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6 C5 Orta Konsol Bardaklık (Cup Holder)",
+    "aciklama": "Audi A6 C5 için özel üretim orta konsol bardaklığı. Fabrika bardaklığı yetersiz ya da kırıksa, ön koltuklar arasına oturan bu çift gözlü bardaklıkla bardak/şişe/kutu içeceğinizi sabit ve düzenli tutarsınız.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 140 × 120 × 87 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-c5-bardaklik-cup-holder-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-c5-bardaklik-cup-holder-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zolkick",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "audi-a3-bagaj-rafi-tutucu-mesnet-sag",
     "kategori": "Otomobil",
     "marka": [
