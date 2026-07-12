@@ -1,5 +1,41 @@
 [
   {
+    "id": "audi-a4-cabrio-ruzgarlik-yan-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 Cabrio Rüzgarlık (Windbreak) Yan Tutucu Kolu",
+    "aciklama": "Audi A4 Cabrio rüzgarlığını (arka rüzgar kesici / windbreak) yerinde tutan yan tutucu kolun özel üretim yedeği. Kırılan orijinal tutucu rüzgarlığın sağlam durmamasına yol açar; bu parça rüzgarlığı yeniden düzgün şekilde sabitler.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 88 × 17 × 12 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-cabrio-ruzgarlik-yan-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-cabrio-ruzgarlik-yan-tutucu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RB3DPrint",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a4-b9-orta-kolcak-yukseltici-destek",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 (B9) Orta Kolçak Yükseltici Destek",
+    "aciklama": "Audi A4 (B9) standart orta kolçağını biraz daha yükseğe kaldıran özel üretim destek mekanizması. Fabrika kolçağı birçok sürücü için alçak kalır; bu parça kolçağı daha rahat, ergonomik bir yüksekliğe getirir. Menteşeli mekanizma sayesinde kolçak yine açılıp kapanır.\n\nSet birkaç parçadan oluşur (taban, kol, kilit). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: taban 137 × 135 × 70 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b9-orta-kolcak-yukseltici-destek-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b9-orta-kolcak-yukseltici-destek-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BePrint",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a8-d3-bardaklik-kulluk-tamir-dislisi",
     "kategori": "Otomobil",
     "marka": [
