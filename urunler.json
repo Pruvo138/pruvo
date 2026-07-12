@@ -1,5 +1,22 @@
 [
   {
+    "id": "audi-a3-kapak-kilit-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A3 Kapak Kilit Mandalı (Latch)",
+    "aciklama": "Audi A3 iç mekan kapak/lid mekanizmasında kırılan kilit mandalının (latch) özel üretim yedeği. Kırık mandal yüzünden kapanmayan/tutmayan kapağı yeniden düzgün kilitler.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 70 × 20 × 19 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi ve mandalın hangi kapağa (torpido/kolçak/konsol) ait olduğunu belirtin.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a3-kapak-kilit-mandali-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "projek_01",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-r8-lamborghini-gallardo-sis-far-ampul-contasi",
     "kategori": "Otomobil",
     "marka": [
