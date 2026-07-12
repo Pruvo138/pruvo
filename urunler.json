@@ -1,5 +1,22 @@
 [
   {
+    "id": "bisiklet-sele-rayi-oval-adaptor-shim",
+    "kategori": "Bisiklet",
+    "marka": [],
+    "baslik": "Yol Bisikleti Oval Sele Rayı Adaptörü (Yuvarlak→Oval Shim)",
+    "aciklama": "Yuvarlak raylı bir seleyi, oval ray için tasarlanmış bir sele borusuna (seatpost) takmayı sağlayan özel üretim ara parça (shim). Örneğin 7 mm yuvarlak raylı bir sele, Bontrager 7x10 gibi oval ray yuvalı bir sele borusuyla sorunsuz kullanılabilir.\n\nSele raylarına geçirilir; sele borusu kelepçesi bunların üzerine kapanır. Böylece sele borusunu değiştirmeden mevcut selenizi kullanırsınız. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. Çift olarak verilir.\n\nYaklaşık dış ölçüler: 35 × 10 × 8 mm (bir adet).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; sele rayı ve sele borusu ölçünüzü belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bisiklet-sele-rayi-oval-adaptor-shim-1.jpg",
+      "https://media.pruvo3d.com/urunler/bisiklet-sele-rayi-oval-adaptor-shim-2.jpg",
+      "https://media.pruvo3d.com/urunler/bisiklet-sele-rayi-oval-adaptor-shim-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "radare",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "yamaha-seca-ii-fz1-stop-adaptoru",
     "kategori": "Motosiklet",
     "marka": [
