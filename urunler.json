@@ -1,5 +1,23 @@
 [
   {
+    "id": "audi-a4-b6-havalandirma-gosterge-yuvasi-52mm",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 B6 Havalandırma Gösterge Yuvası (52 mm Gauge Pod)",
+    "aciklama": "Audi A4 B6 için özel üretim 52 mm gösterge (gauge) yuvası. Yan havalandırma ızgarasının yerine geçer; boost/turbo basıncı, yağ, voltaj gibi 52 mm çaplı ek göstergeleri şık ve fabrika görünümünde konumlandırır. Merkezinde göstergeli değişim havalandırması almaya gerek kalmaz.\n\nVakum/güç hatlarını geçirmek için hava kanalına küçük bir delik açmanız gerekir. Gösterge sıkı otursun diye çevresine birkaç kat bant sarılabilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 88 × 74 × 62 mm (52 mm gösterge için).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve gösterge ölçünüzü belirtin.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-havalandirma-gosterge-yuvasi-52mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a4-b6-havalandirma-gosterge-yuvasi-52mm-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "canibeanartist",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a6-c7-torpido-telefon-tutucu-klipsi-bilyali",
     "kategori": "Otomobil",
     "marka": [
