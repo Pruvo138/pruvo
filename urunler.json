@@ -1,5 +1,41 @@
 [
   {
+    "id": "yamaha-seca-ii-fz1-stop-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha Seca II (XJ600) — FZ1 Stop Lambası Montaj Adaptörü",
+    "aciklama": "Yamaha Seca II (XJ600) motosiklete FZ1 stop lambası takmak için özel üretim adaptör braketi. FZ1 stop lambasının arkasına vidalanır ve lambayı XJ600'ün orijinal stop lambası bağlantılarına cıvatalamanızı sağlar.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 145 × 62 × 6 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motosiklet modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/yamaha-seca-ii-fz1-stop-adaptoru-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "radare",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-cb500f-on-amortisor-koruyucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CB500F / CB500X / CBR500R Ön Amortisör (Fork) Koruyucu",
+    "aciklama": "Honda CB500F (2014+) ön amortisörlerini böcek, taş ve yol kirinden koruyan özel üretim fork guard. Aynı amortisörü kullandıkları için CB500X ve CBR500R'da da uyar. Amortisör keçelerine zarar veren pislikleri engeller, keçe ömrünü uzatır.\n\nİç çapı 63 mm'dir; gövde dış çapı 63 mm olan başka motosikletlerde de kullanılabilir ya da ölçüye göre büyütüp küçültülebilir. Dahil edilen ara parça (spacer), koruyucuyu PLA yaşlanıp gevşemeden sıkıca sabit tutar; içi güçlendirme boşluklu tasarlanmıştır. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nMontaj için 50 mm M6 cıvata, çift M6 pul ve M6 somun gerekir (paslanmaz + nyloc önerilir; donanım dahil değildir). Çift olarak verilir.\n\nYaklaşık dış ölçüler: 94 × 80 × 69 mm (bir adet).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motosiklet modelinizi ve fork dış çapını belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/honda-cb500f-on-amortisor-koruyucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/honda-cb500f-on-amortisor-koruyucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/honda-cb500f-on-amortisor-koruyucu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "radare",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "gt2-20-dis-tahrik-kasnagi-nema17",
     "kategori": "Elektronik",
     "marka": [],
