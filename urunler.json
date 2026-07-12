@@ -1,5 +1,42 @@
 [
   {
+    "id": "audi-a6-c7-torpido-telefon-tutucu-klipsi-bilyali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A6 C7 (2015) Torpido Telefon Tutucu Klipsi (Bilyalı)",
+    "aciklama": "Audi A6 C7 (2015 vb.) torpido/gösterge paneli kenarına geçen, ucunda bilya (ball-joint) olan özel üretim telefon tutucu klipsi. Vantuz/CD/havalandırma tutucularının aksine telefonu tam istediğiniz konuma alır ve motorlu MMI ekranıyla çakışmaz.\n\nPiyasadaki bilyalı telefon tutucularla (ör. iOttie Easy One Touch) kullanılır: tutucunun vantuzlu kolunu söküp bu klipse takarsınız. Isıya dayanıklı malzemeyle (ABS/PETG) üretilir — yaz sıcağında eğilmez. Titreşimi azaltmak için silikon ped eklenebilir. Farklı renk seçenekleriyle üretilebilir. (Farklı konumlar için birden çok sürüm mevcut.)\n\nYaklaşık dış ölçüler: 49-53 × 43 × 40 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve tutucu modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-c7-torpido-telefon-tutucu-klipsi-bilyali-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-c7-torpido-telefon-tutucu-klipsi-bilyali-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a6-c7-torpido-telefon-tutucu-klipsi-bilyali-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ykamenet",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "vw-passat-2002-radyo-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "VW Passat (2002) Oto Teyp / Radyo Ayar Düğmesi",
+    "aciklama": "VW Passat (2002) orijinal radyosunun küçük ayar düğmelerinin (bas, tiz, orta, balans, fader) özel üretim yedeği. Kaybolan/kırılan düğmenin yerine geçer; radyonun ilgili miline geçme yapar.\n\nMilinize tam otursun diye ölçü, teypinize göre birebir ayarlanarak üretilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 14 × 10 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; teyp modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-passat-2002-radyo-dugmesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-passat-2002-radyo-dugmesi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fpinczuk",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b7-arka-cam-guneslik-klipsi",
     "kategori": "Otomobil",
     "marka": [
