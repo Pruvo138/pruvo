@@ -577,7 +577,7 @@
   "use strict";
 
   var WHATSAPP = "905451386526";
-  var CATEGORIES = ["Tamirat","Marin","Otomobil","Motosiklet","Bisiklet","Ev","Ofis","Elektronik","Kamera","Bahçe","Dekorasyon","Oyun/Hobi"];
+  var CATEGORIES = ["Marin","Otomobil","Motosiklet","Bisiklet","Tamirat","Ev","Ofis","Elektronik","Kamera","Bahçe","Dekorasyon","Oyun/Hobi"];
 
   function placeholder(txt){
     return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">' +
@@ -985,7 +985,7 @@
     .then(function(r){ return r.json(); })
     .then(function(data){
       PRODUCTS = data;
-      FEATURED = shuffle(PRODUCTS.filter(function(p){ return p.parametrik; })).slice(0, 4);
+      FEATURED = shuffle(PRODUCTS.filter(function(p){ return p.parametrik && p.kategori === "Tamirat"; })).slice(0, 4);
       loadCart();
       if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
       renderCats();
