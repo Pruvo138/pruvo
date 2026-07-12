@@ -1,5 +1,59 @@
 [
   {
+    "id": "audi-b6-b7-havalandirma-izgara-tamir-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 / S4 / RS4 B6 B7 Ön Havalandırma Izgara Tamir Parçası",
+    "aciklama": "Audi A4 / S4 / RS4 (B6/B7) ön yatay havalandırma ızgaralarının kırılan yönlendirme tırnaklarını tamir eden özel üretim parça (OEM P/N 8E0820951H). Bu tırnaklar genelde havalandırmaya takılan koku/parfüm klipsleri yüzünden kırılır; ızgara yönlendirmesi boşta kalır. Bu parça kırık tırnak sırasının yerine geçer ve ızgarayı yeniden çalışır hale getirir.\n\nİnce ve hassas bir parçadır; dayanıklı malzemeyle basılır. Farklı renk seçenekleriyle üretilebilir (siyah önerilir).\n\nYaklaşık dış ölçüler: 44 × 14 × 1 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "750 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-b6-b7-havalandirma-izgara-tamir-parcasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-b6-b7-havalandirma-izgara-tamir-parcasi-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-b6-b7-havalandirma-izgara-tamir-parcasi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DemX",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "vw-passat-b5-kaput-acma-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "VW Passat B5 Kaput Açma Kolu (Hood Latch Pull)",
+    "aciklama": "VW Passat B5 ön kaputunu açan, ızgara arkasındaki kaput mandalını çeken kolun özel üretim yedeği. Orijinal kol kırıldığında/koptuğunda kaputu açmak zorlaşır; bu parça mandala takılıp kaputu rahatça açmanızı sağlar. Daha kolay basılabilir ve sağlam olacak şekilde yeniden modellenmiştir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 134 × 35 × 9 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-passat-b5-kaput-acma-kolu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fr3zno",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-avant-tehlike-ucgeni-kapak-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 / S4 Avant B6 Tehlike Üçgeni Bölmesi Kapak Mandalı",
+    "aciklama": "Audi A4 / S4 Avant (B6) bagaj kapağındaki tehlike üçgeni bölmesinin kapağını açan/kapayan kırılan mandalın özel üretim yedeği. Zamanla düğmesi ya da tırnağı kırılan orijinal mekanizmanın yerine geçer; kapağı yeniden düzgün kilitler.\n\nÜç parçadan oluşur: mandal (pawl), mil (shaft) ve düğme (knob). Mil düğmeye sıkı geçme yapar ve yapıştırılır; en dayanıklı sonuç için yan yatık basılır. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık ölçüler: düğme Ø25 mm, mandal 37 × 20 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-avant-tehlike-ucgeni-kapak-mandali-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-avant-tehlike-ucgeni-kapak-mandali-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fr3zno",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b6-valeo-far-projektor-braketi",
     "kategori": "Otomobil",
     "marka": [
