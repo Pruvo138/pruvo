@@ -1,5 +1,59 @@
 [
   {
+    "id": "gt2-20-dis-tahrik-kasnagi-nema17",
+    "kategori": "Elektronik",
+    "marka": [],
+    "baslik": "GT2 20 Diş Tahrik Kasnağı (5 mm Mil / NEMA 17 Step Motor)",
+    "aciklama": "GT2 zamanlama kayışı için özel üretim 20 dişli tahrik kasnağı. 5 mm mile geçer ve NEMA 17 step motorun düz yüzeyine (keyed) uyacak şekilde tasarlanmıştır. 3D yazıcı, CNC ve robotik projelerinde kayış tahrikini döndürmek için kullanılır.\n\nM3 set vidası için delik içerir; mile zaten sıkı oturduğundan çoğu zaman vidaya gerek kalmaz. İki parça basılıp birbirine geçirilir; iki yarı çok sıkı birleşir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: Ø18 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; mil ölçünüzü belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/gt2-20-dis-tahrik-kasnagi-nema17-1.jpg",
+      "https://media.pruvo3d.com/urunler/gt2-20-dis-tahrik-kasnagi-nema17-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "radare",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-tt-mk1-tavan-harita-lambasi-klipsleri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi TT MK1 (8N) Tavan / Harita Lambası Tutucu Klipsleri",
+    "aciklama": "Audi TT MK1 (8N) tavan (harita) lambası ünitesinin ve lens kapağının zamanla kırılan plastik tutucularının özel üretim yedeği. 20 yıl sonra kırılganlaşıp kopan orijinal klipsler yüzünden lamba tavanda sallanır ya da lens düşer; komple lamba (Audi'de çok pahalı) yerine sadece bu küçük klipsleri yapıştırarak tamir edersiniz.\n\nÜç dosya birlikte gelir: lens için sağ ve sol klips + lamba ünitesi için basit tutucu. Lense ve lamba gövdesine yapıştırılır. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık ölçüler: her klips ~15 × 8-12 × 4 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-tt-mk1-tavan-harita-lambasi-klipsleri-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-tt-mk1-tavan-harita-lambasi-klipsleri-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-tt-mk1-tavan-harita-lambasi-klipsleri-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "radare",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-tt-mk1-usb-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi TT MK1 (8N) Orta Konsol USB Port Braketi",
+    "aciklama": "Audi TT MK1 (8N, 1999-2006) orta konsolundaki eski telefon jakının yerine USB portu takmak için özel üretim braket. Fabrikada telefon opsiyonuyla gelen jak yuvasına oturur; boşta kalan o yuvayı şık bir şarj/veri USB girişine çevirirsiniz.\n\nPiyasadaki geçmeli (push-in) USB portların kilit tırnaklarını sıkıca kavrar ve orijinal vidalarla sabitlenir. Dayanıklı malzemeyle (PETG/ABS) üretilir; farklı renk seçenekleriyle üretilebilir. (USB portu ürüne dahil değildir.)\n\nYaklaşık dış ölçüler: 44 × 18 × 13 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-tt-mk1-usb-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-tt-mk1-usb-braketi-2.jpg",
+      "https://media.pruvo3d.com/urunler/audi-tt-mk1-usb-braketi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "radare",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "bisiklet-v-brake-mesnet-kapagi",
     "kategori": "Bisiklet",
     "marka": [],
