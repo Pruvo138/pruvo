@@ -102,16 +102,14 @@ PAGE_CSS = """
 
   .help-cta{background:var(--gray-card);border-bottom:1px solid var(--gray-line);box-shadow:var(--shadow);
     position:sticky;top:0;z-index:100}
-  .help-cta-inner{max-width:1100px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;
-    justify-content:flex-end;flex-wrap:wrap;gap:8px 18px}
-  .help-cta-texts{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:right;flex:1 1 0}
+  .help-cta-inner{max-width:1100px;margin:0 auto;padding:11px 20px;display:flex;flex-direction:column;
+    align-items:flex-end;gap:8px;text-align:right}
   .help-cta-text{font-size:15px;color:var(--navy);line-height:1.3}
   .help-cta-text strong{font-weight:800}
   .help-cta-sub{font-size:12.5px;color:var(--gray-text);line-height:1.35}
   .help-cta-sub strong{color:var(--navy);font-weight:700}
   @media (max-width:640px){
-    .help-cta-inner{justify-content:center}
-    .help-cta-texts{flex:1 1 100%;text-align:center}
+    .help-cta-inner{align-items:center;text-align:center}
   }
   .help-cta-btn{background:#25D366;color:#fff;border:none;border-radius:24px;padding:11px 22px;font-size:14.5px;
     font-weight:700;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -411,11 +409,9 @@ def render_product(p, all_products):
 
 <section class="help-cta">
   <div class="help-cta-inner">
-    <div class="help-cta-texts">
-      <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
-      <span class="help-cta-sub"><strong>Model numarasını</strong> biliyorsanız gönderin, <strong>araştıralım</strong>; ya da <strong>parçanın bir eşini</strong> (kırık olsa da) gönderin, <strong>endüstriyel tarayıcıyla modelleyelim</strong>.</span>
-    </div>
+    <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
     <a class="help-cta-btn" href="https://wa.me/905451386526?text=Merhaba%2C%20arad%C4%B1%C4%9F%C4%B1m%20bir%20yedek%20par%C3%A7a%20var.%20%C3%9Cretebilir%20misiniz%3F" target="_blank" rel="noopener">{icon} Bizimle İletişime Geçin</a>
+    <span class="help-cta-sub"><strong>Model numarasını</strong> biliyorsanız gönderin, <strong>araştıralım</strong>; ya da <strong>parçanın bir eşini</strong> (kırık olsa da) gönderin, <strong>endüstriyel tarayıcıyla modelleyelim</strong>.</span>
   </div>
 </section>
 
