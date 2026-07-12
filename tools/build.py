@@ -103,10 +103,10 @@ PAGE_CSS = """
   .help-cta{background:var(--gray-card);border-bottom:1px solid var(--gray-line);box-shadow:var(--shadow);
     position:sticky;top:0;z-index:100}
   .help-cta-inner{max-width:1100px;margin:0 auto;padding:11px 20px;display:flex;flex-direction:column;
-    align-items:flex-end;gap:8px;text-align:right}
+    align-items:center;gap:8px;text-align:center}
   .help-cta-text{font-size:15px;color:var(--navy);line-height:1.3}
   .help-cta-text strong{font-weight:800}
-  .help-cta-sub{font-size:12.5px;color:var(--gray-text);line-height:1.35}
+  .help-cta-sub{font-size:14px;color:var(--gray-text);line-height:1.4}
   .help-cta-sub strong{color:var(--navy);font-weight:700}
   @media (max-width:640px){
     .help-cta-inner{align-items:center;text-align:center}
