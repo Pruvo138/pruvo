@@ -1,5 +1,54 @@
 [
   {
+    "id": "vw-fren-kaliper-piston-sikistirma-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "VW Passat B3/B4 · Golf III Fren Kaliper Piston Sıkıştırma Aleti",
+    "aciklama": "VW Passat B3/B4 veya Golf III fren kaliperinin pistonunu (silindirini) geri itmek için özel üretim alet. Fren balatası değişiminde pistonu düzgünce yuvasına gömerek yeni balataya yer açar; tornavidayla zorlamaya göre çok daha güvenli ve pratiktir (Golf VR6 kaliperinde test edilmiştir, çoğu benzer modelde çalışır).\n\nSet iki parçadan oluşur: 55 mm çaplı baskı diski ve 100 mm uzunluğunda pabuç/köprü. Kullanmak için bir adet 606 rulman, bir M6 cıvata ve 3 adet M6 somun gerekir. Dayanıklılık için yüksek dolguyla (%75) üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık ölçüler: disk Ø55 mm, köprü 100 × 38 × 12 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç/kaliper modelinizi belirtin.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/vw-fren-kaliper-piston-sikistirma-aleti-1.jpg",
+      "https://media.pruvo3d.com/urunler/vw-fren-kaliper-piston-sikistirma-aleti-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kurcze666",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "jg-g36-airsoft-ris-ray-parcasi",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "ASG JG G36 Airsoft RIS Ray / Boşluk Kapatma Parçası",
+    "aciklama": "JG (Jing Gong) G36 airsoft/softair replika tüfeğinde optik nişangahın söküldüğü yerde kalan boşluğu dolduran özel üretim RIS (ray) parçası. Görünümü tamamlar ve aksesuar montajı için uygun bir yüzey sağlar. (Yalnızca airsoft hobi replikası için — gerçek ateşli silah parçası değildir.)\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; replika modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/jg-g36-airsoft-ris-ray-parcasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/jg-g36-airsoft-ris-ray-parcasi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kurcze666",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "jg-g36-airsoft-atis-modu-secici",
+    "kategori": "Oyun/Hobi",
+    "marka": [],
+    "baslik": "JG G36 Airsoft Atış Modu Seçici (Fire Selector)",
+    "aciklama": "JG (Jing Gong) G36 airsoft/softair replika tüfeği için atış modu seçici (fire selector) parçasının özel üretim yedeği. Kırılan/aşınan orijinal seçicinin yerine geçer. (Yalnızca airsoft hobi replikası için — gerçek ateşli silah parçası değildir.)\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 86 × 20 × 3 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; replika modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/jg-g36-airsoft-atis-modu-secici-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kurcze666",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "vw-corrado-kaput-yan-kilavuzu",
     "kategori": "Otomobil",
     "marka": [
