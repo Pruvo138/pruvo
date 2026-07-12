@@ -100,7 +100,8 @@ PAGE_CSS = """
     white-space:nowrap}
   .top-back:hover{color:#fff}
 
-  .help-cta{background:var(--gray-card);border-bottom:1px solid var(--gray-line);box-shadow:var(--shadow)}
+  .help-cta{background:var(--gray-card);border-bottom:1px solid var(--gray-line);box-shadow:var(--shadow);
+    position:sticky;top:0;z-index:100}
   .help-cta-inner{max-width:1100px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;
     justify-content:center;flex-wrap:wrap;gap:12px 18px;text-align:center}
   .help-cta-text{font-size:15.5px;color:var(--navy)}
@@ -118,7 +119,7 @@ PAGE_CSS = """
   .crumbs span{color:var(--gray-line);margin:0 6px}
 
   .detail{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start}
-  .gallery{position:sticky;top:20px}
+  .gallery{position:sticky;top:78px}
   .main-img{width:100%;aspect-ratio:1/1;object-fit:contain;background:var(--gray-card);
     border:1px solid var(--gray-line);border-radius:var(--radius);display:block}
   .thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
