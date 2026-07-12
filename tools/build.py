@@ -104,7 +104,7 @@ PAGE_CSS = """
     position:sticky;top:0;z-index:100}
   .help-cta-inner{max-width:1100px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;
     justify-content:flex-end;flex-wrap:wrap;gap:8px 18px}
-  .help-cta-texts{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:right;flex:1 1 auto}
+  .help-cta-texts{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:right;flex:1 1 0}
   .help-cta-text{font-size:15px;color:var(--navy);line-height:1.3}
   .help-cta-text strong{font-weight:800}
   .help-cta-sub{font-size:12.5px;color:var(--gray-text);line-height:1.35}
