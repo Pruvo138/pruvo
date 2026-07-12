@@ -100,17 +100,11 @@ PAGE_CSS = """
     white-space:nowrap}
   .top-back:hover{color:#fff}
 
-  .help-cta{background:var(--gray-card);border-bottom:1px solid var(--gray-line);box-shadow:var(--shadow);
-    position:sticky;top:0;z-index:100}
-  .help-cta-inner{max-width:1100px;margin:0 auto;padding:11px 20px;display:flex;flex-direction:column;
-    align-items:center;gap:8px;text-align:center}
-  .help-cta-text{font-size:15px;color:var(--navy);line-height:1.3}
+  .help-cta{background:var(--gray-card);border-bottom:1px solid var(--gray-line);box-shadow:var(--shadow)}
+  .help-cta-inner{max-width:1100px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;
+    justify-content:center;flex-wrap:wrap;gap:12px 18px;text-align:center}
+  .help-cta-text{font-size:15.5px;color:var(--navy)}
   .help-cta-text strong{font-weight:800}
-  .help-cta-sub{font-size:14px;color:var(--gray-text);line-height:1.4}
-  .help-cta-sub strong{color:var(--navy);font-weight:700}
-  @media (max-width:640px){
-    .help-cta-inner{align-items:center;text-align:center}
-  }
   .help-cta-btn{background:#25D366;color:#fff;border:none;border-radius:24px;padding:11px 22px;font-size:14.5px;
     font-weight:700;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;
     white-space:nowrap;box-shadow:0 3px 10px rgba(37,211,102,.35);transition:.15s}
@@ -124,7 +118,7 @@ PAGE_CSS = """
   .crumbs span{color:var(--gray-line);margin:0 6px}
 
   .detail{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:start}
-  .gallery{position:sticky;top:78px}
+  .gallery{position:sticky;top:20px}
   .main-img{width:100%;aspect-ratio:1/1;object-fit:contain;background:var(--gray-card);
     border:1px solid var(--gray-line);border-radius:var(--radius);display:block}
   .thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
@@ -411,7 +405,6 @@ def render_product(p, all_products):
   <div class="help-cta-inner">
     <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
     <a class="help-cta-btn" href="https://wa.me/905451386526?text=Merhaba%2C%20arad%C4%B1%C4%9F%C4%B1m%20bir%20yedek%20par%C3%A7a%20var.%20%C3%9Cretebilir%20misiniz%3F" target="_blank" rel="noopener">{icon} Bizimle İletişime Geçin</a>
-    <span class="help-cta-sub"><strong>Model numarasını</strong> biliyorsanız gönderin, <strong>araştıralım</strong>; ya da <strong>parçanın bir eşini</strong> (kırık olsa da) gönderin, <strong>endüstriyel tarayıcıyla modelleyelim</strong>.</span>
   </div>
 </section>
 
