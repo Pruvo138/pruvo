@@ -1,5 +1,43 @@
 [
   {
+    "id": "lexus-is200-is300-toyota-direk-konsol-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lexus",
+      "Toyota"
+    ],
+    "baslik": "Lexus IS200/IS300 (Toyota) Direk / Konsol Kaplama Klipsi",
+    "aciklama": "Lexus IS200/IS300 (1999-2005) sol direk (pillar) kaplama konsolunu sabitleyen klipsin özel üretim yedeği. Kaybolan/kırılan orijinal klips yüzünden gevşeyen kaplamayı yeniden sıkıca tutturur. Aynı dönem bazı Toyota ve GS serisi modellere de uyabilir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 18 × 15 × 14 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/lexus-is200-is300-toyota-direk-konsol-klipsi-1.jpg",
+      "https://media.pruvo3d.com/urunler/lexus-is200-is300-toyota-direk-konsol-klipsi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Damtrx",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "lexus-is250-is200-is300-gaz-pedali-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Lexus"
+    ],
+    "baslik": "Lexus IS250 → IS200/IS300 Gen1 Gaz Pedalı Adaptörü (LHD)",
+    "aciklama": "Motor/parça dönüşümü (engine conversion) yapan Lexus IS200/IS300 (gen1) sahipleri için özel üretim gaz pedalı adaptörü. IS250 (2006-2007) gaz pedalını IS200/IS300 pedal kutusuna bağlamanızı sağlar. Bu sürümde pedal 20 mm aşağı ve 5° açıyla konumlandırılmıştır; böylece fren pedalının altına oturup fren-gaz arası geçişi (topuk-burun / heel-toe) kolaylaştırır. Yalnızca soldan direksiyon (LHD) içindir.\n\nDayanıklılık için sağlam malzemeyle (ideal olarak CNC alüminyum) üretilir; test için dayanıklı plastik de kullanılabilir. Montaj için 10 mm somun gerekir. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 119 × 75 × 57 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve dönüşüm detaylarınızı belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/lexus-is250-is200-is300-gaz-pedali-adaptoru-1.jpg",
+      "https://media.pruvo3d.com/urunler/lexus-is250-is200-is300-gaz-pedali-adaptoru-2.jpg",
+      "https://media.pruvo3d.com/urunler/lexus-is250-is200-is300-gaz-pedali-adaptoru-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Damtrx",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a4-b6-b7-seat-exeo-kolcak-kapak-mandali",
     "kategori": "Otomobil",
     "marka": [
