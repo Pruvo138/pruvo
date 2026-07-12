@@ -749,9 +749,13 @@
       .replace(/ş/g,"s").replace(/ü/g,"u").replace(/â/g,"a").replace(/î/g,"i");
   }
   // ürünün aranabilir metni (başlık + açıklama + marka + kategori + id/parça no)
+  // ürün başına BİR KEZ hesaplanıp p._hs'te önbelleğe alınır (büyük katalogda arama hızlı kalsın)
   function haystack(p){
-    return norm([p.baslik, p.aciklama, (p.marka||[]).join(" "),
-                 p.kategori, (p.id||"").replace(/-/g," ")].join(" "));
+    if(p._hs === undefined){
+      p._hs = norm([p.baslik, p.aciklama, (p.marka||[]).join(" "),
+                    p.kategori, (p.id||"").replace(/-/g," ")].join(" "));
+    }
+    return p._hs;
   }
 
   var activeCat = "Tümü";
