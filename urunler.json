@@ -1,5 +1,39 @@
 [
   {
+    "id": "pololu-25mm-d-motor-tutucu",
+    "kategori": "Elektronik",
+    "marka": [],
+    "baslik": "Pololu 25 mm Çaplı Motor Tutucu / Montaj Braketi",
+    "aciklama": "Pololu 25 mm çaplı DC redüksiyon motorlarını bir yüzeye/şaseye sabitleyen özel üretim montaj braketi. Robotik, maker ve otomasyon projelerinde motoru sağlam ve hizalı tutar; vida delikleriyle kolayca monte edilir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. (İki sürüm mevcut: standart ve baskı için ideal döndürülmüş versiyon.)\n\nYaklaşık dış ölçüler: 52 × 50 × 33 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; motor modelinizi belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pololu-25mm-d-motor-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/pololu-25mm-d-motor-tutucu-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Evan_VW",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-a6-2012-yakit-kapagi-bandi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi",
+      "Volkswagen"
+    ],
+    "baslik": "Audi A6 (2012 / C7) Yakıt Deposu Kapağı Bandı (Tank Kapağı İpi)",
+    "aciklama": "Audi A6 (2012 / C7) yakıt deposu kapağını depo kapağına bağlayan bandın (orijinal parça no. 3C0 201 553L) özel üretim yedeği. Kopan/ufalanan orijinal bant yüzünden depo kapağının düşmesini/kaybolmasını önler; kapak açıkken bağlı kalır. Aynı VAG grubu (VW/Audi) araçların çoğuna da uyabilir.\n\nEsneklik için TPU (esnek malzeme) ile üretilir — PLA/ABS çok sert olduğu için kırılır. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık uzunluk: ~210 mm (esnek bant).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a6-2012-yakit-kapagi-bandi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Evan_VW",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a6-4k-c8-kulluk-yukseltme-tabani",
     "kategori": "Otomobil",
     "marka": [
