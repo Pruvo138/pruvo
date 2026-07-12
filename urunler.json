@@ -1,5 +1,79 @@
 [
   {
+    "id": "bafang-500c-ekran-gidon-braketi",
+    "kategori": "Bisiklet",
+    "marka": [
+      "Bafang"
+    ],
+    "baslik": "Bafang 500C Ekran Gidon Braketi (22 mm Gidon)",
+    "aciklama": "Elektrikli bisiklet (e-bike) Bafang 500C göstergesinin gidon üzerindeki konumunu biraz değiştirmek için özel üretim braket. 22 mm gidonlara oturur; ekranı daha rahat görülen bir açıya/konuma taşır.\n\nMontaj için M3×35 mm cıvata ve M3 somun gerekir (donanım dahil değildir). Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 50 × 40 × 30 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; gidon ölçünüzü belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bafang-500c-ekran-gidon-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/bafang-500c-ekran-gidon-braketi-2.jpg",
+      "https://media.pruvo3d.com/urunler/bafang-500c-ekran-gidon-braketi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bray",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-480-acilir-far-ayar-tamiri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo 480 Açılır (Pop-up) Far Yükseklik Ayar Tamir Parçası",
+    "aciklama": "Volvo 480 açılır (pop-up) farların yükseklik/açı ayar mekanizmasında kırılan plastik ayar parçasının özel üretim yedeği. Kırılan orijinal parça yüzünden farın ayarı tutmaz/oynar; bu parça ayar vidasını yeniden sağlam kavrayarak farı doğru konumda tutar.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 13 × 13 × 11 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/volvo-480-acilir-far-ayar-tamiri-1.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-480-acilir-far-ayar-tamiri-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bray",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-480-havalandirma-izgara-tamiri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo 480 Orta Havalandırma Izgara Tamir Çıtası",
+    "aciklama": "Volvo 480 orta gösterge paneli havalandırmasının, hava yönünü ayarlayan ızgara kanatçıklarını (louver) bir arada tutan çıtanın özel üretim yedeği. Kırılan orijinal çıta yüzünden dağılan/oynayan kanatçıkları yeniden birleştirir; havalandırma yönlendirmesi tekrar çalışır.\n\nİnce ve uzun bir parçadır; dayanıklı malzemeyle üretilir. Farklı renk seçenekleriyle üretilebilir (siyah önerilir).\n\nYaklaşık dış ölçüler: 82 × 7 × 4 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/volvo-480-havalandirma-izgara-tamiri-1.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-480-havalandirma-izgara-tamiri-2.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-480-havalandirma-izgara-tamiri-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bray",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-480-bagaj-kapak-kancasi-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo 480 Bagaj Kapağı (Boot Cover) Kancası / Klipsi",
+    "aciklama": "Volvo 480 bagaj örtüsünü (boot cover) tutan, zamanla kırılan orijinal kancanın/klipsin özel üretim yedeği. Kırık klips yüzünden düşen/sarkan bagaj örtüsünü yeniden yerine sabitler.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 16 × 13 × 13 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/volvo-480-bagaj-kapak-kancasi-klips-1.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-480-bagaj-kapak-kancasi-klips-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bray",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "breadboard-jumper-kablo-tutucu",
     "kategori": "Elektronik",
     "marka": [],
