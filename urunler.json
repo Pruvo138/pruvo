@@ -1,5 +1,58 @@
 [
   {
+    "id": "audi-a8-d3-bardaklik-kulluk-tamir-dislisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A8 (D3) Bardaklık / Küllük Tamir Dişlisi (4E0862081A / 4E0857951C)",
+    "aciklama": "Audi A8 (D3, 2003-2010) bardaklığının (4E0862081A) ve/veya küllüğünün (4E0857951C4PK) yavaş açılma (damper) mekanizmasındaki kırılan küçük dişlinin özel üretim yedeği. Bu dişli kırıldığında kapak sertçe/düzensiz açılır; yedek dişli yumuşak açılışı geri getirir.\n\nNot: Yumuşak açılış için dişli yavaşlatma mekanizmasındaki gres (damper gresi) yenilenmelidir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nKüçük parçadır (yaklaşık 8 × 8 × 3 mm).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-a8-d3-bardaklik-kulluk-tamir-dislisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-a8-d3-bardaklik-kulluk-tamir-dislisi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_SauBeR_",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bosch-perforator-delme-derinlik-cetveli",
+    "kategori": "Tamirat",
+    "marka": [
+      "Bosch"
+    ],
+    "baslik": "Bosch Kırıcı-Delici (Perforatör) Delme Derinlik Cetveli / Sınırlayıcı",
+    "aciklama": "Bosch kırıcı-delici (perforatör) için delme derinliğini ayarlayan cetvel-sınırlayıcının özel üretim yedeği. Makinenin derinlik dayama yuvasına takılır; matkap ucunun ne kadar deleceğini sınırlar, böylece hep aynı derinlikte, düzgün delik açarsınız.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 212 × 7 × 7 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; makine modelinizi belirtin.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bosch-perforator-delme-derinlik-cetveli-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_SauBeR_",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-80-tampon-braketi-811807253b",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi 80 Tampon Tutma Braketi (811807253B)",
+    "aciklama": "Audi 80 tamponunu gövdeye sabitleyen tutma braketinin özel üretim yedeği. Orijinal PN 811807253B. Kırılan braket tamponun gevşemesine/oynamasına yol açar; bu parça tamponu yeniden sağlam şekilde tutar. Bazı diğer Audi modellerine (ör. Audi 100) de uyabilir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 58 × 18 × 13 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-80-tampon-braketi-811807253b-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-80-tampon-braketi-811807253b-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_SauBeR_",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "audi-a8-d3-benzin-depo-kapagi-baglantisi-8e0201556",
     "kategori": "Otomobil",
     "marka": [
