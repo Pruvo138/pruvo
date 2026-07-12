@@ -1,5 +1,73 @@
 [
   {
+    "id": "ikea-poang-sandalye-ayak-buyutme-robot-supurge",
+    "kategori": "Ev",
+    "marka": [
+      "IKEA"
+    ],
+    "baslik": "IKEA POÄNG Sandalye Ayak Genişletici (Robot Süpürge İçin)",
+    "aciklama": "IKEA POÄNG sandalyesinin ince ayaklarına takılan özel üretim genişletici. Robot süpürgenin sandalye ayaklarına takılıp sıkışması sorununu çözer; süpürge ayağı bir engel olarak görüp etrafından dolaşır. Ayak tabanını genişleterek robotun altına girip sıkışmasını önler.\n\nÇift taraflı bant ile takılması önerilir. 60 mm ve 63 mm ayak genişliği için iki sürüm vardır. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 200 × 64 × 35 mm (bir adet).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; sandalye ayak ölçünüzü belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ikea-poang-sandalye-ayak-buyutme-robot-supurge-1.jpg",
+      "https://media.pruvo3d.com/urunler/ikea-poang-sandalye-ayak-buyutme-robot-supurge-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "markusha_engineering",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ofis-sandalyesi-tekerlek-stoper-frenl",
+    "kategori": "Ofis",
+    "marka": [],
+    "baslik": "Ofis / Oyuncu Sandalyesi Tekerlek Stoperi (Fren)",
+    "aciklama": "Tekerlekli ofis/oyuncu sandalyesini yerinde sabitleyen basit ve pratik özel üretim stoper. Sandalye ayağının altına yerleştirilir; sandalyenin kaymasını engeller. Özellikle Assetto Corsa gibi yarış simülasyonu oynarken sandalyenin geri kaçmasını önlemek için idealdir.\n\nEsnek (flexible / TPU) malzemeyle basılması gerekir — hem kaymaz hem zemini çizmez. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 75 × 71 × 62 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kaç adet gerektiğini belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ofis-sandalyesi-tekerlek-stoper-frenl-1.jpg",
+      "https://media.pruvo3d.com/urunler/ofis-sandalyesi-tekerlek-stoper-frenl-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "markusha_engineering",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dumbbell-dambil-standi",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Dambıl (Dumbbell) Standı — İkili Ağırlık Tutucu",
+    "aciklama": "İki dambılı düzenli ve dengeli tutan özel üretim ağırlık standı. Dambılları yerde yuvarlanmadan, üst üste güvenle saklar; ev spor köşeniz toplu görünür. Büyük disklerin çapı 17 cm'e kadar olan dambıllara uygundur.\n\nSağlamlık için PETG ve 3 duvar (wall) ile basılması önerilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. (Dambıllar dahil değildir.)\n\nYaklaşık dış ölçüler: 200 × 182 × 100 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; dambıl disk çapınızı belirtin.",
+    "fiyat": "2250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dumbbell-dambil-standi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "markusha_engineering",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "audi-q5-ekran-arkasi-tutucu-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi Q5 (2020) Ekran Arkası Tutucu / Transponder Kızağı",
+    "aciklama": "Audi Q5 (2020) gösterge ekranının arkasına klipsle takılan özel üretim tutucu. Gişe geçiş cihazı (transponder / OGS-HGS tipi kutu), kart ya da benzeri küçük bir cihazı ekranın arkasında göz önünden uzak, sabit tutar. Vidasız, ekranın üst kenarına oturur.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 236 × 72 × 49 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve cihaz ölçünüzü belirtin.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/audi-q5-ekran-arkasi-tutucu-klips-1.jpg",
+      "https://media.pruvo3d.com/urunler/audi-q5-ekran-arkasi-tutucu-klips-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "goldeeeelox",
+      "tur": "GNU GPL",
+      "url": "https://www.gnu.org/licenses/gpl-3.0.html"
+    }
+  },
+  {
     "id": "audi-a6-cocuk-koltugu-isofix-kapagi",
     "kategori": "Otomobil",
     "marka": [
