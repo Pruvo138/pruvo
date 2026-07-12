@@ -20,3 +20,8 @@ gorseller/
 /sitemap.xml
 /robots.txt
 /.nojekyll
+.thingiverse-token
+stl/
+.stl-backup-dir
+.thing-cache/
+tools/URUN-EKLEME-REHBERI.md
