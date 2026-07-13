@@ -26,3 +26,4 @@ stl/
 .stl-backup-dir
 .thing-cache/
 tools/URUN-EKLEME-REHBERI.md
+.urunler.lock
