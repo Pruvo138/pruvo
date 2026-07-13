@@ -49,8 +49,13 @@ def bbox(data):
             if len(p) == 4 and p[0] == "vertex":
                 try: xs.append(float(p[1])); ys.append(float(p[2])); zs.append(float(p[3]))
                 except ValueError: pass
-    if not xs and len(data) > 84:
-        n = struct.unpack("<I", data[80:84])[0]; off = 84
+    if not xs and len(data) >= 84:
+        n = struct.unpack("<I", data[80:84])[0]
+        # Gecerli binary STL: dosya boyutu TAM 84 + n*50 olmali. Tutmuyorsa
+        # (HTML "please wait" sayfasi, bozuk/yarim indirme) -> olcme, None don.
+        if 84 + n * 50 != len(data):
+            return None
+        off = 84
         for _ in range(n):
             if off + 48 > len(data): break
             v = struct.unpack("<12f", data[off:off + 48]); off += 50
@@ -58,6 +63,7 @@ def bbox(data):
     if not xs: return None
     d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
     if d[0] < 2.0: d = [x * 1000 for x in d]   # metre -> mm
+    if d[0] <= 0 or d[0] > 100000: return None   # 100 m ustu = saglıksiz sonuc -> olcme
     return d
 
 
@@ -105,7 +111,15 @@ def stls(tid, uidhint):
         curl(f["download_url"], tmp, bearer=True)
         if not os.path.exists(tmp): continue
         data = open(tmp, "rb").read()
-        if data[:15].lower().startswith(b"<?xml") or b"AccessDenied" in data[:200]:
+        # Indirilen dosya gercekten STL mi? HTML / Cloudflare "please wait" /
+        # erisim-engeli sayfalarini STL diye kaydetme (yoksa bozuk olcu uretir).
+        head = data[:512].lstrip().lower()
+        if (head.startswith(b"<?xml") or head.startswith(b"<!doctype")
+                or head.startswith(b"<html") or b"<html" in head
+                or b"accessdenied" in data[:400].lower() or b"just a moment" in head
+                or b"please wait" in head or b"cf-browser-verification" in head
+                or b"attention required" in head):
+            print("   STL ATLA (STL degil / erisim engeli):", n)
             continue
         open(os.path.join(STLDIR, nm), "wb").write(data)
         if DRIVE:
