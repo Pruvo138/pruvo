@@ -1,5 +1,24 @@
 [
   {
+    "id": "bmw-ceki-demiri-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "BMW"
+    ],
+    "baslik": "BMW Çeki Demiri Kancası",
+    "aciklama": "BMW Çeki Demiri Kancası özel üretim yedeği. araç önü/arkası çeki demiri kancasıdır; çekme noktasına takılır.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 170 × 72 × 7 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/bmw-ceki-demiri-kancasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/bmw-ceki-demiri-kancasi-2.jpg",
+      "https://media.pruvo3d.com/urunler/bmw-ceki-demiri-kancasi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "J2J3J4",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "bmw-e60-on-ceki-noktasi-kapagi",
     "kategori": "Otomobil",
     "marka": [
