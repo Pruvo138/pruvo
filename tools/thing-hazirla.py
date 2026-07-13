@@ -140,6 +140,13 @@ def main(ids):
             print("   OLCU    : %.0f x %.0f x %.0f mm  (en buyuk parca; toplam %d STL)" % (dim[0], dim[1], dim[2], cnt))
         else:
             print("   OLCU    : STL yok / olculemedi -> aciklamada olcu satirini yazma")
+        # Gemini yardimcisi (thing-gemini.py) icin metadata yan dosyasi
+        meta = {"id": tid, "baslik": name, "tasarimci": des, "lisans": lic,
+                "olcu_mm": [round(x) for x in dim] if dim else None, "stl_adet": cnt,
+                "gorseller": [os.path.basename(p) for p in imgs]}
+        try:
+            json.dump(meta, open(os.path.join(IMGROOT, tid, "meta.json"), "w"), ensure_ascii=False)
+        except Exception: pass
         print()
 
 

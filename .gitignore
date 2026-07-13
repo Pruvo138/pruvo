@@ -21,6 +21,7 @@ gorseller/
 /robots.txt
 /.nojekyll
 .thingiverse-token
+.gemini-key
 stl/
 .stl-backup-dir
 .thing-cache/
