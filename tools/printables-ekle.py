@@ -29,6 +29,10 @@ _spec = importlib.util.spec_from_file_location("pr_api", os.path.join(TOOLS, "pr
 pr = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(pr)
 
+_bspec = importlib.util.spec_from_file_location("baski_ipucu", os.path.join(TOOLS, "baski_ipucu.py"))
+bi = importlib.util.module_from_spec(_bspec)
+_bspec.loader.exec_module(bi)
+
 _bd = os.path.join(ROOT, ".stl-backup-dir")
 DRIVE = open(_bd).read().strip() if os.path.exists(_bd) else None
 
@@ -92,6 +96,7 @@ def prep(pid, key):
             "lisans": lic.get("name", abbr),
             "olcu_mm": [round(x) for x in olcu] if olcu else None,
             "stl_adet": len(stls), "gorseller": saved,
+            "baski": bi.baski_ipucu(d.get("description")),
             "abbr": abbr, "slug": d.get("slug"), "pid": pid}
     json.dump(meta, open(os.path.join(outdir, "meta.json"), "w"), ensure_ascii=False)
     return meta, abbr, lic.get("name")
@@ -131,7 +136,7 @@ def process_one(pid):
             urun["lisans"] = {"tasarimci": meta.get("tasarimci", "?"), "tur": cc_tur}
         src = {"kaynak": "Printables", "link": pr.model_url(pid, meta.get("slug")),
                "lisans": licname or abbr, "tasarimci": meta.get("tasarimci", "?"),
-               "tur": "ucretsiz-cc" if cc_tur else "diger", "baski": "",
+               "tur": "ucretsiz-cc" if cc_tur else "diger", "baski": meta.get("baski", ""),
                "not": "en buyuk parca %s mm; %d STL" % (meta.get("olcu_mm"), meta.get("stl_adet", 0))}
         return {"id": pid, "durum": "STAGED", "urun": urun, "src": src,
                 "kategori": urun["kategori"], "marka": urun["marka"], "gorsel": len(urls),

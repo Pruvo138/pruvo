@@ -14,9 +14,12 @@ Her thing icin:
 Sir icermez: token `.thingiverse-token`'dan, Drive yolu `.stl-backup-dir`'den okunur.
 Ayrinti: tools/URUN-EKLEME-REHBERI.md
 """
-import json, os, re, struct, subprocess, sys, tempfile, time, urllib.parse, urllib.request
+import importlib.util, json, os, re, struct, subprocess, sys, tempfile, time, urllib.parse, urllib.request
 
 ROOT = "/Users/okan/dev/pruvo"
+_bspec = importlib.util.spec_from_file_location("baski_ipucu", os.path.join(ROOT, "tools", "baski_ipucu.py"))
+bi = importlib.util.module_from_spec(_bspec)
+_bspec.loader.exec_module(bi)
 TOKEN = open(os.path.join(ROOT, ".thingiverse-token")).read().strip()
 STLDIR = os.path.join(ROOT, "stl"); os.makedirs(STLDIR, exist_ok=True)
 IMGROOT = os.path.join(ROOT, ".thing-cache"); os.makedirs(IMGROOT, exist_ok=True)
@@ -168,7 +171,8 @@ def main(ids):
         # Gemini yardimcisi (thing-gemini.py) icin metadata yan dosyasi
         meta = {"id": tid, "baslik": name, "tasarimci": des, "lisans": lic,
                 "olcu_mm": [round(x) for x in dim] if dim else None, "stl_adet": cnt,
-                "gorseller": [os.path.basename(p) for p in imgs]}
+                "gorseller": [os.path.basename(p) for p in imgs],
+                "baski": bi.baski_ipucu(t.get("description"))}
         try:
             json.dump(meta, open(os.path.join(IMGROOT, tid, "meta.json"), "w"), ensure_ascii=False)
         except Exception: pass

@@ -86,7 +86,7 @@ def process_one(tid):
             urun["lisans"] = {"tasarimci": meta.get("tasarimci", "?"), "tur": cc_tur}
         src = {"kaynak": "Thingiverse", "link": "https://www.thingiverse.com/thing:" + tid,
                "lisans": meta.get("lisans", ""), "tasarimci": meta.get("tasarimci", "?"),
-               "tur": "ucretsiz-cc" if cc_tur else "diger", "baski": "",
+               "tur": "ucretsiz-cc" if cc_tur else "diger", "baski": meta.get("baski", ""),
                "not": "en buyuk parca %s mm; %d STL" % (meta.get("olcu_mm"), meta.get("stl_adet", 0))}
         return {"id": tid, "durum": "STAGED", "urun": urun, "src": src,
                 "kategori": urun["kategori"], "marka": urun["marka"], "gorsel": len(urls),
