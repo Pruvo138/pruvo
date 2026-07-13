@@ -27,3 +27,11 @@ stl/
 .thing-cache/
 tools/URUN-EKLEME-REHBERI.md
 .urunler.lock
+
+# Kaynak-kontrol panelinden gizlenen yerel öğeler (silinmedi, diskte duruyor):
+# .wrangler = Cloudflare yerel önbelleği; scratchpad = geçici çalışma dosyaları;
+# thing-meta.py = yerel metadata aracı; worker-iyzico-webhook = ödeme webhook worker kodu (lokal).
+.wrangler/
+scratchpad/
+tools/thing-meta.py
+worker-iyzico-webhook/
