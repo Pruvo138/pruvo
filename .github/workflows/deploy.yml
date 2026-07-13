@@ -50,7 +50,7 @@ jobs:
           fi
           sleep 10   # Pages origin'in yeni icerigi sunmasi icin kisa bekleme
           echo "Cloudflare cache temizleniyor (purge_everything)..."
-          curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/dbbe2a8620c3c3a57c586b8a98142fb9/purge_cache" \
+          curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/d3a78b8c8ce2a25c127bf02e728ac7b1/purge_cache" \
             -H "Authorization: Bearer $CF_TOKEN" \
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}'
