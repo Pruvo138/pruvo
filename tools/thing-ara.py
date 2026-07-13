@@ -18,7 +18,8 @@ KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 # Yedek parca sitesine UYMAYAN gurultu (marka aramasi bunlari bol getirir) -> otomatik ELE.
 COP = ("keychain", "keyring", "key ring", "keyfob", "key fob", "keytag", "key tag", "keyholder",
        "key holder", "keychains", "logo", "emblem", "badge", "nameplate", "name plate",
-       "letters", "lettering", "symbol", "coaster", "fridge magnet", "magnet",
+       "letters", "lettering", "symbol", "monogram", "sticker", "wall art", "trophy",
+       "coaster", "fridge magnet", "magnet",
        "miniature", "diecast", "die-cast", "diorama", "scale model", "1:18", "1:24", "1:32",
        "1:43", "1:64", "1/18", "1/24", "1/43", "keycap")
 
@@ -90,4 +91,4 @@ def main(term, maxn):
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit('Kullanim: python3 tools/thing-ara.py "<marka/terim>" [max]')
-    main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 40)
+    main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 250)
