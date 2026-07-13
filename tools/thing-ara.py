@@ -15,6 +15,19 @@ TOKEN = open(os.path.join(ROOT, ".thingiverse-token")).read().strip()
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 
 
+# Yedek parca sitesine UYMAYAN gurultu (marka aramasi bunlari bol getirir) -> otomatik ELE.
+COP = ("keychain", "keyring", "key ring", "keyfob", "key fob", "keytag", "key tag", "keyholder",
+       "key holder", "keychains", "logo", "emblem", "badge", "nameplate", "name plate",
+       "letters", "lettering", "symbol", "coaster", "fridge magnet", "magnet",
+       "miniature", "diecast", "die-cast", "diorama", "scale model", "1:18", "1:24", "1:32",
+       "1:43", "1:64", "1/18", "1/24", "1/43", "keycap")
+
+
+def is_cop(name):
+    n = " " + name.lower() + " "
+    return any(c in n for c in COP)
+
+
 def api(url):
     r = urllib.request.Request(url, headers={"Authorization": "Bearer " + TOKEN,
                                              "User-Agent": "pruvo/1.0"})
@@ -35,6 +48,7 @@ def mevcut_thing_idleri():
 def main(term, maxn):
     mevcut = mevcut_thing_idleri()
     bulunan = []
+    elenen = []
     seen = set()
     for page in range(1, 15):
         url = ("https://api.thingiverse.com/search/%s?type=things&per_page=30&page=%d"
@@ -53,12 +67,20 @@ def main(term, maxn):
             seen.add(tid)
             if tid in mevcut:
                 continue
-            bulunan.append((tid, (h.get("name") or "").replace("\n", " ")))
+            name = (h.get("name") or "").replace("\n", " ")
+            if is_cop(name):
+                elenen.append((tid, name)); continue
+            bulunan.append((tid, name))
             if len(bulunan) >= maxn:
                 break
         if len(bulunan) >= maxn:
             break
-    print("=== '%s' icin %d yeni aday (zaten ekli %d elendi) ===" % (term, len(bulunan), len(mevcut & seen)))
+    if elenen:
+        print("--- COP olarak elenen %d (anahtarlik/logo/amblem/minyatur) ---" % len(elenen))
+        for tid, name in elenen[:20]:
+            print("  x %s  %s" % (tid, name[:60]))
+    print("=== '%s' icin %d yeni aday (zaten ekli %d, cop %d elendi) ==="
+          % (term, len(bulunan), len(mevcut & seen), len(elenen)))
     for tid, name in bulunan:
         print("  %s  %s" % (tid, name[:70]))
     print("\nIDLER (urun-ekle.py'ye ver):")
