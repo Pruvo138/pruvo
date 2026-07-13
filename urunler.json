@@ -1,5 +1,455 @@
 [
   {
+    "id": "mercedes-kalorifer-kontrol-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes Kalorifer Kontrol Düğmesi",
+    "aciklama": "Mercedes Kalorifer Kontrol Düğmesi özel üretim yedeği. Mercedes için kontrol düğmesi/butonu yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 25 × 12 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-kalorifer-kontrol-dugmesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-kalorifer-kontrol-dugmesi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fernsehmann",
+      "tur": "GNU GPL"
+    }
+  },
+  {
+    "id": "mercedes-w123-fren-kanamasi-bosaltma-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes W123 Fren Kanaması Boşaltma Kapağı",
+    "aciklama": "Mercedes W123 Fren Kanaması Boşaltma Kapağı özel üretim yedeği. Mercedes W123 için fren soğutma kanalı/adaptörü veya fren bağlantı parçasıdır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 53 × 52 × 29 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-w123-fren-kanamasi-bosaltma-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-w123-fren-kanamasi-bosaltma-kapagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "forwardobi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-w123-silecek-motoru-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes W123 Silecek Motoru Kapağı",
+    "aciklama": "Mercedes W123 Silecek Motoru Kapağı özel üretim yedeği. Mercedes W123 için silecek kolu/mekanizmasına ait yedek parçadır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 31 × 31 × 14 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-w123-silecek-motoru-kapagi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "forwardobi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-kamyon-dikiz-aynasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes Kamyon Dikiz Aynası Kapağı",
+    "aciklama": "Mercedes Kamyon Dikiz Aynası Kapağı özel üretim yedeği. Mercedes için dikiz/yan ayna bağlantı-anahtar parçası yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 167 × 87 × 24 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-kamyon-dikiz-aynasi-kapagi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_Nobody_",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-sl-r129-arka-tavan-trim-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes SL R129 Arka Tavan Trim Parçası",
+    "aciklama": "Mercedes SL R129 Arka Tavan Trim Parçası özel üretim yedeği. Mercedes R129 için iç döşeme/trim panel bağlantı klipsi yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 143 × 59 × 1 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-sl-r129-arka-tavan-trim-parcasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mdubash",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-a180-w169-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes A180 W169 Hoparlör Adaptörü",
+    "aciklama": "Mercedes A180 W169 Hoparlör Adaptörü özel üretim yedeği. Mercedes W169 için hoparlör montaj adaptörü/halkasıdır; standart hoparlör uyumu sağlar. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 198 × 198 × 22 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-a180-w169-hoparlor-adaptoru-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-a180-w169-hoparlor-adaptoru-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Groot_Moses",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-v-class-kolcak-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes V-Class Kolçak Kapağı",
+    "aciklama": "Mercedes V-Class Kolçak Kapağı özel üretim yedeği. Mercedes için kolçak bağlantı/kapak parçası yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 46 × 46 × 28 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-v-class-kolcak-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-v-class-kolcak-kapagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_NDG_",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercedes-w124-sigorta-kutusu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes W124 Sigorta Kutusu Klipsi",
+    "aciklama": "Mercedes W124 Sigorta Kutusu Klipsi özel üretim yedeği. Mercedes W124 için sigorta/röle kutusu bağlantı parçası yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 137 × 110 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-w124-sigorta-kutusu-klipsi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pitomeceprdici",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-8-w114-w115-torpido-gozu-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes /8 W114/W115 Torpido Gözü Kolu",
+    "aciklama": "Mercedes /8 W114/W115 Torpido Gözü Kolu özel üretim yedeği. Mercedes için torpido gözü mandal/pim/menteşe yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 98 × 39 × 31 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-8-w114-w115-torpido-gozu-kolu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "luukv",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercedes-vito-w638-direksiyon-kolonu-switch-muhafazasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes Vito W638 Direksiyon Kolonu Switch Muhafazası",
+    "aciklama": "Mercedes Vito W638 Direksiyon Kolonu Switch Muhafazası özel üretim yedeği. Mercedes VITO için elektrik anahtarı/switch bağlantı parçası yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 32 × 32 × 16 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-vito-w638-direksiyon-kolonu-switch-muhafazasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kamancho",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercedes-opel-jant-merkezleme-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes-Opel Jant Merkezleme Halkası (66.6-65.1mm)",
+    "aciklama": "Mercedes-Opel Jant Merkezleme Halkası (66.6-65.1mm) özel üretim yedeği. Mercedes için jant göbek kapağı veya merkezleme halkası yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 67 × 67 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-opel-jant-merkezleme-halkasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Maquens",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-amg-fren-kaliperi-dekor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes AMG Fren Kaliperi Dekor Kapağı",
+    "aciklama": "Mercedes AMG Fren Kaliperi Dekor Kapağı özel üretim yedeği. Mercedes AMG için fren soğutma kanalı/adaptörü veya fren bağlantı parçasıdır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 114 × 50 × 15 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-amg-fren-kaliperi-dekor-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-amg-fren-kaliperi-dekor-kapagi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "OleMator",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-r129-bose-subwoofer-bas-borusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes R129 Bose Subwoofer Bas Borusu",
+    "aciklama": "Mercedes R129 Bose Subwoofer Bas Borusu özel üretim yedeği. Mercedes R129 için hoparlör montaj adaptörü/halkasıdır; standart hoparlör uyumu sağlar. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 137 × 137 × 90 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-r129-bose-subwoofer-bas-borusu-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-r129-bose-subwoofer-bas-borusu-2.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-r129-bose-subwoofer-bas-borusu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tye-bo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-sprinter-cam-krikosu-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes Sprinter Cam Krikosu Tutucusu",
+    "aciklama": "Mercedes Sprinter Cam Krikosu Tutucusu özel üretim yedeği. Mercedes SPRINTER için cam açma anahtarı/kriko bağlantısına ait yedek parçadır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 42 × 42 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-sprinter-cam-krikosu-tutucusu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GSMArtFPV",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercedes-w126-300sd-elektrikli-koltuk-anahtari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes W126 300SD Elektrikli Koltuk Anahtarı",
+    "aciklama": "Mercedes W126 300SD Elektrikli Koltuk Anahtarı özel üretim yedeği. Mercedes W126 için elektrik anahtarı/switch bağlantı parçası yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 27 × 18 × 17 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-w126-300sd-elektrikli-koltuk-anahtari-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-w126-300sd-elektrikli-koltuk-anahtari-2.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-w126-300sd-elektrikli-koltuk-anahtari-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "forwardobi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-t1-bremer-cam-krikosu-kolu-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes T1 (Bremer) Cam Krikosu Kolu Plakası",
+    "aciklama": "Mercedes T1 (Bremer) Cam Krikosu Kolu Plakası özel üretim yedeği. Mercedes için cam açma anahtarı/kriko bağlantısına ait yedek parçadır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 24 × 24 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-t1-bremer-cam-krikosu-kolu-plakasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-t1-bremer-cam-krikosu-kolu-plakasi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "minifrog",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercedes-w221-emniyet-kemeri-ayar-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes W221 Emniyet Kemeri Ayar Halkası",
+    "aciklama": "Mercedes W221 Emniyet Kemeri Ayar Halkası özel üretim yedeği. Mercedes W221 için emniyet kemeri toka/tutucu bağlantı parçasıdır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 18 × 18 × 3 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-w221-emniyet-kemeri-ayar-halkasi-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-w221-emniyet-kemeri-ayar-halkasi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DavyNL",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-yakit-pompasi-filtresi-anahtari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes Yakıt Pompası/Filtresi Anahtarı (0000906050)",
+    "aciklama": "Mercedes Yakıt Pompası/Filtresi Anahtarı (0000906050) özel üretim yedeği. Mercedes için ilgili parçanın sökme/takma ve ayar işlerini kolaylaştıran atölye aletidir.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 147 × 75 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-yakit-pompasi-filtresi-anahtari-1.jpg",
+      "https://media.pruvo3d.com/urunler/mercedes-yakit-pompasi-filtresi-anahtari-2.jpg"
+    ]
+  },
+  {
+    "id": "mercedes-ml-w163-ucuncu-fren-lambasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes ML W163 Üçüncü Fren Lambası Kapağı",
+    "aciklama": "Mercedes ML W163 Üçüncü Fren Lambası Kapağı özel üretim yedeği. Mercedes W163 için fren soğutma kanalı/adaptörü veya fren bağlantı parçasıdır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 202 × 110 × 96 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-ml-w163-ucuncu-fren-lambasi-kapagi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Diolum",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercedes-kriko-yuvasi-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes Kriko Yuvası Tapası",
+    "aciklama": "Mercedes Kriko Yuvası Tapası özel üretim yedeği. Mercedes için elektrik konnektörü/tapa bağlantı parçasıdır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 63 × 63 × 20 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-kriko-yuvasi-tapasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tiuningavto",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-sunroof-cubuk-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes Sunroof Çubuk Klipsi",
+    "aciklama": "Mercedes Sunroof Çubuk Klipsi özel üretim yedeği. Mercedes için açılır tavan (sunroof) mekanizmasına ait klips/kızak yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 17 × 16 × 7 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-sunroof-cubuk-klipsi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "grrrenn",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-w211-konsol-gosterge-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes W211 Konsol Gösterge Yuvası",
+    "aciklama": "Mercedes W211 Konsol Gösterge Yuvası özel üretim yedeği. Mercedes W211 için ek gösterge (volt/yağ/basınç vb.) takmak için menfez/konsol bölgesine oturan gösterge yuvasıdır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 65 × 62 × 53 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-w211-konsol-gosterge-yuvasi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MrPenguin",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercedes-w114-w115-cam-dugmesi-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes W114/W115 Cam Düğmesi Çerçevesi",
+    "aciklama": "Mercedes W114/W115 Cam Düğmesi Çerçevesi özel üretim yedeği. Mercedes için cam açma anahtarı/kriko bağlantısına ait yedek parçadır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 201 × 170 × 42 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-w114-w115-cam-dugmesi-cercevesi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tristessa",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercedes-sprinter-ic-trim-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes Sprinter İç Trim Klipsi",
+    "aciklama": "Mercedes Sprinter İç Trim Klipsi özel üretim yedeği. Mercedes SPRINTER için iç döşeme/trim panel bağlantı klipsi yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 13 × 13 × 13 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-sprinter-ic-trim-klipsi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Joevirus563",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercedes-kaput-cubugu-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes Kaput Çubuğu Braketi",
+    "aciklama": "Mercedes Kaput Çubuğu Braketi özel üretim yedeği. Mercedes için kaput bağlantı/kilit/destek parçası yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 23 × 16 × 9 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-kaput-cubugu-braketi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DDesignGT",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercedes-clk-cok-konturlu-koltuk-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes CLK Çok Konturlu Koltuk Düğmesi",
+    "aciklama": "Mercedes CLK Çok Konturlu Koltuk Düğmesi özel üretim yedeği. Mercedes CLK için kontrol düğmesi/butonu yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 17 × 8 × 7 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mercedes-clk-cok-konturlu-koltuk-dugmesi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Scrown",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "mercedes-w210-torpido-ustu-hoparlor-izgarasi-sag",
     "kategori": "Otomobil",
     "marka": [
