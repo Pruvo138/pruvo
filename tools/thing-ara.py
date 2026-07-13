@@ -51,13 +51,16 @@ def main(term, maxn):
     bulunan = []
     elenen = []
     seen = set()
-    for page in range(1, 15):
-        url = ("https://api.thingiverse.com/search/%s?type=things&per_page=30&page=%d"
+    page = 0
+    while len(bulunan) < maxn and page < 400:
+        page += 1
+        # license=cc -> satilabilir CC havuzu (NC'yi urun-ekle kapisi ayrica eler)
+        url = ("https://api.thingiverse.com/search/%s?type=things&license=cc&per_page=30&page=%d"
                % (urllib.parse.quote(term), page))
         try:
             d = api(url)
         except Exception as e:
-            print("ARAMA HATA:", e); break
+            print("ARAMA HATA (sayfa %d):" % page, e); break
         hits = d.get("hits") if isinstance(d, dict) else d
         if not hits:
             break
