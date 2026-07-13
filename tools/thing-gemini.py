@@ -39,6 +39,8 @@ MARKA DILI (ZORUNLU): Sitede "3D baski" / "3D printed" IFADESI YASAK. Bunun yeri
 - Gercek/araca-takili/elde-tutulan FOTOGRAFLARI tercih et (guven verir). Sadece render varsa temiz render.
 - ELE: tasarimci logosu/filigrani, uzerinde yazi/CAD arayuzu olan (or. "Gemini" parilti/logo), cok
   kucuk/bozuk, birebir duplike, alakasiz gorsel.
+- DIKKAT: Ayni sete dahil AYRI parca (stand/tutucu/aparat/aksesuar) "alakasiz" DEGILDIR — onu DAHIL et
+  (urunun setini gosterir). Sadece gercekten ilgisiz gorseli ele.
 - sec_gorseller: dosya adlari (or. "g1.jpg"), EN IYI ilk sirada. elenen: {dosya, neden} (neden 1-2 kelime).
 
 --- GOREV 2: TURKCE ICERIK ---
@@ -59,6 +61,9 @@ MARKA DILI (ZORUNLU): Sitede "3D baski" / "3D printed" IFADESI YASAK. Bunun yeri
   * Ev: elektriksiz ev esyasi. Ofis: ofis/kirtasiye. Bahce: bahce/guc ekipmani. Dekorasyon: sus.
     Oyun/Hobi: oyuncak/hobi/koleksiyon. Marin: tekne/denizcilik.
 - marka: DIZI. Basliktaki/urundeki marka veya model adlari (or. ["Audi","Volkswagen"]). Jenerik urunse [].
+- fiyat_oneri: KABA bir baslangic fiyati (or. "400 TL"). PRUVO ozel-uretim yedek parca satar; kucuk
+  tekil parca genelde ~200-600 TL, buyuk/coklu-parca/set ~600-1200 TL. Sadece baslangic tahmini —
+  insan sonra ayarlayacak. Emin degilsen orta bir deger ver.
 
 --- KAYNAK BILGISI ---
 Kaynak baslik: %s
@@ -68,7 +73,8 @@ Olcu (mm)   : %s
 
 CIKTI: SADECE su semada gecerli JSON dondur (markdown/backtick YOK):
 {"sec_gorseller":["g1.jpg"],"elenen":[{"dosya":"g2.jpg","neden":"logo"}],
- "baslik":"...","aciklama":"...","kategori":"Otomobil","marka":["..."],"not":"kisa gerekce"}
+ "baslik":"...","aciklama":"...","kategori":"Otomobil","marka":["..."],
+ "fiyat_oneri":"400 TL","not":"kisa gerekce"}
 """
 
 
