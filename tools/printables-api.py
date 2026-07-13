@@ -2,11 +2,11 @@
 """Printables (Prusa) GraphQL API ortak cekirdegi — Thingiverse yardimcilarinin esdegeri.
 
 Printables'in RESMI REST API'si YOK; site `https://api.printables.com/graphql/` GraphQL
-endpoint'ini kullanir. TOKEN GEREKMEZ (arama + metadata + gorseller public).
+endpoint'ini kullanir. TOKEN GEREKMEZ — arama + metadata + gorseller + STL INDIRME public.
 
-SINIR: STL indirme public DEGIL. `print.stls[]` sadece id/ad/boyut verir; gercek dosya
-`privateFile` = login oturumu ister. Yani Thingiverse'teki gibi OTOMATIK STL cekemeyiz —
-siparis geldiginde model sayfasindan elle inen. `.urun-kaynaklari.json`'a printables linki yaz.
+STL indirme: `getDownloadLink` mutation'i login OLMADAN calisir (test edildi, ok:true),
+`files.printables.com` uzerinde 24 saat gecerli imzali link verir. Yani Thingiverse'teki gibi
+otomatik STL cekip olcebiliyoruz (bkz. download_stl / tools/printables-fetch.py).
 
 Import edilebilir (from printables_api import ...) DEGIL — dosya adinda '-' var; bunun yerine
 diger araclar bu modulu `runpy`/subprocess yerine kendi kopyasiyla degil, ortak fonksiyonlari
@@ -105,12 +105,55 @@ query D($id: ID!) {
 """
 
 
+DL_M = """
+mutation DL($printId: ID!, $files: [DownloadFileInput], $source: DownloadSourceEnum!) {
+  getDownloadLink(printId: $printId, files: $files, source: $source) {
+    ok
+    errors { field messages }
+    output { link ttl count }
+  }
+}
+"""
+
+
 def search(term, limit=30, offset=0, ordering="popular"):
     return gql(SEARCH_Q, {"q": term, "limit": limit, "offset": offset, "ordering": ordering})["searchPrints2"]
 
 
 def detail(pid):
     return gql(DETAIL_Q, {"id": str(pid)})["print"]
+
+
+def download_link(print_id, file_ids, file_type="stl"):
+    """getDownloadLink mutation'i — imzali (24s TTL) indirme URL'si dondurur. Login GEREKMEZ.
+    file_ids: tek dosyada tek eleman -> tek dosyanin STL linki; birden fazla -> ZIP paketi."""
+    v = {"printId": str(print_id), "source": "model_detail",
+         "files": [{"fileType": file_type, "ids": [str(i) for i in file_ids]}]}
+    r = gql(DL_M, v)["getDownloadLink"]
+    if not r.get("ok"):
+        raise RuntimeError("getDownloadLink basarisiz: %s" % (r.get("errors")))
+    return r["output"]["link"]
+
+
+def http_get(url):
+    req = urllib.request.Request(url, headers={"User-Agent": _HDRS["User-Agent"]})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        return r.read()
+
+
+def download_stl(print_id, save_path):
+    """Modelin EN BUYUK gercek .stl'ini indirir save_path'e yazar. Bytes uzunlugunu dondurur.
+    (.step/.3mf/.obj disi; sadece .stl. Yoksa RuntimeError.)"""
+    d = detail(print_id)
+    stls = [s for s in (d.get("stls") or []) if (s.get("name") or "").lower().endswith(".stl")]
+    if not stls:
+        raise RuntimeError("bu modelde .stl yok (sadece step/3mf olabilir)")
+    stls.sort(key=lambda s: s.get("fileSize") or 0, reverse=True)  # en buyuk = ana parca
+    link = download_link(print_id, [stls[0]["id"]], "stl")
+    blob = http_get(link)
+    with open(save_path, "wb") as w:
+        w.write(blob)
+    return stls[0]["name"], len(blob)
 
 
 if __name__ == "__main__":
