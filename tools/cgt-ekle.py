@@ -14,7 +14,7 @@ COMMIT ETMEZ. Sonda gozden gecirme tablosu basar.
 FIYAT: TL = round(USD × 100). Aktif indirim JSON-LD'yi sasirtabilir -> INDIRIMSIZ fiyatla dogrula.
 STL/olcu YOK (dosya henuz bizde degil).
 """
-import concurrent.futures, fcntl, json, os, re, subprocess, sys, tempfile, time, urllib.parse
+import collections, concurrent.futures, fcntl, json, os, re, subprocess, sys, tempfile, time
 
 ROOT = "/Users/okan/dev/pruvo"
 TOOLS = os.path.join(ROOT, "tools")
@@ -54,7 +54,7 @@ def urun_verisi(url, author=None):
     html = fetch(url)
     if not html:
         return None
-    if author and ("/designers/" + author) not in html:
+    if author and ("/designers/" + author).lower() not in html.lower():   # slug kucuk harf olabilir
         return {"_yanlis_yazar": True}
     m = re.search(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', html, re.S)
     baslik = usd = None
@@ -64,13 +64,17 @@ def urun_verisi(url, author=None):
             baslik = (d.get("name") or "").split("|")[0].strip()
             off = d.get("offers") or {}
             off = off if isinstance(off, dict) else (off[0] if off else {})
-            usd = off.get("price")
+            usd = off.get("price")           # LISTE (indirimsiz) fiyati
         except Exception:
             pass
+    # site geneli indirim yuzdesi (or. -50%); en sik goruleni al
+    pcts = re.findall(r'-(\d{1,2})%', html)
+    disc = int(collections.Counter(pcts).most_common(1)[0][0]) if pcts else 0
     imgs = re.findall(r'https://img-new\.********\.com/items/(\d+)/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)
     galeri = list(dict.fromkeys(re.findall(
         r'https://img-new\.********\.com/items/\d+/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)))
-    return {"itemid": imgs[0] if imgs else None, "baslik": baslik, "usd": usd, "galeri": galeri, "link": url}
+    return {"itemid": imgs[0] if imgs else None, "baslik": baslik, "usd": usd, "disc": disc,
+            "galeri": galeri, "link": url}
 
 
 def indir_gorseller(itemid, galeri, n=6):
@@ -103,14 +107,18 @@ def sips_upload(local_jpg, key):
     return None
 
 
-def tl_fiyat(usd):
+def tl_fiyat(usd, disc=0, mode="list"):
+    """list = indirimsiz liste × 100 (rhymiespb). final = indirimli × 100 (liste × (1-%)) (3D-Wizzard)."""
     try:
-        return "%d TL" % round(float(usd) * 100)
+        p = float(usd)
+        if mode == "final" and disc:
+            p = p * (1 - disc / 100.0)
+        return "%d TL" % round(p * 100)
     except Exception:
         return ""
 
 
-def process_one(url, author):
+def process_one(url, author, mode="list"):
     """PARALEL calisir; urunler.json'a DOKUNMAZ. Sadece fetch+gemini+upload yapip sonuc doner."""
     try:
         v = urun_verisi(url, author)
@@ -143,12 +151,14 @@ def process_one(url, author):
             return {"url": url, "durum": "HATA: yuklenemedi"}
         urun = {"id": uid, "kategori": o.get("kategori", "Otomobil"), "marka": o.get("marka", []),
                 "baslik": o.get("baslik", itemid), "aciklama": o.get("aciklama", ""),
-                "fiyat": tl_fiyat(v.get("usd")), "gorseller": urls}   # lisans YOK
-        src = {"kaynak": "********", "link": url, "tur": "satin-alma", "usd": v.get("usd"),
-               "itemid": itemid, "baski": "", "not": "listeleme; sipariste satin al+uret"}
+                "fiyat": tl_fiyat(v.get("usd"), v.get("disc", 0), mode), "gorseller": urls}   # lisans YOK
+        src = {"kaynak": "********", "link": url, "tur": "satin-alma", "usd_liste": v.get("usd"),
+               "indirim_pct": v.get("disc", 0), "fiyat_modu": mode, "itemid": itemid, "baski": "",
+               "not": "listeleme; sipariste satin al+uret"}
         return {"url": url, "durum": "STAGED", "urun": urun, "src": src, "itemid": itemid,
-                "usd": v.get("usd"), "fiyat": urun["fiyat"], "kategori": urun["kategori"],
-                "marka": urun["marka"], "gorsel": len(urls), "baslik": urun["baslik"]}
+                "usd": v.get("usd"), "disc": v.get("disc", 0), "fiyat": urun["fiyat"],
+                "kategori": urun["kategori"], "marka": urun["marka"], "gorsel": len(urls),
+                "baslik": urun["baslik"]}
     except Exception as e:
         return {"url": url, "durum": "HATA: %s" % str(e)[:120]}
 
@@ -177,15 +187,16 @@ def merge_safe(staged):
         fcntl.flock(lockf, fcntl.LOCK_UN); lockf.close()
 
 
-def main(profil_url):
+def main(profil_url, mode="list"):
     am = re.search(r'author=([a-zA-Z0-9_-]+)', profil_url)
     author = am.group(1) if am else None
-    print("Profil taraniyor:", profil_url, "(satici:", author, ")", flush=True)
+    print("Profil:", profil_url, "| satici:", author, "| FIYAT MODU:", mode,
+          "(list=indirimsiz×100, final=indirimli×100)", flush=True)
     urls = profil_urunleri(profil_url)
     print("Bulunan urun:", len(urls), "| paralel worker:", WORKERS, flush=True)
     sonuc = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as ex:
-        futs = {ex.submit(process_one, u, author): u for u in urls}
+        futs = {ex.submit(process_one, u, author, mode): u for u in urls}
         done = 0
         for f in concurrent.futures.as_completed(futs):
             r = f.result(); sonuc.append(r); done += 1
@@ -196,16 +207,17 @@ def main(profil_url):
     print("STAGED (commit ETMEDIM — fiyatlari INDIRIMSIZ ******** fiyatiyla dogrula):")
     for s in sorted(sonuc, key=lambda x: x.get("durum") != "STAGED"):
         if s.get("durum") == "STAGED":
-            print("  ✔ %-40s | %-10s | usd:%s -> %s | g:%d | %s"
-                  % (s["urun"]["id"], s["kategori"], s["usd"], s["fiyat"], s["gorsel"], s["marka"]))
+            print("  ✔ %-38s | %-10s | usd:%s -%d%% -> %s | g:%d | %s"
+                  % (s["urun"]["id"], s["kategori"], s["usd"], s["disc"], s["fiyat"], s["gorsel"], s["marka"]))
         else:
             print("  ✘", s["url"], "->", s["durum"])
     print("-" * 74)
-    print("%s urun STAGE edildi, urunler.json toplam %s." % (n, toplam))
+    print("%s urun STAGE edildi (fiyat modu: %s), urunler.json toplam %s." % (n, mode, toplam))
     print("SONRAKI: fiyatlari dogrula -> yedekle + commit + push (lisans alani YOK, isimsiz commit).")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit('Kullanim: python3 tools/cgt-ekle.py "<******** profil url>"')
-    main(sys.argv[1])
+        sys.exit('Kullanim: python3 tools/cgt-ekle.py "<******** profil url>" [list|final]')
+    mode = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] in ("list", "final") else "list"
+    main(sys.argv[1], mode)
