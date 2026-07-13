@@ -14,7 +14,7 @@ kullanmak isterse: `import importlib.util` ile yukler. Basitlik icin arama/meta 
 kendi kucuk gql() sarmalayicisini tutar; buradaki degerler (ENDPOINT, MEDIA, lisans kurali)
 tek dog­ruluk kaynagidir.
 """
-import json, re, urllib.request
+import json, re, struct, urllib.request
 
 ENDPOINT = "https://api.printables.com/graphql/"
 MEDIA = "https://media.printables.com/"   # + filePath  ->  tam gorsel URL'si
@@ -67,6 +67,59 @@ def satilabilir(abbr):
 
 def model_url(pid, slug=None):
     return "https://www.printables.com/model/%s%s" % (pid, ("-" + slug) if slug else "")
+
+
+def cc_turu(abbr):
+    """Lisans kisaltmasindan urunler.json 'lisans.tur' degeri (atif icin). Atif gerekmiyorsa None.
+    CC0/public domain/GPL/BSD/standart -> None; CC-BY* -> ilgili CC metni."""
+    a = (abbr or "").upper()
+    if "CC0" in a or "PUBLIC" in a:
+        return None
+    if a.startswith("CC-BY") or a.startswith("CC BY"):
+        if "SA" in a.split("-"):
+            return "CC BY-SA 4.0"
+        if "ND" in a.split("-"):
+            return "CC BY-ND 4.0"
+        return "CC BY 4.0"
+    return None
+
+
+def stl_bbox(path):
+    """STL dosyasinin sinir kutusu olcusu (mm, buyukten kucuge, tam sayi liste) ya da None.
+    HTML/bozuk dosyalari eler; metre gelirse mm'ye cevirir."""
+    with open(path, "rb") as f:
+        data = f.read()
+    head = data[:512].lstrip().lower()
+    if head.startswith(b"<") or b"<html" in head or b"just a moment" in head:
+        return None
+    xs, ys, zs = [], [], []
+    if b"vertex" in data[:2000] or data[:5].lower() == b"solid":
+        for line in data.decode("utf-8", "ignore").splitlines():
+            p = line.strip().split()
+            if len(p) == 4 and p[0] == "vertex":
+                try:
+                    xs.append(float(p[1])); ys.append(float(p[2])); zs.append(float(p[3]))
+                except ValueError:
+                    pass
+    if not xs and len(data) >= 84:
+        n = struct.unpack("<I", data[80:84])[0]
+        if 84 + n * 50 != len(data):
+            return None
+        off = 84
+        for _ in range(n):
+            if off + 48 > len(data):
+                break
+            v = struct.unpack("<12f", data[off:off + 48]); off += 50
+            for j in range(3, 12, 3):
+                xs.append(v[j]); ys.append(v[j + 1]); zs.append(v[j + 2])
+    if not xs:
+        return None
+    d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+    if d[0] < 2.0:
+        d = [x * 1000 for x in d]
+    if d[0] <= 0 or d[0] > 100000:
+        return None
+    return d
 
 
 def strip_html(s):
