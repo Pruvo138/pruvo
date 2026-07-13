@@ -14,7 +14,7 @@ Her thing icin:
 Sir icermez: token `.thingiverse-token`'dan, Drive yolu `.stl-backup-dir`'den okunur.
 Ayrinti: tools/URUN-EKLEME-REHBERI.md
 """
-import json, os, re, struct, subprocess, sys, tempfile, urllib.parse, urllib.request
+import json, os, re, struct, subprocess, sys, tempfile, time, urllib.parse, urllib.request
 
 ROOT = "/Users/okan/dev/pruvo"
 TOKEN = open(os.path.join(ROOT, ".thingiverse-token")).read().strip()
@@ -98,7 +98,7 @@ def images(tid):
     return saved
 
 
-def stls(tid, uidhint):
+def _stls_once(tid, uidhint):
     try: files = json.loads(api("https://api.thingiverse.com/things/%s/files" % tid))
     except Exception as e:
         print("   STL HATA:", e); return None, 0
@@ -130,6 +130,17 @@ def stls(tid, uidhint):
         print("   STL:", n, "->", ds)
         if d and (biggest is None or d[0] > biggest):   # en buyuk BOYUTLU parca
             biggest = d[0]; bigdim = d
+    return bigdim, cnt
+
+
+def stls(tid, uidhint):
+    # stl_adet==0 cogunlukla gecici rate-limit/bos API cevabi -> 1 kez kisa bekleyip tekrar dene
+    # (kalicı 0'i yanlislikla "basarili" olarak stage etmemek icin bkz urun-ekle.py).
+    bigdim, cnt = _stls_once(tid, uidhint)
+    if cnt == 0:
+        print("   STL: 0 dosya (rate-limit olabilir) -> 5sn sonra 1 kez tekrar deneniyor")
+        time.sleep(5)
+        bigdim, cnt = _stls_once(tid, uidhint)
     return bigdim, cnt
 
 

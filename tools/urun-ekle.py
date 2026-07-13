@@ -60,6 +60,8 @@ def process_one(tid):
         satilir, cc_tur = lisans_map(meta.get("lisans"))
         if not satilir:
             return {"id": tid, "durum": "ATLA: NC/Non-Commercial (satilamaz)", "lisans": meta.get("lisans")}
+        if not meta.get("stl_adet"):
+            return {"id": tid, "durum": "ATLA: STL indirilemedi (0 dosya)"}
         subprocess.run([PY, os.path.join(TOOLS, "thing-gemini.py"), tid], capture_output=True, text=True)
         onerip = os.path.join(IMGROOT, tid, "oneri.json")
         if not os.path.exists(onerip):

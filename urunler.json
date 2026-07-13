@@ -1,5 +1,989 @@
 [
   {
+    "id": "peugeot-clermont-24-cm-tuz-de-irmeni-yedek-par-as",
+    "kategori": "Ev",
+    "marka": [
+      "Peugeot",
+      "Clermont"
+    ],
+    "baslik": "Peugeot Clermont 24 cm Tuz Değirmeni Yedek Parçası",
+    "aciklama": "Peugeot Clermont 24 cm tuz değirmeniniz için özel olarak üretilen dayanıklı yedek parça.\n\nZamanla aşınan veya kaybolan orijinal parçanın yerine birebir uyum sağlar.\nYüksek kaliteli malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\nUzun ömürlü kullanım sunar ve değirmeninizin ilk günkü performansına dönmesini sağlar.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-clermont-24-cm-tuz-de-irmeni-yedek-par-as-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Klaas_VdS",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-tuz-ve-karabiber-de-irmeni-stand",
+    "kategori": "Ev",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Tuz ve Karabiber Değirmeni Standı",
+    "aciklama": "Peugeot marka 7 inç tuz ve karabiber değirmenleriniz için özel olarak tasarlanmış şık ve düzenleyici stand.\nTezgah üzerinde veya yemek masasında değirmenlerin bir arada ve düzenli durmasını sağlar.\nAlt kısımdaki döküntüleri toplayarak temiz bir kullanım sunar.\nÖzel tasarım üretimi sayesinde dayanıklı ve uzun ömürlü bir yapıya sahiptir.\nÜzerindeki aslan figürü detayıyla mutfağınıza estetik bir dokunuş katar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-tuz-ve-karabiber-de-irmeni-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-tuz-ve-karabiber-de-irmeni-stand-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "adoutre",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "citroen-relay-peugeot-boxer-ve-renault-tavan-havaland-rma-ar",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen",
+      "Peugeot",
+      "Renault"
+    ],
+    "baslik": "Citroen Relay, Peugeot Boxer ve Renault Tavan Havalandırma Ara Parçası",
+    "aciklama": "Citroen Relay, Peugeot Boxer ve Renault ticari araç modelleriyle uyumlu, tavan havalandırma montajları için özel olarak tasarlanmış ara parçadır. Tavan eğimini ve boşluklarını mükemmel şekilde dengeleyerek sızdırmaz ve güvenli bir montaj yapmanızı sağlar.\n\n- Citroen Relay, Peugeot Boxer ve Renault ticari araçların tavan yapısına tam uyum sağlar.\n- Havalandırma ünitelerinin montajında düzgün bir zemin oluşturur ve sızdırmazlığı destekler.\n- Dış ortam koşullarına, sıcaklık değişimlerine ve UV ışınlarına karşı dayanıklı malzemeden üretilmiştir.\n- Kolay montaj edilebilir yapısı sayesinde profesyonel veya bireysel uygulamalar için idealdir.\n- Siparişiniz üzerine size özel üretilir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/citroen-relay-peugeot-boxer-ve-renault-tavan-havaland-rma-ar-1.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-relay-peugeot-boxer-ve-renault-tavan-havaland-rma-ar-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "1976vette",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-partner-portbagaj-tavan-tas-vidas",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Partner"
+    ],
+    "baslik": "Peugeot Partner Portbagaj Tavan Çıtası Vidası",
+    "aciklama": "Peugeot Partner araç modelleri için özel olarak tasarlanmış portbagaj bağlantı vidasıdır. Kaybolan veya yıpranan orijinal vidaların yerine mükemmel uyum sağlar.\n\nYüksek dayanımlı malzemeden özel tasarım olarak üretilmiştir.\nZorlu hava şartlarına ve mekanik gerilmelere karşı dirençlidir.\nKolay montaj imkanı sunar ve portbagaj tavan çıtasını güvenle sabitler.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-partner-portbagaj-tavan-tas-vidas-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Paria_edition",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-206-al-minyum-vites-topuzu-montaj-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 206 Alüminyum Vites Topuzu Montaj Aparatı",
+    "aciklama": "Peugeot 206 model araçlarda alüminyum vites topuzunun vites koluna güvenli ve stabil bir şekilde monte edilmesini sağlayan özel tasarım bağlantı aparatıdır.\n\n- Peugeot 206 vites kolları ile tam uyumludur.\n- Alüminyum vites topuzunun boşluk yapmasını engeller ve sıkı bir oturtma sağlar.\n- Aşınmaya dayanıklı, yüksek kaliteli malzemeden özel sipariş üzerine üretilir.\n- Kolay montaj imkanı sunar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-206-al-minyum-vites-topuzu-montaj-aparat-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nucleary",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-5008-punisher-logolu-n-izgara-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 5008 Punisher Logolu Ön Izgara Kapağı",
+    "aciklama": "Peugeot 5008 model araçlar için özel olarak tasarlanmış, ön ızgara bölümüne tam uyum sağlayan dekoratif Punisher logolu kapak.\nAracınızın ön görünümüne agresif ve şık bir hava katar.\nÖzel tasarım üretim teknolojisiyle yüksek kaliteli ve dış ortam koşullarına dayanıklı malzemeden üretilmiştir.\nMontajı oldukça pratik olup, aracın orijinal ızgara yapısına kolayca uyum sağlar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-5008-punisher-logolu-n-izgara-kapa-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-5008-punisher-logolu-n-izgara-kapa-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Algor38",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-405-switch-koruyucu-kapak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 405 Switch Koruyucu Kapak",
+    "aciklama": "Peugeot 405 model araçlar için özel tasarlanmış dayanıklı switch koruyucu kapak.\nZamanla yıpranan veya kaybolan orijinal parçanın yerine birebir uyum sağlayacak şekilde özel üretilmiştir.\nYüksek kaliteli ve mukavemetli malzemesi sayesinde uzun ömürlü kullanım sunar.\nKolayca monte edilebilir ve aracınızın iç mekan bütünlüğünü korur.\n\nYaklaşık dış ölçüler: 47 × 41 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-405-switch-koruyucu-kapak-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-405-switch-koruyucu-kapak-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "majidhagh20152",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-307-bagaj-pandizot-ask-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 307 Bagaj Pandizot Askı Pimi",
+    "aciklama": "Peugeot 307 model araçlar için özel olarak tasarlanmış bagaj pandizot askı pimi. Kırılan veya kaybolan orijinal askı pimlerinin yerine mükemmel uyum sağlar.\n\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Peugeot 307 bagaj rafı/pandizot iplerini asmak için ideal yedek parçadır.\n- Özel tasarım üretim yöntemiyle yüksek kalitede üretilmiştir.\n- Kolayca monte edilir, ekstra bir alet gerektirmez.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-307-bagaj-pandizot-ask-pimi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "roudakov",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-206-koltuk-yat-rma-ekme-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 206 Koltuk Yatırma Çekme Kolu",
+    "aciklama": "Peugeot 206 model araçlar için özel tasarlanmış koltuk yatırma mekanizması çekme kolu yedek parçasıdır.\nZamanla kırılan veya kaybolan orijinal kolun yerine birebir uyum sağlar.\nYüksek dayanımlı malzemeden özel tasarım olarak üretilmiştir.\nKolayca monte edilir ve ergonomik tasarımıyla rahat bir kullanım sunar.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-206-koltuk-yat-rma-ekme-kolu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "codexsiero3d",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-arka-pandizot-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Arka Pandizot Klipsi",
+    "aciklama": "Peugeot araçlar için özel olarak tasarlanmış arka pandizot sabitleme klipsi.\n\n- Yüksek dayanımlı malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\n- Aşınmış veya kırılmış orijinal pandizot parçalarının yerine mükemmel uyum sağlar.\n- Kolay montajı sayesinde ekstra bir alet gerektirmeden hızlıca yerine takılabilir.\n- Uzun ömürlü yapısıyla bagaj kapağı hareketlerine karşı yüksek direnç gösterir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-arka-pandizot-klipsi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Will_Maykit",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-led-ayak-ayd-nlatma-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 205 LED Ayak Aydınlatma Braketi",
+    "aciklama": "Peugeot 205 model araçların iç mekanını modernleştirmek isteyenler için tasarlanmış özel üretim LED ayak aydınlatma braketi.\nAracın orijinal yapısına zarar vermeden ayak bölgesi aydınlatmasını sabitlemenizi sağlar.\nÖzel tasarımı sayesinde LED panelleri güvenli ve estetik bir şekilde tutar.\nKolay montaj imkanı sunar ve araç içi estetiği tamamlar.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-led-ayak-ayd-nlatma-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-led-ayak-ayd-nlatma-braketi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jaguare19",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-sis-far-montaj-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 205 Sis Farı Montaj Braketi",
+    "aciklama": "Peugeot 205 model araçlar için özel olarak tasarlanmış dayanıklı sis farı montaj braketi.\nAracınızın ön tamponundaki orijinal yuvalara uyum sağlayacak şekilde özel üretilir.\n\n- Peugeot 205 tampon yapısıyla tam uyumludur\n- Sis farlarının güvenli ve stabil şekilde montajını sağlar\n- Dış ortam koşullarına ve yol titreşimlerine dayanıklı malzemeden özel tasarım üretimdir\n- Kolay montaj imkanı sunar",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-sis-far-montaj-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-sis-far-montaj-braketi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-sis-far-montaj-braketi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jaguare19",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-logolu-am-a-ac-oto-kokuluk",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Logolu Çam Ağacı Oto Kokuluk",
+    "aciklama": "Peugeot tutkunları için özel olarak tasarlanmış, ikonik çam ağacı formunda şık dikiz aynası aksesuarı.\nAracınızın iç mekanına kişisel ve estetik bir dokunuş katar.\nÜzerine dilediğiniz parfüm veya esansiyel yağı damlatarak uzun süreli kokuluk olarak kullanabilirsiniz.\nÖzel tasarım üretim yöntemiyle yüksek kaliteli ve dayanıklı malzemeden üretilmiştir.\nÜst kısmında yer alan askı deliği sayesinde dikiz aynasına kolayca asılabilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-logolu-am-a-ac-oto-kokuluk-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "szympek35",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-206-katlanabilir-bardakl-k",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "206"
+    ],
+    "baslik": "Peugeot 206 Katlanabilir Bardaklık",
+    "aciklama": "Peugeot 206 model araçlar için özel olarak tasarlanmış katlanabilir bardaklık.\nKullanılmadığı zamanlarda katlanarak alandan tasarruf sağlar.\nAracınızın iç mekanına uyum sağlayacak şekilde özel tasarımla üretilmiştir.\nDayanıklı yapısı sayesinde uzun ömürlü kullanım sunar.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-206-katlanabilir-bardakl-k-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kacpi2442",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-bistro-tuzluk-ve-biberlik-stand",
+    "kategori": "Ev",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Bistro Tuzluk ve Biberlik Standı",
+    "aciklama": "Peugeot Bistro serisi tuzluk ve biberlikleriniz için özel olarak tasarlanmış şık ve düzenleyici stanttır. Baharatlıklarınızın tezgah üzerinde düzenli durmasını sağlar ve dökülmeleri engeller.\n\n- Peugeot Bistro modelleriyle tam uyumlu özel tasarım üretim\n- Tezgah ve masa üzerinde kaymayı önleyen dengeli yapı\n- Kolay temizlenebilir ve dayanıklı malzeme kalitesi",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-bistro-tuzluk-ve-biberlik-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-bistro-tuzluk-ve-biberlik-stand-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pbdesigns",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-kisbee-karb-rat-r-d-aparat",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Peugeot",
+      "Kisbee"
+    ],
+    "baslik": "Peugeot Kisbee Karbüratör D-Aparatı",
+    "aciklama": "Peugeot Kisbee motosikletlerin karbüratör ayarlarını kolayca yapabilmeniz için tasarlanmış özel D-profil anahtar aparatı.\n\nZor ulaşılan karbüratör vidalarına tam uyum sağlar.\nErgonomik dişli yapısı sayesinde elle hassas ayar yapmayı kolaylaştırır.\nDayanıklı malzemeden özel tasarım olarak üretilmiştir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-kisbee-karb-rat-r-d-aparat-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-kisbee-karb-rat-r-d-aparat-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-kisbee-karb-rat-r-d-aparat-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Benplus",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-406-coupe-cam-krikosu-par-as",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 406 Coupe Cam Krikosu Parçası",
+    "aciklama": "Peugeot 406 Coupe araçların kronikleşen cam kaldırma mekanizması sorunları için özel olarak tasarlanmış dayanıklı yedek parça.\nCam krikosu mekanizmasındaki aşınmış veya kırılmış orijinal plastik parçanın yerine mükemmel uyum sağlar.\nYüksek mukavemetli malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\nMontaj esnasında mekanizmanın temizlenmesi ve hafifçe yağlanması önerilir.\n\nYaklaşık dış ölçüler: 32 × 28 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-406-coupe-cam-krikosu-par-as-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-406-coupe-cam-krikosu-par-as-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-406-coupe-cam-krikosu-par-as-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "uvarofff",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-rifter-orta-konsol-bardakl-k-ve-d-zenleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Rifter"
+    ],
+    "baslik": "Peugeot Rifter Orta Konsol Bardaklık ve Düzenleyici",
+    "aciklama": "Peugeot Rifter model aracınızın orta konsol bölmesi için özel tasarlanıp üretilen fonksiyonel bardaklık ve düzenleyici aparat.\nKonsol içindeki boş alanı en verimli şekilde kullanmanızı sağlar.\nİki adet geniş bardak yuvası ve kalem, bozuk para, telefon kablosu gibi küçük eşyalarınız için özel bölmeler içerir.\nAracınızın orijinal konsol yapısına tam uyum sağlar, kayma veya sallanma yapmaz.\nDayanıklı malzemeden özel tasarım olarak üretilmiştir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-rifter-orta-konsol-bardakl-k-ve-d-zenleyici-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-rifter-orta-konsol-bardakl-k-ve-d-zenleyici-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-rifter-orta-konsol-bardakl-k-ve-d-zenleyici-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-rifter-orta-konsol-bardakl-k-ve-d-zenleyici-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nicolas13013",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-307-cam-suyu-depo-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "PSA",
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 307 Cam Suyu Depo Kapağı",
+    "aciklama": "Peugeot 307 model araçlar için özel olarak tasarlanmış, dayanıklı cam suyu depo kapağı.\nZamanla eskiyen, çatlayan veya kaybolan orijinal kapağın yerine mükemmel uyum sağlar.\nYüksek sıcaklığa ve kimyasallara dayanıklı malzemeden özel tasarım olarak üretilmiştir.\nKolayca monte edilir ve sızdırmazlık sağlayarak cam silecek suyunun korunmasına yardımcı olur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-307-cam-suyu-depo-kapa-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "visanion",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-207-cd-tutucu-ve-d-zenleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 207 CD Tutucu ve Düzenleyici",
+    "aciklama": "Peugeot 207 model araçların konsol boşluğu için özel olarak tasarlanmış CD tutucu ve düzenleyici aparat.\n\nAraç içi konsol yapısına tam uyum sağlar ve boş alanı verimli bir depolama alanına dönüştürür.\nSürüş esnasında CD'lerinizin güvenli, düzenli ve kolay erişilebilir şekilde durmasını sağlar.\nYüksek kaliteli malzemeden size özel üretilir ve montajı son derece pratiktir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-207-cd-tutucu-ve-d-zenleyici-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-cd-tutucu-ve-d-zenleyici-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-cd-tutucu-ve-d-zenleyici-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "muffu",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "scalextric-peugeot-206-uyumlu-slot-car-asisi",
+    "kategori": "Oyun/Hobi",
+    "marka": [
+      "Peugeot",
+      "Scalextric"
+    ],
+    "baslik": "Scalextric Peugeot 206 Uyumlu Slot Car Şasisi",
+    "aciklama": "Scalextric Peugeot 206 model slot car araçlarınızla tam uyumlu yedek şasi parçasıdır. Aşınan veya kırılan orijinal şasinizi yenilemek için ideal bir çözümdür.\n\n- Peugeot 206 slot car modelleri için özel tasarım üretimdir.\n- Dayanıklı yapısı sayesinde uzun ömürlü kullanım sunar.\n- Montaj yuvaları ve mekanik aksam yerleşimleri orijinal tasarıma sadık kalınarak hazırlanmıştır.\n- Aracınızın pist performansını ve yol tutuşunu optimize eder.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/scalextric-peugeot-206-uyumlu-slot-car-asisi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sagoi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-sigorta-kutusu-bar",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Peugeot 205"
+    ],
+    "baslik": "Peugeot 205 Sigorta Kutusu Barı",
+    "aciklama": "Peugeot 205 model araçlar için özel olarak üretilen sigorta kutusu barı, yıpranan veya kırılan orijinal parçanın yerini kolayca alır.\n\n- Peugeot 205 sigorta kutusu paneli ile tam uyumludur.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Montajı son derece pratiktir, doğrudan yerine takılabilir.\n- Sipariş üzerine özel tasarım üretim olarak hazırlanmaktadır.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-sigorta-kutusu-bar-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jaguare19",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-3008-arka-silecek-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "3008"
+    ],
+    "baslik": "Peugeot 3008 Arka Silecek Kapağı",
+    "aciklama": "Peugeot 3008 model araçlar için özel tasarlanıp üretilen arka silecek kolu koruma kapağıdır. Zamanla yıpranan, kırılan veya kaybolan orijinal kapağın yerine mükemmel uyum sağlar.\n\n- Peugeot 3008 arka silecek mekanizmasıyla tam uyumludur.\n- Silecek bağlantı noktasını dış etkenlere, çamura ve suya karşı korur.\n- Dayanıklı yapısı sayesinde uzun ömürlü kullanım sunar.\n- Kolay montaj tasarımıyla saniyeler içinde yerine takılabilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-3008-arka-silecek-kapa-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gcastle2007",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-amurluk-ses-nleyici-takoz",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 205 Çamurluk Ses Önleyici Takoz",
+    "aciklama": "Peugeot 205 model araçlar için özel olarak geliştirilen çamurluk ses önleyici takoz, sürüş esnasında oluşan titreşim ve trim seslerini engellemek amacıyla tasarlanmıştır.\n\n- Peugeot 205 modelleri ile tam uyumludur.\n- Çamurluk bölgesindeki boşlukları doldurarak yol ve rüzgar gürültüsünü azaltmaya yardımcı olur.\n- Dayanıklı yapısı sayesinde uzun ömürlü kullanım sunar.\n- Kolay montaj edilebilir yapısıyla pratik bir çözümdür.\n- Siparişiniz üzerine size özel üretilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-amurluk-ses-nleyici-takoz-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jaguare19",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-i-kap-kolu-tas",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 205 İç Kapı Kolu Çıtası",
+    "aciklama": "Peugeot 205 model araçların zamanla yıpranan veya kaybolan iç kapı kolu çıtalarını yenilemek için özel tasarım üretilmiş yedek parça.\nOrijinal tasarım detaylarına sadık kalınarak üretilmiştir.\nYüksek dayanıklılığa sahip yapısıyla uzun ömürlü kullanım sunar.\nMontaj noktalarıyla tam uyumludur, kolayca yerine takılabilir.\nYaklaşık dış ölçüler: 186 × 16 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-i-kap-kolu-tas-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-i-kap-kolu-tas-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sneckburger",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-pandizot-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 205 Pandizot Klipsi",
+    "aciklama": "Peugeot 205 modelleri için özel tasarlanıp üretilen dayanıklı arka pandizot sabitleme klipsi.\nZamanla aşınan veya kırılan orijinal pandizot klipslerinin yerine birebir uyum sağlayacak şekilde tasarlanmıştır.\nYüksek mukavemetli malzemeden özel olarak üretilir.\nKolay montajı sayesinde herhangi bir profesyonel destek almadan eski parçayla değiştirebilirsiniz.\nAracınızın orijinal iç mekan estetiğini korur ve tıkırtıları önler.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-pandizot-klipsi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-pandizot-klipsi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ferracing",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "citro-n-c1-peugeot-107-uyumlu-tablet-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroën",
+      "Peugeot"
+    ],
+    "baslik": "Citroën C1 / Peugeot 107 Uyumlu Tablet Tutucu",
+    "aciklama": "Citroën C1 ve Peugeot 107 modelleri için özel tasarlanmış, konsola mükemmel uyum sağlayan tablet tutucu aparat.\n\n- Aracınızın ön konsol yapısına tam oturacak şekilde özel üretilir.\n- Sürüş esnasında tabletinizi güvenli ve sarsıntısız bir şekilde sabit tutar.\n- Navigasyon ve multimedya kullanımını çok daha ergonomik hale getirir.\n- Kolayca monte edilebilir ve konsola zarar vermez.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/citro-n-c1-peugeot-107-uyumlu-tablet-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/citro-n-c1-peugeot-107-uyumlu-tablet-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/citro-n-c1-peugeot-107-uyumlu-tablet-tutucu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LarsBroersen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-arka-pandizot-ask-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Arka Pandizot Askı Aparatı",
+    "aciklama": "Peugeot araç modelleriyle uyumlu, kırılan veya kaybolan arka pandizot askı aparatının yerine kullanabileceğiniz dayanıklı yedek parça.\nAracınızın bagaj düzenini korur ve pandizotun stabil şekilde durmasını sağlar.\nYüksek mukavemetli malzemeden özel tasarım olarak üretilmiştir.\nMontajı son derece kolaydır, orijinal yuvasına doğrudan uyum sağlar.\n\nYaklaşık dış ölçüler: 59 × 49 × 23 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-arka-pandizot-ask-aparat-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-arka-pandizot-ask-aparat-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "phil34",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-206-iphone-6-6s-uyumlu-radyo-yuvas-telefon-stand",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "iPhone"
+    ],
+    "baslik": "Peugeot 206 iPhone 6/6s Uyumlu Radyo Yuvası Telefon Standı",
+    "aciklama": "Peugeot 206 model araçlarda orijinal radyo yuvasına tam oturacak şekilde tasarlanmış özel telefon standı.\n\nİç konsolla mükemmel uyum sağlayarak iPhone 6 ve 6s cihazlarınızı güvenli bir şekilde sabitlemenizi sağlar.\nAracınızın konsol bütünlüğünü bozmadan pratik bir kullanım sunar.\nDayanıklı malzemeden özel tasarım olarak üretilmiştir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-206-iphone-6-6s-uyumlu-radyo-yuvas-telefon-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-206-iphone-6-6s-uyumlu-radyo-yuvas-telefon-stand-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jeroen-nl1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-307-uyumlu-torpido-trim-s-kme-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 307 Uyumlu Torpido / Trim Sökme Aparatı",
+    "aciklama": "Peugeot 307 model araçlar için özel olarak tasarlanmış, hassas trim ve iç aksam sökme aparatıdır.\nAracınızın plastik aksamlarına zarar vermeden, çizik oluşturmadan kolayca sökme işlemi yapmanızı sağlar.\nErgonomik yapısı sayesinde kolay kavranır ve pratik bir kullanım sunar.\nYüksek dayanımlı malzemeden siparişiniz üzerine özel üretilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-307-uyumlu-torpido-trim-s-kme-aparat-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-uyumlu-torpido-trim-s-kme-aparat-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Thestyle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-gti-pandizot-braketleri-yeni-tip",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 205 GTi Pandizot Braketleri (Yeni Tip)",
+    "aciklama": "Peugeot 205 GTi modelleri için özel olarak tasarlanan yeni tip pandizot askı braketleri, aracınızın orijinal yapısına sadık kalınarak üretilmiştir.\n\nZamanla yıpranan veya kırılan orijinal braketlerin yerine mükemmel uyum sağlar.\nYüksek dayanımlı malzemesi sayesinde uzun ömürlü kullanım sunar.\nSağ ve sol taraf için özel olarak işaretlenmiş (LH/RH) simetrik tasarıma sahiptir.\nKolay montaj imkanıyla aracınızın bagaj estetiğini ve işlevselliğini ilk günkü haline getirir.\n\nYaklaşık dış ölçüler: 46 × 38 × 29 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-gti-pandizot-braketleri-yeni-tip-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-gti-pandizot-braketleri-yeni-tip-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-gti-pandizot-braketleri-yeni-tip-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sneckburger",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-206-motor-kapa-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Peugeot 206"
+    ],
+    "baslik": "Peugeot 206 Motor Kapağı Klipsi",
+    "aciklama": "Peugeot 206 model araçlar için özel tasarlanıp üretilen motor kapağı sabitleme klipsi.\nZamanla aşınan, kırılan veya kaybolan orijinal klipslerin yerine mükemmel uyum sağlar.\nMotor kaputunun altındaki muhafaza kapağını güvenli ve stabil bir şekilde sabitler.\nYüksek sıcaklığa ve motor bölmesindeki titreşimlere dayanıklı malzemeden özel olarak üretilmiştir.\nKolay montajı sayesinde herhangi bir profesyonel alet gerektirmeden doğrudan yerine takılabilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-206-motor-kapa-klipsi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KMaas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-207-radyat-r-sabitleme-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 207 Radyatör Sabitleme Braketi",
+    "aciklama": "Peugeot 207 model araçlar için özel tasarım radyatör sabitleme aparatı. Zamanla aşınan veya kırılan orijinal radyatör bağlantı parçasının yerine güvenle kullanabileceğiniz dayanıklı bir yedek parçadır.\n\n- Peugeot 207 modelleriyle tam uyumlu özel tasarım üretim\n- Radyatörün sarsıntısız ve stabil şekilde konumlandırılmasını sağlar\n- Yüksek sıcaklık dayanımına sahip endüstriyel malzemeden üretilmiştir\n- Kolay montaj imkanı sunar",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-207-radyat-r-sabitleme-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-radyat-r-sabitleme-braketi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-radyat-r-sabitleme-braketi-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-radyat-r-sabitleme-braketi-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "icehardy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "citroen-kaput-i-stinat-demiri-sabitleme-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen"
+    ],
+    "baslik": "Citroen Kaput İstinat Demiri Sabitleme Klipsi",
+    "aciklama": "Citroen araçlar için özel olarak tasarlanan kaput istinat demiri sabitleme klipsi, aşınan veya kırılan orijinal parçanın yerine mükemmel bir alternatif sunar. Kaput demirinin güvenli ve sarsıntısız bir şekilde sabit durmasını sağlar.\n\nYüksek dayanımlı malzemeden özel tasarım üretilmiştir.\nZamanla gevşeme yapmaz, motor içi sıcaklıklara karşı dirençlidir.\nPratik yapısı sayesinde montajı son derece kolaydır ve doğrudan eski yuvasına oturur.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/citroen-kaput-i-stinat-demiri-sabitleme-klipsi-1.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-kaput-i-stinat-demiri-sabitleme-klipsi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "motoz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-308-bagaj-kapa-kilitleme-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 308 Bagaj Kapağı Kilitleme Klipsi",
+    "aciklama": "Peugeot 308 araçların bagaj iç döşemesinde yer alan kapakları sabitlemek için tasarlanmış özel üretim yedek parça.\nZamanla aşınan veya kaybolan orijinal klipsin yerine birebir uyum sağlar.\nYüksek dayanımlı malzemeden özel olarak üretilmiştir.\nKolayca döndürülerek yerine takılır ve alet gerektirmeden monte edilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-308-bagaj-kapa-kilitleme-klipsi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-bagaj-kapa-kilitleme-klipsi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-bagaj-kapa-kilitleme-klipsi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "whiplash42",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-206-vites-topuzu-ve-haznesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 206 Vites Topuzu ve Haznesi",
+    "aciklama": "Peugeot 206 model araçlar için özel olarak geliştirilmiş, ergonomik tasarıma sahip vites topuzu ve entegre hazne ünitesi.\n\n- Orijinal vites mekanizmasıyla tam uyumlu yapıdadır.\n- Aşınmış veya hasar görmüş vites topuzunuzu yenilemek için ideal bir alternatiftir.\n- Dayanıklı malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\n- Kolay montaj imkanı sunar ve sürüş konforunu artırır.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-206-vites-topuzu-ve-haznesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-206-vites-topuzu-ve-haznesi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-206-vites-topuzu-ve-haznesi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Egon1990",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tuzluk-ve-biberlik-stand",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": "Tuzluk ve Biberlik Standı",
+    "aciklama": "Mutfak tezgahınızda veya yemek masanızda düzen sağlayan şık tuzluk ve biberlik altlığı.\n\n- Baharat değirmenlerinizin altından dökülen kalıntıların masaya yayılmasını önler.\n- Üzerindeki 'P' ve 'S' harf detayları sayesinde tuz ve biber değirmenlerinizin yerini belirler.\n- Dayanıklı yapısı ve kolay temizlenebilir yüzeyi ile günlük kullanıma son derece uygundur.\n- Özel tasarım üretim yöntemiyle siparişiniz üzerine yüksek kalitede üretilir.\n\nYaklaşık dış ölçüler: 142 × 72 × 10 mm.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tuzluk-ve-biberlik-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/tuzluk-ve-biberlik-stand-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "loumgg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-207-gti-rc-turbo-g-sterge-paneli-pod",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "207"
+    ],
+    "baslik": "Peugeot 207 GTI / RC Turbo Gösterge Paneli (Pod)",
+    "aciklama": "Peugeot 207 GTI ve RC modelleriyle tam uyumlu, direksiyon arkası bölüme yerleştirilen ikili turbo gösterge paneli (pod).\n\n- Aracınızın orijinal konsol hatlarına mükemmel uyum sağlar.\n- Ekstra göstergelerinizi (turbo basıncı, yağ sıcaklığı vb.) sürücü görüş açısına en uygun şekilde konumlandırır.\n- Dayanıklı yapısı sayesinde yüksek sıcaklıklara ve sarsıntılara karşı dirençlidir.\n- Aracın orijinal yapısına zarar vermeden kolayca monte edilebilir.\n- İstek üzerine farklı renk ve yüzey seçenekleriyle özel üretilir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-207-gti-rc-turbo-g-sterge-paneli-pod-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-gti-rc-turbo-g-sterge-paneli-pod-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "franconovero",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-309-gti-talbot-sport-speedline-sl434-jant-modeli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Talbot",
+      "Speedline"
+    ],
+    "baslik": "Peugeot 205 309 GTI Talbot Sport Speedline SL434 Jant Modeli",
+    "aciklama": "Peugeot 205 ve 309 GTI modelleri için efsanevi Talbot Sport Speedline SL434 jant tasarımının yüksek detaylı replika modelidir. Restorasyon projelerinizde, maket çalışmalarınızda veya özel koleksiyonlarınızda sergilemek için mükemmel bir seçenektir.\n\nÖzel tasarım üretim yöntemiyle yüksek yüzey kalitesinde üretilir.\nKlasik ralli ve yol versiyonu detaylarına sadık kalınarak hazırlanmıştır.\nDayanıklı yapısı sayesinde uzun ömürlü kullanım ve sergileme imkanı sunar.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-309-gti-talbot-sport-speedline-sl434-jant-modeli-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-309-gti-talbot-sport-speedline-sl434-jant-modeli-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vinssou000",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-uyumlu-bardakl-k-konsol-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Uyumlu Bardaklık Konsol Aparatı",
+    "aciklama": "Peugeot araç modelleriyle uyumlu, konsol içi kullanım kolaylığı sağlayan özel tasarım bardaklık aparatı.\nAracınızın orijinal konsol yapısına tam uyum sağlayacak şekilde tasarlanmıştır.\nSürüş esnasında içeceklerinizin dökülmesini engeller ve güvenli bir tutuş sunar.\nYüksek kaliteli ve dayanıklı malzemeden siparişiniz üzerine özel üretilir.\nMontaj gerektirmez, doğrudan ilgili konsol bölmesine yerleştirilerek hemen kullanılabilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-bardakl-k-konsol-aparat-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-bardakl-k-konsol-aparat-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KevinXA",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-307-sw-bagaj-pandizot-dayama-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 307 SW Bagaj Pandizot Dayama Braketi",
+    "aciklama": "Peugeot 307 SW Break modelleri için özel tasarlanıp üretilen bagaj pandizot dayama ve sabitleme parçasıdır.\nZamanla aşınan veya kırılan orijinal mekanizma yerine kolayca monte edilebilir.\nBagaj perdesinin düzgün ve stabil çalışmasını sağlar.\nYüksek dayanımlı malzemeden aracınıza özel üretilmiştir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-307-sw-bagaj-pandizot-dayama-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-sw-bagaj-pandizot-dayama-braketi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-sw-bagaj-pandizot-dayama-braketi-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-sw-bagaj-pandizot-dayama-braketi-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DjLab",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-ve-citroen-cam-suyu-depo-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Citroen"
+    ],
+    "baslik": "Peugeot ve Citroen Cam Suyu Depo Kapağı",
+    "aciklama": "Peugeot ve Citroen araç modelleriyle uyumlu, dayanıklı cam silme suyu deposu kapağıdır.\nZamanla eskiyen, çatlayan veya kaybolan orijinal kapağın yerine mükemmel şekilde oturur.\nYüksek kaliteli malzemeden özel tasarım olarak üretilmiştir.\nSıvı sızdırmazlığını korur ve motor bölmesindeki sıcaklığa karşı dayanıklıdır.\nKolayca monte edilir, ekstra bir alet gerektirmez.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-ve-citroen-cam-suyu-depo-kapa-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "carlosxperia1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-208-2008-ayak-dayama-footrest",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 208 / 2008 Ayak Dayama (Footrest)",
+    "aciklama": "Peugeot 208 ve 2008 modelleriyle uyumlu, şık tasarımlı sol ayak dayama (footrest) parçası. Aracınızın iç mekanında aşınmayı önler ve estetik bir görünüm kazandırır.\n\n- Peugeot 208 ve 2008 modellerine özel tasarlanmıştır.\n- Kaymayı önleyici desenli ve logolu yüzey yapısına sahiptir.\n- Dayanıklı malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\n- Kolayca monte edilebilir ve uzun ömürlü kullanım sunar.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-208-2008-ayak-dayama-footrest-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chiefmaster81",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-307-vites-topuzu-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 307 Vites Topuzu Aparatı",
+    "aciklama": "Peugeot 307 model araçlar için özel olarak tasarlanmış vites topuzu iç montaj aparatı.\nZamanla aşınan veya kırılan orijinal vites topuzu mekanizmasını yenilemek için mükemmel bir alternatiftir.\nYüksek dayanımlı malzemeden aracınıza tam uyumlu olacak şekilde özel üretilir.\nKolay montajı sayesinde vites mekanizmasını kısa sürede sorunsuz çalışır hale getirebilirsiniz.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-307-vites-topuzu-aparat-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-vites-topuzu-aparat-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-vites-topuzu-aparat-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-vites-topuzu-aparat-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NoXaN",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-bagaj-pandizot-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 205 Bagaj Pandizot Braketi",
+    "aciklama": "Peugeot 205 model araçlar için özel olarak üretilen bagaj pandizot braketi.\nZamanla aşınan veya kırılan orijinal parçanın yerine birebir uyum sağlayacak şekilde tasarlanmıştır.\nYüksek dayanımlı malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\nMontajı son derece kolaydır, doğrudan orijinal yuvasına yerleştirilerek kullanılır.\nBagaj rafının (pandizot) stabil ve sessiz çalışmasını sağlar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-bagaj-pandizot-braketi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-bagaj-pandizot-braketi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-bagaj-pandizot-braketi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "physalp",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-sigorta-kutusu-tamir-par-as",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Peugeot 205"
+    ],
+    "baslik": "Peugeot 205 Sigorta Kutusu Tamir Parçası",
+    "aciklama": "Peugeot 205 model araçların sigorta kutusu kapaklarındaki kırık veya eksik tırnakları onarmak için tasarlanmış özel üretim tamir parçasıdır.\nKutunun orijinal yapısına tam uyum sağlayarak kapağın yeniden güvenle kapanmasını sağlar.\nYüksek dayanımlı malzemeden aracınıza özel üretilir.\nKolayca monte edilerek masraflı komple kutu değişim ihtiyacını ortadan kaldırır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-sigorta-kutusu-tamir-par-as-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-205-sigorta-kutusu-tamir-par-as-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lucasmatic",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "citroen-berlingo-peugeot-partner-torpido-g-z-mente-e-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen",
+      "Peugeot",
+      "Berlingo",
+      "Partner"
+    ],
+    "baslik": "Citroen Berlingo / Peugeot Partner Torpido Gözü Menteşe Pimi",
+    "aciklama": "Citroen Berlingo ve Peugeot Partner araçların kronikleşen torpido kapağı sarkma ve düşme sorununu çözen özel tasarım menteşe pimi.\nZamanla aşınan veya kırılan orijinal pimin yerine birebir uyum sağlayacak şekilde özel üretilir.\nYüksek dayanımlı endüstriyel malzemesi sayesinde uzun ömürlü kullanım sunar.\nKolay montajı ile torpido gözünüzü ilk günkü sağlamlığına kavuşturur.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-torpido-g-z-mente-e-pimi-1.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-torpido-g-z-mente-e-pimi-2.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-torpido-g-z-mente-e-pimi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "michbil",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-308-kol-ak-tamir-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 308 Kolçak Tamir Seti",
+    "aciklama": "Peugeot 308 model araçların kronikleşen kolçak mekanizması arızalarını gidermek için tasarlanmış özel üretim tamir setidir.\n\n- Orijinal mekanizma ölçüleriyle tam uyumludur.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Kolçak mekanizmasının yeniden aktif ve stabil çalışmasını sağlar.\n- Kolayca monte edilebilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-308-kol-ak-tamir-seti-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-kol-ak-tamir-seti-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-kol-ak-tamir-seti-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sibvic",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-partner-uyumlu-telefon-tutucu-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Partner"
+    ],
+    "baslik": "Peugeot Partner Uyumlu Telefon Tutucu Aparatı",
+    "aciklama": "Peugeot Partner aracınızın konsol yapısına mükemmel uyum sağlayan özel tasarım telefon tutucu aparatı.\nSürüş esnasında telefonunuzun güvenli ve sarsıntısız bir şekilde sabit kalmasını sağlar.\nAracın orijinal konsol hatlarına zarar vermeden kolayca monte edilir.\nDayanıklı yapısı sayesinde uzun ömürlü kullanım sunar.\nSiparişiniz üzerine size özel üretilir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-partner-uyumlu-telefon-tutucu-aparat-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-partner-uyumlu-telefon-tutucu-aparat-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "geoluki",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-citroen-psa-hoparl-r-kasna-adapt-r",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Citroen",
+      "PSA"
+    ],
+    "baslik": "Peugeot - Citroen PSA Hoparlör Kasnağı Adaptörü",
+    "aciklama": "Peugeot ve Citroen (PSA) grubu araçlar için özel tasarlanıp üretilen hoparlör montaj kasnağı.\nAracınızın kapı içi hoparlör değişimlerinde mükemmel uyum sağlar ve akustik performansı artırır.\n\n- PSA grubu araçların orijinal kapı sacı delikleriyle tam uyumludur.\n- Standart aftermarket hoparlörlerin kapı sacına ve cam mekanizmasına çarpmadan güvenle monte edilmesini sağlar.\n- Dayanıklı ve yüksek kaliteli malzemeden özel olarak üretilmiştir, titreşimi sönümler.\n- Kolay montaj imkanı sunar.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-citroen-psa-hoparl-r-kasna-adapt-r-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-citroen-psa-hoparl-r-kasna-adapt-r-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-citroen-psa-hoparl-r-kasna-adapt-r-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BeN4BeN",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-205-g-ne-lik-braket-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Peugeot 205"
+    ],
+    "baslik": "Peugeot 205 Güneşlik Braket Kapağı",
+    "aciklama": "Peugeot 205 model araçlar için özel olarak tasarlanmış güneşlik montaj braketi kapatma kapağıdır. Zamanla eskiyen, kaybolan veya kırılan orijinal parçanın yerine mükemmel uyum sağlar.\n\n- Peugeot 205 modelleriyle birebir uyumludur.\n- Aracınızın iç mekan restorasyonunda orijinal görünümü tamamlar.\n- Dayanıklı malzemeden özel tasarım olarak üretilmiştir.\n- Kolayca monte edilir ve vida deliklerini estetik bir şekilde kapatır.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-205-g-ne-lik-braket-kapa-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fj88naranjoflores",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-206-cam-silecek-f-skiyesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 206 Cam Silecek Fıskiyesi",
+    "aciklama": "Peugeot 206 model araçlar için özel olarak tasarlanan yedek cam silecek fıskiyesi.\n\n- Orijinal montaj yuvasına tam uyum sağlar.\n- Dayanıklı yapısı sayesinde uzun ömürlü kullanım sunar.\n- Silecek suyunun ön cama dengeli ve verimli bir şekilde püskürtülmesine yardımcı olur.\n- Aşınmış veya tıkanmış eski fıskiyelerin yerine kolayca monte edilebilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-206-cam-silecek-f-skiyesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-206-cam-silecek-f-skiyesi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-206-cam-silecek-f-skiyesi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "drdrhase",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-107-toyota-aygo-citroen-c1-yan-ayna-k-e-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Toyota",
+      "Citroen"
+    ],
+    "baslik": "Peugeot 107, Toyota Aygo, Citroen C1 Yan Ayna Köşe Kapağı",
+    "aciklama": "Peugeot 107, Toyota Aygo ve Citroen C1 modelleriyle tam uyumlu, yan ayna iç köşe bölgesini kapatan özel tasarım yedek parça.\nZamanla yıpranan, kırılan veya kaybolan orijinal kapağın yerine mükemmel bir alternatif sunar.\nAracınızın orijinal hatlarına ve montaj yuvalarına tam oturacak şekilde özel üretilmiştir.\nDayanıklı yapısı sayesinde uzun ömürlü kullanım sağlar ve montajı son derece pratiktir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-107-toyota-aygo-citroen-c1-yan-ayna-k-e-kapa-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-107-toyota-aygo-citroen-c1-yan-ayna-k-e-kapa-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jonathanorsel",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "peugeot-205-tek-pinli-konnekt-r-soketi",
     "kategori": "Otomobil",
     "marka": [
