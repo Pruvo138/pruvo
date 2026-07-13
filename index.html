@@ -765,6 +765,7 @@
   var PAGE_SIZE = 24;        // ana sayfada ilk gösterilen ürün sayısı
   var shown = PAGE_SIZE;     // şu an gösterilen ürün sayısı
   var BRAND_COLLAPSED = 12;  // katlanmış halde gösterilecek marka çipi sayısı
+  var MIN_BRAND_HOME = 8;    // ana sayfa çip listesinde görünmek için gereken min ürün
   var brandsExpanded = false;
   function resetPaging(){ shown = PAGE_SIZE; }
 
@@ -804,6 +805,18 @@
     el.appendChild(chip("Tümü"));
 
     var brands = sortedBrands();
+    // ana sayfada (Tümü + arama boş) sadece eşiği geçen markaları göster;
+    // kategori seçilince/arama yapılınca küçük markalar da görünür
+    var homeView = (activeCat === "Tümü") && !norm(query).trim();
+    if(homeView){
+      var counts = brandCounts();
+      brands = brands.filter(function(m){ return counts[m] >= MIN_BRAND_HOME; });
+      // kullanıcı eşiğin altındaki bir markayı seçtiyse kaybolmasın
+      if(activeBrand !== "Tümü" && brands.indexOf(activeBrand) === -1 &&
+         sortedBrands().indexOf(activeBrand) !== -1){
+        brands = brands.concat([activeBrand]);
+      }
+    }
     var showAll = brandsExpanded || brands.length <= BRAND_COLLAPSED;
     var visible = showAll ? brands : brands.slice(0, BRAND_COLLAPSED);
     // katlanmışken aktif marka görünmüyorsa yine de göster
