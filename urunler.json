@@ -1,5 +1,794 @@
 [
   {
+    "id": "peugeot-207-d-dikiz-aynas-ayar-d-mesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 207 Dış Dikiz Aynası Ayar Düğmesi",
+    "aciklama": "Peugeot 207 model araçlar için özel olarak tasarlanan dış dikiz aynası kontrol düğmesi kapağı.\nZamanla aşınan, kırılan veya kaybolan orijinal düğmenin yerine mükemmel uyum sağlar.\nYüksek kaliteli malzemeden, aracınızın iç mekan bütünlüğünü koruyacak şekilde özel üretilmiştir.\nMontajı son derece pratiktir ve doğrudan yerine oturur.\n\nYaklaşık dış ölçüler: 31 × 15 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-207-d-dikiz-aynas-ayar-d-mesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-d-dikiz-aynas-ayar-d-mesi-2.jpg"
+    ]
+  },
+  {
+    "id": "fiat-fiorino-qubo-havaland-rma-izgaras-ram-mount-telefon-tut",
+    "kategori": "Otomobil",
+    "marka": [
+      "Fiat"
+    ],
+    "baslik": "Fiat Fiorino / Qubo Havalandırma Izgarası RAM Mount Telefon Tutucu Aparatı",
+    "aciklama": "Fiat Fiorino ve Qubo araçlarınızın ön konsolundaki yuvarlak havalandırma ızgarası yerine tam uyum sağlayan özel tasarım montaj aparatıdır.\nBu aparat sayesinde 1 inç (1\") RAM Mount bilyeli telefon tutucu sistemlerini aracınıza güvenle sabitleyebilirsiniz.\n\n- Aracın orijinal havalandırma yuvasına doğrudan oturan özel tasarım üretim.\n- Sürüş esnasında sarsıntıları en aza indiren dayanıklı ve sağlam yapı.\n- Kolay montaj imkanı sunar, aracın konsol yapısına zarar vermez.\n\nYaklaşık dış ölçüler: 73 × 73 × 48 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/fiat-fiorino-qubo-havaland-rma-izgaras-ram-mount-telefon-tut-1.jpg",
+      "https://media.pruvo3d.com/urunler/fiat-fiorino-qubo-havaland-rma-izgaras-ram-mount-telefon-tut-2.jpg",
+      "https://media.pruvo3d.com/urunler/fiat-fiorino-qubo-havaland-rma-izgaras-ram-mount-telefon-tut-3.jpg",
+      "https://media.pruvo3d.com/urunler/fiat-fiorino-qubo-havaland-rma-izgaras-ram-mount-telefon-tut-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "XTRD",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "peugeot-buz-kaz-y-c",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Buz Kazıyıcı",
+    "aciklama": "Kış aylarında araç camlarında oluşan buz ve donu güvenle temizlemeniz için özel olarak tasarlanmıştır. Ergonomik yapısı sayesinde kolayca kavranır ve cam yüzeyine zarar vermeden etkili temizlik sağlar.\n\n- Peugeot sahipleri için özel tasarımlı şık görünüm\n- Dayanıklı yapısıyla zorlu kış şartlarında uzun ömürlü kullanım\n- Kolay kavranabilen ergonomik sap tasarımı\n- Askı deliği sayesinde araç içinde veya bagajda kolayca muhafaza edilebilir\n\nYaklaşık dış ölçüler: 142 × 75 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-buz-kaz-y-c-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Heine Sørensen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Vites Topuzu",
+    "aciklama": "Peugeot araç modelleriyle uyumlu, ergonomik tasarıma sahip şık vites topuzu. Aşınmış veya hasar görmüş orijinal vites topuzunuzu yenilemek için ideal bir alternatiftir.\n\n- Yüksek kaliteli malzemeden özel tasarım üretim yöntemiyle imal edilmiştir.\n- Konforlu bir tutuş ve pürüzsüz vites geçişi hissi sunar.\n- Montaj yuvası tasarımı sayesinde aracınıza kolayca uygulanabilir.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sağlar.\n\nYaklaşık dış ölçüler: 95 × 50 × 50 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-vites-topuzu-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-vites-topuzu-2.jpg"
+    ]
+  },
+  {
+    "id": "opel-combo-e-tavan-ask-kancas",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel"
+    ],
+    "baslik": "Opel Combo E Tavan Askı Kancası",
+    "aciklama": "Opel Combo E model araçlar için özel olarak tasarlanmış pratik tavan askı kancası. Araç içi düzeni sağlamak ve eşyalarınızı güvenle asmak için mükemmel bir çözümdür.\n\n- Opel Combo E tavan tutamak alanına tam uyum sağlar.\n- Montajı son derece kolaydır, herhangi bir delme veya vidalama işlemi gerektirmez.\n- Dayanıklı yapısıyla günlük kullanımda kıyafet, çanta veya hafif poşetlerinizi taşımak için idealdir.\n- Özel tasarım üretim yöntemiyle yüksek kaliteli malzemeden üretilmiştir.\n\nYaklaşık dış ölçüler: 203 × 42 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/opel-combo-e-tavan-ask-kancas-1.jpg",
+      "https://media.pruvo3d.com/urunler/opel-combo-e-tavan-ask-kancas-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Peter Velebír",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-logolu-kaz-y-c-raspa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Logolu Kazıyıcı Raspa",
+    "aciklama": "Peugeot sahipleri ve meraklıları için özel olarak tasarlanmış, ergonomik petek dokulu kazıyıcı raspa. Araç içi temizlik, cam buz kazıma veya çeşitli atölye işlerinde pratik kullanım sağlar.\n\n- Dayanıklı ve hafif gövde yapısı\n- Kolay kavrama sunan ergonomik petek desenli sap\n- Şık Peugeot logo detayı\n- Hassas yüzeylerde güvenli kazıma imkanı\n\nYaklaşık dış ölçüler: 188 × 90 × 6 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-logolu-kaz-y-c-raspa-1.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-2008-motor-ya-hunisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 2008 Motor Yağ Hunisi",
+    "aciklama": "Peugeot 2008 araçlar için özel olarak tasarlanmış, motor yağı dolumunu zahmetsiz ve temiz hale getiren pratik yağ hunisi.\n\n- Motor yağı eklerken etrafa dökülme ve sızdırma riskini ortadan kaldırır.\n- Araca özel tasarımı sayesinde dolum ağzına tam oturur ve stabil bir duruş sağlar.\n- Dayanıklı yapısıyla motor sıcaklığına ve kimyasallara karşı dirençlidir.\n- Kolayca temizlenebilir ve kompakt tasarımıyla bagajda rahatça saklanabilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-2008-motor-ya-hunisi-1.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-308-cam-suyu-depo-kapa-141993",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 308 Cam Suyu Depo Kapağı",
+    "aciklama": "Peugeot 308 ve uyumlu diğer modeller için özel olarak tasarlanan cam yıkama suyu deposu kapağı.\nZamanla kaybolan, çatlayan veya işlevini yitiren orijinal kapağın yerine mükemmel bir alternatif sunar.\nSıvı sızdırmazlığını koruyarak motor bölmesini temiz tutar.\nAracınızın orijinal yuvasına tam oturacak şekilde özel üretilir.\nYüksek sıcaklığa ve kimyasallara dayanıklı malzemeden imal edilmiştir.\nYaklaşık dış ölçüler: 64 × 59 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-308-cam-suyu-depo-kapa-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-cam-suyu-depo-kapa-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-cam-suyu-depo-kapa-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "taeraeyttaejae",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-807-far-y-kama-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 807 Far Yıkama Kapağı",
+    "aciklama": "Peugeot 807 model araçlar için özel olarak tasarlanan far yıkama kapağı, kaybolan veya hasar gören orijinal kapağın yerini kusursuzca alır.\nTam uyumlu tırnak yapısı sayesinde tampon üzerindeki mekanizmaya doğrudan entegre olur.\nAracınızın estetik görünümünü tamamlar ve dış etkenlere karşı koruma sağlar.\nYüksek dayanımlı malzemeden özel tasarım olarak üretilmiştir, montajı oldukça pratiktir.\nYaklaşık dış ölçüler: 96 × 41 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-807-far-y-kama-kapa-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-807-far-y-kama-kapa-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-807-far-y-kama-kapa-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-807-far-y-kama-kapa-4.jpg"
+    ]
+  },
+  {
+    "id": "citroen-berlingo-ve-peugeot-uyumlu-anahtar-tu-u",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen",
+      "Peugeot",
+      "Berlingo"
+    ],
+    "baslik": "Citroen Berlingo ve Peugeot Uyumlu Anahtar Tuşu",
+    "aciklama": "Zamanla aşınan veya kaybolan Citroen Berlingo ve Peugeot anahtar tuşlarınızı yenilemek için ideal yedek parça.\nÖzel tasarım üretim yöntemiyle, orijinal yuvasına tam oturacak şekilde imal edilmiştir.\nAşınmaya dayanıklı yapısıyla uzun ömürlü kullanım sunar.\nKolayca yerine takılarak anahtarınızı tekrar işlevsel hale getirir.\n\nYaklaşık dış ölçüler: 12 × 12 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-ve-peugeot-uyumlu-anahtar-tu-u-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Maxime",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-paris-tuzluk-ve-biberlik-stand",
+    "kategori": "Ev",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Paris Tuzluk ve Biberlik Standı",
+    "aciklama": "Peugeot Paris serisi tuzluk ve biberlikleriniz için özel tasarlanmış şık altlık standı. Masanızda düzen sağlar ve dökülen baharatların tezgahınıza zarar vermesini önler.\n\n- Peugeot Paris serisi değirmenlerle tam uyumlu yuvalar\n- S (Salt/Tuz) ve P (Pepper/Biber) harfleriyle kolay ayrım\n- Kaymayı önleyen stabil ve dayanıklı yapı\n- Özel tasarım üretim yöntemiyle yüksek kalitede üretilmiştir\n\nYaklaşık dış ölçüler: 145 × 75 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-paris-tuzluk-ve-biberlik-stand-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Carguy47",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "peugeot-karabiber-de-irmeni-doldurma-hunisi-438571",
+    "kategori": "Ev",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Karabiber Değirmeni Doldurma Hunisi",
+    "aciklama": "Peugeot karabiber değirmenlerinizi etrafa dökülmeden, zahmetsizce doldurmanız için özel tasarım üretim huni aparatı.\n\n- Değirmenin ağız yapısıyla tam uyumlu asimetrik tasarım\n- Karabiber tanelerinin dışarı taşmasını ve etrafa saçılmasını engeller\n- Kolay kavranan ergonomik yapı ve pratik kullanım\n- Dayanıklı ve uzun ömürlü malzemeden size özel üretilir",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-karabiber-de-irmeni-doldurma-hunisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-karabiber-de-irmeni-doldurma-hunisi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BLRM",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kol-ak-tamir-aparat",
+    "kategori": "Otomobil",
+    "marka": [],
+    "baslik": "Kolçak Tamir Aparatı",
+    "aciklama": "Araç içi kolçak mekanizmalarında zamanla oluşan aşınma ve kırılmaları gidermek için tasarlanmış dayanıklı tamir aparatıdır. Orijinal parçanın yerine kolayca monte edilerek kolçağın işlevselliğini geri kazandırır.\n\nYüksek mukavemetli malzemeden özel tasarım olarak üretilmiştir.\nKolay montaj için vida delikleri hazır olarak gelir.\nAşınmaya karşı dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n\nYaklaşık dış ölçüler: 21 × 20 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kol-ak-tamir-aparat-1.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-karabiber-de-irmeni-dolum-hunisi",
+    "kategori": "Ev",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Karabiber Değirmeni Dolum Hunisi",
+    "aciklama": "Peugeot karabiber değirmenlerinizi etrafa dökmeden, temiz ve pratik bir şekilde doldurmanızı sağlayan özel tasarım dolum hunisi.\n\nDeğirmenin orta miline tam oturacak şekilde tasarlanmıştır.\nGeniş ağız yapısı sayesinde baharatların dışarı taşmasını engeller.\nDayanıklı yapısıyla uzun ömürlü kullanım sunar.\nYaklaşık dış ölçüler: 50 × 50 × 40 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-karabiber-de-irmeni-dolum-hunisi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-karabiber-de-irmeni-dolum-hunisi-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DTR9000",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "peugeot-206-koltuk-ba-l-k-ayar-d-mesi-1274472",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 206 Koltuk Başlık Ayar Düğmesi",
+    "aciklama": "Peugeot 206 model araçlar için özel olarak üretilen koltuk başlık ayar düğmesi yedek parçasıdır. Zamanla aşınan veya kırılan orijinal düğmenin yerine kolayca monte edilebilir.\n\n- Peugeot 206 (PSA) modelleriyle tam uyumludur.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Kolay montaj imkanı sağlar.\n\nYaklaşık dış ölçüler: 28 × 27 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-206-koltuk-ba-l-k-ayar-d-mesi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pipersw",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-208-tasar-m-anahtarl-k",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 208 Tasarım Anahtarlık",
+    "aciklama": "Peugeot 208 ön ızgara tasarımından ilham alınarak hazırlanan bu şık anahtarlık, aracınızın ruhunu her an yanınızda taşımanızı sağlar. Otomobil tutkunları için harika bir hediye seçeneğidir.\n\n- Peugeot 208 ön panel detaylarına sahip özel tasarım\n- Dayanıklı ve hafif yapı\n- Anahtar halkası takmak için entegre yuva\n- Günlük kullanıma uygun sağlam malzeme\n\nYaklaşık dış ölçüler: 106 × 41 × 5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-208-tasar-m-anahtarl-k-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-208-tasar-m-anahtarl-k-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ss98",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-expert-traveller-uyumlu-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Expert / Traveller Uyumlu Telefon Tutucu",
+    "aciklama": "Peugeot Expert ve Traveller modelleri için özel olarak tasarlanmış, havalandırma ızgarasına mükemmel uyum sağlayan telefon tutucu aparat.\nAracınızın konsol yapısına tam oturarak sürüş esnasında güvenli ve sarsıntısız bir kullanım sunar.\nKablo geçiş kanalı sayesinde telefonunuzu tutucudayken kolayca şarj edebilirsiniz.\nAracın orijinal dokusuna zarar vermeden kolayca monte edilir ve pratik kullanım sağlar.\nYüksek dayanımlı malzemeden siparişiniz üzerine özel üretilir.\nYaklaşık dış ölçüler: 90 × 60 × 51 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-expert-traveller-uyumlu-telefon-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-expert-traveller-uyumlu-telefon-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-expert-traveller-uyumlu-telefon-tutucu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "scenek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-508-bardakl-k-uyumlu-telefon-stand",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 508 Bardaklık Uyumlu Telefon Standı",
+    "aciklama": "Peugeot 508 model aracınızın konsolundaki bardaklık alanına mükemmel şekilde oturan, özel tasarım telefon standı.\nSürüş esnasında telefonunuzun güvenli ve göz önünde durmasını sağlar.\nAracın orijinal bardaklık mekanizmasına zarar vermeden kolayca yerleştirilir.\nKatlanabilir ve ayarlanabilir yapısı sayesinde kullanılmadığında yer kaplamaz.\nDayanıklı malzemeden aracınıza özel üretilmiştir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-508-bardakl-k-uyumlu-telefon-stand-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-508-bardakl-k-uyumlu-telefon-stand-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-508-bardakl-k-uyumlu-telefon-stand-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-508-bardakl-k-uyumlu-telefon-stand-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "John Doe",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hortum-tapas-seti-6mm-12mm",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Hortum Tapası Seti 6mm - 12mm",
+    "aciklama": "Sıvı ve hava tesisatlarında güvenli sızdırmazlık sağlamak amacıyla tasarlanmış pratik hortum tapası seti.\n\nTırtıklı yapısı sayesinde hortum içerisine sıkıca oturur ve kayma yapmaz.\nBakım, onarım ve test işlemlerinde geçici veya kalıcı körleme tapası olarak güvenle kullanılabilir.\nYüksek dayanımlı endüstriyel malzemeden özel tasarım olarak üretilmiştir.\n\nYaklaşık dış ölçüler: 27 × 12 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/hortum-tapas-seti-6mm-12mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/hortum-tapas-seti-6mm-12mm-2.jpg",
+      "https://media.pruvo3d.com/urunler/hortum-tapas-seti-6mm-12mm-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Cycopath",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-208-uyumlu-garmin-navigasyon-tutucu-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 208 Uyumlu Garmin Navigasyon Tutucu Aparat",
+    "aciklama": "Peugeot 208 model araçlar için özel tasarlanmış Garmin navigasyon montaj aparatıdır. Aracınızın konsol yapısına tam uyum sağlayarak sarsıntısız ve güvenli bir kullanım sunar.\n\n- Peugeot 208 konsol tasarımıyla birebir uyumludur.\n- Garmin navigasyon cihazınızı güvenle sabitlemenizi sağlar.\n- Sürüş esnasında ekranın görüş açısını en iyi konumda tutar.\n- Dayanıklı malzemeden özel tasarım olarak üretilmiştir.\n- Kolayca monte edilir, araçta kalıcı bir iz veya hasar bırakmaz.\n\nYaklaşık dış ölçüler: 60 × 36 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-208-uyumlu-garmin-navigasyon-tutucu-aparat-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-208-uyumlu-garmin-navigasyon-tutucu-aparat-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-208-uyumlu-garmin-navigasyon-tutucu-aparat-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Max Ølsted",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "peugeot-407-kalorifer-klapesi-g-lendirme-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 407 Kalorifer Klapesi Güçlendirme Aparatı",
+    "aciklama": "Peugeot 407 araçlarda kronikleşen kalorifer klapesi kırılma sorununa karşı özel olarak tasarlanmış dayanıklı güçlendirme aparatıdır. Isıtma ve havalandırma sisteminizin klape mekanizmasını sağlamlaştırarak uzun ömürlü bir kullanım sunar.\n\nYüksek sıcaklık dayanımına sahip endüstriyel malzemeden üretilmiştir.\nKlape milini sararak kırılmaları ve aşınmaları önler.\nAracın orijinal klape yapısına tam uyum sağlar.\nYaklaşık dış ölçüler: 50 × 48 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-407-kalorifer-klapesi-g-lendirme-aparat-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-407-kalorifer-klapesi-g-lendirme-aparat-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-407-kalorifer-klapesi-g-lendirme-aparat-3.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-307-sw-el-freni-d-mesi-mekanizmas",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 307 SW El Freni Düğmesi Mekanizması",
+    "aciklama": "Peugeot 307 SW model araçlar için özel olarak tasarlanmış el freni düğmesi iç mekanizma parçasıdır. Zamanla aşınan veya kırılan orijinal mekanizmayı yenilemek için mükemmel bir alternatiftir.\n\n- Peugeot 307 SW modelleriyle birebir uyumludur\n- Dayanıklı yapısı sayesinde uzun ömürlü kullanım sunar\n- Kolay montaj imkanıyla el freni mekanizmanızı hızla çalışır hale getirir\n- Siparişiniz üzerine özel tasarım üretim yöntemiyle hazırlanır",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-307-sw-el-freni-d-mesi-mekanizmas-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-sw-el-freni-d-mesi-mekanizmas-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DEMS",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-uyumlu-jant-g-bek-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Uyumlu Jant Göbek Kapağı",
+    "aciklama": "Peugeot araçlarınızın jant görünümünü tazelemek ve şık bir detay katmak için tasarlanmış jant göbek kapağı.\nDayanıklı yapısıyla dış ortam koşullarına ve aşınmaya karşı yüksek direnç gösterir.\nAracınızın orijinal jant tasarımına estetik bir uyum sağlar.\nKolayca monte edilebilir ve jant göbeğini toz ile kirden korur.\nÖzel tasarım üretim yöntemiyle yüksek kalitede üretilmiştir.\nYaklaşık dış ölçüler: 165 × 165 × 22 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-jant-g-bek-kapa-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Paaasia",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-308-ii-t9-obd-uyumlu-orta-konsol-buton-paneli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 308 II (T9) OBD Uyumlu Orta Konsol Buton Paneli",
+    "aciklama": "Peugeot 308 II (T9) model araçlar için özel tasarlanmış, orta konsola mükemmel uyum sağlayan buton paneli.\n\nAraç içi estetiği bozmadan ek gösterge, buton ve USB soketi gibi modifikasyonları yerleştirmenize olanak tanır.\nAlt kısımda yer alan OBD soketine kolay erişim imkanı sunar.\nAracın orijinal konsol hatlarına tam uyum sağlayacak şekilde özel üretilir.\nYüksek sıcaklığa ve güneş ışığına dayanıklı endüstriyel malzemeden imal edilmiştir.\n\nYaklaşık dış ölçüler: 85 × 69 × 11 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-308-ii-t9-obd-uyumlu-orta-konsol-buton-paneli-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-ii-t9-obd-uyumlu-orta-konsol-buton-paneli-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-ii-t9-obd-uyumlu-orta-konsol-buton-paneli-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-ii-t9-obd-uyumlu-orta-konsol-buton-paneli-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hannibal",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "peugeot-208-ii-paspas-sabitleme-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 208 II Paspas Sabitleme Klipsi",
+    "aciklama": "Peugeot 208 II model araçlar için özel olarak tasarlanan paspas sabitleme klipsi, paspaslarınızın kaymasını önleyerek sürüş güvenliğini ve konforunu artırır.\n\n- Orijinal montaj noktalarıyla tam uyumludur.\n- Paspasın zemin üzerinde kaymasını ve pedal altına sıkışmasını engeller.\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar ve kolayca monte edilir.\n\nYaklaşık dış ölçüler: 50 × 50 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-208-ii-paspas-sabitleme-klipsi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-208-ii-paspas-sabitleme-klipsi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-208-ii-paspas-sabitleme-klipsi-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Donixon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-uyumlu-bijon-somun-kapa-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Uyumlu Bijon Somun Kapağı Seti",
+    "aciklama": "Peugeot araçların orijinal jant tasarımıyla uyumlu, estetik ve koruyucu bijon somun kapağı.\nBijon başlarını dış etkenlere, çamura ve korozyona karşı korur.\nAracınızın jant görünümünü tamamlar ve temiz bir duruş sağlar.\nSıkı geçme yapısı sayesinde sürüş esnasında yerinden çıkmaz, kolayca monte edilir.\nÖzel dayanıklı malzemeden siparişiniz üzerine özel üretilir.\n\nYaklaşık dış ölçüler: 26 × 25 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-bijon-somun-kapa-seti-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-bijon-somun-kapa-seti-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-bijon-somun-kapa-seti-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-bijon-somun-kapa-seti-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jmvspeleo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-citroen-sustal-anahtar-pim-s-kme-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Citroen"
+    ],
+    "baslik": "Peugeot / Citroen Sustalı Anahtar Pim Sökme Aparatı",
+    "aciklama": "Peugeot ve Citroen araçların sustalı anahtar mekanizmalarındaki sabitleme pimini güvenli ve kolay bir şekilde çıkarmak için tasarlanmış özel aparat.\nAnahtar kabına zarar vermeden pimi yerinden çıkarmayı kolaylaştırır.\nAtölye ve anahtarcı kullanımı için ideal, pratik ve dayanıklı bir yardımcı araçtır.\nYaklaşık dış ölçüler: 110 x 80 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-citroen-sustal-anahtar-pim-s-kme-aparat-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-citroen-sustal-anahtar-pim-s-kme-aparat-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-citroen-sustal-anahtar-pim-s-kme-aparat-3.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-308-telefon-tutucu-stand-2007-2013-361608",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 308 Telefon Tutucu Stand (2007-2013)",
+    "aciklama": "Peugeot 308 (2007-2013) modelleri için özel tasarlanmış, konsol yapısına tam uyum sağlayan telefon standı.\n\nAracınızın orijinal konsol bölmesine kolayca yerleşir.\nSürüş esnasında navigasyon ve telefon ekranınızı en ideal açıda görmenizi sağlar.\nŞarj kablosu geçiş kanalı sayesinde kablo karmaşasını önler.\nAracınıza özel tasarlanmış olup, yüksek kaliteli malzemeden özel üretilir.\n\nYaklaşık dış ölçüler: 180 × 145 × 45 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-308-telefon-tutucu-stand-2007-2013-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-telefon-tutucu-stand-2007-2013-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-telefon-tutucu-stand-2007-2013-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-telefon-tutucu-stand-2007-2013-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dromanol",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-207-vites-topuzu-563910",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 207 Vites Topuzu",
+    "aciklama": "Peugeot 207 model araçlar için özel tasarım olarak üretilen yüksek kaliteli vites topuzu.\nZamanla aşınan veya hasar gören orijinal vites topuzunuzun yerine mükemmel bir alternatif sunar.\nErgonomik yapısı sayesinde konforlu bir vites geçişi sağlar.\nDayanıklı malzemesiyle uzun ömürlü kullanım sunar ve aracınızın iç mekanına şık bir görünüm kazandırır.\nYaklaşık dış ölçüler: 100 × 55 × 49 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-207-vites-topuzu-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-vites-topuzu-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-vites-topuzu-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mi Réplica 3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "citroen-berlingo-emniyet-kemeri-tokas-i-ptal-aparat",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen",
+      "Berlingo"
+    ],
+    "baslik": "Citroen Berlingo Emniyet Kemeri Tokası İptal Aparatı",
+    "aciklama": "Citroen Berlingo araçlar için özel olarak tasarlanmış emniyet kemeri tokası iptal aparatı (dummy).\nKoltukta yük taşırken veya araç içi temizlik esnasında oluşan emniyet kemeri uyarı sesini kesmek için kullanılır.\nDayanıklı malzemeden özel tasarım olarak üretilmiştir.\nKolayca takılıp çıkarılabilir pratik tasarıma sahiptir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-emniyet-kemeri-tokas-i-ptal-aparat-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "guddl",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "peugeot-206-vites-topuzu-450385",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 206 Vites Topuzu",
+    "aciklama": "Peugeot 206 model araçlar için özel olarak tasarlanmış vites topuzu. Aşınmış veya hasar görmüş orijinal vites topuzunuzun yerine kullanabileceğiniz, ergonomik ve dayanıklı bir yedek parçadır.\n\n- Peugeot 206 vites kolları ile tam uyumludur.\n- Sürüş konforunu artıran ergonomik kavrama yüzeyine sahiptir.\n- Montajı oldukça pratiktir, doğrudan vites koluna uygulanabilir.\n- Yüksek kaliteli malzemeden özel tasarım olarak üretilmiştir.\n\nYaklaşık dış ölçüler: 134 × 64 × 64 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-206-vites-topuzu-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "eclyptox",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-308-bagaj-kilidi-koruma-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 308 Bagaj Kilidi Koruma Kapagi",
+    "aciklama": "Peugeot 308 model araclariniz icin ozel olarak tasarlanmis bagaj kilit mekanizmasi koruma kapagidir. Bagaj esigindeki kilit boslugunu kapatarak estetik bir gorunum sunar ve mekanizmayi dis etkenlerden korur.\n\n- Peugeot 308 modelleriyle tam uyumludur.\n- Dayanikli ve kaliteli malzemeden ozel tasarim uretilmistir.\n- Kolayca monte edilir, aracin orijinal yapisina zarar vermez.\n- Bagaj bolumune sportif ve temiz bir hava katar.\n\nYaklaşık dış ölçüler: 185 × 37 × 6 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-308-bagaj-kilidi-koruma-kapagi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-bagaj-kilidi-koruma-kapagi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-bagaj-kilidi-koruma-kapagi-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-bagaj-kilidi-koruma-kapagi-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hannibal",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen",
+      "Peugeot"
+    ],
+    "baslik": "Citroen Berlingo / Peugeot Partner Modutop Tavan Kutusu Kilidi",
+    "aciklama": "Citroen Berlingo ve Peugeot Partner araçların Modutop tavan saklama kutusu için özel tasarlanmış kilit mekanizması yedek parçasıdır.\nZamanla aşınan veya kırılan orijinal kilit mandalının yerine mükemmel uyum sağlar.\nYüksek dayanımlı malzemeden özel üretilmiştir.\nKolay montajı sayesinde tavan kutunuzu yeniden güvenle kilitlemenizi sağlar.\n\nYaklaşık dış ölçüler: 17 × 17 × 3 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-1.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-2.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-3.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-berlingo-peugeot-partner-modutop-tavan-kutusu-kilidi-4.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-307-2-din-teyp-er-evesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 307 2 DIN Teyp Çerçevesi",
+    "aciklama": "Peugeot 307 model araçlar için özel tasarlanmış, çift din (2 DIN) multimedya ve teyp montaj çerçevesi.\nAracınızın konsol yapısına tam uyum sağlayarak estetik bir görünüm sunar.\nDayanıklı yapısı sayesinde uzun ömürlü kullanım sağlar.\nMontaj yuvaları ve soket geçişleri hassas şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 189 × 120 × 44 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-307-2-din-teyp-er-evesi-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-2-din-teyp-er-evesi-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-2-din-teyp-er-evesi-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-2-din-teyp-er-evesi-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "alien hitman",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-5008-far-y-kama-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 5008 Far Yıkama Kapağı",
+    "aciklama": "Peugeot 5008 model araçlar için özel olarak tasarlanmış dayanıklı far yıkama kapağı. Kaybolan veya hasar gören orijinal kapağın yerine mükemmel uyum sağlar.\n\nYüksek kaliteli ve dış ortam koşullarına dayanıklı malzemeden özel tasarım üretilmiştir.\nAracınızın ön tampon estetiğini tamamlar ve far yıkama mekanizmasını dış etkenlerden korur.\nMontaj noktaları orijinal yapıya sadık kalınarak tasarlanmıştır, kolayca yerine takılabilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-5008-far-y-kama-kapa-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-5008-far-y-kama-kapa-2.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-307-sustal-anahtar-kab",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 307 Sustalı Anahtar Kabı",
+    "aciklama": "Peugeot 307 model araçlar için özel olarak tasarlanan yedek sustalı anahtar kabı.\nYıpranmış, kırılmış veya eskiyen anahtar dış kasanızı yenilemek için mükemmel bir alternatiftir.\n\n- Dayanıklı yapısıyla uzun ömürlü kullanım sunar.\n- Mevcut anahtar mekanizmanız ve elektronik kartınızla tam uyum sağlar.\n- Kolay montaj imkanı sayesinde hızlıca yenilenebilir.\n- Özel tasarım üretim yöntemiyle yüksek kalitede üretilmiştir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-307-sustal-anahtar-kab-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-sustal-anahtar-kab-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-307-sustal-anahtar-kab-3.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-ve-citroen-uyumlu-vites-topuzu-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Citroen"
+    ],
+    "baslik": "Peugeot ve Citroen Uyumlu Vites Topuzu Kapağı",
+    "aciklama": "Peugeot ve Citroën araç grupları için özel olarak geliştirilen vites topuzu kapağı klipsi, yıpranmış veya kırılmış orijinal kapağınızı yenilemek için ideal çözümdür. Aracınızın iç mekanına taze ve şık bir görünüm kazandırır.\n\n- Peugeot ve Citroën vites topuzları ile tam uyumludur\n- Dayanıklı yapısı sayesinde uzun ömürlü kullanım sunar\n- Kolay montaj tasarımıyla pratik şekilde yerine oturur\n- Aşınmaya karşı dirençli malzemeden özel tasarım üretilmiştir\n\nYaklaşık dış ölçüler: 38 × 38 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-ve-citroen-uyumlu-vites-topuzu-kapa-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-ve-citroen-uyumlu-vites-topuzu-kapa-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NaojLEIV",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "peugeot-uyumlu-jant-g-bek-armas-2021-logo",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Uyumlu Jant Göbek Arması (2021 Logo)",
+    "aciklama": "Peugeot araçlarınız için özel olarak tasarlanmış, yeni nesil logolu jant göbek kapağı.\nKayıp veya yıpranmış jant göbeklerinizi bu şık ve dayanıklı parça ile kolayca yenileyebilirsiniz.\n\n- Yüksek kaliteli ve dış ortam koşullarına dayanıklı malzemeden özel üretilir.\n- Tırnaklı yapısı sayesinde jant göbeğine tam oturur ve kolayca monte edilir.\n- Peugeot 2021 yeni logo tasarımıyla aracınıza modern bir görünüm kazandırır.\n\nYaklaşık dış ölçüler: 59 × 59 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-jant-g-bek-armas-2021-logo-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-jant-g-bek-armas-2021-logo-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-jant-g-bek-armas-2021-logo-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-uyumlu-jant-g-bek-armas-2021-logo-4.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-308-yan-ayna-kapa",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 308 Yan Ayna Kapağı",
+    "aciklama": "Peugeot 308 model araçlar için özel olarak tasarlanmış yedek yan ayna kapağı. Hasar görmüş veya kaybolmuş orijinal ayna kapağınızın yerine mükemmel uyum sağlar.\n\n- Dayanıklı ve yüksek kaliteli malzemeden özel tasarım olarak üretilmiştir.\n- Aracınızın orijinal hatlarına tam uyum sağlayan pürüzsüz dış yüzey.\n- Kolay montaj için arka kısımda yer alan entegre tırnak yapısı.\n- Darbelere ve dış hava koşullarına karşı yüksek direnç.\n\nYaklaşık dış ölçüler: 219 × 191 × 111 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-308-yan-ayna-kapa-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-308-yan-ayna-kapa-2.jpg"
+    ]
+  },
+  {
+    "id": "peugeot-207-bagaj-kilidi-di-lisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 207 Bagaj Kilidi Dişlisi",
+    "aciklama": "Peugeot 207 model araçların bagaj kilit mekanizmasında zamanla aşınan veya kırılan dişli için özel tasarlanmış yedek parçadır.\n\n- Orijinal parça ölçüleriyle birebir uyumlu yapıdadır.\n- Aşınmaya karşı dayanıklı endüstriyel malzemeden özel olarak üretilmiştir.\n- Bagaj kilit motorunun sorunsuz ve sessiz çalışmasını sağlar.\n- Kolay montaj imkanı sunar.\n\nYaklaşık dış ölçüler: 44 × 25 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-207-bagaj-kilidi-di-lisi-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Itantucci",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "citroen-jumper-fiat-ducato-peugeot-boxer-i-kili-bardakl-k-429510",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen",
+      "Fiat",
+      "Peugeot"
+    ],
+    "baslik": "Citroen Jumper, Fiat Ducato & Peugeot Boxer İkili Bardaklık",
+    "aciklama": "Citroen Jumper, Fiat Ducato ve Peugeot Boxer araç modelleriyle tam uyumlu, ergonomik tasarımlı ikili bardaklık.\n\nAraç içi konsol yapısına mükemmel uyum sağlayarak sürüş esnasında içeceklerinizi güvenle taşımanızı sağlar.\nDayanıklı yapısı sayesinde uzun ömürlü kullanım sunar.\nAracın orijinal yapısına zarar vermeden kolayca monte edilebilir.\nÖzel tasarım üretim yöntemiyle yüksek kalitede üretilmiştir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/citroen-jumper-fiat-ducato-peugeot-boxer-i-kili-bardakl-k-1.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-jumper-fiat-ducato-peugeot-boxer-i-kili-bardakl-k-2.jpg",
+      "https://media.pruvo3d.com/urunler/citroen-jumper-fiat-ducato-peugeot-boxer-i-kili-bardakl-k-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kay | 3D Models",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-207-konsol-i-i-ekmece-d-zenleyici-220140",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 207 Konsol İçi Çekmece Düzenleyici",
+    "aciklama": "Peugeot 207 model araçların ön konsolundaki boşluğu işlevsel bir depolama alanına dönüştüren özel tasarım çekmece düzenleyici.\n\n- Aracınızın konsol yapısıyla birebir uyumludur.\n- İçerisindeki bölmeler sayesinde madeni para, şeker, kart veya küçük kişisel eşyalarınızı düzenli bir şekilde saklamanızı sağlar.\n- Kolayca takılıp çıkarılabilir ve pratik bir kullanım sunar.\n- Dayanıklı malzemeden siparişiniz üzerine özel üretilir.\n\nYaklaşık dış ölçüler: 174 × 110 × 43 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-207-konsol-i-i-ekmece-d-zenleyici-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-207-konsol-i-i-ekmece-d-zenleyici-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Neo Kerman",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ara-cam-suyu-depo-kapa",
+    "kategori": "Otomobil",
+    "marka": [],
+    "baslik": "Araç Cam Suyu Depo Kapağı",
+    "aciklama": "Zamanla aşınan, çatlayan veya kaybolan cam silecek suyu depo kapağınız için dayanıklı ve esnek bir alternatif sunuyoruz. Esnek yapısıyla sızdırmazlık sağlar ve motor bölmesindeki sıcaklıklara karşı dirençlidir.\n\n- Orijinal parça ölçüleriyle birebir uyumludur.\n- Esnek ve dayanıklı özel formüllü malzemeden özel üretilir.\n- Kolayca monte edilir, ekstra bir alet gerektirmez.\n- Silecek suyu deposunun içine toz, kir ve yabancı maddelerin girmesini engeller.\n\nYaklaşık dış ölçüler: 152 × 59 × 7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ara-cam-suyu-depo-kapa-1.jpg",
+      "https://media.pruvo3d.com/urunler/ara-cam-suyu-depo-kapa-2.jpg",
+      "https://media.pruvo3d.com/urunler/ara-cam-suyu-depo-kapa-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cimoalpacino",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "peugeot-306-orta-konsol-bardakl-k",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot 306 Orta Konsol Bardaklık",
+    "aciklama": "Peugeot 306 model araçların orta konsolu ile tam uyumlu, pratik ve şık tasarımlı bardaklık aparatı.\n\nAracınızın orijinal konsol yapısına zarar vermeden kolayca yerleştirilir.\nSürüş esnasında içeceklerinizin güvenli ve sabit durmasını sağlar.\nYüksek kaliteli malzemeden, aracınızın iç mekan dokusuna uyumlu şekilde özel üretilmiştir.\n\nYaklaşık dış ölçüler: 104 × 82 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/peugeot-306-orta-konsol-bardakl-k-1.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-306-orta-konsol-bardakl-k-2.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-306-orta-konsol-bardakl-k-3.jpg",
+      "https://media.pruvo3d.com/urunler/peugeot-306-orta-konsol-bardakl-k-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NEO_CZ",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "fiat-ducato-peugeot-boxer-citroen-relay-bardak-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Fiat",
+      "Ducato",
+      "Peugeot",
+      "Boxer",
+      "Citroen",
+      "Relay"
+    ],
+    "baslik": "Fiat Ducato, Peugeot Boxer, Citroen Relay Bardak Tutucu",
+    "aciklama": "Fiat Ducato, Peugeot Boxer ve Citroen Relay araçlarınızla tam uyumlu, sürüş esnasında içeceklerinizi güvenle taşımanızı sağlayan özel tasarım bardak tutucu.\n\n- Aracın konsol yapısına mükemmel uyum sağlar ve kolayca monte edilir.\n- Petek dokulu estetik tasarımıyla kabin içine şık bir görünüm katar.\n- Geniş haznesi sayesinde standart bardak, termos ve pet şişeler için idealdir.\n- Dayanıklı malzemeden size özel üretilir ve uzun ömürlü kullanım sunar.\n\nYaklaşık dış ölçüler: 216 x 90 x 75 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/fiat-ducato-peugeot-boxer-citroen-relay-bardak-tutucu-1.jpg",
+      "https://media.pruvo3d.com/urunler/fiat-ducato-peugeot-boxer-citroen-relay-bardak-tutucu-2.jpg",
+      "https://media.pruvo3d.com/urunler/fiat-ducato-peugeot-boxer-citroen-relay-bardak-tutucu-3.jpg",
+      "https://media.pruvo3d.com/urunler/fiat-ducato-peugeot-boxer-citroen-relay-bardak-tutucu-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mfraz74",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "peugeot-207-cam-suyu-depo-kapa",
     "kategori": "Otomobil",
     "marka": [
@@ -795,8 +1584,7 @@
     "id": "peugeot-308-bagaj-kapa-i-kapak-par-as",
     "kategori": "Otomobil",
     "marka": [
-      "Peugeot",
-      "Peugeot 308"
+      "Peugeot"
     ],
     "baslik": "Peugeot 308 Bagaj Kapağı İç Kapak Parçası",
     "aciklama": "Peugeot 308 model araçların bagaj kapağı iç kısmında yer alan, zamanla yıpranan veya kaybolan kapak parçasının yerine kullanılmak üzere özel olarak üretilmiştir.\nAracınızın orijinal iç trim dokusuna ve hatlarına uyum sağlayacak şekilde tasarlanmıştır.\nYüksek dayanımlı malzemesi sayesinde uzun ömürlü kullanım sunar.\nMontajı pratik olup, mevcut yuvasına doğrudan yerleştirilerek kolayca takılır.\nYaklaşık dış ölçüler: 185 × 37 × 6 mm.",
@@ -4055,8 +4843,7 @@
     "id": "peugeot-308-telefon-tutucu-stand",
     "kategori": "Otomobil",
     "marka": [
-      "Peugeot",
-      "308"
+      "Peugeot"
     ],
     "baslik": "Peugeot 308 Telefon Tutucu Standı",
     "aciklama": "Peugeot 308 (2007-2013) modelleri için özel tasarlanıp üretilen, konsol içi boşluğa tam oturan telefon tutucu stand.\nAracınızın orijinal konsol yapısına zarar vermeden kolayca monte edilir.\nTelefonunuzu yatay konumda güvenle tutar ve navigasyon kullanımını kolaylaştırır.\nAlt kısmındaki kablo geçiş kanalı sayesinde sürüş esnasında cihazınızı rahatça şarj edebilirsiniz.\nDayanıklı yapısıyla uzun ömürlü kullanım sunar.",
