@@ -1,46 +1,41 @@
 #!/usr/bin/env python3
-"""PRUVO ******** SATICI toplu listeleme aracı.
+"""PRUVO ******** SATICI toplu listeleme araci (PARALEL + concurrency-safe).
 
 Amac: bir satici profilinin TUM urunlerini siteye LISTELEMEK (satin almadan). Siparis gelince
-ilgili model ********'dan satin alinip uretilir. Ucretli kaynak -> `lisans` YOK, atif YOK
-(ticari mahremiyet). Maliyet (USD) + link gizli `.urun-kaynaklari.json`'a yazilir.
+model ********'dan alinip uretilir. Ucretli kaynak -> `lisans` YOK, atif YOK (ticari mahremiyet).
+Maliyet (USD) + link gizli `.urun-kaynaklari.json`'a yazilir.
 
 Kullanim:  python3 tools/cgt-ekle.py "https://www.********.com/3d-print-models?author=<satici>"
 
-Her urun icin: JSON-LD (baslik + USD fiyat + kapak) + galeri gorselleri cekilir -> .thing-cache/
-cgt-<id>/ + meta.json -> thing-gemini.py (gorsel secimi + Turkce icerik + kategori + marka) ->
-secili gorseller R2'ye -> urun STAGE edilir. COMMIT ETMEZ (gozden gecirme).
+Her urun PARALEL islenir (fetch + Gemini + upload). Yazma: dosya KILIDI altinda urunler.json'u
+O AN yeniden okuyup ekler (stale snapshot degil) -> baska oturum ayni anda yazsa bile EZMEZ.
+COMMIT ETMEZ. Sonda gozden gecirme tablosu basar.
 
-FIYAT: TL = round(USD × 100)  ($8->800, $6.5->650, $2.5->250). ********'da aktif INDIRIM olabilir;
-JSON-LD indirimli fiyati verebilir -> gozden gecirmede urun sayfasindaki INDIRIMSIZ fiyatla DOGRULA.
-
-STL/olcu YOK (dosya henuz bizde degil). Nezaket icin istekler arasi kisa gecikme.
+FIYAT: TL = round(USD × 100). Aktif indirim JSON-LD'yi sasirtabilir -> INDIRIMSIZ fiyatla dogrula.
+STL/olcu YOK (dosya henuz bizde degil).
 """
-import json, os, re, subprocess, sys, time, urllib.parse
+import concurrent.futures, fcntl, json, os, re, subprocess, sys, tempfile, time, urllib.parse
 
 ROOT = "/Users/okan/dev/pruvo"
 TOOLS = os.path.join(ROOT, "tools")
 IMGROOT = os.path.join(ROOT, ".thing-cache")
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
+LOCK = os.path.join(ROOT, ".urunler.lock")
 PY = sys.executable or "python3"
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+WORKERS = int(os.environ.get("PRUVO_WORKERS", "6"))
 
 
 def fetch(url):
-    import tempfile
     tmp = os.path.join(tempfile.gettempdir(), "cgt_%d.html" % (abs(hash(url)) % 10**8))
     subprocess.run(["curl", "-sSL", "-A", UA, url, "-o", tmp], check=False)
-    if not os.path.exists(tmp):
-        return ""
-    return open(tmp, encoding="utf-8", errors="ignore").read()
+    return open(tmp, encoding="utf-8", errors="ignore").read() if os.path.exists(tmp) else ""
 
 
 def profil_urunleri(profil_url):
-    """Profildeki tum urun URL'lerini topla (sayfalama dahil)."""
-    urls = []
-    seen = set()
-    for page in range(1, 12):   # emniyet: en fazla 11 sayfa
+    urls, seen = [], set()
+    for page in range(1, 12):
         sep = "&" if "?" in profil_url else "?"
         html = fetch(profil_url + "%spage=%d" % (sep, page))
         if not html:
@@ -51,7 +46,7 @@ def profil_urunleri(profil_url):
             break
         for u in yeni:
             seen.add(u); urls.append("https://www.********.com" + u)
-        time.sleep(1.5)
+        time.sleep(1.0)
     return urls
 
 
@@ -60,9 +55,9 @@ def urun_verisi(url, author=None):
     if not html:
         return None
     if author and ("/designers/" + author) not in html:
-        return {"_yanlis_yazar": True}   # oneri/baska satici -> atla
+        return {"_yanlis_yazar": True}
     m = re.search(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', html, re.S)
-    baslik = None; usd = None
+    baslik = usd = None
     if m:
         try:
             d = json.loads(m.group(1).strip())
@@ -72,16 +67,13 @@ def urun_verisi(url, author=None):
             usd = off.get("price")
         except Exception:
             pass
-    # galeri gorselleri: items/<id>/<hash>/...
     imgs = re.findall(r'https://img-new\.********\.com/items/(\d+)/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)
-    itemid = imgs[0] if imgs else None
     galeri = list(dict.fromkeys(re.findall(
         r'https://img-new\.********\.com/items/\d+/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)))
-    return {"itemid": itemid, "baslik": baslik, "usd": usd, "galeri": galeri, "link": url}
+    return {"itemid": imgs[0] if imgs else None, "baslik": baslik, "usd": usd, "galeri": galeri, "link": url}
 
 
 def indir_gorseller(itemid, galeri, n=6):
-    import tempfile
     d = os.path.join(IMGROOT, "cgt-" + itemid); os.makedirs(d, exist_ok=True)
     saved = []
     for u in galeri:
@@ -100,7 +92,6 @@ def indir_gorseller(itemid, galeri, n=6):
 
 
 def sips_upload(local_jpg, key):
-    import tempfile
     small = os.path.join(tempfile.gettempdir(), "up_" + os.path.basename(key))
     subprocess.run(["sips", "-Z", "1000", "-s", "formatOptions", "80", local_jpg, "--out", small],
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -119,85 +110,99 @@ def tl_fiyat(usd):
         return ""
 
 
-def stage_one(url, urunler, mevcut_ids, stage_src, author=None):
-    v = urun_verisi(url, author)
-    if v and v.get("_yanlis_yazar"):
-        return {"url": url, "durum": "ATLA: baska satici/oneri"}
-    if not v or not v.get("itemid") or not v.get("galeri"):
-        return {"url": url, "durum": "HATA: veri/gorsel yok"}
-    itemid = v["itemid"]
-    key = "cgt-" + itemid
-    d, imgs = indir_gorseller(itemid, v["galeri"])
-    if not imgs:
-        return {"url": url, "durum": "HATA: gorsel inmedi"}
-    # meta.json (thing-gemini bunu okur) — lisans BOS, olcu YOK
-    json.dump({"id": key, "baslik": v.get("baslik") or itemid, "tasarimci": "",
-               "lisans": "", "olcu_mm": None, "stl_adet": 0,
-               "gorseller": [os.path.basename(p) for p in imgs]},
-              open(os.path.join(d, "meta.json"), "w"), ensure_ascii=False)
-    # gemini onerisi
-    subprocess.run([PY, os.path.join(TOOLS, "thing-gemini.py"), key],
-                   capture_output=True, text=True)
-    onerip = os.path.join(d, "oneri.json")
-    if not os.path.exists(onerip):
-        return {"url": url, "durum": "HATA: gemini oneri yok"}
-    o = json.load(open(onerip))
-    base = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or itemid).lower()).strip("-")[:60] or itemid
-    uid = base if base not in mevcut_ids else base + "-" + itemid
-    secili = o.get("sec_gorseller") or sorted(os.path.basename(p) for p in imgs)
-    urls = []
-    for i, fn in enumerate(secili, 1):
-        fp = os.path.join(d, fn)
-        if os.path.exists(fp):
-            uu = sips_upload(fp, "urunler/%s-%d.jpg" % (uid, i))
-            if uu:
-                urls.append(uu)
-    if not urls:
-        return {"url": url, "durum": "HATA: yuklenemedi"}
-    urun = {"id": uid, "kategori": o.get("kategori", "Otomobil"), "marka": o.get("marka", []),
-            "baslik": o.get("baslik", itemid), "aciklama": o.get("aciklama", ""),
-            "fiyat": tl_fiyat(v.get("usd")), "gorseller": urls}   # lisans YOK
-    stage_src.append((uid, {"kaynak": "********", "link": url, "tur": "satin-alma",
-                            "usd": v.get("usd"), "itemid": itemid, "baski": "",
-                            "not": "listeleme; siparis gelince satin al+uret"}))
-    mevcut_ids.add(uid)
-    return {"url": url, "durum": "STAGED", "uid": uid, "usd": v.get("usd"),
-            "fiyat": urun["fiyat"], "kategori": urun["kategori"], "marka": urun["marka"],
-            "gorsel": len(urls), "baslik": urun["baslik"], "_urun": urun}
+def process_one(url, author):
+    """PARALEL calisir; urunler.json'a DOKUNMAZ. Sadece fetch+gemini+upload yapip sonuc doner."""
+    try:
+        v = urun_verisi(url, author)
+        if v and v.get("_yanlis_yazar"):
+            return {"url": url, "durum": "ATLA: baska satici/oneri"}
+        if not v or not v.get("itemid") or not v.get("galeri"):
+            return {"url": url, "durum": "HATA: veri/gorsel yok"}
+        itemid = v["itemid"]; key = "cgt-" + itemid
+        d, imgs = indir_gorseller(itemid, v["galeri"])
+        if not imgs:
+            return {"url": url, "durum": "HATA: gorsel inmedi"}
+        json.dump({"id": key, "baslik": v.get("baslik") or itemid, "tasarimci": "", "lisans": "",
+                   "olcu_mm": None, "stl_adet": 0, "gorseller": [os.path.basename(p) for p in imgs]},
+                  open(os.path.join(d, "meta.json"), "w"), ensure_ascii=False)
+        subprocess.run([PY, os.path.join(TOOLS, "thing-gemini.py"), key], capture_output=True, text=True)
+        onerip = os.path.join(d, "oneri.json")
+        if not os.path.exists(onerip):
+            return {"url": url, "durum": "HATA: gemini oneri yok"}
+        o = json.load(open(onerip))
+        uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or itemid).lower()).strip("-")[:60] or itemid
+        secili = o.get("sec_gorseller") or sorted(os.path.basename(p) for p in imgs)
+        urls = []
+        for i, fn in enumerate(secili, 1):
+            fp = os.path.join(d, fn)
+            if os.path.exists(fp):
+                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (uid, i))
+                if uu:
+                    urls.append(uu)
+        if not urls:
+            return {"url": url, "durum": "HATA: yuklenemedi"}
+        urun = {"id": uid, "kategori": o.get("kategori", "Otomobil"), "marka": o.get("marka", []),
+                "baslik": o.get("baslik", itemid), "aciklama": o.get("aciklama", ""),
+                "fiyat": tl_fiyat(v.get("usd")), "gorseller": urls}   # lisans YOK
+        src = {"kaynak": "********", "link": url, "tur": "satin-alma", "usd": v.get("usd"),
+               "itemid": itemid, "baski": "", "not": "listeleme; sipariste satin al+uret"}
+        return {"url": url, "durum": "STAGED", "urun": urun, "src": src, "itemid": itemid,
+                "usd": v.get("usd"), "fiyat": urun["fiyat"], "kategori": urun["kategori"],
+                "marka": urun["marka"], "gorsel": len(urls), "baslik": urun["baslik"]}
+    except Exception as e:
+        return {"url": url, "durum": "HATA: %s" % str(e)[:120]}
+
+
+def merge_safe(staged):
+    """Dosya KILIDI altinda urunler.json'u O AN okuyup ekler (stale snapshot degil)."""
+    lockf = open(LOCK, "w")
+    fcntl.flock(lockf, fcntl.LOCK_EX)
+    try:
+        urunler = json.load(open(URUNLER))
+        kaynak = json.load(open(KAYNAK))
+        mevcut = {p["id"] for p in urunler}
+        yeni = []
+        for s in staged:
+            urun = s["urun"]; uid = urun["id"]
+            if uid in mevcut:                      # o an cakisiyorsa itemid ekle (gorsel URL'leri etkilenmez)
+                uid = uid + "-" + s["itemid"]; urun["id"] = uid
+            mevcut.add(uid); yeni.append(urun)
+            kaynak[uid] = s["src"]
+        for u in reversed(yeni):
+            urunler.insert(0, u)
+        json.dump(urunler, open(URUNLER, "w"), ensure_ascii=False, indent=2)
+        json.dump(kaynak, open(KAYNAK, "w"), ensure_ascii=False, indent=1)
+        return len(yeni), len(urunler)
+    finally:
+        fcntl.flock(lockf, fcntl.LOCK_UN); lockf.close()
 
 
 def main(profil_url):
-    urunler = json.load(open(URUNLER))
-    kaynak = json.load(open(KAYNAK))
-    mevcut_ids = {p["id"] for p in urunler}
     am = re.search(r'author=([a-zA-Z0-9_-]+)', profil_url)
     author = am.group(1) if am else None
     print("Profil taraniyor:", profil_url, "(satici:", author, ")", flush=True)
     urls = profil_urunleri(profil_url)
-    print("Bulunan urun:", len(urls), flush=True)
-    stage_src = []; sonuc = []
-    for i, u in enumerate(urls, 1):
-        print("### (%d/%d)" % (i, len(urls)), u, flush=True)
-        sonuc.append(stage_one(u, urunler, mevcut_ids, stage_src, author))
-        time.sleep(1.2)
-    yeni = [s["_urun"] for s in sonuc if s.get("durum") == "STAGED"]
-    for un in reversed(yeni):
-        urunler.insert(0, un)
-    json.dump(urunler, open(URUNLER, "w"), ensure_ascii=False, indent=2)
-    for uid, rec in stage_src:
-        kaynak[uid] = rec
-    json.dump(kaynak, open(KAYNAK, "w"), ensure_ascii=False, indent=1)
+    print("Bulunan urun:", len(urls), "| paralel worker:", WORKERS, flush=True)
+    sonuc = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        futs = {ex.submit(process_one, u, author): u for u in urls}
+        done = 0
+        for f in concurrent.futures.as_completed(futs):
+            r = f.result(); sonuc.append(r); done += 1
+            print("  (%d/%d) %s %s" % (done, len(urls), r.get("durum"), r.get("uid", r.get("baslik", ""))[:40] if r.get("durum") == "STAGED" else ""), flush=True)
+    staged = [s for s in sonuc if s.get("durum") == "STAGED"]
+    n, toplam = merge_safe(staged) if staged else (0, "?")
     print("\n" + "=" * 74)
     print("STAGED (commit ETMEDIM — fiyatlari INDIRIMSIZ ******** fiyatiyla dogrula):")
-    for s in sonuc:
+    for s in sorted(sonuc, key=lambda x: x.get("durum") != "STAGED"):
         if s.get("durum") == "STAGED":
             print("  ✔ %-40s | %-10s | usd:%s -> %s | g:%d | %s"
-                  % (s["uid"], s["kategori"], s["usd"], s["fiyat"], s["gorsel"], s["marka"]))
+                  % (s["urun"]["id"], s["kategori"], s["usd"], s["fiyat"], s["gorsel"], s["marka"]))
         else:
             print("  ✘", s["url"], "->", s["durum"])
     print("-" * 74)
-    print("%d urun STAGE edildi, urunler.json toplam %d." % (len(yeni), len(urunler)))
-    print("SONRAKI: fiyatlari dogrula/duzelt -> yedekle + commit + push (lisans alani YOK, isimsiz commit).")
+    print("%s urun STAGE edildi, urunler.json toplam %s." % (n, toplam))
+    print("SONRAKI: fiyatlari dogrula -> yedekle + commit + push (lisans alani YOK, isimsiz commit).")
 
 
 if __name__ == "__main__":
