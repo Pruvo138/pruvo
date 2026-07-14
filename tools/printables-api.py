@@ -14,7 +14,7 @@ kullanmak isterse: `import importlib.util` ile yukler. Basitlik icin arama/meta 
 kendi kucuk gql() sarmalayicisini tutar; buradaki degerler (ENDPOINT, MEDIA, lisans kurali)
 tek dog­ruluk kaynagidir.
 """
-import json, re, struct, urllib.request
+import json, re, struct, urllib.request, zipfile, io
 
 ENDPOINT = "https://api.printables.com/graphql/"
 MEDIA = "https://media.printables.com/"   # + filePath  ->  tam gorsel URL'si
@@ -145,6 +145,35 @@ def stl_bbox(path):
     return d
 
 
+def bbox_3mf(path):
+    """3MF (zip icinde 3D/3dmodel.model XML) sinir kutusu — STL yoksa yedek olcum.
+    Transform/birden fazla obje varsa yaklasiktir (tum vertex'lerin ham min/max'i)."""
+    try:
+        with zipfile.ZipFile(path) as z:
+            names = [n for n in z.namelist() if n.lower().endswith(".model")]
+            if not names:
+                return None
+            xml = z.read(names[0]).decode("utf-8", "ignore")
+    except (zipfile.BadZipFile, KeyError):
+        return None
+    xs = [float(x) for x in re.findall(r'<vertex\s+x="([-\d.eE]+)"', xml)]
+    ys = [float(x) for x in re.findall(r'<vertex\s+x="[-\d.eE]+"\s+y="([-\d.eE]+)"', xml)]
+    zs = [float(x) for x in re.findall(r'z="([-\d.eE]+)"\s*/?>', xml)]
+    if not xs or not ys or not zs:
+        return None
+    d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+    if d[0] <= 0 or d[0] > 100000:
+        return None
+    return d
+
+
+def model_bbox(path):
+    """Uzantiya gore doğru olcum fonksiyonuna yonlendirir (.stl veya .3mf)."""
+    if path.lower().endswith(".3mf"):
+        return bbox_3mf(path)
+    return stl_bbox(path)
+
+
 def strip_html(s):
     s = re.sub(r"<br\s*/?>", "\n", s or "", flags=re.I)
     s = re.sub(r"</p>", "\n\n", s, flags=re.I)
@@ -217,19 +246,26 @@ def http_get(url):
         return r.read()
 
 
-def download_stl(print_id, save_path):
-    """Modelin EN BUYUK gercek .stl'ini indirir save_path'e yazar. Bytes uzunlugunu dondurur.
-    (.step/.3mf/.obj disi; sadece .stl. Yoksa RuntimeError.)"""
+def download_stl(print_id, save_path_noext):
+    """Modelin EN BUYUK gercek dosyasini indirir (.stl tercih edilir; yoksa .3mf'e duser —
+    step/obj gibi baski disi formatlar alinmaz). save_path_noext + dogru uzanti ile yazar.
+    Doner: (gercek_dosya_adi, kaydedilen_yol, bayt_uzunlugu). Uygun dosya yoksa RuntimeError."""
     d = detail(print_id)
-    stls = [s for s in (d.get("stls") or []) if (s.get("name") or "").lower().endswith(".stl")]
-    if not stls:
-        raise RuntimeError("bu modelde .stl yok (sadece step/3mf olabilir)")
-    stls.sort(key=lambda s: s.get("fileSize") or 0, reverse=True)  # en buyuk = ana parca
-    link = download_link(print_id, [stls[0]["id"]], "stl")
+    files = d.get("stls") or []
+    stls = [s for s in files if (s.get("name") or "").lower().endswith(".stl")]
+    threemf = [s for s in files if (s.get("name") or "").lower().endswith(".3mf")]
+    pool = stls or threemf
+    if not pool:
+        raise RuntimeError("bu modelde .stl/.3mf yok (sadece step/obj olabilir)")
+    pool.sort(key=lambda s: s.get("fileSize") or 0, reverse=True)  # en buyuk = ana parca
+    chosen = pool[0]
+    ext = ".stl" if stls else ".3mf"
+    save_path = save_path_noext + ext
+    link = download_link(print_id, [chosen["id"]], "stl")
     blob = http_get(link)
     with open(save_path, "wb") as w:
         w.write(blob)
-    return stls[0]["name"], len(blob)
+    return chosen["name"], save_path, len(blob)
 
 
 if __name__ == "__main__":

@@ -52,17 +52,18 @@ def bbox(path):
 def main():
     print_id, urun_id = sys.argv[1], sys.argv[2]
     os.makedirs(STL_DIR, exist_ok=True)
-    out = os.path.join(STL_DIR, urun_id + ".stl")
-    name, nbytes = pr.download_stl(print_id, out)
+    out_noext = os.path.join(STL_DIR, urun_id)
+    name, out, nbytes = pr.download_stl(print_id, out_noext)
     # Drive yedegi (varsa) — repo disi tek kopya
     backup_cfg = os.path.join(ROOT, ".stl-backup-dir")
     if os.path.exists(backup_cfg):
         bdir = open(backup_cfg).read().strip()
         if bdir and os.path.isdir(bdir):
-            with open(out, "rb") as rf, open(os.path.join(bdir, urun_id + ".stl"), "wb") as wf:
+            ext = os.path.splitext(out)[1]
+            with open(out, "rb") as rf, open(os.path.join(bdir, urun_id + ext), "wb") as wf:
                 wf.write(rf.read())
             print("yedek:", bdir)
-    d = bbox(out)
+    d = bbox(out) if out.lower().endswith(".stl") else pr.bbox_3mf(out)
     print("dosya:", name, "->", out, "(%d KB)" % (nbytes // 1024))
     print("DIMS %s %.0f %.0f %.0f" % (urun_id, d[0], d[1], d[2]))
 

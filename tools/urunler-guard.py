@@ -12,14 +12,18 @@ KURAL — working-tree urunler.json'i `git show HEAD:urunler.json` ile karsilast
         icin (ayni deger ile) beyan edilmisse        -> KABUL (mesru duzeltme).
       - aksi halde                                    -> urunun TUM alanlarini
         HEAD'deki haline yerinde geri dondur (self-heal).
-  * HEAD'de olup working-tree'den SILINMIS urun (izinsiz) -> geri ekle (koru).
+  * HEAD'de olup working-tree'den SILINMIS urun:
+      - id .urunler-sil-izin.json manifestinde beyan edilmisse -> KABUL
+        (yetkili silme; or. yanlislikla eklenmis logo/telif riskli urun).
+      - aksi halde (izinsiz)                            -> geri ekle (koru).
 
 Manifest DEGER-BAGLI'dir: bir alanin degisimine ancak working-tree'deki yeni
 deger, manifeste yazilan beklenen deger ile birebir esitse izin verilir. Bu
 sayede eski/bayat bir manifest asla yeni bir kazayi mesrulastiramaz (yalnizca
 zaten commit'lenmis degeri "yeniden" onaylar, ki o da HEAD ile esit oldugundan
-degisim sayilmaz). Guard manifesti ASLA SILMEZ (bkz. post-commit hook); iki kez
-pes pese calismasi idempotenttir.
+degisim sayilmaz). Silme manifesti id-listesidir (deger-bagli degildir — silme
+ikili bir eylemdir). Guard manifestleri ASLA SILMEZ (bkz. post-commit hook);
+iki kez pes pese calismasi idempotenttir.
 
 Tum okuma/yazma .urunler.lock flock'u altinda yapilir (printables-ekle.py deseni).
 Ne yaptigini .urunler-guard.log'a yazar. Cikis kodu DAIMA 0 — asla commit/push'u
@@ -40,6 +44,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 URUNLER = os.path.join(ROOT, "urunler.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
+MANIFEST_SIL = os.path.join(ROOT, ".urunler-sil-izin.json")
 LOG = os.path.join(ROOT, ".urunler-guard.log")
 
 _MISSING = object()
@@ -138,6 +143,16 @@ def heal(tetik):
             except ValueError:
                 _log("%s: UYARI manifest bozuk — izin YOK sayildi." % tetik)
 
+        sil_izin = set()
+        if os.path.exists(MANIFEST_SIL):
+            try:
+                with open(MANIFEST_SIL, encoding="utf-8") as f:
+                    s = json.load(f)
+                if isinstance(s, list):
+                    sil_izin = set(s)
+            except ValueError:
+                _log("%s: UYARI silme manifesti bozuk — izin YOK sayildi." % tetik)
+
         head_by_id = {}
         for p in head_list:
             if isinstance(p, dict) and "id" in p:
@@ -167,8 +182,11 @@ def heal(tetik):
             else:
                 kept_auth.append((uid, sorted(changed)))
 
-        # 2) Izinsiz SILINEN mevcut urunleri geri ekle (varsayilan koru).
-        silinen = [uid for uid in head_by_id if uid not in wt_ids]
+        # 2) Izinsiz SILINEN mevcut urunleri geri ekle (varsayilan koru);
+        #    .urunler-sil-izin.json'da beyan edilenler yetkili sayilir, geri EKLENMEZ.
+        eksik = [uid for uid in head_by_id if uid not in wt_ids]
+        silinen = [uid for uid in eksik if uid not in sil_izin]
+        yetkili_silme = [uid for uid in eksik if uid in sil_izin]
         for uid in silinen:
             wt_list.insert(0, copy.deepcopy(head_by_id[uid]))
 
@@ -194,7 +212,9 @@ def heal(tetik):
             parts.append("mesru_duzeltme=%d %s" % (
                 len(kept_auth),
                 ", ".join("%s[%s]" % (u, ",".join(fs)) for u, fs in kept_auth[:40])))
-        if not (restored or silinen or kept_auth):
+        if yetkili_silme:
+            parts.append("yetkili_silme=%d %s" % (len(yetkili_silme), ", ".join(yetkili_silme[:40])))
+        if not (restored or silinen or kept_auth or yetkili_silme):
             parts.append("mudahale=YOK")
         _log(" | ".join(parts))
     finally:

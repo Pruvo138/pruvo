@@ -78,16 +78,17 @@ def prep(pid, key):
         jpg = os.path.join(outdir, "g%d.jpg" % (len(saved) + 1))
         if sips_jpeg(blob, jpg):
             saved.append(os.path.basename(jpg))
-    # STL (en buyuk gercek .stl) + olcu
-    stls = [s for s in (d.get("stls") or []) if (s.get("name") or "").lower().endswith(".stl")]
+    # model dosyasi (en buyuk gercek .stl; yoksa .3mf'e duser) + olcu
+    stls = [s for s in (d.get("stls") or []) if (s.get("name") or "").lower().endswith((".stl", ".3mf"))]
     olcu = None
     if stls:
-        stlpath = os.path.join(STLDIR, key + ".stl"); os.makedirs(STLDIR, exist_ok=True)
+        stlpath_noext = os.path.join(STLDIR, key); os.makedirs(STLDIR, exist_ok=True)
         try:
-            pr.download_stl(pid, stlpath)
-            olcu = pr.stl_bbox(stlpath)
+            _, stlpath, _ = pr.download_stl(pid, stlpath_noext)
+            olcu = pr.model_bbox(stlpath)
             if DRIVE and os.path.isdir(DRIVE):
-                with open(stlpath, "rb") as rf, open(os.path.join(DRIVE, key + ".stl"), "wb") as wf:
+                ext = os.path.splitext(stlpath)[1]
+                with open(stlpath, "rb") as rf, open(os.path.join(DRIVE, key + ext), "wb") as wf:
                     wf.write(rf.read())
         except Exception:
             pass

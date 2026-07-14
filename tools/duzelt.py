@@ -18,6 +18,11 @@ Kullanim:
 Deger cozumleme: '[' veya '{' ile baslayan degerler JSON olarak (liste/sozluk)
 ayristirilir; digerleri duz metin kabul edilir (fiyat "500 TL" gibi).
 'id' alani degistirilemez.
+
+URUNU TAMAMEN SILMEK icin (or. yanlislikla eklenmis logo/telif riskli urun):
+  python3 tools/duzelt.py <id> --sil "kisa gerekce"
+Bu, urunu urunler.json'dan kaldirir VE id'yi .urunler-sil-izin.json'a yazar ki
+guard onu HEAD'den geri eklemesin. --sil, --alan/--deger ile BIRLIKTE kullanilmaz.
 """
 import argparse
 import datetime
@@ -30,6 +35,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 URUNLER = os.path.join(ROOT, "urunler.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
+MANIFEST_SIL = os.path.join(ROOT, ".urunler-sil-izin.json")
 LOG = os.path.join(ROOT, ".urunler-guard.log")
 
 DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "gorseller", "lisans"}
@@ -58,15 +64,64 @@ def _atomic_write(path, obj):
     os.replace(tmp, path)
 
 
+def _sil(args):
+    lockf = open(LOCK, "w")
+    fcntl.flock(lockf, fcntl.LOCK_EX)
+    try:
+        with open(URUNLER, encoding="utf-8") as f:
+            urunler = json.load(f)
+        idx = next((i for i, p in enumerate(urunler)
+                    if isinstance(p, dict) and p.get("id") == args.id), None)
+        if idx is None:
+            print("HATA: '%s' id'li urun urunler.json'da yok." % args.id, file=sys.stderr)
+            return 1
+        urunler.pop(idx)
+        _atomic_write(URUNLER, urunler)
+
+        sil_izin = []
+        if os.path.exists(MANIFEST_SIL):
+            try:
+                with open(MANIFEST_SIL, encoding="utf-8") as f:
+                    s = json.load(f)
+                if isinstance(s, list):
+                    sil_izin = s
+            except ValueError:
+                sil_izin = []
+        if args.id not in sil_izin:
+            sil_izin.append(args.id)
+        _atomic_write(MANIFEST_SIL, sil_izin)
+    finally:
+        fcntl.flock(lockf, fcntl.LOCK_UN)
+        lockf.close()
+
+    _log("sil: %s -> kaldirildi (%s) (silme manifestine yazildi)" % (args.id, args.sil))
+    print("Silindi: %s  (gerekce: %s)" % (args.id, args.sil))
+    print("Guard bu silmeyi manifest sayesinde gecirir; commit sonrasi post-commit "
+          "hook manifesti temizler.")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("id", help="degistirilecek MEVCUT urun id'si")
-    ap.add_argument("--alan", action="append", required=True,
+    ap.add_argument("id", help="degistirilecek/silinecek MEVCUT urun id'si")
+    ap.add_argument("--alan", action="append",
                     help="degistirilecek alan adi (tekrarlanabilir)")
-    ap.add_argument("--deger", action="append", required=True,
+    ap.add_argument("--deger", action="append",
                     help="yeni deger (her --alan icin bir tane; JSON icin [ veya { ile basla)")
+    ap.add_argument("--sil", metavar="GEREKCE",
+                    help="urunu TAMAMEN kaldir (--alan/--deger ile birlikte kullanilmaz); "
+                         "deger kisa bir gerekce metnidir (log icin)")
     args = ap.parse_args()
 
+    if args.sil is not None:
+        if args.alan or args.deger:
+            print("HATA: --sil, --alan/--deger ile birlikte kullanilamaz.", file=sys.stderr)
+            return 2
+        return _sil(args)
+
+    if not args.alan or not args.deger:
+        print("HATA: --alan/--deger (veya --sil) gerekli.", file=sys.stderr)
+        return 2
     if len(args.alan) != len(args.deger):
         print("HATA: --alan ve --deger sayisi esit olmali.", file=sys.stderr)
         return 2
