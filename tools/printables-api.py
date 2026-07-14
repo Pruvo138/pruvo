@@ -19,20 +19,39 @@ import json, re, struct, urllib.request, zipfile, io
 ENDPOINT = "https://api.printables.com/graphql/"
 MEDIA = "https://media.printables.com/"   # + filePath  ->  tam gorsel URL'si
 
-# Yedek parca vitrinine UYMAYAN gurultu (thing-ara.py ile ayni liste).
-# LOGO: marka logosu/amblemi tasiyan urunler — telif/marka hakki riski nedeniyle POPULERLIK
-# BILE DELMEZ, her zaman elenir (Okan, 2026-07-14).
-COP_LOGO = ("logo", "logos", "emblem", "badge", "nameplate", "name plate",
-            "symbol", "monogram")
-# Diger gurultu (anahtarlik/minyatur/duvar susu vb.) — populerlik esigini asan urun bunlari
-# DELER ve yine de eklenir.
-COP_OTHER = ("keychain", "keyring", "key ring", "keyfob", "key fob", "keytag", "key tag",
-             "keyholder", "key holder", "keychains",
-             "letters", "lettering", "sticker", "wall art", "trophy",
-             "coaster", "fridge magnet", "magnet",
-             "miniature", "diecast", "die-cast", "diorama", "scale model", "1:18", "1:24", "1:32",
-             "1:43", "1:64", "1/18", "1/24", "1/43", "keycap", "kit card")
-COP = COP_LOGO + COP_OTHER
+# Yedek parca vitrinine UYMAYAN gurultu (thing-ara.py ile ayni liste — birlikte guncelle).
+# LOGO + MERCH: marka logosu/amblemini biz baskiyla URETEN urunler — telif/marka hakki riski
+# nedeniyle POPULERLIK BILE DELMEZ, her zaman elenir (Okan, 2026-07-14). Ilke: logonun kaynak
+# gorselinde gorunmesi degil, logoyu BASKIYLA uretmemiz sorunludur; bu yuzden logo-tasiyan
+# aksesuar/merch formlari (anahtarlik/duvar-askisi/plaket/trofe...) da hep elenir.
+# NOT: cok-dilli terimler eklendi (kacan yabanci basliklar: Llavero, Schlusselanhanger, ecusson).
+# Model-adi CAKISMASI olanlar bilerek DISARIDA (Opel "Insignia", Suzuki "Escudo" -> gecerli parca).
+COP_LOGO = (
+    # cok dilli logo/amblem/rozet
+    "logo", "logos", "emblem", "emblems", "emblema", "embleme", "emblème",
+    "badge", "nameplate", "name plate", "symbol", "monogram", "logotipo",
+    "ecusson", "écusson", "insigne", "blason", "abzeichen", "wappen",
+    "stemma", "distintivo", "amblem",
+    # markaya ozel sembol adlari (metinde gecerse logo demektir)
+    "roundel", "hood ornament", "prancing horse", "trident", "pentastar",
+)
+# Marka markasini SERGILEYEN/tasiyan aksesuar-merch formlari — logo reprodüksiyonu sayilir,
+# POPULERLIK DELMEZ (cok dilli anahtarlik + duvar susu/plaket/trofe/rozet).
+COP_MERCH = (
+    "keychain", "keychains", "keyring", "key ring", "keyfob", "key fob",
+    "keytag", "key tag", "keyholder", "key holder", "keyhanger", "key hanger",
+    "llavero", "porte-cle", "porte cle", "porte-clef", "porte-cles", "porte cles",
+    "porte-clé", "porte-clés", "porte clé", "porte clés", "porte-clefs",
+    "schlusselanhanger", "schluesselanhanger", "schlüsselanhänger",
+    "portachiavi", "chaveiro", "anahtarlik",
+    "wall art", "wall decor", "wall decoration", "wall hanging", "wall plaque",
+    "plaque", "trophy", "ornament", "pendant", "charm",
+    "letters", "lettering", "sticker", "coaster", "fridge magnet", "magnet", "keycap",
+)
+# Populerlik DELEBILIR gurultu (olcek modeli/minyatur) — cok talep goren biri yine de alinir.
+COP_OTHER = ("miniature", "diecast", "die-cast", "diorama", "scale model",
+             "1:18", "1:24", "1:32", "1:43", "1:64", "1/18", "1/24", "1/43", "kit card")
+COP = COP_LOGO + COP_MERCH + COP_OTHER
 
 # POPULERLIK: cok talep goren urun (asagidaki esigi asan) COP_OTHER/yasakli olsa bile ALINIR
 # ve aramada EN UST onceligi alir. LOGO icin bu istisna GECERSIZ (asagida is_logo ile ayri
@@ -48,6 +67,18 @@ def populer(dl, likes):
 def is_logo(name):
     n = " " + (name or "").lower() + " "
     return any(c in n for c in COP_LOGO)
+
+
+def is_merch(name):
+    """Marka-logolu aksesuar/merch formu mu (anahtarlik/askı/plaket/trofe...)?
+    LOGO gibi: populerlik DELMEZ."""
+    n = " " + (name or "").lower() + " "
+    return any(c in n for c in COP_MERCH)
+
+
+def is_nobypass(name):
+    """Populerligin DELEMEDIGI eleme: logo/amblem VEYA marka-merch formu."""
+    return is_logo(name) or is_merch(name)
 
 
 _HDRS = {

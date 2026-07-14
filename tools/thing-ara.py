@@ -16,16 +16,36 @@ KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 
 
 # Yedek parca sitesine UYMAYAN gurultu (marka aramasi bunlari bol getirir) -> otomatik ELE.
-# LOGO: marka logosu/amblemi tasiyan urunler — telif/marka hakki riski nedeniyle POPULERLIK
-# BILE DELMEZ, her zaman elenir (Okan, 2026-07-14).
-COP_LOGO = ("logo", "emblem", "badge", "nameplate", "name plate", "symbol", "monogram")
-COP_OTHER = ("keychain", "keyring", "key ring", "keyfob", "key fob", "keytag", "key tag",
-             "keyholder", "key holder", "keychains",
-             "letters", "lettering", "sticker", "wall art", "trophy",
-             "coaster", "fridge magnet", "magnet",
-             "miniature", "diecast", "die-cast", "diorama", "scale model", "1:18", "1:24", "1:32",
-             "1:43", "1:64", "1/18", "1/24", "1/43", "keycap")
-COP = COP_LOGO + COP_OTHER
+# LOGO + MERCH: marka logosu/amblemini biz baskiyla URETEN urunler — telif/marka hakki riski
+# nedeniyle POPULERLIK BILE DELMEZ, her zaman elenir (Okan, 2026-07-14). Ilke: logonun kaynak
+# gorselinde gorunmesi degil, logoyu BASKIYLA uretmemiz sorunludur; bu yuzden logo-tasiyan
+# aksesuar/merch formlari (anahtarlik/duvar-askisi/plaket/trofe...) da hep elenir.
+# NOT: printables-api.py ile AYNI liste — birlikte guncelle. Cok-dilli terimler eklendi (kacan
+# yabanci basliklar: Llavero, Schlusselanhanger, ecusson). Model-adi CAKISMASI olanlar bilerek
+# DISARIDA (Opel "Insignia", Suzuki "Escudo" -> gecerli yedek parca).
+COP_LOGO = (
+    "logo", "logos", "emblem", "emblems", "emblema", "embleme", "emblème",
+    "badge", "nameplate", "name plate", "symbol", "monogram", "logotipo",
+    "ecusson", "écusson", "insigne", "blason", "abzeichen", "wappen",
+    "stemma", "distintivo", "amblem",
+    "roundel", "hood ornament", "prancing horse", "trident", "pentastar",
+)
+# Marka-logolu aksesuar/merch formlari — logo reprodüksiyonu sayilir, POPULERLIK DELMEZ.
+COP_MERCH = (
+    "keychain", "keychains", "keyring", "key ring", "keyfob", "key fob",
+    "keytag", "key tag", "keyholder", "key holder", "keyhanger", "key hanger",
+    "llavero", "porte-cle", "porte cle", "porte-clef", "porte-cles", "porte cles",
+    "porte-clé", "porte-clés", "porte clé", "porte clés", "porte-clefs",
+    "schlusselanhanger", "schluesselanhanger", "schlüsselanhänger",
+    "portachiavi", "chaveiro", "anahtarlik",
+    "wall art", "wall decor", "wall decoration", "wall hanging", "wall plaque",
+    "plaque", "trophy", "ornament", "pendant", "charm",
+    "letters", "lettering", "sticker", "coaster", "fridge magnet", "magnet", "keycap",
+)
+# Populerlik DELEBILIR gurultu (olcek modeli/minyatur).
+COP_OTHER = ("miniature", "diecast", "die-cast", "diorama", "scale model",
+             "1:18", "1:24", "1:32", "1:43", "1:64", "1/18", "1/24", "1/43", "kit card")
+COP = COP_LOGO + COP_MERCH + COP_OTHER
 
 
 def is_cop(name):
@@ -36,6 +56,17 @@ def is_cop(name):
 def is_logo(name):
     n = " " + name.lower() + " "
     return any(c in n for c in COP_LOGO)
+
+
+def is_merch(name):
+    """Marka-logolu aksesuar/merch formu mu? LOGO gibi: populerlik DELMEZ."""
+    n = " " + name.lower() + " "
+    return any(c in n for c in COP_MERCH)
+
+
+def is_nobypass(name):
+    """Populerligin DELEMEDIGI eleme: logo/amblem VEYA marka-merch formu."""
+    return is_logo(name) or is_merch(name)
 
 
 # POPULERLIK: cok talep goren thing (asagidaki esigi asan) COP/yasakli olsa bile ALINIR ve
@@ -96,8 +127,8 @@ def main(term, maxn):
             likes = h.get("like_count") or 0
             makes = h.get("make_count") or 0
             pop = populer(h)
-            if is_logo(name):
-                elenen.append((tid, name)); continue         # logo -> populerlik DELMEZ, hep ele
+            if is_nobypass(name):
+                elenen.append((tid, name)); continue         # logo/amblem VEYA marka-merch -> populerlik DELMEZ, hep ele
             if is_cop(name) and not pop:
                 elenen.append((tid, name)); continue        # cop VE populer degil -> ele
             bulunan.append((tid, name, likes, makes, is_cop(name)))  # son alan: populer-cop mu
