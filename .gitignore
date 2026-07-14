@@ -27,6 +27,9 @@ stl/
 .thing-cache/
 tools/URUN-EKLEME-REHBERI.md
 .urunler.lock
+# urunler.json guard katmani: duzeltme izni manifesti + guard log (asla commit'lenmez)
+.urunler-duzelt-izin.json
+.urunler-guard.log
 
 # Kaynak-kontrol panelinden gizlenen yerel öğeler (silinmedi, diskte duruyor):
 # .wrangler = Cloudflare yerel önbelleği; scratchpad = geçici çalışma dosyaları;
