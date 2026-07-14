@@ -27,6 +27,16 @@ COP = ("keychain", "keyring", "key ring", "keyfob", "key fob", "keytag", "key ta
        "miniature", "diecast", "die-cast", "diorama", "scale model", "1:18", "1:24", "1:32",
        "1:43", "1:64", "1/18", "1/24", "1/43", "keycap", "kit card")
 
+# POPULERLIK: cok talep goren urun (asagidaki esigi asan) COP/yasakli olsa bile ALINIR ve
+# aramada EN UST onceligi alir. (NC lisans esigi AYRI ve delinmez — yasal kisit.)
+POP_DL = 3000        # >= bu kadar indirme  -> populer
+POP_LIKE = 400       # >= bu kadar begeni   -> populer
+
+
+def populer(dl, likes):
+    return (dl or 0) >= POP_DL or (likes or 0) >= POP_LIKE
+
+
 _HDRS = {
     "Content-Type": "application/json",
     "Accept": "application/json",

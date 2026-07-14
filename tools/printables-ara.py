@@ -56,31 +56,40 @@ def main(term, maxn):
                 continue
             name = (h.get("name") or "").replace("\n", " ")
             abbr = ((h.get("license") or {}).get("abbreviation")) or ""
+            dl = h.get("downloadCount") or 0
+            likes = h.get("likesCount") or 0
             if not pr.satilabilir(abbr):
-                elenen_nc.append((pid, abbr, name)); continue
-            if pr.is_cop(name):
-                elenen_cop.append((pid, name)); continue
-            bulunan.append((pid, abbr, name))
+                elenen_nc.append((pid, abbr, name)); continue    # NC = yasal, POPULERLIK DELMEZ
+            pop = pr.populer(dl, likes)
+            if pr.is_cop(name) and not pop:
+                elenen_cop.append((pid, name)); continue         # cop VE populer degil -> ele
+            bulunan.append((pid, abbr, name, dl, likes, pr.is_cop(name)))  # son alan: populer-cop mu
             if len(bulunan) >= maxn:
                 break
         offset += 30
         if offset >= (total or 0):
             break
 
+    # EN YUKSEK ONCELIK: talep (begeni + indirme) cok olan urun basa. Populer-cop olanlar da burada.
+    bulunan.sort(key=lambda b: (b[4], b[3]), reverse=True)   # (likes, dl) azalan
+
     if elenen_nc:
-        print("--- SATILAMAZ (NC) elenen %d ---" % len(elenen_nc))
+        print("--- SATILAMAZ (NC) elenen %d (populerlik DELMEZ — yasal) ---" % len(elenen_nc))
         for pid, abbr, name in elenen_nc[:15]:
             print("  x %s  %-12s %s" % (pid, abbr, name[:55]))
     if elenen_cop:
-        print("--- COP elenen %d (anahtarlik/logo/amblem/minyatur) ---" % len(elenen_cop))
+        print("--- COP elenen %d (anahtarlik/logo/amblem/minyatur; populer OLMAYAN) ---" % len(elenen_cop))
         for pid, name in elenen_cop[:15]:
             print("  x %s  %s" % (pid, name[:60]))
-    print("=== '%s' icin %d yeni aday (toplam eslesme %s, zaten ekli %d, NC %d, cop %d elendi) ==="
-          % (term, len(bulunan), total, len(mevcut & seen), len(elenen_nc), len(elenen_cop)))
-    for pid, abbr, name in bulunan:
-        print("  %s  %-12s %s" % (pid, abbr, name[:65]))
-    print("\nIDLER:")
-    print(" ".join(pid for pid, _, _ in bulunan))
+    pop_cop = sum(1 for b in bulunan if b[5])
+    print("=== '%s' icin %d yeni aday (toplam eslesme %s, zaten ekli %d, NC %d, cop %d elendi; "
+          "populer-cop ISTISNA %d) ==="
+          % (term, len(bulunan), total, len(mevcut & seen), len(elenen_nc), len(elenen_cop), pop_cop))
+    for pid, abbr, name, dl, likes, iscop in bulunan:
+        yildiz = " ★POPULER-COP" if iscop else ""
+        print("  %s  %-12s ♥%-5d ⭳%-6d %s%s" % (pid, abbr, likes, dl, name[:52], yildiz))
+    print("\nIDLER (talep sirasi, populer basta):")
+    print(" ".join(b[0] for b in bulunan))
 
 
 if __name__ == "__main__":

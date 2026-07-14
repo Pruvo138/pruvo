@@ -29,6 +29,18 @@ def is_cop(name):
     return any(c in n for c in COP)
 
 
+# POPULERLIK: cok talep goren thing (asagidaki esigi asan) COP/yasakli olsa bile ALINIR ve
+# aramada EN UST onceligi alir. (Thingiverse aramasinda indirme yok -> begeni/make/collect.)
+POP_LIKE = 300
+POP_MAKE = 25
+POP_COLLECT = 300
+
+
+def populer(h):
+    return ((h.get("like_count") or 0) >= POP_LIKE or (h.get("make_count") or 0) >= POP_MAKE
+            or (h.get("collect_count") or 0) >= POP_COLLECT)
+
+
 def api(url):
     r = urllib.request.Request(url, headers={"Authorization": "Bearer " + TOKEN,
                                              "User-Agent": "pruvo/1.0"})
@@ -72,23 +84,30 @@ def main(term, maxn):
             if tid in mevcut:
                 continue
             name = (h.get("name") or "").replace("\n", " ")
-            if is_cop(name):
-                elenen.append((tid, name)); continue
-            bulunan.append((tid, name))
+            likes = h.get("like_count") or 0
+            makes = h.get("make_count") or 0
+            pop = populer(h)
+            if is_cop(name) and not pop:
+                elenen.append((tid, name)); continue        # cop VE populer degil -> ele
+            bulunan.append((tid, name, likes, makes, is_cop(name)))  # son alan: populer-cop mu
             if len(bulunan) >= maxn:
                 break
         if len(bulunan) >= maxn:
             break
+    # EN YUKSEK ONCELIK: talep (begeni, sonra make) cok olan thing basa. Populer-cop da burada.
+    bulunan.sort(key=lambda b: (b[2], b[3]), reverse=True)
     if elenen:
-        print("--- COP olarak elenen %d (anahtarlik/logo/amblem/minyatur) ---" % len(elenen))
+        print("--- COP elenen %d (anahtarlik/logo/amblem/minyatur; populer OLMAYAN) ---" % len(elenen))
         for tid, name in elenen[:20]:
             print("  x %s  %s" % (tid, name[:60]))
-    print("=== '%s' icin %d yeni aday (zaten ekli %d, cop %d elendi) ==="
-          % (term, len(bulunan), len(mevcut & seen), len(elenen)))
-    for tid, name in bulunan:
-        print("  %s  %s" % (tid, name[:70]))
-    print("\nIDLER (urun-ekle.py'ye ver):")
-    print(" ".join(tid for tid, _ in bulunan))
+    pop_cop = sum(1 for b in bulunan if b[4])
+    print("=== '%s' icin %d yeni aday (zaten ekli %d, cop %d elendi; populer-cop ISTISNA %d) ==="
+          % (term, len(bulunan), len(mevcut & seen), len(elenen), pop_cop))
+    for tid, name, likes, makes, iscop in bulunan:
+        yildiz = " ★POPULER-COP" if iscop else ""
+        print("  %s  ♥%-5d ⚒%-4d %s%s" % (tid, likes, makes, name[:52], yildiz))
+    print("\nIDLER (talep sirasi, populer basta):")
+    print(" ".join(b[0] for b in bulunan))
 
 
 if __name__ == "__main__":
