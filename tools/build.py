@@ -6,7 +6,8 @@ PRUVO statik sayfa üreticisi.
 urunler.json'u okur ve her ürün için Google'da çıkabilen, tam SEO'lu
 kendi adresine sahip statik bir sayfa üretir:  /urun/<id>/index.html
 
-Ayrıca sitemap.xml, robots.txt ve .nojekyll dosyalarını üretir.
+Ayrıca sitemap.xml, robots.txt, .nojekyll ve Google Merchant Center ürün
+feed'ini (merchant-feed.xml — sadece sabit fiyatlı ürünler) üretir.
 
 Ürün ekleme akışı:
   1) urunler.json'un başına yeni ürünü ekle
@@ -38,6 +39,38 @@ CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "O
 TODAY = datetime.date.today().isoformat()
 PRICE_VALID = (datetime.date.today().replace(month=12, day=31)
                + datetime.timedelta(days=365)).isoformat()
+
+# ------------------------------------------------------------------ Google Merchant feed
+# /merchant-feed.xml — Google Merchant Center'a gonderilecek urun feed'i (ucretsiz listelemeler).
+# SADECE parametrik OLMAYAN, SABIT sayisal fiyatli, gorseli olan urunler girer.
+# Parametrik "sari seri" (net fiyati yok -> "Olcuye ozel") feed'e GIRMEZ (Merchant reddeder).
+MERCHANT_FEED = "merchant-feed.xml"
+FEED_BRAND = "PRUVO"
+# Urunler talep uzerine ozel uretilir ama sabit fiyatli kalem her zaman uretilebilir -> in_stock.
+# (Uretim-sonrasi teslim vurgulanmak istenirse "backorder" yapilabilir.)
+FEED_AVAILABILITY = "in_stock"
+# Kendi kategorimiz -> Google urun taksonomisi (kaba, gecerli ust dugumler; eslesmeyen atlanir).
+GOOGLE_PRODUCT_CATEGORY = {
+    "Otomobil": "Vehicles & Parts > Vehicle Parts & Accessories",
+    "Motosiklet": "Vehicles & Parts > Vehicle Parts & Accessories",
+    "Marin": "Vehicles & Parts > Vehicle Parts & Accessories",
+    "Bisiklet": "Sporting Goods > Cycling",
+    "Tamirat": "Hardware > Tools",
+    "Ev": "Home & Garden",
+    "Ofis": "Office Supplies",
+    "Elektronik": "Electronics",
+    "Kamera": "Cameras & Optics",
+    "Bahçe": "Home & Garden > Lawn & Garden",
+    "Dekorasyon": "Home & Garden > Decor",
+    "Oyun/Hobi": "Toys & Games",
+}
+# Marka kurali: "3D baski"/"3D printed" -> "ozel tasarim uretim". SADECE uretim iddiasi olan
+# ifadeler; kasa kodu (Passat 3B), "3D perspektif", "3D yazici" gibi masum kullanimlara DOKUNMAZ.
+_MARKA_SUB = [
+    (re.compile(r"3\s*[d]\s*[-\s]?bask[ıi](?:l[ıi])?", re.I), "özel tasarım üretim"),
+    (re.compile(r"3\s*boyutlu\s+bask[ıi](?:l[ıi])?", re.I), "özel tasarım üretim"),
+    (re.compile(r"3\s*[d]\s*print(?:ed|ing)?", re.I), "özel tasarım üretim"),
+]
 
 # Kaynak model CC lisanslıysa (MakerWorld / Thingiverse / Printables) atıf ZORUNLU.
 # urunler.json'da ürüne "lisans": {"tasarimci": "Ad", "tur": "CC BY 4.0"} eklenir;
@@ -218,6 +251,26 @@ def price_number(fiyat):
         return None
     digits = re.sub(r"[^0-9]", "", fiyat)
     return digits or None
+
+
+def marka_temiz(txt):
+    """Feed metni marka kurali: '3D baski/printed' -> 'ozel tasarim uretim' (hedefli)."""
+    s = txt or ""
+    for pat, rep in _MARKA_SUB:
+        s = pat.sub(rep, s)
+    return s
+
+
+def feed_price(fiyat):
+    """Feed icin net sayisal TL fiyati: '650 TL'->'650', '1.250 TL'->'1250',
+    '350 TL (12 cm)'->'350'. Sayisal fiyat yoksa (parametrik/'olcuye ozel') None."""
+    if not fiyat:
+        return None
+    m = re.search(r"(\d[\d.]*)\s*(?:tl|try|₺)", fiyat, re.I) or re.search(r"(\d[\d.]*)", fiyat)
+    if not m:
+        return None
+    raw = m.group(1).replace(".", "")          # Turkce binlik ayraci ('1.250' -> '1250')
+    return raw if raw.isdigit() and int(raw) > 0 else None
 
 
 def images_of(p):
@@ -599,6 +652,64 @@ def render_sitemap(products):
             + "\n".join(items) + "\n</urlset>\n")
 
 
+# ------------------------------------------------------------------ Google Merchant feed
+def render_merchant_feed(products):
+    """Google Merchant Center urun feed'i (RSS 2.0 + g: namespace).
+    SADECE parametrik OLMAYAN, sabit sayisal fiyatli, gorseli olan urunler girer;
+    parametrik "sari seri" (net fiyati yok) HARIC tutulur. Dondurulen (xml, adet)."""
+    items = []
+    for p in products:
+        if p.get("parametrik"):
+            continue                                   # sari seri -> feed disi
+        price = feed_price((p.get("fiyat") or "").strip())
+        if not price:
+            continue                                   # net sayisal fiyati yok -> feed disi
+        imgs = images_of(p)
+        if not imgs:
+            continue                                   # gorselsiz urun feed'e girmez
+
+        pid = p["id"]
+        url = product_url(pid)
+        title = marka_temiz((p.get("baslik") or "").strip())[:150]
+        desc = marka_temiz(re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip())[:5000] or title
+        kategori = p.get("kategori") or ""
+        markalar = p.get("marka") or []
+
+        row = [
+            "    <g:id>%s</g:id>" % esc(pid),
+            "    <title>%s</title>" % esc(title),
+            "    <description>%s</description>" % esc(desc),
+            "    <link>%s</link>" % esc(url),
+            "    <g:image_link>%s</g:image_link>" % esc(imgs[0]),
+        ]
+        for extra in imgs[1:11]:                        # Google en fazla 10 ek gorsel
+            row.append("    <g:additional_image_link>%s</g:additional_image_link>" % esc(extra))
+        row += [
+            "    <g:availability>%s</g:availability>" % FEED_AVAILABILITY,
+            "    <g:condition>new</g:condition>",
+            "    <g:price>%s TRY</g:price>" % price,
+            # Urunu BIZ uretiyoruz -> marka PRUVO (OEM uyum bilgisi baslik/product_type'ta).
+            "    <g:brand>%s</g:brand>" % FEED_BRAND,
+            "    <g:mpn>%s</g:mpn>" % esc(pid),          # GTIN yok; brand+mpn gecerli kimlik cifti
+        ]
+        gpc = GOOGLE_PRODUCT_CATEGORY.get(kategori)
+        if gpc:
+            row.append("    <g:google_product_category>%s</g:google_product_category>" % esc(gpc))
+        ptype = kategori + (" > " + markalar[0] if markalar else "")
+        if ptype:
+            row.append("    <g:product_type>%s</g:product_type>" % esc(ptype))
+        items.append("  <item>\n" + "\n".join(row) + "\n  </item>")
+
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>\n'
+           '<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n'
+           '<channel>\n'
+           '  <title>PRUVO — Özel Tasarım Üretim Yedek Parça</title>\n'
+           '  <link>' + SITE + '</link>\n'
+           '  <description>PRUVO özel tasarım üretim yedek parça ürün listesi.</description>\n'
+           + "\n".join(items) + "\n</channel>\n</rss>\n")
+    return xml, len(items)
+
+
 # ------------------------------------------------------------------ ana akış
 def main():
     with open(JSON_PATH, encoding="utf-8") as f:
@@ -626,6 +737,11 @@ def main():
     with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
         f.write(render_sitemap(products))
 
+    # merchant-feed.xml  (Google Merchant Center — sadece sabit fiyatli urunler)
+    feed_xml, feed_n = render_merchant_feed(products)
+    with open(os.path.join(ROOT, MERCHANT_FEED), "w", encoding="utf-8") as f:
+        f.write(feed_xml)
+
     # robots.txt
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write("User-agent: *\nAllow: /\n\nSitemap: " + SITE + "/sitemap.xml\n")
@@ -633,7 +749,8 @@ def main():
     # .nojekyll  (GitHub Pages tüm dosyaları olduğu gibi sunsun)
     open(os.path.join(ROOT, ".nojekyll"), "w").close()
 
-    print("OK: %d urun sayfasi + sitemap.xml + robots.txt uretildi." % len(products))
+    print("OK: %d urun sayfasi + sitemap.xml + robots.txt + merchant-feed.xml (%d urun) uretildi."
+          % (len(products), feed_n))
 
 
 if __name__ == "__main__":
