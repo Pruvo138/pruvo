@@ -20,21 +20,34 @@ ENDPOINT = "https://api.printables.com/graphql/"
 MEDIA = "https://media.printables.com/"   # + filePath  ->  tam gorsel URL'si
 
 # Yedek parca vitrinine UYMAYAN gurultu (thing-ara.py ile ayni liste).
-COP = ("keychain", "keyring", "key ring", "keyfob", "key fob", "keytag", "key tag", "keyholder",
-       "key holder", "keychains", "logo", "logos", "emblem", "badge", "nameplate", "name plate",
-       "letters", "lettering", "symbol", "monogram", "sticker", "wall art", "trophy",
-       "coaster", "fridge magnet", "magnet",
-       "miniature", "diecast", "die-cast", "diorama", "scale model", "1:18", "1:24", "1:32",
-       "1:43", "1:64", "1/18", "1/24", "1/43", "keycap", "kit card")
+# LOGO: marka logosu/amblemi tasiyan urunler — telif/marka hakki riski nedeniyle POPULERLIK
+# BILE DELMEZ, her zaman elenir (Okan, 2026-07-14).
+COP_LOGO = ("logo", "logos", "emblem", "badge", "nameplate", "name plate",
+            "symbol", "monogram")
+# Diger gurultu (anahtarlik/minyatur/duvar susu vb.) — populerlik esigini asan urun bunlari
+# DELER ve yine de eklenir.
+COP_OTHER = ("keychain", "keyring", "key ring", "keyfob", "key fob", "keytag", "key tag",
+             "keyholder", "key holder", "keychains",
+             "letters", "lettering", "sticker", "wall art", "trophy",
+             "coaster", "fridge magnet", "magnet",
+             "miniature", "diecast", "die-cast", "diorama", "scale model", "1:18", "1:24", "1:32",
+             "1:43", "1:64", "1/18", "1/24", "1/43", "keycap", "kit card")
+COP = COP_LOGO + COP_OTHER
 
-# POPULERLIK: cok talep goren urun (asagidaki esigi asan) COP/yasakli olsa bile ALINIR ve
-# aramada EN UST onceligi alir. (NC lisans esigi AYRI ve delinmez — yasal kisit.)
+# POPULERLIK: cok talep goren urun (asagidaki esigi asan) COP_OTHER/yasakli olsa bile ALINIR
+# ve aramada EN UST onceligi alir. LOGO icin bu istisna GECERSIZ (asagida is_logo ile ayri
+# kontrol edilir). (NC lisans esigi de AYRI ve delinmez — yasal kisit.)
 POP_DL = 3000        # >= bu kadar indirme  -> populer
 POP_LIKE = 400       # >= bu kadar begeni   -> populer
 
 
 def populer(dl, likes):
     return (dl or 0) >= POP_DL or (likes or 0) >= POP_LIKE
+
+
+def is_logo(name):
+    n = " " + (name or "").lower() + " "
+    return any(c in n for c in COP_LOGO)
 
 
 _HDRS = {

@@ -61,6 +61,8 @@ def main(term, maxn):
             if not pr.satilabilir(abbr):
                 elenen_nc.append((pid, abbr, name)); continue    # NC = yasal, POPULERLIK DELMEZ
             pop = pr.populer(dl, likes)
+            if pr.is_logo(name):
+                elenen_cop.append((pid, name)); continue         # logo -> populerlik DELMEZ, hep ele
             if pr.is_cop(name) and not pop:
                 elenen_cop.append((pid, name)); continue         # cop VE populer degil -> ele
             bulunan.append((pid, abbr, name, dl, likes, pr.is_cop(name)))  # son alan: populer-cop mu

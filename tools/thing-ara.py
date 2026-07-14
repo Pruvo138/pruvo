@@ -16,17 +16,26 @@ KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 
 
 # Yedek parca sitesine UYMAYAN gurultu (marka aramasi bunlari bol getirir) -> otomatik ELE.
-COP = ("keychain", "keyring", "key ring", "keyfob", "key fob", "keytag", "key tag", "keyholder",
-       "key holder", "keychains", "logo", "emblem", "badge", "nameplate", "name plate",
-       "letters", "lettering", "symbol", "monogram", "sticker", "wall art", "trophy",
-       "coaster", "fridge magnet", "magnet",
-       "miniature", "diecast", "die-cast", "diorama", "scale model", "1:18", "1:24", "1:32",
-       "1:43", "1:64", "1/18", "1/24", "1/43", "keycap")
+# LOGO: marka logosu/amblemi tasiyan urunler — telif/marka hakki riski nedeniyle POPULERLIK
+# BILE DELMEZ, her zaman elenir (Okan, 2026-07-14).
+COP_LOGO = ("logo", "emblem", "badge", "nameplate", "name plate", "symbol", "monogram")
+COP_OTHER = ("keychain", "keyring", "key ring", "keyfob", "key fob", "keytag", "key tag",
+             "keyholder", "key holder", "keychains",
+             "letters", "lettering", "sticker", "wall art", "trophy",
+             "coaster", "fridge magnet", "magnet",
+             "miniature", "diecast", "die-cast", "diorama", "scale model", "1:18", "1:24", "1:32",
+             "1:43", "1:64", "1/18", "1/24", "1/43", "keycap")
+COP = COP_LOGO + COP_OTHER
 
 
 def is_cop(name):
     n = " " + name.lower() + " "
     return any(c in n for c in COP)
+
+
+def is_logo(name):
+    n = " " + name.lower() + " "
+    return any(c in n for c in COP_LOGO)
 
 
 # POPULERLIK: cok talep goren thing (asagidaki esigi asan) COP/yasakli olsa bile ALINIR ve
@@ -87,6 +96,8 @@ def main(term, maxn):
             likes = h.get("like_count") or 0
             makes = h.get("make_count") or 0
             pop = populer(h)
+            if is_logo(name):
+                elenen.append((tid, name)); continue         # logo -> populerlik DELMEZ, hep ele
             if is_cop(name) and not pop:
                 elenen.append((tid, name)); continue        # cop VE populer degil -> ele
             bulunan.append((tid, name, likes, makes, is_cop(name)))  # son alan: populer-cop mu
