@@ -163,6 +163,15 @@ def process_one(url, author, mode="list"):
         return {"url": url, "durum": "HATA: %s" % str(e)[:120]}
 
 
+def _atomic_write(path, obj, **kw):
+    """json.dump'i once gecici dosyaya yazip os.replace ile devreye alir; yaziyi yarida
+    kesen bir crash/kill orijinal dosyayi asla yarim/bozuk birakmaz."""
+    tmp = path + ".tmp-" + str(os.getpid())
+    with open(tmp, "w") as f:
+        json.dump(obj, f, **kw)
+    os.replace(tmp, path)
+
+
 def merge_safe(staged):
     """Dosya KILIDI altinda urunler.json'u O AN okuyup ekler (stale snapshot degil)."""
     lockf = open(LOCK, "w")
@@ -180,8 +189,8 @@ def merge_safe(staged):
             kaynak[uid] = s["src"]
         for u in reversed(yeni):
             urunler.insert(0, u)
-        json.dump(urunler, open(URUNLER, "w"), ensure_ascii=False, indent=2)
-        json.dump(kaynak, open(KAYNAK, "w"), ensure_ascii=False, indent=1)
+        _atomic_write(URUNLER, urunler, ensure_ascii=False, indent=2)
+        _atomic_write(KAYNAK, kaynak, ensure_ascii=False, indent=1)
         return len(yeni), len(urunler)
     finally:
         fcntl.flock(lockf, fcntl.LOCK_UN); lockf.close()
