@@ -11,12 +11,20 @@ import re
 
 # Malzeme adlari (tam kelime) — bunlari iceren cumle neredeyse her zaman baski onerisidir.
 _MAT = re.compile(r"\b(PETG|PLA\+?|ABS|ASA|TPU|TPE|PCTG|nylon|naylon|polycarbonate|"
-                  r"resin|re[cç]ine|carbon\s?fiber|karbon|wood\s?fill|silk)\b", re.I)
-# Guclu baski-ayari ifadeleri (malzeme gecmese de baski onerisi sayilir).
+                  r"re[cç]ine|carbon\s?fiber|karbon\s?fiber|wood\s?fill|filament)\b", re.I)
+# Guclu baski-ayari ifadeleri (malzeme gecmese de baski onerisi sayilir). NET baski-baglami;
+# tek basina "support"/"wall"/"mm" gibi gurultuyu TETIKLEMEZ (urun aciklamasi degil, ayar).
 _SET = re.compile(r"(layer\s*height|katman\s*y[uü]ksek|infill|dolgu|perimeter|perimetre|"
-                  r"duvar\s*say|\bwall(s)?\b|nozzle|nozul|support|destek|\bbrim\b|\braft\b|"
-                  r"orient|y[oö]nlendir|flexible|esnek|heat\s*resist|[ıi]s[ıi]ya?\s*dayan|"
-                  r"\b\d{2,3}\s?[°º]\s?C\b|\b\d{1,2}\s?mm\s*nozzle)", re.I)
+                  r"wall\s*(line|loop|count)|duvar\s*say|nozzle|nozul|\bbrim\b|\braft\b|"
+                  r"heat[-\s]*resist|[ıi]s[ıi]ya?\s*dayan|flexible\s+(material|filament)|"
+                  r"esnek\s+(malzeme|filament)|\b\d{2,3}\s?[°º]\s?C\b|"
+                  r"\d{1,3}\s?%\s?(infill|dolgu)|\d(\.\d+)?\s?mm\s*(nozzle|layer))", re.I)
+# Destek: yalnizca BASKI baglaminda ("no/without/needs support", "support needed/free",
+# "destek gerekir/yok"). "drum support" gibi urun-ismini tetiklemez.
+_SUP = re.compile(r"((no|without|needs?|require[sd]?|minimal|hardly\s+any|some|with|w/)\s+supports?\b|"
+                  r"supports?\s+(needed|required|material|free|are\s+needed|not\s+needed)|"
+                  r"destek\s*(gerek\w*|yok|var|olmadan|istemez)|(without|no)\s+destek|"
+                  r"print(ed)?\s+without\s+support)", re.I)
 # Gurultu: cok kisa ya da alakasiz. Malzeme/ayar eslesse de bunlari atla.
 _GURULTU = re.compile(r"(license|thingiverse|printables|remix|please\s+(like|rate)|patreon|"
                       r"follow me|instagram|youtube|appreciate|motivat|thank|donation|"
@@ -46,7 +54,7 @@ def baski_ipucu(text, max_len=400, max_cumle=3):
             continue
         if _GURULTu_var(s):
             continue
-        if _MAT.search(s) or _SET.search(s):
+        if _MAT.search(s) or _SET.search(s) or _SUP.search(s):
             if s not in hits:
                 hits.append(s)
         if len(hits) >= max_cumle:
