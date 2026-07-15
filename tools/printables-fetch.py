@@ -12,6 +12,9 @@ Cikti (son satir, ayristirilabilir):
 import importlib.util, os, struct, sys
 
 ROOT = "/Users/okan/dev/pruvo"
+
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import drive_yolu
 STL_DIR = os.path.join(ROOT, "stl")
 
 _spec = importlib.util.spec_from_file_location("pr_api", os.path.join(ROOT, "tools", "printables-api.py"))
@@ -55,13 +58,11 @@ def main():
     out_noext = os.path.join(STL_DIR, urun_id)
     name, out, nbytes = pr.download_stl(print_id, out_noext)
     # Drive yedegi (varsa) — repo disi tek kopya
-    backup_cfg = os.path.join(ROOT, ".stl-backup-dir")
-    if os.path.exists(backup_cfg):
-        bdir = open(backup_cfg).read().strip()
-        if bdir and os.path.isdir(bdir):
-            ext = os.path.splitext(out)[1]
-            with open(out, "rb") as rf, open(os.path.join(bdir, urun_id + ext), "wb") as wf:
-                wf.write(rf.read())
+    bdir = drive_yolu.stl_dizini()  # bayat yolu kendi duzeltir; bulamazsa uyarir (sessizce atlamaz)
+    if bdir:
+        ext = os.path.splitext(out)[1]
+        with open(out, "rb") as rf, open(os.path.join(bdir, urun_id + ext), "wb") as wf:
+            wf.write(rf.read())
             print("yedek:", bdir)
     d = bbox(out) if out.lower().endswith(".stl") else pr.bbox_3mf(out)
     print("dosya:", name, "->", out, "(%d KB)" % (nbytes // 1024))

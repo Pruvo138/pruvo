@@ -23,11 +23,11 @@ _bspec.loader.exec_module(bi)
 TOKEN = open(os.path.join(ROOT, ".thingiverse-token")).read().strip()
 STLDIR = os.path.join(ROOT, "stl"); os.makedirs(STLDIR, exist_ok=True)
 IMGROOT = os.path.join(ROOT, ".thing-cache"); os.makedirs(IMGROOT, exist_ok=True)
-_bd = os.path.join(ROOT, ".stl-backup-dir")
-DRIVE = open(_bd).read().strip() if os.path.exists(_bd) else None
-if DRIVE:
-    try: os.makedirs(DRIVE, exist_ok=True)
-    except Exception: DRIVE = None
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import drive_yolu
+# makedirs YOK: Drive yolu olu ise klasoru YARATMA — Drive'a senkronlanmayan sahte bir yerel
+# klasor olur ve yedek aliniyor sanirsin. drive_yolu bayat yolu duzeltir, bulamazsa uyarir.
+DRIVE = drive_yolu.stl_dizini()
 
 
 def api(url):

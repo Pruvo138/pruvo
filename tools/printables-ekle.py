@@ -33,8 +33,9 @@ _bspec = importlib.util.spec_from_file_location("baski_ipucu", os.path.join(TOOL
 bi = importlib.util.module_from_spec(_bspec)
 _bspec.loader.exec_module(bi)
 
-_bd = os.path.join(ROOT, ".stl-backup-dir")
-DRIVE = open(_bd).read().strip() if os.path.exists(_bd) else None
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import drive_yolu
+DRIVE = drive_yolu.stl_dizini()
 
 
 def sips_jpeg(src_bytes, out_jpg):

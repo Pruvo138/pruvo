@@ -12,6 +12,9 @@ Cikti (son satir, ayristirilabilir):
 import sys, os, json, urllib.request, struct
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import drive_yolu
 TOKEN = open(os.path.join(ROOT, ".thingiverse-token")).read().strip()
 STL_DIR = os.path.join(ROOT, "stl")
 
@@ -67,13 +70,11 @@ def main():
     with open(out, "wb") as w:
         w.write(data)
     # Drive yedegi (varsa) — repo disi, tek seferlik kopya (senkronu bozmaz)
-    backup_cfg = os.path.join(ROOT, ".stl-backup-dir")
-    if os.path.exists(backup_cfg):
-        bdir = open(backup_cfg).read().strip()
-        if bdir and os.path.isdir(bdir):
-            with open(os.path.join(bdir, urun_id + ".stl"), "wb") as w:
-                w.write(data)
-            print("yedek:", bdir)
+    bdir = drive_yolu.stl_dizini()  # bayat yolu kendi duzeltir; bulamazsa uyarir (sessizce atlamaz)
+    if bdir:
+        with open(os.path.join(bdir, urun_id + ".stl"), "wb") as w:
+            w.write(data)
+        print("yedek:", bdir)
     d = bbox(out)
     print("dosya:", f["name"], "->", out, "(%d KB)" % (len(data) // 1024))
     print("DIMS %s %.0f %.0f %.0f" % (urun_id, d[0], d[1], d[2]))

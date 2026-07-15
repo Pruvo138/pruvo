@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Makine olursa kaybolacak yeri-doldurulamaz yerel dosyalari Drive'a yedekler.
-Drive yolu gitignore'lu .stl-backup-dir'den turetilir (onun ust klasoru = .../Pruvo).
+Drive yolu tools/drive_yolu.py ile cozulur (kayitli .stl-backup-dir bayatsa kendini duzeltir).
 Hedef: <Pruvo>/backup/  (memory klasoru + .urun-kaynaklari.json).
 
 Sirlar (.thingiverse-token, .r2-credentials.json) VARSAYILAN olarak yedeklenmez;
@@ -15,13 +15,16 @@ import os, sys, shutil
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 MEMORY = os.path.expanduser("~/.claude/projects/-Users-okan-dev-pruvo/memory")
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import drive_yolu
+
 
 def main():
-    cfg = os.path.join(ROOT, ".stl-backup-dir")
-    if not os.path.exists(cfg):
-        print(".stl-backup-dir yok — Drive yolu bilinmiyor."); return
-    stl_dir = open(cfg).read().strip()
-    pruvo_drive = os.path.dirname(stl_dir)            # .../Pruvo
+    # Drive yolunu drive_yolu cozer: bayatsa kendi duzeltir, mount yoksa uyarip None doner.
+    # None'da DURUYORUZ — eskiden makedirs Drive yerine sahte yerel klasor yaratip "yedeklendi" diyordu.
+    pruvo_drive = drive_yolu.pruvo_dizini()           # .../Pruvo
+    if not pruvo_drive:
+        print("Yedek ALINMADI — Drive yolu cozulemedi (yukaridaki uyariya bak)."); return
     backup = os.path.join(pruvo_drive, "backup")
     os.makedirs(os.path.join(backup, "memory"), exist_ok=True)
 
