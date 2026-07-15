@@ -49,14 +49,26 @@ def wrangler(args, girdi_dosya=None):
     """wrangler d1 execute calistir, JSON sonucu dondur."""
     komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB, "--remote", "--json"] + args
     p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True)
-    ham = p.stdout
-    i = ham.find("[")
+    ham = (p.stdout or "") + (p.stderr or "")
+
+    # En sik hata: token'in D1 yetkisi yok. Ham wrangler ciktisi bunu anlatmiyor
+    # ("cozulemedi" deyip gecmek, sonraki oturuma sebebi kaybettiriyor) — acikca soyle.
+    if "code: 10000" in ham or "Authentication error" in ham:
+        sys.exit(
+            "D1 KIMLIK HATASI (code 10000) — token D1'e erisemiyor.\n"
+            "  Cloudflare panel > My Profile > API Tokens > CLOUDFLARE_API_TOKEN >\n"
+            "  Permissions'a **Account > D1 > Edit** ekle. (Mevcut token cache-purge\n"
+            "  icin uretilmis, yalnizca zone yetkisi var.)\n"
+            "  Site ve Ege bundan ETKILENMEZ; yalnizca D1 katalogu eskir."
+        )
+
+    i = p.stdout.find("[")
     if i == -1:
-        sys.exit("wrangler cikti vermedi:\n" + (p.stderr or ham)[-2000:])
+        sys.exit("wrangler cikti vermedi:\n" + ham[-2000:])
     try:
-        return json.loads(ham[i:])
+        return json.loads(p.stdout[i:])
     except json.JSONDecodeError:
-        sys.exit("wrangler ciktisi cozulemedi:\n" + ham[-2000:] + "\n" + p.stderr[-1000:])
+        sys.exit("wrangler ciktisi cozulemedi:\n" + ham[-2000:])
 
 
 def sorgu(sql):
