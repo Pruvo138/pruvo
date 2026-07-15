@@ -9,6 +9,8 @@ AGENTS.md
 .r2-credentials.json
 urun-kaynaklari.json
 .urun-kaynaklari.json
+# mukerrer-kontrol istisnalari: kaynak linkleri icerebilir (ucretli tedarikci = sir)
+.mukerrer-istisna.json
 gorseller/
 
 # Üyelik tedarikçisi generator kaynak kodları + türetilmiş parametre şemaları.
