@@ -59,7 +59,13 @@ def wrangler(args, girdi_dosya=None):
             "  Cloudflare panel > My Profile > API Tokens > CLOUDFLARE_API_TOKEN >\n"
             "  Permissions'a **Account > D1 > Edit** ekle. (Mevcut token cache-purge\n"
             "  icin uretilmis, yalnizca zone yetkisi var.)\n"
-            "  Site ve Ege bundan ETKILENMEZ; yalnizca D1 katalogu eskir."
+            "\n"
+            "  !! FAZ 2'DEN SONRA BU ARTIK ZARARSIZ DEGIL: Ege (WhatsApp botu) urunleri\n"
+            "  artik urunler.json'dan DEGIL D1'den okuyor. D1 senkronu basarisiz olursa\n"
+            "  SITE yeni urunu gosterir ama EGE GORMEZ — musteriye 'boyle bir sey yok'\n"
+            "  demez (oyle egitildi) ama urunu de oneremez. Sessiz satis kaybi.\n"
+            "  GECICI COZUM: her urun push'undan sonra YERELDE 'python3 tools/d1-sync.py'\n"
+            "  calistir (yerelde wrangler'in kendi oturumu kullanilir, token gerekmez)."
         )
 
     i = p.stdout.find("[")
@@ -117,19 +123,56 @@ def d1_mevcut():
     return mevcut, int(mseq)
 
 
+# FAZ 2'de eklenen kolonlar. Mevcut D1 tablosunda CREATE TABLE IF NOT EXISTS bunlari
+# EKLEMEZ (tablo zaten var) -> --sema calistiginda eksikler ALTER ile tamamlanir.
+GOC_KOLON = [
+    ("aciklama", "TEXT NOT NULL DEFAULT ''"),
+    ("ege", "TEXT NOT NULL DEFAULT ''"),
+    ("hs_baslik", "TEXT NOT NULL DEFAULT ''"),
+    ("hs_baslik_kok", "TEXT NOT NULL DEFAULT ''"),
+    ("hs_govde", "TEXT NOT NULL DEFAULT ''"),
+    ("hs_govde_kok", "TEXT NOT NULL DEFAULT ''"),
+]
+
+# Yazilan kolonlar (id disinda hepsi ON CONFLICT'te guncellenir).
+KOLONLAR = [
+    "hash", "baslik", "kategori", "marka", "fiyat", "gorsel", "parametrik", "hs",
+    "aciklama", "ege", "hs_baslik", "hs_baslik_kok", "hs_govde", "hs_govde_kok",
+]
+
+
+def kolon_goc():
+    """Eksik kolonlari ekle. Idempotent: SQLite'ta 'ADD COLUMN IF NOT EXISTS' yok,
+    o yuzden once table_info'ya bakilir (kor ALTER ikinci calismada patlardi)."""
+    r = sorgu("PRAGMA table_info(urunler)")
+    var = {s["name"] for s in (r[0].get("results") or [])}
+    eksik = [(ad, tip) for ad, tip in GOC_KOLON if ad not in var]
+    if not eksik:
+        print("kolonlar tam — goc gerekmedi")
+        return
+    dosya_calistir("\n".join(
+        "ALTER TABLE urunler ADD COLUMN %s %s;" % (ad, tip) for ad, tip in eksik))
+    print("eklenen kolon: " + ", ".join(ad for ad, _ in eksik))
+
+
 def satir_sql(u, seq, hs, h):
     """Tek urun icin upsert. ON CONFLICT -> rid/seq korunur (FTS rowid'i sabit kalir)."""
     g = (u.get("gorseller") or [None])[0]
+    e_bas = arama.ege_baslik(u)
+    e_gov = arama.ege_govde(u)
+    degerler = [
+        q(u["id"]), q(h), str(seq), q(u.get("baslik") or ""), q(u.get("kategori") or ""),
+        q(json.dumps(u.get("marka") or [], ensure_ascii=False)), q(u.get("fiyat") or ""),
+        q(g), "1" if u.get("parametrik") else "0", q(hs),
+        q(u.get("aciklama") or ""), q(u.get("ege") or ""),
+        q(e_bas), q(arama.koke_cevir(e_bas)), q(e_gov), q(arama.koke_cevir(e_gov)),
+    ]
     return (
-        "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,gorsel,parametrik,hs) VALUES ("
-        + ",".join([
-            q(u["id"]), q(h), str(seq), q(u.get("baslik") or ""), q(u.get("kategori") or ""),
-            q(json.dumps(u.get("marka") or [], ensure_ascii=False)), q(u.get("fiyat") or ""),
-            q(g), "1" if u.get("parametrik") else "0", q(hs),
-        ])
-        + ") ON CONFLICT(id) DO UPDATE SET hash=excluded.hash, baslik=excluded.baslik, "
-        "kategori=excluded.kategori, marka=excluded.marka, fiyat=excluded.fiyat, "
-        "gorsel=excluded.gorsel, parametrik=excluded.parametrik, hs=excluded.hs;"
+        "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,gorsel,parametrik,hs,"
+        "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok) VALUES ("
+        + ",".join(degerler)
+        + ") ON CONFLICT(id) DO UPDATE SET "
+        + ", ".join("%s=excluded.%s" % (k, k) for k in KOLONLAR) + ";"
     )
 
 
@@ -144,6 +187,7 @@ def main():
         with open(SEMA, encoding="utf-8") as f:
             yaz, _ = dosya_calistir(f.read())
         print("sema kuruldu (yazilan satir: %d)" % yaz)
+        kolon_goc()   # tablo zaten varsa CREATE atlanir -> yeni kolonlari ALTER ekler
         return
 
     if a.durum:

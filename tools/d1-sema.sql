@@ -20,7 +20,18 @@ CREATE TABLE IF NOT EXISTS urunler (
   fiyat     TEXT NOT NULL DEFAULT '',
   gorsel    TEXT,                         -- gorseller[0] (kart kapagi)
   parametrik INTEGER NOT NULL DEFAULT 0,
-  hs        TEXT NOT NULL                 -- arama metni (arama.py haystack — JS ile birebir)
+  hs        TEXT NOT NULL,                -- SITE aramasi (arama.py haystack — JS ile birebir)
+
+  -- FAZ 2 — EGE tarafi. Hepsi AYNI satirda: ek kolon = ek SATIR YAZMASI DEGIL,
+  -- yani D1'in gunluk 100.000 yazma limitine etkisi YOK (urun basina hala 5 satir).
+  -- Ege'nin metni site'ninkinden ayri normalize edilir (nrm: alfanumerik olmayan ->
+  -- bosluk), o yuzden hs'e bindirilemez.
+  aciklama  TEXT NOT NULL DEFAULT '',     -- Ege'ye giden urun satiri icin (ham metin)
+  ege       TEXT NOT NULL DEFAULT '',     -- urune ozel Ege notu (urunler.json "ege")
+  hs_baslik      TEXT NOT NULL DEFAULT '',  -- nrm(baslik)            -> skor +3
+  hs_baslik_kok  TEXT NOT NULL DEFAULT '',  -- ayni metin, kelimeler kokune cevrilmis
+  hs_govde       TEXT NOT NULL DEFAULT '',  -- nrm(id+baslik+kategori+marka+aciklama) -> +1
+  hs_govde_kok   TEXT NOT NULL DEFAULT ''   -- ayni metin, kelimeler kokune cevrilmis
 );
 
 -- Kategori/marka filtresi + siralama icin.
@@ -36,13 +47,28 @@ CREATE VIRTUAL TABLE IF NOT EXISTS urunler_fts USING fts5(
 );
 
 -- FTS'i tabloyla senkron tutan tetikleyiciler (elle bakim = sessiz ayrisma riski).
-CREATE TRIGGER IF NOT EXISTS urunler_ai AFTER INSERT ON urunler BEGIN
+-- DROP+CREATE (IF NOT EXISTS DEGIL): tanim degisince eskisi sessizce KALIRDI.
+-- Tetikleyici yeniden kurmak bedava; --sema her calistiginda guncel tanim yuklenir.
+DROP TRIGGER IF EXISTS urunler_ai;
+DROP TRIGGER IF EXISTS urunler_ad;
+DROP TRIGGER IF EXISTS urunler_au;
+
+CREATE TRIGGER urunler_ai AFTER INSERT ON urunler BEGIN
   INSERT INTO urunler_fts(rowid, hs) VALUES (new.rid, new.hs);
 END;
-CREATE TRIGGER IF NOT EXISTS urunler_ad AFTER DELETE ON urunler BEGIN
+CREATE TRIGGER urunler_ad AFTER DELETE ON urunler BEGIN
   INSERT INTO urunler_fts(urunler_fts, rowid, hs) VALUES ('delete', old.rid, old.hs);
 END;
-CREATE TRIGGER IF NOT EXISTS urunler_au AFTER UPDATE ON urunler BEGIN
+
+-- WHEN old.hs <> new.hs — FTS'i SADECE arama metni degistiyse tazele.
+-- Kosulsuz hali her UPDATE'te 4 FTS shadow satiri yazdiriyordu; oysa fiyat/gorsel/
+-- aciklama degisiminde hs ayni kalabilir ve FTS'in tazelenmesine GEREK YOKTUR
+-- (rowid sabit, indekslenen metin ayni). OLCULDU (6.086 urun, FAZ 2 gocu, hs hic
+-- degismedi): urun basina yazma 5 -> **2** (tahmin 1'di; kalan 1 satir tablo/indeks
+-- maliyeti). Toplam 30.432 yerine 12.173. 50k urunde "hs'e dokunmayan" toplu
+-- degisiklik 250.000 (limitin 2,5 kati) yerine ~100.000 -> limitin sinirinda ama
+-- icinde. hs degisirse tetikleyici normal calisir (o zaman yine 5).
+CREATE TRIGGER urunler_au AFTER UPDATE ON urunler WHEN old.hs <> new.hs BEGIN
   INSERT INTO urunler_fts(urunler_fts, rowid, hs) VALUES ('delete', old.rid, old.hs);
   INSERT INTO urunler_fts(rowid, hs) VALUES (new.rid, new.hs);
 END;

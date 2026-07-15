@@ -125,12 +125,21 @@ function sorgulariUret(hedef) {
   return hedef ? sorgular.slice(0, hedef) : sorgular;
 }
 
+// Her calisma icin benzersiz — asagiya bak.
+const NONCE = Date.now().toString(36) + "-" + process.pid;
+
 async function araSor({ q, kat, marka }) {
   const u = new URL(UC);
   u.searchParams.set("q", q);
   u.searchParams.set("limit", String(LIMIT));
   if (kat !== "Tümü") u.searchParams.set("kategori", kat);
   if (marka !== "Tümü") u.searchParams.set("marka", marka);
+  // ONBELLEK KIRICI — SART. /ara "cache-control: public, max-age=60" ile doner; Cloudflare
+  // edge'i ISTEK'teki "cache-control: no-cache"i YOK SAYAR (asagidaki header tek basina
+  // ISE YARAMIYOR). Bu olmadan test Worker'i degil CDN'i olcer — bozuk bir surum, 60 sn
+  // once onbellege girmis DOGRU cevapla YESIL yanabilir. FAZ 2'de yasandi (15 Tem),
+  // ayni hata bu dosyada da vardi; parite-ege.js ile ayni cozum.
+  u.searchParams.set("_nonce", NONCE);
   for (let deneme = 0; deneme < 3; deneme++) {
     try {
       const r = await fetch(u, { headers: { "cache-control": "no-cache" } });
