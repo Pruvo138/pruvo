@@ -37,6 +37,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(ROOT, "urunler.json")
 URUN_DIR = os.path.join(ROOT, "urun")
 CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"]
+# Malzeme/renk/boy seçicisi bu kategorilerde gösterilir (Dekorasyon, Oyun/Hobi HARİÇ).
+# secenekler.js'deki FONKSIYONEL_KATEGORILER ile BİRLİKTE güncelle (tek karar iki yerde).
+FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera"]
 
 TODAY = datetime.date.today().isoformat()
 PRICE_VALID = (datetime.date.today().replace(month=12, day=31)
@@ -180,6 +183,14 @@ PAGE_CSS = """
   .brand-chip:hover{border-color:var(--navy-2)}
   .price{font-size:26px;font-weight:800;color:var(--navy);margin:4px 0 20px}
   .price.empty{font-size:15px;font-weight:600;color:var(--gray-text)}
+  .opsiyonlar{margin:4px 0 20px;padding:14px 16px;background:var(--gray-card);
+    border:1px solid var(--gray-line);border-radius:var(--radius)}
+  .opsiyon-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .opsiyon-row:last-of-type{margin-bottom:0}
+  .opsiyon-row label{font-size:13px;font-weight:700;color:var(--navy);min-width:64px}
+  .opsiyon-row select,.opsiyon-row input[type=text]{padding:8px 10px;border:1px solid var(--gray-line);
+    border-radius:7px;font-size:14px;background:#fff;color:var(--navy)}
+  .opsiyon-fiyat{font-size:19px;font-weight:800;color:var(--navy);margin-top:10px}
   .desc{font-size:15px;color:#39434f;line-height:1.7;margin-bottom:26px}
   .order-btn{background:var(--red);color:#fff;border:none;border-radius:9px;
     padding:15px 22px;font-size:16px;font-weight:700;cursor:pointer;
@@ -395,13 +406,59 @@ def render_product(p, all_products):
     parametrik = bool(p.get("parametrik"))
     badge_html = '<span class="ozel-badge">Ölçüye Özel</span>' if parametrik else ''
 
-    # --- fiyat  (parametrik/sarı seride fiyat gösterilmez)
+    # --- fiyat metni (JS'siz/tarayıcı öncesi durum + fonksiyonel OLMAYAN ürünlerin tek gösterimi)
     if fiyat:
-        price_html = '<div class="price">%s</div>' % esc(fiyat)
+        price_text = fiyat
     elif parametrik:
-        price_html = '<div class="price empty">Ölçüye özel fiyat &mdash; teklif için sipariş verin</div>'
+        price_text = "Ölçüye özel fiyat — teklif için sipariş verin"
     else:
-        price_html = '<div class="price empty">Fiyat için sipariş verin</div>'
+        price_text = "Fiyat için sipariş verin"
+
+    # --- malzeme/renk/boy seçicisi (sadece fonksiyonel kategorilerde)
+    fonksiyonel = kategori in FONKSIYONEL_KATEGORILER
+    boy_secenekleri = p.get("boy_secenekleri") or []
+    if fonksiyonel:
+        boy_html = ""
+        if boy_secenekleri:
+            boy_opts = "".join(
+                '<option value="%s">%s%s</option>' % (
+                    esc(b.get("etiket") or ""), esc(b.get("etiket") or ""),
+                    (" (+%d TL)" % b["fark_tl"]) if b.get("fark_tl") else "")
+                for b in boy_secenekleri)
+            boy_html = ('<div class="opsiyon-row"><label for="boySec">Boy</label>'
+                        '<select id="boySec">%s</select></div>' % boy_opts)
+        opsiyonlar_html = ("""
+    <div class="opsiyonlar" id="opsiyonlar">
+      <div class="opsiyon-row">
+        <label for="malzemeSec">Malzeme</label>
+        <select id="malzemeSec">
+          <option value="PLA">PLA (standart)</option>
+          <option value="PETG">PETG (+%30)</option>
+          <option value="ASA">ASA (+%60)</option>
+          <option value="Karbon Katkılı">Karbon Katkılı (+%100)</option>
+          <option value="ABS">ABS (+%50)</option>
+          <option value="TPU">TPU (+%55)</option>
+        </select>
+      </div>
+      <div class="opsiyon-row">
+        <label for="renkSec">Renk</label>
+        <select id="renkSec">
+          <option value="Siyah">Siyah</option>
+          <option value="Beyaz">Beyaz</option>
+          <option value="Gri">Gri</option>
+          <option value="Diğer">Diğer (+%15)</option>
+        </select>
+        <input type="text" id="renkOzel" placeholder="istediğiniz rengi yazın" style="display:none">
+      </div>
+      {boy}
+      <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
+    </div>
+    """).format(boy=boy_html, fiyat_metni=esc(price_text))
+        price_html = ""
+    else:
+        opsiyonlar_html = ""
+        price_html = '<div class="price%s">%s</div>' % (
+            "" if fiyat else " empty", esc(price_text))
 
     # --- ilgili ürünler (aynı kategori, kendisi hariç, en fazla 8)
     rel = [x for x in all_products
@@ -427,6 +484,12 @@ def render_product(p, all_products):
             % (esc(kategori), "".join(cards)))
 
     title_tag = esc(baslik) + " — PRUVO Özel Tasarım Yedek Parça"
+
+    # --- JS'e (opsiyonlar bloğu + fiyat hesabı) aktarılacak ürün verisi
+    urun_json = json.dumps(
+        {"id": pid, "baslik": baslik, "kategori": kategori, "fiyat": fiyat,
+         "parametrik": parametrik, "boy_secenekleri": boy_secenekleri},
+        ensure_ascii=False, separators=(",", ":")).replace("</script>", "<\\/script>")
 
     doc = u"""<!DOCTYPE html>
 <html lang="tr">
@@ -494,9 +557,10 @@ def render_product(p, all_products):
       <h1>{h1}</h1>
       {brands}
       {price}
+      {opsiyonlar}
       <p class="desc">{aciklama}</p>
       <button class="cart-btn" id="cartBtn" data-id="{pid}">{cart_icon}<span class="cart-label">Sepete Ekle</span></button>
-      <a class="order-alt" href="{wa}" target="_blank" rel="noopener">veya WhatsApp'tan bu ürünü tek tek sor</a>
+      <a class="order-alt" id="orderAlt" href="{wa}" target="_blank" rel="noopener">veya WhatsApp'tan bu ürünü tek tek sor</a>
       <div class="note">Sepete ekleyip birden çok ürünü tek WhatsApp mesajıyla sipariş edebilirsiniz. Ürünler talep üzerine özel üretilir.</div>
     </div>
   </div>
@@ -513,6 +577,7 @@ def render_product(p, all_products):
 
 <a id="cartFab" class="cart-fab" href="/?sepet=1">{cart_icon}Sepetim (<span id="cartCount">0</span>)</a>
 
+<script src="/secenekler.js"></script>
 <script>
 function pv(el,src){{
   document.getElementById('mainImg').src=src;
@@ -520,28 +585,67 @@ function pv(el,src){{
   for(var i=0;i<t.length;i++){{t[i].className='thumb';}}
   el.className='thumb active';
 }}
-/* Sepet: bu ürünü index.html ile ortak localStorage sepetine (pruvo_sepet) ekle/çıkar */
+var URUN = {urun_json};
+/* Sepet: bu ürünü index.html ile ortak localStorage sepetine (secenekler.js: PRUVO_SECENEK) ekle/çıkar.
+   Malzeme/renk/boy seçiliyse (opsiyonlar bloğu varsa) seçilen TAM konfigürasyon bileşik anahtarla
+   toggle edilir; farklı bir konfigürasyonla eklenmiş başka bir satıra dokunulmaz. */
 (function(){{
-  var KEY="pruvo_sepet";
-  function load(){{ try{{ return JSON.parse(localStorage.getItem(KEY)||"[]")||[]; }}catch(e){{ return []; }} }}
-  function save(c){{ try{{ localStorage.setItem(KEY, JSON.stringify(c)); }}catch(e){{}} }}
   var btn=document.getElementById("cartBtn"); if(!btn){{ return; }}
-  var id=btn.getAttribute("data-id");
+  var id=URUN.id;
   var label=btn.querySelector(".cart-label");
   var fab=document.getElementById("cartFab");
   var count=document.getElementById("cartCount");
+  var orderAlt=document.getElementById("orderAlt");
+  var malzemeSec=document.getElementById("malzemeSec");
+  var renkSec=document.getElementById("renkSec");
+  var renkOzel=document.getElementById("renkOzel");
+  var boySec=document.getElementById("boySec");
+  var fiyatEl=document.getElementById("opsiyonFiyat");
+
+  function currentSatir(){{
+    var s = PRUVO_SECENEK.bosSatir(id);
+    if(malzemeSec){{ s.malzeme = malzemeSec.value; }}
+    if(renkSec){{
+      s.renk = renkSec.value;
+      s.renk_ozel = (renkSec.value === "Diğer" && renkOzel) ? renkOzel.value : "";
+    }}
+    if(boySec){{ s.boy_etiket = boySec.value || null; }}
+    return s;
+  }}
   function render(){{
-    var c=load(); var has=c.indexOf(id)!==-1;
+    var c = PRUVO_SECENEK.sepetYukle();
+    var satir = currentSatir();
+    var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
+    var has = c.some(function(s){{ return PRUVO_SECENEK.satirAnahtari(s) === anahtar; }});
     btn.classList.toggle("added", has);
     if(label){{ label.textContent = has ? "Sepette ✓" : "Sepete Ekle"; }}
     if(count){{ count.textContent = c.length; }}
     if(fab){{ fab.style.display = c.length ? "inline-flex" : "none"; }}
+    var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
+    if(fiyatEl){{ fiyatEl.textContent = ozet.fiyatMetni; }}
+    if(orderAlt){{
+      var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + URUN.baslik +
+                  (ozet.detay ? ("\\n" + ozet.detay) : "") + "\\n" + location.href;
+      orderAlt.href = "https://wa.me/{whatsapp}?text=" + encodeURIComponent(mesaj);
+    }}
   }}
   btn.addEventListener("click", function(){{
-    var c=load(); var i=c.indexOf(id);
-    if(i===-1){{ c.push(id); }} else {{ c.splice(i,1); }}
-    save(c); render();
+    var c = PRUVO_SECENEK.sepetYukle();
+    var satir = currentSatir();
+    var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
+    var i=-1;
+    for(var j=0;j<c.length;j++){{ if(PRUVO_SECENEK.satirAnahtari(c[j])===anahtar){{ i=j; break; }} }}
+    if(i===-1){{ c.push(satir); }} else {{ c.splice(i,1); }}
+    PRUVO_SECENEK.sepetKaydet(c); render();
   }});
+  [malzemeSec, renkSec, boySec].forEach(function(el){{
+    if(!el){{ return; }}
+    el.addEventListener("change", function(){{
+      if(renkSec && renkOzel){{ renkOzel.style.display = renkSec.value === "Diğer" ? "inline-block" : "none"; }}
+      render();
+    }});
+  }});
+  if(renkOzel){{ renkOzel.addEventListener("input", render); }}
   render();
 }})();
 </script>
@@ -565,6 +669,7 @@ function pv(el,src){{
         h1=esc(baslik),
         brands=brand_html,
         price=price_html,
+        opsiyonlar=opsiyonlar_html,
         badge=badge_html,
         aciklama=aciklama_html,
         wa=esc(wa_href(p, url)),
@@ -575,6 +680,8 @@ function pv(el,src){{
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
         attribution=attribution_html(p),
+        urun_json=urun_json,
+        whatsapp=WHATSAPP,
     )
     return doc
 
