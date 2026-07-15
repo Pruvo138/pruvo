@@ -1,12 +1,15 @@
 # İŞ PAKETİ: Marka tarama + toplu ürün ekleme (MÜHENDİS talimatı)
 
-Sen bu partinin MÜHENDİSİSİN (varsayılan: Opus alt-ajanı). Çağıran sana KAYNAK
-(Printables/Thingiverse/********) ve MARKA (ya da doğrudan ID listesi / satıcı URL'si) verdi.
-Repo: /Users/okan/dev/pruvo. Uçtan uca sen koşarsın; baş mimara sadece rapor dönersin.
+Sen bu partinin MARABASISIN (varsayılan: Sonnet alt-ajanı — ürün yükleme maraba işidir;
+CLAUDE.md KOMUTA ZİNCİRİ). Çağıran sana KAYNAK (Printables/Thingiverse/CGTrader) ve MARKA
+(ya da doğrudan ID listesi / satıcı URL'si) verdi. Repo: /Users/okan/dev/pruvo.
+Uçtan uca sen koşarsın; mimara sadece rapor dönersin.
 NOT: Görsel/içerik işini ekleme scriptleri kendi içinde Codex mini'ye devreder — sen ayrıca
 Codex ÇAĞIRMA (kota kuralı: Codex kredisi az, sadece scriptlerin kendi çağrısı meşru).
+Teknik engel çıkarsa (script hatası, beklenmedik veri) onarmaya ÇALIŞMA — raporla; kod işi
+Mühendis katının, zor onarım Usta katınındır (mimar yönlendirir).
 
-## KAYNAK=******** ise (özel mod — satın almadan listeleme)
+## KAYNAK=CGTrader ise (özel mod — satın almadan listeleme)
 - `python3 tools/cgt-ekle.py "<satıcı-url>" <list|final>` (çağıran "final/indirimli" dediyse final,
   yoksa list). TL = round(USD × 100); şüphede ürün sayfasındaki İNDİRİMSİZ (üstü çizili) USD esas.
 - Ücretli kaynak: `lisans` alanı YOK, atıf YOK. Ölçü satırı beklenmez (STL siparişte alınır).
