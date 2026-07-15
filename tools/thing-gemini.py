@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Gemini YARDIMCISI — pahali bilissel adimlari (gorsel secme + Turkce icerik) devreder.
+"""⛔ EMEKLI — CAGIRMA. Yerine: tools/thing-codex.py (2026-07-15'ten beri).
+
+Bu dosya CALISMAZ: Gemini prepay bakiyesi tukendi (2 gunde 2.010 TL), 429 "prepayment credits
+are depleted" doner. Cagirani kalmadi; sadece acil geri donus ihtimali icin duruyor.
+Sebep + kalici ders: memory/gemini-kota-fiyat.md ve memory/codex-yardimcisi.md.
+Ozet ders: model takma adi ("-latest") KULLANMA — surumu acikca yaz; alias yeni/pahali modele
+kayinca fiyat haber vermeden katlanir (flash-latest -> 3.5 Flash = 5x).
+
+--- asagisi tarihsel ---
+
+Gemini YARDIMCISI — pahali bilissel adimlari (gorsel secme + Turkce icerik) devreder.
 
 Amac: token diyeti. Gorsel okuma + aciklama yazma Claude'un baglamina GIRMEZ; Gemini yapar,
 temiz JSON doner, Claude sadece kucuk metni okur.
