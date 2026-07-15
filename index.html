@@ -1018,7 +1018,10 @@
   }
 
   renderCats();
-  fetch("urunler.json", { cache: "no-store" })
+  // no-cache: no-store gibi HER açılışta sunucuya sorar (yeni ürün anında görünür), farkı 304 gelince
+  // tarayıcının sakladığı kopyayı kullanması. no-store'da katalog (5,1 MB / 834 KB gzip) her sayfa
+  // açılışında baştan iniyordu; ETag revalidation'la değişmediyse 0 bayt.
+  fetch("urunler.json", { cache: "no-cache" })
     .then(function(r){ return r.json(); })
     .then(function(data){
       PRODUCTS = data;
