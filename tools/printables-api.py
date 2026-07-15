@@ -112,9 +112,13 @@ def is_cop(name):
 
 
 def satilabilir(abbr):
-    """Lisans kisaltmasi ticari satisa uygun mu? CC-...-NC (Non-Commercial) -> HAYIR."""
+    """Lisans kisaltmasi ticari satisa uygun mu? CC-...-NC (Non-Commercial) -> HAYIR.
+    OCL (Prusa Open Community License v1/v1.1) -> HAYIR: tasarimdan uretilen urunun
+    SATISI ayri anlasma olmadan yasak (dogrulandi 2026-07-15, prusa3d.com/OCL_v1.pdf)."""
     a = (abbr or "").upper()
     if "NC" in a.split("-"):        # CC-BY-NC, CC-BY-NC-SA, CC-BY-NC-ND ...
+        return False
+    if a.startswith("OCL"):         # OCL v1, OCL v1.1 ...
         return False
     return True                     # CC-BY, CC-BY-SA, CC-BY-ND, CC0, BSD, GPL, MIT, Standard Digital ...
 
