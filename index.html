@@ -758,6 +758,20 @@
     return p._hs;
   }
 
+  // Arama metinlerini ilk tuşu BEKLEMEDEN, boş zamanda parça parça kur.
+  // Yoksa ilk harfte hepsi birden kuruluyordu: 6086 üründe 193 ms takılma (10.000'de ~320 ms).
+  // Sayfa boştayken yapılınca ilk tuş da diğerleri gibi ~15 ms'ye iniyor. requestIdleCallback
+  // her Safari'de yok -> setTimeout'a düşüyoruz.
+  var bosZaman = window.requestIdleCallback || function(f){ return setTimeout(f, 1); };
+  function isitHaystack(){
+    var i = 0;
+    (function parca(){
+      var son = Math.min(i + 500, PRODUCTS.length);
+      for(; i < son; i++){ haystack(PRODUCTS[i]); }
+      if(i < PRODUCTS.length){ bosZaman(parca); }
+    })();
+  }
+
   var activeCat = "Tümü";
   var activeBrand = "Tümü";
   var query = "";
@@ -1027,6 +1041,7 @@
       PRODUCTS = data;
       buildHomeOrder();
       loadCart();
+      isitHaystack();                   // arama ilk tuşta takılmasın (boş zamanda kurulur)
       if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
       renderCats();
       renderBrands();
