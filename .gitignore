@@ -23,6 +23,10 @@ gorseller/
 /.nojekyll
 .thingiverse-token
 .gemini-key
+.cloudflare-token
+# Ic notlar — bu repo PUBLIC; DEVAM.md yayina girmesin (bugune dek de hic commit edilmedi).
+DEVAM.md
+__pycache__/
 stl/
 .stl-backup-dir
 .thing-cache/

@@ -29,6 +29,24 @@ jobs:
         with:
           path: .
 
+      # Katalogu D1'e senkronla (Ege'nin aramasi + ileride site aramasi buradan).
+      # DIFF-UPSERT: sadece degisen/yeni urunler yazilir (D1 gunluk 100.000 yazma siniri;
+      # olculdu: urun basina 5 satir -> tam rebuild 6.086 urunde 30.432 yazma, 50k'da 250.000
+      # = limitin 2,5 kati. Degismeyen urune dokunulmaz, tipik push birkac yuz yazma eder).
+      # continue-on-error: D1 senkronu SITE YAYININI BLOKLAMAZ — site urunler.json'dan calisir,
+      # D1 sadece Ege'nin aramasini besler. Senkron kacarsa bir sonraki push'ta kendini toparlar.
+      - name: Katalogu D1'e senkronla
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "CLOUDFLARE_API_TOKEN secret yok — D1 senkronu atlandi."
+            exit 0
+          fi
+          python3 tools/d1-sync.py
+
   deploy:
     needs: build
     runs-on: ubuntu-latest
