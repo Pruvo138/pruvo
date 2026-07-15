@@ -1,6 +1,11 @@
 .DS_Store
+# Ajan baglam dosyalari — repo PUBLIC, bunlar ASLA yayina girmez: icinde tedarikçi
+# adlari, "para odediklerimize atif yok" ticari mahremiyet kurali, uyelik bilgisi ve
+# WhatsApp numarasi var. AGENTS.md = CLAUDE.md'ye symlink (tek kaynak, kopya YOK).
 .claude/
+.codex/
 CLAUDE.md
+AGENTS.md
 .r2-credentials.json
 urun-kaynaklari.json
 .urun-kaynaklari.json
