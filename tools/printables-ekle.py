@@ -6,7 +6,7 @@ Kullanim:  python3 tools/printables-ekle.py <print_id> [<print_id> ...]
 
 Her id PARALEL islenir:
   detail -> lisans NC kapisi (satilamaz atla) -> galeri gorselleri + en buyuk STL indir + olcu ->
-  .thing-cache/pr<id>/{gN.jpg, meta.json} yaz -> thing-gemini.py pr<id> (gorsel secimi + Turkce icerik
+  .thing-cache/pr<id>/{gN.jpg, meta.json} yaz -> thing-codex.py pr<id> (gorsel secimi + Turkce icerik
   + fiyat_oneri) -> secili gorseller R2 -> STAGE. Yazma dosya KILIDI altinda urunler.json'u O AN yeniden
   okuyup ekler (EZMEZ). COMMIT ETMEZ; sonda gozden gecirme tablosu basar.
 
@@ -113,10 +113,10 @@ def process_one(pid):
             return {"id": pid, "durum": "ATLA: NC/Non-Commercial (satilamaz)", "lisans": abbr}
         if not meta.get("gorseller"):
             return {"id": pid, "durum": "ATLA: gorsel indirilemedi"}
-        subprocess.run([PY, os.path.join(TOOLS, "thing-gemini.py"), key], capture_output=True, text=True)
+        subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), key], capture_output=True, text=True)
         onerip = os.path.join(CACHE, key, "oneri.json")
         if not os.path.exists(onerip):
-            return {"id": pid, "durum": "HATA: gemini oneri yok"}
+            return {"id": pid, "durum": "HATA: codex oneri yok"}
         o = json.load(open(onerip))
         uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or key).lower()).strip("-")[:60] or key
         d = os.path.join(CACHE, key)

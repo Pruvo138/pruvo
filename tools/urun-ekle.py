@@ -3,7 +3,7 @@
 
 Kullanim:  python3 tools/urun-ekle.py <thing_id> [<thing_id> ...]
 
-Her id PARALEL islenir: thing-hazirla (gorsel+STL+olcu+meta) -> lisans NC kapisi -> thing-gemini
+Her id PARALEL islenir: thing-hazirla (gorsel+STL+olcu+meta) -> lisans NC kapisi -> thing-codex
 (gorsel secimi + Turkce icerik + fiyat_oneri) -> secili gorseller R2 -> STAGE. Yazma: dosya KILIDI
 altinda urunler.json'u O AN yeniden okuyup ekler (stale snapshot degil) -> baska oturum ayni anda
 yazsa bile EZMEZ. COMMIT ETMEZ; sonda gozden gecirme tablosu basar.
@@ -62,10 +62,10 @@ def process_one(tid):
             return {"id": tid, "durum": "ATLA: NC/Non-Commercial (satilamaz)", "lisans": meta.get("lisans")}
         if not meta.get("stl_adet"):
             return {"id": tid, "durum": "ATLA: STL indirilemedi (0 dosya)"}
-        subprocess.run([PY, os.path.join(TOOLS, "thing-gemini.py"), tid], capture_output=True, text=True)
+        subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), tid], capture_output=True, text=True)
         onerip = os.path.join(IMGROOT, tid, "oneri.json")
         if not os.path.exists(onerip):
-            return {"id": tid, "durum": "HATA: gemini oneri yok"}
+            return {"id": tid, "durum": "HATA: codex oneri yok"}
         o = json.load(open(onerip))
         uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or tid).lower()).strip("-")[:60] or tid
         d = os.path.join(IMGROOT, tid)
