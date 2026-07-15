@@ -176,9 +176,20 @@ def stl_bbox(path):
     return d
 
 
+# 3MF spec'i birim serbest birakir; olcuyu mm'ye cevirmek icin carpan.
+# unit yoksa spec varsayilani millimeter.
+_3MF_BIRIM_MM = {"micron": 0.001, "millimeter": 1.0, "centimeter": 10.0,
+                 "inch": 25.4, "foot": 304.8, "meter": 1000.0}
+
+# Sayi deseni: bilimsel gosterimde US ("1.900267e+02") '+' ICERIR — sinifa '+' koymayi
+# unutunca o vertex'ler sessizce ATLANIR (327 onbellek dosyasinin 13'u boyle).
+_SAYI = r"[-+0-9.eE]+"
+
+
 def bbox_3mf(path):
     """3MF (zip icinde 3D/3dmodel.model XML) sinir kutusu — STL yoksa yedek olcum.
-    Transform/birden fazla obje varsa yaklasiktir (tum vertex'lerin ham min/max'i)."""
+    Transform/birden fazla obje varsa yaklasiktir (tum vertex'lerin ham min/max'i).
+    Cikti her zaman MM (dosya birimi ne olursa olsun)."""
     try:
         with zipfile.ZipFile(path) as z:
             names = [n for n in z.namelist() if n.lower().endswith(".model")]
@@ -187,12 +198,24 @@ def bbox_3mf(path):
             xml = z.read(names[0]).decode("utf-8", "ignore")
     except (zipfile.BadZipFile, KeyError):
         return None
-    xs = [float(x) for x in re.findall(r'<vertex\s+x="([-\d.eE]+)"', xml)]
-    ys = [float(x) for x in re.findall(r'<vertex\s+x="[-\d.eE]+"\s+y="([-\d.eE]+)"', xml)]
-    zs = [float(x) for x in re.findall(r'z="([-\d.eE]+)"\s*/?>', xml)]
-    if not xs or not ys or not zs:
+    # Birim: okumazsan metre dosyada olcu 1000x kucuk cikar (0.17 m -> "0 mm"), inch/cm
+    # dosyada ise MAKUL GORUNEN ama yanlis sayi uretir (asil tehlike bu).
+    bm = re.search(r'\bunit\s*=\s*"(\w+)"', xml[:2000])
+    carpan = _3MF_BIRIM_MM.get((bm.group(1).lower() if bm else "millimeter"))
+    if carpan is None:
+        return None                      # tanimadigimiz birim -> uydurma, olcusuz birak
+    v = re.findall(r'<vertex\s+x="(%s)"\s+y="(%s)"\s+z="(%s)"' % (_SAYI, _SAYI, _SAYI), xml)
+    if not v:
         return None
-    d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+    try:
+        xs = [float(a) for a, _, _ in v]
+        ys = [float(b) for _, b, _ in v]
+        zs = [float(c) for _, _, c in v]
+    except ValueError:
+        return None
+    d = sorted([(max(xs) - min(xs)) * carpan,
+                (max(ys) - min(ys)) * carpan,
+                (max(zs) - min(zs)) * carpan], reverse=True)
     if d[0] <= 0 or d[0] > 100000:
         return None
     return d
