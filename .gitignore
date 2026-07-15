@@ -11,11 +11,11 @@ urun-kaynaklari.json
 .urun-kaynaklari.json
 gorseller/
 
-# ***** generator kaynak kodları + türetilmiş parametre şemaları.
-# Lisans (SDFL + üyelik): SCAD/kod ve türevleri ASLA public repoya/müşteriye gitmez;
+# Üyelik tedarikçisi generator kaynak kodları + türetilmiş parametre şemaları.
+# Lisans (üyelik): kod ve türevleri ASLA public repoya/müşteriye gitmez;
 # sadece iç referans (açıklama yazımı + WA bot soru akışı) için lokalde tutulur.
-.*****-parametreler.json
-.*****-kodlar/
+.uyelik-parametreler.json
+.uyelik-kodlar/
 
 # build.py çıktıları — artık GitHub Actions (CI) üretip yayınlıyor,
 # git'te/lokalde tutulmuyor (repo minimum kalsın diye).

@@ -100,9 +100,15 @@ def _authorized(uid, field, wt_p, manifest):
     entry = manifest.get(uid)
     if not isinstance(entry, dict) or field not in entry:
         return False
+    expected = entry[field]
+    # Beyanli ALAN SILME: manifest {"__alan_sil__": true} sentineli tasiyorsa
+    # o alanin working-tree'de YOK olmasi mesrudur (duzelt.py --alan-sil yazar).
+    # Gercek urun verisinde bu sentinel deger olarak gecmez; carpisma pratikte yok.
+    if isinstance(expected, dict) and expected.get("__alan_sil__") is True:
+        return field not in wt_p
     if field not in wt_p:  # WT'de silinmis alan -> deger-bagli izin veremez
         return False
-    return _canon(wt_p[field]) == _canon(entry[field])
+    return _canon(wt_p[field]) == _canon(expected)
 
 
 def heal(tetik):

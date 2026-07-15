@@ -9,10 +9,12 @@ kendi adresine sahip statik bir sayfa üretir:  /urun/<id>/index.html
 Ayrıca sitemap.xml, robots.txt, .nojekyll ve Google Merchant Center ürün
 feed'ini (merchant-feed.xml — sadece sabit fiyatlı ürünler) üretir.
 
-Ürün ekleme akışı:
+Ürün ekleme akışı (LOKALDE ÇALIŞTIRMA — CI üretir):
   1) urunler.json'un başına yeni ürünü ekle
-  2) python3 tools/build.py            (bu betik)
-  3) git add -A && commit && push       (urunler.json + urun/ + sitemap.xml)
+  2) git add urunler.json && commit && push
+  3) GitHub Actions (deploy.yml) bu betiği sunucuda çalıştırıp Pages'e yayınlar.
+     Üretilenler (urun/, sitemap.xml, robots.txt, merchant-feed.xml, .nojekyll)
+     gitignore'dadır; git'e GİRMEZ.
 
 Harici bağımlılık YOK (saf Python 3 standart kütüphane).
 """
@@ -298,13 +300,16 @@ def attribution_html(p):
     tasarimci = (lis.get("tasarimci") or "").strip()
     tur = (lis.get("tur") or "").strip()
     url = (lis.get("url") or CC_URLS.get(tur) or "").strip()
-    if not (tasarimci and tur):
+    if not tur:
         return ""
     if url:
         lic = ('<a href="%s" target="_blank" rel="license noopener nofollow">%s</a>'
                % (esc(url), esc(tur)))
     else:
         lic = esc(tur)
+    if not tasarimci:
+        # Tasarimci hesabi silinmis/anonim olabilir; CC atifi lisans linkiyle yine verilir.
+        return '<div class="attribution">Licensed under %s.</div>' % lic
     return ('<div class="attribution">Design by %s, licensed under %s.</div>'
             % (esc(tasarimci), lic))
 

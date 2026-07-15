@@ -24,10 +24,19 @@ jobs:
           python-version: "3.12"
       - name: Statik sayfalari uret
         run: python3 tools/build.py
+
+      # SADECE sitenin ihtiyac duydugu dosyalar yayina girer (beyaz liste).
+      # Eskiden path: . tum repoyu yayinliyordu -> tools/*.py canli siteden
+      # indirilebiliyordu (ic araclar + ticari mahremiyet; denetim 2026-07-15).
+      - name: Yayin klasorunu topla (beyaz liste)
+        run: |
+          mkdir _site
+          cp index.html urunler.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml .nojekyll _site/
+          cp -r urun hakkimizda iletisim sss gizlilik teslimat-iade mesafeli-satis _site/
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       # Katalogu D1'e senkronla (Ege'nin aramasi + ileride site aramasi buradan).
       # DIFF-UPSERT: sadece degisen/yeni urunler yazilir (D1 gunluk 100.000 yazma siniri;

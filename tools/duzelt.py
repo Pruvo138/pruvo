@@ -23,6 +23,11 @@ URUNU TAMAMEN SILMEK icin (or. yanlislikla eklenmis logo/telif riskli urun):
   python3 tools/duzelt.py <id> --sil "kisa gerekce"
 Bu, urunu urunler.json'dan kaldirir VE id'yi .urunler-sil-izin.json'a yazar ki
 guard onu HEAD'den geri eklemesin. --sil, --alan/--deger ile BIRLIKTE kullanilmaz.
+
+BIR ALANI TAMAMEN KALDIRMAK icin (or. public JSON'da durmamasi gereken alan):
+  python3 tools/duzelt.py <id> --alan-sil uyelik
+Manifeste {"__alan_sil__": true} sentineli yazilir; guard alanin working-tree'de
+YOK olmasini mesru sayar. --alan/--deger ile ayni cagrida birlestirilebilir.
 """
 import argparse
 import datetime
@@ -111,23 +116,27 @@ def main():
     ap.add_argument("--sil", metavar="GEREKCE",
                     help="urunu TAMAMEN kaldir (--alan/--deger ile birlikte kullanilmaz); "
                          "deger kisa bir gerekce metnidir (log icin)")
+    ap.add_argument("--alan-sil", action="append", dest="alan_sil",
+                    help="urunden bu ALANI tamamen kaldir (tekrarlanabilir); "
+                         "'id' kaldirilamaz")
     args = ap.parse_args()
 
     if args.sil is not None:
-        if args.alan or args.deger:
-            print("HATA: --sil, --alan/--deger ile birlikte kullanilamaz.", file=sys.stderr)
+        if args.alan or args.deger or args.alan_sil:
+            print("HATA: --sil, --alan/--deger/--alan-sil ile birlikte kullanilamaz.",
+                  file=sys.stderr)
             return 2
         return _sil(args)
 
-    if not args.alan or not args.deger:
-        print("HATA: --alan/--deger (veya --sil) gerekli.", file=sys.stderr)
+    if not (args.alan or args.alan_sil):
+        print("HATA: --alan/--deger, --alan-sil veya --sil gerekli.", file=sys.stderr)
         return 2
-    if len(args.alan) != len(args.deger):
+    if len(args.alan or []) != len(args.deger or []):
         print("HATA: --alan ve --deger sayisi esit olmali.", file=sys.stderr)
         return 2
 
     degisiklikler = {}
-    for alan, deger in zip(args.alan, args.deger):
+    for alan, deger in zip(args.alan or [], args.deger or []):
         if alan == "id":
             print("HATA: 'id' alani degistirilemez.", file=sys.stderr)
             return 2
@@ -141,6 +150,17 @@ def main():
             print("HATA: '%s' alaninin degeri JSON olarak cozumlenemedi: %s" % (alan, e),
                   file=sys.stderr)
             return 2
+
+    silinecek_alanlar = []
+    for alan in args.alan_sil or []:
+        if alan == "id":
+            print("HATA: 'id' alani kaldirilamaz.", file=sys.stderr)
+            return 2
+        if alan in degisiklikler:
+            print("HATA: '%s' hem --alan hem --alan-sil ile verilemez." % alan,
+                  file=sys.stderr)
+            return 2
+        silinecek_alanlar.append(alan)
 
     lockf = open(LOCK, "w")
     fcntl.flock(lockf, fcntl.LOCK_EX)
@@ -156,6 +176,8 @@ def main():
         # SADECE beyan edilen alanlari degistir; beyan disina dokunma.
         for alan, deger in degisiklikler.items():
             urunler[idx][alan] = deger
+        for alan in silinecek_alanlar:
+            urunler[idx].pop(alan, None)
         _atomic_write(URUNLER, urunler)
 
         # Guard icin deger-bagli izin manifesti (birikimli).
@@ -171,6 +193,8 @@ def main():
         manifest.setdefault(args.id, {})
         for alan, deger in degisiklikler.items():
             manifest[args.id][alan] = deger
+        for alan in silinecek_alanlar:
+            manifest[args.id][alan] = {"__alan_sil__": True}
         _atomic_write(MANIFEST, manifest)
     finally:
         fcntl.flock(lockf, fcntl.LOCK_UN)
@@ -178,6 +202,9 @@ def main():
 
     ozet = ", ".join("%s=%s" % (a, json.dumps(v, ensure_ascii=False))
                      for a, v in degisiklikler.items())
+    if silinecek_alanlar:
+        ek = ", ".join("%s=KALDIRILDI" % a for a in silinecek_alanlar)
+        ozet = (ozet + ", " + ek) if ozet else ek
     _log("duzelt: %s -> %s (izin manifestine yazildi)" % (args.id, ozet))
     print("Duzeltildi: %s  (%s)" % (args.id, ozet))
     print("Guard bu degisikligi manifest sayesinde gecirir; commit sonrasi post-commit "

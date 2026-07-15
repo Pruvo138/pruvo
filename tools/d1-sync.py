@@ -51,6 +51,14 @@ def wrangler(args, girdi_dosya=None):
     p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True)
     ham = (p.stdout or "") + (p.stderr or "")
 
+    # Sandbox'li oturumlarda (Claude/CI) ~/.npm/_cacache yazilamayabilir (EPERM) ve
+    # npx daha baslamadan duser (denetim 2026-07-15). Gecici bir npm cache ile TEK
+    # SEFER yeniden dene — pre-push senkronunun sessizce kacmasini onler.
+    if p.returncode != 0 and "EPERM" in ham and "_cacache" in ham:
+        ort = dict(os.environ, npm_config_cache=tempfile.mkdtemp(prefix="pruvo-npm-"))
+        p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True, env=ort)
+        ham = (p.stdout or "") + (p.stderr or "")
+
     # En sik hata: token'in D1 yetkisi yok. Ham wrangler ciktisi bunu anlatmiyor
     # ("cozulemedi" deyip gecmek, sonraki oturuma sebebi kaybettiriyor) — acikca soyle.
     if "code: 10000" in ham or "Authentication error" in ham:

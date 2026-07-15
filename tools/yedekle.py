@@ -20,6 +20,9 @@ import drive_yolu
 
 
 def main():
+    # --help yedekleme BASLATMASIN (denetim 2026-07-15: --help dogrudan yaziyordu).
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print(__doc__.strip()); return
     # Drive yolunu drive_yolu cozer: bayatsa kendi duzeltir, mount yoksa uyarip None doner.
     # None'da DURUYORUZ — eskiden makedirs Drive yerine sahte yerel klasor yaratip "yedeklendi" diyordu.
     pruvo_drive = drive_yolu.pruvo_dizini()           # .../Pruvo
