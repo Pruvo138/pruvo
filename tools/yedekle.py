@@ -39,6 +39,17 @@ def main():
         shutil.copy2(src, os.path.join(backup, ".urun-kaynaklari.json"))
         print("yedek: .urun-kaynaklari.json")
 
+    # Ajan baglam dosyasi + yarim kalan is notu. IKISI DE GITIGNORE'DA (repo public, icerik
+    # ticari gizli) -> git'te KOPYASI YOK, yani bu makine olurse tamamen kaybolurlardi.
+    # CLAUDE.md artik butun araclarin (Claude Code, Codex, ...) tek kural kaynagi; DEVAM.md
+    # olculmus sayilari ve yarim isi tutuyor. Sir icermezler, --sirlar'a bagli DEGIL.
+    # (AGENTS.md kopyalanmaz: CLAUDE.md'ye symlink, ayri dosya degil.)
+    for ad in ("CLAUDE.md", "DEVAM.md"):
+        p = os.path.join(ROOT, ad)
+        if os.path.exists(p) and not os.path.islink(p):
+            shutil.copy2(p, os.path.join(backup, ad))
+            print("yedek:", ad)
+
     if "--sirlar" in sys.argv:
         for name in (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir"):
             p = os.path.join(ROOT, name)
