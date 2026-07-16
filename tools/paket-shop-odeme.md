@@ -18,9 +18,11 @@ sipariş kaydı + bildirim. WhatsApp/Ege kanalı aynen kalır (ikinci kapı).
    taban. `PLA 1.00 / PETG 1.30 / ABS 1.50 / TPU 1.55 / ASA 1.60 / Karbon katkılı 2.00`.
    TEK yerde config; Okan sonradan değiştirebilir. (Önceki taslak 1.15/1.30 GEÇERSİZ.)
    TPU (esnek) seçenek listesine DAHİL — malzeme metinleri `tools/filamentler.json`'dan.
-2. **Renk: sabit standart liste** (envanter bağlantısı YOK, Faz 2'ye). Varsayılan liste:
-   Siyah, Beyaz, Gri, Kırmızı, Mavi, Sarı — Okan onayına tabi; tek yerde config.
-   Sarı seri kuralı hatırlatması: site metinlerinde "her renk" DENMEZ → "farklı renk seçenekleri".
+2. **Renk (Okan KESİN kararı, 16 Tem): Siyah / Beyaz / Gri (fark yok) + "Diğer" (+%15).**
+   secenekler.js'teki mevcut model (RENK_SECENEKLERI + RENK_DIGER_YUZDE=15) AYNEN kalır —
+   değiştirme. "Diğer" seçilirse +%15 filament katsayısından SONRA uygulanır ve Worker
+   sunucu-tarafı hesapta da aynı sırayla doğrular (kuruş korunur, yuvarlama yok).
+   Envanter bağlantısı YOK (Faz 2). Sarı seri kuralı: "her renk" DENMEZ → "farklı renk seçenekleri".
 3. **iyzico canlı anahtar YOK, başvuru sürecinde.** Geliştirme + kabul testleri
    **iyzico SANDBOX** anahtarlarıyla yapılır (sandbox-api.iyzipay.com; sandbox hesabını
    mühendis kendisi açabilir, ücretsiz). Canlıya geçiş ayrı küçük iş: Okan anahtarları
