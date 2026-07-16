@@ -194,6 +194,51 @@ async function olustur(request, env) {
   });
 }
 
+// ---------------------------------------------------------------- container
+
+/**
+ * Cloudflare Container sarmalayicisi (Durable Object). Harici kutuphane YOK —
+ * ham ctx.container API'si: instance yoksa baslatir, 8080 portu hazir olana
+ * kadar dener (soguk baslatma burada yasanir; adaptor butcesi 30 sn), istegi
+ * icindeki server.py'ye aynen gecirir. Tek isimli instance kullanilir
+ * (adaptor idFromName("derleyici")) — pilot icin tek konteyner yeter.
+ */
+export class OnizlemeDerleyici {
+  constructor(ctx, env) {
+    this.ctx = ctx;
+    this.env = env;
+  }
+
+  async fetch(request) {
+    const kap = this.ctx.container;
+    if (!kap) {
+      return new Response(JSON.stringify({ hata: "container-yok" }),
+        { status: 503, headers: { "Content-Type": "application/json" } });
+    }
+    if (!kap.running) {
+      try { kap.start(); } catch (e) { /* yaris: baska istek baslatmis olabilir */ }
+    }
+    const port = kap.getTcpPort(8080);
+    const govde = request.method === "POST" ? await request.arrayBuffer() : null;
+    let sonHata = null;
+    for (let i = 0; i < 56; i++) { // ~28 sn tavan (soguk baslatma penceresi)
+      try {
+        return await port.fetch(new Request(request.url, {
+          method: request.method,
+          headers: request.headers,
+          body: govde,
+        }));
+      } catch (e) {
+        sonHata = e;
+        await new Promise((coz) => setTimeout(coz, 500));
+      }
+    }
+    console.error("container porta ulasilamadi:", (sonHata && sonHata.message) || sonHata);
+    return new Response(JSON.stringify({ hata: "derleyici-acilamadi" }),
+      { status: 503, headers: { "Content-Type": "application/json" } });
+  }
+}
+
 // ---------------------------------------------------------------- giris
 
 export default {

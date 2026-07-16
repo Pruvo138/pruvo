@@ -24,21 +24,23 @@ bucket_name = "pruvo-onizleme"
 enabled = true
 
 # ---------------------------------------------------------------------------
-# CLOUDFLARE CONTAINERS — PLAN BEKLIYOR (Workers Paid; Okan onayladi, Codex
-# panelden yukseltecek). Plan aktiflesince asagisi acilir + src/index.js'e
-# Container sinifi (durable object) eklenir; adaptor tek dosya: src/derleyici.js.
-# Imaj CI'da derlenir: .github/workflows/onizleme-imaj.yml (elle tetik).
-#
-# [[containers]]
-# class_name = "OnizlemeDerleyici"
-# image = "registry.cloudflare.com/dbbe2a8620c3c3a57c586b8a98142fb9/pruvo-onizleme-derleyici:latest"
-# max_instances = 2
-#
-# [[durable_objects.bindings]]
-# name = "DERLEYICI"
-# class_name = "OnizlemeDerleyici"
-#
-# [[migrations]]
-# tag = "v1"
-# new_sqlite_classes = ["OnizlemeDerleyici"]
+# CLOUDFLARE CONTAINERS (Workers Paid aktif, 16 Tem). Imaj CI'da derlenir+itilir:
+# .github/workflows/onizleme-imaj.yml (elle tetik, push_et=true). Yerel `wrangler
+# dev` bu bloklarla Docker ister — kabul testleri bu yuzden kendi kopyasinda
+# containers'siz calisir (onizleme/test/kabul.js kendi gecici toml'unu uretir).
+[[containers]]
+class_name = "OnizlemeDerleyici"
+image = "registry.cloudflare.com/dbbe2a8620c3c3a57c586b8a98142fb9/pruvo-onizleme-derleyici:ci"
+max_instances = 2
+# 1/4 vCPU + 1 GiB: OpenSCAD derlemesi CPU isi; en kucuk tip (1/16 vCPU) olcumde
+# yavas kalirsa buradan buyutulur (kapi-1 raporuna bak).
+instance_type = "basic"
+
+[[durable_objects.bindings]]
+name = "DERLEYICI"
+class_name = "OnizlemeDerleyici"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["OnizlemeDerleyici"]
 # ---------------------------------------------------------------------------

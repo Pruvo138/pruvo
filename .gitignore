@@ -69,3 +69,6 @@ onizleme/node_modules/
 
 # gecici tarayici denemesi ciktilari (mimar: repoya girmez)
 /ornek-*.html
+
+# kabul.js gecici test konfigurasyonu
+onizleme/.wrangler-test.toml

@@ -28,25 +28,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Gizli paketi R2'den cek
+      - name: Gizli paketi cek (R2, olmazsa secret)
         env:
           R2_ERISIM_ID: ${{ secrets.R2_ERISIM_ID }}
           R2_GIZLI_ANAHTAR: ${{ secrets.R2_GIZLI_ANAHTAR }}
+          # Yedek yol: paketin base64'u dogrudan Actions secret'inda (~12 KB; sir deposu
+          # sinifi R2-private ile ayni — iki yol da ayni repo secrets guvenine dayanir).
+          # Mevcut .r2-credentials.json S3 kimligi pruvo-media'ya BUCKET-SCOPED oldugu
+          # icin (16 Tem'de 403 ile olculdu) pruvo-ozel'i okuyamiyor; pruvo-ozel okuma
+          # yetkili ozel token uretilene kadar birincil yol bu secret.
+          ONIZLEME_PAKET_B64: ${{ secrets.ONIZLEME_PAKET_B64 }}
         run: |
-          if [ -z "$R2_ERISIM_ID" ] || [ -z "$R2_GIZLI_ANAHTAR" ]; then
-            echo "::error::R2_ERISIM_ID / R2_GIZLI_ANAHTAR secret'lari yok — paket cekilemez."
-            echo "Ekleme: repo Settings > Secrets > Actions (pruvo-ozel okuma yetkili R2 S3 token)."
-            exit 1
-          fi
-          export AWS_ACCESS_KEY_ID="$R2_ERISIM_ID"
-          export AWS_SECRET_ACCESS_KEY="$R2_GIZLI_ANAHTAR"
-          export AWS_DEFAULT_REGION=auto
           mkdir -p onizleme/derleyici/paket-ozel
-          aws s3 cp "s3://pruvo-ozel/onizleme/paket-guncel.tar.gz" paket.tar.gz \
-            --endpoint-url "https://dbbe2a8620c3c3a57c586b8a98142fb9.r2.cloudflarestorage.com"
+          CEKILDI=""
+          if [ -n "$R2_ERISIM_ID" ] && [ -n "$R2_GIZLI_ANAHTAR" ]; then
+            export AWS_ACCESS_KEY_ID="$R2_ERISIM_ID"
+            export AWS_SECRET_ACCESS_KEY="$R2_GIZLI_ANAHTAR"
+            export AWS_DEFAULT_REGION=auto
+            if aws s3 cp "s3://pruvo-ozel/onizleme/paket-guncel.tar.gz" paket.tar.gz \
+              --endpoint-url "https://dbbe2a8620c3c3a57c586b8a98142fb9.r2.cloudflarestorage.com"; then
+              CEKILDI="r2"
+            else
+              echo "::warning::R2'den cekilemedi (kimlik bucket kapsami?) — secret yoluna dusuluyor."
+            fi
+          fi
+          if [ -z "$CEKILDI" ]; then
+            if [ -z "$ONIZLEME_PAKET_B64" ]; then
+              echo "::error::Paket cekilemedi: ne R2 erisimi ne ONIZLEME_PAKET_B64 secret'i var."
+              echo "Cozum: python3 tools/onizleme-paket-yukle.py (R2 + secret'i birlikte tazeler)."
+              exit 1
+            fi
+            printf '%s' "$ONIZLEME_PAKET_B64" | base64 -d > paket.tar.gz
+            CEKILDI="secret"
+          fi
           tar -xzf paket.tar.gz -C onizleme/derleyici/paket-ozel
           rm paket.tar.gz
-          echo "paket dosyalari (adlar sir degil, icerik loglanmaz):"
+          echo "paket kaynagi: $CEKILDI — dosyalar (adlar sir degil, icerik loglanmaz):"
           ls onizleme/derleyici/paket-ozel
 
       - name: Imaji derle

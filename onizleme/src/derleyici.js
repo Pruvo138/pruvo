@@ -14,7 +14,10 @@
  *   POST {url}/derle {"aile","parametreler"} -> 200 binary STL | 4xx/5xx JSON {hata}
  */
 
-export const DERLEME_ZAMAN_ASIMI_MS = 5000;
+/* Istek butcesi 30 sn: DERLEME'nin kendisi server.py icinde 5 sn ile sinirli
+   (subprocess timeout); kalan pay Container SOGUK BASLATMASINI (imaj cekme + boot,
+   kapi-1 olcumu) emmek icin. Sicak istekte fiilen derleme suresi kadar surer. */
+export const ISTEK_ZAMAN_ASIMI_MS = 30000;
 
 /** @returns {{kod:number, govde:ArrayBuffer}|{kod:number, hata:string}} */
 export async function derleyiciCagir(env, aile, parametreler) {
@@ -22,11 +25,17 @@ export async function derleyiciCagir(env, aile, parametreler) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ aile: aile, parametreler: parametreler }),
-    signal: AbortSignal.timeout(DERLEME_ZAMAN_ASIMI_MS),
+    signal: AbortSignal.timeout(ISTEK_ZAMAN_ASIMI_MS),
   };
   let cevap;
   try {
-    if (env.DERLEYICI && typeof env.DERLEYICI.fetch === "function") {
+    if (env.DERLEYICI && typeof env.DERLEYICI.idFromName === "function") {
+      // Cloudflare Container (Durable Object sarmali, index.js OnizlemeDerleyici).
+      // Tek isimli instance = pilot icin tek konteyner; olceklerken isim anahtari
+      // (or. aile ya da rastgele N'den biri) burada cesitlendirilir.
+      const stub = env.DERLEYICI.get(env.DERLEYICI.idFromName("derleyici"));
+      cevap = await stub.fetch("http://derleyici/derle", istek);
+    } else if (env.DERLEYICI && typeof env.DERLEYICI.fetch === "function") {
       cevap = await env.DERLEYICI.fetch("http://derleyici/derle", istek);
     } else if (env.DERLEYICI_URL) {
       cevap = await fetch(env.DERLEYICI_URL.replace(/\/$/, "") + "/derle", istek);
