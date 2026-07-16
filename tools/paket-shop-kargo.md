@@ -70,6 +70,15 @@
    16 Tem gece)** — değişiklik sadece Okan'dan. D1 siparişe kdv_kurus kolonu (fatura için).
    Test: brüt 325,00 → net 270,83 + KDV 54,17 (toplam birebir 325,00); kargolu senaryo.
 
+9. **SÖZLEŞME ONAY KUTUSU (Okan, 16 Tem gece — yasal zorunluluk):** ödeme adımında
+   (kart VE havale, ikisinde de) zorunlu onay kutusu: "Ön Bilgilendirme Formu'nu ve
+   Mesafeli Satış Sözleşmesi'ni okudum, onaylıyorum" — iki metin de mevcut yasal
+   sayfalara link (yeni sayfa yazma; mevcut Gizlilik/Teslimat-İade/Mesafeli Satış
+   sayfaları). Kutu işaretlenmeden ödeme/havale butonu ÇALIŞMAZ. İSPAT KAYDI: onay,
+   sunucuda sipariş kaydıyla birlikte saklanır (D1'e sozlesme_onay zaman damgası
+   kolonu) — istemcinin "onayladı" demesi yetmez, /baslat isteğinde onay alanı yoksa
+   400 (sunucu tarafı zorunlu). Test: onaysız istek 400; onaylı istekte D1'de damga.
+
 ## Kabul testleri (mimar koşacak)
 1. `node shop/test/kabul.js` → mevcut testler yeşil + YENİ kargo testleri:
    a) ürün toplamı 2.499,99 TL → kargo 250,00 TL, tahsilat = 2.749,99 TL (kuruş birebir);
