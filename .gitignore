@@ -27,6 +27,7 @@ gorseller/
 /sitemap.xml
 /merchant-feed.xml
 /robots.txt
+/ozet.json
 /.nojekyll
 .thingiverse-token
 .gemini-key

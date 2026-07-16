@@ -77,7 +77,7 @@ _MARKA_SUB = [
 # Kaynak model CC lisanslıysa (MakerWorld / Thingiverse / Printables) atıf ZORUNLU.
 # urunler.json'da ürüne "lisans": {"tasarimci": "Ad", "tur": "CC BY 4.0"} eklenir;
 # "url" verilmezse tür kodundan aşağıdaki tablodan otomatik CC linki türetilir.
-# (******** royalty-free lisanslı ürünlerde CC atıfı yoktur; "lisans" alanı eklenmez.)
+# (CGTrader royalty-free lisanslı ürünlerde CC atıfı yoktur; "lisans" alanı eklenmez.)
 CC_URLS = {
     "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
     "CC BY-SA 4.0": "https://creativecommons.org/licenses/by-sa/4.0/",
@@ -715,6 +715,63 @@ def render_merchant_feed(products):
     return xml, len(items)
 
 
+# ------------------------------------------------------------------ ozet.json (FAZ 3)
+# Ana sayfanın İLK BOYAMASI için gereken minimum veri. Bayrak (index.html EDGE_KATALOG)
+# açıkken site 5-15 MB'lık urunler.json'u İNDİRMEZ; bunu indirir (~45 KB) ve gerisini
+# Worker'dan sayfalı çeker. urunler.json üretilmeye/yayınlanmaya DEVAM eder (yedeklilik
+# + dış tüketiciler); bu dosya onun YERİNE değil, YANINA gelir.
+#
+# İÇİNDEKİLER ve NEDEN: kategori sayıları (menü) · marka çipleri kategori kırılımıyla
+# (index.html brandCounts() bunu activeCat'e göre hesaplıyordu — katalog inmeyince
+# önceden hesaplanmış olmalı) · parametrik havuz (sarı vitrin: 18 ürün, tamamı) ·
+# en yeni N kart (ilk ekran + Worker'a ulaşılamazsa yedek arama havuzu).
+OZET_JSON = "ozet.json"
+OZET_YENI = 48            # ilk ekran 24 (PAGE_SIZE) + "daha fazla" için 1 sayfa pay
+OZET_ACIKLAMA_KES = 160   # Worker KART_ALANLARI substr(aciklama,1,160) ile AYNI olmalı
+OZET_BUTCE = 150 * 1024   # iş paketi hedefi; aşarsa build KIRMIZI (sessizce şişmesin)
+
+
+def kart_ozeti(p):
+    """Worker /katalog + /ara yanıtındaki kartla AYNI şekil — site tek kart çizici kullanır.
+    Şekil ayrışırsa ozet.json'dan gelen kart ile Worker'dan gelen kart farklı görünürdü."""
+    return {
+        "id": p.get("id"),
+        "baslik": p.get("baslik") or "",
+        "kategori": p.get("kategori") or "",
+        "marka": p.get("marka") or [],
+        "fiyat": p.get("fiyat") or "",
+        "gorsel": (p.get("gorseller") or [None])[0],
+        "parametrik": bool(p.get("parametrik")),
+        # Worker substr() ile kırpıyor (boşluk sadeleştirmiyor) — birebir aynısı.
+        "aciklama": (p.get("aciklama") or "")[:OZET_ACIKLAMA_KES],
+        "link": SITE + "/urun/" + (p.get("id") or "") + "/",
+    }
+
+
+def render_ozet(products):
+    kategoriler = {}
+    markalar = {}          # {kategori: {marka: adet}} — global sayım = kategorilerin toplamı
+    for p in products:
+        k = p.get("kategori") or ""
+        kategoriler[k] = kategoriler.get(k, 0) + 1
+        kat_markalari = markalar.setdefault(k, {})
+        for m in (p.get("marka") or []):
+            kat_markalari[m] = kat_markalari.get(m, 0) + 1
+
+    ozet = {
+        "surum": 1,
+        "uretim": TODAY,
+        "toplam": len(products),
+        "kategoriler": kategoriler,
+        "markalar": markalar,
+        # Sarı vitrin havuzu: parametrik ürünlerin TAMAMI (bugün 18) — site 4'ünü rastgele seçer.
+        "parametrik": [kart_ozeti(p) for p in products if p.get("parametrik")],
+        # urunler.json'un BAŞI = en yeni (CLAUDE.md: yeni ürün dizinin başına eklenir).
+        "yeni": [kart_ozeti(p) for p in products[:OZET_YENI]],
+    }
+    return json.dumps(ozet, ensure_ascii=False, separators=(",", ":"))
+
+
 # ------------------------------------------------------------------ ana akış
 def main():
     with open(JSON_PATH, encoding="utf-8") as f:
@@ -751,11 +808,26 @@ def main():
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write("User-agent: *\nAllow: /\n\nSitemap: " + SITE + "/sitemap.xml\n")
 
+    # ozet.json  (FAZ 3 — ana sayfanin ilk boyamasi; bayrak kapaliyken kullanilmaz ama uretilir)
+    ozet_json = render_ozet(products)
+    with open(os.path.join(ROOT, OZET_JSON), "w", encoding="utf-8") as f:
+        f.write(ozet_json)
+    ozet_bayt = len(ozet_json.encode("utf-8"))
+
     # .nojekyll  (GitHub Pages tüm dosyaları olduğu gibi sunsun)
     open(os.path.join(ROOT, ".nojekyll"), "w").close()
 
     print("OK: %d urun sayfasi + sitemap.xml + robots.txt + merchant-feed.xml (%d urun) uretildi."
           % (len(products), feed_n))
+    print("ozet.json: %d bayt (%.1f KB) | butce %d KB"
+          % (ozet_bayt, ozet_bayt / 1024.0, OZET_BUTCE // 1024))
+
+    # Butce asilirsa SESSIZ gecme: ozet.json'un varlik sebebi kucuk olmasi. Katalog
+    # buyudukce (20k hedefi) marka/kategori haritasi buyur -> burasi erken uyarir.
+    if ozet_bayt > OZET_BUTCE:
+        print("HATA: ozet.json butceyi asti (%d > %d bayt). OZET_YENI'yi dusur ya da "
+              "marka haritasini esikle kirp." % (ozet_bayt, OZET_BUTCE))
+        sys.exit(1)
 
 
 if __name__ == "__main__":

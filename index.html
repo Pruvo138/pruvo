@@ -264,6 +264,21 @@
     font-size:13px;color:var(--gray-text);margin-bottom:18px;
   }
 
+  /* FAZ 3 (EDGE_KATALOG) — arama/katalog edge'den gelirken durum satiri.
+     Bayrak kapaliyken bu ogenin display:none'i hic degismez. */
+  .edge-durum{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;color:var(--gray-text);margin:-8px 0 18px;
+  }
+  .edge-durum.uyari{color:#8a4b2a}
+  .edge-spin{
+    width:14px;height:14px;flex:none;border-radius:50%;
+    border:2px solid #d6ddea;border-top-color:var(--navy);
+    animation:pruvo-spin .7s linear infinite;
+  }
+  @keyframes pruvo-spin{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion:reduce){ .edge-spin{animation:none} }
+
   .grid{
     display:grid;
     grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
@@ -538,6 +553,7 @@
   </div>
   <div class="section-title" id="sectionTitle">Tüm Ürünler</div>
   <div class="result-count" id="resultCount"></div>
+  <div class="edge-durum" id="edgeDurum" style="display:none"></div>
   <div class="grid" id="grid"></div>
   <div class="load-more-wrap" id="loadMoreWrap"></div>
   <div class="empty-state" id="emptyState" style="display:none">
@@ -586,6 +602,23 @@
 <script>
 (function(){
   "use strict";
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // EDGE_KATALOG — FAZ 3 bayrağı (TEK anahtar; başka yerde kopyası YOK).
+  //
+  //   false = BUGÜNKÜ davranış: tüm katalog urunler.json ile iner, arama tarayıcıda
+  //           koşar. Hiçbir ağ isteği/davranış değişmez — geri dönüş yolu budur.
+  //   true  = ilk boyama ozet.json ile (~50 KB); kategori/marka/"Tümü" görünümleri
+  //           Worker'dan sayfalı (/katalog), arama edge'de (/ara). urunler.json İNMEZ.
+  //
+  // NEDEN BAYRAK: 7.171 üründe bugünkü model iyi (yerel arama 15-27 ms). 20k hedefinde
+  // urunler.json ~14-15 MB = mobil ilk açılış + bellek riski (ölçüm: katalog-olcek-siniri).
+  // Kod ŞİMDİ yazıldı, açılışı katalog ~12-15k banda girince (mimar+Okan kararı).
+  // Açmadan önce: node tools/parite-test.js + node tools/faz3-kabul.js YEŞİL olmalı.
+  var EDGE_KATALOG = false;
+  var EDGE_UC = "https://pruvo-whatsapp-bot.gmlmz.workers.dev";
+  var EDGE_DEBOUNCE = 250;   // ms — her tuşta istek atma; yazma bitince tek istek
+  // ─────────────────────────────────────────────────────────────────────────
 
   var WHATSAPP = "905451386526";
   var CATEGORIES = ["Marin","Otomobil","Motosiklet","Bisiklet","Tamirat","Ev","Ofis","Elektronik","Kamera","Bahçe","Dekorasyon","Oyun/Hobi"];
@@ -660,6 +693,11 @@
     saveCart();
   }
   function cartProducts(){
+    // Edge modunda PRODUCTS boş (katalog inmiyor) — kartlar kartBellek'ten gelir;
+    // eksikleri edgeSepetiTamamla() /katalog?ids= ile getirir.
+    if(EDGE_KATALOG){
+      return cart.map(function(id){ return kartBellek[id] || null; }).filter(Boolean);
+    }
     return cart.map(function(id){
       for(var i=0;i<PRODUCTS.length;i++){ if(PRODUCTS[i].id === id){ return PRODUCTS[i]; } }
       return null;
@@ -737,6 +775,8 @@
 
   function imagesOf(p){
     if(p.gorseller && p.gorseller.length){ return p.gorseller; }
+    // Edge kartı (ozet.json / Worker) tek kapak görseli verir — galeri ürün sayfasında.
+    if(p.gorsel){ return [p.gorsel]; }
     return [phData(p.kategori)];
   }
   function coverOf(p){ return imagesOf(p)[0]; }
@@ -785,6 +825,20 @@
 
   // seçili kategori + aramaya uyan ürünlerdeki markalar (marka filtresini yok sayar)
   function brandCounts(){
+    // Edge modu: katalog tarayıcıda olmadığı için sayımlar ozet.json'dan (kategori
+    // kırılımlı) gelir. FARK (bilinçli): arama yazılıyken çipler DARALMAZ — sorguya
+    // göre marka sayımı ancak her tuşta ek bir edge sorgusu ile çıkardı. Kategori
+    // kırılımı birebir korunur; ayrıntı: tools/paket-faz3-site-arama.md yargı listesi.
+    if(EDGE_KATALOG){
+      if(!OZET || !OZET.markalar){ return {}; }
+      var out = {};
+      Object.keys(OZET.markalar).forEach(function(k){
+        if(activeCat !== "Tümü" && k !== activeCat){ return; }
+        var kat = OZET.markalar[k];
+        Object.keys(kat).forEach(function(b){ out[b] = (out[b] || 0) + kat[b]; });
+      });
+      return out;
+    }
     var tokens = norm(query).split(/\s+/).filter(Boolean);
     var counts = {};
     PRODUCTS.forEach(function(p){
@@ -813,7 +867,11 @@
       var b = document.createElement("button");
       b.className = "brand-btn" + (m === activeBrand ? " active" : "");
       b.textContent = m;
-      b.onclick = function(){ activeBrand = m; resetPaging(); renderBrands(); renderGrid(); };
+      b.onclick = function(){
+        activeBrand = m; resetPaging(); renderBrands();
+        if(EDGE_KATALOG){ edgeTazele(); return; }
+        renderGrid();
+      };
       return b;
     }
     el.appendChild(chip("Tümü"));
@@ -821,7 +879,15 @@
     var brands = sortedBrands();
     // ana sayfada (Tümü + arama boş) sadece eşiği geçen markaları göster;
     // kategori seçilince/arama yapılınca küçük markalar da görünür
-    var homeView = (activeCat === "Tümü") && !norm(query).trim();
+    //
+    // EDGE MODU FARKI: sayımlar sorguya göre daralmadığı için (bkz. brandCounts) eşik
+    // kuralı da sorguyu YOK SAYAR — yoksa "audi a4 kapi kolu" araması 0 sonuç verirken
+    // çip listesi 1.185 markaya açılıyordu (ölçüldü, 16 Tem). Çipler marka SAYISI
+    // yazmadığı için görünen tek fark listenin hangi markaları içerdiğidir; edge modunda
+    // çipler bir "faset" değil, kategori içi gezinme aracıdır.
+    var homeView = EDGE_KATALOG
+      ? (activeCat === "Tümü")
+      : ((activeCat === "Tümü") && !norm(query).trim());
     if(homeView){
       var counts = brandCounts();
       brands = brands.filter(function(m){ return counts[m] >= MIN_BRAND_HOME; });
@@ -865,7 +931,9 @@
         if(activeBrand !== "Tümü" && sortedBrands().indexOf(activeBrand) === -1){ activeBrand = "Tümü"; }
         brandsExpanded = false;
         resetPaging();
-        renderCats(); renderBrands(); renderGrid();
+        renderCats(); renderBrands();
+        if(EDGE_KATALOG){ edgeTazele(); return; }
+        renderGrid();
       };
       el.appendChild(b);
     });
@@ -884,18 +952,111 @@
     });
   }
 
+  // Tek kart (iki mod da AYNI çiziciyi kullanır — yerel ürün objesi ve edge kartı
+  // aynı alanları taşır: id/baslik/kategori/marka/fiyat/aciklama/parametrik + kapak).
+  function kartCiz(p){
+    var card = document.createElement("div");
+    card.className = "card";
+
+    // kartın tıklanan kısmı = ürünün kendi sayfasına giden gerçek link
+    var main = document.createElement("a");
+    main.className = "card-main";
+    main.href = productUrl(p);
+
+    var img = document.createElement("img");
+    img.className = "card-img";
+    img.alt = p.baslik;
+    img.loading = "lazy";
+    img.src = coverOf(p);
+    img.onerror = function(){ this.src = phData(p.kategori); };
+
+    var body = document.createElement("div");
+    body.className = "card-body";
+
+    var cat = document.createElement("span");
+    cat.className = "card-cat";
+    cat.textContent = p.kategori;
+
+    var h = document.createElement("div");
+    h.className = "card-title";
+    h.textContent = p.baslik;
+
+    var d = document.createElement("div");
+    d.className = "card-desc";
+    d.textContent = p.aciklama || "";
+
+    var pr = document.createElement("div");
+    if(p.fiyat && p.fiyat.trim() !== ""){
+      pr.className = "card-price"; pr.textContent = p.fiyat;
+    }else{
+      pr.className = "card-price empty"; pr.textContent = p.parametrik ? "Ölçüye özel fiyat" : "Fiyat için sipariş verin";
+    }
+
+    body.appendChild(cat);
+    body.appendChild(h);
+    body.appendChild(d);
+    body.appendChild(pr);
+    main.appendChild(img);
+    main.appendChild(body);
+    if(p.parametrik){
+      var badge = document.createElement("span");
+      badge.className = "card-badge";
+      badge.textContent = "Ölçüye Özel";
+      main.appendChild(badge);
+    }
+
+    var order = document.createElement("button");
+    order.setAttribute("data-id", p.id);
+    setCartBtn(order, p.id);
+    order.onclick = function(){
+      toggleCart(p.id);
+      setCartBtn(order, p.id);
+      updateCartFab();
+      if(document.getElementById("cartPanel").classList.contains("open")){ renderCartPanel(); }
+    };
+
+    card.appendChild(main);
+    card.appendChild(order);
+    return card;
+  }
+
+  // Durum satırı (yalnızca edge modu): spinner / hata / yedek yol mesajı.
+  function renderEdgeDurum(){
+    var el = document.getElementById("edgeDurum");
+    if(!EDGE_KATALOG || edgeDurum === ""){ el.style.display = "none"; el.innerHTML = ""; return; }
+    el.style.display = "flex";
+    el.className = "edge-durum" + (edgeDurum === "yukleniyor" ? "" : " uyari");
+    if(edgeDurum === "yukleniyor"){
+      el.innerHTML = '<span class="edge-spin"></span><span>Aranıyor…</span>';
+    }else{
+      el.innerHTML = '<span>' + EDGE_YEDEK_MESAJ + '</span>';
+    }
+  }
+
   function renderGrid(){
     var grid = document.getElementById("grid");
     var empty = document.getElementById("emptyState");
     var title = document.getElementById("sectionTitle");
     var count = document.getElementById("resultCount");
 
-    var list = filtered();
+    var cizilecek, toplam, dahaVar;
 
-    // Ana sayfa varsayılan görünümü: önceden hesaplanmış HOME_ORDER (sarı sıra + her
-    // kategoriden birer sıra + kalan karışık). Kategori/marka filtresi ve arama yoksa uygulanır.
-    if(activeCat === "Tümü" && query.trim() === "" && activeBrand === "Tümü" && HOME_ORDER.length){
-      list = HOME_ORDER;
+    if(EDGE_KATALOG){
+      // Liste + toplam Worker'dan (ya da ilk sayfada ozet.json'dan) hazır gelir;
+      // sayfalama sunucuda olduğu için burada slice YOK.
+      cizilecek = edgeListe;
+      toplam = edgeToplam;
+      dahaVar = edgeListe.length < edgeToplam;
+    }else{
+      var list = filtered();
+      // Ana sayfa varsayılan görünümü: önceden hesaplanmış HOME_ORDER (sarı sıra + her
+      // kategoriden birer sıra + kalan karışık). Kategori/marka filtresi ve arama yoksa uygulanır.
+      if(activeCat === "Tümü" && query.trim() === "" && activeBrand === "Tümü" && HOME_ORDER.length){
+        list = HOME_ORDER;
+      }
+      cizilecek = list.slice(0, shown);
+      toplam = list.length;
+      dahaVar = list.length > shown;
     }
 
     if(query.trim() !== ""){
@@ -903,90 +1064,194 @@
     }else{
       title.textContent = (activeCat === "Tümü") ? "Tüm Ürünler" : activeCat + " Ürünleri";
     }
-    count.textContent = list.length + " ürün";
+    count.textContent = toplam + " ürün";
+    renderEdgeDurum();
 
     grid.innerHTML = "";
     var lm = document.getElementById("loadMoreWrap");
     lm.innerHTML = "";
-    if(list.length === 0){
-      empty.style.display = "block";
+    if(cizilecek.length === 0){
+      // Edge modunda yükleme sürerken "bulunamadı" gösterme — cevap gelmedi henüz.
+      empty.style.display = (EDGE_KATALOG && edgeDurum === "yukleniyor") ? "none" : "block";
       return;
     }
     empty.style.display = "none";
 
-    list.slice(0, shown).forEach(function(p){
-      var card = document.createElement("div");
-      card.className = "card";
+    cizilecek.forEach(function(p){ grid.appendChild(kartCiz(p)); });
 
-      // kartın tıklanan kısmı = ürünün kendi sayfasına giden gerçek link
-      var main = document.createElement("a");
-      main.className = "card-main";
-      main.href = productUrl(p);
-
-      var img = document.createElement("img");
-      img.className = "card-img";
-      img.alt = p.baslik;
-      img.loading = "lazy";
-      img.src = coverOf(p);
-      img.onerror = function(){ this.src = phData(p.kategori); };
-
-      var body = document.createElement("div");
-      body.className = "card-body";
-
-      var cat = document.createElement("span");
-      cat.className = "card-cat";
-      cat.textContent = p.kategori;
-
-      var h = document.createElement("div");
-      h.className = "card-title";
-      h.textContent = p.baslik;
-
-      var d = document.createElement("div");
-      d.className = "card-desc";
-      d.textContent = p.aciklama || "";
-
-      var pr = document.createElement("div");
-      if(p.fiyat && p.fiyat.trim() !== ""){
-        pr.className = "card-price"; pr.textContent = p.fiyat;
-      }else{
-        pr.className = "card-price empty"; pr.textContent = p.parametrik ? "Ölçüye özel fiyat" : "Fiyat için sipariş verin";
-      }
-
-      body.appendChild(cat);
-      body.appendChild(h);
-      body.appendChild(d);
-      body.appendChild(pr);
-      main.appendChild(img);
-      main.appendChild(body);
-      if(p.parametrik){
-        var badge = document.createElement("span");
-        badge.className = "card-badge";
-        badge.textContent = "Ölçüye Özel";
-        main.appendChild(badge);
-      }
-
-      var order = document.createElement("button");
-      order.setAttribute("data-id", p.id);
-      setCartBtn(order, p.id);
-      order.onclick = function(){
-        toggleCart(p.id);
-        setCartBtn(order, p.id);
-        updateCartFab();
-        if(document.getElementById("cartPanel").classList.contains("open")){ renderCartPanel(); }
-      };
-
-      card.appendChild(main);
-      card.appendChild(order);
-      grid.appendChild(card);
-    });
-
-    if(list.length > shown){
+    if(dahaVar){
       var btn = document.createElement("button");
       btn.className = "load-more";
-      btn.textContent = "Daha fazla göster (" + (list.length - shown) + " ürün daha)";
-      btn.onclick = function(){ shown += PAGE_SIZE; renderGrid(); };
+      var kalan = toplam - cizilecek.length;
+      btn.textContent = "Daha fazla göster (" + kalan + " ürün daha)";
+      btn.onclick = function(){
+        if(EDGE_KATALOG){
+          btn.disabled = true;
+          btn.textContent = "Yükleniyor…";
+          edgeYukle(edgeSayfa + 1, true);
+        }else{
+          shown += PAGE_SIZE;
+          renderGrid();
+        }
+      };
       lm.appendChild(btn);
     }
+  }
+
+  // ---------- EDGE KATALOG (FAZ 3 — sadece EDGE_KATALOG=true iken çalışır) ----------
+  // Bayrak kapalıyken bu bloktaki hiçbir fonksiyon ÇAĞRILMAZ: ne fetch, ne timer.
+  //
+  // İş bölümü:
+  //   ozet.json  → ilk boyama (ana sayfa 1. sayfa) + kategori/marka çipleri + sarı vitrin
+  //   /katalog   → kategori/marka/"Tümü" görünümleri, sayfalı, en yeni üstte
+  //   /ara       → arama (site modu; Ege'nin mod=ege'si DEĞİL — arama SEMANTİĞİ değişmez,
+  //                sadece nerede koştuğu değişir)
+  var EDGE_YEDEK_MESAJ =
+    "Katalog bağlantısı kurulamadı — şu an yalnızca son eklenen ürünlerde arama yapılıyor. " +
+    "Sayfayı yenilemeyi deneyebilirsiniz.";
+
+  var OZET = null;          // ozet.json içeriği
+  var edgeListe = [];       // ekranda çizili kartlar
+  var edgeToplam = 0;       // eşleşen toplam (sayfalanmamış)
+  var edgeSayfa = 1;
+  var edgeDurum = "";       // "" | "yukleniyor" | "yedek"
+  var edgeIstekNo = 0;      // yarış koşulu: sadece EN SON isteğin cevabı çizilir
+  var edgeZamanlayici = null;
+  var kartBellek = {};      // id → kart (sepet paneli PRODUCTS'a bakamaz, katalog inmiyor)
+
+  function kartBellegeAl(kartlar){
+    kartlar.forEach(function(k){ if(k && k.id){ kartBellek[k.id] = k; } });
+    return kartlar;
+  }
+  function edgeTekille(kartlar){
+    var gorulen = {}, out = [];
+    kartlar.forEach(function(k){
+      if(k && k.id && !gorulen[k.id]){ gorulen[k.id] = true; out.push(k); }
+    });
+    return out;
+  }
+  function edgeAnaSayfaMi(){
+    return activeCat === "Tümü" && activeBrand === "Tümü" && query.trim() === "";
+  }
+  // Sarı vitrin: ana sayfada rastgele 4 parametrik ürün en üstte (bugünkü davranışın aynısı;
+  // havuz ozet.json'dan — tüm parametrik ürünler orada).
+  function edgeVitrin(){
+    if(!OZET || !OZET.parametrik || !OZET.parametrik.length){ return []; }
+    return shuffle(OZET.parametrik).slice(0, 4);
+  }
+
+  function edgeIstek(sayfa){
+    var q = query.trim();
+    var p = new URLSearchParams();
+    if(activeCat !== "Tümü"){ p.set("kategori", activeCat); }
+    if(activeBrand !== "Tümü"){ p.set("marka", activeBrand); }
+    if(q){
+      // /ara sayfa DEĞİL limit alıyor (parite testinin referans aldığı uç — imzasına
+      // dokunmuyoruz). "Daha fazla" = limiti bir sayfa büyütüp listeyi tazele.
+      p.set("q", q);
+      p.set("limit", String(PAGE_SIZE * sayfa));
+      return EDGE_UC + "/ara?" + p.toString();
+    }
+    p.set("sayfa", String(sayfa));
+    p.set("boy", String(PAGE_SIZE));
+    return EDGE_UC + "/katalog?" + p.toString();
+  }
+
+  function edgeYukle(sayfa, ekle){
+    var no = ++edgeIstekNo;
+
+    // Ana sayfanın 1. sayfası ozet.json'da HAZIR — ağa hiç çıkma (ilk boyama bedava).
+    if(edgeAnaSayfaMi() && sayfa === 1 && OZET){
+      edgeListe = edgeTekille(kartBellegeAl(edgeVitrin().concat(OZET.yeni.slice(0, PAGE_SIZE))));
+      edgeToplam = OZET.toplam;
+      edgeSayfa = 1;
+      edgeDurum = "";
+      renderGrid();
+      return;
+    }
+
+    edgeDurum = "yukleniyor";
+    if(!ekle){ renderGrid(); }   // spinner (append'te mevcut liste ekranda kalsın)
+
+    fetch(edgeIstek(sayfa), { cache: "no-cache" })
+      .then(function(r){
+        if(!r.ok){ throw new Error("HTTP " + r.status); }
+        return r.json();
+      })
+      .then(function(d){
+        if(no !== edgeIstekNo){ return; }          // eskimiş cevap — çizme
+        if(d.hata){ throw new Error(d.hata); }
+        var gelen = kartBellegeAl(d.urunler || []);
+        edgeToplam = d.toplam || 0;
+        edgeSayfa = sayfa;
+        // /ara'da limit büyütülüp tüm liste yeniden geldiği için "ekle" olsa da REPLACE.
+        var q = query.trim();
+        edgeListe = (ekle && !q) ? edgeTekille(edgeListe.concat(gelen)) : edgeTekille(gelen);
+        edgeDurum = "";
+        renderGrid();
+        syncCardButtons();
+      })
+      .catch(function(err){
+        if(no !== edgeIstekNo){ return; }
+        console.error("katalog/arama alinamadi:", err);
+        edgeYedek();                                // ZARİF BOZULMA — sayfa çökmez
+      });
+  }
+
+  // Worker 500 / ulaşılamaz: sayfa çökmez, kullanıcı boş ekranla kalmaz.
+  // Elimizdeki ozet.json (son eklenen ürünler + parametrik havuz) içinde EN AZINDAN
+  // başlık araması yapılır; kullanıcıya bunun sınırlı bir liste olduğu AÇIKÇA söylenir.
+  function edgeYedek(){
+    edgeDurum = "yedek";
+    var havuz = OZET ? edgeTekille((OZET.parametrik || []).concat(OZET.yeni || [])) : [];
+    var liste = havuz;
+
+    if(activeCat !== "Tümü"){
+      liste = liste.filter(function(p){ return p.kategori === activeCat; });
+    }
+    if(activeBrand !== "Tümü"){
+      liste = liste.filter(function(p){ return (p.marka || []).indexOf(activeBrand) !== -1; });
+    }
+    var tokens = norm(query).split(/\s+/).filter(Boolean);
+    if(tokens.length){
+      liste = liste.filter(function(p){
+        var hs = norm(p.baslik || "");
+        for(var i=0;i<tokens.length;i++){ if(hs.indexOf(tokens[i]) === -1){ return false; } }
+        return true;
+      });
+    }
+    kartBellegeAl(liste);
+    edgeListe = liste.slice(0, PAGE_SIZE);
+    edgeToplam = liste.length;
+    edgeSayfa = 1;
+    renderGrid();
+  }
+
+  // Arama kutusu: her tuşta istek atma — yazma durunca tek istek (~250 ms).
+  function edgeAramaTetikle(){
+    if(edgeZamanlayici){ clearTimeout(edgeZamanlayici); }
+    edgeZamanlayici = setTimeout(function(){ edgeYukle(1, false); }, EDGE_DEBOUNCE);
+  }
+  // Kategori/marka değişimi: debounce YOK (tek tık, anında).
+  function edgeTazele(){
+    if(edgeZamanlayici){ clearTimeout(edgeZamanlayici); }
+    edgeYukle(1, false);
+  }
+
+  // Sepetteki ürünler ozet.json'da/ekranda olmayabilir (katalog inmiyor) — eksik id'leri
+  // tek çağrıda getir. Başarısız olursa sepet paneli bilinenleri gösterir, sayfa çökmez.
+  function edgeSepetiTamamla(){
+    var eksik = cart.filter(function(id){ return !kartBellek[id]; });
+    if(!eksik.length){ return; }
+    fetch(EDGE_UC + "/katalog?ids=" + encodeURIComponent(eksik.slice(0, 100).join(",")), { cache: "no-cache" })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(!d || d.hata){ return; }
+        kartBellegeAl(d.urunler || []);
+        updateCartFab();
+        if(document.getElementById("cartPanel").classList.contains("open")){ renderCartPanel(); }
+      })
+      .catch(function(e){ console.error("sepet urunleri alinamadi:", e); });
   }
 
   // ---------- ARAMA KUTUSU ----------
@@ -998,13 +1263,16 @@
     brandsExpanded = false;
     resetPaging();
     renderBrands();
+    if(EDGE_KATALOG){ edgeAramaTetikle(); return; }   // çizimi cevap gelince yapar
     renderGrid();
   });
   clearEl.onclick = function(){
     query = ""; searchEl.value = ""; clearEl.className = "search-clear";
     brandsExpanded = false;
     resetPaging();
-    searchEl.focus(); renderBrands(); renderGrid();
+    searchEl.focus(); renderBrands();
+    if(EDGE_KATALOG){ edgeTazele(); return; }
+    renderGrid();
   };
 
   // ---------- SEPET OLAYLARI ----------
@@ -1032,28 +1300,66 @@
   }
 
   renderCats();
-  // no-cache: no-store gibi HER açılışta sunucuya sorar (yeni ürün anında görünür), farkı 304 gelince
-  // tarayıcının sakladığı kopyayı kullanması. no-store'da katalog (5,1 MB / 834 KB gzip) her sayfa
-  // açılışında baştan iniyordu; ETag revalidation'la değişmediyse 0 bayt.
-  fetch("urunler.json", { cache: "no-cache" })
-    .then(function(r){ return r.json(); })
-    .then(function(data){
-      PRODUCTS = data;
-      buildHomeOrder();
-      loadCart();
-      isitHaystack();                   // arama ilk tuşta takılmasın (boş zamanda kurulur)
-      if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
-      renderCats();
-      renderBrands();
-      renderGrid();
-      updateCartFab();
-      // Ürün sayfasından "Sepetim" ile gelindiyse sepeti otomatik aç
-      if(new URLSearchParams(location.search).get("sepet")){ openCart(); }
-    })
-    .catch(function(err){
-      console.error("Ürünler yüklenemedi:", err);
-      document.getElementById("sectionTitle").textContent = "Ürünler yüklenemedi";
-    });
+
+  // ---------- AÇILIŞ ----------
+  // İki yol; hangisinin koşacağını TEK bayrak belirler (yukarıdaki EDGE_KATALOG).
+
+  function acilisEdge(){
+    // ozet.json (~50 KB) → ilk boyama. urunler.json (5-15 MB) İNMEZ.
+    fetch("ozet.json", { cache: "no-cache" })
+      .then(function(r){
+        if(!r.ok){ throw new Error("HTTP " + r.status); }
+        return r.json();
+      })
+      .then(function(d){
+        OZET = d;
+        loadCart();
+        if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
+        renderCats();
+        renderBrands();
+        edgeYukle(1, false);              // ana sayfada ağa çıkmaz (ozet.json yeter)
+        updateCartFab();
+        edgeSepetiTamamla();
+        if(new URLSearchParams(location.search).get("sepet")){ openCart(); }
+      })
+      .catch(function(err){
+        // ozet.json bile inmediyse: sayfa yine ÇÖKMEZ — Worker'ı deneyip mesaj göster.
+        console.error("ozet.json yuklenemedi:", err);
+        loadCart();
+        applyUrlParams();
+        renderCats();
+        renderBrands();
+        edgeYukle(1, false);
+        updateCartFab();
+      });
+  }
+
+  function acilisYerel(){
+    // no-cache: no-store gibi HER açılışta sunucuya sorar (yeni ürün anında görünür), farkı 304 gelince
+    // tarayıcının sakladığı kopyayı kullanması. no-store'da katalog (5,1 MB / 834 KB gzip) her sayfa
+    // açılışında baştan iniyordu; ETag revalidation'la değişmediyse 0 bayt.
+    fetch("urunler.json", { cache: "no-cache" })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        PRODUCTS = data;
+        buildHomeOrder();
+        loadCart();
+        isitHaystack();                   // arama ilk tuşta takılmasın (boş zamanda kurulur)
+        if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
+        renderCats();
+        renderBrands();
+        renderGrid();
+        updateCartFab();
+        // Ürün sayfasından "Sepetim" ile gelindiyse sepeti otomatik aç
+        if(new URLSearchParams(location.search).get("sepet")){ openCart(); }
+      })
+      .catch(function(err){
+        console.error("Ürünler yüklenemedi:", err);
+        document.getElementById("sectionTitle").textContent = "Ürünler yüklenemedi";
+      });
+  }
+
+  if(EDGE_KATALOG){ acilisEdge(); } else { acilisYerel(); }
 })();
 </script>
 
