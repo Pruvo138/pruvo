@@ -67,8 +67,34 @@ Bunlar BİZİM üreteçlerimiz (pruvo-jenerator, tedarikçi kodu değil) — eş
    gitignore'lu; kanonik R2 paketi) + **4d-benzeri ölçüm**: hacim.js kapalı-form vs gerçek
    openscad STL hacmi, N=5 set × 2 tohum, hedef ≤%3.
 3. Sapması >%3 çıkan aile SESSİZCE eklenmez/uydurulmaz → ölçülen sayıyla mimar listesine.
-4. Çıktı: aile başına sapma tablosu (rapor + DEVAM.md). Bu 13'ün `ONIZLEME_AILELER`'e
-   alınması BU PAKETTE YAPILMAZ — ölçüm sonuçlarıyla mimar/Okan kararı.
+4. **GÜNCELLEME (Okan kararı, 16 Tem gece): hedef TÜM sarı ailelerde önizleme.**
+   4d ölçümü ≤%3 geçen HER aile aynı dalda `ONIZLEME_AILELER`'e eklenir (görünürlük
+   onayı verildi; yayın yine merge kapısından geçer). Geçemeyen aile eklenmez, ölçülen
+   sapmayla rapora — düzeltme turu ayrı iş. Çıktı: aile başına sapma tablosu (rapor +
+   DEVAM.md) + nihai aile listesi.
+
+### E) Önizleme model rengi: gri → parlak sarı (Okan kararı, 16 Tem gece)
+`jenerator/viewer.js` model rengi sarı seri kimliğine çekilir: parlak sarı (sitedeki sarı
+rozet rengiyle uyumlu ton mühendis seçer). Flat shading'de saf sarının yüzey detayını
+yutmamasına dikkat (gölgeleme/kontrast okunur kalsın; zemin rengiyle çakışmasın).
+Kanıt: en az bir pilot ürün sayfasında ekran görüntüsü (rapora).
+
+### F) Sarı ürün sayfası seçici düzeni normal ürün sayfasıyla eşitlenir (Okan, 16 Tem gece)
+Normal ürün sayfaları yeni seçici düzeninde (ekran görüntüsüyle onaylandı); sarı/parametrik
+sayfalar eskide kalmış. Sarı sayfada da AYNI düzen olacak:
+- Malzeme seçimi dropdown DEĞİL, kart/çip: her kartta ~sıcaklık aralığı + malzeme adı +
+  kısa kullanım notu ("Ev içi", "Dış mekân / genel amaçlı", "Güneş + su", "Esnek / titreşim
+  emici") + önerilende "TAVSİYEMİZ" rozeti (normal sayfadakinin birebir aynısı).
+- Renk seçimi çip: Siyah / Beyaz / Gri / Diğer (+%15).
+- Adet: −/+ basamaklı seçici.
+- "Sepete Ekle" + WhatsApp butonları ÜSTTE, renk/adet bloğunun yanında (normal sayfa
+  hizası) — sayfa altında bırakılmaz.
+- Karbon fiber/mühendislik malzemesi WhatsApp notu + "Malzeme Rehberi →" linki aynı yerde.
+- Fiyat satırı sarı kuralına uyar: taban fiyat girilmediği sürece "Ölçüye özel fiyat"
+  (normal üründeki "X TL'den başlayan" kalıbı ancak taban fiyat varsa).
+**İKİNCİ KOPYA YAZMA:** normal sayfanın seçici bileşeni neredeyse (build.py şablonu /
+ortak JS) sarı sayfa da ORADAN beslenir — kopyalanıp ayrışan iki seçici bloğu paket reddi
+sebebidir. Kanıt: bir sarı ürün sayfası ekran görüntüsü + build iki-durum testi yeşil.
 
 ## Sır hijyeni (ihlali paket reddi sebebi)
 - `eslem-ozel.json` gitignore'lu kalır; kanonik kopya R2 `pruvo-ozel` özel bucket'ında.
@@ -87,9 +113,10 @@ Bunlar BİZİM üreteçlerimiz (pruvo-jenerator, tedarikçi kodu değil) — eş
 4. `node shop/test/kabul.js` → 9/9 yeşil (hacim.js regresyonu).
 5. `node tools/parite-test.js` + `node tools/parite-ege.js` → yeşil (aramaya dokunulmadı
    kanıtı; `_nonce` tuzağına dikkat).
-6. `KAPAT_ANAHTAR=... node onizleme/test/kapi1.js` (deploy sonrası, 5 aile) → p95 ≤ 10 sn.
+6. `KAPAT_ANAHTAR=... node onizleme/test/kapi1.js` (deploy sonrası, nihai listedeki TÜM
+   ailelerle) → p95 ≤ 10 sn.
 7. `tools/build.py` iki durum: mevcut main listesiyle yeni ailelerde buton YOK; dal
-   listesiyle SADECE 5 ailede VAR.
+   listesiyle SADECE nihai listedeki ailelerde VAR.
 
 ## Rapor formatı
 Ölçülen sayılar (sapma yüzdeleri aile aile, kapı-1 p50/p95, keşif sayıları), verilen/bekleyen
