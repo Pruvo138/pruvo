@@ -77,9 +77,10 @@ sipariş kaydı + bildirim. WhatsApp/Ege kanalı aynen kalır (ikinci kapı).
    (arama koduna dokunulmuyor ama D1'e şema eklendiği için koşulacak).
 8. **Katsayı doğruluğu (Okan uyarısı: başka oturumlar YANLIŞ hesapladı):** 100 TL'lik ürün için
    beklenen fiyatlar birebir doğrulanır: PLA 100 / PETG 130 / ABS 150 / TPU 155 / ASA 160 /
-   Karbon 200 TL. Ayrıca yuvarlama kuralı testte sabitlenir (küsurat: en yakın 5 TL'ye yukarı
-   yuvarla — örn. 850×1.3=1105 kalır, 333×1.3=432.9→435) ve sepet toplamı = kalemlerin
-   yuvarlanmış fiyatları toplamı olarak doğrulanır.
+   Karbon 200 TL. **YUVARLAMA YAPILMAZ (Okan, 16 Tem):** küsurat aynen korunur ve kuruşuyla
+   tahsil edilir — örn. 333×1.30 = 432,90 TL. Test: 333 TL'lik üründe PETG fiyatı TAM 432,90;
+   sepet toplamı = kalemlerin kuruşlu fiyatlarının toplamı (ara yuvarlama da yok). Gösterim
+   2 ondalık, TL formatı virgüllü.
 
 ## TESLİM
 
