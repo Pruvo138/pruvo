@@ -83,11 +83,11 @@ var TABAN_FIYATLAR = {
   "olcuye-ozel-vida-civata-somun-pul": null,
   "olcuye-ozel-yay-dalga-flexure": 130,
   "ozel-disli-kramayer-uretimi": 300,
-  // Yeni sarı aileler 1. dalga — Okan kararı (17 Tem): üçü de 1500 TL'den başlar
-  // (taban = zemin; varsayılan ölçünün altında bu fiyatın altına inilmez).
-  "olcuye-ozel-hortum-adaptoru": 1500,
-  "olcuye-ozel-kutu-organizer": 1500,
-  "olcuye-ozel-vidali-kavanoz-tapa": 1500
+  // Yeni sarı aileler 1. dalga — Okan kararı (17 Tem, düzeltme): üçü de 150 TL'den
+  // başlar (taban = zemin; varsayılan ölçünün altında bu fiyatın altına inilmez).
+  "olcuye-ozel-hortum-adaptoru": 150,
+  "olcuye-ozel-kutu-organizer": 150,
+  "olcuye-ozel-vidali-kavanoz-tapa": 150
 };
 var URUN_DIR = path.join(KOK, "jenerator", "urunler");
 var semaDosyalari = fs.readdirSync(URUN_DIR).filter(function (f) { return /\.json$/.test(f); });
@@ -138,9 +138,9 @@ esit("taban fiyatsız satır metni",
      SECENEK.satirOzeti({ id: "x" }, fiyatsiz).fiyatMetni,
      "Ölçüye özel fiyat — teklif için sipariş verin");
 
-// --- Yeni sarı aileler (1. dalga): 1500 TL taban/zemin yolu uçtan uca ---
-// Okan kararı (17 Tem): "1500'den başlasın" — varsayılanda fiyat = 1500,
-// PETG'de 1500×1.30, en küçük geçerli ölçüde de zemin delinmez.
+// --- Yeni sarı aileler (1. dalga): 150 TL taban/zemin yolu uçtan uca ---
+// Okan kararı (17 Tem, düzeltme "1500->150"): varsayılanda fiyat = 150,
+// PETG'de 150×1.30, en küçük geçerli ölçüde de zemin delinmez.
 var YENI_KUCUK = {
   "olcuye-ozel-hortum-adaptoru": { uc1_cap: 10, uc1_gecme: "ic", uc2_cap: 10,
                                    uc2_gecme: "ic", boy: 40, cidar: 1.6 },
@@ -155,19 +155,19 @@ Object.keys(YENI_KUCUK).forEach(function (id) {
   esit("varsayılanlar geçerli: " + id, KONF.dogrula(s, vd).gecerli, true);
   esit("hacim = tabanHacim: " + id,
        Math.abs(KONF.hacimMm3(s, vd, HACIM) - s.tabanHacimMm3) < 1e-6, true);
-  esit("varsayılanda fiyat = 1500 (PLA/Siyah): " + id,
+  esit("varsayılanda fiyat = 150 (PLA/Siyah): " + id,
        KONF.fiyatKurus(s, vd, "PLA", "Siyah", { secenek: SECENEK, hacim: HACIM }),
-       150000);
-  esit("PETG = 1500×1.30: " + id,
+       15000);
+  esit("PETG = 150×1.30: " + id,
        KONF.fiyatKurus(s, vd, "PETG", "Siyah", { secenek: SECENEK, hacim: HACIM }),
-       195000);
+       19500);
   var kucuk = YENI_KUCUK[id];
   esit("küçük set geçerli: " + id, KONF.dogrula(s, kucuk).gecerli, true);
   var kh = KONF.hacimMm3(s, kucuk, HACIM);
   esit("küçük set taban altında: " + id, kh != null && kh < s.tabanHacimMm3, true);
-  esit("zemin delinmez (küçük ölçüde de 1500): " + id,
+  esit("zemin delinmez (küçük ölçüde de 150): " + id,
        KONF.fiyatKurus(s, kucuk, "PLA", "Siyah", { secenek: SECENEK, hacim: HACIM }),
-       150000);
+       15000);
 });
 
 // --- #3 Sınır doğrulama (saf çekirdek) ---
