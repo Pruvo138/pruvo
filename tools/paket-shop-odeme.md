@@ -30,6 +30,12 @@ sipariş kaydı + bildirim. WhatsApp/Ege kanalı aynen kalır (ikinci kapı).
 
 - **Front:** saf HTML/CSS/JS (kütüphane/CDN YASAK — CLAUDE.md). Varyant seçici + sepet UI:
   `index.html` ve `tools/build.py` ürün sayfası şablonuna eklenir. Sepet **localStorage**.
+  MEVCUT TABAN: `/secenekler.js` (PRUVO_SECENEK, Faz 1) — üstüne inşa et, kopyalama.
+  **ADET (Okan, 16 Tem):** ürün sayfasında adet seçici (varsayılan 1, aralık 1-99) + sepet
+  panelinde satır başına +/- kontrolü; satır tutarı = kuruşlu birim fiyat × adet, sepet
+  toplamı satırların toplamı. Adet, sepet veri modeline (PRUVO_SECENEK satırı) ve Worker'a
+  giden sipariş kalemlerine de girer — Worker tutarı D1 fiyatı × katsayı × adet olarak
+  kendisi hesaplar.
   Tasarım: lacivert #12294d ana, kırmızı sadece vurgu; "3D baskı" İFADESİ HİÇBİR YERDE
   KULLANILMAZ ("özel üretim" dili).
 - **Backend: YENİ Cloudflare Worker `pruvo-shop`** — kodu bu repoda `shop/` dizininde
@@ -80,7 +86,9 @@ sipariş kaydı + bildirim. WhatsApp/Ege kanalı aynen kalır (ikinci kapı).
    Karbon 200 TL. **YUVARLAMA YAPILMAZ (Okan, 16 Tem):** küsurat aynen korunur ve kuruşuyla
    tahsil edilir — örn. 333×1.30 = 432,90 TL. Test: 333 TL'lik üründe PETG fiyatı TAM 432,90;
    sepet toplamı = kalemlerin kuruşlu fiyatlarının toplamı (ara yuvarlama da yok). Gösterim
-   2 ondalık, TL formatı virgüllü.
+   2 ondalık, TL formatı virgüllü. **Adet dahil:** 3 adet 333 TL'lik ürün PETG'de satır tutarı
+   TAM 1.298,70 TL (432,90×3); istemciden gelen adet Worker'da 1-99 aralığına doğrulanır,
+   aralık dışı istek reddedilir.
 
 ## TESLİM
 
