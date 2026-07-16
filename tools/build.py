@@ -28,7 +28,8 @@ import datetime
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
-                      CONTENT_CSS, CONTENT_PAGES, SITEMAP_SLUGS)
+                      CONTENT_CSS, CONTENT_PAGES, SITEMAP_SLUGS,
+                      PV_SCRIPT_HTML)
 import filament_ortak
 
 # ------------------------------------------------------------------ ayarlar
@@ -1348,6 +1349,7 @@ def render_content_page(slug, title, meta, body_html):
   {foot_nav}
   {pay_band}
 </footer>
+{pv_js}
 </body>
 </html>
 """.format(
@@ -1360,6 +1362,7 @@ def render_content_page(slug, title, meta, body_html):
         body=body_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
+        pv_js=PV_SCRIPT_HTML,
     )
 
 

@@ -61,6 +61,12 @@
   .pay-iyzico{font-weight:800;font-size:13px;color:#1e64ff;letter-spacing:-.3px}
   .pay-iyzico b{color:#12294d;font-weight:700}
 
+  /* Kişisel veri koruması: parçalanmış data-öznitelikleri; JS kapalıyken CSS birleştirir
+     (pseudo-element metni seçilip kopyalanamaz), JS açıkken betik gerçek metni basar. */
+  .pv::after{content:attr(data-a) attr(data-b) attr(data-c) attr(data-d) attr(data-e) attr(data-f) attr(data-g) attr(data-h) attr(data-i) attr(data-j) attr(data-k) attr(data-l)}
+  .pv.pv-tamam::after{content:none}
+  .pv-blok{-webkit-user-select:none;-moz-user-select:none;user-select:none}
+
   @media (max-width:560px){ .brand{font-size:28px} h1{font-size:24px} }
 </style>
 </head>
@@ -87,7 +93,7 @@
     <p>PRUVO ("biz") olarak, sizinle iletişim kurarken ve siparişinizi yerine getirirken paylaştığınız
     kişisel verilerin gizliliğine önem veriyoruz. Bu politika, hangi verileri topladığımızı, neden
     kullandığımızı ve haklarınızı açıklar. PRUVO, Fethiye merkezli; özel tasarım üretimle yedek parça üreten bir
-    işletmedir (Adnan Menderes Blv. No:303, 48300 Fethiye/Muğla).</p>
+    işletmedir (<span class="pv pv-blok" data-b="nan" data-d="nde" data-f=" Bl" data-h="No:" data-j=", 4" data-l="0 F" data-a="Ad" data-c=" Me" data-e="res" data-g="v. " data-i="303" data-k="830"></span><span class="pv pv-blok" data-b="hiy" data-d="uğl" data-a="et" data-c="e/M" data-e="a"></span>).</p>
   </div>
 
   <div class="card">
@@ -131,8 +137,8 @@
     <h2>Haklarınız (KVKK)</h2>
     <p>6698 sayılı KVKK kapsamında; kişisel verilerinize erişme, düzeltilmesini veya silinmesini isteme
     haklarına sahipsiniz. Bu haklarınızı kullanmak için bizimle iletişime geçebilirsiniz:</p>
-    <p><strong>E-posta:</strong> info@pruvo3d.com<br>
-    <strong>Adres:</strong> Adnan Menderes Blv. No:303, 48300 Fethiye/Muğla</p>
+    <p class="pv-blok"><strong>E-posta:</strong> <span class="pv pv-blok" data-b="fo@" data-d="vo3" data-f="om" data-a="in" data-c="pru" data-e="d.c"></span><br>
+    <strong>Adres:</strong> <span class="pv pv-blok" data-b="nan" data-d="nde" data-f=" Bl" data-h="No:" data-j=", 4" data-l="0 F" data-a="Ad" data-c=" Me" data-e="res" data-g="v. " data-i="303" data-k="830"></span><span class="pv pv-blok" data-b="hiy" data-d="uğl" data-a="et" data-c="e/M" data-e="a"></span></p>
   </div>
 
   <div class="card">
@@ -155,5 +161,23 @@
     </span>
   </div>
 </footer>
+<script>
+// Kişisel veri koruması: parçalanmış data-özniteliklerini birleştirip gösterir,
+// korumalı bloklarda sağ tıkı kapatır.
+(function(){
+  var K="abcdefghijkl";
+  var sp=document.querySelectorAll(".pv");
+  for(var i=0;i<sp.length;i++){
+    var v="";
+    for(var j=0;j<K.length;j++){ v+=sp[i].getAttribute("data-"+K[j])||""; }
+    sp[i].textContent=v;
+    sp[i].className+=" pv-tamam";
+  }
+  var bl=document.querySelectorAll(".pv-blok");
+  for(var b=0;b<bl.length;b++){
+    bl[b].addEventListener("contextmenu",function(e){e.preventDefault();});
+  }
+})();
+</script>
 </body>
 </html>

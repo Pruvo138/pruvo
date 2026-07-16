@@ -27,6 +27,87 @@ SELLER = {
     "site": "https://pruvo3d.com",
 }
 
+# ------------------------------------------------------------------ kişisel veri koruması
+# Satıcının kişisel bilgileri (ad, adres, vergi no, telefon, e-posta) HTML kaynağına
+# düz metin yazılmaz: değer 2-3 karakterlik parçalara bölünüp data-özniteliklerine
+# KARIŞIK SIRADA konur. Görünürlük iki yoldan sağlanır (yasal zorunluluk — müşteri
+# her koşulda okuyabilmeli):
+#   1) JS açık: sayfadaki küçük betik (PV_SCRIPT_HTML) parçaları doğru sırada
+#      birleştirip gerçek metin olarak basar, tel:/mailto:/harita linklerini kurar.
+#   2) JS kapalı: CSS `content: attr(data-a) attr(data-b) ...` aynı parçaları doğru
+#      sırada ::after içinde gösterir (saf CSS, betik gerekmez). Pseudo-element metni
+#      zaten seçilip kopyalanamaz. (Karakter tersleme BİLEREK yok: CSS attr() ters
+#      çeviremez; JS'siz görünürlük parçalama+sıra karıştırmayla korunur.)
+# Ek katmanlar: .pv-blok üzerinde user-select:none + contextmenu engeli (sadece bu
+# bloklarda; sayfanın kalanında sağ tık normal).
+_PV_ADLAR = "abcdefghijkl"
+
+
+def _pv_esc(s):
+    return (s.replace("&", "&amp;").replace("<", "&lt;")
+             .replace(">", "&gt;").replace('"', "&quot;"))
+
+
+def _pv_span(deger):
+    # tek span en fazla 12 parça taşır (ilk parça 2, kalanlar 3 karakter = 35 krk.)
+    parcalar = []
+    i = 0
+    while i < len(deger):
+        boy = 2 if i == 0 else 3
+        parcalar.append(deger[i:i + boy])
+        i += boy
+    # kaynak sırası karıştırılır: önce tek indisler, sonra çiftler → ardışık iki
+    # parça kaynakta yan yana gelmez, ham HTML grep'i/regex hasadı tutmaz.
+    sira = list(range(1, len(parcalar), 2)) + list(range(0, len(parcalar), 2))
+    attrs = " ".join('data-%s="%s"' % (_PV_ADLAR[j], _pv_esc(parcalar[j]))
+                     for j in sira)
+    return '<span class="pv pv-blok" %s></span>' % attrs
+
+
+def pv_html(deger):
+    """Kişisel veri değerini kaynakta düz metin bırakmayan korumalı span(lar)."""
+    maks = 2 + 3 * (len(_PV_ADLAR) - 1)  # 35 karakter/span
+    return "".join(_pv_span(deger[i:i + maks])
+                   for i in range(0, len(deger), maks))
+
+
+# İçerik sayfalarının CSS'ine eklenir (CONTENT_CSS'in sonunda). Statik sayfalar
+# (iletisim/gizlilik) aynı kuralları kendi <style> bloklarında taşır.
+PV_CSS = """
+  .pv::after{content:attr(data-a) attr(data-b) attr(data-c) attr(data-d) attr(data-e) attr(data-f) attr(data-g) attr(data-h) attr(data-i) attr(data-j) attr(data-k) attr(data-l)}
+  .pv.pv-tamam::after{content:none}
+  .pv-blok{-webkit-user-select:none;-moz-user-select:none;user-select:none}
+"""
+
+# İçerik sayfalarının sonuna basılan betik (saf JS, harici kütüphane YOK).
+# Statik sayfalarda (iletisim/gizlilik) birebir aynısı gömülü durur.
+PV_SCRIPT_HTML = """<script>
+// Kişisel veri koruması: parçalanmış data-özniteliklerini birleştirip gösterir,
+// tel/e-posta/harita linklerini kurar, korumalı bloklarda sağ tıkı kapatır.
+(function(){
+  var K="abcdefghijkl";
+  var sp=document.querySelectorAll(".pv");
+  for(var i=0;i<sp.length;i++){
+    var v="";
+    for(var j=0;j<K.length;j++){ v+=sp[i].getAttribute("data-"+K[j])||""; }
+    sp[i].textContent=v;
+    sp[i].className+=" pv-tamam";
+  }
+  var ln=document.querySelectorAll("[data-pv-link]");
+  for(var m=0;m<ln.length;m++){
+    var a=ln[m], ic=a.querySelectorAll(".pv"), t=a.getAttribute("data-pv-link"), d="";
+    for(var n=0;n<ic.length;n++){ d+=ic[n].textContent; }
+    if(t==="tel"){ a.href="tel:"+d.replace(/[^+0-9]/g,""); }
+    else if(t==="eposta"){ a.href="mailto:"+d; }
+    else if(t==="harita"){ a.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(d); }
+  }
+  var bl=document.querySelectorAll(".pv-blok");
+  for(var b=0;b<bl.length;b++){
+    bl[b].addEventListener("contextmenu",function(e){e.preventDefault();});
+  }
+})();
+</script>"""
+
 # ------------------------------------------------------------------ ödeme logoları (footer)
 # Güvenli, her zaman render olan inline SVG rozetler. iyzico resmi "logo band"
 # varsa panelden alıp değiştirilebilir.
@@ -75,13 +156,14 @@ CONTENT_CSS = """
     padding:5px 9px;height:26px;box-shadow:0 1px 3px rgba(0,0,0,.18)}
   .pay-iyzico{font-weight:800;font-size:13px;color:#1e64ff;letter-spacing:-.3px}
   .pay-iyzico b{color:#12294d;font-weight:700}
-"""
+""" + PV_CSS
 
 
 def _seller_table():
+    # Kişisel değerler düz metin basılmaz — pv_html (yukarıdaki koruma katmanı).
     s = SELLER
     return (
-        '<table class="info-table"><tbody>'
+        '<table class="info-table pv-blok"><tbody>'
         '<tr><td>Satıcı</td><td>%s (%s)</td></tr>'
         '<tr><td>Adres</td><td>%s</td></tr>'
         '<tr><td>Vergi Dairesi / No</td><td>%s &ndash; %s</td></tr>'
@@ -89,8 +171,9 @@ def _seller_table():
         '<tr><td>E-posta</td><td>%s</td></tr>'
         '<tr><td>Web</td><td>pruvo3d.com</td></tr>'
         '</tbody></table>'
-        % (s["unvan"], s["tur"], s["adres"], s["vd"], s["vkn"],
-           s["tel"], s["eposta"])
+        % (pv_html(s["unvan"]), s["tur"], pv_html(s["adres"]),
+           pv_html(s["vd"]), pv_html(s["vkn"]),
+           pv_html(s["tel"]), pv_html(s["eposta"]))
     )
 
 
@@ -218,7 +301,7 @@ def _teslimat_iade():
         "<p>Hatalı, hasarlı ya da siparişten farklı bir ürün ulaşırsa; fotoğrafla birlikte "
         "bize ulaşın, kargo masrafı bize ait olacak şekilde değişim/iade sağlarız.</p>"
         "<h2>İletişim</h2>" + _seller_table()
-    ) % (s["teslim"], s["kargo"], s["eposta"], s["tel"])
+    ) % (s["teslim"], s["kargo"], pv_html(s["eposta"]), pv_html(s["tel"]))
 
 
 def _mesafeli_satis():
@@ -261,7 +344,7 @@ def _mesafeli_satis():
         "değerlere kadar Tüketici Hakem Heyetleri, aşan uyuşmazlıklarda Tüketici Mahkemeleri "
         "yetkilidir.</p>"
         "<p class=\"upd\">Sipariş onayıyla işbu sözleşme kurulmuş sayılır.</p>"
-    ) % (s["kargo"], s["teslim"], s["eposta"], s["tel"])
+    ) % (s["kargo"], s["teslim"], pv_html(s["eposta"]), pv_html(s["tel"]))
 
 
 def _malzeme_rehberi():
