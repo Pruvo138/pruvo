@@ -1,5 +1,5 @@
-# PAKET — Sepet: kargo ücreti + ödeme butonu düzeni
-## (Okan kararı, 16 Tem gece — ekran görüntülü tespit)
+# PAKET — Sepet: kargo ücreti + ödeme butonu düzeni + HAVALE seçeneği + sipariş numarası
+## (Okan kararları, 16 Tem gece)
 
 **Kat:** Claude Mühendis (ödeme sınıfı — para hesabı, Codex'e verilmez).
 **Çalışma şekli:** worktree; `urunler.json`'a dokunma. İki-yazar uyarısı: Faz D mühendisi
@@ -34,6 +34,24 @@
    toplam da yazılır (müşteri iki kanalda aynı rakamı görsün).
 4. Sitedeki "2.500 TL üzeri kargo ücretsiz" metinleri bu kuralla tutarlı mı tara; değilse
    düzelt (metin nerede geçiyorsa listele, rapora yaz).
+5. **SİPARİŞ NUMARASI (zorunlu, TÜM siparişlerde):** Ege/Sheet akışındaki desenle aynı
+   aile: `PR-yyMMdd-HHmmss` + aynı-saniye çakışmasına karşı kısa rastgele sonek. Sunucuda
+   üretilir (istemciden alınmaz), D1 `siparisler` satırına yazılır, iyzico conversationId /
+   ödeme kaydıyla eşlenir, müşteriye dönüş (siparis=ok) sayfasında ve Telegram bildiriminde
+   gösterilir. Benzersizlik D1'de kısıtla garanti (UNIQUE); test var (aşağıda).
+6. **HAVALE/EFT SEÇENEĞİ:** ödeme adımında kartla ödemenin yanına "Havale/EFT" seçeneği:
+   - Müşteri havaleyi seçince: sipariş D1'e `havale-bekliyor` durumunda + sipariş numarasıyla
+     yazılır (kargo kuralı aynen uygulanır); müşteriye IBAN + alıcı unvanı + ödenecek TAM
+     tutar + "açıklamaya sipariş numaranızı yazın" ekranı gösterilir; Telegram'a
+     "HAVALE BEKLENİYOR: <no> <tutar>" bildirimi düşer.
+   - IBAN + alıcı unvanı TEK yerden okunur (config/var; koda dağıtılmaz). Değerleri Okan
+     verecek — MİMARDAN iste, placeholder ile geliştir, gerçek değer deploy'da girilir.
+   - Para iyzico'dan geçmediği için otomatik doğrulama YOK: onay adımı manuel (Okan dekontu/
+     hesabı görünce). Bu pakette onay = D1 durum güncellemesi için güvenli, TEK basit yol
+     (ör. ADMIN anahtarlı uç ya da belgelenmiş wrangler d1 komutu) — panel/arayüz KURMA,
+     kapsam şişirme; öneri varsa mimara yaz.
+   - Havale siparişi 'ödendi' İŞARETLENMEDEN Telegram "ödeme geldi" DEMEZ (sandbox dersinin
+     havale hali: para görülmeden üretim tetiklenmez).
 
 ## Kabul testleri (mimar koşacak)
 1. `node shop/test/kabul.js` → mevcut testler yeşil + YENİ kargo testleri:
@@ -46,6 +64,12 @@
 2. Sepet paneli görsel kanıt: <2.500 (kargo satırı + "X TL kaldı"), ≥2.500 ("Bedava"),
    ödeme kapalı/açık iki buton durumu — 4 ekran görüntüsü.
 3. `node tools/parite-test.js` + `node tools/parite-ege.js` yeşil (dokunulmadı kanıtı).
+4. SİPARİŞ NO testleri: format doğru; aynı saniyede iki sipariş → iki FARKLI numara
+   (çakışma testi); iyzico siparişinde conversationId eşleşmesi; havale siparişinde
+   müşteri ekranında ve Telegram metninde numara var.
+5. HAVALE testleri: havale seçimi → D1'de `havale-bekliyor` + doğru kargo + doğru toplam;
+   'ödendi' işareti ancak onay yoluyla değişir (istemciden değiştirilemez — negatif test);
+   IBAN ekranındaki tutar = D1'deki tutar_kurus birebir.
 
 ## Rapor
 Ölçülen/kanıtlanan her madde + "2.500 üzeri bedava" metninin geçtiği yerler listesi +
