@@ -215,10 +215,18 @@ export class OnizlemeDerleyici {
       return new Response(JSON.stringify({ hata: "container-yok" }),
         { status: 503, headers: { "Content-Type": "application/json" } });
     }
-    // Ops/olcum ucu (worker katmani KAPAT_ANAHTAR ile korur): container'i oldurur —
-    // kapi-1 soguk baslatma olcumu tekrarlanabilir olsun diye. Sonraki istek yeniden baslatir.
+    // Ops/olcum ucu (worker katmani KAPAT_ANAHTAR ile korur): container SURECINI
+    // durdurur (SIGTERM) — kapi-1 soguk baslatma olcumu tekrarlanabilir olsun diye.
+    // BILEREK destroy() DEGIL: destroy instance'i DEPROVISION eder, yeniden tahsis
+    // DAKIKALAR surer (16 Tem'de olculdu) ve musteri yolunu temsil etmez. SIGTERM
+    // ile instance tahsisli kalir; sonraki istek start() ile yalnizca boot'u oder =
+    // gercek "sifirdan olcekleme" yolu.
     if (new URL(request.url).pathname === "/kapat") {
-      if (kap.running) { try { await kap.destroy(); } catch (e) { /* zaten olmus */ } }
+      if (kap.running) {
+        try { kap.signal(15); } catch (e) {
+          try { await kap.destroy(); } catch (e2) { /* zaten olmus */ }
+        }
+      }
       return new Response(JSON.stringify({ durum: "kapatildi" }),
         { headers: { "Content-Type": "application/json" } });
     }

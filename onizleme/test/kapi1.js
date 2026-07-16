@@ -94,11 +94,12 @@ async function main() {
   }
 
   console.log("\n== KAPI-1 / 4e TABLO (uctan uca, istemciden olculdu) ==");
-  console.log("  %-9s n=%-3s p50=%-7s p95=%s", "tur", "", "(ms)", "(ms)");
+  console.log("  tur       n    p50(ms)  p95(ms)");
   for (const [ad, d] of [["soguk", soguk], ["sicak", sicak], ["onbellek", onbellek]]) {
-    if (!d.length) { console.log("  %-9s OLCUM YOK", ad); continue; }
-    console.log("  %-9s n=%-3d p50=%-7d p95=%d", ad, d.length,
-                Math.round(pXX(d, 0.5)), Math.round(pXX(d, 0.95)));
+    if (!d.length) { console.log("  " + ad.padEnd(10) + "OLCUM YOK"); continue; }
+    console.log("  " + ad.padEnd(10) + String(d.length).padEnd(5) +
+                String(Math.round(pXX(d, 0.5))).padEnd(9) +
+                String(Math.round(pXX(d, 0.95))));
   }
 
   const tam = soguk.length >= 10 && sicak.length >= 8 && onbellek.length >= 8;
