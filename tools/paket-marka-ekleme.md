@@ -1,7 +1,7 @@
 # İŞ PAKETİ: Marka tarama + toplu ürün ekleme (MÜHENDİS talimatı)
 
 Sen bu partinin MARABASISIN (varsayılan: Sonnet alt-ajanı — ürün yükleme maraba işidir;
-CLAUDE.md KOMUTA ZİNCİRİ). Çağıran sana KAYNAK (Printables/Thingiverse/CGTrader) ve MARKA
+CLAUDE.md KOMUTA ZİNCİRİ). Çağıran sana KAYNAK (Printables/Thingiverse/********) ve MARKA
 (ya da doğrudan ID listesi / satıcı URL'si) verdi. Repo: /Users/okan/dev/pruvo.
 Uçtan uca sen koşarsın; mimara sadece rapor dönersin.
 NOT: Görsel/içerik işini ekleme scriptleri kendi içinde Codex mini'ye devreder — sen ayrıca
@@ -9,7 +9,7 @@ Codex ÇAĞIRMA (kota kuralı: Codex kredisi az, sadece scriptlerin kendi çağr
 Teknik engel çıkarsa (script hatası, beklenmedik veri) onarmaya ÇALIŞMA — raporla; kod işi
 Mühendis katının, zor onarım Usta katınındır (mimar yönlendirir).
 
-## KAYNAK=CGTrader ise (özel mod — satın almadan listeleme)
+## KAYNAK=******** ise (özel mod — satın almadan listeleme)
 - `python3 tools/cgt-ekle.py "<satıcı-url>" <list|final>` (çağıran "final/indirimli" dediyse final,
   yoksa list). TL = round(USD × 100); şüphede ürün sayfasındaki İNDİRİMSİZ (üstü çizili) USD esas.
 - Ücretli kaynak: `lisans` alanı YOK, atıf YOK. Ölçü satırı beklenmez (STL siparişte alınır).
@@ -28,7 +28,9 @@ Mühendis katının, zor onarım Usta katınındır (mimar yönlendirir).
      üçüncü taraf IP'si taşıyan (Hogwarts/Disney vb. → telif), marka LOGOSU basılan alakasız eşya
      (yazıcı düğmesi, anahtarlık — ★POPULER-COP işaretliyse İSTİSNA: ekle), başlığı belirsiz olup
      detayı da alakasız çıkan.
-   - Markanın kendi tarihî ürünü (ör. Renault FT tankı maketi) MEŞRU → Oyun/Hobi.
+   - **YASAK (Okan, 2026-07-16): ölçekli model / maket ARAÇLAR (otomobil-motosiklet-araç maketi,
+     "scale model") ve LEGO ile ilişkili HER ürün (uyumlu/benzeri dahil) — lisans uygun olsa bile
+     EKLENMEZ, atla+bildir.** (Eski "markanın tarihî ürünü maketi meşru" istisnası KALDIRILDI.)
    - EMİN OLAMADIĞIN her adayı ekleME; rapora "yargı listesi"ne yaz (gerekçeyle) — mimar karar verir.
 
 3. EKLE: kalan ID'leri tek komutta:
@@ -39,7 +41,8 @@ Mühendis katının, zor onarım Usta katınındır (mimar yönlendirir).
 4. GÖZDEN GEÇİR ve DÜZELT (yalnız BU partide eklenen ürünlerde; HEAD'dekilere DOKUNMA):
    - Görselleri Read/inceleme yapma; `.thing-cache/<key>/oneri.json` + urunler.json kayıtları yeter.
    - Fiyat kesinleştir: küçük parça ~200-600, set/büyük ~600-1200 TL. Sarı seri değilse fiyat BOŞ olamaz.
-   - Kategori: CLAUDE.md kuralı — marka-özel araç parçası ilgili araç kategorisine; maket → Oyun/Hobi.
+   - Kategori: CLAUDE.md kuralı — marka-özel araç parçası ilgili araç kategorisine.
+     (Araç maketi zaten YASAK — adım 2'deki kural; buraya gelmemeli.)
    - Marka dizisi konvansiyonu: ["<Marka>", "<Model>"] (model adı sade: "Clio MK1" değil "Clio",
      "Laguna II" değil "Laguna"); aftermarket ürün adları (Tigerexped vb.) marka DEĞİLDİR, çıkar.
    - Açıklamada "3D baskı" GEÇMEZ; "Yaklaşık dış ölçüler: A × B × C mm." satırı OLMALI —
