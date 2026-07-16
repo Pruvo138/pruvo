@@ -14,10 +14,11 @@
  *   POST {url}/derle {"aile","parametreler"} -> 200 binary STL | 4xx/5xx JSON {hata}
  */
 
-/* Istek butcesi 30 sn: DERLEME'nin kendisi server.py icinde 5 sn ile sinirli
+/* Istek butcesi 60 sn: DERLEME'nin kendisi server.py icinde 5 sn ile sinirli
    (subprocess timeout); kalan pay Container SOGUK BASLATMASINI (imaj cekme + boot,
-   kapi-1 olcumu) emmek icin. Sicak istekte fiilen derleme suresi kadar surer. */
-export const ISTEK_ZAMAN_ASIMI_MS = 30000;
+   kapi-1 olcumu) emmek icin — DO sarmali ~55 sn dener, adaptor 60 sn'de keser.
+   Sicak istekte fiilen derleme suresi kadar surer. */
+export const ISTEK_ZAMAN_ASIMI_MS = 60000;
 
 /** @returns {{kod:number, govde:ArrayBuffer}|{kod:number, hata:string}} */
 export async function derleyiciCagir(env, aile, parametreler) {

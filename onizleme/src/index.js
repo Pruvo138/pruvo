@@ -222,13 +222,17 @@ export class OnizlemeDerleyici {
       return new Response(JSON.stringify({ durum: "kapatildi" }),
         { headers: { "Content-Type": "application/json" } });
     }
-    if (!kap.running) {
-      try { kap.start(); } catch (e) { /* yaris: baska istek baslatmis olabilir */ }
-    }
     const port = kap.getTcpPort(8080);
     const govde = request.method === "POST" ? await request.arrayBuffer() : null;
     let sonHata = null;
-    for (let i = 0; i < 56; i++) { // ~28 sn tavan (soguk baslatma penceresi)
+    for (let i = 0; i < 110; i++) { // ~55 sn tavan (soguk baslatma penceresi; adaptor 60 sn)
+      // start() DONGUNUN ICINDE: destroy hemen ardindan gelen istekte container henuz
+      // "stopped" olmayabilir ve start() firlatir — bir kez deneyip vazgecmek konteyneri
+      // SONSUZA DEK kapali birakiyordu (16 Tem kapi-1 ilk kosumunda olculdu: tum istekler
+      // 28 sn sonra derleyici-acilamadi). Her turda yeniden denenir; kalkinca fetch gecer.
+      if (!kap.running) {
+        try { kap.start(); } catch (e) { sonHata = e; }
+      }
       try {
         return await port.fetch(new Request(request.url, {
           method: request.method,

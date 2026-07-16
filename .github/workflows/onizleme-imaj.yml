@@ -71,7 +71,10 @@ jobs:
           docker build -t pruvo-onizleme-derleyici:ci onizleme/derleyici
           docker image ls pruvo-onizleme-derleyici:ci
 
-      - name: Imaj duman testi (mock degil — gercek openscad + paket)
+      - name: Imaj duman testi (mock degil — gercek openscad + paket, IKI aile)
+        # IKI ailenin de derlenmesi SART: 16 Tem'de tek-aile duman yesilken canli
+        # profil ailesi derlenemedi (Debian openscad 2021.01 cok eskiydi) — bu adim
+        # o sinifi artik CI'da yakalar.
         run: |
           docker run -d --rm -p 18080:8080 --name onizleme-duman pruvo-onizleme-derleyici:ci
           for i in $(seq 1 30); do
@@ -83,8 +86,13 @@ jobs:
           curl -sf -X POST http://127.0.0.1:18080/derle \
             -H 'Content-Type: application/json' \
             -d '{"aile":"olcuye-ozel-oring-conta","parametreler":{"ic_cap":30,"kesit_cap":3.6,"profil":"yuvarlak"}}' \
-            -o duman.stl
-          test "$(head -c 4 duman.stl | tail -c 4)" != "" && wc -c duman.stl
+            -o duman-oring.stl
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-profil-beam","parametreler":{"kesit":"i","yukseklik":40,"genislik":30,"et_kalinligi":3,"uzunluk":100,"ic_yapi":"bos"}}' \
+            -o duman-beam.stl
+          wc -c duman-oring.stl duman-beam.stl
+          test -s duman-oring.stl && test -s duman-beam.stl
           docker stop onizleme-duman
 
       - name: Registry'ye it (PLAN KAPISI)
