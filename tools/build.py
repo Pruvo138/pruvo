@@ -44,6 +44,36 @@ CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "O
 # secenekler.js'deki FONKSIYONEL_KATEGORILER ile BİRLİKTE güncelle (tek karar iki yerde).
 FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera"]
 
+# Malzeme katsayilari / renk listesi / adet araligi TEK KAYNAK: /secenekler.js.
+# Buraya kopyalanmaz — secici HTML'inin "(+%30)" etiketleri o dosyadan OKUNUR ki katsayi
+# degisince etiket sessizce eski kalmasin (Worker, sepet ve bu sablon ayni tabloyu gorur).
+SECENEKLER_JS = os.path.join(ROOT, "secenekler.js")
+
+
+def _js_sabiti(kaynak, ad):
+    m = re.search(r"var\s+" + re.escape(ad) + r"\s*=\s*(\{.*?\}|\[.*?\]);", kaynak, re.S)
+    if not m:
+        raise SystemExit("secenekler.js'te %s bulunamadi — secici HTML'i uretilemez "
+                         "(tek kaynak bozulmus)." % ad)
+    return json.loads(m.group(1))
+
+
+def _js_sayisi(kaynak, ad):
+    m = re.search(r"var\s+" + re.escape(ad) + r"\s*=\s*(\d+);", kaynak)
+    if not m:
+        raise SystemExit("secenekler.js'te %s bulunamadi." % ad)
+    return int(m.group(1))
+
+
+with open(SECENEKLER_JS, encoding="utf-8") as _f:
+    _SEC_JS = _f.read()
+FILAMENT_FARK = _js_sabiti(_SEC_JS, "FILAMENT_FARK")
+FILAMENT_SIRA = _js_sabiti(_SEC_JS, "FILAMENT_SIRA")
+RENK_SECENEKLERI = _js_sabiti(_SEC_JS, "RENK_SECENEKLERI")
+RENK_DIGER_YUZDE = _js_sayisi(_SEC_JS, "RENK_DIGER_YUZDE")
+ADET_EN_AZ = _js_sayisi(_SEC_JS, "ADET_EN_AZ")
+ADET_EN_COK = _js_sayisi(_SEC_JS, "ADET_EN_COK")
+
 TODAY = datetime.date.today().isoformat()
 PRICE_VALID = (datetime.date.today().replace(month=12, day=31)
                + datetime.timedelta(days=365)).isoformat()
@@ -113,29 +143,43 @@ WA_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 '
            '.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45'
            '.21.51.32.06.11.06.64-.18 1.32z"/></svg>')
 
-# Malzeme/renk satırları — klasik opsiyon bloğu ve parametrik konfigüratör AYNI
-# bileşeni kullanır (tek kaynak; secenekler.js FILAMENT_FARK/RENK ile uyumlu).
-MALZEME_RENK_HTML = """
+# Malzeme/renk satırları — klasik opsiyon bloğu ve parametrik konfigüratör AYNI bileşeni
+# kullanır. Seçenekler ve "(+%30)" etiketleri secenekler.js'ten ÜRETİLİR (elle yazılmaz):
+# katsayı orada değişince etiket sessizce eskimesin.
+def _malzeme_renk_html():
+    malzeme_opts = "".join(
+        '\n          <option value="%s">%s</option>' % (
+            esc(m), esc(m + (" (standart)" if not FILAMENT_FARK.get(m)
+                             else " (+%%%d)" % FILAMENT_FARK[m])))
+        for m in FILAMENT_SIRA)
+    renk_opts = "".join(
+        '\n          <option value="%s">%s</option>' % (
+            esc(r), esc(r + (" (+%%%d)" % RENK_DIGER_YUZDE if r == "Diğer" else "")))
+        for r in RENK_SECENEKLERI)
+    return ("""
       <div class="opsiyon-row">
         <label for="malzemeSec">Malzeme</label>
-        <select id="malzemeSec">
-          <option value="PLA">PLA (standart)</option>
-          <option value="PETG">PETG (+%30)</option>
-          <option value="ASA">ASA (+%60)</option>
-          <option value="Karbon Katkılı">Karbon Katkılı (+%100)</option>
-          <option value="ABS">ABS (+%50)</option>
-          <option value="TPU">TPU (+%55)</option>
+        <select id="malzemeSec">%s
         </select>
       </div>
       <div class="opsiyon-row">
         <label for="renkSec">Renk</label>
-        <select id="renkSec">
-          <option value="Siyah">Siyah</option>
-          <option value="Beyaz">Beyaz</option>
-          <option value="Gri">Gri</option>
-          <option value="Diğer">Diğer (+%15)</option>
+        <select id="renkSec">%s
         </select>
         <input type="text" id="renkOzel" placeholder="istediğiniz rengi yazın" style="display:none">
+      </div>""" % (malzeme_opts, renk_opts))
+
+
+# Adet seçici — klasik blok ve konfigüratör ortak (Okan, 16 Tem: varsayılan 1, aralık 1-99).
+ADET_HTML = """
+      <div class="opsiyon-row">
+        <label for="adetSec">Adet</label>
+        <div class="adet-kutu">
+          <button type="button" class="adet-btn" id="adetEksi" aria-label="Adet azalt">−</button>
+          <input type="number" id="adetSec" value="1" min="%d" max="%d"
+                 inputmode="numeric" aria-label="Adet">
+          <button type="button" class="adet-btn" id="adetArti" aria-label="Adet artır">+</button>
+        </div>
       </div>"""
 
 
@@ -228,6 +272,16 @@ PAGE_CSS = """
   .opsiyon-row label{font-size:13px;font-weight:700;color:var(--navy);min-width:64px}
   .opsiyon-row select,.opsiyon-row input[type=text]{padding:8px 10px;border:1px solid var(--gray-line);
     border-radius:7px;font-size:14px;background:#fff;color:var(--navy)}
+  .adet-kutu{display:inline-flex;align-items:center;border:1px solid var(--gray-line);
+    border-radius:7px;background:#fff;overflow:hidden}
+  .adet-btn{width:34px;height:36px;border:none;background:#fff;color:var(--navy);
+    font-size:18px;font-weight:700;cursor:pointer;line-height:1}
+  .adet-btn:hover{background:var(--gray-bg)}
+  .adet-kutu input{width:52px;height:36px;border:none;border-left:1px solid var(--gray-line);
+    border-right:1px solid var(--gray-line);text-align:center;font-size:14px;font-weight:700;
+    color:var(--navy);background:#fff;-moz-appearance:textfield}
+  .adet-kutu input::-webkit-outer-spin-button,
+  .adet-kutu input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .opsiyon-fiyat{font-size:19px;font-weight:800;color:var(--navy);margin-top:10px}
   .konf-baslik{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:12px}
   .konf-row label{min-width:130px}
@@ -478,10 +532,12 @@ def render_product(p, all_products):
       <div class="konf-baslik">Ölçülerinizi girin</div>
       <div id="konfAlanlar"></div>
       {malzeme_renk}
+      {adet}
       <div class="opsiyon-fiyat" id="opsiyonFiyat">&mdash;</div>
       <div class="konf-hacim" id="konfHacim"></div>
     </div>
-    """).format(malzeme_renk=MALZEME_RENK_HTML)
+    """).format(malzeme_renk=_malzeme_renk_html(),
+                adet=ADET_HTML % (ADET_EN_AZ, ADET_EN_COK))
         price_html = ""
     elif fonksiyonel:
         boy_html = ""
@@ -497,9 +553,11 @@ def render_product(p, all_products):
     <div class="opsiyonlar" id="opsiyonlar">
       {malzeme_renk}
       {boy}
+      {adet}
       <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
     </div>
-    """).format(malzeme_renk=MALZEME_RENK_HTML, boy=boy_html,
+    """).format(malzeme_renk=_malzeme_renk_html(), boy=boy_html,
+                adet=ADET_HTML % (ADET_EN_AZ, ADET_EN_COK),
                 fiyat_metni=esc(price_text))
         price_html = ""
     else:
@@ -660,6 +718,9 @@ var URUN_SEMA = {sema_json};
   var renkSec=document.getElementById("renkSec");
   var renkOzel=document.getElementById("renkOzel");
   var boySec=document.getElementById("boySec");
+  var adetSec=document.getElementById("adetSec");
+  var adetEksi=document.getElementById("adetEksi");
+  var adetArti=document.getElementById("adetArti");
   var fiyatEl=document.getElementById("opsiyonFiyat");
 
   function currentSatir(){{
@@ -670,8 +731,18 @@ var URUN_SEMA = {sema_json};
       s.renk_ozel = (renkSec.value === "Diğer" && renkOzel) ? renkOzel.value : "";
     }}
     if(boySec){{ s.boy_etiket = boySec.value || null; }}
+    if(adetSec){{ s.adet = PRUVO_SECENEK.adetDuzelt(adetSec.value); }}
+    /* Parametrik urun: konfigurator parametreleri + hacim + (taban fiyat varsa) kurusu satira
+       yazar. Adet YUKARIDA set edildi -> parametrik satirda da gecerli. */
     if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{ PRUVO_KONF.satiraYaz(s); }}
     return s;
+  }}
+  /* Adet kutusu: aralik disi deger (elle yazilan 0/500) secenekler.js kuralina cekilir —
+     Worker da AYNI araligi dogrular, aralik disi istegi reddeder. */
+  function adetYaz(v){{
+    if(!adetSec){{ return; }}
+    adetSec.value = PRUVO_SECENEK.adetDuzelt(v);
+    render();
   }}
   function render(){{
     var c = PRUVO_SECENEK.sepetYukle();
@@ -717,6 +788,25 @@ var URUN_SEMA = {sema_json};
   if(renkOzel){{ renkOzel.addEventListener("input", render); }}
   if(URUN_SEMA && window.PRUVO_KONF && window.PRUVO_HACIM){{
     PRUVO_KONF.kur(URUN_SEMA, document.getElementById("konfAlanlar"), render);
+  }}
+  if(adetEksi){{ adetEksi.addEventListener("click", function(){{ adetYaz((adetSec.value|0)-1); }}); }}
+  if(adetArti){{ adetArti.addEventListener("click", function(){{ adetYaz((adetSec.value|0)+1); }}); }}
+  if(adetSec){{
+    /* Bu urun/konfigurasyon SEPETTEYSE adet degisikligi sepete de islenir: kullanici
+       "Sepette ✓" gorurken adeti 3 yapip sepette 1 kalmasi sasirtici olurdu. */
+    adetSec.addEventListener("change", function(){{
+      var yeni = PRUVO_SECENEK.adetDuzelt(adetSec.value);
+      adetSec.value = yeni;
+      var c = PRUVO_SECENEK.sepetYukle();
+      var anahtar = PRUVO_SECENEK.satirAnahtari(currentSatir());
+      var degisti = false;
+      for(var j=0;j<c.length;j++){{
+        if(PRUVO_SECENEK.satirAnahtari(c[j])===anahtar){{ c[j].adet = yeni; degisti = true; }}
+      }}
+      if(degisti){{ PRUVO_SECENEK.sepetKaydet(c); }}
+      render();
+    }});
+    adetSec.addEventListener("input", render);
   }}
   render();
 }})();

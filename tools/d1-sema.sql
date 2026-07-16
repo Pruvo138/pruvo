@@ -78,3 +78,27 @@ CREATE TABLE IF NOT EXISTS senkron (
   anahtar TEXT PRIMARY KEY,
   deger   TEXT NOT NULL
 );
+
+-- SHOP — self-servis siparisler (shop/ worker'i yazar; is paketi tools/paket-shop-odeme.md).
+-- Katalog senkronundan BAGIMSIZ: d1-sync.py bu tabloya dokunmaz, urun silinse de siparis kalir.
+-- durum akisi: bekliyor -> odendi | basarisiz | incele
+--   'odendi'  SADECE iyzico retrieve dogrulamasindan gecince (worker /donus)
+--   'incele'  odeme iyzico'da basarili AMA tutar/kimlik bizim kayitla uyusmadi (elle bak)
+CREATE TABLE IF NOT EXISTS siparisler (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  siparis_no      TEXT NOT NULL UNIQUE,   -- SP... (conversationId/basketId olarak iyzico'ya gider)
+  token           TEXT UNIQUE,            -- iyzico checkout form token — idempotens anahtari
+  tarih           TEXT NOT NULL,          -- ISO 8601 UTC
+  durum           TEXT NOT NULL DEFAULT 'bekliyor',
+  -- Para KURUS tamsayisinda saklanir: katsayi kusurati aynen korunur (Okan, 16 Tem — yuvarlama
+  -- YOK), REAL saklansa kayan nokta tutari sessizce kaydirirdi. 43290 = 432,90 TL.
+  tutar_kurus     INTEGER NOT NULL,       -- SUNUCUDA hesaplanan toplam (kurus)
+  urunler         TEXT NOT NULL,          -- JSON [{id,baslik,filament,renk,adet,birim_kurus,tutar_kurus}]
+  filament        TEXT NOT NULL DEFAULT '',
+  renk            TEXT NOT NULL DEFAULT '',
+  iyzico_odeme_id TEXT,
+  musteri_ad      TEXT NOT NULL DEFAULT '',
+  musteri_tel     TEXT NOT NULL DEFAULT '',
+  musteri_eposta  TEXT NOT NULL DEFAULT '',
+  musteri_adres   TEXT NOT NULL DEFAULT ''
+);

@@ -1,0 +1,6 @@
+{
+  "_TEK_KAYNAK": "Malzeme katsayilari (FILAMENT_FARK), renk listesi (RENK_SECENEKLERI + RENK_DIGER_YUZDE=15), adet araligi (1-99) ve fiyat hesabi BURADA DEGIL — /secenekler.js'te. Worker o dosyayi import eder, front da ayni dosyayi kullanir: katsayi tablosunun ikinci kopyasi YOKTUR. Katsayi degistirmek icin secenekler.js'i duzenle.",
+  "_ONAY": "Katsayilar OKAN ONAYLI (16 Tem 2026): PLA +0 / PETG +30 / ABS +50 / TPU +55 / ASA +60 / Karbon Katkili +100 yuzde; renk 'Diger' +15 (katsayidan SONRA). Yuvarlama YOK — kusurat kurusuyla korunur.",
+  "sepet_en_cok_kalem": 30,
+  "taksit": [1]
+}

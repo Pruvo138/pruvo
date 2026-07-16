@@ -1,0 +1,7 @@
+# Yerel gelistirme / sandbox anahtarlari SABLONU.
+# GERCEK degerleri bu dosyaya DEGIL, ayni dizindeki .dev.vars'a yaz (.dev.vars gitignore'da).
+# Sandbox hesabi: https://sandbox-merchant.iyzipay.com (ucretsiz) -> Ayarlar > API Anahtarlari.
+IYZICO_API_KEY = "sandbox-XXXX"
+IYZICO_SECRET_KEY = "sandbox-XXXX"
+# Bos birakilirsa bildirim atlanir (odeme akisini ASLA bloklamaz):
+TELEGRAM_TOKEN = ""

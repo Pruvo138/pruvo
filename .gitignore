@@ -51,3 +51,11 @@ tools/URUN-EKLEME-REHBERI.md
 scratchpad/
 tools/thing-meta.py
 worker-iyzico-webhook/
+
+# shop/ (pruvo-shop worker) — sirlar ve yerel durum ASLA repoya girmez (repo PUBLIC):
+shop/.dev.vars
+shop/.wrangler/
+shop/node_modules/
+
+# gecici tarayici denemesi ciktilari (mimar: repoya girmez)
+/ornek-*.html

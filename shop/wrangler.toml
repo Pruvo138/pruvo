@@ -1,0 +1,35 @@
+# pruvo-shop — self-servis satin alma worker'i (iyzico Checkout Form, hosted/redirect).
+# Is paketi: tools/paket-shop-odeme.md. Ege worker'indan (pruvo-bot) TAMAMEN AYRI:
+# ayri worker, ayri secret seti; ortak olan tek sey pruvo-katalog D1 veritabani.
+name = "pruvo-shop"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+
+# Site Cloudflare proxy arkasinda (GitHub Pages origin) -> odeme API'si AYNI alan adindan
+# /api/shop/* ile sunulur: CORS gerekmez, front'a workers.dev adresi gomulmez.
+routes = [
+  { pattern = "pruvo3d.com/api/shop/*", zone_name = "pruvo3d.com" }
+]
+
+[vars]
+# Canliya gecis: Okan'in iyzico basvurusu onaylaninca burasi https://api.iyzipay.com olur
+# + IYZICO_API_KEY/IYZICO_SECRET_KEY secret'lari canli anahtarlarla degistirilir + smoke test.
+IYZICO_BASE_URL = "https://sandbox-api.iyzipay.com"
+SITE_URL = "https://pruvo3d.com"
+# Telegram bildirimi — Ege worker'iyla ayni sohbet (kimlik/ID sir degil, token SIR).
+TELEGRAM_CHAT = "5076274057"
+TELEGRAM_API = "https://api.telegram.org"
+
+[[d1_databases]]
+binding = "KATALOG"
+database_name = "pruvo-katalog"
+database_id = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"
+
+[observability]
+enabled = true
+
+# GIZLI degiskenler wrangler.toml'a YAZILMAZ (repo PUBLIC); komutla eklenir:
+#   npx wrangler secret put IYZICO_API_KEY      # sandbox-... / canli anahtar
+#   npx wrangler secret put IYZICO_SECRET_KEY
+#   npx wrangler secret put TELEGRAM_TOKEN      # mevcut PRUVO botunun token'i — deploy'da Okan onayiyla
+# Yerel gelistirme: .dev.vars (gitignore'da) — sablon: .dev.vars.example

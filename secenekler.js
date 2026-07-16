@@ -1,8 +1,14 @@
 /* PRUVO — Malzeme/Renk/Boy seçenekleri + fiyat hesaplama + sepet veri modeli.
    index.html VE tools/build.py'nin ürettiği urun/<id>/index.html sayfaları bu dosyayı
    ORTAK kullanır (tek kaynak — ikisine ayrı ayrı kopyalanmaz, drift riski kalmaz).
+   shop/ Worker'ı da BU dosyayı import eder (shop/src/index.js): ödeme tutarı sunucuda
+   aynı katsayı/renk/sıra kuralıyla hesaplanır — katsayı tablosunun ikinci kopyası YOKTUR.
    Kategori listesi değişirse tools/build.py'deki FONKSIYONEL_KATEGORILER ile BİRLİKTE
-   güncelle (build.py hangi ürün sayfasına seçici HTML'i basacağını bu listeyle karar verir). */
+   güncelle (build.py hangi ürün sayfasına seçici HTML'i basacağını bu listeyle karar verir).
+
+   PARA KURALI (Okan, 16 Tem): YUVARLAMA YOK — küsurat aynen korunur, kuruşuyla tahsil edilir
+   (333 × 1.30 = 432,90 TL). Para tamsayı KURUŞTA taşınır; TL'de çarpım yapılsa kayan nokta
+   432.90000000000003 üretir ve istemci ile Worker'ın tutarı sessizce ayrışır. */
 (function (root) {
   "use strict";
 
@@ -13,10 +19,18 @@
   var RENK_DIGER_YUZDE = 15;
   var FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera"];
 
+  /* Liste fiyatı metninden TL sayısı. tools/build.py feed_price ve Worker ile AYNI kural:
+     İLK sayı grubunu alır ("1.250 TL" -> 1250, "300 TL (30 cm)" -> 300).
+     DİKKAT: eski kural tüm rakamları birleştiriyordu (replace(/[^0-9]/g,"")), o yüzden
+     "300 TL (30 cm)" 30030 TL görünüyordu — istemci 30.030 TL gösterip Worker 300 TL tahsil
+     ederdi. Kural üç yerde (burada, feed_price, Worker) birebir aynı olmalı. */
   function fiyatSayisi(fiyat) {
     if (!fiyat) { return null; }
-    var d = String(fiyat).replace(/[^0-9]/g, "");
-    return d ? parseInt(d, 10) : null;
+    var s = String(fiyat);
+    var m = /([0-9][0-9.]*)\s*(?:TL|TRY|₺)/i.exec(s) || /([0-9][0-9.]*)/.exec(s);
+    if (!m) { return null; }
+    var n = parseInt(m[1].replace(/\./g, ""), 10);
+    return (n > 0) ? n : null;
   }
 
   function fonksiyonelMi(kategori) {
@@ -32,12 +46,35 @@
     return 0;
   }
 
-  function hesaplaFiyat(temelFiyatTL, malzeme, renk, boyFarkTL) {
+  var ADET_EN_AZ = 1;
+  var ADET_EN_COK = 99;
+
+  /* Parametrik (sarı seri) ürünlerde SELF-SERVİS ÖDEME anahtarı — TEK yerde, front + Worker
+     aynı sabiti okur. Bugün KAPALI (Okan'ın taban fiyatları henüz boş: jenerator/urunler/
+     *.json tabanFiyatTL=null; ayrıca kabul testi #5 "parametrik dışlama" bunu bekliyor).
+     Altyapı hazır: Worker şema+hacim.js ile sunucu-tarafı yeniden hesabı yapabiliyor
+     (shop/src/parametrik.js + kabul testi 9). AÇMAK İÇİN: taban fiyatlar dolsun, MİMAR
+     kararıyla burası true olsun, kabul testi #5 "parametrik doğrulanmış-dahil"e evrilsin.
+     Tek başına taban fiyat girilmesi ödemeyi AÇMAZ — kasıtlı: fiyat girildi diye ödeme
+     kanalı sessizce açılmasın. */
+  var PARAMETRIK_ODEME_ACIK = false;
+
+  /* Birim fiyat, tamsayı KURUŞ. Sıra (Okan, 16 Tem): filament katsayısı -> SONRA "Diğer"
+     renk +%15 -> sonra boy farkı (TL, sabit ek). Yuvarlama YOK; tek yuvarlama kuruşun ALTINA
+     inen artık içindir (yarım kuruş tahsil edilemez; ör. "Diğer" renkte 333 -> 497,835 TL). */
+  function hesaplaFiyatKurus(temelFiyatTL, malzeme, renk, boyFarkTL) {
     if (temelFiyatTL == null) { return null; }
     var yuzde = FILAMENT_FARK.hasOwnProperty(malzeme) ? FILAMENT_FARK[malzeme] : 0;
-    var ara = temelFiyatTL * (1 + yuzde / 100);
-    if (renk === "Diğer") { ara = ara * (1 + RENK_DIGER_YUZDE / 100); }
-    return Math.round(ara) + (boyFarkTL || 0);
+    var renkCarpan = (renk === "Diğer") ? (100 + RENK_DIGER_YUZDE) : 100;
+    // Bölmeler en sona: 333*100*130*115 = 497835000 (tamsayı, güvenli) -> /10000 -> 49783.5
+    var kurus = Math.round(temelFiyatTL * 100 * (100 + yuzde) * renkCarpan / 10000);
+    return kurus + Math.round((boyFarkTL || 0) * 100);
+  }
+
+  function adetDuzelt(a) {
+    var n = parseInt(a, 10);
+    if (!(n >= ADET_EN_AZ)) { return ADET_EN_AZ; }
+    return n > ADET_EN_COK ? ADET_EN_COK : n;
   }
 
   // ---- parametrik ("ölçüye özel") fiyat ----
@@ -52,10 +89,15 @@
     return Math.round(kurus);
   }
 
+  /* Kuruşu ekran metnine çevirir: 43290 -> "432,90 TL", 129870 -> "1.298,70 TL".
+     TEK formatter (site + konfigüratör + sepet): spec gereği DAİMA 2 ondalık ve virgüllü —
+     tam TL'de de "300,00 TL" yazar. Küsurat korunuyorsa gösterimi de tutarlı olmalı; ayrıca
+     iki ayrı formatter tutmak (biri ondalık düşüren) fiyatın yerine göre farklı görünmesine
+     yol açardı. iyzico'ya giden NOKTALI metin ayrı (shop/src/index.js kurusMetin). */
   function kurusMetni(kurus) {
     if (kurus == null) { return null; }
-    var tl = Math.floor(kurus / 100), k = kurus % 100;
-    return k ? (tl + "," + (k < 10 ? "0" : "") + k + " TL") : (tl + " TL");
+    return (kurus / 100).toLocaleString("tr-TR",
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " TL";
   }
 
   function tlMetni(tutarTL) {
@@ -65,9 +107,11 @@
 
   // ---- sepet satırı ----
   function bosSatir(id) {
-    return { id: id, malzeme: "PLA", renk: "Siyah", renk_ozel: "", boy_etiket: null };
+    return { id: id, malzeme: "PLA", renk: "Siyah", renk_ozel: "", boy_etiket: null, adet: 1 };
   }
 
+  /* Aynı konfigürasyonun tek satırda toplanması için anahtar. ADET BİLEREK DIŞARIDA:
+     aynı ürün+malzeme+renk+boy ikinci kez eklenince yeni satır değil, adet artmalı. */
   function satirAnahtari(satir) {
     return [satir.id, satir.malzeme, satir.renk, satir.renk_ozel || "", satir.boy_etiket || "",
             satir.parametreler ? JSON.stringify(satir.parametreler) : ""].join("|");
@@ -90,19 +134,34 @@
       }
       if (satir.boy_etiket) { parcalar.push("Boy: " + satir.boy_etiket); }
     }
+    var adet = adetDuzelt(satir.adet);
+    if (fonksiyonel && adet > 1) { parcalar.push("Adet: " + adet); }
     var temel = fiyatSayisi(urun && urun.fiyat);
     var bf = fonksiyonel ? boyFarki(urun, satir.boy_etiket) : 0;
-    var hesap = fonksiyonel ? hesaplaFiyat(temel, satir.malzeme, satir.renk, bf) : temel;
+    // Fonksiyonel olmayan kategoride (Dekorasyon, Oyun/Hobi) seçici yok -> liste fiyatı aynen.
+    var birim = fonksiyonel
+      ? hesaplaFiyatKurus(temel, satir.malzeme, satir.renk, bf)
+      : (temel == null ? null : temel * 100);
+    // Satır tutarı = kuruşlu birim × adet (ara yuvarlama yok: 432,90 × 3 = 1.298,70)
+    var hesap = (birim == null) ? null : birim * adet;
     var fiyatMetni;
-    if (hesap != null) { fiyatMetni = hesap + " TL"; }
+    if (hesap != null) { fiyatMetni = kurusMetni(hesap); }
     else if (urun && urun.parametrik) { fiyatMetni = "Ölçüye özel fiyat — teklif için sipariş verin"; }
     else { fiyatMetni = "Fiyat için sipariş verin"; }
-    return { detay: parcalar.join(" · "), fiyat: hesap, fiyatMetni: fiyatMetni };
+    return {
+      detay: parcalar.join(" · "), adet: adet,
+      birimKurus: birim, kurus: hesap, fiyatMetni: fiyatMetni,
+      birimMetni: kurusMetni(birim),
+      // odenebilir: parametrik/fiyatsız ürün ödeme akışına GİREMEZ (kanal WhatsApp)
+      odenebilir: hesap != null && !(urun && urun.parametrik)
+    };
   }
 
   // Parametrik (sarı seri) satır: konfigüratörün yazdığı parametre detayı + kuruşlu fiyat.
   // Fiyat satıra eklenirken hesaplanıp satırda taşınır (taban fiyat yoksa null kalır);
-  // sipariş tarafı istemci fiyatına güvenmez, kendi yeniden hesabını yapar.
+  // sipariş tarafı istemci fiyatına GÜVENMEZ — Worker şema + hacim.js + taban fiyatla
+  // kendi yeniden hesabını yapar (shop/src/parametrik.js).
+  // Dönüş şekli sabit-fiyat dalıyla AYNI olmalı: sepet paneli tek kod yolu kullanıyor.
   function parametrikSatirOzeti(satir) {
     var parcalar = [];
     if (satir.parametre_detay) { parcalar.push(satir.parametre_detay); }
@@ -113,11 +172,19 @@
     } else {
       parcalar.push("Renk: " + satir.renk);
     }
-    var kurus = (satir.parametrik_fiyat_kurus == null) ? null : satir.parametrik_fiyat_kurus;
+    var adet = adetDuzelt(satir.adet);
+    if (adet > 1) { parcalar.push("Adet: " + adet); }
+    var birim = (satir.parametrik_fiyat_kurus == null) ? null : satir.parametrik_fiyat_kurus;
+    var kurus = (birim == null) ? null : birim * adet;
     return {
-      detay: parcalar.join(" · "),
+      detay: parcalar.join(" · "), adet: adet,
+      birimKurus: birim, kurus: kurus,
       fiyat: (kurus == null) ? null : kurus / 100,
-      fiyatMetni: (kurus == null) ? "Ölçüye özel fiyat — teklif için sipariş verin" : kurusMetni(kurus)
+      birimMetni: kurusMetni(birim),
+      fiyatMetni: (kurus == null) ? "Ölçüye özel fiyat — teklif için sipariş verin" : kurusMetni(kurus),
+      // Taban fiyatlar boş olduğu sürece (bugün 18/18 null) fiyat null -> ödeme akışına giremez;
+      // PARAMETRIK_ODEME_ACIK ise mimarın açacağı anahtar (Worker da AYNI sabiti okur).
+      odenebilir: PARAMETRIK_ODEME_ACIK && kurus != null
     };
   }
 
@@ -125,6 +192,7 @@
   var CART_KEY = "pruvo_sepet";
 
   // Eski format (düz id dizisi) otomatik migrate edilir: varsayılan PLA/Siyah satırına çevrilir.
+  // Adetsiz eski satırlar (Faz 1) adet=1 alır; bozuk/aralık dışı adet 1-99'a çekilir.
   function sepetYukle() {
     var ham;
     try { ham = JSON.parse(localStorage.getItem(CART_KEY) || "[]"); }
@@ -135,7 +203,8 @@
       if (x && typeof x === "object" && x.id) {
         var s = {
           id: x.id, malzeme: x.malzeme || "PLA", renk: x.renk || "Siyah",
-          renk_ozel: x.renk_ozel || "", boy_etiket: x.boy_etiket || null
+          renk_ozel: x.renk_ozel || "", boy_etiket: x.boy_etiket || null,
+          adet: adetDuzelt(x.adet == null ? 1 : x.adet)
         };
         if (x.parametreler && typeof x.parametreler === "object") {
           s.parametreler = x.parametreler;
@@ -159,11 +228,15 @@
     RENK_SECENEKLERI: RENK_SECENEKLERI,
     RENK_DIGER_YUZDE: RENK_DIGER_YUZDE,
     FONKSIYONEL_KATEGORILER: FONKSIYONEL_KATEGORILER,
+    ADET_EN_AZ: ADET_EN_AZ,
+    ADET_EN_COK: ADET_EN_COK,
+    PARAMETRIK_ODEME_ACIK: PARAMETRIK_ODEME_ACIK,
     fiyatSayisi: fiyatSayisi,
     fonksiyonelMi: fonksiyonelMi,
     boyFarki: boyFarki,
-    hesaplaFiyat: hesaplaFiyat,
+    hesaplaFiyatKurus: hesaplaFiyatKurus,
     parametrikFiyatKurus: parametrikFiyatKurus,
+    adetDuzelt: adetDuzelt,
     kurusMetni: kurusMetni,
     tlMetni: tlMetni,
     bosSatir: bosSatir,
@@ -173,4 +246,5 @@
     sepetYukle: sepetYukle,
     sepetKaydet: sepetKaydet
   };
-})(window);
+  // Tarayıcıda window, Worker'da (shop/src/index.js import eder) globalThis — aynı tek kaynak.
+})(typeof window !== "undefined" ? window : globalThis);

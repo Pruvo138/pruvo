@@ -439,6 +439,47 @@
   .cart-panel-foot{
     padding:14px;border-top:1px solid var(--gray-line);background:#fff;
   }
+  /* ---------- ödeme (sepet paneli) ---------- */
+  .cart-total-row{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:15px;color:var(--navy);margin-bottom:2px;
+  }
+  .cart-total-row strong{font-size:20px;font-weight:800}
+  .cart-total-not{font-size:11.5px;color:var(--gray-text);margin-bottom:10px}
+  .cart-pay-btn{
+    display:block;width:100%;background:var(--navy);color:#fff;border:none;
+    border-radius:12px;padding:14px;font-size:15.5px;font-weight:800;cursor:pointer;
+    margin-bottom:8px;transition:.15s;
+  }
+  .cart-pay-btn:hover{background:var(--navy-2)}
+  .cart-pay-btn.disabled{background:#aab4c4;cursor:default;font-size:13.5px}
+  .cart-adet{display:flex;align-items:center;gap:8px;margin-top:6px}
+  .cart-adet button{
+    width:28px;height:28px;border:1px solid var(--gray-line);background:#fff;
+    color:var(--navy);border-radius:6px;font-size:15px;font-weight:700;cursor:pointer;line-height:1;
+  }
+  .cart-adet button:hover{background:var(--gray-bg)}
+  .cart-adet-sayi{min-width:22px;text-align:center;font-size:13.5px;font-weight:700}
+  .cart-adet-birim{font-size:11.5px;color:var(--gray-text)}
+  .odeme-form{display:none;padding:14px;border-top:1px solid var(--gray-line);background:#fff;
+    overflow-y:auto}
+  .odeme-baslik{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:10px}
+  .odeme-form input,.odeme-form textarea{
+    width:100%;padding:10px 12px;margin-bottom:8px;border:1px solid var(--gray-line);
+    border-radius:8px;font-size:14px;color:var(--navy);font-family:inherit;background:#fff;
+  }
+  .odeme-form input:focus,.odeme-form textarea:focus{outline:none;border-color:var(--navy-2)}
+  .odeme-hata{color:var(--red);font-size:13px;font-weight:600;margin-bottom:8px}
+  .odeme-hata:empty{margin:0}
+  .odeme-yasal{font-size:11px;color:var(--gray-text);line-height:1.5;margin-bottom:10px}
+  .odeme-yasal a{color:var(--navy-2)}
+  .odeme-btnler{display:flex;gap:8px;align-items:stretch}
+  .odeme-btnler .cart-pay-btn{margin-bottom:0}
+  .odeme-vazgec{
+    background:transparent;border:1px solid var(--gray-line);border-radius:12px;
+    color:var(--gray-text);padding:0 16px;font-size:14px;font-weight:600;cursor:pointer;flex:none;
+  }
+  .odeme-vazgec:hover{border-color:var(--navy-2);color:var(--navy)}
   .cart-order-btn{
     background:#25D366;color:#fff;text-decoration:none;
     border-radius:12px;padding:14px;font-size:15.5px;font-weight:800;
@@ -560,7 +601,43 @@
     <button id="cartClose" class="cart-close" aria-label="Kapat">&times;</button>
   </div>
   <div id="cartItems" class="cart-items"></div>
+
+  <!-- ÖDEME FORMU — KART ALANI YOK ve OLMAYACAK (spec kırmızı çizgisi: model REDIRECT).
+       Burada sadece teslimat/fatura bilgisi alınır; kart bilgisi iyzico'nun kendi
+       sayfasında girilir (3DS dahil). -->
+  <form id="odemeForm" class="odeme-form" autocomplete="on">
+    <div class="odeme-baslik">Teslimat bilgileri</div>
+    <input type="text" id="oAd" name="name" autocomplete="name" placeholder="Ad Soyad" required>
+    <input type="tel" id="oTel" name="tel" autocomplete="tel" placeholder="Telefon (5xx...)" required>
+    <input type="email" id="oEposta" name="email" autocomplete="email" placeholder="E-posta" required>
+    <input type="text" id="oSehir" name="city" autocomplete="address-level2" placeholder="Şehir" required>
+    <textarea id="oAdres" name="address" autocomplete="street-address" rows="2" placeholder="Açık adres" required></textarea>
+    <div id="odemeHata" class="odeme-hata"></div>
+    <div class="odeme-yasal">
+      Devam ettiğinizde kart bilgileriniz <strong>iyzico</strong>'nun güvenli sayfasında alınır;
+      PRUVO kart bilgisi görmez ve saklamaz.
+      <a href="/mesafeli-satis/" target="_blank" rel="noopener">Mesafeli Satış Sözleşmesi</a> ·
+      <a href="/teslimat-iade/" target="_blank" rel="noopener">Teslimat & İade</a> ·
+      <a href="/gizlilik/" target="_blank" rel="noopener">Gizlilik</a>
+    </div>
+    <div class="odeme-btnler">
+      <button type="button" id="odemeVazgec" class="odeme-vazgec">Geri</button>
+      <button type="submit" id="odemeGonder" class="cart-pay-btn">iyzico ile Öde</button>
+    </div>
+  </form>
+
   <div class="cart-panel-foot">
+    <div id="cartTotalRow" class="cart-total-row">
+      <span>Toplam</span>
+      <strong id="cartTotal">0,00 TL</strong>
+    </div>
+    <!-- Kargo BILEREK yazilmadi: sitede "2.500 TL uzeri kargo ucretsiz" kurali var ama odeme
+         akisinda kargo kalemi YOK (spec'te kapsam disi). Kural netlesene kadar taahhut
+         yazilmaz — odeme sonrasi ek ucret mesafeli satista sorun olur. Mimara soruldu. -->
+    <div id="cartTotalNot" class="cart-total-not">KDV dahil</div>
+    <button id="cartPay" class="cart-pay-btn" type="button">
+      Kartla Güvenli Öde
+    </button>
     <a id="cartOrder" class="cart-order-btn" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.42 1.31-1.96 1.35-.5.05-.98.24-3.3-.69-2.77-1.09-4.56-3.9-4.7-4.08-.14-.19-1.12-1.49-1.12-2.84 0-1.35.71-2.02.96-2.29.24-.27.53-.34.71-.34.18 0 .35 0 .51.01.16.01.38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45.21.51.32.06.11.06.64-.18 1.32z"/></svg>
       WhatsApp ile Sipariş Ver
@@ -697,6 +774,54 @@
     document.getElementById("cartCount").textContent = cart.length;
     fab.style.display = cart.length ? "inline-flex" : "none";
   }
+  /* Sepet toplamı = satırların KURUŞLU tutarlarının toplamı (ara yuvarlama yok).
+     Bu SADECE gösterim: ödenecek tutarı Worker D1 fiyatından yeniden hesaplar ve
+     buradan gelen hiçbir sayıya güvenmez (tools/paket-shop-odeme.md kırmızı çizgisi). */
+  function cartToplamKurus(lines){
+    var t = 0;
+    for(var i=0;i<lines.length;i++){
+      var o = PRUVO_SECENEK.satirOzeti(lines[i].urun, lines[i].satir);
+      if(o.kurus != null){ t += o.kurus; }
+    }
+    return t;
+  }
+  // Ödeme yalnızca TÜM satırlar ödenebilirse açılır: sepette parametrik/fiyatsız ürün varsa
+  // kanal WhatsApp'tır (Worker karışık sepeti zaten 400 ile reddediyor — kabul testi 5).
+  function cartOdenebilirMi(lines){
+    if(!lines.length){ return false; }
+    return lines.every(function(L){
+      return PRUVO_SECENEK.satirOzeti(L.urun, L.satir).odenebilir;
+    });
+  }
+  function cartToplamTazele(lines){
+    var satir = document.getElementById("cartTotalRow");
+    var not = document.getElementById("cartTotalNot");
+    var pay = document.getElementById("cartPay");
+    var toplam = document.getElementById("cartTotal");
+    var odenebilir = cartOdenebilirMi(lines);
+    var goster = lines.length > 0;
+    satir.style.display = goster ? "flex" : "none";
+    not.style.display = goster ? "block" : "none";
+    pay.style.display = goster ? "block" : "none";
+    if(!goster){ return; }
+    toplam.textContent = PRUVO_SECENEK.kurusMetni(cartToplamKurus(lines));
+    pay.className = odenebilir ? "cart-pay-btn" : "cart-pay-btn disabled";
+    pay.disabled = !odenebilir;
+    pay.textContent = odenebilir ? "Kartla Güvenli Öde"
+      : "Ölçüye özel ürün var — WhatsApp'tan devam edin";
+  }
+
+  // Adet 1-99 (secenekler.js kuralı; Worker da aynı aralığı doğrular). 0'a düşürmek satırı
+  // SİLMEZ — silme çarpı butonunun işi; kullanıcı yanlışlıkla − basınca ürünü kaybetmesin.
+  function adetDegistir(satir, yeni){
+    var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
+    for(var i=0;i<cart.length;i++){
+      if(PRUVO_SECENEK.satirAnahtari(cart[i]) === anahtar){
+        cart[i].adet = PRUVO_SECENEK.adetDuzelt(yeni);
+      }
+    }
+    saveCart(); renderCartPanel(); updateCartFab();
+  }
   function renderCartPanel(){
     var wrap = document.getElementById("cartItems");
     var orderBtn = document.getElementById("cartOrder");
@@ -706,10 +831,12 @@
       wrap.innerHTML = '<div class="cart-empty">Sepetiniz boş.<br>Ürünlerdeki “Sepete Ekle” ile ekleyin.</div>';
       orderBtn.className = "cart-order-btn disabled";
       orderBtn.removeAttribute("href");
+      cartToplamTazele([]);
       return;
     }
     orderBtn.className = "cart-order-btn";
     orderBtn.href = cartWaHref();
+    cartToplamTazele(lines);
     lines.forEach(function(entry){
       var p = entry.urun, satir = entry.satir;
       var ozet = PRUVO_SECENEK.satirOzeti(p, satir);
@@ -731,9 +858,32 @@
         info.appendChild(opts);
       }
       var pr = document.createElement("div");
-      if(ozet.fiyat != null){ pr.className = "cart-item-price"; pr.textContent = ozet.fiyatMetni; }
+      if(ozet.kurus != null){ pr.className = "cart-item-price"; pr.textContent = ozet.fiyatMetni; }
       else{ pr.className = "cart-item-price empty"; pr.textContent = ozet.fiyatMetni; }
       info.appendChild(pr);
+
+      // Adet +/- (Okan, 16 Tem): satır tutarı = kuruşlu birim × adet. Sadece fiyatı hesaplanan
+      // satırda gösterilir; parametrik/fiyatsız ürün zaten WhatsApp kanalından gider.
+      if(ozet.kurus != null){
+        var adetKutu = document.createElement("div");
+        adetKutu.className = "cart-adet";
+        var eksi = document.createElement("button");
+        eksi.type = "button"; eksi.textContent = "−"; eksi.setAttribute("aria-label","Adet azalt");
+        var sayi = document.createElement("span");
+        sayi.className = "cart-adet-sayi"; sayi.textContent = ozet.adet;
+        var arti = document.createElement("button");
+        arti.type = "button"; arti.textContent = "+"; arti.setAttribute("aria-label","Adet artır");
+        eksi.onclick = function(){ adetDegistir(satir, ozet.adet - 1); };
+        arti.onclick = function(){ adetDegistir(satir, ozet.adet + 1); };
+        adetKutu.appendChild(eksi); adetKutu.appendChild(sayi); adetKutu.appendChild(arti);
+        if(ozet.adet > 1){
+          var birim = document.createElement("span");
+          birim.className = "cart-adet-birim";
+          birim.textContent = "× " + ozet.birimMetni;
+          adetKutu.appendChild(birim);
+        }
+        info.appendChild(adetKutu);
+      }
 
       var rm = document.createElement("button");
       rm.className = "cart-item-remove"; rm.innerHTML = "&times;"; rm.title = "Sepetten çıkar";
@@ -747,9 +897,89 @@
       wrap.appendChild(row);
     });
   }
+  // ---------------------------------------------------------------- ödeme (iyzico redirect)
+  var SHOP_UC = "/api/shop";
+  function odemeFormuGoster(ac){
+    document.getElementById("odemeForm").style.display = ac ? "block" : "none";
+    document.getElementById("cartItems").style.display = ac ? "none" : "block";
+    document.querySelector(".cart-panel-foot").style.display = ac ? "none" : "block";
+    document.getElementById("odemeHata").textContent = "";
+  }
+  function odemeHata(mesaj){
+    var el = document.getElementById("odemeHata");
+    el.textContent = mesaj;
+    el.scrollIntoView({block:"nearest"});
+  }
+  // Worker hata kodları -> müşterinin anlayacağı Türkçe. Bilinmeyen kod sessizce yutulmaz.
+  var HATA_METNI = {
+    "parametrik-urun": "Sepetinizde ölçüye özel bir ürün var; bunlar için WhatsApp'tan teklif alın.",
+    "fiyatsiz-urun": "Sepetinizdeki bir ürünün fiyatı güncellenmiş. Sayfayı yenileyip tekrar deneyin.",
+    "bilinmeyen-urun": "Sepetinizdeki bir ürün artık yayında değil. Sepeti güncelleyip tekrar deneyin.",
+    "gecersiz-adet": "Adet 1-99 arasında olmalı.",
+    "renk-ozel-bos": "Özel renk seçtiniz — hangi rengi istediğinizi yazın.",
+    "boy-desteklenmiyor": "Bu üründe boy seçimi şu an ödeme ile alınamıyor; WhatsApp'tan yazın.",
+    "musteri-tel": "Telefon numarası geçersiz görünüyor.",
+    "musteri-eposta": "E-posta adresi geçersiz görünüyor.",
+    "musteri-adres": "Açık adres en az 10 karakter olmalı.",
+    "odeme-baslatilamadi": "Ödeme sayfası açılamadı. Birazdan tekrar deneyin ya da WhatsApp'tan yazın."
+  };
+  async function odemeBaslat(){
+    var btn = document.getElementById("odemeGonder");
+    var lines = cartLines();
+    if(!cartOdenebilirMi(lines)){ return; }
+    btn.disabled = true; btn.textContent = "Ödeme sayfası hazırlanıyor…";
+    try{
+      // Sunucuya SADECE seçim gönderilir; tutar/fiyat GÖNDERİLMEZ — fiyatı Worker D1'den hesaplar.
+      var sepet = lines.map(function(L){
+        return { id: L.satir.id, malzeme: L.satir.malzeme, renk: L.satir.renk,
+                 renk_ozel: L.satir.renk_ozel || "", adet: PRUVO_SECENEK.adetDuzelt(L.satir.adet) };
+      });
+      var cevap = await fetch(SHOP_UC + "/baslat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ sepet: sepet, musteri: {
+          ad: document.getElementById("oAd").value.trim(),
+          tel: document.getElementById("oTel").value.trim(),
+          eposta: document.getElementById("oEposta").value.trim(),
+          sehir: document.getElementById("oSehir").value.trim(),
+          adres: document.getElementById("oAdres").value.trim()
+        }})
+      });
+      var veri = await cevap.json();
+      if(!cevap.ok || !veri.url){
+        odemeHata(HATA_METNI[veri.hata] || "Ödeme başlatılamadı. WhatsApp'tan sipariş verebilirsiniz.");
+        btn.disabled = false; btn.textContent = "iyzico ile Öde";
+        return;
+      }
+      // iyzico'nun kendi ödeme sayfası — kart burada değil ORADA girilir.
+      location.href = veri.url;
+    }catch(e){
+      odemeHata("Bağlantı kurulamadı. İnternetinizi kontrol edip tekrar deneyin.");
+      btn.disabled = false; btn.textContent = "iyzico ile Öde";
+    }
+  }
+  // Ödeme dönüşü: Worker müşteriyi /?siparis=ok&no=... adresine yönlendirir.
+  // Sepet SADECE 'ok' dönüşünde temizlenir (başarısız ödemede müşteri sepetini kaybetmesin).
+  function odemeDonusuIsle(){
+    var q = new URLSearchParams(location.search);
+    var s = q.get("siparis");
+    if(!s){ return; }
+    var no = q.get("no") || "";
+    if(s === "ok"){
+      cart = []; saveCart(); updateCartFab(); syncCardButtons();
+      alert("Ödemeniz alındı ✅\nSipariş no: " + no +
+            "\n\nÜretim başlıyor; süreçle ilgili WhatsApp'tan bilgilendirileceksiniz.");
+    }else{
+      alert("Ödeme tamamlanmadı.\nSepetiniz duruyor — tekrar deneyebilir veya WhatsApp'tan " +
+            "sipariş verebilirsiniz.");
+    }
+    history.replaceState(null, "", location.pathname);
+  }
+
   function openCart(){
     document.getElementById("cartOverlay").classList.add("open");
     document.getElementById("cartPanel").classList.add("open");
+    odemeFormuGoster(false);
     renderCartPanel();
   }
   function closeCart(){
@@ -1036,6 +1266,18 @@
   document.getElementById("cartClear").onclick = function(){
     cart = []; saveCart(); renderCartPanel(); updateCartFab(); syncCardButtons();
   };
+
+  // ---------- ÖDEME OLAYLARI ----------
+  document.getElementById("cartPay").onclick = function(){
+    if(!cartOdenebilirMi(cartLines())){ return; }
+    odemeFormuGoster(true);
+  };
+  document.getElementById("odemeVazgec").onclick = function(){ odemeFormuGoster(false); };
+  document.getElementById("odemeForm").addEventListener("submit", function(e){
+    e.preventDefault();          // tarayıcı required doğrulaması geçtikten sonra
+    odemeBaslat();
+  });
+  odemeDonusuIsle();
 
   // ---------- URL PARAMETRELERİ (ürün sayfalarından dönüş + eski linkler) ----------
   function applyUrlParams(){
