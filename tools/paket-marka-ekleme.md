@@ -31,6 +31,9 @@ Mühendis katının, zor onarım Usta katınındır (mimar yönlendirir).
    - **YASAK (Okan, 2026-07-16): ölçekli model / maket ARAÇLAR (otomobil-motosiklet-araç maketi,
      "scale model") ve LEGO ile ilişkili HER ürün (uyumlu/benzeri dahil) — lisans uygun olsa bile
      EKLENMEZ, atla+bildir.** (Eski "markanın tarihî ürünü maketi meşru" istisnası KALDIRILDI.)
+   - **YASAK (Okan, 2026-07-16): BASKIDA LOGO.** Çıktısı logo/amblem olan ya da logo kabartması
+     taşıyan ürün (logo kurabiye kalıbı, amblem, rozet, logolu anahtarlık) EKLENMEZ. Test:
+     "logoyu çıkar → satılır ürün kalır mı?" ★POPULER-COP istisnası bu sınıfı DELEMEZ.
    - EMİN OLAMADIĞIN her adayı ekleME; rapora "yargı listesi"ne yaz (gerekçeyle) — mimar karar verir.
 
 3. EKLE: kalan ID'leri tek komutta:
