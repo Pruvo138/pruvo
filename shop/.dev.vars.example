@@ -5,9 +5,8 @@ IYZICO_API_KEY = "sandbox-XXXX"
 IYZICO_SECRET_KEY = "sandbox-XXXX"
 # Bos birakilirsa bildirim atlanir (odeme akisini ASLA bloklamaz):
 TELEGRAM_TOKEN = ""
-# Havale/EFT (paket-shop-kargo.md kalem 6): gercek IBAN + alici unvani SADECE buradan/
-# secret'tan okunur (koda/HTML'e yazilmaz). Bos birakilirsa havale secenegi 503
-# 'havale-hazir-degil' doner (musteri karta/WhatsApp'a yonlenir).
-# Canlida: wrangler secret put HAVALE_IBAN / HAVALE_UNVAN.
-HAVALE_IBAN = ""
-HAVALE_UNVAN = ""
+# Havale/EFT (paket-shop-kargo.md kalem 6): gercek IBAN + unvan wrangler.toml [vars]'ta
+# (sir degil — musteriye gosterilir). Yerel testte farkli deger gerekiyorsa burada ez;
+# env tanimsiz kalirsa uc 503 'havale-hazir-degil' doner (secenek musteriye kapanir).
+# HAVALE_IBAN = ""
+# HAVALE_UNVAN = ""

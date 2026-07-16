@@ -19,6 +19,13 @@ SITE_URL = "https://pruvo3d.com"
 # Telegram bildirimi — Ege worker'iyla ayni sohbet (kimlik/ID sir degil, token SIR).
 TELEGRAM_CHAT = "5076274057"
 TELEGRAM_API = "https://api.telegram.org"
+# HAVALE/EFT alici bilgileri (Okan, 16 Tem gece; IBAN mod-97 dogrulandi — mimar + muhendis).
+# SIR DEGIL: musteri ekraninda zaten gosterilir; TEK kaynak burasi (koda/HTML'e dagitilmaz;
+# ayni adla secret TANIMLANMASIN — vars+secret cakismasi deploy'u dusurur). Deger BOSLUKSUZ
+# tutulur (kopyala dugmesi bunu kopyalar, banka uygulamalari bosluklu IBAN'i reddedebiliyor);
+# musteri ekrani 4'lu gruplarla okunur bicimde gosterir.
+HAVALE_IBAN = "TR090006701000000059703630"
+HAVALE_UNVAN = "Okan Gemalmaz"
 
 [[d1_databases]]
 binding = "KATALOG"

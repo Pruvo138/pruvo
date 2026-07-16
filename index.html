@@ -461,6 +461,12 @@
     display:block;font-size:15px;font-weight:800;letter-spacing:.5px;
     font-family:ui-monospace,Menlo,monospace;word-break:break-all;
   }
+  .hv-kopyala{
+    margin-top:6px;background:#fff;border:1px solid var(--navy-2);color:var(--navy-2);
+    border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer;
+  }
+  .hv-kopyala:hover{background:#eef3fb}
+  .hv-kopyala.kopyalandi{border-color:#1a9e4b;color:#1a9e4b}
   .havale-kdv{font-size:12px;color:var(--gray-text);margin-top:4px}
   .havale-uyari{
     background:#fdf3e3;border:1px solid #f0d9a8;border-radius:10px;
@@ -681,6 +687,9 @@
     <div class="havale-kutu">
       Alıcı<code id="hvUnvan"></code>
       IBAN<code id="hvIban"></code>
+      <!-- Kopyalanan deger BOSLUKSUZ (banka uygulamalari boslukluyu reddedebiliyor);
+           ekranda 4'lu gruplarla okunur bicim gosterilir. -->
+      <button type="button" id="hvKopyala" class="hv-kopyala">IBAN'ı Kopyala</button>
       Ödenecek tam tutar<code id="hvTutar"></code>
       <div class="havale-kdv" id="hvKdv"></div>
     </div>
@@ -1055,7 +1064,16 @@
   function havaleEkraniGoster(v){
     document.getElementById("hvNo").textContent = v.no || "";
     document.getElementById("hvUnvan").textContent = v.unvan || "";
-    document.getElementById("hvIban").textContent = v.iban || "";
+    // IBAN sunucudan BOSLUKSUZ gelir (tek kaynak: shop/wrangler.toml). Ekranda 4'lu
+    // gruplarla okunur gosterilir; kopyala dugmesi HAM (bosluksuz) degeri kopyalar —
+    // banka uygulamalari bosluklu IBAN'i reddedebiliyor.
+    var hamIban = (v.iban || "").replace(/\s+/g, "");
+    document.getElementById("hvIban").textContent =
+      hamIban.replace(/(.{4})/g, "$1 ").trim();
+    var kopyala = document.getElementById("hvKopyala");
+    kopyala.dataset.iban = hamIban;
+    kopyala.textContent = "IBAN'ı Kopyala";
+    kopyala.className = "hv-kopyala";
     // Tutar D1'e yazilan kurustan formatlanir (binlik ayracli tek site formati)
     document.getElementById("hvTutar").textContent =
       (v.tutar_kurus != null) ? PRUVO_SECENEK.kurusMetni(v.tutar_kurus) : (v.tutar || "");
@@ -1468,6 +1486,26 @@
     document.getElementById("havaleEkran").style.display = "none";
     odemeFormuGoster(false);
     renderCartPanel();
+  };
+  // IBAN kopyala: HAM (bosluksuz) deger panoya. clipboard API guvenli baglam ister;
+  // olmayan ortamda gecici textarea + execCommand'e duser. Basari geri bildirimi butonda.
+  document.getElementById("hvKopyala").onclick = function(){
+    var btn = this, deger = btn.dataset.iban || "";
+    function tamam(){
+      btn.textContent = "Kopyalandı ✓";
+      btn.className = "hv-kopyala kopyalandi";
+      setTimeout(function(){ btn.textContent = "IBAN'ı Kopyala"; btn.className = "hv-kopyala"; }, 2500);
+    }
+    function yedek(){
+      var t = document.createElement("textarea");
+      t.value = deger; t.style.position = "fixed"; t.style.opacity = "0";
+      document.body.appendChild(t); t.select();
+      try{ document.execCommand("copy"); tamam(); }catch(e){}
+      document.body.removeChild(t);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(deger).then(tamam, yedek);
+    }else{ yedek(); }
   };
   odemeDonusuIsle();
 

@@ -52,8 +52,9 @@ bayat worktree kopyasiyla kirmizi yanar — ana repodan (guncel katalogla) kostu
        npx wrangler secret put IYZICO_API_KEY      # sandbox-...
        npx wrangler secret put IYZICO_SECRET_KEY
        npx wrangler secret put TELEGRAM_TOKEN      # mevcut PRUVO botunun token'i — OKAN ONAYIYLA
-       npx wrangler secret put HAVALE_IBAN         # Okan verecek — girilmeden havale 503 kapali
-       npx wrangler secret put HAVALE_UNVAN        # alici unvani (Okan verecek)
+   HAVALE_IBAN / HAVALE_UNVAN secret DEGIL: musteriye zaten gosterilen bilgi —
+   wrangler.toml [vars]'ta (Okan verdi, 16 Tem; IBAN mod-97 dogrulandi). Ayni adla secret
+   TANIMLAMA (vars+secret cakismasi deploy'u dusurur); degistirmek icin toml'u duzenle.
 3. Worker:  `npx wrangler deploy`  (route: pruvo3d.com/api/shop/* — zone yetkisi ister)
 4. Site: index.html + build.py + secenekler.js degisiklikleri main'e girince Actions yayinlar
    (secenekler.js deploy.yml beyaz listesinde — 2eed40a; build.py onu repo kokunden okur).
