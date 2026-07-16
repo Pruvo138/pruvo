@@ -53,6 +53,14 @@
    - Havale siparişi 'ödendi' İŞARETLENMEDEN Telegram "ödeme geldi" DEMEZ (sandbox dersinin
      havale hali: para görülmeden üretim tetiklenmez).
 
+7. **DÖNÜŞ DURUM AYRIMI (mimar onayladı — sandbox mühendisinin bulgusu):** /donus'ta
+   iyzico retrieve ALTYAPI hatası verdiğinde (status:failure, ör. 1001/ağ) sipariş
+   'basarisiz'e ÇEKİLMEZ — parası çekilmiş müşteri geçici hatada kaybolmasın. Yeni durum:
+   `incele` + Telegram uyarısı ("RETRIEVE HATASI — elle kontrol: <sipariş no>").
+   'basarisiz' YALNIZ iyzico paymentStatus=FAILURE dediğinde. Test: mock retrieve'e
+   status:failure döndürt → D1'de 'incele' + uyarı bildirimi; paymentStatus=FAILURE →
+   'basarisiz' (iki yol da ayrı test).
+
 ## Kabul testleri (mimar koşacak)
 1. `node shop/test/kabul.js` → mevcut testler yeşil + YENİ kargo testleri:
    a) ürün toplamı 2.499,99 TL → kargo 250,00 TL, tahsilat = 2.749,99 TL (kuruş birebir);
