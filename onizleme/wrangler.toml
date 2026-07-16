@@ -1,0 +1,44 @@
+# pruvo-onizleme — sari seri 3D onizleme worker'i (tools/paket-onizleme-3d.md, Faz C).
+# pruvo-shop'tan TAMAMEN AYRI worker: odeme izolasyonuna derleme yuku sokulmaz.
+# Deploy: onizleme/ icinde `npx wrangler deploy` (route ayni alan adindan sunar,
+# CORS gerekmez). DIKKAT: deploy MIMAR onayli adimdir — derleme arka ucu olmadan
+# uc 503 doner; kabul 4e/4g icin Container bekleniyor.
+name = "pruvo-onizleme"
+main = "src/index.js"
+compatibility_date = "2026-07-01"
+
+routes = [
+  { pattern = "pruvo3d.com/api/onizleme/*", zone_name = "pruvo3d.com" }
+]
+
+[vars]
+SITE_URL = "https://pruvo3d.com"
+# DERLEYICI_URL yalniz YEREL gelistirmede kullanilir (wrangler dev --var ile verilir);
+# uretimde derleme arka ucu DERLEYICI binding'idir (asagidaki containers blogu).
+
+[[r2_buckets]]
+binding = "ONBELLEK"
+bucket_name = "pruvo-onizleme"
+
+[observability]
+enabled = true
+
+# ---------------------------------------------------------------------------
+# CLOUDFLARE CONTAINERS — PLAN BEKLIYOR (Workers Paid; Okan onayladi, Codex
+# panelden yukseltecek). Plan aktiflesince asagisi acilir + src/index.js'e
+# Container sinifi (durable object) eklenir; adaptor tek dosya: src/derleyici.js.
+# Imaj CI'da derlenir: .github/workflows/onizleme-imaj.yml (elle tetik).
+#
+# [[containers]]
+# class_name = "OnizlemeDerleyici"
+# image = "registry.cloudflare.com/dbbe2a8620c3c3a57c586b8a98142fb9/pruvo-onizleme-derleyici:latest"
+# max_instances = 2
+#
+# [[durable_objects.bindings]]
+# name = "DERLEYICI"
+# class_name = "OnizlemeDerleyici"
+#
+# [[migrations]]
+# tag = "v1"
+# new_sqlite_classes = ["OnizlemeDerleyici"]
+# ---------------------------------------------------------------------------

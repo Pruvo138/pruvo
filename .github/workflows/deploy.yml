@@ -37,7 +37,7 @@ jobs:
           # hacim.js tek kaynak (kabul testi #4), semalar Worker'in ileride sunucu-tarafi
           # yeniden hesabi icin de ayni adresten okunur.
           mkdir _site/jenerator
-          cp jenerator/hacim.js jenerator/konfigurator.js _site/jenerator/
+          cp jenerator/hacim.js jenerator/konfigurator.js jenerator/viewer.js _site/jenerator/
           cp -r jenerator/urunler _site/jenerator/urunler
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3

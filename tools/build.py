@@ -75,6 +75,71 @@ RENK_DIGER_YUZDE = _js_sayisi(_SEC_JS, "RENK_DIGER_YUZDE")
 ADET_EN_AZ = _js_sayisi(_SEC_JS, "ADET_EN_AZ")
 ADET_EN_COK = _js_sayisi(_SEC_JS, "ADET_EN_COK")
 
+
+def _js_bayragi(kaynak, ad):
+    m = re.search(r"var\s+" + re.escape(ad) + r"\s*=\s*(true|false);", kaynak)
+    if not m:
+        raise SystemExit("secenekler.js'te %s bulunamadi." % ad)
+    return m.group(1) == "true"
+
+
+# Sari seri 3D onizleme (tools/paket-onizleme-3d.md) — bayrak + aile listesi TEK KAYNAK
+# secenekler.js (onizleme Worker'i da AYNI listeyi okur). Bayrak kapaliyken sayfalara
+# hicbir onizleme ogesi basilmaz = canlida sifir gorunur fark.
+ONIZLEME_3D_ACIK = _js_bayragi(_SEC_JS, "ONIZLEME_3D_ACIK")
+ONIZLEME_AILELER = set(_js_sabiti(_SEC_JS, "ONIZLEME_AILELER"))
+
+# "Onizle (3D)" akisi: parametreleri konfiguratorden alir, /api/onizleme/olustur'a
+# gonderir, donen gzip'li binary STL'i acip /jenerator/viewer.js ile cizer.
+# .format() SONRASI yerlestirilir (placeholder degeri yeniden islenmez) -> tek suslu
+# parantezler guvenlidir. Fiyat/sepet koduna dokunmaz; salt gorsel katman.
+ONIZLEME_JS = """
+(function(){
+  var btn=document.getElementById("onizleBtn"); if(!btn){ return; }
+  var kutu=document.getElementById("onizlemeKutu");
+  var durum=document.getElementById("onizlemeDurum");
+  var tuval=document.getElementById("onizlemeTuval");
+  var mesgul=false;
+  function de(t){ if(durum){ durum.textContent=t||""; } }
+  btn.addEventListener("click", function(){
+    if(mesgul){ return; }
+    if(!(window.PRUVO_KONF && PRUVO_KONF.hazir() && PRUVO_KONF.gecerliMi())){
+      kutu.hidden=false; de("Önce ölçüleri geçerli aralıkta doldurun."); return;
+    }
+    /* satiraYaz: konfiguratorun dogrulanmis parametre setini verir (fiyat alanlari
+       burada KULLANILMAZ; onizleme fiyattan bagimsiz). */
+    var s = PRUVO_KONF.satiraYaz({ malzeme:"PLA", renk:"Siyah" });
+    if(!s.parametreler){ kutu.hidden=false; de("Önce ölçüleri geçerli aralıkta doldurun."); return; }
+    mesgul=true; btn.disabled=true; kutu.hidden=false; de("Model hazırlanıyor…");
+    fetch("/api/onizleme/olustur", { method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ aile: URUN.id, parametreler: s.parametreler }) })
+    .then(function(c){
+      if(!c.ok){ return c.json().then(function(h){ throw new Error(h.hata||("hata-"+c.status)); }); }
+      if(c.headers.get("X-Sikistirma")==="gzip"){
+        if(!window.DecompressionStream){ throw new Error("tarayici-eski"); }
+        return new Response(c.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+      }
+      return c.arrayBuffer();
+    })
+    .then(function(buf){
+      PRUVO_VIEWER.goster(tuval, buf);
+      de("Sürükleyerek döndürün · tekerlek/iki parmakla yakınlaştırın");
+    })
+    .catch(function(e){
+      var m={
+        "gecersiz-geometri":"Bu ölçü kombinasyonu üretilemiyor; ölçüleri değiştirip tekrar deneyin.",
+        "hiz-siniri":"Kısa sürede çok fazla önizleme istendi; bir dakika sonra tekrar deneyin.",
+        "derleyici-yok":"Önizleme servisi şu an hazır değil; lütfen daha sonra deneyin.",
+        "tarayici-eski":"Tarayıcınız 3D önizlemeyi desteklemiyor."
+      };
+      de(m[e.message] || "Önizleme oluşturulamadı; lütfen tekrar deneyin.");
+    })
+    .then(function(){ mesgul=false; btn.disabled=false; });
+  });
+})();
+"""
+
 TODAY = datetime.date.today().isoformat()
 PRICE_VALID = (datetime.date.today().replace(month=12, day=31)
                + datetime.timedelta(days=365)).isoformat()
@@ -628,16 +693,29 @@ def render_product(p, all_products):
         # (jenerator/hacim.js + jenerator/konfigurator.js). Kategoriden bağımsız —
         # sarı seride malzeme/renk seçimi de müşteride. tabanFiyatTL=null iken
         # fiyat "—" kalır (Okan taban fiyatları verene kadar altyapı hazır bekler).
+        # 3D onizleme blogu — yalniz bayrak acik + pilot ailedeyse basilir.
+        onizleme_html = ""
+        if ONIZLEME_3D_ACIK and pid in ONIZLEME_AILELER:
+            onizleme_html = """
+      <div class="onizleme3d">
+        <button type="button" id="onizleBtn" style="background:#12294d;color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:15px;cursor:pointer">Önizle (3D)</button>
+        <div id="onizlemeKutu" hidden style="margin-top:10px">
+          <canvas id="onizlemeTuval" style="width:100%;height:320px;display:block;border-radius:8px;background:#f4f6f8;border:1px solid #dde3ea"></canvas>
+          <div id="onizlemeDurum" style="font-size:13px;color:#5a6572;margin-top:6px;min-height:18px"></div>
+        </div>
+      </div>"""
         opsiyonlar_html = ("""
     <div class="opsiyonlar konf" id="opsiyonlar">
       <div class="konf-baslik">Ölçülerinizi girin</div>
       <div id="konfAlanlar"></div>
+      {onizleme}
       {malzeme_renk}
       {adet}
       <div class="opsiyon-fiyat" id="opsiyonFiyat">&mdash;</div>
       <div class="konf-hacim" id="konfHacim"></div>
     </div>
-    """).format(malzeme_renk=_malzeme_renk_html(),
+    """).format(onizleme=onizleme_html,
+                malzeme_renk=_malzeme_renk_html(),
                 adet=ADET_HTML % (ADET_EN_AZ, ADET_EN_COK))
         price_html = ""
     elif fonksiyonel:
@@ -702,11 +780,15 @@ def render_product(p, all_products):
     # AYNI DOSYA olarak yüklenir (kopya yasak — kabul testi #4).
     sema_json = "null"
     konf_scripts = ""
+    onizleme_js = ""
     if sema:
         sema_json = json.dumps(sema, ensure_ascii=False, separators=(",", ":")
                                ).replace("</script>", "<\\/script>")
         konf_scripts = ('<script src="/jenerator/hacim.js"></script>\n'
                         '<script src="/jenerator/konfigurator.js"></script>')
+        if ONIZLEME_3D_ACIK and pid in ONIZLEME_AILELER:
+            konf_scripts += '\n<script src="/jenerator/viewer.js"></script>'
+            onizleme_js = ONIZLEME_JS
 
     doc = u"""<!DOCTYPE html>
 <html lang="tr">
@@ -932,6 +1014,7 @@ var URUN_SEMA = {sema_json};
   }}
   document.addEventListener("click",function(){{ kapat(null); }});
 }})();
+{onizleme_js}
 </script>
 </body>
 </html>
@@ -968,6 +1051,7 @@ var URUN_SEMA = {sema_json};
         urun_json=urun_json,
         sema_json=sema_json,
         konf_scripts=konf_scripts,
+        onizleme_js=onizleme_js,
         whatsapp=WHATSAPP,
     )
     return doc
