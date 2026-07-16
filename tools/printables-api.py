@@ -15,6 +15,7 @@ kendi kucuk gql() sarmalayicisini tutar; buradaki degerler (ENDPOINT, MEDIA, lis
 tek dog­ruluk kaynagidir.
 """
 import json, re, struct, urllib.request, zipfile, io
+import xml.etree.ElementTree as ET
 
 ENDPOINT = "https://api.printables.com/graphql/"
 MEDIA = "https://media.printables.com/"   # + filePath  ->  tam gorsel URL'si
@@ -185,44 +186,182 @@ def stl_bbox(path):
 _3MF_BIRIM_MM = {"micron": 0.001, "millimeter": 1.0, "centimeter": 10.0,
                  "inch": 25.4, "foot": 304.8, "meter": 1000.0}
 
-# Sayi deseni: bilimsel gosterimde US ("1.900267e+02") '+' ICERIR — sinifa '+' koymayi
-# unutunca o vertex'ler sessizce ATLANIR (327 onbellek dosyasinin 13'u boyle).
-_SAYI = r"[-+0-9.eE]+"
+# 4x4 birim matris (satir-vektor bilesigi icin notr eleman).
+_3MF_BIRIM_MAT = [[1.0, 0, 0, 0], [0, 1.0, 0, 0], [0, 0, 1.0, 0], [0, 0, 0, 1.0]]
+
+
+def _yerel(tag):
+    """ElementTree '{namespace}tag' -> 'tag' (namespace-bagimsiz karsilastirma icin)."""
+    return tag.rsplit("}", 1)[-1]
+
+
+def _oznitelik(el, ad):
+    """Namespace onekli/oneksiz oznitelik degeri ( or. production ext'teki p:path)."""
+    v = el.get(ad)
+    if v is not None:
+        return v
+    for k, val in el.attrib.items():
+        if k.rsplit("}", 1)[-1] == ad:
+            return val
+    return None
+
+
+def _matris(metin):
+    """3MF transform ozniteligi -> 4x4 matris. 12 sayi satir-major afin: m00 m01 m02
+    m10 m11 m12 m20 m21 m22 m30 m31 m32 (son uc = oteleme). Hatali/eksikse None."""
+    s = (metin or "").split()
+    if len(s) != 12:
+        return None
+    try:
+        m = [float(x) for x in s]
+    except ValueError:
+        return None
+    return [[m[0], m[1], m[2], 0.0],
+            [m[3], m[4], m[5], 0.0],
+            [m[6], m[7], m[8], 0.0],
+            [m[9], m[10], m[11], 1.0]]
+
+
+def _carp(A, B):
+    """4x4 bileske (satir-vektor gelenegi: once A sonra B uygulanir)."""
+    return [[sum(A[i][k] * B[k][j] for k in range(4)) for j in range(4)] for i in range(4)]
+
+
+def _uygula(M, x, y, z):
+    """[x y z 1] @ M -> (x', y', z') (3MF'de noktalar satir-vektor)."""
+    return (x * M[0][0] + y * M[1][0] + z * M[2][0] + M[3][0],
+            x * M[0][1] + y * M[1][1] + z * M[2][1] + M[3][1],
+            x * M[0][2] + y * M[1][2] + z * M[2][2] + M[3][2])
 
 
 def bbox_3mf(path):
-    """3MF (zip icinde 3D/3dmodel.model XML) sinir kutusu — STL yoksa yedek olcum.
-    Transform/birden fazla obje varsa yaklasiktir (tum vertex'lerin ham min/max'i).
-    Cikti her zaman MM (dosya birimi ne olursa olsun)."""
+    """3MF sinir kutusu olcusu (mm, buyukten kucuge liste) ya da None — STL yoksa yedek olcum.
+
+    Bambu-Studio tarzi cok-.model arsivlerinde geometri 3D/Objects/*.model altindadir; kok
+    3D/3dmodel.model yalniz montaj (build item + component referanslari) tutar, vertex icermez.
+    Bu yuzden arsivdeki TUM .model uyeleri parse edilir, (dosya, object id) -> element haritasi
+    kurulur, <build> item'larindan baslayip component zincirini (p:path ile baska .model'e
+    referans + transform matrisleri) coza coza DONUSTURULMUS vertex'lerin birlesik min/max'i
+    alinir. build/item yoksa ya da cozum bir seye ulasamazsa tum .model'lerdeki HAM vertex'lerin
+    (transform'suz) birlesigine duser. Cikti her zaman MM (dosya birimi ne olursa olsun)."""
     try:
+        modeller = {}   # normalize yol (bas '/' yok) -> ET root
         with zipfile.ZipFile(path) as z:
-            names = [n for n in z.namelist() if n.lower().endswith(".model")]
-            if not names:
+            adlar = [n for n in z.namelist() if n.lower().endswith(".model")]
+            if not adlar:
                 return None
-            xml = z.read(names[0]).decode("utf-8", "ignore")
-    except (zipfile.BadZipFile, KeyError):
-        return None
-    # Birim: okumazsan metre dosyada olcu 1000x kucuk cikar (0.17 m -> "0 mm"), inch/cm
-    # dosyada ise MAKUL GORUNEN ama yanlis sayi uretir (asil tehlike bu).
-    bm = re.search(r'\bunit\s*=\s*"(\w+)"', xml[:2000])
-    carpan = _3MF_BIRIM_MM.get((bm.group(1).lower() if bm else "millimeter"))
-    if carpan is None:
-        return None                      # tanimadigimiz birim -> uydurma, olcusuz birak
-    v = re.findall(r'<vertex\s+x="(%s)"\s+y="(%s)"\s+z="(%s)"' % (_SAYI, _SAYI, _SAYI), xml)
-    if not v:
-        return None
-    try:
-        xs = [float(a) for a, _, _ in v]
-        ys = [float(b) for _, b, _ in v]
-        zs = [float(c) for _, _, c in v]
-    except ValueError:
-        return None
-    d = sorted([(max(xs) - min(xs)) * carpan,
-                (max(ys) - min(ys)) * carpan,
-                (max(zs) - min(zs)) * carpan], reverse=True)
-    if d[0] <= 0 or d[0] > 100000:
-        return None
-    return d
+            for n in adlar:
+                try:
+                    modeller[n.lstrip("/")] = ET.fromstring(z.read(n))
+                except ET.ParseError:
+                    pass
+        if not modeller:
+            return None
+
+        def _build_el(root):
+            for ch in root:
+                if _yerel(ch.tag) == "build":
+                    return ch
+            return None
+
+        # Birim: kok modelin (build item'i olan) unit'i — spec model-genelinde tanimli.
+        # Okumazsan metre 1000x kucuk cikar, inch/cm MAKUL GORUNEN ama yanlis sayi uretir.
+        kok = None
+        for root in modeller.values():
+            b = _build_el(root)
+            if b is not None and list(b):
+                kok = root
+                break
+        if kok is None:
+            kok = next(iter(modeller.values()))
+        bm = kok.get("unit") or "millimeter"
+        carpan = _3MF_BIRIM_MM.get(bm.lower())
+        if carpan is None:
+            return None                  # tanimadigimiz birim -> uydurma, olcusuz birak
+
+        # her .model icin object id -> element haritasi
+        objeler = {}
+        for yol, root in modeller.items():
+            h = {}
+            for obj in root.iter():
+                if _yerel(obj.tag) == "object" and obj.get("id") is not None:
+                    h[obj.get("id")] = obj
+            objeler[yol] = h
+
+        xs, ys, zs = [], [], []
+
+        def _vertices_el(obj):
+            for ch in obj:
+                if _yerel(ch.tag) == "mesh":
+                    for gch in ch:
+                        if _yerel(gch.tag) == "vertices":
+                            return gch
+            return None
+
+        def _coz(yol, oid, M, derinlik):
+            if derinlik > 50:            # dongusel referansa karsi tavan
+                return
+            obj = objeler.get(yol, {}).get(oid)
+            if obj is None:
+                return
+            vs = _vertices_el(obj)
+            if vs is not None:
+                for vx in vs:
+                    if _yerel(vx.tag) != "vertex":
+                        continue
+                    try:
+                        x = float(vx.get("x")); y = float(vx.get("y")); z = float(vx.get("z"))
+                    except (TypeError, ValueError):
+                        continue
+                    px, py, pz = _uygula(M, x, y, z)
+                    xs.append(px); ys.append(py); zs.append(pz)
+            for ch in obj:
+                if _yerel(ch.tag) != "components":
+                    continue
+                for comp in ch:
+                    if _yerel(comp.tag) != "component":
+                        continue
+                    cid = comp.get("objectid")
+                    if cid is None:
+                        continue
+                    cyol = _oznitelik(comp, "path")      # baska .model'e referans olabilir
+                    cyol = cyol.lstrip("/") if cyol else yol
+                    T = _matris(comp.get("transform")) or _3MF_BIRIM_MAT
+                    _coz(cyol, cid, _carp(T, M), derinlik + 1)
+
+        # build item'lardan transform zincirini cozerek dolas
+        for yol, root in modeller.items():
+            b = _build_el(root)
+            if b is None:
+                continue
+            for item in b:
+                if _yerel(item.tag) != "item" or item.get("objectid") is None:
+                    continue
+                T = _matris(item.get("transform")) or _3MF_BIRIM_MAT
+                _coz(yol, item.get("objectid"), T, 0)
+
+        # geri-dusus: cozum bos donduyse tum modellerin ham vertex'leri (transform'suz)
+        if not xs:
+            for root in modeller.values():
+                for vx in root.iter():
+                    if _yerel(vx.tag) != "vertex":
+                        continue
+                    try:
+                        x = float(vx.get("x")); y = float(vx.get("y")); z = float(vx.get("z"))
+                    except (TypeError, ValueError):
+                        continue
+                    xs.append(x); ys.append(y); zs.append(z)
+        if not xs:
+            return None
+
+        d = sorted([(max(xs) - min(xs)) * carpan,
+                    (max(ys) - min(ys)) * carpan,
+                    (max(zs) - min(zs)) * carpan], reverse=True)
+        if d[0] <= 0 or d[0] > 100000:
+            return None
+        return d
+    except Exception:
+        return None                      # sozlesme: hicbir durumda firlatma, olcemezsen None
 
 
 def model_bbox(path):
