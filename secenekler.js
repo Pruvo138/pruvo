@@ -74,6 +74,16 @@
      olan yalnızca müşteriye gösterilen buton. */
   var ODEME_ACIK = false;
 
+  /* SARI SERI 3D ONIZLEME (tools/paket-onizleme-3d.md, Faz C pilot).
+     ONIZLEME_AILELER: /api/onizleme/olustur ucunun kabul ettigi aile beyaz listesi —
+     onizleme Worker'i (onizleme/src/index.js) ve build.py (urun sayfasina "Onizle (3D)"
+     butonunu basma karari) AYNI listeyi buradan okur, ikinci kopya YOK.
+     ONIZLEME_3D_ACIK: butonun musteride gorunmesi. KAPALI tutulur; derleme arka ucu
+     (Cloudflare Container, Workers Paid bekliyor) deploy edilip kabul 4e/4g yesillenince
+     MIMAR karariyla acilir. Kapaliyken bu degisiklik canlida SIFIR gorunur fark yaratir. */
+  var ONIZLEME_3D_ACIK = false;
+  var ONIZLEME_AILELER = ["olcuye-ozel-profil-beam", "olcuye-ozel-oring-conta"];
+
   /* Birim fiyat, tamsayı KURUŞ. Sıra (Okan, 16 Tem): filament katsayısı -> SONRA "Diğer"
      renk +%15 -> sonra boy farkı (TL, sabit ek). Yuvarlama YOK; tek yuvarlama kuruşun ALTINA
      inen artık içindir (yarım kuruş tahsil edilemez; ör. "Diğer" renkte 333 -> 497,835 TL). */
@@ -247,6 +257,8 @@
     ADET_EN_COK: ADET_EN_COK,
     ODEME_ACIK: ODEME_ACIK,
     PARAMETRIK_ODEME_ACIK: PARAMETRIK_ODEME_ACIK,
+    ONIZLEME_3D_ACIK: ONIZLEME_3D_ACIK,
+    ONIZLEME_AILELER: ONIZLEME_AILELER,
     fiyatSayisi: fiyatSayisi,
     fonksiyonelMi: fonksiyonelMi,
     boyFarki: boyFarki,

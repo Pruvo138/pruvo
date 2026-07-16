@@ -1,0 +1,95 @@
+# Onizleme derleyici imajini CI'da derle + Cloudflare registry'ye it.
+# SADECE ELLE TETIKLENIR (workflow_dispatch) — push'a baglanmaz (imaj sik degismez,
+# sir iceren paketi her push'ta cekmek gereksiz yuzey acar).
+#
+# SIR AKISI: uyelik ureteci .scad'lari ve eslem PUBLIC repoda YOKTUR. CI, paketi
+# GIZLI R2 bucket'indan (pruvo-ozel) S3 API'siyle ceker. Gerekli secret'lar:
+#   R2_ERISIM_ID / R2_GIZLI_ANAHTAR  — R2 S3 token (pruvo-ozel okuma yetkili)
+#   CLOUDFLARE_API_TOKEN             — (mevcut) containers push icin de yetki gerekir
+# Secret yoksa adimlar aciklamali sekilde durur; hicbir sir loglanmaz.
+#
+# PLAN KAPISI: registry push'u Workers PAID plani ister. Plan aktif degilken
+# push adimi "PLAN BEKLIYOR" der ve is BASARISIZ sayilmaz (imaj derlemesi yine
+# dogrulanir). Plan acilinca ayni workflow yeniden tetiklenir.
+
+name: Onizleme derleyici imaji
+
+on:
+  workflow_dispatch:
+    inputs:
+      push_et:
+        description: "Imaji Cloudflare registry'ye it (Workers Paid gerekir)"
+        type: boolean
+        default: false
+
+jobs:
+  imaj:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Gizli paketi R2'den cek
+        env:
+          R2_ERISIM_ID: ${{ secrets.R2_ERISIM_ID }}
+          R2_GIZLI_ANAHTAR: ${{ secrets.R2_GIZLI_ANAHTAR }}
+        run: |
+          if [ -z "$R2_ERISIM_ID" ] || [ -z "$R2_GIZLI_ANAHTAR" ]; then
+            echo "::error::R2_ERISIM_ID / R2_GIZLI_ANAHTAR secret'lari yok — paket cekilemez."
+            echo "Ekleme: repo Settings > Secrets > Actions (pruvo-ozel okuma yetkili R2 S3 token)."
+            exit 1
+          fi
+          export AWS_ACCESS_KEY_ID="$R2_ERISIM_ID"
+          export AWS_SECRET_ACCESS_KEY="$R2_GIZLI_ANAHTAR"
+          export AWS_DEFAULT_REGION=auto
+          mkdir -p onizleme/derleyici/paket-ozel
+          aws s3 cp "s3://pruvo-ozel/onizleme/paket-guncel.tar.gz" paket.tar.gz \
+            --endpoint-url "https://dbbe2a8620c3c3a57c586b8a98142fb9.r2.cloudflarestorage.com"
+          tar -xzf paket.tar.gz -C onizleme/derleyici/paket-ozel
+          rm paket.tar.gz
+          echo "paket dosyalari (adlar sir degil, icerik loglanmaz):"
+          ls onizleme/derleyici/paket-ozel
+
+      - name: Imaji derle
+        run: |
+          docker build -t pruvo-onizleme-derleyici:ci onizleme/derleyici
+          docker image ls pruvo-onizleme-derleyici:ci
+
+      - name: Imaj duman testi (mock degil — gercek openscad + paket)
+        run: |
+          docker run -d --rm -p 18080:8080 --name onizleme-duman pruvo-onizleme-derleyici:ci
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:18080/saglik > /dev/null; then break; fi
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:18080/saglik
+          echo
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-oring-conta","parametreler":{"ic_cap":30,"kesit_cap":3.6,"profil":"yuvarlak"}}' \
+            -o duman.stl
+          test "$(head -c 4 duman.stl | tail -c 4)" != "" && wc -c duman.stl
+          docker stop onizleme-duman
+
+      - name: Registry'ye it (PLAN KAPISI)
+        if: ${{ inputs.push_et }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::warning::CLOUDFLARE_API_TOKEN yok — push atlandi."
+            exit 0
+          fi
+          npx wrangler@4 containers push pruvo-onizleme-derleyici:ci 2> push-hata.log \
+            && { echo "imaj itildi"; exit 0; } \
+            || true
+          if grep -qi "Workers Paid" push-hata.log; then
+            echo "::warning::PLAN BEKLIYOR — Workers Paid aktif degil, push yapilamadi. Plan acilinca workflow'u push_et=true ile yeniden tetikleyin."
+            exit 0
+          fi
+          echo "::error::containers push beklenmedik sekilde basarisiz:"
+          cat push-hata.log
+          exit 1
+
+      - name: Push kapali bilgisi
+        if: ${{ !inputs.push_et }}
+        run: echo "push_et=false — imaj yalniz derlendi/dumani alindi. Registry'ye itmek icin workflow'u push_et=true ile tetikleyin (Workers Paid gerekir)."

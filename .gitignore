@@ -59,5 +59,13 @@ shop/.dev.vars
 shop/.wrangler/
 shop/node_modules/
 
+# onizleme/ (pruvo-onizleme worker) — GIZLI eslem (uyelik ureteci degisken adlari) ve
+# derleme paketi ASLA repoya girmez; kanonik kopya R2 pruvo-ozel bucket'inda
+# (tools/onizleme-paket-yukle.py yukler, CI oradan ceker).
+onizleme/derleyici/eslem-ozel.json
+onizleme/derleyici/paket-ozel/
+onizleme/.wrangler/
+onizleme/node_modules/
+
 # gecici tarayici denemesi ciktilari (mimar: repoya girmez)
 /ornek-*.html
