@@ -79,6 +79,23 @@ rozet rengiyle uyumlu ton mühendis seçer). Flat shading'de saf sarının yüze
 yutmamasına dikkat (gölgeleme/kontrast okunur kalsın; zemin rengiyle çakışmasın).
 Kanıt: en az bir pilot ürün sayfasında ekran görüntüsü (rapora).
 
+### F) Sarı ürün sayfası seçici düzeni normal ürün sayfasıyla eşitlenir (Okan, 16 Tem gece)
+Normal ürün sayfaları yeni seçici düzeninde (ekran görüntüsüyle onaylandı); sarı/parametrik
+sayfalar eskide kalmış. Sarı sayfada da AYNI düzen olacak:
+- Malzeme seçimi dropdown DEĞİL, kart/çip: her kartta ~sıcaklık aralığı + malzeme adı +
+  kısa kullanım notu ("Ev içi", "Dış mekân / genel amaçlı", "Güneş + su", "Esnek / titreşim
+  emici") + önerilende "TAVSİYEMİZ" rozeti (normal sayfadakinin birebir aynısı).
+- Renk seçimi çip: Siyah / Beyaz / Gri / Diğer (+%15).
+- Adet: −/+ basamaklı seçici.
+- "Sepete Ekle" + WhatsApp butonları ÜSTTE, renk/adet bloğunun yanında (normal sayfa
+  hizası) — sayfa altında bırakılmaz.
+- Karbon fiber/mühendislik malzemesi WhatsApp notu + "Malzeme Rehberi →" linki aynı yerde.
+- Fiyat satırı sarı kuralına uyar: taban fiyat girilmediği sürece "Ölçüye özel fiyat"
+  (normal üründeki "X TL'den başlayan" kalıbı ancak taban fiyat varsa).
+**İKİNCİ KOPYA YAZMA:** normal sayfanın seçici bileşeni neredeyse (build.py şablonu /
+ortak JS) sarı sayfa da ORADAN beslenir — kopyalanıp ayrışan iki seçici bloğu paket reddi
+sebebidir. Kanıt: bir sarı ürün sayfası ekran görüntüsü + build iki-durum testi yeşil.
+
 ## Sır hijyeni (ihlali paket reddi sebebi)
 - `eslem-ozel.json` gitignore'lu kalır; kanonik kopya R2 `pruvo-ozel` özel bucket'ında.
 - Üretim motoru tedarikçi/üyelik adı HİÇBİR public dosyada, commit mesajında, test
