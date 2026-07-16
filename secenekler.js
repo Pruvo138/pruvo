@@ -150,11 +150,14 @@
     var fonksiyonel = fonksiyonelMi(urun && urun.kategori);
     var parcalar = [];
     if (fonksiyonel) {
-      var mYuzde = FILAMENT_FARK.hasOwnProperty(satir.malzeme) ? FILAMENT_FARK[satir.malzeme] : 0;
-      parcalar.push("Malzeme: " + satir.malzeme + (mYuzde ? " (+%" + mYuzde + ")" : ""));
+      // Kart-secim urununde malzeme secilmeden WhatsApp'tan sorulabilir -> bos malzeme satiri yazma.
+      if (satir.malzeme) {
+        var mYuzde = FILAMENT_FARK.hasOwnProperty(satir.malzeme) ? FILAMENT_FARK[satir.malzeme] : 0;
+        parcalar.push("Malzeme: " + satir.malzeme + (mYuzde ? " (+%" + mYuzde + ")" : ""));
+      }
       if (satir.renk === "Diğer") {
         parcalar.push("Renk: " + (satir.renk_ozel || "özel renk") + " (özel, +%" + RENK_DIGER_YUZDE + ")");
-      } else {
+      } else if (satir.renk) {
         parcalar.push("Renk: " + satir.renk);
       }
       if (satir.boy_etiket) { parcalar.push("Boy: " + satir.boy_etiket); }

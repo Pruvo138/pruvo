@@ -221,16 +221,54 @@ MUHENDISLIK_WA_NOT = ('<p class="malzeme-not">Karbon fiber veya diğer mühendis
 # Malzeme/renk satırları — klasik opsiyon bloğu ve parametrik konfigüratör AYNI bileşeni
 # kullanır. Seçenekler ve "(+%30)" etiketleri secenekler.js'ten ÜRETİLİR (elle yazılmaz):
 # katsayı orada değişince etiket sessizce eskimesin.
+def _renk_html():
+    """Renk seçici satırı (malzemeden bağımsız — hem konfigüratör hem kart-seçim ürünü kullanır)."""
+    renk_opts = "".join(
+        '\n          <option value="%s">%s</option>' % (
+            esc(r), esc(r + (" (+%%%d)" % RENK_DIGER_YUZDE if r == "Diğer" else "")))
+        for r in RENK_SECENEKLERI)
+    return ("""
+      <div class="opsiyon-row">
+        <label for="renkSec">Renk</label>
+        <select id="renkSec">""" + renk_opts + """
+        </select>
+        <input type="text" id="renkOzel" placeholder="istediğiniz rengi yazın" style="display:none">
+      </div>""")
+
+
+def _renk_butonlari_html():
+    """Renk BUTONLARI (Okan, 16 Tem) — fonksiyonel/kart-seçim ürününde dropdown yerine 4 buton:
+    Siyah/Beyaz/Gri düz renk yuvarlağı, Diğer = gökkuşağı gradyan. Önden seçili YOK; 'Diğer'
+    seçilince altında serbest metin kutusu (renkOzel) belirir. Parametrik ürün DROPDOWN kalır."""
+    ornek = {
+        "Siyah": '<span class="renk-yuvar" style="background:#151515"></span>',
+        "Beyaz": '<span class="renk-yuvar" style="background:#fff;border:1px solid var(--gray-line)"></span>',
+        "Gri": '<span class="renk-yuvar" style="background:#8a929e"></span>',
+        "Diğer": '<span class="renk-yuvar renk-yuvar-gokkusagi"></span>',
+    }
+    btns = "".join(
+        '<button type="button" class="renk-btn" data-renk="%s">%s'
+        '<span class="renk-ad">%s</span></button>' % (
+            esc(r), ornek.get(r, ""),
+            esc(r + (" (+%%%d)" % RENK_DIGER_YUZDE if r == "Diğer" else "")))
+        for r in RENK_SECENEKLERI)
+    return ("""
+      <div class="opsiyon-row opsiyon-renk">
+        <label>Renk</label>
+        <div class="renk-butonlar" id="renkButonlar">""" + btns + """</div>
+      </div>
+      <input type="text" id="renkOzel" class="renk-ozel" maxlength="30"
+             placeholder="istediğiniz rengi yazın (ör. turuncu)" style="display:none">""")
+
+
 def _malzeme_renk_html():
+    """Malzeme dropdown + mühendislik-malzeme WA notu + renk. YALNIZ parametrik (konfigüratör)
+    ürün sayfası kullanır — fonksiyonel ürünlerde malzeme artık kartlardan seçilir (dropdown yok)."""
     malzeme_opts = "".join(
         '\n          <option value="%s">%s</option>' % (
             esc(m), esc(m + (" (standart)" if not FILAMENT_FARK.get(m)
                              else " (+%%%d)" % FILAMENT_FARK[m])))
         for m in FILAMENT_SIRA)
-    renk_opts = "".join(
-        '\n          <option value="%s">%s</option>' % (
-            esc(r), esc(r + (" (+%%%d)" % RENK_DIGER_YUZDE if r == "Diğer" else "")))
-        for r in RENK_SECENEKLERI)
     # NOT: metinde yuzde-kacisli WhatsApp URL'i var (%2C, %C3%BC...) -> %-bicimlendirme
     # KULLANILMAZ (URL'i bozar / ValueError verir); parcalar birlestirilir.
     return ("""
@@ -239,13 +277,7 @@ def _malzeme_renk_html():
         <select id="malzemeSec">""" + malzeme_opts + """
         </select>
       </div>
-      """ + MUHENDISLIK_WA_NOT + """
-      <div class="opsiyon-row">
-        <label for="renkSec">Renk</label>
-        <select id="renkSec">""" + renk_opts + """
-        </select>
-        <input type="text" id="renkOzel" placeholder="istediğiniz rengi yazın" style="display:none">
-      </div>""")
+      """ + MUHENDISLIK_WA_NOT + _renk_html())
 
 
 # Adet seçici — klasik blok ve konfigüratör ortak (Okan, 16 Tem: varsayılan 1, aralık 1-99).
@@ -432,6 +464,36 @@ PAGE_CSS = """
   .fil-cip.acik .fil-balon{display:block}
   .fil-not{font-size:12.5px;color:var(--gray-text);margin-top:9px}
   .malzeme-link{display:inline-block;margin-top:9px;font-size:12.5px;color:var(--navy-2)}
+  /* Secili malzeme karti: DOLGU (lacivert zemin) — tavsiyeli kartin ince cercevesinden
+     acikca ayrilir; "Tavsiyemiz" rozeti sadece bilgidir, secim yapmaz. */
+  .fil-cip.secili{background:var(--navy);border-color:var(--navy);
+    box-shadow:0 2px 10px rgba(18,41,77,.28)}
+  .fil-cip.secili .fil-ad{color:#fff}
+  .fil-cip.secili .fil-isi,.fil-cip.secili .fil-etiket{color:#cdd8ea}
+  .fil-cip.secili .fil-rozet{background:#fff;color:var(--navy)}
+
+  /* Renk BUTONLARI (dropdown yerine) — kucuk renk yuvarlagi + ad; Diger = gokkusagi gradyan. */
+  .opsiyon-renk{align-items:flex-start}
+  .renk-butonlar{display:flex;flex-wrap:wrap;gap:8px}
+  .renk-btn{display:inline-flex;align-items:center;gap:7px;background:var(--gray-card);
+    border:1px solid var(--gray-line);border-radius:9px;padding:7px 12px;cursor:pointer;
+    font-family:inherit;font-size:13.5px;font-weight:700;color:var(--navy);transition:.15s}
+  .renk-btn:hover{border-color:var(--navy-2)}
+  .renk-btn.secili{background:var(--navy);border-color:var(--navy);color:#fff;
+    box-shadow:0 2px 10px rgba(18,41,77,.28)}
+  .renk-yuvar{width:16px;height:16px;border-radius:50%;display:inline-block;flex:none}
+  .renk-yuvar-gokkusagi{background:conic-gradient(from 0deg,#ff004c,#ff8a00,#ffe600,
+    #00d158,#00b3ff,#7a5cff,#ff004c)}
+  .renk-ozel{padding:8px 10px;border:1px solid var(--gray-line);border-radius:7px;
+    font-size:14px;background:#fff;color:var(--navy);margin:6px 0 0 74px;max-width:260px}
+
+  /* Secimsiz "Sepete Ekle" denemesi: eksik secim grubu titrer + cerceveleri kirmizi olur
+     (gecici, ~0.4sn). Saf CSS/JS — malzeme kartlari, renk butonlari, renk metin kutusu ortak. */
+  @keyframes pruvoTitre{0%,100%{transform:translateX(0)}
+    15%,45%,75%{transform:translateX(-6px)}30%,60%,90%{transform:translateX(6px)}}
+  .titre{animation:pruvoTitre .4s ease-in-out}
+  .hata-vurgu .fil-cip,.hata-vurgu .renk-btn{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
+  .renk-ozel.hata{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
 
   .related{max-width:1100px;margin:0 auto;padding:0 20px 60px}
   .related h2{font-size:19px;font-weight:700;margin-bottom:16px}
@@ -574,21 +636,21 @@ def filament_html(p, wa_not=False):
             rcls = "fil-rozet" if rozet == "Tavsiyemiz" else "fil-rozet fil-rozet-not"
             rozet_html = '<span class="%s">%s</span>' % (rcls, esc(rozet))
         cips.append(
-            '<button type="button" class="fil-cip%s" aria-expanded="false">'
+            '<button type="button" class="fil-cip%s" data-malzeme="%s" aria-expanded="false">'
             '<span class="fil-isi">%s</span>'
             '<span class="fil-ad">%s</span>'
             '<span class="fil-etiket">%s</span>'
             '%s'
             '<span class="fil-balon" role="tooltip"><strong>%s — %s</strong><br>%s</span>'
             '</button>'
-            % (" tavsiyeli" if rozet else "", esc(f["isiDayanimi"]), esc(f["ad"]),
+            % (" tavsiyeli" if rozet else "", esc(f["ad"]), esc(f["isiDayanimi"]), esc(f["ad"]),
                esc(f["kisaEtiket"]), rozet_html,
                esc(f.get("uzunAd") or f["ad"]), esc(f["kisaEtiket"]), esc(f["uzun"])))
     not_html = ('<div class="fil-not">%s</div>' % esc(ref["parametrikNot"])) if parametrik else ""
     wa_html = MUHENDISLIK_WA_NOT if wa_not else ""
     return ('<div class="malzeme-blok">'
             '<div class="malzeme-baslik">Malzeme</div>'
-            '<div class="fil-cipler">%s</div>'
+            '<div class="fil-cipler" id="filCipler">%s</div>'
             '%s%s'
             '<a class="malzeme-link" href="/malzeme-rehberi/">Hangi malzeme nerede kullanılır? '
             'Malzeme Rehberi &rarr;</a>'
@@ -718,7 +780,35 @@ def render_product(p, all_products):
                 malzeme_renk=_malzeme_renk_html(),
                 adet=ADET_HTML % (ADET_EN_AZ, ADET_EN_COK))
         price_html = ""
+    elif fonksiyonel and not parametrik:
+        # Kart-secim (Okan, 16 Tem): malzeme dropdown YOK — malzeme aşağıdaki filament
+        # KARTLARINDAN seçilir. Burada yalnız Renk + Adet + fiyat kalır. Önden seçili
+        # malzeme yok; fiyat, seçim yapılana kadar "…'den başlayan" (taban PLA) gösterir.
+        boy_html = ""
+        if boy_secenekleri:
+            boy_opts = "".join(
+                '<option value="%s">%s%s</option>' % (
+                    esc(b.get("etiket") or ""), esc(b.get("etiket") or ""),
+                    (" (+%d TL)" % b["fark_tl"]) if b.get("fark_tl") else "")
+                for b in boy_secenekleri)
+            boy_html = ('<div class="opsiyon-row"><label for="boySec">Boy</label>'
+                        '<select id="boySec">%s</select></div>' % boy_opts)
+        # JS öncesi/JS'siz görünüm: fiyatlı üründe taban "…'den başlayan" (JS kuruşlu tazeler).
+        baslangic_fiyat = (esc(fiyat) + "&#39;den başlayan") if fiyat else esc(price_text)
+        opsiyonlar_html = ("""
+    <div class="opsiyonlar" id="opsiyonlar">
+      {renk}
+      {boy}
+      {adet}
+      <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
+    </div>
+    """).format(renk=_renk_butonlari_html(), boy=boy_html,
+                adet=ADET_HTML % (ADET_EN_AZ, ADET_EN_COK),
+                fiyat_metni=baslangic_fiyat)
+        price_html = ""
     elif fonksiyonel:
+        # Parametrik ama şemasız (bugün böyle ürün YOK — 18/18 şemalı) fonksiyonel ürün için
+        # güvenli geri dönüş: eski malzeme dropdown'lu düzen aynen korunur.
         boy_html = ""
         if boy_secenekleri:
             boy_opts = "".join(
@@ -861,7 +951,6 @@ def render_product(p, all_products):
       <p class="desc">{aciklama}</p>
       <button class="cart-btn" id="cartBtn" data-id="{pid}">{cart_icon}<span class="cart-label">Sepete Ekle</span></button>
       <a class="order-wa" id="orderAlt" href="{wa}" target="_blank" rel="noopener">{icon}WhatsApp'tan Sor</a>
-      <div class="note">Sepete ekleyip birden çok ürünü tek WhatsApp mesajıyla sipariş edebilirsiniz. Ürünler talep üzerine özel üretilir.</div>
     </div>
   </div>
 </main>
@@ -906,13 +995,25 @@ var URUN_SEMA = {sema_json};
   var adetEksi=document.getElementById("adetEksi");
   var adetArti=document.getElementById("adetArti");
   var fiyatEl=document.getElementById("opsiyonFiyat");
+  /* Kart-secim modu (Okan, 16 Tem): fonksiyonel ürünlerde malzeme dropdown YOK, malzeme
+     filament KARTLARINDAN seçilir. Önden seçili malzeme YOK -> seciliMalzeme boş başlar. */
+  var KART_SECIM = {kart_secim};
+  var cipler = document.getElementById("filCipler");
+  var renkBtnlar = document.getElementById("renkButonlar");
+  var seciliMalzeme = "";
+  var seciliRenk = "";
 
   function currentSatir(){{
     var s = PRUVO_SECENEK.bosSatir(id);
     if(malzemeSec){{ s.malzeme = malzemeSec.value; }}
+    else if(KART_SECIM){{ s.malzeme = seciliMalzeme; }}
     if(renkSec){{
       s.renk = renkSec.value;
       s.renk_ozel = (renkSec.value === "Diğer" && renkOzel) ? renkOzel.value : "";
+    }} else if(KART_SECIM){{
+      s.renk = seciliRenk;
+      s.renk_ozel = (seciliRenk === "Diğer" && renkOzel)
+        ? renkOzel.value.trim().slice(0, 30) : "";
     }}
     if(boySec){{ s.boy_etiket = boySec.value || null; }}
     if(adetSec){{ s.adet = PRUVO_SECENEK.adetDuzelt(adetSec.value); }}
@@ -928,6 +1029,16 @@ var URUN_SEMA = {sema_json};
     adetSec.value = PRUVO_SECENEK.adetDuzelt(v);
     render();
   }}
+  /* Eksik seçim grubunu titret + kırmızıya çevir (geçici). Konteyner (malzeme kartları /
+     renk butonları) -> cocuk cerceveleri kirmizi; metin kutusu -> kendisi. Saf CSS/JS. */
+  function titret(el){{
+    if(!el){{ return; }}
+    var kutu = el.classList.contains("renk-ozel");
+    el.classList.remove("titre", "hata-vurgu", "hata");
+    void el.offsetWidth;                           // animasyonu yeniden başlat (reflow)
+    el.classList.add("titre", kutu ? "hata" : "hata-vurgu");
+    setTimeout(function(){{ el.classList.remove("titre", "hata-vurgu", "hata"); }}, 500);
+  }}
   function render(){{
     var c = PRUVO_SECENEK.sepetYukle();
     var satir = currentSatir();
@@ -940,7 +1051,15 @@ var URUN_SEMA = {sema_json};
     var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
     /* Konfigüratörlü sayfada fiyat alanını konfigüratör yönetir (kuruşlu canlı hesap,
        taban fiyat yoksa "—"); geçersiz ölçüde sepete ekleme kilitlenir. */
-    if(fiyatEl && !URUN_SEMA){{ fiyatEl.textContent = ozet.fiyatMetni; }}
+    if(fiyatEl && !URUN_SEMA){{
+      /* Kart-secim: malzeme+renk seçilene kadar fiyat taban (PLA) "…'den başlayan";
+         ikisi de seçilince kesin katsayılı/renkli fiyat gösterilir. */
+      if(KART_SECIM && (!seciliMalzeme || !seciliRenk) && ozet.birimKurus != null){{
+        fiyatEl.textContent = ozet.fiyatMetni + "'den başlayan";
+      }} else {{
+        fiyatEl.textContent = ozet.fiyatMetni;
+      }}
+    }}
     if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{
       PRUVO_KONF.tazele();
       var gecerli = PRUVO_KONF.gecerliMi();
@@ -954,6 +1073,26 @@ var URUN_SEMA = {sema_json};
     }}
   }}
   btn.addEventListener("click", function(){{
+    /* Malzeme + renk seçilmeden sepete eklenemez (istemci 1. savunma; Worker 2. savunma).
+       "Diğer" renkte serbest metin kutusu da dolu olmalı. Eksik olan grup(lar) titrer. */
+    if(KART_SECIM){{
+      var eksikM = !seciliMalzeme;
+      var eksikR = !seciliRenk;
+      var eksikO = seciliRenk === "Diğer" && renkOzel && !renkOzel.value.trim();
+      if(eksikM || eksikR || eksikO){{
+        if(eksikM){{ titret(cipler); }}
+        if(eksikR){{ titret(renkBtnlar); }}
+        if(eksikO){{ titret(renkOzel); }}
+        var hedef = eksikM ? cipler : (eksikR ? renkBtnlar : renkOzel);
+        if(hedef){{
+          try {{ hedef.scrollIntoView({{ behavior:"smooth", block:"center" }}); }} catch(e) {{}}
+          var od = eksikO ? renkOzel
+            : (hedef.querySelector ? hedef.querySelector(".fil-cip,.renk-btn") : null);
+          if(od){{ od.focus(); }}
+        }}
+        return;
+      }}
+    }}
     var c = PRUVO_SECENEK.sepetYukle();
     var satir = currentSatir();
     var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
@@ -962,6 +1101,32 @@ var URUN_SEMA = {sema_json};
     if(i===-1){{ c.push(satir); }} else {{ c.splice(i,1); }}
     PRUVO_SECENEK.sepetKaydet(c); render();
   }});
+  /* Filament kartlarını malzeme seçicisine çevir (yalnız kart-secim modu). Tıklanan kart
+     seçili (lacivert dolgu) olur, ötekiler bırakılır; fiyat + sepet durumu tazelenir.
+     Bilgi balonunu ayrı IIFE (aşağıda) yönetir — burada yalnız SEÇİM. */
+  if(KART_SECIM && cipler){{
+    var kartlar = cipler.querySelectorAll(".fil-cip");
+    for(var k=0;k<kartlar.length;k++){{
+      kartlar[k].addEventListener("click", function(){{
+        seciliMalzeme = this.getAttribute("data-malzeme") || "";
+        for(var n=0;n<kartlar.length;n++){{ kartlar[n].classList.toggle("secili", kartlar[n]===this); }}
+        render();
+      }});
+    }}
+  }}
+  /* Renk butonları: tıklanan seçili (lacivert dolgu), ötekiler bırakılır. "Diğer" seçilince
+     serbest metin kutusu belirir (müşteri istediği rengi yazar). */
+  if(KART_SECIM && renkBtnlar){{
+    var rbtnlar = renkBtnlar.querySelectorAll(".renk-btn");
+    for(var rr=0;rr<rbtnlar.length;rr++){{
+      rbtnlar[rr].addEventListener("click", function(){{
+        seciliRenk = this.getAttribute("data-renk") || "";
+        for(var n=0;n<rbtnlar.length;n++){{ rbtnlar[n].classList.toggle("secili", rbtnlar[n]===this); }}
+        if(renkOzel){{ renkOzel.style.display = (seciliRenk === "Diğer") ? "block" : "none"; }}
+        render();
+      }});
+    }}
+  }}
   [malzemeSec, renkSec, boySec].forEach(function(el){{
     if(!el){{ return; }}
     el.addEventListener("change", function(){{
@@ -1043,13 +1208,14 @@ var URUN_SEMA = {sema_json};
         icon=WA_ICON,
         pid=esc(p.get("id") or ""),
         cart_icon=CART_ICON,
-        malzeme=filament_html(p, wa_not=not (fonksiyonel or sema)),
+        malzeme=filament_html(p, wa_not=not bool(sema)),
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
         attribution=attribution_html(p),
         urun_json=urun_json,
         sema_json=sema_json,
+        kart_secim=("true" if (fonksiyonel and not parametrik) else "false"),
         konf_scripts=konf_scripts,
         onizleme_js=onizleme_js,
         whatsapp=WHATSAPP,

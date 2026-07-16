@@ -17,6 +17,14 @@ Once tools/build.py'yi CALISTIRIR (uretilen sayfalar taze olsun), sonra sirayla:
   7. mobil tooltip: DOM/CSS duzeyinde dogrulama (balon + .acik toggle JS + aria-expanded)
   8. ABS/Karbon Katkili urun sayfasinda CIP OLARAK basilmiyor (site seceneği degil, sadece
      /malzeme-rehberi/ + WhatsApp notu)
+
+KART-SECIM (Okan, 16 Tem — malzeme dropdown -> kart secici):
+  9  (a) fonksiyonel sayfada malzeme dropdown YOK; kartlar data-malzeme tasir; tiklama SECER
+ 10  (b) sayfa acilisinda secili kart YOK + fiyat "…'den baslayan" halinde
+ 11  (c) secimsiz "Sepete Ekle" -> sepete eklenmez + titreme/kirmizi sinifi eklenir (CSS+JS)
+ 12  (d) secimle fiyat KATSAYILI guncellenir (JS wiring + secenekler.js kuruş matematigi)
+ 13  (e) alt paragraf ("Sepete ekleyip…") HICBIR urun sayfasinda yok
+ 14  (f) "WhatsApp'tan Sor" secim SARTI ARAMAZ (link her zaman calisir)
 """
 import html
 import json
@@ -175,6 +183,168 @@ def main():
         hatalar8.append("WhatsApp muhendislik-malzeme linki yok")
     kayit(8, "ABS/Karbon Katkili SITE SECENEGI olarak sunulmuyor (cip/dropdown yok, WA notu var)",
           not hatalar8, "; ".join(hatalar8) or "temiz")
+
+    # ================= KART-SECIM (malzeme dropdown -> kart secici) =================
+    FONK = {"Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin",
+            "Bisiklet", "Bahçe", "Ofis", "Kamera"}
+    fonk_urun = next((u for u in urunler
+                      if u.get("kategori") in FONK and not u.get("parametrik")), None)
+    fs = sayfa(fonk_urun["id"]) if fonk_urun else ""
+
+    # ---- 9 (a) dropdown YOK + kartlar data-malzeme + tiklama SECER
+    h9 = []
+    if not fonk_urun:
+        h9.append("fonksiyonel non-parametrik urun bulunamadi")
+    else:
+        if 'id="malzemeSec"' in fs:
+            h9.append("malzeme dropdown hala var")
+        for f in site_fil:
+            if ('data-malzeme="%s"' % html.escape(f["ad"], quote=True)) not in fs:
+                h9.append("%s karti data-malzeme tasimıyor" % f["ad"])
+        for parca in ["var KART_SECIM = true;",
+                      'seciliMalzeme = this.getAttribute("data-malzeme")',
+                      'classList.toggle("secili"']:
+            if parca not in fs:
+                h9.append("secim JS eksik: %s" % parca)
+    kayit(9, "(a) malzeme dropdown YOK + kartlar data-malzeme + tiklama secim JS'i",
+          not h9, "; ".join(h9[:4]) or "temiz")
+
+    # ---- 10 (b) acilista secili kart YOK + fiyat "baslayan"
+    h10 = []
+    if 'class="fil-cip secili' in fs or 'class="fil-cip tavsiyeli secili' in fs:
+        h10.append("acilista bir kart 'secili' isaretli (onden secim olmamali)")
+    m10 = re.search(r'id="opsiyonFiyat">([^<]*)<', fs)
+    if not (m10 and "başlayan" in m10.group(1)):
+        h10.append("opsiyonFiyat 'baslayan' halinde degil: %r" % (m10.group(1) if m10 else None))
+    kayit(10, "(b) acilista secili kart yok + fiyat '…den baslayan'", not h10,
+          "; ".join(h10) or "temiz")
+
+    # ---- 11 (c) secimsiz Sepete Ekle -> eklenmez + titreme/kirmizi
+    h11 = []
+    for parca in ["var eksikM = !seciliMalzeme;",
+                  "if(eksikM){ titret(cipler); }",
+                  'el.classList.add("titre", kutu ? "hata" : "hata-vurgu")',
+                  "@keyframes pruvoTitre",
+                  ".titre{animation:pruvoTitre",
+                  ".hata-vurgu .fil-cip,.hata-vurgu .renk-btn{border-color:var(--red)"]:
+        if parca not in fs:
+            h11.append("eksik: %s" % parca)
+    kayit(11, "(c) secimsiz Sepete Ekle -> eklenmez + titreme/kirmizi (CSS+JS)",
+          not h11, "; ".join(h11[:3]) or "temiz")
+
+    # ---- 12 (d) secimle fiyat KATSAYILI guncellenir (JS wiring + kuruş matematigi)
+    h12 = []
+    if 'fiyatEl.textContent = ozet.fiyatMetni + "' not in fs and \
+       "fiyatEl.textContent = ozet.fiyatMetni +" not in fs:
+        h12.append("secimsiz 'baslayan' fiyat JS dali yok")
+    if "fiyatEl.textContent = ozet.fiyatMetni;" not in fs:
+        h12.append("secili kesin fiyat JS dali yok")
+    # secenekler.js kuruş matematigi: PETG (+%30) PLA tabanindan farkli olmali
+    r12 = subprocess.run(
+        ["node", "-e",
+         "require('./secenekler.js');var P=globalThis.PRUVO_SECENEK;"
+         "var b=P.hesaplaFiyatKurus(350,'PLA','Siyah',0);"
+         "var g=P.hesaplaFiyatKurus(350,'PETG','Siyah',0);"
+         "if(b===35000 && g===45500 && g===Math.round(b*1.30)){console.log('OK')}"
+         "else{console.error('base',b,'petg',g);process.exit(1)}"],
+        capture_output=True, text=True, cwd=ROOT)
+    if r12.returncode != 0:
+        h12.append("kuruş matematigi: " + (r12.stdout + r12.stderr).strip())
+    kayit(12, "(d) secimle fiyat KATSAYILI guncellenir (JS wiring + PETG +%30 kuruş)",
+          not h12, "; ".join(h12[:3]) or "temiz")
+
+    # ---- 13 (e) alt paragraf HICBIR urun sayfasinda yok
+    g13 = subprocess.run(["grep", "-rl", "Sepete ekleyip birden çok", "urun"],
+                         capture_output=True, text=True, cwd=ROOT)
+    kayit(13, "(e) alt paragraf ('Sepete ekleyip…') hicbir urun sayfasinda yok",
+          g13.stdout.strip() == "", g13.stdout.strip().splitlines()[:3])
+
+    # ---- 14 (f) WhatsApp'tan Sor secim SARTI ARAMAZ
+    h14 = []
+    if 'class="order-wa" id="orderAlt"' not in fs:
+        h14.append("order-wa (WhatsApp'tan Sor) linki yok")
+    # titret/gate yalniz cartBtn tiklamasinda; orderAlt bir <a href> ve kilitlenmiyor
+    if "orderAlt.disabled" in fs or "orderAlt.classList.add(\"kilitli\")" in fs:
+        h14.append("orderAlt secime kilitlenmis")
+    kayit(14, "(f) WhatsApp'tan Sor secim sarti aramaz (link her zaman calisir)",
+          not h14, "; ".join(h14) or "temiz")
+
+    # ================= RENK BUTONLARI (dropdown -> buton, Okan ek madde) =================
+    # Renk listesi TEK KAYNAK secenekler.js (build.py da oradan okur).
+    sec_js = open(os.path.join(ROOT, "secenekler.js"), encoding="utf-8").read()
+    RENK_SECENEKLERI = json.loads(re.search(r'var RENK_SECENEKLERI = (\[.*?\]);', sec_js).group(1))
+
+    # ---- 15 (g) renk dropdown YOK + 4 buton var + Diger'de gradyan
+    h15 = []
+    if 'id="renkSec"' in fs:
+        h15.append("renk dropdown hala var")
+    if fs.count('class="renk-btn"') != len(RENK_SECENEKLERI):
+        h15.append("renk-btn sayisi %d != %d" % (fs.count('class="renk-btn"'), len(RENK_SECENEKLERI)))
+    for r in RENK_SECENEKLERI:
+        if ('data-renk="%s"' % html.escape(r, quote=True)) not in fs:
+            h15.append("data-renk=%s butonu yok" % r)
+    if "renk-yuvar-gokkusagi" not in fs or "conic-gradient" not in fs:
+        h15.append("Diger gokkusagi gradyan yuvarlagi yok")
+    kayit(15, "(g) renk dropdown yok + %d buton + Diger gradyan" % len(RENK_SECENEKLERI),
+          not h15, "; ".join(h15[:4]) or "temiz")
+
+    # ---- 16 (h) acilista renk seçimsiz
+    h16 = []
+    if 'class="renk-btn secili' in fs:
+        h16.append("acilista bir renk butonu 'secili' (onden secim olmamali)")
+    if "var seciliRenk = \"\";" not in fs:
+        h16.append("seciliRenk bos baslamiyor")
+    # renkOzel kutusu acilista gizli
+    m16 = re.search(r'id="renkOzel"[^>]*style="display:none"', fs)
+    if not m16:
+        h16.append("renkOzel kutusu acilista gizli degil")
+    kayit(16, "(h) acilista renk secimsiz + renkOzel gizli", not h16, "; ".join(h16) or "temiz")
+
+    # ---- 17 (i) Diger seçince metin kutusu görünür + boşken sepete eklenmez
+    h17 = []
+    for parca in ['renkOzel.style.display = (seciliRenk === "Diğer") ? "block" : "none"',
+                  'var eksikO = seciliRenk === "Diğer" && renkOzel && !renkOzel.value.trim();',
+                  "if(eksikO){ titret(renkOzel); }",
+                  ".renk-ozel.hata{border-color:var(--red)"]:
+        if parca not in fs:
+            h17.append("eksik: %s" % parca)
+    kayit(17, "(i) Diger -> metin kutusu gorunur; bosken sepete eklenmez (titrer)",
+          not h17, "; ".join(h17[:3]) or "temiz")
+
+    # ---- 18 (j) Diger + metin dolu -> not alaniyla sepete + fiyat +%15
+    #   Veri modeli: r="Diğer" kalir, musteri metni renk_ozel'de tasinir; secenekler.js
+    #   satirOzeti bunu WhatsApp mesajina koyar ve +%15 uygular. Runtime (node) ile dogrula.
+    r18 = subprocess.run(
+        ["node", "-e",
+         "require('./secenekler.js');var P=globalThis.PRUVO_SECENEK;"
+         "var u={id:'x',kategori:'Marin',fiyat:'350 TL'};"
+         "var s={id:'x',malzeme:'PLA',renk:'Diğer',renk_ozel:'turuncu',boy_etiket:null,adet:1};"
+         "var o=P.satirOzeti(u,s);"
+         # +%15: 350*100*100*115/10000 = 40250 kuruş
+         "var beklenen=Math.round(350*100*100*115/10000);"
+         "if(o.birimKurus===beklenen && o.detay.indexOf('turuncu')>=0){console.log('OK')}"
+         "else{console.error('birim',o.birimKurus,'bek',beklenen,'detay',o.detay);process.exit(1)}"],
+        capture_output=True, text=True, cwd=ROOT)
+    h18 = [] if r18.returncode == 0 else [(r18.stdout + r18.stderr).strip()]
+    # JS wiring: renk_ozel'i satira 30 karakterle yaziyor (istemci de sinirliyor)
+    if "renkOzel.value.trim().slice(0, 30)" not in fs:
+        h18.append("renkOzel istemci tarafi 30 karakter sinir yok")
+    kayit(18, "(j) Diger + metin dolu -> renk_ozel not alaniyla sepete + fiyat +%15",
+          not h18, "; ".join(h18[:3]) or "temiz")
+
+    # ---- 19 (k) Siyah seçiminde fiyata renk farki BINMEZ (PLA/Siyah = taban)
+    r19 = subprocess.run(
+        ["node", "-e",
+         "require('./secenekler.js');var P=globalThis.PRUVO_SECENEK;"
+         "var u={id:'x',kategori:'Marin',fiyat:'350 TL'};"
+         "var siyah=P.satirOzeti(u,{id:'x',malzeme:'PLA',renk:'Siyah',renk_ozel:'',boy_etiket:null,adet:1});"
+         "var diger=P.satirOzeti(u,{id:'x',malzeme:'PLA',renk:'Diğer',renk_ozel:'mor',boy_etiket:null,adet:1});"
+         "if(siyah.birimKurus===35000 && diger.birimKurus===40250){console.log('OK')}"
+         "else{console.error('siyah',siyah.birimKurus,'diger',diger.birimKurus);process.exit(1)}"],
+        capture_output=True, text=True, cwd=ROOT)
+    h19 = [] if r19.returncode == 0 else [(r19.stdout + r19.stderr).strip()]
+    kayit(19, "(k) Siyah/Beyaz/Gri renk farki binmez; Diger +%15 (kuruş)",
+          not h19, "; ".join(h19[:2]) or "temiz")
 
     print("-" * 70)
     kaldi = [x for x in SONUC if not x[2]]
