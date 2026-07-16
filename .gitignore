@@ -73,3 +73,6 @@ onizleme/node_modules/
 # kabul.js gecici test konfigurasyonu
 onizleme/.wrangler-test.toml
 kanit/
+
+# pazar fiyat arastirmasi — ticari strateji, public repoya girmez (Drive backup/ta kopyasi var)
+tools/arastirma-sari-fiyat.md
