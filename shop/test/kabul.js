@@ -472,7 +472,8 @@ async function test9ParametrikAltyapi() {
   const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
   const HACIM = require(path.join(KOK, "jenerator", "hacim.js"));
   const vd = KONF.varsayilanDegerler(sema);
-  // Taban fiyat bugun null; acildiginda 100 TL girilmis gibi dene.
+  // Taban fiyat semadan bagimsiz sabitlenir (100 TL): gercek deger degisse de
+  // testin bekledigi 18400 kurus sabiti gecerli kalsin.
   const denemeSema = Object.assign({}, sema, { tabanFiyatTL: 100 });
 
   // Istemci SAHTE hacim + SAHTE fiyat gonderir -> sunucu ikisini de yok saymali.
@@ -505,8 +506,10 @@ async function test9ParametrikAltyapi() {
   const r2 = PAR.parametrikHesapla({ id: sema.id, malzeme: "PLA", renk: "Siyah",
     parametreler: bilinmeyen, adet: 1 }, SECENEK, denemeSema);
   if (r2.hata !== "bilinmeyen-parametre") { hatalar.push("bilinmeyen param: " + JSON.stringify(r2)); }
+  // Taban fiyati NULL sema (sari fiyat paketiyle gercek semalar doldu; red yolu
+  // sentetik null ile sinanir — vida da dolarsa test bozulmasin).
   const r3 = PAR.parametrikHesapla({ id: sema.id, malzeme: "PLA", renk: "Siyah",
-    parametreler: vd, adet: 1 }, SECENEK, sema);   // gercek sema: tabanFiyatTL null
+    parametreler: vd, adet: 1 }, SECENEK, Object.assign({}, sema, { tabanFiyatTL: null }));
   if (r3.hata !== "taban-fiyat-yok") { hatalar.push("taban fiyatsiz: " + JSON.stringify(r3)); }
   const r4 = PAR.parametrikHesapla({ id: sema.id, malzeme: "PLA", renk: "Siyah",
     parametreler: null, adet: 1 }, SECENEK, denemeSema);

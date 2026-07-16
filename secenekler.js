@@ -51,13 +51,13 @@
   var ADET_EN_COK = 99;
 
   /* Parametrik (sarı seri) ürünlerde SELF-SERVİS ÖDEME anahtarı — TEK yerde, front + Worker
-     aynı sabiti okur. Bugün KAPALI (Okan'ın taban fiyatları henüz boş: jenerator/urunler/
-     *.json tabanFiyatTL=null; ayrıca kabul testi #5 "parametrik dışlama" bunu bekliyor).
-     Altyapı hazır: Worker şema+hacim.js ile sunucu-tarafı yeniden hesabı yapabiliyor
-     (shop/src/parametrik.js + kabul testi 9). AÇMAK İÇİN: taban fiyatlar dolsun, MİMAR
-     kararıyla burası true olsun, kabul testi #5 "parametrik doğrulanmış-dahil"e evrilsin.
-     Tek başına taban fiyat girilmesi ödemeyi AÇMAZ — kasıtlı: fiyat girildi diye ödeme
-     kanalı sessizce açılmasın. */
+     aynı sabiti okur. Bugün KAPALI. Taban fiyatlar DOLDU (16 Tem, Okan kesin tablosu:
+     17/18; vida hacim hesabı çapa duyarsız olduğundan null kaldı) ama bu anahtar AYRI
+     MİMAR adımı — kabul testi #5 "parametrik dışlama" bunu bekliyor. Altyapı hazır:
+     Worker şema+hacim.js ile sunucu-tarafı yeniden hesabı yapabiliyor (shop/src/
+     parametrik.js + kabul testi 9). AÇMAK İÇİN: MİMAR kararıyla burası true olsun,
+     kabul testi #5 "parametrik doğrulanmış-dahil"e evrilsin. Tek başına taban fiyat
+     girilmesi ödemeyi AÇMAZ — kasıtlı: fiyat girildi diye ödeme kanalı sessizce açılmasın. */
   var PARAMETRIK_ODEME_ACIK = false;
 
   /* SELF-SERVİS KARTLA ÖDEME anahtarı (sitedeki "Kartla Güvenli Öde" butonu).
@@ -113,13 +113,17 @@
   }
 
   // ---- parametrik ("ölçüye özel") fiyat ----
-  // Okan kuralı: fiyat = tabanFiyat × (hacim/tabanHacim) × filamentKatsayı × renkFaktör.
-  // Kuruş cinsinden tutulur; yuvarlama YALNIZ kuruş basamağında (float artığı temizliği),
-  // TL'ye yuvarlama yok — kusurat kuruşuyla gösterilir/tahsil edilir.
+  // Okan kuralı (16 Tem, tools/paket-sari-fiyat.md):
+  //   fiyat = tabanFiyat × max(1, hacim/tabanHacim) × filamentKatsayı × renkFaktör.
+  // Taban fiyat ZEMİNDİR — varsayılandan küçük ölçüde çarpan 1'e sabitlenir, altına
+  // İNİLMEZ; taban üstünde hacimle SÜREKLİ oran (basamak yok: eşik uçurumu güven kırar
+  // + eşik-altı oynamaya iter). Kuruş cinsinden tutulur; yuvarlama YALNIZ kuruş
+  // basamağında (float artığı temizliği), TL'ye yuvarlama yok — kusurat kuruşuyla
+  // gösterilir/tahsil edilir.
   function parametrikFiyatKurus(tabanFiyatTL, tabanHacimMm3, hacimMm3, malzeme, renk) {
     if (tabanFiyatTL == null || !tabanHacimMm3 || !hacimMm3) { return null; }
     var yuzde = FILAMENT_FARK.hasOwnProperty(malzeme) ? FILAMENT_FARK[malzeme] : 0;
-    var kurus = tabanFiyatTL * 100 * (hacimMm3 / tabanHacimMm3) * (1 + yuzde / 100);
+    var kurus = tabanFiyatTL * 100 * Math.max(1, hacimMm3 / tabanHacimMm3) * (1 + yuzde / 100);
     if (renk === "Diğer") { kurus = kurus * (1 + RENK_DIGER_YUZDE / 100); }
     return Math.round(kurus);
   }
@@ -220,7 +224,7 @@
       fiyat: (kurus == null) ? null : kurus / 100,
       birimMetni: kurusMetni(birim),
       fiyatMetni: (kurus == null) ? "Ölçüye özel fiyat — teklif için sipariş verin" : kurusMetni(kurus),
-      // Taban fiyatlar boş olduğu sürece (bugün 18/18 null) fiyat null -> ödeme akışına giremez;
+      // Taban fiyat boş üründe (bugün yalnız vida) fiyat null -> ödeme akışına giremez;
       // PARAMETRIK_ODEME_ACIK ise mimarın açacağı anahtar (Worker da AYNI sabiti okur).
       odenebilir: PARAMETRIK_ODEME_ACIK && kurus != null
     };

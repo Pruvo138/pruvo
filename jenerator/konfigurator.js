@@ -227,10 +227,15 @@
       var kurus = (h == null) ? null
         : root.PRUVO_SECENEK.parametrikFiyatKurus(
             sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
-      // Sari kural (Okan): taban fiyat girilmedigi surece "Olcuye ozel fiyat"
-      // ("—" degil — musteriye fiyatin sonradan teklif edilecegini soyler).
+      // Sari kural (Okan): taban fiyat girilmemis ailede (vida) "Olcuye ozel fiyat"
+      // ("—" degil — musteriye fiyatin sonradan teklif edilecegini soyler). Taban
+      // fiyati DOLU ailede kart-secim kalibi (normal sayfayla ayni, F kalemi):
+      // malzeme+renk secilene kadar "X TL'den baslayan", ikisi de secilince kesin.
+      var secimEksik = !!durum.secimKaynagi &&
+        (!(secim && secim.malzeme) || !(secim && secim.renk));
       fiyatEl.textContent = (kurus == null)
-        ? "Ölçüye özel fiyat" : root.PRUVO_SECENEK.kurusMetni(kurus);
+        ? "Ölçüye özel fiyat"
+        : root.PRUVO_SECENEK.kurusMetni(kurus) + (secimEksik ? "'den başlayan" : "");
     }
     return sonuc.gecerli;
   }

@@ -39,6 +39,84 @@ esit("filament katsayıları PLA/PETG/TPU/ASA",
 // Taban fiyat yoksa fiyat yok ("—" davranışının çekirdeği).
 esit("tabanFiyat null -> fiyat null", SECENEK.parametrikFiyatKurus(null, 1000, 1080, "ASA", "Diğer"), null);
 
+// --- ZEMİN (Okan kuralı, 16 Tem — tools/paket-sari-fiyat.md) ---
+// fiyat = taban × max(1, hacim/tabanHacim) × filament × renk.
+// Taban fiyat ZEMİNDİR: varsayılandan küçük her ölçüde çarpan 1'e sabitlenir,
+// filament/renk çarpanları zemin fiyata AYNEN uygulanır. Basamak yok: taban
+// üstünde sürekli oran, kuruş korunur.
+esit("zemin: hacim tabanın yarısı -> taban aynen (PLA/Siyah)",
+     SECENEK.parametrikFiyatKurus(100, 1000, 500, "PLA", "Siyah"), 10000);
+esit("zemin: sınırın hemen altı -> taban",
+     SECENEK.parametrikFiyatKurus(100, 1000, 999.9, "PLA", "Siyah"), 10000);
+esit("zemin: kuruş korunur (333 zemin × PETG 1.30 = 432,90)",
+     SECENEK.parametrikFiyatKurus(333, 1000, 500, "PETG", "Siyah"), 43290);
+esit("zemin: filament+renk zemine uygulanır (100×1×1.60×1.15)",
+     SECENEK.parametrikFiyatKurus(100, 1000, 500, "ASA", "Diğer"), 18400);
+// BÜYÜME: taban üstünde hacimle monoton artış (zemin büyümeyi bozmaz).
+var buyume = [1000, 1080, 2000, 5000].map(function (h) {
+  return SECENEK.parametrikFiyatKurus(100, 1000, h, "PLA", "Siyah");
+});
+esit("büyüme: taban üstü sürekli oran", buyume, [10000, 10800, 20000, 50000]);
+esit("büyüme: sıkı artan", buyume.every(function (v, i) {
+  return i === 0 || v > buyume[i - 1];
+}), true);
+
+// --- TABAN FİYATLAR (Okan KESİN tablosu — tools/paket-sari-fiyat.md) ---
+// Vida İSTİSNASI: hacim hesabı çapa duyarsız (M5'e çakılı, Faz D ölçümü) —
+// fiyat girilirse M12, M5 fiyatına satılırdı. null KALIR, sayfa "Ölçüye özel".
+var TABAN_FIYATLAR = {
+  "kisiye-ozel-jeton-cip-madalyon": 150,
+  "olcuye-ozel-baglanti-konektor": 170,
+  "olcuye-ozel-cetvel": 130,
+  "olcuye-ozel-damga-kase": 350,
+  "olcuye-ozel-huni": 170,
+  "olcuye-ozel-izgara-menfez-kapak": 250,
+  "olcuye-ozel-montaj-braketi": 150,
+  "olcuye-ozel-oring-conta": 100,
+  "olcuye-ozel-pervane-fan-cark": 300,
+  "olcuye-ozel-petek-delikli-panel": 200,
+  "olcuye-ozel-profil-beam": 150,
+  "olcuye-ozel-ramp-sim-takoz": 160,
+  "olcuye-ozel-rulman": 200,
+  "olcuye-ozel-triger-kasnagi": 180,
+  "olcuye-ozel-triger-kayisi": 150,
+  "olcuye-ozel-vida-civata-somun-pul": null,
+  "olcuye-ozel-yay-dalga-flexure": 130,
+  "ozel-disli-kramayer-uretimi": 300
+};
+var URUN_DIR = path.join(KOK, "jenerator", "urunler");
+var semaDosyalari = fs.readdirSync(URUN_DIR).filter(function (f) { return /\.json$/.test(f); });
+esit("şema sayısı 18", semaDosyalari.length, 18);
+semaDosyalari.forEach(function (dosya) {
+  var s = JSON.parse(fs.readFileSync(path.join(URUN_DIR, dosya), "utf8"));
+  esit("tabanFiyatTL " + s.id, s.tabanFiyatTL, TABAN_FIYATLAR[s.id]);
+});
+
+// --- ZEMİN, GERÇEK AİLELERDE: varsayılandan KÜÇÜK geçerli setlerde fiyat =
+// taban × filament × renk (hacim gerçek hacim.js ile hesaplanır; setin gerçekten
+// taban altında kaldığı da doğrulanır ki test boş yere yeşil yanmasın).
+var KUCUK_SETLER = {
+  "olcuye-ozel-oring-conta": { ic_cap: 10, kesit_cap: 2, profil: "yuvarlak" },
+  "olcuye-ozel-cetvel": { tip: "duz", sistem: "metrik", uzunluk: 10, genislik: 20,
+                          kalinlik: 2, isaret_stili: "oyma" },
+  "olcuye-ozel-huni": { agiz_capi: 40, yukseklik: 30, uc_capi: 4, uc_boyu: 54, uc_acisi: 0 },
+  "olcuye-ozel-baglanti-konektor": { kol_sayisi: 2, kol_kesiti: "yuvarlak", cubuk_capi: 6,
+                                     kol_boyu: 20, cidar: 2, gecme: "normal" }
+};
+Object.keys(KUCUK_SETLER).forEach(function (id) {
+  var s = JSON.parse(fs.readFileSync(path.join(URUN_DIR, id + ".json"), "utf8"));
+  var set = KUCUK_SETLER[id];
+  esit("küçük set geçerli: " + id, KONF.dogrula(s, set).gecerli, true);
+  var h = KONF.hacimMm3(s, set, HACIM);
+  esit("küçük set taban altında: " + id, h != null && h < s.tabanHacimMm3, true);
+  var taban = TABAN_FIYATLAR[id];
+  esit("zemin PLA/Siyah = taban: " + id,
+       SECENEK.parametrikFiyatKurus(taban, s.tabanHacimMm3, h, "PLA", "Siyah"), taban * 100);
+  esit("zemin PETG = taban×1.30: " + id,
+       SECENEK.parametrikFiyatKurus(taban, s.tabanHacimMm3, h, "PETG", "Siyah"),
+       Math.round(taban * 130));
+});
+
 // --- parametrik sepet satırı özeti ---
 var satir = { id: "x", malzeme: "ASA", renk: "Diğer", renk_ozel: "mor", boy_etiket: null,
               parametreler: { ic_cap: 32 }, parametre_detay: "İç çap: 32 mm",
