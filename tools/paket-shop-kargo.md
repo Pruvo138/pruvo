@@ -66,8 +66,8 @@
    sayfasında döküm: "Ara toplam (KDV hariç) + KDV (%X) + Genel toplam (KDV dahil)".
    Hesap: net = brüt / (1 + oran), KDV = brüt − net; kuruşta, yuvarlama farkı toplamı
    BOZAMAZ (net + KDV = brüt birebir — fark çıkarsa KDV kalemine yedirilir). Kargo dahil
-   genel toplam üzerinden tek döküm. Oran TEK yerden config (varsayılan %20 — Okan
-   teyidi bekleniyor, değişirse tek satır). D1 siparişe kdv_kurus kolonu (fatura için).
+   genel toplam üzerinden tek döküm. Oran TEK yerden config: **%20 (Okan KESİN teyit,
+   16 Tem gece)** — değişiklik sadece Okan'dan. D1 siparişe kdv_kurus kolonu (fatura için).
    Test: brüt 325,00 → net 270,83 + KDV 54,17 (toplam birebir 325,00); kargolu senaryo.
 
 ## Kabul testleri (mimar koşacak)
