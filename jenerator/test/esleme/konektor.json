@@ -18,9 +18,10 @@
     }
   },
   "sabit": {
-    "aci_derece": 0,
     "destek": false,
     "kapali_uc": true,
+    "agiz_pahi": 0,
+    "delik_kesiti": "round",
     "Segments": 180
   }
 }
