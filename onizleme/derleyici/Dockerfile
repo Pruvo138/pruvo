@@ -25,7 +25,10 @@ RUN curl -sSL -o /tmp/openscad.AppImage "https://files.openscad.org/snapshots/${
  && chmod +x /tmp/openscad.AppImage \
  && cd /opt && /tmp/openscad.AppImage --appimage-extract > /dev/null \
  && rm /tmp/openscad.AppImage \
- && ln -s /opt/squashfs-root/AppRun /usr/local/bin/openscad
+ # AppRun $0-goreli yol kullanir -> symlink KIRILIR ("apprun-hooks yok", CI'da olculdu);
+ # gercek yolu exec eden minik sarmalayici yazilir.
+ && printf '#!/bin/sh\nexec /opt/squashfs-root/AppRun "$@"\n' > /usr/local/bin/openscad \
+ && chmod +x /usr/local/bin/openscad
 
 # Headless: GUI/soket yok, yazilim render.
 ENV QT_QPA_PLATFORM=offscreen
