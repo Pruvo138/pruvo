@@ -304,6 +304,23 @@ def http_get(url):
         return r.read()
 
 
+def _is_stl_bytes(blob):
+    """Indirilen baytlarin GERCEKTEN STL olup olmadigini dogrular. Printables bazen .stl
+    uzantili dosya icin sessizce bir PNG kucuk resim donduruyor (Suzuki partisinde
+    yakalandi, 2026-07-16) - bu da olcusuz/yanlis-olculu urun stage edilmesine yol acar.
+    ASCII STL: "solid" ile baslar. Binary STL: 80 bayt basligin ardindan gelen uint32
+    ucgen sayisi, kalan bayt uzunlugunu (n*50) tam karsilamalidir."""
+    if blob[:8] == b"\x89PNG\r\n\x1a\n":
+        return False
+    if blob[:5].lower() == b"solid":
+        return True
+    if len(blob) >= 84:
+        (n,) = struct.unpack("<I", blob[80:84])
+        if n > 0 and 84 + n * 50 == len(blob):
+            return True
+    return False
+
+
 def download_stl(print_id, save_path_noext):
     """Modelin EN BUYUK gercek dosyasini indirir (.stl tercih edilir; yoksa .3mf'e duser —
     step/obj gibi baski disi formatlar alinmaz). save_path_noext + dogru uzanti ile yazar.
@@ -321,6 +338,8 @@ def download_stl(print_id, save_path_noext):
     save_path = save_path_noext + ext
     link = download_link(print_id, [chosen["id"]], "stl")
     blob = http_get(link)
+    if ext == ".stl" and not _is_stl_bytes(blob):
+        raise RuntimeError("indirilen dosya STL degil (Printables PNG/baska format donmus olabilir): %s" % chosen["name"])
     with open(save_path, "wb") as w:
         w.write(blob)
     return chosen["name"], save_path, len(blob)
