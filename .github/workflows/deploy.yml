@@ -22,6 +22,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      # Kisisel veri sizinti kilidi — BILEREK BLOKLAYICI (continue-on-error YOK;
+      # mukerrer-hook felsefesi): bu test kirmiziysa kisisel veri ham HTML'e siziyor
+      # demektir, yayini erken durdurmak ucuz, sessiz sizinti pahali. JSON-LD
+      # istisnasi testin icinde tanimli.
+      - name: Kisisel veri korumasi testi
+        run: python3 tools/kisisel-veri-test.py
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
