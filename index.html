@@ -430,6 +430,7 @@
   }
   .cart-item-price{font-size:13px;font-weight:700;color:var(--navy);margin-top:3px}
   .cart-item-price.empty{color:var(--gray-text);font-weight:600}
+  .cart-item-opts{font-size:11.5px;color:var(--gray-text);margin-top:2px;line-height:1.4}
   .cart-item-remove{
     background:transparent;border:none;color:var(--gray-text);
     font-size:20px;line-height:1;cursor:pointer;padding:4px 6px;flex:none;
@@ -583,6 +584,7 @@
   </div>
 </footer>
 
+<script src="/secenekler.js"></script>
 <script>
 (function(){
   "use strict";
@@ -642,36 +644,44 @@
   }
 
   // ---------- SEPET ----------
-  var CART_KEY = "pruvo_sepet";
   var cart = [];
   var CART_PLUS_ICON = '<svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 15h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 6H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>';
   var CHECK_ICON = '<svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
 
-  function loadCart(){
-    try{ cart = JSON.parse(localStorage.getItem(CART_KEY) || "[]") || []; }
-    catch(e){ cart = []; }
-    if(!Array.isArray(cart)){ cart = []; }
-  }
-  function saveCart(){ try{ localStorage.setItem(CART_KEY, JSON.stringify(cart)); }catch(e){} }
-  function inCart(id){ return cart.indexOf(id) !== -1; }
+  // Sepet satırları {id, malzeme, renk, renk_ozel, boy_etiket} — aynı ürün farklı
+  // malzeme/renk/boy ile birden çok satırda bulunabilir (secenekler.js: PRUVO_SECENEK).
+  function loadCart(){ cart = PRUVO_SECENEK.sepetYukle(); }
+  function saveCart(){ PRUVO_SECENEK.sepetKaydet(cart); }
+  function inCart(id){ return cart.some(function(s){ return s.id === id; }); }
+  // Ana sayfa ızgarasındaki hızlı "Sepete Ekle": seçici yok, varsayılan PLA/Siyah satırı
+  // ekler/kaldırır. Ürünün farklı bir konfigürasyonla (detay sayfasından) eklenmiş satırı
+  // varsa ona dokunmaz; sadece varsayılan satırı toggle eder.
   function toggleCart(id){
-    var i = cart.indexOf(id);
-    if(i === -1){ cart.push(id); } else { cart.splice(i, 1); }
+    var varsayilan = PRUVO_SECENEK.bosSatir(id);
+    var anahtar = PRUVO_SECENEK.satirAnahtari(varsayilan);
+    var i = -1;
+    for(var j=0;j<cart.length;j++){ if(PRUVO_SECENEK.satirAnahtari(cart[j]) === anahtar){ i = j; break; } }
+    if(i === -1){ cart.push(varsayilan); } else { cart.splice(i, 1); }
     saveCart();
   }
-  function cartProducts(){
-    return cart.map(function(id){
-      for(var i=0;i<PRODUCTS.length;i++){ if(PRODUCTS[i].id === id){ return PRODUCTS[i]; } }
+  function cartLines(){
+    return cart.map(function(satir){
+      for(var i=0;i<PRODUCTS.length;i++){ if(PRODUCTS[i].id === satir.id){ return {satir:satir, urun:PRODUCTS[i]}; } }
       return null;
     }).filter(Boolean);
   }
   function cartWaHref(){
-    var items = cartProducts();
     var lines = ["Merhaba, şu ürünlerle ilgileniyorum:", ""];
-    items.forEach(function(p, i){
-      lines.push((i+1) + ") " + p.baslik + (p.fiyat ? (" — " + p.fiyat) : ""));
-      lines.push(productAbs(p));
+    var toplam = 0, toplamVar = false;
+    cartLines().forEach(function(entry, i){
+      var ozet = PRUVO_SECENEK.satirOzeti(entry.urun, entry.satir);
+      lines.push((i+1) + ") " + entry.urun.baslik);
+      if(ozet.detay){ lines.push("   " + ozet.detay); }
+      lines.push("   Fiyat: " + ozet.fiyatMetni);
+      lines.push("   " + productAbs(entry.urun));
+      if(ozet.fiyat != null){ toplam += ozet.fiyat; toplamVar = true; }
     });
+    if(toplamVar){ lines.push(""); lines.push("Toplam (tahmini): " + PRUVO_SECENEK.tlMetni(toplam)); }
     return "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(lines.join("\n"));
   }
   function setCartBtn(btn, id){
@@ -690,9 +700,9 @@
   function renderCartPanel(){
     var wrap = document.getElementById("cartItems");
     var orderBtn = document.getElementById("cartOrder");
-    var items = cartProducts();
+    var lines = cartLines();
     wrap.innerHTML = "";
-    if(items.length === 0){
+    if(lines.length === 0){
       wrap.innerHTML = '<div class="cart-empty">Sepetiniz boş.<br>Ürünlerdeki “Sepete Ekle” ile ekleyin.</div>';
       orderBtn.className = "cart-order-btn disabled";
       orderBtn.removeAttribute("href");
@@ -700,7 +710,9 @@
     }
     orderBtn.className = "cart-order-btn";
     orderBtn.href = cartWaHref();
-    items.forEach(function(p){
+    lines.forEach(function(entry){
+      var p = entry.urun, satir = entry.satir;
+      var ozet = PRUVO_SECENEK.satirOzeti(p, satir);
       var row = document.createElement("div");
       row.className = "cart-item";
 
@@ -712,14 +724,24 @@
       info.className = "cart-item-info";
       var t = document.createElement("div");
       t.className = "cart-item-title"; t.textContent = p.baslik;
+      info.appendChild(t);
+      if(ozet.detay){
+        var opts = document.createElement("div");
+        opts.className = "cart-item-opts"; opts.textContent = ozet.detay;
+        info.appendChild(opts);
+      }
       var pr = document.createElement("div");
-      if(p.fiyat && p.fiyat.trim() !== ""){ pr.className = "cart-item-price"; pr.textContent = p.fiyat; }
-      else{ pr.className = "cart-item-price empty"; pr.textContent = "Fiyat için sipariş verin"; }
-      info.appendChild(t); info.appendChild(pr);
+      if(ozet.fiyat != null){ pr.className = "cart-item-price"; pr.textContent = ozet.fiyatMetni; }
+      else{ pr.className = "cart-item-price empty"; pr.textContent = ozet.fiyatMetni; }
+      info.appendChild(pr);
 
       var rm = document.createElement("button");
       rm.className = "cart-item-remove"; rm.innerHTML = "&times;"; rm.title = "Sepetten çıkar";
-      rm.onclick = function(){ toggleCart(p.id); renderCartPanel(); updateCartFab(); syncCardButtons(); };
+      rm.onclick = function(){
+        var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
+        cart = cart.filter(function(s){ return PRUVO_SECENEK.satirAnahtari(s) !== anahtar; });
+        saveCart(); renderCartPanel(); updateCartFab(); syncCardButtons();
+      };
 
       row.appendChild(img); row.appendChild(info); row.appendChild(rm);
       wrap.appendChild(row);

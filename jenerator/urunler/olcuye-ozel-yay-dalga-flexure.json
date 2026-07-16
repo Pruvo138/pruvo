@@ -1,0 +1,77 @@
+{
+  "id": "olcuye-ozel-yay-dalga-flexure",
+  "hacimFormulu": "yay",
+  "parametreler": [
+    {
+      "ad": "tip",
+      "etiket": "Yay tipi",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "spiral", "etiket": "Spiral bası yayı"},
+        {"deger": "dalga", "etiket": "Dalga / serpantin / flexure"}
+      ],
+      "varsayilan": "spiral",
+      "aciklama": "Spiral bası yayı veya düzlemde ilerleyen dalga elemanı seçimi"
+    },
+    {
+      "ad": "dalga_formu",
+      "etiket": "Dalga formu",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "sinus", "etiket": "Sinüs"},
+        {"deger": "kare", "etiket": "Kare"},
+        {"deger": "ucgen", "etiket": "Üçgen"},
+        {"deger": "testere", "etiket": "Testere"},
+        {"deger": "darbe", "etiket": "Darbe"}
+      ],
+      "varsayilan": "sinus",
+      "aciklama": "Dalga tipi seçildiğinde şeridin izleyeceği matematiksel form"
+    },
+    {
+      "ad": "serbest_boy",
+      "etiket": "Serbest boy",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 40,
+      "max": 120,
+      "adim": 1,
+      "varsayilan": 60,
+      "aciklama": "Spiral yayın yüksüz durumdaki toplam boyu"
+    },
+    {
+      "ad": "dis_cap",
+      "etiket": "Dış çap",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 15,
+      "max": 60,
+      "adim": 1,
+      "varsayilan": 20,
+      "aciklama": "Spiral yayın tel dahil dış çapı"
+    },
+    {
+      "ad": "tel_capi",
+      "etiket": "Tel çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 1.5,
+      "max": 4,
+      "adim": 0.5,
+      "varsayilan": 3,
+      "aciklama": "Spiral yayın dairesel kesit çapı"
+    },
+    {
+      "ad": "dalga_boyu",
+      "etiket": "Dalga elemanı boyu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 40,
+      "max": 120,
+      "adim": 1,
+      "varsayilan": 60,
+      "aciklama": "Dalga tipi seçildiğinde elemanın uçtan uca ilerleme boyu"
+    }
+  ],
+  "tabanHacimMm3": 3046.8563336821844,
+  "tabanFiyatTL": null
+}

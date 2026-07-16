@@ -1,0 +1,28 @@
+{
+  "urunId": "olcuye-ozel-triger-kayisi",
+  "scad": "kayis.scad",
+  "fonksiyon": "kayis",
+  "esleme": {
+    "profil": "profil",
+    "sekil": "sekil",
+    "dis_sayisi": "dis_sayisi",
+    "genislik": "genislik",
+    "dis_taraf": "dis_taraf"
+  },
+  "deger_esleme": {
+    "sekil": {
+      "kapali": "loop",
+      "duz": "straight"
+    },
+    "dis_taraf": {
+      "ic": "inside",
+      "dis": "outside",
+      "cift": "both"
+    }
+  },
+  "sabit": {
+    "cevre_mm": 0,
+    "sirt_kalinlik": 0,
+    "Segments": 720
+  }
+}

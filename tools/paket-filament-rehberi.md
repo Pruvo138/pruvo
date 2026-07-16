@@ -1,0 +1,108 @@
+# MÜHENDİS İŞ PAKETİ — Filament Rehberi + Ürün Bazlı Tavsiye
+
+**Kat:** MÜHENDİS = Claude Opus (kaynak kod: build.py şablonu, index.html, sayfalar; içerik
+metinleri bu spec'te — Okan onayına tabi, tek kaynak). Kabul testlerini mimar koşturur.
+**Karar sahibi:** Okan (16 Tem 2026) — "müşteri filament isimlerini görmeli, mouse üstüne gelince
+uzun açıklama, ürüne göre tavsiye ettiğimiz filament görünmeli."
+
+## MİMARİ İLKE (bağlayıcı)
+
+**Filament bilgisi ürün verisine YAZILMAZ — kuraldan türetilir.** 7.171 ürüne alan ekleme göçü
+YOK (guard ile çatışır, gereksiz). Tek merkezi referans + kategori haritası; render anında
+uygulanır. Sadece istisnalar için opsiyonel override alanı: `"tavsiyeFilament": ["ASA"]`
+(yeni üründe ekleme scripti koyabilir; mevcutta tek tek `tools/duzelt.py`).
+**`aciklama` alanına filament metni EKLENMEZ** — arama dizini değişmesin (parite korunur);
+filament bloğu şablonda ayrı çizilir.
+
+## MERKEZİ REFERANS — `tools/filamentler.json` (yeni; tek kaynak)
+
+**VERİ KAYNAKLARI (Okan verdi, 16 Tem):** sayısal değerler tahminle değil şu kaynaklardan alınır:
+- https://app.polymaker.com/applications — ürün bazında HDT (@0.45 MPa) + çekme dayanımı;
+  Okan'ın paylaştığı grafikten okunan HDT değerleri: PLA sınıfı ~53-60°C, PETG ~69-78°C,
+  ASA ~103°C, ABS ~100-118°C, PC ~110-114°C, PLA-CF ~54°C, PETG-rCF08 ~69°C (çekme 60 MPa).
+- https://www.allaboutthebuild.com/blog/filament-selector-tool-for-car-parts — araç parçası
+  için filament seçim rehberi (kategori→tavsiye haritasını çapraz doğrula).
+Sitede değer verirken ölçüt adını an ("ısı dayanımı (HDT @ 0.45 MPa)") ve marka bağımsız
+ARALIK yaz (tek üründen tek sayı alma). ÖNEMLİ DÜZELTME: karbon katkı ISI dayanımını ARTIRMAZ
+(taşıyıcının HDT'sini korur: PETG-CF ~69°C, PLA-CF ~54°C; yalnız PA-CF gibi taşıyıcısı güçlü
+olanlar yüksektir) — karbon metni "mukavemet/sertlik" üstünden yazılır, ısı iddiası taşıyıcıya göre.
+
+Alanlar: `ad, kisaEtiket, isiDayanimi, kisa, uzun`. Metinler (Okan onayına tabi; dürüst
+aralıklar — abartma, taahhüt sayılır; "3D baskı" İFADESİ HİÇBİR METİNDE GEÇMEZ, "her renk" DENMEZ):
+
+- **PLA** — "Ev içi" — ~55-60°C — İç mekân, dekoratif ve hafif kullanım parçaları için idealdir.
+  Uzun: "Ev ve ofis içi kullanım için ideal malzeme. Sert ve boyutsal olarak kararlıdır, pürüzsüz
+  yüzey verir. Isı dayanımı ~55-60°C olduğundan güneş altında, araç içinde veya sıcak ortamlarda
+  önerilmez. İç mekân aparatları, dekorasyon ve masaüstü ürünlerde ilk tercihtir."
+- **PETG** — "Dış mekân / genel amaçlı" — ~70-75°C — Darbeye ve neme dayanıklı güvenli seçim.
+  Uzun: "İç ve dış mekânda genel amaçlı dayanıklı malzeme. Darbeye, neme ve kimyasallara karşı
+  dirençlidir, hafif esnekliğiyle kırılmadan yük taşır. Isı dayanımı ~70-75°C. Araç içi parçalar,
+  braketler, tutucular ve fonksiyonel yedek parçalar için dengeli tercihtir."
+- **ASA** — "Güneş + su" — ~90-95°C — UV ve suya en dayanıklı; dış mekânın şampiyonu.
+  Uzun: "Dış mekânın şampiyonu. Güneş ışığına (UV) ve suya karşı en dayanıklı malzemedir; rengi
+  solmaz, formu bozulmaz. Isı dayanımı ~90-95°C. Tekne/marin parçaları, araç dışı aksamlar, bahçe
+  ekipmanı ve sürekli güneş gören her parça için önerilir."
+- **ABS** — "Isıya dayanıklı" — ~95-100°C — Isınan ortamların malzemesi.
+  Uzun: "Isıya dayanıklı mühendislik malzemesi (~95-100°C). Motor bölmesi yakını, cihaz içi ve
+  ısınan ortamlar için uygundur. Dayanıklı ve işlenebilirdir; doğrudan güneş altında uzun süreli
+  kullanım için ASA daha iyi seçimdir."
+- **TPU (esnek)** — "Esnek / titreşim emici" — ~60-80°C — Conta, tampon, koruyucu kılıf gibi
+  esneme ve darbe emme gereken parçalar.
+  Uzun: "Kauçuk kıvamında esnek malzeme. Contalar, titreşim takozları, koruyucu kılıflar,
+  hortum/kablo tutucular gibi bükülen ve darbe emen parçalar için idealdir. Yırtılmaya karşı
+  çok dayanıklıdır; sert yapısal parçalar için uygun değildir."
+- **Karbon katkılı (PETG-CF/PA-CF)** — "En yüksek mukavemet" — ısı: taşıyıcıya göre (PETG-CF
+  ~70°C, PA-CF daha yüksek) — Yük ve titreşim altındaki parçalar için en sert/mukavim sınıf.
+  Uzun: "Karbon fiber katkılı en yüksek mukavemet sınıfı. Üstün sertlik ve çekme dayanımı; yük,
+  titreşim ve zorlu kullanım altındaki parçalar için önerilir. Isı dayanımı taşıyıcı malzemeyi
+  izler (PETG esaslıda ~70°C; yüksek ısı gerekiyorsa taşıyıcısı güçlü seçenekler mevcuttur —
+  size sorarak belirleriz). Fiyatı standart malzemelerden yüksektir; kritik parçada değerini verir."
+
+## KATEGORİ → TAVSİYE HARİTASI (varsayılan; tek yerde config)
+
+`Otomobil, Motosiklet, Bisiklet: [PETG, ASA]` (ilki varsayılan tavsiye; ASA "güneş gören parça"
+notuyla) · `Marin: [ASA]` · `Bahçe: [PETG, ASA]` · `Ev, Ofis, Dekorasyon, Oyun/Hobi: [PLA]` ·
+`Elektronik, Kamera: [PETG, ABS]` (ABS "ısınan ortam" notuyla) · `Tamirat: [PETG]`.
+Override alanı `tavsiyeFilament` varsa harita yerine o geçer.
+
+## UI (saf HTML/CSS/JS; kütüphane YOK; lacivert #12294d düzeni)
+
+1. **Ürün sayfası** (build.py şablonu): fiyat bloğunun altında "Malzeme" bölümü — 6 filament
+   çipi; tavsiye edilen(ler)de "Tavsiyemiz" rozeti; hover'da (mobilde dokunmada) uzun açıklama
+   balonu (CSS tooltip; `title=` yetmez, mobil çalışmalı). Isı dayanımı çipin üstünde görünür.
+2. **Ana sayfa kartları**: kartta sadece tavsiye çipi (küçük, örn. "Tavsiye: PETG") — kalabalık yapma.
+3. **Malzeme Rehberi sayfası**: `tools/sayfalar.py`'ye yeni statik sayfa `/malzeme-rehberi/`;
+   6 malzemenin tam açıklaması + karşılaştırma tablosu (ısı/UV/su/darbe); footer'dan link; SSS'e
+   "Hangi malzemeyi seçmeliyim?" maddesi eklenir, rehbere link verir.
+4. **Parametrik (sarı seri)**: mevcut "malzeme&dayanıklılık" anlatısı korunur; filament bloğu
+   parametrik sayfada da görünür (tavsiye: kullanım alanına göre "size sorarak belirleriz" notu).
+
+## ENTEGRASYONLAR
+
+- **Ekleme boru hattı:** `.urun-kaynaklari.json`'daki `baski` alanında malzeme önerisi varsa
+  (örn. "PETG önerilir") ekleme scripti ürüne `tavsiyeFilament` override'ı yazar — tasarımcı adı/
+  kaynak izi İÇERMEDEN (sadece malzeme adı geçer; gizlilik kuralı).
+- **Ege:** `ege-bilgi.md` "MALZEME KAPSAMI" bölümü bu referansla ÇELİŞMESİN — build.py ya da ayrı
+  küçük script `filamentler.json`'dan o bölümü üretsin/güncellesin (tek kaynak; ege-bilgi.md
+  public, sır yok). pruvo-bot reposuna DOKUNMA (ege-bilgi.md bu repoda).
+- **Shop paketi** (`tools/paket-shop-odeme.md`): varyant seçicinin filament listesi + varsayılan
+  seçim bu referanstan gelir (koordinasyon: iki paket aynı dosyaya yazacaksa filamentler.json'u
+  ÖNCE bu paket koyar, shop onu okur).
+
+## KABUL TESTLERİ (çalıştırılabilir; hepsi yeşil olmadan kapanmaz)
+
+1. `urunler.json` DEĞİŞMEMİŞ (git diff boş — bu paket ürün verisine dokunmaz).
+2. Build sonrası rastgele 20 ürün sayfasında: 6 çip + tavsiye rozeti + tooltip içeriği
+   `filamentler.json`'daki metinle birebir; kategoriye göre doğru tavsiye (haritayla karşılaştıran
+   script).
+3. Hiçbir üretilen sayfada "3D bask" ve "her renk" ifadesi yok (grep testi).
+4. `/malzeme-rehberi/` sayfası üretiliyor, footer linki var, sitemap'te.
+5. `node tools/parite-test.js` + `node tools/parite-ege.js` YEŞİL (aciklama değişmedi kanıtı).
+6. Override testi: `tavsiyeFilament` alanlı sahte ürünle build → harita değil override basılıyor.
+7. Mobil tooltip: dokunmayla açılıp kapandığının testi (en azından DOM/CSS düzeyinde doğrulama).
+
+## TESLİM
+
+Kod + `tools/filamentler.json` + rapor (değişen dosyalar, test çıktıları). **Commit ETME** —
+commit/push mimarın. Isı değerleri ve metinler Okan onayından geçmeden CANLIYA ALINMAZ
+(mimar, raporla birlikte metinleri Okan'a sunar).

@@ -1,0 +1,78 @@
+{
+  "id": "olcuye-ozel-petek-delikli-panel",
+  "hacimFormulu": "petek",
+  "parametreler": [
+    {
+      "ad": "mod",
+      "etiket": "Uygulama modu",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "delikli", "etiket": "Delikli / perfore"},
+        {"deger": "kabartma", "etiket": "Kabartma desen"}
+      ],
+      "varsayilan": "delikli",
+      "aciklama": "Desenin panelde açık delikler veya yüzeyde kabartma olarak uygulanması"
+    },
+    {
+      "ad": "desen",
+      "etiket": "Desen",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "petek", "etiket": "Petek"},
+        {"deger": "yuvarlak", "etiket": "Yuvarlak delik"},
+        {"deger": "kare", "etiket": "Kare grid"},
+        {"deger": "sekizgen", "etiket": "Sekizgen"},
+        {"deger": "besgen", "etiket": "Beşgen"},
+        {"deger": "ucgen", "etiket": "Üçgen"}
+      ],
+      "varsayilan": "petek",
+      "aciklama": "Panel yüzeyinde tekrarlanacak göz veya delik biçimi"
+    },
+    {
+      "ad": "en",
+      "etiket": "Panel eni",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 30,
+      "max": 200,
+      "adim": 1,
+      "varsayilan": 80,
+      "aciklama": "Dikdörtgen panelin yatay dış ölçüsü"
+    },
+    {
+      "ad": "boy",
+      "etiket": "Panel boyu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 30,
+      "max": 200,
+      "adim": 1,
+      "varsayilan": 60,
+      "aciklama": "Dikdörtgen panelin düşey dış ölçüsü"
+    },
+    {
+      "ad": "kalinlik",
+      "etiket": "Panel kalınlığı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 1.5,
+      "max": 8,
+      "adim": 0.5,
+      "varsayilan": 3,
+      "aciklama": "Ana panel gövdesinin kalınlığı"
+    },
+    {
+      "ad": "goz_boyutu",
+      "etiket": "Göz / delik boyutu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 3,
+      "max": 15,
+      "adim": 1,
+      "varsayilan": 6,
+      "aciklama": "Tekrarlanan desen gözünün veya deliğin temel ölçüsü"
+    }
+  ],
+  "tabanHacimMm3": 10195.516736126097,
+  "tabanFiyatTL": null
+}

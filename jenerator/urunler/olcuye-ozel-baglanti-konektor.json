@@ -1,0 +1,94 @@
+{
+  "id": "olcuye-ozel-baglanti-konektor",
+  "hacimFormulu": "konektor",
+  "parametreler": [
+    {
+      "ad": "kol_sayisi",
+      "etiket": "Kol sayısı",
+      "tip": "sayi",
+      "min": 2,
+      "max": 4,
+      "adim": 1,
+      "varsayilan": 3,
+      "aciklama": "Birleşim merkezinden çıkan kol adedi",
+      "birim": "adet"
+    },
+    {
+      "ad": "kol_kesiti",
+      "etiket": "Kol kesiti",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "yuvarlak",
+          "etiket": "Yuvarlak"
+        },
+        {
+          "deger": "kare",
+          "etiket": "Kare"
+        },
+        {
+          "deger": "sekizgen",
+          "etiket": "Sekizgen"
+        }
+      ],
+      "varsayilan": "yuvarlak",
+      "aciklama": "Konektör kollarının dış kesit biçimi"
+    },
+    {
+      "ad": "cubuk_capi",
+      "etiket": "Çubuk veya boru çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 6,
+      "max": 20,
+      "adim": 0.5,
+      "varsayilan": 10,
+      "aciklama": "Yuvaya girecek çubuk veya borunun dış çapı"
+    },
+    {
+      "ad": "kol_boyu",
+      "etiket": "Kol boyu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 60,
+      "adim": 1,
+      "varsayilan": 25,
+      "aciklama": "Birleşim merkezinden kol ucuna toplam uzunluk"
+    },
+    {
+      "ad": "cidar",
+      "etiket": "Cidar kalınlığı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 2,
+      "max": 4,
+      "adim": 0.5,
+      "varsayilan": 2.5,
+      "aciklama": "Yuva çevresindeki nominal et kalınlığı"
+    },
+    {
+      "ad": "gecme",
+      "etiket": "Geçme toleransı",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "siki",
+          "etiket": "Sıkı"
+        },
+        {
+          "deger": "normal",
+          "etiket": "Normal"
+        },
+        {
+          "deger": "gevsek",
+          "etiket": "Gevşek"
+        }
+      ],
+      "varsayilan": "normal",
+      "aciklama": "Çubuk ile yuva arasındaki çap boşluğu"
+    }
+  ],
+  "tabanHacimMm3": 6922.227708572847,
+  "tabanFiyatTL": null
+}

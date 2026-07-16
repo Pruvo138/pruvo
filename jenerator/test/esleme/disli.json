@@ -1,0 +1,32 @@
+{
+  "urunId": "ozel-disli-kramayer-uretimi",
+  "scad": "disli.scad",
+  "fonksiyon": "disli",
+  "esleme": {
+    "disli_tipi": "disli_tipi",
+    "dis_sayisi": "dis_sayisi",
+    "modul": "modul",
+    "kalinlik": "kalinlik",
+    "delik_capi": "delik_capi"
+  },
+  "deger_esleme": {
+    "disli_tipi": {
+      "duz": "spur",
+      "helis": "helical",
+      "cift_helis": "herringbone",
+      "konik": "bevel",
+      "sonsuz": "worm",
+      "ic_disli": "ring",
+      "tac": "crown",
+      "kramayer": "rack"
+    }
+  },
+  "sabit": {
+    "dis_capi": 0,
+    "basinc_acisi": 20,
+    "helis_acisi": 20,
+    "es_dis_sayisi": 24,
+    "worm_starts": 1,
+    "$fn": 64
+  }
+}

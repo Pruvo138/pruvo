@@ -1,0 +1,25 @@
+{
+  "urunId": "olcuye-ozel-huni",
+  "scad": "huni.scad",
+  "fonksiyon": "huni",
+  "esleme": {
+    "agiz_capi": "Mouth_Diameter",
+    "yukseklik": "Cone_Height",
+    "uc_capi": "Spout_Diameter",
+    "uc_boyu": "Spout_Length",
+    "uc_acisi": "Spout_Tip_Angle"
+  },
+  "deger_esleme": {},
+  "sabit": {
+    "Wall": 1.5,
+    "Spout_Wall": 1.2,
+    "Spout_Taper": 0,
+    "Brim": true,
+    "Brim_Width": 4,
+    "Hang_Hole": false,
+    "Air_Channel": false,
+    "Inner_Fins": false,
+    "Fin_Count": 4,
+    "Segments": 240
+  }
+}

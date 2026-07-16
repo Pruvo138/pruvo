@@ -1,0 +1,50 @@
+{
+  "urunId": "olcuye-ozel-triger-kasnagi",
+  "scad": "kasnak.scad",
+  "fonksiyon": "kasnak",
+  "esleme": {
+    "profil": "profil",
+    "dis_sayisi": "dis_sayisi",
+    "genislik": "genislik",
+    "mil_baglanti": "mil_baglanti",
+    "mil_capi": "mil_capi",
+    "flans": "flans"
+  },
+  "deger_esleme": {
+    "profil": {
+      "gt2_2mm": "GT2_2mm",
+      "gt2_3mm": "GT2_3mm",
+      "gt2_5mm": "GT2_5mm",
+      "htd_3mm": "HTD_3mm",
+      "htd_5mm": "HTD_5mm",
+      "htd_8mm": "HTD_8mm",
+      "t2_5": "T2.5",
+      "t5": "T5",
+      "t10": "T10",
+      "at5": "AT5",
+      "mxl": "MXL",
+      "xl": "XL",
+      "l": "L",
+      "40dp": "40DP"
+    },
+    "mil_baglanti": {
+      "duz": "cylinder",
+      "kanalli": "keyway",
+      "altigen": "hex",
+      "d_lama": "D"
+    },
+    "flans": {
+      "iki_taraf": "both",
+      "ust": "top",
+      "alt": "bottom",
+      "yok": "none"
+    }
+  },
+  "sabit": {
+    "gobek": false,
+    "gobek_capi": 0,
+    "gobek_yuksekligi": 8,
+    "setskur": "M4",
+    "Segments": 360
+  }
+}

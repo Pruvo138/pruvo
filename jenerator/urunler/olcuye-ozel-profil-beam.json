@@ -1,0 +1,81 @@
+{
+  "id": "olcuye-ozel-profil-beam",
+  "hacimFormulu": "profil",
+  "parametreler": [
+    {
+      "ad": "kesit",
+      "etiket": "Kesit tipi",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "i", "etiket": "I profil"},
+        {"deger": "t", "etiket": "T profil"},
+        {"deger": "l", "etiket": "L köşebent"},
+        {"deger": "z", "etiket": "Z profil"},
+        {"deger": "u", "etiket": "U kanal"},
+        {"deger": "kutu", "etiket": "Kutu / dikdörtgen boru"},
+        {"deger": "cokgen", "etiket": "Altıgen boru"},
+        {"deger": "elips", "etiket": "Elips boru"},
+        {"deger": "sigma", "etiket": "40 serisi alüminyum sigma"}
+      ],
+      "varsayilan": "i",
+      "aciklama": "Üretilecek profil, kiriş, boru veya sigma ekstrüzyon kesiti"
+    },
+    {
+      "ad": "yukseklik",
+      "etiket": "Kesit yüksekliği",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 200,
+      "adim": 1,
+      "varsayilan": 40,
+      "aciklama": "Profilin dıştan dışa kesit yüksekliği"
+    },
+    {
+      "ad": "genislik",
+      "etiket": "Kesit genişliği",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 200,
+      "adim": 1,
+      "varsayilan": 30,
+      "aciklama": "Profilin dıştan dışa genişliği veya flanş eni"
+    },
+    {
+      "ad": "et_kalinligi",
+      "etiket": "Et kalınlığı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 1,
+      "max": 8,
+      "adim": 0.5,
+      "varsayilan": 3,
+      "aciklama": "Gövde, flanş veya boru cidarının nominal kalınlığı"
+    },
+    {
+      "ad": "uzunluk",
+      "etiket": "Profil uzunluğu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 1000,
+      "adim": 1,
+      "varsayilan": 100,
+      "aciklama": "Kesitin doğrusal olarak uzatıldığı toplam boy"
+    },
+    {
+      "ad": "ic_yapi",
+      "etiket": "İç yapı",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "bos", "etiket": "Boşluklu / boru"},
+        {"deger": "dolu", "etiket": "İçi dolu"}
+      ],
+      "varsayilan": "bos",
+      "aciklama": "Kutu, çokgen ve elips kesitlerin içinin boşluklu veya dolu olması"
+    }
+  ],
+  "tabanHacimMm3": 28200,
+  "tabanFiyatTL": null
+}

@@ -1,0 +1,40 @@
+{
+  "urunId": "olcuye-ozel-izgara-menfez-kapak",
+  "scad": "izgara.scad",
+  "fonksiyon": "izgara",
+  "esleme": {
+    "tip": "tip",
+    "delik_sekli": "desen_sekli",
+    "en": "en",
+    "boy": "boy",
+    "derinlik": "derinlik",
+    "panjur_acisi": "slat_acisi"
+  },
+  "deger_esleme": {
+    "tip": {
+      "panjur": "vent",
+      "delikli": "mesh",
+      "kor": "solid"
+    },
+    "delik_sekli": {
+      "petek": "hexagon",
+      "elips": "ellipse",
+      "kare": "rect",
+      "sekizgen": "octagon",
+      "ucgen": "triangle",
+      "besgen": "pentagon"
+    }
+  },
+  "sabit": {
+    "goz_boyut": 8,
+    "aralik": 3,
+    "cerceve_sekli": "auto",
+    "cerceve_en": 6,
+    "kose_r": 3,
+    "gecme_yuvasi": true,
+    "etek_boy": 8,
+    "vida_delik": 0,
+    "vida_olcu": "M4",
+    "Segments": 180
+  }
+}

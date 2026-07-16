@@ -1,0 +1,76 @@
+{
+  "id": "olcuye-ozel-triger-kayisi",
+  "hacimFormulu": "kayis",
+  "parametreler": [
+    {
+      "ad": "profil",
+      "etiket": "Diş profili",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "GT2_2mm", "etiket": "GT2 — 2 mm"},
+        {"deger": "GT2_3mm", "etiket": "GT2 — 3 mm"},
+        {"deger": "GT2_5mm", "etiket": "GT2 — 5 mm"},
+        {"deger": "HTD_3mm", "etiket": "HTD 3M"},
+        {"deger": "HTD_5mm", "etiket": "HTD 5M"},
+        {"deger": "HTD_8mm", "etiket": "HTD 8M"},
+        {"deger": "T2.5", "etiket": "T2.5"},
+        {"deger": "T5", "etiket": "T5"},
+        {"deger": "T10", "etiket": "T10"},
+        {"deger": "AT5", "etiket": "AT5"},
+        {"deger": "MXL", "etiket": "MXL"},
+        {"deger": "XL", "etiket": "XL"},
+        {"deger": "L", "etiket": "L"},
+        {"deger": "40DP", "etiket": "40DP"}
+      ],
+      "varsayilan": "GT2_2mm",
+      "aciklama": "Kayışın eşleşeceği kasnağın diş standardı ve adımı"
+    },
+    {
+      "ad": "sekil",
+      "etiket": "Kayış şekli",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "kapali", "etiket": "Kapalı döngü"},
+        {"deger": "duz", "etiket": "Düz / açık"}
+      ],
+      "varsayilan": "kapali",
+      "aciklama": "Kayışın kapalı halka veya düz şerit olarak üretilmesi"
+    },
+    {
+      "ad": "dis_sayisi",
+      "etiket": "Diş sayısı",
+      "birim": "adet",
+      "tip": "sayi",
+      "min": 20,
+      "max": 300,
+      "adim": 1,
+      "varsayilan": 60,
+      "aciklama": "Toplam uzunluğu belirleyen diş adedi; çevre uzunluğu diş sayısı ile profil adımının çarpımıdır"
+    },
+    {
+      "ad": "genislik",
+      "etiket": "Kayış genişliği",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 3,
+      "max": 50,
+      "adim": 0.5,
+      "varsayilan": 6,
+      "aciklama": "Kasnak kanalına oturan eksenel kayış eni"
+    },
+    {
+      "ad": "dis_taraf",
+      "etiket": "Diş tarafı",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "ic", "etiket": "İç"},
+        {"deger": "dis", "etiket": "Dış"},
+        {"deger": "cift", "etiket": "Çift taraflı"}
+      ],
+      "varsayilan": "ic",
+      "aciklama": "Dişlerin kayışın iç, dış veya iki yüzünde yerleşmesi"
+    }
+  ],
+  "tabanHacimMm3": 841.3124837482861,
+  "tabanFiyatTL": null
+}

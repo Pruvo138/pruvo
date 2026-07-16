@@ -1,0 +1,77 @@
+{
+  "id": "olcuye-ozel-pervane-fan-cark",
+  "hacimFormulu": "pervane",
+  "parametreler": [
+    {
+      "ad": "cap",
+      "etiket": "Pervane çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 60,
+      "max": 300,
+      "adim": 1,
+      "varsayilan": 150,
+      "aciklama": "Kanat uçları arasında ölçülen toplam dış çap"
+    },
+    {
+      "ad": "kanat_sayisi",
+      "etiket": "Kanat sayısı",
+      "birim": "adet",
+      "tip": "sayi",
+      "min": 2,
+      "max": 6,
+      "adim": 1,
+      "varsayilan": 3,
+      "aciklama": "Göbek çevresine eşit aralıkla yerleştirilen kanat adedi"
+    },
+    {
+      "ad": "mil_capi",
+      "etiket": "Mil çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 3,
+      "max": 12,
+      "adim": 0.5,
+      "varsayilan": 5,
+      "aciklama": "Mil bağlantısının anma çapı"
+    },
+    {
+      "ad": "mil_baglanti",
+      "etiket": "Mil bağlantısı",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "duz", "etiket": "Düz silindir"},
+        {"deger": "kanalli", "etiket": "Kanallı"},
+        {"deger": "altigen", "etiket": "Altıgen"},
+        {"deger": "d_lama", "etiket": "D-lama"}
+      ],
+      "varsayilan": "duz",
+      "aciklama": "Mil deliğinin kilitleme ve kesit biçimi"
+    },
+    {
+      "ad": "burun_konisi",
+      "etiket": "Burun konisi",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "yok", "etiket": "Yok"},
+        {"deger": "ogiv", "etiket": "Ogiv"},
+        {"deger": "parabolik", "etiket": "Parabolik"}
+      ],
+      "varsayilan": "yok",
+      "aciklama": "Göbek önündeki akış düzenleyici koni biçimi"
+    },
+    {
+      "ad": "dis_ring",
+      "etiket": "Dış ring",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "yok", "etiket": "Yok"},
+        {"deger": "var", "etiket": "Var"}
+      ],
+      "varsayilan": "yok",
+      "aciklama": "Kanat uçlarını çevreleyen destek halkası"
+    }
+  ],
+  "tabanHacimMm3": 7863.371484972116,
+  "tabanFiyatTL": null
+}

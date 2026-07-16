@@ -1,0 +1,23 @@
+{
+  "urunId": "olcuye-ozel-vida-civata-somun-pul",
+  "scad": "vida.scad",
+  "fonksiyon": "vida",
+  "esleme": {
+    "urun_tipi": "urun_tipi",
+    "cap": "vida_cap",
+    "boy": "boy",
+    "tolerans": "tolerans"
+  },
+  "deger_esleme": {},
+  "sabit": {
+    "olcu": "M5",
+    "dis_tipi": "coarse",
+    "kafa_tipi": "hex",
+    "tornavida_agzi": "hex",
+    "somun_sekli": "hex",
+    "somun_kalinlik": "normal",
+    "pul_boyu": "regular",
+    "dis_boslugu": 0.1,
+    "$fn": 120
+  }
+}

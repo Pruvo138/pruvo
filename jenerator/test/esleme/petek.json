@@ -1,0 +1,35 @@
+{
+  "urunId": "olcuye-ozel-petek-delikli-panel",
+  "scad": "petek.scad",
+  "fonksiyon": "petek",
+  "esleme": {
+    "mod": "mod",
+    "desen": "desen_sekli",
+    "en": "en",
+    "boy": "boy",
+    "kalinlik": "kalinlik",
+    "goz_boyutu": "goz_boyut"
+  },
+  "deger_esleme": {
+    "mod": {
+      "delikli": "subtract",
+      "kabartma": "union"
+    },
+    "desen": {
+      "petek": "hexagon",
+      "yuvarlak": "ellipse",
+      "kare": "rect",
+      "sekizgen": "octagon",
+      "besgen": "pentagon",
+      "ucgen": "triangle"
+    }
+  },
+  "sabit": {
+    "taban_sekli": "rect",
+    "aralik": 4,
+    "desen_aci": 0,
+    "cerceve": false,
+    "cerceve_en": 3,
+    "Segments": 180
+  }
+}

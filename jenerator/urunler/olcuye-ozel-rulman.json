@@ -1,0 +1,75 @@
+{
+  "id": "olcuye-ozel-rulman",
+  "hacimFormulu": "rulman",
+  "parametreler": [
+    {
+      "ad": "ic_cap",
+      "etiket": "İç çap",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 5,
+      "max": 20,
+      "adim": 0.5,
+      "varsayilan": 10,
+      "aciklama": "Milin geçeceği iç bileziğin çapı"
+    },
+    {
+      "ad": "dis_cap",
+      "etiket": "Dış çap",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 28,
+      "max": 60,
+      "adim": 0.5,
+      "varsayilan": 30,
+      "aciklama": "Yuvaya oturacak dış bileziğin çapı"
+    },
+    {
+      "ad": "genislik",
+      "etiket": "Genişlik",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 5,
+      "max": 15,
+      "adim": 0.5,
+      "varsayilan": 9,
+      "aciklama": "Rulmanın eksen yönündeki toplam genişliği"
+    },
+    {
+      "ad": "eleman",
+      "etiket": "Yuvarlanma elemanı",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "bilya", "etiket": "Bilya"},
+        {"deger": "makara", "etiket": "Makara"},
+        {"deger": "tutmali", "etiket": "Tutmalı"}
+      ],
+      "varsayilan": "bilya",
+      "aciklama": "İç ve dış bilezik arasında çalışan elemanın biçimi"
+    },
+    {
+      "ad": "bosluk",
+      "etiket": "Çalışma boşluğu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 0.1,
+      "max": 0.3,
+      "adim": 0.05,
+      "varsayilan": 0.15,
+      "aciklama": "Bileziklerle yuvarlanma elemanları arasındaki hareket payı"
+    },
+    {
+      "ad": "flans",
+      "etiket": "Flanş",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "yok", "etiket": "Flanşsız"},
+        {"deger": "var", "etiket": "Flanşlı"}
+      ],
+      "varsayilan": "yok",
+      "aciklama": "Rulmanı yuva ağzında konumlandıran flanş seçeneği"
+    }
+  ],
+  "tabanHacimMm3": 4764.633033631262,
+  "tabanFiyatTL": null
+}

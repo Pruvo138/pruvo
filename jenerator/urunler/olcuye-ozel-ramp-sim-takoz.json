@@ -1,0 +1,75 @@
+{
+  "id": "olcuye-ozel-ramp-sim-takoz",
+  "hacimFormulu": "rampa",
+  "parametreler": [
+    {
+      "ad": "genislik",
+      "etiket": "Genişlik / en",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 10,
+      "max": 200,
+      "adim": 1,
+      "varsayilan": 40,
+      "aciklama": "Rampanın veya takozun yanal dış ölçüsü"
+    },
+    {
+      "ad": "uzunluk",
+      "etiket": "Uzunluk / boy",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 300,
+      "adim": 1,
+      "varsayilan": 80,
+      "aciklama": "Eğim yönündeki taban uzunluğu"
+    },
+    {
+      "ad": "yukseklik",
+      "etiket": "Yükseklik",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 2,
+      "max": 150,
+      "adim": 1,
+      "varsayilan": 20,
+      "aciklama": "Doğrudan yükseklik yöntemi seçildiğinde kalın uç yüksekliği"
+    },
+    {
+      "ad": "egim_yontemi",
+      "etiket": "Eğim belirleme yöntemi",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "yukseklik", "etiket": "Yüksekliği doğrudan ver"},
+        {"deger": "aci", "etiket": "Açıdan hesapla"}
+      ],
+      "varsayilan": "yukseklik",
+      "aciklama": "Kalın ucun doğrudan yükseklikle veya rampa açısıyla belirlenmesi"
+    },
+    {
+      "ad": "egim_acisi",
+      "etiket": "Eğim açısı",
+      "birim": "°",
+      "tip": "sayi",
+      "min": 4,
+      "max": 60,
+      "adim": 1,
+      "varsayilan": 15,
+      "aciklama": "Açıdan hesaplama yöntemi seçildiğinde kullanılacak rampa açısı"
+    },
+    {
+      "ad": "ust_yuzey",
+      "etiket": "Üst yüzey",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "duz", "etiket": "Düz"},
+        {"deger": "basamakli", "etiket": "Basamaklı"},
+        {"deger": "tirtikli", "etiket": "Tırtıklı / kaymaz"}
+      ],
+      "varsayilan": "duz",
+      "aciklama": "Eğimli üst yüzeyin düz, basamaklı veya tutunmayı artıran tırtıklı olması"
+    }
+  ],
+  "tabanHacimMm3": 32000,
+  "tabanFiyatTL": null
+}

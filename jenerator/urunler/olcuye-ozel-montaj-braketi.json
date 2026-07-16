@@ -1,0 +1,96 @@
+{
+  "id": "olcuye-ozel-montaj-braketi",
+  "hacimFormulu": "braket",
+  "parametreler": [
+    {
+      "ad": "tip",
+      "etiket": "Braket tipi",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "acili",
+          "etiket": "Açılı köşebent"
+        },
+        {
+          "deger": "kose",
+          "etiket": "Köşe"
+        },
+        {
+          "deger": "duz",
+          "etiket": "Düz plaka"
+        },
+        {
+          "deger": "t",
+          "etiket": "T braket"
+        },
+        {
+          "deger": "l",
+          "etiket": "L braket"
+        },
+        {
+          "deger": "y",
+          "etiket": "Y braket"
+        }
+      ],
+      "varsayilan": "acili",
+      "aciklama": "Bağlantı noktalarına uygun braket geometrisi"
+    },
+    {
+      "ad": "ic_aci",
+      "etiket": "İç açı",
+      "birim": "derece",
+      "tip": "sayi",
+      "min": 60,
+      "max": 120,
+      "adim": 5,
+      "varsayilan": 90,
+      "aciklama": "Açılı köşebentin iki kolu arasındaki açı"
+    },
+    {
+      "ad": "kalinlik",
+      "etiket": "Kalınlık",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 3,
+      "max": 6,
+      "adim": 0.5,
+      "varsayilan": 4,
+      "aciklama": "Braket kollarının et kalınlığı"
+    },
+    {
+      "ad": "genislik",
+      "etiket": "Kol genişliği",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 40,
+      "adim": 1,
+      "varsayilan": 20,
+      "aciklama": "Her braket kolunun vida eksenine dik genişliği"
+    },
+    {
+      "ad": "uzunluk",
+      "etiket": "Kol uzunluğu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 40,
+      "max": 120,
+      "adim": 1,
+      "varsayilan": 40,
+      "aciklama": "Merkezden kol ucuna olan toplam uzunluk"
+    },
+    {
+      "ad": "delik_adet",
+      "etiket": "Kol başına delik sayısı",
+      "tip": "sayi",
+      "min": 1,
+      "max": 3,
+      "adim": 1,
+      "varsayilan": 2,
+      "aciklama": "Her kolun uzunluk yönündeki M4 vida deliği sayısı",
+      "birim": "adet"
+    }
+  ],
+  "tabanHacimMm3": 7063.3942783468065,
+  "tabanFiyatTL": null
+}

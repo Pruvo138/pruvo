@@ -1,0 +1,29 @@
+{
+  "urunId": "olcuye-ozel-rulman",
+  "scad": "rulman.scad",
+  "fonksiyon": "rulman",
+  "esleme": {
+    "ic_cap": "ic_cap",
+    "dis_cap": "dis_cap",
+    "genislik": "genislik",
+    "eleman": "eleman",
+    "bosluk": "bosluk",
+    "flans": "flans"
+  },
+  "deger_esleme": {
+    "eleman": {
+      "bilya": "ball",
+      "makara": "roller",
+      "tutmali": "dumbbell"
+    },
+    "flans": {
+      "yok": false,
+      "var": true
+    }
+  },
+  "sabit": {
+    "olcu_yolu": "custom",
+    "flans_capi": 0,
+    "Segments": 240
+  }
+}
