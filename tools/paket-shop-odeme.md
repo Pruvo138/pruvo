@@ -14,9 +14,10 @@ sipariş kaydı + bildirim. WhatsApp/Ege kanalı aynen kalır (ikinci kapı).
 
 ## OKAN'IN KARARLARI (16 Tem)
 
-1. **Filament fiyatı katsayılı:** liste fiyatı = PLA taban. Varsayılan katsayılar
-   `PLA 1.00 / PETG 1.15 / ASA 1.30` — TEK yerde config olarak dursun, Okan değiştirebilsin.
-   (Katsayı değerleri Okan'a sunulup onaylanacak; koda "Okan onayına tabi" notu düş.)
+1. **Filament fiyatı katsayılı (Okan ONAYLI, 16 Tem — kesin değerler):** liste fiyatı = PLA
+   taban. `PLA 1.00 / PETG 1.30 / ABS 1.50 / TPU 1.55 / ASA 1.60 / Karbon katkılı 2.00`.
+   TEK yerde config; Okan sonradan değiştirebilir. (Önceki taslak 1.15/1.30 GEÇERSİZ.)
+   TPU (esnek) seçenek listesine DAHİL — malzeme metinleri `tools/filamentler.json`'dan.
 2. **Renk: sabit standart liste** (envanter bağlantısı YOK, Faz 2'ye). Varsayılan liste:
    Siyah, Beyaz, Gri, Kırmızı, Mavi, Sarı — Okan onayına tabi; tek yerde config.
    Sarı seri kuralı hatırlatması: site metinlerinde "her renk" DENMEZ → "farklı renk seçenekleri".
