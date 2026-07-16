@@ -94,7 +94,24 @@ jobs:
           # Token hesap listeleme iznine sahip degil -> hesap kimligi acikca verilir
           # (deploy.yml d1-sync adimiyla ayni desen; kimlik sir degil).
           CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+          CF_REGISTRY_GECICI: ${{ secrets.CF_REGISTRY_GECICI }}
         run: |
+          HEDEF="registry.cloudflare.com/dbbe2a8620c3c3a57c586b8a98142fb9/pruvo-onizleme-derleyici:ci"
+          # YOL 1 — gecici registry kimligi (yerel `wrangler containers registries
+          # credentials` cikartir, ~15 dk gecerli, tools/onizleme-paket-yukle.py
+          # tetiklemeden hemen once secret'a koyar). Neden: CI'daki CLOUDFLARE_API_TOKEN
+          # Containers yetkisi tasimiyor (16 Tem'de "Forbidden" olculdu); token yetki
+          # duzenlemesi panel/Okan isi olana kadar bu yol calisir.
+          if [ -n "$CF_REGISTRY_GECICI" ]; then
+            printf '%s' "$CF_REGISTRY_GECICI" | docker login registry.cloudflare.com -u v1 --password-stdin
+            docker tag pruvo-onizleme-derleyici:ci "$HEDEF"
+            if docker push "$HEDEF"; then
+              echo "imaj itildi (gecici kimlik): $HEDEF"
+              exit 0
+            fi
+            echo "::warning::gecici kimlikle push olmadi (JWT suresi dolmus olabilir) — wrangler yoluna dusuluyor."
+          fi
+          # YOL 2 — wrangler (CLOUDFLARE_API_TOKEN'a Containers yetkisi eklenince kalici yol).
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "::warning::CLOUDFLARE_API_TOKEN yok — push atlandi."
             exit 0
