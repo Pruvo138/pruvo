@@ -1,0 +1,16 @@
+{
+  "urunId": "olcuye-ozel-hortum-adaptoru",
+  "scad": "adaptor.scad",
+  "fonksiyon": "adaptor",
+  "esleme": {
+    "uc1_cap": "uc1_cap",
+    "uc1_gecme": "uc1_gecme",
+    "uc2_cap": "uc2_cap",
+    "uc2_gecme": "uc2_gecme",
+    "boy": "boy",
+    "cidar": "cidar"
+  },
+  "sabit": {
+    "Segments": 180
+  }
+}

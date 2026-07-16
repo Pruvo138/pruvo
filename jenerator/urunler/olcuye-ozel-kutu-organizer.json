@@ -1,0 +1,80 @@
+{
+  "id": "olcuye-ozel-kutu-organizer",
+  "hacimFormulu": "kutu",
+  "parametreler": [
+    {
+      "ad": "ic_en",
+      "etiket": "İç en",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 150,
+      "adim": 1,
+      "varsayilan": 60,
+      "aciklama": "Kutunun içine koyacağınız şeye göre iç genişlik (kısa kenar)"
+    },
+    {
+      "ad": "ic_boy",
+      "etiket": "İç boy",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 200,
+      "adim": 1,
+      "varsayilan": 100,
+      "aciklama": "İç uzunluk (uzun kenar) — bölmeler bu eksende dizilir"
+    },
+    {
+      "ad": "ic_yukseklik",
+      "etiket": "İç yükseklik",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 10,
+      "max": 100,
+      "adim": 1,
+      "varsayilan": 40,
+      "aciklama": "İç derinlik"
+    },
+    {
+      "ad": "duvar",
+      "etiket": "Duvar kalınlığı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 1.2,
+      "max": 3,
+      "adim": 0.2,
+      "varsayilan": 2,
+      "aciklama": "Dış duvar ve taban et kalınlığı"
+    },
+    {
+      "ad": "kapak",
+      "etiket": "Kapak",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "yok",
+          "etiket": "Kapaksız"
+        },
+        {
+          "deger": "gecme",
+          "etiket": "Geçme kapak"
+        }
+      ],
+      "varsayilan": "gecme",
+      "aciklama": "Geçme kapak ayrı parça olarak kutunun yanında basılır"
+    },
+    {
+      "ad": "bolme_sayisi",
+      "etiket": "Bölme duvarı sayısı",
+      "birim": "adet",
+      "tip": "sayi",
+      "min": 0,
+      "max": 6,
+      "adim": 1,
+      "varsayilan": 1,
+      "aciklama": "İçi bölmelere ayıran duvar adedi (0 = bölmesiz; her göz en az 15 mm kalır)"
+    }
+  ],
+  "tabanHacimMm3": 58307.2,
+  "tabanFiyatTL": null
+}

@@ -1,0 +1,86 @@
+{
+  "id": "olcuye-ozel-hortum-adaptoru",
+  "hacimFormulu": "adaptor",
+  "parametreler": [
+    {
+      "ad": "uc1_cap",
+      "etiket": "Uç 1 hortum çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 10,
+      "max": 120,
+      "adim": 0.5,
+      "varsayilan": 38,
+      "aciklama": "Birinci uca takılacak hortumun çapı (geçme tipine göre iç ya da dış çap)"
+    },
+    {
+      "ad": "uc1_gecme",
+      "etiket": "Uç 1 geçme tipi",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "ic",
+          "etiket": "Hortumun içine girer"
+        },
+        {
+          "deger": "dis",
+          "etiket": "Hortumun üzerine geçer"
+        }
+      ],
+      "varsayilan": "ic",
+      "aciklama": "Adaptör ucu hortumun içine mi girsin, üzerine mi geçsin"
+    },
+    {
+      "ad": "uc2_cap",
+      "etiket": "Uç 2 hortum çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 10,
+      "max": 120,
+      "adim": 0.5,
+      "varsayilan": 32,
+      "aciklama": "İkinci uca takılacak hortumun ya da makine ağzının çapı"
+    },
+    {
+      "ad": "uc2_gecme",
+      "etiket": "Uç 2 geçme tipi",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "ic",
+          "etiket": "Hortumun içine girer"
+        },
+        {
+          "deger": "dis",
+          "etiket": "Hortumun üzerine geçer"
+        }
+      ],
+      "varsayilan": "ic",
+      "aciklama": "İkinci ucun geçme yönü"
+    },
+    {
+      "ad": "boy",
+      "etiket": "Toplam boy",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 40,
+      "max": 200,
+      "adim": 1,
+      "varsayilan": 80,
+      "aciklama": "Adaptörün uçtan uca toplam uzunluğu"
+    },
+    {
+      "ad": "cidar",
+      "etiket": "Cidar kalınlığı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 1.6,
+      "max": 4,
+      "adim": 0.2,
+      "varsayilan": 2.4,
+      "aciklama": "Gövde et kalınlığı"
+    }
+  ],
+  "tabanHacimMm3": 19659.863678426464,
+  "tabanFiyatTL": null
+}

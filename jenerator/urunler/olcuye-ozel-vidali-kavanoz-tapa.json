@@ -1,0 +1,69 @@
+{
+  "id": "olcuye-ozel-vidali-kavanoz-tapa",
+  "hacimFormulu": "kavanoz",
+  "parametreler": [
+    {
+      "ad": "urun_tipi",
+      "etiket": "Ürün tipi",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "kavanoz",
+          "etiket": "Vidalı kapaklı kavanoz (gövde + kapak)"
+        },
+        {
+          "deger": "tapa",
+          "etiket": "Kör tapa (dış dişli)"
+        }
+      ],
+      "varsayilan": "kavanoz",
+      "aciklama": "Kavanoz gövde ve kapağıyla birlikte üretilir; kör tapa dişli bir deliği kapatır"
+    },
+    {
+      "ad": "govde_capi",
+      "etiket": "Gövde dış çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 120,
+      "adim": 1,
+      "varsayilan": 60,
+      "aciklama": "Diş tepe çapı ile aynıdır (tapada vidanın gireceği dişin nominal çapı)"
+    },
+    {
+      "ad": "yukseklik",
+      "etiket": "Yükseklik",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 150,
+      "adim": 1,
+      "varsayilan": 80,
+      "aciklama": "Kavanozda gövde boyu, tapada diş boyu"
+    },
+    {
+      "ad": "dis_adimi",
+      "etiket": "Diş adımı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 2,
+      "max": 4,
+      "adim": 0.5,
+      "varsayilan": 2.5,
+      "aciklama": "Vida dişleri arasındaki mesafe (kaba diş daha kolay açılır kapanır)"
+    },
+    {
+      "ad": "cidar",
+      "etiket": "Cidar kalınlığı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 1.6,
+      "max": 3.2,
+      "adim": 0.2,
+      "varsayilan": 2.4,
+      "aciklama": "Gövde ve kapak et kalınlığı"
+    }
+  ],
+  "tabanHacimMm3": 53877.50037651093,
+  "tabanFiyatTL": null
+}

@@ -298,6 +298,10 @@ async function faz4d(paketDizin) {
     "ozel-disli-kramayer-uretimi": { dosya: "ozel-disli-kramayer-uretimi.json", fonksiyon: "disli" },
     // yay BILEREK yok: eslem olcumunde kare/testere formlari kisa boyda %3'u asti
     // (%5.2'ye kadar) — ONIZLEME_AILELER'e alinmadi, mimar tablosunda (Faz D raporu).
+    // Yeni sari aileler 1. dalga (2026-07-17): bizim ureteclerimiz.
+    "olcuye-ozel-hortum-adaptoru": { dosya: "olcuye-ozel-hortum-adaptoru.json", fonksiyon: "adaptor" },
+    "olcuye-ozel-kutu-organizer": { dosya: "olcuye-ozel-kutu-organizer.json", fonksiyon: "kutu" },
+    "olcuye-ozel-vidali-kavanoz-tapa": { dosya: "olcuye-ozel-vidali-kavanoz-tapa.json", fonksiyon: "kavanoz" },
   };
   const tohumlar = [parseInt(process.env.KABUL_TOHUM || "20260716", 10),
                     parseInt(process.env.KABUL_TOHUM_2 || "20260717", 10)];

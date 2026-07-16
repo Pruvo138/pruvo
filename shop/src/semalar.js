@@ -7,7 +7,7 @@
  * ortustugunu dogrular — yeni sema eklenip burasi guncellenmezse test KIRMIZI yanar
  * (sessizce "sema yok -> odeme reddi" davranisina dusmez).
  *
- * Semalar public veri (matematik + aralik); sir icermez (gizlilik: ***** izi yok).
+ * Semalar public veri (matematik + aralik); sir icermez (gizlilik: Koolm izi yok).
  */
 
 import jeton from "../../jenerator/urunler/kisiye-ozel-jeton-cip-madalyon.json";
@@ -28,9 +28,14 @@ import kayis from "../../jenerator/urunler/olcuye-ozel-triger-kayisi.json";
 import vida from "../../jenerator/urunler/olcuye-ozel-vida-civata-somun-pul.json";
 import yay from "../../jenerator/urunler/olcuye-ozel-yay-dalga-flexure.json";
 import disli from "../../jenerator/urunler/ozel-disli-kramayer-uretimi.json";
+// Yeni sari aileler 1. dalga (2026-07-17)
+import adaptor from "../../jenerator/urunler/olcuye-ozel-hortum-adaptoru.json";
+import kutu from "../../jenerator/urunler/olcuye-ozel-kutu-organizer.json";
+import kavanoz from "../../jenerator/urunler/olcuye-ozel-vidali-kavanoz-tapa.json";
 
 const HEPSI = [jeton, konektor, cetvel, kase, huni, izgara, braket, oring, pervane, petek,
-               profil, ramp, rulman, kasnak, kayis, vida, yay, disli];
+               profil, ramp, rulman, kasnak, kayis, vida, yay, disli,
+               adaptor, kutu, kavanoz];
 
 // Anahtar semanin KENDI id'sinden gelir (dosya adindan degil): sema id'si urunler.json'daki
 // kebab-id ile eslesmezse zaten sema bulunamaz ve odeme reddedilir.

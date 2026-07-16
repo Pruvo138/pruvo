@@ -454,6 +454,334 @@
      "referansMm3": 6948.43936295101
     }
    ]
+  },
+  "adaptor": {
+   "fonksiyon": "adaptor",
+   "urunId": "olcuye-ozel-hortum-adaptoru",
+   "setler": [
+    {
+     "parametreler": {
+      "uc1_cap": 38,
+      "uc1_gecme": "ic",
+      "uc2_cap": 32,
+      "uc2_gecme": "ic",
+      "boy": 80,
+      "cidar": 2.4
+     },
+     "referansMm3": 19659.863667118545
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 91.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 13.0,
+      "uc2_gecme": "dis",
+      "boy": 102.0,
+      "cidar": 2.2
+     },
+     "referansMm3": 36933.10438413571
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 27.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 96.5,
+      "uc2_gecme": "ic",
+      "boy": 191.0,
+      "cidar": 2.8
+     },
+     "referansMm3": 104398.48703360773
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 14.0,
+      "uc1_gecme": "ic",
+      "uc2_cap": 21.5,
+      "uc2_gecme": "ic",
+      "boy": 99.0,
+      "cidar": 3.2
+     },
+     "referansMm3": 14478.042257751977
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 87.0,
+      "uc1_gecme": "ic",
+      "uc2_cap": 81.5,
+      "uc2_gecme": "dis",
+      "boy": 179.0,
+      "cidar": 2.8
+     },
+     "referansMm3": 132866.4044077256
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 38.0,
+      "uc1_gecme": "dis",
+      "uc2_cap": 85.0,
+      "uc2_gecme": "dis",
+      "boy": 41.0,
+      "cidar": 4.0
+     },
+     "referansMm3": 33894.67039190722
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 113.0,
+      "uc1_gecme": "ic",
+      "uc2_cap": 99.0,
+      "uc2_gecme": "dis",
+      "boy": 127.0,
+      "cidar": 2.4
+     },
+     "referansMm3": 101624.08170006711
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 29.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 107.5,
+      "uc2_gecme": "dis",
+      "boy": 66.0,
+      "cidar": 1.8
+     },
+     "referansMm3": 25616.433030290977
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 58.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 55.5,
+      "uc2_gecme": "dis",
+      "boy": 194.0,
+      "cidar": 2.4
+     },
+     "referansMm3": 83577.78928223277
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 113.0,
+      "uc1_gecme": "ic",
+      "uc2_cap": 103.0,
+      "uc2_gecme": "dis",
+      "boy": 177.0,
+      "cidar": 1.8
+     },
+     "referansMm3": 108226.58845849118
+    },
+    {
+     "parametreler": {
+      "uc1_cap": 58.0,
+      "uc1_gecme": "ic",
+      "uc2_cap": 80.5,
+      "uc2_gecme": "dis",
+      "boy": 200.0,
+      "cidar": 3.4
+     },
+     "referansMm3": 148227.93428645245
+    }
+   ]
+  },
+  "kutu": {
+   "fonksiyon": "kutu",
+   "urunId": "olcuye-ozel-kutu-organizer",
+   "setler": [
+    {
+     "parametreler": {
+      "ic_en": 60,
+      "ic_boy": 100,
+      "ic_yukseklik": 40,
+      "duvar": 2,
+      "kapak": "gecme",
+      "bolme_sayisi": 1
+     },
+     "referansMm3": 58307.200000000004
+    },
+    {
+     "parametreler": {
+      "ic_en": 48.0,
+      "ic_boy": 26.0,
+      "ic_yukseklik": 45.0,
+      "duvar": 1.8,
+      "kapak": "yok",
+      "bolme_sayisi": 1.0
+     },
+     "referansMm3": 15320.448000000024
+    },
+    {
+     "parametreler": {
+      "ic_en": 46.0,
+      "ic_boy": 193.0,
+      "ic_yukseklik": 79.0,
+      "duvar": 1.4,
+      "kapak": "gecme",
+      "bolme_sayisi": 0.0
+     },
+     "referansMm3": 84752.27199999982
+    },
+    {
+     "parametreler": {
+      "ic_en": 27.0,
+      "ic_boy": 43.0,
+      "ic_yukseklik": 37.0,
+      "duvar": 1.8,
+      "kapak": "yok",
+      "bolme_sayisi": 4.0
+     },
+     "referansMm3": 13569.047999999986
+    },
+    {
+     "parametreler": {
+      "ic_en": 70.0,
+      "ic_boy": 186.0,
+      "ic_yukseklik": 99.0,
+      "duvar": 2.8,
+      "kapak": "gecme",
+      "bolme_sayisi": 1.0
+     },
+     "referansMm3": 238797.21599999993
+    },
+    {
+     "parametreler": {
+      "ic_en": 134.0,
+      "ic_boy": 170.0,
+      "ic_yukseklik": 45.0,
+      "duvar": 1.2,
+      "kapak": "yok",
+      "bolme_sayisi": 5.0
+     },
+     "referansMm3": 97489.6320000005
+    },
+    {
+     "parametreler": {
+      "ic_en": 128.0,
+      "ic_boy": 107.0,
+      "ic_yukseklik": 45.0,
+      "duvar": 1.6,
+      "kapak": "yok",
+      "bolme_sayisi": 6.0
+     },
+     "referansMm3": 91993.98400000016
+    },
+    {
+     "parametreler": {
+      "ic_en": 106.0,
+      "ic_boy": 46.0,
+      "ic_yukseklik": 21.0,
+      "duvar": 2.4,
+      "kapak": "yok",
+      "bolme_sayisi": 2.0
+     },
+     "referansMm3": 31985.37599999998
+    },
+    {
+     "parametreler": {
+      "ic_en": 108.0,
+      "ic_boy": 174.0,
+      "ic_yukseklik": 43.0,
+      "duvar": 1.2,
+      "kapak": "gecme",
+      "bolme_sayisi": 4.0
+     },
+     "referansMm3": 100607.42399999977
+    }
+   ]
+  },
+  "kavanoz": {
+   "fonksiyon": "kavanoz",
+   "urunId": "olcuye-ozel-vidali-kavanoz-tapa",
+   "setler": [
+    {
+     "parametreler": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 60,
+      "yukseklik": 80,
+      "dis_adimi": 2.5,
+      "cidar": 2.4
+     },
+     "referansMm3": 53874.222751418885
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 23.0,
+      "yukseklik": 90.0,
+      "dis_adimi": 2.5,
+      "cidar": 2.2
+     },
+     "referansMm3": 16840.74965714519
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "tapa",
+      "govde_capi": 114.0,
+      "yukseklik": 46.0,
+      "dis_adimi": 4.0,
+      "cidar": 1.8
+     },
+     "referansMm3": 95540.02534796546
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "tapa",
+      "govde_capi": 24.0,
+      "yukseklik": 27.0,
+      "dis_adimi": 2.0,
+      "cidar": 2.2
+     },
+     "referansMm3": 7244.679264901796
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 84.0,
+      "yukseklik": 26.0,
+      "dis_adimi": 4.0,
+      "cidar": 2.2
+     },
+     "referansMm3": 49416.61613330512
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "tapa",
+      "govde_capi": 48.0,
+      "yukseklik": 134.0,
+      "dis_adimi": 4.0,
+      "cidar": 2.4
+     },
+     "referansMm3": 57118.55377026596
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 117.0,
+      "yukseklik": 60.0,
+      "dis_adimi": 3.5,
+      "cidar": 2.6
+     },
+     "referansMm3": 127751.86648763489
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "tapa",
+      "govde_capi": 39.0,
+      "yukseklik": 75.0,
+      "dis_adimi": 3.0,
+      "cidar": 1.8
+     },
+     "referansMm3": 26356.79456177786
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 68.0,
+      "yukseklik": 44.0,
+      "dis_adimi": 3.0,
+      "cidar": 2.6
+     },
+     "referansMm3": 50134.5036855195
+    }
+   ]
   }
  }
 }

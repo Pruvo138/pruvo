@@ -42,6 +42,10 @@ ACIK_AILELER = {
     "olcuye-ozel-baglanti-konektor": "konektor",
     "olcuye-ozel-montaj-braketi": "braket",
     "ozel-disli-kramayer-uretimi": "disli",
+    # Yeni sari aileler 1. dalga (2026-07-17) — bizim ureteclerimiz
+    "olcuye-ozel-hortum-adaptoru": "adaptor",
+    "olcuye-ozel-kutu-organizer": "kutu",
+    "olcuye-ozel-vidali-kavanoz-tapa": "kavanoz",
 }
 
 

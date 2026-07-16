@@ -82,11 +82,16 @@ var TABAN_FIYATLAR = {
   "olcuye-ozel-triger-kayisi": 150,
   "olcuye-ozel-vida-civata-somun-pul": null,
   "olcuye-ozel-yay-dalga-flexure": 130,
-  "ozel-disli-kramayer-uretimi": 300
+  "ozel-disli-kramayer-uretimi": 300,
+  // Yeni sarı aileler 1. dalga (2026-07-17): fiyat OKAN'dan gelene dek null —
+  // sayfada "Ölçüye özel fiyat" görünür (tools/paket-yeni-aileler-1.md).
+  "olcuye-ozel-hortum-adaptoru": null,
+  "olcuye-ozel-kutu-organizer": null,
+  "olcuye-ozel-vidali-kavanoz-tapa": null
 };
 var URUN_DIR = path.join(KOK, "jenerator", "urunler");
 var semaDosyalari = fs.readdirSync(URUN_DIR).filter(function (f) { return /\.json$/.test(f); });
-esit("şema sayısı 18", semaDosyalari.length, 18);
+esit("şema sayısı 21", semaDosyalari.length, 21);
 semaDosyalari.forEach(function (dosya) {
   var s = JSON.parse(fs.readFileSync(path.join(URUN_DIR, dosya), "utf8"));
   esit("tabanFiyatTL " + s.id, s.tabanFiyatTL, TABAN_FIYATLAR[s.id]);
@@ -132,6 +137,20 @@ var fiyatsiz = Object.assign({}, satir, { parametrik_fiyat_kurus: null });
 esit("taban fiyatsız satır metni",
      SECENEK.satirOzeti({ id: "x" }, fiyatsiz).fiyatMetni,
      "Ölçüye özel fiyat — teklif için sipariş verin");
+
+// --- Yeni sarı aileler (1. dalga): null-fiyat yolu uçtan uca ---
+// Taban fiyat girilmeden konfigüratör fiyat üretmemeli ("Ölçüye özel fiyat").
+["olcuye-ozel-hortum-adaptoru", "olcuye-ozel-kutu-organizer",
+ "olcuye-ozel-vidali-kavanoz-tapa"].forEach(function (id) {
+  var s = JSON.parse(fs.readFileSync(path.join(URUN_DIR, id + ".json"), "utf8"));
+  var vd = KONF.varsayilanDegerler(s);
+  esit("varsayılanlar geçerli: " + id, KONF.dogrula(s, vd).gecerli, true);
+  esit("hacim = tabanHacim: " + id,
+       Math.abs(KONF.hacimMm3(s, vd, HACIM) - s.tabanHacimMm3) < 1e-6, true);
+  esit("null taban -> fiyat null: " + id,
+       KONF.fiyatKurus(s, vd, "PLA", "Siyah", { secenek: SECENEK, hacim: HACIM }),
+       null);
+});
 
 // --- #3 Sınır doğrulama (saf çekirdek) ---
 var sema = {
