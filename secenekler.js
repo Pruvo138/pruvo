@@ -81,7 +81,7 @@
      ONIZLEME_3D_ACIK: butonun musteride gorunmesi. KAPALI tutulur; derleme arka ucu
      (Cloudflare Container, Workers Paid bekliyor) deploy edilip kabul 4e/4g yesillenince
      MIMAR karariyla acilir. Kapaliyken bu degisiklik canlida SIFIR gorunur fark yaratir. */
-  var ONIZLEME_3D_ACIK = false;
+  var ONIZLEME_3D_ACIK = true;
   var ONIZLEME_AILELER = ["olcuye-ozel-profil-beam", "olcuye-ozel-oring-conta"];
 
   /* Birim fiyat, tamsayı KURUŞ. Sıra (Okan, 16 Tem): filament katsayısı -> SONRA "Diğer"
