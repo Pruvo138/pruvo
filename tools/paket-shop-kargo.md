@@ -102,6 +102,14 @@
    'ödendi' işareti ancak onay yoluyla değişir (istemciden değiştirilemez — negatif test);
    IBAN ekranındaki tutar = D1'deki tutar_kurus birebir.
 
+## Harness notu (düşük öncelik, müşteri kalemi DEĞİL)
+Sandbox mühendisinin bulgusu (16 Tem): `wrangler dev` route simülasyonu yüzünden worker
+yerelde kendini pruvo3d.com sanıyor → `/baslat` callbackUrl'i yerel turda bile CANLI
+/donus'a işaret ediyor (canlıda `bilinmeyen-token` 404, zararsız; ama kabul.js --sandbox
+yerel callback'i alamıyor — mühendis token'ı elle POST ederek tamamladı). Fırsat olursa:
+kabul.js --sandbox worker'ı başlatırken callback origin'ini 127.0.0.1'e zorla (env
+override). Zorunlu değil; yapmazsan raporda "açık" olarak bırak.
+
 ## Rapor
 Ölçülen/kanıtlanan her madde + "2.500 üzeri bedava" metninin geçtiği yerler listesi +
 DEVAM.md güncellemesi. Yargı soruları mimara (KraL), Okan'a değil.
