@@ -454,6 +454,706 @@
      "referansMm3": 6948.43936295101
     }
    ]
+  },
+  "vida": {
+   "_not": "Referans URETIM MOTORU render'i (vida-referans-uret.py, dondurulmus deterministik set). Civata M3/M4 uretim motorunda uretilemiyor (bos geometri) -> fixture yok; ara/yarim olculeri eslem reddediyor. Pul tolerans'a duyarsiz (son iki set kontrol).",
+   "fonksiyon": "vida",
+   "urunId": "olcuye-ozel-vida-civata-somun-pul",
+   "setler": [
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 5,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 495.0333420721169
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 3,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 56.91657944807911
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 3,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 572.7071785316343
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 3,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 41.32816145522367
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 3,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 15.220877334724536
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 4,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 99.84714665530613
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 4,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1007.7008617374295
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 4,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 88.01760213725724
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 4,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 39.27508506485335
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 5,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 341.5283698626883
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 5,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1032.3522825790667
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 5,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1723.176197571149
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 5,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 159.04391587016605
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 5,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1605.4441666886385
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 5,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 157.05416936798102
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 5,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 56.47360222276498
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 6,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 554.5681540400504
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 6,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1541.609312118291
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 6,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 2528.650460167343
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 6,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 226.3593564621111
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 6,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 2291.870569111896
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 6,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 288.4024624537201
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 6,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 129.46571979603883
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 8,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1148.181766753319
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 8,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 2937.0865139756374
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 8,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 4725.99143935739
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 8,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 406.99950000669236
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 8,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 4128.75768703391
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 8,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 630.2322167769374
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 8,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 232.98428940961688
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 10,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 2180.0661079065226
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 10,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 5007.789690613092
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 10,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 7835.513001401819
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 10,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 639.5486723609569
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 10,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 6501.440964740668
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 10,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1170.7776953901168
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 10,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 455.0458051804849
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 12,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 3176.7248477952103
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 12,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 7278.18447199875
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 12,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 11379.45931051317
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 12,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 923.6599116415832
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 12,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 9409.640704533535
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 12,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1777.5389064328676
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 12,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 798.980353325499
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 14,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 4811.583783220317
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 14,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 10425.567243801017
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 14,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 16039.551097499992
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 14,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1258.7867817151448
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 14,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 12852.96389652253
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 14,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 2889.8933557576433
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 14,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1097.3710281309377
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 16,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 6500.35171888672
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 16,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 14032.467266482921
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 16,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 21564.582942349218
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 16,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1687.2498830836291
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 16,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 17177.447259505174
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 16,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 4368.356272846984
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 16,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1439.342489436448
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 18,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 9086.553316137497
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 18,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 18437.60084602818
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 18,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 27788.648886118437
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 18,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 2080.95871794728
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 18,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 21343.69512483165
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 18,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 5932.026640320947
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 18,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 1872.7942738333252
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 20,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 12042.519904045314
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 20,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 23828.38382082332
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "civata",
+      "cap": 20,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 35614.2481909595
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 20,
+      "boy": 10,
+      "tolerans": 0.2
+     },
+     "referansMm3": 2623.0923415575467
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 20,
+      "boy": 100,
+      "tolerans": 0.2
+     },
+     "referansMm3": 26826.525737415923
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "somun",
+      "cap": 20,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 8352.00793599458
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 20,
+      "boy": 20,
+      "tolerans": 0.2
+     },
+     "referansMm3": 2186.1044127523364
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 3,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 314.8118790120385
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 12,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 5166.581774891966
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "mil",
+      "cap": 20,
+      "boy": 55,
+      "tolerans": 0.2
+     },
+     "referansMm3": 14724.80903890125
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 3,
+      "boy": 20,
+      "tolerans": 0.0
+     },
+     "referansMm3": 15.220877334724536
+    },
+    {
+     "parametreler": {
+      "urun_tipi": "pul",
+      "cap": 20,
+      "boy": 20,
+      "tolerans": 1.0
+     },
+     "referansMm3": 2186.1044127523364
+    }
+   ]
   }
  }
 }

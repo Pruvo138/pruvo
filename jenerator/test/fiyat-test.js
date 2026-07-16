@@ -62,8 +62,9 @@ esit("büyüme: sıkı artan", buyume.every(function (v, i) {
 }), true);
 
 // --- TABAN FİYATLAR (Okan KESİN tablosu — tools/paket-sari-fiyat.md) ---
-// Vida İSTİSNASI: hacim hesabı çapa duyarsız (M5'e çakılı, Faz D ölçümü) —
-// fiyat girilirse M12, M5 fiyatına satılırdı. null KALIR, sayfa "Ölçüye özel".
+// Vida istisnası KALKTI (tools/paket-vida-fiyat.md): hacim.js vida üretim
+// motorunun STL hacimlerine kalibre edildi (kalibrasyon-referans.json "vida",
+// 77 set ≤%3) — 18/18 aile dolu, vida tabanı 100 TL (Okan kesin değeri).
 var TABAN_FIYATLAR = {
   "kisiye-ozel-jeton-cip-madalyon": 150,
   "olcuye-ozel-baglanti-konektor": 170,
@@ -80,7 +81,7 @@ var TABAN_FIYATLAR = {
   "olcuye-ozel-rulman": 200,
   "olcuye-ozel-triger-kasnagi": 180,
   "olcuye-ozel-triger-kayisi": 150,
-  "olcuye-ozel-vida-civata-somun-pul": null,
+  "olcuye-ozel-vida-civata-somun-pul": 100,
   "olcuye-ozel-yay-dalga-flexure": 130,
   "ozel-disli-kramayer-uretimi": 300
 };
@@ -101,7 +102,9 @@ var KUCUK_SETLER = {
                           kalinlik: 2, isaret_stili: "oyma" },
   "olcuye-ozel-huni": { agiz_capi: 40, yukseklik: 30, uc_capi: 4, uc_boyu: 54, uc_acisi: 0 },
   "olcuye-ozel-baglanti-konektor": { kol_sayisi: 2, kol_kesiti: "yuvarlak", cubuk_capi: 6,
-                                     kol_boyu: 20, cidar: 2, gecme: "normal" }
+                                     kol_boyu: 20, cidar: 2, gecme: "normal" },
+  // Vida zemin kanıtı: varsayılan M5 cıvatadan KÜÇÜK set (M3 somun) → 100 TL tabanı.
+  "olcuye-ozel-vida-civata-somun-pul": { urun_tipi: "somun", cap: 3, boy: 10, tolerans: 0.2 }
 };
 Object.keys(KUCUK_SETLER).forEach(function (id) {
   var s = JSON.parse(fs.readFileSync(path.join(URUN_DIR, id + ".json"), "utf8"));
