@@ -31,7 +31,7 @@ jobs:
       - name: Yayin klasorunu topla (beyaz liste)
         run: |
           mkdir _site
-          cp index.html urunler.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml .nojekyll _site/
+          cp index.html secenekler.js urunler.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml .nojekyll _site/
           cp -r urun hakkimizda iletisim sss gizlilik teslimat-iade mesafeli-satis _site/
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3
