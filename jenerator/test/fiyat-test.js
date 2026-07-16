@@ -31,10 +31,11 @@ esit("bileşik örnek metin", SECENEK.kurusMetni(19872), "198,72 TL");
 esit("saf hacim oranı ×1.08", SECENEK.parametrikFiyatKurus(100, 1000, 1080, "PLA", "Siyah"), 10800);
 esit("kuruş kesirli örnek 250×1.037", SECENEK.parametrikFiyatKurus(250, 1000, 1037, "PLA", "Siyah"), 25925);
 esit("kuruş metni 259,25", SECENEK.kurusMetni(25925), "259,25 TL");
-esit("filament katsayıları PLA/PETG/ABS/TPU/ASA/Karbon",
-     ["PLA", "PETG", "ABS", "TPU", "ASA", "Karbon Katkılı"].map(function (m) {
+// ABS ve Karbon KALDIRILDI (Okan, 16 Tem) — mühendislik malzemeleri WhatsApp'tan.
+esit("filament katsayıları PLA/PETG/TPU/ASA",
+     ["PLA", "PETG", "TPU", "ASA"].map(function (m) {
        return SECENEK.parametrikFiyatKurus(100, 1000, 1000, m, "Siyah");
-     }), [10000, 13000, 15000, 15500, 16000, 20000]);
+     }), [10000, 13000, 15500, 16000]);
 // Taban fiyat yoksa fiyat yok ("—" davranışının çekirdeği).
 esit("tabanFiyat null -> fiyat null", SECENEK.parametrikFiyatKurus(null, 1000, 1080, "ASA", "Diğer"), null);
 

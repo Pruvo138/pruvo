@@ -13,8 +13,9 @@
   "use strict";
 
   // PLA taban (fark yok); yüzdeler PLA fiyatına göre ek maliyet.
-  var FILAMENT_FARK = { "PLA": 0, "PETG": 30, "ASA": 60, "Karbon Katkılı": 100, "ABS": 50, "TPU": 55 };
-  var FILAMENT_SIRA = ["PLA", "PETG", "ASA", "Karbon Katkılı", "ABS", "TPU"];
+  // ABS ve Karbon katkılı KALDIRILDI (Okan, 16 Tem) — mühendislik malzemeleri WhatsApp'tan.
+  var FILAMENT_FARK = { "PLA": 0, "PETG": 30, "ASA": 60, "TPU": 55 };
+  var FILAMENT_SIRA = ["PLA", "PETG", "ASA", "TPU"];
   var RENK_SECENEKLERI = ["Siyah", "Beyaz", "Gri", "Diğer"];
   var RENK_DIGER_YUZDE = 15;
   var FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera"];

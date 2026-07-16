@@ -156,18 +156,21 @@ def _malzeme_renk_html():
         '\n          <option value="%s">%s</option>' % (
             esc(r), esc(r + (" (+%%%d)" % RENK_DIGER_YUZDE if r == "Diğer" else "")))
         for r in RENK_SECENEKLERI)
+    # NOT: metinde yuzde-kacisli WhatsApp URL'i var (%2C, %C3%BC...) -> %-bicimlendirme
+    # KULLANILMAZ (URL'i bozar / ValueError verir); parcalar birlestirilir.
     return ("""
       <div class="opsiyon-row">
         <label for="malzemeSec">Malzeme</label>
-        <select id="malzemeSec">%s
+        <select id="malzemeSec">""" + malzeme_opts + """
         </select>
       </div>
+      <p class="malzeme-not">Karbon fiber veya diğer mühendislik malzemeleriyle üretim için <a href="https://wa.me/905451386526?text=Merhaba%2C%20m%C3%BChendislik%20malzemesiyle%20%C3%B6zel%20%C3%BCretim%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener">WhatsApp'tan bize yazın</a>.</p>
       <div class="opsiyon-row">
         <label for="renkSec">Renk</label>
-        <select id="renkSec">%s
+        <select id="renkSec">""" + renk_opts + """
         </select>
         <input type="text" id="renkOzel" placeholder="istediğiniz rengi yazın" style="display:none">
-      </div>""" % (malzeme_opts, renk_opts))
+      </div>""")
 
 
 # Adet seçici — klasik blok ve konfigüratör ortak (Okan, 16 Tem: varsayılan 1, aralık 1-99).
@@ -310,8 +313,14 @@ PAGE_CSS = """
   .cart-btn svg{width:19px;height:19px;fill:#fff}
   .cart-btn.added{background:#e8f6ee;color:#178a44}
   .cart-btn.added svg{fill:#178a44}
-  .order-alt{display:inline-block;margin-top:11px;font-size:13.5px;color:var(--gray-text);text-decoration:underline}
-  .order-alt:hover{color:var(--navy)}
+  .order-wa{background:#25D366;color:#fff;border:none;border-radius:9px;
+    padding:13px 22px;font-size:15px;font-weight:700;cursor:pointer;
+    text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+    gap:9px;transition:.15s;max-width:320px;width:100%;margin-top:11px}
+  .order-wa:hover{background:#1ebe5a}
+  .order-wa svg{width:19px;height:19px;fill:#fff}
+  .malzeme-not{font-size:12.5px;color:var(--gray-text);line-height:1.5;margin:2px 0 2px}
+  .malzeme-not a{color:#178a44;font-weight:600;text-decoration:underline}
   .cart-fab{position:fixed;right:18px;bottom:18px;z-index:60;background:#25a35a;color:#fff;
     border-radius:30px;padding:12px 20px;font-size:15px;font-weight:700;text-decoration:none;
     box-shadow:0 6px 18px rgba(0,0,0,.22);align-items:center;gap:8px;display:none}
@@ -676,7 +685,7 @@ def render_product(p, all_products):
       {opsiyonlar}
       <p class="desc">{aciklama}</p>
       <button class="cart-btn" id="cartBtn" data-id="{pid}">{cart_icon}<span class="cart-label">Sepete Ekle</span></button>
-      <a class="order-alt" id="orderAlt" href="{wa}" target="_blank" rel="noopener">veya WhatsApp'tan bu ürünü tek tek sor</a>
+      <a class="order-wa" id="orderAlt" href="{wa}" target="_blank" rel="noopener">{icon}WhatsApp'tan Sor</a>
       <div class="note">Sepete ekleyip birden çok ürünü tek WhatsApp mesajıyla sipariş edebilirsiniz. Ürünler talep üzerine özel üretilir.</div>
     </div>
   </div>

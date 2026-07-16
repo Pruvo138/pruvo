@@ -369,9 +369,10 @@ async function test3Idempotens(siparisNo, token) {
  *  Beklenen degerler SPEC'ten SABIT yazilir (secenekler.js'ten TURETILMEZ): katsayi tablosu
  *  yanlis degistirilirse test bunu yakalamali, sessizce yeni degeri onaylamamali. */
 async function test8KatsayiDogrulugu() {
-  // Spec: 100 TL'lik urun -> PLA 100 / PETG 130 / ABS 150 / TPU 155 / ASA 160 / Karbon 200
-  const SPEC = { "PLA": "100.00", "PETG": "130.00", "ABS": "150.00", "TPU": "155.00",
-                 "ASA": "160.00", "Karbon Katkılı": "200.00" };
+  // Spec: 100 TL'lik urun -> PLA 100 / PETG 130 / TPU 155 / ASA 160.
+  // ABS ve Karbon Katkili KALDIRILDI (Okan, 16 Tem — 1ca4aab): muhendislik malzemeleri
+  // WhatsApp kanalindan gider; asagida REDDEDILDIKLERI ayrica sinanir.
+  const SPEC = { "PLA": "100.00", "PETG": "130.00", "TPU": "155.00", "ASA": "160.00" };
   const hatalar = [];
   const olculen = {};
   for (const malzeme of Object.keys(SPEC)) {
@@ -408,6 +409,19 @@ async function test8KatsayiDogrulugu() {
   const cbos = await baslatIstek([{ id: "test-urun-333", malzeme: "PETG", renk: "Diğer", adet: 1 }]);
   if (cbos.kod !== 400) { hatalar.push("'Diger' + bos renk metni: " + cbos.kod + " (400 olmali)"); }
 
+  // KALDIRILAN MALZEMELER (Okan, 16 Tem): ABS / Karbon Katkili artik secenek DEGIL ->
+  // istemci elle gonderse bile Worker REDDETMELI (malzeme listesi secenekler.js'ten okunur,
+  // ikinci kopya yok). Sessizce PLA fiyatina dusup ABS tahsil etmek OLMAZ.
+  const kaldirilan = [];
+  for (const m of ["ABS", "Karbon Katkılı"]) {
+    const r = await baslatIstek([{ id: "test-urun-100", malzeme: m, renk: "Siyah", adet: 1 }]);
+    kaldirilan.push(m + "->" + r.kod + "/" + (r.govde.hata || "?"));
+    if (r.kod !== 400 || r.govde.hata !== "gecersiz-malzeme") {
+      hatalar.push("kaldirilan malzeme " + m + " reddedilmedi: " + r.kod + " " +
+                   JSON.stringify(r.govde));
+    }
+  }
+
   // ADET ARALIGI (1-99): aralik disi SESSIZCE kirpilmaz, REDDEDILIR
   const cAdet = [];
   for (const a of [0, 100, 2.5, -3]) {
@@ -423,7 +437,8 @@ async function test8KatsayiDogrulugu() {
   rapor("8 katsayi dogrulugu", hatalar.length === 0,
     "100 TL urun -> " + Object.keys(olculen).map((k) => k + " " + olculen[k]).join(" / ") +
     "; 333x1.30x3 = " + kusurat + " (D1 kurus=" + (sK ? sK.tutar_kurus : "?") + ")" +
-    "; 'Diger' renk = " + digerFiyat + "; adet reddi: " + cAdet.join(" ") + "; adet 99 = " + p99 +
+    "; 'Diger' renk = " + digerFiyat + "; kaldirilan: " + kaldirilan.join(" ") +
+    "; adet reddi: " + cAdet.join(" ") + "; adet 99 = " + p99 +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
