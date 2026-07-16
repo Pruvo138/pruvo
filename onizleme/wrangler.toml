@@ -33,7 +33,7 @@ class_name = "OnizlemeDerleyici"
 # DIGEST'e sabit (":ci" tag'i DEGIL): tag mutable oldugundan ayni tag'e yeni push
 # rollout tetiklemiyor — 16 Tem'de olculdu (uygulama version 1'de kaldi, eski imaj
 # calismaya devam etti). Yeni imaj = CI logundaki yeni digest'i buraya yaz + deploy.
-image = "registry.cloudflare.com/dbbe2a8620c3c3a57c586b8a98142fb9/pruvo-onizleme-derleyici@sha256:7a19e44dd49ffb3e86b80bb64fbd7f264c5164af0956211b0571fb73bb6a0aa3"
+image = "registry.cloudflare.com/dbbe2a8620c3c3a57c586b8a98142fb9/pruvo-onizleme-derleyici@sha256:a3dd5365f2b69d439a7d656f6a7ec964643e7799784b2bae49548906158b4c33"
 max_instances = 2
 # 1/4 vCPU + 1 GiB: OpenSCAD derlemesi CPU isi; en kucuk tip (1/16 vCPU) olcumde
 # yavas kalirsa buradan buyutulur (kapi-1 raporuna bak).

@@ -48,10 +48,6 @@ const AILELER = [
   ["ozel-disli-kramayer-uretimi", (s) => ({
     disli_tipi: "duz", dis_sayisi: 32 + (s % 33), modul: 1 + ((s * 3) % 11) * 0.05,
     kalinlik: 6 + (s % 5) * 0.5, delik_capi: 2 + ((s * 7) % 13) * 0.5 })],
-  ["olcuye-ozel-yay-dalga-flexure", (s) => ({
-    tip: "spiral", dalga_formu: "sinus", serbest_boy: 40 + (s % 81),
-    dis_cap: 15 + ((s * 3) % 46), tel_capi: 1.5 + (s % 6) * 0.5,
-    dalga_boyu: 40 + ((s * 7) % 81) })],
 ];
 function benzersizIstek() {
   sayac += 1;

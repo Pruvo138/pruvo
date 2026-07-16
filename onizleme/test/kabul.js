@@ -296,7 +296,8 @@ async function faz4d(paketDizin) {
     "olcuye-ozel-baglanti-konektor": { dosya: "olcuye-ozel-baglanti-konektor.json", fonksiyon: "konektor" },
     "olcuye-ozel-montaj-braketi": { dosya: "olcuye-ozel-montaj-braketi.json", fonksiyon: "braket" },
     "ozel-disli-kramayer-uretimi": { dosya: "ozel-disli-kramayer-uretimi.json", fonksiyon: "disli" },
-    "olcuye-ozel-yay-dalga-flexure": { dosya: "olcuye-ozel-yay-dalga-flexure.json", fonksiyon: "yay" },
+    // yay BILEREK yok: eslem olcumunde kare/testere formlari kisa boyda %3'u asti
+    // (%5.2'ye kadar) — ONIZLEME_AILELER'e alinmadi, mimar tablosunda (Faz D raporu).
   };
   const tohumlar = [parseInt(process.env.KABUL_TOHUM || "20260716", 10),
                     parseInt(process.env.KABUL_TOHUM_2 || "20260717", 10)];

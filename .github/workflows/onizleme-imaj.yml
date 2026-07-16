@@ -104,7 +104,9 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{"aile":"ozel-disli-kramayer-uretimi","parametreler":{"disli_tipi":"duz","dis_sayisi":40,"modul":1.25,"kalinlik":7,"delik_capi":6}}' \
             -o duman-disli.stl
-          # yay CIFT uretecli (spiral + dalga ayri .scad) — ikisi de dumanda derlenir
+          # yay ONIZLEME_AILELER'de DEGIL (eslem olcumu %3'u asti) ama scad'lari v3
+          # paketinde durur — dumanda derlenebilirligi kanitlanir (worker kapisi ayri).
+          # CIFT uretecli (spiral + dalga ayri .scad) — ikisi de derlenir.
           curl -sf -X POST http://127.0.0.1:18080/derle \
             -H 'Content-Type: application/json' \
             -d '{"aile":"olcuye-ozel-yay-dalga-flexure","parametreler":{"tip":"spiral","dalga_formu":"sinus","serbest_boy":60,"dis_cap":20,"tel_capi":3,"dalga_boyu":60}}' \
