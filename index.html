@@ -302,7 +302,7 @@
     background:#dbe2ec;
     display:block;
   }
-  .card-body{padding:14px 15px 6px;display:flex;flex-direction:column;flex:1}
+  .card-body{padding:14px 15px 16px;display:flex;flex-direction:column;flex:1}
   .card-cat{
     display:inline-block;
     align-self:flex-start;
@@ -324,42 +324,10 @@
     font-size:13.5px;color:var(--gray-text);margin-bottom:12px;
     display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
   }
-  .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:4px;margin-top:auto}
+  .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-top:auto}
   .card-price.empty{color:var(--gray-text);font-weight:600;font-size:13px}
-  /* karttaki küçük malzeme tavsiye çipi (detay ürün sayfasında) */
-  .card-fil{
-    display:inline-block;align-self:flex-start;
-    background:#f0f4fa;border:1px solid var(--gray-line);color:var(--navy);
-    font-size:11px;font-weight:700;border-radius:12px;padding:3px 9px;margin-bottom:8px;
-  }
-
-  /* kart: sepete ekle */
-  .cart-btn{
-    background:var(--navy);
-    color:#fff;
-    border:1px solid var(--navy);
-    border-radius:8px;
-    margin:8px 15px 16px;
-    padding:11px;
-    font-size:14.5px;
-    font-weight:700;
-    cursor:pointer;
-    text-align:center;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:7px;
-    transition:.15s;
-  }
-  .cart-btn:hover{background:var(--navy-2);border-color:var(--navy-2)}
-  .cart-btn svg{width:17px;height:17px;fill:#fff}
-  .cart-btn.added{
-    background:#fff;
-    color:var(--navy);
-    border-color:var(--navy);
-  }
-  .cart-btn.added svg{fill:#1a9e4b}
-  .cart-btn.added:hover{background:var(--gray-bg)}
+  /* NOT (Okan, 16 Tem): kart "Sepete Ekle" butonu ve "Tavsiye" çipi KALDIRILDI —
+     sepete ekleme yalnız ürün sayfasından (malzeme+renk seçimi zorunlu). */
 
   /* ---------- SEPET (yüzen buton + panel) ---------- */
   .cart-fab{
@@ -668,9 +636,10 @@
 </footer>
 
 <script src="/secenekler.js"></script>
-<!-- filament-veri.js'i build.py üretir (tek kaynak: tools/filamentler.json); yoksa
-     kart tavsiye çipi sessizce atlanır (aşağıda window.PRUVO_FILAMENT kontrolü). -->
-<script src="/filament-veri.js"></script>
+<!-- NOT: /filament-veri.js artık ana sayfada YÜKLENMEZ (kart tavsiye çipi kaldırıldı,
+     Okan 16 Tem). Dosyayı build.py hâlâ üretir; tek tüketicisi kalmadıysa da deploy
+     beyaz listesinde kalması zararsız (ileride tekrar kullanılabilir). -->
+
 <script>
 (function(){
   "use strict";
@@ -731,25 +700,15 @@
 
   // ---------- SEPET ----------
   var cart = [];
-  var CART_PLUS_ICON = '<svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 15h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 6H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>';
-  var CHECK_ICON = '<svg viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
 
   // Sepet satırları {id, malzeme, renk, renk_ozel, boy_etiket} — aynı ürün farklı
   // malzeme/renk/boy ile birden çok satırda bulunabilir (secenekler.js: PRUVO_SECENEK).
+  // NOT (Okan, 16 Tem): karttaki hızlı "Sepete Ekle" KALDIRILDI — sepete eklemenin TEK yolu
+  // ürün sayfası (malzeme kartı + renk butonu seçimi zorunlu). Böylece hiçbir UI yolu
+  // malzemesiz/varsayılan-PLA kalem ekleyemez. bosSatir yalnız eski sepet GÖÇÜ için kalır
+  // (secenekler.js sepetYukle: eski düz-id satırlarını çevirir).
   function loadCart(){ cart = PRUVO_SECENEK.sepetYukle(); }
   function saveCart(){ PRUVO_SECENEK.sepetKaydet(cart); }
-  function inCart(id){ return cart.some(function(s){ return s.id === id; }); }
-  // Ana sayfa ızgarasındaki hızlı "Sepete Ekle": seçici yok, varsayılan PLA/Siyah satırı
-  // ekler/kaldırır. Ürünün farklı bir konfigürasyonla (detay sayfasından) eklenmiş satırı
-  // varsa ona dokunmaz; sadece varsayılan satırı toggle eder.
-  function toggleCart(id){
-    var varsayilan = PRUVO_SECENEK.bosSatir(id);
-    var anahtar = PRUVO_SECENEK.satirAnahtari(varsayilan);
-    var i = -1;
-    for(var j=0;j<cart.length;j++){ if(PRUVO_SECENEK.satirAnahtari(cart[j]) === anahtar){ i = j; break; } }
-    if(i === -1){ cart.push(varsayilan); } else { cart.splice(i, 1); }
-    saveCart();
-  }
   function cartLines(){
     return cart.map(function(satir){
       for(var i=0;i<PRODUCTS.length;i++){ if(PRODUCTS[i].id === satir.id){ return {satir:satir, urun:PRODUCTS[i]}; } }
@@ -769,14 +728,6 @@
     });
     if(toplamVar){ lines.push(""); lines.push("Toplam (tahmini): " + PRUVO_SECENEK.tlMetni(toplam)); }
     return "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(lines.join("\n"));
-  }
-  function setCartBtn(btn, id){
-    if(inCart(id)){ btn.className = "cart-btn added"; btn.innerHTML = CHECK_ICON + " Sepette"; }
-    else{ btn.className = "cart-btn"; btn.innerHTML = CART_PLUS_ICON + " Sepete Ekle"; }
-  }
-  function syncCardButtons(){
-    var btns = document.querySelectorAll(".cart-btn[data-id]");
-    Array.prototype.forEach.call(btns, function(b){ setCartBtn(b, b.getAttribute("data-id")); });
   }
   function updateCartFab(){
     var fab = document.getElementById("cartFab");
@@ -839,7 +790,7 @@
     var lines = cartLines();
     wrap.innerHTML = "";
     if(lines.length === 0){
-      wrap.innerHTML = '<div class="cart-empty">Sepetiniz boş.<br>Ürünlerdeki “Sepete Ekle” ile ekleyin.</div>';
+      wrap.innerHTML = '<div class="cart-empty">Sepetiniz boş.<br>Ürün sayfasındaki “Sepete Ekle” ile ekleyin.</div>';
       orderBtn.className = "cart-order-btn disabled";
       orderBtn.removeAttribute("href");
       cartToplamTazele([]);
@@ -901,7 +852,7 @@
       rm.onclick = function(){
         var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
         cart = cart.filter(function(s){ return PRUVO_SECENEK.satirAnahtari(s) !== anahtar; });
-        saveCart(); renderCartPanel(); updateCartFab(); syncCardButtons();
+        saveCart(); renderCartPanel(); updateCartFab();
       };
 
       row.appendChild(img); row.appendChild(info); row.appendChild(rm);
@@ -979,7 +930,7 @@
     if(!s){ return; }
     var no = q.get("no") || "";
     if(s === "ok"){
-      cart = []; saveCart(); updateCartFab(); syncCardButtons();
+      cart = []; saveCart(); updateCartFab();
       alert("Ödemeniz alındı ✅\nSipariş no: " + no +
             "\n\nÜretim başlıyor; süreçle ilgili WhatsApp'tan bilgilendirileceksiniz.");
     }else{
@@ -1217,35 +1168,12 @@
         pr.className = "card-price empty"; pr.textContent = p.parametrik ? "Ölçüye özel fiyat" : "Fiyat için sipariş verin";
       }
 
-      // Malzeme tavsiye çipi: kural RENDER'da uygulanır, ürün verisine yazılmaz.
-      // Kaynak: /filament-veri.js (build.py, tools/filamentler.json'dan üretir).
-      // Ürün "tavsiyeFilament" override'ı taşıyorsa harita yerine o geçer;
-      // parametrik (ölçüye özel) üründe çip basılmaz (malzeme konuşarak belirlenir).
-      var fil = null;
-      if(window.PRUVO_FILAMENT && !p.parametrik){
-        if(p.tavsiyeFilament && p.tavsiyeFilament.length){
-          fil = p.tavsiyeFilament[0];
-        }else{
-          var kt = PRUVO_FILAMENT.kategoriTavsiye[p.kategori === "Bahce" ? "Bahçe" : p.kategori];
-          if(kt && kt.length){ fil = kt[0].ad; }
-        }
-        // ABS/Karbon Katkılı SİTEDE SATILMAZ (mühendislik malzemesi, WhatsApp özel talebi) —
-        // kart çipinde "Tavsiye" olarak SUNULMAZ, tek kaynak: filamentler.json "site" alanı.
-        if(fil){
-          var filRef = PRUVO_FILAMENT.filamentler.filter(function(f){ return f.ad === fil; })[0];
-          if(!filRef || !filRef.site){ fil = null; }
-        }
-      }
-
+      // Kart sade (Okan, 16 Tem): malzeme tavsiye çipi ve "Sepete Ekle" butonu KALDIRILDI.
+      // Tavsiye + sepete ekleme ürün SAYFASININ işi (malzeme kartları oradan seçilir);
+      // kart yalnız kategori/başlık/açıklama/fiyat gösterir ve /urun/<id>/'e götürür.
       body.appendChild(cat);
       body.appendChild(h);
       body.appendChild(d);
-      if(fil){
-        var fc = document.createElement("span");
-        fc.className = "card-fil";
-        fc.textContent = "Tavsiye: " + fil;
-        body.appendChild(fc);
-      }
       body.appendChild(pr);
       main.appendChild(img);
       main.appendChild(body);
@@ -1256,18 +1184,7 @@
         main.appendChild(badge);
       }
 
-      var order = document.createElement("button");
-      order.setAttribute("data-id", p.id);
-      setCartBtn(order, p.id);
-      order.onclick = function(){
-        toggleCart(p.id);
-        setCartBtn(order, p.id);
-        updateCartFab();
-        if(document.getElementById("cartPanel").classList.contains("open")){ renderCartPanel(); }
-      };
-
       card.appendChild(main);
-      card.appendChild(order);
       grid.appendChild(card);
     });
 
@@ -1303,7 +1220,7 @@
   document.getElementById("cartClose").onclick = closeCart;
   document.getElementById("cartOverlay").onclick = closeCart;
   document.getElementById("cartClear").onclick = function(){
-    cart = []; saveCart(); renderCartPanel(); updateCartFab(); syncCardButtons();
+    cart = []; saveCart(); renderCartPanel(); updateCartFab();
   };
 
   // ---------- ÖDEME OLAYLARI ----------

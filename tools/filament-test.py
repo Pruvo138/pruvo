@@ -25,6 +25,11 @@ KART-SECIM (Okan, 16 Tem — malzeme dropdown -> kart secici):
  12  (d) secimle fiyat KATSAYILI guncellenir (JS wiring + secenekler.js kuruş matematigi)
  13  (e) alt paragraf ("Sepete ekleyip…") HICBIR urun sayfasinda yok
  14  (f) "WhatsApp'tan Sor" secim SARTI ARAMAZ (link her zaman calisir)
+
+KART SADELESTIRME (Okan, 16 Tem — liste kartlarindan iki oge kalkti):
+ 20  ana sayfa kartlarinda "Sepete Ekle" butonu ve "Tavsiye:" cipi YOK (hizli-ekleme yolu
+     tamamen kalkti -> hicbir UI yolu malzemesiz/varsayilan-PLA kalem ekleyemez); urun
+     sayfasinda cartBtn + malzeme kartlari DURUYOR (regresyon)
 """
 import html
 import json
@@ -345,6 +350,31 @@ def main():
     h19 = [] if r19.returncode == 0 else [(r19.stdout + r19.stderr).strip()]
     kayit(19, "(k) Siyah/Beyaz/Gri renk farki binmez; Diger +%15 (kuruş)",
           not h19, "; ".join(h19[:2]) or "temiz")
+
+    # ---- 20 liste kartlari sade: "Sepete Ekle" butonu + "Tavsiye:" cipi YOK; urun sayfasi regresyonsuz
+    ih = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
+    h20 = []
+    # Hizli-ekleme yolunun TUM parcalari kalkti (buton, toggle, sync, cip, veri script'i).
+    for yasak in ["setCartBtn", "syncCardButtons", "toggleCart(",
+                  '"Tavsiye: "', "card-fil", 'src="/filament-veri.js"']:
+        if yasak in ih:
+            h20.append("index.html'de hala var: %s" % yasak)
+    # bosSatir SADECE goc icin secenekler.js'te kalir; index.html'de dogrudan cagri kalmadi.
+    if "bosSatir(" in ih:
+        h20.append("index.html hala bosSatir cagiriyor (varsayilan-PLA ekleme yolu)")
+    # build.py ilgili-urunler kartlari da temiz (rel-card yalniz gorsel+baslik+fiyat).
+    m20 = re.search(r'<section class="related">.*?</section>', fs, re.S)
+    rel_html = m20.group(0) if m20 else ""
+    if "Sepete Ekle" in rel_html:
+        h20.append("ilgili-urunler kartinda Sepete Ekle var")
+    if "Tavsiye:" in rel_html:
+        h20.append("ilgili-urunler kartinda Tavsiye cipi var")
+    # REGRESYON: urun sayfasinda sepete ekleme + malzeme kartlari DURUYOR.
+    for gerekli in ['id="cartBtn"', 'id="filCipler"', "data-malzeme="]:
+        if gerekli not in fs:
+            h20.append("urun sayfasinda kayip: %s" % gerekli)
+    kayit(20, "liste kartlarinda Sepete Ekle + Tavsiye yok; urun sayfasi regresyonsuz",
+          not h20, "; ".join(h20[:4]) or "temiz")
 
     print("-" * 70)
     kaldi = [x for x in SONUC if not x[2]]
