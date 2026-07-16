@@ -30,6 +30,13 @@ KART SADELESTIRME (Okan, 16 Tem — liste kartlarindan iki oge kalkti):
  20  ana sayfa kartlarinda "Sepete Ekle" butonu ve "Tavsiye:" cipi YOK (hizli-ekleme yolu
      tamamen kalkti -> hicbir UI yolu malzemesiz/varsayilan-PLA kalem ekleyemez); urun
      sayfasinda cartBtn + malzeme kartlari DURUYOR (regresyon)
+
+EYLEM IKONLARI (Okan madde 7, 16 Tem — buyuk butonlar -> Adet satirinda ikon cifti):
+ 21  (l) kart-secim sayfasinda sayfa alti buyuk buton YOK; Adet satirinda aria-label+title'li
+     2 ikon buton VAR (44px dokunma alani CSS'te); parametrik/panelsiz sayfada buyuk
+     butonlar YERINDE (regresyon)
+ 22  (m) ikon sepet butonu ayni cartBtn — secimsiz ekleme kapisi + titreme AYNEN calisiyor
+ 23  (n) WhatsApp ikonu dogru wa.me hedefine gidiyor (statik href + JS canli mesaj guncelleme)
 """
 import html
 import json
@@ -265,9 +272,10 @@ def main():
           g13.stdout.strip() == "", g13.stdout.strip().splitlines()[:3])
 
     # ---- 14 (f) WhatsApp'tan Sor secim SARTI ARAMAZ
+    #   (madde 7 sonrasi: kart-secim sayfasinda link IKON olarak Adet satirinda; hala <a href>)
     h14 = []
-    if 'class="order-wa" id="orderAlt"' not in fs:
-        h14.append("order-wa (WhatsApp'tan Sor) linki yok")
+    if 'id="orderAlt"' not in fs or '<a class="ikon-btn ikon-wa" id="orderAlt"' not in fs:
+        h14.append("orderAlt (WhatsApp'tan Sor) ikon linki yok")
     # titret/gate yalniz cartBtn tiklamasinda; orderAlt bir <a href> ve kilitlenmiyor
     if "orderAlt.disabled" in fs or "orderAlt.classList.add(\"kilitli\")" in fs:
         h14.append("orderAlt secime kilitlenmis")
@@ -375,6 +383,49 @@ def main():
             h20.append("urun sayfasinda kayip: %s" % gerekli)
     kayit(20, "liste kartlarinda Sepete Ekle + Tavsiye yok; urun sayfasi regresyonsuz",
           not h20, "; ".join(h20[:4]) or "temiz")
+
+    # ================= EYLEM IKONLARI (madde 7: buyuk butonlar -> Adet satirina ikon) ==========
+    # ---- 21 (l) buyuk butonlar yok + Adet satirinda 2 aria-label'li ikon; parametrik korunur
+    h21 = []
+    if 'class="cart-btn"' in fs or 'class="order-wa"' in fs:
+        h21.append("kart-secim sayfasinda buyuk buton hala var")
+    if not re.search(r'opsiyon-adet-eylem.*?id="adetArti".*?eylem-ikonlar.*?'
+                     r'ikon-sepet" id="cartBtn"[^>]*aria-label="Sepete Ekle" title="Sepete Ekle".*?'
+                     r'ikon-wa" id="orderAlt"[^>]*aria-label="WhatsApp\'tan Sor"[^>]*title="WhatsApp\'tan Sor"', fs, re.S):
+        h21.append("Adet satirinda aria-label+title'li ikon cifti eksik/sirasiz")
+    if ".ikon-btn{width:44px;height:44px" not in fs:
+        h21.append("44x44 dokunma alani CSS'i yok")
+    # parametrik sayfa REGRESYONU: buyuk butonlar + eski duzen aynen
+    par_u = next((u for u in urunler if u.get("parametrik")), None)
+    ps21 = sayfa(par_u["id"]) if par_u else ""
+    if not ('class="cart-btn" id="cartBtn"' in ps21 and 'class="order-wa" id="orderAlt"' in ps21):
+        h21.append("parametrik sayfada buyuk butonlar kaybolmus")
+    if "ikon-btn ikon-sepet" in ps21:
+        h21.append("parametrik sayfaya ikon tasinmis (dokunulmayacakti)")
+    kayit(21, "(l) buyuk butonlar kalkti, Adet satirinda 2 ikon (aria+title+44px); parametrik korundu",
+          not h21, "; ".join(h21[:4]) or "temiz")
+
+    # ---- 22 (m) ikon sepet = ayni cartBtn -> secimsiz kapi + titreme AYNEN (id + kapi JS'i)
+    h22 = []
+    if fs.count('id="cartBtn"') != 1:
+        h22.append("cartBtn id'si tek degil (%d)" % fs.count('id="cartBtn"'))
+    for parca in ["var eksikM = !seciliMalzeme;",          # kapi ayni kodla duruyor
+                  "if(eksikM){ titret(cipler); }",
+                  '"Sepette ✓ — çıkarmak için tıklayın"']:  # ikonda durum title/aria ile
+        if parca not in fs:
+            h22.append("eksik: %s" % parca)
+    kayit(22, "(m) ikon sepet butonu = ayni kapi (secimsiz eklemez + titrer) + durum aria/title",
+          not h22, "; ".join(h22[:3]) or "temiz")
+
+    # ---- 23 (n) WhatsApp ikonu dogru hedef: statik href + JS canli guncelleme
+    h23 = []
+    m23 = re.search(r'id="orderAlt" href="([^"]+)"', fs)
+    if not (m23 and m23.group(1).startswith("https://wa.me/905451386526?text=")):
+        h23.append("statik href wa.me/905451386526 degil: %r" % (m23.group(1)[:60] if m23 else None))
+    if 'orderAlt.href = "https://wa.me/905451386526?text=" + encodeURIComponent(mesaj);' not in fs:
+        h23.append("JS canli mesaj guncellemesi yok")
+    kayit(23, "(n) WhatsApp ikonu dogru wa.me hedefi (statik + JS)", not h23,
+          "; ".join(h23[:2]) or "temiz")
 
     print("-" * 70)
     kaldi = [x for x in SONUC if not x[2]]

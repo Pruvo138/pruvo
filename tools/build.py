@@ -292,6 +292,24 @@ ADET_HTML = """
         </div>
       </div>"""
 
+# Adet + eylem İKONLARI (Okan madde 7, 16 Tem) — YALNIZ kart-seçim (normal fonksiyonel) sayfa:
+# sayfa altındaki iki büyük buton kalkar, Adet satırının SAĞINA yazısız iki küçük ikon gelir
+# (sepet = lacivert, WhatsApp = yeşil; 44×44 dokunma alanı, aria-label + title zorunlu).
+# id'ler (cartBtn/orderAlt) AYNEN korunur — sayfa scripti (seçim şartı + titreme + WA mesajı)
+# değişmeden çalışır. Parametrik/şemasız/panelsiz sayfalarda büyük butonlar YERİNDE kalır.
+# %s sırası: min, max, ikon bloğu (pid + wa href ile üretilir).
+ADET_IKON_HTML = """
+      <div class="opsiyon-row opsiyon-adet-eylem">
+        <label for="adetSec">Adet</label>
+        <div class="adet-kutu">
+          <button type="button" class="adet-btn" id="adetEksi" aria-label="Adet azalt">−</button>
+          <input type="number" id="adetSec" value="1" min="%d" max="%d"
+                 inputmode="numeric" aria-label="Adet">
+          <button type="button" class="adet-btn" id="adetArti" aria-label="Adet artır">+</button>
+        </div>
+        %s
+      </div>"""
+
 
 def konf_sema(pid):
     """Parametrik ürünün konfigüratör şeması (jenerator/urunler/<id>.json); yoksa None."""
@@ -306,6 +324,25 @@ CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-
              '7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 '
              '0-.25-.11-.25-.25l.03-.12L8.1 15h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 6H5.21l-.94-2H1zm16 '
              '16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>')
+
+# Eylem İKON çifti (kart-seçim sayfası, Adet satırının sağı) — %s sırası: pid, wa href.
+# Yazı yok -> aria-label + title ZORUNLU (erişilebilirlik); id'ler script'le birebir.
+IKON_BUTONLAR_HTML = (
+    '<div class="eylem-ikonlar">'
+    '<button class="ikon-btn ikon-sepet" id="cartBtn" data-id="%s" '
+    'aria-label="Sepete Ekle" title="Sepete Ekle">' + CART_ICON + '</button>'
+    '<a class="ikon-btn ikon-wa" id="orderAlt" href="%s" target="_blank" rel="noopener" '
+    'aria-label="WhatsApp\'tan Sor" title="WhatsApp\'tan Sor">' + WA_ICON + '</a>'
+    '</div>')
+
+# BÜYÜK butonlar (eski düzen) — parametrik + şemasız-fonksiyonel + panelsiz (Dekorasyon/
+# Oyun-Hobi) sayfalarda AYNEN kalır (Okan talimatı NORMAL ürün sayfası için).
+# %s sırası: pid, wa href.
+BUYUK_BUTONLAR_HTML = (
+    '<button class="cart-btn" id="cartBtn" data-id="%s">' + CART_ICON +
+    '<span class="cart-label">Sepete Ekle</span></button>\n'
+    '      <a class="order-wa" id="orderAlt" href="%s" target="_blank" rel="noopener">' +
+    WA_ICON + 'WhatsApp\'tan Sor</a>')
 
 # ------------------------------------------------------------------ ortak CSS
 PAGE_CSS = """
@@ -393,6 +430,19 @@ PAGE_CSS = """
   .adet-kutu input::-webkit-outer-spin-button,
   .adet-kutu input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
   .opsiyon-fiyat{font-size:19px;font-weight:800;color:var(--navy);margin-top:10px}
+  /* Eylem ikonları (madde 7): Adet satırının sağında yazısız sepet + WhatsApp ikonu.
+     44×44 = mobil dokunma alanı; margin-left:auto sağa yaslar, dar ekranda .opsiyon-row
+     flex-wrap ile ikonlar panel İÇİNDE alt satıra kırılır. */
+  .eylem-ikonlar{display:inline-flex;gap:8px;margin-left:auto}
+  .ikon-btn{width:44px;height:44px;border:none;border-radius:9px;display:inline-flex;
+    align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex:none;
+    text-decoration:none;padding:0}
+  .ikon-btn svg{width:22px;height:22px;fill:#fff}
+  .ikon-sepet{background:var(--navy)}
+  .ikon-sepet:hover{background:var(--navy-2)}
+  .ikon-sepet.added{background:#178a44}
+  .ikon-wa{background:#25D366}
+  .ikon-wa:hover{background:#1ebe5a}
   .konf-baslik{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:12px}
   .konf-row label{min-width:130px}
   .konf-sayi{width:110px;padding:8px 10px;border:1px solid var(--gray-line);
@@ -803,7 +853,9 @@ def render_product(p, all_products):
       <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
     </div>
     """).format(renk=_renk_butonlari_html(), boy=boy_html,
-                adet=ADET_HTML % (ADET_EN_AZ, ADET_EN_COK),
+                adet=ADET_IKON_HTML % (
+                    ADET_EN_AZ, ADET_EN_COK,
+                    IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
                 fiyat_metni=baslangic_fiyat)
         price_html = ""
     elif fonksiyonel:
@@ -833,6 +885,15 @@ def render_product(p, all_products):
         opsiyonlar_html = ""
         price_html = '<div class="price%s">%s</div>' % (
             "" if fiyat else " empty", esc(price_text))
+
+    # --- eylem butonları (madde 7): kart-seçim sayfasında İKONLAR Adet satırında (yukarıda
+    # opsiyonlar_html'e basıldı) -> sayfa altına buton BASILMAZ; diğer sayfalarda (parametrik
+    # konfigüratör, şemasız fonksiyonel, panelsiz Dekorasyon/Oyun-Hobi) büyük butonlar yerinde.
+    kart_secim = fonksiyonel and not parametrik
+    if kart_secim:
+        eylem_butonlar_html = ""
+    else:
+        eylem_butonlar_html = BUYUK_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))
 
     # --- ilgili ürünler (aynı kategori, kendisi hariç, en fazla 8)
     rel = [x for x in all_products
@@ -949,8 +1010,7 @@ def render_product(p, all_products):
       {opsiyonlar}
       {malzeme}
       <p class="desc">{aciklama}</p>
-      <button class="cart-btn" id="cartBtn" data-id="{pid}">{cart_icon}<span class="cart-label">Sepete Ekle</span></button>
-      <a class="order-wa" id="orderAlt" href="{wa}" target="_blank" rel="noopener">{icon}WhatsApp'tan Sor</a>
+      {eylem_butonlar}
     </div>
   </div>
 </main>
@@ -1046,6 +1106,11 @@ var URUN_SEMA = {sema_json};
     var has = c.some(function(s){{ return PRUVO_SECENEK.satirAnahtari(s) === anahtar; }});
     btn.classList.toggle("added", has);
     if(label){{ label.textContent = has ? "Sepette ✓" : "Sepete Ekle"; }}
+    else {{
+      /* İkon buton (yazısız, madde 7): durum bildirimi title + aria-label ile. */
+      var bm = has ? "Sepette ✓ — çıkarmak için tıklayın" : "Sepete Ekle";
+      btn.setAttribute("aria-label", bm); btn.setAttribute("title", bm);
+    }}
     if(count){{ count.textContent = c.length; }}
     if(fab){{ fab.style.display = c.length ? "inline-flex" : "none"; }}
     var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
@@ -1215,7 +1280,8 @@ var URUN_SEMA = {sema_json};
         attribution=attribution_html(p),
         urun_json=urun_json,
         sema_json=sema_json,
-        kart_secim=("true" if (fonksiyonel and not parametrik) else "false"),
+        kart_secim=("true" if kart_secim else "false"),
+        eylem_butonlar=eylem_butonlar_html,
         konf_scripts=konf_scripts,
         onizleme_js=onizleme_js,
         whatsapp=WHATSAPP,
