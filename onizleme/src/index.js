@@ -263,6 +263,20 @@ export default {
         return json({ durum: "ok", aileler: [...AILELER],
                       derleyici: !!(env.DERLEYICI || env.DERLEYICI_URL) }, 200, env);
       }
+      // Ops/olcum: container'i kapat (kapi-1 soguk baslatma olcumu tekrar edilebilsin).
+      // KAPAT_ANAHTAR secret'i ayarli degilse uc HIC YOKMUS gibi davranir (404).
+      if (yol === "/derleyici-kapat" && request.method === "POST") {
+        if (!env.KAPAT_ANAHTAR ||
+            request.headers.get("X-Kapat-Anahtar") !== env.KAPAT_ANAHTAR) {
+          return json({ hata: "bulunamadi" }, 404, env);
+        }
+        if (!(env.DERLEYICI && typeof env.DERLEYICI.idFromName === "function")) {
+          return json({ hata: "derleyici-yok" }, 503, env);
+        }
+        const stub = env.DERLEYICI.get(env.DERLEYICI.idFromName("derleyici"));
+        const c = await stub.fetch("http://derleyici/kapat", { method: "POST" });
+        return json(await c.json(), c.status, env);
+      }
       return json({ hata: "bulunamadi" }, 404, env);
     } catch (e) {
       console.error("pruvo-onizleme hata:", (e && e.stack) || e);
