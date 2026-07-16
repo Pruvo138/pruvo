@@ -73,6 +73,12 @@ Bunlar BİZİM üreteçlerimiz (pruvo-jenerator, tedarikçi kodu değil) — eş
    sapmayla rapora — düzeltme turu ayrı iş. Çıktı: aile başına sapma tablosu (rapor +
    DEVAM.md) + nihai aile listesi.
 
+### E) Önizleme model rengi: gri → parlak sarı (Okan kararı, 16 Tem gece)
+`jenerator/viewer.js` model rengi sarı seri kimliğine çekilir: parlak sarı (sitedeki sarı
+rozet rengiyle uyumlu ton mühendis seçer). Flat shading'de saf sarının yüzey detayını
+yutmamasına dikkat (gölgeleme/kontrast okunur kalsın; zemin rengiyle çakışmasın).
+Kanıt: en az bir pilot ürün sayfasında ekran görüntüsü (rapora).
+
 ## Sır hijyeni (ihlali paket reddi sebebi)
 - `eslem-ozel.json` gitignore'lu kalır; kanonik kopya R2 `pruvo-ozel` özel bucket'ında.
 - Üretim motoru tedarikçi/üyelik adı HİÇBİR public dosyada, commit mesajında, test
