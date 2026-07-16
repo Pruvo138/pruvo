@@ -61,6 +61,15 @@
    status:failure döndürt → D1'de 'incele' + uyarı bildirimi; paymentStatus=FAILURE →
    'basarisiz' (iki yol da ayrı test).
 
+8. **KDV AYRIŞTIRMASI (Okan, 16 Tem gece):** Fiyatlar KDV DAHİL kalır (tahsil edilen
+   tutar DEĞİŞMEZ — bu kalem yalnız gösterim + kayıt). Sepet/ödeme özetinde ve dönüş
+   sayfasında döküm: "Ara toplam (KDV hariç) + KDV (%X) + Genel toplam (KDV dahil)".
+   Hesap: net = brüt / (1 + oran), KDV = brüt − net; kuruşta, yuvarlama farkı toplamı
+   BOZAMAZ (net + KDV = brüt birebir — fark çıkarsa KDV kalemine yedirilir). Kargo dahil
+   genel toplam üzerinden tek döküm. Oran TEK yerden config (varsayılan %20 — Okan
+   teyidi bekleniyor, değişirse tek satır). D1 siparişe kdv_kurus kolonu (fatura için).
+   Test: brüt 325,00 → net 270,83 + KDV 54,17 (toplam birebir 325,00); kargolu senaryo.
+
 ## Kabul testleri (mimar koşacak)
 1. `node shop/test/kabul.js` → mevcut testler yeşil + YENİ kargo testleri:
    a) ürün toplamı 2.499,99 TL → kargo 250,00 TL, tahsilat = 2.749,99 TL (kuruş birebir);
