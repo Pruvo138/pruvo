@@ -279,8 +279,10 @@ def _teslimat_iade():
         "<li>Ürünler talep üzerine üretildiğinden teslim süresi üretim + kargo süresini "
         "kapsar; genellikle <strong>%s</strong> içindedir. Özel/karmaşık işlerde süre "
         "sipariş sırasında bildirilir.</li>"
-        "<li>Gönderiler <strong>%s</strong> ile yapılır. Kargo ücreti ve varsa ücretsiz "
-        "kargo koşulu sipariş onayında belirtilir.</li>"
+        # Kargo metni ACIK KURAL olarak yazilir (mimar karari, 16 Tem; Okan kurali —
+        # tutarlar secenekler.js kargoKurus ile birebir, degisirse burasi da guncellenir).
+        "<li>Gönderiler <strong>%s</strong> ile yapılır. 2.500 TL altındaki siparişlerde "
+        "kargo ücreti 250 TL'dir; 2.500 TL ve üzeri siparişlerde kargo ücretsizdir.</li>"
         "<li>Teslimatta pakedi kontrol edin; hasarlıysa tutanak tutturup teslim almayın "
         "ve bizimle iletişime geçin.</li>"
         "</ul>"

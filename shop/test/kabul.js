@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * PRUVO shop KABUL TESTLERI (tools/paket-shop-odeme.md, 7 madde).
+ * PRUVO shop KABUL TESTLERI (tools/paket-shop-odeme.md 7 madde + tools/paket-shop-kargo.md:
+ * 10 kargo, 11 retrieve-incele, 12 siparis numarasi, 13 havale/eft, 14 kdv, 15 sozlesme onayi).
  *
  *   node shop/test/kabul.js             # 1,2,3,4m,5,6,7 — mock iyzico + YEREL D1 + gercek worker
  *   node shop/test/kabul.js --sandbox   # 4  — GERCEK iyzico sandbox'i (shop/.dev.vars anahtarlari)
@@ -29,11 +30,24 @@ const path = require("node:path");
 
 const SHOP = path.dirname(__dirname);            // .../shop
 const KOK = path.dirname(SHOP);                  // repo koku
-const WORKER_PORT = 8799;
-const MOCK_PORT = 8798;
+// Portlar env ile ezilebilir: ayni makinede ESZAMANLI iki oturum/worktree kabul testi
+// kosarsa (16 Tem'de yasandi) varsayilan portlar cakisir — EADDRINUSE.
+const WORKER_PORT = Number(process.env.KABUL_WORKER_PORT || 8799);
+const MOCK_PORT = Number(process.env.KABUL_MOCK_PORT || 8798);
 const WORKER_UC = "http://127.0.0.1:" + WORKER_PORT + "/api/shop";
 const TEST_API_KEY = "test-api-key";
 const TEST_SECRET = "test-secret-key";
+// Havale/EFT (paket-shop-kargo.md kalem 6): IBAN+unvan TEK yerden (worker env/secret).
+// Gercek degerler deploy'da girilir; testte sahte degerler --var ile verilir.
+const TEST_IBAN = "TR000000000000000000000001";
+const TEST_UNVAN = "TEST UNVAN LTD. STI.";
+// KDV (kalem 8, Okan KESIN %20): beklentiler SPEC'ten SABIT — oran yanlis degistirilirse
+// test yakalasin. net = brut/(1+oran) kurusta; net+KDV=brut BIREBIR (fark KDV'ye yedirilir).
+const KDV_YUZDE_SPEC = 20;
+function specKdv(brutKurus) {
+  const net = Math.round(brutKurus * 100 / (100 + KDV_YUZDE_SPEC));
+  return { net: net, kdv: brutKurus - net };
+}
 
 const SANDBOX = process.argv.includes("--sandbox");
 const PARITESIZ = process.argv.includes("--paritesiz");
@@ -256,7 +270,9 @@ function d1Kur() {
     "('test-kargo-2346','h8',8,'Test Kargo 2346 TL','Ev','[]','2.346 TL',0,''), " +
     "('test-kargo-2500','h9',9,'Test Kargo 2500 TL','Ev','[]','2.500 TL',0,''), " +
     "('test-kargo-99','h10',10,'Test Kargo 99 TL','Ev','[]','99 TL',0,''), " +
-    "('test-kargo-2352','h11',11,'Test Kargo 2352 TL','Ev','[]','2.352 TL',0,'');"
+    "('test-kargo-2352','h11',11,'Test Kargo 2352 TL','Ev','[]','2.352 TL',0,''), " +
+    // test 14 (KDV) spec ornegi: 75 PLA + kargo 250 = brut 325,00 -> net 270,83 + KDV 54,17
+    "('test-kdv-75','h12',12,'Test KDV 75 TL','Ev','[]','75 TL',0,'');"
   );
 }
 
@@ -273,17 +289,25 @@ async function workerBaslat(ekstraVar) {
   // Saglik yoklamasi: bilinmeyen uc -> 404 JSON. Worker AYAKTA ama secenekler.js import'u
   // patlamissa fetch() 500 doner (modul yuklenemez) — o yuzden 404 bekleniyor, "cevap veriyor"
   // degil: bozuk bundle'i ayakta sanip testleri anlamsiz hatalarla dusurmesin.
+  // 404 govdesi de dogrulanir ("bulunamadi"): port BASKA bir surecte kaldiysa (16 Tem'de
+  // yasandi — ayni portta yabanci bir python sunucusu vardi) onun 404'u worker sanilip
+  // tum testler anlamsiz 404'le dusuyordu; simdi erken ve anlasilir patlar.
   for (let i = 0; i < 120; i++) {
     await bekle(1000);
     try {
       const r = await istekHam("GET", WORKER_UC + "/_saglik");
-      if (r.kod === 404) { return; }
+      if (r.kod === 404 && r.metin.includes("bulunamadi")) { return; }
+      if (r.kod === 404) {
+        throw new Error("port " + WORKER_PORT + " BASKA bir surecte (404 govdesi worker'in " +
+          "degil: " + r.metin.slice(0, 120) + ") — KABUL_WORKER_PORT ile bos port sec");
+      }
       if (r.kod === 500) {
         throw new Error("worker ayakta ama modul yuklenemiyor (secenekler.js import?):\n" +
           workerLog.slice(-2000));
       }
     } catch (e) {
-      if (String(e.message).includes("modul yuklenemiyor")) { throw e; }
+      if (String(e.message).includes("modul yuklenemiyor") ||
+          String(e.message).includes("BASKA bir surecte")) { throw e; }
     }
     if (workerSurec.exitCode !== null) { break; }
   }
@@ -299,8 +323,11 @@ const MUSTERI = { ad: "Test Musteri", tel: "05321234567", eposta: "test@pruvo3d.
   adres: "Test Mah. Deneme Sok. No:1 D:2", sehir: "Mugla", tckn: "" };
 
 async function baslatIstek(sepet, ekstra) {
+  // sozlesme_onay varsayilan TRUE (kalem 9 sunucu zorunlulugu — tum eski testler onayli
+  // musteri gibi davranir); onaysiz senaryo icin ekstra={sozlesme_onay: undefined} gecilir
+  // (JSON.stringify undefined alani atar -> alan hic gitmez).
   return istekJson("POST", WORKER_UC + "/baslat",
-    Object.assign({ musteri: MUSTERI, sepet }, ekstra || {}));
+    Object.assign({ musteri: MUSTERI, sepet, sozlesme_onay: true }, ekstra || {}));
 }
 async function donusIstek(token) {
   return istekHam("POST", WORKER_UC + "/donus",
@@ -682,6 +709,237 @@ async function test11RetrieveHatasi() {
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
+/** 12 — SIPARIS NUMARASI (kalem 5, zorunlu tum siparislerde): Ege/Sheet ailesiyle ayni
+ *  desen PR-yyMMdd-HHmmss + ayni-saniye carpismasina karsi kisa sonek; sunucuda uretilir,
+ *  iyzico conversationId/basketId ile eslesir, musteri donusunde ve Telegram'da gorunur. */
+async function test12SiparisNo() {
+  const hatalar = [];
+  const FORMAT = /^PR-[0-9]{6}-[0-9]{6}-[A-Z0-9]{3,6}$/;
+
+  // Ayni saniyede iki siparis -> iki FARKLI numara (carpisma testi)
+  const [c1, c2] = await Promise.all([
+    baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }]),
+    baslatIstek([{ id: "test-urun-100", malzeme: "PETG", renk: "Siyah", adet: 1 }]),
+  ]);
+  const n1 = (c1.govde || {}).no || "", n2 = (c2.govde || {}).no || "";
+  if (!FORMAT.test(n1) || !FORMAT.test(n2)) {
+    hatalar.push("format: '" + n1 + "' / '" + n2 + "' (beklenen PR-yyMMdd-HHmmss-SONEK)");
+  }
+  if (!n1 || n1 === n2) { hatalar.push("ayni saniyede AYNI numara: " + n1); }
+
+  // conversationId + basketId eslesmesi — sirali tek istek (sonInit kesin bu siparisin)
+  const c3 = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const n3 = (c3.govde || {}).no || "";
+  const i3 = (await mockOku()).sonInit || {};
+  if (!n3 || i3.conversationId !== n3 || i3.basketId !== n3) {
+    hatalar.push("conversationId/basketId eslesmesi: no=" + n3 + " conv=" + i3.conversationId +
+      " basket=" + i3.basketId);
+  }
+
+  // Musteri donus sayfasi (siparis=ok&no=...) + Telegram bildiriminde numara
+  const t3 = (await mockOku()).sonToken;
+  const d3 = await donusIstek(t3);
+  await bekle(300);   // telegram ctx.waitUntil ile gider
+  const m3 = await mockOku();
+  const tgMetin = String((m3.sonTelegram || {}).text || "");
+  if (d3.kod !== 303 || d3.yer.indexOf("no=" + encodeURIComponent(n3)) === -1) {
+    hatalar.push("donus sayfasinda numara yok: " + d3.kod + " -> " + d3.yer);
+  }
+  if (tgMetin.indexOf(n3) === -1) {
+    hatalar.push("telegram bildiriminde numara yok: " + tgMetin.slice(0, 100));
+  }
+
+  rapor("12 siparis numarasi", hatalar.length === 0,
+    "ayni saniye: " + n1 + " / " + n2 + "; conversationId eslesti (" + n3 +
+    "); donus=" + d3.yer +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 13 — HAVALE/EFT (kalem 6): siparis D1'e 'havale-bekliyor' + dogru kargo + dogru toplam;
+ *  musteri ekranindaki TAM tutar = D1'deki tahsilat (tutar_kurus + kargo_kurus) BIREBIR;
+ *  iyzico oturumu ACILMAZ; Telegram'a "HAVALE BEKLENIYOR" duser ama 'odeme geldi' DEMEZ;
+ *  durum istemciden DEGISTIRILEMEZ (negatif); onay = KURULUM.md'deki wrangler komutu. */
+async function test13Havale() {
+  const hatalar = [];
+  const once = await mockOku();
+
+  // urun 100,00 TL -> kargo kurali havalede de AYNEN: +250,00 -> odenecek TAM tutar 350,00
+  const c = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1,
+    tutar: 1 }], { odeme: "havale", tutar: 1, toplam: 1 });
+  const g = c.govde || {};
+  if (c.kod !== 200 || g.havale !== true || g.url) {
+    hatalar.push("havale cevabi: " + c.kod + " " + JSON.stringify(g).slice(0, 160) +
+      " (havale:true beklenir, iyzico url'i BEKLENMEZ)");
+  }
+  if (g.iban !== TEST_IBAN || g.unvan !== TEST_UNVAN) {
+    hatalar.push("iban/unvan tek kaynaktan gelmedi: " + g.iban + " / " + g.unvan);
+  }
+  if (g.tutar_kurus !== 35000 || g.tutar !== "350,00 TL") {
+    hatalar.push("musteri ekrani tutari: " + g.tutar_kurus + " / " + g.tutar +
+      " (olmasi gereken 35000 / 350,00 TL — kargo dahil TAM tutar)");
+  }
+
+  const satir = g.no ? d1Sorgu("SELECT durum, tutar_kurus, kargo_kurus, odeme_yontemi, token " +
+    "FROM siparisler WHERE siparis_no = '" + g.no + "'")[0] : null;
+  if (!satir || satir.durum !== "havale-bekliyor" || satir.odeme_yontemi !== "havale") {
+    hatalar.push("D1 durumu: " + JSON.stringify(satir || null) + " (havale-bekliyor olmali)");
+  }
+  // Konvansiyon (devir notu): tutar_kurus = URUN toplami, kargo ayri; tahsilat = toplam.
+  if (satir && (satir.tutar_kurus !== 10000 || satir.kargo_kurus !== 25000)) {
+    hatalar.push("D1 tutar/kargo: " + JSON.stringify(satir) + " (10000/25000 olmali)");
+  }
+  if (satir && g.tutar_kurus !== satir.tutar_kurus + satir.kargo_kurus) {
+    hatalar.push("EKRAN != D1 tahsilati: " + g.tutar_kurus + " != " +
+      (satir.tutar_kurus + satir.kargo_kurus));
+  }
+
+  await bekle(300);
+  const m = await mockOku();
+  if (m.initSayisi !== once.initSayisi) {
+    hatalar.push("havalede iyzico oturumu ACILDI (" + once.initSayisi + "->" + m.initSayisi + ")");
+  }
+  const tg = String((m.sonTelegram || {}).text || "");
+  if (m.telegramSayisi === once.telegramSayisi || tg.indexOf("HAVALE BEKLENIYOR") === -1 ||
+      tg.indexOf(g.no || "YOK") === -1 || tg.indexOf("350,00 TL") === -1) {
+    hatalar.push("telegram HAVALE bildirimi eksik/yanlis: " + tg.slice(0, 140));
+  }
+  if (/odendi|YENI SIPARIS/i.test(tg)) {
+    hatalar.push("para gorulmeden 'odeme geldi' tonunda bildirim atildi: " + tg.slice(0, 100));
+  }
+
+  // NEGATIF: istemcinin erisebildigi hicbir uc havale siparisini 'odendi' YAPAMAZ.
+  // (Havale satirinin token'i NULL -> /donus onu hicbir token'la bulamaz; uydurma token 404.)
+  const neg = await donusIstek("uydurma-havale-onay-denemesi");
+  const s2 = g.no ? d1Sorgu("SELECT durum FROM siparisler WHERE siparis_no = '" + g.no + "'")[0]
+    : null;
+  const m2 = await mockOku();
+  if (neg.kod !== 404 || !s2 || s2.durum !== "havale-bekliyor") {
+    hatalar.push("negatif test: donus=" + neg.kod + " durum=" + JSON.stringify(s2) +
+      " (404 / havale-bekliyor kalmali)");
+  }
+  if (m2.telegramSayisi !== m.telegramSayisi) { hatalar.push("negatif test: ek bildirim atildi"); }
+
+  // ONAY YOLU: shop/KURULUM.md'de belgelenen wrangler d1 komutunun SQL'i (Okan dekontu
+  // gorunce) — durum ancak BU yoldan 'odendi' olur.
+  wranglerD1("UPDATE siparisler SET durum='odendi' " +
+    "WHERE siparis_no='" + g.no + "' AND durum='havale-bekliyor'");
+  const s3 = g.no ? d1Sorgu("SELECT durum FROM siparisler WHERE siparis_no = '" + g.no + "'")[0]
+    : null;
+  if (!s3 || s3.durum !== "odendi") {
+    hatalar.push("onay komutu calismadi: " + JSON.stringify(s3));
+  }
+
+  rapor("13 havale/eft", hatalar.length === 0,
+    "no=" + (g.no || "?") + " ekran=" + g.tutar + " D1=" + JSON.stringify(satir || null) +
+    "; iyzico oturumu acilmadi; telegram=HAVALE BEKLENIYOR; negatif=degistirilemedi; " +
+    "onay komutu -> odendi" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 14 — KDV AYRISTIRMASI (kalem 8; Okan KESIN %20). Tahsilat DEGISMEZ — yalniz dokum +
+ *  kayit. net = brut/(1+oran) kurusta; net + KDV = brut BIREBIR (fark KDV'ye yedirilir);
+ *  dokum KARGO DAHIL genel toplam uzerinden. D1'e kdv_kurus; donus sayfasina dokum. */
+async function test14Kdv() {
+  const hatalar = [];
+
+  // (a) SPEC ornegi: 75 PLA (7500) + kargo 25000 = brut 32500 -> net 27083 + KDV 5417.
+  const bek = specKdv(32500);
+  if (bek.net !== 27083 || bek.kdv !== 5417) {
+    hatalar.push("spec ornegi hesap: " + JSON.stringify(bek) + " (27083/5417 olmali)");
+  }
+  const ca = await baslatIstek([{ id: "test-kdv-75", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const ia = ca.kod === 200 ? (await mockOku()).sonInit : null;
+  if (!ia || ia.price !== "325.00") {
+    hatalar.push("tahsilat degisti: " + (ia ? ia.price : "HATA/" + ca.kod) +
+      " (325.00 kalmali — KDV yalniz dokum)");
+  }
+  const da = (ca.govde || {}).no ? d1Sorgu("SELECT tutar_kurus, kargo_kurus, kdv_kurus " +
+    "FROM siparisler WHERE siparis_no = '" + ca.govde.no + "'")[0] : null;
+  if (!da || da.kdv_kurus !== 5417) {
+    hatalar.push("D1 kdv_kurus: " + JSON.stringify(da || null) + " (5417 olmali)");
+  }
+  if (da && da.tutar_kurus + da.kargo_kurus !== 32500) {
+    hatalar.push("D1 brut bozuldu: " + JSON.stringify(da));
+  }
+
+  // Donus sayfasi dokumu: yonlendirmede tutar+kdv paramlari (istemci dokumu bunlardan basar).
+  const ta = (await mockOku()).sonToken;
+  const dn = await donusIstek(ta);
+  if (dn.kod !== 303 || dn.yer.indexOf("t=32500") === -1 || dn.yer.indexOf("kdv=5417") === -1) {
+    hatalar.push("donus dokum paramlari yok: " + dn.yer);
+  }
+
+  // (b) kargosuz senaryo: 2.500,00 (tam esik, kargo 0) -> net 208333 + KDV 41667 = 250000.
+  const cb = await baslatIstek([{ id: "test-kargo-2500", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const db = (cb.govde || {}).no ? d1Sorgu("SELECT tutar_kurus, kargo_kurus, kdv_kurus " +
+    "FROM siparisler WHERE siparis_no = '" + cb.govde.no + "'")[0] : null;
+  const bekB = specKdv(250000);
+  if (!db || db.kdv_kurus !== bekB.kdv || db.tutar_kurus + db.kargo_kurus !== 250000) {
+    hatalar.push("kargosuz: " + JSON.stringify(db || null) + " (kdv " + bekB.kdv + " olmali)");
+  }
+
+  // (c) havale cevabinda dokum alanlari (musteri ekrani ayni rakamlari gosterir)
+  const cc = await baslatIstek([{ id: "test-kdv-75", malzeme: "PLA", renk: "Siyah", adet: 1 }],
+    { odeme: "havale" });
+  const gc = cc.govde || {};
+  if (gc.kdv_kurus !== 5417 || gc.net_kurus !== 27083) {
+    hatalar.push("havale cevabi dokum: kdv=" + gc.kdv_kurus + " net=" + gc.net_kurus +
+      " (5417/27083 olmali)");
+  }
+
+  rapor("14 kdv ayristirmasi", hatalar.length === 0,
+    "325,00 brut -> D1 " + JSON.stringify(da || null) + " (net+kdv=brut birebir); " +
+    "donus paramlari: " + (dn ? dn.yer.split("?")[1] : "?") + "; kargosuz kdv=" +
+    ((db || {}).kdv_kurus) + "; havale dokumu net=" + gc.net_kurus + "/kdv=" + gc.kdv_kurus +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 15 — SOZLESME ONAYI (kalem 9, yasal): /baslat'ta onay alani yoksa 400 (sunucu zorunlu,
+ *  istemci kutusu yetmez); onayli istekte D1'e sozlesme_onay ZAMAN DAMGASI (ispat kaydi).
+ *  Kart VE havale ayni /baslat'tan gectigi icin denetim ikisini de kapsar. */
+async function test15SozlesmeOnayi() {
+  const hatalar = [];
+  const onceInit = (await mockOku()).initSayisi;
+  const onceSiparis = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
+
+  // Onaysiz (alan hic yok) -> 400; siparis olusmaz, iyzico oturumu acilmaz.
+  const c1 = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }],
+    { sozlesme_onay: undefined });
+  // 'true' disinda her deger de RED (istemci kodu bozulursa sessizce onayli sayilmasin).
+  const c2 = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }],
+    { sozlesme_onay: "evet" });
+  const sonraInit = (await mockOku()).initSayisi;
+  const sonraSiparis = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
+  if (c1.kod !== 400 || c1.govde.hata !== "sozlesme-onay-yok") {
+    hatalar.push("onaysiz istek: " + c1.kod + "/" + c1.govde.hata + " (400/sozlesme-onay-yok olmali)");
+  }
+  if (c2.kod !== 400) { hatalar.push("onay='evet' (true degil): " + c2.kod + " (400 olmali)"); }
+  if (sonraInit !== onceInit || sonraSiparis !== onceSiparis) {
+    hatalar.push("onaysiz istekte iyzico/siparis olustu (" + onceInit + "->" + sonraInit +
+      ", " + onceSiparis + "->" + sonraSiparis + ")");
+  }
+
+  // Onayli (kart) -> D1'de ISO zaman damgasi. Havale yolu icin de ayni kolon (test 13 kaydi).
+  const c3 = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const s3 = (c3.govde || {}).no ? d1Sorgu("SELECT sozlesme_onay FROM siparisler " +
+    "WHERE siparis_no = '" + c3.govde.no + "'")[0] : null;
+  const DAMGA = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+  if (!s3 || !DAMGA.test(String(s3.sozlesme_onay || ""))) {
+    hatalar.push("onayli istekte damga yok: " + JSON.stringify(s3 || null));
+  }
+  const sHavale = d1Sorgu("SELECT sozlesme_onay FROM siparisler WHERE odeme_yontemi='havale' " +
+    "ORDER BY id DESC LIMIT 1")[0];
+  if (!sHavale || !DAMGA.test(String(sHavale.sozlesme_onay || ""))) {
+    hatalar.push("havale siparisinde damga yok: " + JSON.stringify(sHavale || null));
+  }
+
+  rapor("15 sozlesme onayi", hatalar.length === 0,
+    "onaysiz=" + c1.kod + "/" + (c1.govde || {}).hata + ", 'evet'=" + c2.kod +
+    " (siparis/iyzico olusmadi); onayli damga=" + JSON.stringify((s3 || {}).sozlesme_onay) +
+    "; havale damga=" + JSON.stringify((sHavale || {}).sozlesme_onay) +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
 async function test5Parametrik() {
   const onceInit = (await mockOku()).initSayisi;
   const onceSiparis = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
@@ -842,6 +1100,9 @@ async function main() {
     TELEGRAM_API: "http://127.0.0.1:" + MOCK_PORT,
     TELEGRAM_TOKEN: "0000:test",
     SITE_URL: "https://pruvo3d.com",
+    // Havale/EFT (test 13): canlida wrangler secret'tan gelir, testte sahte deger.
+    HAVALE_IBAN: TEST_IBAN,
+    HAVALE_UNVAN: TEST_UNVAN,
   });
 
   try {
@@ -856,6 +1117,10 @@ async function main() {
     await test8KatsayiDogrulugu();
     await test10Kargo();
     await test11RetrieveHatasi();
+    await test12SiparisNo();
+    await test13Havale();
+    await test14Kdv();
+    await test15SozlesmeOnayi();
     await test5Parametrik();
     await test9ParametrikAltyapi();
     test6SirTaramasi();

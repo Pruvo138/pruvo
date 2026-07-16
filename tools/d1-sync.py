@@ -142,10 +142,13 @@ GOC_KOLON = [
     ("hs_govde_kok", "TEXT NOT NULL DEFAULT ''"),
 ]
 
-# siparisler icin ayni mekanizma (shop kargo paketi): DEFAULT 0 -> eski siparis satirlari
-# bozulmadan 0 kargo ile kalir (o siparislerde kargo tahsil edilmedi).
+# siparisler icin ayni mekanizma (shop kargo paketi): DEFAULT'lu ekleme -> eski siparis
+# satirlari bozulmaz (kargo/KDV tahsil edilmedi, onay kutusu yoktu, hepsi kartti).
 GOC_KOLON_SIPARIS = [
     ("kargo_kurus", "INTEGER NOT NULL DEFAULT 0"),
+    ("kdv_kurus", "INTEGER NOT NULL DEFAULT 0"),
+    ("odeme_yontemi", "TEXT NOT NULL DEFAULT 'kart'"),
+    ("sozlesme_onay", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 # Yazilan kolonlar (id disinda hepsi ON CONFLICT'te guncellenir).

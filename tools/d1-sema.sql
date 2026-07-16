@@ -79,15 +79,19 @@ CREATE TABLE IF NOT EXISTS senkron (
   deger   TEXT NOT NULL
 );
 
--- SHOP — self-servis siparisler (shop/ worker'i yazar; is paketi tools/paket-shop-odeme.md).
+-- SHOP — self-servis siparisler (shop/ worker'i yazar; is paketleri tools/paket-shop-odeme.md
+-- + tools/paket-shop-kargo.md).
 -- Katalog senkronundan BAGIMSIZ: d1-sync.py bu tabloya dokunmaz, urun silinse de siparis kalir.
--- durum akisi: bekliyor -> odendi | basarisiz | incele
---   'odendi'  SADECE iyzico retrieve dogrulamasindan gecince (worker /donus)
---   'incele'  odeme iyzico'da basarili AMA tutar/kimlik bizim kayitla uyusmadi (elle bak)
+-- durum akisi: bekliyor -> odendi | basarisiz | incele ; havale-bekliyor -> odendi
+--   'odendi'          kartta SADECE iyzico retrieve dogrulamasindan gecince (worker /donus);
+--                     havalede SADECE elle onay (shop/KURULUM.md'deki wrangler komutu — Okan
+--                     dekontu gorunce). Istemciden degistirilebilen uc YOKTUR.
+--   'incele'          retrieve altyapi hatasi VEYA tutar/kimlik uyusmazligi (elle bak)
+--   'havale-bekliyor' musteri Havale/EFT secti; para HENUZ gorulmedi, uretim BASLAMAZ
 CREATE TABLE IF NOT EXISTS siparisler (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  siparis_no      TEXT NOT NULL UNIQUE,   -- SP... (conversationId/basketId olarak iyzico'ya gider)
-  token           TEXT UNIQUE,            -- iyzico checkout form token — idempotens anahtari
+  siparis_no      TEXT NOT NULL UNIQUE,   -- PR-yyMMdd-HHmmss-XXX (conversationId/basketId olarak iyzico'ya gider)
+  token           TEXT UNIQUE,            -- iyzico checkout form token — idempotens anahtari (havalede NULL)
   tarih           TEXT NOT NULL,          -- ISO 8601 UTC
   durum           TEXT NOT NULL DEFAULT 'bekliyor',
   -- Para KURUS tamsayisinda saklanir: katsayi kusurati aynen korunur (Okan, 16 Tem — yuvarlama
@@ -100,6 +104,14 @@ CREATE TABLE IF NOT EXISTS siparisler (
   -- DIKKAT: tablo canlida zaten kuruluysa CREATE atlanir; kolonu d1-sync.py --sema
   -- ALTER ile tamamlar (kolon_goc — urunler'deki FAZ 2 gocuyle ayni mekanizma).
   kargo_kurus     INTEGER NOT NULL DEFAULT 0,
+  -- KDV (Okan KESIN %20, 16 Tem gece): fiyatlar KDV DAHIL, tahsilat degismez — bu kolon
+  -- fatura/kayit icin dokumdur: kdv_kurus = brut(tutar+kargo) - round(brut*100/120).
+  -- Oran tek kaynak /secenekler.js KDV_YUZDE. Eski satirlarda 0 kalir (dokum yoktu).
+  kdv_kurus       INTEGER NOT NULL DEFAULT 0,
+  odeme_yontemi   TEXT NOT NULL DEFAULT 'kart',  -- 'kart' (iyzico) | 'havale'
+  -- Sozlesme onayi ISPAT KAYDI (kalem 9): /baslat'ta onay yoksa 400; onay aninin ISO
+  -- damgasi. Eski satirlarda '' (o siparisler onay kutusu oncesi).
+  sozlesme_onay   TEXT NOT NULL DEFAULT '',
   urunler         TEXT NOT NULL,          -- JSON [{id,baslik,filament,renk,adet,birim_kurus,tutar_kurus}]
   filament        TEXT NOT NULL DEFAULT '',
   renk            TEXT NOT NULL DEFAULT '',

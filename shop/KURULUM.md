@@ -1,9 +1,23 @@
-# pruvo-shop — kurulum ve canliya gecis (is paketi: tools/paket-shop-odeme.md)
+# pruvo-shop — kurulum ve canliya gecis (is paketleri: tools/paket-shop-odeme.md + tools/paket-shop-kargo.md)
 
 Self-servis satin alma worker'i: urun sayfasinda filament+renk+adet -> localStorage sepet ->
-`/api/shop/baslat` (fiyat D1'den, iyzico Checkout Form initialize) -> musteri iyzico'nun
-HOSTED sayfasinda oder (kart bilgisi SITEDE ASLA girilmez) -> iyzico `/api/shop/donus`a
-token POST'lar -> worker `retrieve` ile SUNUCUDA dogrular -> D1 `siparisler` + Telegram.
+`/api/shop/baslat` (fiyat + kargo + KDV dokumu D1'den/sunucuda; zorunlu sozlesme onayi) ->
+KART: iyzico Checkout Form (HOSTED sayfa; kart bilgisi SITEDE ASLA girilmez) -> iyzico
+`/api/shop/donus`a token POST'lar -> worker `retrieve` ile SUNUCUDA dogrular -> D1
+`siparisler` + Telegram. HAVALE/EFT: iyzico'ya gidilmez; siparis 'havale-bekliyor' +
+musteriye IBAN/unvan/TAM tutar ekrani + Telegram "HAVALE BEKLENIYOR".
+
+## Havale/EFT onayi (tek guvenli yol — panel YOK)
+
+Para iyzico'dan gecmedigi icin otomatik dogrulama yok; Okan dekontu/hesabi gorunce mimar:
+
+    npx wrangler d1 execute pruvo-katalog --remote --command \
+      "UPDATE siparisler SET durum='odendi' WHERE siparis_no='PR-...' AND durum='havale-bekliyor'"
+
+Istemciden erisilebilen HICBIR uc durumu degistiremez (havale satirinin `token`'i NULL —
+`/donus` onu hicbir token'la bulamaz; kabul testi 13'un negatif adimi). `durum='havale-bekliyor'`
+kosulu yanlis siparisi ezmeyi onler; komut 0 satir degistirdiyse numarayi kontrol et.
+Siparis 'odendi' ISARETLENMEDEN uretim baslamaz, "odeme geldi" bildirimi atilmaz.
 
 ## Dosyalar
 
@@ -14,14 +28,18 @@ token POST'lar -> worker `retrieve` ile SUNUCUDA dogrular -> D1 `siparisler` + T
 - `src/iyzico.js`     — IYZWSv2 (HMACSHA256) istemcisi: CF initialize + retrieve
 - `src/parametrik.js` — sari seri sunucu-tarafi yeniden hesabi (kanal kapali; asagida)
 - `src/semalar.js`    — parametrik sema haritasi (jenerator/urunler/*.json statik import)
-- `test/kabul.js`     — 11 kabul testi (asagida)
+- `test/kabul.js`     — 15 kabul testi (asagida; 10 kargo, 11 retrieve-incele,
+  12 siparis no, 13 havale/eft, 14 kdv, 15 sozlesme onayi)
 - `.dev.vars.example` — yerel/sandbox anahtar sablonu (gercekleri `.dev.vars`a, gitignore'da)
 
 ## Kabul testleri
 
-    node shop/test/kabul.js              # 1,2,3,4m,5,6,7,8,9,10,11 — mock iyzico + yerel D1
+    node shop/test/kabul.js              # 15 test — mock iyzico + yerel D1
     node shop/test/kabul.js --paritesiz  # 7'siz hizli tur
     node shop/test/kabul.js --sandbox    # 4: GERCEK sandbox uctan uca (anahtar + elle test karti)
+
+Ayni makinede baska bir oturum da kabul kosuyorsa portlar cakisir (EADDRINUSE) —
+`KABUL_WORKER_PORT` / `KABUL_MOCK_PORT` env degiskenleriyle ez.
 
 Not: 7 numarali parite testleri guncel `urunler.json` ister (canli D1 ile karsilastirir);
 bayat worktree kopyasiyla kirmizi yanar — ana repodan (guncel katalogla) kostur.
@@ -34,6 +52,8 @@ bayat worktree kopyasiyla kirmizi yanar — ana repodan (guncel katalogla) kostu
        npx wrangler secret put IYZICO_API_KEY      # sandbox-...
        npx wrangler secret put IYZICO_SECRET_KEY
        npx wrangler secret put TELEGRAM_TOKEN      # mevcut PRUVO botunun token'i — OKAN ONAYIYLA
+       npx wrangler secret put HAVALE_IBAN         # Okan verecek — girilmeden havale 503 kapali
+       npx wrangler secret put HAVALE_UNVAN        # alici unvani (Okan verecek)
 3. Worker:  `npx wrangler deploy`  (route: pruvo3d.com/api/shop/* — zone yetkisi ister)
 4. Site: index.html + build.py + secenekler.js degisiklikleri main'e girince Actions yayinlar
    (secenekler.js deploy.yml beyaz listesinde — 2eed40a; build.py onu repo kokunden okur).
@@ -66,8 +86,24 @@ bayat worktree kopyasiyla kirmizi yanar — ana repodan (guncel katalogla) kostu
   sepet paneli ve Worker ayni fonksiyonu okur, degistirmek icin sadece orayi duzenle
   (degisiklik yetkisi SADECE Okan'da). Worker kargoyu iyzico'ya AYRI kalem (`id: "gonderim"`)
   gecirir, D1 `siparisler.kargo_kurus` kolonuna yazar (tahsilat = tutar_kurus + kargo_kurus).
-  Istemciden gelen kargo/tutar alanlari OKUNMAZ (kabul testi 10). Canli tabloya kolonu
-  `python3 tools/d1-sync.py --sema` ekler (kolon_goc — deploy adimi 1 yeterli).
+  Istemciden gelen kargo/tutar alanlari OKUNMAZ (kabul testi 10). Canli tabloya kolonlari
+  (`kargo_kurus`, `kdv_kurus`, `odeme_yontemi`, `sozlesme_onay`) `python3 tools/d1-sync.py
+  --sema` ekler (kolon_goc — deploy adimi 1 yeterli; SIRA: once sema, sonra worker deploy,
+  tersi INSERT patlatir).
+- **SIPARIS NO (kalem 5):** `PR-yyMMdd-HHmmss-XXX` (Europe/Istanbul; XXX = ayni-saniye
+  carpismasina karsi rastgele sonek, 0/O-1/I'siz alfabe). Sunucuda uretilir; D1 UNIQUE +
+  INSERT oncesi on-kontrol. iyzico `conversationId`/`basketId` = siparis no; musteri donus
+  sayfasinda, havale ekraninda ve Telegram'da gorunur (kabul testi 12).
+- **KDV (kalem 8; Okan KESIN %20):** fiyatlar KDV DAHIL, tahsilat DEGISMEZ — dokum + kayit.
+  Oran TEK yerde: `secenekler.js` `KDV_YUZDE`; ayristirma `kdvAyristir` (net = brut/(1+oran)
+  kurusta, fark KDV'ye yedirilir -> net+KDV=brut BIREBIR). Dokum kargo dahil genel toplam
+  uzerinden: sepet paneli + havale ekrani + donus sayfasi (worker ok yonlendirmesine
+  t/kdv paramlari ekler). D1 `kdv_kurus` (fatura icin; kabul testi 14).
+- **SOZLESME ONAYI (kalem 9, yasal):** odeme adiminda (kart+havale) zorunlu kutu — linkler
+  MEVCUT yasal sayfalara (On Bilgilendirme -> /teslimat-iade/, Mesafeli Satis ->
+  /mesafeli-satis/; yeni sayfa yazilmadi). ASIL zorunluluk sunucuda: `/baslat`ta
+  `sozlesme_onay: true` yoksa 400 `sozlesme-onay-yok`; onay ani D1 `sozlesme_onay`
+  kolonuna ISO damgasiyla yazilir (ispat kaydi; kabul testi 15).
 - **Para TAMSAYI KURUSTA** (`hesaplaFiyatKurus`; D1 kolonu `tutar_kurus`, JSON alanlari
   `birim_kurus`/`tutar_kurus`). TL'de carpim yapilsa `333*1.30 = 432.90000000000003` gelir ve
   tutar sessizce kayar; iyzico'ya giden metin de tamsayidan uretilir (`kurusMetin` -> "432.90",

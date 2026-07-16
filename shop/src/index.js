@@ -2,9 +2,13 @@
  * pruvo-shop — self-servis satin alma worker'i.
  *
  * Uclar (site Cloudflare route'u: pruvo3d.com/api/shop/*):
- *   POST /api/shop/baslat   -> sepet + musteri -> D1'den fiyat, iyzico CF initialize -> {url, no}
+ *   POST /api/shop/baslat   -> sepet + musteri (+ zorunlu sozlesme_onay) -> D1'den fiyat +
+ *                              KARGO + KDV dokumu (sunucu hesabi),
+ *                              odeme:"kart" -> iyzico CF initialize -> {url, no}
+ *                              odeme:"havale" -> D1 'havale-bekliyor' + Telegram ->
+ *                              {havale:true, no, iban, unvan, tutar, kdv dokumu}
  *   POST /api/shop/donus    -> iyzico callback (token) -> retrieve DOGRULAMA -> siparis 'odendi'
- *                              + Telegram bildirimi + musteriyi siteye yonlendir
+ *                              + Telegram bildirimi + musteriyi siteye yonlendir (KDV dokumuyla)
  *
  * KIRMIZI CIZGILER (tools/paket-shop-odeme.md):
  *  - Fiyat SUNUCUDA hesaplanir: sepetteki id'lerin fiyati D1 `urunler`den okunur, katsayi
@@ -60,14 +64,43 @@ function kurusTL(kurus) {
   return kurusMetin(kurus).replace(".", ",") + " TL";
 }
 
+/** Siparis numarasi (kalem 5): Ege/Sheet akisiyla AYNI aile — PR-yyMMdd-HHmmss
+ *  (Europe/Istanbul saati) + ayni-saniye carpismasina karsi kisa rastgele sonek.
+ *  Musteriye gorunur (donus sayfasi, havale ekrani, Telegram); iyzico
+ *  conversationId/basketId ile eslesir. */
 function siparisNoUret() {
-  return "SP" + Date.now().toString(36).toUpperCase() +
-    Math.floor(1000 + Math.random() * 9000);
+  const p = {};
+  new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Istanbul", hourCycle: "h23",
+    year: "2-digit", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+  }).formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
+  // 0/O ve 1/I alfabede yok: numara telefonda/dekont aciklamasinda yanlis okunmasin.
+  const ABC = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let sonek = "";
+  for (let i = 0; i < 3; i++) { sonek += ABC[Math.floor(Math.random() * ABC.length)]; }
+  return "PR-" + p.year + p.month + p.day + "-" + p.hour + p.minute + p.second + "-" + sonek;
 }
 
-function yonlendir(env, sonuc, siparisNo) {
+/** Benzersiz numara: rastgele sonek carpismayi zaten kilar; yine de INSERT oncesi D1
+ *  on-kontrolu yapilir (kart akisinda numara once iyzico'ya conversationId olarak gider —
+ *  INSERT'te UNIQUE patlasa numara degistirilemezdi). UNIQUE kisiti son savunma olarak durur. */
+async function yeniSiparisNo(env) {
+  for (let i = 0; i < 5; i++) {
+    const no = siparisNoUret();
+    const varMi = await env.KATALOG.prepare(
+      "SELECT 1 AS v FROM siparisler WHERE siparis_no = ?").bind(no).first();
+    if (!varMi) { return no; }
+  }
+  throw new Error("siparis numarasi uretilemedi (ust uste carpisma)");
+}
+
+function yonlendir(env, sonuc, siparisNo, dokum) {
+  // dokum (kalem 8, yalniz 'ok' donusunde): t=tahsilat kurus, kdv=kdv kurus — musteri donus
+  // sayfasi KDV dokumunu bunlardan basar. Gosterim amaclidir; tahsilat coktan yapilmistir.
   const hedef = env.SITE_URL + "/?siparis=" + sonuc +
-    (siparisNo ? "&no=" + encodeURIComponent(siparisNo) : "");
+    (siparisNo ? "&no=" + encodeURIComponent(siparisNo) : "") +
+    (dokum ? "&t=" + dokum.tahsilatKurus + "&kdv=" + dokum.kdvKurus : "");
   return new Response(null, { status: 303, headers: { "Location": hedef } });
 }
 
@@ -78,10 +111,20 @@ function metin(v, enAz, enCok) {
   return s.length >= enAz && s.length <= enCok ? s : null;
 }
 
-/** Istek govdesini dogrula; hata varsa {hata}, yoksa {musteri, kalemler}. Istemciden gelen
- *  tutar/fiyat alanlari BILEREK okunmaz. */
+/** Istek govdesini dogrula; hata varsa {hata}, yoksa {musteri, kalemler, odeme}. Istemciden
+ *  gelen tutar/fiyat/kargo alanlari BILEREK okunmaz. */
 function istekCoz(govde) {
   if (!govde || typeof govde !== "object") return { hata: "gecersiz-istek" };
+
+  // SOZLESME ONAYI (kalem 9, yasal): istemci kutusunun isaretli olmasi YETMEZ — sunucu
+  // /baslat'ta onay alanini sart kosar. true disindaki her deger red (istemci kodu
+  // bozulursa sessizce onayli sayilmasin); onay ani D1'e damgalanir (ispat kaydi).
+  if (govde.sozlesme_onay !== true) return { hata: "sozlesme-onay-yok" };
+
+  // Odeme yontemi: 'kart' (varsayilan, iyzico) | 'havale'. Bilinmeyen deger sessizce karta
+  // dusurulmez — istemci kodu bozulduysa yanlis kanaldan tahsilat yapilmasin.
+  const odeme = govde.odeme == null ? "kart" : govde.odeme;
+  if (odeme !== "kart" && odeme !== "havale") return { hata: "gecersiz-odeme" };
 
   const m = govde.musteri || {};
   const ad = metin(m.ad, 3, 120);
@@ -130,12 +173,12 @@ function istekCoz(govde) {
     kalemler.push({ id, malzeme, renk, renk_ozel: renk_ozel || "", boy_etiket: null, adet,
                     parametreler });
   }
-  return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler };
+  return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler, odeme };
 }
 
 // ---------------------------------------------------------------- /baslat
 
-async function baslat(request, env, url) {
+async function baslat(request, env, url, ctx) {
   let govde;
   try {
     govde = await request.json();
@@ -144,7 +187,7 @@ async function baslat(request, env, url) {
   }
   const c = istekCoz(govde);
   if (c.hata) return json(c, 400, env);
-  const { musteri, kalemler } = c;
+  const { musteri, kalemler, odeme } = c;
 
   // FIYAT SUNUCUDA: sepetteki id'lerin guncel kaydi D1 katalogundan.
   const idler = [...new Set(kalemler.map((k) => k.id))];
@@ -212,7 +255,48 @@ async function baslat(request, env, url) {
   const kargoKurus = SECENEK.kargoKurus(toplamKurus);
   const tahsilatKurus = toplamKurus + kargoKurus;
 
-  const siparisNo = siparisNoUret();
+  // KDV (kalem 8, Okan KESIN %20): tahsilat DEGISMEZ — dokum + D1 kaydi. Kargo dahil
+  // genel toplam uzerinden TEK ayristirma; net+KDV=brut birebir (fark KDV'ye yedirilir).
+  const kdv = SECENEK.kdvAyristir(tahsilatKurus);
+
+  const siparisNo = await yeniSiparisNo(env);
+  const acikAdres = musteri.adres + " / " + musteri.sehir;
+  // Onay istekCoz'dan gecti (sozlesme_onay === true sart) — damga SUNUCU saati (ispat kaydi).
+  const onayDamgasi = new Date().toISOString();
+
+  if (odeme === "havale") {
+    // HAVALE/EFT (kalem 6): iyzico'ya GIDILMEZ; siparis 'havale-bekliyor' dusulur, musteriye
+    // IBAN + unvan + odenecek TAM tutar + siparis no gosterilir. IBAN/unvan TEK kaynaktan
+    // (wrangler secret; koda/HTML'e yazilmaz). Tanimli degilse secenek musteriye kapali:
+    // acik 503 doner, sessizce bos IBAN gosterilmez.
+    if (!env.HAVALE_IBAN || !env.HAVALE_UNVAN) {
+      return json({ hata: "havale-hazir-degil" }, 503, env);
+    }
+    // token NULL: /donus havale satirini HICBIR token'la bulamaz -> durum istemciden
+    // degistirilemez. Onay tek yoldan: shop/KURULUM.md'deki wrangler d1 komutu.
+    await env.KATALOG.prepare(
+      "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
+      " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
+      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres)" +
+      " VALUES (?, NULL, ?, 'havale-bekliyor', ?, ?, ?, 'havale', ?, ?, ?, ?, ?, ?, ?, ?)"
+    ).bind(
+      siparisNo, new Date().toISOString(), toplamKurus, kargoKurus, kdv.kdvKurus,
+      onayDamgasi, JSON.stringify(satirlar),
+      [...new Set(satirlar.map((s) => s.malzeme))].join("+"),
+      [...new Set(satirlar.map((s) => s.renk_ozel || s.renk))].join("+"),
+      musteri.ad, musteri.tel, musteri.eposta, acikAdres
+    ).run();
+    ctx.waitUntil(telegram(env, havaleMesaji(siparisNo, satirlar, toplamKurus, kargoKurus,
+      tahsilatKurus, musteri, acikAdres)));
+    // Ekrandaki TAM tutar = D1 tahsilati (tutar_kurus + kargo_kurus) BIREBIR (kabul testi 13);
+    // net/kdv alanlari musteri ekranindaki KDV dokumu icin (kalem 8).
+    return json({ havale: true, no: siparisNo, iban: env.HAVALE_IBAN,
+                  unvan: env.HAVALE_UNVAN, tutar_kurus: tahsilatKurus,
+                  tutar: kurusTL(tahsilatKurus), kargo_kurus: kargoKurus,
+                  net_kurus: kdv.netKurus, kdv_kurus: kdv.kdvKurus,
+                  kdv_yuzde: SECENEK.KDV_YUZDE }, 200, env);
+  }
+
   const adParcalari = musteri.ad.split(/\s+/);
   const soyad = adParcalari.length > 1 ? adParcalari.pop() : adParcalari[0];
   const isim = adParcalari.join(" ") || soyad;
@@ -220,7 +304,6 @@ async function baslat(request, env, url) {
   const gsm = musteri.tel.startsWith("90") && musteri.tel.length === 12 ? "+" + musteri.tel
     : musteri.tel.startsWith("0") ? "+9" + musteri.tel
     : "+90" + musteri.tel;
-  const acikAdres = musteri.adres + " / " + musteri.sehir;
   const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
 
   const init = await cfBaslat(env, {
@@ -275,10 +358,12 @@ async function baslat(request, env, url) {
   // dogrulamasindan gecerse olur. INSERT patlarsa musteri henuz odememis olur (token kullanilmamis).
   await env.KATALOG.prepare(
     "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
-    " urunler, filament, renk, musteri_ad, musteri_tel, musteri_eposta, musteri_adres)" +
-    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
+    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres)" +
+    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, 'kart', ?, ?, ?, ?, ?, ?, ?, ?)"
   ).bind(
     siparisNo, init.token, new Date().toISOString(), toplamKurus, kargoKurus,
+    kdv.kdvKurus, onayDamgasi,
     JSON.stringify(satirlar),
     [...new Set(satirlar.map((s) => s.malzeme))].join("+"),
     // "Diğer" renkte musterinin yazdigi renk kaydedilir (uretim bunu okur), yoksa liste rengi
@@ -315,7 +400,7 @@ async function donus(request, env, ctx) {
 
   // Uydurma token: bizde kaydi yok -> siparis OLUSMAZ, 4xx (kabul testi 2).
   const siparis = await env.KATALOG.prepare(
-    "SELECT siparis_no, durum, tutar_kurus, kargo_kurus, urunler," +
+    "SELECT siparis_no, durum, tutar_kurus, kargo_kurus, kdv_kurus, urunler," +
     " musteri_ad, musteri_tel, musteri_adres FROM siparisler WHERE token = ?"
   ).bind(token).first();
   if (!siparis) return json({ hata: "bilinmeyen-token" }, 404, env);
@@ -379,7 +464,28 @@ async function donus(request, env, ctx) {
   if (g.meta && g.meta.changes > 0) {
     ctx.waitUntil(telegram(env, siparisMesaji(siparis, det)));
   }
-  return yonlendir(env, "ok", siparis.siparis_no);
+  // Donus sayfasi KDV dokumu (kalem 8): tahsilat + kdv paramlari — istemci dokumu basar.
+  return yonlendir(env, "ok", siparis.siparis_no, {
+    tahsilatKurus: siparis.tutar_kurus + (siparis.kargo_kurus || 0),
+    kdvKurus: siparis.kdv_kurus || 0,
+  });
+}
+
+/** Havale bildirimi (kalem 6). DIKKAT: para HENUZ gorulmedi — metin "odeme geldi" tonunda
+ *  OLAMAZ (kabul testi 13 bunu sinar); uretim ancak elle onaydan (KURULUM.md komutu) sonra. */
+function havaleMesaji(siparisNo, satirlar, urunKurus, kargoKurus, tahsilatKurus, musteri, acikAdres) {
+  const kalemler = satirlar.map((s) =>
+    "• " + s.baslik + " — " + s.malzeme + " / " + (s.renk_ozel || s.renk) +
+    " × " + s.adet + " = " + kurusTL(s.tutar_kurus)).join("\n");
+  return "🏦 HAVALE BEKLENIYOR: " + siparisNo + " " + kurusTL(tahsilatKurus) +
+    "\n" + kalemler +
+    "\nAra toplam: " + kurusTL(urunKurus) +
+    "\nGönderim: " + (kargoKurus > 0 ? kurusTL(kargoKurus) : "Bedava") +
+    "\nGenel toplam: " + kurusTL(tahsilatKurus) +
+    "\nMusteri: " + musteri.ad + " — " + musteri.tel +
+    "\nAdres: " + acikAdres +
+    "\nDekont gorulunce shop/KURULUM.md'deki wrangler komutuyla isaretle; " +
+    "isaretlenmeden uretim baslamaz, bildirim atilmaz.";
 }
 
 function siparisMesaji(siparis, det) {
@@ -425,7 +531,7 @@ export default {
       }
       // NOT: /ayarlar ucu KALDIRILDI — front katsayi/renk listesini /secenekler.js'ten alir
       // (tek kaynak). Worker'in ayni listeyi ikinci bir ucdan yayinlamasi drift kapisi acardi.
-      if (yol === "/baslat" && request.method === "POST") return await baslat(request, env, url);
+      if (yol === "/baslat" && request.method === "POST") return await baslat(request, env, url, ctx);
       if (yol === "/donus") return await donus(request, env, ctx);
       return json({ hata: "bulunamadi" }, 404, env);
     } catch (e) {

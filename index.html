@@ -426,6 +426,47 @@
   .cart-total-row strong{font-size:20px;font-weight:800}
   .cart-kargo-tesvik{font-size:12px;font-weight:600;color:var(--navy-2);margin:4px 0 2px}
   .cart-kargo-tesvik.bedava{color:#1a9e4b}
+  /* KDV dökümü (kalem 8): bilgi satırları — tahsilatı değiştirmez, yalnız gösterim */
+  .cart-alt-row.kdv{font-size:12px;color:var(--gray-text)}
+  /* Ödeme yöntemi seçimi (kart / havale-EFT) — form içinde */
+  .odeme-yontem{margin-bottom:10px}
+  .odeme-yontem label{
+    display:flex;align-items:center;gap:8px;font-size:14px;color:var(--navy);
+    border:1px solid var(--gray-line);border-radius:8px;padding:9px 11px;margin-bottom:6px;
+    cursor:pointer;background:#fff;
+  }
+  .odeme-yontem label:has(input:checked){border-color:var(--navy-2);background:#eef3fb}
+  /* .odeme-form input{width:100%} genel kurali radyo/kutuya da uygulaniyor -> dogal boyuta don */
+  .odeme-form .odeme-yontem input,.odeme-form .onay-kutu input{
+    width:auto;margin:0;padding:0;flex:none}
+  /* min-width:0: flex ogesi icerigin tek satir genisligine kilitlenip paneli tasirmasin */
+  .odeme-yontem label > span{flex:1;min-width:0}
+  .odeme-yontem .yontem-not{color:var(--gray-text);font-size:12.5px}
+  /* Sözleşme onay kutusu (kalem 9, yasal) — işaretlenmeden ödeme butonu çalışmaz */
+  .onay-kutu{
+    display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--navy);
+    line-height:1.5;margin-bottom:10px;cursor:pointer;
+  }
+  .onay-kutu input{margin-top:2px}
+  .onay-kutu a{color:var(--navy-2)}
+  .onay-kutu > span{flex:1;min-width:0}
+  /* Havale/EFT sonuç ekranı: IBAN + unvan + TAM tutar + sipariş no talimatı */
+  .havale-ekran{display:none;padding:16px;overflow-y:auto;background:#fff;flex:1}
+  .havale-ekran h3{font-size:16px;color:var(--navy);margin-bottom:10px}
+  .havale-kutu{
+    background:var(--gray-bg);border:1px solid var(--gray-line);border-radius:10px;
+    padding:12px;margin-bottom:10px;font-size:14px;color:var(--navy);line-height:1.6;
+  }
+  .havale-kutu code{
+    display:block;font-size:15px;font-weight:800;letter-spacing:.5px;
+    font-family:ui-monospace,Menlo,monospace;word-break:break-all;
+  }
+  .havale-kdv{font-size:12px;color:var(--gray-text);margin-top:4px}
+  .havale-uyari{
+    background:#fdf3e3;border:1px solid #f0d9a8;border-radius:10px;
+    padding:10px 12px;font-size:13px;color:#7a5a12;line-height:1.5;margin-bottom:10px;
+  }
+  .havale-uyari strong{font-size:14px}
   .cart-total-not{font-size:11.5px;color:var(--gray-text);margin-bottom:10px}
   .cart-pay-btn{
     display:block;width:100%;background:var(--navy);color:#fff;border:none;
@@ -599,19 +640,56 @@
     <input type="email" id="oEposta" name="email" autocomplete="email" placeholder="E-posta" required>
     <input type="text" id="oSehir" name="city" autocomplete="address-level2" placeholder="Şehir" required>
     <textarea id="oAdres" name="address" autocomplete="street-address" rows="2" placeholder="Açık adres" required></textarea>
+    <!-- Ödeme yöntemi (kalem 6): kartın YANINDA Havale/EFT. Havalede sipariş
+         'havale-bekliyor' düşer; IBAN/unvan/tutar SUNUCUDAN gelir (tek kaynak: worker
+         secret'ı) — bu sayfada IBAN kopyası tutulmaz. -->
+    <div class="odeme-yontem" id="odemeYontem">
+      <label><input type="radio" name="oYontem" value="kart" checked>
+        <span><strong>Kart ile öde</strong> <span class="yontem-not">(iyzico güvenli sayfası, 3D Secure)</span></span></label>
+      <label><input type="radio" name="oYontem" value="havale">
+        <span><strong>Havale / EFT</strong> <span class="yontem-not">(IBAN'a gönderim; sipariş no açıklamaya yazılır)</span></span></label>
+    </div>
+    <!-- SÖZLEŞME ONAYI (kalem 9, yasal — Okan): işaretlenmeden buton çalışmaz; ASIL
+         zorunluluk sunucuda (/baslat onaysız isteği 400 ile reddeder, onay anı D1'e
+         damgalanır). Linkler MEVCUT yasal sayfalara — yeni sayfa yazılmadı. -->
+    <label class="onay-kutu"><input type="checkbox" id="oOnay">
+      <span><a href="/teslimat-iade/" target="_blank" rel="noopener">Ön Bilgilendirme
+      Formu</a>'nu ve <a href="/mesafeli-satis/" target="_blank" rel="noopener">Mesafeli
+      Satış Sözleşmesi</a>'ni okudum, onaylıyorum.</span></label>
     <div id="odemeHata" class="odeme-hata"></div>
     <div class="odeme-yasal">
-      Devam ettiğinizde kart bilgileriniz <strong>iyzico</strong>'nun güvenli sayfasında alınır;
-      PRUVO kart bilgisi görmez ve saklamaz.
-      <a href="/mesafeli-satis/" target="_blank" rel="noopener">Mesafeli Satış Sözleşmesi</a> ·
-      <a href="/teslimat-iade/" target="_blank" rel="noopener">Teslimat & İade</a> ·
-      <a href="/gizlilik/" target="_blank" rel="noopener">Gizlilik</a>
+      <span id="yasalKart">Devam ettiğinizde kart bilgileriniz <strong>iyzico</strong>'nun
+      güvenli sayfasında alınır; PRUVO kart bilgisi görmez ve saklamaz.</span><span
+      id="yasalHavale" style="display:none">Devam ettiğinizde siparişiniz kaydedilir ve ödeme
+      için IBAN bilgileri gösterilir; ödemeniz hesabımıza geçince üretim başlar.</span>
+      <a href="/gizlilik/" target="_blank" rel="noopener">Gizlilik</a> ·
+      <a href="/teslimat-iade/" target="_blank" rel="noopener">Teslimat & İade</a>
     </div>
     <div class="odeme-btnler">
       <button type="button" id="odemeVazgec" class="odeme-vazgec">Geri</button>
       <button type="submit" id="odemeGonder" class="cart-pay-btn">iyzico ile Öde</button>
     </div>
   </form>
+
+  <!-- HAVALE/EFT sonucu (kalem 6): sipariş kaydedildikten sonra gösterilir. İçerik (IBAN,
+       unvan, TAM tutar, KDV dökümü, sipariş no) sunucu cevabından doldurulur. -->
+  <div id="havaleEkran" class="havale-ekran">
+    <h3>Siparişiniz alındı — Havale/EFT bekleniyor</h3>
+    <div class="havale-kutu">
+      Sipariş No<code id="hvNo"></code>
+    </div>
+    <div class="havale-kutu">
+      Alıcı<code id="hvUnvan"></code>
+      IBAN<code id="hvIban"></code>
+      Ödenecek tam tutar<code id="hvTutar"></code>
+      <div class="havale-kdv" id="hvKdv"></div>
+    </div>
+    <div class="havale-uyari">
+      <strong>Önemli:</strong> Havale/EFT açıklamasına <strong>sipariş numaranızı</strong> yazın.
+      Ödemeniz hesabımıza geçince üretim başlar; dilerseniz dekontu WhatsApp'tan iletebilirsiniz.
+    </div>
+    <button type="button" id="havaleKapat" class="cart-pay-btn">Tamam</button>
+  </div>
 
   <div class="cart-panel-foot">
     <!-- KARGO (Okan, 16 Tem — KESIN): <2.500 TL -> 250,00 TL gonderim; >=2.500 (dahil) bedava.
@@ -625,8 +703,18 @@
       <span>Gönderim</span>
       <span id="cartKargo">250,00 TL</span>
     </div>
+    <!-- KDV DÖKÜMÜ (kalem 8, Okan %20 KESİN): fiyatlar KDV dahil, tahsilat DEĞİŞMEZ —
+         kargo dahil genel toplam üzerinden tek döküm (secenekler.js kdvAyristir). -->
+    <div id="cartKdvHaricRow" class="cart-alt-row kdv" style="display:none">
+      <span>Ara toplam (KDV hariç)</span>
+      <span id="cartKdvHaric">0,00 TL</span>
+    </div>
+    <div id="cartKdvRow" class="cart-alt-row kdv" style="display:none">
+      <span id="cartKdvEtiket">KDV (%20)</span>
+      <span id="cartKdv">0,00 TL</span>
+    </div>
     <div id="cartTotalRow" class="cart-total-row">
-      <span>Genel toplam</span>
+      <span>Genel toplam <span style="font-size:12px;font-weight:600">(KDV dahil)</span></span>
       <strong id="cartTotal">0,00 TL</strong>
     </div>
     <div id="cartKargoTesvik" class="cart-kargo-tesvik" style="display:none"></div>
@@ -804,7 +892,20 @@
     araRow.style.display = parasal ? "flex" : "none";
     kargoRow.style.display = parasal ? "flex" : "none";
     tesvik.style.display = parasal ? "block" : "none";
-    not.style.display = goster ? "block" : "none";
+    // KDV DOKUMU (kalem 8): kargo dahil genel toplam uzerinden tek ayristirma; tahsilat
+    // degismez. Parasal durumda dokum satirlari gorunur, eski "KDV dahil" notu gizlenir
+    // (ayni bilgi Genel toplam etiketinde).
+    var kdvSatir = document.getElementById("cartKdvRow");
+    var kdvHaricSatir = document.getElementById("cartKdvHaricRow");
+    kdvSatir.style.display = parasal ? "flex" : "none";
+    kdvHaricSatir.style.display = parasal ? "flex" : "none";
+    not.style.display = (goster && !parasal) ? "block" : "none";
+    if(parasal){
+      var dokum = PRUVO_SECENEK.kdvAyristir(ara + kargo);
+      document.getElementById("cartKdvEtiket").textContent = "KDV (%" + PRUVO_SECENEK.KDV_YUZDE + ")";
+      document.getElementById("cartKdvHaric").textContent = PRUVO_SECENEK.kurusMetni(dokum.netKurus);
+      document.getElementById("cartKdv").textContent = PRUVO_SECENEK.kurusMetni(dokum.kdvKurus);
+    }
     // ODEME_ACIK kapaliyken buton HIC gosterilmez (canli anahtar yok — bkz. secenekler.js).
     // Toplam gorunmeye devam eder; sipariş WhatsApp'tan verilir.
     pay.style.display = (goster && PRUVO_SECENEK.ODEME_ACIK) ? "block" : "none";
@@ -923,9 +1024,50 @@
   var SHOP_UC = "/api/shop";
   function odemeFormuGoster(ac){
     document.getElementById("odemeForm").style.display = ac ? "block" : "none";
+    document.getElementById("havaleEkran").style.display = "none";
     document.getElementById("cartItems").style.display = ac ? "none" : "block";
     document.querySelector(".cart-panel-foot").style.display = ac ? "none" : "block";
     document.getElementById("odemeHata").textContent = "";
+    if(ac){ odemeYontemTazele(); }
+  }
+  // Seçili ödeme yöntemi ("kart" | "havale") — form radyosundan.
+  function odemeYontemi(){
+    var sec = document.querySelector('#odemeYontem input[name="oYontem"]:checked');
+    return sec ? sec.value : "kart";
+  }
+  function odemeButonMetni(){
+    return odemeYontemi() === "havale" ? "Havale ile Sipariş Ver" : "iyzico ile Öde";
+  }
+  /* Yöntem/onay değişince buton metni + yasal metin + buton kilidi tazelenir.
+     Onay kutusu (kalem 9) işaretsizken buton ÇALIŞMAZ — asıl zorunluluk sunucuda
+     (/baslat onaysız isteği 400 ile reddeder); burası kullanıcı deneyimi katmanı. */
+  function odemeYontemTazele(){
+    var havale = odemeYontemi() === "havale";
+    var btn = document.getElementById("odemeGonder");
+    btn.textContent = odemeButonMetni();
+    btn.disabled = !document.getElementById("oOnay").checked;
+    btn.className = btn.disabled ? "cart-pay-btn disabled" : "cart-pay-btn";
+    document.getElementById("yasalKart").style.display = havale ? "none" : "inline";
+    document.getElementById("yasalHavale").style.display = havale ? "inline" : "none";
+  }
+  /* Havale sonucu (kalem 6): içerik (no/IBAN/unvan/TAM tutar/KDV dökümü) SUNUCU
+     cevabından — sipariş D1'e 'havale-bekliyor' yazıldı, sepet temizlenir. */
+  function havaleEkraniGoster(v){
+    document.getElementById("hvNo").textContent = v.no || "";
+    document.getElementById("hvUnvan").textContent = v.unvan || "";
+    document.getElementById("hvIban").textContent = v.iban || "";
+    // Tutar D1'e yazilan kurustan formatlanir (binlik ayracli tek site formati)
+    document.getElementById("hvTutar").textContent =
+      (v.tutar_kurus != null) ? PRUVO_SECENEK.kurusMetni(v.tutar_kurus) : (v.tutar || "");
+    document.getElementById("hvKdv").textContent = (v.kdv_kurus != null)
+      ? "Ara toplam (KDV hariç): " + PRUVO_SECENEK.kurusMetni(v.net_kurus) +
+        " · KDV (%" + (v.kdv_yuzde || PRUVO_SECENEK.KDV_YUZDE) + "): " +
+        PRUVO_SECENEK.kurusMetni(v.kdv_kurus) : "";
+    document.getElementById("odemeForm").style.display = "none";
+    document.getElementById("cartItems").style.display = "none";
+    document.querySelector(".cart-panel-foot").style.display = "none";
+    document.getElementById("havaleEkran").style.display = "block";
+    cart = []; saveCart(); updateCartFab();
   }
   function odemeHata(mesaj){
     var el = document.getElementById("odemeHata");
@@ -943,17 +1085,27 @@
     "musteri-tel": "Telefon numarası geçersiz görünüyor.",
     "musteri-eposta": "E-posta adresi geçersiz görünüyor.",
     "musteri-adres": "Açık adres en az 10 karakter olmalı.",
-    "odeme-baslatilamadi": "Ödeme sayfası açılamadı. Birazdan tekrar deneyin ya da WhatsApp'tan yazın."
+    "odeme-baslatilamadi": "Ödeme sayfası açılamadı. Birazdan tekrar deneyin ya da WhatsApp'tan yazın.",
+    "havale-hazir-degil": "Havale/EFT şu an kullanılamıyor; kartla ödeyebilir veya WhatsApp'tan yazabilirsiniz.",
+    "sozlesme-onay-yok": "Devam etmek için sözleşme onay kutusunu işaretleyin."
   };
   async function odemeBaslat(){
     var btn = document.getElementById("odemeGonder");
     var lines = cartLines();
+    var havale = odemeYontemi() === "havale";
     // Ikinci kapi: buton gizli olsa da (ODEME_ACIK=false) form bir sekilde acilirsa istek gitmez.
     if(!PRUVO_SECENEK.ODEME_ACIK){ return; }
     if(!cartOdenebilirMi(lines)){ return; }
-    btn.disabled = true; btn.textContent = "Ödeme sayfası hazırlanıyor…";
+    // Onay kutusu (kalem 9): isaretsizken istek hic gitmez; sunucu da 400 ile reddeder.
+    if(!document.getElementById("oOnay").checked){
+      odemeHata(HATA_METNI["sozlesme-onay-yok"]);
+      return;
+    }
+    btn.disabled = true;
+    btn.textContent = havale ? "Sipariş kaydediliyor…" : "Ödeme sayfası hazırlanıyor…";
     try{
-      // Sunucuya SADECE seçim gönderilir; tutar/fiyat GÖNDERİLMEZ — fiyatı Worker D1'den hesaplar.
+      // Sunucuya SADECE seçim gönderilir; tutar/fiyat/kargo GÖNDERİLMEZ — hepsini Worker
+      // D1 fiyatından hesaplar (kargo+KDV dahil; istemci tutar alanları yok sayılır).
       var sepet = lines.map(function(L){
         return { id: L.satir.id, malzeme: L.satir.malzeme, renk: L.satir.renk,
                  renk_ozel: L.satir.renk_ozel || "", adet: PRUVO_SECENEK.adetDuzelt(L.satir.adet) };
@@ -961,25 +1113,33 @@
       var cevap = await fetch(SHOP_UC + "/baslat", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ sepet: sepet, musteri: {
-          ad: document.getElementById("oAd").value.trim(),
-          tel: document.getElementById("oTel").value.trim(),
-          eposta: document.getElementById("oEposta").value.trim(),
-          sehir: document.getElementById("oSehir").value.trim(),
-          adres: document.getElementById("oAdres").value.trim()
-        }})
+        body: JSON.stringify({ sepet: sepet, odeme: havale ? "havale" : "kart",
+          sozlesme_onay: document.getElementById("oOnay").checked === true,
+          musteri: {
+            ad: document.getElementById("oAd").value.trim(),
+            tel: document.getElementById("oTel").value.trim(),
+            eposta: document.getElementById("oEposta").value.trim(),
+            sehir: document.getElementById("oSehir").value.trim(),
+            adres: document.getElementById("oAdres").value.trim()
+          }})
       });
       var veri = await cevap.json();
-      if(!cevap.ok || !veri.url){
+      if(!cevap.ok || (havale ? !veri.havale : !veri.url)){
         odemeHata(HATA_METNI[veri.hata] || "Ödeme başlatılamadı. WhatsApp'tan sipariş verebilirsiniz.");
-        btn.disabled = false; btn.textContent = "iyzico ile Öde";
+        btn.disabled = false; btn.textContent = odemeButonMetni();
+        return;
+      }
+      if(havale){
+        // Sipariş 'havale-bekliyor' kaydedildi: IBAN + unvan + TAM tutar + KDV dökümü göster.
+        havaleEkraniGoster(veri);
+        btn.disabled = false; btn.textContent = odemeButonMetni();
         return;
       }
       // iyzico'nun kendi ödeme sayfası — kart burada değil ORADA girilir.
       location.href = veri.url;
     }catch(e){
       odemeHata("Bağlantı kurulamadı. İnternetinizi kontrol edip tekrar deneyin.");
-      btn.disabled = false; btn.textContent = "iyzico ile Öde";
+      btn.disabled = false; btn.textContent = odemeButonMetni();
     }
   }
   // Ödeme dönüşü: Worker müşteriyi /?siparis=ok&no=... adresine yönlendirir.
@@ -991,7 +1151,15 @@
     var no = q.get("no") || "";
     if(s === "ok"){
       cart = []; saveCart(); updateCartFab();
-      alert("Ödemeniz alındı ✅\nSipariş no: " + no +
+      // KDV dokumu (kalem 8): worker yonlendirmesindeki t (tahsilat) + kdv paramlarindan.
+      // Yalniz gosterim — tahsilat coktan sunucu hesabiyla yapildi.
+      var t = parseInt(q.get("t"), 10), kdv = parseInt(q.get("kdv"), 10);
+      var dokum = (t > 0 && kdv >= 0)
+        ? "\n\nAra toplam (KDV hariç): " + PRUVO_SECENEK.kurusMetni(t - kdv) +
+          "\nKDV (%" + PRUVO_SECENEK.KDV_YUZDE + "): " + PRUVO_SECENEK.kurusMetni(kdv) +
+          "\nGenel toplam (KDV dahil): " + PRUVO_SECENEK.kurusMetni(t)
+        : "";
+      alert("Ödemeniz alındı ✅\nSipariş no: " + no + dokum +
             "\n\nÜretim başlıyor; süreçle ilgili WhatsApp'tan bilgilendirileceksiniz.");
     }else{
       alert("Ödeme tamamlanmadı.\nSepetiniz duruyor — tekrar deneyebilir veya WhatsApp'tan " +
@@ -1293,6 +1461,14 @@
     e.preventDefault();          // tarayıcı required doğrulaması geçtikten sonra
     odemeBaslat();
   });
+  // Ödeme yöntemi (kart/havale) ya da onay kutusu değişince buton + metinler tazelenir.
+  document.getElementById("odemeYontem").addEventListener("change", odemeYontemTazele);
+  document.getElementById("oOnay").addEventListener("change", odemeYontemTazele);
+  document.getElementById("havaleKapat").onclick = function(){
+    document.getElementById("havaleEkran").style.display = "none";
+    odemeFormuGoster(false);
+    renderCartPanel();
+  };
   odemeDonusuIsle();
 
   // ---------- URL PARAMETRELERİ (ürün sayfalarından dönüş + eski linkler) ----------

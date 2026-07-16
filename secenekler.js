@@ -62,6 +62,18 @@
     return urunToplamKurus >= KARGO_BEDAVA_ESIK_KURUS ? 0 : KARGO_UCRET_KURUS;
   }
 
+  /* KDV (Okan KESİN %20, 16 Tem gece — değişiklik SADECE Okan'dan; paket kalem 8):
+     fiyatlar KDV DAHİL, tahsilat DEĞİŞMEZ — bu yalnız döküm + kayıt. net = brüt/(1+oran)
+     kuruşta; yuvarlama farkı toplamı BOZAMAZ: KDV = brüt − net (fark KDV'ye yedirilir,
+     net + KDV = brüt birebir). Döküm KARGO DAHİL genel toplam üzerinden tek sefer yapılır.
+     Sepet paneli, havale ekranı ve Worker (D1 kdv_kurus kaydı) AYNI fonksiyonu okur. */
+  var KDV_YUZDE = 20;
+  function kdvAyristir(brutKurus) {
+    if (!(brutKurus > 0)) { return { netKurus: 0, kdvKurus: 0 }; }
+    var net = Math.round(brutKurus * 100 / (100 + KDV_YUZDE));
+    return { netKurus: net, kdvKurus: brutKurus - net };
+  }
+
   /* Parametrik (sarı seri) ürünlerde SELF-SERVİS ÖDEME anahtarı — TEK yerde, front + Worker
      aynı sabiti okur. Bugün KAPALI. Taban fiyatlar DOLDU (16 Tem, Okan kesin tablosu:
      17/18; vida hacim hesabı çapa duyarsız olduğundan null kaldı) ama bu anahtar AYRI
@@ -287,6 +299,8 @@
     KARGO_UCRET_KURUS: KARGO_UCRET_KURUS,
     KARGO_BEDAVA_ESIK_KURUS: KARGO_BEDAVA_ESIK_KURUS,
     kargoKurus: kargoKurus,
+    KDV_YUZDE: KDV_YUZDE,
+    kdvAyristir: kdvAyristir,
     ODEME_ACIK: ODEME_ACIK,
     PARAMETRIK_ODEME_ACIK: PARAMETRIK_ODEME_ACIK,
     ONIZLEME_3D_ACIK: ONIZLEME_3D_ACIK,
