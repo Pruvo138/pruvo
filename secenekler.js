@@ -82,7 +82,13 @@
      (Cloudflare Container, Workers Paid bekliyor) deploy edilip kabul 4e/4g yesillenince
      MIMAR karariyla acilir. Kapaliyken bu degisiklik canlida SIFIR gorunur fark yaratir. */
   var ONIZLEME_3D_ACIK = true;
-  var ONIZLEME_AILELER = ["olcuye-ozel-profil-beam", "olcuye-ozel-oring-conta"];
+  /* Faz D: pilot 2 aileye BIZIM ureteclerimizin 3 ailesi eklendi (konektor/braket/
+     disli v2, pruvo-jenerator; eslemleri PUBLIC jenerator/test/esleme'den uretilir).
+     DIKKAT — yayin kapisi: bu listeye aile eklemek = butonun o urun sayfalarinda
+     MUSTERIYE gorunmesi; main'e merge MIMAR kabulu + Okan gorunurluk onayi ister. */
+  var ONIZLEME_AILELER = ["olcuye-ozel-profil-beam", "olcuye-ozel-oring-conta",
+    "olcuye-ozel-baglanti-konektor", "olcuye-ozel-montaj-braketi",
+    "ozel-disli-kramayer-uretimi"];
 
   /* Birim fiyat, tamsayı KURUŞ. Sıra (Okan, 16 Tem): filament katsayısı -> SONRA "Diğer"
      renk +%15 -> sonra boy farkı (TL, sabit ek). Yuvarlama YOK; tek yuvarlama kuruşun ALTINA

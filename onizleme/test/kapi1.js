@@ -27,23 +27,47 @@ function pXX(dizi, oran) {
 
 // Taban Date.now'dan: onceki KOSULARIN urettigi setlerle cakisip R2 onbellegine
 // dusmesin (16 Tem'de yasandi: 2. kosum tum "soguk" orneklerini onbellekten aldi).
+// Faz D: olcum 5 aile uzerinde DONUSUMLU — her istek sirayla baska aileden gider,
+// boylece p50/p95 tek ailenin degil, tum onizleme yuzeyinin sayisidir.
 let sayac = Date.now() % 1000000;
-function benzersizSet() {
-  // Sema izgarasinda gecerli, her cagrida benzersiz: uzunluk 20-1000 adim 1,
-  // yukseklik 20-200 adim 1 -> 981x181 kombinasyon, moduler gezinme.
+const AILELER = [
+  ["olcuye-ozel-profil-beam", (s) => ({
+    kesit: "kutu", yukseklik: 20 + ((s * 7) % 181), genislik: 30,
+    et_kalinligi: 3, uzunluk: 20 + (s % 981), ic_yapi: "bos" })],
+  ["olcuye-ozel-oring-conta", (s) => ({
+    ic_cap: 5 + ((s * 3) % 391) * 0.5, kesit_cap: 1 + (s % 141) * 0.1,
+    profil: "yuvarlak" })],
+  ["olcuye-ozel-baglanti-konektor", (s) => ({
+    kol_sayisi: 2 + (s % 3), kol_kesiti: "yuvarlak",
+    cubuk_capi: 6 + ((s * 5) % 29) * 0.5, kol_boyu: 20 + (s % 41),
+    cidar: 2 + (s % 5) * 0.5, gecme: "normal" })],
+  ["olcuye-ozel-montaj-braketi", (s) => ({
+    tip: "acili", ic_aci: 60 + (s % 13) * 5, kalinlik: 3 + (s % 7) * 0.5,
+    genislik: 20 + ((s * 11) % 21), uzunluk: 40 + (s % 81),
+    delik_adet: 1 + (s % 3) })],
+  ["ozel-disli-kramayer-uretimi", (s) => ({
+    disli_tipi: "duz", dis_sayisi: 32 + (s % 33), modul: 1 + ((s * 3) % 11) * 0.05,
+    kalinlik: 6 + (s % 5) * 0.5, delik_capi: 2 + ((s * 7) % 13) * 0.5 })],
+];
+function benzersizIstek() {
   sayac += 1;
-  return { kesit: "kutu", yukseklik: 20 + ((sayac * 7) % 181), genislik: 30,
-           et_kalinligi: 3, uzunluk: 20 + (sayac % 981), ic_yapi: "bos" };
+  const [aile, uret] = AILELER[sayac % AILELER.length];
+  // kesirli adimlarin float artigi izgarayi bozmasin
+  const p = uret(sayac);
+  for (const k of Object.keys(p)) {
+    if (typeof p[k] === "number") p[k] = Math.round(p[k] * 100) / 100;
+  }
+  return { aile, parametreler: p };
 }
 
-async function olustur(parametreler) {
+async function olustur(istek) {
   const t0 = performance.now();
   const c = await fetch(TABAN + "/olustur", {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ aile: "olcuye-ozel-profil-beam", parametreler }),
+    body: JSON.stringify(istek),
   });
   const govde = await c.arrayBuffer();
-  return { ms: performance.now() - t0, kod: c.status,
+  return { ms: performance.now() - t0, kod: c.status, aile: istek.aile,
            kaynak: c.headers.get("X-Kaynak"), boyut: govde.byteLength,
            hata: c.status !== 200 ? Buffer.from(govde).toString("utf-8").slice(0, 200) : "" };
 }
@@ -60,28 +84,28 @@ async function main() {
 
   const soguk = [], sicak = [], onbellek = [];
 
-  console.log("\n-- SOGUK (" + SOGUK_N + " dongu: kapat -> benzersiz derleme) --");
+  console.log("\n-- SOGUK (" + SOGUK_N + " dongu: kapat -> benzersiz derleme, 5 aile donusumlu) --");
   for (let i = 0; i < SOGUK_N; i++) {
     const dt0 = Date.now();
     await kapat();
     await bekle(1500); // kapatma otursun
-    const s = await olustur(benzersizSet());
-    console.log("  soguk %d: %d ms kod=%d kaynak=%s %s",
-                i + 1, Math.round(s.ms), s.kod, s.kaynak, s.hata);
+    const s = await olustur(benzersizIstek());
+    console.log("  soguk %d: %d ms kod=%d kaynak=%s aile=%s %s",
+                i + 1, Math.round(s.ms), s.kod, s.kaynak, s.aile, s.hata);
     if (s.kod === 200 && s.kaynak === "derleyici") soguk.push(s.ms);
     const gecen = Date.now() - dt0;
     if (gecen < 8000) await bekle(8000 - gecen); // <=8 derleme/dk
   }
 
-  console.log("\n-- SICAK (" + SICAK_N + " benzersiz derleme, container ayakta) --");
-  const sicakSetler = [];
+  console.log("\n-- SICAK (" + SICAK_N + " benzersiz derleme, container ayakta, 5 aile donusumlu) --");
+  const sicakIstekler = [];
   for (let i = 0; i < SICAK_N; i++) {
     const dt0 = Date.now();
-    const p = benzersizSet();
-    sicakSetler.push(p);
-    const s = await olustur(p);
-    console.log("  sicak %d: %d ms kod=%d kaynak=%s %s",
-                i + 1, Math.round(s.ms), s.kod, s.kaynak, s.hata);
+    const istek = benzersizIstek();
+    sicakIstekler.push(istek);
+    const s = await olustur(istek);
+    console.log("  sicak %d: %d ms kod=%d kaynak=%s aile=%s %s",
+                i + 1, Math.round(s.ms), s.kod, s.kaynak, s.aile, s.hata);
     if (s.kod === 200 && s.kaynak === "derleyici") sicak.push(s.ms);
     const gecen = Date.now() - dt0;
     if (gecen < 8000) await bekle(8000 - gecen);
@@ -89,7 +113,7 @@ async function main() {
 
   console.log("\n-- ONBELLEK (" + ONBELLEK_N + " tekrar, hiz sinirindan muaf) --");
   for (let i = 0; i < ONBELLEK_N; i++) {
-    const s = await olustur(sicakSetler[i % sicakSetler.length]);
+    const s = await olustur(sicakIstekler[i % sicakIstekler.length]);
     console.log("  onbellek %d: %d ms kod=%d kaynak=%s", i + 1, Math.round(s.ms), s.kod, s.kaynak);
     if (s.kod === 200 && s.kaynak === "onbellek") onbellek.push(s.ms);
     await bekle(300);
