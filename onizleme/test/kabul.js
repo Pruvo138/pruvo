@@ -333,8 +333,10 @@ async function faz4d(paketDizin) {
     }
   }
 
-  // BILINEN SAPMA (mimar yargisina rapor): o-ring "pahli" — uretec pahi 0.18xCS,
-  // hacim.js katsayisi (0.875) 0.25xCS pahina kalibre. DOGRUDAN derleyiciden olculur
+  // ORING "PAHLI" KALIBRE IZLEMESI: eski %6.27 sapma Okan onayiyla kapatildi
+  // (16 Tem gece — katsayi 0.875 -> 0.93349, uretim motorunun 0.18xCS pahina
+  // olculerek kalibre). Satir izleme amaciyla kalir: sapma yeniden buyurse
+  // motor/formul yeniden ayristi demektir. DOGRUDAN derleyiciden olculur
   // (worker hiz sinirini tuketmesin); 4d sayimina girmez, gizlenmez, raporlanir.
   const pahliSet = { ic_cap: 30, kesit_cap: 3.6, profil: "pahli" };
   const dc = await fetch(DTABAN + "/derle", { method: "POST",
@@ -344,9 +346,9 @@ async function faz4d(paketDizin) {
     const v = stlHacim(Buffer.from(await dc.arrayBuffer()));
     const js = jsHacim("oring", [pahliSet])[0];
     const sapma = Math.abs(js - v) / v * 100;
-    console.log("  [BILGI] BILINEN SAPMA — oring 'pahli': js=" + js.toFixed(1) +
+    console.log("  [BILGI] oring 'pahli' kalibre izlemesi: js=" + js.toFixed(1) +
                 " stl=" + v.toFixed(1) + " sapma=%" + sapma.toFixed(2) +
-                " (motor/formul uyumsuzlugu; mimar karari bekliyor, 4d sayimina dahil degil)");
+                " (katsayi 0.93349, Okan onayi 16 Tem; 4d sayimina dahil degil)");
   }
 
   console.log("\n== yerel gecikme tablosu (4e'nin YEREL on izlemesi; soguk baslatma " +
