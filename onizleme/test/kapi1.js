@@ -25,13 +25,15 @@ function pXX(dizi, oran) {
   return s[Math.min(s.length - 1, Math.floor(oran * s.length))];
 }
 
-let sayac = 0;
+// Taban Date.now'dan: onceki KOSULARIN urettigi setlerle cakisip R2 onbellegine
+// dusmesin (16 Tem'de yasandi: 2. kosum tum "soguk" orneklerini onbellekten aldi).
+let sayac = Date.now() % 1000000;
 function benzersizSet() {
-  // Sema izgarasinda gecerli, her cagrida benzersiz (onbellege takilmasin):
-  // uzunluk 20-1000 adim 1, yukseklik 20-200 adim 1 -> bol kombinasyon.
+  // Sema izgarasinda gecerli, her cagrida benzersiz: uzunluk 20-1000 adim 1,
+  // yukseklik 20-200 adim 1 -> 981x181 kombinasyon, moduler gezinme.
   sayac += 1;
-  return { kesit: "kutu", yukseklik: 20 + (sayac % 180), genislik: 30,
-           et_kalinligi: 3, uzunluk: 100 + sayac, ic_yapi: "bos" };
+  return { kesit: "kutu", yukseklik: 20 + ((sayac * 7) % 181), genislik: 30,
+           et_kalinligi: 3, uzunluk: 20 + (sayac % 981), ic_yapi: "bos" };
 }
 
 async function olustur(parametreler) {
