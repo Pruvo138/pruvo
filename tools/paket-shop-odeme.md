@@ -75,6 +75,11 @@ sipariş kaydı + bildirim. WhatsApp/Ege kanalı aynen kalır (ikinci kapı).
 6. **Sır taraması:** `git grep` ile shop/ altında anahtar deseni yok (test scripti kontrol eder).
 7. **Regresyon:** `node tools/parite-test.js` ve `node tools/parite-ege.js` YEŞİL kalır
    (arama koduna dokunulmuyor ama D1'e şema eklendiği için koşulacak).
+8. **Katsayı doğruluğu (Okan uyarısı: başka oturumlar YANLIŞ hesapladı):** 100 TL'lik ürün için
+   beklenen fiyatlar birebir doğrulanır: PLA 100 / PETG 130 / ABS 150 / TPU 155 / ASA 160 /
+   Karbon 200 TL. Ayrıca yuvarlama kuralı testte sabitlenir (küsurat: en yakın 5 TL'ye yukarı
+   yuvarla — örn. 850×1.3=1105 kalır, 333×1.3=432.9→435) ve sepet toplamı = kalemlerin
+   yuvarlanmış fiyatları toplamı olarak doğrulanır.
 
 ## TESLİM
 
