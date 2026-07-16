@@ -5,9 +5,12 @@ function rampa(p) {
     uzunluk * Math.tan(p.egim_acisi * Math.PI / 180) : p.yukseklik;
 
   if (p.ust_yuzey === "basamakli") {
-    var basamakSayisi = 8;
+    // Motor basamak sayisini yukseklikten turetir (basamak yuksekligi 0.8 mm
+    // eslem sabiti Surface_Height) ve basamaklar egim cizgisinin USTUNE cikar:
+    // her basamak egim ustunde step_len*y_step/2 ucgen birakir -> LH(1+1/n)/2.
+    var basamakSayisi = Math.max(1, Math.ceil(yukseklik / 0.8));
     return genislik * uzunluk * yukseklik *
-      (basamakSayisi - 1) / (2 * basamakSayisi);
+      (basamakSayisi + 1) / (2 * basamakSayisi);
   }
 
   var hacim = genislik * uzunluk * yukseklik / 2;

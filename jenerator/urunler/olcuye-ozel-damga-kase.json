@@ -37,9 +37,18 @@
       "etiket": "Kaşe biçimi",
       "tip": "secim",
       "secenekler": [
-        {"deger": "dikdortgen", "etiket": "Dikdörtgen"},
-        {"deger": "kare", "etiket": "Kare"},
-        {"deger": "yuvarlak", "etiket": "Yuvarlak"}
+        {
+          "deger": "dikdortgen",
+          "etiket": "Dikdörtgen"
+        },
+        {
+          "deger": "kare",
+          "etiket": "Kare"
+        },
+        {
+          "deger": "yuvarlak",
+          "etiket": "Yuvarlak"
+        }
       ],
       "varsayilan": "dikdortgen",
       "aciklama": "Kaşe yüzünün dış geometrisi"
@@ -60,13 +69,19 @@
       "etiket": "Sap seçimi",
       "tip": "secim",
       "secenekler": [
-        {"deger": "sapli", "etiket": "Saplı"},
-        {"deger": "sapsiz", "etiket": "Sapsız"}
+        {
+          "deger": "sapli",
+          "etiket": "Saplı"
+        },
+        {
+          "deger": "sapsiz",
+          "etiket": "Sapsız"
+        }
       ],
       "varsayilan": "sapli",
       "aciklama": "Sökülüp takılabilen vidalı sapın ürüne dahil edilmesi"
     }
   ],
-  "tabanHacimMm3": 12059.028554655295,
+  "tabanHacimMm3": 15435.7,
   "tabanFiyatTL": 350
 }

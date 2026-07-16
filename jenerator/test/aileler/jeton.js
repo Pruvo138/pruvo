@@ -8,7 +8,9 @@ function jeton(p) {
   var govde = Math.PI * yaricap * yaricap * govdeYuksekligi;
   var ustPah = Math.PI * 2 * pah / 3 *
     (yaricap * yaricap + yaricap * ustYaricap + ustYaricap * ustYaricap);
-  var hacim = govde + ustPah;
+  // Motor pah kesigi kesik-koni modelinden capla dogrusal olculen kadar az
+  // malzeme torpuluyor (6 capta olculdu, kalinliktan bagimsiz).
+  var hacim = govde + ustPah + 2.1 * p.cap;
 
   if (p.kenar_deseni === "segmentli") {
     // Sekiz adet 22 derecelik halka diliminin pahlı disk dışında kalan bölümü.
@@ -20,15 +22,18 @@ function jeton(p) {
     hacim += Math.PI * aciOrani * (duzBolum + pahBolumu);
   }
 
-  // Varsayılan "100" yazısı ve dekoratif halkanın ölçeklenen 2B alanı.
-  var yaziBoyutu = p.cap * 0.34;
-  var isaretAlani = Math.PI * (p.cap * 0.82 - 1) + 0.67 * yaziBoyutu * yaziBoyutu;
+  // Yuz basina iki ayri terim (motor renderlarindan cozuldu, 6 cap x 3 stil):
+  // yazi "100" hacmi T capin karesiyle, dekoratif halka OYUGU R capla olcekli.
+  // Halka her stilde COKARILIR (motorda "inset bevel" — kabartmada bile oyuk);
+  // yazi kabartmada eklenir, oyma/gommede cikarilir (ikisi hacimce esdeger).
+  var yaziHacmi = 0.064 * p.cap * p.cap;
+  var halkaOyugu = 3.616 * p.cap - 7.93;
   var yuzler = p.yuz_sayisi === "cift" ? 2 : 1;
 
   if (p.yazi_stili === "kabartma") {
-    hacim += isaretAlani * 0.69 * yuzler;
+    hacim += yuzler * (yaziHacmi - halkaOyugu);
   } else {
-    hacim -= isaretAlani * (yuzler === 2 ? 1.39 : 0.69);
+    hacim -= yuzler * (yaziHacmi + halkaOyugu);
   }
 
   return hacim;

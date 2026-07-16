@@ -29,9 +29,18 @@
       "etiket": "Yazı stili",
       "tip": "secim",
       "secenekler": [
-        {"deger": "gomme", "etiket": "Gömme"},
-        {"deger": "oyma", "etiket": "Oyma"},
-        {"deger": "kabartma", "etiket": "Kabartma"}
+        {
+          "deger": "gomme",
+          "etiket": "Gömme"
+        },
+        {
+          "deger": "oyma",
+          "etiket": "Oyma"
+        },
+        {
+          "deger": "kabartma",
+          "etiket": "Kabartma"
+        }
       ],
       "varsayilan": "gomme",
       "aciklama": "Yazı ve yüz halkasının gövdeye uygulanma biçimi"
@@ -41,8 +50,14 @@
       "etiket": "İşlenen yüz",
       "tip": "secim",
       "secenekler": [
-        {"deger": "tek", "etiket": "Tek yüz"},
-        {"deger": "cift", "etiket": "Çift yüz"}
+        {
+          "deger": "tek",
+          "etiket": "Tek yüz"
+        },
+        {
+          "deger": "cift",
+          "etiket": "Çift yüz"
+        }
       ],
       "varsayilan": "tek",
       "aciklama": "İçeriğin yalnız ön yüze veya iki yüze birden uygulanması"
@@ -52,8 +67,14 @@
       "etiket": "Kenar deseni",
       "tip": "secim",
       "secenekler": [
-        {"deger": "segmentli", "etiket": "Segmentli"},
-        {"deger": "duz", "etiket": "Düz"}
+        {
+          "deger": "segmentli",
+          "etiket": "Segmentli"
+        },
+        {
+          "deger": "duz",
+          "etiket": "Düz"
+        }
       ],
       "varsayilan": "segmentli",
       "aciklama": "Çevrede poker çipi görünümü veren segmentlerin bulunması"
@@ -67,6 +88,6 @@
       "aciklama": "Yüze işlenecek değer, isim veya kısa tarih"
     }
   ],
-  "tabanHacimMm3": 3867.0187242192715,
+  "tabanHacimMm3": 3866.9,
   "tabanFiyatTL": 150
 }

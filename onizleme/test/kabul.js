@@ -27,6 +27,8 @@ const path = require("path");
 const zlib = require("zlib");
 
 const REPO = path.resolve(__dirname, "..", "..");
+require(path.join(REPO, "secenekler.js")); // globalThis.PRUVO_SECENEK'i kurar
+const SECENEK = globalThis.PRUVO_SECENEK;
 const ONIZLEME = path.join(REPO, "onizleme");
 const DERLEYICI = path.join(ONIZLEME, "derleyici", "server.py");
 const WORKER_PORT = 18788;
@@ -149,8 +151,12 @@ function pXX(dizi, oran) {
 
 // Sema izgarasinda gecerli rastgele set + uretilebilirlik kisitlari
 // (uretec assert'leri; kalibrasyon 2026-07-16 — profil: I/U yukseklik>4t, T>3t,
-// kutu/elips kenarlar>2t, cokgen genislik>2t).
+// kutu/elips kenarlar>2t, cokgen genislik>2t). ONIZLEME_KISITLAR'daki secim
+// degerleri (motorda 3D karsiligi yok) musteri gibi hic uretilmez; rulman'in
+// uretilemez bolgesi (eleman capi > genislik -> motor assert'i, temiz 422)
+// 4d dongusunde 422 olarak kabul edilir ve sayilir.
 function rastgeleSet(sema, rnd) {
+  const kisit = (SECENEK.ONIZLEME_KISITLAR || {})[sema.id] || {};
   while (true) {
     const s = {};
     for (const p of sema.parametreler) {
@@ -160,11 +166,12 @@ function rastgeleSet(sema, rnd) {
         const n = Math.round((p.max - p.min) / adim);
         s[p.ad] = Math.round((p.min + Math.floor(rnd() * (n + 1)) * adim) * 1e6) / 1e6;
       } else if (tip === "secim") {
-        const secenekler = p.secenekler.map((x) => (typeof x === "object" ? x.deger : x));
+        let secenekler = p.secenekler.map((x) => (typeof x === "object" ? x.deger : x));
+        if (kisit[p.ad]) { secenekler = secenekler.filter((x) => kisit[p.ad].includes(x)); }
         s[p.ad] = secenekler[Math.floor(rnd() * secenekler.length)];
       } else { s[p.ad] = p.varsayilan || ""; }
     }
-    if (sema.id === "olcuye-ozel-oring-conta" && s.profil === "pahli") continue; // bilinen sapma — asagida ayri olculur
+    if (sema.id === "olcuye-ozel-oring-conta" && s.profil === "pahli") continue; // kalibre izlemesi — asagida ayri olculur
     const t = s.et_kalinligi;
     if (sema.id === "olcuye-ozel-profil-beam") {
       const carpan = { i: 4, u: 4, t: 3 }[s.kesit];
@@ -209,8 +216,12 @@ async function faz4a() {
     ["adim ihlali (kesit_cap=3.65)", { aile: "olcuye-ozel-oring-conta", parametreler: { ...taban, kesit_cap: 3.65 } }, 400],
     ["tanimsiz anahtar", { aile: "olcuye-ozel-oring-conta", parametreler: { ...taban, hacker: 1 } }, 400],
     ["eksik parametre", { aile: "olcuye-ozel-oring-conta", parametreler: { ic_cap: 30 } }, 400],
-    ["tanimsiz aile", { aile: "olcuye-ozel-cetvel", parametreler: {} }, 404],
+    ["tanimsiz aile", { aile: "boyle-bir-aile-yok", parametreler: {} }, 404],
     ["bozuk JSON", "{bozuk", 400],
+    // Faz E: onizleme secenek kisiti (motorda karsiligi olmayan secim) -> 400
+    ["kisitli secenek (cetvel ucgen)", { aile: "olcuye-ozel-cetvel",
+      parametreler: { tip: "ucgen", sistem: "metrik", uzunluk: 15,
+                      genislik: 30, kalinlik: 3, isaret_stili: "oyma" } }, 400],
   ];
   for (const [ad, govde, beklenen] of durumlar) {
     const c = await olustur(govde);
@@ -290,15 +301,14 @@ async function faz4f() {
 async function faz4d(paketDizin) {
   console.log("\n== 4d — STL hacmi vs hacim.js kapali-form <= %3 " +
               "(gercek openscad, aile basina 5 set x 2 tohum) ==");
-  const semalar = {
-    "olcuye-ozel-oring-conta": { dosya: "olcuye-ozel-oring-conta.json", fonksiyon: "oring" },
-    "olcuye-ozel-profil-beam": { dosya: "olcuye-ozel-profil-beam.json", fonksiyon: "profil" },
-    "olcuye-ozel-baglanti-konektor": { dosya: "olcuye-ozel-baglanti-konektor.json", fonksiyon: "konektor" },
-    "olcuye-ozel-montaj-braketi": { dosya: "olcuye-ozel-montaj-braketi.json", fonksiyon: "braket" },
-    "ozel-disli-kramayer-uretimi": { dosya: "ozel-disli-kramayer-uretimi.json", fonksiyon: "disli" },
-    // yay BILEREK yok: eslem olcumunde kare/testere formlari kisa boyda %3'u asti
-    // (%5.2'ye kadar) — ONIZLEME_AILELER'e alinmadi, mimar tablosunda (Faz D raporu).
-  };
+  // Kapsam = ONIZLEME_AILELER'in tamami (Faz E: 17 aile; vida fiyat paketi
+  // bekliyor). hacimFormulu semadan okunur — ikinci liste tutulmaz.
+  const semalar = {};
+  for (const aile of SECENEK.ONIZLEME_AILELER) {
+    const sema = JSON.parse(fs.readFileSync(
+      path.join(REPO, "jenerator", "urunler", aile + ".json"), "utf-8"));
+    semalar[aile] = { dosya: aile + ".json", fonksiyon: sema.hacimFormulu };
+  }
   const tohumlar = [parseInt(process.env.KABUL_TOHUM || "20260716", 10),
                     parseInt(process.env.KABUL_TOHUM_2 || "20260717", 10)];
   const gecikmeler = { derleyici: [], onbellek: [] };
@@ -314,12 +324,24 @@ async function faz4d(paketDizin) {
       for (let i = 0; i < 5; i++) setler.push(rastgeleSet(sema, rnd));
     }
     const js = jsHacim(bilgi.fonksiyon, setler);
+    let olculen = 0;
+    let uretilemez = 0;
     for (let i = 0; i < setler.length; i++) {
       const c = await olustur({ aile, parametreler: setler[i] });
+      if (c.kod === 422) {
+        // Uretilemez kombinasyon (motor assert'i -> temiz 422; or. rulman'da
+        // eleman capi > genislik). Musteri de ayni cevabi alir — hata degil,
+        // ama sayilir ve aile basina olculen set alt siniri ayrica aranir.
+        uretilemez += 1;
+        console.log("  [422 ] 4d " + aile + " set" + i + " uretilemez " +
+                    JSON.stringify(setler[i]));
+        continue;
+      }
       if (c.kod !== 200) {
         kaydet("4d " + aile + " set" + i, false, "kod=" + c.kod + " " + JSON.stringify(c.veri));
         continue;
       }
+      olculen += 1;
       gecikmeler.derleyici.push(c.ms);
       const ham = c.sikistirma === "gzip" ? zlib.gunzipSync(c.veri) : c.veri;
       const v = stlHacim(ham);
@@ -330,6 +352,10 @@ async function faz4d(paketDizin) {
              c.ms.toFixed(0) + "ms  " + JSON.stringify(setler[i]));
       const tekrar = await olustur({ aile, parametreler: setler[i] });
       if (tekrar.kod === 200 && tekrar.kaynak === "onbellek") gecikmeler.onbellek.push(tekrar.ms);
+    }
+    if (uretilemez > 0) {
+      kaydet("4d " + aile + " olculen set alt siniri", olculen >= 5,
+             "olculen=" + olculen + " uretilemez(422)=" + uretilemez);
     }
   }
 

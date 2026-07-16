@@ -49,46 +49,43 @@ function izgara_dikdortgen_kirp_alani(cokgen, yariEn, yariBoy) {
   return izgara_cokgen_alani(izgara_cokgen_kirp(cokgen, sinir));
 }
 
-function izgara_desen_noktalari(sekil, boyut) {
+function izgara_desen_noktalari(sekil) {
+  // Uretim motorunun desen sekilleri, sabit olcu [8,8]:
+  // yuvarlak cember r4; sekizgen CEVREL 8-gen r=4/cos22.5, KOSELER 0°'da
+  // (BOSL2 circum kendi 22.5° dondurur + motorun 22.5 spin'i koseyi 0'a
+  // getirir); petek IC 6-gen r4 faz 0; besgen r4 faz +18°; ucgen r4 faz 0.
   if (sekil === "kare") {
-    return [
-      [-boyut / 2, -boyut / 2],
-      [boyut / 2, -boyut / 2],
-      [boyut / 2, boyut / 2],
-      [-boyut / 2, boyut / 2]
-    ];
+    return [[-4, -4], [4, -4], [4, 4], [-4, 4]];
   }
-
   var adet = 180;
-  var yaricap = boyut / 2;
+  var yaricap = 4;
+  var faz = 0;
   if (sekil === "sekizgen") {
     adet = 8;
-    yaricap = boyut / (2 * Math.cos(Math.PI / 8));
+    yaricap = 4 / Math.cos(Math.PI / 8);
   } else if (sekil === "petek") {
     adet = 6;
-    yaricap = boyut / (2 * Math.cos(Math.PI / 6));
   } else if (sekil === "besgen") {
     adet = 5;
+    faz = 18 * Math.PI / 180;
   } else if (sekil === "ucgen") {
     adet = 3;
   }
-
   var noktalar = [];
   for (var i = 0; i < adet; i++) {
-    var aci = 2 * Math.PI * i / adet;
+    var aci = faz + 2 * Math.PI * i / adet;
     noktalar.push([yaricap * Math.cos(aci), yaricap * Math.sin(aci)]);
   }
   return noktalar;
 }
 
-function izgara_delik_alani(p, icEn, icBoy) {
-  var boyut = 8;
-  var aralik = 3;
-  var pitch = boyut + aralik;
-  var dy = p.delik_sekli === "petek" ? pitch * 0.866 : pitch;
-  var yariEn = icEn / 2 - 1;
-  var yariBoy = icBoy / 2 - 1;
-  var temel = izgara_desen_noktalari(p.delik_sekli, boyut);
+function izgara_delik_alani(p, icYariEn, icYariBoy) {
+  // Motor kafesi: adim [11, 7] (desen 8 + aralik 3; sasirtma satir adimini
+  // 7'ye dusurur), kopya sayisi floor(olcu/adim)+1, merkezli, INDEKS
+  // PARITESI (i+j) cift olanlar kalir (dama deseni). Delikler govde
+  // sinirina degil IC cerceve (insert duvari 2 mm) dikdortgenine kirpilir —
+  // duvar bandindaki kisim insert ile geri doluyor.
+  var temel = izgara_desen_noktalari(p.delik_sekli);
   var tamAlan = izgara_cokgen_alani(temel);
   var minX = Infinity;
   var maxX = -Infinity;
@@ -100,98 +97,74 @@ function izgara_delik_alani(p, icEn, icBoy) {
     minY = Math.min(minY, temel[n][1]);
     maxY = Math.max(maxY, temel[n][1]);
   }
-
-  var nx = Math.ceil(p.en / pitch) + 1;
-  var ny = Math.ceil(p.boy / dy) + 1;
+  var nx = Math.floor(p.en / 11) + 1;
+  var ny = Math.floor(p.boy / 7) + 1;
   var toplam = 0;
-  for (var j = -ny; j <= ny; j++) {
-    var cxKaydir = j % 2 === 0 ? 0 : pitch / 2;
-    var cy = j * dy;
-    for (var i = -nx; i <= nx; i++) {
-      var cx = i * pitch + cxKaydir;
-      if (cx + maxX <= yariEn && cx + minX >= -yariEn &&
-          cy + maxY <= yariBoy && cy + minY >= -yariBoy) {
+  for (var j = 0; j < ny; j++) {
+    var cy = (j - (ny - 1) / 2) * 7;
+    for (var i = 0; i < nx; i++) {
+      if ((i + j) % 2 !== 0) continue;
+      var cx = (i - (nx - 1) / 2) * 11;
+      if (cx + minX >= -icYariEn && cx + maxX <= icYariEn &&
+          cy + minY >= -icYariBoy && cy + maxY <= icYariBoy) {
         toplam += tamAlan;
-      } else if (cx + maxX > -yariEn && cx + minX < yariEn &&
-                 cy + maxY > -yariBoy && cy + minY < yariBoy) {
+      } else if (cx + maxX > -icYariEn && cx + minX < icYariEn &&
+                 cy + maxY > -icYariBoy && cy + minY < icYariBoy) {
         var tasinmis = [];
         for (var q = 0; q < temel.length; q++) {
           tasinmis.push([cx + temel[q][0], cy + temel[q][1]]);
         }
-        toplam += izgara_dikdortgen_kirp_alani(tasinmis, yariEn, yariBoy);
+        toplam += izgara_dikdortgen_kirp_alani(tasinmis, icYariEn, icYariBoy);
       }
     }
   }
   return toplam;
 }
 
-function izgara_slat_cokgeni(y, z, aci) {
-  var c = Math.cos(aci);
-  var s = Math.sin(aci);
-  var yerel = [[-4.5, -0.8], [4.5, -0.8], [4.5, 0.8], [-4.5, 0.8]];
-  var sonuc = [];
-  for (var i = 0; i < yerel.length; i++) {
-    var v = yerel[i][0];
-    var w = yerel[i][1];
-    sonuc.push([y + v * c - w * s, z + v * s + w * c]);
+function izgara_panjur_hacmi(p, govdeDerinligi) {
+  // 7 yatay egik cita (motor: 8 hucre "between" dagilimi = 7 cita, dikey
+  // cita yok), kesit kalinligi 2 mm, boy en-4; z 0..H araligina ve ic
+  // cerceveye kirpilir (sayisal z-integrali).
+  var il = p.boy - 4;
+  var aci = p.panjur_acisi * Math.PI / 180;
+  var g = (il - 14) / 8;
+  var adimBoyu = 2 + g;
+  var ilkMerkez = -il / 2 + g + 1;
+  var H = govdeDerinligi;
+  var adim = 60;
+  var dz = H / adim;
+  var tanA = Math.tan(aci);
+  var yariKalinlik = 1 / Math.cos(aci);
+  var alan = 0;
+  for (var s = 0; s < 7; s++) {
+    var merkez = ilkMerkez + s * adimBoyu;
+    for (var k = 0; k < adim; k++) {
+      var z = (k + 0.5) * dz - H / 2;
+      var orta = merkez + z * tanA;
+      var lo = Math.max(orta - yariKalinlik, -il / 2);
+      var hi = Math.min(orta + yariKalinlik, il / 2);
+      if (hi > lo) alan += (hi - lo) * dz;
+    }
   }
-  return sonuc;
-}
-
-function izgara_panjur_alani(boy, derinlik, derece) {
-  var aci = derece * Math.PI / 180;
-  var pitch = 6.5;
-  var ny = Math.ceil(boy / pitch) + 1;
-  var sinir = [
-    [-boy / 2, 0],
-    [boy / 2, 0],
-    [boy / 2, derinlik],
-    [-boy / 2, derinlik]
-  ];
-  var slatlar = [];
-  var toplam = 0;
-  for (var j = -ny; j <= ny; j++) {
-    var slat = izgara_slat_cokgeni(j * pitch, derinlik / 2, aci);
-    slatlar.push(slat);
-    toplam += izgara_cokgen_alani(izgara_cokgen_kirp(slat, sinir));
-  }
-
-  for (var k = 0; k + 1 < slatlar.length; k++) {
-    var ortak = izgara_cokgen_kirp(slatlar[k], slatlar[k + 1]);
-    ortak = izgara_cokgen_kirp(ortak, sinir);
-    toplam -= izgara_cokgen_alani(ortak);
-  }
-  return toplam;
-}
-
-function izgara_erozyon_alani(en, boy, yaricap, mesafe) {
-  var yeniEn = en - 2 * mesafe;
-  var yeniBoy = boy - 2 * mesafe;
-  var yeniR = Math.max(yaricap - mesafe, 0);
-  return yeniEn * yeniBoy - (4 - Math.PI) * yeniR * yeniR;
+  return alan * (p.en - 4);
 }
 
 function izgara(p) {
-  var cerceveEn = 6;
-  var koseR = 3;
-  var icEn = p.en - 2 * cerceveEn;
-  var icBoy = p.boy - 2 * cerceveEn;
-  var disAlan = izgara_erozyon_alani(p.en, p.boy, koseR, 0);
-  var icAlan = icEn * icBoy;
-  var cerceveAlani = disAlan - icAlan;
+  // Uretim motoruna kalibre (Faz E): govde derinligi min(derinlik, 8)
+  // (insert derinligi tavani); cepecevre insert duvari (2 mm et, 8 mm boy);
+  // kapak plakasi cerceveden 6 mm tasar, 3 mm kalin. Panjur tipinde plaka
+  // YOK (yalniz citalar + insert + kapak).
+  var H = Math.min(p.derinlik, 8);
+  var ringAlani = 4 * (p.en + p.boy) - 16;
+  var kapak = ((p.en + 12) * (p.boy + 12) - p.en * p.boy) * 3;
 
-  var etekDis = izgara_erozyon_alani(p.en, p.boy, koseR, 0.4);
-  var etekIc = izgara_erozyon_alani(p.en, p.boy, koseR, 2.2);
-  var etekHacmi = (etekDis - etekIc) * 8;
-  var hacim = cerceveAlani * p.derinlik + etekHacmi;
+  if (p.tip === "panjur") {
+    return izgara_panjur_hacmi(p, H) + ringAlani * 8 + kapak;
+  }
 
-  if (p.tip === "kor") {
-    hacim += icAlan * p.derinlik;
-  } else if (p.tip === "delikli") {
-    var delikAlani = izgara_delik_alani(p, icEn, icBoy);
-    hacim += (icAlan - delikAlani) * Math.min(p.derinlik, 3);
-  } else {
-    hacim += icEn * izgara_panjur_alani(icBoy, p.derinlik, p.panjur_acisi);
+  var hacim = p.en * p.boy * H + ringAlani * (8 - H) + kapak;
+  if (p.tip === "delikli") {
+    hacim -= izgara_delik_alani(p, (p.en - 4) / 2, (p.boy - 4) / 2) * H;
   }
   return hacim;
 }

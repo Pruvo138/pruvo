@@ -111,6 +111,17 @@ ONIZLEME_JS = """
        burada KULLANILMAZ; onizleme fiyattan bagimsiz). */
     var s = PRUVO_KONF.satiraYaz({ malzeme:"PLA", renk:"Siyah" });
     if(!s.parametreler){ kutu.hidden=false; de("Önce ölçüleri geçerli aralıkta doldurun."); return; }
+    /* Onizleme secenek kisitlari (tek kaynak /secenekler.js): motorda 3D
+       karsiligi olmayan secimlerde istek atmadan dostca uyar. */
+    var kis=(window.PRUVO_SECENEK&&PRUVO_SECENEK.ONIZLEME_KISITLAR||{})[URUN.id];
+    if(kis){ for(var ad in kis){ if(Object.prototype.hasOwnProperty.call(kis,ad)){
+      var v=s.parametreler[ad];
+      if(v!==undefined && kis[ad].indexOf(v)<0){
+        kutu.hidden=false;
+        de("Bu seçenekle 3D önizleme şimdilik sunulamıyor; sipariş verebilirsiniz, üretim etkilenmez.");
+        return;
+      }
+    }}}
     mesgul=true; btn.disabled=true; kutu.hidden=false; de("Model hazırlanıyor…");
     fetch("/api/onizleme/olustur", { method:"POST",
       headers:{ "Content-Type":"application/json" },
@@ -130,6 +141,7 @@ ONIZLEME_JS = """
     .catch(function(e){
       var m={
         "gecersiz-geometri":"Bu ölçü kombinasyonu üretilemiyor; ölçüleri değiştirip tekrar deneyin.",
+        "onizleme-secenek-kisiti":"Bu seçenekle 3D önizleme şimdilik sunulamıyor; sipariş verebilirsiniz, üretim etkilenmez.",
         "hiz-siniri":"Kısa sürede çok fazla önizleme istendi; bir dakika sonra tekrar deneyin.",
         "derleyici-yok":"Önizleme servisi şu an hazır değil; lütfen daha sonra deneyin.",
         "tarayici-eski":"Tarayıcınız 3D önizlemeyi desteklemiyor."

@@ -41,6 +41,10 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 VARSAYILAN_ZAMAN_ASIMI_SN = 5.0
+# Deneysel textmetrics/fontmetrics builtin'leri: damga uretecinin taban boyutu
+# bunlarsiz undef kalir ve derleme BOS doner (Faz E kok neden bulgusu).
+# Bayrak tum ailelere zararsiz; eslem-olcum.py de ayni listeyi kullanir.
+OPENSCAD_EK_BAYRAKLAR = ["--enable=textmetrics"]
 HAM_STL_TAVANI = 20 * 1024 * 1024  # guvenlik tavani; asil 2 MB gzip tavani Worker'da
 SAYAC = {"derleme": 0}
 SAYAC_KILIT = threading.Lock()
@@ -218,6 +222,7 @@ def derle(ayarlar, aile, parametreler):
     with tempfile.TemporaryDirectory() as tmp:
         stl = os.path.join(tmp, "cikti.stl")
         komut = [ayarlar["openscad"], "-o", stl, "--export-format", "binstl"]
+        komut += OPENSCAD_EK_BAYRAKLAR
         komut += bayraklar
         komut.append(scad_yol)
         try:

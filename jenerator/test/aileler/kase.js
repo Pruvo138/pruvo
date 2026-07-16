@@ -1,67 +1,38 @@
-function kase_knob_hacmi(cap) {
-  var yaricap = 6;
-  var yukseklik = 18;
-  var altYaricap = cap * 0.3;
-  var ustYaricap = cap * 0.5;
-  var dx = ustYaricap - altYaricap;
-  var uzunluk = Math.sqrt(dx * dx + yukseklik * yukseklik);
-  var ux = dx / uzunluk;
-  var uz = yukseklik / uzunluk;
-  var aci = Math.acos(ux);
-  var teget = yaricap / Math.tan(aci / 2);
-  var z1 = yukseklik / 2 - uz * teget;
-  var r1 = ustYaricap - ux * teget;
-  var merkezX = ustYaricap - teget;
-  var merkezZ = yukseklik / 2 - yaricap;
-  var ilkYukseklik = z1 + yukseklik / 2;
-  var konik = Math.PI * ilkYukseklik *
-    (altYaricap * altYaricap + altYaricap * r1 + r1 * r1) / 3;
-  var u1 = z1 - merkezZ;
-  var u2 = yaricap;
-
-  function kase_knob_ilkel(u) {
-    var kok = Math.sqrt(Math.max(0, yaricap * yaricap - u * u));
-    return merkezX * merkezX * u +
-      merkezX * (u * kok + yaricap * yaricap * Math.asin(u / yaricap)) +
-      yaricap * yaricap * u - u * u * u / 3;
-  }
-
-  return konik + Math.PI * (kase_knob_ilkel(u2) - kase_knob_ilkel(u1));
-}
-
 function kase(p) {
-  var yukseklik = 8;
-  var pah = 2.5;
-  var en = 3.1 * p.yazi_boyutu + 2 * p.dolgu;
-  var boy = p.bicim === "dikdortgen" ?
-    2.6 * p.yazi_boyutu + 2 * p.dolgu : en;
-  var taban;
-
-  if (p.bicim === "yuvarlak") {
-    var altYaricap = en / 2;
-    var ustYaricap = altYaricap - 2;
-    var egimUzunlugu = Math.sqrt(yukseklik * yukseklik + 4);
-    var araYaricap = ustYaricap + pah * 2 / egimUzunlugu;
-    var araYukseklik = yukseklik - pah * yukseklik / egimUzunlugu;
-    var tepeYaricap = ustYaricap - pah;
-    taban = Math.PI * araYukseklik *
-      (altYaricap * altYaricap + altYaricap * araYaricap + araYaricap * araYaricap) / 3;
-    taban += Math.PI * (yukseklik - araYukseklik) *
-      (araYaricap * araYaricap + araYaricap * tepeYaricap + tepeYaricap * tepeYaricap) / 3;
-  } else {
-    taban = yukseklik * (en * boy - 2 * en - 2 * boy + 16 / 3) -
-      2 * pah * pah * yukseklik;
+  // Uretim motoruna kalibre (Faz E): taban, "PRUVO" yazisinin OLCULEN
+  // textmetrics kutusundan turer (genislik 4.78806 x yazi, satir 1.27767 x
+  // yazi), dolgu TOPLAM eklenir (+2 kenar payi), taban 15x10 alt sinirli
+  // kesik piramit (ust-alt fark 4, yukseklik 8). Sabitler motor renderlarina
+  // 12 sette +-2 mm3 oturdu.
+  var en2 = Math.max(15, 4.78806 * p.yazi_boyutu + p.dolgu + 2);
+  var boy2 = Math.max(15, 1.27767 * p.yazi_boyutu + p.dolgu + 2);
+  if (p.bicim !== "dikdortgen") {
+    // kare/yuvarlak: uretim motorunda karsiligi YOK (taban hep yazi
+    // kutusundan dikdortgen) — fiyat icin dikdortgen esdegeri kullanilir,
+    // uretilebilirlik karari mimar/Okan'da.
+    var kenar = Math.max(en2, boy2);
+    en2 = kenar;
+    boy2 = kenar;
   }
+  var en1 = Math.max(10, en2 - 4);
+  var boy1 = Math.max(10, boy2 - 4);
+  var yukseklik = 8;
+  var prizma = yukseklik / 6 * (en1 * boy1 + en2 * boy2 +
+    (en1 + en2) * (boy1 + boy2));
 
-  // Varsayılan kalın yazının ölçülen 2B alanı, yazı boyutunun karesiyle ölçeklenir.
-  var rolyef = 2.1218677380952453 * p.yazi_boyutu * p.yazi_boyutu *
-    p.kabartma_derinligi;
-  var toplam = taban + rolyef;
+  // Dis yuvasi (sap vidasi icin her govdede acilir) + ust kenar pahi.
+  var disYuvasi = 306.9;
+  var kenarPahi = 0.55 * 2 * (en2 + boy2);
+
+  // Kabartma yazi: olculen 2B glif alani 2.1232 x yazi^2.
+  var rolyef = 2.1232 * p.yazi_boyutu * p.yazi_boyutu * p.kabartma_derinligi;
+
+  var toplam = prizma - disYuvasi - kenarPahi + rolyef;
 
   if (p.sap === "sapli") {
-    var topuzCapi = Math.max(en * 0.7, 22);
-    // Dişli mil, gövde yuvası ve topuzla örtüşen bölümün kalibre edilmiş net etkisi.
-    toplam += kase_knob_hacmi(topuzCapi) - 210.720722018491;
+    // Motor sapi parametreden bagimsiz TEK sabit parcadir (ayri basilir,
+    // vidalanir); hacmi renderdan olculdu.
+    toplam += 10337.2;
   }
 
   return toplam;
