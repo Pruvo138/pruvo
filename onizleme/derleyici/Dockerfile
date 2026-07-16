@@ -16,7 +16,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       python3 ca-certificates curl \
       libgl1 libglu1-mesa libglib2.0-0 libfontconfig1 libfreetype6 \
-      libx11-6 libxext1 libxrender1 libxcb1 libxkbcommon0 libdbus-1-3 libegl1 \
+      libx11-6 libxext6 libxrender1 libxcb1 libxkbcommon0 libdbus-1-3 libegl1 \
       libharfbuzz0b libdouble-conversion3 libzstd1 \
  && rm -rf /var/lib/apt/lists/*
 
