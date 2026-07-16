@@ -60,6 +60,20 @@
      kanalı sessizce açılmasın. */
   var PARAMETRIK_ODEME_ACIK = false;
 
+  /* SELF-SERVİS KARTLA ÖDEME anahtarı (sitedeki "Kartla Güvenli Öde" butonu).
+     Bugün KAPALI — sebebi teknik değil, TİCARİ: elimizde yalnız iyzico SANDBOX anahtarı var
+     (canlı başvuru sürüyor). Buton canlı sitede açık olsaydı müşteri GERÇEK kartını SANDBOX
+     sayfasına girerdi: para hareket etmez ama sandbox `retrieve` "başarılı" döner, sipariş
+     'odendi' yazılır ve Okan parayı almadan üretip kargolar. Sepet + WhatsApp kanalı normal
+     çalışmaya devam eder (bugünkü davranışın aynısı).
+     AÇMAK İÇİN (sırayla): 1) Okan'ın CANLI iyzico anahtarları gelir, 2) wrangler.toml
+     IYZICO_BASE_URL -> https://api.iyzipay.com + `wrangler secret put` ile canlı anahtarlar,
+     3) `node shop/test/kabul.js --sandbox` uçtan uca YEŞİL (kart girişi elle), 4) burası true,
+     5) düşük tutarlı gerçek kart duman testi + iade.
+     Worker BU anahtardan bağımsız çalışır (uç açık kalır; curl ile doğrulanabilir) — kapali
+     olan yalnızca müşteriye gösterilen buton. */
+  var ODEME_ACIK = false;
+
   /* Birim fiyat, tamsayı KURUŞ. Sıra (Okan, 16 Tem): filament katsayısı -> SONRA "Diğer"
      renk +%15 -> sonra boy farkı (TL, sabit ek). Yuvarlama YOK; tek yuvarlama kuruşun ALTINA
      inen artık içindir (yarım kuruş tahsil edilemez; ör. "Diğer" renkte 333 -> 497,835 TL). */
@@ -231,6 +245,7 @@
     FONKSIYONEL_KATEGORILER: FONKSIYONEL_KATEGORILER,
     ADET_EN_AZ: ADET_EN_AZ,
     ADET_EN_COK: ADET_EN_COK,
+    ODEME_ACIK: ODEME_ACIK,
     PARAMETRIK_ODEME_ACIK: PARAMETRIK_ODEME_ACIK,
     fiyatSayisi: fiyatSayisi,
     fonksiyonelMi: fonksiyonelMi,

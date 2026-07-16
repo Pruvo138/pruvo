@@ -802,7 +802,9 @@
     var goster = lines.length > 0;
     satir.style.display = goster ? "flex" : "none";
     not.style.display = goster ? "block" : "none";
-    pay.style.display = goster ? "block" : "none";
+    // ODEME_ACIK kapaliyken buton HIC gosterilmez (canli anahtar yok — bkz. secenekler.js).
+    // Toplam gorunmeye devam eder; sipariş WhatsApp'tan verilir.
+    pay.style.display = (goster && PRUVO_SECENEK.ODEME_ACIK) ? "block" : "none";
     if(!goster){ return; }
     toplam.textContent = PRUVO_SECENEK.kurusMetni(cartToplamKurus(lines));
     pay.className = odenebilir ? "cart-pay-btn" : "cart-pay-btn disabled";
@@ -926,6 +928,8 @@
   async function odemeBaslat(){
     var btn = document.getElementById("odemeGonder");
     var lines = cartLines();
+    // Ikinci kapi: buton gizli olsa da (ODEME_ACIK=false) form bir sekilde acilirsa istek gitmez.
+    if(!PRUVO_SECENEK.ODEME_ACIK){ return; }
     if(!cartOdenebilirMi(lines)){ return; }
     btn.disabled = true; btn.textContent = "Ödeme sayfası hazırlanıyor…";
     try{
