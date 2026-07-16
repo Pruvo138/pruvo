@@ -7,6 +7,11 @@ NOT: Yasal metinler standart e-ticaret şablonudur; satıcı bilgileri gerçek
 mükellefiyete göre doldurulmuştur. Yayına almadan mali müşavir/avukata
 kontrol ettirmek önerilir.
 """
+import json
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import filament_ortak
 
 # ------------------------------------------------------------------ satıcı bilgileri
 SELLER = {
@@ -40,6 +45,7 @@ FOOT_NAV_HTML = (
     '<a href="/hakkimizda/">Hakkımızda</a> &middot; '
     '<a href="/iletisim/">İletişim</a> &middot; '
     '<a href="/sss/">S.S.S.</a> &middot; '
+    '<a href="/malzeme-rehberi/">Malzeme Rehberi</a> &middot; '
     '<a href="/gizlilik/">Gizlilik Politikası</a> &middot; '
     '<a href="/teslimat-iade/">Teslimat ve İade</a> &middot; '
     '<a href="/mesafeli-satis/">Mesafeli Satış Sözleşmesi</a>'
@@ -58,6 +64,9 @@ CONTENT_CSS = """
   .content .info-table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:14.5px}
   .content .info-table td{padding:8px 10px;border:1px solid var(--gray-line);vertical-align:top}
   .content .info-table td:first-child{background:var(--gray-card);font-weight:600;color:var(--navy);width:38%}
+  .content .info-table th{padding:8px 10px;border:1px solid var(--gray-line);background:var(--navy);
+    color:#fff;text-align:left;font-size:13.5px}
+  .content .karsilastirma td:first-child{width:auto;white-space:nowrap}
   .content .upd{margin-top:30px;font-size:12.5px;color:var(--gray-text)}
   .pay-band{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:14px}
   .pay-label{font-size:12px;color:#8996ad;letter-spacing:.4px}
@@ -255,14 +264,101 @@ def _mesafeli_satis():
     ) % (s["kargo"], s["teslim"], s["eposta"], s["tel"])
 
 
+def _malzeme_rehberi():
+    """/malzeme-rehberi/ — sitede satılan 4 malzeme (PLA/PETG/ASA/TPU) tam açıklama +
+    karşılaştırma tablosu; ayrıca mühendislik malzemeleri (ABS, Karbon Katkılı — WhatsApp
+    özel talebiyle) ayrı bölümde, SİTE SEÇENEĞİ OLARAK SUNULMADAN anlatılır (Okan, 16 Tem).
+    İçerik tools/filamentler.json'dan üretilir (tek kaynak; ürün sayfası balonlarıyla
+    birebir aynı metinler). Isı değeri verilirken ölçüt adı anılır (HDT @ 0.45 MPa)."""
+    ref = filament_ortak.referans()
+    site_fil = [f for f in ref["filamentler"] if f.get("site")]
+    ozel_fil = [f for f in ref["filamentler"] if not f.get("site")]
+
+    def _esc(s):
+        return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+    def _bolum(f):
+        return (
+            "<h2>%s — %s</h2>"
+            '<p><strong>Isı dayanımı (HDT @ 0.45 MPa):</strong> %s%s</p>'
+            "<p>%s</p>"
+            % (_esc(f.get("uzunAd") or f["ad"]), _esc(f["kisaEtiket"]),
+               _esc(f["isiDayanimi"]),
+               (" (%s)" % _esc(f["isiDetay"])) if f.get("isiDetay") else "",
+               _esc(f["uzun"])))
+
+    bolumler = "".join(_bolum(f) for f in site_fil)
+    ozel_bolumler = "".join(_bolum(f) for f in ozel_fil)
+
+    def _satir(f):
+        return ("<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
+                % (_esc(f["ad"]), _esc(f["isiDayanimi"]), _esc(f["uv"]),
+                   _esc(f["su"]), _esc(f["darbe"])))
+
+    tablo = (
+        '<div style="overflow-x:auto"><table class="info-table karsilastirma"><thead>'
+        "<tr><th>Malzeme</th><th>Isı dayanımı*</th><th>Güneş (UV)</th>"
+        "<th>Su / nem</th><th>Darbe</th></tr></thead><tbody>"
+        + "".join(_satir(f) for f in site_fil) + "</tbody></table></div>"
+        '<p class="upd">* Isı dayanımı ölçütü: HDT @ 0.45 MPa; değerler marka bağımsız '
+        "yaklaşık aralıklardır.</p>")
+
+    # Kategori -> varsayılan tavsiye özeti (aynı listeyi paylaşan kategoriler gruplanır)
+    gruplar, sira = {}, []
+    for kat, liste in ref["kategoriTavsiye"].items():
+        anahtar = json.dumps(liste, ensure_ascii=False)
+        if anahtar not in gruplar:
+            gruplar[anahtar] = []
+            sira.append(anahtar)
+        gruplar[anahtar].append(kat)
+    oneri_md = []
+    for anahtar in sira:
+        liste = json.loads(anahtar)
+        parca = liste[0]["ad"]
+        for t in liste[1:]:
+            parca += ", %s (%s)" % (t["ad"], t.get("not", "").lower() or "alternatif")
+        oneri_md.append("<li><strong>%s:</strong> %s</li>"
+                        % (_esc(", ".join(gruplar[anahtar])), _esc(parca)))
+
+    wa = ("https://wa.me/905451386526?text=Merhaba%2C%20m%C3%BChendislik%20malzemesiyle%20"
+          "%C3%B6zel%20%C3%BCretim%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum.")
+
+    return (
+        "<h1>Malzeme Rehberi</h1>"
+        '<p class="lead">Hangi malzeme nerede kullanılır? Dürüst değerler, net öneriler.</p>'
+        "<p>Her parçayı kullanım yerine göre uygun malzemeyle üretiyoruz. Aşağıda "
+        "sitede sipariş edebileceğiniz dört malzeme sınıfının özelliklerini ve hangi "
+        "parçada hangisini önerdiğimizi bulabilirsiniz. Emin değilseniz WhatsApp'tan "
+        "sorun; kullanım alanınıza göre birlikte seçelim.</p>"
+        + bolumler +
+        "<h2>Karşılaştırma</h2>" + tablo +
+        "<h2>Hangi parçada hangi malzeme?</h2><ul>" + "".join(oneri_md) + "</ul>"
+        "<h2>Mühendislik malzemeleri (özel talep)</h2>"
+        '<p>Daha yüksek ısı dayanımı ya da mukavemet gereken kritik parçalar için '
+        'ABS ve karbon fiber katkılı malzemeleri <strong>WhatsApp üzerinden özel talep</strong> '
+        "olarak değerlendiriyoruz; bu malzemeler standart sipariş akışında (sepet) yer almaz, "
+        "kullanım koşullarınızı konuşarak fiyatlandırırız. Karbon katkı ısı dayanımını "
+        "artırmaz, taşıyıcı malzemenin değerini korur; katkının kazandırdığı sertlik ve "
+        "mukavemettir.</p>"
+        + ozel_bolumler +
+        '<p><a href="%s" target="_blank" rel="noopener">WhatsApp\'tan mühendislik '
+        "malzemesi hakkında bilgi alın &rarr;</a></p>"
+        "<p>Ölçüye özel üretilen parçalarda en uygun malzemeyi kullanım alanınıza göre "
+        "size sorarak belirleriz.</p>") % _esc(wa)
+
+
 # build.py'nin ÜRETTİĞİ yeni sayfalar (hakkimizda/iletisim/sss/gizlilik zaten
 # elle yapılmış statik dosya olarak repo'da; onlar üretilmez, korunur).
 # slug -> (başlık, meta açıklama, gövde fonksiyonu)
 CONTENT_PAGES = [
     ("teslimat-iade", "Teslimat ve İade", "PRUVO teslimat, kargo ve iade/cayma hakkı koşulları.", _teslimat_iade),
     ("mesafeli-satis", "Mesafeli Satış Sözleşmesi", "PRUVO mesafeli satış sözleşmesi.", _mesafeli_satis),
+    ("malzeme-rehberi", "Malzeme Rehberi",
+     "PLA, PETG, ASA ve TPU malzemelerinin karşılaştırması: ısı, güneş (UV), su ve darbe "
+     "dayanımı; hangi parçada hangi malzeme önerilir. Mühendislik malzemeleri (ABS, karbon "
+     "katkılı) WhatsApp özel talebiyle.", _malzeme_rehberi),
 ]
 
 # sitemap için TÜM içerik/yasal sayfa slug'ları (statik + üretilen)
 SITEMAP_SLUGS = ["hakkimizda", "iletisim", "sss", "gizlilik",
-                 "teslimat-iade", "mesafeli-satis"]
+                 "teslimat-iade", "mesafeli-satis", "malzeme-rehberi"]

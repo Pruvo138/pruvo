@@ -33,6 +33,10 @@ _bspec = importlib.util.spec_from_file_location("baski_ipucu", os.path.join(TOOL
 bi = importlib.util.module_from_spec(_bspec)
 _bspec.loader.exec_module(bi)
 
+_fspec = importlib.util.spec_from_file_location("filament_ortak", os.path.join(TOOLS, "filament_ortak.py"))
+fo = importlib.util.module_from_spec(_fspec)
+_fspec.loader.exec_module(fo)
+
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import drive_yolu
 DRIVE = drive_yolu.stl_dizini()
@@ -134,6 +138,11 @@ def process_one(pid):
         urun = {"id": uid, "kategori": o.get("kategori", "Tamirat"), "marka": o.get("marka", []),
                 "baslik": o.get("baslik", key), "aciklama": o.get("aciklama", ""),
                 "fiyat": o.get("fiyat_oneri", ""), "gorseller": urls}
+        # Kaynaktaki baski ipucunda malzeme onerisi varsa SANITIZE override yaz:
+        # sadece kanonik malzeme adi gecer, tasarimci adi/kaynak izi TASINMAZ (gizlilik).
+        tavsiye = fo.tavsiye_filament(meta.get("baski", ""))
+        if tavsiye:
+            urun["tavsiyeFilament"] = tavsiye
         if cc_tur:
             urun["lisans"] = {"tasarimci": meta.get("tasarimci", "?"), "tur": cc_tur}
         src = {"kaynak": "Printables", "link": pr.model_url(pid, meta.get("slug")),

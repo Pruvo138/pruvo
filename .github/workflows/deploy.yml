@@ -31,8 +31,8 @@ jobs:
       - name: Yayin klasorunu topla (beyaz liste)
         run: |
           mkdir _site
-          cp index.html secenekler.js urunler.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml .nojekyll _site/
-          cp -r urun hakkimizda iletisim sss gizlilik teslimat-iade mesafeli-satis _site/
+          cp index.html secenekler.js urunler.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml filament-veri.js .nojekyll _site/
+          cp -r urun hakkimizda iletisim sss gizlilik teslimat-iade mesafeli-satis malzeme-rehberi _site/
           # Parametrik konfigurator varliklari — SADECE public dosyalar (test/ girmez):
           # hacim.js tek kaynak (kabul testi #4), semalar Worker'in ileride sunucu-tarafi
           # yeniden hesabi icin de ayni adresten okunur.

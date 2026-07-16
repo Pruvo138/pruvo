@@ -29,6 +29,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
                       CONTENT_CSS, CONTENT_PAGES, SITEMAP_SLUGS)
+import filament_ortak
 
 # ------------------------------------------------------------------ ayarlar
 SITE = "https://pruvo3d.com"
@@ -143,6 +144,15 @@ WA_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 '
            '.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45'
            '.21.51.32.06.11.06.64-.18 1.32z"/></svg>')
 
+# ABS ve Karbon Katkılı SİTEDE SATILMAZ (Okan, 16 Tem) — mühendislik malzemesi, WhatsApp
+# özel talebi (secenekler.js FILAMENT_SIRA'da zaten yok). Not metni TEK KAYNAK: hem malzeme
+# seçicisinin altında (fonksiyonel/parametrik ürün) hem de seçici olmayan ürünlerdeki filament
+# bilgi bloğunda (filament_html) aynen kullanılır.
+MUHENDISLIK_WA_NOT = ('<p class="malzeme-not">Karbon fiber veya diğer mühendislik malzemeleriyle '
+    'üretim için <a href="https://wa.me/905451386526?text=Merhaba%2C%20m%C3%BChendislik%20'
+    'malzemesiyle%20%C3%B6zel%20%C3%BCretim%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." '
+    'target="_blank" rel="noopener">WhatsApp\'tan bize yazın</a>.</p>')
+
 # Malzeme/renk satırları — klasik opsiyon bloğu ve parametrik konfigüratör AYNI bileşeni
 # kullanır. Seçenekler ve "(+%30)" etiketleri secenekler.js'ten ÜRETİLİR (elle yazılmaz):
 # katsayı orada değişince etiket sessizce eskimesin.
@@ -164,7 +174,7 @@ def _malzeme_renk_html():
         <select id="malzemeSec">""" + malzeme_opts + """
         </select>
       </div>
-      <p class="malzeme-not">Karbon fiber veya diğer mühendislik malzemeleriyle üretim için <a href="https://wa.me/905451386526?text=Merhaba%2C%20m%C3%BChendislik%20malzemesiyle%20%C3%B6zel%20%C3%BCretim%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener">WhatsApp'tan bize yazın</a>.</p>
+      """ + MUHENDISLIK_WA_NOT + """
       <div class="opsiyon-row">
         <label for="renkSec">Renk</label>
         <select id="renkSec">""" + renk_opts + """
@@ -328,6 +338,36 @@ PAGE_CSS = """
   .cart-fab svg{width:19px;height:19px;fill:#fff}
   .note{font-size:12.5px;color:var(--gray-text);margin-top:12px}
 
+  /* Malzeme bolumu: sitede satilan filament cipleri (ABS/Karbon haric) + tavsiye rozeti + aciklama balonu.
+     Balon, cip satirinin ALTINDA konteyner genisliginde acilir (kenar ciplerinde
+     ekran disina tasmaz — mobil guvenli). Masaustunde hover, mobilde dokunma
+     (.acik sinifi, sayfa scriptindeki toggle) ile acilir; title= mobilde calismadigi
+     icin bilerek CSS balon kullanildi. */
+  .malzeme-blok{margin:4px 0 22px}
+  .malzeme-baslik{font-size:13px;font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase;color:var(--gray-text);margin-bottom:8px}
+  .fil-cipler{display:flex;flex-wrap:wrap;gap:8px;position:relative}
+  .fil-cip{display:flex;flex-direction:column;align-items:flex-start;gap:1px;
+    background:var(--gray-card);border:1px solid var(--gray-line);border-radius:9px;
+    padding:7px 11px;cursor:pointer;font-family:inherit;text-align:left;transition:.15s}
+  .fil-cip:hover{border-color:var(--navy-2)}
+  .fil-cip.tavsiyeli{border-color:var(--navy);box-shadow:0 0 0 1px var(--navy)}
+  .fil-isi{font-size:10.5px;color:var(--gray-text);font-weight:600;letter-spacing:.2px}
+  .fil-ad{font-size:13.5px;font-weight:800;color:var(--navy)}
+  .fil-etiket{font-size:10.5px;color:var(--gray-text)}
+  .fil-rozet{background:var(--navy);color:#fff;font-size:9.5px;font-weight:800;
+    letter-spacing:.4px;text-transform:uppercase;border-radius:8px;padding:2px 7px;margin-top:4px}
+  .fil-rozet-not{background:#f7b500;color:#12294d;text-transform:none;letter-spacing:.1px}
+  .fil-balon{display:none;position:absolute;left:0;right:0;top:calc(100% + 9px);z-index:45;
+    background:var(--navy);color:#e7edf8;font-size:13px;line-height:1.6;font-weight:400;
+    border-radius:9px;padding:12px 14px;box-shadow:0 8px 24px rgba(13,30,58,.35);
+    text-align:left;cursor:default}
+  .fil-balon strong{color:#fff}
+  .fil-cip:hover .fil-balon,.fil-cip:focus-visible .fil-balon,
+  .fil-cip.acik .fil-balon{display:block}
+  .fil-not{font-size:12.5px;color:var(--gray-text);margin-top:9px}
+  .malzeme-link{display:inline-block;margin-top:9px;font-size:12.5px;color:var(--navy-2)}
+
   .related{max-width:1100px;margin:0 auto;padding:0 20px 60px}
   .related h2{font-size:19px;font-weight:700;margin-bottom:16px}
   .rel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px}
@@ -436,6 +476,58 @@ def attribution_html(p):
         return '<div class="attribution">Licensed under %s.</div>' % lic
     return ('<div class="attribution">Design by %s, licensed under %s.</div>'
             % (esc(tasarimci), lic))
+
+
+# ------------------------------------------------------------------ malzeme (filament) bölümü
+def filament_html(p, wa_not=False):
+    """Fiyat bloğunun altındaki "Malzeme" bölümü: sitede satılan filament çipleri + tavsiye
+    rozeti + balon. ABS ve Karbon Katkılı SİTEDE SATILMAZ (Okan, 16 Tem) — mühendislik
+    malzemesi, WhatsApp özel talebiyle satılır; burada çip olarak SUNULMAZ (yalnız
+    /malzeme-rehberi/ sayfasında ayrı bölümde anlatılır). wa_not=True ise (malzeme
+    seçicisi/dropdown'u olmayan ürün — MALZEME_RENK_HTML basılmıyor) mühendislik malzemesi
+    notu burada gösterilir; dropdown'lu üründe not zaten opsiyonlar bloğunda var, mükerrer
+    basılmaz.
+
+    MİMARİ İLKE: filament bilgisi ürün verisine YAZILMAZ — tavsiye, kategori haritasından
+    (tools/filamentler.json) render anında türetilir; ürün "tavsiyeFilament" override'ı
+    taşıyorsa harita yerine o geçer. Balon metni referanstaki "uzun" alanının birebir
+    kendisidir (tek kaynak). Parametrik (ölçüye özel) üründe rozet basılmaz; malzeme
+    kullanım alanına göre konuşarak belirlenir notu eklenir.
+    """
+    ref = filament_ortak.referans()
+    parametrik = bool(p.get("parametrik"))
+    tavs = {} if parametrik else {
+        t["ad"]: t["rozet"]
+        for t in filament_ortak.tavsiyeler(p.get("kategori"), p.get("tavsiyeFilament"))}
+    cips = []
+    for f in ref["filamentler"]:
+        if not f.get("site"):
+            continue
+        rozet = tavs.get(f["ad"], "")
+        rozet_html = ""
+        if rozet:
+            rcls = "fil-rozet" if rozet == "Tavsiyemiz" else "fil-rozet fil-rozet-not"
+            rozet_html = '<span class="%s">%s</span>' % (rcls, esc(rozet))
+        cips.append(
+            '<button type="button" class="fil-cip%s" aria-expanded="false">'
+            '<span class="fil-isi">%s</span>'
+            '<span class="fil-ad">%s</span>'
+            '<span class="fil-etiket">%s</span>'
+            '%s'
+            '<span class="fil-balon" role="tooltip"><strong>%s — %s</strong><br>%s</span>'
+            '</button>'
+            % (" tavsiyeli" if rozet else "", esc(f["isiDayanimi"]), esc(f["ad"]),
+               esc(f["kisaEtiket"]), rozet_html,
+               esc(f.get("uzunAd") or f["ad"]), esc(f["kisaEtiket"]), esc(f["uzun"])))
+    not_html = ('<div class="fil-not">%s</div>' % esc(ref["parametrikNot"])) if parametrik else ""
+    wa_html = MUHENDISLIK_WA_NOT if wa_not else ""
+    return ('<div class="malzeme-blok">'
+            '<div class="malzeme-baslik">Malzeme</div>'
+            '<div class="fil-cipler">%s</div>'
+            '%s%s'
+            '<a class="malzeme-link" href="/malzeme-rehberi/">Hangi malzeme nerede kullanılır? '
+            'Malzeme Rehberi &rarr;</a>'
+            '</div>' % ("".join(cips), not_html, wa_html))
 
 
 # ------------------------------------------------------------------ ürün sayfası
@@ -683,6 +775,7 @@ def render_product(p, all_products):
       {brands}
       {price}
       {opsiyonlar}
+      {malzeme}
       <p class="desc">{aciklama}</p>
       <button class="cart-btn" id="cartBtn" data-id="{pid}">{cart_icon}<span class="cart-label">Sepete Ekle</span></button>
       <a class="order-wa" id="orderAlt" href="{wa}" target="_blank" rel="noopener">{icon}WhatsApp'tan Sor</a>
@@ -819,6 +912,26 @@ var URUN_SEMA = {sema_json};
   }}
   render();
 }})();
+/* Malzeme çipleri: masaüstünde hover (CSS), mobilde DOKUNMA ile açılır/kapanır.
+   title= mobilde çalışmadığı için balon .acik sınıfıyla toggle edilir; başka çipe
+   dokununca öncekiler kapanır, sayfada boş yere dokununca hepsi kapanır. */
+(function(){{
+  var cips=document.querySelectorAll(".fil-cip");
+  function kapat(haric){{
+    for(var i=0;i<cips.length;i++){{
+      if(cips[i]!==haric){{ cips[i].classList.remove("acik"); cips[i].setAttribute("aria-expanded","false"); }}
+    }}
+  }}
+  for(var i=0;i<cips.length;i++){{
+    cips[i].addEventListener("click",function(e){{
+      e.stopPropagation();
+      var acildi=this.classList.toggle("acik");
+      this.setAttribute("aria-expanded",acildi?"true":"false");
+      kapat(this);
+    }});
+  }}
+  document.addEventListener("click",function(){{ kapat(null); }});
+}})();
 </script>
 </body>
 </html>
@@ -847,6 +960,7 @@ var URUN_SEMA = {sema_json};
         icon=WA_ICON,
         pid=esc(p.get("id") or ""),
         cart_icon=CART_ICON,
+        malzeme=filament_html(p, wa_not=not (fonksiyonel or sema)),
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
@@ -1026,6 +1140,17 @@ def main():
     feed_xml, feed_n = render_merchant_feed(products)
     with open(os.path.join(ROOT, MERCHANT_FEED), "w", encoding="utf-8") as f:
         f.write(feed_xml)
+
+    # filament-veri.js — ana sayfa kart çipleri (index.html) filament kuralını buradan
+    # okur; kaynak tools/filamentler.json (tek kaynak, elle kopya YOK). CI üretir, git'e girmez.
+    # "_" ile başlayan iç notlar ve "kaynaklar" siteye TAŞINMAZ (sadece gereken veri).
+    fil_ref = {k: v for k, v in filament_ortak.referans().items()
+               if not k.startswith("_") and k != "kaynaklar"}
+    with open(os.path.join(ROOT, "filament-veri.js"), "w", encoding="utf-8") as f:
+        f.write("/* tools/build.py uretir — ELLE DUZENLEME. Tek kaynak: tools/filamentler.json */\n"
+                "window.PRUVO_FILAMENT = "
+                + json.dumps(fil_ref, ensure_ascii=False, separators=(",", ":"))
+                + ";\n")
 
     # robots.txt
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:

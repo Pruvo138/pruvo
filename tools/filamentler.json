@@ -1,0 +1,94 @@
+{
+  "_aciklama": "PRUVO merkezi filament referansi — TEK KAYNAK. Urun sayfasi cipleri, ana sayfa kart cipi, /malzeme-rehberi/, ege-bilgi.md MALZEME bolumu ve shop varyant listesi HEP buradan okur. Metinler ve isi degerleri Okan onayina tabidir; sayisal degerler tahmin degil, asagidaki kaynaklardan alinmis marka-bagimsiz ARALIKLARDIR. Marka dili kurallari (uretim yontemi anilmaz, renk taahhudu verilmez) tum metinlerde gecerlidir.",
+  "olcut": "ısı dayanımı (HDT @ 0.45 MPa)",
+  "kaynaklar": [
+    "https://app.polymaker.com/applications",
+    "https://www.allaboutthebuild.com/blog/filament-selector-tool-for-car-parts"
+  ],
+  "filamentler": [
+    {
+      "ad": "PLA",
+      "site": true,
+      "kisaEtiket": "Ev içi",
+      "isiDayanimi": "~55-60°C",
+      "uv": "Düşük",
+      "su": "Düşük",
+      "darbe": "Düşük-orta",
+      "kisa": "İç mekân, dekoratif ve hafif kullanım parçaları için idealdir.",
+      "uzun": "Ev ve ofis içi kullanım için ideal malzeme. Sert ve boyutsal olarak kararlıdır, pürüzsüz yüzey verir. Isı dayanımı ~55-60°C olduğundan güneş altında, araç içinde veya sıcak ortamlarda önerilmez. İç mekân aparatları, dekorasyon ve masaüstü ürünlerde ilk tercihtir."
+    },
+    {
+      "ad": "PETG",
+      "site": true,
+      "kisaEtiket": "Dış mekân / genel amaçlı",
+      "isiDayanimi": "~70-75°C",
+      "uv": "Orta",
+      "su": "Yüksek",
+      "darbe": "Yüksek",
+      "kisa": "Darbeye ve neme dayanıklı güvenli seçim.",
+      "uzun": "İç ve dış mekânda genel amaçlı dayanıklı malzeme. Darbeye, neme ve kimyasallara karşı dirençlidir, hafif esnekliğiyle kırılmadan yük taşır. Isı dayanımı ~70-75°C. Araç içi parçalar, braketler, tutucular ve fonksiyonel yedek parçalar için dengeli tercihtir."
+    },
+    {
+      "ad": "ASA",
+      "site": true,
+      "kisaEtiket": "Güneş + su",
+      "isiDayanimi": "~90-95°C",
+      "uv": "En yüksek",
+      "su": "En yüksek",
+      "darbe": "Yüksek",
+      "kisa": "UV ve suya en dayanıklı; dış mekânın şampiyonu.",
+      "uzun": "Dış mekânın şampiyonu. Güneş ışığına (UV) ve suya karşı en dayanıklı malzemedir; rengi solmaz, formu bozulmaz. Isı dayanımı ~90-95°C. Tekne/marin parçaları, araç dışı aksamlar, bahçe ekipmanı ve sürekli güneş gören her parça için önerilir."
+    },
+    {
+      "ad": "ABS",
+      "site": false,
+      "kisaEtiket": "Isıya dayanıklı",
+      "isiDayanimi": "~95-100°C",
+      "uv": "Orta",
+      "su": "Yüksek",
+      "darbe": "Yüksek",
+      "kisa": "Isınan ortamlar için mühendislik malzemesi; WhatsApp'tan özel talep edilir.",
+      "uzun": "Isıya dayanıklı mühendislik malzemesi (~95-100°C). Motor bölmesi yakını, cihaz içi ve ısınan ortamlar için uygundur. Dayanıklı ve işlenebilirdir; doğrudan güneş altında uzun süreli kullanım için ASA daha iyi seçimdir. Standart malzeme seçeneklerimizin dışındadır; WhatsApp'tan özel talep olarak değerlendiririz."
+    },
+    {
+      "ad": "TPU",
+      "site": true,
+      "uzunAd": "TPU (esnek)",
+      "kisaEtiket": "Esnek / titreşim emici",
+      "isiDayanimi": "~60-80°C",
+      "uv": "Orta",
+      "su": "Yüksek",
+      "darbe": "Çok yüksek (esneyerek emer)",
+      "kisa": "Conta, tampon, koruyucu kılıf gibi esneme ve darbe emme gereken parçalar.",
+      "uzun": "Kauçuk kıvamında esnek malzeme. Contalar, titreşim takozları, koruyucu kılıflar, hortum/kablo tutucular gibi bükülen ve darbe emen parçalar için idealdir. Yırtılmaya karşı çok dayanıklıdır; sert yapısal parçalar için uygun değildir."
+    },
+    {
+      "ad": "Karbon Katkılı",
+      "site": false,
+      "uzunAd": "Karbon katkılı (PETG-CF/PA-CF)",
+      "kisaEtiket": "En yüksek mukavemet",
+      "isiDayanimi": "taşıyıcıya göre",
+      "isiDetay": "PETG-CF ~70°C; taşıyıcısı güçlü türler (örn. PA-CF) daha yüksek",
+      "uv": "Taşıyıcıya göre",
+      "su": "Yüksek",
+      "darbe": "Sertlik çok yüksek, esneme az",
+      "kisa": "Yük ve titreşim altındaki parçalar için en sert/mukavim sınıf; WhatsApp'tan özel talep edilir.",
+      "uzun": "Karbon fiber katkılı en yüksek mukavemet sınıfı. Üstün sertlik ve çekme dayanımı; yük, titreşim ve zorlu kullanım altındaki parçalar için önerilir. Isı dayanımı taşıyıcı malzemeyi izler (PETG esaslıda ~70°C; yüksek ısı gerekiyorsa taşıyıcısı güçlü seçenekler mevcuttur — size sorarak belirleriz). Standart malzeme seçeneklerimizin dışındadır; WhatsApp'tan özel talep olarak değerlendiririz, kritik parçada değerini verir."
+    }
+  ],
+  "kategoriTavsiye": {
+    "Otomobil": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
+    "Motosiklet": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
+    "Bisiklet": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
+    "Marin": [{"ad": "ASA"}],
+    "Bahçe": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
+    "Ev": [{"ad": "PLA"}],
+    "Ofis": [{"ad": "PLA"}],
+    "Dekorasyon": [{"ad": "PLA"}],
+    "Oyun/Hobi": [{"ad": "PLA"}],
+    "Elektronik": [{"ad": "PETG"}, {"ad": "ASA", "not": "Isınan ortamda"}],
+    "Kamera": [{"ad": "PETG"}, {"ad": "ASA", "not": "Isınan ortamda"}],
+    "Tamirat": [{"ad": "PETG"}]
+  },
+  "parametrikNot": "Bu ürün ölçüye özel üretilir; en uygun malzemeyi kullanım alanınıza göre size sorarak belirleriz."
+}

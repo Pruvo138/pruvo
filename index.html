@@ -326,6 +326,12 @@
   }
   .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-bottom:4px;margin-top:auto}
   .card-price.empty{color:var(--gray-text);font-weight:600;font-size:13px}
+  /* karttaki küçük malzeme tavsiye çipi (detay ürün sayfasında) */
+  .card-fil{
+    display:inline-block;align-self:flex-start;
+    background:#f0f4fa;border:1px solid var(--gray-line);color:var(--navy);
+    font-size:11px;font-weight:700;border-radius:12px;padding:3px 9px;margin-bottom:8px;
+  }
 
   /* kart: sepete ekle */
   .cart-btn{
@@ -649,7 +655,7 @@
 <footer>
   PRUVO — Endüstriyel Parça Üretimi | Fethiye
   <div class="foot-nav">
-    <a href="/hakkimizda/">Hakkımızda</a> · <a href="/iletisim/">İletişim</a> · <a href="/sss/">S.S.S.</a> · <a href="/gizlilik/">Gizlilik Politikası</a> · <a href="/teslimat-iade/">Teslimat ve İade</a> · <a href="/mesafeli-satis/">Mesafeli Satış Sözleşmesi</a>
+    <a href="/hakkimizda/">Hakkımızda</a> · <a href="/iletisim/">İletişim</a> · <a href="/sss/">S.S.S.</a> · <a href="/malzeme-rehberi/">Malzeme Rehberi</a> · <a href="/gizlilik/">Gizlilik Politikası</a> · <a href="/teslimat-iade/">Teslimat ve İade</a> · <a href="/mesafeli-satis/">Mesafeli Satış Sözleşmesi</a>
   </div>
   <div class="pay-band">
     <span class="pay-label">Güvenli Ödeme</span>
@@ -662,6 +668,9 @@
 </footer>
 
 <script src="/secenekler.js"></script>
+<!-- filament-veri.js'i build.py üretir (tek kaynak: tools/filamentler.json); yoksa
+     kart tavsiye çipi sessizce atlanır (aşağıda window.PRUVO_FILAMENT kontrolü). -->
+<script src="/filament-veri.js"></script>
 <script>
 (function(){
   "use strict";
@@ -1208,9 +1217,35 @@
         pr.className = "card-price empty"; pr.textContent = p.parametrik ? "Ölçüye özel fiyat" : "Fiyat için sipariş verin";
       }
 
+      // Malzeme tavsiye çipi: kural RENDER'da uygulanır, ürün verisine yazılmaz.
+      // Kaynak: /filament-veri.js (build.py, tools/filamentler.json'dan üretir).
+      // Ürün "tavsiyeFilament" override'ı taşıyorsa harita yerine o geçer;
+      // parametrik (ölçüye özel) üründe çip basılmaz (malzeme konuşarak belirlenir).
+      var fil = null;
+      if(window.PRUVO_FILAMENT && !p.parametrik){
+        if(p.tavsiyeFilament && p.tavsiyeFilament.length){
+          fil = p.tavsiyeFilament[0];
+        }else{
+          var kt = PRUVO_FILAMENT.kategoriTavsiye[p.kategori === "Bahce" ? "Bahçe" : p.kategori];
+          if(kt && kt.length){ fil = kt[0].ad; }
+        }
+        // ABS/Karbon Katkılı SİTEDE SATILMAZ (mühendislik malzemesi, WhatsApp özel talebi) —
+        // kart çipinde "Tavsiye" olarak SUNULMAZ, tek kaynak: filamentler.json "site" alanı.
+        if(fil){
+          var filRef = PRUVO_FILAMENT.filamentler.filter(function(f){ return f.ad === fil; })[0];
+          if(!filRef || !filRef.site){ fil = null; }
+        }
+      }
+
       body.appendChild(cat);
       body.appendChild(h);
       body.appendChild(d);
+      if(fil){
+        var fc = document.createElement("span");
+        fc.className = "card-fil";
+        fc.textContent = "Tavsiye: " + fil;
+        body.appendChild(fc);
+      }
       body.appendChild(pr);
       main.appendChild(img);
       main.appendChild(body);

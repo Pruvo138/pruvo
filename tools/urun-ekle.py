@@ -8,10 +8,12 @@ Her id PARALEL islenir: thing-hazirla (gorsel+STL+olcu+meta) -> lisans NC kapisi
 altinda urunler.json'u O AN yeniden okuyup ekler (stale snapshot degil) -> baska oturum ayni anda
 yazsa bile EZMEZ. COMMIT ETMEZ; sonda gozden gecirme tablosu basar.
 """
-import concurrent.futures, fcntl, json, os, re, subprocess, sys, tempfile
+import concurrent.futures, fcntl, importlib.util, json, os, re, subprocess, sys, tempfile
 
 ROOT = "/Users/okan/dev/pruvo"
 TOOLS = os.path.join(ROOT, "tools")
+_fspec = importlib.util.spec_from_file_location("filament_ortak", os.path.join(TOOLS, "filament_ortak.py"))
+fo = importlib.util.module_from_spec(_fspec); _fspec.loader.exec_module(fo)
 IMGROOT = os.path.join(ROOT, ".thing-cache")
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
@@ -82,6 +84,11 @@ def process_one(tid):
         urun = {"id": uid, "kategori": o.get("kategori", "Tamirat"), "marka": o.get("marka", []),
                 "baslik": o.get("baslik", tid), "aciklama": o.get("aciklama", ""),
                 "fiyat": o.get("fiyat_oneri", ""), "gorseller": urls}
+        # Kaynaktaki baski ipucunda malzeme onerisi varsa SANITIZE override yaz:
+        # sadece kanonik malzeme adi gecer, tasarimci adi/kaynak izi TASINMAZ (gizlilik).
+        tavsiye = fo.tavsiye_filament(meta.get("baski", ""))
+        if tavsiye:
+            urun["tavsiyeFilament"] = tavsiye
         if cc_tur:
             urun["lisans"] = {"tasarimci": meta.get("tasarimci", "?"), "tur": cc_tur}
         src = {"kaynak": "Thingiverse", "link": "https://www.thingiverse.com/thing:" + tid,
