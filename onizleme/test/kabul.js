@@ -75,10 +75,32 @@ function derleyiciBaslat(paketDizin, mock) {
   return surec("python3", argv);
 }
 
+// Gercek wrangler.toml [[containers]] icerir -> yerel dev Docker isterdi.
+// Testler icin ayni worker'in containers'siz kopya konfigurasyonu uretilir
+// (route/DO yok; R2 binding'i miniflare yerelde simule eder).
+const TEST_TOML = path.join(ONIZLEME, ".wrangler-test.toml");
+
+function testTomlYaz() {
+  fs.writeFileSync(TEST_TOML, [
+    '# kabul.js uretir (gecici) — gercek konfig: onizleme/wrangler.toml',
+    'name = "pruvo-onizleme-test"',
+    'main = "src/index.js"',
+    'compatibility_date = "2026-07-01"',
+    '[vars]',
+    'SITE_URL = "https://pruvo3d.com"',
+    '[[r2_buckets]]',
+    'binding = "ONBELLEK"',
+    'bucket_name = "pruvo-onizleme"',
+    '',
+  ].join("\n"));
+}
+
 function workerBaslat() {
   // Onbellek determinizmi: yerel R2 simulasyon durumunu sifirla.
   fs.rmSync(path.join(ONIZLEME, ".wrangler"), { recursive: true, force: true });
-  return surec("npx", ["wrangler", "dev", "--port", String(WORKER_PORT),
+  testTomlYaz();
+  return surec("npx", ["wrangler", "dev", "-c", TEST_TOML,
+                       "--port", String(WORKER_PORT),
                        "--var", "DERLEYICI_URL:" + DTABAN], { cwd: ONIZLEME });
 }
 
