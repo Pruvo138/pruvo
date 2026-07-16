@@ -1,0 +1,40 @@
+{
+  "urunId": "olcuye-ozel-pervane-fan-cark",
+  "scad": "pervane.scad",
+  "fonksiyon": "pervane",
+  "esleme": {
+    "cap": "cap",
+    "kanat_sayisi": "kanat_sayisi",
+    "mil_capi": "mil_capi",
+    "mil_baglanti": "mil_baglanti",
+    "burun_konisi": "burun_konisi",
+    "dis_ring": "shroud"
+  },
+  "deger_esleme": {
+    "mil_baglanti": {
+      "duz": "cylinder",
+      "kanalli": "keyway",
+      "altigen": "hex",
+      "d_lama": "D"
+    },
+    "burun_konisi": {
+      "yok": "none",
+      "ogiv": "ogive",
+      "parabolik": "parabolic"
+    },
+    "dis_ring": {
+      "yok": false,
+      "var": true
+    }
+  },
+  "sabit": {
+    "donus_yonu": -1,
+    "hatve": -1,
+    "gobek_yuksekligi": 16,
+    "naca_t": 0.12,
+    "naca_m": 0.02,
+    "firar_kalinlik": 0.7,
+    "Segments": 180,
+    "NP": 48
+  }
+}

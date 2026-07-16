@@ -36,6 +36,9 @@ WHATSAPP = "905451386526"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(ROOT, "urunler.json")
 URUN_DIR = os.path.join(ROOT, "urun")
+# Parametrik ("Ölçüye Özel" sarı seri) konfigüratör şemaları — jenerator/urunler/<id>.json.
+# Şeması olan parametrik ürünün sayfasına konfigüratör UI basılır; olmayana dokunulmaz.
+JEN_URUN_DIR = os.path.join(ROOT, "jenerator", "urunler")
 CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"]
 # Malzeme/renk/boy seçicisi bu kategorilerde gösterilir (Dekorasyon, Oyun/Hobi HARİÇ).
 # secenekler.js'deki FONKSIYONEL_KATEGORILER ile BİRLİKTE güncelle (tek karar iki yerde).
@@ -109,6 +112,41 @@ WA_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 '
            '.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.16-'
            '.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45'
            '.21.51.32.06.11.06.64-.18 1.32z"/></svg>')
+
+# Malzeme/renk satırları — klasik opsiyon bloğu ve parametrik konfigüratör AYNI
+# bileşeni kullanır (tek kaynak; secenekler.js FILAMENT_FARK/RENK ile uyumlu).
+MALZEME_RENK_HTML = """
+      <div class="opsiyon-row">
+        <label for="malzemeSec">Malzeme</label>
+        <select id="malzemeSec">
+          <option value="PLA">PLA (standart)</option>
+          <option value="PETG">PETG (+%30)</option>
+          <option value="ASA">ASA (+%60)</option>
+          <option value="Karbon Katkılı">Karbon Katkılı (+%100)</option>
+          <option value="ABS">ABS (+%50)</option>
+          <option value="TPU">TPU (+%55)</option>
+        </select>
+      </div>
+      <div class="opsiyon-row">
+        <label for="renkSec">Renk</label>
+        <select id="renkSec">
+          <option value="Siyah">Siyah</option>
+          <option value="Beyaz">Beyaz</option>
+          <option value="Gri">Gri</option>
+          <option value="Diğer">Diğer (+%15)</option>
+        </select>
+        <input type="text" id="renkOzel" placeholder="istediğiniz rengi yazın" style="display:none">
+      </div>"""
+
+
+def konf_sema(pid):
+    """Parametrik ürünün konfigüratör şeması (jenerator/urunler/<id>.json); yoksa None."""
+    yol = os.path.join(JEN_URUN_DIR, "%s.json" % pid)
+    if not os.path.exists(yol):
+        return None
+    with open(yol, encoding="utf-8") as f:
+        return json.load(f)
+
 
 CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 '
              '7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 '
@@ -191,6 +229,18 @@ PAGE_CSS = """
   .opsiyon-row select,.opsiyon-row input[type=text]{padding:8px 10px;border:1px solid var(--gray-line);
     border-radius:7px;font-size:14px;background:#fff;color:var(--navy)}
   .opsiyon-fiyat{font-size:19px;font-weight:800;color:var(--navy);margin-top:10px}
+  .konf-baslik{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:12px}
+  .konf-row label{min-width:130px}
+  .konf-sayi{width:110px;padding:8px 10px;border:1px solid var(--gray-line);
+    border-radius:7px;font-size:14px;background:#fff;color:var(--navy)}
+  .konf-birim{font-size:12.5px;color:var(--gray-text);font-weight:600}
+  .konf-kaydirici-satir{margin:-4px 0 10px;padding-left:140px}
+  .konf-kaydirici{width:100%;max-width:260px;accent-color:var(--navy-2)}
+  .konf-row select,.konf-row input[type=text]{max-width:220px}
+  .konf-hata{flex-basis:100%;font-size:12px;font-weight:600;color:var(--red);min-height:0}
+  .konf-row .hatali{border-color:var(--red);background:#fff5f5;outline:1px solid var(--red)}
+  .konf-hacim{font-size:12.5px;color:var(--gray-text);margin-top:4px}
+  .cart-btn.kilitli{opacity:.45;cursor:not-allowed}
   .desc{font-size:15px;color:#39434f;line-height:1.7;margin-bottom:26px}
   .order-btn{background:var(--red);color:#fff;border:none;border-radius:9px;
     padding:15px 22px;font-size:16px;font-weight:700;cursor:pointer;
@@ -414,10 +464,26 @@ def render_product(p, all_products):
     else:
         price_text = "Fiyat için sipariş verin"
 
-    # --- malzeme/renk/boy seçicisi (sadece fonksiyonel kategorilerde)
+    # --- malzeme/renk/boy seçicisi (fonksiyonel kategoriler) / konfigüratör (parametrik+şemalı)
     fonksiyonel = kategori in FONKSIYONEL_KATEGORILER
     boy_secenekleri = p.get("boy_secenekleri") or []
-    if fonksiyonel:
+    sema = konf_sema(pid) if parametrik else None
+    if sema:
+        # Konfigüratör: müşteri ölçü/parametre girer, hacim + fiyat canlı hesaplanır
+        # (jenerator/hacim.js + jenerator/konfigurator.js). Kategoriden bağımsız —
+        # sarı seride malzeme/renk seçimi de müşteride. tabanFiyatTL=null iken
+        # fiyat "—" kalır (Okan taban fiyatları verene kadar altyapı hazır bekler).
+        opsiyonlar_html = ("""
+    <div class="opsiyonlar konf" id="opsiyonlar">
+      <div class="konf-baslik">Ölçülerinizi girin</div>
+      <div id="konfAlanlar"></div>
+      {malzeme_renk}
+      <div class="opsiyon-fiyat" id="opsiyonFiyat">&mdash;</div>
+      <div class="konf-hacim" id="konfHacim"></div>
+    </div>
+    """).format(malzeme_renk=MALZEME_RENK_HTML)
+        price_html = ""
+    elif fonksiyonel:
         boy_html = ""
         if boy_secenekleri:
             boy_opts = "".join(
@@ -429,31 +495,12 @@ def render_product(p, all_products):
                         '<select id="boySec">%s</select></div>' % boy_opts)
         opsiyonlar_html = ("""
     <div class="opsiyonlar" id="opsiyonlar">
-      <div class="opsiyon-row">
-        <label for="malzemeSec">Malzeme</label>
-        <select id="malzemeSec">
-          <option value="PLA">PLA (standart)</option>
-          <option value="PETG">PETG (+%30)</option>
-          <option value="ASA">ASA (+%60)</option>
-          <option value="Karbon Katkılı">Karbon Katkılı (+%100)</option>
-          <option value="ABS">ABS (+%50)</option>
-          <option value="TPU">TPU (+%55)</option>
-        </select>
-      </div>
-      <div class="opsiyon-row">
-        <label for="renkSec">Renk</label>
-        <select id="renkSec">
-          <option value="Siyah">Siyah</option>
-          <option value="Beyaz">Beyaz</option>
-          <option value="Gri">Gri</option>
-          <option value="Diğer">Diğer (+%15)</option>
-        </select>
-        <input type="text" id="renkOzel" placeholder="istediğiniz rengi yazın" style="display:none">
-      </div>
+      {malzeme_renk}
       {boy}
       <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
     </div>
-    """).format(boy=boy_html, fiyat_metni=esc(price_text))
+    """).format(malzeme_renk=MALZEME_RENK_HTML, boy=boy_html,
+                fiyat_metni=esc(price_text))
         price_html = ""
     else:
         opsiyonlar_html = ""
@@ -490,6 +537,17 @@ def render_product(p, all_products):
         {"id": pid, "baslik": baslik, "kategori": kategori, "fiyat": fiyat,
          "parametrik": parametrik, "boy_secenekleri": boy_secenekleri},
         ensure_ascii=False, separators=(",", ":")).replace("</script>", "<\\/script>")
+
+    # Konfigüratör şeması sayfaya inline gömülür (tek kaynak jenerator/urunler/<id>.json,
+    # build her push'ta yeniden gömer); hacim fonksiyonları ise /jenerator/hacim.js'ten
+    # AYNI DOSYA olarak yüklenir (kopya yasak — kabul testi #4).
+    sema_json = "null"
+    konf_scripts = ""
+    if sema:
+        sema_json = json.dumps(sema, ensure_ascii=False, separators=(",", ":")
+                               ).replace("</script>", "<\\/script>")
+        konf_scripts = ('<script src="/jenerator/hacim.js"></script>\n'
+                        '<script src="/jenerator/konfigurator.js"></script>')
 
     doc = u"""<!DOCTYPE html>
 <html lang="tr">
@@ -578,6 +636,7 @@ def render_product(p, all_products):
 <a id="cartFab" class="cart-fab" href="/?sepet=1">{cart_icon}Sepetim (<span id="cartCount">0</span>)</a>
 
 <script src="/secenekler.js"></script>
+{konf_scripts}
 <script>
 function pv(el,src){{
   document.getElementById('mainImg').src=src;
@@ -586,6 +645,7 @@ function pv(el,src){{
   el.className='thumb active';
 }}
 var URUN = {urun_json};
+var URUN_SEMA = {sema_json};
 /* Sepet: bu ürünü index.html ile ortak localStorage sepetine (secenekler.js: PRUVO_SECENEK) ekle/çıkar.
    Malzeme/renk/boy seçiliyse (opsiyonlar bloğu varsa) seçilen TAM konfigürasyon bileşik anahtarla
    toggle edilir; farklı bir konfigürasyonla eklenmiş başka bir satıra dokunulmaz. */
@@ -610,6 +670,7 @@ var URUN = {urun_json};
       s.renk_ozel = (renkSec.value === "Diğer" && renkOzel) ? renkOzel.value : "";
     }}
     if(boySec){{ s.boy_etiket = boySec.value || null; }}
+    if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{ PRUVO_KONF.satiraYaz(s); }}
     return s;
   }}
   function render(){{
@@ -622,7 +683,15 @@ var URUN = {urun_json};
     if(count){{ count.textContent = c.length; }}
     if(fab){{ fab.style.display = c.length ? "inline-flex" : "none"; }}
     var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
-    if(fiyatEl){{ fiyatEl.textContent = ozet.fiyatMetni; }}
+    /* Konfigüratörlü sayfada fiyat alanını konfigüratör yönetir (kuruşlu canlı hesap,
+       taban fiyat yoksa "—"); geçersiz ölçüde sepete ekleme kilitlenir. */
+    if(fiyatEl && !URUN_SEMA){{ fiyatEl.textContent = ozet.fiyatMetni; }}
+    if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{
+      PRUVO_KONF.tazele();
+      var gecerli = PRUVO_KONF.gecerliMi();
+      btn.disabled = !gecerli;
+      btn.classList.toggle("kilitli", !gecerli);
+    }}
     if(orderAlt){{
       var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + URUN.baslik +
                   (ozet.detay ? ("\\n" + ozet.detay) : "") + "\\n" + location.href;
@@ -646,6 +715,9 @@ var URUN = {urun_json};
     }});
   }});
   if(renkOzel){{ renkOzel.addEventListener("input", render); }}
+  if(URUN_SEMA && window.PRUVO_KONF && window.PRUVO_HACIM){{
+    PRUVO_KONF.kur(URUN_SEMA, document.getElementById("konfAlanlar"), render);
+  }}
   render();
 }})();
 </script>
@@ -681,6 +753,8 @@ var URUN = {urun_json};
         pay_band=PAY_BAND_HTML,
         attribution=attribution_html(p),
         urun_json=urun_json,
+        sema_json=sema_json,
+        konf_scripts=konf_scripts,
         whatsapp=WHATSAPP,
     )
     return doc

@@ -40,19 +40,44 @@
     return Math.round(ara) + (boyFarkTL || 0);
   }
 
+  // ---- parametrik ("ölçüye özel") fiyat ----
+  // Okan kuralı: fiyat = tabanFiyat × (hacim/tabanHacim) × filamentKatsayı × renkFaktör.
+  // Kuruş cinsinden tutulur; yuvarlama YALNIZ kuruş basamağında (float artığı temizliği),
+  // TL'ye yuvarlama yok — kusurat kuruşuyla gösterilir/tahsil edilir.
+  function parametrikFiyatKurus(tabanFiyatTL, tabanHacimMm3, hacimMm3, malzeme, renk) {
+    if (tabanFiyatTL == null || !tabanHacimMm3 || !hacimMm3) { return null; }
+    var yuzde = FILAMENT_FARK.hasOwnProperty(malzeme) ? FILAMENT_FARK[malzeme] : 0;
+    var kurus = tabanFiyatTL * 100 * (hacimMm3 / tabanHacimMm3) * (1 + yuzde / 100);
+    if (renk === "Diğer") { kurus = kurus * (1 + RENK_DIGER_YUZDE / 100); }
+    return Math.round(kurus);
+  }
+
+  function kurusMetni(kurus) {
+    if (kurus == null) { return null; }
+    var tl = Math.floor(kurus / 100), k = kurus % 100;
+    return k ? (tl + "," + (k < 10 ? "0" : "") + k + " TL") : (tl + " TL");
+  }
+
+  function tlMetni(tutarTL) {
+    if (tutarTL == null) { return null; }
+    return kurusMetni(Math.round(tutarTL * 100));
+  }
+
   // ---- sepet satırı ----
   function bosSatir(id) {
     return { id: id, malzeme: "PLA", renk: "Siyah", renk_ozel: "", boy_etiket: null };
   }
 
   function satirAnahtari(satir) {
-    return [satir.id, satir.malzeme, satir.renk, satir.renk_ozel || "", satir.boy_etiket || ""].join("|");
+    return [satir.id, satir.malzeme, satir.renk, satir.renk_ozel || "", satir.boy_etiket || "",
+            satir.parametreler ? JSON.stringify(satir.parametreler) : ""].join("|");
   }
 
   // Sepet/WhatsApp mesajında ürün+seçim satırının metnini ve hesaplanan fiyatını üretir.
   // fonksiyonel OLMAYAN kategorilerde (Dekorasyon, Oyun/Hobi...) seçici hiç gösterilmediği
   // için detay boş döner — mevcut (öncesi) davranış korunur, mesaj kirlenmez.
   function satirOzeti(urun, satir) {
+    if (satir && satir.parametreler) { return parametrikSatirOzeti(satir); }
     var fonksiyonel = fonksiyonelMi(urun && urun.kategori);
     var parcalar = [];
     if (fonksiyonel) {
@@ -75,6 +100,27 @@
     return { detay: parcalar.join(" · "), fiyat: hesap, fiyatMetni: fiyatMetni };
   }
 
+  // Parametrik (sarı seri) satır: konfigüratörün yazdığı parametre detayı + kuruşlu fiyat.
+  // Fiyat satıra eklenirken hesaplanıp satırda taşınır (taban fiyat yoksa null kalır);
+  // sipariş tarafı istemci fiyatına güvenmez, kendi yeniden hesabını yapar.
+  function parametrikSatirOzeti(satir) {
+    var parcalar = [];
+    if (satir.parametre_detay) { parcalar.push(satir.parametre_detay); }
+    var mYuzde = FILAMENT_FARK.hasOwnProperty(satir.malzeme) ? FILAMENT_FARK[satir.malzeme] : 0;
+    parcalar.push("Malzeme: " + satir.malzeme + (mYuzde ? " (+%" + mYuzde + ")" : ""));
+    if (satir.renk === "Diğer") {
+      parcalar.push("Renk: " + (satir.renk_ozel || "özel renk") + " (özel, +%" + RENK_DIGER_YUZDE + ")");
+    } else {
+      parcalar.push("Renk: " + satir.renk);
+    }
+    var kurus = (satir.parametrik_fiyat_kurus == null) ? null : satir.parametrik_fiyat_kurus;
+    return {
+      detay: parcalar.join(" · "),
+      fiyat: (kurus == null) ? null : kurus / 100,
+      fiyatMetni: (kurus == null) ? "Ölçüye özel fiyat — teklif için sipariş verin" : kurusMetni(kurus)
+    };
+  }
+
   // ---- sepet (localStorage) ----
   var CART_KEY = "pruvo_sepet";
 
@@ -87,10 +133,17 @@
     return ham.map(function (x) {
       if (typeof x === "string") { return bosSatir(x); }
       if (x && typeof x === "object" && x.id) {
-        return {
+        var s = {
           id: x.id, malzeme: x.malzeme || "PLA", renk: x.renk || "Siyah",
           renk_ozel: x.renk_ozel || "", boy_etiket: x.boy_etiket || null
         };
+        if (x.parametreler && typeof x.parametreler === "object") {
+          s.parametreler = x.parametreler;
+          s.parametre_detay = x.parametre_detay || "";
+          s.hacim_mm3 = x.hacim_mm3 || null;
+          s.parametrik_fiyat_kurus = (x.parametrik_fiyat_kurus == null) ? null : x.parametrik_fiyat_kurus;
+        }
+        return s;
       }
       return null;
     }).filter(Boolean);
@@ -110,6 +163,9 @@
     fonksiyonelMi: fonksiyonelMi,
     boyFarki: boyFarki,
     hesaplaFiyat: hesaplaFiyat,
+    parametrikFiyatKurus: parametrikFiyatKurus,
+    kurusMetni: kurusMetni,
+    tlMetni: tlMetni,
     bosSatir: bosSatir,
     satirAnahtari: satirAnahtari,
     satirOzeti: satirOzeti,

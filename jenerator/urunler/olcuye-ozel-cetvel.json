@@ -1,0 +1,108 @@
+{
+  "id": "olcuye-ozel-cetvel",
+  "hacimFormulu": "cetvel",
+  "parametreler": [
+    {
+      "ad": "tip",
+      "etiket": "Cetvel tipi",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "duz",
+          "etiket": "Düz cetvel"
+        },
+        {
+          "deger": "ucgen",
+          "etiket": "Üçgen gönye (45° / 90°)"
+        },
+        {
+          "deger": "l_gonye",
+          "etiket": "L gönye"
+        }
+      ],
+      "varsayilan": "duz",
+      "aciklama": "Ürünün düz cetvel, üçgen gönye veya marangoz gönyesi biçimi"
+    },
+    {
+      "ad": "sistem",
+      "etiket": "Ölçü sistemi",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "metrik",
+          "etiket": "Metrik (cm / mm)"
+        },
+        {
+          "deger": "inc",
+          "etiket": "İnç"
+        }
+      ],
+      "varsayilan": "metrik",
+      "aciklama": "Uzunluk ve taksimat için kullanılacak ölçü sistemi"
+    },
+    {
+      "ad": "uzunluk",
+      "etiket": "Uzunluk",
+      "birim": "cm / inç",
+      "tip": "sayi",
+      "min": 10,
+      "max": 50,
+      "adim": 1,
+      "varsayilan": 15,
+      "aciklama": "Metrik sistemde santimetre, inç sisteminde inç cinsinden ölçüm boyu"
+    },
+    {
+      "ad": "genislik",
+      "etiket": "Genişlik",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 40,
+      "adim": 1,
+      "varsayilan": 30,
+      "aciklama": "Düz cetvelin gövde genişliği ve gönye üzerindeki işaretlerin ölçeği"
+    },
+    {
+      "ad": "kalinlik",
+      "etiket": "Kalınlık",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 2,
+      "max": 6,
+      "adim": 0.5,
+      "varsayilan": 3,
+      "aciklama": "Ürünün toplam gövde kalınlığı"
+    },
+    {
+      "ad": "isaret_stili",
+      "etiket": "İşaret stili",
+      "tip": "secim",
+      "secenekler": [
+        {
+          "deger": "kabartma",
+          "etiket": "Kabartma"
+        },
+        {
+          "deger": "oyma",
+          "etiket": "Oyma"
+        },
+        {
+          "deger": "gomme",
+          "etiket": "Gömme"
+        }
+      ],
+      "varsayilan": "oyma",
+      "aciklama": "Taksimat çizgileri ve sayıların yüzeyde uygulanma biçimi"
+    },
+    {
+      "ad": "yazi",
+      "etiket": "Üzerine yazı / isim",
+      "tip": "metin",
+      "varsayilan": "",
+      "maksUzunluk": 30,
+      "aciklama": "İsteğe bağlı: cetvel üzerine işlenecek isim/firma yazısı"
+    }
+  ],
+  "tabanHacimMm3": 14265.224351646924,
+  "tabanFiyatTL": null
+}

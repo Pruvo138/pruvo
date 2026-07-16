@@ -1,0 +1,72 @@
+{
+  "id": "kisiye-ozel-jeton-cip-madalyon",
+  "hacimFormulu": "jeton",
+  "parametreler": [
+    {
+      "ad": "cap",
+      "etiket": "Çap",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 20,
+      "max": 80,
+      "adim": 1,
+      "varsayilan": 39,
+      "aciklama": "Jetonun dıştan dışa toplam çapı"
+    },
+    {
+      "ad": "kalinlik",
+      "etiket": "Kalınlık",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 2.5,
+      "max": 8,
+      "adim": 0.1,
+      "varsayilan": 3.4,
+      "aciklama": "Jetonun iki yüzü arasındaki gövde kalınlığı"
+    },
+    {
+      "ad": "yazi_stili",
+      "etiket": "Yazı stili",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "gomme", "etiket": "Gömme"},
+        {"deger": "oyma", "etiket": "Oyma"},
+        {"deger": "kabartma", "etiket": "Kabartma"}
+      ],
+      "varsayilan": "gomme",
+      "aciklama": "Yazı ve yüz halkasının gövdeye uygulanma biçimi"
+    },
+    {
+      "ad": "yuz_sayisi",
+      "etiket": "İşlenen yüz",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "tek", "etiket": "Tek yüz"},
+        {"deger": "cift", "etiket": "Çift yüz"}
+      ],
+      "varsayilan": "tek",
+      "aciklama": "İçeriğin yalnız ön yüze veya iki yüze birden uygulanması"
+    },
+    {
+      "ad": "kenar_deseni",
+      "etiket": "Kenar deseni",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "segmentli", "etiket": "Segmentli"},
+        {"deger": "duz", "etiket": "Düz"}
+      ],
+      "varsayilan": "segmentli",
+      "aciklama": "Çevrede poker çipi görünümü veren segmentlerin bulunması"
+    },
+    {
+      "ad": "yazi",
+      "etiket": "Yüz yazısı",
+      "tip": "metin",
+      "varsayilan": "100",
+      "maksUzunluk": 20,
+      "aciklama": "Yüze işlenecek değer, isim veya kısa tarih"
+    }
+  ],
+  "tabanHacimMm3": 3867.0187242192715,
+  "tabanFiyatTL": null
+}

@@ -1,0 +1,42 @@
+{
+  "id": "olcuye-ozel-oring-conta",
+  "hacimFormulu": "oring",
+  "parametreler": [
+    {
+      "ad": "ic_cap",
+      "etiket": "İç çap",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 5,
+      "max": 200,
+      "adim": 0.5,
+      "varsayilan": 30,
+      "aciklama": "Halkanın boşluk tarafındaki iç çapı"
+    },
+    {
+      "ad": "kesit_cap",
+      "etiket": "Kesit çapı / kalınlığı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 1,
+      "max": 15,
+      "adim": 0.1,
+      "varsayilan": 3.6,
+      "aciklama": "Halka kesitinin çapı veya kalınlığı"
+    },
+    {
+      "ad": "profil",
+      "etiket": "Kesit profili",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "yuvarlak", "etiket": "Yuvarlak"},
+        {"deger": "kare", "etiket": "Kare"},
+        {"deger": "pahli", "etiket": "Pahlı"}
+      ],
+      "varsayilan": "yuvarlak",
+      "aciklama": "Yuvaya oturan kesitin geometrik şekli"
+    }
+  ],
+  "tabanHacimMm3": 1074.444613520192,
+  "tabanFiyatTL": null
+}

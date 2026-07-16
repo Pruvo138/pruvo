@@ -1,0 +1,33 @@
+{
+  "urunId": "olcuye-ozel-ramp-sim-takoz",
+  "scad": "rampa.scad",
+  "fonksiyon": "rampa",
+  "esleme": {
+    "genislik": "genislik",
+    "uzunluk": "uzunluk",
+    "yukseklik": "yukseklik",
+    "egim_yontemi": "kullan_aci",
+    "egim_acisi": "egim_acisi",
+    "ust_yuzey": "ust_yuzey"
+  },
+  "deger_esleme": {
+    "egim_yontemi": {
+      "yukseklik": false,
+      "aci": true
+    },
+    "ust_yuzey": {
+      "duz": "flat",
+      "basamakli": "steps",
+      "tirtikli": "ribs"
+    }
+  },
+  "sabit": {
+    "kose_yuvarlatma": 0,
+    "basamak": 8,
+    "tirtik_aralik": 3,
+    "ic_yapi": "dolu",
+    "ic_desen": "hex",
+    "duvar": 2.4,
+    "Segments": 128
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "urunId": "olcuye-ozel-oring-conta",
+  "scad": "oring.scad",
+  "fonksiyon": "oring",
+  "esleme": {
+    "ic_cap": "Inside_Diameter",
+    "kesit_cap": "Cross_Section",
+    "profil": "Profile"
+  },
+  "deger_esleme": {
+    "profil": {
+      "yuvarlak": "round",
+      "kare": "square",
+      "pahli": "chamfered"
+    }
+  },
+  "sabit": {
+    "Segments": 240
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "urunId": "kisiye-ozel-jeton-cip-madalyon",
+  "scad": "jeton.scad",
+  "fonksiyon": "jeton",
+  "esleme": {
+    "cap": "cap",
+    "kalinlik": "kalinlik",
+    "yazi_stili": "yazi_stili",
+    "yuz_sayisi": "cift_yuz",
+    "kenar_deseni": "kenar",
+    "yazi": "yazi"
+  },
+  "deger_esleme": {
+    "yazi_stili": {
+      "gomme": "inset",
+      "oyma": "engrave",
+      "kabartma": "emboss"
+    },
+    "yuz_sayisi": {
+      "tek": false,
+      "cift": true
+    },
+    "kenar_deseni": {
+      "segmentli": true,
+      "duz": false
+    }
+  },
+  "sabit": {
+    "sembol": "",
+    "halka": true,
+    "pah": 0.8,
+    "yazi_tipi": "DejaVu Sans:style=Bold",
+    "isaret_z": 0.7,
+    "spoke_sayisi": 8,
+    "spoke_genislik": 22,
+    "Segments": 256
+  }
+}

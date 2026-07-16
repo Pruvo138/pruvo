@@ -1,0 +1,79 @@
+{
+  "id": "olcuye-ozel-izgara-menfez-kapak",
+  "hacimFormulu": "izgara",
+  "parametreler": [
+    {
+      "ad": "tip",
+      "etiket": "Ürün tipi",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "panjur", "etiket": "Panjur"},
+        {"deger": "delikli", "etiket": "Delikli desen"},
+        {"deger": "kor", "etiket": "Kör kapak"}
+      ],
+      "varsayilan": "panjur",
+      "aciklama": "Hava yönlendiren panjur, delikli yüzey veya tamamen kapalı yüz seçimi"
+    },
+    {
+      "ad": "delik_sekli",
+      "etiket": "Delik şekli",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "petek", "etiket": "Petek"},
+        {"deger": "elips", "etiket": "Elips"},
+        {"deger": "kare", "etiket": "Kare"},
+        {"deger": "sekizgen", "etiket": "Sekizgen"},
+        {"deger": "ucgen", "etiket": "Üçgen"},
+        {"deger": "besgen", "etiket": "Beşgen"}
+      ],
+      "varsayilan": "elips",
+      "aciklama": "Delikli desen tipinde tekrarlanacak açıklığın biçimi"
+    },
+    {
+      "ad": "en",
+      "etiket": "Dış en",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 40,
+      "max": 250,
+      "adim": 1,
+      "varsayilan": 100,
+      "aciklama": "Izgaranın yatay dış ölçüsü"
+    },
+    {
+      "ad": "boy",
+      "etiket": "Dış boy",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 40,
+      "max": 250,
+      "adim": 1,
+      "varsayilan": 100,
+      "aciklama": "Izgaranın düşey dış ölçüsü"
+    },
+    {
+      "ad": "derinlik",
+      "etiket": "Gövde derinliği",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 3,
+      "max": 20,
+      "adim": 0.5,
+      "varsayilan": 10,
+      "aciklama": "Ön yüz ve çerçevenin toplam gövde derinliği"
+    },
+    {
+      "ad": "panjur_acisi",
+      "etiket": "Panjur açısı",
+      "birim": "°",
+      "tip": "sayi",
+      "min": -45,
+      "max": 45,
+      "adim": 1,
+      "varsayilan": 0,
+      "aciklama": "Panjur dilimlerinin hava yönlendirme açısı; delikli ve kör tiplerde etkisizdir"
+    }
+  ],
+  "tabanHacimMm3": 40441.35571514285,
+  "tabanFiyatTL": null
+}

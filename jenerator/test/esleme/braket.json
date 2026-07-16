@@ -1,0 +1,33 @@
+{
+  "urunId": "olcuye-ozel-montaj-braketi",
+  "scad": "braket.scad",
+  "fonksiyon": "braket",
+  "esleme": {
+    "tip": "tip",
+    "ic_aci": "ic_aci",
+    "kalinlik": "kalinlik",
+    "genislik": "genislik",
+    "uzunluk": "uzunluk",
+    "delik_adet": "delik_adet"
+  },
+  "deger_esleme": {
+    "tip": {
+      "acili": "angle",
+      "kose": "corner",
+      "duz": "flat",
+      "t": "t",
+      "l": "l",
+      "y": "y"
+    }
+  },
+  "sabit": {
+    "vida_olcu": "M4",
+    "delik_kolon": 1,
+    "havsa": false,
+    "teardrop": false,
+    "payanda": false,
+    "radyus": 2,
+    "simetri": "yok",
+    "Segments": 120
+  }
+}

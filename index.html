@@ -681,7 +681,7 @@
       lines.push("   " + productAbs(entry.urun));
       if(ozet.fiyat != null){ toplam += ozet.fiyat; toplamVar = true; }
     });
-    if(toplamVar){ lines.push(""); lines.push("Toplam (tahmini): " + toplam + " TL"); }
+    if(toplamVar){ lines.push(""); lines.push("Toplam (tahmini): " + PRUVO_SECENEK.tlMetni(toplam)); }
     return "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(lines.join("\n"));
   }
   function setCartBtn(btn, id){

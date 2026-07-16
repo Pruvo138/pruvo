@@ -1,0 +1,37 @@
+{
+  "urunId": "olcuye-ozel-cetvel",
+  "scad": "cetvel.scad",
+  "fonksiyon": "cetvel",
+  "esleme": {
+    "tip": "tip",
+    "sistem": "sistem",
+    "uzunluk": "uzunluk",
+    "genislik": "genislik",
+    "kalinlik": "kalinlik",
+    "isaret_stili": "isaret_stili"
+  },
+  "deger_esleme": {
+    "tip": {
+      "duz": "duz",
+      "ucgen": "ucgen",
+      "l_gonye": "l"
+    },
+    "sistem": {
+      "metrik": "metric",
+      "inc": "imperial"
+    },
+    "isaret_stili": {
+      "kabartma": "Emboss",
+      "oyma": "Engrave",
+      "gomme": "Inset"
+    }
+  },
+  "sabit": {
+    "kose": 3,
+    "yuz": "single",
+    "isaret_z": 0.6,
+    "yazi_logo": "",
+    "Segments": 240,
+    "$fn": 120
+  }
+}

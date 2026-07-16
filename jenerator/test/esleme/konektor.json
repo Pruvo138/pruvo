@@ -1,0 +1,26 @@
+{
+  "urunId": "olcuye-ozel-baglanti-konektor",
+  "scad": "konektor.scad",
+  "fonksiyon": "konektor",
+  "esleme": {
+    "kol_sayisi": "kol_sayisi",
+    "kol_kesiti": "kol_kesiti",
+    "cubuk_capi": "cubuk_capi",
+    "kol_boyu": "kol_boyu",
+    "cidar": "cidar",
+    "gecme": "gecme"
+  },
+  "deger_esleme": {
+    "kol_kesiti": {
+      "yuvarlak": "round",
+      "kare": "square",
+      "sekizgen": "octagon"
+    }
+  },
+  "sabit": {
+    "aci_derece": 0,
+    "destek": false,
+    "kapali_uc": true,
+    "Segments": 180
+  }
+}

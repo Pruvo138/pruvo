@@ -1,0 +1,72 @@
+{
+  "id": "olcuye-ozel-damga-kase",
+  "hacimFormulu": "kase",
+  "parametreler": [
+    {
+      "ad": "metin",
+      "etiket": "Kaşe metni",
+      "tip": "metin",
+      "varsayilan": "PRUVO",
+      "maksUzunluk": 40,
+      "aciklama": "Kabartma olarak işlenecek yazı"
+    },
+    {
+      "ad": "yazi_boyutu",
+      "etiket": "Yazı boyutu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 6,
+      "max": 14,
+      "adim": 0.5,
+      "varsayilan": 8,
+      "aciklama": "Yazının ve otomatik yüz ölçüsünün temel boyutu"
+    },
+    {
+      "ad": "dolgu",
+      "etiket": "Kenar payı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 3,
+      "max": 10,
+      "adim": 0.5,
+      "varsayilan": 5,
+      "aciklama": "İçerik ile kaşe dış kenarı arasındaki boşluk"
+    },
+    {
+      "ad": "bicim",
+      "etiket": "Kaşe biçimi",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "dikdortgen", "etiket": "Dikdörtgen"},
+        {"deger": "kare", "etiket": "Kare"},
+        {"deger": "yuvarlak", "etiket": "Yuvarlak"}
+      ],
+      "varsayilan": "dikdortgen",
+      "aciklama": "Kaşe yüzünün dış geometrisi"
+    },
+    {
+      "ad": "kabartma_derinligi",
+      "etiket": "Kabartma derinliği",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 0.8,
+      "max": 2.2,
+      "adim": 0.1,
+      "varsayilan": 1.4,
+      "aciklama": "Mürekkebi taşıyan yazının yüzeyden yüksekliği"
+    },
+    {
+      "ad": "sap",
+      "etiket": "Sap seçimi",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "sapli", "etiket": "Saplı"},
+        {"deger": "sapsiz", "etiket": "Sapsız"}
+      ],
+      "varsayilan": "sapli",
+      "aciklama": "Sökülüp takılabilen vidalı sapın ürüne dahil edilmesi"
+    }
+  ],
+  "tabanHacimMm3": 12059.028554655295,
+  "tabanFiyatTL": null
+}

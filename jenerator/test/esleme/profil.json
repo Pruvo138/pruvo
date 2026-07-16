@@ -1,0 +1,40 @@
+{
+  "urunId": "olcuye-ozel-profil-beam",
+  "scad": "profil.scad",
+  "fonksiyon": "profil",
+  "esleme": {
+    "kesit": "kesit_tipi",
+    "yukseklik": "yukseklik",
+    "genislik": "genislik",
+    "et_kalinligi": "et_kalinligi",
+    "uzunluk": "uzunluk",
+    "ic_yapi": "ic_yapi"
+  },
+  "deger_esleme": {
+    "kesit": {
+      "i": "I",
+      "t": "T",
+      "l": "L",
+      "z": "Z",
+      "u": "U",
+      "kutu": "rect",
+      "cokgen": "poly",
+      "elips": "ellipse",
+      "sigma": "aluminum"
+    },
+    "ic_yapi": {
+      "bos": "bos",
+      "dolu": "dolu"
+    }
+  },
+  "sabit": {
+    "flans_kalinligi": 0,
+    "kok_radius": 0,
+    "cokgen_kenar": 6,
+    "alum_boy": 40,
+    "slot_agiz": 0,
+    "alum_delik": 0,
+    "alum_kose": 1.5,
+    "Segments": 360
+  }
+}

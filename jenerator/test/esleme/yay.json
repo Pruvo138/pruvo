@@ -1,0 +1,34 @@
+{
+  "urunId": "olcuye-ozel-yay-dalga-flexure",
+  "scad": "yay.scad",
+  "fonksiyon": "yay",
+  "esleme": {
+    "tip": "tip",
+    "dalga_formu": "dalga_formu",
+    "serbest_boy": "serbest_boy",
+    "dis_cap": "dis_cap",
+    "tel_capi": "tel_capi",
+    "dalga_boyu": "dalga_boyu"
+  },
+  "deger_esleme": {
+    "dalga_formu": {
+      "sinus": "sine",
+      "kare": "square",
+      "ucgen": "triangle",
+      "testere": "sawtooth",
+      "darbe": "pulse"
+    }
+  },
+  "sabit": {
+    "genlik": 10,
+    "cevrim": 4,
+    "serit_kalinligi": 2,
+    "serit_yuksekligi": 8,
+    "uc_kapak": "butt",
+    "sarim_sayisi": 8,
+    "duz_uc": false,
+    "baski_dostu": false,
+    "Segments": 128,
+    "$fn": 160
+  }
+}

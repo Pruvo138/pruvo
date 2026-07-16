@@ -1,0 +1,54 @@
+{
+  "id": "olcuye-ozel-vida-civata-somun-pul",
+  "hacimFormulu": "vida",
+  "parametreler": [
+    {
+      "ad": "urun_tipi",
+      "etiket": "Parça tipi",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "civata", "etiket": "Cıvata"},
+        {"deger": "mil", "etiket": "Dişli mil / saplama"},
+        {"deger": "somun", "etiket": "Somun"},
+        {"deger": "pul", "etiket": "Pul"}
+      ],
+      "varsayilan": "civata",
+      "aciklama": "Ölçülendirilecek bağlantı elemanı türü"
+    },
+    {
+      "ad": "cap",
+      "etiket": "Nominal M ölçüsü",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 3,
+      "max": 20,
+      "adim": 0.5,
+      "varsayilan": 5,
+      "aciklama": "M3–M20 aralığındaki nominal bağlantı çapı"
+    },
+    {
+      "ad": "boy",
+      "etiket": "Boy",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 10,
+      "max": 100,
+      "adim": 1,
+      "varsayilan": 20,
+      "aciklama": "Cıvata veya dişli milin gövde uzunluğu; somun ve pul hacminde kullanılmaz"
+    },
+    {
+      "ad": "tolerans",
+      "etiket": "Geçme boşluğu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 0,
+      "max": 1,
+      "adim": 0.05,
+      "varsayilan": 0.2,
+      "aciklama": "Pul deliğine çap üstü olarak eklenen montaj boşluğu"
+    }
+  ],
+  "tabanHacimMm3": 495.10980055931356,
+  "tabanFiyatTL": null
+}

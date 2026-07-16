@@ -1,0 +1,63 @@
+{
+  "id": "olcuye-ozel-huni",
+  "hacimFormulu": "huni",
+  "parametreler": [
+    {
+      "ad": "agiz_capi",
+      "etiket": "Ağız çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 40,
+      "max": 200,
+      "adim": 1,
+      "varsayilan": 100,
+      "aciklama": "Huninin dolum yapılan üst açıklığının iç çapı"
+    },
+    {
+      "ad": "yukseklik",
+      "etiket": "Koni yüksekliği",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 30,
+      "max": 150,
+      "adim": 1,
+      "varsayilan": 60,
+      "aciklama": "Ağız ile akıtma ucunun birleşimi arasındaki yükseklik"
+    },
+    {
+      "ad": "uc_capi",
+      "etiket": "Akıtma ucu çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 4,
+      "max": 28,
+      "adim": 0.5,
+      "varsayilan": 14,
+      "aciklama": "Akış hızını ve gireceği açıklığı belirleyen iç çap"
+    },
+    {
+      "ad": "uc_boyu",
+      "etiket": "Akıtma ucu boyu",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 54,
+      "max": 160,
+      "adim": 1,
+      "varsayilan": 54,
+      "aciklama": "Dar veya derin dolum ağzına ulaşan boru bölümünün uzunluğu"
+    },
+    {
+      "ad": "uc_acisi",
+      "etiket": "Uç kesim açısı",
+      "birim": "°",
+      "tip": "sayi",
+      "min": 0,
+      "max": 60,
+      "adim": 5,
+      "varsayilan": 0,
+      "aciklama": "Dar veya eğik ağızlara giriş için uçtaki kesim açısı; 0 düz kesimdir"
+    }
+  ],
+  "tabanHacimMm3": 20366.191190985763,
+  "tabanFiyatTL": null
+}

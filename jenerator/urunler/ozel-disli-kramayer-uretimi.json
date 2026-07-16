@@ -1,0 +1,69 @@
+{
+  "id": "ozel-disli-kramayer-uretimi",
+  "hacimFormulu": "disli",
+  "parametreler": [
+    {
+      "ad": "disli_tipi",
+      "etiket": "Dişli tipi",
+      "tip": "secim",
+      "secenekler": [
+        {"deger": "duz", "etiket": "Düz dişli"},
+        {"deger": "helis", "etiket": "Helis dişli"},
+        {"deger": "cift_helis", "etiket": "Çift helis"},
+        {"deger": "konik", "etiket": "Konik dişli"},
+        {"deger": "sonsuz", "etiket": "Sonsuz vida"},
+        {"deger": "ic_disli", "etiket": "İç dişli / halka"},
+        {"deger": "tac", "etiket": "Taç dişli"},
+        {"deger": "kramayer", "etiket": "Kramayer"}
+      ],
+      "varsayilan": "duz",
+      "aciklama": "Üretilecek dişli veya kramayer geometrisi"
+    },
+    {
+      "ad": "dis_sayisi",
+      "etiket": "Diş sayısı",
+      "birim": "adet",
+      "tip": "sayi",
+      "min": 32,
+      "max": 64,
+      "adim": 1,
+      "varsayilan": 40,
+      "aciklama": "Dişli çevresindeki veya kramayer boyunca uzanan diş sayısı"
+    },
+    {
+      "ad": "modul",
+      "etiket": "Modül",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 1,
+      "max": 1.5,
+      "adim": 0.05,
+      "varsayilan": 1.25,
+      "aciklama": "Eşleşen dişliyle aynı olması gereken diş boyutu"
+    },
+    {
+      "ad": "kalinlik",
+      "etiket": "Kalınlık",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 6,
+      "max": 8,
+      "adim": 0.5,
+      "varsayilan": 7,
+      "aciklama": "Dişli gövdesinin veya kramayerin kalınlığı"
+    },
+    {
+      "ad": "delik_capi",
+      "etiket": "Mil deliği çapı",
+      "birim": "mm",
+      "tip": "sayi",
+      "min": 2,
+      "max": 8,
+      "adim": 0.5,
+      "varsayilan": 6,
+      "aciklama": "Mil bağlantısı için merkez delik çapı; uygulanmayan tiplerde geometrinin parçası değildir"
+    }
+  ],
+  "tabanHacimMm3": 13438.948999761142,
+  "tabanFiyatTL": null
+}

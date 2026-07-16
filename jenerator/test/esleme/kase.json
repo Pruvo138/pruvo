@@ -1,0 +1,30 @@
+{
+  "urunId": "olcuye-ozel-damga-kase",
+  "scad": "kase.scad",
+  "fonksiyon": "kase",
+  "esleme": {
+    "metin": "metin",
+    "yazi_boyutu": "yazi_boyutu",
+    "dolgu": "dolgu",
+    "bicim": "bicim",
+    "kabartma_derinligi": "kabartma_derinligi",
+    "sap": "sap"
+  },
+  "deger_esleme": {
+    "sap": {
+      "sapli": true,
+      "sapsiz": false
+    }
+  },
+  "sabit": {
+    "icerik_turu": "texticon",
+    "emoji": "",
+    "yazi_tipi": "DejaVu Sans:style=Bold",
+    "hizalama": "center",
+    "kenar_islemi": "chamfer",
+    "cerceve": "yok",
+    "taban_yuksekligi": 8,
+    "dis_capi": 9,
+    "$fn": 96
+  }
+}
