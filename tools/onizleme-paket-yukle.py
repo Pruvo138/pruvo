@@ -93,11 +93,16 @@ def topla(hedef, uyelik_dir, jenerator_dir):
     os.makedirs(hedef, exist_ok=True)
     eksik = []
     for aile, tanim in eslem["aileler"].items():
-        kaynak = os.path.join(uyelik_dir, tanim["scad"])
-        if not os.path.exists(kaynak):
-            eksik.append("%s (%s)" % (tanim["scad"], aile))
-            continue
-        shutil.copy2(kaynak, os.path.join(hedef, tanim["scad"]))
+        scadlar = {tanim["scad"]}
+        for varyant in (tanim.get("varyantlar") or {}).values():
+            if varyant and varyant.get("scad"):
+                scadlar.add(varyant["scad"])  # cift-uretecli aile (vida, yay)
+        for scad in sorted(scadlar):
+            kaynak = os.path.join(uyelik_dir, scad)
+            if not os.path.exists(kaynak):
+                eksik.append("%s (%s)" % (scad, aile))
+                continue
+            shutil.copy2(kaynak, os.path.join(hedef, scad))
     if eksik:
         sys.exit("eksik .scad kaynagi: %s (PRUVO_UYELIK_DIR dogru mu?)" % ", ".join(eksik))
     # bizim uretecler: public eslemden uret + scad'i pruvo-jenerator'den kopyala
