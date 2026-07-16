@@ -25,19 +25,25 @@ python3 onizleme/derleyici/server.py --oz-test   # enjeksiyon ikinci savunmasi
 
 4e (soguk/sicak p50-p95) ve 4g (canli sayfa) Container deploy'undan sonra kosulur.
 
-## Canliya alma sirasi (kalan is — plan kapisi)
+## Canli durum (16 Tem aksam) + kalan tek adim
 
-1. Workers Paid aktif (Okan onayladi; Codex panelden yukseltecek).
-2. GitHub secrets: `R2_ERISIM_ID`/`R2_GIZLI_ANAHTAR` (pruvo-ozel okuma yetkili R2 S3
-   token — Cloudflare panelinden uretilir) (+ mevcut `CLOUDFLARE_API_TOKEN`'a
-   containers yetkisi).
-3. `onizleme-imaj.yml` workflow'unu `push_et=true` ile tetikle → imaj registry'de.
-4. `onizleme/wrangler.toml` containers blogunu ac + `src/index.js`'e Container sinifi
-   (adaptor sozlesmesi: `src/derleyici.js` basligi) → `npx wrangler deploy`.
-5. KAPI-1 olcumu: soguk baslatma p50/p95 (>=10 istek) + sicak istek. p95 > 10 sn ve
-   onbellek maskeleyemiyorsa DUR → mimara rapor.
-6. Kabul 4e + 4g kos, yesilse `secenekler.js` `ONIZLEME_3D_ACIK=true` (MIMAR karari)
-   → push (build.py butonu basar).
+CANLI: Workers Paid acik, imaj registry'de (digest'e sabit), Container + Worker deploy
+edildi (route pruvo3d.com/api/onizleme/*), KAPI-1 GECTI (soguk p95 2,7 sn), 4e + 4g
+yesil. KALAN TEK ADIM: `secenekler.js` `ONIZLEME_3D_ACIK=true` (MIMAR karari) → push
+(build.py butonu basar).
+
+### Imaj guncelleme akisi (degisiklik oldugunda)
+
+1. Gerekirse paket degisti ise: `python3 tools/onizleme-paket-yukle.py`
+   (R2 + ONIZLEME_PAKET_B64 secret'ini birlikte tazeler).
+2. Gecici registry kimligi + tetik (CI token'inda Containers yetkisi yok):
+   `npx wrangler containers registries credentials registry.cloudflare.com --push`
+   ciktisini `gh secret set CF_REGISTRY_GECICI` ile koy (JWT ~15 dk gecerli), hemen
+   `gh workflow run onizleme-imaj.yml -f push_et=true`.
+3. CI logundaki YENI digest'i `onizleme/wrangler.toml` `image = ...@sha256:...`
+   satirina yaz (`:ci` tag'i MUTABLE — ayni tag'e push rollout tetiklemez, 16 Tem'de
+   olculdu) → `npx wrangler deploy` → eski instance'i dusurmek icin
+   `/api/onizleme/derleyici-kapat` (X-Kapat-Anahtar) → iki aileyle duman.
 
 ## Bilinen sapma (mimar karari bekliyor)
 
