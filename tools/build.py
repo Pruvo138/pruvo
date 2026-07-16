@@ -122,11 +122,10 @@ MALZEME_RENK_HTML = """
           <option value="PLA">PLA (standart)</option>
           <option value="PETG">PETG (+%30)</option>
           <option value="ASA">ASA (+%60)</option>
-          <option value="Karbon Katkılı">Karbon Katkılı (+%100)</option>
-          <option value="ABS">ABS (+%50)</option>
           <option value="TPU">TPU (+%55)</option>
         </select>
       </div>
+      <p class="malzeme-not">Karbon fiber veya diğer mühendislik malzemeleriyle üretim için <a href="https://wa.me/905451386526?text=Merhaba%2C%20m%C3%BChendislik%20malzemesiyle%20%C3%B6zel%20%C3%BCretim%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." target="_blank" rel="noopener">WhatsApp'tan bize yazın</a>.</p>
       <div class="opsiyon-row">
         <label for="renkSec">Renk</label>
         <select id="renkSec">
@@ -256,8 +255,14 @@ PAGE_CSS = """
   .cart-btn svg{width:19px;height:19px;fill:#fff}
   .cart-btn.added{background:#e8f6ee;color:#178a44}
   .cart-btn.added svg{fill:#178a44}
-  .order-alt{display:inline-block;margin-top:11px;font-size:13.5px;color:var(--gray-text);text-decoration:underline}
-  .order-alt:hover{color:var(--navy)}
+  .order-wa{background:#25D366;color:#fff;border:none;border-radius:9px;
+    padding:13px 22px;font-size:15px;font-weight:700;cursor:pointer;
+    text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+    gap:9px;transition:.15s;max-width:320px;width:100%;margin-top:11px}
+  .order-wa:hover{background:#1ebe5a}
+  .order-wa svg{width:19px;height:19px;fill:#fff}
+  .malzeme-not{font-size:12.5px;color:var(--gray-text);line-height:1.5;margin:2px 0 2px}
+  .malzeme-not a{color:#178a44;font-weight:600;text-decoration:underline}
   .cart-fab{position:fixed;right:18px;bottom:18px;z-index:60;background:#25a35a;color:#fff;
     border-radius:30px;padding:12px 20px;font-size:15px;font-weight:700;text-decoration:none;
     box-shadow:0 6px 18px rgba(0,0,0,.22);align-items:center;gap:8px;display:none}
@@ -618,7 +623,7 @@ def render_product(p, all_products):
       {opsiyonlar}
       <p class="desc">{aciklama}</p>
       <button class="cart-btn" id="cartBtn" data-id="{pid}">{cart_icon}<span class="cart-label">Sepete Ekle</span></button>
-      <a class="order-alt" id="orderAlt" href="{wa}" target="_blank" rel="noopener">veya WhatsApp'tan bu ürünü tek tek sor</a>
+      <a class="order-wa" id="orderAlt" href="{wa}" target="_blank" rel="noopener">{icon}WhatsApp'tan Sor</a>
       <div class="note">Sepete ekleyip birden çok ürünü tek WhatsApp mesajıyla sipariş edebilirsiniz. Ürünler talep üzerine özel üretilir.</div>
     </div>
   </div>
