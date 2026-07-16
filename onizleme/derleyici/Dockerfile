@@ -14,8 +14,9 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 # BOSL2 — sabitlenmis surum (uyelik uretecleri BOSL2 include eder).
-# Takma ad ("latest") KULLANMA kurali geregi commit'e sabitlenir.
-ARG BOSL2_SURUM=2.0.716
+# Takma ad ("latest") KULLANMA kurali geregi tag'e sabitlenir; v2.0.747 = bu Mac'teki
+# yerel kutuphaneyle AYNI surum (kalibrasyon 16 Tem bu surumle olculdu).
+ARG BOSL2_SURUM=2.0.747
 RUN mkdir -p /root/.local/share/OpenSCAD/libraries \
  && curl -sSL "https://github.com/BelfrySCAD/BOSL2/archive/refs/tags/v${BOSL2_SURUM}.tar.gz" \
     | tar -xz -C /root/.local/share/OpenSCAD/libraries \
