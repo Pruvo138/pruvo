@@ -321,6 +321,15 @@ def konf_sema(pid):
         return json.load(f)
 
 
+def taban_fiyat_metni(tl):
+    """TL sayısını secenekler.js kurusMetni ile AYNI biçimde yazar: 150 -> "150,00 TL".
+    Sarı sayfanın JS öncesi başlangıç fiyatı bundan üretilir; JS aynı değeri kuruşla
+    tazelediği için biçim ayrışırsa metin 'zıplar' — o yüzden ikinci biçim yok."""
+    tam, kusur = ("%.2f" % tl).split(".")
+    tam = "{:,}".format(int(tam)).replace(",", ".")
+    return tam + "," + kusur + " TL"
+
+
 CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 '
              '7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 '
              '0-.25-.11-.25-.25l.03-.12L8.1 15h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 6H5.21l-.94-2H1zm16 '
@@ -822,6 +831,12 @@ def render_product(p, all_products):
         # Ekle + WhatsApp USTTE). Dropdown ve sayfa-alti buyuk butonlar KALKTI.
         # Ikinci kopya YOK: _renk_butonlari_html / ADET_IKON_HTML / IKON_BUTONLAR_HTML
         # kart-secim daliyla AYNI fonksiyon/sabitlerdir.
+        # Sari fiyat paketi: taban fiyati DOLU ailede JS oncesi metin de kart-secim
+        # kalibi ("X TL'den baslayan" — varsayilan olculerde fiyat = taban, JS kurusla
+        # ayni degeri tazeler); taban null (vida) ise "Olcuye ozel fiyat" surer.
+        taban_tl = sema.get("tabanFiyatTL")
+        konf_fiyat_metni = ((taban_fiyat_metni(taban_tl) + "&#39;den başlayan")
+                            if taban_tl is not None else "Ölçüye özel fiyat")
         opsiyonlar_html = ("""
     <div class="opsiyonlar konf" id="opsiyonlar">
       <div class="konf-baslik">Ölçülerinizi girin</div>
@@ -829,10 +844,11 @@ def render_product(p, all_products):
       {onizleme}
       {renk}
       {adet}
-      <div class="opsiyon-fiyat" id="opsiyonFiyat">Ölçüye özel fiyat</div>
+      <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
       <div class="konf-hacim" id="konfHacim"></div>
     </div>
-    """).format(onizleme=onizleme_html,
+    """).format(fiyat_metni=konf_fiyat_metni,
+                onizleme=onizleme_html,
                 renk=_renk_butonlari_html(),
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,

@@ -35,21 +35,34 @@ def main():
             for p in sema["parametreler"] if (p.get("tip", "sayi") != "metin"))
         taban_cm3 = sema["tabanHacimMm3"] / 1000.0
         fiyat = sema.get("tabanFiyatTL")
-        fiyat_metni = ("**___ TL**" if fiyat is None
-                       else str(fiyat).replace(".", ",") + " TL")
+        if sema["id"] == "olcuye-ozel-vida-civata-somun-pul":
+            # VIDA ISTISNASI (paket-sari-fiyat.md): hacim hesabi capa duyarsiz (M5'e
+            # cakili, Faz D olcumu) — fiyat girilirse M12, M5 fiyatina satilir.
+            fiyat_metni = ("**GİRİLMEZ — null kalır** (hacim hesabı çapa duyarsız; "
+                           "düzeltme ayrı iş, düzelince 100 TL girilecek)"
+                           if fiyat is None else
+                           str(fiyat).replace(".", ",") +
+                           " TL ⚠️ (vida istisnası kalkmadan girilmemeliydi!)")
+        else:
+            fiyat_metni = ("**___ TL**" if fiyat is None
+                           else str(fiyat).replace(".", ",") + " TL")
         satirlar.append("| %s | %s | %.1f cm³ | %s |" % (
             basliklar.get(sema["id"], sema["id"]), olculer,
             taban_cm3, fiyat_metni))
 
-    icerik = u"""# TABAN FİYAT TABLOSU — Okan dolduracak (sarı seri konfigüratör)
+    icerik = u"""# TABAN FİYAT TABLOSU (Okan KESİN kararı, 16 Tem — sarı seri konfigüratör)
 
-Taban fiyat = ürünün **varsayılan ölçülerdeki PLA (Siyah/Beyaz/Gri)** satış fiyatı.
-Diğer her şey formülden türetilir: `fiyat = tabanFiyat × (hacim/tabanHacim) ×
-filamentKatsayı × renkFaktör` (PLA 1.00 / PETG 1.30 / ABS 1.50 / TPU 1.55 /
-ASA 1.60 / Karbon 2.00; Diğer renk ×1.15). Kuruş korunur, yuvarlama yok.
+Taban fiyat = ürünün **varsayılan ölçülerdeki PLA (Siyah/Beyaz/Gri)** satış fiyatı
+ve aynı zamanda ZEMİNDİR (altına inilmez). Diğer her şey formülden türetilir:
+`fiyat = tabanFiyat × max(1, hacim/tabanHacim) × filamentKatsayı × renkFaktör`
+(PLA 1.00 / PETG 1.30 / TPU 1.55 / ASA 1.60; ABS 1.50 ve Karbon 2.00 SİTEDE SATIŞA
+KAPALI — WhatsApp'a yönlendirilir; Diğer renk ×1.15). Varsayılandan küçük ölçüde
+çarpan 1'e sabitlenir; taban üstünde hacimle SÜREKLİ artar (basamak yok).
+Kuruş korunur, yuvarlama yok.
 
-Fiyat girilene kadar sitede o ürünün fiyatı "—" görünür (sipariş WhatsApp'la sürer).
-Doldurulan fiyat `jenerator/urunler/<id>.json` içindeki `tabanFiyatTL` alanına yazılır.
+Fiyat girilmeyen üründe (bugün yalnız vida) sitede "Ölçüye özel fiyat" görünür
+(sipariş WhatsApp'la sürer). Doldurulan fiyat `jenerator/urunler/<id>.json`
+içindeki `tabanFiyatTL` alanına yazılır.
 
 | Ürün | Varsayılan ölçüler | Taban hacim | Taban fiyat (PLA) |
 |---|---|---|---|
