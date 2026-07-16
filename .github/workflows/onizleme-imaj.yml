@@ -32,11 +32,11 @@ jobs:
         env:
           R2_ERISIM_ID: ${{ secrets.R2_ERISIM_ID }}
           R2_GIZLI_ANAHTAR: ${{ secrets.R2_GIZLI_ANAHTAR }}
-          # Yedek yol: paketin base64'u dogrudan Actions secret'inda (~12 KB; sir deposu
-          # sinifi R2-private ile ayni — iki yol da ayni repo secrets guvenine dayanir).
-          # Mevcut .r2-credentials.json S3 kimligi pruvo-media'ya BUCKET-SCOPED oldugu
-          # icin (16 Tem'de 403 ile olculdu) pruvo-ozel'i okuyamiyor; pruvo-ozel okuma
-          # yetkili ozel token uretilene kadar birincil yol bu secret.
+          # Birincil yol R2: R2_ERISIM_ID/R2_GIZLI_ANAHTAR = pruvo-ozel'e SALT-OKUMA
+          # yetkili 'pruvo-ozel-okuma-ci' token'i (16 Tem 2026'da uretildi, dogrulandi).
+          # ONIZLEME_PAKET_B64 yedegi ayni gun KALDIRILDI (Okan karari) — asagidaki
+          # fallback kodu zararsiz oldugu icin duruyor; secret bos gelir, R2 duserse
+          # is aciklamali hata verir (cozum: tools/onizleme-paket-yukle.py + token kontrol).
           ONIZLEME_PAKET_B64: ${{ secrets.ONIZLEME_PAKET_B64 }}
         run: |
           mkdir -p onizleme/derleyici/paket-ozel

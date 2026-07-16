@@ -91,22 +91,9 @@ def main():
         if proc2.returncode != 0:
             sys.exit("paket-guncel.tar.gz yuklemesi basarisiz")
         print("yuklendi: r2://%s/onizleme/paket-guncel.tar.gz" % BUCKET)
-
-        # CI yedek yolu: paketi base64 olarak Actions secret'ina da koy.
-        # Neden: .r2-credentials.json S3 kimligi pruvo-media'ya BUCKET-SCOPED (2026-07-16,
-        # CI'da 403 olculdu) -> CI pruvo-ozel'i okuyamiyor. pruvo-ozel okuma yetkili ayri
-        # token uretilene (panel isi) kadar CI paketi bu secret'tan acar. Deger stdin'den
-        # gecer, loglanmaz. Boyut ~12 KB (secret siniri 48 KB).
-        import base64
-        with open(arsiv, "rb") as f:
-            b64 = base64.b64encode(f.read())
-        proc3 = subprocess.run(["gh", "secret", "set", "ONIZLEME_PAKET_B64",
-                                "--repo", "Pruvo138/pruvo"], input=b64,
-                               cwd=REPO, capture_output=True)
-        if proc3.returncode != 0:
-            sys.stderr.write(proc3.stderr.decode("utf-8", "replace"))
-            sys.exit("ONIZLEME_PAKET_B64 secret'i yazilamadi (gh oturumu acik mi?)")
-        print("yuklendi: Actions secret ONIZLEME_PAKET_B64 (%d bayt b64)" % len(b64))
+        # NOT (2026-07-16): ONIZLEME_PAKET_B64 yedegi KALDIRILDI (Okan karari). CI artik
+        # paketi dogrudan R2'den ceker: R2_ERISIM_ID/R2_GIZLI_ANAHTAR secret'lari
+        # pruvo-ozel'e SALT-OKUMA yetkili 'pruvo-ozel-okuma-ci' token'idir.
 
 
 if __name__ == "__main__":
