@@ -414,11 +414,18 @@
     padding:14px;border-top:1px solid var(--gray-line);background:#fff;
   }
   /* ---------- ödeme (sepet paneli) ---------- */
+  .cart-alt-row{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:13.5px;color:var(--navy);margin-bottom:2px;
+  }
+  .cart-alt-row .bedava{color:#1a9e4b;font-weight:800}
   .cart-total-row{
     display:flex;align-items:center;justify-content:space-between;
     font-size:15px;color:var(--navy);margin-bottom:2px;
   }
   .cart-total-row strong{font-size:20px;font-weight:800}
+  .cart-kargo-tesvik{font-size:12px;font-weight:600;color:var(--navy-2);margin:4px 0 2px}
+  .cart-kargo-tesvik.bedava{color:#1a9e4b}
   .cart-total-not{font-size:11.5px;color:var(--gray-text);margin-bottom:10px}
   .cart-pay-btn{
     display:block;width:100%;background:var(--navy);color:#fff;border:none;
@@ -462,6 +469,12 @@
   .cart-order-btn svg{width:20px;height:20px;fill:#fff}
   .cart-order-btn:hover{background:#1ebe5a}
   .cart-order-btn.disabled{background:#b9c6b9;pointer-events:none}
+  /* ODEME_ACIK=true iken birincil buton ÖDEME olur; WhatsApp kanalı YAŞAR ama ikincil
+     (kontur) görünüme iner. ODEME_ACIK=false iken bu sınıf hiç verilmez — bugünkü görünüm. */
+  .cart-order-btn.ikincil{background:#fff;color:#1a9e4b;border:1.5px solid #25D366;
+    padding:11px;font-size:14px}
+  .cart-order-btn.ikincil svg{fill:#25D366}
+  .cart-order-btn.ikincil:hover{background:#f0fbf4}
   .cart-clear{
     display:block;width:100%;margin-top:8px;
     background:transparent;border:none;color:var(--gray-text);
@@ -601,13 +614,22 @@
   </form>
 
   <div class="cart-panel-foot">
+    <!-- KARGO (Okan, 16 Tem — KESIN): <2.500 TL -> 250,00 TL gonderim; >=2.500 (dahil) bedava.
+         Tek kaynak secenekler.js kargoKurus(); Worker ayni fonksiyonla tahsil eder —
+         burada gorunen genel toplam = iyzico'da odenen tutar (kurusuyla). -->
+    <div id="cartAraRow" class="cart-alt-row" style="display:none">
+      <span>Ara toplam</span>
+      <span id="cartAra">0,00 TL</span>
+    </div>
+    <div id="cartKargoRow" class="cart-alt-row" style="display:none">
+      <span>Gönderim</span>
+      <span id="cartKargo">250,00 TL</span>
+    </div>
     <div id="cartTotalRow" class="cart-total-row">
-      <span>Toplam</span>
+      <span>Genel toplam</span>
       <strong id="cartTotal">0,00 TL</strong>
     </div>
-    <!-- Kargo BILEREK yazilmadi: sitede "2.500 TL uzeri kargo ucretsiz" kurali var ama odeme
-         akisinda kargo kalemi YOK (spec'te kapsam disi). Kural netlesene kadar taahhut
-         yazilmaz — odeme sonrasi ek ucret mesafeli satista sorun olur. Mimara soruldu. -->
+    <div id="cartKargoTesvik" class="cart-kargo-tesvik" style="display:none"></div>
     <div id="cartTotalNot" class="cart-total-not">KDV dahil</div>
     <button id="cartPay" class="cart-pay-btn" type="button">
       Kartla Güvenli Öde
@@ -717,16 +739,26 @@
   }
   function cartWaHref(){
     var lines = ["Merhaba, şu ürünlerle ilgileniyorum:", ""];
-    var toplam = 0, toplamVar = false;
+    var toplam = 0, fiyatsizVar = false;
     cartLines().forEach(function(entry, i){
       var ozet = PRUVO_SECENEK.satirOzeti(entry.urun, entry.satir);
       lines.push((i+1) + ") " + entry.urun.baslik);
       if(ozet.detay){ lines.push("   " + ozet.detay); }
       lines.push("   Fiyat: " + ozet.fiyatMetni);
       lines.push("   " + productAbs(entry.urun));
-      if(ozet.fiyat != null){ toplam += ozet.fiyat; toplamVar = true; }
+      // KURUŞ toplanır (eski kod ozet.fiyat okuyordu — normal satırda o alan yok, toplam
+      // hiç yazılmıyordu); müşteri iki kanalda AYNI rakamı görsün diye panelle aynı hesap.
+      if(ozet.kurus != null){ toplam += ozet.kurus; } else { fiyatsizVar = true; }
     });
-    if(toplamVar){ lines.push(""); lines.push("Toplam (tahmini): " + PRUVO_SECENEK.tlMetni(toplam)); }
+    if(toplam > 0){
+      var kargo = PRUVO_SECENEK.kargoKurus(toplam);
+      lines.push("");
+      lines.push("Ara toplam: " + PRUVO_SECENEK.kurusMetni(toplam));
+      lines.push("Gönderim: " + (kargo > 0 ? PRUVO_SECENEK.kurusMetni(kargo)
+        : "Bedava (2.500 TL ve üzeri)"));
+      lines.push("Genel toplam: " + PRUVO_SECENEK.kurusMetni(toplam + kargo) +
+        (fiyatsizVar ? " (fiyatı sorulacak ürünler hariç)" : ""));
+    }
     return "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(lines.join("\n"));
   }
   function updateCartFab(){
@@ -755,18 +787,44 @@
   }
   function cartToplamTazele(lines){
     var satir = document.getElementById("cartTotalRow");
+    var araRow = document.getElementById("cartAraRow");
+    var kargoRow = document.getElementById("cartKargoRow");
+    var tesvik = document.getElementById("cartKargoTesvik");
     var not = document.getElementById("cartTotalNot");
     var pay = document.getElementById("cartPay");
     var toplam = document.getElementById("cartTotal");
     var odenebilir = cartOdenebilirMi(lines);
     var goster = lines.length > 0;
+    /* KARGO: kural + eşik secenekler.js'ten (tek kaynak — Worker tahsilatı AYNI fonksiyonla
+       hesaplar). Burada görünen genel toplam = iyzico'da ödenen tutar, kuruşuyla. */
+    var ara = cartToplamKurus(lines);
+    var kargo = PRUVO_SECENEK.kargoKurus(ara);
+    var parasal = goster && ara > 0;
     satir.style.display = goster ? "flex" : "none";
+    araRow.style.display = parasal ? "flex" : "none";
+    kargoRow.style.display = parasal ? "flex" : "none";
+    tesvik.style.display = parasal ? "block" : "none";
     not.style.display = goster ? "block" : "none";
     // ODEME_ACIK kapaliyken buton HIC gosterilmez (canli anahtar yok — bkz. secenekler.js).
     // Toplam gorunmeye devam eder; sipariş WhatsApp'tan verilir.
     pay.style.display = (goster && PRUVO_SECENEK.ODEME_ACIK) ? "block" : "none";
     if(!goster){ return; }
-    toplam.textContent = PRUVO_SECENEK.kurusMetni(cartToplamKurus(lines));
+    document.getElementById("cartAra").textContent = PRUVO_SECENEK.kurusMetni(ara);
+    var kargoEl = document.getElementById("cartKargo");
+    if(kargo > 0){
+      kargoEl.textContent = PRUVO_SECENEK.kurusMetni(kargo);
+      kargoEl.className = "";
+      // Teşvik: kalan tutar KURUŞUYLA doğru (yuvarlama yok).
+      tesvik.textContent = "2.500,00 TL üzeri kargo bedava — bedava kargoya " +
+        PRUVO_SECENEK.kurusMetni(PRUVO_SECENEK.KARGO_BEDAVA_ESIK_KURUS - ara) + " kaldı";
+      tesvik.className = "cart-kargo-tesvik";
+    }else{
+      kargoEl.textContent = "Bedava";
+      kargoEl.className = "bedava";
+      tesvik.textContent = "Kargo bedava ✓";
+      tesvik.className = "cart-kargo-tesvik bedava";
+    }
+    toplam.textContent = PRUVO_SECENEK.kurusMetni(ara + kargo);
     pay.className = odenebilir ? "cart-pay-btn" : "cart-pay-btn disabled";
     pay.disabled = !odenebilir;
     pay.textContent = odenebilir ? "Kartla Güvenli Öde"
@@ -796,7 +854,9 @@
       cartToplamTazele([]);
       return;
     }
-    orderBtn.className = "cart-order-btn";
+    // ODEME_ACIK iken birincil buton ÖDEME; WhatsApp İKİNCİL görünüme iner ama kanal yaşar
+    // (Okan, 16 Tem). Kapalıyken bugünkü gibi WhatsApp birincil.
+    orderBtn.className = "cart-order-btn" + (PRUVO_SECENEK.ODEME_ACIK ? " ikincil" : "");
     orderBtn.href = cartWaHref();
     cartToplamTazele(lines);
     lines.forEach(function(entry){

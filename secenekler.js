@@ -50,6 +50,18 @@
   var ADET_EN_AZ = 1;
   var ADET_EN_COK = 99;
 
+  /* KARGO (Okan, 16 Tem — KESİN, değişiklik SADECE Okan'dan; tools/paket-shop-kargo.md):
+     ürün toplamı < 2.500,00 TL -> 250,00 TL gönderim; >= 2.500,00 TL (tam 2.500 DAHİL) ->
+     bedava. Eşik ÜRÜN toplamına bakar (kargo hariç); kargo ayrı kalemdir, ürün fiyatına
+     yedirilmez. Sepet paneli, WhatsApp metni ve shop Worker'ı (/api/shop/baslat) AYNI
+     fonksiyonu okur — asıl hesap sunucuda, istemciden gelen kargo/tutar alanları okunmaz. */
+  var KARGO_UCRET_KURUS = 25000;
+  var KARGO_BEDAVA_ESIK_KURUS = 250000;
+  function kargoKurus(urunToplamKurus) {
+    if (!(urunToplamKurus > 0)) { return 0; }
+    return urunToplamKurus >= KARGO_BEDAVA_ESIK_KURUS ? 0 : KARGO_UCRET_KURUS;
+  }
+
   /* Parametrik (sarı seri) ürünlerde SELF-SERVİS ÖDEME anahtarı — TEK yerde, front + Worker
      aynı sabiti okur. Bugün KAPALI. Taban fiyatlar DOLDU (16 Tem, Okan kesin tablosu:
      17/18; vida hacim hesabı çapa duyarsız olduğundan null kaldı) ama bu anahtar AYRI
@@ -272,6 +284,9 @@
     FONKSIYONEL_KATEGORILER: FONKSIYONEL_KATEGORILER,
     ADET_EN_AZ: ADET_EN_AZ,
     ADET_EN_COK: ADET_EN_COK,
+    KARGO_UCRET_KURUS: KARGO_UCRET_KURUS,
+    KARGO_BEDAVA_ESIK_KURUS: KARGO_BEDAVA_ESIK_KURUS,
+    kargoKurus: kargoKurus,
     ODEME_ACIK: ODEME_ACIK,
     PARAMETRIK_ODEME_ACIK: PARAMETRIK_ODEME_ACIK,
     ONIZLEME_3D_ACIK: ONIZLEME_3D_ACIK,

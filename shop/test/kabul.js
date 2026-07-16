@@ -121,6 +121,7 @@ const mockDurum = {
   tokenlar: new Map(),  // token -> {paidPrice, price, conversationId, basketId}
   telegram: [],         // sendMessage govdeleri
   imzaHatasi: 0,
+  detayZorlaHata: false, // true -> retrieve ALTYAPI hatasi doner (1001 senaryosu, test 11)
 };
 
 function mockBaslat() {
@@ -130,6 +131,11 @@ function mockBaslat() {
     req.on("end", () => {
       res.setHeader("Content-Type", "application/json");
 
+      if (req.url === "/_detayhata/ac" || req.url === "/_detayhata/kapat") { // test yardimcisi
+        mockDurum.detayZorlaHata = req.url.endsWith("/ac");
+        res.end(JSON.stringify({ detayZorlaHata: mockDurum.detayZorlaHata }));
+        return;
+      }
       if (req.url === "/_durum") {   // test yardimcisi
         res.end(JSON.stringify({
           initSayisi: mockDurum.initler.length,
@@ -181,6 +187,12 @@ function mockBaslat() {
           mockDurum.imzaHatasi++;
           res.statusCode = 401;
           res.end(JSON.stringify({ status: "failure", errorMessage: "imza gecersiz" }));
+          return;
+        }
+        if (mockDurum.detayZorlaHata) {
+          // 16 Tem canli bulgusunun birebiri: canli anahtar + sandbox URL -> 1001.
+          res.end(JSON.stringify({ status: "failure", errorCode: "1001",
+            errorMessage: "api bilgileri bulunamadi" }));
           return;
         }
         const b = JSON.parse(govde);
@@ -236,7 +248,15 @@ function d1Kur() {
     "('test-fiyatsiz','h4',4,'Test Fiyatsiz','Ev','[]','',0,''), " +
     // test 8 icin: 100 TL (katsayi tablosu birebir) ve 333 TL (spec'teki kusurat ornegi)
     "('test-urun-100','h5',5,'Test Urun 100 TL','Ev','[]','100 TL',0,''), " +
-    "('test-urun-333','h6',6,'Test Urun 333 TL','Ev','[]','333 TL',0,'');"
+    "('test-urun-333','h6',6,'Test Urun 333 TL','Ev','[]','333 TL',0,''), " +
+    // test 10 (kargo) icin kurusu tutturan fiyatlar: 103 PETG+'Diger' = 15398,5 -> 15399 kurus
+    // (…,99 biten tek dogal yol: tamsayi TL fiyatlar 100'un, katsayilar 5'in katinda kurus
+    // uretir), 99 PETG+'Diger' = 14800,5 -> 14801 kurus (…,01 icin ayni oyun).
+    "('test-kargo-103','h7',7,'Test Kargo 103 TL','Ev','[]','103 TL',0,''), " +
+    "('test-kargo-2346','h8',8,'Test Kargo 2346 TL','Ev','[]','2.346 TL',0,''), " +
+    "('test-kargo-2500','h9',9,'Test Kargo 2500 TL','Ev','[]','2.500 TL',0,''), " +
+    "('test-kargo-99','h10',10,'Test Kargo 99 TL','Ev','[]','99 TL',0,''), " +
+    "('test-kargo-2352','h11',11,'Test Kargo 2352 TL','Ev','[]','2.352 TL',0,'');"
   );
 }
 
@@ -375,10 +395,14 @@ async function test8KatsayiDogrulugu() {
   const SPEC = { "PLA": "100.00", "PETG": "130.00", "TPU": "155.00", "ASA": "160.00" };
   const hatalar = [];
   const olculen = {};
+  // NOT: katsayi URUN KALEMININ fiyatinda sinanir (basketItems[0].price) — init.price artik
+  // TAHSILAT (urun + varsa kargo; 2.500 TL alti sepette +250,00). Kargonun kendisi test 10'da.
+  const urunKalemi = (init) => ((init || {}).basketItems || [])
+    .filter((b) => b.id !== "gonderim")[0] || {};
   for (const malzeme of Object.keys(SPEC)) {
     const c = await baslatIstek([{ id: "test-urun-100", malzeme: malzeme, renk: "Siyah", adet: 1 }]);
     const init = (await mockOku()).sonInit;
-    const p = c.kod === 200 && init ? init.price : "HATA/" + c.kod;
+    const p = c.kod === 200 && init ? urunKalemi(init).price : "HATA/" + c.kod;
     olculen[malzeme] = p;
     if (p !== SPEC[malzeme]) {
       hatalar.push(malzeme + ": " + p + " (olmasi gereken " + SPEC[malzeme] + ")");
@@ -388,7 +412,7 @@ async function test8KatsayiDogrulugu() {
   // Kusurat + ADET: 333 x 1.30 = 432,90 (yuvarlama YOK); x3 = 1.298,70 (ara yuvarlama da yok —
   // yuvarlansaydi 1.299,00 olurdu).
   const ck = await baslatIstek([{ id: "test-urun-333", malzeme: "PETG", renk: "Siyah", adet: 3 }]);
-  const kusurat = ck.kod === 200 ? (await mockOku()).sonInit.price : "HATA/" + ck.kod;
+  const kusurat = ck.kod === 200 ? urunKalemi((await mockOku()).sonInit).price : "HATA/" + ck.kod;
   if (kusurat !== "1298.70") { hatalar.push("333x1.30x3: " + kusurat + " (olmasi gereken 1298.70)"); }
   const sK = d1Sorgu("SELECT tutar_kurus FROM siparisler WHERE siparis_no = '" +
     (ck.govde || {}).no + "'")[0];
@@ -401,7 +425,7 @@ async function test8KatsayiDogrulugu() {
   // sonuc verir; bu yuzden sira testi ADET'le birlestirilmez, D1 kurusu birebir sinanir.
   const cd = await baslatIstek([{ id: "test-urun-333", malzeme: "PETG", renk: "Diğer",
                                   renk_ozel: "mor", adet: 1 }]);
-  const digerFiyat = cd.kod === 200 ? (await mockOku()).sonInit.price : "HATA/" + cd.kod;
+  const digerFiyat = cd.kod === 200 ? urunKalemi((await mockOku()).sonInit).price : "HATA/" + cd.kod;
   if (digerFiyat !== "497.84") {
     hatalar.push("333 PETG 'Diger': " + digerFiyat + " (olmasi gereken 497.84)");
   }
@@ -431,7 +455,7 @@ async function test8KatsayiDogrulugu() {
   }
   // 99 gecerli sinir — kabul edilmeli
   const c99 = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 99 }]);
-  const p99 = c99.kod === 200 ? (await mockOku()).sonInit.price : "HATA/" + c99.kod;
+  const p99 = c99.kod === 200 ? urunKalemi((await mockOku()).sonInit).price : "HATA/" + c99.kod;
   if (p99 !== "9900.00") { hatalar.push("adet 99: " + p99 + " (olmasi gereken 9900.00)"); }
 
   rapor("8 katsayi dogrulugu", hatalar.length === 0,
@@ -531,6 +555,133 @@ async function test9ParametrikAltyapi() {
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
+/** 10 — KARGO KURALI (Okan, 16 Tem — KESIN; tools/paket-shop-kargo.md).
+ *  Beklenen degerler SPEC'ten SABIT (secenekler.js'ten TURETILMEZ — kural yanlis
+ *  degistirilirse test yakalasin): urun toplami < 2.500,00 TL -> kargo 250,00 TL;
+ *  >= 2.500,00 TL (tam 2.500 DAHIL) -> kargo 0. Kargo iyzico'ya AYRI kalem, D1'e
+ *  kargo_kurus kolonu; istemcinin yolladigi kargo/tutar alanlari YOK SAYILIR. */
+async function test10Kargo() {
+  const hatalar = [];
+
+  // (a) 2.499,99 TL urun toplami -> kargo 250,00, tahsilat 2.749,99 (kurus birebir).
+  //     Istemci sahte kargo/tutar da yollar (spec d) -> yok sayilmali.
+  //     2346 PLA (234600) + 103 PETG 'Diger' (15398,5 -> 15399) = 249999 kurus.
+  const ca = await baslatIstek(
+    [{ id: "test-kargo-2346", malzeme: "PLA", renk: "Siyah", adet: 1, kargo: 0, tutar: 1 },
+     { id: "test-kargo-103", malzeme: "PETG", renk: "Diğer", renk_ozel: "mor", adet: 1 }],
+    { kargo: 0, kargo_kurus: 0, tutar: 1, toplam: 1 });
+  const ia = ca.kod === 200 ? (await mockOku()).sonInit : null;
+  const aFiyat = ia ? ia.price : "HATA/" + ca.kod;
+  const aPaid = ia ? ia.paidPrice : "?";
+  if (aFiyat !== "2749.99" || aPaid !== "2749.99") {
+    hatalar.push("2.499,99'luk sepet tahsilati: " + aFiyat + "/" + aPaid +
+      " (olmasi gereken 2749.99 — kargo 250,00 eklenmiyor ya da istemcinin kargo:0'i kazandi)");
+  }
+  // Kargo iyzico'ya AYRI kalem gider; basketItems toplami = price kurali mock'ta da sinaniyor.
+  const aKargoKalem = ia ? (ia.basketItems || []).filter((b) => b.id === "gonderim") : [];
+  if (aKargoKalem.length !== 1 || (aKargoKalem[0] || {}).price !== "250.00") {
+    hatalar.push("kargo kalemi iyzico sepetinde yok/yanlis: " + JSON.stringify(aKargoKalem));
+  }
+  // (e) D1: urun toplami ve kargo AYRI kolonlarda, kurusuyla.
+  const aSatir = d1Sorgu("SELECT tutar_kurus, kargo_kurus FROM siparisler WHERE siparis_no = '" +
+    ((ca.govde || {}).no || "-") + "'")[0] || {};
+  if (aSatir.tutar_kurus !== 249999 || aSatir.kargo_kurus !== 25000) {
+    hatalar.push("D1 (a): " + JSON.stringify(aSatir) +
+      " (olmasi gereken tutar_kurus=249999, kargo_kurus=25000)");
+  }
+
+  // (b) TAM 2.500,00 TL -> kargo 0 (sinir DAHIL bedava).
+  const cb = await baslatIstek([{ id: "test-kargo-2500", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const ib = cb.kod === 200 ? (await mockOku()).sonInit : null;
+  const bFiyat = ib ? ib.price : "HATA/" + cb.kod;
+  if (bFiyat !== "2500.00") {
+    hatalar.push("tam 2.500 sepeti: " + bFiyat + " (olmasi gereken 2500.00 — sinir DAHIL bedava)");
+  }
+  if (ib && (ib.basketItems || []).some((b) => b.id === "gonderim")) {
+    hatalar.push("tam 2.500'de iyzico sepetine kargo kalemi girdi");
+  }
+  const bSatir = d1Sorgu("SELECT tutar_kurus, kargo_kurus FROM siparisler WHERE siparis_no = '" +
+    ((cb.govde || {}).no || "-") + "'")[0] || {};
+  if (bSatir.tutar_kurus !== 250000 || bSatir.kargo_kurus !== 0) {
+    hatalar.push("D1 (b): " + JSON.stringify(bSatir) +
+      " (olmasi gereken tutar_kurus=250000, kargo_kurus=0)");
+  }
+
+  // (c) 2.500,01 TL -> kargo 0. 2352 PLA (235200) + 99 PETG 'Diger' (14800,5 -> 14801) = 250001.
+  const cc = await baslatIstek(
+    [{ id: "test-kargo-2352", malzeme: "PLA", renk: "Siyah", adet: 1 },
+     { id: "test-kargo-99", malzeme: "PETG", renk: "Diğer", renk_ozel: "mor", adet: 1 }]);
+  const ic = cc.kod === 200 ? (await mockOku()).sonInit : null;
+  const cFiyat = ic ? ic.price : "HATA/" + cc.kod;
+  if (cFiyat !== "2500.01") {
+    hatalar.push("2.500,01'lik sepet: " + cFiyat + " (olmasi gereken 2500.01, kargosuz)");
+  }
+
+  // (d-devam) 2.500 ALTI sepette istemci "kargom bedava/tutarim yuksek" der -> sunucu kazanir.
+  const cd = await baslatIstek(
+    [{ id: "test-urun-333", malzeme: "PETG", renk: "Siyah", adet: 1, kargo_kurus: 0 }],
+    { kargo: "bedava", kargo_kurus: 0, tutar: 999999 });
+  const idd = cd.kod === 200 ? (await mockOku()).sonInit : null;
+  const dFiyat = idd ? idd.price : "HATA/" + cd.kod;
+  // 333 x 1.30 = 432,90 + kargo 250,00 = 682,90
+  if (dFiyat !== "682.90") {
+    hatalar.push("kucuk sepette istemci kargo alanlari: " + dFiyat +
+      " (olmasi gereken 682.90 — sunucu degeri kazanmali)");
+  }
+
+  rapor("10 kargo kurali", hatalar.length === 0,
+    "2.499,99 -> tahsilat " + aFiyat + " (kargo kalemi " +
+    ((aKargoKalem[0] || {}).price || "YOK") + ", D1 " + JSON.stringify(aSatir) +
+    "); tam 2.500 -> " + bFiyat + " (D1 " + JSON.stringify(bSatir) +
+    "); 2.500,01 -> " + cFiyat + "; sahte istemci kargo/tutar -> " + dFiyat +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 11 — RETRIEVE ALTYAPI HATASI (DEVAM.md bulgusu, 16 Tem; mimar atadi).
+ *  /donus'ta retrieve CEVAP VEREMEZSE (status:failure — or. 1001 anahtar/URL uyusmazligi)
+ *  odemenin gercek durumu BILINMEZ: siparis 'basarisiz' DEGIL 'incele' olmali + Telegram
+ *  uyarisi gitmeli (parasi cekilmis musteri sessizce dusmesin). Retrieve duzelince ayni
+ *  token 'odendi'ye ilerleyebilmeli. */
+async function test11RetrieveHatasi() {
+  const hatalar = [];
+  const c = await baslatIstek([{ id: "test-urun-a", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  if (c.kod !== 200) {
+    return rapor("11 retrieve altyapi hatasi", false, "baslat: " + c.kod);
+  }
+  const token = (await mockOku()).sonToken;
+  const tgOnce = (await mockOku()).telegramSayisi;
+
+  await istekJson("GET", "http://127.0.0.1:" + MOCK_PORT + "/_detayhata/ac");
+  const d1c = await donusIstek(token);
+  const s1 = d1Sorgu("SELECT durum FROM siparisler WHERE token = '" + token + "'")[0] || {};
+  const m1 = await mockOku();
+  if (s1.durum !== "incele") {
+    hatalar.push("retrieve hatasinda durum '" + s1.durum + "' (olmasi gereken 'incele')");
+  }
+  if (d1c.kod !== 303 || !d1c.yer.includes("siparis=hata")) {
+    hatalar.push("musteri yonlendirmesi: " + d1c.kod + " " + d1c.yer);
+  }
+  const uyari = m1.telegramSayisi === tgOnce + 1 &&
+    String((m1.sonTelegram || {}).text || "").includes("RETRIEVE HATASI");
+  if (!uyari) {
+    hatalar.push("Telegram uyarisi gitmedi/yanlis (sayi " + tgOnce + "->" + m1.telegramSayisi + ")");
+  }
+
+  // Duzelme: retrieve tekrar cevap verirse ayni token 'odendi'ye ILERLEYEBILMELI.
+  await istekJson("GET", "http://127.0.0.1:" + MOCK_PORT + "/_detayhata/kapat");
+  await donusIstek(token);
+  const s2 = d1Sorgu("SELECT durum FROM siparisler WHERE token = '" + token + "'")[0] || {};
+  if (s2.durum !== "odendi") {
+    hatalar.push("duzelen retrieve sonrasi durum '" + s2.durum + "' (olmasi gereken 'odendi')");
+  }
+
+  rapor("11 retrieve altyapi hatasi", hatalar.length === 0,
+    "1001 -> durum=" + s1.durum + ", yonlendirme=" + d1c.yer.split("?")[1] +
+    ", Telegram uyarisi=" + (uyari ? "gitti" : "YOK") +
+    "; retrieve duzelince -> " + s2.durum +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
 async function test5Parametrik() {
   const onceInit = (await mockOku()).initSayisi;
   const onceSiparis = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
@@ -627,16 +778,19 @@ async function testSandbox() {
   }
   console.log("\n== SANDBOX UCTAN UCA ==");
   const bek = beklenenKurus("850 TL", "PETG", "Siyah", 1);
+  // 1.105,00 < 2.500 -> kargo 250,00; iyzico sayfasinda gorunecek tahsilat = urun + kargo.
+  const bekKargo = SECENEK.kargoKurus ? SECENEK.kargoKurus(bek) : 0;
   console.log("Siparis no:", c.govde.no, "— beklenen tutar: " + kurusMetin(bek) +
-    " TL (850 x PETG, secenekler.js)");
+    " TL (850 x PETG, secenekler.js) + kargo " + kurusMetin(bekKargo) +
+    " TL = tahsilat " + kurusMetin(bek + bekKargo) + " TL");
   console.log("1) Su sayfayi acip iyzico TEST kartiyla ode (docs.iyzico.com/ek-bilgiler/test-kartlari):");
   console.log("   " + c.govde.url);
   console.log("2) Odeme sonrasi iyzico seni bu makinedeki callback'e yonlendirir;");
   console.log("   script D1'de 'odendi' satirini gorunce kaniti basar. Bekliyor (en cok 10 dk)...");
   for (let i = 0; i < 300; i++) {
     await bekle(2000);
-    const s = d1Sorgu("SELECT siparis_no, durum, tutar_kurus, iyzico_odeme_id FROM siparisler " +
-      "WHERE siparis_no = '" + c.govde.no + "'")[0];
+    const s = d1Sorgu("SELECT siparis_no, durum, tutar_kurus, kargo_kurus, iyzico_odeme_id " +
+      "FROM siparisler WHERE siparis_no = '" + c.govde.no + "'")[0];
     if (s && s.durum === "odendi") {
       // 'odendi' gormek YETMEZ: tahsil edilen tutar sunucu hesabiyla birebir mi, odeme id
       // gercekten geldi mi, bildirim atildi mi — hepsi kanit olmali.
@@ -644,6 +798,9 @@ async function testSandbox() {
       const sorunlar = [];
       if (s.tutar_kurus !== bek) {
         sorunlar.push("D1 tutar " + s.tutar_kurus + " != beklenen " + bek);
+      }
+      if (s.kargo_kurus !== bekKargo) {
+        sorunlar.push("D1 kargo " + s.kargo_kurus + " != beklenen " + bekKargo);
       }
       if (!s.iyzico_odeme_id) { sorunlar.push("iyzico odeme id BOS"); }
       if (m.telegramSayisi !== 1) { sorunlar.push("telegram bildirimi=" + m.telegramSayisi); }
@@ -695,8 +852,10 @@ async function main() {
     else { rapor("4m uctan uca (mock iyzico)", false, "test 1 basarisiz oldugu icin kosulamadi"); }
     if (token) { await test3Idempotens(siparisNo, token); }
     else { rapor("3 idempotens", false, "token alinamadi"); }
-    // 8, mock'un sonInit/sonToken durumunu tazeledigi icin 1/4m/3'ten SONRA kosar.
+    // 8/10, mock'un sonInit/sonToken durumunu tazeledigi icin 1/4m/3'ten SONRA kosar.
     await test8KatsayiDogrulugu();
+    await test10Kargo();
+    await test11RetrieveHatasi();
     await test5Parametrik();
     await test9ParametrikAltyapi();
     test6SirTaramasi();

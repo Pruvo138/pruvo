@@ -14,12 +14,12 @@ token POST'lar -> worker `retrieve` ile SUNUCUDA dogrular -> D1 `siparisler` + T
 - `src/iyzico.js`     — IYZWSv2 (HMACSHA256) istemcisi: CF initialize + retrieve
 - `src/parametrik.js` — sari seri sunucu-tarafi yeniden hesabi (kanal kapali; asagida)
 - `src/semalar.js`    — parametrik sema haritasi (jenerator/urunler/*.json statik import)
-- `test/kabul.js`     — 9 kabul testi (asagida)
+- `test/kabul.js`     — 11 kabul testi (asagida)
 - `.dev.vars.example` — yerel/sandbox anahtar sablonu (gercekleri `.dev.vars`a, gitignore'da)
 
 ## Kabul testleri
 
-    node shop/test/kabul.js              # 1,2,3,4m,5,6,7 — mock iyzico + yerel D1
+    node shop/test/kabul.js              # 1,2,3,4m,5,6,7,8,9,10,11 — mock iyzico + yerel D1
     node shop/test/kabul.js --paritesiz  # 7'siz hizli tur
     node shop/test/kabul.js --sandbox    # 4: GERCEK sandbox uctan uca (anahtar + elle test karti)
 
@@ -60,6 +60,14 @@ bayat worktree kopyasiyla kirmizi yanar — ana repodan (guncel katalogla) kostu
 - Fiyat HER ZAMAN sunucuda: D1 `urunler.fiyat` -> `satirOzeti` -> katsayi, sonra "Diger" renk
   +%15, sonra adet. **YUVARLAMA YOK (Okan, 16 Tem):** kusurat aynen korunur, kurusuyla tahsil
   edilir (333 x 1.30 = 432,90; x3 = 1.298,70 — ara yuvarlama da yok).
+- **KARGO (Okan, 16 Tem — KESIN; tools/paket-shop-kargo.md):** urun toplami < 2.500,00 TL ->
+  250,00 TL gonderim; >= 2.500,00 TL (tam 2.500 DAHIL) -> bedava. Kural TEK yerde:
+  `secenekler.js` `kargoKurus()` (KARGO_UCRET_KURUS=25000, KARGO_BEDAVA_ESIK_KURUS=250000) —
+  sepet paneli ve Worker ayni fonksiyonu okur, degistirmek icin sadece orayi duzenle
+  (degisiklik yetkisi SADECE Okan'da). Worker kargoyu iyzico'ya AYRI kalem (`id: "gonderim"`)
+  gecirir, D1 `siparisler.kargo_kurus` kolonuna yazar (tahsilat = tutar_kurus + kargo_kurus).
+  Istemciden gelen kargo/tutar alanlari OKUNMAZ (kabul testi 10). Canli tabloya kolonu
+  `python3 tools/d1-sync.py --sema` ekler (kolon_goc — deploy adimi 1 yeterli).
 - **Para TAMSAYI KURUSTA** (`hesaplaFiyatKurus`; D1 kolonu `tutar_kurus`, JSON alanlari
   `birim_kurus`/`tutar_kurus`). TL'de carpim yapilsa `333*1.30 = 432.90000000000003` gelir ve
   tutar sessizce kayar; iyzico'ya giden metin de tamsayidan uretilir (`kurusMetin` -> "432.90",
@@ -103,6 +111,9 @@ bayat worktree kopyasiyla kirmizi yanar — ana repodan (guncel katalogla) kostu
 - `parametrik:true` / fiyati bos urun odeme akisina giremez (test 5); WhatsApp kanali durur.
 - Callback idempotent: `siparisler.token` UNIQUE; 'odendi'ye gecis tek sefer (test 3),
   bildirim tek sefer. Uydurma token -> 404, kayit olusmaz (test 2).
+- Retrieve ALTYAPI hatasi (status:failure, or. 1001) -> siparis 'basarisiz' DEGIL **'incele'**
+  + Telegram uyarisi: odemenin gercek durumu bilinmiyor, parasi cekilmis musteri sessizce
+  dusurulmez; retrieve duzelince ayni token 'odendi'ye ilerler (test 11; DEVAM.md bulgusu).
 - Tutar/kimlik uyusmazliginda siparis 'incele' durumuna duser + Telegram uyarisi (otomatik
   onay YOK).
 - Ayni D1 (pruvo-katalog) kullanilir ama `siparisler` tablosu d1-sync'ten bagimsizdir.

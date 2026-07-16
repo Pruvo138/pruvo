@@ -205,6 +205,13 @@ async function baslat(request, env, url) {
   }
   if (!(toplamKurus > 0)) return json({ hata: "gecersiz-tutar" }, 400, env);
 
+  // KARGO (Okan, 16 Tem — KESIN; tools/paket-shop-kargo.md): urun toplami < 2.500,00 TL ->
+  // 250,00 TL; >= 2.500,00 TL (tam 2.500 dahil) -> bedava. Kural tek kaynagi secenekler.js
+  // (sepet paneli ayni fonksiyonla gosterir); hesap BURADA — istemcinin yolladigi kargo/tutar
+  // alanlari istekCoz'da zaten okunmuyor. Kargo urun fiyatina yedirilmez, ayri kalemdir.
+  const kargoKurus = SECENEK.kargoKurus(toplamKurus);
+  const tahsilatKurus = toplamKurus + kargoKurus;
+
   const siparisNo = siparisNoUret();
   const adParcalari = musteri.ad.split(/\s+/);
   const soyad = adParcalari.length > 1 ? adParcalari.pop() : adParcalari[0];
@@ -219,9 +226,9 @@ async function baslat(request, env, url) {
   const init = await cfBaslat(env, {
     locale: "tr",
     conversationId: siparisNo,
-    // Tutar D1'den hesaplanan toplam — istemcinin gonderdigi hicbir sayi buraya giremez.
-    price: kurusMetin(toplamKurus),
-    paidPrice: kurusMetin(toplamKurus),
+    // Tutar D1'den hesaplanan urun toplami + kargo — istemcinin gonderdigi hicbir sayi giremez.
+    price: kurusMetin(tahsilatKurus),
+    paidPrice: kurusMetin(tahsilatKurus),
     currency: "TRY",
     basketId: siparisNo,
     paymentGroup: "PRODUCT",
@@ -251,7 +258,12 @@ async function baslat(request, env, url) {
       itemType: "PHYSICAL",
       // iyzico: basketItems price toplami = price. Kurus toplaminda birebir tutar.
       price: kurusMetin(s.tutar_kurus),
-    })),
+    })).concat(kargoKurus > 0 ? [{
+      // Kargo AYRI kalem (urun fiyatina yedirilmez); boylece kalem toplami = tahsilat kurali
+      // kurusuyla korunur. Bedava kargoda kalem hic eklenmez (0 TL kalemi iyzico kabul etmez).
+      id: "gonderim", name: "Gönderim (kargo)", category1: "Kargo",
+      itemType: "PHYSICAL", price: kurusMetin(kargoKurus),
+    }] : []),
   });
 
   if (init.status !== "success" || !init.token || !init.paymentPageUrl) {
@@ -262,11 +274,11 @@ async function baslat(request, env, url) {
   // Siparis kaydi 'bekliyor' olarak dusulur; 'odendi' SADECE /donus'taki retrieve
   // dogrulamasindan gecerse olur. INSERT patlarsa musteri henuz odememis olur (token kullanilmamis).
   await env.KATALOG.prepare(
-    "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, urunler, filament, renk," +
-    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres)" +
-    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, ?, ?, ?, ?, ?)"
+    "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
+    " urunler, filament, renk, musteri_ad, musteri_tel, musteri_eposta, musteri_adres)" +
+    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).bind(
-    siparisNo, init.token, new Date().toISOString(), toplamKurus,
+    siparisNo, init.token, new Date().toISOString(), toplamKurus, kargoKurus,
     JSON.stringify(satirlar),
     [...new Set(satirlar.map((s) => s.malzeme))].join("+"),
     // "Diğer" renkte musterinin yazdigi renk kaydedilir (uretim bunu okur), yoksa liste rengi
@@ -303,15 +315,32 @@ async function donus(request, env, ctx) {
 
   // Uydurma token: bizde kaydi yok -> siparis OLUSMAZ, 4xx (kabul testi 2).
   const siparis = await env.KATALOG.prepare(
-    "SELECT siparis_no, durum, tutar_kurus, urunler, musteri_ad, musteri_tel, musteri_adres" +
-    " FROM siparisler WHERE token = ?"
+    "SELECT siparis_no, durum, tutar_kurus, kargo_kurus, urunler," +
+    " musteri_ad, musteri_tel, musteri_adres FROM siparisler WHERE token = ?"
   ).bind(token).first();
   if (!siparis) return json({ hata: "bilinmeyen-token" }, 404, env);
 
   // SUNUCU-TARAFI DOGRULAMA: sonuc iyzico'dan retrieve ile alinir; istemciye guvenilmez.
   const det = await cfDetay(env, token);
-  const odendi = det && det.status === "success" && det.paymentStatus === "SUCCESS";
 
+  // ALTYAPI HATASI (or. 1001 anahtar/URL uyusmazligi, gecici iyzico hatasi; DEVAM.md bulgusu,
+  // 16 Tem): retrieve CEVAP VEREMEDIYSE odemenin gercek durumu BILINMIYOR — 'basarisiz' yazmak
+  // parasi cekilmis musteriyi sessizce dusurur. 'incele' + yuksek sesli bildirim; otomatik
+  // onay YOK. Sonraki gecerli callback'te retrieve duzelirse 'odendi'ye ilerleyebilir
+  // (asagidaki UPDATE'ler durum <> 'odendi' kosuluyla calisir).
+  if (!det || det.status !== "success") {
+    await env.KATALOG.prepare(
+      "UPDATE siparisler SET durum = 'incele' WHERE token = ? AND durum = 'bekliyor'"
+    ).bind(token).run();
+    ctx.waitUntil(telegram(env,
+      "⚠️ PRUVO shop RETRIEVE HATASI — " + siparis.siparis_no +
+      "\niyzico cevabi: " + (det ? (det.errorCode || "?") + " " + (det.errorMessage || "") : "yok") +
+      "\nOdeme durumu BILINMIYOR — siparis 'incele' durumunda, elle bak."));
+    return yonlendir(env, "hata", siparis.siparis_no);
+  }
+
+  // Retrieve CEVAP VERDI ve odeme basarili degil (or. kart reddi) -> gercek 'basarisiz'.
+  const odendi = det.paymentStatus === "SUCCESS";
   if (!odendi) {
     await env.KATALOG.prepare(
       "UPDATE siparisler SET durum = 'basarisiz' WHERE token = ? AND durum = 'bekliyor'"
@@ -322,7 +351,9 @@ async function donus(request, env, ctx) {
   // Tutar/kimlik denetimi: iyzico'daki odeme bizim hesapladigimiz siparisle eslesmeli.
   // Karsilastirma KURUSTA ve TAM: iyzico "432.9"/"432.90" dondurse de kurus tamsayisi ayni;
   // 1 kurus fark bile gercek uyusmazliktir (tolerans yok) -> 'incele'.
-  const paraUyar = Math.round(parseFloat(det.paidPrice) * 100) !== siparis.tutar_kurus;
+  // TAHSILAT = urun toplami + kargo (kargo_kurus eski satirlarda/kolonsuz gecmiste 0).
+  const beklenenTahsilat = siparis.tutar_kurus + (siparis.kargo_kurus || 0);
+  const paraUyar = Math.round(parseFloat(det.paidPrice) * 100) !== beklenenTahsilat;
   const kimlikUyar = (det.conversationId && det.conversationId !== siparis.siparis_no) ||
                      (det.basketId && det.basketId !== siparis.siparis_no);
   if (paraUyar || kimlikUyar) {
@@ -333,7 +364,8 @@ async function donus(request, env, ctx) {
     ).bind(String(det.paymentId || ""), token).run();
     ctx.waitUntil(telegram(env,
       "⚠️ PRUVO shop TUTARSIZLIK — " + siparis.siparis_no +
-      "\niyzico paidPrice: " + det.paidPrice + " / bizim: " + kurusTL(siparis.tutar_kurus) +
+      "\niyzico paidPrice: " + det.paidPrice + " / bizim: " + kurusTL(beklenenTahsilat) +
+      " (urun " + kurusTL(siparis.tutar_kurus) + " + kargo " + kurusTL(siparis.kargo_kurus || 0) + ")" +
       "\nconversationId: " + det.conversationId + "\nToken: " + token.slice(0, 12) + "…" +
       "\nSiparis 'incele' durumunda, elle bak."));
     return json({ hata: "tutar-uyusmuyor" }, 409, env);
@@ -356,9 +388,12 @@ function siparisMesaji(siparis, det) {
   const kalemler = satirlar.map((s) =>
     "• " + s.baslik + " — " + s.malzeme + " / " + (s.renk_ozel || s.renk) +
     " × " + s.adet + " = " + kurusTL(s.tutar_kurus)).join("\n");
+  const kargo = siparis.kargo_kurus || 0;
   return "🛒 YENI SIPARIS (odendi) — " + siparis.siparis_no +
     "\n" + kalemler +
-    "\nToplam: " + kurusTL(siparis.tutar_kurus) +
+    "\nAra toplam: " + kurusTL(siparis.tutar_kurus) +
+    "\nGönderim: " + (kargo > 0 ? kurusTL(kargo) : "Bedava") +
+    "\nGenel toplam: " + kurusTL(siparis.tutar_kurus + kargo) +
     "\nMusteri: " + siparis.musteri_ad + " — " + siparis.musteri_tel +
     "\nAdres: " + siparis.musteri_adres +
     "\niyzico odeme id: " + (det.paymentId || "?");

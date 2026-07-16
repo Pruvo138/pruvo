@@ -92,7 +92,14 @@ CREATE TABLE IF NOT EXISTS siparisler (
   durum           TEXT NOT NULL DEFAULT 'bekliyor',
   -- Para KURUS tamsayisinda saklanir: katsayi kusurati aynen korunur (Okan, 16 Tem — yuvarlama
   -- YOK), REAL saklansa kayan nokta tutari sessizce kaydirirdi. 43290 = 432,90 TL.
-  tutar_kurus     INTEGER NOT NULL,       -- SUNUCUDA hesaplanan toplam (kurus)
+  -- TAHSILAT = tutar_kurus + kargo_kurus (iyzico paidPrice bununla karsilastirilir).
+  tutar_kurus     INTEGER NOT NULL,       -- SUNUCUDA hesaplanan URUN toplami (kurus, kargo HARIC)
+  -- KARGO (Okan, 16 Tem — KESIN): urun toplami < 2.500,00 TL -> 25000 (250,00 TL);
+  -- >= 2.500,00 TL (tam 2.500 dahil) -> 0. Kural tek kaynagi /secenekler.js kargoKurus().
+  -- Eski satirlarda 0 kalir (o siparislerde kargo tahsil edilmedi) — mevcut veri bozulmaz.
+  -- DIKKAT: tablo canlida zaten kuruluysa CREATE atlanir; kolonu d1-sync.py --sema
+  -- ALTER ile tamamlar (kolon_goc — urunler'deki FAZ 2 gocuyle ayni mekanizma).
+  kargo_kurus     INTEGER NOT NULL DEFAULT 0,
   urunler         TEXT NOT NULL,          -- JSON [{id,baslik,filament,renk,adet,birim_kurus,tutar_kurus}]
   filament        TEXT NOT NULL DEFAULT '',
   renk            TEXT NOT NULL DEFAULT '',

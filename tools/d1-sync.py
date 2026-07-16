@@ -131,7 +131,7 @@ def d1_mevcut():
     return mevcut, int(mseq)
 
 
-# FAZ 2'de eklenen kolonlar. Mevcut D1 tablosunda CREATE TABLE IF NOT EXISTS bunlari
+# Sonradan eklenen kolonlar. Mevcut D1 tablosunda CREATE TABLE IF NOT EXISTS bunlari
 # EKLEMEZ (tablo zaten var) -> --sema calistiginda eksikler ALTER ile tamamlanir.
 GOC_KOLON = [
     ("aciklama", "TEXT NOT NULL DEFAULT ''"),
@@ -140,6 +140,12 @@ GOC_KOLON = [
     ("hs_baslik_kok", "TEXT NOT NULL DEFAULT ''"),
     ("hs_govde", "TEXT NOT NULL DEFAULT ''"),
     ("hs_govde_kok", "TEXT NOT NULL DEFAULT ''"),
+]
+
+# siparisler icin ayni mekanizma (shop kargo paketi): DEFAULT 0 -> eski siparis satirlari
+# bozulmadan 0 kargo ile kalir (o siparislerde kargo tahsil edilmedi).
+GOC_KOLON_SIPARIS = [
+    ("kargo_kurus", "INTEGER NOT NULL DEFAULT 0"),
 ]
 
 # Yazilan kolonlar (id disinda hepsi ON CONFLICT'te guncellenir).
@@ -152,15 +158,16 @@ KOLONLAR = [
 def kolon_goc():
     """Eksik kolonlari ekle. Idempotent: SQLite'ta 'ADD COLUMN IF NOT EXISTS' yok,
     o yuzden once table_info'ya bakilir (kor ALTER ikinci calismada patlardi)."""
-    r = sorgu("PRAGMA table_info(urunler)")
-    var = {s["name"] for s in (r[0].get("results") or [])}
-    eksik = [(ad, tip) for ad, tip in GOC_KOLON if ad not in var]
-    if not eksik:
-        print("kolonlar tam — goc gerekmedi")
-        return
-    dosya_calistir("\n".join(
-        "ALTER TABLE urunler ADD COLUMN %s %s;" % (ad, tip) for ad, tip in eksik))
-    print("eklenen kolon: " + ", ".join(ad for ad, _ in eksik))
+    for tablo, kolonlar in (("urunler", GOC_KOLON), ("siparisler", GOC_KOLON_SIPARIS)):
+        r = sorgu("PRAGMA table_info(%s)" % tablo)
+        var = {s["name"] for s in (r[0].get("results") or [])}
+        eksik = [(ad, tip) for ad, tip in kolonlar if ad not in var]
+        if not eksik:
+            print("%s kolonlari tam — goc gerekmedi" % tablo)
+            continue
+        dosya_calistir("\n".join(
+            "ALTER TABLE %s ADD COLUMN %s %s;" % (tablo, ad, tip) for ad, tip in eksik))
+        print("%s eklenen kolon: %s" % (tablo, ", ".join(ad for ad, _ in eksik)))
 
 
 def satir_sql(u, seq, hs, h):
