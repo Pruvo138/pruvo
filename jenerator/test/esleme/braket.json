@@ -26,8 +26,9 @@
     "havsa": false,
     "teardrop": false,
     "payanda": false,
-    "radyus": 2,
+    "radyus": 0,
     "simetri": "yok",
+    "delik_fn": 32,
     "Segments": 120
   }
 }

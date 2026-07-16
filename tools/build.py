@@ -668,12 +668,12 @@ def filament_html(p, wa_not=False):
     MİMARİ İLKE: filament bilgisi ürün verisine YAZILMAZ — tavsiye, kategori haritasından
     (tools/filamentler.json) render anında türetilir; ürün "tavsiyeFilament" override'ı
     taşıyorsa harita yerine o geçer. Balon metni referanstaki "uzun" alanının birebir
-    kendisidir (tek kaynak). Parametrik (ölçüye özel) üründe rozet basılmaz; malzeme
-    kullanım alanına göre konuşarak belirlenir notu eklenir.
+    kendisidir (tek kaynak). F kalemi (Okan, 16 Tem gece): parametrik (sarı) sayfa da
+    normal sayfayla BİREBİR — tavsiye rozeti dahil; eski "rozet basılmaz + konuşarak
+    belirlenir notu" istisnası kaldırıldı.
     """
     ref = filament_ortak.referans()
-    parametrik = bool(p.get("parametrik"))
-    tavs = {} if parametrik else {
+    tavs = {
         t["ad"]: t["rozet"]
         for t in filament_ortak.tavsiyeler(p.get("kategori"), p.get("tavsiyeFilament"))}
     cips = []
@@ -696,15 +696,14 @@ def filament_html(p, wa_not=False):
             % (" tavsiyeli" if rozet else "", esc(f["ad"]), esc(f["isiDayanimi"]), esc(f["ad"]),
                esc(f["kisaEtiket"]), rozet_html,
                esc(f.get("uzunAd") or f["ad"]), esc(f["kisaEtiket"]), esc(f["uzun"])))
-    not_html = ('<div class="fil-not">%s</div>' % esc(ref["parametrikNot"])) if parametrik else ""
     wa_html = MUHENDISLIK_WA_NOT if wa_not else ""
     return ('<div class="malzeme-blok">'
             '<div class="malzeme-baslik">Malzeme</div>'
             '<div class="fil-cipler" id="filCipler">%s</div>'
-            '%s%s'
+            '%s'
             '<a class="malzeme-link" href="/malzeme-rehberi/">Hangi malzeme nerede kullanılır? '
             'Malzeme Rehberi &rarr;</a>'
-            '</div>' % ("".join(cips), not_html, wa_html))
+            '</div>' % ("".join(cips), wa_html))
 
 
 # ------------------------------------------------------------------ ürün sayfası
@@ -816,19 +815,27 @@ def render_product(p, all_products):
           <div id="onizlemeDurum" style="font-size:13px;color:#5a6572;margin-top:6px;min-height:18px"></div>
         </div>
       </div>"""
+        # F kalemi (Okan, 16 Tem gece): sari sayfa secici duzeni NORMAL (kart-secim)
+        # sayfayla birebir — malzeme asagidaki filament KARTLARINDAN (filament_html,
+        # ayni bilesen), renk CIP butonlari, adet -/+ satirinda IKON butonlar (Sepete
+        # Ekle + WhatsApp USTTE). Dropdown ve sayfa-alti buyuk butonlar KALKTI.
+        # Ikinci kopya YOK: _renk_butonlari_html / ADET_IKON_HTML / IKON_BUTONLAR_HTML
+        # kart-secim daliyla AYNI fonksiyon/sabitlerdir.
         opsiyonlar_html = ("""
     <div class="opsiyonlar konf" id="opsiyonlar">
       <div class="konf-baslik">Ölçülerinizi girin</div>
       <div id="konfAlanlar"></div>
       {onizleme}
-      {malzeme_renk}
+      {renk}
       {adet}
-      <div class="opsiyon-fiyat" id="opsiyonFiyat">&mdash;</div>
+      <div class="opsiyon-fiyat" id="opsiyonFiyat">Ölçüye özel fiyat</div>
       <div class="konf-hacim" id="konfHacim"></div>
     </div>
     """).format(onizleme=onizleme_html,
-                malzeme_renk=_malzeme_renk_html(),
-                adet=ADET_HTML % (ADET_EN_AZ, ADET_EN_COK))
+                renk=_renk_butonlari_html(),
+                adet=ADET_IKON_HTML % (
+                    ADET_EN_AZ, ADET_EN_COK,
+                    IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))))
         price_html = ""
     elif fonksiyonel and not parametrik:
         # Kart-secim (Okan, 16 Tem): malzeme dropdown YOK — malzeme aşağıdaki filament
@@ -889,7 +896,10 @@ def render_product(p, all_products):
     # --- eylem butonları (madde 7): kart-seçim sayfasında İKONLAR Adet satırında (yukarıda
     # opsiyonlar_html'e basıldı) -> sayfa altına buton BASILMAZ; diğer sayfalarda (parametrik
     # konfigüratör, şemasız fonksiyonel, panelsiz Dekorasyon/Oyun-Hobi) büyük butonlar yerinde.
-    kart_secim = fonksiyonel and not parametrik
+    # F kalemi: SEMALI parametrik (sari) sayfa da kart-secim modunda — malzeme
+    # filament kartlarindan, butonlar Adet satirinda (sayfa altina buton basilmaz).
+    # Buyuk butonlar yalniz semasiz-fonksiyonel (bugun urun yok) + panelsiz sayfalarda.
+    kart_secim = bool(sema) or (fonksiyonel and not parametrik)
     if kart_secim:
         eylem_butonlar_html = ""
     else:
@@ -1201,6 +1211,11 @@ var URUN_SEMA = {sema_json};
   }});
   if(renkOzel){{ renkOzel.addEventListener("input", render); }}
   if(URUN_SEMA && window.PRUVO_KONF && window.PRUVO_HACIM){{
+    /* F kalemi: sari sayfa da kart-secim — konfiguratorun fiyat gostergesi
+       secili kart/cipten beslenir (dropdown yok; tek kaynak secenekler.js kurali). */
+    if(KART_SECIM && PRUVO_KONF.secimKaynagi){{
+      PRUVO_KONF.secimKaynagi(function(){{ return {{ malzeme: seciliMalzeme, renk: seciliRenk }}; }});
+    }}
     PRUVO_KONF.kur(URUN_SEMA, document.getElementById("konfAlanlar"), render);
   }}
   if(adetEksi){{ adetEksi.addEventListener("click", function(){{ adetYaz((adetSec.value|0)-1); }}); }}
@@ -1273,7 +1288,10 @@ var URUN_SEMA = {sema_json};
         icon=WA_ICON,
         pid=esc(p.get("id") or ""),
         cart_icon=CART_ICON,
-        malzeme=filament_html(p, wa_not=not bool(sema)),
+        # Muhendislik-malzeme WA notu kartlarin altinda — malzeme dropdown'u kalan TEK
+        # dal (semasiz-parametrik-fonksiyonel, bugun urun yok) haric her sayfada; o dalda
+        # not zaten _malzeme_renk_html icinde, mukerrer basilmaz.
+        malzeme=filament_html(p, wa_not=not (parametrik and fonksiyonel and not sema)),
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,

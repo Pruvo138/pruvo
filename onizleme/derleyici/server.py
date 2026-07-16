@@ -89,28 +89,54 @@ def d_deger(deger):
         # Kendi dosyamizdan gelse de savunma: tirnak/ters bolu/yenisatir sokulur.
         temiz = deger.replace("\\", "").replace('"', "").replace("\n", " ").replace("\r", " ")
         return '"%s"' % temiz
+    if isinstance(deger, list):
+        # OpenSCAD vektor sabiti, or. [4, 2] — elemanlar yalniz sayi/bool.
+        return "[%s]" % ", ".join(d_deger(x) for x in deger)
     raise ValueError("desteklenmeyen sabit tipi: %r" % (deger,))
 
 
+def sayisal_kural(kural, parametreler, hatalar, scad_ad):
+    """Tek dogrusal kombinasyon kuralini hesaplar; hata durumunda None."""
+    toplam = float(kural.get("sabit", 0))
+    for param, katsayi in (kural.get("terimler") or {}).items():
+        v = parametreler.get(param)
+        if not sayi_mi(v):
+            hatalar.append("sayisal-degil:" + param)
+            return None
+        toplam += float(katsayi) * float(v)
+    if "en_az" in kural:
+        toplam = max(float(kural["en_az"]), toplam)
+    if "en_cok" in kural:
+        toplam = min(float(kural["en_cok"]), toplam)
+    if not math.isfinite(toplam):
+        hatalar.append("sonlu-degil:" + scad_ad)
+        return None
+    return toplam
+
+
 def blok_uygula(blok, parametreler, dler, hatalar):
-    """Tek eslem blogunu (sayisal/secim/sabit) -D sozlugune isler."""
+    """Tek eslem blogunu (sayisal/vektor/secim/sabit) -D sozlugune isler."""
     for scad_ad, kural in (blok.get("sayisal") or {}).items():
-        toplam = float(kural.get("sabit", 0))
-        for param, katsayi in (kural.get("terimler") or {}).items():
-            v = parametreler.get(param)
-            if not sayi_mi(v):
-                hatalar.append("sayisal-degil:" + param)
-                return
-            toplam += float(katsayi) * float(v)
-        if "en_az" in kural:
-            toplam = max(float(kural["en_az"]), toplam)
-        if not math.isfinite(toplam):
-            hatalar.append("sonlu-degil:" + scad_ad)
+        toplam = sayisal_kural(kural, parametreler, hatalar, scad_ad)
+        if toplam is None:
             return
         dler[scad_ad] = sayi_metni(toplam)
+    for scad_ad, kurallar in (blok.get("vektor") or {}).items():
+        # OpenSCAD vektor degiskeni: her bilesen kendi dogrusal kurali.
+        parcalar = []
+        for kural in kurallar:
+            toplam = sayisal_kural(kural, parametreler, hatalar, scad_ad)
+            if toplam is None:
+                return
+            parcalar.append(sayi_metni(toplam))
+        dler[scad_ad] = "[%s]" % ", ".join(parcalar)
     for scad_ad, kural in (blok.get("secim") or {}).items():
         v = parametreler.get(kural["param"])
         tablo = kural["tablo"]
+        # Sayi degerli parametre de tabloya baglanabilir (or. standart olcu
+        # izgarasi: cap -> "M5"): anahtar kanonik sayi metnidir.
+        if sayi_mi(v):
+            v = sayi_metni(v)
         if not isinstance(v, str) or v not in tablo:
             hatalar.append("secim-tanimsiz:" + kural["param"])
             return
@@ -179,7 +205,14 @@ def derle(ayarlar, aile, parametreler):
     if ayarlar["mock"]:
         return 200, mock_stl(parametreler)
 
-    scad_yol = os.path.join(ayarlar["paket"], eslem["scad"])
+    # Cift-uretecli aileler: secici varyanti kendi .scad'ini gosterebilir.
+    # Deger d_bayraklari'ndan gecti (tabloda TANIMLI), scad adi bizim dosyamizdan.
+    scad_ad = eslem["scad"]
+    if eslem.get("secici"):
+        varyant = (eslem.get("varyantlar") or {}).get(
+            parametreler.get(eslem["secici"])) or {}
+        scad_ad = varyant.get("scad", scad_ad)
+    scad_yol = os.path.join(ayarlar["paket"], scad_ad)
     if not os.path.exists(scad_yol):
         return 500, {"hata": "scad-eksik"}
     with tempfile.TemporaryDirectory() as tmp:
@@ -304,6 +337,24 @@ def oz_test():
     # 7) mock STL gecerli binary STL (84 + 12*50 byte).
     m = mock_stl({"a": 1})
     dogrula("mock STL boyutu", len(m) == 84 + 12 * 50)
+    # 8) vektor kurali + liste sabiti + sayi-anahtarli secim tablosu (Faz D).
+    eslem2 = {
+        "scad": "y.scad",
+        "ortak": {
+            "vektor": {"Boyut": [{"terimler": {"en": 1}}, {"terimler": {"boy": 1}}]},
+            "secim": {"Olcu": {"param": "cap", "tablo": {"5": "M5", "6": "M6"}}},
+            "sabit": {"Aralik": [4, 2.5], "Bayrak": [True, False]},
+        },
+    }
+    b, sebep = d_bayraklari(eslem2, {"en": 80, "boy": 60.5, "cap": 5})
+    metin2 = " ".join(b or [])
+    dogrula("vektor kurali", b is not None and "Boyut=[80, 60.5]" in metin2)
+    dogrula("liste sabiti", "Aralik=[4, 2.5]" in metin2 and "Bayrak=[true, false]" in metin2)
+    dogrula("sayi-anahtarli secim", 'Olcu="M5"' in metin2)
+    b, sebep = d_bayraklari(eslem2, {"en": 80, "boy": 60, "cap": 5.5})
+    dogrula("izgara disi sayi secimi -> ret", b is None and "secim-tanimsiz" in sebep)
+    b, sebep = d_bayraklari(eslem2, {"en": "x", "boy": 60, "cap": 5})
+    dogrula("vektor bileseninde string -> ret", b is None and "sayisal-degil" in sebep)
 
     print("oz-test: %d hata" % len(hatalar))
     return 1 if hatalar else 0

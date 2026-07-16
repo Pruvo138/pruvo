@@ -11,99 +11,93 @@
   "use strict";
 
   // === AILE: braket ===
-  function braket_kirp(cokgen, a, b) {
-    var sonuc = [];
-    for (var i = 0; i < cokgen.length; i++) {
-      var p = cokgen[i];
-      var q = cokgen[(i + 1) % cokgen.length];
-      var dp = (b[0] - a[0]) * (p[1] - a[1]) -
-        (b[1] - a[1]) * (p[0] - a[0]);
-      var dq = (b[0] - a[0]) * (q[1] - a[1]) -
-        (b[1] - a[1]) * (q[0] - a[0]);
-      if (dp >= 0) sonuc.push(p);
-      if ((dp >= 0) !== (dq >= 0)) {
-        var oran = dp / (dp - dq);
-        sonuc.push([
-          p[0] + (q[0] - p[0]) * oran,
-          p[1] + (q[1] - p[1]) * oran
-        ]);
+  function braket_delik_alani(fn, cap) {
+    // OpenSCAD circle(d, $fn) içe çizili çokgen alanı
+    var r = cap / 2;
+    return 0.5 * fn * r * r * Math.sin(2 * Math.PI / fn);
+  }
+
+  function braket_delik_sayisi(bas, son, n) {
+    // scad _delik_s ile birebir: bas>=son ya da n==1 → tek (üst üste biner)
+    if (n <= 0) return 0;
+    if (bas >= son || n === 1) return 1;
+    return n;
+  }
+
+  function braket_izgara_alani(icinde, xmin, xmax, ymin, ymax) {
+    var hucre = Math.max(0.15, (xmax - xmin) / 640);
+    var Nx = Math.ceil((xmax - xmin) / hucre);
+    var Ny = Math.ceil((ymax - ymin) / hucre);
+    var say = 0;
+    for (var i = 0; i < Nx; i++) {
+      var x = xmin + (i + 0.5) * hucre;
+      for (var j = 0; j < Ny; j++) {
+        if (icinde(x, ymin + (j + 0.5) * hucre)) say++;
       }
     }
-    return sonuc;
-  }
-
-  function braket_cokgen_alani(cokgen) {
-    var ikiAlan = 0;
-    for (var i = 0; i < cokgen.length; i++) {
-      var p = cokgen[i];
-      var q = cokgen[(i + 1) % cokgen.length];
-      ikiAlan += p[0] * q[1] - q[0] * p[1];
-    }
-    return Math.abs(ikiAlan) / 2;
-  }
-
-  function braket_kesisim_alani(xmin, uzunluk, kalinlik, aci) {
-    var c = Math.cos(aci);
-    var s = Math.sin(aci);
-    var ilk = [[xmin, 0], [uzunluk, 0], [uzunluk, kalinlik], [xmin, kalinlik]];
-    var yerel = [[xmin, 0], [uzunluk, 0], [uzunluk, kalinlik], [xmin, kalinlik]];
-    var ikinci = [];
-    for (var i = 0; i < yerel.length; i++) {
-      ikinci.push([
-        yerel[i][0] * c - yerel[i][1] * s,
-        yerel[i][0] * s + yerel[i][1] * c
-      ]);
-    }
-    var sonuc = ilk;
-    for (var j = 0; j < ikinci.length && sonuc.length; j++) {
-      sonuc = braket_kirp(sonuc, ikinci[j], ikinci[(j + 1) % ikinci.length]);
-    }
-    return sonuc.length < 3 ? 0 : braket_cokgen_alani(sonuc);
-  }
-
-  function braket_aci_bindirme(genislik, uzunluk, kalinlik, derece) {
-    var yaricap = genislik / 2;
-    var adim = genislik / 64;
-    var aci = derece * Math.PI / 180;
-    var toplam = 0;
-    for (var i = 0; i < 64; i++) {
-      var y = -yaricap + (i + 0.5) * adim;
-      var xmin = -Math.sqrt(Math.max(0, yaricap * yaricap - y * y));
-      toplam += braket_kesisim_alani(xmin, uzunluk, kalinlik, aci);
-    }
-    return toplam * adim;
+    return say * hucre * hucre;
   }
 
   function braket(p) {
+    // v2 geometrisi (2026-07-16): angle = tek profil çokgeni × genişlik;
+    // l/t/y = merkezli yarım şeritler + merkez diski; corner = 3 dik plaka.
+    // esleme sabitleri: M4 (4.5 mm), delik_fn=32, kolon=1, radyus=0, payanda yok.
+    var t = Math.max(p.kalinlik, 1.2);
     var w = p.genislik;
-    var l = p.uzunluk;
-    var t = p.kalinlik;
-    var delikYaricapi = 2.25;
-    var delikAlani = 16 * delikYaricapi * delikYaricapi *
-      Math.sin(Math.PI / 16);
+    var L = p.uzunluk;
+    var hd = 4.5;
+    var Ad = braket_delik_alani(32, hd);
+    var kenarPay = Math.max(hd + 2, w * 0.3);
 
-    // SCAD'deki yuvarlak eklem, sabit 2 mm kenar radyusu ve parçalı daire.
-    var disAlan = l * w + Math.PI * w * w / 8 - 0.1717 * w - 0.16;
-    var kol = (disAlan - p.delik_adet * delikAlani) * t;
+    if (p.tip === "duz") {
+      var kd = braket_delik_sayisi(kenarPay, L - kenarPay, p.delik_adet);
+      return L * w * t - kd * Ad * t;
+    }
 
-    if (p.tip === "duz") return kol;
+    if (p.tip === "acili") {
+      var a = p.ic_aci * Math.PI / 180;
+      var ux = Math.cos(a), uz = Math.sin(a);
+      var nx = uz, nz = -ux;
+      var pts = [[0, 0], [L, 0], [L, t], [t * (1 + ux) / uz, t],
+                 [L * ux + nx * t, L * uz + nz * t], [L * ux, L * uz]];
+      var alan2 = 0;
+      for (var i = 0; i < pts.length; i++) {
+        var q1 = pts[i], q2 = pts[(i + 1) % pts.length];
+        alan2 += q1[0] * q2[1] - q2[0] * q1[1];
+      }
+      var bas1 = Math.max(w * 0.5, t * (1 + ux) / uz + hd, hd + 3);
+      var ka = braket_delik_sayisi(bas1, L - kenarPay, p.delik_adet);
+      return Math.abs(alan2) / 2 * w - 2 * ka * Ad * t;
+    }
 
-    if (p.tip === "l") {
-      return 2 * kol - t * (0.850584 * w * w - 0.66785 * w);
-    }
-    if (p.tip === "t") {
-      return 3 * kol - t * (1.6945225 * w * w - 1.02755 * w);
-    }
-    if (p.tip === "y") {
-      return 3 * kol - t * (1.625614 * w * w - 0.94685 * w);
-    }
     if (p.tip === "kose") {
-      var duzL = 2 * kol - t * (0.850584 * w * w - 0.66785 * w);
-      var dikBindirme = w * t * t * (1 - t / (8 * w));
-      return duzL + kol - dikBindirme;
+      var bk = Math.max(w * 0.6, hd + t + 2);
+      var kk = braket_delik_sayisi(bk, L - kenarPay, p.delik_adet);
+      return 3 * L * w * t - L * t * t - 2 * w * t * t + t * t * t -
+        3 * kk * Ad * t;
     }
 
-    return 2 * kol - braket_aci_bindirme(w, l, t, p.ic_aci);
+    // l / t / y: 2B ızgara (yarım şeritler + merkez diski)
+    var acilar = p.tip === "l" ? [0, 90] :
+                 p.tip === "t" ? [0, 180, 270] : [90, 210, 330];
+    var yonler = [];
+    for (var m = 0; m < acilar.length; m++) {
+      var th = acilar[m] * Math.PI / 180;
+      yonler.push([Math.cos(th), Math.sin(th)]);
+    }
+    var r0 = w / 2;
+    var alan = braket_izgara_alani(function (x, y) {
+      if (x * x + y * y <= r0 * r0) return true;
+      for (var k = 0; k < yonler.length; k++) {
+        var s = x * yonler[k][0] + y * yonler[k][1];
+        if (s >= 0 && s <= L &&
+            Math.abs(-x * yonler[k][1] + y * yonler[k][0]) <= r0) return true;
+      }
+      return false;
+    }, -(L + r0), L + r0, -(L + r0), L + r0);
+    var icBosluk = Math.max(w * 0.65, hd + 3);
+    var kp = braket_delik_sayisi(icBosluk, L - kenarPay, p.delik_adet);
+    return alan * t - acilar.length * kp * Ad * t;
   }
 
   // === AILE: cetvel ===
@@ -155,85 +149,93 @@
   }
 
   // === AILE: disli ===
-  function disli_poligon_delik_alani(cap) {
+  function disli_delik_alani(cap) {
+    // OpenSCAD cylinder($fn=64) ice cizili cokgen alani (d^2 carpani)
     return 0.7841371226364848 * cap * cap;
   }
 
-  function disli_duz_alani(disSayisi) {
-    return 0.7889008998798291 * disSayisi * disSayisi -
-      0.6616088525010534 * disSayisi +
-      19.921676299118015 - 357.1333660667204 / disSayisi;
+  function disli_taban_alani(kats, N, m) {
+    // LSQ tabani: {m^2 N^2, m^2 N, m^2, m N, m}
+    return kats[0] * m * m * N * N + kats[1] * m * m * N + kats[2] * m * m +
+      kats[3] * m * N + kats[4] * m;
   }
 
-  function disli_helis_alani(disSayisi) {
-    return 0.8861530525852173 * disSayisi * disSayisi +
-      0.3301856926959478 * disSayisi -
-      26.708162839799833 + 362.73354363512203 / disSayisi;
+  function disli_tablo_oku(tablo, N) {
+    // N=32..64 tablosu; kesirli/aralik disi N icin kirp + dogrusal ara deger
+    var x = Math.min(Math.max(N, 32), 64) - 32;
+    var i = Math.min(Math.floor(x), 31);
+    return tablo[i] + (tablo[i + 1] - tablo[i]) * (x - i);
   }
 
-  function disli_konik_boyutsuz(disSayisi, oran) {
-    return 3247.581811189285 - 84.69687353404711 * oran -
-      16.500007311285678 * oran * oran -
-      174.63374242374908 * disSayisi +
-      12.463196167435349 * disSayisi * oran -
-      0.6213433946874087 * disSayisi * oran * oran +
-      1.4363612910981147 * disSayisi * disSayisi +
-      0.657150904608151 * disSayisi * disSayisi * oran +
-      0.00501439792173817 * disSayisi * disSayisi * oran * oran;
+  function disli_konik_hacim_tablosu(N) {
+    // v2 kalibre (2026-07-16): bevel_gear(mate=24, saft 90) V/m^3, N=32..64
+    // (BOSL2 ic esikleri yuzunden N'de duzgun degil -> tablo)
+    return disli_tablo_oku([
+      2726.24, 2908.89, 3097.38, 3291.34, 3491.09, 3696.65, 3908.09,
+      4125.41, 4348.84, 4578.16, 4813.42, 5053.77, 5299.83, 5551.68,
+      5809.33, 6101.39, 6497.51, 6910.81, 7341.67, 7790.5, 8257.61,
+      8743.42, 9248.32, 9771.81, 10208.6, 10654.15, 11108.4, 11571.23,
+      12042.74, 12522.89, 13011.67, 13509.1, 14015.38], N);
   }
 
-  function disli_tac_boyutsuz(disSayisi, oran) {
-    return 627.1283973423839 - 339.01290842281685 * oran +
-      52.97223798565685 * oran * oran -
-      0.25408305396843156 * disSayisi -
-      3.0210634803742615 * disSayisi * oran +
-      3.081313824628957 * disSayisi * oran * oran -
-      1.7682819634464704 * disSayisi * disSayisi +
-      0.7841373565233529 * disSayisi * disSayisi * oran +
-      0.00039414473207161657 * disSayisi * disSayisi * oran * oran;
-  }
-
-  function disli_halka_alani(disSayisi, modul) {
-    var sirt = Math.max(3 * modul, 4);
-    return 3.1365484949825446 * disSayisi * modul * sirt +
-      3.632008782749642 * disSayisi * modul * modul +
-      33.06238141265567 * sirt * sirt -
-      81.9361334406276 * modul * sirt +
-      10.440863555524748 * modul * modul -
-      119.70332840207266 * sirt +
-      359.10996779298875 * modul + 0.000014835747051515935;
+  function disli_konik_delik_boyu_tablosu(N) {
+    // konik govde tepeye dogru daralir; mil deligi yalniz gobek boyunca
+    // et kaldirir -> etkin delik boyu/m tablosu (olculdu, d ve m'den bagimsiz)
+    return disli_tablo_oku([
+      4.3441, 4.3477, 4.3511, 4.3542, 4.3572, 4.36, 4.3626, 4.365,
+      4.3674, 4.3697, 4.3718, 4.3737, 4.3755, 4.3773, 4.3789, 4.3978,
+      4.4721, 4.5468, 4.6218, 4.6971, 4.7726, 4.8484, 4.9244, 5.0,
+      5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0], N);
   }
 
   function disli(p) {
-    var n = p.dis_sayisi;
+    // v2 kalibre (2026-07-16): olcuye gore uretec v2'ye (BOSL2 gears sarmali)
+    // LSQ fit; olcum gridi N=32..64, m=1..1.5, h=6..8, delik=0..8 (esleme
+    // sabitleri: basinc 20, helis 20, bosluk 0.15, es_dis 24, Segments 64).
+    var N = p.dis_sayisi;
     var m = p.modul;
     var h = p.kalinlik;
-    var delik = disli_poligon_delik_alani(p.delik_capi);
+    var delik = disli_delik_alani(p.delik_capi);
 
     if (p.disli_tipi === "duz") {
-      return disli_duz_alani(n) * m * m * h - delik * h;
+      return (disli_taban_alani([0.7851503182, -0.1357761697, -4.085040431,
+        -0.3347220277, -0.02234787348], N, m) - delik) * h;
     }
-    if (p.disli_tipi === "helis" || p.disli_tipi === "cift_helis") {
-      return disli_helis_alani(n) * m * m * h - delik * h;
+    if (p.disli_tipi === "helis") {
+      return (disli_taban_alani([0.8895497605, -0.1454588491, -3.536365845,
+        -0.3646167419, 1.011983576], N, m) - delik) * h;
+    }
+    if (p.disli_tipi === "cift_helis") {
+      return (disli_taban_alani([0.889580645, -0.1434499449, -3.758176869,
+        -0.3720096691, 1.44214944], N, m) - delik) * h;
     }
     if (p.disli_tipi === "konik") {
-      var konikOran = Math.max(h / m, 6);
-      return disli_konik_boyutsuz(n, konikOran) * m * m * m -
-        delik * m * konikOran;
+      // kalinliktan bagimsiz (uretec konik yuz genisligini kendisi secer)
+      return m * m * m * disli_konik_hacim_tablosu(N) -
+        delik * m * disli_konik_delik_boyu_tablosu(N);
     }
     if (p.disli_tipi === "sonsuz") {
-      return 1582.26914125 * m * m * m;
+      // govde capi = max(6m, delik+4m); vida boyu = kalinlik (h >= 4m)
+      var dg = Math.max(6 * m, p.delik_capi + 4 * m);
+      var alan = 0.7837252161 * dg * dg - 0.1835391791 * dg * m +
+        2.570962742 * m * m - 0.3284141631 * dg + 0.03268601037 * m;
+      return (alan - delik) * h;
     }
     if (p.disli_tipi === "ic_disli") {
-      return disli_halka_alani(n, m) * h;
+      // mil deligi gecmez (ic bosluk zaten var); sirt = 3m
+      return disli_taban_alani([-0.001601635821, 13.19634411, 58.69996835,
+        -0.3404922745, -0.07644835391], N, m) * h;
     }
     if (p.disli_tipi === "tac") {
-      var tacOran = h / m;
-      return disli_tac_boyutsuz(n, tacOran) * m * m * m -
-        delik * (h - 2.25 * m);
+      // taban disk kalinlikla buyur (A terimi), dis tabakasi sabit (B terimi)
+      var A = 0.7858143808 * m * m * N * N + 9.366207657 * m * m * N +
+        33.32777701 * m * m - 0.002099730821 * m * N;
+      var B = -1.768605751 * m * m * m * N * N - 9.767225293 * m * m * m * N -
+        65.27467583 * m * m * m - 1.00755036 * m * m * N;
+      return h * A + B - delik * h;
     }
-    var genislik = Math.max(4 * m, 6);
-    return n * h * (Math.PI * m * genislik - 3.324477523087862 * m * m);
+    // kramayer: boy = N*pi*m, sirt = 3 mm sabit; mil deligi gecmez
+    return (3.74410595 * N * m * m + 9.08727794 * N * m) * h;
   }
 
   // === AILE: huni ===
@@ -771,85 +773,127 @@
   }
 
   // === AILE: konektor ===
-  function konektor(p) {
-    var n = Math.max(2, Math.min(4, Math.round(p.kol_sayisi)));
-    var tol = p.gecme === "siki" ? 0.1 : (p.gecme === "gevsek" ? 0.5 : 0.3);
-    var d = p.cubuk_capi + 2 * p.cidar;
-    var delik = p.cubuk_capi + tol;
-    var r = d * 0.6;
-    var disAlan;
-    if (p.kol_kesiti === "kare") {
-      disAlan = d * d;
-    } else if (p.kol_kesiti === "sekizgen") {
-      disAlan = 2 * d * d / (1 + Math.SQRT2);
-    } else {
-      disAlan = Math.PI * d * d / 4;
-    }
-    var delikAlan = Math.PI * delik * delik / 4;
+  function konektor_alan(kesit, d, kenar) {
+    if (kesit === "kare") return d * d;
+    if (kesit === "sekizgen") return 2 * d * d / (1 + Math.SQRT2);
+    var r = d / 2;
+    return 0.5 * kenar * r * r * Math.sin(2 * Math.PI / kenar);
+  }
 
-    // İki karşılıklı kolda dış gövde bir prizma, merkezde prizma dışında kalan
-    // küre parçası ve iki ayrı yuva olarak tam ayrışır. Son katsayılar birim dış
-    // ölçüdeki küre parçasının kesit integralleridir.
-    if (n === 2) {
-      var kureKatsayisi = p.kol_kesiti === "kare" ? 0.07120929525129341 :
-        (p.kol_kesiti === "sekizgen" ? 0.1260016651969578 : 0.15281909978271654);
-      return 2 * p.kol_boyu * (disAlan - delikAlan) +
-        2 * delikAlan * p.cidar + kureKatsayisi * d * d * d;
-    }
-
-    // Küre ile kolların ve yuvaların kesiştiği merkez bölge sabit bir ızgarada
-    // değerlendirilir; küre dışındaki düz kol bölümü analitik olarak eklenir.
-    var adimSayisi = 40;
-    var sinir = d * 1.11;
-    var hucre = 2 * sinir / adimSayisi;
+  function konektor_yarim_genislik(kesit, d, z) {
+    // Kesitin z yüksekliğindeki yarım genişliği (kesit dikey, düzlemsel dizilim).
     var yari = d / 2;
-    var delikYari2 = delik * delik / 4;
-    var r2 = r * r;
-    var yonX = [];
-    var yonY = [];
+    var mz = Math.abs(z);
+    if (mz >= yari) return 0;
+    if (kesit === "kare") return yari;
+    if (kesit === "sekizgen") {
+      var duz = yari * Math.tan(Math.PI / 8);
+      return mz <= duz ? yari : (yari * (1 + Math.tan(Math.PI / 8)) - mz);
+    }
+    return Math.sqrt(yari * yari - mz * mz);
+  }
+
+  function konektor_dis_zarf(noktalar) {
+    // 2B dışbükey zarf (monoton zincir), CCW köşe listesi döner.
+    var p = noktalar.slice().sort(function (a, b) {
+      return a[0] - b[0] || a[1] - b[1];
+    });
+    function konektor_capraz(o, a, b) {
+      return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    }
+    var alt = [], ust = [], i;
+    for (i = 0; i < p.length; i++) {
+      while (alt.length >= 2 &&
+             konektor_capraz(alt[alt.length - 2], alt[alt.length - 1], p[i]) <= 0) alt.pop();
+      alt.push(p[i]);
+    }
+    for (i = p.length - 1; i >= 0; i--) {
+      while (ust.length >= 2 &&
+             konektor_capraz(ust[ust.length - 2], ust[ust.length - 1], p[i]) <= 0) ust.pop();
+      ust.push(p[i]);
+    }
+    alt.pop(); ust.pop();
+    return alt.concat(ust);
+  }
+
+  function konektor(p) {
+    // v2 geometrisi (2026-07-16): kol dış ölçüsü = cubuk + 2*max(cidar,1.2);
+    // göbek = kol köklerinin (g = min(0.6*Do, 0.5*L)) dışbükey zarfı;
+    // 2 karşılıklı kolda göbek yok. Tolerans: siki 0.15 / normal 0.30 / gevsek 0.50.
+    var n = Math.max(2, Math.round(p.kol_sayisi));
+    var tol = p.gecme === "siki" ? 0.15 : (p.gecme === "gevsek" ? 0.50 : 0.30);
+    var cid = Math.max(p.cidar, 1.2);
+    var Do = p.cubuk_capi + 2 * cid;
+    var Db = p.cubuk_capi + tol;
+    var L = p.kol_boyu;
+    var S = 180; // esleme sabiti Segments
+    var Aout = konektor_alan(p.kol_kesiti, Do, S);
+    var Abore = konektor_alan("yuvarlak", Db, S);
+
+    if (n === 2) { // düz manşon: iki prizma, kapalı uçlu yuvalar — kapalı form
+      return 2 * L * Aout - 2 * (L - cid) * Abore;
+    }
+
+    // n >= 3: z-dilimli sayısal integral (dilim alanı 2B ızgarada).
+    var g = Math.min(0.6 * Do, 0.5 * L);
+    var H = Do / 2;
+    var rb = Db / 2;
+    var yonler = [];
     var a;
     for (a = 0; a < n; a++) {
-      var aci = 2 * Math.PI * a / n;
-      yonX.push(Math.cos(aci));
-      yonY.push(Math.sin(aci));
+      var th = 2 * Math.PI * a / n;
+      yonler.push([Math.cos(th), Math.sin(th)]);
     }
-
-    var dolu = 0;
-    var ix;
-    var iy;
-    var iz;
-    for (ix = 0; ix < adimSayisi; ix++) {
-      var x = -sinir + (ix + 0.5) * hucre;
-      for (iy = 0; iy < adimSayisi; iy++) {
-        var y = -sinir + (iy + 0.5) * hucre;
-        for (iz = 0; iz < adimSayisi; iz++) {
-          var z = -sinir + (iz + 0.5) * hucre;
-          var dis = x * x + y * y + z * z <= r2;
+    var zN = 48;
+    var dz = H / zN;              // z>0 yarısı; simetriyle x2
+    var kapsam = L + Do / 2;
+    var hucre = (2 * kapsam) / 520;
+    var Nxy = Math.ceil(2 * kapsam / hucre);
+    var hacim = 0;
+    for (var iz = 0; iz < zN; iz++) {
+      var z = (iz + 0.5) * dz;
+      var hw = konektor_yarim_genislik(p.kol_kesiti, Do, z);
+      if (hw <= 0) continue;
+      var hb = z < rb ? Math.sqrt(rb * rb - z * z) : 0;
+      // göbek zarf dilimi: güdük köşeleri (taban + uç, her iki yan)
+      var pts = [];
+      for (a = 0; a < n; a++) {
+        var u = yonler[a];
+        pts.push([-hw * u[1], hw * u[0]]);
+        pts.push([hw * u[1], -hw * u[0]]);
+        pts.push([g * u[0] - hw * u[1], g * u[1] + hw * u[0]]);
+        pts.push([g * u[0] + hw * u[1], g * u[1] - hw * u[0]]);
+      }
+      var zarf = konektor_dis_zarf(pts);
+      var alan = 0;
+      for (var ix = 0; ix < Nxy; ix++) {
+        var x = -kapsam + (ix + 0.5) * hucre;
+        for (var iy = 0; iy < Nxy; iy++) {
+          var y = -kapsam + (iy + 0.5) * hucre;
+          var dolu = false;
           var bos = false;
           for (a = 0; a < n; a++) {
-            var boyuna = x * yonX[a] + y * yonY[a];
-            var enine = -x * yonY[a] + y * yonX[a];
-            if (boyuna >= 0 && boyuna <= r) {
-              var kesitte;
-              if (p.kol_kesiti === "kare") {
-                kesitte = Math.abs(enine) <= yari && Math.abs(z) <= yari;
-              } else if (p.kol_kesiti === "sekizgen") {
-                kesitte = Math.abs(enine) <= yari && Math.abs(z) <= yari &&
-                  Math.abs(enine) + Math.abs(z) <= d / Math.SQRT2;
-              } else {
-                kesitte = enine * enine + z * z <= yari * yari;
-              }
-              if (kesitte) dis = true;
-              if (boyuna >= p.cidar && enine * enine + z * z <= delikYari2) bos = true;
+            var s = x * yonler[a][0] + y * yonler[a][1];
+            if (s < 0 || s > L) continue;
+            var e = Math.abs(-x * yonler[a][1] + y * yonler[a][0]);
+            if (e <= hw) dolu = true;
+            if (hb > 0 && s >= cid && e <= hb) bos = true;
+          }
+          if (!dolu) { // göbek zarfında mı?
+            dolu = true;
+            for (var k = 0; k < zarf.length; k++) {
+              var q1 = zarf[k];
+              var q2 = zarf[(k + 1) % zarf.length];
+              if ((q2[0] - q1[0]) * (y - q1[1]) -
+                  (q2[1] - q1[1]) * (x - q1[0]) < 0) { dolu = false; break; }
             }
           }
-          if (dis && !bos) dolu++;
+          if (dolu && !bos) alan += 1;
         }
       }
+      hacim += alan * hucre * hucre * dz;
     }
-
-    var merkez = dolu * hucre * hucre * hucre;
-    return merkez + n * (p.kol_boyu - r) * (disAlan - delikAlan);
+    return 2 * hacim;
   }
 
   // === AILE: oring ===
@@ -860,7 +904,10 @@
     if (p.profil === "kare") {
       kesitAlani = p.kesit_cap * p.kesit_cap;
     } else if (p.profil === "pahli") {
-      kesitAlani = 0.875 * p.kesit_cap * p.kesit_cap;
+      // Okan onayi (16 Tem gece): 0.875 eski motora (0.25xCS pah) kalibreydi;
+      // uretim motoru pahi 0.18xCS -> teorik 1-4*(0.18^2)/2 = 0.9352, OLCULEN
+      // 0.93349 (8 set, hepsi ayni 5 basamak — render poligonizasyon payi dahil).
+      kesitAlani = 0.93349 * p.kesit_cap * p.kesit_cap;
     } else {
       kesitAlani = Math.PI * p.kesit_cap * p.kesit_cap / 4;
     }

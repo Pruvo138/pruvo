@@ -99,7 +99,11 @@
     "void main(){ vec3 n = normalize(vNor);" +
     " float i1 = max(dot(n, normalize(vec3(0.5, 0.7, 0.6))), 0.0);" +
     " float i2 = max(dot(n, normalize(vec3(-0.6, -0.3, 0.4))), 0.0) * 0.35;" +
-    " vec3 renk = vec3(0.72, 0.76, 0.80) * (0.28 + 0.72 * i1 + i2);" +
+    // Sari seri kimligi (Okan, 16 Tem): model sitedeki sari rozetle (#f7b500)
+    // uyumlu parlak sari. Carpan araligi 0.32..~1.06 tutulur: tavan 1'i ancak
+    // en dik acida asar, kanal doygunlasip yuzey detayini yutmaz; 0.32 taban
+    // golgeli yuzleri koyu-sari birakir (acik gri zeminle cakismaz).
+    " vec3 renk = vec3(0.97, 0.71, 0.03) * (0.32 + 0.60 * i1 + 0.5 * i2);" +
     " gl_FragColor = vec4(renk, 1.0); }";
 
   function derleProgram(gl) {

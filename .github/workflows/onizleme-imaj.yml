@@ -71,10 +71,11 @@ jobs:
           docker build -t pruvo-onizleme-derleyici:ci onizleme/derleyici
           docker image ls pruvo-onizleme-derleyici:ci
 
-      - name: Imaj duman testi (mock degil — gercek openscad + paket, IKI aile)
-        # IKI ailenin de derlenmesi SART: 16 Tem'de tek-aile duman yesilken canli
+      - name: Imaj duman testi (mock degil — gercek openscad + paket, ALTI aile)
+        # TUM ailelerin derlenmesi SART: 16 Tem'de tek-aile duman yesilken canli
         # profil ailesi derlenemedi (Debian openscad 2021.01 cok eskiydi) — bu adim
-        # o sinifi artik CI'da yakalar.
+        # o sinifi artik CI'da yakalar. Faz D: konektor/braket/disli eklendi
+        # (disli BOSL2 ister — imajdaki sabit surumle derlenebilirligi burada kanitlanir).
         run: |
           docker run -d --rm -p 18080:8080 --name onizleme-duman pruvo-onizleme-derleyici:ci
           for i in $(seq 1 30); do
@@ -91,8 +92,34 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{"aile":"olcuye-ozel-profil-beam","parametreler":{"kesit":"i","yukseklik":40,"genislik":30,"et_kalinligi":3,"uzunluk":100,"ic_yapi":"bos"}}' \
             -o duman-beam.stl
-          wc -c duman-oring.stl duman-beam.stl
-          test -s duman-oring.stl && test -s duman-beam.stl
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-baglanti-konektor","parametreler":{"kol_sayisi":3,"kol_kesiti":"yuvarlak","cubuk_capi":10,"kol_boyu":25,"cidar":2.5,"gecme":"normal"}}' \
+            -o duman-konektor.stl
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-montaj-braketi","parametreler":{"tip":"acili","ic_aci":90,"kalinlik":4,"genislik":20,"uzunluk":40,"delik_adet":2}}' \
+            -o duman-braket.stl
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"ozel-disli-kramayer-uretimi","parametreler":{"disli_tipi":"duz","dis_sayisi":40,"modul":1.25,"kalinlik":7,"delik_capi":6}}' \
+            -o duman-disli.stl
+          # yay ONIZLEME_AILELER'de DEGIL (eslem olcumu %3'u asti) ama scad'lari v3
+          # paketinde durur — dumanda derlenebilirligi kanitlanir (worker kapisi ayri).
+          # CIFT uretecli (spiral + dalga ayri .scad) — ikisi de derlenir.
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-yay-dalga-flexure","parametreler":{"tip":"spiral","dalga_formu":"sinus","serbest_boy":60,"dis_cap":20,"tel_capi":3,"dalga_boyu":60}}' \
+            -o duman-yay-spiral.stl
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-yay-dalga-flexure","parametreler":{"tip":"dalga","dalga_formu":"sinus","serbest_boy":60,"dis_cap":20,"tel_capi":3,"dalga_boyu":60}}' \
+            -o duman-yay-dalga.stl
+          wc -c duman-oring.stl duman-beam.stl duman-konektor.stl duman-braket.stl \
+            duman-disli.stl duman-yay-spiral.stl duman-yay-dalga.stl
+          test -s duman-oring.stl && test -s duman-beam.stl && test -s duman-konektor.stl \
+            && test -s duman-braket.stl && test -s duman-disli.stl \
+            && test -s duman-yay-spiral.stl && test -s duman-yay-dalga.stl
           docker stop onizleme-duman
 
       - name: Registry'ye it (PLAN KAPISI)

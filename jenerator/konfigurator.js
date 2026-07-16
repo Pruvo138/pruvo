@@ -214,13 +214,23 @@
     var h = sonuc.gecerli ? hacimMm3(sema, d) : null;
     if (hacimEl) { hacimEl.textContent = (h == null) ? "" : hacimMetni(h); }
     if (fiyatEl) {
-      var malzeme = document.getElementById("malzemeSec");
-      var renk = document.getElementById("renkSec");
+      // Malzeme/renk secimi: once dis kaynak (F kalemi — kart-secim sayfasi
+      // secimKaynagi ile baglar), yoksa eski dropdown'lar (geri donus), o da
+      // yoksa taban PLA/Siyah. Secim henuz yapilmamissa taban fiyat uzerinden
+      // "...'den baslayan" mantigi satirOzeti tarafinda; burada taban gosterilir.
+      var secim = durum.secimKaynagi ? durum.secimKaynagi() : null;
+      var malzemeEl = document.getElementById("malzemeSec");
+      var renkEl = document.getElementById("renkSec");
+      var malzeme = (secim && secim.malzeme) ||
+        (malzemeEl ? malzemeEl.value : "PLA") || "PLA";
+      var renk = (secim && secim.renk) || (renkEl ? renkEl.value : "Siyah") || "Siyah";
       var kurus = (h == null) ? null
         : root.PRUVO_SECENEK.parametrikFiyatKurus(
-            sema.tabanFiyatTL, sema.tabanHacimMm3, h,
-            malzeme ? malzeme.value : "PLA", renk ? renk.value : "Siyah");
-      fiyatEl.textContent = (kurus == null) ? "—" : root.PRUVO_SECENEK.kurusMetni(kurus);
+            sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
+      // Sari kural (Okan): taban fiyat girilmedigi surece "Olcuye ozel fiyat"
+      // ("—" degil — musteriye fiyatin sonradan teklif edilecegini soyler).
+      fiyatEl.textContent = (kurus == null)
+        ? "Ölçüye özel fiyat" : root.PRUVO_SECENEK.kurusMetni(kurus);
     }
     return sonuc.gecerli;
   }
@@ -249,6 +259,9 @@
     // Malzeme/renk seçici gibi DIŞ girdiler değişince fiyat göstergesini tazeler
     // (sayfa render()'ı çağırır; parametre alanları kendi input olaylarıyla zaten çizer).
     tazele: function () { if (durum.sema) { ciz(); } },
+    // F kalemi: kart-secim sayfasi secili malzeme/rengi buradan saglar —
+    // fn() -> {malzeme, renk} (bos degerler taban PLA/Siyah'a duser).
+    secimKaynagi: function (fn) { durum.secimKaynagi = fn; },
     gecerliMi: function () { return durum.sema ? dogrula(durum.sema, degerler()).gecerli : false; },
     // Sepet satırına parametrik alanları yazar (satır: PRUVO_SECENEK.bosSatir çıktısı).
     satiraYaz: function (satir) {

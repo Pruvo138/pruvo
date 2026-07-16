@@ -34,7 +34,12 @@ export async function derleyiciCagir(env, aile, parametreler) {
       // Cloudflare Container (Durable Object sarmali, index.js OnizlemeDerleyici).
       // Tek isimli instance = pilot icin tek konteyner; olceklerken isim anahtari
       // (or. aile ya da rastgele N'den biri) burada cesitlendirilir.
-      const stub = env.DERLEYICI.get(env.DERLEYICI.idFromName("derleyici"));
+      // AD ANAHTARI env.DERLEYICI_AD ile ezilebilir (vars): 16 Tem'de arka arkaya
+      // imaj rollout'lari "derleyici" DO'sunun container atamasini KALICI kopardi
+      // (instances healthy=2/assigned=0, stub.fetch aninda firlatti, kendiliginden
+      // duzelmedi) — taze isim = taze DO = taze atama. Ayni durumda adi artir.
+      const ad = env.DERLEYICI_AD || "derleyici";
+      const stub = env.DERLEYICI.get(env.DERLEYICI.idFromName(ad));
       cevap = await stub.fetch("http://derleyici/derle", istek);
     } else if (env.DERLEYICI && typeof env.DERLEYICI.fetch === "function") {
       cevap = await env.DERLEYICI.fetch("http://derleyici/derle", istek);

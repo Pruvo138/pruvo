@@ -1,0 +1,459 @@
+{
+ "_not": "Referans hacimler gercek OpenSCAD STL olcumu; uretim: kalibrasyon-referans-uret.py, tohum=42",
+ "aileler": {
+  "konektor": {
+   "fonksiyon": "konektor",
+   "urunId": "olcuye-ozel-baglanti-konektor",
+   "setler": [
+    {
+     "parametreler": {
+      "kol_sayisi": 3,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 10,
+      "kol_boyu": 25,
+      "cidar": 2.5,
+      "gecme": "normal"
+     },
+     "referansMm3": 7286.554136672296
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 4.0,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 6.0,
+      "kol_boyu": 37.0,
+      "cidar": 2.5,
+      "gecme": "siki"
+     },
+     "referansMm3": 9226.697521212905
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 2.0,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 7.5,
+      "kol_boyu": 54.0,
+      "cidar": 2.0,
+      "gecme": "gevsek"
+     },
+     "referansMm3": 9056.451373833612
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 3.0,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 6.0,
+      "kol_boyu": 25.0,
+      "cidar": 2.5,
+      "gecme": "siki"
+     },
+     "referansMm3": 5326.616740044321
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 4.0,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 6.0,
+      "kol_boyu": 55.0,
+      "cidar": 2.5,
+      "gecme": "siki"
+     },
+     "referansMm3": 14971.819400540693
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 4.0,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 14.5,
+      "kol_boyu": 46.0,
+      "cidar": 2.5,
+      "gecme": "normal"
+     },
+     "referansMm3": 24124.745843564655
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 4.0,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 18.5,
+      "kol_boyu": 20.0,
+      "cidar": 2.5,
+      "gecme": "gevsek"
+     },
+     "referansMm3": 13567.896893401788
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 3.0,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 10.0,
+      "kol_boyu": 29.0,
+      "cidar": 2.5,
+      "gecme": "normal"
+     },
+     "referansMm3": 11919.234036635067
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 2.0,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 12.0,
+      "kol_boyu": 26.0,
+      "cidar": 3.0,
+      "gecme": "normal"
+     },
+     "referansMm3": 7764.95828389884
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 4.0,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 18.5,
+      "kol_boyu": 22.0,
+      "cidar": 3.5,
+      "gecme": "gevsek"
+     },
+     "referansMm3": 21186.661883507644
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 2.0,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 7.0,
+      "kol_boyu": 55.0,
+      "cidar": 3.0,
+      "gecme": "gevsek"
+     },
+     "referansMm3": 13996.353746533323
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 4.0,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 15.0,
+      "kol_boyu": 32.0,
+      "cidar": 2.0,
+      "gecme": "siki"
+     },
+     "referansMm3": 18975.175453784446
+    },
+    {
+     "parametreler": {
+      "kol_sayisi": 4.0,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 18.0,
+      "kol_boyu": 38.0,
+      "cidar": 2.0,
+      "gecme": "siki"
+     },
+     "referansMm3": 16808.62463696313
+    }
+   ]
+  },
+  "braket": {
+   "fonksiyon": "braket",
+   "urunId": "olcuye-ozel-montaj-braketi",
+   "setler": [
+    {
+     "parametreler": {
+      "tip": "acili",
+      "ic_aci": 90,
+      "kalinlik": 4,
+      "genislik": 20,
+      "uzunluk": 40,
+      "delik_adet": 2
+     },
+     "referansMm3": 5827.162942667094
+    },
+    {
+     "parametreler": {
+      "tip": "acili",
+      "ic_aci": 65.0,
+      "kalinlik": 3.0,
+      "genislik": 28.0,
+      "uzunluk": 71.0,
+      "delik_adet": 1.0
+     },
+     "referansMm3": 11437.625340927492
+    },
+    {
+     "parametreler": {
+      "tip": "kose",
+      "ic_aci": 115.0,
+      "kalinlik": 3.0,
+      "genislik": 37.0,
+      "uzunluk": 51.0,
+      "delik_adet": 3.0
+     },
+     "referansMm3": 15458.337465750745
+    },
+    {
+     "parametreler": {
+      "tip": "duz",
+      "ic_aci": 60.0,
+      "kalinlik": 3.0,
+      "genislik": 22.0,
+      "uzunluk": 67.0,
+      "delik_adet": 1.0
+     },
+     "referansMm3": 4374.59305175008
+    },
+    {
+     "parametreler": {
+      "tip": "t",
+      "ic_aci": 105.0,
+      "kalinlik": 3.0,
+      "genislik": 37.0,
+      "uzunluk": 65.0,
+      "delik_adet": 3.0
+     },
+     "referansMm3": 19164.837465750745
+    },
+    {
+     "parametreler": {
+      "tip": "l",
+      "ic_aci": 115.0,
+      "kalinlik": 5.0,
+      "genislik": 33.0,
+      "uzunluk": 68.0,
+      "delik_adet": 2.0
+     },
+     "referansMm3": 21831.338484892713
+    },
+    {
+     "parametreler": {
+      "tip": "y",
+      "ic_aci": 80.0,
+      "kalinlik": 6.0,
+      "genislik": 20.0,
+      "uzunluk": 60.0,
+      "delik_adet": 3.0
+     },
+     "referansMm3": 19707.44444574798
+    },
+    {
+     "parametreler": {
+      "tip": "t",
+      "ic_aci": 85.0,
+      "kalinlik": 4.0,
+      "genislik": 24.0,
+      "uzunluk": 67.0,
+      "delik_adet": 2.0
+     },
+     "referansMm3": 17764.74441400066
+    },
+    {
+     "parametreler": {
+      "tip": "acili",
+      "ic_aci": 65.0,
+      "kalinlik": 4.5,
+      "genislik": 23.0,
+      "uzunluk": 85.0,
+      "delik_adet": 2.0
+     },
+     "referansMm3": 16579.477250167354
+    },
+    {
+     "parametreler": {
+      "tip": "l",
+      "ic_aci": 80.0,
+      "kalinlik": 6.0,
+      "genislik": 21.0,
+      "uzunluk": 98.0,
+      "delik_adet": 3.0
+     },
+     "referansMm3": 23984.920146822944
+    },
+    {
+     "parametreler": {
+      "tip": "acili",
+      "ic_aci": 90.0,
+      "kalinlik": 3.0,
+      "genislik": 37.0,
+      "uzunluk": 77.0,
+      "delik_adet": 3.0
+     },
+     "referansMm3": 16476.558310500495
+    },
+    {
+     "parametreler": {
+      "tip": "l",
+      "ic_aci": 85.0,
+      "kalinlik": 5.0,
+      "genislik": 26.0,
+      "uzunluk": 48.0,
+      "delik_adet": 1.0
+     },
+     "referansMm3": 12140.335084599932
+    },
+    {
+     "parametreler": {
+      "tip": "y",
+      "ic_aci": 75.0,
+      "kalinlik": 6.0,
+      "genislik": 29.0,
+      "uzunluk": 50.0,
+      "delik_adet": 1.0
+     },
+     "referansMm3": 23630.57621282752
+    }
+   ]
+  },
+  "disli": {
+   "fonksiyon": "disli",
+   "urunId": "ozel-disli-kramayer-uretimi",
+   "setler": [
+    {
+     "parametreler": {
+      "disli_tipi": "duz",
+      "dis_sayisi": 40,
+      "modul": 1.25,
+      "kalinlik": 7,
+      "delik_capi": 6
+     },
+     "referansMm3": 13321.690668974114
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "duz",
+      "dis_sayisi": 33.0,
+      "modul": 1.2,
+      "kalinlik": 6.5,
+      "delik_capi": 3.5
+     },
+     "referansMm3": 7774.502043980804
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "helis",
+      "dis_sayisi": 38.0,
+      "modul": 1.5,
+      "kalinlik": 8.0,
+      "delik_capi": 2.5
+     },
+     "referansMm3": 22762.109429794134
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "cift_helis",
+      "dis_sayisi": 34.0,
+      "modul": 1.0,
+      "kalinlik": 6.0,
+      "delik_capi": 3.5
+     },
+     "referansMm3": 5994.149332981379
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "konik",
+      "dis_sayisi": 64.0,
+      "modul": 1.45,
+      "kalinlik": 6.0,
+      "delik_capi": 6.0
+     },
+     "referansMm3": 42577.1197675112
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "sonsuz",
+      "dis_sayisi": 58.0,
+      "modul": 1.15,
+      "kalinlik": 7.5,
+      "delik_capi": 6.5
+     },
+     "referansMm3": 456.56083885099747
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "ic_disli",
+      "dis_sayisi": 32.0,
+      "modul": 1.1,
+      "kalinlik": 7.5,
+      "delik_capi": 4.5
+     },
+     "referansMm3": 4259.525628466805
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "tac",
+      "dis_sayisi": 41.0,
+      "modul": 1.15,
+      "kalinlik": 7.0,
+      "delik_capi": 2.5
+     },
+     "referansMm3": 10785.345329559987
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "kramayer",
+      "dis_sayisi": 56.0,
+      "modul": 1.05,
+      "kalinlik": 7.0,
+      "delik_capi": 4.5
+     },
+     "referansMm3": 5358.451310269796
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "sonsuz",
+      "dis_sayisi": 34.0,
+      "modul": 1.35,
+      "kalinlik": 8.0,
+      "delik_capi": 2.5
+     },
+     "referansMm3": 372.64345336374004
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "tac",
+      "dis_sayisi": 37.0,
+      "modul": 1.4,
+      "kalinlik": 7.0,
+      "delik_capi": 7.0
+     },
+     "referansMm3": 11935.192087380272
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "ic_disli",
+      "dis_sayisi": 44.0,
+      "modul": 1.05,
+      "kalinlik": 6.0,
+      "delik_capi": 7.0
+     },
+     "referansMm3": 4113.741468173959
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "konik",
+      "dis_sayisi": 50.0,
+      "modul": 1.05,
+      "kalinlik": 6.5,
+      "delik_capi": 2.5
+     },
+     "referansMm3": 8455.502960652188
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "tac",
+      "dis_sayisi": 49.0,
+      "modul": 1.35,
+      "kalinlik": 7.0,
+      "delik_capi": 3.0
+     },
+     "referansMm3": 18445.44686794929
+    },
+    {
+     "parametreler": {
+      "disli_tipi": "ic_disli",
+      "dis_sayisi": 54.0,
+      "modul": 1.15,
+      "kalinlik": 7.0,
+      "delik_capi": 7.5
+     },
+     "referansMm3": 6948.43936295101
+    }
+   ]
+  }
+ }
+}

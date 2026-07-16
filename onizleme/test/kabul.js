@@ -8,8 +8,9 @@
          (+ derleyici tarafi: server.py --oz-test)
      4c  Ayni parametre 2. istek -> R2 onbellek isabeti (derleyici sayaci artmaz,
          olculebilir sekilde hizli)
-     4d  Donen STL hacmi vs jenerator/hacim.js kapali-form <= %3 (2 ailede N=5
-         rastgele set; GERCEK openscad ile)
+     4d  Donen STL hacmi vs jenerator/hacim.js kapali-form <= %3 (5 ailede —
+         pilot 2 + Faz D konektor/braket/disli — aile basina N=5 set x 2 tohum;
+         GERCEK openscad ile; aile basina taze worker izolati, hiz siniri dolmasin)
      4f  Hiz siniri: ayni IP dakikada 11. DERLEME -> 429 (onbellek isabeti muaf)
    Yerel kosulamayan (deploy sonrasi): 4e soguk/sicak p50-p95, 4g canli sayfa.
 
@@ -287,18 +288,31 @@ async function faz4f() {
 }
 
 async function faz4d(paketDizin) {
-  console.log("\n== 4d — STL hacmi vs hacim.js kapali-form <= %3 (gercek openscad) ==");
+  console.log("\n== 4d — STL hacmi vs hacim.js kapali-form <= %3 " +
+              "(gercek openscad, aile basina 5 set x 2 tohum) ==");
   const semalar = {
     "olcuye-ozel-oring-conta": { dosya: "olcuye-ozel-oring-conta.json", fonksiyon: "oring" },
     "olcuye-ozel-profil-beam": { dosya: "olcuye-ozel-profil-beam.json", fonksiyon: "profil" },
+    "olcuye-ozel-baglanti-konektor": { dosya: "olcuye-ozel-baglanti-konektor.json", fonksiyon: "konektor" },
+    "olcuye-ozel-montaj-braketi": { dosya: "olcuye-ozel-montaj-braketi.json", fonksiyon: "braket" },
+    "ozel-disli-kramayer-uretimi": { dosya: "ozel-disli-kramayer-uretimi.json", fonksiyon: "disli" },
+    // yay BILEREK yok: eslem olcumunde kare/testere formlari kisa boyda %3'u asti
+    // (%5.2'ye kadar) — ONIZLEME_AILELER'e alinmadi, mimar tablosunda (Faz D raporu).
   };
-  const rnd = lcg(parseInt(process.env.KABUL_TOHUM || "20260716", 10));
+  const tohumlar = [parseInt(process.env.KABUL_TOHUM || "20260716", 10),
+                    parseInt(process.env.KABUL_TOHUM_2 || "20260717", 10)];
   const gecikmeler = { derleyici: [], onbellek: [] };
   for (const [aile, bilgi] of Object.entries(semalar)) {
+    // Aile basina TAZE worker izolati: 5 set x 2 tohum = 10 derleme, hiz siniri
+    // (10/dk) tam dolar — izolat yenilenmezse sonraki aile 429 yerdi.
+    await workerDurdurBaslat();
     const sema = JSON.parse(fs.readFileSync(
       path.join(REPO, "jenerator", "urunler", bilgi.dosya), "utf-8"));
     const setler = [];
-    for (let i = 0; i < 5; i++) setler.push(rastgeleSet(sema, rnd));
+    for (const tohum of tohumlar) {
+      const rnd = lcg(tohum);
+      for (let i = 0; i < 5; i++) setler.push(rastgeleSet(sema, rnd));
+    }
     const js = jsHacim(bilgi.fonksiyon, setler);
     for (let i = 0; i < setler.length; i++) {
       const c = await olustur({ aile, parametreler: setler[i] });
@@ -319,8 +333,10 @@ async function faz4d(paketDizin) {
     }
   }
 
-  // BILINEN SAPMA (mimar yargisina rapor): o-ring "pahli" — uretec pahi 0.18xCS,
-  // hacim.js katsayisi (0.875) 0.25xCS pahina kalibre. DOGRUDAN derleyiciden olculur
+  // ORING "PAHLI" KALIBRE IZLEMESI: eski %6.27 sapma Okan onayiyla kapatildi
+  // (16 Tem gece — katsayi 0.875 -> 0.93349, uretim motorunun 0.18xCS pahina
+  // olculerek kalibre). Satir izleme amaciyla kalir: sapma yeniden buyurse
+  // motor/formul yeniden ayristi demektir. DOGRUDAN derleyiciden olculur
   // (worker hiz sinirini tuketmesin); 4d sayimina girmez, gizlenmez, raporlanir.
   const pahliSet = { ic_cap: 30, kesit_cap: 3.6, profil: "pahli" };
   const dc = await fetch(DTABAN + "/derle", { method: "POST",
@@ -330,9 +346,9 @@ async function faz4d(paketDizin) {
     const v = stlHacim(Buffer.from(await dc.arrayBuffer()));
     const js = jsHacim("oring", [pahliSet])[0];
     const sapma = Math.abs(js - v) / v * 100;
-    console.log("  [BILGI] BILINEN SAPMA — oring 'pahli': js=" + js.toFixed(1) +
+    console.log("  [BILGI] oring 'pahli' kalibre izlemesi: js=" + js.toFixed(1) +
                 " stl=" + v.toFixed(1) + " sapma=%" + sapma.toFixed(2) +
-                " (motor/formul uyumsuzlugu; mimar karari bekliyor, 4d sayimina dahil degil)");
+                " (katsayi 0.93349, Okan onayi 16 Tem; 4d sayimina dahil degil)");
   }
 
   console.log("\n== yerel gecikme tablosu (4e'nin YEREL on izlemesi; soguk baslatma " +

@@ -72,3 +72,4 @@ onizleme/node_modules/
 
 # kabul.js gecici test konfigurasyonu
 onizleme/.wrangler-test.toml
+kanit/
