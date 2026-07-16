@@ -13,6 +13,9 @@ routes = [
 
 [vars]
 SITE_URL = "https://pruvo3d.com"
+# DO ad anahtari: rollout DO-container atamasini koparirsa buradan artirilir
+# (16 Tem Faz D olayi — derleyici.js'teki nota bak).
+DERLEYICI_AD = "derleyici-2"
 # DERLEYICI_URL yalniz YEREL gelistirmede kullanilir (wrangler dev --var ile verilir);
 # uretimde derleme arka ucu DERLEYICI binding'idir (asagidaki containers blogu).
 

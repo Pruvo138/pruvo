@@ -285,7 +285,8 @@ export default {
         if (!(env.DERLEYICI && typeof env.DERLEYICI.idFromName === "function")) {
           return json({ hata: "derleyici-yok" }, 503, env);
         }
-        const stub = env.DERLEYICI.get(env.DERLEYICI.idFromName("derleyici"));
+        const stub = env.DERLEYICI.get(
+          env.DERLEYICI.idFromName(env.DERLEYICI_AD || "derleyici"));
         const c = await stub.fetch("http://derleyici/kapat", { method: "POST" });
         return json(await c.json(), c.status, env);
       }
