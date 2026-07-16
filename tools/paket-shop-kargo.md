@@ -1,6 +1,11 @@
 # PAKET — Sepet: kargo ücreti + ödeme butonu düzeni + HAVALE seçeneği + sipariş numarası
 ## (Okan kararları, 16 Tem gece)
 
+> **DURUM (16 Tem gece):** Kalem 1-4 ve 7 `claude/beautiful-kowalevski-124334` @ 29526f1
+> dalında BİTTİ (11/11 test + parite yeşil; WA metni toplam bug'ı da düzeltildi; merge
+> EDİLMEDİ). Aktif mühendis kalan kapsamı (5, 6, 8, 9) O DALIN ÜZERİNE ekler — main'den
+> başlamak yasak, iş kaybolur. Devir notları mühendise mesajla iletildi.
+
 **Kat:** Claude Mühendis (ödeme sınıfı — para hesabı, Codex'e verilmez).
 **Çalışma şekli:** worktree; `urunler.json`'a dokunma. İki-yazar uyarısı: Faz D mühendisi
 `build.py`/`secenekler.js`/ürün sayfası şablonunda çalışıyor — bu paket SADECE sepet
