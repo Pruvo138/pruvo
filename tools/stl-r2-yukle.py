@@ -7,8 +7,20 @@ dosyasi olabilir — istisna degil NORM (stl/'de ~6.100 dosya `<id>--<parca>.stl
   <urun-id>--<parca>.stl  ->  r2: stl/<urun-id>/<parca>.stl
   <urun-id>.stl           ->  r2: stl/<urun-id>/<urun-id>.stl  (tekli ad da klasore normalize)
 Uzanti kucuk harfe cevrilir (.STL -> .stl); parca adinin harf buyuklugu korunur.
-Onek urunler.json id listesiyle DOGRULANIR: listede yoksa HATALI-AD raporuna (tahmin YOK —
-kaynak-id onekli dosyalar [Thingiverse sayisal / prNNN] once urun-id'ye adlandirilmali).
+Onek urunler.json id listesiyle DOGRULANIR: listede yoksa HATALI-AD raporuna (tahmin YOK).
+
+KAYNAK-ID ESLEMESI (mimar duzeltme turu, 17 Tem gece). KOK NEDEN: 9.075 dosyanin oneki
+urun-id DEGIL kaynak-id (Thingiverse sayisal / Printables `prNNN`) — eski toplu STL
+indirmesi urun-id'ye gore degil kaynak sisteme gore adlandirmisti. Onek idler'de yoksa,
+gizli `.urun-kaynaklari.json` (ANA repo koku, gitignore'lu, SALT-OKUNUR) kaydindaki
+`link` alanindan cikarilan kaynak-id -> urun-id sozlugune bakilir:
+  thingiverse.com/thing:<sayi>      -> kaynak-id = "<sayi>"
+  printables.com/model/<sayi>-...   -> kaynak-id = "pr<sayi>"
+Bir kaynak-id BIRDEN FAZLA urune bagliysa TAHMIN EDILMEZ — o dosyalar "cakisan" raporuna
+duser, yuklenmez (hatali-ad'dan AYRI sayilir). Eslenirse R2 anahtari
+stl/<urun-id>/<orijinal-dosya-adi> olur (orijinal ad KORUNUR, sadece uzanti kucultulur) —
+boylece kaynak-id iz olarak dosya adinda kalir. Gizli dosya bulunamazsa (worktree, baska
+makine) esleme BOS doner — davranis eskisiyle AYNI (kaynak-id'li dosyalar hatali-ad'da kalir).
 
 IDEMPOTENS — YEREL MANIFEST (mimar duzeltme turu). KOK NEDEN DERSI: wrangler'da
 `r2 object list` / `head` alt komutu YOK; ilk surum listeyi sessizce bos alip HER kosumda
@@ -31,6 +43,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -39,6 +52,10 @@ BUCKET = "pruvo-ozel"
 PREFIX = "stl"
 UZANTILAR = (".stl", ".3mf")
 MANIFEST = os.path.join(REPO, ".stl-r2-manifest.json")
+KAYNAKLAR = os.path.join(REPO, ".urun-kaynaklari.json")
+
+_THING_DESENI = re.compile(r"thingiverse\.com/thing:(\d+)")
+_PRINTABLES_DESENI = re.compile(r"printables\.com/model/(\d+)")
 
 
 def urun_idleri():
@@ -51,12 +68,69 @@ def urun_idleri():
     return {u.get("id") for u in d if isinstance(u, dict) and u.get("id")}
 
 
-def siniflandir(dosyalar, idler):
-    """Dosya adlarini ([(ad, r2_anahtari)], hatali_ad) olarak ayirir. SAF fonksiyon.
+def _kaynak_id_cikar(link):
+    """link URL'sinden dosya-onek bicimindeki kaynak-id'yi cikarir: Thingiverse sayisal
+    ("1002858"), Printables "pr<sayi>". Baska kaynaklar (********, kendi ureticimiz,
+    MakerWorld, GitHub...) icin None doner — yerel STL adlandirmasi bu ikisi disinda
+    kaynak-id onegi kullanmadi (bkz. modul basligindaki KAYNAK-ID ESLEMESI notu)."""
+    if not isinstance(link, str):
+        return None
+    m = _THING_DESENI.search(link)
+    if m:
+        return m.group(1)
+    m = _PRINTABLES_DESENI.search(link)
+    if m:
+        return "pr" + m.group(1)
+    return None
+
+
+def kaynak_esleme(gizli_kayit):
+    """SAF fonksiyon. gizli .urun-kaynaklari.json icerigini (urun-id -> {"link":..., ...})
+    alir, (esle, cakisan) dondurur:
+    - esle: kaynak-id -> urun-id, YALNIZCA o kaynak-id TEK bir urune bagliysa.
+    - cakisan: birden fazla urune bagli kaynak-id kumesi — TAHMIN EDILMEZ, esle'ye GIRMEZ,
+      cagiran taraf bu dosyalari ayri ("cakisan") raporlar, yuklemez."""
+    adaylar = {}
+    if isinstance(gizli_kayit, dict):
+        for urun_id, kayit in gizli_kayit.items():
+            if not isinstance(kayit, dict):
+                continue
+            kid = _kaynak_id_cikar(kayit.get("link"))
+            if kid:
+                adaylar.setdefault(kid, set()).add(urun_id)
+    esle, cakisan = {}, set()
+    for kid, urunler in adaylar.items():
+        if len(urunler) == 1:
+            esle[kid] = next(iter(urunler))
+        else:
+            cakisan.add(kid)
+    return esle, cakisan
+
+
+def kaynak_esleme_yukle(yol):
+    """Diskten gizli kaydi okuyup kaynak_esleme() uygular. Dosya yoksa/bozuksa (worktree'de
+    YOK, CI, baska makine) BOS esleme+cakisan doner — davranis eskisiyle AYNI kalir
+    (kaynak-id onekli dosyalar hatali-ad'da kalir, sessizce atlanmaz)."""
+    try:
+        with open(yol, encoding="utf-8") as f:
+            d = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}, set()
+    return kaynak_esleme(d)
+
+
+def siniflandir(dosyalar, idler, kaynak_esle=None, kaynak_cakisan=None):
+    """Dosya adlarini ([(ad, r2_anahtari)], hatali_ad, cakisan_ad) olarak ayirir. SAF fonksiyon.
     - `<id>--<parca>.stl` -> stl/<id>/<parca>.stl ; `<id>.stl` -> stl/<id>/<id>.stl
-    - onek id listesinde yoksa ya da parca adi bossa HATALI-AD (tahmin edilmez)
+    - onek id listesinde yoksa: kaynak_esle'de TEKIL karsiligi varsa oraya yonlendirilir
+      (r2 anahtari stl/<eslenen-id>/<orijinal-dosya-adi>, orijinal ad KORUNUR); onek
+      kaynak_cakisan'daysa (birden fazla urune bagli) cakisan_ad'a duser (TAHMIN YOK,
+      yuklenmez); hicbiri degilse HATALI-AD (eskisi gibi).
+    - parca adi bossa HATALI-AD (tahmin edilmez)
     - .stl/.3mf disi uzantilar sessizce atlanir"""
-    hedefler, hatali_ad = [], []
+    kaynak_esle = kaynak_esle or {}
+    kaynak_cakisan = kaynak_cakisan or set()
+    hedefler, hatali_ad, cakisan_ad = [], [], []
     for ad in dosyalar:
         kok, uz = os.path.splitext(ad)
         if uz.lower() not in UZANTILAR:
@@ -65,11 +139,21 @@ def siniflandir(dosyalar, idler):
             onek, parca = kok.split("--", 1)
         else:
             onek, parca = kok, kok
-        if not parca or (idler is not None and onek not in idler):
+        if not parca:
             hatali_ad.append(ad)
             continue
+        if idler is not None and onek not in idler:
+            if onek in kaynak_cakisan:
+                cakisan_ad.append(ad)
+                continue
+            eslenen_id = kaynak_esle.get(onek)
+            if eslenen_id is None:
+                hatali_ad.append(ad)
+                continue
+            hedefler.append((ad, PREFIX + "/" + eslenen_id + "/" + kok + uz.lower()))
+            continue
         hedefler.append((ad, PREFIX + "/" + onek + "/" + parca + uz.lower()))
-    return hedefler, hatali_ad
+    return hedefler, hatali_ad, cakisan_ad
 
 
 def sha1_dosya(yol):
@@ -107,12 +191,13 @@ def yukle(yerel, anahtar):
     return True
 
 
-def kos(dizin, idler, manifest_yol, kuru=False, yukle_fn=None):
-    """Ana is akisi (test edilebilir): (yuklendi, atlandi, hatali_ad) dondurur.
-    kuru=True: yukleme YOK, manifest'e yazma YOK — yuklenecekler sayilir/basilir."""
+def kos(dizin, idler, manifest_yol, kuru=False, yukle_fn=None, kaynak_esle=None, kaynak_cakisan=None):
+    """Ana is akisi (test edilebilir): (yuklendi, atlandi, hatali_ad, cakisan_ad) dondurur.
+    kuru=True: yukleme YOK, manifest'e yazma YOK — yuklenecekler sayilir/basilir.
+    kaynak_esle/kaynak_cakisan: kaynak_esleme()'den gelen sozlukce/kume (bkz. siniflandir)."""
     gonderici = yukle_fn or yukle
     dosyalar = sorted(os.listdir(dizin))
-    hedefler, hatali_ad = siniflandir(dosyalar, idler)
+    hedefler, hatali_ad, cakisan_ad = siniflandir(dosyalar, idler, kaynak_esle, kaynak_cakisan)
     manifest = manifest_oku(manifest_yol)
     yuklendi = atlandi = 0
     for ad, anahtar in hedefler:
@@ -133,26 +218,41 @@ def kos(dizin, idler, manifest_yol, kuru=False, yukle_fn=None):
         manifest_yaz(manifest_yol, manifest)  # her yuklemeden sonra — kesinti guvenli
         print("yuklendi: r2://%s/%s (%d B)" % (BUCKET, anahtar, boyut))
         yuklendi += 1
-    return yuklendi, atlandi, hatali_ad
+    return yuklendi, atlandi, hatali_ad, cakisan_ad
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dizin", default=os.path.join(REPO, "stl"))
     ap.add_argument("--kuru", action="store_true", help="yazmadan ne yapacagini soyle")
+    ap.add_argument("--kaynaklar", default=KAYNAKLAR,
+                    help="gizli kaynak-id->urun-id kaydi (varsayilan: ana repo koku; "
+                         "worktree/baska makinede yoksa esleme BOS kalir)")
     a = ap.parse_args()
 
     if not os.path.isdir(a.dizin):
         sys.exit("kaynak klasor yok: " + a.dizin)
 
     idler = urun_idleri()  # None = urunler.json okunamadi (onek kontrolu atlanir)
-    yuklendi, atlandi, hatali_ad = kos(a.dizin, idler, MANIFEST, kuru=a.kuru)
+    kaynak_esle, kaynak_cakisan = kaynak_esleme_yukle(a.kaynaklar)
+    yuklendi, atlandi, hatali_ad, cakisan_ad = kos(
+        a.dizin, idler, MANIFEST, kuru=a.kuru,
+        kaynak_esle=kaynak_esle, kaynak_cakisan=kaynak_cakisan)
 
-    print("\nOZET: yuklendi=%d atlandi=%d hatali-ad=%d (kaynak: %s%s)"
-          % (yuklendi, atlandi, len(hatali_ad), a.dizin, ", --kuru" if a.kuru else ""))
+    print("\nOZET: yuklendi=%d atlandi=%d hatali-ad=%d cakisan=%d (kaynak: %s%s)"
+          % (yuklendi, atlandi, len(hatali_ad), len(cakisan_ad), a.dizin,
+             ", --kuru" if a.kuru else ""))
+    if cakisan_ad:
+        print("CAKISAN KAYNAK-ID (%d dosya; onek gizli kayitta BIRDEN FAZLA urune bagli —"
+              " TAHMIN EDILMEDI, yuklenmedi, elle karar verilmeli):" % len(cakisan_ad))
+        for ad in cakisan_ad[:40]:
+            print("  - " + ad)
+        if len(cakisan_ad) > 40:
+            print("  ... (+%d dosya daha)" % (len(cakisan_ad) - 40))
     if hatali_ad:
-        print("HATALI AD (%d dosya; onek urunler.json id'si DEGIL ya da parca adi bos —"
-              " TAHMIN EDILMEDI, once urun-id'ye adlandirilmali):" % len(hatali_ad))
+        print("HATALI AD (%d dosya; onek urunler.json id'si DEGIL, gizli kaynak eslemesinde de"
+              " YOK ya da parca adi bos — TAHMIN EDILMEDI, once urun-id'ye adlandirilmali):"
+              % len(hatali_ad))
         for ad in hatali_ad[:40]:
             print("  - " + ad)
         if len(hatali_ad) > 40:
