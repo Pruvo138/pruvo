@@ -24,6 +24,7 @@ import re
 import json
 import shutil
 import html
+import hashlib
 import datetime
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -54,6 +55,53 @@ FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "E
 # Buraya kopyalanmaz — secici HTML'inin "(+%30)" etiketleri o dosyadan OKUNUR ki katsayi
 # degisince etiket sessizce eski kalmasin (Worker, sepet ve bu sablon ayni tabloyu gorur).
 SECENEKLER_JS = os.path.join(ROOT, "secenekler.js")
+
+
+# ------------------------------------------------------------------ script onbellek surumleme
+# Yayinlanan HTML'lerde site-ici JS script src'lerine dosya iceriginin kisa hash'ini
+# "?v=<hash>" olarak ekler. NEDEN: bu .js dosyalari (secenekler.js, taban-fiyatlar.js,
+# jenerator/*.js) canlida cache-control: max-age=14400 (4 SAAT tarayici onbellegi) ile
+# geliyor; Actions'in Cloudflare purge'u musteri TARAYICISINI temizlemez -> bayrak/fiyat
+# kurali degisikligi musteriye 4 saate kadar gec ulasiyordu. Icerik degisince URL degisir
+# (?v=yeni-hash) -> hem tarayici hem edge cache miss -> taze surum aninda gider. Icerik
+# degismezse hash sabit kalir, onbellek bosa gitmez. KAYNAK dosyalara (index.html) elle
+# surum YAZILMAZ (curur); surumleme burada build zamani otomatik yapilir.
+_SURUM_CACHE = {}
+
+
+def dosya_surum(dosya_yolu):
+    """Dosya iceriginin kisa (10 hex) sha1 hash'i — icerik degismezse ayni kalir."""
+    onbellek = _SURUM_CACHE.get(dosya_yolu)
+    if onbellek is not None:
+        return onbellek
+    with open(dosya_yolu, "rb") as f:
+        h = hashlib.sha1(f.read()).hexdigest()[:10]
+    _SURUM_CACHE[dosya_yolu] = h
+    return h
+
+
+_SCRIPT_SRC_RE = re.compile(r'(<script\b[^>]*\ssrc=")(/[^"?]+\.js)(")')
+
+
+def surumle_scriptler(html_metni):
+    """HTML icindeki site-ici <script src="/...js"> referanslarina ?v=<icerik-hash>
+    ekler. Zaten surumlu (?v= olan — regex .js'ten hemen sonra " bekler, eslesmez) ya da
+    dosyasi bulunmayan (lokalde build'siz) referansa DOKUNMAZ."""
+    def _degistir(m):
+        yol = m.group(2)                      # or. "/secenekler.js"
+        dosya = os.path.join(ROOT, yol.lstrip("/"))
+        if not os.path.isfile(dosya):
+            return m.group(0)
+        return m.group(1) + yol + "?v=" + dosya_surum(dosya) + m.group(3)
+    return _SCRIPT_SRC_RE.sub(_degistir, html_metni)
+
+
+def yayin_index():
+    """Yayinlanan ana sayfa: KAYNAK index.html'in script src'leri surumlenmis kopyasi.
+    Kaynak dosya DEGISTIRILMEZ (curumesin diye); cikti index.built.html'e yazilir, deploy
+    onu _site/index.html olarak kopyalar. taban-fiyatlar.js bu asamada uretilmis olmali."""
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
+        return surumle_scriptler(f.read())
 
 
 def _js_sabiti(kaynak, ad):
@@ -1361,14 +1409,17 @@ var URUN_SEMA = {sema_json};
         onizleme_js=onizleme_js,
         whatsapp=WHATSAPP,
     )
-    return doc
+    # script src'lerine ?v=<icerik-hash> (onbellek kirici) — tek yer, yayin=render.
+    return surumle_scriptler(doc)
 
 
 # ------------------------------------------------------------------ içerik/yasal sayfa
 def render_content_page(slug, title, meta, body_html):
     title_tag = esc(title) + " — PRUVO"
     url = SITE + "/" + slug + "/"
-    return u"""<!DOCTYPE html>
+    # surumle_scriptler: bugun icerik sayfalarinda site-ici <script src="/*.js"> YOK
+    # (no-op), ama ileride eklenirse otomatik surumlensin diye tek yerden gecirilir.
+    return surumle_scriptler(u"""<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -1419,7 +1470,7 @@ def render_content_page(slug, title, meta, body_html):
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
         pv_js=PV_SCRIPT_HTML,
-    )
+    ))
 
 
 # ------------------------------------------------------------------ sitemap
@@ -1579,6 +1630,12 @@ def main():
 
     # taban-fiyatlar.js — sarı kart "X TL'den başlayan" haritası (tek kaynak: şemalar)
     uret_taban_fiyatlar()
+
+    # index.built.html — ana sayfanin YAYIN kopyasi: script src'leri ?v=<hash> ile
+    # surumlenir (KAYNAK index.html degismez). deploy.yml bunu _site/index.html yapar.
+    # taban-fiyatlar.js YUKARIDA uretildi -> hash'i artik hesaplanabilir.
+    with open(os.path.join(ROOT, "index.built.html"), "w", encoding="utf-8") as f:
+        f.write(yayin_index())
 
     # robots.txt
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
