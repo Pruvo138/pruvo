@@ -37,9 +37,12 @@ KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
 KATEGORILER = {
     "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis",
     "Elektronik", "Kamera", "Bahce", "Bahçe", "Dekorasyon", "Oyun/Hobi",
+    "Jeneratör", "Jenerator",
 }
 # NOT: "Bahce" ve "Bahçe" birlikte tutuluyor cunku canli kategori adi "Bahçe"
 # (Turkce), ancak ASCII yazilmis veriye de tolerans; asil dogrulama Turkce ad.
+# "Jeneratör" = GIZLI kategori (nav'da gorunmez; TUM parametrik/sari urunler orada,
+# Okan 17 Tem) — ayni ASCII toleransiyla.
 
 MEDYA_ONEK = "https://media.pruvo3d.com/"
 
