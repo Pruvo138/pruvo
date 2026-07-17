@@ -64,6 +64,8 @@ shop/node_modules/
 # (tools/onizleme-paket-yukle.py yukler, CI oradan ceker).
 onizleme/derleyici/eslem-ozel.json
 onizleme/derleyici/paket-ozel/
+onizleme/derleyici/*.scad
+.onizleme-kapat-anahtar
 onizleme/.wrangler/
 onizleme/node_modules/
 
