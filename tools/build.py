@@ -505,6 +505,15 @@ PAGE_CSS = """
     box-shadow:0 6px 18px rgba(0,0,0,.22);align-items:center;gap:8px;display:none}
   .cart-fab:hover{background:#1ebe5a}
   .cart-fab svg{width:19px;height:19px;fill:#fff}
+  /* Yukarı çık oku — ana sayfadakiyle aynı dil; sepet FAB'ı (z:60) doluyken üstüne kayar */
+  .top-btn{position:fixed;right:18px;bottom:18px;z-index:59;width:44px;height:44px;border:none;
+    border-radius:50%;background:var(--navy);cursor:pointer;display:flex;align-items:center;
+    justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.22);opacity:0;visibility:hidden;
+    transform:translateY(8px);transition:opacity .2s,transform .2s,visibility .2s,bottom .2s}
+  .top-btn.show{opacity:1;visibility:visible;transform:none}
+  .top-btn:hover{background:var(--navy-2)}
+  .top-btn svg{width:21px;height:21px;fill:#fff}
+  body.fab-var .top-btn{bottom:78px}
   .note{font-size:12.5px;color:var(--gray-text);margin-top:12px}
 
   /* Malzeme bolumu: sitede satilan filament cipleri (ABS/Karbon haric) + tavsiye rozeti + aciklama balonu.
@@ -1065,6 +1074,19 @@ def render_product(p, all_products):
 
 <a id="cartFab" class="cart-fab" href="/?sepet=1">{cart_icon}Sepetim (<span id="cartCount">0</span>)</a>
 
+<button id="topBtn" class="top-btn" aria-label="Yukarı çık">
+  <svg viewBox="0 0 24 24"><path d="M12 4.6 4.6 12l1.8 1.8 4.3-4.3V20h2.6V9.5l4.3 4.3 1.8-1.8z"/></svg>
+</button>
+<script>
+(function(){{
+  var topBtn=document.getElementById("topBtn");
+  window.addEventListener("scroll",function(){{
+    topBtn.classList.toggle("show", window.scrollY > 600);
+  }},{{passive:true}});
+  topBtn.onclick=function(){{ window.scrollTo({{top:0, behavior:"smooth"}}); }};
+}})();
+</script>
+
 <script src="/secenekler.js"></script>
 {konf_scripts}
 <script>
@@ -1152,6 +1174,8 @@ var URUN_SEMA = {sema_json};
     }}
     if(count){{ count.textContent = c.length; }}
     if(fab){{ fab.style.display = c.length ? "inline-flex" : "none"; }}
+    /* yukarı-çık oku FAB'la çakışmasın (CSS: body.fab-var .top-btn) */
+    document.body.classList.toggle("fab-var", c.length > 0);
     var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
     /* Konfigüratörlü sayfada fiyat alanını konfigüratör yönetir (kuruşlu canlı hesap,
        taban fiyat yoksa "—"); geçersiz ölçüde sepete ekleme kilitlenir. */
