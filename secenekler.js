@@ -96,7 +96,7 @@
      5) düşük tutarlı gerçek kart duman testi + iade.
      Worker BU anahtardan bağımsız çalışır (uç açık kalır; curl ile doğrulanabilir) — kapali
      olan yalnızca müşteriye gösterilen buton. */
-  var ODEME_ACIK = false;
+  var ODEME_ACIK = true; /* CANLI (Okan karari + canli anahtarlar, 17 Tem aksam) */
 
   /* SARI SERI 3D ONIZLEME (tools/paket-onizleme-3d.md, Faz C pilot).
      ONIZLEME_AILELER: /api/onizleme/olustur ucunun kabul ettigi aile beyaz listesi —

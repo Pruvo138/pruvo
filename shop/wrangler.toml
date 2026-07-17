@@ -14,7 +14,7 @@ routes = [
 [vars]
 # Canliya gecis: Okan'in iyzico basvurusu onaylaninca burasi https://api.iyzipay.com olur
 # + IYZICO_API_KEY/IYZICO_SECRET_KEY secret'lari canli anahtarlarla degistirilir + smoke test.
-IYZICO_BASE_URL = "https://sandbox-api.iyzipay.com"
+IYZICO_BASE_URL = "https://api.iyzipay.com"
 SITE_URL = "https://pruvo3d.com"
 # Telegram bildirimi — Ege worker'iyla ayni sohbet (kimlik/ID sir degil, token SIR).
 TELEGRAM_CHAT = "5076274057"

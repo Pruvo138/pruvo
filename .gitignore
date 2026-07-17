@@ -41,6 +41,7 @@ stl/
 .thing-cache/
 tools/URUN-EKLEME-REHBERI.md
 .urunler.lock
+.devam.lock
 # urunler.json guard katmani: duzeltme/silme izni manifestleri + guard log (asla commit'lenmez)
 .urunler-duzelt-izin.json
 .urunler-sil-izin.json
