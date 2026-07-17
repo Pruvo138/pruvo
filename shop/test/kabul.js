@@ -318,18 +318,27 @@ function d1Kur() {
 // Yerel R2 taklidi (siparis yonetimi /stl ucu): wrangler dev --local, r2 binding'ini
 // .wrangler/state altinda simule eder; ayni state'e --local put ile fixture konur.
 // d1Kur() .wrangler'i sildigi icin ONDAN SONRA cagrilir.
-const R2_ICERIK = "R2TESTSTL test-urun-a uretim dosyasi";
+// COK-PARCA duzeni (mimar duzeltme turu): anahtar stl/<urun-id>/<parca>.stl —
+// test-urun-a TEK parca (normalize klasor), test-urun-b IKI parca, test-urun-100 dosyasiz.
+const R2_PARCALAR = [
+  ["stl/test-urun-a/test-urun-a.stl", "R2TESTSTL test-urun-a uretim dosyasi"],
+  ["stl/test-urun-b/govde.stl", "R2TESTSTL b govde parcasi"],
+  ["stl/test-urun-b/kapak.stl", "R2TESTSTL b kapak parcasi"],
+];
 function r2Kur() {
   const dosya = path.join(SHOP, ".test-stl-fixture.stl");
-  fs.writeFileSync(dosya, R2_ICERIK);
-  const p = spawnSync("npx", ["--yes", "wrangler@4", "r2", "object", "put",
-    "pruvo-ozel/stl/test-urun-a.stl", "--file", dosya, "--local"],
-    { cwd: SHOP, encoding: "utf8" });
-  fs.unlinkSync(dosya);
-  if (p.status !== 0) {
-    throw new Error("yerel R2 fixture kurulamadi:\n" +
-      ((p.stdout || "") + (p.stderr || "")).slice(-1000));
+  for (const [anahtar, icerik] of R2_PARCALAR) {
+    fs.writeFileSync(dosya, icerik);
+    const p = spawnSync("npx", ["--yes", "wrangler@4", "r2", "object", "put",
+      "pruvo-ozel/" + anahtar, "--file", dosya, "--local"],
+      { cwd: SHOP, encoding: "utf8" });
+    if (p.status !== 0) {
+      fs.unlinkSync(dosya);
+      throw new Error("yerel R2 fixture kurulamadi (" + anahtar + "):\n" +
+        ((p.stdout || "") + (p.stderr || "")).slice(-1000));
+    }
   }
+  fs.unlinkSync(dosya);
 }
 
 // ---------------------------------------------------------------- worker'i kostur
@@ -1351,59 +1360,95 @@ async function test21EpostaTetigi() {
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
-/** 22 — STL INDIRME (kabul 7): normal satirda yerel R2 nesnesi + Content-Disposition adi;
- *  R2'de olmayan id'de acik "yok" notu; sari satirda derleyici ciktisi (ic-derle mock'una
- *  IC anahtariyla gidildi); anahtarsiz -> 404. */
+/** 22 — STL INDIRME, COK-PARCA (kabul 7 + mimar duzeltme turu): normal urunde parca
+ *  listesi ucu (stl-liste) + tek tek parca indirme (id+dosya; listede olmayan/traversal
+ *  404); dosyasiz urunde acik "yok" notu; sari satirda derleyici ciktisi DEGISMEDI;
+ *  anahtarsiz -> 404; zip YOK. */
 async function test22Stl() {
   const hatalar = [];
-  // Fixture siparisi: R2'de OLAN (test-urun-a) + OLMAYAN (test-urun-b) + sari (oring)
+  // Fixture siparisi: tek parcali (a) + iki parcali (b) + dosyasiz (100) + sari (oring)
   const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
   const sema = JSON.parse(fs.readFileSync(
     path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
   const c = await baslatIstek([
     { id: "test-urun-a", malzeme: "PLA", renk: "Siyah", adet: 1 },
     { id: "test-urun-b", malzeme: "PLA", renk: "Siyah", adet: 1 },
+    { id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 },
     { id: "olcuye-ozel-oring-conta", malzeme: "PLA", renk: "Siyah", adet: 1,
       parametreler: KONF.varsayilanDegerler(sema) },
   ]);
   const no = (c.govde || {}).no;
-  if (!no) { return rapor("22 stl indirme", false, "baslat: " + c.kod + " " + JSON.stringify(c.govde)); }
+  if (!no) { return rapor("22 stl indirme (cok-parca)", false, "baslat: " + c.kod + " " + JSON.stringify(c.govde)); }
 
-  // anahtarsiz -> 404
-  const s0 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=0", null, null);
-  if (s0.kod !== 404) { hatalar.push("anahtarsiz stl: " + s0.kod); }
-  // (a) normal, R2'de VAR: icerik + Content-Disposition '<no>-<id>.stl'
-  const s1 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=0");
+  // anahtarsiz -> 404 (iki uc da)
+  const s0a = await yonetIstek("GET", "/stl-liste?id=test-urun-b", null, null);
+  const s0b = await yonetIstek("GET", "/stl?id=test-urun-b&dosya=govde.stl", null, null);
+  if (s0a.kod !== 404 || s0b.kod !== 404) {
+    hatalar.push("anahtarsiz stl-liste/stl: " + s0a.kod + "/" + s0b.kod);
+  }
+  // (a) parca listesi: b -> 2 parca (adlar+boyut), a -> 1 parca, 100 -> bos + "yok" notu
+  const l1 = await yonetIstek("GET", "/stl-liste?id=test-urun-b");
+  const adlar = ((l1.govde || {}).parcalar || []).map((p) => p.dosya).sort();
+  if (l1.kod !== 200 || adlar.join(",") !== "govde.stl,kapak.stl") {
+    hatalar.push("b parca listesi: " + l1.kod + " " + JSON.stringify(l1.govde).slice(0, 120));
+  }
+  if (((l1.govde || {}).parcalar || []).some((p) => !(p.boyut > 0))) {
+    hatalar.push("parca boyutlari yok: " + JSON.stringify(l1.govde));
+  }
+  const l2 = await yonetIstek("GET", "/stl-liste?id=test-urun-a");
+  if (l2.kod !== 200 || ((l2.govde || {}).parcalar || []).length !== 1) {
+    hatalar.push("a parca listesi: " + JSON.stringify(l2.govde).slice(0, 120));
+  }
+  const l3 = await yonetIstek("GET", "/stl-liste?id=test-urun-100");
+  if (l3.kod !== 200 || ((l3.govde || {}).parcalar || []).length !== 0 ||
+      !(l3.govde.not || "").includes("test-urun-100")) {
+    hatalar.push("dosyasiz urun listesi/notu: " + JSON.stringify(l3.govde).slice(0, 160));
+  }
+  // (b) tek parca indirme + Content-Disposition (siparis_no verilirse one eklenir)
+  const s1 = await yonetIstek("GET", "/stl?id=test-urun-b&dosya=kapak.stl&siparis_no=" + no);
   const cd1 = ((s1.bas || {})["content-disposition"]) || "";
-  if (s1.kod !== 200 || s1.metin !== R2_ICERIK) {
-    hatalar.push("R2 stl indirme: " + s1.kod + " icerik=" + JSON.stringify(s1.metin.slice(0, 40)));
+  if (s1.kod !== 200 || s1.metin !== "R2TESTSTL b kapak parcasi") {
+    hatalar.push("parca indirme: " + s1.kod + " icerik=" + JSON.stringify(s1.metin.slice(0, 40)));
   }
-  if (!cd1.includes(no + "-test-urun-a.stl")) { hatalar.push("Content-Disposition: " + cd1); }
-  // (b) normal, R2'de YOK: 404 + acik not (gizli kaynak bilgisi ICERMEZ)
-  const s2 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=1");
-  if (s2.kod !== 404 || s2.govde.hata !== "dosya-yok" ||
-      !(s2.govde.not || "").includes("test-urun-b")) {
-    hatalar.push("R2'de olmayan id: " + s2.kod + " " + JSON.stringify(s2.govde).slice(0, 160));
+  if (!cd1.includes(no + "-kapak.stl")) { hatalar.push("Content-Disposition: " + cd1); }
+  const s1b = await yonetIstek("GET", "/stl?id=test-urun-a&dosya=test-urun-a.stl");
+  const cd1b = ((s1b.bas || {})["content-disposition"]) || "";
+  if (s1b.kod !== 200 || !cd1b.includes("test-urun-a.stl")) {
+    hatalar.push("tek parcali indirme: " + s1b.kod + " " + cd1b);
   }
-  // (c) sari satir: derleyici ciktisi (mock ic-derle) + IC anahtari + dosya adi
+  // (c) dosya adi dogrulamasi: listede olmayan ad + path traversal -> 404 (govde sizmaz)
+  const k1 = await yonetIstek("GET", "/stl?id=test-urun-b&dosya=olmayan.stl");
+  const k2 = await yonetIstek("GET", "/stl?id=test-urun-b&dosya=..%2Ftest-urun-a%2Ftest-urun-a.stl");
+  const k3 = await yonetIstek("GET", "/stl?id=test-urun-b&dosya=" +
+    encodeURIComponent("../../urunler/x.jpg"));
+  if (k1.kod !== 404 || k2.kod !== 404 || k3.kod !== 404) {
+    hatalar.push("dogrulama: olmayan=" + k1.kod + " traversal=" + k2.kod + "/" + k3.kod +
+      " (hepsi 404 olmali)");
+  }
+  if ((k2.metin || "").includes("R2TESTSTL")) { hatalar.push("traversal icerik SIZDI"); }
+  // (d) sari satir DEGISMEDI: kalem yolu derleyici ciktisi + IC anahtari
   const onceIc = (await mockOku()).icDerleSayisi;
-  const s3 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=2");
+  const s3 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=3");
   const cd3 = ((s3.bas || {})["content-disposition"]) || "";
   const mIc = await mockOku();
   if (s3.kod !== 200 || !s3.metin.includes("MOCKSTL-olcuye-ozel-oring-conta")) {
     hatalar.push("sari stl: " + s3.kod + " icerik=" + JSON.stringify(s3.metin.slice(84, 130)));
   }
   if (!cd3.includes(no + "-olcuye-ozel-oring-conta.stl")) { hatalar.push("sari Content-Disposition: " + cd3); }
-  if (mIc.icDerleSayisi !== onceIc + 1 ||
-      (mIc.sonIcDerle || {}).anahtar !== TEST_IC) {
+  if (mIc.icDerleSayisi !== onceIc + 1 || (mIc.sonIcDerle || {}).anahtar !== TEST_IC) {
     hatalar.push("ic-derle cagrisi/anahtari: " + JSON.stringify(mIc.sonIcDerle));
   }
-  // bilinmeyen kalem -> 404
-  const s4 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=9");
-  if (s4.kod !== 404) { hatalar.push("bilinmeyen kalem: " + s4.kod); }
-  rapor("22 stl indirme", hatalar.length === 0,
-    "R2 var=" + s1.kod + " (" + cd1 + "); R2 yok=404+not; sari=derleyici (" + cd3 +
-    ", IC anahtarli); anahtarsiz=404" +
+  // (e) normal kaleme kalem-yolu artik parca listesine yonlendirir (400), bilinmeyen kalem 404
+  const s4 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=0");
+  if (s4.kod !== 400 || s4.govde.hata !== "parca-listesi-kullan") {
+    hatalar.push("normal kaleme kalem-yolu: " + s4.kod + "/" + (s4.govde || {}).hata +
+      " (400/parca-listesi-kullan olmali)");
+  }
+  const s5 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=9");
+  if (s5.kod !== 404) { hatalar.push("bilinmeyen kalem: " + s5.kod); }
+  rapor("22 stl indirme (cok-parca)", hatalar.length === 0,
+    "liste b=" + adlar.join("+") + ", a=1 parca, dosyasiz=bos+not; indirme CD=" + cd1 +
+    "; olmayan/traversal=404; sari=derleyici (" + cd3 + ", IC anahtarli); anahtarsiz=404" +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 

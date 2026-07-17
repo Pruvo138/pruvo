@@ -88,25 +88,72 @@ def main():
     dogrula("GOC_KOLON_SIPARIS kargo/durum_gecmisi",
             {k[0] for k in d1.GOC_KOLON_SIPARIS} >= {"kargo_kodu", "kargo_firma", "durum_gecmisi"})
 
-    # --- stl-r2-yukle siniflandirma: hatali ad TAHMIN EDILMEZ, uzanti filtresi, idempotens ---
+    # --- stl-r2-yukle siniflandirma (COK-PARCA tasarimi, mimar duzeltme turu):
+    #     <id>--<parca>.stl -> stl/<id>/<parca>.stl ; tek <id>.stl -> stl/<id>/<id>.stl ;
+    #     onek urunler.json id listesinde DEGILSE hatali-ad (tahmin YOK). ---
     idler = {"audi-parca", "vw-tutucu"}
-    dosyalar = ["audi-parca.stl", "vw-tutucu.3mf", "vw-tutucu.STL",  # buyuk uzanti da kabul
-                "bilinmeyen-urun.stl", "audi-parca.png", "notlar.txt"]
+    dosyalar = ["audi-parca.stl",                 # tekli -> normalize klasor
+                "vw-tutucu--govde.stl",           # cok-parca
+                "vw-tutucu--kapak_v2.3MF",        # cok-parca, buyuk uzanti
+                "1002858--oil_wrench.STL",        # kaynak-id oneki (id listesinde YOK) -> hatali
+                "bilinmeyen-urun.stl",            # tekli ama id yok -> hatali
+                "vw-tutucu--.stl",                # bos parca adi -> hatali
+                "audi-parca.png", "notlar.txt"]   # uzanti disi -> sessiz atla
     hedefler, hatali = r2.siniflandir(dosyalar, idler)
     hedef_anahtarlar = {a for _, a in hedefler}
-    dogrula("siniflandir gecerli id'ler yuklenecek",
-            hedef_anahtarlar == {"stl/audi-parca.stl", "stl/vw-tutucu.3mf", "stl/vw-tutucu.stl"},
+    dogrula("siniflandir cok-parca anahtarlari",
+            hedef_anahtarlar == {"stl/audi-parca/audi-parca.stl",
+                                 "stl/vw-tutucu/govde.stl",
+                                 "stl/vw-tutucu/kapak_v2.3mf"},
             str(hedef_anahtarlar))
-    dogrula("siniflandir hatali ad raporlandi (tahmin yok)", hatali == ["bilinmeyen-urun.stl"],
+    dogrula("siniflandir hatali-ad raporu (kaynak-id + bilinmeyen + bos parca)",
+            sorted(hatali) == ["1002858--oil_wrench.STL", "bilinmeyen-urun.stl",
+                               "vw-tutucu--.stl"],
             str(hatali))
-    dogrula("siniflandir png/txt atlandi",
-            "stl/audi-parca.png" not in hedef_anahtarlar and "notlar.txt" not in hedef_anahtarlar)
+    dogrula("siniflandir png/txt sessiz atlandi",
+            not any("png" in a or "txt" in a for a in hedef_anahtarlar))
 
-    # idempotens: ayni boyut -> atla, farkli boyut -> yukle, yok -> yukle
-    r2_liste = {"stl/audi-parca.stl": 1234}
-    dogrula("atlanir: ayni boyut -> True", r2.atlanir("stl/audi-parca.stl", 1234, r2_liste))
-    dogrula("atlanir: farkli boyut -> False", not r2.atlanir("stl/audi-parca.stl", 9999, r2_liste))
-    dogrula("atlanir: yok -> False", not r2.atlanir("stl/vw-tutucu.3mf", 10, r2_liste))
+    # --- idempotens (mimar duzeltme turu KANITI): ardisik iki kosum — ilki yukler,
+    #     IKINCISI atlandi=N yuklendi=0; icerik degisince SADECE o dosya yeniden. ---
+    import tempfile as tf
+    kok_dizin = tf.mkdtemp(prefix="stl-test-")
+    for ad, icerik in [("audi-parca.stl", b"A1"), ("vw-tutucu--govde.stl", b"B1"),
+                       ("vw-tutucu--kapak.stl", b"B2")]:
+        with open(os.path.join(kok_dizin, ad), "wb") as f:
+            f.write(icerik)
+    manifest_yol = os.path.join(kok_dizin, ".manifest.json")
+    yuklenenler = []
+
+    def sahte_yukle(yerel, anahtar):
+        yuklenenler.append(anahtar)
+        return True
+
+    y1, a1, h1 = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
+    dogrula("kosum 1: hepsi yuklendi", y1 == 3 and a1 == 0 and h1 == [] and len(yuklenenler) == 3,
+            "y=%s a=%s h=%s" % (y1, a1, h1))
+    y2, a2, h2 = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
+    dogrula("kosum 2: atlandi=N yuklendi=0 (IDEMPOTENS KANITI)",
+            y2 == 0 and a2 == 3 and len(yuklenenler) == 3,
+            "y=%s a=%s toplam-yukleme=%d" % (y2, a2, len(yuklenenler)))
+    # icerik degisti (ayni boyut degil) -> SADECE o dosya yeniden yuklenir
+    with open(os.path.join(kok_dizin, "vw-tutucu--govde.stl"), "wb") as f:
+        f.write(b"B1-degisti")
+    y3, a3, _ = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
+    dogrula("kosum 3: sadece degisen yeniden", y3 == 1 and a3 == 2 and
+            yuklenenler[-1] == "stl/vw-tutucu/govde.stl",
+            "y=%s a=%s son=%s" % (y3, a3, yuklenenler[-1:]))
+    # ayni boyutta FARKLI icerik de yakalanir (sha1 kiyasi, boyut degil)
+    with open(os.path.join(kok_dizin, "vw-tutucu--kapak.stl"), "wb") as f:
+        f.write(b"XY")  # b"B2" ile ayni boyut (2 bayt)
+    y4, a4, _ = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
+    dogrula("kosum 4: ayni boyut farkli icerik yakalandi (sha1)",
+            y4 == 1 and a4 == 2 and yuklenenler[-1] == "stl/vw-tutucu/kapak.stl",
+            "y=%s a=%s son=%s" % (y4, a4, yuklenenler[-1:]))
+    # kuru kosum manifest'i degistirmez
+    y5, a5, _ = r2.kos(kok_dizin, idler, manifest_yol, kuru=True, yukle_fn=sahte_yukle)
+    dogrula("kuru kosum yazmaz", y5 == 0 and a5 == 3, "y=%s a=%s" % (y5, a5))
+    import shutil
+    shutil.rmtree(kok_dizin)
 
     print("\nSONUC: %d gecti, %d kaldi%s" %
           (gecen[0], kalan[0], "" if kalan[0] else " — HEPSI YESIL"))

@@ -125,7 +125,7 @@ async function liste(env, url) {
       const ur = baskiMap.get(k.id) || {};
       const sema = SEMALAR.get(k.id);
       const parametrik = !!(k.parametreler || ur.parametrik);
-      return {
+      const kayit = {
         kalem: i,
         id: k.id,
         baslik: k.baslik || "",
@@ -135,10 +135,17 @@ async function liste(env, url) {
         parametrik: parametrik,
         parametre_detay: k.parametre_detay || "",
         baski_oneri: baskiOnerisi(k, ur.baski, sema),
-        // Yerel yazdir.py + tarayici indirme icin dosya ucu (anahtar sayfa URL'inden eklenir).
-        stl_ucu: "/api/shop/yonet/stl?siparis_no=" + encodeURIComponent(s.siparis_no) +
-          "&kalem=" + i,
       };
+      // Yerel yazdir.py + tarayici indirme uclari (anahtar sayfa URL'inden eklenir).
+      if (parametrik) {
+        // Sari: siparisteki parametrelerle derleyiciden uretim.
+        kayit.stl_ucu = "/api/shop/yonet/stl?siparis_no=" +
+          encodeURIComponent(s.siparis_no) + "&kalem=" + i;
+      } else {
+        // Normal: COK-PARCA — once liste, sonra parca basina /stl?id=&dosya=.
+        kayit.stl_liste_ucu = "/api/shop/yonet/stl-liste?id=" + encodeURIComponent(k.id);
+      }
+      return kayit;
     });
     let gecmis = [];
     try { gecmis = JSON.parse(s.durum_gecmisi) || []; } catch (e) { gecmis = []; }
@@ -249,27 +256,90 @@ async function kargo(request, env, ctx, telegram) {
                  kargo_firma: firma, kargo_kodu: kod }, 200);
 }
 
-// ---- /stl ---------------------------------------------------------------------
+// ---- /stl + /stl-liste (COK-PARCA tasarimi — mimar duzeltme turu) ---------------
+// R2 duzeni: stl/<urun-id>/<parca-adi> (bir urunun BIRDEN COK parca dosyasi olabilir —
+// norm bu; tools/stl-r2-yukle.py tek adlilari da stl/<id>/<id>.stl'e normalize eder).
+// ZIP YOK: 280 MB'lik dosyalar var, worker'da sikistirma yapilmaz — parcalar tek tek iner.
 
 function tirnaksiz(s) { return String(s || "").replace(/["\r\n]/g, ""); }
 
+const IZINLI_UZANTI = /\.(stl|3mf)$/i;
+
+/** Urunun R2'deki parca dosyalari: [{dosya, boyut}]. */
+async function parcalariListele(env, urunId) {
+  const liste = await env.OZEL_DOSYA.list({ prefix: "stl/" + urunId + "/" });
+  return (liste.objects || []).map((o) => ({
+    dosya: o.key.slice(("stl/" + urunId + "/").length),
+    boyut: o.size,
+  })).filter((p) => p.dosya);
+}
+
+/** GET /yonet/stl-liste?id= -> {id, parcalar:[{dosya,boyut}], not?} */
+async function stlListe(env, url) {
+  const urunId = url.searchParams.get("id") || "";
+  if (!/^[a-z0-9-]{1,120}$/.test(urunId)) { return yjson({ hata: "gecersiz-id" }, 400); }
+  if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
+  const parcalar = await parcalariListele(env, urunId);
+  const govde = { id: urunId, parcalar: parcalar };
+  if (!parcalar.length) {
+    govde.not = "dosya R2 stl/ prefix'inde yok — stl/ klasörü / Drive / gizli kaynak " +
+      "kaydına bak (id: " + urunId + ")";
+  }
+  return yjson(govde, 200);
+}
+
+/** GET /yonet/stl?id=&dosya=[&siparis_no=]  -> tek parca stream (normal urun)
+ *  GET /yonet/stl?siparis_no=&kalem=N       -> SARI satir: derleyiciden uret (DEGISMEDI)
+ *  Dosya adi dogrulamasi: R2 listesinde OLMAYAN ad 404 (path traversal yolu yok). */
 async function stlIndir(env, url) {
   const siparisNo = url.searchParams.get("siparis_no") || "";
-  const kalemStr = url.searchParams.get("kalem");
   const idParam = url.searchParams.get("id") || "";
+  const dosyaParam = url.searchParams.get("dosya") || "";
+
+  // --- Normal urun parcasi: id + dosya ---
+  if (idParam && dosyaParam) {
+    if (!/^[a-z0-9-]{1,120}$/.test(idParam)) { return yjson({ hata: "gecersiz-id" }, 400); }
+    if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
+    // Savunma 1: ayirac/ust-dizin icermesin; uzanti .stl|.3mf olsun.
+    if (dosyaParam.includes("/") || dosyaParam.includes("\\") ||
+        dosyaParam.includes("..") || !IZINLI_UZANTI.test(dosyaParam)) {
+      return yjson({ hata: "dosya-yok" }, 404);
+    }
+    // Savunma 2 (spec): LISTEDE olmayan ad 404 — anahtar dogrudan kurulup GET edilmez.
+    const parcalar = await parcalariListele(env, idParam);
+    const parca = parcalar.find((p) => p.dosya === dosyaParam);
+    if (!parca) {
+      return yjson({
+        hata: "dosya-yok",
+        not: "dosya R2 stl/" + idParam + "/ altinda yok — stl/ klasörü / Drive / gizli " +
+          "kaynak kaydına bak (id: " + idParam + ")",
+      }, 404);
+    }
+    const nesne = await env.OZEL_DOSYA.get("stl/" + idParam + "/" + parca.dosya);
+    if (!nesne) { return yjson({ hata: "dosya-yok" }, 404); }
+    const indirmeAdi = (siparisNo ? tirnaksiz(siparisNo) + "-" : "") + tirnaksiz(parca.dosya);
+    return new Response(nesne.body, {
+      status: 200,
+      headers: {
+        "Content-Type": /\.3mf$/i.test(parca.dosya) ? "model/3mf" : "application/octet-stream",
+        "Content-Disposition": "attachment; filename=\"" + indirmeAdi + "\"",
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+
+  // --- Siparis kalemi yolu (sari uretim; normal kalem parca listesine yonlendirilir) ---
+  const kalemStr = url.searchParams.get("kalem");
   const s = await env.KATALOG.prepare(
     "SELECT siparis_no, urunler FROM siparisler WHERE siparis_no = ?"
   ).bind(siparisNo).first();
   if (!s) { return yjson({ hata: "siparis-yok" }, 404); }
   let satirlar = [];
   try { satirlar = JSON.parse(s.urunler) || []; } catch (e) { satirlar = []; }
-
   let satir = null;
   if (kalemStr != null && kalemStr !== "") {
     const i = parseInt(kalemStr, 10);
     satir = (Number.isInteger(i) && i >= 0) ? satirlar[i] || null : null;
-  } else if (idParam) {
-    satir = satirlar.find((k) => k && k.id === idParam) || null;
   }
   if (!satir) { return yjson({ hata: "kalem-yok" }, 404); }
   const urunId = satir.id;
@@ -305,27 +375,9 @@ async function stlIndir(env, url) {
     });
   }
 
-  // Normal urun: uretim dosyasi OZEL R2 kovasinda (pruvo-ozel), prefix stl/<id>.stl|.3mf.
-  if (!env.OZEL_DOSYA) { return yjson({ hata: "r2-baglanti-yok" }, 503); }
-  for (const uzanti of ["stl", "3mf"]) {
-    const nesne = await env.OZEL_DOSYA.get("stl/" + urunId + "." + uzanti);
-    if (nesne) {
-      return new Response(nesne.body, {
-        status: 200,
-        headers: {
-          "Content-Type": uzanti === "3mf" ? "model/3mf" : "application/octet-stream",
-          "Content-Disposition": "attachment; filename=\"" +
-            tirnaksiz(siparisNo + "-" + urunId) + "." + uzanti + "\"",
-          "Cache-Control": "no-store",
-        },
-      });
-    }
-  }
-  return yjson({
-    hata: "dosya-yok",
-    not: "dosya R2 stl/ prefix'inde yok — stl/ klasörü / Drive / gizli kaynak kaydına bak (id: " +
-      urunId + ")",
-  }, 404);
+  // Normal kalem: parca listesi ucu kullanilir (bir urunun birden cok dosyasi olabilir).
+  return yjson({ hata: "parca-listesi-kullan",
+                 stl_liste_ucu: "/api/shop/yonet/stl-liste?id=" + urunId }, 400);
 }
 
 // ---- yonetim sayfasi (tek dosya, inline) --------------------------------------
@@ -351,6 +403,7 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/durum" && m === "POST") { return durumDegistir(request, env); }
   if (altYol === "/kargo" && m === "POST") { return kargo(request, env, ctx, telegram); }
   if (altYol === "/stl" && m === "GET") { return stlIndir(env, url); }
+  if (altYol === "/stl-liste" && m === "GET") { return stlListe(env, url); }
   return yon404();
 }
 
@@ -427,9 +480,17 @@ async function api(yol,secenek){
 }
 function durumRozet(d){return '<span class="rozet '+esc(d)+'">'+esc(d)+'</span>';}
 function satirHtml(no,k){
- var indir='<a class="indir" href="/api/shop/yonet/stl?siparis_no='+encodeURIComponent(no)+
-  '&kalem='+k.kalem+'&anahtar='+encodeURIComponent(ANAHTAR)+'">'+
-  (k.parametrik?'STL üret + indir':'Üretim dosyası indir')+'</a>';
+ var indir;
+ if(k.parametrik){
+  indir='<a class="indir" href="/api/shop/yonet/stl?siparis_no='+encodeURIComponent(no)+
+   '&kalem='+k.kalem+'&anahtar='+encodeURIComponent(ANAHTAR)+'">STL üret + indir</a>';
+ }else{
+  // COK-PARCA: dugme parca listesini ceker, parcalar tek tek indirilir (zip yok).
+  var kutuId='parca-'+no+'-'+k.kalem;
+  indir='<button class="ikincil" onclick="parcalar(\\''+esc(no)+'\\',\\''+esc(k.id)+
+   '\\',\\''+kutuId+'\\')">Üretim dosyaları</button>'+
+   '<span id="'+kutuId+'"></span>';
+ }
  return '<div class="satir">'+
   '<div class="filrenk">'+esc(k.malzeme)+' · <span class="renk">'+esc(k.renk)+'</span>'+
   ' × '+esc(k.adet)+'</div>'+
@@ -437,6 +498,29 @@ function satirHtml(no,k){
   '<div class="baski">🖨️ '+esc(k.baski_oneri)+'</div>'+
   indir+' <span class="kucuk">id: '+esc(k.id)+'</span>'+
   '</div>';
+}
+function boyutMetni(b){
+ if(!(b>0))return "";
+ if(b>=1048576)return " ("+(b/1048576).toFixed(1)+" MB)";
+ if(b>=1024)return " ("+Math.round(b/1024)+" KB)";
+ return " ("+b+" B)";
+}
+async function parcalar(no,id,kutuId){
+ var kutu=document.getElementById(kutuId);
+ kutu.innerHTML=' yükleniyor…';
+ var r=await api("/stl-liste?id="+encodeURIComponent(id));
+ if(r.kod!==200){kutu.innerHTML=' <span class="hata">liste alınamadı ('+r.kod+')</span>';return;}
+ var p=(r.govde&&r.govde.parcalar)||[];
+ if(!p.length){
+  kutu.innerHTML=' <span class="yok">'+esc((r.govde&&r.govde.not)||"dosya yok")+'</span>';
+  return;
+ }
+ kutu.innerHTML=" "+p.map(function(x){
+  return '<a class="indir" style="margin:2px 4px 2px 0" href="/api/shop/yonet/stl?id='+
+   encodeURIComponent(id)+'&dosya='+encodeURIComponent(x.dosya)+
+   '&siparis_no='+encodeURIComponent(no)+'&anahtar='+encodeURIComponent(ANAHTAR)+'">'+
+   esc(x.dosya)+esc(boyutMetni(x.boyut))+'</a>';
+ }).join("");
 }
 function kartHtml(s){
  var kalem=s.kalemler.map(function(k){return satirHtml(s.siparis_no,k);}).join("");
