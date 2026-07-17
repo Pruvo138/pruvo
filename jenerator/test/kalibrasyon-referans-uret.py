@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """kalibrasyon-senkron.js referans fixture'ini uretir (mimar/muhendis araci).
 
-Konektor + braket + disli (olcuye gore uretec v2 aileleri) icin sema-gecerli
+Konektor + braket + disli (olcuye gore uretec v2 aileleri) + adaptor + kutu +
+kavanoz (yeni sari aileler 1. dalga, 2026-07-17) icin sema-gecerli
 deterministik parametre setlerini GERCEK openscad render'iyla olcer ve
 kalibrasyon-referans.json'a yazar. Referanslar dondurulur: test (node
 kalibrasyon-senkron.js) openscad'siz her yerde kosar.
@@ -22,7 +23,7 @@ sys.path.insert(0, TEST_DIR)
 import dogrula     # noqa: E402
 import stl_hacim   # noqa: E402
 
-AILELER = ["konektor", "braket", "disli"]
+AILELER = ["konektor", "braket", "disli", "adaptor", "kutu", "kavanoz"]
 TOHUM = 42
 RASTGELE_SET = 6
 

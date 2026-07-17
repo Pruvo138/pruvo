@@ -114,9 +114,13 @@
      yerine olcum tablosuyla mimara raporlandi (onizleme/test/eslem-olcum.py).
      DIKKAT — yayin kapisi: bu listeye aile eklemek = butonun o urun sayfalarinda
      MUSTERIYE gorunmesi; main'e merge MIMAR kabulu ister. */
+  /* Yeni sari aileler 1. dalga (2026-07-17, tools/paket-yeni-aileler-1.md):
+     adaptor/kutu/kavanoz bizim ureteclerimiz (pruvo-jenerator), 4d olcumu
+     ile eklendi — yayin yine merge kapisindan gecer. */
   var ONIZLEME_AILELER = ["olcuye-ozel-profil-beam", "olcuye-ozel-oring-conta",
     "olcuye-ozel-baglanti-konektor", "olcuye-ozel-montaj-braketi",
-    "ozel-disli-kramayer-uretimi"];
+    "ozel-disli-kramayer-uretimi", "olcuye-ozel-hortum-adaptoru",
+    "olcuye-ozel-kutu-organizer", "olcuye-ozel-vidali-kavanoz-tapa"];
 
   /* Birim fiyat, tamsayı KURUŞ. Sıra (Okan, 16 Tem): filament katsayısı -> SONRA "Diğer"
      renk +%15 -> sonra boy farkı (TL, sabit ek). Yuvarlama YOK; tek yuvarlama kuruşun ALTINA

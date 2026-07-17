@@ -10,6 +10,35 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
+  // === AILE: adaptor ===
+  function adaptor_uc(cap, gecme, t) {
+    // adaptor.scad sözleşmesi: "dis" = hortumun üzerine geçer (iç çap = cap+0.30),
+    // "ic" = hortumun içine girer (dış çap = cap). Dönüş: [dış R, iç R].
+    if (gecme === "dis") {
+      var ri = (cap + 0.30) / 2;
+      return [ri + t, ri];
+    }
+    return [cap / 2, cap / 2 - t];
+  }
+
+  function adaptor(p) {
+    // Hortum adaptörü / redüksiyon: iki uç manşonu + konik geçiş, döner cidar
+    // kesiti. Kapalı form KESİNDİR (rotate_extrude poligon alan katsayısı dahil);
+    // ölçülen sapma ~%0.00 (2026-07-17 kalibrasyonu).
+    var S = 180; // esleme sabiti Segments
+    var k = (S / 2) * Math.sin(2 * Math.PI / S); // r^2 başına poligon alanı
+    var t = Math.max(p.cidar, 1.2);
+    var u1 = adaptor_uc(p.uc1_cap, p.uc1_gecme, t);
+    var u2 = adaptor_uc(p.uc2_cap, p.uc2_gecme, t);
+    var g = Math.min(Math.max(1.2 * Math.abs(2 * u1[0] - 2 * u2[0]), 6),
+                     0.45 * p.boy);
+    var e = (p.boy - g) / 2;
+    var konik = (u1[0] * u1[0] + u1[0] * u2[0] + u2[0] * u2[0]) / 3 -
+                (u1[1] * u1[1] + u1[1] * u2[1] + u2[1] * u2[1]) / 3;
+    return k * (e * (u1[0] * u1[0] - u1[1] * u1[1]) + g * konik +
+                e * (u2[0] * u2[0] - u2[1] * u2[1]));
+  }
+
   // === AILE: braket ===
   function braket_delik_alani(fn, cap) {
     // OpenSCAD circle(d, $fn) içe çizili çokgen alanı
@@ -708,6 +737,64 @@
       milAlani * toplamYukseklik;
   }
 
+  // === AILE: kavanoz ===
+  function kavanoz_poly() {
+    // esleme sabiti Segments=64: silindir kesitleri 64-gen — r^2 katsayısı
+    var S = 64;
+    return (S / (2 * Math.PI)) * Math.sin(2 * Math.PI / S) * Math.PI;
+  }
+
+  function kavanoz_vrod_dis(d, p, l) {
+    // BOSL2 generic_threaded_rod (bizim trapez profil: derinlik 0.5p, tepe 0.25p,
+    // blunt_start) DIŞ diş hacmi. Model: diş dibi silindiri + sarmal fitil
+    // (kesit alanı 0.3125p², ağırlık merkezi dip+0.2p); blunt_start uç
+    // düzeltmesi 1.04 tur (2026-07-17 kalibrasyonu, 10 ölçümde en kötü %0.07).
+    var k = kavanoz_poly();
+    var rr = d / 2 - p / 2;
+    return k * rr * rr * l +
+           0.3125 * p * p * 2 * Math.PI * (rr + 0.2 * p) *
+           Math.max(0, l / p - 1.04);
+  }
+
+  function kavanoz_kapak_maske(d, p, l) {
+    // Kapağın içinden çıkarılan İÇ diş maskesi ($slop=0.15, BOSL2 internal
+    // büyütmesi + kapak içinde kalan blunt bölgesi dahil) — sabitler kapak
+    // ölçümüne fit edildi (28 ölçümde en kötü %0.46, 2026-07-17).
+    var k = kavanoz_poly();
+    var rr = (d + 0.56 + 0.02 * p) / 2 - p / 2;
+    return k * rr * rr * l +
+           1.05 * 0.3125 * p * p * 2 * Math.PI * (rr + 0.2 * p) *
+           Math.max(0, l / p + 0.20);
+  }
+
+  function kavanoz(p) {
+    // Vidalı kapaklı kavanoz / kör tapa: kavanoz.scad sözleşmesi.
+    // Ölçülen sapma tam ürün ızgarasında en kötü %0.22 (2026-07-17).
+    var k = kavanoz_poly();
+    var D = p.govde_capi;
+    var R = D / 2;
+    var H = p.yukseklik;
+    var pt = p.dis_adimi;
+    var t = Math.max(p.cidar, 1.6);
+    if (p.urun_tipi === "tapa") {
+      var et = Math.max(t, pt / 2 + 1.2);
+      return k * (R + 4) * (R + 4) * 5 +
+             kavanoz_vrod_dis(D, pt, H) -
+             k * (R - et) * (R - et) * H;
+    }
+    var boyun = Math.min(Math.max(8, 3 * pt), 0.4 * H);
+    var rIc = R - t;
+    var rAgiz = R - pt / 2 - t;
+    var rKpk = R + 0.5 + t;
+    var govde = k * R * R * t +
+                k * (R * R - rIc * rIc) * (H - boyun - t) +
+                kavanoz_vrod_dis(D, pt, boyun) -
+                k * rAgiz * rAgiz * boyun;
+    var kapak = k * rKpk * rKpk * (t + boyun) -
+                kavanoz_kapak_maske(D, pt, boyun);
+    return govde + kapak;
+  }
+
   // === AILE: kayis ===
   function kayis_profil_verisi(profil) {
     if (profil === "GT2_3mm") return [3, 1.169, 2.310, 0.940, 1];
@@ -894,6 +981,29 @@
       hacim += alan * hucre * hucre * dz;
     }
     return 2 * hacim;
+  }
+
+  // === AILE: kutu ===
+  function kutu(p) {
+    // Ölçüye özel kutu (kapaklı · bölmeli): kutu.scad sözleşmesi. Tümü dikdörtgen
+    // prizma — kapalı form KESİNDİR (ölçülen sapma %0.000, 2026-07-17).
+    // Bölme duvarı 1.2 mm sabit; etkin adet gözler 15 mm'nin altına inmeyecek
+    // şekilde kırpılır (scad ile birebir). Geçme kapakta bölme 6 mm kısalır
+    // (kapak dudağı payı); kapak = plaka + dudak çerçevesi (et 1.6, tol 0.2).
+    var t = Math.max(p.duvar, 1.2);
+    var W = p.ic_en + 2 * t;
+    var L = p.ic_boy + 2 * t;
+    var H = p.ic_yukseklik + t;
+    var neff = Math.max(0, Math.min(p.bolme_sayisi,
+      Math.floor((p.ic_boy - 15) / (15 + 1.2))));
+    var bolmeH = p.ic_yukseklik - (p.kapak === "gecme" ? 6 : 0);
+    var v = W * L * H - p.ic_en * p.ic_boy * p.ic_yukseklik +
+            neff * p.ic_en * 1.2 * bolmeH;
+    if (p.kapak === "gecme") {
+      v += W * L * t + 6 * ((p.ic_en - 0.4) * (p.ic_boy - 0.4) -
+                            (p.ic_en - 3.6) * (p.ic_boy - 3.6));
+    }
+    return v;
   }
 
   // === AILE: oring ===
@@ -1553,6 +1663,7 @@
   }
 
   return {
+    adaptor: adaptor,
     braket: braket,
     cetvel: cetvel,
     disli: disli,
@@ -1561,8 +1672,10 @@
     jeton: jeton,
     kase: kase,
     kasnak: kasnak,
+    kavanoz: kavanoz,
     kayis: kayis,
     konektor: konektor,
+    kutu: kutu,
     oring: oring,
     pervane: pervane,
     petek: petek,

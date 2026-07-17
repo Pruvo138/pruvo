@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* KALIBRASYON SENKRON TESTI — canli jenerator/hacim.js vs olcuye gore
-   uretec v2 kalibre referanslari (konektor + braket + disli).
+   uretec v2 kalibre referanslari (konektor + braket + disli) + yeni sari
+   aileler 1. dalga (adaptor + kutu + kavanoz, 2026-07-17).
 
    Iki katman:
    1) DONDURULMUS REFERANS (her yerde kosar, openscad gerekmez):
@@ -109,7 +110,7 @@ if (!fs.existsSync(dogrulamaDir)) {
     });
     return s;
   }
-  ["konektor", "braket"].forEach(function (aile) {
+  ["konektor", "braket", "adaptor", "kutu", "kavanoz"].forEach(function (aile) {
     const kaynakYol = path.join(dogrulamaDir, "test", "aileler",
       aile + ".js");
     if (!fs.existsSync(kaynakYol)) {

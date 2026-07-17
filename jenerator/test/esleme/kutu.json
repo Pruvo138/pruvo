@@ -1,0 +1,14 @@
+{
+  "urunId": "olcuye-ozel-kutu-organizer",
+  "scad": "kutu.scad",
+  "fonksiyon": "kutu",
+  "esleme": {
+    "ic_en": "ic_en",
+    "ic_boy": "ic_boy",
+    "ic_yukseklik": "ic_yukseklik",
+    "duvar": "duvar",
+    "kapak": "kapak",
+    "bolme_sayisi": "bolme_sayisi"
+  },
+  "sabit": {}
+}

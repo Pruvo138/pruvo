@@ -1,0 +1,15 @@
+{
+  "urunId": "olcuye-ozel-vidali-kavanoz-tapa",
+  "scad": "kavanoz.scad",
+  "fonksiyon": "kavanoz",
+  "esleme": {
+    "urun_tipi": "urun_tipi",
+    "govde_capi": "govde_capi",
+    "yukseklik": "yukseklik",
+    "dis_adimi": "dis_adimi",
+    "cidar": "cidar"
+  },
+  "sabit": {
+    "Segments": 64
+  }
+}
