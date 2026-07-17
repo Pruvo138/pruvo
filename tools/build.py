@@ -699,6 +699,16 @@ def feed_price(fiyat):
     return raw if raw.isdigit() and int(raw) > 0 else None
 
 
+def feed_id(pid):
+    """Google Merchant 'id'/'mpn' 50 karakter siniri: uzun urun-id'sini kisalt.
+    <=50 ise AYNEN dondur (kisa id'ler DEGISMEZ, churn yok). Uzunsa ilk 41 karakter
+    + '-' + sha1'in ilk 8 hex hanesi = TAM 50 karakter; benzersiz, deterministik,
+    KALICI. NOT: bu yalniz feed kimligidir; product_url/link TAM pid ile kalir."""
+    if len(pid) <= 50:
+        return pid
+    return pid[:41] + "-" + hashlib.sha1(pid.encode("utf-8")).hexdigest()[:8]
+
+
 def images_of(p):
     imgs = p.get("gorseller") or []
     return [i for i in imgs if i]
@@ -1512,6 +1522,7 @@ def render_merchant_feed(products):
             continue                                   # gorselsiz urun feed'e girmez
 
         pid = p["id"]
+        fid = feed_id(pid)                                 # feed kimligi <=50 karakter; URL/link TAM pid ile kalir
         url = product_url(pid)
         title = marka_temiz((p.get("baslik") or "").strip())[:150]
         desc = marka_temiz(re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip())[:5000] or title
@@ -1519,7 +1530,7 @@ def render_merchant_feed(products):
         markalar = p.get("marka") or []
 
         row = [
-            "    <g:id>%s</g:id>" % esc(pid),
+            "    <g:id>%s</g:id>" % esc(fid),
             "    <title>%s</title>" % esc(title),
             "    <description>%s</description>" % esc(desc),
             "    <link>%s</link>" % esc(url),
@@ -1533,7 +1544,7 @@ def render_merchant_feed(products):
             "    <g:price>%s TRY</g:price>" % price,
             # Urunu BIZ uretiyoruz -> marka PRUVO (OEM uyum bilgisi baslik/product_type'ta).
             "    <g:brand>%s</g:brand>" % FEED_BRAND,
-            "    <g:mpn>%s</g:mpn>" % esc(pid),          # GTIN yok; brand+mpn gecerli kimlik cifti
+            "    <g:mpn>%s</g:mpn>" % esc(fid),          # GTIN yok; brand+mpn gecerli kimlik cifti
         ]
         gpc = GOOGLE_PRODUCT_CATEGORY.get(kategori)
         if gpc:
