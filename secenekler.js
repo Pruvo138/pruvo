@@ -75,14 +75,14 @@
   }
 
   /* Parametrik (sarı seri) ürünlerde SELF-SERVİS ÖDEME anahtarı — TEK yerde, front + Worker
-     aynı sabiti okur. Bugün KAPALI. Taban fiyatlar DOLDU (16 Tem, Okan kesin tablosu:
-     17/18; vida hacim hesabı çapa duyarsız olduğundan null kaldı) ama bu anahtar AYRI
-     MİMAR adımı — kabul testi #5 "parametrik dışlama" bunu bekliyor. Altyapı hazır:
-     Worker şema+hacim.js ile sunucu-tarafı yeniden hesabı yapabiliyor (shop/src/
-     parametrik.js + kabul testi 9). AÇMAK İÇİN: MİMAR kararıyla burası true olsun,
-     kabul testi #5 "parametrik doğrulanmış-dahil"e evrilsin. Tek başına taban fiyat
-     girilmesi ödemeyi AÇMAZ — kasıtlı: fiyat girildi diye ödeme kanalı sessizce açılmasın. */
-  var PARAMETRIK_ODEME_ACIK = false;
+     aynı sabiti okur. AÇIK (Okan kararı + mimar, 17 Tem 2026). Ön koşullar sağlandı:
+     taban fiyatlar 18/18 dolu (vida dahil, 100 TL), şema kapısı üretilemez ölçüyü
+     reddediyor (gecerliDegerler/kisitlar), Worker fiyatı şema+hacim.js ile SUNUCUDA
+     yeniden hesaplıyor (shop/src/parametrik.js; istemcinin hacim/fiyat alanları OKUNMAZ).
+     Kabul testi #5 "parametrik kanal": şemalı KABUL, şemasız/fiyatsız RED (WhatsApp'a).
+     KAPATMAK gerekirse: burası false + Worker yeniden deploy (bundle'a gömülü) —
+     tek başına front push'u Worker'ı DEĞİŞTİRMEZ. */
+  var PARAMETRIK_ODEME_ACIK = true;
 
   /* SELF-SERVİS KARTLA ÖDEME anahtarı (sitedeki "Kartla Güvenli Öde" butonu).
      Bugün KAPALI — sebebi teknik değil, TİCARİ: elimizde yalnız iyzico SANDBOX anahtarı var

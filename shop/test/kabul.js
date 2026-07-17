@@ -272,7 +272,10 @@ function d1Kur() {
     "('test-kargo-99','h10',10,'Test Kargo 99 TL','Ev','[]','99 TL',0,''), " +
     "('test-kargo-2352','h11',11,'Test Kargo 2352 TL','Ev','[]','2.352 TL',0,''), " +
     // test 14 (KDV) spec ornegi: 75 PLA + kargo 250 = brut 325,00 -> net 270,83 + KDV 54,17
-    "('test-kdv-75','h12',12,'Test KDV 75 TL','Ev','[]','75 TL',0,'');"
+    "('test-kdv-75','h12',12,'Test KDV 75 TL','Ev','[]','75 TL',0,''), " +
+    // test 5 (parametrik kanal ACIK): id'si GERCEK semayla eslesen sari urun — sunucu
+    // SEMALAR.get(id) ile bulur, fiyati kendisi hesaplar (taban fiyat semadan, 100 TL o-ring).
+    "('olcuye-ozel-oring-conta','h13',13,'Test Oring (semali sari)','Jeneratör','[]','',1,'');"
   );
 }
 
@@ -574,7 +577,7 @@ async function test9ParametrikAltyapi() {
     hatalar.push("wrangler dry-run BASARISIZ: " + ((dry.stderr || "") + (dry.stdout || "")).slice(-400));
   }
 
-  rapor("9 parametrik altyapi (kanal KAPALI, kod hazir)", hatalar.length === 0,
+  rapor("9 parametrik altyapi (kanal ACIK; hesap tek kaynak sunucuda)", hatalar.length === 0,
     "sema kapsami " + listelenen.size + "/" + dizin.size + "; sunucu yeniden hesap=" +
     (sonuc.hata ? "HATA" : kurusMetin(sonuc.birimKurus) + " (istemcinin sahte hacim=1/fiyat=1 " +
      "YOK SAYILDI, konfiguratorle birebir)") + "; red yollari: aralik/bilinmeyen/taban-yok/" +
@@ -941,22 +944,37 @@ async function test15SozlesmeOnayi() {
 }
 
 async function test5Parametrik() {
+  /* KANAL ACIK (mimar karari + Okan onayi, 17 Tem): SEMALI sari urun kartla odenebilir
+     (fiyat sunucudan — birim dogrulugunu test 9 kanitlar); SEMASIZ parametrik ve fiyatsiz
+     urun WhatsApp'a yonlenmeye devam eder, red yollari iyzico oturumu ACMAZ. */
   const onceInit = (await mockOku()).initSayisi;
   const onceSiparis = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
   const c1 = await baslatIstek([{ id: "test-parametrik", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
   const c2 = await baslatIstek([{ id: "test-fiyatsiz", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const araInit = (await mockOku()).initSayisi;
+  const araSiparis = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
+  // Semali sari urun: gecerli parametre seti (konfigurator varsayilanlari) + istemcinin
+  // SAHTE hacim/fiyati -> KABUL edilmeli; sunucu sahte alanlari yok sayar (test 9b).
+  const KONF5 = require(path.join(KOK, "jenerator", "konfigurator.js"));
+  const oringSema = JSON.parse(fs.readFileSync(
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
+  const kalem = { id: "olcuye-ozel-oring-conta", malzeme: "PLA", renk: "Siyah", adet: 1,
+    parametreler: KONF5.varsayilanDegerler(oringSema), hacim_mm3: 1, parametrik_fiyat_kurus: 1 };
+  const c4 = await baslatIstek([kalem]);
   const c3 = await baslatIstek([
-    { id: "test-urun-a", malzeme: "PLA", renk: "Siyah", adet: 1 },
-    { id: "test-parametrik", malzeme: "PLA", renk: "Siyah", adet: 1 }]);   // karisik sepet de RED
-  const sonraInit = (await mockOku()).initSayisi;
-  const sonraSiparis = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
+    { id: "test-urun-a", malzeme: "PLA", renk: "Siyah", adet: 1 }, kalem]); // karisik sepet de KABUL
+  const sonInit = (await mockOku()).initSayisi;
+  const sonSiparis = d1Sorgu("SELECT COUNT(*) AS n FROM siparisler")[0].n;
   const ok = c1.kod === 400 && c1.govde.hata === "parametrik-urun" &&
     c2.kod === 400 && c2.govde.hata === "fiyatsiz-urun" &&
-    c3.kod === 400 && c3.govde.hata === "parametrik-urun" &&
-    onceInit === sonraInit && onceSiparis === sonraSiparis;
-  rapor("5 parametrik dislama", ok,
-    "parametrik=" + c1.kod + "/" + c1.govde.hata + ", fiyatsiz=" + c2.kod + "/" + c2.govde.hata +
-    ", karisik=" + c3.kod + "; iyzico oturumu ACILMADI (" + onceInit + "->" + sonraInit + ")");
+    araInit === onceInit && araSiparis === onceSiparis &&
+    c4.kod === 200 && c3.kod === 200 &&
+    sonInit === araInit + 2 && sonSiparis === araSiparis + 2;
+  rapor("5 parametrik kanal (semali KABUL, semasiz/fiyatsiz RED)", ok,
+    "semasiz=" + c1.kod + "/" + (c1.govde || {}).hata + ", fiyatsiz=" + c2.kod + "/" +
+    (c2.govde || {}).hata + ", semali=" + c4.kod + ", karisik=" + c3.kod +
+    "; iyzico oturumu: redlerde ACILMADI (" + onceInit + "->" + araInit +
+    "), kabullerde +2 (" + araInit + "->" + sonInit + ")");
 }
 
 function test6SirTaramasi() {

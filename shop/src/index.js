@@ -205,10 +205,10 @@ async function baslat(request, env, url, ctx) {
 
     let birimKurus, ekAlanlar = {};
     if (u.parametrik) {
-      // Olcuye ozel (sari seri). SUNUCU-TARAFI YENIDEN HESAP altyapisi hazir (parametrik.js:
-      // sema + hacim.js + taban fiyat; istemcinin hacim/fiyat alanlari OKUNMAZ), ama kanal
-      // SECENEK.PARAMETRIK_ODEME_ACIK ile kapali: taban fiyatlar bos (18/18 null) ve mimar
-      // karari beklemede -> kalem WhatsApp'a yonlendirilir (kabul testi 5).
+      // Olcuye ozel (sari seri). Kanal SECENEK.PARAMETRIK_ODEME_ACIK ile ACIK (17 Tem);
+      // fiyat SUNUCUDA yeniden hesaplanir (parametrik.js: sema + hacim.js + taban fiyat;
+      // istemcinin hacim/fiyat alanlari OKUNMAZ). Anahtar kapatilirsa asagidaki kol
+      // kalemi WhatsApp'a yonlendirir (kabul testi 5).
       if (!SECENEK.PARAMETRIK_ODEME_ACIK) {
         return json({ hata: "parametrik-urun", id: k.id,
                       mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, 400, env);
