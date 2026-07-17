@@ -140,6 +140,13 @@
     color:#fff;
     border-bottom-color:var(--red);   /* aktif kategori = kırmızı vurgu */
   }
+  .cat-home{                          /* "Tümü" ev ikonu butonu — metin butonlarıyla hizalı */
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 14px;
+  }
+  .cat-home svg{display:block}
 
   /* ---------- YARDIM / PARÇA BUL CTA ---------- */
   .help-cta{
@@ -1592,8 +1599,18 @@
     el.innerHTML = "";
     all.forEach(function(c){
       var b = document.createElement("button");
-      b.className = "cat-btn" + (c === activeCat ? " active" : "");
-      b.textContent = c;
+      var evMi = (c === "Tümü");
+      b.className = "cat-btn" + (evMi ? " cat-home" : "") + (c === activeCat ? " active" : "");
+      if(evMi){
+        // "Tümü" yerine ev ikonu (Okan, 18 Tem): tüm ürünlere / ana görünüme dön.
+        // aria-label + title erişilebilirlik + ipucu; işlevi (tam sıfırlama) aynen kalır.
+        b.innerHTML = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">' +
+                      '<path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>';
+        b.setAttribute("aria-label", "Tüm ürünler");
+        b.title = "Tüm ürünler";
+      }else{
+        b.textContent = c;
+      }
       b.onclick = function(){
         activeCat = c;
         if(c === "Tümü"){
