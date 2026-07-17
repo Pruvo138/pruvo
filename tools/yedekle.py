@@ -54,7 +54,8 @@ def main():
             print("yedek:", ad)
 
     if "--sirlar" in sys.argv:
-        for name in (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir"):
+        for name in (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir",
+                     ".onizleme-kapat-anahtar", ".mukerrer-istisna.json"):
             p = os.path.join(ROOT, name)
             if os.path.exists(p):
                 shutil.copy2(p, os.path.join(backup, name))
