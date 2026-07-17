@@ -106,12 +106,12 @@
      (Cloudflare Container, Workers Paid bekliyor) deploy edilip kabul 4e/4g yesillenince
      MIMAR karariyla acilir. Kapaliyken bu degisiklik canlida SIFIR gorunur fark yaratir. */
   var ONIZLEME_3D_ACIK = true;
-  /* Faz D: pilot 2 aileye BIZIM ureteclerimizin 3 ailesi eklendi (konektor/braket/
-     disli v2, pruvo-jenerator; eslemleri PUBLIC jenerator/test/esleme'den uretilir).
-     Okan karari (16 Tem gece) "4d <=%3 gecen HER aile listeye" idi; 13 uyelik-motoru
-     ailesinin OLCUMUNDE hicbiri kriteri TAM saglayamadi (en yakini yay: sinus/ucgen/
-     spiral yesil ama kare boy=62'de %5.2, testere boy=45'te %4.1) — sessizce eklemek
-     yerine olcum tablosuyla mimara raporlandi (onizleme/test/eslem-olcum.py).
+  /* Faz E (Okan karari 16 Tem: onizleme TUM sari ailelerde): 13 uyelik-motoru
+     ailesinin eslem/hacim duzeltme turu sonrasi <=%3 olcum kapisini gecen 12 aile
+     listeye alindi (aile basina 25 set olcumler: onizleme/test/eslem-olcum.py).
+     VIDA yok: fiyat formulu capa duyarsiz, ayri paket (tools/paket-vida-fiyat.md)
+     merge olunca olculup eklenecek. Bazi ailelerde motorda karsiligi olmayan
+     secenekler ONIZLEME_KISITLAR ile onizleme disi (fiyat/siparis etkilenmez).
      DIKKAT — yayin kapisi: bu listeye aile eklemek = butonun o urun sayfalarinda
      MUSTERIYE gorunmesi; main'e merge MIMAR kabulu ister. */
   /* Yeni sari aileler 1. dalga (2026-07-17, tools/paket-yeni-aileler-1.md):
@@ -119,8 +119,24 @@
      ile eklendi — yayin yine merge kapisindan gecer. */
   var ONIZLEME_AILELER = ["olcuye-ozel-profil-beam", "olcuye-ozel-oring-conta",
     "olcuye-ozel-baglanti-konektor", "olcuye-ozel-montaj-braketi",
-    "ozel-disli-kramayer-uretimi", "olcuye-ozel-hortum-adaptoru",
-    "olcuye-ozel-kutu-organizer", "olcuye-ozel-vidali-kavanoz-tapa"];
+    "ozel-disli-kramayer-uretimi",
+    "olcuye-ozel-yay-dalga-flexure", "kisiye-ozel-jeton-cip-madalyon",
+    "olcuye-ozel-ramp-sim-takoz", "olcuye-ozel-cetvel", "olcuye-ozel-huni",
+    "olcuye-ozel-damga-kase", "olcuye-ozel-rulman", "olcuye-ozel-triger-kasnagi",
+    "olcuye-ozel-triger-kayisi", "olcuye-ozel-petek-delikli-panel",
+    "olcuye-ozel-pervane-fan-cark", "olcuye-ozel-izgara-menfez-kapak",
+    "olcuye-ozel-hortum-adaptoru", "olcuye-ozel-kutu-organizer",
+    "olcuye-ozel-vidali-kavanoz-tapa"];
+
+  /* Onizleme secenek kisitlari: uretim motorunda 3D karsiligi olmayan secim
+     degerleri (mimar tablosunda; siparis/fiyat AKISINA DOKUNMAZ, yalniz 3D
+     onizleme bu degerlerle sunulamaz). Worker sema kapisinda reddeder
+     (onizleme-secenek-kisiti), urun sayfasi ayni listeyle onceden uyarir. */
+  var ONIZLEME_KISITLAR = {
+    "olcuye-ozel-cetvel": { tip: ["duz"] },
+    "olcuye-ozel-damga-kase": { sap: ["sapsiz"], bicim: ["dikdortgen"] },
+    "olcuye-ozel-petek-delikli-panel": { mod: ["delikli"] }
+  };
 
   /* Birim fiyat, tamsayı KURUŞ. Sıra (Okan, 16 Tem): filament katsayısı -> SONRA "Diğer"
      renk +%15 -> sonra boy farkı (TL, sabit ek). Yuvarlama YOK; tek yuvarlama kuruşun ALTINA
@@ -309,6 +325,7 @@
     PARAMETRIK_ODEME_ACIK: PARAMETRIK_ODEME_ACIK,
     ONIZLEME_3D_ACIK: ONIZLEME_3D_ACIK,
     ONIZLEME_AILELER: ONIZLEME_AILELER,
+    ONIZLEME_KISITLAR: ONIZLEME_KISITLAR,
     fiyatSayisi: fiyatSayisi,
     fonksiyonelMi: fonksiyonelMi,
     boyFarki: boyFarki,

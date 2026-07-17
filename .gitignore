@@ -76,3 +76,8 @@ kanit/
 
 # pazar fiyat arastirmasi — ticari strateji, public repoya girmez (Drive backup/ta kopyasi var)
 tools/arastirma-sari-fiyat.md
+
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example

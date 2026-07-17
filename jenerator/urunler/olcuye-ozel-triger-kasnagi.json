@@ -7,20 +7,62 @@
       "etiket": "Kayış profili",
       "tip": "secim",
       "secenekler": [
-        {"deger": "gt2_2mm", "etiket": "GT2 2 mm"},
-        {"deger": "gt2_3mm", "etiket": "GT2 3 mm"},
-        {"deger": "gt2_5mm", "etiket": "GT2 5 mm"},
-        {"deger": "htd_3mm", "etiket": "HTD 3M"},
-        {"deger": "htd_5mm", "etiket": "HTD 5M"},
-        {"deger": "htd_8mm", "etiket": "HTD 8M"},
-        {"deger": "t2_5", "etiket": "T2.5"},
-        {"deger": "t5", "etiket": "T5"},
-        {"deger": "t10", "etiket": "T10"},
-        {"deger": "at5", "etiket": "AT5"},
-        {"deger": "mxl", "etiket": "MXL"},
-        {"deger": "xl", "etiket": "XL"},
-        {"deger": "l", "etiket": "L"},
-        {"deger": "40dp", "etiket": "40DP"}
+        {
+          "deger": "gt2_2mm",
+          "etiket": "GT2 2 mm"
+        },
+        {
+          "deger": "gt2_3mm",
+          "etiket": "GT2 3 mm"
+        },
+        {
+          "deger": "gt2_5mm",
+          "etiket": "GT2 5 mm"
+        },
+        {
+          "deger": "htd_3mm",
+          "etiket": "HTD 3M"
+        },
+        {
+          "deger": "htd_5mm",
+          "etiket": "HTD 5M"
+        },
+        {
+          "deger": "htd_8mm",
+          "etiket": "HTD 8M"
+        },
+        {
+          "deger": "t2_5",
+          "etiket": "T2.5"
+        },
+        {
+          "deger": "t5",
+          "etiket": "T5"
+        },
+        {
+          "deger": "t10",
+          "etiket": "T10"
+        },
+        {
+          "deger": "at5",
+          "etiket": "AT5"
+        },
+        {
+          "deger": "mxl",
+          "etiket": "MXL"
+        },
+        {
+          "deger": "xl",
+          "etiket": "XL"
+        },
+        {
+          "deger": "l",
+          "etiket": "L"
+        },
+        {
+          "deger": "40dp",
+          "etiket": "40DP"
+        }
       ],
       "varsayilan": "gt2_2mm",
       "aciklama": "Triger kayışının diş adımı ve profil standardı"
@@ -52,10 +94,22 @@
       "etiket": "Mil bağlantısı",
       "tip": "secim",
       "secenekler": [
-        {"deger": "duz", "etiket": "Düz delik"},
-        {"deger": "kanalli", "etiket": "Kamalı kanal"},
-        {"deger": "altigen", "etiket": "Altıgen"},
-        {"deger": "d_lama", "etiket": "D-lama"}
+        {
+          "deger": "duz",
+          "etiket": "Düz delik"
+        },
+        {
+          "deger": "kanalli",
+          "etiket": "Kamalı kanal"
+        },
+        {
+          "deger": "altigen",
+          "etiket": "Altıgen"
+        },
+        {
+          "deger": "d_lama",
+          "etiket": "D-lama"
+        }
       ],
       "varsayilan": "duz",
       "aciklama": "Mil deliğinin kilitleme ve kesit biçimi"
@@ -76,15 +130,27 @@
       "etiket": "Yan flanş",
       "tip": "secim",
       "secenekler": [
-        {"deger": "iki_taraf", "etiket": "İki taraf"},
-        {"deger": "ust", "etiket": "Yalnız üst"},
-        {"deger": "alt", "etiket": "Yalnız alt"},
-        {"deger": "yok", "etiket": "Flanşsız"}
+        {
+          "deger": "iki_taraf",
+          "etiket": "İki taraf"
+        },
+        {
+          "deger": "ust",
+          "etiket": "Yalnız üst"
+        },
+        {
+          "deger": "alt",
+          "etiket": "Yalnız alt"
+        },
+        {
+          "deger": "yok",
+          "etiket": "Flanşsız"
+        }
       ],
       "varsayilan": "iki_taraf",
       "aciklama": "Kayışın yanal kaçmasını sınırlayan flanş yerleşimi"
     }
   ],
-  "tabanHacimMm3": 1198.0451292515454,
+  "tabanHacimMm3": 1313.0,
   "tabanFiyatTL": 180
 }

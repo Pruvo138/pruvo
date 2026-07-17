@@ -40,9 +40,18 @@
       "etiket": "Yuvarlanma elemanı",
       "tip": "secim",
       "secenekler": [
-        {"deger": "bilya", "etiket": "Bilya"},
-        {"deger": "makara", "etiket": "Makara"},
-        {"deger": "tutmali", "etiket": "Tutmalı"}
+        {
+          "deger": "bilya",
+          "etiket": "Bilya"
+        },
+        {
+          "deger": "makara",
+          "etiket": "Makara"
+        },
+        {
+          "deger": "tutmali",
+          "etiket": "Tutmalı"
+        }
       ],
       "varsayilan": "bilya",
       "aciklama": "İç ve dış bilezik arasında çalışan elemanın biçimi"
@@ -63,13 +72,19 @@
       "etiket": "Flanş",
       "tip": "secim",
       "secenekler": [
-        {"deger": "yok", "etiket": "Flanşsız"},
-        {"deger": "var", "etiket": "Flanşlı"}
+        {
+          "deger": "yok",
+          "etiket": "Flanşsız"
+        },
+        {
+          "deger": "var",
+          "etiket": "Flanşlı"
+        }
       ],
       "varsayilan": "yok",
       "aciklama": "Rulmanı yuva ağzında konumlandıran flanş seçeneği"
     }
   ],
-  "tabanHacimMm3": 4764.633033631262,
+  "tabanHacimMm3": 4137.7,
   "tabanFiyatTL": 200
 }

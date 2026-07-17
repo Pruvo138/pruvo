@@ -64,7 +64,21 @@ def sema_yukle(aile):
         return json.load(f)
 
 
-def rastgele_set(sema, rnd):
+def kisitlar_yukle():
+    """secenekler.js ONIZLEME_KISITLAR (tek kaynak) — musteri sema kapisiyla
+    ayni evrende olculur: kisitli secim degerleri hic uretilmez."""
+    proc = subprocess.run(
+        ["node", "-p", "require(process.argv[1]); JSON.stringify("
+         "(globalThis.PRUVO_SECENEK || {}).ONIZLEME_KISITLAR || {})",
+         os.path.join(REPO, "secenekler.js")],
+        capture_output=True)
+    if proc.returncode != 0:
+        sys.exit("secenekler.js okunamadi: %s" %
+                 proc.stderr.decode("utf-8", "replace"))
+    return json.loads(proc.stdout.decode("utf-8"))
+
+
+def rastgele_set(sema, rnd, kisit):
     s = {}
     for p in sema["parametreler"]:
         tip = p.get("tip", "sayi")
@@ -75,14 +89,21 @@ def rastgele_set(sema, rnd):
         elif tip == "secim":
             secenekler = [x["deger"] if isinstance(x, dict) else x
                           for x in p["secenekler"]]
+            izinli = (kisit or {}).get(p["ad"])
+            if izinli:
+                secenekler = [x for x in secenekler if x in izinli]
             s[p["ad"]] = rnd.choice(secenekler)
         else:
             s[p["ad"]] = p.get("varsayilan", "")
     return s
 
 
-def varsayilan_set(sema):
-    return dict((p["ad"], p["varsayilan"]) for p in sema["parametreler"])
+def varsayilan_set(sema, kisit):
+    s = dict((p["ad"], p["varsayilan"]) for p in sema["parametreler"])
+    for ad, izinli in (kisit or {}).items():
+        if ad in s and s[ad] not in izinli:
+            s[ad] = izinli[0]
+    return s
 
 
 def js_hacimler(fonksiyon, setler):
@@ -107,14 +128,14 @@ def scad_yolu_sec(eslem_aile, sset, paket):
     return os.path.join(paket, scad)
 
 
-def aile_olc(aile, eslem, paket, openscad, set_sayisi, tohumlar):
+def aile_olc(aile, eslem, paket, openscad, set_sayisi, tohumlar, kisit):
     sema = sema_yukle(aile)
     eslem_aile = eslem[aile]
-    setler = [varsayilan_set(sema)]
+    setler = [varsayilan_set(sema, kisit)]
     for tohum in tohumlar:
         rnd = random.Random(tohum)
         for _ in range(set_sayisi):
-            setler.append(rastgele_set(sema, rnd))
+            setler.append(rastgele_set(sema, rnd, kisit))
     js = js_hacimler(sema["hacimFormulu"], setler)
     sonuc = {"aile": aile, "set": len(setler), "enKotu": 0.0,
              "kirmizi": 0, "hata": 0, "ret": 0, "satirlar": []}
@@ -130,13 +151,22 @@ def aile_olc(aile, eslem, paket, openscad, set_sayisi, tohumlar):
                 continue
             stl = os.path.join(tmp, "%s-%d.stl" % (aile, i))
             komut = [openscad, "-o", stl, "--export-format", "binstl"] + \
+                server.OPENSCAD_EK_BAYRAKLAR + \
                 bayraklar + [scad_yolu_sec(eslem_aile, sset, paket)]
             proc = subprocess.run(komut, capture_output=True, timeout=600)
             if proc.returncode != 0 or not os.path.exists(stl):
+                hata_metni = proc.stderr.decode("utf-8", "replace")
+                # server.py'nin 422 siniflandirmasinin AYNISI: uretec assert'i =
+                # kombinasyon uretilemez (musteriye temiz 422) — olcum hatasi degil.
+                if "ERROR: Assertion" in hata_metni or "assert" in hata_metni.lower():
+                    sonuc["uretilemez"] = sonuc.get("uretilemez", 0) + 1
+                    print("  [422 ] %-10s set%-2d uretilemez kombinasyon (%s)" %
+                          (aile, i, json.dumps(sset, ensure_ascii=False)[:90]))
+                    continue
                 sonuc["hata"] += 1
                 print("  [HATA] %-10s set%-2d derleme: %s (%s)" %
-                      (aile, i, proc.stderr.decode("utf-8", "replace")
-                       .strip().splitlines()[-1][:120] if proc.stderr else "?",
+                      (aile, i, hata_metni.strip().splitlines()[-1][:120]
+                       if hata_metni.strip() else "?",
                        json.dumps(sset, ensure_ascii=False)[:90]))
                 continue
             ref = stl_hacim.hacim(stl)
@@ -165,6 +195,7 @@ def main():
 
     paket = paket_topla()
     eslem = server.eslem_yukle(paket)
+    kisitlar = kisitlar_yukle()
     aileler = sorted(eslem.keys()) if args.hepsi else args.aileler
     if not aileler:
         sys.exit("aile verin ya da --hepsi")
@@ -178,15 +209,18 @@ def main():
             print("  [YOK ] %s eslem paketinde yok" % aile)
             ozet.append({"aile": aile, "durum": "eslem-yok"})
             continue
-        s = aile_olc(aile, eslem, paket, openscad, args.set, tohumlar)
+        s = aile_olc(aile, eslem, paket, openscad, args.set, tohumlar,
+                     kisitlar.get(aile))
         if s["kirmizi"] or s["hata"]:
             s["durum"] = "kirmizi"
         elif s["ret"]:
             s["durum"] = "kismi"  # olculenler yesil ama sema bolgesi eksik
         else:
             s["durum"] = "yesil"
-        print("  --> %-10s en kotu %%%.2f, sinir ustu %d/%d, derleme hatasi %d, kapsam disi %d"
-              % (aile, s["enKotu"], s["kirmizi"], s["set"], s["hata"], s["ret"]))
+        print("  --> %-10s en kotu %%%.2f, sinir ustu %d/%d, derleme hatasi %d, "
+              "kapsam disi %d, uretilemez(422) %d"
+              % (aile, s["enKotu"], s["kirmizi"], s["set"], s["hata"], s["ret"],
+                 s.get("uretilemez", 0)))
         ozet.append(s)
     if args.json:
         with io.open(args.json, "w", encoding="utf-8") as f:

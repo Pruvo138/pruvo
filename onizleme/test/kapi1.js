@@ -48,6 +48,61 @@ const AILELER = [
   ["ozel-disli-kramayer-uretimi", (s) => ({
     disli_tipi: "duz", dis_sayisi: 32 + (s % 33), modul: 1 + ((s * 3) % 11) * 0.05,
     kalinlik: 6 + (s % 5) * 0.5, delik_capi: 2 + ((s * 7) % 13) * 0.5 })],
+  // Faz E: nihai liste 17 aile — olcum tum yuzeyde donusumlu.
+  ["olcuye-ozel-yay-dalga-flexure", (s) => ({
+    tip: "dalga", dalga_formu: ["sinus", "kare", "ucgen", "testere", "darbe"][s % 5],
+    serbest_boy: 40 + (s % 81), dis_cap: 15 + ((s * 3) % 46),
+    tel_capi: 1.5 + (s % 6) * 0.5, dalga_boyu: 40 + ((s * 7) % 81) })],
+  ["kisiye-ozel-jeton-cip-madalyon", (s) => ({
+    cap: 20 + (s % 61), kalinlik: 2.5 + ((s * 3) % 56) * 0.1,
+    yazi_stili: ["gomme", "oyma", "kabartma"][s % 3],
+    yuz_sayisi: s % 2 ? "cift" : "tek",
+    kenar_deseni: s % 2 ? "segmentli" : "duz" })],
+  ["olcuye-ozel-ramp-sim-takoz", (s) => ({
+    genislik: 10 + ((s * 3) % 191), uzunluk: 20 + (s % 281),
+    yukseklik: 2 + ((s * 7) % 149), egim_yontemi: "yukseklik",
+    egim_acisi: 4 + (s % 57), ust_yuzey: ["duz", "tirtikli", "basamakli"][s % 3] })],
+  ["olcuye-ozel-cetvel", (s) => ({
+    tip: "duz", sistem: s % 2 ? "inc" : "metrik", uzunluk: 10 + (s % 41),
+    genislik: 20 + ((s * 3) % 21), kalinlik: 2 + (s % 9) * 0.5,
+    isaret_stili: ["kabartma", "oyma", "gomme"][s % 3] })],
+  ["olcuye-ozel-huni", (s) => ({
+    agiz_capi: 40 + ((s * 7) % 161), yukseklik: 30 + (s % 121),
+    uc_capi: 4 + ((s * 3) % 49) * 0.5, uc_boyu: 54 + (s % 107),
+    uc_acisi: (s % 13) * 5 })],
+  ["olcuye-ozel-damga-kase", (s) => ({
+    metin: "PRUVO", yazi_boyutu: 6 + (s % 17) * 0.5, dolgu: 3 + ((s * 3) % 15) * 0.5,
+    bicim: "dikdortgen", kabartma_derinligi: 0.8 + (s % 15) * 0.1, sap: "sapsiz" })],
+  ["olcuye-ozel-rulman", (s) => ({
+    // eleman capi genislige sigacak bolge (bd = (dis-ic)/3 * carpan < genislik)
+    ic_cap: 10 + (s % 10) * 0.5, dis_cap: 28 + (s % 9),
+    genislik: 12 + ((s * 3) % 7) * 0.5,
+    eleman: ["bilya", "makara", "tutmali"][s % 3],
+    bosluk: 0.1 + (s % 5) * 0.05, flans: s % 2 ? "var" : "yok" })],
+  ["olcuye-ozel-triger-kasnagi", (s) => ({
+    profil: ["gt2_2mm", "htd_5mm", "t5", "xl"][s % 4], dis_sayisi: 18 + (s % 63),
+    genislik: 4 + ((s * 3) % 53) * 0.5, mil_baglanti: s % 2 ? "altigen" : "duz",
+    mil_capi: 3 + (s % 5) * 0.5,
+    flans: ["iki_taraf", "ust", "alt", "yok"][s % 4] })],
+  ["olcuye-ozel-triger-kayisi", (s) => ({
+    profil: ["GT2_2mm", "HTD_5mm", "T5", "XL"][s % 4],
+    sekil: s % 2 ? "kapali" : "duz", dis_sayisi: 20 + ((s * 7) % 281),
+    genislik: 3 + (s % 95) * 0.5, dis_taraf: ["ic", "dis", "cift"][s % 3] })],
+  ["olcuye-ozel-petek-delikli-panel", (s) => ({
+    mod: "delikli", desen: ["petek", "yuvarlak", "kare", "sekizgen", "besgen", "ucgen"][s % 6],
+    en: 30 + ((s * 3) % 171), boy: 30 + (s % 171),
+    kalinlik: 1.5 + (s % 14) * 0.5, goz_boyutu: 3 + ((s * 7) % 13) })],
+  ["olcuye-ozel-pervane-fan-cark", (s) => ({
+    cap: 60 + ((s * 7) % 241), kanat_sayisi: 2 + (s % 5),
+    mil_capi: 3 + (s % 19) * 0.5,
+    mil_baglanti: ["duz", "kanalli", "altigen", "d_lama"][s % 4],
+    burun_konisi: ["yok", "ogiv", "parabolik"][s % 3],
+    dis_ring: s % 2 ? "var" : "yok" })],
+  ["olcuye-ozel-izgara-menfez-kapak", (s) => ({
+    tip: ["panjur", "delikli", "kor"][s % 3],
+    delik_sekli: ["petek", "elips", "kare", "sekizgen", "ucgen", "besgen"][s % 6],
+    en: 40 + ((s * 3) % 211), boy: 40 + (s % 211),
+    derinlik: 3 + (s % 35) * 0.5, panjur_acisi: (s % 91) - 45 })],
 ];
 function benzersizIstek() {
   sayac += 1;

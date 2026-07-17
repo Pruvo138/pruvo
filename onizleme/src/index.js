@@ -41,7 +41,9 @@ const GZIP_TAVANI = 2 * 1024 * 1024;   // pakete gore cikti tavani 2 MB
 const HAM_TAVAN = 16 * 1024 * 1024;    // sisme korumasi (gzip oncesi)
 const SINIR_ADET = 10;                 // IP basina dakikada derleme
 const SINIR_PENCERE_MS = 60 * 1000;
-const ONBELLEK_SURUM = "v1";           // cozunurluk/eslem degisirse artir (eski anahtar carpismasin)
+const ONBELLEK_SURUM = "v2";           // cozunurluk/eslem degisirse artir (eski anahtar carpismasin)
+                                       // v2: Faz E — eslem duzeltmeleri (yay Phase, kase gövde,
+                                       // petek/cetvel kisitlari) + textmetrics bayragi
 
 // ---------------------------------------------------------------- yardimcilar
 
@@ -145,6 +147,18 @@ async function olustur(request, env) {
   if (!sonuc.gecerli) {
     return json({ hata: "parametre-araligi",
                   alanlar: Object.keys(sonuc.hatalar || {}) }, 400, env);
+  }
+
+  // ONIZLEME KISITLARI (tek kaynak secenekler.js): uretim motorunda 3D
+  // karsiligi olmayan secim degerleri — siparis akisini degil yalniz
+  // onizlemeyi kisitlar; urun sayfasi ayni listeyle onceden uyarir.
+  const kisitlar = (SECENEK.ONIZLEME_KISITLAR || {})[aile];
+  if (kisitlar) {
+    for (const [ad, izinli] of Object.entries(kisitlar)) {
+      if (p[ad] !== undefined && !izinli.includes(p[ad])) {
+        return json({ hata: "onizleme-secenek-kisiti", alan: ad }, 400, env);
+      }
+    }
   }
 
   const normal = normalizeEt(sema, p);

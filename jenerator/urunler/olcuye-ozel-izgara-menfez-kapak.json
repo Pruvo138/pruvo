@@ -7,9 +7,18 @@
       "etiket": "Ürün tipi",
       "tip": "secim",
       "secenekler": [
-        {"deger": "panjur", "etiket": "Panjur"},
-        {"deger": "delikli", "etiket": "Delikli desen"},
-        {"deger": "kor", "etiket": "Kör kapak"}
+        {
+          "deger": "panjur",
+          "etiket": "Panjur"
+        },
+        {
+          "deger": "delikli",
+          "etiket": "Delikli desen"
+        },
+        {
+          "deger": "kor",
+          "etiket": "Kör kapak"
+        }
       ],
       "varsayilan": "panjur",
       "aciklama": "Hava yönlendiren panjur, delikli yüzey veya tamamen kapalı yüz seçimi"
@@ -19,12 +28,30 @@
       "etiket": "Delik şekli",
       "tip": "secim",
       "secenekler": [
-        {"deger": "petek", "etiket": "Petek"},
-        {"deger": "elips", "etiket": "Elips"},
-        {"deger": "kare", "etiket": "Kare"},
-        {"deger": "sekizgen", "etiket": "Sekizgen"},
-        {"deger": "ucgen", "etiket": "Üçgen"},
-        {"deger": "besgen", "etiket": "Beşgen"}
+        {
+          "deger": "petek",
+          "etiket": "Petek"
+        },
+        {
+          "deger": "elips",
+          "etiket": "Elips"
+        },
+        {
+          "deger": "kare",
+          "etiket": "Kare"
+        },
+        {
+          "deger": "sekizgen",
+          "etiket": "Sekizgen"
+        },
+        {
+          "deger": "ucgen",
+          "etiket": "Üçgen"
+        },
+        {
+          "deger": "besgen",
+          "etiket": "Beşgen"
+        }
       ],
       "varsayilan": "elips",
       "aciklama": "Delikli desen tipinde tekrarlanacak açıklığın biçimi"
@@ -74,6 +101,6 @@
       "aciklama": "Panjur dilimlerinin hava yönlendirme açısı; delikli ve kör tiplerde etkisizdir"
     }
   ],
-  "tabanHacimMm3": 40441.35571514285,
+  "tabanHacimMm3": 24656.0,
   "tabanFiyatTL": 250
 }

@@ -40,10 +40,22 @@
       "etiket": "Mil bağlantısı",
       "tip": "secim",
       "secenekler": [
-        {"deger": "duz", "etiket": "Düz silindir"},
-        {"deger": "kanalli", "etiket": "Kanallı"},
-        {"deger": "altigen", "etiket": "Altıgen"},
-        {"deger": "d_lama", "etiket": "D-lama"}
+        {
+          "deger": "duz",
+          "etiket": "Düz silindir"
+        },
+        {
+          "deger": "kanalli",
+          "etiket": "Kanallı"
+        },
+        {
+          "deger": "altigen",
+          "etiket": "Altıgen"
+        },
+        {
+          "deger": "d_lama",
+          "etiket": "D-lama"
+        }
       ],
       "varsayilan": "duz",
       "aciklama": "Mil deliğinin kilitleme ve kesit biçimi"
@@ -53,9 +65,18 @@
       "etiket": "Burun konisi",
       "tip": "secim",
       "secenekler": [
-        {"deger": "yok", "etiket": "Yok"},
-        {"deger": "ogiv", "etiket": "Ogiv"},
-        {"deger": "parabolik", "etiket": "Parabolik"}
+        {
+          "deger": "yok",
+          "etiket": "Yok"
+        },
+        {
+          "deger": "ogiv",
+          "etiket": "Ogiv"
+        },
+        {
+          "deger": "parabolik",
+          "etiket": "Parabolik"
+        }
       ],
       "varsayilan": "yok",
       "aciklama": "Göbek önündeki akış düzenleyici koni biçimi"
@@ -65,13 +86,19 @@
       "etiket": "Dış ring",
       "tip": "secim",
       "secenekler": [
-        {"deger": "yok", "etiket": "Yok"},
-        {"deger": "var", "etiket": "Var"}
+        {
+          "deger": "yok",
+          "etiket": "Yok"
+        },
+        {
+          "deger": "var",
+          "etiket": "Var"
+        }
       ],
       "varsayilan": "yok",
       "aciklama": "Kanat uçlarını çevreleyen destek halkası"
     }
   ],
-  "tabanHacimMm3": 7863.371484972116,
+  "tabanHacimMm3": 8022.8,
   "tabanFiyatTL": 300
 }

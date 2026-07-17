@@ -269,14 +269,14 @@
 
   // === AILE: huni ===
   function huni(p) {
+    // Uretim motoruna kalibre (Faz E): koni duvari HER YERDE yatay 1.5 mm
+    // (tube id+2*wall — eski model altta 1.2 varsayiyordu); uc borusunun disi
+    // konik: kokte 1.5, ucta 1.2 duvar (od1=id+3, od2=id+2.4, ic silindirik).
     var pi = Math.PI;
     var icUstYaricap = p.agiz_capi / 2;
     var icAltYaricap = p.uc_capi / 2;
-    var disAltYaricap = icAltYaricap + 1.2;
     var disUstYaricap = icUstYaricap + 1.5;
-
-    var ucHacmi = pi * p.uc_boyu *
-      (disAltYaricap * disAltYaricap - icAltYaricap * icAltYaricap);
+    var disAltYaricap = icAltYaricap + 1.5;
 
     var disKoni = pi * p.yukseklik / 3 *
       (disAltYaricap * disAltYaricap +
@@ -287,15 +287,26 @@
        icAltYaricap * icUstYaricap +
        icUstYaricap * icUstYaricap);
 
+    var ucKok = icAltYaricap + 1.5;
+    var ucTip = icAltYaricap + 1.2;
+    var ucHacmi = pi * p.uc_boyu / 3 *
+      (ucKok * ucKok + ucKok * ucTip + ucTip * ucTip) -
+      pi * icAltYaricap * icAltYaricap * p.uc_boyu;
+
+    // Kenar (brim): dis silindir sabit, IC DELIK koni egimini izler (motor
+    // id2 = id1 - 2*slope*kalinlik) — sig genis hunilerde fark %4'e cikiyordu.
     var kenarDisYaricap = disUstYaricap + 4;
+    var egim = (icUstYaricap - icAltYaricap) / p.yukseklik;
+    var kenarIc1 = disUstYaricap - 0.05;
+    var kenarIc2 = kenarIc1 - egim * 1.5;
     var kenarHacmi = pi * 1.5 *
       (kenarDisYaricap * kenarDisYaricap -
-       disUstYaricap * disUstYaricap);
+       (kenarIc1 * kenarIc1 + kenarIc1 * kenarIc2 + kenarIc2 * kenarIc2) / 3);
 
-    // Eğik düzlemin boru cidarından çıkardığı hacim; aralıklar kesimi uçta tutar.
+    // Eğik düzlemin boru cidarından çıkardığı hacim (uçtaki dar kesitte).
     var aci = p.uc_acisi * pi / 180;
-    var ucKesigi = Math.tan(aci) * disAltYaricap * pi *
-      (disAltYaricap * disAltYaricap - icAltYaricap * icAltYaricap);
+    var ucKesigi = Math.tan(aci) * ucTip * pi *
+      (ucTip * ucTip - icAltYaricap * icAltYaricap);
 
     return ucHacmi + disKoni - icKoni + kenarHacmi - ucKesigi;
   }
@@ -352,46 +363,43 @@
     return izgara_cokgen_alani(izgara_cokgen_kirp(cokgen, sinir));
   }
 
-  function izgara_desen_noktalari(sekil, boyut) {
+  function izgara_desen_noktalari(sekil) {
+    // Uretim motorunun desen sekilleri, sabit olcu [8,8]:
+    // yuvarlak cember r4; sekizgen CEVREL 8-gen r=4/cos22.5, KOSELER 0°'da
+    // (BOSL2 circum kendi 22.5° dondurur + motorun 22.5 spin'i koseyi 0'a
+    // getirir); petek IC 6-gen r4 faz 0; besgen r4 faz +18°; ucgen r4 faz 0.
     if (sekil === "kare") {
-      return [
-        [-boyut / 2, -boyut / 2],
-        [boyut / 2, -boyut / 2],
-        [boyut / 2, boyut / 2],
-        [-boyut / 2, boyut / 2]
-      ];
+      return [[-4, -4], [4, -4], [4, 4], [-4, 4]];
     }
-
     var adet = 180;
-    var yaricap = boyut / 2;
+    var yaricap = 4;
+    var faz = 0;
     if (sekil === "sekizgen") {
       adet = 8;
-      yaricap = boyut / (2 * Math.cos(Math.PI / 8));
+      yaricap = 4 / Math.cos(Math.PI / 8);
     } else if (sekil === "petek") {
       adet = 6;
-      yaricap = boyut / (2 * Math.cos(Math.PI / 6));
     } else if (sekil === "besgen") {
       adet = 5;
+      faz = 18 * Math.PI / 180;
     } else if (sekil === "ucgen") {
       adet = 3;
     }
-
     var noktalar = [];
     for (var i = 0; i < adet; i++) {
-      var aci = 2 * Math.PI * i / adet;
+      var aci = faz + 2 * Math.PI * i / adet;
       noktalar.push([yaricap * Math.cos(aci), yaricap * Math.sin(aci)]);
     }
     return noktalar;
   }
 
-  function izgara_delik_alani(p, icEn, icBoy) {
-    var boyut = 8;
-    var aralik = 3;
-    var pitch = boyut + aralik;
-    var dy = p.delik_sekli === "petek" ? pitch * 0.866 : pitch;
-    var yariEn = icEn / 2 - 1;
-    var yariBoy = icBoy / 2 - 1;
-    var temel = izgara_desen_noktalari(p.delik_sekli, boyut);
+  function izgara_delik_alani(p, icYariEn, icYariBoy) {
+    // Motor kafesi: adim [11, 7] (desen 8 + aralik 3; sasirtma satir adimini
+    // 7'ye dusurur), kopya sayisi floor(olcu/adim)+1, merkezli, INDEKS
+    // PARITESI (i+j) cift olanlar kalir (dama deseni). Delikler govde
+    // sinirina degil IC cerceve (insert duvari 2 mm) dikdortgenine kirpilir —
+    // duvar bandindaki kisim insert ile geri doluyor.
+    var temel = izgara_desen_noktalari(p.delik_sekli);
     var tamAlan = izgara_cokgen_alani(temel);
     var minX = Infinity;
     var maxX = -Infinity;
@@ -403,98 +411,74 @@
       minY = Math.min(minY, temel[n][1]);
       maxY = Math.max(maxY, temel[n][1]);
     }
-
-    var nx = Math.ceil(p.en / pitch) + 1;
-    var ny = Math.ceil(p.boy / dy) + 1;
+    var nx = Math.floor(p.en / 11) + 1;
+    var ny = Math.floor(p.boy / 7) + 1;
     var toplam = 0;
-    for (var j = -ny; j <= ny; j++) {
-      var cxKaydir = j % 2 === 0 ? 0 : pitch / 2;
-      var cy = j * dy;
-      for (var i = -nx; i <= nx; i++) {
-        var cx = i * pitch + cxKaydir;
-        if (cx + maxX <= yariEn && cx + minX >= -yariEn &&
-            cy + maxY <= yariBoy && cy + minY >= -yariBoy) {
+    for (var j = 0; j < ny; j++) {
+      var cy = (j - (ny - 1) / 2) * 7;
+      for (var i = 0; i < nx; i++) {
+        if ((i + j) % 2 !== 0) continue;
+        var cx = (i - (nx - 1) / 2) * 11;
+        if (cx + minX >= -icYariEn && cx + maxX <= icYariEn &&
+            cy + minY >= -icYariBoy && cy + maxY <= icYariBoy) {
           toplam += tamAlan;
-        } else if (cx + maxX > -yariEn && cx + minX < yariEn &&
-                   cy + maxY > -yariBoy && cy + minY < yariBoy) {
+        } else if (cx + maxX > -icYariEn && cx + minX < icYariEn &&
+                   cy + maxY > -icYariBoy && cy + minY < icYariBoy) {
           var tasinmis = [];
           for (var q = 0; q < temel.length; q++) {
             tasinmis.push([cx + temel[q][0], cy + temel[q][1]]);
           }
-          toplam += izgara_dikdortgen_kirp_alani(tasinmis, yariEn, yariBoy);
+          toplam += izgara_dikdortgen_kirp_alani(tasinmis, icYariEn, icYariBoy);
         }
       }
     }
     return toplam;
   }
 
-  function izgara_slat_cokgeni(y, z, aci) {
-    var c = Math.cos(aci);
-    var s = Math.sin(aci);
-    var yerel = [[-4.5, -0.8], [4.5, -0.8], [4.5, 0.8], [-4.5, 0.8]];
-    var sonuc = [];
-    for (var i = 0; i < yerel.length; i++) {
-      var v = yerel[i][0];
-      var w = yerel[i][1];
-      sonuc.push([y + v * c - w * s, z + v * s + w * c]);
+  function izgara_panjur_hacmi(p, govdeDerinligi) {
+    // 7 yatay egik cita (motor: 8 hucre "between" dagilimi = 7 cita, dikey
+    // cita yok), kesit kalinligi 2 mm, boy en-4; z 0..H araligina ve ic
+    // cerceveye kirpilir (sayisal z-integrali).
+    var il = p.boy - 4;
+    var aci = p.panjur_acisi * Math.PI / 180;
+    var g = (il - 14) / 8;
+    var adimBoyu = 2 + g;
+    var ilkMerkez = -il / 2 + g + 1;
+    var H = govdeDerinligi;
+    var adim = 60;
+    var dz = H / adim;
+    var tanA = Math.tan(aci);
+    var yariKalinlik = 1 / Math.cos(aci);
+    var alan = 0;
+    for (var s = 0; s < 7; s++) {
+      var merkez = ilkMerkez + s * adimBoyu;
+      for (var k = 0; k < adim; k++) {
+        var z = (k + 0.5) * dz - H / 2;
+        var orta = merkez + z * tanA;
+        var lo = Math.max(orta - yariKalinlik, -il / 2);
+        var hi = Math.min(orta + yariKalinlik, il / 2);
+        if (hi > lo) alan += (hi - lo) * dz;
+      }
     }
-    return sonuc;
-  }
-
-  function izgara_panjur_alani(boy, derinlik, derece) {
-    var aci = derece * Math.PI / 180;
-    var pitch = 6.5;
-    var ny = Math.ceil(boy / pitch) + 1;
-    var sinir = [
-      [-boy / 2, 0],
-      [boy / 2, 0],
-      [boy / 2, derinlik],
-      [-boy / 2, derinlik]
-    ];
-    var slatlar = [];
-    var toplam = 0;
-    for (var j = -ny; j <= ny; j++) {
-      var slat = izgara_slat_cokgeni(j * pitch, derinlik / 2, aci);
-      slatlar.push(slat);
-      toplam += izgara_cokgen_alani(izgara_cokgen_kirp(slat, sinir));
-    }
-
-    for (var k = 0; k + 1 < slatlar.length; k++) {
-      var ortak = izgara_cokgen_kirp(slatlar[k], slatlar[k + 1]);
-      ortak = izgara_cokgen_kirp(ortak, sinir);
-      toplam -= izgara_cokgen_alani(ortak);
-    }
-    return toplam;
-  }
-
-  function izgara_erozyon_alani(en, boy, yaricap, mesafe) {
-    var yeniEn = en - 2 * mesafe;
-    var yeniBoy = boy - 2 * mesafe;
-    var yeniR = Math.max(yaricap - mesafe, 0);
-    return yeniEn * yeniBoy - (4 - Math.PI) * yeniR * yeniR;
+    return alan * (p.en - 4);
   }
 
   function izgara(p) {
-    var cerceveEn = 6;
-    var koseR = 3;
-    var icEn = p.en - 2 * cerceveEn;
-    var icBoy = p.boy - 2 * cerceveEn;
-    var disAlan = izgara_erozyon_alani(p.en, p.boy, koseR, 0);
-    var icAlan = icEn * icBoy;
-    var cerceveAlani = disAlan - icAlan;
+    // Uretim motoruna kalibre (Faz E): govde derinligi min(derinlik, 8)
+    // (insert derinligi tavani); cepecevre insert duvari (2 mm et, 8 mm boy);
+    // kapak plakasi cerceveden 6 mm tasar, 3 mm kalin. Panjur tipinde plaka
+    // YOK (yalniz citalar + insert + kapak).
+    var H = Math.min(p.derinlik, 8);
+    var ringAlani = 4 * (p.en + p.boy) - 16;
+    var kapak = ((p.en + 12) * (p.boy + 12) - p.en * p.boy) * 3;
 
-    var etekDis = izgara_erozyon_alani(p.en, p.boy, koseR, 0.4);
-    var etekIc = izgara_erozyon_alani(p.en, p.boy, koseR, 2.2);
-    var etekHacmi = (etekDis - etekIc) * 8;
-    var hacim = cerceveAlani * p.derinlik + etekHacmi;
+    if (p.tip === "panjur") {
+      return izgara_panjur_hacmi(p, H) + ringAlani * 8 + kapak;
+    }
 
-    if (p.tip === "kor") {
-      hacim += icAlan * p.derinlik;
-    } else if (p.tip === "delikli") {
-      var delikAlani = izgara_delik_alani(p, icEn, icBoy);
-      hacim += (icAlan - delikAlani) * Math.min(p.derinlik, 3);
-    } else {
-      hacim += icEn * izgara_panjur_alani(icBoy, p.derinlik, p.panjur_acisi);
+    var hacim = p.en * p.boy * H + ringAlani * (8 - H) + kapak;
+    if (p.tip === "delikli") {
+      hacim -= izgara_delik_alani(p, (p.en - 4) / 2, (p.boy - 4) / 2) * H;
     }
     return hacim;
   }
@@ -510,7 +494,9 @@
     var govde = Math.PI * yaricap * yaricap * govdeYuksekligi;
     var ustPah = Math.PI * 2 * pah / 3 *
       (yaricap * yaricap + yaricap * ustYaricap + ustYaricap * ustYaricap);
-    var hacim = govde + ustPah;
+    // Motor pah kesigi kesik-koni modelinden capla dogrusal olculen kadar az
+    // malzeme torpuluyor (6 capta olculdu, kalinliktan bagimsiz).
+    var hacim = govde + ustPah + 2.1 * p.cap;
 
     if (p.kenar_deseni === "segmentli") {
       // Sekiz adet 22 derecelik halka diliminin pahlı disk dışında kalan bölümü.
@@ -522,85 +508,59 @@
       hacim += Math.PI * aciOrani * (duzBolum + pahBolumu);
     }
 
-    // Varsayılan "100" yazısı ve dekoratif halkanın ölçeklenen 2B alanı.
-    var yaziBoyutu = p.cap * 0.34;
-    var isaretAlani = Math.PI * (p.cap * 0.82 - 1) + 0.67 * yaziBoyutu * yaziBoyutu;
+    // Yuz basina iki ayri terim (motor renderlarindan cozuldu, 6 cap x 3 stil):
+    // yazi "100" hacmi T capin karesiyle, dekoratif halka OYUGU R capla olcekli.
+    // Halka her stilde COKARILIR (motorda "inset bevel" — kabartmada bile oyuk);
+    // yazi kabartmada eklenir, oyma/gommede cikarilir (ikisi hacimce esdeger).
+    var yaziHacmi = 0.064 * p.cap * p.cap;
+    var halkaOyugu = 3.616 * p.cap - 7.93;
     var yuzler = p.yuz_sayisi === "cift" ? 2 : 1;
 
     if (p.yazi_stili === "kabartma") {
-      hacim += isaretAlani * 0.69 * yuzler;
+      hacim += yuzler * (yaziHacmi - halkaOyugu);
     } else {
-      hacim -= isaretAlani * (yuzler === 2 ? 1.39 : 0.69);
+      hacim -= yuzler * (yaziHacmi + halkaOyugu);
     }
 
     return hacim;
   }
 
   // === AILE: kase ===
-  function kase_knob_hacmi(cap) {
-    var yaricap = 6;
-    var yukseklik = 18;
-    var altYaricap = cap * 0.3;
-    var ustYaricap = cap * 0.5;
-    var dx = ustYaricap - altYaricap;
-    var uzunluk = Math.sqrt(dx * dx + yukseklik * yukseklik);
-    var ux = dx / uzunluk;
-    var uz = yukseklik / uzunluk;
-    var aci = Math.acos(ux);
-    var teget = yaricap / Math.tan(aci / 2);
-    var z1 = yukseklik / 2 - uz * teget;
-    var r1 = ustYaricap - ux * teget;
-    var merkezX = ustYaricap - teget;
-    var merkezZ = yukseklik / 2 - yaricap;
-    var ilkYukseklik = z1 + yukseklik / 2;
-    var konik = Math.PI * ilkYukseklik *
-      (altYaricap * altYaricap + altYaricap * r1 + r1 * r1) / 3;
-    var u1 = z1 - merkezZ;
-    var u2 = yaricap;
-
-    function kase_knob_ilkel(u) {
-      var kok = Math.sqrt(Math.max(0, yaricap * yaricap - u * u));
-      return merkezX * merkezX * u +
-        merkezX * (u * kok + yaricap * yaricap * Math.asin(u / yaricap)) +
-        yaricap * yaricap * u - u * u * u / 3;
-    }
-
-    return konik + Math.PI * (kase_knob_ilkel(u2) - kase_knob_ilkel(u1));
-  }
-
   function kase(p) {
-    var yukseklik = 8;
-    var pah = 2.5;
-    var en = 3.1 * p.yazi_boyutu + 2 * p.dolgu;
-    var boy = p.bicim === "dikdortgen" ?
-      2.6 * p.yazi_boyutu + 2 * p.dolgu : en;
-    var taban;
-
-    if (p.bicim === "yuvarlak") {
-      var altYaricap = en / 2;
-      var ustYaricap = altYaricap - 2;
-      var egimUzunlugu = Math.sqrt(yukseklik * yukseklik + 4);
-      var araYaricap = ustYaricap + pah * 2 / egimUzunlugu;
-      var araYukseklik = yukseklik - pah * yukseklik / egimUzunlugu;
-      var tepeYaricap = ustYaricap - pah;
-      taban = Math.PI * araYukseklik *
-        (altYaricap * altYaricap + altYaricap * araYaricap + araYaricap * araYaricap) / 3;
-      taban += Math.PI * (yukseklik - araYukseklik) *
-        (araYaricap * araYaricap + araYaricap * tepeYaricap + tepeYaricap * tepeYaricap) / 3;
-    } else {
-      taban = yukseklik * (en * boy - 2 * en - 2 * boy + 16 / 3) -
-        2 * pah * pah * yukseklik;
+    // Uretim motoruna kalibre (Faz E): taban, "PRUVO" yazisinin OLCULEN
+    // textmetrics kutusundan turer (genislik 4.78806 x yazi, satir 1.27767 x
+    // yazi), dolgu TOPLAM eklenir (+2 kenar payi), taban 15x10 alt sinirli
+    // kesik piramit (ust-alt fark 4, yukseklik 8). Sabitler motor renderlarina
+    // 12 sette +-2 mm3 oturdu.
+    var en2 = Math.max(15, 4.78806 * p.yazi_boyutu + p.dolgu + 2);
+    var boy2 = Math.max(15, 1.27767 * p.yazi_boyutu + p.dolgu + 2);
+    if (p.bicim !== "dikdortgen") {
+      // kare/yuvarlak: uretim motorunda karsiligi YOK (taban hep yazi
+      // kutusundan dikdortgen) — fiyat icin dikdortgen esdegeri kullanilir,
+      // uretilebilirlik karari mimar/Okan'da.
+      var kenar = Math.max(en2, boy2);
+      en2 = kenar;
+      boy2 = kenar;
     }
+    var en1 = Math.max(10, en2 - 4);
+    var boy1 = Math.max(10, boy2 - 4);
+    var yukseklik = 8;
+    var prizma = yukseklik / 6 * (en1 * boy1 + en2 * boy2 +
+      (en1 + en2) * (boy1 + boy2));
 
-    // Varsayılan kalın yazının ölçülen 2B alanı, yazı boyutunun karesiyle ölçeklenir.
-    var rolyef = 2.1218677380952453 * p.yazi_boyutu * p.yazi_boyutu *
-      p.kabartma_derinligi;
-    var toplam = taban + rolyef;
+    // Dis yuvasi (sap vidasi icin her govdede acilir) + ust kenar pahi.
+    var disYuvasi = 306.9;
+    var kenarPahi = 0.55 * 2 * (en2 + boy2);
+
+    // Kabartma yazi: olculen 2B glif alani 2.1232 x yazi^2.
+    var rolyef = 2.1232 * p.yazi_boyutu * p.yazi_boyutu * p.kabartma_derinligi;
+
+    var toplam = prizma - disYuvasi - kenarPahi + rolyef;
 
     if (p.sap === "sapli") {
-      var topuzCapi = Math.max(en * 0.7, 22);
-      // Dişli mil, gövde yuvası ve topuzla örtüşen bölümün kalibre edilmiş net etkisi.
-      toplam += kase_knob_hacmi(topuzCapi) - 210.720722018491;
+      // Motor sapi parametreden bagimsiz TEK sabit parcadir (ayri basilir,
+      // vidalanir); hacmi renderdan olculdu.
+      toplam += 10337.2;
     }
 
     return toplam;
@@ -608,99 +568,25 @@
 
   // === AILE: kasnak ===
   function kasnak_profil_verisi(profil) {
-    if (profil === "gt2_3mm") return [3, 0.381, 1.169, 2.310, 0.940, "round"];
-    if (profil === "gt2_5mm") return [5, 0.5715, 1.968, 3.952, 1.636, "round"];
-    if (profil === "htd_3mm") return [3, 0.381, 1.289, 2.270, 1.068, "round"];
-    if (profil === "htd_5mm") return [5, 0.5715, 2.199, 3.781, 1.670, "round"];
-    if (profil === "htd_8mm") return [8, 0.6858, 3.607, 6.603, 2.879, "round"];
-    if (profil === "t2_5") return [2.5, 0, 0.700, 1.679, 1.058, "trap"];
-    if (profil === "t5") return [5, 0, 1.190, 3.264, 1.898, "trap"];
-    if (profil === "t10") return [10, 0.93, 2.500, 6.130, 3.758, "trap"];
-    if (profil === "at5") return [5, 0, 1.190, 4.268, 2.574, "trap"];
-    if (profil === "mxl") return [2.032, 0.254, 0.508, 1.321, 0.834, "trap"];
-    if (profil === "xl") return [5.08, 0.254, 1.270, 3.051, 1.467, "trap"];
-    if (profil === "l") return [9.525, 0.381, 1.905, 5.359, 3.439, "trap"];
-    if (profil === "40dp") return [2.073, 0.1778, 0.457, 1.226, 0.655, "trap"];
-    return [2, 0.254, 0.764, 1.494, 0.716, "round"];
-  }
-
-  function kasnak_konveks_kabuk(noktalar) {
-    noktalar.sort(function (a, b) {
-      return a[0] === b[0] ? a[1] - b[1] : a[0] - b[0];
-    });
-    var alt = [];
-    var ust = [];
-    var i;
-
-    function kasnak_capraz(o, a, b) {
-      return (a[0] - o[0]) * (b[1] - o[1]) -
-        (a[1] - o[1]) * (b[0] - o[0]);
-    }
-
-    for (i = 0; i < noktalar.length; i++) {
-      while (alt.length >= 2 && kasnak_capraz(alt[alt.length - 2], alt[alt.length - 1], noktalar[i]) <= 0) {
-        alt.pop();
-      }
-      alt.push(noktalar[i]);
-    }
-    for (i = noktalar.length - 1; i >= 0; i--) {
-      while (ust.length >= 2 && kasnak_capraz(ust[ust.length - 2], ust[ust.length - 1], noktalar[i]) <= 0) {
-        ust.pop();
-      }
-      ust.push(noktalar[i]);
-    }
-    alt.pop();
-    ust.pop();
-    return alt.concat(ust);
-  }
-
-  function kasnak_oluk_alani(veri, disYaricap) {
-    var derinlik = veri[2];
-    var taban = veri[3];
-    var tepe = veri[4];
-    var noktalar = [];
-    var i;
-
-    if (veri[5] === "round") {
-      noktalar.push([disYaricap, -taban / 2]);
-      noktalar.push([disYaricap + 0.4, -taban / 2]);
-      noktalar.push([disYaricap + 0.4, taban / 2]);
-      noktalar.push([disYaricap, taban / 2]);
-      var merkez = disYaricap - derinlik + tepe / 2;
-      for (i = 0; i < 28; i++) {
-        var aci = 2 * Math.PI * i / 28;
-        noktalar.push([
-          merkez + tepe * Math.cos(aci) / 2,
-          tepe * Math.sin(aci) / 2
-        ]);
-      }
-    } else {
-      noktalar.push([disYaricap + 0.2, taban / 2]);
-      noktalar.push([disYaricap + 0.2, -taban / 2]);
-      noktalar.push([disYaricap - derinlik, -tepe / 2]);
-      noktalar.push([disYaricap - derinlik, tepe / 2]);
-    }
-
-    var kabuk = kasnak_konveks_kabuk(noktalar);
-    var sol = disYaricap - derinlik;
-    var adim = derinlik / 256;
-    var alan = 0;
-
-    for (i = 0; i < 256; i++) {
-      var x = sol + (i + 0.5) * adim;
-      var ustY = 0;
-      for (var j = 0; j < kabuk.length; j++) {
-        var a = kabuk[j];
-        var b = kabuk[(j + 1) % kabuk.length];
-        if (x >= Math.min(a[0], b[0]) && x <= Math.max(a[0], b[0]) && a[0] !== b[0]) {
-          var y = a[1] + (b[1] - a[1]) * (x - a[0]) / (b[0] - a[0]);
-          if (y > ustY) ustY = y;
-        }
-      }
-      var daireY = Math.sqrt(Math.max(0, disYaricap * disYaricap - x * x));
-      alan += 2 * Math.min(ustY, daireY) * adim;
-    }
-    return alan;
+    // [adim, kokTipi, k1, k2, k3, disAlanA, disAlanB]
+    // kok cap: "plo" -> 2*(N*adim/(2*pi) - k1); "cf" -> (k2*N^k3/(k1+N^k3))*N.
+    // dis kesme alani A(N) = disAlanA + disAlanB/N — uretim motoru profil
+    // cokgeninin (x'te +0.2 bosluklu olcekli) kok diskiyle kirpilmis alani,
+    // N=18..80 fiti (fit hatasi <= %0.1).
+    if (profil === "gt2_2mm") return [2, "plo", 0.254, 0, 0, 0.845528, 0.977574];
+    if (profil === "gt2_3mm") return [3, "plo", 0.381, 0, 0, 1.876945, 2.419992];
+    if (profil === "gt2_5mm") return [5, "plo", 0.5715, 0, 0, 5.066161, 7.220122];
+    if (profil === "htd_3mm") return [3, "plo", 0.381, 0, 0, 2.048148, 2.298354];
+    if (profil === "htd_5mm") return [5, "plo", 0.5715, 0, 0, 5.765813, 6.340437];
+    if (profil === "htd_8mm") return [8, "plo", 0.6858, 0, 0, 15.876325, 20.726675];
+    if (profil === "t2_5") return [2.5, "cf", 0.7467, 0.796, 1.026, 0.977182, 1.113013];
+    if (profil === "t5") return [5, "cf", 0.6523, 1.591, 1.064, 2.829128, 4.090008];
+    if (profil === "t10") return [10, "plo", 0.93, 0, 0, 11.231049, 13.656377];
+    if (profil === "at5") return [5, "cf", 0.6523, 1.591, 1.064, 3.769152, 8.939298];
+    if (profil === "mxl") return [2.032, "plo", 0.254, 0, 0, 0.556468, 0.675154];
+    if (profil === "xl") return [5.08, "plo", 0.254, 0, 0, 2.651792, 3.269897];
+    if (profil === "l") return [9.525, "plo", 0.381, 0, 0, 7.756754, 9.479382];
+    return [2.073, "plo", 0.1778, 0, 0, 0.457559, 0.524207]; // 40dp
   }
 
   function kasnak_mil_alani(baglanti, cap) {
@@ -711,30 +597,46 @@
       return Math.PI * r * r - kesim;
     }
     if (baglanti === "kanalli") {
-      var kanal = cap <= 5 ? 2 : (cap <= 8 ? 3 : 4);
-      var y0 = Math.sqrt(Math.max(0, r * r - kanal * kanal / 4));
-      var daireSeridi = kanal * y0 / 2 + r * r * Math.asin(kanal / (2 * r));
-      return Math.PI * r * r + kanal * (r + kanal * 0.6) - daireSeridi;
+      // Motor kama olcusu (cap <= 6): genislik 2, dis tasma 1; yuva mil
+      // merkezinden r+1'e uzanan 2 mm'lik serit (daire ici kismi dusulur).
+      var y0 = Math.sqrt(Math.max(0, r * r - 1));
+      var daireSeridi = y0 + r * r * Math.asin(Math.min(1, 1 / r));
+      return Math.PI * r * r + 2 * (r + 1) - daireSeridi;
     }
     return Math.PI * r * r;
   }
 
   function kasnak(p) {
+    // Uretim motoruna kalibre (Faz E): govde = kok cap diski − N x kirpilmis
+    // dis alani; flans SABIT olculu (radyal +1, yukseklik 2, konik yari —
+    // eslem sabitleri), tam disk olarak govde ucuna eklenir; mil deligi
+    // flanslardan da gecer.
     var veri = kasnak_profil_verisi(p.profil);
-    var adim = veri[0];
-    var hatFarki = veri[1];
-    var disYaricap = p.dis_sayisi * adim / (2 * Math.PI) - hatFarki;
-    var flansYaricap = disYaricap + Math.max(adim * 0.6, 1.2);
-    var flansKalinligi = Math.max(adim * 0.5, 1.2);
-    var flansSayisi = p.flans === "iki_taraf" ? 2 : (p.flans === "yok" ? 0 : 1);
-    var olukAlani = kasnak_oluk_alani(veri, disYaricap);
-    var disliAlan = Math.PI * disYaricap * disYaricap - p.dis_sayisi * olukAlani;
-    var milAlani = kasnak_mil_alani(p.mil_baglanti, p.mil_capi);
-    var toplamYukseklik = p.genislik + flansSayisi * flansKalinligi;
+    var N = p.dis_sayisi;
+    var kokCap;
+    if (veri[1] === "plo") {
+      kokCap = 2 * (N * veri[0] / (2 * Math.PI) - veri[2]);
+    } else {
+      kokCap = (veri[3] * Math.pow(N, veri[4]) /
+                (veri[2] + Math.pow(N, veri[4]))) * N;
+    }
+    var r = kokCap / 2;
+    var disAlani = veri[5] + veri[6] / N;
+    var govde = (Math.PI * r * r - N * disAlani) * p.genislik;
 
-    return disliAlan * p.genislik +
-      flansSayisi * Math.PI * flansYaricap * flansYaricap * flansKalinligi -
-      milAlani * toplamYukseklik;
+    var flansSayisi = p.flans === "iki_taraf" ? 2 :
+                      (p.flans === "yok" ? 0 : 1);
+    var flansT = 1;      // radyal kalinlik (eslem sabiti)
+    var flansH = 2;      // yukseklik (eslem sabiti)
+    var duzKisim = flansH * 0.5;  // konik oran 0.5 -> alt yarisi duz
+    var koniKisim = flansH - duzKisim;
+    var flansHacmi = Math.PI * ((r + flansT) * (r + flansT) * duzKisim +
+      koniKisim * (r * r + r * flansT + flansT * flansT / 3));
+
+    var milAlani = kasnak_mil_alani(p.mil_baglanti, p.mil_capi);
+    var toplamYukseklik = p.genislik + flansSayisi * flansH;
+
+    return govde + flansSayisi * flansHacmi - milAlani * toplamYukseklik;
   }
 
   // === AILE: kavanoz ===
@@ -797,66 +699,59 @@
 
   // === AILE: kayis ===
   function kayis_profil_verisi(profil) {
-    if (profil === "GT2_3mm") return [3, 1.169, 2.310, 0.940, 1];
-    if (profil === "GT2_5mm") return [5, 1.968, 3.952, 1.636, 1];
-    if (profil === "HTD_3mm") return [3, 1.289, 2.270, 1.068, 1];
-    if (profil === "HTD_5mm") return [5, 2.199, 3.781, 1.670, 1];
-    if (profil === "HTD_8mm") return [8, 3.607, 6.603, 2.879, 1];
-    if (profil === "T2.5") return [2.5, 0.700, 1.679, 1.058, 0];
-    if (profil === "T5") return [5, 1.190, 3.264, 1.898, 0];
-    if (profil === "T10") return [10, 2.500, 6.130, 3.758, 0];
-    if (profil === "AT5") return [5, 1.190, 4.268, 2.574, 0];
-    if (profil === "MXL") return [2.032, 0.508, 1.321, 0.834, 0];
-    if (profil === "XL") return [5.08, 1.270, 3.051, 1.467, 0];
-    if (profil === "L") return [9.525, 1.905, 5.359, 3.439, 0];
-    if (profil === "40DP") return [2.073, 0.457, 1.226, 0.655, 0];
-    return [2, 0.764, 1.494, 0.716, 1];
-  }
-
-  function kayis_dis_alani(veri) {
-    var derinlik = veri[1];
-    var taban = veri[2];
-    var tepe = veri[3];
-
-    if (!veri[4]) {
-      return derinlik * (taban + tepe) / 2;
-    }
-
-    // SCAD'daki yuvarlak diş, 0,02 mm'lik taban dikdörtgeni ile tepe
-    // çemberinin dışbükey zarfıdır. Aşağıdaki ifade bu zarfın analitik alanıdır.
-    var yariTaban = taban / 2;
-    var yariTepe = tepe / 2;
-    var merkezY = derinlik - yariTepe - 0.01;
-    var uzaklik2 = yariTaban * yariTaban + merkezY * merkezY;
-    var teget = Math.sqrt(uzaklik2 - yariTepe * yariTepe);
-    var birimX = (yariTepe * yariTaban + teget * merkezY) / uzaklik2;
-    var birimY = (-yariTepe * merkezY + teget * yariTaban) / uzaklik2;
-    var tegetY = merkezY + yariTepe * birimY;
-    var aci = Math.atan2(birimY, birimX);
-    var kubbe = yariTaban * tegetY +
-      yariTepe * yariTepe * (Math.PI - 2 * aci) / 2 +
-      merkezY * yariTepe * birimX;
-
-    // Taban karesinin sırtla çakışan yarısı çıkarılmış net diş alanı.
-    return kubbe + taban * 0.01;
+    // [adim, sirt, kokTipi, k1, k2, k3, icA0, icA1, icA2, disA0, disA1, disA2, duzA]
+    // kok cap: "plo" -> 2*(N*adim/(2*pi) - k1); "cf" -> (k2*N^k3/(k1+N^k3))*N.
+    // Dis alanlari uretim motoru profil cokgeninden: ic/dis = kok halkasiyla
+    // kirpilmis alanin A0+A1/N+A2/N^2 fiti (hata <= %1.1), duz = duz kayista
+    // sirt ustune tasan (y>0) cokgen alani (kesin).
+    if (profil === "GT2_2mm") return [2, 0.76, "plo", 0.254, 0, 0, 0.734904, 1.787894, -12.346135, 0.765439, -1.810031, 11.727081, 0.749989];
+    if (profil === "GT2_3mm") return [3, 1.27, "plo", 0.381, 0, 0, 1.702997, 4.224808, -27.782394, 1.772998, -4.321898, 26.932650, 1.737332];
+    if (profil === "GT2_5mm") return [5, 1.88, "plo", 0.5715, 0, 0, 4.753033, 12.323283, -78.723737, 4.951098, -12.586329, 76.472821, 4.850294];
+    if (profil === "HTD_3mm") return [3, 1.19, "plo", 0.381, 0, 0, 1.858082, 4.088259, -27.521427, 1.927122, -4.181622, 26.846448, 1.891949];
+    if (profil === "HTD_5mm") return [5, 1.73, "plo", 0.5715, 0, 0, 5.408236, 11.343827, -76.963091, 5.599792, -11.585657, 75.460968, 5.502307];
+    if (profil === "HTD_8mm") return [8, 2.64, "plo", 0.6858, 0, 0, 15.227946, 34.157007, -207.423709, 15.749144, -34.988415, 205.419696, 15.483139];
+    if (profil === "T2.5") return [2.5, 0.6, "cf", 0.7467, 0.796, 1.026, 0.856875, 2.314517, -18.340511, 0.900878, -2.343922, 18.053486, 0.878625];
+    if (profil === "T5") return [5, 1, "cf", 0.6523, 1.591, 1.064, 2.602511, 8.693867, -70.547409, 2.772912, -8.960470, 72.545072, 2.685744];
+    if (profil === "T10") return [10, 2, "plo", 0.93, 0, 0, 10.631378, 31.409879, -270.878428, 11.281598, -32.376914, 278.370820, 10.949263];
+    if (profil === "AT5") return [5, 1, "cf", 0.6523, 1.591, 1.064, 3.528698, 14.243040, -82.142466, 3.736307, -14.515798, 82.250290, 3.630642];
+    if (profil === "MXL") return [2.032, 0.64, "plo", 0.254, 0, 0, 0.472983, 1.433638, -11.576045, 0.501182, -1.470626, 11.594788, 0.486797];
+    if (profil === "XL") return [5.08, 1.03, "plo", 0.254, 0, 0, 2.425625, 7.841742, -69.694186, 2.590962, -8.089998, 71.699847, 2.506460];
+    if (profil === "L") return [9.525, 1.66, "plo", 0.381, 0, 0, 7.264542, 24.868803, -233.807732, 7.815838, -25.754195, 243.182419, 7.533702];
+    return [2.073, 0.74, "plo", 0.1778, 0, 0, 0.382993, 1.287290, -11.572337, 0.410426, -1.317344, 11.548995, 0.396471]; // 40DP
   }
 
   function kayis(p) {
+    // Uretim motoruna kalibre (Faz E): kapali kayis = kok capinda sirt halkasi
+    // + ic/dis dislerin halkayla ortusmeyen cokgen alanlari; duz kayis =
+    // uzunluk x sirt dikdortgeni + y>0 dis alanlari. Eski model dis profil
+    // yaklastirmasi ve sabit sirt formulu kullaniyordu (sapma %22'ye kadar).
     var veri = kayis_profil_verisi(p.profil);
+    var N = p.dis_sayisi;
     var adim = veri[0];
-    var derinlik = veri[1];
-    var sirt = Math.max(derinlik * 0.7, 0.8);
-    var uzunluk = p.dis_sayisi * adim;
-    var sirtAlani = uzunluk * sirt;
+    var sirt = veri[1];
+    var icDis = p.dis_taraf !== "dis";   // ic | cift
+    var disDis = p.dis_taraf !== "ic";   // dis | cift
+    var alan;
 
     if (p.sekil === "kapali") {
-      if (p.dis_taraf === "ic") sirtAlani += Math.PI * sirt * sirt;
-      if (p.dis_taraf === "dis") sirtAlani -= Math.PI * sirt * sirt;
+      var kokCap;
+      if (veri[2] === "plo") {
+        kokCap = 2 * (N * adim / (2 * Math.PI) - veri[3]);
+      } else {
+        kokCap = (veri[4] * Math.pow(N, veri[5]) /
+                  (veri[3] + Math.pow(N, veri[5]))) * N;
+      }
+      var r = kokCap / 2;
+      alan = Math.PI * ((r + sirt) * (r + sirt) - r * r);
+      if (icDis) alan += N * (veri[6] + veri[7] / N + veri[8] / (N * N));
+      if (disDis) alan += N * (veri[9] + veri[10] / N + veri[11] / (N * N));
+    } else {
+      alan = N * adim * sirt;
+      var taraf = (icDis ? 1 : 0) + (disDis ? 1 : 0);
+      alan += N * veri[12] * taraf;
     }
 
-    var tarafSayisi = p.dis_taraf === "cift" ? 2 : 1;
-    var disAlani = p.dis_sayisi * tarafSayisi * kayis_dis_alani(veri);
-    return (sirtAlani + disAlani) * p.genislik;
+    return alan * p.genislik;
   }
 
   // === AILE: konektor ===
@@ -1026,188 +921,52 @@
   }
 
   // === AILE: pervane ===
-  function pervane_profil(cap, milCapi, istasyon) {
-    var np = 48;
-    var yaricap = cap / 2;
-    var gobekYaricapi = (milCapi + 9) / 2;
-    var kok = gobekYaricapi * 0.85;
-    var r = kok + (yaricap - kok) * istasyon / 6;
-    var oran = (r - kok) / (yaricap - kok);
-    var kord = yaricap * (0.30 - 0.13 * oran);
-    var beta = Math.min(Math.atan((cap * 0.9) / (2 * Math.PI * Math.max(r, 1))),
-      58 * Math.PI / 180);
-    var cb = Math.cos(-beta);
-    var sb = Math.sin(-beta);
-    var taban = (0.7 / 2) / Math.max(yaricap * 0.17, 0.1);
-    var noktalar = [];
-    var alt = [];
-    var i;
-
-    for (i = 0; i <= np; i++) {
-      var x = 0.5 * (1 - Math.cos(Math.PI * i / np));
-      var yt = Math.max(5 * 0.12 * (0.2969 * Math.sqrt(x) - 0.1260 * x -
-        0.3516 * x * x + 0.2843 * x * x * x - 0.1036 * x * x * x * x), taban);
-      var yc = x < 0.4 ? 0.02 / 0.16 * (0.8 * x - x * x) :
-        0.02 / 0.36 * (0.2 + 0.8 * x - x * x);
-      var dyc = x < 0.4 ? 0.02 / 0.16 * (0.8 - 2 * x) :
-        0.02 / 0.36 * (0.8 - 2 * x);
-      var th = Math.atan(dyc);
-      var ux = x - yt * Math.sin(th);
-      var uy = yc + yt * Math.cos(th);
-      var lx = x + yt * Math.sin(th);
-      var ly = yc - yt * Math.cos(th);
-      var uKord = (ux - 0.25) * kord;
-      var uKal = uy * kord;
-      var lKord = (lx - 0.25) * kord;
-      var lKal = ly * kord;
-      noktalar.push([uKord * cb - uKal * sb, uKord * sb + uKal * cb]);
-      alt.push([lKord * cb - lKal * sb, lKord * sb + lKal * cb]);
-    }
-    for (i = np; i >= 0; i--) noktalar.push(alt[i]);
-    return noktalar;
+  function pervane_kanat_tablosu(cap) {
+    // Kanat hacmi motor renderlarindan OLCULMUS tablo (cap 60..300, 15'er mm;
+    // kanat sayisindan/milden bagimsizligi olculdu, dogrusal ara deger).
+    // Kapali-form NACA modeli motorun kanat kirpma/fairing zinciriyle buyuk
+    // capta ayrisiyordu (%28'e kadar) — disli konik tablosu deseni uygulanir.
+    var tablo = [118.3, 243.2, 433.2, 703.1, 1065.0, 1477.6, 1958.0, 2507.9,
+      3125.6, 3810.9, 4562.2, 5382.0, 6265.4, 7212.5, 8222.1, 9293.0, 10422.9];
+    var x = (Math.min(Math.max(cap, 60), 300) - 60) / 15;
+    var i = Math.min(Math.floor(x), tablo.length - 2);
+    return tablo[i] + (tablo[i + 1] - tablo[i]) * (x - i);
   }
 
-  function pervane_ara_profil(a, b, t) {
-    var sonuc = [];
-    for (var i = 0; i < a.length; i++) {
-      sonuc.push([a[i][0] + (b[i][0] - a[i][0]) * t,
-        a[i][1] + (b[i][1] - a[i][1]) * t]);
-    }
-    return sonuc;
-  }
-
-  function pervane_cokgen_alani(noktalar) {
-    var ikiAlan = 0;
-    for (var i = 0; i < noktalar.length; i++) {
-      var j = (i + 1) % noktalar.length;
-      ikiAlan += noktalar[i][0] * noktalar[j][1] - noktalar[j][0] * noktalar[i][1];
-    }
-    return Math.abs(ikiAlan) / 2;
-  }
-
-  function pervane_kirp(noktalar, eksen, sinir, kucukTaraf) {
-    var sonuc = [];
-    for (var i = 0; i < noktalar.length; i++) {
-      var a = noktalar[i];
-      var b = noktalar[(i + 1) % noktalar.length];
-      var aIc = kucukTaraf ? a[eksen] <= sinir : a[eksen] >= sinir;
-      var bIc = kucukTaraf ? b[eksen] <= sinir : b[eksen] >= sinir;
-      if (aIc) sonuc.push(a);
-      if (aIc !== bIc) {
-        var t = (sinir - a[eksen]) / (b[eksen] - a[eksen]);
-        sonuc.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]);
-      }
-    }
-    return sonuc;
-  }
-
-  function pervane_kanat_hacmi(cap, milCapi) {
-    var yaricap = cap / 2;
-    var gobekYaricapi = (milCapi + 9) / 2;
-    var kok = gobekYaricapi * 0.85;
-    var dr = (yaricap - kok) / 6;
-    var profiller = [];
-    var toplam = 0;
-    var i;
-    for (i = 0; i <= 6; i++) profiller.push(pervane_profil(cap, milCapi, i));
-    for (i = 0; i < 6; i++) {
-      var orta = pervane_ara_profil(profiller[i], profiller[i + 1], 0.5);
-      toplam += dr * (pervane_cokgen_alani(profiller[i]) +
-        4 * pervane_cokgen_alani(orta) + pervane_cokgen_alani(profiller[i + 1])) / 6;
-    }
-
-    // Kanadın göbek silindiri içinde kalan kök parçasını kesit kırpmasıyla çıkar.
-    var adimSayisi = 48;
-    var ortusen = 0;
-    for (i = 0; i < adimSayisi; i++) {
-      var r = kok + (gobekYaricapi - kok) * (i + 0.5) / adimSayisi;
-      var yer = (r - kok) / dr;
-      var bolum = Math.min(5, Math.max(0, Math.floor(yer)));
-      var t = yer - bolum;
-      var kesit = pervane_ara_profil(profiller[bolum], profiller[bolum + 1], t);
-      var ySinir = Math.sqrt(Math.max(0, gobekYaricapi * gobekYaricapi - r * r));
-      kesit = pervane_kirp(kesit, 0, ySinir, true);
-      kesit = pervane_kirp(kesit, 0, -ySinir, false);
-      kesit = pervane_kirp(kesit, 1, 8, true);
-      kesit = pervane_kirp(kesit, 1, -8, false);
-      ortusen += pervane_cokgen_alani(kesit);
-    }
-    ortusen *= (gobekYaricapi - kok) / adimSayisi;
-    return toplam - ortusen;
-  }
-
-  function pervane_delik_sinir(baglanti, cap, aci) {
+  function pervane_delik_alani(baglanti, cap) {
+    // Mil yuvasi kesit alani (motor bore maskeleriyle birebir kapali formlar).
     var r = cap / 2;
-    if (baglanti === "altigen") {
-      var donem = Math.PI / 3;
-      var delta = ((aci + Math.PI / 6) % donem + donem) % donem - Math.PI / 6;
-      return r / Math.cos(delta);
-    }
+    if (baglanti === "altigen") return Math.sqrt(3) * cap * cap / 2;
     if (baglanti === "d_lama") {
-      var ca = Math.cos(aci);
-      return ca > 0.7 ? 0.7 * r / ca : r;
+      var kesim = r * r * Math.acos(0.7) - 0.7 * r * r * Math.sqrt(1 - 0.49);
+      return Math.PI * r * r - kesim;
     }
-    if (baglanti === "kanalli" && Math.sin(aci) > 0) {
-      var kanal = cap <= 5 ? 2 : 3;
-      var caMutlak = Math.abs(Math.cos(aci));
-      var xSinir = caMutlak < 1e-9 ? Infinity : kanal / (2 * caMutlak);
-      var ySinir = (r + kanal) / Math.sin(aci);
-      return Math.max(r, Math.min(xSinir, ySinir));
+    if (baglanti === "kanalli") {
+      // DIN kama tablosu: cap<=6 [2,1.0], <=8 [2,1.2], <=10 [3,1.4], <=12 [3,1.8].
+      var kw = cap <= 6 ? [2, 1.0] : cap <= 8 ? [2, 1.2] :
+               cap <= 10 ? [3, 1.4] : [3, 1.8];
+      var yariW = kw[0] / 2;
+      var seritIci = yariW * Math.sqrt(Math.max(0, r * r - yariW * yariW)) +
+        r * r * Math.asin(Math.min(1, yariW / r));
+      return Math.PI * r * r + kw[0] * (r + kw[1]) - seritIci;
     }
-    return r;
-  }
-
-  function pervane_delik_alani(baglanti, cap, disYaricap) {
-    var n = 96;
-    var toplam = 0;
-    for (var i = 0; i < n; i++) {
-      var aci = 2 * Math.PI * (i + 0.5) / n;
-      var sinir = Math.min(disYaricap, pervane_delik_sinir(baglanti, cap, aci));
-      toplam += sinir * sinir;
-    }
-    return Math.PI * toplam / n;
-  }
-
-  function pervane_spinner_hacmi(tip, milBaglanti, milCapi, gobekYaricapi) {
-    if (tip === "yok") return 0;
-    var yukseklik = gobekYaricapi * 2 * 0.9;
-    var toplam = 0;
-    var delik = 0;
-    for (var i = 0; i < 12; i++) {
-      var t0 = i / 12;
-      var t1 = (i + 1) / 12;
-      var r0 = tip === "ogiv" ? gobekYaricapi * Math.sqrt(1 - t0 * t0) :
-        gobekYaricapi * (1 - t0 * t0);
-      var r1 = tip === "ogiv" ? gobekYaricapi * Math.sqrt(1 - t1 * t1) :
-        gobekYaricapi * (1 - t1 * t1);
-      var ic0 = gobekYaricapi * (1 - t0);
-      var ic1 = gobekYaricapi * (1 - t1);
-      var dz = yukseklik / 12;
-      // SCAD profil çokgeni eğriyi başlangıç-bitiş kirişiyle kapatır.
-      toplam += Math.PI * dz * (r0 * r0 + r0 * r1 + r1 * r1 -
-        ic0 * ic0 - ic0 * ic1 - ic1 * ic1) / 3;
-      for (var j = 0; j < 4; j++) {
-        var u = (j + 0.5) / 4;
-        var rAra = r0 + (r1 - r0) * u;
-        var icAra = ic0 + (ic1 - ic0) * u;
-        delik += (pervane_delik_alani(milBaglanti, milCapi, rAra) -
-          pervane_delik_alani(milBaglanti, milCapi, icAra)) * dz / 4;
-      }
-    }
-    return toplam - delik;
+    return Math.PI * r * r;
   }
 
   function pervane(p) {
-    var gobekYaricapi = (p.mil_capi + 9) / 2;
-    var gobek = Math.PI * gobekYaricapi * gobekYaricapi * 16;
-    var delik = pervane_delik_alani(p.mil_baglanti, p.mil_capi, Infinity) * 16;
-    var toplam = gobek - delik + p.kanat_sayisi * pervane_kanat_hacmi(p.cap, p.mil_capi);
-    toplam += pervane_spinner_hacmi(p.burun_konisi, p.mil_baglanti,
-      p.mil_capi, gobekYaricapi);
+    // Uretim motoruna kalibre (Faz E): govde SABIT (cap 14, boy 16 — mil
+    // capina bagli degil); mil yuvasi yalniz govde boyunca; burun konisi
+    // SABIT parca (govde ustune oturur, hacimler renderdan olculdu); dis ring
+    // = ic capi pervane capinda, 1.8 duvarli, 10 mm boy, 0.4 pahli boru.
+    var gobek = Math.PI * 49 * 16;
+    var delik = pervane_delik_alani(p.mil_baglanti, p.mil_capi) * 16;
+    var toplam = gobek - delik + p.kanat_sayisi * pervane_kanat_tablosu(p.cap);
+    if (p.burun_konisi === "ogiv") toplam += 1796.2;
+    if (p.burun_konisi === "parabolik") toplam += 1706.9;
     if (p.dis_ring === "var") {
-      var yaricap = p.cap / 2;
-      var ringEni = Math.max(yaricap * 0.17 * 0.5, 2);
-      toplam += 2 * Math.PI * (yaricap + ringEni / 2) * ringEni * 16 * 0.6;
+      var r = p.cap / 2;
+      toplam += Math.PI * ((r + 1.8) * (r + 1.8) - r * r) * 10 -
+        2 * Math.PI * 0.16 * (2 * r + 1.8);
     }
     return toplam;
   }
@@ -1245,15 +1004,10 @@
           var t;
           if (kenar < 2) {
             t = (sinirlar[kenar] - a[0]) / (b[0] - a[0]);
-            var dikey = [sinirlar[kenar], a[1] + t * (b[1] - a[1])];
-            if (aIceride) cokgen.push(dikey);
-            else cokgen.push(dikey);
-          }
-          else {
+            cokgen.push([sinirlar[kenar], a[1] + t * (b[1] - a[1])]);
+          } else {
             t = (sinirlar[kenar] - a[1]) / (b[1] - a[1]);
-            var yatay = [a[0] + t * (b[0] - a[0]), sinirlar[kenar]];
-            if (aIceride) cokgen.push(yatay);
-            else cokgen.push(yatay);
+            cokgen.push([a[0] + t * (b[0] - a[0]), sinirlar[kenar]]);
           }
         }
         if (bIceride) cokgen.push(b);
@@ -1269,91 +1023,98 @@
     return Math.abs(ikiAlan) / 2;
   }
 
-  function petek(p) {
-    var aralik = 4;
-    var s = p.goz_boyutu;
-    var pitch = s + aralik;
-    var inset = s / 2 + 0.6;
-    var yariEn = p.en / 2 - inset;
-    var yariBoy = p.boy / 2 - inset;
+  function petek_desen_cokgeni(desen, goz) {
+    // Uretim motorunun desen sekilleri (yaricap/aci duzeni birebir):
+    // petek: 6-gen r=goz/2 spin 0; sekizgen: cevrel 8-gen r/cos22.5, KOSELER
+    // 0°'da (BOSL2 circum kendi 22.5° dondurur + motorun 22.5 spin'i toplam
+    // koseyi 0'a getirir — render dokumuyle dogrulandi, bbox=2r/cos22.5);
+    // besgen: 5-gen -18°; ucgen: 3-gen 0°; yuvarlak: cember; kare: kare.
+    var r = goz / 2;
     var noktalar = [];
     var adet;
-    var yaricap;
-
-    if (p.desen === "kare") {
-      noktalar = [[-s / 2, -s / 2], [s / 2, -s / 2],
-        [s / 2, s / 2], [-s / 2, s / 2]];
-    } else {
-      if (p.desen === "petek") {
-        adet = 6;
-        yaricap = s / (2 * Math.cos(Math.PI / 6));
-      } else if (p.desen === "sekizgen") {
-        adet = 8;
-        yaricap = s / (2 * Math.cos(Math.PI / 8));
-      } else if (p.desen === "besgen") {
-        adet = 5;
-        yaricap = s / 2;
-      } else if (p.desen === "ucgen") {
-        adet = 3;
-        yaricap = s / 2;
-      } else {
-        adet = 180;
-        yaricap = s / 2;
-      }
-      for (var k = 0; k < adet; k++) {
-        var aci = 2 * Math.PI * k / adet;
-        noktalar.push([yaricap * Math.cos(aci), yaricap * Math.sin(aci)]);
-      }
+    var yaricap = r;
+    var faz = 0;
+    if (desen === "kare") {
+      return [[-r, -r], [r, -r], [r, r], [-r, r]];
     }
+    if (desen === "petek") {
+      adet = 6;
+    } else if (desen === "sekizgen") {
+      adet = 8;
+      yaricap = r / Math.cos(Math.PI / 8);
+    } else if (desen === "besgen") {
+      adet = 5;
+      faz = -18 * Math.PI / 180;
+    } else if (desen === "ucgen") {
+      adet = 3;
+    } else {
+      adet = 180; // yuvarlak
+    }
+    for (var i = 0; i < adet; i++) {
+      var aci = faz + 2 * Math.PI * i / adet;
+      noktalar.push([yaricap * Math.cos(aci), yaricap * Math.sin(aci)]);
+    }
+    return noktalar;
+  }
 
-    var tamIkiAlan = 0;
+  function petek(p) {
+    var noktalar = petek_desen_cokgeni(p.desen, p.goz_boyutu);
     var minX = Infinity;
     var maxX = -Infinity;
     var minY = Infinity;
     var maxY = -Infinity;
+    var tamIkiAlan = 0;
     for (var n = 0; n < noktalar.length; n++) {
       var q = noktalar[n];
-      var sonraki = noktalar[(n + 1) % noktalar.length];
-      tamIkiAlan += q[0] * sonraki[1] - sonraki[0] * q[1];
+      var s = noktalar[(n + 1) % noktalar.length];
+      tamIkiAlan += q[0] * s[1] - s[0] * q[1];
       minX = Math.min(minX, q[0]);
       maxX = Math.max(maxX, q[0]);
       minY = Math.min(minY, q[1]);
       maxY = Math.max(maxY, q[1]);
     }
     var tamAlan = Math.abs(tamIkiAlan) / 2;
+
+    // Motor lattice'i: SABIT 40x40 kopya, merkezde, SASIRTMASIZ; adim = desen
+    // sinir kutusu (0.1'e yuvarlanir) + 4 mm. Kopya ofsetleri yarim-adimli
+    // ((k-19.5)*adim). Taban disina tasan kopyalar delikli modda kirpilir.
+    var bboxEn = Math.round((maxX - minX) * 10) / 10;
+    var bboxBoy = Math.round((maxY - minY) * 10) / 10;
+    var adimX = bboxEn + 4;
+    var adimY = bboxBoy + 4;
+    var yariEn = p.en / 2;
+    var yariBoy = p.boy / 2;
+
     var desenAlani = 0;
-
-    if (yariEn > 0 && yariBoy > 0) {
-      var dy = p.desen === "petek" ? pitch * 0.8660 : pitch;
-      var nx = Math.ceil(p.en / pitch / 2) + 1;
-      var ny = Math.ceil(p.boy / dy / 2) + 1;
-
-      for (var satir = -ny; satir <= ny; satir++) {
-        var xKaydir = satir % 2 === 0 ? 0 : pitch / 2;
-        var cy = satir * dy;
-        for (var sutun = -nx; sutun <= nx; sutun++) {
-          var cx = sutun * pitch + xKaydir;
-          if (cx + maxX <= yariEn && cx + minX >= -yariEn &&
-              cy + maxY <= yariBoy && cy + minY >= -yariBoy) {
-            desenAlani += tamAlan;
-          } else if (cx + maxX > -yariEn && cx + minX < yariEn &&
-                     cy + maxY > -yariBoy && cy + minY < yariBoy) {
-            var tasinmis = [];
-            for (var v = 0; v < noktalar.length; v++) {
-              tasinmis.push([cx + noktalar[v][0], cy + noktalar[v][1]]);
-            }
-            desenAlani += petek_kirp_alani(
-              tasinmis, -yariEn, yariEn, -yariBoy, yariBoy);
+    for (var satir = 0; satir < 40; satir++) {
+      var cy = (satir - 19.5) * adimY;
+      if (cy + minY > yariBoy || cy + maxY < -yariBoy) continue;
+      for (var sutun = 0; sutun < 40; sutun++) {
+        var cx = (sutun - 19.5) * adimX;
+        if (cx + minX > yariEn || cx + maxX < -yariEn) continue;
+        if (cx + minX >= -yariEn && cx + maxX <= yariEn &&
+            cy + minY >= -yariBoy && cy + maxY <= yariBoy) {
+          desenAlani += tamAlan;
+        } else {
+          var tasinmis = [];
+          for (var v = 0; v < noktalar.length; v++) {
+            tasinmis.push([cx + noktalar[v][0], cy + noktalar[v][1]]);
           }
+          desenAlani += petek_kirp_alani(
+            tasinmis, -yariEn, yariEn, -yariBoy, yariBoy);
         }
       }
     }
 
     var tabanAlani = p.en * p.boy;
     if (p.mod === "kabartma") {
+      // Uretim motorunda bu semayla DUZGUN karsiligi yok (desen kopyalari
+      // tabana kirpilmadan 20 mm kolon dikiyor) — fiyat, urunun NIYETINE gore
+      // (panel + desen kadar kabartma) korunur; onizleme sema kapisinda kapali.
       var kabartma = Math.max(p.kalinlik * 0.4, 1);
-      return tabanAlani * p.kalinlik + desenAlani * (kabartma - 0.01);
+      return tabanAlani * p.kalinlik + desenAlani * kabartma;
     }
+    // delikli: desen tam derinlikte panelden cikarilir.
     return (tabanAlani - desenAlani) * p.kalinlik;
   }
 
@@ -1406,9 +1167,12 @@
       uzunluk * Math.tan(p.egim_acisi * Math.PI / 180) : p.yukseklik;
 
     if (p.ust_yuzey === "basamakli") {
-      var basamakSayisi = 8;
+      // Motor basamak sayisini yukseklikten turetir (basamak yuksekligi 0.8 mm
+      // eslem sabiti Surface_Height) ve basamaklar egim cizgisinin USTUNE cikar:
+      // her basamak egim ustunde step_len*y_step/2 ucgen birakir -> LH(1+1/n)/2.
+      var basamakSayisi = Math.max(1, Math.ceil(yukseklik / 0.8));
       return genislik * uzunluk * yukseklik *
-        (basamakSayisi - 1) / (2 * basamakSayisi);
+        (basamakSayisi + 1) / (2 * basamakSayisi);
     }
 
     var hacim = genislik * uzunluk * yukseklik / 2;
@@ -1428,106 +1192,105 @@
   }
 
   // === AILE: rulman ===
-  function rulman_makaraKanalHacmi(hatYaricapi, elemanYaricapi, kanalYaricapi, makaraYuksekligi) {
-    // Makara silindirinin köşeleri halka eğriliği yüzünden torus kanalından taşabilir.
-    // SCAD union bu taşan kısmı bilezikle üst üste bindirir; yalnız kanalda kalan
-    // hacmi, makara tabanındaki sabit orta-nokta integraliyle hesapla.
-    var adimSayisi = 32;
-    var du = 2 * elemanYaricapi / adimSayisi;
-    var hacim = 0;
-
-    for (var i = 0; i < adimSayisi; i++) {
-      var u = -elemanYaricapi + (i + 0.5) * du;
-      var vSiniri = Math.sqrt(
-        Math.max(0, elemanYaricapi * elemanYaricapi - u * u)
-      );
-      var dv = 2 * vSiniri / adimSayisi;
-
-      for (var j = 0; j < adimSayisi; j++) {
-        var v = -vSiniri + (j + 0.5) * dv;
-        var halkaUzakligi = Math.sqrt(
-          (hatYaricapi + u) * (hatYaricapi + u) + v * v
-        ) - hatYaricapi;
-        var yariYukseklikKaresi = kanalYaricapi * kanalYaricapi -
-          halkaUzakligi * halkaUzakligi;
-        var kanalYariYuksekligi = yariYukseklikKaresi > 0 ?
-          Math.sqrt(yariYukseklikKaresi) : 0;
-        var kesitYuksekligi = 2 * Math.min(
-          makaraYuksekligi / 2,
-          kanalYariYuksekligi
-        );
-        hacim += kesitYuksekligi * du * dv;
+  function rulman_eleman_profili(eleman, bd, w, cl) {
+    // Yuvarlanma elemani/maske yarim-genisligi m(z) (eksenden radyal).
+    // Motor profilleri render dokumunden dogrulandi:
+    // makara: cekirdek bd/4 tam boy + pahli fici (govde w-bd/2, pah bd/4, 45°);
+    // tutmali: tam silindir bd/2, belde (|z|<=bd/6) bd/4'e 45° boyunla iner;
+    // bilya: kure. cl maskede radyal olarak eklenir (eleman icin 0).
+    return function (z) {
+      var az = Math.abs(z);
+      if (az > w / 2) return 0;
+      if (eleman === "bilya") {
+        var r = bd / 2 + cl;
+        return az >= r ? 0 : Math.sqrt(r * r - z * z);
       }
-    }
+      var c = bd / 4;
+      if (eleman === "makara") {
+        var hb = (w - bd / 2) / 2;
+        var cekirdek = bd / 4 + cl;
+        var fici = az <= hb - c ? bd / 2 + cl :
+                   az <= hb ? bd / 2 + cl - (az - (hb - c)) : 0;
+        return Math.max(cekirdek, fici);
+      }
+      // tutmali (dumbbell)
+      var zw = bd / 6;
+      if (az <= zw) return bd / 4 + cl;
+      if (az <= zw + c) return bd / 4 + cl + (az - zw);
+      return bd / 2 + cl;
+    };
+  }
 
-    return hacim;
+  function rulman_eleman_hacmi(eleman, bd, w) {
+    if (eleman === "bilya") return Math.PI * bd * bd * bd / 6;
+    // Eksenel simetrik: V = ∫ pi * m(z)^2 dz (kendi ekseni etrafinda).
+    var m = rulman_eleman_profili(eleman, bd, w, 0);
+    var adim = 400;
+    var dz = w / adim;
+    var v = 0;
+    for (var i = 0; i < adim; i++) {
+      var r = m(-w / 2 + (i + 0.5) * dz);
+      v += Math.PI * r * r * dz;
+    }
+    return v;
   }
 
   function rulman(p) {
-    var radyalBosluk = (p.dis_cap - p.ic_cap) / 2;
-    var hatYaricapi = (p.ic_cap + p.dis_cap) / 4;
-    var elemanYaricapi = Math.max(
-      Math.min(radyalBosluk * 0.28, p.genislik / 2 - p.bosluk - 1),
-      0.8
-    );
-    var kanalYaricapi = elemanYaricapi + p.bosluk;
-    var elemanSayisi = Math.max(3, Math.floor(
-      2 * Math.PI * hatYaricapi /
-      (2 * elemanYaricapi + 2 * p.bosluk + 0.5)
-    ));
-    var govdeHacmi = Math.PI *
-      (p.dis_cap * p.dis_cap - p.ic_cap * p.ic_cap) * p.genislik / 4;
-    var kanalKesitAlani;
+    // Uretim motoruna kalibre (Faz E): duvar = radyal boslugun 1/3'u; eleman
+    // capi 2*duvar*(bilya 1 / makara 0.95 / tutmali 0.75); bilezikler tube,
+    // tutmali'da duvar 1.25x; yuva oyugu eleman maskesinin (bosluk kadar sisik)
+    // bileziklerden devrilmesiyle (Pappus, sayisal ∫).
+    var ric = p.ic_cap / 2;
+    var roc = p.dis_cap / 2;
+    var w = p.genislik;
+    var cl = p.bosluk;
+    var duvar = (p.dis_cap - p.ic_cap) / 6;
+    var carpan = p.eleman === "makara" ? 0.95 :
+                 p.eleman === "tutmali" ? 0.75 : 1;
+    var bd = 2 * duvar * carpan;
+    var bilezikDuvar = duvar * (p.eleman === "tutmali" ? 1.25 : 1);
+    var orta = (ric + roc) / 2;
 
-    if (p.eleman === "tutmali") {
-      kanalYaricapi = elemanYaricapi * 1.5 + p.bosluk;
+    var hacim = Math.PI * ((ric + bilezikDuvar) * (ric + bilezikDuvar) - ric * ric) * w +
+                Math.PI * (roc * roc - (roc - bilezikDuvar) * (roc - bilezikDuvar)) * w;
+
+    // Yuva oyugu: maske [orta-m, orta+m] araliginin bilezik bantlariyla kesisimi.
+    var maske = rulman_eleman_profili(p.eleman, bd, w, cl);
+    var adim = 400;
+    var dz = w / adim;
+    for (var i = 0; i < adim; i++) {
+      var z = -w / 2 + (i + 0.5) * dz;
+      var m = maske(z);
+      if (m <= 0) continue;
+      var lo = orta - m;
+      var hi = orta + m;
+      var a = Math.max(ric, lo);
+      var b = Math.min(ric + bilezikDuvar, hi);
+      if (b > a) hacim -= Math.PI * (b * b - a * a) * dz;
+      a = Math.max(roc - bilezikDuvar, lo);
+      b = Math.min(roc, hi);
+      if (b > a) hacim -= Math.PI * (b * b - a * a) * dz;
     }
 
-    if (kanalYaricapi <= p.genislik / 2) {
-      kanalKesitAlani = Math.PI * kanalYaricapi * kanalYaricapi;
-    } else {
-      var yariGenislik = p.genislik / 2;
-      var kok = Math.sqrt(
-        kanalYaricapi * kanalYaricapi - yariGenislik * yariGenislik
-      );
-      kanalKesitAlani = 2 * (
-        yariGenislik * kok + kanalYaricapi * kanalYaricapi *
-        Math.asin(yariGenislik / kanalYaricapi)
-      );
-    }
+    // Yuvarlanma elemanlari.
+    var sayi = Math.floor(Math.PI * (ric + roc) * 0.95 / bd);
+    hacim += sayi * rulman_eleman_hacmi(p.eleman, bd, w);
 
-    govdeHacmi -= 2 * Math.PI * hatYaricapi * kanalKesitAlani;
+    // Bilya destek bilezigi (yalniz bilya; alttan eleman hizasina kadar).
+    if (p.eleman === "bilya") {
+      var destekH = Math.max(0, (w - bd) / 2 + 0.12);
+      var di = orta - duvar / 4;
+      var du = orta + duvar / 4;
+      hacim += Math.PI * (du * du - di * di) * destekH -
+               duvar * (bd / 2) * destekH;
+    }
 
     if (p.flans === "var") {
-      var flansCapi = p.dis_cap + Math.max(radyalBosluk * 0.5, 2);
-      var flansYuksekligi = Math.min(1.5, p.genislik * 0.25);
-      govdeHacmi += Math.PI *
-        (flansCapi * flansCapi - p.dis_cap * p.dis_cap) *
-        flansYuksekligi / 4;
+      var flansYaricap = (1.25 * p.dis_cap - 0.25 * p.ic_cap) / 2;
+      hacim += Math.PI * (flansYaricap * flansYaricap - roc * roc) * 1.5;
     }
 
-    var elemanHacmi;
-    if (p.eleman === "makara") {
-      var makaraYuksekligi = Math.min(
-        2 * (elemanYaricapi + p.bosluk) - 0.4,
-        p.genislik - 2 * p.bosluk
-      );
-      elemanHacmi = rulman_makaraKanalHacmi(
-        hatYaricapi,
-        elemanYaricapi,
-        kanalYaricapi,
-        makaraYuksekligi
-      );
-    } else if (p.eleman === "tutmali") {
-      // İki eş kürenin merkez aralığı yarıçapa eşittir; orta silindir kürelerin içindedir.
-      elemanHacmi = 9 * Math.PI * elemanYaricapi * elemanYaricapi *
-        elemanYaricapi / 4;
-    } else {
-      elemanHacmi = 4 * Math.PI * elemanYaricapi * elemanYaricapi *
-        elemanYaricapi / 3;
-    }
-
-    return govdeHacmi + elemanSayisi * elemanHacmi;
+    return hacim;
   }
 
   // === AILE: vida ===
@@ -1626,28 +1389,91 @@
     return genlik * (f < 0.5 ? 1 : -1);
   }
 
-  function yay_dalga_hacmi(p) {
+  function yay_dalga_yolu(form, boy) {
+    // Uretim motorunun orneklemesi birebir: 240 ornek, faz kaymasi 0.125
+    // (eslem sabiti Phase — ornekler dalga gecislerinin tam ustune dusmesin diye;
+    // 0'da kalirsa uc nokta sin(1440°) yuvarlama gurultusune duser ve boy'a gore
+    // fazladan bir sicrama olusur/olusmazdi). Form ofsetleri motorla ayni:
+    // ucgen +0.25, testere +0.5.
     var genlik = 10;
     var cevrim = 4;
-    var seritKalinligi = 2;
-    var seritYuksekligi = 8;
-    var parcaSayisi = 160;
-    var dx = p.dalga_boyu / parcaSayisi;
-    var uzunluk = 0;
-    var onceki = yay_dalga_degeri(p.dalga_formu, 0, genlik);
-
-    for (var i = 1; i <= parcaSayisi; i++) {
-      var faz = cevrim * i / parcaSayisi;
-      var simdiki = yay_dalga_degeri(p.dalga_formu, faz, genlik);
-      var dy = simdiki - onceki;
-      uzunluk += Math.sqrt(dx * dx + dy * dy);
-      onceki = simdiki;
+    var ornek = 240;
+    var ofset = 0.125 + (form === "ucgen" ? 0.25 : form === "testere" ? 0.5 : 0);
+    var ham = [];
+    var i;
+    for (i = 0; i <= ornek; i++) {
+      ham.push([i * (boy / ornek),
+        yay_dalga_degeri(form, cevrim * i / ornek + ofset, genlik)]);
     }
 
-    var yaricap = seritKalinligi / 2;
-    var kesitAlani = seritKalinligi * uzunluk + Math.PI * yaricap * yaricap;
-    // SCAD şeridi 16 kenarlı çemberlerin dışbükey zarflarından oluşur.
-    return 0.98 * kesitAlani * seritYuksekligi;
+    // Dogrusal ara noktalari birlestir (kose sayimi icin sart).
+    var yol = [ham[0]];
+    for (i = 1; i < ham.length; i++) {
+      var q = ham[i];
+      if (yol.length >= 2) {
+        var a = yol[yol.length - 2];
+        var b = yol[yol.length - 1];
+        if (Math.abs((b[0] - a[0]) * (q[1] - a[1]) -
+                     (b[1] - a[1]) * (q[0] - a[0])) < 1e-9) {
+          yol[yol.length - 1] = q;
+          continue;
+        }
+      }
+      yol.push(q);
+    }
+
+    // <0.7 mm araliktaki ic nokta cifti tek koseye iner: ucgen tepesindeki
+    // orneklem duzlugu iki yakin 76°'lik kose yapar, bindirme kaybi tek keskin
+    // kose gibi davranir — tek apekse indirmek kayip modelini dogru kurar.
+    var sade = [yol[0]];
+    i = 1;
+    while (i < yol.length - 1) {
+      if (i + 1 < yol.length - 1 &&
+          Math.hypot(yol[i + 1][0] - yol[i][0], yol[i + 1][1] - yol[i][1]) < 0.7) {
+        sade.push([(yol[i][0] + yol[i + 1][0]) / 2,
+                   (yol[i][1] + yol[i + 1][1]) / 2]);
+        i += 2;
+      } else {
+        sade.push(yol[i]);
+        i += 1;
+      }
+    }
+    sade.push(yol[yol.length - 1]);
+    return sade;
+  }
+
+  function yay_dalga_hacmi(p) {
+    // Serit = yolun stroke'u (genislik 2, uclar duz, eklemler yuvarlak).
+    // Alan = kalinlik x yol boyu − kose bindirme kayiplari:
+    // her donus acisi θ icin kayip (t²/4)(tan(θ/2) − θ/2) (miter kesisimi
+    // eksi yuvarlak eklem yelpazesi). Motor renderlarina karsi olculdu:
+    // kare/darbe/testere ≤%0.02, sinus ≤%0.6, ucgen ≤%1.7 (tum boy araligi).
+    var seritKalinligi = 2;
+    var seritYuksekligi = 8;
+    var yol = yay_dalga_yolu(p.dalga_formu, p.dalga_boyu);
+    var uzunluk = 0;
+    var kayip = 0;
+    for (var i = 1; i < yol.length; i++) {
+      uzunluk += Math.hypot(yol[i][0] - yol[i - 1][0], yol[i][1] - yol[i - 1][1]);
+      if (i < yol.length - 1) {
+        var v1x = yol[i][0] - yol[i - 1][0];
+        var v1y = yol[i][1] - yol[i - 1][1];
+        var v2x = yol[i + 1][0] - yol[i][0];
+        var v2y = yol[i + 1][1] - yol[i][1];
+        var n1 = Math.hypot(v1x, v1y);
+        var n2 = Math.hypot(v2x, v2y);
+        if (n1 > 1e-12 && n2 > 1e-12) {
+          var c = Math.max(-1, Math.min(1, (v1x * v2x + v1y * v2y) / (n1 * n2)));
+          var donus = Math.acos(c);
+          if (donus > 1e-9) {
+            kayip += (seritKalinligi * seritKalinligi / 4) *
+              (Math.tan(donus / 2) - donus / 2);
+          }
+        }
+      }
+    }
+    var kesitAlani = seritKalinligi * uzunluk - kayip;
+    return kesitAlani * seritYuksekligi;
   }
 
   function yay(p) {

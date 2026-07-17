@@ -7,8 +7,14 @@
       "etiket": "Uygulama modu",
       "tip": "secim",
       "secenekler": [
-        {"deger": "delikli", "etiket": "Delikli / perfore"},
-        {"deger": "kabartma", "etiket": "Kabartma desen"}
+        {
+          "deger": "delikli",
+          "etiket": "Delikli / perfore"
+        },
+        {
+          "deger": "kabartma",
+          "etiket": "Kabartma desen"
+        }
       ],
       "varsayilan": "delikli",
       "aciklama": "Desenin panelde açık delikler veya yüzeyde kabartma olarak uygulanması"
@@ -18,12 +24,30 @@
       "etiket": "Desen",
       "tip": "secim",
       "secenekler": [
-        {"deger": "petek", "etiket": "Petek"},
-        {"deger": "yuvarlak", "etiket": "Yuvarlak delik"},
-        {"deger": "kare", "etiket": "Kare grid"},
-        {"deger": "sekizgen", "etiket": "Sekizgen"},
-        {"deger": "besgen", "etiket": "Beşgen"},
-        {"deger": "ucgen", "etiket": "Üçgen"}
+        {
+          "deger": "petek",
+          "etiket": "Petek"
+        },
+        {
+          "deger": "yuvarlak",
+          "etiket": "Yuvarlak delik"
+        },
+        {
+          "deger": "kare",
+          "etiket": "Kare grid"
+        },
+        {
+          "deger": "sekizgen",
+          "etiket": "Sekizgen"
+        },
+        {
+          "deger": "besgen",
+          "etiket": "Beşgen"
+        },
+        {
+          "deger": "ucgen",
+          "etiket": "Üçgen"
+        }
       ],
       "varsayilan": "petek",
       "aciklama": "Panel yüzeyinde tekrarlanacak göz veya delik biçimi"
@@ -73,6 +97,6 @@
       "aciklama": "Tekrarlanan desen gözünün veya deliğin temel ölçüsü"
     }
   ],
-  "tabanHacimMm3": 10195.516736126097,
+  "tabanHacimMm3": 10971.2,
   "tabanFiyatTL": 200
 }
