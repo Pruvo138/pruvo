@@ -123,13 +123,18 @@ def process_one(pid):
             return {"id": pid, "durum": "HATA: codex oneri yok"}
         o = json.load(open(onerip))
         uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or key).lower()).strip("-")[:60] or key
+        # R2 gorsel anahtari KAYNAK-ID'den (pr<pid>) turer, baslik-slug'indan (uid) DEGIL.
+        # Iki farkli urun ayni Turkce basligi uretse bile anahtarlari cakismaz. uid, JSON id'si +
+        # SEO URL'si icin kalir; merge_safe id'yi sonradan -pid ile ayirir ama upload ondan ONCE
+        # oldugu icin baslik-tabanli anahtar EZILME yaratiyordu (bkz tools/gorsel-anahtar-test.py).
+        gkey = re.sub(r"[^a-z0-9-]+", "-", key.lower()).strip("-") or key
         d = os.path.join(CACHE, key)
         secili = o.get("sec_gorseller") or meta["gorseller"]
         urls = []
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
             if os.path.exists(fp):
-                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (uid, i))
+                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (gkey, i))
                 if uu:
                     urls.append(uu)
         if not urls:

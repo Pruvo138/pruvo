@@ -70,13 +70,17 @@ def process_one(tid):
             return {"id": tid, "durum": "HATA: codex oneri yok"}
         o = json.load(open(onerip))
         uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or tid).lower()).strip("-")[:60] or tid
+        # R2 gorsel anahtari KAYNAK-ID'den (th<tid>) turer, baslik-slug'indan (uid) DEGIL: iki farkli
+        # urun ayni basligi uretse bile anahtarlari cakismaz (bkz tools/gorsel-anahtar-test.py;
+        # printables-ekle.py ile ayni desen). uid, JSON id'si + SEO URL'si icin kalir.
+        gkey = re.sub(r"[^a-z0-9-]+", "-", ("th" + tid).lower()).strip("-") or ("th" + tid)
         d = os.path.join(IMGROOT, tid)
         secili = o.get("sec_gorseller") or sorted(f for f in os.listdir(d) if f.startswith("g") and f.endswith(".jpg"))
         urls = []
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
             if os.path.exists(fp):
-                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (uid, i))
+                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (gkey, i))
                 if uu:
                     urls.append(uu)
         if not urls:
