@@ -136,6 +136,14 @@ async function sayfaKur(ayar) {
     },
     fetch(url, opts) {
       fetchIzi.push({ url: String(url), opts: opts || {} });
+      // ayar.fetchHata: ANA katalog fetch'i (1.) DUSER — musteride ag/onbellek aksamasi.
+      //   "reddet" -> fetch promise reject; "parse" -> yanit gelir ama json() cozulmez (404 govde).
+      if (ayar.fetchHata && fetchIzi.length === 1) {
+        if (ayar.fetchHata === "parse") {
+          return Promise.resolve({ json: () => Promise.reject(new SyntaxError("Unexpected token < in JSON")) });
+        }
+        return Promise.reject(new TypeError("Failed to fetch"));
+      }
       const veri = (fetchIzi.length >= 2 && ayar.tazeKatalog) ? ayar.tazeKatalog : ayar.katalog;
       return Promise.resolve({ json: () => Promise.resolve(JSON.parse(JSON.stringify(veri))) });
     },
@@ -446,6 +454,61 @@ async function test7SavunmaKacis() {
     "title korundu, kacis durumu + kilitli odeme, temizle calisti");
 }
 
+/** 8 — KATALOG FETCH DUSTU (mimar paketi, 17 Tem gece — "sepete eklediğim ürünler görünmüyor"):
+ *  musteride urunler.json fetch/parse aksarsa sepet HIC yuklenmemeliydi diye bir sey OLMAZ.
+ *  ESKI kod: loadCart + updateCartFab + openCart yalniz fetch BASARI kolundaydi -> fetch dusunce
+ *  cart=[] kalir, FAB gizli, panel bos, "?sepet=1" ile panel hic acilmaz. KIRMIZI kaniti:
+ *  FAB gizli + panelde 0 satir. YENI kod: uc cagri katalogtan BAGIMSIZ acilista calisir ->
+ *  FAB gorunur (rozet=cart.length), panel kayip-satir formunda DOLU (PRODUCTS bos -> her satir
+ *  kayip:true), gorunur musteri uyarisi (emptyState) gosterilir. Odeme kilitli (gecerli satir yok). */
+async function test8KatalogDustu() {
+  const hatalar = [];
+  const s = await sayfaKur({
+    sepet: [{ id: "gercek-urun", malzeme: "PETG", renk: "Siyah", adet: 1 }, KAYIP_SATIR],
+    katalog: KATALOG,
+    fetchHata: "reddet",   // ANA katalog fetch'i duser (openCart firsat tazelemesi de atesLENMEZ)
+    hataBekle: true,       // .catch console.error basar ("Urunler yuklenemedi")
+  });
+  // FAB gorunur + rozet dogru sayida (katalog dusse de sepet yuklendi)
+  const fab = s.el("cartFab");
+  if (fab.style.display !== "inline-flex") {
+    hatalar.push("FAB gizli ('" + fab.style.display + "' — katalog dusunce sepet hic yuklenmedi)");
+  }
+  if (String(s.el("cartCount").textContent) !== "2") {
+    hatalar.push("rozet '" + s.el("cartCount").textContent + "' (2 olmali)");
+  }
+  // Panel DOLU: 2 satir, ikisi de kayip formunda (PRODUCTS bos kaldi)
+  if (s.satirlar().length !== 2) {
+    hatalar.push("panelde " + s.satirlar().length + " satir (2 olmali — panel bos kaldi)");
+  }
+  const panel = s.metin("cartItems");
+  if (panel.indexOf("Ürün bilgisi yüklenemedi") === -1) {
+    hatalar.push("kayip-satir formu ('Ürün bilgisi yüklenemedi') yok");
+  }
+  if (panel.indexOf("Sepetiniz boş") !== -1) {
+    hatalar.push("panel 'Sepetiniz boş' diyor (satir varken)");
+  }
+  // Gorunur musteri uyarisi (tek satir): katalog yuklenemedi -> sayfayi yenile
+  const uyari = s.metin("emptyState");
+  if (uyari.indexOf("yüklenemedi") === -1 || uyari.indexOf("yenileyin") === -1) {
+    hatalar.push("gorunur musteri uyarisi yok (emptyState: '" + uyari.trim() + "')");
+  }
+  if (s.el("emptyState").style.display !== "block") {
+    hatalar.push("uyari elemani gizli (emptyState display '" + s.el("emptyState").style.display + "')");
+  }
+  // Katalog yok -> gecerli satir yok -> odeme + WhatsApp kilitli, gereksiz 2. fetch atilmadi
+  if (s.el("cartPay").disabled !== true) { hatalar.push("katalog yokken odeme acik"); }
+  if (s.el("cartOrder").className.indexOf("disabled") === -1) {
+    hatalar.push("katalog yokken WhatsApp butonu aktif");
+  }
+  const jsonFetchleri = s.fetchIzi.filter((f) => f.url.indexOf("urunler.json") !== -1);
+  if (jsonFetchleri.length !== 1) {
+    hatalar.push("acilista " + jsonFetchleri.length + " fetch (1 olmali: ana fetch dustu, firsat tazelemesi atesLENMEMELI)");
+  }
+  rapor("8 katalog fetch dustu (sepet bagimsiz yuklenir)", hatalar,
+    "FAB gorunur + rozet=2, panel 2 kayip satir, uyari gosterildi, odeme kilitli, tek fetch");
+}
+
 // ---------------------------------------------------------------- akis
 
 async function main() {
@@ -457,6 +520,7 @@ async function main() {
   await test5NormalAkis();
   await test6BozukUnicode();
   await test7SavunmaKacis();
+  await test8KatalogDustu();
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
     (kalan ? "" : " — HEPSI YESIL ✅"));
   process.exit(kalan ? 1 : 0);

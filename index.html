@@ -1411,6 +1411,7 @@
   }
 
   var katalogTazelendi = false;   // sayfa başına BİR deneme — istek/döngü seli olmasın
+  var katalogYuklendi = false;    // ANA katalog fetch'i çözüldü mü (success kolu set eder)
   function openCart(){
     document.getElementById("cartOverlay").classList.add("open");
     document.getElementById("cartPanel").classList.add("open");
@@ -1420,7 +1421,10 @@
     // urunler.json bir kez tazelenir; yalnız EKSİK ürünler PRODUCTS'a eklenir (mevcut liste
     // değiştirilmez — ana sayfa sırası/filtre/arama önbelleği bozulmasın). Hâlâ yoksa
     // kayıp satır görünür kalır, müşteri çarpıyla kaldırabilir.
-    if(!katalogTazelendi && cartLines().some(function(L){ return L.kayip; })){
+    // katalogYuklendi kapısı: panel sayfa açılışında (ANA fetch daha uçarken, sepet=1)
+    // açılabilir; o an fırsat tazelemesini ATEŞLEME — ana fetch zaten katalogu getiriyor,
+    // ikinci bir istek yarışı olmasın. Ana fetch çözülünce (başarı kolu) tekrar açılır/tazelenir.
+    if(katalogYuklendi && !katalogTazelendi && cartLines().some(function(L){ return L.kayip; })){
       katalogTazelendi = true;
       fetch("urunler.json", { cache: "no-cache" })
         .then(function(r){ return r.json(); })
@@ -1816,6 +1820,18 @@
   }
 
   renderCats();
+  // SEPET KATALOGTAN BAĞIMSIZ YÜKLENİR (17 Tem — sessiz hata sınıfı): loadCart + updateCartFab
+  // + (sepet=1 ise) panel açılışı katalog fetch'inden ÖNCE/BAĞIMSIZ çalışır. Katalog fetch/parse
+  // düşse ya da gecikse bile FAB görünür ve panel kayıp-satır formunda DOLU gelir (PRODUCTS boşken
+  // cartLines her satırı kayip:true verir; rozet = cart.length doğru sayı). Katalog gelince aşağıdaki
+  // başarı kolu paneli gerçek ürün bilgisiyle yeniden render eder. ESKİ kodda bu üçü yalnız fetch
+  // BAŞARI kolundaydı → müşteride ağ/önbellek aksarsa sepet HİÇ yüklenmiyor, FAB gizli, panel boş
+  // kalıyordu ("sepete eklediğim ürünler görünmüyor").
+  try{ loadCart(); }catch(e){ console.error("Sepet yüklenemedi:", e); cart = []; }
+  try{ updateCartFab(); }catch(e){ console.error("Sepet rozeti güncellenemedi:", e); }
+  try{
+    if(new URLSearchParams(location.search).get("sepet")){ openCart(); }
+  }catch(e){ console.error("Sepet açılamadı:", e); }
   // no-cache: no-store gibi HER açılışta sunucuya sorar (yeni ürün anında görünür), farkı 304 gelince
   // tarayıcının sakladığı kopyayı kullanması. no-store'da katalog (5,1 MB / 834 KB gzip) her sayfa
   // açılışında baştan iniyordu; ETag revalidation'la değişmediyse 0 bayt.
@@ -1823,26 +1839,37 @@
     .then(function(r){ return r.json(); })
     .then(function(data){
       PRODUCTS = data;
+      katalogYuklendi = true;           // fırsat tazelemesi artık ateşlenebilir (openCart kapısı)
       buildHomeOrder();
       // SEPET, KATALOGU DÜŞÜREMEZ (17 Tem hotfix): sepet çağrıları try/catch içinde —
       // localStorage/sepet kaynaklı bir hata renderGrid'i ve katalog başlığını ASLA
-      // etkilemesin (eski kod: openCart hatası ana .catch'e düşüp "Ürünler yüklenemedi"
-      // yazıyor + kartlar dolu kalıyordu). Sepet render'ının kendi kaçış durumu var.
-      try{ loadCart(); }catch(e){ console.error("Sepet yüklenemedi:", e); cart = []; }
+      // etkilemesin. loadCart artık sayfa açılışında (katalogtan bağımsız) çalışıyor;
+      // burada tekrar yüklenmez. Katalog geldi → FAB + (açıksa) panel gerçek ürünle tazelenir.
       isitHaystack();                   // arama ilk tuşta takılmasın (boş zamanda kurulur)
       if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
       renderCats();
       renderBrands();
       renderGrid();
       try{ updateCartFab(); }catch(e){ console.error("Sepet rozeti güncellenemedi:", e); }
-      // Ürün sayfasından "Sepetim" ile gelindiyse sepeti otomatik aç
+      // Sepet=1 ile gelindiyse (ya da panel açılışta zaten açıldıysa) katalog gelince paneli
+      // GERÇEK ürün bilgisiyle yeniden render et — openCart kayıp satırları çözer ve gerekirse
+      // fırsat tazelemesini tetikler (katalogYuklendi kapısı artık açık).
       try{
-        if(new URLSearchParams(location.search).get("sepet")){ openCart(); }
+        if(new URLSearchParams(location.search).get("sepet") ||
+           document.getElementById("cartPanel").classList.contains("open")){ openCart(); }
       }catch(e){ console.error("Sepet açılamadı:", e); }
     })
     .catch(function(err){
       console.error("Ürünler yüklenemedi:", err);
-      document.getElementById("sectionTitle").textContent = "Ürünler yüklenemedi";
+      var title = document.getElementById("sectionTitle");
+      if(title){ title.textContent = "Ürünler yüklenemedi"; }
+      // Görünür, müşteri-dili tek satır uyarı: sepet + FAB katalogtan bağımsız zaten yüklendi;
+      // burada yalnız katalog ızgarasının boş kaldığını açıklarız (renderGrid hiç çalışmadı).
+      var uyari = document.getElementById("emptyState");
+      if(uyari){
+        uyari.textContent = "Ürün kataloğu yüklenemedi. Lütfen sayfayı yenileyin.";
+        uyari.style.display = "block";
+      }
     });
 })();
 </script>
