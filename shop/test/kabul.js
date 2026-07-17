@@ -977,6 +977,105 @@ async function test5Parametrik() {
     "), kabullerde +2 (" + araInit + "->" + sonInit + ")");
 }
 
+/** 16 — CALLBACK TUTAR UYUSMAZLIGI: musteri gorunumu (mimar paketi kalem 1).
+ *  iyzico'da odeme BASARILI ama tahsilat bizim kayitla uyusmuyor -> siparis 'incele' +
+ *  Telegram TUTARSIZLIK (bunlara DOKUNULMADI). ESKI kod musteriye HAM 409 JSON donuyordu;
+ *  musteri iyzico'dan donerken TARAYICIDADIR -> artik siteye 303 redirect (siparis=hata),
+ *  retrieve-altyapi-hatasi koluyla AYNI desen. */
+async function test16CallbackTutarUyusmazligi() {
+  const hatalar = [];
+  const c = await baslatIstek([{ id: "test-urun-a", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  if (c.kod !== 200) { return rapor("16 callback tutar uyusmazligi", false, "baslat: " + c.kod); }
+  const no = c.govde.no;
+  const token = (await mockOku()).sonToken;
+  const tgOnce = (await mockOku()).telegramSayisi;
+
+  // Kayitli tahsilati bozarak yapay uyusmazlik yarat (iyzico paidPrice degismedi):
+  // beklenenTahsilat = tutar_kurus + kargo -> retrieve'in dondugu tutarla artik tutmaz.
+  wranglerD1("UPDATE siparisler SET tutar_kurus = tutar_kurus + 100 WHERE siparis_no = '" + no + "'");
+
+  const d = await donusIstek(token);
+  const s = d1Sorgu("SELECT durum FROM siparisler WHERE siparis_no = '" + no + "'")[0] || {};
+  const m = await mockOku();
+
+  // (a) ESKI KIRMIZI KANIT: eski kod 409 JSON (Location'siz) donerdi; artik 303 + Location
+  //     SITEYE (env.SITE_URL — retrieve-hata koluyla ayni; harness'te worker origin'ine coz).
+  //     Mutlak URL + siparis=hata + no: ham JSON degil, siteye tam yonlendirme.
+  if (d.kod !== 303) { hatalar.push("HTTP " + d.kod + " (303 redirect olmali, 409 JSON DEGIL)"); }
+  if (!/^https?:\/\//.test(d.yer) || d.yer.indexOf("siparis=hata") === -1) {
+    hatalar.push("Location siteye tam yonlendirme degil: " + d.yer);
+  }
+  if (d.yer.indexOf("no=" + encodeURIComponent(no)) === -1) {
+    hatalar.push("Location'da siparis no yok: " + d.yer);
+  }
+  // (b) durum/Telegram DAVRANISI KORUNDU (mimar: dokunma) — 'incele' + TUTARSIZLIK uyarisi.
+  if (s.durum !== "incele") { hatalar.push("durum '" + s.durum + "' (incele olmali)"); }
+  const uyari = m.telegramSayisi === tgOnce + 1 &&
+    String((m.sonTelegram || {}).text || "").includes("TUTARSIZLIK");
+  if (!uyari) { hatalar.push("Telegram TUTARSIZLIK uyarisi gitmedi (" + tgOnce + "->" +
+    m.telegramSayisi + ")"); }
+
+  rapor("16 callback tutar uyusmazligi", hatalar.length === 0,
+    "HTTP " + d.kod + " -> " + d.yer + "; durum=" + s.durum + "; Telegram uyarisi=" +
+    (uyari ? "gitti" : "YOK") + (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 17 — PARAMETRIK SATIR AYIRT EDILEBILIRLIGI (mimar paketi kalem 2): ayni sari urun FARKLI
+ *  olculerle iki satir -> iyzico'ya giden basketItems'ta 2 BENZERSIZ id + adlarda olcu ozeti;
+ *  Telegram bildiriminde iki satir birbirinden ayirt edilebilir. */
+async function test17ParametrikSatirAyirt() {
+  const hatalar = [];
+  const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
+  const sema = JSON.parse(fs.readFileSync(
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
+  const vd = KONF.varsayilanDegerler(sema);
+  const set1 = Object.assign({}, vd, { ic_cap: 30 });   // farkli ic cap -> farkli olcu/fiyat
+  const set2 = Object.assign({}, vd, { ic_cap: 40 });
+  const detay1 = KONF.detayMetni(sema, set1);
+  const detay2 = KONF.detayMetni(sema, set2);
+
+  const c = await baslatIstek([
+    { id: "olcuye-ozel-oring-conta", malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: set1 },
+    { id: "olcuye-ozel-oring-conta", malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: set2 },
+  ]);
+  if (c.kod !== 200) {
+    return rapor("17 parametrik satir ayirt", false,
+      "baslat: " + c.kod + " " + JSON.stringify(c.govde));
+  }
+  const init = (await mockOku()).sonInit;
+  const urunKalem = (init.basketItems || []).filter((b) => b.id !== "gonderim");
+
+  // (a) iki BENZERSIZ id (ayni urun id'si tekrar edince #1/#2 son eki)
+  const idler = urunKalem.map((b) => b.id);
+  if (idler.length !== 2 || new Set(idler).size !== 2) {
+    hatalar.push("basketItems id benzersiz degil: " + JSON.stringify(idler));
+  }
+  if (!idler.every((x) => x.indexOf("olcuye-ozel-oring-conta#") === 0)) {
+    hatalar.push("id son eki (#1/#2) yok: " + JSON.stringify(idler));
+  }
+  // (b) adlarda olcu ozeti + iki ad birbirinden FARKLI
+  const ad1 = (urunKalem[0] || {}).name || "", ad2 = (urunKalem[1] || {}).name || "";
+  if (!ad1.includes(detay1.slice(0, 60)) || !ad2.includes(detay2.slice(0, 60))) {
+    hatalar.push("adlarda olcu ozeti yok: [" + ad1 + "] / [" + ad2 + "]");
+  }
+  if (ad1 === ad2) { hatalar.push("iki satir adi AYNI: " + ad1); }
+
+  // (c) Telegram bildiriminde iki satir ayirt edilebilir (odeme SUCCESS -> siparisMesaji)
+  const token = (await mockOku()).sonToken;
+  const d = await donusIstek(token);
+  await bekle(300);
+  const tg = String(((await mockOku()).sonTelegram || {}).text || "");
+  if (d.kod !== 303) { hatalar.push("donus HTTP " + d.kod); }
+  if (!tg.includes(detay1) || !tg.includes(detay2)) {
+    hatalar.push("Telegram'da iki olcu detayi ayirt edilemiyor: " + tg.slice(0, 200));
+  }
+
+  rapor("17 parametrik satir ayirt", hatalar.length === 0,
+    "basketItems id=" + JSON.stringify(idler) + "; adlar ayri=" + (ad1 !== ad2) +
+    "; Telegram iki detay=" + (tg.includes(detay1) && tg.includes(detay2)) +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
 function test6SirTaramasi() {
   // Repoya GIRECEK her sey taranir (izlenen + ignore-disi yeni dosyalar) — sadece shop/ degil:
   // anahtar yanlislikla DEVAM.md'ye, bir dokumana ya da teste de dusebilir. Repo PUBLIC.
@@ -1141,6 +1240,8 @@ async function main() {
     await test15SozlesmeOnayi();
     await test5Parametrik();
     await test9ParametrikAltyapi();
+    await test16CallbackTutarUyusmazligi();
+    await test17ParametrikSatirAyirt();
     test6SirTaramasi();
     test7Parite();
   } finally {

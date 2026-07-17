@@ -306,6 +306,31 @@ async function baslat(request, env, url, ctx) {
     : "+90" + musteri.tel;
   const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
 
+  // Ayni id birden cok satirda (farkli malzeme/renk/olcu) yer alabilir -> iyzico'ya giden
+  // basketItems id'si BENZERSIZ olmali (tekrar edene #1,#2 sira eki; tekil id degismez).
+  // NOT: /donus callback'i basketItems id'siyle ESLESME YAPMAZ — kimlik denetimi yalniz
+  // basketId/conversationId (= siparisNo) uzerinden; bu yuzden son ek eklemek guvenli.
+  const idAdedi = {};
+  for (const s of satirlar) { idAdedi[s.id] = (idAdedi[s.id] || 0) + 1; }
+  const idSira = {};
+  const urunKalemleri = satirlar.map((s) => {
+    let bid = s.id;
+    if (idAdedi[s.id] > 1) { idSira[s.id] = (idSira[s.id] || 0) + 1; bid = s.id + "#" + idSira[s.id]; }
+    // Parametrik (sari) satirda olcu ozeti ada eklenir (ilk ~60 karakter — iyzico ad alani
+    // sinirina karsi kisaltilir): ayni urunun farkli olculu iki satiri iyzico ekraninda
+    // ve dekontunda ayirt edilsin.
+    const detay = s.parametre_detay ? " — " + String(s.parametre_detay).slice(0, 60) : "";
+    return {
+      id: bid,
+      name: (s.baslik + " (" + s.malzeme + ", " + (s.renk_ozel || s.renk) +
+             (s.adet > 1 ? ", " + s.adet + " adet" : "") + ")" + detay).slice(0, 120),
+      category1: s.kategori || "Genel",
+      itemType: "PHYSICAL",
+      // iyzico: basketItems price toplami = price. Kurus toplaminda birebir tutar.
+      price: kurusMetin(s.tutar_kurus),
+    };
+  });
+
   const init = await cfBaslat(env, {
     locale: "tr",
     conversationId: siparisNo,
@@ -333,15 +358,7 @@ async function baslat(request, env, url, ctx) {
     },
     shippingAddress: { contactName: musteri.ad, city: musteri.sehir, country: "Turkey", address: acikAdres },
     billingAddress: { contactName: musteri.ad, city: musteri.sehir, country: "Turkey", address: acikAdres },
-    basketItems: satirlar.map((s) => ({
-      id: s.id,
-      name: (s.baslik + " (" + s.malzeme + ", " + (s.renk_ozel || s.renk) +
-             (s.adet > 1 ? ", " + s.adet + " adet" : "") + ")").slice(0, 120),
-      category1: s.kategori || "Genel",
-      itemType: "PHYSICAL",
-      // iyzico: basketItems price toplami = price. Kurus toplaminda birebir tutar.
-      price: kurusMetin(s.tutar_kurus),
-    })).concat(kargoKurus > 0 ? [{
+    basketItems: urunKalemleri.concat(kargoKurus > 0 ? [{
       // Kargo AYRI kalem (urun fiyatina yedirilmez); boylece kalem toplami = tahsilat kurali
       // kurusuyla korunur. Bedava kargoda kalem hic eklenmez (0 TL kalemi iyzico kabul etmez).
       id: "gonderim", name: "Gönderim (kargo)", category1: "Kargo",
@@ -453,7 +470,10 @@ async function donus(request, env, ctx) {
       " (urun " + kurusTL(siparis.tutar_kurus) + " + kargo " + kurusTL(siparis.kargo_kurus || 0) + ")" +
       "\nconversationId: " + det.conversationId + "\nToken: " + token.slice(0, 12) + "…" +
       "\nSiparis 'incele' durumunda, elle bak."));
-    return json({ hata: "tutar-uyusmuyor" }, 409, env);
+    // Musteri iyzico'dan donerken TARAYICIDADIR: ham 409 JSON gostermek yerine siteye
+    // yonlendir (retrieve-altyapi-hatasi kolu ile AYNI desen — ikisi de 'incele' durumu).
+    // Durum/Telegram/log yukarida bitti; burada yalniz musteri gorunumu degisir.
+    return yonlendir(env, "hata", siparis.siparis_no);
   }
 
   // IDEMPOTENT kapanis: ayni token ikinci kez gelirse changes=0 -> bildirim de tekrarlanmaz.
@@ -476,6 +496,7 @@ async function donus(request, env, ctx) {
 function havaleMesaji(siparisNo, satirlar, urunKurus, kargoKurus, tahsilatKurus, musteri, acikAdres) {
   const kalemler = satirlar.map((s) =>
     "• " + s.baslik + " — " + s.malzeme + " / " + (s.renk_ozel || s.renk) +
+    (s.parametre_detay ? " [" + s.parametre_detay + "]" : "") +
     " × " + s.adet + " = " + kurusTL(s.tutar_kurus)).join("\n");
   return "🏦 HAVALE BEKLENIYOR: " + siparisNo + " " + kurusTL(tahsilatKurus) +
     "\n" + kalemler +
@@ -493,6 +514,7 @@ function siparisMesaji(siparis, det) {
   try { satirlar = JSON.parse(siparis.urunler) || []; } catch (e) { satirlar = []; }
   const kalemler = satirlar.map((s) =>
     "• " + s.baslik + " — " + s.malzeme + " / " + (s.renk_ozel || s.renk) +
+    (s.parametre_detay ? " [" + s.parametre_detay + "]" : "") +
     " × " + s.adet + " = " + kurusTL(s.tutar_kurus)).join("\n");
   const kargo = siparis.kargo_kurus || 0;
   return "🛒 YENI SIPARIS (odendi) — " + siparis.siparis_no +
