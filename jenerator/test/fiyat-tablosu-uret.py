@@ -34,18 +34,11 @@ def main():
                          (" " + p["birim"]) if p.get("birim") else "")
             for p in sema["parametreler"] if (p.get("tip", "sayi") != "metin"))
         taban_cm3 = sema["tabanHacimMm3"] / 1000.0
+        # Vida istisnasi KALKTI (paket-vida-fiyat.md): hacim.js vida uretim motoru
+        # STL hacimlerine kalibre edildi (kalibrasyon-referans.json "vida" fixture'i).
         fiyat = sema.get("tabanFiyatTL")
-        if sema["id"] == "olcuye-ozel-vida-civata-somun-pul":
-            # VIDA ISTISNASI (paket-sari-fiyat.md): hacim hesabi capa duyarsiz (M5'e
-            # cakili, Faz D olcumu) — fiyat girilirse M12, M5 fiyatina satilir.
-            fiyat_metni = ("**GİRİLMEZ — null kalır** (hacim hesabı çapa duyarsız; "
-                           "düzeltme ayrı iş, düzelince 100 TL girilecek)"
-                           if fiyat is None else
-                           str(fiyat).replace(".", ",") +
-                           " TL ⚠️ (vida istisnası kalkmadan girilmemeliydi!)")
-        else:
-            fiyat_metni = ("**___ TL**" if fiyat is None
-                           else str(fiyat).replace(".", ",") + " TL")
+        fiyat_metni = ("**___ TL**" if fiyat is None
+                       else str(fiyat).replace(".", ",") + " TL")
         satirlar.append("| %s | %s | %.1f cm³ | %s |" % (
             basliklar.get(sema["id"], sema["id"]), olculer,
             taban_cm3, fiyat_metni))
@@ -60,9 +53,10 @@ KAPALI — WhatsApp'a yönlendirilir; Diğer renk ×1.15). Varsayılandan küç�
 çarpan 1'e sabitlenir; taban üstünde hacimle SÜREKLİ artar (basamak yok).
 Kuruş korunur, yuvarlama yok.
 
-Fiyat girilmeyen üründe (bugün yalnız vida) sitede "Ölçüye özel fiyat" görünür
-(sipariş WhatsApp'la sürer). Doldurulan fiyat `jenerator/urunler/<id>.json`
-içindeki `tabanFiyatTL` alanına yazılır.
+18/18 aile dolu (vida istisnası kalktı — hacim.js vida üretim motoruna kalibre,
+`kalibrasyon-referans.json` "vida"). Fiyat girilmeyen üründe sitede "Ölçüye özel
+fiyat" görünür (sipariş WhatsApp'la sürer). Doldurulan fiyat
+`jenerator/urunler/<id>.json` içindeki `tabanFiyatTL` alanına yazılır.
 
 | Ürün | Varsayılan ölçüler | Taban hacim | Taban fiyat (PLA) |
 |---|---|---|---|

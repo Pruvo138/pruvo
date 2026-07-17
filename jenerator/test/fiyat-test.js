@@ -62,8 +62,9 @@ esit("büyüme: sıkı artan", buyume.every(function (v, i) {
 }), true);
 
 // --- TABAN FİYATLAR (Okan KESİN tablosu — tools/paket-sari-fiyat.md) ---
-// Vida İSTİSNASI: hacim hesabı çapa duyarsız (M5'e çakılı, Faz D ölçümü) —
-// fiyat girilirse M12, M5 fiyatına satılırdı. null KALIR, sayfa "Ölçüye özel".
+// Vida istisnası KALKTI (tools/paket-vida-fiyat.md): hacim.js vida üretim
+// motorunun STL hacimlerine kalibre edildi (kalibrasyon-referans.json "vida",
+// 77 set ≤%3) — 18/18 aile dolu, vida tabanı 100 TL (Okan kesin değeri).
 var TABAN_FIYATLAR = {
   "kisiye-ozel-jeton-cip-madalyon": 150,
   "olcuye-ozel-baglanti-konektor": 170,
@@ -80,7 +81,7 @@ var TABAN_FIYATLAR = {
   "olcuye-ozel-rulman": 200,
   "olcuye-ozel-triger-kasnagi": 180,
   "olcuye-ozel-triger-kayisi": 150,
-  "olcuye-ozel-vida-civata-somun-pul": null,
+  "olcuye-ozel-vida-civata-somun-pul": 100,
   "olcuye-ozel-yay-dalga-flexure": 130,
   "ozel-disli-kramayer-uretimi": 300
 };
@@ -101,7 +102,9 @@ var KUCUK_SETLER = {
                           kalinlik: 2, isaret_stili: "oyma" },
   "olcuye-ozel-huni": { agiz_capi: 40, yukseklik: 30, uc_capi: 4, uc_boyu: 54, uc_acisi: 0 },
   "olcuye-ozel-baglanti-konektor": { kol_sayisi: 2, kol_kesiti: "yuvarlak", cubuk_capi: 6,
-                                     kol_boyu: 20, cidar: 2, gecme: "normal" }
+                                     kol_boyu: 20, cidar: 2, gecme: "normal" },
+  // Vida zemin kanıtı: varsayılan M5 cıvatadan KÜÇÜK set (M3 somun) → 100 TL tabanı.
+  "olcuye-ozel-vida-civata-somun-pul": { urun_tipi: "somun", cap: 3, boy: 10, tolerans: 0.2 }
 };
 Object.keys(KUCUK_SETLER).forEach(function (id) {
   var s = JSON.parse(fs.readFileSync(path.join(URUN_DIR, id + ".json"), "utf8"));
@@ -116,6 +119,32 @@ Object.keys(KUCUK_SETLER).forEach(function (id) {
        SECENEK.parametrikFiyatKurus(taban, s.tabanHacimMm3, h, "PETG", "Siyah"),
        Math.round(taban * 130));
 });
+
+// --- VİDA: üretilemez ölçü şemadan seçilemez/reddedilir (mimar kabul şartı) ---
+// Motor kanıtı (kanit/vida-motor-olcu-kaniti.txt): üretim eşlemi SADECE
+// 11 standart M kabul eder (3,4,5,6,8,10,12,14,16,18,20; 24 ara değer RET);
+// cıvata M3/M4 motorda BOŞ GEOMETRİ (altıgen kafa tablosu M5'ten başlar).
+var vidaSema = JSON.parse(fs.readFileSync(
+  path.join(URUN_DIR, "olcuye-ozel-vida-civata-somun-pul.json"), "utf8"));
+function vidaSet(tip, cap) { return { urun_tipi: tip, cap: cap, boy: 20, tolerans: 0.2 }; }
+esit("vida: yarım ölçü reddedilir (somun M7.5)",
+     KONF.dogrula(vidaSema, vidaSet("somun", 7.5)).gecerli, false);
+esit("vida: tablo dışı tam ölçü reddedilir (mil M7)",
+     KONF.dogrula(vidaSema, vidaSet("mil", 7)).gecerli, false);
+esit("vida: tablo dışı tam ölçü reddedilir (civata M13)",
+     KONF.dogrula(vidaSema, vidaSet("civata", 13)).gecerli, false);
+esit("vida: üretilemez cıvata reddedilir (M3)",
+     KONF.dogrula(vidaSema, vidaSet("civata", 3)).gecerli, false);
+esit("vida: üretilemez cıvata reddedilir (M4)",
+     KONF.dogrula(vidaSema, vidaSet("civata", 4)).gecerli, false);
+esit("vida: üretilebilir küçük ölçüler satışta kalır (somun M3, pul M4, mil M3)",
+     [KONF.dogrula(vidaSema, vidaSet("somun", 3)).gecerli,
+      KONF.dogrula(vidaSema, vidaSet("pul", 4)).gecerli,
+      KONF.dogrula(vidaSema, vidaSet("mil", 3)).gecerli], [true, true, true]);
+esit("vida: standart ölçüler geçerli (civata M5/M12/M20)",
+     [KONF.dogrula(vidaSema, vidaSet("civata", 5)).gecerli,
+      KONF.dogrula(vidaSema, vidaSet("civata", 12)).gecerli,
+      KONF.dogrula(vidaSema, vidaSet("civata", 20)).gecerli], [true, true, true]);
 
 // --- parametrik sepet satırı özeti ---
 var satir = { id: "x", malzeme: "ASA", renk: "Diğer", renk_ozel: "mor", boy_etiket: null,

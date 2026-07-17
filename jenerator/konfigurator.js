@@ -35,6 +35,15 @@
       var adim = p.adim || 1;
       var kalan = Math.abs((v - p.min) / adim - Math.round((v - p.min) / adim));
       if (kalan > 1e-6) { return "Adım " + adim + (p.birim ? " " + p.birim : "") + " olmalı"; }
+      // İzin listesi (gecerliDegerler): üretim motoru aralığın tamamını değil
+      // yalnız belirli değerleri destekliyorsa (vida M ölçüleri) onun dışı reddedilir.
+      if (p.gecerliDegerler) {
+        for (var gi = 0; gi < p.gecerliDegerler.length; gi++) {
+          if (Math.abs(v - p.gecerliDegerler[gi]) < 1e-9) { return null; }
+        }
+        return "Üretilebilir değerler: " + p.gecerliDegerler.join(", ") +
+          (p.birim ? " " + p.birim : "");
+      }
       return null;
     }
     if (tip === "secim") {
@@ -54,12 +63,29 @@
   }
 
   // Tüm set doğrulaması -> {gecerli: bool, hatalar: {ad: mesaj}}
+  // sema.kisitlar: koşullu üretilebilirlik kuralları — [{eger: {ad: deger},
+  // parametre, min, mesaj}]. "eger"deki tüm eşitlikler tutuyorsa parametrenin
+  // alt sınırı yükselir (örn. altıgen başlı cıvata üretim motorunda M5'ten başlar).
   function dogrula(sema, degerler) {
     var hatalar = {}, gecerli = true;
     for (var i = 0; i < sema.parametreler.length; i++) {
       var p = sema.parametreler[i];
       var h = parametreHatasi(p, degerler[p.ad]);
       if (h) { hatalar[p.ad] = h; gecerli = false; }
+    }
+    for (var k = 0; k < (sema.kisitlar || []).length; k++) {
+      var ks = sema.kisitlar[k], uygulanir = true;
+      for (var ad in ks.eger) {
+        if (!ks.eger.hasOwnProperty(ad)) { continue; }
+        if (degerler[ad] !== ks.eger[ad]) { uygulanir = false; break; }
+      }
+      if (!uygulanir || hatalar[ks.parametre]) { continue; }
+      var kv = degerler[ks.parametre];
+      kv = typeof kv === "number" ? kv : parseFloat(String(kv).replace(",", "."));
+      if (ks.min != null && !isNaN(kv) && kv < ks.min) {
+        hatalar[ks.parametre] = ks.mesaj || ("En az " + ks.min + " olmalı");
+        gecerli = false;
+      }
     }
     return { gecerli: gecerli, hatalar: hatalar };
   }
@@ -128,7 +154,21 @@
     satir.appendChild(etiket);
 
     var tip = p.tip || "sayi", girdi, kaydirici = null;
-    if (tip === "sayi") {
+    if (tip === "sayi" && p.gecerliDegerler) {
+      // İzin listeli sayı: üretilemez ara değer hiç seçilemesin diye serbest
+      // giriş yerine seçim kutusu (doğrulama kuralı yine de asıl kapı —
+      // sunucu/sepet yolunda dogrula() aynı listeyi uygular).
+      girdi = document.createElement("select");
+      for (var gd = 0; gd < p.gecerliDegerler.length; gd++) {
+        var og = document.createElement("option");
+        og.value = p.gecerliDegerler[gd];
+        og.textContent = p.gecerliDegerler[gd] + (p.birim ? " " + p.birim : "");
+        girdi.appendChild(og);
+      }
+      girdi.value = p.varsayilan;
+      girdi.addEventListener("change", degisim);
+      satir.appendChild(girdi);
+    } else if (tip === "sayi") {
       girdi = document.createElement("input");
       girdi.type = "number";
       girdi.min = p.min; girdi.max = p.max; girdi.step = p.adim || 1;

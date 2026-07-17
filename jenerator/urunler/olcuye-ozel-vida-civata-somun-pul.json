@@ -23,8 +23,9 @@
       "min": 3,
       "max": 20,
       "adim": 0.5,
+      "gecerliDegerler": [3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20],
       "varsayilan": 5,
-      "aciklama": "M3–M20 aralığındaki nominal bağlantı çapı"
+      "aciklama": "Standart nominal bağlantı çapı (M3–M20); üretim motoru yalnız standart ölçüleri destekler"
     },
     {
       "ad": "boy",
@@ -49,6 +50,14 @@
       "aciklama": "Pul deliğine çap üstü olarak eklenen montaj boşluğu"
     }
   ],
-  "tabanHacimMm3": 495.10980055931356,
-  "tabanFiyatTL": null
+  "kisitlar": [
+    {
+      "eger": {"urun_tipi": "civata"},
+      "parametre": "cap",
+      "min": 5,
+      "mesaj": "Altıgen başlı cıvatada üretilebilir en küçük ölçü M5"
+    }
+  ],
+  "tabanHacimMm3": 494.9899006032,
+  "tabanFiyatTL": 100
 }

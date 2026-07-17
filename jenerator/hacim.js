@@ -1448,24 +1448,62 @@
     return Math.PI * ortalamaYariCapKare * 0.9996837955691371;
   }
 
+  // [cap, değer] tablosunda doğrusal enterpolasyon; uçların dışı uca sabitlenir.
+  // Tablolar üretim motorunun standart M ölçülerinde ölçülmüş STL hacimlerinden
+  // (jenerator/test/vida-referans-uret.py fixture'ı); ara/yarım ölçüler üretim
+  // eşleminde yok, fiyatları komşu ölçülerden enterpolasyonla türetilir.
+  function vida_tablo(tablo, cap) {
+    if (cap <= tablo[0][0]) return tablo[0][1];
+    for (var i = 1; i < tablo.length; i++) {
+      if (cap <= tablo[i][0]) {
+        var a = tablo[i - 1], b = tablo[i];
+        return a[1] + (b[1] - a[1]) * (cap - a[0]) / (b[0] - a[0]);
+      }
+    }
+    return tablo[tablo.length - 1][1];
+  }
+
+  // ISO kaba diş adımı (üretim motoru Spec/Pitch tablosuyla aynı).
+  function vida_adim(cap) {
+    return vida_tablo([[3, 0.5], [4, 0.7], [5, 0.8], [6, 1], [8, 1.25], [10, 1.5],
+      [12, 1.75], [14, 2], [16, 2], [18, 2.5], [20, 2.5]], cap);
+  }
+
   function vida(p) {
     if (p.urun_tipi === "pul") {
-      var icCap = p.cap + Math.max(p.tolerans, 0.3) + 0.3;
-      var disCap = p.cap * 2;
-      var kalinlik = Math.max(p.cap * 0.16, 1);
-      return Math.PI * (disCap * disCap - icCap * icCap) * kalinlik / 4;
+      // Üretim motoru pul ölçülerini ISO tablosundan alır; tolerans hacme etkimez.
+      return vida_tablo([[3, 15.220877], [4, 39.275085], [5, 56.473602],
+        [6, 129.4657], [8, 232.9843], [10, 455.0458], [12, 798.9804],
+        [14, 1097.3710], [16, 1439.3425], [18, 1872.7943], [20, 2186.1044]], p.cap);
     }
 
     if (p.urun_tipi === "somun") {
-      return 157.05286845271212;
+      return vida_tablo([[3, 41.328161], [4, 88.017602], [5, 157.0542],
+        [6, 288.4025], [8, 630.2322], [10, 1170.7777], [12, 1777.5389],
+        [14, 2889.8934], [16, 4368.3563], [18, 5932.0266], [20, 8352.0079]], p.cap);
     }
 
-    var disKesitAlani = vida_dis_kesit_alani(5, 0.8);
     if (p.urun_tipi === "mil") {
-      return disKesitAlani * p.boy - 5.8674336554163915;
+      // Dişli mil kesiti cıvatadan dolgun (toleranssız tam profil) — ölçülen eğim.
+      return vida_tablo([[3, 5.731007], [4, 10.087264], [5, 16.071114],
+        [6, 22.950125], [8, 41.352869], [10, 65.132137], [12, 94.288675],
+        [14, 128.8242], [16, 172.1133], [18, 214.0304], [20, 268.9270]], p.cap) *
+        p.boy +
+        vida_tablo([[3, -0.393487], [4, -1.025488], [5, -1.667223],
+          [6, -3.141889], [8, -6.529187], [10, -11.772693], [12, -19.226843],
+          [14, -29.455120], [16, -33.883159], [18, -59.345327],
+          [20, -66.178036]], p.cap);
     }
 
-    return disKesitAlani * p.boy + 188.03729995610064;
+    // Cıvata: 6g diş kesiti (kapalı form, ölçülen eğime <=%0.09) × boy + kafa.
+    // Altıgen kafa üretim motorunda M5'ten başlar; M3/M4 üretilemez (mimar
+    // raporunda) — fiyat sürekliliği için kafa M5'ten cap^3 ile küçültülür.
+    var kafa = p.cap >= 5 ?
+      vida_tablo([[5, 187.9174], [6, 334.3135], [8, 749.5829], [10, 1550.3620],
+        [12, 2260.9221], [14, 3558.6445], [16, 4820.3839], [18, 7001.0908],
+        [20, 9415.1648]], p.cap) :
+      187.9174 * Math.pow(p.cap / 5, 3);
+    return vida_dis_kesit_alani(p.cap, vida_adim(p.cap)) * p.boy + kafa;
   }
 
   // === AILE: yay ===
