@@ -18,6 +18,10 @@ SITE_URL = "https://pruvo3d.com"
 DERLEYICI_AD = "derleyici-2"
 # DERLEYICI_URL yalniz YEREL gelistirmede kullanilir (wrangler dev --var ile verilir);
 # uretimde derleme arka ucu DERLEYICI binding'idir (asagidaki containers blogu).
+# IC_DERLE_ANAHTAR (secret; wrangler.toml'a YAZILMAZ) — shop yonetim sayfasindan gelen
+# /api/onizleme/ic-derle cagrilarini korur (parametrik STL uretimi). shop worker'inda AYNI
+# deger secret olarak durur. Tanimsizsa ic uc 404 (ozellik kapali):
+#   npx wrangler secret put IC_DERLE_ANAHTAR   # onizleme + shop AYNI deger
 
 [[r2_buckets]]
 binding = "ONBELLEK"

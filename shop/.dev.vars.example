@@ -10,3 +10,14 @@ TELEGRAM_TOKEN = ""
 # env tanimsiz kalirsa uc 503 'havale-hazir-degil' doner (secenek musteriye kapanir).
 # HAVALE_IBAN = ""
 # HAVALE_UNVAN = ""
+
+# --- Siparis yonetimi paketi (tools/paket-siparis-yonetimi.md) ---
+# Yonetim sayfasi anahtari: tanimli DEGILSE tum /api/shop/yonet* 404 (ozellik kapali).
+# Canliya: openssl rand -hex 24 -> wrangler secret put YONET_ANAHTAR
+YONET_ANAHTAR = ""
+# Resend e-posta anahtari: tanimli degilse e-posta atlanir + Telegram uyarisi (siparis akisi
+# BOZULMAZ). Canliya: wrangler secret put RESEND_API_KEY
+RESEND_API_KEY = ""
+# Parametrik STL uretimi: shop -> onizleme /ic-derle icin PAYLASILAN anahtar (ayni deger
+# onizleme worker'inda da secret olarak durur). Tanimsizsa ic uc 404 (parametrik STL kapali).
+IC_DERLE_ANAHTAR = ""

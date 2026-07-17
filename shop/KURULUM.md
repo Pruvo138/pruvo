@@ -7,17 +7,55 @@ KART: iyzico Checkout Form (HOSTED sayfa; kart bilgisi SITEDE ASLA girilmez) -> 
 `siparisler` + Telegram. HAVALE/EFT: iyzico'ya gidilmez; siparis 'havale-bekliyor' +
 musteriye IBAN/unvan/TAM tutar ekrani + Telegram "HAVALE BEKLENIYOR".
 
-## Havale/EFT onayi (tek guvenli yol — panel YOK)
+## Yonetim sayfasi (siparis yonetimi paketi — tools/paket-siparis-yonetimi.md)
 
-Para iyzico'dan gecmedigi icin otomatik dogrulama yok; Okan dekontu/hesabi gorunce mimar:
+`https://pruvo3d.com/api/shop/yonet?anahtar=<YONET_ANAHTAR>` — tek dosyalik, mobil uyumlu
+sayfa (worker icinde gomulu; harici kutuphane yok). `YONET_ANAHTAR` wrangler secret
+(`openssl rand -hex 24`); TANIMSIZSA tum /yonet* uclari 404 doner (varlik sizmasin).
+- **Liste**: son 50 siparis (durum suzgeci), PII yalniz anahtarli yanitta. Her satirda
+  **FILAMENT + RENK vurgulu** + baski onerisi (D1 `urunler.baski` — gizli kayittan
+  d1-sync ile; yoksa malzeme fallback'i) + "Yerel komut kopyala" (`python3 tools/yazdir.py
+  <no>` — arac ayri mikro paket).
+- **Durum makinesi** (`POST /yonet/durum`): odendi→uretimde→kargolandi→tamamlandi;
+  havale-bekliyor→odendi; her durum→iptal. Bilinmeyen durum/izinsiz gecis 400.
+  'kargolandi'ya SADECE kargo formundan gecilir (takip kodu zorunlu). Her gecis
+  `durum_gecmisi` kolonuna ISO damgayla islenir (ayni satir; ek yazma maliyeti yok).
+- **Kargo** (`POST /yonet/kargo` {siparis_no, kargo_firma, kargo_kodu}): durum
+  'kargolandi' + musteriye kargo e-postasi (Resend).
+- **Uretim dosyasi** (`GET /yonet/stl?siparis_no=..&kalem=N`): sari (parametrik) satirda
+  siparisteki parametrelerle onizleme worker'inin `/api/onizleme/ic-derle` ucundan STL
+  URETIR (IC_DERLE_ANAHTAR ile; musteri kotasi/onbellegi yenmez); normal satirda OZEL R2
+  kovasindan (`pruvo-ozel`, `stl/<urun-id>.stl|.3mf`) stream eder. Dosya adi
+  `<siparis_no>-<urun-id>.stl|.3mf`. R2'de yoksa 404 + "stl/ klasoru / Drive / gizli
+  kaynak kaydina bak" notu (tedarikci bilgisi sayfaya YAZILMAZ). Toplu yukleme:
+  `python3 tools/stl-r2-yukle.py` (idempotent; yanlis adlanani raporlar, tahmin etmez).
+
+## E-posta (Resend — siparis yonetimi paketi Faz 2)
+
+Gonderen `PRUVO <siparis@pruvo3d.com>`; sablonlar Turkce sade HTML (`src/eposta.js`).
+Tetikler: (1) siparis 'odendi' (kart callback) ve 'havale-bekliyor' (havale baslatma) →
+musteriye onay (satirlar + parametre detayi + tutar/kargo/KDV dokumu + adres + WhatsApp
+linki) + `BILDIRIM_EPOSTA`'ya (vars: info@pruvo3d.com) satici kopyasi; (2) kargo ucu →
+musteriye firma + takip kodu. `RESEND_API_KEY` YOKSA e-posta sessizce atlanMAZ: Telegram'a
+"e-posta gönderilemedi (anahtar yok)" duser, siparis akisi BOZULMAZ (kabul testi 23);
+e-posta hatasi odemeyi asla dusurmez (ctx.waitUntil + try/catch). Callback idempotens
+e-postayi da kapsar: ayni token 2. kez → e-posta tekrarlanmaz (test 21).
+
+## Havale/EFT onayi
+
+Para iyzico'dan gecmedigi icin otomatik dogrulama yok; Okan dekontu gorunce **yonetim
+sayfasindan** siparisi `havale-bekliyor → odendi` yapar (TEK YOL BU). Sayfa/anahtar yoksa
+esdeger yedek komut (AYNI SQL kosulu — iki yol celismez, ikisi de `durum='havale-bekliyor'`
+sartiyla gecer):
 
     npx wrangler d1 execute pruvo-katalog --remote --command \
       "UPDATE siparisler SET durum='odendi' WHERE siparis_no='PR-...' AND durum='havale-bekliyor'"
 
 Istemciden erisilebilen HICBIR uc durumu degistiremez (havale satirinin `token`'i NULL —
-`/donus` onu hicbir token'la bulamaz; kabul testi 13'un negatif adimi). `durum='havale-bekliyor'`
-kosulu yanlis siparisi ezmeyi onler; komut 0 satir degistirdiyse numarayi kontrol et.
-Siparis 'odendi' ISARETLENMEDEN uretim baslamaz, "odeme geldi" bildirimi atilmaz.
+`/donus` onu hicbir token'la bulamaz; kabul testi 13'un negatif adimi; yonetim uclari
+anahtarsiz 404). `durum='havale-bekliyor'` kosulu yanlis siparisi ezmeyi onler; komut 0
+satir degistirdiyse numarayi kontrol et. Siparis 'odendi' ISARETLENMEDEN uretim baslamaz,
+"odeme geldi" bildirimi atilmaz.
 
 ## Dosyalar
 
@@ -28,8 +66,10 @@ Siparis 'odendi' ISARETLENMEDEN uretim baslamaz, "odeme geldi" bildirimi atilmaz
 - `src/iyzico.js`     — IYZWSv2 (HMACSHA256) istemcisi: CF initialize + retrieve
 - `src/parametrik.js` — sari seri sunucu-tarafi yeniden hesabi (kanal kapali; asagida)
 - `src/semalar.js`    — parametrik sema haritasi (jenerator/urunler/*.json statik import)
-- `test/kabul.js`     — 15 kabul testi (asagida; 10 kargo, 11 retrieve-incele,
-  12 siparis no, 13 havale/eft, 14 kdv, 15 sozlesme onayi)
+- `src/yonet.js`      — anahtar korumali yonetim sayfasi + uclari (liste/durum/kargo/stl)
+- `src/eposta.js`     — Resend istemcisi + Turkce siparis/kargo e-posta sablonlari
+- `test/kabul.js`     — 23 kabul testi (asagida; 10 kargo, 11 retrieve-incele,
+  12 siparis no, 13 havale/eft, 14 kdv, 15 sozlesme onayi, 18-23 siparis yonetimi+e-posta)
 - `.dev.vars.example` — yerel/sandbox anahtar sablonu (gercekleri `.dev.vars`a, gitignore'da)
 
 ## Kabul testleri
@@ -52,6 +92,9 @@ bayat worktree kopyasiyla kirmizi yanar — ana repodan (guncel katalogla) kostu
        npx wrangler secret put IYZICO_API_KEY      # sandbox-...
        npx wrangler secret put IYZICO_SECRET_KEY
        npx wrangler secret put TELEGRAM_TOKEN      # mevcut PRUVO botunun token'i — OKAN ONAYIYLA
+       npx wrangler secret put YONET_ANAHTAR       # openssl rand -hex 24 (yonetim sayfasi)
+       npx wrangler secret put RESEND_API_KEY      # Resend (Okan hesabi acinca; yoksa e-posta atlanir+Telegram uyarisi)
+       npx wrangler secret put IC_DERLE_ANAHTAR    # onizleme worker'inda da AYNI degerle koyulur (parametrik STL)
    HAVALE_IBAN / HAVALE_UNVAN secret DEGIL: musteriye zaten gosterilen bilgi —
    wrangler.toml [vars]'ta (Okan verdi, 16 Tem; IBAN mod-97 dogrulandi). Ayni adla secret
    TANIMLAMA (vars+secret cakismasi deploy'u dusurur); degistirmek icin toml'u duzenle.

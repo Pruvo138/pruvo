@@ -21,6 +21,7 @@ SABIT bir seq verilir; ORDER BY seq DESC = katalog sirasi (en yeni ustte).
 """
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -34,6 +35,9 @@ import arama
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 URUNLER = os.path.join(KOK, "urunler.json")
 SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
+# GIZLI kaynak kaydi (gitignore). "baski" alani (uretim ayar onerisi) buradan D1'e
+# tasinir — PUBLIC urunler.json'a YAZILMAZ. Dosya yoksa (baska makine/CI) baski bos kalir.
+KAYNAKLAR = os.path.join(KOK, ".urun-kaynaklari.json")
 
 # DB'yi ADIYLA degil UUID'siyle cagiriyoruz: boylece wrangler.toml GEREKMEZ ve bu betik
 # hem burada hem GitHub Actions'ta (pruvo-bot repo'su orada yok) AYNI yoldan calisir.
@@ -140,22 +144,62 @@ GOC_KOLON = [
     ("hs_baslik_kok", "TEXT NOT NULL DEFAULT ''"),
     ("hs_govde", "TEXT NOT NULL DEFAULT ''"),
     ("hs_govde_kok", "TEXT NOT NULL DEFAULT ''"),
+    # BASKI onerisi (siparis yonetimi paketi) — gizli kayittan doldurulur (asagida).
+    ("baski", "TEXT NOT NULL DEFAULT ''"),
 ]
 
-# siparisler icin ayni mekanizma (shop kargo paketi): DEFAULT'lu ekleme -> eski siparis
-# satirlari bozulmaz (kargo/KDV tahsil edilmedi, onay kutusu yoktu, hepsi kartti).
+# siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
+# ekleme -> eski siparis satirlari bozulmaz (kargo/KDV tahsil edilmedi, onay kutusu yoktu).
 GOC_KOLON_SIPARIS = [
     ("kargo_kurus", "INTEGER NOT NULL DEFAULT 0"),
     ("kdv_kurus", "INTEGER NOT NULL DEFAULT 0"),
     ("odeme_yontemi", "TEXT NOT NULL DEFAULT 'kart'"),
     ("sozlesme_onay", "TEXT NOT NULL DEFAULT ''"),
+    # Siparis yonetimi paketi: kargo firma+kodu + durum gecmisi (same-row, ek satir yazmaz).
+    ("kargo_firma", "TEXT NOT NULL DEFAULT ''"),
+    ("kargo_kodu", "TEXT NOT NULL DEFAULT ''"),
+    ("durum_gecmisi", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 # Yazilan kolonlar (id disinda hepsi ON CONFLICT'te guncellenir).
 KOLONLAR = [
     "hash", "baslik", "kategori", "marka", "fiyat", "gorsel", "parametrik", "hs",
     "aciklama", "ege", "hs_baslik", "hs_baslik_kok", "hs_govde", "hs_govde_kok",
+    "baski",
 ]
+
+
+def baski_haritasi():
+    """Gizli .urun-kaynaklari.json'dan id -> baski onerisi. "-"/bos placeholder atlanir.
+    Dosya yoksa (CI/baska makine) BOS harita — baski kolonu '' kalir, worker fallback'e duser.
+    PUBLIC repoya sizmaz: yalnizca D1'e (ozel) yazilir, urunler.json'a DEGIL."""
+    if not os.path.exists(KAYNAKLAR):
+        return {}
+    try:
+        with open(KAYNAKLAR, encoding="utf-8") as f:
+            d = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    harita = {}
+    if isinstance(d, dict):
+        for uid, kayit in d.items():
+            if not isinstance(kayit, dict):
+                continue
+            b = (kayit.get("baski") or "").strip()
+            if b and b != "-":
+                harita[uid] = b
+    return harita
+
+
+def etkin_hash(u, baski):
+    """arama.urun_hash + baski. baski gizli dosyadan gelir (public urun objesinde yok);
+    diff-upsert'in baski'yi gorebilmesi icin hash'e KATILIR — baski eklenince/degisince
+    satir yeniden yazilir, yoksa hash arama.urun_hash ile AYNI kalir (bos baskili urunlere
+    dokunulmaz, gunluk yazma limiti korunur)."""
+    h = arama.urun_hash(u)
+    if baski:
+        h = hashlib.sha256((h + "\x00baski\x00" + baski).encode("utf-8")).hexdigest()[:16]
+    return h
 
 
 def kolon_goc():
@@ -173,7 +217,7 @@ def kolon_goc():
         print("%s eklenen kolon: %s" % (tablo, ", ".join(ad for ad, _ in eksik)))
 
 
-def satir_sql(u, seq, hs, h):
+def satir_sql(u, seq, hs, h, baski=""):
     """Tek urun icin upsert. ON CONFLICT -> rid/seq korunur (FTS rowid'i sabit kalir)."""
     g = (u.get("gorseller") or [None])[0]
     e_bas = arama.ege_baslik(u)
@@ -184,10 +228,11 @@ def satir_sql(u, seq, hs, h):
         q(g), "1" if u.get("parametrik") else "0", q(hs),
         q(u.get("aciklama") or ""), q(u.get("ege") or ""),
         q(e_bas), q(arama.koke_cevir(e_bas)), q(e_gov), q(arama.koke_cevir(e_gov)),
+        q(baski),
     ]
     return (
         "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,gorsel,parametrik,hs,"
-        "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok) VALUES ("
+        "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok,baski) VALUES ("
         + ",".join(degerler)
         + ") ON CONFLICT(id) DO UPDATE SET "
         + ", ".join("%s=excluded.%s" % (k, k) for k in KOLONLAR) + ";"
@@ -219,7 +264,9 @@ def main():
 
     urunler = urunleri_oku()
     mevcut, mseq = d1_mevcut()
-    print("urunler.json: %d urun | D1: %d urun" % (len(urunler), len(mevcut)))
+    baskilar = baski_haritasi()
+    print("urunler.json: %d urun | D1: %d urun | gizli baski kaydi: %d"
+          % (len(urunler), len(mevcut), len(baskilar)))
 
     # TERS gez: dizinin BASI en yeni -> en yuksek seq alsin (ORDER BY seq DESC = katalog sirasi).
     yeni, degisen = [], []
@@ -230,16 +277,17 @@ def main():
         if not uid or uid in gorulen:
             continue
         gorulen.add(uid)
-        h = arama.urun_hash(u)
+        baski = baskilar.get(uid, "")
+        h = etkin_hash(u, baski)
         eski = mevcut.get(uid)
         if eski == h:
             continue  # DEGISMEMIS -> yazma yok
         hs = arama.haystack(u)
         if eski is None:
             sonraki += 1
-            yeni.append(satir_sql(u, sonraki, hs, h))
+            yeni.append(satir_sql(u, sonraki, hs, h, baski))
         else:
-            degisen.append(satir_sql(u, 0, hs, h))  # seq ON CONFLICT'te korunur
+            degisen.append(satir_sql(u, 0, hs, h, baski))  # seq ON CONFLICT'te korunur
 
     silinen = [i for i in mevcut if i not in gorulen]
     print("yeni: %d | degisen: %d | silinen: %d | dokunulmayan: %d"

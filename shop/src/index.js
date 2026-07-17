@@ -27,6 +27,8 @@ import "../../secenekler.js";
 import { cfBaslat, cfDetay } from "./iyzico.js";
 import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
+import { yonet } from "./yonet.js";
+import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -288,6 +290,13 @@ async function baslat(request, env, url, ctx) {
     ).run();
     ctx.waitUntil(telegram(env, havaleMesaji(siparisNo, satirlar, toplamKurus, kargoKurus,
       tahsilatKurus, musteri, acikAdres)));
+    // Musteriye onay e-postasi (tetik 1, havale basladi) + satici kopyasi.
+    onayEpostalari(env, ctx,
+      { siparis_no: siparisNo, musteri_ad: musteri.ad, musteri_adres: acikAdres,
+        musteri_eposta: musteri.eposta },
+      satirlar,
+      { tutarKurus: toplamKurus, kargoKurus: kargoKurus, kdvKurus: kdv.kdvKurus,
+        tahsilatKurus: tahsilatKurus }, true);
     // Ekrandaki TAM tutar = D1 tahsilati (tutar_kurus + kargo_kurus) BIREBIR (kabul testi 13);
     // net/kdv alanlari musteri ekranindaki KDV dokumu icin (kalem 8).
     return json({ havale: true, no: siparisNo, iban: env.HAVALE_IBAN,
@@ -418,7 +427,7 @@ async function donus(request, env, ctx) {
   // Uydurma token: bizde kaydi yok -> siparis OLUSMAZ, 4xx (kabul testi 2).
   const siparis = await env.KATALOG.prepare(
     "SELECT siparis_no, durum, tutar_kurus, kargo_kurus, kdv_kurus, urunler," +
-    " musteri_ad, musteri_tel, musteri_adres FROM siparisler WHERE token = ?"
+    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres FROM siparisler WHERE token = ?"
   ).bind(token).first();
   if (!siparis) return json({ hata: "bilinmeyen-token" }, 404, env);
 
@@ -483,6 +492,15 @@ async function donus(request, env, ctx) {
 
   if (g.meta && g.meta.changes > 0) {
     ctx.waitUntil(telegram(env, siparisMesaji(siparis, det)));
+    // Musteriye onay e-postasi (tetik 1, kart odemesi onaylandi) + satici kopyasi.
+    // IDEMPOTENT: yalniz changes>0'da (ayni token 2. kez -> e-posta da tekrarlanmaz).
+    let satirlar = [];
+    try { satirlar = JSON.parse(siparis.urunler) || []; } catch (e) { satirlar = []; }
+    onayEpostalari(env, ctx, siparis, satirlar, {
+      tutarKurus: siparis.tutar_kurus, kargoKurus: siparis.kargo_kurus || 0,
+      kdvKurus: siparis.kdv_kurus || 0,
+      tahsilatKurus: siparis.tutar_kurus + (siparis.kargo_kurus || 0),
+    }, false);
   }
   // Donus sayfasi KDV dokumu (kalem 8): tahsilat + kdv paramlari — istemci dokumu basar.
   return yonlendir(env, "ok", siparis.siparis_no, {
@@ -527,6 +545,25 @@ function siparisMesaji(siparis, det) {
     "\niyzico odeme id: " + (det.paymentId || "?");
 }
 
+/** Siparis onay e-postalari (tetik 1: odendi / havale-bekliyor) — musteri + satici kopyasi.
+ *  ctx.waitUntil ile: yanit bloklanmaz; anahtar yok/gonderim hatasi Telegram'a duser, siparis
+ *  akisini ASLA dusurmez (epostaAkisi try/catch'li). */
+function onayEpostalari(env, ctx, siparis, satirlar, dokum, havale) {
+  const html = onayEpostasiHtml(siparis, satirlar, dokum, havale);
+  const olaylar = [];
+  if (siparis.musteri_eposta) {
+    olaylar.push({ kime: siparis.musteri_eposta, konu: "Sipariş onayı — " + siparis.siparis_no,
+                   html: html, etiket: "müşteri" });
+  }
+  if (env.BILDIRIM_EPOSTA) {
+    olaylar.push({ kime: env.BILDIRIM_EPOSTA, konu: "Yeni sipariş — " + siparis.siparis_no,
+                   html: html, etiket: "satıcı" });
+  }
+  if (olaylar.length) {
+    ctx.waitUntil(epostaAkisi(env, telegram, siparis.siparis_no, olaylar));
+  }
+}
+
 async function telegram(env, mesaj) {
   if (!env.TELEGRAM_TOKEN) return; // bildirim kurulmamissa odeme akisini bloklama
   try {
@@ -555,6 +592,12 @@ export default {
       // (tek kaynak). Worker'in ayni listeyi ikinci bir ucdan yayinlamasi drift kapisi acardi.
       if (yol === "/baslat" && request.method === "POST") return await baslat(request, env, url, ctx);
       if (yol === "/donus") return await donus(request, env, ctx);
+      // Anahtar korumali yonetim (same-origin; anahtar yok/yanlis -> 404, telegram fallback icin
+      // index.js'in telegram fonksiyonu gecirilir).
+      if (yol === "/yonet" || yol.startsWith("/yonet/")) {
+        const altYol = yol.slice("/yonet".length) || "/";
+        return await yonet(request, env, url, ctx, altYol, telegram);
+      }
       return json({ hata: "bulunamadi" }, 404, env);
     } catch (e) {
       console.error("pruvo-shop hata:", e && e.stack || e);
