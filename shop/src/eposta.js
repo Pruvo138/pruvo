@@ -11,6 +11,7 @@
 
 const GONDEREN = "PRUVO <siparis@pruvo3d.com>";
 const WHATSAPP = "905451386526"; // sipariş/WhatsApp linki bot numarasina gider (CLAUDE.md)
+const SITE = "https://pruvo3d.com"; // urun kalici sayfalari: SITE/urun/<id>/
 
 /** Kurusu "1.234,56 TL" bicimine cevirir (tamsayi aritmetigi; sunucu tarafiyla ayni mantik). */
 function kurusTL(kurus) {
@@ -57,8 +58,22 @@ function satirTablosu(satirlar) {
   const govde = (satirlar || []).map((s) => {
     const detay = s.parametre_detay ? "<br><small>" + kac(s.parametre_detay) + "</small>" : "";
     const renk = s.renk_ozel || s.renk || "";
+    const baslikMetin = kac(s.baslik);
+    // Baslik urunun kalici sayfasina link (id varsa) — mail istemcisi resmi engellese de link
+    // her zaman calisir (img'ye bagimli degil). id/baslik kac() ile kacisli (XSS yok).
+    const baslikHtml = s.id
+      ? "<a href='" + SITE + "/urun/" + kac(s.id) + "/' " +
+        "style='color:#12294d;text-decoration:none'>" + baslikMetin + "</a>"
+      : baslikMetin;
+    // Kapak resmi VARSA kucuk thumbnail (gorseller[0]); YOKSA hic img basma (eski siparislerde
+    // gorsel yok — zarifce link'le devam). src/alt kac() ile kacisli.
+    const resim = s.gorsel
+      ? "<img src='" + kac(s.gorsel) + "' width='56' alt='" + baslikMetin + "' " +
+        "style='max-width:56px;border-radius:6px;vertical-align:middle;margin-right:8px'>"
+      : "";
     return "<tr>" +
-      "<td style='padding:6px 8px;border-bottom:1px solid #e5e7eb'>" + kac(s.baslik) + detay + "</td>" +
+      "<td style='padding:6px 8px;border-bottom:1px solid #e5e7eb'>" +
+        resim + baslikHtml + detay + "</td>" +
       "<td style='padding:6px 8px;border-bottom:1px solid #e5e7eb'>" +
         kac(s.malzeme || "") + " / " + kac(renk) + "</td>" +
       "<td style='padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center'>" +

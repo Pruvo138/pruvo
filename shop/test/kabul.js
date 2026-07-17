@@ -313,6 +313,17 @@ function d1Kur() {
     // SEMALAR.get(id) ile bulur, fiyati kendisi hesaplar (taban fiyat semadan, 100 TL o-ring).
     "('olcuye-ozel-oring-conta','h13',13,'Test Oring (semali sari)','Jeneratör','[]','',1,'');"
   );
+  // test 24 (e-posta link + kapak resmi): gorsel kolonu DOLU / BOS(NULL) / enjekte-baslik.
+  // Ayri INSERT (gorsel kolonu ile) — ustteki buyuk INSERT'e dokunmadan. XSS urununde baslikta
+  // <script> + tirnak var: e-postada KACISLI cikmali. XSS urunun gorseli YOK (img sayisi 1 kalsin).
+  wranglerD1(
+    "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,parametrik,hs,gorsel) VALUES " +
+    "('test-resim-var','h20',20,'Test Resimli Urun','Ev','[]','100 TL',0,''," +
+      "'https://media.pruvo3d.com/urunler/test-resim-var-1.jpg'), " +
+    "('test-resim-yok','h21',21,'Test Resimsiz Urun','Ev','[]','100 TL',0,'',NULL), " +
+    "('test-eposta-xss','h22',22,'Zararlı <script>alert(''x'')</script> \"Baslik\"'," +
+      "'Ev','[]','100 TL',0,'',NULL);"
+  );
 }
 
 // Yerel R2 taklidi (siparis yonetimi /stl ucu): wrangler dev --local, r2 binding'ini
@@ -1452,6 +1463,80 @@ async function test22Stl() {
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
+/** 24 — E-POSTA LINK + KAPAK RESMI (siparis e-postalarina urun linki + kapak resmi paketi):
+ *  (index.js) gorsel D1 siparis urunler JSON'una tasinir; (eposta.js) onay (musteri+satici) ve
+ *  kargo e-postalari her kalemde /urun/<id>/ linki tasir + gorsel dolu kalemde thumbnail;
+ *  gorsel BOS kalemde img YOK ama link VAR (cokme yok); enjekte baslik KACISLI (ham <script> yok). */
+async function test24EpostaLinkResim() {
+  const hatalar = [];
+  const RURL = "https://media.pruvo3d.com/urunler/test-resim-var-1.jpg";
+  const onceE = (await mockOku()).epostaSayisi;
+  // Sepet: resimli + resimsiz + enjekte-baslikli (hepsi kart akisi)
+  const c = await baslatIstek([
+    { id: "test-resim-var", malzeme: "PLA", renk: "Siyah", adet: 1 },
+    { id: "test-resim-yok", malzeme: "PLA", renk: "Siyah", adet: 1 },
+    { id: "test-eposta-xss", malzeme: "PLA", renk: "Siyah", adet: 1 },
+  ]);
+  const no = (c.govde || {}).no;
+  if (c.kod !== 200 || !no) {
+    return rapor("24 e-posta link+resim", false, "baslat: " + c.kod + " " + JSON.stringify(c.govde));
+  }
+  // (index.js CARRY) D1 siparis urunler JSON'unda gorsel tasindi mi? (resimli=URL, resimsiz=bos)
+  const row = d1Sorgu("SELECT urunler FROM siparisler WHERE siparis_no = '" + no + "'")[0] || {};
+  let db = [];
+  try { db = JSON.parse(row.urunler) || []; } catch (e) { /* bos */ }
+  const rv = db.find((s) => s.id === "test-resim-var") || {};
+  const ry = db.find((s) => s.id === "test-resim-yok") || {};
+  if (rv.gorsel !== RURL) { hatalar.push("D1 urunler JSON gorsel tasinmadi: " + JSON.stringify(rv.gorsel)); }
+  if (ry.gorsel !== "") { hatalar.push("resimsiz kalemde gorsel bos degil: " + JSON.stringify(ry.gorsel)); }
+
+  // Odeme -> onay e-postasi (musteri + satici kopyasi AYNI sablon)
+  const token = (await mockOku()).sonToken;
+  await donusIstek(token);
+  await bekle(400);
+  const m1 = await mockOku();
+  const yeni = (m1.epostalar || []).slice(onceE);
+  const musteriE = yeni.find((e) => (e.to || []).includes(MUSTERI.eposta));
+  const saticiE = yeni.find((e) => (e.to || []).includes(TEST_BILDIRIM));
+  if (!musteriE || !saticiE) {
+    hatalar.push("onay e-postasi eksik (musteri=" + !!musteriE + " satici=" + !!saticiE + ")");
+  }
+  for (const [ad, e] of [["musteri", musteriE], ["satici", saticiE]]) {
+    if (!e) { continue; }
+    const h = e.html || "";
+    if (!h.includes("href='https://pruvo3d.com/urun/test-resim-var/'")) { hatalar.push(ad + ": resimli link yok"); }
+    if (!h.includes("href='https://pruvo3d.com/urun/test-resim-yok/'")) { hatalar.push(ad + ": resimsiz link yok"); }
+    if (!h.includes("<img src='" + RURL + "'")) { hatalar.push(ad + ": resimli kalemde img yok"); }
+    // resimsiz + xss kaleminde gorsel yok -> TAM 1 img (yalniz resimli)
+    const imgN = (h.match(/<img /g) || []).length;
+    if (imgN !== 1) { hatalar.push(ad + ": img sayisi " + imgN + " (1 olmali; resimsiz kalemde img basmamali)"); }
+    if (h.includes("<script>")) { hatalar.push(ad + ": ham <script> sizdi (XSS)"); }
+    if (!h.includes("&lt;script&gt;")) { hatalar.push(ad + ": kacisli &lt;script&gt; yok"); }
+  }
+
+  // Kargo e-postasi da link+resim tasir (odendi -> uretimde -> kargolandi)
+  const g1 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "uretimde" });
+  if (g1.kod !== 200) { hatalar.push("odendi->uretimde: " + g1.kod + " " + JSON.stringify(g1.govde)); }
+  const onceK = (await mockOku()).epostaSayisi;
+  const g2 = await yonetIstek("POST", "/kargo",
+    { siparis_no: no, kargo_firma: "Aras Kargo", kargo_kodu: "AR24LINKTR" });
+  if (g2.kod !== 200) { hatalar.push("kargo ucu: " + g2.kod + " " + JSON.stringify(g2.govde)); }
+  await bekle(400);
+  const kargoE = ((await mockOku()).epostalar || []).slice(onceK)
+    .find((e) => (e.to || []).includes(MUSTERI.eposta));
+  if (!kargoE) { hatalar.push("kargo e-postasi gitmedi"); }
+  else {
+    const h = kargoE.html || "";
+    if (!h.includes("href='https://pruvo3d.com/urun/test-resim-var/'")) { hatalar.push("kargo: resimli link yok"); }
+    if (!h.includes("<img src='" + RURL + "'")) { hatalar.push("kargo: img yok"); }
+    if (!h.includes("AR24LINKTR")) { hatalar.push("kargo: takip kodu yok"); }
+  }
+  rapor("24 e-posta link+resim", hatalar.length === 0,
+    "D1 gorsel tasindi (resimli=URL, resimsiz=bos); onay musteri+satici link+img (resimsiz kalem img YOK); " +
+    "enjekte baslik kacisli; kargo e-postasi link+img" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
 /** 23 — ANAHTARSIZ KURULUM (kabul 4b + 1b): worker YONET_ANAHTAR'siz + RESEND_API_KEY'siz
  *  yeniden baslar -> dogru anahtar bile 404 (ozellik kapali); havale siparisi YINE olusur
  *  + Telegram'a "e-posta gonderilemedi (anahtar yok)" duser (SESSIZ ATLAMA YOK). */
@@ -1691,6 +1776,7 @@ async function main() {
     await test20Kargo(uretimdeNo);
     await test21EpostaTetigi();
     await test22Stl();
+    await test24EpostaLinkResim();
     await test23AnahtarsizKurulum();
     test6SirTaramasi();
     test7Parite();
