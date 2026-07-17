@@ -42,6 +42,21 @@ RESEND_API_KEY canlıya Okan `wrangler secret put` ile girer — koda/dosyaya an
     ile; idempotent — varsa ve boyut aynıysa atla). Kapsam gerçeği: her ürünün dosyası
     diskte yok (bazı ******** ürünleri sipariş anında kaynaktan indirilir) — araç sonunda
     "yüklendi/atlandı/eksik" sayımı basar, eksikler yönetim sayfasındaki nota düşer.
+- BASKI FİŞİ (OKAN GÜNCELLEMESİ 2, 17 Tem akşam): yönetim sayfasında HER sipariş satırında
+  FİLAMENT + RENK büyük/vurgulu (üretim hatası en pahalı hata) + "baskı önerileri" bloğu:
+  - Kaynak 1: `.urun-kaynaklari.json`'daki `baski` alanı (gizli YEREL dosya — worker
+    erişemez) → tools/d1-sync.py'ye zenginleştirme eklenir: urunler tablosuna `baski TEXT
+    NOT NULL DEFAULT ''` kolonu (d1-sema.sql + GOC_KOLON listesi) ve senkronda gizli
+    kayıttan doldurulur (D1 ÖZELDİR, sızıntı değil; public urunler.json'a bu alan YAZILMAZ).
+  - Kaynak 2 (fallback): malzeme bazlı genel öneri (filament rehberi içeriğinden kısa tablo —
+    PLA/PETG/ASA/TPU için katman/doluluk/sıcaklık aralığı; sabit metin, uydurma değer YOK,
+    rehberdekiyle aynı).
+  - Parametrik üründe: şemada baskı ipucu varsa o; yoksa malzeme fallback'i.
+- YAZICIYA AKTARIM (Faz 2 — bu pakette SADECE zemin): sayfadaki her satırda "yerel komut"
+  kopyala düğmesi: `python3 tools/yazdir.py <siparis_no>` metnini panoya kopyalar. Aracın
+  kendisi AYRI mikro paket (yönet API'den sipariş+dosyayı çeker, macOS'ta Bambu Studio'da
+  açar; tam otomatik dilim+başlat Bambu LAN API'si ayrı karar). Bu pakette yönet liste
+  JSON'unun yerel araca yetecek alanları içermesi YETERLİ (dosya ucu + malzeme/renk/öneri).
 - GÜVENLİK ÇİZGİLERİ: yönetim uçları rate-limit'siz ama anahtarsız istekte 404; anahtar
   loglara/HATA metinlerine yazılmaz; PII (müşteri ad/tel/adres) sadece anahtarlı yanıtta;
   CORS'ta yönetim uçları site origin'ine AÇILMAZ (same-origin kullanım). Kart verisi zaten yok.
