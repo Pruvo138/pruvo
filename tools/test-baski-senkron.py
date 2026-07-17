@@ -220,6 +220,100 @@ def main():
     import shutil
     shutil.rmtree(kok_dizin)
 
+    # --- MIMAR MIKRO PAKETI (17 Tem gece): PARALEL YUKLEME (--paralel N) ---
+    #     SORUN: dosya basina ayri wrangler sureci sirali ~6 sn -> 8.784 dosya ~14 saat.
+    #     COZUM: N eszamanli yukleyici, ama manifest'e TEK YAZICI (main) yazar.
+    #     KANIT: (neg-kontrol) serilestirilmemis oku-degistir-yaz IKI is parcacigi kayit
+    #     KAYBEDER; (a) gercek kos(paralel=4) 20 dosyada HIC kaybetmez; (b) 2. kosum
+    #     yuklendi=0; (c) paralel=1 eski davranisla birebir; (olcum) paralel ~1/4 sure.
+    import threading
+    import time as _time
+
+    # (neg-kontrol) DETERMINISTIK yaris: iki is parcacigi ayni BAYAT snapshot'i okur
+    # (barrier ile garanti), sonra yazar -> ikinci yazim birinciyi EZER, kayit KAYBOLUR.
+    # Bu tam olarak .urun-kaynaklari.json'da yasanan sinif (259 kayip). Tasarimin bunu
+    # ONLEMESI gerek: tek-yazici -> hic yaris yok.
+    neg_dizin = tempfile.mkdtemp(prefix="stl-neg-")
+    neg_manifest = os.path.join(neg_dizin, ".manifest.json")
+    r2.manifest_yaz(neg_manifest, {})
+    bariyer = threading.Barrier(2)
+
+    def _naif_yaz(anahtar, veri):
+        m = r2.manifest_oku(neg_manifest)   # ikisi de bos/bayat kopyayi okur
+        bariyer.wait()                      # her ikisi de eski snapshot'ta bulusur
+        m[anahtar] = veri
+        r2.manifest_yaz(neg_manifest, m)    # atomik AMA serilestirilmemis -> lost update
+
+    t1 = threading.Thread(target=_naif_yaz, args=("stl/a/a.stl", {"sha1": "1", "boyut": 1}))
+    t2 = threading.Thread(target=_naif_yaz, args=("stl/b/b.stl", {"sha1": "2", "boyut": 2}))
+    t1.start(); t2.start(); t1.join(); t2.join()
+    neg_sonuc = r2.manifest_oku(neg_manifest)
+    dogrula("NEG-KONTROL: serilestirilmemis paralel yazim kayit KAYBEDER (yaris kaniti)",
+            len(neg_sonuc) == 1, "manifest=%s (2 beklerdik, 1 = kayip kanitlandi)" % neg_sonuc)
+    shutil.rmtree(neg_dizin)
+
+    # 20 sahte dosya + YAVAS (0.2 sn) sahte yukleyici
+    par_dizin = tempfile.mkdtemp(prefix="stl-par-")
+    par_idler = set()
+    for i in range(20):
+        with open(os.path.join(par_dizin, "urun%02d.stl" % i), "wb") as f:
+            f.write(b"icerik-%d" % i)
+    par_idler = {"urun%02d" % i for i in range(20)}
+    par_manifest = os.path.join(par_dizin, ".manifest.json")
+    kilit = threading.Lock()
+    yuklenen_par = []
+
+    def yavas_yukle(yerel, anahtar):
+        _time.sleep(0.2)
+        with kilit:
+            yuklenen_par.append(anahtar)
+        return True
+
+    t0 = _time.time()
+    yp, ap, hp, cp = r2.kos(par_dizin, par_idler, par_manifest, kuru=False,
+                            yukle_fn=yavas_yukle, paralel=4)
+    par_sure = _time.time() - t0
+    manifest_par = r2.manifest_oku(par_manifest)
+    dogrula("(a) paralel=4: 20 dosyanin HEPSI yuklendi + manifest'te (KAYIP YOK)",
+            yp == 20 and ap == 0 and len(yuklenen_par) == 20 and len(manifest_par) == 20,
+            "y=%s a=%s yuklenen=%d manifest=%d" % (yp, ap, len(yuklenen_par), len(manifest_par)))
+
+    # (b) ikinci kosum: hepsi manifest'te -> yuklendi=0
+    yuklenen_par.clear()
+    yp2, ap2, _, _ = r2.kos(par_dizin, par_idler, par_manifest, kuru=False,
+                            yukle_fn=yavas_yukle, paralel=4)
+    dogrula("(b) 2. kosum paralel: yuklendi=0 atlandi=20 (IDEMPOTENS)",
+            yp2 == 0 and ap2 == 20 and yuklenen_par == [],
+            "y=%s a=%s yeni-yukleme=%d" % (yp2, ap2, len(yuklenen_par)))
+
+    # (olcum) paralel 4 suresi sirali (20*0.2=4.0 sn) yerine ~1/4 (~1.0 sn) olmali.
+    # KABA SINIR: sirali/2'nin ALTINDA (=2.0 sn) -> paralellik fiilen calisiyor.
+    dogrula("(olcum) paralel=4 suresi sirali'nin cok altinda (~1/4)",
+            par_sure < 2.0, "par_sure=%.2f sn (sirali beklenen ~4.0, sinir <2.0)" % par_sure)
+
+    # (c) paralel=1 eski davranisla BIREBIR: ayni sayilar, ayni manifest, ayni yukleme kumesi
+    seri_dizin = tempfile.mkdtemp(prefix="stl-seri-")
+    for i in range(20):
+        with open(os.path.join(seri_dizin, "urun%02d.stl" % i), "wb") as f:
+            f.write(b"icerik-%d" % i)
+    seri_manifest = os.path.join(seri_dizin, ".manifest.json")
+    yuklenen_seri = []
+
+    def hizli_yukle(yerel, anahtar):
+        yuklenen_seri.append(anahtar)
+        return True
+
+    ys, as_, hs, cs = r2.kos(seri_dizin, par_idler, seri_manifest, kuru=False,
+                             yukle_fn=hizli_yukle, paralel=1)
+    dogrula("(c) paralel=1 sayimlar eski davranisla ayni (y=20 a=0)",
+            ys == 20 and as_ == 0 and len(yuklenen_seri) == 20,
+            "y=%s a=%s" % (ys, as_))
+    dogrula("(c) paralel=1 manifest paralel=4 ile AYNI anahtar kumesini uretir",
+            set(r2.manifest_oku(seri_manifest)) == set(manifest_par),
+            "seri=%d par=%d" % (len(r2.manifest_oku(seri_manifest)), len(manifest_par)))
+    shutil.rmtree(par_dizin)
+    shutil.rmtree(seri_dizin)
+
     print("\nSONUC: %d gecti, %d kaldi%s" %
           (gecen[0], kalan[0], "" if kalan[0] else " — HEPSI YESIL"))
     sys.exit(1 if kalan[0] else 0)
