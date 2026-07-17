@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""PRUVO CGTrader SATICI toplu listeleme araci (PARALEL + concurrency-safe).
+"""PRUVO ******** SATICI toplu listeleme araci (PARALEL + concurrency-safe).
 
 Amac: bir satici profilinin TUM urunlerini siteye LISTELEMEK (satin almadan). Siparis gelince
-model CGTrader'dan alinip uretilir. Ucretli kaynak -> `lisans` YOK, atif YOK (ticari mahremiyet).
+model ********'dan alinip uretilir. Ucretli kaynak -> `lisans` YOK, atif YOK (ticari mahremiyet).
 Maliyet (USD) + link gizli `.urun-kaynaklari.json`'a yazilir.
 
-Kullanim:  python3 tools/cgt-ekle.py "https://www.cgtrader.com/3d-print-models?author=<satici>"
+Kullanim:  python3 tools/cgt-ekle.py "https://www.********.com/3d-print-models?author=<satici>"
 
 Her urun PARALEL islenir (fetch + Gemini + upload). Yazma: dosya KILIDI altinda urunler.json'u
 O AN yeniden okuyup ekler (stale snapshot degil) -> baska oturum ayni anda yazsa bile EZMEZ.
@@ -45,7 +45,7 @@ def profil_urunleri(profil_url):
         if not yeni:
             break
         for u in yeni:
-            seen.add(u); urls.append("https://www.cgtrader.com" + u)
+            seen.add(u); urls.append("https://www.********.com" + u)
         time.sleep(1.0)
     return urls
 
@@ -70,9 +70,9 @@ def urun_verisi(url, author=None):
     # site geneli indirim yuzdesi (or. -50%); en sik goruleni al
     pcts = re.findall(r'-(\d{1,2})%', html)
     disc = int(collections.Counter(pcts).most_common(1)[0][0]) if pcts else 0
-    imgs = re.findall(r'https://img-new\.cgtrader\.com/items/(\d+)/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)
+    imgs = re.findall(r'https://img-new\.********\.com/items/(\d+)/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)
     galeri = list(dict.fromkeys(re.findall(
-        r'https://img-new\.cgtrader\.com/items/\d+/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)))
+        r'https://img-new\.********\.com/items/\d+/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)))
     return {"itemid": imgs[0] if imgs else None, "baslik": baslik, "usd": usd, "disc": disc,
             "galeri": galeri, "link": url}
 
@@ -139,12 +139,17 @@ def process_one(url, author, mode="list"):
             return {"url": url, "durum": "HATA: codex oneri yok"}
         o = json.load(open(onerip))
         uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or itemid).lower()).strip("-")[:60] or itemid
+        # R2 gorsel anahtari KAYNAK-ID'den (cgt-<itemid>) turer, baslik-slug'indan (uid) DEGIL: iki
+        # farkli urun ayni basligi uretse bile anahtarlari cakismaz (bkz tools/gorsel-anahtar-test.py).
+        # merge_safe eski yorumu "gorsel URL'leri etkilenmez" der; iste bu yuzden id -itemid ile
+        # ayrilirken gorseller ESKI uid anahtarinda kalip EZILIYORDU. uid, JSON id + SEO URL icin kalir.
+        gkey = re.sub(r"[^a-z0-9-]+", "-", key.lower()).strip("-") or key
         secili = o.get("sec_gorseller") or sorted(os.path.basename(p) for p in imgs)
         urls = []
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
             if os.path.exists(fp):
-                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (uid, i))
+                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (gkey, i))
                 if uu:
                     urls.append(uu)
         if not urls:
@@ -152,7 +157,7 @@ def process_one(url, author, mode="list"):
         urun = {"id": uid, "kategori": o.get("kategori", "Otomobil"), "marka": o.get("marka", []),
                 "baslik": o.get("baslik", itemid), "aciklama": o.get("aciklama", ""),
                 "fiyat": tl_fiyat(v.get("usd"), v.get("disc", 0), mode), "gorseller": urls}   # lisans YOK
-        src = {"kaynak": "CGTrader", "link": url, "tur": "satin-alma", "usd_liste": v.get("usd"),
+        src = {"kaynak": "********", "link": url, "tur": "satin-alma", "usd_liste": v.get("usd"),
                "indirim_pct": v.get("disc", 0), "fiyat_modu": mode, "itemid": itemid, "baski": "",
                "not": "listeleme; sipariste satin al+uret"}
         return {"url": url, "durum": "STAGED", "urun": urun, "src": src, "itemid": itemid,
@@ -213,7 +218,7 @@ def main(profil_url, mode="list"):
     staged = [s for s in sonuc if s.get("durum") == "STAGED"]
     n, toplam = merge_safe(staged) if staged else (0, "?")
     print("\n" + "=" * 74)
-    print("STAGED (commit ETMEDIM — fiyatlari INDIRIMSIZ CGTrader fiyatiyla dogrula):")
+    print("STAGED (commit ETMEDIM — fiyatlari INDIRIMSIZ ******** fiyatiyla dogrula):")
     for s in sorted(sonuc, key=lambda x: x.get("durum") != "STAGED"):
         if s.get("durum") == "STAGED":
             print("  ✔ %-38s | %-10s | usd:%s -%d%% -> %s | g:%d | %s"
@@ -227,6 +232,6 @@ def main(profil_url, mode="list"):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        sys.exit('Kullanim: python3 tools/cgt-ekle.py "<cgtrader profil url>" [list|final]')
+        sys.exit('Kullanim: python3 tools/cgt-ekle.py "<******** profil url>" [list|final]')
     mode = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] in ("list", "final") else "list"
     main(sys.argv[1], mode)
