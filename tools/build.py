@@ -42,6 +42,10 @@ URUN_DIR = os.path.join(ROOT, "urun")
 # Şeması olan parametrik ürünün sayfasına konfigüratör UI basılır; olmayana dokunulmaz.
 JEN_URUN_DIR = os.path.join(ROOT, "jenerator", "urunler")
 CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"]
+# GİZLİ kategoriler (Okan, 17 Tem): ana sayfa menüsünde GÖRÜNMEZ ama ürün sayfaları,
+# arama ve ?kategori=<ad> linki çalışır. "Jeneratör" = TÜM parametrik (sarı seri) ürünler.
+# index.html'deki GIZLI_KATEGORILER ile BİRLİKTE güncelle (CATEGORIES kuralının aynısı).
+NAV_GIZLI = ["Jeneratör"]
 # Malzeme/renk/boy seçicisi bu kategorilerde gösterilir (Dekorasyon, Oyun/Hobi HARİÇ).
 # secenekler.js'deki FONKSIYONEL_KATEGORILER ile BİRLİKTE güncelle (tek karar iki yerde).
 FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera"]
@@ -1474,8 +1478,40 @@ def render_merchant_feed(products):
     return xml, len(items)
 
 
+# ------------------------------------------------------------------ taban fiyat haritası
+def uret_taban_fiyatlar():
+    """taban-fiyatlar.js — ana sayfa sarı kartlarının "X TL'den başlayan" fiyatı buradan
+    okur; kaynak jenerator/urunler/<id>.json tabanFiyatTL (TEK KAYNAK, elle kopya YOK —
+    filament-veri.js deseni). tabanFiyatTL null/eksik olan şema haritaya GİRMEZ (kartta
+    "Ölçüye özel fiyat" fallback'i). CI üretir, git'e girmez."""
+    harita = {}
+    if os.path.isdir(JEN_URUN_DIR):
+        for ad in sorted(os.listdir(JEN_URUN_DIR)):
+            if not ad.endswith(".json"):
+                continue
+            with open(os.path.join(JEN_URUN_DIR, ad), encoding="utf-8") as f:
+                sema = json.load(f)
+            taban = sema.get("tabanFiyatTL")
+            if taban is not None:
+                harita[sema.get("id") or ad[:-5]] = taban
+    with open(os.path.join(ROOT, "taban-fiyatlar.js"), "w", encoding="utf-8") as f:
+        f.write("/* tools/build.py uretir — ELLE DUZENLEME. "
+                "Tek kaynak: jenerator/urunler/<id>.json tabanFiyatTL */\n"
+                "window.PRUVO_TABAN_FIYATLAR = "
+                + json.dumps(harita, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+                + ";\n")
+    return harita
+
+
 # ------------------------------------------------------------------ ana akış
 def main():
+    # --sadece-taban: yalnız taban-fiyatlar.js'i üret (kabul testi hızlı koşsun;
+    # tam build 6900+ sayfa yazar). Deploy yine main()'in tamamını koşar.
+    if "--sadece-taban" in sys.argv[1:]:
+        harita = uret_taban_fiyatlar()
+        print("OK: taban-fiyatlar.js uretildi (%d urun)." % len(harita))
+        return
+
     with open(JSON_PATH, encoding="utf-8") as f:
         products = json.load(f)
 
@@ -1516,6 +1552,9 @@ def main():
                 "window.PRUVO_FILAMENT = "
                 + json.dumps(fil_ref, ensure_ascii=False, separators=(",", ":"))
                 + ";\n")
+
+    # taban-fiyatlar.js — sarı kart "X TL'den başlayan" haritası (tek kaynak: şemalar)
+    uret_taban_fiyatlar()
 
     # robots.txt
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:

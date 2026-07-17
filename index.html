@@ -195,6 +195,56 @@
   /* ---------- MAIN ---------- */
   main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
 
+  /* ---------- JENERATÖR BANNER (sadece ana sayfa görünümü) ----------
+     Tasarım dili: lacivert/gri; sarı SADECE arka plan ürün görselinde (CLAUDE.md).
+     Metin, görselin üstünde HTML overlay — soldan sağa lacivert degrade okunurluk verir. */
+  .jen-banner{
+    display:flex;align-items:center;
+    margin:0 0 22px;border-radius:14px;overflow:hidden;
+    min-height:216px;text-decoration:none;position:relative;
+    background:var(--navy-dark);
+    box-shadow:0 6px 18px rgba(18,41,77,.22);
+  }
+  /* Görsel <img> olarak (CSS background değil): kart görselleriyle aynı yükleme yolu,
+     object-fit ile responsive kırpma; metin overlay'i üstünde (z-index). */
+  .jen-banner-img{
+    position:absolute;top:0;left:0;width:100%;height:100%;
+    object-fit:cover;object-position:right center;
+  }
+  .jen-banner-text{
+    position:relative;z-index:1;
+    max-width:62%;
+    padding:28px 34px;
+    /* degrade overlay: sol koyu lacivert -> sağda görsel açık kalır */
+    background:linear-gradient(90deg, rgba(13,30,58,.94) 0%, rgba(13,30,58,.86) 55%, rgba(13,30,58,0) 100%);
+    align-self:stretch;display:flex;flex-direction:column;justify-content:center;
+  }
+  .jen-banner-title{
+    margin:0 0 8px;color:#fff;
+    font-size:23px;font-weight:800;line-height:1.25;letter-spacing:.2px;
+  }
+  .jen-banner-sub{
+    margin:0 0 14px;color:#c9d4e8;
+    font-size:14.5px;line-height:1.5;
+  }
+  .jen-banner-btn{
+    align-self:flex-start;
+    color:#fff;font-size:14px;font-weight:700;
+    border:1.5px solid rgba(255,255,255,.65);border-radius:9px;
+    padding:9px 16px;transition:.15s;
+  }
+  .jen-banner:hover .jen-banner-btn{background:#fff;color:var(--navy);border-color:#fff}
+  @media(max-width:640px){
+    .jen-banner{min-height:170px}
+    .jen-banner-text{
+      max-width:100%;padding:18px 20px;
+      /* dar ekranda görselin tamamı metnin altında kalır -> degrade tümünü kaplasın */
+      background:linear-gradient(90deg, rgba(13,30,58,.94) 0%, rgba(13,30,58,.80) 100%);
+    }
+    .jen-banner-title{font-size:18px}
+    .jen-banner-sub{font-size:13px}
+  }
+
   .brand-row{
     display:flex;
     align-items:center;
@@ -616,6 +666,18 @@
 </section>
 
 <main>
+  <!-- PRUVO Jeneratör banner — SADECE ana sayfa görünümünde (renderGrid gösterir/gizler;
+       kategori/arama/marka görünümünde YOK). Metin HTML overlay'dir, görsele yazı
+       BASILMAZ (CLAUDE.md kuralı); arka plan görseli R2'de (Codex render, logosuz). -->
+  <a id="jenBanner" class="jen-banner" href="/?kategori=Jenerat%C3%B6r">
+    <img class="jen-banner-img" alt=""
+         src="https://media.pruvo3d.com/urunler/jenerator-banner-cx1.jpg">
+    <div class="jen-banner-text">
+      <h2 class="jen-banner-title">PRUVO Jeneratör ile sana özel parça tasarla, biz üretelim</h2>
+      <p class="jen-banner-sub">Ölçünü gir, fiyatını anında gör, siparişini ver — özel üretilip kargolanır.</p>
+      <span class="jen-banner-btn">Jeneratör'ü Keşfet &rarr;</span>
+    </div>
+  </a>
   <div class="brand-row" id="brandRow">
     <span class="brand-label">Marka:</span>
     <div class="brand-chips" id="brandChips"></div>
@@ -772,6 +834,10 @@
 </footer>
 
 <script src="/secenekler.js"></script>
+<!-- Sarı kart "X TL'den başlayan" haritası — build.py üretir (kaynak: jenerator/urunler
+     şemalarındaki tabanFiyatTL). Lokalde/build'siz 404 olursa kart "Ölçüye özel fiyat"
+     fallback'ine düşer (aşağıdaki inline script window.PRUVO_TABAN_FIYATLAR'ı opsiyonel okur). -->
+<script src="/taban-fiyatlar.js"></script>
 <!-- NOT: /filament-veri.js artık ana sayfada YÜKLENMEZ (kart tavsiye çipi kaldırıldı,
      Okan 16 Tem). Dosyayı build.py hâlâ üretir; tek tüketicisi kalmadıysa da deploy
      beyaz listesinde kalması zararsız (ileride tekrar kullanılabilir). -->
@@ -782,6 +848,10 @@
 
   var WHATSAPP = "905451386526";
   var CATEGORIES = ["Marin","Otomobil","Motosiklet","Bisiklet","Tamirat","Ev","Ofis","Elektronik","Kamera","Bahçe","Dekorasyon","Oyun/Hobi"];
+  // GİZLİ kategoriler (Okan, 17 Tem): menüde GÖRÜNMEZ ama ?kategori=<ad> linki, arama ve
+  // ürün sayfaları çalışır. "Jeneratör" = TÜM parametrik (sarı seri) ürünler; banner +
+  // vitrin oradan beslenir. tools/build.py NAV_GIZLI ile BİRLİKTE güncelle.
+  var GIZLI_KATEGORILER = ["Jeneratör"];
 
   function placeholder(txt){
     return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">' +
@@ -813,8 +883,8 @@
         if(!used[p.id]){ head.push(p); used[p.id] = true; }
       });
     }
-    // 1) sarı (ölçüye özel / parametrik) ürünler
-    take(PRODUCTS.filter(function(p){ return p.parametrik && p.kategori === "Tamirat"; }));
+    // 1) sarı (ölçüye özel / parametrik) ürünler — hepsi gizli "Jeneratör" kategorisinde
+    take(PRODUCTS.filter(function(p){ return p.parametrik; }));
     // 2) her kategoriden birer sıra
     CATEGORIES.forEach(function(c){
       take(PRODUCTS.filter(function(p){ return p.kategori === c && !used[p.id]; }));
@@ -1432,9 +1502,13 @@
 
     // Ana sayfa varsayılan görünümü: önceden hesaplanmış HOME_ORDER (sarı sıra + her
     // kategoriden birer sıra + kalan karışık). Kategori/marka filtresi ve arama yoksa uygulanır.
-    if(activeCat === "Tümü" && query.trim() === "" && activeBrand === "Tümü" && HOME_ORDER.length){
+    var anaGorunum = activeCat === "Tümü" && query.trim() === "" && activeBrand === "Tümü";
+    if(anaGorunum && HOME_ORDER.length){
       list = HOME_ORDER;
     }
+
+    // Jeneratör banner'ı SADECE ana sayfa görünümünde (kabul: kategori/arama görünümünde YOK)
+    document.getElementById("jenBanner").style.display = anaGorunum ? "" : "none";
 
     if(query.trim() !== ""){
       title.textContent = '"' + query.trim() + '" araması';
@@ -1484,8 +1558,16 @@
       d.textContent = p.aciklama || "";
 
       var pr = document.createElement("div");
+      // Sarı kartta "X TL'den başlayan": X tek kaynaktan gelir (jenerator/urunler/<id>.json
+      // tabanFiyatTL -> build.py /taban-fiyatlar.js üretir; elle kopya YOK). Biçim ürün
+      // sayfasıyla birebir (secenekler.js kurusMetni). Harita yüklenmemişse (build yok /
+      // 404) ya da şemada taban null ise eski "Ölçüye özel fiyat" metni.
+      var taban = (p.parametrik && window.PRUVO_TABAN_FIYATLAR) ? window.PRUVO_TABAN_FIYATLAR[p.id] : null;
       if(p.fiyat && p.fiyat.trim() !== ""){
         pr.className = "card-price"; pr.textContent = p.fiyat;
+      }else if(taban != null){
+        pr.className = "card-price";
+        pr.textContent = PRUVO_SECENEK.kurusMetni(Math.round(taban * 100)) + "'den başlayan";
       }else{
         pr.className = "card-price empty"; pr.textContent = p.parametrik ? "Ölçüye özel fiyat" : "Fiyat için sipariş verin";
       }
@@ -1593,7 +1675,7 @@
 
     var params = new URLSearchParams(location.search);
     var kat = params.get("kategori");
-    if(kat && (["Tümü"].concat(CATEGORIES)).indexOf(kat) !== -1){ activeCat = kat; }
+    if(kat && (["Tümü"].concat(CATEGORIES).concat(GIZLI_KATEGORILER)).indexOf(kat) !== -1){ activeCat = kat; }
     var mar = params.get("marka");
     if(mar){ activeBrand = mar; }
     var ara = params.get("ara");
