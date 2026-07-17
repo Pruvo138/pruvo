@@ -92,6 +92,8 @@ function yon404() { return yjson({ hata: "bulunamadi" }, 404); }
 async function liste(env, url) {
   const durum = url.searchParams.get("durum") || "";
   const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get("limit") || "50", 10) || 50));
+  // Ana siteye kalici urun sayfasi linki (yonetim ekraninda kalem basligi buraya tiklanir).
+  const siteUrl = ((env && env.SITE_URL) || "https://pruvo3d.com").replace(/\/$/, "");
   const secim =
     "SELECT id, siparis_no, tarih, durum, tutar_kurus, kargo_kurus, kdv_kurus, odeme_yontemi," +
     " urunler, kargo_firma, kargo_kodu, durum_gecmisi," +
@@ -135,6 +137,8 @@ async function liste(env, url) {
         parametrik: parametrik,
         parametre_detay: k.parametre_detay || "",
         baski_oneri: baskiOnerisi(k, ur.baski, sema),
+        // Yonetim ekraninda kalem basligi buraya tiklanir (urun sayfasi, ana site).
+        urun_url: siteUrl + "/urun/" + encodeURIComponent(k.id || "") + "/",
       };
       // Yerel yazdir.py + tarayici indirme uclari (anahtar sayfa URL'inden eklenir).
       if (parametrik) {
@@ -491,12 +495,16 @@ function satirHtml(no,k){
    '\\',\\''+kutuId+'\\')">Üretim dosyaları</button>'+
    '<span id="'+kutuId+'"></span>';
  }
+ var baslikLink=k.urun_url?
+  '<a href="'+esc(k.urun_url)+'" target="_blank" rel="noopener">'+esc(k.baslik)+'</a>':
+  esc(k.baslik);
  return '<div class="satir">'+
   '<div class="filrenk">'+esc(k.malzeme)+' · <span class="renk">'+esc(k.renk)+'</span>'+
   ' × '+esc(k.adet)+'</div>'+
-  '<div>'+esc(k.baslik)+(k.parametre_detay?' <span class="kucuk">['+esc(k.parametre_detay)+']</span>':'')+'</div>'+
+  '<div>'+baslikLink+(k.parametre_detay?' <span class="kucuk">['+esc(k.parametre_detay)+']</span>':'')+'</div>'+
+  '<div class="kucuk">Ürün kodu: '+esc(k.id)+'</div>'+
   '<div class="baski">🖨️ '+esc(k.baski_oneri)+'</div>'+
-  indir+' <span class="kucuk">id: '+esc(k.id)+'</span>'+
+  indir+
   '</div>';
 }
 function boyutMetni(b){

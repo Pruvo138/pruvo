@@ -27,6 +27,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
+const vm = require("node:vm");
 
 const SHOP = path.dirname(__dirname);            // .../shop
 const KOK = path.dirname(SHOP);                  // repo koku
@@ -1452,6 +1453,80 @@ async function test22Stl() {
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
+/** 24 — URUN KODU + LINK (mimar mikro paketi, kalem basligi urun sayfasina tiklanabilir
+ *  link + "Urun kodu" satiri). ONCE-KIRMIZI: eski satirHtml urun_url/"Urun kodu" uretmiyordu
+ *  -> asagidaki kontroller kod degismeden kirmizi yanar (kanit: RAPOR-MIMARA.md).
+ *  (a) /liste JSON'da kalemde urun_url = SITE_URL + /urun/<id>/ ;
+ *  (b) sayfadan (deploy edilecek GERCEK kaynak, kopya DEGIL) esc()+satirHtml() cekilip
+ *      vm'de calistirilir: normal kalemde href+target=_blank+rel=noopener+"Urun kodu: <id>"
+ *      var; sahte id/baslik'a <script>/<img> soksan HAM sizmiyor (esc() kaciyor). */
+async function test24UrunKoduLinki() {
+  const hatalar = [];
+  const c = await baslatIstek([{ id: "test-urun-a", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const no = (c.govde || {}).no;
+  if (!no) { return rapor("24 urun kodu linki", false, "baslat: " + c.kod + " " + JSON.stringify(c.govde)); }
+
+  // (a) /liste JSON: urun_url dogru mu (test kurulumunda SITE_URL "https://pruvo3d.com")
+  const l = await yonetIstek("GET", "/liste");
+  const siparis = (l.govde.siparisler || []).find((s) => s.siparis_no === no);
+  const kalem = siparis && siparis.kalemler && siparis.kalemler[0];
+  const beklenenUrl = "https://pruvo3d.com/urun/test-urun-a/";
+  if (!kalem || kalem.urun_url !== beklenenUrl) {
+    hatalar.push("/liste urun_url: " + JSON.stringify(kalem && kalem.urun_url) +
+      " (beklenen " + beklenenUrl + ")");
+  }
+
+  // (b) sayfadaki GERCEK esc()/satirHtml() kaynagini cek (kopya yazmiyoruz — deploy
+  //     edilen kod sinanir), vm'de calistir.
+  const sayfa = await istekHam("GET", WORKER_UC + "/yonet?anahtar=" + TEST_YONET);
+  const dilimAl = (baslangic, bitis) => {
+    const b = sayfa.metin.indexOf(baslangic);
+    const s = b >= 0 ? sayfa.metin.indexOf(bitis, b) : -1;
+    return (b >= 0 && s > b) ? sayfa.metin.slice(b, s) : null;
+  };
+  const escKaynak = dilimAl("function esc(s){", "function tl(k){");
+  const satirKaynak = dilimAl("function satirHtml(no,k){", "function boyutMetni(b){");
+  if (!escKaynak || !satirKaynak) {
+    hatalar.push("sayfa kaynaginda esc/satirHtml bulunamadi (sayfa yapisi degisti mi?)");
+  } else {
+    const baglam = {};
+    vm.createContext(baglam);
+    vm.runInContext(escKaynak + "\n" + satirKaynak, baglam, { filename: "yonet-sayfa.js" });
+    if (typeof baglam.satirHtml !== "function") {
+      hatalar.push("satirHtml vm'de tanimlanamadi");
+    } else {
+      const normal = baglam.satirHtml("PR-TEST-1", {
+        kalem: 0, id: "test-urun-a", baslik: "Test Ürün A", malzeme: "PLA", renk: "Siyah",
+        adet: 1, parametrik: false, parametre_detay: "", baski_oneri: "Genel öneri",
+        urun_url: beklenenUrl,
+      });
+      if (!/<a href="https:\/\/pruvo3d\.com\/urun\/test-urun-a\/" target="_blank" rel="noopener">Test Ürün A<\/a>/
+          .test(normal)) {
+        hatalar.push("normal kalem: href/target=_blank/rel=noopener eksik -> " + normal.slice(0, 220));
+      }
+      if (!/Ürün kodu: test-urun-a/.test(normal)) {
+        hatalar.push("normal kalem: 'Ürün kodu' satiri yok -> " + normal.slice(0, 220));
+      }
+      // Sahte (zararli) id/baslik: esc() kacirmazsa HAM <script>/<img ...> HTML'e sizar.
+      const zararli = baglam.satirHtml("PR-TEST-2", {
+        kalem: 1, id: "<script>alert(1)</script>", baslik: "<img src=x onerror=alert(2)>",
+        malzeme: "PLA", renk: "Siyah", adet: 1, parametrik: false, parametre_detay: "",
+        baski_oneri: "x", urun_url: "https://pruvo3d.com/urun/<script>alert(1)</script>/",
+      });
+      if (/<script>|<img /i.test(zararli)) {
+        hatalar.push("KACIS YOK — HAM HTML SIZDI: " + zararli.slice(0, 220));
+      }
+      if (!/&lt;script&gt;/.test(zararli)) {
+        hatalar.push("sahte id/baslik kacislanmadi (esc() calismiyor olabilir)");
+      }
+    }
+  }
+  rapor("24 urun kodu linki", hatalar.length === 0,
+    "/liste urun_url=" + beklenenUrl + "; gercek satirHtml -> normal kalemde " +
+    "href+target=_blank+rel=noopener+'Ürün kodu:' var; sahte id/baslik kacislaniyor" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
 /** 23 — ANAHTARSIZ KURULUM (kabul 4b + 1b): worker YONET_ANAHTAR'siz + RESEND_API_KEY'siz
  *  yeniden baslar -> dogru anahtar bile 404 (ozellik kapali); havale siparisi YINE olusur
  *  + Telegram'a "e-posta gonderilemedi (anahtar yok)" duser (SESSIZ ATLAMA YOK). */
@@ -1691,6 +1766,7 @@ async function main() {
     await test20Kargo(uretimdeNo);
     await test21EpostaTetigi();
     await test22Stl();
+    await test24UrunKoduLinki();
     await test23AnahtarsizKurulum();
     test6SirTaramasi();
     test7Parite();
