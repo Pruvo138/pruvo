@@ -27,9 +27,21 @@ RESEND_API_KEY canlıya Okan `wrangler secret put` ile girer — koda/dosyaya an
     derleyicisinden STL üret (uç/akışı KEŞFET: onizleme worker'ının derleme yolu —
     yönetim sayfasında "STL indir" düğmesi buna gider; anahtar korumalı taraftan çağır,
     müşteri tarafı kotalarını yeme). İndirilen dosya adı: `<siparis_no>-<urun-id>.stl`.
-  - Normal satır: STL sipariş öncesi üretilmiyor (kaynak eşleme gizli dosyada / Drive'da,
-    worker ERİŞEMEZ ve public'e SIZAMAZ) → düğme yerine satırda not: "STL: stl/ klasörü /
-    Drive (id: <urun-id>)". Gizli kaynak bilgisi (tedarikçi/link) sayfaya YAZILMAZ.
+  - Normal satır (OKAN GÜNCELLEMESİ 17 Tem akşam — HER üründe indirme linki istenir):
+    üretim dosyaları ÖZEL R2 kovasına konur (public pruvo-media DEĞİL — ticari dosya
+    sızmaz; mevcut ÖZEL kova pruvo-ozel, prefix `stl/<urun-id>.stl` ya da `.3mf`).
+    Shop worker'a bu kovanın R2 BINDING'i eklenir (wrangler.toml, salt-okuma yeterli);
+    `GET /api/shop/yonet/stl?id=<urun-id>` (yönetim anahtarlı) R2 nesnesini stream eder
+    (Content-Disposition: `<siparis_no>-<urun-id>.stl|.3mf`; iki uzantıyı da dene).
+    Dosya R2'de YOKSA sayfada açık not: "dosya R2 stl/ prefix'inde yok — stl/ klasörü /
+    Drive / gizli kaynak kaydına bak (id: <urun-id>)". Gizli kaynak bilgisi (tedarikçi/
+    link) sayfaya YAZILMAZ.
+  - Toplu yükleme aracı: `tools/stl-r2-yukle.py` — yerel `stl/` klasöründeki dosyaları
+    (`<urun-id>.stl|.3mf` adlandırması; farklı adlananları raporla, tahmin etme) özel
+    kovanın `stl/` prefix'ine yükler (yerel wrangler oturumu `npx wrangler r2 object put`
+    ile; idempotent — varsa ve boyut aynıysa atla). Kapsam gerçeği: her ürünün dosyası
+    diskte yok (bazı ******** ürünleri sipariş anında kaynaktan indirilir) — araç sonunda
+    "yüklendi/atlandı/eksik" sayımı basar, eksikler yönetim sayfasındaki nota düşer.
 - GÜVENLİK ÇİZGİLERİ: yönetim uçları rate-limit'siz ama anahtarsız istekte 404; anahtar
   loglara/HATA metinlerine yazılmaz; PII (müşteri ad/tel/adres) sadece anahtarlı yanıtta;
   CORS'ta yönetim uçları site origin'ine AÇILMAZ (same-origin kullanım). Kart verisi zaten yok.
@@ -62,6 +74,11 @@ RESEND_API_KEY canlıya Okan `wrangler secret put` ile girer — koda/dosyaya an
    anahtar sızdırmadığını da kapsasın (YONET_ANAHTAR deseni).
 6. Tarayıcı kanıtı: yerel wrangler dev'de yönetim sayfası — liste + durum değiştirme +
    kargo formu ekran görüntüleri.
+7. STL indirme: yönetim STL ucu — sarı satırda derleyici çıktısı; normal satırda sahte/
+   yerel R2 nesnesiyle (wrangler dev --local R2 taklidi) indirme + Content-Disposition
+   adı; R2'de olmayan id'de "yok" notu. ÖNCE KIRMIZI: uç yokken beklentiler kırmızı.
+   stl-r2-yukle.py: sahte küçük dosyalarla yükle/atla/eksik sayımı testi (canlı R2'ye
+   toplu yükleme MERGE SONRASI mimar/maraba koşumu — testte canlıya yükleme YAPMA).
 
 ## Merge sırası (mimar koşar)
 1. merge → 2. d1-sync.py --sema CANLIYA (yeni kolonlar) → 3. worker deploy → 4. push →
