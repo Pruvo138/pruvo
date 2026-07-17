@@ -127,7 +127,7 @@ async function sayfaKur(ayar) {
   const depo = { pruvo_sepet: JSON.stringify(ayar.sepet || []) };
   const ctx = {
     document: belge,
-    location: { hash: "", search: "?sepet=1", pathname: "/", href: "", replace() {} },
+    location: { hash: "", search: ayar.search || "?sepet=1", pathname: "/", href: "", replace() {} },
     history: { replaceState() {} },
     localStorage: {
       getItem: (k) => (k in depo ? depo[k] : null),
@@ -153,9 +153,15 @@ async function sayfaKur(ayar) {
   vm.createContext(ctx);
   vm.runInContext(SECENEK_SRC, ctx, { filename: "secenekler.js" });
   vm.runInContext(SCRIPT, ctx, { filename: "index-inline.js" });
+  // Enjeksiyon: script YUKLENDI ama fetch .then microtask'i HENUZ kosmadi (senkron kod
+  // once biter). Savunma testi burada PRUVO_SECENEK.satirOzeti'ni patlatir -> renderCartPanel
+  // govdesi acilista hata alir, KACIS durumunu gostermeli + katalog basligina dokunmamali.
+  if (typeof ayar.enjekte === "function") { ayar.enjekte(ctx); }
   // fetch zinciri + (varsa) tazeleme fetch'i + isitHaystack setTimeout turlari bosalsin
   await bekle(30); await bekle(30);
-  if (konsolHatalari.length) {
+  // ayar.hataBekle: sepet KASITLI patlatildiginda console.error beklenir (savunma katmani
+  // yutar) — bunu altyapi hatasi sayma; test kendi iddiasini kosar.
+  if (!ayar.hataBekle && konsolHatalari.length) {
     throw new Error("sayfa scripti hata basti (DOM takliti eksik olabilir): " +
       konsolHatalari.join(" | "));
   }
@@ -163,6 +169,8 @@ async function sayfaKur(ayar) {
     el: (id) => belge.getElementById(id),
     satirlar: () => belge.getElementById("cartItems").children,
     metin: (id) => govdeMetni(belge.getElementById(id)),
+    baslik: () => belge.getElementById("sectionTitle").textContent,
+    konsolHatalari,
     fetchIzi,
     depo,
   };
@@ -357,6 +365,87 @@ async function test5NormalAkis() {
     "satir + toplam (" + genel + ") + aktif odeme aynen; gereksiz fetch yok");
 }
 
+/** 6 — KOK NEDEN (17 Tem canli): bozuk unicode (essiz surrogate) sepetten ANA fetch
+ *  zincirine ulasip katalog basligini "Urunler yuklenemedi"ye ceviriyordu. Essiz surrogate
+ *  hem katalog basligina (bayat/CDN kopyasi) hem localStorage renk_ozel'ine (kullanici
+ *  girdisi) konur; cartWaHref -> encodeURIComponent URIError atardi. KIRMIZI (fix'siz):
+ *  title flips + panel bos. YESIL (fix): title "Tum Urunler" kalir, satir NORMAL render'lanir,
+ *  WhatsApp linki uretilir (waKodla essiz surrogate'i U+FFFD yapip encode eder). */
+async function test6BozukUnicode() {
+  const hatalar = [];
+  const LONE = "\uD83D";                                   // essiz yuksek surrogate
+  const KOTU_URUN = Object.assign({}, GERCEK, {
+    id: "unicode-urun", baslik: "Boru Baglanti " + LONE + " Parcasi",
+  });
+  const s = await sayfaKur({
+    sepet: [{ id: "unicode-urun", malzeme: "PETG", renk: "Diğer", renk_ozel: "Fusya " + LONE, adet: 1 }],
+    katalog: [KOTU_URUN],
+    hataBekle: true,   // fix'siz URIError console'a duser; iddia asagida
+  });
+  if (s.baslik() !== "Tüm Ürünler") {
+    hatalar.push("katalog basligi '" + s.baslik() + "' (bozuk unicode ana fetch'i dusurdu — fix yok)");
+  }
+  if (s.konsolHatalari.some((h) => h.indexOf("URI malformed") !== -1)) {
+    hatalar.push("URIError yutulmadi/giderilmedi (waKodla devrede degil)");
+  }
+  if (s.satirlar().length !== 1) {
+    hatalar.push("panelde " + s.satirlar().length + " satir (1 olmali — bozuk char render'i dusurdu)");
+  }
+  if (s.metin("cartItems").indexOf("Sepet görüntülenemedi") !== -1) {
+    hatalar.push("kok neden giderilmemis: normal render yerine kacis durumu gosteriliyor");
+  }
+  // WhatsApp linki gercekten uretilebilmis olmali (encode patlamadi)
+  const wa = s.el("cartOrder").href || "";
+  if (wa.indexOf("https://wa.me/") !== 0) { hatalar.push("WhatsApp linki uretilemedi (encode patladi)"); }
+  // Odeme normal acik (urun bulundu + fiyatli); rozet 1
+  if (s.el("cartPay").disabled !== false) { hatalar.push("bozuk unicode odeme butonunu kilitledi"); }
+  if (String(s.el("cartCount").textContent) !== "1") { hatalar.push("rozet 1 degil"); }
+  rapor("6 bozuk unicode kok neden", hatalar,
+    "title korundu, satir NORMAL render'landi, WhatsApp linki uretildi, URIError yok");
+}
+
+/** 7 — SAVUNMA: sepet render'i BASKA (ongorulmeyen) bir nedenle patlasa bile ANA fetch
+ *  zinciri/katalog basligi DUSMEZ; panelde "Sepet goruntulenemedi — Sepeti temizle" kacis
+ *  durumu gosterilir, odeme kilitlenir, temizle HER durumda calisir. Patlamayi kasitli
+ *  enjekte ederiz (satirOzeti throw) — kok-neden fix'inden BAGIMSIZ ikinci guvence.
+ *  KIRMIZI (guard'siz): throw -> openCart -> ana .catch -> title "Urunler yuklenemedi". */
+async function test7SavunmaKacis() {
+  const hatalar = [];
+  const s = await sayfaKur({
+    sepet: [{ id: "gercek-urun", malzeme: "PETG", renk: "Siyah", adet: 1 }],
+    katalog: KATALOG,
+    hataBekle: true,
+    enjekte: function (ctx) {
+      // renderCartPanel govdesi bunu cagirir -> patlar -> guard kacis durumunu gostermeli
+      ctx.PRUVO_SECENEK.satirOzeti = function () { throw new Error("enjekte-patlak"); };
+    },
+  });
+  if (s.baslik() !== "Tüm Ürünler") {
+    hatalar.push("katalog basligi '" + s.baslik() + "' (sepet hatasi ana fetch'i dusurdu — guard yok)");
+  }
+  const panel = s.metin("cartItems");
+  if (panel.indexOf("Sepet görüntülenemedi") === -1) {
+    hatalar.push("kacis durumu ('Sepet görüntülenemedi') gosterilmiyor");
+  }
+  if (s.el("cartPay").disabled !== true) { hatalar.push("kacis durumunda odeme kilitli DEGIL"); }
+  if (s.el("cartOrder").className.indexOf("disabled") === -1) {
+    hatalar.push("kacis durumunda WhatsApp butonu pasif degil");
+  }
+  // "Sepeti temizle" butonu HER durumda calismali (musterinin cikis yolu)
+  const box = s.satirlar()[0];
+  const btn = (box && box.children || []).filter((c) => c.tagName === "BUTTON").pop();
+  if (!btn || String(btn.textContent).indexOf("temizle") === -1) {
+    hatalar.push("kacis durumunda 'Sepeti temizle' butonu yok");
+  } else {
+    btn.onclick();
+    if (JSON.parse(s.depo.pruvo_sepet).length !== 0) { hatalar.push("temizle localStorage'i bosaltmadi"); }
+    if (s.metin("cartItems").indexOf("Sepetiniz boş") === -1) { hatalar.push("temizle sonrasi panel bosalmadi"); }
+    if (String(s.el("cartCount").textContent) !== "0") { hatalar.push("temizle sonrasi rozet 0 degil"); }
+  }
+  rapor("7 savunma: sepet patlasa da katalog dusmez", hatalar,
+    "title korundu, kacis durumu + kilitli odeme, temizle calisti");
+}
+
 // ---------------------------------------------------------------- akis
 
 async function main() {
@@ -366,6 +455,8 @@ async function main() {
   await test3Tazeleme();
   await test4KarisikSepet();
   await test5NormalAkis();
+  await test6BozukUnicode();
+  await test7SavunmaKacis();
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
     (kalan ? "" : " — HEPSI YESIL ✅"));
   process.exit(kalan ? 1 : 0);

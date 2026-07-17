@@ -861,9 +861,32 @@
   // her ürünün kendi kalıcı adresi — Google'da bu sayfa çıkar
   function productUrl(p){ return "/urun/" + p.id + "/"; }
   function productAbs(p){ return "https://pruvo3d.com/urun/" + p.id + "/"; }
+  // Eşsiz (yalnız/kırık) surrogate'ları U+FFFD ile değiştirir, geçerli surrogate ÇİFTLERİNİ
+  // (emoji vb.) korur. Neden: encodeURIComponent eşsiz surrogate'ta URIError atar. Böyle bir
+  // karakter WhatsApp mesajına sızarsa (localStorage'daki renk_ozel'e yapışmış kırık bir char,
+  // ya da bayat/CDN katalog kopyasındaki bozuk bir başlık) cartWaHref patlıyor, hata
+  // renderCartPanel -> openCart üzerinden ANA fetch .catch'ine ulaşıp katalog başlığını
+  // "Ürünler yüklenemedi"ye çeviriyor + sepet panelini yarım bırakıyordu (17 Tem canlı).
+  function saglamMetin(s){
+    s = String(s == null ? "" : s);
+    var out = "", i, c, n;
+    for(i = 0; i < s.length; i++){
+      c = s.charCodeAt(i);
+      if(c >= 0xD800 && c <= 0xDBFF){                 // yüksek surrogate
+        n = s.charCodeAt(i + 1);
+        if(n >= 0xDC00 && n <= 0xDFFF){ out += s[i] + s[i+1]; i++; continue; }  // geçerli çift
+        out += "�"; continue;               // eşsiz yüksek
+      }
+      if(c >= 0xDC00 && c <= 0xDFFF){ out += "�"; continue; }         // eşsiz düşük
+      out += s[i];
+    }
+    return out;
+  }
+  // encodeURIComponent'in DAYANIKLI biçimi: bozuk unicode'da patlamaz (bkz. saglamMetin).
+  function waKodla(s){ return encodeURIComponent(saglamMetin(s)); }
   function waHref(p){
     var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + p.baslik + "\n" + productAbs(p);
-    return "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(mesaj);
+    return "https://wa.me/" + WHATSAPP + "?text=" + waKodla(mesaj);
   }
 
   // ---------- SEPET ----------
@@ -910,7 +933,7 @@
       lines.push("Genel toplam: " + PRUVO_SECENEK.kurusMetni(toplam + kargo) +
         (fiyatsizVar ? " (fiyatı sorulacak ürünler hariç)" : ""));
     }
-    return "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(lines.join("\n"));
+    return "https://wa.me/" + WHATSAPP + "?text=" + waKodla(lines.join("\n"));
   }
   function updateCartFab(){
     var fab = document.getElementById("cartFab");
@@ -1029,7 +1052,46 @@
     if(satir.adet > 1){ parca.push("Adet: " + satir.adet); }
     return parca.join(" · ");
   }
+  // Sepet paneli render'ı ANA fetch zincirini ASLA düşürmesin (17 Tem hotfix): gövde
+  // patlarsa hata YUTULUR, panelde "Sepet görüntülenemedi — Sepeti temizle" kaçış durumu
+  // gösterilir (müşterinin çıkış yolu) ve KATALOG BAŞLIĞINA dokunulmaz. Kök neden (bozuk
+  // unicode -> encodeURIComponent URIError'u) waKodla ile ayrıca giderildi; bu katman
+  // öngörülmeyen BAŞKA bir hataya karşı ikinci güvence.
   function renderCartPanel(){
+    try{ renderCartPanelGovde(); }
+    catch(e){
+      if(typeof console !== "undefined" && console.error){ console.error("Sepet görüntülenemedi:", e); }
+      sepetKurtarmaGoster();
+    }
+  }
+  function sepetKurtarmaGoster(){
+    var wrap = document.getElementById("cartItems");
+    wrap.innerHTML = "";
+    var box = document.createElement("div");
+    box.className = "cart-empty";
+    var msg = document.createElement("div");
+    msg.textContent = "Sepet görüntülenemedi.";
+    var sub = document.createElement("div");
+    sub.style.cssText = "font-size:13px;margin:8px 0 12px";
+    sub.textContent = "Sepetinizi temizleyip yeniden deneyin.";
+    var btn = document.createElement("button");
+    btn.type = "button"; btn.className = "cart-order-btn";
+    btn.textContent = "Sepeti temizle";
+    btn.onclick = function(){ cart = []; saveCart(); renderCartPanel(); updateCartFab(); };
+    box.appendChild(msg); box.appendChild(sub); box.appendChild(btn);
+    wrap.appendChild(box);
+    // Ödeme + WhatsApp kilit, toplam gizli — yarım/yanlış tutarla sipariş/ödeme açılmasın.
+    try{
+      var pay = document.getElementById("cartPay");
+      pay.disabled = true; pay.className = "cart-pay-btn disabled";
+      pay.textContent = "Sepet görüntülenemedi";
+      var orderBtn = document.getElementById("cartOrder");
+      orderBtn.className = "cart-order-btn disabled";
+      orderBtn.removeAttribute("href");
+      document.getElementById("cartTotalRow").style.display = "none";
+    }catch(e2){}
+  }
+  function renderCartPanelGovde(){
     var wrap = document.getElementById("cartItems");
     var orderBtn = document.getElementById("cartOrder");
     var lines = cartLines();
@@ -1680,15 +1742,21 @@
     .then(function(data){
       PRODUCTS = data;
       buildHomeOrder();
-      loadCart();
+      // SEPET, KATALOGU DÜŞÜREMEZ (17 Tem hotfix): sepet çağrıları try/catch içinde —
+      // localStorage/sepet kaynaklı bir hata renderGrid'i ve katalog başlığını ASLA
+      // etkilemesin (eski kod: openCart hatası ana .catch'e düşüp "Ürünler yüklenemedi"
+      // yazıyor + kartlar dolu kalıyordu). Sepet render'ının kendi kaçış durumu var.
+      try{ loadCart(); }catch(e){ console.error("Sepet yüklenemedi:", e); cart = []; }
       isitHaystack();                   // arama ilk tuşta takılmasın (boş zamanda kurulur)
       if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
       renderCats();
       renderBrands();
       renderGrid();
-      updateCartFab();
+      try{ updateCartFab(); }catch(e){ console.error("Sepet rozeti güncellenemedi:", e); }
       // Ürün sayfasından "Sepetim" ile gelindiyse sepeti otomatik aç
-      if(new URLSearchParams(location.search).get("sepet")){ openCart(); }
+      try{
+        if(new URLSearchParams(location.search).get("sepet")){ openCart(); }
+      }catch(e){ console.error("Sepet açılamadı:", e); }
     })
     .catch(function(err){
       console.error("Ürünler yüklenemedi:", err);
