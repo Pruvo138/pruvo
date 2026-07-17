@@ -104,7 +104,9 @@ function workerBaslat() {
   testTomlYaz();
   return surec("npx", ["wrangler", "dev", "-c", TEST_TOML,
                        "--port", String(WORKER_PORT),
-                       "--var", "DERLEYICI_URL:" + DTABAN], { cwd: ONIZLEME });
+                       "--var", "DERLEYICI_URL:" + DTABAN,
+                       // ic-derle (shop yonetim STL ucu) kabulu icin sahte anahtar
+                       "--var", "IC_DERLE_ANAHTAR:test-ic-derle-anahtar"], { cwd: ONIZLEME });
 }
 
 async function workerDurdurBaslat() {
@@ -227,6 +229,34 @@ async function faz4a() {
     const c = await olustur(govde);
     kaydet("4a " + ad, c.kod === beklenen, "kod=" + c.kod + " beklenen=" + beklenen);
   }
+}
+
+async function faz4h() {
+  console.log("\n== 4h — ic-derle (shop yonetim STL ucu; anahtar korumali, gzip'siz) ==");
+  const govde = { aile: "olcuye-ozel-oring-conta",
+                  parametreler: { ic_cap: 30, kesit_cap: 3.6, profil: "yuvarlak" } };
+  const uc = TABAN + "/api/onizleme/ic-derle";
+  const gonder = (basliklar, g) => fetch(uc, {
+    method: "POST",
+    headers: Object.assign({ "Content-Type": "application/json" }, basliklar),
+    body: JSON.stringify(g || govde),
+  });
+  // anahtarsiz + yanlis anahtar -> 404 (varlik sizmasin)
+  const c1 = await gonder({});
+  const c2 = await gonder({ "X-Ic-Anahtar": "yanlis" });
+  kaydet("4h anahtarsiz -> 404", c1.status === 404, "kod=" + c1.status);
+  kaydet("4h yanlis anahtar -> 404", c2.status === 404, "kod=" + c2.status);
+  // dogru anahtar -> 200 HAM binary STL (gzip yok — yonetim dogrudan indirir)
+  const c3 = await gonder({ "X-Ic-Anahtar": "test-ic-derle-anahtar" });
+  const buf = Buffer.from(await c3.arrayBuffer());
+  kaydet("4h dogru anahtar -> 200 ham STL",
+    c3.status === 200 && !c3.headers.get("X-Sikistirma") && buf.length > 84,
+    "kod=" + c3.status + " boyut=" + buf.length + " sikistirma=" + c3.headers.get("X-Sikistirma"));
+  // sema kapisi /olustur ile AYNI: aralik disi -> 400
+  const c4 = await gonder({ "X-Ic-Anahtar": "test-ic-derle-anahtar" },
+    { aile: "olcuye-ozel-oring-conta",
+      parametreler: { ic_cap: 9999, kesit_cap: 3.6, profil: "yuvarlak" } });
+  kaydet("4h sema kapisi (aralik disi) -> 400", c4.status === 400, "kod=" + c4.status);
 }
 
 async function faz4b() {
@@ -414,6 +444,7 @@ async function main() {
   if (!(await hazirBekle(DTABAN + "/saglik", 15))) throw new Error("derleyici acilamadi");
   await workerDurdurBaslat();
   await faz4a();
+  await faz4h();
   await faz4b();
   await faz4c();
 

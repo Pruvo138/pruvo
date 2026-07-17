@@ -110,6 +110,54 @@ function hizSiniriAsildi(ip) {
   return false;
 }
 
+// ---------------------------------------------------------------- sema kapisi
+
+/** SEMA KAPISI — /olustur (musteri) ve /ic-derle (yonetim) TEK kaynaktan dogrular.
+ *  Basari: {sema, normal}. Hata: {hataYanit} (hazir json Response). */
+function semaKapisi(aile, p, env) {
+  if (typeof aile !== "string" || !AILELER.has(aile)) {
+    return { hataYanit: json({ hata: "aile-yok" }, 404, env) };
+  }
+  const sema = SEMALAR.get(aile);
+  if (!sema) { return { hataYanit: json({ hata: "sema-yok" }, 404, env) }; }
+  if (!p || typeof p !== "object" || Array.isArray(p)) {
+    return { hataYanit: json({ hata: "parametre-yok" }, 400, env) };
+  }
+  // 1) tanimsiz anahtar reddi
+  const tanimli = new Set(sema.parametreler.map((x) => x.ad));
+  for (const ad of Object.keys(p)) {
+    if (!tanimli.has(ad)) {
+      return { hataYanit: json({ hata: "bilinmeyen-parametre", alan: ad }, 400, env) };
+    }
+  }
+  // 2) SIKI TIP KAPISI (dogruladan ONCE): API'de sayi = JSON sayisi ya da SAF sayi metni.
+  for (const tanim of sema.parametreler) {
+    if ((tanim.tip || "sayi") !== "sayi") { continue; }
+    const v = p[tanim.ad];
+    const sayiMi = (typeof v === "number" && Number.isFinite(v)) ||
+      (typeof v === "string" && /^-?[0-9]+([.,][0-9]+)?$/.test(v.trim()));
+    if (!sayiMi) {
+      return { hataYanit: json({ hata: "parametre-araligi", alanlar: [tanim.ad] }, 400, env) };
+    }
+  }
+  // 3) min/max/adim/tip dogrulamasi (KONF.dogrula) — sitedeki ile AYNI fonksiyon.
+  const sonuc = KONF.dogrula(sema, p);
+  if (!sonuc.gecerli) {
+    return { hataYanit: json({ hata: "parametre-araligi",
+                               alanlar: Object.keys(sonuc.hatalar || {}) }, 400, env) };
+  }
+  // 4) ONIZLEME KISITLARI (uretim motorunda 3D karsiligi olmayan secim degerleri).
+  const kisitlar = (SECENEK.ONIZLEME_KISITLAR || {})[aile];
+  if (kisitlar) {
+    for (const [ad, izinli] of Object.entries(kisitlar)) {
+      if (p[ad] !== undefined && !izinli.includes(p[ad])) {
+        return { hataYanit: json({ hata: "onizleme-secenek-kisiti", alan: ad }, 400, env) };
+      }
+    }
+  }
+  return { sema, normal: normalizeEt(sema, p) };
+}
+
 // ---------------------------------------------------------------- /olustur
 
 async function olustur(request, env) {
@@ -120,50 +168,9 @@ async function olustur(request, env) {
 
   const aile = govde.aile;
   const p = govde.parametreler;
-  if (typeof aile !== "string" || !AILELER.has(aile)) {
-    return json({ hata: "aile-yok" }, 404, env);
-  }
-  const sema = SEMALAR.get(aile);
-  if (!sema) { return json({ hata: "sema-yok" }, 404, env); }
-  if (!p || typeof p !== "object" || Array.isArray(p)) {
-    return json({ hata: "parametre-yok" }, 400, env);
-  }
-
-  // SEMA KAPISI (shop/src/parametrik.js ile ayni kurallar, ayni fonksiyonlar):
-  // 1) tanimsiz anahtar reddi, 2) min/max/adim/tip dogrulamasi (KONF.dogrula).
-  const tanimli = new Set(sema.parametreler.map((x) => x.ad));
-  for (const ad of Object.keys(p)) {
-    if (!tanimli.has(ad)) { return json({ hata: "bilinmeyen-parametre", alan: ad }, 400, env); }
-  }
-  // SIKI TIP KAPISI (dogruladan ONCE): KONF.parametreHatasi tarayici girisine
-  // hosgoruludur (parseFloat "40; cube(9)" -> 40 onekini alir — form alani icin dogru,
-  // API icin degil). API'de sayi = JSON sayisi ya da SAF sayi metni; gerisi 400.
-  for (const tanim of sema.parametreler) {
-    if ((tanim.tip || "sayi") !== "sayi") { continue; }
-    const v = p[tanim.ad];
-    const sayiMi = (typeof v === "number" && Number.isFinite(v)) ||
-      (typeof v === "string" && /^-?[0-9]+([.,][0-9]+)?$/.test(v.trim()));
-    if (!sayiMi) { return json({ hata: "parametre-araligi", alanlar: [tanim.ad] }, 400, env); }
-  }
-  const sonuc = KONF.dogrula(sema, p);
-  if (!sonuc.gecerli) {
-    return json({ hata: "parametre-araligi",
-                  alanlar: Object.keys(sonuc.hatalar || {}) }, 400, env);
-  }
-
-  // ONIZLEME KISITLARI (tek kaynak secenekler.js): uretim motorunda 3D
-  // karsiligi olmayan secim degerleri — siparis akisini degil yalniz
-  // onizlemeyi kisitlar; urun sayfasi ayni listeyle onceden uyarir.
-  const kisitlar = (SECENEK.ONIZLEME_KISITLAR || {})[aile];
-  if (kisitlar) {
-    for (const [ad, izinli] of Object.entries(kisitlar)) {
-      if (p[ad] !== undefined && !izinli.includes(p[ad])) {
-        return json({ hata: "onizleme-secenek-kisiti", alan: ad }, 400, env);
-      }
-    }
-  }
-
-  const normal = normalizeEt(sema, p);
+  const kapi = semaKapisi(aile, p, env);
+  if (kapi.hataYanit) { return kapi.hataYanit; }
+  const { sema, normal } = kapi;
   const anahtar = await anahtarUret(aile, normal, sema);
 
   // ONBELLEK: isabet varsa derleyiciye gidilmez, hiz sinirina sayilmaz.
@@ -207,6 +214,35 @@ async function olustur(request, env) {
                "X-Sikistirma": "gzip", "X-Kaynak": "derleyici",
                "X-Ham-Boyut": String(d.govde.byteLength),
                "Cache-Control": "no-store", ...cors(env) },
+  });
+}
+
+// ---------------------------------------------------------------- /ic-derle (yonetim)
+
+/**
+ * IC UC (anahtar korumali) — shop yonetim sayfasindan "STL indir" buna gelir.
+ * /olustur'dan farki: HIZ SINIRI YOK (musteri kotasini yemez), GZIP YOK (ham STL doner,
+ * yonetim dogrudan indirir), onbellek YOK. X-Ic-Anahtar env.IC_DERLE_ANAHTAR ile eslesmezse
+ * (ya da secret tanimsizsa) 404 — varligi sizmasin. Sema kapisi /olustur ile AYNI (tek kaynak).
+ */
+async function icDerle(request, env) {
+  if (!env.IC_DERLE_ANAHTAR ||
+      request.headers.get("X-Ic-Anahtar") !== env.IC_DERLE_ANAHTAR) {
+    return json({ hata: "bulunamadi" }, 404, env);
+  }
+  let govde;
+  try { govde = await request.json(); }
+  catch (e) { return json({ hata: "gecersiz-json" }, 400, env); }
+  if (!govde || typeof govde !== "object") { return json({ hata: "gecersiz-istek" }, 400, env); }
+  const kapi = semaKapisi(govde.aile, govde.parametreler, env);
+  if (kapi.hataYanit) { return kapi.hataYanit; }
+  const normal = normalizeEt(kapi.sema, govde.parametreler);
+  const d = await derleyiciCagir(env, govde.aile, normal);
+  if (d.kod !== 200) { return json({ hata: d.hata }, d.kod, env); }
+  if (d.govde.byteLength > HAM_TAVAN) { return json({ hata: "cikti-cok-buyuk" }, 413, env); }
+  return new Response(d.govde, {
+    status: 200,
+    headers: { "Content-Type": "application/octet-stream", "Cache-Control": "no-store" },
   });
 }
 
@@ -286,6 +322,9 @@ export default {
       }
       if (yol === "/olustur" && request.method === "POST") {
         return await olustur(request, env);
+      }
+      if (yol === "/ic-derle" && request.method === "POST") {
+        return await icDerle(request, env);
       }
       if (yol === "/saglik" && request.method === "GET") {
         return json({ durum: "ok", aileler: [...AILELER],

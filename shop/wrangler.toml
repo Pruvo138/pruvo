@@ -26,11 +26,22 @@ TELEGRAM_API = "https://api.telegram.org"
 # musteri ekrani 4'lu gruplarla okunur bicimde gosterir.
 HAVALE_IBAN = "TR090006701000000059703630"
 HAVALE_UNVAN = "Okan Gemalmaz"
+# Siparis yonetimi paketi: satici e-posta kopyasi (SIR DEGIL). Onay/kargo e-postalarinin
+# BILDIRIM kopyasi buraya gider.
+BILDIRIM_EPOSTA = "info@pruvo3d.com"
+# Parametrik STL uretimi: onizleme worker'inin ic uc tabani (ayni zone; ayni alan adindan).
+ONIZLEME_TABAN = "https://pruvo3d.com"
 
 [[d1_databases]]
 binding = "KATALOG"
 database_name = "pruvo-katalog"
 database_id = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"
+
+# Uretim dosyalari (STL/3MF) OZEL R2 kovasinda (pruvo-media DEGIL — ticari dosya public'e
+# sizmaz). Yonetim /stl ucu SALT-OKUMA ile stream eder; toplu yukleme tools/stl-r2-yukle.py.
+[[r2_buckets]]
+binding = "OZEL_DOSYA"
+bucket_name = "pruvo-ozel"
 
 [observability]
 enabled = true
@@ -39,4 +50,7 @@ enabled = true
 #   npx wrangler secret put IYZICO_API_KEY      # sandbox-... / canli anahtar
 #   npx wrangler secret put IYZICO_SECRET_KEY
 #   npx wrangler secret put TELEGRAM_TOKEN      # mevcut PRUVO botunun token'i — deploy'da Okan onayiyla
+#   npx wrangler secret put YONET_ANAHTAR       # openssl rand -hex 24 (yonetim sayfasi anahtari)
+#   npx wrangler secret put RESEND_API_KEY      # Resend e-posta (Okan hesabi acinca)
+#   npx wrangler secret put IC_DERLE_ANAHTAR    # onizleme worker'iyla AYNI deger (parametrik STL)
 # Yerel gelistirme: .dev.vars (gitignore'da) — sablon: .dev.vars.example

@@ -41,6 +41,11 @@ const TEST_SECRET = "test-secret-key";
 // Gercek degerler deploy'da girilir; testte sahte degerler --var ile verilir.
 const TEST_IBAN = "TR000000000000000000000001";
 const TEST_UNVAN = "TEST UNVAN LTD. STI.";
+// Siparis yonetimi paketi (tools/paket-siparis-yonetimi.md) test anahtarlari.
+const TEST_YONET = "test-yonet-anahtar-abc123";
+const TEST_RESEND_KEY = "test-resend-key";
+const TEST_IC = "test-ic-derle-anahtar";
+const TEST_BILDIRIM = "info@pruvo3d.com";
 // KDV (kalem 8, Okan KESIN %20): beklentiler SPEC'ten SABIT — oran yanlis degistirilirse
 // test yakalasin. net = brut/(1+oran) kurusta; net+KDV=brut BIREBIR (fark KDV'ye yedirilir).
 const KDV_YUZDE_SPEC = 20;
@@ -95,6 +100,7 @@ function istekHam(yontem, url, basliklar, govde) {
       cevap.on("end", () => coz({
         kod: cevap.statusCode,
         yer: cevap.headers["location"] || "",
+        bas: cevap.headers,
         metin: veri,
       }));
     });
@@ -136,6 +142,8 @@ const mockDurum = {
   telegram: [],         // sendMessage govdeleri
   imzaHatasi: 0,
   detayZorlaHata: false, // true -> retrieve ALTYAPI hatasi doner (1001 senaryosu, test 11)
+  epostalar: [],        // Resend /emails govdeleri {to, subject, html, from} (siparis yonetimi)
+  icDerle: [],          // /api/onizleme/ic-derle istekleri {anahtar, aile} (parametrik STL)
 };
 
 function mockBaslat() {
@@ -157,13 +165,41 @@ function mockBaslat() {
           sonToken: [...mockDurum.tokenlar.keys()].pop() || null,
           telegramSayisi: mockDurum.telegram.length,
           sonTelegram: mockDurum.telegram[mockDurum.telegram.length - 1] || null,
+          telegramlar: mockDurum.telegram,
           imzaHatasi: mockDurum.imzaHatasi,
+          epostaSayisi: mockDurum.epostalar.length,
+          epostalar: mockDurum.epostalar,
+          sonEposta: mockDurum.epostalar[mockDurum.epostalar.length - 1] || null,
+          icDerleSayisi: mockDurum.icDerle.length,
+          sonIcDerle: mockDurum.icDerle[mockDurum.icDerle.length - 1] || null,
         }));
         return;
       }
       if (/^\/bot/.test(req.url) && req.url.endsWith("/sendMessage")) {
         mockDurum.telegram.push(JSON.parse(govde || "{}"));
         res.end(JSON.stringify({ ok: true }));
+        return;
+      }
+      // Resend mock (siparis yonetimi Faz 2) — worker RESEND_URL bunu gosterir.
+      if (req.url === "/emails") {
+        let g = {};
+        try { g = JSON.parse(govde || "{}"); } catch (e) { /* bos */ }
+        mockDurum.epostalar.push({
+          to: g.to, subject: g.subject, html: g.html, from: g.from,
+          auth: req.headers["authorization"] || "",
+        });
+        res.end(JSON.stringify({ id: "mock-email-" + mockDurum.epostalar.length }));
+        return;
+      }
+      // onizleme ic-derle mock (parametrik STL) — worker ONIZLEME_TABAN bunu gosterir.
+      // Ham (gzip'siz) binary STL doner; shop yonetim /stl bunu stream eder.
+      if (req.url === "/api/onizleme/ic-derle") {
+        let g = {};
+        try { g = JSON.parse(govde || "{}"); } catch (e) { /* bos */ }
+        mockDurum.icDerle.push({ anahtar: req.headers["x-ic-anahtar"] || "", aile: g.aile });
+        const stl = Buffer.concat([Buffer.alloc(84, 0), Buffer.from("MOCKSTL-" + (g.aile || ""))]);
+        res.setHeader("Content-Type", "application/octet-stream");
+        res.end(stl);
         return;
       }
       if (req.url === "/payment/iyzipos/checkoutform/initialize/auth/ecom") {
@@ -277,6 +313,23 @@ function d1Kur() {
     // SEMALAR.get(id) ile bulur, fiyati kendisi hesaplar (taban fiyat semadan, 100 TL o-ring).
     "('olcuye-ozel-oring-conta','h13',13,'Test Oring (semali sari)','Jeneratör','[]','',1,'');"
   );
+}
+
+// Yerel R2 taklidi (siparis yonetimi /stl ucu): wrangler dev --local, r2 binding'ini
+// .wrangler/state altinda simule eder; ayni state'e --local put ile fixture konur.
+// d1Kur() .wrangler'i sildigi icin ONDAN SONRA cagrilir.
+const R2_ICERIK = "R2TESTSTL test-urun-a uretim dosyasi";
+function r2Kur() {
+  const dosya = path.join(SHOP, ".test-stl-fixture.stl");
+  fs.writeFileSync(dosya, R2_ICERIK);
+  const p = spawnSync("npx", ["--yes", "wrangler@4", "r2", "object", "put",
+    "pruvo-ozel/stl/test-urun-a.stl", "--file", dosya, "--local"],
+    { cwd: SHOP, encoding: "utf8" });
+  fs.unlinkSync(dosya);
+  if (p.status !== 0) {
+    throw new Error("yerel R2 fixture kurulamadi:\n" +
+      ((p.stdout || "") + (p.stderr || "")).slice(-1000));
+  }
 }
 
 // ---------------------------------------------------------------- worker'i kostur
@@ -1076,6 +1129,335 @@ async function test17ParametrikSatirAyirt() {
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
+// ---------------------------------------------------------------- SIPARIS YONETIMI
+// (tools/paket-siparis-yonetimi.md kabul 1-4 + 7; ONCE-KIRMIZI: bu testler uclar yokken
+// 404/eksik-kolon ile kirmizi yanar — kanit icin src'siz kosum RAPOR-MIMARA.md'de.)
+
+async function yonetIstek(yontem, altYol, govdeObj, anahtar) {
+  const basliklar = {};
+  if (anahtar !== null) { basliklar["X-Yonet-Anahtar"] = anahtar === undefined ? TEST_YONET : anahtar; }
+  if (govdeObj) { basliklar["Content-Type"] = "application/json"; }
+  const c = await istekHam(yontem, WORKER_UC + "/yonet" + altYol, basliklar,
+    govdeObj ? JSON.stringify(govdeObj) : null);
+  let j = {};
+  try { j = JSON.parse(c.metin); } catch (e) { /* HTML/binary yanit */ }
+  return { kod: c.kod, govde: j, metin: c.metin, bas: c.bas };
+}
+
+/** 18 — YONETIM YETKISI (kabul 1): anahtarsiz/yanlis anahtar -> 404 (varlik sizmasin);
+ *  dogru anahtar -> sayfa HTML + liste JSON (onceki testlerin fixture siparisleriyle). */
+async function test18YonetimYetkisi() {
+  const hatalar = [];
+  // anahtarsiz (baslik hic yok) + yanlis anahtar -> 404, gövde jenerik
+  const c1 = await yonetIstek("GET", "/liste", null, null);
+  const c2 = await yonetIstek("GET", "/liste", null, "yanlis-anahtar");
+  const c3 = await yonetIstek("GET", "/", null, null);
+  for (const [ad, c] of [["anahtarsiz liste", c1], ["yanlis anahtar", c2], ["anahtarsiz sayfa", c3]]) {
+    if (c.kod !== 404) { hatalar.push(ad + ": " + c.kod + " (404 olmali)"); }
+    if ((c.metin || "").includes(TEST_YONET)) { hatalar.push(ad + ": anahtar yanita sizdi"); }
+  }
+  // dogru anahtar (query parametresiyle de) -> liste JSON
+  const c4 = await yonetIstek("GET", "/liste", null, undefined);
+  if (c4.kod !== 200 || !Array.isArray(c4.govde.siparisler) || c4.govde.siparisler.length < 1) {
+    hatalar.push("dogru anahtar liste: " + c4.kod + " " + JSON.stringify(c4.govde).slice(0, 120));
+  }
+  const ilk = (c4.govde.siparisler || [])[0] || {};
+  if (!ilk.siparis_no || !ilk.musteri || !Array.isArray(ilk.kalemler)) {
+    hatalar.push("liste satiri eksik alan: " + JSON.stringify(ilk).slice(0, 160));
+  }
+  const ilkKalem = (ilk.kalemler || [])[0];
+  if (ilkKalem && !ilkKalem.baski_oneri) {
+    hatalar.push("baski fisi onerisi yok: " + JSON.stringify(ilkKalem).slice(0, 160));
+  }
+  // sayfa HTML (query anahtariyla — telefon kullanimi)
+  const c5 = await istekHam("GET", WORKER_UC + "/yonet?anahtar=" + TEST_YONET);
+  if (c5.kod !== 200 || !/Sipariş Yönetimi/.test(c5.metin)) {
+    hatalar.push("yonetim sayfasi: " + c5.kod);
+  }
+  // durum suzgeci
+  const c6 = await yonetIstek("GET", "/liste?durum=havale-bekliyor", null, undefined);
+  const hepsiHavale = (c6.govde.siparisler || []).every((s) => s.durum === "havale-bekliyor");
+  if (c6.kod !== 200 || !hepsiHavale) { hatalar.push("durum suzgeci calismadi"); }
+  rapor("18 yonetim yetkisi", hatalar.length === 0,
+    "anahtarsiz/yanlis/sayfa=404; dogru anahtar liste=" + (c4.govde.siparisler || []).length +
+    " siparis; sayfa HTML ok; suzgec ok" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 19 — DURUM MAKINESI (kabul 2): izinli gecisler yesil; izinsiz 400; 'kargolandi'ya
+ *  /durum'dan GECILMEZ (tek yol /kargo); durum_gecmisi ayni satira islenir. */
+async function test19DurumMakinesi() {
+  const hatalar = [];
+  // Taze havale siparisi (havale-bekliyor fixture'i)
+  const c = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }],
+    { odeme: "havale" });
+  const no = (c.govde || {}).no;
+  if (!no) { return rapor("19 durum makinesi", false, "havale baslat: " + c.kod); }
+
+  // izinsiz: havale-bekliyor -> uretimde (once odendi olmali)
+  const g1 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "uretimde" });
+  if (g1.kod !== 400 || g1.govde.hata !== "gecersiz-gecis") {
+    hatalar.push("havale-bekliyor->uretimde: " + g1.kod + "/" + g1.govde.hata + " (400 olmali)");
+  }
+  // izinli zincir: havale-bekliyor -> odendi -> uretimde
+  const g2 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "odendi" });
+  const g3 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "uretimde" });
+  if (g2.kod !== 200 || g3.kod !== 200) {
+    hatalar.push("izinli zincir: odendi=" + g2.kod + " uretimde=" + g3.kod);
+  }
+  // 'kargolandi' /durum'dan REDDEDILIR (takip kodsuz kargolandi olusmasin)
+  const g4 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "kargolandi" });
+  if (g4.kod !== 400 || g4.govde.hata !== "kargo-ucunu-kullan") {
+    hatalar.push("/durum'dan kargolandi: " + g4.kod + "/" + g4.govde.hata);
+  }
+  // bilinmeyen durum + bilinmeyen siparis
+  const g5 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "ucuyor" });
+  if (g5.kod !== 400 || g5.govde.hata !== "bilinmeyen-durum") {
+    hatalar.push("bilinmeyen durum: " + g5.kod + "/" + g5.govde.hata);
+  }
+  const g6 = await yonetIstek("POST", "/durum", { siparis_no: "PR-000000-000000-YOK", durum: "iptal" });
+  if (g6.kod !== 404) { hatalar.push("bilinmeyen siparis: " + g6.kod + " (404 olmali)"); }
+  // geriye gecis izinsiz: uretimde -> odendi
+  const g7 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "odendi" });
+  if (g7.kod !== 400) { hatalar.push("uretimde->odendi: " + g7.kod + " (400 olmali)"); }
+  // D1 dogrulama + durum_gecmisi izi
+  const s = d1Sorgu("SELECT durum, durum_gecmisi FROM siparisler WHERE siparis_no = '" + no + "'")[0] || {};
+  let gecmis = [];
+  try { gecmis = JSON.parse(s.durum_gecmisi || "[]"); } catch (e) { gecmis = []; }
+  if (s.durum !== "uretimde" || gecmis.length !== 2 ||
+      gecmis[0].d !== "odendi" || gecmis[1].d !== "uretimde" || !gecmis[1].z) {
+    hatalar.push("D1/gecmis: " + JSON.stringify(s).slice(0, 160));
+  }
+  // her durum -> iptal (ikinci taze siparis uzerinde: bekliyor -> iptal)
+  const c2 = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const no2 = (c2.govde || {}).no;
+  const g8 = await yonetIstek("POST", "/durum", { siparis_no: no2, durum: "iptal" });
+  const s2 = d1Sorgu("SELECT durum FROM siparisler WHERE siparis_no = '" + no2 + "'")[0] || {};
+  if (g8.kod !== 200 || s2.durum !== "iptal") {
+    hatalar.push("bekliyor->iptal: " + g8.kod + "/" + s2.durum);
+  }
+  // iptal -> iptal reddedilir
+  const g9 = await yonetIstek("POST", "/durum", { siparis_no: no2, durum: "iptal" });
+  if (g9.kod !== 400) { hatalar.push("iptal->iptal: " + g9.kod + " (400 olmali)"); }
+  rapor("19 durum makinesi", hatalar.length === 0,
+    "izinli zincir havale-bekliyor->odendi->uretimde OK; kargolandi /durum'dan RED; " +
+    "izinsiz/bilinmeyen RED; gecmis=" + JSON.stringify(gecmis) +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+  return no; // test 20 bu 'uretimde' siparisi kargolar
+}
+
+/** 20 — KARGO UCU (kabul 3): D1'de kargo_kodu/kargo_firma + durum 'kargolandi' + MOCK
+ *  Resend'e e-posta (kime=musteri, govdede takip kodu). */
+async function test20Kargo(no) {
+  const hatalar = [];
+  if (!no) { return rapor("20 kargo ucu", false, "test 19 siparis veremedi"); }
+  const onceE = (await mockOku()).epostaSayisi;
+  // eksik alanlar reddedilir
+  const k1 = await yonetIstek("POST", "/kargo", { siparis_no: no, kargo_firma: "", kargo_kodu: "X" });
+  if (k1.kod !== 400) { hatalar.push("bos firma: " + k1.kod); }
+  // gecerli kargo
+  const k2 = await yonetIstek("POST", "/kargo",
+    { siparis_no: no, kargo_firma: "Yurtiçi Kargo", kargo_kodu: "YK123456789TR" });
+  if (k2.kod !== 200) { hatalar.push("kargo ucu: " + k2.kod + " " + JSON.stringify(k2.govde)); }
+  const s = d1Sorgu("SELECT durum, kargo_firma, kargo_kodu FROM siparisler " +
+    "WHERE siparis_no = '" + no + "'")[0] || {};
+  if (s.durum !== "kargolandi" || s.kargo_firma !== "Yurtiçi Kargo" ||
+      s.kargo_kodu !== "YK123456789TR") {
+    hatalar.push("D1: " + JSON.stringify(s));
+  }
+  await bekle(400); // e-posta ctx.waitUntil ile
+  const m = await mockOku();
+  const yeni = (m.epostalar || []).slice(onceE);
+  const musteriE = yeni.find((e) => (e.to || []).includes(MUSTERI.eposta));
+  if (!musteriE) { hatalar.push("musteri kargo e-postasi gitmedi (delta=" + yeni.length + ")"); }
+  else {
+    if (!(musteriE.html || "").includes("YK123456789TR")) { hatalar.push("e-postada takip kodu yok"); }
+    if (!(musteriE.html || "").includes("Yurtiçi Kargo")) { hatalar.push("e-postada firma yok"); }
+    if (!(musteriE.subject || "").includes(no)) { hatalar.push("e-posta konusunda siparis no yok"); }
+    if ((musteriE.auth || "") !== "Bearer " + TEST_RESEND_KEY) { hatalar.push("Resend yetkisi yanlis"); }
+  }
+  // kargolandi -> tamamlandi (zincirin sonu)
+  const g = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "tamamlandi" });
+  if (g.kod !== 200) { hatalar.push("kargolandi->tamamlandi: " + g.kod); }
+  // tamamlandi -> odendi izinsiz (spec ornegi)
+  const g2 = await yonetIstek("POST", "/durum", { siparis_no: no, durum: "odendi" });
+  if (g2.kod !== 400) { hatalar.push("tamamlandi->odendi: " + g2.kod + " (400 olmali)"); }
+  rapor("20 kargo ucu", hatalar.length === 0,
+    "D1 " + JSON.stringify(s) + "; musteri e-postasi takip koduyla gitti; " +
+    "tamamlandi zinciri OK; tamamlandi->odendi RED" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 21 — E-POSTA TETIGI (kabul 4): mock callback 'odendi' akisinda 2 e-posta
+ *  (musteri + BILDIRIM_EPOSTA); havale baslatmada da 2; icerik dokum + adres tasir;
+ *  idempotens: ayni token 2. kez -> e-posta TEKRARLANMAZ. */
+async function test21EpostaTetigi() {
+  const hatalar = [];
+  // (a) kart akisi: baslat -> callback -> 'odendi' -> 2 e-posta
+  const onceE = (await mockOku()).epostaSayisi;
+  const c = await baslatIstek([{ id: "test-kdv-75", malzeme: "PLA", renk: "Siyah", adet: 1 }]);
+  const no = (c.govde || {}).no;
+  const token = (await mockOku()).sonToken;
+  await donusIstek(token);
+  await bekle(400);
+  const m1 = await mockOku();
+  const yeniA = (m1.epostalar || []).slice(onceE);
+  const musteriE = yeniA.find((e) => (e.to || []).includes(MUSTERI.eposta));
+  const saticiE = yeniA.find((e) => (e.to || []).includes(TEST_BILDIRIM));
+  if (yeniA.length !== 2 || !musteriE || !saticiE) {
+    hatalar.push("odendi akisi e-posta: " + yeniA.length + " (2 olmali; musteri=" +
+      !!musteriE + " satici=" + !!saticiE + ")");
+  }
+  if (musteriE) {
+    const h = musteriE.html || "";
+    // dokum: 75 PLA = 75,00 + kargo 250,00 = 325,00; KDV 54,17; adres; siparis no; WhatsApp
+    for (const bekleP of [no, "75,00 TL", "250,00 TL", "325,00 TL", "54,17 TL",
+                          MUSTERI.adres, "wa.me/905451386526"]) {
+      if (!h.includes(bekleP)) { hatalar.push("onay e-postasinda eksik: " + bekleP); }
+    }
+    if (/3D\s*bask/i.test(h)) { hatalar.push("e-postada '3D baski' gecti (yasak ifade)"); }
+    if ((musteriE.from || "") !== "PRUVO <siparis@pruvo3d.com>") {
+      hatalar.push("gonderen: " + musteriE.from);
+    }
+  }
+  // idempotens: ayni token 2. kez -> yeni e-posta YOK
+  await donusIstek(token);
+  await bekle(400);
+  const m2 = await mockOku();
+  if (m2.epostaSayisi !== m1.epostaSayisi) {
+    hatalar.push("tekrar callback'te e-posta tekrarlandi (" + m1.epostaSayisi + "->" +
+      m2.epostaSayisi + ")");
+  }
+  // (b) havale baslatmada da onay e-postasi (2 adet, 'havale' tonu)
+  const onceH = m2.epostaSayisi;
+  await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }],
+    { odeme: "havale" });
+  await bekle(400);
+  const m3 = await mockOku();
+  const yeniH = (m3.epostalar || []).slice(onceH);
+  const havaleE = yeniH.find((e) => (e.to || []).includes(MUSTERI.eposta));
+  if (yeniH.length !== 2 || !havaleE) {
+    hatalar.push("havale akisi e-posta: " + yeniH.length + " (2 olmali)");
+  }
+  if (havaleE && !/[Hh]avale/.test(havaleE.html || "")) {
+    hatalar.push("havale e-postasinda havale notu yok");
+  }
+  if (havaleE && /Ödemeniz alındı/.test(havaleE.html || "")) {
+    hatalar.push("havale e-postasi 'odeme alindi' tonunda (para henuz gorulmedi)");
+  }
+  rapor("21 e-posta tetigi", hatalar.length === 0,
+    "odendi: musteri+" + TEST_BILDIRIM + " 2 e-posta (dokum+adres+no); tekrar callback'te " +
+    "tekrarlanmadi; havale: 2 e-posta, dogru ton" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 22 — STL INDIRME (kabul 7): normal satirda yerel R2 nesnesi + Content-Disposition adi;
+ *  R2'de olmayan id'de acik "yok" notu; sari satirda derleyici ciktisi (ic-derle mock'una
+ *  IC anahtariyla gidildi); anahtarsiz -> 404. */
+async function test22Stl() {
+  const hatalar = [];
+  // Fixture siparisi: R2'de OLAN (test-urun-a) + OLMAYAN (test-urun-b) + sari (oring)
+  const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
+  const sema = JSON.parse(fs.readFileSync(
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
+  const c = await baslatIstek([
+    { id: "test-urun-a", malzeme: "PLA", renk: "Siyah", adet: 1 },
+    { id: "test-urun-b", malzeme: "PLA", renk: "Siyah", adet: 1 },
+    { id: "olcuye-ozel-oring-conta", malzeme: "PLA", renk: "Siyah", adet: 1,
+      parametreler: KONF.varsayilanDegerler(sema) },
+  ]);
+  const no = (c.govde || {}).no;
+  if (!no) { return rapor("22 stl indirme", false, "baslat: " + c.kod + " " + JSON.stringify(c.govde)); }
+
+  // anahtarsiz -> 404
+  const s0 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=0", null, null);
+  if (s0.kod !== 404) { hatalar.push("anahtarsiz stl: " + s0.kod); }
+  // (a) normal, R2'de VAR: icerik + Content-Disposition '<no>-<id>.stl'
+  const s1 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=0");
+  const cd1 = ((s1.bas || {})["content-disposition"]) || "";
+  if (s1.kod !== 200 || s1.metin !== R2_ICERIK) {
+    hatalar.push("R2 stl indirme: " + s1.kod + " icerik=" + JSON.stringify(s1.metin.slice(0, 40)));
+  }
+  if (!cd1.includes(no + "-test-urun-a.stl")) { hatalar.push("Content-Disposition: " + cd1); }
+  // (b) normal, R2'de YOK: 404 + acik not (gizli kaynak bilgisi ICERMEZ)
+  const s2 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=1");
+  if (s2.kod !== 404 || s2.govde.hata !== "dosya-yok" ||
+      !(s2.govde.not || "").includes("test-urun-b")) {
+    hatalar.push("R2'de olmayan id: " + s2.kod + " " + JSON.stringify(s2.govde).slice(0, 160));
+  }
+  // (c) sari satir: derleyici ciktisi (mock ic-derle) + IC anahtari + dosya adi
+  const onceIc = (await mockOku()).icDerleSayisi;
+  const s3 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=2");
+  const cd3 = ((s3.bas || {})["content-disposition"]) || "";
+  const mIc = await mockOku();
+  if (s3.kod !== 200 || !s3.metin.includes("MOCKSTL-olcuye-ozel-oring-conta")) {
+    hatalar.push("sari stl: " + s3.kod + " icerik=" + JSON.stringify(s3.metin.slice(84, 130)));
+  }
+  if (!cd3.includes(no + "-olcuye-ozel-oring-conta.stl")) { hatalar.push("sari Content-Disposition: " + cd3); }
+  if (mIc.icDerleSayisi !== onceIc + 1 ||
+      (mIc.sonIcDerle || {}).anahtar !== TEST_IC) {
+    hatalar.push("ic-derle cagrisi/anahtari: " + JSON.stringify(mIc.sonIcDerle));
+  }
+  // bilinmeyen kalem -> 404
+  const s4 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=9");
+  if (s4.kod !== 404) { hatalar.push("bilinmeyen kalem: " + s4.kod); }
+  rapor("22 stl indirme", hatalar.length === 0,
+    "R2 var=" + s1.kod + " (" + cd1 + "); R2 yok=404+not; sari=derleyici (" + cd3 +
+    ", IC anahtarli); anahtarsiz=404" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 23 — ANAHTARSIZ KURULUM (kabul 4b + 1b): worker YONET_ANAHTAR'siz + RESEND_API_KEY'siz
+ *  yeniden baslar -> dogru anahtar bile 404 (ozellik kapali); havale siparisi YINE olusur
+ *  + Telegram'a "e-posta gonderilemedi (anahtar yok)" duser (SESSIZ ATLAMA YOK). */
+async function test23AnahtarsizKurulum() {
+  const hatalar = [];
+  workerDurdur();
+  await bekle(1500);
+  await workerBaslat({
+    IYZICO_BASE_URL: "http://127.0.0.1:" + MOCK_PORT,
+    IYZICO_API_KEY: TEST_API_KEY,
+    IYZICO_SECRET_KEY: TEST_SECRET,
+    TELEGRAM_API: "http://127.0.0.1:" + MOCK_PORT,
+    TELEGRAM_TOKEN: "0000:test",
+    SITE_URL: "https://pruvo3d.com",
+    HAVALE_IBAN: TEST_IBAN,
+    HAVALE_UNVAN: TEST_UNVAN,
+    BILDIRIM_EPOSTA: TEST_BILDIRIM,
+    // BILEREK YOK: YONET_ANAHTAR (yonetim kapali) + RESEND_API_KEY/RESEND_URL (e-posta yok)
+  });
+  // (a) yonetim: dogru anahtar bile 404 (secret tanimsiz -> ozellik kapali, varlik sizmasin)
+  const y = await yonetIstek("GET", "/liste");
+  if (y.kod !== 404) { hatalar.push("secret'siz yonetim: " + y.kod + " (404 olmali)"); }
+  // (b) e-posta anahtari yokken siparis akisi BOZULMAZ + Telegram uyarisi
+  const onceTg = (await mockOku()).telegramSayisi;
+  const onceE = (await mockOku()).epostaSayisi;
+  const c = await baslatIstek([{ id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 }],
+    { odeme: "havale" });
+  const no = (c.govde || {}).no;
+  const s = no ? d1Sorgu("SELECT durum FROM siparisler WHERE siparis_no = '" + no + "'")[0] : null;
+  if (c.kod !== 200 || !s || s.durum !== "havale-bekliyor") {
+    hatalar.push("anahtar yokken siparis akisi bozuldu: " + c.kod + " " + JSON.stringify(s));
+  }
+  await bekle(500);
+  const m = await mockOku();
+  const tgDelta = m.telegramSayisi - onceTg;
+  // havale bildirimi (1) + e-posta uyarisi (1) = 2 telegram; sira deterministik DEGIL
+  // (ikisi de ctx.waitUntil) -> yeni mesajlarin HERHANGI birinde uyari aranir.
+  const yeniTg = (m.telegramlar || []).slice(onceTg).map((t) => String(t.text || ""));
+  const uyariVar = tgDelta >= 2 &&
+    yeniTg.some((t) => t.includes("e-posta gönderilemedi (anahtar yok)"));
+  if (!uyariVar) {
+    hatalar.push("Telegram e-posta uyarisi yok (delta=" + tgDelta + ", yeni=" +
+      yeniTg.map((t) => t.slice(0, 40)).join(" || ") + ")");
+  }
+  if (m.epostaSayisi !== onceE) { hatalar.push("anahtar yokken Resend'e istek gitti"); }
+  rapor("23 anahtarsiz kurulum", hatalar.length === 0,
+    "YONET_ANAHTAR'siz yonetim=404; RESEND_API_KEY'siz havale siparisi olustu (" +
+    (s || {}).durum + ") + Telegram 'anahtar yok' uyarisi; Resend'e istek gitmedi" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
 function test6SirTaramasi() {
   // Repoya GIRECEK her sey taranir (izlenen + ignore-disi yeni dosyalar) — sadece shop/ degil:
   // anahtar yanlislikla DEVAM.md'ye, bir dokumana ya da teste de dusebilir. Repo PUBLIC.
@@ -1085,6 +1467,10 @@ function test6SirTaramasi() {
     ["[0-9]{8,10}:[A-Za-z0-9_-]{35}", "telegram bot token'i"],
     ["(api[_-]?key|secret[_-]?key)[\"' ]*[:=][\"' ]*[A-Za-z0-9+/=]{20,}", "gomulu anahtar"],
     ["BEGIN [A-Z ]*PRIVATE KEY", "ozel anahtar"],
+    // Siparis yonetimi paketi (kabul 5): yeni secret adlari repoya DEGER olarak yazilmasin.
+    // Test dosyasindaki "test-..." on ekli sahte degerler asagida muaf tutulur.
+    ["(YONET_ANAHTAR|RESEND_API_KEY|IC_DERLE_ANAHTAR)[\"' ]*[:=][\"' ]*[A-Za-z0-9+/=-]{10,}",
+     "yonetim/e-posta anahtari"],
   ];
   const bulunan = [];
   for (const [desen, ad] of desenler) {
@@ -1094,8 +1480,10 @@ function test6SirTaramasi() {
     // exit 0 = eslesme VAR (sizinti), 1 = yok (temiz), >1 = git hatasi
     if (g.status === 0) {
       for (const satir of g.stdout.split("\n").filter(Boolean)) {
-        // Sablon dosyasindaki "sandbox-XXXX" gibi degersiz ornekler sizinti degil.
+        // Sablon dosyasindaki "sandbox-XXXX" gibi degersiz ornekler sizinti degil;
+        // kabul testinin kendi sahte anahtarlari (test-... on eki) de degil.
         if (/\.dev\.vars\.example/.test(satir) || /sandbox-X+/.test(satir)) { continue; }
+        if (/(YONET_ANAHTAR|RESEND_API_KEY|IC_DERLE_ANAHTAR)["' ]*[:=]["' ]*test-/.test(satir)) { continue; }
         bulunan.push(ad + ": " + satir.slice(0, 90));
       }
     } else if (g.status > 1) {
@@ -1111,7 +1499,8 @@ function test6SirTaramasi() {
   const anahtarDosyasi = fs.existsSync(path.join(SHOP, ".dev.vars"));
   const ok = bulunan.length === 0 && devVars.length === 0 && dosyalar.length > 0;
   rapor("6 sir taramasi", ok, ok
-    ? "repo geneli " + dosyalar.length + " dosya tarandi (4 desen), sizinti yok; .dev.vars " +
+    ? "repo geneli " + dosyalar.length + " dosya tarandi (" + desenler.length +
+      " desen), sizinti yok; .dev.vars " +
       (anahtarDosyasi ? "diskte VAR ama" : "yok;") + " git'e girmiyor"
     : "SIZINTI: " + bulunan.join(" | ") + " " + devVars.join(";"));
 }
@@ -1209,6 +1598,7 @@ async function main() {
 
   console.log("PRUVO shop kabul testleri (mock iyzico + yerel D1)\n");
   d1Kur();
+  r2Kur();   // yerel R2 fixture'i (test 22 — yonetim /stl)
   const mock = await mockBaslat();
   await workerBaslat({
     IYZICO_BASE_URL: "http://127.0.0.1:" + MOCK_PORT,
@@ -1220,6 +1610,13 @@ async function main() {
     // Havale/EFT (test 13): canlida wrangler secret'tan gelir, testte sahte deger.
     HAVALE_IBAN: TEST_IBAN,
     HAVALE_UNVAN: TEST_UNVAN,
+    // Siparis yonetimi paketi: yonetim anahtari + Resend mock + ic-derle mock.
+    YONET_ANAHTAR: TEST_YONET,
+    RESEND_URL: "http://127.0.0.1:" + MOCK_PORT,
+    RESEND_API_KEY: TEST_RESEND_KEY,
+    BILDIRIM_EPOSTA: TEST_BILDIRIM,
+    ONIZLEME_TABAN: "http://127.0.0.1:" + MOCK_PORT,
+    IC_DERLE_ANAHTAR: TEST_IC,
   });
 
   try {
@@ -1242,6 +1639,14 @@ async function main() {
     await test9ParametrikAltyapi();
     await test16CallbackTutarUyusmazligi();
     await test17ParametrikSatirAyirt();
+    // Siparis yonetimi paketi (18-23). 23 worker'i ANAHTARSIZ yeniden baslatir —
+    // bu yuzden HTTP'ye dokunan diger tum testlerden SONRA kosar.
+    await test18YonetimYetkisi();
+    const uretimdeNo = await test19DurumMakinesi();
+    await test20Kargo(uretimdeNo);
+    await test21EpostaTetigi();
+    await test22Stl();
+    await test23AnahtarsizKurulum();
     test6SirTaramasi();
     test7Parite();
   } finally {

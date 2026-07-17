@@ -21,6 +21,10 @@ CREATE TABLE IF NOT EXISTS urunler (
   gorsel    TEXT,                         -- gorseller[0] (kart kapagi)
   parametrik INTEGER NOT NULL DEFAULT 0,
   hs        TEXT NOT NULL,                -- SITE aramasi (arama.py haystack — JS ile birebir)
+  -- BASKI ONERISI (siparis yonetimi paketi): gizli .urun-kaynaklari.json'daki "baski"
+  -- alanindan d1-sync.py DOLDURUR (public urunler.json'a YAZILMAZ — D1 ozeldir, sizinti degil).
+  -- Yonetim sayfasindaki baski fisi bunu gosterir; bos ise malzeme bazli fallback devreye girer.
+  baski     TEXT NOT NULL DEFAULT '',
 
   -- FAZ 2 — EGE tarafi. Hepsi AYNI satirda: ek kolon = ek SATIR YAZMASI DEGIL,
   -- yani D1'in gunluk 100.000 yazma limitine etkisi YOK (urun basina hala 5 satir).
@@ -83,11 +87,17 @@ CREATE TABLE IF NOT EXISTS senkron (
 -- + tools/paket-shop-kargo.md).
 -- Katalog senkronundan BAGIMSIZ: d1-sync.py bu tabloya dokunmaz, urun silinse de siparis kalir.
 -- durum akisi: bekliyor -> odendi | basarisiz | incele ; havale-bekliyor -> odendi
+--   YONETIM ilerlemesi (siparis yonetimi paketi, anahtar korumali /api/shop/yonet/durum):
+--     odendi -> uretimde -> kargolandi -> tamamlandi ; her durum -> iptal
+--     (kargolandi'ya SADECE /yonet/kargo ucundan gecilir — kargo firma+kod zorunlu; boylece
+--      takip kodsuz 'kargolandi' satiri olusmaz. Gecis tablosu shop/src/yonet.js IZINLI'de.)
 --   'odendi'          kartta SADECE iyzico retrieve dogrulamasindan gecince (worker /donus);
---                     havalede SADECE elle onay (shop/KURULUM.md'deki wrangler komutu — Okan
---                     dekontu gorunce). Istemciden degistirilebilen uc YOKTUR.
+--                     havalede elle onay — yonetim sayfasi (havale-bekliyor->odendi) ya da
+--                     shop/KURULUM.md'deki wrangler komutu (ayni gecis, AYNI kosul: tek yol).
 --   'incele'          retrieve altyapi hatasi VEYA tutar/kimlik uyusmazligi (elle bak)
 --   'havale-bekliyor' musteri Havale/EFT secti; para HENUZ gorulmedi, uretim BASLAMAZ
+--   'uretimde'        uretim basladi (yonetim) ; 'kargolandi' kargo firma+kod girildi (yonetim)
+--   'tamamlandi'      teslim edildi ; 'iptal' iptal (her durumdan)
 CREATE TABLE IF NOT EXISTS siparisler (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   siparis_no      TEXT NOT NULL UNIQUE,   -- PR-yyMMdd-HHmmss-XXX (conversationId/basketId olarak iyzico'ya gider)
@@ -119,5 +129,13 @@ CREATE TABLE IF NOT EXISTS siparisler (
   musteri_ad      TEXT NOT NULL DEFAULT '',
   musteri_tel     TEXT NOT NULL DEFAULT '',
   musteri_eposta  TEXT NOT NULL DEFAULT '',
-  musteri_adres   TEXT NOT NULL DEFAULT ''
+  musteri_adres   TEXT NOT NULL DEFAULT '',
+  -- KARGO (siparis yonetimi paketi): /yonet/kargo ucu firma+kodu yazar, durum 'kargolandi'ya
+  -- cekilir + musteriye kargo e-postasi tetiklenir. Eski satirlarda '' (kargolanmamis).
+  kargo_firma     TEXT NOT NULL DEFAULT '',
+  kargo_kodu      TEXT NOT NULL DEFAULT '',
+  -- DURUM GECMISI: her durum degisiminde AYNI satira eklenen kompakt JSON denetim izi
+  -- [{"d":"uretimde","z":"ISO"}...] — ek SATIR yazmaz (D1 gunluk limit etkisi yok),
+  -- yonetim sayfasi gecmisi gosterir. Eski satirlarda '' .
+  durum_gecmisi   TEXT NOT NULL DEFAULT ''
 );
