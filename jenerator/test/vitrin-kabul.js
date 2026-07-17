@@ -158,6 +158,10 @@ async function sayfaKur(ayar) {
     URLSearchParams,
     setTimeout, clearTimeout,
     Math,   // shuffle Math.random kullanir
+    /* URL-senkron paketi (yukari-cik oku) window.addEventListener("scroll") +
+       scrollTo cagiriyor — sahte pencerede no-op karsiliklari (sepet-panel.js ile ayni). */
+    addEventListener() {}, removeEventListener() {},
+    scrollTo() {}, scrollY: 0, innerHeight: 720,
   };
   ctx.window = ctx;
   if (ayar.tabanHarita) { ctx.PRUVO_TABAN_FIYATLAR = ayar.tabanHarita; }
