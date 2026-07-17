@@ -90,7 +90,8 @@ def main():
 
     # --- stl-r2-yukle siniflandirma (COK-PARCA tasarimi, mimar duzeltme turu):
     #     <id>--<parca>.stl -> stl/<id>/<parca>.stl ; tek <id>.stl -> stl/<id>/<id>.stl ;
-    #     onek urunler.json id listesinde DEGILSE hatali-ad (tahmin YOK). ---
+    #     onek urunler.json id listesinde DEGILSE hatali-ad (tahmin YOK), MECGER gizli
+    #     kaynak-esleme kaynak-id'yi TEKIL bir urune bagliyorsa oraya yonlendirilir. ---
     idler = {"audi-parca", "vw-tutucu"}
     dosyalar = ["audi-parca.stl",                 # tekli -> normalize klasor
                 "vw-tutucu--govde.stl",           # cok-parca
@@ -99,19 +100,83 @@ def main():
                 "bilinmeyen-urun.stl",            # tekli ama id yok -> hatali
                 "vw-tutucu--.stl",                # bos parca adi -> hatali
                 "audi-parca.png", "notlar.txt"]   # uzanti disi -> sessiz atla
-    hedefler, hatali = r2.siniflandir(dosyalar, idler)
+    hedefler, hatali, cakisan = r2.siniflandir(dosyalar, idler)
     hedef_anahtarlar = {a for _, a in hedefler}
     dogrula("siniflandir cok-parca anahtarlari",
             hedef_anahtarlar == {"stl/audi-parca/audi-parca.stl",
                                  "stl/vw-tutucu/govde.stl",
                                  "stl/vw-tutucu/kapak_v2.3mf"},
             str(hedef_anahtarlar))
-    dogrula("siniflandir hatali-ad raporu (kaynak-id + bilinmeyen + bos parca)",
+    dogrula("siniflandir hatali-ad raporu (kaynak-id esleme YOKSA + bilinmeyen + bos parca)",
             sorted(hatali) == ["1002858--oil_wrench.STL", "bilinmeyen-urun.stl",
                                "vw-tutucu--.stl"],
             str(hatali))
     dogrula("siniflandir png/txt sessiz atlandi",
             not any("png" in a or "txt" in a for a in hedef_anahtarlar))
+    dogrula("siniflandir esleme verilmeyince cakisan bos", cakisan == [], str(cakisan))
+
+    # --- MIMAR PAKETI (17 Tem gece): kaynak-id -> urun-id sozlugu gizli .urun-kaynaklari.json'dan
+    #     turetilir (kaynak_esleme, SAF fonksiyon — sahte kayitla test edilir, GERCEK dosya
+    #     ACILMAZ). (a) tekil eslesen kaynak-id dogru urune yonlendirilir, orijinal dosya adi
+    #     KORUNUR (sadece uzanti kucultulur). (b) BIRDEN FAZLA urune baglanan kaynak-id TAHMIN
+    #     EDILMEZ -> cakisan raporu, yuklenmez. (c) hic gecmeyen kaynak-id hatali-ad'da kalir. ---
+    gizli_kayit_sahte = {
+        "mapped-urun": {"link": "https://www.thingiverse.com/thing:1002858", "kaynak": "Thingiverse"},
+        "printables-urun": {"link": "https://www.printables.com/model/2000000-baska-parca", "kaynak": "Printables"},
+        # AYNI kaynak-id (thing:3000000) IKI FARKLI urune baglanmis -> cakisma
+        "cakisan-urun-a": {"link": "https://www.thingiverse.com/thing:3000000", "kaynak": "Thingiverse"},
+        "cakisan-urun-b": {"link": "https://www.thingiverse.com/thing:3000000", "kaynak": "Thingiverse"},
+        "gorsel-atif-urun": {"link": "https://www.********.com/3d-print-models/x", "kaynak": "********"},
+    }
+    esle, cakisan_kumesi = r2.kaynak_esleme(gizli_kayit_sahte)
+    dogrula("kaynak_esleme tekil thingiverse eslesir", esle.get("1002858") == "mapped-urun",
+            repr(esle.get("1002858")))
+    dogrula("kaynak_esleme printables 'pr' onekiyle eslesir (thingiverse'den AYRI ad uzayi)",
+            esle.get("pr2000000") == "printables-urun", repr(esle.get("pr2000000")))
+    dogrula("kaynak_esleme ayni kaynak-id iki urune baglanirsa cakisan",
+            "3000000" in cakisan_kumesi and "3000000" not in esle,
+            "esle=%s cakisan=%s" % (esle.get("3000000"), cakisan_kumesi))
+    dogrula("kaynak_esleme ********/diger kaynaklar goz ardi edilir (id cikarilmaz)",
+            len(esle) == 2 and set(esle) == {"1002858", "pr2000000"}, repr(esle))
+
+    idler_b = {"mapped-urun", "printables-urun", "cakisan-urun-a", "cakisan-urun-b"}
+    dosyalar_b = ["1002858--oil_wrench.STL",     # (a) tekil esleme -> mapped-urun
+                  "3000000--govde.stl",          # (b) cakisan kaynak-id -> yuklenmez, raporlanir
+                  "9999999--parca.stl"]          # (c) hic eslesmeyen -> hatali-ad'da KALIR
+    hedefler_b, hatali_b, cakisan_b = r2.siniflandir(dosyalar_b, idler_b, esle, cakisan_kumesi)
+    dogrula("(a) kaynak-id'li dosya DOGRU ANAHTARA gider (orijinal dosya adi korunur)",
+            hedefler_b == [("1002858--oil_wrench.STL", "stl/mapped-urun/1002858--oil_wrench.stl")],
+            str(hedefler_b))
+    dogrula("(b) cakisan kaynak-id YUKLENMEZ + ayri raporlanir (hatali-ad'a KARISMAZ)",
+            cakisan_b == ["3000000--govde.stl"] and "3000000--govde.stl" not in hatali_b,
+            "cakisan=%s hatali=%s" % (cakisan_b, hatali_b))
+    dogrula("(c) hic eslesmeyen kaynak-id hâlâ hatali-ad'da",
+            hatali_b == ["9999999--parca.stl"], str(hatali_b))
+
+    # kos() de kaynak_esle/kaynak_cakisan'i gecirip UYGULAMALI (uctan uca, sahte yukleyici ile)
+    import tempfile as tf2
+    kok_dizin_b = tf2.mkdtemp(prefix="stl-kaynak-test-")
+    for ad, icerik in [("1002858--oil_wrench.STL", b"X1"), ("3000000--govde.stl", b"X2"),
+                        ("9999999--parca.stl", b"X3")]:
+        with open(os.path.join(kok_dizin_b, ad), "wb") as f:
+            f.write(icerik)
+    yuklenen_b = []
+
+    def sahte_yukle_b(yerel, anahtar):
+        yuklenen_b.append(anahtar)
+        return True
+
+    yb, ab, hb, cb = r2.kos(kok_dizin_b, idler_b, os.path.join(kok_dizin_b, ".manifest.json"),
+                             kuru=False, yukle_fn=sahte_yukle_b,
+                             kaynak_esle=esle, kaynak_cakisan=cakisan_kumesi)
+    dogrula("kos(): sadece eslenen (a) fiilen yuklenir", yb == 1 and
+            yuklenen_b == ["stl/mapped-urun/1002858--oil_wrench.stl"],
+            "y=%s yuklenen=%s" % (yb, yuklenen_b))
+    dogrula("kos(): cakisan + hatali-ad yuklenmeden raporlanir",
+            cb == ["3000000--govde.stl"] and hb == ["9999999--parca.stl"],
+            "cakisan=%s hatali=%s" % (cb, hb))
+    import shutil as sh2
+    sh2.rmtree(kok_dizin_b)
 
     # --- idempotens (mimar duzeltme turu KANITI): ardisik iki kosum — ilki yukler,
     #     IKINCISI atlandi=N yuklendi=0; icerik degisince SADECE o dosya yeniden. ---
@@ -128,29 +193,29 @@ def main():
         yuklenenler.append(anahtar)
         return True
 
-    y1, a1, h1 = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
-    dogrula("kosum 1: hepsi yuklendi", y1 == 3 and a1 == 0 and h1 == [] and len(yuklenenler) == 3,
-            "y=%s a=%s h=%s" % (y1, a1, h1))
-    y2, a2, h2 = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
+    y1, a1, h1, c1 = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
+    dogrula("kosum 1: hepsi yuklendi", y1 == 3 and a1 == 0 and h1 == [] and c1 == [] and
+            len(yuklenenler) == 3, "y=%s a=%s h=%s c=%s" % (y1, a1, h1, c1))
+    y2, a2, h2, c2 = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
     dogrula("kosum 2: atlandi=N yuklendi=0 (IDEMPOTENS KANITI)",
             y2 == 0 and a2 == 3 and len(yuklenenler) == 3,
             "y=%s a=%s toplam-yukleme=%d" % (y2, a2, len(yuklenenler)))
     # icerik degisti (ayni boyut degil) -> SADECE o dosya yeniden yuklenir
     with open(os.path.join(kok_dizin, "vw-tutucu--govde.stl"), "wb") as f:
         f.write(b"B1-degisti")
-    y3, a3, _ = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
+    y3, a3, _, _ = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
     dogrula("kosum 3: sadece degisen yeniden", y3 == 1 and a3 == 2 and
             yuklenenler[-1] == "stl/vw-tutucu/govde.stl",
             "y=%s a=%s son=%s" % (y3, a3, yuklenenler[-1:]))
     # ayni boyutta FARKLI icerik de yakalanir (sha1 kiyasi, boyut degil)
     with open(os.path.join(kok_dizin, "vw-tutucu--kapak.stl"), "wb") as f:
         f.write(b"XY")  # b"B2" ile ayni boyut (2 bayt)
-    y4, a4, _ = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
+    y4, a4, _, _ = r2.kos(kok_dizin, idler, manifest_yol, kuru=False, yukle_fn=sahte_yukle)
     dogrula("kosum 4: ayni boyut farkli icerik yakalandi (sha1)",
             y4 == 1 and a4 == 2 and yuklenenler[-1] == "stl/vw-tutucu/kapak.stl",
             "y=%s a=%s son=%s" % (y4, a4, yuklenenler[-1:]))
     # kuru kosum manifest'i degistirmez
-    y5, a5, _ = r2.kos(kok_dizin, idler, manifest_yol, kuru=True, yukle_fn=sahte_yukle)
+    y5, a5, _, _ = r2.kos(kok_dizin, idler, manifest_yol, kuru=True, yukle_fn=sahte_yukle)
     dogrula("kuru kosum yazmaz", y5 == 0 and a5 == 3, "y=%s a=%s" % (y5, a5))
     import shutil
     shutil.rmtree(kok_dizin)
