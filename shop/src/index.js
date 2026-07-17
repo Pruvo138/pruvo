@@ -195,7 +195,7 @@ async function baslat(request, env, url, ctx) {
   const idler = [...new Set(kalemler.map((k) => k.id))];
   const yertut = idler.map(() => "?").join(",");
   const sonuc = await env.KATALOG.prepare(
-    "SELECT id, baslik, kategori, fiyat, parametrik FROM urunler WHERE id IN (" + yertut + ")"
+    "SELECT id, baslik, kategori, fiyat, parametrik, gorsel FROM urunler WHERE id IN (" + yertut + ")"
   ).bind(...idler).all();
   const katalog = new Map((sonuc.results || []).map((u) => [u.id, u]));
 
@@ -243,7 +243,7 @@ async function baslat(request, env, url, ctx) {
     const tutar = birimKurus * k.adet;
     toplamKurus += tutar;
     satirlar.push({
-      id: k.id, baslik: u.baslik, kategori: u.kategori,
+      id: k.id, baslik: u.baslik, kategori: u.kategori, gorsel: u.gorsel || "",
       malzeme: k.malzeme, renk: k.renk, renk_ozel: k.renk_ozel, adet: k.adet,
       birim_kurus: birimKurus, tutar_kurus: tutar, ...ekAlanlar,
     });
