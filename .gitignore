@@ -88,3 +88,4 @@ tools/arastirma-sari-fiyat.md
 !.dev.vars.example
 .env*
 !.env.example
+.yonet-anahtar
