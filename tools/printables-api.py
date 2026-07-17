@@ -113,15 +113,37 @@ def is_cop(name):
 
 
 def satilabilir(abbr):
-    """Lisans kisaltmasi ticari satisa uygun mu? CC-...-NC (Non-Commercial) -> HAYIR.
-    OCL (Prusa Open Community License v1/v1.1) -> HAYIR: tasarimdan uretilen urunun
-    SATISI ayri anlasma olmadan yasak (dogrulandi 2026-07-15, prusa3d.com/OCL_v1.pdf)."""
-    a = (abbr or "").upper()
-    if "NC" in a.split("-"):        # CC-BY-NC, CC-BY-NC-SA, CC-BY-NC-ND ...
+    """Lisans kisaltmasi ticari satisa uygun mu? BEYAZ LISTE / FAIL-CLOSED: SADECE bilinen
+    ticari-satilabilir lisanslar True doner; tanimadigimiz her lisans False (yanlis satmaktansa
+    atla). Eski hali FAIL-OPEN idi ("Standard Digital File" ve bilinmeyen lisanslar True donuyordu)
+    -> satilamaz urunler otomatik stage'e giriyordu (Ford+Yamaha partileri, 2026-07-18).
+
+    Printables API'nin DONDURDUGU gercek `abbreviation` degerleri (2026-07-18 canli olcum):
+      SATILABILIR : CC-BY, CC-BY-SA, CC-BY-ND, CC0, GPL 3.0, GPL 2.0
+      SATILAMAZ   : CC-BY-NC, CC-BY-NC-SA, CC-BY-NC-ND, "Standard Digital File", "OCL v1"
+    Not: GPL surumleri BOSLUK ile gelir ("GPL 3.0", tire degil); ayirici hem '-' hem bosluk.
+
+    Kurallar:
+      * NC (NonCommercial) tokeni varsa -> False (guvenlik agi; beyaz liste zaten elerdi).
+      * CC0 / Public Domain -> True.
+      * CC-BY aileleri (NC haric): CC-BY, CC-BY-SA, CC-BY-ND -> True.
+      * Yazilim lisanslari GPL / MIT / BSD -> True.
+      * "Standard Digital File" (Printables satis-lisansi), "OCL v*" (Prusa Open Community License;
+        uretilen urunun satisi ayri anlasma olmadan yasak — prusa3d.com/OCL_v1.pdf), bos, ve
+        BASKA HER SEY -> False (fail-closed)."""
+    a = (abbr or "").upper().strip()
+    if not a:
         return False
-    if a.startswith("OCL"):         # OCL v1, OCL v1.1 ...
+    toks = set(re.split(r"[-\s]+", a))        # "CC-BY-NC-SA"->{CC,BY,NC,SA}; "GPL 3.0"->{GPL,3.0}
+    if "NC" in toks:                          # NonCommercial -> asla satilamaz
         return False
-    return True                     # CC-BY, CC-BY-SA, CC-BY-ND, CC0, BSD, GPL, MIT, Standard Digital ...
+    if "CC0" in toks or "PUBLIC" in toks:     # CC0 / Public Domain
+        return True
+    if "CC" in toks and "BY" in toks:         # CC-BY, CC-BY-SA, CC-BY-ND (NC yukarida elendi)
+        return True
+    if toks & {"GPL", "MIT", "BSD"}:          # ticari-serbest yazilim lisanslari
+        return True
+    return False                              # Standard Digital File, OCL, bilinmeyen -> FAIL-CLOSED
 
 
 def model_url(pid, slug=None):
