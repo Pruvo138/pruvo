@@ -30,7 +30,20 @@ ayni ise atlanir (SHA kiyasi: ayni boyutlu farkli icerik de yakalanir). Manifest
 basarili yuklemeden SONRA atomik yazilir (kesilen kosum kaldigi yerden devam eder).
 Manifest silinirse dosyalar yeniden yuklenir (zararsiz: ayni anahtarin ustune yazar).
 
-  python3 tools/stl-r2-yukle.py            # yerel stl/ -> r2 pruvo-ozel/stl/<id>/<parca>
+PARALEL YUKLEME (mimar mikro paketi, 17 Tem gece). KOK NEDEN: her dosya icin AYRI
+`npx wrangler r2 object put` sureci aciliyor, sirali ~6 sn/dosya -> 8.784 dosyalik parti
+~14 saat. Cozum: `--paralel N` (varsayilan 6; 1 = eski sirali davranis birebir) N eszamanli
+yukleyici calistirir -> ~1-1,5 saate iner. MANIFEST YARIS KORUMASI — TEK YAZICI TASARIMI:
+yukleyici is parcaciklari manifeste ASLA yazmaz; yalnizca kosum baslangicindaki SALT-OKUNUR
+snapshot'i okur (atla-kontrolu). Manifeste sadece ANA is parcacigi (havuzu suren) her basarili
+sonuc geldikce atomik yazar -> iki yazicinin ayni anda yazmasi IMKANSIZ, kayit kaybi olmaz
+(.urun-kaynaklari.json'da yasanan 259-kayip sinifi bu tasarimla dislanir; test-baski-senkron.py
+neg-kontrolu serilestirilmemis yazimanin kaybettigini deterministik kanitlar). Kesinti aninda
+en fazla "ucustaki" (yuklenmis ama sonucu henuz islenmemis) dosyalar manifeste girmez -> sonraki
+kosum onlari yeniden yukler (zararsiz); ONCEKI kayitlar asla silinmez.
+
+  python3 tools/stl-r2-yukle.py            # yerel stl/ -> r2 pruvo-ozel/stl/<id>/<parca> (paralel 6)
+  python3 tools/stl-r2-yukle.py --paralel 1  # eski sirali davranis (tek yukleyici)
   python3 tools/stl-r2-yukle.py --kuru     # yalniz ne yapacagini soyle (yukleme/manifest yok)
   python3 tools/stl-r2-yukle.py --dizin X  # farkli kaynak klasor
 
@@ -46,6 +59,7 @@ import os
 import re
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BUCKET = "pruvo-ozel"
@@ -191,33 +205,81 @@ def yukle(yerel, anahtar):
     return True
 
 
-def kos(dizin, idler, manifest_yol, kuru=False, yukle_fn=None, kaynak_esle=None, kaynak_cakisan=None):
+def _isle(dizin, ad, anahtar, snapshot, gonderici):
+    """Tek dosyayi isleyen YUKLEYICI is parcacigi govdesi. Manifeste YAZMAZ (tek-yazici
+    tasarim): yalnizca `snapshot` (kosum basi salt-okunur manifest kopyasi) ile atla-kontrolu
+    yapar. (durum, ad, anahtar, veri) doner:
+      ("atlandi", ...)  -> snapshot'ta ayni sha1+boyut var, yuklenmedi
+      ("yuklendi", ..., {sha1,boyut}) -> basarili yukleme; ANA is parcacigi manifeste yazar
+      ("hata", ...)     -> gonderici False dondu"""
+    yerel = os.path.join(dizin, ad)
+    boyut = os.path.getsize(yerel)
+    ozet = sha1_dosya(yerel)
+    kayit = snapshot.get(anahtar)
+    if kayit and kayit.get("sha1") == ozet and kayit.get("boyut") == boyut:
+        return ("atlandi", ad, anahtar, None)
+    if not gonderici(yerel, anahtar):
+        return ("hata", ad, anahtar, None)
+    return ("yuklendi", ad, anahtar, {"sha1": ozet, "boyut": boyut})
+
+
+def kos(dizin, idler, manifest_yol, kuru=False, yukle_fn=None, kaynak_esle=None,
+        kaynak_cakisan=None, paralel=1):
     """Ana is akisi (test edilebilir): (yuklendi, atlandi, hatali_ad, cakisan_ad) dondurur.
     kuru=True: yukleme YOK, manifest'e yazma YOK — yuklenecekler sayilir/basilir.
-    kaynak_esle/kaynak_cakisan: kaynak_esleme()'den gelen sozlukce/kume (bkz. siniflandir)."""
+    kaynak_esle/kaynak_cakisan: kaynak_esleme()'den gelen sozlukce/kume (bkz. siniflandir).
+    paralel: eszamanli yukleyici sayisi (varsayilan 1 = sirali/eski davranis birebir; >1 ise
+    N is parcacigi yukler, manifeste yalnizca ANA is parcacigi tek-yazici olarak yazar -> yaris
+    yok). kuru VEYA paralel<=1 iken sirali yol kullanilir (byte-birebir eski davranis)."""
     gonderici = yukle_fn or yukle
     dosyalar = sorted(os.listdir(dizin))
     hedefler, hatali_ad, cakisan_ad = siniflandir(dosyalar, idler, kaynak_esle, kaynak_cakisan)
     manifest = manifest_oku(manifest_yol)
     yuklendi = atlandi = 0
-    for ad, anahtar in hedefler:
-        yerel = os.path.join(dizin, ad)
-        boyut = os.path.getsize(yerel)
-        ozet = sha1_dosya(yerel)
-        kayit = manifest.get(anahtar)
-        if kayit and kayit.get("sha1") == ozet and kayit.get("boyut") == boyut:
-            atlandi += 1
-            continue
-        if kuru:
-            print("YUKLENECEK: %s -> r2://%s/%s (%d B)" % (ad, BUCKET, anahtar, boyut))
+
+    if kuru or paralel <= 1:
+        # SIRALI YOL — eski davranis birebir korunur (tek yukleyici, sirali manifest yazimi).
+        for ad, anahtar in hedefler:
+            yerel = os.path.join(dizin, ad)
+            boyut = os.path.getsize(yerel)
+            ozet = sha1_dosya(yerel)
+            kayit = manifest.get(anahtar)
+            if kayit and kayit.get("sha1") == ozet and kayit.get("boyut") == boyut:
+                atlandi += 1
+                continue
+            if kuru:
+                print("YUKLENECEK: %s -> r2://%s/%s (%d B)" % (ad, BUCKET, anahtar, boyut))
+                yuklendi += 1
+                continue
+            if not gonderici(yerel, anahtar):
+                sys.exit("R2 yuklemesi basarisiz (wrangler oturumu acik mi?): " + anahtar)
+            manifest[anahtar] = {"sha1": ozet, "boyut": boyut}
+            manifest_yaz(manifest_yol, manifest)  # her yuklemeden sonra — kesinti guvenli
+            print("yuklendi: r2://%s/%s (%d B)" % (BUCKET, anahtar, boyut))
             yuklendi += 1
-            continue
-        if not gonderici(yerel, anahtar):
-            sys.exit("R2 yuklemesi basarisiz (wrangler oturumu acik mi?): " + anahtar)
-        manifest[anahtar] = {"sha1": ozet, "boyut": boyut}
-        manifest_yaz(manifest_yol, manifest)  # her yuklemeden sonra — kesinti guvenli
-        print("yuklendi: r2://%s/%s (%d B)" % (BUCKET, anahtar, boyut))
-        yuklendi += 1
+        return yuklendi, atlandi, hatali_ad, cakisan_ad
+
+    # PARALEL YOL — N yukleyici, TEK YAZICI. Yukleyiciler `snapshot`i SALT-OKUR (degismez
+    # kopya); manifeste yalnizca bu (ana) is parcacigi as_completed sirasiyla atomik yazar.
+    # Boylece iki yazicinin ayni anda yazmasi imkansiz -> kayit kaybi yok (bkz. modul basligi).
+    snapshot = dict(manifest)
+    hata_anahtar = None
+    with ThreadPoolExecutor(max_workers=paralel) as havuz:
+        gelecekler = [havuz.submit(_isle, dizin, ad, anahtar, snapshot, gonderici)
+                      for ad, anahtar in hedefler]
+        for gel in as_completed(gelecekler):
+            durum, ad, anahtar, veri = gel.result()
+            if durum == "atlandi":
+                atlandi += 1
+            elif durum == "yuklendi":
+                manifest[anahtar] = veri
+                manifest_yaz(manifest_yol, manifest)  # TEK YAZICI (ana) — atomik, kesinti guvenli
+                print("yuklendi: r2://%s/%s (%d B)" % (BUCKET, anahtar, veri["boyut"]))
+                yuklendi += 1
+            else:  # "hata"
+                hata_anahtar = hata_anahtar or anahtar
+    if hata_anahtar is not None:
+        sys.exit("R2 yuklemesi basarisiz (wrangler oturumu acik mi?): " + hata_anahtar)
     return yuklendi, atlandi, hatali_ad, cakisan_ad
 
 
@@ -225,6 +287,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dizin", default=os.path.join(REPO, "stl"))
     ap.add_argument("--kuru", action="store_true", help="yazmadan ne yapacagini soyle")
+    ap.add_argument("--paralel", type=int, default=6,
+                    help="eszamanli yukleyici sayisi (varsayilan 6; 1 = sirali/eski davranis)")
     ap.add_argument("--kaynaklar", default=KAYNAKLAR,
                     help="gizli kaynak-id->urun-id kaydi (varsayilan: ana repo koku; "
                          "worktree/baska makinede yoksa esleme BOS kalir)")
@@ -237,7 +301,8 @@ def main():
     kaynak_esle, kaynak_cakisan = kaynak_esleme_yukle(a.kaynaklar)
     yuklendi, atlandi, hatali_ad, cakisan_ad = kos(
         a.dizin, idler, MANIFEST, kuru=a.kuru,
-        kaynak_esle=kaynak_esle, kaynak_cakisan=kaynak_cakisan)
+        kaynak_esle=kaynak_esle, kaynak_cakisan=kaynak_cakisan,
+        paralel=max(1, a.paralel))
 
     print("\nOZET: yuklendi=%d atlandi=%d hatali-ad=%d cakisan=%d (kaynak: %s%s)"
           % (yuklendi, atlandi, len(hatali_ad), len(cakisan_ad), a.dizin,
