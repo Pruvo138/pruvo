@@ -368,6 +368,33 @@
     padding:0 6px;
   }
 
+  /* ---------- YUKARI ÇIK OKU ---------- */
+  .top-btn{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    z-index:59;                        /* sepet FAB'ının (60) hemen altı */
+    width:46px;
+    height:46px;
+    border:none;
+    border-radius:50%;
+    background:var(--navy);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 6px 20px rgba(0,0,0,.25);
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(8px);
+    transition:opacity .2s, transform .2s, visibility .2s, bottom .2s;
+  }
+  .top-btn.show{opacity:1;visibility:visible;transform:none}
+  .top-btn:hover{background:var(--navy-2)}
+  .top-btn svg{width:22px;height:22px;fill:#fff}
+  /* Sepet FAB'ı görünürken ok onun ÜSTÜNE çıkar — üst üste binmesin (mobil dahil) */
+  body.fab-var .top-btn{bottom:84px}
+
   .cart-overlay{
     position:fixed;inset:0;background:rgba(13,30,58,.55);
     z-index:70;display:none;
@@ -636,6 +663,11 @@
   <span class="cart-fab-count" id="cartCount">0</span>
 </button>
 
+<!-- Yukarı çık oku: sayfa aşağı kayınca sağ altta belirir (sepet FAB'ı doluysa üstünde) -->
+<button id="topBtn" class="top-btn" aria-label="Yukarı çık">
+  <svg viewBox="0 0 24 24"><path d="M12 4.6 4.6 12l1.8 1.8 4.3-4.3V20h2.6V9.5l4.3 4.3 1.8-1.8z"/></svg>
+</button>
+
 <div id="cartOverlay" class="cart-overlay"></div>
 <aside id="cartPanel" class="cart-panel" aria-label="Sepet">
   <div class="cart-panel-head">
@@ -884,6 +916,8 @@
     var fab = document.getElementById("cartFab");
     document.getElementById("cartCount").textContent = cart.length;
     fab.style.display = cart.length ? "inline-flex" : "none";
+    // yukarı-çık oku FAB'la çakışmasın: FAB doluyken ok yukarı kayar (CSS: body.fab-var)
+    document.body.classList.toggle("fab-var", cart.length > 0);
   }
   /* Sepet toplamı = satırların KURUŞLU tutarlarının toplamı (ara yuvarlama yok).
      Bu SADECE gösterim: ödenecek tutarı Worker D1 fiyatından yeniden hesaplar ve
@@ -1321,6 +1355,21 @@
   var brandsExpanded = false;
   function resetPaging(){ shown = PAGE_SIZE; }
 
+  // Kategori/marka/arama HER değişimde URL'yi görünümle senkron tutar (Okan, 17 Tem):
+  // yenile hangi görünümü gösteriyorsa onu getirsin, sürpriz geri-gelme olmasın.
+  // Paylaşılabilir ?kategori=&marka=&ara= linkleri çalışmaya devam eder (applyUrlParams okur).
+  // replaceState = geçmiş şişmez (her filtre tıkı geri-tuşu adımı olmasın).
+  function syncUrl(){
+    var params = new URLSearchParams();
+    if(activeCat !== "Tümü"){ params.set("kategori", activeCat); }
+    if(activeBrand !== "Tümü"){ params.set("marka", activeBrand); }
+    if(query.trim()){ params.set("ara", query.trim()); }
+    var s = params.toString();
+    // Safari kısa aralıkta çok replaceState çağrısına SecurityError atabiliyor — görünümü
+    // etkilemesin diye yutulur; bir sonraki başarılı çağrı URL'yi zaten düzeltir.
+    try{ history.replaceState(null, "", s ? location.pathname + "?" + s : location.pathname); }catch(e){}
+  }
+
   // seçili kategori + aramaya uyan ürünlerdeki markalar (marka filtresini yok sayar)
   function brandCounts(){
     var tokens = norm(query).split(/\s+/).filter(Boolean);
@@ -1351,7 +1400,7 @@
       var b = document.createElement("button");
       b.className = "brand-btn" + (m === activeBrand ? " active" : "");
       b.textContent = m;
-      b.onclick = function(){ activeBrand = m; resetPaging(); renderBrands(); renderGrid(); };
+      b.onclick = function(){ activeBrand = m; resetPaging(); syncUrl(); renderBrands(); renderGrid(); };
       return b;
     }
     el.appendChild(chip("Tümü"));
@@ -1399,10 +1448,19 @@
       b.textContent = c;
       b.onclick = function(){
         activeCat = c;
-        // seçili marka bu kategoride yoksa sıfırla
-        if(activeBrand !== "Tümü" && sortedBrands().indexOf(activeBrand) === -1){ activeBrand = "Tümü"; }
+        if(c === "Tümü"){
+          // TAM SIFIRLAMA (Okan, 17 Tem): "Tümü" her yerden ana sayfa görünümüne tek
+          // tıkla döner — marka + arama + URL paramları temizlenir, sayfa başına çıkılır.
+          activeBrand = "Tümü";
+          query = ""; searchEl.value = ""; clearEl.className = "search-clear";
+          window.scrollTo({top:0, behavior:"smooth"});
+        }else if(activeBrand !== "Tümü" && sortedBrands().indexOf(activeBrand) === -1){
+          // seçili marka bu kategoride yoksa sıfırla
+          activeBrand = "Tümü";
+        }
         brandsExpanded = false;
         resetPaging();
+        syncUrl();
         renderCats(); renderBrands(); renderGrid();
       };
       el.appendChild(b);
@@ -1522,6 +1580,7 @@
   // ---------- ARAMA KUTUSU ----------
   var searchEl = document.getElementById("search");
   var clearEl = document.getElementById("searchClear");
+  var araUrlZaman = null;
   searchEl.addEventListener("input", function(){
     query = searchEl.value;
     clearEl.className = "search-clear" + (query ? " show" : "");
@@ -1529,13 +1588,24 @@
     resetPaging();
     renderBrands();
     renderGrid();
+    // URL'yi her tuşta değil yazma durunca senkronla (Safari replaceState sınırı ~100/30sn)
+    clearTimeout(araUrlZaman);
+    araUrlZaman = setTimeout(syncUrl, 250);
   });
   clearEl.onclick = function(){
     query = ""; searchEl.value = ""; clearEl.className = "search-clear";
     brandsExpanded = false;
     resetPaging();
+    clearTimeout(araUrlZaman); syncUrl();
     searchEl.focus(); renderBrands(); renderGrid();
   };
+
+  // ---------- YUKARI ÇIK OKU ----------
+  var topBtn = document.getElementById("topBtn");
+  window.addEventListener("scroll", function(){
+    topBtn.classList.toggle("show", window.scrollY > 600);
+  }, {passive:true});
+  topBtn.onclick = function(){ window.scrollTo({top:0, behavior:"smooth"}); };
 
   // ---------- SEPET OLAYLARI ----------
   document.getElementById("cartFab").onclick = openCart;
