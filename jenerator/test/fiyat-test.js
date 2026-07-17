@@ -120,6 +120,32 @@ Object.keys(KUCUK_SETLER).forEach(function (id) {
        Math.round(taban * 130));
 });
 
+// --- VİDA: üretilemez ölçü şemadan seçilemez/reddedilir (mimar kabul şartı) ---
+// Motor kanıtı (kanit/vida-motor-olcu-kaniti.txt): üretim eşlemi SADECE
+// 11 standart M kabul eder (3,4,5,6,8,10,12,14,16,18,20; 24 ara değer RET);
+// cıvata M3/M4 motorda BOŞ GEOMETRİ (altıgen kafa tablosu M5'ten başlar).
+var vidaSema = JSON.parse(fs.readFileSync(
+  path.join(URUN_DIR, "olcuye-ozel-vida-civata-somun-pul.json"), "utf8"));
+function vidaSet(tip, cap) { return { urun_tipi: tip, cap: cap, boy: 20, tolerans: 0.2 }; }
+esit("vida: yarım ölçü reddedilir (somun M7.5)",
+     KONF.dogrula(vidaSema, vidaSet("somun", 7.5)).gecerli, false);
+esit("vida: tablo dışı tam ölçü reddedilir (mil M7)",
+     KONF.dogrula(vidaSema, vidaSet("mil", 7)).gecerli, false);
+esit("vida: tablo dışı tam ölçü reddedilir (civata M13)",
+     KONF.dogrula(vidaSema, vidaSet("civata", 13)).gecerli, false);
+esit("vida: üretilemez cıvata reddedilir (M3)",
+     KONF.dogrula(vidaSema, vidaSet("civata", 3)).gecerli, false);
+esit("vida: üretilemez cıvata reddedilir (M4)",
+     KONF.dogrula(vidaSema, vidaSet("civata", 4)).gecerli, false);
+esit("vida: üretilebilir küçük ölçüler satışta kalır (somun M3, pul M4, mil M3)",
+     [KONF.dogrula(vidaSema, vidaSet("somun", 3)).gecerli,
+      KONF.dogrula(vidaSema, vidaSet("pul", 4)).gecerli,
+      KONF.dogrula(vidaSema, vidaSet("mil", 3)).gecerli], [true, true, true]);
+esit("vida: standart ölçüler geçerli (civata M5/M12/M20)",
+     [KONF.dogrula(vidaSema, vidaSet("civata", 5)).gecerli,
+      KONF.dogrula(vidaSema, vidaSet("civata", 12)).gecerli,
+      KONF.dogrula(vidaSema, vidaSet("civata", 20)).gecerli], [true, true, true]);
+
 // --- parametrik sepet satırı özeti ---
 var satir = { id: "x", malzeme: "ASA", renk: "Diğer", renk_ozel: "mor", boy_etiket: null,
               parametreler: { ic_cap: 32 }, parametre_detay: "İç çap: 32 mm",
