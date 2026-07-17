@@ -53,4 +53,8 @@ COPY paket-ozel/ /srv/paket/
 
 EXPOSE 8080
 # Container icinde generic HTTP; Worker binding uzerinden konusur.
-CMD ["python3", "/srv/server.py", "--paket", "/srv/paket", "--port", "8080", "--adres", "0.0.0.0"]
+# --zaman-asimi 12: instance 1/4 vCPU'da CSG-agir aileler yerel Mac'ten ~8x yavas
+# olculdu (17 Tem 502 turu) — varsayilan 5 sn agir-ama-gecerli varyantlari kesiyordu
+# (504 -> adaptorde 502). Eslem v5 hiz dugmeleriyle en kotu derleme ~7 sn; 12 sn
+# jitter payi birakir, Worker adaptor butcesi 60 sn oldugu icin guvenli.
+CMD ["python3", "/srv/server.py", "--paket", "/srv/paket", "--port", "8080", "--adres", "0.0.0.0", "--zaman-asimi", "12"]
