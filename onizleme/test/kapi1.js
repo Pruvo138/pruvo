@@ -117,14 +117,22 @@ function benzersizIstek() {
 
 async function olustur(istek) {
   const t0 = performance.now();
-  const c = await fetch(TABAN + "/olustur", {
-    method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(istek),
-  });
-  const govde = await c.arrayBuffer();
-  return { ms: performance.now() - t0, kod: c.status, aile: istek.aile,
-           kaynak: c.headers.get("X-Kaynak"), boyut: govde.byteLength,
-           hata: c.status !== 200 ? Buffer.from(govde).toString("utf-8").slice(0, 200) : "" };
+  try {
+    const c = await fetch(TABAN + "/olustur", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(istek),
+    });
+    const govde = await c.arrayBuffer();
+    return { ms: performance.now() - t0, kod: c.status, aile: istek.aile,
+             kaynak: c.headers.get("X-Kaynak"), boyut: govde.byteLength,
+             hata: c.status !== 200 ? Buffer.from(govde).toString("utf-8").slice(0, 200) : "" };
+  } catch (e) {
+    // Ag hatasi (baglanti reddi, DNS, timeout...) = basarisiz istek; koşumu
+    // cokturup exit 2 yapmak yerine kod=0 ile isaretle, sayilsin ve raporlansin.
+    return { ms: performance.now() - t0, kod: 0, aile: istek.aile,
+             kaynak: null, boyut: 0,
+             hata: "AG HATASI: " + (e && e.message ? e.message : String(e)) };
+  }
 }
 
 async function kapat() {
@@ -138,6 +146,18 @@ async function main() {
   console.log("KAPI-1 olcumu — taban: " + TABAN);
 
   const soguk = [], sicak = [], onbellek = [];
+  // HATA=0 KAPISI: basarisiz istekler (HTTP != 200 ya da ag hatasi) persentile
+  // GIRMEDIGI icin eskiden gate'i sessizce gecebiliyordu. Her /olustur sonucunu
+  // burada say; tek bir hata bile kapiyi dusurur (asagida).
+  const hatalar = [];
+  let toplamIstek = 0;
+  function kaydet(faz, no, s) {
+    toplamIstek += 1;
+    if (s.kod !== 200) {
+      hatalar.push({ faz: faz, no: no, kod: s.kod, aile: s.aile,
+                     ozet: (s.hata || "").replace(/\s+/g, " ").slice(0, 120) });
+    }
+  }
 
   console.log("\n-- SOGUK (" + SOGUK_N + " dongu: kapat -> benzersiz derleme, 5 aile donusumlu) --");
   for (let i = 0; i < SOGUK_N; i++) {
@@ -147,6 +167,7 @@ async function main() {
     const s = await olustur(benzersizIstek());
     console.log("  soguk %d: %d ms kod=%d kaynak=%s aile=%s %s",
                 i + 1, Math.round(s.ms), s.kod, s.kaynak, s.aile, s.hata);
+    kaydet("soguk", i + 1, s);
     if (s.kod === 200 && s.kaynak === "derleyici") soguk.push(s.ms);
     const gecen = Date.now() - dt0;
     if (gecen < 8000) await bekle(8000 - gecen); // <=8 derleme/dk
@@ -161,6 +182,7 @@ async function main() {
     const s = await olustur(istek);
     console.log("  sicak %d: %d ms kod=%d kaynak=%s aile=%s %s",
                 i + 1, Math.round(s.ms), s.kod, s.kaynak, s.aile, s.hata);
+    kaydet("sicak", i + 1, s);
     if (s.kod === 200 && s.kaynak === "derleyici") sicak.push(s.ms);
     const gecen = Date.now() - dt0;
     if (gecen < 8000) await bekle(8000 - gecen);
@@ -169,7 +191,8 @@ async function main() {
   console.log("\n-- ONBELLEK (" + ONBELLEK_N + " tekrar, hiz sinirindan muaf) --");
   for (let i = 0; i < ONBELLEK_N; i++) {
     const s = await olustur(sicakIstekler[i % sicakIstekler.length]);
-    console.log("  onbellek %d: %d ms kod=%d kaynak=%s", i + 1, Math.round(s.ms), s.kod, s.kaynak);
+    console.log("  onbellek %d: %d ms kod=%d kaynak=%s %s", i + 1, Math.round(s.ms), s.kod, s.kaynak, s.hata);
+    kaydet("onbellek", i + 1, s);
     if (s.kod === 200 && s.kaynak === "onbellek") onbellek.push(s.ms);
     await bekle(300);
   }
@@ -183,15 +206,31 @@ async function main() {
                 String(Math.round(pXX(d, 0.95))));
   }
 
+  // HATA=0 raporu — persentil disi kalan basarisiz istekler burada gorunur.
+  console.log("\n  hata: %d/%d", hatalar.length, toplamIstek);
+  if (hatalar.length) {
+    console.log("  hatali istek ornekleri:");
+    for (const h of hatalar.slice(0, 8)) {
+      console.log("    [%s #%d] kod=%d aile=%s %s", h.faz, h.no, h.kod, h.aile, h.ozet);
+    }
+  }
+
   const tam = soguk.length >= 10 && sicak.length >= 8 && onbellek.length >= 8;
   const p95 = soguk.length ? pXX(soguk, 0.95) : Infinity;
   if (!tam) { console.log("\nKAPI-1: OLCUM EKSIK (yukarida hatalara bak)"); process.exit(1); }
-  if (p95 > KAPI_SOGUK_P95_MS) {
-    console.log("\nKAPI-1: KIRMIZI — soguk p95 %d ms > %d ms. DUR, mimara rapor.",
-                Math.round(p95), KAPI_SOGUK_P95_MS);
+
+  // Iki kosul birlikte saglanmali: (1) hata=0, (2) soguk p95 esigi.
+  const p95Gecti = p95 <= KAPI_SOGUK_P95_MS;
+  const hataGecti = hatalar.length === 0;
+  if (!p95Gecti || !hataGecti) {
+    const nedenler = [];
+    if (!hataGecti) nedenler.push(hatalar.length + " basarisiz istek (hata=0 sarti)");
+    if (!p95Gecti) nedenler.push("soguk p95 " + Math.round(p95) + " ms > " + KAPI_SOGUK_P95_MS + " ms");
+    console.log("\nKAPI-1: KIRMIZI — " + nedenler.join(" + ") + ". DUR, mimara rapor.");
     process.exit(1);
   }
-  console.log("\nKAPI-1: GECTI — soguk p95 %d ms <= %d ms.", Math.round(p95), KAPI_SOGUK_P95_MS);
+  console.log("\nKAPI-1: GECTI — soguk p95 %d ms <= %d ms, hata 0/%d.",
+              Math.round(p95), KAPI_SOGUK_P95_MS, toplamIstek);
 }
 
 main().catch((e) => { console.error("olcum coktu:", e); process.exit(2); });
