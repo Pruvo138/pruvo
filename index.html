@@ -477,6 +477,11 @@
   }
   .havale-uyari strong{font-size:14px}
   .cart-total-not{font-size:11.5px;color:var(--gray-text);margin-bottom:10px}
+  /* Katalogda bulunamayan sepet satırı uyarısı (havale-uyari paletiyle) */
+  .cart-kayip-not{
+    background:#fdf3e3;border:1px solid #f0d9a8;border-radius:8px;
+    padding:8px 10px;font-size:12.5px;color:#7a5a12;line-height:1.5;margin-bottom:8px;
+  }
   .cart-pay-btn{
     display:block;width:100%;background:var(--navy);color:#fff;border:none;
     border-radius:12px;padding:14px;font-size:15.5px;font-weight:800;cursor:pointer;
@@ -731,7 +736,16 @@
     </div>
     <div id="cartKargoTesvik" class="cart-kargo-tesvik" style="display:none"></div>
     <div id="cartTotalNot" class="cart-total-not">KDV dahil</div>
-    <button id="cartPay" class="cart-pay-btn" type="button">
+    <!-- Katalogda bulunamayan sepet satırı uyarısı (bayat katalog kopyası / yayından
+         kalkan ürün) — görünürlüğü cartToplamTazele yönetir. -->
+    <div id="cartKayipNot" class="cart-kayip-not" style="display:none">
+      Sepetinizdeki bir ürünün bilgisi yüklenemedi.
+      Sayfayı yenileyin ya da o satırı çarpıyla kaldırın.
+    </div>
+    <!-- disabled VARSAYILAN: ilk render'dan önce/başarısız yüklemede buton etkin
+         GÖRÜNMESİN (17 Tem canlı: boş panelde 0,00 TL + aktif buton). renderCartPanel
+         her açılışta gerçek duruma göre yeniden yazar. -->
+    <button id="cartPay" class="cart-pay-btn disabled" type="button" disabled>
       Kartla Güvenli Öde
     </button>
     <a id="cartOrder" class="cart-order-btn" target="_blank" rel="noopener">
@@ -831,16 +845,21 @@
   // (secenekler.js sepetYukle: eski düz-id satırlarını çevirir).
   function loadCart(){ cart = PRUVO_SECENEK.sepetYukle(); }
   function saveCart(){ PRUVO_SECENEK.sepetKaydet(cart); }
+  // Katalogda BULUNAMAYAN satır (müşterinin urunler.json kopyası bayat ya da ürün
+  // yayından kalkmış) ELENMEZ — urun:null + kayip:true ile döner: panel satırı yine
+  // gösterir, ödeme kilitlenir. Eski .filter(Boolean) satırı SESSİZCE yutuyordu:
+  // rozet "1", panel boş, 0,00 TL ile ödeme aktif görünüyordu (17 Tem canlı).
   function cartLines(){
     return cart.map(function(satir){
       for(var i=0;i<PRODUCTS.length;i++){ if(PRODUCTS[i].id === satir.id){ return {satir:satir, urun:PRODUCTS[i]}; } }
-      return null;
-    }).filter(Boolean);
+      return {satir:satir, urun:null, kayip:true};
+    });
   }
   function cartWaHref(){
     var lines = ["Merhaba, şu ürünlerle ilgileniyorum:", ""];
     var toplam = 0, fiyatsizVar = false;
-    cartLines().forEach(function(entry, i){
+    // Kayıp satır (katalogda bulunamayan) mesaja/toplama GİRMEZ — başlığı bilinmiyor.
+    cartLines().filter(function(e){ return !e.kayip; }).forEach(function(entry, i){
       var ozet = PRUVO_SECENEK.satirOzeti(entry.urun, entry.satir);
       lines.push((i+1) + ") " + entry.urun.baslik);
       if(ozet.detay){ lines.push("   " + ozet.detay); }
@@ -872,6 +891,7 @@
   function cartToplamKurus(lines){
     var t = 0;
     for(var i=0;i<lines.length;i++){
+      if(lines[i].kayip){ continue; }   // katalogda bulunamayan satır toplama girmez
       var o = PRUVO_SECENEK.satirOzeti(lines[i].urun, lines[i].satir);
       if(o.kurus != null){ t += o.kurus; }
     }
@@ -879,10 +899,12 @@
   }
   // Ödeme yalnızca TÜM satırlar ödenebilirse açılır: sepette parametrik/fiyatsız ürün varsa
   // kanal WhatsApp'tır (Worker karışık sepeti zaten 400 ile reddediyor — kabul testi 5).
+  // Kayıp satır (katalogda bulunamayan) da ödemeyi kilitler: Worker onu zaten
+  // 'bilinmeyen-urun' ile reddederdi, müşteriyi o duvara göndermeyelim.
   function cartOdenebilirMi(lines){
     if(!lines.length){ return false; }
     return lines.every(function(L){
-      return PRUVO_SECENEK.satirOzeti(L.urun, L.satir).odenebilir;
+      return !L.kayip && PRUVO_SECENEK.satirOzeti(L.urun, L.satir).odenebilir;
     });
   }
   function cartToplamTazele(lines){
@@ -894,6 +916,7 @@
     var pay = document.getElementById("cartPay");
     var toplam = document.getElementById("cartTotal");
     var odenebilir = cartOdenebilirMi(lines);
+    var kayipVar = lines.some(function(L){ return L.kayip; });
     var goster = lines.length > 0;
     /* KARGO: kural + eşik secenekler.js'ten (tek kaynak — Worker tahsilatı AYNI fonksiyonla
        hesaplar). Burada görünen genel toplam = iyzico'da ödenen tutar, kuruşuyla. */
@@ -921,6 +944,14 @@
     // ODEME_ACIK kapaliyken buton HIC gosterilmez (canli anahtar yok — bkz. secenekler.js).
     // Toplam gorunmeye devam eder; sipariş WhatsApp'tan verilir.
     pay.style.display = (goster && PRUVO_SECENEK.ODEME_ACIK) ? "block" : "none";
+    // Buton kilidi + kayıp açıklaması HER durumda yazılır (boş sepette de): eski kod boş
+    // sepette aşağıdaki erken dönüşe takılıyor, buton bir önceki/HTML durumunda kalıyordu.
+    document.getElementById("cartKayipNot").style.display = kayipVar ? "block" : "none";
+    pay.className = odenebilir ? "cart-pay-btn" : "cart-pay-btn disabled";
+    pay.disabled = !odenebilir;
+    pay.textContent = kayipVar ? "Ödeme kapalı — yüklenemeyen ürün satırı var"
+      : (odenebilir || !goster) ? "Kartla Güvenli Öde"
+      : "Ölçüye özel ürün var — WhatsApp'tan devam edin";
     if(!goster){ return; }
     document.getElementById("cartAra").textContent = PRUVO_SECENEK.kurusMetni(ara);
     var kargoEl = document.getElementById("cartKargo");
@@ -938,10 +969,6 @@
       tesvik.className = "cart-kargo-tesvik bedava";
     }
     toplam.textContent = PRUVO_SECENEK.kurusMetni(ara + kargo);
-    pay.className = odenebilir ? "cart-pay-btn" : "cart-pay-btn disabled";
-    pay.disabled = !odenebilir;
-    pay.textContent = odenebilir ? "Kartla Güvenli Öde"
-      : "Ölçüye özel ürün var — WhatsApp'tan devam edin";
   }
 
   // Adet 1-99 (secenekler.js kuralı; Worker da aynı aralığı doğrular). 0'a düşürmek satırı
@@ -954,6 +981,19 @@
       }
     }
     saveCart(); renderCartPanel(); updateCartFab();
+  }
+  // Katalogda bulunamayan satırın seçim özeti — satirOzeti ürün objesi istediği için
+  // localStorage'daki alanlardan elle kurulur (müşteri neyi seçtiğini yine görsün).
+  function kayipSatirDetayi(satir){
+    var parca = [];
+    if(satir.parametre_detay){ parca.push(satir.parametre_detay); }
+    if(satir.malzeme){ parca.push("Malzeme: " + satir.malzeme); }
+    if(satir.renk){
+      parca.push("Renk: " + (satir.renk === "Diğer" ? (satir.renk_ozel || "özel renk") : satir.renk));
+    }
+    if(satir.boy_etiket){ parca.push("Boy: " + satir.boy_etiket); }
+    if(satir.adet > 1){ parca.push("Adet: " + satir.adet); }
+    return parca.join(" · ");
   }
   function renderCartPanel(){
     var wrap = document.getElementById("cartItems");
@@ -968,38 +1008,53 @@
       return;
     }
     // ODEME_ACIK iken birincil buton ÖDEME; WhatsApp İKİNCİL görünüme iner ama kanal yaşar
-    // (Okan, 16 Tem). Kapalıyken bugünkü gibi WhatsApp birincil.
-    orderBtn.className = "cart-order-btn" + (PRUVO_SECENEK.ODEME_ACIK ? " ikincil" : "");
-    orderBtn.href = cartWaHref();
+    // (Okan, 16 Tem). Kapalıyken bugünkü gibi WhatsApp birincil. Sepetin TAMAMI kayıp
+    // satırsa gönderilecek kalem yok -> WhatsApp da pasif.
+    if(lines.some(function(L){ return !L.kayip; })){
+      orderBtn.className = "cart-order-btn" + (PRUVO_SECENEK.ODEME_ACIK ? " ikincil" : "");
+      orderBtn.href = cartWaHref();
+    }else{
+      orderBtn.className = "cart-order-btn disabled";
+      orderBtn.removeAttribute("href");
+    }
     cartToplamTazele(lines);
     lines.forEach(function(entry){
       var p = entry.urun, satir = entry.satir;
-      var ozet = PRUVO_SECENEK.satirOzeti(p, satir);
+      // Kayıp satırda (p yok) elimizde yalnız localStorage seçimi var: başlık yerine
+      // "Ürün bilgisi yüklenemedi", fiyat "—"; satır kaldırma çarpısı normal çalışır.
+      var ozet = p ? PRUVO_SECENEK.satirOzeti(p, satir) : null;
       var row = document.createElement("div");
       row.className = "cart-item";
 
       var img = document.createElement("img");
-      img.src = coverOf(p); img.alt = p.baslik; img.loading = "lazy";
-      img.onerror = function(){ this.src = phData(p.kategori); };
+      img.loading = "lazy";
+      if(p){
+        img.src = coverOf(p); img.alt = p.baslik;
+        img.onerror = function(){ this.src = phData(p.kategori); };
+      }else{
+        img.src = phData("Ürün"); img.alt = "Ürün bilgisi yüklenemedi";
+      }
 
       var info = document.createElement("div");
       info.className = "cart-item-info";
       var t = document.createElement("div");
-      t.className = "cart-item-title"; t.textContent = p.baslik;
+      t.className = "cart-item-title";
+      t.textContent = p ? p.baslik : "Ürün bilgisi yüklenemedi";
       info.appendChild(t);
-      if(ozet.detay){
+      var detay = p ? ozet.detay : kayipSatirDetayi(satir);
+      if(detay){
         var opts = document.createElement("div");
-        opts.className = "cart-item-opts"; opts.textContent = ozet.detay;
+        opts.className = "cart-item-opts"; opts.textContent = detay;
         info.appendChild(opts);
       }
       var pr = document.createElement("div");
-      if(ozet.kurus != null){ pr.className = "cart-item-price"; pr.textContent = ozet.fiyatMetni; }
-      else{ pr.className = "cart-item-price empty"; pr.textContent = ozet.fiyatMetni; }
+      if(p && ozet.kurus != null){ pr.className = "cart-item-price"; pr.textContent = ozet.fiyatMetni; }
+      else{ pr.className = "cart-item-price empty"; pr.textContent = p ? ozet.fiyatMetni : "—"; }
       info.appendChild(pr);
 
       // Adet +/- (Okan, 16 Tem): satır tutarı = kuruşlu birim × adet. Sadece fiyatı hesaplanan
       // satırda gösterilir; parametrik/fiyatsız ürün zaten WhatsApp kanalından gider.
-      if(ozet.kurus != null){
+      if(p && ozet.kurus != null){
         var adetKutu = document.createElement("div");
         adetKutu.className = "cart-adet";
         var eksi = document.createElement("button");
@@ -1189,11 +1244,29 @@
     history.replaceState(null, "", location.pathname);
   }
 
+  var katalogTazelendi = false;   // sayfa başına BİR deneme — istek/döngü seli olmasın
   function openCart(){
     document.getElementById("cartOverlay").classList.add("open");
     document.getElementById("cartPanel").classList.add("open");
     odemeFormuGoster(false);
     renderCartPanel();
+    // Fırsat düzeltmesi: sepette katalogda olmayan id varsa (bayat kopya / CDN gecikmesi)
+    // urunler.json bir kez tazelenir; yalnız EKSİK ürünler PRODUCTS'a eklenir (mevcut liste
+    // değiştirilmez — ana sayfa sırası/filtre/arama önbelleği bozulmasın). Hâlâ yoksa
+    // kayıp satır görünür kalır, müşteri çarpıyla kaldırabilir.
+    if(!katalogTazelendi && cartLines().some(function(L){ return L.kayip; })){
+      katalogTazelendi = true;
+      fetch("urunler.json", { cache: "no-cache" })
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          var bilinen = {};
+          PRODUCTS.forEach(function(p){ bilinen[p.id] = true; });
+          data.forEach(function(p){ if(!bilinen[p.id]){ PRODUCTS.push(p); } });
+          renderCartPanel();
+          updateCartFab();
+        })
+        .catch(function(){ /* ağ yok/başarısız: kayıp satır zaten görünüyor */ });
+    }
   }
   function closeCart(){
     document.getElementById("cartOverlay").classList.remove("open");
