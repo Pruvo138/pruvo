@@ -74,7 +74,14 @@ function eleman(tag) {
   el.setAttribute = (k, v) => { el.attrs[k] = String(v); };
   el.removeAttribute = (k) => { delete el.attrs[k]; if (k === "href") { el.href = ""; } };
   el.getAttribute = (k) => (k in el.attrs ? el.attrs[k] : null);
-  el.addEventListener = () => {};
+  // Dinleyiciler saklanir ki testler gercek kullanici olayini tetikleyebilsin (test 9:
+  // odemeForm submit). Onceki no-op davranis korunur: kayit yoksa tetikle hicbir sey yapmaz.
+  el._dinleyiciler = {};
+  el.addEventListener = (t, fn) => { el._dinleyiciler[t] = fn; };
+  el.tetikle = (t, ev) => {
+    const fn = el._dinleyiciler[t];
+    if (fn) { return fn(ev || { preventDefault() {} }); }
+  };
   el.focus = () => {};
   el.scrollIntoView = () => {};
   el.querySelector = () => null;
@@ -181,6 +188,7 @@ async function sayfaKur(ayar) {
     konsolHatalari,
     fetchIzi,
     depo,
+    ctx,
   };
 }
 
@@ -509,6 +517,54 @@ async function test8KatalogDustu() {
     "FAB gorunur + rozet=2, panel 2 kayip satir, uyari gosterildi, odeme kilitli, tek fetch");
 }
 
+/** 9 — odeme istegi PARAMETRELERI tasir (canli 17 Tem: sari satirda parametreler
+ *  gonderilmiyordu -> worker 400 parametre-yok -> "Odeme baslatilamadi").
+ *  Sozlesme: front tutar/fiyat GONDERMEZ ama sari satirin parametrelerini AYNEN gonderir;
+ *  worker fiyati bu parametrelerden kendisi hesaplar. */
+async function test9OdemePayloadParametreler() {
+  const hatalar = [];
+  const PARAMETRIK_URUN = {
+    id: "sari-urun", kategori: "Jeneratör", marka: [], parametrik: true,
+    baslik: "Test Sari Urun", aciklama: "test", fiyat: "", gorseller: [],
+  };
+  const PARAMETRELER = { ic_cap: 32, kesit: 3 };
+  const s = await sayfaKur({
+    sepet: [{ id: "sari-urun", malzeme: "PLA", renk: "Siyah", adet: 2,
+              parametreler: PARAMETRELER, parametre_detay: "İç çap: 32 mm",
+              hacim_mm3: 1234, parametrik_fiyat_kurus: 10000 }],
+    katalog: [GERCEK, PARAMETRIK_URUN],
+  });
+  // Form + onay doldur, odemeyi baslat (fetch mock'u istegi fetchIzi'ne yazar).
+  s.el("oAd").value = "Test Musteri"; s.el("oTel").value = "5425551122";
+  s.el("oEposta").value = "test@pruvo3d.com"; s.el("oSehir").value = "Fethiye";
+  s.el("oAdres").value = "Test mahallesi no 1 Fethiye";
+  s.el("oOnay").checked = true;
+  // Gercek kullanici yolu: form submit olayi odemeBaslat'i cagirir (dogrudan fonksiyon
+  // erisimi yok — IIFE icinde; dinleyici tetiklenir, fetch mock'u istegi kaydeder).
+  s.el("odemeForm").tetikle("submit", { preventDefault() {} });
+  await bekle(30);
+  {
+    const istek = s.fetchIzi.find((f) => f.url.indexOf("/baslat") !== -1);
+    if (!istek) {
+      hatalar.push("odeme istegi hic gitmedi (odenebilirlik kapisi mi kilitledi?)");
+    } else {
+      const govde = JSON.parse(istek.opts.body);
+      const kalem = (govde.sepet || [])[0] || {};
+      if (!kalem.parametreler) {
+        hatalar.push("sari kalemde 'parametreler' YOK — worker 400 parametre-yok doner");
+      } else if (JSON.stringify(kalem.parametreler) !== JSON.stringify(PARAMETRELER)) {
+        hatalar.push("parametreler bozulmus: " + JSON.stringify(kalem.parametreler));
+      }
+      if (kalem.parametrik_fiyat_kurus != null || kalem.hacim_mm3 != null) {
+        hatalar.push("istemci fiyat/hacim GONDERIYOR (sunucu hesabi ilkesi ihlali)");
+      }
+      if (kalem.adet !== 2) { hatalar.push("adet " + kalem.adet + " (2 olmali)"); }
+    }
+  }
+  rapor("9 odeme istegi parametreleri tasir (fiyat/hacim tasimadan)", hatalar,
+    "sari kalem parametrelerle gitti; fiyat/hacim istemciden gonderilmiyor");
+}
+
 // ---------------------------------------------------------------- akis
 
 async function main() {
@@ -521,6 +577,7 @@ async function main() {
   await test6BozukUnicode();
   await test7SavunmaKacis();
   await test8KatalogDustu();
+  await test9OdemePayloadParametreler();
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
     (kalan ? "" : " — HEPSI YESIL ✅"));
   process.exit(kalan ? 1 : 0);

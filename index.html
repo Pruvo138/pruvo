@@ -1328,6 +1328,10 @@
     "musteri-eposta": "E-posta adresi geçersiz görünüyor.",
     "musteri-adres": "Açık adres en az 10 karakter olmalı.",
     "odeme-baslatilamadi": "Ödeme sayfası açılamadı. Birazdan tekrar deneyin ya da WhatsApp'tan yazın.",
+    "parametre-yok": "Ölçüye özel ürünün ölçüleri eksik görünüyor. Ürün sayfasından yeniden ekleyip deneyin.",
+    "parametre-araligi": "Ölçüye özel üründe bir ölçü üretim aralığının dışında. Ürün sayfasından ölçüyü güncelleyin.",
+    "bilinmeyen-parametre": "Ölçüye özel ürün bilgisi eski görünüyor. Ürünü sepetten çıkarıp yeniden ekleyin.",
+    "taban-fiyat-yok": "Bu ölçüye özel ürün şu an kartla ödenemiyor; WhatsApp'tan teklif alın.",
     "havale-hazir-degil": "Havale/EFT şu an kullanılamıyor; kartla ödeyebilir veya WhatsApp'tan yazabilirsiniz.",
     "sozlesme-onay-yok": "Devam etmek için sözleşme onay kutusunu işaretleyin."
   };
@@ -1348,9 +1352,14 @@
     try{
       // Sunucuya SADECE seçim gönderilir; tutar/fiyat/kargo GÖNDERİLMEZ — hepsini Worker
       // D1 fiyatından hesaplar (kargo+KDV dahil; istemci tutar alanları yok sayılır).
+      // Sarı (parametrik) satırda PARAMETRELER de seçimdir ve GÖNDERİLİR — Worker fiyatı
+      // şema+hacim ile bunlardan hesaplar (17 Tem canlı dersi: gönderilmeyince 400
+      // parametre-yok, ödeme hiç başlamıyordu). hacim/fiyat alanları yine gönderilmez.
       var sepet = lines.map(function(L){
-        return { id: L.satir.id, malzeme: L.satir.malzeme, renk: L.satir.renk,
-                 renk_ozel: L.satir.renk_ozel || "", adet: PRUVO_SECENEK.adetDuzelt(L.satir.adet) };
+        var kalem = { id: L.satir.id, malzeme: L.satir.malzeme, renk: L.satir.renk,
+                      renk_ozel: L.satir.renk_ozel || "", adet: PRUVO_SECENEK.adetDuzelt(L.satir.adet) };
+        if(L.satir.parametreler){ kalem.parametreler = L.satir.parametreler; }
+        return kalem;
       });
       var cevap = await fetch(SHOP_UC + "/baslat", {
         method: "POST",
