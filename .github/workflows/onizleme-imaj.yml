@@ -154,13 +154,13 @@ jobs:
           # Containers yetkisi tasimiyor (16 Tem'de "Forbidden" olculdu); token yetki
           # duzenlemesi panel/Okan isi olana kadar bu yol calisir.
           if [ -n "$CF_REGISTRY_GECICI" ]; then
-            printf '%s' "$CF_REGISTRY_GECICI" | docker login registry.cloudflare.com -u v1 --password-stdin
-            docker tag pruvo-onizleme-derleyici:ci "$HEDEF"
-            if docker push "$HEDEF"; then
+            if printf '%s' "$CF_REGISTRY_GECICI" | docker login registry.cloudflare.com -u v1 --password-stdin \
+              && docker tag pruvo-onizleme-derleyici:ci "$HEDEF" \
+              && docker push "$HEDEF"; then
               echo "imaj itildi (gecici kimlik): $HEDEF"
               exit 0
             fi
-            echo "::warning::gecici kimlikle push olmadi (JWT suresi dolmus olabilir) — wrangler yoluna dusuluyor."
+            echo "::warning::gecici kimlikle push olmadi (login/tag/push adimlarindan biri, JWT suresi dolmus olabilir) — wrangler yoluna dusuluyor."
           fi
           # YOL 2 — wrangler (CLOUDFLARE_API_TOKEN'a Containers yetkisi eklenince kalici yol).
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
