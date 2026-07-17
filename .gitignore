@@ -35,6 +35,8 @@ gorseller/
 .cloudflare-token
 # Ic notlar — bu repo PUBLIC; DEVAM.md yayina girmesin (bugune dek de hic commit edilmedi).
 DEVAM.md
+# Muhendis raporlari worktree-lokal kalir (ILETISIM PROTOKOLU); public repoya girmez.
+RAPOR-MIMARA.md
 __pycache__/
 stl/
 .stl-backup-dir
