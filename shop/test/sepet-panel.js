@@ -144,6 +144,10 @@ async function sayfaKur(ayar) {
     navigator: {},
     URLSearchParams,
     setTimeout, clearTimeout,
+    /* URL-senkron paketi (yukari-cik oku) window.addEventListener("scroll") +
+       scrollTo cagiriyor — sahte pencerede no-op karsiliklari olsun. */
+    addEventListener() {}, removeEventListener() {},
+    scrollTo() {}, scrollY: 0, innerHeight: 720,
   };
   ctx.window = ctx;
   vm.createContext(ctx);
