@@ -96,6 +96,28 @@ def _satin_alma_mi(kayit):
     return isinstance(kayit, dict) and kayit.get("tur") == "satin-alma"
 
 
+# Olcu, ekleme aninda ALINAMAYAN kaynaklar (indirme login/hesap/OAuth-gated) -> olcu kapisindan MUAF.
+# denetim-kapisi._olcu_muaf_kaynak ile AYNI desen. Printables/Thingiverse MUAF DEGIL (olculu gelir).
+_OLCU_MUAF_KAYNAK = {"makerworld", "cults3d", "myminifactory", "********"}
+_OLCU_MUAF_DOMAIN = ("makerworld.com", "cults3d.com", "myminifactory.com", "********.com")
+
+
+def _olcu_muaf(kayit):
+    """tur==satin-alma (********) VEYA kaynak/link MakerWorld/Cults3D/MyMiniFactory/******** ise True
+    (bu platformlar urunu OLCUSUZ ekler; olcu siparis/indirme sonrasi alinir). str/dict karsilanir."""
+    if isinstance(kayit, dict):
+        if kayit.get("tur") == "satin-alma":
+            return True
+        if str(kayit.get("kaynak") or "").strip().lower() in _OLCU_MUAF_KAYNAK:
+            return True
+        link = str(kayit.get("link") or "").lower()
+    elif isinstance(kayit, str):
+        link = kayit.lower()
+    else:
+        return False
+    return any(dom in link for dom in _OLCU_MUAF_DOMAIN)
+
+
 def _denetle_urun(urun, gosterim_id, kaynaklar):
     """Tek bir yeni urun icin bulgu (aciklama) listesi dondurur."""
     bulgular = []
@@ -145,8 +167,9 @@ def _denetle_urun(urun, gosterim_id, kaynaklar):
         if not _FIYAT_RE.match(fiyat_str):
             bulgular.append("fiyat '<sayi> TL' biciminde degil: %r" % (fiyat,))
 
-    # 8. olcu (mm) ifadesi — satin-alma urunlerinde aranmaz
-    if not _satin_alma_mi(kaynaklar.get(gosterim_id)):
+    # 8. olcu (mm) ifadesi — olcu-muaf kaynaklarda (satin-alma + login-gated MakerWorld/
+    #    Cults3D/MyMiniFactory) aranmaz; Printables/Thingiverse'te ZORUNLU.
+    if not _olcu_muaf(kaynaklar.get(gosterim_id)):
         if not _OLCU_RE.search(aciklama_str):
             bulgular.append("aciklamada olcu (mm) ifadesi yok")
 

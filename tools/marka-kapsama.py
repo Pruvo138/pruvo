@@ -15,6 +15,7 @@ Kullanim:
   python3 tools/marka-kapsama.py --backfill            # .urun-kaynaklari.json'dan added-kapsamayi seed et
 """
 import argparse
+import fcntl
 import json
 import os
 from datetime import datetime, timezone
@@ -63,16 +64,20 @@ def kaydet(marka, platform, taranan, eklenen, elenen, tarih=None):
     if platform not in PLATFORMLAR:
         # esnek: bilinen adlarla eslesmezse yine kaydet ama uyar
         print("UYARI: bilinmeyen platform '%s' (yine de kaydediliyor)" % platform)
-    d = _defter_oku()
-    m = d.setdefault(marka, {})
-    kayit = m.get(platform, {"taranan": 0, "eklenen": 0, "elenen": 0, "parti": 0})
-    kayit["taranan"] = max(kayit.get("taranan", 0), int(taranan or 0))
-    kayit["eklenen"] = kayit.get("eklenen", 0) + int(eklenen or 0)
-    kayit["elenen"] = kayit.get("elenen", 0) + int(elenen or 0)
-    kayit["parti"] = kayit.get("parti", 0) + 1
-    kayit["son_tarih"] = tarih or datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    m[platform] = kayit
-    _defter_yaz(d)
+    # FLOCK: paralel backfill'ler ayni anda kaydet cagirinca birbirinin ledger yazimini
+    # EZMESIN (read-modify-write atomik olmali; defter flock'suzdu -> kayit kaybi riski).
+    with open(DEFTER + ".lock", "w") as _lk:
+        fcntl.flock(_lk, fcntl.LOCK_EX)
+        d = _defter_oku()
+        m = d.setdefault(marka, {})
+        kayit = m.get(platform, {"taranan": 0, "eklenen": 0, "elenen": 0, "parti": 0})
+        kayit["taranan"] = max(kayit.get("taranan", 0), int(taranan or 0))
+        kayit["eklenen"] = kayit.get("eklenen", 0) + int(eklenen or 0)
+        kayit["elenen"] = kayit.get("elenen", 0) + int(elenen or 0)
+        kayit["parti"] = kayit.get("parti", 0) + 1
+        kayit["son_tarih"] = tarih or datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        m[platform] = kayit
+        _defter_yaz(d)
     print("kaydedildi: %s / %s -> taranan=%s eklenen(+%s) elenen(+%s)" %
           (marka, platform, kayit["taranan"], eklenen, elenen))
 
