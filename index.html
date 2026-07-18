@@ -892,6 +892,55 @@
   // vitrin oradan beslenir. tools/build.py NAV_GIZLI ile BİRLİKTE güncelle.
   var GIZLI_KATEGORILER = ["Jeneratör"];
 
+  /* REKLAM ATIF YAKALAMA (reklam-roi-sistemi.md Faz 0): reklamdan gelen ziyaretin siparişe
+     bağlanması için atıf kimlikleri toplanır. UTM landing URL'sinde gelir ama iyzico redirect'i
+     onu DÜŞÜRÜR → localStorage'a kalıcı yazılır (son-dokunuş). _ga client_id + Meta _fbp/_fbc
+     çerezleri ödeme anında TAZE okunur (GA4/piksel kurulunca dolu gelir; değilse boş — kod hazır).
+     Sunucu bunları order kaydına yazar; purchase event (Worker /donus, iyzico OK anında) kullanır.
+     PII (email/telefon) BURADAN GEÇMEZ. */
+  var PRUVO_ATIF = (function(){
+    var ANAHTAR = "pruvo_atif";
+    function cerez(ad){
+      var m = document.cookie.match(new RegExp("(?:^|; )" +
+        ad.replace(/([.$?*|{}()\[\]\\\/+^])/g, "\\$1") + "=([^;]*)"));
+      return m ? decodeURIComponent(m[1]) : "";
+    }
+    function gaClientId(){
+      // _ga = "GA1.1.1234567890.1690000000" -> client_id = "1234567890.1690000000"
+      var v = cerez("_ga");
+      if(!v){ return ""; }
+      var p = v.split(".");
+      return p.length >= 4 ? p.slice(2).join(".") : "";
+    }
+    function oku(){
+      try { return JSON.parse(localStorage.getItem(ANAHTAR)) || {}; } catch(e){ return {}; }
+    }
+    // Landing'de UTM + fbclid'i yakala, kalıcı sakla (son-dokunuş: yeni UTM eskisini ezer).
+    try {
+      var q = new URLSearchParams(location.search);
+      var utm = {}, k, alanlar = ["utm_source","utm_medium","utm_campaign","utm_id"];
+      for(var i=0;i<alanlar.length;i++){ var val = q.get(alanlar[i]); if(val){ utm[alanlar[i]] = String(val).slice(0,200); } }
+      var fbclid = q.get("fbclid");
+      if(Object.keys(utm).length || fbclid){
+        var kayit = oku();
+        for(k in utm){ kayit[k] = utm[k]; }
+        if(fbclid && !kayit.fbc){ kayit.fbc = "fb.1." + Date.now() + "." + fbclid; }
+        try { localStorage.setItem(ANAHTAR, JSON.stringify(kayit)); } catch(e){}
+      }
+    } catch(e){}
+    return {
+      // Ödeme anında çağrılır: kalıcı UTM/fbclid + o an TAZE çerezler.
+      topla: function(){
+        var kayit = oku(), cikti = {}, k, alanlar = ["utm_source","utm_medium","utm_campaign","utm_id"];
+        for(var i=0;i<alanlar.length;i++){ k = alanlar[i]; if(kayit[k]){ cikti[k] = kayit[k]; } }
+        var gid = gaClientId(); if(gid){ cikti.ga_client_id = gid; }
+        var fbp = cerez("_fbp"); if(fbp){ cikti.fbp = fbp; }
+        var fbc = cerez("_fbc") || kayit.fbc; if(fbc){ cikti.fbc = fbc; }
+        return cikti;
+      }
+    };
+  })();
+
   function placeholder(txt){
     return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">' +
            '<rect width="400" height="300" fill="#1c3a6b"/>' +
@@ -1376,6 +1425,9 @@
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ sepet: sepet, odeme: havale ? "havale" : "kart",
           sozlesme_onay: document.getElementById("oOnay").checked === true,
+          // Reklam atıf kimlikleri (UTM + GA client_id + Meta fbp/fbc) — sunucu order kaydına
+          // yazar, purchase event kullanır (reklam-roi-sistemi.md Faz 0). Boşsa {} gider.
+          atif: PRUVO_ATIF.topla(),
           musteri: {
             ad: document.getElementById("oAd").value.trim(),
             tel: document.getElementById("oTel").value.trim(),

@@ -31,6 +31,14 @@ HAVALE_UNVAN = "Okan Gemalmaz"
 BILDIRIM_EPOSTA = "info@pruvo3d.com"
 # Parametrik STL uretimi: onizleme worker'inin ic uc tabani (ayni zone; ayni alan adindan).
 ONIZLEME_TABAN = "https://pruvo3d.com"
+# REKLAM ROI OLCUMU (reklam-roi-sistemi.md Faz 0). Meta piksel ID'si SIR DEGIL (tarayici
+# pikseline de gomulur) -> [vars]'ta. CAPI TOKEN'i ve GA4 API SECRET'i SIR -> asagida secret put.
+# META_CAPI_TOKEN yoksa Meta hedefi sessizce atlanir; GA4_MEASUREMENT_ID+GA4_API_SECRET yoksa
+# GA4 hedefi atlanir (kod merge olur, canliyi bozmaz; Okan secret basinca canlanir).
+META_PIXEL_ID = "1562627655518274"
+# GA4 measurement id (G-XXXXXXXXXX) SIR DEGIL — GA4 kurulunca Okan bu satiri doldurur
+# (yoksa GA4 hedefi no-op). api_secret ise SIR (secret put).
+# GA4_MEASUREMENT_ID = "G-XXXXXXXXXX"
 
 [[d1_databases]]
 binding = "KATALOG"
@@ -53,4 +61,9 @@ enabled = true
 #   npx wrangler secret put YONET_ANAHTAR       # openssl rand -hex 24 (yonetim sayfasi anahtari)
 #   npx wrangler secret put RESEND_API_KEY      # Resend e-posta (Okan hesabi acinca)
 #   npx wrangler secret put IC_DERLE_ANAHTAR    # onizleme worker'iyla AYNI deger (parametrik STL)
+#   npx wrangler secret put META_CAPI_TOKEN     # Meta Events Manager > Conversions API > token (reklam ROI)
+#   npx wrangler secret put GA4_API_SECRET      # GA4 Admin > Data Streams > Measurement Protocol API secret
+# Opsiyonel canli-kabul (dogrulama bitince SILINIR — normalde TANIMLI DEGIL):
+#   npx wrangler secret put META_TEST_EVENT_CODE  # Meta Test Events sekmesindeki kod (TESTxxxxx)
+#   npx wrangler secret put GA4_DEBUG             # "1" -> GA4 DebugView + /debug/mp/collect dogrulama
 # Yerel gelistirme: .dev.vars (gitignore'da) — sablon: .dev.vars.example

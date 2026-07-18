@@ -159,6 +159,9 @@ GOC_KOLON_SIPARIS = [
     ("kargo_firma", "TEXT NOT NULL DEFAULT ''"),
     ("kargo_kodu", "TEXT NOT NULL DEFAULT ''"),
     ("durum_gecmisi", "TEXT NOT NULL DEFAULT ''"),
+    # Reklam ROI olcumu (reklam-roi-sistemi.md Faz 0): atif kimlikleri (GA client_id + Meta
+    # fbp/fbc + UTM) kompakt JSON. Purchase event (shop donus) bunlari kullanir; PII yok.
+    ("atif", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 # Yazilan kolonlar (id disinda hepsi ON CONFLICT'te guncellenir).
