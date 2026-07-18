@@ -115,6 +115,12 @@ function belgeKur() {
     },
     body: eleman("body"),
     execCommand: () => true,
+    // Gercek tarayicida document.cookie DAIMA string'dir (cerez yoksa ""). Odeme aninda
+    // PRUVO_ATIF.topla() (reklam atif kimlikleri) bunu cerez()'le OKUR; stub'ta eksikse
+    // undefined.match(...) atar, odemeBaslat try/catch'i yutar, /baslat istegi HIC gitmezdi
+    // (test 9 boyle kaliyordu — f287602 atif okumasini ekledi, stub guncellenmedi). Yalniz
+    // OKUMA var (index.html'de document.cookie'ye yazma yok) -> bos string yeterli.
+    cookie: "",
   };
   return { belge, kimlikler };
 }
