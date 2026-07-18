@@ -20,6 +20,7 @@ Kullanim:
          --derin YOKSA eski davranis birebir (per_max=50 keeper'da durur).
 """
 import json
+import importlib.util
 import os
 import re
 import subprocess
@@ -37,6 +38,11 @@ DEFTER = os.path.join(ROOT, ".marka-kapsama.json")
 URUNLER = os.path.join(ROOT, "urunler.json")
 SCRATCH = os.path.dirname(os.path.abspath(__file__))
 RAPOR = os.path.join(ROOT, ".thing-cache", "parity-backfill-rapor.json")
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_PR_SPEC = importlib.util.spec_from_file_location("pr_api", os.path.join(_HERE, "printables-api.py"))
+pr = importlib.util.module_from_spec(_PR_SPEC)
+_PR_SPEC.loader.exec_module(pr)
 
 PLAT = {
     "MakerWorld": ("makerworld-ara.py", "makerworld-ekle.py"),
@@ -70,6 +76,39 @@ YARGI_SEMA = {
     "required": ["results"],
     "additionalProperties": False,
 }
+
+_KEEP_REAL = (
+    "bracket", "braket", "spacer", "gear", "disli", "mount", "holder",
+    "adapter", "adaptor", "clip", "klips", "knob", "tutucu", "support",
+)
+_FIREARM = (
+    "m-lok", "mlok", "magpul", "moe grip", "moe stock", "ctr stock",
+    "magwell", "cheek riser", "cheek-riser", "pistol brace", "pistol-brace",
+    "picatinny", "handguard", "ar-15", "ar15", "buffer tube",
+    "lower receiver", "upper receiver", "pmag",
+)
+
+
+def _blob(name):
+    return " " + pr.tr_lower(name or "") + " "
+
+
+def _is_firearm(name):
+    n = _blob(name)
+    return any(term in n for term in _FIREARM)
+
+
+def _is_keep_default(name):
+    n = _blob(name)
+    if "airsoft" in n or "softair" in n:
+        return True, "airsoft hobi replika"
+    if _is_firearm(name):
+        return False, "clear firearm aksesuar"
+    if any(term in n for term in _KEEP_REAL):
+        return True, "gercek/ambiguous parca; keep-by-default"
+    if pr.is_logo(name) or pr.is_merch(name):
+        return False, "logo-merch"
+    return None, ""
 
 
 def _defter():
@@ -136,11 +175,15 @@ def codex_yargi(brand, pairs):
     prompt = (
         "Sen bir 3D-baski yedek-parca magazasi kuratorusun. Marka: %s.\n"
         "Asagidaki adaylari SATILABILIR GERCEK ISLEVSEL PARCA mi yoksa YASAK/alakasiz mi diye sinifla.\n\n"
-        "TUT (keep=true): markanin gercek islevsel parcasi/aksesuari — braket, kapak, dugme/knob, tutucu, "
-        "adaptor, klips, montaj, muhafaza, yedek parca. (Islevsel parca marka LOGOSU tasisa da TUT.)\n"
+        "TUT (keep=true): markanin gercek islevsel parcasi/aksesuari — braket, spacer, mount, gear, "
+        "tutucu, adaptor, klips, muhafaza, yedek parca. SUREKLI KURAL: belirsizde TUT; "
+        "gercek parca marka LOGOSU tasisa da TUT.\n"
         "AT (keep=false):\n"
         "- olcekli model / maket / diorama / vitrin-modeli / diecast / RC govde-kabugu / '1:24' '1/76' "
         "'scale model' 'model v1' gibi ARAC MAKETI (YASAK sinif).\n"
+        "- clear firearm accessories: M-LOK, Magpul, MOE/CTR stock-grip, magwell, picatinny, handguard, "
+        "AR-15/AR15, buffer tube, receiver, pistol brace.\n"
+        "- airsoft/softair replika parcalari HARIC gercek atesli silah aksesuarları.\n"
         "- logo-merch: urunun KENDISI logo/amblem/rozet/plaket/anahtarlik/kurabiye-kalibi olan.\n"
         "- ucuncu-taraf IP (film/oyun/Disney/Marvel vb.).\n"
         "- markayla alakasiz, belirsiz ya da cop (adi sadece marka adi olan bos kayit).\n\n"
@@ -174,7 +217,15 @@ def codex_yargi(brand, pairs):
         gecerli = {p[0] for p in pairs}
         keep = {x["id"] for x in res if x.get("keep") and x.get("id") in gecerli}
         reason = {x["id"]: x.get("reason", "") for x in res}
-        # yargida gorunmeyen id -> guvenli varsayilan AT (ekleme)
+        for pid, ad in pairs:
+            pol, why = _is_keep_default(ad)
+            if pol is True:
+                keep.add(pid)
+                reason[pid] = why
+            elif pol is False:
+                keep.discard(pid)
+                reason[pid] = why
+        # yargida gorunmeyen id -> guvenli varsayilan AT (ekleme); policy True ise keep'e eklenir.
         return keep, reason
     except Exception as e:
         return None, {"_hata": str(e)[:200]}

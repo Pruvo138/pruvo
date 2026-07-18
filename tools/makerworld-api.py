@@ -73,7 +73,13 @@ COP_MERCH = (
 )
 COP_OTHER = ("miniature", "diecast", "die-cast", "diorama", "scale model",
              "1:18", "1:24", "1:32", "1:43", "1:64", "1/18", "1/24", "1/43")
-COP = COP_LOGO + COP_MERCH + COP_OTHER
+COP_FIREARM = (
+    "m-lok", "mlok", "magpul", "moe grip", "moe stock", "ctr stock",
+    "magwell", "cheek riser", "cheek-riser", "pistol brace", "pistol-brace",
+    "picatinny", "handguard", "ar-15", "ar15", "buffer tube",
+    "lower receiver", "upper receiver", "pmag",
+)
+COP = COP_LOGO + COP_MERCH + COP_OTHER + COP_FIREARM
 
 POP_DL = 3000        # >= indirme -> populer
 POP_LIKE = 400       # >= begeni -> populer
@@ -93,9 +99,14 @@ def is_merch(name):
     return any(c in n for c in COP_MERCH)
 
 
+def is_firearm(name):
+    n = " " + (name or "").lower() + " "
+    return any(c in n for c in COP_FIREARM)
+
+
 def is_nobypass(name):
     """Populerligin DELEMEDIGI eleme: logo/amblem VEYA marka-merch formu."""
-    return is_logo(name) or is_merch(name)
+    return is_logo(name) or is_merch(name) or is_firearm(name)
 
 
 def is_cop(name):
