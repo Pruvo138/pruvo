@@ -115,7 +115,7 @@ def main(term, maxn, derin=False, cikis_limiti=None):
             if not derin and len(bulunan) >= maxn:
                 break
         page += 1
-        if total and page * PER > total:
+        if total and (page - 1) * PER >= total:
             break
 
     bulunan.sort(key=lambda b: (b[4], b[3]), reverse=True)   # (likes, views) azalan
