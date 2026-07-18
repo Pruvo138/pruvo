@@ -137,5 +137,11 @@ CREATE TABLE IF NOT EXISTS siparisler (
   -- DURUM GECMISI: her durum degisiminde AYNI satira eklenen kompakt JSON denetim izi
   -- [{"d":"uretimde","z":"ISO"}...] — ek SATIR yazmaz (D1 gunluk limit etkisi yok),
   -- yonetim sayfasi gecmisi gosterir. Eski satirlarda '' .
-  durum_gecmisi   TEXT NOT NULL DEFAULT ''
+  durum_gecmisi   TEXT NOT NULL DEFAULT '',
+  -- REKLAM ROI OLCUMU (reklam-roi-sistemi.md Faz 0): odeme ONCESI (/baslat) tarayicidan
+  -- yakalanan atif kimlikleri, kompakt JSON: {ga_client_id, fbp, fbc, utm_source, utm_medium,
+  -- utm_campaign, utm_id}. redirect'te URL param/cerez DUSER -> order kaydina yazilir; purchase
+  -- event (donus'ta, iyzico OK aninda) bunlari GA4 client_id / Meta fbp-fbc / UTM atfi icin okur.
+  -- PII YOK (v1): email/telefon YAZILMAZ. Eski satirlarda '' (atif oncesi).
+  atif            TEXT NOT NULL DEFAULT ''
 );

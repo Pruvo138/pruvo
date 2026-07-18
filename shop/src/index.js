@@ -29,6 +29,7 @@ import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
 import { yonet } from "./yonet.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
+import { olcumGonder } from "./olcum.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -113,6 +114,28 @@ function metin(v, enAz, enCok) {
   return s.length >= enAz && s.length <= enCok ? s : null;
 }
 
+/** REKLAM ATIF KIMLIKLERI (reklam-roi-sistemi.md Faz 0): tarayicidan gelen GA _ga client_id +
+ *  Meta _fbp/_fbc + utm_source/medium/campaign/id. Odeme ONCESI order kaydina yazilir (redirect'te
+ *  UTM/cerez duser); purchase event (donus'ta) bunlarla atif yapar. Yalniz beyaz-liste alanlar,
+ *  string'e zorlanip kirpilir; PII (email/telefon) BURADAN GECMEZ. Bos ise {} doner. */
+function atifTemizle(govde) {
+  const a = (govde && govde.atif && typeof govde.atif === "object" && !Array.isArray(govde.atif))
+    ? govde.atif : {};
+  const al = (v, n) => (typeof v === "string" ? v.trim().slice(0, n) : "");
+  const alanlar = {
+    ga_client_id: al(a.ga_client_id, 64),
+    fbp: al(a.fbp, 128),
+    fbc: al(a.fbc, 256),
+    utm_source: al(a.utm_source, 120),
+    utm_medium: al(a.utm_medium, 120),
+    utm_campaign: al(a.utm_campaign, 200),
+    utm_id: al(a.utm_id, 120),
+  };
+  const dolu = {};
+  for (const k in alanlar) { if (alanlar[k]) { dolu[k] = alanlar[k]; } }
+  return dolu;
+}
+
 /** Istek govdesini dogrula; hata varsa {hata}, yoksa {musteri, kalemler, odeme}. Istemciden
  *  gelen tutar/fiyat/kargo alanlari BILEREK okunmaz. */
 function istekCoz(govde) {
@@ -175,7 +198,8 @@ function istekCoz(govde) {
     kalemler.push({ id, malzeme, renk, renk_ozel: renk_ozel || "", boy_etiket: null, adet,
                     parametreler });
   }
-  return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler, odeme };
+  return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler, odeme,
+           atif: atifTemizle(govde) };
 }
 
 // ---------------------------------------------------------------- /baslat
@@ -189,7 +213,10 @@ async function baslat(request, env, url, ctx) {
   }
   const c = istekCoz(govde);
   if (c.hata) return json(c, 400, env);
-  const { musteri, kalemler, odeme } = c;
+  const { musteri, kalemler, odeme, atif } = c;
+  // Atif kimlikleri (GA client_id + Meta fbp/fbc + UTM) order kaydina yazilir; purchase event
+  // (donus'ta, iyzico OK aninda) bunlari kullanir. Redirect'te URL param/cerez duser.
+  const atifJson = JSON.stringify(atif || {});
 
   // FIYAT SUNUCUDA: sepetteki id'lerin guncel kaydi D1 katalogundan.
   const idler = [...new Set(kalemler.map((k) => k.id))];
@@ -279,14 +306,14 @@ async function baslat(request, env, url, ctx) {
     await env.KATALOG.prepare(
       "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
       " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
-      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres)" +
-      " VALUES (?, NULL, ?, 'havale-bekliyor', ?, ?, ?, 'havale', ?, ?, ?, ?, ?, ?, ?, ?)"
+      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, atif)" +
+      " VALUES (?, NULL, ?, 'havale-bekliyor', ?, ?, ?, 'havale', ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     ).bind(
       siparisNo, new Date().toISOString(), toplamKurus, kargoKurus, kdv.kdvKurus,
       onayDamgasi, JSON.stringify(satirlar),
       [...new Set(satirlar.map((s) => s.malzeme))].join("+"),
       [...new Set(satirlar.map((s) => s.renk_ozel || s.renk))].join("+"),
-      musteri.ad, musteri.tel, musteri.eposta, acikAdres
+      musteri.ad, musteri.tel, musteri.eposta, acikAdres, atifJson
     ).run();
     ctx.waitUntil(telegram(env, havaleMesaji(siparisNo, satirlar, toplamKurus, kargoKurus,
       tahsilatKurus, musteri, acikAdres)));
@@ -385,8 +412,8 @@ async function baslat(request, env, url, ctx) {
   await env.KATALOG.prepare(
     "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
     " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
-    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres)" +
-    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, 'kart', ?, ?, ?, ?, ?, ?, ?, ?)"
+    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, atif)" +
+    " VALUES (?, ?, ?, 'bekliyor', ?, ?, ?, 'kart', ?, ?, ?, ?, ?, ?, ?, ?, ?)"
   ).bind(
     siparisNo, init.token, new Date().toISOString(), toplamKurus, kargoKurus,
     kdv.kdvKurus, onayDamgasi,
@@ -394,7 +421,7 @@ async function baslat(request, env, url, ctx) {
     [...new Set(satirlar.map((s) => s.malzeme))].join("+"),
     // "Diğer" renkte musterinin yazdigi renk kaydedilir (uretim bunu okur), yoksa liste rengi
     [...new Set(satirlar.map((s) => s.renk_ozel || s.renk))].join("+"),
-    musteri.ad, musteri.tel, musteri.eposta, acikAdres
+    musteri.ad, musteri.tel, musteri.eposta, acikAdres, atifJson
   ).run();
 
   return json({ url: init.paymentPageUrl, no: siparisNo }, 200, env);
@@ -426,7 +453,7 @@ async function donus(request, env, ctx) {
 
   // Uydurma token: bizde kaydi yok -> siparis OLUSMAZ, 4xx (kabul testi 2).
   const siparis = await env.KATALOG.prepare(
-    "SELECT siparis_no, durum, tutar_kurus, kargo_kurus, kdv_kurus, urunler," +
+    "SELECT siparis_no, durum, tutar_kurus, kargo_kurus, kdv_kurus, urunler, atif," +
     " musteri_ad, musteri_tel, musteri_eposta, musteri_adres FROM siparisler WHERE token = ?"
   ).bind(token).first();
   if (!siparis) return json({ hata: "bilinmeyen-token" }, 404, env);
@@ -492,6 +519,11 @@ async function donus(request, env, ctx) {
 
   if (g.meta && g.meta.changes > 0) {
     ctx.waitUntil(telegram(env, siparisMesaji(siparis, det)));
+    // REKLAM ROI OLCUMU (reklam-roi-sistemi.md Faz 0): iyzico DOGRULAMASI OK dondu ve siparis
+    // ILK KEZ 'odendi'ye gecti (idempotent: ayni token 2. kez changes=0 -> olay da tekrarlanmaz)
+    // -> Purchase olayini Meta CAPI + GA4'e gonder. Fire-and-forget, best-effort: secret yoksa
+    // no-op, POST hatasi siparis onayini/musteri akisini ETKILEMEZ (olcum.js guvenli()).
+    olcumGonder(env, ctx, siparis);
     // Musteriye onay e-postasi (tetik 1, kart odemesi onaylandi) + satici kopyasi.
     // IDEMPOTENT: yalniz changes>0'da (ayni token 2. kez -> e-posta da tekrarlanmaz).
     let satirlar = [];
