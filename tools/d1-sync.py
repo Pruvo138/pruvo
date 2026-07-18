@@ -21,7 +21,6 @@ SABIT bir seq verilir; ORDER BY seq DESC = katalog sirasi (en yeni ustte).
 """
 
 import argparse
-import hashlib
 import json
 import os
 import re
@@ -126,10 +125,12 @@ def urunleri_oku():
 
 
 def d1_mevcut():
-    """D1'deki {id: hash} + en buyuk seq."""
-    r = sorgu("SELECT id, hash FROM urunler")
+    """D1'deki {id: (hash, baski)} + en buyuk seq.
+    baski da OKUNUR: baski senkronu (main) onu D1'dekiyle KIYASLAR — degismemisse yazmaz
+    (yoksa her yerel kosum tum baski'lari yeniden yazardi)."""
+    r = sorgu("SELECT id, hash, baski FROM urunler")
     satirlar = (r[0].get("results") or []) if r else []
-    mevcut = {s["id"]: s["hash"] for s in satirlar}
+    mevcut = {s["id"]: (s["hash"], s.get("baski") or "") for s in satirlar}
     r2 = sorgu("SELECT COALESCE(MAX(seq), 0) AS m FROM urunler")
     mseq = ((r2[0].get("results") or [{}])[0] or {}).get("m") or 0
     return mevcut, int(mseq)
@@ -164,11 +165,16 @@ GOC_KOLON_SIPARIS = [
     ("atif", "TEXT NOT NULL DEFAULT ''"),
 ]
 
-# Yazilan kolonlar (id disinda hepsi ON CONFLICT'te guncellenir).
+# ON CONFLICT (UPDATE) sirasinda GUNCELLENEN kolonlar.
+# "baski" BILEREK YOK: baski yalnizca gizli .urun-kaynaklari.json'da (CI'da yok).
+# Content upsert'i baski'yi da yazsaydi CI HER kosumda baski'yi '' YAPARDI (D1'den
+# SILERDI — 2026-07-18: canlida 7381 satirin hepsinde baski='' bulundu, sebep buydu).
+# baski AYRI senkronla yonetilir (baski_senkron_sql + main) ve SADECE dosyasi olan
+# ortam (yerel) yazar. INSERT VALUES'ta baski VAR (yeni satir onu alir); sadece
+# CONFLICT/UPDATE yolu baski'ya dokunmaz.
 KOLONLAR = [
     "hash", "baslik", "kategori", "marka", "fiyat", "gorsel", "parametrik", "hs",
     "aciklama", "ege", "hs_baslik", "hs_baslik_kok", "hs_govde", "hs_govde_kok",
-    "baski",
 ]
 
 
@@ -194,15 +200,55 @@ def baski_haritasi():
     return harita
 
 
-def etkin_hash(u, baski):
-    """arama.urun_hash + baski. baski gizli dosyadan gelir (public urun objesinde yok);
-    diff-upsert'in baski'yi gorebilmesi icin hash'e KATILIR — baski eklenince/degisince
-    satir yeniden yazilir, yoksa hash arama.urun_hash ile AYNI kalir (bos baskili urunlere
-    dokunulmaz, gunluk yazma limiti korunur)."""
-    h = arama.urun_hash(u)
-    if baski:
-        h = hashlib.sha256((h + "\x00baski\x00" + baski).encode("utf-8")).hexdigest()[:16]
-    return h
+# ─── BASKI ve DIFF-HASH AYRIMI (thrash onarimi, 2026-07-18) ───────────────────
+# diff-upsert'in "hash" alani = SADECE arama.urun_hash(u) (PUBLIC icerik). baski ASLA
+# hash'e KARISMAZ.
+#   NEDEN (olculmus hata): eski etkin_hash() baski'yi hash'e katiyordu. Ama baski yalnizca
+#   gizli .urun-kaynaklari.json'da; YEREL onu gorur, GitHub Actions (gitignore) GORMEZ.
+#   Sonuc: yerel "baski'li hash", CI "baski'siz hash" yazip birbirini EZDI. Her push'ta
+#   ~3.700 baski'li urun "degismis" gorunup yeniden yaziliyordu (12 urunluk batch'te
+#   ~7.400 yazma = neredeyse tam rebuild; D1 gunluk 100.000 yazma limitine dogru kosuyordu).
+#   Ustelik baski KOLONLAR'daydi -> CI content-upsert'i baski'yi '' yapip D1'den SILIYORDU.
+# COZUM:
+#   (1) hash iki ortamda AYNI (baski'siz) -> content thrash BITER.
+#   (2) baski AYRI senkronlanir (baski_senkron_sql), yalnizca dosyasi olan ortam (yerel)
+#       ve SADECE D1'dekinden farkliysa yazar -> degismeyen baski'ye dokunulmaz, CI silmez.
+def baski_senkron_sql(uid, baski):
+    """Tek urun icin SADECE baski kolonunu gunceller (content'e/hs'e dokunmaz -> hash ayni,
+    FTS tetigi calismaz, ek satir yazmaz). Yalnizca baski FIILEN degistiyse cagrilir (main)."""
+    return "UPDATE urunler SET baski=%s WHERE id=%s;" % (q(baski), q(uid))
+
+
+def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq):
+    """SAF diff (canli D1'e DOKUNMAZ -> birim testi burayi cagirir).
+    mevcut = {id: (hash, baski)}. Doner: (yeni, degisen, baski_guncelle, silinen, gorulen).
+    - yeni/degisen: content upsert SQL'leri (baski INSERT VALUES'ta, CONFLICT'te DEGIL).
+    - baski_guncelle: SADECE baski FIILEN degistiginde 1 UPDATE (yalniz baski_yetki=EVET)."""
+    yeni, degisen, baski_guncelle = [], [], []
+    gorulen = set()
+    sonraki = mseq
+    # TERS gez: dizinin BASI en yeni -> en yuksek seq alsin (ORDER BY seq DESC = katalog sirasi).
+    for u in reversed(urunler):
+        uid = u.get("id")
+        if not uid or uid in gorulen:
+            continue
+        gorulen.add(uid)
+        h = arama.urun_hash(u)          # baski'SIZ — yerel ve CI AYNI degeri uretir
+        kayit = mevcut.get(uid)         # (hash, baski) veya None
+        eski_h = kayit[0] if kayit else None
+        eski_baski = kayit[1] if kayit else ""
+        baski = baskilar.get(uid, "")
+        if eski_h is None:
+            sonraki += 1
+            yeni.append(satir_sql(u, sonraki, arama.haystack(u), h, baski))  # INSERT baski'yi da yazar
+        elif eski_h != h:
+            degisen.append(satir_sql(u, 0, arama.haystack(u), h, baski))     # seq ON CONFLICT'te korunur
+        # baski senkronu: YALNIZ yetki varsa (CI atlar -> baski'yi silmez/ezmez),
+        # MEVCUT satir icin (yeni urun baski'yi INSERT'te aldi), ve FIILEN degistiyse.
+        if baski_yetki and eski_h is not None and baski != eski_baski:
+            baski_guncelle.append(baski_senkron_sql(uid, baski))
+    silinen = [i for i in mevcut if i not in gorulen]
+    return yeni, degisen, baski_guncelle, silinen, gorulen
 
 
 def kolon_goc():
@@ -268,45 +314,30 @@ def main():
     urunler = urunleri_oku()
     mevcut, mseq = d1_mevcut()
     baskilar = baski_haritasi()
-    print("urunler.json: %d urun | D1: %d urun | gizli baski kaydi: %d"
-          % (len(urunler), len(mevcut), len(baskilar)))
+    # baski YETKISI = gizli kayit dosyasi bu ortamda VAR mi? YOKSA (CI) baski'ya HIC dokunma
+    # (yoksa CI baski'yi D1'den silerdi). VARSA (yerel) baski'yi ayrica senkronla.
+    baski_yetki = os.path.exists(KAYNAKLAR)
+    print("urunler.json: %d urun | D1: %d urun | gizli baski kaydi: %d | baski yetki: %s"
+          % (len(urunler), len(mevcut), len(baskilar),
+             "EVET" if baski_yetki else "HAYIR (baski atlanir)"))
 
-    # TERS gez: dizinin BASI en yeni -> en yuksek seq alsin (ORDER BY seq DESC = katalog sirasi).
-    yeni, degisen = [], []
-    gorulen = set()
-    sonraki = mseq
-    for u in reversed(urunler):
-        uid = u.get("id")
-        if not uid or uid in gorulen:
-            continue
-        gorulen.add(uid)
-        baski = baskilar.get(uid, "")
-        h = etkin_hash(u, baski)
-        eski = mevcut.get(uid)
-        if eski == h:
-            continue  # DEGISMEMIS -> yazma yok
-        hs = arama.haystack(u)
-        if eski is None:
-            sonraki += 1
-            yeni.append(satir_sql(u, sonraki, hs, h, baski))
-        else:
-            degisen.append(satir_sql(u, 0, hs, h, baski))  # seq ON CONFLICT'te korunur
-
-    silinen = [i for i in mevcut if i not in gorulen]
-    print("yeni: %d | degisen: %d | silinen: %d | dokunulmayan: %d"
-          % (len(yeni), len(degisen), len(silinen), len(gorulen) - len(yeni) - len(degisen)))
+    yeni, degisen, baski_guncelle, silinen, gorulen = diff_plan(
+        urunler, mevcut, baskilar, baski_yetki, mseq)
+    print("yeni: %d | degisen: %d | baski-guncelle: %d | silinen: %d | dokunulmayan: %d"
+          % (len(yeni), len(degisen), len(baski_guncelle), len(silinen),
+             len(gorulen) - len(yeni) - len(degisen)))
 
     if a.kuru:
         print("(--kuru: hicbir sey yazilmadi)")
         return
-    if not yeni and not degisen and not silinen:
+    if not yeni and not degisen and not baski_guncelle and not silinen:
         print("degisiklik yok — D1'e yazilmadi ✅")
         return
 
     ifadeler = []
     for parca in [silinen[i:i + PARCA] for i in range(0, len(silinen), PARCA)]:
         ifadeler.append("DELETE FROM urunler WHERE id IN (%s);" % ",".join(q(i) for i in parca))
-    ifadeler += degisen + yeni
+    ifadeler += degisen + yeni + baski_guncelle
 
     top_yaz = 0
     for i in range(0, len(ifadeler), PARCA):

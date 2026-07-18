@@ -43,7 +43,7 @@ def main():
     # --- baski_haritasi: gizli kayittan id->baski, "-"/bos atlanir ---
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
         json.dump({
-            "urun-a": {"baski": "6-8 duvar, %15 doluluk", "uyelik": "*****"},
+            "urun-a": {"baski": "6-8 duvar, %15 doluluk", "uyelik": "koolm"},
             "urun-b": {"baski": "-"},          # placeholder -> atlanmali
             "urun-c": {"baski": ""},           # bos -> atlanmali
             "urun-d": {"link": "x"},           # baski alani yok -> atlanmali
@@ -65,24 +65,72 @@ def main():
     dogrula("baski_haritasi alansiz atlandi", "urun-d" not in harita)
     dogrula("baski_haritasi trim etti", harita.get("urun-e") == "PLA 200C", repr(harita.get("urun-e")))
 
-    # --- etkin_hash: baski VARSA hash degisir, YOKSA arama.urun_hash ile AYNI ---
-    u = {"id": "urun-a", "baslik": "Test", "kategori": "Ev", "marka": [], "fiyat": "100 TL"}
+    # ═══ DIFF-UPSERT THRASH ONARIMI (2026-07-18) — asil kabul kriterleri ══════════
+    # ESKI TASARIM (hatali, bu testin eski hali onu MUHURLUYORDU): baski hash'e karisiyordu.
+    # baski yalnizca gizli .urun-kaynaklari.json'da; YEREL onu gorur, CI (gitignore) GORMEZ ->
+    # yerel "baski'li hash", CI "baski'siz hash" yazip her push'ta ~3.700 urunu birbirine
+    # EZDIRIYORDU (12 urunluk batch'te ~7.400 D1 yazma = neredeyse tam rebuild; 100.000/gun
+    # limitine kosuyordu). Ustelik baski KOLONLAR'daydi -> CI baski'yi '' yapip D1'den siliyordu
+    # (canlida olculdu: 7381 satirin HEPSINDE baski=''). Asil sart: (a) hash iki ortamda AYNI,
+    # (b) degisiklik yoksa HIC yazma, (c) baski AYRI + yalniz gerekince + CI silmeden.
     import importlib
     sys.path.insert(0, os.path.join(KOK, "tools"))
     arama = importlib.import_module("arama")
-    ham = arama.urun_hash(u)
-    dogrula("baskisiz etkin_hash = arama.urun_hash", d1.etkin_hash(u, "") == ham)
-    dogrula("baskili etkin_hash farkli", d1.etkin_hash(u, "6-8 duvar") != ham)
-    dogrula("etkin_hash deterministik",
-            d1.etkin_hash(u, "6-8 duvar") == d1.etkin_hash(u, "6-8 duvar"))
-    dogrula("farkli baski farkli hash",
-            d1.etkin_hash(u, "A") != d1.etkin_hash(u, "B"))
 
-    # --- satir_sql: baski degeri dogru kolona yaziliyor + KOLONLAR'da 'baski' var ---
-    sql = d1.satir_sql(u, 5, arama.haystack(u), d1.etkin_hash(u, "6-8 duvar"), "6-8 duvar")
+    dogrula("etkin_hash KALDIRILDI (baski artik hash'e karismaz)", not hasattr(d1, "etkin_hash"))
+
+    u1 = {"id": "a", "baslik": "A", "kategori": "Ev", "marka": ["X"], "fiyat": "10 TL",
+          "gorseller": ["g1.jpg"], "aciklama": "ac"}
+    u2 = {"id": "b", "baslik": "B", "kategori": "Ofis", "marka": [], "fiyat": "20 TL"}
+    urunler = [u2, u1]   # dizi basi = en yeni
+    # D1 GUNCEL: hash = baski'SIZ urun_hash, baski da dogru. 'a'nin baskisi var, 'b'nin yok.
+    mevcut = {"a": (arama.urun_hash(u1), "6-8 duvar"), "b": (arama.urun_hash(u2), "")}
+    baskilar = {"a": "6-8 duvar"}   # yerelin gordugu baski = D1'dekiyle AYNI
+
+    # (a) DEGISIKLIK YOK -> plan tamamen bos = SIFIR yazma (thrash bitti).
+    y, d, bg, s, g = d1.diff_plan(urunler, mevcut, baskilar, True, 2)
+    dogrula("KABUL degisiklik yok -> yeni/degisen/baski/silinen HEPSI bos (0 yazma)",
+            y == [] and d == [] and bg == [] and s == [],
+            "y=%d d=%d bg=%d s=%d" % (len(y), len(d), len(bg), len(s)))
+
+    # (b) ASIL BUG: YEREL (baski VAR) ile CI (baski dosyasi YOK) AYNI content planini uretir.
+    #     Eskiden yerel 'a'yi hep "degismis" gorurdu (baski'li hash != D1 baski'siz). Artik gormez.
+    y_ci, d_ci, bg_ci, s_ci, _ = d1.diff_plan(urunler, mevcut, {}, False, 2)  # CI: baski bos + yetki yok
+    dogrula("YEREL==CI content plani (baski thrash'i bitti)",
+            (len(y), len(d), len(s)) == (len(y_ci), len(d_ci), len(s_ci)) == (0, 0, 0),
+            "yerel=(%d,%d,%d) ci=(%d,%d,%d)" % (len(y), len(d), len(s), len(y_ci), len(d_ci), len(s_ci)))
+    dogrula("CI baski'ya HIC dokunmaz (silmez/ezmez)", bg_ci == [], str(bg_ci))
+
+    # (c) baski FIILEN degisince -> tam 1 baski UPDATE, content YENIDEN YAZILMAZ.
+    y3, d3, bg3, s3, _ = d1.diff_plan(urunler, mevcut, {"a": "12 duvar, %30"}, True, 2)
+    dogrula("baski degisti -> 1 baski UPDATE + 0 content yazma",
+            y3 == [] and d3 == [] and s3 == [] and len(bg3) == 1
+            and bg3[0] == "UPDATE urunler SET baski='12 duvar, %30' WHERE id='a';", "bg=%s" % bg3)
+
+    # (d) ICERIK degisince -> 1 content UPDATE; baski AYNIYSA ekstra baski yazma YOK.
+    u1b = dict(u1, fiyat="99 TL")   # fiyat -> hash degisir
+    y4, d4, bg4, s4, _ = d1.diff_plan([u2, u1b], mevcut, baskilar, True, 2)
+    dogrula("icerik degisti -> 1 content UPDATE, baski ayni -> 0 baski yazma",
+            y4 == [] and len(d4) == 1 and bg4 == [] and s4 == [], "d=%d bg=%d" % (len(d4), len(bg4)))
+
+    # (e) YENI urun -> INSERT (baski VALUES'ta gomulu); ayri baski UPDATE URETILMEZ.
+    u_yeni = {"id": "c", "baslik": "C", "kategori": "Ev", "marka": [], "fiyat": "5 TL"}
+    y5, d5, bg5, s5, _ = d1.diff_plan([u_yeni] + urunler, mevcut, dict(baskilar, c="PLA"), True, 2)
+    dogrula("yeni urun -> 1 INSERT (baski INSERT'te), ayri baski UPDATE yok",
+            len(y5) == 1 and bg5 == [] and "'PLA'" in y5[0], "y=%s" % y5[:1])
+
+    # (f) SILINEN: urunler.json'dan cikan D1 satiri silinen'e duser.
+    y6, d6, bg6, s6, _ = d1.diff_plan([u1], mevcut, baskilar, True, 2)  # 'b' artik yok
+    dogrula("silinen urun tespit edilir", s6 == ["b"], str(s6))
+
+    # --- satir_sql: baski INSERT VALUES'ta AMA ON CONFLICT SET'te DEGIL (CI ezemesin) ---
+    sql = d1.satir_sql(u1, 5, arama.haystack(u1), arama.urun_hash(u1), "6-8 duvar")
     dogrula("satir_sql INSERT'te baski kolonu var", ",baski)VALUES" in sql.replace(" ", ""), sql[:120])
-    dogrula("satir_sql baski degeri gomulu", "'6-8 duvar'" in sql)
-    dogrula("KOLONLAR ON CONFLICT'te baski gunceller", "baski" in d1.KOLONLAR)
+    dogrula("satir_sql baski degeri INSERT VALUES'ta gomulu", "'6-8 duvar'" in sql)
+    dogrula("KOLONLAR ON CONFLICT'te baski GUNCELLEMEZ (CI baski'yi silemez)",
+            "baski" not in d1.KOLONLAR)
+    conflict = sql.split("ON CONFLICT", 1)[1]
+    dogrula("ON CONFLICT SET'te 'baski=' YOK", "baski=" not in conflict, conflict[:200])
     dogrula("GOC_KOLON urunler.baski",
             any(k[0] == "baski" for k in d1.GOC_KOLON))
     dogrula("GOC_KOLON_SIPARIS kargo/durum_gecmisi",
@@ -126,7 +174,7 @@ def main():
         # AYNI kaynak-id (thing:3000000) IKI FARKLI urune baglanmis -> cakisma
         "cakisan-urun-a": {"link": "https://www.thingiverse.com/thing:3000000", "kaynak": "Thingiverse"},
         "cakisan-urun-b": {"link": "https://www.thingiverse.com/thing:3000000", "kaynak": "Thingiverse"},
-        "gorsel-atif-urun": {"link": "https://www.********.com/3d-print-models/x", "kaynak": "********"},
+        "gorsel-atif-urun": {"link": "https://www.cgtrader.com/3d-print-models/x", "kaynak": "CGTrader"},
     }
     esle, cakisan_kumesi = r2.kaynak_esleme(gizli_kayit_sahte)
     dogrula("kaynak_esleme tekil thingiverse eslesir", esle.get("1002858") == "mapped-urun",
@@ -136,7 +184,7 @@ def main():
     dogrula("kaynak_esleme ayni kaynak-id iki urune baglanirsa cakisan",
             "3000000" in cakisan_kumesi and "3000000" not in esle,
             "esle=%s cakisan=%s" % (esle.get("3000000"), cakisan_kumesi))
-    dogrula("kaynak_esleme ********/diger kaynaklar goz ardi edilir (id cikarilmaz)",
+    dogrula("kaynak_esleme CGTrader/diger kaynaklar goz ardi edilir (id cikarilmaz)",
             len(esle) == 2 and set(esle) == {"1002858", "pr2000000"}, repr(esle))
 
     idler_b = {"mapped-urun", "printables-urun", "cakisan-urun-a", "cakisan-urun-b"}
