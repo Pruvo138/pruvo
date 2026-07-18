@@ -1128,7 +1128,7 @@ def render_product(p, all_products):
 {related}
 
 <footer>
-  PRUVO &mdash; Endüstriyel Parça Üretimi | Fethiye
+  PRUVO &mdash; Endüstriyel Parça Üretimi
   {foot_nav}
   {pay_band}
   {attribution}
@@ -1462,7 +1462,7 @@ def render_content_page(slug, title, meta, body_html):
 </main>
 
 <footer>
-  PRUVO &mdash; Endüstriyel Parça Üretimi | Fethiye
+  PRUVO &mdash; Endüstriyel Parça Üretimi
   {foot_nav}
   {pay_band}
 </footer>
