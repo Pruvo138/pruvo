@@ -125,13 +125,13 @@ ekle(urun("marka-kirli-urun", "Renault Duster telefon tutucu", marka=["Renault",
 # MUAF: satin-alma (lisanssiz + olcusuz ama satin-alma -> gecer)
 ekle(urun("satin-urun", "Renault Talisman far braketi",
           aciklama="Hazir alinmis parca, olcu siparişte alinir."),
-     {"kaynak": "********", "link": "https://www.********.com/x", "tur": "satin-alma"})
+     {"kaynak": "CGTrader", "link": "https://www.cgtrader.com/x", "tur": "satin-alma"})
 
 # MUAF: parametrik (lisanssiz + olcusuz + fiyat bos -> gecer)
 ekle(urun("parametrik-urun", "Olcuye ozel O-ring conta", marka=[],
           aciklama="Farkli renk secenekleri. Olcuye ozel uretim.",
           fiyat="", parametrik=True, kategori="Jeneratör"),
-     {"link": "https://makerworld.com/x", "uyelik": "*****"})
+     {"link": "https://makerworld.com/x", "uyelik": "koolm"})
 
 # JENERIK dedup: HEAD'de (canli) ayni baslik var -> canli kazanir, yeni ikiz silinir
 canli_acik = "Renault Kaptur bagaj kancasi dayanikli askı. %s" % OLCU
@@ -219,6 +219,74 @@ for ham, bekle in [
     ("", False), (None, False),
 ]:
     check("lisans_kisaltma %r -> satilabilir=%s" % (ham, bekle), sat(ham) is bekle)
+
+
+# --- KAPI 1 (lisans) KAYNAGA-OZEL denetim — her platform KENDI natif bicimini dogru okur -------
+# MakerWorld/MMF CC'yi CIPLAK ("BY","BY-SA","CC0") saklar, Cults3D code/insan-adi ("cc_by"/
+# "CC BY - Attribution"). Bu bicimler pr.satilabilir()'in bekledigi "CC-BY" formuna UYMAZ ve
+# lisans_kisaltma() de tanimaz -> kaynak-dispatch OLMADAN HAM deger fail-closed False'a duser =
+# GECERLI urun yanlislikla auto_sil (2026-07-18 Dacia partisi: 16/24 MakerWorld urunu yanlis-poz).
+# Bu blok kaynak-dispatch'i kilitler; her kaynagin GERCEKTEN satilamaz lisansi HALA yakalanmali.
+def lis(kayit, u=None):
+    kapi, _ = dk.kapi_lisans(u or urun("lis-x", "Renault parca"), kayit)
+    return kapi  # None = gecti (satilabilir), "lisans" = auto_sil
+
+
+def mw_kayit(lisans):
+    return {"kaynak": "MakerWorld", "link": "https://makerworld.com/en/models/1-foo",
+            "lisans": lisans, "tur": "ucretsiz-cc"}
+
+
+# MakerWorld CIPLAK CC -> satilabilir (GECMELI); bug oncesi HEPSI yanlis auto_sil idi
+check("MW 'BY' -> gecer (lisans)", lis(mw_kayit("BY")) is None)
+check("MW 'BY-SA' -> gecer", lis(mw_kayit("BY-SA")) is None)
+check("MW 'BY-ND' -> gecer", lis(mw_kayit("BY-ND")) is None)
+check("MW 'CC0' -> gecer", lis(mw_kayit("CC0")) is None)
+# MakerWorld GERCEKTEN satilamaz -> HALA auto_sil (kaynak toptan beyaz-listelenmedi)
+check("MW 'BY-NC' -> auto_sil", lis(mw_kayit("BY-NC")) == "lisans")
+check("MW 'BY-NC-SA' -> auto_sil", lis(mw_kayit("BY-NC-SA")) == "lisans")
+check("MW 'Standard Digital File License' -> auto_sil",
+      lis(mw_kayit("Standard Digital File License")) == "lisans")
+check("MW 'MakerWorld Exclusive License' -> auto_sil",
+      lis(mw_kayit("MakerWorld Exclusive License")) == "lisans")
+# domain-only tespit (kaynak alani YOK, link makerworld.com) -> yine natif kontrol
+check("MW domain-only 'BY-SA' -> gecer",
+      lis({"link": "https://makerworld.com/en/models/9", "lisans": "BY-SA"}) is None)
+check("MW domain-only 'BY-NC' -> auto_sil",
+      lis({"link": "https://makerworld.com/en/models/9", "lisans": "BY-NC"}) == "lisans")
+
+# Cults3D code/insan-adi natif bicim (c3.satilabilir non-alnum ile ayirir)
+check("Cults3D 'cc_by' -> gecer",
+      lis({"kaynak": "Cults3D", "link": "cults3d:x", "lisans": "cc_by"}) is None)
+check("Cults3D 'CC BY - Attribution' -> gecer",
+      lis({"kaynak": "Cults3D", "link": "cults3d:x", "lisans": "CC BY - Attribution"}) is None)
+check("Cults3D 'cults_pu' (private use) -> auto_sil",
+      lis({"kaynak": "Cults3D", "link": "cults3d:x", "lisans": "cults_pu"}) == "lisans")
+check("Cults3D 'cc_by_nc' -> auto_sil",
+      lis({"kaynak": "Cults3D", "link": "cults3d:x", "lisans": "cc_by_nc"}) == "lisans")
+
+# MyMiniFactory ciplak/betimleyici/tescilli natif bicim
+check("MMF 'BY' -> gecer",
+      lis({"kaynak": "MyMiniFactory", "link": "https://www.myminifactory.com/object/1",
+           "lisans": "BY"}) is None)
+check("MMF 'BY-NC-SA' -> auto_sil",
+      lis({"kaynak": "MyMiniFactory", "link": "https://www.myminifactory.com/object/1",
+           "lisans": "BY-NC-SA"}) == "lisans")
+check("MMF 'Standard Digital File Store License' -> auto_sil",
+      lis({"kaynak": "MyMiniFactory", "link": "https://www.myminifactory.com/object/1",
+           "lisans": "Standard Digital File Store License"}) == "lisans")
+
+# FALLBACK korunur: Printables serbest-metin HALA lisans_kisaltma + pr.satilabilir ile denetlenir
+check("Printables 'Creative Commons - Attribution' -> gecer (fallback)",
+      lis(kaynak_cc("pf1", "Creative Commons - Attribution")) is None)
+check("Printables 'Standard Digital File License' -> auto_sil (fallback)",
+      lis(kaynak_cc("pf2", "Standard Digital File License")) == "lisans")
+# lisanssiz kayit -> fail-closed auto_sil (kaynak ne olursa olsun; native kapi CAGRILMADAN)
+check("MW lisanssiz -> auto_sil (fail-closed)",
+      lis({"kaynak": "MakerWorld", "link": "https://makerworld.com/en/models/1"}) == "lisans")
+# satin-alma / parametrik lisans kapisindan MUAF (kaynak MakerWorld olsa bile)
+check("MW ama satin-alma -> lisans MUAF",
+      lis({"kaynak": "MakerWorld", "link": "https://makerworld.com/x", "tur": "satin-alma"}) is None)
 
 
 if FAILS:

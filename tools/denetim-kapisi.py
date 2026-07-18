@@ -11,8 +11,11 @@ dogrudan id listesi.
 KAPILAR (her biri ayri, tek tek test edilebilir fonksiyon):
   1. LISANS (fail-closed): .urun-kaynaklari.json'daki lisanstan bak; satilamaz -> auto_sil.
      Muaf: satin-alma (satin aldik), parametrik/uyelik/kendi jeneratorumuz (kendi IP).
-     printables-api.satilabilir() KULLANILIR (DEGISTIRILMEZ) — serbest-metin lisans adi
-     once lisans_kisaltma() ile kisaltmaya cevrilir.
+     KAYNAGA-OZEL: her platform lisansi KENDI natif biciminde saklar (MakerWorld/MMF CC'yi CIPLAK
+     "BY"/"BY-SA"/"CC0" yazar, Cults3D code/insan-adi) -> o kaynagin KENDI satilabilir()'i HAM
+     string'e uygulanir (makerworld/cults3d/myminifactory-api.py; tespit _kaynak_satilabilir_fn).
+     Fallback (Printables/Thingiverse/bilinmeyen): serbest-metin lisans adi once lisans_kisaltma()
+     ile kisaltmaya cevrilip printables-api.satilabilir() ile denetlenir. Her iki yol FAIL-CLOSED.
   2. MAKET / LOGO (OLCUM ile iki katman — RAPOR-MIMARA.md):
      - TIER-A auto_sil: olcekli-model/maket ARAÇ (maket/olcekli/diorama/minyatur/figur/
        "model araç"/"1/N olcek") — YASAK sinif, yanlis-pozitif dusuk.
@@ -22,7 +25,7 @@ KAPILAR (her biri ayri, tek tek test edilebilir fonksiyon):
        TASIYABILIR -> auto-silme yanlis olur (olculdu: 68/102 aciklama-mention islevsel).
   3. OLCU: aciklamada olcu satiri ("A × B × C mm" / "Yaklasik dis olculer") yoksa -> auto_sil.
      Muaf: satin-alma (STL siparişte olculur), parametrik (olcuye ozel), VE ekleme aninda
-     olculemeyen kaynaklar (MakerWorld/Cults3D/MyMiniFactory/******** — login/OAuth-gated indirme;
+     olculemeyen kaynaklar (MakerWorld/Cults3D/MyMiniFactory/CGTrader — login/OAuth-gated indirme;
      bkz _olcu_muaf_kaynak). Printables/Thingiverse MUAF DEGIL (olculu gelir) -> olcusuzu auto_sil.
   4. GORSEL CAKISMA: gorseller[0] dosya adi iki urunde paylasiliyorsa -> eskalasyon (silme).
   5. PLATFORMLAR-ARASI + JENERIK DEDUP: normalize baslikla grupla. Grup>1:
@@ -61,11 +64,25 @@ DUZELT = os.path.join(ROOT, "tools", "duzelt.py")
 CACHE = os.path.join(ROOT, ".thing-cache")
 RAPOR = os.path.join(CACHE, "denetim-kapisi-rapor.json")
 
-# printables-api.py: satilabilir() + tr_lower() TEK KAYNAK (bu dosyanin yaninda; DEGISTIRME).
-_spec = importlib.util.spec_from_file_location(
-    "pr_api", os.path.join(os.path.dirname(os.path.abspath(__file__)), "printables-api.py"))
-pr = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(pr)
+# --- kaynak adaptorleri: her platformun KENDI satilabilir() TEK KAYNAK (bu dosyanin yaninda;
+# DEGISTIRME). Printables = ortak yardimci (tr_lower) + fallback lisans yolu (serbest-metin ->
+# lisans_kisaltma -> satilabilir); MakerWorld/Cults3D/MyMiniFactory KENDI natif-bicim lisanslarini
+# dogru okuyan satilabilir()'i verir (bkz _kaynak_satilabilir_fn). Import ANINDA hicbiri ag/kimlik
+# cagirmaz — hepsi tembel (satilabilir saf fonksiyon).
+_TOOLS = os.path.dirname(os.path.abspath(__file__))
+
+
+def _load_adaptor(dosya, modad):
+    s = importlib.util.spec_from_file_location(modad, os.path.join(_TOOLS, dosya))
+    m = importlib.util.module_from_spec(s)
+    s.loader.exec_module(m)
+    return m
+
+
+pr = _load_adaptor("printables-api.py", "pr_api")
+_mw = _load_adaptor("makerworld-api.py", "mw_api")
+_c3 = _load_adaptor("cults3d-api.py", "c3_api")
+_mmf = _load_adaptor("myminifactory-api.py", "mmf_api")
 tr_lower = pr.tr_lower
 
 # --- olcu ifadesi (parti-kontrol.py ile ayni desen) --------------------------
@@ -138,7 +155,7 @@ def _satin_alma(kayit):
 
 
 def _kendi_urunumuz(urun, kayit):
-    """Kendi/uyelik IP'miz mi? (lisans/olcu kapisindan MUAF) — parametrik, uyelik (*****),
+    """Kendi/uyelik IP'miz mi? (lisans/olcu kapisindan MUAF) — parametrik, uyelik (koolm),
     ya da kendi jeneratorumuz."""
     if bool(urun.get("parametrik")):
         return True
@@ -201,15 +218,50 @@ def _printables_kaynak(kayit):
     return "printables.com" in _kaynak_link(kayit).lower()
 
 
+# --- KAPI 1 (lisans) KAYNAGA-OZEL denetim — her platform lisansi KENDI natif biciminde saklar ----
+# MakerWorld/MMF CC'yi CIPLAK yazar ("BY","BY-SA","CC0" — "CC-" oneki YOK); Cults3D code/insan-adi
+# ("cc_by" / "CC BY - Attribution"). Bu bicimler pr.satilabilir()'in bekledigi "CC-BY" formuna UYMAZ
+# ve lisans_kisaltma() de bunlari tanimaz -> HAM deger fail-closed False'a duser = GECERLI urun
+# yanlislikla auto_sil (2026-07-18 Dacia partisi: 16/24 MakerWorld urunu yanlis-pozitif). COZUM: her
+# kaynak KENDI adaptorunun satilabilir()'i ile denetlenir (kaynak-tespiti _olcu_muaf_kaynak deseniyle
+# AYNI: once kayit['kaynak'], sonra link domaini). Fallback (Printables/Thingiverse/bilinmeyen) eski
+# yol. CGTrader burada YOK — tur=satin-alma zaten lisans kapisindan MUAF (kapi_lisans basi).
+_KAYNAK_SATILABILIR = {
+    "makerworld": _mw.satilabilir,
+    "cults3d": _c3.satilabilir,
+    "myminifactory": _mmf.satilabilir,
+}
+_DOMAIN_SATILABILIR = (
+    ("makerworld.com", _mw.satilabilir),
+    ("cults3d.com", _c3.satilabilir),
+    ("myminifactory.com", _mmf.satilabilir),
+)
+
+
+def _kaynak_satilabilir_fn(kayit):
+    """Bu kaydin platformuna ait NATIF satilabilir() (HAM lisans string'ini DOGRUDAN alir; kisaltma
+    YOK), yoksa None (-> fallback: lisans_kisaltma + pr.satilabilir). Tespit _olcu_muaf_kaynak ile
+    AYNI desen: once kayit['kaynak'] (tr_lower), sonra _kaynak_link() domaini."""
+    if isinstance(kayit, dict):
+        fn = _KAYNAK_SATILABILIR.get(tr_lower(str(kayit.get("kaynak") or "")).strip())
+        if fn is not None:
+            return fn
+    link = tr_lower(_kaynak_link(kayit))
+    for dom, fn in _DOMAIN_SATILABILIR:
+        if dom in link:
+            return fn
+    return None
+
+
 # --- KAPI 3 (olcu) MUAF KAYNAKLAR — ekleme aninda VARSAYILAN olarak olcusuz gelen platformlar.
 # MakerWorld/Cults3D/MyMiniFactory adaptorleri urunu OLCUSUZ ekler (indirme login/hesap/OAuth-gated;
 # bkz makerworld-ekle.py / cults3d-ekle.py / myminifactory-ekle.py). Bunlar olcu kapisindan MUAF
-# tutulmazsa gecerli urun yanlislikla auto_sil olur = urun kaybi. ******** zaten tur=satin-alma ile
+# tutulmazsa gecerli urun yanlislikla auto_sil olur = urun kaybi. CGTrader zaten tur=satin-alma ile
 # muaf; saglamlik icin kaynak adi/domaini de listede.
 #   ⚠️ Printables/Thingiverse BU KUMEDE DEGIL — onlar ekleme aninda OLCULU gelir; olcusuzu HALA
 #   auto_sil edilmeli (kapinin KALBI). Bu kumeye o iki kaynagi ASLA ekleme (bkz kaynak-entegrasyon-test.py).
-_OLCU_MUAF_KAYNAK = {"makerworld", "cults3d", "myminifactory", "********"}
-_OLCU_MUAF_DOMAIN = ("makerworld.com", "cults3d.com", "myminifactory.com", "********.com")
+_OLCU_MUAF_KAYNAK = {"makerworld", "cults3d", "myminifactory", "cgtrader"}
+_OLCU_MUAF_DOMAIN = ("makerworld.com", "cults3d.com", "myminifactory.com", "cgtrader.com")
 
 
 def _olcu_muaf_kaynak(kayit):
@@ -264,13 +316,21 @@ def _jaccard(a, b):
 # KAPILAR (saf fonksiyonlar — fixture ile test edilebilir)
 # =============================================================================
 def kapi_lisans(urun, kayit):
-    """(auto_sil_kapi|None, gerekce). Satin-alma/kendi urunumuz -> muaf."""
+    """(auto_sil_kapi|None, gerekce). Satin-alma/kendi urunumuz -> muaf. Lisans HAM okunur; kaynak
+    natif-bicim saklayan bir adaptorse (MakerWorld/Cults3D/MyMiniFactory) o platformun satilabilir()'i
+    HAM string'e uygulanir, degilse (Printables/Thingiverse/bilinmeyen) lisans_kisaltma() ->
+    pr.satilabilir() yolu kullanilir (bkz _kaynak_satilabilir_fn). Her iki yol da FAIL-CLOSED."""
     if _satin_alma(kayit) or _kendi_urunumuz(urun, kayit):
         return None, ""
     ham = _lisans_ham(kayit)
     if not ham or not str(ham).strip():
         return "lisans", "lisans kaydi yok/tanimsiz (fail-closed)"
-    abbr = lisans_kisaltma(ham)
+    fn = _kaynak_satilabilir_fn(kayit)
+    if fn is not None:                                  # kaynak-ozel natif kontrol (kisaltma YOK)
+        if not fn(ham):
+            return "lisans", "satilamaz lisans: %r (kaynak natif kontrol)" % ham
+        return None, ""
+    abbr = lisans_kisaltma(ham)                         # fallback: serbest-metin -> kisaltma
     if not pr.satilabilir(abbr):
         return "lisans", "satilamaz lisans: %r (norm: %s)" % (ham, abbr)
     return None, ""
@@ -303,7 +363,7 @@ def kapi_logo_eskalasyon(urun):
 
 def kapi_olcu(urun, kayit):
     """(auto_sil_kapi|None, gerekce). MUAF: satin-alma, parametrik, ya da ekleme aninda
-    olculemeyen kaynak (MakerWorld/Cults3D/MyMiniFactory/******** — bkz _olcu_muaf_kaynak).
+    olculemeyen kaynak (MakerWorld/Cults3D/MyMiniFactory/CGTrader — bkz _olcu_muaf_kaynak).
     Printables/Thingiverse olcusuzu MUAF DEGIL -> auto_sil."""
     if _satin_alma(kayit) or bool(urun.get("parametrik")) or _olcu_muaf_kaynak(kayit):
         return None, ""
