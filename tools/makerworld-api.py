@@ -41,6 +41,7 @@ import json, re, urllib.request, urllib.error, urllib.parse
 SEARCH = "https://makerworld.com/api/v1/search-service/select/design2"
 DETAIL = "https://makerworld.com/api/v1/design-service/design/"
 INSTANCE_DL = "https://makerworld.com/api/v1/design-service/instance/%s/f3mf?type=stl"
+SEARCH_LICENSES = "CC0,BY,BY-SA,BY-ND"
 
 _HDRS = {
     "Accept": "application/json",
@@ -127,9 +128,16 @@ def http_get(url):
         return r.read()
 
 
-def search(term, limit=30, offset=0):
-    """MakerWorld arama. keyword=<terim> ile alaka-siralı hit'ler doner."""
-    qs = urllib.parse.urlencode({"keyword": term, "limit": limit, "offset": offset})
+def search(term, limit=30, offset=0, licenses=SEARCH_LICENSES):
+    """MakerWorld arama. keyword=<terim> ile alaka-siralı hit'ler doner.
+
+    Server-side ticari lisans filtresi varsayilan olarak aciktir:
+    `licenses=CC0,BY,BY-SA,BY-ND`.
+    """
+    params = {"keyword": term, "limit": limit, "offset": offset}
+    if licenses:
+        params["licenses"] = licenses
+    qs = urllib.parse.urlencode(params)
     return _get(SEARCH + "?" + qs)
 
 
