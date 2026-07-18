@@ -43,11 +43,25 @@ b_giz = _liste(b, r"^NAV_GIZLI\s*=\s*\[(.*?)\]", "build.py NAV_GIZLI", BUILD)
 i_cat = _liste(i, r"var\s+CATEGORIES\s*=\s*\[(.*?)\]", "index.html CATEGORIES", INDEX)
 i_giz = _liste(i, r"var\s+GIZLI_KATEGORILER\s*=\s*\[(.*?)\]", "index.html GIZLI_KATEGORILER", INDEX)
 
+
+def _wa(metin, desen, etiket, dosya):
+    m = re.search(desen, metin, re.M)
+    if not m:
+        raise SystemExit("KALDI ❌ %s bulunamadı: %s (yapı değişti mi?)" % (etiket, dosya))
+    return m.group(1)
+
+
+# WHATSAPP sipariş numarası da iki yerde elle tutulur; drift = siparişler YANLIŞ numaraya = kayıp satış.
+b_wa = _wa(b, r'^WHATSAPP\s*=\s*"(\d+)"', "build.py WHATSAPP", BUILD)
+i_wa = _wa(i, r'var\s+WHATSAPP\s*=\s*"(\d+)"', "index.html WHATSAPP", INDEX)
+
 hata = []
 if b_cat != i_cat:
     hata.append("CATEGORIES DRİFT:\n  build.py : %s\n  index    : %s" % (b_cat, i_cat))
 if b_giz != i_giz:
     hata.append("GİZLİ KATEGORİ DRİFT:\n  build.py NAV_GIZLI      : %s\n  index GIZLI_KATEGORILER: %s" % (b_giz, i_giz))
+if b_wa != i_wa:
+    hata.append("WHATSAPP DRİFT (sipariş numarası!):\n  build.py : %s\n  index    : %s" % (b_wa, i_wa))
 
 if hata:
     print("\n".join(hata))
@@ -55,6 +69,6 @@ if hata:
     sys.exit(1)
 
 print("CATEGORIES (%d): %s" % (len(b_cat), b_cat))
-print("gizli: %s" % b_giz)
-print("SONUC: GECTI ✅ (build.py ile index.html paritede)")
+print("gizli: %s   WHATSAPP: %s" % (b_giz, b_wa))
+print("SONUC: GECTI ✅ (CATEGORIES + gizli + WHATSAPP build.py<->index.html paritede)")
 sys.exit(0)
