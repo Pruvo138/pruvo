@@ -30,23 +30,31 @@ Istege bagli dosya: CULTS3D_CREDENTIALS=/yol/creds.json ({"username":..,"api_key
         price CURRENCY (EUR) alir, gorsel version (DEFAULT) alir.
 
 === LISANS (EN KRITIK) — Cults3D bir PAZAR: cok satis/kapali lisans var ===
-Cults3D lisanslari `license { code name }` seklinde. Kanonik `code` (LicenseCodeEnum) degerleri
-+ insan-okur `name` (locale EN). Canli olculemedi (401) -> degerler resmi dok + cults3d.com/licenses'tan:
+CANLI OLCULDU (2026-07-18, kimlikli GraphQL, 320+ urun). `license` bir OBJECT; TEYIT edilen alanlar:
+  { code name(locale:EN) allowsCommercialUse availableOnFreeDesigns availableOnPricedDesigns spdxId url }
+`code` bir STRING (enum DEGIL). GERCEK degerler (resmi dok'un varsayimindan FARKLI cikti):
   SATILAMAZ (fail-closed'un tuttugu):
-    * "cults_cu" / "Cults - Private use"  -> VARSAYILAN lisans (en yaygin!), kisisel kullanim,
-       ticari DEGIL. MakerWorld'un "Standard Digital File License"inin karsiligi.
-    * "cults_cu_nd" (private use turevi), "cults_su" / "Cults - Standard use" (UCRETLI/ticari
-       satis lisansi — dosyayi BIZ satin almadik) ve HER "cults_*" tescilli lisans.
-    * NonCommercial: "cc_by_nc", "cc_by_nc_sa", "cc_by_nc_nd" / "...- Noncommercial ..."
+    * "cults_pu" / "CULTS PU - Private Use"  -> VARSAYILAN (en yaygin; ucretli icerigin cogu bu),
+       kisisel kullanim, ticari DEGIL (acu=False). [DIKKAT: eski varsayim yanlislikla "cults_cu" diyordu.]
+    * "cults_cu" / "CULTS CU - Commercial Use" + "cults_cu_nd" / "CULTS CU-ND - Commercial Use - No
+       Derivative": Cults'un TICARI lisanslari (acu=True, availableOnPricedDesigns=True). SATIN
+       ALINDIGINDA alicisina ticari/yeniden-satis hakki verir — BIZ satin almadigimiz icin fail-closed.
+       Her "cults_*" tescilli -> False. ("cults_su" canli veride GORULMEDI.)
+    * NonCommercial: "cc_by_nc", "cc_by_nc_sa", "cc_by_nc_nd" (acu=False).
     * bos / taninmayan / "All Rights Reserved" -> FAIL-CLOSED.
-  SATILABILIR (beyaz liste):
-    * "cc0" / "Creative Commons - Public Domain"       (atif YOK)
-    * "cc_by" / "Creative Commons - Attribution"       -> CC BY 4.0
-    * "cc_by_sa" / "... - Share Alike"                 -> CC BY-SA 4.0
-    * "cc_by_nd" / "... - No Derivatives"              -> CC BY-ND 4.0
-NOT: CC lisanslari Cults'ta yalniz UCRETSIZ tasarimlara uygulanabilir (availableOnFreeDesigns) —
-yani satilabilir lisans zaten ucretsiz demek. Yine de ekle akisi price==0'i AYRICA dogrular
-(defense-in-depth): sadece indirilebilir (ucretsiz) + satilabilir-lisansli alinir.
+  SATILABILIR (beyaz liste; hepsinde Cults allowsCommercialUse=True olctu):
+    * "cc_by" / "CC BY - Attribution"                  -> CC BY 4.0   (spdx CC-BY-4.0)
+    * "cc_by_sa" / "CC BY-SA - ... - Share alike"      -> CC BY-SA 4.0
+    * "cc_by_nd" / "CC BY-ND - ... - No derivatives"   -> CC BY-ND 4.0
+    * "mit" / "MIT License" (+ gpl/bsd parite)         -> atif None
+  KONTROL/YARGI — CC0: Cults'ta kod "cc_pddc" (ad "CC0 - Creative Commons public domain", spdx CC0-1.0).
+    Cults kendi bayragi allowsCommercialUse=FALSE veriyor. satilabilir("cc_pddc")=False (fail-closed);
+    ad formu 'cc0' tokeni ile True (evrensel CC0 hukmu) -> KOD/AD CELISKISI. lisans_str() uretimde
+    code'u tercih ettigi icin CC0 urunleri pratikte ATLANIR (guvenli). CC0'i acmak = mimar+Okan karari.
+NOT: satilabilir CC lisanslari yalniz UCRETSIZ tasarimlara uygulanir (availableOnFreeDesigns).
+Cults ticari lisanslari (cults_cu*) yalniz UCRETLI tasarimlara (availableOnPricedDesigns) uygulanir ve
+BIZ satin almadikca gecerli DEGIL. Ekle akisi price==0'i AYRICA dogrular (defense-in-depth): sadece
+indirilebilir (ucretsiz) + satilabilir-lisansli alinir.
 
 === OLCU ===
 Cults blueprint dosyalari ZIP ve indirme HESAP/SATIN-ALMA + tarayici cookie'si gerektiriyor
@@ -55,8 +63,9 @@ API'den GUVENILIR inmiyor -> MakerWorld gibi genelde OLCUSUZ stage edilir (kayna
 CULTS3D_TRY_MEASURE=1 verilirse blueprint fileUrl varsa indirip bbox DENENIR (best-effort).
 
 Import: dosya adinda '-' var -> `importlib.util` ile yuklenir (printables-api.py deseni).
-KESIN OLMAYAN 3 ALAN (ilk kimlikli canli kosumda GraphiQL'de dogrula — hepsi tek yerde
-CREATION_FIELDS'ta): license{code,name}, creator{nick}, price(currency:EUR){value}.
+SHAPE TEYIDI (2026-07-18 canli): license{code name(locale:EN)} DOGRU; price = Money{cents value
+currency formatted} — value/cents CANLI dogrulandi (ucretli: value>0/cents>0; ucretsiz: 0).
+creator{nick} tek dogrulanmayan alan olarak kaldi (ekle akisi '?' fallback'i ile toleransli).
 """
 import base64, io, json, os, re, struct, urllib.request, urllib.error, urllib.parse, zipfile
 
@@ -150,23 +159,46 @@ def is_cop(name):
 
 
 # ---- KIMLIK ----
+# repo koku (tools/ -> ust dizin). Worktree'de gitignore'lu kimlik dosyasi bulunmayabilir; bu yuzden
+# kanonik ANA repo yolu da varsayilanlara eklenir (myminifactory-api.py'nin hardcoded ROOT deseni gibi).
+_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_DEFAULT_CRED_PATHS = (
+    os.path.join(_ROOT, ".cults3d-credentials.json"),
+    "/Users/okan/dev/pruvo/.cults3d-credentials.json",
+)
+
+
+def _read_cred_file(path):
+    """creds.json -> (user, key) ya da (None, None). Bozuk/eksik dosyada sessizce (None, None)."""
+    try:
+        d = json.load(open(path, encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None, None
+    u = d.get("username") or d.get("user")
+    k = d.get("api_key") or d.get("apiKey") or d.get("key")
+    return (u, k) if (u and k) else (None, None)
+
+
 def _credentials():
-    """(kullanici, api_key) — ortam degiskeni (birincil) ya da CULTS3D_CREDENTIALS dosyasi.
+    """(kullanici, api_key) — ortam degiskeni (birincil), sonra CULTS3D_CREDENTIALS dosyasi, sonra
+    repo-koku VARSAYILAN dosya (.cults3d-credentials.json — env gerektirmez, MMF deseni).
     Bulunamazsa RuntimeError (net mesaj). Import aninda CAGRILMAZ (tembel)."""
     user = os.environ.get("CULTS_USERNAME") or os.environ.get("CULTS3D_USER")
     key = os.environ.get("CULTS_API_KEY") or os.environ.get("CULTS3D_API_KEY")
     if user and key:
         return user, key
-    path = os.environ.get("CULTS3D_CREDENTIALS")
-    if path and os.path.exists(path):
-        d = json.load(open(path, encoding="utf-8"))
-        u = d.get("username") or d.get("user")
-        k = d.get("api_key") or d.get("apiKey") or d.get("key")
-        if u and k:
-            return u, k
+    # once acik dosya yolu (env), sonra repo-koku varsayilanlari; ilk gecerli dosya kazanir.
+    env_path = os.environ.get("CULTS3D_CREDENTIALS")
+    candidates = ([env_path] if env_path else []) + list(_DEFAULT_CRED_PATHS)
+    for p in candidates:
+        if p and os.path.exists(p):
+            u, k = _read_cred_file(p)
+            if u and k:
+                return u, k
     raise RuntimeError(
         "Cults3D kimligi yok. Ver: CULTS_USERNAME + CULTS_API_KEY ortam degiskenleri "
-        "(ya da CULTS3D_CREDENTIALS=/yol/creds.json). api_key: Cults3D hesap ayarlari > API.")
+        "(ya da CULTS3D_CREDENTIALS=/yol/creds.json; ya da repo-koku .cults3d-credentials.json). "
+        "api_key: Cults3D hesap ayarlari > API.")
 
 
 def _auth_header():
