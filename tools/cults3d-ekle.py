@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ⛔ ÇAĞIRMA — EMEKLİ (Okan 18 Tem: Cults3D rate-limit/429 yüzünden çıkarıldı)
 """PRUVO toplu urun ekleme ORKESTRATORU (Cults3D) — PARALEL + concurrency-safe.
 makerworld-ekle.py'nin Cults3D esdegeri; ayni Codex icerik adimini (thing-codex.py) AYNEN kullanir.
 

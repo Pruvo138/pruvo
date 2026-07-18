@@ -25,7 +25,7 @@ DEFTER = os.path.join(KOK, ".marka-kapsama.json")
 KAYNAK = os.path.join(KOK, ".urun-kaynaklari.json")
 URUNLER = os.path.join(KOK, "urunler.json")
 
-PLATFORMLAR = ["Printables", "Thingiverse", "MakerWorld", "Cults3D", "MyMiniFactory", "********"]
+PLATFORMLAR = ["Printables", "Thingiverse", "MakerWorld", "MyMiniFactory", "********"]
 DOMAIN = {
     "thingiverse.com": "Thingiverse", "printables.com": "Printables",
     "makerworld.com": "MakerWorld", "cults3d.com": "Cults3D",

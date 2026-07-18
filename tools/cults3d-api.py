@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ⛔ ÇAĞIRMA — EMEKLİ (Okan 18 Tem: Cults3D rate-limit/429 yüzünden çıkarıldı)
 """Cults3D (cults3d.com) GraphQL API ortak cekirdegi — MakerWorld makerworld-api.py'nin esdegeri.
 
 Cok-platform vitrin genislemesinin UCUNCU adaptoru (Thingiverse -> Printables -> MakerWorld ->

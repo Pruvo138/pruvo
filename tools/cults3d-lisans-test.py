@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ⛔ ÇAĞIRMA — EMEKLİ (Okan 18 Tem: Cults3D rate-limit/429 yüzünden çıkarıldı)
 """KABUL TESTI — cults3d-api.py `satilabilir()` FAIL-CLOSED beyaz-liste davranisi.
 
 Cults3D bir PAZAR: ucretsiz CC + UCRETLI/satici icerigi. Yanlis satarsak telif ihlali. fail-closed

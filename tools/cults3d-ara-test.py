@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ⛔ ÇAĞIRMA — EMEKLİ (Okan 18 Tem: Cults3D rate-limit/429 yüzünden çıkarıldı)
 """KABUL TESTI — cults3d-ara.py `marka_alakali()` \\bMARKA\\b kelime-siniri filtresi.
 
 cults3d-ara.py markanin ORTAK filtresini printables-api.marka_kelime_gecer() ile uygular (INLINE

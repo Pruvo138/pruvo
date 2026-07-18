@@ -31,7 +31,6 @@ SCRATCH = os.path.dirname(os.path.abspath(__file__))
 RAPOR = os.path.join(ROOT, ".thing-cache", "parity-backfill-rapor.json")
 
 PLAT = {
-    "Cults3D": ("cults3d-ara.py", "cults3d-ekle.py"),
     "MakerWorld": ("makerworld-ara.py", "makerworld-ekle.py"),
     "MyMiniFactory": ("myminifactory-ara.py", "myminifactory-ekle.py"),
     "Thingiverse": ("thing-ara.py", "urun-ekle.py"),
