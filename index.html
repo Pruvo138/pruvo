@@ -1033,9 +1033,13 @@
   }
   // encodeURIComponent'in DAYANIKLI biçimi: bozuk unicode'da patlamaz (bkz. saglamMetin).
   function waKodla(s){ return encodeURIComponent(saglamMetin(s)); }
+  function waRefliMetin(s){
+    var ref = (typeof window.pruvoRef === "function") ? window.pruvoRef() : "";
+    return ref ? s + "\n" + ref : s;
+  }
   function waHref(p){
     var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + p.baslik + "\n" + productAbs(p);
-    return "https://wa.me/" + WHATSAPP + "?text=" + waKodla(mesaj);
+    return "https://wa.me/" + WHATSAPP + "?text=" + waKodla(waRefliMetin(mesaj));
   }
 
   // ---------- SEPET ----------
@@ -1082,7 +1086,7 @@
       lines.push("Genel toplam: " + PRUVO_SECENEK.kurusMetni(toplam + kargo) +
         (fiyatsizVar ? " (fiyatı sorulacak ürünler hariç)" : ""));
     }
-    return "https://wa.me/" + WHATSAPP + "?text=" + waKodla(lines.join("\n"));
+    return "https://wa.me/" + WHATSAPP + "?text=" + waKodla(waRefliMetin(lines.join("\n")));
   }
   function updateCartFab(){
     var fab = document.getElementById("cartFab");

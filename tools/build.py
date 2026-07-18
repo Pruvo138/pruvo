@@ -30,7 +30,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
                       CONTENT_CSS, CONTENT_PAGES, SITEMAP_SLUGS,
-                      PV_SCRIPT_HTML)
+                      STATIK_SAYFALAR, PV_SCRIPT_HTML)
 import filament_ortak
 
 # ------------------------------------------------------------------ ayarlar
@@ -66,6 +66,30 @@ SECENEKLER_JS = os.path.join(ROOT, "secenekler.js")
 # sss/gizlilik) birebir tekrar eder. Harici lib YOK; sadece gtag.js Google'dan yuklenir (zorunlu
 # istisna — analytics'in kendisi). GA_HEAD_SNIPPET <head>'e, GA_BANNER_SNIPPET </body> oncesine.
 GA_MEASUREMENT_ID = "G-5V53CQMSCE"
+
+ATTRIBUTION_JS_PATH = os.path.join(ROOT, "attribution-ref.js")
+ATTRIBUTION_START = "<!-- PRUVO attribution module: start -->"
+ATTRIBUTION_END = "<!-- PRUVO attribution module: end -->"
+
+
+def attribution_head_snippet():
+    """Tek kaynak modülü inline basar; yayın beyaz listesine yeni varlık gerekmez."""
+    with open(ATTRIBUTION_JS_PATH, encoding="utf-8") as f:
+        source = f.read().strip()
+    return ATTRIBUTION_START + "\n<script>\n" + source + "\n</script>\n" + ATTRIBUTION_END
+
+
+def attribution_ekle(html_metni):
+    """Attribution bloğunu ekler veya mevcut bloğu tek kaynaktan yeniler."""
+    snippet = attribution_head_snippet()
+    pattern = re.compile(re.escape(ATTRIBUTION_START) + r".*?" +
+                         re.escape(ATTRIBUTION_END), re.S)
+    if pattern.search(html_metni):
+        return pattern.sub(snippet, html_metni, count=1)
+    needle = "</script>\n<title>"
+    if needle not in html_metni:
+        raise RuntimeError("attribution ekleme noktasi bulunamadi")
+    return html_metni.replace(needle, "</script>\n" + snippet + "\n<title>", 1)
 
 GA_HEAD_SNIPPET = """<!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVKK uyumlu. Ölçüm Kimliği G-5V53CQMSCE herkese açıktır. -->
 <script>
@@ -185,7 +209,7 @@ def yayin_index():
     Kaynak dosya DEGISTIRILMEZ (curumesin diye); cikti index.built.html'e yazilir, deploy
     onu _site/index.html olarak kopyalar. taban-fiyatlar.js bu asamada uretilmis olmali."""
     with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
-        return surumle_scriptler(f.read())
+        return surumle_scriptler(attribution_ekle(f.read()))
 
 
 def _js_sabiti(kaynak, ad):
@@ -1141,6 +1165,7 @@ def render_product(p, all_products):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 {ga_head}
+{attribution_head}
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{url}">
@@ -1344,6 +1369,8 @@ var URUN_SEMA = {sema_json};
     if(orderAlt){{
       var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + URUN.baslik +
                   (ozet.detay ? ("\\n" + ozet.detay) : "") + "\\n" + location.href;
+      var ref = (typeof window.pruvoRef === "function") ? window.pruvoRef() : "";
+      if(ref){{ mesaj += "\\n" + ref; }}
       orderAlt.href = "https://wa.me/{whatsapp}?text=" + encodeURIComponent(mesaj);
     }}
   }}
@@ -1505,6 +1532,7 @@ var URUN_SEMA = {sema_json};
         onizleme_js=onizleme_js,
         whatsapp=WHATSAPP,
         ga_head=GA_HEAD_SNIPPET,
+        attribution_head=attribution_head_snippet(),
         ga_banner=GA_BANNER_SNIPPET,
     )
     # script src'lerine ?v=<icerik-hash> (onbellek kirici) — tek yer, yayin=render.
@@ -1523,6 +1551,7 @@ def render_content_page(slug, title, meta, body_html):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 {ga_head}
+{attribution_head}
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{url}">
@@ -1571,6 +1600,7 @@ def render_content_page(slug, title, meta, body_html):
         pay_band=PAY_BAND_HTML,
         pv_js=PV_SCRIPT_HTML,
         ga_head=GA_HEAD_SNIPPET,
+        attribution_head=attribution_head_snippet(),
         ga_banner=GA_BANNER_SNIPPET,
     ))
 
@@ -1692,6 +1722,17 @@ def main():
 
     with open(JSON_PATH, encoding="utf-8") as f:
         products = json.load(f)
+
+    # Elle korunan dört içerik sayfasında yalnız işaretli attribution bloğunu yenile.
+    # CI aynı dosyaları yayın klasörüne kopyaladığı için ayrı varlık/deploy değişikliği gerekmez.
+    for slug in STATIK_SAYFALAR:
+        statik_yol = os.path.join(ROOT, slug, "index.html")
+        with open(statik_yol, encoding="utf-8") as f:
+            statik_html = f.read()
+        yenilenmis = attribution_ekle(statik_html)
+        if yenilenmis != statik_html:
+            with open(statik_yol, "w", encoding="utf-8") as f:
+                f.write(yenilenmis)
 
     # eski urun/ klasörünü temizle (silinen ürünler kalmasın)
     if os.path.isdir(URUN_DIR):
