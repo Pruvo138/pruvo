@@ -21,6 +21,11 @@ if fp.endswith(".md"):
 if fp.startswith("/private/tmp/") and "/scratchpad/" in fp:
     sys.exit(0)
 
+# Worktree worker'lari (Agent isolation:worktree) mesru muhendistir — muaf.
+# normpath sayesinde ../ ile worktree disina cikan yol bu kontrolu gecemez (guvenli).
+if "/.claude/worktrees/" in fp:
+    sys.exit(0)
+
 repo_prefix = "/Users/okan/dev/pruvo/"
 if not fp.startswith(repo_prefix):
     sys.exit(0)
