@@ -105,6 +105,10 @@ Not: Cults3D/MMF ücretsiz+satılabilir modelleri alır (Cults ücretli pazar mo
      "duzeltilen": ["id: ne düzeltildi", ...]}`
    Son mesajın tek satır özet olsun: "STAGED <N> | yargı <M>".
 
+6. KAPSAMA KAYDI (parity — hangi markayı hangi platformda aradık unutulmasın):
+   `python3 tools/marka-kapsama.py kaydet --marka <MARKA> --platform <KAYNAK> --taranan <toplam_aday> --eklenen <staged> --elenen <elenen>`
+   Aday HİÇ çıkmasa / hepsi elense bile KAYDET — "arandı ama boş" bilgisi de değerli (aynı aramayı tekrarlamayalım).
+
 ## YAPMA (mimar/Okan alanı)
 - git commit / push YAPMA. `tools/duzelt.py` / guard / HEAD'deki ürünlere DOKUNMA.
 - `.urun-kaynaklari.json`ı elle DÜZENLEME (ekleme araçları kendi yazar). Sır dosyalarını okuma.

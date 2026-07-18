@@ -35,6 +35,7 @@ gorseller/
 /robots.txt
 /_yayin-icerik-dizinleri.txt
 /.nojekyll
+/.marka-kapsama.json
 .thingiverse-token
 .gemini-key
 .cloudflare-token
