@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
-"""PRUVO ******** SATICI toplu listeleme araci (PARALEL + concurrency-safe).
+"""PRUVO ******** toplu listeleme araci (PARALEL + concurrency-safe). IKI MOD:
 
-Amac: bir satici profilinin TUM urunlerini siteye LISTELEMEK (satin almadan). Siparis gelince
-model ********'dan alinip uretilir. Ucretli kaynak -> `lisans` YOK, atif YOK (ticari mahremiyet).
-Maliyet (USD) + link gizli `.urun-kaynaklari.json`'a yazilir.
+  SATICI MODU  : bir satici profilinin TUM urunlerini listeler (author-scoped).
+     python3 tools/cgt-ekle.py "https://www.********.com/3d-print-models?author=<satici>" [list|final]
+  MARKA MODU   : cgt-ara.py'nin urettigi ADAY URL LISTESINI isler (TUM saticilar, author-scoping YOK).
+     python3 tools/cgt-ekle.py --marka [list|final] <url1> <url2> ...
+     python3 tools/cgt-ekle.py --marka --kuru  <url1> <url2> ...   # KURU: yazmaz, fiyat+meta gosterir
 
-Kullanim:  python3 tools/cgt-ekle.py "https://www.********.com/3d-print-models?author=<satici>"
+Amac (her iki mod): urunu siteye LISTELEMEK (satin almadan). Siparis gelince model ********'dan
+alinip uretilir. Ucretli kaynak -> `lisans` YOK, atif YOK (ticari mahremiyet). Maliyet (USD) +
+link gizli `.urun-kaynaklari.json`'a yazilir.
 
-Her urun PARALEL islenir (fetch + Gemini + upload). Yazma: dosya KILIDI altinda urunler.json'u
+Her urun PARALEL islenir: fetch + gorsel indir + ICERIK (gorsel secimi + Turkce baslik/aciklama/
+kategori/marka) -> thing-codex.py (Codex, ChatGPT aboneliginden; urun basina marjinal maliyet YOK
++ Claude kotasindan ayri) + R2 upload. Yazma: .urunler.lock dosya KILIDI altinda urunler.json'u
 O AN yeniden okuyup ekler (stale snapshot degil) -> baska oturum ayni anda yazsa bile EZMEZ.
 COMMIT ETMEZ. Sonda gozden gecirme tablosu basar.
 
@@ -201,20 +207,18 @@ def merge_safe(staged):
         fcntl.flock(lockf, fcntl.LOCK_UN); lockf.close()
 
 
-def main(profil_url, mode="list"):
-    am = re.search(r'author=([a-zA-Z0-9_-]+)', profil_url)
-    author = am.group(1) if am else None
-    print("Profil:", profil_url, "| satici:", author, "| FIYAT MODU:", mode,
-          "(list=indirimsiz×100, final=indirimli×100)", flush=True)
-    urls = profil_urunleri(profil_url)
-    print("Bulunan urun:", len(urls), "| paralel worker:", WORKERS, flush=True)
+def _kosur_ve_raporla(urls, author, mode):
+    """PARALEL isle + kilit altinda merge + gozden gecirme tablosu. SATICI ve MARKA modu ortak.
+    author=None -> MARKA modu (process_one'daki 'baska satici' kontrolu author None'da atlanir)."""
+    print("Islenecek urun:", len(urls), "| paralel worker:", WORKERS, flush=True)
     sonuc = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as ex:
         futs = {ex.submit(process_one, u, author, mode): u for u in urls}
         done = 0
         for f in concurrent.futures.as_completed(futs):
             r = f.result(); sonuc.append(r); done += 1
-            print("  (%d/%d) %s %s" % (done, len(urls), r.get("durum"), r.get("uid", r.get("baslik", ""))[:40] if r.get("durum") == "STAGED" else ""), flush=True)
+            print("  (%d/%d) %s %s" % (done, len(urls), r.get("durum"),
+                  r["urun"]["id"] if r.get("durum") == "STAGED" else ""), flush=True)
     staged = [s for s in sonuc if s.get("durum") == "STAGED"]
     n, toplam = merge_safe(staged) if staged else (0, "?")
     print("\n" + "=" * 74)
@@ -230,8 +234,59 @@ def main(profil_url, mode="list"):
     print("SONRAKI: fiyatlari dogrula -> yedekle + commit + push (lisans alani YOK, isimsiz commit).")
 
 
+def main(profil_url, mode="list"):
+    """SATICI MODU — bir satici profilinden urunleri kesfedip isler (author-scoped)."""
+    am = re.search(r'author=([a-zA-Z0-9_-]+)', profil_url)
+    author = am.group(1) if am else None
+    print("SATICI MODU | Profil:", profil_url, "| satici:", author, "| FIYAT MODU:", mode,
+          "(list=indirimsiz×100, final=indirimli×100)", flush=True)
+    urls = profil_urunleri(profil_url)
+    _kosur_ve_raporla(urls, author, mode)
+
+
+def main_marka(urls, mode="list"):
+    """MARKA MODU — cgt-ara.py'nin aday URL listesini isler; author-scoping YOK (TUM saticilar)."""
+    print("MARKA MODU | aday URL:", len(urls), "| FIYAT MODU:", mode,
+          "(list=indirimsiz×100, final=indirimli×100)", flush=True)
+    _kosur_ve_raporla(urls, None, mode)
+
+
+def kuru(urls, mode="list"):
+    """KURU MOD (MARKA): urunler.json'a YAZMAZ, R2/Codex CAGIRMAZ. Her aday icin baslik + USD +
+    TL(×100) + galeri sayisi dogru geliyor mu gosterir (canli duman testi)."""
+    print("KURU MOD (yazma YOK) | aday:", len(urls), "| FIYAT MODU:", mode, "| kaynak: ********\n", flush=True)
+    for u in urls:
+        v = urun_verisi(u, None)          # author None -> satici kontrolu atlanir
+        if not v or not v.get("itemid"):
+            print("  ✘ %s -> veri/gorsel yok" % u); print(); continue
+        print("  ✔ %s" % u)
+        print("     baslik : %s" % (v.get("baslik") or "?")[:70])
+        print("     usd    : %s  (indirim -%d%%)" % (v.get("usd"), v.get("disc", 0)))
+        print("     TL(×100): %s  [mode=%s]" % (tl_fiyat(v.get("usd"), v.get("disc", 0), mode), mode))
+        print("     itemid : %s | galeri gorsel: %d" % (v.get("itemid"), len(v.get("galeri") or [])))
+        print()
+
+
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit('Kullanim: python3 tools/cgt-ekle.py "<******** profil url>" [list|final]')
-    mode = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] in ("list", "final") else "list"
-    main(sys.argv[1], mode)
+    args = sys.argv[1:]
+    if not args:
+        sys.exit('Kullanim: python3 tools/cgt-ekle.py "<profil url>" [list|final]   (SATICI MODU)\n'
+                 '     ya da python3 tools/cgt-ekle.py --marka [--kuru] [list|final] <url1> <url2> ...')
+    if args[0] == "--marka":
+        rest = args[1:]
+        kuru_mod = "--kuru" in rest
+        rest = [a for a in rest if a != "--kuru"]
+        mode = "list"
+        if rest and rest[0] in ("list", "final"):
+            mode = rest[0]; rest = rest[1:]
+        urls = [a for a in rest if a.startswith("http")]
+        if not urls:
+            sys.exit("MARKA MODU: en az bir aday URL ver (http...). "
+                     "Kuru: --marka --kuru <url...>")
+        if kuru_mod:
+            kuru(urls, mode)
+        else:
+            main_marka(urls, mode)
+    else:
+        mode = args[1] if len(args) > 1 and args[1] in ("list", "final") else "list"
+        main(args[0], mode)
