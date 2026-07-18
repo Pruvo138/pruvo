@@ -39,6 +39,7 @@ gorseller/
 .cloudflare-token
 .mmf-token
 .mmf-credentials.json
+.cults3d-credentials.json
 # Ic notlar — bu repo PUBLIC; DEVAM.md yayina girmesin (bugune dek de hic commit edilmedi).
 DEVAM.md
 # Muhendis raporlari worktree-lokal kalir (ILETISIM PROTOKOLU); public repoya girmez.
