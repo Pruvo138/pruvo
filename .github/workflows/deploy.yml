@@ -29,6 +29,12 @@ jobs:
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
 
+      # CATEGORIES / gizli-kategori / WHATSAPP sipariş no'su index.html ile build.py arasında
+      # elle senkron tutulur; drift = ana sayfa/ürün sayfası tutarsızlığı ya da siparişin YANLIŞ
+      # numaraya gitmesi (kayıp satış). Bloklayıcı (kisisel-veri deseni): drift'te yayını erken durdur.
+      - name: Kategori/WHATSAPP parite testi (drift guard)
+        run: python3 tools/kategori-parite-test.py
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
