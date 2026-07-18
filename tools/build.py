@@ -57,6 +57,90 @@ FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "E
 SECENEKLER_JS = os.path.join(ROOT, "secenekler.js")
 
 
+# ------------------------------------------------------------------ GA4 + KVKK onay (Consent Mode v2)
+# gtag.js client tag'i KVKK-uyumlu: Consent Mode v2 ile analytics_storage (ve tum ad_* alanlari)
+# VARSAYILAN 'denied' baslar -> GA cerez YAZMAZ / olcum GONDERMEZ. Ziyaretci banner'dan "Kabul Et"
+# derse analytics_storage 'granted' olur (ad_* denied kalir; client reklam pikseli yok), secim
+# localStorage'a yazilir ve banner bir daha cikmaz. Olcum Kimligi G-5V53CQMSCE GIZLI DEGIL.
+# TEK KAYNAK (drift'e karsi): AYNI iki blok index.html + statik sayfalarda (hakkimizda/iletisim/
+# sss/gizlilik) birebir tekrar eder. Harici lib YOK; sadece gtag.js Google'dan yuklenir (zorunlu
+# istisna — analytics'in kendisi). GA_HEAD_SNIPPET <head>'e, GA_BANNER_SNIPPET </body> oncesine.
+GA_MEASUREMENT_ID = "G-5V53CQMSCE"
+
+GA_HEAD_SNIPPET = """<!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVKK uyumlu. Ölçüm Kimliği G-5V53CQMSCE herkese açıktır. -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  /* Açık rıza (onay) gelene kadar TÜM depolama REDDEDİLMİŞ (denied) başlar:
+     GA çerez yazmaz, ölçüm göndermez. */
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied',
+    'wait_for_update': 500
+  });
+  /* Ziyaretçi daha önce onay verdiyse geri yükle (banner tekrar çıkmaz). */
+  try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
+    gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } catch(e){}
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE"></script>
+<script>
+  gtag('js', new Date());
+  gtag('config', 'G-5V53CQMSCE', { 'anonymize_ip': true });
+</script>"""
+
+GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). analytics_storage için açık rıza. -->
+<style>
+  #pruvo-cerez-onay{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;
+    background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 -2px 14px rgba(0,0,0,.28);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;line-height:1.5}
+  #pruvo-cerez-onay[hidden]{display:none}
+  #pruvo-cerez-onay .pco-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;
+    gap:14px;flex-wrap:wrap;justify-content:space-between}
+  #pruvo-cerez-onay p{margin:0;flex:1 1 320px;color:#dbe4f2}
+  #pruvo-cerez-onay a{color:#fff;text-decoration:underline}
+  #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto}
+  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;padding:10px 18px;
+    font-size:14px;font-weight:700;font-family:inherit}
+  #pruvo-cerez-onay .pco-kabul{background:#d1332e;color:#fff}
+  #pruvo-cerez-onay .pco-ret{background:rgba(255,255,255,.14);color:#fff;
+    border:1px solid rgba(255,255,255,.4)}
+  #pruvo-cerez-onay button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
+</style>
+<div id="pruvo-cerez-onay" role="dialog" aria-label="Çerez onayı" hidden>
+  <div class="pco-inner">
+    <p>Trafiği anlamak için isteğe bağlı analiz çerezleri (Google Analytics) kullanmak istiyoruz.
+       Onayınız olmadan çalışmazlar. <a href="/gizlilik/">Gizlilik Politikası</a></p>
+    <div class="pco-btns">
+      <button type="button" class="pco-ret" id="pco-ret">Reddet</button>
+      <button type="button" class="pco-kabul" id="pco-kabul">Kabul Et</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var ANAHTAR = "pruvo_onay_analitik";
+  var el = document.getElementById("pruvo-cerez-onay");
+  if(!el){ return; }
+  var secim = null;
+  try { secim = localStorage.getItem(ANAHTAR); } catch(e){}
+  if(secim === "kabul" || secim === "ret"){ return; }   /* seçim yapılmış: banner çıkmaz */
+  el.hidden = false;
+  function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} el.hidden = true; }
+  var kabul = document.getElementById("pco-kabul");
+  var ret = document.getElementById("pco-ret");
+  kabul.addEventListener("click", function(){
+    if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
+    kaydet("kabul");
+  });
+  ret.addEventListener("click", function(){ kaydet("ret"); });  /* denied kalır */
+  try { kabul.focus(); } catch(e){}
+})();
+</script>"""
+
+
 # ------------------------------------------------------------------ script onbellek surumleme
 # Yayinlanan HTML'lerde site-ici JS script src'lerine dosya iceriginin kisa hash'ini
 # "?v=<hash>" olarak ekler. NEDEN: bu .js dosyalari (secenekler.js, taban-fiyatlar.js,
@@ -1056,6 +1140,7 @@ def render_product(p, all_products):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{ga_head}
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{url}">
@@ -1376,6 +1461,7 @@ var URUN_SEMA = {sema_json};
 }})();
 {onizleme_js}
 </script>
+{ga_banner}
 </body>
 </html>
 """.format(
@@ -1418,6 +1504,8 @@ var URUN_SEMA = {sema_json};
         konf_scripts=konf_scripts,
         onizleme_js=onizleme_js,
         whatsapp=WHATSAPP,
+        ga_head=GA_HEAD_SNIPPET,
+        ga_banner=GA_BANNER_SNIPPET,
     )
     # script src'lerine ?v=<icerik-hash> (onbellek kirici) — tek yer, yayin=render.
     return surumle_scriptler(doc)
@@ -1434,6 +1522,7 @@ def render_content_page(slug, title, meta, body_html):
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{ga_head}
 <title>{title}</title>
 <meta name="description" content="{desc}">
 <link rel="canonical" href="{url}">
@@ -1467,6 +1556,7 @@ def render_content_page(slug, title, meta, body_html):
   {pay_band}
 </footer>
 {pv_js}
+{ga_banner}
 </body>
 </html>
 """.format(
@@ -1480,6 +1570,8 @@ def render_content_page(slug, title, meta, body_html):
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
         pv_js=PV_SCRIPT_HTML,
+        ga_head=GA_HEAD_SNIPPET,
+        ga_banner=GA_BANNER_SNIPPET,
     ))
 
 

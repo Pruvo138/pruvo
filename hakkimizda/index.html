@@ -3,6 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVKK uyumlu. Ölçüm Kimliği G-5V53CQMSCE herkese açıktır.
+     TEK KAYNAK: aynı blok tools/build.py (GA_HEAD_SNIPPET) + diğer statik sayfalarda birebir tekrar eder. -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  /* Açık rıza (onay) gelene kadar TÜM depolama REDDEDİLMİŞ (denied) başlar:
+     GA çerez yazmaz, ölçüm göndermez. */
+  gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied',
+    'wait_for_update': 500
+  });
+  /* Ziyaretçi daha önce onay verdiyse geri yükle (banner tekrar çıkmaz). */
+  try { if (localStorage.getItem('pruvo_onay_analitik') === 'kabul') {
+    gtag('consent', 'update', { 'analytics_storage': 'granted' }); } } catch(e){}
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-5V53CQMSCE"></script>
+<script>
+  gtag('js', new Date());
+  gtag('config', 'G-5V53CQMSCE', { 'anonymize_ip': true });
+</script>
 <title>Hakkımızda — PRUVO Özel Tasarım Yedek Parça Üretimi</title>
 <meta name="description" content="PRUVO, tekne, otomobil, motosiklet ve ev/sanayi cihazları için kırılan veya bulunamayan orijinal parçaların birebir yedeğini özel tasarım üretimle üreten bir atölyedir.">
 <link rel="canonical" href="https://pruvo3d.com/hakkimizda/">
@@ -170,5 +193,56 @@
     </span>
   </div>
 </footer>
+
+<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). analytics_storage için açık rıza.
+     TEK KAYNAK: aynı blok tools/build.py (GA_BANNER_SNIPPET) + diğer statik sayfalarda birebir tekrar eder. -->
+<style>
+  #pruvo-cerez-onay{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;
+    background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 -2px 14px rgba(0,0,0,.28);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:14px;line-height:1.5}
+  #pruvo-cerez-onay[hidden]{display:none}
+  #pruvo-cerez-onay .pco-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;
+    gap:14px;flex-wrap:wrap;justify-content:space-between}
+  #pruvo-cerez-onay p{margin:0;flex:1 1 320px;color:#dbe4f2}
+  #pruvo-cerez-onay a{color:#fff;text-decoration:underline}
+  #pruvo-cerez-onay .pco-btns{display:flex;gap:10px;flex:0 0 auto}
+  #pruvo-cerez-onay button{cursor:pointer;border:none;border-radius:8px;padding:10px 18px;
+    font-size:14px;font-weight:700;font-family:inherit}
+  #pruvo-cerez-onay .pco-kabul{background:#d1332e;color:#fff}
+  #pruvo-cerez-onay .pco-ret{background:rgba(255,255,255,.14);color:#fff;
+    border:1px solid rgba(255,255,255,.4)}
+  #pruvo-cerez-onay button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
+</style>
+<div id="pruvo-cerez-onay" role="dialog" aria-label="Çerez onayı" hidden>
+  <div class="pco-inner">
+    <p>Trafiği anlamak için isteğe bağlı analiz çerezleri (Google Analytics) kullanmak istiyoruz.
+       Onayınız olmadan çalışmazlar. <a href="/gizlilik/">Gizlilik Politikası</a></p>
+    <div class="pco-btns">
+      <button type="button" class="pco-ret" id="pco-ret">Reddet</button>
+      <button type="button" class="pco-kabul" id="pco-kabul">Kabul Et</button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var ANAHTAR = "pruvo_onay_analitik";
+  var el = document.getElementById("pruvo-cerez-onay");
+  if(!el){ return; }
+  var secim = null;
+  try { secim = localStorage.getItem(ANAHTAR); } catch(e){}
+  if(secim === "kabul" || secim === "ret"){ return; }   /* seçim yapılmış: banner çıkmaz */
+  el.hidden = false;
+  function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} el.hidden = true; }
+  var kabul = document.getElementById("pco-kabul");
+  var ret = document.getElementById("pco-ret");
+  kabul.addEventListener("click", function(){
+    if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
+    kaydet("kabul");
+  });
+  ret.addEventListener("click", function(){ kaydet("ret"); });  /* denied kalır */
+  try { kabul.focus(); } catch(e){}
+})();
+</script>
 </body>
 </html>
