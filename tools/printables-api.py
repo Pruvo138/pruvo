@@ -146,6 +146,28 @@ def satilabilir(abbr):
     return False                              # Standard Digital File, OCL, bilinmeyen -> FAIL-CLOSED
 
 
+def tr_lower(s):
+    """Turkce-duyarli kucuk harf: 'I'->'ı', 'İ'->'i', sonra lower().
+    Python str.lower() 'I'->'i' (yanlis) ve 'İ'->'i̇' (birlesik nokta) uretir; marka
+    kelime-siniri karsilastirmasi icin once bu duzeltme sart."""
+    return (s or "").replace("İ", "i").replace("I", "ı").lower()
+
+
+def marka_kelime_gecer(baslik, marka):
+    r"""Baslikta MARKA TAM KELIME olarak (\bMARKA\b, Turkce-duyarli, buyuk/kucuk duyarsiz)
+    geciyor mu? Amac: marka aramasinda ALT-DIZE gurultusunu kaynakta elemek.
+
+      'Ford'  -> 'Ford Focus konsol' GECER; 'Oxford box'/'afford'/'Food tray' ELENIR.
+
+    marka bos ya da <2 karakterse filtre UYGULANMAZ (True doner) — asiri eleme onlenir.
+    Turkce harfler (ç ş ğ ı ö ü) Unicode modda \w oldugundan \b sinirlari dogru calisir."""
+    m = tr_lower(marka).strip()
+    if len(m) < 2:
+        return True
+    b = tr_lower(baslik)
+    return re.search(r"\b%s\b" % re.escape(m), b, re.UNICODE) is not None
+
+
 def model_url(pid, slug=None):
     return "https://www.printables.com/model/%s%s" % (pid, ("-" + slug) if slug else "")
 

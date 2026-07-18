@@ -8,11 +8,23 @@ Kullanim:  python3 tools/thing-ara.py "Hyundai" [max]
 Zaten eklenmis olanlari `.urun-kaynaklari.json` icindeki thing linklerinden tespit edip ELER.
 Token `.thingiverse-token`'dan okunur. Sir icermez.
 """
-import json, os, re, sys, urllib.parse, urllib.request
+import importlib.util, json, os, re, sys, urllib.parse, urllib.request
 
 ROOT = "/Users/okan/dev/pruvo"
-TOKEN = open(os.path.join(ROOT, ".thingiverse-token")).read().strip()
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
+
+# marka_kelime_gecer() TEK KAYNAK: printables-api.py (BU dosyanin yaninda; worktree/main farketmez).
+# thing-ara ile printables-ara ayni filtre fonksiyonunu paylasir -> drift olmaz.
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_spec = importlib.util.spec_from_file_location("pr_api", os.path.join(_HERE, "printables-api.py"))
+pr = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(pr)
+
+
+def _token():
+    """Thingiverse token'ini TEMBEL oku (import aninda degil) — token'siz makinede
+    modul yine de import edilebilir (marka_kelime_gecer testi gibi ag gerektirmeyen kullanim)."""
+    return open(os.path.join(ROOT, ".thingiverse-token")).read().strip()
 
 
 # Yedek parca sitesine UYMAYAN gurultu (marka aramasi bunlari bol getirir) -> otomatik ELE.
@@ -82,7 +94,7 @@ def populer(h):
 
 
 def api(url):
-    r = urllib.request.Request(url, headers={"Authorization": "Bearer " + TOKEN,
+    r = urllib.request.Request(url, headers={"Authorization": "Bearer " + _token(),
                                              "User-Agent": "pruvo/1.0"})
     return json.loads(urllib.request.urlopen(r, timeout=60).read())
 
@@ -98,10 +110,11 @@ def mevcut_thing_idleri():
     return ids
 
 
-def main(term, maxn):
+def main(term, maxn, tam_kelime=False):
     mevcut = mevcut_thing_idleri()
     bulunan = []
     elenen = []
+    elenen_kelime = []
     seen = set()
     page = 0
     while len(bulunan) < maxn and page < 400:
@@ -127,6 +140,9 @@ def main(term, maxn):
             likes = h.get("like_count") or 0
             makes = h.get("make_count") or 0
             pop = populer(h)
+            # --tam-kelime: baslikta marka TAM KELIME degilse (Oxford/afford/Food) ELE
+            if tam_kelime and not pr.marka_kelime_gecer(name, term):
+                elenen_kelime.append((tid, name)); continue
             if is_nobypass(name):
                 elenen.append((tid, name)); continue         # logo/amblem VEYA marka-merch -> populerlik DELMEZ, hep ele
             if is_cop(name) and not pop:
@@ -138,6 +154,11 @@ def main(term, maxn):
             break
     # EN YUKSEK ONCELIK: talep (begeni, sonra make) cok olan thing basa. Populer-cop da burada.
     bulunan.sort(key=lambda b: (b[2], b[3]), reverse=True)
+    if elenen_kelime:
+        print("--- MARKA ALT-DIZE elenen %d ('%s' tam kelime degil: Oxford/afford/Food gibi) ---"
+              % (len(elenen_kelime), term))
+        for tid, name in elenen_kelime[:20]:
+            print("  x %s  %s" % (tid, name[:60]))
     if elenen:
         print("--- COP elenen %d (anahtarlik/logo/amblem/minyatur; populer OLMAYAN) ---" % len(elenen))
         for tid, name in elenen[:20]:
@@ -153,6 +174,10 @@ def main(term, maxn):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit('Kullanim: python3 tools/thing-ara.py "<marka/terim>" [max]')
-    main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 250)
+    # Geriye uyumlu: eski cagri `thing-ara.py "<terim>" [max]` aynen calisir.
+    # Yeni: `--tam-kelime` bayragi baslikta markayi TAM KELIME arar (alt-dize gurultusunu eler).
+    argv = [a for a in sys.argv[1:] if a != "--tam-kelime"]
+    tam_kelime = "--tam-kelime" in sys.argv[1:]
+    if not argv:
+        sys.exit('Kullanim: python3 tools/thing-ara.py "<marka/terim>" [max] [--tam-kelime]')
+    main(argv[0], int(argv[1]) if len(argv) > 1 else 250, tam_kelime=tam_kelime)

@@ -40,6 +40,16 @@ Mühendis katının, zor onarım Usta katınındır (mimar yönlendirir).
    - Printables: `python3 tools/printables-ekle.py <id...>`  (cache `pr<id>`)
    - Thingiverse: `python3 tools/urun-ekle.py <id...>`  (cache `<id>`)
    İLK PARTİ 3-5 ID ile dene; tablo düzgünse kalanını ver. Araç STAGE eder, COMMIT ETMEZ.
+   - **`urun-ekle.py` / `printables-ekle.py`'yi SENKRON (foreground) koştur, ARKA PLANDA
+     BIRAKMA — orphan process + poll/popup'a yol açar (Thingiverse partisinde yaşandı,
+     maraba erken öldü).**
+
+3b. OTOMATİK DENETİM (elle dedup/lisans/logo/ölçü yerine): `python3 tools/denetim-kapisi.py`
+   (report-only; rapor `.thing-cache/denetim-kapisi-rapor.json`). Kapılar: lisans (fail-closed),
+   maket/ölçekli araç (auto_sil), logo/amblem (eskalasyon — "logoyu çıkar" yargısı), ölçüsüz
+   (auto_sil), görsel çakışma + dedup (eskalasyon/auto_sil), marka kirliliği (rapor). `eskalasyon`
+   + `marka_kirli` = yargı listene; `auto_sil` + `dedup.sil` net → `--uygula` ile `duzelt.py`
+   üzerinden kaldırılır (elle silme YOK).
 
 4. GÖZDEN GEÇİR ve DÜZELT (yalnız BU partide eklenen ürünlerde; HEAD'dekilere DOKUNMA):
    - Görselleri Read/inceleme yapma; `.thing-cache/<key>/oneri.json` + urunler.json kayıtları yeter.

@@ -16,7 +16,10 @@ import importlib.util, os, re, sys
 ROOT = "/Users/okan/dev/pruvo"
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 
-_spec = importlib.util.spec_from_file_location("pr_api", os.path.join(ROOT, "tools", "printables-api.py"))
+# printables-api.py'yi BU dosyanin yaninda (worktree/main hangisiyse) yukle — ROOT'a bagli degil
+# (worktree kopyasi kendi cekirdegini goreblsin; marka_kelime_gecer testi de bunu kullanir).
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_spec = importlib.util.spec_from_file_location("pr_api", os.path.join(_HERE, "printables-api.py"))
 pr = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(pr)
 
@@ -32,9 +35,9 @@ def mevcut_idler():
     return ids
 
 
-def main(term, maxn):
+def main(term, maxn, tam_kelime=False):
     mevcut = mevcut_idler()
-    bulunan, elenen_cop, elenen_nc = [], [], []
+    bulunan, elenen_cop, elenen_nc, elenen_kelime = [], [], [], []
     seen = set()
     offset = 0
     total = None
@@ -58,6 +61,9 @@ def main(term, maxn):
             abbr = ((h.get("license") or {}).get("abbreviation")) or ""
             dl = h.get("downloadCount") or 0
             likes = h.get("likesCount") or 0
+            # --tam-kelime: baslikta marka TAM KELIME degilse (Oxford/afford/Food) ELE
+            if tam_kelime and not pr.marka_kelime_gecer(name, term):
+                elenen_kelime.append((pid, name)); continue
             if not pr.satilabilir(abbr):
                 elenen_nc.append((pid, abbr, name)); continue    # NC = yasal, POPULERLIK DELMEZ
             pop = pr.populer(dl, likes)
@@ -75,6 +81,11 @@ def main(term, maxn):
     # EN YUKSEK ONCELIK: talep (begeni + indirme) cok olan urun basa. Populer-cop olanlar da burada.
     bulunan.sort(key=lambda b: (b[4], b[3]), reverse=True)   # (likes, dl) azalan
 
+    if elenen_kelime:
+        print("--- MARKA ALT-DIZE elenen %d ('%s' tam kelime degil: Oxford/afford/Food gibi) ---"
+              % (len(elenen_kelime), term))
+        for pid, name in elenen_kelime[:15]:
+            print("  x %s  %s" % (pid, name[:60]))
     if elenen_nc:
         print("--- SATILAMAZ (NC) elenen %d (populerlik DELMEZ — yasal) ---" % len(elenen_nc))
         for pid, abbr, name in elenen_nc[:15]:
@@ -95,6 +106,10 @@ def main(term, maxn):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit('Kullanim: python3 tools/printables-ara.py "<marka/terim>" [max]')
-    main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 250)
+    # Geriye uyumlu: eski cagri `printables-ara.py "<terim>" [max]` aynen calisir.
+    # Yeni: `--tam-kelime` bayragi baslikta markayi TAM KELIME arar (alt-dize gurultusunu eler).
+    argv = [a for a in sys.argv[1:] if a != "--tam-kelime"]
+    tam_kelime = "--tam-kelime" in sys.argv[1:]
+    if not argv:
+        sys.exit('Kullanim: python3 tools/printables-ara.py "<marka/terim>" [max] [--tam-kelime]')
+    main(argv[0], int(argv[1]) if len(argv) > 1 else 250, tam_kelime=tam_kelime)
