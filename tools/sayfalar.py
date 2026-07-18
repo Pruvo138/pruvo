@@ -1680,6 +1680,330 @@ def _ev_aleti_plastik_disli_parca_uretimi():
 <p><a href="/">Siteden</a> kartla online ödemeyle sipariş verebilir ya da parçanızı anlatmak, ölçü danışmak için WhatsApp'tan yazabilirsiniz: <strong>+90 545 138 6526</strong>. Kırık dişlinizin fotoğrafını gönderin, uygunluğunu ve seçenekleri birlikte netleştirelim. Ölçü sizden, üretim bizden.</p>""")
 
 
+def _olcuye_ozel_cetvel_mastar_sablon_uretimi():
+    return (u"""<h1>Ölçüye Özel Cetvel, Gönye ve Mastar Üretimi</h1>
+<p>Standart cetvel her işe uymaz. Tezgahınıza sığmayan boy, çalıştığınız özel taksimat, üzerinde firma adınızın olması ya da elinizdeki referans ölçüyü tekrar tekrar işaretlemek için bir mastar gerektiğinde piyasada hazır ürün bulamazsınız. PRUVO'da cetvelinizi, gönyenizi ve ölçü mastarınızı <strong>istediğiniz boya ve işarete göre üretiyoruz.</strong> Ölçü sizden, üretim bizden.</p>
+<p>Marangozdan tornacıya, terziden atölye ustasına kadar herkesin tekrar eden bir ölçüsü vardır: hep aynı 37 cm, hep aynı 22,5 derece, hep aynı delik aralığı. Bunu her seferinde metreyle ölçüp işaretlemek zaman kaybı ve hata kaynağıdır. <strong>Ölçüye özel cetvel üretimi</strong> tam burada devreye girer — sık kullandığınız ölçüyü tek bir alete gömeriz, siz sadece dayayıp işaretlersiniz.</p>
+<p>Aynı şekilde <strong>ölçüye özel gönye yaptırma</strong> talebi çoğu zaman standart 90 derecelik gönyenin ötesindedir: üçgen gönye, marangoz L-gönyesi ya da sizin işinize özel bir açı. Kırılan, ölçüsü kaymış ya da hiç bulamadığınız gönyeyi yenisiyle, sizin ölçünüzde üretiriz. <strong>Ölçü mastarı üretimi</strong> ise seri işlerde referansı sabitler: bir kere doğru mastarı çıkarırız, üretimin geri kalanı ona göre akar.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Elinizdeki cetveli, gönyeyi veya çıkarmak istediğiniz ölçüyü bize iletin. Kırık bir parça, bir fotoğraf ya da yazılı ölçü yeterli.</li>
+<li><strong>Ölç</strong> — İstediğiniz boyu, taksimatı, açıyı ve üzerine geçecek yazı/logoyu netleştiririz. Kararsız kaldığınız yerde biz yönlendiririz.</li>
+<li><strong>Üret</strong> — Ölçüye özel üretir, kontrol eder, size ulaştırırız.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<p>Her cetvel/gönye siparişini şu seçeneklere göre size özel hazırlıyoruz:</p>
+<ul>
+<li><strong>Tip:</strong> düz cetvel · üçgen gönye · L (marangoz) gönyesi</li>
+<li><strong>Ölçü sistemi:</strong> metrik (cm/mm) ya da inç</li>
+<li><strong>Uzunluk:</strong> istediğiniz boy — tezgahınıza ya da işinize göre</li>
+<li><strong>İşaret stili:</strong> kabartma · oyma · gömme çizgiler</li>
+<li><strong>Tek yüz ya da çift yüz taksimat</strong></li>
+<li><strong>Üzerine isim, firma yazısı ya da logo işleme</strong> — logolu cetvel üretimi</li>
+<li><strong>Anahtarlık halkası</strong> ya da <strong>asma/depolama deliği</strong></li>
+<li><strong>Farklı renk seçenekleri</strong></li>
+</ul>
+<p>Ne istediğinizi tam bilmiyorsanız sorun değil; kullanım yerini anlatın, doğru taksimat ve boyu birlikte belirleriz.</p>
+<h2>Doğru malzeme</h2>
+<p>İşin yerine göre malzemeyi seçeriz. Günlük ofis ve atölye kullanımı için sağlam standart malzeme yeter. Sıcağa, güneşe ve neme maruz kalan (dışarıda, tezgah başında, güneş gören) kullanım için ısı ve UV dayanımı yüksek PETG, ASA ya da PC'ye çıkarız. Sürekli darbe alan, sürtünen, ağır atölye şartında çalışan aletler için karbon ya da cam elyaf takviyeli (PA-CF / PA-GF) yüksek mukavemetli malzemeyi öneririz. Cetvelinizin çalışacağı yere göre sizi doğru malzemeye yönlendiririz.</p>
+<h2>Dürüst sınır</h2>
+<p>Ürettiğimiz cetvel, gönye ve mastar <strong>günlük atölye ve ofis ölçüsü</strong> içindir — işaretleme, dayama, referans ve seri işte tekrarlanabilirlik için idealdir. Kalibreli metroloji aleti ya da mikron seviyesinde hassas ölçüm cihazı değildir; hassas metroloji gerektiren işlerde sertifikalı ölçüm aletine yönlendiririz. Vaadimizi net tutarız: gündelik işinizde güvenle kullanacağınız, ölçünüze birebir uyan bir alet.</p>
+<h2>Sipariş</h2>
+<p>Ölçünüzü, boyunuzu ve üzerine geçecek yazı/logoyu iletin. Sitemizden <strong>kartla online ödeyerek</strong> sipariş verebilir ya da ölçü danışmak, özel bir iş konuşmak için <strong>WhatsApp +90 545 138 6526</strong> hattından bize yazabilirsiniz.</p>
+<p>İz bırakan bir alet mi arıyorsunuz? Kişiye özel işleme için <a href="/kisiye-ozel-logolu-kase-yaptirma/">logolu kaşe yaptırma</a> sayfamıza bakın (kaşe iz bırakır, cetvel ölçer — farklı işler). Tek bir özel parça için <a href="/tek-adet-ozel-parca-uretimi/">tek adet özel parça üretimi</a>, malzeme seçimi için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfalarımız yardımcı olur.</p>""")
+
+
+def _olcuye_ozel_koruma_kapagi_muhafaza_uretimi():
+    return (u"""<h1>Ölçüye Özel Koruma Kapağı, Muhafaza ve Koruyucu Üretimi</h1>
+<p>Açıkta kalan bir dişli, kayış, terminal ya da sensör; toz, çapak, darbe ve istenmeyen temasın hedefidir. Piyasada tam o parçaya oturan bir koruma kapağı çoğu zaman bulunmaz — ya çok büyük, ya çok küçük, ya da hiç yoktur. PRUVO açıkta kalan parçanızı ölçüye özel örten koruyucu kapak, muhafaza ve guard üretir. Ölçü sizden, üretim bizden.</p>
+<p>Kırılan bir kapağı yenilemek, hiç olmayan bir yere koruma eklemek ya da mevcut muhafazayı iyileştirmek isteyin — parçayı örten, kaplayan, kılıflayan gövdeyi bulunduğu yere göre çıkarırız. Amaç, korumaya aldığınız parçanın çevresini kapatmak: elin, tozun, sıçrayan suyun veya yandan gelen darbenin doğrudan temasını kesmek.</p>
+<p>Dişli koruması, kayış muhafazası, terminal kutusu kapağı, sensör koruma kapağı, valf üzeri koruyucu — hepsi aynı mantıkla çalışır. Önce korunacak parçayı ve etrafındaki boşluğu ölçeriz, sonra o hacmi saran kapağı üretiriz. Standart bir kalıba sığmayan, size özel bir geometri olduğu için sonuç birebir oturur; boşlukta oynamaz, yanlış noktadan açık kalmaz.</p>
+<p>Bu bir muhafaza koruyucusudur, bir ağzı tıkayan tapa değil. Bir boruyu, deliği veya bağlantı ağzını kapatmak istiyorsanız <a href="/olcuye-ozel-tapa-kapak-uretimi/">ölçüye özel tapa ve kapak üretimi</a> sayfasına bakın; bu sayfa açıktaki bir parçayı örten koruma içindir.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Korumak istediğiniz parçayı, mevcut kırık kapağı ya da montaj bölgesinin fotoğraf ve ölçülerini WhatsApp'tan iletin: +90 545 138 6526.</li>
+<li><strong>Ölç</strong> — Korunacak parçanın dış ölçülerini, çevresindeki boşluğu ve sabitleme noktalarını birlikte netleştiririz. Neyi kapatacağını, nereye tutunacağını konuşuruz.</li>
+<li><strong>Üret</strong> — Ölçüye özel koruma kapağınızı üretir, size ulaştırırız.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<p>Her koruma kapağı bulunduğu yere göre biçimlenir. Sizinle netleştirdiğimiz noktalar:</p>
+<ul>
+<li><strong>Kapsanan hacim</strong> — Korunan parçayı ne kadar örteceği: yalnızca üst yüzey mi, çevreyi saran tam muhafaza mı.</li>
+<li><strong>Sabitleme biçimi</strong> — Vidalı, geçmeli ya da mevcut cıvata deliklerine oturan bağlantı.</li>
+<li><strong>Erişim ve boşluklar</strong> — Kablo, mil, kayış veya bağlantı için gereken açıklıklar; servis için sökülebilir kapak.</li>
+<li><strong>Havalandırma</strong> — Isınan parçada ısı kaçışı için gereken açıklıklar (tam kapalı istenmiyorsa).</li>
+<li><strong>Yüzey ve kenar</strong> — Keskin köşesiz, ele ve montaja uygun kenar işlemi.</li>
+</ul>
+<p>Uydurma bir katalog dayatmayız; ne koruyacağınıza göre bu seçenekleri sizinle belirler, ona göre üretiriz.</p>
+<h2>Doğru malzeme</h2>
+<p>Koruma kapağının dayanması gereken koşulu birlikte belirleriz. İç mekân, düşük yük için standart malzeme yeterlidir. Isı, UV ve neme maruz kalan (motor çevresi, dış ortam, güneş altı) muhafazalarda PETG, ASA veya PC kullanırız. Darbeye ve zorlanmaya en çok maruz kalan koruyucularda karbon ya da cam fiber takviyeli PA-CF / PA-GF yüksek mukavemet verir. Farklı renk seçenekleriyle üretebiliriz. Doğru malzeme seçimi için <a href="/malzeme-rehberi/">malzeme rehberimize</a> bakabilirsiniz.</p>
+<h2>Dürüst sınır</h2>
+<p>Ürettiğimiz koruma kapağı; toz, çapak, hafif darbe ve temas koruması içindir — yük taşıyan, basınç tutan yapısal bir muhafaza değildir. Ağır mekanik yükü karşılayan, contalı sızdırmazlık gerektiren ya da yüksek iç basınca dayanması istenen bir gövde arıyorsanız bunu baştan söyler, sizi doğru çözüme yönlendiririz. Amacımız, açıktaki parçanızı doğru malzemeyle güvenle örtmek. Benzer makine parçaları için <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parçası ölçüye özel üretim</a> sayfasına da göz atabilirsiniz.</p>
+<h2>Sipariş</h2>
+<p>Korumak istediğiniz parçanın ölçü ve fotoğrafını WhatsApp'tan gönderin: <strong>+90 545 138 6526</strong>. Netleşen işlerde siteden kartla online ödemeyle siparişinizi tamamlayabilirsiniz. Ölçü sizden, üretim bizden.</p>""")
+
+
+def _olcuye_ozel_adaptor_reduksiyon_gecis_uretimi():
+    return (u"""<h1>Ölçüye Özel Adaptör, Redüksiyon ve Geçiş Parçası Üretimi</h1>
+<p>Bir çaptan başka çapa geçmeniz gereken parça piyasada yoksa, ölçüye özel adaptör üretimi ile milimetrik olarak sizin ölçünüze üretiyoruz. Farklı iki çapı birbirine bağlayan adaptör, redüksiyon ve geçiş parçalarını, elinizdeki mevcut ağız ölçülerine göre üretiriz.</p>
+<p>Çoğu geçiş ihtiyacı standart üründe karşılığı olmayan bir ölçüde ortaya çıkar: bir ucu 40 mm, diğer ucu 32 mm olan bir hortum adaptörü; süpürge ağzına oturmayan bir aparat; iki farklı boru hattını birleştiren bir çap düşürücü. Hazır fitinglerde bu ara ölçüler çoğu zaman bulunmaz, bulunsa da tam oturmaz. Sonuç bant, conta ve kaçak dolu geçici çözümlerdir.</p>
+<p>Biz redüksiyon parçası üretimini elinizdeki gerçek ölçüye sabitleriz. İki ucun iç/dış çapını, geçiş boyunu ve bağlantı biçimini (geçmeli, dişli, kelepçeli) sizden alır, tam oturan tek parça bir geçiş fitingi üretiriz. Ara ölçü, kademeli çap düşürme veya açılı geçiş fark etmez; parça sizin sisteminize göre çıkar.</p>
+<p>Boru geçiş parçası, çap düşürücü adaptör ve özel geçiş fitingi ihtiyaçlarınızda mantık hep aynıdır: parçayı getirir ya da ölçüsünü verirsiniz, biz üretiriz. Ölçü sizden, üretim bizden.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Değiştirmek istediğiniz parçayı, ya da bağlayacağınız iki ağzı bize iletin. Fiziksel parça yoksa çap ve boy ölçülerini paylaşmanız yeterli.</li>
+<li><strong>Ölç</strong> — Her iki ucun çaplarını, geçiş boyunu ve bağlantı tipini birlikte netleştiririz. Emin değilseniz WhatsApp'tan ölçü danışması yaparız.</li>
+<li><strong>Üret</strong> — Onaylanan ölçüye göre ölçüye özel üretiyoruz ve size ulaştırırız.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Giriş ve çıkış çapı</strong> — İki ucun iç ya da dış çapını ayrı ayrı sizin ölçünüze ayarlarız.</li>
+<li><strong>Geçiş biçimi</strong> — Ani redüksiyon ya da kademeli/konik geçiş; hattınıza uygun olanı seçeriz.</li>
+<li><strong>Bağlantı tipi</strong> — Geçmeli, dişli ya da kelepçe/hortum kelepçesine uygun ağız.</li>
+<li><strong>Geçiş boyu ve et kalınlığı</strong> — Sağlamlık ve montaj payına göre uzunluğu ve cidarı ayarlarız.</li>
+<li><strong>Sızdırmazlık payı</strong> — Contayla birlikte çalışacaksa oturma yüzeyini ona göre bırakırız. Ayrı <a href="/olcuye-ozel-conta-uretimi/">conta üretimi</a> de yaparız.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Kullanım yerine göre malzeme seçeriz. Standart iç mekân ve düşük yük için genel amaçlı malzeme yeterlidir. Isı, UV ve nem söz konusuysa (dış ortam, sıcak akışkan, ıslak zemin) PETG, ASA veya PC gibi dayanıklı malzemelere çıkarız. Mekanik yük, titreşim ya da yüksek mukavemet gerekiyorsa karbon/cam fiber takviyeli PA-CF / PA-GF öneririz. Farklı renk seçenekleri de sunarız. Hangi malzemenin sizin işinize oturduğunu <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfasında görebilirsiniz.</p>
+<h2>Dürüst sınır</h2>
+<p>Bu geçiş parçaları düşük–orta basınçlı hatlar için uygundur: hortum bağlantıları, süpürge/toz emme, havalandırma, düşük basınçlı su ve akışkan yönlendirme. Yüksek basınçlı hidrolik ya da basınçlı gaz hatları bu üretimin dışındadır; oralarda metal fiting gerekir. Aynı çapta çok kollu birleştirme arıyorsanız o iş <a href="/olcuye-ozel-baglanti-konektor/">bağlantı/konektör üretimi</a> sayfasına aittir; bu sayfa farklı iki çapı birbirine geçirir.</p>
+<h2>Sipariş</h2>
+<p>Ölçülerinizi hazırlayın, gerisini biz halledelim. Siteden kartla online sipariş verebilir, ölçü danışması ve özel işler için WhatsApp +90 545 138 6526 üzerinden bize yazabilirsiniz. Ölçü sizden, üretim bizden.</p>""")
+
+
+def _bisiklet_plastik_parca_ozel_uretim():
+    return (u"""<h1>Bisiklet Plastik Parçalarının Ölçüye Özel Üretimi</h1>
+<p>Modeli kalkmış, kırılmış ya da hiçbir yerde bulamadığınız bisiklet plastik parçasını ölçüye özel üretiyoruz. Çamurluk bağlantısı, şişelik kafesi, kablo yönlendirici, reflektör tutucu, vites-fren maşa kapağı — elinizdeki parçayı ya da ölçüsünü getirin, aynısını çıkaralım. <strong>Ölçü sizden, üretim bizden.</strong></p>
+<p>Bisiklet plastik parçaları kolay yıpranır: güneş altında sararır, kırılganlaşır, çatlar; bir düşme ya da tek bir sert darbe bağlantı kulağını koparır. Üstelik birçok model artık üretilmiyor, yedeği stoklarda kalmıyor. Tek bir küçük klips yüzünden çamurluğun tamamını, bidon kafesinin gitmesi yüzünden komple aparatı değiştirmek zorunda kalıyorsunuz.</p>
+<p>Bizim işimiz tam da bu boşluğu kapatmak. Piyasada karşılığı olmayan bisiklet yedek parçasını, kırılan parçanın kendisinden ya da vereceğiniz ölçülerden yola çıkarak birebir üretiyoruz. Elinizde kırık parça varsa daha da iyi: <a href="/kirik-plastik-parca-yaptirma/">kırık plastik parçayı yaptırma</a> sürecinde parçaları birleştirip ölçüyü oradan alıyoruz. Hangi marka, hangi yıl olduğunu bilmeniz gerekmez — parça yeterli.</p>
+<p>Bisiklet aksesuar parça üretimi ve bisiklet yedek parça yaptırma konusunda bize en çok gelen işler: kopan çamurluk bağlantısı üretimi, dağılan şişelik kafesi yaptırma, gövdeden düşen kablo yönlendirici, yerinden çıkan reflektör tutucu ve çatlayan vites-fren maşa kapağı. <a href="/bulunamayan-yedek-parca-ozel-uretim/">Bulunamayan yedek parçanın özel üretimi</a> için de aynı yol geçerli.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık ya da eski parçayı bize ulaştırın; parça yoksa ölçüleri ve birkaç net fotoğraf yeterli.</li>
+<li><strong>Ölç</strong> — Parçayı milimetrik ölçüyoruz; bağlantı deliklerini, kalınlığı, kavis ve kulakları birebir çıkarıyoruz.</li>
+<li><strong>Üret</strong> — Doğru malzemeyle ölçüye özel üretip elinize ulaştırıyoruz. Takıldığında oturması esas.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<p>Her bisiklet parçası farklı; standart bir kalıba sığmaz. Ölçünüze göre şunları ayarlıyoruz:</p>
+<ul>
+<li><strong>Bağlantı deliği</strong> çapı, sayısı ve aralarındaki mesafe — cıvatanıza/vidanıza birebir oturur.</li>
+<li><strong>Kalınlık ve kesit</strong> — orijinaline göre ince ya da takviyeli; kırılan yer daha dayanıklı çıkabilir.</li>
+<li><strong>Kavis ve gövde formu</strong> — çamurluk yayına, kadro borusuna ya da bidon çapına uyacak biçim.</li>
+<li><strong>Klips ve geçme tırnakları</strong> — yerine tık diye oturan kulak/klips ölçüsü.</li>
+<li><strong>Renk</strong> — farklı renk seçenekleri arasından parçanıza yakışanı.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Bisiklet dışarıda, güneşte ve nemde çalışır; malzeme seçimi bu yüzden kritik. Standart plastikle yetinmeyiz. Dışarıda kalan, UV ve nemle uğraşan parçalarda ısıya ve güneşe dayanıklı <strong>PETG, ASA veya PC</strong> kullanırız — sararmadan, kırılganlaşmadan uzun ömür verir. Yük gören, sık zorlanan bağlantılarda ise cam/karbon fiber takviyeli <strong>PA-GF / PA-CF</strong> ile yüksek mukavemet sağlarız. Parçanın nerede, nasıl çalıştığına bakıp doğru malzemeye yönlendiririz. Kararsızsanız <a href="/malzeme-rehberi/">malzeme rehberine</a> göz atabilirsiniz.</p>
+<h2>Dürüst sınır</h2>
+<p>Açık konuşalım: burada ürettiğimiz parçalar hafif ve yük-dışı bisiklet plastik parçalarıdır — çamurluk bağlantısı, bidon kafesi, klips, tutucu, kapak gibi. <strong>Kadro, çatal, jant, direksiyon kelepçesi gibi ana yükü taşıyan yapısal parçaları üretmeyiz;</strong> bunlar sürüş güvenliğini doğrudan etkiler ve orijinal mühendislik gerektirir. Doğru malzemeyle işlevsel, uzun ömürlü bir plastik parça sözü veririz; taşıyıcı bir emniyet parçası sözü vermeyiz.</p>
+<h2>Sipariş</h2>
+<p>Elinizdeki parçayı ya da ölçüleri paylaşın, birlikte netleştirelim. Siteden kartla online sipariş verebilir, ölçü danışmak ya da özel iş için WhatsApp'tan yazabilirsiniz: <strong>+90 545 138 6526</strong>. Bisiklet klips parçasından çamurluk bağlantısına, aradığınız parçayı ölçüye özel üretelim.</p>""")
+
+
+def _kamera_optik_aksesuar_plastik_parca_uretimi():
+    return (u"""<h1>Kamera, Tripod ve Optik Aksesuar Plastik Parça Üretimi</h1>
+<p>Kameranızın pil kapağı kırıldı, tripodun hızlı çıkış plakası kayboldu, flaş kızağı çatladı ya da bir lens parçası artık hiçbir yerde bulunamıyor. Bu küçük plastik parçalar için koca ekipman rafta bekliyor. Ölçüsünü verin, o parçayı size özel üretelim. <strong>Ölçü sizden, üretim bizden.</strong></p>
+<p>Kamera ve optik aksesuarların en zayıf halkası çoğu zaman ufacık bir plastik detaydır: pil yuvasının menteşeli kapağı, tripod ayağının bağlantı kelepçesi, hızlı çıkış (quick release) plakası, flaş kızağının (hot shoe) oturma parçası, adaptör halkası ya da lens üzerindeki bir tutamak. Model eskiyince yedeği üretilmez, bulunsa da tek parça için sipariş verilmez. Sonuçta sağlam bir cihaz, on liralık bir parça yüzünden kullanılamaz hale gelir.</p>
+<p>Biz tam da bu noktada devreye giriyoruz. Elinizdeki kırık parçayı, eski parçanın izini ya da birkaç ölçüyü baz alarak birebir aynısını, sizin cihazınıza oturacak şekilde üretiyoruz. Katalogda olmayan, üreticisinin arkasını bıraktığı parçalar için en pratik yol bu: mevcut olanı çoğaltmak değil, sizin özel ihtiyacınıza göre yeniden üretmek.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık ya da eksik parçayı, mümkünse eski parçanızı elinizde bulundurun. Fotoğraf ve birkaç net ölçü (kalınlık, delik çapları, vida aralığı, kızak genişliği) çoğu iş için yeterlidir.</li>
+<li><strong>Ölç</strong> — Bağlantı noktalarını, oturma yüzeyini ve toleransları birlikte netleştiriyoruz. Kamera aksesuarlarında geçme ve klik hassastır; bu yüzden ölçüyü baştan doğru alıyoruz.</li>
+<li><strong>Üret</strong> — Parçayı ölçünüze özel üretip size ulaştırıyoruz. Cihaza takıp deneyeceğiniz, oturan bir parça teslim ediyoruz.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<p>Kamera ve tripod aksesuarlarında her parça kendine özgü olduğu için işi ölçünüze göre biçimlendiriyoruz:</p>
+<ul>
+<li><strong>Boyut ve geçme toleransı</strong> — pil kapağı, kızak ve plaka gibi parçaların oturma ölçüsü sizin cihazınıza göre ayarlanır.</li>
+<li><strong>Bağlantı detayları</strong> — vida deliği çapı, dişli yuva, klik/kilit tırnağı, menteşe noktası eski parçanıza birebir uyarlanır.</li>
+<li><strong>1/4" ve 3/8" bağlantılar</strong> — tripod ayağı, hızlı çıkış plakası, adaptör gibi standart vida bağlantıları ölçüye göre konumlandırılır.</li>
+<li><strong>Yüzey ve kenar işlemi</strong> — kavrama yüzeyi, pah, yuvarlatma gibi detaylar ihtiyaca göre eklenir.</li>
+<li><strong>Farklı renk seçenekleri</strong> — cihazınızla uyumlu ton için renk alternatifleri sunulur.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Parçanın çalışacağı koşula göre malzemeyi seçiyoruz. Görünürde durup taşımayan iç parçalarda standart malzeme yeterli olurken; ısı, güneş ve nem gören dış aksesuarlarda (tripod bağlantısı, dış kapak) <strong>PETG, ASA veya PC</strong> ile daha dayanıklı üretim yapıyoruz. Sürekli yüke ve kuvvete maruz kalan bağlantı parçalarında ise <strong>karbon ya da cam elyaf takviyeli (PA-CF / PA-GF)</strong> yüksek mukavemetli malzemeye çıkıyoruz.</p>
+<h2>Dürüst sınır</h2>
+<p>Ürettiğimiz plastik parçalar yük taşımayan, hafif aksesuar parçalarıdır: pil kapağı, kızak, tutamak, bağlantı kelepçesi, adaptör halkası. Ağır bir kamerayı tek başına taşıyacak taşıyıcı bir tripod başlığı ya da hassas optik hizalama gerektiren (lens elemanı konumlandırması gibi) parçalarda önce sizinle konuşur, sınırı açıkça söyleriz. Amacımız takıldığında oturan, işini gören bir parça vermek; taşımayacağı yükü taşır gibi göstermek değil.</p>
+<h2>Sipariş</h2>
+<p>Kırık ya da eksik parçanızın fotoğrafını ve ölçülerini gönderin, üretilebilirliğini birlikte netleştirelim. Siteden kartla online sipariş verebilir; ölçü danışmak ve özel işler için WhatsApp hattımızdan yazabilirsiniz: <strong>+90 545 138 6526</strong>.</p>
+<p>Benzer işler için: <a href="/elektronik-cihaz-plastik-parca-uretimi/">elektronik cihaz plastik parça üretimi</a>, <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parça özel üretim</a> ve <a href="/malzeme-rehberi/">malzeme rehberi</a>.</p>""")
+
+
+def _oyuncak_hobi_model_plastik_parca_uretimi():
+    return (u"""<h1>Oyuncak, Hobi ve Maket Plastik Parçalarının Özel Üretimi</h1>
+<p>Kırılan bir oyuncak parçası, kaybolan bir kutu oyunu pulu ya da maket-kitinizde eksik kalan tek bir bağlantı — çoğu zaman bütün seti bloke eden şey işte bu küçük parçadır. Piyasada bulunamayan, üretimi durmuş ya da hiç yedeği satılmayan bu parçaları <strong>ölçüye özel üretiyoruz</strong>. Ölçü sizden, üretim bizden.</p>
+<p>Oyuncaklar, kutu oyunları, maketler ve koleksiyon figürleri genellikle özel kalıplarla, artık tedarik edilemeyen parçalarla gelir. Tek bir dişli, klips, ayak, mafsal ya da bağlantı elemanı kırıldığında ürünün tamamı kullanılamaz hale gelebilir. Biz eldeki parçayı ya da kırığın izini referans alarak birebir yenisini <strong>özel tasarım üretim</strong> ile çıkarıyoruz.</p>
+<p>Kutu oyunlarında kaybolan pullar, tokenlar, standlar ve tutucular; maket ve kit dünyasında eksik gövde parçaları, bağlantı pimleri ve tabanlar; koleksiyon figürlerinde kırılan kol, silah, aksesuar ya da sehpa parçaları için tek adetten üretim yapıyoruz. Elinizde örnek yoksa fotoğraf ve ölçüyle de yola çıkabiliriz.</p>
+<p>Not: Uçan ya da süren radyo kontrollü araç parçaları için ayrı bir çalışma alanımız var — onun için <a href="/drone-rc-model-plastik-parca-uretimi/">drone ve RC model plastik parça üretimi</a> sayfasına bakın. Bu sayfa oyuncak, kutu oyunu, maket ve figür nişine odaklıdır.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık parçayı, örneği ya da net fotoğrafı bize ulaştırın. WhatsApp'tan görsel ve ölçü paylaşmak en hızlısıdır.</li>
+<li><strong>Ölç</strong> — Parçanın kritik ölçülerini (bağlantı çapı, kalınlık, delik aralığı, uzunluk) birlikte netleştiriyoruz. Ölçü sizde yoksa örnek üzerinden biz alıyoruz.</li>
+<li><strong>Üret</strong> — Doğru malzemeyle ölçüye özel üretip size gönderiyoruz.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Birebir ölçü</strong> — parçanın boyutu, kalınlığı, bağlantı çapı ve delik konumları eldeki örneğe göre milimetrik ayarlanır.</li>
+<li><strong>Bağlantı biçimi</strong> — geçmeli pim, klips, vidalı ya da yapıştırma bağlantı; mevcut ürünle uyumlu olacak şekilde.</li>
+<li><strong>Adet</strong> — tek parçadan küçük seriye; yalnızca ihtiyacınız kadar üretiriz.</li>
+<li><strong>Yüzey ve netlik</strong> — düz ya da dokulu yüzey, keskin ya da yumuşatılmış kenar seçeneği.</li>
+<li><strong>Farklı renk seçenekleri</strong> — sete uyacak makul bir renk üzerinde anlaşırız.</li>
+</ul>
+<p>Sadece tek bir eksik parça mı arıyorsunuz? <a href="/tek-adet-ozel-parca-uretimi/">Tek adet özel parça üretimi</a> tam bu iş için.</p>
+<h2>Doğru malzeme</h2>
+<p>Kullanım yerine göre malzemeyi seçiyoruz. Görünür, düşük yük alan iç parçalarda standart malzeme yeterli olur. Sık takıp çıkarılan, esnemesi ya da güneş/nem görmesi gereken parçalarda <strong>PETG, ASA veya PC</strong> (ısı, UV ve neme dayanıklı) tercih ederiz. Mafsal, dişli, taşıyıcı klips gibi zorlanan parçalarda <strong>karbon/cam fiber takviyeli PA-CF / PA-GF</strong> ile yüksek mukavemet sağlarız.</p>
+<h2>Dürüst sınır</h2>
+<p>Bunlar hobi ve oyuncak amaçlı, hafif kullanım parçalarıdır; ağır darbe ya da sürekli yük altında çalışan mekanik parçaların yerini tutmaz. Küçük çocukların kullandığı oyuncaklarda küçük/ayrılabilir parça yutma riski ve malzeme güvenliği sizin sorumluluğunuzdadır; bu tür ürünlerde kullanım amacını bize önceden belirtin, uygun malzeme ve tasarıma birlikte karar verelim. Neyin dayanacağını, neyin dayanmayacağını baştan açıkça söyleriz.</p>
+<p>İlgili bir ihtiyaç: <a href="/kirik-plastik-parca-yaptirma/">kırık plastik parça yaptırma</a>.</p>
+<h2>Sipariş</h2>
+<p>Parçanızın fotoğrafını ve ölçüsünü WhatsApp <strong>+90 545 138 6526</strong> hattına gönderin; üretilebilirliğini ve seçenekleri birlikte netleştirelim. Onay sonrası siteden kartla online ödeyerek siparişinizi tamamlayabilirsiniz. Ölçü sizden, üretim bizden.</p>""")
+
+
+def _klima_kombi_havalandirma_plastik_parca_uretimi():
+    return (u"""<h1>Klima, Kombi ve Havalandırma Plastik Parçalarının Özel Üretimi</h1>
+<p>Klimanızın kırılan swing kanadı, kombinizin çatlayan bir plastik parçası ya da havalandırma cihazının yerine takılacak parça piyasada bulunamıyor mu? Cihaz sağlam, ama küçük bir plastik parça yüzünden çalışmıyor. Bu parçayı ölçüsüne göre özel üretiyoruz. <strong>Ölçü sizden, üretim bizden.</strong></p>
+<p>Klima, kombi ve havalandırma cihazlarındaki plastik parçalar zamanla kırılır, çatlar veya güneş ve nemle kırılganlaşır. Üreticiden yedek parça çoğu zaman bulunamaz; bulunsa bile eski modellerde temin süresi uzar. Cihazın tamamını değiştirmek ise gereksiz bir maliyettir.</p>
+<p>Elimize gelen kırık swing kanadını, panjur dilini, drenaj tavası parçasını, filtre çerçevesini veya ön panel klipsini inceleyip milimetrik ölçüsüne göre yeniden üretiyoruz. Parça kırıksa bile eldeki parçalardan ve ölçülerden aslına uygun bir kopya çıkarabiliyoruz. Amacımız cihazınızı tekrar çalışır hale getiren, tam oturan bir parça teslim etmek.</p>
+<p>Klima kanat parçası üretimi, kombi plastik parça yaptırma ve havalandırma cihazı parçası işlerinde en çok karşılaştığımız sorun, parçanın hem ölçü hem de dayanıklılık olarak doğru olmaması. Biz ikisini birden çözüyoruz.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık ya da eskimiş parçayı bize ulaştırın; fotoğraf ve ölçüyle de başlayabiliriz.</li>
+<li><strong>Ölç</strong> — Parçayı milimetrik ölçer, montaj noktalarını ve klips/vida yerlerini birebir çıkarırız.</li>
+<li><strong>Üret</strong> — Doğru malzemeyle ölçüye özel üretir, cihazınıza tam oturan parçayı teslim ederiz.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<p>Her cihaz parçası kendi ölçüsüne göre çıkar; standart kalıp yoktur. Sizinle netleştirdiğimiz noktalar:</p>
+<ul>
+<li><strong>Parça tipi</strong> — swing/salınım kanadı, panjur dili, drenaj tavası parçası, filtre/ızgara çerçevesi, ön panel klipsi, kablo/hortum tutucusu.</li>
+<li><strong>Montaj detayı</strong> — klips geçmeli mi, vidalı mı; menteşe/pim yeri, kanca ve tırnak konumları birebir korunur.</li>
+<li><strong>Ölçü ve tolerans</strong> — dış ölçü, kalınlık ve oturma boşluğu cihaza tam geçecek şekilde ayarlanır.</li>
+<li><strong>Kullanım koşulu</strong> — iç mekân mı, nemli/ıslak bölge mi, ısıya yakın mı; malzeme buna göre seçilir.</li>
+<li><strong>Renk</strong> — cihaz gövdesine yakın, farklı renk seçenekleri arasından uygun olanı belirleriz.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Sıradan plastik güneş ve nemde kısa sürede kırılır. Parçanın çalışacağı yere göre doğru malzemeyi seçiyoruz: standart kullanım için dayanıklı seçenekler; ısı, UV ve neme maruz kalan drenaj/dış panel parçalarında <strong>PETG, ASA veya PC</strong>; yük taşıyan, sürekli hareket eden ya da yüksek mukavemet isteyen parçalarda <strong>karbon veya cam elyaf takviyeli (PA-CF / PA-GF)</strong> malzemeler. Böylece parça bir sonraki yaza değil, uzun yıllara dayanır.</p>
+<h2>Dürüst sınır</h2>
+<p>Açık söyleyelim: kombinin yanma bölgesine temas eden veya sürekli yüksek sıcaklığa maruz kalan parçaları özel plastikle üretmiyoruz — bu, malzemenin sınırının dışındadır ve güvenli olmaz. Bizim alanımız klima kanat/panjur, drenaj ve tava parçaları, filtre çerçeveleri, panel ve klips gibi ısıl yük taşımayan plastik parçalardır. Parçanızın nereye takıldığını sorar, sınırın dışındaysa dürüstçe söyleriz.</p>
+<p>Cihaz değil de duvara ya da tavana geçen bir menfez/ızgara paneli arıyorsanız, o iş için <a href="/olcuye-ozel-izgara-petek-uretimi/">ölçüye özel ızgara ve petek üretimi</a> sayfamıza bakın. Beyaz eşya parçaları için <a href="/beyaz-esya-plastik-parca-uretimi/">beyaz eşya plastik parça üretimi</a>, malzeme seçimi için <a href="/malzeme-rehberi/">malzeme rehberi</a> sayfalarımız yardımcı olur.</p>
+<h2>Sipariş</h2>
+<p>Kırık parçanızın fotoğrafını ve ölçüsünü WhatsApp hattımızdan gönderin: <strong>+90 545 138 6526</strong>. Ölçüyü birlikte netleştirir, uygun malzemeyi öneririz. Onay verdiğinizde siteden kartla online ödemeyle siparişinizi tamamlarsınız. Ölçü sizden, üretim bizden.</p>""")
+
+
+def _aydinlatma_armatur_plastik_parca_uretimi():
+    return (u"""<h1>Aydınlatma ve Armatür Plastik Parçalarının Özel Üretimi</h1>
+<p>Avize, spot, lamba ya da armatürünüzün kırılan plastik parçasını piyasada bulamıyorsanız, o parçayı ölçüsüne göre yeniden üretiyoruz. Ölçü sizden, üretim bizden.</p>
+<p>Aydınlatma ürünlerinde arızalanan çoğu şey ampul değil, onu tutan küçük plastik parçadır: kırılan duy tutucu bracket, kopan difüzör klipsi, çatlayan montaj halkası, eksik spot çerçevesi ya da yerinden çıkan lamba tabanı. Bu parçalar çoğu zaman ürüne özeldir; markası kalkmış, modeli belirsiz veya çoktan üretimden kalkmıştır. Tek bir parça için koca armatürü değiştirmek de mantıklı değildir.</p>
+<p>Biz tam da bu noktada devreye giriyoruz. Elinizdeki kırık parçayı ya da bağlanacağı yuvayı esas alıp, aynı ölçülerde yenisini özel tasarım üretimle çıkarıyoruz. Aydınlatma plastik parça üretiminde amaç, parçanın hem geometrik olarak yerine oturması hem de bulunacağı koşula uygun malzemeden olmasıdır.</p>
+<p>Spot montaj halkası üretimi, avize parçası yaptırma, duy tutucu üretimi ya da lamba plastik parça ihtiyacınız ne olursa olsun, süreç aynıdır: parçayı anlıyoruz, ölçüyoruz, üretiyoruz.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık ya da eksik parçayı, elinizde varsa örneğini bize ulaştırın. Parça kırıksa parçaları da saklayın; ölçü çıkarmamıza yardımcı olur.</li>
+<li><strong>Ölç</strong> — Parçayı ve bağlandığı yuvayı milimetrik ölçüyoruz. Delik aralığı, çap, kanca geometrisi, klips tırnağı gibi kritik noktaları birebir çıkarıyoruz.</li>
+<li><strong>Üret</strong> — Doğru malzemeyi seçip parçayı ölçünüze özel üretiyoruz. Yerine takılıp çalıştığından emin oluyoruz.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Parça tipi:</strong> duy tutucu bracket, difüzör/cam klipsi, montaj halkası, spot çerçevesi, avize kolu bağlantısı, lamba tabanı.</li>
+<li><strong>Bağlantı ölçüleri:</strong> vida deliği aralığı, çap, tırnak/klips geometrisi, kanca açısı — hepsi mevcut yuvanıza göre.</li>
+<li><strong>Difüzör/cam tutuş biçimi:</strong> klipsli, vidalı ya da geçmeli.</li>
+<li><strong>Malzeme sınıfı:</strong> kullanılacağı sıcaklık ve yük durumuna göre seçiyoruz.</li>
+</ul>
+<p>Kısacası ürünün kendi ölçülerini esas alıyoruz; genel geçer değil, elinizdeki parçanın gerçeğine göre.</p>
+<h2>Doğru malzeme</h2>
+<p>Malzemeyi parçanın çalışacağı yere göre seçiyoruz. Isıya ve yüke uzak montaj parçalarında standart malzeme yeterlidir. Isınabilen ortam ya da nemli/UV koşula açık noktalarda PETG, ASA veya PC gibi dayanıklı malzemelere çıkıyoruz. Mekanik olarak zorlanan, taşıyıcı bağlantılarda ise karbon veya cam fiber takviyeli (PA-CF / PA-GF) yüksek mukavemetli malzemeleri kullanıyoruz. Farklı renk seçenekleri sunabiliyoruz.</p>
+<h2>Dürüst sınır</h2>
+<p>Açık olalım: ampule ya da ısı kaynağına çok yakın, sürekli yüksek sıcaklığa maruz kalan noktalar plastik parçanın sınırıdır. Doğrudan ısınan cam yuvası ya da güçlü halojen ampule temas eden bir bileşen için plastik doğru çözüm olmaz. Ancak ısı kaynağından uzaktaki montaj, tutuş ve bağlantı parçalarında — bracket, klips, halka, çerçeve, taban — ölçüye özel ürettiğimiz parça uzun süre iş görür. Parçanızın bulunduğu yeri konuşalım, ısıya yakınsa sizi doğru malzemeye yönlendirir, uygun değilse açıkça söyleriz.</p>
+<p>Ayrıca daha genel kırık plastik parça ihtiyaçları için <a href="/kirik-plastik-parca-yaptirma/">kırık plastik parça yaptırma</a>, cihaz içi parçalar için <a href="/elektronik-cihaz-plastik-parca-uretimi/">elektronik cihaz plastik parça üretimi</a> sayfalarına, malzeme seçimini detaylı görmek için <a href="/malzeme-rehberi/">malzeme rehberine</a> bakabilirsiniz.</p>
+<h2>Sipariş</h2>
+<p>Elinizdeki parçayı anlatın, birlikte doğru malzemeyi belirleyelim. Siparişinizi siteden kartla online verebilir ya da ölçü ve parça danışması için WhatsApp hattımızdan yazabilirsiniz: <strong>+90 545 138 6526</strong>. Ölçü sizden, üretim bizden.</p>""")
+
+
+def _ofis_ekipmani_plastik_parca_uretimi():
+    return (u"""<h1>Ofis Makinesi ve Ekipmanı Plastik Parçalarının Özel Üretimi</h1>
+<p>Kırılan ofis parçasını bize getirin ya da ölçüsünü iletin; ölçüye özel, doğru malzemeden yeni parçasını üretelim.</p>
+<p>Ofis makineleri ve mobilyaları yıllarca çalışır, ama küçük bir plastik parça kırıldığında koca cihaz kullanılmaz hale gelir. Fotokopi/tarayıcı makinesindeki bir dişli aşınır, evrak imha makinesinde bir klips kopar, ofis koltuğunun mekanizma kolu çatlar — ve o parça artık hiçbir yerde bulunmaz. Model eskimiştir, üretici parçayı ayrı satmaz ya da tüm mekanizmayı yenilemeniz istenir.</p>
+<p>Biz tam da bu noktada devreye giriyoruz. Piyasada bulunamayan, kırılan ya da eskiyen plastik parçayı milimetrik ölçüye göre yeniden üretiyoruz. <strong>Ofis ekipmanı plastik parça üretimi</strong> işinde çalışma mantığımız net: elinizdeki parçayı ölçü referansı alırız, kırık yerleri tamamlarız, gerekiyorsa dayanımı orijinalinden yüksek malzemeyle güçlendiririz. Ofis koltuğu parçası üretimi ya da ofis makinesi plastik parça yaptırma — hangi cihaz olursa olsun işleyiş aynı.</p>
+<p>Fotokopi/tarayıcı makinesi dişlisi ve rulmanı, evrak imha makinesi parçası, laminasyon makinesi parçası, ciltleme aparatı, ofis koltuğu piston kapağı ve taban parçaları, kırtasiye ve sunum/pano aparatları — hepsi ölçüye özel çıkabilir. Aynı yaklaşımı <a href="/ev-aleti-plastik-disli-parca-uretimi/">ev aletlerindeki plastik dişli ve parçalarda</a> ve <a href="/elektronik-cihaz-plastik-parca-uretimi/">elektronik cihaz plastik parçalarında</a> da uyguluyoruz.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık parçayı yanınızda getirin ya da fotoğrafı ve ölçüleriyle WhatsApp'tan iletin.</li>
+<li><strong>Ölç</strong> — Parçayı milimetrik ölçeriz; delik çapları, diş sayısı, bağlantı noktaları ve kırık bölgeleri çıkarırız.</li>
+<li><strong>Üret</strong> — Ölçüye ve kullanım yerine uygun malzemeyle yeni parçayı üretir, size teslim ederiz.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Parça tipi:</strong> dişli, rulman yatağı, klips, kol, kapak, taban, braket, aparat — ne kırıldıysa.</li>
+<li><strong>Ölçü ve delik eşleme:</strong> dış ölçü, delik çapı ve aks aralığı orijinaliyle birebir eşlenir.</li>
+<li><strong>Bağlantı ve montaj:</strong> vida yuvası, geçme tırnak, kanal ve pim noktaları yerine oturur.</li>
+<li><strong>Dayanım kademesi:</strong> normal kullanım mı, sürekli yük mü, ısı yanında mı — ona göre malzeme.</li>
+<li><strong>Farklı renk seçenekleri:</strong> görünür parçalarda mevcut renge yakın seçenekler sunarız.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Her parça aynı malzemeyi istemez. Az yük gören iç parçalarda standart mühendislik plastiği yeterlidir. Sürekli sürtünen, ısıya ya da neme yakın çalışan parçalarda PETG, ASA veya PC gibi dayanıklı malzemelere geçeriz. Yüksek mukavemet gereken dişli ve yük taşıyan parçalarda ise karbon ya da cam elyaf takviyeli PA-CF / PA-GF kullanırız. Hangi parçaya hangi malzemenin uyduğunu <a href="/malzeme-rehberi/">malzeme rehberimizde</a> ayrıntılı anlatıyoruz.</p>
+<h2>Dürüst sınır</h2>
+<p>Ürettiğimiz parçalar mekanizma, bağlantı ve hafif–orta yük işleri içindir; <strong>ofis makinesi dişli üretimi</strong> ve benzeri işlerde orijinaline yakın, çoğu zaman daha dayanıklı sonuç alırsınız. Ancak ağır yük altında ezilen ya da yüksek tork taşıyan metal bir parçanın yerini plastik tutmaz — böyle bir durumda parçayı doğru malzemeye yönlendirir, gerçekçi sınırı açıkça söyleriz.</p>
+<h2>Sipariş</h2>
+<p>Ölçü sizden, üretim bizden. Sipariş ve ölçü danışmanlığı için siteden kartla online sipariş verebilir ya da WhatsApp'tan +90 545 138 6526 numarasına yazabilirsiniz. Kırık parçanızı anlatın, size en uygun çözümü birlikte netleştirelim.</p>""")
+
+
+def _muzik_enstruman_plastik_parca_uretimi():
+    return (u"""<h1>Müzik Enstrümanı Plastik Parçalarının Özel Üretimi</h1>
+<p>Akort düğmesi kırıldı, köprü pini kayboldu, nefesli çalgının valf kapağı çatladı ya da klavyenin bir tuşu eksik. Enstrüman sağlam duruyor ama tek bir küçük plastik parça yüzünden çalınamıyor. Bu parçaların çoğu artık üretilmiyor, modeli bulunamıyor veya sırf o parça için koca bir set almak gerekiyor. PRUVO tam burada devreye girer: elinizdeki parçayı ölçüp ölçünüze özel yeniden üretiriz. <strong>Ölçü sizden, üretim bizden.</strong></p>
+<p>Enstrüman plastik parça üretimi, seri kalıp mantığıyla değil, tek parçaya odaklanarak yapılır. Kırık gitar akort düğmesini, eksik köprü pinini, nefesli çalgı valf kapağını, klavye tuşunu, çene ya da başparmak dayamasını, kopan klipsi orijinaline sadık kalarak yeniden üretiriz. Elinizdeki örnek parça kırık bile olsa, kalan parçalardan ve ölçülerden hareketle doğru geometriyi çıkarırız.</p>
+<p>Gitar plastik parça yaptırma, nefesli çalgı parçası ya da klavye tuşu üretimi gibi işlerde en büyük kazanç, tek parça için bütün enstrümanı ya da pahalı setleri elden çıkarmak zorunda kalmamanızdır. Bulunamayan yedek parçayı, modeli piyasadan kalkmış bir çalgının küçük ama kritik bileşenini ölçüye özel üretiriz.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık ya da eksik parçayı bize ulaştırın; parça yoksa ölçülerini ve fotoğraflarını iletin. WhatsApp'tan hızlıca danışabilirsiniz.</li>
+<li><strong>Ölç</strong> — Parçanın boyutlarını, delik/vida yerlerini, oturma geometrisini milimetrik çıkarırız. Kritik parçada nasıl kullanacağınızı sorar, buna göre yönlendiririz.</li>
+<li><strong>Üret</strong> — Onayınızın ardından ölçüye özel üretir, kontrol edip göndeririz.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<p>Her enstrüman parçası kendine özgü olduğundan, üretimi sizin parçanıza göre ayarlarız:</p>
+<ul>
+<li><strong>Birebir ölçü</strong> — Kırık akort düğmesi, köprü pini, valf kapağı; orijinalin boyutlarına ve oturma yerine göre.</li>
+<li><strong>Bağlantı ve oturma detayı</strong> — Vida yuvası, mil deliği, geçme klips, dişli oturması: enstrümanınıza tam oturacak şekilde.</li>
+<li><strong>Form ve profil</strong> — Çene/başparmak dayamasının eğrisi, tuşun yüzey profili, düğmenin kavrama şekli.</li>
+<li><strong>Renk uyumu</strong> — Enstrümanın mevcut parçalarına yakın, farklı renk seçenekleriyle bütünlük.</li>
+</ul>
+<p>Elinizde örnek varsa ona göre, yoksa marka-model ve ölçü bilgisiyle çıkarım yaparak üretiriz.</p>
+<h2>Doğru malzeme</h2>
+<p>Malzeme, parçanın nerede ve nasıl çalışacağına göre seçilir. Az yük gören iç parçalarda standart malzeme yeterlidir. Isı, nem ve UV'ye maruz kalan (sahne, taşıma, dış ortam) parçalarda <strong>PETG, ASA veya PC</strong> kullanırız. Yüksek mukavemet ve tekrarlı kuvvet gereken yerlerde <strong>karbon veya cam fiber takviyeli (PA-CF / PA-GF)</strong> malzemeye çıkarız. Doğru malzeme, parçanın hem dayanmasını hem de enstrümanınıza zarar vermemesini sağlar.</p>
+<h2>Dürüst sınır</h2>
+<p>Sesi ve rezonansı doğrudan belirleyen kritik bileşenlerde (örneğin köprü, eşik gibi tınıyı taşıyan parçalar) plastik üretim her zaman en doğru tercih olmayabilir; bu tür parçalarda malzeme ve kullanım danışmanlığı vererek sizi yönlendiririz. Düğme, kapak, tuş, dayama ve klips gibi mekanik/ergonomik parçalarda ise ölçüye özel üretim güçlü ve kalıcı bir çözümdür. Beklentiyi baştan net konuşur, işe yaramayacak bir üretime girmeyiz.</p>
+<p>İlgili işler: <a href="/kirik-plastik-parca-yaptirma/">kırık plastik parça yaptırma</a>, <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parça özel üretim</a> ve malzeme seçimi için <a href="/malzeme-rehberi/">malzeme rehberi</a>.</p>
+<h2>Sipariş</h2>
+<p>Elinizdeki parçayı ölçüp fiyat verelim. Sitemizden kartla online sipariş verebilir ya da parçanızı fotoğraflayıp WhatsApp <strong>+90 545 138 6526</strong> üzerinden danışabilirsiniz. Kırık düğmeden eksik tuşa, enstrümanınızı yeniden çalınır hale getiren parçayı ölçünüze özel üretiriz.</p>""")
+
+
+def _akvaryum_terraryum_plastik_parca_uretimi():
+    return (u"""<h1>Akvaryum ve Teraryum Plastik Parçalarının Özel Üretimi</h1>
+<p>Akvaryumunuzun ya da teraryumunuzun bir plastik parçası kırıldığında yenisini bulmak çoğu zaman imkânsızdır: model eski, marka artık üretmiyor ya da parça tek başına satılmıyor. PRUVO'da çözüm basit — parçayı getirin, ölçüsünü alalım, ölçünüze özel yeniden üretelim. Ölçü sizden, üretim bizden.</p>
+<p>Filtre klipsi, çıkış borusu ya da lülesi, kapak menteşesi, hortum tutucu, yemleme kapağı — akvaryum ve teraryum sistemlerinin en çok kırılan küçük plastik parçaları bunlardır. Piyasada tek tek bulunmadıkları için genelde koca bir ekipmanı elden çıkarmanız gerekir. Oysa çoğu zaman eksik olan tek bir tutucu ya da bir menteşedir.</p>
+<p>Biz bu niş parçaları tek tek, akvaryum plastik parça üretimi mantığıyla ele alıyoruz. Elinizdeki kırık parçayı örnek alarak yenisini çıkarabilir, parça tamamen kayıpsa fotoğraf ve ölçülerle birlikte hangi noktaya oturması gerektiğini konuşarak yeniden tasarlayabiliriz. Teraryum parçası yaptırma taleplerinde de aynı yol geçerli: kapak kelepçesinden havalandırma ızgarasına kadar ölçüye özel üretiyoruz.</p>
+<p>Sürekli suyla ve canlıyla temas eden bir ortam olduğu için malzeme seçimi burada işin en kritik yanı. Doğru malzemeyle üretilen bir parça yıllarca dayanırken, yanlış seçim kısa sürede kırılganlaşır. Bu yüzden her parçayı çalışacağı yere göre değerlendiriyoruz.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık ya da eksik parçayı bize ulaştırın; parça yoksa ölçülerini ve nereye oturduğunu fotoğrafla paylaşın.</li>
+<li><strong>Ölç</strong> — Bağlantı noktalarını, çap ve kalınlıkları milimetrik ölçeriz; oturma toleransını sizinle netleştiririz.</li>
+<li><strong>Üret</strong> — Ölçünüze ve kullanım koşulunuza uygun malzemeyle özel üretir, size ulaştırırız.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Bağlantı ölçüsü</strong> — hortum çapı, boru dış çapı, klips genişliği ve menteşe pim aralığı sizin sisteminize göre.</li>
+<li><strong>Parça tipi</strong> — filtre klipsi, çıkış borusu / lüle, kapak menteşesi, hortum tutucu, yemleme kapağı ve benzeri küçük parçalar.</li>
+<li><strong>Kalınlık ve sağlamlık</strong> — hafif tutucudan yük taşıyan menteşeye göre et kalınlığı ayarı.</li>
+<li><strong>Yüzey ve oturma</strong> — düz ya da kavisli yüzeye tam oturacak biçim; kayması istenmeyen yerlerde sıkı geçme.</li>
+<li><strong>Renk</strong> — koyu ya da açık, sisteminize uygun farklı renk seçenekleri.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Akvaryum ve teraryum ortamı sürekli nem, su teması ve çoğu zaman UV'li aydınlatma demek. Sıradan malzeme burada uzun ömürlü olmaz. Bu yüzden nem, ısı ve UV'ye dayanıklı <strong>PETG, ASA ve PC</strong> grubu malzemelerle çalışırız. Menteşe gibi tekrarlayan yük altındaki parçalar için ise <strong>karbon ya da cam fiber takviyeli (PA-CF / PA-GF)</strong> yüksek mukavemetli seçeneklere geçeriz. Hangi parçanın hangi malzemeyle üretileceğini kullanım koşulunuzu dinleyerek beraber belirleriz.</p>
+<h2>Dürüst sınır</h2>
+<p>Ürettiğimiz parçalar akvaryum ve teraryumun hafif kullanımı içindir: tutma, klipsleme, yönlendirme, kapak ve menteşe işlevleri. Sürekli su altında kalan ya da canlı-gıda ile doğrudan temas eden parçalarda malzeme danışması şarttır — bunu peşinen konuşuruz. Ürettiğimiz parça basınçlı sızdırmazlık contası değildir; yüksek basınçlı hat ya da tam su geçirmezlik gerektiren yerlerde sınırımızı açıkça söyleriz.</p>
+<p>Aynı mantıkla üretilen diğer işler için <a href="/kirik-plastik-parca-yaptirma/">kırık plastik parça yaptırma</a> ve <a href="/olcuye-ozel-klips-kelepce-uretimi/">ölçüye özel klips ve kelepçe üretimi</a> sayfalarına, malzeme seçiminin ayrıntısı için <a href="/malzeme-rehberi/">malzeme rehberi</a>ne göz atabilirsiniz.</p>
+<h2>Sipariş</h2>
+<p>Ölçüsü belli parçalar için siteden kartla online sipariş verebilirsiniz. Emin olmadığınız, özel ölçü ya da malzeme danışması gereken işlerde WhatsApp hattımızdan yazın: <strong>+90 545 138 6526</strong>. Parçanızı getirin, ölçelim, ölçünüze özel üretelim.</p>""")
+
+
 # build.py'nin ÜRETTİĞİ yeni sayfalar (hakkimizda/iletisim/sss/gizlilik zaten
 # elle yapılmış statik dosya olarak repo'da; onlar üretilmez, korunur).
 # slug -> (başlık, meta açıklama, gövde fonksiyonu)
@@ -1745,6 +2069,17 @@ CONTENT_PAGES = [
     ('mobilya-plastik-baglanti-ayak-parca-uretimi', 'Mobilya Plastik Bağlantı ve Ayak Parçası', 'Kırılan mobilya bağlantısını, ayağını, kayar pabucunu ya da geçme parçasını ölçünüze göre üretiyoruz. Numune yeter, tek adet. Getir, ölç, üret.', _mobilya_plastik_baglanti_ayak_parca_uretimi),
     ('drone-rc-model-plastik-parca-uretimi', 'Drone ve RC Model Plastik Parça Üretimi', 'Kırılan drone gövdesi, motor kolu, iniş takımı ya da RC model parçasını numuneden ölçüye özel üretiyoruz. Hafif ve dayanıklı malzeme. Getir, ölç, üret.', _drone_rc_model_plastik_parca_uretimi),
     ('ev-aleti-plastik-disli-parca-uretimi', 'Ev Aleti Plastik Dişli ve Parça Üretimi', 'Mutfak robotu, blender, kıyma makinesi ya da mikserin kırılan plastik dişlisini ve parçasını numuneden ölçüye özel üretiyoruz. Yüke göre takviyeli malzeme.', _ev_aleti_plastik_disli_parca_uretimi),
+    ('olcuye-ozel-cetvel-mastar-sablon-uretimi', 'Ölçüye Özel Cetvel, Gönye ve Mastar Üretimi', 'Cetvel, gönye ve ölçü mastarını boyunuza göre üretiyoruz: metrik/inç, kabartma ya da oyma taksimat, tek/çift yüz, isim-logo işlenir. Getir, ölç, üret.', _olcuye_ozel_cetvel_mastar_sablon_uretimi),
+    ('olcuye-ozel-koruma-kapagi-muhafaza-uretimi', 'Ölçüye Özel Koruma Kapağı ve Muhafaza Üretimi', 'Dişli, kayış, terminal, sensör ya da bağlantıyı toz ve darbeden koruyan kapak ve muhafazayı ölçünüze göre üretiyoruz. Yük-dışı koruma. Getir, ölç, üret.', _olcuye_ozel_koruma_kapagi_muhafaza_uretimi),
+    ('olcuye-ozel-adaptor-reduksiyon-gecis-uretimi', 'Ölçüye Özel Adaptör, Redüksiyon ve Geçiş Üretimi', 'İki farklı çapı birleştiren adaptör, redüksiyon ve geçiş parçasını ölçünüze göre üretiyoruz: giriş/çıkış çapı, geçmeli ya da dişli. Düşük-orta basınç.', _olcuye_ozel_adaptor_reduksiyon_gecis_uretimi),
+    ('bisiklet-plastik-parca-ozel-uretim', 'Bisiklet Plastik Parça ve Aksesuar Özel Üretimi', 'Kırılan ya da bulunamayan bisiklet plastik parçasını numuneden ölçüye özel üretiyoruz: çamurluk bağlantısı, şişelik, kablo yönlendirici, klips. Getir, ölç, üret.', _bisiklet_plastik_parca_ozel_uretim),
+    ('kamera-optik-aksesuar-plastik-parca-uretimi', 'Kamera ve Optik Aksesuar Plastik Parça Üretimi', 'Kırılan kamera, tripod ya da optik aksesuar plastik parçasını numuneden ölçüye özel üretiyoruz: pil kapağı, ayak bağlantısı, flaş kızağı, lens parası.', _kamera_optik_aksesuar_plastik_parca_uretimi),
+    ('oyuncak-hobi-model-plastik-parca-uretimi', 'Oyuncak, Hobi ve Maket Plastik Parça Üretimi', 'Kırılan ya da kaybolan oyuncak, kutu oyunu, maket ve koleksiyon parçasını numuneden ölçüye özel üretiyoruz. Tek adet olur. Getir, ölç, üret.', _oyuncak_hobi_model_plastik_parca_uretimi),
+    ('klima-kombi-havalandirma-plastik-parca-uretimi', 'Klima, Kombi ve Havalandırma Plastik Parça Üretimi', 'Klima, kombi ya da havalandırma cihazının kırılan plastik parçasını numuneden ölçüye özel üretiyoruz: kanat, panjur, drenaj, klips. Isı sınırını açık söyleriz.', _klima_kombi_havalandirma_plastik_parca_uretimi),
+    ('aydinlatma-armatur-plastik-parca-uretimi', 'Aydınlatma ve Armatür Plastik Parça Üretimi', 'Avize, spot, armatür ya da lamba plastik parçasını numuneden ölçüye özel üretiyoruz: soket tutucu, difüzör klipsi, montaj halkası, kapak. Isıya yakınlık sınırı.', _aydinlatma_armatur_plastik_parca_uretimi),
+    ('ofis-ekipmani-plastik-parca-uretimi', 'Ofis Makinesi ve Ekipmanı Plastik Parça Üretimi', 'Fotokopi, evrak imha, laminasyon ya da ofis koltuğu mekanizmasının kırılan plastik parçasını numuneden ölçüye özel üretiyoruz. Tek adet olur. Getir, ölç, üret.', _ofis_ekipmani_plastik_parca_uretimi),
+    ('muzik-enstruman-plastik-parca-uretimi', 'Müzik Enstrümanı Plastik Parça Özel Üretimi', 'Gitar, nefesli ya da klavye enstrümanının kırılan plastik parçasını numuneden ölçüye özel üretiyoruz: akort düğmesi, tuş, klips, dayama. Getir, ölç, üret.', _muzik_enstruman_plastik_parca_uretimi),
+    ('akvaryum-terraryum-plastik-parca-uretimi', 'Akvaryum ve Teraryum Plastik Parça Üretimi', 'Akvaryum ya da teraryumun kırılan plastik parçasını numuneden ölçüye özel üretiyoruz: filtre klipsi, çıkış borusu, kapak menteşesi, hortum tutucu. Suya dayanıklı.', _akvaryum_terraryum_plastik_parca_uretimi),
 ]
 
 # Statik içerik/yasal sayfalar: elle yazılmış, build.py ÜRETMEZ (repo'da commit'li), korunur.
