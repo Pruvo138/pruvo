@@ -43,11 +43,12 @@ PLAT = {
     "MyMiniFactory": ("myminifactory-ara.py", "myminifactory-ekle.py"),
     "Thingiverse": ("thing-ara.py", "urun-ekle.py"),
     "Printables": ("printables-ara.py", "printables-ekle.py"),
+    "********": ("cgt-ara.py", "cgt-ekle.py"),
 }
 
 # `--derin` bayragini destekleyen ara adaptorleri (keeper-cap'i havuzdan ayirir; 2026-07-18).
 # Bu sette olan platformlar icin derin modda per_max KALDIRILIR -> TUM ham havuz yargiya gider.
-DERIN_DESTEK = {"Thingiverse", "Printables", "MakerWorld", "MyMiniFactory"}
+DERIN_DESTEK = {"Thingiverse", "Printables", "MakerWorld", "MyMiniFactory", "********"}
 
 YARGI_SEMA = {
     "type": "object",

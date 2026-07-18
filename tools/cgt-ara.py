@@ -173,7 +173,7 @@ def mevcut_yollar():
     return yollar
 
 
-def main(term, maxn):
+def main(term, maxn, derin=False, cikis_limiti=None):
     mevcut = mevcut_yollar()
     gecen = []
     elenen_marka, elenen_islev, elenen_ekli = [], collections.Counter(), 0
@@ -195,9 +195,13 @@ def main(term, maxn):
                 elenen_islev[neden] += 1
                 if len(ornek_islev[neden]) < 3:
                     ornek_islev[neden].append(path.split("/")[-1][:48])
-        if len(gecen) >= maxn:          # yeterince islevsel aday bulundu -> derinlemeye gerek yok
+            if not derin and len(gecen) >= maxn:  # eski davranis: keeper-cap'te DUR
+                break
+        if not derin and len(gecen) >= maxn:  # yeterince islevsel aday bulundu -> derinlemeye gerek yok
             break
 
+    if cikis_limiti is not None:
+        gecen = gecen[:cikis_limiti]
     print("=== ******** MARKA ARAMA: '%s' (taranan sayfa: %d) ===" % (term, son_sayfa))
     print("Taranan aday yol: %d | zaten-ekli %d | marka-alakasiz(\\b%s\\b slug'da yok) %d | islevsel-degil %d"
           % (taranan, elenen_ekli, term, len(elenen_marka), sum(elenen_islev.values())))
@@ -216,9 +220,18 @@ def main(term, maxn):
     print("\nADAY URL'LER (cgt-ekle.py --marka'ya verilir):")
     for p in gecen:
         print("https://www.********.com" + p)
+    print("\nIDLER (talep sirasi, populer basta):")
+    print(" ".join(p.split("/")[-1] for p in gecen))
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit('Kullanim: python3 tools/cgt-ara.py "<marka/terim>" [max]')
-    main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 60)
+    args = sys.argv[1:]
+    derin = "--derin" in args
+    pos = [a for a in args if a != "--derin"]
+    if not pos:
+        sys.exit('Kullanim: python3 tools/cgt-ara.py "<marka/terim>" [max] [--derin]')
+    if derin:
+        cikis = int(pos[1]) if len(pos) > 1 else None
+        main(pos[0], maxn=10 ** 9, derin=True, cikis_limiti=cikis)
+    else:
+        main(pos[0], int(pos[1]) if len(pos) > 1 else 60)
