@@ -11,8 +11,13 @@ Icerik/gorsel + yargi = Codex (kota-disi). Surucu dongu = 0 Claude alt-ajani.
 COMMIT ETMEZ — mimar sonra denetim-kapisi + parti/mukerrer-kontrol + publish.
 
 Kullanim:
-  python3 parity-backfill.py --yargi-test <Platform> <marka>     # YAZMA YOK: ara+yargi, karar bas
-  python3 parity-backfill.py <Platform> <marka1,marka2|GAP> [per_max]
+  python3 parity-backfill.py --yargi-test <Platform> <marka>            # YAZMA YOK: ara+yargi, karar bas
+  python3 parity-backfill.py --havuz-test <Platform> <marka> [--derin]  # YAZMA/CODEX YOK: havuz boyu olc
+  python3 parity-backfill.py <Platform> <marka1,marka2|GAP> [per_max] [bekle] [--derin]
+
+--derin: adaptore --derin gecirir -> per_max keeper-cap KALKAR, ham havuz TAM taranir
+         (offset<3000 / page<=100 ikincil tavana kadar) ve tumu Codex-yargi kapisina gider.
+         --derin YOKSA eski davranis birebir (per_max=50 keeper'da durur).
 """
 import json
 import os
@@ -22,7 +27,10 @@ import sys
 import time
 
 ROOT = "/Users/okan/dev/pruvo"
-TOOLS = os.path.join(ROOT, "tools")
+# Arama/ekle/kapsama scriptlerini BU dosyanin YANINDAN cagir (worktree kopyasi kendi
+# adaptorlerini gorsun; adaptorler zaten cekirdegini `_HERE`'den yukluyor). main'e merge
+# edilince == ROOT/tools, davranis ayni; worktree'de ise worktree adaptorleri kosar.
+TOOLS = os.path.dirname(os.path.abspath(__file__))
 PY = sys.executable or "python3"
 CODEX = "/Applications/ChatGPT.app/Contents/Resources/codex"
 DEFTER = os.path.join(ROOT, ".marka-kapsama.json")
@@ -36,6 +44,10 @@ PLAT = {
     "Thingiverse": ("thing-ara.py", "urun-ekle.py"),
     "Printables": ("printables-ara.py", "printables-ekle.py"),
 }
+
+# `--derin` bayragini destekleyen ara adaptorleri (keeper-cap'i havuzdan ayirir; 2026-07-18).
+# Bu sette olan platformlar icin derin modda per_max KALDIRILIR -> TUM ham havuz yargiya gider.
+DERIN_DESTEK = {"Thingiverse", "Printables", "MakerWorld", "MyMiniFactory"}
 
 YARGI_SEMA = {
     "type": "object",
@@ -167,10 +179,15 @@ def codex_yargi(brand, pairs):
         return None, {"_hata": str(e)[:200]}
 
 
-def _ara(platform, marka, per_max):
+def _ara(platform, marka, per_max, derin=False):
     ara_s = PLAT[platform][0]
-    r = subprocess.run([PY, os.path.join(TOOLS, ara_s), marka, str(per_max)],
-                       capture_output=True, text=True, timeout=420)
+    cmd = [PY, os.path.join(TOOLS, ara_s), marka]
+    if derin and platform in DERIN_DESTEK:
+        cmd.append("--derin")        # ham havuzu TAM tara; per_max trim'i YOK -> tum havuz yargiya
+    else:
+        cmd.append(str(per_max))     # eski davranis: sig cap (per_max keeper'da dur)
+    r = subprocess.run(cmd, capture_output=True, text=True,
+                       timeout=(1800 if derin else 420))
     out = (r.stdout or "") + "\n" + (r.stderr or "")
     ids = _parse_ids(out)
     adlar = _parse_adlar(out, ids)
@@ -197,6 +214,17 @@ def yargi_test(platform, marka):
     print("\n-> TUT %d / AT %d" % (len(keep), len(ids) - len(keep)))
 
 
+def havuz_test(platform, marka, derin):
+    """YAZMA/CODEX YOK: sadece _ara havuzunu olc — sig-cap mi (eski) tam-havuz mu (derin) ispat.
+    Kabul #3: derin yolun ham havuzu sig-cap'e DUSMEDIGINI kanitlar (parity-backfill entegrasyon)."""
+    print("HAVUZ-TEST (YAZMA/CODEX YOK) | %s | %s | derin=%s" % (platform, marka, derin))
+    out, ids, pairs, taranan, throttled = _ara(platform, marka, 50, derin=derin)
+    if throttled:
+        print("!!! 429 THROTTLE — havuz olculemedi (rate-limit). Reset sonrasi tekrar.")
+    print("toplam eslesme(API)=%d | HAVUZ(aday)=%d | throttled=%s" % (taranan, len(ids), throttled))
+    print("IDLER ilk-15:", " ".join(ids[:15]))
+
+
 def _rapor_yol(platform):
     return os.path.join(ROOT, ".thing-cache", "parity-backfill-rapor-%s.json" % platform)
 
@@ -209,7 +237,7 @@ def _rapor_yaz(platform, toplam, rapor):
                    "markalar": rapor}, f, ensure_ascii=False, indent=2)
 
 
-def kos(platform, markalar, per_max, bekle):
+def kos(platform, markalar, per_max, bekle, derin=False):
     ekle_s = PLAT[platform][1]
     rapor = []
     toplam_staged = 0
@@ -218,7 +246,7 @@ def kos(platform, markalar, per_max, bekle):
         t0 = time.time()
         kayit = {"marka": marka, "platform": platform}
         try:
-            out, ids, pairs, taranan, throttled = _ara(platform, marka, per_max)
+            out, ids, pairs, taranan, throttled = _ara(platform, marka, per_max, derin=derin)
             if throttled:
                 ardisik_throttle += 1
                 kayit["throttled"] = True
@@ -277,6 +305,13 @@ def kos(platform, markalar, per_max, bekle):
 
 def main():
     a = sys.argv[1:]
+    derin = "--derin" in a            # global bayrak: derin modda adaptore --derin gecir (tam havuz)
+    a = [x for x in a if x != "--derin"]
+    if a and a[0] == "--havuz-test":
+        if len(a) < 3:
+            sys.exit("Kullanim: parity-backfill.py --havuz-test <Platform> <marka> [--derin]")
+        havuz_test(a[1], a[2], derin)
+        return
     if a and a[0] == "--yargi-test":
         if len(a) < 3:
             sys.exit(__doc__)
@@ -291,8 +326,9 @@ def main():
     per_max = int(a[2]) if len(a) > 2 else 50
     bekle = int(a[3]) if len(a) > 3 else 8
     markalar = gap_markalar(platform) if arg == "GAP" else [m.strip() for m in arg.split(",") if m.strip()]
-    print("PARITY BACKFILL | %s | %d marka | per_max=%d | bekle=%ds" % (platform, len(markalar), per_max, bekle), flush=True)
-    kos(platform, markalar, per_max, bekle)
+    print("PARITY BACKFILL | %s | %d marka | per_max=%d | bekle=%ds | derin=%s"
+          % (platform, len(markalar), per_max, bekle, derin), flush=True)
+    kos(platform, markalar, per_max, bekle, derin=derin)
 
 
 if __name__ == "__main__":

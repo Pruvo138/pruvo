@@ -55,7 +55,14 @@ def mevcut_idler():
     return ids
 
 
-def main(term, maxn):
+def main(term, maxn, derin=False, cikis_limiti=None):
+    """term/marka ara, sitede OLMAYAN uygun aday obje ID'lerini bas.
+
+    Sayfalama (pagination) ile keeper-cap AYRI (2026-07-18 duzeltme; thing-ara.py deseni):
+      - derin=False (varsayilan, GERIYE-UYUMLU): dongu `maxn` keeper toplayinca DURUR (eski davranis).
+      - derin=True (--derin): `maxn` dongoyu DURDURMAZ; ham havuz IKINCIL tavana (page<=100) ya da
+        `total` tukenene kadar TAM taranir. Boylece uygun havuz erken kesilmez.
+    `cikis_limiti` (opsiyonel): siralamadan sonra cikti listesini kirpar (None=kirpma yok)."""
     try:
         mmf.require_key()
     except mmf.MMFNoKey as e:
@@ -68,7 +75,8 @@ def main(term, maxn):
     seen = set()
     page, total = 1, None
     PER = 30
-    while len(bulunan) < maxn and page <= 100:
+    # DONGU KOSULU: derin modda maxn'e bakma (havuzu ikincil tavana kadar tam gez); degilse eski cap.
+    while page <= 100 and (derin or len(bulunan) < maxn):
         try:
             res = mmf.search(term, per_page=PER, page=page)
         except Exception as e:                                   # noqa: BLE001
@@ -103,13 +111,17 @@ def main(term, maxn):
             if mmf.is_cop(name) and not pop:
                 elenen_cop.append((pid, name)); continue         # cop VE populer degil -> ele
             bulunan.append((pid, lic, name, views, likes, mmf.is_cop(name)))
-            if len(bulunan) >= maxn:
+            # keeper-cap SADECE derin-olmayan (eski) modda dongoyu keser
+            if not derin and len(bulunan) >= maxn:
                 break
         page += 1
         if total and page * PER > total:
             break
 
     bulunan.sort(key=lambda b: (b[4], b[3]), reverse=True)   # (likes, views) azalan
+    havuz_toplam = len(bulunan)   # kirpmadan ONCE toplanan gercek aday sayisi (kabul olcumu)
+    if cikis_limiti is not None:
+        bulunan = bulunan[:cikis_limiti]
 
     if elenen_nc:
         print("--- SATILAMAZ elenen %d (Standard/Exclusive/NC/bilinmeyen — populerlik DELMEZ) ---" % len(elenen_nc))
@@ -124,10 +136,11 @@ def main(term, maxn):
         for pid, name in elenen_cop[:15]:
             print("  x %-9s %s" % (pid, name[:60]))
     pop_cop = sum(1 for b in bulunan if b[5])
+    kirpma = "" if cikis_limiti is None else " (cikis %d'e kirpildi; havuz %d)" % (len(bulunan), havuz_toplam)
     print("=== '%s' icin %d yeni aday (toplam eslesme %s, zaten ekli %d, satilamaz %d, "
-          "marka-alakasiz %d, cop %d elendi; populer-cop ISTISNA %d) ==="
+          "marka-alakasiz %d, cop %d elendi; populer-cop ISTISNA %d)%s ==="
           % (term, len(bulunan), total, len(mevcut & seen), len(elenen_nc),
-             len(elenen_marka), len(elenen_cop), pop_cop))
+             len(elenen_marka), len(elenen_cop), pop_cop, kirpma))
     for pid, lic, name, views, likes, iscop in bulunan:
         yildiz = " ★POPULER-COP" if iscop else ""
         print("  %-9s %-14s ♥%-5d 👁%-7d %s%s" % (pid, str(lic)[:14], likes, views, name[:48], yildiz))
@@ -136,6 +149,16 @@ def main(term, maxn):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        sys.exit('Kullanim: python3 tools/myminifactory-ara.py "<marka/terim>" [max]')
-    main(sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 250)
+    # Geriye uyumlu: eski cagri `myminifactory-ara.py "<terim>" [max]` aynen calisir (derin=False).
+    #  --derin : keeper-cap'i KALDIR, ham havuzu (page<=100 tavanina/total'a kadar) TAM tara.
+    #            derin modda pozisyonel sayi = OPSIYONEL cikis-trim (verilmezse tum havuz).
+    args = sys.argv[1:]
+    derin = "--derin" in args
+    pos = [a for a in args if a != "--derin"]
+    if not pos:
+        sys.exit('Kullanim: python3 tools/myminifactory-ara.py "<marka/terim>" [max] [--derin]')
+    if derin:
+        cikis = int(pos[1]) if len(pos) > 1 else None
+        main(pos[0], maxn=10 ** 9, derin=True, cikis_limiti=cikis)
+    else:
+        main(pos[0], int(pos[1]) if len(pos) > 1 else 250)
