@@ -42,7 +42,7 @@ jobs:
           # ile onbellek-kirici surumlu). KAYNAK index.html yayina girmez.
           cp index.built.html _site/index.html
           cp secenekler.js urunler.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml filament-veri.js taban-fiyatlar.js .nojekyll _site/
-          cp -r urun hakkimizda iletisim sss gizlilik teslimat-iade mesafeli-satis malzeme-rehberi _site/
+          cp -r urun hakkimizda iletisim sss gizlilik teslimat-iade mesafeli-satis malzeme-rehberi numuneye-gore-plastik-parca-uretimi bulunamayan-yedek-parca-ozel-uretim beyaz-esya-plastik-parca-uretimi oto-ic-trim-klips-parca-uretimi makine-parcasi-olcuye-ozel-uretim tekne-plastik-parca-ozel-uretim-gocek-fethiye kisiye-ozel-logolu-kase-yaptirma olcuye-ozel-conta-uretimi olcuye-ozel-plastik-disli-uretimi numuneye-gore-triger-kasnagi-uretimi numuneden-plastik-burc-rulman-uretimi _site/
           # Parametrik konfigurator varliklari — SADECE public dosyalar (test/ girmez):
           # hacim.js tek kaynak (kabul testi #4), semalar Worker'in ileride sunucu-tarafi
           # yeniden hesabi icin de ayni adresten okunur.
