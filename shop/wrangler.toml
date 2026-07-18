@@ -38,7 +38,7 @@ ONIZLEME_TABAN = "https://pruvo3d.com"
 META_PIXEL_ID = "1562627655518274"
 # GA4 measurement id (G-XXXXXXXXXX) SIR DEGIL — GA4 kurulunca Okan bu satiri doldurur
 # (yoksa GA4 hedefi no-op). api_secret ise SIR (secret put).
-# GA4_MEASUREMENT_ID = "G-XXXXXXXXXX"
+GA4_MEASUREMENT_ID = "G-5V53CQMSCE"
 
 [[d1_databases]]
 binding = "KATALOG"
