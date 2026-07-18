@@ -14,64 +14,65 @@ KISA = ["Printables", "Thingiverse", "MakerWorld", "Cults3D", "MMF", "********"]
 AZ_ORAN = 0.5   # markanin en dolu platformunun bu oraninin altindaysa "az kalmis" (sari)
 AZ_MIN = 10     # en dolu platform bu sayidan azsa orantiya bakma (kucuk markada gurultu)
 
-d = json.load(open(DEFTER, encoding="utf-8")) if os.path.exists(DEFTER) else {}
+LAST_SUMMARY = {"toplam_marka": 0, "yapilacak_marka": 0, "kirmizi_hucre": 0, "sari_hucre": 0}
 
 
-def hucre(m, p):
-    k = d.get(m, {}).get(p)
-    if not k:
+def render_html():
+    d = json.load(open(DEFTER, encoding="utf-8")) if os.path.exists(DEFTER) else {}
+
+    def hucre(m, p):
+        k = d.get(m, {}).get(p)
+        if not k:
+            return None
+        if k.get("eklenen", 0) > 0:
+            return k["eklenen"]
+        if k.get("taranan", 0) > 0:
+            return 0
         return None
-    if k.get("eklenen", 0) > 0:
-        return k["eklenen"]
-    if k.get("taranan", 0) > 0:
-        return 0
-    return None
 
+    def toplam(m):
+        return sum(v for p in PLATS for v in [hucre(m, p)] if v)
 
-def toplam(m):
-    return sum(v for p in PLATS for v in [hucre(m, p)] if v)
+    def _durum_hucreler(m):
+        """(kirmizi_platformlar, sari_platformlar) — kirmizi=hic aranmadi, sari=az kalmis (orantili)."""
+        vals = {p: hucre(m, p) for p in PLATS}
+        tot = sum(v for v in vals.values() if v)
+        en = max([v for v in vals.values() if v] or [0])
+        kirmizi = [p for p in PLATS if vals[p] is None] if tot >= 3 else []
+        sari = []
+        if en >= AZ_MIN:
+            sari = [p for p in PLATS if vals[p] and vals[p] < en * AZ_ORAN]
+        return kirmizi, sari
 
+    def durum(m):
+        kirmizi, sari = _durum_hucreler(m)
+        notlar = []
+        if kirmizi:
+            notlar.append("hiç aranmadı: " + ", ".join(KISA[PLATS.index(p)] for p in kirmizi))
+        if sari:
+            notlar.append("az kalmış: " + ", ".join(KISA[PLATS.index(p)] for p in sari))
+        return " · ".join(notlar)
 
-def _durum_hucreler(m):
-    """(kirmizi_platformlar, sari_platformlar) — kirmizi=hic aranmadi, sari=az kalmis (orantili)."""
-    vals = {p: hucre(m, p) for p in PLATS}
-    tot = sum(v for v in vals.values() if v)
-    en = max([v for v in vals.values() if v] or [0])
-    kirmizi = [p for p in PLATS if vals[p] is None] if tot >= 3 else []
-    sari = []
-    if en >= AZ_MIN:
-        sari = [p for p in PLATS if vals[p] and vals[p] < en * AZ_ORAN]
-    return kirmizi, sari
+    satirlar = []
+    for m in sorted(d.keys(), key=lambda m: -toplam(m)):
+        cells = [hucre(m, p) for p in PLATS]
+        tot = toplam(m)
+        kirmizi, sari = _durum_hucreler(m)
+        satirlar.append({"m": m, "cells": cells, "t": tot, "durum": durum(m),
+                         "kirmizi": len(kirmizi), "sari": len(sari),
+                         "yapilacak": (len(kirmizi) + len(sari)) > 0})
 
+    toplam_marka = len(satirlar)
+    yapilacak_marka = sum(1 for s in satirlar if s["yapilacak"])
+    kirmizi_hucre = sum(s["kirmizi"] for s in satirlar)
+    sari_hucre = sum(s["sari"] for s in satirlar)
+    LAST_SUMMARY.update({"toplam_marka": toplam_marka, "yapilacak_marka": yapilacak_marka,
+                         "kirmizi_hucre": kirmizi_hucre, "sari_hucre": sari_hucre})
+    ts = datetime.now().strftime("%d.%m.%Y %H:%M")
 
-def durum(m):
-    kirmizi, sari = _durum_hucreler(m)
-    notlar = []
-    if kirmizi:
-        notlar.append("hiç aranmadı: " + ", ".join(KISA[PLATS.index(p)] for p in kirmizi))
-    if sari:
-        notlar.append("az kalmış: " + ", ".join(KISA[PLATS.index(p)] for p in sari))
-    return " · ".join(notlar)
+    DATA = json.dumps({"rows": satirlar, "plats": KISA, "azOran": AZ_ORAN, "azMin": AZ_MIN}, ensure_ascii=False)
 
-
-satirlar = []
-for m in sorted(d.keys(), key=lambda m: -toplam(m)):
-    cells = [hucre(m, p) for p in PLATS]
-    tot = toplam(m)
-    kirmizi, sari = _durum_hucreler(m)
-    satirlar.append({"m": m, "cells": cells, "t": tot, "durum": durum(m),
-                     "kirmizi": len(kirmizi), "sari": len(sari),
-                     "yapilacak": (len(kirmizi) + len(sari)) > 0})
-
-toplam_marka = len(satirlar)
-yapilacak_marka = sum(1 for s in satirlar if s["yapilacak"])
-kirmizi_hucre = sum(s["kirmizi"] for s in satirlar)
-sari_hucre = sum(s["sari"] for s in satirlar)
-ts = datetime.now().strftime("%d.%m.%Y %H:%M")
-
-DATA = json.dumps({"rows": satirlar, "plats": KISA, "azOran": AZ_ORAN, "azMin": AZ_MIN}, ensure_ascii=False)
-
-HTML = r"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
+    HTML = r"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>PRUVO — Marka Durum Paneli</title>
 <style>
@@ -155,10 +156,21 @@ function render(){
 head();document.getElementById('q').oninput=render;document.getElementById('onlytodo').onchange=render;render();
 </script></body></html>"""
 
-HTML = HTML.replace("__DATA__", DATA).replace("__TS__", ts)
-os.makedirs(os.path.dirname(OUT), exist_ok=True)
-with open(OUT, "w", encoding="utf-8") as f:
-    f.write(HTML)
-print("YAZILDI: %s" % OUT)
-print("toplam %d marka | yapilacak %d | kirmizi hucre %d | sari hucre %d"
-      % (toplam_marka, yapilacak_marka, kirmizi_hucre, sari_hucre))
+    return HTML.replace("__DATA__", DATA).replace("__TS__", ts)
+
+
+if __name__ == "__main__":
+    HTML = render_html()
+    yazilan = OUT
+    try:
+        os.makedirs(os.path.dirname(OUT), exist_ok=True)
+        with open(OUT, "w", encoding="utf-8") as f:
+            f.write(HTML)
+    except PermissionError:
+        yazilan = "/private/tmp/pruvo-marka-durum.html"
+        with open(yazilan, "w", encoding="utf-8") as f:
+            f.write(HTML)
+    print("YAZILDI: %s" % yazilan)
+    print("toplam %d marka | yapilacak %d | kirmizi hucre %d | sari hucre %d"
+          % (LAST_SUMMARY["toplam_marka"], LAST_SUMMARY["yapilacak_marka"],
+             LAST_SUMMARY["kirmizi_hucre"], LAST_SUMMARY["sari_hucre"]))
