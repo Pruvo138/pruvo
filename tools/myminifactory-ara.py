@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 """MyMiniFactory'de MARKA/terim arar; sitede OLMAYAN + satilabilir + gurultusuz + MARKA-ALAKALI
 obje ID'lerini verir. MakerWorld'teki makerworld-ara.py'nin MMF esdegeri.
 

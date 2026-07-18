@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""PRUVO ******** toplu listeleme araci (PARALEL + concurrency-safe). IKI MOD:
+# EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
+"""PRUVO CGTrader toplu listeleme araci (PARALEL + concurrency-safe). IKI MOD:
 
   SATICI MODU  : bir satici profilinin TUM urunlerini listeler (author-scoped).
-     python3 tools/cgt-ekle.py "https://www.********.com/3d-print-models?author=<satici>" [list|final]
+     python3 tools/cgt-ekle.py "https://www.cgtrader.com/3d-print-models?author=<satici>" [list|final]
   MARKA MODU   : cgt-ara.py'nin urettigi ADAY URL LISTESINI isler (TUM saticilar, author-scoping YOK).
      python3 tools/cgt-ekle.py --marka [list|final] <url1> <url2> ...
      python3 tools/cgt-ekle.py --marka --kuru  <url1> <url2> ...   # KURU: yazmaz, fiyat+meta gosterir
 
-Amac (her iki mod): urunu siteye LISTELEMEK (satin almadan). Siparis gelince model ********'dan
+Amac (her iki mod): urunu siteye LISTELEMEK (satin almadan). Siparis gelince model CGTrader'dan
 alinip uretilir. Ucretli kaynak -> `lisans` YOK, atif YOK (ticari mahremiyet). Maliyet (USD) +
 link gizli `.urun-kaynaklari.json`'a yazilir.
 
@@ -51,7 +52,7 @@ def profil_urunleri(profil_url):
         if not yeni:
             break
         for u in yeni:
-            seen.add(u); urls.append("https://www.********.com" + u)
+            seen.add(u); urls.append("https://www.cgtrader.com" + u)
         time.sleep(1.0)
     return urls
 
@@ -76,9 +77,9 @@ def urun_verisi(url, author=None):
     # site geneli indirim yuzdesi (or. -50%); en sik goruleni al
     pcts = re.findall(r'-(\d{1,2})%', html)
     disc = int(collections.Counter(pcts).most_common(1)[0][0]) if pcts else 0
-    imgs = re.findall(r'https://img-new\.********\.com/items/(\d+)/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)
+    imgs = re.findall(r'https://img-new\.cgtrader\.com/items/(\d+)/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)
     galeri = list(dict.fromkeys(re.findall(
-        r'https://img-new\.********\.com/items/\d+/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)))
+        r'https://img-new\.cgtrader\.com/items/\d+/[a-z0-9]+/[a-z0-9-]+\.(?:webp|jpg|png)', html)))
     return {"itemid": imgs[0] if imgs else None, "baslik": baslik, "usd": usd, "disc": disc,
             "galeri": galeri, "link": url}
 
@@ -163,7 +164,7 @@ def process_one(url, author, mode="list"):
         urun = {"id": uid, "kategori": o.get("kategori", "Otomobil"), "marka": o.get("marka", []),
                 "baslik": o.get("baslik", itemid), "aciklama": o.get("aciklama", ""),
                 "fiyat": tl_fiyat(v.get("usd"), v.get("disc", 0), mode), "gorseller": urls}   # lisans YOK
-        src = {"kaynak": "********", "link": url, "tur": "satin-alma", "usd_liste": v.get("usd"),
+        src = {"kaynak": "CGTrader", "link": url, "tur": "satin-alma", "usd_liste": v.get("usd"),
                "indirim_pct": v.get("disc", 0), "fiyat_modu": mode, "itemid": itemid, "baski": "",
                "not": "listeleme; sipariste satin al+uret"}
         return {"url": url, "durum": "STAGED", "urun": urun, "src": src, "itemid": itemid,
@@ -222,7 +223,7 @@ def _kosur_ve_raporla(urls, author, mode):
     staged = [s for s in sonuc if s.get("durum") == "STAGED"]
     n, toplam = merge_safe(staged) if staged else (0, "?")
     print("\n" + "=" * 74)
-    print("STAGED (commit ETMEDIM — fiyatlari INDIRIMSIZ ******** fiyatiyla dogrula):")
+    print("STAGED (commit ETMEDIM — fiyatlari INDIRIMSIZ CGTrader fiyatiyla dogrula):")
     for s in sorted(sonuc, key=lambda x: x.get("durum") != "STAGED"):
         if s.get("durum") == "STAGED":
             print("  ✔ %-38s | %-10s | usd:%s -%d%% -> %s | g:%d | %s"
@@ -254,7 +255,7 @@ def main_marka(urls, mode="list"):
 def kuru(urls, mode="list"):
     """KURU MOD (MARKA): urunler.json'a YAZMAZ, R2/Codex CAGIRMAZ. Her aday icin baslik + USD +
     TL(×100) + galeri sayisi dogru geliyor mu gosterir (canli duman testi)."""
-    print("KURU MOD (yazma YOK) | aday:", len(urls), "| FIYAT MODU:", mode, "| kaynak: ********\n", flush=True)
+    print("KURU MOD (yazma YOK) | aday:", len(urls), "| FIYAT MODU:", mode, "| kaynak: CGTrader\n", flush=True)
     for u in urls:
         v = urun_verisi(u, None)          # author None -> satici kontrolu atlanir
         if not v or not v.get("itemid"):

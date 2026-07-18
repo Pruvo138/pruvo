@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 """KABUL TESTI — myminifactory-ara.py `marka_geciyor()` \\bMARKA\\b kelime-siniri filtresi.
 
 myminifactory-ara.py bu filtreyi INLINE yazmaz; ORTAK printables-api.marka_kelime_gecer()

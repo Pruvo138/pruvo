@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 """KABUL TESTI — myminifactory-api.py `satilabilir()` FAIL-CLOSED beyaz-liste davranisi.
 
 MMF lisanslari IKI gercek bicimde gelir (canli olcum 2026-07-18, object-licensing sayfasi +

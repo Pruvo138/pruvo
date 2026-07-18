@@ -6,7 +6,6 @@ Runs the release-blocking test set sequentially and stops at first failure.
 Default suite:
   - python3 tools/yargi-firearm-test.py
   - python3 tools/derin-cap-test.py
-  - python3 tools/mmf-pagination-test.py
   - node tools/parite-test.js
   - node tools/parite-ege.js
 
@@ -29,7 +28,6 @@ def _cmds(demo_fail):
     cmds.extend([
         ("yargi-firearm", [PY, os.path.join(ROOT, "tools", "yargi-firearm-test.py")], "GECTI"),
         ("derin-cap", [PY, os.path.join(ROOT, "tools", "derin-cap-test.py")], "GECTI"),
-        ("mmf-pagination", [PY, os.path.join(ROOT, "tools", "mmf-pagination-test.py")], "GECTI"),
         ("parite-test", ["node", os.path.join(ROOT, "tools", "parite-test.js")], "BIREBIR PARITE"),
         ("parite-ege", ["node", os.path.join(ROOT, "tools", "parite-ege.js")], None),
     ])

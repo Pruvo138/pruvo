@@ -9,8 +9,8 @@ from datetime import datetime
 
 DEFTER = "/Users/okan/dev/pruvo/.marka-kapsama.json"
 OUT = "/Users/okan/Desktop/pruvo-marka-durum.html"
-PLATS = ["Printables", "Thingiverse", "MakerWorld", "Cults3D", "MyMiniFactory", "********"]
-KISA = ["Printables", "Thingiverse", "MakerWorld", "Cults3D", "MMF", "********"]
+PLATS = ["Printables", "Thingiverse", "MakerWorld"]
+KISA = ["Printables", "Thingiverse", "MakerWorld"]
 AZ_ORAN = 0.5   # markanin en dolu platformunun bu oraninin altindaysa "az kalmis" (sari)
 AZ_MIN = 10     # en dolu platform bu sayidan azsa orantiya bakma (kucuk markada gurultu)
 

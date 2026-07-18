@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 # ⛔ ÇAĞIRMA — EMEKLİ (Okan 18 Tem: Cults3D rate-limit/429 yüzünden çıkarıldı)
 """Cults3D'te MARKA/terim arar; sitede OLMAYAN + satilabilir + UCRETSIZ + gurultusuz + MARKA-ALAKALI
 model SLUG'larini verir. MakerWorld makerworld-ara.py'nin Cults3D esdegeri.

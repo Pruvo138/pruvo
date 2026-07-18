@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-r"""********'da MARKA/terim arar (TUM saticilar) — sitede OLMAYAN + ISLEVSEL (oto/endustriyel)
+# EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
+r"""CGTrader'da MARKA/terim arar (TUM saticilar) — sitede OLMAYAN + ISLEVSEL (oto/endustriyel)
 + MARKA-ALAKALI urun sayfasi URL'lerini verir. cgt-ekle.py'nin SATICI modunun (author profili)
 tersi: burada butun pazar taranir, sonuc bir ADAY URL LISTESI olur (cgt-ekle.py --marka isler).
 
@@ -7,12 +8,12 @@ Kullanim:  python3 tools/cgt-ara.py "Ford" [max]
    -> aday urun URL'lerini (bir satirda + tam liste) yazar + eleme dokumu basar.
 
 ARAMA DESENI (canli kesfedildi 2026-07-18):
-  https://www.********.com/3d-print-models/<kelime>?page=<n>
+  https://www.cgtrader.com/3d-print-models/<kelime>?page=<n>
   - SSR HTML (JS gerekmez), sayfa basi ~50 sonuc, ?page=2.. ile ilerler (dogrulandi: p1/p2 ayrik).
   - `?keywords=<kelime>` deseni CALISMAZ (sabit "one cikan" listeyi doner) — path-tabanli desen sart.
   - Urun URL kalibi: /3d-print-models/<ustkategori>/<altkategori>/<slug>  (ustkategori = ISLEVSELLIK sinyali).
 
-FILTRELER (EN KRITIK — ******** genel pazar, cop bol):
+FILTRELER (EN KRITIK — CGTrader genel pazar, cop bol):
   1. \bMARKA\b TAM KELIME (printables-api.marka_kelime_gecer): slug'da marka tam kelime degilse ELE
      (Oxford/afford -> 'ford' alt-dizesi elenir). Arama listesinde tek metin sinyali slug'dir.
   2. ISLEVSELLIK: SADECE islevsel oto/endustriyel/atolye/ev parcasi kalir. ELE:
@@ -21,7 +22,7 @@ FILTRELER (EN KRITIK — ******** genel pazar, cop bol):
      - LOGO/MERCH (pr.is_nobypass) + MINYATUR/DIECAST/DIORAMA (pr.is_cop) -> reprodüksiyon/olcek.
      - CGT-OZEL cop sinyalleri (slug/aciklama): scale/figurine/statue/sculpture/cosplay/helmet/mask/
        mold/silhouette/classic-car/static + render-oyun-varlik (lowpoly/game-ready/for-rendering...).
-  3. ZATEN-EKLI dedup: urunler.json + .urun-kaynaklari.json'daki ******** model yollari.
+  3. ZATEN-EKLI dedup: urunler.json + .urun-kaynaklari.json'daki CGTrader model yollari.
 
 Token/sir GEREKMEZ (public HTML). Cikti urunler.json'a DOKUNMAZ; sadece aday URL uretir.
 """
@@ -41,7 +42,7 @@ _spec.loader.exec_module(pr)
 
 
 # --- ISLEVSELLIK KURALI (kategori + sinyal) ---------------------------------------------------
-# ******** 3d-print-models ustkategorileri; ISLEVSEL parca DISI (dekor/oyuncak/figur/taki/mimari)
+# CGTrader 3d-print-models ustkategorileri; ISLEVSEL parca DISI (dekor/oyuncak/figur/taki/mimari)
 # olan ustkategoriler blok. Kalanlar (hobby-diy/tools-organizers/gadgets/house/electronics...)
 # islevsel domain kabul edilir; icindeki cop tek tek sinyalle elenir.
 COP_KATEGORI_UST = {
@@ -89,7 +90,7 @@ def slug_metni(path):
 def islevsel_parca(metin, kategori_yolu_str, aciklama=""):
     r"""Aday ISLEVSEL bir oto/endustriyel/atolye/ev parcasi mi? (bool, neden) doner.
     metin           = slug metni ya da baslik (marka/sinyal metni)
-    kategori_yolu_str = 'ust/alt' (******** URL kategorisi)
+    kategori_yolu_str = 'ust/alt' (CGTrader URL kategorisi)
     aciklama        = varsa urun aciklamasi (ek sinyal; arama listesinde genelde bos)
     ELE nedenleri sozel: 'kategori:<ust>' / 'altkategori:<alt>' / 'logo-merch' / 'minyatur-olcek'
     / 'sinyal:<kelime>'. Islevsel ise (True, '')."""
@@ -139,14 +140,14 @@ def fetch(url):
 
 def arama_url(term, page):
     kelime = urllib.parse.quote(term.strip().lower())
-    base = "https://www.********.com/3d-print-models/" + kelime
+    base = "https://www.cgtrader.com/3d-print-models/" + kelime
     return base + ("?page=%d" % page if page > 1 else "")
 
 
 def sayfa_yollari(term):
     """JENERATOR: her sayfada O SAYFADAKI YENI urun yollarini (path, domain'siz) verir.
     Yeni yol gelmeyen ilk sayfada (ya da SAYFA_TAVAN'da) durur. Cagiran yeterince ISLEVSEL
-    aday bulunca erken durabilsin diye sayfa sayfa akitir (********'da cop bol -> derin gerek)."""
+    aday bulunca erken durabilsin diye sayfa sayfa akitir (CGTrader'da cop bol -> derin gerek)."""
     seen = set()
     for page in range(1, SAYFA_TAVAN + 1):
         html = fetch(arama_url(term, page))
@@ -163,7 +164,7 @@ def sayfa_yollari(term):
 
 
 def mevcut_yollar():
-    """urunler.json + .urun-kaynaklari.json'daki ******** model yollari (dedup icin, path olarak)."""
+    """urunler.json + .urun-kaynaklari.json'daki CGTrader model yollari (dedup icin, path olarak)."""
     yollar = set()
     for dosya in (URUNLER, KAYNAK):
         if os.path.exists(dosya):
@@ -202,7 +203,7 @@ def main(term, maxn, derin=False, cikis_limiti=None):
 
     if cikis_limiti is not None:
         gecen = gecen[:cikis_limiti]
-    print("=== ******** MARKA ARAMA: '%s' (taranan sayfa: %d) ===" % (term, son_sayfa))
+    print("=== CGTrader MARKA ARAMA: '%s' (taranan sayfa: %d) ===" % (term, son_sayfa))
     print("Taranan aday yol: %d | zaten-ekli %d | marka-alakasiz(\\b%s\\b slug'da yok) %d | islevsel-degil %d"
           % (taranan, elenen_ekli, term, len(elenen_marka), sum(elenen_islev.values())))
     if elenen_islev:
@@ -219,7 +220,7 @@ def main(term, maxn, derin=False, cikis_limiti=None):
         print("  [%-24s] %s" % (ky, p.split("/")[-1][:52]))
     print("\nADAY URL'LER (cgt-ekle.py --marka'ya verilir):")
     for p in gecen:
-        print("https://www.********.com" + p)
+        print("https://www.cgtrader.com" + p)
     print("\nIDLER (talep sirasi, populer basta):")
     print(" ".join(p.split("/")[-1] for p in gecen))
 

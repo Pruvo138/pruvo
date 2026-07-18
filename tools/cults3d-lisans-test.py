@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 # ⛔ ÇAĞIRMA — EMEKLİ (Okan 18 Tem: Cults3D rate-limit/429 yüzünden çıkarıldı)
 """KABUL TESTI — cults3d-api.py `satilabilir()` FAIL-CLOSED beyaz-liste davranisi.
 

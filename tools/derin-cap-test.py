@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""KABUL TESTI — 5 arama adaptorunde `--derin` pagination/keeper-cap AYRIMI (2026-07-18).
+"""KABUL TESTI — 3 arama adaptorunde `--derin` pagination/keeper-cap AYRIMI (2026-07-18).
 
 SORUN: parity-backfill adaptorleri `[marka, per_max]` ile cagirinca dongu ~per_max keeper'da
 DURUYORDU -> binlerce CC urun HIC gorulmuyordu (sessiz kayip). FIX: `--derin` bayragi maxn'i
@@ -72,18 +72,6 @@ def _pool_mw():
             for i in range(HAVUZ)]
 
 
-def _pool_mmf():
-    return [{"id": 90000000 + i, "name": "Zeta bracket %d" % i,
-             "url": "https://www.myminifactory.com/object/zeta-bracket-%d" % i,
-             "tags": ["zeta"], "license": "BY", "licenses": None,
-             "views": 0, "likes": 0} for i in range(HAVUZ)]
-
-
-def _pool_cgt():
-    return [{"id": 90000000 + i, "path": "/3d-print-models/zeta/bracket/zeta-bracket-%d" % i}
-            for i in range(HAVUZ)]
-
-
 # ---------- mock kurucular: search kaynagini + mevcut-dedup'u degistir ----------
 def _mock_thing(ara):
     pool = _pool_thing()
@@ -114,39 +102,10 @@ def _mock_mw(ara):
     ara.mevcut_idler = lambda: set()
 
 
-def _mock_mmf(ara):
-    pool = _pool_mmf()
-
-    def search(term, per_page=30, page=1):
-        s = (page - 1) * per_page
-        return {"total_count": len(pool), "items": pool[s:s + per_page]}
-    ara.mmf.search = search
-    ara.mmf.require_key = lambda: "TEST"
-    ara.mevcut_idler = lambda: set()
-
-
-def _mock_cgt(ara):
-    pool = _pool_cgt()
-
-    def fetch(url):
-        m = re.search(r"[?&]page=(\d+)", url)
-        page = int(m.group(1)) if m else 1
-        s = (page - 1) * 30
-        items = pool[s:s + 30]
-        html = []
-        for item in items:
-            html.append('<a href="%s">%s</a>' % (item["path"], item["path"].rsplit("/", 1)[-1]))
-        return "<html><body>%s</body></html>" % "".join(html)
-    ara.fetch = fetch
-    ara.mevcut_yollar = lambda: set()
-
-
 ADAPTORLER = [
     ("Thingiverse",   "thing-ara.py",         "thing_ara",   _mock_thing),
     ("Printables",    "printables-ara.py",    "pr_ara",      _mock_pr),
     ("MakerWorld",    "makerworld-ara.py",    "mw_ara",      _mock_mw),
-    ("MyMiniFactory", "myminifactory-ara.py", "mmf_ara",     _mock_mmf),
-    ("********",      "cgt-ara.py",           "cgt_ara",     _mock_cgt),
 ]
 
 
@@ -186,7 +145,7 @@ def main():
         for platform, sorun in fails:
             print("  x %s: %s" % (platform, "; ".join(sorun)))
         sys.exit(1)
-    print("%d/%d GECTI — 5 adaptor: derin=False cap'te durur, derin=True maxn'i yok sayar "
+    print("%d/%d GECTI — 3 adaptor: derin=False cap'te durur, derin=True maxn'i yok sayar "
           "(havuz>50) ve deterministik." % (len(ADAPTORLER), len(ADAPTORLER)))
 
 

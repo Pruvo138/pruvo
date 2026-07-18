@@ -46,15 +46,13 @@ _PR_SPEC.loader.exec_module(pr)
 
 PLAT = {
     "MakerWorld": ("makerworld-ara.py", "makerworld-ekle.py"),
-    "MyMiniFactory": ("myminifactory-ara.py", "myminifactory-ekle.py"),
     "Thingiverse": ("thing-ara.py", "urun-ekle.py"),
     "Printables": ("printables-ara.py", "printables-ekle.py"),
-    "********": ("cgt-ara.py", "cgt-ekle.py"),
 }
 
 # `--derin` bayragini destekleyen ara adaptorleri (keeper-cap'i havuzdan ayirir; 2026-07-18).
 # Bu sette olan platformlar icin derin modda per_max KALDIRILIR -> TUM ham havuz yargiya gider.
-DERIN_DESTEK = {"Thingiverse", "Printables", "MakerWorld", "MyMiniFactory", "********"}
+DERIN_DESTEK = {"Thingiverse", "Printables", "MakerWorld"}
 
 YARGI_SEMA = {
     "type": "object",
@@ -155,7 +153,7 @@ def _parse_ids(out):
 def _parse_adlar(out, ids):
     """Aday tablosundan AD listesi cek; SLUGLAR/IDLER tam-id'leriyle SIRAYLA eslestir (ayni 'bulunan' sirasi).
     Tablo id'si kirpik olabilir -> isim tablodan, tam id SLUGLAR'dan; ikisi de ayni sirada.
-    Ikinci metrik emojisi platforma gore degisir: Cults3D/MMF/MakerWorld ⭳/👁, Thingiverse ⚒."""
+    Ikinci metrik emojisi platforma gore degisir."""
     adlar = []
     for l in out.splitlines():
         # aday satiri: '  <id> ... ♥N <emoji>N <ad>'  (elenen satirlari 'x ' ile baslar, atla)
@@ -361,16 +359,19 @@ def main():
     a = [x for x in a if x != "--derin"]
     if a and a[0] == "--havuz-test":
         if len(a) < 3:
-            sys.exit("Kullanim: parity-backfill.py --havuz-test <Platform> <marka> [--derin]")
+            sys.exit("Kullanim: parity-backfill.py --havuz-test <Platform> <marka> [--derin]\nAktif platformlar: %s"
+                     % ", ".join(PLAT))
         havuz_test(a[1], a[2], derin)
         return
     if a and a[0] == "--yargi-test":
         if len(a) < 3:
-            sys.exit(__doc__)
+            sys.exit("Kullanim: parity-backfill.py --yargi-test <Platform> <marka>\nAktif platformlar: %s"
+                     % ", ".join(PLAT))
         yargi_test(a[1], a[2])
         return
     if len(a) < 2:
-        sys.exit(__doc__)
+        sys.exit("Kullanim: parity-backfill.py <Platform> <marka1,marka2|GAP> [per_max] [bekle] [--derin]\n"
+                 "Aktif platformlar: %s" % ", ".join(PLAT))
     platform = a[0]
     if platform not in PLAT:
         sys.exit("Platform: %s" % ", ".join(PLAT))

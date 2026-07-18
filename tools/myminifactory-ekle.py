@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 """PRUVO toplu urun ekleme ORKESTRATORU (MyMiniFactory) — PARALEL + concurrency-safe.
 makerworld-ekle.py'nin (MakerWorld) MMF esdegeri; ayni Codex icerik adimini AYNEN kullanir.
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# EMEKLI - Okan 19 Tem: bu platformda arama YAPILMAZ (parity-backfill'den cikarildi).
 """MyMiniFactory REST API ortak cekirdegi — MakerWorld makerworld-api.py'nin esdegeri.
 
 Cok-platform genislemenin UCUNCU adaptoru (Printables + MakerWorld sonrasi); AYNI sablonu izler.
