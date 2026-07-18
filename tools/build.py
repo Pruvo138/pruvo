@@ -1711,6 +1711,13 @@ def main():
         with open(os.path.join(cdir, "index.html"), "w", encoding="utf-8") as f:
             f.write(render_content_page(slug, title, meta, fn()))
 
+    # deploy.yml beyaz-listesi için TEK KAYNAK manifesti: içerik/yasal sayfa dizinleri
+    # (statik hakkimizda/iletisim/sss/gizlilik + üretilen CONTENT_PAGES) = SITEMAP_SLUGS.
+    # CI bu dosyayı okuyup her slug'ı _site'a kopyalar; böylece yeni CONTENT_PAGES eklenince
+    # deploy.yml elle güncellenmese de SESSİZCE 404 olmaz (eski elle beyaz-liste tuzağı).
+    with open(os.path.join(ROOT, "_yayin-icerik-dizinleri.txt"), "w", encoding="utf-8") as f:
+        f.write("\n".join(SITEMAP_SLUGS) + "\n")
+
     # sitemap.xml
     with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
         f.write(render_sitemap(products))

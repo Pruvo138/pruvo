@@ -1049,17 +1049,12 @@ CONTENT_PAGES = [
      "Standart kod ya da özel ölçü. Düşük hız/yük, kuru çalışma.", _numuneden_plastik_burc_rulman_uretimi),
 ]
 
-# sitemap için TÜM içerik/yasal sayfa slug'ları (statik + üretilen)
-SITEMAP_SLUGS = ["hakkimizda", "iletisim", "sss", "gizlilik",
-                 "teslimat-iade", "mesafeli-satis", "malzeme-rehberi",
-                 "numuneye-gore-plastik-parca-uretimi",
-                 "bulunamayan-yedek-parca-ozel-uretim",
-                 "beyaz-esya-plastik-parca-uretimi",
-                 "oto-ic-trim-klips-parca-uretimi",
-                 "makine-parcasi-olcuye-ozel-uretim",
-                 "tekne-plastik-parca-ozel-uretim-gocek-fethiye",
-                 "kisiye-ozel-logolu-kase-yaptirma",
-                 "olcuye-ozel-conta-uretimi",
-                 "olcuye-ozel-plastik-disli-uretimi",
-                 "numuneye-gore-triger-kasnagi-uretimi",
-                 "numuneden-plastik-burc-rulman-uretimi"]
+# Statik içerik/yasal sayfalar: elle yazılmış, build.py ÜRETMEZ (repo'da commit'li), korunur.
+STATIK_SAYFALAR = ["hakkimizda", "iletisim", "sss", "gizlilik"]
+
+# sitemap + deploy.yml yayın-beyaz-listesi için TÜM içerik/yasal slug'lar (statik + ÜRETİLEN).
+# Üretilen kısım CONTENT_PAGES'ten TÜRETİLİR = TEK KAYNAK: CONTENT_PAGES'e sayfa eklemek
+# sitemap'e VE yayın manifestine (build.py _yayin-icerik-dizinleri.txt) otomatik yansır.
+# Eskiden bu liste elle tutuluyordu -> CONTENT_PAGES'e eklenip buraya eklenmeyen sayfa
+# sitemap dışı kalıp yayına girmiyordu (sessiz 404). Artık senkron elle DEĞİL.
+SITEMAP_SLUGS = STATIK_SAYFALAR + [slug for slug, _baslik, _meta, _fn in CONTENT_PAGES]

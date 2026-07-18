@@ -42,7 +42,16 @@ jobs:
           # ile onbellek-kirici surumlu). KAYNAK index.html yayina girmez.
           cp index.built.html _site/index.html
           cp secenekler.js urunler.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml filament-veri.js taban-fiyatlar.js .nojekyll _site/
-          cp -r urun hakkimizda iletisim sss gizlilik teslimat-iade mesafeli-satis malzeme-rehberi numuneye-gore-plastik-parca-uretimi bulunamayan-yedek-parca-ozel-uretim beyaz-esya-plastik-parca-uretimi oto-ic-trim-klips-parca-uretimi makine-parcasi-olcuye-ozel-uretim tekne-plastik-parca-ozel-uretim-gocek-fethiye kisiye-ozel-logolu-kase-yaptirma olcuye-ozel-conta-uretimi olcuye-ozel-plastik-disli-uretimi numuneye-gore-triger-kasnagi-uretimi numuneden-plastik-burc-rulman-uretimi _site/
+          cp -r urun _site/
+          # Icerik/yasal sayfa dizinleri: build.py'nin urettigi _yayin-icerik-dizinleri.txt'ten
+          # (TEK KAYNAK sayfalar.py SITEMAP_SLUGS) kopyalanir -> yeni CONTENT_PAGES otomatik
+          # yayina girer, elle beyaz-liste tutulmaz (eskiden buraya eklenmeyen sayfa sessizce 404'tu).
+          if [ ! -s _yayin-icerik-dizinleri.txt ]; then echo "HATA: _yayin-icerik-dizinleri.txt bos/yok (build.py kosmadi mi?)"; exit 1; fi
+          while IFS= read -r slug; do
+            if [ -z "$slug" ]; then continue; fi
+            if [ ! -d "$slug" ]; then echo "HATA: icerik dizini yok: $slug"; exit 1; fi
+            cp -r "$slug" "_site/$slug"
+          done < _yayin-icerik-dizinleri.txt
           # Parametrik konfigurator varliklari — SADECE public dosyalar (test/ girmez):
           # hacim.js tek kaynak (kabul testi #4), semalar Worker'in ileride sunucu-tarafi
           # yeniden hesabi icin de ayni adresten okunur.
