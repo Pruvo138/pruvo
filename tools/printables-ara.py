@@ -35,13 +35,23 @@ def mevcut_idler():
     return ids
 
 
-def main(term, maxn, tam_kelime=False):
+def main(term, maxn, tam_kelime=False, derin=False, cikis_limiti=None):
+    """term/marka ara, sitede OLMAYAN uygun aday model ID'lerini bas.
+
+    Sayfalama (pagination) ile keeper-cap AYRI (2026-07-18 duzeltme; thing-ara.py deseni):
+      - derin=False (varsayilan, GERIYE-UYUMLU): dongu `maxn` keeper toplayinca DURUR
+        (eski davranis birebir). Hizli; parity-backfill/CLI eski cagrilari icin.
+      - derin=True (--derin): `maxn` dongoyu DURDURMAZ; ham havuz IKINCIL tavana (offset<3000)
+        ya da `total` tukenene kadar TAM taranir, deterministik filtreleri gecen TUM adaylar
+        toplanir. Boylece uygun havuz erken kesilmez (Toyota ~40 -> yuzler).
+    `cikis_limiti` (opsiyonel): siralamadan sonra cikti listesini kirpar (None=kirpma yok)."""
     mevcut = mevcut_idler()
     bulunan, elenen_cop, elenen_nc, elenen_kelime = [], [], [], []
     seen = set()
     offset = 0
     total = None
-    while len(bulunan) < maxn and offset < 3000:
+    # DONGU KOSULU: derin modda maxn'e bakma (havuzu ikincil tavana kadar tam gez); degilse eski cap.
+    while offset < 3000 and (derin or len(bulunan) < maxn):
         try:
             res = pr.search(term, limit=30, offset=offset, ordering="popular")
         except Exception as e:
@@ -72,7 +82,8 @@ def main(term, maxn, tam_kelime=False):
             if pr.is_cop(name) and not pop:
                 elenen_cop.append((pid, name)); continue         # cop VE populer degil -> ele
             bulunan.append((pid, abbr, name, dl, likes, pr.is_cop(name)))  # son alan: populer-cop mu
-            if len(bulunan) >= maxn:
+            # keeper-cap SADECE derin-olmayan (eski) modda dongoyu keser
+            if not derin and len(bulunan) >= maxn:
                 break
         offset += 30
         if offset >= (total or 0):
@@ -80,6 +91,9 @@ def main(term, maxn, tam_kelime=False):
 
     # EN YUKSEK ONCELIK: talep (begeni + indirme) cok olan urun basa. Populer-cop olanlar da burada.
     bulunan.sort(key=lambda b: (b[4], b[3]), reverse=True)   # (likes, dl) azalan
+    havuz_toplam = len(bulunan)   # kirpmadan ONCE toplanan gercek aday sayisi (kabul olcumu)
+    if cikis_limiti is not None:
+        bulunan = bulunan[:cikis_limiti]
 
     if elenen_kelime:
         print("--- MARKA ALT-DIZE elenen %d ('%s' tam kelime degil: Oxford/afford/Food gibi) ---"
@@ -95,9 +109,10 @@ def main(term, maxn, tam_kelime=False):
         for pid, name in elenen_cop[:15]:
             print("  x %s  %s" % (pid, name[:60]))
     pop_cop = sum(1 for b in bulunan if b[5])
+    kirpma = "" if cikis_limiti is None else " (cikis %d'e kirpildi; havuz %d)" % (len(bulunan), havuz_toplam)
     print("=== '%s' icin %d yeni aday (toplam eslesme %s, zaten ekli %d, NC %d, cop %d elendi; "
-          "populer-cop ISTISNA %d) ==="
-          % (term, len(bulunan), total, len(mevcut & seen), len(elenen_nc), len(elenen_cop), pop_cop))
+          "populer-cop ISTISNA %d)%s ==="
+          % (term, len(bulunan), total, len(mevcut & seen), len(elenen_nc), len(elenen_cop), pop_cop, kirpma))
     for pid, abbr, name, dl, likes, iscop in bulunan:
         yildiz = " ★POPULER-COP" if iscop else ""
         print("  %s  %-12s ♥%-5d ⭳%-6d %s%s" % (pid, abbr, likes, dl, name[:52], yildiz))
@@ -106,10 +121,18 @@ def main(term, maxn, tam_kelime=False):
 
 
 if __name__ == "__main__":
-    # Geriye uyumlu: eski cagri `printables-ara.py "<terim>" [max]` aynen calisir.
-    # Yeni: `--tam-kelime` bayragi baslikta markayi TAM KELIME arar (alt-dize gurultusunu eler).
-    argv = [a for a in sys.argv[1:] if a != "--tam-kelime"]
-    tam_kelime = "--tam-kelime" in sys.argv[1:]
-    if not argv:
-        sys.exit('Kullanim: python3 tools/printables-ara.py "<marka/terim>" [max] [--tam-kelime]')
-    main(argv[0], int(argv[1]) if len(argv) > 1 else 250, tam_kelime=tam_kelime)
+    # Geriye uyumlu: eski cagri `printables-ara.py "<terim>" [max]` aynen calisir (derin=False).
+    #  --tam-kelime : baslikta markayi TAM KELIME arar (alt-dize gurultusunu eler).
+    #  --derin      : keeper-cap'i KALDIR, ham havuzu (offset<3000 tavanina/total'a kadar) TAM tara.
+    #                 derin modda pozisyonel sayi = OPSIYONEL cikis-trim (verilmezse tum havuz).
+    args = sys.argv[1:]
+    tam_kelime = "--tam-kelime" in args
+    derin = "--derin" in args
+    pos = [a for a in args if a not in ("--tam-kelime", "--derin")]
+    if not pos:
+        sys.exit('Kullanim: python3 tools/printables-ara.py "<marka/terim>" [max] [--tam-kelime] [--derin]')
+    if derin:
+        cikis = int(pos[1]) if len(pos) > 1 else None
+        main(pos[0], maxn=10 ** 9, tam_kelime=tam_kelime, derin=True, cikis_limiti=cikis)
+    else:
+        main(pos[0], int(pos[1]) if len(pos) > 1 else 250, tam_kelime=tam_kelime)
