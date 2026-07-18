@@ -21,7 +21,9 @@ KAPILAR (her biri ayri, tek tek test edilebilir fonksiyon):
        detayli form (logo imasi ama 'logo' kelimesi yok). Islevsel parca logoyu
        TASIYABILIR -> auto-silme yanlis olur (olculdu: 68/102 aciklama-mention islevsel).
   3. OLCU: aciklamada olcu satiri ("A × B × C mm" / "Yaklasik dis olculer") yoksa -> auto_sil.
-     Muaf: satin-alma (STL siparişte olculur), parametrik (olcuye ozel).
+     Muaf: satin-alma (STL siparişte olculur), parametrik (olcuye ozel), VE ekleme aninda
+     olculemeyen kaynaklar (MakerWorld/Cults3D/MyMiniFactory/******** — login/OAuth-gated indirme;
+     bkz _olcu_muaf_kaynak). Printables/Thingiverse MUAF DEGIL (olculu gelir) -> olcusuzu auto_sil.
   4. GORSEL CAKISMA: gorseller[0] dosya adi iki urunde paylasiliyorsa -> eskalasyon (silme).
   5. PLATFORMLAR-ARASI + JENERIK DEDUP: normalize baslikla grupla. Grup>1:
      - Uyeler aciklama olarak BENZER (gercek ikiz) -> EN IYIYI tut, gerisi auto_sil.
@@ -199,6 +201,28 @@ def _printables_kaynak(kayit):
     return "printables.com" in _kaynak_link(kayit).lower()
 
 
+# --- KAPI 3 (olcu) MUAF KAYNAKLAR — ekleme aninda VARSAYILAN olarak olcusuz gelen platformlar.
+# MakerWorld/Cults3D/MyMiniFactory adaptorleri urunu OLCUSUZ ekler (indirme login/hesap/OAuth-gated;
+# bkz makerworld-ekle.py / cults3d-ekle.py / myminifactory-ekle.py). Bunlar olcu kapisindan MUAF
+# tutulmazsa gecerli urun yanlislikla auto_sil olur = urun kaybi. ******** zaten tur=satin-alma ile
+# muaf; saglamlik icin kaynak adi/domaini de listede.
+#   ⚠️ Printables/Thingiverse BU KUMEDE DEGIL — onlar ekleme aninda OLCULU gelir; olcusuzu HALA
+#   auto_sil edilmeli (kapinin KALBI). Bu kumeye o iki kaynagi ASLA ekleme (bkz kaynak-entegrasyon-test.py).
+_OLCU_MUAF_KAYNAK = {"makerworld", "cults3d", "myminifactory", "********"}
+_OLCU_MUAF_DOMAIN = ("makerworld.com", "cults3d.com", "myminifactory.com", "********.com")
+
+
+def _olcu_muaf_kaynak(kayit):
+    """Kaynak, ekleme aninda VARSAYILAN olarak olculemeyen bir platform mu? (_printables_kaynak
+    deseni) — tespit HEM kayit['kaynak'] alanindan (tr_lower) HEM _kaynak_link() domaininden.
+    kayit dict VEYA string olabilir (ikisi de karsilanir). True -> olcu kapisi bu urunu auto_sil
+    ETMEZ (olcu, siparis/indirme sonrasi alinir)."""
+    if isinstance(kayit, dict) and tr_lower(str(kayit.get("kaynak") or "")).strip() in _OLCU_MUAF_KAYNAK:
+        return True
+    link = tr_lower(_kaynak_link(kayit))
+    return any(dom in link for dom in _OLCU_MUAF_DOMAIN)
+
+
 def _olculu(urun):
     a = urun.get("aciklama")
     return isinstance(a, str) and _OLCU_RE.search(a) is not None
@@ -278,8 +302,10 @@ def kapi_logo_eskalasyon(urun):
 
 
 def kapi_olcu(urun, kayit):
-    """(auto_sil_kapi|None, gerekce). Satin-alma/parametrik -> muaf."""
-    if _satin_alma(kayit) or bool(urun.get("parametrik")):
+    """(auto_sil_kapi|None, gerekce). MUAF: satin-alma, parametrik, ya da ekleme aninda
+    olculemeyen kaynak (MakerWorld/Cults3D/MyMiniFactory/******** — bkz _olcu_muaf_kaynak).
+    Printables/Thingiverse olcusuzu MUAF DEGIL -> auto_sil."""
+    if _satin_alma(kayit) or bool(urun.get("parametrik")) or _olcu_muaf_kaynak(kayit):
         return None, ""
     if _olculu(urun):
         return None, ""
