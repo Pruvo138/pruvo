@@ -5,7 +5,7 @@ Amaç:
   - gercek/ambiguous parçalar model false dese bile TUT
   - clear firearm aksesuarlar model true dese bile ELE
   - airsoft hobi replikasi TUT
-  - merch ELENIR
+  - merch ELENIR, hatta keep-word icerse bile
 
 Test, codex modelini sahte bir subprocess ile taklit eder ve parity-backfill.py'nin
 post-process politikasını dogrudan dogrular.
@@ -59,9 +59,10 @@ def main():
         ("10", "pistol brace"),
         ("11", "airsoft bb holder"),
         ("12", "keychain emblem"),
+        ("13", "Toyota gear key chain"),
     ]
     expected_keep = {"1", "2", "3", "4", "11"}
-    expected_block = {"5", "6", "7", "8", "9", "10", "12"}
+    expected_block = {"5", "6", "7", "8", "9", "10", "12", "13"}
 
     original_run = mod.subprocess.run
     mod.subprocess.run = _fake_run_factory({pid: False for pid, _ in pairs})
@@ -85,7 +86,7 @@ def main():
         print("BASARISIZ:", "; ".join(errors))
         sys.exit(1)
 
-    print("12/12 GECTI — keep-by-default gerçek parça/airsoft'u tutar, firearm/merch'i ezer.")
+    print("13/13 GECTI — keep-by-default gerçek parça/airsoft'u tutar, firearm/merch'i ezer.")
 
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@ COP_LOGO = (
 )
 # Marka-logolu aksesuar/merch formlari — logo reprodüksiyonu sayilir, POPULERLIK DELMEZ.
 COP_MERCH = (
-    "keychain", "keychains", "keyring", "key ring", "keyfob", "key fob",
+    "keychain", "key chain", "keychains", "keyring", "key ring", "keyfob", "key fob",
     "keytag", "key tag", "keyholder", "key holder", "keyhanger", "key hanger",
     "llavero", "porte-cle", "porte cle", "porte-clef", "porte-cles", "porte cles",
     "porte-clé", "porte-clés", "porte clé", "porte clés", "porte-clefs",

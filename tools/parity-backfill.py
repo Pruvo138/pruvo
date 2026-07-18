@@ -102,12 +102,12 @@ def _is_keep_default(name):
     n = _blob(name)
     if "airsoft" in n or "softair" in n:
         return True, "airsoft hobi replika"
+    if pr.is_logo(name) or pr.is_merch(name) or " text" in n or " sign" in n:
+        return False, "logo-merch"
     if _is_firearm(name):
         return False, "clear firearm aksesuar"
     if any(term in n for term in _KEEP_REAL):
         return True, "gercek/ambiguous parca; keep-by-default"
-    if pr.is_logo(name) or pr.is_merch(name):
-        return False, "logo-merch"
     return None, ""
 
 
