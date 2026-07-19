@@ -338,17 +338,6 @@
     color:#fff;
     border-color:var(--navy);
   }
-  .brand-more{
-    background:transparent;
-    border:none;
-    color:var(--navy-2);
-    font-size:12.5px;
-    font-weight:700;
-    cursor:pointer;
-    padding:6px 8px;
-    text-decoration:underline;
-  }
-  .brand-more:hover{color:var(--navy)}
 
   /* ---------- DAHA FAZLA GÖSTER ---------- */
   .load-more-wrap{
@@ -1639,9 +1628,9 @@
 
   var PAGE_SIZE = 24;        // ana sayfada ilk gösterilen ürün sayısı
   var shown = PAGE_SIZE;     // şu an gösterilen ürün sayısı
-  var BRAND_COLLAPSED = 12;  // katlanmış halde gösterilecek marka çipi sayısı
-  var MIN_BRAND_HOME = 8;    // ana sayfa çip listesinde görünmek için gereken min ürün
-  var brandsExpanded = false;
+  var MARKA_LIMIT = 32;      // marka çip evreni: en çok ürünlü ilk 32 marka çip olur (hem ana
+                             // sayfada hem kategori seçiliyken); 33+ uzun kuyruk marka çip DEĞİL,
+                             // yalnız arama kutusuyla bulunur (Okan, 19 Tem). Arama davranışı değişmez.
   function resetPaging(){ shown = PAGE_SIZE; }
 
   // Kategori/marka/arama HER değişimde URL'yi görünümle senkron tutar (Okan, 17 Tem):
@@ -1694,37 +1683,18 @@
     }
     el.appendChild(chip("Tümü"));
 
+    // Çip evreni = en çok ürünlü ilk MARKA_LIMIT marka (sıralama sortedBrands: ürün sayısına
+    // göre azalan, eşitlikte alfabetik). Bu kural HEM ana sayfada HEM kategori seçiliyken
+    // aynı; sortedBrands zaten aktif kategori + aramaya göre sayar. 33+ uzun kuyruk marka
+    // çip DEĞİL, yalnız arama kutusuyla bulunur (arama/filtre davranışı değişmez).
     var brands = sortedBrands();
-    // ana sayfada (Tümü + arama boş) sadece eşiği geçen markaları göster;
-    // kategori seçilince/arama yapılınca küçük markalar da görünür
-    var homeView = (activeCat === "Tümü") && !norm(query).trim();
-    if(homeView){
-      var counts = brandCounts();
-      brands = brands.filter(function(m){ return counts[m] >= MIN_BRAND_HOME; });
-      // kullanıcı eşiğin altındaki bir markayı seçtiyse kaybolmasın
-      if(activeBrand !== "Tümü" && brands.indexOf(activeBrand) === -1 &&
-         sortedBrands().indexOf(activeBrand) !== -1){
-        brands = brands.concat([activeBrand]);
-      }
-    }
-    var showAll = brandsExpanded || brands.length <= BRAND_COLLAPSED;
-    var visible = showAll ? brands : brands.slice(0, BRAND_COLLAPSED);
-    // katlanmışken aktif marka görünmüyorsa yine de göster
-    if(!showAll && activeBrand !== "Tümü" &&
+    var visible = brands.slice(0, MARKA_LIMIT);
+    // kullanıcı cap dışı bir markayı seçtiyse (URL ?marka= veya arama sonrası) çipi kaybolmasın
+    if(activeBrand !== "Tümü" &&
        visible.indexOf(activeBrand) === -1 && brands.indexOf(activeBrand) !== -1){
       visible = visible.concat([activeBrand]);
     }
     visible.forEach(function(m){ el.appendChild(chip(m)); });
-
-    if(brands.length > BRAND_COLLAPSED){
-      var more = document.createElement("button");
-      more.className = "brand-more";
-      more.textContent = brandsExpanded
-        ? "az göster"
-        : ("+ " + (brands.length - BRAND_COLLAPSED) + " marka");
-      more.onclick = function(){ brandsExpanded = !brandsExpanded; renderBrands(); };
-      el.appendChild(more);
-    }
   }
 
   function renderCats(){
@@ -1757,7 +1727,6 @@
           // seçili marka bu kategoride yoksa sıfırla
           activeBrand = "Tümü";
         }
-        brandsExpanded = false;
         resetPaging();
         syncUrl();
         renderCats(); renderBrands(); renderGrid();
@@ -1895,7 +1864,6 @@
   searchEl.addEventListener("input", function(){
     query = searchEl.value;
     clearEl.className = "search-clear" + (query ? " show" : "");
-    brandsExpanded = false;
     resetPaging();
     renderBrands();
     renderGrid();
@@ -1905,7 +1873,6 @@
   });
   clearEl.onclick = function(){
     query = ""; searchEl.value = ""; clearEl.className = "search-clear";
-    brandsExpanded = false;
     resetPaging();
     clearTimeout(araUrlZaman); syncUrl();
     searchEl.focus(); renderBrands(); renderGrid();
