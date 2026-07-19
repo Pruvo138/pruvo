@@ -45,6 +45,17 @@ binding = "KATALOG"
 database_name = "pruvo-katalog"
 database_id = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"
 
+# IP basina rate-limit (POST /api/shop/ref beacon kota korumasi — src/ref.js kotaAsildi).
+# Native Cloudflare rate limiting binding: EK D1 YAZMASI YAPMAZ (kota sorununu kota harcamaz).
+# Cap = IP basina 20 istek / 60 sn (period yalniz 10 veya 60 kabul eder). SIR YOK, secret YOK.
+# Kod fail-open: binding gelene kadar (bu satirlar deploy edilene kadar) beacon eski gibi calisir;
+# canlanmasi icin Okan `npx wrangler deploy` (shop dizininden / -c ile) calistirmali — DEPLOY = OKAN.
+[[unsafe.bindings]]
+name = "REF_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 20, period = 60 }
+
 # Uretim dosyalari (STL/3MF) OZEL R2 kovasinda (pruvo-media DEGIL — ticari dosya public'e
 # sizmaz). Yonetim /stl ucu SALT-OKUMA ile stream eder; toplu yukleme tools/stl-r2-yukle.py.
 [[r2_buckets]]

@@ -14,6 +14,8 @@ Doğrulananlar (görev kabul kriterleri):
   4) İçerik sayfasında ViewContent YOK
   5) fbq("init","1562627655518274") var
   (+ ek: ürün AddToCart var; içerik sayfası da Meta base + PageView taşır)
+  (+ S1-S7: elle yazılmış statik yasal sayfaya meta_ekle() base + PageView enjekte eder,
+     ViewContent YOK, GA korunur, idempotent)
 """
 
 import os
@@ -93,6 +95,31 @@ kontrol('E1 Ürün: AddToCart var', 'pruvoMetaTrack("AddToCart"' in urun_html)
 kontrol("E2 İçerik: Meta base + PageView var (ürün-dışı sayfa da izlenir)",
         FB_SRC in icerik_html and 'window.fbq("track", "PageView")' in icerik_html)
 kontrol("E3 İçerik: rıza guard load'dan önce", _once(icerik_html, KABUL_GUARD, FB_SRC))
+
+# ----- statik yasal sayfa (hakkimizda/iletisim/sss/gizlilik): Meta piksel ENJEKTE edilir -----
+# Bu 4 sayfa build.py'de render_content_page ile ÜRETİLMEZ; elle yazılmış statik dosyadır ve
+# GA gömülü ama Meta piksel meta_ekle() ile enjekte edilir. Deterministik test: gerçek dosyaya
+# bağlanmadan temsili bir statik <head> (GA + attribution bloğu + <title>) üzerinde meta_ekle çalıştır.
+sahte_statik = (
+    '<!DOCTYPE html>\n<html lang="tr">\n<head>\n<meta charset="UTF-8">\n'
+    + B.GA_HEAD_SNIPPET + "\n"
+    + B.ATTRIBUTION_START + "\n<script>/*attribution*/</script>\n" + B.ATTRIBUTION_END + "\n"
+    + "<title>Örnek Statik Sayfa — PRUVO</title>\n"
+    + '<meta name="description" content="x">\n</head>\n<body>Statik gövde</body>\n</html>'
+)
+statik_html = B.meta_ekle(sahte_statik)
+
+kontrol("S1 Statik: Meta base (fbevents.js) enjekte edildi", FB_SRC in statik_html)
+kontrol("S2 Statik: rıza guard var + fbevents.js'ten ÖNCE", _once(statik_html, KABUL_GUARD, FB_SRC))
+kontrol('S3 Statik: PageView var', 'window.fbq("track", "PageView")' in statik_html)
+kontrol('S4 Statik: fbq("init","%s") var' % PIXEL,
+        'window.fbq("init", "%s")' % PIXEL in statik_html)
+kontrol("S5 Statik: ViewContent olayı ATILMAZ (ürün değil, base+PageView)",
+        'pruvoMetaTrack("ViewContent"' not in statik_html)
+kontrol("S6 Statik: GA KORUNDU (Meta enjekte GA'yı ezmedi)",
+        "G-5V53CQMSCE" in statik_html and "gtag(" in statik_html)
+kontrol("S7 Statik: idempotent (2. koşu çift enjekte etmez, tek META bloğu)",
+        B.meta_ekle(statik_html) == statik_html and statik_html.count(B.META_START) == 1)
 
 # ----- rapor -----
 gecen = sum(1 for _, ok in sonuclar if ok)

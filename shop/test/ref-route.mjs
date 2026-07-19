@@ -16,10 +16,12 @@
  *  - Gecersiz grup/src/ts ATILIR (null) ama kayit yazilir (ref + click-id gecerli).
  *  - Non-POST / parse hatasi -> 204 + INSERT YOK.
  *  - D1 yazma hatasi -> yine 204 (fire-and-forget), akis bozulmaz.
+ *  - IP RATE-LIMIT (D1 kota koruma): binding mock'lanir -> cap altinda 204+INSERT; cap ustunde
+ *    204+INSERT YOK (validasyonun ONUNDE); limiter exception -> fail-open; binding yok -> fail-open.
  *
  * ONCE-KIRMIZI (elle kanitlanabilir): ref.js'te click-id zorunlulugu kaldirilirsa "organik"
  * kirmizi; INSERT OR IGNORE -> INSERT yapilirsa SQL literal testi kirmizi; 204 -> 200 yapilirsa
- * tum statu testleri kirmizi.
+ * tum statu testleri kirmizi; rate-limit kapisi kaldirilirsa "ratelimit ustunde: INSERT YOK" kirmizi.
  */
 
 import { refDogrula, refKaydet } from "../src/ref.js";
@@ -35,7 +37,7 @@ const GECERLI_REF = "REF:GS-BYP-AB12";
 function mockEnv(opts) {
   opts = opts || {};
   const inserts = [];
-  return {
+  const env = {
     inserts,
     KATALOG: {
       prepare(sql) {
@@ -53,10 +55,28 @@ function mockEnv(opts) {
       },
     },
   };
+  // opts.limiter: yoksa binding TANIMSIZ (fail-open, mevcut deploy). "izin" -> success:true
+  // (cap altinda), "engel" -> success:false (cap asildi), "patlat" -> limiter exception (fail-open).
+  if (opts.limiter) {
+    env.REF_RATE_LIMIT = {
+      calls: [],
+      async limit(arg) {
+        this.calls.push(arg);
+        if (opts.limiter === "patlat") { throw new Error("limiter down"); }
+        return { success: opts.limiter !== "engel" };
+      },
+    };
+  }
+  return env;
 }
 
 function istek(govde, method) {
   return { method: method || "POST", json: async () => govde };
+}
+// Rate-limit testleri icin CF-Connecting-IP tasiyan istek (limiter key'i IP olmali).
+function istekIp(govde, ip) {
+  return { method: "POST", json: async () => govde,
+           headers: { get: (h) => (h === "CF-Connecting-IP" ? ip : null) } };
 }
 function bozukIstek() {
   return { method: "POST", json: async () => { throw new Error("gecersiz json"); } };
@@ -160,6 +180,43 @@ function bozukIstek() {
   const res = await refKaydet(istek({ ref: GECERLI_REF, gclid: "C" }), env);
   console.error = oncekiHata;
   ol("D1 hatasi: yine 204", res.status === 204);
+}
+
+// ---- 10) Rate-limit (IP soft-cap, D1 kota koruma): cap ALTINDA -> 204+INSERT; USTUNDE -> 204+INSERT YOK ----
+{
+  // Cap ALTINDA (limiter success:true): normal akis, gecerli kayit D1'e yazilir.
+  const envAlt = mockEnv({ limiter: "izin" });
+  const rAlt = await refKaydet(istekIp({ ref: GECERLI_REF, gclid: "CLICK123" }, "1.2.3.4"), envAlt);
+  ol("ratelimit altinda: 204", rAlt.status === 204);
+  ol("ratelimit altinda: INSERT var", envAlt.inserts.length === 1, "insert=" + envAlt.inserts.length);
+  ol("ratelimit altinda: limiter IP anahtariyla cagrildi",
+    envAlt.REF_RATE_LIMIT.calls.length === 1 && envAlt.REF_RATE_LIMIT.calls[0].key === "1.2.3.4",
+    JSON.stringify(envAlt.REF_RATE_LIMIT.calls));
+
+  // Cap USTUNDE (limiter success:false): D1'e YAZILMAZ (kota korunur), yine 204 (davranis degismez).
+  const envUst = mockEnv({ limiter: "engel" });
+  const rUst = await refKaydet(istekIp({ ref: GECERLI_REF, gclid: "CLICK123" }, "1.2.3.4"), envUst);
+  ol("ratelimit ustunde: 204 (davranis/bilgi sizmaz)", rUst.status === 204);
+  ol("ratelimit ustunde: INSERT YOK (D1 kotasi korunur)", envUst.inserts.length === 0,
+    "insert=" + envUst.inserts.length);
+
+  // Rate-limit VALIDASYONUN ONUNDE: cap asilinca gecerli kayit BILE yazilmaz (yukarida goruldu);
+  // demek ki refDogrula'ya varmadan kesiliyor.
+
+  // Limiter EXCEPTION -> fail-open: beacon bloklanmaz, gecerli kayit yine yazilir, 204.
+  const envPat = mockEnv({ limiter: "patlat" });
+  const oncekiHata = console.error;
+  console.error = () => {};
+  const rPat = await refKaydet(istekIp({ ref: GECERLI_REF, gclid: "CLICK123" }, "1.2.3.4"), envPat);
+  console.error = oncekiHata;
+  ol("ratelimit limiter hatasi: fail-open (204 + INSERT var)",
+    rPat.status === 204 && envPat.inserts.length === 1, "insert=" + envPat.inserts.length);
+
+  // Binding YOK (mevcut deploy / yerel) -> limiter atlanir, normal akis (fail-open).
+  const envYok = mockEnv();
+  const rYok = await refKaydet(istekIp({ ref: GECERLI_REF, gclid: "CLICK123" }, "1.2.3.4"), envYok);
+  ol("ratelimit binding yok: normal akis (204 + INSERT)",
+    rYok.status === 204 && envYok.inserts.length === 1, "insert=" + envYok.inserts.length);
 }
 
 console.log((kalan ? "\nFAIL " : "\nPASS ") + gecen + "/" + (gecen + kalan));

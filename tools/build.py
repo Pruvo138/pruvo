@@ -156,6 +156,33 @@ META_HEAD_SNIPPET = """<!-- Meta Pixel — KVKK/rıza kapılı. Piksel Kimliği 
 })();
 </script>"""
 
+# Elle yazılmış statik yasal sayfalara (hakkimizda/iletisim/sss/gizlilik) Meta pikselini idempotent
+# enjekte etmek için işaretçiler (attribution bloğuyla AYNI desen). build.py'nin ÜRETTİĞİ ürün/içerik
+# sayfaları META_HEAD_SNIPPET'i şablonla zaten basar; statik sayfalar üretilmediği için burada eklenir.
+META_START = "<!-- PRUVO meta pixel: start -->"
+META_END = "<!-- PRUVO meta pixel: end -->"
+
+
+def meta_ekle(html_metni):
+    """Meta Pixel bloğunu statik sayfaya ekler veya mevcut bloğu TEK KAYNAKTAN (META_HEAD_SNIPPET)
+    yeniler. Rıza kapısı GA ile AYNI (pruvo_onay_analitik==="kabul"); yalnız base + PageView —
+    ViewContent ATILMAZ (statik sayfalar ürün değil, snippet zaten ViewContent göndermez).
+    İşaretçili blok idempotenttir: tekrar koşunca çift enjekte etmez. GA'nın hemen yanına
+    (attribution bloğundan önce) girer; her iki durumda da <head> içindedir."""
+    snippet = META_START + "\n" + META_HEAD_SNIPPET + "\n" + META_END
+    pattern = re.compile(re.escape(META_START) + r".*?" + re.escape(META_END), re.S)
+    if pattern.search(html_metni):
+        # re.sub replacement stringi backslash yorumlar -> lambda ile birebir koy (snippet'te
+        # kaçış dizisi olsa bile bozulmasın).
+        return pattern.sub(lambda m: snippet, html_metni, count=1)
+    # GA head bloğu ile <title> arasına yerleştir: attribution START'ından hemen önce (attribution
+    # bloğu her statik sayfada var, GA'dan sonra gelir). Bulunamazsa <title>'dan önceye düş.
+    if ATTRIBUTION_START in html_metni:
+        return html_metni.replace(ATTRIBUTION_START, snippet + "\n" + ATTRIBUTION_START, 1)
+    if "<title>" in html_metni:
+        return html_metni.replace("<title>", snippet + "\n<title>", 1)
+    raise RuntimeError("meta pixel ekleme noktasi bulunamadi")
+
 GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). analytics_storage için açık rıza. -->
 <style>
   #pruvo-cerez-onay{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;
@@ -1798,13 +1825,15 @@ def main():
     with open(JSON_PATH, encoding="utf-8") as f:
         products = json.load(f)
 
-    # Elle korunan dört içerik sayfasında yalnız işaretli attribution bloğunu yenile.
-    # CI aynı dosyaları yayın klasörüne kopyaladığı için ayrı varlık/deploy değişikliği gerekmez.
+    # Elle korunan dört içerik sayfasında işaretli attribution + Meta piksel bloklarını yenile.
+    # (GA bu sayfalara elle gömülü; Meta piksel burada TEK KAYNAKtan enjekte edilir — rıza kapısı
+    # GA ile aynı, ViewContent yok.) CI aynı dosyaları yayın klasörüne kopyaladığı için ayrı
+    # varlık/deploy değişikliği gerekmez.
     for slug in STATIK_SAYFALAR:
         statik_yol = os.path.join(ROOT, slug, "index.html")
         with open(statik_yol, encoding="utf-8") as f:
             statik_html = f.read()
-        yenilenmis = attribution_ekle(statik_html)
+        yenilenmis = meta_ekle(attribution_ekle(statik_html))
         if yenilenmis != statik_html:
             with open(statik_yol, "w", encoding="utf-8") as f:
                 f.write(yenilenmis)

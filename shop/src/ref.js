@@ -9,9 +9,18 @@
  *
  * KIRMIZI CIZGILER:
  *  - click-id URL param DEGIL, POST GOVDESINDE gelir (guvenlik).
- *  - Auth yok (public beacon). Savunma = SIKI regex + uzunluk siniri + INSERT OR IGNORE.
+ *  - Auth yok (public beacon). Savunma = IP basina RATE-LIMIT + SIKI regex + uzunluk siniri
+ *    + INSERT OR IGNORE.
  *  - HER ZAMAN 204 No Content (govdesiz) — bilgi sizdirma yok; beacon yaniti okumaz.
  *  - first-write-wins: REF PRIMARY KEY, INSERT OR IGNORE -> ayni REF ikinci kez gelirse dokunulmaz.
+ *
+ * IP RATE-LIMIT (kota koruma): INSERT OR IGNORE yalniz AYNI ref'i tekilleştirir; saldirgan
+ * sinirsiz FARKLI gecerli-format REF POST'layarak PAYLASILAN pruvo-katalog D1'inin gunluk
+ * yazma kotasini (Ege / d1-sync ile ortak) tuketebilir. Cozum: IP basina soft-cap (native
+ * Cloudflare rate limiting binding env.REF_RATE_LIMIT — EK D1 YAZMASI YOK; kota sorununu
+ * kota harcayarak cozmez). Cap asilinca D1'e HIC gidilmez, yine 204 (davranis/bilgi sizmaz).
+ * Rate-limit validasyonun ONUNDE calisir. Binding tanimsizsa (yerel test / henuz deploy
+ * edilmemis) sessizce atlanir = fail-open: mevcut davranis korunur, kod merge canliyi bozmaz.
  *
  * Saf (index.js'ten bagimsiz) tutulur ki wrangler'siz birim-test edilebilsin (shop/test/ref-route.mjs).
  */
@@ -64,8 +73,31 @@ function bosCevap() {
  * Gecerli kayit -> KATALOG D1'e INSERT OR IGNORE (created_at = sunucu Date.now()). Yazma
  * hatasi yutulur (fire-and-forget: beacon'i bloklamaz). HER durumda 204 doner.
  */
+/**
+ * IP basina soft-cap (D1 kota koruma). Native Cloudflare rate limiting binding
+ * (env.REF_RATE_LIMIT) EK D1 YAZMASI YAPMAZ; cap asilinca true doner -> cagiran D1'e gitmeden
+ * 204 verir. Binding tanimsizsa (yerel test / henuz deploy edilmemis) false = fail-open. Limiter
+ * kendisi patlarsa da fail-open: beacon bloklanmaz (attribution best-effort), yuksek sesli log.
+ */
+async function kotaAsildi(request, env) {
+  const rl = env && env.REF_RATE_LIMIT;
+  if (!rl || typeof rl.limit !== "function") { return false; }   // binding yok -> fail-open
+  const ip = (request.headers && typeof request.headers.get === "function"
+    ? request.headers.get("CF-Connecting-IP") : "") || "yok";
+  try {
+    const sonuc = await rl.limit({ key: ip });
+    return !(sonuc && sonuc.success);                            // success !== true -> cap asildi
+  } catch (e) {
+    console.error("ref rate-limit hatasi (fail-open):", (e && e.stack) || e);
+    return false;                                               // limiter patlarsa beacon'i bloklama
+  }
+}
+
 export async function refKaydet(request, env) {
   if (request.method !== "POST") { return bosCevap(); }
+
+  // RATE-LIMIT validasyonun ONUNDE: cap asilinca D1'e HIC gidilmez, yine 204 (davranis degismez).
+  if (await kotaAsildi(request, env)) { return bosCevap(); }
 
   let govde;
   try {
