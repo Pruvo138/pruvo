@@ -123,9 +123,9 @@ GA_HEAD_SNIPPET = """<!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVK
 # window.pruvoMetaTrack(): sayfa içi ViewContent/AddToCart/InitiateCheckout/Purchase yüzeyleri bunu
 # çağırır — piksel hazır (rıza var) değilse sessizce yutar. TEK KAYNAK: aynı blok index.html'de
 # birebir tekrar eder (GA snippet'lerindeki gibi) — değiştirirsen İKİSİNİ de değiştir.
-META_PIXEL_ID = "1562627655518274"
+META_PIXEL_ID = "2150216885710153"
 
-META_HEAD_SNIPPET = """<!-- Meta Pixel — KVKK/rıza kapılı. Piksel Kimliği 1562627655518274 herkese açıktır.
+META_HEAD_SNIPPET = """<!-- Meta Pixel — KVKK/rıza kapılı. Piksel Kimliği 2150216885710153 herkese açıktır.
      GA ile AYNI onay anahtarı (pruvo_onay_analitik==="kabul"): rıza YOKSA fbevents.js YÜKLENMEZ,
      hiçbir Meta ağ çağrısı olmaz. TEK KAYNAK: aynı blok index.html'de birebir tekrar eder. -->
 <script>
@@ -141,7 +141,7 @@ META_HEAD_SNIPPET = """<!-- Meta Pixel — KVKK/rıza kapılı. Piksel Kimliği 
       n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;
       t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
       (window,document,"script","https://connect.facebook.net/en_US/fbevents.js");
-    window.fbq("init", "1562627655518274");
+    window.fbq("init", "2150216885710153");
     window.fbq("track", "PageView");
   };
   /* Rıza-kapılı olay gönderici: piksel hazır DEĞİLSE sessizce yut (rıza yoksa Meta çağrısı yok).

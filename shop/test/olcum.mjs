@@ -167,10 +167,10 @@ async function test11() {
   const olay = satinAlmaOlayi(SIPARIS);
   const atif = JSON.parse(SIPARIS.atif);
   const fm = sahteFetch();
-  await metaGonder({ META_PIXEL_ID: "1562627655518274", META_CAPI_TOKEN: "TOK" }, olay, atif, fm);
+  await metaGonder({ META_PIXEL_ID: "2150216885710153", META_CAPI_TOKEN: "TOK" }, olay, atif, fm);
   ol("11a Meta 1 POST", fm.cagrilar.length === 1, "cagri=" + fm.cagrilar.length);
   ol("11b Meta URL pixel + access_token", (fm.cagrilar[0] || {}).url &&
-    fm.cagrilar[0].url.indexOf("1562627655518274/events") >= 0 &&
+    fm.cagrilar[0].url.indexOf("2150216885710153/events") >= 0 &&
     fm.cagrilar[0].url.indexOf("access_token=TOK") >= 0);
   ol("11c Meta govde currency TRY", (((fm.cagrilar[0] || {}).govde || {}).data[0]).custom_data.currency === "TRY");
 
@@ -201,7 +201,7 @@ async function test12() {
 
 // ---- 13) BASARILI AKIS: env dolu + saglam fetch -> her iki hedefe POST, ctx.waitUntil ----
 async function test13() {
-  const env = { META_PIXEL_ID: "1562627655518274", META_CAPI_TOKEN: "t",
+  const env = { META_PIXEL_ID: "2150216885710153", META_CAPI_TOKEN: "t",
                 GA4_MEASUREMENT_ID: "G-ABC", GA4_API_SECRET: "s", SITE_URL: "https://pruvo3d.com" };
   const f = sahteFetch();
   const ctx = { waitUntil: function(){} };

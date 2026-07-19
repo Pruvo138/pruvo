@@ -35,7 +35,7 @@ ONIZLEME_TABAN = "https://pruvo3d.com"
 # pikseline de gomulur) -> [vars]'ta. CAPI TOKEN'i ve GA4 API SECRET'i SIR -> asagida secret put.
 # META_CAPI_TOKEN yoksa Meta hedefi sessizce atlanir; GA4_MEASUREMENT_ID+GA4_API_SECRET yoksa
 # GA4 hedefi atlanir (kod merge olur, canliyi bozmaz; Okan secret basinca canlanir).
-META_PIXEL_ID = "1562627655518274"
+META_PIXEL_ID = "2150216885710153"
 # GA4 measurement id (G-XXXXXXXXXX) SIR DEGIL — GA4 kurulunca Okan bu satiri doldurur
 # (yoksa GA4 hedefi no-op). api_secret ise SIR (secret put).
 GA4_MEASUREMENT_ID = "G-5V53CQMSCE"

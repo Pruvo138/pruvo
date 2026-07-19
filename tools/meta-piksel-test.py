@@ -12,7 +12,7 @@ Doğrulananlar (görev kabul kriterleri):
   2) PageView var
   3) Ürün sayfasında ViewContent + örnek slug content_ids + content_type "product"
   4) İçerik sayfasında ViewContent YOK
-  5) fbq("init","1562627655518274") var
+  5) fbq("init","2150216885710153") var
   (+ ek: ürün AddToCart var; içerik sayfası da Meta base + PageView taşır)
   (+ S1-S7: elle yazılmış statik yasal sayfaya meta_ekle() base + PageView enjekte eder,
      ViewContent YOK, GA korunur, idempotent)
@@ -25,7 +25,7 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, TOOLS)
 import build as B  # noqa: E402
 
-PIXEL = "1562627655518274"
+PIXEL = "2150216885710153"
 ORNEK_SLUG = "meta-test-oto-parca"
 
 sonuclar = []
