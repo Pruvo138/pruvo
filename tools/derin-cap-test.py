@@ -87,7 +87,7 @@ def _mock_thing(ara):
 def _mock_pr(ara):
     pool = _pool_pr()
 
-    def search(term, limit=30, offset=0, ordering="popular"):
+    def search(term, limit=30, offset=0, ordering="popular", licenses=None):
         return {"totalCount": len(pool), "items": pool[offset:offset + limit]}
     ara.pr.search = search
     ara.mevcut_idler = lambda: set()
@@ -96,7 +96,7 @@ def _mock_pr(ara):
 def _mock_mw(ara):
     pool = _pool_mw()
 
-    def search(term, limit=40, offset=0):
+    def search(term, limit=40, offset=0, licenses=None):
         return {"total": len(pool), "hits": pool[offset:offset + limit]}
     ara.mw.search = search
     ara.mevcut_idler = lambda: set()

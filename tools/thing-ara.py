@@ -13,6 +13,12 @@ import importlib.util, json, os, re, sys, urllib.parse, urllib.request
 ROOT = "/Users/okan/dev/pruvo"
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 
+# Resmi Thingiverse arayuzundeki ticari kullanima acik lisans kodlari. Her biri ayri
+# sorgulanir; `license=cc` yalniz CC-BY havuzudur. NC ve taninmayan lisanslar yoktur.
+SATILABILIR_LISANSLAR = (
+    "cc", "cc-sa", "cc-nd", "pd0", "public", "gpl", "lgpl", "bsd",
+)
+
 # marka_kelime_gecer() TEK KAYNAK: printables-api.py (BU dosyanin yaninda; worktree/main farketmez).
 # thing-ara ile printables-ara ayni filtre fonksiyonunu paylasir -> drift olmaz.
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -123,14 +129,14 @@ def mevcut_thing_idleri():
 
 
 def main(term, maxn, tam_kelime=False, derin=False, cikis_limiti=None):
-    """term/marka ara, sitede OLMAYAN uygun CC aday thing'leri bas.
+    """term/marka ara, sitede OLMAYAN uygun satilabilir-lisans adaylarini bas.
 
     Sayfalama (pagination) ile keeper-cap AYRI (2026-07-18 duzeltme):
       - derin=False (varsayilan, GERIYE-UYUMLU): dongu `maxn` keeper toplayinca DURUR
         (eski davranis birebir). Hizli; parity-backfill/tverse/CLI eski cagrilari icin.
       - derin=True (--derin): `maxn` dongoyu DURDURMAZ; ham havuz `page<400`/hits
         tukenene kadar TAM taranir, deterministik filtreleri gecen TUM adaylar toplanir.
-        Boylece uygun CC havuzu erken kesilmez (Toyota ~40 -> yuzler/binler).
+        Boylece uygun satilabilir lisans havuzlari erken kesilmez.
     `cikis_limiti` (opsiyonel): siralamadan sonra donus/cikti listesini kirpar
       (maxn artik dongu capi degil, sadece istenirse bir cikis-limiti). None=kirpma yok.
     """
@@ -139,20 +145,35 @@ def main(term, maxn, tam_kelime=False, derin=False, cikis_limiti=None):
     elenen = []
     elenen_kelime = []
     seen = set()
+    toplam_sayfa = 0
+    lisans_indeksi = 0
     page = 0
-    # DONGU KOSULU: derin modda maxn'e bakma (havuzu tam gez); degilse eski cap.
-    while page < 400 and (derin or len(bulunan) < maxn):
+    lisans_bulunan = 0
+    while lisans_indeksi < len(SATILABILIR_LISANSLAR):
+        if page >= 400:
+            lisans_indeksi += 1
+            page = 0
+            lisans_bulunan = 0
+            continue
         page += 1
-        # license=cc -> satilabilir CC havuzu (NC'yi urun-ekle kapisi ayrica eler)
-        url = ("https://api.thingiverse.com/search/%s?type=things&license=cc&per_page=30&page=%d"
-               % (urllib.parse.quote(term), page))
+        toplam_sayfa += 1
+        lisans = SATILABILIR_LISANSLAR[lisans_indeksi]
+        url = ("https://api.thingiverse.com/search/%s?type=things&license=%s&per_page=30&page=%d"
+               % (urllib.parse.quote(term), urllib.parse.quote(lisans), page))
         try:
             d = api(url)
         except Exception as e:
-            print("ARAMA HATA (sayfa %d):" % page, e); break
+            print("ARAMA HATA (lisans %s, sayfa %d):" % (lisans, page), e)
+            lisans_indeksi += 1
+            page = 0
+            lisans_bulunan = 0
+            continue
         hits = d.get("hits") if isinstance(d, dict) else d
         if not hits:
-            break
+            lisans_indeksi += 1
+            page = 0
+            lisans_bulunan = 0
+            continue
         for h in hits:
             tid = str(h.get("id"))
             if tid in seen:
@@ -172,15 +193,20 @@ def main(term, maxn, tam_kelime=False, derin=False, cikis_limiti=None):
             if is_cop(name) and not pop:
                 elenen.append((tid, name)); continue        # cop VE populer degil -> ele
             bulunan.append((tid, name, likes, makes, is_cop(name)))  # son alan: populer-cop mu
+            lisans_bulunan += 1
             # keeper-cap SADECE derin-olmayan (eski) modda dongoyu keser
-            if not derin and len(bulunan) >= maxn:
+            if not derin and lisans_bulunan >= maxn:
                 break
-        if not derin and len(bulunan) >= maxn:
-            break
+        if not derin and lisans_bulunan >= maxn:
+            lisans_indeksi += 1
+            page = 0
+            lisans_bulunan = 0
     # EN YUKSEK ONCELIK: talep (begeni, sonra make) cok olan thing basa. Populer-cop da burada.
     bulunan.sort(key=lambda b: (b[2], b[3]), reverse=True)
     havuz_toplam = len(bulunan)  # kirpmadan ONCE toplanan gercek aday sayisi (kabul olcumu)
-    if cikis_limiti is not None:
+    if not derin:
+        bulunan = bulunan[:maxn]
+    elif cikis_limiti is not None:
         bulunan = bulunan[:cikis_limiti]
     if elenen_kelime:
         print("--- MARKA ALT-DIZE elenen %d ('%s' tam kelime degil: Oxford/afford/Food gibi) ---"
@@ -193,8 +219,9 @@ def main(term, maxn, tam_kelime=False, derin=False, cikis_limiti=None):
             print("  x %s  %s" % (tid, name[:60]))
     pop_cop = sum(1 for b in bulunan if b[4])
     kirpma = "" if cikis_limiti is None else " (cikis %d'e kirpildi; havuz %d)" % (len(bulunan), havuz_toplam)
-    print("=== '%s' icin %d yeni aday [havuz %d, %d sayfa%s] (zaten ekli %d, cop %d elendi; populer-cop ISTISNA %d) ==="
-          % (term, len(bulunan), havuz_toplam, page, kirpma, len(mevcut & seen), len(elenen), pop_cop))
+    print("=== '%s' icin %d yeni aday [havuz %d, %d lisans, %d sayfa%s] (zaten ekli %d, cop %d elendi; populer-cop ISTISNA %d) ==="
+          % (term, len(bulunan), havuz_toplam, len(SATILABILIR_LISANSLAR), toplam_sayfa,
+             kirpma, len(mevcut & seen), len(elenen), pop_cop))
     for tid, name, likes, makes, iscop in bulunan:
         yildiz = " ★POPULER-COP" if iscop else ""
         print("  %s  ♥%-5d ⚒%-4d %s%s" % (tid, likes, makes, name[:52], yildiz))

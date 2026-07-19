@@ -16,6 +16,13 @@ import importlib.util, os, re, sys
 ROOT = "/Users/okan/dev/pruvo"
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 
+# Printables resmi arayuzundeki lisans ID'leri (2026-07-19). Her biri ayri sorgulanir.
+# Deger: (UI/API kimligi, beklenen API kisaltmasi). NC/OCL/Standard bilerek yoktur.
+SATILABILIR_LISANSLAR = (
+    ("7", "CC0"), ("1", "CC-BY"), ("2", "CC-BY-SA"), ("8", "CC-BY-ND"),
+    ("9", "GPL 2.0"), ("12", "GPL 3.0"), ("10", "LGPL"), ("11", "BSD"),
+)
+
 # printables-api.py'yi BU dosyanin yaninda (worktree/main hangisiyse) yukle — ROOT'a bagli degil
 # (worktree kopyasi kendi cekirdegini goreblsin; marka_kelime_gecer testi de bunu kullanir).
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -50,16 +57,31 @@ def main(term, maxn, tam_kelime=False, derin=False, cikis_limiti=None):
     seen = set()
     offset = 0
     total = None
-    # DONGU KOSULU: derin modda maxn'e bakma (havuzu ikincil tavana kadar tam gez); degilse eski cap.
-    while offset < 3000 and (derin or len(bulunan) < maxn):
+    toplam_eslesme = 0
+    lisans_indeksi = 0
+    lisans_bulunan = 0
+    while lisans_indeksi < len(SATILABILIR_LISANSLAR):
+        if offset >= 3000:
+            toplam_eslesme += total or 0
+            lisans_indeksi += 1
+            offset, total, lisans_bulunan = 0, None, 0
+            continue
+        lisans_id = SATILABILIR_LISANSLAR[lisans_indeksi][0]
         try:
-            res = pr.search(term, limit=30, offset=offset, ordering="popular")
+            res = pr.search(term, limit=30, offset=offset, ordering="popular", licenses=[lisans_id])
         except Exception as e:
-            print("ARAMA HATA (offset %d):" % offset, e); break
+            print("ARAMA HATA (lisans %s, offset %d):" % (lisans_id, offset), e)
+            toplam_eslesme += total or 0
+            lisans_indeksi += 1
+            offset, total, lisans_bulunan = 0, None, 0
+            continue
         total = res["totalCount"] if total is None else total
         items = res["items"]
         if not items:
-            break
+            toplam_eslesme += total or 0
+            lisans_indeksi += 1
+            offset, total, lisans_bulunan = 0, None, 0
+            continue
         for h in items:
             pid = str(h["id"])
             if pid in seen:
@@ -82,17 +104,22 @@ def main(term, maxn, tam_kelime=False, derin=False, cikis_limiti=None):
             if pr.is_cop(name) and not pop:
                 elenen_cop.append((pid, name)); continue         # cop VE populer degil -> ele
             bulunan.append((pid, abbr, name, dl, likes, pr.is_cop(name)))  # son alan: populer-cop mu
+            lisans_bulunan += 1
             # keeper-cap SADECE derin-olmayan (eski) modda dongoyu keser
-            if not derin and len(bulunan) >= maxn:
+            if not derin and lisans_bulunan >= maxn:
                 break
         offset += 30
-        if offset >= (total or 0):
-            break
+        if offset >= (total or 0) or (not derin and lisans_bulunan >= maxn):
+            toplam_eslesme += total or 0
+            lisans_indeksi += 1
+            offset, total, lisans_bulunan = 0, None, 0
 
     # EN YUKSEK ONCELIK: talep (begeni + indirme) cok olan urun basa. Populer-cop olanlar da burada.
     bulunan.sort(key=lambda b: (b[4], b[3]), reverse=True)   # (likes, dl) azalan
     havuz_toplam = len(bulunan)   # kirpmadan ONCE toplanan gercek aday sayisi (kabul olcumu)
-    if cikis_limiti is not None:
+    if not derin:
+        bulunan = bulunan[:maxn]
+    elif cikis_limiti is not None:
         bulunan = bulunan[:cikis_limiti]
 
     if elenen_kelime:
@@ -112,7 +139,7 @@ def main(term, maxn, tam_kelime=False, derin=False, cikis_limiti=None):
     kirpma = "" if cikis_limiti is None else " (cikis %d'e kirpildi; havuz %d)" % (len(bulunan), havuz_toplam)
     print("=== '%s' icin %d yeni aday (toplam eslesme %s, zaten ekli %d, NC %d, cop %d elendi; "
           "populer-cop ISTISNA %d)%s ==="
-          % (term, len(bulunan), total, len(mevcut & seen), len(elenen_nc), len(elenen_cop), pop_cop, kirpma))
+          % (term, len(bulunan), toplam_eslesme, len(mevcut & seen), len(elenen_nc), len(elenen_cop), pop_cop, kirpma))
     for pid, abbr, name, dl, likes, iscop in bulunan:
         yildiz = " ★POPULER-COP" if iscop else ""
         print("  %s  %-12s ♥%-5d ⭳%-6d %s%s" % (pid, abbr, likes, dl, name[:52], yildiz))

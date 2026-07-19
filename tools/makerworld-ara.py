@@ -19,6 +19,9 @@ import importlib.util, os, re, sys
 ROOT = "/Users/okan/dev/pruvo"
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
 
+# MakerWorld API'sinin ticari kullanima acik dort lisans havuzu. Her biri ayri sorgulanir.
+SATILABILIR_LISANSLAR = ("CC0", "BY", "BY-SA", "BY-ND")
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location("makerworld_api", os.path.join(_HERE, "makerworld-api.py"))
 mw = importlib.util.module_from_spec(_spec)
@@ -67,17 +70,32 @@ def main(term, maxn, derin=False, cikis_limiti=None):
     bulunan, elenen_cop, elenen_nc, elenen_marka = [], [], [], []
     seen = set()
     offset, total = 0, None
+    toplam_eslesme = 0
+    lisans_indeksi = 0
+    lisans_bulunan = 0
     LIMIT = 40
-    # DONGU KOSULU: derin modda maxn'e bakma (havuzu ikincil tavana kadar tam gez); degilse eski cap.
-    while offset < 3000 and (derin or len(bulunan) < maxn):
+    while lisans_indeksi < len(SATILABILIR_LISANSLAR):
+        if offset >= 3000:
+            toplam_eslesme += total or 0
+            lisans_indeksi += 1
+            offset, total, lisans_bulunan = 0, None, 0
+            continue
+        arama_lisansi = SATILABILIR_LISANSLAR[lisans_indeksi]
         try:
-            res = mw.search(term, limit=LIMIT, offset=offset)
+            res = mw.search(term, limit=LIMIT, offset=offset, licenses=arama_lisansi)
         except Exception as e:
-            print("ARAMA HATA (offset %d):" % offset, e); break
+            print("ARAMA HATA (lisans %s, offset %d):" % (arama_lisansi, offset), e)
+            toplam_eslesme += total or 0
+            lisans_indeksi += 1
+            offset, total, lisans_bulunan = 0, None, 0
+            continue
         total = res.get("total") if total is None else total
         items = res.get("hits") or []
         if not items:
-            break
+            toplam_eslesme += total or 0
+            lisans_indeksi += 1
+            offset, total, lisans_bulunan = 0, None, 0
+            continue
         for h in items:
             pid = str(h.get("id"))
             if pid in seen:
@@ -102,16 +120,21 @@ def main(term, maxn, derin=False, cikis_limiti=None):
             if mw.is_cop(name) and not pop:
                 elenen_cop.append((pid, name)); continue         # cop VE populer degil -> ele
             bulunan.append((pid, lic, name, dl, likes, mw.is_cop(name)))
+            lisans_bulunan += 1
             # keeper-cap SADECE derin-olmayan (eski) modda dongoyu keser
-            if not derin and len(bulunan) >= maxn:
+            if not derin and lisans_bulunan >= maxn:
                 break
         offset += LIMIT
-        if total and offset >= total:
-            break
+        if (total and offset >= total) or (not derin and lisans_bulunan >= maxn):
+            toplam_eslesme += total or 0
+            lisans_indeksi += 1
+            offset, total, lisans_bulunan = 0, None, 0
 
     bulunan.sort(key=lambda b: (b[4], b[3]), reverse=True)   # (likes, dl) azalan
     havuz_toplam = len(bulunan)   # kirpmadan ONCE toplanan gercek aday sayisi (kabul olcumu)
-    if cikis_limiti is not None:
+    if not derin:
+        bulunan = bulunan[:maxn]
+    elif cikis_limiti is not None:
         bulunan = bulunan[:cikis_limiti]
 
     if elenen_nc:
@@ -130,7 +153,7 @@ def main(term, maxn, derin=False, cikis_limiti=None):
     kirpma = "" if cikis_limiti is None else " (cikis %d'e kirpildi; havuz %d)" % (len(bulunan), havuz_toplam)
     print("=== '%s' icin %d yeni aday (toplam eslesme %s, zaten ekli %d, satilamaz %d, "
           "marka-alakasiz %d, cop %d elendi; populer-cop ISTISNA %d)%s ==="
-          % (term, len(bulunan), total, len(mevcut & seen), len(elenen_nc),
+          % (term, len(bulunan), toplam_eslesme, len(mevcut & seen), len(elenen_nc),
              len(elenen_marka), len(elenen_cop), pop_cop, kirpma))
     for pid, lic, name, dl, likes, iscop in bulunan:
         yildiz = " ★POPULER-COP" if iscop else ""

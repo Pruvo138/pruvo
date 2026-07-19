@@ -130,7 +130,7 @@ def satilabilir(abbr):
     -> satilamaz urunler otomatik stage'e giriyordu (Ford+Yamaha partileri, 2026-07-18).
 
     Printables API'nin DONDURDUGU gercek `abbreviation` degerleri (2026-07-18 canli olcum):
-      SATILABILIR : CC-BY, CC-BY-SA, CC-BY-ND, CC0, GPL 3.0, GPL 2.0
+      SATILABILIR : CC-BY, CC-BY-SA, CC-BY-ND, CC0, GPL 3.0, GPL 2.0, LGPL, BSD
       SATILAMAZ   : CC-BY-NC, CC-BY-NC-SA, CC-BY-NC-ND, "Standard Digital File", "OCL v1"
     Not: GPL surumleri BOSLUK ile gelir ("GPL 3.0", tire degil); ayirici hem '-' hem bosluk.
 
@@ -138,7 +138,7 @@ def satilabilir(abbr):
       * NC (NonCommercial) tokeni varsa -> False (guvenlik agi; beyaz liste zaten elerdi).
       * CC0 / Public Domain -> True.
       * CC-BY aileleri (NC haric): CC-BY, CC-BY-SA, CC-BY-ND -> True.
-      * Yazilim lisanslari GPL / MIT / BSD -> True.
+      * Yazilim lisanslari GPL / LGPL / MIT / BSD -> True.
       * "Standard Digital File" (Printables satis-lisansi), "OCL v*" (Prusa Open Community License;
         uretilen urunun satisi ayri anlasma olmadan yasak — prusa3d.com/OCL_v1.pdf), bos, ve
         BASKA HER SEY -> False (fail-closed)."""
@@ -152,7 +152,7 @@ def satilabilir(abbr):
         return True
     if "CC" in toks and "BY" in toks:         # CC-BY, CC-BY-SA, CC-BY-ND (NC yukarida elendi)
         return True
-    if toks & {"GPL", "MIT", "BSD"}:          # ticari-serbest yazilim lisanslari
+    if toks & {"GPL", "LGPL", "MIT", "BSD"}:  # ticari-serbest yazilim lisanslari
         return True
     return False                              # Standard Digital File, OCL, bilinmeyen -> FAIL-CLOSED
 
@@ -435,8 +435,8 @@ def strip_html(s):
 
 
 SEARCH_Q = """
-query S($q: String!, $limit: Int!, $offset: Int, $ordering: SearchChoicesEnum) {
-  searchPrints2(query: $q, limit: $limit, offset: $offset, ordering: $ordering) {
+query S($q: String!, $limit: Int!, $offset: Int, $ordering: SearchChoicesEnum, $licenses: [ID]) {
+  searchPrints2(query: $q, limit: $limit, offset: $offset, ordering: $ordering, licenses: $licenses) {
     totalCount
     items {
       id name slug downloadCount likesCount ratingAvg filesCount imagesCount
@@ -473,8 +473,11 @@ mutation DL($printId: ID!, $files: [DownloadFileInput], $source: DownloadSourceE
 """
 
 
-def search(term, limit=30, offset=0, ordering="popular"):
-    return gql(SEARCH_Q, {"q": term, "limit": limit, "offset": offset, "ordering": ordering})["searchPrints2"]
+def search(term, limit=30, offset=0, ordering="popular", licenses=None):
+    """Model ara; `licenses` Printables arayuzundeki lisans ID listesidir."""
+    variables = {"q": term, "limit": limit, "offset": offset, "ordering": ordering,
+                 "licenses": licenses}
+    return gql(SEARCH_Q, variables)["searchPrints2"]
 
 
 def detail(pid):
