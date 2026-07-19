@@ -114,6 +114,48 @@ GA_HEAD_SNIPPET = """<!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVK
   gtag('config', 'G-5V53CQMSCE', { 'anonymize_ip': true });
 </script>"""
 
+# ------------------------------------------------------------------ Meta Pixel (tarayıcı) — rıza kapılı
+# GA ile AYNI onay anahtarını kullanır: pruvo_onay_analitik === "kabul" olmadan piksel YÜKLENMEZ,
+# fbevents.js indirilmez, hiçbir Meta ağ çağrısı olmaz. Rıza verilince (banner "Kabul Et" ya da zaten
+# kayıtlı) fbq init olur + PageView atılır. Piksel Kimliği herkese açıktır (public var, sır değil).
+# Sunucu-tarafı CAPI Purchase'ı (shop/src/olcum.js) event_id = siparis_no ile dedup eder; tarayıcı
+# Purchase yüzeyi de AYNI siparis_no'yu eventID olarak kullanır (çift sayım olmaz).
+# window.pruvoMetaTrack(): sayfa içi ViewContent/AddToCart/InitiateCheckout/Purchase yüzeyleri bunu
+# çağırır — piksel hazır (rıza var) değilse sessizce yutar. TEK KAYNAK: aynı blok index.html'de
+# birebir tekrar eder (GA snippet'lerindeki gibi) — değiştirirsen İKİSİNİ de değiştir.
+META_PIXEL_ID = "1562627655518274"
+
+META_HEAD_SNIPPET = """<!-- Meta Pixel — KVKK/rıza kapılı. Piksel Kimliği 1562627655518274 herkese açıktır.
+     GA ile AYNI onay anahtarı (pruvo_onay_analitik==="kabul"): rıza YOKSA fbevents.js YÜKLENMEZ,
+     hiçbir Meta ağ çağrısı olmaz. TEK KAYNAK: aynı blok index.html'de birebir tekrar eder. -->
+<script>
+(function(){
+  window.pruvoMetaHazir = false;
+  /* Pikseli yalnız açık rıza gelince YÜKLE. Rıza yoksa erken döner -> fbevents.js inmez, çağrı yok. */
+  window.pruvoMetaBaslat = function(){
+    if(window.pruvoMetaHazir){ return; }
+    try { if(localStorage.getItem("pruvo_onay_analitik") !== "kabul"){ return; } } catch(e){ return; }
+    window.pruvoMetaHazir = true;
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+      (window,document,"script","https://connect.facebook.net/en_US/fbevents.js");
+    window.fbq("init", "1562627655518274");
+    window.fbq("track", "PageView");
+  };
+  /* Rıza-kapılı olay gönderici: piksel hazır DEĞİLSE sessizce yut (rıza yoksa Meta çağrısı yok).
+     Ürün/sepet/ödeme yüzeyleri ViewContent/AddToCart/InitiateCheckout/Purchase için bunu çağırır. */
+  window.pruvoMetaTrack = function(olay, veri, opsiyon){
+    if(!window.pruvoMetaHazir || typeof window.fbq !== "function"){ return; }
+    if(opsiyon){ window.fbq("track", olay, veri, opsiyon); }
+    else { window.fbq("track", olay, veri); }
+  };
+  /* Ziyaretçi daha önce onay verdiyse pikseli hemen başlat (banner çıkmaz, PageView atılır). */
+  try { if(localStorage.getItem("pruvo_onay_analitik") === "kabul"){ window.pruvoMetaBaslat(); } } catch(e){}
+})();
+</script>"""
+
 GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). analytics_storage için açık rıza. -->
 <style>
   #pruvo-cerez-onay{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;
@@ -158,6 +200,9 @@ GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — haric
   kabul.addEventListener("click", function(){
     if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
     kaydet("kabul");
+    /* Meta pikseli de rıza anında başlasın (init + PageView) — kaydet() localStorage'ı 'kabul'
+       yazdıktan SONRA çağrılır ki pruvoMetaBaslat rıza kontrolünden geçsin. */
+    if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
   });
   ret.addEventListener("click", function(){ kaydet("ret"); });  /* denied kalır */
   try { kabul.focus(); } catch(e){}
@@ -1144,6 +1189,20 @@ def render_product(p, all_products):
          "parametrik": parametrik, "boy_secenekleri": boy_secenekleri},
         ensure_ascii=False, separators=(",", ":")).replace("</script>", "<\\/script>")
 
+    # --- Meta Pixel ViewContent (rıza-kapılı, YALNIZ ürün sayfası). content_ids = TAM ürün slug'ı
+    # (feed g:id ile birebir -> katalog eşleşmesi); content_type "product"; currency "TRY"; value
+    # SAYI (sabit fiyat varsa), parametrik/fiyatsız üründe value yok. pruvoMetaTrack rıza yoksa yutar.
+    mvc = {"content_ids": [pid], "content_type": "product", "currency": "TRY"}
+    _vc_fiyat = price_number(fiyat)
+    if _vc_fiyat:
+        mvc["value"] = int(_vc_fiyat)
+    mvc_json = json.dumps(mvc, ensure_ascii=False, separators=(",", ":")
+                          ).replace("</script>", "<\\/script>")
+    meta_view_content = (
+        '<script>\n'
+        'if(typeof window.pruvoMetaTrack==="function"){ window.pruvoMetaTrack("ViewContent", '
+        + mvc_json + '); }\n</script>')
+
     # Konfigüratör şeması sayfaya inline gömülür (tek kaynak jenerator/urunler/<id>.json,
     # build her push'ta yeniden gömer); hacim fonksiyonları ise /jenerator/hacim.js'ten
     # AYNI DOSYA olarak yüklenir (kopya yasak — kabul testi #4).
@@ -1165,6 +1224,7 @@ def render_product(p, all_products):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 {ga_head}
+{meta_head}
 {attribution_head}
 <title>{title}</title>
 <meta name="description" content="{desc}">
@@ -1400,7 +1460,17 @@ var URUN_SEMA = {sema_json};
     var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
     var i=-1;
     for(var j=0;j<c.length;j++){{ if(PRUVO_SECENEK.satirAnahtari(c[j])===anahtar){{ i=j; break; }} }}
-    if(i===-1){{ c.push(satir); }} else {{ c.splice(i,1); }}
+    if(i===-1){{
+      c.push(satir);
+      /* AddToCart (rıza-kapılı): yalnız gerçek EKLEMEDE (toggle-çıkarmada değil). value = seçilen
+         konfigürasyonun kuruşlu tutarı TRY'ye; content_ids DAİMA ürün slug'ı, content_type "product". */
+      try {{
+        var mAtc = PRUVO_SECENEK.satirOzeti(URUN, satir);
+        var mAtcVeri = {{ content_ids:[id], content_type:"product", currency:"TRY" }};
+        if(mAtc && mAtc.kurus != null){{ mAtcVeri.value = mAtc.kurus/100; }}
+        if(typeof window.pruvoMetaTrack === "function"){{ window.pruvoMetaTrack("AddToCart", mAtcVeri); }}
+      }} catch(e) {{}}
+    }} else {{ c.splice(i,1); }}
     PRUVO_SECENEK.sepetKaydet(c); render();
   }});
   /* Filament kartlarını malzeme seçicisine çevir (yalnız kart-secim modu). Tıklanan kart
@@ -1488,6 +1558,7 @@ var URUN_SEMA = {sema_json};
 }})();
 {onizleme_js}
 </script>
+{meta_view_content}
 {ga_banner}
 </body>
 </html>
@@ -1532,6 +1603,8 @@ var URUN_SEMA = {sema_json};
         onizleme_js=onizleme_js,
         whatsapp=WHATSAPP,
         ga_head=GA_HEAD_SNIPPET,
+        meta_head=META_HEAD_SNIPPET,
+        meta_view_content=meta_view_content,
         attribution_head=attribution_head_snippet(),
         ga_banner=GA_BANNER_SNIPPET,
     )
@@ -1551,6 +1624,7 @@ def render_content_page(slug, title, meta, body_html):
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 {ga_head}
+{meta_head}
 {attribution_head}
 <title>{title}</title>
 <meta name="description" content="{desc}">
@@ -1600,6 +1674,7 @@ def render_content_page(slug, title, meta, body_html):
         pay_band=PAY_BAND_HTML,
         pv_js=PV_SCRIPT_HTML,
         ga_head=GA_HEAD_SNIPPET,
+        meta_head=META_HEAD_SNIPPET,
         attribution_head=attribution_head_snippet(),
         ga_banner=GA_BANNER_SNIPPET,
     ))

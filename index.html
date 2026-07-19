@@ -26,6 +26,37 @@
   gtag('js', new Date());
   gtag('config', 'G-5V53CQMSCE', { 'anonymize_ip': true });
 </script>
+<!-- Meta Pixel — KVKK/rıza kapılı. Piksel Kimliği 1562627655518274 herkese açıktır.
+     GA ile AYNI onay anahtarı (pruvo_onay_analitik==="kabul"): rıza YOKSA fbevents.js YÜKLENMEZ,
+     hiçbir Meta ağ çağrısı olmaz. TEK KAYNAK: aynı blok tools/build.py (META_HEAD_SNIPPET) —
+     değiştirirsen İKİSİNİ de değiştir. -->
+<script>
+(function(){
+  window.pruvoMetaHazir = false;
+  /* Pikseli yalnız açık rıza gelince YÜKLE. Rıza yoksa erken döner -> fbevents.js inmez, çağrı yok. */
+  window.pruvoMetaBaslat = function(){
+    if(window.pruvoMetaHazir){ return; }
+    try { if(localStorage.getItem("pruvo_onay_analitik") !== "kabul"){ return; } } catch(e){ return; }
+    window.pruvoMetaHazir = true;
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version="2.0";n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+      (window,document,"script","https://connect.facebook.net/en_US/fbevents.js");
+    window.fbq("init", "1562627655518274");
+    window.fbq("track", "PageView");
+  };
+  /* Rıza-kapılı olay gönderici: piksel hazır DEĞİLSE sessizce yut (rıza yoksa Meta çağrısı yok).
+     Ürün/sepet/ödeme yüzeyleri ViewContent/AddToCart/InitiateCheckout/Purchase için bunu çağırır. */
+  window.pruvoMetaTrack = function(olay, veri, opsiyon){
+    if(!window.pruvoMetaHazir || typeof window.fbq !== "function"){ return; }
+    if(opsiyon){ window.fbq("track", olay, veri, opsiyon); }
+    else { window.fbq("track", olay, veri); }
+  };
+  /* Ziyaretçi daha önce onay verdiyse pikseli hemen başlat (banner çıkmaz, PageView atılır). */
+  try { if(localStorage.getItem("pruvo_onay_analitik") === "kabul"){ window.pruvoMetaBaslat(); } } catch(e){}
+})();
+</script>
 <title>PRUVO — Özel Tasarım Endüstriyel & Oto Yedek Parça Üretimi</title>
 <meta name="description" content="PRUVO — tekne, otomobil, motosiklet ve endüstriyel cihazlar için özel tasarım yedek parça üretimi. Kırılan/aşınan orijinal parçanızın birebir yedeğini üretiyoruz.">
 <link rel="canonical" href="https://pruvo3d.com/">
@@ -1433,6 +1464,16 @@
       odemeHata(HATA_METNI["sozlesme-onay-yok"]);
       return;
     }
+    /* InitiateCheckout (rıza-kapılı): ödeme/havale isteği çıkmadan HEMEN önce. Bu noktada tüm
+       satırlar ödenebilir (cartOdenebilirMi geçti). content_ids = sepet slug'ları, value = ürün
+       toplamı TRY (cartToplamKurus kargo HARİÇ), currency "TRY". pruvoMetaTrack rıza yoksa yutar. */
+    try {
+      var icIds = lines.map(function(L){ return L.satir.id; });
+      var icVal = cartToplamKurus(lines) / 100;
+      var icVeri = { content_ids: icIds, content_type: "product", currency: "TRY" };
+      if(icVal > 0){ icVeri.value = icVal; }
+      if(typeof window.pruvoMetaTrack === "function"){ window.pruvoMetaTrack("InitiateCheckout", icVeri); }
+    } catch(e){}
     btn.disabled = true;
     btn.textContent = havale ? "Sipariş kaydediliyor…" : "Ödeme sayfası hazırlanıyor…";
     try{
@@ -1490,6 +1531,20 @@
     if(!s){ return; }
     var no = q.get("no") || "";
     if(s === "ok"){
+      /* Purchase (rıza-kapılı): ödeme dönüşü BAŞARI yüzeyi. eventID = sipariş no (siparis_no) —
+         sunucu CAPI Purchase'ı AYNI event_id ile atar, Meta dedup eder (çift sayım yok). value =
+         sunucu tahsilatı t (kuruş) TRY'ye; content_ids sepetten (cart HENÜZ loadCart edilmedi, bu
+         çağrı 1912'de; localStorage'dan doğrudan okunur), TEMİZLEMEDEN önce. currency "TRY". */
+      try {
+        var pSepet = PRUVO_SECENEK.sepetYukle();
+        var pIds = pSepet.map(function(x){ return x.id; });
+        var pKurus = parseInt(q.get("t"), 10);
+        var pVeri = { content_ids: pIds, content_type: "product", currency: "TRY" };
+        if(pKurus > 0){ pVeri.value = pKurus / 100; }
+        if(no && typeof window.pruvoMetaTrack === "function"){
+          window.pruvoMetaTrack("Purchase", pVeri, { eventID: no });
+        }
+      } catch(e){}
       cart = []; saveCart(); updateCartFab();
       // KDV dokumu (kalem 8): worker yonlendirmesindeki t (tahsilat) + kdv paramlarindan.
       // Yalniz gosterim — tahsilat coktan sunucu hesabiyla yapildi.
@@ -2027,6 +2082,9 @@
   kabul.addEventListener("click", function(){
     if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
     kaydet("kabul");
+    /* Meta pikseli de rıza anında başlasın (init + PageView) — kaydet() localStorage'ı 'kabul'
+       yazdıktan SONRA çağrılır ki pruvoMetaBaslat rıza kontrolünden geçsin. */
+    if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
   });
   ret.addEventListener("click", function(){ kaydet("ret"); });  /* denied kalır */
   try { kabul.focus(); } catch(e){}
