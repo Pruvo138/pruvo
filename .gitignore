@@ -44,6 +44,7 @@ gorseller/
 .cults3d-credentials.json
 # Ic notlar — bu repo PUBLIC; DEVAM.md yayina girmesin (bugune dek de hic commit edilmedi).
 DEVAM.md
+DEVAM-ARSIV.md
 # Muhendis raporlari worktree-lokal kalir (ILETISIM PROTOKOLU); public repoya girmez.
 RAPOR-MIMARA.md
 __pycache__/
