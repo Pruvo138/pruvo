@@ -8,7 +8,11 @@
   var GROUP_RE = /^[A-Z0-9]{2,4}$/;
   var SOURCE_RE = /^[A-Z]{2}$/;
   var REF_RE = /^REF:[A-Z]{2}-[A-Z0-9]{2,4}-[A-Z0-9]{4}$/;
+  var LEAD_ENDPOINT = "/api/shop/ref";
+  var CONSENT_KEY = "pruvo_onay_analitik";
   var activeRef = null;
+  // Ayni sayfada ikinci tik gonderimini kes (kalici idempotent = kayittaki record.logged).
+  var leadSent = false;
 
   function normalize(value, pattern, fallback) {
     var normalized = String(value || "").toUpperCase();
@@ -51,13 +55,16 @@
 
   function initialize() {
     var params = new URLSearchParams(location.search);
-    var hasGclid = params.has("gclid");
-    var urlGclid = hasGclid ? String(params.get("gclid") || "") : null;
+    // iOS/gizlilik tiklamalari gclid yerine gbraid (app) / wbraid (web) tasir — ucunu de oku.
+    var urlGclid = params.has("gclid") ? String(params.get("gclid") || "") : null;
+    var urlGbraid = params.has("gbraid") ? String(params.get("gbraid") || "") : null;
+    var urlWbraid = params.has("wbraid") ? String(params.get("wbraid") || "") : null;
+    var hasClickId = !!(urlGclid || urlGbraid || urlWbraid);
     var now = Date.now();
     var record = readRecord(now);
 
-    if (!hasGclid && !record) { return; }
-    if (record && (!hasGclid || record.gclid === urlGclid)) {
+    if (!hasClickId && !record) { return; }
+    if (record && (!hasClickId || record.gclid === urlGclid)) {
       activeRef = record.ref;
       return;
     }
@@ -66,7 +73,8 @@
     var source = normalize(params.get("s"), SOURCE_RE, "GS");
     var ref = makeRef(source, group);
     if (!ref) { return; }
-    record = { ref: ref, gclid: urlGclid, grup: group, src: source, ts: now };
+    record = { ref: ref, gclid: urlGclid, gbraid: urlGbraid, wbraid: urlWbraid,
+               grup: group, src: source, ts: now };
     writeRecord(record);
     activeRef = ref;
   }
@@ -99,6 +107,51 @@
     for (var i = 0; i < anchors.length; i++) { enrich(anchors[i]); }
   }
 
+  function hasConsent() {
+    try {
+      return localStorage.getItem(CONSENT_KEY) === "kabul";
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Lead aninda (wa.me tikinda) REF->click-id'yi sunucuya kalicilastir. Guard'lar (HEPSI
+  // saglanmali): tiklanan link wa.me hedefi, activeRef set, analitik rizasi 'kabul', kayitta
+  // >=1 click-id (organik gonderilmez), REF daha once loglanmamis. Fire-and-forget: yanit
+  // beklenmez, hata yutulur.
+  function sendLead(anchor) {
+    if (leadSent || !activeRef || !anchor || !anchor.getAttribute) { return; }
+    var href = anchor.getAttribute("href") || "";
+    var url;
+    try { url = new URL(href, location.href); } catch (error) { return; }
+    if (!isTarget(url)) { return; }
+    if (!hasConsent()) { return; }
+    var record = readRecord(Date.now());
+    if (!record || record.ref !== activeRef) { return; }
+    if (!(record.gclid || record.gbraid || record.wbraid)) { return; }
+    if (record.logged) { leadSent = true; return; }
+
+    var payload = { ref: record.ref, grup: record.grup, src: record.src, ts: record.ts };
+    if (record.gclid) { payload.gclid = record.gclid; }
+    if (record.gbraid) { payload.gbraid = record.gbraid; }
+    if (record.wbraid) { payload.wbraid = record.wbraid; }
+
+    var ok = false;
+    try {
+      if (navigator && typeof navigator.sendBeacon === "function") {
+        var blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+        ok = navigator.sendBeacon(LEAD_ENDPOINT, blob);
+      }
+    } catch (error) {
+      ok = false;
+    }
+    if (ok) {
+      leadSent = true;
+      record.logged = true;
+      writeRecord(record);
+    }
+  }
+
   initialize();
   window.pruvoRef = function () { return activeRef; };
 
@@ -111,5 +164,6 @@
     var anchor = event.target;
     while (anchor && anchor.tagName !== "A") { anchor = anchor.parentNode; }
     enrich(anchor);
+    sendLead(anchor);
   }, true);
 })();

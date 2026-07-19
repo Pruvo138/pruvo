@@ -30,6 +30,7 @@ import { SEMALAR } from "./semalar.js";
 import { yonet } from "./yonet.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder } from "./olcum.js";
+import { refKaydet } from "./ref.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -624,6 +625,9 @@ export default {
       // (tek kaynak). Worker'in ayni listeyi ikinci bir ucdan yayinlamasi drift kapisi acardi.
       if (yol === "/baslat" && request.method === "POST") return await baslat(request, env, url, ctx);
       if (yol === "/donus") return await donus(request, env, ctx);
+      // wa.me lead attribution (OCI #1): landing beacon'i REF->click-id'yi D1'e kalici kilar.
+      // Handler yalniz POST'u yazar, digerini 204 gecer; her durumda 204 (bilgi sizmaz).
+      if (yol === "/ref") return await refKaydet(request, env);
       // Anahtar korumali yonetim (same-origin; anahtar yok/yanlis -> 404, telegram fallback icin
       // index.js'in telegram fonksiyonu gecirilir).
       if (yol === "/yonet" || yol.startsWith("/yonet/")) {
