@@ -64,7 +64,9 @@ def process_one(tid):
             return {"id": tid, "durum": "ATLA: NC/Non-Commercial (satilamaz)", "lisans": meta.get("lisans")}
         if not meta.get("stl_adet"):
             return {"id": tid, "durum": "ATLA: STL indirilemedi (0 dosya)"}
-        subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), tid], capture_output=True, text=True)
+        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), tid], capture_output=True, text=True)
+        if ai.returncode != 0:
+            return {"id": tid, "durum": "HATA: kredi kapisi — urun AI izni yok"}
         onerip = os.path.join(IMGROOT, tid, "oneri.json")
         if not os.path.exists(onerip):
             return {"id": tid, "durum": "HATA: codex oneri yok"}

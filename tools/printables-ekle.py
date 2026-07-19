@@ -117,7 +117,9 @@ def process_one(pid):
             return {"id": pid, "durum": "ATLA: NC/Non-Commercial (satilamaz)", "lisans": abbr}
         if not meta.get("gorseller"):
             return {"id": pid, "durum": "ATLA: gorsel indirilemedi"}
-        subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), key], capture_output=True, text=True)
+        ai = subprocess.run([PY, os.path.join(TOOLS, "thing-codex.py"), key], capture_output=True, text=True)
+        if ai.returncode != 0:
+            return {"id": pid, "durum": "HATA: kredi kapisi — urun AI izni yok"}
         onerip = os.path.join(CACHE, key, "oneri.json")
         if not os.path.exists(onerip):
             return {"id": pid, "durum": "HATA: codex oneri yok"}

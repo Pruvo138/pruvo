@@ -15,8 +15,9 @@ Ciktiyi ekrana + `.thing-cache/<id>/oneri.json`'a yazar.
 Gemini token basina GERCEK PARA yakiyordu: 2 gunde 2.000 TL, bakiye eksiye dusup servis durdu.
 Sebep: `gemini-flash-latest` takma adi sabit model degil ("en yeni flash" demek) -> Google 3.5
 Flash'i cikarinca takma ad oraya kaydi ve haberimiz olmadan 5x fiyata gectik ($1.50/$9.00 vs
-$0.30/$2.50 beklenen). Codex ise ChatGPT ABONELIGINDEN calisir (auth_mode=chatgpt) -> urun basina
-marjinal maliyet YOK; ayrica Claude'un kota havuzundan da ayri.
+$0.30/$2.50 beklenen). Codex ChatGPT abonelik limitini tuketir; 19 Tem olcumunde 230 urun +
+1 jenerator haftalik limitin %38'ini harcadi. Bu nedenle varsayilan KAPALIDIR. Yalniz Okan'in
+o parti icin acik izniyle `PRUVO_URUN_AI_IZNI=EVET` verilirse model cagrisi yapar.
 DERS: model takma adi ("-latest") KULLANMA, surumu her zaman ACIKCA yaz. Yukseltme bilincli karar olsun.
 
 Kimlik: `~/.codex/auth.json` (ChatGPT ile giris; `codex login`). Sir icermez; harici pip paketi YOK.
@@ -34,6 +35,11 @@ MODEL = "gpt-5.4-mini"      # basit is: bak + JSON don. Kalite yetmezse -> gpt-5
 EFFORT = "low"              # Okan'in config.toml'undaki xhigh bu is icin gereksiz (yavas + kota yer)
 MAX_IMG = 4                 # CLAUDE.md zaten 3-4 gorsel istiyor; cache'te 8 gorsellik urunler var
 TRIES = 2
+
+
+def ai_izinli():
+    """Urun-basi model cagrisi sadece Okan'in o parti icin acik izniyle acilir."""
+    return os.environ.get("PRUVO_URUN_AI_IZNI") == "EVET"
 
 KATEGORILER = ["Tamirat", "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Ev",
                "Ofis", "Elektronik", "Kamera", "Bahce", "Dekorasyon", "Oyun/Hobi"]
@@ -187,6 +193,9 @@ def process(tid):
 def main():
     if len(sys.argv) < 2:
         sys.exit("Kullanim: python3 tools/thing-codex.py <thing_id> [<thing_id> ...]")
+    if not ai_izinli():
+        sys.exit("KREDI KAPISI: urun-basi Codex cagrisi kapali. Yalniz Okan acikca izin verirse "
+                 "PRUVO_URUN_AI_IZNI=EVET kullanilir.")
     if not os.path.exists(CODEX):
         sys.exit("Codex bulunamadi: %s (ChatGPT.app kurulu mu?)" % CODEX)
     for tid in sys.argv[1:]:
