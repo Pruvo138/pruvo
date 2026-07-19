@@ -83,8 +83,11 @@ _FIREARM = (
     "m-lok", "mlok", "magpul", "moe grip", "moe stock", "ctr stock",
     "magwell", "cheek riser", "cheek-riser", "pistol brace", "pistol-brace",
     "picatinny", "handguard", "ar-15", "ar15", "buffer tube",
-    "lower receiver", "upper receiver", "pmag",
+    "lower receiver", "upper receiver", "pmag", "glock", "sarjor", "şarjör",
+    "magazine", "holster", "mermi", "molle sarjor", "molle şarjör",
 )
+
+_MAKET = (" rc body", " yota body", " modeli")
 
 
 def _blob(name):
@@ -104,6 +107,8 @@ def _is_keep_default(name):
         return False, "logo-merch"
     if _is_firearm(name):
         return False, "clear firearm aksesuar"
+    if any(term in n for term in _MAKET):
+        return False, "arac maketi/model govdesi"
     if any(term in n for term in _KEEP_REAL):
         return True, "gercek/ambiguous parca; keep-by-default"
     return None, ""
@@ -180,7 +185,7 @@ def codex_yargi(brand, pairs):
         "- olcekli model / maket / diorama / vitrin-modeli / diecast / RC govde-kabugu / '1:24' '1/76' "
         "'scale model' 'model v1' gibi ARAC MAKETI (YASAK sinif).\n"
         "- clear firearm accessories: M-LOK, Magpul, MOE/CTR stock-grip, magwell, picatinny, handguard, "
-        "AR-15/AR15, buffer tube, receiver, pistol brace.\n"
+        "AR-15/AR15, buffer tube, receiver, pistol brace, Glock, sarjor/magazine, holster, mermi.\n"
         "- airsoft/softair replika parcalari HARIC gercek atesli silah aksesuarları.\n"
         "- logo-merch: urunun KENDISI logo/amblem/rozet/plaket/anahtarlik/kurabiye-kalibi olan.\n"
         "- ucuncu-taraf IP (film/oyun/Disney/Marvel vb.).\n"

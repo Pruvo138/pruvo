@@ -60,9 +60,14 @@ def main():
         ("11", "airsoft bb holder"),
         ("12", "keychain emblem"),
         ("13", "Toyota gear key chain"),
+        ("14", "Glock Molle magazine holder"),
+        ("15", "Molle mermi kutusu tutucu"),
+        ("16", "Toyota Hiace modeli"),
+        ("17", "Toyota Yota Body"),
+        ("18", "Toyota RC Body"),
     ]
     expected_keep = {"1", "2", "3", "4", "11"}
-    expected_block = {"5", "6", "7", "8", "9", "10", "12", "13"}
+    expected_block = {"5", "6", "7", "8", "9", "10", "12", "13", "14", "15", "16", "17", "18"}
 
     original_run = mod.subprocess.run
     mod.subprocess.run = _fake_run_factory({pid: False for pid, _ in pairs})
@@ -86,7 +91,7 @@ def main():
         print("BASARISIZ:", "; ".join(errors))
         sys.exit(1)
 
-    print("13/13 GECTI — keep-by-default gerçek parça/airsoft'u tutar, firearm/merch'i ezer.")
+    print("18/18 GECTI — gerçek parça/airsoft tutulur; firearm/merch/maket engellenir.")
 
 
 if __name__ == "__main__":

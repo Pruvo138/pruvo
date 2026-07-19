@@ -61,7 +61,8 @@ COP_FIREARM = (
     "m-lok", "mlok", "magpul", "moe grip", "moe stock", "ctr stock",
     "magwell", "cheek riser", "cheek-riser", "pistol brace", "pistol-brace",
     "picatinny", "handguard", "ar-15", "ar15", "buffer tube",
-    "lower receiver", "upper receiver", "pmag",
+    "lower receiver", "upper receiver", "pmag", "glock", "sarjor", "şarjör",
+    "magazine", "holster", "mermi", "molle sarjor", "molle şarjör",
 )
 COP = COP_LOGO + COP_MERCH + COP_OTHER + COP_FIREARM
 
