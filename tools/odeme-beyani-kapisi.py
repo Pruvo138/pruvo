@@ -271,6 +271,41 @@ else:
     kontrol(9, "PARAMETRIK_ODEME_ACIK=false iken parametrik→WhatsApp iddiası meşru (çapraz doğrulama)",
             True, "bayrak kapalı; %d gövdede iddia meşru sayıldı" % len(parametrik_ihlaller))
 
+# 10) Bağlayıcı yasal sayfa gövdelerinde (teslimat-iade + mesafeli-satis) teslim süresi
+#     KARGO-HARİÇ çerçeveyle yazılmış mı? (Okan kararı, sss ile tutarlı: ürün 3-5 iş günü
+#     içinde KARGOYA VERİLİR; kargo transit süresi ayrı.) Kaynak sayfalar.py üretim
+#     fonksiyonları (_teslimat_iade / _mesafeli_satis) çağrılıp gövde metni taranır.
+#     - Kargo-DAHİL çerçeve kalıbı bulunursa -> FAIL (bayat taahhüt).
+#     - "kargoya verilir" çerçevesi iki sayfada da YOKSA -> FAIL (pozitif doğrulama).
+kargo_dahil_desen = re.compile(
+    r"kargo\s+süresini\s+kapsar|kargo\s+dahil|üretim\s*\+\s*kargo|"
+    r"teslim\s+süresi\s+üretim", re.I)
+kargoya_verilir_desen = re.compile(r"kargoya\s+veril", re.I)
+
+baglayici_hatasi = None
+baglayici_govdeler = {}
+try:
+    if TOOLS not in sys.path:
+        sys.path.insert(0, TOOLS)
+    import sayfalar as _sayfalar_mod2
+    baglayici_govdeler["teslimat-iade"] = temiz_metin(_sayfalar_mod2._teslimat_iade())
+    baglayici_govdeler["mesafeli-satis"] = temiz_metin(_sayfalar_mod2._mesafeli_satis())
+except Exception as e:
+    baglayici_hatasi = "sayfalar.py bağlayıcı gövdeleri üretilemedi: %s" % e
+
+if baglayici_hatasi is not None:
+    kontrol(10, "Bağlayıcı sayfa gövdeleri kargo-HARİÇ teslim çerçevesi taşıyor",
+            False, baglayici_hatasi)
+else:
+    dahil_ihlaller = [slug for slug, duz in baglayici_govdeler.items()
+                      if kargo_dahil_desen.search(duz)]
+    eksik_pozitif = [slug for slug, duz in baglayici_govdeler.items()
+                     if not kargoya_verilir_desen.search(duz)]
+    kontrol(10, "Bağlayıcı sayfalarda kargo-DAHİL çerçeve yok ve 'kargoya verilir' çerçevesi var",
+            not dahil_ihlaller and not eksik_pozitif,
+            "kargo-DAHİL: %s | kargoya-verilir eksik: %s" % (
+                ",".join(dahil_ihlaller) or "-", ",".join(eksik_pozitif) or "-"))
+
 print()
 gecen = 0
 for no, ad, ok, detay in sonuclar:

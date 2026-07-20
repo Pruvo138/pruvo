@@ -188,9 +188,9 @@ def _teslimat_iade():
         '<p class="lead">Kargo, teslimat süresi ve iade/cayma hakkı.</p>'
         "<h2>Teslimat</h2>"
         "<ul>"
-        "<li>Ürünler talep üzerine üretildiğinden teslim süresi üretim + kargo süresini "
-        "kapsar; genellikle <strong>%s</strong> içindedir. Özel/karmaşık işlerde süre "
-        "sipariş sırasında bildirilir.</li>"
+        "<li>Ürünler talep üzerine üretildiğinden ürün genellikle <strong>%s</strong> "
+        "içinde kargoya verilir; kargo transit süresi adrese ve kargo firmasına göre "
+        "ayrıdır. Özel/karmaşık işlerde süre sipariş sırasında bildirilir.</li>"
         # Kargo metni ACIK KURAL olarak yazilir (mimar karari, 16 Tem; Okan kurali —
         # tutarlar secenekler.js kargoKurus ile birebir, degisirse burasi da guncellenir).
         "<li>Gönderiler <strong>%s</strong> ile yapılır. 2.500 TL altındaki siparişlerde "
@@ -238,8 +238,9 @@ def _mesafeli_satis():
         "kart bilgileri Satıcı tarafından saklanmaz.</p>"
         "<h2>4. Teslimat</h2>"
         "<p>Ürün, üretim tamamlandıktan sonra <strong>%s</strong> ile ALICI'nın bildirdiği "
-        "adrese gönderilir. Teslim süresi genellikle <strong>%s</strong> olup özel üretimlerde "
-        "sipariş sırasında bildirilir; yasal azami süre 30 gündür.</p>"
+        "adrese gönderilir. Ürün genellikle <strong>%s</strong> içinde kargoya verilir; kargo "
+        "transit süresi adrese ve kargo firmasına göre ayrıdır. Özel üretimlerde süre sipariş "
+        "sırasında bildirilir; yasal azami süre 30 gündür.</p>"
         "<h2>5. Cayma Hakkı</h2>"
         "<p>ALICI, standart ürünlerde teslim tarihinden itibaren <strong>14 gün</strong> içinde "
         "gerekçe göstermeksizin cayma hakkına sahiptir. Cayma bildirimi %s / %s üzerinden "
