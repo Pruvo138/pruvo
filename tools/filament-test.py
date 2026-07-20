@@ -8,8 +8,9 @@ Kullanim:
 
 Once tools/build.py'yi CALISTIRIR (uretilen sayfalar taze olsun), sonra sirayla:
   1. urunler.json DEGISMEMIS (git diff bos — paket urun verisine dokunmaz)
-  2. rastgele 20 urun sayfasi: sitede satilan filament cipleri (ABS/Karbon HARIC) + tavsiye
-     rozeti + balon metni filamentler.json ile birebir + kategori haritasina gore dogru tavsiye
+  2. 20 rastgele urun sayfasi (+ EN AZ BIR parametrik ZORLA dahil): sitede satilan filament
+     cipleri (ABS/Karbon HARIC) + tavsiye rozeti + balon metni filamentler.json ile birebir +
+     kategori haritasina gore dogru tavsiye (parametrik urunde OZEL KILIF YOK — F kalemi)
   3. hicbir uretilen sayfada "3d bask" / "her renk" yok
   4. /malzeme-rehberi/ uretildi, footer linki var, sitemap'te
   5. node tools/parite-test.js 300 + node tools/parite-ege.js 200 YESIL (aciklama degismedi)
@@ -33,10 +34,15 @@ KART SADELESTIRME (Okan, 16 Tem — liste kartlarindan iki oge kalkti):
 
 EYLEM IKONLARI (Okan madde 7, 16 Tem — buyuk butonlar -> Adet satirinda ikon cifti):
  21  (l) kart-secim sayfasinda sayfa alti buyuk buton YOK; Adet satirinda aria-label+title'li
-     2 ikon buton VAR (44px dokunma alani CSS'te); parametrik/panelsiz sayfada buyuk
-     butonlar YERINDE (regresyon)
+     2 ikon buton VAR (44px dokunma alani CSS'te); SEMALI PARAMETRIK (sari) sayfa da ayni
+     kart-secim duzeninde (F kalemi, 16 Tem gece — commit 68cf6939 ile Okan karari)
  22  (m) ikon sepet butonu ayni cartBtn — secimsiz ekleme kapisi + titreme AYNEN calisiyor
  23  (n) WhatsApp ikonu dogru wa.me hedefine gidiyor (statik href + JS canli mesaj guncelleme)
+ 24  NOBETCI: buyuk buton yolu (build.py BUYUK_BUTONLAR_HTML) hala CANLI — panelsiz
+     (Dekorasyon / Oyun-Hobi) sayfada buyuk butonlar YERINDE, ikon cifti YOK. Test 21'den
+     parametrik iddiasi kalkinca bu kod dalini olcen tek test burasidir.
+ 25  KAPI: urunler.json'da FIILEN kullanilan her kategori ya tavsiye uretir ya da testin
+     icindeki BILINCLI-BOS listesinde yer alir (yeni kategori sessizce tavsiyesiz kalamaz).
 """
 import html
 import json
@@ -86,9 +92,16 @@ def main():
     kayit(1, "urunler.json degismemis (git diff bos)", d.stdout.strip() == "",
           d.stdout.strip() or "temiz")
 
-    # ---- 2) rastgele 20 urun sayfasi: cipler + rozet + balon metni + dogru tavsiye
+    # ---- 2) 20 rastgele urun sayfasi (parametrik KAPSAMI garantili): cipler + rozet + balon
+    # DETERMINIZM: 7903 urunun yalnizca 21'i parametrik -> duz random.sample parametrigi
+    # ~%5 olasilikla yakalar; test o yuzden yazi-tura kirmizi/yesil olurdu. Rastgeleligi
+    # koruyoruz (genis kapsam) ama en az BIR parametrik urunu ZORLA orneklemin icine koyuyoruz.
+    par_hepsi = [u for u in urunler if u.get("parametrik")]
+    ornek = random.sample(urunler, 20)
+    if par_hepsi and not any(u.get("parametrik") for u in ornek):
+        ornek[random.randrange(len(ornek))] = random.choice(par_hepsi)
     hatalar = []
-    for p in random.sample(urunler, 20):
+    for p in ornek:
         s = sayfa(p["id"])
         cip_n = len(re.findall(r'class="fil-cip( tavsiyeli)?"', s))
         if cip_n != len(site_fil):
@@ -100,18 +113,20 @@ def main():
         for f in ozel_fil:
             if html.escape(f["uzun"], quote=True) in s:
                 hatalar.append("%s: '%s' (ozel talep) urun sayfasinda cip olarak var" % (p["id"], f["ad"]))
-        beklenen = ([] if p.get("parametrik") else
-                    [t["ad"] for t in filament_ortak.tavsiyeler(
-                        p.get("kategori"), p.get("tavsiyeFilament"))])
+        # OZEL KILIF YOK: F kalemi (Okan, 16 Tem gece) sonrasi parametrik (sari) sayfa normal
+        # sayfayla BIREBIR -> rozet beklentisi HER uronde ayni sekilde kategoriden turer.
+        # Bugun "Jeneratör" kategoriTavsiye haritasinda olmadigi icin sonuc bos liste cikiyor
+        # (ayni bosluk TEST 25 kapisinda BILINCLI olarak kayitli); harita doldurulunca bu
+        # test rozeti gormek isteyecek.
+        beklenen = [t["ad"] for t in filament_ortak.tavsiyeler(
+            p.get("kategori"), p.get("tavsiyeFilament"))]
         rozetli = [m.group(1) for m in re.finditer(
             r'fil-cip tavsiyeli[^>]*>.*?<span class="fil-ad">([^<]+)</span>', s)]
         if sorted(rozetli) != sorted(beklenen):
             hatalar.append("%s (%s): rozet %s != beklenen %s"
                            % (p["id"], p.get("kategori"), rozetli, beklenen))
-        if p.get("parametrik") and html.escape(ref["parametrikNot"], quote=True) not in s:
-            hatalar.append("%s: parametrik not yok" % p["id"])
-    kayit(2, "20 rastgele sayfa: %d cip (ABS/Karbon HARIC) + rozet + balon birebir + dogru tavsiye"
-          % len(site_fil), not hatalar, "; ".join(hatalar[:4]))
+    kayit(2, "20 rastgele sayfa (+en az 1 parametrik): %d cip (ABS/Karbon HARIC) + rozet + "
+          "balon birebir + dogru tavsiye" % len(site_fil), not hatalar, "; ".join(hatalar[:4]))
 
     # ---- 3) yasak ifadeler: uretilen HICBIR sayfada "3d bask" / "her renk" yok
     yasak = []
@@ -385,7 +400,7 @@ def main():
           not h20, "; ".join(h20[:4]) or "temiz")
 
     # ================= EYLEM IKONLARI (madde 7: buyuk butonlar -> Adet satirina ikon) ==========
-    # ---- 21 (l) buyuk butonlar yok + Adet satirinda 2 aria-label'li ikon; parametrik korunur
+    # ---- 21 (l) buyuk butonlar yok + Adet satirinda 2 aria-label'li ikon; PARAMETRIK DE AYNI
     h21 = []
     if 'class="cart-btn"' in fs or 'class="order-wa"' in fs:
         h21.append("kart-secim sayfasinda buyuk buton hala var")
@@ -395,14 +410,24 @@ def main():
         h21.append("Adet satirinda aria-label+title'li ikon cifti eksik/sirasiz")
     if ".ikon-btn{width:44px;height:44px" not in fs:
         h21.append("44x44 dokunma alani CSS'i yok")
-    # parametrik sayfa REGRESYONU: buyuk butonlar + eski duzen aynen
+    # SEMALI PARAMETRIK (sari) SAYFA DA KART-SECIM MODUNDA — F kalemi (Okan, 16 Tem gece;
+    # commit 68cf6939 "Faz D ek kalemler E+F"): parametrik sayfa duzeni normal sayfayla
+    # ESITLENDI. build.py:1197 `kart_secim = bool(sema) or (fonksiyonel and not parametrik)`
+    # -> semali parametrikte butonlar Adet satirinda, sayfa altina buyuk buton BASILMAZ.
+    # (16 Tem 15:44'te yazilan "parametrik duzene dokunulmadi" iddiasi Okan'in SONRAKI
+    #  karariyla gecersiz kaldi; test o gun bayatladi.) Buyuk buton yolunun NOBETCISI -> TEST 24.
     par_u = next((u for u in urunler if u.get("parametrik")), None)
     ps21 = sayfa(par_u["id"]) if par_u else ""
-    if not ('class="cart-btn" id="cartBtn"' in ps21 and 'class="order-wa" id="orderAlt"' in ps21):
-        h21.append("parametrik sayfada buyuk butonlar kaybolmus")
-    if "ikon-btn ikon-sepet" in ps21:
-        h21.append("parametrik sayfaya ikon tasinmis (dokunulmayacakti)")
-    kayit(21, "(l) buyuk butonlar kalkti, Adet satirinda 2 ikon (aria+title+44px); parametrik korundu",
+    if not par_u:
+        h21.append("parametrik urun bulunamadi (kapsam olculemedi)")
+    if par_u and "ikon-btn ikon-sepet" not in ps21:
+        h21.append("parametrik sayfada ikon sepet yok (kart-secim duzeni bekleniyor)")
+    if par_u and "ikon-btn ikon-wa" not in ps21:
+        h21.append("parametrik sayfada ikon WhatsApp yok (kart-secim duzeni bekleniyor)")
+    if 'class="cart-btn" id="cartBtn"' in ps21 or 'class="order-wa" id="orderAlt"' in ps21:
+        h21.append("parametrik sayfada eski BUYUK butonlar geri gelmis (F kalemi geri alinmis)")
+    kayit(21, "(l) buyuk butonlar kalkti, Adet satirinda 2 ikon (aria+title+44px); "
+          "semali parametrik sayfa da AYNI kart-secim duzeninde",
           not h21, "; ".join(h21[:4]) or "temiz")
 
     # ---- 22 (m) ikon sepet = ayni cartBtn -> secimsiz kapi + titreme AYNEN (id + kapi JS'i)
@@ -426,6 +451,53 @@ def main():
         h23.append("JS canli mesaj guncellemesi yok")
     kayit(23, "(n) WhatsApp ikonu dogru wa.me hedefi (statik + JS)", not h23,
           "; ".join(h23[:2]) or "temiz")
+
+    # ---- 24 NOBETCI: BUYUK buton yolu hala CANLI (panelsiz Dekorasyon/Oyun-Hobi sayfasi)
+    # TEST 21'den parametrik iddiasi kalkinca build.py BUYUK_BUTONLAR_HTML dalini olcen
+    # baska hicbir iddia kalmiyordu -> dal silinse/bosalsa kimse yakalamazdi. Panelsiz sayfa
+    # = ne FONKSIYONEL kategoride ne parametrik (bugun Dekorasyon + Oyun/Hobi): opsiyon paneli
+    # basilmaz, eylem butonlari sayfa altinda BUYUK halde kalir.
+    h24 = []
+    pnl_u = next((u for u in urunler
+                  if u.get("kategori") not in FONK and not u.get("parametrik")), None)
+    if not pnl_u:
+        h24.append("panelsiz (Dekorasyon/Oyun-Hobi) urun bulunamadi — nobetci olcemiyor")
+    else:
+        pnls = sayfa(pnl_u["id"])
+        if 'class="cart-btn" id="cartBtn"' not in pnls:
+            h24.append("%s: buyuk 'Sepete Ekle' butonu yok" % pnl_u["id"])
+        if 'class="order-wa" id="orderAlt"' not in pnls:
+            h24.append("%s: buyuk 'WhatsApp'tan Sor' butonu yok" % pnl_u["id"])
+        if "ikon-btn ikon-sepet" in pnls:
+            h24.append("%s: panelsiz sayfaya ikon cifti tasinmis" % pnl_u["id"])
+    kayit(24, "NOBETCI: panelsiz (%s) sayfada BUYUK butonlar yerinde, ikon yok"
+          % ((pnl_u or {}).get("kategori") or "?"), not h24, "; ".join(h24[:3]) or "temiz")
+
+    # ---- 25 KAPI: kategori <-> tavsiye haritasi boslugu FAIL-CLOSED
+    # urunler.json'da FIILEN kullanilan her kategori icin ya filament_ortak.tavsiyeler()
+    # bir tavsiye uretecek, ya da kategori asagidaki BILINCLI-BOS listesinde olacak.
+    # Yarin yeni bir kategori acilip tavsiyesiz kalirsa bu test KIRMIZI yanar (sessiz gecmez).
+    BILINCLI_BOS = {
+        # Jeneratör = sari/parametrik seri. F kalemi eski "konusarak belirleriz" notunu
+        # kaldirdi, yerine kategori-geneli tavsiye HENUZ KARARLASTIRILMADI (OKAN KAPISI).
+        # Karar verilince filamentler.json kategoriTavsiye'ye eklenip buradan cikarilacak.
+        "Jeneratör",
+    }
+    h25 = []
+    kullanilan_kat = sorted({(u.get("kategori") or "").strip() for u in urunler} - {""})
+    for k in kullanilan_kat:
+        if filament_ortak.tavsiyeler(k):
+            continue
+        if k in BILINCLI_BOS:
+            continue
+        h25.append("%s: tavsiye uretmiyor + BILINCLI_BOS listesinde de degil" % k)
+    # ters yon — liste bayatlamasin: haritaya eklendiyse BILINCLI_BOS'tan cikarilmali
+    for k in sorted(BILINCLI_BOS):
+        if filament_ortak.tavsiyeler(k):
+            h25.append("%s: artik tavsiye uretiyor -> BILINCLI_BOS listesinden cikarilmali" % k)
+    kayit(25, "KAPI: kullanilan %d kategorinin hepsi ya tavsiye uretir ya BILINCLI_BOS'ta "
+          "(bugun bilincli bos: %s)" % (len(kullanilan_kat), ", ".join(sorted(BILINCLI_BOS))),
+          not h25, "; ".join(h25[:4]) or "temiz")
 
     print("-" * 70)
     kaldi = [x for x in SONUC if not x[2]]

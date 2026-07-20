@@ -89,6 +89,5 @@
     "Elektronik": [{"ad": "PETG"}, {"ad": "ASA", "not": "Isınan ortamda"}],
     "Kamera": [{"ad": "PETG"}, {"ad": "ASA", "not": "Isınan ortamda"}],
     "Tamirat": [{"ad": "PETG"}]
-  },
-  "parametrikNot": "Bu ürün ölçüye özel üretilir; en uygun malzemeyi kullanım alanınıza göre size sorarak belirleriz."
+  }
 }
