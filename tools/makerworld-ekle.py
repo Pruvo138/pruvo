@@ -44,6 +44,7 @@ def _load(ad, dosya):
 mw = _load("makerworld_api", "makerworld-api.py")
 bi = _load("baski_ipucu", "baski_ipucu.py")
 fo = _load("filament_ortak", "filament_ortak.py")
+gmk = _load("gorsel_mukerrer_kapisi", "gorsel_mukerrer_kapisi.py")
 
 sys.path.insert(0, _HERE)
 import drive_yolu
@@ -136,6 +137,9 @@ def process_one(did):
         gkey = re.sub(r"[^a-z0-9-]+", "-", key.lower()).strip("-") or key
         d = os.path.join(CACHE, key)
         secili = o.get("sec_gorseller") or meta["gorseller"]
+        # ALGISAL MUKERRER KAPISI: ayni fotografin ikizini R2'ye yuklemeden ELE (aday-ici dedup).
+        # PIL yoksa FAIL-OPEN (hicbir seyi elemez, akis bozulmaz). bkz gorsel_mukerrer_kapisi.py
+        secili, _mkres = gmk.secili_temizle(d, secili)
         urls = []
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
