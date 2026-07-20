@@ -36,7 +36,12 @@ CODEX = "/Applications/ChatGPT.app/Contents/Resources/codex"
 # Surumu ACIKCA yaz (yukaridaki "-latest" dersi). Yukseltme bilincli karar olsun.
 MODEL = "gpt-5.4-mini"      # basit is: bak + JSON don. Kalite yetmezse -> gpt-5.5
 EFFORT = "low"              # Okan'in config.toml'undaki xhigh bu is icin gereksiz (yavas + kota yer)
-MAX_IMG = 4                 # CLAUDE.md zaten 3-4 gorsel istiyor; cache'te 8 gorsellik urunler var
+# DENETIM UST SINIRI (Codex'e GONDERILEN gorsel sayisi). Eskiden 4'tu -> pratikte SADECE ilk 4
+# gorsel yargilaniyordu; g5+ hic gonderilmiyor, hic gorulmuyordu (backfill'de 36 g5+ gorsel
+# DENETIMSIZ vitrine girdi). Gorsel okuma EN PAHALI adim (kota) -> sinirsiz genisletme yerine
+# makul bir tavan: cache'te en fazla 8 gorsellik urun var, 8 gercek galerilerin tamamini kapsar.
+# 8'i asan (nadir) gorsel SESSIZCE atilmaz -> denetim_birlestir() "denetlenmedi" isaretler.
+MAX_IMG = 8
 TRIES = 2
 
 
@@ -167,6 +172,40 @@ def dogal_sirala(dosyalar):
     return sorted(dosyalar, key=lambda f: int(re.sub(r"\D", "", f) or 0))
 
 
+def denetim_bol(imgs, cap):
+    """Dogal sirali galeriyi Codex'e GONDERILEN (denetlenecek) ve GONDERILMEYEN diye ikiye boler.
+
+    Eski hata: `imgs[:MAX_IMG]` kirpiliyor ama kirpilan gorsel HICBIR YERDE kayda gecmiyordu ->
+    g5+ sessizce denetim disi kaliyordu. cap kadari gonderilir, kalani `denetim_birlestir` ile
+    ACIKCA 'denetlenmedi' isaretlenir (sessiz kirpma YASAK)."""
+    imgs = dogal_sirala(imgs)
+    return imgs[:cap], imgs[cap:]
+
+
+def denetim_birlestir(all_imgs, cap, out):
+    """Codex ciktisina (out) 'denetlenmedi' alanini ekler ve GARANTI eder: her galeri gorseli
+    ya sec_gorseller/elenen ya da denetlenmedi altinda gorunur (union == tum galeri).
+
+    Iki denetim-disi kaynagi kapsar:
+      1. cap ustu (Codex'e HIC gonderilmedi)  -> neden "kota ust siniri (denetlenmedi)"
+      2. gonderildi ama Codex ne secti ne eledi -> neden "codex kapsamadi (denetlenmedi)"
+         (fail-loud: gorulmemis/atlanmis gorsel sessizce vitrine girmesin)."""
+    all_imgs = dogal_sirala(all_imgs)
+    gonderilen, gonderilmeyen = denetim_bol(all_imgs, cap)
+    kapsanan = set(out.get("sec_gorseller") or [])
+    for e in (out.get("elenen") or []):
+        if isinstance(e, dict) and e.get("dosya"):
+            kapsanan.add(e["dosya"])
+    denetlenmedi = []
+    for f in gonderilmeyen:
+        denetlenmedi.append({"dosya": f, "neden": "kota ust siniri (denetlenmedi)"})
+    for f in gonderilen:
+        if f not in kapsanan:
+            denetlenmedi.append({"dosya": f, "neden": "codex kapsamadi (denetlenmedi)"})
+    out["denetlenmedi"] = denetlenmedi
+    return out
+
+
 def codex(prompt, imgler, cikti_yolu):
     """codex exec calistir; son mesaji cikti_yolu'na SAF JSON olarak yazar."""
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as sf:
@@ -203,11 +242,16 @@ def process(tid):
         print("=== %s === ATLA: meta.json yok (once thing-hazirla.py calistir)" % tid)
         return
     meta = json.load(open(mp))
-    imgs = dogal_sirala([f for f in os.listdir(d) if f.startswith("g") and f.endswith(".jpg")])
-    if not imgs:
+    galeri = dogal_sirala([f for f in os.listdir(d) if f.startswith("g") and f.endswith(".jpg")])
+    if not galeri:
         print("=== %s === ATLA: gorsel yok" % tid)
         return
-    imgs = imgs[:MAX_IMG]
+    imgs, kirpilan = denetim_bol(galeri, MAX_IMG)
+    if kirpilan:
+        # SESSIZ KIRPMA YASAK: ust siniri asan gorseller LOG'lanir + asagida denetim_birlestir
+        # ile oneri.json'a "denetlenmedi" olarak isaretlenir (vitrine sessizce girmesin).
+        print("=== %s === UYARI: %d gorsel denetim ust siniri (%d) disi kaldi -> denetlenmedi: %s"
+              % (tid, len(kirpilan), MAX_IMG, ", ".join(kirpilan)))
     olcu = meta.get("olcu_mm")
     olcu_s = ("%d x %d x %d" % tuple(olcu)) if olcu else "yok"
     prompt = PROMPT % (", ".join(KATEGORILER), meta.get("baslik", "?"),
@@ -240,12 +284,19 @@ def process(tid):
     if kanonik != ham_kat:
         print("=== %s === kategori normalize edildi: %r -> %r" % (tid, ham_kat, kanonik))
         out["kategori"] = kanonik
-        with open(onerip, "w", encoding="utf-8") as f:
-            json.dump(out, f, ensure_ascii=False)
 
-    print("=== %s === %s | %s | %s | %s" % (
+    # DENETIM KAPSAMI (sessiz g5+ kapisi): TUM galeriye karsi kapsam hesapla; denetlenmeyen
+    # (cap ustu ya da Codex'in kapsamadigi) gorselleri "denetlenmedi" ile ISARETLE. oneri.json'u
+    # bu alanla HER ZAMAN yeniden yaz (kategori normalize olmasa da denetlenmedi guncel olsun).
+    out = denetim_birlestir(galeri, MAX_IMG, out)
+    with open(onerip, "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False)
+
+    dn = out.get("denetlenmedi") or []
+    dn_s = ("  DENETLENMEDI: " + ", ".join(x["dosya"] for x in dn)) if dn else ""
+    print("=== %s === %s | %s | %s | %s%s" % (
         tid, out.get("baslik", "?"), out.get("kategori", "?"),
-        out.get("fiyat_oneri", "?"), ", ".join(out.get("sec_gorseller", []))))
+        out.get("fiyat_oneri", "?"), ", ".join(out.get("sec_gorseller", [])), dn_s))
 
 
 def main():
