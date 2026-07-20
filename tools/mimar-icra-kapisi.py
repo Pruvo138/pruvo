@@ -228,6 +228,55 @@ def repo_ici(yol, cwd):
     return False
 
 
+def _bayrak_degeri(ham):
+    """Bayraga bitisik yazilmis degeri normalize eder: bastaki '=' (ve ':') soyulur.
+
+    R2 kaniti: '=/private/tmp/disari' goreli sayilip cwd'ye ekleniyordu → repo-ici.
+    Soyma DONGUSEL degil TEK katmanlidir; '==x' gibi patolojik girdide kalan '=x'
+    yine GORELI sayilir ve o zaten repo-ici cozulur (fail-closed tarafta degiliz,
+    ama bu form gecerli bir bayrak degeri degil)."""
+    if not ham:
+        return ""
+    if ham[0] in "=:":
+        return ham[1:]
+    return ham
+
+
+def modul_ayikla(argumanlar):
+    """'-m MODUL' ve BITISIK '-mMODUL' formlarini birlikte ayiklar.
+
+    🔴 20 Tem ONARIMI (R2 ikinci ayak): eski kod yalnizca `"-m" in argumanlar` bakiyordu
+    → 'python3 -mpip install x' TUM -m denetimini atliyordu (sonra F adiminda ilk
+    tiresiz token 'install' betik sanilip cwd'ye gore repo-ici cozuluyor ve ALLOW
+    aliyordu). Olculdu ve KAPATILDI.
+
+    YANLIS-POZITIF KALKANI: yalnizca ILK tirесiz token'a (betik/argv baslangici) KADAR
+    olan yorumlayici bayraklarina bakilir. Boylece 'python3 tools/x.py -smth' gibi
+    REPO BETIGINE giden argumanlar modul sanilmaz.
+
+    Doner: (modul, modul_sonrasi_argumanlar) ya da (None, [])."""
+    for i, t in enumerate(argumanlar):
+        if not t.startswith("-"):
+            break  # betik/argv basladi — sonrasi yorumlayici bayragi DEGIL
+        if t.startswith("--") or t == "-":
+            continue
+        govde = t[1:]
+        k = govde.find("m")
+        if k < 0:
+            continue
+        # 'm'den onceki kisim yalnizca DEGERSIZ kisa bayrak harfleri olmali; degilse
+        # bu token baska bir bayragin DEGERIDIR (or. '-s/repo/tools/mimar').
+        if govde[:k] and not govde[:k].isalpha():
+            continue
+        kalan = _bayrak_degeri(govde[k + 1:])
+        if kalan:
+            return kalan, argumanlar[i + 1:]
+        if i + 1 < len(argumanlar):
+            return argumanlar[i + 1], argumanlar[i + 2:]
+        return "", argumanlar[i + 1:]
+    return None, []
+
+
 def test_hedefleri(argumanlar):
     """'-m pytest/unittest' sonrasi HEDEF (yol) adaylarini cikarir.
 
@@ -236,24 +285,30 @@ def test_hedefleri(argumanlar):
     hedef sayilmiyor, geriye repo-ici token kaliyor ve kapi ALLOW veriyordu; ayrik
     yazim ('-s /tmp/x') dogru sekilde deny idi. Artik bitisik deger de HEDEFTIR.
 
+    🔴 20 Tem REGRESYON ONARIMI (R2): kisa bayrakta ham 't[2:]' aliniyordu →
+    '-s=/private/tmp/disari' icin deger '=/private/tmp/disari' oluyor, basindaki '='
+    yuzunden MUTLAK sayilmiyor, cwd'ye eklenip REPO-ICI kabul ediliyordu. Olculdu:
+    repo disinda gercek icra kosturuldu. Artik kisa VE uzun bayrak degeri TEK
+    ayristiricidan gecer ve bastaki '=' soyulur.
+
     Kural:
       '--bayrak=DEGER' -> DEGER hedef
       '-sDEGER'        -> DEGER hedef (kisa bayrak + bitisik deger, genel hal)
+      '-s=DEGER'       -> DEGER hedef (bitisik + esitlikli form; '=' SOYULUR)
       '-s' / '--x'     -> degersiz bayrak, atlanir
       diger token      -> hedef (ayrik yazilmis deger de dahil; yol sayilmasi KATIDIR)"""
     hedefler = []
     for t in argumanlar:
         if t.startswith("--"):
-            if "=" in t:
-                deger = t.split("=", 1)[1]
-                if deger:
-                    hedefler.append(deger)
+            deger = t.split("=", 1)[1] if "=" in t else ""
+        elif t.startswith("-"):
+            deger = t[2:] if len(t) > 2 else ""
+        else:
+            hedefler.append(t)
             continue
-        if t.startswith("-"):
-            if len(t) > 2:
-                hedefler.append(t[2:])
-            continue
-        hedefler.append(t)
+        deger = _bayrak_degeri(deger)
+        if deger:
+            hedefler.append(deger)
     return hedefler
 
 
@@ -350,9 +405,9 @@ def main():
         # E) Modul calistirma (python3 -m X): X dosya degil MODUL — repo kontrolu ise
         #    yaramaz. pip (kurulum betigi kosar), timeit/pdb/trace (-s ile kod alir),
         #    venv, http.server hepsi keyfi icra/disari acilma kapisi → varsayilan KAPALI.
-        if "-m" in argumanlar:
-            i = argumanlar.index("-m")
-            modul = argumanlar[i + 1] if i + 1 < len(argumanlar) else ""
+        #    BITISIK form ('-mpip') de ayni denetimden gecer — bkz. modul_ayikla().
+        modul, modul_sonrasi = modul_ayikla(argumanlar)
+        if modul is not None:
             if modul in IZINLI_MODULLER:
                 continue
             if modul in TEST_MODULLERI:
@@ -360,7 +415,7 @@ def main():
                 # yoksa cwd repo-ici olmali. Boylece mimar kendi kabul testini kosturur
                 # ama -m ile repo DISINA cikamaz (vaka 85/86 allow, 87 deny).
                 # BITISIK yazim da hedeftir (vaka 92/94 deny, 93/95 allow).
-                hedefler = test_hedefleri(argumanlar[i + 2:])
+                hedefler = test_hedefleri(modul_sonrasi)
                 if hedefler:
                     if all(repo_ici(h, cwd) for h in hedefler):
                         continue

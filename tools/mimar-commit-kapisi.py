@@ -16,9 +16,19 @@ checkout'a bu yolla girmesi) dönüsmesini kapatir; bilinen tek gevseme belgeli 
 
 BYPASS MUHASEBESI (kapi bir DISIPLIN cihazidir, hapishane degil — hepsi KAYITLI):
   1. PRUVO_MIMAR_ONAY=worker  → yalniz VERI duzlemi; stderr + log satiri "allow-escape".
-  2. Sequencer suruyor (MERGE_HEAD/CHERRY_PICK_HEAD/REVERT_HEAD/rebase-*) → commit
-     ENGELLENMEZ; stderr + log satiri "allow-sequencer". Tek 'Write .git/MERGE_HEAD'
-     ile SAHTE sequencer durumu kurulabilir — bu yol artik SESSIZ DEGIL.
+  2. Sequencer suruyor (MERGE_HEAD/CHERRY_PICK_HEAD/REVERT_HEAD/rebase-*) → YALNIZCA
+     korunan (kaynak/veri) dosya staged DEGILKEN gurultulu allow; stderr + log satiri
+     "allow-sequencer".
+     🔴 20 Tem REGRESYON ONARIMI (R1): bu istisna main()'in EN BASINDA, korunan-dosya
+     kontrolunun ONUNDE ve KOSULSUZ 'return 0' idi. Olculdu: env yok + staged
+     index.html + elle yazilmis .git/MERGE_HEAD -> exit 0 (main'de ayni vaka exit 1).
+     Yani tek 'Write .git/MERGE_HEAD' yalniz veri duzlemini degil KAYNAK commit'ini de
+     aciyordu. Istisna artik korunan-dosya kontrolunun ARKASINDA ve semantigi DAR:
+     sequencer suruyorken bile korunan kaynak/veri staged ise kapi KAPALI (fail-closed).
+     Geriye kalan mesru islev: sequencer'in kendi urettigi (korunan dosya icermeyen)
+     commit'in GURULTULU + LOGLU gecmesi.
+     BEDELI ACIK: cakisma cozumu KAYNAK dosya iceriyorsa 'git commit' bloklanir →
+     cakismayi worktree'de coz ve merge'i oradan tasi (ya da kayitli --no-verify).
   3. git commit --no-verify → kapi hic kosmaz (git'in kendi kapisi; ayni zincirdeki
      urunler-guard'i da oldurur, bu yuzden hata metni bu yolu ONERMEZ).
   4. 'git worktree add <yol>' → mimar kendine tam muaf bir bolge acar (worktree
@@ -45,8 +55,8 @@ ANA_REPO = "/Users/okan/dev/pruvo"
 KAYNAK_UZANTI = {".py", ".js", ".mjs", ".ts", ".html", ".css", ".sql"}
 VERI_BASENAME = {"urunler.json", ".urun-kaynaklari.json"}
 
-# Bir merge/cherry-pick/revert/rebase surerken commit ENGELLENMEZ: cakismayi elle
-# kapatmak mimarin kapisidir (yanlis pozitifin bedeli bu riskten pahalidir).
+# Bir merge/cherry-pick/revert/rebase suruyorsa commit KORUNAN DOSYA YOKKEN gecer
+# (gurultulu + loglu). Korunan dosya varsa sequencer istisnasi ISLEMEZ — bkz. R1.
 SEQUENCER_DOSYA = ("MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD")
 SEQUENCER_DIZIN = ("rebase-merge", "rebase-apply")
 
@@ -172,19 +182,6 @@ def main() -> int:
     staged = staged_dosyalar(args.stdin)
     kaynaklar = [yol for yol in staged if kaynak_mi(yol)]
 
-    # Merge/cherry-pick/revert/rebase cakismasini elle kapatan commit ENGELLENMEZ.
-    # KAYDA GECEN BYPASS: tek 'Write .git/MERGE_HEAD' ile sahte sequencer durumu
-    # kurulabilir → bu yol SESSIZ OLAMAZ (stderr + jsonl).
-    if sequencer_suruyor(gitdir):
-        bypass_kaydet(
-            gitdir, kok, "allow-sequencer",
-            "SEQUENCER ISTISNASI (merge/cherry-pick/revert/rebase suruyor) — commit "
-            "kapisi atlandi. Bu yol loglanir: grep -c allow-sequencer " +
-            os.path.join(gitdir, "pruvo-kapi-log.jsonl"),
-            len(staged),
-        )
-        return 0
-
     if os.environ.get("PRUVO_MIMAR_ONAY") == "worker":
         # DAR bypass: worker onayi YALNIZ veri düzlemini açar. Kaynak varsa reddet.
         if kaynaklar:
@@ -205,6 +202,9 @@ def main() -> int:
         )
         return 0
 
+    # KORUNAN DOSYA KONTROLU SEQUENCER ISTISNASINDAN ONCE GELIR (R1 onarimi).
+    # Sahte MERGE_HEAD yazmak artik kaynak/veri commit'ini ACMAZ; sequencer suruyorsa
+    # bu yalnizca hata metnine bir satir ekler (teshis), karari DEGISTIRMEZ.
     bloklanan = [yol for yol in staged if korunan_mi(yol)]
     if bloklanan:
         sys.stderr.write(
@@ -212,9 +212,26 @@ def main() -> int:
             "PRUVO_MIMAR_ONAY=worker YALNIZ urunler.json / .urun-kaynaklari.json commit'ini açar "
             "(kaynak kodu worktree'de commit'lenir).\n"
         )
+        if sequencer_suruyor(gitdir):
+            sys.stderr.write(
+                "NOT: sequencer (merge/cherry-pick/revert/rebase) suruyor ama istisna "
+                "KORUNAN dosyayi ACMAZ (fail-closed). Cakismayi worktree'de coz.\n"
+            )
         for yol in bloklanan:
             sys.stderr.write(f"{yol}\n")
         return 1
+
+    # Sequencer istisnasi: korunan dosya YOKKEN gurultulu + loglu allow. Tek
+    # 'Write .git/MERGE_HEAD' ile sahte durum kurulabilir → bu yol SESSIZ OLAMAZ.
+    if sequencer_suruyor(gitdir):
+        bypass_kaydet(
+            gitdir, kok, "allow-sequencer",
+            "SEQUENCER ISTISNASI (merge/cherry-pick/revert/rebase suruyor, korunan dosya "
+            "YOK) — commit kapisi atlandi. Bu yol loglanir: grep -c allow-sequencer " +
+            os.path.join(gitdir, "pruvo-kapi-log.jsonl"),
+            len(staged),
+        )
+        return 0
 
     return 0
 

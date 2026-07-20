@@ -39,6 +39,13 @@ KILIT = "mimar-kod-kilidi.py"
 ICRA = "mimar-icra-kapisi.py"
 CMT = "mimar-commit-kapisi.py"
 KUR = "mimar-kapi-kur.py"
+TESTDOSYA = "mimar-kilit-test.py"
+
+# B8 (20 Tem): CEKIRDEK'e eklenen CANLI PreToolUse/Bash zinciri nobetcileri.
+CEKIRDEK_CANLI_ZINCIR = (
+    '    "/Users/okan/dev/pruvo/tools/urunler-guard-hook.py",\n'
+    '    "/Users/okan/dev/pruvo/tools/komut-stili-kapisi.py",\n'
+)
 
 CEKIRDEK_NOBETCILERI = (
     '    # NOBETCILER (kapiyi yalanci yapabilen dosyalar)\n'
@@ -129,7 +136,7 @@ MUTASYONLAR = [
         "                    continue\n",
         "                continue\n"),
      "TEST_MODULLERI repo-ici sarti kaldirilir (ayrik + bitisik yazim birlikte)",
-     {87, 92, 94}, True, 3),
+     {87, 92, 94, 120, 122, 124}, True, 6),
     ("M9", lambda d: yama(d, CMT,
                           "    basename = _basename(yol)\n"
                           "    if not basename or basename in VERI_BASENAME:\n"
@@ -140,10 +147,22 @@ MUTASYONLAR = [
                           "        return False\n"),
      "commit kapisi kaynak_mi() daima False (daraltma da coker)",
      {102, 107, 108}, False, 3),
-    ("M10", lambda d: yama(d, CMT, "    try:\n        for ad in SEQUENCER_DOSYA:",
-                           "    return True\n    try:\n        for ad in SEQUENCER_DOSYA:"),
-     "commit kapisi sequencer kontrolu daima True",
-     {100, 102}, False, 2),
+    # M10 (20 Tem, R1 nobetcisi) — ESKI HALI "sequencer daima True" idi ve yeni sirada
+    # NOBETSIZ kalirdi (istisna zaten korunan dosyayi acmadigi icin hicbir vaka
+    # kizarmaz). Yerine REGRESYONUN KENDISI mutasyon olarak uygulanir: sequencer
+    # kontrolu main()'in basina, korunan-dosya kontrolunun ONUNE geri tasinir.
+    ("M10", lambda d: yama(
+        d, CMT,
+        '    if os.environ.get("PRUVO_MIMAR_ONAY") == "worker":',
+        "    if sequencer_suruyor(gitdir):\n"
+        "        return 0\n"
+        '    if os.environ.get("PRUVO_MIMAR_ONAY") == "worker":'),
+     "R1 REGRESYONU: sequencer istisnasi main() basina (korunan kontrolun ONUNE) geri alinir",
+     {103, 109, 112, 113}, True, 4),
+    ("M16", lambda d: yama(d, CMT, "    try:\n        for ad in SEQUENCER_DOSYA:",
+                           "    return False\n    try:\n        for ad in SEQUENCER_DOSYA:"),
+     "sequencer kontrolu daima False (gurultulu+loglu allow yolu olur)",
+     {103}, True, 1),
     ("M11", lambda d: yama(d, CMT, "return uzanti.lower() in KAYNAK_UZANTI",
                            "return uzanti in KAYNAK_UZANTI"),
      "commit kapisi uzanti karsilastirmasindan lower() kaldirilir",
@@ -153,21 +172,61 @@ MUTASYONLAR = [
      set(YAZMA_ALLOW_VAKALARI), False, len(YAZMA_ALLOW_VAKALARI)),
     ("M13", lambda d: yama(
         d, ICRA,
-        "                hedefler = test_hedefleri(argumanlar[i + 2:])",
-        '                hedefler = [t for t in argumanlar[i + 2:] if not t.startswith("-")]'),
+        "                hedefler = test_hedefleri(modul_sonrasi)",
+        '                hedefler = [t for t in modul_sonrasi if not t.startswith("-")]'),
      "BITISIK-degerli bayrak ayristirmasi geri alinir ('-' ile baslayan token elenir)",
-     {92, 95}, True, 2),
+     {92, 95, 120, 124}, True, 4),
     ("M14", lambda d: yama(
         d, KUR,
         '    print("BASH_ZINCIRI_ICRA=" + ("var" if bash_var else "yok"))',
         '    bash_var = yazma_var = precommit_var = True\n'
         '    print("BASH_ZINCIRI_ICRA=" + ("var" if bash_var else "yok"))'),
      "kablo raporcusu (kur.py durum()) daima 'var' der — YALANCI RAPORCU",
-     {111}, True, 1),
+     {111, 114}, True, 2),
     ("M15", lambda d: yama(d, KILIT, CEKIRDEK_NOBETCILERI, ""),
      "CEKIRDEK genisletmesi geri alinir (nobetciler korumasiz kalir)",
      {76, 77, 78, 79, 96}, True, 5),
+    # --- 20 Tem SON ONARIM TURU NOBETCILERI ---
+    ("M17", lambda d: yama(d, ICRA,
+                           '    if ham[0] in "=:":\n        return ham[1:]\n',
+                           ""),
+     "R2: bitisik bayrak degerinden bastaki '=' soyulmaz ('-s=/dis/yol' acilir)",
+     {120}, True, 1),
+    ("M18", lambda d: yama(d, ICRA,
+                           '        k = govde.find("m")',
+                           '        k = 0 if govde == "m" else -1'),
+     "R2: BITISIK '-mMODUL' formu ayristirilmaz (tum -m denetimi atlanir)",
+     {126, 127}, True, 2),
+    ("N1", lambda d: yama(d, KUR,
+                          '        matcher = blok.get("matcher") or ""\n'
+                          "        if matcher_parcasi not in matcher:\n"
+                          "            continue\n",
+                          '        matcher = blok.get("matcher") or ""\n'),
+     "B5: _zincirde_var() MATCHER kontrolu silinir (dogru kanca, YANLIS matcher)",
+     {114}, True, 1),
+    ("M19", lambda d: yama(d, KILIT, CEKIRDEK_CANLI_ZINCIR, ""),
+     "B8: canli Bash zinciri nobetcileri CEKIRDEK'ten cikarilir",
+     {140, 141}, True, 2),
 ]
+
+# CEVRE-ARIZA ENJEKSIYONU (B6-yan): bu iki vaka mutasyonu KOPYALANMIS kabul testine
+# uygular ve KOPYAYI kosturur; olculen sey KIRMIZI VAKA degil, takimin CIKIS KODUDUR.
+# Sinanan kural: "cevre bozuldu, vaka kosmadi" durumu YESIL YANMAMALI (takim bir merge
+# kapisi olarak kullaniliyor).
+KENDI_TESTINI_KOSAN = {
+    ("C1", lambda d: yama(
+        d, TESTDOSYA,
+        '    yol = os.path.join(temel, "kayitli-wt")\n',
+        '    return None\n    yol = os.path.join(temel, "kayitli-wt")\n'),
+     "CEVRE: gecici worktree KURULAMAZ -> CEVRE-ATLANAN>0 iken exit 0 OLMAMALI"),
+    ("C2", lambda d: yama(
+        d, TESTDOSYA,
+        '    if os.path.exists(yol):\n        return ["dizin hala diskte: " + yol]\n'
+        "    return None\n",
+        '    if os.path.exists(yol):\n        return ["dizin hala diskte: " + yol]\n'
+        '    return ["ENJEKTE EDILMIS CEVRE ARIZASI"]\n'),
+     "CEVRE: gecici worktree KALDIRILAMADI raporu -> exit 0 OLMAMALI"),
+}
 
 # M7'de basename kalkani (blocked listesindeki mimar-*.py kayitlari) vakalari 4 ve 5'i
 # hala korumali — yani bu iki vaka YESIL kalmali. Tekli mutasyonda maskelenen kalkanin
@@ -175,7 +234,13 @@ MUTASYONLAR = [
 M7_YESIL_KALMALI = {4, 5}
 
 
-def mutasyonu_kostur(ad, uygulayici):
+def mutasyonu_kostur(ad, uygulayici, kendi_testi=False):
+    """Mutasyonu gecici kopyaya uygular ve kabul testini kosturur.
+
+    kendi_testi=False → ORIJINAL tools/mimar-kilit-test.py kosar (kapi dosyalari
+    mutasyonlu): olculen sey KIRMIZI VAKA numaralaridir.
+    kendi_testi=True  → KOPYALANMIS (mutasyonlu) kabul testi kosar: olculen sey
+    takimin CIKIS KODUDUR (cevre-ariza enjeksiyonu, B6-yan)."""
     dizin = os.path.join(MUTASYON_KOK, ad)
     if os.path.exists(dizin):
         shutil.rmtree(dizin)
@@ -184,15 +249,16 @@ def mutasyonu_kostur(ad, uygulayici):
         shutil.copyfile(os.path.join(TOOLS, dosya), os.path.join(dizin, dosya))
     uygulayici(dizin)
 
+    kosulacak = os.path.join(dizin, TESTDOSYA) if kendi_testi else TEST
     sonuc = subprocess.run(
-        [sys.executable, TEST, dizin], capture_output=True, text=True,
+        [sys.executable, kosulacak, dizin], capture_output=True, text=True,
     )
     kirmizi = set()
     for satir in (sonuc.stdout or "").splitlines():
         m = re.match(r"\s*vaka (\d+):", satir)
         if m:
             kirmizi.add(int(m.group(1)))
-    return kirmizi
+    return kirmizi, sonuc.returncode
 
 
 def main():
@@ -203,7 +269,7 @@ def main():
     basarisiz = []
     try:
         for ad, uygulayici, aciklama, beklenen, tam, asgari in MUTASYONLAR:
-            kirmizi = mutasyonu_kostur(ad, uygulayici)
+            kirmizi, _ = mutasyonu_kostur(ad, uygulayici)
             eksik = beklenen - kirmizi
             tamam = (not eksik) and len(kirmizi) >= asgari
             if tam and kirmizi != beklenen:
@@ -221,15 +287,30 @@ def main():
             print("          {} | {}".format(aciklama, "eksik=" + str(sorted(eksik)) if eksik else "eksik=yok"))
             if not tamam:
                 basarisiz.append(ad)
+
+        # CEVRE-ARIZA ENJEKSIYONU (B6-yan): kriter cikis kodudur, kirmizi vaka degil.
+        for ad, uygulayici, aciklama in sorted(KENDI_TESTINI_KOSAN):
+            _, cikis = mutasyonu_kostur(ad, uygulayici, kendi_testi=True)
+            tamam = (cikis != 0)
+            print("CEVRE-ARIZA {:<3} | exit={} (0 OLMAMALI) | {}".format(
+                ad, cikis, "GECTI" if tamam else "KALDI"))
+            print("          {}".format(aciklama))
+            if not tamam:
+                basarisiz.append(ad)
     finally:
         shutil.rmtree(MUTASYON_KOK, ignore_errors=True)
+        # C1/C2 enjeksiyonlari gecici worktree kaydi birakmis olabilir — temizle.
+        subprocess.run(["git", "-C", KOK, "worktree", "prune"],
+                       capture_output=True, text=True)
 
+    toplam = len(MUTASYONLAR) + len(KENDI_TESTINI_KOSAN)
     print("")
     if basarisiz:
         print("SONUC: KIRMIZI — esigi tutturamayan mutasyonlar: " + ", ".join(basarisiz))
         sys.exit(1)
-    print("SONUC: {}/{} mutasyonun HEPSI kabul testini kirmizi yakti.".format(
-        len(MUTASYONLAR), len(MUTASYONLAR)))
+    print("SONUC: {}/{} mutasyonun HEPSI kabul testini kirmizi yakti "
+          "({} kural mutasyonu + {} cevre-ariza enjeksiyonu).".format(
+              toplam, toplam, len(MUTASYONLAR), len(KENDI_TESTINI_KOSAN)))
     sys.exit(0)
 
 

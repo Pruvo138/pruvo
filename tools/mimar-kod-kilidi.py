@@ -73,6 +73,14 @@ CEKIRDEK = {
     "/Users/okan/dev/pruvo/tools/urunler-guard.py",
     # CANLI KABLO
     "/Users/okan/dev/pruvo/.git/hooks/pre-commit",
+    # CANLI PreToolUse/Bash ZINCIRI (20 Tem, B8): ikisi de settings.json'da KAYITLI ve
+    # calisiyor; pre-commit'in kendi yorumu urunler-guard-hook.py'yi "birincil koruma"
+    # diye adlandirir. CEKIRDEK'te olmadiklari icin tek Write ile susturulabiliyorlardi.
+    # MALIYET OLCULDU: hicbir mesru isci vakasi bloklanmaz — ikisi de tools/*.py yani
+    # KAYNAK'tir, ana checkout'ta zaten commit'lenemez (commit kapisi; env=worker
+    # kaynagi acmaz), gelistirme yolu worktree'dir ve worktree kopyalari SERBEST kalir.
+    "/Users/okan/dev/pruvo/tools/urunler-guard-hook.py",
+    "/Users/okan/dev/pruvo/tools/komut-stili-kapisi.py",
 }
 
 

@@ -246,6 +246,17 @@ ISCI_VAKALARI = [
      "genisletme yanlis-pozitif URETMEZ (worktree kopyasi)"),
     (98, "allow", "Write", REPO + "/tools/duzelt.py", ISCI_ID,
      "komsu arac CEKIRDEK'e girmedi (asiri genisleme nobetcisi)"),
+    # B8 (20 Tem): CANLI PreToolUse/Bash zincirindeki iki nobetci. Ikisi de
+    # .claude/settings.json'da kayitli ve kosuyor; CEKIRDEK'te olmadiklari icin tek
+    # Write ile susturulabiliyorlardi.
+    (140, "deny", "Write", REPO + "/tools/urunler-guard-hook.py", ISCI_ID,
+     "CEKIRDEK: canli Bash zinciri (veri guard kancasi)"),
+    (141, "deny", "Write", REPO + "/tools/komut-stili-kapisi.py", ISCI_ID,
+     "CEKIRDEK: canli Bash zinciri (komut stili)"),
+    (142, "allow", "Write", REPO + "/.claude/worktrees/wf-x/tools/urunler-guard-hook.py",
+     ISCI_ID, "B8 yanlis-pozitif URETMEZ (worktree kopyasi serbest)"),
+    (143, "allow", "Write", REPO + "/.claude/worktrees/wf-x/tools/komut-stili-kapisi.py",
+     ISCI_ID, "B8 yanlis-pozitif URETMEZ (worktree kopyasi serbest)"),
 ]
 
 # MIMAR TARAFI YENI VAKALAR (agent_id YOK) — onek/kayit duzeltmesi + test modulleri.
@@ -283,6 +294,33 @@ MIMAR_YENI_VAKALARI = [
      "--bayrak=DEGER ile repo DISINA cikilamaz"),
     (95, "allow", "Bash", "python3 -m pytest --rootdir=" + REPO + "/tools", None,
      "--bayrak=DEGER repo-ici: allow"),
+    # R2 (20 Tem REGRESYON): '-s=/dis/yol' bitisik-ESITLIKLI form. Deger '=/dis/yol'
+    # olarak okunuyor, basindaki '=' yuzunden goreli sayilip cwd'ye ekleniyor ve
+    # REPO-ICI kabul ediliyordu → repo disinda GERCEK icra kaniti uretildi.
+    # RED tarafi ve KABUL tarafi birlikte olculur (yanlis pozitif uretmemeli).
+    (120, "deny", "Bash", "python3 -m unittest discover -s=/private/tmp/disari", None,
+     "R2: '-s=/dis/yol' bitisik-esitlikli form DENY"),
+    (121, "allow", "Bash", "python3 -m unittest discover -s=" + REPO + "/tools", None,
+     "R2 esigi: '-s=repo-ici' ALLOW (yanlis pozitif yok)"),
+    (122, "deny", "Bash", "python3 -m unittest discover -s /private/tmp/disari", None,
+     "R2: ayrik '-s /dis/yol' DENY"),
+    (123, "allow", "Bash", "python3 -m unittest discover -s " + REPO + "/tools", None,
+     "R2 esigi: ayrik '-s repo-ici' ALLOW"),
+    (124, "deny", "Bash",
+     "python3 -m unittest discover --start-directory=/private/tmp/disari", None,
+     "R2: '--start-directory=/dis/yol' DENY"),
+    (125, "allow", "Bash",
+     "python3 -m unittest discover --start-directory=" + REPO + "/tools", None,
+     "R2 esigi: '--start-directory=repo-ici' ALLOW"),
+    # R2 ikinci ayak: BITISIK '-mMODUL' tum -m denetimini atliyordu.
+    (126, "deny", "Bash", "python3 -mtimeit -s \"import os\" \"pass\"", None,
+     "R2: '-mtimeit' bitisik modul formu DENY"),
+    (127, "deny", "Bash", "python3 -mpip install requests", None,
+     "R2: '-mpip' bitisik modul formu DENY"),
+    (128, "allow", "Bash", "python3 -mjson.tool " + REPO + "/tools/taban-fiyatlar.js", None,
+     "R2 esigi: '-mjson.tool' izinli modul ALLOW"),
+    (129, "allow", "Bash", "python3 " + REPO + "/tools/durum.py -smth", None,
+     "R2 esigi: betik ARGUMANI modul sanilmaz (yanlis pozitif nobetcisi)"),
 ]
 
 # COMMIT KAPISI — kanca degil, dogrudan betik cagrisi.
@@ -292,8 +330,17 @@ COMMIT_VAKALARI = [
     (101, 0, "urunler.json", {"PRUVO_MIMAR_ONAY": "worker"}, None,
      "escape hatch VERI duzlemi: gecer AMA gurultulu + loglu"),
     (102, 1, "tools/x.PY", {}, None, "buyuk harf uzanti deligi (lower())"),
-    (103, 0, "index.html", {}, "MERGE_HEAD", "sequencer istisnasi: gurultulu + loglu"),
+    (103, 0, "DEVAM.md", {}, "MERGE_HEAD", "sequencer istisnasi: gurultulu + loglu"),
     (104, 1, "index.html", {}, None, "istisnanin esigi: MERGE_HEAD yok"),
+    # R1 (20 Tem REGRESYON): sequencer istisnasi main()'in basinda, korunan-dosya
+    # kontrolunun ONUNDE ve kosulsuz 'return 0' idi → sahte .git/MERGE_HEAD yazan biri
+    # index.html/tools/*.py commit'ini de aciyordu (main'de ayni vaka exit 1 idi).
+    (109, 1, "index.html", {}, "MERGE_HEAD",
+     "R1: sequencer istisnasi KORUNAN kaynagi ACMAZ"),
+    (112, 1, "urunler.json", {}, "MERGE_HEAD",
+     "R1: sequencer istisnasi KORUNAN veriyi ACMAZ"),
+    (113, 1, "tools/x.py", {}, "CHERRY_PICK_HEAD",
+     "R1: cherry-pick de kaynagi ACMAZ"),
     (105, 0, "DEVAM.md", {}, None, ".md serbest"),
     (106, 0, "urunler.json", {}, None, "kapsam disi toplevel (baska repo)"),
     (107, 1, "urunler.json\ntools/build.py", {"PRUVO_MIMAR_ONAY": "worker"}, None,
@@ -469,6 +516,20 @@ EKSIK_AYAR = {
         ]
     }
 }
+# B5 (20 Tem): "DOGRU KANCA, YANLIS MATCHER" ekseni. Iki kanca da settings.json'da
+# KAYITLI ama icra kapisi Bash yerine Write blogunun altina kablolanmis → Bash aleti
+# icin HIC kosmaz. Raporcu bu duruma 'var' derse kablo yalanidir; 'yok' demeli.
+# Bu vaka N1 mutasyonunun (_zincirde_var icindeki matcher kontrolu silinir) nobetcisi:
+# EKSIK_AYAR'da kanca HIC yok, o yuzden 111 bu mutasyonu yakalayamiyordu.
+YANLIS_MATCHER_AYAR = {
+    "hooks": {
+        "PreToolUse": [
+            {"matcher": "Write|Edit|MultiEdit", "hooks": [
+                {"type": "command", "command": 'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/mimar-kod-kilidi.py"'},
+                {"type": "command", "command": 'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/mimar-icra-kapisi.py"'}]},
+        ]
+    }
+}
 
 
 def _kablo_oku(ayar_yolu, precommit_yolu):
@@ -500,20 +561,24 @@ def kablo_kume_kostur(gecici_kok):
     basarisiz = []
     atlanan = []
     if not os.path.exists(KUR):
-        print("110/111  EKSIK: " + KUR)
+        print("110/111/114  EKSIK: " + KUR)
         return ([(110, "var", "EKSIK-KURUCU", "kablo raporu"),
-                 (111, "yok", "EKSIK-KURUCU", "kablo negatif")], [110, 111])
+                 (111, "yok", "EKSIK-KURUCU", "kablo negatif"),
+                 (114, "yok", "EKSIK-KURUCU", "kablo yanlis-matcher")], [110, 111, 114])
 
     kablo_dizin = os.path.join(gecici_kok, "kablo")
     os.makedirs(kablo_dizin, exist_ok=True)
     tam_ayar = os.path.join(kablo_dizin, "settings-tam.json")
     eksik_ayar = os.path.join(kablo_dizin, "settings-eksik.json")
+    yanlis_ayar = os.path.join(kablo_dizin, "settings-yanlis-matcher.json")
     tam_hook = os.path.join(kablo_dizin, "pre-commit-tam")
     bos_hook = os.path.join(kablo_dizin, "pre-commit-bos")
     with open(tam_ayar, "w", encoding="utf-8") as f:
         json.dump(TAM_AYAR, f)
     with open(eksik_ayar, "w", encoding="utf-8") as f:
         json.dump(EKSIK_AYAR, f)
+    with open(yanlis_ayar, "w", encoding="utf-8") as f:
+        json.dump(YANLIS_MATCHER_AYAR, f)
     with open(tam_hook, "w", encoding="utf-8") as f:
         f.write('#!/bin/sh\npython3 "$(git rev-parse --show-toplevel)/tools/mimar-commit-kapisi.py"\n')
     with open(bos_hook, "w", encoding="utf-8") as f:
@@ -540,6 +605,20 @@ def kablo_kume_kostur(gecici_kok):
     if not gecti2:
         basarisiz.append((111, "bash=yok/precommit=yok/exit1", str(okunan2), "kablo negatif"))
 
+    # 114 YANLIS MATCHER — kanca KAYITLI ama Bash yerine Write blogunda (B5 ekseni).
+    # Raporcu matcher'i denetlemezse 'var' der; denetlerse 'yok' demeli.
+    rc3, okunan3, ham3 = _kablo_oku(yanlis_ayar, tam_hook)
+    gecti3 = (rc3 == 1
+              and okunan3.get("BASH_ZINCIRI_ICRA") == "yok"
+              and okunan3.get("YAZMA_ZINCIRI_KILIT") == "var"
+              and okunan3.get("PRECOMMIT_COMMIT_KAPISI") == "var")
+    print("114  YANLIS-MATCHER exit={} okunan={} — {}".format(
+        rc3, {k: okunan3.get(k) for k in BEKLENEN_KABLO_ANAHTARLARI},
+        "OK" if gecti3 else "KIRMIZI"))
+    if not gecti3:
+        basarisiz.append((114, "bash=yok/exit1", str(okunan3),
+                          "kablo yanlis-matcher (dogru kanca, yanlis blok)"))
+
     # BILGI: canli kablo (karar vermez — teshis tools/kapi-envanteri.py'de)
     canli = subprocess.run([sys.executable, KUR, "--durum"], capture_output=True, text=True)
     print("BILGI canli kablo exit={} | {}".format(
@@ -563,10 +642,19 @@ def gecici_worktree_kur(temel):
 
 
 def gecici_worktree_kaldir(yol):
+    """B6-yan (20 Tem): 'remove' donus kodu ARTIK DENETLENIR. Eskiden sessizdi —
+    kaldirilamayan gecici worktree hem diskte hem .git/worktrees kaydinda kaliyor,
+    yani test kendi kurdugu MUAF BOLGEYI sizdiriyordu (sonraki kosumlar bu kayittan
+    etkilenir = hermetiklik kaybi). Doner: hata metni ya da None."""
     if not yol:
-        return
-    subprocess.run(["git", "-C", REPO, "worktree", "remove", "--force", yol],
-                   capture_output=True, text=True)
+        return None
+    sonuc = subprocess.run(["git", "-C", REPO, "worktree", "remove", "--force", yol],
+                           capture_output=True, text=True)
+    if sonuc.returncode != 0:
+        return (sonuc.stderr or "?").strip().splitlines()[-1:] or ["?"]
+    if os.path.exists(yol):
+        return ["dizin hala diskte: " + yol]
+    return None
 
 
 def main():
@@ -588,8 +676,8 @@ def main():
         ("MIMAR TARAFI YENI VAKALAR (onek/kayit/test-modulu/Edit)", MIMAR_YENI_VAKALARI, REPO),
     ]
 
-    toplam = sum(len(v) for _, v, _ in kumeler) + len(COMMIT_VAKALARI) + 2
-    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 2)".format(
+    toplam = sum(len(v) for _, v, _ in kumeler) + len(COMMIT_VAKALARI) + 3
+    print("TOPLAM VAKA: {} (kanca {} + commit {} + kablo 3)".format(
         toplam, sum(len(v) for _, v, _ in kumeler), len(COMMIT_VAKALARI)))
     print("TOOLS DIZINI: " + TOOLS)
     print("GECICI KAYITLI WORKTREE: " + (KAYITLI_WT_YOL or "KURULAMADI (cevre-atlanan)"))
@@ -610,14 +698,22 @@ def main():
         basarisiz += b
         atlanan += a
     finally:
-        gecici_worktree_kaldir(KAYITLI_WT_YOL)
+        sizinti = gecici_worktree_kaldir(KAYITLI_WT_YOL)
         shutil.rmtree(temel, ignore_errors=True)
 
     print("")
     print("ATLANAN/KOSULAMAYAN VAKA (kapi kosmadi = KIRMIZI): {} {}".format(
         len(atlanan), atlanan or ""))
-    print("CEVRE-ATLANAN VAKA (cevre kurulamadi, exit'i degistirmez): {} {}".format(
-        len(cevre_atlanan), cevre_atlanan or ""))
+    # B6-yan (20 Tem): CEVRE-ATLANAN artik SESSIZ YESIL degil. Bu takim bir MERGE
+    # KAPISI olarak kullaniliyor; "cevre bozuldu, 4 vaka kosmadi" durumu exit 0
+    # dondurursse kapi yalan soyler. Gorunur (BUYUK HARF) + fail-loud.
+    if cevre_atlanan:
+        print("CEVRE-ATLANAN VAKA (CEVRE KURULAMADI — KOSULMAYAN VAKA VAR): {} {}".format(
+            len(cevre_atlanan), cevre_atlanan))
+    else:
+        print("CEVRE-ATLANAN VAKA: 0")
+    if sizinti:
+        print("CEVRE SIZINTISI: gecici worktree KALDIRILAMADI — {}".format(sizinti))
     if basarisiz:
         print("SONUC: {}/{} gecti — KIRMIZI vakalar:".format(toplam - len(basarisiz), toplam))
         for no, beklenen, olculen, aciklama in basarisiz:
@@ -626,8 +722,12 @@ def main():
     if atlanan:
         print("SONUC: KIRMIZI — atlanan vaka var (sessiz kirpma yasak).")
         sys.exit(1)
-    print("SONUC: {}/{} vaka GECTI ({} cevre-atlanan).".format(
-        toplam - len(cevre_atlanan), toplam, len(cevre_atlanan)))
+    if cevre_atlanan or sizinti:
+        print("SONUC: KIRMIZI — CEVRE-ATLANAN={} SIZINTI={}. Takim MERGE KAPISIDIR; "
+              "kosulmayan vaka ya da sizdirilan gecici worktree ile YESIL YANMAZ.".format(
+                  len(cevre_atlanan), bool(sizinti)))
+        sys.exit(1)
+    print("SONUC: {}/{} vaka GECTI (cevre-atlanan 0, sizinti yok).".format(toplam, toplam))
     sys.exit(0)
 
 
