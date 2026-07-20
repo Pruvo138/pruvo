@@ -26,7 +26,13 @@ MUAF KALAN (bilerek — kapatirsan mimarin isi durur):
   * worktree'ler: /Users/okan/dev/pruvo/.claude/worktrees/ ONEKI + git'e KAYITLI
     worktree kokleri (or. /private/tmp/pruvo-toka-jenerator) — mesru muhendis alani
 
-BILINEN BYPASS (kapi disiplin cihazidir, hapishane DEGIL — kayitli olmasi sart):
+BILINEN BYPASS (kapi disiplin cihazidir, hapishane DEGIL — memory/kapi-disiplin-ilkesi.md;
+kayitli olmasi sart):
+  * UZANTISIZ (shebang'li) betik yazimi: yasak ICRA_UZANTILARI listesine dayanir, yani
+    uzantisiz bir ad (or. Write ile "analiz" + shebang) YAKALANMAZ. Bu yuzden "calistirilabilir
+    betik YAZAMAZ" iddiasi TAM DEGIL — kapsam uzanti-tabanlidir. Ayni kök, icra kapisinin
+    uzantisiz +x dosyayi dogrudan cagrida kacirmasiyla birdir. Kapatilmadi: uzanti listesini
+    genisletmek veri/not dosyasi adlarinda yanlis-pozitif riski (disiplin cihazi, sinir degil).
   * 'git worktree add /private/tmp/x' TEK komutla kalici muaf bolge acar (yeni kok
     .git/worktrees'e kaydolur → worktree_ici() true doner). BILEREK kapatilmadi:
     git yonetimi mimarin kapisidir. Olcum: 'git worktree list' cikti sayisi.

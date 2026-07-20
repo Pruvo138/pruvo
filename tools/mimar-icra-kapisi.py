@@ -4,18 +4,25 @@
 TESHIS: tools/mimar-kod-kilidi.py yalnizca DOSYA YAZARLIGINI denetliyordu. Mimar
 analiz/olcum betigini scratchpad'e yazip 'python3 /private/tmp/.../analiz.py' ile
 Bash'ten kosturunca repoya tek satir girmiyor, kilit hic yanmiyordu. Bu kapi o ikinci
-ayagi kapatir: REPO DISINDAKI bir betigi yorumlayiciyla kosturmak reddedilir.
+ayagi kapatir — AMA YALNIZ segment BASINDA duran bir yorumlayici/betik icin: komut
+';', '|', '&&', '||', '&' ile segmentlere bolunur ve denetim her segmentin ILK gercek
+token'ina (yorumlayici mi, dogrudan-betik mi) uygulanir. Yani 'python3 /dis/x.py'
+reddedilir; segment basi bir LAUNCHER (xargs / find -exec / make / sudo ...) ise ya da
+ad ICRA_UZANTILARI ile bitmiyorsa denetim HIC uygulanmaz (BILINEN BYPASS'LAR'a bak).
+Kapi bir DISIPLIN cihazidir, guvenlik siniri DEGIL — kapsami budur ve bilerek buyutulmez.
 
 AMAC mimari felc etmek DEGIL: ICRA engellenir, YARGI + DOGRULAMA serbest kalir.
 
-REDDEDILEN:
+GERCEKTE REDDEDILEN (segment BASI yorumlayici ya da dogrudan-betik iken):
   * python3/node/sh/bash/... ile REPO DISI bir betik dosyasi kosturmak
     (or. python3 /private/tmp/.../scratchpad/analiz.py)
   * yorumlayiciya satir-ici kod vermek (-c / -e / --eval) ya da stdin'den kod okutmak
     (cat x.py | python3) — betigi hic yazmadan ayni icrayi yapmanin kestirmesi
-  * repo disi calistirilabilir dosyayi dogrudan cagirmak (/tmp/.../x.sh, ./analiz.py)
+  * repo disi calistirilabilir dosyayi dogrudan cagirmak — YALNIZ ICRA_UZANTILARI ile
+    biten ad (/tmp/.../x.sh, ./analiz.py); UZANTISIZ +x dosya ('./analiz') YAKALANMAZ
   * HERHANGI bir bicimde '-m' (ayrik/bitisik/=li/birlesik) — izinli modul beyaz listesi disi
   * argumanlarda repo DISINA cozulen HERHANGI bir yol parcasi (bayraga bitisik olsa da)
+  * yorumlayiciya kod enjekte eden tehlikeli ortam degiskeni (PYTHONPATH=/tmp/... python3 ...)
 
 🔴 20 Tem TASARIM KARARI (mimar) — AYRISTIRMAYI TAKLIT ETME, SUPHEDE REDDET:
   Uc onarim turu boyunca delikler hep AYNI eksende cikti: kapi, Python'un argument
@@ -42,15 +49,29 @@ SERBEST (yanlislikla kapatma — kapatirsan is durur):
   * codex exec ile delegasyon
   * /.claude/worktrees/ icinden calisan oturumlar (muhendis alani) — TAM muaf
 
-BILINEN BYPASS'LAR (kapi bir DISIPLIN cihazidir, hapishane DEGIL — KAYITLI olmalari sart):
-  1. 'git worktree add /private/tmp/x' TEK komutla kalici muaf bolge acar: yeni kok
+BILINEN BYPASS'LAR (kapi bir DISIPLIN cihazidir, hapishane DEGIL — memory/kapi-disiplin-ilkesi.md;
+KAYITLI olmalari sart ama KAPATILMAZLAR: yeni launcher-yakalama kurali sonsuz launcher oyunu +
+yeni yanlis-pozitif acar, ilke bunu yasaklar). 1-2-3'un ORTAK KOK NEDENI TEK: denetim yalnizca
+segmentin YORUMLAYICI-BASLI (ya da dogrudan-betik) ilk token'ina uygulanir; girdi ayri
+token/stdin ile tasinirsa ya da ad ICRA_UZANTILARI ile bitmezse segment "yorumlayici-basli"
+gorunmez ve kural hic calismaz. 1-2-3 MAIN'de de vardir — bu dal onlari ACMADI (yeni degil).
+  1. LAUNCHER-ARKASI cagri: 'echo /dis/x.py | xargs python3', 'find /dis -exec python3 {} \\;',
+     ayni sinifta make / sudo / watch / uv / npx — girdiyi AYRI token ya da stdin tasir, segment
+     basi bu launcher'dir (SARMALAYICI listesinde DEGIL) → denetim hic uygulanmaz, repo disinda
+     GERCEK icra olur. Kapatilmadi: her launcher'i saymak sonsuz liste + yanlis-pozitif; mimar
+     'xargs python3' yaziyorsa bu refleks degil BILINCLI kacistir.
+  2. UZANTISIZ +x dosya dogrudan cagrisi: './analiz' (uzantisiz, shebang'li) — dogrudan-cagri
+     kalkani (asagida A blogu) YALNIZ ICRA_UZANTILARI ile biten adi yakalar, uzantisiz ad
+     yorumlayici da degildir → ALLOW. Kapatilmadi: ayni kök (uzanti listesi); listeyi genisletmek
+     veri/not dosyasi adlarinda yanlis-pozitif riski.
+  3. 'git worktree add /private/tmp/x' TEK komutla kalici muaf bolge acar: yeni kok
      .git/worktrees'e KAYITLI olur, sonrasinda oraya betik yazmak (kod-kilidi) ve
      oradan betik kosturmak (bu kapi) SERBEST olur. BILEREK kapatilmadi — git yonetimi
      mimarin kapisidir ve engellemek merge/temizlik isini felc eder. Olcum:
      'git -C /Users/okan/dev/pruvo worktree list' cikti sayisi.
-  2. agent_id DOLU cagri (alt ajan) — kapi hicbir kural uygulamaz; stderr izi
+  4. agent_id DOLU cagri (alt ajan) — kapi hicbir kural uygulamaz; stderr izi
      "MIMAR-KAPISI allow ISCI".
-  3. Commit duzlemindeki bypass'lar tools/mimar-commit-kapisi.py bas yorumunda.
+  5. Commit duzlemindeki bypass'lar tools/mimar-commit-kapisi.py bas yorumunda.
 """
 import json
 import os
