@@ -66,6 +66,10 @@ kaydi ve uretim akisi etkilenmez, yalniz reklam olcumu eksik kalir). Ham SQL yal
 yonetim sayfasina/anahtara erisilemedigi durumda kullanilmali. Olayin gidip gitmedigi
 Cloudflare Logs'ta `olcum {...}` satirlarindan gorulur (`[observability]` acik).
 
+**TESPIT ARACI:** `python3 tools/olculmemis-siparis.py` — odenmis ama olcum izi olmayan
+siparisleri listeler + toplam olculmemis ciroyu basar (SALT-OKUNUR: D1'e yazmaz, olay
+gondermez; kayip varsa cikis kodu 1). Ham SQL yedegini kullandiysan bunu kostur.
+
 ## Dosyalar
 
 - `wrangler.toml`     — worker tanimi + route (`pruvo3d.com/api/shop/*`) + D1 binding
