@@ -3,13 +3,22 @@
 Kullanim: python3 tools/thingiverse-gallery.py <thing_id> <cikti_dizini> <onek>
 Her gorseli <cikti>/<onek>_<n>.jpg olarak kaydeder, listeyi yazar.
 """
-import sys, os, json, urllib.request, re, subprocess
+import sys, os, json, urllib.request, urllib.parse, re, subprocess
+
+# ASCII-disi karakter iceren CDN url'leri urlopen'da UnicodeEncodeError ile cokerdi
+# (HTTP istek satiri/basligi ASCII olmali). thing-hazirla.py ile AYNI kacis: safe kumesi
+# tutarli olsun (bkz thing-hazirla.py satir 93).
+_SAFE = ":/?=&%"
+
+
+def qesc(u):
+    return urllib.parse.quote(u, safe=_SAFE)
 
 TOKEN = open(os.path.join(os.path.dirname(__file__), "..", ".thingiverse-token")).read().strip()
 
 
 def get(u):
-    r = urllib.request.Request(u, headers={"Authorization": "Bearer " + TOKEN, "User-Agent": "pruvo/1.0"})
+    r = urllib.request.Request(qesc(u), headers={"Authorization": "Bearer " + TOKEN, "User-Agent": "pruvo/1.0"})
     return urllib.request.urlopen(r).read()
 
 
@@ -40,7 +49,7 @@ def main():
         n += 1
         ext = ".png" if u.lower().endswith(".png") else ".jpg"
         raw = os.path.join(outdir, "%s_%d%s" % (prefix, n, ext))
-        data = urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"})).read()
+        data = urllib.request.urlopen(urllib.request.Request(qesc(u), headers={"User-Agent": "Mozilla/5.0"})).read()
         with open(raw, "wb") as f:
             f.write(data)
         jpg = os.path.join(outdir, "%s_%d.jpg" % (prefix, n))
