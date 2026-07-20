@@ -23,7 +23,7 @@ SELLER = {
     "tel": "+90 532 595 4005",
     "eposta": "info@pruvo3d.com",
     "kargo": "Yurtiçi Kargo",
-    "teslim": "5-7 iş günü",
+    "teslim": "ölçü onayından sonra 3-5 iş günü",
     "site": "https://pruvo3d.com",
 }
 
@@ -3158,7 +3158,7 @@ CONTENT_PAGES = [
     ('elektrikli-supurge-aparati-plastik-parca-uretimi', 'Elektrikli Süpürge Aparatı ve Yedek Plastik Parça Üretimi', 'Süpürge hortum bağlantı bileziği, kilit tırnağı ya da fırça kapağı kırıldıysa cihazı atmayın: elinizdeki kırık örnekten ölçü alıp ölçünüze özel üretiyoruz.', _elektrikli_supurge_aparati_plastik_parca_uretimi),
     ('asinmaya-dayanikli-surtunme-parcasi-uretimi', 'Aşınmaya Dayanıklı Sürtünme Parçası Ölçüye Özel Üretim', 'Sürtünen kızak, kılavuz ve yatak yüzeyi boşluk mu yaptı? Aşınmaya dayanıklı sınıfta, ölçünüze göre üretiyoruz. Numuneyi gönderin, geçme payını belirleyelim.', _asinmaya_dayanikli_surtunme_parcasi_uretimi),
     ('yaga-ve-kimyasala-dayanikli-plastik-parca-uretimi', 'Yağa ve Kimyasala Dayanıklı Plastik Parça Özel Üretim', 'Yağ, solvent ve temizlik kimyasalı değince yumuşayan parçayı; temas ettiği sıvı ve sıcaklığa uygun sınıfta, ölçünüze göre üretiyoruz. Numunenizi gönderin.', _yaga_ve_kimyasala_dayanikli_plastik_parca_uretimi),
-    ('kalip-yaptirmadan-parca-urettirme', 'Kalıp Yaptırmadan Az Adet Parça Ürettirme Yolu', "Kalıp masrafına girmeden 1-200 adet parça ürettirin: numuneyle ya da ölçüyle üretim, ölçü kaydından tekrar sipariş. Kartla ödeyin ya da WhatsApp'tan yazın. (155 karakter)", _kalip_yaptirmadan_parca_urettirme),
+    ('kalip-yaptirmadan-parca-urettirme', 'Kalıp Yaptırmadan Az Adet Parça Ürettirme Yolu', "Kalıp masrafına girmeden 1-200 adet parça ürettirin: numuneyle ya da ölçüyle üretim, ölçü kaydından tekrar sipariş. Kartla ödeyin ya da WhatsApp'tan yazın.", _kalip_yaptirmadan_parca_urettirme),
     ('plastik-pim-yaptirma', 'Plastik Pim Yaptırma: Ölçüye Özel Çap ve Boy Üretimi', 'Kırılan ya da kaybolan plastik pim mi arıyorsunuz? Çapı, boyu ve uç formunu ölçünüze göre üretiyoruz. Kumpas değerlerinizi gönderin, doğru geçme payıyla üretelim.', _plastik_pim_yaptirma),
     ('kirik-plastik-tirnak-yaptirma', 'Kırık Plastik Tırnak Yaptırma: Geçme Tırnak Üretimi', 'Kapak veya panel tutan geçme tırnağı kırıldıysa gövdeyi değiştirmeyin: tırnak yüksekliği, kök kalınlığı ve esneme payı ölçünüze göre üretilir. Ölçünüzü gönderin.', _kirik_plastik_tirnak_yaptirma),
     ('cekmece-rayi-plastik-parcasi-yaptirma', 'Çekmece Rayı Plastik Parçası Yaptırma: Durdurucu ve Kızak Dili', 'Kırılan çekmece rayı durdurucusu, kızak dili veya makarası numuneden birebir ölçüyle üretilir. Rayın tamamını almadan tek parçayı yenileyin; ölçünüzü yazın.', _cekmece_rayi_plastik_parcasi_yaptirma),
