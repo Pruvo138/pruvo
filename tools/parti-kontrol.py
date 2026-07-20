@@ -17,9 +17,18 @@ Her yeni urun icin kontroller:
      tur=="satin-alma" olan urunlerde olcu aranmaz)
   9. lisans alani VARSA dict ve icindeki "tur" bos degil
 
+MEVCUT-URUN-DEGISIKLIGI KIPI (backfill): HEAD'de zaten var olan urunlerin alanlari
+degistiginde (or. gorsel backfill) yapisal dogrulama yapar — eskiden bu tamamen
+korlemesine YESIL'di ("parti yok: working tree = HEAD"). Kontroller:
+  - mevcut id kayboldu (urun silinmis) -> RED (default + strict)
+  - degisen mevcut urunlerde yeni gorseller[] gecerli https://media.pruvo3d.com/... mi
+  - backfill-disi alan (fiyat/baslik/kategori...) sessizce degistiyse -> RED
+  - --backfill (strict): urun SAYISI sabit + hic yeni id belirmemeli (backfill
+    urun EKLEMEZ/SILMEZ, sadece alan gunceller)
+
 Bulgu varsa her biri "SORUN <id>: <aciklama>" satiriyla yazilir, cikis 1.
-Temizse "parti temiz: N yeni urun kontrol edildi", cikis 0.
-Yeni urun yoksa "parti yok: working tree = HEAD", cikis 0.
+Temizse "parti temiz: N yeni urun, M mevcut urun degisikligi kontrol edildi", cikis 0.
+Yeni urun yok ve mevcut urun degismemisse "parti yok: working tree = HEAD", cikis 0.
 
 --test: gercek dosyalara dokunmadan her kontrolun yakalama+gecme yolunu sinar.
 """
@@ -72,8 +81,8 @@ def _git(*args):
         return 1, b""
 
 
-def _head_ids():
-    """HEAD:urunler.json'daki id kumesi; okunamazsa None (parti belirlenemez)."""
+def _head_urunler():
+    """HEAD:urunler.json'daki tam urun listesi; okunamazsa None (parti belirlenemez)."""
     rc, out = _git("show", "HEAD:urunler.json")
     if rc != 0:
         return None
@@ -81,12 +90,23 @@ def _head_ids():
         urunler = json.loads(out.decode("utf-8"))
     except (ValueError, UnicodeDecodeError):
         return None
-    if not isinstance(urunler, list):
-        return None
+    return urunler if isinstance(urunler, list) else None
+
+
+def _ids_kumesi(urunler):
+    """Urun listesinden (dict'lerden) id kumesi; None id atlanir."""
     return {
         u.get("id") for u in urunler
         if isinstance(u, dict) and u.get("id") is not None
     }
+
+
+def _head_ids():
+    """HEAD:urunler.json'daki id kumesi; okunamazsa None (parti belirlenemez)."""
+    urunler = _head_urunler()
+    if urunler is None:
+        return None
+    return _ids_kumesi(urunler)
 
 
 def _kaynaklari_oku(path):
@@ -110,12 +130,12 @@ def _satin_alma_mi(kayit):
 
 # Olcu, ekleme aninda ALINAMAYAN kaynaklar (indirme login/hesap/OAuth-gated) -> olcu kapisindan MUAF.
 # denetim-kapisi._olcu_muaf_kaynak ile AYNI desen. Printables/Thingiverse MUAF DEGIL (olculu gelir).
-_OLCU_MUAF_KAYNAK = {"makerworld", "cults3d", "myminifactory", "********"}
-_OLCU_MUAF_DOMAIN = ("makerworld.com", "cults3d.com", "myminifactory.com", "********.com")
+_OLCU_MUAF_KAYNAK = {"makerworld", "cults3d", "myminifactory", "cgtrader"}
+_OLCU_MUAF_DOMAIN = ("makerworld.com", "cults3d.com", "myminifactory.com", "cgtrader.com")
 
 
 def _olcu_muaf(kayit):
-    """tur==satin-alma (********) VEYA kaynak/link MakerWorld/Cults3D/MyMiniFactory/******** ise True
+    """tur==satin-alma (CGTrader) VEYA kaynak/link MakerWorld/Cults3D/MyMiniFactory/CGTrader ise True
     (bu platformlar urunu OLCUSUZ ekler; olcu siparis/indirme sonrasi alinir). str/dict karsilanir."""
     if isinstance(kayit, dict):
         if kayit.get("tur") == "satin-alma":
@@ -223,6 +243,85 @@ def _parti_denetle(urunler, head_ids, kaynaklar):
         for aciklama in _denetle_urun(urun, gosterim_id, kaynaklar):
             bulgular.append((gosterim_id, aciklama))
     return bulgular, len(parti)
+
+
+# ---------------------------------------------------------------------------
+# MEVCUT-URUN-DEGISIKLIGI (backfill) KIPI
+# HEAD'de zaten var olan urunlerin alanlari degistiginde yapisal dogrulama.
+# ---------------------------------------------------------------------------
+
+def _urun_haritasi(urunler):
+    """id -> urun dict. Sadece str+dolu id'li dict'ler alinir (son gelen kazanir)."""
+    harita = {}
+    for u in urunler:
+        if isinstance(u, dict) and isinstance(u.get("id"), str) and u.get("id"):
+            harita[u["id"]] = u
+    return harita
+
+
+def _mevcut_denetle(onceki, sonraki, kaynaklar=None, strict=False):
+    """HEAD (onceki) -> working tree (sonraki) arasi MEVCUT urun degisikligi bulgulari.
+
+    [(gosterim_id, aciklama), ...] dondurur (bos = temiz). Kontroller:
+      - mevcut id kayboldu (urun silinmis) -> her zaman RED
+      - degisen ortak urunlerde: gorseller degistiyse yeni durum gecerli
+        https://media.pruvo3d.com/... olmali; degil -> RED
+      - gorseller DISI alan (fiyat/baslik/kategori/marka/aciklama/lisans/...)
+        degistiyse -> RED (sessiz backfill-disi degisiklik)
+    strict=True (--backfill): ek olarak
+      - urun sayisi degistiyse -> RED
+      - yeni id belirdiyse -> RED (backfill urun eklemez)
+    YENI urunler (yeni-urun kipi) burada denetlenmez; onlar _parti_denetle'nin isi.
+    """
+    del kaynaklar  # su an kullanilmiyor; imza ileriye donuk
+    bulgular = []
+    o_map = _urun_haritasi(onceki)
+    s_map = _urun_haritasi(sonraki)
+    o_ids = set(o_map)
+    s_ids = set(s_map)
+
+    if strict and len(onceki) != len(sonraki):
+        bulgular.append(("*", "urun sayisi degisti: %d -> %d" % (len(onceki), len(sonraki))))
+
+    # mevcut id kayboldu -> silme, her zaman RED
+    for kid in sorted(o_ids - s_ids):
+        bulgular.append((kid, "mevcut id kayboldu (urun silinmis)"))
+
+    # strict backfill'de yeni id EKLENEMEZ
+    if strict:
+        for nid in sorted(s_ids - o_ids):
+            bulgular.append((nid, "backfill'de yeni id belirdi (backfill urun eklemez)"))
+
+    # ortak id'lerde alan-bazli diff
+    for uid in sorted(o_ids & s_ids):
+        o = o_map[uid]
+        s = s_map[uid]
+        for alan in sorted(set(o) | set(s)):
+            if o.get(alan) == s.get(alan):
+                continue  # alan degismemis
+            if alan == "gorseller":
+                g = s.get("gorseller")
+                if not isinstance(g, list) or not g:
+                    bulgular.append((uid, "gorseller bos veya liste degil"))
+                else:
+                    for x in g:
+                        if not isinstance(x, str) or not x.startswith(MEDYA_ONEK):
+                            bulgular.append(
+                                (uid, "gecersiz gorsel URL semasi: %r" % (x,)))
+            else:
+                bulgular.append(
+                    (uid, "backfill-disi alan '%s' sessizce degisti: %r -> %r"
+                     % (alan, o.get(alan), s.get(alan))))
+    return bulgular
+
+
+def _mevcut_degisenler(onceki, sonraki):
+    """(degisen_ortak_id_listesi, silinen_id_kumesi) — cikti mesaji icin sayim."""
+    o_map = _urun_haritasi(onceki)
+    s_map = _urun_haritasi(sonraki)
+    degisen = [uid for uid in (set(o_map) & set(s_map)) if o_map[uid] != s_map[uid]]
+    silinen = set(o_map) - set(s_map)
+    return degisen, silinen
 
 
 # ---------------------------------------------------------------------------
@@ -381,6 +480,62 @@ def _oz_sinama():
         any(gid == "yeni-kotu" and "kategori" in msg for gid, msg in (b2 or [])),
     ))
 
+    # -----------------------------------------------------------------
+    # MEVCUT-URUN-DEGISIKLIGI (backfill) kipi: RED + KABUL taraflari
+    # -----------------------------------------------------------------
+    def m_urun(uid, **kw):
+        u = dict(_gecerli_urun())
+        u["id"] = uid
+        u.update(kw)
+        return u
+
+    A1 = m_urun("mevcut-a", gorseller=["https://media.pruvo3d.com/urunler/a-1.jpg"])
+    B1 = m_urun("mevcut-b", gorseller=["https://media.pruvo3d.com/urunler/b-1.jpg"])
+    onceki = [A1, B1]
+
+    # KABUL: mesru backfill — A'ya gecerli 2. gorsel eklendi; sayi + id sabit
+    A2 = m_urun("mevcut-a", gorseller=[
+        "https://media.pruvo3d.com/urunler/a-1.jpg",
+        "https://media.pruvo3d.com/urunler/a-2.jpg"])
+    kontroller.append(("backfill mesru KABUL",
+                       _mevcut_denetle(onceki, [A2, B1], strict=True) == []))
+
+    # RED: urun sayisi degisti (yeni urun eklendi) — strict
+    yeni_c = m_urun("mevcut-c")
+    kontroller.append(("backfill sayi degisti RED", any(
+        "sayisi degisti" in m for _, m in _mevcut_denetle(onceki, [A1, B1, yeni_c], strict=True))))
+
+    # RED: gecersiz URL semasi (http / yanlis host)
+    A_bad = m_urun("mevcut-a", gorseller=[
+        "https://media.pruvo3d.com/urunler/a-1.jpg", "http://kotu/x.jpg"])
+    kontroller.append(("backfill gecersiz URL RED", any(
+        "gecersiz gorsel URL" in m for _, m in _mevcut_denetle(onceki, [A_bad, B1], strict=True))))
+
+    # RED: mevcut id kayboldu (B -> C, sayi ayni kalir; id kumesi bozulur)
+    kontroller.append(("backfill id kayboldu RED", any(
+        "kayboldu" in m for _, m in _mevcut_denetle(onceki, [A1, yeni_c], strict=True))))
+
+    # RED: strict backfill'de yeni id belirmesi (ayni swap; sayi sabit ama id eklendi)
+    kontroller.append(("backfill yeni id belirdi RED", any(
+        "yeni id belirdi" in m for _, m in _mevcut_denetle(onceki, [A1, yeni_c], strict=True))))
+
+    # RED: backfill-disi alan (fiyat) sessizce degisti
+    A_fiyat = m_urun("mevcut-a", fiyat="9999 TL")
+    kontroller.append(("backfill disi alan RED", any(
+        "'fiyat'" in m for _, m in _mevcut_denetle(onceki, [A_fiyat, B1], strict=True))))
+
+    # default (non-strict): mesru yeni urun eklemek mevcut-kipini KIRMIZI YAPMAZ
+    kontroller.append(("mevcut kip yeni urune dokunmaz",
+                       _mevcut_denetle(onceki, [A1, B1, yeni_c], strict=False) == []))
+
+    # default (non-strict): mevcut urun SILME yine de RED (silme daima kotu)
+    kontroller.append(("mevcut kip silmeyi yakalar", any(
+        "kayboldu" in m for _, m in _mevcut_denetle(onceki, [A1], strict=False))))
+
+    # KIRMIZI-MUTASYON kanit destekleyicisi: gorseller degismemisse hicbir sey demez
+    kontroller.append(("degismeyen urun temiz",
+                       _mevcut_denetle(onceki, [A1, B1], strict=True) == []))
+
     hatalar = [ad for ad, gecti in kontroller if not gecti]
     if hatalar:
         for ad in hatalar:
@@ -395,6 +550,9 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--test", action="store_true",
                     help="bellek ici oz-sinamayi calistir (gercek dosyaya dokunmaz)")
+    ap.add_argument("--backfill", action="store_true",
+                    help="strict backfill kipi: urun sayisi + id kumesi SABIT olmali "
+                         "(yeni/silinen urun -> RED). Sadece mevcut alan guncellemesi beklenir.")
     args = ap.parse_args()
 
     if args.test:
@@ -410,24 +568,32 @@ def main():
         print("HATA: urunler.json bir dizi degil.", file=sys.stderr)
         return 2
 
-    head_ids = _head_ids()
-    if head_ids is None:
+    head_urunler = _head_urunler()
+    if head_urunler is None:
         print("parti belirlenemedi: HEAD:urunler.json okunamadi")
         return 0
+    head_ids = _ids_kumesi(head_urunler)
 
     kaynaklar = _kaynaklari_oku(KAYNAKLAR)
-    bulgular, boyut = _parti_denetle(urunler, head_ids, kaynaklar)
 
-    if boyut == 0:
+    # 1. YENI-URUN kipi (HEAD'de olmayan id'ler)
+    yeni_bulgular, yeni_boyut = _parti_denetle(urunler, head_ids, kaynaklar)
+    # 2. MEVCUT-URUN-DEGISIKLIGI kipi (backfill: HEAD'de var olan urunler)
+    mevcut_bulgular = _mevcut_denetle(head_urunler, urunler, kaynaklar, strict=args.backfill)
+    degisen, silinen = _mevcut_degisenler(head_urunler, urunler)
+
+    if yeni_boyut == 0 and not degisen and not silinen:
         print("parti yok: working tree = HEAD")
         return 0
 
-    if bulgular:
-        for gosterim_id, aciklama in bulgular:
+    tum_bulgular = list(yeni_bulgular or []) + list(mevcut_bulgular)
+    if tum_bulgular:
+        for gosterim_id, aciklama in tum_bulgular:
             print("SORUN %s: %s" % (gosterim_id, aciklama))
         return 1
 
-    print("parti temiz: %d yeni urun kontrol edildi" % boyut)
+    print("parti temiz: %d yeni urun, %d mevcut urun degisikligi kontrol edildi"
+          % (yeni_boyut, len(degisen)))
     return 0
 
 
