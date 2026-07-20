@@ -14,12 +14,17 @@
  *  - Anahtar loglara/HATA metnine YAZILMAZ. PII yalniz anahtarli yanitta. CORS yok (same-origin).
  *  - Gizli kaynak bilgisi (tedarikci/link) sayfaya/JSON'a GIRMEZ.
  *  - 'kargolandi'ya SADECE /kargo ucundan gecilir (takip kodu zorunlu) — tek yol.
+ *  - 'odendi'ye gecis (havale onayi) REKLAM OLCUMU tetikler: Purchase, event_id = siparis_no
+ *    (kart akisiyla ayni dedup anahtari). IDEMPOTENS uc katmanli — bkz. durumDegistir().
+ *    ⚠️ KURULUM.md'deki yedek ham SQL komutu bu uctan GECMEZ -> olcum de gitmez; havale
+ *    onayinin normal yolu YONETIM SAYFASIDIR (ham SQL yalniz sayfa/anahtar yoksa).
  */
 
 import { SEMALAR } from "./semalar.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
+import { olcumGonder, olcumLog } from "./olcum.js";
 
 // ---- durum makinesi -----------------------------------------------------------
 // Sirali ilerleme; her durum -> iptal (asagida ayrica). 'kargolandi' hedefine /durum'dan
@@ -177,25 +182,80 @@ async function liste(env, url) {
 
 // ---- durum gecmisi yardimci ---------------------------------------------------
 
-function gecmiseEkle(mevcutJson, hedef) {
+function gecmiseEkle(mevcutJson, hedef, ekstra) {
   let g = [];
   try { g = JSON.parse(mevcutJson) || []; } catch (e) { g = []; }
   if (!Array.isArray(g)) { g = []; }
-  g.push({ d: hedef, z: new Date().toISOString() });
+  const kayit = { d: hedef, z: new Date().toISOString() };
+  // "o": 1 -> bu geciste Purchase olcumu DENENDI (tetiklendi). Idempotens izi; asagida okunur.
+  // ⚠️ ANLAMI "DENENDI", "ULASTI" DEGIL: iz, gonderim SONUCUNDAN once (ayni atomik UPDATE
+  // icinde) yazilir; olcum fire-and-forget'tir. Meta 400 dondurse, ag koparsa, secret
+  // tanimsiz olsa bile iz "1" kalir. Teshis icin izin varligina DEGIL, Cloudflare Logs'taki
+  // `olcum {...}` satirina bakilir (orada kod/events_received/fbtrace_id var).
+  if (ekstra && ekstra.olcumDenendi) { kayit.o = 1; }
+  g.push(kayit);
   if (g.length > 50) { g = g.slice(-50); } // sinirla (same-row buyumesin)
   return JSON.stringify(g);
 }
 
+/**
+ * Bu siparis icin Purchase olcumu DAHA ONCE bu uctan DENENDI mi? (durum_gecmisi izi)
+ * "Denendi" = gonderim tetiklendi; ULASTIGINI GARANTI ETMEZ (bkz. gecmiseEkle notu).
+ * Amaci yalnizca TEKRARI onlemek — "Meta aldi" teshisi icin KULLANILMAZ.
+ * Not: gecmis 50 kayitta kirpilir; pratikte bir siparis 50 durum degisimi yasamaz, ama
+ * kirpilma olsa bile ikinci savunma calisir: 'odendi'ye SADECE 'havale-bekliyor'dan
+ * gecilebilir ve gecis CAS'tir (asagi bak) — yani tekrar zaten mumkun degil.
+ */
+function olcumDenendiMi(gecmisJson) {
+  let g = [];
+  try { g = JSON.parse(gecmisJson) || []; } catch (e) { g = []; }
+  if (!Array.isArray(g)) { return false; }
+  return g.some((k) => k && k.o === 1);
+}
+
 async function siparisGetir(env, siparisNo) {
   return env.KATALOG.prepare(
-    "SELECT siparis_no, durum, durum_gecmisi, urunler, tutar_kurus, kargo_kurus, kdv_kurus," +
+    "SELECT siparis_no, tarih, durum, durum_gecmisi, urunler, tutar_kurus, kargo_kurus," +
+    " kdv_kurus, odeme_yontemi, atif," +
     " musteri_ad, musteri_eposta, musteri_adres FROM siparisler WHERE siparis_no = ?"
   ).bind(siparisNo).first();
 }
 
+/** ISO tarihi -> saniye damgasi. Bozuk/bossa 0 (cagiran "simdi"ye duser). */
+function isoSaniye(iso) {
+  const t = Date.parse(String(iso || ""));
+  return Number.isFinite(t) ? Math.floor(t / 1000) : 0;
+}
+
 // ---- /durum -------------------------------------------------------------------
 
-async function durumDegistir(request, env) {
+/**
+ * HAVALE CIROSU OLCUMU (mimar acigi 3).
+ *
+ * NEDEN: havale ile odenen siparis /donus akisindan GECMEZ (iyzico yok) -> daha once
+ * hicbir Purchase olayi gitmiyordu. Sonuc: havale cirosu Meta'da ve GA4'te YOKTU; Meta
+ * "bu reklam satmiyor" diye YANLIS ogreniyordu (kart-disi ciro gorunmez).
+ *
+ * DEDUP: event_id = siparis_no — kart akisiyla AYNI anahtar (olcum.js satinAlmaOlayi).
+ *
+ * 🔒 IP/UA GONDERILMEZ (bilincli): bu istek OKAN'IN yonetim tarayicisindan gelir; buradaki
+ * IP/UA musteriye ait DEGILDIR. Yanlis kisiyi eslestirmek, hic eslestirmemekten kotudur.
+ * (Musterinin rizali fbp/fbc'si atif kaydindan zaten gider — /baslat'ta yakalanmisti.)
+ *
+ * event_time = SIPARIS TARIHI (odemenin gercek ani; havalede musteri parayi siparis
+ * gunu gonderir, Okan dekontu sonra gorur). Meta'nin 7 gunluk geriye-donuk penceresini
+ * asan olayi olcum.js atlar + loglar.
+ */
+function havaleOlcumu(env, ctx, s) {
+  const zaman = isoSaniye(s.tarih);
+  return olcumGonder(env, ctx, s, undefined, {
+    kaynak: "havale",
+    event_time: zaman > 0 ? zaman : Math.floor(Date.now() / 1000),
+    // istemci YOK — yukaridaki gerekce.
+  });
+}
+
+async function durumDegistir(request, env, ctx) {
   let govde;
   try { govde = await request.json(); } catch (e) { return yjson({ hata: "gecersiz-json" }, 400); }
   const siparisNo = govde && typeof govde.siparis_no === "string" ? govde.siparis_no : "";
@@ -210,12 +270,38 @@ async function durumDegistir(request, env) {
   if (!gecisGecerli(s.durum, hedef)) {
     return yjson({ hata: "gecersiz-gecis", mevcut: s.durum, hedef: hedef }, 400);
   }
-  const yeniGecmis = gecmiseEkle(s.durum_gecmisi, hedef);
+  // --- Purchase olcumu karari (yalniz 'odendi'ye gecis) --------------------------
+  // IDEMPOTENS — UC KATMAN, hicbirine TEK basina guvenilmez:
+  //  1) DURUM MAKINESI: 'odendi' hedefine SADECE 'havale-bekliyor'dan gecilebilir
+  //     (IZINLI). Kart siparisi zaten 'odendi'dir; 'odendi'->'odendi' gecersiz (400)
+  //     -> kart akisinin gonderdigi olay buradan TEKRARLANAMAZ.
+  //  2) CAS (compare-and-swap): UPDATE ... WHERE durum = <okunan durum>. Iki es zamanli
+  //     istek gelse yalniz BIRI changes>0 alir; olcum yalniz o daldan tetiklenir.
+  //  3) KALICI IZ: durum_gecmisi'ne {"o":1} yazilir; ayni UPDATE icinde (atomik).
+  //     Iz varsa bir daha DENENMEZ — elle iki kez 'odendi' denenirse de tek olay.
+  //     ⚠️ Iz "denendi" demek, "Meta aldi" DEMEK DEGIL (bkz. gecmiseEkle/olcumDenendiMi).
+  // Meta event_id ile ayrica dedup yapar; o DORDUNCU ag, tek savunma DEGIL.
+  const olcumluGecis = (hedef === "odendi");
+  const zatenDenendi = olcumDenendiMi(s.durum_gecmisi);
+  const olcumTetikle = olcumluGecis && !zatenDenendi;
+
+  const yeniGecmis = gecmiseEkle(s.durum_gecmisi, hedef, { olcumDenendi: olcumTetikle });
   const g = await env.KATALOG.prepare(
     "UPDATE siparisler SET durum = ?, durum_gecmisi = ? WHERE siparis_no = ? AND durum = ?"
   ).bind(hedef, yeniGecmis, siparisNo, s.durum).run();
   if (!(g.meta && g.meta.changes > 0)) {
     return yjson({ hata: "durum-degismis", mevcut: s.durum }, 409);
+  }
+
+  if (olcumluGecis && zatenDenendi) {
+    // Sessiz atlama YOK: "bu siparisin ikinci Purchase'i nerede?" sorusu cevaplanabilsin.
+    olcumLog({ olay: "Purchase", siparis_no: siparisNo, kaynak: "havale",
+               atlandi: "zaten-denendi" });
+  }
+  if (olcumTetikle && g.meta.changes > 0) {
+    // Fire-and-forget (ctx.waitUntil olcum.js icinde): olcum hatasi durum degisimini
+    // ETKILEMEZ — durum D1'de zaten kalici olarak degisti.
+    havaleOlcumu(env, ctx, { ...s, durum: hedef });
   }
   return yjson({ ok: true, siparis_no: siparisNo, durum: hedef }, 200);
 }
@@ -404,7 +490,7 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   const m = request.method;
   if (altYol === "/" && m === "GET") { return sayfa(); }
   if (altYol === "/liste" && m === "GET") { return liste(env, url); }
-  if (altYol === "/durum" && m === "POST") { return durumDegistir(request, env); }
+  if (altYol === "/durum" && m === "POST") { return durumDegistir(request, env, ctx); }
   if (altYol === "/kargo" && m === "POST") { return kargo(request, env, ctx, telegram); }
   if (altYol === "/stl" && m === "GET") { return stlIndir(env, url); }
   if (altYol === "/stl-liste" && m === "GET") { return stlListe(env, url); }

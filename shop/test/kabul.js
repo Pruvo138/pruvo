@@ -28,6 +28,8 @@ const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
 const vm = require("node:vm");
+// Yerel testin GERCEK Meta pikseline/GA4 mulkune basmasini onleyen fail-closed kapi.
+const { olcumKapisi } = require("./olcum-kapisi.cjs");
 
 const SHOP = path.dirname(__dirname);            // .../shop
 const KOK = path.dirname(SHOP);                  // repo koku
@@ -357,9 +359,54 @@ function r2Kur() {
 
 let workerSurec = null;
 let workerLog = "";
+
+/**
+ * 🔴 OLCUM KAPISI — bu dosyada worker'i baslatan tum yollar (main, test23, --sandbox)
+ * `workerBaslat()` uzerinden gectigi icin kapi da hepsinde uygulanir.
+ *
+ * Neyi onler: `wrangler.toml`'daki [vars] GERCEK Meta piksel ID'si + GERCEK GA4 mulk
+ * ID'si `wrangler dev`e oldugu gibi yuklenir. Bir CAPI token'i/GA4 secret'i sizarsa kabul
+ * testi TEK KOSUDA gercek piksele duzinelerce SAHTE Purchase basar (reklam optimizasyonu
+ * bozulur, geri alinamaz).
+ *
+ * KAPSAM (tam liste — fazlasini iddia etme): process.env + shop/.dev.vars + shop/.env +
+ * shop/.env.local. `.env`/`.env.local` DAHIL cunku wrangler 4.112'de `.dev.vars` yoksa
+ * bunlari SECRET olarak yukluyor ("Using secrets defined in .env").
+ * KAPSAM DISI: uzak worker'a `wrangler secret put` ile basilmis secret'lar, shop/ disindaki
+ * .env dosyalari, wrangler'in ileride ekleyebilecegi yeni kaynaklar (surum yukseltmesinde
+ * shop/test/olcum-kapisi.cjs'teki liste GOZDEN GECIRILMELI).
+ *
+ * Davranis: anahtar bulunursa test SESSIZCE ATLAMAZ — gurultuyle patlar. Anahtar yoksa
+ * da kimlikler yine sahte degerlerle EZILIR (ikinci katman).
+ */
+function olcumKapisiUygula(ekstraVar) {
+  const { TARANAN_DOSYALAR } = require("./olcum-kapisi.cjs");
+  const dosyalar = {};
+  for (const ad of TARANAN_DOSYALAR) {
+    const yol = path.join(SHOP, ad);
+    dosyalar[ad] = fs.existsSync(yol) ? fs.readFileSync(yol, "utf8") : null;
+  }
+  const kapi = olcumKapisi({
+    wranglerToml: fs.readFileSync(path.join(SHOP, "wrangler.toml"), "utf8"),
+    dosyalar: dosyalar,
+    ortam: process.env,
+  });
+  if (!kapi.ok) {
+    console.error("\n🔴 OLCUM KAPISI — KABUL TESTI BASLATILMADI (fail-closed):");
+    for (const s of kapi.sebepler) { console.error("   • " + s); }
+    console.error("\n   Sebep: yerel test GERCEK Meta pikseline/GA4 mulkune SAHTE Purchase");
+    console.error("   basabilirdi; bu reklam optimizasyonunu kalici bicimde bozar.");
+    console.error("   Ayrinti: shop/test/olcum-kapisi.cjs\n");
+    throw new Error("olcum kapisi: gercek olcum anahtari algilandi — test kosmayi reddetti");
+  }
+  // Ikinci katman: kimlikleri EZ (kullanicinin verdigi degerlerden SONRA -> kapi kazanir).
+  return { ...ekstraVar, ...kapi.degiskenler };
+}
+
 async function workerBaslat(ekstraVar) {
+  const guvenliVar = olcumKapisiUygula(ekstraVar || {});
   const args = ["--yes", "wrangler@4", "dev", "--local", "--port", String(WORKER_PORT)];
-  for (const [k, v] of Object.entries(ekstraVar)) { args.push("--var", k + ":" + v); }
+  for (const [k, v] of Object.entries(guvenliVar)) { args.push("--var", k + ":" + v); }
   workerSurec = spawn("npx", args, { cwd: SHOP, stdio: ["ignore", "pipe", "pipe"] });
   workerSurec.stdout.on("data", (c) => { workerLog += c; });
   workerSurec.stderr.on("data", (c) => { workerLog += c; });

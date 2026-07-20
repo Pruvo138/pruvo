@@ -57,6 +57,15 @@ anahtarsiz 404). `durum='havale-bekliyor'` kosulu yanlis siparisi ezmeyi onler; 
 satir degistirdiyse numarayi kontrol et. Siparis 'odendi' ISARETLENMEDEN uretim baslamaz,
 "odeme geldi" bildirimi atilmaz.
 
+⚠️ **REKLAM OLCUMU — yonetim sayfasini kullan, ham SQL'i degil.** 20 Tem'den itibaren
+`havale-bekliyor → odendi` gecisi **yonetim sayfasindan** yapilirsa Purchase olayi Meta
+CAPI + GA4'e gider (`event_id = siparis_no`, kart akisiyla ayni dedup anahtari) — havale
+cirosu artik reklam raporlarinda GORUNUR. Yukaridaki **ham SQL yedegi worker kodundan
+gecmez**, dolayisiyla o yoldan isaretlenen siparisin cirosu Meta/GA4'te GORUNMEZ (satis
+kaydi ve uretim akisi etkilenmez, yalniz reklam olcumu eksik kalir). Ham SQL yalniz
+yonetim sayfasina/anahtara erisilemedigi durumda kullanilmali. Olayin gidip gitmedigi
+Cloudflare Logs'ta `olcum {...}` satirlarindan gorulur (`[observability]` acik).
+
 ## Dosyalar
 
 - `wrangler.toml`     — worker tanimi + route (`pruvo3d.com/api/shop/*`) + D1 binding
