@@ -20,6 +20,17 @@ CREATE TABLE IF NOT EXISTS urunler (
   fiyat     TEXT NOT NULL DEFAULT '',
   gorsel    TEXT,                         -- gorseller[0] (kart kapagi)
   parametrik INTEGER NOT NULL DEFAULT 0,
+  -- PARAMETRIK TABAN FIYAT (TL, tam sayi). Parametrik ("olcuye ozel", sari seri) urunun
+  -- public fiyat'i BOS ('') — taban fiyat jenerator/urunler/<id>.json tabanFiyatTL'de yasar
+  -- ve site kartinda "X TL'den baslayan" olarak build.py'nin taban-fiyatlar.js'inden gelir.
+  -- Ege (WhatsApp botu) urunu D1'den okur; bu kolon olmadan parametrik urunde fiyat gormez,
+  -- saniyeler icinde kartla kapanacak siparisi insana devreder (sessiz satis kaybi). 0 =
+  -- taban yok (normal urun ya da tabanFiyatTL null) -> Ege fiyat gostermez (mevcut davranis).
+  -- KAYNAK: d1-sync.py taban_fiyat_haritasi() jenerator/urunler/<id>.json'dan okur (git'te
+  -- var; CI'da da erisilir). taban-fiyatlar.js DEGIL (o gitignore/build ciktisi). HASH'e
+  -- KARISMAZ: hedefli UPDATE (taban_senkron_sql) ile senkronlanir (baski_senkron_sql deseni),
+  -- boylece taban degisimi content-rewrite/FTS-thrash uretmez, D1 yazma limitine yuklenmez.
+  taban_fiyat INTEGER NOT NULL DEFAULT 0,
   hs        TEXT NOT NULL,                -- SITE aramasi (arama.py haystack — JS ile birebir)
   -- BASKI ONERISI (siparis yonetimi paketi): gizli .urun-kaynaklari.json'daki "baski"
   -- alanindan d1-sync.py DOLDURUR (public urunler.json'a YAZILMAZ — D1 ozeldir, sizinti degil).

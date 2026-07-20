@@ -34,6 +34,11 @@ import arama
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 URUNLER = os.path.join(KOK, "urunler.json")
 SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
+# PARAMETRIK TABAN FIYAT kaynagi = jenerator/urunler/<id>.json "tabanFiyatTL" (tam sayi TL).
+# TEK KAYNAK, build.py uret_taban_fiyatlar() ile AYNI dosyalari okur. Bu dizin GIT'TE
+# (izlenir) -> hem yerelde hem GitHub Actions'ta erisilir. taban-fiyatlar.js DEGIL: o
+# build.py ciktisi + gitignore -> CI'da/temiz checkout'ta olmayabilir (bayat/eksik).
+JEN_URUN_DIR = os.path.join(KOK, "jenerator", "urunler")
 # GIZLI kaynak kaydi (gitignore). "baski" alani (uretim ayar onerisi) buradan D1'e
 # tasinir — PUBLIC urunler.json'a YAZILMAZ. Dosya yoksa (baska makine/CI) baski bos kalir.
 KAYNAKLAR = os.path.join(KOK, ".urun-kaynaklari.json")
@@ -125,15 +130,19 @@ def urunleri_oku():
 
 
 def d1_mevcut():
-    """D1'deki {id: (hash, baski)} + en buyuk seq.
+    """D1'deki {id: (hash, baski)} + {id: taban_fiyat} + en buyuk seq.
     baski da OKUNUR: baski senkronu (main) onu D1'dekiyle KIYASLAR — degismemisse yazmaz
-    (yoksa her yerel kosum tum baski'lari yeniden yazardi)."""
-    r = sorgu("SELECT id, hash, baski FROM urunler")
+    (yoksa her yerel kosum tum baski'lari yeniden yazardi).
+    taban_fiyat da OKUNUR: taban senkronu (main) onu semadakiyle KIYASLAR — ayni mantik.
+    NOT: taban_fiyat kolonu --sema (GOC_KOLON ALTER) ile eklenir; bu SELECT'ten ONCE
+    --sema kosmus olmali (canli uygulama sirasi RAPOR-MIMARA.md'de)."""
+    r = sorgu("SELECT id, hash, baski, taban_fiyat FROM urunler")
     satirlar = (r[0].get("results") or []) if r else []
     mevcut = {s["id"]: (s["hash"], s.get("baski") or "") for s in satirlar}
+    mevcut_taban = {s["id"]: int(s.get("taban_fiyat") or 0) for s in satirlar}
     r2 = sorgu("SELECT COALESCE(MAX(seq), 0) AS m FROM urunler")
     mseq = ((r2[0].get("results") or [{}])[0] or {}).get("m") or 0
-    return mevcut, int(mseq)
+    return mevcut, mevcut_taban, int(mseq)
 
 
 # Sonradan eklenen kolonlar. Mevcut D1 tablosunda CREATE TABLE IF NOT EXISTS bunlari
@@ -147,6 +156,10 @@ GOC_KOLON = [
     ("hs_govde_kok", "TEXT NOT NULL DEFAULT ''"),
     # BASKI onerisi (siparis yonetimi paketi) — gizli kayittan doldurulur (asagida).
     ("baski", "TEXT NOT NULL DEFAULT ''"),
+    # PARAMETRIK TABAN FIYAT (TL, tam sayi) — jenerator/urunler/<id>.json tabanFiyatTL'den
+    # doldurulur. Mevcut canli tabloda CREATE atlanir -> --sema ALTER ile ekler. HASH'e
+    # KARISMAZ; hedefli UPDATE (taban_senkron_sql) ile senkronlanir (baski deseni).
+    ("taban_fiyat", "INTEGER NOT NULL DEFAULT 0"),
 ]
 
 # siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
@@ -217,6 +230,70 @@ def baski_senkron_sql(uid, baski):
     """Tek urun icin SADECE baski kolonunu gunceller (content'e/hs'e dokunmaz -> hash ayni,
     FTS tetigi calismaz, ek satir yazmaz). Yalnizca baski FIILEN degistiyse cagrilir (main)."""
     return "UPDATE urunler SET baski=%s WHERE id=%s;" % (q(baski), q(uid))
+
+
+# ─── PARAMETRIK TABAN FIYAT (D1 feed'i) ──────────────────────────────────────
+# Parametrik urunun public fiyat'i BOS; taban fiyat jenerator/urunler/<id>.json
+# tabanFiyatTL'de yasar. Bu bilgi D1'e HIC gitmiyordu -> Ege (bot) parametrik urunde
+# fiyat goremiyor, siparisi insana devrediyor (sessiz satis kaybi). Cozum: taban_fiyat
+# kolonu + HEDEFLI UPDATE (baski deseni). HASH'e KATILMAZ -> content thrash yok.
+def taban_fiyat_haritasi():
+    """jenerator/urunler/<id>.json -> {id: tabanFiyatTL(int)} (tabanFiyatTL None/eksik
+    ATLANIR). build.py uret_taban_fiyatlar() ile AYNI dosya + AYNI kural (tek kaynak).
+    Dizin yoksa (beklenmez; git'te izlenir) BOS harita -> taban_fiyat 0 kalir, Ege
+    fallback'e duser (mevcut davranis, regresyon degil)."""
+    harita = {}
+    if not os.path.isdir(JEN_URUN_DIR):
+        return harita
+    for ad in sorted(os.listdir(JEN_URUN_DIR)):
+        if not ad.endswith(".json"):
+            continue
+        try:
+            with open(os.path.join(JEN_URUN_DIR, ad), encoding="utf-8") as f:
+                sema = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            continue
+        taban = sema.get("tabanFiyatTL")
+        if taban is None:
+            continue
+        try:
+            harita[sema.get("id") or ad[:-5]] = int(taban)
+        except (TypeError, ValueError):
+            continue
+    return harita
+
+
+def taban_senkron_sql(uid, taban):
+    """Tek urun icin SADECE taban_fiyat kolonunu gunceller (content'e/hs'e DOKUNMAZ ->
+    hash ayni, FTS tetigi (WHEN old.hs<>new.hs) CALISMAZ, ek FTS satiri yazmaz).
+    Yalnizca taban FIILEN degistiyse cagrilir (taban_plan)."""
+    return "UPDATE urunler SET taban_fiyat=%d WHERE id=%s;" % (int(taban), q(uid))
+
+
+def taban_plan(urunler, tabanlar, mevcut_taban):
+    """SAF plan (canli D1'e DOKUNMAZ -> birim testi burayi cagirir). Doner: hedefli
+    taban_fiyat UPDATE'leri listesi.
+    - tabanlar   = {id: int}  jenerator semasindaki tabanFiyatTL (istenen deger)
+    - mevcut_taban = {id: int} D1'deki mevcut taban_fiyat (yeni urun icin yok -> 0)
+    KURAL: yalnizca semada taban VAR (parametrik) VE D1'deki degerden FARKLIYSA 1 UPDATE.
+    Yeni urunde mevcut_taban 0 doner -> INSERT'ten SONRA (main ifade sirasi) UPDATE eder.
+    Boylece 21 parametrik urun D1'de fiyati gorunur; hash'e dokunmadigi icin no-op tuzagina
+    dusmez (diff_plan hash degismedi der ama taban_plan yine de senkronlar)."""
+    if not tabanlar:
+        return []
+    out = []
+    gorulen = set()
+    for u in urunler:
+        uid = u.get("id")
+        if not uid or uid in gorulen:
+            continue
+        gorulen.add(uid)
+        hedef = tabanlar.get(uid)
+        if hedef is None:
+            continue  # taban yok (normal urun / tabanFiyatTL null) -> taban_fiyat 0 kalir
+        if int(hedef) != int(mevcut_taban.get(uid, 0)):
+            out.append(taban_senkron_sql(uid, hedef))
+    return out
 
 
 def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq):
@@ -342,32 +419,39 @@ def main():
         return
 
     urunler = urunleri_oku()
-    mevcut, mseq = d1_mevcut()
+    mevcut, mevcut_taban, mseq = d1_mevcut()
     baskilar = baski_haritasi()
+    tabanlar = taban_fiyat_haritasi()
     # baski YETKISI = gizli kayit dosyasi bu ortamda VAR mi? YOKSA (CI) baski'ya HIC dokunma
     # (yoksa CI baski'yi D1'den silerdi). VARSA (yerel) baski'yi ayrica senkronla.
     baski_yetki = os.path.exists(KAYNAKLAR)
-    print("urunler.json: %d urun | D1: %d urun | gizli baski kaydi: %d | baski yetki: %s"
+    print("urunler.json: %d urun | D1: %d urun | gizli baski kaydi: %d | baski yetki: %s | taban fiyat semasi: %d"
           % (len(urunler), len(mevcut), len(baskilar),
-             "EVET" if baski_yetki else "HAYIR (baski atlanir)"))
+             "EVET" if baski_yetki else "HAYIR (baski atlanir)", len(tabanlar)))
 
     yeni, degisen, baski_guncelle, silinen, gorulen = diff_plan(
         urunler, mevcut, baskilar, baski_yetki, mseq)
-    print("yeni: %d | degisen: %d | baski-guncelle: %d | silinen: %d | dokunulmayan: %d"
-          % (len(yeni), len(degisen), len(baski_guncelle), len(silinen),
+    # TABAN FIYAT senkronu: baski'dan BAGIMSIZ + HASH'ten bagimsiz (git'te oldugu icin
+    # yetki kapisi da yok — CI da yerel de ayni degeri gorur). Yeni urun taban_fiyat'i
+    # INSERT DEFAULT 0 alir, bu UPDATE (ifade sirasinda INSERT'ten SONRA) fiyatini yazar.
+    taban_guncelle = taban_plan(urunler, tabanlar, mevcut_taban)
+    print("yeni: %d | degisen: %d | baski-guncelle: %d | taban-guncelle: %d | silinen: %d | dokunulmayan: %d"
+          % (len(yeni), len(degisen), len(baski_guncelle), len(taban_guncelle), len(silinen),
              len(gorulen) - len(yeni) - len(degisen)))
 
     if a.kuru:
         print("(--kuru: hicbir sey yazilmadi)")
         return
-    if not yeni and not degisen and not baski_guncelle and not silinen:
+    if not yeni and not degisen and not baski_guncelle and not taban_guncelle and not silinen:
         print("degisiklik yok — D1'e yazilmadi ✅")
         return
 
     ifadeler = []
     for parca in [silinen[i:i + PARCA] for i in range(0, len(silinen), PARCA)]:
         ifadeler.append("DELETE FROM urunler WHERE id IN (%s);" % ",".join(q(i) for i in parca))
-    ifadeler += degisen + yeni + baski_guncelle
+    # SIRA ONEMLI: yeni (INSERT) taban_guncelle'den (UPDATE) ONCE gelmeli -> yeni parametrik
+    # urun once eklenir, sonra taban_fiyat'i yazilir (ayni --file'da sirali calisir).
+    ifadeler += degisen + yeni + baski_guncelle + taban_guncelle
 
     top_yaz = 0
     for i in range(0, len(ifadeler), PARCA):
