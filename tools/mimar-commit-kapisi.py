@@ -3,8 +3,16 @@
 """mimar-commit-kapisi.py — git commit backstop for source/data changes.
 
 Kural:
-- Ana repo'da kaynak/veri staged ise ve PRUVO_MIMAR_ONAY != "worker" ise commit'i blokla.
-- Worktree'de veya worker onayinda serbest gec.
+- Ana repo'da kaynak (.py/.js/.mjs/.ts/.html/.css/.sql) VEYA veri (urunler.json /
+  .urun-kaynaklari.json) staged ise commit'i blokla; .md vb. serbest.
+- Worktree'de her sey serbest (mühendis alani).
+
+BILINEN-BYPASS (sessiz degil, DAR): PRUVO_MIMAR_ONAY=worker YALNIZCA veri düzlemini
+(urunler.json / .urun-kaynaklari.json) açar — ürün-ekleme partileri ana checkout'ta bu
+dosyalari commit'ler (MaCiT'in sahasi, kirilmamali). Env=worker staged'de HERHANGI bir
+KAYNAK dosyasi varken commit'i AÇMAZ: kaynak isi worktree'de commit'lenir. Bu daraltma,
+env bypass'inin geçmiste mimarin kaynak-koda kaçis kapisina (tools/*.py'nin ana
+checkout'a bu yolla girmesi) dönüsmesini kapatir; bilinen tek gevseme belgeli ve dar.
 
 Test kolayligi icin:
 - --stdin: staged dosya listesini stdin'den oku.
@@ -20,21 +28,35 @@ import sys
 
 ANA_REPO = "/Users/okan/dev/pruvo"
 KAYNAK_UZANTI = {".py", ".js", ".mjs", ".ts", ".html", ".css", ".sql"}
-KAYNAK_BASENAME = {"urunler.json", ".urun-kaynaklari.json"}
+VERI_BASENAME = {"urunler.json", ".urun-kaynaklari.json"}
+
+
+def _basename(yol: str) -> str:
+    if not yol:
+        return ""
+    temiz = yol.strip().replace("\\", "/")
+    if not temiz:
+        return ""
+    return os.path.basename(temiz)
+
+
+def veri_mi(yol: str) -> bool:
+    """Dosya yolu VERI düzlemi mi? (urunler.json / .urun-kaynaklari.json)"""
+    return _basename(yol) in VERI_BASENAME
 
 
 def kaynak_mi(yol: str) -> bool:
-    """Dosya yolu kaynak/veri mi?"""
-    if not yol:
+    """Dosya yolu KAYNAK kodu mu? (.py/.js/.mjs/.ts/.html/.css/.sql; veri HARIC)"""
+    basename = _basename(yol)
+    if not basename or basename in VERI_BASENAME:
         return False
-    temiz = yol.strip().replace("\\", "/")
-    if not temiz:
-        return False
-    basename = os.path.basename(temiz)
-    if basename in KAYNAK_BASENAME:
-        return True
     _, uzanti = os.path.splitext(basename)
     return uzanti in KAYNAK_UZANTI
+
+
+def korunan_mi(yol: str) -> bool:
+    """Dosya kaynak VEYA veri mi? (env yoksa ikisi de bloklanir)"""
+    return kaynak_mi(yol) or veri_mi(yol)
 
 
 def _git_cikti(komut: list[str]) -> str:
@@ -73,15 +95,28 @@ def main() -> int:
     if kok != ANA_REPO:
         return 0
 
+    staged = staged_dosyalar(args.stdin)
+    kaynaklar = [yol for yol in staged if kaynak_mi(yol)]
+
     if os.environ.get("PRUVO_MIMAR_ONAY") == "worker":
+        # DAR bypass: worker onayi YALNIZ veri düzlemini açar. Kaynak varsa reddet.
+        if kaynaklar:
+            sys.stderr.write(
+                "COMMIT ENGELLENDI: PRUVO_MIMAR_ONAY=worker YALNIZ urunler.json / "
+                ".urun-kaynaklari.json commit'ini açar; KAYNAK kodunu AÇMAZ. "
+                "Kaynak isi worktree'de commit'lenir, ana checkout'a girmez.\n"
+            )
+            for yol in kaynaklar:
+                sys.stderr.write(f"{yol}\n")
+            return 1
         return 0
 
-    staged = staged_dosyalar(args.stdin)
-    bloklanan = [yol for yol in staged if kaynak_mi(yol)]
+    bloklanan = [yol for yol in staged if korunan_mi(yol)]
     if bloklanan:
         sys.stderr.write(
             "COMMIT ENGELLENDI (mimar kod-kilidi / Layer 2): kaynak/veri degisikligi worker isidir. "
-            "Delege edilmis is ise: PRUVO_MIMAR_ONAY=worker git commit ...\n"
+            "PRUVO_MIMAR_ONAY=worker YALNIZ urunler.json / .urun-kaynaklari.json commit'ini açar "
+            "(kaynak kodu worktree'de commit'lenir).\n"
         )
         for yol in bloklanan:
             sys.stderr.write(f"{yol}\n")
