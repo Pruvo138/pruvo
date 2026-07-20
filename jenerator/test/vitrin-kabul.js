@@ -40,11 +40,11 @@ require(path.join(KOK, "secenekler.js"));
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi"); }
 
-// Vitrin/arama/sepet kodunu taşıyan inline script. Sayfanın sonuna çerez gibi
-// başka bir inline script eklenmesi kabulü bozmamalı; davranış imzasıyla seçilir.
-const INLINE_SCRIPTLER = [...INDEX.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
-  .map((m) => m[1]);
-const SCRIPT = INLINE_SCRIPTLER.find((s) => s.includes("renderGrid"));
+// Vitrin/arama/sepet kodunu taşıyan inline script. Sayfanın sonuna çerez gibi başka bir
+// inline script eklenmesi kabulü bozmamalı; davranış imzasıyla ("renderGrid") seçilir.
+// Ayıklama tek kaynaktan (tools/html-blok-ayikla.js) — sepet-panel.js ile ortak.
+const { inlineScriptBul } = require(path.join(KOK, "tools", "html-blok-ayikla.js"));
+const SCRIPT = inlineScriptBul(INDEX, "renderGrid");
 if (!SCRIPT) {
   throw new Error("index.html inline scripti bulunamadi (yapi degisti mi?)");
 }

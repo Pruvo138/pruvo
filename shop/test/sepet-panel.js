@@ -39,15 +39,14 @@ require(path.join(KOK, "secenekler.js"));
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi"); }
 
-// index.html'in sepet/arama inline <script> blogu (src'li script degil). ICERIKTEN bul:
-// "cartLines" gecen bloktan geriye en yakin <script> acilisi -> ileri en yakin </script>.
-// (Eskiden lastIndexOf ile "son blok" varsayiliyordu; body sonuna baska inline script
-// —or. cerez onay banner'i— eklenince kirilirdi. Konum degil ICERIK sabit kaynak.)
-const cartAnchor = INDEX.indexOf("cartLines");
-const scriptBasi = cartAnchor >= 0 ? INDEX.lastIndexOf("<script>", cartAnchor) : -1;
-const scriptSonu = INDEX.indexOf("</script>", scriptBasi);
-const SCRIPT = scriptBasi >= 0 ? INDEX.slice(scriptBasi + "<script>".length, scriptSonu) : "";
-if (!SCRIPT.includes("cartLines")) {
+// index.html'in sepet/arama inline <script> blogu (src'li script degil). ICERIK IMZASI
+// ("cartLines") ile ortak robust yardimciyla ayiklanir. ESKIDEN: lastIndexOf("<script>",
+// cartAnchor) ile geriye en yakin acilis araniyordu; index.html'de bir JS YORUMU icinde
+// gecen "<script>" metni capayi kaydirip testi SyntaxError'la olduruyordu (ayni sinif,
+// vitrin-kabul.js'te 4fdfa9b7'de giderilmisti). Artik tek kaynak: tools/html-blok-ayikla.js.
+const { inlineScriptBul } = require(path.join(KOK, "tools", "html-blok-ayikla.js"));
+const SCRIPT = inlineScriptBul(INDEX, "cartLines");
+if (!SCRIPT) {
   throw new Error("index.html inline sepet scripti bulunamadi (yapi degisti mi?)");
 }
 
