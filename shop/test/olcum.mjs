@@ -13,11 +13,28 @@
  *  - SECRET-YOKSA-NO-OP: token/anahtar yoksa hedef sessizce atlanir, fetch HIC cagrilmaz.
  *  - POST-HATASI-SIPARISI-BOZMAZ: fetch patlasa/timeout verse olcumGonder FIRLATMAZ, promise COZULUR.
  *
- * ONCE-KIRMIZI (elle kanitlandi):
+ * 20 TEM EKI — mimar dogrulama turunda bulunan 3 acik (T14-T20):
+ *  - ACIK 1 (sessiz hata): Meta/GA4 yaniti hicbir yere yazilmiyordu; fetch 4xx'te THROW
+ *    ETMEZ -> HTTP 400 sessizce yutuluyordu. T15: 400 loglaniyor (kod + hata govdesi +
+ *    fbtrace_id + siparis no), basari da tek satir. T20: logda token/PII YOK (negatif test).
+ *  - ACIK 2 (eslesme kalitesi): IP/UA hic gonderilmiyordu. T14: fbp VARSA gonderilir,
+ *    fbp YOKSA gonderilmez (riza kurali). T16: user_data bos kalirsa Meta'ya gonderilmez
+ *    + loglanir (Meta zaten error 100/2804003 ile reddederdi), GA4 etkilenmez.
+ *  - ACIK 3 (havale cirosu): havale 'odendi'de HIC Purchase gitmiyordu. T18: yonet.js
+ *    /durum -> Purchase, event_id = siparis_no, event_time = gercek odeme ani, Okan'in
+ *    IP/UA'si GITMEZ. T19: idempotens (tek olay). T17: 7 gunluk pencere disi -> atla + logla.
+ *
+ * ONCE-KIRMIZI (elle kanitlandi — her duzeltme tek tek geri alinip olculdu):
  *  - olcum.js'te currency "TRY" -> "USD" yapilinca T1/T5/T7 KIRMIZI.
  *  - metaGonder/ga4Gonder'daki "secret yoksa return" satiri silinince (no-op bozulunca) T9/T10 KIRMIZI.
+ *  - metaGovdesi'ndeki `atif.fbp &&` riza sarti silinince -> 3 KIRMIZI (14c/14d/14f).
+ *  - metaGonder'daki hata olcumLog'u silinince -> 5 KIRMIZI (15b-15f).
+ *  - yonet.js havaleOlcumu() cagrisi silinince -> 10 KIRMIZI (18b-18m).
+ *  - yonet.js olcumIziVar() kontrolu silinince -> 2 KIRMIZI (19e/19f).
+ *  - LOG_ALANLARI beyaz listesine token alani eklenince -> 1 KIRMIZI (20b).
  */
 
+import * as nodeModule from "node:module";
 import {
   satinAlmaOlayi, metaGovdesi, ga4Govdesi, metaGonder, ga4Gonder, olcumGonder, kurusTRY,
 } from "../src/olcum.js";
@@ -27,6 +44,18 @@ function ol(ad, kosul, detay) {
   if (kosul) { gecen++; console.log("  ✅ " + ad); }
   else { kalan++; console.log("  ❌ " + ad + (detay ? " — " + detay : "")); }
 }
+
+/** Konsol ciktisini YAKALA (log gizlilik testleri + "hata yutulmuyor" testi icin).
+ *  console.log/error gecici olarak degistirilir; satirlar dizi olarak doner. */
+async function logYakala(fn) {
+  const satirlar = [];
+  const l = console.log, e = console.error;
+  console.log = (...a) => { satirlar.push({ akis: "log", metin: a.join(" ") }); };
+  console.error = (...a) => { satirlar.push({ akis: "error", metin: a.join(" ") }); };
+  try { await fn(); } finally { console.log = l; console.error = e; }
+  return satirlar;
+}
+function logMetni(satirlar) { return satirlar.map((s) => s.metin).join("\n"); }
 
 // Ornek siparis: urun 432,90 TL + kargo 250,00 TL = tahsilat 682,90 TL.
 const SIPARIS = {
@@ -211,7 +240,386 @@ async function test13() {
   ol("13b iki govdede de currency TRY", trler.every(Boolean));
 }
 
-const testler = [test9, test10, test11, test12, test13];
+// ================================================================================
+// MIMAR ACIKLARI 1-2-3 (20 Tem dogrulama turu) — asagidaki testler bunlari kapatir.
+// ================================================================================
+
+const ENV_TAM = {
+  META_PIXEL_ID: "2150216885710153", META_CAPI_TOKEN: "GIZLI-CAPI-TOKEN-ABC123",
+  GA4_MEASUREMENT_ID: "G-5V53CQMSCE", GA4_API_SECRET: "GIZLI-GA4-SECRET-XYZ789",
+  SITE_URL: "https://pruvo3d.com",
+};
+const ISTEMCI = { ip: "203.0.113.77", ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5)" };
+
+/** Belirli HTTP kodu + govde donduren sahte fetch (yanit govdesi loglama testleri icin). */
+function kodluFetch(kod, govdeMetni) {
+  const cagrilar = [];
+  const f = async (url, opt) => {
+    cagrilar.push({ url: url, govde: opt && opt.body ? JSON.parse(opt.body) : null });
+    return { status: kod, text: async () => govdeMetni };
+  };
+  f.cagrilar = cagrilar;
+  return f;
+}
+
+// ---- 14) ACIK 2 — IP/UA GIZLILIK KURALI: yalniz fbp VARSA gonderilir ----
+async function test14() {
+  const olay = satinAlmaOlayi(SIPARIS);
+
+  // fbp VAR -> IP + UA gider (rizali ziyaretci; eslesme kalitesi yukselir).
+  const g1 = metaGovdesi({}, olay, { fbp: "fb.1.1690.pixel" }, ISTEMCI).data[0];
+  ol("14a fbp VARKEN client_ip_address gonderiliyor",
+    g1.user_data.client_ip_address === ISTEMCI.ip, "ip=" + g1.user_data.client_ip_address);
+  ol("14b fbp VARKEN client_user_agent gonderiliyor",
+    g1.user_data.client_user_agent === ISTEMCI.ua);
+
+  // fbp YOK (fbc var) -> IP/UA GONDERILMEZ. Riza kaniti fbp'dir; fbc tek basina yetmez.
+  const g2 = metaGovdesi({}, olay, { fbc: "fb.1.1690.click" }, ISTEMCI).data[0];
+  ol("14c fbp YOKKEN client_ip_address GONDERILMIYOR (gizlilik kurali)",
+    !("client_ip_address" in g2.user_data), JSON.stringify(g2.user_data));
+  ol("14d fbp YOKKEN client_user_agent GONDERILMIYOR (gizlilik kurali)",
+    !("client_user_agent" in g2.user_data));
+  ol("14e fbc yine de gider (kisisel veri degil, tiklama kimligi)",
+    g2.user_data.fbc === "fb.1.1690.click");
+
+  // Atif tamamen bos -> user_data BOS kalir, IP/UA sizmaz.
+  const g3 = metaGovdesi({}, olay, {}, ISTEMCI).data[0];
+  ol("14f atif bos -> user_data TAMAMEN bos (IP/UA sizmaz)",
+    Object.keys(g3.user_data).length === 0, JSON.stringify(g3.user_data));
+
+  // istemci hic verilmezse (havale akisi) fbp olsa da IP/UA yok.
+  const g4 = metaGovdesi({}, olay, { fbp: "fb.1.1690.pixel" }).data[0];
+  ol("14g istemci verilmezse IP/UA yok (havale akisi)",
+    !("client_ip_address" in g4.user_data) && !("client_user_agent" in g4.user_data));
+
+  // Uctan uca: olcumGonder -> gercekten POST edilen govdede IP/UA var mi?
+  const f = kodluFetch(200, "{\"events_received\":1,\"fbtrace_id\":\"AbC\"}");
+  await logYakala(() => olcumGonder(ENV_TAM, null, SIPARIS, f, { istemci: ISTEMCI, kaynak: "kart" }));
+  const meta = f.cagrilar.find((c) => String(c.url).indexOf("graph.facebook.com") >= 0);
+  ol("14h uctan uca: POST edilen Meta govdesinde IP+UA var",
+    !!meta && meta.govde.data[0].user_data.client_ip_address === ISTEMCI.ip &&
+    meta.govde.data[0].user_data.client_user_agent === ISTEMCI.ua);
+}
+
+// ---- 15) ACIK 1 — META 400 SESSIZCE YUTULMUYOR (fetch 4xx'te throw ETMEZ) ----
+async function test15() {
+  const olay = satinAlmaOlayi(SIPARIS);
+  const atif = JSON.parse(SIPARIS.atif);
+  const hataGovde = "{\"error\":{\"message\":\"Invalid parameter\",\"code\":100," +
+    "\"error_subcode\":2804003,\"fbtrace_id\":\"AzXyTraceHATA\"}}";
+  const f = kodluFetch(400, hataGovde);
+  let sonuc;
+  const satirlar = await logYakala(async () => {
+    sonuc = await metaGonder(ENV_TAM, olay, atif, f, ISTEMCI, "kart");
+  });
+  const metin = logMetni(satirlar);
+  ol("15a 400 -> ok:false donuyor (sessiz basari YOK)", sonuc.ok === false && sonuc.kod === 400,
+    JSON.stringify(sonuc));
+  ol("15b hata LOGLANDI (console.error)", satirlar.some((s) => s.akis === "error"),
+    "satir=" + satirlar.length);
+  ol("15c logda HTTP kodu var", metin.indexOf("\"kod\":400") >= 0, metin);
+  ol("15d logda Meta hata govdesi var (teshis edilebilir)",
+    metin.indexOf("2804003") >= 0);
+  ol("15e logda fbtrace_id var (Meta destek talebi icin)",
+    metin.indexOf("AzXyTraceHATA") >= 0);
+  ol("15f logda event_id (=siparis_no) var — hangi siparis oldugu belli",
+    metin.indexOf(SIPARIS.siparis_no) >= 0);
+
+  // Basari yolu: TEK satir, kisa, console.log (error DEGIL).
+  const f2 = kodluFetch(200, "{\"events_received\":1,\"messages\":[],\"fbtrace_id\":\"AbCiyi\"}");
+  const s2 = await logYakala(async () => {
+    await metaGonder(ENV_TAM, olay, atif, f2, ISTEMCI, "kart");
+  });
+  ol("15g basari da loglanir (tek satir)", s2.length === 1, "satir=" + s2.length);
+  ol("15h basari logunda events_received var", logMetni(s2).indexOf("\"events_received\":1") >= 0);
+  ol("15i basari console.error DEGIL", s2[0] && s2[0].akis === "log");
+
+  // GA4 hata yolu da sessiz degil.
+  const f3 = kodluFetch(500, "sunucu hatasi");
+  const s3 = await logYakala(async () => { await ga4Gonder(ENV_TAM, olay, atif, f3, "kart"); });
+  ol("15j GA4 hatasi da LOGLANIR", s3.some((s) => s.akis === "error" &&
+    s.metin.indexOf("\"kod\":500") >= 0), logMetni(s3));
+}
+
+// ---- 16) ACIK 2 — user_data TAMAMEN BOSSA Meta'ya gonderilmez ama LOGLANIR ----
+async function test16() {
+  const bosAtifSiparis = { ...SIPARIS, atif: "" };
+  const f = kodluFetch(200, "{\"events_received\":1}");
+  let sonuc;
+  const satirlar = await logYakala(async () => {
+    sonuc = await olcumGonder(ENV_TAM, null, bosAtifSiparis, f, { kaynak: "kart" });
+  });
+  const metaCagri = f.cagrilar.filter((c) => String(c.url).indexOf("graph.facebook.com") >= 0);
+  const ga4Cagri = f.cagrilar.filter((c) => String(c.url).indexOf("google-analytics.com") >= 0);
+  ol("16a user_data bos -> Meta'ya POST YOK", metaCagri.length === 0, "cagri=" + metaCagri.length);
+  ol("16b atlama SESSIZ degil (loglandi)",
+    logMetni(satirlar).indexOf("user_data-bos") >= 0, logMetni(satirlar));
+  ol("16c GA4 bundan ETKILENMEZ (client_id fallback) -> POST edildi", ga4Cagri.length === 1);
+  ol("16d sonuc dizisinde atlandi sebebi", (sonuc[0] || {}).atlandi === "user_data-bos");
+}
+
+// ---- 17) ACIK 3 — event_time + 7 GUNLUK GERIYE-DONUK PENCERE ----
+async function test17() {
+  const simdi = Math.floor(Date.now() / 1000);
+  const olay = satinAlmaOlayi(SIPARIS);
+  const atif = JSON.parse(SIPARIS.atif);
+
+  // Pencere ICI (2 saat once): event_time govdeye GERCEK odeme ani olarak girer.
+  const yakin = simdi - 7200;
+  const g = metaGovdesi({}, { ...olay, event_time: yakin }, atif).data[0];
+  ol("17a event_time verilince govdeye AYNEN girer (gercek odeme ani)",
+    g.event_time === yakin, "event_time=" + g.event_time);
+  const g0 = metaGovdesi({}, olay, atif).data[0];
+  ol("17b event_time verilmezse 'simdi'", Math.abs(g0.event_time - simdi) <= 5);
+
+  // Pencere DISI (10 gun once): Meta'ya GONDERILMEZ + LOGLANIR; GA4 yine gonderilir.
+  const eski = simdi - 10 * 24 * 3600;
+  const f = kodluFetch(200, "{\"events_received\":1}");
+  let sonuc;
+  const satirlar = await logYakala(async () => {
+    sonuc = await olcumGonder(ENV_TAM, null, SIPARIS, f, { event_time: eski, kaynak: "havale" });
+  });
+  const metaCagri = f.cagrilar.filter((c) => String(c.url).indexOf("graph.facebook.com") >= 0);
+  const ga4Cagri = f.cagrilar.filter((c) => String(c.url).indexOf("google-analytics.com") >= 0);
+  ol("17c 7 gunden eski olay Meta'ya GONDERILMEZ", metaCagri.length === 0);
+  ol("17d atlama LOGLANIR (pencere-disi)",
+    logMetni(satirlar).indexOf("pencere-disi") >= 0, logMetni(satirlar));
+  ol("17e sonucta yas_sn raporlanir", (sonuc[0] || {}).yas_sn > 7 * 24 * 3600);
+  ol("17f GA4'e yine gonderilir (ciro kaybolmasin)", ga4Cagri.length === 1);
+  ol("17g GA4 eski olayda timestamp_micros KOYMAZ (72 saat siniri)",
+    !("timestamp_micros" in ((ga4Cagri[0] || {}).govde || {})));
+
+  // GA4 yakin olayda gercek damgayi koyar.
+  const g4 = ga4Govdesi({}, { ...olay, event_time: yakin }, atif);
+  ol("17h GA4 yakin olayda timestamp_micros = gercek an",
+    g4.timestamp_micros === String(yakin * 1000000), "ts=" + g4.timestamp_micros);
+}
+
+// ---- 18-19) ACIK 3 — HAVALE AKISI: yonet.js /durum 'odendi' -> Purchase + IDEMPOTENS ----
+// yonet.js semalari JSON olarak STATIK import eder (worker/esbuild deseni). Node ESM'de
+// JSON import'u "with { type: 'json' }" ister -> resolve hook'u ile ekleniyor (agdan
+// bagimsiz, wrangler gerektirmez). registerHooks Node >= 22.15'te var.
+let yonetModulu = null;
+if (typeof nodeModule.registerHooks === "function") {
+  nodeModule.registerHooks({
+    resolve(specifier, context, next) {
+      const r = next(specifier, context);
+      if (r.url.endsWith(".json")) {
+        return { ...r, format: "json", importAttributes: { type: "json" } };
+      }
+      return r;
+    },
+  });
+  yonetModulu = await import("../src/yonet.js");
+}
+
+const ANAHTAR = "test-yonet-anahtari";
+
+/** Tek satirlik sahte D1: SELECT (first) + CAS UPDATE (run). */
+function sahteD1(satir) {
+  const iz = { guncelleme: [] };
+  const db = {
+    prepare(sql) {
+      return {
+        bind(...arg) {
+          return {
+            async first() { return arg[0] === satir.siparis_no ? { ...satir } : null; },
+            async run() {
+              // UPDATE ... SET durum=?, durum_gecmisi=? WHERE siparis_no=? AND durum=?
+              const [hedef, gecmis, no, mevcut] = arg;
+              if (no !== satir.siparis_no || satir.durum !== mevcut) {
+                return { meta: { changes: 0 } };           // CAS kaybetti
+              }
+              satir.durum = hedef; satir.durum_gecmisi = gecmis;
+              iz.guncelleme.push({ hedef, gecmis });
+              return { meta: { changes: 1 } };
+            },
+          };
+        },
+      };
+    },
+  };
+  return { db, iz };
+}
+
+function havaleSatiri(ekle) {
+  return {
+    siparis_no: "PR-260720-021133-HAV",
+    tarih: new Date(Date.now() - 3600 * 1000).toISOString(),  // 1 saat once (pencere ICI)
+    durum: "havale-bekliyor",
+    durum_gecmisi: "",
+    odeme_yontemi: "havale",
+    tutar_kurus: 43290,
+    kargo_kurus: 25000,
+    urunler: SIPARIS.urunler,
+    atif: SIPARIS.atif,
+    kdv_kurus: 11381,
+    musteri_ad: "Test Musteri",
+    musteri_eposta: "musteri@ornek.com",
+    musteri_adres: "Ornek Mah. 1 Sk. No:1",
+    ...(ekle || {}),
+  };
+}
+
+/** /api/shop/yonet/durum cagrisi (gercek Request/URL nesneleriyle). */
+async function durumCagir(env, siparisNo, hedefDurum, ctx) {
+  const adres = "https://pruvo3d.com/api/shop/yonet/durum";
+  const request = new Request(adres, {
+    method: "POST",
+    headers: { "X-Yonet-Anahtar": ANAHTAR, "Content-Type": "application/json",
+               "CF-Connecting-IP": "198.51.100.9", "User-Agent": "OkanYonetimTarayici/1.0" },
+    body: JSON.stringify({ siparis_no: siparisNo, durum: hedefDurum }),
+  });
+  const c = await yonetModulu.yonet(request, env, new URL(adres), ctx, "/durum", async () => {});
+  return { kod: c.status, govde: await c.json() };
+}
+
+async function test18() {
+  if (!yonetModulu) {
+    ol("18 HAVALE AKISI (yonet.js yuklenemedi — Node >= 22.15 gerekli)", false,
+      "node " + process.version);
+    return;
+  }
+  const satir = havaleSatiri();
+  const { db } = sahteD1(satir);
+  const f = kodluFetch(200, "{\"events_received\":1,\"fbtrace_id\":\"AbCHavale\"}");
+  const eskiFetch = globalThis.fetch;
+  globalThis.fetch = f;                                   // AG ISTEGI YOK — stub
+  const bekleyen = [];
+  const ctx = { waitUntil: (p) => bekleyen.push(p) };
+  const env = { ...ENV_TAM, YONET_ANAHTAR: ANAHTAR, KATALOG: db };
+
+  let r;
+  const satirlar = await logYakala(async () => {
+    r = await durumCagir(env, satir.siparis_no, "odendi", ctx);
+    await Promise.all(bekleyen);
+  });
+  globalThis.fetch = eskiFetch;
+
+  ol("18a havale-bekliyor -> odendi 200", r.kod === 200 && r.govde.durum === "odendi",
+    JSON.stringify(r));
+  const metaCagri = f.cagrilar.filter((c) => String(c.url).indexOf("graph.facebook.com") >= 0);
+  const ga4Cagri = f.cagrilar.filter((c) => String(c.url).indexOf("google-analytics.com") >= 0);
+  ol("18b HAVALE Purchase Meta'ya GONDERILDI (onceden HIC gitmiyordu)",
+    metaCagri.length === 1, "cagri=" + metaCagri.length);
+  ol("18c HAVALE Purchase GA4'e GONDERILDI", ga4Cagri.length === 1);
+  // Savunmali: cagri hic yapilmadiysa test COKMEZ, kirmizi yanar (once-kirmizi turunda onemli).
+  const BOS = { data: [{ user_data: {}, custom_data: {} }] };
+  const d = ((metaCagri[0] || {}).govde || BOS).data[0];
+  ol("18d event_id === siparis_no (kart akisiyla AYNI dedup anahtari)",
+    d.event_id === satir.siparis_no, "event_id=" + d.event_id);
+  ol("18e event_name Purchase + currency TRY",
+    d.event_name === "Purchase" && d.custom_data.currency === "TRY");
+  ol("18f value = urun + kargo (682.9)", d.custom_data.value === 682.9,
+    "value=" + d.custom_data.value);
+  ol("18g GA4 transaction_id === siparis_no",
+    (((ga4Cagri[0] || {}).govde || { events: [{ params: {} }] })
+      .events[0].params.transaction_id) === satir.siparis_no);
+  ol("18h event_time = GERCEK odeme ani (siparis tarihi, 'simdi' degil)",
+    Math.abs(d.event_time - Math.floor(Date.parse(satir.tarih) / 1000)) <= 1,
+    "event_time=" + d.event_time);
+  // 🔒 GIZLILIK: yonetim istegi OKAN'in tarayicisindan gelir -> IP/UA MUSTERIYE AIT DEGIL.
+  ol("18i havalede Okan'in IP'si Meta'ya GITMEZ",
+    !("client_ip_address" in d.user_data), JSON.stringify(d.user_data));
+  ol("18j havalede Okan'in User-Agent'i Meta'ya GITMEZ",
+    !("client_user_agent" in d.user_data));
+  ol("18k musterinin rizali fbp/fbc'si yine gider (atif kaydindan)",
+    d.user_data.fbp === "fb.1.1690.pixel");
+  ol("18l durum_gecmisi'ne olcum izi ('o':1) yazildi",
+    (JSON.parse(satir.durum_gecmisi)[0] || {}).o === 1, satir.durum_gecmisi);
+  ol("18m log kaynagi 'havale'", logMetni(satirlar).indexOf("\"kaynak\":\"havale\"") >= 0);
+}
+
+async function test19() {
+  if (!yonetModulu) {
+    ol("19 IDEMPOTENS (yonet.js yuklenemedi — Node >= 22.15 gerekli)", false,
+      "node " + process.version);
+    return;
+  }
+  // --- 19.1: ayni siparis IKI KEZ 'odendi' -> Purchase yalniz BIR KEZ ---
+  const satir = havaleSatiri();
+  const { db } = sahteD1(satir);
+  const f = kodluFetch(200, "{\"events_received\":1}");
+  const eskiFetch = globalThis.fetch;
+  globalThis.fetch = f;
+  const bekleyen = [];
+  const ctx = { waitUntil: (p) => bekleyen.push(p) };
+  const env = { ...ENV_TAM, YONET_ANAHTAR: ANAHTAR, KATALOG: db };
+
+  let r1, r2;
+  await logYakala(async () => {
+    r1 = await durumCagir(env, satir.siparis_no, "odendi", ctx);
+    r2 = await durumCagir(env, satir.siparis_no, "odendi", ctx);   // ELLE ikinci kez
+    await Promise.all(bekleyen);
+  });
+  const metaCagri = f.cagrilar.filter((c) => String(c.url).indexOf("graph.facebook.com") >= 0);
+  ol("19a ilk 'odendi' 200", r1.kod === 200);
+  ol("19b ikinci 'odendi' REDDEDILDI (durum makinesi)", r2.kod === 400, JSON.stringify(r2));
+  ol("19c Purchase TEK KEZ gonderildi (Meta)", metaCagri.length === 1,
+    "cagri=" + metaCagri.length);
+
+  // --- 19.2: olcum izi VAR ama durum elle 'havale-bekliyor'a dondurulmus (ham SQL) ---
+  // Durum makinesi bu kez gecise IZIN VERIR; ikinci savunma (durum_gecmisi "o":1) tutmali.
+  const satir2 = havaleSatiri({
+    siparis_no: "PR-260720-021133-IZL",
+    durum_gecmisi: JSON.stringify([{ d: "odendi", z: new Date().toISOString(), o: 1 }]),
+  });
+  const d2 = sahteD1(satir2);
+  const f2 = kodluFetch(200, "{\"events_received\":1}");
+  globalThis.fetch = f2;
+  const bekleyen2 = [];
+  const ctx2 = { waitUntil: (p) => bekleyen2.push(p) };
+  const env2 = { ...ENV_TAM, YONET_ANAHTAR: ANAHTAR, KATALOG: d2.db };
+  let r3;
+  const satirlar2 = await logYakala(async () => {
+    r3 = await durumCagir(env2, satir2.siparis_no, "odendi", ctx2);
+    await Promise.all(bekleyen2);
+  });
+  globalThis.fetch = eskiFetch;
+  ol("19d durum degisimi yine calisir (200)", r3.kod === 200, JSON.stringify(r3));
+  ol("19e olcum izi varsa Purchase TEKRARLANMAZ", f2.cagrilar.length === 0,
+    "cagri=" + f2.cagrilar.length);
+  ol("19f tekrar atlamasi LOGLANIR (sessiz degil)",
+    logMetni(satirlar2).indexOf("zaten-gonderildi") >= 0, logMetni(satirlar2));
+}
+
+// ---- 20) LOG GIZLILIK NEGATIF TESTI: token / Authorization / PII loga GECMEZ ----
+async function test20() {
+  // PII dolu siparis + gizli token'li env: hicbiri loga sizmamali.
+  const piiSiparis = {
+    ...SIPARIS,
+    musteri_ad: "Ayse Yilmaz",
+    musteri_eposta: "ayse.yilmaz@ornekmusteri.com",
+    musteri_tel: "05551234567",
+    musteri_adres: "Ornek Mah. Deneme Sk. No:5 Daire:3",
+  };
+  const hataGovde = "{\"error\":{\"message\":\"Invalid parameter\",\"fbtrace_id\":\"Az9\"}}";
+  const f = kodluFetch(400, hataGovde);
+  const satirlar = await logYakala(async () => {
+    await olcumGonder(ENV_TAM, null, piiSiparis, f, { istemci: ISTEMCI, kaynak: "kart" });
+  });
+  const metin = logMetni(satirlar);
+  ol("20a log BOS DEGIL (aksi halde test anlamsiz)", metin.length > 0);
+  ol("20b META_CAPI_TOKEN logda YOK", metin.indexOf("GIZLI-CAPI-TOKEN-ABC123") < 0, metin);
+  ol("20c GA4_API_SECRET logda YOK", metin.indexOf("GIZLI-GA4-SECRET-XYZ789") < 0, metin);
+  ol("20d 'access_token' ham degeri logda YOK", metin.indexOf("access_token=GIZLI") < 0);
+  ol("20e 'Authorization' logda YOK", metin.toLowerCase().indexOf("authorization") < 0);
+  ol("20f e-posta logda YOK", metin.indexOf("ayse.yilmaz@ornekmusteri.com") < 0);
+  ol("20g telefon logda YOK", metin.indexOf("05551234567") < 0);
+  ol("20h musteri adi logda YOK", metin.indexOf("Ayse Yilmaz") < 0);
+  ol("20i adres logda YOK", metin.indexOf("Deneme Sk") < 0);
+  ol("20j IP logda YOK", metin.indexOf(ISTEMCI.ip) < 0);
+  ol("20k User-Agent logda YOK", metin.indexOf("iPhone") < 0);
+  ol("20l fbp/fbc degeri logda YOK", metin.indexOf("fb.1.1690.pixel") < 0);
+  ol("20m istek URL'i logda YOK (access_token tasir)",
+    metin.indexOf("graph.facebook.com") < 0 && metin.indexOf("google-analytics.com") < 0);
+  ol("20n buna karsin TESHIS bilgisi VAR (siparis no + kod + fbtrace)",
+    metin.indexOf(SIPARIS.siparis_no) >= 0 && metin.indexOf("\"kod\":400") >= 0 &&
+    metin.indexOf("Az9") >= 0);
+}
+
+const testler = [test9, test10, test11, test12, test13,
+                 test14, test15, test16, test17, test18, test19, test20];
 for (const t of testler) { await t(); }
 
 console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" + (kalan ? "" : " — HEPSI YESIL ✅"));

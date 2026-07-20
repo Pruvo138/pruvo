@@ -524,7 +524,19 @@ async function donus(request, env, ctx) {
     // ILK KEZ 'odendi'ye gecti (idempotent: ayni token 2. kez changes=0 -> olay da tekrarlanmaz)
     // -> Purchase olayini Meta CAPI + GA4'e gonder. Fire-and-forget, best-effort: secret yoksa
     // no-op, POST hatasi siparis onayini/musteri akisini ETKILEMEZ (olcum.js guvenli()).
-    olcumGonder(env, ctx, siparis);
+    //
+    // istemci{ip,ua}: Meta eslesme kalitesi icin (client_ip_address / client_user_agent).
+    // Bu istek MUSTERININ tarayicisindan gelir (iyzico redirect'i) -> IP/UA gercekten
+    // musteriye aittir. 🔒 GIZLILIK: olcum.js bunlari YALNIZCA atif'ta fbp varsa gonderir
+    // (fbp = riza kapisindan gecmis piksel kaniti) — karar ve gerekce metaGovdesi()'nde.
+    // event_time verilmez: odeme SU AN dogrulandi, "simdi" dogru damgadir.
+    olcumGonder(env, ctx, siparis, undefined, {
+      kaynak: "kart",
+      istemci: {
+        ip: request.headers.get("CF-Connecting-IP") || "",
+        ua: request.headers.get("User-Agent") || "",
+      },
+    });
     // Musteriye onay e-postasi (tetik 1, kart odemesi onaylandi) + satici kopyasi.
     // IDEMPOTENT: yalniz changes>0'da (ayni token 2. kez -> e-posta da tekrarlanmaz).
     let satirlar = [];
