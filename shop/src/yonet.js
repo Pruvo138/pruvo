@@ -187,20 +187,26 @@ function gecmiseEkle(mevcutJson, hedef, ekstra) {
   try { g = JSON.parse(mevcutJson) || []; } catch (e) { g = []; }
   if (!Array.isArray(g)) { g = []; }
   const kayit = { d: hedef, z: new Date().toISOString() };
-  // "o": 1 -> bu geciste Purchase OLCUMU tetiklendi (idempotens izi; asagida okunur).
-  if (ekstra && ekstra.olcum) { kayit.o = 1; }
+  // "o": 1 -> bu geciste Purchase olcumu DENENDI (tetiklendi). Idempotens izi; asagida okunur.
+  // ⚠️ ANLAMI "DENENDI", "ULASTI" DEGIL: iz, gonderim SONUCUNDAN once (ayni atomik UPDATE
+  // icinde) yazilir; olcum fire-and-forget'tir. Meta 400 dondurse, ag koparsa, secret
+  // tanimsiz olsa bile iz "1" kalir. Teshis icin izin varligina DEGIL, Cloudflare Logs'taki
+  // `olcum {...}` satirina bakilir (orada kod/events_received/fbtrace_id var).
+  if (ekstra && ekstra.olcumDenendi) { kayit.o = 1; }
   g.push(kayit);
   if (g.length > 50) { g = g.slice(-50); } // sinirla (same-row buyumesin)
   return JSON.stringify(g);
 }
 
 /**
- * Bu siparis icin Purchase olcumu DAHA ONCE bu uctan tetiklendi mi? (durum_gecmisi izi)
+ * Bu siparis icin Purchase olcumu DAHA ONCE bu uctan DENENDI mi? (durum_gecmisi izi)
+ * "Denendi" = gonderim tetiklendi; ULASTIGINI GARANTI ETMEZ (bkz. gecmiseEkle notu).
+ * Amaci yalnizca TEKRARI onlemek — "Meta aldi" teshisi icin KULLANILMAZ.
  * Not: gecmis 50 kayitta kirpilir; pratikte bir siparis 50 durum degisimi yasamaz, ama
  * kirpilma olsa bile ikinci savunma calisir: 'odendi'ye SADECE 'havale-bekliyor'dan
  * gecilebilir ve gecis CAS'tir (asagi bak) — yani tekrar zaten mumkun degil.
  */
-function olcumIziVar(gecmisJson) {
+function olcumDenendiMi(gecmisJson) {
   let g = [];
   try { g = JSON.parse(gecmisJson) || []; } catch (e) { g = []; }
   if (!Array.isArray(g)) { return false; }
@@ -272,13 +278,14 @@ async function durumDegistir(request, env, ctx) {
   //  2) CAS (compare-and-swap): UPDATE ... WHERE durum = <okunan durum>. Iki es zamanli
   //     istek gelse yalniz BIRI changes>0 alir; olcum yalniz o daldan tetiklenir.
   //  3) KALICI IZ: durum_gecmisi'ne {"o":1} yazilir; ayni UPDATE icinde (atomik).
-  //     Iz varsa bir daha gonderilmez — elle iki kez 'odendi' denenirse de tek olay.
+  //     Iz varsa bir daha DENENMEZ — elle iki kez 'odendi' denenirse de tek olay.
+  //     ⚠️ Iz "denendi" demek, "Meta aldi" DEMEK DEGIL (bkz. gecmiseEkle/olcumDenendiMi).
   // Meta event_id ile ayrica dedup yapar; o DORDUNCU ag, tek savunma DEGIL.
   const olcumluGecis = (hedef === "odendi");
-  const zatenGonderildi = olcumIziVar(s.durum_gecmisi);
-  const olcumTetikle = olcumluGecis && !zatenGonderildi;
+  const zatenDenendi = olcumDenendiMi(s.durum_gecmisi);
+  const olcumTetikle = olcumluGecis && !zatenDenendi;
 
-  const yeniGecmis = gecmiseEkle(s.durum_gecmisi, hedef, { olcum: olcumTetikle });
+  const yeniGecmis = gecmiseEkle(s.durum_gecmisi, hedef, { olcumDenendi: olcumTetikle });
   const g = await env.KATALOG.prepare(
     "UPDATE siparisler SET durum = ?, durum_gecmisi = ? WHERE siparis_no = ? AND durum = ?"
   ).bind(hedef, yeniGecmis, siparisNo, s.durum).run();
@@ -286,10 +293,10 @@ async function durumDegistir(request, env, ctx) {
     return yjson({ hata: "durum-degismis", mevcut: s.durum }, 409);
   }
 
-  if (olcumluGecis && zatenGonderildi) {
+  if (olcumluGecis && zatenDenendi) {
     // Sessiz atlama YOK: "bu siparisin ikinci Purchase'i nerede?" sorusu cevaplanabilsin.
     olcumLog({ olay: "Purchase", siparis_no: siparisNo, kaynak: "havale",
-               atlandi: "zaten-gonderildi" });
+               atlandi: "zaten-denendi" });
   }
   if (olcumTetikle && g.meta.changes > 0) {
     // Fire-and-forget (ctx.waitUntil olcum.js icinde): olcum hatasi durum degisimini

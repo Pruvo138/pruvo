@@ -14,8 +14,9 @@
  *  - PII YOK (v1): email/telefon (hash'li bile) GONDERILMEZ — KVKK/riza Okan/hukuk (spec §6).
  *    Sadece value / order_id / atif-kimlikleri (GA client_id, Meta fbp/fbc) / UTM.
  *    ISTISNA (20 Tem, mimar karari): IP + User-Agent Meta'ya gonderilir AMA YALNIZCA `fbp`
- *    varsa — fbp riza kapisindan gecmis pikselden dogar, yani riza KANITIDIR. Gerekce ve
- *    uygulama: metaGovdesi(). Havale akisinda IP/UA HIC gonderilmez (istek Okan'in).
+ *    varsa — fbp riza kapisindan gecmis pikselden dogar, yani riza KANITIDIR. AYNI kapi
+ *    `fbc` icin de gecerlidir (tiklama kimligi de rizasiz cikmaz). Gerekce, kapsam ve
+ *    kapinin DISINDA kalanlar: metaGovdesi(). Havale akisinda IP/UA HIC gonderilmez.
  *  - LOG GIZLILIK KAPISI: her hedefin yaniti loglanir (sessiz yutma YOK) ama log yalniz
  *    beyaz listeli teknik alanlari tasir — token/URL/PII ASLA. Bkz. olcumLog() + LOG_ALANLARI.
  *  - SIPARIS AKISINI BOZMA: her hedef kendi try/catch'inde; secret yoksa sessiz no-op; POST
@@ -70,7 +71,7 @@ const LOG_ALANLARI = [
   "fbtrace_id",      // Meta teknik yanit (destek talebinde istenir)
   "mesajlar",        // Meta "messages" dizisi (uyari metinleri)
   "govde",           // hedefin YANIT govdesi (bizim gonderdigimiz DEGIL), kirpilmis
-  "atlandi",         // atlama sebebi (secret-yok / user_data-bos / pencere-disi)
+  "atlandi",         // atlama sebebi (secret-yok / user_data-bos / pencere-disi / zaten-denendi)
   "hata",            // istisna metni
   "yas_sn",          // olayin yasi (saniye) — pencere kararinin gerekcesi
   "kaynak",          // "kart" | "havale" (hangi akistan tetiklendi)
@@ -160,12 +161,25 @@ export function satinAlmaOlayi(siparis) {
  *
  * istemci (opsiyonel) = { ip, ua } — MUSTERININ istegindeki CF-Connecting-IP + User-Agent.
  *
- * 🔒 MIMAR KURALI — IP/UA YALNIZCA fbp VARSA GONDERILIR (gevsetilmez):
+ * 🔒 MIMAR KURALI — META'YA GIDEN user_data'nin TAMAMI `fbp` KAPISINA BAGLI (gevsetilmez):
  *   `_fbp` cerezi SADECE riza kapisindan gecmis tarayici pikselinden dogar. Yani fbp'nin
  *   VARLIGI = o ziyaretcinin olcume riza verdiginin kanitidir. fbp YOKSA riza kaniti da
- *   yoktur -> sunucu tarafindan IP/UA (kisisel veri) Meta'ya AKTARILMAZ. Bu, "server-side
- *   gonderiyoruz, tarayici rizasi beni baglamaz" hatasina karsi kasitli fren.
- *   Sonuc: rizali kullanicida eslesme kalitesi yukselir, rizasizda hicbir kisisel veri cikmaz.
+ *   yoktur -> Meta'ya HICBIR kimlik/kisisel veri aktarilmaz. Bu, "server-side gonderiyoruz,
+ *   tarayici rizasi beni baglamaz" hatasina karsi kasitli fren.
+ *
+ * ✅ KAPININ ARKASINDA (fbp yoksa HICBIRI gitmez):
+ *      fbp · fbc (tiklama kimligi) · client_ip_address · client_user_agent
+ *   ⚠️ `fbc` 20 Tem'e kadar kapisizdi: fbclid rizasiz da Meta'ya ulasabiliyordu (mimar
+ *   denetimi). Artik fbp yoksa fbc de GITMEZ; sonuc olarak user_data BOS kalir ve
+ *   metaGonder() olayi hic gondermez.
+ *
+ * 🚫 BU KAPININ KAPSAMI DISINDA (bilerek — burada COZULMUYOR, yanlis guven vermesin):
+ *   1) GA4 MP yolu: `ga_client_id` (_ga cerezi) + UTM parametreleri bu kapiya TABI DEGIL;
+ *      ga4Govdesi() onlari fbp'den bagimsiz gonderir.
+ *   2) ATIF YAKALAMA tarafi: index.html'deki PRUVO_ATIF fbclid'i riza kontrolu OLMADAN
+ *      localStorage'a yaziyor, /baslat da onu D1 `atif` kolonuna kaydediyor. Yani "toplama"
+ *      hala acik; bu fonksiyon yalnizca META'YA CIKISI kapatir. Toplama tarafinin
+ *      duzeltilmesi AYRI is (mimar sirasinda) — bu dosyada cozulmus SAYILMAZ.
  *
  * ⚠️ HAVALE AKISI: /yonet ekranindan onaylanan havale siparisinde istek OKAN'IN
  *   tarayicisindan gelir -> oradaki IP/UA MUSTERIYE AIT DEGIL. Bu yuzden yonet.js istemci
@@ -173,12 +187,14 @@ export function satinAlmaOlayi(siparis) {
  */
 export function metaGovdesi(env, olay, atif, istemci) {
   const user_data = {};
-  if (atif.fbp) { user_data.fbp = atif.fbp; }
-  if (atif.fbc) { user_data.fbc = atif.fbc; }
-  // IP/UA: riza kapisi = fbp varligi (yukaridaki kural). fbp yoksa EKLENMEZ.
-  if (atif.fbp && istemci) {
-    if (istemci.ip) { user_data.client_ip_address = String(istemci.ip); }
-    if (istemci.ua) { user_data.client_user_agent = String(istemci.ua); }
+  // TEK KAPI: fbp yoksa asagidaki blogun TAMAMI atlanir -> user_data bos kalir.
+  if (atif.fbp) {
+    user_data.fbp = atif.fbp;
+    if (atif.fbc) { user_data.fbc = atif.fbc; }
+    if (istemci) {
+      if (istemci.ip) { user_data.client_ip_address = String(istemci.ip); }
+      if (istemci.ua) { user_data.client_user_agent = String(istemci.ua); }
+    }
   }
   const veri = {
     event_name: "Purchase",
@@ -238,6 +254,9 @@ export async function metaGonder(env, olay, atif, fetchFn, istemci, kaynak) {
   const govde = metaGovdesi(env, olay, atif, istemci);
   const ud = (govde.data[0] && govde.data[0].user_data) || {};
   if (Object.keys(ud).length === 0) {
+    // Buraya DUSMENIN tek sebebi: `fbp` yok (= riza kaniti yok) -> metaGovdesi() kapisi
+    // fbp/fbc/IP/UA'nin hepsini tuttu. Yani bu dal AYNI ZAMANDA gizlilik kurali calisiyor
+    // demektir; olayin gitmemesi ISTENEN sonuctur, ariza degil.
     // KARAR (gerekce, mimar acigi 2): user_data TAMAMEN bos olay Meta tarafindan ZATEN
     // reddedilir (error 100 / subcode 2804003: en az bir musteri parametresi zorunlu).
     // Gondermek = garanti 400 + bos kota + Events Manager'da kirmizi gurultu; DAHASI

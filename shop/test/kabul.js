@@ -28,6 +28,8 @@ const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
 const vm = require("node:vm");
+// Yerel testin GERCEK Meta pikseline/GA4 mulkune basmasini onleyen fail-closed kapi.
+const { olcumKapisi } = require("./olcum-kapisi.cjs");
 
 const SHOP = path.dirname(__dirname);            // .../shop
 const KOK = path.dirname(SHOP);                  // repo koku
@@ -357,9 +359,42 @@ function r2Kur() {
 
 let workerSurec = null;
 let workerLog = "";
+
+/**
+ * 🔴 OLCUM KAPISI — worker'i baslatan HER yol (main, test23, --sandbox) buradan gecer,
+ * yani unutulamaz (fail-closed by construction).
+ *
+ * Neyi onler: `wrangler.toml`'daki [vars] GERCEK Meta piksel ID'si + GERCEK GA4 mulk
+ * ID'si `wrangler dev`e oldugu gibi yuklenir. Ortamda/`.dev.vars`'ta bir CAPI token'i
+ * bulunursa kabul testi TEK KOSUDA gercek piksele duzinelerce SAHTE Purchase basar
+ * (reklam optimizasyonu bozulur, geri alinamaz). Detay: shop/test/olcum-kapisi.cjs.
+ *
+ * Davranis: anahtar bulunursa test SESSIZCE ATLAMAZ — gurultuyle patlar. Anahtar yoksa
+ * da kimlikler yine sahte degerlerle EZILIR (ikinci katman).
+ */
+function olcumKapisiUygula(ekstraVar) {
+  const devVarsYolu = path.join(SHOP, ".dev.vars");
+  const kapi = olcumKapisi({
+    wranglerToml: fs.readFileSync(path.join(SHOP, "wrangler.toml"), "utf8"),
+    devVars: fs.existsSync(devVarsYolu) ? fs.readFileSync(devVarsYolu, "utf8") : null,
+    ortam: process.env,
+  });
+  if (!kapi.ok) {
+    console.error("\n🔴 OLCUM KAPISI — KABUL TESTI BASLATILMADI (fail-closed):");
+    for (const s of kapi.sebepler) { console.error("   • " + s); }
+    console.error("\n   Sebep: yerel test GERCEK Meta pikseline/GA4 mulkune SAHTE Purchase");
+    console.error("   basabilirdi; bu reklam optimizasyonunu kalici bicimde bozar.");
+    console.error("   Ayrinti: shop/test/olcum-kapisi.cjs\n");
+    throw new Error("olcum kapisi: gercek olcum anahtari algilandi — test kosmayi reddetti");
+  }
+  // Ikinci katman: kimlikleri EZ (kullanicinin verdigi degerlerden SONRA -> kapi kazanir).
+  return { ...ekstraVar, ...kapi.degiskenler };
+}
+
 async function workerBaslat(ekstraVar) {
+  const guvenliVar = olcumKapisiUygula(ekstraVar || {});
   const args = ["--yes", "wrangler@4", "dev", "--local", "--port", String(WORKER_PORT)];
-  for (const [k, v] of Object.entries(ekstraVar)) { args.push("--var", k + ":" + v); }
+  for (const [k, v] of Object.entries(guvenliVar)) { args.push("--var", k + ":" + v); }
   workerSurec = spawn("npx", args, { cwd: SHOP, stdio: ["ignore", "pipe", "pipe"] });
   workerSurec.stdout.on("data", (c) => { workerLog += c; });
   workerSurec.stderr.on("data", (c) => { workerLog += c; });
