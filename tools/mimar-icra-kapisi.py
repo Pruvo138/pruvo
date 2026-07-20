@@ -14,6 +14,25 @@ REDDEDILEN:
   * yorumlayiciya satir-ici kod vermek (-c / -e / --eval) ya da stdin'den kod okutmak
     (cat x.py | python3) — betigi hic yazmadan ayni icrayi yapmanin kestirmesi
   * repo disi calistirilabilir dosyayi dogrudan cagirmak (/tmp/.../x.sh, ./analiz.py)
+  * HERHANGI bir bicimde '-m' (ayrik/bitisik/=li/birlesik) — izinli modul beyaz listesi disi
+  * argumanlarda repo DISINA cozulen HERHANGI bir yol parcasi (bayraga bitisik olsa da)
+
+🔴 20 Tem TASARIM KARARI (mimar) — AYRISTIRMAYI TAKLIT ETME, SUPHEDE REDDET:
+  Uc onarim turu boyunca delikler hep AYNI eksende cikti: kapi, Python'un argument
+  parser'ini taklit etmeye calisiyordu (-W/-X deger alir mi, '-vs' birlesik mi, '='
+  soyulur mu). Olculen sonuc: '-W ignore -m pip install requests' ve
+  '-m unittest discover -vs/private/tmp/disari' ALLOW aliyordu ve repo DISINDA gercek
+  dosya yazildi. Bu yaris kaybediliyor → ayristirici (modul_ayikla/test_hedefleri/
+  _bayrak_degeri) SILINDI, yerine iki KABA + FAIL-CLOSED tarama kondu:
+    R1) token taramasi: '-m' herhangi bir bicimde gorunuyorsa DENY (beyaz liste haric);
+        kisa-bayrak kumesinde 'm' harfi geciyorsa da DENY (supheli form = red).
+    R2) yol taramasi: icinde '/' gecen (ya da '.' ile baslayan) HER token, bayrak oneki
+        SOYULARAK ve SOYULMADAN cozulur; iki okumadan BIRI repo disi cikarsa DENY.
+  Bunu mumkun kilan sey KIMLIK EKSENI: agent_id DOLU cagrilar (ISCI) bu kapidan zaten
+  MUAF. Yani sertlestirmenin yanlis-pozitif bedeli YALNIZ mimari etkiler — ve mimarin
+  zaten bu komutlari kosturmamasi gerekiyor. Isci felce ugramaz (kanit: ISCI ikizleri).
+  KAYBEDILEN: mimar artik '-m pytest <repo-ici>' / '-m unittest discover -s <repo-ici>'
+  kosturamaz (eskiden acikti). Bilinerek verildi: bu is zaten isciye delege edilir.
 
 SERBEST (yanlislikla kapatma — kapatirsan is durur):
   * repodaki MEVCUT araclar: python3 tools/d1-sync.py --durum, node tools/parite-test.js,
@@ -106,10 +125,10 @@ SATIR_ICI = {"-c", "-e", "--eval", "--eval-file", "-p", "--print", "-"}
 # yalnizca zararsiz okuma/bicimlendirme modulleri izinli.
 IZINLI_MODULLER = {"json.tool", "base64", "calendar", "this"}
 
-# Test kosucu modulleri: mimarin gorev tanimi "sonucu CALISTIRILABILIR TESTLE kapatmak"
-# oldugu icin acilir, ama YALNIZ repo-ici hedeflerle (-m ile repo DISINA cikilamaz).
-# IZINLI_MODULLER'e EKLENMEZ — ayri kume, ki mutasyon testi ikisini ayirt edebilsin.
-TEST_MODULLERI = {"pytest", "unittest"}
+# TEST_MODULLERI (pytest/unittest) KUMESI KALDIRILDI (20 Tem, 4. tur). Neyi kaybettik:
+# mimarin '-m pytest <repo-ici>' kosturma hakkini. Neden: bu izin, hedef yollarini
+# ayristirmayi (kisa/uzun/bitisik/=li bayrak degeri) ZORUNLU kiliyordu ve delikler tam
+# oradan cikti (-vs/yol, -s=/yol). Kural sayisi azaldi, semantik netlesti: -m = DENY.
 
 # Yorumlayiciya disaridan kod enjekte eden ortam degiskenleri (VAR=deger python3 ...).
 TEHLIKELI_ENV = {
@@ -121,7 +140,10 @@ TEHLIKELI_ENV = {
 
 GEREKCE_BASI = "MİMAR İCRA KAPISI (20 Tem): "
 GEREKCE_SONU = (
-    " ÇÖZÜM: (a) işi MÜHENDİS/USTA/MARABA'ya ya da Codex'e DELEGE et (Agent aracı: "
+    " ÇÖZÜM: (a) BU İŞİ WORKTREE'DE ÇALIŞAN BİR İŞÇİYE VER — işçi çağrılarında "
+    "(agent_id dolu) bu kapı hiçbir kural uygulamaz; kabul testini ona YAZDIR "
+    "(ör. tools/mimar-kilit-test.py'ye vaka ekletip 'python3 tools/mimar-kilit-test.py' "
+    "ile kapat). Uzun hali: işi MÜHENDİS/USTA/MARABA'ya ya da Codex'e DELEGE et (Agent aracı: "
     "model opus/sonnet + isolation worktree + background) ve kabul testini ona YAZDIR; "
     "(b) ölçmek istiyorsan repodaki MEVCUT aracı koştur — node tools/parite-test.js, "
     "node tools/parite-ege.js, python3 tools/d1-sync.py --durum, python3 tools/durum.py, "
@@ -212,14 +234,19 @@ def sarmalayici_soy(tokenlar):
     return tokenlar, atamalar
 
 
+def _coz(yol, cwd):
+    """Token'i mutlak yola cozer (goreli ise cwd'ye gore)."""
+    yol = os.path.expanduser(yol)
+    if not os.path.isabs(yol):
+        yol = os.path.join(cwd, yol)
+    return os.path.normpath(yol)
+
+
 def repo_ici(yol, cwd):
     """Repo agacinin ICINDE mi? Ana checkout ONEKI ya da git'e KAYITLI bir worktree koku.
     Kayit ekseni P2'nin (repo DISINDAKI mesru worktree, or. /private/tmp/pruvo-toka-jenerator)
     kimlikten BAGIMSIZ yedegidir: agent_id gelmese bile o betik kosar."""
-    yol = os.path.expanduser(yol)
-    if not os.path.isabs(yol):
-        yol = os.path.join(cwd, yol)
-    yol = os.path.normpath(yol)
+    yol = _coz(yol, cwd)
     if yol.startswith(REPO_ONEKI):
         return True
     for kok in kayitli_worktree_kokleri():
@@ -228,88 +255,83 @@ def repo_ici(yol, cwd):
     return False
 
 
-def _bayrak_degeri(ham):
-    """Bayraga bitisik yazilmis degeri normalize eder: bastaki '=' (ve ':') soyulur.
+def betik_siniri(argumanlar, cwd):
+    """Yorumlayici bayraklarinin BITTIGI indeks = ilk GERCEK betik token'i.
 
-    R2 kaniti: '=/private/tmp/disari' goreli sayilip cwd'ye ekleniyordu → repo-ici.
-    Soyma DONGUSEL degil TEK katmanlidir; '==x' gibi patolojik girdide kalan '=x'
-    yine GORELI sayilir ve o zaten repo-ici cozulur (fail-closed tarafta degiliz,
-    ama bu form gecerli bir bayrak degeri degil)."""
-    if not ham:
-        return ""
-    if ham[0] in "=:":
-        return ham[1:]
-    return ham
-
-
-def modul_ayikla(argumanlar):
-    """'-m MODUL' ve BITISIK '-mMODUL' formlarini birlikte ayiklar.
-
-    🔴 20 Tem ONARIMI (R2 ikinci ayak): eski kod yalnizca `"-m" in argumanlar` bakiyordu
-    → 'python3 -mpip install x' TUM -m denetimini atliyordu (sonra F adiminda ilk
-    tiresiz token 'install' betik sanilip cwd'ye gore repo-ici cozuluyor ve ALLOW
-    aliyordu). Olculdu ve KAPATILDI.
-
-    YANLIS-POZITIF KALKANI: yalnizca ILK tirесiz token'a (betik/argv baslangici) KADAR
-    olan yorumlayici bayraklarina bakilir. Boylece 'python3 tools/x.py -smth' gibi
-    REPO BETIGINE giden argumanlar modul sanilmaz.
-
-    Doner: (modul, modul_sonrasi_argumanlar) ya da (None, [])."""
+    Yanlis-pozitif kalkani (vaka 129: 'python3 tools/durum.py -smth'): betikten SONRAKI
+    argumanlar BETIGINDIR, yorumlayici bayragi degildir. Ama kalkan FAIL-CLOSED tutulur:
+    sinir yalnizca token DISKTE VAR OLAN, repo-ici, calistirilabilir uzantili bir dosyaya
+    cozuluyorsa kabul edilir. Eski surum "ilk tiresiz token"da kirilyordu — '-W ignore'
+    gibi DEGER token'lari yuzunden -m denetimi komple atlaniyordu (olculmus delik A)."""
     for i, t in enumerate(argumanlar):
-        if not t.startswith("-"):
-            break  # betik/argv basladi — sonrasi yorumlayici bayragi DEGIL
-        if t.startswith("--") or t == "-":
+        if t.startswith("-"):
+            continue
+        if not t.lower().endswith(ICRA_UZANTILARI):
+            continue
+        if not repo_ici(t, cwd):
+            continue
+        if os.path.isfile(_coz(t, cwd)):
+            return i
+    return len(argumanlar)
+
+
+def modul_suphesi(argumanlar, cwd):
+    """R1 — '-m' TOKEN TARAMASI (ayristirma YOK, suphede RED).
+
+    Python'un hangi kisa bayraginin deger aldigini TAKLIT ETMEYIZ. Betik sinirina kadar
+    olan her tek-tireli token'a bakariz:
+      * govde 'm' ile basliyorsa  -> modul adi ('-m X', '-mX', '-m=X'); beyaz listede
+        degilse DENY.
+      * govde icinde '/' varsa    -> yol parcasidir, R2'nin isi (burada atlanir).
+      * govde icinde 'm' geciyorsa-> BIRLESIK kisa bayrak kumesi OLABILIR -> DENY.
+    Doner: (True, ayrinti) reddedilecekse."""
+    sinir = betik_siniri(argumanlar, cwd)
+    for i, t in enumerate(argumanlar[:sinir]):
+        if not t.startswith("-") or t == "-" or t.startswith("--"):
             continue
         govde = t[1:]
-        k = govde.find("m")
-        if k < 0:
+        if govde.startswith("m"):
+            modul = govde[1:]
+            if modul[:1] in ("=", ":"):
+                modul = modul[1:]
+            if not modul:
+                modul = argumanlar[i + 1] if i + 1 < len(argumanlar) else ""
+            if modul in IZINLI_MODULLER:
+                continue
+            return True, (modul or "?")
+        if "/" in t:
             continue
-        # 'm'den onceki kisim yalnizca DEGERSIZ kisa bayrak harfleri olmali; degilse
-        # bu token baska bir bayragin DEGERIDIR (or. '-s/repo/tools/mimar').
-        if govde[:k] and not govde[:k].isalpha():
-            continue
-        kalan = _bayrak_degeri(govde[k + 1:])
-        if kalan:
-            return kalan, argumanlar[i + 1:]
-        if i + 1 < len(argumanlar):
-            return argumanlar[i + 1], argumanlar[i + 2:]
-        return "", argumanlar[i + 1:]
-    return None, []
+        if "m" in govde:
+            return True, t
+    return False, ""
 
 
-def test_hedefleri(argumanlar):
-    """'-m pytest/unittest' sonrasi HEDEF (yol) adaylarini cikarir.
+def dis_yol(argumanlar, cwd):
+    """R2 — YOL TARAMASI (bayrak degeri ayristirilmaz; IKI okuma, biri disaridaysa RED).
 
-    OLCULMUS ACIK (20 Tem): eski surum '-' ile baslayan token'lari komple eliyordu →
-    BITISIK yazilmis deger ('-s/private/tmp/disari', '--start-directory=/tmp/x')
-    hedef sayilmiyor, geriye repo-ici token kaliyor ve kapi ALLOW veriyordu; ayrik
-    yazim ('-s /tmp/x') dogru sekilde deny idi. Artik bitisik deger de HEDEFTIR.
-
-    🔴 20 Tem REGRESYON ONARIMI (R2): kisa bayrakta ham 't[2:]' aliniyordu →
-    '-s=/private/tmp/disari' icin deger '=/private/tmp/disari' oluyor, basindaki '='
-    yuzunden MUTLAK sayilmiyor, cwd'ye eklenip REPO-ICI kabul ediliyordu. Olculdu:
-    repo disinda gercek icra kosturuldu. Artik kisa VE uzun bayrak degeri TEK
-    ayristiricidan gecer ve bastaki '=' soyulur.
-
-    Kural:
-      '--bayrak=DEGER' -> DEGER hedef
-      '-sDEGER'        -> DEGER hedef (kisa bayrak + bitisik deger, genel hal)
-      '-s=DEGER'       -> DEGER hedef (bitisik + esitlikli form; '=' SOYULUR)
-      '-s' / '--x'     -> degersiz bayrak, atlanir
-      diger token      -> hedef (ayrik yazilmis deger de dahil; yol sayilmasi KATIDIR)"""
-    hedefler = []
+    Bir token YOL sayilir: icinde '/' geciyorsa ya da '.' ile basliyorsa. Bayraga
+    bitisik/=li yazilmis deger ayristirilmaz; token HEM ham HEM de oneki soyulmus
+    (ilk '/'den itibaren, ve '='den sonrasi) okunur. Okumalardan BIRI repo disina
+    cozulurse DENY — belirsizlik DISARI sayilir. Olculmus delikler: '-vs/private/tmp/...'
+    (birlesik kisa bayrak) ve '-s=/private/tmp/...' (esitlikli bitisik form)."""
     for t in argumanlar:
-        if t.startswith("--"):
-            deger = t.split("=", 1)[1] if "=" in t else ""
-        elif t.startswith("-"):
-            deger = t[2:] if len(t) > 2 else ""
-        else:
-            hedefler.append(t)
-            continue
-        deger = _bayrak_degeri(deger)
-        if deger:
-            hedefler.append(deger)
-    return hedefler
+        adaylar = []
+        if t.startswith("-"):
+            if "/" in t:
+                adaylar.append(t)
+                adaylar.append(t[t.index("/"):])
+            if "=" in t:
+                adaylar.append(t.split("=", 1)[1])
+        elif "/" in t or t.startswith("."):
+            adaylar.append(t)
+        for aday in adaylar:
+            if not aday:
+                continue
+            if "/" not in aday and not aday.startswith("."):
+                continue
+            if not repo_ici(aday, cwd):
+                return aday
+    return None
 
 
 def main():
@@ -391,44 +413,34 @@ def main():
                 "stdin). Bu, betiği hiç yazmadan aynı icrayı yapmanın kestirmesi — kapalı."
             )
 
-        # D) Bayraga GOMULU repo-disi betik yolu (node --require=/tmp/x.js repo.js gibi):
-        #    ilk serbest arguman repo icinde olsa bile disaridan kod yuklenir.
-        for t in argumanlar:
-            aday = t.split("=", 1)[1] if (t.startswith("-") and "=" in t) else t
-            if aday.lower().endswith(ICRA_UZANTILARI) and ("/" in aday or aday.startswith(".")):
-                if not repo_ici(aday, cwd):
-                    reddet(
-                        "komutta repo DIŞINDAKİ bir betiğe yol var (" + aday + "). "
-                        "Bayrağa gömülü olsa bile dışarıdan kod yüklenmesi kapalı."
-                    )
+        # D) [KALDIRILDI] "bayraga gomulu repo-disi BETIK yolu" ayri kural olarak
+        #    gerekmiyor: R2 (dis_yol) yalnizca betik uzantililari degil, argumanlardaki
+        #    HER yol parcasini denetler — daha genis ve daha az kural.
 
-        # E) Modul calistirma (python3 -m X): X dosya degil MODUL — repo kontrolu ise
-        #    yaramaz. pip (kurulum betigi kosar), timeit/pdb/trace (-s ile kod alir),
-        #    venv, http.server hepsi keyfi icra/disari acilma kapisi → varsayilan KAPALI.
-        #    BITISIK form ('-mpip') de ayni denetimden gecer — bkz. modul_ayikla().
-        modul, modul_sonrasi = modul_ayikla(argumanlar)
-        if modul is not None:
-            if modul in IZINLI_MODULLER:
-                continue
-            if modul in TEST_MODULLERI:
-                # Test kosucusu: hedeflerin HEPSI repo-ici olmali. Hic yol argumani
-                # yoksa cwd repo-ici olmali. Boylece mimar kendi kabul testini kosturur
-                # ama -m ile repo DISINA cikamaz (vaka 85/86 allow, 87 deny).
-                # BITISIK yazim da hedeftir (vaka 92/94 deny, 93/95 allow).
-                hedefler = test_hedefleri(modul_sonrasi)
-                if hedefler:
-                    if all(repo_ici(h, cwd) for h in hedefler):
-                        continue
-                elif repo_ici(cwd, cwd):
-                    continue
+        # E/R1) '-m' TOKEN TARAMASI — ayristirma yok, suphede RED.
+        supheli, ayrinti = modul_suphesi(argumanlar, cwd)
+        if supheli:
             reddet(
-                "'" + ad + " -m " + (modul or "?") + "' modül üzerinden keyfi icra kapısıdır "
-                "(pip kurulum betiği koşturur; timeit/pdb/trace -s ile kod alır; venv/"
-                "http.server ortamı değiştirir/dışarı açar). İzinli modüller yalnız: " +
+                "yorumlayıcıya '-m' (modül) verdin ya da modül olabilecek şüpheli bir kısa "
+                "bayrak kümesi var (" + ayrinti + "). '-m' modül üzerinden keyfi icra "
+                "kapısıdır (pip kurulum betiği koşturur; timeit/pdb/trace -s ile kod alır; "
+                "venv/http.server ortamı değiştirir/dışarı açar) ve mimar tarafında "
+                "ayrıştırma YAPILMAZ — şüpheli her form kapalıdır. İzinli modüller yalnız: " +
                 ", ".join(sorted(IZINLI_MODULLER)) + "."
             )
 
-        # F) Betik yolunu bul
+        # E2/R2) YOL TARAMASI — argumanlarda repo DISINA cozulen parca varsa RED.
+        disari = dis_yol(argumanlar, cwd)
+        if disari:
+            reddet(
+                "komutun argümanlarında repo DIŞINA çözülen bir yol var (" + disari + "). "
+                "Bayrağa bitişik/eşitlikli yazılmış olsa bile açılmaz; belirsizlik DIŞARI "
+                "sayılır (fail-closed)."
+            )
+
+        # F) Betik yolunu bul. R2 '/' iceren token'lari zaten denetledi; F'nin KALAN isi:
+        #    (a) ciplak yorumlayici (stdin'den kod), (b) '/' ICERMEYEN goreli betik adi
+        #    ('python3 analiz.py') — bu cwd repo DISINDA iken R2'ye takilmaz.
         betik = None
         for t in argumanlar:
             if t.startswith("-"):

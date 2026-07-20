@@ -127,16 +127,21 @@ MUTASYONLAR = [
     ("M7", uzantilari_bosalt,
      "ICRA_UZANTILARI bosaltilir (tek) — basename kalkani sinanir",
      {1, 2, 19}, False, 3),
+    # M8 (4. tur): OLCULMUS DELIK A'nin kendisi mutasyon olarak geri alinir — betik
+    # siniri "ilk tiresiz token"a cekilir. O zaman '-W ignore' / '-X utf8' gibi DEGER
+    # token'lari taramayi kirar ve -m denetimi komple atlanir.
     ("M8", lambda d: yama(
         d, ICRA,
-        "                if hedefler:\n"
-        "                    if all(repo_ici(h, cwd) for h in hedefler):\n"
-        "                        continue\n"
-        "                elif repo_ici(cwd, cwd):\n"
-        "                    continue\n",
-        "                continue\n"),
-     "TEST_MODULLERI repo-ici sarti kaldirilir (ayrik + bitisik yazim birlikte)",
-     {87, 92, 94, 120, 122, 124}, True, 6),
+        "    for i, t in enumerate(argumanlar):\n"
+        '        if t.startswith("-"):\n'
+        "            continue\n",
+        "    for i, t in enumerate(argumanlar):\n"
+        '        if not t.startswith("-"):\n'
+        "            return i\n"
+        '        if t.startswith("-"):\n'
+        "            continue\n"),
+     "DELIK A: betik siniri ilk tiresiz token'a cekilir (-W/-X degeri taramayi kirar)",
+     {130, 131, 132, 133}, True, 4),
     ("M9", lambda d: yama(d, CMT,
                           "    basename = _basename(yol)\n"
                           "    if not basename or basename in VERI_BASENAME:\n"
@@ -170,12 +175,19 @@ MUTASYONLAR = [
     ("M12", lambda d: os.remove(os.path.join(d, KILIT)),
      "kod-kilidi kancasi SILINIR (fail-open korlugu sinavi)",
      set(YAZMA_ALLOW_VAKALARI), False, len(YAZMA_ALLOW_VAKALARI)),
+    # M13 (4. tur): R2'de bayrak oneki SOYULMAZ — yalniz HAM okuma kalir. Ham okuma
+    # '-s/private/tmp/disari'yi goreli sayip cwd'ye ekler ve repo-ici gorur.
     ("M13", lambda d: yama(
         d, ICRA,
-        "                hedefler = test_hedefleri(modul_sonrasi)",
-        '                hedefler = [t for t in modul_sonrasi if not t.startswith("-")]'),
-     "BITISIK-degerli bayrak ayristirmasi geri alinir ('-' ile baslayan token elenir)",
-     {92, 95, 120, 124}, True, 4),
+        '            if "/" in t:\n'
+        "                adaylar.append(t)\n"
+        '                adaylar.append(t[t.index("/"):])\n'
+        '            if "=" in t:\n'
+        '                adaylar.append(t.split("=", 1)[1])\n',
+        '            if "/" in t:\n'
+        "                adaylar.append(t)\n"),
+     "R2: bayrak oneki soyulmaz (yalniz ham okuma) — bitisik/=li dis yol acilir",
+     {51, 150, 151}, True, 3),
     ("M14", lambda d: yama(
         d, KUR,
         '    print("BASH_ZINCIRI_ICRA=" + ("var" if bash_var else "yok"))',
@@ -187,16 +199,32 @@ MUTASYONLAR = [
      "CEKIRDEK genisletmesi geri alinir (nobetciler korumasiz kalir)",
      {76, 77, 78, 79, 96}, True, 5),
     # --- 20 Tem SON ONARIM TURU NOBETCILERI ---
-    ("M17", lambda d: yama(d, ICRA,
-                           '    if ham[0] in "=:":\n        return ham[1:]\n',
-                           ""),
-     "R2: bitisik bayrak degerinden bastaki '=' soyulmaz ('-s=/dis/yol' acilir)",
-     {120}, True, 1),
-    ("M18", lambda d: yama(d, ICRA,
-                           '        k = govde.find("m")',
-                           '        k = 0 if govde == "m" else -1'),
-     "R2: BITISIK '-mMODUL' formu ayristirilmaz (tum -m denetimi atlanir)",
+    # M17 (4. tur): R1 yalnizca TAM '-m' token'ina bakar — bitisik/birlesik formlar acilir.
+    ("M17", lambda d: yama(
+        d, ICRA,
+        '        if not t.startswith("-") or t == "-" or t.startswith("--"):\n'
+        "            continue\n",
+        '        if t != "-m":\n'
+        "            continue\n"),
+     "R1: yalniz TAM '-m' aranir (bitisik '-mpip'/'-mtimeit' acilir)",
      {126, 127}, True, 2),
+    # M18 (4. tur): F adiminin KALAN isi (betik repo_ici) silinir. R2 '/' iceren
+    # token'lari denetledigi icin tek nobetci cwd-disari kumesidir.
+    ("M18", lambda d: yama(d, ICRA,
+                           "        if not repo_ici(betik, cwd):",
+                           "        if False:"),
+     "F: betik repo_ici kontrolu silinir (cwd repo DISI + goreli betik adi acilir)",
+     {160}, True, 1),
+    # M20 (4. tur): R2 tiresiz token yol kontrolu silinir — bayrak degerleri denetlenir
+    # ama duz arguman olarak verilen repo-disi yol acilir.
+    ("M20", lambda d: yama(
+        d, ICRA,
+        '        elif "/" in t or t.startswith("."):\n'
+        "            adaylar.append(t)\n",
+        "        elif False:\n"
+        "            adaylar.append(t)\n"),
+     "R2: tiresiz ARGUMAN yol kontrolu silinir (duz repo-disi yol argumani acilir)",
+     {153}, True, 1),
     ("N1", lambda d: yama(d, KUR,
                           '        matcher = blok.get("matcher") or ""\n'
                           "        if matcher_parcasi not in matcher:\n"

@@ -257,6 +257,16 @@ ISCI_VAKALARI = [
      ISCI_ID, "B8 yanlis-pozitif URETMEZ (worktree kopyasi serbest)"),
     (143, "allow", "Write", REPO + "/.claude/worktrees/wf-x/tools/komut-stili-kapisi.py",
      ISCI_ID, "B8 yanlis-pozitif URETMEZ (worktree kopyasi serbest)"),
+    # 4. TUR: sertlestirmenin bedeli YALNIZ mimara ait olmali — isci HICBIR yeni
+    # vakada bloklanmamali (bu ikizler olmadan sertlestirme isciyi felc edebilirdi).
+    (144, "allow", "Bash", "python3 -W ignore -m pip install requests", ISCI_ID,
+     "isci ikizi (130): -W + -m serbest"),
+    (145, "allow", "Bash", "python3 -m unittest discover -vs/private/tmp/disari", ISCI_ID,
+     "isci ikizi (135): birlesik bayrak + repo disi hedef"),
+    (146, "allow", "Bash", "python3 tools/durum.py -s/private/tmp/disari", ISCI_ID,
+     "isci ikizi (150): repo-disi yol argumani"),
+    (147, "allow", "Bash", "python3 -m pytest " + REPO + "/tools", ISCI_ID,
+     "isci ikizi (85): -m pytest serbest"),
 ]
 
 # MIMAR TARAFI YENI VAKALAR (agent_id YOK) — onek/kayit duzeltmesi + test modulleri.
@@ -271,10 +281,12 @@ MIMAR_YENI_VAKALARI = [
      "KAYITLI worktree (kimlikten bagimsiz yedek)"),
     (84, "deny", "Write", "/private/tmp/pruvo-toka-BASKA/tools/x.py", None,
      "negatif esik: kayitli DEGIL"),
-    (85, "allow", "Bash", "python3 -m pytest " + REPO + "/tools", None,
-     "-m pytest repo-ici: mimar testini kosturur"),
-    (86, "allow", "Bash", "python3 -m unittest discover -s " + REPO + "/tools", None,
-     "-m unittest repo-ici"),
+    # 4. TUR TASARIM DEGISIKLIGI (20 Tem): '-m' HER BICIMDE kapali (beyaz liste haric).
+    # 85/86/93/95/121/123/125 eskiden ALLOW idi; ayristirma kaldirildigi icin artik DENY.
+    (85, "deny", "Bash", "python3 -m pytest " + REPO + "/tools", None,
+     "-m pytest repo-ici DE kapandi (ayristirma yok)"),
+    (86, "deny", "Bash", "python3 -m unittest discover -s " + REPO + "/tools", None,
+     "-m unittest repo-ici DE kapandi"),
     (87, "deny", "Bash", "python3 -m pytest /private/tmp/x", None,
      "-m ile repo DISINA cikilamaz"),
     (88, "allow", "Bash", "python3 " + KAYITLI_WT + "/tools/toka-olc.py", None,
@@ -288,30 +300,30 @@ MIMAR_YENI_VAKALARI = [
     # BITISIK-DEGERLI BAYRAK (20 Tem olcumu: '-s/yol' allow idi, '-s /yol' deny idi).
     (92, "deny", "Bash", "python3 -m unittest discover -s/private/tmp/disari", None,
      "BITISIK bayrakla repo DISINA cikilamaz"),
-    (93, "allow", "Bash", "python3 -m unittest discover -s" + REPO + "/tools", None,
-     "BITISIK bayrak repo-ici: allow"),
+    (93, "deny", "Bash", "python3 -m unittest discover -s" + REPO + "/tools", None,
+     "BITISIK bayrak repo-ici: -m yuzunden DENY"),
     (94, "deny", "Bash", "python3 -m pytest --rootdir=/private/tmp/disari", None,
      "--bayrak=DEGER ile repo DISINA cikilamaz"),
-    (95, "allow", "Bash", "python3 -m pytest --rootdir=" + REPO + "/tools", None,
-     "--bayrak=DEGER repo-ici: allow"),
+    (95, "deny", "Bash", "python3 -m pytest --rootdir=" + REPO + "/tools", None,
+     "--bayrak=DEGER repo-ici: -m yuzunden DENY"),
     # R2 (20 Tem REGRESYON): '-s=/dis/yol' bitisik-ESITLIKLI form. Deger '=/dis/yol'
     # olarak okunuyor, basindaki '=' yuzunden goreli sayilip cwd'ye ekleniyor ve
     # REPO-ICI kabul ediliyordu → repo disinda GERCEK icra kaniti uretildi.
     # RED tarafi ve KABUL tarafi birlikte olculur (yanlis pozitif uretmemeli).
     (120, "deny", "Bash", "python3 -m unittest discover -s=/private/tmp/disari", None,
      "R2: '-s=/dis/yol' bitisik-esitlikli form DENY"),
-    (121, "allow", "Bash", "python3 -m unittest discover -s=" + REPO + "/tools", None,
-     "R2 esigi: '-s=repo-ici' ALLOW (yanlis pozitif yok)"),
+    (121, "deny", "Bash", "python3 -m unittest discover -s=" + REPO + "/tools", None,
+     "'-s=repo-ici' de -m yuzunden DENY (4. tur)"),
     (122, "deny", "Bash", "python3 -m unittest discover -s /private/tmp/disari", None,
      "R2: ayrik '-s /dis/yol' DENY"),
-    (123, "allow", "Bash", "python3 -m unittest discover -s " + REPO + "/tools", None,
-     "R2 esigi: ayrik '-s repo-ici' ALLOW"),
+    (123, "deny", "Bash", "python3 -m unittest discover -s " + REPO + "/tools", None,
+     "ayrik '-s repo-ici' de -m yuzunden DENY (4. tur)"),
     (124, "deny", "Bash",
      "python3 -m unittest discover --start-directory=/private/tmp/disari", None,
      "R2: '--start-directory=/dis/yol' DENY"),
-    (125, "allow", "Bash",
+    (125, "deny", "Bash",
      "python3 -m unittest discover --start-directory=" + REPO + "/tools", None,
-     "R2 esigi: '--start-directory=repo-ici' ALLOW"),
+     "'--start-directory=repo-ici' de -m yuzunden DENY"),
     # R2 ikinci ayak: BITISIK '-mMODUL' tum -m denetimini atliyordu.
     (126, "deny", "Bash", "python3 -mtimeit -s \"import os\" \"pass\"", None,
      "R2: '-mtimeit' bitisik modul formu DENY"),
@@ -321,6 +333,50 @@ MIMAR_YENI_VAKALARI = [
      "R2 esigi: '-mjson.tool' izinli modul ALLOW"),
     (129, "allow", "Bash", "python3 " + REPO + "/tools/durum.py -smth", None,
      "R2 esigi: betik ARGUMANI modul sanilmaz (yanlis pozitif nobetcisi)"),
+    # --- 4. TUR (20 Tem): YORUMLAYICI ARGUMANI AYRISTIRMA DELIKLERI ---
+    # Bagimsiz curutucu GERCEK ICRA ile olctu: asagidaki formlarda repo DISINDA dosya
+    # yazildi (dal ALLOW / main DENY). Kok neden: DEGER ALAN kisa bayrak (-W/-X/-Q)
+    # degerini AYRI token alir, eski tarama o tiresiz token'da 'break' ediyordu.
+    (130, "deny", "Bash", "python3 -W ignore -m pip install requests", None,
+     "A: '-W ignore' -m denetimini atlatamaz"),
+    (131, "deny", "Bash", "python3 -W ignore::DeprecationWarning -m pip install x", None,
+     "A: ':'li -W degeri de atlatamaz"),
+    (132, "deny", "Bash", "python3 -X importtime -m pip list", None,
+     "A: '-X importtime' -m denetimini atlatamaz"),
+    (133, "deny", "Bash", "python3 -X utf8 -m http.server 8000", None,
+     "A: '-X utf8' + http.server (disari acma)"),
+    (134, "deny", "Bash", "python3 -W ignore -m pytest /private/tmp/disari", None,
+     "A: -W kalkani + repo DISI test hedefi"),
+    (135, "deny", "Bash", "python3 -m unittest discover -vs/private/tmp/disari", None,
+     "B: BIRLESIK kisa bayrak '-vs/yol'"),
+    (136, "deny", "Bash", "python3 -m unittest discover -vvs/private/tmp/disari", None,
+     "B: '-vvs/yol' (iki harf + deger)"),
+    # YANLIS-POZITIF NOBETCILERI (mimarin MESRU isi acik kalmali)
+    (137, "allow", "Bash", "python3 --version", None,
+     "surum bayragi ALLOW"),
+    (138, "allow", "Bash", "node --check tools/x.js", None,
+     "sozdizimi denetimi, goreli repo yolu ALLOW"),
+    (139, "allow", "Bash", "grep -rn \"x\" tools/", None,
+     "grep yorumlayici degil ALLOW"),
+    # R2 NOBETCILERI: '-m' OLMADAN, yalniz YOL ekseni (mutasyon ayirt edebilsin).
+    (150, "deny", "Bash", "python3 tools/durum.py -s/private/tmp/disari", None,
+     "R2: bayraga BITISIK repo-disi yol (m yok)"),
+    (151, "deny", "Bash", "python3 tools/durum.py --cikti=/private/tmp/disari/x.txt", None,
+     "R2: '=' sonrasi repo-disi yol (m yok)"),
+    (152, "allow", "Bash", "python3 tools/durum.py --cikti=" + REPO + "/tools/x.txt", None,
+     "R2 esigi: '=' sonrasi repo-ici yol ALLOW"),
+    (153, "deny", "Bash", "node tools/parite-test.js /private/tmp/disari", None,
+     "R2: tiresiz ARGUMAN olarak repo-disi yol"),
+]
+
+# CWD REPO DISINDA: '/' ICERMEYEN goreli betik adi R2'ye takilmaz — F adiminin
+# (betik repo_ici) KALAN isi budur. Bu kume M18 mutasyonunun nobetcisidir.
+DIS_CWD = "/private/tmp/disari"
+DIS_CWD_VAKALARI = [
+    (160, "deny", "Bash", "python3 analiz.py", None,
+     "cwd repo DISI + goreli betik adi -> DENY"),
+    (161, "allow", "Bash", "python3 " + REPO + "/tools/durum.py", None,
+     "cwd disarida olsa da repo-ici betik ALLOW"),
 ]
 
 # COMMIT KAPISI — kanca degil, dogrudan betik cagrisi.
@@ -674,6 +730,7 @@ def main():
         ("MODUL/ENJEKSIYON YUZEYI — MIMAR kimligi", MODUL_VAKALARI, REPO),
         ("ISCI IKIZLERI (agent_id DOLU) — YANLIS-POZITIF NOBETCISI", ISCI_VAKALARI, REPO),
         ("MIMAR TARAFI YENI VAKALAR (onek/kayit/test-modulu/Edit)", MIMAR_YENI_VAKALARI, REPO),
+        ("CWD REPO DISINDA (F adiminin kalan isi) — MIMAR kimligi", DIS_CWD_VAKALARI, DIS_CWD),
     ]
 
     toplam = sum(len(v) for _, v, _ in kumeler) + len(COMMIT_VAKALARI) + 3
