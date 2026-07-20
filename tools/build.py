@@ -1788,6 +1788,79 @@ def render_merchant_feed(products):
     return xml, len(items)
 
 
+# ------------------------------------------------------------------ ozet.json (FAZ 3)
+# Ana sayfanın İLK BOYAMASI için gereken minimum veri. Bayrak (index.html EDGE_KATALOG)
+# açıkken site 5-15 MB'lık urunler.json'u İNDİRMEZ; bunu indirir (~50 KB) ve gerisini
+# Worker'dan sayfalı çeker. urunler.json üretilmeye/yayınlanmaya DEVAM eder (yedeklilik
+# + dış tüketiciler); bu dosya onun YERİNE değil, YANINA gelir.
+#
+# İÇİNDEKİLER ve NEDEN: kategori sayıları (menü) · marka çipleri kategori kırılımıyla
+# (index.html brandCounts() bunu activeCat'e göre hesaplıyordu — katalog inmeyince
+# önceden hesaplanmış olmalı) · parametrik havuz (sarı vitrin: tamamı) · en yeni N kart
+# (ilk ekran + Worker'a ulaşılamazsa yedek arama havuzu).
+OZET_JSON = "ozet.json"
+OZET_YENI = 48            # ilk ekran 24 (PAGE_SIZE) + "daha fazla" için 1 sayfa pay
+OZET_ACIKLAMA_KES = 160   # Worker KART_ALANLARI substr(aciklama,1,160) ile AYNI olmalı
+OZET_BUTCE = 150 * 1024   # iş paketi hedefi (bkz. asagida: bayrak kapaliyken UYARI, acikken HATA)
+
+
+def kart_ozeti(p):
+    """Worker /katalog + /ara yanıtındaki kartla AYNI şekil — site TEK kart çizici
+    (index.html kartCiz) kullanır. Şekil ayrışırsa ozet.json'dan gelen kart ile
+    Worker'dan gelen kart farklı görünürdü.
+
+    ⚠️ SÖZLEŞME: buraya alan EKLENİRSE Worker'ın KART_ALANLARI'na da eklenmeli.
+    Bugün urunler.json'da OLMAYAN ama sepet fiyatını etkileyecek bir alan (ör.
+    `boy_secenekleri`, secenekler.js boyFarki) ileride eklenirse BURAYA DA girmeli:
+    yoksa edge modunda sepet paneli boy farkını 0 sayar (sessiz fiyat sapması).
+    Bugün ölçüldü: urunler.json'da boy_secenekleri taşıyan ürün 0 → risk uyuyor."""
+    return {
+        "id": p.get("id"),
+        "baslik": p.get("baslik") or "",
+        "kategori": p.get("kategori") or "",
+        "marka": p.get("marka") or [],
+        "fiyat": p.get("fiyat") or "",
+        "gorsel": (p.get("gorseller") or [None])[0],
+        "parametrik": bool(p.get("parametrik")),
+        # Worker substr() ile kırpıyor (boşluk sadeleştirmiyor) — birebir aynısı.
+        "aciklama": (p.get("aciklama") or "")[:OZET_ACIKLAMA_KES],
+    }
+
+
+def render_ozet(products):
+    kategoriler = {}
+    markalar = {}          # {kategori: {marka: adet}} — global sayım = kategorilerin toplamı
+    for p in products:
+        k = p.get("kategori") or ""
+        kategoriler[k] = kategoriler.get(k, 0) + 1
+        kat_markalari = markalar.setdefault(k, {})
+        for m in (p.get("marka") or []):
+            kat_markalari[m] = kat_markalari.get(m, 0) + 1
+
+    ozet = {
+        "surum": 1,
+        "uretim": TODAY,
+        "toplam": len(products),
+        "kategoriler": kategoriler,
+        "markalar": markalar,
+        # Sarı vitrin havuzu: parametrik ürünlerin TAMAMI — site 4'ünü rastgele seçer.
+        "parametrik": [kart_ozeti(p) for p in products if p.get("parametrik")],
+        # urunler.json'un BAŞI = en yeni (CLAUDE.md: yeni ürün dizinin başına eklenir).
+        "yeni": [kart_ozeti(p) for p in products[:OZET_YENI]],
+    }
+    return json.dumps(ozet, ensure_ascii=False, separators=(",", ":"))
+
+
+def _index_bayragi(ad):
+    """index.html'deki TEK KAYNAK bayrağını oku (FAZ 3: EDGE_KATALOG)."""
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
+        kaynak = f.read()
+    m = re.search(r"var\s+" + re.escape(ad) + r"\s*=\s*(true|false);", kaynak)
+    if not m:
+        raise SystemExit("index.html'de %s bayragi bulunamadi (FAZ 3 tek kaynagi bozulmus)." % ad)
+    return m.group(1) == "true"
+
+
 # ------------------------------------------------------------------ taban fiyat haritası
 def uret_taban_fiyatlar():
     """taban-fiyatlar.js — ana sayfa sarı kartlarının "X TL'den başlayan" fiyatı buradan
@@ -1907,11 +1980,36 @@ def main():
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:
         f.write("User-agent: *\nAllow: /\n\nSitemap: " + SITE + "/sitemap.xml\n")
 
+    # ozet.json  (FAZ 3 — ana sayfanin ilk boyamasi; bayrak kapaliyken URETILIR ama
+    # site onu CEKMEZ. Uretmeye devam etmemizin sebebi: bayrak acildigi an dosya
+    # yayindaymis gibi hazir olsun + faz3-yuk/faz3-bayrak testleri her zaman kosabilsin.)
+    ozet_json = render_ozet(products)
+    with open(os.path.join(ROOT, OZET_JSON), "w", encoding="utf-8") as f:
+        f.write(ozet_json)
+    ozet_bayt = len(ozet_json.encode("utf-8"))
+
     # .nojekyll  (GitHub Pages tüm dosyaları olduğu gibi sunsun)
     open(os.path.join(ROOT, ".nojekyll"), "w").close()
 
     print("OK: %d urun sayfasi + sitemap.xml + robots.txt + merchant-feed.xml (%d urun) uretildi."
           % (len(products), feed_n))
+    print("ozet.json: %d bayt (%.1f KB) | butce %d KB"
+          % (ozet_bayt, ozet_bayt / 1024.0, OZET_BUTCE // 1024))
+
+    # BUTCE KAPISI KOSULLU (mimar emri, 20 Tem):
+    #   bayrak KAPALI -> site ozet.json'a bagimli DEGIL; asim sadece UYARI. Katalog
+    #     buyudu diye TUM deploy'un kirilmasi (urun sayfalari, sitemap, feed) kabul edilemez.
+    #   bayrak ACIK   -> ozet.json ilk boyamanin kritik yolunda; sessizce sismesi
+    #     mobil ilk acilisi bozar => build KIRMIZI.
+    if ozet_bayt > OZET_BUTCE:
+        if _index_bayragi("EDGE_KATALOG"):
+            print("HATA: ozet.json butceyi asti (%d > %d bayt) ve EDGE_KATALOG ACIK. "
+                  "OZET_YENI'yi dusur ya da marka haritasini esikle kirp."
+                  % (ozet_bayt, OZET_BUTCE))
+            sys.exit(1)
+        print("UYARI: ozet.json butceyi asti (%d > %d bayt). EDGE_KATALOG kapali oldugu "
+              "icin yayin KIRILMADI; bayragi acmadan once OZET_YENI'yi dusur ya da marka "
+              "haritasini esikle kirp." % (ozet_bayt, OZET_BUTCE))
 
 
 if __name__ == "__main__":

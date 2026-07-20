@@ -47,7 +47,11 @@ jobs:
           # Ana sayfa: build.py'nin urettigi YAYIN kopyasi (script src'leri ?v=<hash>
           # ile onbellek-kirici surumlu). KAYNAK index.html yayina girmez.
           cp index.built.html _site/index.html
-          cp secenekler.js urunler.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml filament-veri.js taban-fiyatlar.js .nojekyll _site/
+          # ozet.json = FAZ 3 ilk-boyama dosyasi (build.py render_ozet uretir). Bayrak
+          # (index.html EDGE_KATALOG) KAPALIYKEN site onu cekmez; yine de yayina girer ki
+          # bayrak acildigi an dosya CDN'de hazir olsun (eklenmeseydi bayrak acilinca
+          # ana sayfa 404 alip bos kalirdi).
+          cp secenekler.js urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml filament-veri.js taban-fiyatlar.js .nojekyll _site/
           cp -r urun _site/
           # Icerik/yasal sayfa dizinleri: build.py'nin urettigi _yayin-icerik-dizinleri.txt'ten
           # (TEK KAYNAK sayfalar.py SITEMAP_SLUGS) kopyalanir -> yeni CONTENT_PAGES otomatik

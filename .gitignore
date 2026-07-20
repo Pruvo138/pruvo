@@ -31,6 +31,7 @@ gorseller/
 /merchant-feed.xml
 /robots.txt
 /_yayin-icerik-dizinleri.txt
+/ozet.json
 
 # >>> uretilen-icerik-dizinleri (otomatik — elle duzenleme; tools/gitignore-kapisi.py dogrular)
 /teslimat-iade/
