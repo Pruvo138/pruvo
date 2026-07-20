@@ -14,6 +14,8 @@ ROOT = "/Users/okan/dev/pruvo"
 TOOLS = os.path.join(ROOT, "tools")
 _fspec = importlib.util.spec_from_file_location("filament_ortak", os.path.join(TOOLS, "filament_ortak.py"))
 fo = importlib.util.module_from_spec(_fspec); _fspec.loader.exec_module(fo)
+_gspec = importlib.util.spec_from_file_location("gorsel_mukerrer_kapisi", os.path.join(TOOLS, "gorsel_mukerrer_kapisi.py"))
+gmk = importlib.util.module_from_spec(_gspec); _gspec.loader.exec_module(gmk)
 IMGROOT = os.path.join(ROOT, ".thing-cache")
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
@@ -78,6 +80,10 @@ def process_one(tid):
         gkey = re.sub(r"[^a-z0-9-]+", "-", ("th" + tid).lower()).strip("-") or ("th" + tid)
         d = os.path.join(IMGROOT, tid)
         secili = o.get("sec_gorseller") or sorted(f for f in os.listdir(d) if f.startswith("g") and f.endswith(".jpg"))
+        # ALGISAL MUKERRER KAPISI (bkz gorsel_mukerrer_kapisi.py): ayni fotografin ikizini R2'ye
+        # yuklemeden ELE. Yeni urunde yayin gorseli yok -> aday-ici dedup (birebir/yakin ikiz
+        # secildiyse birini birak). PIL yoksa FAIL-OPEN (hicbir seyi elemez, akis bozulmaz).
+        secili, _mkres = gmk.secili_temizle(d, secili)
         urls = []
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)

@@ -36,6 +36,9 @@ _bspec.loader.exec_module(bi)
 _fspec = importlib.util.spec_from_file_location("filament_ortak", os.path.join(TOOLS, "filament_ortak.py"))
 fo = importlib.util.module_from_spec(_fspec)
 _fspec.loader.exec_module(fo)
+_gspec = importlib.util.spec_from_file_location("gorsel_mukerrer_kapisi", os.path.join(TOOLS, "gorsel_mukerrer_kapisi.py"))
+gmk = importlib.util.module_from_spec(_gspec)
+_gspec.loader.exec_module(gmk)
 
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import drive_yolu
@@ -132,6 +135,9 @@ def process_one(pid):
         gkey = re.sub(r"[^a-z0-9-]+", "-", key.lower()).strip("-") or key
         d = os.path.join(CACHE, key)
         secili = o.get("sec_gorseller") or meta["gorseller"]
+        # ALGISAL MUKERRER KAPISI: ayni fotografin ikizini R2'ye yuklemeden ELE (aday-ici dedup).
+        # PIL yoksa FAIL-OPEN (hicbir seyi elemez, akis bozulmaz). bkz gorsel_mukerrer_kapisi.py
+        secili, _mkres = gmk.secili_temizle(d, secili)
         urls = []
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
