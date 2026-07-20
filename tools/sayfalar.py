@@ -2004,6 +2004,365 @@ def _akvaryum_terraryum_plastik_parca_uretimi():
 <p>Ölçüsü belli parçalar için siteden kartla online sipariş verebilirsiniz. Emin olmadığınız, özel ölçü ya da malzeme danışması gereken işlerde WhatsApp hattımızdan yazın: <strong>+90 545 138 6526</strong>. Parçanızı getirin, ölçelim, ölçünüze özel üretelim.</p>""")
 
 
+def _pvc_dograma_kapi_pencere_plastik_parca_uretimi():
+    return (u"""<h1>PVC Doğrama Plastik Parçası: Ölçüye Özel Yeniden Üretim</h1>
+<p>PVC pencerenin kolu boşa dönüyorsa, sinekliğin mandalı elinizde kaldıysa ya da panjur kayışı makarasından çıkıyorsa sorun genelde koca doğramada değil, içindeki tek bir küçük plastikte olur. Kapağın tırnağı kırılır, mandalın yayı oturduğu yuva çatlar, makaranın kanalı aşınır — ve o parça yüzünden çalışmayan bütün bir kanat ortaya çıkar. Doğramanın kendisi sapasağlam durur, hareket eden minik plastik gider.</p>
+<p>Bu parçalar için yedek bulmak çoğu zaman imkânsıza yakındır. Doğrama sistemleri markaya ve yıla göre değişir; on yıl önce takılan bir serinin ispanyolet kapağı bugün üretimden kalkmıştır, sineklik mandalı ithal edilmiyordur, panjur kayış makarası yalnızca komple mekanizmayla satılıyordur. Yapı marketinde "benzerini" bulursunuz, ama kanal genişliği tutmaz, mil çapı boşluk yapar, vida delikleri denk gelmez. Sonunda ustalar tek çıkış olarak komple kanat ya da komple mekanizma değişimini önerir; küçük bir plastik yüzünden büyük bir masraf çıkar. <strong>pvc pencere plastik yedek parça</strong> aramasının çoğu böyle biter.</p>
+<p>PRUVO tam bu noktada devreye girer. Elinizdeki kırık parçayı — parçaları — alır, ölçüsünü çıkarır ve aynı ölçüde yeniden üretiriz. İspanyolet kapağı yaptırma, sineklik mandalı yedek parça, pvc doğrama köşe takozu, balkon kapısı kilit dili, panjur kayış makarası gibi işler bizim için standart iştir; kataloğu olmayan, modeli kalmayan parça bizde numuneden yeniden doğar. <strong>Ölçü sizden, üretim bizden.</strong></p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık parçayı bize ulaştırın. Parça ikiye, üçe ayrıldıysa sorun değil; kırıkları bir araya getirip ölçü alabiliriz. Tamamen kaybolmuşsa oturduğu yuvanın ve karşı parçanın net fotoğrafları ile bir cetvel ölçüsü işi başlatmaya yeter.</li>
+<li><strong>Ölç</strong> — Kanal genişliği, mil çapı, oturma derinliği, vida delikleri arası mesafe gibi kritik ölçüleri tek tek çıkarırız. Aşınmış bölgeleri orijinal haliyle hesaplar, kırık yüzeyleri tamamlarız.</li>
+<li><strong>Üret</strong> — Parçanın çalışacağı yere uygun malzemeyi seçer, ölçüye özel üretiriz. Takıldığında boşluk yapmayan, tırnağı tutan, kanadı yerine oturtan bir parça elinize geçer.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Numuneden birebir ölçü</strong> — kırık parçalar bir araya getirilerek orijinal geometri geri kazanılır.</li>
+<li><strong>Doğrama kanal genişliği ve profil kesiti</strong> — parçanın oturduğu kanala tam giren genişlik.</li>
+<li><strong>Mil / pim çapı ve oturma derinliği</strong> — kolun, mandalın ya da milin boşluk yapmadan dönmesi için.</li>
+<li><strong>Makara çapı, kalınlığı ve kayış kanal genişliği</strong> — panjur kayışının kanaldan atmaması için üç ölçü birlikte ayarlanır.</li>
+<li><strong>Vida delik çapı ve delikler arası mesafe</strong> — mevcut deliklere yeni delik açmadan denk gelen bağlantı.</li>
+<li><strong>Dış cepheye bakan parçalarda UV dayanımlı ASA, iç parçalarda standart sınıf</strong> — konuma göre malzeme kararı.</li>
+<li><strong>Farklı renk seçenekleri</strong> — beyaz, kahve, antrasit; doğramanızın rengine yakın olanı seçeriz.</li>
+</ul>
+<p>Ayarlar bu kadar somuttur çünkü doğrama parçasında iş milimetrede biter. Bir mandalın mil çapı yarım milimetre büyük olursa yuvasına girmez, yarım milimetre küçük olursa boşta döner.</p>
+<h2>Doğru malzeme</h2>
+<p>Malzemeyi parçanın nerede ve ne yaptığına göre seçeriz:</p>
+<ul>
+<li><strong>Standart sınıf</strong> — kapalı alanda kalan, güneş görmeyen, ılıman koşulda çalışan iç parçalar: iç mandal kapakları, kılavuz takozlar, iç tutamak parçaları.</li>
+<li><strong>PETG / ASA / PC</strong> — dış cepheye bakan, doğrudan güneş gören, yağmura ve sıcak-soğuk döngüsüne maruz kalan parçalar. Panjur makarası, dış sineklik mandalı, cephe tarafındaki kapaklar için varsayılanımız <strong>UV dayanımlı ASA</strong>'dır; standart malzeme dışarıda zamanla sararır ve kırılganlaşır, bunu bilerek önermeyiz.</li>
+<li><strong>PA-CF / PA-GF (karbon / cam elyaf takviyeli)</strong> — yük taşıyan, sürekli hareket eden ya da kilit mekanizmasına bağlı çalışan küçük parçalar. Balkon kapısı kilit dili, ispanyolet aktarma parçaları ve sürekli açılıp kapanan ağır kanat aksesuarlarında mukavemet gerektiğinde bu sınıfa çıkarız.</li>
+</ul>
+<p>Hangi sınıfın gerektiğini parçayı gördüğümüzde söyleriz; gereksiz yere üst sınıfa çıkarıp fiyat şişirmeyiz, ama dışarıda çalışacak parçaya iç malzeme de vermeyiz.</p>
+<h2>Dürüst sınır</h2>
+<p>Plastiğin doğramada nereye kadar gittiğini açıkça söylüyoruz — güven bundan doğar.</p>
+<p><strong>Üretiriz:</strong> mandal, kapak, takoz, makara, kilit dili, tutamak ve benzeri küçük hareketli parçalar. Bunlar zaten fabrikada da plastiktir; ölçüsü doğru olduğunda orijinaliyle aynı işi görür.</p>
+<p><strong>Üretmeyiz:</strong> camı taşıyan profil, ana kilit karkası ve güvenlik kilidi gövdesi. Bunlar yapısal ve güvenlik parçalarıdır; kanadın ağırlığını ya da zorlamaya karşı direnci taşırlar. Bu işler metal profil ve orijinal mekanizmanın alanıdır, plastikle karşılanmaz — böyle bir talep geldiğinde açıkça hayır deriz.</p>
+<p><strong>Malzemede taviz vermeyiz:</strong> sürekli güneş alan bir dış parçaya standart sınıf önermeyiz. Ucuza çıksın diye verilen böyle bir parça bir yaz görür, ikinci yazda kırılır; baştan UV dayanımlı sınıfa çıkmak daha doğrudur.</p>
+<h2>Sipariş</h2>
+<p>Sitemizden <strong>kartla online ödeme</strong> yapabilirsiniz; ölçüye özel üretilen doğrama parçaları da buna dahildir. Parçanız hangi sistemden, hangi ölçüde, hangi renkte olacak emin değilseniz önce yazın: <strong>WhatsApp +90 545 138 6526</strong>. Kırık parçanın ve takıldığı yerin birkaç fotoğrafını gönderin, üretilebilir mi, hangi malzeme gerekir, ne kadar sürer — net cevap verelim. Emin olmadan sipariş vermenizi istemeyiz.</p>
+<p>Doğramada işiniz menteşe tarafındaysa <a href="/olcuye-ozel-mentese-uretimi/">ölçüye özel menteşe üretimi</a> sayfasında o parça tipini ayrıntılı anlatıyoruz; kırılan şey bir tutturma elemanıysa <a href="/olcuye-ozel-klips-kelepce-uretimi/">klips ve kelepçe üretimi</a> sayfasına, elinizde adı bile bilinmeyen bir kırık parça duruyorsa doğrudan <a href="/kirik-plastik-parca-yaptirma/">kırık plastik parça yaptırma</a> sayfasına bakabilirsiniz. Hangisi olursa olsun akış aynı: getir, ölç, üret.</p>""")
+
+
+def _olcuye_ozel_dugme_ayar_topuzu_uretimi():
+    return (u"""<h1>Kırılan Düğme ve Ayar Topuzu: Mil Ölçüsüne Göre Üretim</h1>
+<p>Bir cihazın en çok yıpranan parçası çoğu zaman en küçük parçasıdır: elle çevrilen kumanda düğmesi. Ocakta zorlanan bir topuz, radyoda gevşeyip mile boş dönen bir kadran, tezgahta çarpma sonucu çatlayan bir ayar düğmesi… Cihazın geri kalanı sapasağlam durur, ama tek bir plastik parça yüzünden ayar yapılamaz hale gelir. Cihaz düğmesi ayar topuzu yaptırma ihtiyacının neredeyse tamamı bu noktada doğar: makine çalışıyor, sadece kumanda ucu gitmiş.</p>
+<p>Bu parçayı piyasada bulmak zordur, çünkü topuz evrensel bir yedek parça değildir. Üretici her modelde mil profilini, kavrama derinliğini ve dış ölçüyü kendi tercihine göre belirler; birkaç yıl sonra o kalıp da tedarikten düşer. Görünüş olarak benzeyen bir topuz aldığınızda mil kesiti tutmaz, D-mil düz yuvaya oturmaz, tırtıllı mil boşluk yapar. "Ocak düğmesi kırıldı yenisi nereden bulunur" ya da "fırın ayar düğmesi yaptırma" diye arayanların çoğu, aslında tek bir ölçünün — mil profilinin — peşindedir; markanın kendisinin değil.</p>
+<p>PRUVO bu işi ters yönden çözer. Cihazın markasını, modelini ya da yaşını sormadan, topuzun oturduğu milin kesitine ve çapına bakarız. D-mil, tırtıllı, kare ya da düz mil; hangi profil varsa aynı ölçüde kavrama yuvası oluşturur, topuzun dış biçimini de kullanım şekline göre ayarlarız. Amfi ses topuzu özel üretim isteyen bir kullanıcı ile kaynak makinesi ayar topuzu arayan bir atölye, teknik olarak aynı işi ister: mile birebir oturan, elde kaymayan bir kumanda ucu. <strong>Ölçü sizden, üretim bizden.</strong></p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir.</strong> Kırık topuzun parçalarını ya da milin kendisini elimize ulaştırın. Topuz tamamen kaybolduysa yalnızca milin fotoğrafı ve birkaç ölçü de yeterlidir; parçayı göndermeden de ilerleyebiliriz.</li>
+<li><strong>Ölç.</strong> Mil kesitini (D, tırtıllı, kare, düz) ve mil çapını, kavrama derinliğini, varsa sıkma vidasının konumunu ölçeriz. Panelde topuzun kaplayacağı dış çap ve yükseklik de burada belirlenir; gösterge çizgisinin hangi konumu göstereceğini birlikte kararlaştırırız.</li>
+<li><strong>Üret.</strong> Onaylanan ölçülerle topuzu üretir, mil üzerinde geçme sıkılığını kontrol ederiz. Çok sayıda düğmeli bir panelde tek topuz değiştiğinde göze batmaması için gövde biçimini ve rengi mevcut takımla uyumlu seçebiliriz.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Mil tipi ve çapı:</strong> D-mil, tırtıllı (kertikli), kare ya da düz mil; ölçülen çapa göre yuva işlenir. D-mil topuz ölçüye özel istendiğinde düzlemin yönü ve derinliği de ayrıca belirlenir.</li>
+<li><strong>Topuz dış çapı ve yüksekliği:</strong> parmakla mı, avuçla mı çevrileceğine göre; dar panellerde komşu düğmeye değmeyecek ölçüde.</li>
+<li><strong>Kavrama derinliği ve sıkma vidası yuvası:</strong> milin ne kadar içeri gireceği; isteğe bağlı yandan sıkma vidası yuvası ve somun yatağı.</li>
+<li><strong>Gövde biçimi:</strong> düz silindir, aşağı doğru genişleyen konik ya da güç gerektiren ayarlar için kanatlı tutuş.</li>
+<li><strong>Üst yüzeyde gösterge:</strong> çizgi ya da ok işareti; kapalı konumun nereye geleceğini siz söylersiniz.</li>
+<li><strong>Kenar tırtılı:</strong> parmak kavrama dokusu; ıslak ya da yağlı elle çevrilen yerlerde daha derin tırtıl.</li>
+<li><strong>Farklı renk seçenekleri:</strong> mevcut panel takımına yakın ton ya da bilinçli olarak ayırt edici bir renk.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Topuzun ömrünü belirleyen şey biçimden çok malzemedir. Oda sıcaklığında çalışan bir ses sistemi, ölçü aleti ya da tezgah düğmesi için standart sınıf yeterlidir; ucuzdur, boyutu kararlıdır.</p>
+<p>Isınan gövdelere yakın konumlarda — fırın kapağı çevresi, ocak paneli, motor ya da kompresör gövdesi — ısıya ve UV'ye dayanıklı sınıfa çıkarız (PETG, ASA, PC). ASA açık havada renk atmaya, PC ise yüksek sıcaklığa daha dirençlidir.</p>
+<p>Sürekli çevrilen, sıkışmış ya da yüksek tork uygulanan millerde karbon/cam elyaf takviyeli sınıfı (PA-CF / PA-GF) öneririz. Bu sınıf kavrama duvarının incelmesine izin verir ve uzun süreli kullanımda yuva ağzının yayvanlaşmasını geciktirir. Hangi sınıfın gerektiğini parçanın çalıştığı yeri öğrenip biz söyleriz; gereksiz yere pahalı malzemeye yönlendirmeyiz.</p>
+<h2>Dürüst sınır</h2>
+<p>Doğrudan aleve ya da sürekli yüksek sıcaklığa temas eden konumlarda standart malzeme yumuşar. Ocak ve fırın gibi sıcak bölgelerde ısıya dayanıklı sınıfa çıkarız; buna rağmen doğrudan alev teması ya da fırın içi sıcaklığa maruz kalan konumlar için uygun değildir. Topuz, panel yüzeyinde ve sıcaklığın düştüğü mesafede çalışmalıdır.</p>
+<p>İkinci sınır sıkışmış millerde ortaya çıkar. Yıllardır çevrilmemiş, içi kurumuş bir vana ya da valf milinde topuz ağzı zorlanır; zorlamayı önce en ince kesit karşılar. Böyle bir durumda kavrama duvarını kalınlaştırır, gerekirse takviyeli malzemeye geçer ya da milin kendisinin temizlenmesini öneririz. Plastik bir topuzun sıkışmış bir mili söktürmesini vaat etmeyiz — sınırı önceden söylemek, iki hafta sonra ikinci bir kırık parçayla uğraşmaktan iyidir.</p>
+<h2>Sipariş</h2>
+<p>Sitede kartla online ödeme var; ölçüye özel üretilen parçalar da dahil, siparişi doğrudan verebilirsiniz. Mil kesitinden emin değilseniz ya da elinizde ölçü aleti yoksa, kırık parçanın ve milin fotoğrafını WhatsApp hattımıza gönderin: <strong>+90 545 138 6526</strong>. Hangi ölçüleri nasıl alacağınızı adım adım tarif eder, uygun malzeme sınıfını birlikte belirleriz.</p>
+<p>Cihazınızda düğmeyle birlikte başka parçalar da yorulduysa aynı ölçü mantığı onlar için de geçerlidir: gövde ve panel parçaları için <a href="/beyaz-esya-plastik-parca-uretimi/">beyaz eşya plastik parça üretimi</a> sayfasına, çekilerek ya da taşınarak kullanılan elemanlar için <a href="/olcuye-ozel-kulp-tutamak-uretimi/">ölçüye özel kulp ve tutamak üretimi</a> sayfasına bakabilirsiniz. Düğme dönüyor ama hareket cihaza geçmiyorsa sorun genelde aktarımdadır; bu durumda <a href="/ev-aleti-plastik-disli-parca-uretimi/">ev aleti plastik dişli parça üretimi</a> sayfasındaki yöntem işinizi görür. Hepsinde akış aynı: getir, ölç, üret.</p>""")
+
+
+def _olcuye_ozel_fan_carki_uretimi():
+    return (u"""<h1>Fan Çarkı Kırıldı: Ölçüye Özel Yeni Çark Üretimi</h1>
+<p>Fan çarkı kırıldığında cihazın kendisi sağlamdır; dönen tek bir plastik parça yüzünden hava akışı biter. Kanadın ucundan bir parça kopar, göbek çatlar, mil deliği ovalleşir — ve çark ya hiç dönmez ya da titreyerek dönüp yatağı da götürür. Sorun büyük değildir, ama yedeği yoktur. Cihazın modeli eskidir, üretici o parçayı ayrı satmaz, sanayide bulunan hazır çarkların çapı ya da mil deliği tutmaz. Milimetrelik fark yüzünden elinizdeki çark takılmaz.</p>
+<p>Biz bu noktada devreye giriyoruz: <strong>ölçüye özel fan çarkı</strong> üretiyoruz. Elinizdeki kırık parçayı ölçüyor, dış çapını, kanat sayısını, kanat açısını ve mil geçme ölçüsünü birebir çıkarıyor, yenisini o ölçülerle üretiyoruz. Fan pervanesi kırıldı, yenisi hiçbir yerde yok diyorsanız aradığınız çözüm budur. Aspiratör çarkı özel üretim işi de aynı yoldan yürür: parça tek başına, cihaz markasından bağımsız, kendi geometrisi üzerinden ele alınır.</p>
+<p>Ölçü sizden, üretim bizden. Soğutma fanı kanadı yaptırma, salyangoz fan çarkı ölçüye göre çıkarma, kafes tipi radyal çarkın göbeğini yenileme — hepsi aynı mantıkla çalışır. Kırık parçanız yoksa da sorun değil; mil çapını, dış çapı ve yüksekliği kumpasla alıp bize iletmeniz yeterli. Elimizde model yoksa geometriyi sıfırdan kurar, üretim öncesi ölçü teyidini sizinle yaparız.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir.</strong> Kırık çarkı, parçalarını ya da elinizdeki ölçüleri bize iletin. Fotoğraf ve kumpas ölçüsü çoğu iş için yeterlidir; parçayı elden teslim etmek isterseniz o da olur. Kanatları kopmuş çarkın göbeği sağlamsa, geometriyi ondan çıkarırız.</li>
+<li><strong>Ölç.</strong> Dış çap, göbek çapı, toplam yükseklik, mil deliği ölçüsü, kanat sayısı ve kanat açısı çıkarılır. Dönüş yönü mutlaka teyit edilir — ters yönlü bir çark takıldığında fan döner ama hava akışı oluşmaz. Ölçü listesini onayınıza sunarız.</li>
+<li><strong>Üret.</strong> Onaylanan geometriyle çark üretilir, göbek ve mil geçmesi kontrol edilir, çapak alınır. Denge açısından kanatlar simetrik çıkar; kritik işlerde mil geçmesini deneme parçasıyla önceden doğrularız.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Çark dış çapı ve toplam yükseklik</strong> — yuvaya giren tam ölçü; kanat ucuyla gövde arasındaki boşluk korunur.</li>
+<li><strong>Kanat sayısı ve kanat açısı</strong> — orijinaldeki kanat adedi ve eğim birebir alınır; hava debisi ve ses seviyesi buna bağlıdır.</li>
+<li><strong>Dönüş yönü</strong> — saat yönü ya da ters yön. Kanat eğimi yön üzerine kurulur, motorun yönüne göre seçilir.</li>
+<li><strong>Mil deliği çapı, D-kesit ya da kama kanalı</strong> — düz mil, düzlemi tıraşlanmış D-kesit mil ya da kamalı mil; hangisi varsa o işlenir.</li>
+<li><strong>Göbek yüksekliği ve set vidası yuvası</strong> — göbek boyu mil boyuna göre ayarlanır, set vidası için yuva ve gerekirse somun yatağı açılır.</li>
+<li><strong>Eksenel ya da radyal form</strong> — pervane tipi eksenel çark (hava mil boyunca akar) ya da salyangoz/kafes tipi radyal çark (hava kanat ucundan dışarı atılır).</li>
+<li><strong>Farklı renk seçenekleri</strong> — görünür yerdeki çarklarda cihazla uyumlu renk seçilebilir.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Çarkın nerede döndüğü malzemeyi belirler. Oda sıcaklığında, kapalı gövde içinde çalışan düşük devirli bir havalandırma çarkı standart malzemeyle sorunsuz gider.</p>
+<p>Isınan bölge söz konusuysa — kombi çevresi, fırın arkası, elektronik kabin içi, güneş gören dış üniteler — PETG, ASA ya da PC tercih ederiz. ASA açık havada UV ve neme karşı belirgin biçimde daha dayanıklıdır, kolay gevrekleşmez; PC daha yüksek sıcaklıkta biçimini koruduğu için motorun yaydığı ısıya yakın çalışan çarklarda tercihimizdir.</p>
+<p>Yüksek devir, sürekli çalışma ve titreşim varsa karbon ya da cam elyaf takviyeli malzemeye (PA-CF / PA-GF) çıkarız. Takviyeli gövde daha rijittir; kanat uçları savrulma altında daha az esner, göbek mil üzerinde kolay gevşemez. Endüstriyel aspiratör çarkları ve gün boyu dönen soğutma fanları bu sınıfa girer.</p>
+<h2>Dürüst sınır</h2>
+<p>Ürettiğimiz çark hava taşıyan fan/hafif çark sınıfındadır: soğutma, havalandırma ve emiş içindir. Su içinde itiş sağlayan tekne pervanesi, sirkülasyon pompası çarkı ya da yüksek devirli türbin görevi görmez — bunlar sürekli sıvı yükü ve kavitasyon altında çalışır, plastik çarkın işi değildir. Bu tip talepleri en başta reddederiz.</p>
+<p>İkinci sınır dengedir. Dönen her çark dengesizliği devir karesiyle büyütür; 1 gramlık asimetri yüksek devirde yatağı titretir. Bu yüzden ölçülerin tam alınması ve kanat geometrisinin simetrik olması şarttır. Kırık çarkta kanadın bir kısmı kayıpsa, kalan kanatlardan geometriyi çıkarıp simetriyi biz kurarız; ama eksik ölçüyle "yaklaşık" iş yapmayız.</p>
+<p>Üçüncüsü sıcaklıktır. Motor gövdesine temas eden ya da 100 °C üzerine çıkan bölgelerde plastik çarkın yeri yoktur; orada metal çark doğrudur ve bunu açıkça söyleriz. Sizin işinize yaramayacak bir parçayı üretmektense, hangi malzemenin doğru olduğunu en baştan konuşmayı tercih ederiz.</p>
+<h2>Sipariş</h2>
+<p>Sitemizden kartla online ödeme yapabilirsiniz; ölçüye özel üretilen çarklar da buna dahildir. Ölçüden emin değilseniz ya da elinizdeki parçanın üretilebilirliğini önce konuşmak istiyorsanız WhatsApp hattımızdan yazın: <strong>+90 545 138 6526</strong>. Kırık çarkın fotoğrafı ve birkaç kumpas ölçüsü, işin yapılabilir olup olmadığını söylememize çoğu zaman yeter. Ölçüleri teyit ettikten sonra üretim süresini ve fiyatı net şekilde paylaşırız.</p>
+<p>Çarkın takılı olduğu cihazın başka plastik parçaları da yıprandıysa <a href="/klima-kombi-havalandirma-plastik-parca-uretimi/">klima, kombi ve havalandırma cihazlarının plastik parçaları</a> için ayrı bir sayfamız var; kapak, kanal ve bağlantı elemanlarını orada anlatıyoruz. Küçük soğutma fanları bir kart ya da kabin içinde çalışıyorsa <a href="/elektronik-cihaz-plastik-parca-uretimi/">elektronik cihaz plastik parçaları</a> sayfası daha yakın düşer. Hangi malzemenin sizin çalışma sıcaklığınıza ve devrinize uyduğunu karşılaştırmalı görmek isterseniz <a href="/malzeme-rehberi/">malzeme rehberimize</a> göz atın; seçim orada tek tabloda toplu duruyor.</p>""")
+
+
+def _olcuye_ozel_tekerlek_makara_uretimi():
+    return (u"""<h1>Kırılan Tekerlek ve Makara: Üç Ölçüyle Yeniden Üretim</h1>
+<p>Çekmece bir gün açılmaz olur, sepet rayından çıkar, sürgü kapak yerinde takılır. Söküp baktığınızda sorun çoğu zaman tek bir küçük parçadadır: kırılmış ya da yürüyüş yüzeyi aşınmış plastik bir tekerlek. Parça iki liralık görünür ama onun yüzünden koca dolap, koca makine ya da koca kapı iş görmez. Servis "komple grup değişecek" der, yedek parçacı "o model kalktı" der, internette bulduğunuz benzeri de aks deliği tutmadığı için boşta döner.</p>
+<p>Bunun sebebi açık: tekerlek ve makara dünyası milimetre dünyasıdır. Aynı görünen iki tekerleğin biri 24 mm çapında ve 6 mm akslı, öteki 25,5 mm çapında ve 5 mm akslıdır; kanal derinliği yarım milimetre şaşınca parça rayına oturmaz. Üreticiler bu parçaları tek tek satmaz, kalıpları da model ömrü bitince rafa kalkar. Sonuçta piyasada bulunamayan şey aslında ürün değil, sizin ölçünüzdür. <strong>Ölçü sizden, üretim bizden.</strong></p>
+<p>PRUVO tam bu noktada devreye girer. Elinizdeki kırık parçadan, eski tekerlekten ya da boşalan yuvadan yola çıkarak <strong>plastik tekerlek makara yaptırma</strong> işini ölçüye özel yapıyoruz. Çekmece tekerleği yedek parça arayan bir mobilyacı da, bulaşık makinesi sepet tekerleği kopmuş bir ev sahibi de, sürgü kapı makarası özel üretim isteyen bir atölye de aynı yoldan geçer: çap, kanal ve aks. Valiz tekerleği yaptırma ya da aks çapına göre makara talebi de aynı üç ölçüyle çözülür. Elinizde numune yoksa yuvanın ölçüsünü alırız; tek bir parça için de üretim yaparız, adetli iş de aynı hassasiyetle çıkar.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir.</strong> Kırık tekerleği, sağlam kalan eşini ya da parçanın oturduğu çatalın fotoğrafını gönderin. Parçanız param parça olsa bile sorun değil; ölçü verecek kadar iz kalması yeter. Elinizde hiç parça yoksa yuva ve aks ölçüsünü birlikte çıkarırız.</li>
+<li><strong>Ölç.</strong> Dış çap, kalınlık, aks deliği ve kanal biçimini tek tek doğrularız. Nerede, ne yükte, ne sıklıkta çalıştığını sorarız — bu bilgi malzeme seçimini belirler. Ölçüleri size yazılı olarak teyit ederiz, onay vermeden üretime geçmeyiz.</li>
+<li><strong>Üret.</strong> Onaylı ölçüyle parçayı üretir, aksa ve yuvaya oturmasını kontrol eder, gönderime hazırlarız. Gerekirse önce tek numune çıkarır, oturduğunu gördükten sonra kalan adede geçeriz.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Tekerlek dış çapı ve kalınlığı</strong> — rayın ya da çatalın izin verdiği ölçüye kadar, milimetrik.</li>
+<li><strong>Aks/pim deliği çapı ve göbek uzunluğu</strong> — mevcut pime sıkı değil, dönecek kadar boşluklu oturur.</li>
+<li><strong>Yürüyüş yüzeyi biçimi</strong> — düz, V kanallı, U kanallı ya da tırnaklı. Kanalın açısı ve derinliği rayınıza göre belirlenir.</li>
+<li><strong>Rulman yuvası mı düz delik mi</strong> — mevcut rulmanınız varsa ona göre yuva açarız; yoksa doğrudan pim üzerinde dönen düz delikli tip yaparız.</li>
+<li><strong>Çatal/gövde ile arasındaki boşluk payı</strong> — parçanın sürtmeden, salmadan dönmesi için iki yandaki pay ayarlanır.</li>
+<li><strong>Sessiz ve kaygan çalışma için yüzey tercihi</strong> — sürtünmesi düşük, çalışırken sesi az olan bir yüzey isteyebilirsiniz.</li>
+<li><strong>Farklı renk seçenekleri</strong> — görünen yerdeki parçalarda mobilyanıza yakın tonu seçebilirsiniz.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Tekerleğin ömrünü belirleyen şey ölçü kadar malzemedir. İç mekânda, kuru ortamda çalışan çekmece ve dolap tekerlekleri için standart mühendislik plastiği yeterlidir; sürtünmesi düşük, sessiz ve ekonomiktir.</p>
+<p>Nem, sıcak su ya da güneş varsa bir üst kademeye çıkarız: bulaşık makinesi sepet tekerleği gibi sıcak-nemli ortamda çalışan parçalarda ve dış kapı makaralarında PETG, ASA ya da PC tercih ederiz. Bunlar ısıya ve UV'ye standart plastikten belirgin biçimde daha iyi dayanır, güneş altında kolay kolay kırılganlaşmaz.</p>
+<p>Yük yüksekse, parça küçükse ya da aks deliği ince kalıyorsa karbon/cam elyaf takviyeli PA-CF ve PA-GF'ye çıkarız. Bu grup, aynı ölçüde çok daha yüksek mukavemet ve boyut kararlılığı verir; ağır sürgü kapak makaralarında ve sürekli çalışan taşıma tekerleklerinde tercih ettiğimiz sınıftır. Hangi kademenin gerektiğini biz söyleriz, gereksiz yere üst malzemeye çıkıp maliyeti şişirmeyiz.</p>
+<h2>Dürüst sınır</h2>
+<p>Ürettiğimiz tekerlek <strong>hafif ve orta yük</strong> içindir: mobilya çekmecesi, sepet, sürgü kapak, hafif taşıma, valiz ve el arabası ölçeğindeki serbest dönen tekerlekler. Bu aralıkta plastik tekerlek işini rahatlıkla görür.</p>
+<p>Ağır yük, sürekli yüksek hız ya da sıcak-ıslak ortamda çalışan tekerleklerde takviyeli malzemeye çıkarız; buna rağmen metal ya da kauçuk kaplı tekerleğin taşıma kapasitesini vaat etmeyiz. Bir yükün altına giren transpalet tekerleği, sanayi arabası tekeri ya da darbe yiyen zemin makarası plastiğin işi değildir — bunu baştan söyleriz.</p>
+<p>Rulmanın kendisini de üretmeyiz. Bilyeli rulman metal işidir; biz mevcut rulmanınızın ölçüsüne göre yuvayı açar, tekerleği o rulmanın etrafına kurarız. Aynı şekilde bu sayfadaki iş yük taşıyıp yuvarlanan serbest tekerlek ve makaradır; güç aktaran kayış kasnağı ya da kayış gerdirme elemanı farklı bir hesabın konusudur.</p>
+<h2>Sipariş</h2>
+<p>Siteden <strong>kartla online ödeme</strong> ile sipariş verebilirsiniz; ölçüye özel üretim de dahil, kart ödemesi geçerlidir. Ölçüden emin değilseniz ya da parçanın çalışacağı yeri anlatmak istiyorsanız önce WhatsApp hattımızdan yazın: <strong>+90 545 138 6526</strong>. Kırık parçanın ve yuvanın birkaç fotoğrafı çoğu zaman doğru üretim için yeterli olur; eksik kalan ölçüyü biz sorarız.</p>
+<p>Tekerleğiniz kendi ekseninde değil de bir yatak içinde dönüyorsa, asıl aradığınız parça <a href="/numuneden-plastik-burc-rulman-uretimi/">numuneden ürettiğimiz plastik burç ve yatak elemanları</a> olabilir. Çekmecenin tekerleği kadar rayı, ayağı ya da bağlantısı da kırılmışsa <a href="/mobilya-plastik-baglanti-ayak-parca-uretimi/">mobilya bağlantı ve ayak parçalarını</a> aynı siparişte birlikte çıkarabiliriz. Sorun bir ev aletinin içindeki sepet, raf ya da mekanizma parçasıysa <a href="/beyaz-esya-plastik-parca-uretimi/">beyaz eşya plastik parça üretimi</a> tarafına bakmanız daha doğru olur. Hangisi olursa olsun yol aynı: getir, ölç, üret.</p>""")
+
+
+def _karavan_plastik_parca_ozel_uretim():
+    return (u"""<h1>Karavan ve Motokaravan Plastik Parçası: Ölçüye Özel Üretim</h1>
+<p>Karavanda bozulan şey çoğu zaman motor ya da şasi değil, içeride her gün elinizin değdiği küçük plastik donanımdır. Dolap kapağını tutan mandal kırılır, kilit dili yerinden çıkar, perde rayının ucundaki durdurucu kaybolur, havalandırma kapağının kolu çatlar. Araç yola çıkacak duruma gelmiştir ama dolaplar seyir halinde açılır, perde rayda durmaz, kapak titrer. Karavan plastik yedek parça ihtiyacının çoğu bu ölçekte doğar: küçük, ucuz görünen, ama olmadığında yaşam alanını kullanılmaz yapan parçalar.</p>
+<p>Bu parçaların bulunamamasının nedeni bellidir. Karavanların büyük bölümü ithaldir; iç donanımı üreten firma çoğu zaman aracı üreten firma değildir. Model on yıl önce üretimden kalkmıştır, iç mobilya donanımı hiç yedek olarak stoklanmamıştır, ya da parça yalnızca komple dolap kiti içinde satılmaktadır. Kırılan karavan mandalı için bayiye sorduğunuzda ya "o parça ayrı gelmiyor" cevabını alırsınız ya da aylarca sürecek bir tedarik süreci konuşulur. Karavan dolap kilit dili, karavan perde rayı ucu, menteşe pimi, kanal kızağı gibi motokaravan plastik aksesuar kalemleri tam da bu yüzden internette aranır ve bulunamaz.</p>
+<p>PRUVO bu noktada devreye girer. Elinizdeki kırık parçayı ya da yerine geçeceği yuvayı ölçer, aynı işi görecek parçayı ölçüye özel üretiriz. Tek adet üretiriz; minimum sipariş adedi yoktur. Karavan iç mekan plastik parça işinde kalıp beklemek, set almak ya da kataloğun sizin modelinizi içermesini ummak gerekmez. Konumuz açık: <strong>ölçü sizden, üretim bizden.</strong></p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık parçayı, parçaların hepsini (kırıldıysa parçaları atmayın) ya da parçanın oturduğu yuvanın fotoğrafını bize iletin. Kargoyla gönderebilir, WhatsApp'tan fotoğraf ve kaba ölçüleri paylaşabilirsiniz. Parça hiç yoksa yuvanın, vida deliklerinin ve karşı yüzeyin ölçüsü de yeterlidir.</li>
+<li><strong>Ölç</strong> — Parçayı milimetrik ölçeriz: dış ölçüler, vida delik çapı, delikler arası mesafe, kanal genişliği, kayma boşluğu. Kırık parçadaki aşınmayı ve orijinaldeki zayıf kesiti de not ederiz; aynı yerden yeniden kırılmaması için gerekiyorsa kesiti kalınlaştırmayı öneririz.</li>
+<li><strong>Üret</strong> — Onayınızdan sonra parçayı seçilen malzeme ve renkte üretir, size göndeririz. Aynı parçadan ileride tekrar gerekirse ölçüleriniz kayıtlıdır; ikinci sipariş ilkinden hızlı çıkar.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Parça dış ölçüleri</strong> — uzunluk, genişlik ve kalınlık milimetre bazında; mevcut yuvaya tam oturacak şekilde.</li>
+<li><strong>Vida delik çapı ve delikler arası mesafe</strong> — mevcut dolap gövdesindeki delikleri kullanabilmeniz için birebir; havşalı ya da havşasız istediğinizi belirtmeniz yeterlidir.</li>
+<li><strong>Mandal / kilit dili yüksekliği ve kanal genişliği</strong> — dilin ne kadar çıkacağı, karşı yuvaya ne kadar gireceği ve kapağın oynamaması için gereken sıkılık ayarlanır.</li>
+<li><strong>Ray veya kızak profil kesiti ve kayma boşluğu</strong> — perde rayı ucu, durdurucu ve kızak parçalarında profilin kesiti çıkarılır; sürtmeden ama boşluk yapmadan kayacak tolerans verilir.</li>
+<li><strong>Malzeme seçimi</strong> — iç mekanda kalacak donanım için standart sınıf, güneş gören dış yüzeyler için ASA veya PC.</li>
+<li><strong>Farklı renk seçenekleri</strong> — beyaz, gri, siyah, antrasit gibi iç donanımda yaygın tonlar; mevcut mobilyanızla uyumlu olanı birlikte seçeriz.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Malzemeyi parçanın çalışacağı yere göre seçeriz. Dolap içinde kalan, doğrudan güneş görmeyen mandal, tutucu ve ara parçalarda standart sınıf yeterlidir ve ekonomiktir. Camın önünde duran, tavan penceresine yakın, yaz boyunca ısınan bölgelerdeki parçalarda PETG'ye çıkarız. Sürekli güneş altında kalan dış yüzey donanımında — servis kapağı kolu, dış havalandırma çerçevesi, dış mandal kapağı — UV dayanımı olan ASA ya da PC kullanırız; bu sınıflar zamanla sararmaya ve kırılganlaşmaya karşı belirgin biçimde daha dayanıklıdır. Sürekli kuvvet gören, ince kesitli, yola çıktığında titreşimle sürekli zorlanan bir dil veya kol söz konusuysa karbon/cam elyaf takviyeli sınıfa (PA-CF / PA-GF) geçeriz; bu sınıf sertlik ve yorulma dayanımı ister.</p>
+<h2>Dürüst sınır</h2>
+<p>Bu sayfadaki iş, karavanın yaşam alanı donanımıdır: mobilya mandalı, dolap kilit dili, menteşe, kapak, ray ve kızak parçaları, havalandırma ve servis kapağı detayları. Bu kalemlerde parçanın kırılan kesitini gerekirse kalınlaştırır, aynı yerden yeniden kırılma ihtimalini azaltırız.</p>
+<p>Sınırı da açıkça söylüyoruz. Şasi, aks, çeki demiri ve bunlara bağlı taşıyıcı elemanlar plastikle üretilmez; bunlar aracın yol güvenliğini ilgilendiren metal parçalardır. Gaz hattı üzerindeki bağlantılar ve su hattında yük taşıyan rakor/bağlantı parçaları da bu kapsamın dışındadır. Sürekli güneş gören dış parçalarda standart malzeme önermeyiz; müşteri istese bile UV dayanımlı sınıfa yönlendiririz, çünkü bir sezon sonra kırılan parçanın maliyeti ilk seferde doğru malzeme seçmekten yüksektir. Hafif yüklü tutucu ve kanal parçaları güvenle üretilir; ağır yükü asılı taşıyacak bir askı beklentisi varsa bunu baştan konuşur, gerekirse metal destekle birlikte çözeriz.</p>
+<h2>Sipariş</h2>
+<p>Sitemizden kartla online ödeme yapabilirsiniz; ölçüye özel üretilen parçalar dahil tüm siparişler kartla ödenebilir. Ölçüden emin değilseniz ya da parçanın fotoğrafı üzerinden konuşmak isterseniz WhatsApp danışma hattımız açık: <strong>+90 545 138 6526</strong>. Kırık parçanın fotoğrafını ve yanına bir cetvel koyup çektiğiniz ikinci bir kareyi göndermeniz çoğu iş için başlangıç olarak yeterlidir; kalan ölçüleri biz sorarız.</p>
+<p>Karavan dışında da aynı yöntem geçerli: piyasada karşılığı olmayan her tekil parça için <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parçaları ölçüye özel ürettiğimiz</a> sayfaya göz atabilirsiniz. Dolap kapağı düşüyorsa sorun mandalda değil menteşede olabilir; bu durumda <a href="/olcuye-ozel-mentese-uretimi/">ölçüye özel menteşe üretimi</a> tarafına bakmak daha doğru sonuç verir. Kaybolan tapa, tıpa ve körleme kapakları içinse <a href="/olcuye-ozel-tapa-kapak-uretimi/">tapa ve kapak üretimi</a> sayfasındaki ölçü seçenekleri işinizi görecektir.</p>""")
+
+
+def _tekstil_makinesi_plastik_parca_uretimi():
+    return (u"""<h1>Tekstil Makinesi Plastik Parçası: Numuneden Ölçüye Özel Üretim</h1>
+<p>Dokuma tezgâhının iplik kılavuzu kırıldığında ya da masuranın flanşı çatladığında iş durur; oysa arayan da bilir ki o küçük plastik parça hiçbir yerde raf malı olarak durmaz. Makine on beş yaşındaysa, ithal edilmiş ama temsilcisi çekilmişse, ya da parça zaten üreticinin kataloğunda ayrı kalem olarak geçmiyorsa aramanın sonu genelde aynı yere çıkar: "yok, komple grup satıyoruz." Tek bir kılavuz için komple grup almak da, tezgâhı beklemeye almak da atölyenin işine gelmez.</p>
+<p>Tekstil makinesi plastik parça ihtiyacının ikinci zorluğu adet. Elinizde on tezgâh varsa on iki masura lazımdır, beş yüz değil. Kalıplı üretim yapan yerler bu adetlere bakmaz bile; kalıp masrafı tek başına parçanın yüz katıdır. Bu yüzden konfeksiyon makinesi yedek plastik arayan atölyeler çoğu zaman ya kırık parçayı yapıştırıp idare eder ya da bir tornacıya metalden benzerini yaptırır — biri kısa ömürlü, diğeri gereksiz pahalı ve çoğu zaman karşı yüzeyi aşındıran bir çözümdür.</p>
+<p>PRUVO tam bu boşlukta çalışır. Elinizdeki kırık masurayı, iplik kılavuzunu, dokuma makinesi plastik burcunu ya da kızak takozunu numune olarak alır, ölçüsünü çıkarır ve size ölçüye özel üretiriz. Ölçü sizden, üretim bizden. Tek adet de olur, beş ile elli arasında düşük adetli seri plastik parça da; minimum sipariş engeli yoktur ve aynı parçayı altı ay sonra tekrar istediğinizde ölçüsü bizde durduğu için aynısını yeniden üretiriz.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Kırık ya da aşınmış parçayı elden getirin veya kargoyla gönderin. Parça tamamen dağılmışsa masadaki iki büyük kırık bile yeter; yoksa kumpasla aldığınız iç çap / dış çap / boy ölçülerini net fotoğrafla birlikte WhatsApp'tan iletmeniz de çalışır.</li>
+<li><strong>Ölç</strong> — Numuneyi ölçer, kritik yüzeyleri (yatak deliği, kılavuz kanalı, flanş oturma yüzeyi) tek tek çıkarırız. Parçanın makinede nerede çalıştığını, hangi hızda döndüğünü ve neye sürttüğünü sorarız; malzeme kararı buradan çıkar.</li>
+<li><strong>Üret</strong> — Ölçüler onaylandıktan sonra üretime alırız. Düşük adetli seride önce tek numune üretip sizde denemenizi öneririz; oturduğunu gördükten sonra kalan adet gelir.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Numuneden ölçü ya da hazır ölçü listesi:</strong> Elinizdeki parçadan ölçü çıkarırız; teknik ölçü listeniz veya makine kılavuzundan aldığınız değerler varsa doğrudan onunla da üretiriz.</li>
+<li><strong>İç çap, dış çap, boy ve flanş çapı:</strong> Masura ve burçta dört ana ölçü ayrı ayrı ayarlanır. Mil üzerine geçen iç çapta sıkı/geçer tercihinizi sorarız.</li>
+<li><strong>Kılavuz kanal genişliği ve yüzey geçiş yarıçapı:</strong> İplik kılavuzunda kanalın ipliğe göre genişliği ve ipliğin girdiği köşedeki yumuşama yarıçapı ayarlanabilir — bu iki değer ipliğin tüylenip tüylenmeyeceğini belirler.</li>
+<li><strong>Sürtünme ve aşınma beklentisine göre malzeme:</strong> Aynı ölçüdeki parçayı PETG, PC ya da takviyeli PA-CF / PA-GF olarak üretebiliriz.</li>
+<li><strong>Düşük adetli seri ve tekrar üretim:</strong> 5–50 adet aralığı bizim için normal iştir. Ölçü kayıtlı kaldığı için ikinci parti ilkiyle aynı ölçülerde çıkar.</li>
+<li><strong>Farklı renk seçenekleri:</strong> Vardiya ayrımı ya da makine numarası takibi için parçaları farklı renklerde isteyebilirsiniz.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Malzeme kararı parçanın makinedeki yerine göre verilir. Az yük gören kapak, muhafaza, göstergelik ve konum parçalarında standart malzeme yeterlidir ve en ekonomik olanıdır. Atölye sıcaklığının yükseldiği, temizlik kimyasalının bulaştığı ya da parçanın sürekli titreşim aldığı yerlerde PETG, ASA veya PC'ye çıkarız; bunlar ısıya ve darbeye standart malzemeden belirgin şekilde dayanıklıdır. İplik kılavuzu, burç, kızak takozu gibi sürekli sürtünen ve ölçüsünü koruması gereken parçalarda karbon ya da cam elyaf takviyeli PA-CF / PA-GF öneririz: rijitliği yüksektir, ısı altında ölçü kaçırmaz ve aşınma direnci ciddi biçimde daha iyidir. Masura yaptırma işlerinde ise ipliğin temas ettiği yüzeyin pürüzsüzlüğü malzeme kadar önemlidir; o yüzden yüzey geçişlerini ayrıca çalışırız.</p>
+<h2>Dürüst sınır</h2>
+<p>Her tekstil plastiği aynı işi görmez, bunu baştan söyleriz. Kılavuz, masura, takoz, burç ve kapak gibi parçalar bizim rahatça ürettiğimiz sınıftır. Buna karşılık çok yüksek devirde sürekli sürtünen elemanlar, sıcak silindire doğrudan temas eden parçalar ve ana tahrik yükünü taşıyan bağlantılar plastiğin sınırını aşar. Böyle bir parça geldiğinde iki şeyden birini yaparız: ya açıkça "bunu plastikten üretmeyelim, metale gitmeniz doğru olur" deriz, ya da takviyeli malzemeyle bir deneme parçası üretip makinede birlikte test ederiz. Tutmazsa tutmadığını da söyleriz. Zorlama bir söz vermek yerine parçanın gerçek ömrünü konuşmak ikimizin de işine gelir.</p>
+<h2>Sipariş</h2>
+<p>Ölçüsü belli işlerde sitemizden kartla online ödeme yapabilirsiniz; ölçüye özel üretim de dahil, sipariş doğrudan sistemden geçer. Parçanız hakkında önce konuşmak, numune fotoğrafı göndermek ya da adet ve malzeme için fikir almak isterseniz WhatsApp hattımız açık: <strong>+90 545 138 6526</strong>. Fotoğraf ve iki üç kumpas ölçüsü çoğu zaman ilk değerlendirme için yeterlidir.</p>
+<p>Tezgâh yanındaki ihtiyacınız yalnızca tekstil plastikleriyle sınırlı değilse, genel çerçeveyi <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parçasında ölçüye özel üretim</a> sayfasında anlattık. Aşınan yatak elemanları için <a href="/numuneden-plastik-burc-rulman-uretimi/">numuneden burç ve rulman üretimi</a> sayfasına, elinizde tek bir kırık parça varken nasıl ilerlediğimizi görmek için de <a href="/tek-adet-ozel-parca-uretimi/">tek adet özel parça üretimi</a> sayfasına bakabilirsiniz.</p>""")
+
+
+def _elektrikli_scooter_plastik_parca_uretimi():
+    return (u"""<h1>Elektrikli Scooter Plastik Parçası: Ölçüye Özel Üretim</h1>
+<p>Elektrikli scooter kullananların en sık yaşadığı sorun, motorun ya da bataryanın değil, dış plastiklerin bitmesidir. Kaldırım taşına sürtünen çamurluk çatlar, scooter devrildiğinde gidon kapağı kırılır, şarj kapağı bir süre sonra mandalını kaybedip açık kalır. Cihaz gayet iyi çalışıyordur; ama küçük bir plastik parça yüzünden yağmurda kullanılamaz, sesli titrer ya da içine su alma riski taşır.</p>
+<p>Bu parçaların piyasada bulunamamasının nedeni açıktır: ülkeye giren scooter modellerinin çoğu kısa ömürlü ithal serilerdir. Model bir yıl satılır, ertesi yıl yerine yenisi gelir ve eski modelin dış plastikleri için yedek stok hiç açılmaz. Servisler "bu modelin parçası gelmiyor" der, satıcı yeni cihaz önerir. Elektrikli scooter plastik yedek parça arayan kullanıcı, aslında sadece elli gramlık bir kapak için binlerce liralık cihazı gözden çıkarmak zorunda kalır.</p>
+<p>PRUVO bu noktada devreye girer. Kırılan scooter gövde parçasını, elinizdeki numuneden ölçerek yeniden üretiriz. Katalogdan model aramayız; parçanın kendisini ölçeriz. Scooter çamurluğu yaptırma, scooter gidon kapağı ya da şarj kapağı kırıldı yenisi lazım diyen her talep, aynı yoldan ilerler: <strong>ölçü sizden, üretim bizden.</strong></p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir.</strong> Kırılan parçayı, parçaların hepsini bize ulaştırın. Tek parça halinde olması gerekmez; ikiye üçe ayrılmış kapaklar da işimize yarar. Parça tamamen kayıpsa, takıldığı yerin fotoğrafını ve elinizdeki ölçüleri paylaşmanız yeterli olur.</li>
+<li><strong>Ölç.</strong> Ayrılmış parçaları birleştirerek bütün geometriyi çıkarırız; delik çapları, mandal dili kalınlığı ve boru çapı gibi kritik ölçüleri tek tek doğrularız. Bu aşamada nereye takıldığını ve nasıl bir yük aldığını da sorarız — malzeme seçimi buna göre değişir.</li>
+<li><strong>Üret.</strong> Onayladığınız ölçüyle parçayı üretir, geçme ve vida noktalarını kontrol ederiz. Takıldığında oturmuyorsa toleransı düzeltip yeniden üretiriz.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Numuneden ölçü:</strong> elinizdeki orijinal parça referanstır. Ayrılmış parçalar birleştirilerek eksik geometri tamamlanır.</li>
+<li><strong>Mandal dili kalınlığı ve geçme toleransı:</strong> şarj kapağı ya da batarya kapağı mandalının hem tutması hem de zorlamadan açılması için dil kalınlığını ve geçme boşluğunu ayarlarız.</li>
+<li><strong>Gidon/boru dış çapı ve kelepçe genişliği:</strong> gidon kapağı, tutucu ve kelepçe tipi parçalar boru çapına birebir oturacak şekilde çıkar.</li>
+<li><strong>Vida delik çapı ve merkez mesafeleri:</strong> mevcut gövdedeki delikler değişmez; delik çapını ve delikler arası mesafeyi cihazınıza göre veririz.</li>
+<li><strong>Dış kullanım ve titreşim koşulu:</strong> güneşte kalan, yağmur gören ve sürekli titreşim altındaki parçalarda ASA veya PETG; yük alan tutucu ve bağlantılarda karbon elyaf takviyeli PA-CF.</li>
+<li><strong>Farklı renk seçenekleri:</strong> çamurluk ve kapaklarda gövde rengine yakın seçeneklerle çalışırız.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Malzeme, parçanın nerede durduğuna göre seçilir. İç tarafta kalan, güneş görmeyen kapak ve ara parçalarda standart malzeme yeterlidir. Ancak scooter dış plastikleri günün büyük kısmını açık havada geçirir: çamurluk, gidon kapağı ve şarj kapağı hem UV hem sıcaklık hem de sürekli titreşim altındadır. Bu parçalarda ASA ve PETG kullanırız — ASA güneş altında rengini ve sertliğini korur, PETG darbede kırılmak yerine esner.</p>
+<p>Yük taşıyan tutucular, sepet bağlantısı ya da telefon tutucu gövdesi gibi üzerine kuvvet binen parçalarda merdivenin üst kademesine çıkarız: karbon ya da cam elyaf takviyeli PA-CF / PA-GF. Bu malzemeler titreşim altında yorulmaya karşı belirgin şekilde daha dayanıklıdır. Hangi kademenin gerektiğine parçayı gördükten sonra karar veririz; gereksiz yere üst malzemeye yönlendirmeyiz.</p>
+<h2>Dürüst sınır</h2>
+<p>Scooter tarafında ürettiğimiz aile bellidir: çamurluk, kapaklar, gidon parçaları, tutucular ve örtü parçaları. Bunlar kırıldığında cihazın kullanımını bozan ama güvenliğini doğrudan belirlemeyen parçalardır.</p>
+<p>Üretmediğimiz parçalar da aynı netlikte: fren sistemine ait parçalar, şasi boru bağlantıları ve sürüş sırasında tüm ağırlığınızı taşıyan katlama kilidinin ana gövdesi. Bu parçalar ani ve tek yönlü bir kuvvet altında çalışır; verdikleri hata sessiz olmaz, sürüş sırasında olur. Plastikle üretilmeleri doğru değildir ve bu taleplerde sizi orijinal parçaya ya da metal muadiline yönlendiririz. Sınırı önceden söylemek, sonradan sorun çıkarmaktan iyidir.</p>
+<p>Aynı dürüstlük ölçü konusunda da geçerli: elinizde hiçbir numune yoksa ve parçanın takıldığı yuvayı da göremiyorsak, tahmine dayalı üretim yapmayız.</p>
+<h2>Sipariş</h2>
+<p>Parça ölçüsü netleştikten sonra siparişi doğrudan sitemizden verebilirsiniz; ölçüye özel işler dahil kartla online ödeme açıktır. Ölçüden emin değilseniz ya da parçanın kapsamımıza girip girmediğini merak ediyorsanız, önce WhatsApp hattımızdan yazın: <strong>+90 545 138 6526</strong>. Kırılan parçanın birkaç fotoğrafı ve takıldığı yerin görüntüsü, çoğu zaman ilk değerlendirme için yeterli olur.</p>
+<p>Elinizdeki scooter parçası aslında daha geniş bir işin küçük bir örneği: gövde plastiği kırılan araçlarda aynı yöntemi uyguluyoruz. İki tekerlekli araçlarda benzer bir ihtiyacınız varsa <a href="/motosiklet-plastik-parca-ozel-uretim/">motosiklet plastik parça özel üretim</a> sayfamıza göz atabilir, elinizde parçalanmış bir gövde varsa <a href="/kirik-plastik-parca-yaptirma/">kırık plastik parçadan yenisini yaptırma</a> akışını inceleyebilirsiniz. Sorun tek bir kapak değil de kapağı yerinde tutan bağlantıysa, <a href="/olcuye-ozel-klips-kelepce-uretimi/">ölçüye özel klips ve kelepçe üretimi</a> tarafı tam olarak bu iş içindir.</p>""")
+
+
+def _isiya_dayanikli_plastik_parca_uretimi():
+    return (u"""<h1>Isıya Dayanıklı Plastik Parça: Doğru Malzemeyle Ölçüye Özel Üretim</h1>
+<p>Bir parça sıcakta çalışacaksa mesele artık şekli değil, malzemesidir. Fırın çevresindeki bir tutamak, kombi yakınındaki bir kelepçe, motor bölmesinde duran bir kablo yatağı ya da rezistanslı bir cihazın gövde içindeki ayağı — hepsi normal koşullarda sorunsuz görünür, sıcak birkaç saat sürekli kaldığında yumuşar, sarkar, deliği ovalleşir ve vidayı tutamaz hale gelir. Çoğu kişi parçanın kırıldığını sanır; aslında parça erimemiş, sadece sürekli çalışma sıcaklığının üstünde bir malzemeden yapılmıştır.</p>
+<p>Bu tip parçaların piyasada bulunamamasının iki sebebi var. Birincisi, sıcak bölgedeki parçalar genelde cihaza özeldir: üretici onu ayrı bir yedek parça olarak satmaz, komple modül olarak satar ya da hiç satmaz. İkincisi, benzerini bulsanız bile aynı ölçüde ama yanlış sınıf plastikten olur; ilk ısınma döneminde aynı yerden aynı şekilde bozulur. Sıcağa dayanıklı plastik parça arayan çoğu insan, aslında ölçü değil malzeme arıyordur.</p>
+<p>PRUVO'da yaptığımız iş tam olarak burada başlar. Isıya dayanıklı plastik parça üretimi bizde tek bir soruyla kurulur: bu parça, günlük kullanımda kaç dereceye kadar ısınan bir yerde, ne kadar süre duracak? Cevabına göre malzeme sınıfını seçer, duvar kalınlığını ve iç yapısını o sıcaklıkta biçim koruyacak şekilde ayarlar, ölçüyü numunenizden ya da verdiğiniz ölçü listesinden çıkarırız. Yüksek sıcaklık plastik seçimi tahmine değil, parçanın gerçek konumuna dayanır. Ölçü sizden, üretim bizden.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir</strong> — Bozulan, yumuşayan ya da deforme olan parçayı elinize alın. Elinizde parça kalmadıysa yerinden çekilmiş net fotoğraflar ve kaba ölçüler de yeterli olur. Bize parçanın nerede durduğunu da söyleyin: fırın kapağı yanı mı, motor bölmesi mi, kombi hattı mı.</li>
+<li><strong>Ölç</strong> — Kritik ölçüleri, delik merkezlerini, vida yuvalarını ve oturma yüzeyini çıkarırız. Aynı anda çalışma sıcaklığını konuşuruz; sürekli sıcaklık, kısa süreli tepe sıcaklıktan daha belirleyicidir.</li>
+<li><strong>Üret</strong> — Seçilen malzeme sınıfıyla ölçüye özel üretiriz. Tek adet de olur, aynı parçadan birkaç yedek de.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>Sürekli çalışma sıcaklığına göre malzeme sınıfı:</strong> PETG, ASA, PC ya da takviyeli PA-CF. Seçim parçanın durduğu yere göre yapılır, "en iyi malzeme" diye tek bir cevap yoktur.</li>
+<li><strong>Duvar kalınlığı ve iç yapı yoğunluğu:</strong> ısı altında biçim koruma bunlara bağlıdır; sıcak bölgede duran parçayı daha kalın cidar ve daha yoğun iç yapıyla çıkarırız.</li>
+<li><strong>Ölçü ve tolerans:</strong> numuneden birebir ya da verdiğiniz ölçü listesinden; sıkı geçmesi gereken yüzeyi ayrıca konuşuruz.</li>
+<li><strong>Delik çapı, vida yuvası ve gömme yuva derinliği:</strong> mevcut cıvata ve vidalarınızla uyumlu olacak şekilde.</li>
+<li><strong>Farklı renk seçenekleri:</strong> görünür yerde duran parçalarda renk uyumu için.</li>
+<li><strong>Tek adet ya da küçük seri:</strong> aynı sıcak noktada birden fazla parça varsa hepsi birlikte çıkar.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Malzeme merdiveni sıcaklığa göre yukarı çıkar. Standart sınıf plastikler oda koşulunda iyidir ama ısınan hiçbir bölgeye girmez; güneş altında kalan bir kapakta bile yumuşamaya eğilimlidir. <strong>PETG</strong>, ılık ortamlar ve düzenli ısınıp soğuyan gövde içi parçalar için ilk sağlam adımdır. <strong>ASA</strong>, dış ortamda güneş ve UV ile birlikte ısı gören yerlerde tercih edilir; rengini ve sertliğini uzun süre korur. <strong>PC</strong>, sürekli sıcaklığın daha yukarı çıktığı noktalarda devreye girer ve darbeye de dayanıklıdır. Sıcakla birlikte mekanik yük ya da titreşim varsa — motor bölmesi plastik parça malzemesi seçiminde sık karşılaştığımız durum — karbon ya da cam elyaf takviyeli <strong>PA-CF / PA-GF</strong> sınıfına çıkarız; bu sınıf hem biçimini daha yüksek sıcaklıkta korur hem de eğilmeye direnir.</p>
+<p>Fırın çevresi plastik parça işlerinde çoğu zaman mesafe belirleyicidir: kapaktan on santim uzaktaki bir tutamak ile sıcak yüzeye değen bir ayak aynı parça değildir. Bu yüzden malzeme kararını parçanın adına göre değil, konumuna göre veririz.</p>
+<h2>Dürüst sınır</h2>
+<p>Plastiğin sıcaklık sınırı vardır ve bunu önden söyleriz. Malzeme sınıfına göre sürekli 100-110 °C bandına kadar çıkabiliriz; bu aralık gövde içi, kombi yakını, fırın çevresi ve motor bölmesindeki birçok parça için yeterlidir. Ama alev teması olan, kızgın metal yüzeye değen, rezistans üstünde ya da egzoz hattına yakın duran noktalarda plastik parça önermiyoruz — orada doğru cevap metaldir ve bunu size söyleriz, iş almak için "olur" demeyiz.</p>
+<p>Ara bölge de vardır: kısa süreli tepe sıcaklığı yüksek ama sürekli sıcaklığı ılımlı olan yerler. Böyle bir noktada malzeme sınıfını bir kademe yukarı alıp cidarı kalınlaştırarak çözüm üretebiliriz; çözümün nerede durduğunu da açıkça belirtiriz. Ölçüyü ve parçanın tam konumunu bize ilettiğinizde, sınırın hangi tarafında olduğunuzu üretime girmeden önce öğrenirsiniz.</p>
+<h2>Sipariş</h2>
+<p>Sitemizde kartla online ödeme var; ölçüye özel işler dahil siparişinizi doğrudan verebilirsiniz. Parçanızın sıcak bölgede tam olarak nerede durduğundan emin değilseniz, önce WhatsApp danışma hattımızdan yazın: <strong>+90 545 138 6526</strong>. Fotoğrafı ve kaba ölçüyü gönderin, hangi malzeme sınıfının uygun olduğunu ve işin plastikle çözülüp çözülmeyeceğini söyleyelim.</p>
+<p>Sınıflar arasındaki farkı yan yana görmek isterseniz <a href="/malzeme-rehberi/">malzeme rehberi sayfamız</a> tüm seçenekleri karşılaştırmalı olarak anlatıyor. Parçanız bir ısıtma-soğutma hattının üstündeyse <a href="/klima-kombi-havalandirma-plastik-parca-uretimi/">klima, kombi ve havalandırma parçaları için hazırladığımız sayfaya</a> göz atın; fırın, bulaşık makinesi ya da kurutucu gibi bir cihazın içinden çıkan bir parçadan söz ediyorsak <a href="/beyaz-esya-plastik-parca-uretimi/">beyaz eşya parçası üretimini anlattığımız sayfa</a> doğrudan sizin durumunuza değiniyor.</p>""")
+
+
+def _uv_gunes_dayanikli_dis_mekan_plastik_parca_uretimi():
+    return (u"""<h1>Dış Mekan Plastik Parçası: UV Dayanımlı Malzemeyle Ölçüye Özel Üretim</h1>
+<p>Balkon korkuluğundaki kapak, bahçe sulama hattının klipsi, tente kolunun ucundaki tutucu, çatı olukunun bağlantı pabucu… Bu parçaların hepsinin ortak bir kaderi var: iki üç yaz mevsimi sonunda önce rengi kaçar, sonra elinizde kalır. Sebebi kırılganlık değil, güneş. Sürekli ultraviyole altında kalan sıradan plastik moleküler olarak yorulur; önce sararır, sonra camlaşır ve en küçük darbede parçalanır. Yağmur ve gece–gündüz arasındaki sıcaklık farkı bu yorulmayı hızlandırır. Kırılan parçayı elinize aldığınızda kenarların toz gibi ufalandığını görürsünüz — o parça artık esnemiyordur.</p>
+<p>Asıl sorun, bu parçaların çoğunun tek başına satılmamasıdır. Tente üreticisi yıllar önce modeli değiştirmiş, bahçe sulama setinin markası piyasadan çekilmiş, çatı sisteminin yedeği ancak komple set halinde geliyordur. Bir avuç içi kadar tutucu için tüm sistemi yenilemek zorunda kalmak hem pahalı hem gereksizdir. İşte bu yüzden <strong>güneşe dayanıklı dış mekan plastik parça üretimi</strong> bizim en sık gelen taleplerimizden biri. Elimize gelen kırık parçayı ölçer, aynı geometriyi UV dayanımlı malzemede yeniden üretiriz.</p>
+<p>PRUVO olarak yaptığımız iş, mevcut parçayı taklit etmek değil; onu doğru malzemeye taşımaktır. <strong>Güneşte sararmayan plastik parça</strong> arayan bir kullanıcı aslında iki şey ister: renk sabitliği ve yıllar sonra hâlâ esneyebilen bir gövde. ASA ve PC gibi dış mekan için geliştirilmiş malzemeler bunu sağlar. <strong>Bahçe plastik parça yaptırma</strong>, <strong>tente parçası özel üretim</strong> ya da <strong>çatı ve cephe plastik aksesuar</strong> ihtiyacınız olsun, akış aynıdır ve tek cümleyle özetlenir: Ölçü sizden, üretim bizden.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir.</strong> Kırık parçayı, parçaların hepsini ya da sadece fotoğrafını gönderin. Elinizde hiçbir şey kalmadıysa monte olduğu yerin fotoğrafı ve birkaç kaba ölçü de yeter; gerisini biz çıkarırız. Kırık iki yarım, tek parçadan daha iyidir — kırılma yüzeyi kesit hakkında bilgi verir.</li>
+<li><strong>Ölç.</strong> Dış ölçüleri, montaj delik çaplarını, delikler arası mesafeyi ve varsa açıları kumpasla tek tek alırız. Parçanın hangi yöne baktığını, gün içinde ne kadar güneş gördüğünü ve üzerine kaç kilo geldiğini sorarız; malzeme kararı bu üç cevaptan çıkar.</li>
+<li><strong>Üret.</strong> Onayladığınız ölçü ve malzemeyle özel tasarım üretim yaparız. Tek adet de üretiriz, aynı parçadan on iki tane de. Zayıf gördüğümüz noktaya kaburga ekler, duvar kalınlığını orijinalinden biraz artırırız — çünkü kırılan parça zaten bir kere zayıf çıkmıştır.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<ul>
+<li><strong>UV ve hava koşuluna göre malzeme seçimi:</strong> ASA, PC veya PETG. Parçanın gün boyu doğrudan güneş görüp görmediğine, yağmurda kalıp kalmadığına göre seçilir.</li>
+<li><strong>Dış yüzey renk seçenekleri:</strong> farklı renk seçenekleri sunuyoruz. Açık renkler güneş altında belirgin biçimde daha az ısınır; koyu renk isteyen müşteriye bunu peşinen söyleriz.</li>
+<li><strong>Duvar kalınlığı ve takviye kaburgası:</strong> orijinali ince olduğu için kırıldıysa gövdeyi kalınlaştırır, iç tarafa görünmeyen kaburgalar ekleriz. Dışarıdan aynı parça, içeride ek destek.</li>
+<li><strong>Ölçü ve tolerans:</strong> kırık parçadan birebir kopyalayabilir ya da sizin verdiğiniz ölçü listesine göre üretebiliriz. Geçme yerlerinde sıkı mı gevşek mi olsun, siz söylersiniz.</li>
+<li><strong>Montaj deliği çapı ve delikler arası mesafe:</strong> mevcut vidalarınıza göre ayarlanır; delik yerini kaydırmak veya ilave delik açmak da mümkündür.</li>
+<li><strong>Adet:</strong> tek adet ya da küçük seri. Sitedeki tüm korkulukların kapakları gidiyorsa hepsini birden üretmek adet başına daha mantıklıdır.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Malzeme merdivenimizin en altında standart plastikler var; bunlar iç mekan, kuru ve gölge işler için uygundur ve dış mekanda kullanılmaz. Bir üst kademe dış koşul sınıfıdır: <strong>PETG</strong> yağmura ve neme dayanır, kısmi güneş gören yerlerde iş görür. <strong>ASA</strong> bu sayfanın asıl malzemesidir — sürekli güneş altında renk ve mukavemet koruması için geliştirilmiştir, tente ve cephe parçalarında ilk tercihimizdir. <strong>PC (polikarbonat)</strong> hem güneşe hem darbeye karşı gerekiyorsa devreye girer; kapak, muhafaza ve koruma parçalarında sertlik ister.</p>
+<p>Parça aynı zamanda yük taşıyor veya sürekli titreşim altındaysa merdivenin en üstüne çıkarız: <strong>karbon ve cam elyaf takviyeli PA-CF / PA-GF</strong>. Bunlar rijitliği ve boyut kararlılığını belirgin biçimde yükseltir. Hangi kademede duracağımıza parçanın çalıştığı yere bakarak birlikte karar veririz; gereğinden pahalı malzeme önermeyiz.</p>
+<h2>Dürüst sınır</h2>
+<p>UV dayanımlı malzemelerde bile yıllar içinde hafif bir renk açılması görülebilir. Bu normaldir ve mekanik dayanımı etkilemez: parça soluklaşır ama kırılganlaşmaz. Sıradan plastikte olan ise farklıdır; orada sararma çöküşün habercisidir.</p>
+<p>İkinci sınır yük tarafındadır. Sürekli güneş altında ağırlık taşıyan gerçek bir taşıyıcı eleman — ana kol, taşıyıcı ayak, yük altındaki kiriş — gerekiyorsa doğru seçim metaldir, bunu açıkça söyleriz. Plastik profil ve kiriş ancak hafif, yük dışı işlerde anlamlıdır. Bizim üstlendiğimiz taraf örtü, tutucu, klips, kapak ve muhafazadır: sistemi ayakta tutan değil, sistemi tamamlayan parçalar. Bu ayrımı baştan yapmak, iki yıl sonra aynı şikâyetle karşılaşmamızı önler.</p>
+<h2>Sipariş</h2>
+<p>Sitemizden kartla online ödeme yapabilirsiniz; ölçüye özel üretilen parçalar da buna dahildir. Ölçüden emin değilseniz ya da parçanın hangi malzemede olması gerektiğini konuşmak isterseniz WhatsApp hattımızdan yazın: <strong>+90 545 138 6526</strong>. Kırık parçanın ve monte olduğu yerin fotoğrafını gönderin, uygun malzemeyi ve süreyi size söyleyelim.</p>
+<p>Hangi malzemenin hangi koşulda ne kadar dayandığını daha geniş bir çerçevede görmek isterseniz <a href="/malzeme-rehberi/">malzeme rehberimiz</a> iyi bir başlangıç noktasıdır. Güneş gören bir panoyu, sayacı veya elektrik kutusunu koruyacak bir gövde arıyorsanız <a href="/olcuye-ozel-koruma-kapagi-muhafaza-uretimi/">ölçüye özel koruma kapağı ve muhafaza üretimi</a> sayfamıza bakın. Kırılan parçanın markası piyasadan çekilmişse ya da yedeği hiçbir yerde bulunmuyorsa <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parça özel üretim</a> hizmetimiz tam olarak bu durum için var.</p>""")
+
+
+def _parca_olcusu_nasil_alinir_ve_gonderilir():
+    return (u"""<h1>Parça Ölçüsü Nasıl Alınır? Ölçü Gönderme Rehberi</h1>
+<p>Elinizde artık üretilmeyen bir parça var. Kırılmış, aşınmış ya da hiç bulunamıyor. Özel üretim yaptırmaya karar verdiniz, sonra tek bir soruda takıldınız: parça ölçüsü nasıl alınır, hangi ölçüleri nasıl göndermek gerekir? Bu soru göründüğünden daha kritiktir, çünkü özel üretimin tamamı sizin verdiğiniz sayıların üzerine kurulur. Ölçü doğruysa parça ilk seferde oturur; ölçü eksikse üretim gecikir, yanlışsa parça çalışmaz.</p>
+<p>Piyasada bu iş genelde "teknik çizim gönderin" diye karşılanır. Oysa müşterilerin çok büyük bölümünde teknik çizim yoktur, çoğu zaman kumpas bile yoktur. Elde sadece kırık bir kapak, yuvasından çıkmış bir burç ya da telefonla çekilmiş bir fotoğraf vardır. Kumpas olmadan ölçü alma da, kırık parçanın ölçüsü nasıl çıkarılır sorusu da tamamen çözülebilir işlerdir — yeter ki hangi beş altı sayının gerçekten gerektiğini bilin. Özel üretim için hangi ölçüler gerekir sorusunun cevabı kısadır ve bu sayfada tek tek listelenmiştir.</p>
+<p>PRUVO'da işleyiş nettir: <strong>Ölçü sizden, üretim bizden.</strong> Siz parçayı ölçer ya da parçanın kendisini ulaştırırsınız, biz ölçüyü yazılı olarak teyit eder, malzemeyi kullanım yerine göre seçer ve ölçüye özel üretiriz. Aşağıdaki rehber, ölçüyü doğru almanız ve tek seferde göndermeniz için yazıldı.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir.</strong> Parçanın kendisini ulaştırabiliyorsanız en sağlıklısı budur; kırık da olsa gönderin, parçalar birleştirilerek ölçü çıkarılır. Gönderemiyorsanız fotoğraf yeterlidir: parçayı düz bir zemine koyun, tepeden dik açıyla ve yanından olmak üzere en az iki kare çekin. Yanına bir cetvel ya da bilinen ölçüde bir nesne (kredi kartı, madeni para) koymanız ölçeği doğrular.</li>
+<li><strong>Ölç.</strong> Kumpasınız varsa doğrudan kullanın. Yoksa cetvel ve şerit metre iş görür: parçayı A4 kağıdın üstüne koyup kalemle çevresini geçirin, sonra kağıt üzerinden ölçün — bu yöntem elde tutup ölçmekten çok daha isabetlidir. Delik çapı için deliğe geçen bir matkap ucu ya da vidayı deneyip onun çapını okuyabilirsiniz. Delik merkez mesafesi nasıl ölçülür sorusunun pratik cevabı: iki deliğin dış kenarları arasını ölçün, sonra bir delik çapı kadar çıkarın; sonuç merkezden merkeze mesafedir.</li>
+<li><strong>Üret.</strong> Ölçüleri WhatsApp'tan ya da sipariş notundan iletirsiniz. Biz listeyi yazılı olarak size geri okuruz, onaydan sonra üretim yapılır ve parça adresinize ulaşır.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<p>Her parçada bize gereken sayılar bunlardır. Hepsini milimetre cinsinden verin, virgüllü değer varsa yuvarlamayın:</p>
+<ul>
+<li><strong>Toplam en, boy ve kalınlık</strong> — parçanın dış sınırları. Kalınlık en çok atlanan ölçüdür, mutlaka yazın.</li>
+<li><strong>Delik çapı ve delikler arası mesafe (merkezden merkeze)</strong> — montaj noktalarının tuttuğu tek şey budur; delik sayısını ve yerleşimini de belirtin.</li>
+<li><strong>Mil/şaft geçme çapı</strong> — parçanın oturacağı milin çapı. Milin kendisini ölçmek, deliği ölçmekten daha güvenilirdir.</li>
+<li><strong>Dişli parçalarda diş sayısı ve dış çap</strong> — dişleri fotoğraftan sayabiliyorsak sorun yok, sayamıyorsanız diş sayısını siz sayın.</li>
+<li><strong>Kayış-kasnak parçalarında diş aralığı ve genişlik</strong> — kayışın üstündeki yazı (GT2, HTD gibi) varsa aynen aktarın.</li>
+<li><strong>Halka/conta parçalarda iç çap, dış çap ve kalınlık</strong> — üç sayı da şarttır, ikisi tek başına yeterli değildir.</li>
+<li><strong>Tolerans beklentisi</strong> — sıkı geçme mi istiyorsunuz, boşluklu mu? "Elle zor girsin" ya da "rahat dönsün" demeniz bile yeterli bilgidir.</li>
+<li><strong>Kullanım yeri</strong> — dışarıda mı, motor yanında mı, deniz ortamında mı, yük taşıyacak mı? Bu, malzeme seçimini belirler.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Aynı ölçü, farklı malzemelerle bambaşka bir parça verir. Kapalı ortamda, ısı ve yük görmeyen parçalarda standart malzeme yeterlidir. Güneş altında, dış cephede, motor bölgesinde ya da tuzlu havada duracak parçalarda ısı ve UV dayanımı olan PETG, ASA veya PC tercih edilir. Yük taşıyan, burulan, dişli gibi sürekli temas eden parçalarda ise karbon ya da cam elyaf takviyeli PA-CF / PA-GF grubuna çıkarız. Farklı renk seçenekleri mevcuttur; renk tercihini de ölçü listenize ekleyebilirsiniz. Kullanım yerini yazmanız, bizim sizin yerinize doğru malzemeyi seçmemizi sağlar.</p>
+<h2>Dürüst sınır</h2>
+<p>Kırık parçanın eksik bir bölümü varsa oradaki ölçü tahmine dayanır — bunu size açıkça söyleriz, sessizce doldurup "oldu" demeyiz. Simetriden ya da karşı parçadan yola çıkarız, ama tahmin olduğunu bilerek ilerlersiniz. Milimetrenin altında hassasiyet isteyen geçmelerde ilk parçayı deneme olarak üretip ölçüyü birlikte oturturuz; tek hamlede mikron tutturma sözü vermeyiz. Ölçü yanlış verilirse parça yanlış çıkar, bu basittir ve kimsenin işine yaramaz. Bu yüzden üretim öncesi tüm ölçüleri yazılı olarak teyit eder, onayınızı almadan üretime geçmeyiz. Ayrıca parçanın çalışacağı yere göre plastiğin sınırını da söyleriz: pervane biçimli parçalar fan veya hafif çark olarak iş görür, tekne itişi için değildir; profil ve kirişler hafif, yük dışı kullanımda kalır; contalar düşük–orta basınç aralığında güvenlidir; dişlilerde yüke göre takviyeli malzemeye çıkılır.</p>
+<h2>Sipariş</h2>
+<p>Ölçü listeniz hazırsa sipariş vermek kolaydır. Sitemizden kartla online ödeme yapabilirsiniz; ölçüye özel işler de dahil olmak üzere ödeme adımı doğrudan site üzerinden tamamlanır. Ölçüden emin değilseniz ya da hangi sayıyı vereceğinizi çözemediyseniz önce WhatsApp hattımızdan yazın: <strong>+90 545 138 6526</strong>. Parçanın fotoğrafını gönderin, hangi ölçüleri nasıl alacağınızı adım adım söyleyelim. Ölçü teyidi yazılı yapılır, böylece iki taraf da aynı sayılara bakar.</p>
+<p>Parçayı ölçmek yerine doğrudan elimize ulaştırmak istiyorsanız <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi</a> sayfasındaki akış tam size göredir; ölçüyü biz çıkarırız. Halka ve sızdırmazlık parçalarında iç çap, dış çap ve kalınlık üçlüsünü nasıl kullandığımızı görmek için <a href="/olcuye-ozel-conta-uretimi/">ölçüye özel conta üretimi</a> sayfasına göz atın. Süre, ödeme ve teslimat gibi kalan sorularınızın cevapları ise <a href="/sss/">sıkça sorulan sorular</a> bölümünde toplandı.</p>""")
+
+
+def _ozel_parca_uretimi_fiyati_nasil_belirlenir():
+    return (u"""<h1>Özel Parça Üretiminde Fiyatı Ne Belirler?</h1>
+<p>Elinizde piyasada karşılığı olmayan bir parça var: kırılmış bir tutucu, aşınmış bir dişli, kaybolmuş bir kapak. İlk sorunuz da çok doğal olarak şu oluyor: bunun bedeli ne olur? Özel parça üretimi fiyatı nasıl hesaplanır sorusunun tek satırlık bir cevabı yok; çünkü seri üretimde fiyatı belirleyen kalıp ve stok mantığı, tek parçalık ya da küçük adetli işlerde geçerli değildir. Burada fiyatı belirleyen şey rafta bekleyen bir ürünün etiketi değil, sizin parçanızın ölçüsü, çalışacağı yer ve dayanması gereken koşuldur.</p>
+<p>Piyasada bu parçayı bulamamanızın nedeni de aynı: üretici o modeli kapatmış, yedek parça akışı durmuş ya da parça hiç ticari olarak satılmamış, bir makinenin içinde doğmuş. Bayiye sorduğunuzda "komple grup" fiyatı çıkıyor; oysa ihtiyacınız olan tek bir küçük eleman. Özel parça yaptırma ne kadar tutar diye araştıran çoğu kişi, aslında kıyaslanabilir bir referans arıyor. Biz de bu sayfada fiyat listesi vermek yerine, teklifinizi oluşturan değişkenleri açıkça anlatıyoruz — böylece ölçüye özel üretim fiyatı size kapalı bir kutu gibi gelmiyor.</p>
+<p>PRUVO'nun işi tam olarak burada başlıyor. Ölçü sizden, üretim bizden. Numunenizi, fotoğrafınızı ya da hazır dosyanızı alırız; parçayı ölçer, malzemesini çalışacağı yere göre seçer ve size net bir rakam veririz. Tek parça üretim maliyeti ile on adetlik bir işin birim maliyeti farklıdır ve bunu da teklifte ayrı ayrı görürsünüz.</p>
+<h2>Nasıl çalışır: getir, ölç, üret</h2>
+<ol>
+<li><strong>Getir.</strong> Kırık parçayı, benzerini ya da ölçülü bir fotoğrafını gönderin. Elinizde teknik çizim veya hazır dosya varsa doğrudan onu kullanırız. Teklif için ne göndermeliyim diye düşünüyorsanız cevap kısa: parçanın kendisi en iyisi, olmuyorsa yanına cetvel/kumpas koyarak çekilmiş net fotoğraflar ve kritik ölçüler yeter.</li>
+<li><strong>Ölç.</strong> Dış ölçüleri, delik çaplarını, diş adımlarını ve oturma yüzeylerini çıkarırız. Parçanın nerede, hangi yüke ve sıcaklığa maruz çalıştığını sorarız; çünkü bu bilgi hem malzemeyi hem fiyatı doğrudan etkiler.</li>
+<li><strong>Üret.</strong> Onaylı ölçü ve malzemeyle özel tasarım üretim yapılır. İlk numunede ölçü tutmazsa revizyon turunu konuşur, düzeltir ve gönderiyi ona göre planlarız.</li>
+</ol>
+<h2>Ölçünüze göre ayarladığımız seçenekler</h2>
+<p>Fiyatı oluşturan kalemler soyut değil; hepsi sizin verdiğiniz girdiye bağlı somut ayarlardır:</p>
+<ul>
+<li><strong>Parça hacmi ve dış ölçüleri.</strong> Fiyatın en büyük tek bileşeni budur; büyüyen hacim hem malzeme hem üretim süresi demektir.</li>
+<li><strong>Malzeme sınıfı.</strong> Standart iç mekân malzemesi mi, ısı/UV/nem gören PETG-ASA-PC mi, yoksa yüksek mukavemet için karbon veya cam elyaf takviyeli PA-CF / PA-GF mi? Sınıf yükseldikçe birim maliyet artar, dayanım da artar.</li>
+<li><strong>Dayanım seviyesi.</strong> Dekoratif bir kapak ile yük taşıyan bir braket aynı iç yapıyla üretilmez. Dayanım isteği arttıkça malzeme ve süre artar.</li>
+<li><strong>Adet.</strong> Adet arttıkça birim maliyet düşer; hazırlık bir kez yapılır, aynı ölçü tekrar tekrar üretilir. Bu yüzden "şimdilik bir tane" ile "yılda yirmi tane" farklı fiyatlanır.</li>
+<li><strong>Ölçü girdisinin hazır olup olmaması.</strong> Numune elimizdeyse en hızlısı ve en ucuzu; fotoğraf + ölçü ile de çalışırız; hazır dosya gelirse ölçü çıkarma adımı tamamen düşer.</li>
+<li><strong>Revizyon turu.</strong> İlk denemede oturması beklenen sade geometrili parçalarda ek tur çıkmaz; karmaşık geometride bir deneme turu fiyata dahil edilir, baştan söyleriz.</li>
+<li><strong>Farklı renk seçenekleri.</strong> Renk tercihi çoğu işte fiyatı değiştirmez; özel bir ton isteniyorsa bunu teklifte ayrıca belirtiriz.</li>
+</ul>
+<h2>Doğru malzeme</h2>
+<p>Malzeme seçimi, fiyatın en çok tartışılan kalemi olduğu için kısa bir merdivenle anlatalım. İç mekânda, güneş görmeyen, ısınmayan, yük almayan parçalarda standart malzeme yeterlidir ve en ekonomik seçenektir. Dışarıda duran, güneş altında kalan, sıcak-nemli ortamda ya da deniz koşulunda çalışan parçalarda PETG, ASA veya PC sınıfına çıkarız; burada maliyet bir kademe artar ama parça ömrü belirgin şekilde uzar. Titreşim, darbe, sürekli yük ya da vidalı bağlantıya oturan kritik parçalarda karbon veya cam elyaf takviyeli PA-CF / PA-GF öneririz; bu en pahalı sınıftır ve gerekmedikçe önermeyiz. Ucuz malzemeyle üretilip altı ay sonra yenisi istenen parça, doğru malzemeyle bir kez üretilenden pahalıya gelir.</p>
+<h2>Dürüst sınır</h2>
+<p>Bu sayfada sabit fiyat listesi vermiyoruz ve bunu bilerek yapıyoruz: ölçüsüz verilen fiyat tahmini yanıltıcıdır, sonra da ya bizi ya sizi zor durumda bırakır. Kesin fiyat, ölçü ve malzeme netleştiğinde çıkar; genellikle numune veya ölçülü fotoğraf elimize geçtikten sonra kısa sürede.</p>
+<p>İkinci sınır adetle ilgili: adet çok yükseldiğinde başka bir üretim yöntemi sizin için daha ekonomik olabilir. Böyle bir durumda bunu açıkça söyleriz, işi zorlamayız.</p>
+<p>Üçüncüsü malzemenin fiziksel sınırı. Pervane benzeri parçalarda fan ve hafif çark işini karşılarız, tekne itişi gibi gerçek itki uygulamaları bu malzemelerin işi değildir. Profil ve kiriş türü parçalarda hafif, yük dışı kullanımlar uygundur. Contalarda düşük–orta basınç aralığı gerçekçidir. Dişlilerde yüke göre takviyeli sınıfa çıkmak gerekir; bu da fiyatı yukarı taşır. Parçanız bu sınırların dışındaysa fiyat vermeden önce söyleriz.</p>
+<h2>Sipariş</h2>
+<p>Ölçüsü ve malzemesi netleşen işlerde ödemeyi sitemizden kartla online yapabilirsiniz; ölçüye özel işler de buna dahildir, ayrı bir ödeme yöntemi aramanız gerekmez. Fiyat öncesi danışmak, ölçü göndermek veya parçanızın uygun olup olmadığını sormak isterseniz WhatsApp hattımızdan yazın: <strong>+90 545 138 6526</strong>. Fotoğrafı ve ölçüyü aynı mesajda gönderirseniz teklif en hızlı şekilde çıkar.</p>
+<p>Maliyetin büyük kısmını malzeme kararı belirlediği için, teklifi beklerken <a href="/malzeme-rehberi/">malzeme rehberimize göz atıp parçanızın çalışacağı koşula hangi sınıfın uyduğunu</a> önceden görebilirsiniz. Tek bir adet için fiyatın nasıl oluştuğunu ve neden birim maliyetin daha yüksek çıktığını merak ediyorsanız <a href="/tek-adet-ozel-parca-uretimi/">tek adet özel parça üretimi sayfamız</a> bu tarafı ayrıntılı anlatıyor. Elinizde kırık orijinal varsa en net teklif oradan çıkar; <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye göre plastik parça üretimi akışını</a> okuyup parçayı nasıl göndereceğinizi baştan planlayabilirsiniz.</p>""")
+
+
 # build.py'nin ÜRETTİĞİ yeni sayfalar (hakkimizda/iletisim/sss/gizlilik zaten
 # elle yapılmış statik dosya olarak repo'da; onlar üretilmez, korunur).
 # slug -> (başlık, meta açıklama, gövde fonksiyonu)
@@ -2080,6 +2439,17 @@ CONTENT_PAGES = [
     ('ofis-ekipmani-plastik-parca-uretimi', 'Ofis Makinesi ve Ekipmanı Plastik Parça Üretimi', 'Fotokopi, evrak imha, laminasyon ya da ofis koltuğu mekanizmasının kırılan plastik parçasını numuneden ölçüye özel üretiyoruz. Tek adet olur. Getir, ölç, üret.', _ofis_ekipmani_plastik_parca_uretimi),
     ('muzik-enstruman-plastik-parca-uretimi', 'Müzik Enstrümanı Plastik Parça Özel Üretimi', 'Gitar, nefesli ya da klavye enstrümanının kırılan plastik parçasını numuneden ölçüye özel üretiyoruz: akort düğmesi, tuş, klips, dayama. Getir, ölç, üret.', _muzik_enstruman_plastik_parca_uretimi),
     ('akvaryum-terraryum-plastik-parca-uretimi', 'Akvaryum ve Teraryum Plastik Parça Üretimi', 'Akvaryum ya da teraryumun kırılan plastik parçasını numuneden ölçüye özel üretiyoruz: filtre klipsi, çıkış borusu, kapak menteşesi, hortum tutucu. Suya dayanıklı.', _akvaryum_terraryum_plastik_parca_uretimi),
+    ('pvc-dograma-kapi-pencere-plastik-parca-uretimi', 'PVC Pencere ve Kapı Plastik Yedek Parça Üretimi', 'Kırılan ispanyolet kapağı, sineklik mandalı, panjur makarası ve köşe takozunu numuneden ölçüp aynı ölçüde yeniden üretiyoruz. Ölçü sizden, üretim bizden.', _pvc_dograma_kapi_pencere_plastik_parca_uretimi),
+    ('olcuye-ozel-dugme-ayar-topuzu-uretimi', 'Cihaz Düğmesi ve Ayar Topuzu Ölçüye Özel Üretim', 'Ocak, fırın, radyo ve tezgah düğmesi kırıldıysa mil profilini ölçüp aynı ölçüde üretiyoruz. D-mil, tırtıllı, kare mil ve farklı renk seçenekleri sizin.', _olcuye_ozel_dugme_ayar_topuzu_uretimi),
+    ('olcuye-ozel-fan-carki-uretimi', 'Ölçüye Özel Fan Çarkı ve Kanat Üretimi', 'Kırılan fan çarkını dış çap, kanat sayısı ve mil ölçüsüne göre birebir üretiyoruz. Havalandırma ve soğutma içindir; tekne itişi ya da pompa çarkı işi yapmaz.', _olcuye_ozel_fan_carki_uretimi),
+    ('olcuye-ozel-tekerlek-makara-uretimi', 'Plastik Tekerlek ve Makara Ölçüye Özel Üretim', 'Çekmece, sepet, sürgü ve valiz tekerleğini çap, kanal ve aks ölçüsüne göre üretiyoruz. Hafif-orta yük içindir; ağır yükte takviyeli malzemeye çıkarız.', _olcuye_ozel_tekerlek_makara_uretimi),
+    ('karavan-plastik-parca-ozel-uretim', 'Karavan Plastik Yedek Parça Özel Üretimi', 'Karavan dolap mandalı, perde rayı ucu ve havalandırma kapağı gibi bulunamayan parçaları ölçüye özel üretiyoruz. Tek adet olur, güneş gören yüzeye ASA.', _karavan_plastik_parca_ozel_uretim),
+    ('tekstil-makinesi-plastik-parca-uretimi', 'Tekstil Makinesi Plastik Parça Ölçüye Özel Üretim', 'Masura, iplik kılavuzu, burç ve kızak takozu gibi tekstil makinesi plastiklerini numuneden ölçüye özel üretiyoruz. Tek adet ve düşük adetli seri olur.', _tekstil_makinesi_plastik_parca_uretimi),
+    ('elektrikli-scooter-plastik-parca-uretimi', 'Elektrikli Scooter Plastik Yedek Parça Üretimi', 'Elektrikli scooter çamurluğu, gidon kapağı, şarj kapağı ve mandalı ölçüye özel üretiyoruz. Fren ve şasi parçaları kapsam dışı; sınırımızı açıkça söyleriz.', _elektrikli_scooter_plastik_parca_uretimi),
+    ('isiya-dayanikli-plastik-parca-uretimi', 'Isıya Dayanıklı Plastik Parça Üretimi', 'Fırın çevresi, motor bölmesi ve kombi yakınındaki sıcak noktalar için ısıya dayanıklı parça üretiyoruz. PETG, ASA, PC ve takviyeli sınıf; sınırını söyleriz.', _isiya_dayanikli_plastik_parca_uretimi),
+    ('uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi', 'Güneşe Dayanıklı Dış Mekan Plastik Parça Üretimi', 'Güneşte sararıp kırılan balkon, bahçe, çatı ve tente parçalarını UV dayanımlı ASA ve PC ile ölçüye özel yeniden üretiyoruz. Ölçü sizden, üretim bizden.', _uv_gunes_dayanikli_dis_mekan_plastik_parca_uretimi),
+    ('parca-olcusu-nasil-alinir-ve-gonderilir', 'Parça Ölçüsü Nasıl Alınır ve Nasıl Gönderilir', 'Özel üretim için hangi ölçüler gerekir? Kumpas yoksa cetvelle nasıl ölçülür, kırık parça nasıl ölçülür, hangi beş ölçü her parçada şarttır: adım adım.', _parca_olcusu_nasil_alinir_ve_gonderilir),
+    ('ozel-parca-uretimi-fiyati-nasil-belirlenir', 'Özel Parça Üretimi Fiyatı Nasıl Belirlenir', 'Özel parça üretiminde fiyatı ne belirler? Boyut, malzeme sınıfı, dayanım, adet ve ölçü girdisi. Şeffaf anlatım, net teklif; kartla ödeme sitede yapılır.', _ozel_parca_uretimi_fiyati_nasil_belirlenir),
 ]
 
 # Statik içerik/yasal sayfalar: elle yazılmış, build.py ÜRETMEZ (repo'da commit'li), korunur.
