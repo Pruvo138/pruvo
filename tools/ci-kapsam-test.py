@@ -91,6 +91,11 @@ R_SONRA = ("Offline + yerelde YESIL, ama Paket C kapsami YALNIZ mimarin verdigi 
            "eklemeleri CI'ya aldi. Bu test sonraki turda (ubuntu path/env dogrulamasi sonrasi) "
            "CI'ya alinabilir — kod-kilidi ornegi 'yerel-yesil / CI-kirmizi' tuzagini kanitladi, "
            "o yuzden kor-ekleme yapilmadi.")
+R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VIRTUAL TABLE ... "
+          "USING fts5(tokenize='trigram')). CI ubuntu stok sqlite3'unde fts5-trigram tokenizer'i "
+          "yok -> test daha sema yuklerken patlar (yerel-yesil / CI-kirmizi). R_YAVAS/R_YOL ile "
+          "ayni sinif: yapisal olarak CI-disi, deploy.yml'e EKLENMEZ; canli D1 dogrulamasi ayri "
+          "go-live fazinda yapilir.")
 
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
@@ -131,6 +136,8 @@ IZIN_LISTESI = {
     "tools/filament-test.py": R_YAVAS,
     "tools/kaynak-akis-test.py": R_YAVAS,
     "tools/test-bbox-3mf.py": R_YAVAS,
+    # --- tools/ python: fts5-trigram sqlite gerektiren (CI ubuntu'da yok) ---
+    "tools/taban-fiyat-d1-test.py": R_FTS5,
     # --- tools/ python: offline-yesil, sonraki turda alinabilir ---
     "tools/d1-sync-durum-test.py": R_SONRA,
     "tools/denetim-kapisi-test.py": R_SONRA,
