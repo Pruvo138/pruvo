@@ -20,6 +20,7 @@ STATIK = ["sss", "gizlilik", "hakkimizda", "iletisim"]
 STATIK_DOSYALAR = [os.path.join(ROOT, slug, "index.html") for slug in STATIK]
 KOK_INDEX = os.path.join(ROOT, "index.html")
 SAYFALAR = os.path.join(TOOLS, "sayfalar.py")
+SECENEKLER = os.path.join(ROOT, "secenekler.js")
 
 sonuclar = []
 
@@ -133,6 +134,7 @@ tum_statik = {yol: oku(yol) for yol in STATIK_DOSYALAR}
 sss_html = tum_statik[os.path.join(ROOT, "sss", "index.html")]
 kok_html = oku(KOK_INDEX)
 sayfalar_py = oku(SAYFALAR)
+secenekler_js = oku(SECENEKLER)
 
 # 1) Bayat ödeme beyanları yok.
 yasaklar = [
@@ -220,6 +222,54 @@ for yol, metin in tum_statik.items():
     if re.search(r"tel:[^\"'\s>]*6526", metin):
         telefon_hatalari.append("%s:tel 6526" % rel(yol))
 kontrol(8, "wa.me içinde 4005 yok, tel: içinde 6526 yok", not telefon_hatalari, ", ".join(telefon_hatalari))
+
+# 9) Parametrik ödeme AÇIKKEN "parametrik/ölçüye özel ... WhatsApp kanalından ilerler" iddiası YOK.
+#    ÇAPRAZ DOĞRULAMA: beklenti secenekler.js:PARAMETRIK_ODEME_ACIK bayrağından türetilir.
+#    Bayrak true  -> parametrik kalemler de sepet/kartla ilerler; "WhatsApp'tan ilerler" iddiası BAYAT -> FAIL.
+#    Bayrak false -> parametrik gerçekten WhatsApp'tan ilerler; aynı iddia MEŞRU -> geçer.
+#    Kapsam: 4 statik sayfa + CONTENT_PAGES'ten türetilen landing gövdeleri (build.py KOŞTURULMADAN,
+#    kaynak sayfalar.py'den import edilip fonksiyonlar çağrılarak).
+bayrak_m = re.search(r"var\s+PARAMETRIK_ODEME_ACIK\s*=\s*(true|false)\b", secenekler_js)
+parametrik_bayat_desen = re.compile(
+    r"(parametrik|ölçüye özel)[^.]{0,120}whatsapp\s+kanal[^.]{0,40}ilerl", re.I)
+
+parametrik_govdeler = {}
+for yol, metin in tum_statik.items():
+    parametrik_govdeler[rel(yol)] = temiz_metin(metin)
+
+landing_import_hatasi = None
+try:
+    if TOOLS not in sys.path:
+        sys.path.insert(0, TOOLS)
+    import sayfalar as _sayfalar_mod
+    for _slug, _baslik, _meta, _fn in _sayfalar_mod.CONTENT_PAGES:
+        try:
+            parametrik_govdeler["landing:%s" % _slug] = temiz_metin(_fn())
+        except Exception as e:
+            landing_import_hatasi = "landing gövdesi üretilemedi (%s): %s" % (_slug, e)
+except Exception as e:
+    landing_import_hatasi = "sayfalar.py import edilemedi: %s" % e
+
+parametrik_ihlaller = []
+for etiket, duz in parametrik_govdeler.items():
+    if parametrik_bayat_desen.search(duz):
+        parametrik_ihlaller.append(etiket)
+
+if bayrak_m is None:
+    # Bayrak okunamadı -> fail-closed (kodla çapraz doğrulama yapılamıyor).
+    kontrol(9, "Parametrik→WhatsApp iddiası bayrakla çapraz doğrulandı",
+            False, "secenekler.js içinde PARAMETRIK_ODEME_ACIK bulunamadı")
+elif landing_import_hatasi is not None:
+    # Landing gövdeleri taranamadı -> fail-closed (kapsam eksik kalır).
+    kontrol(9, "Parametrik→WhatsApp iddiası bayrakla çapraz doğrulandı (statik + landing)",
+            False, landing_import_hatasi)
+elif bayrak_m.group(1) == "true":
+    kontrol(9, "PARAMETRIK_ODEME_ACIK=true iken parametrik→WhatsApp bayat iddiası yok (statik + landing)",
+            not parametrik_ihlaller, ", ".join(parametrik_ihlaller))
+else:
+    # Bayrak false: parametrik gerçekten WhatsApp'tan ilerliyor -> iddia meşru, kapı geçer.
+    kontrol(9, "PARAMETRIK_ODEME_ACIK=false iken parametrik→WhatsApp iddiası meşru (çapraz doğrulama)",
+            True, "bayrak kapalı; %d gövdede iddia meşru sayıldı" % len(parametrik_ihlaller))
 
 print()
 gecen = 0
