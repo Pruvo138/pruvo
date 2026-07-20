@@ -2915,15 +2915,15 @@ def _cim_bicme_bahce_makinesi_plastik_parca_yaptirma():
 
 
 def _ozel_parca_kac_gunde_hazir_olur():
-    return (u"""<h1>Ölçü onayından sonra teslim süresi: 3-5 iş günü</h1>
+    return (u"""<h1>Ölçü onayından sonra 3-5 iş günü içinde kargoya verilir</h1>
 <p>Özel üretimde fiyattan önce sorulan soru genelde şudur: özel parça kaç günde hazır olur? Soru yerinde, çünkü bu sayfaya çoğunlukla bir iş beklerken gelinir — makine durmuştur, araç kullanılamaz haldedir ya da tezgâhın bir gözü boş kalmıştır. Parça arayışında geçen günlerin üstüne bir de belirsiz bir üretim süresi eklenince takvim tümüyle kayar.</p>
-<p>Net cevap şu: özel üretim teslim süresi, ölçü onayından sonra 3-5 iş günüdür. Ölçünün bize ulaşması ve teyidi bu sürenin öncesindedir; ölçü netleşene kadar sayaç işlemez. Aşağıda her kademeyi ve süreyi etkileyen noktaları açık yazıyoruz; böylece ölçüye özel parça süresi konusunda tahmin yürütmek yerine takviminizi kurabilirsiniz.</p>
+<p>Net cevap şu: özel üretim parça, ölçü onayından sonra 3-5 iş günü içinde kargoya verilir. Ölçünün bize ulaşması ve teyidi bu sürenin öncesindedir; ölçü netleşene kadar sayaç işlemez. Aşağıda her kademeyi ve süreyi etkileyen noktaları açık yazıyoruz; böylece ölçüye özel parça süresi konusunda tahmin yürütmek yerine takviminizi kurabilirsiniz.</p>
 <h2>Nasıl çalışır: getir, ölç, üret</h2>
 <p><strong>1. Ölçü ya da numunenin bize ulaşması.</strong> Kırık parçanın fotoğrafını ve kumpas ölçülerini WhatsApp'tan iletebilir, parçayı fiziken de gönderebilirsiniz. Elinizde hiç ölçü yoksa, ölçü alma yöntemini anlatan sayfamızdaki sırayı izlemeniz yeterlidir; <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parça ölçüsünün nasıl alınıp gönderileceğini</a> burada anlatıyoruz.</p>
-<p><strong>2. Teyit.</strong> Ölçüleri okur, tutmayan veya eksik kalan yerleri size sorarız. Delik aralığı, cidar kalınlığı, diş ölçüsü gibi kritik değerlerden biri eksikse iş burada durur ve teyit yazışması tamamlanana kadar teslim süresi başlamaz.</p>
-<p><strong>3. Üretim.</strong> Ölçü onayından sonra başlayan 3-5 iş günlük teslim süresinin üretim kısmını, parçanın boyutuna, cidarına ve adedine göre planlarız.</p>
+<p><strong>2. Teyit.</strong> Ölçüleri okur, tutmayan veya eksik kalan yerleri size sorarız. Delik aralığı, cidar kalınlığı, diş ölçüsü gibi kritik değerlerden biri eksikse iş burada durur ve teyit yazışması tamamlanana kadar süre başlamaz.</p>
+<p><strong>3. Üretim.</strong> Ölçü onayından sonra başlayan 3-5 iş günlük sürenin üretim kısmını, parçanın boyutuna, cidarına ve adedine göre planlarız.</p>
 <p><strong>4. Gönderim.</strong> Üretim biter bitmez parçayı gönderime hazırlarız; teslim noktası ve taşıma koşulları size verdiğimiz takvimde belirtilir.</p>
-<p>Ölçüsü tam gelen tek adet işlerde teslim süresi ölçü onayından sonra 3-5 iş günüdür; revizyon gerektiren ya da karmaşık ölçülü işlerde süreyi sipariş sırasında ayrıca bildiririz. Ölçü netleşene kadar sayaç işlemez; tarihi ölçünüzü teyit ettiğimizde veririz.</p>
+<p>Ölçüsü tam gelen tek adet işlerde ölçü onayından sonra 3-5 iş günü içinde kargoya verilir; revizyon gerektiren ya da karmaşık ölçülü işlerde süreyi sipariş sırasında ayrıca bildiririz. Ölçü netleşene kadar sayaç işlemez; tarihi ölçünüzü teyit ettiğimizde veririz.</p>
 <h2>Ölçünüze göre ayarladığımız seçenekler</h2>
 <p>Süreyi belirleyen asıl şey, ölçünüzde hangi değerlerin net geldiğidir. Aşağıdakiler hem parçanızda ayarladığımız gerçek ölçülerdir, hem de eksik kaldığında teyit kademesini uzatan kalemlerdir:</p>
 <ul>
@@ -3080,7 +3080,7 @@ CONTENT_PAGES = [
     ('cam-krikosu-plastik-parcasi-yaptirma', 'Cam Krikosu Plastik Parçası Yaptırma', 'Cam inip kalkmıyorsa arıza çoğu zaman motorda değil, kırılan plastik kızak ve tutucudadır. Numunenizden ölçüye özel yenisini üretiyoruz; ölçünüzü bize iletin.', _cam_krikosu_plastik_parcasi_yaptirma),
     ('darbeye-dayanikli-plastik-parca-yaptirma', 'Darbeye Dayanıklı Plastik Parça Yaptırma', 'Aynı plastik parça hep aynı yerden mi kırılıyor? Darbeye dayanıklı plastik parça yaptırma için malzeme sınıfını ve kesiti birlikte seçelim, ölçünüzü gönderin.', _darbeye_dayanikli_plastik_parca_yaptirma),
     ('cim-bicme-bahce-makinesi-plastik-parca-yaptirma', 'Çim Biçme Makinesi Plastik Parça Yaptırma', 'Çim biçme makinesinin tekerlek göbeği, ayar kolu ya da misina kafası tutucusu kırıldıysa numunenizden tekil üretiyoruz. Ölçüyü gönderin, siparişi verin.', _cim_bicme_bahce_makinesi_plastik_parca_yaptirma),
-    ('ozel-parca-kac-gunde-hazir-olur', 'Özel Üretim Parça Kaç Günde Hazır Olur?', 'Özel üretim parça kaç günde hazır olur? Ölçü onayından sonra 3-5 iş günü: hangi kademe neyi bekletir, süreyi ne uzatır. Ölçünüzü iletin, takvimi verelim.', _ozel_parca_kac_gunde_hazir_olur),
+    ('ozel-parca-kac-gunde-hazir-olur', 'Özel Üretim Parça Kaç Günde Hazır Olur?', 'Özel üretim parça kaç günde hazır olur? Ölçü onayından sonra 3-5 iş günü içinde kargoya verilir: hangi kademe neyi bekletir, süreyi ne uzatır. Ölçünüzü iletin.', _ozel_parca_kac_gunde_hazir_olur),
     ('plastik-parcaya-vida-disi-acilir-mi', 'Plastik Parçaya Vida Dişi Açılır mı?', 'Plastik parçaya vida dişi açılır mı? Diş sıyrılmasına karşı metal gömme somun, diş boyu ve cidar kalınlığını ölçünüze göre ayarlıyoruz. Ölçünüzü iletin.', _plastik_parcaya_vida_disi_acilir_mi),
 ]
 
