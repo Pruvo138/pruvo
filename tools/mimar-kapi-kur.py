@@ -29,12 +29,69 @@ KAYIT = {
 }
 
 
+PRECOMMIT = "/Users/okan/dev/pruvo/.git/hooks/pre-commit"
+
+
+def _pretooluse(veri):
+    return ((veri.get("hooks") or {}).get("PreToolUse") or [])
+
+
+def _zincirde_var(veri, matcher_parcasi, dosya_adi):
+    """PreToolUse bloklarindan matcher'i verilen parcayi ICEREN blokta, komut
+    dizesinde dosya adi geciyor mu? Canli komut
+    'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/x.py"' bicimindedir → eslesme dosya ADI
+    uzerinden (alt-dize) yapilir."""
+    for blok in _pretooluse(veri):
+        matcher = blok.get("matcher") or ""
+        if matcher_parcasi not in matcher:
+            continue
+        for kanca in (blok.get("hooks") or []):
+            if dosya_adi in (kanca.get("command") or ""):
+                return True
+    return False
+
+
+def durum():
+    """SALT-OKUNUR kablo raporu. Cikti MAKINE OKUNUR: her satir ANAHTAR=DEGER.
+    Uc anahtardan biri 'yok' ise exit 1.
+
+    HEDEF DOSYALAR --ayar / --precommit ile degistirilebilir: kabul testi raporcuyu
+    CANLI settings.json'a bagli kalmadan, kendi kurdugu gecici kopyalar uzerinde
+    hem POZITIF (hepsi var) hem NEGATIF (biri eksik) yonden sinar. Boylece "durum()
+    daima var der" mutasyonu KIRMIZI yanar (eski surumde nobetsizdi)."""
+    try:
+        veri = json.loads(io.open(AYAR, encoding="utf-8").read())
+    except Exception:
+        veri = {}
+
+    bash_var = _zincirde_var(veri, "Bash", "mimar-icra-kapisi.py")
+    yazma_var = _zincirde_var(veri, "Write", "mimar-kod-kilidi.py")
+
+    precommit_var = False
+    try:
+        precommit_var = "mimar-commit-kapisi.py" in io.open(
+            PRECOMMIT, encoding="utf-8", errors="replace").read()
+    except Exception:
+        precommit_var = False
+
+    print("BASH_ZINCIRI_ICRA=" + ("var" if bash_var else "yok"))
+    print("YAZMA_ZINCIRI_KILIT=" + ("var" if yazma_var else "yok"))
+    print("PRECOMMIT_COMMIT_KAPISI=" + ("var" if precommit_var else "yok"))
+    print("AYAR_DOSYASI=" + AYAR)
+    sys.exit(0 if (bash_var and yazma_var and precommit_var) else 1)
+
+
 def main():
-    global AYAR
+    global AYAR, PRECOMMIT
     argv = sys.argv[1:]
     uygula = "--uygula" in argv
     if "--ayar" in argv:  # test/kuru kosum icin baska bir settings.json'a isaret et
         AYAR = argv[argv.index("--ayar") + 1]
+    if "--precommit" in argv:  # kabul testi kendi HERMETIK kopyasini gosterir
+        PRECOMMIT = argv[argv.index("--precommit") + 1]
+
+    if "--durum" in argv:  # SALT-OKUNUR: settings.json'a YAZMAZ
+        durum()
 
     if not os.path.exists(AYAR):
         print("BULUNAMADI: " + AYAR)

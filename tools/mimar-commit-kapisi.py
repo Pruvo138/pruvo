@@ -14,21 +14,51 @@ KAYNAK dosyasi varken commit'i AÇMAZ: kaynak isi worktree'de commit'lenir. Bu d
 env bypass'inin geçmiste mimarin kaynak-koda kaçis kapisina (tools/*.py'nin ana
 checkout'a bu yolla girmesi) dönüsmesini kapatir; bilinen tek gevseme belgeli ve dar.
 
+BYPASS MUHASEBESI (kapi bir DISIPLIN cihazidir, hapishane degil — hepsi KAYITLI):
+  1. PRUVO_MIMAR_ONAY=worker  → yalniz VERI duzlemi; stderr + log satiri "allow-escape".
+  2. Sequencer suruyor (MERGE_HEAD/CHERRY_PICK_HEAD/REVERT_HEAD/rebase-*) → YALNIZCA
+     korunan (kaynak/veri) dosya staged DEGILKEN gurultulu allow; stderr + log satiri
+     "allow-sequencer".
+     🔴 20 Tem REGRESYON ONARIMI (R1): bu istisna main()'in EN BASINDA, korunan-dosya
+     kontrolunun ONUNDE ve KOSULSUZ 'return 0' idi. Olculdu: env yok + staged
+     index.html + elle yazilmis .git/MERGE_HEAD -> exit 0 (main'de ayni vaka exit 1).
+     Yani tek 'Write .git/MERGE_HEAD' yalniz veri duzlemini degil KAYNAK commit'ini de
+     aciyordu. Istisna artik korunan-dosya kontrolunun ARKASINDA ve semantigi DAR:
+     sequencer suruyorken bile korunan kaynak/veri staged ise kapi KAPALI (fail-closed).
+     Geriye kalan mesru islev: sequencer'in kendi urettigi (korunan dosya icermeyen)
+     commit'in GURULTULU + LOGLU gecmesi.
+     BEDELI ACIK: cakisma cozumu KAYNAK dosya iceriyorsa 'git commit' bloklanir →
+     cakismayi worktree'de coz ve merge'i oradan tasi (ya da kayitli --no-verify).
+  3. git commit --no-verify → kapi hic kosmaz (git'in kendi kapisi; ayni zincirdeki
+     urunler-guard'i da oldurur, bu yuzden hata metni bu yolu ONERMEZ).
+  4. 'git worktree add <yol>' → mimar kendine tam muaf bir bolge acar (worktree
+     toplevel'i bu kapinin kapsami disidir). BILEREK acik: kapi disiplin cihazi.
+  Haftalik olcum:
+     grep -c allow- /Users/okan/dev/pruvo/.git/pruvo-kapi-log.jsonl
+
 Test kolayligi icin:
 - --stdin: staged dosya listesini stdin'den oku.
 - --toplevel YOL: repo toplevel'ini elle ver.
+- --gitdir YOL: git dizinini elle ver (sequencer testi + log hedefi).
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
+import time
 
 ANA_REPO = "/Users/okan/dev/pruvo"
 KAYNAK_UZANTI = {".py", ".js", ".mjs", ".ts", ".html", ".css", ".sql"}
 VERI_BASENAME = {"urunler.json", ".urun-kaynaklari.json"}
+
+# Bir merge/cherry-pick/revert/rebase suruyorsa commit KORUNAN DOSYA YOKKEN gecer
+# (gurultulu + loglu). Korunan dosya varsa sequencer istisnasi ISLEMEZ — bkz. R1.
+SEQUENCER_DOSYA = ("MERGE_HEAD", "CHERRY_PICK_HEAD", "REVERT_HEAD")
+SEQUENCER_DIZIN = ("rebase-merge", "rebase-apply")
 
 
 def _basename(yol: str) -> str:
@@ -46,12 +76,15 @@ def veri_mi(yol: str) -> bool:
 
 
 def kaynak_mi(yol: str) -> bool:
-    """Dosya yolu KAYNAK kodu mu? (.py/.js/.mjs/.ts/.html/.css/.sql; veri HARIC)"""
+    """Dosya yolu KAYNAK kodu mu? (.py/.js/.mjs/.ts/.html/.css/.sql; veri HARIC)
+
+    Uzanti karsilastirmasi KUCUK HARFE indirilir — 'tools/x.PY' olculmus bir kacakti
+    (macOS dosya sistemi harf duyarsiz, git yolu oldugu gibi tasir)."""
     basename = _basename(yol)
     if not basename or basename in VERI_BASENAME:
         return False
     _, uzanti = os.path.splitext(basename)
-    return uzanti in KAYNAK_UZANTI
+    return uzanti.lower() in KAYNAK_UZANTI
 
 
 def korunan_mi(yol: str) -> bool:
@@ -85,16 +118,67 @@ def toplevel(args_toplevel: str | None) -> str:
     return os.path.normpath(cikti) if cikti else ""
 
 
+def git_dizini(kok: str, args_gitdir: str | None) -> str:
+    if args_gitdir:
+        return os.path.normpath(args_gitdir)
+    cikti = _git_cikti(["git", "-C", kok, "rev-parse", "--git-dir"]).strip()
+    if cikti:
+        if not os.path.isabs(cikti):
+            cikti = os.path.join(kok, cikti)
+        return os.path.normpath(cikti)
+    return os.path.join(kok, ".git")
+
+
+def sequencer_suruyor(gitdir: str) -> bool:
+    """merge / cherry-pick / revert / rebase devam ediyor mu?"""
+    try:
+        for ad in SEQUENCER_DOSYA:
+            if os.path.exists(os.path.join(gitdir, ad)):
+                return True
+        for ad in SEQUENCER_DIZIN:
+            if os.path.isdir(os.path.join(gitdir, ad)):
+                return True
+    except Exception:
+        return False
+    return False
+
+
+def bypass_kaydet(gitdir: str, kok: str, karar: str, mesaj: str, staged_sayisi: int) -> None:
+    """Her BYPASS yolu GURULTULU + LOGLU olur; karar DEGISMEZ (kapi bir kilit degil,
+    bir hatirlaticidir). Log yazilamazsa yine de stderr satiri kalir.
+
+    Muhasebe: grep -c allow- <gitdir>/pruvo-kapi-log.jsonl
+    'allow-escape'    = PRUVO_MIMAR_ONAY=worker (veri duzlemi)
+    'allow-sequencer' = merge/cherry-pick/revert/rebase suruyor (SAHTE de kurulabilir)"""
+    try:
+        sys.stderr.write(mesaj + "\n")
+    except Exception:
+        pass
+    try:
+        satir = json.dumps({
+            "t": int(time.time()),
+            "karar": karar,
+            "kok": kok,
+            "staged": staged_sayisi,
+        }, ensure_ascii=False)
+        with open(os.path.join(gitdir, "pruvo-kapi-log.jsonl"), "a", encoding="utf-8") as f:
+            f.write(satir + "\n")
+    except Exception:
+        pass
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument("--stdin", action="store_true", help="staged dosyalari stdin'den oku")
     parser.add_argument("--toplevel", help="repo toplevel yolunu elle ver")
+    parser.add_argument("--gitdir", help="git dizinini elle ver (test icin)")
     args = parser.parse_args()
 
     kok = toplevel(args.toplevel)
     if kok != ANA_REPO:
         return 0
 
+    gitdir = git_dizini(kok, args.gitdir)
     staged = staged_dosyalar(args.stdin)
     kaynaklar = [yol for yol in staged if kaynak_mi(yol)]
 
@@ -109,8 +193,18 @@ def main() -> int:
             for yol in kaynaklar:
                 sys.stderr.write(f"{yol}\n")
             return 1
+        bypass_kaydet(
+            gitdir, kok, "allow-escape",
+            "ESCAPE HATCH KULLANILDI (PRUVO_MIMAR_ONAY=worker, veri duzlemi) — commit "
+            "kapisi atlandi. Bu yol loglanir: grep -c allow-escape " +
+            os.path.join(gitdir, "pruvo-kapi-log.jsonl"),
+            len(staged),
+        )
         return 0
 
+    # KORUNAN DOSYA KONTROLU SEQUENCER ISTISNASINDAN ONCE GELIR (R1 onarimi).
+    # Sahte MERGE_HEAD yazmak artik kaynak/veri commit'ini ACMAZ; sequencer suruyorsa
+    # bu yalnizca hata metnine bir satir ekler (teshis), karari DEGISTIRMEZ.
     bloklanan = [yol for yol in staged if korunan_mi(yol)]
     if bloklanan:
         sys.stderr.write(
@@ -118,9 +212,26 @@ def main() -> int:
             "PRUVO_MIMAR_ONAY=worker YALNIZ urunler.json / .urun-kaynaklari.json commit'ini açar "
             "(kaynak kodu worktree'de commit'lenir).\n"
         )
+        if sequencer_suruyor(gitdir):
+            sys.stderr.write(
+                "NOT: sequencer (merge/cherry-pick/revert/rebase) suruyor ama istisna "
+                "KORUNAN dosyayi ACMAZ (fail-closed). Cakismayi worktree'de coz.\n"
+            )
         for yol in bloklanan:
             sys.stderr.write(f"{yol}\n")
         return 1
+
+    # Sequencer istisnasi: korunan dosya YOKKEN gurultulu + loglu allow. Tek
+    # 'Write .git/MERGE_HEAD' ile sahte durum kurulabilir → bu yol SESSIZ OLAMAZ.
+    if sequencer_suruyor(gitdir):
+        bypass_kaydet(
+            gitdir, kok, "allow-sequencer",
+            "SEQUENCER ISTISNASI (merge/cherry-pick/revert/rebase suruyor, korunan dosya "
+            "YOK) — commit kapisi atlandi. Bu yol loglanir: grep -c allow-sequencer " +
+            os.path.join(gitdir, "pruvo-kapi-log.jsonl"),
+            len(staged),
+        )
+        return 0
 
     return 0
 
