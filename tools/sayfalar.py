@@ -215,9 +215,10 @@ def _sss():
         "<h1>Sıkça Sorulan Sorular</h1>"
         '<p class="lead">Sipariş, üretim, kargo ve iade hakkında merak edilenler.</p>'
         "<h2>Nasıl sipariş verebilirim?</h2>"
-        "<p>Ürün sayfasındaki <em>Sipariş Ver</em> butonuyla WhatsApp üzerinden bize "
-        "ulaşırsınız. İhtiyacınızı netleştirip ölçü/renk gibi detayları aldıktan sonra "
-        "üretim ve teslimat sürecini birlikte planlarız.</p>"
+        "<p>Beğendiğiniz ürünü sitemizde inceleyip <strong>kartla güvenli online ödeme</strong> "
+        "ile doğrudan sipariş verebilirsiniz. Özel iş, ölçü danışması ya da henüz netleşmemiş "
+        "talepler için ürün sayfasındaki <em>Sipariş Ver</em> butonuyla WhatsApp kanalımız da "
+        "açıktır; ihtiyacınızı birlikte netleştirip üretim ve teslimatı planlarız.</p>"
         "<h2>Ürünler nasıl üretiliyor?</h2>"
         "<p>Ürünler talep üzerine, ölçüye/isteğe özel olarak üretilir. Kullanım yerine göre "
         "uygun ve dayanıklı malzeme öneririz.</p>"
@@ -230,8 +231,10 @@ def _sss():
         "istisnaları geçerli olabilir; ayrıntılar için "
         '<a href="/teslimat-iade/">Teslimat ve İade</a> sayfamıza bakın.</p>'
         "<h2>Ödeme nasıl yapılıyor?</h2>"
-        "<p>Sipariş detayları netleştikten sonra ödeme adımları tarafınıza iletilir. "
-        "Ödemeleriniz güvenli altyapı üzerinden alınır.</p>"
+        "<p>Ödemenizi sitemiz üzerinden <strong>kartla güvenli online ödeme</strong> ile "
+        "(iyzico güvenli ödeme altyapısı) yapabilirsiniz. WhatsApp'tan ilerleyen siparişlerde "
+        "ise size güvenli ödeme linki gönderilir. Kart bilgileriniz bize ulaşmaz ve tarafımızda "
+        "saklanmaz; ödeme iyzico'nun güvenli sayfası üzerinden alınır.</p>"
         % (SELLER["teslim"], SELLER["kargo"])
     )
 
