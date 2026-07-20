@@ -16,6 +16,10 @@ _fspec = importlib.util.spec_from_file_location("filament_ortak", os.path.join(T
 fo = importlib.util.module_from_spec(_fspec); _fspec.loader.exec_module(fo)
 _gspec = importlib.util.spec_from_file_location("gorsel_mukerrer_kapisi", os.path.join(TOOLS, "gorsel_mukerrer_kapisi.py"))
 gmk = importlib.util.module_from_spec(_gspec); _gspec.loader.exec_module(gmk)
+# R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py)
+_r2spec = importlib.util.spec_from_file_location(
+    "r2_anahtar", os.path.join(os.path.dirname(os.path.abspath(__file__)), "r2_anahtar.py"))
+r2k = importlib.util.module_from_spec(_r2spec); _r2spec.loader.exec_module(r2k)
 IMGROOT = os.path.join(ROOT, ".thing-cache")
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAK = os.path.join(ROOT, ".urun-kaynaklari.json")
@@ -73,11 +77,11 @@ def process_one(tid):
         if not os.path.exists(onerip):
             return {"id": tid, "durum": "HATA: codex oneri yok"}
         o = json.load(open(onerip))
-        uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or tid).lower()).strip("-")[:60] or tid
+        uid = r2k.urun_slug(o.get("baslik") or tid, yedek=tid)
         # R2 gorsel anahtari KAYNAK-ID'den (th<tid>) turer, baslik-slug'indan (uid) DEGIL: iki farkli
-        # urun ayni basligi uretse bile anahtarlari cakismaz (bkz tools/gorsel-anahtar-test.py;
-        # printables-ekle.py ile ayni desen). uid, JSON id'si + SEO URL'si icin kalir.
-        gkey = re.sub(r"[^a-z0-9-]+", "-", ("th" + tid).lower()).strip("-") or ("th" + tid)
+        # urun ayni basligi uretse bile anahtarlari cakismaz (bkz tools/r2_anahtar.py +
+        # tools/r2-anahtar-testi.py). uid, JSON id'si + SEO URL'si icin kalir.
+        gkey = r2k.gkey("Thingiverse", tid)
         d = os.path.join(IMGROOT, tid)
         secili = o.get("sec_gorseller") or sorted(f for f in os.listdir(d) if f.startswith("g") and f.endswith(".jpg"))
         # ALGISAL MUKERRER KAPISI (bkz gorsel_mukerrer_kapisi.py): ayni fotografin ikizini R2'ye
@@ -88,7 +92,7 @@ def process_one(tid):
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
             if os.path.exists(fp):
-                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (gkey, i))
+                uu = sips_upload(fp, r2k.gorsel_yolu(gkey, i))
                 if uu:
                     urls.append(uu)
         if not urls:
