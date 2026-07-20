@@ -101,27 +101,74 @@ function Oge(id) {
 }
 
 /**
- * Cerez kavanozu: `document.cookie = "..."` tarayicidaki gibi TEK cerezi ekler/gunceller,
- * gecmis tarihli expires/max-age ise SILER (duz string olsa silme testi anlamsiz olurdu).
+ * Cerez kavanozu — tarayici semantigi: bir cerezin KIMLIGI (ad, path, domain) UCLUSUDUR.
+ * Silme yalnizca UCU DE eslesince duser; yanlis path/domain ile yazilan "silme" istegi
+ * cerezi ayakta birakir (gercek tarayicida da oyle olur).
+ *
+ * NEDEN BU KADAR AYRINTILI: duz ad->deger sozlugu kullanan ilk surumde
+ * `path=/yok-boyle-bir-yol` ya da `domain=ornek.gecersiz` ile silmeye calisan mutantlar
+ * YESIL kaliyordu -> test "fiilen silindi"yi degil "silme sekilli bir dize yazildi"yi
+ * kanitliyordu. Gercekte _fbp (path=/, .pruvo3d.com) ayakta kalirdi.
  */
-function Kavanoz(baslangic) {
-  this.map = {};
-  String(baslangic || "").split(";").forEach((p) => {
-    const t = p.trim();
-    const i = t.indexOf("=");
-    if (i > 0) { this.map[t.slice(0, i).trim()] = t.slice(i + 1); }
-  });
+function Kavanoz(baslangic, konum) {
+  this.konum = konum || { hostname: "pruvo3d.com", pathname: "/" };
+  this.liste = [];   // {ad, deger, path, domain}
+  if (Array.isArray(baslangic)) {
+    baslangic.forEach((c) => this.koy(c.ad, c.deger,
+      c.path || "/", Kavanoz.alanNormal(c.domain === undefined ? ".pruvo3d.com" : c.domain)));
+  } else {
+    // Duz dize: GA/Meta gercekte eTLD+1'e yazar -> varsayilan path "/", domain ".pruvo3d.com".
+    String(baslangic || "").split(";").forEach((p) => {
+      const t = p.trim();
+      const i = t.indexOf("=");
+      if (i > 0) { this.koy(t.slice(0, i).trim(), t.slice(i + 1), "/", ".pruvo3d.com"); }
+    });
+  }
 }
-Kavanoz.prototype.metin = function () {
-  return Object.keys(this.map).map((k) => k + "=" + this.map[k]).join("; ");
+/** `domain=pruvo3d.com` ile `domain=.pruvo3d.com` AYNI cerezdir; "" = host-only. */
+Kavanoz.alanNormal = function (d) {
+  if (!d) { return ""; }
+  return "." + String(d).replace(/^\./, "").toLowerCase();
 };
+Kavanoz.prototype.bul = function (ad, path, domain) {
+  for (let i = 0; i < this.liste.length; i++) {
+    const c = this.liste[i];
+    if (c.ad === ad && c.path === path && c.domain === domain) { return i; }
+  }
+  return -1;
+};
+Kavanoz.prototype.koy = function (ad, deger, path, domain) {
+  const i = this.bul(ad, path, domain);
+  if (i === -1) { this.liste.push({ ad, deger, path, domain }); }
+  else { this.liste[i].deger = deger; }
+};
+/** Tarayici gonderim kurali: domain eslesmesi + path onek eslesmesi. */
+Kavanoz.prototype.gorunur = function () {
+  const host = String(this.konum.hostname || "").toLowerCase();
+  const yol = String(this.konum.pathname || "/");
+  return this.liste.filter((c) => {
+    const alanOk = c.domain === "" ||
+      host === c.domain.slice(1) || host.endsWith(c.domain);
+    return alanOk && yol.indexOf(c.path) === 0;
+  });
+};
+Kavanoz.prototype.metin = function () {
+  return this.gorunur().map((c) => c.ad + "=" + c.deger).join("; ");
+};
+Object.defineProperty(Kavanoz.prototype, "map", {
+  get: function () {
+    const o = {};
+    this.gorunur().forEach((c) => { o[c.ad] = c.deger; });
+    return o;
+  }
+});
 Kavanoz.prototype.yaz = function (s) {
   const parcalar = String(s).split(";");
   const i = parcalar[0].indexOf("=");
   if (i <= 0) { return; }
   const ad = parcalar[0].slice(0, i).trim();
   const deger = parcalar[0].slice(i + 1);
-  let silme = false;
+  let silme = false, path = "/", domain = "";
   for (let j = 1; j < parcalar.length; j++) {
     const o = parcalar[j].trim();
     const kucuk = o.toLowerCase();
@@ -130,8 +177,16 @@ Kavanoz.prototype.yaz = function (s) {
       const t = Date.parse(o.slice(8));
       if (!isNaN(t) && t <= Date.now()) { silme = true; }
     }
+    if (kucuk.indexOf("path=") === 0) { path = o.slice(5) || "/"; }
+    if (kucuk.indexOf("domain=") === 0) { domain = Kavanoz.alanNormal(o.slice(7)); }
   }
-  if (silme) { delete this.map[ad]; } else { this.map[ad] = deger; }
+  // Silme UCLUYU tutturmali; tutturamazsa cerez AYAKTA kalir (tarayicidaki gibi).
+  if (silme) {
+    const k = this.bul(ad, path, domain);
+    if (k !== -1) { this.liste.splice(k, 1); }
+  } else {
+    this.koy(ad, deger, path, domain);
+  }
 };
 
 /** Kavanozu `document.cookie` get/set'ine bagli bir belge nesnesine cevirir. */
@@ -164,14 +219,16 @@ function sayfa(opts) {
     "pco-kabul": new Oge("pco-kabul"),
     "pco-ret": new Oge("pco-ret")
   };
-  const kavanoz = opts.kavanoz || new Kavanoz(opts.cookie || "");
+  const host = opts.host || "pruvo3d.com";
+  const kavanoz = opts.kavanoz ||
+    new Kavanoz(opts.cookie || "", { hostname: host, pathname: "/" });
   const ctx = {
     window: {},
     document: belgeYap(kavanoz, { getElementById: (id) => ogeler[id] || null }),
     localStorage: depo,
     sessionStorage: oturum,
-    location: { search: opts.search || "", hostname: "pruvo3d.com",
-                href: "https://pruvo3d.com/" + (opts.search || "") },
+    location: { search: opts.search || "", hostname: host,
+                href: "https://" + host + "/" + (opts.search || "") },
     URL: URL,
     URLSearchParams: URLSearchParams,
     Date: Date,
@@ -201,7 +258,9 @@ function gizlilikSayfa(opts) {
   const depo = opts.depo || new Depo();
   if (opts.onay) { depo.setItem("pruvo_onay_analitik", opts.onay); }
   const oturum = opts.oturum || new Depo();
-  const kavanoz = opts.kavanoz || new Kavanoz(opts.cookie || "");
+  const host = opts.host || "pruvo3d.com";
+  const kavanoz = opts.kavanoz ||
+    new Kavanoz(opts.cookie || "", { hostname: host, pathname: "/gizlilik/" });
   const ogeler = {
     "pruvo-cerez-onay": new Oge("pruvo-cerez-onay"),
     "pco-kabul": new Oge("pco-kabul"),
@@ -222,8 +281,8 @@ function gizlilikSayfa(opts) {
     }),
     localStorage: depo,
     sessionStorage: oturum,
-    location: { search: opts.search || "", hostname: "pruvo3d.com",
-                href: "https://pruvo3d.com/gizlilik/" + (opts.search || "") },
+    location: { search: opts.search || "", hostname: host, pathname: "/gizlilik/",
+                href: "https://" + host + "/gizlilik/" + (opts.search || "") },
     navigator: {
       sendBeacon: (url, blob) => {
         beacons.push({ url, body: blob && blob.parts && blob.parts[0] });
@@ -243,6 +302,71 @@ function gizlilikSayfa(opts) {
   vm.runInNewContext(GIZ_BANNER_SRC, ctx, { filename: "gizlilik/index.html#banner" });
   return { ctx, depo, oturum, ogeler, kavanoz, beacons, metaBaslatildi,
            banner: ogeler["pruvo-cerez-onay"],
+           tikla: (i) => dinleyiciler.click({ target: baglantilar[i || 0] }) };
+}
+
+/**
+ * ANA SAYFANIN YAYINDAKI HÂLI (index.built.html). build.py, index.html'e attribution-ref.js'i
+ * inline basar (build.py:291 `attribution_ekle`) -> ana sayfada PRUVO_ATIF **ve** REF katmani
+ * BIRLIKTE calisir. Google Ads tiklamasi (gclid/gbraid/wbraid) reklam trafiginin birincil
+ * inis sayfasi olan ana sayfada iste bu yuzden yakalanir. Kaynak index.html'de modul
+ * GORUNMEDIGI icin bu bilesim elle kurulur — yoksa test yayindaki sayfayi degil, yayina hic
+ * cikmayan bir ara hâli olcerdi.
+ */
+function anaSayfa(opts) {
+  opts = opts || {};
+  const depo = opts.depo || new Depo();
+  if (opts.onay) { depo.setItem("pruvo_onay_analitik", opts.onay); }
+  const oturum = opts.oturum || new Depo();
+  const host = opts.host || "pruvo3d.com";
+  const kavanoz = opts.kavanoz ||
+    new Kavanoz(opts.cookie || "", { hostname: host, pathname: "/" });
+  const ogeler = {
+    "pruvo-cerez-onay": new Oge("pruvo-cerez-onay"),
+    "pco-kabul": new Oge("pco-kabul"),
+    "pco-ret": new Oge("pco-ret")
+  };
+  const baglantilar = (opts.linkler || []).map((h) => new Baglanti(h));
+  const dinleyiciler = {};
+  const beacons = [];
+  let cagri = 0;
+  const metaBaslatildi = [];
+  const ctx = {
+    window: { pruvoMetaBaslat: () => { metaBaslatildi.push(1); } },
+    document: belgeYap(kavanoz, {
+      getElementById: (id) => ogeler[id] || null,
+      querySelectorAll: () => baglantilar,
+      addEventListener: (ad, fn) => { dinleyiciler[ad] = fn; }
+    }),
+    localStorage: depo,
+    sessionStorage: oturum,
+    location: { search: opts.search || "", hostname: host, pathname: "/",
+                href: "https://" + host + "/" + (opts.search || "") },
+    navigator: {
+      sendBeacon: (url, blob) => {
+        beacons.push({ url, body: blob && blob.parts && blob.parts[0] });
+        return true;
+      }
+    },
+    Blob: function (parts, o) { this.parts = parts; this.type = (o && o.type) || ""; },
+    crypto: { getRandomValues: (b) => {
+      cagri += 1;
+      for (let i = 0; i < b.length; i++) { b[i] = (cagri * 17 + i * 53) % 256; }
+      return b;
+    } },
+    URL: URL, URLSearchParams: URLSearchParams, Uint8Array: Uint8Array,
+    Date: Date, JSON: JSON, String: String, console: opts.konsol || console
+  };
+  ctx.window.localStorage = depo;
+  // build.py'nin bastigi sira: attribution modulu <head>'de, PRUVO_ATIF sayfa script'inde,
+  // banner </body> oncesinde.
+  vm.runInNewContext(REF_JS, ctx, { filename: "attribution-ref.js (index.built)" });
+  vm.runInNewContext(ATIF_SRC + "\n;window.__ATIF = PRUVO_ATIF;", ctx,
+                     { filename: "index.html#PRUVO_ATIF" });
+  vm.runInNewContext(BANNER_SRC, ctx, { filename: "index.html#banner" });
+  return { ctx, depo, oturum, ogeler, kavanoz, beacons, metaBaslatildi,
+           banner: ogeler["pruvo-cerez-onay"],
+           atif: ctx.window.__ATIF,
            tikla: (i) => dinleyiciler.click({ target: baglantilar[i || 0] }) };
 }
 
@@ -514,6 +638,13 @@ senaryo("C7 metin<->davranis: dugme ile aydinlatma metni birbirini tutuyor", () 
     assert(blokSon !== -1, "pco-tercih blogu kapanmiyor");
     metin = GIZ.slice(0, blokBas) + GIZ.slice(blokSon + "</p>".length);
   }
+  // GORUNMEYEN metni de soy: HTML yorumu, <script>, <style>. Aksi hâlde gorunur cumle
+  // silinip yerine `<!-- Çerez tercihimi değiştir -->` konsa test YESIL kalirdi — yani
+  // ziyaretcinin OKUYAMADIGI bir dize "aydinlatma" sayilirdi.
+  metin = metin
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ");
   const metindeVar = metin.indexOf(ETIKET) !== -1;
   assert(dugmeVar === metindeVar,
          "metin<->davranis ayristi: dugme " + (dugmeVar ? "VAR" : "YOK") +
@@ -732,6 +863,84 @@ senaryo("D6 rizasiz SAYFA YUKLEMESI (urun/yasal sayfa) olcum cerezlerini temizle
   yok(g, "GEZFBP", "sayfa yuklemesinde _fbp temizlenmedi");
   yok(g, "GEZGA", "sayfa yuklemesinde _ga temizlenmedi");
   assert(g.kavanoz.map.sepet === "3", "ilgisiz cerez (sepet) silindi");
+});
+
+senaryo("D7 topla() KENDI cerez temizligini yapar (yakala() kacirsa bile)", () => {
+  // Riza sayfa yuklenirken VARDI (yakala temizlemedi), sonra baska sekmede geri cekildi ve
+  // storage olayi bu sekmeye ulasmadi. Odeme aninda topla() son savunma: hem gondermez hem siler.
+  const kavanoz = new Kavanoz("_fbp=fb.1.9.SONFBP; _ga=GA1.1.SONGA.222");
+  const s = sayfa({ search: "", onay: "kabul", kavanoz });
+  assert(kavanoz.map._fbp === "fb.1.9.SONFBP", "on kosul: cerez duruyor olmali");
+  s.depo.setItem("pruvo_onay_analitik", "ret");   // riza(): CAGIRMIYORUZ (kacirilan yol)
+  const payload = JSON.stringify(s.atif.topla());
+  assert(payload.indexOf("SONFBP") === -1 && payload.indexOf("SONGA") === -1,
+         "topla() rizasiz kimlik gonderdi: " + payload);
+  yok(s, "SONFBP", "topla() kendi cerez temizligini yapmadi");
+});
+
+senaryo("D8 alt alan adinda (www) cerez .pruvo3d.com'a yazilmis olsa da SILINIR", () => {
+  // Gercek tuzak: _fbp/_ga eTLD+1'e (.pruvo3d.com) yazilir; ziyaretci www.pruvo3d.com'da ise
+  // silme yalnizca tam ana bilgisayar adiyla denenirse TUTMAZ. Ust alan denemesi sart.
+  const kavanoz = new Kavanoz("_fbp=fb.1.9.WWWFBP; _ga=GA1.1.WWWGA.222",
+                              { hostname: "www.pruvo3d.com", pathname: "/" });
+  const s = sayfa({ search: "", onay: "ret", kavanoz, host: "www.pruvo3d.com" });
+  yok(s, "WWWFBP", "www alt alanindan .pruvo3d.com cerezi silinmedi");
+  yok(s, "WWWGA", "www alt alanindan _ga silinmedi");
+});
+
+senaryo("D9 KAVANOZ DURUSTLUK: yanlis path/domain ile 'silme' cerezi DUSURMEZ", () => {
+  // Kavanozun kendi dogrulugu (test altyapisinin testi). Bu tutmazsa D1/C1/D3'un
+  // "fiilen silindi" iddiasi bosa duser -> once-red mutantlari yesil kalir.
+  const k = new Kavanoz("_fbp=fb.1.9.X");
+  k.yaz("_fbp=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/yok-boyle-bir-yol; domain=.pruvo3d.com");
+  assert(k.map._fbp === "fb.1.9.X", "yanlis PATH ile silme cerezi dusurdu");
+  k.yaz("_fbp=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=ornek.gecersiz");
+  assert(k.map._fbp === "fb.1.9.X", "yanlis DOMAIN ile silme cerezi dusurdu");
+  k.yaz("_fbp=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=pruvo3d.com");
+  assert(k.map._fbp === undefined, "dogru (ad,path,domain) ile silme DUSMEDI");
+});
+
+console.log("\n── E) ana sayfa · Google Ads lead atribüsyonu (rıza sonrası) ──");
+
+senaryo("E1 ana sayfa: ?gclid + 'Kabul Et' -> ic sayfada lead SUNUCUYA GIDER", () => {
+  // Ana sayfa reklam trafiginin birincil inis sayfasi. build.py index.built.html'e
+  // attribution-ref.js'i inline basar -> gclid ANA SAYFADA yakalanir. Banner 'Kabul'de
+  // pruvoRefRiza cagirmazsa kayittaki click-id null KALIR (ic sayfalarda URL'de gclid yok)
+  // ve wa.me lead'i sunucuya HIC gitmez = sessiz atribusyon kaybi.
+  const depo = new Depo();
+  const kavanoz = new Kavanoz("");
+  // 1) Reklamdan ana sayfaya inis: banner acik, riza YOK -> gclid saklanmaz.
+  const ana = anaSayfa({ search: "?gclid=LEADX&pg=BYP", depo, kavanoz });
+  yok(ana, "LEADX", "riza yokken gclid saklandi");
+  // 2) Ziyaretci "Kabul Et" diyor (sayfa yenilenmiyor).
+  tikla(ana.ogeler["pco-kabul"]);
+  assert(depo.getItem("pruvo_onay_analitik") === "kabul", "kabul yazilmadi");
+  var_(ana, "LEADX", "'Kabul Et' sonrasi gclid");
+  // 3) Ic linke geciyor (URL'de gclid YOK) ve wa.me'ye tikliyor.
+  const ic = refSayfa({ search: "", depo, linkler: [WA] });
+  ic.tikla(0);
+  assert(ic.beacons.length === 1, "ic sayfada lead sunucuya gitmedi (atribusyon kaybi)");
+  assert(JSON.parse(ic.beacons[0].body).gclid === "LEADX",
+         "lead payload gclid yanlis: " + ic.beacons[0].body);
+});
+
+senaryo("E2 ana sayfa: 'Kabul' sonra 'Reddet' -> gclid SILINIR (yeni sizinti acilmasin)", () => {
+  // Yalniz kabul'e kanca eklenirse kabul->ret gecisinde click-id kalir = yeni riza sizintisi.
+  const depo = new Depo();
+  const ana = anaSayfa({ search: "?gclid=LEADY&pg=BYP", depo });
+  tikla(ana.ogeler["pco-kabul"]);
+  var_(ana, "LEADY", "on kosul: kabul sonrasi gclid");
+  // Banner tekrar acilip Reddet'e basiliyor (ya da gizlilik sayfasindan geri alma).
+  tikla(ana.ogeler["pco-ret"]);
+  assert(depo.getItem("pruvo_onay_analitik") === "ret", "ret yazilmadi");
+  yok(ana, "LEADY", "'Reddet' sonrasi gclid kaldi (yeni riza sizintisi)");
+});
+
+senaryo("E3 ana sayfa banner'i digger 5 yuzeyle AYNI kancalari cagiriyor", () => {
+  ["pruvoAtifRiza", "pruvoRefRiza"].forEach((kanca) => {
+    assert(BANNER_SRC.indexOf(kanca) !== -1,
+           "index.html banner'i " + kanca + " cagirmiyor");
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

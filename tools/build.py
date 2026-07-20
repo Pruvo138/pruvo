@@ -80,12 +80,20 @@ def attribution_head_snippet():
 
 
 def attribution_ekle(html_metni):
-    """Attribution bloğunu ekler veya mevcut bloğu tek kaynaktan yeniler."""
+    """Attribution bloğunu ekler veya mevcut bloğu tek kaynaktan yeniler.
+
+    ⚠️ re.sub'un REPLACEMENT dizesi backslash kaçışı yorumlar: JS kaynağındaki `\\n` GERÇEK
+    satır sonuna döner (string literali kırılır -> sayfa parse edilmez) ve `\\s` gibi geçersiz
+    kaçış `re.error` ile TÜM build'i düşürür. Enjekte edilen gövde VERİ'dir, kalıp değil ->
+    lambda ile birebir konur (kaçış yorumlanmaz). Aynı tuzak meta_ekle'de de bu şekilde
+    kapatılmıştır. Kaynak dosyada `\\n`/`\\s` kullanımını kısıtlamak ÇÖZÜM DEĞİL — enjeksiyon
+    yolu kaçışa duyarsız olmalı. Kapı: tools/enjeksiyon-kapisi.py (bayt-birebir + node --check).
+    """
     snippet = attribution_head_snippet()
     pattern = re.compile(re.escape(ATTRIBUTION_START) + r".*?" +
                          re.escape(ATTRIBUTION_END), re.S)
     if pattern.search(html_metni):
-        return pattern.sub(snippet, html_metni, count=1)
+        return pattern.sub(lambda m: snippet, html_metni, count=1)
     needle = "</script>\n<title>"
     if needle not in html_metni:
         raise RuntimeError("attribution ekleme noktasi bulunamadi")

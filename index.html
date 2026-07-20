@@ -2467,20 +2467,32 @@
   function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} el.hidden = true; }
   var kabul = document.getElementById("pco-kabul");
   var ret = document.getElementById("pco-ret");
+  /* Rıza değişimini TÜM katmanlara duyur (rıza YAZILDIKTAN sonra çağrılır ki hepsi kapı
+     kontrolünden geçsin). Diğer 5 yüzeydeki desenle AYNI.
+     ⚠️ pruvoRefRiza da ŞART: build.py ana sayfanın yayın kopyasına (index.built.html)
+     attribution-ref.js'i inline basar → Google Ads tıklaması (gclid/gbraid/wbraid) ana
+     sayfada YAKALANIR. Burada çağrılmazsa rıza "Kabul" olsa bile kayıttaki click-id null
+     kalır (iç sayfalarda URL'de gclid yok) ve wa.me lead'i sunucuya HİÇ gitmez — sessiz
+     atribüsyon kaybı. 'Reddet'te de çağrılır: kabul→ret sonrası click-id kalmasın. */
+  function rizaYayinla(){
+    if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); }
+    if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); }
+  }
   kabul.addEventListener("click", function(){
     if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
     kaydet("kabul");
     /* Meta pikseli de rıza anında başlasın (init + PageView) — kaydet() localStorage'ı 'kabul'
        yazdıktan SONRA çağrılır ki pruvoMetaBaslat rıza kontrolünden geçsin. */
     if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
-    /* Tıklama kimliği (fbclid) rıza kapısının ARKASINDA: sayfa yüklenirken saklanmadı.
-       Rıza şimdi geldi → URL'de hâlâ duruyorsa bu andan itibaren saklanabilir (yenileme yok). */
-    if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); }
+    /* Tıklama kimliği (fbclid + gclid/gbraid/wbraid) rıza kapısının ARKASINDA: sayfa
+       yüklenirken saklanmadı. Rıza şimdi geldi → URL'de hâlâ duruyorsa bu andan itibaren
+       saklanabilir (sayfa yenilemesi gerekmez). */
+    rizaYayinla();
   });
-  /* denied kalır + saklanmış tıklama kimliği varsa SİLİNİR (rıza geri çekme yolu). */
+  /* denied kalır + saklanmış tıklama kimlikleri ve ölçüm çerezleri SİLİNİR (geri çekme yolu). */
   ret.addEventListener("click", function(){
     kaydet("ret");
-    if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); }
+    rizaYayinla();
   });
   try { kabul.focus(); } catch(e){}
 })();
