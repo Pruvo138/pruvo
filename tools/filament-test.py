@@ -57,6 +57,24 @@ ROOT = os.path.dirname(TOOLS)
 sys.path.insert(0, TOOLS)
 import filament_ortak
 
+# BUILD SIZINTISI: adim 0'da kosan build.py, asagidaki 4 IZLENEN yasal sayfaya Meta
+# piksel enjekte eder ve ana checkout'u KIRLETIR (git status M gizlilik/... vb.). Testler
+# uretilmis sayfalara karsi kosulduktan SONRA bu 4 dosyayi HEAD'e geri yukleyip calisma
+# agacini temiz birakiyoruz (aksi halde baska bir oturumun genis commit'i uretilmis izleme
+# kodunu KAYNAGA sokabilir). Bu liste build.py'nin dokundugu TEK tracked dosya kumesidir
+# (urun/, sitemap.xml, robots.txt vb. gitignore'da).
+YASAL_SAYFALAR = [
+    "gizlilik/index.html", "hakkimizda/index.html",
+    "iletisim/index.html", "sss/index.html",
+]
+
+
+def _yasal_sayfalari_geri_yukle():
+    """build.py'nin Meta-piksel enjeksiyonuyla kirlettigi 4 yasal sayfayi HEAD'e geri yukle.
+    Bu adim KALDIRILIRSA 'git status' KIRLI doner (kirmizi-mutasyon nobeti — kabul testi #5)."""
+    subprocess.run(["git", "checkout", "--", *YASAL_SAYFALAR],
+                   cwd=ROOT, capture_output=True, text=True)
+
 SONUC = []
 
 
@@ -508,4 +526,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    finally:
+        # main() sys.exit ile de cikabilir (SystemExit) ya da istisna atabilir; finally her
+        # iki durumda da kosar -> kosum SONRASI checkout DAIMA temiz (kabul testi #5).
+        _yasal_sayfalari_geri_yukle()

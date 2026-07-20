@@ -35,6 +35,18 @@ jobs:
       - name: Kategori/WHATSAPP parite testi (drift guard)
         run: python3 tools/kategori-parite-test.py
 
+      # ODEME BEYANI: statik yasal sayfalardaki siparis/odeme anlatimi canli akisla uyumlu mu
+      # (kart formu/iframe yok, teslim suresi, wa.me/tel numara ayrimi). Bloklayici: uyumsuzluk
+      # = musteriye yanlis odeme/teslim beyani. Offline, commit'li sayfalari okur (build.py'den ONCE).
+      - name: Odeme beyani kapisi
+        run: python3 tools/odeme-beyani-kapisi.py
+
+      # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
+      # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
+      # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
+      - name: CI kapsam kapisi (her kabul testi kosuluyor mu / gerekceli muaf mi)
+        run: python3 tools/ci-kapsam-test.py
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
