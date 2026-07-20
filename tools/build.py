@@ -230,8 +230,15 @@ GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — haric
     /* Meta pikseli de rıza anında başlasın (init + PageView) — kaydet() localStorage'ı 'kabul'
        yazdıktan SONRA çağrılır ki pruvoMetaBaslat rıza kontrolünden geçsin. */
     if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
+    /* Tıklama kimliği (gclid/gbraid/wbraid) rıza kapısının ARKASINDA saklanır: rıza şimdi
+       geldi → URL'de hâlâ duruyorsa bu andan itibaren yakalanabilir (sayfa yenilemesi yok). */
+    if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); }
   });
-  ret.addEventListener("click", function(){ kaydet("ret"); });  /* denied kalır */
+  /* denied kalır + saklanmış tıklama kimliği varsa SİLİNİR (rıza geri çekme yolu). */
+  ret.addEventListener("click", function(){
+    kaydet("ret");
+    if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); }
+  });
   try { kabul.focus(); } catch(e){}
 })();
 </script>"""

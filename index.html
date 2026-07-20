@@ -979,9 +979,27 @@
      onu DÜŞÜRÜR → localStorage'a kalıcı yazılır (son-dokunuş). _ga client_id + Meta _fbp/_fbc
      çerezleri ödeme anında TAZE okunur (GA4/piksel kurulunca dolu gelir; değilse boş — kod hazır).
      Sunucu bunları order kaydına yazar; purchase event (Worker /donus, iyzico OK anında) kullanır.
-     PII (email/telefon) BURADAN GEÇMEZ. */
+     PII (email/telefon) BURADAN GEÇMEZ.
+
+     ⚠️ RIZA KAPISI (KVKK) — pikselin kendisiyle AYNI anahtar (pruvo_onay_analitik === "kabul"):
+       · Rıza YOKKEN tıklama kimliği (fbclid → fbc) HİÇBİR depoya YAZILMAZ. URL'den okunmaz bile.
+       · Rıza yoksa/geri çekildiyse önceden yazılmış tıklama kimlikleri HER sayfa yüklemesinde ve
+         HER rıza değişiminde SİLİNİR (geriye dönük temizlik).
+       · Rıza sonradan verilirse (banner "Kabul Et") sayfa yenilenmeden window.pruvoAtifRiza()
+         çağrılır → URL'de hâlâ duran fbclid o andan itibaren saklanır.
+       · topla() rıza yokken kimlik alanı (ga_client_id/fbp/fbc) DÖNDÜRMEZ → sunucuya sızmaz.
+     UTM (kampanya etiketi; ziyaretçi/tıklama kimliği DEĞİL) kapsam dışıdır — davranışı değişmedi. */
   var PRUVO_ATIF = (function(){
     var ANAHTAR = "pruvo_atif";
+    var ONAY_ANAHTARI = "pruvo_onay_analitik";
+    var UTM_ALANLARI = ["utm_source","utm_medium","utm_campaign","utm_id"];
+    /* Kayıtta tıklama kimliği taşıyabilen TÜM alanlar = rızasızken silinecek liste. Yeni bir
+       tıklama parametresi eklenirse İKİ yere birden eklenir: buraya (temizlik) + yakala()
+       içindeki rıza-kapılı okuma yoluna. */
+    var TIK_ALANLARI = ["fbc","fbclid","gclid","gbraid","wbraid","ttclid","msclkid"];
+    function rizaVar(){
+      try { return localStorage.getItem(ONAY_ANAHTARI) === "kabul"; } catch(e){ return false; }
+    }
     function cerez(ad){
       var m = document.cookie.match(new RegExp("(?:^|; )" +
         ad.replace(/([.$?*|{}()\[\]\\\/+^])/g, "\\$1") + "=([^;]*)"));
@@ -997,31 +1015,70 @@
     function oku(){
       try { return JSON.parse(localStorage.getItem(ANAHTAR)) || {}; } catch(e){ return {}; }
     }
-    // Landing'de UTM + fbclid'i yakala, kalıcı sakla (son-dokunuş: yeni UTM eskisini ezer).
-    try {
-      var q = new URLSearchParams(location.search);
-      var utm = {}, k, alanlar = ["utm_source","utm_medium","utm_campaign","utm_id"];
-      for(var i=0;i<alanlar.length;i++){ var val = q.get(alanlar[i]); if(val){ utm[alanlar[i]] = String(val).slice(0,200); } }
-      var fbclid = q.get("fbclid");
-      if(Object.keys(utm).length || fbclid){
-        var kayit = oku();
-        for(k in utm){ kayit[k] = utm[k]; }
-        if(fbclid && !kayit.fbc){ kayit.fbc = "fb.1." + Date.now() + "." + fbclid; }
-        try { localStorage.setItem(ANAHTAR, JSON.stringify(kayit)); } catch(e){}
+    function yaz(kayit){
+      try {
+        if(Object.keys(kayit).length){ localStorage.setItem(ANAHTAR, JSON.stringify(kayit)); }
+        else { localStorage.removeItem(ANAHTAR); }   /* boş kayıt bırakma */
+      } catch(e){}
+    }
+    /* Rıza yok / geri çekildi → saklanmış tıklama kimliklerini SİL (UTM kalır). */
+    function tikTemizle(){
+      var kayit = oku(), degisti = false, i;
+      for(i=0;i<TIK_ALANLARI.length;i++){
+        if(Object.prototype.hasOwnProperty.call(kayit, TIK_ALANLARI[i])){
+          delete kayit[TIK_ALANLARI[i]]; degisti = true;
+        }
       }
+      if(degisti){ yaz(kayit); }
+    }
+    /* Sayfa yüklemesinde ve her rıza değişiminde çalışır (idempotent): rıza yoksa temizler,
+       varsa URL'de duran tıklama kimliğini yakalar. */
+    function yakala(){
+      try {
+        var izin = rizaVar();
+        if(!izin){ tikTemizle(); }
+        var q = new URLSearchParams(location.search);
+        var utm = {}, k, val, i;
+        for(i=0;i<UTM_ALANLARI.length;i++){
+          val = q.get(UTM_ALANLARI[i]);
+          if(val){ utm[UTM_ALANLARI[i]] = String(val).slice(0,200); }
+        }
+        var fbclid = izin ? q.get("fbclid") : null;   /* rıza YOKSA URL'den okunmaz */
+        if(Object.keys(utm).length || fbclid){
+          var kayit = oku();
+          for(k in utm){ kayit[k] = utm[k]; }
+          if(fbclid && !kayit.fbc){ kayit.fbc = "fb.1." + Date.now() + "." + fbclid; }
+          yaz(kayit);
+        }
+      } catch(e){}
+    }
+    yakala();
+    /* Başka sekmede rıza değişirse (storage olayı) bu sekme de anında uyar. */
+    try {
+      window.addEventListener("storage", function(olay){
+        if(!olay || !olay.key || olay.key === ONAY_ANAHTARI){ yakala(); }
+      });
     } catch(e){}
     return {
-      // Ödeme anında çağrılır: kalıcı UTM/fbclid + o an TAZE çerezler.
+      /* Çerez bannerı çağırır: 'kabul' yazıldıktan SONRA → fbclid artık saklanabilir;
+         'ret' yazıldıktan SONRA → saklanmış tıklama kimlikleri silinir. */
+      riza: yakala,
+      // Ödeme anında çağrılır: kalıcı UTM + (YALNIZ rıza varsa) tıklama/oturum kimlikleri.
       topla: function(){
-        var kayit = oku(), cikti = {}, k, alanlar = ["utm_source","utm_medium","utm_campaign","utm_id"];
-        for(var i=0;i<alanlar.length;i++){ k = alanlar[i]; if(kayit[k]){ cikti[k] = kayit[k]; } }
-        var gid = gaClientId(); if(gid){ cikti.ga_client_id = gid; }
-        var fbp = cerez("_fbp"); if(fbp){ cikti.fbp = fbp; }
-        var fbc = cerez("_fbc") || kayit.fbc; if(fbc){ cikti.fbc = fbc; }
+        if(!rizaVar()){ tikTemizle(); }
+        var kayit = oku(), cikti = {}, k, i;
+        for(i=0;i<UTM_ALANLARI.length;i++){ k = UTM_ALANLARI[i]; if(kayit[k]){ cikti[k] = kayit[k]; } }
+        if(rizaVar()){
+          var gid = gaClientId(); if(gid){ cikti.ga_client_id = gid; }
+          var fbp = cerez("_fbp"); if(fbp){ cikti.fbp = fbp; }
+          var fbc = cerez("_fbc") || kayit.fbc; if(fbc){ cikti.fbc = fbc; }
+        }
         return cikti;
       }
     };
   })();
+  /* Banner ayrı bir <script> bloğunda; PRUVO_ATIF'e oradan erişebilsin. */
+  try { window.pruvoAtifRiza = function(){ PRUVO_ATIF.riza(); }; } catch(e){}
 
   function placeholder(txt){
     return '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">' +
@@ -2375,8 +2432,15 @@
     /* Meta pikseli de rıza anında başlasın (init + PageView) — kaydet() localStorage'ı 'kabul'
        yazdıktan SONRA çağrılır ki pruvoMetaBaslat rıza kontrolünden geçsin. */
     if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
+    /* Tıklama kimliği (fbclid) rıza kapısının ARKASINDA: sayfa yüklenirken saklanmadı.
+       Rıza şimdi geldi → URL'de hâlâ duruyorsa bu andan itibaren saklanabilir (yenileme yok). */
+    if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); }
   });
-  ret.addEventListener("click", function(){ kaydet("ret"); });  /* denied kalır */
+  /* denied kalır + saklanmış tıklama kimliği varsa SİLİNİR (rıza geri çekme yolu). */
+  ret.addEventListener("click", function(){
+    kaydet("ret");
+    if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); }
+  });
   try { kabul.focus(); } catch(e){}
 })();
 </script>

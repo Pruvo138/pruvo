@@ -10,6 +10,8 @@
   var REF_RE = /^REF:[A-Z]{2}-[A-Z0-9]{2,4}-[A-Z0-9]{4}$/;
   var LEAD_ENDPOINT = "/api/shop/ref";
   var CONSENT_KEY = "pruvo_onay_analitik";
+  // Kayitta tiklama kimligi tasiyan alanlar: riza YOKKEN yazilmaz, yazilmissa SILINIR.
+  var CLICK_FIELDS = ["gclid", "gbraid", "wbraid"];
   var activeRef = null;
   // Ayni sayfada ikinci tik gonderimini kes (kalici idempotent = kayittaki record.logged).
   var leadSent = false;
@@ -53,18 +55,43 @@
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(record)); } catch (error) {}
   }
 
-  function initialize() {
+  // RIZA KAPISI (KVKK): riza 'kabul' degilken kayitta duran click-id'leri null'a cek.
+  // Geriye donuk temizlik (once yazilmis) + riza geri cekme, ayni tek yol. REF/grup/src
+  // dokunulmaz -> WhatsApp REF akisi aynen calisir.
+  function stripClickIds(record) {
+    var changed = false;
+    for (var i = 0; i < CLICK_FIELDS.length; i++) {
+      if (record[CLICK_FIELDS[i]] !== null && record[CLICK_FIELDS[i]] !== undefined) {
+        record[CLICK_FIELDS[i]] = null;
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  function urlClickIds() {
     var params = new URLSearchParams(location.search);
     // iOS/gizlilik tiklamalari gclid yerine gbraid (app) / wbraid (web) tasir — ucunu de oku.
-    var urlGclid = params.has("gclid") ? String(params.get("gclid") || "") : null;
-    var urlGbraid = params.has("gbraid") ? String(params.get("gbraid") || "") : null;
-    var urlWbraid = params.has("wbraid") ? String(params.get("wbraid") || "") : null;
-    var hasClickId = !!(urlGclid || urlGbraid || urlWbraid);
+    return {
+      gclid: params.has("gclid") ? String(params.get("gclid") || "") : null,
+      gbraid: params.has("gbraid") ? String(params.get("gbraid") || "") : null,
+      wbraid: params.has("wbraid") ? String(params.get("wbraid") || "") : null
+    };
+  }
+
+  function initialize() {
+    var params = new URLSearchParams(location.search);
+    var url = urlClickIds();
+    var hasClickId = !!(url.gclid || url.gbraid || url.wbraid);
+    var consent = hasConsent();
     var now = Date.now();
     var record = readRecord(now);
 
+    // Riza yoksa once VAR OLAN kayittaki click-id'leri sil (geriye donuk temizlik).
+    if (record && !consent && stripClickIds(record)) { writeRecord(record); }
+
     if (!hasClickId && !record) { return; }
-    if (record && (!hasClickId || record.gclid === urlGclid)) {
+    if (record && (!hasClickId || record.gclid === url.gclid)) {
       activeRef = record.ref;
       return;
     }
@@ -73,10 +100,27 @@
     var source = normalize(params.get("s"), SOURCE_RE, "GS");
     var ref = makeRef(source, group);
     if (!ref) { return; }
-    record = { ref: ref, gclid: urlGclid, gbraid: urlGbraid, wbraid: urlWbraid,
+    // Click-id'ler YALNIZ riza varken kayda girer; REF her hâlükârda uretilir.
+    record = { ref: ref, gclid: consent ? url.gclid : null,
+               gbraid: consent ? url.gbraid : null, wbraid: consent ? url.wbraid : null,
                grup: group, src: source, ts: now };
     writeRecord(record);
     activeRef = ref;
+  }
+
+  // Riza sayfa yuklendikten SONRA verilirse (banner "Kabul Et"), URL'de hâlâ duran click-id
+  // o andan itibaren saklanabilir. Yenileme beklemeden lead tikinda cagrilir.
+  function captureClickIds() {
+    if (!hasConsent()) { return; }
+    var url = urlClickIds();
+    if (!(url.gclid || url.gbraid || url.wbraid)) { return; }
+    var record = readRecord(Date.now());
+    if (!record || record.ref !== activeRef) { return; }
+    if (record.gclid || record.gbraid || record.wbraid) { return; }
+    record.gclid = url.gclid;
+    record.gbraid = url.gbraid;
+    record.wbraid = url.wbraid;
+    writeRecord(record);
   }
 
   function isTarget(url) {
@@ -126,6 +170,8 @@
     try { url = new URL(href, location.href); } catch (error) { return; }
     if (!isTarget(url)) { return; }
     if (!hasConsent()) { return; }
+    // Riza sayfa acildiktan sonra verilmis olabilir -> click-id'yi simdi yakala (riza kapili).
+    captureClickIds();
     var record = readRecord(Date.now());
     if (!record || record.ref !== activeRef) { return; }
     if (!(record.gclid || record.gbraid || record.wbraid)) { return; }
@@ -154,6 +200,18 @@
 
   initialize();
   window.pruvoRef = function () { return activeRef; };
+  // Riza degisince (banner Kabul/Reddet, baska sekme) cagrilabilir: kabul -> URL'deki click-id
+  // yakalanir, ret/geri cekme -> saklanmis click-id'ler silinir. Sayfa yenilemesi gerekmez.
+  window.pruvoRefRiza = function () {
+    if (hasConsent()) { captureClickIds(); return; }
+    var record = readRecord(Date.now());
+    if (record && stripClickIds(record)) { writeRecord(record); }
+  };
+  try {
+    window.addEventListener("storage", function (event) {
+      if (!event || !event.key || event.key === CONSENT_KEY) { window.pruvoRefRiza(); }
+    });
+  } catch (error) {}
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", enrichAll);
