@@ -288,6 +288,20 @@ def satir_sql(u, seq, hs, h, baski=""):
     )
 
 
+def durum_uyumlu(d1_sayisi, urunler_benzersiz):
+    """--durum FAIL-LOUD teyidi: D1 satir sayisi urunler.json'daki BENZERSIZ id sayisina
+    ESIT mi? SAF fonksiyon (D1'e/dosyaya DOKUNMAZ) -> birim testi burayi cagirir, wrangler
+    gerekmez. d1_sayisi None ise (D1 okunamadi / COUNT None dondu) UYUMSUZ say = fail-loud.
+    NEDEN benzersiz: sync id'ye gore dedup eder (diff_plan 'gorulen'); D1'de her benzersiz id
+    tam 1 satir olur, dolayisiyla dogru invariant D1 COUNT(*) == benzersiz id sayisi."""
+    if d1_sayisi is None:
+        return False
+    try:
+        return int(d1_sayisi) == int(urunler_benzersiz)
+    except (TypeError, ValueError):
+        return False
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sema", action="store_true", help="semayi kur")
@@ -309,6 +323,22 @@ def main():
         print("D1 urun sayisi:", n)
         for s in (r[0].get("results") or []):
             print("  %s = %s" % (s["anahtar"], s["deger"]))
+        # FAIL-LOUD teyit: D1 satir sayisi urunler.json'daki BENZERSIZ id sayisiyla ORTUSMELI.
+        # Eskiden --durum yalniz sayiyi BASIP exit 0 donerdi -> insan/hook/CI iki sayiyi ELLE
+        # kiyaslamak zorundaydi ve kiyaslamayan "yesil" gorup gecerdi (Ege bayat katalog okur =
+        # SESSIZ satis kaybi). Artik uyumsuzlukta exit 1: pre-push hook mesajinin ve CLAUDE.md'nin
+        # isaret ettigi 'teyit' fiilen bir KAPI olur.
+        urunler = urunleri_oku()
+        benzersiz = len({u.get("id") for u in urunler if u.get("id")})
+        print("urunler.json benzersiz id:", benzersiz)
+        if not durum_uyumlu(n, benzersiz):
+            sys.exit(
+                "!! D1 SENKRON DRIFT: D1=%s != urunler.json benzersiz=%d.\n"
+                "   Senkron kacmis olabilir; Ege bayat katalog goruyor (yeni urunu ONEREMEZ).\n"
+                "   Coz: python3 tools/d1-sync.py   (yerelde wrangler oturumu; token gerekmez)"
+                % (n, benzersiz)
+            )
+        print("teyit: D1 == urunler.json benzersiz (%d) ✅" % benzersiz)
         return
 
     urunler = urunleri_oku()
