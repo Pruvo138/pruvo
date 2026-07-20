@@ -500,6 +500,37 @@ senaryo("C6 drift kapisi: gizlilik banner'i riza kancalarini build.py ile ayni c
   });
 });
 
+senaryo("C7 metin<->davranis: dugme ile aydinlatma metni birbirini tutuyor", () => {
+  // KVKK: aydinlatma metni gercegi EKSIK anlatmamali. Iki yon de kilitli ->
+  //   dugme var ama metin sussa   -> metin yalan (geri alma yolu gizli kalir)
+  //   metin soz eder ama dugme yok -> metin yalan (olmayan yolu tarif eder)
+  const ETIKET = "Çerez tercihimi değiştir";
+  const dugmeVar = GIZ.indexOf('id="pco-degistir"') !== -1;
+  // Dugme blogunu (ve yanindaki aciklama cumlesini) cikar -> geriye YASAL METIN kalir.
+  const blokBas = GIZ.indexOf('<p class="pco-tercih">');
+  let metin = GIZ;
+  if (blokBas !== -1) {
+    const blokSon = GIZ.indexOf("</p>", blokBas);
+    assert(blokSon !== -1, "pco-tercih blogu kapanmiyor");
+    metin = GIZ.slice(0, blokBas) + GIZ.slice(blokSon + "</p>".length);
+  }
+  const metindeVar = metin.indexOf(ETIKET) !== -1;
+  assert(dugmeVar === metindeVar,
+         "metin<->davranis ayristi: dugme " + (dugmeVar ? "VAR" : "YOK") +
+         ", yasal metinde soz " + (metindeVar ? "VAR" : "YOK"));
+  if (!dugmeVar) { return; }
+  // Ibare DOGRU maddede olmali: "Nasil reddedilir / geri alinir".
+  const i = metin.indexOf("Nasıl reddedilir");
+  assert(i !== -1, "'Nasıl reddedilir / geri alınır' maddesi bulunamadi");
+  const madde = metin.slice(metin.lastIndexOf("<li>", i), metin.indexOf("</li>", i));
+  assert(madde.indexOf(ETIKET) !== -1,
+         "ibare 'Nasıl reddedilir / geri alınır' maddesinde DEGIL (baska yere yazilmis)");
+  // Marka dili kapisi: yasal sayfada "3D baski" ve sehir adi GECMEZ.
+  [/3D bask/i, /Fethiye/i, /Göcek/i].forEach((k) => {
+    assert(!k.test(madde), "eklenen ibare marka dili kuralini ihlal ediyor: " + k);
+  });
+});
+
 senaryo("C1 dugme: saklanmis tiklama kimlikleri + analiz cerezleri FIILEN siliniyor", () => {
   const depo = new Depo({
     pruvo_onay_analitik: "kabul",
