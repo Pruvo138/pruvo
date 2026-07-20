@@ -22,7 +22,9 @@ const path = require("path");
 const INDEX = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 
 let hata = 0;
+let toplam = 0;
 function kontrol(ad, kosul, detay) {
+  toplam++;
   if (kosul) { console.log("  ✅ " + ad); }
   else { hata++; console.log("  ❌ " + ad + (detay ? "  → " + detay : "")); }
 }
@@ -63,8 +65,9 @@ if (m) {
 /* ── 2) KABLOLAMA: tetik noktaları syncUrl çağırıyor mu? ───────────────── */
 console.log("2) kablolama (statik — handler'lar syncUrl'a bağlı mı?)");
 
-// marka çipi onclick'i tek satır: activeBrand = m; ... syncUrl() içermeli
-const cipSatir = INDEX.match(/b\.onclick = function\(\)\{ activeBrand = m;[^\n]*/);
+// marka çipi onclick bloğu: "activeBrand = m;" atamasıyla başlayan b.onclick
+// fonksiyonu (tek satır ya da çok satır fark etmez) syncUrl() içermeli.
+const cipSatir = INDEX.match(/b\.onclick = function\(\)\{\s*activeBrand = m;[\s\S]*?\n\s*\};/);
 kontrol("marka çipi tıkı syncUrl çağırıyor",
   cipSatir && cipSatir[0].indexOf("syncUrl()") !== -1);
 
@@ -102,5 +105,7 @@ kontrol("sepet FAB görünürken ok yukarı kayıyor (fab-var kuralı)",
   /body\.fab-var \.top-btn\{bottom:/.test(INDEX) &&
   /classList\.toggle\("fab-var", cart\.length > 0\)/.test(INDEX));
 
-console.log(hata === 0 ? "\nSONUÇ: ✅ hepsi geçti" : "\nSONUÇ: ❌ " + hata + " hata");
+console.log(hata === 0
+  ? "\nSONUÇ: ✅ " + toplam + "/" + toplam + " iddia geçti"
+  : "\nSONUÇ: ❌ " + (toplam - hata) + "/" + toplam + " geçti, " + hata + " hata");
 process.exit(hata === 0 ? 0 : 1);

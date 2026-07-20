@@ -7,11 +7,13 @@ import sys
 ALLOW_CASES = [
     "/Users/okan/dev/pruvo/DEVAM.md",
     "/Users/okan/dev/pruvo/tools/rapor.md",
-    "/private/tmp/claude-501/x/scratchpad/deneme.py",
+    # scratchpad muafiyeti YALNIZ veri/not dosyaları için hâlâ geçerli (20 Tem
+    # sertleştirmesi yalnız ÇALIŞTIRILABİLİR uzantıları kapattı, .txt/.json açık kaldı).
+    "/private/tmp/claude-501/x/scratchpad/deneme.txt",
     "/Users/okan/dev/pruvo/.claude/worktrees/agent-abc123/tools/foo.py",
     "/Users/okan/dev/pruvo/.claude/worktrees/agent-abc123/urunler.json",
-    "/Users/okan/dev/pruvo-pazarlama/tools/x.py",
-    "/Users/okan/baska/yer/foo.py",
+    # repo dışı + çalıştırılabilir OLMAYAN dosya: kilidin konusu değil, serbest kalır.
+    "/Users/okan/dev/pruvo-pazarlama/tools/x.json",
 ]
 
 DENY_CASES = [
@@ -22,6 +24,11 @@ DENY_CASES = [
     "/Users/okan/dev/pruvo/tools/mimar-kod-kilidi.py",
     "/Users/okan/dev/pruvo/.claude/settings.json",
     "/Users/okan/dev/pruvo/.claude/worktrees/x/../../../tools/hack.py",
+    # 20 Tem sertleştirmesi (KraL teşhisi): çalıştırılabilir uzantı KONUMDAN BAĞIMSIZ
+    # reddedilir — eski scratchpad/repo-dışı muafiyeti artık .py/.js/.sh vb. için YOK.
+    "/private/tmp/claude-501/x/scratchpad/deneme.py",
+    "/Users/okan/dev/pruvo-pazarlama/tools/x.py",
+    "/Users/okan/baska/yer/foo.py",
 ]
 
 
