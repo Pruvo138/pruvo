@@ -24,6 +24,7 @@ Yeni urun yoksa "parti yok: working tree = HEAD", cikis 0.
 --test: gercek dosyalara dokunmadan her kontrolun yakalama+gecme yolunu sinar.
 """
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -34,15 +35,26 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 URUNLER = os.path.join(ROOT, "urunler.json")
 KAYNAKLAR = os.path.join(ROOT, ".urun-kaynaklari.json")
 
-KATEGORILER = {
-    "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis",
-    "Elektronik", "Kamera", "Bahce", "Bahçe", "Dekorasyon", "Oyun/Hobi",
-    "Jeneratör", "Jenerator",
-}
-# NOT: "Bahce" ve "Bahçe" birlikte tutuluyor cunku canli kategori adi "Bahçe"
-# (Turkce), ancak ASCII yazilmis veriye de tolerans; asil dogrulama Turkce ad.
-# "Jeneratör" = GIZLI kategori (nav'da gorunmez; TUM parametrik/sari urunler orada,
-# Okan 17 Tem) — ayni ASCII toleransiyla.
+def _gecerli_kategoriler():
+    """Gecerli kategoriler: index.html + tools/build.py'den PROGRAMATIK okunur.
+
+    Liste burada TUTULMAZ (ikinci kopya = drift kaynagi); tools/kategori-kapisi.py
+    iki kaynagi karsilastirip birlesimi dondurur (nav + GIZLI "Jeneratör").
+    """
+    yol = os.path.join(ROOT, "tools", "kategori-kapisi.py")
+    spec = importlib.util.spec_from_file_location("kategori_kapisi", yol)
+    if spec is None or spec.loader is None:
+        sys.exit("HATA: tools/kategori-kapisi.py yuklenemedi: " + yol)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return set(mod.gecerli_kategoriler())
+
+
+# ASCII TOLERANSI KALDIRILDI (yasanmis sessiz hata): eskiden "Bahce"/"Jenerator" da
+# gecerli sayiliyordu; boyle bir urun katalogda DURUR ama index.html cipi
+# `p.kategori === activeCat` ile eslesmedigi icin kategoriden GORUNMEZ. Artik yalnizca
+# kanonik ad gecer; ASCII'ye dusme kaynaginda (thing-codex.py) normalize edilir.
+KATEGORILER = _gecerli_kategoriler()
 
 MEDYA_ONEK = "https://media.pruvo3d.com/"
 

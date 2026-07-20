@@ -22,10 +22,13 @@ DERS: model takma adi ("-latest") KULLANMA, surumu her zaman ACIKCA yaz. Yukselt
 
 Kimlik: `~/.codex/auth.json` (ChatGPT ile giris; `codex login`). Sir icermez; harici pip paketi YOK.
 """
+import importlib.util
 import json, os, re, subprocess, sys, tempfile
+import unicodedata
 
 ROOT = "/Users/okan/dev/pruvo"
 IMGROOT = os.path.join(ROOT, ".thing-cache")
+TOOLS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Codex PATH'te DEGIL — ChatGPT.app icinde geliyor, tam yol sart.
 CODEX = "/Applications/ChatGPT.app/Contents/Resources/codex"
@@ -41,8 +44,45 @@ def ai_izinli():
     """Urun-basi model cagrisi sadece Okan'in o parti icin acik izniyle acilir."""
     return os.environ.get("PRUVO_URUN_AI_IZNI") == "EVET"
 
-KATEGORILER = ["Tamirat", "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Ev",
-               "Ofis", "Elektronik", "Kamera", "Bahce", "Dekorasyon", "Oyun/Hobi"]
+def _kategori_kapisi():
+    """tools/kategori-kapisi.py'yi modul olarak yukler (dosya adinda tire var -> importlib)."""
+    yol = os.path.join(TOOLS_DIR, "kategori-kapisi.py")
+    spec = importlib.util.spec_from_file_location("kategori_kapisi", yol)
+    if spec is None or spec.loader is None:
+        sys.exit("HATA: tools/kategori-kapisi.py yuklenemedi: " + yol)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+# TEK KAYNAK: kategori listesi BURADA TUTULMAZ. index.html + tools/build.py'den okunur
+# (kategori-kapisi.py ikisini karsilastirir, ayrismislarsa duser). GIZLI kategoriler
+# (Jeneratör = parametrik/sari seri) AI secimine KAPALI — o seri elle kurgulanir.
+_KAPI = _kategori_kapisi()
+_GIZLI = _KAPI.kaynak_listeler()[1]
+KATEGORILER = [k for k in _KAPI.gecerli_kategoriler() if k not in _GIZLI]
+
+
+def _katla(s):
+    """Turkce diakritikleri duselerek karsilastirma anahtari uretir ('Bahçe' -> 'bahce')."""
+    s = (s or "").replace("ı", "i").replace("I", "i").replace("İ", "i")
+    s = unicodedata.normalize("NFKD", s)
+    return "".join(c for c in s if not unicodedata.combining(c)).casefold().strip()
+
+
+# Model ASCII'ye dusmus bir varyant dondururse ("Bahce") kanonik ada geri esle.
+# Harita KATEGORILER'den TURETILIR — ikinci kopya liste yazilmaz.
+_KANONIK = {_katla(k): k for k in KATEGORILER}
+
+
+def kanonik_kategori(deger):
+    """Model ciktisindaki kategoriyi kanonik ada cevirir; taninmiyorsa None doner.
+
+    NEDEN: bu deger urunler.json'a AYNEN yazilir ve index.html cipi `p.kategori === activeCat`
+    ile BIREBIR esler. 'Bahce' (ASCII) gibi bir varyant urunu kategoriden GORUNMEZ yapar
+    (sessiz hata; 2 urunde yasandi) -> tek darbogazda burada normalize edilir.
+    """
+    return _KANONIK.get(_katla(deger))
 
 # --output-schema: cikti seklini modele ZORLA (Gemini'deki responseMimeType=json'un karsiligi).
 SEMA = {
@@ -87,7 +127,8 @@ MARKA DILI (ZORUNLU): Sitede "3D baski" / "3D printed" IFADESI YASAK. Bunun yeri
   Olcu verildiyse aciklamanin SONUNA aynen su satiri (DUZGUN TURKCE, diakritikli) ekle:
   "Yaklasik dis olculer: A × B × C mm." -> yani cikti "Yaklaşık dış ölçüler: A × B × C mm."
   seklinde olmali (A × B × C degerlerini verilen olcuyle doldur, × isaretini kullan). "3D baski" deme.
-- kategori: SADECE su 12'den biri: %s
+- kategori: SADECE su listeden BIREBIR bir ad (harfi harfine kopyala; Turkce karakterleri
+  ASCII'ye DUSURME — "Bahçe" yaz, "Bahce" DEGIL): %s
   Secim kurali (urunun ait oldugu alan / calisma prensibi):
   * Arac/marka-OZEL parca -> ilgili arac kategorisine (Otomobil/Motosiklet/Bisiklet/Marin), Tamirat'a DEGIL.
   * ONEMLI TEST — urun aracin KENDISI icin mi (parca/aksesuar), yoksa aracin TEMSILI mi (maketi/resmi)?
@@ -101,7 +142,7 @@ MARKA DILI (ZORUNLU): Sitede "3D baski" / "3D printed" IFADESI YASAK. Bunun yeri
   * Elektronik: elektrik/pille calisan cihaz parcasi (kahve makinesi, buzdolabi, supurge, 3D yazici) -
     kamera HARIC, e-bike HARIC.
   * Bisiklet: bisiklet + e-bike parcalari (e-bike Elektronik'e DEGIL).
-  * Ev: elektriksiz ev esyasi. Ofis: ofis/kirtasiye. Bahce: bahce/guc ekipmani. Dekorasyon: sus.
+  * Ev: elektriksiz ev esyasi. Ofis: ofis/kirtasiye. "Bahçe": bahce/guc ekipmani. Dekorasyon: sus.
     Oyun/Hobi: oyuncak/hobi/koleksiyon. Marin: tekne/denizcilik.
 - marka: DIZI. Basliktaki/urundeki marka veya model adlari (or. ["Audi","Volkswagen"]). Jenerik urunse [].
 - fiyat_oneri: KABA bir baslangic fiyati (or. "400 TL"). PRUVO ozel-uretim yedek parca satar; kucuk
@@ -185,6 +226,23 @@ def process(tid):
         if os.path.exists(onerip):
             os.unlink(onerip)   # bozuk dosya birakma — cagiran "oneri var" saniyor
         return
+
+    # KATEGORI NORMALIZASYONU (sessiz-hata kapisi): oneri.json'u TUM ekle scriptleri
+    # (urun-ekle / printables-ekle / makerworld-ekle / mmf / cgt / cults3d) okur ve degeri
+    # urunler.json'a AYNEN yazar. Kanonik olmayan ad urunu kategoriden gorunmez yapar.
+    ham_kat = out.get("kategori")
+    kanonik = kanonik_kategori(ham_kat)
+    if kanonik is None:
+        print("=== %s === Codex gecersiz kategori dondu: %r (gecerli: %s)"
+              % (tid, ham_kat, ", ".join(KATEGORILER)))
+        os.unlink(onerip)       # fail-closed: kotu kategoriyle urun STAGE ETME
+        return
+    if kanonik != ham_kat:
+        print("=== %s === kategori normalize edildi: %r -> %r" % (tid, ham_kat, kanonik))
+        out["kategori"] = kanonik
+        with open(onerip, "w", encoding="utf-8") as f:
+            json.dump(out, f, ensure_ascii=False)
+
     print("=== %s === %s | %s | %s | %s" % (
         tid, out.get("baslik", "?"), out.get("kategori", "?"),
         out.get("fiyat_oneri", "?"), ", ".join(out.get("sec_gorseller", []))))

@@ -26,8 +26,10 @@ def referans():
     return _ref
 
 
-# Katalogda tek urunde kategori "Bahce" (ç'siz) yaziyor; haritada karsiligi bulunsun diye
-# SADECE arama aninda esitlenir (urun verisine dokunulmaz).
+# GECMIS: katalogda 2 urunde kategori "Bahce" (ç'siz) yaziyordu (kaynak: AI icerik adiminin
+# ASCII kategori listesi). Veri duzeltildi ve kaynak kapatildi (thing-codex.py normalize eder,
+# tools/kategori-kapisi.py dogrular) — burasi yalnizca OKUMA tarafinda geriye donuk toleranstir;
+# yeni ASCII kategori beklenmiyor, urun verisine dokunulmaz.
 _KATEGORI_ALIAS = {"Bahce": "Bahçe"}
 
 

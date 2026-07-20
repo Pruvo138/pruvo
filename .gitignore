@@ -24,9 +24,6 @@ gorseller/
 # build.py çıktıları — artık GitHub Actions (CI) üretip yayınlıyor,
 # git'te/lokalde tutulmuyor (repo minimum kalsın diye).
 /urun/
-/teslimat-iade/
-/mesafeli-satis/
-/malzeme-rehberi/
 /filament-veri.js
 /taban-fiyatlar.js
 /index.built.html
@@ -34,6 +31,56 @@ gorseller/
 /merchant-feed.xml
 /robots.txt
 /_yayin-icerik-dizinleri.txt
+
+# >>> uretilen-icerik-dizinleri (otomatik — elle duzenleme; tools/gitignore-kapisi.py dogrular)
+/teslimat-iade/
+/mesafeli-satis/
+/malzeme-rehberi/
+/numuneye-gore-plastik-parca-uretimi/
+/bulunamayan-yedek-parca-ozel-uretim/
+/beyaz-esya-plastik-parca-uretimi/
+/oto-ic-trim-klips-parca-uretimi/
+/makine-parcasi-olcuye-ozel-uretim/
+/tekne-plastik-parca-ozel-uretim-gocek-fethiye/
+/kisiye-ozel-logolu-kase-yaptirma/
+/olcuye-ozel-conta-uretimi/
+/olcuye-ozel-plastik-disli-uretimi/
+/numuneye-gore-triger-kasnagi-uretimi/
+/numuneden-plastik-burc-rulman-uretimi/
+/piyasada-bulunmayan-yedek-parca-uretimi/
+/kirik-plastik-parca-yaptirma/
+/tek-adet-ozel-parca-uretimi/
+/olcuye-ozel-baglanti-konektor/
+/olcuye-ozel-montaj-braketi/
+/olcuye-ozel-profil-beam/
+/kasnak-olcuye-ozel-uretim/
+/olcuye-ozel-vida-somun-civata-uretimi/
+/olcuye-ozel-yay-uretimi/
+/elektronik-cihaz-plastik-parca-uretimi/
+/motosiklet-plastik-parca-ozel-uretim/
+/olcuye-ozel-huni-uretimi/
+/olcuye-ozel-izgara-petek-uretimi/
+/olcuye-ozel-klips-kelepce-uretimi/
+/olcuye-ozel-kablo-kanali-organizer-uretimi/
+/olcuye-ozel-mentese-uretimi/
+/olcuye-ozel-kulp-tutamak-uretimi/
+/olcuye-ozel-tapa-kapak-uretimi/
+/tarim-makinesi-plastik-parca-uretimi/
+/mobilya-plastik-baglanti-ayak-parca-uretimi/
+/drone-rc-model-plastik-parca-uretimi/
+/ev-aleti-plastik-disli-parca-uretimi/
+/olcuye-ozel-cetvel-mastar-sablon-uretimi/
+/olcuye-ozel-koruma-kapagi-muhafaza-uretimi/
+/olcuye-ozel-adaptor-reduksiyon-gecis-uretimi/
+/bisiklet-plastik-parca-ozel-uretim/
+/kamera-optik-aksesuar-plastik-parca-uretimi/
+/oyuncak-hobi-model-plastik-parca-uretimi/
+/klima-kombi-havalandirma-plastik-parca-uretimi/
+/aydinlatma-armatur-plastik-parca-uretimi/
+/ofis-ekipmani-plastik-parca-uretimi/
+/muzik-enstruman-plastik-parca-uretimi/
+/akvaryum-terraryum-plastik-parca-uretimi/
+# <<< uretilen-icerik-dizinleri
 /.nojekyll
 /.marka-kapsama.json*
 .thingiverse-token
@@ -54,10 +101,15 @@ stl/
 tools/URUN-EKLEME-REHBERI.md
 .urunler.lock
 .devam.lock
+# parity-sequential-flock.py parti mutex'i (yerel kilit dosyasi; kardesleri yukarida)
+.parity-batch.lock
 # urunler.json guard katmani: duzeltme/silme izni manifestleri + guard log (asla commit'lenmez)
 .urunler-duzelt-izin.json
 .urunler-sil-izin.json
 .urunler-guard.log
+# parity-backfill.py'nin Codex yargi adimi icin gecici I/O dosyalari (tools/ altina yazilir)
+tools/_yargi-out.json
+tools/_yargi-sema.json
 
 # Kaynak-kontrol panelinden gizlenen yerel öğeler (silinmedi, diskte duruyor):
 # .wrangler = Cloudflare yerel önbelleği; scratchpad = geçici çalışma dosyaları;

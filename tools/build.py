@@ -1825,6 +1825,17 @@ def main():
     with open(JSON_PATH, encoding="utf-8") as f:
         products = json.load(f)
 
+    # Kategori UYARISI (bilerek ölümcül DEĞİL): CATEGORIES + NAV_GIZLI dışında bir kategori,
+    # ürünü katalogda bırakır ama kategori çipinden GÖRÜNMEZ yapar (index.html birebir eşler)
+    # ve FONKSIYONEL_KATEGORILER dışında kaldığı için malzeme/renk seçicisini düşürür.
+    # Tek kötü kategori TÜM yayını kırmasın diye burada sadece uyarılır; kapı ayrı ve
+    # çalıştırılabilir: `python3 tools/kategori-kapisi.py` (exit 1 verir).
+    _gecerli_kat = set(CATEGORIES) | set(NAV_GIZLI)
+    _kotu_kat = sorted({p.get("kategori") for p in products if p.get("kategori") not in _gecerli_kat})
+    if _kotu_kat:
+        print("UYARI: gecersiz kategori(ler) var -> %s | detay: python3 tools/kategori-kapisi.py"
+              % ", ".join(repr(k) for k in _kotu_kat))
+
     # Elle korunan dört içerik sayfasında işaretli attribution + Meta piksel bloklarını yenile.
     # (GA bu sayfalara elle gömülü; Meta piksel burada TEK KAYNAKtan enjekte edilir — rıza kapısı
     # GA ile aynı, ViewContent yok.) CI aynı dosyaları yayın klasörüne kopyaladığı için ayrı
