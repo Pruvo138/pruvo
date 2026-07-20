@@ -22,6 +22,16 @@ SERBEST (yanlislikla kapatma — kapatirsan is durur):
   * curl ile salt-okunur canli dogrulama, grep/ls/rg/jq/wc/head/tail vb.
   * codex exec ile delegasyon
   * /.claude/worktrees/ icinden calisan oturumlar (muhendis alani) — TAM muaf
+
+BILINEN BYPASS'LAR (kapi bir DISIPLIN cihazidir, hapishane DEGIL — KAYITLI olmalari sart):
+  1. 'git worktree add /private/tmp/x' TEK komutla kalici muaf bolge acar: yeni kok
+     .git/worktrees'e KAYITLI olur, sonrasinda oraya betik yazmak (kod-kilidi) ve
+     oradan betik kosturmak (bu kapi) SERBEST olur. BILEREK kapatilmadi — git yonetimi
+     mimarin kapisidir ve engellemek merge/temizlik isini felc eder. Olcum:
+     'git -C /Users/okan/dev/pruvo worktree list' cikti sayisi.
+  2. agent_id DOLU cagri (alt ajan) — kapi hicbir kural uygulamaz; stderr izi
+     "MIMAR-KAPISI allow ISCI".
+  3. Commit duzlemindeki bypass'lar tools/mimar-commit-kapisi.py bas yorumunda.
 """
 import json
 import os
@@ -30,6 +40,49 @@ import shlex
 import sys
 
 REPO_ONEKI = "/Users/okan/dev/pruvo/"
+GIT_WORKTREE_KAYIT = "/Users/okan/dev/pruvo/.git/worktrees"
+
+
+def kimlik(girdi):
+    aid = girdi.get("agent_id")
+    if isinstance(aid, str) and aid.strip():
+        return "ISCI"
+    return "MIMAR"
+
+
+def iz_bas(etiket):
+    """ALLOW kararinda stderr'e TEK SATIR iz; stdout BOS kalir (permission semantigi
+    degismez). Kabul testi bununla 'kapi kostu ve izin verdi' ile 'kapi yok/coktu'
+    durumunu ayirir — eski surumde 'stdout bos => allow' fail-open korlugu vardi."""
+    try:
+        sys.stderr.write("MIMAR-KAPISI allow " + etiket + "\n")
+    except Exception:
+        pass
+
+
+def kayitli_worktree_kokleri():
+    """.git/worktrees/*/gitdir → worktree kokleri. Hata olursa BOS kume (dar davranis).
+    Govde tools/mimar-kod-kilidi.py ile BIREBIR AYNI — bilerek KOPYALANDI: ortak modul
+    tek ariza noktasi olurdu (iki kapi birden bozulur) ve import yolu kancanin cwd'sine
+    bagimli olurdu."""
+    kokler = set()
+    try:
+        for ad in os.listdir(GIT_WORKTREE_KAYIT):
+            gitdir = os.path.join(GIT_WORKTREE_KAYIT, ad, "gitdir")
+            try:
+                with open(gitdir, encoding="utf-8") as f:
+                    icerik = f.read().strip()
+            except Exception:
+                continue
+            if not icerik:
+                continue
+            kok = os.path.normpath(os.path.dirname(icerik))
+            if kok and kok != "/":
+                kokler.add(kok)
+    except Exception:
+        return set()
+    return kokler
+
 
 YORUMLAYICI = re.compile(
     r"^(python|python2|python3(\.\d+)?|pypy3?|node|nodejs|deno|bun|ts-node|tsx|"
@@ -52,6 +105,11 @@ SATIR_ICI = {"-c", "-e", "--eval", "--eval-file", "-p", "--print", "-"}
 # (-s ile kod alir), venv, http.server (disari acar). Bu yuzden -m VARSAYILAN KAPALI,
 # yalnizca zararsiz okuma/bicimlendirme modulleri izinli.
 IZINLI_MODULLER = {"json.tool", "base64", "calendar", "this"}
+
+# Test kosucu modulleri: mimarin gorev tanimi "sonucu CALISTIRILABILIR TESTLE kapatmak"
+# oldugu icin acilir, ama YALNIZ repo-ici hedeflerle (-m ile repo DISINA cikilamaz).
+# IZINLI_MODULLER'e EKLENMEZ — ayri kume, ki mutasyon testi ikisini ayirt edebilsin.
+TEST_MODULLERI = {"pytest", "unittest"}
 
 # Yorumlayiciya disaridan kod enjekte eden ortam degiskenleri (VAR=deger python3 ...).
 TEHLIKELI_ENV = {
@@ -155,10 +213,48 @@ def sarmalayici_soy(tokenlar):
 
 
 def repo_ici(yol, cwd):
+    """Repo agacinin ICINDE mi? Ana checkout ONEKI ya da git'e KAYITLI bir worktree koku.
+    Kayit ekseni P2'nin (repo DISINDAKI mesru worktree, or. /private/tmp/pruvo-toka-jenerator)
+    kimlikten BAGIMSIZ yedegidir: agent_id gelmese bile o betik kosar."""
     yol = os.path.expanduser(yol)
     if not os.path.isabs(yol):
         yol = os.path.join(cwd, yol)
-    return os.path.normpath(yol).startswith(REPO_ONEKI)
+    yol = os.path.normpath(yol)
+    if yol.startswith(REPO_ONEKI):
+        return True
+    for kok in kayitli_worktree_kokleri():
+        if yol == kok or yol.startswith(kok + "/"):
+            return True
+    return False
+
+
+def test_hedefleri(argumanlar):
+    """'-m pytest/unittest' sonrasi HEDEF (yol) adaylarini cikarir.
+
+    OLCULMUS ACIK (20 Tem): eski surum '-' ile baslayan token'lari komple eliyordu →
+    BITISIK yazilmis deger ('-s/private/tmp/disari', '--start-directory=/tmp/x')
+    hedef sayilmiyor, geriye repo-ici token kaliyor ve kapi ALLOW veriyordu; ayrik
+    yazim ('-s /tmp/x') dogru sekilde deny idi. Artik bitisik deger de HEDEFTIR.
+
+    Kural:
+      '--bayrak=DEGER' -> DEGER hedef
+      '-sDEGER'        -> DEGER hedef (kisa bayrak + bitisik deger, genel hal)
+      '-s' / '--x'     -> degersiz bayrak, atlanir
+      diger token      -> hedef (ayrik yazilmis deger de dahil; yol sayilmasi KATIDIR)"""
+    hedefler = []
+    for t in argumanlar:
+        if t.startswith("--"):
+            if "=" in t:
+                deger = t.split("=", 1)[1]
+                if deger:
+                    hedefler.append(deger)
+            continue
+        if t.startswith("-"):
+            if len(t) > 2:
+                hedefler.append(t[2:])
+            continue
+        hedefler.append(t)
+    return hedefler
 
 
 def main():
@@ -167,8 +263,17 @@ def main():
     except Exception:
         sys.exit(0)
 
+    # KIMLIK (20 Tem kalibrasyonu): agent_id DOLU ise cagri ALT AJANDAN gelir — mesru
+    # muhendis. Bash kapisi hicbir kural uygulamaz (satir-ici kod, scratchpad betigi,
+    # -m pytest, repo-disi betik: hepsi serbest). Olculmus ariza buydu: kapi 4 kez mesru
+    # isi engelledi, bir isci sed'e kacti (denetlenemez yol) = kapi guvenligi AZALTTI.
+    if kimlik(girdi) == "ISCI":
+        iz_bas("ISCI")
+        sys.exit(0)
+
     komut = (girdi.get("tool_input") or {}).get("command") or ""
     if not komut.strip():
+        iz_bas("MIMAR-kural-yok")
         sys.exit(0)
 
     # NOT (20 Tem, mimar sorusu (a)): burada eskiden "cwd worktree icindeyse TAM MUAF"
@@ -250,6 +355,17 @@ def main():
             modul = argumanlar[i + 1] if i + 1 < len(argumanlar) else ""
             if modul in IZINLI_MODULLER:
                 continue
+            if modul in TEST_MODULLERI:
+                # Test kosucusu: hedeflerin HEPSI repo-ici olmali. Hic yol argumani
+                # yoksa cwd repo-ici olmali. Boylece mimar kendi kabul testini kosturur
+                # ama -m ile repo DISINA cikamaz (vaka 85/86 allow, 87 deny).
+                # BITISIK yazim da hedeftir (vaka 92/94 deny, 93/95 allow).
+                hedefler = test_hedefleri(argumanlar[i + 2:])
+                if hedefler:
+                    if all(repo_ici(h, cwd) for h in hedefler):
+                        continue
+                elif repo_ici(cwd, cwd):
+                    continue
             reddet(
                 "'" + ad + " -m " + (modul or "?") + "' modül üzerinden keyfi icra kapısıdır "
                 "(pip kurulum betiği koşturur; timeit/pdb/trace -s ile kod alır; venv/"
@@ -278,6 +394,7 @@ def main():
                 "kod YAZDIRIR; sonucu testle kapatır."
             )
 
+    iz_bas("MIMAR-kural-yok")
     sys.exit(0)
 
 
