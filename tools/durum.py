@@ -257,6 +257,91 @@ SINIF_ETIKET = {
 }
 
 
+# ------------------------------------------------------------------- EDGE_KATALOG esigi
+# Kaynak: tools/edge-katalog-tetik.md (mimar karari, 20 Tem 2026).
+# B-HAZIRLIK 10k / A-BIRINCIL TETIK (flip) 12k / C-MECBURI SON TARIH 14k.
+# Ag cagrisi YOK (mimar karari: panoya ag eklenmez, urunler.json yerelden sayilir).
+
+EDGE_HAZIRLIK = 10000
+EDGE_FLIP = 12000
+EDGE_MECBURI = 14000
+EDGE_GUNLUK_BUYUME = 245  # edge-katalog-tetik.md: "karali buyume ~245 urun/gun"
+
+
+def urunler_sayisi(yol):
+    """urunler.json'daki BENZERSIZ id sayisi. Dosyayi BAGLAMA basmaz/dokmez,
+    sadece sayar. Bozuk/eksik dosyada None doner (betik ASLA patlamaz)."""
+    if not os.path.isfile(yol):
+        return None
+    try:
+        with open(yol, "r", errors="replace") as f:
+            veri = json.load(f)
+    except (ValueError, OSError):
+        return None
+    if not isinstance(veri, list):
+        return None
+    idler = set()
+    for urun in veri:
+        if isinstance(urun, dict) and "id" in urun:
+            idler.add(urun["id"])
+    return len(idler)
+
+
+def edge_esigi(sayi, hazirlik=None, flip=None, mecburi=None, gunluk=None):
+    """Sabit esiklere gore siniflama -- saf fonksiyon (girdi->cikti).
+
+    hazirlik/flip/mecburi/gunluk parametreleri None ise modul sabitleri CALISMA
+    ANINDA okunur (varsayilan-degeri def anina SABITLEMEZ) -- boylece testler
+    `durum.EDGE_HAZIRLIK` gibi sabitleri gecici olarak degistirip (mutasyon)
+    bu fonksiyonun gercekten o sabiti kullandigini kanitlayabilir.
+    """
+    if hazirlik is None:
+        hazirlik = EDGE_HAZIRLIK
+    if flip is None:
+        flip = EDGE_FLIP
+    if mecburi is None:
+        mecburi = EDGE_MECBURI
+    if gunluk is None:
+        gunluk = EDGE_GUNLUK_BUYUME
+
+    kalan_hazirlik = hazirlik - sayi
+    tahmin_gun = None
+    if gunluk and gunluk > 0:
+        tahmin_gun = -(-max(0, kalan_hazirlik) // gunluk)  # tavana yuvarla (tamsayi)
+
+    return {
+        "urun": sayi,
+        "hazirlik": {"esik": hazirlik, "kalan": kalan_hazirlik, "asildi": sayi >= hazirlik},
+        "flip": {"esik": flip, "kalan": flip - sayi, "asildi": sayi >= flip},
+        "mecburi": {"esik": mecburi, "kalan": mecburi - sayi, "asildi": sayi >= mecburi},
+        "gunluk_buyume": gunluk,
+        "tahmini_gun_hazirlik": tahmin_gun,
+    }
+
+
+def edge_satirlari(e):
+    """basim icin metin satirlari uretir (kabul testi de dogrudan bunu okur)."""
+    def isaret(anahtar):
+        return "⚠ " if e[anahtar]["asildi"] else ""
+
+    satirlar = [
+        "  urun: %d | %shazirlik %d'e kalan: %d | %sflip %d | %smecburi %d"
+        % (e["urun"],
+           isaret("hazirlik"), e["hazirlik"]["esik"], e["hazirlik"]["kalan"],
+           isaret("flip"), e["flip"]["esik"],
+           isaret("mecburi"), e["mecburi"]["esik"])
+    ]
+    if e["tahmini_gun_hazirlik"] is not None and not e["hazirlik"]["asildi"]:
+        satirlar.append(
+            "  tahmin: karali ~%d urun/gun buyume varsayimiyla hazirliga (%d) kalan gun: %d"
+            % (e["gunluk_buyume"], e["hazirlik"]["esik"], e["tahmini_gun_hazirlik"]))
+    else:
+        satirlar.append(
+            "  tahmin: hazirlik esigi (%d) zaten gecildi -- buyume tahmini gecersiz"
+            % e["hazirlik"]["esik"])
+    return satirlar
+
+
 def main():
     repo = repo_koku()
     kok = ana_repo(repo)
@@ -324,6 +409,15 @@ def main():
         yer = o["cwd"].replace(kok, ".") if o["cwd"] != "?" else "?"
         print("  • %s… | dal: %s | %s" % (o["kimlik"], o["dal"], _gecen(o["mtime"])))
         print("      %s" % yer)
+
+    urun_yolu = os.path.join(kok, "urunler.json")
+    sayi = urunler_sayisi(urun_yolu)
+    print("\n6) EDGE_KATALOG ESIGI")
+    if sayi is None:
+        print("  urunler.json okunamadi/bulunamadi: %s" % urun_yolu)
+    else:
+        for satir in edge_satirlari(edge_esigi(sayi)):
+            print(satir)
     print("")
     return 0
 
