@@ -40,11 +40,12 @@ require(path.join(KOK, "secenekler.js"));
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi"); }
 
-// index.html'in SON inline <script> blogu (vitrin/arama/sepet kodu).
-const scriptBasi = INDEX.lastIndexOf("<script>");
-const scriptSonu = INDEX.indexOf("</script>", scriptBasi);
-const SCRIPT = INDEX.slice(scriptBasi + "<script>".length, scriptSonu);
-if (!SCRIPT.includes("renderGrid")) {
+// Vitrin/arama/sepet kodunu taşıyan inline script. Sayfanın sonuna çerez gibi
+// başka bir inline script eklenmesi kabulü bozmamalı; davranış imzasıyla seçilir.
+const INLINE_SCRIPTLER = [...INDEX.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
+  .map((m) => m[1]);
+const SCRIPT = INLINE_SCRIPTLER.find((s) => s.includes("renderGrid"));
+if (!SCRIPT) {
   throw new Error("index.html inline scripti bulunamadi (yapi degisti mi?)");
 }
 
@@ -220,9 +221,11 @@ async function test2Nav() {
   const hatalar = [];
   const s = await sayfaKur({});
   const etiketler = [];
-  for (const b of s.el("cats").children) { etiketler.push(b.textContent); }
+  for (const b of s.el("cats").children) {
+    etiketler.push(b.textContent || b.attrs["aria-label"] || b.title || "");
+  }
   if (etiketler.indexOf("Jeneratör") !== -1) { hatalar.push("nav'da 'Jeneratör' GORUNUYOR"); }
-  const beklenen = ["Tümü", "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev",
+  const beklenen = ["Tüm ürünler", "Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev",
     "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"];
   for (const k of beklenen) {
     if (etiketler.indexOf(k) === -1) { hatalar.push("nav'da '" + k + "' eksik"); }
