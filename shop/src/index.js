@@ -27,7 +27,7 @@ import "../../secenekler.js";
 import { cfBaslat, cfDetay } from "./iyzico.js";
 import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
-import { yonet } from "./yonet.js";
+import { yonet, gecmiseEkle } from "./yonet.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
 import { refKaydet } from "./ref.js";
@@ -454,7 +454,7 @@ async function donus(request, env, ctx) {
 
   // Uydurma token: bizde kaydi yok -> siparis OLUSMAZ, 4xx (kabul testi 2).
   const siparis = await env.KATALOG.prepare(
-    "SELECT siparis_no, durum, tutar_kurus, kargo_kurus, kdv_kurus, urunler, atif," +
+    "SELECT siparis_no, durum, durum_gecmisi, tutar_kurus, kargo_kurus, kdv_kurus, urunler, atif," +
     " musteri_ad, musteri_tel, musteri_eposta, musteri_adres FROM siparisler WHERE token = ?"
   ).bind(token).first();
   if (!siparis) return json({ hata: "bilinmeyen-token" }, 404, env);
@@ -529,9 +529,25 @@ async function donus(request, env, ctx) {
   }
 
   // IDEMPOTENT kapanis: ayni token ikinci kez gelirse changes=0 -> bildirim de tekrarlanmaz.
+  //
+  // OLCUM IZI (havale yoluyla AYNI DESEN): durum_gecmisi'ne {"d":"odendi","z":ISO,"o":1}
+  // dusulur ve bu AYNI atomik UPDATE icinde yazilir — AYRI bir yazma turu EKLENMEZ
+  // (ikinci UPDATE yaris penceresi acardi). Kayit bicimi yonet.js gecmiseEkle()'den gelir;
+  // TEK KAYNAK, ikinci kopya YOK.
+  //   ⚠️ IZIN ANLAMI "DENENDI", "META ALDI" DEGIL: iz gonderim SONUCUNDAN once yazilir,
+  //   olcum fire-and-forget'tir (secret yok / fbp yok / HTTP 400 hallerinde de iz "1" kalir).
+  //   Ulasma kaniti YALNIZ Cloudflare Logs'taki `olcum {...}` satirindadir.
+  //   Ayni dil havale yolunda da kullanilir (gecmiseEkle / olcumDenendiMi / "zaten-denendi").
+  //   NEDEN GEREKLI: bu iz yazilmadan once tespit araci (tools/olculmemis-siparis.py) kart
+  //   siparisleri icin DOLAYLI sinyale (iyzico_odeme_id dolu mu) yaslanmak zorundaydi;
+  //   iyzico paymentId'yi bos dondurse ya da bu akis degisse tespit SESSIZCE yanlislanirdi.
+  // IDEMPOTENS: iz de UPDATE'in bir parcasi oldugundan changes=0 (ayni token 2. kez)
+  // halinde HIC yazilmaz -> gecmiste tek {"o":1} kalir, olay da tekrarlanmaz.
+  const yeniGecmis = gecmiseEkle(siparis.durum_gecmisi, "odendi", { olcumDenendi: true });
   const g = await env.KATALOG.prepare(
-    "UPDATE siparisler SET durum = 'odendi', iyzico_odeme_id = ? WHERE token = ? AND durum <> 'odendi'"
-  ).bind(String(det.paymentId || ""), token).run();
+    "UPDATE siparisler SET durum = 'odendi', iyzico_odeme_id = ?, durum_gecmisi = ?" +
+    " WHERE token = ? AND durum <> 'odendi'"
+  ).bind(String(det.paymentId || ""), yeniGecmis, token).run();
 
   if (g.meta && g.meta.changes > 0) {
     ctx.waitUntil(telegram(env, siparisMesaji(siparis, det)));

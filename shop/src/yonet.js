@@ -182,7 +182,12 @@ async function liste(env, url) {
 
 // ---- durum gecmisi yardimci ---------------------------------------------------
 
-function gecmiseEkle(mevcutJson, hedef, ekstra) {
+/**
+ * Durum gecmisine tek kayit dusurur. TEK KAYNAK: kart akisi (index.js donus()) da BUNU
+ * cagirir — iki akis ayni iz bicimini uretsin diye (ikinci kopya YOK; bicim ayrisirsa
+ * tools/olculmemis-siparis.py sessizce yanlislanirdi).
+ */
+export function gecmiseEkle(mevcutJson, hedef, ekstra) {
   let g = [];
   try { g = JSON.parse(mevcutJson) || []; } catch (e) { g = []; }
   if (!Array.isArray(g)) { g = []; }

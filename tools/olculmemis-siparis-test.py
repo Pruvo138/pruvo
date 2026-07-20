@@ -20,6 +20,9 @@ Testler SAHTE satirlarla calisir (D1'e dokunmaz, subprocess calistirmaz) — sad
   10 KAYNAK DENETIMI: olculmemis-siparis.py icinde SELECT disi SQL ifadesi YOK
      (D1'e yazmadiginin kod-duzeyi kaniti)
   11 (--canli) gercek D1 kosumu: cikis kodu 0/1, cikti raporu iceriyor
+  12 KART DOGRUDAN IZ: {"o":1} izli kart -> olculdu (iyzico_odeme_id bos olsa bile);
+     esik oncesi izsiz kart -> kayip DEGIL; esik sonrasi izsiz kart -> KAYIP;
+     12b eski surum kart (izsiz + iyzico_odeme_id dolu) -> kayip DEGIL
 """
 import argparse
 import json
@@ -148,6 +151,42 @@ def test_5_kart():
           "%s / %s" % (a["sinif"], b["sinif"]))
 
 
+def test_12_kart_dogrudan_iz():
+    """KART yolu artik durum_gecmisi'ne {"o":1} yaziyor (index.js donus()).
+
+    Uc hal AYRI AYRI sinanir — biri digerini maskelemesin:
+      12a DOGRUDAN izli kart siparisi KAYIP SAYILMAZ (iyzico_odeme_id BOS OLSA BILE;
+          iyzico paymentId'yi bos dondurdugunde dolayli sinyal cokerdi).
+      12b Esik ONCESI izsiz eski kart siparisi KAYIP SAYILMAZ (geriye donuk iz YAZILMADI).
+      12c Esik SONRASI izsiz + iyzico_odeme_id'siz kart siparisi KAYIP SAYILIR.
+    """
+    izli = satir("PR-260720-170000-III", "kart", "odendi",
+                 [{"d": "odendi", "z": "2026-07-20T17:00:00.000Z", "o": 1}],
+                 odeme_id="", token="tk3")
+    # Eski (esik oncesi) kart siparisi: dogrudan iz YOK; dolayli sinyal de bos birakildi ki
+    # "kayip degil" karari ESIGE dayansin, sinyale degil.
+    eski = satir("PR-260717-100000-JJJ", "kart", "tamamlandi",
+                 [{"d": "odendi", "z": "2026-07-17T10:00:00.000Z"}],
+                 tarih="2026-07-17T09:00:00.000Z", odeme_id="", token="tk4")
+    yeni_izsiz = satir("PR-260720-180000-KKK", "kart", "odendi",
+                       [{"d": "odendi", "z": "2026-07-20T18:00:00.000Z"}],
+                       odeme_id="", token="tk5")
+    a = olc.siniflandir(izli, ESIK_K, ESIK_H)
+    b = olc.siniflandir(eski, ESIK_K, ESIK_H)
+    c = olc.siniflandir(yeni_izsiz, ESIK_K, ESIK_H)
+    kayit(12, "kart: dogrudan iz->olculdu, esik oncesi izsiz->esik-oncesi, "
+              "esik sonrasi izsiz->kayip",
+          a["sinif"] == olc.OLCULDU and b["sinif"] == olc.ESIK_ONCESI
+          and c["sinif"] == olc.KAYIP,
+          "%s / %s / %s" % (a["sinif"], b["sinif"], c["sinif"]))
+    # Eski satirlarda DOLAYLI sinyal hala kabul edilmeli (geriye donuk yazma YAPILMADI).
+    dolayli = satir("PR-260719-120000-LLL", "kart", "odendi", None,
+                    tarih="2026-07-19T12:00:00.000Z", odeme_id="87654321", token="tk6")
+    d = olc.siniflandir(dolayli, ESIK_K, ESIK_H)
+    kayit("12b", "esik SONRASI izsiz ama iyzico_odeme_id'li kart (eski surum) KAYIP SAYILMAZ",
+          d["sinif"] == olc.OLCULDU, "%s | %s" % (d["sinif"], d["sebep"]))
+
+
 # ------------------------------------------------------------------ 6
 
 def test_6_rapor_toplam():
@@ -268,6 +307,7 @@ def main():
     test_8_gecis_ani_gecmisten()
     test_9_meta_penceresi()
     test_10_kaynak_denetimi()
+    test_12_kart_dogrudan_iz()
     if args.canli:
         test_11_canli()
     print("=" * 78)

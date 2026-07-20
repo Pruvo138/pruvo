@@ -24,11 +24,18 @@ gecerse calismadan ValueError firlatir. PII kolonu (ad/tel/eposta/adres) HIC sec
 *** OLCUM IZLERI (sema: tools/d1-sema.sql · kod: shop/src/yonet.js + shop/src/index.js) ***
   HAVALE yolu : /api/shop/yonet/durum 'odendi'e cekince durum_gecmisi'ne {"d":"odendi",
                 "z":ISO,"o":1} yazar. `o:1` = "Purchase olcumu DENENDI".
-  KART yolu   : /api/shop/donus retrieve OK olunca ayni UPDATE'te iyzico_odeme_id yazar ve
-                olcumGonder() cagirir. durum_gecmisi'ne DOKUNMAZ -> kart satirinda `o:1`
-                ARANMAZ; iz = iyzico_odeme_id'nin DOLU olmasi.
+  KART yolu   : /api/shop/donus retrieve OK olunca AYNI atomik UPDATE'te hem
+                iyzico_odeme_id'yi hem durum_gecmisi'ne AYNI {"o":1} izini yazar ve
+                olcumGonder() cagirir. Yani iki akis TEK DESENDE bulusur.
+  KART ICIN IKI SINYAL DE KABUL EDILIR (VEYA):
+    1) DOGRUDAN iz {"o":1}  — 20 Tem sonrasi kart siparisleri (index.js gecmiseEkle).
+    2) DOLAYLI  iyzico_odeme_id DOLU — daha ESKI kart siparisleri. Geriye donuk iz
+       YAZILMADI (D1'e yazmak bu aracin kapsami DISI + gecmisi tahrif etmek yanlis),
+       o yuzden eski satirlarda tek kanit budur.
+  ⚠️ Dolayli sinyal KIRILGAN: iyzico paymentId'yi bos dondurse iyzico_odeme_id de bos kalir.
+  Bu yuzden ONCE dogrudan iz aranir; dolayli sinyal yalnizca geriye donuk uyum icindir.
   Kart siparisi 'odendi'ye BASKA yoldan gecemez: /yonet IZINLI tablosunda 'odendi' hedefine
-  yalniz 'havale-bekliyor'dan gecilir. Yani kart + 'odendi' + iyzico_odeme_id BOS = worker
+  yalniz 'havale-bekliyor'dan gecilir. Yani kart + 'odendi' + iki sinyal de YOK = worker
   disi (ham SQL) mudahale isareti.
 
 *** IZ "DENENDI" DEMEK, "META ALDI" DEMEK DEGIL (bu arac bunu ISPATLAYAMAZ) ***
@@ -53,6 +60,12 @@ Esik = ilgili kodun MAIN'E GIRDIGI an (deploy ani DEGIL — deploy Okan kapisi, 
 betikten bilinemez). Merge ile deploy arasindaki siparis GERCEKTEN olculmemistir, o yuzden
 esigi merge aninda tutmak dogru tarafta hata yapar; ama sebep "ham SQL" degil "worker henuz
 yayinlanmamis" olabilir — bu yuzden arac "ham SQL kullanildi" DEMEZ, "olcum izi yok" der.
+
+⚠️ KART ESIGI, kart yoluna DOGRUDAN iz eklenmesiyle DEGISMEDI (bilincli karar):
+sinif kapisi iki sinyali VEYA'lar; dolayli sinyal (iyzico_odeme_id) ESIK_KART'tan beri
+kesintisiz vardir, dolayisiyla iz kodunun girdigi tarihe cekilecek YENI bir esige gerek
+YOK. Esigi ileri almak, iki tarih arasinda GERCEKTEN olculmemis kart siparislerini
+"esik-oncesi" kovasina saklayarak KAYBI GIZLERDI — yanlis tarafta hata olurdu.
 """
 
 import argparse
@@ -233,7 +246,8 @@ def tahsilat(satir):
 def siniflandir(satir, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE):
     """Tek siparisi sinifla. Doner: dict(sinif, sebep, an, an_kesin, meta_penceresi_disi).
 
-    KART   : iz = iyzico_odeme_id DOLU (/donus calisti -> olcumGonder cagrildi).
+    KART   : iz = durum_gecmisi'nde {"o":1} (DOGRUDAN) VEYA iyzico_odeme_id DOLU
+             (DOLAYLI, eski satirlar icin). Ikisi de yoksa /donus HIC calismamistir.
     HAVALE : iz = durum_gecmisi'nde {"o":1} (/yonet/durum calisti).
     Esik ONCESI her sey ESIK_ONCESI (olcum kodu henuz yoktu) — izin yoklugu normal.
     """
@@ -266,14 +280,20 @@ def siniflandir(satir, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE):
                 "meta_penceresi_disi": pencere_disi,
                 "sebep": 'havale onayi worker disindan yapilmis: {"o":1} izi YOK'}
 
-    # kart
+    # kart — ONCE dogrudan iz, sonra (eski satirlar icin) dolayli sinyal.
+    if olcum_izi_var(gecmis_coz(satir.get("durum_gecmisi"))):
+        return {"sinif": OLCULDU, "an": an, "an_kesin": an_kesin,
+                "meta_penceresi_disi": False,
+                "sebep": 'durum_gecmisi izi {"o":1} — /donus calisti, olcum DENENDI'}
     if (satir.get("iyzico_odeme_id") or "").strip():
         return {"sinif": OLCULDU, "an": an, "an_kesin": an_kesin,
                 "meta_penceresi_disi": False,
-                "sebep": "iyzico_odeme_id dolu — /donus calisti, olcum DENENDI"}
+                "sebep": "iyzico_odeme_id dolu (DOLAYLI iz; iz kodu oncesi kart siparisi)"
+                         " — /donus calisti, olcum DENENDI"}
     return {"sinif": KAYIP, "an": an, "an_kesin": an_kesin,
             "meta_penceresi_disi": False,
-            "sebep": "kart siparisi 'odendi' ama iyzico_odeme_id BOS — /donus'tan gecmemis"}
+            "sebep": "kart siparisi 'odendi' ama ne {\"o\":1} izi ne iyzico_odeme_id var"
+                     " — /donus'tan gecmemis"}
 
 
 # ------------------------------------------------------------------ rapor

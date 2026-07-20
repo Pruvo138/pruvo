@@ -52,6 +52,14 @@
  *    kapanirsa ADI DOGRU olan bir test kirmizi yanar.
  *  - Belgeler: kapi kapsami artik "her yol" degil, TARANAN + TARANMAYAN kaynaklar tek tek yazili.
  *
+ * 20 TEM 4. TUR — kart akisinin olcum izi (T26):
+ *  - Kart yolu 'odendi' yazarken durum_gecmisi'ne HIC dokunmuyordu; tespit araci
+ *    (tools/olculmemis-siparis.py) kart icin DOLAYLI sinyale (iyzico_odeme_id dolu mu)
+ *    yaslanmak zorundaydi — iyzico paymentId'yi bos dondurse ya da akis degisse tespit
+ *    SESSIZCE yanlislanirdi. Artik kart yolu da AYNI izi ({"d":"odendi","z":ISO,"o":1})
+ *    havale yoluyla AYNI atomik UPDATE deseninde birakir (yonet.js gecmiseEkle TEK KAYNAK).
+ *
+
  * ONCE-KIRMIZI (elle kanitlandi — her duzeltme tek tek geri alinip olculdu):
  *  - olcum.js'te currency "TRY" -> "USD" yapilinca T1/T5/T7 KIRMIZI.
  *  - metaGonder/ga4Gonder'daki "secret yoksa return" satiri silinince (no-op bozulunca) T9/T10 KIRMIZI.
@@ -70,6 +78,9 @@
  *  - ayni karsilastirma buyuk/kucuk harf DUYARSIZ yapilinca -> 1 KIRMIZI (25i).
  *  - kapi TARANAN_DOSYALAR'dan ".env" cikarilinca -> 4 KIRMIZI (21l/21m/21p/21r).
  *  - ".env.local" cikarilinca -> 3 KIRMIZI (21n/21o/21r); ikisi birden -> 6 KIRMIZI.
+ *  - index.js kart UPDATE'inden "durum_gecmisi = ?" silinince -> 6 KIRMIZI (26a/26b/26c/26e/26j/26k).
+ *  - ayni UPDATE'ten CAS ("AND durum <> 'odendi'") silinince -> 3 KIRMIZI (26d/26e/26f;
+ *    26f cift Purchase'i yakalar — koruma zayiflamasi sessiz kalmaz).
  *  - yaris penceresi kapatilinca (okumalar sirlanir) -> 24f + 24b KIRMIZI. (Mandal esigini
  *    2->1 yapmak DAVRANIS KORUYUCUDUR: pencere yine acilir, CAS silinince 24c/24d yine
  *    kirmizi yanar — olculdu, "yakalanmadi" sanilmasin.)
@@ -772,13 +783,21 @@ async function kartAkisiKostur(secenek) {
   const satir = {
     siparis_no: "PR-260720-0315-" + (s.no || "KRT"),
     durum: "bekliyor",
+    durum_gecmisi: s.durum_gecmisi !== undefined ? s.durum_gecmisi : "",
     tutar_kurus: 43290, kargo_kurus: 25000, kdv_kurus: 11381,
     urunler: SIPARIS.urunler,
     atif: SIPARIS.atif,                       // fbp VAR -> riza kapisi acik
     musteri_ad: "Kart Musteri", musteri_tel: "05551112233",
     musteri_eposta: "kart@ornekmusteri.com", musteri_adres: "Ornek Mah. No:2",
   };
-  // Sahte D1: SELECT token ile satiri verir; durum UPDATE'leri SQL'e gore islenir.
+  // Sahte D1: SELECT token ile satiri verir; UPDATE'ler SQL'in KENDISINE gore islenir.
+  //
+  // ⚠️ SQL'i TAKLIT EDER, KISALTMAZ (mutasyon duyarliligi): WHERE kosulu (`durum = 'bekliyor'`
+  // / `durum <> 'odendi'`) ve SET'teki `kolon = ?` sirasi kaynaktan OKUNUR. Kaynaktan CAS
+  // kosulu kalkarsa burada da kalkar (idempotens testi kirmizi yanar); `durum_gecmisi = ?`
+  // kalkarsa iz HIC yazilmaz (olcum izi testi kirmizi yanar). Her basarili yazma iz birakir
+  // -> "ayni UPDATE icinde mi, ayri tur mu?" sorusu OLCULEBILIR.
+  const guncellemeler = [];
   const db = {
     prepare(sql) {
       return {
@@ -787,8 +806,22 @@ async function kartAkisiKostur(secenek) {
             async first() { return arg[0] === TOKEN ? { ...satir } : null; },
             async run() {
               const m = /SET durum = '([a-z-]+)'/.exec(sql);
-              if (m && satir.durum !== m[1]) { satir.durum = m[1]; return { meta: { changes: 1 } }; }
-              return { meta: { changes: 0 } };
+              if (!m) { return { meta: { changes: 0 } }; }
+              // SET'teki "kolon = ?" sirasi -> bind argumanlarinin anlami.
+              const setKismi = sql.slice(sql.indexOf(" SET "), sql.indexOf(" WHERE "));
+              const kolonlar = [...setKismi.matchAll(/(\w+)\s*=\s*\?/g)].map((x) => x[1]);
+              const deger = {};
+              kolonlar.forEach((k, i) => { deger[k] = arg[i]; });
+              if (arg[kolonlar.length] !== TOKEN) { return { meta: { changes: 0 } }; }
+              // WHERE'deki durum kosulu (CAS) — SQL'de ne yaziyorsa O uygulanir.
+              const esit = /AND durum = '([a-z-]+)'/.exec(sql);
+              const farkli = /AND durum <> '([a-z-]+)'/.exec(sql);
+              if (esit && satir.durum !== esit[1]) { return { meta: { changes: 0 } }; }
+              if (farkli && satir.durum === farkli[1]) { return { meta: { changes: 0 } }; }
+              satir.durum = m[1];
+              for (const k of kolonlar) { satir[k] = deger[k]; }
+              guncellemeler.push({ sql: sql, durum: m[1], kolonlar: kolonlar, deger: deger });
+              return { meta: { changes: 1 } };
             },
           };
         },
@@ -833,8 +866,29 @@ async function kartAkisiKostur(secenek) {
   });
   globalThis.fetch = eskiFetch;
   const suz = (parca) => cagrilar.filter((c) => c.url.indexOf(parca) >= 0);
-  return { cevap, cagrilar, satir, loglar, log: logMetni(loglar),
-           meta: suz("graph.facebook.com"), ga4: suz("google-analytics.com") };
+  return { cevap, cagrilar, satir, loglar, log: logMetni(loglar), guncellemeler,
+           meta: suz("graph.facebook.com"), ga4: suz("google-analytics.com"),
+           // tekrar() sonrasi TAZE sayim (yukaridaki diziler o anki goruntudur).
+           sayim: () => ({ meta: suz("graph.facebook.com").length,
+                           ga4: suz("google-analytics.com").length }),
+           // Ayni akisi IKINCI kez cagirmak icin (idempotens): D1 satiri KORUNUR.
+           tekrar: async () => {
+             globalThis.fetch = stub;
+             const b2 = [];
+             const ctx2 = { waitUntil: (p) => b2.push(p) };
+             const istek2 = new Request("https://pruvo3d.com/api/shop/donus", {
+               method: "POST",
+               headers: { "Content-Type": "application/json",
+                          "CF-Connecting-IP": KART_IP, "User-Agent": KART_UA },
+               body: JSON.stringify({ token: TOKEN }),
+             });
+             const l2 = await logYakala(async () => {
+               await indexModulu.default.fetch(istek2, env, ctx2);
+               await Promise.all(b2);
+             });
+             globalThis.fetch = eskiFetch;
+             return { log: logMetni(l2) };
+           } };
 }
 
 async function test22() {
@@ -1069,9 +1123,86 @@ async function test25() {
     "meta=" + iyi.meta.length + " ga4=" + iyi.ga4.length);
 }
 
+// ---- 26) KART AKISINDA OLCUM IZI (durum_gecmisi {"o":1}) — iki akis TEK DESEN ----
+// NEDEN: kart yolu 'odendi' yazarken durum_gecmisi'ne HIC dokunmuyordu; tespit araci
+// (tools/olculmemis-siparis.py) kart icin DOLAYLI sinyale (iyzico_odeme_id dolu mu)
+// yaslanmak zorundaydi. iyzico paymentId'yi bos dondurse ya da bu akis degisse tespit
+// SESSIZCE yanlislanirdi. Artik kart yolu da havale yoluyla AYNI izi, AYNI atomik
+// UPDATE icinde birakir. ⚠️ Iz "DENENDI" demek, "Meta aldi" demek DEGIL (T18l ile ayni dil).
+function izler(gecmisJson) {
+  let g = [];
+  try { g = JSON.parse(gecmisJson || "[]"); } catch (e) { g = []; }
+  return Array.isArray(g) ? g : [];
+}
+
+async function test26() {
+  if (!indexModulu) {
+    ol("26 KART OLCUM IZI (index.js yuklenemedi — Node >= 22.15 gerekli)", false,
+      "node " + process.version);
+    return;
+  }
+  // (a) BASARILI kart odemesi -> iz yazildi
+  const iyi = await kartAkisiKostur({ no: "IZK" });
+  const g = izler(iyi.satir.durum_gecmisi);
+  ol("26a KART akisinda durum_gecmisi'ne olcum izi ('o':1) yazildi",
+    g.length === 1 && g[0].o === 1, iyi.satir.durum_gecmisi);
+  ol("26b iz kaydi HAVALE ile AYNI BICIM (d='odendi' + z=ISO damga)",
+    (g[0] || {}).d === "odendi" && typeof (g[0] || {}).z === "string" &&
+    !Number.isNaN(Date.parse((g[0] || {}).z || "")), JSON.stringify(g[0]));
+
+  // (c) EK YAZMA TURU YOK: iz, durum='odendi' yazan UPDATE'in TA KENDISINDE.
+  //     (Ayri ikinci UPDATE yaris penceresi acardi — sart 1.)
+  const odendiYazimlari = iyi.guncellemeler.filter((u) => u.durum === "odendi");
+  ol("26c iz AYNI atomik UPDATE'te yazildi (ek yazma turu YOK)",
+    odendiYazimlari.length === 1 &&
+    odendiYazimlari[0].kolonlar.indexOf("durum_gecmisi") >= 0 &&
+    odendiYazimlari[0].kolonlar.indexOf("iyzico_odeme_id") >= 0,
+    JSON.stringify(iyi.guncellemeler.map((u) => ({ d: u.durum, k: u.kolonlar }))));
+  ol("26d UPDATE hala CAS (durum <> 'odendi') — koruma zayiflamadi",
+    odendiYazimlari.length === 1 &&
+    odendiYazimlari[0].sql.indexOf("durum <> 'odendi'") >= 0, JSON.stringify(odendiYazimlari));
+
+  // (e) IDEMPOTENS: ayni token 2. kez -> changes=0 -> TEK iz, TEK Purchase.
+  await iyi.tekrar();
+  const g2 = izler(iyi.satir.durum_gecmisi);
+  const say = iyi.sayim();
+  ol("26e ayni token 2. kez: iz TEKRARLANMADI (tek 'o':1)",
+    g2.length === 1 && g2.filter((k) => k.o === 1).length === 1, iyi.satir.durum_gecmisi);
+  ol("26f ayni token 2. kez: Purchase da tekrarlanmadi (Meta 1 / GA4 1)",
+    say.meta === 1 && say.ga4 === 1, JSON.stringify(say));
+
+  // (g-j) NEGATIF: olay GITMEYEN yollarin HICBIRI iz BIRAKMAZ (iz = "olcum denendi";
+  //       yanlislikla yazilirsa tespit araci gercek kaybi "olculdu" sanardi).
+  const red = await kartAkisiKostur({ no: "IZR", detay: { paymentStatus: "FAILURE" } });
+  ol("26g kart reddinde olcum izi YAZILMAZ",
+    izler(red.satir.durum_gecmisi).length === 0, red.satir.durum_gecmisi);
+  const altyapi = await kartAkisiKostur({ no: "IZA",
+    detay: { status: "failure", errorCode: "1001", errorMessage: "imza" } });
+  ol("26h retrieve altyapi hatasinda olcum izi YAZILMAZ",
+    izler(altyapi.satir.durum_gecmisi).length === 0, altyapi.satir.durum_gecmisi);
+  const tutar = await kartAkisiKostur({ no: "IZT", detay: { paidPrice: "1.00" } });
+  ol("26i tutar uyusmazliginda olcum izi YAZILMAZ",
+    izler(tutar.satir.durum_gecmisi).length === 0, tutar.satir.durum_gecmisi);
+
+  // (j) MEVCUT gecmis KORUNUR (uzerine yazilmaz): 'incele'den duzelen siparis ornegi.
+  const eski = JSON.stringify([{ d: "incele", z: "2026-07-20T01:00:00.000Z" }]);
+  const surdur = await kartAkisiKostur({ no: "IZE", durum_gecmisi: eski });
+  const g3 = izler(surdur.satir.durum_gecmisi);
+  ol("26j onceki durum gecmisi KORUNDU, iz SONUNA eklendi",
+    g3.length === 2 && g3[0].d === "incele" && g3[1].d === "odendi" && g3[1].o === 1,
+    surdur.satir.durum_gecmisi);
+
+  // (k) iyzico paymentId BOS dondurse bile DOGRUDAN iz kalir — dolayli sinyalin
+  //     (iyzico_odeme_id) kirilgan oldugu tam hal. Tespit araci artik bunu gorur.
+  const idsiz = await kartAkisiKostur({ no: "IZP", detay: { paymentId: "" } });
+  ol("26k paymentId bos gelse bile olcum izi VAR (dolayli sinyale bagimlilik bitti)",
+    izler(idsiz.satir.durum_gecmisi).some((k) => k.o === 1) &&
+    !String(idsiz.satir.iyzico_odeme_id || ""), idsiz.satir.durum_gecmisi);
+}
+
 const testler = [test9, test10, test11, test12, test13,
                  test14, test15, test16, test17, test18, test19, test20,
-                 test21, test22, test23, test24, test25];
+                 test21, test22, test23, test24, test25, test26];
 for (const t of testler) { await t(); }
 
 console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" + (kalan ? "" : " — HEPSI YESIL ✅"));
