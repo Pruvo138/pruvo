@@ -361,22 +361,34 @@ let workerSurec = null;
 let workerLog = "";
 
 /**
- * 🔴 OLCUM KAPISI — worker'i baslatan HER yol (main, test23, --sandbox) buradan gecer,
- * yani unutulamaz (fail-closed by construction).
+ * 🔴 OLCUM KAPISI — bu dosyada worker'i baslatan tum yollar (main, test23, --sandbox)
+ * `workerBaslat()` uzerinden gectigi icin kapi da hepsinde uygulanir.
  *
  * Neyi onler: `wrangler.toml`'daki [vars] GERCEK Meta piksel ID'si + GERCEK GA4 mulk
- * ID'si `wrangler dev`e oldugu gibi yuklenir. Ortamda/`.dev.vars`'ta bir CAPI token'i
- * bulunursa kabul testi TEK KOSUDA gercek piksele duzinelerce SAHTE Purchase basar
- * (reklam optimizasyonu bozulur, geri alinamaz). Detay: shop/test/olcum-kapisi.cjs.
+ * ID'si `wrangler dev`e oldugu gibi yuklenir. Bir CAPI token'i/GA4 secret'i sizarsa kabul
+ * testi TEK KOSUDA gercek piksele duzinelerce SAHTE Purchase basar (reklam optimizasyonu
+ * bozulur, geri alinamaz).
+ *
+ * KAPSAM (tam liste — fazlasini iddia etme): process.env + shop/.dev.vars + shop/.env +
+ * shop/.env.local. `.env`/`.env.local` DAHIL cunku wrangler 4.112'de `.dev.vars` yoksa
+ * bunlari SECRET olarak yukluyor ("Using secrets defined in .env").
+ * KAPSAM DISI: uzak worker'a `wrangler secret put` ile basilmis secret'lar, shop/ disindaki
+ * .env dosyalari, wrangler'in ileride ekleyebilecegi yeni kaynaklar (surum yukseltmesinde
+ * shop/test/olcum-kapisi.cjs'teki liste GOZDEN GECIRILMELI).
  *
  * Davranis: anahtar bulunursa test SESSIZCE ATLAMAZ — gurultuyle patlar. Anahtar yoksa
  * da kimlikler yine sahte degerlerle EZILIR (ikinci katman).
  */
 function olcumKapisiUygula(ekstraVar) {
-  const devVarsYolu = path.join(SHOP, ".dev.vars");
+  const { TARANAN_DOSYALAR } = require("./olcum-kapisi.cjs");
+  const dosyalar = {};
+  for (const ad of TARANAN_DOSYALAR) {
+    const yol = path.join(SHOP, ad);
+    dosyalar[ad] = fs.existsSync(yol) ? fs.readFileSync(yol, "utf8") : null;
+  }
   const kapi = olcumKapisi({
     wranglerToml: fs.readFileSync(path.join(SHOP, "wrangler.toml"), "utf8"),
-    devVars: fs.existsSync(devVarsYolu) ? fs.readFileSync(devVarsYolu, "utf8") : null,
+    dosyalar: dosyalar,
     ortam: process.env,
   });
   if (!kapi.ok) {

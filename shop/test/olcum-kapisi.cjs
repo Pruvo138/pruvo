@@ -13,11 +13,30 @@
  * cunku sessiz atlama tam da korumasi gereken riski gorunmez kilardi.
  *
  * IKI KATMAN:
- *   1) RED: gercek bir CAPI token'i / GA4 api_secret'i ortamda ya da .dev.vars'ta gorulurse
- *      test BASLAMAZ (bunlar olmadan hicbir olay gonderilemez — asil tehlike anahtarlardir).
+ *   1) RED: gercek bir CAPI token'i / GA4 api_secret'i ASAGIDA SAYILAN kaynaklardan birinde
+ *      gorulurse test BASLAMAZ (bunlar olmadan hicbir olay gonderilemez — asil tehlike
+ *      anahtarlardir).
  *   2) OVERRIDE: her kosuda piksel/mulk kimlikleri sahte test degerleriyle EZILIR, boylece
  *      1. katman bir sekilde asilsa bile istek gercek piksele DEGIL, gecersiz bir kimlige
  *      gider (Meta 400 doner, veri kirlenmez).
+ *
+ * ✅ 1. KATMANIN TARADIGI KAYNAKLAR (tam liste — fazlasini IDDIA ETME):
+ *      - process.env (kabul.js'i kosturan kabuk)
+ *      - shop/.dev.vars
+ *      - shop/.env
+ *      - shop/.env.local
+ *   `.env`/`.env.local` NEDEN DAHIL: wrangler 4.112'de `getCloudflareLoadDevVarsFromDotEnv`
+ *   varsayilani TRUE — `.dev.vars` YOKSA `.env`/`.env.local` SECRET olarak worker'a yuklenir
+ *   ("Using secrets defined in .env"). Ustelik kok `.gitignore` `.env*` yok saydigi icin sirri
+ *   koymanin "dogal gorunen" yeri tam orasidir. Kapi wrangler'in ONCELIK sirasini TAKLIT ETMEZ:
+ *   dosyalardan HANGISINDE gorurse gorsun REDDEDER (fail-closed; precedence tahmini yapmayiz).
+ *
+ * 🚫 TARANMAYAN (bilerek — bu kapi bunlari COZMEZ):
+ *      - `wrangler secret put` ile UZAK worker'a basilmis secret'lar (yerel --local kosuda
+ *        yuklenmez; canli deploy zaten Okan kapisinda).
+ *      - shop/ DISINDAKI .env dosyalari (wrangler dev cwd=shop ile kosar).
+ *      - wrangler'in ILERIDE ekleyebilecegi yeni bir degisken kaynagi — surum yukseltmesinde
+ *        bu liste GOZDEN GECIRILMELI.
  *
  * Saf fonksiyon (I/O yok) — hem kabul.js kullanir hem birim testi (olcum.mjs T21) sinar.
  */
@@ -57,24 +76,38 @@ function devVarsDegeri(metin, ad) {
 // Bunlardan BIRI bile varsa gercek olay GONDERILEBILIR -> test kosmaz.
 const TEHLIKELI_ANAHTARLAR = ["META_CAPI_TOKEN", "GA4_API_SECRET"];
 
+// wrangler dev'in worker'a degisken/secret yukleyebilecegi shop/ ALTINDAKI dosyalar.
+// SIRA ONEMLI DEGIL: precedence taklit edilmez, hangisinde gorursek reddederiz (fail-closed).
+const TARANAN_DOSYALAR = [".dev.vars", ".env", ".env.local"];
+
 /**
- * @param {{wranglerToml?: string, devVars?: string|null, ortam?: object}} girdi
- * @returns {{ok: boolean, sebepler: string[], degiskenler: object, gercekPiksel: string}}
+ * @param {{wranglerToml?: string, dosyalar?: object, devVars?: string|null, ortam?: object}} girdi
+ *   dosyalar: { ".dev.vars": icerik|null, ".env": icerik|null, ".env.local": icerik|null }
+ *   devVars : eski cagri bicimi — ".dev.vars" ile ayni anlama gelir (geriye donuk uyum).
+ * @returns {{ok: boolean, sebepler: string[], degiskenler: object, gercekPiksel: string,
+ *            taranan: string[]}}
  */
 function olcumKapisi(girdi) {
   const g = girdi || {};
   const ortam = g.ortam || {};
   const sebepler = [];
 
-  // 1) Gercek anahtar var mi? (ortam degiskeni ya da shop/.dev.vars)
+  // Dosya haritasi: yeni bicim (dosyalar) + eski bicim (devVars) birlestirilir.
+  const dosyalar = Object.assign({}, g.dosyalar || {});
+  if (g.devVars != null && dosyalar[".dev.vars"] == null) { dosyalar[".dev.vars"] = g.devVars; }
+
+  // 1) Gercek anahtar var mi? (ortam degiskeni + shop/ altindaki TUM degisken dosyalari)
   for (const ad of TEHLIKELI_ANAHTARLAR) {
     if (String(ortam[ad] || "").trim()) {
       sebepler.push("ortam degiskeni " + ad + " TANIMLI — yerel test gercek hedefe olay " +
         "gonderebilir. Testten once bu degiskeni kaldir.");
     }
-    if (devVarsDegeri(g.devVars, ad)) {
-      sebepler.push("shop/.dev.vars icinde " + ad + " TANIMLI — wrangler dev bunu worker'a " +
-        "yukler ve kabul testi GERCEK hedefe sahte Purchase basar. Satiri yorumla (#) ya da sil.");
+    for (const dosyaAdi of TARANAN_DOSYALAR) {
+      if (devVarsDegeri(dosyalar[dosyaAdi], ad)) {
+        sebepler.push("shop/" + dosyaAdi + " icinde " + ad + " TANIMLI — wrangler dev bunu " +
+          "worker'a yukler (.env/.env.local dahil: 'Using secrets defined in .env') ve kabul " +
+          "testi GERCEK hedefe sahte Purchase basar. Satiri yorumla (#) ya da sil.");
+      }
     }
   }
 
@@ -91,7 +124,9 @@ function olcumKapisi(girdi) {
     sebepler.push("test GA4 mulku GERCEK mulke esit — override islevsiz.");
   }
 
-  return { ok: sebepler.length === 0, sebepler, degiskenler, gercekPiksel };
+  return { ok: sebepler.length === 0, sebepler, degiskenler, gercekPiksel,
+           taranan: TARANAN_DOSYALAR.slice() };
 }
 
-module.exports = { olcumKapisi, TEST_PIKSEL, TEST_GA4_MULK, tomlDegeri, devVarsDegeri };
+module.exports = { olcumKapisi, TEST_PIKSEL, TEST_GA4_MULK, TARANAN_DOSYALAR,
+                   tomlDegeri, devVarsDegeri };

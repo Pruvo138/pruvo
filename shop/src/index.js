@@ -29,7 +29,7 @@ import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
 import { yonet } from "./yonet.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
-import { olcumGonder } from "./olcum.js";
+import { olcumGonder, olcumLog } from "./olcum.js";
 import { refKaydet } from "./ref.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
@@ -468,6 +468,10 @@ async function donus(request, env, ctx) {
   // onay YOK. Sonraki gecerli callback'te retrieve duzelirse 'odendi'ye ilerleyebilir
   // (asagidaki UPDATE'ler durum <> 'odendi' kosuluyla calisir).
   if (!det || det.status !== "success") {
+    // OLCUM IZI: burada Purchase GONDERILMEZ (odemenin gercek durumu BILINMIYOR). Sessiz
+    // bosluk birakma — "bu siparisin Purchase'i neden yok?" sorusu loglardan cevaplanabilsin.
+    olcumLog({ olay: "Purchase", siparis_no: siparis.siparis_no, kaynak: "kart",
+               atlandi: "retrieve-hatasi" });
     await env.KATALOG.prepare(
       "UPDATE siparisler SET durum = 'incele' WHERE token = ? AND durum = 'bekliyor'"
     ).bind(token).run();
@@ -479,8 +483,16 @@ async function donus(request, env, ctx) {
   }
 
   // Retrieve CEVAP VERDI ve odeme basarili degil (or. kart reddi) -> gercek 'basarisiz'.
+  //
+  // 🔴 REKLAM OLCUMU ACISINDAN KRITIK KAPI: Purchase YALNIZ paymentStatus === "SUCCESS"
+  // oldugunda gonderilir. Bu kosul gevserse karti REDDEDILEN musteri icin Meta+GA4'e
+  // GERCEK TUTARLI SAHTE Purchase gider -> Okan'in reklam butcesi yanlis ogrenir, veri
+  // geri alinamaz. Negatif testler: shop/test/olcum.mjs T25 (FAILURE/INIT_THREEDS/bos/
+  // kucuk-harf 'success' degerleri icin 0 POST + atlandi logu).
   const odendi = det.paymentStatus === "SUCCESS";
   if (!odendi) {
+    olcumLog({ olay: "Purchase", siparis_no: siparis.siparis_no, kaynak: "kart",
+               atlandi: "odeme-basarisiz" });
     await env.KATALOG.prepare(
       "UPDATE siparisler SET durum = 'basarisiz' WHERE token = ? AND durum = 'bekliyor'"
     ).bind(token).run();
@@ -498,6 +510,9 @@ async function donus(request, env, ctx) {
   if (paraUyar || kimlikUyar) {
     // Odeme iyzico'da BASARILI ama bizim kayitla uyusmuyor: otomatik onaylanmaz,
     // insan incelemesine dusurulur + yuksek sesle bildirilir.
+    // OLCUM IZI: Purchase GONDERILMEZ (tutar guvenilmez — yanlis ciro ogretmeyelim).
+    olcumLog({ olay: "Purchase", siparis_no: siparis.siparis_no, kaynak: "kart",
+               atlandi: "tutar-uyusmazligi" });
     await env.KATALOG.prepare(
       "UPDATE siparisler SET durum = 'incele', iyzico_odeme_id = ? WHERE token = ? AND durum <> 'odendi'"
     ).bind(String(det.paymentId || ""), token).run();
