@@ -64,9 +64,12 @@ def kosulan(deploy_metin, kesif):
     """deploy.yml metninde FIILEN referans verilen (kosulan) kesif dosyalarini dondur."""
     kos = set()
     for yol in kesif:
-        # yol'un hemen ardinda bir dosya-adi karakteri gelmesin (durum-test.py, uzun bir
-        # baska yolun on-eki olarak yanlis eslesmesin diye negatif ileri-bakis).
-        if re.search(re.escape(yol) + r"(?![\w./-])", deploy_metin):
+        # BULGU 1 (curutucu): eski regex TUM metni tariyordu -> bir YORUM/step-name'de gecen
+        # ad da "kosuluyor" sayiliyordu; biri 'run: python3 tools/x-test.py' satirini silse
+        # ayni ad yorumda kaldigi icin kapi SAHTE-YESIL kaliyordu. FIX: eslesmeyi FIILEN icra
+        # baglamina daralt -> yalniz 'python3 <yol>' (run: satiri) sayilir, yorum sayilmaz.
+        # Ardindaki negatif ileri-bakis: uzun bir baska yolun on-eki olarak yanlis eslesmesin.
+        if re.search(r"python3\s+" + re.escape(yol) + r"(?![\w./-])", deploy_metin):
             kos.add(yol)
     return kos
 
@@ -84,8 +87,6 @@ R_YOL = ("Mimar-disiplin kapisi: mutlak /Users/okan/dev/pruvo yoluna VE commit E
          "yapisal olarak KIRMIZI. Yerel gelistirici disiplini araci, deploy CI adimi degil.")
 R_YAVAS = ("Yerelde >30s (build+ag ya da mutasyon harness) -> tek build job'unu blokar; "
            "izole/ayri job olmadan Pages hattina alinmaz (RAPOR onerisi).")
-R_KIRMIZI = ("Su an KIRMIZI (yerelde olculdu) — B/E paketi onardiktan SONRA CI'ya eklenecek "
-             "(paralel isci onariyor). Simdi eklenirse deploy hatti kirilir.")
 R_SONRA = ("Offline + yerelde YESIL, ama Paket C kapsami YALNIZ mimarin verdigi cekirdek "
            "eklemeleri CI'ya aldi. Bu test sonraki turda (ubuntu path/env dogrulamasi sonrasi) "
            "CI'ya alinabilir — kod-kilidi ornegi 'yerel-yesil / CI-kirmizi' tuzagini kanitladi, "
@@ -99,7 +100,7 @@ IZIN_LISTESI = {
     "shop/test/olcum-kapisi.cjs": R_AYRI,
     "shop/test/olcum.mjs": R_AYRI,
     "shop/test/ref-route.mjs": R_AYRI,
-    "shop/test/sepet-panel.js": R_KIRMIZI,  # mimar mandasi: B/E onarim sonrasi eklenecek
+    "shop/test/sepet-panel.js": R_AYRI,  # B paketi YESILLEDI; shop ayri Worker hedefi (kardesleri gibi)
     "onizleme/test/eslem-olcum.py": R_AYRI,
     "onizleme/test/kabul.js": R_AYRI,
     "onizleme/test/kapi1.js": R_AYRI,
@@ -119,14 +120,13 @@ IZIN_LISTESI = {
     "tools/marka-limit-test.js": R_NODE,
     "tools/riza-tikkimligi-test.js": R_NODE,
     "tools/parite-test.js": R_AG,
-    "tools/url-senkron-test.js": R_KIRMIZI,  # mimar mandasi: su an KIRMIZI
+    "tools/url-senkron-test.js": R_NODE,  # E paketi YESILLEDI; JS suite, CI'da node yok
     # --- tools/ python: mimar-disiplin (mutlak yol + commit'siz kablolama) ---
     "tools/mimar-kilit-test.py": R_YOL,
     "tools/mimar-commit-kapisi-test.py": R_YOL,
     "tools/mimar-kapi-mutasyon-test.py": R_YOL,
     "tools/kapi-envanteri-test.py": R_YOL,
-    # --- tools/ python: KIRMIZI (mimar mandasi) ---
-    "tools/kod-kilidi-test.py": R_KIRMIZI,
+    "tools/kod-kilidi-test.py": R_YOL,  # E paketi YESILLEDI; mutlak /Users/okan/dev/pruvo yoluna bagli -> fresh checkout'ta yapisal KIRMIZI
     # --- tools/ python: yavas/harici (>30s) ---
     "tools/filament-test.py": R_YAVAS,
     "tools/kaynak-akis-test.py": R_YAVAS,
@@ -158,11 +158,58 @@ IZIN_LISTESI = {
 }
 
 
+def bulgu1_mutasyon_kontrol():
+    """BULGU 1 KALICI MUTASYON NOBETCISI (curutucu kanitladi):
+    Bir testin 'run: python3 <yol>' ICRA satiri deploy.yml'den silinip ADI yalniz bir
+    YORUM/step-name'de kalirsa, kosulan() o testi 'kosuluyor' SAYMAMALIDIR. Eski regex tum
+    metni tariyordu -> yalniz-yorum mensiyonu sahte-yesil yapiyordu (olu nobetci CI'dan
+    success gecerdi). Bu kontrol GERCEK deploy.yml'den mutant uretir (ci-kapsam-test.py'nin
+    run satirini siler, yorum mensiyonu birakir) ve iki sarti dogrular:
+      + POZITIF: gercek deploy o yolu SAYAR (run: ile gecer).
+      + MUTASYON: yalniz-yorum mutanti o yolu SAYMAZ.
+    (ok, hata_satirlari) dondurur."""
+    hedef = "tools/ci-kapsam-test.py"
+    run_satir = "        run: python3 %s\n" % hedef
+    with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+        gercek = f.read()
+    if run_satir not in gercek:
+        return False, ["beklenen icra satiri gercek deploy.yml'de yok: %r "
+                       "(cagri bicimi degistiyse bu nobetciyi guncelle)" % run_satir]
+    mutant = gercek.replace(run_satir, "", 1)
+    if hedef not in mutant:
+        return False, ["mutantta yorum mensiyonu kalmadi -> mutasyon testi anlamsiz "
+                       "(deploy.yml yorumu %s'yi artik anmiyor)" % hedef]
+    kesif = kesfet()
+    if hedef not in kesif:
+        return False, ["%s kesif predikatiyla bulunamadi (predikat bozulmus)" % hedef]
+    hata = []
+    if hedef not in kosulan(gercek, kesif):
+        hata.append("POZITIF KONTROL BASARISIZ: gercek deploy.yml %s'yi kosulan saymadi" % hedef)
+    if hedef in kosulan(mutant, kesif):
+        hata.append("BULGU 1 GERI GELDI: run satiri silinip yalniz yorumda kalan %s "
+                    "hala 'kosuluyor' sayildi (regex icra baglamina daralmali)" % hedef)
+    return (not hata), hata
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--deploy", default=DEPLOY_VARSAYILAN,
                     help="deploy.yml yolu (kirmizi-mutasyon icin alternatif kopya verilebilir)")
+    ap.add_argument("--kendini-test", action="store_true",
+                    help="YALNIZ BULGU 1 mutasyon nobetcisini kosar (gercek deploy.yml uzerinden)")
     args = ap.parse_args()
+
+    if args.kendini_test:
+        ok, hata = bulgu1_mutasyon_kontrol()
+        print("BULGU 1 MUTASYON NOBETCISI")
+        if ok:
+            print("  ✅ gercek deploy sayiyor; yalniz-yorum mutanti saymiyor")
+            print("SONUC: YESIL ✅")
+            return 0
+        for h in hata:
+            print("  ❌ " + h)
+        print("SONUC: KIRMIZI ❌")
+        return 1
 
     if not os.path.exists(args.deploy):
         sys.exit("deploy.yml bulunamadi: " + args.deploy)
@@ -200,6 +247,14 @@ def main():
         kapsamsiz.append(yol)
     for yol in kapsamsiz:
         hatalar.append("KAPSAMSIZ (ne kosuluyor ne izin listesinde): %s" % yol)
+
+    # 5) BULGU 1 mutasyon nobetcisi — yalniz GERCEK deploy.yml'e karsi (mutant --deploy
+    #    verildiginde pozitif kontrol anlamsiz olur, o yuzden atla).
+    mutasyon_hata = []
+    if os.path.abspath(args.deploy) == os.path.abspath(DEPLOY_VARSAYILAN):
+        ok, mutasyon_hata = bulgu1_mutasyon_kontrol()
+        for h in mutasyon_hata:
+            hatalar.append("BULGU1-MUTASYON: " + h)
 
     # ---- rapor ----
     muaf = [y for y in kesif if y not in kos]
