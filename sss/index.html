@@ -373,11 +373,20 @@
   function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} el.hidden = true; }
   var kabul = document.getElementById("pco-kabul");
   var ret = document.getElementById("pco-ret");
+  /* Rıza değişimini tüm katmanlara duyur (rıza YAZILDIKTAN sonra çağrılır ki hepsi kapı
+     kontrolünden geçsin). Rıza yokken bu çağrı saklanmış tıklama kimliklerini VE ölçüm
+     çerezlerini (_fbp/_fbc/_ga) siler — mantık TEK KAYNAK: attribution-ref.js. */
+  function rizaYayinla(){
+    if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); }
+    if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); }
+  }
   kabul.addEventListener("click", function(){
     if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
     kaydet("kabul");
+    if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
+    rizaYayinla();
   });
-  ret.addEventListener("click", function(){ kaydet("ret"); });  /* denied kalır */
+  ret.addEventListener("click", function(){ kaydet("ret"); rizaYayinla(); });  /* denied kalır */
   try { kabul.focus(); } catch(e){}
 })();
 </script>

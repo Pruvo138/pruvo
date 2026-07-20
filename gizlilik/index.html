@@ -296,6 +296,15 @@
     <p>Google'ın verileri nasıl işlediğine dair ayrıntı için
     <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Gizlilik
     Politikası</a>'na bakabilirsiniz.</p>
+    <!-- RIZAYI GERİ ALMA YÜZEYİ (KVKK: rıza, verildiği kadar kolay geri alınabilmeli).
+         Yasal paragraflara dokunulmadı; bu blok sonradan eklendi. Davranış aşağıdaki
+         çerez bandı script'inde (#pco-degistir). -->
+    <p class="pco-tercih">
+      <button type="button" id="pco-degistir">Çerez tercihimi değiştir</button>
+      <span>Onayınızı geri almak veya değiştirmek için bu düğmeye basın: kayıtlı tercihiniz,
+      analiz çerezleriniz ve reklam tıklama kimlikleriniz <strong>silinir</strong>, çerez bandı
+      yeniden görünür. Yeni bir seçim yapmadığınız sürece analiz çerezleri <em>kapalı</em> kalır.</span>
+    </p>
   </div>
 
   <div class="card">
@@ -370,6 +379,14 @@
   #pruvo-cerez-onay .pco-ret{background:rgba(255,255,255,.14);color:#fff;
     border:1px solid rgba(255,255,255,.4)}
   #pruvo-cerez-onay button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
+  /* Sayfa içi rıza geri alma düğmesi (yalnız bu sayfada) */
+  .pco-tercih{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+  .pco-tercih button{cursor:pointer;border:none;border-radius:8px;padding:11px 20px;
+    font-size:14px;font-weight:700;font-family:inherit;background:#12294d;color:#fff;
+    flex:0 0 auto}
+  .pco-tercih button:hover{background:#1c3a6b}
+  .pco-tercih button:focus-visible{outline:3px solid #ffd166;outline-offset:2px}
+  .pco-tercih span{flex:1 1 280px;font-size:14px;line-height:1.55}
 </style>
 <div id="pruvo-cerez-onay" role="dialog" aria-label="Çerez onayı" hidden>
   <div class="pco-inner">
@@ -386,19 +403,52 @@
   var ANAHTAR = "pruvo_onay_analitik";
   var el = document.getElementById("pruvo-cerez-onay");
   if(!el){ return; }
-  var secim = null;
-  try { secim = localStorage.getItem(ANAHTAR); } catch(e){}
-  if(secim === "kabul" || secim === "ret"){ return; }   /* seçim yapılmış: banner çıkmaz */
-  el.hidden = false;
-  function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} el.hidden = true; }
   var kabul = document.getElementById("pco-kabul");
   var ret = document.getElementById("pco-ret");
+  /* TEK KAYNAK: banner görünürlüğü YALNIZCA saklı rıza değerinden türetilir. Ayrı bir
+     "gösterildi mi" bayrağı YOK → durum ile görünürlük birbirinden kayamaz. */
+  function secim(){ try { return localStorage.getItem(ANAHTAR); } catch(e){ return null; } }
+  function bannerTazele(){
+    var s = secim();
+    el.hidden = (s === "kabul" || s === "ret");   /* seçim yapılmışsa banner çıkmaz */
+  }
+  function kaydet(deger){ try { localStorage.setItem(ANAHTAR, deger); } catch(e){} bannerTazele(); }
+  /* Rıza değişiminin tüm tüketicilerini tek yerden uyar (rıza YAZILDIKTAN sonra çağrılır ki
+     hepsi kapı kontrolünden geçsin). Yoklarsa (sayfada o katman yoksa) sessizce atlanır.
+     Rıza yokken bu çağrı saklanmış tıklama kimliklerini VE ölçüm çerezlerini (_fbp/_fbc/_ga)
+     siler — silme mantığı TEK KAYNAK: attribution-ref.js (bu sayfaya inline basılır). */
+  function rizaYayinla(){
+    if(typeof window.pruvoAtifRiza === "function"){ window.pruvoAtifRiza(); }
+    if(typeof window.pruvoRefRiza === "function"){ window.pruvoRefRiza(); }
+  }
+  bannerTazele();
   kabul.addEventListener("click", function(){
     if(typeof gtag === "function"){ gtag('consent','update',{'analytics_storage':'granted'}); }
     kaydet("kabul");
+    if(typeof window.pruvoMetaBaslat === "function"){ window.pruvoMetaBaslat(); }
+    rizaYayinla();
   });
-  ret.addEventListener("click", function(){ kaydet("ret"); });  /* denied kalır */
-  try { kabul.focus(); } catch(e){}
+  ret.addEventListener("click", function(){ kaydet("ret"); rizaYayinla(); });  /* denied kalır */
+  if(!el.hidden){ try { kabul.focus(); } catch(e){} }
+
+  /* ── RIZAYI GERİ ALMA (KVKK: rıza, verildiği kadar KOLAY geri alınabilmeli) ──
+     Seçim SIFIRLANIR (anahtar silinir; "ret" YAZILMAZ) → ziyaretçi düğmeye basıp hiçbir şey
+     seçmeden çıkarsa rıza YOK sayılır (fail-closed; belirsizlik rıza değildir). Saklanmış
+     tıklama kimlikleri (pruvo_atif/pruvo_ref) + analiz/tıklama çerezleri silinir, banner
+     yeniden görünür — hepsi aynı tek kaynaktan (bannerTazele + rizaYayinla). */
+  var degistir = document.getElementById("pco-degistir");
+  if(degistir){
+    degistir.addEventListener("click", function(){
+      try { localStorage.removeItem(ANAHTAR); } catch(e){}
+      if(typeof gtag === "function"){
+        gtag('consent','update',{'analytics_storage':'denied','ad_storage':'denied',
+                                 'ad_user_data':'denied','ad_personalization':'denied'});
+      }
+      rizaYayinla();   /* tıklama kimlikleri + ölçüm çerezleri burada silinir */
+      bannerTazele();
+      try { kabul.focus(); } catch(e){}
+    });
+  }
 })();
 </script>
 </body>

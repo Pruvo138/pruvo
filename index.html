@@ -1021,6 +1021,47 @@
         else { localStorage.removeItem(ANAHTAR); }   /* boş kayıt bırakma */
       } catch(e){}
     }
+    /* ÖLÇÜM ÇEREZLERİ — bunları SİTE değil GA/Meta script'i yazar (_fbp 90 gün yaşar).
+       Rıza geri çekilince yalnız localStorage'ı temizlemek YETMEZ: çerez ayakta kalır,
+       topla() onu bulur ve sunucudaki "fbp var mı" kapısı GÜNCEL rızanın değil GEÇMİŞTE BİR KEZ
+       verilmiş rızanın kapısına döner. Bu yüzden rıza yokken çerezler de silinir.
+       Dönen dizi = SİLİNEMEYENLER; sessiz geçilmez, konsola uyarı düşer.
+       ⚠️ Kalıp attribution-ref.js'teki OLCUM_CEREZ_KALIBI ile AYNI olmak zorunda
+       (drift kapısı: tools/riza-tikkimligi-test.js D0). */
+    var OLCUM_CEREZ_KALIBI = /^(_ga|_gid|_fbp|_fbc|_gcl_)/;
+    function olcumCerezAdlari(){
+      var ham = "";
+      try { ham = document.cookie || ""; } catch(e){ return []; }
+      var p = ham ? ham.split(";") : [], adlar = [], i, ad;
+      for(i=0;i<p.length;i++){
+        ad = p[i].split("=")[0].replace(/^\s+|\s+$/g, "");
+        if(ad && OLCUM_CEREZ_KALIBI.test(ad)){ adlar.push(ad); }
+      }
+      return adlar;
+    }
+    function cerezTemizle(){
+      var adlar = olcumCerezAdlari(), i, j, h = "", nokta, alanlar = [""];
+      if(!adlar.length){ return []; }
+      try { h = location.hostname || ""; } catch(e){}
+      if(h){
+        alanlar.push(h);
+        nokta = h.split(".");
+        if(nokta.length >= 2){ alanlar.push("." + nokta.slice(-2).join(".")); }
+      }
+      for(i=0;i<adlar.length;i++){
+        for(j=0;j<alanlar.length;j++){
+          try {
+            document.cookie = adlar[i] + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" +
+              (alanlar[j] ? "; domain=" + alanlar[j] : "");
+          } catch(e){}
+        }
+      }
+      var kalan = olcumCerezAdlari();
+      if(kalan.length){
+        try { console.warn("PRUVO rıza: silinemeyen ölçüm çerezi ->", kalan.join(", ")); } catch(e){}
+      }
+      return kalan;
+    }
     /* Rıza yok / geri çekildi → saklanmış tıklama kimliklerini SİL (UTM kalır). */
     function tikTemizle(){
       var kayit = oku(), degisti = false, i;
@@ -1036,7 +1077,7 @@
     function yakala(){
       try {
         var izin = rizaVar();
-        if(!izin){ tikTemizle(); }
+        if(!izin){ tikTemizle(); cerezTemizle(); }
         var q = new URLSearchParams(location.search);
         var utm = {}, k, val, i;
         for(i=0;i<UTM_ALANLARI.length;i++){
@@ -1065,7 +1106,7 @@
       riza: yakala,
       // Ödeme anında çağrılır: kalıcı UTM + (YALNIZ rıza varsa) tıklama/oturum kimlikleri.
       topla: function(){
-        if(!rizaVar()){ tikTemizle(); }
+        if(!rizaVar()){ tikTemizle(); cerezTemizle(); }
         var kayit = oku(), cikti = {}, k, i;
         for(i=0;i<UTM_ALANLARI.length;i++){ k = UTM_ALANLARI[i]; if(kayit[k]){ cikti[k] = kayit[k]; } }
         if(rizaVar()){

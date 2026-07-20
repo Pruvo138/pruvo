@@ -12,6 +12,13 @@
   var CONSENT_KEY = "pruvo_onay_analitik";
   // Kayitta tiklama kimligi tasiyan alanlar: riza YOKKEN yazilmaz, yazilmissa SILINIR.
   var CLICK_FIELDS = ["gclid", "gbraid", "wbraid"];
+  // Ana sayfadaki PRUVO_ATIF katmaninin kaydi (index.html yazar, fbclid -> fbc). Bu modul HER
+  // sayfada var, PRUVO_ATIF yalniz ana sayfada -> riza geri cekme (gizlilik sayfasindaki
+  // "Cerez tercihimi degistir") ana sayfaya ugramadan da tiklama kimligini silebilsin diye
+  // temizlik buradan da surulur. Liste index.html'deki TIK_ALANLARI ile AYNI olmak ZORUNDA;
+  // tools/riza-tikkimligi-test.js drift kapisi (C0) iki listeyi karsilastirir.
+  var ATIF_KEY = "pruvo_atif";
+  var ATIF_CLICK_FIELDS = ["fbc", "fbclid", "gclid", "gbraid", "wbraid", "ttclid", "msclkid"];
   var activeRef = null;
   // Ayni sayfada ikinci tik gonderimini kes (kalici idempotent = kayittaki record.logged).
   var leadSent = false;
@@ -69,6 +76,72 @@
     return changed;
   }
 
+  // OLCUM CEREZLERI — bunlari SITE degil GA/Meta script'i yazar (_fbp 90 gun yasar). Riza geri
+  // cekilince yalniz localStorage temizligi YETMEZ: cerez ayakta kalir, index.html'deki
+  // PRUVO_ATIF.topla() onu bulur ve sunucudaki "fbp var mi" kapisi GUNCEL rizanin degil
+  // GECMISTE BIR KEZ verilmis rizanin kapisina doner. Donen dizi = SILINEMEYENLER (sessiz
+  // gecilmez, konsola uyari duser).
+  // ⚠️ Kalip index.html'deki OLCUM_CEREZ_KALIBI ile AYNI olmak zorunda (drift kapisi D0).
+  var OLCUM_CEREZ_KALIBI = /^(_ga|_gid|_fbp|_fbc|_gcl_)/;
+
+  function olcumCerezAdlari() {
+    var ham = "";
+    try { ham = document.cookie || ""; } catch (error) { return []; }
+    var p = ham ? ham.split(";") : [], adlar = [], i, ad;
+    for (i = 0; i < p.length; i++) {
+      ad = p[i].split("=")[0].replace(/^\s+|\s+$/g, "");
+      if (ad && OLCUM_CEREZ_KALIBI.test(ad)) { adlar.push(ad); }
+    }
+    return adlar;
+  }
+
+  function cerezTemizle() {
+    var adlar = olcumCerezAdlari(), i, j, h = "", nokta, alanlar = [""];
+    if (!adlar.length) { return []; }
+    try { h = location.hostname || ""; } catch (error) {}
+    if (h) {
+      alanlar.push(h);
+      nokta = h.split(".");
+      if (nokta.length >= 2) { alanlar.push("." + nokta.slice(-2).join(".")); }
+    }
+    for (i = 0; i < adlar.length; i++) {
+      for (j = 0; j < alanlar.length; j++) {
+        try {
+          document.cookie = adlar[i] + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/" +
+            (alanlar[j] ? "; domain=" + alanlar[j] : "");
+        } catch (error) {}
+      }
+    }
+    var kalan = olcumCerezAdlari();
+    if (kalan.length) {
+      try { console.warn("PRUVO riza: silinemeyen olcum cerezi ->", kalan.join(", ")); } catch (error) {}
+    }
+    return kalan;
+  }
+
+  // PRUVO_ATIF kaydindan (pruvo_atif) tiklama kimliklerini sil; UTM (kampanya etiketi) KALIR.
+  // Alan kalmazsa anahtar tamamen kaldirilir. index.html'deki tikTemizle() ile ayni davranis.
+  function stripAtifClickIds() {
+    var record = null;
+    try { record = JSON.parse(localStorage.getItem(ATIF_KEY)); } catch (error) { return; }
+    if (!record || typeof record !== "object") { return; }
+    var changed = false, kalan = 0, k, i;
+    for (i = 0; i < ATIF_CLICK_FIELDS.length; i++) {
+      if (Object.prototype.hasOwnProperty.call(record, ATIF_CLICK_FIELDS[i])) {
+        delete record[ATIF_CLICK_FIELDS[i]];
+        changed = true;
+      }
+    }
+    if (!changed) { return; }
+    for (k in record) {
+      if (Object.prototype.hasOwnProperty.call(record, k)) { kalan += 1; }
+    }
+    try {
+      if (kalan) { localStorage.setItem(ATIF_KEY, JSON.stringify(record)); }
+      else { localStorage.removeItem(ATIF_KEY); }
+    } catch (error) {}
+  }
+
   function urlClickIds() {
     var params = new URLSearchParams(location.search);
     // iOS/gizlilik tiklamalari gclid yerine gbraid (app) / wbraid (web) tasir — ucunu de oku.
@@ -88,7 +161,11 @@
     var record = readRecord(now);
 
     // Riza yoksa once VAR OLAN kayittaki click-id'leri sil (geriye donuk temizlik).
-    if (record && !consent && stripClickIds(record)) { writeRecord(record); }
+    if (!consent) {
+      if (record && stripClickIds(record)) { writeRecord(record); }
+      stripAtifClickIds();
+      cerezTemizle();
+    }
 
     if (!hasClickId && !record) { return; }
     if (record && (!hasClickId || record.gclid === url.gclid)) {
@@ -206,6 +283,8 @@
     if (hasConsent()) { captureClickIds(); return; }
     var record = readRecord(Date.now());
     if (record && stripClickIds(record)) { writeRecord(record); }
+    stripAtifClickIds();   // ana sayfanin pruvo_atif kaydi (fbc) — gizlilik sayfasindan da silinsin
+    cerezTemizle();        // _fbp/_fbc/_ga … — "gecmiste bir kez riza" kapisini kapat
   };
   try {
     window.addEventListener("storage", function (event) {

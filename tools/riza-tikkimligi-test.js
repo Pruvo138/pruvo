@@ -30,6 +30,8 @@ const path = require("path");
 const KOK = path.dirname(__dirname);
 const INDEX = fs.readFileSync(path.join(KOK, "index.html"), "utf8");
 const REF_JS = fs.readFileSync(path.join(KOK, "attribution-ref.js"), "utf8");
+const GIZ = fs.readFileSync(path.join(KOK, "gizlilik", "index.html"), "utf8");
+const BUILD_PY = fs.readFileSync(path.join(KOK, "tools", "build.py"), "utf8");
 
 let passed = 0;
 const hatalar = [];
@@ -66,15 +68,20 @@ assert(ATIF_SRC.indexOf("pruvo_onay_analitik") !== -1,
        "PRUVO_ATIF dilimi riza anahtarini icermiyor (kapi yok!)");
 
 // Cerez banner'i: <div id="pruvo-cerez-onay"> sonrasindaki ilk <script> blogu.
-const BANNER_SRC = (function () {
-  const d = INDEX.indexOf('id="pruvo-cerez-onay"');
-  assert(d !== -1, "banner div bulunamadi");
-  const s = INDEX.indexOf("<script>", d);
-  const e = INDEX.indexOf("</script>", s);
-  assert(s !== -1 && e !== -1, "banner script blogu bulunamadi");
-  return INDEX.slice(s + "<script>".length, e);
-})();
-assert(BANNER_SRC.indexOf("pco-kabul") !== -1, "banner dilimi yanlis blogu aldi");
+function bannerCikar(html, ad) {
+  const d = html.indexOf('id="pruvo-cerez-onay"');
+  assert(d !== -1, ad + ": banner div bulunamadi");
+  const s = html.indexOf("<script>", d);
+  const e = html.indexOf("</script>", s);
+  assert(s !== -1 && e !== -1, ad + ": banner script blogu bulunamadi");
+  const src = html.slice(s + "<script>".length, e);
+  assert(src.indexOf("pco-kabul") !== -1, ad + ": banner dilimi yanlis blogu aldi");
+  return src;
+}
+const BANNER_SRC = bannerCikar(INDEX, "index.html");
+const GIZ_BANNER_SRC = bannerCikar(GIZ, "gizlilik/index.html");
+assert(GIZ.indexOf('id="pco-degistir"') !== -1,
+       "gizlilik sayfasinda riza geri alma dugmesi (#pco-degistir) YOK");
 
 // ─── mini ortam ──────────────────────────────────────────────────────────────
 function Depo(baslangic) {
@@ -91,6 +98,51 @@ function Oge(id) {
   this.addEventListener = (ad, fn) => { this.dinleyici[ad] = fn; };
   this.focus = () => {};
   this.checked = false;
+}
+
+/**
+ * Cerez kavanozu: `document.cookie = "..."` tarayicidaki gibi TEK cerezi ekler/gunceller,
+ * gecmis tarihli expires/max-age ise SILER (duz string olsa silme testi anlamsiz olurdu).
+ */
+function Kavanoz(baslangic) {
+  this.map = {};
+  String(baslangic || "").split(";").forEach((p) => {
+    const t = p.trim();
+    const i = t.indexOf("=");
+    if (i > 0) { this.map[t.slice(0, i).trim()] = t.slice(i + 1); }
+  });
+}
+Kavanoz.prototype.metin = function () {
+  return Object.keys(this.map).map((k) => k + "=" + this.map[k]).join("; ");
+};
+Kavanoz.prototype.yaz = function (s) {
+  const parcalar = String(s).split(";");
+  const i = parcalar[0].indexOf("=");
+  if (i <= 0) { return; }
+  const ad = parcalar[0].slice(0, i).trim();
+  const deger = parcalar[0].slice(i + 1);
+  let silme = false;
+  for (let j = 1; j < parcalar.length; j++) {
+    const o = parcalar[j].trim();
+    const kucuk = o.toLowerCase();
+    if (kucuk.indexOf("max-age=") === 0 && Number(kucuk.slice(8)) <= 0) { silme = true; }
+    if (kucuk.indexOf("expires=") === 0) {
+      const t = Date.parse(o.slice(8));
+      if (!isNaN(t) && t <= Date.now()) { silme = true; }
+    }
+  }
+  if (silme) { delete this.map[ad]; } else { this.map[ad] = deger; }
+};
+
+/** Kavanozu `document.cookie` get/set'ine bagli bir belge nesnesine cevirir. */
+function belgeYap(kavanoz, ekler) {
+  const belge = Object.assign({ readyState: "complete" }, ekler || {});
+  Object.defineProperty(belge, "cookie", {
+    get: () => kavanoz.metin(),
+    set: (v) => kavanoz.yaz(v),
+    enumerable: true
+  });
+  return belge;
 }
 
 function tikla(oge) {
@@ -112,22 +164,20 @@ function sayfa(opts) {
     "pco-kabul": new Oge("pco-kabul"),
     "pco-ret": new Oge("pco-ret")
   };
+  const kavanoz = opts.kavanoz || new Kavanoz(opts.cookie || "");
   const ctx = {
     window: {},
-    document: {
-      cookie: opts.cookie || "",
-      getElementById: (id) => ogeler[id] || null
-    },
+    document: belgeYap(kavanoz, { getElementById: (id) => ogeler[id] || null }),
     localStorage: depo,
     sessionStorage: oturum,
-    location: { search: opts.search || "",
+    location: { search: opts.search || "", hostname: "pruvo3d.com",
                 href: "https://pruvo3d.com/" + (opts.search || "") },
     URL: URL,
     URLSearchParams: URLSearchParams,
     Date: Date,
     JSON: JSON,
     String: String,
-    console: console
+    console: opts.konsol || console
   };
   ctx.window.localStorage = depo;
   vm.runInNewContext(ATIF_SRC + "\n;window.__ATIF = PRUVO_ATIF;", ctx,
@@ -135,9 +185,65 @@ function sayfa(opts) {
   if (opts.banner) {
     vm.runInNewContext(BANNER_SRC, ctx, { filename: "index.html#banner" });
   }
-  return { ctx, depo, oturum, ogeler,
+  return { ctx, depo, oturum, ogeler, kavanoz,
            atif: ctx.window.__ATIF,
            riza: ctx.window.pruvoAtifRiza };
+}
+
+/**
+ * gizlilik/ sayfasinin YAYINDAKI hâli gibi kosar: build.py bu sayfaya attribution-ref.js'i
+ * inline basiyor (isaretli blok) -> once GUNCEL modul, sonra sayfanin kendi banner script'i.
+ * PRUVO_ATIF bu sayfada YOK (yalniz ana sayfada) — geri alma yolunun ana sayfaya ugramadan da
+ * calismasi gerektigi gercek kosul.
+ */
+function gizlilikSayfa(opts) {
+  opts = opts || {};
+  const depo = opts.depo || new Depo();
+  if (opts.onay) { depo.setItem("pruvo_onay_analitik", opts.onay); }
+  const oturum = opts.oturum || new Depo();
+  const kavanoz = opts.kavanoz || new Kavanoz(opts.cookie || "");
+  const ogeler = {
+    "pruvo-cerez-onay": new Oge("pruvo-cerez-onay"),
+    "pco-kabul": new Oge("pco-kabul"),
+    "pco-ret": new Oge("pco-ret"),
+    "pco-degistir": new Oge("pco-degistir")
+  };
+  const baglantilar = (opts.linkler || []).map((h) => new Baglanti(h));
+  const dinleyiciler = {};
+  const beacons = [];
+  let cagri = 0;
+  const metaBaslatildi = [];
+  const ctx = {
+    window: { pruvoMetaBaslat: () => { metaBaslatildi.push(1); } },
+    document: belgeYap(kavanoz, {
+      getElementById: (id) => ogeler[id] || null,
+      querySelectorAll: () => baglantilar,
+      addEventListener: (ad, fn) => { dinleyiciler[ad] = fn; }
+    }),
+    localStorage: depo,
+    sessionStorage: oturum,
+    location: { search: opts.search || "", hostname: "pruvo3d.com",
+                href: "https://pruvo3d.com/gizlilik/" + (opts.search || "") },
+    navigator: {
+      sendBeacon: (url, blob) => {
+        beacons.push({ url, body: blob && blob.parts && blob.parts[0] });
+        return true;
+      }
+    },
+    Blob: function (parts, o) { this.parts = parts; this.type = (o && o.type) || ""; },
+    crypto: { getRandomValues: (b) => {
+      cagri += 1;
+      for (let i = 0; i < b.length; i++) { b[i] = (cagri * 17 + i * 53) % 256; }
+      return b;
+    } },
+    URL: URL, URLSearchParams: URLSearchParams, Uint8Array: Uint8Array,
+    Date: Date, JSON: JSON, String: String, console: console
+  };
+  vm.runInNewContext(REF_JS, ctx, { filename: "attribution-ref.js (gizlilik inline)" });
+  vm.runInNewContext(GIZ_BANNER_SRC, ctx, { filename: "gizlilik/index.html#banner" });
+  return { ctx, depo, oturum, ogeler, kavanoz, beacons, metaBaslatildi,
+           banner: ogeler["pruvo-cerez-onay"],
+           tikla: (i) => dinleyiciler.click({ target: baglantilar[i || 0] }) };
 }
 
 /** attribution-ref.js'i tek sayfa yuklemesi gibi calistirir (REF + gclid katmani). */
@@ -369,6 +475,232 @@ senaryo("B6 sayfalar arasi: rizasiz landing sonrasi organik sayfada da sizinti y
   const ikinci = refSayfa({ search: "", depo });
   yok(ikinci, "SIZ", "ikinci sayfada gclid sizdi");
   assert(/^REF:GS-NUM-[A-Z0-9]{4}$/.test(ikinci.ref()), "REF sayfalar arasi tasinmadi");
+});
+
+console.log("\n── C) gizlilik/ · \"Çerez tercihimi değiştir\" (rızayı geri alma) ──");
+
+senaryo("C0 drift kapisi: tiklama-kimligi alan listeleri iki dosyada AYNI", () => {
+  const a = INDEX.match(/var TIK_ALANLARI = (\[[^\]]*\]);/);
+  const b = REF_JS.match(/var ATIF_CLICK_FIELDS = (\[[^\]]*\]);/);
+  assert(a, "index.html'de TIK_ALANLARI bulunamadi");
+  assert(b, "attribution-ref.js'te ATIF_CLICK_FIELDS bulunamadi");
+  const ia = JSON.parse(a[1]);
+  const ib = JSON.parse(b[1]);
+  assert(JSON.stringify(ia.slice().sort()) === JSON.stringify(ib.slice().sort()),
+         "listeler ayristi (biri temizlemedigi alani birakir):\n  index.html      = " +
+         JSON.stringify(ia) + "\n  attribution-ref = " + JSON.stringify(ib));
+});
+
+senaryo("C6 drift kapisi: gizlilik banner'i riza kancalarini build.py ile ayni cagiriyor", () => {
+  const banner = BUILD_PY.slice(BUILD_PY.indexOf("GA_BANNER_SNIPPET"));
+  ["pruvoMetaBaslat", "pruvoRefRiza"].forEach((kanca) => {
+    assert(banner.indexOf(kanca) !== -1, "build.py banner snippet'inde " + kanca + " yok");
+    assert(GIZ_BANNER_SRC.indexOf(kanca) !== -1,
+           "gizlilik banner'i " + kanca + " cagirmiyor (uretilen sayfalardan sapti)");
+  });
+});
+
+senaryo("C1 dugme: saklanmis tiklama kimlikleri + analiz cerezleri FIILEN siliniyor", () => {
+  const depo = new Depo({
+    pruvo_onay_analitik: "kabul",
+    pruvo_atif: JSON.stringify({ fbc: "fb.1.111.SIZFB", utm_source: "meta" }),
+    pruvo_ref: JSON.stringify({ ref: "REF:GS-BYP-AB12", gclid: "SIZGC",
+                                grup: "BYP", src: "GS", ts: Date.now() })
+  });
+  const s = gizlilikSayfa({ depo,
+    cookie: "_fbc=fb.1.7.SIZCE; _fbp=fb.1.9.9; _ga=GA1.1.111.222; _ga_ABC=GS1.1.z; sepet=3" });
+  var_(s, "SIZFB", "on kosul: pruvo_atif fbc");
+  var_(s, "SIZGC", "on kosul: pruvo_ref gclid");
+  var_(s, "SIZCE", "on kosul: _fbc cerezi");
+
+  tikla(s.ogeler["pco-degistir"]);
+
+  yok(s, "SIZFB", "dugme pruvo_atif fbc'yi silmedi");
+  yok(s, "SIZGC", "dugme pruvo_ref gclid'i silmedi");
+  yok(s, "SIZCE", "dugme _fbc cerezini silmedi");
+  assert(s.kavanoz.map._fbp === undefined, "_fbp cerezi silinmedi");
+  assert(s.kavanoz.map._ga === undefined, "_ga cerezi silinmedi");
+  assert(s.kavanoz.map._ga_ABC === undefined, "_ga_* konteyner cerezi silinmedi");
+  assert(s.kavanoz.map.sepet === "3", "ilgisiz cerez (sepet) silindi");
+  assert(JSON.parse(s.depo.getItem("pruvo_atif")).utm_source === "meta",
+         "UTM (kampanya etiketi) gereksiz yere silindi");
+});
+
+senaryo("C2 dugme: cerez bandi yeniden gorunuyor", () => {
+  const s = gizlilikSayfa({ onay: "kabul" });
+  assert(s.banner.hidden === true, "secim varken banner gorunur kalmis (on kosul)");
+  tikla(s.ogeler["pco-degistir"]);
+  assert(s.banner.hidden === false, "dugmeden sonra banner yeniden gorunmedi");
+});
+
+senaryo("C3 dugme sonrasi secim yapilmazsa riza YOK sayilir (fail-closed)", () => {
+  const depo = new Depo({ pruvo_onay_analitik: "kabul" });
+  const s = gizlilikSayfa({ depo });
+  tikla(s.ogeler["pco-degistir"]);
+  assert(depo.getItem("pruvo_onay_analitik") === null,
+         "secim sifirlanmadi (deger: " + depo.getItem("pruvo_onay_analitik") + ")");
+  // Ziyaretci hicbir sey secmeden gezmeye devam ediyor -> yeni reklam tiki SAKLANMAZ.
+  yok(sayfa({ search: "?fbclid=YENI", depo }), "YENI",
+      "dugme sonrasi (secimsiz) fbclid saklandi");
+  yok(refSayfa({ search: "?gclid=YENIG&pg=BYP", depo }), "YENIG",
+      "dugme sonrasi (secimsiz) gclid saklandi");
+});
+
+senaryo("C4 dugme sonrasi tekrar 'Kabul Et' -> akis normale doner", () => {
+  const depo = new Depo({ pruvo_onay_analitik: "ret" });
+  const s = gizlilikSayfa({ depo });
+  tikla(s.ogeler["pco-degistir"]);
+  tikla(s.ogeler["pco-kabul"]);
+  assert(depo.getItem("pruvo_onay_analitik") === "kabul", "kabul yazilmadi");
+  assert(s.banner.hidden === true, "kabul sonrasi banner gizlenmedi");
+  assert(s.metaBaslatildi.length === 1,
+         "kabul aninda Meta pikseli baslatilmadi: " + s.metaBaslatildi.length);
+  const yeni = refSayfa({ search: "?gclid=DONDU&pg=BYP", depo, linkler: [WA] });
+  var_(yeni, "DONDU", "kabul sonrasi gclid");
+  yeni.tikla(0);
+  assert(yeni.beacons.length === 1, "kabul sonrasi lead gitmedi");
+});
+
+senaryo("C5 banner gorunurlugu TEK kaynak: yalniz sakli riza degerinden turer", () => {
+  assert(gizlilikSayfa({}).banner.hidden === false, "secimsizken banner gizli");
+  assert(gizlilikSayfa({ onay: "kabul" }).banner.hidden === true, "kabul iken banner gorunur");
+  const s = gizlilikSayfa({ onay: "ret" });
+  assert(s.banner.hidden === true, "ret iken banner gorunur");
+  tikla(s.ogeler["pco-degistir"]);
+  assert(s.banner.hidden === false, "dugme sonrasi banner gizli");
+  tikla(s.ogeler["pco-ret"]);
+  assert(s.banner.hidden === true, "Reddet sonrasi banner gizlenmedi");
+});
+
+console.log("\n── D) ölçüm çerezleri · \"geçmişte bir kez rıza\" kapısı ──");
+
+senaryo("D0 drift kapisi: olcum cerez kalibi iki dosyada AYNI", () => {
+  const a = INDEX.match(/var OLCUM_CEREZ_KALIBI = (\/.*\/);/);
+  const b = REF_JS.match(/var OLCUM_CEREZ_KALIBI = (\/.*\/);/);
+  assert(a, "index.html'de OLCUM_CEREZ_KALIBI yok");
+  assert(b, "attribution-ref.js'te OLCUM_CEREZ_KALIBI yok");
+  assert(a[1] === b[1], "kaliplar ayristi:\n  index.html      = " + a[1] +
+                        "\n  attribution-ref = " + b[1]);
+});
+
+senaryo("D0b tum riza yuzeyleri 'Reddet'te katmanlari uyariyor", () => {
+  // Reddet cerezleri silmiyorsa "gecmiste bir kez riza" kapisi acik kalir -> her banner
+  // (uretilen sayfalar + elle korunan 4 yasal sayfa) ayni kancayi cagirmali.
+  const yuzeyler = [
+    ["tools/build.py", BUILD_PY.slice(BUILD_PY.indexOf("GA_BANNER_SNIPPET"))],
+    ["index.html", BANNER_SRC],
+    ["gizlilik/index.html", GIZ_BANNER_SRC]
+  ];
+  ["hakkimizda", "iletisim", "sss"].forEach((slug) => {
+    const html = fs.readFileSync(path.join(KOK, slug, "index.html"), "utf8");
+    yuzeyler.push([slug + "/index.html", bannerCikar(html, slug)]);
+  });
+  yuzeyler.forEach(([ad, src]) => {
+    const i = src.indexOf('ret.addEventListener');
+    assert(i !== -1, ad + ": Reddet dinleyicisi bulunamadi");
+    const govde = src.slice(i, i + 400);
+    assert(/pruvoRefRiza|rizaYayinla|pruvoAtifRiza/.test(govde),
+           ad + ": 'Reddet' riza degisimini hicbir katmana duyurmuyor (cerezler kalir)");
+  });
+});
+
+senaryo("D1 Kabul -> _fbp yazildi -> Reddet: cerez SILINIR, topla() artik gondermez", () => {
+  const kavanoz = new Kavanoz("_fbp=fb.1.9.FBPSIZ; _fbc=fb.1.7.FBCSIZ; _ga=GA1.1.GASIZ.222");
+  const s = sayfa({ search: "", depo: new Depo({ pruvo_onay_analitik: "kabul" }),
+                    kavanoz, banner: true });
+  // On kosul: riza varken topla() kimlikleri DONDURUYOR.
+  const oncesi = JSON.stringify(s.atif.topla());
+  assert(oncesi.indexOf("FBPSIZ") !== -1 && oncesi.indexOf("FBCSIZ") !== -1 &&
+         oncesi.indexOf("GASIZ") !== -1, "on kosul: rizali topla() kimlik dondurmedi: " + oncesi);
+
+  // Ziyaretci fikrini degistirdi: banner'i tekrar acip Reddet'e basiyor (rizayi geri cekme).
+  s.depo.removeItem("pruvo_onay_analitik");
+  s.riza();
+  s.depo.setItem("pruvo_onay_analitik", "ret");
+  s.riza();
+
+  yok(s, "FBPSIZ", "_fbp cerezi silinmedi");
+  yok(s, "FBCSIZ", "_fbc cerezi silinmedi");
+  yok(s, "GASIZ", "_ga cerezi silinmedi");
+  const sonrasi = JSON.stringify(s.atif.topla());
+  ["FBPSIZ", "FBCSIZ", "GASIZ"].forEach((ham) => {
+    assert(sonrasi.indexOf(ham) === -1,
+           "topla() geri cekilmis rizada hâlâ kimlik gonderiyor (" + ham + "): " + sonrasi);
+  });
+});
+
+senaryo("D2 riza YOKken ESKI _fbp cerezi duruyorsa topla() yine GONDERMEZ (kapi geri acilmaz)", () => {
+  const kavanoz = new Kavanoz("_fbp=fb.1.9.ESKIFBP; _fbc=fb.1.7.ESKIFBC; _ga=GA1.1.ESKIGA.222");
+  const s = sayfa({ search: "", onay: "ret", kavanoz });
+  const payload = JSON.stringify(s.atif.topla());
+  ["ESKIFBP", "ESKIFBC", "ESKIGA"].forEach((ham) => {
+    assert(payload.indexOf(ham) === -1,
+           "rizasiz payload'da ham kimlik var (" + ham + "): " + payload);
+  });
+  // Ustelik cerezin kendisi de sayfa yuklenirken silinmis olmali.
+  yok(s, "ESKIFBP", "rizasiz sayfa yuklemesinde _fbp temizlenmedi");
+});
+
+senaryo("D3 'Çerez tercihimi değiştir' -> cerez + depo temiz -> sonra Kabul: akis normale doner", () => {
+  const depo = new Depo({
+    pruvo_onay_analitik: "kabul",
+    pruvo_atif: JSON.stringify({ fbc: "fb.1.111.ATIFSIZ", utm_source: "meta" })
+  });
+  const kavanoz = new Kavanoz("_fbp=fb.1.9.DFBP; _fbc=fb.1.7.DFBC; _ga=GA1.1.DGA.222");
+  const g = gizlilikSayfa({ depo, kavanoz });
+  tikla(g.ogeler["pco-degistir"]);
+  ["ATIFSIZ", "DFBP", "DFBC", "DGA"].forEach((ham) => {
+    yok(g, ham, "dugme sonrasi kalinti (" + ham + ")");
+  });
+  assert(depo.getItem("pruvo_onay_analitik") === null, "secim sifirlanmadi");
+
+  tikla(g.ogeler["pco-kabul"]);
+  assert(depo.getItem("pruvo_onay_analitik") === "kabul", "tekrar kabul yazilmadi");
+  // Yeni ziyaret: piksel yeni cerez yaziyor, topla() yeniden gonderiyor.
+  const yeni = sayfa({ search: "?fbclid=YENIFB", depo,
+                       kavanoz: new Kavanoz("_fbp=fb.1.9.YENIFBP") });
+  const payload = JSON.stringify(yeni.atif.topla());
+  assert(payload.indexOf("YENIFBP") !== -1, "kabul sonrasi fbp gonderilmiyor: " + payload);
+  assert(payload.indexOf("YENIFB") !== -1, "kabul sonrasi fbc gonderilmiyor: " + payload);
+});
+
+senaryo("D4 silinemeyen cerez SESSIZ gecilmez (konsola uyari)", () => {
+  // Silmeye direnen kavanoz (HttpOnly / farkli path benzeri): uyari dusmezse test kirmizi.
+  const inatci = new Kavanoz("_fbp=fb.1.9.INATCI");
+  inatci.yaz = function () {};   // silme istegini yut
+  const uyarilar = [];
+  const konsol = { warn: (...a) => uyarilar.push(a.join(" ")), log() {}, error() {} };
+  const s = sayfa({ search: "", onay: "ret", kavanoz: inatci, konsol });
+  s.riza();
+  assert(uyarilar.length > 0, "silinemeyen cerez icin uyari dusmedi (sessiz gecildi)");
+  assert(uyarilar.join(" ").indexOf("_fbp") !== -1,
+         "uyari silinemeyen cerezin adini icermiyor: " + uyarilar.join(" "));
+});
+
+senaryo("D5 SILINEMEYEN cerez varken bile topla() rizasiz kimlik GONDERMEZ", () => {
+  // Kritik: cerez silme ile topla() kapisi BIRBIRINDEN BAGIMSIZ olmali. Silme calisirsa
+  // eksik kapiyi maskeler; gercekte HttpOnly / farkli path / farkli alan cerezi silinemez.
+  // Bu senaryo silmeyi devre disi birakip YALNIZ kapiyi olcer.
+  const inatci = new Kavanoz("_fbp=fb.1.9.KAPIFBP; _fbc=fb.1.7.KAPIFBC; _ga=GA1.1.KAPIGA.222");
+  inatci.yaz = function () {};   // silme istegini yut
+  const konsol = { warn() {}, log() {}, error() {} };
+  const s = sayfa({ search: "", onay: "ret", kavanoz: inatci, konsol });
+  assert(inatci.metin().indexOf("KAPIFBP") !== -1, "on kosul: cerez silinmemis olmali");
+  const payload = JSON.stringify(s.atif.topla());
+  ["KAPIFBP", "KAPIFBC", "KAPIGA"].forEach((ham) => {
+    assert(payload.indexOf(ham) === -1,
+           "silinemeyen cerez topla() kapisini geri acti (" + ham + "): " + payload);
+  });
+});
+
+senaryo("D6 rizasiz SAYFA YUKLEMESI (urun/yasal sayfa) olcum cerezlerini temizler", () => {
+  // Ziyaretci hicbir dugmeye basmiyor; sadece gezinmesi bile eski cerezleri dusurmeli
+  // (riza gecmiste geri cekilmis ya da hic verilmemis olabilir).
+  const kavanoz = new Kavanoz("_fbp=fb.1.9.GEZFBP; _ga=GA1.1.GEZGA.222; sepet=3");
+  const g = gizlilikSayfa({ onay: "ret", kavanoz });
+  yok(g, "GEZFBP", "sayfa yuklemesinde _fbp temizlenmedi");
+  yok(g, "GEZGA", "sayfa yuklemesinde _ga temizlenmedi");
+  assert(g.kavanoz.map.sepet === "3", "ilgisiz cerez (sepet) silindi");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
