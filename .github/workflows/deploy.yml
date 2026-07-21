@@ -103,6 +103,46 @@ jobs:
       - name: Piksel <-> katalog parite kapisi
         run: python3 tools/piksel-katalog-parite-test.py
 
+      # FEED POLITIKA KAPISI — IKI KATMANLI. Merchant feed'inin <title> VE <description>
+      # metinlerini tarar. BLOKLAYICI katman YALNIZ olculmus/bildirilmis GERCEK Merchant
+      # reddinden turemis 5 jeton icerir (e-sigara/vape/durbun ailesi); tam katalogda 8
+      # isabet, YANLIS-POZITIF 0 (olculdu 2026-07-22). Bilinen borc tools/feed-politika-
+      # taban.json'da (tek yazar MaCiT, KOD DEGISIKLIGI GEREKTIRMEDEN guncellenir);
+      # tabanda OLMAYAN yeni bir ihlal ya da tabandaki bir urunun YENI jeton kazanmasi
+      # KIRMIZI yakar. Supheli ama kanitsiz jetonlar (kullук/cakmak/susturucu — bunlar
+      # mesru Turkce otomotiv parca adlaridir, olculdu: 71 yanlis pozitif) RAPOR katmaninda
+      # yalniz SAYILIR, CI'yi KIRMAZ. Offline (feed'i build.py'yi MODUL olarak import edip
+      # uretir), olculdu 2,6 s.
+      - name: Feed politika jetonu kapisi (bloklayici + rapor)
+        run: python3 tools/feed-politika-kapisi.py
+
+      # FEED g:id COZUCU: Merchant panelinden gelen KISALTILMIS g:id (50 karakter kurali)
+      # gercek urun id'sine geri cozulebiliyor mu. Bloklayici degil ama regresyon nobetcisi:
+      # cozum bozulursa panel sikayetleri yine "boyle urun yok / 404" gibi gorunur (yasanmis
+      # tanilama koru). Offline (ag nobetcisi testin icinde), olculdu 0,4 s.
+      - name: Feed g:id cozucu kabul testi
+        run: python3 tools/feed-id-cozucu-test.py
+
+      # ASGARI GORSEL BOYUTU: 100x100 altindaki gorsel Google Merchant'ta "resim cok kucuk"
+      # reddi alir (olculen vaka 1000x88). Kapinin KENDISI ekleme hattinda kosar (CI'da
+      # 7769 gorseli agdan cekmek kabul edilemez); burada kosan sadece onun OFFLINE kabul
+      # testidir (sentetik fikstur, saf Python baslik ayristirma). Test uc ekleme betigini
+      # GERCEKTEN import edip process_one'i sahte upload ile uctan uca kosturur (ag/AI/sips
+      # yok, urunler.json'a DOKUNMAZ) -> kablolama kopmasi sessiz kalamaz. Olculdu 2,1 s.
+      - name: Asgari gorsel boyutu kapisi kabul testi
+        run: python3 tools/gorsel-boyut-test.py
+
+      # NOBETCI MUTASYON HARNESS: yukaridaki iki kapinin KENDISINI olcer — bozulunca GERCEKTEN
+      # kirmizi yaniyorlar mi. Feed politika kapisinin kirmizi CIKIS YOLU ve _kendini_dogrula()
+      # hicbir testle korunmuyordu; olculdu: <title> bulucusunu olduren mutasyon eski kapida
+      # exit 0 veriyordu (gercek bir vape urunu SESSIZCE geciyordu). 13 kapi mutasyonu + 3
+      # gorsel-kablolama mutasyonu kosulur, hepsi KIRMIZI yanmali; mutasyonsuz kontrol kosumu
+      # YESIL yanmali (harness "hep kirmizi" olamaz). Mutasyon DAIMA gecici SYMLINK aynasina
+      # uygulanir — canli tools/ dizinine YAZMA YOK. Offline, urunler.json OKUNMAZ (sentetik
+      # katalog), olculdu 18,3 s.
+      - name: Nobetci mutasyon harness'i (kapilar bozulunca kirmizi yaniyor mu)
+        run: python3 tools/nobetci-mutasyon-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
