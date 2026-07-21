@@ -77,22 +77,29 @@ jobs:
       # Olcu UTF-16 kod birimi (JS String.slice birimi) — bayt sayan olcum sahte-kirmizi,
       # Python len(str) astral karakterde sahte-yesil yakar.
       # Bloklayici SADECE gercek zararda: (1) >6000 (bot metni SESSIZCE kesiyor, icerik
-      # kaybi) (2) ilanda ayristirilan TEK sayi kapi sabitinden farkli. Dar pay / ILAN YOK /
-      # CELISKILI ILAN / ILAN BASTA DEGIL KIRMIZI DEGIL -> exit 0 + gurultulu uyari:
-      # olculdu 21 Tem, dordu de MASUM duzenlemeyle tetikleniyordu (uslup kuralindaki baska
-      # bir sayi · "6000"->"6.000" kozmetik ayrac · ilan cumlesinin silinmesi · basa
-      # icindekiler eklenip ilanin kaymasi) ve continue-on-error olmadigi icin TUM EKIBIN
-      # yayinini durduruyordu. Offline, stdlib, ~1 ms.
+      # kaybi) (2) bastaki satirlarda TEK ve KESIN bir tavan ilani var ve kapi sabitinden
+      # farkli. Dar pay / ILAN YOK / CELISKILI ILAN / ILAN BASTA DEGIL / ILAN BAGLAMA
+      # OTURMADI KIRMIZI DEGIL -> exit 0 + gurultulu uyari: olculdu 21 Tem, BESI DE MASUM
+      # duzenlemeyle tetikleniyordu (uslup kuralindaki baska bir sayi · "6000"->"6.000"
+      # kozmetik ayrac · ilan cumlesinin silinmesi · basa icindekiler eklenip ilanin
+      # kaymasi · ilanin YERINE "en fazla 300 karaktere kadar" gibi bir USLUP kurali
+      # yazilmasi) ve continue-on-error olmadigi icin TUM EKIBIN yayinini durduruyordu.
+      # "KESIN ilan" = sayi TAVAN bandinda (2000..18000) VE ayni satirda ilanin oznesi
+      # (Ege'ye / bilgi dosyasi / bu dosya) aniliyor; supheli her hal UYARI'dir.
+      # Offline, stdlib, ~1 ms.
       - name: Ege-bilgi tavan kabul testi (6000 karakter kesme kapisi)
         run: python3 tools/ege-bilgi-tavan-test.py
 
-      # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 16 gecici fiksturle olcer
-      # (tavan asimi · sinir 6000/6001 · astral UTF-16 ayrismasi · dar/genis pay · dosya yok ·
-      # UTF-8 degil · ilan sapmasi · binlik ayrac · A1-A4 masum duzenlemeler). Neden ayri adim:
-      # curutucu 21 Tem 5/5 kod mutasyonunun (tavan hukmunu oldur / UTF-16'yi len(str) yap /
-      # marji oynat / fail-loud dalini return 0 yap / ilan nobetcisini oldur) SAG KALDIGINI
-      # olctu — nobetci sessizce olurse ustteki adim yesil yanmaya devam ederdi.
-      # Fiksturler tempfile'da; repo dosyalarina DOKUNMAZ. Offline, stdlib, ~10 ms.
+      # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 26 gecici fiksturle olcer
+      # (tavan asimi · sinir 6000/6001 · astral UTF-16 ayrismasi · kesilen kuyruk onizlemesi ·
+      # dar/genis pay · dosya yok · UTF-8 degil · ilan sapmasi · mukerrer ilan · binlik ayrac ·
+      # A1-A5 masum duzenlemeler). Neden ayri adim: curutucu 21 Tem 5/5 kod mutasyonunun
+      # (tavan hukmunu oldur / UTF-16'yi len(str) yap / marji oynat / fail-loud dalini
+      # return 0 yap / ilan nobetcisini oldur) SAG KALDIGINI olctu — nobetci sessizce olurse
+      # ustteki adim yesil yanmaya devam ederdi. Bugun 10/10 mutant oluyor; olcumu
+      # tekrarlamak icin: python3 tools/ege-bilgi-tavan-mutasyon.py (kapiyi SALT OKUR,
+      # mutasyonu KOPYAYA uygular — CI adimi degil, elde kosulan kanit araci).
+      # Fiksturler tempfile'da; repo dosyalarina DOKUNMAZ. Offline, stdlib, ~30 ms.
       - name: Ege-bilgi tavan kapisi ic nobetci (kapinin kendi mantigi)
         run: python3 tools/ege-bilgi-tavan-test.py --ic-nobetci
 
