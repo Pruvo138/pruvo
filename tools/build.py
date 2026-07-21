@@ -1250,15 +1250,19 @@ def render_product(p, all_products):
     title_tag = esc(baslik) + " — PRUVO Özel Tasarım Yedek Parça"
 
     # --- JS'e (opsiyonlar bloğu + fiyat hesabı) aktarılacak ürün verisi
+    # fid = KATALOG kimligi (feed g:id ile TEK KAYNAK: feed_id). Piksel content_ids DAIMA bunu
+    # gonderir -> Meta/Google katalogdaki id ile birebir eslesir. id (TAM pid) API/D1 anahtari
+    # olarak KALIR (Worker fiyati pid'den okur); fid yalniz olcum/katalog eslemesi icindir.
     urun_json = json.dumps(
-        {"id": pid, "baslik": baslik, "kategori": kategori, "fiyat": fiyat,
+        {"id": pid, "fid": feed_id(pid), "baslik": baslik, "kategori": kategori, "fiyat": fiyat,
          "parametrik": parametrik, "boy_secenekleri": boy_secenekleri},
         ensure_ascii=False, separators=(",", ":")).replace("</script>", "<\\/script>")
 
-    # --- Meta Pixel ViewContent (rıza-kapılı, YALNIZ ürün sayfası). content_ids = TAM ürün slug'ı
-    # (feed g:id ile birebir -> katalog eşleşmesi); content_type "product"; currency "TRY"; value
+    # --- Meta Pixel ViewContent (rıza-kapılı, YALNIZ ürün sayfası). content_ids = feed_id(pid)
+    # (feed g:id ile TEK KAYNAK -> katalog eşleşmesi %100; uzun pid'de TAM pid feed'de kısaltıldığı
+    # için katalog eşleşmez -> DAİMA feed_id gönder); content_type "product"; currency "TRY"; value
     # SAYI (sabit fiyat varsa), parametrik/fiyatsız üründe value yok. pruvoMetaTrack rıza yoksa yutar.
-    mvc = {"content_ids": [pid], "content_type": "product", "currency": "TRY"}
+    mvc = {"content_ids": [feed_id(pid)], "content_type": "product", "currency": "TRY"}
     _vc_fiyat = price_number(fiyat)
     if _vc_fiyat:
         mvc["value"] = int(_vc_fiyat)
@@ -1529,10 +1533,11 @@ var URUN_SEMA = {sema_json};
     if(i===-1){{
       c.push(satir);
       /* AddToCart (rıza-kapılı): yalnız gerçek EKLEMEDE (toggle-çıkarmada değil). value = seçilen
-         konfigürasyonun kuruşlu tutarı TRY'ye; content_ids DAİMA ürün slug'ı, content_type "product". */
+         konfigürasyonun kuruşlu tutarı TRY'ye; content_ids DAİMA katalog kimliği URUN.fid
+         (=feed_id(pid), feed g:id ile tek kaynak), content_type "product". */
       try {{
         var mAtc = PRUVO_SECENEK.satirOzeti(URUN, satir);
-        var mAtcVeri = {{ content_ids:[id], content_type:"product", currency:"TRY" }};
+        var mAtcVeri = {{ content_ids:[URUN.fid], content_type:"product", currency:"TRY" }};
         if(mAtc && mAtc.kurus != null){{ mAtcVeri.value = mAtc.kurus/100; }}
         if(typeof window.pruvoMetaTrack === "function"){{ window.pruvoMetaTrack("AddToCart", mAtcVeri); }}
       }} catch(e) {{}}
