@@ -19,10 +19,14 @@ NE OLCULUR:
      A1 kirmizi yol: tabanda OLMAYAN gercek ihlal (elektronik sigara / vape) -> KIRMIZI.
      A2 bilinen borc: ayni ihlal tabanda yaziliysa -> YESIL (kapi asiri hevesli degil).
      A3 borc agirlasti: tabandaki urun YENI jeton kazandi -> KIRMIZI.
-     A4..A11 MUTANTLAR: her biri gercek bir bozulmadir ve KIRMIZI yakmalidir. Bir mutant
+     A4..A17 MUTANTLAR: her biri gercek bir bozulmadir ve KIRMIZI yakmalidir. Bir mutant
         YESIL kalirsa o bozulma CI'dan sessizce gecebiliyor demektir.
         🔴 Bu kume AYNI ZAMANDA _kendini_dogrula()'nin KABLOLAMASINI korur: self-check cagrisi
-        silinirse (hatalar = []) A4..A11'in TAMAMI yesile doner ve bu harness kirmizi yanar.
+        silinirse (hatalar = []) A4..A17'nin TAMAMI yesile doner ve bu harness kirmizi yanar.
+        🔴 A14 (S5, M4 sinifi): feed KISMEN taranirsa kapi eskiden cikis 0 veriyordu —
+           olculdu, 3000. siradaki GERCEK bir vape urunu SESSIZCE geciyordu.
+        🔴 A15/A16/A17 (S5): S4'te eklenen uc nobetci FIKSTURUNUN ucu de tek satirla
+           korlestirilebiliyordu (dongu oldurulur ya da liste bosaltilir) — kapi yesil kalirdi.
   B) KOK AYRIMI (kod koku / veri koku) — tools/veri_kok.py fiksturu. GERCEK bir git worktree
      kurulur; ekleme betigi ORADAN import edilip urunler.json yolunun ANA KOPYAYA cozuldugu
      olculur. ROOT tekrar __file__'dan turetilirse bu bolum KIRMIZI yanar.
@@ -135,7 +139,10 @@ EKSIK_JETON_TABAN = {"kok_baslangic": 1, "kok": [
     {"id": "elektronik-sigara-tutucu", "jeton": ["elektronik sigara"]},
 ]}
 
-# --- MUTANTLAR: (etiket, {dosya: [(eski, yeni)]}, beklenen_cikis) -----------------------
+# --- MUTANTLAR: (etiket, [(eski, yeni), ...])  ya da  (etiket, [...], "beklenen_isaret") --
+# 🔴 UCUNCU ELEMAN (isaret) VARSA: mutantin KIRMIZI yanmasi YETMEZ, KENDI sebebiyle yanmali.
+# Sebep dogrulanmazsa bir mutant baska bir nobetciyi tetikleyerek "kaza eseri kirmizi" olur ve
+# hedefledigi bozulma yine olcusuz kalir (yeni mutantlar bu yuzden isaretli).
 KAPI = "feed-politika-kapisi.py"
 MUTANTLAR = [
     ("A4  TR/ASCII kucultme varyantlari dusuruldu (ALL-CAPS kacis yolu acilir)",
@@ -162,6 +169,25 @@ MUTANTLAR = [
     ("A13 POZITIF nobetci listesi bosaltildi + jeton listesi bosaltildi",
      [("_POZITIF = [", "_POZITIF = [] or ["),
       ('    "elektronik sigara":\n        "DOGRUDAN KANIT', '    "yok-boyle-jeton":\n        "DOGRUDAN KANIT')]),
+    # --- S5 turu: KISMI TARAMA + fiksturlerin KENDISI ------------------------------------
+    # 🔴 A14 (M4 sinifi): feed'in <item> ayristirmasi KIRPILIR. Kapi kalan kalemleri tertemiz
+    # bulur ve eskiden cikis 0 verirdi — ne self-check ne bu harness gorurdu. Olculdu: 3000.
+    # siradaki GERCEK bir vape urunu SESSIZCE geciyordu. Fikstur katalogu 4 kalemdir; [:2]
+    # yarisini kirpar (canlidaki [:200] tipi kirpmanin kucultulmus hali).
+    ("A14 feed KIRPILDI (kalemlerin yarisi taranmiyor — M4: sessiz yesildi)",
+     [("    for govde in _ITEM.findall(xml):", "    for govde in _ITEM.findall(xml)[:2]:")],
+     "KISMI TARAMA"),
+    # A15/A16/A17 — S4'te eklenen UC nobetci fiksturunun UCU DE tek satirla korlestirilebiliyordu.
+    ("A15 _NEGATIF (yanlis-pozitif nobetcisi) dongusu oldu — fikstur dolu, nobetci kor",
+     [("    for metin in _NEGATIF:", "    for metin in []:")],
+     "NOBETCI DONGUSU KOSMADI: _NEGATIF"),
+    ("A16 _RAPOR_POZITIF fikstur listesi BOSALTILDI (rapor katmani nobetcisi susar)",
+     [("_RAPOR_POZITIF = [", "_RAPOR_POZITIF = [] if True else [")],
+     "FIKSTUR KUCULDU: _RAPOR_POZITIF"),
+    ("A17 _ASIMETRIK (title/description ayri-ayri) dongusu oldu — iki yol da nobetsiz kalir",
+     [("    for etiket, baslik, aciklama, kirli, temiz in _ASIMETRIK:",
+       "    for etiket, baslik, aciklama, kirli, temiz in []:")],
+     "NOBETCI DONGUSU KOSMADI: _ASIMETRIK"),
 ]
 
 
@@ -210,11 +236,19 @@ def bolum_a(tmp):
     check("A3 tabandaki urun YENI jeton kazandi -> KIRMIZI (R2)",
           kod == 1 and "YENI JETON KAZANDI" in cikti, "cikis=%d" % kod)
 
-    for etiket, degisim in MUTANTLAR:
+    for girdi in MUTANTLAR:
+        etiket, degisim = girdi[0], girdi[1]
+        isaret = girdi[2] if len(girdi) > 2 else None
         mdizin = ayna_kur(os.path.join(tmp, "a-mut-" + etiket.split()[0]), {KAPI: degisim})
         kod, cikti = kapi_kos(mdizin, temiz, bos)
         check(etiket + " -> KIRMIZI", kod == 1,
               "cikis=%d (YESIL kaldi: bu bozulma CI'dan SESSIZCE gecer)" % kod)
+        if isaret:
+            check("%s -> DOGRU SEBEPLE kirmizi (%r)" % (etiket.split()[0], isaret),
+                  isaret in cikti,
+                  "isaret bulundu" if isaret in cikti else
+                  "isaret YOK: mutant BASKA bir nobetciyi tetiklemis (hedefledigi bozulma "
+                  "yine olcusuz kaliyor)")
 
 
 # ---------------------------------------------------------------- B) kok ayrimi

@@ -188,12 +188,23 @@ _ALAN = {ad: re.compile(r"<%s>(.*?)</%s>" % (ad, ad), re.S)
          for ad in ("g:id", "title", "description")}
 
 
+class KismiTaramaHatasi(Exception):
+    """Feed'in TAMAMI taranamadi -> kapi hukum veremez (fail-closed)."""
+
+
 def feed_kalemleri(products):
     """render_merchant_feed ciktisini ayristirip (gid, title, description) dondurur.
 
     🔴 Feed METNI taranir, urunler.json alanlari DEGIL: build.marka_temiz() feed metnini
     degistiriyor ve kirpma (title 150 / description 5000) uyguluyor; Merchant'in GORDUGU
-    metin budur. Kaynak alani tarasaydik kapi Merchant'tan sapardi."""
+    metin budur. Kaynak alani tarasaydik kapi Merchant'tan sapardi.
+
+    🔴 KISMI TARAMA = KIRMIZI (S5 turu, olculdu — bu SESSIZ YESILDI): render_merchant_feed
+    kac kalem urettigini ZATEN donduruyordu (_n) ama deger ATILIYORDU. <item> ayristirmasi
+    kirpilirsa/bozulursa (kirpma, regex sapmasi, XML bicimi degisimi) kapi kalan kalemleri
+    TERTEMIZ bulur ve cikis 0 verir; ne self-check ne mutasyon harness'i bunu gorurdu.
+    Olculdu: feed'in ilk N kalemine kirpan bir mutasyonla 3000. siradaki GERCEK bir vape
+    urunu SESSIZCE geciyordu. Kapi neyi TARADIGINI bilmiyorsa hukum VEREMEZ."""
     xml, _n = build.render_merchant_feed(products)
     kalemler = []
     for govde in _ITEM.findall(xml):
@@ -202,6 +213,12 @@ def feed_kalemleri(products):
             m = pat.search(govde)
             al[ad] = _html.unescape(m.group(1)) if m else ""
         kalemler.append((al["g:id"], al["title"], al["description"]))
+    if len(kalemler) != _n:
+        raise KismiTaramaHatasi(
+            "KISMI TARAMA: feed %d kalem uretti, ayristirmadan %d kalem cikti. Taranmayan "
+            "%d kalemde politika ihlali OLABILIR -> kapi hukum veremez (fail-closed). "
+            "Sebep: <item> ayristirmasi kirpilmis / regex feed bicimiyle uyusmuyor."
+            % (_n, len(kalemler), abs(_n - len(kalemler))))
     return kalemler
 
 
@@ -288,6 +305,36 @@ _NEGATIF = [
     "Tekne konsolu durbun yuvasi",
 ]
 
+# 🔴 IKI TARAMA YOLU DA AYRI AYRI NOBETLI (S4): kapinin girdisi feed'in <title> VE
+# <description> alanlaridir. Tek bir "kirli urun" fiksturu IKISINI BIRDEN kirli yaptigi
+# icin bir yolun bulucusu oldurulse bile digeri kalemi yakalar ve nobetci YESIL kalirdi
+# (olculdu: baslik bulucusu oldurulunce GERCEK bir vape urunu SESSIZCE geciyordu).
+# Bu yuzden fiksturler ASIMETRIK: her birinde YALNIZ bir yol kirli.
+# (etiket, baslik, aciklama, KIRLI_olmasi_gereken_alan, TEMIZ_olmasi_gereken_alan)
+_ASIMETRIK = [
+    ("ACIKLAMA", "Nobetci test parcasi",
+     "Bu metin vape kelimesi tasir; baslik temizdir.", "aciklama_jeton", "baslik_jeton"),
+    ("BASLIK", "Nobetci vape standi",
+     "Bu aciklama tamamen temizdir, hicbir politika jetonu tasimaz.",
+     "baslik_jeton", "aciklama_jeton"),
+]
+
+# 🔴 FIKSTURLERIN KENDISI DE NOBETLI (S5 turu — bu UC LISTE tek satirla KORLESTIRILEBILIYORDU):
+# yukaridaki nobetciler bir listeyi gezerek calisir. Liste bosaltilirsa ("_NEGATIF = []") ya da
+# onu gezen dongu oldurulurse ("for metin in []:") hicbir nobetci kosmaz, _kendini_dogrula()
+# bos hata listesi doner ve kapi SESSIZCE YESIL yanar — ustelik o an BLOKLAYICI listesine
+# kanitsiz bir jeton eklenmis olsa bile. Bu yuzden her fikstur icin IKI olcum yapilir:
+#   (a) TABAN: liste bugunku boyutunun ALTINA dusemez  -> liste bosaltmayi yakalar.
+#   (b) SAYAC: nobetci dongusu listedeki HER kalem icin GERCEKTEN kosmus olmali
+#              -> donguyu oldurmeyi yakalar (liste dolu kalir, sayac 0'da kalir).
+# Fikstur BUYUMESI serbesttir (taban asgaridir); KUCULMESI kirmizidir.
+_FIKSTURLER = (
+    ("_POZITIF", _POZITIF, 6),
+    ("_RAPOR_POZITIF", _RAPOR_POZITIF, 3),
+    ("_NEGATIF", _NEGATIF, 12),
+    ("_ASIMETRIK", _ASIMETRIK, 2),
+)
+
 
 def kurallari_uygula(ihlal, taban):
     """R1 + R2 kurallarini uygular. ihlal: {id: kayit}, taban: {id: set(jeton)}.
@@ -328,6 +375,7 @@ def _sentetik_kayit(pid, jetonlar):
 def _kendini_dogrula():
     """Kapinin kendi olcum zincirini sinar. Hata listesi dondurur (bos = saglam)."""
     hata = []
+    sayac = {ad: 0 for ad, _l, _t in _FIKSTURLER}   # her nobetci dongusunun GERCEK kosum sayisi
     # R1/R2 kurallari HÂLÂ ates ediyor mu (bugunku katalogda ateslenmedikleri icin
     # silinmeleri/etkisizlestirilmeleri aksi hâlde SESSIZ kalirdi).
     if not kurallari_uygula(_sentetik_kayit("sentetik-yeni", ["vape"]), {}):
@@ -353,12 +401,14 @@ def _kendini_dogrula():
         hata.append("JETON KATMAN CAKISMASI: %s hem BLOKLAYICI hem RAPOR listesinde — "
                     "bir jeton ya bloklar ya raporlar." % ", ".join(ortak))
     for metin, beklenen in _POZITIF:
+        sayac["_POZITIF"] += 1
         bulunan = bloklayici_bul(metin)
         if beklenen not in bulunan:
             hata.append("POZITIF NOBETCI DUSTU: %r icinde %r bulunamadi (bulunan=%s) — "
                         "bloklayici jeton listesi/regex bozulmus, kapi artik hicbir seyi "
                         "yakalamiyor olabilir" % (metin, beklenen, bulunan or "-"))
     for metin in _NEGATIF:
+        sayac["_NEGATIF"] += 1
         bulunan = bloklayici_bul(metin)
         if bulunan:
             hata.append(
@@ -368,22 +418,14 @@ def _kendini_dogrula():
                 "gerekiyorsa RAPOR katmanina koy." % (metin, bulunan))
     # RAPOR katmani yasiyor mu (o da sessizce olebilir; olurse maruziyet gorunmez olur).
     for metin, beklenen in _RAPOR_POZITIF:
+        sayac["_RAPOR_POZITIF"] += 1
         if beklenen not in rapor_bul(metin):
             hata.append("RAPOR KATMANI DUSTU: %r icinde %r rapor jetonu bulunamadi — "
                         "maruziyet sayaci artik hicbir seyi saymiyor olabilir."
                         % (metin, beklenen))
-    # 🔴 IKI TARAMA YOLU DA AYRI AYRI NOBETLI (S4): kapinin girdisi feed'in <title> VE
-    # <description> alanlaridir. Tek bir "kirli urun" fiksturu IKISINI BIRDEN kirli yaptigi
-    # icin bir yolun bulucusu oldurulse bile digeri kalemi yakalar ve nobetci YESIL kalirdi
-    # (olculdu: baslik bulucusu oldurulunce GERCEK bir vape urunu SESSIZCE geciyordu).
-    # Bu yuzden fiksturler ASIMETRIK: her birinde YALNIZ bir yol kirli.
-    for etiket, baslik, aciklama, kirli, temiz in (
-        ("ACIKLAMA", "Nobetci test parcasi",
-         "Bu metin vape kelimesi tasir; baslik temizdir.", "aciklama_jeton", "baslik_jeton"),
-        ("BASLIK", "Nobetci vape standi",
-         "Bu aciklama tamamen temizdir, hicbir politika jetonu tasimaz.",
-         "baslik_jeton", "aciklama_jeton"),
-    ):
+    # ASIMETRIK fiksturler (tanimi + gerekcesi _ASIMETRIK yaninda).
+    for etiket, baslik, aciklama, kirli, temiz in _ASIMETRIK:
+        sayac["_ASIMETRIK"] += 1
         sentetik = [{"id": "nobetci-sentetik-%s" % etiket.lower(), "kategori": "Tamirat",
                      "marka": [], "baslik": baslik, "aciklama": aciklama, "fiyat": "100 TL",
                      "gorseller": ["https://media.pruvo3d.com/urunler/nobetci-1.jpg"]}]
@@ -394,6 +436,18 @@ def _kendini_dogrula():
                 "(sonuc=%r) — feed'in bu alani artik taranmiyor, o alandan gelen GERCEK bir "
                 "politika ihlali SESSIZCE gecer."
                 % (etiket, "title" if etiket == "BASLIK" else "description", bulundu))
+    # 🔴 EN SON: nobetcilerin KENDISI kosmus mu (bkz _FIKSTURLER notu). Bu iki olcum olmadan
+    # yukaridaki uc dongunun UCU DE tek satirla korlestirilebiliyordu ve kapi YESIL yaniyordu.
+    for ad, liste, taban in _FIKSTURLER:
+        if len(liste) < taban:
+            hata.append("FIKSTUR KUCULDU: %s bugun %d kayit, asgari %d olmali — nobetci "
+                        "fiksturu bosaltilirsa o nobetci hicbir seyi olcmez ve kapi SESSIZCE "
+                        "yesil yanar. (Buyutmek serbest; kucultmek kirmizidir.)"
+                        % (ad, len(liste), taban))
+        if sayac[ad] != len(liste):
+            hata.append("NOBETCI DONGUSU KOSMADI: %s listesinde %d kayit var ama nobetci "
+                        "%d kez kostu — donguyu olduren bir degisiklik fiksturu KOR birakti."
+                        % (ad, len(liste), sayac[ad]))
     return hata
 
 
@@ -435,10 +489,18 @@ def main():
 
     _t, taban, kok_baslangic = taban_yukle(args.taban)
 
-    ihlaller, kalem_sayisi = ihlalleri_topla(products)
+    try:
+        ihlaller, kalem_sayisi = ihlalleri_topla(products)
+        hatalar = list(_kendini_dogrula())  # R0 — olu/asiri-hevesli nobetci onlemi
+        rapor, _ = rapor_topla(products)
+    except KismiTaramaHatasi as e:
+        # R0' — FAIL-CLOSED: feed'in tamami taranamadiysa "ihlal yok" DEMEK YASAK.
+        print("FEED POLITIKA KAPISI")
+        print("  ❌ " + str(e))
+        print("-" * 78)
+        print("SONUC: KIRMIZI ❌  (1 sorun) — kapi feed'in TAMAMINI goremedi, hukum veremez.")
+        return 1
     ihlal = {i["id"]: i for i in ihlaller}
-
-    hatalar = list(_kendini_dogrula())      # R0 — olu/asiri-hevesli nobetci onlemi
     uyarilar = []
 
     hatalar += kurallari_uygula(ihlal, taban)     # R1 (yeni borc) + R2 (borc agirlasamaz)
@@ -477,7 +539,6 @@ def main():
                      ",".join(i["aciklama_jeton"]) or "-", i["baslik"][:60]))
 
     # ------------------------------------------------------------ RAPOR katmani (cikis 0)
-    rapor, _ = rapor_topla(products)
     dagilim = {}
     for r in rapor:
         for j in r["jeton"]:

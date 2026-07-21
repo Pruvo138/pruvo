@@ -105,8 +105,13 @@ jobs:
 
       # FEED POLITIKA KAPISI — IKI KATMANLI. Merchant feed'inin <title> VE <description>
       # metinlerini tarar. BLOKLAYICI katman YALNIZ olculmus/bildirilmis GERCEK Merchant
-      # reddinden turemis 5 jeton icerir (e-sigara/vape/durbun ailesi); tam katalogda 8
-      # isabet, YANLIS-POZITIF 0 (olculdu 2026-07-22). Bilinen borc tools/feed-politika-
+      # reddinden turemis 3 jeton icerir (e-sigara/vape ailesi; "durbun" BLOKLAMAZ, RAPOR
+      # katmanindadir — mesru Marin/Kamera urunu tum ekibin yayinini durdurmasin diye).
+      # Tam katalogda 7 isabet, YANLIS-POZITIF 0 (olculdu 2026-07-22, 7650 feed kalemi:
+      # 7 isabetin 7'si de gercek e-sigara/vape urunu, tek tek denetlendi ve tabanda yazili).
+      # Feed KISMEN taranirsa (ayristirma kirpilir/bozulur) kapi FAIL-CLOSED kirmizi yanar —
+      # eskiden cikis 0 veriyordu ve 3000. siradaki gercek bir vape urunu sessizce geciyordu.
+      # Bilinen borc tools/feed-politika-
       # taban.json'da (tek yazar MaCiT, KOD DEGISIKLIGI GEREKTIRMEDEN guncellenir);
       # tabanda OLMAYAN yeni bir ihlal ya da tabandaki bir urunun YENI jeton kazanmasi
       # KIRMIZI yakar. Supheli ama kanitsiz jetonlar (kullук/cakmak/susturucu — bunlar
@@ -135,11 +140,13 @@ jobs:
       # NOBETCI MUTASYON HARNESS: yukaridaki iki kapinin KENDISINI olcer — bozulunca GERCEKTEN
       # kirmizi yaniyorlar mi. Feed politika kapisinin kirmizi CIKIS YOLU ve _kendini_dogrula()
       # hicbir testle korunmuyordu; olculdu: <title> bulucusunu olduren mutasyon eski kapida
-      # exit 0 veriyordu (gercek bir vape urunu SESSIZCE geciyordu). 13 kapi mutasyonu + 3
+      # exit 0 veriyordu (gercek bir vape urunu SESSIZCE geciyordu). 14 kapi mutasyonu + 3
       # gorsel-kablolama mutasyonu kosulur, hepsi KIRMIZI yanmali; mutasyonsuz kontrol kosumu
-      # YESIL yanmali (harness "hep kirmizi" olamaz). Mutasyon DAIMA gecici SYMLINK aynasina
-      # uygulanir — canli tools/ dizinine YAZMA YOK. Offline, urunler.json OKUNMAZ (sentetik
-      # katalog), olculdu 18,3 s.
+      # YESIL yanmali (harness "hep kirmizi" olamaz). Son 4 mutant KENDI sebebiyle yanmak
+      # zorunda (isaret metni dogrulanir): feed kirpma + uc nobetci fiksturunun korlestirilmesi
+      # (_NEGATIF / _RAPOR_POZITIF / _ASIMETRIK — ucu de tek satirla susturulabiliyordu).
+      # Mutasyon DAIMA gecici SYMLINK aynasina uygulanir — canli tools/ dizinine YAZMA YOK.
+      # Offline, urunler.json OKUNMAZ (sentetik katalog), olculdu 38 s.
       - name: Nobetci mutasyon harness'i (kapilar bozulunca kirmizi yaniyor mu)
         run: python3 tools/nobetci-mutasyon-test.py
 
