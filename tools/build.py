@@ -410,6 +410,16 @@ PRICE_VALID = (datetime.date.today().replace(month=12, day=31)
 # Parametrik "sari seri" (net fiyati yok -> "Olcuye ozel") feed'e GIRMEZ (Merchant reddeder).
 MERCHANT_FEED = "merchant-feed.xml"
 FEED_BRAND = "PRUVO"
+# --- Gorsel onbellek kirici (cache-bust) ---------------------------------
+# Meta/Google katalogu bir gorsel URL'ini BIR KEZ ceker ve onbellege alir; ayni R2 anahtarinin
+# uzerine yazilan yeni gorseli ASLA yeniden cekmez (sessiz: feed yesil, reklamda eski gorsel).
+# Cozum: feed'deki gorsel URL'lerine SABIT bir surum damgasi (?v=N) eklenir.
+# 🔴 Damga ZAMAN/RASTGELE DEGIL, SABIT olmali: her build'de degisen damga tum feed'i degistirir
+# -> katalog her seferinde binlerce gorseli yeniden ceker (gereksiz yuk + oran sinirlama).
+# Yeni bir toplu re-crawl istenirse bu sayiyi bir artir (1 -> 2) VE
+# tools/test-merchant-feed.py icindeki BEKLENEN_DAMGA sabitini ayni degere getir
+# (o test damgayi bilerek BAGIMSIZ pinliyor -> tautoloji olmasin diye). Baska yere dokunma.
+FEED_IMG_SURUM = "1"
 # Urunler talep uzerine ozel uretilir ama sabit fiyatli kalem her zaman uretilebilir -> in_stock.
 # (Uretim-sonrasi teslim vurgulanmak istenirse "backorder" yapilabilir.)
 FEED_AVAILABILITY = "in_stock"
@@ -902,6 +912,20 @@ def feed_id(pid):
     if len(pid) <= 50:
         return pid
     return pid[:41] + "-" + hashlib.sha1(pid.encode("utf-8")).hexdigest()[:8]
+
+
+def feed_img(url):
+    """Feed gorsel URL'ine kararli cache-bust damgasi ekle: '...jpg' -> '...jpg?v=1'.
+    URL'de zaten sorgu varsa '&' ile eklenir ('??' olusmaz). Ayni damga zaten varsa
+    tekrar eklenmez (idempotent). Damga SABIT -> ayni girdi ayni cikti (build'ler
+    byte-esit; katalog gereksiz yere yeniden cekmez)."""
+    u = (url or "").strip()
+    if not u:
+        return u
+    damga = "v=" + FEED_IMG_SURUM
+    if damga in (u.split("?", 1)[1] if "?" in u else "").split("&"):
+        return u
+    return u + ("&" if "?" in u else "?") + damga
 
 
 def images_of(p):
@@ -1773,10 +1797,10 @@ def render_merchant_feed(products):
             "    <title>%s</title>" % esc(title),
             "    <description>%s</description>" % esc(desc),
             "    <link>%s</link>" % esc(url),
-            "    <g:image_link>%s</g:image_link>" % esc(imgs[0]),
+            "    <g:image_link>%s</g:image_link>" % esc(feed_img(imgs[0])),
         ]
         for extra in imgs[1:11]:                        # Google en fazla 10 ek gorsel
-            row.append("    <g:additional_image_link>%s</g:additional_image_link>" % esc(extra))
+            row.append("    <g:additional_image_link>%s</g:additional_image_link>" % esc(feed_img(extra)))
         row += [
             "    <g:availability>%s</g:availability>" % FEED_AVAILABILITY,
             "    <g:condition>new</g:condition>",
