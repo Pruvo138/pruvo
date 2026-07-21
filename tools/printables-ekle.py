@@ -15,7 +15,8 @@ Token GEREKMEZ (Printables public GraphQL).
 """
 import concurrent.futures, fcntl, importlib.util, json, os, re, subprocess, sys, tempfile
 
-ROOT = "/Users/okan/dev/pruvo"
+# ROOT betigin KENDI konumundan turer (tools/../) — bkz urun-ekle.py'deki ayni not.
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOOLS = os.path.join(ROOT, "tools")
 CACHE = os.path.join(ROOT, ".thing-cache")
 STLDIR = os.path.join(ROOT, "stl")
@@ -45,6 +46,9 @@ _fspec.loader.exec_module(fo)
 _gspec = importlib.util.spec_from_file_location("gorsel_mukerrer_kapisi", os.path.join(TOOLS, "gorsel_mukerrer_kapisi.py"))
 gmk = importlib.util.module_from_spec(_gspec)
 _gspec.loader.exec_module(gmk)
+_gbspec = importlib.util.spec_from_file_location("gorsel_boyut_kapisi", os.path.join(TOOLS, "gorsel_boyut_kapisi.py"))
+gbk = importlib.util.module_from_spec(_gbspec)
+_gbspec.loader.exec_module(gbk)
 
 sys.path.insert(0, os.path.join(ROOT, "tools"))
 import drive_yolu
@@ -144,6 +148,10 @@ def process_one(pid):
         # ALGISAL MUKERRER KAPISI: ayni fotografin ikizini R2'ye yuklemeden ELE (aday-ici dedup).
         # PIL yoksa FAIL-OPEN (hicbir seyi elemez, akis bozulmaz). bkz gorsel_mukerrer_kapisi.py
         secili, _mkres = gmk.secili_temizle(d, secili)
+        # ASGARI BOYUT KAPISI (bkz gorsel_boyut_kapisi.py): 100x100 altindaki gorsel Google
+        # Merchant "resim cok kucuk" reddi aliyor (olculen vaka 1000x88) -> R2'ye yuklemeden
+        # ELE. Boyut okunamazsa FAIL-LOUD: gorsel gecer + stderr'e uyari.
+        secili, _bres = gbk.secili_ele(d, secili)
         urls = []
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
