@@ -39,8 +39,8 @@ def temiz_metin(metin):
     return re.sub(r"\s+", " ", metin).strip()
 
 
-def kontrol(no, ad, kosul, detay=""):
-    sonuclar.append((no, ad, bool(kosul), detay))
+def kontrol(no, ad, kosul, detay="", kapsam=""):
+    sonuclar.append((no, ad, bool(kosul), detay, kapsam))
 
 
 class JsonLdParser(HTMLParser):
@@ -136,20 +136,73 @@ kok_html = oku(KOK_INDEX)
 sayfalar_py = oku(SAYFALAR)
 secenekler_js = oku(SECENEKLER)
 
-# 1) Bayat ödeme beyanları yok.
+# --- TARANAN GÖVDE KÜMESİ ---------------------------------------------------
+# Kontrol 1/5/6/8 yalnız 4 statik sayfayı tarıyordu; aynı bayat ifade
+# CONTENT_PAGES landing gövdelerine girdiğinde kapı SESSİZCE yeşil yanıyordu.
+# Kapsam: 4 statik sayfa (diskteki HTML) + CONTENT_PAGES landing gövdeleri
+# (build.py KOŞTURULMADAN, kaynak sayfalar.py import edilip fonksiyon çağrılarak).
+# Gövdeler HAM HTML tutulur: kontrol 5 (<input>/<iframe>) ve kontrol 8 (wa.me/tel:)
+# işaretlemenin kendisine bakar; metin kontrolleri temiz_metin ile düzleştirir.
+def _landing_govdeleri():
+    if TOOLS not in sys.path:
+        sys.path.insert(0, TOOLS)
+    import sayfalar as _mod
+    govdeler = {}
+    for _slug, _baslik, _meta, _fn in _mod.CONTENT_PAGES:
+        govdeler["landing:%s" % _slug] = _fn()
+    if not govdeler:
+        raise RuntimeError("CONTENT_PAGES boş — landing gövdesi üretilmedi")
+    return govdeler
+
+
+TUM_GOVDELER = {}
+GOVDE_HATASI = None
+for _yol, _metin in tum_statik.items():
+    TUM_GOVDELER[rel(_yol)] = _metin
+try:
+    TUM_GOVDELER.update(_landing_govdeleri())
+except Exception as _e:
+    GOVDE_HATASI = "landing gövdeleri üretilemedi: %s" % _e
+if GOVDE_HATASI is None and not TUM_GOVDELER:
+    GOVDE_HATASI = "taranacak gövde yok (boş küme)"
+
+
+def kapsamli_kontrol(no, ad, tarayici):
+    """tarayici(etiket, ham_html) -> ihlal etiketleri listesi.
+
+    FAIL-CLOSED: gövde kümesi üretilemediyse ya da BOŞSA kontrol KIRMIZI döner
+    (sessiz-yeşil yok — boş küme üzerinde 'ihlal bulunamadı' kanıt değildir).
+    """
+    if GOVDE_HATASI is not None:
+        kontrol(no, ad, False, GOVDE_HATASI, "kapsam BELİRSİZ (fail-closed)")
+        return
+    if not TUM_GOVDELER:
+        kontrol(no, ad, False, "hiç sayfa taranmadı (boş küme)", "0 sayfa tarandı")
+        return
+    ihlaller = []
+    for etiket, ham in TUM_GOVDELER.items():
+        ihlaller.extend(tarayici(etiket, ham))
+    kontrol(no, ad, not ihlaller, ", ".join(ihlaller),
+            "%d sayfa tarandı, ihlal %d" % (len(TUM_GOVDELER), len(ihlaller)))
+
+
+# 1) Bayat ödeme beyanları yok (statik + landing).
 yasaklar = [
     r"online\s+ödeme\s+yoktur",
     r"sitede\s+kart\s+ile\s+ödeme\s+yapılamaz",
     r"ödeme\s+whatsapp\s+üzerinden",
     r"whatsapp\s+üzerinden\s+ödeme",
 ]
-bulunan = []
-for yol, metin in tum_statik.items():
-    duz = temiz_metin(metin).lower()
-    for desen in yasaklar:
-        if re.search(desen, duz, re.I):
-            bulunan.append("%s:%s" % (rel(yol), desen))
-kontrol(1, "Dört statik sayfada bayat ödeme yokluğu/WhatsApp ödeme beyanı yok", not bulunan, ", ".join(bulunan))
+
+
+def _bayat_odeme_tara(etiket, ham):
+    duz = temiz_metin(ham).lower()
+    return ["%s:%s" % (etiket, desen) for desen in yasaklar
+            if re.search(desen, duz, re.I)]
+
+
+kapsamli_kontrol(1, "Statik + landing gövdelerinde bayat ödeme/WhatsApp ödeme beyanı yok",
+                 _bayat_odeme_tara)
 
 # 2) SSS JSON-LD blokları geçerli JSON.
 json_bloklar = jsonld_bloklari(sss_html)
@@ -193,35 +246,65 @@ for etiket in ["Kartla Güvenli Öde", "WhatsApp ile Sipariş Ver"]:
         buton_hatalari.append("index.html içinde yok: %s" % etiket)
 kontrol(4, "SSS sipariş cevabındaki buton etiketleri kök index.html içinde var", not buton_hatalari, ", ".join(buton_hatalari))
 
-# 5) Statik sayfalarda kart formu veya ödeme iframe'i yok.
-form_hatalari = []
+# 5) Statik + landing gövdelerinde kart formu veya ödeme iframe'i yok.
 kart_input = re.compile(r"<input\b[^>]*(card|kart|cc|credit|pan|cvc|cvv|expiry|expire)", re.I)
 odeme_iframe = re.compile(r"<iframe\b[^>]*(iyzico|payment|ödeme|odeme|checkout|pay)", re.I)
-for yol, metin in tum_statik.items():
-    if kart_input.search(metin):
-        form_hatalari.append("%s:<input kart alanı" % rel(yol))
-    if odeme_iframe.search(metin):
-        form_hatalari.append("%s:<iframe ödeme" % rel(yol))
-kontrol(5, "Statik sayfalarda kart alanı input'u veya ödeme iframe'i yok", not form_hatalari, ", ".join(form_hatalari))
+kart_ifade = re.compile(r"kart\s+numaras[ıi]|cvv|cvc|son\s+kullanma\s+tarihi", re.I)
 
-# 6) Teslim süresi ifadesi tek rakam: 3-5 iş günü var, rakip aralık yok.
-tum_duz = "\n".join(temiz_metin(metin) for metin in tum_statik.values())
-rakipler = re.findall(r"\b(5-7|3-6|2-4)\s+iş\s+günü\b", tum_duz, re.I)
-dogru_sayi = len(re.findall(r"3-5\s+iş\s+günü", tum_duz, re.I))
-kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok", dogru_sayi >= 1 and not rakipler, "3-5 sayısı=%d, rakip=%s" % (dogru_sayi, ",".join(rakipler)))
+
+def _kart_formu_tara(etiket, ham):
+    ihlal = []
+    if kart_input.search(ham):
+        ihlal.append("%s:<input kart alanı" % etiket)
+    if odeme_iframe.search(ham):
+        ihlal.append("%s:<iframe ödeme" % etiket)
+    if kart_ifade.search(temiz_metin(ham)):
+        ihlal.append("%s:kart verisi ifadesi" % etiket)
+    return ihlal
+
+
+kapsamli_kontrol(5, "Statik + landing gövdelerinde kart alanı/ödeme iframe'i/kart verisi ifadesi yok",
+                 _kart_formu_tara)
+
+# 6) Teslim süresi ifadesi tek rakam: 3-5 iş günü var, rakip aralık yok (statik + landing).
+rakip_desen = re.compile(r"\b(5-7|3-6|2-4)\s+iş\s+günü\b", re.I)
+dogru_desen = re.compile(r"3-5\s+iş\s+günü", re.I)
+if GOVDE_HATASI is not None:
+    kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok (statik + landing)",
+            False, GOVDE_HATASI, "kapsam BELİRSİZ (fail-closed)")
+elif not TUM_GOVDELER:
+    kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok (statik + landing)",
+            False, "hiç sayfa taranmadı (boş küme)", "0 sayfa tarandı")
+else:
+    rakip_ihlaller = []
+    dogru_sayi = 0
+    for etiket, ham in TUM_GOVDELER.items():
+        duz = temiz_metin(ham)
+        for eslesme in rakip_desen.findall(duz):
+            rakip_ihlaller.append("%s:%s iş günü" % (etiket, eslesme))
+        dogru_sayi += len(dogru_desen.findall(duz))
+    kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok (statik + landing)",
+            dogru_sayi >= 1 and not rakip_ihlaller,
+            "3-5 sayısı=%d, rakip=%s" % (dogru_sayi, ", ".join(rakip_ihlaller) or "-"),
+            "%d sayfa tarandı, ihlal %d (3-5 ifadesi %d yerde)" % (
+                len(TUM_GOVDELER), len(rakip_ihlaller), dogru_sayi))
 
 # 7) Ölü ikiz fonksiyonlar yeniden doğmamış.
 olu_fonksiyonlar = re.findall(r"^def\s+(_(?:sss|gizlilik|hakkimizda|iletisim))\s*\(", sayfalar_py, re.M)
 kontrol(7, "tools/sayfalar.py içinde ölü statik gövde fonksiyonları yok", not olu_fonksiyonlar, ", ".join(olu_fonksiyonlar))
 
-# 8) Telefon ayrımı korunuyor.
-telefon_hatalari = []
-for yol, metin in tum_statik.items():
-    if re.search(r"https?://wa\.me/[^\"'\s>]*4005", metin):
-        telefon_hatalari.append("%s:wa.me 4005" % rel(yol))
-    if re.search(r"tel:[^\"'\s>]*6526", metin):
-        telefon_hatalari.append("%s:tel 6526" % rel(yol))
-kontrol(8, "wa.me içinde 4005 yok, tel: içinde 6526 yok", not telefon_hatalari, ", ".join(telefon_hatalari))
+# 8) Telefon ayrımı korunuyor (statik + landing).
+def _telefon_tara(etiket, ham):
+    ihlal = []
+    if re.search(r"https?://wa\.me/[^\"'\s>]*4005", ham):
+        ihlal.append("%s:wa.me 4005" % etiket)
+    if re.search(r"tel:[^\"'\s>]*6526", ham):
+        ihlal.append("%s:tel 6526" % etiket)
+    return ihlal
+
+
+kapsamli_kontrol(8, "wa.me içinde 4005 yok, tel: içinde 6526 yok (statik + landing)",
+                 _telefon_tara)
 
 # 9) Parametrik ödeme AÇIKKEN "parametrik/ölçüye özel ... WhatsApp kanalından ilerler" iddiası YOK.
 #    ÇAPRAZ DOĞRULAMA: beklenti secenekler.js:PARAMETRIK_ODEME_ACIK bayrağından türetilir.
@@ -265,7 +348,8 @@ elif landing_import_hatasi is not None:
             False, landing_import_hatasi)
 elif bayrak_m.group(1) == "true":
     kontrol(9, "PARAMETRIK_ODEME_ACIK=true iken parametrik→WhatsApp bayat iddiası yok (statik + landing)",
-            not parametrik_ihlaller, ", ".join(parametrik_ihlaller))
+            not parametrik_ihlaller, ", ".join(parametrik_ihlaller),
+            "%d sayfa tarandı, ihlal %d" % (len(parametrik_govdeler), len(parametrik_ihlaller)))
 else:
     # Bayrak false: parametrik gerçekten WhatsApp'tan ilerliyor -> iddia meşru, kapı geçer.
     kontrol(9, "PARAMETRIK_ODEME_ACIK=false iken parametrik→WhatsApp iddiası meşru (çapraz doğrulama)",
@@ -304,12 +388,17 @@ else:
     kontrol(10, "Bağlayıcı sayfalarda kargo-DAHİL çerçeve yok ve 'kargoya verilir' çerçevesi var",
             not dahil_ihlaller and not eksik_pozitif,
             "kargo-DAHİL: %s | kargoya-verilir eksik: %s" % (
-                ",".join(dahil_ihlaller) or "-", ",".join(eksik_pozitif) or "-"))
+                ",".join(dahil_ihlaller) or "-", ",".join(eksik_pozitif) or "-"),
+            "%d sayfa tarandı, ihlal %d" % (
+                len(baglayici_govdeler), len(dahil_ihlaller) + len(eksik_pozitif)))
 
 print()
 gecen = 0
-for no, ad, ok, detay in sonuclar:
-    print("%s  %d %s%s" % ("PASS" if ok else "FAIL", no, ad, ("  -> " + detay) if (detay and not ok) else ""))
+for no, ad, ok, detay, kapsam in sonuclar:
+    print("%s  %d %s%s%s" % (
+        "PASS" if ok else "FAIL", no, ad,
+        ("  [" + kapsam + "]") if kapsam else "",
+        ("  -> " + detay) if (detay and not ok) else ""))
     gecen += 1 if ok else 0
 print("-" * 48)
 print("Toplam: %d  |  PASS: %d  |  FAIL: %d" % (len(sonuclar), gecen, len(sonuclar) - gecen))
