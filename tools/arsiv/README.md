@@ -1,8 +1,8 @@
 # Arşiv — emekli platform araçları
 
-******** / Cults3D / MyMiniFactory KALICI EMEKLİ (commit `4fd279f0`, Okan 19 Tem): arama+ekleme
-kapalı, aktif kaynaklar yalnız Thingiverse/Printables/MakerWorld. Bu klasördeki dosyalar (cgt-*,
-cults3d-*, myminifactory-*, mmf-pagination-test.py) o platformlara ait ölü kod — SİLİNMEDİ, yalnız
+Üç kaynak platform KALICI EMEKLİ (commit `4fd279f0`, Okan 19 Tem): arama+ekleme kapalı; aktif
+kaynak listesi ana bağlam dosyasında. Bu klasördeki dosyalar (cgt-*,
+cults3d-*, myminifactory-*, mmf-pagination-test.py) o emekli platformlara ait ölü kod — SİLİNMEDİ, yalnız
 kökten taşındı (yanlış dosya açma maliyetini azaltmak için); içerik bayt-bayt aynı.
 
 `cgt-ekle.py`, `cults3d-api.py`, `myminifactory-api.py` burada DEĞİL — aktif kod hâlâ onlara

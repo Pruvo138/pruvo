@@ -126,8 +126,8 @@ gorseller/
 # Ic notlar — bu repo PUBLIC; DEVAM.md yayina girmesin (bugune dek de hic commit edilmedi).
 DEVAM.md
 DEVAM-ARSIV.md
-# Muhendis raporlari worktree-lokal kalir (ILETISIM PROTOKOLU); public repoya girmez.
-RAPOR-MIMARA.md
+# Muhendis raporlari worktree-lokal kalir (ILETISIM PROTOKOLU); PUBLIC repoya girmez.
+RAPOR-*.md
 # ic yedek/varlik envanteri — PUBLIC repoya girmez
 tools/yedek-topolojisi-raporu.md
 __pycache__/

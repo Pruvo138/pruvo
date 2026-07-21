@@ -40,7 +40,7 @@ RESEND_API_KEY canlıya Okan `wrangler secret put` ile girer — koda/dosyaya an
     (`<urun-id>.stl|.3mf` adlandırması; farklı adlananları raporla, tahmin etme) özel
     kovanın `stl/` prefix'ine yükler (yerel wrangler oturumu `npx wrangler r2 object put`
     ile; idempotent — varsa ve boyut aynıysa atla). Kapsam gerçeği: her ürünün dosyası
-    diskte yok (bazı ******** ürünleri sipariş anında kaynaktan indirilir) — araç sonunda
+    diskte yok (bazı ürünler sipariş anında kaynak platformdan indirilir) — araç sonunda
     "yüklendi/atlandı/eksik" sayımı basar, eksikler yönetim sayfasındaki nota düşer.
 - BASKI FİŞİ (OKAN GÜNCELLEMESİ 2, 17 Tem akşam): yönetim sayfasında HER sipariş satırında
   FİLAMENT + RENK büyük/vurgulu (üretim hatası en pahalı hata) + "baskı önerileri" bloğu:
