@@ -59,12 +59,19 @@ jobs:
       - name: Landing/hukuk beyan kapisi
         run: python3 tools/landing-hukuk-kapisi.py
 
-      # MALZEME DAYANAGI: huni (landing) sayfalarinda gecen her malzeme adinin filament
-      # envanterinde karsiligi var mi — uretemedigimiz bir malzeme sinifini (or. PC) sayfada
+      # MALZEME DAYANAGI: huni (landing) sayfalarinda VE ege-bilgi.md'de (WhatsApp botu Ege'nin
+      # bilgi dosyasi) gecen her malzeme adinin filament envanterinde karsiligi var mi —
+      # uretemedigimiz bir malzeme sinifini (or. PC / polikarbonat) sayfada ya da bot metninde
       # vaat etmek yanlis ticari beyandir. Bloklayici (landing-hukuk deseni). Offline, stdlib,
-      # olculdu 2,8 s; build.py'den ONCE commit'li sayfa kaynagini okur.
-      - name: Malzeme dayanak kabul testi (landing sayfalari)
+      # olculdu 2,8 s; build.py'den ONCE commit'li sayfa kaynagini + ege-bilgi.md'yi okur.
+      - name: Malzeme dayanak kabul testi (landing sayfalari + ege-bilgi.md)
         run: python3 tools/malzeme-dayanak-test.py
+
+      # EGE-BILGI TAVAN: ege-bilgi.md karakter sayisi bot slice(0,6000) esigini asmasin.
+      # Bloklayici: >6000 -> bot metni SESSIZCE kesip botun gozunden icerik kaybeder;
+      # >5900 -> erken alarm (pay 100 karakter altinda). Offline, stdlib, ~0 s.
+      - name: Ege-bilgi tavan kabul testi (6000 karakter kesme kapisi)
+        run: python3 tools/ege-bilgi-tavan-test.py
 
       # ENJEKSIYON KAPISI: build.py'nin sayfalara inline bastigi JS (attribution/riza + meta)
       # bayt-bayt bozulmadan mi gidiyor. Yasanmis hata: re.sub REPLACEMENT kacisi yorumlayinca
