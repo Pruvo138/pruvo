@@ -42,6 +42,28 @@ neg-kontrolu serilestirilmemis yazimanin kaybettigini deterministik kanitlar). K
 en fazla "ucustaki" (yuklenmis ama sonucu henuz islenmemis) dosyalar manifeste girmez -> sonraki
 kosum onlari yeniden yukler (zararsiz); ONCEKI kayitlar asla silinmez.
 
+ANAHTAR NORMALIZASYONU + YOL-GEZINME KAPISI (mimar paketi G1, 21 Tem — MaCiT TALEP 2).
+KOK NEDEN: adi nokta ile biten dosyalar (`<ad>..stl`) anahtarda cift nokta uretiyor; wrangler
+anahtari URL yoluna HAM gomdugu icin Cloudflare edge yol-gezinme korumasi 403 donuyor —
+4 dosya (MaCiT 3 bildirdi, olcumde 4. cikti: `254529--S.E..STL`) yukleme+dogrulama bacagini
+gecemiyor, dolayisiyla silinemiyor. SECIM (a) percent-encode DEGIL (b) NORMALIZE, gerekcesi
+OLCULDU: `.stl-r2-manifest.json` (10.074 kayit) icinde `..` gecen anahtar sayisi = 0 -> hicbir
+YUKLENMIS nesne bu bicimde degil, normalizasyon KIRICI DEGIL. Ayrica (a) wrangler'in kendi
+kodlamasina bagimli kalir (kor nokta), (b) ise anahtari deterministik + test edilebilir kilar.
+Normalizasyon SUS-PAYI DEGIL GUVENLIK KAPISI: `..`/`.` yol parcasi, mutlak yol, ters bolu ve
+NUL bayti REDDEDILIR (hatali-ad'a duser, yuklenmez); parca ici arka arkaya noktalar TEKE
+indirilir ve parcanin bas/son noktalari kirpilir.
+
+COK-PARCALI (MULTIPART) YUKLEME (mimar paketi G1, 21 Tem — MaCiT TALEP 1). KOK NEDEN:
+`wrangler r2 object put` tek-parca sinirinda patliyor ("Wrangler only supports uploading files
+up to 300 MiB in size") -> olcumde 5 dosya (682/637/467/383/341 MB, toplam ~2,4 GB) R2'ye
+CIKAMIYOR. Cozum: 300 MiB USTU dosyalar S3 API (boto3, R2 S3-uyumlu ucnokta) uzerinden
+cok-parcali yuklenir; 300 MiB ALTI dosyalar ESKI wrangler yolunda birebir kalir (regresyon
+yok, token gerekmez). Kimlik gitignore'lu `.r2-credentials.json`'dan okunur (endpoint +
+access_key + secret); SIR LOGLANMAZ. DIKKAT: o dosyadaki `bucket` alani MEDYA kovasi
+(`pruvo-media`) — burada KULLANILMAZ, hedef kova sabit `pruvo-ozel`. boto3 ya da kimlik yoksa
+NET hata basilir (sessiz basarisizlik YOK).
+
   python3 tools/stl-r2-yukle.py            # yerel stl/ -> r2 pruvo-ozel/stl/<id>/<parca> (paralel 6)
   python3 tools/stl-r2-yukle.py --paralel 1  # eski sirali davranis (tek yukleyici)
   python3 tools/stl-r2-yukle.py --kuru     # yalniz ne yapacagini soyle (yukleme/manifest yok)
@@ -67,6 +89,47 @@ PREFIX = "stl"
 UZANTILAR = (".stl", ".3mf")
 MANIFEST = os.path.join(REPO, ".stl-r2-manifest.json")
 KAYNAKLAR = os.path.join(REPO, ".urun-kaynaklari.json")
+KIMLIK = os.path.join(REPO, ".r2-credentials.json")
+
+# wrangler'in tek-parca `r2 object put` siniri. Bu boyutun USTUNDEKI dosyalar S3 API ile
+# cok-parcali yuklenir (bkz. modul basligindaki COK-PARCALI YUKLEME notu).
+WRANGLER_TEK_PARCA_SINIRI = 300 * 1024 * 1024   # 300 MiB
+PARCA_BOYU = 64 * 1024 * 1024                    # cok-parcali yuklemede parca boyu
+
+
+class AnahtarReddi(ValueError):
+    """R2 anahtari guvenlik kapisindan gecemedi (yol-gezinme / gecersiz karakter)."""
+
+
+def anahtar_normalize(anahtar):
+    """R2 anahtarini normalize eder; TEHLIKELI anahtari REDDEDER (AnahtarReddi firlatir).
+
+    SAF fonksiyon. Iki isi ayri sirayla yapar — sira ONEMLI:
+      1) GUVENLIK KAPISI (once): mutlak yol (`/` ile baslar), bos/`.`/`..` yol parcasi,
+         ters bolu (`\\`) ve NUL bayti REDDEDILIR. Normalizasyondan ONCE bakilir; yoksa
+         `..` parcasi noktalar sadelestirilerek kapidan sizardi.
+      2) NORMALIZASYON (sonra): her yol parcasinda arka arkaya gelen noktalar TEKE indirilir
+         (`ad..stl` -> `ad.stl`), parcanin basindaki/sonundaki noktalar kirpilir. Cloudflare
+         edge'in 403 dondurdugu cift-nokta bicimi boylece hic olusmaz.
+    Normalizasyon bir parcayi bosaltirsa (or. `...`) anahtar REDDEDILIR (tahmin edilmez)."""
+    if not isinstance(anahtar, str) or not anahtar:
+        raise AnahtarReddi("bos ya da metin olmayan anahtar")
+    if "\x00" in anahtar:
+        raise AnahtarReddi("anahtarda NUL bayti")
+    if "\\" in anahtar:
+        raise AnahtarReddi("anahtarda ters bolu: " + anahtar)
+    if anahtar.startswith("/"):
+        raise AnahtarReddi("mutlak yol anahtari: " + anahtar)
+    parcalar = anahtar.split("/")
+    temiz = []
+    for p in parcalar:
+        if p == "" or p == "." or p == "..":
+            raise AnahtarReddi("gecersiz yol parcasi (%r) — yol-gezinme: %s" % (p, anahtar))
+        yeni = re.sub(r"\.{2,}", ".", p).strip(".")
+        if not yeni:
+            raise AnahtarReddi("normalizasyon sonrasi bos yol parcasi (%r): %s" % (p, anahtar))
+        temiz.append(yeni)
+    return "/".join(temiz)
 
 _THING_DESENI = re.compile(r"thingiverse\.com/thing:(\d+)")
 _PRINTABLES_DESENI = re.compile(r"printables\.com/model/(\d+)")
@@ -84,7 +147,7 @@ def urun_idleri():
 
 def _kaynak_id_cikar(link):
     """link URL'sinden dosya-onek bicimindeki kaynak-id'yi cikarir: Thingiverse sayisal
-    ("1002858"), Printables "pr<sayi>". Baska kaynaklar (********, kendi ureticimiz,
+    ("1002858"), Printables "pr<sayi>". Baska kaynaklar (CGTrader, kendi ureticimiz,
     MakerWorld, GitHub...) icin None doner — yerel STL adlandirmasi bu ikisi disinda
     kaynak-id onegi kullanmadi (bkz. modul basligindaki KAYNAK-ID ESLEMESI notu)."""
     if not isinstance(link, str):
@@ -141,7 +204,10 @@ def siniflandir(dosyalar, idler, kaynak_esle=None, kaynak_cakisan=None):
       kaynak_cakisan'daysa (birden fazla urune bagli) cakisan_ad'a duser (TAHMIN YOK,
       yuklenmez); hicbiri degilse HATALI-AD (eskisi gibi).
     - parca adi bossa HATALI-AD (tahmin edilmez)
-    - .stl/.3mf disi uzantilar sessizce atlanir"""
+    - .stl/.3mf disi uzantilar sessizce atlanir
+    - uretilen anahtar anahtar_normalize()'den gecer: cift nokta sadelesir (`ad..stl` ->
+      `ad.stl`, Cloudflare 403'unun kok nedeni), yol-gezinme (`..`) iceren anahtar
+      REDDEDILIR -> HATALI-AD (yuklenmez)"""
     kaynak_esle = kaynak_esle or {}
     kaynak_cakisan = kaynak_cakisan or set()
     hedefler, hatali_ad, cakisan_ad = [], [], []
@@ -164,9 +230,15 @@ def siniflandir(dosyalar, idler, kaynak_esle=None, kaynak_cakisan=None):
             if eslenen_id is None:
                 hatali_ad.append(ad)
                 continue
-            hedefler.append((ad, PREFIX + "/" + eslenen_id + "/" + kok + uz.lower()))
-            continue
-        hedefler.append((ad, PREFIX + "/" + onek + "/" + parca + uz.lower()))
+            ham = PREFIX + "/" + eslenen_id + "/" + kok + uz.lower()
+        else:
+            ham = PREFIX + "/" + onek + "/" + parca + uz.lower()
+        # ANAHTAR KAPISI: cift-nokta normalize edilir, yol-gezinme REDDEDILIR (hatali-ad'a
+        # duser -> yuklenmez, tahmin edilmez). Bkz. modul basligi ANAHTAR NORMALIZASYONU.
+        try:
+            hedefler.append((ad, anahtar_normalize(ham)))
+        except AnahtarReddi:
+            hatali_ad.append(ad)
     return hedefler, hatali_ad, cakisan_ad
 
 
@@ -195,7 +267,9 @@ def manifest_yaz(yol, manifest):
     os.replace(gecici, yol)
 
 
-def yukle(yerel, anahtar):
+def yukle_wrangler(yerel, anahtar):
+    """ESKI YOL — 300 MiB altindaki dosyalar icin birebir korunur (yerel wrangler oturumu,
+    token gerekmez)."""
     komut = ["npx", "wrangler", "r2", "object", "put", BUCKET + "/" + anahtar,
              "--file", yerel, "--remote"]
     p = subprocess.run(komut, cwd=REPO, capture_output=True, text=True)
@@ -203,6 +277,60 @@ def yukle(yerel, anahtar):
         sys.stderr.write((p.stdout or "") + (p.stderr or ""))
         return False
     return True
+
+
+def _s3_istemci(kimlik_yol=KIMLIK):
+    """R2 S3-uyumlu istemcisi. Eksik bagimlilik/kimlik NET hata verir (sessiz basarisizlik
+    YASAK). 🔴 SIR LOGLANMAZ: hata metinlerinde yalnizca ALAN ADI gecer, deger GECMEZ.
+    NOT: kimlik dosyasindaki `bucket` alani MEDYA kovasidir — burada KULLANILMAZ, hedef kova
+    modul sabiti BUCKET (`pruvo-ozel`)."""
+    try:
+        import boto3  # yerel bagimlilik; yoksa asagida net hata
+    except ImportError as e:
+        raise RuntimeError(
+            "cok-parcali yukleme icin boto3 gerekli ama kurulu degil "
+            "(pip3 install boto3) — 300 MiB ustu dosyalar wrangler ile YUKLENEMEZ") from e
+    try:
+        with open(kimlik_yol, encoding="utf-8") as f:
+            cfg = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        raise RuntimeError(
+            "R2 kimlik dosyasi okunamadi: %s (cok-parcali yukleme icin gerekli)" % kimlik_yol
+        ) from e
+    eksik = [alan for alan in ("endpoint", "access_key", "secret") if not cfg.get(alan)]
+    if eksik:
+        raise RuntimeError("R2 kimlik dosyasinda eksik alan(lar): %s" % ", ".join(eksik))
+    return boto3.client("s3", endpoint_url=cfg["endpoint"],
+                        aws_access_key_id=cfg["access_key"],
+                        aws_secret_access_key=cfg["secret"], region_name="auto")
+
+
+def yukle_multipart(yerel, anahtar, istemci_fn=_s3_istemci):
+    """YENI YOL — 300 MiB USTU dosyalar (wrangler tek-parca sinirini asanlar) S3 API ile
+    cok-parcali yuklenir. Basarisizlikta NET hata basar ve False doner (sessiz gecis YOK)."""
+    try:
+        from boto3.s3.transfer import TransferConfig
+        s3 = istemci_fn()
+        ayar = TransferConfig(multipart_threshold=WRANGLER_TEK_PARCA_SINIRI,
+                              multipart_chunksize=PARCA_BOYU, use_threads=True)
+        s3.upload_file(yerel, BUCKET, anahtar, Config=ayar)
+        return True
+    except Exception as e:  # noqa: BLE001 — kok neden kullaniciya AYNEN gosterilir
+        sys.stderr.write("COK-PARCALI YUKLEME BASARISIZ (%s): %s\n" % (anahtar, e))
+        return False
+
+
+def yukle(yerel, anahtar):
+    """Boyuta gore yol secer: 300 MiB ve alti -> wrangler (eski davranis birebir),
+    ustu -> S3 cok-parcali. Bkz. modul basligindaki COK-PARCALI YUKLEME notu."""
+    try:
+        boyut = os.path.getsize(yerel)
+    except OSError as e:
+        sys.stderr.write("dosya boyutu okunamadi (%s): %s\n" % (yerel, e))
+        return False
+    if boyut > WRANGLER_TEK_PARCA_SINIRI:
+        return yukle_multipart(yerel, anahtar)
+    return yukle_wrangler(yerel, anahtar)
 
 
 def _isle(dizin, ad, anahtar, snapshot, gonderici):
