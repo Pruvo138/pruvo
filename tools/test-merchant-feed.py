@@ -28,6 +28,29 @@ import build   # noqa: E402  (feed_id, render_merchant_feed, feed_price, images_
 
 FAILS = []
 
+# ---- feed gorsel cache-bust damgasi: BAGIMSIZ beklenti ------------------------
+# 🔴 Bu deger build.py'den OKUNMAZ, burada SABIT yazilir. Sebep: beklentiyi
+# build.feed_img()/FEED_IMG_SURUM'dan turetirsek damga mantigi bozuldugunda beklenti
+# de ayni sekilde bozulur ve test sessizce YESIL kalir (tautoloji).
+# build.py'deki FEED_IMG_SURUM bilincli olarak artirilirsa (toplu re-crawl) BU SATIR
+# da elle guncellenir — cift kapi kasitlidir.
+BEKLENEN_DAMGA = "v=1"
+
+
+def _bagimsiz_damgala(url):
+    """Beklenen feed gorsel URL'i: kaynak URL + cache-bust damgasi.
+    build.py'deki uygulamadan BAGIMSIZ, elle yazilmis referans mantik."""
+    u = (url or "").strip()
+    if not u:
+        return u
+    return u + ("&" if "?" in u else "?") + BEKLENEN_DAMGA
+
+
+def _bagimsiz_esc(s):
+    """XML metin kacisi (build.esc'den bagimsiz, elle yazilmis referans)."""
+    return (s or "").replace("&", "&amp;").replace("<", "&lt;") \
+                    .replace(">", "&gt;").replace('"', "&quot;").replace("'", "&#x27;")
+
 
 def check(label, cond, detail=""):
     tag = "PASS" if cond else "FAIL"
@@ -154,16 +177,19 @@ def main():
         if prod is None or pid not in it["link"] or it["link"] != build.product_url(pid):
             d_ok = False
         if prod is not None:
-            exp_img = build.esc(build.images_of(prod)[0])
+            # Beklenti BAGIMSIZ kuruluyor: build.feed_img() CAGRILMAZ (cagrilirsa damga
+            # mantigi bozuldugunda beklenti de ayni sekilde bozulur -> tautoloji, test
+            # yesil kalir). Damga degeri asagida SABIT yazili (BEKLENEN_DAMGA).
+            exp_img = _bagimsiz_esc(_bagimsiz_damgala(build.images_of(prod)[0]))
             if it["img"] != exp_img:
                 d_ok = False
 
     check("(c) kisa id'ler pid ile birebir; uzun id'ler feed_id(pid) (g:id=g:mpn)",
           c_ok,
           "korunan kisa=%d, donusturulen uzun=%d" % (kept_short, converted))
-    check("(d) <link> TAM pid iceriyor + <g:image_link> kaynak gorselle ayni (URL degismedi)",
+    check("(d) <link> TAM pid iceriyor + <g:image_link> kaynak gorsel + cache-bust damgasi",
           d_ok,
-          "link=product_url(pid), image_link=gorseller[0] (degismedi)")
+          "link=product_url(pid), image_link=gorseller[0]+'?%s' (bagimsiz beklenti)" % BEKLENEN_DAMGA)
 
     if example:
         print("\n  ornek donusum (uzun pid -> 50'lik feed_id):")
