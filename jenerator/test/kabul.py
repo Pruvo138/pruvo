@@ -27,6 +27,10 @@ YASAK_GIZLI = "ko" + "olm"
 YASAK_BASKI = re.compile(r"3\s*[dD]\s*[-\s]?bask|3\s*boyutlu\s+bask", re.I)
 YASAK_RENK = re.compile(r"her\s+renk", re.I)
 
+# TEST 7'nin gecici ornek urunu (finally'de silinir) katalog urunu degil —
+# TEST 8 kapsam kumesinden haric tutulur ki yarim kalan kosu yanlis kirmizi yakmasin.
+SEMA_FIXTURE = {"ornek-plaka"}
+
 
 def kayit(no, ad, yesil, detay=""):
     SONUC.append((no, ad, yesil))
@@ -234,9 +238,18 @@ def main():
     kayit(7, "KURULUM.md canli test (ornek urun ucta uca + temizlik izsiz)",
           yesil7 and geri_geldi)
 
-    # ---------- TEST 8: 18/18 kapsam + açıklama tutarlılığı ----------
+    # ---------- TEST 8: kapsam (küme farkı) + açıklama tutarlılığı ----------
+    # Kapsam = "şema tanımlı her parametrik ürün test ediliyor mu?" — SAYI DEĞİL KÜME.
+    # Sabit sayı (eski hâli: len(urunler) == 18) katalog büyüyünce kapıyı sürekli
+    # kırmızıya çakar; sürekli kırmızı nöbetçi = körelmiş nöbetçi.
     fonksiyonlar = hacim_fonksiyonlari()
-    eksikler = []
+    sema_dizin = os.path.join(JEN_DIR, "urunler")
+    sema_tanimli = set(
+        d[:-5] for d in os.listdir(sema_dizin) if d.endswith(".json")
+    ) - SEMA_FIXTURE
+    test_edilen = set(u["id"] for u in urunler)
+    eksikler = ["KAPSAM DISI (sema var, test edilmiyor): " + uid
+                for uid in sorted(sema_tanimli - test_edilen)]
     for u in urunler:
         uid = u["id"]
         sema_yolu = os.path.join(JEN_DIR, "urunler", uid + ".json")
@@ -269,8 +282,9 @@ def main():
             eksikler.append(uid + ": parametre listesi bos")
         elif eslesen == 0:
             eksikler.append(uid + ": hicbir parametre 'Neyi ayarliyoruz?' metniyle eslesmiyor")
-    kayit(8, "18/18 kapsam + sema-aciklama tutarliligi (%d urun)" % len(urunler),
-          len(urunler) == 18 and not eksikler, "\n".join(eksikler))
+    kayit(8, "kapsam %d/%d + sema-aciklama tutarliligi" %
+          (len(sema_tanimli & test_edilen), len(sema_tanimli | test_edilen)),
+          not eksikler, "\n".join(eksikler))
 
     # ---------- özet ----------
     kirmizi = [s for s in SONUC if not s[2]]
