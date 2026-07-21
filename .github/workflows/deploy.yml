@@ -72,10 +72,12 @@ jobs:
       # polikarbonat -> kodda KARA LISTE) vaat etmek yanlis ticari beyandir. Ayrica: dayanak
       # kayitlari (PA6-GF/PA12-GF/POM) YALNIZ onaylanan TAM ADI mesrulastirir, satis/uretim
       # duzlemine SIZAMAZ; ege-malzeme.py <-> ege-bilgi.md DRIFT nobeti (F18 uctan uca);
-      # 40 bellekte-fikstur ic nobetcisi kapinin kendi yetenegini kilitler (ad kumesi +
+      # 49 bellekte-fikstur ic nobetcisi kapinin kendi yetenegini kilitler (ad kumesi +
       # sayi kodda kilitli: F0-kapsam). statik-jsonld kapsami SAYI DEGIL SAYFA BAZLI —
       # yalniz sss'in JSON-LD blogu zorunlu; iletisim'inki kaybolursa UYARI (mesru SEO
-      # duzenlemesi tum ekibin yayinini durdurmasin). Bloklayici (landing-hukuk deseni).
+      # duzenlemesi tum ekibin yayinini durdurmasin). SIZINTI kapsami da AD BAZLI: kod
+      # tarafindan uretilen 2 degismez cikti ZORUNLU, landing /malzeme-rehberi/ kaybolursa
+      # UYARI (slug degisimi tum ekibin yayinini durdurmasin). Bloklayici (landing-hukuk deseni).
       # Offline, stdlib; OLCULDU 0,13-0,20 s (3 kosum, 87 govde) — build.py'den ONCE commit'li
       # kaynagi okur, hicbir dosyaya YAZMAZ.
       - name: Malzeme dayanak kabul testi (landing + ege-bilgi.md + statik sayfa/JSON-LD)

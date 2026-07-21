@@ -98,6 +98,13 @@ Nasil calisir
   -> iletisim'in JSON-LD blogunu kaldiran/tasiyan MESRU bir SEO duzenlemesi kapiyi KIRMIZI
   yakip TUM EKIBIN yayinini durduruyordu. Bugun yalnizca sss'in blogu ZORUNLU (malzeme
   vaadini fiilen tasiyan yer; 2761 karakter, taban 1200); iletisim'inki kaybolursa UYARI.
+  🔴 tur-6: SIZINTI kapsami da AYNI BICIME cekildi. Eski kural "taranan cikti sayisi >= 3"
+  idi — reddedilen SAYI TABANI deseninin ta kendisi: ucuncu cikti bir LANDING sayfasidir
+  (/malzeme-rehberi/), slug'i yeniden adlandiran MESRU bir icerik isi kapiyi KIRMIZI yakip
+  tum ekibin yayinini durdururdu (olculdu: slug degisimi -> EXIT=1). Bugun ZORUNLU olan,
+  kod tarafindan URETILEN iki DEGISMEZ cikti (public /filament-veri.js govdesi +
+  ege-malzeme.py blogu); landing ciktisi kaybolursa UYARI. Bkz. ZORUNLU_SIZINTI_CIKTILARI,
+  fonksiyon sizinti_kapsam(), fiksturler F12c + F20a-F20d.
 
 DRIFT NOBETI: tools/ege-malzeme.py'nin BELLEKTE urettigi blok, ege-bilgi.md'deki
 isaretciler arasindaki blokla BIREBIR ayni olmali. filamentler.json degisip
@@ -120,12 +127,28 @@ alan dogrulamasi / negatif-eleyici YOKLUGU / kaynak kapsami / DRIFT nobeti) SILE
 mutasyon gercek veride YESIL kalirdi. Fikstur nobetcileri o mutasyonlari oldurur.
 OLCULDU (tur-4, mutasyon KOPYAYA uygulandi — canli dosyaya DEGIL): 9 mutasyonun 9'u
 olduruldu; V6 (yukarida adiyla yazili kor nokta) beklendigi gibi hayatta kaldi.
+OLCULDU (tur-6, KOPYADA): 11 mutasyonun 10'u olduruldu + 1 mesru degisim (landing slug'i)
+dogru sekilde YESIL+UYARI verdi.
 
-🔴 FIKSTUR SIMETRISI (tur-5, "ayni sinif kalinti"): dayanak fiksturleri gercek
+⚠️ ACIK KOR NOKTA — main()'deki PRINT CAGRI YERI (tur-6, olculdu, IDDIA DEGIL):
+  Rapor METINLERI fikstureli (F20/F21), ama main() icindeki
+  "for satir in ek_uyari_satirlari(...): print(satir)" cagrisini KOMPLE SILEN mutasyon
+  49/49 YESIL geciyor (EXIT=0). Ayni sinif sizinti_kapsam uyarilarinin print'i icin de
+  gecerlidir. Kapatmak main()'i uctan uca kosturan (stdout yakalayan) bir fikstur ister;
+  BILINCLI olarak ERTELENDI (kapsam). Buraya "F21 bunu yakalar" yazma — YANLIS OLUR.
+
+🔴 FIKSTUR SIMETRISI (tur-5 ORNEK, tur-6 SINIF): dayanak fiksturleri gercek
   filamentler.json kayitlariyla AYNI ALANLARI tasir ("uzunAd" dahil). Aksi halde
   envanteri_coz'a dayanak "uzunAd"ini kuresel taban/ek kumesine doken bir "simetri"
   refactor'u 34/34 fiksturu YESIL gecerek SART-1 ile SART-2'yi ayni anda geri aliyordu
   (ciplak "PA6 ile uretiyoruz" KIRMIZI'dan YESIL'e donuyordu). F10b/F10c bunu oldurur.
+  tur-6: simetri artik TEK ORNEK degil SINIF olarak kapali — SATIS fiksturleri de gercek
+  alan setini tasir (_f_kayit: kisa/uzun/isiDetay/kisaEtiket/isiDayanimi/uv/su/darbe) ve
+  ust duzey kardes anahtarlar (_aciklama / kategoriTavsiye / kaynaklar) fiksturde VARDIR.
+  Kalici cozum ayrica KOD tarafinda: ENVANTER_OKUNAN_ALANLAR BEYAZ LISTESI (yalniz
+  ad + uzunAd okunur), fikstur F19a (sabit) + F19b (davranis). OLCULDU (tur-6, KOPYADA):
+  "aciklama metninden besleme" mutasyonu ONCE 40/40 YESIL geciyordu, SIMDI 10 fiksturu
+  birden KIRMIZI yakiyor; beyaz listeyi delip alani DOGRUDAN okuyan varyant 6 fiksturu.
 🔴 FIKSTUR KAPSAMI KODDA (tur-5): fikstur ad kumesi + kontrol sayisi artik
   BEKLENEN_FIKSTUR_ADLARI / BEKLENEN_KONTROL_SAYISI sabitlerinde KILITLI ve F0-kapsam
   fiksturu her kosumda dogrular; bir fikstur blogunu silen mutasyon KIRMIZI yanar
@@ -244,6 +267,35 @@ ZORUNLU_JSONLD = {"sss": 1200}
 # onlar icin uyari da basilmaz (her kosumda gurultu olurdu).
 BEKLENEN_JSONLD = ("sss", "iletisim")
 
+# 🔴 SIZINTI KAPSAMI da SAYI DEGIL AD BAZLI (KraL tur-6 — ZORUNLU_JSONLD ile AYNI BICIM).
+# Eski kural "sizinti taramasi >= 3 cikti gormeli" idi; bu, ayni turda REDDEDILEN SAYI TABANI
+# deseninin ta kendisiydi (statik-jsonld tabani 2 -> mesru bir SEO duzenlemesi TUM EKIBIN
+# yayinini durduruyordu). Ucuncu cikti /malzeme-rehberi/ bir LANDING sayfasidir: ArTisT/KraL
+# o slug'i yeniden adlandirdiginda ya da sayfayi birlestirdiginde sayi 3'ten 2'ye duser ve
+# kapi, hicbir sizinti olmadigi halde KIRMIZI yanardi. Yeni kural:
+#   ZORUNLU_SIZINTI_CIKTILARI  -> kaybolursa KIRMIZI (bu iki cikti DEGISMEZ: biri build.py'nin
+#       public /filament-veri.js govdesi, digeri ege-malzeme.py'nin urettigi blok; ikisi de
+#       kod tarafindan URETILIR, icerik kararlarindan bagimsizdir)
+#   BEKLENEN_SIZINTI_CIKTILARI -> zorunlu olmayan cikti (landing /malzeme-rehberi/) kaybolursa
+#       UYARI, bloklamaz.
+# Bu ikili, "uretimler listesini kirp -> kapi kanit uretmeden YESIL kalsin" mutasyonunu
+# oldurmeye yeter: iki DEGISMEZ ciktinin biri dusunce KIRMIZI yanar (fikstur F20).
+SIZINTI_CIKTI_FILAMENT_JS = "public /filament-veri.js govdesi"
+SIZINTI_CIKTI_EGE_BLOK = "ege-malzeme.py uretilen blok"
+SIZINTI_CIKTI_MALZEME_REHBERI = "/malzeme-rehberi/ sayfasi"
+MALZEME_REHBERI_SLUG = "malzeme-rehberi"
+ZORUNLU_SIZINTI_CIKTILARI = (SIZINTI_CIKTI_FILAMENT_JS, SIZINTI_CIKTI_EGE_BLOK)
+BEKLENEN_SIZINTI_CIKTILARI = ZORUNLU_SIZINTI_CIKTILARI + (SIZINTI_CIKTI_MALZEME_REHBERI,)
+
+# 🔴 ENVANTER BEYAZ LISTESI (KraL tur-6 — "aciklama metninden besleme" mutasyon SINIFI).
+# envanteri_coz SATIS kayitlarindan YALNIZ bu alanlari okur. Gercek filamentler.json
+# kayitlari ayrica kisa/uzun/isiDetay/kisaEtiket/isiDayanimi/uv/su/darbe tasir ve bu
+# metinlerde POLIMER ADI GECER (or. isiDetay: "PETG-CF ~70°C"). Bu alanlardan birini
+# kuresel taban/ek kumesine dokmek SART-1 + SART-2'yi AYNI ANDA geri alir: ciplak PA6 ve
+# kuresel GF eki sessizce "dayanakli" olur. Beyaz liste hem KOD tarafinda tek gecit,
+# hem de fikstur F19 tarafindan kilitlidir (fiksturler gercek kayit alan setini tasir).
+ENVANTER_OKUNAN_ALANLAR = ("ad", "uzunAd")
+
 
 def kanonik_ad(ad):
     """Malzeme tam adini KANONIK bicime getirir: buyuk harf, "+" ayraci "-" olur,
@@ -291,7 +343,12 @@ def envanteri_coz(veri):
 
     🔴 SART-1 (karar kaydi: DAYANAK_KARAR_KAYDI): "_dayanakMalzemeler" kayitlari
     kuresel taban/ek kumelerine DOKULMEZ. Dayanak kaydi YALNIZ kendi kanonik TAM
-    ADINI mesrulastirir; ciplak tabani (PA6) ve kuresel eki (GF) ACMAZ."""
+    ADINI mesrulastirir; ciplak tabani (PA6) ve kuresel eki (GF) ACMAZ.
+
+    🔴 BEYAZ LISTE: satis kaydindan YALNIZ ENVANTER_OKUNAN_ALANLAR okunur. Aciklama
+    alanlari (kisa/uzun/isiDetay/kisaEtiket) polimer adi TASIR; onlari beslemek
+    SART-1 + SART-2'yi geri alir. Ust duzey kardes anahtarlar (_aciklama,
+    kategoriTavsiye, kaynaklar) da OKUNMAZ."""
     kayitlar = veri["filamentler"]
     if not kayitlar:
         raise ValueError("filamentler.json: 'filamentler' listesi bos")
@@ -300,8 +357,8 @@ def envanteri_coz(veri):
 
     tam = set()
     for kayit in kayitlar:  # YALNIZ satis/uretim duzlemi
-        tam |= _jeton_ayikla(kayit.get("ad", ""))
-        tam |= _jeton_ayikla(kayit.get("uzunAd", ""))
+        for alan in ENVANTER_OKUNAN_ALANLAR:  # BEYAZ LISTE — baska alan OKUNMAZ
+            tam |= _jeton_ayikla(kayit.get(alan, ""))
     taban, ekler = set(), set()
     for jeton in tam:
         parca = jeton.split("-")
@@ -553,6 +610,60 @@ def dayanak_sizintisi(dayanak_adlar, uretimler):
     return sizinti
 
 
+def sizinti_kapsam(uretim_adlari, landing_acik=True):
+    """SIZINTI taramasinin KAPSAMI yeterli mi? -> (kapsam_hatalari, uyarilar)
+
+    ZORUNLU_JSONLD ile AYNI BICIM (SAYI TABANI YOK):
+      - ZORUNLU_SIZINTI_CIKTILARI'ndan biri eksik -> KIRMIZI (kod tarafindan uretilen,
+        icerik kararindan bagimsiz DEGISMEZ ciktilar)
+      - BEKLENEN ama zorunlu olmayan cikti (landing /malzeme-rehberi/) eksik -> UYARI
+    landing_acik=False (yalniz --landing-kapali olcum kosumu) -> landing kaynakli cikti
+    zaten taranmaz, uyari da basilmaz (her kosumda gurultu olurdu)."""
+    gorulen = set(uretim_adlari)
+    hatalar = []
+    for ad in ZORUNLU_SIZINTI_CIKTILARI:
+        if ad not in gorulen:
+            hatalar.append(
+                "ZORUNLU sizinti ciktisi '%s' taranmadi (uretim listesi kirpilmis ya da "
+                "cikti uretilemiyor) — bu cikti kod tarafindan URETILIR, icerik kararindan "
+                "bagimsizdir; eksikligi kapinin kanit uretmedigi anlamina gelir" % ad)
+    uyarilar = []
+    if landing_acik:
+        for ad in BEKLENEN_SIZINTI_CIKTILARI:
+            if ad in ZORUNLU_SIZINTI_CIKTILARI or ad in gorulen:
+                continue
+            uyarilar.append(
+                "KAPSAM - sizinti taramasinda '%s' ciktisi YOK/kaldirilmis (bloklamaz: "
+                "landing slug'i yeniden adlandirilmis olabilir; zorunlu cikti(lar): %s)"
+                % (ad, ", ".join(ZORUNLU_SIZINTI_CIKTILARI)))
+    return hatalar, uyarilar
+
+
+def ek_uyari_satirlari(ek_uyarisi):
+    """SART-2 UYARISININ RAPORU — satirlari URETIR (yazdirmaz) ki fiksturlenebilsin.
+
+    🔴 Bu fonksiyon BILEREK main()'den ayrilmistir (KraL tur-6): rapor main icinde
+    satir-ici bir "if ek_uyarisi:" blogundayken, blogu susturan mutasyon 40/40 YESIL
+    geciyordu — yani "F17 bunu KIRMIZI yakar" iddiasi OLCULEREK YANLIS cikti (F17
+    degerlendir()'in DONDURDUGU sozlugu kontrol eder, RAPORU degil). Artik rapor
+    metnini fikstur F21 kilitler."""
+    if not ek_uyarisi:
+        return ["UYARI yok: adlandirilmamis takviye eki gecmiyor"]
+    satirlar = []
+    for (kisa, ek), yerler in sorted(ek_uyarisi.items()):
+        # govde = benzersiz kaynak/slug (main'in "77 sayfa" sayimiyla ayni taban),
+        # eslesme = ham gecis sayisi (ayni sayfada birden fazla olabilir).
+        satirlar.append(
+            "UYARI: %s-%s takviye eki '%s' SATIS envanterinde adlandirilmamis "
+            "(taban %s dayanakli, ama '%s-%s' onaylanan dayanak TAM ADLARI "
+            "arasinda YOK) - %d govde / %d eslesme: %s"
+            % (kisa, ek, ek, kisa, kisa, ek, len(set(yerler)), len(yerler),
+               ", ".join(sorted(set(yerler))[:4])))
+    satirlar.append("  (UYARI bloklamaz — metin duzeltmesi/onay ArTisT+Okan duzlemi; "
+                    "karar kaydi: %s)" % DAYANAK_KARAR_KAYDI)
+    return satirlar
+
+
 def kara_liste_envanterde(ham_json_metni):
     """filamentler.json'un HAM metninde kara listedeki bir ad geciyor mu?
     (Susturma deliginin ikinci agzi: envantere kayit ekleyip kapiyi kandirma.)"""
@@ -571,16 +682,56 @@ def kara_liste_envanterde(ham_json_metni):
 BEKLENEN_FIKSTUR_ADLARI = frozenset({
     "F0-kapsam", "F1", "F2", "F3", "F4",
     "F5a", "F5b", "F6", "F7", "F8", "F8-pozitif", "F9",
-    "F10a", "F10b", "F10c", "F11a", "F11b", "F11c", "F12a", "F12b",
+    "F10a", "F10b", "F10c", "F11a", "F11b", "F11c", "F12a", "F12b", "F12c",
     "F13a", "F13b", "F14", "F15",
     "F16a", "F16b", "F16c", "F16d", "F16e", "F17",
     "F18a", "F18b", "F18c",
+    "F19a", "F19b", "F20a", "F20b", "F20c", "F20d", "F21a", "F21b",
 })
-BEKLENEN_KONTROL_SAYISI = 40  # F8 7 kez, F9 2 kez kosar -> ad sayisindan buyuk
+BEKLENEN_KONTROL_SAYISI = 49  # F8 7 kez, F9 2 kez kosar -> ad sayisindan buyuk
+
+
+# 🔴 FIKSTUR SIMETRISI — SINIF olarak kapali (KraL tur-6). Onceki turda yalniz "uzunAd"
+# ornegi kapatilmisti; gercek filamentler.json kayitlari ayrica kisa/uzun/isiDetay/
+# kisaEtiket/isiDayanimi/uv/su/darbe TASIR ve ust duzeyde _aciklama / kategoriTavsiye /
+# kaynaklar vardir. Fiksturler yalniz {"ad": ...} tasidigi surece "aciklama metninden de
+# besle" mutasyonu fiksturde HICBIR SEY DEGISTIRMEZ -> YESIL gecer ve SART-1 + SART-2'yi
+# geri alir (olculdu). Asagidaki alanlar GERCEK KAYIT SETIYLE ayni; aciklama alanlari
+# BILEREK yabanci polimer adi tasir (POM/PC/PEEK/PA6-GF) — beyaz liste delinirse
+# F19 + F4 + F10b + F16c + F17 ANINDA KIRMIZI yanar.
+_F_ACIKLAMA_JETONLARI = ("POM", "PC", "PEEK", "PA6-GF")
+_F_KARDES_ANAHTARLAR = {
+    "olcut": "ısı dayanımı (HDT @ 0.45 MPa)",
+    "kaynaklar": ["https://ornek.invalid/POM-PEEK-PC"],
+    "_aciklama": "Fikstur ust duzey aciklamasi: POM, PC ve PEEK adlari BILEREK gecer; "
+                 "envanteri_coz bu anahtari OKUMAZ.",
+    "kategoriTavsiye": {"Otomobil": [{"ad": "PEEK"}, {"ad": "POM"}]},
+}
+
+
+def _f_kayit(ad, **fazladan):
+    """GERCEK filamentler.json satis kaydiyla AYNI ALAN SETINI tasiyan fikstur kaydi.
+    Beyaz liste disindaki alanlar yabanci polimer adi tasir (bkz. _F_ACIKLAMA_JETONLARI)."""
+    kayit = {
+        "ad": ad,
+        "site": True,
+        "kisaEtiket": "fikstur etiketi",
+        "isiDayanimi": "~55-60°C",
+        "uv": "Düşük", "su": "Düşük", "darbe": "Düşük-orta",
+        "kisa": "Fikstur kisa metni: POM ile de üretiyoruz.",
+        "uzun": "Fikstur uzun metni: PC ve PEEK ile üretip gönderiyoruz.",
+        "isiDetay": "PA6-GF ~120°C; tasiyicisi guclu turler daha yuksek",
+    }
+    kayit.update(fazladan)
+    return kayit
 
 
 def _f_envanter(veri=None):
-    return envanteri_coz(veri or {"filamentler": [{"ad": "PLA"}, {"ad": "PETG"}]})
+    """Fikstur envanteri — GERCEK dosyayla SIMETRIK (kayit alan seti + kardes anahtarlar)."""
+    veri = dict(veri or {"filamentler": [_f_kayit("PLA"), _f_kayit("PETG")]})
+    for anahtar, deger in _F_KARDES_ANAHTARLAR.items():
+        veri.setdefault(anahtar, deger)
+    return envanteri_coz(veri)
 
 
 def ic_nobetci():
@@ -597,7 +748,7 @@ def ic_nobetci():
             hata.append("%s %s" % (ad, ayrinti))
 
     # F1 — KARA LISTE ENVANTERI EZER (envantere kayit ekleyip susturma deligi)
-    env = _f_envanter({"filamentler": [{"ad": "PLA"}, {"ad": "PC"}]})
+    env = _f_envanter({"filamentler": [_f_kayit("PLA"), _f_kayit("PC")]})
     _o, dayanaksiz, kara, _e = degerlendir(
         [("fikstur", "F1", "Talep ederseniz PC ile üretip gönderiyoruz.")], env)
     kontrol("F1", "PC" in kara and "PC" not in dayanaksiz,
@@ -705,7 +856,7 @@ def ic_nobetci():
     # alir (ciplak "PA6 ile uretiyoruz" KIRMIZI'dan YESIL'e doner). uzunAd bu yuzden
     # gercek veriyle AYNI SEKILDE fikstureledir; F10b/F10c o refactor'u ANINDA oldurur.
     env10 = _f_envanter(
-        {"filamentler": [{"ad": "PLA"}, {"ad": "PETG"}],
+        {"filamentler": [_f_kayit("PLA"), _f_kayit("PETG")],
          DAYANAK_ANAHTARI: [{"ad": "PA6-GF",
                              "uzunAd": "Cam elyaf takviyeli naylon (PA6-GF)",
                              "satista": False, "tedarik": "siparis uzerine"},
@@ -758,7 +909,9 @@ def ic_nobetci():
     # "UYARI: PA-GF ... - 77 sayfa" basiyordu; onceki turda bu uyari SESSIZCE kayboldu.
     # (Dayanak kaydi burada da gercek veriyle SIMETRIK — "uzunAd" alani VAR; bkz. F10.)
     envPA = _f_envanter(
-        {"filamentler": [{"ad": "PLA"}, {"uzunAd": "Karbon katkılı (PETG-CF/PA-CF)"}],
+        {"filamentler": [_f_kayit("PLA"),
+                         _f_kayit("Karbon Katkılı",
+                                  uzunAd="Karbon katkılı (PETG-CF/PA-CF)")],
          DAYANAK_ANAHTARI: [{"ad": "PA6-GF",
                              "uzunAd": "Cam elyaf takviyeli naylon (PA6-GF)",
                              "satista": False, "tedarik": "siparis uzerine"}]})
@@ -817,6 +970,19 @@ def ic_nobetci():
             "statik-jsonld kapsami bozuk (sayi tabanina donmus / sss zorunlulugu gevsemis "
             "/ iletisim zorunlu yapilmis): KAYNAK_TABANI=%r ZORUNLU_JSONLD=%r "
             "BEKLENEN_JSONLD=%r" % (KAYNAK_TABANI, ZORUNLU_JSONLD, BEKLENEN_JSONLD))
+    # F12c — SIZINTI kapsami da SAYI DEGIL AD BAZLI kalmali (KraL tur-6). Zorunlu kume
+    # yalniz KOD TARAFINDAN URETILEN iki degismez ciktidir; landing kaynakli
+    # /malzeme-rehberi/ ZORUNLU YAPILAMAZ (mesru slug degisimi tum ekibin yayinini
+    # durdururdu) ama BEKLENEN kumeden de CIKARILAMAZ (uyari susardi).
+    kontrol("F12c",
+            tuple(ZORUNLU_SIZINTI_CIKTILARI) == (SIZINTI_CIKTI_FILAMENT_JS,
+                                                 SIZINTI_CIKTI_EGE_BLOK)
+            and SIZINTI_CIKTI_MALZEME_REHBERI not in ZORUNLU_SIZINTI_CIKTILARI
+            and SIZINTI_CIKTI_MALZEME_REHBERI in BEKLENEN_SIZINTI_CIKTILARI
+            and set(ZORUNLU_SIZINTI_CIKTILARI) <= set(BEKLENEN_SIZINTI_CIKTILARI),
+            "sizinti kapsam kumesi bozuk (zorunlu gevsemis / landing ciktisi zorunlu "
+            "yapilmis / beklenen kumeden dusmus): ZORUNLU=%r BEKLENEN=%r"
+            % (ZORUNLU_SIZINTI_CIKTILARI, BEKLENEN_SIZINTI_CIKTILARI))
 
     # F18 — DRIFT nobeti UCTAN UCA (KraL tur-5 eki).
     # Bugune kadar YALNIZ karsilastirici (blok_karsilastir, F11) fikstureleniyordu;
@@ -853,6 +1019,57 @@ def ic_nobetci():
     kontrol("F18c", not t_dosyasiz and not t_modulsuz,
             "uctan uca drift FAIL-CLOSED degil (md yok -> %s · ege-malzeme.py yok -> %s)"
             % (m_dosyasiz, m_modulsuz))
+
+    # F19 — 🔴 ENVANTER BEYAZ LISTESI (KraL tur-6; "aciklama metninden besleme" SINIFI).
+    # F19a sabiti, F19b DAVRANISI kilitler: beyaz listeyi delen bir mutasyon (or.
+    # kayit.get("kisa") / "uzun" / "isiDetay" eklemek, ya da json.dumps(veri) taramak)
+    # fikstur kayitlarinda ARTIK bir sey DEGISTIRIR, cunku fiksturler gercek kayit alan
+    # setini tasir (bkz. _f_kayit). Eskiden fiksturler yalniz {"ad": ...} tasidigi icin
+    # ayni mutasyon 40/40 YESIL geciyordu.
+    kontrol("F19a", tuple(ENVANTER_OKUNAN_ALANLAR) == ("ad", "uzunAd"),
+            "envanter BEYAZ LISTESI degismis/gevsetilmis: %r"
+            % (ENVANTER_OKUNAN_ALANLAR,))
+    env19 = _f_envanter()
+    kacak19 = sorted((set(env19.tam) | set(env19.taban) | set(env19.ekler))
+                     & set(_F_ACIKLAMA_JETONLARI + ("GF", "PA6")))
+    kontrol("F19b", not kacak19,
+            "🔴 BEYAZ LISTE DELINDI: aciklama alanlarindaki yabanci jetonlar kuresel "
+            "kumeye SIZDI (%s) — tam=%s taban=%s ek=%s"
+            % (kacak19, sorted(env19.tam), sorted(env19.taban), sorted(env19.ekler)))
+
+    # F20 — 🔴 SIZINTI KAPSAM NOBETI DAVRANISI (KraL tur-6). Eski "cikti sayisi >= 3"
+    # SAYI TABANI, /malzeme-rehberi/ slug'i degisince YANLIS-POZITIF veriyordu; yeni
+    # kural ZORUNLU_JSONLD ile ayni bicimde AD BAZLIDIR. Bu fikstur hem yanlis-pozitifin
+    # geri gelmedigini (F20b) hem de kapinin gercekten bir sey ISTEDIGINI (F20c/F20d)
+    # kanitlar; "uretimler listesini kirp" mutasyonu buradan gecemez.
+    h20a, u20a = sizinti_kapsam(BEKLENEN_SIZINTI_CIKTILARI)
+    kontrol("F20a", not h20a and not u20a,
+            "tam kapsamda yanlis-pozitif (hata=%s uyari=%s)" % (h20a, u20a))
+    h20b, u20b = sizinti_kapsam(ZORUNLU_SIZINTI_CIKTILARI)
+    kontrol("F20b", not h20b and len(u20b) == 1
+            and SIZINTI_CIKTI_MALZEME_REHBERI in u20b[0],
+            "landing ciktisi (/malzeme-rehberi/) yoklugu BLOKLADI ya da SESSIZ kaldi — "
+            "reddedilen SAYI TABANI deseni geri gelmis olabilir (hata=%s uyari=%s)"
+            % (h20b, u20b))
+    h20c, _u = sizinti_kapsam([SIZINTI_CIKTI_EGE_BLOK, SIZINTI_CIKTI_MALZEME_REHBERI])
+    h20d, _u = sizinti_kapsam([SIZINTI_CIKTI_FILAMENT_JS, SIZINTI_CIKTI_MALZEME_REHBERI])
+    kontrol("F20c", len(h20c) == 1 and SIZINTI_CIKTI_FILAMENT_JS in h20c[0],
+            "filament-veri.js govdesi taranmadigi halde KIRMIZI yanmadi: %s" % h20c)
+    kontrol("F20d", len(h20d) == 1 and SIZINTI_CIKTI_EGE_BLOK in h20d[0],
+            "ege-malzeme blogu taranmadigi halde KIRMIZI yanmadi: %s" % h20d)
+
+    # F21 — 🔴 SART-2 UYARISININ RAPORU (KraL tur-6). Iddia edilen "F17 bunu KIRMIZI
+    # yakar" korumasi OLCULEREK YANLISLANDI: raporu susturan mutasyon 40/40 geciyordu.
+    # Artik uretilen SATIR METNI fikstureli.
+    s21 = ek_uyari_satirlari({("PA", "GF"): ["landing/a", "landing/b", "landing/a"]})
+    kontrol("F21a", any(s.startswith("UYARI: PA-GF") and "2 govde / 3 eslesme" in s
+                        for s in s21)
+            and any("bloklamaz" in s for s in s21),
+            "SART-2 UYARI RAPORU susturulmus/bozulmus: %r" % (s21,))
+    kontrol("F21b", ek_uyari_satirlari({}) == ["UYARI yok: adlandirilmamis takviye eki "
+                                               "gecmiyor"],
+            "bos uyari halinde 'UYARI yok' satiri uretilmedi: %r"
+            % (ek_uyari_satirlari({}),))
 
     # F0 — 🔴 IC NOBETCININ KENDI KAPSAM KILIDI (KraL tur-5 eki).
     # Fikstur sayisi/ad kumesi bugune kadar YALNIZ docstring'de yaziyordu: F16 blogunu
@@ -963,21 +1180,11 @@ def main(argv=None):
 
     envanter_kara = kara_liste_envanterde(filament_ham)
 
-    # UYARI = bloklamaz, ama SESSIZ de kalmaz (SART-2). Bir dayanak TAM ADI kuresel
-    # eki acarsa bu satirlar kaybolur -> fikstur F17 o mutasyonu KIRMIZI yakar.
-    if ek_uyarisi:
-        for (kisa, ek), yerler in sorted(ek_uyarisi.items()):
-            # govde = benzersiz kaynak/slug (main'in "77 sayfa" sayimiyla ayni taban),
-            # eslesme = ham gecis sayisi (ayni sayfada birden fazla olabilir).
-            print("UYARI: %s-%s takviye eki '%s' SATIS envanterinde adlandirilmamis "
-                  "(taban %s dayanakli, ama '%s-%s' onaylanan dayanak TAM ADLARI "
-                  "arasinda YOK) - %d govde / %d eslesme: %s"
-                  % (kisa, ek, ek, kisa, kisa, ek, len(set(yerler)), len(yerler),
-                     ", ".join(sorted(set(yerler))[:4])))
-        print("  (UYARI bloklamaz — metin duzeltmesi/onay ArTisT+Okan duzlemi; "
-              "karar kaydi: %s)" % DAYANAK_KARAR_KAYDI)
-    else:
-        print("UYARI yok: adlandirilmamis takviye eki gecmiyor")
+    # UYARI = bloklamaz, ama SESSIZ de kalmaz (SART-2). Rapor metni ek_uyari_satirlari()
+    # icinde uretilir ve fikstur F21 tarafindan KILITLIDIR (main'deki satir-ici blok
+    # nobetsizdi: susturan mutasyon 40/40 YESIL geciyordu — olculdu, KraL tur-6).
+    for satir in ek_uyari_satirlari(ek_uyarisi):
+        print(satir)
 
     drift_tamam, drift_mesaj, ege_blok = drift_kontrolu(args.ege, args.ege_malzeme)
     print("DRIFT (ege-malzeme.py <-> ege-bilgi.md): %s - %s"
@@ -987,30 +1194,29 @@ def main(argv=None):
     # (Talimat sarti: dayanak kayitlari filamentler.json'i tuketen HICBIR ciktiyi
     #  degistirmemeli. Burada calistirilabilir kanit uretilir.)
     sizinti = {}
-    sizinti_cikti = 0
     if dayanak_adlar:
         veri = json.loads(filament_ham)
         # build.py'nin /filament-veri.js icin kullandigi AYNI ifade (public govde)
         public_govde = json.dumps(
             {k: v for k, v in veri.items() if not k.startswith("_") and k != "kaynaklar"},
             ensure_ascii=False)
-        uretimler = [("public /filament-veri.js govdesi", public_govde)]
+        uretimler = [(SIZINTI_CIKTI_FILAMENT_JS, public_govde)]
         if ege_blok is not None:
-            uretimler.append(("ege-malzeme.py uretilen blok", ege_blok))
+            uretimler.append((SIZINTI_CIKTI_EGE_BLOK, ege_blok))
         for kaynak, slug, metin in kaynaklar:
-            if kaynak == "landing" and slug == "malzeme-rehberi":
-                uretimler.append(("/malzeme-rehberi/ sayfasi", metin))
+            if kaynak == "landing" and slug == MALZEME_REHBERI_SLUG:
+                uretimler.append((SIZINTI_CIKTI_MALZEME_REHBERI, metin))
         sizinti = dayanak_sizintisi(dayanak_adlar, uretimler)
-        sizinti_cikti = len(uretimler)
         print("SIZINTI (dayanak kaydi -> uretim duzlemi): %s - %d cikti tarandi (%s)"
-              % ("KIRMIZI" if sizinti else "TEMIZ", sizinti_cikti,
+              % ("KIRMIZI" if sizinti else "TEMIZ", len(uretimler),
                  ", ".join(ad for ad, _m in uretimler)))
-        # Sizinti taramasi SESSIZCE bosalmasin (cikti listesi kirpilirsa kapi
-        # kanit uretmeden yesil kalirdi).
-        if not args.landing_kapali and sizinti_cikti < 3:
-            kapsam_hata.append("sizinti taramasi %d cikti gordu (beklenen >= 3: "
-                               "filament-veri.js govdesi + ege-malzeme blogu + "
-                               "/malzeme-rehberi/)" % sizinti_cikti)
+        # Sizinti taramasi SESSIZCE bosalmasin (cikti listesi kirpilirsa kapi kanit
+        # uretmeden yesil kalirdi). SAYI TABANI DEGIL, AD BAZLI -> bkz. sizinti_kapsam.
+        s_hata, s_uyari = sizinti_kapsam((ad for ad, _m in uretimler),
+                                         landing_acik=not args.landing_kapali)
+        kapsam_hata.extend(s_hata)
+        for u in s_uyari:
+            print("UYARI: " + u)
 
     kirmizi = False
     if ic_hata:
