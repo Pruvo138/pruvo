@@ -23,8 +23,9 @@ BU TESTIN OLCTUGU:
   A) SABLON PARITESI (pure-python, CI-bloklayici): feed-uygun her urun icin render_product'in
      URETTIGI ViewContent content_ids == feed_id(pid) mi? feed id kumesi ↔ sablon content_ids
      kumesi parite orani < esik -> exit 1. (Ayrica AddToCart URUN.fid + urun_json.fid dogrulanir.)
-  B) JS UC PARITESI (node varsa; CI Python-only ise ATLANIR, FAIL degil): index.html pruvoFeedId
-     ve shop/src/olcum.js feedId, Python feed_id ile TUM uzun-id'lerde BYTE-BIRE-BIR ayni mi?
+  B) JS UC PARITESI (FAIL-CLOSED): CI'da (GITHUB_ACTIONS) node yoksa FAIL (exit 1); yerelde
+     PIKSEL_PARITE_NODE_ATLA=1 ile acik uyariyla atlanabilir, CI'da bu bayrak gecersiz. index.html
+     pruvoFeedId ve shop/src/olcum.js feedId, Python feed_id ile TUM uzun-id'lerde BYTE-BIRE-BIR ayni mi?
 
 Kullanim:
     python3 tools/piksel-katalog-parite-test.py           # bayraksiz: parite tam ise exit 0
@@ -218,12 +219,15 @@ def js_parite(uzun_pidler):
         os.unlink(tmp.name)
 
     hatali = []
-    # (a) ham feedId / pruvoFeedId
+    # (a) ham feedId / pruvoFeedId — eksik anahtarda KeyError traceback yerine temiz KIRMIZI
+    # (guard: js dict'i beklenen sekilde gelmezse .get bos dict doner -> None != bekle -> hatali).
+    js_feedid = js.get("feedId") or {}
+    js_index = js.get("index") or {}
     for pid, bekle in beklenen.items():
-        if js["feedId"].get(pid) != bekle:
-            hatali.append("olcum.js feedId(%s)=%s != %s" % (pid, js["feedId"].get(pid), bekle))
-        if js["index"].get(pid) != bekle:
-            hatali.append("index.html pruvoFeedId(%s)=%s != %s" % (pid, js["index"].get(pid), bekle))
+        if js_feedid.get(pid) != bekle:
+            hatali.append("olcum.js feedId(%s)=%s != %s" % (pid, js_feedid.get(pid), bekle))
+        if js_index.get(pid) != bekle:
+            hatali.append("index.html pruvoFeedId(%s)=%s != %s" % (pid, js_index.get(pid), bekle))
     # (b) GERCEK govde ciktilari: metaGovdesi content_ids/contents.id + ga4Govdesi item_id feed_id mi?
     bekle_liste = [beklenen[pid] for pid in uzun_pidler]
     if js.get("meta_content_ids") != bekle_liste:

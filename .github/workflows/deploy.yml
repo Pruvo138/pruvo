@@ -91,8 +91,8 @@ jobs:
       # content_ids'i AYNI KURALDAN (build.feed_id) turer mi. Yasanmis hata: feed uzun urun id'sini
       # <=50 karaktere kisaltirken piksel TAM pid gonderiyordu -> 610/7769 urunde katalog eslesmiyor
       # (Advantage+ kor calisir). Bloklayici: sablon content_ids feed g:id'den saparsa katalog reklami
-      # yanlis urun gosterir. Offline (render_product'i cagirir, ag yok); JS-uc paritesi node varsa
-      # kosar, CI Python-only'de otomatik atlanir (FAIL degil).
+      # yanlis urun gosterir. Offline (render_product'i cagirir, ag yok); JS-uc paritesi icin
+      # setup-node kurulu; node yoksa adim FAIL eder (fail-closed).
       - name: Piksel <-> katalog parite kapisi
         run: python3 tools/piksel-katalog-parite-test.py
 
