@@ -266,28 +266,66 @@ def _kart_formu_tara(etiket, ham):
 kapsamli_kontrol(5, "Statik + landing gövdelerinde kart alanı/ödeme iframe'i/kart verisi ifadesi yok",
                  _kart_formu_tara)
 
-# 6) Teslim süresi ifadesi tek rakam: 3-5 iş günü var, rakip aralık yok (statik + landing).
+# 6) Teslim süresi ifadesi tek rakam. İKİ AYRI KAPSAM (bilerek asimetrik):
+#    POZİTİF kanıt  -> yalnız BAĞLAYICI gövdelerde aranır, HER BİRİNDE ayrı ayrı.
+#    NEGATİF (rakip) -> 84 gövdenin TAMAMINDA aranır (bayat aralık nerede olursa olsun ihlal).
+#
+#    NEDEN ASİMETRİK (regresyon dersi): pozitif şart 84 gövdede toplam sayılırsa, dört
+#    bağlayıcı sayfa taahhüdü KAYBETSE bile 80 landing'den herhangi biri sayacı doldurur
+#    ve kapı SESSİZCE yeşil yanar. Nöbetçi ancak sayfa-bazlı olursa nöbet tutar.
+#
+#    BAĞLAYICI POZİTİF KÜME — ölçüm (21 Tem, "3-5 iş günü" ham sayımı):
+#      sss/index.html=2 · hakkimizda/index.html=1 · gizlilik/index.html=0 ·
+#      iletisim/index.html=0 · landing:teslimat-iade=1 · landing:mesafeli-satis=1 ·
+#      landing:ozel-parca-kac-gunde-hazir-olur=3 (kalan 79 landing=0)
+#    Pozitif ŞARTA giren = müşteriye teslim TAAHHÜDÜ veren bağlayıcı gövdeler.
+#    HARİÇ tutulanlar (gerekçeli — sessiz atlama DEĞİL):
+#      gizlilik/index.html   : KVKK aydınlatma metni, teslim taahhüdü yeri değil (ölçüm 0).
+#      iletisim/index.html   : iletişim/künye sayfası, taahhüt yeri değil (ölçüm 0).
+#      hakkimizda/index.html : kurumsal tanıtım; ifadeyi bugün taşıyor (ölçüm 1) ama
+#                              bağlayıcı taahhüt kaynağı değil, pazarlama metni serbest
+#                              kalsın diye ŞARTA sokulmaz — rakip-aralık taraması yine kapsar.
+#      diğer landing'ler     : SEO/pazarlama gövdesi; taahhüt kaynağı bağlayıcı sayfalardır.
+BAGLAYICI_POZITIF = [
+    "sss/index.html",            # müşteriye verilen açık cevap ("kaç günde")
+    "landing:teslimat-iade",     # yasal teslimat/iade koşulları
+    "landing:mesafeli-satis",    # mesafeli satış sözleşmesi m.4 Teslimat
+]
+
 rakip_desen = re.compile(r"\b(5-7|3-6|2-4)\s+iş\s+günü\b", re.I)
 dogru_desen = re.compile(r"3-5\s+iş\s+günü", re.I)
 if GOVDE_HATASI is not None:
-    kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok (statik + landing)",
+    kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok (bağlayıcı pozitif + 84 negatif)",
             False, GOVDE_HATASI, "kapsam BELİRSİZ (fail-closed)")
 elif not TUM_GOVDELER:
-    kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok (statik + landing)",
+    kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok (bağlayıcı pozitif + 84 negatif)",
             False, "hiç sayfa taranmadı (boş küme)", "0 sayfa tarandı")
 else:
+    # NEGATİF: rakip aralık taraması TÜM gövdelerde (genişlik korunur).
     rakip_ihlaller = []
-    dogru_sayi = 0
     for etiket, ham in TUM_GOVDELER.items():
-        duz = temiz_metin(ham)
-        for eslesme in rakip_desen.findall(duz):
+        for eslesme in rakip_desen.findall(temiz_metin(ham)):
             rakip_ihlaller.append("%s:%s iş günü" % (etiket, eslesme))
-        dogru_sayi += len(dogru_desen.findall(duz))
-    kontrol(6, "Teslim süresi 3-5 iş günü ve rakip süre yok (statik + landing)",
-            dogru_sayi >= 1 and not rakip_ihlaller,
-            "3-5 sayısı=%d, rakip=%s" % (dogru_sayi, ", ".join(rakip_ihlaller) or "-"),
-            "%d sayfa tarandı, ihlal %d (3-5 ifadesi %d yerde)" % (
-                len(TUM_GOVDELER), len(rakip_ihlaller), dogru_sayi))
+    # POZİTİF: her bağlayıcı gövde AYRI AYRI "3-5 iş günü" taşımalı.
+    # Fail-closed: beklenen bağlayıcı gövde kümede yoksa (ad değişmiş/üretilmemiş) KIRMIZI.
+    pozitif_durum = []
+    eksik_pozitif = []
+    for etiket in BAGLAYICI_POZITIF:
+        if etiket not in TUM_GOVDELER:
+            eksik_pozitif.append("%s (gövde bulunamadı)" % etiket)
+            pozitif_durum.append("%s=YOK" % etiket)
+            continue
+        adet = len(dogru_desen.findall(temiz_metin(TUM_GOVDELER[etiket])))
+        pozitif_durum.append("%s=%d" % (etiket, adet))
+        if adet < 1:
+            eksik_pozitif.append("%s: '3-5 iş günü' YOK" % etiket)
+    kontrol(6, "Teslim süresi: her bağlayıcı sayfada 3-5 iş günü var, hiçbir gövdede rakip süre yok",
+            not eksik_pozitif and not rakip_ihlaller,
+            "eksik pozitif: %s | rakip: %s" % (
+                "; ".join(eksik_pozitif) or "-", ", ".join(rakip_ihlaller) or "-"),
+            "%d bağlayıcı sayfa denetlendi (%s), %d gövdede rakip tarandı, ihlal %d" % (
+                len(BAGLAYICI_POZITIF), ", ".join(pozitif_durum),
+                len(TUM_GOVDELER), len(eksik_pozitif) + len(rakip_ihlaller)))
 
 # 7) Ölü ikiz fonksiyonlar yeniden doğmamış.
 olu_fonksiyonlar = re.findall(r"^def\s+(_(?:sss|gizlilik|hakkimizda|iletisim))\s*\(", sayfalar_py, re.M)
