@@ -73,9 +73,13 @@ jobs:
       - name: Malzeme dayanak kabul testi (landing sayfalari + ege-bilgi.md)
         run: python3 tools/malzeme-dayanak-test.py
 
-      # EGE-BILGI TAVAN: ege-bilgi.md karakter sayisi bot slice(0,6000) esigini asmasin.
-      # Bloklayici: >6000 -> bot metni SESSIZCE kesip botun gozunden icerik kaybeder;
-      # >5900 -> erken alarm (pay 100 karakter altinda). Offline, stdlib, ~0 s.
+      # EGE-BILGI TAVAN: ege-bilgi.md uzunlugu bot slice(0,6000) esigini asmasin.
+      # Olcu UTF-16 kod birimi (JS String.slice birimi) — bayt sayan olcum sahte-kirmizi,
+      # Python len(str) astral karakterde sahte-yesil yakar.
+      # Bloklayici SADECE gercek zararda: >6000 (bot metni SESSIZCE kesiyor, icerik kaybi)
+      # ya da dosyanin ILAN ettigi tavan ile kapi sabitinin ayrismasi. Dar pay (<400)
+      # KIRMIZI DEGIL -> exit 0 + gurultulu uyari: bugun pay 219, kirmizi olsaydi bu kapi
+      # dogru bir dosya yuzunden TUM EKIBIN push'unu kirardi. Offline, stdlib, ~0 s.
       - name: Ege-bilgi tavan kabul testi (6000 karakter kesme kapisi)
         run: python3 tools/ege-bilgi-tavan-test.py
 
