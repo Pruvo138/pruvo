@@ -12,7 +12,12 @@ Nasil calisir
      ayiklanir; "-" oncesi taban polimer de envantere girer
      (orn. "Karbon katkili (PETG-CF/PA-CF)" -> PETG-CF, PA-CF, PETG, PA).
   2) sayfalar.CONTENT_PAGES gezilir; her sayfanin GOVDESI + basligi + meta
-     aciklamasi taranir (HTML etiketleri soyulur).
+     aciklamasi taranir (HTML etiketleri soyulur). AYRICA ege-bilgi.md (WhatsApp
+     botu Ege'nin bilgi dosyasi) EK BIR TARANAN KAYNAK olarak taranir: bot bu metni
+     musteriye aktarir, envanterde OLMAYAN bir malzeme adi (or. PC / polikarbonat)
+     buraya sizarsa Ege uretemedigimiz malzemeyi vaat eder ve kimse gormez. Negatif
+     kontrol: ege-bilgi.md'de gecen dayanaksiz malzeme -> KIRMIZI (hangi jeton oldugu
+     yazilir). Fail-closed: ege-bilgi.md okunamazsa KIRMIZI.
   3) Metinde gecen polimer sinifi adaylari LEKSIK bir sozlukle bulunur (bu sozluk
      envanter DEGIL; dunyadaki filament sinifi adlarinin listesi). Her adayin
      TABAN polimeri envanterde yoksa KIRMIZI.
@@ -35,9 +40,11 @@ import re
 import sys
 
 KOK = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(KOK)
 sys.path.insert(0, KOK)
 
 FILAMENT_JSON = os.path.join(KOK, "filamentler.json")
+EGE_BILGI = os.path.join(ROOT, "ege-bilgi.md")
 
 # LEKSIK sozluk = "dunyada filament/polimer sinifi olarak kullanilan adlar".
 # Envanteri TEMSIL ETMEZ; envanter filamentler.json'dan turetilir.
@@ -124,12 +131,13 @@ def _urun_sistemi_mi(metin, bitis):
     return any(ilk.startswith(k) for k in URUN_SISTEM_KELIMELERI)
 
 
-def sayfa_adaylari(metin):
-    """metinde gecen malzeme sinifi adaylari -> {(kisaltma, ek)}"""
-    bulunan = set()
+def _adaylari_bul(metin):
+    """metinde gecen malzeme sinifi adaylarini (kisa, ek, ham) uclusu olarak uretir.
+    ham = metinde FIILEN gecen yazim (or. 'polikarbonat' -> kisa 'PC')."""
     for eslesme in ADAY_DESENI.finditer(metin):
         if eslesme.group("tam"):
-            kisa = TAM_ADLAR[eslesme.group("tam").lower()]
+            ham = eslesme.group("tam")
+            kisa = TAM_ADLAR[ham.lower()]
             ek = None
         else:
             ham = eslesme.group("kisa")
@@ -141,8 +149,12 @@ def sayfa_adaylari(metin):
             ek = (eslesme.group("ek") or "").upper() or None
         if _urun_sistemi_mi(metin, eslesme.end()):
             continue
-        bulunan.add((kisa, ek))
-    return bulunan
+        yield kisa, ek, ham
+
+
+def sayfa_adaylari(metin):
+    """metinde gecen malzeme sinifi adaylari -> {(kisaltma, ek)}"""
+    return set((kisa, ek) for kisa, ek, _ham in _adaylari_bul(metin))
 
 
 def main():
@@ -161,8 +173,9 @@ def main():
     print("Envanter (filamentler.json): tam=%s taban=%s takviye=%s"
           % (sorted(envanter_tam), sorted(envanter_taban), sorted(envanter_ekleri) or "-"))
 
-    dayanaksiz = {}          # kisaltma -> [slug, ...]
-    ek_uyarisi = {}          # (kisaltma, ek) -> [slug, ...]
+    dayanaksiz = {}          # kisaltma -> [kaynak, ...]
+    ek_uyarisi = {}          # (kisaltma, ek) -> [kaynak, ...]
+    ege_ham = {}             # kisaltma -> {ham jeton, ...} (ege-bilgi.md kanitini yazmak icin)
     gorulen = set()
     sayfa_sayisi = 0
     for slug, baslik, meta, fn in sayfalar.CONTENT_PAGES:
@@ -175,7 +188,24 @@ def main():
             elif ek and ek not in envanter_ekleri:
                 ek_uyarisi.setdefault((kisa, ek), []).append(slug)
 
-    print("Taranan sayfa: %d" % sayfa_sayisi)
+    # EK KAYNAK: ege-bilgi.md — WhatsApp botu Ege'nin bilgi dosyasi (landing sayfasi
+    # DEGIL). Bot bu metni musteriye aktarir; envanterde olmayan bir malzeme adi
+    # buraya sizarsa Ege uretemedigimizi vaat eder. Fail-closed: okunamazsa KIRMIZI.
+    try:
+        with open(EGE_BILGI, encoding="utf-8") as fp:
+            ege_metin = _html_soy(fp.read())
+    except Exception as hata:
+        print("KIRMIZI: ege-bilgi.md okunamadi -> %s" % hata)
+        return 1
+    for kisa, ek, ham in _adaylari_bul(ege_metin):
+        gorulen.add(kisa if not ek else "%s-%s" % (kisa, ek))
+        if kisa not in envanter_taban:
+            dayanaksiz.setdefault(kisa, []).append("ege-bilgi.md")
+            ege_ham.setdefault(kisa, set()).add(ham)
+        elif ek and ek not in envanter_ekleri:
+            ek_uyarisi.setdefault((kisa, ek), []).append("ege-bilgi.md")
+
+    print("Taranan sayfa: %d (+ ege-bilgi.md ek kaynak)" % sayfa_sayisi)
     print("Gorulen malzeme adi (%d): %s" % (len(gorulen), sorted(gorulen)))
 
     for (kisa, ek), slugler in sorted(ek_uyarisi.items()):
@@ -185,16 +215,19 @@ def main():
     if dayanaksiz:
         print("")
         for kisa, slugler in sorted(dayanaksiz.items(), key=lambda x: -len(x[1])):
-            print("KIRMIZI: '%s' filamentler.json envanterinde YOK - %d sayfa:"
+            print("KIRMIZI: '%s' filamentler.json envanterinde YOK - %d kaynak:"
                   % (kisa, len(slugler)))
             for slug in sorted(slugler):
-                print("    %s" % slug)
+                if slug == "ege-bilgi.md" and kisa in ege_ham:
+                    print("    %s (jeton: %s)" % (slug, ", ".join(sorted(ege_ham[kisa]))))
+                else:
+                    print("    %s" % slug)
         print("")
-        print("SONUC: KIRMIZI - dayanaksiz malzeme adi %d (%d sayfa kaydi)"
+        print("SONUC: KIRMIZI - dayanaksiz malzeme adi %d (%d kaynak kaydi)"
               % (len(dayanaksiz), sum(len(v) for v in dayanaksiz.values())))
         return 1
 
-    print("SONUC: YESIL - dayanaksiz malzeme 0 / %d sayfa" % sayfa_sayisi)
+    print("SONUC: YESIL - dayanaksiz malzeme 0 / %d sayfa + ege-bilgi.md" % sayfa_sayisi)
     return 0
 
 
