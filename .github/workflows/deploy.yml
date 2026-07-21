@@ -132,6 +132,17 @@ jobs:
       - name: Asgari gorsel boyutu kapisi kabul testi
         run: python3 tools/gorsel-boyut-test.py
 
+      # NOBETCI MUTASYON HARNESS: yukaridaki iki kapinin KENDISINI olcer — bozulunca GERCEKTEN
+      # kirmizi yaniyorlar mi. Feed politika kapisinin kirmizi CIKIS YOLU ve _kendini_dogrula()
+      # hicbir testle korunmuyordu; olculdu: <title> bulucusunu olduren mutasyon eski kapida
+      # exit 0 veriyordu (gercek bir vape urunu SESSIZCE geciyordu). 13 kapi mutasyonu + 3
+      # gorsel-kablolama mutasyonu kosulur, hepsi KIRMIZI yanmali; mutasyonsuz kontrol kosumu
+      # YESIL yanmali (harness "hep kirmizi" olamaz). Mutasyon DAIMA gecici SYMLINK aynasina
+      # uygulanir — canli tools/ dizinine YAZMA YOK. Offline, urunler.json OKUNMAZ (sentetik
+      # katalog), olculdu 18,3 s.
+      - name: Nobetci mutasyon harness'i (kapilar bozulunca kirmizi yaniyor mu)
+        run: python3 tools/nobetci-mutasyon-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.

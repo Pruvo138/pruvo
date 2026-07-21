@@ -36,7 +36,15 @@ kayitlidir; gorsel dosyasi repoya EKLENMEZ (git'e gorsel girmez kurali).
 
 Salt-okunur (yalniz gecici dizine yazar), ag'a cikmaz. Cikis: 0 = yesil, 1 = kirmizi.
 Calistir:  python3 tools/gorsel-boyut-test.py
+Mutasyon:  python3 tools/gorsel-boyut-test.py --tools /gecici/mutant-kopya/tools
+
+🔴 --tools NEDEN VAR: bu testin KENDISININ olcusu ancak kablolamayi BOZUP kirmizi yandigini
+gormekle alinir. Mutasyonu CANLI tools/ dizinine uygulayip finally ile geri almak TEHLIKELI
+(bir kesinti calisma agacinda mutant birakir — bu depoda YASANDI). Bu yuzden mutasyon
+DAIMA bir KOPYAYA uygulanir ve arac yolu buradan parametre olarak verilir.
+tools/nobetci-mutasyon-test.py bu bayragi kullanir.
 """
+import argparse
 import importlib.util
 import json
 import os
@@ -46,11 +54,12 @@ import tempfile
 import zlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+TOOLS_DIZIN = HERE          # --tools ile mutant KOPYAYA yonlendirilebilir
 FAILS = []
 
 
 def _yukle(ad, dosya):
-    spec = importlib.util.spec_from_file_location(ad, os.path.join(HERE, dosya))
+    spec = importlib.util.spec_from_file_location(ad, os.path.join(TOOLS_DIZIN, dosya))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -274,6 +283,15 @@ def _akis_dogrula(betik, kok):
 
 
 def main():
+    global TOOLS_DIZIN
+    ap = argparse.ArgumentParser(description="asgari gorsel boyutu kapisi kabul testi")
+    ap.add_argument("--tools", default=HERE,
+                    help="tools dizini (mutasyon KOPYASI verilebilir; canli dizine dokunma)")
+    args = ap.parse_args()
+    TOOLS_DIZIN = os.path.abspath(args.tools)
+    if TOOLS_DIZIN != HERE:
+        print("⚠️  MUTASYON KIPI — araclar KOPYADAN yukleniyor: %s" % TOOLS_DIZIN)
+
     g = _yukle("gorsel_boyut_kapisi", "gorsel_boyut_kapisi.py")
     d = tempfile.mkdtemp(prefix="pruvo-gorsel-boyut-")
 

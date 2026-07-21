@@ -10,12 +10,18 @@ yazsa bile EZMEZ. COMMIT ETMEZ; sonda gozden gecirme tablosu basar.
 """
 import concurrent.futures, fcntl, importlib.util, json, os, re, subprocess, sys, tempfile
 
-# ROOT betigin KENDI konumundan turer (tools/../). Eskiden "/Users/okan/dev/pruvo" sabitiydi;
-# o hâlde bu betik bir worktree'den import edilemiyordu (yanindaki modulleri DEGIL, ana kopyadaki
-# modulleri yuklerdi) -> kabul testi "import edilebiliyor" diye PASS basip aslinda hic
-# calistiramiyordu. Ana kopyada calisirken sonuc AYNI yolu verir; davranis degismez.
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TOOLS = os.path.join(ROOT, "tools")
+# KOD KOKU ile VERI KOKU AYRIDIR (bkz tools/veri_kok.py):
+#   * moduller betigin KENDI dizininden yuklenir (TOOLS) -> worktree'de de import edilebilir
+#     (eskiden ROOT sabit "/Users/okan/dev/pruvo" idi ve worktree'den import COKUYORDU;
+#      kabul testi ise "modul yukleniyor" diye PASS basiyordu).
+#   * urunler.json / .urun-kaynaklari.json / kilit / cache DAIMA ana kopyaya gider; worktree'den
+#     kosulursa STDERR'e GURULTULU uyari basilir (fail-loud, akis olmez).
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+_vkspec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec); _vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 _fspec = importlib.util.spec_from_file_location("filament_ortak", os.path.join(TOOLS, "filament_ortak.py"))
 fo = importlib.util.module_from_spec(_fspec); _fspec.loader.exec_module(fo)
 _gspec = importlib.util.spec_from_file_location("gorsel_mukerrer_kapisi", os.path.join(TOOLS, "gorsel_mukerrer_kapisi.py"))

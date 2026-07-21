@@ -18,9 +18,21 @@ HIC OLCULMEMISTI, VARSAYILMISTI.
 Bu yuzden kapi IKIYE ayrildi:
 
   1) BLOKLAYICI katman (cikis 1) — jetonlari YALNIZ olculmus/bildirilmis GERCEK Merchant
-     reddinden turer. Bugun 5 jeton; tam katalogda 8 isabet, YANLIS-POZITIF 0 (8'inin de
-     musteriye gorunen metninde acikca e-sigara/vape/durbun adi geciyor; tek tek denetlendi).
-     Bilinen borc tools/feed-politika-taban.json'da; YENI borc KIRMIZI yakar.
+     reddinden turer VE bloklamanin bedeli tasinabilir olmalidir. Bugun 3 jeton; tam katalogda
+     7 isabet, YANLIS-POZITIF 0 (7'sinin de musteriye gorunen metninde acikca e-sigara/vape
+     adi geciyor; tek tek denetlendi). Bilinen borc tools/feed-politika-taban.json'da;
+     YENI borc KIRMIZI yakar.
+
+🔴 "dürbün" NEDEN BLOKLAYICI DEGIL (S4 turu, MIMAR KARARI — kanit YETMEZ, BEDEL de olculur):
+Jetonun arkasinda gercek bir Merchant reddi VAR (durbun koruyucu kapak seti) ama bu kapi
+deploy.yml'de yayindan ONCE kosar ve continue-on-error YOKTUR: "dürbün" gecen MESRU bir
+Marin/Kamera urunu (or. "Marin el dürbünü tutucu", "tekne dürbün yuvası") eklendigi an TUM
+EKIBIN yayini durur. Olculdu (2026-07-22, 7769 kalem): "dürbün"un tam katalogdaki TEK isabeti
+zaten tabanda yazili olan schmidt-bender kaydidir; "durbun" (diakritiksiz) 0 isabet. Yani
+jetonu RAPOR katmanina tasimanin BUGUNKU koruma kaybi SIFIR, yanlis-pozitif riski ise gercek
+ve olculebilir. Jeton RAPOR'da sayilmaya devam eder (maruziyet gorunur kalir) ve _NEGATIF
+nobetcisine mesru bir durbun metni fikstur olarak konuldu -> biri onu tekrar BLOKLAYICI'ya
+tasirsa kapi KENDINI kirmizi yakar.
 
   2) RAPOR katmani (DAIMA cikis 0) — supheli ama KANITSIZ jetonlar. Sayi + ornek basar,
      CI'yi ASLA kirmaz. Maruziyet gorunur kalir, yayin durmaz. Bir jeton buradan
@@ -35,7 +47,7 @@ YAZARLI ve KOD SABITI GEREKTIRMEDEN guncellenir. Taban BUYUMESI gurultulu bir uy
 🔴 BORCUN AGIRLASMASI YINE KIRMIZI (ders 3): tabandaki her kaydin "jeton" kumesi de
 dondurulmustur. Tabandaki bir urun kaydinda OLMAYAN YENI bir bloklayici jeton kazanirsa
 kapi KIRMIZI yanar (eski surumde "jeton" alani imzaya girmiyordu ve HIC KULLANILMIYORDU ->
-tabandaki urune "durbun" eklense bile kapi YESIL kaliyordu).
+tabandaki urune ikinci bir jeton eklense bile kapi YESIL kaliyordu).
 
 KAPSAM: feed'e GERCEKTEN giren kalemler (render_merchant_feed ciktisi ayristirilir;
 parametrik/fiyatsiz/gorselsiz urun zaten feed disi -> Merchant onlari gormez, taranmaz).
@@ -61,25 +73,27 @@ import build  # noqa: E402
 TABAN_YOL = os.path.join(HERE, "feed-politika-taban.json")
 
 # ---------------------------------------------------------------- 1) BLOKLAYICI jetonlar
-# 🔴 BU LISTEYE JETON EKLEMENIN TEK MESRU GEREKCESI: Merchant Center'dan (ya da ArTisT'in
-# panel raporundan) gelen GERCEK bir red kaydi. "Bu kelime bana riskli geldi" YETMEZ —
-# 1. turda oyle yapildi ve 71 mesru otomotiv parcasi yanlis-pozitif oldu.
+# 🔴 BU LISTEYE JETON EKLEMENIN IKI SARTI VAR (ikisi de gerekli):
+#   (a) KANIT: Merchant Center'dan (ya da ArTisT'in panel raporundan) gelen GERCEK bir red
+#       kaydi. "Bu kelime bana riskli geldi" YETMEZ — 1. turda oyle yapildi ve 71 mesru
+#       otomotiv parcasi yanlis-pozitif oldu.
+#   (b) BEDEL: jetonun MESRU bir urun adinda gecme ihtimali olculmus ve dusuk olmali. Kapi
+#       yayindan ONCE + continue-on-error YOK -> tek yanlis-pozitif TUM EKIBIN yayinini
+#       durdurur. Kanit var ama bedel yuksekse jeton RAPOR katmanina gider ("dürbün" boyle
+#       tasindi, bkz ustteki not).
 # Her jetonun yaninda: kanit sinifi + bugunku katalog isabeti + yanlis-pozitif sayisi.
 BLOKLAYICI = {
     "elektronik sigara":
         "DOGRUDAN KANIT — Merchant tutun politikasi reddi (bildirilen 3 urun). "
-        "Katalog isabeti 5, yanlis-pozitif 0.",
+        "Katalog isabeti 5, yanlis-pozitif 0. BEDEL: mesru bir yedek parca adinda "
+        "'elektronik sigara' tam ifadesi gecmez (olculdu: 5 isabetin 5'i gercek e-sigara urunu).",
     "e-sigara":
         "AYNI IFADENIN tireli yazimi (kacis yolu kapatma). Katalog isabeti 0.",
     "vape":
         "AYNI URUN AILESI — reddedilen kalemler 'Nord AIO' (bir vape cihazi) standi; "
         "urunun adini 'vape' diye yazmak ayni politikaya girer. Katalog isabeti 2 "
-        "(ikisi de gercek vape standi), yanlis-pozitif 0.",
-    "dürbün":
-        "DOGRUDAN KANIT — Merchant silah politikasi reddi (durbun koruyucu kapak seti). "
-        "Katalog isabeti 1, yanlis-pozitif 0.",
-    "durbun":
-        "AYNI IFADENIN diakritiksiz yazimi (kacis yolu kapatma). Katalog isabeti 0.",
+        "(ikisi de gercek vape standi), yanlis-pozitif 0. BEDEL: 'vape' Turkce bir parca "
+        "adinda gecmez (yabanci marka/urun adi).",
 }
 
 # ---------------------------------------------------------------- 2) RAPOR jetonlari
@@ -95,6 +109,12 @@ RAPOR = {
     "cakmak": "'cakmak'in diakritiksiz yazimi",
     "sigara": "tek basina 'sigara' — 'elektronik sigara' disindaki isabetler mesru "
               "(or. 'bardaklik ici sigara ve cihaz tutucu')",
+    "dürbün": "KANITLI red var (Merchant silah politikasi, durbun koruyucu kapak seti) AMA "
+              "BLOKLAMA BEDELI YUKSEK: mesru Marin/Kamera urunu ('el durbunu tutucu', "
+              "'tekne durbun yuvasi') tum ekibin yayinini durdurur. Olculdu 2026-07-22: tam "
+              "katalogda TEK isabet ve o da zaten tabanda -> bloklayici olmasinin BUGUNKU "
+              "koruma katkisi 0. Yeni bir durbun urunu gelirse burada SAYILIR, gorunur kalir.",
+    "durbun": "'dürbün'un diakritiksiz yazimi (katalog isabeti 0)",
     "tütün": "tutun urunu (diakritikli tek form; diakritiksiz 'tutun' TARANMAZ -> "
              "'tutunma/tutunuz' fiiliyle carpisiyor, olculdu: 31 yanlis pozitif)",
     "puro": "tutun urunu cagrisimi",
@@ -134,16 +154,32 @@ def kucult(s):
     return (s or "").translate(TR_KUCUK).lower()
 
 
+def varyantlar(s):
+    """Aranacak KUCUK-HARF varyantlari (benzersiz, sirali).
+
+    🔴 IKI CEVRIM DE GEREKLI (S4 turu, olculdu): jetonlar ASCII 'i' ile yazilir (sigara,
+    elektronik sigara). Turkce cevrim I->ı yaptigi icin BUYUK HARFLE ve NOKTASIZ I ile yazilmis
+    bir baslik ("ELEKTRONIK SIGARA TUTUCU" — ALL-CAPS baslikta cok yaygin) TR cevrimden
+    'elektronık sıgara' cikar ve jetona ESLESMEZ: sessiz bir KACIS YOLU. Standart lower()
+    ise 'İ'yi 'i̇' (i + birlesen nokta) yapar, o da TR cevrimle yakalanir. Ikisini birden
+    taramak her iki yazimi da kapatir.
+    BEDEL OLCULDU (2026-07-22, 7769 feed kalemi): ASCII varyantinin EKLEDIGI bloklayici
+    isabet = 0 (yani yeni yanlis-pozitif YOK), kapattigi kacis yolu gercek."""
+    tr = kucult(s)
+    duz = (s or "").lower()
+    return [tr] if tr == duz else [tr, duz]
+
+
 def bloklayici_bul(metin):
     """Metindeki BLOKLAYICI jetonlari (kanonik ad) sirali/benzersiz dondurur."""
-    d = kucult(metin)
-    return [j for j in BLOKLAYICI if _D_BLOK[j].search(d)]
+    vs = varyantlar(metin)
+    return [j for j in BLOKLAYICI if any(_D_BLOK[j].search(v) for v in vs)]
 
 
 def rapor_bul(metin):
     """Metindeki RAPOR (bloklamayan) jetonlarini dondurur."""
-    d = kucult(metin)
-    return [j for j in RAPOR if _D_RAPOR[j].search(d)]
+    vs = varyantlar(metin)
+    return [j for j in RAPOR if any(_D_RAPOR[j].search(v) for v in vs)]
 
 
 # ---------------------------------------------------------------- feed tarama
@@ -207,8 +243,26 @@ _POZITIF = [
     ("Toyota Nord AIO Elektronik Sigara Standı", "elektronik sigara"),
     ("Renault Laguna E-Sigara Tutucu", "e-sigara"),
     ("Toyota Nord AIO vape standı", "vape"),
-    ("SCHMIDT & BENDER DÜRBÜN KORUYUCU KAPAK", "dürbün"),      # buyuk harf + Turkce I
-    ("Nikon durbun ayak plakasi", "durbun"),                   # diakritiksiz yazim
+    # 🔴 BUYUK HARF + NOKTALI İ: kucult()'un TR_KUCUK cevrimi (İ->i) olmazsa standart lower()
+    # 'İ'yi 'i̇' (i + U+0307 birlesen nokta) yapar ve 'elektronik sigara' ESLESMEZ.
+    # (Eski yorum "buyuk harf + Turkce I" DIYORDU ama nobetci metninde ne I ne İ vardi ->
+    #  TR_KUCUK cevrimi HIC sinanmiyordu; S4 turunda duzeltildi.)
+    ("RENAULT LAGUNA ELEKTRONİK SİGARA TUTUCU", "elektronik sigara"),
+    # 🔴 BUYUK HARF + NOKTASIZ ASCII I: TR cevrim I->ı yaptigi icin bu metin YALNIZ duz
+    # lower() varyantiyla yakalanir (bkz varyantlar()). Varyantlardan biri dusurulurse
+    # bu iki satirdan biri KIRMIZI yanar.
+    ("CITROEN C4 ELEKTRONIK SIGARA DUZENLEYICI", "elektronik sigara"),
+    ("TOYOTA NORD AIO VAPE STANDI", "vape"),
+]
+
+# RAPOR katmaninin POZITIF nobetcileri (bu katman CI'yi kirmaz ama SESSIZCE olebilir;
+# olurse maruziyet sayaci sifir gosterir ve "temizlendi" sanilir).
+_RAPOR_POZITIF = [
+    ("Toyota 4Runner Arka Küllük İptal Kapağı", "küllük"),
+    # 'dürbün' BLOKLAYICI'dan buraya tasindi (bkz ustteki karar notu) — RAPOR'da da
+    # yakalanmazsa jeton tumden kaybolmus olur, o yuzden nobetcisi burada.
+    ("Schmidt & Bender 1.5-6x42 Dürbün Koruyucu Kapak Seti", "dürbün"),
+    ("Nikon durbun ayak plakasi", "durbun"),
 ]
 
 # 🔴 YANLIS-POZITIF NOBETCISI — hepsi KATALOGDAKI GERCEK, MESRU otomotiv parca metinleridir.
@@ -226,6 +280,12 @@ _NEGATIF = [
     "Toyota 4Runner arka tutamak — tutunma kolu",
     "Volkswagen dizel yakıt tabancası adaptörü",
     "Skoda Octavia Bardaklık İçi Sigara ve Cihaz Tutucu",
+    # 🔴 S4 KILIDI — "dürbün" BLOKLAYICI'ya GERI TASINIRSA bu iki satir kapiyi kendi
+    # kosumunda kirmizi yakar. Ikisi de MESRU urun metnidir (Marin/Kamera katalogumuzun
+    # dogal genislemesi): dürbün'un bloklayici olmasi bunlarin eklendigi gun TUM EKIBIN
+    # yayinini durdururdu. Kanit vardi ama BEDEL tasinamazdi (bkz dosya basi karar notu).
+    "Marin el dürbünü tutucu",
+    "Tekne konsolu durbun yuvasi",
 ]
 
 
@@ -273,7 +333,7 @@ def _kendini_dogrula():
     if not kurallari_uygula(_sentetik_kayit("sentetik-yeni", ["vape"]), {}):
         hata.append("R1 KURALI OLDU: tabanda OLMAYAN sentetik ihlal KIRMIZI uretmedi — "
                     "yeni borc artik durdurulmuyor.")
-    if not kurallari_uygula(_sentetik_kayit("sentetik-taban", ["vape", "dürbün"]),
+    if not kurallari_uygula(_sentetik_kayit("sentetik-taban", ["vape", "e-sigara"]),
                             {"sentetik-taban": {"vape"}}):
         hata.append("R2 KURALI OLDU: tabandaki sentetik urun YENI jeton kazandigi hâlde "
                     "KIRMIZI uretmedi — borc sessizce agirlasabilir.")
@@ -307,19 +367,33 @@ def _kendini_dogrula():
                 "boyle bir jeton TUM EKIBIN push'unu durdurur. Jetonu BLOKLAYICI'dan cikar, "
                 "gerekiyorsa RAPOR katmanina koy." % (metin, bulunan))
     # RAPOR katmani yasiyor mu (o da sessizce olebilir; olurse maruziyet gorunmez olur).
-    if "küllük" not in rapor_bul("Toyota 4Runner Arka Küllük İptal Kapağı"):
-        hata.append("RAPOR KATMANI DUSTU: mesru 'Küllük' metninde rapor jetonu bulunamadi — "
-                    "maruziyet sayaci artik hicbir seyi saymiyor olabilir.")
-    # <description> yolu GERCEKTEN taraniyor mu: basligi TEMIZ, aciklamasi kirli sentetik urun.
-    sentetik = [{"id": "nobetci-sentetik-urun", "kategori": "Tamirat", "marka": [],
-                 "baslik": "Nobetci test parcasi",
-                 "aciklama": "Bu metin vape kelimesi tasir; baslik temizdir.",
-                 "fiyat": "100 TL",
-                 "gorseller": ["https://media.pruvo3d.com/urunler/nobetci-1.jpg"]}]
-    bulundu, _ = ihlalleri_topla(sentetik)
-    if not (bulundu and bulundu[0]["aciklama_jeton"] and not bulundu[0]["baslik_jeton"]):
-        hata.append("ACIKLAMA YOLU DUSTU: yalniz <description> icinde jeton tasiyan sentetik "
-                    "kalem yakalanmadi (sonuc=%r) — feed aciklamasi artik taranmiyor" % bulundu)
+    for metin, beklenen in _RAPOR_POZITIF:
+        if beklenen not in rapor_bul(metin):
+            hata.append("RAPOR KATMANI DUSTU: %r icinde %r rapor jetonu bulunamadi — "
+                        "maruziyet sayaci artik hicbir seyi saymiyor olabilir."
+                        % (metin, beklenen))
+    # 🔴 IKI TARAMA YOLU DA AYRI AYRI NOBETLI (S4): kapinin girdisi feed'in <title> VE
+    # <description> alanlaridir. Tek bir "kirli urun" fiksturu IKISINI BIRDEN kirli yaptigi
+    # icin bir yolun bulucusu oldurulse bile digeri kalemi yakalar ve nobetci YESIL kalirdi
+    # (olculdu: baslik bulucusu oldurulunce GERCEK bir vape urunu SESSIZCE geciyordu).
+    # Bu yuzden fiksturler ASIMETRIK: her birinde YALNIZ bir yol kirli.
+    for etiket, baslik, aciklama, kirli, temiz in (
+        ("ACIKLAMA", "Nobetci test parcasi",
+         "Bu metin vape kelimesi tasir; baslik temizdir.", "aciklama_jeton", "baslik_jeton"),
+        ("BASLIK", "Nobetci vape standi",
+         "Bu aciklama tamamen temizdir, hicbir politika jetonu tasimaz.",
+         "baslik_jeton", "aciklama_jeton"),
+    ):
+        sentetik = [{"id": "nobetci-sentetik-%s" % etiket.lower(), "kategori": "Tamirat",
+                     "marka": [], "baslik": baslik, "aciklama": aciklama, "fiyat": "100 TL",
+                     "gorseller": ["https://media.pruvo3d.com/urunler/nobetci-1.jpg"]}]
+        bulundu, _ = ihlalleri_topla(sentetik)
+        if not (bulundu and bulundu[0][kirli] and not bulundu[0][temiz]):
+            hata.append(
+                "%s YOLU DUSTU: yalniz <%s> icinde jeton tasiyan sentetik kalem yakalanmadi "
+                "(sonuc=%r) — feed'in bu alani artik taranmiyor, o alandan gelen GERCEK bir "
+                "politika ihlali SESSIZCE gecer."
+                % (etiket, "title" if etiket == "BASLIK" else "description", bulundu))
     return hata
 
 

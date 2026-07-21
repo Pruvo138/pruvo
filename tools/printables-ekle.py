@@ -15,9 +15,15 @@ Token GEREKMEZ (Printables public GraphQL).
 """
 import concurrent.futures, fcntl, importlib.util, json, os, re, subprocess, sys, tempfile
 
-# ROOT betigin KENDI konumundan turer (tools/../) — bkz urun-ekle.py'deki ayni not.
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TOOLS = os.path.join(ROOT, "tools")
+# KOD KOKU (moduller) ile VERI KOKU (urunler.json + kilit) AYRIDIR — bkz tools/veri_kok.py
+# ve urun-ekle.py'deki ayni not. Worktree'den kosulursa STDERR'e gurultulu uyari basilir.
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+_vkspec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec)
+_vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 CACHE = os.path.join(ROOT, ".thing-cache")
 STLDIR = os.path.join(ROOT, "stl")
 URUNLER = os.path.join(ROOT, "urunler.json")
@@ -50,7 +56,7 @@ _gbspec = importlib.util.spec_from_file_location("gorsel_boyut_kapisi", os.path.
 gbk = importlib.util.module_from_spec(_gbspec)
 _gbspec.loader.exec_module(gbk)
 
-sys.path.insert(0, os.path.join(ROOT, "tools"))
+sys.path.insert(0, TOOLS)          # KOD koku (veri koku degil) — bkz tools/veri_kok.py
 import drive_yolu
 DRIVE = drive_yolu.stl_dizini()
 
