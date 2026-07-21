@@ -11,6 +11,8 @@ urun-kaynaklari.json
 .urun-kaynaklari.json
 # stl-r2-yukle.py idempotens manifesti (anahtar -> sha1/boyut; yerel durum, commit'lenmez)
 .stl-r2-manifest.json
+# STL eslesmeyen dosya manifesti (yerel MUTLAK yollar + sha256 + R2 anahtarlari; yerel durum)
+.stl-eslesmeyen-manifest.json
 # mukerrer-kontrol istisnalari: kaynak linkleri icerebilir (ucretli tedarikci = sir)
 .mukerrer-istisna.json
 gorseller/
