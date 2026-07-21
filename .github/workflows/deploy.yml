@@ -59,6 +59,20 @@ jobs:
       - name: Landing/hukuk beyan kapisi
         run: python3 tools/landing-hukuk-kapisi.py
 
+      # MALZEME DAYANAGI: huni (landing) sayfalarinda gecen her malzeme adinin filament
+      # envanterinde karsiligi var mi — uretemedigimiz bir malzeme sinifini (or. PC) sayfada
+      # vaat etmek yanlis ticari beyandir. Bloklayici (landing-hukuk deseni). Offline, stdlib,
+      # olculdu 2,8 s; build.py'den ONCE commit'li sayfa kaynagini okur.
+      - name: Malzeme dayanak kabul testi (landing sayfalari)
+        run: python3 tools/malzeme-dayanak-test.py
+
+      # ENJEKSIYON KAPISI: build.py'nin sayfalara inline bastigi JS (attribution/riza + meta)
+      # bayt-bayt bozulmadan mi gidiyor. Yasanmis hata: re.sub REPLACEMENT kacisi yorumlayinca
+      # ya JS string'i kiriliyor (sayfa acilir, script SESSIZCE hic calismaz) ya da build tumden
+      # cokuyor. Bloklayici; tam build kosmaz (fonksiyonlari dogrudan cagirir), olculdu 8,5 s.
+      - name: Enjeksiyon kapisi (inline JS bozulmadan mi basiliyor)
+        run: python3 tools/enjeksiyon-kapisi.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.

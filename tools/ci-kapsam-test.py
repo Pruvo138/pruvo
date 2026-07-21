@@ -12,7 +12,13 @@ CI-disi kalamaz.
 
 KESIF (discovery) — git ls-files uzerinden (CI checkout == yerel; os.walk kullanılmaz cunku
 gitignore'lu/uretilmis dosyalar yerelde gorunup CI'da gorunmez, sapma yaratirdi):
-  * tools/  (arsiv/ HARIC):  <ad>-test.(py|js)  VEYA  test-<ad>.(py|js)
+  * tools/  (arsiv/ HARIC):  <ad>-test.(py|js)  VEYA  test-<ad>.(py|js)  VEYA  <ad>-kapisi.py
+    (META-DELIK ONARIMI, 21 Tem: kesif uzun sure yalniz "-test"/"test-" adlarina bakiyordu ->
+     ADI "-kapisi.py" olan NOBETCILER — odeme-beyani-kapisi, landing-hukuk-kapisi,
+     enjeksiyon-kapisi ... — kesfe HIC girmiyordu. Sonuc: biri deploy.yml'den silinse bu kapi
+     UYARMAZ, YESIL kalirdi; olculdu: "run: python3 tools/odeme-beyani-kapisi.py" satiri
+     silinmis mutant deploy.yml'de kapi eski desenle exit 0 veriyordu. Artik kapsam kurali
+     nobetcilere de uygulanir.)
   * shop/test, onizleme/test, jenerator/test:  o dizinin DOGRUDAN altindaki .py/.js/.mjs/.cjs
     (alt dizinler — jenerator/test/aileler, esleme — fikstur/aile verisi, kosulabilir suite degil)
 
@@ -42,7 +48,8 @@ ROOT = os.path.dirname(TOOLS)
 DEPLOY_VARSAYILAN = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
 
 # ---- KESIF PREDIKATLARI ----------------------------------------------------
-TOOLS_PAT = re.compile(r"^tools/([^/]*-test\.(?:py|js)|test-[^/]*\.(?:py|js))$")
+TOOLS_PAT = re.compile(
+    r"^tools/([^/]*-test\.(?:py|js)|test-[^/]*\.(?:py|js)|[^/]*-kapisi\.py)$")
 DIR_PAT = re.compile(r"^(?:shop/test|onizleme/test|jenerator/test)/[^/]+\.(?:py|js|mjs|cjs)$")
 
 
@@ -91,6 +98,21 @@ R_SONRA = ("Offline + yerelde YESIL, ama Paket C kapsami YALNIZ mimarin verdigi 
            "eklemeleri CI'ya aldi. Bu test sonraki turda (ubuntu path/env dogrulamasi sonrasi) "
            "CI'ya alinabilir — kod-kilidi ornegi 'yerel-yesil / CI-kirmizi' tuzagini kanitladi, "
            "o yuzden kor-ekleme yapilmadi.")
+R_HOOK = ("Claude Code PreToolUse KANCASI, kosulabilir kabul testi DEGIL: stdin'den JSON alir, "
+          "karar objesi dondurur (argumansiz kosunca girdi yok -> exit 0, hicbir sey kanitlamaz). "
+          "Yerel ajan disiplin cihazi; GitHub Pages build'inde karsiligi yok.")
+R_GIZLI = ("Gizli/izlenmeyen girdiye bagli: .urun-kaynaklari.json (gitignore) + working-tree'de "
+           "stage'lenmis PARTI farki. CI fresh checkout'unda ikisi de YOK -> kapi bos parti "
+           "gorup anlamsiz YESIL yakar (sahte nobetci). Urun-ekleme hattinda (MaCiT) yerel "
+           "kosulur; deploy hattinin girdisi degil.")
+R_TASARIM = ("TASARIM GEREGI yayin-disi (kendi dosyasindaki not): 'bu kapi build.py'ye BAGLANMAZ "
+             "— tek kotu kategori TUM yayini kirmasin'. Kategori drifti urunu katalogda birakir, "
+             "yalniz filtreden dusurur; yayini bloklamak orantisiz. Bagimsiz calistirilabilir "
+             "kabul testi olarak yerelde/duzeltme akisinda kosulur.")
+R_YEREL_HIJYEN = ("Yerel calisma-agaci hijyeni: .gitignore blogunun CONTENT_PAGES ile ortusmesini "
+                  "denetler. Drift CI'da GORUNMEZ (uretilen dizinler fresh checkout'ta yok) ve "
+                  "canli siteyi bozmaz — yalniz gelistiricinin `git status`ini kirletir/kazara "
+                  "commit riski dogurur. Yayini bloklamasi orantisiz; commit oncesi yerel kapi.")
 R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VIRTUAL TABLE ... "
           "USING fts5(tokenize='trigram')). CI ubuntu stok sqlite3'unde fts5-trigram tokenizer'i "
           "yok -> test daha sema yuklerken patlar (yerel-yesil / CI-kirmizi). R_YAVAS/R_YOL ile "
@@ -132,7 +154,27 @@ IZIN_LISTESI = {
     "tools/mimar-kapi-mutasyon-test.py": R_YOL,
     "tools/kapi-envanteri-test.py": R_YOL,
     "tools/kod-kilidi-test.py": R_YOL,  # E paketi YESILLEDI; mutlak /Users/okan/dev/pruvo yoluna bagli -> fresh checkout'ta yapisal KIRMIZI
+    # --- tools/ NOBETCILER (*-kapisi.py) — kesif 21 Tem genisletildi, CI'da kosmayanlar ---
+    "tools/komut-stili-kapisi.py": R_HOOK,
+    "tools/mimar-icra-kapisi.py": R_HOOK,
+    "tools/mimar-commit-kapisi.py": (
+        R_HOOK + " Ayrica git commit backstop'u olarak commit EDILMEYEN .git/hooks kablolamasina "
+        "ve ana-checkout/worktree ayrimina bagli (R_YOL ile ayni sinif)."),
+    "tools/denetim-kapisi.py": R_GIZLI,
+    "tools/kategori-kapisi.py": R_TASARIM,
+    "tools/gitignore-kapisi.py": R_YEREL_HIJYEN,
+    "tools/regresyon-kapisi.py": (
+        R_YOL + " Ek olarak varsayilan suite'i node tools/parite-test.js + parite-ege.js icerir "
+        "(CI'da node YOK + ag gerekir, R_NODE/R_AG) ve kapsadigi testler zaten tek tek bu "
+        "listede muhasebeli -> CI'da kosmasi cift-sayim olurdu."),
     # --- tools/ python: yavas/harici (>30s) ---
+    "tools/feed-cache-bust-test.py": (
+        R_YAVAS + " OLCULDU (F2 raporu): test build.py'yi 2 KEZ kosuyor -> tek build 108,0 s, "
+        "test toplam 227,9 s (mutasyon kosumlarinda 148-302 s). Tek build job'una ~4-5 dk "
+        "eklerdi, kendisi de deploy'un ZATEN kosturdugu build.py'nin ciktisini yeniden uretir. "
+        "CI'YA ALINMA KOSULU (RAPOR onerisi): test build.py'yi alt-surec olarak degil "
+        "render_merchant_feed'i import edip 2 kez cagirarak kosarsa sure saniyeye iner ve "
+        "bloklayici adim olarak eklenebilir."),
     "tools/filament-test.py": R_YAVAS,
     "tools/kaynak-akis-test.py": R_YAVAS,
     "tools/test-bbox-3mf.py": R_YAVAS,
