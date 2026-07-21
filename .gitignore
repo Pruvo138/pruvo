@@ -128,6 +128,8 @@ DEVAM.md
 DEVAM-ARSIV.md
 # Muhendis raporlari worktree-lokal kalir (ILETISIM PROTOKOLU); public repoya girmez.
 RAPOR-MIMARA.md
+# ic yedek/varlik envanteri — PUBLIC repoya girmez
+tools/yedek-topolojisi-raporu.md
 __pycache__/
 stl/
 .stl-backup-dir
