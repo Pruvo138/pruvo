@@ -73,6 +73,14 @@ jobs:
       - name: Enjeksiyon kapisi (inline JS bozulmadan mi basiliyor)
         run: python3 tools/enjeksiyon-kapisi.py
 
+      # STL R2 YUKLEYICI: anahtar turetme (yol-gezinme kapisi: ../ , mutlak yol, ters bolu,
+      # NUL reddedilir) + 300 MiB ustu cok-parcali (multipart) yolun parca boyutu/sayisi ve
+      # kabul mantigi. Bloklayici: anahtar kacarsa yanlis R2 prefix'ine yazilir, multipart
+      # esik/parca hesabi kayarsa buyuk STL sessizce BOZUK yuklenir. Offline (gercek R2
+      # yazmasi YOK, kimlik okumaz), olculdu ~1 s; build.py'den ONCE kosar.
+      - name: STL R2 anahtar/multipart kabul testi
+        run: python3 tools/stl-r2-anahtar-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
