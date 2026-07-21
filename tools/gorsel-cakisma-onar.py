@@ -47,6 +47,13 @@ def _load(fname, modname):
     return m
 
 
+# R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py).
+# Betigin KENDI dizininden yuklenir ki worktree'de de dogru kopya kossun.
+_r2spec = importlib.util.spec_from_file_location(
+    "r2_anahtar", os.path.join(os.path.dirname(os.path.abspath(__file__)), "r2_anahtar.py"))
+r2k = importlib.util.module_from_spec(_r2spec)
+_r2spec.loader.exec_module(r2k)
+
 pr = _load("printables-api.py", "pr_api_onar")
 th = _load("thing-hazirla.py", "th_hazirla_onar")
 cgt = _load("cgt-ekle.py", "cgt_ekle_onar")
@@ -80,17 +87,17 @@ def resolve(pid, kaynak):
         if k == "Printables":
             m = re.search(r"/model/(\d+)", link)
             return ("Printables", m.group(1) if m else None, rec)
-        if k == "********":
-            return ("********", rec.get("itemid"), rec)
+        if k == "CGTrader":
+            return ("CGTrader", rec.get("itemid"), rec)
         return (k, None, rec)
     m = re.search(r"-(\d+)$", pid)
     return ("?", m.group(1) if m else None, None)
 
 
 def gkey_for(platform, sid):
-    pref = {"Thingiverse": "th", "Printables": "pr", "********": "cgt-"}.get(platform, "x")
-    raw = pref + str(sid)
-    return re.sub(r"[^a-z0-9-]+", "-", raw.lower()).strip("-")
+    """Anahtar turetme TEK KAYNAK'ta (tools/r2_anahtar.py). Bilinmeyen platform -> "x" oneki;
+    yedek=False -> normalizasyon bosa duserse ham degere DONMEZ (eski davranis birebir)."""
+    return r2k.gkey(platform, sid, yedek=False)
 
 
 # ----------------------------------------------------------------------------- gorsel getir
@@ -147,8 +154,8 @@ def fetch_any(platform, sid, rec, outdir):
         return "Printables", fetch_printables(sid, outdir)
     if platform == "Thingiverse":
         return "Thingiverse", fetch_thingiverse(sid, outdir)
-    if platform == "********":
-        return "********", fetch_cgt(rec, sid, outdir)
+    if platform == "CGTrader":
+        return "CGTrader", fetch_cgt(rec, sid, outdir)
     if platform == "?" and sid:
         p = fetch_printables(sid, outdir)
         if p:
@@ -166,7 +173,7 @@ def upload(paths, gkey):
         small = os.path.join(tempfile.gettempdir(), "onar_up_%s_%d.jpg" % (gkey, i))
         subprocess.run(["sips", "-Z", "1000", "-s", "formatOptions", "80", p, "--out", small],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        r = subprocess.run([PY, os.path.join(TOOLS, "r2-upload.py"), small, "urunler/%s-%d.jpg" % (gkey, i)],
+        r = subprocess.run([PY, os.path.join(TOOLS, "r2-upload.py"), small, r2k.gorsel_yolu(gkey, i)],
                            capture_output=True, text=True)
         for line in r.stdout.splitlines():
             if line.strip().startswith("https://"):
@@ -184,7 +191,7 @@ def faz_plan():
     cozulemez = []
     for pid in ids:
         platform, sid, rec = resolve(pid, kaynak)
-        ok = bool(sid) and platform in ("Printables", "Thingiverse", "********", "?")
+        ok = bool(sid) and platform in ("Printables", "Thingiverse", "CGTrader", "?")
         say[platform] += 1
         gk = gkey_for(platform, sid) if sid else "-"
         if not ok:

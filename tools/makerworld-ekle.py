@@ -45,6 +45,8 @@ mw = _load("makerworld_api", "makerworld-api.py")
 bi = _load("baski_ipucu", "baski_ipucu.py")
 fo = _load("filament_ortak", "filament_ortak.py")
 gmk = _load("gorsel_mukerrer_kapisi", "gorsel_mukerrer_kapisi.py")
+# R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py)
+r2k = _load("r2_anahtar", "r2_anahtar.py")
 
 sys.path.insert(0, _HERE)
 import drive_yolu
@@ -132,9 +134,9 @@ def process_one(did):
         if not os.path.exists(onerip):
             return {"id": did, "durum": "HATA: codex oneri yok"}
         o = json.load(open(onerip))
-        uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or key).lower()).strip("-")[:60] or key
+        uid = r2k.urun_slug(o.get("baslik") or key, yedek=key)
         # R2 gorsel anahtari KAYNAK-ID'den (mw<id>) turer, baslik-slug'indan DEGIL (cakisma onlemi).
-        gkey = re.sub(r"[^a-z0-9-]+", "-", key.lower()).strip("-") or key
+        gkey = r2k.gkey("MakerWorld", did)
         d = os.path.join(CACHE, key)
         secili = o.get("sec_gorseller") or meta["gorseller"]
         # ALGISAL MUKERRER KAPISI: ayni fotografin ikizini R2'ye yuklemeden ELE (aday-ici dedup).
@@ -144,7 +146,7 @@ def process_one(did):
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
             if os.path.exists(fp):
-                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (gkey, i))
+                uu = sips_upload(fp, r2k.gorsel_yolu(gkey, i))
                 if uu:
                     urls.append(uu)
         if not urls:

@@ -25,6 +25,12 @@ LOCK = os.path.join(ROOT, ".urunler.lock")
 PY = sys.executable or "python3"
 WORKERS = int(os.environ.get("PRUVO_WORKERS", "6"))
 
+# R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py)
+_r2spec = importlib.util.spec_from_file_location(
+    "r2_anahtar", os.path.join(os.path.dirname(os.path.abspath(__file__)), "r2_anahtar.py"))
+r2k = importlib.util.module_from_spec(_r2spec)
+_r2spec.loader.exec_module(r2k)
+
 _spec = importlib.util.spec_from_file_location("pr_api", os.path.join(TOOLS, "printables-api.py"))
 pr = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(pr)
@@ -127,12 +133,12 @@ def process_one(pid):
         if not os.path.exists(onerip):
             return {"id": pid, "durum": "HATA: codex oneri yok"}
         o = json.load(open(onerip))
-        uid = re.sub(r"[^a-z0-9]+", "-", (o.get("baslik") or key).lower()).strip("-")[:60] or key
+        uid = r2k.urun_slug(o.get("baslik") or key, yedek=key)
         # R2 gorsel anahtari KAYNAK-ID'den (pr<pid>) turer, baslik-slug'indan (uid) DEGIL.
         # Iki farkli urun ayni Turkce basligi uretse bile anahtarlari cakismaz. uid, JSON id'si +
         # SEO URL'si icin kalir; merge_safe id'yi sonradan -pid ile ayirir ama upload ondan ONCE
-        # oldugu icin baslik-tabanli anahtar EZILME yaratiyordu (bkz tools/gorsel-anahtar-test.py).
-        gkey = re.sub(r"[^a-z0-9-]+", "-", key.lower()).strip("-") or key
+        # oldugu icin baslik-tabanli anahtar EZILME yaratiyordu (bkz tools/r2_anahtar.py).
+        gkey = r2k.gkey("Printables", pid)
         d = os.path.join(CACHE, key)
         secili = o.get("sec_gorseller") or meta["gorseller"]
         # ALGISAL MUKERRER KAPISI: ayni fotografin ikizini R2'ye yuklemeden ELE (aday-ici dedup).
@@ -142,7 +148,7 @@ def process_one(pid):
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
             if os.path.exists(fp):
-                uu = sips_upload(fp, "urunler/%s-%d.jpg" % (gkey, i))
+                uu = sips_upload(fp, r2k.gorsel_yolu(gkey, i))
                 if uu:
                     urls.append(uu)
         if not urls:
