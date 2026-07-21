@@ -76,30 +76,42 @@ jobs:
       # EGE-BILGI TAVAN: ege-bilgi.md uzunlugu bot slice(0,6000) esigini asmasin.
       # Olcu UTF-16 kod birimi (JS String.slice birimi) — bayt sayan olcum sahte-kirmizi,
       # Python len(str) astral karakterde sahte-yesil yakar.
-      # Bloklayici SADECE gercek zararda: (1) >6000 (bot metni SESSIZCE kesiyor, icerik
-      # kaybi) (2) bastaki satirlarda TEK ve KESIN bir tavan ilani var ve kapi sabitinden
-      # farkli. Dar pay / ILAN YOK / CELISKILI ILAN / ILAN BASTA DEGIL / ILAN BAGLAMA
-      # OTURMADI KIRMIZI DEGIL -> exit 0 + gurultulu uyari: olculdu 21 Tem, BESI DE MASUM
-      # duzenlemeyle tetikleniyordu (uslup kuralindaki baska bir sayi · "6000"->"6.000"
-      # kozmetik ayrac · ilan cumlesinin silinmesi · basa icindekiler eklenip ilanin
-      # kaymasi · ilanin YERINE "en fazla 300 karaktere kadar" gibi bir USLUP kurali
-      # yazilmasi) ve continue-on-error olmadigi icin TUM EKIBIN yayinini durduruyordu.
-      # "KESIN ilan" = sayi TAVAN bandinda (2000..18000) VE ayni satirda ilanin oznesi
-      # (Ege'ye / bilgi dosyasi / bu dosya) aniliyor; supheli her hal UYARI'dir.
-      # Offline, stdlib, ~1 ms.
+      # Bloklayici SADECE gercek zararda, IKI hal: (1) UTF-16 uzunluk >6000 (bot metni
+      # SESSIZCE kesiyor, icerik kaybi) (2) fail-loud — dosya yok / okunamiyor / UTF-8 degil
+      # (olculecek sey YOK; sessiz yesil verilmez).
+      # ILAN duzlemindeki HER hal UYARI'dir (exit 0 + gurultulu uyari), 21 Tem MIMAR KARARI:
+      # ILAN/SABIT UYUSMAZLIGI · dar pay · ILAN YOK · CELISKILI ILAN · ILAN BASTA DEGIL ·
+      # ILAN BAGLAMA OTURMADI. Gerekce: ilan kontrolu Turkce serbest metinde desen arayan bir
+      # NESIR AYRISTIRMASIDIR ve bir HUKUM kaynagi degildir ([[mimar-kapi-parser-taklidi]]);
+      # olculdu 21 Tem, BES ayri MASUM tek-satirlik duzenleme kapiyi kirmiziya cekiyordu
+      # (uslup kuralindaki baska bir sayi · "6000"->"6.000" kozmetik ayrac · ilan cumlesinin
+      # silinmesi · basa icindekiler eklenip ilanin kaymasi · ilanin YERINE "en fazla 300
+      # karaktere kadar" gibi bir USLUP kurali yazilmasi) ve continue-on-error olmadigi icin
+      # TUM EKIBIN yayinini durduruyordu. Icerik kaybi hukmunu uzunluk olcusu TEK BASINA
+      # verir; ilan kontrolu yalnizca BAYATLIK SEZGISIDIR (bagirir, insan bakar).
+      # ⚠️ BILEREK KABUL EDILEN RISK: TAVAN sabiti bot reposundakinden KUCUK yonde bayatlarsa
+      # kapi durdurmaz, yalniz uyarir. Gercek capraz-repo korumasi
+      # pruvo-bot/worker/test/ege-bilgi-nobetci.mjs'de (tavani index.js'ten CANLI okur).
+      # "KESIN ilan" = sayi TAVAN bandinda (2000..18000) VE AYNI SATIRDA ilanin oznesi
+      # (Ege'ye / bilgi dosyasi / bu dosya) aniliyor; bu ayrim artik hukumde degil TESHIS
+      # metninde yasar (fikstur N1/N4/A5* onu korur). Offline, stdlib, ~5 ms.
       - name: Ege-bilgi tavan kabul testi (6000 karakter kesme kapisi)
         run: python3 tools/ege-bilgi-tavan-test.py
 
-      # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 26 gecici fiksturle olcer
+      # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 30 gecici fiksturle olcer
       # (tavan asimi · sinir 6000/6001 · astral UTF-16 ayrismasi · kesilen kuyruk onizlemesi ·
-      # dar/genis pay · dosya yok · UTF-8 degil · ilan sapmasi · mukerrer ilan · binlik ayrac ·
-      # A1-A5 masum duzenlemeler). Neden ayri adim: curutucu 21 Tem 5/5 kod mutasyonunun
+      # dar/genis pay · dosya yok · dosya OKUNAMIYOR · UTF-8 degil · ilan sapmasi + ters yonu ·
+      # mukerrer ilan · binlik ayrac · A1-A5 masum duzenlemeler · capa satir baglami (N1) ·
+      # onek zorunlulugu (N4)). Neden ayri adim: curutucu 21 Tem 5/5 kod mutasyonunun
       # (tavan hukmunu oldur / UTF-16'yi len(str) yap / marji oynat / fail-loud dalini
       # return 0 yap / ilan nobetcisini oldur) SAG KALDIGINI olctu — nobetci sessizce olurse
-      # ustteki adim yesil yanmaya devam ederdi. Bugun 10/10 mutant oluyor; olcumu
+      # ustteki adim yesil yanmaya devam ederdi. Bugun 14/14 mutant oluyor; olcumu
       # tekrarlamak icin: python3 tools/ege-bilgi-tavan-mutasyon.py (kapiyi SALT OKUR,
       # mutasyonu KOPYAYA uygular — CI adimi degil, elde kosulan kanit araci).
-      # Fiksturler tempfile'da; repo dosyalarina DOKUNMAZ. Offline, stdlib, ~30 ms.
+      # ⚠️ ILAN duzlemi UYARI'ya indigi icin oradaki mutantlarin cogu artik EXIT KODUNU degil
+      # yalniz TESHIS METNINI bozar -> fiksturler "iceren/icermeyen" metin sartiyla yazilir;
+      # sadece exit kodu karsilastiran bir fikstur onlari GOREMEZ.
+      # Fiksturler tempfile'da; repo dosyalarina DOKUNMAZ. Offline, stdlib, ~40 ms.
       - name: Ege-bilgi tavan kapisi ic nobetci (kapinin kendi mantigi)
         run: python3 tools/ege-bilgi-tavan-test.py --ic-nobetci
 

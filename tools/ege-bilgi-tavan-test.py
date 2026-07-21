@@ -34,21 +34,41 @@ UTF-16 birimi=5781):
 
 HUKUM (deploy.yml'de continue-on-error YOK -> sifir-disi cikis TUM YAYINI bloke eder;
 bu yuzden KIRMIZI kumesi BILEREK DAR tutulur — gerekce asagida):
-  KIRMIZI (exit 1) — yalniz iki hal:
+  KIRMIZI (exit 1) — yalniz IKI hal (21 Tem mimar karari sonrasi; asagida U0):
     K1. uzunluk > TAVAN                     (metin GERCEKTEN kesiliyor: icerik kaybi)
-    K2. bastaki satirlarda TEK ve NET (=KESIN, tanimi asagida) bir tavan ilani var VE o sayi
-        TAVAN'dan FARKLI
-        (belgeyi yazan insanin inandigi tavan ile makinenin denetledigi tavan ayrismis;
-         biri bayat -> ikisi de yanlis hukum uretir)
-    + fail-loud: dosya yok / okunamiyor / UTF-8 degil (olculecek sey YOK -> sessiz yesil
-      VERILMEZ; bu "olcum yapilamadi" halidir, icerik hukmu degil)
+    K2. fail-loud: dosya yok / okunamiyor / UTF-8 degil (olculecek sey YOK -> sessiz yesil
+        VERILMEZ; bu "olcum yapilamadi" halidir, icerik hukmu degil)
   UYARI (exit 0, gurultulu) — hukum DEGIL:
+    U0. ILAN/SABIT UYUSMAZLIGI: bastaki satirlarda TEK ve NET (=KESIN, tanimi asagida) bir
+        tavan ilani var VE o sayi TAVAN'dan FARKLI. Belgeyi yazan insanin inandigi tavan ile
+        makinenin denetledigi tavan ayrismis -> biri bayat. DEGERLI bir sinyal, ama HUKUM
+        DEGIL (gerekce asagida, "U0 NEDEN KIRMIZI DEGIL").
     U1. dar pay (TAVAN - uzunluk < GUVENLIK_MARJI)
     U2. ILAN YOK (bastaki satirlarda tavan ilani ayristirilamadi)
     U3. CELISKILI ILAN (bastaki satirlarda birden fazla FARKLI *kesin* tavan ilani)
     U4. ILAN BASTA DEGIL (kesin ilan var ama bastaki pencerenin altina kaymis)
     U5. ILAN BAGLAMA OTURMADI (aday sayi(lar) var ama hicbiri KESIN degil — uslup kurali
         gibi gorunuyor; supheden KIRMIZI URETILMEZ)
+
+🔴 U0 NEDEN KIRMIZI DEGIL (21 Tem, MIMAR KARARI — bu kapinin SON blokaji):
+  Ilan kontrolu bir NESIR AYRISTIRMASIDIR: "ilk/en fazla <N> karakter ... ulasir/okunur"
+  desenini Turkce serbest metinde arar. Boyle bir ayristirma ne kadar sikilastirilirsa
+  sikilastirilsin, dogal dilin kuyrugu tukenmez — bu kapinin gecmisi tam da bunu olcuyor:
+  A1-A5 (bes ayri sinif), hepsi MASUM tek-satirlik duzenlemeydi, hepsi TUM EKIBIN yayinini
+  durduruyordu. Ilke [[mimar-kapi-parser-taklidi]]: nesir ayristirmasi bir HUKUM kaynagi
+  degildir; supheliyi KIRMIZI yapma, UYAR.
+  Ustelik U0 hicbir sey EKLEMEZ: icerik kaybi hukmunu K1 (UTF-16 uzunluk > TAVAN) TEK BASINA
+  verir. Ilan/sabit karsilastirmasi — kapinin kendi docstring'inde de yazdigi gibi — yalnizca
+  BAYATLIK SEZGISIDIR: "gercek tavan bot reposunda degisti mi?" sorusuna dolayli bir ipucu.
+  Sezgi yayin durdurmaz. Sezgi bagirir, insan bakar.
+  ⚠️ UYARIYA INMEK NEYI KAYBETTIRIR (acikca yaziyoruz, sessiz kalmasin): TAVAN sabiti bot
+  reposundakinden kucuk yonde bayatlarsa (or. gercek tavan 6000 -> 3000 dustu, belge 3000
+  yaziyor ama bu sabit 6000 kaldi) kapi artik durdurmaz, yalniz uyarir; o halde dosya
+  3000-6000 arasindayken Ege'nin kuyrugu SESSIZCE kesilir ve CI yesil kalir. Bu risk
+  BILEREK kabul edildi: karsiligi, yanlis-pozitifin TUM EKIBIN yayinini durdurmasidir ve
+  olculen frekans yanlis-pozitif tarafinda cok daha yuksekti (5 sinif / 1 gun). Gercek
+  koruma capraz-repo nobetcisinde (pruvo-bot/worker/test/ege-bilgi-nobetci.mjs — tavani
+  index.js'ten CANLI okur), bu kapida DEGIL.
 
 🔴 UYARILAR NEDEN KIRMIZI DEGIL (bu kapinin en kritik ayari — 21 Tem bagimsiz curutucu
    dort tetikleyici olctu; hepsi MASUM duzenlemeydi ve TUM EKIBIN yayinini durduruyordu):
@@ -88,20 +108,36 @@ ILAN AYRISTIRMA — IKI KADEME (parser taklidi YAPMA ilkesi — [[mimar-kapi-par
        (b) OZNE: ayni satirda ilanin NESNESI anilir ("Ege'ye/Ege'nin", "bilgi dosyasi",
            "bilgi kaynagi", "bu dosya", "dosyanin")
            -> "Musteriye ... siniri uygulanir" / "WhatsApp baslik alani ..." elenir.
-  KESIN olmayan aday KIRMIZI URETMEZ; yalniz U5 uyarisi verir. KIRMIZI icin bastaki
-  pencerede TEK ve KESIN bir ilan olmali; birden fazla KESIN ilan varsa (U3) yine UYARI.
+  KESIN olmayan aday U5 uyarisi verir; KESIN ve sapan ilan U0 uyarisi verir. IKISI DE
+  exit 0'dir (yukaridaki U0 karari) — ayrim artik HUKUMDE degil, TESHIS METNINDE yasar.
+  Bu yuzden ayristirmanin iki kademesi (aday / KESIN) hala KILITLI tutulur: teshis yanlissa
+  insan yanlis yere bakar. Fikstur setinde A5*/N1/N4 tam da bu kademeleri korur.
   BILEREK KABUL EDILEN ACIK: gercek tavan bandin disina cikarsa (or. 6000 -> 900) ve belge
-  de oyle yazarsa, ilan/sabit sapmasi UYARI'ya duser. Bu taraf ucuz: icerik kaybi hukmunu
-  (K1) uzunluk olcusu zaten TEK BASINA verir; ilan kontrolu yalnizca bayatlik SEZGISIDIR.
+  de oyle yazarsa, ilan/sabit sapmasi U0 yerine U5 metnini uretir (yine exit 0). Icerik
+  kaybi hukmunu (K1) uzunluk olcusu zaten TEK BASINA verir.
+
+CAPA (OZNE) SATIR BAGLAMINDA ARANIR — N1: _OZNE_RE yalniz adayin KENDI satirinda taranir
+  (_satiri()). Capa aramasi metnin TAMAMINA acilirsa, dosyanin herhangi bir yerinde gecen
+  bir "Ege'ye"/"bu dosya" ifadesi ALAKASIZ bir uslup sayisini KESIN'e yukseltir ve teshis
+  "ILAN BAGLAMA OTURMADI" yerine "ILAN/SABIT UYUSMAZLIGI" uydurur. N1 fiksturu bunu kilitler.
+ONEK ZORUNLUDUR — N4: ILAN_RE bir sayiyi ancak _ONEK ("ilk / en fazla / azami ...") aciyorsa
+  ADAY sayar. Onek zorunlulugu kalkarsa "Ege'ye 4000 karakter ulasir" gibi onegi olmayan her
+  cumle — ve capa tasiyan her satirdaki her sayi — ilan sayilir. N4 fiksturu bunu kilitler.
 
 KENDI MANTIGINI KORUYAN IC NOBETCI:
     python3 tools/ege-bilgi-tavan-test.py --ic-nobetci
   Kapinin kendi hukmunu gecici fiksturlerle olcer (tavan asimi, sinir 6000/6001,
-  astral/UTF-16 ayrismasi, dar pay/genis pay, dosya yok, UTF-8 degil, ilan sapmasi,
-  binlik ayrac, A1-A5 masum duzenlemeler, kuyruk onizlemesi, mukerrer ilan).
+  astral/UTF-16 ayrismasi, dar pay/genis pay, dosya yok, dosya OKUNAMIYOR, UTF-8 degil,
+  ilan sapmasi, binlik ayrac, A1-A5 masum duzenlemeler, kuyruk onizlemesi, mukerrer ilan,
+  capa satir baglami (N1), onek zorunlulugu (N4)).
   Fiksturler tempfile'da uretilir; repodaki hicbir dosyaya DOKUNULMAZ. Kod mutasyonu
-  (tavan hukmunu oldur / UTF-16'yi len(str) yap / marji oynat / fail-loud dalini
-  return 0 yap / ilan nobetcisini oldur) bu bayrakla KIRMIZI yanar.
+  (tavan hukmunu oldur / UTF-16'yi len(str) yap / marji oynat / fail-loud dallarini
+  return 0 yap / ilan nobetcisini oldur / capayi metne ac / onegi kaldir) bu bayrakla
+  KIRMIZI yanar.
+  ⚠️ 21 Tem sonrasi ONEMLI: ILAN duzlemindeki mutantlarin cogu artik EXIT KODUNU degil
+  yalniz TESHIS METNINI bozar (U0 uyariya indi). Bu yuzden fiksturler "iceren/icermeyen"
+  metin sartlariyla yazilmistir — sadece exit kodu karsilastiran bir fikstur bu mutantlari
+  GOREMEZ.
 
   TESHIS DUZLEMI de kilitlidir (21 Tem: bu iki mutasyon HUKMU degil TESHISI bozdugu icin
   — exit kodu degismiyordu — eski fikstur setinden SAG CIKMISTI):
@@ -290,17 +326,21 @@ def degerlendir(dosya):
     hatalar = []
     uyarilar = []
 
-    # ---- ILAN: HUKUM yalniz "TEK ve KESIN ilan var ve TAVAN'dan FARKLI" halinde ----
+    # ---- ILAN duzlemi: HICBIR hal KIRMIZI URETMEZ (21 Tem mimar karari; docstring U0) ----
+    # Nesir ayristirmasi hukum kaynagi degildir. Buradaki tum dallar `uyarilar`a yazar;
+    # `hatalar`a yazan TEK yer asagidaki K1 (tavan asimi) ve bastaki fail-loud dallaridir.
     bas_adaylar = ilan_adaylari(_bas_bolge(metin))
     bas_kesin = kesin_ilanlar(_bas_bolge(metin))
     tekil = sorted(bas_kesin)
     zayif = sorted({s for s, _, k in bas_adaylar if not k})
     if len(tekil) == 1:
         if tekil[0] != TAVAN:
-            hatalar.append(
-                "ILAN/SABIT UYUSMAZLIGI: dosya '%d karakter' ilan ediyor, kapi sabiti "
-                "TAVAN=%d. Ilan satiri: %r. Gercek tavan "
-                "pruvo-bot/worker/src/index.js:2232'de — hangisi bayat? Ikisini hizala."
+            uyarilar.append(
+                "ILAN/SABIT UYUSMAZLIGI (uyari, kapi DEGIL): dosya '%d karakter' ilan "
+                "ediyor, kapi sabiti TAVAN=%d. Ilan satiri: %r. Gercek tavan "
+                "pruvo-bot/worker/src/index.js:2232'de — hangisi bayat? Ikisini hizala. "
+                "Yayin durdurulmuyor: bu bir BAYATLIK SEZGISIDIR, icerik kaybi hukmunu "
+                "uzunluk olcusu (K1) tek basina verir."
                 % (tekil[0], TAVAN, bas_kesin[tekil[0]].strip()[:160]))
     elif len(tekil) > 1:
         uyarilar.append(
@@ -458,28 +498,70 @@ def _fiksturler(dizin):
               _yaz(dizin, "m10b.md", _m10b), 1,
               ["TAVAN ASILDI", "KUYRUK-ISARETI"], []))
 
-    # K2 — ilan sayisi TAVAN'dan farkli -> KIRMIZI (mutasyon: ilan nobetcisini oldur)
-    f.append(("K2 ilan 4000 != TAVAN 6000 -> KIRMIZI",
+    # U0 — ilan sayisi TAVAN'dan farkli -> UYARI (exit 0), HUKUM DEGIL.
+    # 21 Tem mimar karari: nesir ayristirmasi yayin durdurmaz (docstring "U0 NEDEN KIRMIZI
+    # DEGIL"). Fikstur TESHIS duzleminde kilit: mutasyon "ilan nobetcisini oldur"
+    # (if tekil[0] != TAVAN and False) exit kodunu ARTIK degistirmez, ama uyari metnini
+    # yok eder -> asagidaki `iceren` sarti onu yakalar. Sadece exit kodu karsilastiran bir
+    # fikstur bu mutanti GOREMEZDI.
+    f.append(("U0 ilan 4000 != TAVAN 6000 -> gurultulu UYARI, exit 0 (hukum DEGIL)",
               _yaz(dizin, "k2.md", _fikstur_metni(3000,
-                   ilan="Ege'ye ilk 4000 karakter ulasir.")), 1,
-              ["ILAN/SABIT UYUSMAZLIGI", "'4000 karakter'", "SONUC: KIRMIZI"], []))
+                   ilan="Ege'ye ilk 4000 karakter ulasir.")), 0,
+              ["ILAN/SABIT UYUSMAZLIGI (uyari, kapi DEGIL)", "'4000 karakter'",
+               "BAYATLIK SEZGISIDIR", "SONUC: YESIL (UYARILI)"],
+              ["SONUC: KIRMIZI", "❌"]))
+
+    # U0b — KONTROL: ilan TAVAN ile uyusuyorsa uyari CIKMAMALI (U0'in ters yonu; mutasyon
+    # "her ilani sapmis say" -> `if tekil[0] != TAVAN` yerine `if True` bu fiksturde yakalanir).
+    f.append(("U0b ilan 6000 == TAVAN -> uyusmazlik uyarisi YOK, sessiz YESIL",
+              _yaz(dizin, "u0b.md", _fikstur_metni(3000)), 0,
+              ["Ilan edilen tavan     : [6000]", "SONUC: YESIL ✅"],
+              ["ILAN/SABIT UYUSMAZLIGI", "❌"]))
 
     # ---- M13 (TESHIS + HUKUM duzlemi): ILAN TEKILLESTIRMESI --------------------
     # 21 Tem curutucusunun SAG BIRAKTIGI mutasyon: kesin_ilanlar()'daki tekillestirmenin
     # (dict/set) kaldirilmasi. AYNI ilan cumlesi iki kez gecen TEMIZ dosyada uydurma
-    # "CELISKILI ILAN" uyarisi cikardi (M13a), YANLIS ilan iki kez geciyorsa da KIRMIZI
-    # hukmu sessizce UYARI'ya duserdi (M13b — bu ikincisi TESHIS degil HUKUM kaybi).
+    # "CELISKILI ILAN" uyarisi cikardi (M13a), YANLIS ilan iki kez geciyorsa da U0 teshisi
+    # sessizce "CELISKILI ILAN"a donusurdu (M13b — teshis kaybi; U0 uyariya indikten sonra
+    # exit kodu ikisinde de 0'dir, ayrimi YALNIZ metin sarti tutar).
     f.append(("M13a mukerrer AYNI (dogru) ilan -> tek sayar, sessiz YESIL",
               _yaz(dizin, "m13a.md", _fikstur_metni(4000, ek_satirlar=[ILAN_ORNEK])), 0,
               ["Ilan edilen tavan     : [6000]", "SONUC: YESIL ✅"],
               ["CELISKILI ILAN", "❌"]))
 
     _m13b = "Ege'ye ilk 4000 karakter ulasir."
-    f.append(("M13b mukerrer AYNI (yanlis) ilan -> tek sayar, hala KIRMIZI",
+    f.append(("M13b mukerrer AYNI (yanlis) ilan -> tek sayar, teshis hala UYUSMAZLIK",
               _yaz(dizin, "m13b.md", _fikstur_metni(3000, ilan=_m13b,
-                   ek_satirlar=[_m13b])), 1,
-              ["ILAN/SABIT UYUSMAZLIGI", "'4000 karakter'", "SONUC: KIRMIZI"],
-              ["CELISKILI ILAN"]))
+                   ek_satirlar=[_m13b])), 0,
+              ["ILAN/SABIT UYUSMAZLIGI", "'4000 karakter'", "SONUC: YESIL (UYARILI)"],
+              ["CELISKILI ILAN", "SONUC: KIRMIZI"]))
+
+    # ---- N1 (TESHIS duzlemi): OZNE capasi ADAYIN KENDI SATIRINDA aranmali ----------
+    # Mutasyon: kesin_mi()'ye satir yerine metnin TAMAMI verilirse (satir = metin),
+    # dosyanin BASKA bir yerinde gecen "Ege'ye" capasi alakasiz bir uslup sayisini KESIN'e
+    # yukseltir. U0 uyariya indigi icin exit kodu 0 KALIR -> mutant yalniz TESHISI bozar:
+    # dogru teshis "ILAN BAGLAMA OTURMADI" iken mutantta "ILAN/SABIT UYUSMAZLIGI" uydurulur
+    # (insan yanlis yere bakar, uslup satirini "tavan ilani" sanip duzeltmeye kalkar).
+    f.append(("N1 capa BASKA satirda -> aday KESIN sayilmaz (capa SATIR baglaminda aranir)",
+              _yaz(dizin, "n1.md", _fikstur_metni(
+                  4000,
+                  ilan="Ege'ye ulasan metin bu dosyadan gelir; kritik olan BASTA.",
+                  ek_satirlar=["Uslup: bir yanitta en fazla 3000 karakter gonderilir."])), 0,
+              ["ILAN BAGLAMA OTURMADI", "Ilan — elenen aday    : [3000]",
+               "SONUC: YESIL (UYARILI)"],
+              ["ILAN/SABIT UYUSMAZLIGI", "SONUC: KIRMIZI"]))
+
+    # ---- N4 (TESHIS duzlemi): ONEKSIZ sayi ADAY bile OLMAMALI ---------------------
+    # Mutasyon: ILAN_RE'deki _ONEK zorunlulugu kaldirilirsa (or. onek grubu opsiyonel),
+    # "Ege'ye 4000 karakter ulasir." gibi onegi olmayan her cumle — ve capa tasiyan bir
+    # satirdaki HER sayi — ilan sayilir. Dogru davranis: aday bile degil -> "ILAN YOK"
+    # (elenen aday listesi de BOS kalmali; aday olsaydi U5 metni cikardi).
+    f.append(("N4 oneksiz sayi ('Ege'ye 4000 karakter ulasir') -> aday DEGIL, ILAN YOK",
+              _yaz(dizin, "n4.md", _fikstur_metni(
+                  4000, ilan="Ege'ye 4000 karakter ulasir.")), 0,
+              ["ILAN YOK", "SONUC: YESIL (UYARILI)"],
+              ["ILAN/SABIT UYUSMAZLIGI", "ILAN BAGLAMA OTURMADI", "Ilan — elenen aday",
+               "SONUC: KIRMIZI"]))
 
     # FAIL-LOUD — dosya YOK (mutasyon: fail-loud dalini return 0 yap)
     f.append(("FL1 dosya YOK -> fail-loud KIRMIZI",
@@ -492,6 +574,16 @@ def _fiksturler(dizin):
         fh.write(b"# EGE\n\xff\xfe gecersiz bayt dizisi\n")
     f.append(("FL2 UTF-8 degil -> fail-loud KIRMIZI", bozuk, 1,
               ["UTF-8 olarak cozulemedi", "SONUC: KIRMIZI"], []))
+
+    # FAIL-LOUD — dosya VAR ama OKUNAMIYOR (N2: OSError dali fiksturSUZDU).
+    # os.path.exists() TRUE doner, open(..., "rb") IsADirectoryError (OSError alt sinifi)
+    # firlatir -> "olcum yapilamadi" hali. Dizin secildi cunku chmod 000 root altinda
+    # (bazi CI imajlari) okunabilir kalir ve fikstur sessizce anlamsizlasirdi; dizin acma
+    # hatasi platformdan bagimsiz deterministiktir.
+    fl3 = os.path.join(dizin, "fl3-okunamayan.md")
+    os.makedirs(fl3, exist_ok=True)
+    f.append(("FL3 dosya VAR ama OKUNAMIYOR (dizin) -> fail-loud KIRMIZI", fl3, 1,
+              ["DOSYA OKUNAMADI", "SONUC: KIRMIZI"], ["DOSYA BULUNAMADI"]))
 
     # U1 — DAR PAY: pay 399 (<400) UYARI + exit 0 (mutasyon: marji DUSUR)
     f.append(("U1 dar pay 399 < marj 400 -> UYARI, exit 0",
