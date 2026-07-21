@@ -362,8 +362,11 @@ export function ga4Govdesi(env, olay, atif) {
     transaction_id: olay.transaction_id,
     value: olay.value,
     currency: olay.currency,                 // ZORUNLU TRY
+    // item_id = feedId(item_id): GA4 items id, Google Merchant feed g:id ile TEK KAYNAK olmali
+    // (dinamik remarketing GA4 item_id ile katalog g:id'yi eslestirir; uzun pid feed'de kisaltilir
+    // -> TAM pid gonderilirse 610 uzun-id urunde eslesme kopuk). olay.item_id (D1 anahtari) korunur.
     items: olay.items.map((i) => ({
-      item_id: i.item_id,
+      item_id: feedId(i.item_id),
       item_name: i.item_name,
       quantity: i.quantity,
       price: i.price,

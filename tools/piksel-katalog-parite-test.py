@@ -13,9 +13,11 @@ DUZELTME: content_ids ureten HER YUZEY feed_id'den turetir:
   * tools/build.py  render_product : ViewContent content_ids = feed_id(pid); urun_json.fid=feed_id;
                                      AddToCart content_ids = URUN.fid
   * index.html      InitiateCheckout/Purchase : pruvoFeedId(satir.id)  (feed_id JS port)
-  * shop/src/olcum.js CAPI Purchase           : feedId(item_id)        (feed_id JS uc port)
-Sepet satir id'si (satir.id / item_id) TAM pid KALIR — Worker/D1 fiyat anahtari; donusum yalniz
-Meta olayina cikarken uygulanir.
+  * shop/src/olcum.js metaGovdesi (Meta CAPI)  : feedId(item_id) -> content_ids + contents[].id
+  * shop/src/olcum.js ga4Govdesi (GA4 MP)      : feedId(item_id) -> items[].item_id  (Google
+                                                 Merchant g:id ile tek kaynak; dinamik remarketing)
+Sepet satir id'si (satir.id / item_id) TAM pid KALIR — Worker/D1 fiyat/siparis anahtari; donusum
+yalniz Meta/GA4 olayina cikarken uygulanir.
 
 BU TESTIN OLCTUGU:
   A) SABLON PARITESI (pure-python, CI-bloklayici): feed-uygun her urun icin render_product'in
@@ -153,24 +155,52 @@ def _index_feedid_blok():
 
 
 def js_parite(uzun_pidler):
-    """olcum.js feedId + index.html pruvoFeedId'i node ile uzun_pidler uzerinde kosar; Python
-    feed_id ile karsilastirir. (ok, mesaj) dondurur. node yoksa (None, 'atlandi')."""
+    """JS uc paritesi (node): index.html pruvoFeedId + olcum.js feedId'in HAM ciktisini VE
+    olcum.js'in GERCEK govde ureticilerini (metaGovdesi content_ids / ga4Govdesi item_id)
+    uzun_pidler uzerinde kosar; Python feed_id ile karsilastirir. (ok|None, mesaj) dondurur.
+
+    FAIL-CLOSED (Delik A): node bulunamazsa CI'da (GITHUB_ACTIONS) DAIMA exit 1 (None/atlama YOK)
+    -> setup-node adimi eksik/bozuksa ya da node shim'lenip gizlenirse yalanci-yesil OLAMAZ.
+    Yerelde node yoksa: PIKSEL_PARITE_NODE_ATLA=1 ise ACIK uyariyla atla (None), aksi halde FAIL."""
     if not _node_var():
-        return None, "node yok -> JS uc paritesi ATLANDI (CI Python-only; yerelde node ile kosun)"
+        if os.environ.get("GITHUB_ACTIONS"):
+            return False, ("CI ortaminda (GITHUB_ACTIONS) node YOK -> FAIL-CLOSED: JS uc nobeti "
+                           "kosamaz (deploy.yml setup-node adimi eksik/bozuk ya da node gizlenmis)")
+        if os.environ.get("PIKSEL_PARITE_NODE_ATLA"):
+            return None, ("node yok + PIKSEL_PARITE_NODE_ATLA=1 -> yerelde ACIK uyariyla ATLANDI "
+                          "(CI'da atlama YOK)")
+        return False, ("node yok -> JS uc paritesi KOSULAMADI (FAIL-CLOSED). Yerelde node kur; "
+                       "bilerek atlamak icin PIKSEL_PARITE_NODE_ATLA=1")
     beklenen = {pid: B.feed_id(pid) for pid in uzun_pidler}
     blok = _index_feedid_blok()
     if blok is None:
         return False, "index.html'de BEGIN/END pruvoFeedId isareti bulunamadi"
 
     veri_json = json.dumps(uzun_pidler, ensure_ascii=False)
-    # Tek node harness: hem olcum.js feedId'i import eder hem index.html blogunu satir-ici kullanir.
+    # Tek node harness:
+    #  (1) olcum.js feedId + metaGovdesi + ga4Govdesi + satinAlmaOlayi'yi IMPORT eder (gercek yuzey),
+    #  (2) index.html pruvoFeedId blogunu satir-ici kullanir,
+    #  (3) TUM uzun id'leri tek sahte siparise item olarak koyup metaGovdesi/ga4Govdesi'yi cagirir
+    #      -> content_ids ve GA4 items[].item_id GERCEK uretim yolundan cikar (Delik B nobeti).
     harness = (
-        'import { feedId as olcumFeedId } from ' + json.dumps(OLCUM_JS) + ';\n'
+        'import { feedId as olcumFeedId, metaGovdesi, ga4Govdesi, satinAlmaOlayi } from '
+        + json.dumps(OLCUM_JS) + ';\n'
         + blok + '\n'
         + 'const pidler = ' + veri_json + ';\n'
-        + 'const cikti = {};\n'
-        + 'for (const pid of pidler) { cikti[pid] = { olcum: olcumFeedId(pid), '
-          'index: pruvoFeedId(pid) }; }\n'
+        + 'const cikti = { feedId: {}, index: {} };\n'
+        + 'for (const pid of pidler) { cikti.feedId[pid] = olcumFeedId(pid); '
+          'cikti.index[pid] = pruvoFeedId(pid); }\n'
+        # Sahte siparis -> satinAlmaOlayi kanonik olay (item_id = TAM pid); sonra iki govde.
+        + 'const satirlar = pidler.map((pid, n) => ({ id: pid, baslik: "x", adet: 1, '
+          'birim_kurus: 1000, kategori: "Test" }));\n'
+        + 'const olay = satinAlmaOlayi({ siparis_no: "TEST-1", tutar_kurus: 1000 * pidler.length, '
+          'kargo_kurus: 0, urunler: JSON.stringify(satirlar) });\n'
+        + 'const meta = metaGovdesi({}, olay, {}, null).data[0].custom_data;\n'
+        + 'const ga4 = ga4Govdesi({}, olay, {}).events[0].params;\n'
+        + 'cikti.meta_content_ids = meta.content_ids;\n'
+        + 'cikti.meta_contents_id = meta.contents.map((c) => c.id);\n'
+        + 'cikti.ga4_item_ids = ga4.items.map((i) => i.item_id);\n'
+        + 'cikti.olay_item_ids = olay.items.map((i) => i.item_id);\n'
         + 'process.stdout.write(JSON.stringify(cikti));\n'
     )
     tmp = tempfile.NamedTemporaryFile("w", suffix=".mjs", delete=False, encoding="utf-8")
@@ -188,15 +218,30 @@ def js_parite(uzun_pidler):
         os.unlink(tmp.name)
 
     hatali = []
+    # (a) ham feedId / pruvoFeedId
     for pid, bekle in beklenen.items():
-        g = js.get(pid, {})
-        if g.get("olcum") != bekle:
-            hatali.append("olcum.js feedId(%s)=%s != %s" % (pid, g.get("olcum"), bekle))
-        if g.get("index") != bekle:
-            hatali.append("index.html pruvoFeedId(%s)=%s != %s" % (pid, g.get("index"), bekle))
+        if js["feedId"].get(pid) != bekle:
+            hatali.append("olcum.js feedId(%s)=%s != %s" % (pid, js["feedId"].get(pid), bekle))
+        if js["index"].get(pid) != bekle:
+            hatali.append("index.html pruvoFeedId(%s)=%s != %s" % (pid, js["index"].get(pid), bekle))
+    # (b) GERCEK govde ciktilari: metaGovdesi content_ids/contents.id + ga4Govdesi item_id feed_id mi?
+    bekle_liste = [beklenen[pid] for pid in uzun_pidler]
+    if js.get("meta_content_ids") != bekle_liste:
+        hatali.append("metaGovdesi content_ids feed_id'den sapti (ilk: %s vs %s)"
+                      % ((js.get("meta_content_ids") or [None])[0], bekle_liste[0]))
+    if js.get("meta_contents_id") != bekle_liste:
+        hatali.append("metaGovdesi contents[].id feed_id'den sapti")
+    if js.get("ga4_item_ids") != bekle_liste:
+        hatali.append("ga4Govdesi items[].item_id feed_id'den SAPTI (Delik B) — ilk: %s vs %s"
+                      % ((js.get("ga4_item_ids") or [None])[0], bekle_liste[0]))
+    # (c) kanonik olay.item_id TAM pid KALMALI (D1/siparis anahtari sizmasin)
+    if js.get("olay_item_ids") != list(uzun_pidler):
+        hatali.append("kanonik olay.item_id TAM pid degil — siparis/D1 anahtari degismis")
+
     if hatali:
         return False, "%d JS uc sapmasi (ilk: %s)" % (len(hatali), hatali[0])
-    return True, "olcum.js + index.html JS uc: %d uzun-id'de Python feed_id ile birebir" % len(uzun_pidler)
+    return True, ("olcum.js feedId + index.html pruvoFeedId + metaGovdesi + ga4Govdesi: %d uzun-id'de "
+                  "Python feed_id ile birebir (olay.item_id TAM pid korundu)" % len(uzun_pidler))
 
 
 # ----------------------------------------------------------------- main
