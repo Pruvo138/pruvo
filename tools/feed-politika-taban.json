@@ -1,0 +1,88 @@
+{
+ "_KURAL": [
+  "BU DOSYA = BLOKLAYICI politika borcunun listesi (bugun feed metninde kanitli bir",
+  "Merchant politika jetonu tasiyan urunler). TEK YAZAR: MaCiT (urun VERISI duzlemi).",
+  "",
+  "KAPI NASIL DAVRANIR (tools/feed-politika-kapisi.py):",
+  "  * burada YAZILI bir id, burada YAZILI jetonlari tasiyorsa  -> YESIL (bilinen borc).",
+  "  * burada OLMAYAN bir id bloklayici jeton tasiyorsa         -> KIRMIZI (yeni borc).",
+  "  * burada YAZILI bir id, kaydinda OLMAYAN YENI bir bloklayici jeton kazanirsa",
+  "    -> KIRMIZI (borc AGIRLASAMAZ; jeton kumesi de dondurulmustur).",
+  "",
+  "BU DOSYAYI GUNCELLEMEK ICIN KOD DEGISTIRMEK GEREKMEZ (bilincli tasarim):",
+  "  * Borc ODENDIYSE (urun metni duzeltildi) -> kaydi SIL. Serbest ve SESSIZ.",
+  "  * Yeni bir borc kabul ediliyorsa -> kayit EKLE (+ \"eklendi\": \"YYYY-MM-DD\").",
+  "    Kapi bunu ENGELLEMEZ ama GURULTULU uyarir (taban buyudu) ve cikis 0 kalir:",
+  "    veri duzleminin sahibi kendi isini acabilsin diye. Uyari, borcun gorunur kalmasi",
+  "    icindir; sessizce buyumesin diye kok_baslangic ile karsilastirilir."
+ ],
+ "_BORC_KIMDE": "Bu urunlerin BASLIK/ACIKLAMA duzeltmesi urunler.json duzlemidir = MaCiT. Mesru duzeltme yolu: tools/duzelt.py (guard'in tek kapisi). Duzeltilince kaydi bu dosyadan SIL.",
+ "_OLCUM": {
+  "tarih": "2026-07-22",
+  "feed_kalemi": 7769,
+  "bloklayici_ihlal_urun": 7,
+  "jeton_kaynagi": "tools/feed-politika-kapisi.py BLOKLAYICI sozlugu — YALNIZ olculmus/bildirilmis GERCEK Merchant reddinden turemis VE bloklama bedeli olculmus jetonlar. Supheli ama kanitsiz jetonlar (kulluk/cakmak/susturucu...) RAPOR katmanindadir ve CI'yi KIRMAZ.",
+  "yanlis_pozitif": "0 — 7 isabetin 7'si de musteriye gorunen metinde acikca e-sigara/vape adi geciyor (tek tek denetlendi, 2026-07-22)."
+ },
+ "_KANITSIZ_VAKA": "ArTisT raporundaki ucuncu red — tenere-700 titresim-onleyici braket — TETIKLEYICISI BELIRSIZ; metninden bloklayici jeton TURETILEMEDI. Tahminle jeton uydurmak yerine ACIK birakildi (kanit gelirse eklenir).",
+ "_DURBUN_KAYDI_NEDEN_SILINDI": "schmidt-bender-...-durbun-koruyucu-kapak-seti kaydi S4 turunda (mimar karari) SILINDI: 'dürbün' jetonu BLOKLAYICI'dan RAPOR katmanina tasindi (mesru bir Marin/Kamera durbun urunu tum ekibin yayinini durdururdu; olculdu: jetonun tam katalogdaki TEK isabeti zaten bu kayitti -> koruma kaybi 0). Urun katalogda DURUYOR ve RAPOR katmaninda sayilmaya devam ediyor; yalniz bloklayici borc listesinden dustu. Tabandan kayit silmek tasarimi geregi serbest ve sessizdir.",
+ "kok_baslangic": 7,
+ "kok": [
+  {
+   "id": "citroen-c4-elektronik-sigara-ve-bardakl-k-d-zenleyici",
+   "jeton": [
+    "elektronik sigara"
+   ],
+   "nerede": "baslik+aciklama",
+   "baslik": "Citroen C4 Elektronik Sigara ve Bardaklık Düzenleyici"
+  },
+  {
+   "id": "renault-laguna-elektronik-sigara-tutucu",
+   "jeton": [
+    "elektronik sigara"
+   ],
+   "nerede": "baslik+aciklama",
+   "baslik": "Renault Laguna Elektronik Sigara Tutucu — Kart Yuvası Tipi"
+  },
+  {
+   "id": "renault-laguna-elektronik-sigara-tutucu-3481712",
+   "jeton": [
+    "elektronik sigara"
+   ],
+   "nerede": "baslik+aciklama",
+   "baslik": "Renault Laguna Elektronik Sigara Tutucu — Konsol Tipi"
+  },
+  {
+   "id": "seat-leon-5f-bardakl-k-adapt-r",
+   "jeton": [
+    "elektronik sigara"
+   ],
+   "nerede": "aciklama",
+   "baslik": "Seat Leon 5F Bardaklık Adaptörü"
+  },
+  {
+   "id": "toyota-bardakl-k-uyumlu-vape-stand-nord-aio",
+   "jeton": [
+    "vape"
+   ],
+   "nerede": "baslik",
+   "baslik": "Toyota Bardaklık Uyumlu Vape Standı (Nord AIO)"
+  },
+  {
+   "id": "toyota-nord-aio-elektronik-sigara-stand",
+   "jeton": [
+    "elektronik sigara"
+   ],
+   "nerede": "baslik",
+   "baslik": "Toyota Nord AIO Elektronik Sigara Standı"
+  },
+  {
+   "id": "toyota-nord-aio-vape-stand",
+   "jeton": [
+    "vape"
+   ],
+   "nerede": "baslik",
+   "baslik": "Toyota Nord AIO vape standı"
+  }
+ ]
+}

@@ -10,12 +10,24 @@ yazsa bile EZMEZ. COMMIT ETMEZ; sonda gozden gecirme tablosu basar.
 """
 import concurrent.futures, fcntl, importlib.util, json, os, re, subprocess, sys, tempfile
 
-ROOT = "/Users/okan/dev/pruvo"
-TOOLS = os.path.join(ROOT, "tools")
+# KOD KOKU ile VERI KOKU AYRIDIR (bkz tools/veri_kok.py):
+#   * moduller betigin KENDI dizininden yuklenir (TOOLS) -> worktree'de de import edilebilir
+#     (eskiden ROOT sabit "/Users/okan/dev/pruvo" idi ve worktree'den import COKUYORDU;
+#      kabul testi ise "modul yukleniyor" diye PASS basiyordu).
+#   * urunler.json / .urun-kaynaklari.json / kilit / cache DAIMA ana kopyaya gider; worktree'den
+#     kosulursa STDERR'e GURULTULU uyari basilir (fail-loud, akis olmez).
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+_vkspec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec); _vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 _fspec = importlib.util.spec_from_file_location("filament_ortak", os.path.join(TOOLS, "filament_ortak.py"))
 fo = importlib.util.module_from_spec(_fspec); _fspec.loader.exec_module(fo)
 _gspec = importlib.util.spec_from_file_location("gorsel_mukerrer_kapisi", os.path.join(TOOLS, "gorsel_mukerrer_kapisi.py"))
 gmk = importlib.util.module_from_spec(_gspec); _gspec.loader.exec_module(gmk)
+_gbspec = importlib.util.spec_from_file_location("gorsel_boyut_kapisi", os.path.join(TOOLS, "gorsel_boyut_kapisi.py"))
+gbk = importlib.util.module_from_spec(_gbspec); _gbspec.loader.exec_module(gbk)
 # R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py)
 _r2spec = importlib.util.spec_from_file_location(
     "r2_anahtar", os.path.join(os.path.dirname(os.path.abspath(__file__)), "r2_anahtar.py"))
@@ -88,6 +100,10 @@ def process_one(tid):
         # yuklemeden ELE. Yeni urunde yayin gorseli yok -> aday-ici dedup (birebir/yakin ikiz
         # secildiyse birini birak). PIL yoksa FAIL-OPEN (hicbir seyi elemez, akis bozulmaz).
         secili, _mkres = gmk.secili_temizle(d, secili)
+        # ASGARI BOYUT KAPISI (bkz gorsel_boyut_kapisi.py): 100x100 altindaki gorsel Google
+        # Merchant tarafindan "resim cok kucuk" diye REDDEDILIYOR (olculen vaka 1000x88) ->
+        # R2'ye yuklemeden ELE. Boyut okunamazsa FAIL-LOUD: gorsel gecer + stderr'e uyari.
+        secili, _bres = gbk.secili_ele(d, secili)
         urls = []
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)

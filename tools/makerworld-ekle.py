@@ -19,8 +19,15 @@ Token GEREKMEZ (MakerWorld public API).
 """
 import concurrent.futures, fcntl, importlib.util, json, os, re, subprocess, sys, tempfile
 
-ROOT = "/Users/okan/dev/pruvo"
-TOOLS = os.path.join(ROOT, "tools")
+# KOD KOKU (moduller, asagida _HERE) ile VERI KOKU (urunler.json + kilit) AYRIDIR —
+# bkz tools/veri_kok.py. Worktree'den kosulursa STDERR'e gurultulu uyari basilir (akis olmez).
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+_vkspec = importlib.util.spec_from_file_location("veri_kok", os.path.join(TOOLS, "veri_kok.py"))
+_vk = importlib.util.module_from_spec(_vkspec)
+_vkspec.loader.exec_module(_vk)
+_KOD_KOK, ROOT, _KOK_UYARI = _vk.cozumle(__file__)
+if _KOK_UYARI:
+    sys.stderr.write(_KOK_UYARI)
 CACHE = os.path.join(ROOT, ".thing-cache")
 STLDIR = os.path.join(ROOT, "stl")
 URUNLER = os.path.join(ROOT, "urunler.json")
@@ -45,6 +52,7 @@ mw = _load("makerworld_api", "makerworld-api.py")
 bi = _load("baski_ipucu", "baski_ipucu.py")
 fo = _load("filament_ortak", "filament_ortak.py")
 gmk = _load("gorsel_mukerrer_kapisi", "gorsel_mukerrer_kapisi.py")
+gbk = _load("gorsel_boyut_kapisi", "gorsel_boyut_kapisi.py")
 # R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py)
 r2k = _load("r2_anahtar", "r2_anahtar.py")
 
@@ -142,6 +150,10 @@ def process_one(did):
         # ALGISAL MUKERRER KAPISI: ayni fotografin ikizini R2'ye yuklemeden ELE (aday-ici dedup).
         # PIL yoksa FAIL-OPEN (hicbir seyi elemez, akis bozulmaz). bkz gorsel_mukerrer_kapisi.py
         secili, _mkres = gmk.secili_temizle(d, secili)
+        # ASGARI BOYUT KAPISI (bkz gorsel_boyut_kapisi.py): 100x100 altindaki gorsel Google
+        # Merchant "resim cok kucuk" reddi aliyor (olculen vaka 1000x88) -> R2'ye yuklemeden
+        # ELE. Boyut okunamazsa FAIL-LOUD: gorsel gecer + stderr'e uyari.
+        secili, _bres = gbk.secili_ele(d, secili)
         urls = []
         for i, fn in enumerate(secili, 1):
             fp = os.path.join(d, fn)
