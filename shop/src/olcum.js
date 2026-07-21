@@ -114,6 +114,59 @@ export function kurusTRY(kurus) {
   return k / 100;
 }
 
+/**
+ * KATALOG KIMLIGI (feed_id) — Meta CAPI content_ids TEK KAYNAK.
+ * tools/build.py feed_id ile BYTE-BIRE-BIR ayni kural: pid <=50 karakter ise AYNEN,
+ * uzunsa ilk 41 karakter + "-" + sha1(pid)[:8]. Merchant/Meta feed'i uzun pid'i
+ * kisaltir; Purchase content_ids TAM pid gonderirse uzun-id urunlerde katalog ESLESMEZ
+ * (olculdu: 610/7769 urun). item_id (siparis/D1 anahtari) TAM pid kalir; donusum yalniz
+ * Meta olayina cikarken yapilir. Tum id'ler ASCII kebab -> UTF-8 == ASCII.
+ * tools/piksel-katalog-parite-test.py bunu Python feed_id'ye karsi node ile dogrular.
+ */
+export function feedId(pid) {
+  pid = String(pid == null ? "" : pid);
+  if (pid.length <= 50) { return pid; }
+  return pid.slice(0, 41) + "-" + sha1Hex(pid).slice(0, 8);
+}
+
+/** Senkron SHA-1 (hex) — feedId icin. Workers Web Crypto async oldugundan saf-JS senkron
+ *  uygulama; ASCII girdi (kebab id). Cikti Python hashlib.sha1(...).hexdigest() ile ayni. */
+function sha1Hex(str) {
+  const rol = (n, s) => (n << s) | (n >>> (32 - s));
+  const bytes = [];
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    if (c < 128) { bytes.push(c); }
+    else if (c < 2048) { bytes.push(192 | (c >> 6), 128 | (c & 63)); }
+    else { bytes.push(224 | (c >> 12), 128 | ((c >> 6) & 63), 128 | (c & 63)); }
+  }
+  const ml = bytes.length * 8;
+  bytes.push(0x80);
+  while (bytes.length % 64 !== 56) { bytes.push(0); }
+  for (let i = 7; i >= 0; i--) { bytes.push(Math.floor(ml / Math.pow(2, 8 * i)) & 0xff); }
+  let h0 = 0x67452301, h1 = 0xEFCDAB89, h2 = 0x98BADCFE, h3 = 0x10325476, h4 = 0xC3D2E1F0;
+  for (let j = 0; j < bytes.length; j += 64) {
+    const w = new Array(80);
+    for (let i = 0; i < 16; i++) {
+      w[i] = (bytes[j + i * 4] << 24) | (bytes[j + i * 4 + 1] << 16) | (bytes[j + i * 4 + 2] << 8) | (bytes[j + i * 4 + 3]);
+    }
+    for (let i = 16; i < 80; i++) { w[i] = rol(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1); }
+    let a = h0, b = h1, c = h2, d = h3, e = h4;
+    for (let i = 0; i < 80; i++) {
+      let f, k;
+      if (i < 20) { f = (b & c) | ((~b) & d); k = 0x5A827999; }
+      else if (i < 40) { f = b ^ c ^ d; k = 0x6ED9EBA1; }
+      else if (i < 60) { f = (b & c) | (b & d) | (c & d); k = 0x8F1BBCDC; }
+      else { f = b ^ c ^ d; k = 0xCA62C1D6; }
+      const t = (rol(a, 5) + f + e + k + w[i]) | 0;
+      e = d; d = c; c = rol(b, 30); b = a; a = t;
+    }
+    h0 = (h0 + a) | 0; h1 = (h1 + b) | 0; h2 = (h2 + c) | 0; h3 = (h3 + d) | 0; h4 = (h4 + e) | 0;
+  }
+  const hx = (n) => { let s = (n >>> 0).toString(16); while (s.length < 8) { s = "0" + s; } return s; };
+  return hx(h0) + hx(h1) + hx(h2) + hx(h3) + hx(h4);
+}
+
 /** Siparis kaydindaki (D1) atif JSON'unu GUVENLI coz. Bos/bozuksa {} — asla patlamaz. */
 export function atifCoz(siparis) {
   if (!siparis || !siparis.atif) return {};
@@ -210,8 +263,10 @@ export function metaGovdesi(env, olay, atif, istemci) {
       value: olay.value,
       order_id: olay.order_id,
       content_type: "product",
-      content_ids: olay.items.map((i) => i.item_id),
-      contents: olay.items.map((i) => ({ id: i.item_id, quantity: i.quantity, item_price: i.price })),
+      // content_ids/contents.id = feedId(item_id): katalog feed g:id ile tek kaynak (uzun pid
+      // feed'de kisaltilir -> TAM pid gonderilirse katalog eslesmez). item_id (D1 anahtari) korunur.
+      content_ids: olay.items.map((i) => feedId(i.item_id)),
+      contents: olay.items.map((i) => ({ id: feedId(i.item_id), quantity: i.quantity, item_price: i.price })),
     },
   };
   if (env && env.SITE_URL) { veri.event_source_url = env.SITE_URL; }

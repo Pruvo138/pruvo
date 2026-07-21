@@ -81,6 +81,15 @@ jobs:
       - name: STL R2 anahtar/multipart kabul testi
         run: python3 tools/stl-r2-anahtar-test.py
 
+      # PIKSEL <-> KATALOG PARITE: Meta/Google katalog feed g:id ile tarayici/CAPI pikselinin
+      # content_ids'i AYNI KURALDAN (build.feed_id) turer mi. Yasanmis hata: feed uzun urun id'sini
+      # <=50 karaktere kisaltirken piksel TAM pid gonderiyordu -> 610/7769 urunde katalog eslesmiyor
+      # (Advantage+ kor calisir). Bloklayici: sablon content_ids feed g:id'den saparsa katalog reklami
+      # yanlis urun gosterir. Offline (render_product'i cagirir, ag yok); JS-uc paritesi node varsa
+      # kosar, CI Python-only'de otomatik atlanir (FAIL degil).
+      - name: Piksel <-> katalog parite kapisi
+        run: python3 tools/piksel-katalog-parite-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
