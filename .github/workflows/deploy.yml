@@ -41,6 +41,24 @@ jobs:
       - name: Odeme beyani kapisi
         run: python3 tools/odeme-beyani-kapisi.py
 
+      # R2 GORSEL ANAHTARI: anahtar KAYNAK-ID'den turetilir (basliktan DEGIL) — turetme tek
+      # modulde (tools/r2_anahtar.py) toplandi, cagiranlar ondan gecer. Bloklayici: anahtar
+      # basliga kayarsa iki urun ayni R2 nesnesini EZER (sessiz gorsel kaybi). Offline, yazma yok.
+      - name: R2 anahtar turetme kabul testi
+        run: python3 tools/r2-anahtar-test.py
+
+      # DUZELT --toplu: mesru toplu duzeltme yolu (guard'in tek kapisi). Bloklayici: toplu kip
+      # kilit/atomiklik kaybederse paralel yazicilar urun kaydi EZER. Test gercek urunler.json'a
+      # DOKUNMAZ (tempfile'da sahte repo kurar), ag yok.
+      - name: duzelt.py --toplu kabul testi
+        run: python3 tools/duzelt-toplu-test.py
+
+      # LANDING/HUKUK KAPISI: huni (landing) sayfasindaki ticari beyanlar ile baglayici yasal
+      # sayfalarin (kapsam + revizyon/cayma cercevesi) uyumu. Bloklayici (odeme-beyani deseni):
+      # uyumsuzluk = musteriye yanlis hukuki beyan. Offline, build.py'den ONCE kosar.
+      - name: Landing/hukuk beyan kapisi
+        run: python3 tools/landing-hukuk-kapisi.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.

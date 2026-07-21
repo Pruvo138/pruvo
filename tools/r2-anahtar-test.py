@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""r2-anahtar-testi.py — R2 gorsel anahtari turetmenin KABUL TESTI.
+"""r2-anahtar-test.py — R2 gorsel anahtari turetmenin KABUL TESTI.
 
 Neden: anahtar 4 dosyada satir-ici kopyalanmisti; kopyalar kayarsa iki urunun gorseli ayni
 R2 anahtarina yazilir ve biri digerini EZER. Bu test hem kopyalarin dondugunu hem de
 TEK KAYNAK modulunun (tools/r2_anahtar.py) YAYINDAKI anahtarlari birebir uretmeye devam
 ettigini olcer.
 
-Kosum:  python3 tools/r2-anahtar-testi.py     (ag yok, yazma yok, exit 0 = yesil)
+Kosum:  python3 tools/r2-anahtar-test.py     (ag yok, yazma yok, exit 0 = yesil)
 
 Testler:
   (a) 4 cagri yerinde satir-ici anahtar turetme / satir-ici "urunler/%s-%d.jpg" KALMADI
@@ -72,7 +72,7 @@ def test_a():
 
 
 # ------------------------------------------------------- (b) geriye donuk uyum (EN ONEMLI)
-ONEK_PLATFORM = [("cgt-", "********"), ("th", "Thingiverse"), ("pr", "Printables"), ("mw", "MakerWorld")]
+ONEK_PLATFORM = [("cgt-", "CGTrader"), ("th", "Thingiverse"), ("pr", "Printables"), ("mw", "MakerWorld")]
 
 
 def test_b():
@@ -160,13 +160,13 @@ def test_d():
         ("Thingiverse", "6543210", "th6543210"),
         ("Printables", 1234567, "pr1234567"),
         ("MakerWorld", 998877, "mw998877"),
-        ("********", "6267929", "cgt-6267929"),   # TARIHSEL fazladan tire — korunmali
+        ("CGTrader", "6267929", "cgt-6267929"),   # TARIHSEL fazladan tire — korunmali
         ("Bilinmeyen", "42", "x42"),
     ]
     for platform, sid, bek in beklenen:
         a = r2k.gkey(platform, sid)
         sonuc("(d) %s -> %s" % (platform, bek), a == bek, a)
-    sonuc("(d) cgt oneki tireli kaliyor", r2k.ONEKLER["********"] == "cgt-", r2k.ONEKLER["********"])
+    sonuc("(d) cgt oneki tireli kaliyor", r2k.ONEKLER["CGTrader"] == "cgt-", r2k.ONEKLER["CGTrader"])
     sonuc("(d) th/pr/mw onekleri tiresiz",
           (r2k.ONEKLER["Thingiverse"], r2k.ONEKLER["Printables"], r2k.ONEKLER["MakerWorld"])
           == ("th", "pr", "mw"), "")

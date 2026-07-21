@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""duzelt-toplu-testi.py — tools/duzelt.py --toplu (batch) kipi kabul testi.
+"""duzelt-toplu-test.py — tools/duzelt.py --toplu (batch) kipi kabul testi.
 
 GERCEK urunler.json'a DOKUNMAZ: her senaryo icin gecici bir SAHTE repo kurar
 (<tmp>/tools/duzelt.py kopyasi + <tmp>/urunler.json). duzelt.py yollari kendi

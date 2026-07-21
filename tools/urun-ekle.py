@@ -80,7 +80,7 @@ def process_one(tid):
         uid = r2k.urun_slug(o.get("baslik") or tid, yedek=tid)
         # R2 gorsel anahtari KAYNAK-ID'den (th<tid>) turer, baslik-slug'indan (uid) DEGIL: iki farkli
         # urun ayni basligi uretse bile anahtarlari cakismaz (bkz tools/r2_anahtar.py +
-        # tools/r2-anahtar-testi.py). uid, JSON id'si + SEO URL'si icin kalir.
+        # tools/r2-anahtar-test.py). uid, JSON id'si + SEO URL'si icin kalir.
         gkey = r2k.gkey("Thingiverse", tid)
         d = os.path.join(IMGROOT, tid)
         secili = o.get("sec_gorseller") or sorted(f for f in os.listdir(d) if f.startswith("g") and f.endswith(".jpg"))
