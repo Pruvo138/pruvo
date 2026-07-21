@@ -28,7 +28,7 @@ Bizim malzemelerimiz özel üretim **filamentleri**. Ege SADECE bu aileden seçe
 Mühendislik malzemeleri (standart ailenin dışında, üretim kararı gerektirir):
 - **ABS** (Isıya dayanıklı) — ısı ~95-100°C — standart sipariş akışında YOK, WhatsApp özel talebiyle değerlendirilir — üretim kararıdır, koşulu netleştir + [DEVRET]
 - **Karbon katkılı (PETG-CF/PA-CF)** (En yüksek mukavemet) — ısı taşıyıcıya göre — standart sipariş akışında YOK, WhatsApp özel talebiyle değerlendirilir — üretim kararıdır, koşulu netleştir + [DEVRET]
-- **Daha yüksek ısı / mukavemet:** Naylon (PA), PC (polikarbonat) ve elyaf katkılı türler tedarik edilebilir — üretim kararıdır, koşulu netleştir + [DEVRET]
+- **Daha yüksek ısı / mukavemet:** Naylon (PA) ve elyaf katkılı türler tedarik edilebilir — üretim kararıdır, koşulu netleştir + [DEVRET]
 
 Kategoriye göre varsayılan tavsiyemiz: Otomobil/Motosiklet/Bisiklet/Bahçe → PETG; Güneş gören parçada ASA · Marin → ASA · Ev/Ofis/Dekorasyon/Oyun/Hobi → PLA · Elektronik/Kamera → PETG; Isınan ortamda ASA · Tamirat → PETG.
 ÖNEMLİ: karbon katkı ISI dayanımını ARTIRMAZ (taşıyıcının değerini korur; PETG-CF ~70°C) — karbonu mukavemet/sertlik için öner, ısı sorulursa taşıyıcıya bak.

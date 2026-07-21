@@ -70,8 +70,8 @@ def bolum_uret():
         "",
         "Mühendislik malzemeleri (standart ailenin dışında, üretim kararı gerektirir):",
     ] + ozel_satirlar + [
-        "- **Daha yüksek ısı / mukavemet:** Naylon (PA), PC (polikarbonat) ve elyaf katkılı türler "
-        "tedarik edilebilir — üretim kararıdır, koşulu netleştir + [DEVRET]",
+        "- **Daha yüksek ısı / mukavemet:** Naylon (PA) ve elyaf katkılı türler tedarik edilebilir "
+        "— üretim kararıdır, koşulu netleştir + [DEVRET]",
         "",
         "Kategoriye göre varsayılan tavsiyemiz: " + " · ".join(oneriler) + ".",
         "ÖNEMLİ: karbon katkı ISI dayanımını ARTIRMAZ (taşıyıcının değerini korur; PETG-CF ~70°C) — "
