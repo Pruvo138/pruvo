@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 """MALZEME DAYANAK KAPISI (kalici nobetci)
 
-Kural (Okan, 21-22 Tem): YAYINLANAN her yuzeyde MALZEME SINIFI olarak anilan her ad
+Kural (Okan, 21 Tem 2026): YAYINLANAN her yuzeyde MALZEME SINIFI olarak anilan her ad
 tools/filamentler.json envanterinde DAYANAGI olmalidir. Uretemedigimiz/tedarik
 edemedigimiz bir sinifi metinde vaat etmek ticari beyan riskidir.
 
 🔴 KARAR KAYDI (kodun TURETEMEDIGI kisim; bagimsiz curutucunun bakacagi yer):
   ~/.claude/projects/-Users-okan-dev-pruvo/memory/malzeme-envanteri-beyan-karari.md
-  (Okan 22 Tem, pencereyle alindi — DAYANAK_KARAR_KAYDI sabiti). "Envanterde yok"
+  (Okan 21 Tem 2026, pencereyle alindi — DAYANAK_KARAR_KAYDI sabiti). "Envanterde yok"
   ile "uretemiyoruz" arasindaki farki yalniz Okan'in karari ayirir; kod bunu uyduramaz.
   Kayittaki uygulama kurali AYNEN: "Dayanak kaydi YALNIZ onaylanan TAM ADI mesrulastirir
   (PA6-GF); ciplak PA6'yi ya da kuresel GF ekini ACMAMALI."
@@ -91,9 +91,19 @@ Nasil calisir
   LEKSIK sozlukte GECMIYOR -> haksiz kirmizi YOK, eleyiciye ihtiyac YOK.
   Fikstur F4 bu karari kalici olarak kilitler (eleyici geri gelirse KIRMIZI).
 
+📄 KAPSAM NOBETI — SAYI DEGIL, ZORUNLU SAYFA (KraL tur-5)
+  Kaynak kapsami iki katmanlidir: landing/ege-bilgi.md/statik-gorunur icin GOVDE SAYISI
+  tabani (KAYNAK_TABANI), statik-jsonld icin SAYFA BAZLI zorunluluk (ZORUNLU_JSONLD).
+  Sebep OLCULDU: statik-jsonld sayi tabani 2 idi ve olculen deger de TAM 2 (sss + iletisim)
+  -> iletisim'in JSON-LD blogunu kaldiran/tasiyan MESRU bir SEO duzenlemesi kapiyi KIRMIZI
+  yakip TUM EKIBIN yayinini durduruyordu. Bugun yalnizca sss'in blogu ZORUNLU (malzeme
+  vaadini fiilen tasiyan yer; 2761 karakter, taban 1200); iletisim'inki kaybolursa UYARI.
+
 DRIFT NOBETI: tools/ege-malzeme.py'nin BELLEKTE urettigi blok, ege-bilgi.md'deki
 isaretciler arasindaki blokla BIREBIR ayni olmali. filamentler.json degisip
 ege-bilgi.md guncellenmezse bot sessizce bayatlar -> KIRMIZI. (Dosyaya YAZILMAZ.)
+Fikstur F18 bu nobeti UCTAN UCA kilitler (gecici dizinde sahte ege-malzeme.py + sahte
+ege-bilgi.md): taze blok YESIL, bayat blok KIRMIZI, dosya/modul yoksa fail-closed.
 
 SIZINTI KAPISI: "_dayanakMalzemeler" kayitlari satis kalemi DEGILDIR ->
 "satista": false zorunlu, "tedarik" zorunlu, fiyat/katsayi/site alani YASAK
@@ -103,13 +113,24 @@ uzerinde donen tum ureticiler (urun sayfasi cipleri, /malzeme-rehberi/,
 tools/ege-malzeme.py) bu kayitlari GORMEZ -> ege-bilgi.md byte-ozdes kalir.
 
 IC NOBETCI (--ic-nobetci ile tek basina da kosar; normal kosumda da HER SEFER calisir):
-Bu kapinin KENDI davranislarini bellekte-fikstur ile kilitler (34 kontrol). Sebep:
-gercek veri zaten temiz oldugu icin, kapinin kodundan bir yetenegi (kara liste /
-JSON-LD taramasi + hata mesajindaki SLUG / dayanak TAM-AD kapsami / dayanak alan
-dogrulamasi / negatif-eleyici YOKLUGU / kaynak kapsami) SILEN bir mutasyon gercek veride
-YESIL kalirdi. Fikstur nobetcileri o mutasyonlari oldurur. OLCULDU (tur-4, mutasyon
-KOPYAYA uygulandi — canli dosyaya DEGIL): 9 mutasyonun 9'u olduruldu; V6 (yukarida
-adiyla yazili kor nokta) beklendigi gibi hayatta kaldi.
+Bu kapinin KENDI davranislarini bellekte-fikstur ile kilitler (BEKLENEN_KONTROL_SAYISI
+kontrol). Sebep: gercek veri zaten temiz oldugu icin, kapinin kodundan bir yetenegi
+(kara liste / JSON-LD taramasi + hata mesajindaki SLUG / dayanak TAM-AD kapsami / dayanak
+alan dogrulamasi / negatif-eleyici YOKLUGU / kaynak kapsami / DRIFT nobeti) SILEN bir
+mutasyon gercek veride YESIL kalirdi. Fikstur nobetcileri o mutasyonlari oldurur.
+OLCULDU (tur-4, mutasyon KOPYAYA uygulandi — canli dosyaya DEGIL): 9 mutasyonun 9'u
+olduruldu; V6 (yukarida adiyla yazili kor nokta) beklendigi gibi hayatta kaldi.
+
+🔴 FIKSTUR SIMETRISI (tur-5, "ayni sinif kalinti"): dayanak fiksturleri gercek
+  filamentler.json kayitlariyla AYNI ALANLARI tasir ("uzunAd" dahil). Aksi halde
+  envanteri_coz'a dayanak "uzunAd"ini kuresel taban/ek kumesine doken bir "simetri"
+  refactor'u 34/34 fiksturu YESIL gecerek SART-1 ile SART-2'yi ayni anda geri aliyordu
+  (ciplak "PA6 ile uretiyoruz" KIRMIZI'dan YESIL'e donuyordu). F10b/F10c bunu oldurur.
+🔴 FIKSTUR KAPSAMI KODDA (tur-5): fikstur ad kumesi + kontrol sayisi artik
+  BEKLENEN_FIKSTUR_ADLARI / BEKLENEN_KONTROL_SAYISI sabitlerinde KILITLI ve F0-kapsam
+  fiksturu her kosumda dogrular; bir fikstur blogunu silen mutasyon KIRMIZI yanar
+  (once sayi yalnizca bu docstring'de yaziyordu -> F16'yi silen mutasyon 29 kontrolle
+  YESIL kaliyordu).
 
 Fail-closed: filamentler.json / ege-bilgi.md / statik sayfa okunamaz-bozuksa,
 JSON-LD ayristirilamazsa, beklenen bir kaynak bos gelirse KIRMIZI.
@@ -125,6 +146,7 @@ import json
 import os
 import re
 import sys
+import tempfile
 
 KOK = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(KOK)
@@ -187,17 +209,40 @@ TR_HARF = "0-9A-Za-zÇĞİÖŞÜçğıöşüÂÎÛâîû"
 
 # Beklenen kaynak -> en az kac govde gelmeli (FAIL-CLOSED KAPSAM NOBETI).
 # Bir kaynagi koddan SILEN mutasyon burada olur: gercek veri temiz oldugu icin
-# kaynak silinince kapi aksi halde sessizce YESIL kalirdi. Tabanlar OLCULEN
-# degerin belirgin altinda (landing 80, statik-gorunur 4, statik-jsonld 2).
+# kaynak silinince kapi aksi halde sessizce YESIL kalirdi.
+#
+# 🔴 TABANIN DOGRU OKUNUSU (KraL tur-5 duzeltmesi — onceki yorum YANLISTI; "tabanlar
+#    olculen degerin belirgin altinda" 4 tabandan 3'u icin dogru DEGILDI):
+#   - "landing": 50 <-> OLCULEN 80. Gercek pay YALNIZ burada var ve gerekli: landing
+#     sayfasi eklemek/silmek MESRU bir icerik isidir.
+#   - "ege-bilgi.md": 1 <-> OLCULEN 1. Pay YOK ve OLAMAZ — tek dosyadir; 1'in alti
+#     "dosya kayboldu/bosaldi" demektir, KIRMIZI dogru davranistir.
+#   - "statik-gorunur": len(STATIK_SAYFALAR) <-> OLCULEN 4. Pay YOK ve GEREKMEZ —
+#     her statik sayfa DAIMA bir gorunur govde uretir (dosya silinirse govdeler_statik
+#     zaten fail-closed patlar), yani eksilme ancak KOD mutasyonuyla olur.
+#   - "statik-jsonld": SAYI TABANI YOK -> sayfa bazli, bkz. ZORUNLU_JSONLD.
 KAYNAK_TABANI = {
     "landing": 50,
     "ege-bilgi.md": 1,
-    "statik-gorunur": 4,
-    "statik-jsonld": 2,
+    "statik-gorunur": len(STATIK_SAYFALAR),
 }
-# statik-jsonld govdelerinden toplam kac KARAKTER metin cikmali (JSON-LD tarayicisi
-# "bos liste dondur" mutasyonuyla susturulmasin). Olculen deger binlerce karakter.
-JSONLD_METIN_TABANI = 500
+
+# 🔴 statik-jsonld SAYI DEGIL SAYFA BAZLI olculur (KraL tur-5; YANLIS-POZITIF kapatildi).
+# OLCULDU (21 Tem): JSON-LD blogu olan 2 sayfa var —
+#     sss      : 2761 karakter, malzeme vaadini FIILEN tasiyan yer
+#                ("Parcalar hangi malzemeden uretiliyor?" acceptedAnswer: PA6+GF/PA12+GF/POM)
+#     iletisim :  369 karakter, HICBIR malzeme adi gecmiyor.
+# Eski "govde >= 2" SAYI tabani, iletisim'in JSON-LD blogunu kaldiran/tasiyan MESRU bir
+# SEO duzenlemesinde kapiyi KIRMIZI yakip TUM EKIBIN yayinini durduruyordu (olculdu:
+# EXIT=1, "statik-jsonld govde=1 < beklenen taban 2"). Yeni kural:
+#   ZORUNLU_JSONLD icindeki slug'in JSON-LD govdesi YOKSA/BOSALIRSA -> KIRMIZI
+#   BEKLENEN_JSONLD icindeki (ama zorunlu olmayan) slug kaybolursa    -> UYARI (bloklamaz)
+# Deger = o sayfanin JSON-LD metninden en az kac KARAKTER cikmali; JSON-LD tarayicisini
+# "bos liste dondur" mutasyonuyla susturan saldiriyi bu esik oldurur (sss 2761 -> taban 1200).
+ZORUNLU_JSONLD = {"sss": 1200}
+# Bugun JSON-LD blogu OLAN sayfalar (olculdu). gizlilik/hakkimizda'da JSON-LD bugun YOK ->
+# onlar icin uyari da basilmaz (her kosumda gurultu olurdu).
+BEKLENEN_JSONLD = ("sss", "iletisim")
 
 
 def kanonik_ad(ad):
@@ -519,6 +564,21 @@ def kara_liste_envanterde(ham_json_metni):
 
 
 # ------------------------------------------------------------ IC NOBETCI (fikstur)
+# 🔴 IC NOBETCI KAPSAMI KODDA KILITLI (KraL tur-5). Onceden fikstur sayisi YALNIZ
+# docstring'de yaziyordu -> F16 blogunu silen tek mutasyon kapiyi 29 kontrolle YESIL
+# birakiyordu. Fikstur F0-kapsam bu iki sabiti her kosumda dogrular; yeni fikstur
+# eklemek BILINCLI bir hareket olsun diye ikisi de ELLE guncellenir.
+BEKLENEN_FIKSTUR_ADLARI = frozenset({
+    "F0-kapsam", "F1", "F2", "F3", "F4",
+    "F5a", "F5b", "F6", "F7", "F8", "F8-pozitif", "F9",
+    "F10a", "F10b", "F10c", "F11a", "F11b", "F11c", "F12a", "F12b",
+    "F13a", "F13b", "F14", "F15",
+    "F16a", "F16b", "F16c", "F16d", "F16e", "F17",
+    "F18a", "F18b", "F18c",
+})
+BEKLENEN_KONTROL_SAYISI = 40  # F8 7 kez, F9 2 kez kosar -> ad sayisindan buyuk
+
+
 def _f_envanter(veri=None):
     return envanteri_coz(veri or {"filamentler": [{"ad": "PLA"}, {"ad": "PETG"}]})
 
@@ -528,9 +588,11 @@ def ic_nobetci():
     -> (hata listesi, kosulan kontrol sayisi). Dosyaya BAKMAZ, dosyaya YAZMAZ."""
     hata = []
     sayac = [0]
+    kosulan = []
 
     def kontrol(ad, kosul, ayrinti=""):
         sayac[0] += 1
+        kosulan.append(ad)
         if not kosul:
             hata.append("%s %s" % (ad, ayrinti))
 
@@ -634,16 +696,36 @@ def ic_nobetci():
     # Dayanak kaydi YALNIZ kendi TAM ADINI mesrulastirir; kuresel taban/ek kumelerine
     # DOKULMEZ. Onceki tur bunu ihlal ediyordu (PA6-GF kaydi ciplak PA6 tabanini ve
     # kuresel GF ekini aciyordu) -> onaylanmamis PA-GF sinifi sessizce dayanakli oldu.
+    #
+    # 🔴 FIKSTUR GERCEK VERIYLE SIMETRIK OLMALI (KraL tur-5, "ayni sinif kalinti"):
+    # gercek filamentler.json'daki _dayanakMalzemeler kayitlarinin UCUNDE DE "uzunAd"
+    # alani VAR. Fikstur kayitlarinda yoksa, envanteri_coz'a "dayanak uzunAd'ini da
+    # kuresel taban/ek kumesine dok" diyen 6 satirlik bir "simetri" refactor'u fiksturde
+    # HICBIR SEY DEGISTIRMEZ -> 34/34 YESIL gecer ve SART-1 ile SART-2'yi AYNI ANDA geri
+    # alir (ciplak "PA6 ile uretiyoruz" KIRMIZI'dan YESIL'e doner). uzunAd bu yuzden
+    # gercek veriyle AYNI SEKILDE fikstureledir; F10b/F10c o refactor'u ANINDA oldurur.
     env10 = _f_envanter(
         {"filamentler": [{"ad": "PLA"}, {"ad": "PETG"}],
-         DAYANAK_ANAHTARI: [{"ad": "PA6-GF", "satista": False, "tedarik": "siparis uzerine"},
-                            {"ad": "POM", "satista": False, "tedarik": "siparis uzerine"}]})
+         DAYANAK_ANAHTARI: [{"ad": "PA6-GF",
+                             "uzunAd": "Cam elyaf takviyeli naylon (PA6-GF)",
+                             "satista": False, "tedarik": "siparis uzerine"},
+                            {"ad": "POM", "uzunAd": "Poliasetal (POM)",
+                             "satista": False, "tedarik": "siparis uzerine"}]})
     kontrol("F10a", env10.dayanak_tam == {"PA6-GF", "POM"}
             and env10.dayanak_adlar == ["PA6-GF", "POM"],
             "dayanak TAM AD kumesi yanlis: %s" % sorted(env10.dayanak_tam))
-    kontrol("F10b", "PA6" not in env10.taban and "GF" not in env10.ekler,
-            "🔴 SART-1 IHLALI: dayanak kaydi kuresel taban/ek kumesine DOKULDU "
-            "(taban=%s ek=%s)" % (sorted(env10.taban), sorted(env10.ekler)))
+    kontrol("F10b", "PA6" not in env10.taban and "GF" not in env10.ekler
+            and "POM" not in env10.taban,
+            "🔴 SART-1 IHLALI: dayanak kaydi (ad/uzunAd) kuresel taban/ek kumesine "
+            "DOKULDU (taban=%s ek=%s) — 'simetri' refactor'u ciplak PA6'yi ve kuresel "
+            "GF ekini ACAR" % (sorted(env10.taban), sorted(env10.ekler)))
+    # F10c — uzunAd'daki TURKCE tam ad da sizmamali: "Cam elyaf takviyeli naylon (PA6-GF)"
+    # icindeki "naylon" ciplak PA'yi mesrulastirmaya kalkarsa vaat sessizce YESIL yanar.
+    _o, d10c, _k, _e = degerlendir(
+        [("fikstur", "F10c", "Naylon ile üretip gönderiyoruz.")], env10)
+    kontrol("F10c", d10c.get("PA"),
+            "dayanak uzunAd'indaki Turkce ad ('naylon') ciplak PA'yi MESRULASTIRDI: %s"
+            % sorted(d10c))
 
     # F16 — SART-1'in DAVRANIS kilidi: 5 fikstur, beklenen/gercek
     #   "PA6-CF"  -> KIRMIZI (onaylanmayan takviye; ciplak PA6 tabani acilmadi)
@@ -674,10 +756,12 @@ def ic_nobetci():
     # F17 — SART-2 kilidi: bir dayanak TAM ADI (PA6-GF) BASKA bir tabanin ayni ekini
     # (PA-GF) SESSIZCE mesrulastiramaz. Gercek vaka: main 77 landing govdesinde
     # "UYARI: PA-GF ... - 77 sayfa" basiyordu; onceki turda bu uyari SESSIZCE kayboldu.
+    # (Dayanak kaydi burada da gercek veriyle SIMETRIK — "uzunAd" alani VAR; bkz. F10.)
     envPA = _f_envanter(
         {"filamentler": [{"ad": "PLA"}, {"uzunAd": "Karbon katkılı (PETG-CF/PA-CF)"}],
-         DAYANAK_ANAHTARI: [{"ad": "PA6-GF", "satista": False,
-                             "tedarik": "siparis uzerine"}]})
+         DAYANAK_ANAHTARI: [{"ad": "PA6-GF",
+                             "uzunAd": "Cam elyaf takviyeli naylon (PA6-GF)",
+                             "satista": False, "tedarik": "siparis uzerine"}]})
     _o, d17, _k, e17 = degerlendir(
         [("landing", "F17", "cam fiber takviyeli PA-CF / PA-GF kullanırız.")], envPA)
     kontrol("F17", e17.get(("PA", "GF")) and not d17 and not e17.get(("PA", "CF")),
@@ -719,11 +803,71 @@ def ic_nobetci():
     # F12 — kaynak kapsam tabani gercekten bir sey ISTIYOR (bos/gevsek olmasin)
     # Tabanlar OLCULEN degerlere gore sabitlenmistir; "hepsini 1 yap" mutasyonu kapsam
     # nobetini sessizce olduruyordu -> beklenen degerler burada kilitli.
-    kontrol("F12", KAYNAK_TABANI == {"landing": 50, "ege-bilgi.md": 1,
-                                     "statik-gorunur": 4, "statik-jsonld": 2}
-            and JSONLD_METIN_TABANI >= 500,
-            "KAYNAK_TABANI/JSONLD_METIN_TABANI gevsetilmis: %r / %r"
-            % (KAYNAK_TABANI, JSONLD_METIN_TABANI))
+    kontrol("F12a", KAYNAK_TABANI == {"landing": 50, "ege-bilgi.md": 1,
+                                      "statik-gorunur": len(STATIK_SAYFALAR)},
+            "KAYNAK_TABANI gevsetilmis/degismis: %r" % (KAYNAK_TABANI,))
+    # F12b — statik-jsonld SAYFA BAZLI kalmali. Sayi tabanina geri donen mutasyon,
+    # iletisim'in JSON-LD blogunu kaldiran MESRU SEO duzenlemesinde tum ekibin yayinini
+    # durduran YANLIS-POZITIFI geri getirir; zorunlulugu sss'den alan mutasyon ise gercek
+    # malzeme vaadini tasiyan blogu koruma altindan cikarir.
+    kontrol("F12b", "statik-jsonld" not in KAYNAK_TABANI
+            and ZORUNLU_JSONLD.get("sss", 0) >= 1200
+            and "iletisim" not in ZORUNLU_JSONLD
+            and "iletisim" in BEKLENEN_JSONLD,
+            "statik-jsonld kapsami bozuk (sayi tabanina donmus / sss zorunlulugu gevsemis "
+            "/ iletisim zorunlu yapilmis): KAYNAK_TABANI=%r ZORUNLU_JSONLD=%r "
+            "BEKLENEN_JSONLD=%r" % (KAYNAK_TABANI, ZORUNLU_JSONLD, BEKLENEN_JSONLD))
+
+    # F18 — DRIFT nobeti UCTAN UCA (KraL tur-5 eki).
+    # Bugune kadar YALNIZ karsilastirici (blok_karsilastir, F11) fikstureleniyordu;
+    # drift_kontrolu'nun KENDISI — modul yukleme + bolum_uret() cagrisi + dosya okuma —
+    # hicbir nobetciyle kilitli DEGILDI. Tek satirlik bir mutasyon (or. "uretilen = icerik"
+    # ya da "return True, ...") bayat ege-bilgi.md'yi YESIL yakar -> Ege SESSIZCE bayatlar
+    # (site gosterir, bot eski malzeme listesini anlatir).
+    # Gecici dizinde SAHTE ege-malzeme.py + SAHTE ege-bilgi.md; GERCEK dosyalara DOKUNMAZ.
+    sahte_modul = ("BASLA = '<!-- A -->'\n"
+                   "BITIR = '<!-- B -->'\n"
+                   "def bolum_uret():\n"
+                   "    return BASLA + '\\nPLA / PETG\\n' + BITIR\n")
+    with tempfile.TemporaryDirectory() as gecici:
+        py_yol = os.path.join(gecici, "sahte-ege-malzeme.py")
+        md_taze = os.path.join(gecici, "taze-ege-bilgi.md")
+        md_bayat = os.path.join(gecici, "bayat-ege-bilgi.md")
+        with io.open(py_yol, "w", encoding="utf-8") as f:
+            f.write(sahte_modul)
+        with io.open(md_taze, "w", encoding="utf-8") as f:
+            f.write("giris\n<!-- A -->\nPLA / PETG\n<!-- B -->\nson\n")
+        with io.open(md_bayat, "w", encoding="utf-8") as f:
+            f.write("giris\n<!-- A -->\nPLA / ABS\n<!-- B -->\nson\n")
+        t_taze, m_taze, blok_taze = drift_kontrolu(md_taze, py_yol)
+        t_bayat, m_bayat, _b = drift_kontrolu(md_bayat, py_yol)
+        t_dosyasiz, m_dosyasiz, _b = drift_kontrolu(
+            os.path.join(gecici, "olmayan.md"), py_yol)
+        t_modulsuz, m_modulsuz, _b = drift_kontrolu(
+            md_taze, os.path.join(gecici, "olmayan.py"))
+    kontrol("F18a", t_taze and blok_taze == "<!-- A -->\nPLA / PETG\n<!-- B -->",
+            "uctan uca drift: TAZE blok drift sayildi ya da uretilen blok dondurulmedi "
+            "(%s | blok=%r)" % (m_taze, blok_taze))
+    kontrol("F18b", not t_bayat and "BAYAT" in m_bayat,
+            "uctan uca drift: BAYAT ege-bilgi.md YESIL yandi (%s)" % m_bayat)
+    kontrol("F18c", not t_dosyasiz and not t_modulsuz,
+            "uctan uca drift FAIL-CLOSED degil (md yok -> %s · ege-malzeme.py yok -> %s)"
+            % (m_dosyasiz, m_modulsuz))
+
+    # F0 — 🔴 IC NOBETCININ KENDI KAPSAM KILIDI (KraL tur-5 eki).
+    # Fikstur sayisi/ad kumesi bugune kadar YALNIZ docstring'de yaziyordu: F16 blogunu
+    # silen TEK mutasyon kapiyi 29 kontrolle YESIL birakiyordu (kimse sayiya bakmaz).
+    # Artik ad kumesi + sayi KODDA kilitli; bir fikstur blogunu silen/susturan mutasyon
+    # burada KIRMIZI yanar.
+    calisan = set(kosulan) | {"F0-kapsam"}
+    eksik = sorted(BEKLENEN_FIKSTUR_ADLARI - calisan)
+    fazla = sorted(calisan - BEKLENEN_FIKSTUR_ADLARI)
+    kontrol("F0-kapsam",
+            not eksik and not fazla and sayac[0] + 1 == BEKLENEN_KONTROL_SAYISI,
+            "IC NOBETCI KAPSAMI DEGISTI — eksik fikstur=%s · fazla=%s · kontrol=%d "
+            "(beklenen %d). Bir fikstur blogu silinmis/susturulmus olabilir; yeni fikstur "
+            "eklediysen BEKLENEN_FIKSTUR_ADLARI + BEKLENEN_KONTROL_SAYISI'ni BILEREK guncelle."
+            % (eksik, fazla, sayac[0] + 1, BEKLENEN_KONTROL_SAYISI))
     return hata, sayac[0]
 
 
@@ -793,11 +937,29 @@ def main(argv=None):
                 kapsam_hata.append("kaynak '%s' govde=%d < beklenen taban %d "
                                    "(kaynak kaybolmus/susturulmus olabilir)"
                                    % (kaynak, gelen, taban_sayi))
-        jsonld_metin = ozet.get("statik-jsonld", {}).get("metin", 0)
-        if jsonld_metin < JSONLD_METIN_TABANI:
-            kapsam_hata.append("statik-jsonld metin uzunlugu %d < taban %d "
-                               "(JSON-LD tarayicisi bos donuyor olabilir)"
-                               % (jsonld_metin, JSONLD_METIN_TABANI))
+        # statik-jsonld: SAYI DEGIL SAYFA BAZLI (bkz. ZORUNLU_JSONLD). Zorunlu sayfanin
+        # blogu yoksa/bosalirsa KIRMIZI; zorunlu OLMAYAN bir sayfanin blogu kaybolursa
+        # UYARI — mesru bir SEO duzenlemesi tum ekibin yayinini durdurmaz.
+        jsonld_uzunluk = dict((slug, len(metin))
+                              for kaynak, slug, metin in kaynaklar
+                              if kaynak == "statik-jsonld")
+        for slug, metin_tabani in sorted(ZORUNLU_JSONLD.items()):
+            if slug not in jsonld_uzunluk:
+                kapsam_hata.append(
+                    "ZORUNLU JSON-LD sayfasi '%s' hic govde uretmedi (blok silinmis ya da "
+                    "JSON-LD tarayicisi bos donuyor) — malzeme vaadi bu blokta yayinlanir"
+                    % slug)
+            elif jsonld_uzunluk[slug] < metin_tabani:
+                kapsam_hata.append(
+                    "ZORUNLU JSON-LD sayfasi '%s' metni %d karakter < taban %d "
+                    "(blok bosalmis/kirpilmis olabilir)"
+                    % (slug, jsonld_uzunluk[slug], metin_tabani))
+        for slug in BEKLENEN_JSONLD:
+            if slug in ZORUNLU_JSONLD or slug in jsonld_uzunluk:
+                continue
+            print("UYARI: KAPSAM - '%s' sayfasinin JSON-LD blogu YOK/kaldirilmis "
+                  "(bloklamaz: bu sayfa malzeme vaadi tasimiyor; zorunlu blok(lar): %s)"
+                  % (slug, ", ".join(sorted(ZORUNLU_JSONLD))))
 
     envanter_kara = kara_liste_envanterde(filament_ham)
 
