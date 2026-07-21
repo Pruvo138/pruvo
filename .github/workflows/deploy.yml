@@ -65,12 +65,17 @@ jobs:
       - name: Landing/hukuk beyan kapisi
         run: python3 tools/landing-hukuk-kapisi.py
 
-      # MALZEME DAYANAGI: huni (landing) sayfalarinda VE ege-bilgi.md'de (WhatsApp botu Ege'nin
-      # bilgi dosyasi) gecen her malzeme adinin filament envanterinde karsiligi var mi —
-      # uretemedigimiz bir malzeme sinifini (or. PC / polikarbonat) sayfada ya da bot metninde
-      # vaat etmek yanlis ticari beyandir. Bloklayici (landing-hukuk deseni). Offline, stdlib,
-      # olculdu 2,8 s; build.py'den ONCE commit'li sayfa kaynagini + ege-bilgi.md'yi okur.
-      - name: Malzeme dayanak kabul testi (landing sayfalari + ege-bilgi.md)
+      # MALZEME DAYANAGI: DORT yayin yuzeyinde gecen her malzeme adinin filament envanterinde
+      # karsiligi var mi — (A) huni/landing sayfalari, (B) ege-bilgi.md (WhatsApp botu Ege'nin
+      # bilgi dosyasi), (C) sss/gizlilik/hakkimizda/iletisim GORUNUR metni, (D) ayni 4 sayfanin
+      # JSON-LD bloklari (Google'in okudugu acceptedAnswer). Uretemedigimiz bir sinifi (or. PC /
+      # polikarbonat -> kodda KARA LISTE) vaat etmek yanlis ticari beyandir. Ayrica: dayanak
+      # kayitlari (PA6-GF/PA12-GF/POM) YALNIZ onaylanan TAM ADI mesrulastirir, satis/uretim
+      # duzlemine SIZAMAZ; ege-malzeme.py <-> ege-bilgi.md DRIFT nobeti; 34 bellekte-fikstur
+      # ic nobetcisi kapinin kendi yetenegini kilitler. Bloklayici (landing-hukuk deseni).
+      # Offline, stdlib; OLCULDU 0,13-0,20 s (3 kosum, 87 govde) — build.py'den ONCE commit'li
+      # kaynagi okur, hicbir dosyaya YAZMAZ.
+      - name: Malzeme dayanak kabul testi (landing + ege-bilgi.md + statik sayfa/JSON-LD)
         run: python3 tools/malzeme-dayanak-test.py
 
       # EGE-BILGI TAVAN: ege-bilgi.md uzunlugu bot slice(0,6000) esigini asmasin.

@@ -2,9 +2,16 @@
 # -*- coding: utf-8 -*-
 """MALZEME DAYANAK KAPISI (kalici nobetci)
 
-Kural (Okan, 21 Tem): YAYINLANAN her yuzeyde MALZEME SINIFI olarak anilan her ad
+Kural (Okan, 21-22 Tem): YAYINLANAN her yuzeyde MALZEME SINIFI olarak anilan her ad
 tools/filamentler.json envanterinde DAYANAGI olmalidir. Uretemedigimiz/tedarik
 edemedigimiz bir sinifi metinde vaat etmek ticari beyan riskidir.
+
+🔴 KARAR KAYDI (kodun TURETEMEDIGI kisim; bagimsiz curutucunun bakacagi yer):
+  ~/.claude/projects/-Users-okan-dev-pruvo/memory/malzeme-envanteri-beyan-karari.md
+  (Okan 22 Tem, pencereyle alindi — DAYANAK_KARAR_KAYDI sabiti). "Envanterde yok"
+  ile "uretemiyoruz" arasindaki farki yalniz Okan'in karari ayirir; kod bunu uyduramaz.
+  Kayittaki uygulama kurali AYNEN: "Dayanak kaydi YALNIZ onaylanan TAM ADI mesrulastirir
+  (PA6-GF); ciplak PA6'yi ya da kuresel GF ekini ACMAMALI."
 
 TARANAN GOVDE KAYNAKLARI
   A) landing         : sayfalar.CONTENT_PAGES — govde + baslik + meta
@@ -16,23 +23,57 @@ TARANAN GOVDE KAYNAKLARI
                        POM adlarini FIILEN vaat ediyor — JSON-LD ayri bir yayin yuzeyidir.
 Rapor "kaynak: <ad>" kirilimiyla basar; hangi govdeden geldigi gorunur.
 
+⚠️ DUZELTME (KraL tur-4): "JSON-LD main'de UYARI'ydi, burada KIRMIZI'ya katilastirildi"
+  iddiasi YANLISTI. OLCULDU (main 16d24a67 gercek repo verisiyle kosuldu, cikti aynen):
+      "Taranan sayfa: 80 (+ ege-bilgi.md ek kaynak)"
+  main JSON-LD'ye HIC bakmiyordu (ne UYARI ne KIRMIZI) ve 4 statik sayfayi hic taramiyordu.
+  Yani C+D YENI yayin yuzeyleridir, var olan bir uyarinin katilastirilmasi DEGIL.
+
 Nasil calisir
   1) tools/filamentler.json OKUNUR; envanter adlari ORADAN TURETILIR (kodda liste
-     sabitlenmez -> tek kaynak). "ad" + "uzunAd" alanlarindan polimer jetonlari
-     ayiklanir; "-" oncesi taban polimer de envantere girer
-     (orn. "Karbon katkili (PETG-CF/PA-CF)" -> PETG-CF, PA-CF, PETG, PA).
-     Envanter IKI listeden gelir:
-       - "filamentler"        : satilan/uretilen aile (site cipleri, Ege, rehber)
-       - "_dayanakMalzemeler" : SATISTA OLMAYAN, siparis uzerine hizli tedarik edilen
-         siniflar (Okan karari 21 Tem: PA6+GF / PA12+GF / POM stokta degil ama ihtiyac
-         aninda tedarigi hizli -> site metni DOGRU, beyanin dayanagi burasi). Bunlar
-         YALNIZ beyan dayanagidir; site/Ege/rehber uretimine GIRMEZ (asagida "sizinti").
+     sabitlenmez -> tek kaynak). IKI AYRI DUZLEM vardir ve BIRBIRINE KARISMAZ:
+       - "filamentler" = SATIS/URETIM envanteri. "ad" + "uzunAd" alanlarindan polimer
+         jetonlari ayiklanir; "-" oncesi taban polimer de bu duzleme girer
+         (orn. "Karbon katkili (PETG-CF/PA-CF)" -> PETG-CF, PA-CF, PETG, PA).
+         Kuresel taban + kuresel takviye eki kumeleri YALNIZ buradan doldurulur.
+       - "_dayanakMalzemeler" = BEYAN DAYANAGI (satista degil, siparis uzerine hizli
+         tedarik: PA6-GF / PA12-GF / POM). 🔴 SART-1: bu kayitlar kuresel kumelere
+         DOKULMEZ; yalnizca kaydin kendi "ad" alanindaki TAM AD (kanonik: buyuk harf,
+         "+" -> "-") mesrulastirilir. Sonuc olculebilir:
+             "PA6-CF ile uretiyoruz"  -> KIRMIZI (ciplak PA6 tabani acilmadi)
+             ciplak "PA6 ile uretiyoruz" -> KIRMIZI (tam ad degil)
+             "PETG-GF"                -> UYARI (kuresel GF eki acilmadi, sessizlesmez)
+             "PA6-GF" / "PA6+GF"      -> YESIL (onayli tam ad)
+         Onceki turda bu kayitlar kuresel taban+ek kumelerine doluyordu; olculen bedel:
+         onaylanmamis PA-GF sinifi 77 landing sayfasinda SESSIZCE dayanakli sayiliyordu.
   2) Metinde gecen polimer sinifi adaylari LEKSIK bir sozlukle bulunur (bu sozluk
-     envanter DEGIL; dunyadaki filament sinifi adlarinin listesi). Her adayin
-     TABAN polimeri envanterde yoksa KIRMIZI.
+     envanter DEGIL; dunyadaki filament sinifi adlarinin listesi). Takviye ayraci olarak
+     "-" ve "+" ikisi de kabul edilir (yayindaki gercek yazim "PA6+GF"). Her adayin
+     TABAN polimeri satis envanterinde yoksa (ve tam adi dayanak listesinde degilse)
+     KIRMIZI.
   3) Takviye eki (-CF / -GF) taban polimerden ayri degerlendirilir: taban
      envanterdeyse kapi KIRMIZI yakmaz, ama envanterde adi gecmeyen takviye eki
      UYARI olarak basilir (mimar karari bekler).
+
+🟡 PA-GF UYARISI — SESSIZCE KAYBOLAMAZ (SART-2, KraL tur-4 karari)
+  OLCULDU: landing govdelerinin 77'sinde "PA-CF / PA-GF" gecer. main bu yuzden
+  "UYARI: PA-GF takviye eki 'GF' envanterde adlandirilmamis - 77 sayfa" basiyordu.
+  KARAR: uyari GERI GELDI (secenek a), cunku karar kaydinda onaylanan adlar YALNIZ
+  PA6-GF / PA12-GF / POM'dur; ciplak "PA-GF" (herhangi bir naylon + cam elyaf) onaylanmis
+  DEGILDIR — onu dayanakli saymak Okan'in kararini kod eliyle GENISLETMEK olurdu.
+  Uyari BLOKLAYICI degildir (main'de de degildi; 77 sayfayi CI'da kirmiziya cevirmek tum
+  ekibin yayinini yanlis-pozitifle durdururdu) — metin duzeltmesi ArTisT/Okan duzlemidir.
+  Fikstur F17 mekanizmayi kilitler: bir dayanak TAM ADI kuresel eki acarsa KIRMIZI.
+
+🔴 BILINEN KOR NOKTA — V6 (KAPATILMADI, bilincli; adiyla yaziliyor)
+  Mutasyon: filamentler.json'dan YALNIZ {"ad":"PETG"} kaydini silmek kapiyi YESIL birakir.
+  Sebep: taban jetonu bilesik addan da turer ("Karbon katkili (PETG-CF/PA-CF)" -> PETG).
+  Neden kapatilmadi (OLCULDU): "taban yalniz kaydin kendi ciplak adindan turesin" kurali
+  ciplak PA'yi dayanaksiz yapar; ciplak PA bugun 3 govdede geciyor (sss gorunur + ayni
+  sayfanin JSON-LD'si + ege-bilgi.md; yazim "naylon"/"PA") -> kapi ANINDA KIRMIZI yanar ve
+  TUM EKIBIN yayini durur. "PA (naylon) satiyor muyuz?" sorusu Okan kapisidir, kodun
+  turetebilecegi bir sey degil. Bu kor nokta ancak envanterde acik bir "ciplak ad" alani
+  (or. {"ad":"PETG","ciplakSatilir":true}) veya Okan'in PA karari ile kapanir.
 
 🔴 YASAKLI MALZEME KARA LISTESI (KARA_LISTE) — envanterle SUSTURULAMAZ
   Curutucu kanitladi: dayanak-kaydi mekanizmasi ayni zamanda bir SUSTURMA deligidir —
@@ -62,10 +103,13 @@ uzerinde donen tum ureticiler (urun sayfasi cipleri, /malzeme-rehberi/,
 tools/ege-malzeme.py) bu kayitlari GORMEZ -> ege-bilgi.md byte-ozdes kalir.
 
 IC NOBETCI (--ic-nobetci ile tek basina da kosar; normal kosumda da HER SEFER calisir):
-Bu kapinin KENDI davranislarini bellekte-fikstur ile kilitler. Sebep: gercek veri
-zaten temiz oldugu icin, kapinin kodundan bir yetenegi (kara liste / JSON-LD taramasi /
-dayanak alan dogrulamasi / negatif-eleyici YOKLUGU / kaynak kapsami) SILEN bir mutasyon
-gercek veride YESIL kalirdi. Fikstur nobetcileri o mutasyonlari oldurur.
+Bu kapinin KENDI davranislarini bellekte-fikstur ile kilitler (34 kontrol). Sebep:
+gercek veri zaten temiz oldugu icin, kapinin kodundan bir yetenegi (kara liste /
+JSON-LD taramasi + hata mesajindaki SLUG / dayanak TAM-AD kapsami / dayanak alan
+dogrulamasi / negatif-eleyici YOKLUGU / kaynak kapsami) SILEN bir mutasyon gercek veride
+YESIL kalirdi. Fikstur nobetcileri o mutasyonlari oldurur. OLCULDU (tur-4, mutasyon
+KOPYAYA uygulandi — canli dosyaya DEGIL): 9 mutasyonun 9'u olduruldu; V6 (yukarida
+adiyla yazili kor nokta) beklendigi gibi hayatta kaldi.
 
 Fail-closed: filamentler.json / ege-bilgi.md / statik sayfa okunamaz-bozuksa,
 JSON-LD ayristirilamazsa, beklenen bir kaynak bos gelirse KIRMIZI.
@@ -74,6 +118,7 @@ Bayraklar (mutasyon testi GERCEK dosyalari BOZMASIN diye tempfile kopyada kossun
 Cikis: 0 = temiz, 1 = dayanaksiz ad / kara liste ihlali / kapsam / drift / okuma hatasi.
 """
 import argparse
+import collections
 import importlib.util
 import io
 import json
@@ -92,6 +137,18 @@ STATIK_SAYFALAR = ["sss", "gizlilik", "hakkimizda", "iletisim"]
 DAYANAK_ANAHTARI = "_dayanakMalzemeler"
 DAYANAK_YASAK_ALAN = ["fiyat", "fiyatTL", "katsayi", "fiyatKatsayisi", "site",
                       "kategoriTavsiye"]
+# Ticari beyanin dayanagini veren OKAN KARARI kodda degil, hafizada durur (kod bir
+# ticari karari turetemez). Bagimsiz curutucu "bu beyanin kaynagi nerede?" diye
+# sordugunda bakilacak tek yer:
+DAYANAK_KARAR_KAYDI = ("~/.claude/projects/-Users-okan-dev-pruvo/memory/"
+                       "malzeme-envanteri-beyan-karari.md")
+
+# Envanter IKI AYRI DUZLEM (bkz. modul basligi SART-1):
+#   tam/taban/ekler -> YALNIZ "filamentler" (satis/uretim) duzleminden
+#   dayanak_tam     -> "_dayanakMalzemeler" kayitlarinin KANONIK TAM ADLARI
+#                      (kuresel taban/ek kumelerine DOKULMEZ)
+Envanter = collections.namedtuple(
+    "Envanter", "tam taban ekler dayanak_tam dayanak_adlar")
 
 # ---------------------------------------------------------------- KARA LISTE
 # Kodda SABIT. Envantere kayit eklenerek susturulamaz (bkz. modul basligi).
@@ -143,10 +200,18 @@ KAYNAK_TABANI = {
 JSONLD_METIN_TABANI = 500
 
 
+def kanonik_ad(ad):
+    """Malzeme tam adini KANONIK bicime getirir: buyuk harf, "+" ayraci "-" olur,
+    bosluklar atilir. Yayindaki gercek yazim "PA6+GF", envanterdeki ad "PA6-GF" —
+    ikisi AYNI sinif; ayrac farki bir dayanagi gecersiz kilmamali."""
+    return re.sub(r"\s+", "", (ad or "").upper()).replace("+", "-")
+
+
 def _jeton_ayikla(metin):
     """filamentler.json ad/uzunAd alanindan polimer jetonlarini ayiklar.
     Tek harfli jetonlar (°C'deki 'C' gibi) polimer adi degildir; elenir."""
-    ham = re.findall(r"[A-Z][A-Z0-9]*(?:-[A-Z]{2}[0-9]{0,2})?", metin or "")
+    ham = re.findall(r"[A-Z][A-Z0-9]*(?:[-+][A-Z]{2}[0-9]{0,2})?", metin or "")
+    ham = [kanonik_ad(j) for j in ham]
     return set(j for j in ham if len(j.split("-")[0]) >= 2)
 
 
@@ -176,8 +241,12 @@ def dayanak_dogrula(dayanak):
 
 
 def envanteri_coz(veri):
-    """Ayristirilmis filamentler.json sozlugu -> (tam, taban, ekler, dayanak_adlar).
-    Fail-closed: hata halinde ValueError/KeyError firlatir."""
+    """Ayristirilmis filamentler.json sozlugu -> Envanter(tam, taban, ekler,
+    dayanak_tam, dayanak_adlar). Fail-closed: hata halinde ValueError/KeyError.
+
+    🔴 SART-1 (karar kaydi: DAYANAK_KARAR_KAYDI): "_dayanakMalzemeler" kayitlari
+    kuresel taban/ek kumelerine DOKULMEZ. Dayanak kaydi YALNIZ kendi kanonik TAM
+    ADINI mesrulastirir; ciplak tabani (PA6) ve kuresel eki (GF) ACMAZ."""
     kayitlar = veri["filamentler"]
     if not kayitlar:
         raise ValueError("filamentler.json: 'filamentler' listesi bos")
@@ -185,7 +254,7 @@ def envanteri_coz(veri):
     dayanak_adlar = dayanak_dogrula(dayanak)
 
     tam = set()
-    for kayit in list(kayitlar) + list(dayanak):
+    for kayit in kayitlar:  # YALNIZ satis/uretim duzlemi
         tam |= _jeton_ayikla(kayit.get("ad", ""))
         tam |= _jeton_ayikla(kayit.get("uzunAd", ""))
     taban, ekler = set(), set()
@@ -196,7 +265,11 @@ def envanteri_coz(veri):
             ekler.add(parca[1])
     if not taban:
         raise ValueError("filamentler.json: polimer jetonu turetilemedi")
-    return tam, taban, ekler, dayanak_adlar
+    # Dayanak: kaydin "ad" alanindaki TAM AD (kanonik). "uzunAd" BILEREK
+    # kullanilmaz — "Cam elyaf takviyeli naylon (PA6-GF)" icindeki "naylon" ciplak
+    # PA'yi mesrulastirmaya kalkardi.
+    dayanak_tam = set(kanonik_ad(ad) for ad in dayanak_adlar)
+    return Envanter(tam, taban, ekler, dayanak_tam, dayanak_adlar)
 
 
 def envanteri_oku(yol=None):
@@ -215,8 +288,14 @@ def _aday_deseni():
     kis = sorted(set(KISALTMALAR), key=len, reverse=True)
     ekler = "|".join(sorted(set(TAKVIYE_EKLERI), key=len, reverse=True))
     tam = "|".join(sorted(TAM_ADLAR, key=len, reverse=True))
+    # Takviye ayraci "-" VE "+": yayindaki gercek yazim "PA6+GF" (sss/hakkimizda),
+    # envanterdeki kanonik ad "PA6-GF". Ayrac farki dayanagi gecersiz kilmamali;
+    # OLCULDU (87 govde, eski/yeni desen eslesme-eslesme karsilastirildi): "+" kabulu
+    # 3 govdede 5 eslesmeyi kanonize eder — statik-gorunur/sss (PA6, PA12),
+    # statik-jsonld/sss (PA6, PA12), statik-gorunur/hakkimizda (PA6) — ve BASKA HICBIR
+    # eslesmeyi degistirmez (ek grubu yalniz CF/GF ailesini kabul eder).
     return re.compile(
-        r"(?<![%s])(?:(?P<kisa>%s)(?:-(?P<ek>%s))?|(?P<tam>%s))(?![%s])"
+        r"(?<![%s])(?:(?P<kisa>%s)(?:[-+](?P<ek>%s))?|(?P<tam>%s))(?![%s])"
         % (TR_HARF, "|".join(kis), ekler, tam, TR_HARF),
         re.IGNORECASE,
     )
@@ -284,18 +363,25 @@ def govdeler_ege(yol):
     yield ("ege-bilgi.md", os.path.basename(yol), _html_soy(icerik))
 
 
-def jsonld_metinleri(ham):
+def jsonld_metinleri(ham, kaynak_adi=None):
     """HTML'deki JSON-LD bloklarindaki TUM string degerler (acceptedAnswer dahil).
-    -> (blok listesi, metin listesi). Fail-closed: blok ayristirilamazsa ValueError."""
+    -> (blok listesi, metin listesi). Fail-closed: blok ayristirilamazsa ValueError.
+
+    kaynak_adi: hata mesajina yazilacak SAYFA KIMLIGI (slug + dosya yolu). Bu kapi
+    CI'da tum ekibin yayinini durdurur; "JSON-LD ayristirilamadi" mesaji 4 sayfadan
+    HANGISI oldugunu soylemezse mimar/isci hatayi ariyor -> slug ZORUNLU bilgi."""
     metinler = []
     bloklar = re.findall(
         r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
         ham, flags=re.S | re.I)
-    for blok in bloklar:
+    for sira, blok in enumerate(bloklar, 1):
         try:
             veri = json.loads(blok)
         except Exception as hata:
-            raise ValueError("JSON-LD ayristirilamadi: %s" % hata)
+            raise ValueError(
+                "JSON-LD ayristirilamadi [%s · %d/%d. blok]: %s | blok basi: %s"
+                % (kaynak_adi or "kaynak bilinmiyor", sira, len(bloklar), hata,
+                   " ".join(blok.split())[:120]))
 
         def gez(dugum):
             if isinstance(dugum, dict):
@@ -311,14 +397,18 @@ def jsonld_metinleri(ham):
 
 
 def govdeler_statik(kok):
-    """kaynak C + D: 4 statik sayfa — GORUNUR metin ve JSON-LD AYRI govdeler."""
+    """kaynak C + D: 4 statik sayfa — GORUNUR metin ve JSON-LD AYRI govdeler.
+    Okuma/ayristirma hatasi HANGI SAYFA oldugunu soyleyerek yukselir (SART-3)."""
     for slug in STATIK_SAYFALAR:
         yol = os.path.join(kok, slug, "index.html")
-        with io.open(yol, encoding="utf-8") as f:
-            ham = f.read()
+        try:
+            with io.open(yol, encoding="utf-8") as f:
+                ham = f.read()
+        except Exception as hata:
+            raise ValueError("statik sayfa okunamadi [%s · %s]: %s" % (slug, yol, hata))
         gorunur = re.sub(r"<(script|style)\b.*?</\1>", " ", ham, flags=re.S | re.I)
         yield ("statik-gorunur", slug, _html_soy(gorunur))
-        bloklar, metinler = jsonld_metinleri(ham)
+        bloklar, metinler = jsonld_metinleri(ham, "%s · %s" % (slug, yol))
         if bloklar:
             yield ("statik-jsonld", slug, " . ".join(metinler))
 
@@ -347,17 +437,31 @@ def blok_karsilastir(uretilen, icerik, basla, bitir):
 
 def drift_kontrolu(ege_yol, ege_malzeme_yol):
     """ege-malzeme.py'nin BELLEKTE urettigi blok == ege-bilgi.md'deki blok mu?
-    Dosyaya YAZMAZ."""
-    modul = _modul_yukle(ege_malzeme_yol)
-    with io.open(ege_yol, encoding="utf-8") as f:
-        icerik = f.read()
-    return blok_karsilastir(modul.bolum_uret(), icerik, modul.BASLA, modul.BITIR)
+    Dosyaya YAZMAZ. -> (tamam_mi, mesaj, uretilen_blok)
+    Fail-closed: modul yuklenemez / dosya okunamazsa (False, sebep, None).
+    (main() bu fonksiyonu CAGIRIR — mantik satir-ici tekrarlanmaz.)"""
+    try:
+        modul = _modul_yukle(ege_malzeme_yol)
+        uretilen = modul.bolum_uret()
+        with io.open(ege_yol, encoding="utf-8") as f:
+            icerik = f.read()
+    except Exception as hata:
+        return False, "drift kontrolu kosulamadi -> %s" % hata, None
+    tamam, mesaj = blok_karsilastir(uretilen, icerik, modul.BASLA, modul.BITIR)
+    return tamam, mesaj, uretilen
 
 
 # ------------------------------------------------------------------ degerlendirme
-def degerlendir(kaynaklar, envanter_taban, envanter_ekleri):
-    """kaynaklar: [(kaynak, slug, metin), ...]
-    -> (ozet, dayanaksiz, kara_ihlal, ek_uyarisi)"""
+def degerlendir(kaynaklar, env):
+    """kaynaklar: [(kaynak, slug, metin), ...] · env: Envanter
+    -> (ozet, dayanaksiz, kara_ihlal, ek_uyarisi)
+
+    Siralama (SART-1):
+      1) kara liste  -> KIRMIZI (envanter/dayanak EZILEMEZ)
+      2) TAM AD dayanak listesinde mi (PA6-GF) -> temiz. YALNIZ tam ad; ciplak taban
+         (PA6) ve kuresel ek (GF) bu yolla ACILMAZ.
+      3) taban SATIS envanterinde degil -> KIRMIZI
+      4) ek SATIS envanterinde adlandirilmamis -> UYARI (bloklamaz)"""
     ozet = {}            # kaynak -> {"govde": n, "adlar": set(), "metin": karakter}
     dayanaksiz = {}      # kisaltma -> [(kaynak, slug, ham), ...]
     kara_ihlal = {}      # kisaltma -> [(kaynak, slug, ham), ...]
@@ -367,13 +471,16 @@ def degerlendir(kaynaklar, envanter_taban, envanter_ekleri):
         sayac["govde"] += 1
         sayac["metin"] += len(metin)
         for kisa, ek, ham in adaylari_bul(metin):
-            sayac["adlar"].add(kisa if not ek else "%s-%s" % (kisa, ek))
+            tam_ad = kisa if not ek else "%s-%s" % (kisa, ek)
+            sayac["adlar"].add(tam_ad)
             if kisa in KARA_LISTE:
                 # 🔴 KARA LISTE ENVANTERI EZER: kayit olsa bile KIRMIZI.
                 kara_ihlal.setdefault(kisa, []).append((kaynak, slug, ham))
-            elif kisa not in envanter_taban:
+            elif tam_ad in env.dayanak_tam:
+                continue          # onaylanan TAM AD — dayanakli
+            elif kisa not in env.taban:
                 dayanaksiz.setdefault(kisa, []).append((kaynak, slug, ham))
-            elif ek and ek not in envanter_ekleri:
+            elif ek and ek not in env.ekler:
                 ek_uyarisi.setdefault((kisa, ek), []).append("%s/%s" % (kaynak, slug))
     return ozet, dayanaksiz, kara_ihlal, ek_uyarisi
 
@@ -428,9 +535,9 @@ def ic_nobetci():
             hata.append("%s %s" % (ad, ayrinti))
 
     # F1 — KARA LISTE ENVANTERI EZER (envantere kayit ekleyip susturma deligi)
-    _t, taban, ekler, _d = _f_envanter({"filamentler": [{"ad": "PLA"}, {"ad": "PC"}]})
+    env = _f_envanter({"filamentler": [{"ad": "PLA"}, {"ad": "PC"}]})
     _o, dayanaksiz, kara, _e = degerlendir(
-        [("fikstur", "F1", "Talep ederseniz PC ile üretip gönderiyoruz.")], taban, ekler)
+        [("fikstur", "F1", "Talep ederseniz PC ile üretip gönderiyoruz.")], env)
     kontrol("F1", "PC" in kara and "PC" not in dayanaksiz,
             "envanterde PC kaydi varken kara liste ihlali YAKALANMADI "
             "(kara=%s dayanaksiz=%s)" % (sorted(kara), sorted(dayanaksiz)))
@@ -442,20 +549,20 @@ def ic_nobetci():
             "temiz envanterde yanlis-pozitif kara liste ihlali")
 
     # F4 — NEGATIF BAGLAM ELEYICISI YOK (curutucunun kacirdigi gercek vaka)
-    _t, taban, ekler, _d = _f_envanter()
+    env = _f_envanter()
     _o, dayanaksiz, kara, _e = degerlendir(
         [("fikstur", "F4",
           "- PC ile üretim yok; ama isterse müşteriye PEEK ile üretip gönderiyoruz.")],
-        taban, ekler)
+        env)
     kontrol("F4", "PC" in kara and "PEEK" in dayanaksiz,
             "olumsuzlama iceren satirdaki vaat KACTI (negatif eleyici geri gelmis olabilir) "
             "kara=%s dayanaksiz=%s" % (sorted(kara), sorted(dayanaksiz)))
 
     # F14 — TAM AD haritasi: Turkce tam ad da malzeme beyanidir ("polikarbonat" -> PC)
     _o, d14, k14, _e = degerlendir(
-        [("fikstur", "F14a", "İhtiyaç halinde polikarbonat ile üretiyoruz.")], taban, ekler)
+        [("fikstur", "F14a", "İhtiyaç halinde polikarbonat ile üretiyoruz.")], env)
     _o, d14b, _k, _e = degerlendir(
-        [("fikstur", "F14b", "Poliasetal ile de üretiyoruz.")], taban, ekler)
+        [("fikstur", "F14b", "Poliasetal ile de üretiyoruz.")], env)
     kontrol("F14", "PC" in k14 and not d14 and "POM" in d14b,
             "tam ad haritasi bozuk (polikarbonat->%s/%s · poliasetal->%s)"
             % (sorted(k14), sorted(d14), sorted(d14b)))
@@ -470,22 +577,26 @@ def ic_nobetci():
     kontrol("F5a", len(bloklar) == 1 and any("PEEK" in m for m in metinler),
             "JSON-LD string degerleri ayiklanmadi (metin=%r)" % metinler)
     _o, dayanaksiz, _k, _e = degerlendir(
-        [("statik-jsonld", "F5", " . ".join(metinler))], taban, ekler)
+        [("statik-jsonld", "F5", " . ".join(metinler))], env)
     kontrol("F5b", "PEEK" in dayanaksiz and "POM" in dayanaksiz,
             "JSON-LD icindeki dayanaksiz ad yakalanmadi (%s)" % sorted(dayanaksiz))
 
-    # F6 — bozuk JSON-LD fail-closed
+    # F6 — bozuk JSON-LD fail-closed + hata mesaji SLUG'i SOYLER (SART-3)
+    # Bu kapi CI'da tum ekibin yayinini durdurur; "hangi sayfa" bilgisi olmadan
+    # mesaj 4 sayfa arasinda arama yaptirir.
     try:
-        jsonld_metinleri('<script type="application/ld+json">{bozuk</script>')
+        jsonld_metinleri('<script type="application/ld+json">{bozuk</script>',
+                         "sss · /repo/sss/index.html")
         kontrol("F6", False, "bozuk JSON-LD sessizce gecti (fail-closed degil)")
-    except ValueError:
-        kontrol("F6", True)
+    except ValueError as e:
+        kontrol("F6", "sss" in str(e) and "/repo/sss/index.html" in str(e),
+                "JSON-LD hata mesajinda slug/dosya YOK: %s" % e)
 
     # F7 — URUN/SISTEM eleyicisi: yanlis-pozitif yok ama vaat KACMIYOR
     _o, d1, _k, _e = degerlendir([("fikstur", "F7a", "PVC doğrama profili takarız.")],
-                                 taban, ekler)
+                                 env)
     _o, d2, _k, _e = degerlendir([("fikstur", "F7b", "PVC ile üretim yapıyoruz.")],
-                                 taban, ekler)
+                                 env)
     kontrol("F7", not d1 and "PVC" in d2,
             "urun/sistem eleyicisi bozuk (dograma=%s vaat=%s)" % (sorted(d1), sorted(d2)))
 
@@ -519,13 +630,59 @@ def ic_nobetci():
         except (ValueError, KeyError):
             kontrol("F9", True)
 
-    # F10 — dayanak kaydi envanteri GENISLETIR (site uretimine girmeden)
-    _t, taban10, ekler10, adlar10 = _f_envanter(
-        {"filamentler": [{"ad": "PLA"}],
-         DAYANAK_ANAHTARI: [{"ad": "PA6-GF", "satista": False, "tedarik": "siparis uzerine"}]})
-    kontrol("F10", "PA6" in taban10 and "GF" in ekler10 and adlar10 == ["PA6-GF"],
-            "dayanak kaydindan taban/ek turetilemedi (taban=%s ek=%s ad=%s)"
-            % (sorted(taban10), sorted(ekler10), adlar10))
+    # F10 — 🔴 SART-1 KILIDI (karar kaydi: DAYANAK_KARAR_KAYDI)
+    # Dayanak kaydi YALNIZ kendi TAM ADINI mesrulastirir; kuresel taban/ek kumelerine
+    # DOKULMEZ. Onceki tur bunu ihlal ediyordu (PA6-GF kaydi ciplak PA6 tabanini ve
+    # kuresel GF ekini aciyordu) -> onaylanmamis PA-GF sinifi sessizce dayanakli oldu.
+    env10 = _f_envanter(
+        {"filamentler": [{"ad": "PLA"}, {"ad": "PETG"}],
+         DAYANAK_ANAHTARI: [{"ad": "PA6-GF", "satista": False, "tedarik": "siparis uzerine"},
+                            {"ad": "POM", "satista": False, "tedarik": "siparis uzerine"}]})
+    kontrol("F10a", env10.dayanak_tam == {"PA6-GF", "POM"}
+            and env10.dayanak_adlar == ["PA6-GF", "POM"],
+            "dayanak TAM AD kumesi yanlis: %s" % sorted(env10.dayanak_tam))
+    kontrol("F10b", "PA6" not in env10.taban and "GF" not in env10.ekler,
+            "🔴 SART-1 IHLALI: dayanak kaydi kuresel taban/ek kumesine DOKULDU "
+            "(taban=%s ek=%s)" % (sorted(env10.taban), sorted(env10.ekler)))
+
+    # F16 — SART-1'in DAVRANIS kilidi: 5 fikstur, beklenen/gercek
+    #   "PA6-CF"  -> KIRMIZI (onaylanmayan takviye; ciplak PA6 tabani acilmadi)
+    #   ciplak PA6-> KIRMIZI (tam ad degil)
+    #   "PETG-GF" -> UYARI   (kuresel GF eki acilmadi -> SESSIZLESMEZ)
+    #   "PA6-GF"  -> TEMIZ   (onayli tam ad)
+    #   "PA6+GF"  -> TEMIZ   (yayindaki gercek yazim; ayrac farki dayanagi bozmaz)
+    def _f16(metin):
+        _oz, dsz, kra, eku = degerlendir([("fikstur", "F16", metin)], env10)
+        return sorted(dsz), sorted(kra), sorted(eku)
+    d_cf, _k, _e = _f16("PA6-CF ile üretiyoruz.")
+    d_ciplak, _k, _e = _f16("PA6 ile üretiyoruz.")
+    d_petg, _k, e_petg = _f16("PETG-GF ile üretiyoruz.")
+    d_gf, _k, e_gf = _f16("PA6-GF ile üretiyoruz.")
+    d_arti, _k, e_arti = _f16("PA6+GF ile üretiyoruz.")
+    kontrol("F16a", d_cf == ["PA6"], "PA6-CF KIRMIZI degil: %s" % d_cf)
+    kontrol("F16b", d_ciplak == ["PA6"], "ciplak PA6 KIRMIZI degil: %s" % d_ciplak)
+    kontrol("F16c", not d_petg and e_petg == [("PETG", "GF")],
+            "PETG-GF SESSIZLESTI (kuresel GF eki acilmis olabilir): dayanaksiz=%s uyari=%s"
+            % (d_petg, e_petg))
+    kontrol("F16d", not d_gf and not e_gf,
+            "onayli TAM AD PA6-GF gereksiz yere isaretlendi: dayanaksiz=%s uyari=%s"
+            % (d_gf, e_gf))
+    kontrol("F16e", not d_arti and not e_arti,
+            "yayindaki yazim PA6+GF onayli tam adla eslesmedi: dayanaksiz=%s uyari=%s"
+            % (d_arti, e_arti))
+
+    # F17 — SART-2 kilidi: bir dayanak TAM ADI (PA6-GF) BASKA bir tabanin ayni ekini
+    # (PA-GF) SESSIZCE mesrulastiramaz. Gercek vaka: main 77 landing govdesinde
+    # "UYARI: PA-GF ... - 77 sayfa" basiyordu; onceki turda bu uyari SESSIZCE kayboldu.
+    envPA = _f_envanter(
+        {"filamentler": [{"ad": "PLA"}, {"uzunAd": "Karbon katkılı (PETG-CF/PA-CF)"}],
+         DAYANAK_ANAHTARI: [{"ad": "PA6-GF", "satista": False,
+                             "tedarik": "siparis uzerine"}]})
+    _o, d17, _k, e17 = degerlendir(
+        [("landing", "F17", "cam fiber takviyeli PA-CF / PA-GF kullanırız.")], envPA)
+    kontrol("F17", e17.get(("PA", "GF")) and not d17 and not e17.get(("PA", "CF")),
+            "SART-2: PA-GF uyarisi SESSIZLESTI (dayanaksiz=%s uyari=%s)"
+            % (sorted(d17), sorted(e17)))
 
     # F11 — drift karsilastirmasi (ozdes / farkli / isaretcisiz)
     kontrol("F11a", blok_karsilastir("<A>x<B>", "once <A>x<B> sonra", "<A>", "<B>")[0],
@@ -549,11 +706,11 @@ def ic_nobetci():
     # F15 — BUYUK-HARF sarti duruyor (yanlis-pozitif kapisi) AMA kara listede
     #       buyuk/kucuk harf ayrimi YOK (en yuksek bahisli kural kacmasin)
     _o, d15a, k15a, _e = degerlendir(
-        [("fikstur", "F15a", "Müşteri pet şişe kapağı için parça istedi.")], taban, ekler)
+        [("fikstur", "F15a", "Müşteri pet şişe kapağı için parça istedi.")], env)
     _o, d15b, _k, _e = degerlendir(
-        [("fikstur", "F15b", "PET esaslı malzemeyle üretiyoruz.")], taban, ekler)
+        [("fikstur", "F15b", "PET esaslı malzemeyle üretiyoruz.")], env)
     _o, _d, k15c, _e = degerlendir(
-        [("fikstur", "F15c", "İsterseniz pc ile de üretiyoruz.")], taban, ekler)
+        [("fikstur", "F15c", "İsterseniz pc ile de üretiyoruz.")], env)
     kontrol("F15", not d15a and not k15a and "PET" in d15b and "PC" in k15c,
             "buyuk-harf sarti / kara liste harf duyarsizligi bozuk "
             "(kucuk pet=%s · buyuk PET=%s · kucuk pc kara=%s)"
@@ -594,17 +751,19 @@ def main(argv=None):
     try:
         with io.open(args.filament, encoding="utf-8") as fp:
             filament_ham = fp.read()
-        envanter_tam, envanter_taban, envanter_ekleri, dayanak_adlar = \
-            envanteri_coz(json.loads(filament_ham))
+        env = envanteri_coz(json.loads(filament_ham))
     except Exception as hata:  # fail-closed
         print("KIRMIZI: filamentler.json okunamadi -> %s" % hata)
         return 1
+    dayanak_adlar = env.dayanak_adlar
 
-    print("Envanter (%s): tam=%s taban=%s takviye=%s"
-          % (os.path.basename(args.filament), sorted(envanter_tam),
-             sorted(envanter_taban), sorted(envanter_ekleri) or "-"))
-    print("Dayanak kaydi (SATISTA DEGIL, siparis uzerine tedarik): %s"
-          % (", ".join(dayanak_adlar) or "-"))
+    print("Envanter/SATIS (%s): tam=%s taban=%s takviye=%s"
+          % (os.path.basename(args.filament), sorted(env.tam),
+             sorted(env.taban), sorted(env.ekler) or "-"))
+    print("Dayanak kaydi (SATISTA DEGIL, siparis uzerine tedarik) — YALNIZ bu TAM ADLAR "
+          "mesrudur, ciplak taban/kuresel ek ACILMAZ: %s"
+          % (", ".join(sorted(env.dayanak_tam)) or "-"))
+    print("  karar kaydi: %s" % DAYANAK_KARAR_KAYDI)
     print("Kara liste (envanterle SUSTURULAMAZ): %s" % ", ".join(sorted(KARA_LISTE)))
 
     kaynaklar = []
@@ -617,8 +776,7 @@ def main(argv=None):
         print("KIRMIZI: govde kaynagi okunamadi -> %s" % hata)
         return 1
 
-    ozet, dayanaksiz, kara_ihlal, ek_uyarisi = degerlendir(
-        kaynaklar, envanter_taban, envanter_ekleri)
+    ozet, dayanaksiz, kara_ihlal, ek_uyarisi = degerlendir(kaynaklar, env)
 
     for kaynak in sorted(ozet):
         v = ozet[kaynak]
@@ -643,20 +801,23 @@ def main(argv=None):
 
     envanter_kara = kara_liste_envanterde(filament_ham)
 
-    for (kisa, ek), yerler in sorted(ek_uyarisi.items()):
-        print("UYARI: %s-%s takviye eki '%s' envanterde adlandirilmamis "
-              "(taban %s dayanakli) - %d govde" % (kisa, ek, ek, kisa, len(yerler)))
+    # UYARI = bloklamaz, ama SESSIZ de kalmaz (SART-2). Bir dayanak TAM ADI kuresel
+    # eki acarsa bu satirlar kaybolur -> fikstur F17 o mutasyonu KIRMIZI yakar.
+    if ek_uyarisi:
+        for (kisa, ek), yerler in sorted(ek_uyarisi.items()):
+            # govde = benzersiz kaynak/slug (main'in "77 sayfa" sayimiyla ayni taban),
+            # eslesme = ham gecis sayisi (ayni sayfada birden fazla olabilir).
+            print("UYARI: %s-%s takviye eki '%s' SATIS envanterinde adlandirilmamis "
+                  "(taban %s dayanakli, ama '%s-%s' onaylanan dayanak TAM ADLARI "
+                  "arasinda YOK) - %d govde / %d eslesme: %s"
+                  % (kisa, ek, ek, kisa, kisa, ek, len(set(yerler)), len(yerler),
+                     ", ".join(sorted(set(yerler))[:4])))
+        print("  (UYARI bloklamaz — metin duzeltmesi/onay ArTisT+Okan duzlemi; "
+              "karar kaydi: %s)" % DAYANAK_KARAR_KAYDI)
+    else:
+        print("UYARI yok: adlandirilmamis takviye eki gecmiyor")
 
-    drift_tamam, drift_mesaj = True, ""
-    ege_blok = None
-    try:
-        modul = _modul_yukle(args.ege_malzeme)
-        ege_blok = modul.bolum_uret()
-        with io.open(args.ege, encoding="utf-8") as f:
-            drift_tamam, drift_mesaj = blok_karsilastir(
-                ege_blok, f.read(), modul.BASLA, modul.BITIR)
-    except Exception as hata:  # fail-closed
-        drift_tamam, drift_mesaj = False, "drift kontrolu kosulamadi -> %s" % hata
+    drift_tamam, drift_mesaj, ege_blok = drift_kontrolu(args.ege, args.ege_malzeme)
     print("DRIFT (ege-malzeme.py <-> ege-bilgi.md): %s - %s"
           % ("TAMAM" if drift_tamam else "KIRMIZI", drift_mesaj))
 
