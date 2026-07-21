@@ -76,6 +76,27 @@
       "uzun": "Karbon fiber katkılı en yüksek mukavemet sınıfı. Üstün sertlik ve çekme dayanımı; yük, titreşim ve zorlu kullanım altındaki parçalar için önerilir. Isı dayanımı taşıyıcı malzemeyi izler (PETG esaslıda ~70°C; yüksek ısı gerekiyorsa taşıyıcısı güçlü seçenekler mevcuttur — size sorarak belirleriz). Standart malzeme seçeneklerimizin dışındadır; WhatsApp'tan özel talep olarak değerlendiririz, kritik parçada değerini verir."
     }
   ],
+  "_dayanakMalzemeler_aciklama": "BEYAN DAYANAGI — SATIS KALEMI DEGIL. Okan karari (21 Tem 2026): bu siniflar stokta tutulmuyor ama cok kullanildiklari icin ihtiyac aninda tedarikleri hizli; sss/hakkimizda sayfalarindaki (gorunur metin + JSON-LD acceptedAnswer) malzeme beyaninin dayanagi burasidir. Anahtar '_' ile basladigi icin build.py'nin urettigi public /filament-veri.js'e TASINMAZ; site cipleri, /malzeme-rehberi/, tools/ege-malzeme.py ve fiyat hesabi ref['filamentler'] uzerinde doner, bu listeyi GORMEZ. Fiyat/katsayi alani YASAK (katsayi listesi Okan'da kilitli) — tools/malzeme-dayanak-test.py dogrular.",
+  "_dayanakMalzemeler": [
+    {
+      "ad": "PA6-GF",
+      "uzunAd": "Cam elyaf takviyeli naylon (PA6-GF)",
+      "satista": false,
+      "tedarik": "Stokta tutulmaz; ihtiyac halinde siparis uzerine hizli tedarik edilir."
+    },
+    {
+      "ad": "PA12-GF",
+      "uzunAd": "Cam elyaf takviyeli naylon (PA12-GF)",
+      "satista": false,
+      "tedarik": "Stokta tutulmaz; ihtiyac halinde siparis uzerine hizli tedarik edilir."
+    },
+    {
+      "ad": "POM",
+      "uzunAd": "Poliasetal (POM)",
+      "satista": false,
+      "tedarik": "Stokta tutulmaz; ihtiyac halinde siparis uzerine hizli tedarik edilir."
+    }
+  ],
   "kategoriTavsiye": {
     "Otomobil": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
     "Motosiklet": [{"ad": "PETG"}, {"ad": "ASA", "not": "Güneş gören parçada"}],
