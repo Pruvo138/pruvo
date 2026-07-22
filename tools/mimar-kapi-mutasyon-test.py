@@ -127,21 +127,10 @@ MUTASYONLAR = [
     ("M7", uzantilari_bosalt,
      "ICRA_UZANTILARI bosaltilir (tek) — basename kalkani sinanir",
      {1, 2, 19}, False, 3),
-    # M8 (4. tur): OLCULMUS DELIK A'nin kendisi mutasyon olarak geri alinir — betik
-    # siniri "ilk tiresiz token"a cekilir. O zaman '-W ignore' / '-X utf8' gibi DEGER
-    # token'lari taramayi kirar ve -m denetimi komple atlanir.
-    ("M8", lambda d: yama(
-        d, ICRA,
-        "    for i, t in enumerate(argumanlar):\n"
-        '        if t.startswith("-"):\n'
-        "            continue\n",
-        "    for i, t in enumerate(argumanlar):\n"
-        '        if not t.startswith("-"):\n'
-        "            return i\n"
-        '        if t.startswith("-"):\n'
-        "            continue\n"),
-     "DELIK A: betik siniri ilk tiresiz token'a cekilir (-W/-X degeri taramayi kirar)",
-     {130, 131, 132, 133}, True, 4),
+    # M8 KALDIRILDI (22 Tem): betik_siniri/modul_suphesi python '-m' makinesi PY_NODE
+    # ALLOWLIST'e devroldu ve gate'ten SILINDI (python mimar tarafinda tek noktada:
+    # _py_izinli). O yuzden "betik siniri" mutasyonunun ANKRAJI yok. -m formlari artik
+    # allowlist tarafindan reddedilir; sentinel'i ME4/ME5'tir (asagida).
     ("M9", lambda d: yama(d, CMT,
                           "    basename = _basename(yol)\n"
                           "    if not basename or basename in VERI_BASENAME:\n"
@@ -186,8 +175,9 @@ MUTASYONLAR = [
         '                adaylar.append(t.split("=", 1)[1])\n',
         '            if "/" in t:\n'
         "                adaylar.append(t)\n"),
-     "R2: bayrak oneki soyulmaz (yalniz ham okuma) — bitisik/=li dis yol acilir",
-     {51, 150, 151}, True, 3),
+     "R2: bayrak oneki soyulmaz (yalniz ham okuma) — bitisik/=li dis yol acilir "
+     "(22Tem: dis_yol artik YALNIZ sh/bash icin canli, sentinel sh vakasi 251)",
+     {251}, True, 1),
     ("M14", lambda d: yama(
         d, KUR,
         '    print("BASH_ZINCIRI_ICRA=" + ("var" if bash_var else "yok"))',
@@ -199,22 +189,16 @@ MUTASYONLAR = [
      "CEKIRDEK genisletmesi geri alinir (nobetciler korumasiz kalir)",
      {76, 77, 78, 79, 96}, True, 5),
     # --- 20 Tem SON ONARIM TURU NOBETCILERI ---
-    # M17 (4. tur): R1 yalnizca TAM '-m' token'ina bakar — bitisik/birlesik formlar acilir.
-    ("M17", lambda d: yama(
-        d, ICRA,
-        '        if not t.startswith("-") or t == "-" or t.startswith("--"):\n'
-        "            continue\n",
-        '        if t != "-m":\n'
-        "            continue\n"),
-     "R1: yalniz TAM '-m' aranir (bitisik '-mpip'/'-mtimeit' acilir)",
-     {126, 127}, True, 2),
-    # M18 (4. tur): F adiminin KALAN isi (betik repo_ici) silinir. R2 '/' iceren
-    # token'lari denetledigi icin tek nobetci cwd-disari kumesidir.
+    # M17 KALDIRILDI (22 Tem): modul_suphesi ('-m' token taramasi) gate'ten silindi
+    # (PY_NODE allowlist devraldi) -> ankraj yok. '-mpip'/'-mtimeit' artik allowlist'ten
+    # RED (sentinel ME4).
+    # M18 (22 Tem REPOINT): F (betik repo_ici) ARTIK YALNIZ sh/bash icin canli (python
+    # short-circuit ile allowlist'e gider). Sentinel: sh vakasi 250 (bash x.sh, cwd repo DISI).
     ("M18", lambda d: yama(d, ICRA,
                            "        if not repo_ici(betik, cwd):",
                            "        if False:"),
-     "F: betik repo_ici kontrolu silinir (cwd repo DISI + goreli betik adi acilir)",
-     {160}, True, 1),
+     "F: betik repo_ici kontrolu silinir (sh betigi cwd repo DISI acilir)",
+     {250}, True, 1),
     # M20 (4. tur): R2 tiresiz token yol kontrolu silinir — bayrak degerleri denetlenir
     # ama duz arguman olarak verilen repo-disi yol acilir.
     ("M20", lambda d: yama(
@@ -223,8 +207,9 @@ MUTASYONLAR = [
         "            adaylar.append(t)\n",
         "        elif False:\n"
         "            adaylar.append(t)\n"),
-     "R2: tiresiz ARGUMAN yol kontrolu silinir (duz repo-disi yol argumani acilir)",
-     {153}, True, 1),
+     "R2: tiresiz ARGUMAN yol kontrolu silinir (duz repo-disi yol argumani acilir) "
+     "(22Tem: sentinel sh vakasi 253)",
+     {253}, True, 1),
     ("N1", lambda d: yama(d, KUR,
                           '        matcher = blok.get("matcher") or ""\n'
                           "        if matcher_parcasi not in matcher:\n"
@@ -235,6 +220,39 @@ MUTASYONLAR = [
     ("M19", lambda d: yama(d, KILIT, CEKIRDEK_CANLI_ZINCIR, ""),
      "B8: canli Bash zinciri nobetcileri CEKIRDEK'ten cikarilir",
      {140, 141}, True, 2),
+    # --- 22 TEM SERTLESTIRME NOBETCILERI (her yeni rule = bir kirmizi-mutasyon) ---
+    ("ME1", lambda d: yama(d, ICRA,
+                           "        if ad in OLCUM_KOMUTLARI:\n",
+                           "        if False and ad in OLCUM_KOMUTLARI:\n"),
+     "22Tem: OLCUM/dosya-tarama denetimi kapatilir (du/ps/find/wc/head/... acilir)",
+     {200, 201, 202, 203, 216}, False, 5),
+    ("ME2", lambda d: yama(d, ICRA,
+                           "        if _codex_var(tokenlar):\n",
+                           "        if False and _codex_var(tokenlar):\n"),
+     "22Tem: codex denetimi kapatilir (codex exec / ChatGPT.app tam yolu acilir)",
+     {230, 231}, False, 2),
+    ("ME3", lambda d: yama(d, ICRA,
+                           '        if ad in ("curl", "wget"):\n',
+                           '        if False and ad in ("curl", "wget"):\n'),
+     "22Tem: curl/wget denetimi kapatilir (canli dogrulama acilir)",
+     {220, 221}, False, 2),
+    ("ME4", lambda d: yama(
+        d, ICRA,
+        '    if not re.match(r"^python3(\\.\\d+)?$", ad):\n'
+        "        return False\n",
+        "    return True\n"
+        '    if not re.match(r"^python3(\\.\\d+)?$", ad):\n'
+        "        return False\n"),
+     "22Tem: _py_izinli daima True (tum python/node araclari acilir)",
+     {240, 241, 244}, False, 3),
+    ("ME5", lambda d: yama(
+        d, ICRA,
+        "    if ilk == DURUM_YOL:\n"
+        "        return len(argumanlar) == 1\n",
+        "    if ilk == DURUM_YOL:\n"
+        "        return True\n"),
+     "22Tem: durum.py EKSTRA argüman toleransi (allowlist tam-esitlik gevser)",
+     {129, 241}, False, 2),
 ]
 
 # CEVRE-ARIZA ENJEKSIYONU (B6-yan): bu iki vaka mutasyonu KOPYALANMIS kabul testine

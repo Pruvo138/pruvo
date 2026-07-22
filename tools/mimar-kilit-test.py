@@ -91,16 +91,16 @@ VAKALAR = [
      "hafiza .md"),
     (10, "allow", "Write", REPO + "/.claude/worktrees/agent-x/tools/hepsi.py", None,
      "worktree muaf (muhendis alani)"),
-    (11, "allow", "Bash", "node " + REPO + "/tools/parite-test.js", None,
-     "mevcut repo araci (parite)"),
+    (11, "deny", "Bash", "node " + REPO + "/tools/parite-test.js", None,
+     "22Tem: parite (node araci) = ISCI isi"),
     (12, "allow", "Bash", "python3 " + REPO + "/tools/d1-sync.py --durum", None,
      "mevcut repo araci (D1 durum)"),
     (13, "allow", "Bash", "git -C " + REPO + " status -sb", None,
      "git durum"),
     (14, "allow", "Bash", "git -C " + REPO + " merge filan-dal", None,
      "MERGE = mimarin kapisi"),
-    (15, "allow", "Bash", "curl -s https://pruvo3d.com/", None,
-     "salt-okunur canli dogrulama"),
+    (15, "deny", "Bash", "curl -s https://pruvo3d.com/", None,
+     "22Tem: curl (canli dogrulama) = ISCI isi"),
 ]
 
 # Spec disi ama porozite kapatan ek vakalar (raporda ayri bolum).
@@ -115,24 +115,27 @@ EK_VAKALAR = [
      "scratchpad'e kabuk betigi"),
     (20, "deny", "Bash", SCRATCH + "/analiz.sh", None,
      "repo disi betigi dogrudan cagirma"),
-    (21, "allow", "Bash", "node --check " + REPO + "/secenekler.js", None,
-     "sozdizimi denetimi (yargi)"),
+    (21, "deny", "Bash", "node --check " + REPO + "/secenekler.js", None,
+     "22Tem: node --check = ISCI isi"),
     (22, "allow", "Bash", "python3 " + REPO + "/tools/durum.py", None,
      "durum panosu"),
     (23, "allow", "Bash", "git -C " + REPO + " worktree list", None,
      "worktree yonetimi"),
     (24, "allow", "Bash", "grep -rn WHATSAPP " + REPO + "/index.html", None,
      "arama/okuma"),
-    (25, "allow", "Bash", "codex exec \"specteki isi yap\"", None,
-     "Codex'e delegasyon"),
+    (25, "deny", "Bash", "codex exec \"specteki isi yap\"", None,
+     "22Tem: Codex'i ISCI cagirir (mimar spec yazar)"),
     (26, "allow", "Write", REPO + "/tools/paket-yeni-is.md", None,
      "muhendislik paketi (spec)"),
-    (27, "allow", "Bash", "python3 " + REPO + "/tools/parite-ege.js", None,
-     "repo araci (uzanti farketmez)"),
+    (27, "deny", "Bash", "python3 " + REPO + "/tools/parite-ege.js", None,
+     "22Tem: parite-ege (python arac) = ISCI isi"),
 ]
 
-# Devir mektubu §4 MERGE PROSEDURU + §7 acik isler: mimarin uctan uca kosturmasi
-# gereken KOMUTLARIN TAMAMI. Hepsi allow olmali — kapi mimari felc etmemeli.
+# Devir mektubu §4 MERGE PROSEDURU + §7 acik isler. 22 TEM AYRIMI: GIT-ISI (fetch,
+# merge-base, diff, merge-tree, push, worktree remove, branch -D) + gh + durum.py mimarin
+# ELINDE KALIR (git makine reddine sokulmaz). Ama §4.7 CANLI DOGRULAMA (curl) ve §7 TEST
+# KOSUMU (parite/filament/gitignore-kapisi/olculmemis) ARTIK ISCININ ISI -> mimar bu adimlari
+# DELEGE eder (37/39/40/41/42 = deny). Merge prosedurunun "olcum" adimlari worktree worker'a.
 MERGE_VAKALARI = [
     (31, "allow", "Bash", "git -C " + REPO + " fetch origin", None, "§4.1 fetch"),
     (32, "allow", "Bash", "git -C " + REPO + " merge-base main worktree-dal", None, "§4.2 kapsam"),
@@ -140,18 +143,21 @@ MERGE_VAKALARI = [
     (34, "allow", "Bash", "git -C " + REPO + " merge-tree --write-tree --name-only main dal", None,
      "§4.3 cakisma denetimi"),
     (35, "allow", "Bash", "git -C " + REPO + " push origin main", None, "§4.6 push"),
-    (36, "allow", "Bash", "gh run list --limit 1", None, "§4.7 deploy durumu"),
-    (37, "allow", "Bash", "curl -sI https://pruvo3d.com/", None, "§4.7 canonical URL olcumu"),
+    (36, "allow", "Bash", "gh run list --limit 1", None, "§4.7 deploy durumu (gh serbest)"),
+    (37, "deny", "Bash", "curl -sI https://pruvo3d.com/", None,
+     "22Tem: §4.7 canonical URL DOGRULAMA = ISCI isi"),
     (38, "allow", "Bash",
      "git -C " + REPO + " worktree remove --force " + REPO + "/.claude/worktrees/agent-x", None,
      "§4.8 temizlik"),
-    (39, "allow", "Bash", "python3 tools/gitignore-kapisi.py --yaz", None,
-     "§7.1 ignore blogu (goreli yol)"),
-    (40, "allow", "Bash", "python3 " + REPO + "/tools/filament-test.py", None, "§7.2 filament testi"),
-    (41, "allow", "Bash", "python3 " + REPO + "/tools/olculmemis-siparis.py", None,
-     "§7.4 siparis kapisi"),
-    (42, "allow", "Bash", "node " + REPO + "/tools/parite-ege.js", None, "arama paritesi (Ege)"),
-    (43, "allow", "Bash", "python3 tools/durum.py", None, "§2 durum panosu (goreli yol)"),
+    (39, "deny", "Bash", "python3 tools/gitignore-kapisi.py --yaz", None,
+     "22Tem: §7.1 arac kosumu = ISCI isi"),
+    (40, "deny", "Bash", "python3 " + REPO + "/tools/filament-test.py", None,
+     "22Tem: §7.2 test kosumu = ISCI isi"),
+    (41, "deny", "Bash", "python3 " + REPO + "/tools/olculmemis-siparis.py", None,
+     "22Tem: §7.4 arac kosumu = ISCI isi"),
+    (42, "deny", "Bash", "node " + REPO + "/tools/parite-ege.js", None,
+     "22Tem: arama paritesi (Ege) = ISCI isi"),
+    (43, "allow", "Bash", "python3 tools/durum.py", None, "§2 durum panosu (goreli yol) — SERBEST 2'den biri"),
     (44, "allow", "Bash", "git -C " + REPO + " branch -D worktree-dal", None, "§4.8 dal silme"),
 ]
 
@@ -162,9 +168,9 @@ MERGE_VAKALARI = [
 WORKTREE = REPO + "/.claude/worktrees/agent-x"
 MUHENDIS_VAKALARI = [
     (28, "allow", "Write", WORKTREE + "/tools/analiz.py", None,
-     "muhendis betigini WORKTREE'sine yazar"),
-    (29, "allow", "Bash", "python3 " + WORKTREE + "/tools/analiz.py", None,
-     "muhendis worktree betigini kosturur"),
+     "muhendis betigini WORKTREE'sine yazar (Write=kod-kilidi, worktree muaf)"),
+    (29, "deny", "Bash", "python3 " + WORKTREE + "/tools/analiz.py", None,
+     "22Tem: MIMAR worktree python betigini bile KOSTURMAZ (isci/agent_id kosar)"),
     (30, "deny", "Write", SCRATCH + "/analiz.py", None,
      "MIMAR: worktree cwd'si MUAFIYET VERMEZ"),
     (45, "deny", "Bash", "python3 " + SCRATCH + "/analiz.py", None,
@@ -181,8 +187,8 @@ MODUL_VAKALARI = [
      "-m http.server: disari acar"),
     (49, "deny", "Bash", "python3 -m pdb " + REPO + "/tools/durum.py", None,
      "-m pdb: etkilesimli keyfi icra"),
-    (50, "allow", "Bash", "python3 -m json.tool " + REPO + "/tools/taban-fiyatlar.js", None,
-     "-m json.tool: izinli okuma/bicimlendirme"),
+    (50, "deny", "Bash", "python3 -m json.tool " + REPO + "/tools/taban-fiyatlar.js", None,
+     "22Tem: -m (json.tool dahil) allowlist disi = RED"),
     (51, "deny", "Bash",
      "node --require=" + SCRATCH + "/kanca.js " + REPO + "/tools/parite-test.js", None,
      "bayraga gomulu repo-disi betik"),
@@ -192,8 +198,8 @@ MODUL_VAKALARI = [
     (53, "deny", "Bash",
      "NODE_OPTIONS=--require=" + SCRATCH + "/k.js node " + REPO + "/tools/parite-test.js", None,
      "NODE_OPTIONS ile kod enjeksiyonu"),
-    (54, "allow", "Bash", "PRUVO_URUN_AI_IZNI=1 python3 " + REPO + "/tools/thing-codex.py", None,
-     "zararsiz env atamasi ENGELLENMEZ"),
+    (54, "allow", "Bash", "PRUVO_URUN_AI_IZNI=1 python3 tools/durum.py", None,
+     "zararsiz env atamasi ENGELLENMEZ (allowlist komutu + zararsiz env)"),
 ]
 
 # ISCI IKIZLERI — mesru muhendisin YAPABILMESI gerekenler (yanlis-pozitif nobetcisi).
@@ -267,6 +273,20 @@ ISCI_VAKALARI = [
      "isci ikizi (150): repo-disi yol argumani"),
     (147, "allow", "Bash", "python3 -m pytest " + REPO + "/tools", ISCI_ID,
      "isci ikizi (85): -m pytest serbest"),
+    # 22 TEM IKIZLERI: sertlestirmenin bedeli YALNIZ mimara — isci HICBIR yeni redde
+    # takilmamali (olcum/curl/codex/python-arac/pipe hepsi ISCI icin serbest kalir).
+    (300, "allow", "Bash", "du -sh /", ISCI_ID, "22Tem ikizi (200): olcum du serbest"),
+    (301, "allow", "Bash", "ps aux", ISCI_ID, "22Tem ikizi (201): ps serbest"),
+    (302, "allow", "Bash", "find /tmp -name x", ISCI_ID, "22Tem ikizi (202): find serbest"),
+    (303, "allow", "Bash", "curl -s https://example.org", ISCI_ID,
+     "22Tem ikizi (220): curl serbest"),
+    (304, "allow", "Bash", "codex exec \"x\"", ISCI_ID, "22Tem ikizi (230): codex serbest"),
+    (305, "allow", "Bash", "python3 " + REPO + "/tools/build.py", ISCI_ID,
+     "22Tem ikizi (240): python arac serbest"),
+    (306, "allow", "Bash", "git log | head -5", ISCI_ID,
+     "22Tem ikizi (216): pipe olcum serbest"),
+    (307, "allow", "Bash", "node --check tools/x.js", ISCI_ID,
+     "22Tem ikizi (138): node serbest"),
 ]
 
 # MIMAR TARAFI YENI VAKALAR (agent_id YOK) — onek/kayit duzeltmesi + test modulleri.
@@ -289,8 +309,10 @@ MIMAR_YENI_VAKALARI = [
      "-m unittest repo-ici DE kapandi"),
     (87, "deny", "Bash", "python3 -m pytest /private/tmp/x", None,
      "-m ile repo DISINA cikilamaz"),
-    (88, "allow", "Bash", "python3 " + KAYITLI_WT + "/tools/toka-olc.py", None,
-     "KAYITLI worktree betigi icra"),
+    (88, "allow", "Bash", "bash " + KAYITLI_WT + "/tools/toka-olc.sh", None,
+     "KAYITLI worktree SH betigi icra (kimlikten bagimsiz yedek; M4 nobetcisi)"),
+    (254, "deny", "Bash", "python3 " + KAYITLI_WT + "/tools/toka-olc.py", None,
+     "22Tem: MIMAR kayitli-worktree PYTHON betigini de KOSTURMAZ (allowlist disi)"),
     (89, "deny", "Edit", REPO + "/index.html", None,
      "Edit araci: mimar site kodunu duzenleyemez"),
     (90, "deny", "MultiEdit", REPO + "/index.html", None,
@@ -329,10 +351,10 @@ MIMAR_YENI_VAKALARI = [
      "R2: '-mtimeit' bitisik modul formu DENY"),
     (127, "deny", "Bash", "python3 -mpip install requests", None,
      "R2: '-mpip' bitisik modul formu DENY"),
-    (128, "allow", "Bash", "python3 -mjson.tool " + REPO + "/tools/taban-fiyatlar.js", None,
-     "R2 esigi: '-mjson.tool' izinli modul ALLOW"),
-    (129, "allow", "Bash", "python3 " + REPO + "/tools/durum.py -smth", None,
-     "R2 esigi: betik ARGUMANI modul sanilmaz (yanlis pozitif nobetcisi)"),
+    (128, "deny", "Bash", "python3 -mjson.tool " + REPO + "/tools/taban-fiyatlar.js", None,
+     "22Tem: '-mjson.tool' de allowlist disi = RED"),
+    (129, "deny", "Bash", "python3 " + REPO + "/tools/durum.py -smth", None,
+     "22Tem: durum.py + EKSTRA argüman = RED (allowlist tam esitlik)"),
     # --- 4. TUR (20 Tem): YORUMLAYICI ARGUMANI AYRISTIRMA DELIKLERI ---
     # Bagimsiz curutucu GERCEK ICRA ile olctu: asagidaki formlarda repo DISINDA dosya
     # yazildi (dal ALLOW / main DENY). Kok neden: DEGER ALAN kisa bayrak (-W/-X/-Q)
@@ -352,10 +374,10 @@ MIMAR_YENI_VAKALARI = [
     (136, "deny", "Bash", "python3 -m unittest discover -vvs/private/tmp/disari", None,
      "B: '-vvs/yol' (iki harf + deger)"),
     # YANLIS-POZITIF NOBETCILERI (mimarin MESRU isi acik kalmali)
-    (137, "allow", "Bash", "python3 --version", None,
-     "surum bayragi ALLOW"),
-    (138, "allow", "Bash", "node --check tools/x.js", None,
-     "sozdizimi denetimi, goreli repo yolu ALLOW"),
+    (137, "deny", "Bash", "python3 --version", None,
+     "22Tem: python3 --version bile allowlist disi = RED (yalniz 2 komut)"),
+    (138, "deny", "Bash", "node --check tools/x.js", None,
+     "22Tem: node --check = RED (node'da izinli komut yok)"),
     (139, "allow", "Bash", "grep -rn \"x\" tools/", None,
      "grep yorumlayici degil ALLOW"),
     # R2 NOBETCILERI: '-m' OLMADAN, yalniz YOL ekseni (mutasyon ayirt edebilsin).
@@ -363,8 +385,8 @@ MIMAR_YENI_VAKALARI = [
      "R2: bayraga BITISIK repo-disi yol (m yok)"),
     (151, "deny", "Bash", "python3 tools/durum.py --cikti=/private/tmp/disari/x.txt", None,
      "R2: '=' sonrasi repo-disi yol (m yok)"),
-    (152, "allow", "Bash", "python3 tools/durum.py --cikti=" + REPO + "/tools/x.txt", None,
-     "R2 esigi: '=' sonrasi repo-ici yol ALLOW"),
+    (152, "deny", "Bash", "python3 tools/durum.py --cikti=" + REPO + "/tools/x.txt", None,
+     "22Tem: durum.py + '--cikti=' EKSTRA argüman = RED (repo-ici olsa da)"),
     (153, "deny", "Bash", "node tools/parite-test.js /private/tmp/disari", None,
      "R2: tiresiz ARGUMAN olarak repo-disi yol"),
 ]
@@ -374,9 +396,61 @@ MIMAR_YENI_VAKALARI = [
 DIS_CWD = "/private/tmp/disari"
 DIS_CWD_VAKALARI = [
     (160, "deny", "Bash", "python3 analiz.py", None,
-     "cwd repo DISI + goreli betik adi -> DENY"),
+     "cwd repo DISI + goreli betik adi -> DENY (allowlist)"),
     (161, "allow", "Bash", "python3 " + REPO + "/tools/durum.py", None,
-     "cwd disarida olsa da repo-ici betik ALLOW"),
+     "cwd disarida olsa da repo-ici durum.py ALLOW"),
+    # M18 NOBETCISI (sh): F (betik repo_ici) sadece sh/bash icin canli. bash betigi
+    # cwd repo DISINDA + '/' ICERMEYEN ad -> dis_yol takilmaz, YALNIZ F yakalar.
+    (250, "deny", "Bash", "bash x.sh", None,
+     "sh: cwd repo DISI + repo-disi betik -> F yakalar (M18 nobetcisi)"),
+]
+
+# === 22 TEM SERTLESTIRME VAKALARI (MIMAR kimligi, cwd=REPO) ===
+# Okan 22 Tem: "mimar HICBIR is yapmaz" — hafif olcum sinifi kapatildi. Her rulun kendi
+# nobetcisi (ME1..ME5 mutasyonlari bunlari kirmizi yakar).
+MIMAR_22TEM_VAKALARI = [
+    # (1) OLCUM / dosya-tarama — 16 komut + pipe-gomulu vaka
+    (200, "deny", "Bash", "du -sh /", None, "olcum: du"),
+    (201, "deny", "Bash", "ps aux", None, "olcum: ps"),
+    (202, "deny", "Bash", "find /tmp -name x", None, "olcum: find"),
+    (203, "deny", "Bash", "wc -l index.html", None, "olcum: wc"),
+    (204, "deny", "Bash", "head -5 DEVAM.md", None, "olcum: head"),
+    (205, "deny", "Bash", "tail -5 DEVAM.md", None, "olcum: tail"),
+    (206, "deny", "Bash", "sed -n 1p index.html", None, "olcum: sed"),
+    (207, "deny", "Bash", "awk '{print}' index.html", None, "olcum: awk"),
+    (208, "deny", "Bash", "sort urunler.json", None, "olcum: sort"),
+    (209, "deny", "Bash", "stat index.html", None, "olcum: stat"),
+    (210, "deny", "Bash", "file index.html", None, "olcum: file"),
+    (211, "deny", "Bash", "df -h", None, "olcum: df"),
+    (212, "deny", "Bash", "vm_stat", None, "olcum: vm_stat"),
+    (213, "deny", "Bash", "sysctl -a", None, "olcum: sysctl"),
+    (214, "deny", "Bash", "top -l 1", None, "olcum: top"),
+    (215, "deny", "Bash", "memory_pressure", None, "olcum: memory_pressure"),
+    (216, "deny", "Bash", "git log | head -5", None, "PIPE: olcum segmenti (head) RED"),
+    # (2) curl / wget
+    (220, "deny", "Bash", "curl -s https://example.org", None, "canli dogrulama: curl"),
+    (221, "deny", "Bash", "wget https://example.org", None, "canli dogrulama: wget"),
+    # (3) codex (her bicim)
+    (230, "deny", "Bash", "codex exec \"x\"", None, "codex basename"),
+    (231, "deny", "Bash",
+     "/Applications/ChatGPT.app/Contents/Resources/codex exec \"x\"", None,
+     "codex tam yol (ChatGPT.app)"),
+    # (4) python/node ALLOWLIST
+    (240, "deny", "Bash", "python3 " + REPO + "/tools/build.py", None,
+     "python repo-ici arac (allowlist disi) = RED"),
+    (241, "deny", "Bash", "python3 tools/durum.py --ekstra-bayrak", None,
+     "durum.py + EKSTRA argüman = RED (ME5 nobetcisi)"),
+    (244, "deny", "Bash", "node tools/parite-test.js", None,
+     "node: allowlist'te komut YOK = RED"),
+    (242, "allow", "Bash", "python3 tools/durum.py", None,
+     "durum.py (repo-goreli, argümansiz) ALLOW"),
+    (243, "allow", "Bash", "python3 tools/d1-sync.py --durum", None,
+     "d1-sync.py --durum (repo-goreli) ALLOW"),
+    # (5) sh/bash NOBETCILERI — dis_yol (M13/M20) hala sh icin canli
+    (251, "deny", "Bash", "bash tools/x.sh -s/private/tmp/disari", None,
+     "sh: bitisik bayrakla repo-disi yol -> dis_yol (M13 nobetcisi)"),
+    (253, "deny", "Bash", "bash tools/x.sh /private/tmp/disari", None,
+     "sh: tiresiz repo-disi yol argumani -> dis_yol (M20 nobetcisi)"),
 ]
 
 # COMMIT KAPISI — kanca degil, dogrudan betik cagrisi.
@@ -748,6 +822,7 @@ def main():
         ("ISCI IKIZLERI (agent_id DOLU) — YANLIS-POZITIF NOBETCISI", ISCI_VAKALARI, REPO),
         ("MIMAR TARAFI YENI VAKALAR (onek/kayit/test-modulu/Edit)", MIMAR_YENI_VAKALARI, REPO),
         ("CWD REPO DISINDA (F adiminin kalan isi) — MIMAR kimligi", DIS_CWD_VAKALARI, DIS_CWD),
+        ("22 TEM SERTLESTIRME (olcum/curl/codex/python-allowlist/sh-nobetci)", MIMAR_22TEM_VAKALARI, REPO),
     ]
 
     toplam = sum(len(v) for _, v, _ in kumeler) + len(COMMIT_VAKALARI) + 3
