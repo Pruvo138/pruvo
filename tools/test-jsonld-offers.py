@@ -18,6 +18,11 @@ JSON-LD "offers" kabul testi (GSC Merchant listings — «"price" alanı eksik»
      sayfaların TÜMÜ fiyatsız Offer basıyordu). Fail-closed kural (build.py):
      sayısal fiyat bulunamayan üründe offers HİÇ basılmaz — fiyatsız Offer
      basmak yasak; offers'ı tamamen çıkarmak yalnız uyarı düzeyinde kalır.
+  4. SINIF-GENELİ GERİLEME: offers'lı Product sayısı 0 ise KIRMIZI — build
+     offers'ı TÜM sayfalardan düşürmüşse tek tek ihlal üretmez, bu kural
+     yakalar. Ayrıca offers'sız sayfa oranı > %10 ise BLOKLAMAYAN uyarı
+     satırı basılır (çıkış kodunu ETKİLEMEZ — parametrik fail-closed
+     çıkarımına meşru alan).
 
 Kullanım (önce build.py ile urun/ üretilmiş olmalı):
   python3 tools/test-jsonld-offers.py
@@ -154,6 +159,23 @@ def main():
     print("offers'sız sayfa        : %d  (fail-closed çıkarım — ihlal değil)" % offerssiz_sayfalar)
     print("İhlalli sayfa           : %d" % len(ihlalli_sayfalar))
     print("Toplam ihlal            : %d" % len(hatalar))
+
+    # BLOKLAMAYAN uyarı: offers'sız sayfa oranı %10'u aşarsa haber ver
+    # (çıkış kodunu etkilemez — parametrik/fail-closed çıkarım meşru).
+    oran = offerssiz_sayfalar / len(sayfalar)
+    if oran > 0.10:
+        print("UYARI (bloklamayan): offers'sız sayfa oranı %%%.1f > %%10 — "
+              "fail-closed çıkarım beklenenden yaygın, build.py fiyat akışını gözden geçir."
+              % (oran * 100))
+
+    # SINIF-GENELİ GERİLEME: hiçbir Product offers taşımıyorsa build offers'ı
+    # komple düşürmüş demektir — tek tek ihlal üretmez, burada KIRMIZI.
+    if n_offerli == 0:
+        print("\nKIRMIZI: offers'lı Product sayısı 0 — TAM SINIF GERİLEMESİ "
+              "(build hiçbir sayfaya offers basmıyor; fail-closed çıkarım tekil üründe "
+              "meşrudur, tüm katalogda değil).")
+        return 1
+
     if hatalar:
         print("\nİlk 10 ihlal:")
         for sayfa, msg in hatalar[:10]:

@@ -10,9 +10,11 @@ JSON-LD "brand" kabul testi (GSC Merchant listings — "brand alanı yineleniyor
   2. Hiçbir objede YİNELENEN ANAHTAR olmamalı (json.loads sessizce son değeri
      alır; bu test object_pairs_hook ile yakalar).
   3. Her Product objesinde en fazla 1 "brand" anahtarı olmalı.
-  4. Product.brand ÇOK-DEĞERLİ DİZİ olmamalı: Google Merchant listings "brand"i
-     TEK değer bekler; birden çok Brand objesi taşıyan dizi GSC'de
-     «"brand" alanı yineleniyor» KRİTİK hatası üretir (canlıda doğrulandı, 22 Tem).
+  4. Product.brand DİZİ olmamalı (eleman sayısı FARK ETMEZ): Google Merchant
+     listings "brand"i TEK değer bekler; birden çok Brand objesi taşıyan dizi
+     GSC'de «"brand" alanı yineleniyor» KRİTİK hatası üretir (canlıda
+     doğrulandı, 22 Tem). Onarımdan sonra build ASLA dizi basmaz → tek
+     elemanlı dizi ([{...}]) dahil dizinin HER biçimi gerileme sinyalidir.
      Geçerli biçimler: {"@type":"Brand","name":...} veya düz string.
 
 Kullanım (önce build.py ile urun/ üretilmiş olmalı):
@@ -89,11 +91,12 @@ def main():
             for prod in _product_objeleri(veri):
                 n_product += 1
                 # kural 3: object_pairs_hook zaten çift "brand" anahtarını dup'a düşürür;
-                # burada kural 4: brand tek-değerli olmalı.
+                # burada kural 4: brand DİZİ olamaz (eleman sayısı fark etmez —
+                # onarım sonrası build asla dizi basmaz, tek elemanlı dizi de gerileme).
                 brand = prod.get("brand")
-                if isinstance(brand, list) and len(brand) > 1:
-                    hatalar.append((goreli, "Product.brand çok-değerli dizi (%d değer) — "
-                                            "Merchant listings tek değer bekler" % len(brand)))
+                if isinstance(brand, list):
+                    hatalar.append((goreli, "Product.brand DİZİ (%d eleman) — build asla dizi "
+                                            "basmaz; Merchant listings tek değer bekler" % len(brand)))
                     sayfa_coklu = True
         if sayfa_coklu:
             coklu_brand_sayfa += 1
@@ -101,7 +104,7 @@ def main():
     print("Taranan ürün sayfası : %d" % len(sayfalar))
     print("JSON-LD blok         : %d" % n_blok)
     print("Product objesi       : %d" % n_product)
-    print("Çok-değerli brand'li sayfa : %d" % coklu_brand_sayfa)
+    print("Dizi-brand'li sayfa  : %d" % coklu_brand_sayfa)
     print("Toplam ihlal         : %d" % len(hatalar))
     if hatalar:
         print("\nİlk 10 ihlal:")
