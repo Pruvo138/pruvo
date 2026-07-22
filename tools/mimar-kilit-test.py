@@ -383,8 +383,15 @@ DIS_CWD_VAKALARI = [
 # (no, beklenen_exit, stdin, ek_env, gitdir_hazirlik, aciklama)
 COMMIT_VAKALARI = [
     (100, 1, "urunler.json\ntools/build.py", {}, None, "temel red (kaynak/veri staged)"),
+    # T3 (22 Tem): YALNIZ veri-duzlemi commit'i mesru veri-yazari (MaCiT) hattidir —
+    # 'veri-duzlemi-gecis' kategorisiyle loglanir, allow-escape SAYILMAZ. allow-escape
+    # yalniz gercek istisnaya kalir (veri-disi/bos-staged kullanim: 115/116).
     (101, 0, "urunler.json", {"PRUVO_MIMAR_ONAY": "worker"}, None,
-     "escape hatch VERI duzlemi: gecer AMA gurultulu + loglu"),
+     "T3: worker + SAF veri -> gecer, kategori veri-duzlemi-gecis"),
+    (115, 0, "notlar/olcum.txt", {"PRUVO_MIMAR_ONAY": "worker"}, None,
+     "T3: worker + veri-DISI dosya -> allow-escape KALIR (gurultu korunur)"),
+    (116, 0, "urunler.json\nnotlar/olcum.txt", {"PRUVO_MIMAR_ONAY": "worker"}, None,
+     "T3: worker + veri+not KARISIK -> allow-escape KALIR (gecis SAF veri icin)"),
     (102, 1, "tools/x.PY", {}, None, "buyuk harf uzanti deligi (lower())"),
     (103, 0, "DEVAM.md", {}, "MERGE_HEAD", "sequencer istisnasi: gurultulu + loglu"),
     (104, 1, "index.html", {}, None, "istisnanin esigi: MERGE_HEAD yok"),
@@ -405,10 +412,15 @@ COMMIT_VAKALARI = [
      "DARALTMA: yalniz kaynak + worker -> KAPALI"),
 ]
 
-# no -> (stderr'de beklenen gurultu parcasi, log'da beklenen karar anahtari)
+# no -> (stderr'de beklenen gurultu parcasi, log'da beklenen karar anahtari,
+#        log'da OLMAMASI gereken karar anahtari ya da None)
+# T3: yasak-anahtar ekseni sinif karisikligini yakalar — gecis yolu allow-escape'e
+# (ya da tersi) donerse sadece varlik kontrolu yesil kalirdi.
 BYPASS_MUHASEBESI = {
-    101: ("ESCAPE HATCH KULLANILDI", "allow-escape"),
-    103: ("SEQUENCER ISTISNASI", "allow-sequencer"),
+    101: ("VERI-DUZLEMI GECISI", "veri-duzlemi-gecis", "allow-escape"),
+    103: ("SEQUENCER ISTISNASI", "allow-sequencer", None),
+    115: ("ESCAPE HATCH KULLANILDI", "allow-escape", "veri-duzlemi-gecis"),
+    116: ("ESCAPE HATCH KULLANILDI", "allow-escape", "veri-duzlemi-gecis"),
 }
 
 
@@ -531,18 +543,23 @@ def commit_kume_kostur(gecici_kok):
         # BYPASS YOLLARI: sadece exit 0 yetmez — GURULTU + LOG da kanit
         # (sessiz bypass = muhasebe delinmesi).
         if no in BYPASS_MUHASEBESI and gecti:
-            iz, anahtar = BYPASS_MUHASEBESI[no]
+            iz, anahtar, yasak = BYPASS_MUHASEBESI[no]
             gurultu = iz in (sonuc.stderr or "")
             log_yolu = os.path.join(gitdir, "pruvo-kapi-log.jsonl")
             log_var = False
+            yasak_yok = True
             try:
                 with open(log_yolu, encoding="utf-8") as f:
-                    log_var = anahtar in f.read()
+                    log_icerigi = f.read()
+                log_var = anahtar in log_icerigi
+                if yasak is not None:
+                    yasak_yok = yasak not in log_icerigi
             except Exception:
                 log_var = False
-            if not (gurultu and log_var):
+            if not (gurultu and log_var and yasak_yok):
                 gecti = False
-                aciklama = aciklama + " [gurultu=%s log=%s]" % (gurultu, log_var)
+                aciklama = aciklama + " [gurultu=%s log=%s yasak_yok=%s]" % (
+                    gurultu, log_var, yasak_yok)
 
         if not gecti:
             basarisiz.append((no, beklenen, olculen, aciklama))

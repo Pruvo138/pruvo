@@ -81,6 +81,25 @@ def mutasyon_m5(s):
     return s.replace(hedef, yeni)
 
 
+def mutasyon_m6(s):
+    """T3 genisletme nobetcisi: veri-duzlemi gecisini VERI-DISI dosyaya genislet
+    (kosul 'her staged veri' -> 'staged bos degil'). Beklenen KIRMIZI: 16, 17
+    (allow-escape yerine veri-duzlemi-gecis loglanir -> log muhasebesi bozulur)."""
+    hedef = "        if staged and len(veriler) == len(staged):"
+    yeni = "        if staged:  # MUTASYON M6: genisletme"
+    assert hedef in s, "M6 hedefi bulunamadi"
+    return s.replace(hedef, yeni)
+
+
+def mutasyon_m7(s):
+    """T3 geri-alma nobetcisi: mesru veri partisi yine 'allow-escape' diye loglansin
+    (eski davranis). Beklenen KIRMIZI: 1, 2, 3 (escape muhasebesi yine kirlenir)."""
+    hedef = '                gitdir, kok, "veri-duzlemi-gecis",'
+    yeni = '                gitdir, kok, "allow-escape",  # MUTASYON M7'
+    assert hedef in s, "M7 hedefi bulunamadi"
+    return s.replace(hedef, yeni)
+
+
 def kostur(etiket, icerik):
     yol = os.path.join(TMP, "mutant-" + etiket + ".py")
     acik = open(yol, "w", encoding="utf-8")
@@ -102,6 +121,8 @@ def main():
         ("M3", mutasyon_m3(KAYNAK), "worktree muafiyeti devre disi"),
         ("M4", mutasyon_m4(KAYNAK), "kaynak_mi VERI istisnasi devre disi"),
         ("M5", mutasyon_m5(KAYNAK), ".py kaynak uzantisi listeden dusuruldu"),
+        ("M6", mutasyon_m6(KAYNAK), "T3: gecis veri-DISI dosyaya genisletildi"),
+        ("M7", mutasyon_m7(KAYNAK), "T3: gecis yine allow-escape diye loglaniyor"),
     ]
     print("=" * 88)
     print("KIRMIZI-MUTASYON OLCUMU — gate KOPYASI mutasyona ugrar, DAL TEMIZ KALIR")

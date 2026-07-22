@@ -15,7 +15,14 @@ env bypass'inin geçmiste mimarin kaynak-koda kaçis kapisina (tools/*.py'nin an
 checkout'a bu yolla girmesi) dönüsmesini kapatir; bilinen tek gevseme belgeli ve dar.
 
 BYPASS MUHASEBESI (kapi bir DISIPLIN cihazidir, hapishane degil — hepsi KAYITLI):
-  1. PRUVO_MIMAR_ONAY=worker  → yalniz VERI duzlemi; stderr + log satiri "allow-escape".
+  1. PRUVO_MIMAR_ONAY=worker  → yalniz VERI duzlemi. T3 AYRIMI (22 Tem): staged
+     YALNIZ veri dosyalarindan olusuyorsa bu MESRU veri-yazari (MaCiT) hattidir →
+     log satiri "veri-duzlemi-gecis" (escape SAYILMAZ; 'allow-' oneki tasimaz ki
+     haftalik sayim temiz kalsin). Staged BOS ya da veri-disi dosya iceriyorsa
+     ESKISI GIBI "allow-escape" (gercek istisna gurultulu kalir). Gerekce: eski
+     tek-kategori duzeninde her urun partisi escape logu uretiyordu (olculdu:
+     190 kayitta 152 mesru parti + 38 bos-staged) → gercek ihlal gurultude
+     kaybolacakti.
   2. Sequencer suruyor (MERGE_HEAD/CHERRY_PICK_HEAD/REVERT_HEAD/rebase-*) → YALNIZCA
      korunan (kaynak/veri) dosya staged DEGILKEN gurultulu allow; stderr + log satiri
      "allow-sequencer".
@@ -33,8 +40,9 @@ BYPASS MUHASEBESI (kapi bir DISIPLIN cihazidir, hapishane degil — hepsi KAYITL
      urunler-guard'i da oldurur, bu yuzden hata metni bu yolu ONERMEZ).
   4. 'git worktree add <yol>' → mimar kendine tam muaf bir bolge acar (worktree
      toplevel'i bu kapinin kapsami disidir). BILEREK acik: kapi disiplin cihazi.
-  Haftalik olcum:
+  Haftalik olcum (escape = yalniz gercek istisna; veri partileri ayri sayilir):
      grep -c allow- /Users/okan/dev/pruvo/.git/pruvo-kapi-log.jsonl
+     grep -c veri-duzlemi-gecis /Users/okan/dev/pruvo/.git/pruvo-kapi-log.jsonl
 
 Test kolayligi icin:
 - --stdin: staged dosya listesini stdin'den oku.
@@ -148,8 +156,11 @@ def bypass_kaydet(gitdir: str, kok: str, karar: str, mesaj: str, staged_sayisi: 
     bir hatirlaticidir). Log yazilamazsa yine de stderr satiri kalir.
 
     Muhasebe: grep -c allow- <gitdir>/pruvo-kapi-log.jsonl
-    'allow-escape'    = PRUVO_MIMAR_ONAY=worker (veri duzlemi)
-    'allow-sequencer' = merge/cherry-pick/revert/rebase suruyor (SAHTE de kurulabilir)"""
+    'allow-escape'        = PRUVO_MIMAR_ONAY=worker, veri-duzlemi DISI kullanim
+                            (staged bos ya da veri-disi dosya var) — GERCEK istisna
+    'allow-sequencer'     = merge/cherry-pick/revert/rebase suruyor (SAHTE de kurulabilir)
+    'veri-duzlemi-gecis'  = worker + staged YALNIZ veri dosyalari — MESRU MaCiT hatti;
+                            'allow-' saymaz: grep -c veri-duzlemi-gecis <log>"""
     try:
         sys.stderr.write(mesaj + "\n")
     except Exception:
@@ -193,10 +204,28 @@ def main() -> int:
             for yol in kaynaklar:
                 sys.stderr.write(f"{yol}\n")
             return 1
+        # T3 (22 Tem): YALNIZ veri-duzlemi dosyalarina dokunan commit MESRU veri-yazari
+        # (MaCiT) hattidir — 'allow-escape' SAYILMAZ, AYRI kategoriyle kayda gecer
+        # ('veri-duzlemi-gecis'; 'allow-' onekini TASIMAZ ki haftalik escape sayimi
+        # temiz kalsin). DAR kosul: staged BOS DEGIL ve HER staged dosya veri
+        # duzleminde. Karisik (veri + baska dosya) ya da bos-staged kullanim ESKISI
+        # GIBI allow-escape gurultusudur — gercek istisna gorunur kalir.
+        veriler = [yol for yol in staged if veri_mi(yol)]
+        if staged and len(veriler) == len(staged):
+            bypass_kaydet(
+                gitdir, kok, "veri-duzlemi-gecis",
+                "VERI-DUZLEMI GECISI (PRUVO_MIMAR_ONAY=worker; staged yalniz "
+                "urunler.json / .urun-kaynaklari.json) — mesru veri-yazari commit'i. "
+                "Kayit: grep -c veri-duzlemi-gecis " +
+                os.path.join(gitdir, "pruvo-kapi-log.jsonl"),
+                len(staged),
+            )
+            return 0
         bypass_kaydet(
             gitdir, kok, "allow-escape",
-            "ESCAPE HATCH KULLANILDI (PRUVO_MIMAR_ONAY=worker, veri duzlemi) — commit "
-            "kapisi atlandi. Bu yol loglanir: grep -c allow-escape " +
+            "ESCAPE HATCH KULLANILDI (PRUVO_MIMAR_ONAY=worker, veri duzlemi DISI "
+            "kullanim: staged bos ya da veri-disi dosya iceriyor) — commit kapisi "
+            "atlandi. Bu yol loglanir: grep -c allow-escape " +
             os.path.join(gitdir, "pruvo-kapi-log.jsonl"),
             len(staged),
         )
