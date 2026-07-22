@@ -1057,7 +1057,11 @@ def render_product(p, all_products):
         "offers": offer,
     }
     if markalar:
-        product_ld["brand"] = [{"@type": "Brand", "name": b} for b in markalar]
+        # GSC Merchant listings "brand"i TEK değer bekler; birden çok Brand objesi
+        # taşıyan dizi «"brand" alanı yineleniyor» KRİTİK hatası üretir (22 Tem).
+        # marka[0] = asıl üretici markası (sonrakiler model kodu/ikincil etiket)
+        # → tek Brand objesi. Test: tools/test-jsonld-brand.py
+        product_ld["brand"] = {"@type": "Brand", "name": markalar[0]}
 
     breadcrumb_ld = {
         "@context": "https://schema.org",
