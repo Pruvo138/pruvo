@@ -23,6 +23,9 @@ VAKA 1-3 = T3 ONCE-KIRMIZI TANIKLARI: eski gate veri-duzlemi commit'ini
 'allow-escape' diye loglardi; log beklentisi 'veri-duzlemi-gecis' oldugu icin
 eski gate ile KIRMIZI yanarlar. VAKA 16-17 = genisletme nobetcileri: gecis yolu
 veri-disi dosyaya genisletilirse (or. 'her staged' -> 'en az bir veri') KIRMIZI.
+VAKA 18-20 (T3 2. tur, curutucu sinifi) = KOK-TAM-YOL nobetcileri: temiz serit
+basename'e geri duserse (tools/urunler.json / a/b/.urun-kaynaklari.json /
+backslash-adli yol temiz kategoriye girerse) KIRMIZI (mutasyon M8).
 
 Kullanim:
     python3 tools/mimar-commit-kapisi-test.py                 # kardes gate (bu worktree)
@@ -76,6 +79,14 @@ VAKALAR = [
      "worker + veri-DISI dosya -> ACIK ama allow-escape (gurultu korunur)"),
     (17, 0, True,  MAIN, ["urunler.json", "notlar/olcum.txt"],
      "worker + veri+not KARISIK -> ACIK ama allow-escape (gecis SAF veri icin)"),
+    # T3 2. TUR (curutucu sinifi): ad-benzeri ALT-DIZIN / backslash yollar temiz
+    # kategoriye GIREMEZ — kok-tam-yol kontrolunun nobetcileri (M8 bunlari yakar).
+    (18, 0, True,  MAIN, ["tools/urunler.json"],
+     "worker + ALT-DIZIN urunler.json -> allow-escape (temiz kategori DEGIL)"),
+    (19, 0, True,  MAIN, ["a/b/.urun-kaynaklari.json"],
+     "worker + derin yol gizli kayit -> allow-escape (temiz kategori DEGIL)"),
+    (20, 0, True,  MAIN, ["tools\\urunler.json"],
+     "worker + BACKSLASH-adli yol -> allow-escape (temiz kategori DEGIL)"),
 ]
 
 # T3 LOG MUHASEBESI — no -> (log'da OLMASI gereken karar, OLMAMASI gereken karar).
@@ -89,6 +100,9 @@ LOG_BEKLENTISI = {
     14: ("allow-escape", "veri-duzlemi-gecis"),
     16: ("allow-escape", "veri-duzlemi-gecis"),
     17: ("allow-escape", "veri-duzlemi-gecis"),
+    18: ("allow-escape", "veri-duzlemi-gecis"),
+    19: ("allow-escape", "veri-duzlemi-gecis"),
+    20: ("allow-escape", "veri-duzlemi-gecis"),
 }
 
 

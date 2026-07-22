@@ -100,6 +100,16 @@ def mutasyon_m7(s):
     return s.replace(hedef, yeni)
 
 
+def mutasyon_m8(s):
+    """T3 2. tur nobetcisi: TEMIZ seridin KOK-TAM-YOL kontrolunu basename'e geri
+    dusur (curutucu sinifi: tools/urunler.json / a/b/.urun-kaynaklari.json /
+    backslash-adli yol temiz kategoriye girer). Beklenen KIRMIZI: 18, 19, 20."""
+    hedef = "    return temiz in VERI_BASENAME"
+    yeni = "    return _basename(temiz) in VERI_BASENAME  # MUTASYON M8"
+    assert hedef in s, "M8 hedefi bulunamadi"
+    return s.replace(hedef, yeni)
+
+
 def kostur(etiket, icerik):
     yol = os.path.join(TMP, "mutant-" + etiket + ".py")
     acik = open(yol, "w", encoding="utf-8")
@@ -123,6 +133,7 @@ def main():
         ("M5", mutasyon_m5(KAYNAK), ".py kaynak uzantisi listeden dusuruldu"),
         ("M6", mutasyon_m6(KAYNAK), "T3: gecis veri-DISI dosyaya genisletildi"),
         ("M7", mutasyon_m7(KAYNAK), "T3: gecis yine allow-escape diye loglaniyor"),
+        ("M8", mutasyon_m8(KAYNAK), "T3-2: kok-tam-yol kontrolu basename'e dustu"),
     ]
     print("=" * 88)
     print("KIRMIZI-MUTASYON OLCUMU — gate KOPYASI mutasyona ugrar, DAL TEMIZ KALIR")

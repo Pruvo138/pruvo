@@ -16,7 +16,9 @@ checkout'a bu yolla girmesi) dönüsmesini kapatir; bilinen tek gevseme belgeli 
 
 BYPASS MUHASEBESI (kapi bir DISIPLIN cihazidir, hapishane degil — hepsi KAYITLI):
   1. PRUVO_MIMAR_ONAY=worker  → yalniz VERI duzlemi. T3 AYRIMI (22 Tem): staged
-     YALNIZ veri dosyalarindan olusuyorsa bu MESRU veri-yazari (MaCiT) hattidir →
+     YALNIZ KOKTEKI veri dosyalarindan olusuyorsa (KOK-TAM-YOL, kok_veri_mi —
+     2. tur: tools/urunler.json gibi ad-benzeri/alt-dizin/backslash yol temiz
+     kategoriye GIREMEZ) bu MESRU veri-yazari (MaCiT) hattidir →
      log satiri "veri-duzlemi-gecis" (escape SAYILMAZ; 'allow-' oneki tasimaz ki
      haftalik sayim temiz kalsin). Staged BOS ya da veri-disi dosya iceriyorsa
      ESKISI GIBI "allow-escape" (gercek istisna gurultulu kalir). Gerekce: eski
@@ -79,8 +81,28 @@ def _basename(yol: str) -> str:
 
 
 def veri_mi(yol: str) -> bool:
-    """Dosya yolu VERI düzlemi mi? (urunler.json / .urun-kaynaklari.json)"""
+    """Dosya yolu VERI düzlemi mi? (urunler.json / .urun-kaynaklari.json)
+    BASENAME-GENIS — BLOKLAMA tarafinin kontrolu (fail-closed yon: ad-benzeri
+    alt-dizin dosyasi da env'siz bloklanir). TEMIZ serit icin kok_veri_mi kullanilir."""
     return _basename(yol) in VERI_BASENAME
+
+
+def kok_veri_mi(yol: str) -> bool:
+    """TEMIZ serit (veri-duzlemi-gecis) kontrolu — KOK-TAM-YOL (T3 2. tur).
+
+    Curutucu bulgusu: temiz serit basename-bazli veri_mi ile kurulmustu;
+    'tools/urunler.json', 'a/b/.urun-kaynaklari.json' ve backslash-adli
+    'tools\\urunler.json' gibi GERCEK git yollari TEMIZ kategoriye giriyordu
+    (main'de allow-escape idiler) -> escape muhasebesi sifir gurultuyle
+    atlatilabilirdi. Bu kontrol DAR: staged yol, repo KOKUNDEKI
+    urunler.json / .urun-kaynaklari.json'un KENDISI olmali. Bastaki './' soyulur;
+    BASKA normalizasyon YOK — backslash'li ad ESLESMEZ, alt-dizin ESLESMEZ ->
+    allow-escape'e duser (fail-closed: suphede gurultulu yol). BLOKLAMA tarafi
+    (korunan_mi/veri_mi) bilerek basename-GENIS kalir."""
+    temiz = (yol or "").strip()
+    if temiz.startswith("./"):
+        temiz = temiz[2:]
+    return temiz in VERI_BASENAME
 
 
 def kaynak_mi(yol: str) -> bool:
@@ -210,7 +232,9 @@ def main() -> int:
         # temiz kalsin). DAR kosul: staged BOS DEGIL ve HER staged dosya veri
         # duzleminde. Karisik (veri + baska dosya) ya da bos-staged kullanim ESKISI
         # GIBI allow-escape gurultusudur — gercek istisna gorunur kalir.
-        veriler = [yol for yol in staged if veri_mi(yol)]
+        # T3 2. TUR: kontrol KOK-TAM-YOL (kok_veri_mi) — basename-bazli veri_mi
+        # burada KULLANILMAZ (tools/urunler.json sinifi temiz kategoriye giremez).
+        veriler = [yol for yol in staged if kok_veri_mi(yol)]
         if staged and len(veriler) == len(staged):
             bypass_kaydet(
                 gitdir, kok, "veri-duzlemi-gecis",
