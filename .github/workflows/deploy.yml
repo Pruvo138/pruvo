@@ -215,6 +215,15 @@ jobs:
       - name: JSON-LD brand kabul testi (uretilen sayfalar)
         run: python3 tools/test-jsonld-brand.py
 
+      # JSON-LD OFFERS KAPISI: uretilen TUM urun sayfalarinda Product.offers varsa
+      # icindeki her Offer'da price/lowPrice SAYISAL + priceCurrency ZORUNLU; yinelenen
+      # anahtar yok. Fiyatsiz Offer GSC Merchant listings'te «"price" alani eksik»
+      # KRITIK hatasi uretir (canlida dogrulandi 22 Tem, 21 parametrik/sari sayfa
+      # etkilenmisti — taban fiyat semadan basilir, bulunamazsa offers HIC basilmaz).
+      # build.py'den SONRA kosmak ZORUNDA (urun/ ciktisina muhtac). Offline, stdlib.
+      - name: JSON-LD offers kabul testi (uretilen sayfalar)
+        run: python3 tools/test-jsonld-offers.py
+
       # SADECE sitenin ihtiyac duydugu dosyalar yayina girer (beyaz liste).
       # Eskiden path: . tum repoyu yayinliyordu -> tools/*.py canli siteden
       # indirilebiliyordu (ic araclar + ticari mahremiyet; denetim 2026-07-15).

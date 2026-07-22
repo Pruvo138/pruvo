@@ -449,7 +449,7 @@ _MARKA_SUB = [
 # Kaynak model CC lisanslıysa (MakerWorld / Thingiverse / Printables) atıf ZORUNLU.
 # urunler.json'da ürüne "lisans": {"tasarimci": "Ad", "tur": "CC BY 4.0"} eklenir;
 # "url" verilmezse tür kodundan aşağıdaki tablodan otomatik CC linki türetilir.
-# (******** royalty-free lisanslı ürünlerde CC atıfı yoktur; "lisans" alanı eklenmez.)
+# (CGTrader royalty-free lisanslı ürünlerde CC atıfı yoktur; "lisans" alanı eklenmez.)
 CC_URLS = {
     "CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
     "CC BY-SA 4.0": "https://creativecommons.org/licenses/by-sa/4.0/",
@@ -1030,10 +1030,26 @@ def render_product(p, all_products):
     cover = imgs[0] if imgs else (SITE + "/favicon.png")
     desc160 = meta_desc(p)
     pnum = price_number(fiyat)
+    parametrik = bool(p.get("parametrik"))
+    # Parametrik (sarı seri) şeması TEK KEZ burada yüklenir: hem JSON-LD taban
+    # fiyatı hem aşağıdaki konfigüratör bloğu aynı sema objesini kullanır.
+    sema = konf_sema(pid) if parametrik else None
 
     aciklama_html = esc(p.get("aciklama") or "").replace("\n", "<br>")
 
     # --- JSON-LD Product
+    # Fiyat temsili (GSC Merchant listings): FİYATSIZ Offer basmak «"price" alanı
+    # eksik» KRİTİK hatası üretir (canlıda doğrulandı, 22 Tem — 21 parametrik sayfa
+    # etkilenmişti). Parametrik/sarı üründe "fiyat" BOŞ → taban fiyat şemadan
+    # (jenerator/urunler/<id>.json tabanFiyatTL — taban-fiyatlar.js ile AYNI tek
+    # kaynak). Taban fiyat ZEMİNdir ("X TL'den başlayan") → Offer.price başlangıç
+    # fiyatı olarak doğru beyan. FAIL-CLOSED: sayısal fiyat hiçbir kaynaktan
+    # bulunamazsa offers HİÇ basılmaz. Test: tools/test-jsonld-offers.py
+    ld_fiyat = pnum
+    if ld_fiyat is None and sema is not None:
+        taban = sema.get("tabanFiyatTL")
+        if isinstance(taban, (int, float)) and not isinstance(taban, bool) and taban > 0:
+            ld_fiyat = ("%.2f" % taban).rstrip("0").rstrip(".")
     offer = {
         "@type": "Offer",
         "url": url,
@@ -1042,8 +1058,8 @@ def render_product(p, all_products):
         "priceCurrency": "TRY",
         "seller": {"@type": "Organization", "name": "PRUVO"},
     }
-    if pnum:
-        offer["price"] = pnum
+    if ld_fiyat:
+        offer["price"] = ld_fiyat
         offer["priceValidUntil"] = PRICE_VALID
 
     product_ld = {
@@ -1054,8 +1070,9 @@ def render_product(p, all_products):
         "description": re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip(),
         "sku": pid,
         "category": kategori,
-        "offers": offer,
     }
+    if ld_fiyat:
+        product_ld["offers"] = offer
     if markalar:
         # GSC Merchant listings "brand"i TEK değer bekler; birden çok Brand objesi
         # taşıyan dizi «"brand" alanı yineleniyor» KRİTİK hatası üretir (22 Tem).
@@ -1099,8 +1116,7 @@ def render_product(p, all_products):
             for b in markalar)
         brand_html = '<div class="brands">' + chips + "</div>"
 
-    # --- parametrik ("ölçüye özel") rozeti
-    parametrik = bool(p.get("parametrik"))
+    # --- parametrik ("ölçüye özel") rozeti (bayrak yukarıda, JSON-LD'den önce hesaplandı)
     badge_html = '<span class="ozel-badge">Ölçüye Özel</span>' if parametrik else ''
 
     # --- fiyat metni (JS'siz/tarayıcı öncesi durum + fonksiyonel OLMAYAN ürünlerin tek gösterimi)
@@ -1114,7 +1130,7 @@ def render_product(p, all_products):
     # --- malzeme/renk/boy seçicisi (fonksiyonel kategoriler) / konfigüratör (parametrik+şemalı)
     fonksiyonel = kategori in FONKSIYONEL_KATEGORILER
     boy_secenekleri = p.get("boy_secenekleri") or []
-    sema = konf_sema(pid) if parametrik else None
+    # sema yukarıda (JSON-LD taban fiyatı için) TEK KEZ yüklendi.
     if sema:
         # Konfigüratör: müşteri ölçü/parametre girer, hacim + fiyat canlı hesaplanır
         # (jenerator/hacim.js + jenerator/konfigurator.js). Kategoriden bağımsız —
