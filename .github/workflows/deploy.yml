@@ -242,6 +242,34 @@ jobs:
         with:
           path: _site
 
+      # D1 TESHIS GUVENLIK KABULU: alttaki teshis sondasinin ciktisi SIKI beyaz-liste mi —
+      # sondaya sahte zengin `d1 list` JSON'u (UUID'ler, DB adlari, 32-hex, token izi)
+      # verilir; ciktida sir deseni 0 olmali (repo PUBLIC, Actions logu HERKESE ACIK).
+      # BLOKLAYICI ve sondadan ONCE: sansur kapisi bozulursa sonda hic kosmadan hat
+      # kirmizi yanar, log'a sir dusme ihtimali dogmadan. Offline, stdlib, ag yok, ~0,5 s.
+      - name: D1 teshis guvenlik kabulu (cikti beyaz-liste kilidi)
+        run: python3 tools/ci-d1-teshis-guvenlik-test.py
+
+      # D1 TESHIS SONDASI (GECICI — kok neden bulununca SOKULUR): alttaki senkron adimi
+      # 21 Tem 09:23 UTC'den beri her kosumda "Couldn't find DB with name ..." ile exit 1
+      # (continue-on-error maskeli; son yesil 08:42, run 29815318008 -> ilk kirmizi
+      # 29818104744). ELENEN: database_id (tek+gecerli) · hesap id · wrangler surumu
+      # (4.112.0, pencerede yayin yok). KALAN IKI ADAY: (a) CI token'inin D1 yetkisi CF
+      # tarafinda dusmus (token gecerli: ayni kosumda zone purge 200; GitHub secret 13
+      # Tem'den beri degismemis) (b) ayni penceredeki setup-node@v4 / Node 20 pini
+      # (commit 9362076, 09:23:36 UTC — ilk kirmizi run ile birebir). Sonda ayirt eden
+      # olcumleri basar: node/wrangler surumu · `d1 list` gorunurlugu (YALNIZ sayi +
+      # EVET/HAYIR) · SELECT 1 exit kodu · ayni listenin setup-node'suz sistem node'uyla
+      # tekrari (PATH'ten hostedtoolcache ayiklanir; aday b boyle yakalanir). Cikti
+      # YALNIZ anahtar=deger beyaz-listesi — ad/ID/token/ham wrangler ciktisi BASILMAZ
+      # (ustteki kabul kilitler). Senkron adiminin davranisina DOKUNMAZ.
+      - name: D1 teshis (gecici sonda)
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: python3 tools/ci-d1-teshis.py
+
       # Katalogu D1'e senkronla (Ege'nin aramasi + ileride site aramasi buradan).
       # DIFF-UPSERT: sadece degisen/yeni urunler yazilir (D1 gunluk 100.000 yazma siniri;
       # olculdu: urun basina 5 satir -> tam rebuild 6.086 urunde 30.432 yazma, 50k'da 250.000
