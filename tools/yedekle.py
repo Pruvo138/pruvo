@@ -14,6 +14,7 @@ import os, sys, shutil
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 MEMORY = os.path.expanduser("~/.claude/projects/-Users-okan-dev-pruvo/memory")
+SKILLS = os.path.expanduser("~/.claude/skills")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import drive_yolu
@@ -35,6 +36,15 @@ def main():
     if os.path.isdir(MEMORY):
         shutil.copytree(MEMORY, os.path.join(backup, "memory"), dirs_exist_ok=True)
         print("yedek: memory/ ->", os.path.join(backup, "memory"))
+
+    # ~/.claude/skills/ — global skill'ler (merge-kapisi dahil) GIT DISINDA tutuluyor
+    # (mimar karari 21 Tem: repoya tasinmayacak) -> TEK kopya bu makinede. Yedeklenmezse
+    # disk kaybinda SKILL.md + dal-olc.py + kabul-test.py (davranissal batarya) topluca gider.
+    # Sir icermez, --sirlar'a bagli DEGIL. __pycache__ kopyalanmaz (turetilmis gurultu).
+    if os.path.isdir(SKILLS):
+        shutil.copytree(SKILLS, os.path.join(backup, "skills"), dirs_exist_ok=True,
+                        ignore=shutil.ignore_patterns("__pycache__"))
+        print("yedek: skills/ ->", os.path.join(backup, "skills"))
 
     # sirsiz kaynak haritasi
     src = os.path.join(ROOT, ".urun-kaynaklari.json")
