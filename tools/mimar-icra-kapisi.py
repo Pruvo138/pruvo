@@ -41,13 +41,27 @@ GERCEKTE REDDEDILEN (segment BASI yorumlayici ya da dogrudan-betik iken):
   KAYBEDILEN: mimar artik '-m pytest <repo-ici>' / '-m unittest discover -s <repo-ici>'
   kosturamaz (eskiden acikti). Bilinerek verildi: bu is zaten isciye delege edilir.
 
-SERBEST (yanlislikla kapatma — kapatirsan is durur):
-  * repodaki MEVCUT araclar: python3 tools/d1-sync.py --durum, node tools/parite-test.js,
-    python3 tools/durum.py, node --check tools/x.js ...
-  * git'in tamami (status/diff/log/merge/commit/push/worktree) — merge mimarin kapisidir
-  * curl ile salt-okunur canli dogrulama, grep/ls/rg/jq/wc/head/tail vb.
-  * codex exec ile delegasyon
-  * /.claude/worktrees/ icinden calisan oturumlar (muhendis alani) — TAM muaf
+🔵 22 TEM SERTLESTIRME (Okan: "mimar HICBIR is yapmaz, yalniz delege eder" — bugun elden
+kacan sinif HAFIF OLCUMLER). Mimar kimliginde (agent_id BOS) EK REDLER:
+  1. OLCUM/dosya-tarama: du df ps top vm_stat memory_pressure sysctl find wc head tail sed
+     awk sort stat file — HERHANGI bir segmentte (pipe dahil) argv0 ise RED.
+  2. curl/wget — canli dogrulama iscinin isi, ISTISNA YOK.
+  3. codex (her bicim: 'codex' basename ya da ChatGPT.app tam yolu) — iscinin cagirdigi arac.
+  4. python3/node — YALNIZ 'python3 tools/durum.py' ve 'python3 tools/d1-sync.py --durum'
+     serbest (tam-yol ya da repo-goreli TAM esitlik; ekstra argüman = RED). Diger TUM
+     tools/ araclari + node --check + -m + repo-ici betik = RED (test kosumu dahil).
+  Bunun sonucu: eski '-m'/yol-ayristirma makinesi (modul_suphesi/betik_siniri) python
+  tarafinda GEREKSIZ oldu ve KALDIRILDI — python GATE'i tek noktadadir (_py_izinli).
+  dis_yol / F (betik repo_ici) / C (satir-ici) YALNIZ sh/bash/ruby/perl/php/osascript
+  icin KALDI (onlarda -m yok). Sertligin bedeli YALNIZ mimara: ISCI (agent_id dolu)
+  bu redlerin HICBIRINE takilmaz (main() basinda muaf; kanit: ISCI ikizleri).
+
+SERBEST (mimar eliyle — yanlislikla kapatma, kapatirsan is durur):
+  * python YALNIZ: python3 tools/durum.py + python3 tools/d1-sync.py --durum (baska YOK)
+  * git'in tamami (status/diff/log/merge-base/merge/commit/push/worktree) — merge mimarin
+    kapisidir; MAKINE reddine sokulmaz (kilitlenme riski), DAVRANISSAL kural isciye delege
+  * gh (deploy/PR durumu), ls, grep, jq, echo, cat — okuma/yargi
+  * /.claude/worktrees/ icinden calisan oturumlar (isci/muhendis alani) — agent_id ile TAM muaf
 
 BILINEN BYPASS'LAR (kapi bir DISIPLIN cihazidir, hapishane DEGIL — memory/kapi-disiplin-ilkesi.md;
 KAYITLI olmalari sart ama KAPATILMAZLAR: yeni launcher-yakalama kurali sonsuz launcher oyunu +
@@ -134,22 +148,36 @@ ICRA_UZANTILARI = (
     ".sh", ".bash", ".zsh", ".command", ".rb", ".pl",
 )
 
+# === 22 TEM (mimarin HAFIF-OLCUM kacisi kapatilir) ===
+# Mimar SERBEST kosabildigi YALNIZ IKI python komutu (tam-yol ya da repo-goreli TAM esitlik).
+DURUM_YOL = REPO_ONEKI + "tools/durum.py"
+D1_YOL = REPO_ONEKI + "tools/d1-sync.py"
+
+# Olcum / dosya-tarama komutlari: bunlar mimarin elinden kacan siniftir (boyut, sayim,
+# arama, icerik dokme). Komut zincirinin HERHANGI bir segmentinde (pipe dahil —
+# segmentlere_ayir '|'den boler) argv0 olarak gorunurse RED. Olcum = iscinin isi.
+OLCUM_KOMUTLARI = {
+    "du", "df", "ps", "top", "vm_stat", "memory_pressure", "sysctl", "find",
+    "wc", "head", "tail", "sed", "awk", "sort", "stat", "file",
+}
+
+# python/node ailesi — mimar tarafinda YALNIZ iki izinli komut, digeri RED (araç/test
+# kosumu iscinin isi). sh/bash/ruby/perl/php/osascript bu kisitin DISINDA (asagida
+# satir-ici + repo-disi betik denetimi ile ele alinir).
+PY_NODE = re.compile(r"^(python|python2|python3(\.\d+)?|pypy3?|node|nodejs)$")
+
 # Basa yapisabilen zararsiz sarmalayicilar — soyulur, arkasindaki gercek komuta bakilir.
 SARMALAYICI = {"env", "command", "exec", "nohup", "time", "caffeinate", "stdbuf", "nice"}
 
 SURUM_BAYRAKLARI = {"--version", "-V", "--help", "-h", "-v"}
 SATIR_ICI = {"-c", "-e", "--eval", "--eval-file", "-p", "--print", "-"}
 
-# 'python3 -m X' : X bir MODUL, dosya degil — repo-ici/disi kontrolu ise yaramaz.
-# Cogu modul keyfi icra kapisidir: pip (kurulum betigi calistirir), timeit/pdb/trace
-# (-s ile kod alir), venv, http.server (disari acar). Bu yuzden -m VARSAYILAN KAPALI,
-# yalnizca zararsiz okuma/bicimlendirme modulleri izinli.
-IZINLI_MODULLER = {"json.tool", "base64", "calendar", "this"}
-
-# TEST_MODULLERI (pytest/unittest) KUMESI KALDIRILDI (20 Tem, 4. tur). Neyi kaybettik:
-# mimarin '-m pytest <repo-ici>' kosturma hakkini. Neden: bu izin, hedef yollarini
-# ayristirmayi (kisa/uzun/bitisik/=li bayrak degeri) ZORUNLU kiliyordu ve delikler tam
-# oradan cikti (-vs/yol, -s=/yol). Kural sayisi azaldi, semantik netlesti: -m = DENY.
+# '-m X' (python modul) DENETIMI KALDIRILDI (22 Tem). Neden: PY_NODE ALLOWLIST'i python'i
+# yalnizca iki tam komuta indirdi — '-m pip'/'-m timeit'/'-m http.server' vs. artik
+# allowlist tarafindan reddedilir (durum.py/d1-sync.py degil). Ayri bir -m ayristirmasi
+# (modul_suphesi/betik_siniri) ARTIK GEREKSIZ ve NOBETSIZ olurdu: mimar tarafinda python
+# GATE'i tek noktadadir (_py_izinli). O yuzden o iki fonksiyon + IZINLI_MODULLER kaldirildi.
+# (sh/bash icin -m yok; onlar satir-ici + repo-disi betik + dis_yol ile denetlenir.)
 
 # Yorumlayiciya disaridan kod enjekte eden ortam degiskenleri (VAR=deger python3 ...).
 TEHLIKELI_ENV = {
@@ -166,13 +194,12 @@ GEREKCE_SONU = (
     "(ör. tools/mimar-kilit-test.py'ye vaka ekletip 'python3 tools/mimar-kilit-test.py' "
     "ile kapat). Uzun hali: işi MÜHENDİS/USTA/MARABA'ya ya da Codex'e DELEGE et (Agent aracı: "
     "model opus/sonnet + isolation worktree + background) ve kabul testini ona YAZDIR; "
-    "(b) ölçmek istiyorsan repodaki MEVCUT aracı koştur — node tools/parite-test.js, "
-    "node tools/parite-ege.js, python3 tools/d1-sync.py --durum, python3 tools/durum.py, "
-    "python3 tools/olculmemis-siparis.py, node --check <repo dosyası>; "
-    "(c) yeni bir ölçüm gerekiyorsa onu .md spec'ine çalıştırılabilir KABUL TESTİ olarak "
-    "yaz, mühendis repoya koysun — sonra sen koşturursun. "
-    "SERBEST: git (status/diff/log/merge/commit/push), curl, grep/ls/jq, repo altındaki "
-    "tools/ araçları, /.claude/worktrees/ içinden çalışan mühendis oturumları."
+    "(b) TEST/ÖLÇÜM/CANLI DOĞRULAMA koşumu (parite, build, filament, curl, du/ps/find/wc/"
+    "head/tail/sed/awk/sort, node --check ...) mimarın DEĞİL işçinin işidir — spec'e "
+    "çalıştırılabilir KABUL TESTİ yaz, mühendis repoya koysun, işçi koştursun. "
+    "SERBEST (mimar eliyle): git (status/diff/log/merge-base/merge/commit/push/worktree), "
+    "gh, ls, grep, jq, echo, cat; python yalnız 'python3 tools/durum.py' ve "
+    "'python3 tools/d1-sync.py --durum'; /.claude/worktrees/ içinden çalışan işçi oturumları."
 )
 
 
@@ -276,55 +303,34 @@ def repo_ici(yol, cwd):
     return False
 
 
-def betik_siniri(argumanlar, cwd):
-    """Yorumlayici bayraklarinin BITTIGI indeks = ilk GERCEK betik token'i.
-
-    Yanlis-pozitif kalkani (vaka 129: 'python3 tools/durum.py -smth'): betikten SONRAKI
-    argumanlar BETIGINDIR, yorumlayici bayragi degildir. Ama kalkan FAIL-CLOSED tutulur:
-    sinir yalnizca token DISKTE VAR OLAN, repo-ici, calistirilabilir uzantili bir dosyaya
-    cozuluyorsa kabul edilir. Eski surum "ilk tiresiz token"da kirilyordu — '-W ignore'
-    gibi DEGER token'lari yuzunden -m denetimi komple atlaniyordu (olculmus delik A)."""
-    for i, t in enumerate(argumanlar):
-        if t.startswith("-"):
-            continue
-        if not t.lower().endswith(ICRA_UZANTILARI):
-            continue
-        if not repo_ici(t, cwd):
-            continue
-        if os.path.isfile(_coz(t, cwd)):
-            return i
-    return len(argumanlar)
+def _codex_var(tokenlar):
+    """Segmentte HERHANGI bir bicimde Codex cagrisi var mi? 'codex' basename'i (or.
+    'codex exec ...') ya da ChatGPT.app tam yolu (or.
+    /Applications/ChatGPT.app/Contents/Resources/codex). Codex = ISCININ cagirdigi arac."""
+    for t in tokenlar:
+        if os.path.basename(t) == "codex":
+            return True
+        if "ChatGPT.app" in t:
+            return True
+    return False
 
 
-def modul_suphesi(argumanlar, cwd):
-    """R1 — '-m' TOKEN TARAMASI (ayristirma YOK, suphede RED).
-
-    Python'un hangi kisa bayraginin deger aldigini TAKLIT ETMEYIZ. Betik sinirina kadar
-    olan her tek-tireli token'a bakariz:
-      * govde 'm' ile basliyorsa  -> modul adi ('-m X', '-mX', '-m=X'); beyaz listede
-        degilse DENY.
-      * govde icinde '/' varsa    -> yol parcasidir, R2'nin isi (burada atlanir).
-      * govde icinde 'm' geciyorsa-> BIRLESIK kisa bayrak kumesi OLABILIR -> DENY.
-    Doner: (True, ayrinti) reddedilecekse."""
-    sinir = betik_siniri(argumanlar, cwd)
-    for i, t in enumerate(argumanlar[:sinir]):
-        if not t.startswith("-") or t == "-" or t.startswith("--"):
-            continue
-        govde = t[1:]
-        if govde.startswith("m"):
-            modul = govde[1:]
-            if modul[:1] in ("=", ":"):
-                modul = modul[1:]
-            if not modul:
-                modul = argumanlar[i + 1] if i + 1 < len(argumanlar) else ""
-            if modul in IZINLI_MODULLER:
-                continue
-            return True, (modul or "?")
-        if "/" in t:
-            continue
-        if "m" in govde:
-            return True, t
-    return False, ""
+def _py_izinli(ad, argumanlar, cwd):
+    """22 Tem — mimar tarafinda python/node ALLOWLIST'i. YALNIZ iki tam komut serbest:
+        python3 tools/durum.py            (baska argüman YOK)
+        python3 tools/d1-sync.py --durum  (yalniz --durum)
+    Yol tam-yol ya da repo-goreli olabilir (_coz ile cozulur); node/python2/pypy icin
+    IZINLI KOMUT YOKTUR (hepsi RED). 'Baska argüman eklenirse RED' — len kontrolu bunu saglar."""
+    if not re.match(r"^python3(\.\d+)?$", ad):
+        return False
+    if not argumanlar:
+        return False
+    ilk = _coz(argumanlar[0], cwd)
+    if ilk == DURUM_YOL:
+        return len(argumanlar) == 1
+    if ilk == D1_YOL:
+        return len(argumanlar) == 2 and argumanlar[1] == "--durum"
+    return False
 
 
 def dis_yol(argumanlar, cwd):
@@ -391,6 +397,26 @@ def main():
         argv0 = tokenlar[0]
         ad = os.path.basename(argv0)
 
+        # === 22 TEM EKLERI (mimar HAFIF-OLCUM/CANLI-DOGRULAMA/DELEGE-ARACI kacisi) ===
+        # Bu uc kural her SEGMENT icin kosar; 'git log | head -5' -> ikinci segment 'head'
+        # (segmentlere_ayir '|'den boler) -> RED. Kimlik ekseni degismedi: ISCI cagrilari
+        # main() basinda zaten muaf, bu blok yalniz MIMAR'da kosar.
+        if ad in OLCUM_KOMUTLARI:
+            reddet(
+                "ölçüm / dosya-tarama komutu (" + ad + "). Boyut, sayım, arama, içerik "
+                "dökme, sıralama — bunlar İŞÇİNİN işidir; mimar okur, karar verir, ÖLÇTÜRÜR."
+            )
+        if ad in ("curl", "wget"):
+            reddet(
+                "ağ / canlı doğrulama komutu (" + ad + "). Canonical URL, feed, deploy "
+                "çıktısı doğrulamasını İŞÇİYE yaptır (git ve gh serbest kalır)."
+            )
+        if _codex_var(tokenlar):
+            reddet(
+                "Codex çağrısı. Codex'i İŞÇİ çağırır (delege ettiğin işi o koşturur); "
+                "mimar spec yazar, çağırmaz."
+            )
+
         # A) Repo disi calistirilabilir dosyayi dogrudan cagirma (./x.sh, /tmp/.../x.py)
         if ("/" in argv0 or argv0.startswith(".")) and argv0.lower().endswith(ICRA_UZANTILARI):
             if not repo_ici(argv0, cwd):
@@ -414,7 +440,23 @@ def main():
                 "repo dışından kod yükler."
             )
 
-        # B) Surum/yardim: zararsiz
+        # === 22 TEM: PYTHON/NODE ALLOWLIST ===
+        # Mimar tarafinda python3/node ile ARAÇ/TEST kosumu KAPALI (Okan 20 Tem
+        # "test kosumu dahil"). YALNIZ iki komut serbest: durum.py ve d1-sync.py --durum.
+        # A2 (tehlikeli env) BU KONTROLUN ONUNDE calisir -> 'PYTHONPATH=... python3
+        # d1-sync.py --durum' allowlist'e ULASMADAN env yuzunden reddedilir.
+        # sh/bash/ruby/perl/php/osascript BU kisitin DISINDA (asagida C/E2/F ile denetlenir).
+        if PY_NODE.match(ad):
+            if _py_izinli(ad, argumanlar, cwd):
+                continue
+            reddet(
+                "python3/node ile bir araç/test koşturuyorsun (" + ad + " " +
+                (" ".join(argumanlar[:3]))[:70] + "). Mimar tarafında SERBEST yalnız iki "
+                "komut: 'python3 tools/durum.py' ve 'python3 tools/d1-sync.py --durum'. "
+                "Parite/build/filament/node --check ... = İŞÇİNİN işi."
+            )
+
+        # B) Surum/yardim: zararsiz (python/node yukarida ele alindi; bu satir sh vb. icin)
         if argumanlar and argumanlar[0] in SURUM_BAYRAKLARI:
             continue
 
@@ -438,17 +480,9 @@ def main():
         #    gerekmiyor: R2 (dis_yol) yalnizca betik uzantililari degil, argumanlardaki
         #    HER yol parcasini denetler — daha genis ve daha az kural.
 
-        # E/R1) '-m' TOKEN TARAMASI — ayristirma yok, suphede RED.
-        supheli, ayrinti = modul_suphesi(argumanlar, cwd)
-        if supheli:
-            reddet(
-                "yorumlayıcıya '-m' (modül) verdin ya da modül olabilecek şüpheli bir kısa "
-                "bayrak kümesi var (" + ayrinti + "). '-m' modül üzerinden keyfi icra "
-                "kapısıdır (pip kurulum betiği koşturur; timeit/pdb/trace -s ile kod alır; "
-                "venv/http.server ortamı değiştirir/dışarı açar) ve mimar tarafında "
-                "ayrıştırma YAPILMAZ — şüpheli her form kapalıdır. İzinli modüller yalnız: " +
-                ", ".join(sorted(IZINLI_MODULLER)) + "."
-            )
+        # E) [KALDIRILDI 22 Tem] python '-m' denetimi (modul_suphesi) PY_NODE allowlist'e
+        #    devroldu — python/node bu noktaya ULASMAZ (yukarida continue/reddet). Bu
+        #    noktadan itibaren yalniz sh/bash/ruby/perl/php/osascript kalir; onlarda -m yok.
 
         # E2/R2) YOL TARAMASI — argumanlarda repo DISINA cozulen parca varsa RED.
         disari = dis_yol(argumanlar, cwd)
