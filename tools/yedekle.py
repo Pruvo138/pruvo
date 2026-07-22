@@ -57,7 +57,7 @@ def main():
     # CLAUDE.md artik butun araclarin (Claude Code, Codex, ...) tek kural kaynagi; DEVAM.md
     # olculmus sayilari ve yarim isi tutuyor. Sir icermezler, --sirlar'a bagli DEGIL.
     # (AGENTS.md kopyalanmaz: CLAUDE.md'ye symlink, ayri dosya degil.)
-    for ad in ("CLAUDE.md", "DEVAM.md"):
+    for ad in ("CLAUDE.md", "DEVAM.md", "DEVAM-ARSIV.md"):
         p = os.path.join(ROOT, ad)
         if os.path.exists(p) and not os.path.islink(p):
             shutil.copy2(p, os.path.join(backup, ad))
