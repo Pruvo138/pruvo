@@ -159,11 +159,13 @@ dogru sekilde YESIL+UYARI verdi.
     K9  sizinti (if sizinti -> kirmizi) ........................ D6
     K10 drift (if not drift_tamam -> kirmizi) .................. D7
     K11 terminal (if kirmizi -> return 1) ...................... KALAN SINIF-2 (asagida)
-    K12 --ic-nobetci olcum-modu (kosul + donus) ................ donus ifadesi dav_hata'yi
-        TASIR (tur-11): "if args.ic_nobetci:" -> "if True:" jetonu erken donusle tum
-        taramayi atlatiyordu (12 D fiksturu ❌ basarken EXIT=0 — olculdu, deney-tur10b);
-        simdi "return 1 if (ic_hata or dav_hata) else 0" o halde EXIT=1 doner. Normal
-        olcum modunda dav_hata bos (davranis atlanir) -> davranis DEGISMEZ.
+    K12 --ic-nobetci olcum-modu (varsayilan + kosul + donus) ... UC jeton da savunmali:
+        (a) donus "return 1 if (ic_hata or dav_hata) else 0" (tur-11) — "if True:"
+        jetonu erken donuste dav_hata'yla EXIT=1'e duser; (b) bayrak varsayilani
+        store_true -> store_false jetonu (tur-12) — davranis nobetcisi olcum modunda
+        da kostugu icin erken-donuse dusen ic kosumlar D1'i kirar -> dav_hata ->
+        (a) tasir; SESSIZ atlatma kalmadi (ikisi de olculdu, deney-tur10b/tur-11b).
+        Komsu "--landing-kapali" ayni jetonda D4 ile olur (olculdu — sinif korunur).
   Yeni kablo ekleyen, bu tabloya SOLO nobetcisini de yazar (F0-kapsam deseni).
   ⚠️ KALAN SINIF (adiyla, V6 gelenegi):
   1) GIRIS NOKTASI OZ-NOTRLEME — main() cagrisina davranis=False gecen / nobetci
@@ -1374,7 +1376,12 @@ def main(argv=None, davranis=True):
     for h in ic_hata:
         print("  ❌ " + h)
     dav_hata = []
-    if davranis and not args.ic_nobetci:
+    # "and not args.ic_nobetci" terimi BILEREK YOK (tur-12, curutucu olcumu):
+    # davranis nobetcisi olcum modunda DA kosar (ic kosumlar davranis=False ile kesik,
+    # ozyineleme yok; olculen mod suresi 0.10-0.11 s). Boylece "--ic-nobetci" bayraginin
+    # store_true -> store_false jetonu tum kosumlari erken donuse dusurdugunde D1
+    # kirilir -> dav_hata dolar -> K12 donusu EXIT=1 tasir; SESSIZ atlatma kalmaz.
+    if davranis:
         dav_hata, dav_sayi = davranis_nobetci()
         print("DAVRANIS NOBETCISI (main uctan uca, gecici dizinde): %d fikstur, %d hata"
               % (dav_sayi, len(dav_hata)))
