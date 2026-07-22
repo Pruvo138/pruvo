@@ -43,11 +43,19 @@ JEN_URUN_DIR = os.path.join(KOK, "jenerator", "urunler")
 # tasinir — PUBLIC urunler.json'a YAZILMAZ. Dosya yoksa (baska makine/CI) baski bos kalir.
 KAYNAKLAR = os.path.join(KOK, ".urun-kaynaklari.json")
 
-# DB'yi ADIYLA degil UUID'siyle cagiriyoruz: boylece wrangler.toml GEREKMEZ ve bu betik
-# hem burada hem GitHub Actions'ta (pruvo-bot repo'su orada yok) AYNI yoldan calisir.
-# Actions'ta kimlik: CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID ortam degiskenleri;
-# yerelde: wrangler'in kendi oturumu (npx wrangler login).
-DB = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"  # pruvo-katalog
+# DB'yi ADIYLA cagiriyoruz (UUID DEGIL). NEDEN (olculdu 2026-07-22, T5): `npx wrangler@4`
+# YUZER pin -> CI o an 4.86.0'a cozuyordu; 4.86.0'da `d1 execute <arg>` argumani AD olarak
+# aranir, UUID verilince "Couldn't find DB with name '<uuid>'" -> exit 1: senkron ADIMI olu
+# kaldi (Ege bayat katalog goruyordu). Yerelde wrangler 4.112.0+'ta UUID de calistigi icin
+# ayrisma gizli kaldi. AD "pruvo-katalog" ise 4.86.0 VE 4.112.0'da (+ bos dizinde, wrangler.toml
+# YOK iken) exit 0 -> surumden BAGIMSIZ. Bu yuzden execute yolu ADI kullanir; surum pini GEREKMEZ.
+# wrangler.toml zaten gerekmiyordu (ad da UUID de hesap-duzeyinde --remote cozulur); asil sebep
+# surum ayrismasiydi. Actions kimligi: CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID; yerelde
+# wrangler'in kendi oturumu (npx wrangler login).
+# UUID sabiti (DB) referans + ci-d1-teshis.py sondasinin `d1 list` UUID gorunurluk eslemesi
+# icin KALIR; execute yolu DB_AD kullanir.
+DB = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"  # pruvo-katalog (UUID — referans/teshis)
+DB_AD = "pruvo-katalog"  # execute yolunda KULLANILAN tanimlayici (surumden bagimsiz)
 
 # Tek wrangler cagrisina konacak azami ifade sayisi (istek boyutu makul kalsin).
 PARCA = 400
@@ -55,7 +63,7 @@ PARCA = 400
 
 def wrangler(args, girdi_dosya=None):
     """wrangler d1 execute calistir, JSON sonucu dondur."""
-    komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB, "--remote", "--json"] + args
+    komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB_AD, "--remote", "--json"] + args
     p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True)
     ham = (p.stdout or "") + (p.stderr or "")
 
