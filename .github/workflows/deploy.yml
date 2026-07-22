@@ -72,9 +72,9 @@ jobs:
       # polikarbonat -> kodda KARA LISTE) vaat etmek yanlis ticari beyandir. Ayrica: dayanak
       # kayitlari (PA6-GF/PA12-GF/POM) YALNIZ onaylanan TAM ADI mesrulastirir, satis/uretim
       # duzlemine SIZAMAZ; ege-malzeme.py <-> ege-bilgi.md DRIFT nobeti (F18 uctan uca);
-      # 49 bellekte-fikstur ic nobetcisi + 9 davranis fiksturu (main uctan uca, gecici
-      # dizinde; exit-kodu kablolari TEK TEK kilitli: sizinti/drift/envanter-kara/
-      # nobetci) kapinin kendi yetenegini kilitler. KAPSAM
+      # 49 bellekte-fikstur ic nobetcisi + 12 davranis fiksturu (main uctan uca, gecici
+      # dizinde; exit-kodu kablolarinin HER BIRI solo kilitli — kapi docstring'indeki
+      # KABLO ENVANTERI tablosu K1-K12) kapinin kendi yetenegini kilitler. KAPSAM
       # nobeti VARLIK kontroludur (sayi/karakter tabani YASAK SINIF): zorunlu kaynaklar en
       # az 1 govde uretmeli; JSON-LD blogu kaybolursa UYARI (FAQ rich result emekliligi
       # mesru SEO karari, yayini durduramaz). SIZINTI kapsami AD BAZLI: kod tarafindan

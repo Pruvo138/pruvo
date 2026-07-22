@@ -139,7 +139,30 @@ dogru sekilde YESIL+UYARI verdi.
   D1 temiz=YESIL (sss JSON-LD'siz + kaynaklar URL'sinde 'pc') · D2 dayanaksiz vaat ·
   D3 zorunlu sizinti ciktisi eksik (extend kablosu) · D4 landing bos (varlik kontrolu) ·
   D5 kara liste envanter kaydi+sayfa (iki agiz) · D6 YALNIZ sizinti · D7 YALNIZ drift ·
-  D8 YALNIZ envanter-kara · D9 ic_hata-yalniz nobetci kablosu (or->and mutasyonu).
+  D8 YALNIZ envanter-kara · D9 ic_hata-yalniz nobetci kablosu (or->and mutasyonu) ·
+  D10 SAYFA-ONLY kara ihlali (kayit yok) · D11 filament fail-closed · D12 govde fail-closed.
+
+🗺️ KABLO ENVANTERI (tur-10) — main()'in EXIT kodunu etkileyen HER yol + SOLO nobetcisi.
+  (Satir numarasi degil BLOK ADI — satirlar oynar; programatik sayim kaniti:
+   main govdesinde tam 8 "kirmizi = True" atamasi + 4 "return 1" yolu + 1 "return 0".)
+    K1  filament fail-closed (except -> return 1) .............. D11
+    K2  govde-kaynagi fail-closed (except -> return 1) ......... D12
+    K3  nobetci blogu (if ic_hata or dav_hata -> kirmizi) ...... D9 (ic-terim-sil D9 ile
+        olur; or->and yedek kabloyla olur — tur-9 olcumu)
+    K4  yedek kablo (if dav_hata -> kirmizi) ................... tek basina silinirse K3
+        tasir (zararsiz esdeger, OLCULDU); K3+K4 birlikte silinmesi 2-JETON = tek-jeton
+        modeli disi (cift-yol tasarimi bilincli)
+    K5  envanter-kara (if envanter_kara -> kirmizi) ............ D8
+    K6  kara-ihlal / sayfa vaadi (if kara_ihlal -> kirmizi) .... D10 (tur-10 kapandi)
+    K7  dayanaksiz (if dayanaksiz -> kirmizi) .................. D2
+    K8  kapsam (if kapsam_hata -> kirmizi) ..................... D4 (sizinti-kapsam kolu D3)
+    K9  sizinti (if sizinti -> kirmizi) ........................ D6
+    K10 drift (if not drift_tamam -> kirmizi) .................. D7
+    K11 terminal (if kirmizi -> return 1) ...................... KALAN SINIF-2 (asagida)
+    K12 --ic-nobetci olcum-modu donusu (return 1 if ic_hata) ... CI bu yolu ICRA ETMEZ
+        (bayrak CI'da kullanilmaz; bozulmasi yayini degil olcum modunu bozar — fiksturu
+        bilerek yok, kablo degil olcum kisayolu)
+  Yeni kablo ekleyen, bu tabloya SOLO nobetcisini de yazar (F0-kapsam deseni).
   ⚠️ KALAN SINIF (adiyla, V6 gelenegi):
   1) GIRIS NOKTASI OZ-NOTRLEME — main() cagrisina davranis=False gecen / nobetci
      cagrilarini komple silen mutasyonu hicbir kapi kendi icinden yakalayamaz (kapi
@@ -1097,7 +1120,7 @@ def ic_nobetci():
 # main()'i gecici dizinde sahte veri setiyle UCTAN UCA kosturur (stdout + exit kodu
 # yakalar); GERCEK dosyalara DOKUNMAZ. Ozyineleme main(..., davranis=False) ile kesilir.
 BEKLENEN_DAVRANIS_ADLARI = frozenset(
-    {"D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9"})
+    {"D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12"})
 
 _D_MODUL_TEMIZ = ("BASLA = '<!-- FILAMENT-REF -->'\n"
                   "BITIR = '<!-- /FILAMENT-REF -->'\n"
@@ -1285,6 +1308,42 @@ def davranis_nobetci():
         kontrol("D9", kod == 1 and "NOBETCI FIKSTURLERI basarisiz (ic=1" in cikti,
                 "ic_hata-yalniz hal EXIT=1 vermedi (kod=%d) — 'if ic_hata or dav_hata' "
                 "kablosu bozulmus olabilir (or->and?)" % kod)
+
+        # D10 — 🔴 K6 KABLOSU (tur-10, curutucu bulgusu): SAYFA-ONLY kara ihlali ->
+        # EXIT=1. Sayfada PC vaadi VAR, envanterde PC kaydi YOK — D5 joint (iki agiz),
+        # D8 kayit-only olctugu icin "if kara_ihlal:" blogundaki kirmizi=True'yu TEK
+        # silen jeton 49+9 fiksturden geciyordu. "filamentler.json ICINDE" YOKLUGU
+        # envanter-agzinin karismadigini (K5 maskesi olmadigini) kanitlar.
+        d10 = os.path.join(gecici, "d10")
+        os.makedirs(d10)
+        kod, cikti = _d_kostur(_d_kurulum(
+            d10, sss_govde="İsterseniz PC ile üretiyoruz."))
+        kontrol("D10", kod == 1 and "govdede geciyor" in cikti
+                and "filamentler.json ICINDE" not in cikti,
+                "SAYFA-ONLY kara ihlali (PC vaadi, kayit yok) EXIT=1 vermedi ya da "
+                "envanter-agzi karisti (kod=%d) — kara_ihlal->exit kablosu kopmus "
+                "olabilir" % kod)
+
+        # D11 — K1 KABLOSU: filamentler.json fail-closed. Bozuk JSON -> "okunamadi"
+        # + EXIT=1; except blogundaki "return 1" jetonunun solo nobetcisi.
+        d11 = os.path.join(gecici, "d11")
+        os.makedirs(d11)
+        argv11 = _d_kurulum(d11)
+        _d_yaz(os.path.join(d11, "filamentler.json"), "{bozuk json")
+        kod, cikti = _d_kostur(argv11)
+        kontrol("D11", kod == 1 and "filamentler.json okunamadi" in cikti,
+                "bozuk filamentler.json fail-closed EXIT=1 vermedi (kod=%d)" % kod)
+
+        # D12 — K2 KABLOSU: govde kaynagi fail-closed. ege-bilgi.md YOK ->
+        # "govde kaynagi okunamadi" + EXIT=1; ikinci except "return 1" jetonunun
+        # solo nobetcisi.
+        d12 = os.path.join(gecici, "d12")
+        os.makedirs(d12)
+        argv12 = _d_kurulum(d12)
+        os.remove(os.path.join(d12, "ege-bilgi.md"))
+        kod, cikti = _d_kostur(argv12)
+        kontrol("D12", kod == 1 and "govde kaynagi okunamadi" in cikti,
+                "eksik ege-bilgi.md fail-closed EXIT=1 vermedi (kod=%d)" % kod)
 
     eksik = sorted(BEKLENEN_DAVRANIS_ADLARI - set(kosulan))
     fazla = sorted(set(kosulan) - BEKLENEN_DAVRANIS_ADLARI)
