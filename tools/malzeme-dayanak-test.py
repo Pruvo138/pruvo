@@ -144,15 +144,14 @@ dogru sekilde YESIL+UYARI verdi.
   1) GIRIS NOKTASI OZ-NOTRLEME — main() cagrisina davranis=False gecen / nobetci
      cagrilarini komple silen mutasyonu hicbir kapi kendi icinden yakalayamaz (kapi
      disiplin cihazidir, guvenlik siniri degil); bagimsiz curutucu + review duzlemi.
-  2) NOBETCI->EXIT kablosunun OZ-MASKELEME sinifi (OLCULDU, tur-8 — iddia degil):
-     "if ic_hata or dav_hata" uzerinde or->and jetonu ve dav_hata terimini SILEN
-     jeton CI-ici fiksturle KILITLENEMEZ: D9 mutasyonu YAKALAR (❌ D9 basilir) ama
-     alarm dav_hata uzerinden ayni KIRIK kablodan gecmek zorundadir -> EXIT=0
-     (dongusel; D fiksturlerinin ic kosumu ozyineleme kesimi geregi davranis=False,
-     dav_hata yalniz DIS kosumda dolar). ic_hata terimini silen jeton ise D9 ile
-     OLUR (alarm o halde saglam dav kablosuyla tasinir — olculdu). Oz-maskeleme
-     sinifi mutasyon-kaniti kosumunda (M1/M3 boz-adimlari dav kablosunu FIILEN
-     icra eder) ve bagimsiz curutucu denetiminde gorunur.
+  2) TERMINAL DONUS JETONU (indirgenemez sinif; tur-9'da or->and kaydinin yerini
+     aldi — curutucu YEDEK KABLO ile or->and'in fiksturle OLDUGUNU olctu, eski
+     oz-maskeleme kaydi curudu ve kablo eklendi): main() sonundaki "return 1" ->
+     "return 0" jetonu HER fiksturu deler — D fiksturleri ic kosumun DONUS DEGERINI
+     olcer ve mutasyon donus yolunun KENDISIDIR; alarm basilir (❌ satirlari) ama
+     dis cikis da ayni jetonla 0'a duser. Giris-noktasi oz-notrleme (1) ile ayni
+     aile: kapinin SON cikis jetonu kapinin icinden nobetlenemez; mutasyon-kaniti
+     kosumu + bagimsiz curutucu denetimi duzlemi.
 
 🔴 FIKSTUR SIMETRISI (tur-5 ORNEK, tur-6 SINIF): dayanak fiksturleri gercek
   filamentler.json kayitlariyla AYNI ALANLARI tasir ("uzunAd" dahil). Aksi halde
@@ -1424,6 +1423,12 @@ def main(argv=None, davranis=True):
         print("KIRMIZI: NOBETCI FIKSTURLERI basarisiz (ic=%d · davranis=%d) — kapinin "
               "KENDI yetenegi bozulmus (yukaridaki ❌ satirlari)"
               % (len(ic_hata), len(dav_hata)))
+        kirmizi = True
+    # YEDEK KABLO (tur-9, curutucu olcumuyle eklendi): ustteki blokta or->and jetonu
+    # OZ-MASKELIYORDU — D9 mutasyonu yakalar (❌ basilir) ama alarm ayni kirik
+    # kablodan gecemezdi (EXIT=0). Bagimsiz ikinci kablo alarmi tasir; tek basina
+    # yanlis-pozitif uretmez (olculdu: temiz agacta EXIT=0).
+    if dav_hata:
         kirmizi = True
 
     if envanter_kara:
