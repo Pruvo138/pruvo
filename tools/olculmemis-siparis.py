@@ -78,9 +78,14 @@ from datetime import datetime, timedelta, timezone
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
-# DB'yi ADIYLA degil UUID'siyle cagiririz: wrangler.toml GEREKMEZ, betik her dizinden
-# ayni sekilde calisir (tools/d1-sync.py ile ayni desen).
-DB = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"  # pruvo-katalog
+# DB'yi ADIYLA cagiririz (UUID DEGIL). NEDEN (T5 olcumu, 2026-07-22): `npx wrangler@4` YUZER
+# pin; CI o an 4.86.0'a cozulunce `d1 execute <UUID>` argumani AD olarak aranir ->
+# "Couldn't find DB with name '<uuid>'" exit 1. AD "pruvo-katalog" 4.86.0 VE 4.112.0'da
+# (+ bos dizinde) exit 0 -> surumden BAGIMSIZ. Bu betik su an yalniz YEREL kosuyor (CI'da
+# degil) ama ayni surum ayrismasina acikti; ada gecirildi (tools/d1-sync.py ile ayni desen).
+# UUID sabiti (DB) referans olarak kalir.
+DB = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"  # pruvo-katalog (UUID — referans)
+DB_AD = "pruvo-katalog"  # execute yolunda KULLANILAN tanimlayici (surumden bagimsiz)
 
 # --- ESIKLER (yukaridaki "ESIK TARIHI" bolumunun gerekcesi) --------------------
 ESIK_KART = "2026-07-18T09:48:34Z"    # f2876024 (+03 12:48:34)
@@ -153,7 +158,7 @@ def sql_sorgu(son):
 def wrangler_sorgu(sql):
     """wrangler d1 execute --remote --json (SALT-OKUNUR kapidan gecerek)."""
     sql = salt_okunur_dogrula(sql)
-    komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB,
+    komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB_AD,
              "--remote", "--json", "--command", sql]
     p = subprocess.run(komut, cwd=SHOP, capture_output=True, text=True)
     ham = (p.stdout or "") + (p.stderr or "")
