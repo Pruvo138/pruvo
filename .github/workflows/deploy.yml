@@ -207,6 +207,14 @@ jobs:
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
+      # JSON-LD BRAND KAPISI: uretilen TUM urun sayfalarinin JSON-LD bloklari taranir —
+      # JSON gecerli + hicbir objede yinelenen anahtar yok + Product.brand TEK deger
+      # (cok elemanli Brand dizisi GSC Merchant listings'te "brand alani yineleniyor"
+      # KRITIK hatasi uretir; canlida dogrulandi 22 Tem, 3884 sayfa etkilenmisti).
+      # build.py'den SONRA kosmak ZORUNDA (urun/ ciktisina muhtac). Offline, stdlib.
+      - name: JSON-LD brand kabul testi (uretilen sayfalar)
+        run: python3 tools/test-jsonld-brand.py
+
       # SADECE sitenin ihtiyac duydugu dosyalar yayina girer (beyaz liste).
       # Eskiden path: . tum repoyu yayinliyordu -> tools/*.py canli siteden
       # indirilebiliyordu (ic araclar + ticari mahremiyet; denetim 2026-07-15).
