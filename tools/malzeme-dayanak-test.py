@@ -129,18 +129,30 @@ olduruldu; V6 (yukarida adiyla yazili kor nokta) beklendigi gibi hayatta kaldi.
 OLCULDU (tur-6, KOPYADA): 11 mutasyonun 10'u olduruldu + 1 mesru degisim (landing slug'i)
 dogru sekilde YESIL+UYARI verdi.
 
-🔌 KABLO NOBETI — DAVRANIS FIKSTURLERI D1-D5 (tur-7; tur-6'nin ACIK KOR NOKTASI kapandi)
+🔌 KABLO NOBETI — DAVRANIS FIKSTURLERI D1-D9 (tur-7 acti, tur-8 tekil kablolara indi)
   Ic nobetci fonksiyonlari TEK TEK kilitler ama onlari EXIT KODUNA/RAPORA baglayan
   kablolar nobetsizdi — OLCULDU: "kapsam_hata.extend(s_hata)" -> "extend([])" TEK JETON
-  mutasyonu 49/49 fiksturu YESIL birakiyordu. davranis_nobetci() main()'i gecici dizinde
-  sahte veri setiyle UCTAN UCA kosturur (stdout + exit kodu yakalar; gercek dosyalara
-  DOKUNMAZ): D1 temiz=YESIL (sss JSON-LD'siz + kaynaklar URL'sinde 'pc') · D2 dayanaksiz
-  vaat=KIRMIZI · D3 zorunlu sizinti ciktisi eksik=KIRMIZI (extend kablosu) · D4 landing
-  kaynagi bos=KIRMIZI (varlik kontrolu) · D5 kara liste envanter kaydi+sayfa=KIRMIZI.
-  ⚠️ KALAN SINIF (adiyla, V6 gelenegi): GIRIS NOKTASI OZ-NOTRLEME — main() cagrisina
-  davranis=False gecen / nobetci cagrilarini komple silen mutasyonu hicbir kapi kendi
-  icinden yakalayamaz (kapi disiplin cihazidir, guvenlik siniri degil); bu sinif ancak
-  bagimsiz curutucu denetimi + code review ile yakalanir.
+  mutasyonu 49/49 fiksturu YESIL birakiyordu; tur-8'de curutucu 3 kablo daha olctu
+  (sizinti/drift/envanter-kara "kirmizi = True" satirlari — ihlal BASILIP EXIT=0).
+  davranis_nobetci() main()'i gecici dizinde sahte veri setiyle UCTAN UCA kosturur
+  (stdout + exit kodu yakalar; gercek dosyalara DOKUNMAZ):
+  D1 temiz=YESIL (sss JSON-LD'siz + kaynaklar URL'sinde 'pc') · D2 dayanaksiz vaat ·
+  D3 zorunlu sizinti ciktisi eksik (extend kablosu) · D4 landing bos (varlik kontrolu) ·
+  D5 kara liste envanter kaydi+sayfa (iki agiz) · D6 YALNIZ sizinti · D7 YALNIZ drift ·
+  D8 YALNIZ envanter-kara · D9 ic_hata-yalniz nobetci kablosu (or->and mutasyonu).
+  ⚠️ KALAN SINIF (adiyla, V6 gelenegi):
+  1) GIRIS NOKTASI OZ-NOTRLEME — main() cagrisina davranis=False gecen / nobetci
+     cagrilarini komple silen mutasyonu hicbir kapi kendi icinden yakalayamaz (kapi
+     disiplin cihazidir, guvenlik siniri degil); bagimsiz curutucu + review duzlemi.
+  2) NOBETCI->EXIT kablosunun OZ-MASKELEME sinifi (OLCULDU, tur-8 — iddia degil):
+     "if ic_hata or dav_hata" uzerinde or->and jetonu ve dav_hata terimini SILEN
+     jeton CI-ici fiksturle KILITLENEMEZ: D9 mutasyonu YAKALAR (❌ D9 basilir) ama
+     alarm dav_hata uzerinden ayni KIRIK kablodan gecmek zorundadir -> EXIT=0
+     (dongusel; D fiksturlerinin ic kosumu ozyineleme kesimi geregi davranis=False,
+     dav_hata yalniz DIS kosumda dolar). ic_hata terimini silen jeton ise D9 ile
+     OLUR (alarm o halde saglam dav kablosuyla tasinir — olculdu). Oz-maskeleme
+     sinifi mutasyon-kaniti kosumunda (M1/M3 boz-adimlari dav kablosunu FIILEN
+     icra eder) ve bagimsiz curutucu denetiminde gorunur.
 
 🔴 FIKSTUR SIMETRISI (tur-5 ORNEK, tur-6 SINIF): dayanak fiksturleri gercek
   filamentler.json kayitlariyla AYNI ALANLARI tasir ("uzunAd" dahil). Aksi halde
@@ -1085,7 +1097,8 @@ def ic_nobetci():
 # -> "extend([])" TEK JETON mutasyonu 49/49 fiksturu YESIL birakiyordu. Bu nobetci
 # main()'i gecici dizinde sahte veri setiyle UCTAN UCA kosturur (stdout + exit kodu
 # yakalar); GERCEK dosyalara DOKUNMAZ. Ozyineleme main(..., davranis=False) ile kesilir.
-BEKLENEN_DAVRANIS_ADLARI = frozenset({"D1", "D2", "D3", "D4", "D5"})
+BEKLENEN_DAVRANIS_ADLARI = frozenset(
+    {"D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9"})
 
 _D_MODUL_TEMIZ = ("BASLA = '<!-- FILAMENT-REF -->'\n"
                   "BITIR = '<!-- /FILAMENT-REF -->'\n"
@@ -1210,6 +1223,69 @@ def davranis_nobetci():
                 and "govdede geciyor" in cikti,
                 "kara liste PC (envanter kaydi + sayfa vaadi) iki agizdan KIRMIZI "
                 "yakmadi (kod=%d)" % kod)
+
+        # D6-D9 — 🔴 TEKIL EXIT KABLOLARI (KraL tur-8). Curutucu olctu: D5 iki agzi
+        # BIRLIKTE test ettigi icin "kirmizi = True" satirini TEK bloktan silen jeton
+        # mutasyonlari (sizinti/drift/envanter-kara/nobetci) ihlal mesajini BASIP
+        # EXIT=0 donuyordu. Her kablo artik TEK ihlalli fiksturle ayri kilitli.
+
+        # D6 — YALNIZ sizinti ihlali -> EXIT=1. Dayanak POM, public govdeye
+        # (kategoriTavsiye — envanteri_coz bu anahtari OKUMAZ ama public dump'ta durur)
+        # sizdirilmis; baska hicbir ihlal yok.
+        d6 = os.path.join(gecici, "d6")
+        os.makedirs(d6)
+        kod, cikti = _d_kostur(_d_kurulum(
+            d6, filament={"filamentler": [{"ad": "PLA"}, {"ad": "PETG"}],
+                          "kategoriTavsiye": [{"ad": "POM"}],
+                          DAYANAK_ANAHTARI: [{"ad": "POM", "satista": False,
+                                              "tedarik": "siparis uzerine"}]}))
+        kontrol("D6", kod == 1 and "KIRMIZI: SIZINTI" in cikti,
+                "TEK sizinti ihlali EXIT=1 vermedi (kod=%d) — sizinti->exit kablosu "
+                "('kirmizi = True') kopmus olabilir" % kod)
+
+        # D7 — YALNIZ drift ihlali -> EXIT=1. Bayat blok AYNI malzeme adlarini tasir
+        # ('PLA / PETG eski') ki dayanaksiz-ad KIRMIZI'si karisip kabloyu maskelemesin.
+        d7 = os.path.join(gecici, "d7")
+        os.makedirs(d7)
+        argv7 = _d_kurulum(d7)
+        _d_yaz(os.path.join(d7, "ege-bilgi.md"),
+               "giris\n<!-- FILAMENT-REF -->\nPLA / PETG eski\n"
+               "<!-- /FILAMENT-REF -->\nson\n")
+        kod, cikti = _d_kostur(argv7)
+        kontrol("D7", kod == 1 and "blogu filamentler.json'dan bayat" in cikti,
+                "TEK drift ihlali EXIT=1 vermedi (kod=%d) — drift->exit kablosu "
+                "kopmus olabilir" % kod)
+
+        # D8 — YALNIZ envanter-kara ihlali -> EXIT=1. Susturma ataginin kendisi
+        # ({"ad":"PC"} dayanak kaydi) sayfa vaadi OLMADAN da tek basina KIRMIZI;
+        # 'govdede geciyor' YOKLUGU sayfa-agzinin karismadigini kanitlar.
+        d8 = os.path.join(gecici, "d8")
+        os.makedirs(d8)
+        kod, cikti = _d_kostur(_d_kurulum(
+            d8, filament={"filamentler": [{"ad": "PLA"}, {"ad": "PETG"}],
+                          DAYANAK_ANAHTARI: [{"ad": "PC", "satista": False,
+                                              "tedarik": "siparis uzerine"}]}))
+        kontrol("D8", kod == 1 and "filamentler.json ICINDE" in cikti
+                and "govdede geciyor" not in cikti,
+                "TEK envanter-kara ihlali EXIT=1 vermedi ya da sayfa-agzi karisti "
+                "(kod=%d) — envanter-kara->exit kablosu kopmus olabilir" % kod)
+
+        # D9 — NOBETCI kablosu: ic_hata-YALNIZ hal EXIT=1 olmali. D kosumlarinda
+        # dav_hata DAIMA bos (davranis=False, ozyineleme kesimi) -> "or"->"and"
+        # mutasyonu tam bu fiksturde olur. Ic nobetci gecici sabit bozmayla (F12a)
+        # kirmiziya dusurulur; finally geri koyar, sonraki fiksturler etkilenmez.
+        d9 = os.path.join(gecici, "d9")
+        os.makedirs(d9)
+        argv9 = _d_kurulum(d9)
+        eski_zk = ZORUNLU_KAYNAKLAR
+        globals()["ZORUNLU_KAYNAKLAR"] = ("landing",)
+        try:
+            kod, cikti = _d_kostur(argv9)
+        finally:
+            globals()["ZORUNLU_KAYNAKLAR"] = eski_zk
+        kontrol("D9", kod == 1 and "NOBETCI FIKSTURLERI basarisiz (ic=1" in cikti,
+                "ic_hata-yalniz hal EXIT=1 vermedi (kod=%d) — 'if ic_hata or dav_hata' "
+                "kablosu bozulmus olabilir (or->and?)" % kod)
 
     eksik = sorted(BEKLENEN_DAVRANIS_ADLARI - set(kosulan))
     fazla = sorted(set(kosulan) - BEKLENEN_DAVRANIS_ADLARI)
