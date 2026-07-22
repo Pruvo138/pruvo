@@ -159,9 +159,11 @@ dogru sekilde YESIL+UYARI verdi.
     K9  sizinti (if sizinti -> kirmizi) ........................ D6
     K10 drift (if not drift_tamam -> kirmizi) .................. D7
     K11 terminal (if kirmizi -> return 1) ...................... KALAN SINIF-2 (asagida)
-    K12 --ic-nobetci olcum-modu donusu (return 1 if ic_hata) ... CI bu yolu ICRA ETMEZ
-        (bayrak CI'da kullanilmaz; bozulmasi yayini degil olcum modunu bozar — fiksturu
-        bilerek yok, kablo degil olcum kisayolu)
+    K12 --ic-nobetci olcum-modu (kosul + donus) ................ donus ifadesi dav_hata'yi
+        TASIR (tur-11): "if args.ic_nobetci:" -> "if True:" jetonu erken donusle tum
+        taramayi atlatiyordu (12 D fiksturu ❌ basarken EXIT=0 — olculdu, deney-tur10b);
+        simdi "return 1 if (ic_hata or dav_hata) else 0" o halde EXIT=1 doner. Normal
+        olcum modunda dav_hata bos (davranis atlanir) -> davranis DEGISMEZ.
   Yeni kablo ekleyen, bu tabloya SOLO nobetcisini de yazar (F0-kapsam deseni).
   ⚠️ KALAN SINIF (adiyla, V6 gelenegi):
   1) GIRIS NOKTASI OZ-NOTRLEME — main() cagrisina davranis=False gecen / nobetci
@@ -1380,7 +1382,11 @@ def main(argv=None, davranis=True):
             print("  ❌ " + h)
     if args.ic_nobetci:
         print("SONUC: %s" % ("KIRMIZI ❌" if ic_hata else "YESIL ✅"))
-        return 1 if ic_hata else 0
+        # dav_hata BILEREK donuste (tur-11, curutucu olcumu): "if args.ic_nobetci:" ->
+        # "if True:" jetonu erken donusle TUM taramayi atlatiyordu (D fiksturleri ❌
+        # basarken EXIT=0). Normal olcum modunda dav_hata bos -> davranis degismez;
+        # mutasyon halinde dav_hata dolu -> EXIT=1, jeton olur.
+        return 1 if (ic_hata or dav_hata) else 0
 
     try:
         with io.open(args.filament, encoding="utf-8") as fp:
