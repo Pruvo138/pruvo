@@ -106,6 +106,31 @@ def kosulan(deploy_metin, kesif):
     return kos
 
 
+# T8: kosulan()'in capasina uyan "bare" form — komut govdesi 'python3 <duz-gorece-yol>'
+# ile baslar (yol '-' bayragiyla, './' ile ya da '/' tam-yolla BASLAMAZ).
+SAYILABILIR_PY3 = re.compile(r"^python3\s+[A-Za-z0-9_][\w./-]*(?:\s|$)")
+
+
+def sayilamayan_python3(deploy_metin):
+    """T8 GELECEK-ROBUSTLUK UYARISI (BLOKLAMAZ — exit kodunu ETKILEMEZ).
+
+    T7 capasi ('^python3 <yol>') su GERCEK-ICRA formlarini SAYAMAZ: 'env X=1 python3 ...',
+    'cd x && python3 ...', 'python3 -X utf8 tools/x.py' (bayrak araya), 'python3 ./tools/x.py',
+    '/usr/bin/python3 ...'. Cari deploy.yml'de hepsi bare form (18/18, olculdu T8) -> cari
+    sorun YOK. RISK: gelecekte biri kapiyi bu formlarla eklerse kosulan() onu 'kosulmuyor'
+    sanir -> YANLIS-POZITIF KIRMIZI tum yayini durdurur ve kapi suclanir. Bu fonksiyon
+    _icra_komutlari()'ndan gecen (YORUM OLMAYAN) satirlarda 'python3' gecen ama bare capaya
+    uymayan satirlari dondurur; main() bunlari BLOKLAMAYAN uyari olarak basar."""
+    supheli = []
+    for k in _icra_komutlari(deploy_metin):
+        if "python3" not in k:
+            continue
+        if SAYILABILIR_PY3.match(k):
+            continue
+        supheli.append(k)
+    return supheli
+
+
 # ---- GEREKCE SABITLERI -----------------------------------------------------
 R_AYRI = ("Ayri alt-proje/dagitim hedefi (shop=Cloudflare Worker, onizleme, jenerator kendi "
           "harness'i). Bu is akisi YALNIZ GitHub Pages site build'i; bu suite o projenin CI "
@@ -301,6 +326,11 @@ def main():
     kesif = kesfet()
     kos = kosulan(deploy_metin, kesif)
     kesif_kume = set(kesif)
+
+    # T8: bloklamayan gelecek-robustluk uyarisi (hatalar listesine GIRMEZ, exit degismez).
+    for satir in sayilamayan_python3(deploy_metin):
+        print("UYARI: python3 iceren ama sayilamayan icra satiri "
+              "(bare 'python3 tools/x.py' formu kullan): %s" % satir)
 
     hatalar = []
 
