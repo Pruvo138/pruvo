@@ -84,11 +84,15 @@
  *  - yaris penceresi kapatilinca (okumalar sirlanir) -> 24f + 24b KIRMIZI. (Mandal esigini
  *    2->1 yapmak DAVRANIS KORUYUCUDUR: pencere yine acilir, CAS silinince 24c/24d yine
  *    kirmizi yanar — olculdu, "yakalanmadi" sanilmasin.)
+ *  - T8: olcum.js feedId kisaltma esigi tek-jetonla bozulunca (50 -> 500, uzun id'de feedId
+ *    NO-OP = B2 kok nedeni) -> 7 KIRMIZI (27b/27c/27e/27f/27g/27i/27j); ESKI 17-karakterlik
+ *    fiksturlerin TAMAMI YESIL kaldi — kor nokta kaniti (kopyada olculdu, T8).
  */
 
 import * as nodeModule from "node:module";
 import {
   satinAlmaOlayi, metaGovdesi, ga4Govdesi, metaGonder, ga4Gonder, olcumGonder, kurusTRY,
+  feedId,
 } from "../src/olcum.js";
 // kabul.js'in kullandigi FAIL-CLOSED olcum kapisi (CJS) — burada birim testi yapilir (T21).
 import kapiModulu from "./olcum-kapisi.cjs";
@@ -1200,9 +1204,68 @@ async function test26() {
     !String(idsiz.satir.iyzico_odeme_id || ""), idsiz.satir.durum_gecmisi);
 }
 
+// ---- 27) 🔴 FEED KIMLIGI (feedId) — DAVRANISSAL, 50 KARAKTERDEN UZUN GERCEK id ----
+//
+// NEDEN (T8; B2 kor noktasinin testi): bu dosyadaki TUM olcum fiksturleri kisa id'liydi
+// ("audi-yakit-kapagi", 17 karakter). feedId kisa id'de NO-OP oldugundan govdesi
+// `String(pid)`e indirgense (B2'nin kok nedeni tam buydu) buradaki hicbir test kirmizi
+// yanmazdi; kirilma ancak id > 50 olan urunlerde (612/7979, olculdu T8) gorulurdu. Bu blok
+// kisaltma davranisini urunler.json'daki GERCEK uzun bir urun id'siyle kilitler.
+//
+// BEKLENTI BAGIMSIZ YAZILIR (tautoloji degil): UZUN_GID feedId()'den TURETILMEZ — Python
+// hashlib.sha1 ile bagimsiz uretilip ELLE sabitlendi (tools/build.py feed_id kuraliyla
+// ayni: ilk 41 karakter + "-" + sha1[:8]). Kural degisirse bu sabit de elle guncellenir
+// (cift kapi kasitli).
+const UZUN_PID = "toyota-prius-zvw30-teyes-kingbeats-multimedya-montaj-aparat"; // urunler.json'da GERCEK urun, 59 karakter
+const UZUN_GID = "toyota-prius-zvw30-teyes-kingbeats-multim-7e069e5e";          // 50 karakter (bagimsiz sha1)
+
+function test27() {
+  const siparisUzun = {
+    siparis_no: "PR-260722-090000-UZN",
+    tutar_kurus: 30000,
+    kargo_kurus: 0,
+    urunler: JSON.stringify([
+      { id: UZUN_PID, baslik: "Teyes KingBeats Multimedya Montaj Aparatı", kategori: "Otomobil",
+        adet: 1, birim_kurus: 30000, tutar_kurus: 30000 },
+      { id: "audi-yakit-kapagi", baslik: "Audi Yakıt Kapağı", kategori: "Otomobil",
+        adet: 1, birim_kurus: 0, tutar_kurus: 0 },
+    ]),
+    atif: "{}",
+  };
+  ol("27a fikstur gercekten uzun (id > 50) — vaka anlamli", UZUN_PID.length > 50,
+    "len=" + UZUN_PID.length);
+  ol("27b feedId(uzun) === katalog g:id (ham slug DEGIL)",
+    feedId(UZUN_PID) === UZUN_GID, feedId(UZUN_PID));
+  ol("27c feedId(uzun) TAM 50 karakter (Google Merchant siniri)",
+    feedId(UZUN_PID).length === 50, "len=" + feedId(UZUN_PID).length);
+  ol("27d feedId(kisa) AYNEN (churn yok)",
+    feedId("audi-yakit-kapagi") === "audi-yakit-kapagi");
+
+  const olay = satinAlmaOlayi(siparisUzun);
+  const g = metaGovdesi({ SITE_URL: "https://pruvo3d.com" }, olay, {});
+  const cd = g.data[0].custom_data;
+  ol("27e CAPI content_ids[0] === katalog kimligi (kisaltilmis)",
+    cd.content_ids[0] === UZUN_GID, JSON.stringify(cd.content_ids));
+  ol("27f CAPI content_ids HAM SLUG ICERMIYOR (B2 kirilmasi geri gelmedi)",
+    cd.content_ids.indexOf(UZUN_PID) === -1, JSON.stringify(cd.content_ids));
+  ol("27g CAPI contents[0].id === katalog kimligi",
+    (cd.contents[0] || {}).id === UZUN_GID, JSON.stringify(cd.contents[0]));
+  ol("27h kisa id'li 2. kalem AYNEN kaldi (yalniz uzunlar degisir)",
+    cd.content_ids[1] === "audi-yakit-kapagi" && (cd.contents[1] || {}).id === "audi-yakit-kapagi",
+    JSON.stringify(cd.content_ids));
+  ol("27i HER content_ids degeri <= 50 karakter",
+    cd.content_ids.every((x) => x.length <= 50), JSON.stringify(cd.content_ids.map((x) => x.length)));
+  // main davranisi: GA4 item_id DE feedId'den gecer — GA4 items id, Merchant feed g:id ile
+  // TEK KAYNAK (shop/src/olcum.js ~365). Ham slug BEKLENMEZ.
+  const g4 = ga4Govdesi({}, olay, {});
+  ol("27j GA4 item_id da katalog kimligi (feed g:id ile tek kaynak — ham slug DEGIL)",
+    (g4.events[0].params.items[0] || {}).item_id === UZUN_GID,
+    JSON.stringify(g4.events[0].params.items[0]));
+}
+
 const testler = [test9, test10, test11, test12, test13,
                  test14, test15, test16, test17, test18, test19, test20,
-                 test21, test22, test23, test24, test25, test26];
+                 test21, test22, test23, test24, test25, test26, test27];
 for (const t of testler) { await t(); }
 
 console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" + (kalan ? "" : " — HEPSI YESIL ✅"));

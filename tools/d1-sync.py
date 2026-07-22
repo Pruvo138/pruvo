@@ -52,9 +52,12 @@ KAYNAKLAR = os.path.join(KOK, ".urun-kaynaklari.json")
 # wrangler.toml zaten gerekmiyordu (ad da UUID de hesap-duzeyinde --remote cozulur); asil sebep
 # surum ayrismasiydi. Actions kimligi: CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID; yerelde
 # wrangler'in kendi oturumu (npx wrangler login).
-# UUID sabiti (DB) referans + ci-d1-teshis.py sondasinin `d1 list` UUID gorunurluk eslemesi
-# icin KALIR; execute yolu DB_AD kullanir.
-DB = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"  # pruvo-katalog (UUID — referans/teshis)
+# UUID sabiti (DB) YALNIZ BELGE/REFERANS — hicbir kod yolu kullanmaz (olculdu, T8):
+# execute yolu DB_AD kullanir; eski atif olan ci-d1-teshis.py sondasi T6'da sokuldu;
+# d1-sync-durum-test.py DB'ye dokunmaz; olculmemis-siparis.py KENDI sabitini tanimlar;
+# shop/wrangler.toml database_id ayri bir literal. Panel/CLI teshisinde ise yaradigi
+# icin belge olarak KALIR (supheden kaldirilmadi).
+DB = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"  # pruvo-katalog (UUID — yalniz belge)
 DB_AD = "pruvo-katalog"  # execute yolunda KULLANILAN tanimlayici (surumden bagimsiz)
 
 # Tek wrangler cagrisina konacak azami ifade sayisi (istek boyutu makul kalsin).
