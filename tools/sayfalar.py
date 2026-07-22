@@ -881,7 +881,7 @@ def _numuneye_gore_triger_kasnagi_uretimi():
         "<h1>Numuneye Göre Triger Kasnağı ve Kayışı Üretimi</h1>"
         '<p class="lead">Bulunamayan triger kasnağını profil ve diş sayısına göre, mil tipi '
         "ve flanş seçimiyle üretiyoruz.</p>"
-        "<p>Makinenizin, yazıcınızın veya CNC tezgâhınızın triger kasnağı kırılmış ve tam "
+        "<p>Makinenizin veya CNC tezgâhınızın triger kasnağı kırılmış ve tam "
         "karşılığını hiçbir yerde bulamıyorsunuz. Model kalkmış, stok tükenmiş, ya da eldeki "
         "kasnak sizin mil çapınıza veya kayış profilinize uymuyor. Piyasadaki hazır kasnaklar "
         "standart ölçülerde gelir; sizin ihtiyacınız ise belirli bir diş sayısı, belirli bir "
