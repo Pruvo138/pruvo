@@ -67,16 +67,41 @@ def kesfet():
     return sorted(bulunan)
 
 
+def _icra_komutlari(deploy_metin):
+    """deploy.yml'de FIILEN kosan komut govdelerini (satir satir) dondur.
+    Yorum satirlari (strip -> '#') ELENIR; 'run:' oneki soyulur; boylece elde
+    kalan metin yalniz gercekten calisan kabuk komutudur. Bir 'python3 <yol>'
+    mensiyonu YORUM icinde ya da echo-string icinde geciyorsa bu listede komutun
+    BASINDA yer almaz -> kosulan() onu 'kosuluyor' saymaz."""
+    komutlar = []
+    for ham in deploy_metin.splitlines():
+        s = ham.strip()
+        if not s or s.startswith("#"):
+            continue  # bos satir ya da YAML yorumu -> icra degil
+        if s.startswith("run:"):
+            s = s[4:].strip()  # inline 'run: <komut>' ya da blok basi 'run: |'
+        if s:
+            komutlar.append(s)
+    return komutlar
+
+
 def kosulan(deploy_metin, kesif):
-    """deploy.yml metninde FIILEN referans verilen (kosulan) kesif dosyalarini dondur."""
+    """deploy.yml'de FIILEN ICRA edilen (kosulan) kesif dosyalarini dondur.
+
+    BULGU 1 + T7 (curutucu/olcum kanitladi): eski regex TUM metni tariyordu ->
+    bir YORUM / step-name / echo-string'de gecen ad da 'kosuluyor' sayiliyordu;
+    biri 'run: python3 tools/x-test.py' satirini silip yerine '# python3
+    tools/x-test.py' yorumu birakinca kapi SAHTE-YESIL kaliyordu (olu nobetci
+    CI'dan success gecerdi). 072c0294 eslesmeyi 'python3 <yol>' on-ekine daraltti
+    ama YORUM SATIRLARINI hala eliyordu degil -> python3 onekli bir yorum yine
+    eslesiyordu. FIX: eslesmeyi GERCEK KOMUT GOVDESINE ve komutun BASINA capala
+    (_icra_komutlari yorumlari eler, 'run:' onekini soyar). Negatif ileri-bakis
+    (?![\\w./-]): uzun bir baska yolun on-eki olarak yanlis eslesmesin."""
     kos = set()
+    komutlar = _icra_komutlari(deploy_metin)
     for yol in kesif:
-        # BULGU 1 (curutucu): eski regex TUM metni tariyordu -> bir YORUM/step-name'de gecen
-        # ad da "kosuluyor" sayiliyordu; biri 'run: python3 tools/x-test.py' satirini silse
-        # ayni ad yorumda kaldigi icin kapi SAHTE-YESIL kaliyordu. FIX: eslesmeyi FIILEN icra
-        # baglamina daralt -> yalniz 'python3 <yol>' (run: satiri) sayilir, yorum sayilmaz.
-        # Ardindaki negatif ileri-bakis: uzun bir baska yolun on-eki olarak yanlis eslesmesin.
-        if re.search(r"python3\s+" + re.escape(yol) + r"(?![\w./-])", deploy_metin):
+        onek = re.compile(r"^python3\s+" + re.escape(yol) + r"(?![\w./-])")
+        if any(onek.match(k) for k in komutlar):
             kos.add(yol)
     return kos
 
@@ -216,6 +241,9 @@ def bulgu1_mutasyon_kontrol():
     run satirini siler, yorum mensiyonu birakir) ve iki sarti dogrular:
       + POZITIF: gercek deploy o yolu SAYAR (run: ile gecer).
       + MUTASYON: yalniz-yorum mutanti o yolu SAYMAZ.
+    T7 EKI: ikinci mutant, run satirini python3-onekli bir YORUMA cevirir
+    ('# python3 <yol>') ve o yolun SAYILMADIGINI dogrular -> yorum-bypass
+    (olculdu: B/C/D/E/F kanaryalari) geri gelirse KIRMIZI yanar.
     (ok, hata_satirlari) dondurur."""
     hedef = "tools/ci-kapsam-test.py"
     run_satir = "        run: python3 %s\n" % hedef
@@ -228,6 +256,8 @@ def bulgu1_mutasyon_kontrol():
     if hedef not in mutant:
         return False, ["mutantta yorum mensiyonu kalmadi -> mutasyon testi anlamsiz "
                        "(deploy.yml yorumu %s'yi artik anmiyor)" % hedef]
+    # T7 kanaryasi: run satiri python3-onekli YORUMA cevrilmis mutant (icra edilmez)
+    yorum_mutant = gercek.replace(run_satir, "        # python3 %s\n" % hedef, 1)
     kesif = kesfet()
     if hedef not in kesif:
         return False, ["%s kesif predikatiyla bulunamadi (predikat bozulmus)" % hedef]
@@ -237,6 +267,9 @@ def bulgu1_mutasyon_kontrol():
     if hedef in kosulan(mutant, kesif):
         hata.append("BULGU 1 GERI GELDI: run satiri silinip yalniz yorumda kalan %s "
                     "hala 'kosuluyor' sayildi (regex icra baglamina daralmali)" % hedef)
+    if hedef in kosulan(yorum_mutant, kesif):
+        hata.append("T7 YORUM-BYPASS GERI GELDI: run satiri '# python3 <yol>' yorumuna "
+                    "cevrilince %s hala 'kosuluyor' sayildi (yorum satirlari elenmeli)" % hedef)
     return (not hata), hata
 
 
