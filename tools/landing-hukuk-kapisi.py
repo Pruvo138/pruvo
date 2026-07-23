@@ -56,19 +56,7 @@ REVIZYON_ZORUNLU = (
 #                      muafiyetin arkasina saklanamaz).
 GEREKCE_MIN = 40
 
-KURAL_A_MUAF = {
-    "akvaryum-terraryum-plastik-parca-uretimi": {
-        "gerekce": (
-            "Sayfada 'gida' YALNIZ 'canli-gida' bilesigi icinde, akvaryum/teraryum "
-            "canlisinin yemi anlaminda geciyor (olculdu: tek gecis). Sayfa insan "
-            "gidasi, ticari gida hatti ya da gida temasi sertifikasi iddiasinda "
-            "bulunmuyor; ilgili cumle zaten 'malzeme danismasi sarttir' diyerek "
-            "sinir koyuyor. Bu yuzden gida/tibbi sertifika kapsam cumlesi bu "
-            "sayfanin konusuyla ilgisiz olur."
-        ),
-        "izinli_baglam": ("canlı-gıda", "canlı gıda"),
-    },
-}
+KURAL_A_MUAF = {}
 
 KURAL_A_MUAF_ALANLARI = ("gerekce", "izinli_baglam")
 
