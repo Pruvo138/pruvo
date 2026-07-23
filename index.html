@@ -1830,6 +1830,65 @@
                              // yalnız arama kutusuyla bulunur (Okan, 19 Tem). Arama davranışı değişmez.
   function resetPaging(){ shown = PAGE_SIZE; }
 
+  // --- MARKA KÜRATÖRLÜĞÜ BAŞ (tools/marka-liste-test.py bu bloğu ayıklar; marker satırını değiştirme) ---
+  // Çip listesi KÜRATÖRLÜ (Okan, 23 Tem): yalnız TANINMIS_MARKALAR'daki gerçek/tanınmış
+  // markalar çip olur. Motor/model kodları (E46, Tacoma, Corsa, Octavia, R1200GS...) çip
+  // DEĞİL; o ürünler SİTE ARAMASIYLA bulunmaya devam eder (arama davranışı DEĞİŞMEZ).
+  // "Toyota 86" / "Mercedes-Benz" / "Volvo Penta" gibi tanınmış-marka-önekli değerler ve
+  // büyük/küçük ikizleri (KIA/Kia, MINI/Mini, IKEA/Ikea) o markanın kalemine KATLANIR:
+  // görünümde tek çip, filtre seçilince varyantlı ürünler de eşleşir (görünüm + eşleşme tutarlı).
+  // Listeye YALNIZ katalogda ürünü olan tanınmış marka girer (ölçüm 23 Tem, 9055 ürün).
+  var TANINMIS_MARKALAR = [
+    // otomobil / ticari araç
+    "Alfa Romeo","Alpine","Audi","BMW","Cadillac","Chery","Chevrolet","Chrysler","Citroen",
+    "Cupra","Dacia","DAF","Datsun","Dodge","Fiat","Ford","Geely","Haval","Holden","Honda",
+    "Hummer","Hyundai","Infiniti","Isuzu","Iveco","Jaguar","Jeep","Kia","Lada","Lamborghini",
+    "Lancia","Land Rover","Lexus","MAN","Maserati","Mazda","Mercedes","MG","Mini","Mitsubishi",
+    "Nissan","Opel","Peugeot","Polestar","Pontiac","Porsche","Proton","Renault","Rivian",
+    "Rover","Saab","Seat","Skoda","Smart","Subaru","Suzuki","Tesla","Toyota","Vauxhall",
+    "Volkswagen","Volvo",
+    // motosiklet
+    "Husqvarna","Kawasaki","KTM","Vespa","Yamaha",
+    // marin
+    "Beneteau","Jeanneau","Mercury","Zodiac",
+    // ev / mutfak / bahçe / atölye
+    "Beko","Bosch","Einhell","Grundig","IKEA","John Deere","Kärcher","Kenwood","Krups",
+    "Makita","Miele","Moulinex","Philips","Roborock","Ryobi","Siemens","Smeg","Sodastream",
+    "Stanley","Stihl","Thermomix",
+    // elektronik / kamera
+    "Acer","Anker","Apple","Canon","DJI","Fujifilm","Garmin","GoPro","Google","Huawei",
+    "Logitech","Motorola","Nikon","Oppo","Raspberry Pi","Samsung","Sigma","Sony","TomTom",
+    "Xbox","Xiaomi",
+    // bisiklet / taşıma aksesuarı
+    "Abus","Shimano","Thule","Webasto"
+  ];
+  // markaNorm: norm() (Türkçe-duyarlı) + Latin aksan sadeleştirme ("Citroën"→"citroen").
+  // norm()'un KENDİSİNE dokunulmaz (arama/skorlama değişmez); bu yalnız marka karşılaştırması için.
+  function markaNorm(s){ return norm(s).replace(/[éèë]/g,"e").replace(/ä/g,"a"); }
+  var MARKA_KANONIK = {};                 // markaNorm(ad) → listedeki kanonik yazım
+  TANINMIS_MARKALAR.forEach(function(m){ MARKA_KANONIK[markaNorm(m)] = m; });
+  var MARKA_NORMLU = TANINMIS_MARKALAR.map(markaNorm);
+  var _markaKatlaBellek = {};             // değer→kanonik önbelleği (~1500 tekil değer; render başına yeniden hesaplanmasın)
+  // Değer tanınmış markanın kendisiyse ("KIA"→"Kia") ya da boşluk/tire ile önekliyse
+  // ("Toyota 86", "Mercedes-Benz") o markanın kanonik adına katlanır; değilse OLDUĞU GİBİ döner.
+  function markaKatla(m){
+    if(_markaKatlaBellek[m] !== undefined){ return _markaKatlaBellek[m]; }
+    var n = markaNorm(m), sonuc = m;
+    if(MARKA_KANONIK[n]){
+      sonuc = MARKA_KANONIK[n];
+    }else{
+      for(var i = 0; i < MARKA_NORMLU.length; i++){
+        if(n.indexOf(MARKA_NORMLU[i] + " ") === 0 || n.indexOf(MARKA_NORMLU[i] + "-") === 0){
+          sonuc = TANINMIS_MARKALAR[i]; break;
+        }
+      }
+    }
+    _markaKatlaBellek[m] = sonuc;
+    return sonuc;
+  }
+  function taninmisMarkaMi(m){ return MARKA_KANONIK[markaNorm(m)] !== undefined; }
+  // --- MARKA KÜRATÖRLÜĞÜ SON ---
+
   // Kategori/marka/arama HER değişimde URL'yi görünümle senkron tutar (Okan, 17 Tem):
   // yenile hangi görünümü gösteriyorsa onu getirsin, sürpriz geri-gelme olmasın.
   // Paylaşılabilir ?kategori=&marka=&ara= linkleri çalışmaya devam eder (applyUrlParams okur).
@@ -1857,7 +1916,13 @@
       Object.keys(OZET.markalar).forEach(function(k){
         if(activeCat !== "Tümü" && k !== activeCat){ return; }
         var kat = OZET.markalar[k];
-        Object.keys(kat).forEach(function(b){ out[b] = (out[b] || 0) + kat[b]; });
+        // Varyantlar kanonik markaya KATLANARAK toplanır (Mercedes-Benz → Mercedes).
+        // Özet ürün-bazlı değil sayım-bazlı olduğu için aynı üründeki baz+varyant çifti
+        // burada tekilleştirilemez; sayım yalnız çip SIRALAMASI içindir, kart sayısı değil.
+        Object.keys(kat).forEach(function(b){
+          var kk = markaKatla(b);
+          out[kk] = (out[kk] || 0) + kat[b];
+        });
       });
       return out;
     }
@@ -1869,14 +1934,23 @@
         var hs = haystack(p);
         for(var i=0;i<tokens.length;i++){ if(hs.indexOf(tokens[i]) === -1){ return; } }
       }
-      (p.marka || []).forEach(function(b){ counts[b] = (counts[b] || 0) + 1; });
+      // Katlama sayımda da uygulanır; aynı ürün "Toyota"+"Toyota 86" taşıyorsa TEK sayılır.
+      var gorulen = {};
+      (p.marka || []).forEach(function(b){
+        var k = markaKatla(b);
+        if(gorulen[k]){ return; }
+        gorulen[k] = true;
+        counts[k] = (counts[k] || 0) + 1;
+      });
     });
     return counts;
   }
-  // markaları ürün sayısına göre (çoktan aza) sırala, eşitlikte alfabetik
+  // markaları ürün sayısına göre (çoktan aza) sırala, eşitlikte alfabetik.
+  // Çip evreni KÜRATÖRLÜ: yalnız tanınmış markalar (TANINMIS_MARKALAR) listeye girer;
+  // tanınmayan değerler (model/motor kodu) çip OLMAZ ama aramayla bulunur.
   function sortedBrands(){
     var counts = brandCounts();
-    return Object.keys(counts).sort(function(a, b){
+    return Object.keys(counts).filter(taninmisMarkaMi).sort(function(a, b){
       if(counts[b] !== counts[a]){ return counts[b] - counts[a]; }
       return a.localeCompare(b, "tr");
     });
@@ -1904,9 +1978,10 @@
     // çip DEĞİL, yalnız arama kutusuyla bulunur (arama/filtre davranışı değişmez).
     var brands = sortedBrands();
     var visible = brands.slice(0, MARKA_LIMIT);
-    // kullanıcı cap dışı bir markayı seçtiyse (URL ?marka= veya arama sonrası) çipi kaybolmasın
+    // kullanıcı cap dışı ya da liste-dışı (tanınmayan, ör. URL ?marka=Tacoma) bir markayı
+    // seçtiyse çipi kaybolmasın — varlık kontrolü küratörlü listeden değil sayımdan yapılır
     if(activeBrand !== "Tümü" &&
-       visible.indexOf(activeBrand) === -1 && brands.indexOf(activeBrand) !== -1){
+       visible.indexOf(activeBrand) === -1 && brandCounts()[activeBrand] !== undefined){
       visible = visible.concat([activeBrand]);
     }
     visible.forEach(function(m){ el.appendChild(chip(m)); });
@@ -1938,8 +2013,9 @@
           activeBrand = "Tümü";
           query = ""; searchEl.value = ""; clearEl.className = "search-clear";
           window.scrollTo({top:0, behavior:"smooth"});
-        }else if(activeBrand !== "Tümü" && sortedBrands().indexOf(activeBrand) === -1){
-          // seçili marka bu kategoride yoksa sıfırla
+        }else if(activeBrand !== "Tümü" && brandCounts()[activeBrand] === undefined){
+          // seçili marka bu kategoride yoksa sıfırla (sayımdan bakılır ki liste-dışı/tanınmayan
+          // bir deep-link markası da kategorisinde ürünü varken sıfırlanmasın)
           activeBrand = "Tümü";
         }
         resetPaging();
@@ -1954,9 +2030,13 @@
 
   function filtered(){
     var tokens = norm(query).split(/\s+/).filter(Boolean);
+    // Marka eşleşmesi KATLAMAYLA tutarlı: "Toyota" çipi "Toyota 86"lı, "Mercedes" çipi
+    // "Mercedes-Benz"li ürünü de bulur (görünümde tek kalem + eşleşmede aynı kural).
+    var hedefMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
     return PRODUCTS.filter(function(p){
       var catOk = activeCat === "Tümü" || p.kategori === activeCat;
-      var brandOk = activeBrand === "Tümü" || (p.marka && p.marka.indexOf(activeBrand) !== -1);
+      var brandOk = !hedefMarka ||
+        (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
       if(!catOk || !brandOk){ return false; }
       if(tokens.length === 0){ return true; }
       var hs = haystack(p);
@@ -2229,7 +2309,11 @@
       liste = liste.filter(function(p){ return p.kategori === activeCat; });
     }
     if(activeBrand !== "Tümü"){
-      liste = liste.filter(function(p){ return (p.marka || []).indexOf(activeBrand) !== -1; });
+      // filtered() ile aynı katlama kuralı (varyantlı ürün yedek modda da eşleşsin)
+      var hedefMarka = markaKatla(activeBrand);
+      liste = liste.filter(function(p){
+        return (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
+      });
     }
     var tokens = norm(query).split(/\s+/).filter(Boolean);
     if(tokens.length){
@@ -2367,7 +2451,9 @@
     var kat = params.get("kategori");
     if(kat && (["Tümü"].concat(CATEGORIES).concat(GIZLI_KATEGORILER)).indexOf(kat) !== -1){ activeCat = kat; }
     var mar = params.get("marka");
-    if(mar){ activeBrand = mar; }
+    // Eski link / ürün sayfası çipi "Mercedes-Benz" gibi VARYANT taşıyabilir → kanonik
+    // kaleme katlanır (çip aktif görünür, eşleşme filtered() ile aynı kurala oturur).
+    if(mar){ activeBrand = markaKatla(mar); }
     var ara = params.get("ara");
     if(ara){ query = ara; searchEl.value = ara; clearEl.className = "search-clear show"; }
     return false;

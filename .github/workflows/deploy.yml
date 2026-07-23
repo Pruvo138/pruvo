@@ -198,6 +198,14 @@ jobs:
       - name: Nobetci mutasyon harness'i (kapilar bozulunca kirmizi yaniyor mu)
         run: python3 tools/nobetci-mutasyon-test.py
 
+      # MARKA KÜRATÖRLÜĞÜ: ana sayfa marka çip listesi yalnız TANINMIS_MARKALAR'dan oluşur
+      # (model/motor kodu çip olamaz), varyantlar (Mercedes-Benz, Toyota 86, KIA/Kia) tek
+      # kaleme katlanır ve filtre eşleşmesi katlamayla tutarlıdır. index.html'deki bloğu
+      # AYIKLAYIP gerçek urunler.json'a uygular (kopya değil, canlı kod). JS mantığı node
+      # ile koşar (setup-node kurulu; node yoksa FAIL-CLOSED exit 1). Offline, ~1 s.
+      - name: Marka liste kabul testi (küratörlü çipler + varyant katlama)
+        run: python3 tools/marka-liste-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
