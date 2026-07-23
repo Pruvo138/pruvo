@@ -22,6 +22,7 @@ Harici bağımlılık YOK (saf Python 3 standart kütüphane).
 import os
 import re
 import json
+import math
 import shutil
 import html
 import hashlib
@@ -506,16 +507,32 @@ def _renk_html():
       </div>""")
 
 
-def _renk_butonlari_html():
+def _renk_butonlari_html(renkler=None, renk_gorselleri=None):
     """Renk BUTONLARI (Okan, 16 Tem) — fonksiyonel/kart-seçim ürününde dropdown yerine 4 buton:
     Siyah/Beyaz/Gri düz renk yuvarlağı, Diğer = gökkuşağı gradyan. Önden seçili YOK; 'Diğer'
-    seçilince altında serbest metin kutusu (renkOzel) belirir. Parametrik ürün DROPDOWN kalır."""
+    seçilince altında serbest metin kutusu (renkOzel) belirir. Parametrik ürün DROPDOWN kalır.
+
+    KONFIGUR dalı (dekor konfigüratörü): renkler verilirse YALNIZ o alt küme basılır
+    ('Diğer' yok -> renkOzel kutusu da basılmaz) ve her butona data-gorsel eklenir
+    (renk_gorselleri[renk] = o rengin ürün görseli; /konfigur.js tıklamada ana görseli
+    değiştirir). renkler=None çağrısı bugünkü çıktıyla BAYT-BAYT aynıdır (geri uyumluluk)."""
     ornek = {
         "Siyah": '<span class="renk-yuvar" style="background:#151515"></span>',
         "Beyaz": '<span class="renk-yuvar" style="background:#fff;border:1px solid var(--gray-line)"></span>',
         "Gri": '<span class="renk-yuvar" style="background:#8a929e"></span>',
         "Diğer": '<span class="renk-yuvar renk-yuvar-gokkusagi"></span>',
     }
+    if renkler is not None:
+        btns = "".join(
+            '<button type="button" class="renk-btn" data-renk="%s" data-gorsel="%s">%s'
+            '<span class="renk-ad">%s</span></button>' % (
+                esc(r), esc((renk_gorselleri or {}).get(r, "")), ornek.get(r, ""), esc(r))
+            for r in renkler)
+        return ("""
+      <div class="opsiyon-row opsiyon-renk">
+        <label>Renk</label>
+        <div class="renk-butonlar" id="renkButonlar">""" + btns + """</div>
+      </div>""")
     btns = "".join(
         '<button type="button" class="renk-btn" data-renk="%s">%s'
         '<span class="renk-ad">%s</span></button>' % (
@@ -597,6 +614,145 @@ def taban_fiyat_metni(tl):
     tam, kusur = ("%.2f" % tl).split(".")
     tam = "{:,}".format(int(tam)).replace(",", ".")
     return tam + "," + kusur + " TL"
+
+
+# ------------------------------------------------------------------ konfigur (dekor konfigüratörü)
+# Ürün objesindeki OPSİYONEL "konfigur" alanı: müşteri sayfada RENK (görsel de değişir) +
+# BOY (kaydırma çubuğu) seçer, fiyat canlı hesaplanır. Sarı seri kural setinden BAĞIMSIZ
+# (parametrik:true KULLANILMAZ; kategori normal kalır). Alan YOKSA sayfa bugünkü gibi
+# davranır — kabul: tools/konfigur-test.py (bayt-eşitlik + şema + fiyat monotonluğu).
+# Beklenen yapı:
+#   "konfigur": {
+#     "renkler": ["Siyah", "Beyaz", "Gri"],            # secenekler.js RENK_SECENEKLERI alt kümesi, "Diğer" YASAK
+#     "renkGorselIndeks": {"Siyah": 0, ...},           # renk -> gorseller[i] (görsel değişimi)
+#     "boyutMm": {"min": 60, "max": 300, "adim": 10, "varsayilan": 150, "etiket": "Yükseklik"},
+#     "hacim": {"refYukseklikMm": 1899.739, "refHacimCm3": 239222.8}   # referans model ölçümü
+#   }
+# FİYAT ÇARKI YENİ DEĞİL: secenekler.js parametrikFiyatKurus (PLA 1.00, standart renk) —
+# taban fiyat = ürünün "fiyat" alanındaki sayı (= EN KÜÇÜK boyun fiyatı, ZEMİN; JSON-LD
+# Offer.price ve Merchant feed'e mevcut kod yolundan otomatik bu sayı gider), taban hacim =
+# en küçük boyun hacmi -> fiyat = taban × max(1, (boy/min)³), boyla SÜREKLİ artar.
+
+
+def konfigur_dogrula(p):
+    """Ürünün "konfigur" alanını doğrular; hata mesajı listesi döner (boş = geçerli).
+    FAIL-CLOSED: render_product geçersiz konfigur'da build'i DÜŞÜRÜR — yanlış fiyat/görsel
+    eşlemesi sessizce yayına çıkamaz (kategori uyarısının aksine bu ticari beyandır)."""
+    hatalar = []
+    k = p.get("konfigur")
+    if not isinstance(k, dict):
+        return ["konfigur bir obje değil"]
+    if p.get("parametrik"):
+        hatalar.append("konfigur ile parametrik:true birlikte olamaz (sarı seri kural seti tetiklenmesin)")
+
+    renkler = k.get("renkler")
+    if not isinstance(renkler, list) or not renkler:
+        hatalar.append("renkler boş ya da liste değil")
+        renkler = []
+    else:
+        if len(set(renkler)) != len(renkler):
+            hatalar.append("renkler içinde mükerrer değer var")
+        for r in renkler:
+            if not isinstance(r, str) or not r.strip():
+                hatalar.append("renkler içinde boş/dize-olmayan değer var")
+            elif r == "Diğer":
+                hatalar.append("renkler 'Diğer' içeremez (özel renk yüzdesi bu akışta hesaplanmıyor)")
+            elif r not in RENK_SECENEKLERI:
+                hatalar.append("bilinmeyen renk: %r (secenekler.js RENK_SECENEKLERI dışı)" % r)
+
+    bm = k.get("boyutMm")
+    if not isinstance(bm, dict):
+        hatalar.append("boyutMm eksik ya da obje değil")
+    else:
+        sayilar = {}
+        for alan in ("min", "max", "adim", "varsayilan"):
+            v = bm.get(alan)
+            if not isinstance(v, (int, float)) or isinstance(v, bool) or not v > 0:
+                hatalar.append("boyutMm.%s pozitif sayı olmalı" % alan)
+            else:
+                sayilar[alan] = float(v)
+        if len(sayilar) == 4:
+            if not (sayilar["min"] < sayilar["varsayilan"] < sayilar["max"]):
+                hatalar.append("boyutMm sırası bozuk: min < varsayilan < max olmalı")
+            for alan in ("varsayilan", "max"):
+                kalan = (sayilar[alan] - sayilar["min"]) / sayilar["adim"]
+                if abs(kalan - round(kalan)) > 1e-6:
+                    hatalar.append("boyutMm.%s adıma oturmuyor (min + n×adim olmalı)" % alan)
+        etiket = bm.get("etiket")
+        if not isinstance(etiket, str) or not etiket.strip():
+            hatalar.append("boyutMm.etiket boş olamaz (sepet/WhatsApp satır detayında görünür)")
+
+    h = k.get("hacim")
+    if not isinstance(h, dict):
+        hatalar.append("hacim eksik ya da obje değil")
+    else:
+        for alan in ("refYukseklikMm", "refHacimCm3"):
+            v = h.get(alan)
+            if not isinstance(v, (int, float)) or isinstance(v, bool) or not v > 0:
+                hatalar.append("hacim.%s pozitif sayı olmalı" % alan)
+
+    gorseller = images_of(p)
+    rgi = k.get("renkGorselIndeks")
+    if not isinstance(rgi, dict):
+        hatalar.append("renkGorselIndeks eksik ya da obje değil")
+    elif renkler:
+        if set(rgi.keys()) != set(renkler):
+            hatalar.append("renkGorselIndeks anahtarları renkler listesiyle birebir örtüşmeli")
+        for r, idx in rgi.items():
+            if not isinstance(idx, int) or isinstance(idx, bool) or not (0 <= idx < len(gorseller)):
+                hatalar.append("renkGorselIndeks[%r] geçersiz görsel indeksi: %r (gorseller %d adet)"
+                               % (r, idx, len(gorseller)))
+
+    # Taban fiyat = "fiyat" alanındaki sayı (feed/JSON-LD ile TEK kaynak). Boşsa çark dönemez.
+    if not feed_price((p.get("fiyat") or "").strip()):
+        hatalar.append('konfigur\'lu üründe "fiyat" sayısal taban fiyat taşımalı '
+                       '(ör. "150 TL" — en küçük boyun fiyatı; JSON-LD/feed de bunu basar)')
+    return hatalar
+
+
+def konfigur_hacim_mm3(konfigur, boy_mm):
+    """Referans modelden küple ölçeklenmiş hacim (mm³). /konfigur.js hacimMm3 ile AYNI
+    işlem sırası (çift hassasiyet eşleniği) — JS öncesi basılan başlangıç fiyatı, sayfa
+    JS'inin ilk hesabıyla bayt-bayt aynı metni versin diye."""
+    h = konfigur["hacim"]
+    oran = boy_mm / float(h["refYukseklikMm"])
+    return float(h["refHacimCm3"]) * 1000 * oran * oran * oran
+
+
+def konfigur_fiyat_kurus(konfigur, taban_tl, boy_mm):
+    """secenekler.js parametrikFiyatKurus'un (PLA, standart renk) Python aynası:
+    kuruş = round(taban×100 × max(1, hacim/tabanHacim)). Math.round eşleniği floor(x+0.5).
+    Drift nöbeti: tools/konfigur-test.py bu fonksiyonu node'daki GERÇEK JS ile karşılaştırır."""
+    taban_hacim = konfigur_hacim_mm3(konfigur, konfigur["boyutMm"]["min"])
+    kurus = taban_tl * 100 * max(1.0, konfigur_hacim_mm3(konfigur, boy_mm) / taban_hacim) * (1 + 0 / 100.0)
+    return int(math.floor(kurus + 0.5))
+
+
+def _sayi_metni(v):
+    """HTML sayı niteliği için kısa metin: 6.0 -> "6", 0.5 -> "0.5" (nokta ondalık)."""
+    return "%g" % v
+
+
+def _konfigur_boy_html(konfigur):
+    """Boy satırı: sayı kutusu (cm) + kaydırma çubuğu (cm) — sarı konfigüratörün alan
+    dili (konf-row/konf-sayi/konf-kaydirici sınıfları AYNEN). Kaydırıcı görsel birincil
+    kontrol; erişilebilir kontrol sayı kutusudur (kaydırıcı aria-hidden, sarıyla aynı)."""
+    bm = konfigur["boyutMm"]
+    c_min, c_max = _sayi_metni(bm["min"] / 10.0), _sayi_metni(bm["max"] / 10.0)
+    c_adim, c_var = _sayi_metni(bm["adim"] / 10.0), _sayi_metni(bm["varsayilan"] / 10.0)
+    etiket = bm.get("etiket") or "Boy"
+    return ("""
+      <div class="opsiyon-row konf-row">
+        <label for="konfigurBoy">%s</label>
+        <input type="number" id="konfigurBoy" class="konf-sayi" inputmode="decimal"
+               min="%s" max="%s" step="%s" value="%s">
+        <span class="konf-birim">cm</span>
+      </div>
+      <div class="konf-kaydirici-satir">
+        <input type="range" id="konfigurKaydirici" class="konf-kaydirici"
+               min="%s" max="%s" step="%s" value="%s" aria-hidden="true" tabindex="-1">
+      </div>""" % (esc(etiket), c_min, c_max, c_adim, c_var,
+                   c_min, c_max, c_adim, c_var))
 
 
 CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 '
@@ -1034,6 +1190,15 @@ def render_product(p, all_products):
     # Parametrik (sarı seri) şeması TEK KEZ burada yüklenir: hem JSON-LD taban
     # fiyatı hem aşağıdaki konfigüratör bloğu aynı sema objesini kullanır.
     sema = konf_sema(pid) if parametrik else None
+    # Konfigur (dekor konfigüratörü): OPSİYONEL alan; yoksa sayfa bugünkü gibi davranır
+    # (kabul: tools/konfigur-test.py bayt-eşitlik). Geçersiz konfigur build'i DÜŞÜRÜR
+    # (fail-closed — yanlış fiyat/görsel eşlemesi sessizce yayınlanamaz).
+    konfigur = p.get("konfigur")
+    if konfigur is not None:
+        _konf_hatalar = konfigur_dogrula(p)
+        if _konf_hatalar:
+            raise SystemExit("HATA: %s urununde gecersiz konfigur alani:\n  - %s"
+                             % (pid, "\n  - ".join(_konf_hatalar)))
 
     aciklama_html = esc(p.get("aciklama") or "").replace("\n", "<br>")
 
@@ -1176,6 +1341,37 @@ def render_product(p, all_products):
                     ADET_EN_AZ, ADET_EN_COK,
                     IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))))
         price_html = ""
+    elif konfigur:
+        # KONFIGUR (dekor konfigüratörü): renk butonları (görsel değişimli) + boy kaydırıcısı
+        # + adet/ikon satırı. Kategoriden bağımsız (pilot Dekorasyon); malzeme PLA sabittir
+        # (dropdown yok — fiyat çarkı PLA 1.00). JS öncesi fiyat = VARSAYILAN boyun kuruşlu
+        # fiyatı (/konfigur.js aynı değeri tazeler, metin zıplamaz); renk seçimi fiyatı
+        # değiştirmez (standart renkler), o yüzden "…'den başlayan" eki YOK.
+        _taban_tl = int(feed_price(fiyat))
+        _bm = konfigur["boyutMm"]
+        _varsayilan_kurus = konfigur_fiyat_kurus(konfigur, _taban_tl, _bm["varsayilan"])
+        _renk_gorselleri = {r: imgs[konfigur["renkGorselIndeks"][r]]
+                            for r in konfigur["renkler"]}
+        _boy_araligi = "%s–%s cm" % (_sayi_metni(_bm["min"] / 10.0),
+                                     _sayi_metni(_bm["max"] / 10.0))
+        opsiyonlar_html = ("""
+    <div class="opsiyonlar konf" id="opsiyonlar">
+      <div class="konf-baslik">Rengini ve boyutunu seçin</div>
+      {renk}
+      {boy}
+      {adet}
+      <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
+      <div class="konf-hacim">{boy_not}</div>
+    </div>
+    """).format(renk=_renk_butonlari_html(konfigur["renkler"], _renk_gorselleri),
+                boy=_konfigur_boy_html(konfigur),
+                adet=ADET_IKON_HTML % (
+                    ADET_EN_AZ, ADET_EN_COK,
+                    IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
+                fiyat_metni=taban_fiyat_metni(_varsayilan_kurus / 100.0),
+                boy_not=esc("%s %s arasında ayarlanabilir; fiyat seçtiğiniz boyuta göre "
+                            "hesaplanır." % (_bm.get("etiket") or "Boy", _boy_araligi)))
+        price_html = ""
     elif fonksiyonel and not parametrik:
         # Kart-secim (Okan, 16 Tem): malzeme dropdown YOK — malzeme aşağıdaki filament
         # KARTLARINDAN seçilir. Burada yalnız Renk + Adet + fiyat kalır. Önden seçili
@@ -1238,8 +1434,11 @@ def render_product(p, all_products):
     # F kalemi: SEMALI parametrik (sari) sayfa da kart-secim modunda — malzeme
     # filament kartlarindan, butonlar Adet satirinda (sayfa altina buton basilmaz).
     # Buyuk butonlar yalniz semasiz-fonksiyonel (bugun urun yok) + panelsiz sayfalarda.
-    kart_secim = bool(sema) or (fonksiyonel and not parametrik)
-    if kart_secim:
+    # KONFIGUR sayfası KART_SECIM JS bayrağını AÇMAZ (malzeme kartı seçimi yok — o akışın
+    # "malzeme seçilmeden ekleme" kilidi konfigur'da yanlış tetiklenirdi); ikon düzeni
+    # (Adet satırında sepet+WA ikonu, sayfa altında büyük buton YOK) yine kullanılır.
+    kart_secim = bool(sema) or (fonksiyonel and not parametrik and not konfigur)
+    if kart_secim or konfigur:
         eylem_butonlar_html = ""
     else:
         eylem_butonlar_html = BUYUK_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))
@@ -1307,6 +1506,38 @@ def render_product(p, all_products):
         if ONIZLEME_3D_ACIK and pid in ONIZLEME_AILELER:
             konf_scripts += '\n<script src="/jenerator/viewer.js"></script>'
             onizleme_js = ONIZLEME_JS
+
+    # --- konfigur kancaları: konfigur OLMAYAN sayfada HEPSİ boş dize -> şablon çıktısı
+    # bayt-bayt bugünkü gibi kalır (kabul: tools/konfigur-test.py). Konfigur sayfasında
+    # inline URUN_KONFIGUR verisi + /konfigur.js modül kancaları basılır. Kanca değerleri
+    # .format SONRASI yerleştirilir (yeniden işlenmez) -> tek süslü parantez güvenli.
+    konfigur_tanim = ""
+    konf_satir_hook = ""
+    konf_fiyat_kosul = ""
+    konf_render_hook = ""
+    konf_klik_guard = ""
+    konf_kur_hook = ""
+    if konfigur:
+        konf_scripts = '<script src="/konfigur.js"></script>'
+        _konfigur_client = {
+            "boyutMm": konfigur["boyutMm"],
+            "hacim": konfigur["hacim"],
+            "tabanFiyatTL": _taban_tl,
+        }
+        konfigur_tanim = ("\nvar URUN_KONFIGUR = "
+                          + json.dumps(_konfigur_client, ensure_ascii=False,
+                                       separators=(",", ":")).replace("</script>", "<\\/script>")
+                          + ";")
+        konf_satir_hook = ("\n    if(URUN_KONFIGUR && window.PRUVO_KONFIGUR && "
+                           "PRUVO_KONFIGUR.hazir()){ PRUVO_KONFIGUR.satiraYaz(s); }")
+        konf_fiyat_kosul = " && !URUN_KONFIGUR"
+        konf_render_hook = ("\n    if(URUN_KONFIGUR && window.PRUVO_KONFIGUR && "
+                            "PRUVO_KONFIGUR.hazir()){ PRUVO_KONFIGUR.tazele(); }")
+        konf_klik_guard = ("\n    /* Konfigur: renk seçilmeden sepete eklenemez (titret + odakla). */"
+                           "\n    if(URUN_KONFIGUR && window.PRUVO_KONFIGUR && "
+                           "!PRUVO_KONFIGUR.gecerliMi()){ PRUVO_KONFIGUR.eksikVurgula(); return; }")
+        konf_kur_hook = ("\n  if(URUN_KONFIGUR && window.PRUVO_KONFIGUR){ "
+                         "PRUVO_KONFIGUR.kur(URUN_KONFIGUR, URUN, render); }")
 
     doc = u"""<!DOCTYPE html>
 <html lang="tr">
@@ -1419,7 +1650,7 @@ function pv(el,src){{
   el.className='thumb active';
 }}
 var URUN = {urun_json};
-var URUN_SEMA = {sema_json};
+var URUN_SEMA = {sema_json};{konfigur_tanim}
 /* Sepet: bu ürünü index.html ile ortak localStorage sepetine (secenekler.js: PRUVO_SECENEK) ekle/çıkar.
    Malzeme/renk/boy seçiliyse (opsiyonlar bloğu varsa) seçilen TAM konfigürasyon bileşik anahtarla
    toggle edilir; farklı bir konfigürasyonla eklenmiş başka bir satıra dokunulmaz. */
@@ -1462,7 +1693,7 @@ var URUN_SEMA = {sema_json};
     if(adetSec){{ s.adet = PRUVO_SECENEK.adetDuzelt(adetSec.value); }}
     /* Parametrik urun: konfigurator parametreleri + hacim + (taban fiyat varsa) kurusu satira
        yazar. Adet YUKARIDA set edildi -> parametrik satirda da gecerli. */
-    if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{ PRUVO_KONF.satiraYaz(s); }}
+    if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{ PRUVO_KONF.satiraYaz(s); }}{konf_satir_hook}
     return s;
   }}
   /* Adet kutusu: aralik disi deger (elle yazilan 0/500) secenekler.js kuralina cekilir —
@@ -1501,7 +1732,7 @@ var URUN_SEMA = {sema_json};
     var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
     /* Konfigüratörlü sayfada fiyat alanını konfigüratör yönetir (kuruşlu canlı hesap,
        taban fiyat yoksa "—"); geçersiz ölçüde sepete ekleme kilitlenir. */
-    if(fiyatEl && !URUN_SEMA){{
+    if(fiyatEl && !URUN_SEMA{konf_fiyat_kosul}){{
       /* Kart-secim: malzeme+renk seçilene kadar fiyat taban (PLA) "…'den başlayan";
          ikisi de seçilince kesin katsayılı/renkli fiyat gösterilir. */
       if(KART_SECIM && (!seciliMalzeme || !seciliRenk) && ozet.birimKurus != null){{
@@ -1515,7 +1746,7 @@ var URUN_SEMA = {sema_json};
       var gecerli = PRUVO_KONF.gecerliMi();
       btn.disabled = !gecerli;
       btn.classList.toggle("kilitli", !gecerli);
-    }}
+    }}{konf_render_hook}
     if(orderAlt){{
       var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + URUN.baslik +
                   (ozet.detay ? ("\\n" + ozet.detay) : "") + "\\n" + location.href;
@@ -1524,7 +1755,7 @@ var URUN_SEMA = {sema_json};
       orderAlt.href = "https://wa.me/{whatsapp}?text=" + encodeURIComponent(mesaj);
     }}
   }}
-  btn.addEventListener("click", function(){{
+  btn.addEventListener("click", function(){{{konf_klik_guard}
     /* Malzeme + renk seçilmeden sepete eklenemez (istemci 1. savunma; Worker 2. savunma).
        "Diğer" renkte serbest metin kutusu da dolu olmalı. Eksik olan grup(lar) titrer. */
     if(KART_SECIM){{
@@ -1605,7 +1836,7 @@ var URUN_SEMA = {sema_json};
       PRUVO_KONF.secimKaynagi(function(){{ return {{ malzeme: seciliMalzeme, renk: seciliRenk }}; }});
     }}
     PRUVO_KONF.kur(URUN_SEMA, document.getElementById("konfAlanlar"), render);
-  }}
+  }}{konf_kur_hook}
   if(adetEksi){{ adetEksi.addEventListener("click", function(){{ adetYaz((adetSec.value|0)-1); }}); }}
   if(adetArti){{ adetArti.addEventListener("click", function(){{ adetYaz((adetSec.value|0)+1); }}); }}
   if(adetSec){{
@@ -1688,6 +1919,12 @@ var URUN_SEMA = {sema_json};
         attribution=attribution_html(p),
         urun_json=urun_json,
         sema_json=sema_json,
+        konfigur_tanim=konfigur_tanim,
+        konf_satir_hook=konf_satir_hook,
+        konf_fiyat_kosul=konf_fiyat_kosul,
+        konf_render_hook=konf_render_hook,
+        konf_klik_guard=konf_klik_guard,
+        konf_kur_hook=konf_kur_hook,
         kart_secim=("true" if kart_secim else "false"),
         eylem_butonlar=eylem_butonlar_html,
         konf_scripts=konf_scripts,

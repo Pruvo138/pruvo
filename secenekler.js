@@ -251,11 +251,15 @@
   function parametrikSatirOzeti(satir) {
     var parcalar = [];
     if (satir.parametre_detay) { parcalar.push(satir.parametre_detay); }
-    var mYuzde = FILAMENT_FARK.hasOwnProperty(satir.malzeme) ? FILAMENT_FARK[satir.malzeme] : 0;
-    parcalar.push("Malzeme: " + satir.malzeme + (mYuzde ? " (+%" + mYuzde + ")" : ""));
+    // Boş malzeme/renk satıra yazılmaz (kart-seçim/konfigur sayfasında seçim yapılmadan
+    // WhatsApp'tan sorulabilir; "Malzeme: " gibi boş etiket mesajı kirletmesin).
+    if (satir.malzeme) {
+      var mYuzde = FILAMENT_FARK.hasOwnProperty(satir.malzeme) ? FILAMENT_FARK[satir.malzeme] : 0;
+      parcalar.push("Malzeme: " + satir.malzeme + (mYuzde ? " (+%" + mYuzde + ")" : ""));
+    }
     if (satir.renk === "Diğer") {
       parcalar.push("Renk: " + (satir.renk_ozel || "özel renk") + " (özel, +%" + RENK_DIGER_YUZDE + ")");
-    } else {
+    } else if (satir.renk) {
       parcalar.push("Renk: " + satir.renk);
     }
     var adet = adetDuzelt(satir.adet);
@@ -270,7 +274,11 @@
       fiyatMetni: (kurus == null) ? "Ölçüye özel fiyat — teklif için sipariş verin" : kurusMetni(kurus),
       // Taban fiyat boş üründe (bugün yalnız vida) fiyat null -> ödeme akışına giremez;
       // PARAMETRIK_ODEME_ACIK ise mimarın açacağı anahtar (Worker da AYNI sabiti okur).
-      odenebilir: PARAMETRIK_ODEME_ACIK && kurus != null
+      // satir.konfigur (dekor konfigüratörü, /konfigur.js): kart-ödeme kanalı FAIL-CLOSED
+      // KAPALI — Worker bu satırın fiyatını sunucuda YENİDEN HESAPLAYAMIYOR (D1'de yalnız
+      // taban fiyat var, jenerator şeması yok; istemci fiyatına güvenilmez -> sessiz eksik
+      // tahsilat riski). Kanal WhatsApp; Worker'a konfigur desteği gelince açılır.
+      odenebilir: PARAMETRIK_ODEME_ACIK && kurus != null && !satir.konfigur
     };
   }
 
@@ -297,6 +305,9 @@
           s.parametre_detay = x.parametre_detay || "";
           s.hacim_mm3 = x.hacim_mm3 || null;
           s.parametrik_fiyat_kurus = (x.parametrik_fiyat_kurus == null) ? null : x.parametrik_fiyat_kurus;
+          // Konfigur (dekor konfigüratörü) bayrağı korunur: parametrikSatirOzeti kart-ödeme
+          // kanalını bu bayrakla kapatır; düşerse satır sayfa yenilenince ödenebilir görünürdü.
+          if (x.konfigur === true) { s.konfigur = true; }
         }
         return s;
       }
