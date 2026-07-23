@@ -131,7 +131,7 @@ ekle(urun("satin-urun", "Renault Talisman far braketi",
 ekle(urun("parametrik-urun", "Olcuye ozel O-ring conta", marka=[],
           aciklama="Farkli renk secenekleri. Olcuye ozel uretim.",
           fiyat="", parametrik=True, kategori="Jeneratör"),
-     {"link": "https://makerworld.com/x", "uyelik": "koolm"})
+     {"link": "https://makerworld.com/x", "uyelik": "x"})
 
 # JENERIK dedup: HEAD'de (canli) ayni baslik var -> canli kazanir, yeni ikiz silinir
 canli_acik = "Renault Kaptur bagaj kancasi dayanikli askı. %s" % OLCU

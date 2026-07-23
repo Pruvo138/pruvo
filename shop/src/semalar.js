@@ -7,7 +7,7 @@
  * ortustugunu dogrular — yeni sema eklenip burasi guncellenmezse test KIRMIZI yanar
  * (sessizce "sema yok -> odeme reddi" davranisina dusmez).
  *
- * Semalar public veri (matematik + aralik); sir icermez (gizlilik: Koolm izi yok).
+ * Semalar public veri (matematik + aralik); sir icermez (gizlilik: tedarikci izi yok).
  */
 
 import jeton from "../../jenerator/urunler/kisiye-ozel-jeton-cip-madalyon.json";

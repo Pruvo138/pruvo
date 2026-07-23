@@ -33,9 +33,9 @@ Sarı seri (parametrik:true) ürün sayfalarına müşteri konfigüratörü: par
 - Hacim formülleri: `jenerator/hacim.js` — aile başına kapalı-form fonksiyon (torus, ekstrüzyon,
   koni-kabuk, plaka-ızgara...). SAF JS, tek modül: hem sitede (client) hem Worker'da AYNI dosya
   kullanılacak (tek kaynak — kopya yasak).
-- **GİZLİLİK:** Koolm izi hiçbir public dosyada GEÇMEZ (alan adları Türkçe/jenerik; kaynak
+- **GİZLİLİK:** Tedarikçi izi hiçbir public dosyada GEÇMEZ (alan adları Türkçe/jenerik; kaynak
   eşleme gizli `.urun-kaynaklari.json`'da kalır). Şema İÇERİĞİ bizim yazdığımız matematik/
-  aralıklar — public olabilir; Koolm kodu/adı OLAMAZ.
+  aralıklar — public olabilir; tedarikçinin kodu/adı OLAMAZ.
 - **KURULUM REHBERİ (Okan istedi):** `jenerator/KURULUM.md` — yeni parametrik ürün nasıl
   eklenir: şema dosyası yazımı → hacim fonksiyonu seçimi/yazımı → OpenSCAD doğrulama testi →
   taban fiyat → yayın. Adım adım, bir örnek üzerinden.
@@ -66,7 +66,7 @@ evrilir. Koordinasyonu mimar yapar.
 3. **Sınır doğrulama:** min-max/adım dışı giriş client'ta engellenir (alan kızarır, sepete
    eklenemez).
 4. **Tek kaynak:** sitenin yüklediği hacim.js ile jenerator/hacim.js bayt-özdeş (test karşılaştırır).
-5. **Gizlilik:** public dosyalarda (jenerator/, site çıktıları) "koolm" geçmez — grep testi.
+5. **Gizlilik:** public dosyalarda (jenerator/, site çıktıları) tedarikçi adı geçmez — grep testi.
 6. **Sarı seri kuralları:** "3D bask" ve "her renk" hiçbir çıktıda yok; rozet/fiyatsız düzen
    tabanFiyat=null ürünlerde korunuyor.
 7. **Kurulum rehberi canlı testi:** KURULUM.md adımları izlenerek SAHTE bir örnek ürün uçtan

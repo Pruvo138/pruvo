@@ -155,8 +155,8 @@ def _satin_alma(kayit):
 
 
 def _kendi_urunumuz(urun, kayit):
-    """Kendi/uyelik IP'miz mi? (lisans/olcu kapisindan MUAF) — parametrik, uyelik (koolm),
-    ya da kendi jeneratorumuz."""
+    """Kendi/uyelik IP'miz mi? (lisans/olcu kapisindan MUAF) — parametrik, uyelik (odemeli
+    tedarikci), ya da kendi jeneratorumuz."""
     if bool(urun.get("parametrik")):
         return True
     if isinstance(kayit, dict):

@@ -43,7 +43,7 @@ def main():
     # --- baski_haritasi: gizli kayittan id->baski, "-"/bos atlanir ---
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
         json.dump({
-            "urun-a": {"baski": "6-8 duvar, %15 doluluk", "uyelik": "koolm"},
+            "urun-a": {"baski": "6-8 duvar, %15 doluluk", "uyelik": "x"},
             "urun-b": {"baski": "-"},          # placeholder -> atlanmali
             "urun-c": {"baski": ""},           # bos -> atlanmali
             "urun-d": {"link": "x"},           # baski alani yok -> atlanmali
