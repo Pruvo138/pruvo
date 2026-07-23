@@ -47,6 +47,14 @@ jobs:
       # secenekler.js FONKSIYONEL, filamentler.json tavsiye, urunler.json kategori) ve
       # tek bir halka kopunca hata SESSIZ (kart duzeni duser / rozet kaybolur / feed
       # taksonomisiz gider / banner her gorunumde kalir). Offline, build.py'den ONCE kosar.
+      # 24 Tem (curutme sonrasi): nobet artik KAYNAK METNI degil DAVRANIS olcuyor —
+      # renderCats/applyUrlParams index.html'den ayiklanip node ile GERCEKTEN kosuluyor
+      # (nav cipine duz literal eklemek ve derin-link beyaz listesini daraltmak KACIYORDU),
+      # secenekler.js fonksiyonelMi/satirOzeti node ile olculuyor (bypass para kaybediyordu),
+      # banner GORUNURLUGU + sari taramasi CSS kural bazinda (pencere yok, rgb()/hsl()/renk
+      # adi cozulur), kompakt kart icin SENTETIK semasiz fikstur var (gercek urun konfigur'lu
+      # oldugu icin FONKSIYONEL uyeligini olcmuyordu). node yoksa FAIL-CLOSED exit 1 —
+      # setup-node yukarida BLOKLAYICI on-kosul.
       - name: Skan Art kategori + banner kabul testi
         run: python3 tools/test-skan-art.py
 

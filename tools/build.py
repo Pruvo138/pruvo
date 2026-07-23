@@ -55,6 +55,15 @@ NAV_GIZLI = ["Jeneratör", "Skan Art"]
 # secenekler.js'deki FONKSIYONEL_KATEGORILER ile BİRLİKTE güncelle (tek karar iki yerde).
 FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi", "Skan Art"]
 
+# "Ilgili urunler" YEDEK HAVUZU (23 Tem, olculdu). Ilgili-urun bolumu AYNI kategoriden
+# beslenir; ince bir alt-seride (Skan Art'ta bugun TEK urun) aday havuzu BOSALIR ve
+# <section class="related"> HIC basilmaz -> sayfa 8 ic linkini SESSIZCE kaybeder
+# (olculdu: kurt sayfasi 8 -> 0 rel-card, base'e gore tek fark buydu). Alt-seri hangi ana
+# kategoriden ayrildiysa yedek havuz orasidir; boyle bir esleme YOKSA davranis eskisi gibi.
+AKRABA_KATEGORI = {"Skan Art": "Dekorasyon"}
+# Yedek havuz bu esigin ALTINDA devreye girer (ust sinir zaten 8).
+REL_EN_AZ = 4
+
 # Malzeme katsayilari / renk listesi / adet araligi TEK KAYNAK: /secenekler.js.
 # Buraya kopyalanmaz — secici HTML'inin "(+%30)" etiketleri o dosyadan OKUNUR ki katsayi
 # degisince etiket sessizce eski kalmasin (Worker, sepet ve bu sablon ayni tabloyu gorur).
@@ -1607,6 +1616,17 @@ def render_product(p, all_products):
     # --- ilgili ürünler (aynı kategori, kendisi hariç, en fazla 8)
     rel = [x for x in all_products
            if x.get("kategori") == kategori and x["id"] != pid][:8]
+    rel_baslik = kategori
+    # YEDEK HAVUZ: ince alt-seride (Skan Art) aynı kategoriden REL_EN_AZ adet aday
+    # çıkmıyorsa akraba ana kategoriden doldur — yoksa bölüm hiç basılmaz ve sayfa
+    # TÜM iç linklerini kaybeder (ölçüldü: 8 -> 0). Eşlemesi olmayan kategori etkilenmez.
+    akraba = AKRABA_KATEGORI.get(kategori)
+    if akraba and len(rel) < REL_EN_AZ:
+        varolan = {x["id"] for x in rel}
+        rel = (rel + [x for x in all_products
+                      if x.get("kategori") == akraba and x["id"] != pid
+                      and x["id"] not in varolan])[:8]
+        rel_baslik = akraba
     rel_html = ""
     if rel:
         cards = []
@@ -1625,7 +1645,7 @@ def render_product(p, all_products):
         rel_html = (
             '<section class="related"><h2>Diğer %s ürünleri</h2>'
             '<div class="rel-grid">%s</div></section>'
-            % (esc(kategori), "".join(cards)))
+            % (esc(rel_baslik), "".join(cards)))
 
     title_tag = esc(baslik) + " — PRUVO Özel Tasarım Yedek Parça"
 
