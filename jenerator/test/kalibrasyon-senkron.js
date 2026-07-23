@@ -110,7 +110,10 @@ if (!fs.existsSync(dogrulamaDir)) {
     });
     return s;
   }
-  ["konektor", "braket", "adaptor", "kutu", "kavanoz"].forEach(function (aile) {
+  // jeton/kase/cetvel: metin-bagimli hacim senkronu (kaynak repo 0e766f9,
+  // 2026-07-23) — aile dosyalari bayt-ozdes tutulur; kayma = sessiz fiyat hatasi.
+  ["konektor", "braket", "adaptor", "kutu", "kavanoz",
+   "jeton", "kase", "cetvel"].forEach(function (aile) {
     const kaynakYol = path.join(dogrulamaDir, "test", "aileler",
       aile + ".js");
     if (!fs.existsSync(kaynakYol)) {

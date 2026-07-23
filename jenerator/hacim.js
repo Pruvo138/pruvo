@@ -153,6 +153,62 @@
     return w * katsayi + cetvel_rakam_alani(n, yaziBoyutu);
   }
 
+  // Liberation Sans (Regular) glif alan + ilerleme tablolari (cetvel.scad text
+  // cagrilari $fn=24). Olcum: olcum/glif_alan_kalibrasyon.py ->
+  // olcum/glif_alan.json. Alan boyut^2, ilerleme boyut basina mm (OpenSCAD
+  // text olcegi em x 1.389). Tabloda olmayan karakter ortalamalara duser.
+  function cetvel_glif_tablolari() {
+    return {
+      alan: {"A":0.275255,"B":0.358221,"C":0.26546,"D":0.32823,"E":0.310595,"F":0.238968,"G":0.324796,"H":0.303573,"I":0.123754,"J":0.189104,"K":0.279904,"L":0.174831,"M":0.412963,"N":0.332577,"O":0.327259,"P":0.277551,"Q":0.375278,"R":0.340273,"S":0.291066,"T":0.192548,"U":0.277377,"V":0.23715,"W":0.435518,"X":0.252248,"Y":0.19704,"Z":0.255917,"a":0.244259,"b":0.270537,"c":0.17513,"d":0.2705,"e":0.229457,"f":0.154087,"g":0.309289,"h":0.24054,"i":0.103805,"j":0.147198,"k":0.232623,"l":0.122834,"m":0.316115,"n":0.206814,"o":0.216664,"p":0.271804,"q":0.273989,"r":0.113973,"s":0.198656,"t":0.137197,"u":0.206809,"v":0.171826,"w":0.29267,"x":0.177657,"y":0.211666,"z":0.181752,"0":0.265993,"1":0.190888,"2":0.231968,"3":0.248559,"4":0.232723,"5":0.260322,"6":0.275586,"7":0.167786,"8":0.296362,"9":0.281074,"Ç":0.301384,"Ğ":0.365971,"İ":0.137991,"Ö":0.355013,"Ş":0.327007,"Ü":0.30513,"ç":0.211089,"ğ":0.358379,"ı":0.089559,"ö":0.244418,"ş":0.234573,"ü":0.234563,".":0.019637,",":0.033204,":":0.037122,";":0.05069,"!":0.097977,"?":0.170657,"'":0.033102,"-":0.036788,"_":0.071321,"(":0.157958,")":0.157977,"/":0.110659,"+":0.124667,"*":0.092655,"=":0.135434,"&":0.317111,"%":0.35681,"#":0.226852,"@":0.509982," ":0.0},
+      ilerleme: {"A":0.92638,"B":0.92638,"C":1.00301,"D":1.00301,"E":0.92638,"F":0.84839,"G":1.08032,"H":1.00301,"I":0.38588,"J":0.69445,"K":0.92638,"L":0.77243,"M":1.15696,"N":1.00301,"O":1.08032,"P":0.92638,"Q":1.08032,"R":1.00301,"S":0.92638,"T":0.84839,"U":1.00301,"V":0.92638,"W":1.3109,"X":0.92638,"Y":0.92638,"Z":0.84839,"a":0.77243,"b":0.77243,"c":0.69445,"d":0.77243,"e":0.77243,"f":0.36079,"g":0.77243,"h":0.77243,"i":0.30857,"j":0.30857,"k":0.69445,"l":0.30857,"m":1.15696,"n":0.77243,"o":0.77243,"p":0.77243,"q":0.77243,"r":0.46251,"s":0.69445,"t":0.38588,"u":0.77243,"v":0.69445,"w":1.00301,"x":0.69445,"y":0.69445,"z":0.69445,"0":0.77243,"1":0.66935,"2":0.77243,"3":0.77243,"4":0.77243,"5":0.77243,"6":0.77243,"7":0.77243,"8":0.77243,"9":0.77243,"Ç":1.00301,"Ğ":1.08032,"İ":0.38588,"Ö":1.08032,"Ş":0.92638,"Ü":1.00301,"ç":0.69445,"ğ":0.77243,"ı":0.38588,"ö":0.77243,"ş":0.69445,"ü":0.77243,".":0.38588,",":0.38588,":":0.38588,";":0.38588,"!":0.38588,"?":0.77243,"'":0.26516,"-":0.46251,"_":0.77243,"(":0.46251,")":0.46251,"/":0.38588,"+":0.81109,"*":0.5405,"=":0.81109,"&":0.92638,"%":1.23495,"#":0.77243,"@":1.40991," ":0.38588},
+      alanOrt: 0.228089,
+      ilerlemeOrt: 0.762896
+    };
+  }
+
+  // Ozel yazinin (yazi_logo) hacim katkisi. Yalniz duz cetvelde islenir
+  // (ucgen/l gonye _kenar_tik kullanir, logo yok). Kabartma union'la govde
+  // disina tasani da ekler (kirpilmaz); oyma/gomme farki govdeyle sinirlidir:
+  // [-Lx/2, +Lx/2] penceresi (halign=center, olcum: olcum/cetvel_klip_bak.py
+  // W dizisi ~%20 karakterde doyuyor, pencere modeli doyma alanini %0.2 icinde
+  // yakalar). Isaret derinligi etkin 0.59 (isaret_z 0.6, 0.01 bindirme).
+  function cetvel_yazi_hacmi(p) {
+    var yazi = (typeof p.yazi === "string") ? p.yazi : "";
+    if (p.tip !== "duz" || yazi.length === 0) return 0;
+    var t = cetvel_glif_tablolari();
+    var boyut = Math.min(0.22 * p.genislik, 5);
+    var birimMm = p.sistem === "inc" ? 25.4 : 10;
+    var yariPencere = (p.uzunluk * birimMm + 12) / 2;
+    var kirp = p.isaret_stili !== "kabartma";
+
+    var toplamIlerleme = 0;
+    var i, c, adv;
+    for (i = 0; i < yazi.length; i++) {
+      c = yazi.charAt(i);
+      adv = t.ilerleme[c];
+      toplamIlerleme += (adv === undefined) ? t.ilerlemeOrt : adv;
+    }
+    var x = -toplamIlerleme * boyut / 2;
+    var alan = 0;
+    for (i = 0; i < yazi.length; i++) {
+      c = yazi.charAt(i);
+      var k = t.alan[c];
+      if (k === undefined) k = t.alanOrt;
+      adv = t.ilerleme[c];
+      if (adv === undefined) adv = t.ilerlemeOrt;
+      var genislik = adv * boyut;
+      var oran = 1;
+      if (kirp && genislik > 0) {
+        var kesisim = Math.min(x + genislik, yariPencere) -
+          Math.max(x, -yariPencere);
+        oran = Math.max(0, Math.min(1, kesisim / genislik));
+      }
+      alan += k * boyut * boyut * oran;
+      x += genislik;
+    }
+    return 0.59 * alan;
+  }
+
   function cetvel(p) {
     var birimMm = p.sistem === "inc" ? 25.4 : 10;
     var a = p.uzunluk * birimMm;
@@ -174,7 +230,10 @@
 
     var govdeHacmi = alan * p.kalinlik;
     var isaretHacmi = 0.59 * cetvel_isaret_alani(p, kenarIsareti);
-    return p.isaret_stili === "kabartma" ? govdeHacmi + isaretHacmi : govdeHacmi - isaretHacmi;
+    var yaziHacmi = cetvel_yazi_hacmi(p);
+    return p.isaret_stili === "kabartma" ?
+      govdeHacmi + isaretHacmi + yaziHacmi :
+      govdeHacmi - isaretHacmi - yaziHacmi;
   }
 
   // === AILE: disli ===
@@ -484,6 +543,55 @@
   }
 
   // === AILE: jeton ===
+  // Liberation Sans Bold glif alan + ilerleme tablolari ($fn=96 sozlesme
+  // baglami; jeton.scad _yuz2d $fn=96 pinli — eski $fn'siz tesselasyonda "100"
+  // katsayisi cap 20->80 arasinda 0.969->1.028 geziyordu). Olcum:
+  // olcum/glif_alan_kalibrasyon.py -> olcum/glif_alan.json. Alan boyut^2,
+  // ilerleme boyut basina mm (OpenSCAD text olcegi em x 1.389). Tabloda
+  // olmayan karakter ortalamalara duser.
+  function jeton_glif_tablolari() {
+    return {
+      alan: {"A":0.39286,"B":0.531008,"C":0.381789,"D":0.472175,"E":0.444764,"F":0.344743,"G":0.465826,"H":0.45118,"I":0.191144,"J":0.290963,"K":0.424581,"L":0.270406,"M":0.600179,"N":0.486681,"O":0.467561,"P":0.403865,"Q":0.543763,"R":0.493259,"S":0.418138,"T":0.286657,"U":0.417619,"V":0.34041,"W":0.635236,"X":0.376115,"Y":0.289144,"Z":0.362284,"a":0.328552,"b":0.393759,"c":0.259531,"d":0.393801,"e":0.30393,"f":0.235793,"g":0.446432,"h":0.363309,"i":0.166568,"j":0.232099,"k":0.346705,"l":0.191768,"m":0.472108,"n":0.310734,"o":0.319515,"p":0.397864,"q":0.396915,"r":0.174653,"s":0.284135,"t":0.210512,"u":0.310852,"v":0.260551,"w":0.425371,"x":0.266467,"y":0.316534,"z":0.250064,"0":0.377523,"1":0.281619,"2":0.34688,"3":0.351378,"4":0.338063,"5":0.37411,"6":0.391073,"7":0.253472,"8":0.416585,"9":0.398715,"Ç":0.42725,"Ğ":0.520815,"İ":0.217891,"Ö":0.506938,"Ş":0.463548,"Ü":0.456996,"ç":0.305021,"ğ":0.506768,"ı":0.139812,"ö":0.36292,"ş":0.329554,"ü":0.354257,".":0.040535,",":0.065,":":0.074562,";":0.098969,"!":0.154192,"?":0.248947,"'":0.057689,"-":0.05835,"_":0.042214,"(":0.245393,")":0.24516,"/":0.168658,"+":0.190594,"*":0.141701,"=":0.209691,"&":0.43712,"%":0.493788,"#":0.295697,"@":0.551746," ":0.0},
+      ilerleme: {"A":1.00301,"B":1.00301,"C":1.00301,"D":1.00301,"E":0.92638,"F":0.84839,"G":1.08032,"H":1.00301,"I":0.38588,"J":0.77243,"K":1.00301,"L":0.84839,"M":1.15696,"N":1.00301,"O":1.08032,"P":0.92638,"Q":1.08032,"R":1.00301,"S":0.92638,"T":0.84839,"U":1.00301,"V":0.92638,"W":1.3109,"X":0.92638,"Y":0.92638,"Z":0.84839,"a":0.77243,"b":0.84839,"c":0.77243,"d":0.84839,"e":0.77243,"f":0.46251,"g":0.84839,"h":0.84839,"i":0.38588,"j":0.38588,"k":0.77243,"l":0.38588,"m":1.23495,"n":0.84839,"o":0.84839,"p":0.84839,"q":0.84839,"r":0.5405,"s":0.77243,"t":0.46251,"u":0.84839,"v":0.77243,"w":1.08032,"x":0.77243,"y":0.77243,"z":0.69445,"0":0.77243,"1":0.6958,"2":0.77243,"3":0.77243,"4":0.77243,"5":0.77243,"6":0.77243,"7":0.77243,"8":0.77243,"9":0.77243,"Ç":1.00301,"Ğ":1.08032,"İ":0.38588,"Ö":1.08032,"Ş":0.92638,"Ü":1.00301,"ç":0.77243,"ğ":0.84839,"ı":0.38588,"ö":0.84839,"ş":0.77243,"ü":0.84839,".":0.38588,",":0.38588,":":0.46251,";":0.46251,"!":0.46251,"?":0.84839,"'":0.33027,"-":0.46251,"_":0.77243,"(":0.46251,")":0.46251,"/":0.38588,"+":0.81109,"*":0.5405,"=":0.81109,"&":1.00301,"%":1.23495,"#":0.77243,"@":1.3543," ":0.38588},
+      alanOrt: 0.33099,
+      ilerlemeOrt: 0.794611
+    };
+  }
+
+  // Metnin 2B alani (mm2). yariPencere null -> tam alan (kabartma union'la
+  // disk disina tasani da ekler). Sayi ise oyma/gomme kirpilmasi: govdeden
+  // cikarma yalniz [-yariPencere, +yariPencere] araliginda etkilidir
+  // (halign=center; glif basina dogrusal kesisim orani).
+  function jeton_yazi_alani(yazi, ts, yariPencere) {
+    var t = jeton_glif_tablolari();
+    var toplamIlerleme = 0;
+    var i, c, adv;
+    for (i = 0; i < yazi.length; i++) {
+      c = yazi.charAt(i);
+      adv = t.ilerleme[c];
+      toplamIlerleme += (adv === undefined) ? t.ilerlemeOrt : adv;
+    }
+    var x = -toplamIlerleme * ts / 2;
+    var alan = 0;
+    for (i = 0; i < yazi.length; i++) {
+      c = yazi.charAt(i);
+      var k = t.alan[c];
+      if (k === undefined) k = t.alanOrt;
+      adv = t.ilerleme[c];
+      if (adv === undefined) adv = t.ilerlemeOrt;
+      var genislik = adv * ts;
+      var oran = 1;
+      if (yariPencere !== null && genislik > 0) {
+        var kesisim = Math.min(x + genislik, yariPencere) -
+          Math.max(x, -yariPencere);
+        oran = Math.max(0, Math.min(1, kesisim / genislik));
+      }
+      alan += k * ts * ts * oran;
+      x += genislik;
+    }
+    return alan;
+  }
+
   function jeton(p) {
     var pah = 0.8;
     var yaricap = p.cap / 2;
@@ -494,9 +602,7 @@
     var govde = Math.PI * yaricap * yaricap * govdeYuksekligi;
     var ustPah = Math.PI * 2 * pah / 3 *
       (yaricap * yaricap + yaricap * ustYaricap + ustYaricap * ustYaricap);
-    // Motor pah kesigi kesik-koni modelinden capla dogrusal olculen kadar az
-    // malzeme torpuluyor (6 capta olculdu, kalinliktan bagimsiz).
-    var hacim = govde + ustPah + 2.1 * p.cap;
+    var hacim = govde + ustPah;
 
     if (p.kenar_deseni === "segmentli") {
       // Sekiz adet 22 derecelik halka diliminin pahlı disk dışında kalan bölümü.
@@ -508,59 +614,124 @@
       hacim += Math.PI * aciOrani * (duzBolum + pahBolumu);
     }
 
-    // Yuz basina iki ayri terim (motor renderlarindan cozuldu, 6 cap x 3 stil):
-    // yazi "100" hacmi T capin karesiyle, dekoratif halka OYUGU R capla olcekli.
-    // Halka her stilde COKARILIR (motorda "inset bevel" — kabartmada bile oyuk);
-    // yazi kabartmada eklenir, oyma/gommede cikarilir (ikisi hacimce esdeger).
-    var yaziHacmi = 0.064 * p.cap * p.cap;
-    var halkaOyugu = 3.616 * p.cap - 7.93;
+    // Yazi siparis metnidir; gelmezse sema varsayilani (taban sozlesmesi).
+    // scad: ts = min(cap*0.34, cap*0.9/max(len,1)*1.3) — uzun metinde kuculur.
+    // Eski model metni yok sayip "100" katsayisini sabit ts=0.34*cap ile
+    // kullaniyordu: metin-izgara olcumunde -%8.6..+%3.7 sapma
+    // (olcum/metin_etki_olcum.json).
+    var yazi = (typeof p.yazi === "string") ? p.yazi : "100";
+    var yaziBoyutu = Math.min(p.cap * 0.34,
+                              p.cap * 0.9 / Math.max(yazi.length, 1) * 1.3);
+    var halkaAlani = Math.PI * (p.cap * 0.82 - 1);
     var yuzler = p.yuz_sayisi === "cift" ? 2 : 1;
 
     if (p.yazi_stili === "kabartma") {
-      hacim += yuzler * (yaziHacmi - halkaOyugu);
+      var tamAlan = halkaAlani + jeton_yazi_alani(yazi, yaziBoyutu, null);
+      hacim += tamAlan * 0.69 * yuzler;
     } else {
-      hacim -= yuzler * (yaziHacmi + halkaOyugu);
+      var kirpikAlan = halkaAlani +
+        jeton_yazi_alani(yazi, yaziBoyutu, p.cap / 2);
+      hacim -= kirpikAlan * (yuzler === 2 ? 1.39 : 0.69);
     }
 
     return hacim;
   }
 
   // === AILE: kase ===
-  function kase(p) {
-    // Uretim motoruna kalibre (Faz E): taban, "PRUVO" yazisinin OLCULEN
-    // textmetrics kutusundan turer (genislik 4.78806 x yazi, satir 1.27767 x
-    // yazi), dolgu TOPLAM eklenir (+2 kenar payi), taban 15x10 alt sinirli
-    // kesik piramit (ust-alt fark 4, yukseklik 8). Sabitler motor renderlarina
-    // 12 sette +-2 mm3 oturdu.
-    var en2 = Math.max(15, 4.78806 * p.yazi_boyutu + p.dolgu + 2);
-    var boy2 = Math.max(15, 1.27767 * p.yazi_boyutu + p.dolgu + 2);
-    if (p.bicim !== "dikdortgen") {
-      // kare/yuvarlak: uretim motorunda karsiligi YOK (taban hep yazi
-      // kutusundan dikdortgen) — fiyat icin dikdortgen esdegeri kullanilir,
-      // uretilebilirlik karari mimar/Okan'da.
-      var kenar = Math.max(en2, boy2);
-      en2 = kenar;
-      boy2 = kenar;
+  function kase_knob_hacmi(cap) {
+    var yaricap = 6;
+    var yukseklik = 18;
+    var altYaricap = cap * 0.3;
+    var ustYaricap = cap * 0.5;
+    var dx = ustYaricap - altYaricap;
+    var uzunluk = Math.sqrt(dx * dx + yukseklik * yukseklik);
+    var ux = dx / uzunluk;
+    var uz = yukseklik / uzunluk;
+    var aci = Math.acos(ux);
+    var teget = yaricap / Math.tan(aci / 2);
+    var z1 = yukseklik / 2 - uz * teget;
+    var r1 = ustYaricap - ux * teget;
+    var merkezX = ustYaricap - teget;
+    var merkezZ = yukseklik / 2 - yaricap;
+    var ilkYukseklik = z1 + yukseklik / 2;
+    var konik = Math.PI * ilkYukseklik *
+      (altYaricap * altYaricap + altYaricap * r1 + r1 * r1) / 3;
+    var u1 = z1 - merkezZ;
+    var u2 = yaricap;
+
+    function kase_knob_ilkel(u) {
+      var kok = Math.sqrt(Math.max(0, yaricap * yaricap - u * u));
+      return merkezX * merkezX * u +
+        merkezX * (u * kok + yaricap * yaricap * Math.asin(u / yaricap)) +
+        yaricap * yaricap * u - u * u * u / 3;
     }
-    var en1 = Math.max(10, en2 - 4);
-    var boy1 = Math.max(10, boy2 - 4);
+
+    return konik + Math.PI * (kase_knob_ilkel(u2) - kase_knob_ilkel(u1));
+  }
+
+  // Liberation Sans Bold glif alanlari / boyut^2 (scad'de font SABIT; $fn=96
+  // sozlesme baglami). Olcum: olcum/glif_alan_kalibrasyon.py -> olcum/
+  // glif_alan.json (glif basina h=1 ekstruzyon; union = toplam, katkisallik
+  // farki %1e-8; sum(PRUVO)=2.122714 vs eski kd-farki katsayisi 2.122713403,
+  // fark %0.00003). Tabloda olmayan karakter ortalamaya duser.
+  function kase_glif_alani(metin) {
+    var tablo = {"A":0.39286,"B":0.531008,"C":0.381789,"D":0.472175,"E":0.444764,"F":0.344743,"G":0.465826,"H":0.45118,"I":0.191144,"J":0.290963,"K":0.424581,"L":0.270406,"M":0.600179,"N":0.486681,"O":0.467561,"P":0.403865,"Q":0.543763,"R":0.493259,"S":0.418138,"T":0.286657,"U":0.417619,"V":0.34041,"W":0.635236,"X":0.376115,"Y":0.289144,"Z":0.362284,"a":0.328552,"b":0.393759,"c":0.259531,"d":0.393801,"e":0.30393,"f":0.235793,"g":0.446432,"h":0.363309,"i":0.166568,"j":0.232099,"k":0.346705,"l":0.191768,"m":0.472108,"n":0.310734,"o":0.319515,"p":0.397864,"q":0.396915,"r":0.174653,"s":0.284135,"t":0.210512,"u":0.310852,"v":0.260551,"w":0.425371,"x":0.266467,"y":0.316534,"z":0.250064,"0":0.377523,"1":0.281619,"2":0.34688,"3":0.351378,"4":0.338063,"5":0.37411,"6":0.391073,"7":0.253472,"8":0.416585,"9":0.398715,"Ç":0.42725,"Ğ":0.520815,"İ":0.217891,"Ö":0.506938,"Ş":0.463548,"Ü":0.456996,"ç":0.305021,"ğ":0.506768,"ı":0.139812,"ö":0.36292,"ş":0.329554,"ü":0.354257,".":0.040535,",":0.065,":":0.074562,";":0.098969,"!":0.154192,"?":0.248947,"'":0.057689,"-":0.05835,"_":0.042214,"(":0.245393,")":0.24516,"/":0.168658,"+":0.190594,"*":0.141701,"=":0.209691,"&":0.43712,"%":0.493788,"#":0.295697,"@":0.551746," ":0.0};
+    var ortalama = 0.33099;
+    var toplam = 0;
+    for (var i = 0; i < metin.length; i++) {
+      var k = tablo[metin.charAt(i)];
+      toplam += (k === undefined) ? ortalama : k;
+    }
+    return toplam;
+  }
+
+  function kase(p) {
+    // Metin siparis metnidir; gelmezse sema varsayilani (taban sozlesmesi).
+    var metin = (typeof p.metin === "string") ? p.metin : "PRUVO";
+    var ys = p.yazi_boyutu;
     var yukseklik = 8;
-    var prizma = yukseklik / 6 * (en1 * boy1 + en2 * boy2 +
-      (en1 + en2) * (boy1 + boy2));
+    var pah = 2.5;
+    // scad oto-boyut: _wc = max(len*ys*0.62, 2*ys); _hc = 2.6*ys (texticon 2
+    // satir sayilir). Eski model _wc'yi 3.1*ys'e (len=5, "PRUVO") sabitlemisti —
+    // metin-izgara olcumunde -%93.6..+%50 sapma (olcum/metin_etki_olcum.json).
+    // face_w2=max(...,15) kelepcesi sema araliginda pasif (ys>=6, dolgu>=3 -> >=18).
+    var icerikEn = Math.max(0.62 * metin.length, 2) * ys;
+    var icerikBoy = 2.6 * ys;
+    var en, boy;
+    if (p.bicim === "dikdortgen") {
+      en = icerikEn + 2 * p.dolgu;
+      boy = icerikBoy + 2 * p.dolgu;
+    } else {
+      en = Math.max(icerikEn, icerikBoy) + 2 * p.dolgu;
+      boy = en;
+    }
+    var taban;
 
-    // Dis yuvasi (sap vidasi icin her govdede acilir) + ust kenar pahi.
-    var disYuvasi = 306.9;
-    var kenarPahi = 0.55 * 2 * (en2 + boy2);
+    if (p.bicim === "yuvarlak") {
+      var altYaricap = en / 2;
+      var ustYaricap = altYaricap - 2;
+      var egimUzunlugu = Math.sqrt(yukseklik * yukseklik + 4);
+      var araYaricap = ustYaricap + pah * 2 / egimUzunlugu;
+      var araYukseklik = yukseklik - pah * yukseklik / egimUzunlugu;
+      var tepeYaricap = ustYaricap - pah;
+      taban = Math.PI * araYukseklik *
+        (altYaricap * altYaricap + altYaricap * araYaricap + araYaricap * araYaricap) / 3;
+      taban += Math.PI * (yukseklik - araYukseklik) *
+        (araYaricap * araYaricap + araYaricap * tepeYaricap + tepeYaricap * tepeYaricap) / 3;
+    } else {
+      taban = yukseklik * (en * boy - 2 * en - 2 * boy + 16 / 3) -
+        2 * pah * pah * yukseklik;
+    }
 
-    // Kabartma yazi: olculen 2B glif alani 2.1232 x yazi^2.
-    var rolyef = 2.1232 * p.yazi_boyutu * p.yazi_boyutu * p.kabartma_derinligi;
-
-    var toplam = prizma - disYuvasi - kenarPahi + rolyef;
+    // Rolyef union'la eklenir; taban ayak izinden tasan glif de hacme sayilir
+    // (kirpilma YOK) -> tam glif alani x derinlik.
+    var rolyef = kase_glif_alani(metin) * ys * ys * p.kabartma_derinligi;
+    var toplam = taban + rolyef;
 
     if (p.sap === "sapli") {
-      // Motor sapi parametreden bagimsiz TEK sabit parcadir (ayri basilir,
-      // vidalanir); hacmi renderdan olculdu.
-      toplam += 10337.2;
+      var topuzCapi = Math.max(en * 0.7, 22);
+      // Dişli mil, gövde yuvası ve topuzla örtüşen bölümün kalibre edilmiş net etkisi.
+      toplam += kase_knob_hacmi(topuzCapi) - 210.720722018491;
     }
 
     return toplam;
