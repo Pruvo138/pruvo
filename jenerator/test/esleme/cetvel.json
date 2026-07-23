@@ -8,7 +8,8 @@
     "uzunluk": "uzunluk",
     "genislik": "genislik",
     "kalinlik": "kalinlik",
-    "isaret_stili": "isaret_stili"
+    "isaret_stili": "isaret_stili",
+    "yazi": "yazi_logo"
   },
   "deger_esleme": {
     "tip": {
@@ -30,7 +31,7 @@
     "kose": 3,
     "yuz": "single",
     "isaret_z": 0.6,
-    "yazi_logo": "",
+    "yazi_tipi": "Liberation Sans",
     "Segments": 240,
     "$fn": 120
   }
