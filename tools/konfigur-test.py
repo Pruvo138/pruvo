@@ -7,11 +7,12 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
       (min>=varsayilan, boş renkler, 'Diğer', bilinmeyen renk, hacim ref <=0, kötü görsel
       indeksi, fiyatsız ürün, parametrik:true birlikteliği...) reddeder. render_product
       geçersiz konfigur'da SystemExit ile DÜŞER (fail-closed — yanlış fiyat sessizce yayınlanamaz).
-  (b) FİYAT: node ile GERÇEK /konfigur.js + /secenekler.js koşulur (kopya/taklit yok):
-      boy artarken fiyat AZALMAZ, en küçük boyda fiyat TAM taban (zemin), hiçbir boyda
-      tabanın altına inilmez, standart renkler (Siyah/Beyaz/Gri) fiyatı DEĞİŞTİRMEZ ve
-      build.py'deki Python aynası (JS öncesi fiyat metni) node sonuçlarıyla kuruşu kuruşuna
-      aynıdır (drift nöbeti). 6/10/15/20/25/30 cm fiyat tablosu rapor için basılır.
+  (b) FİYAT (afin çapa modeli, mimar TUR-3): node ile GERÇEK /konfigur.js koşulur
+      (kopya/taklit yok): fiyat 6 cm'den itibaren KESİN ARTAN, çapalar TAM tutar
+      (6 cm = 150,00 TL · 30 cm = 1.300,00 TL), minimumun altına inilmez, tüm fiyatlar
+      TAM TL, çapadan çözülen birim/sabit mimar türetimiyle örtüşür (≈1,2306 TL/cm³ /
+      ≈140,72 TL) ve build.py'deki Python aynası (JS öncesi fiyat metni) node sonuçlarıyla
+      kuruşu kuruşuna aynıdır (drift nöbeti). 6/10/15/20/25/30 cm tablosu rapor için basılır.
   (c) GERİ UYUMLULUK: konfigur'suz ürün sayfaları (panelsiz Dekorasyon, kart-seçim
       fonksiyonel, boy_secenekli, lisanslı, parametrik sarı) merge-base'deki ESKİ build.py
       çıktısıyla BAYT-EŞİT üretilir ve hiçbirinde konfigur izi yoktur. Eski build.py
@@ -66,8 +67,12 @@ KURT_KONFIGUR = {
     "renkGorselIndeks": {"Siyah": 0, "Beyaz": 1, "Gri": 2},
     "boyutMm": {"min": 60, "max": 300, "adim": 10, "varsayilan": 150, "etiket": "Yükseklik"},
     "hacim": {"refYukseklikMm": 1899.739, "refHacimCm3": 239222.8},
+    # Afin fiyat modeli çapaları (mimar TUR-3, Okan onaylı band): 6 cm = 150 TL,
+    # 30 cm = 1300 TL -> birim ≈ 1,2306 TL/cm³, sabit ≈ 140,72 TL (koddan çözülür).
+    "fiyatCapalari": [[60, 150], [300, 1300]],
 }
-TABAN_TL = 150
+TABAN_TL = 150      # çapa-1 fiyatı = "fiyat" alanı = JSON-LD/feed minimum fiyatı
+CAPA2_TL = 1300     # çapa-2 (en büyük boy) fiyatı
 
 
 def urun(konfigur=None, **ek):
@@ -116,10 +121,22 @@ def test_sema():
     mutant("hacim ref hacmi negatif", lambda k: k["hacim"].update({"refHacimCm3": -1}))
     mutant("renkGorselIndeks eksik anahtar", lambda k: k["renkGorselIndeks"].pop("Gri"))
     mutant("görsel indeksi aralık dışı", lambda k: k["renkGorselIndeks"].update({"Gri": 9}))
-    mutant("fiyat alanı boş (taban yok)", lambda k: None,
+    mutant("fiyat alanı boş (minimum fiyat yok)", lambda k: None,
            urun_degistir=lambda p: p.update({"fiyat": ""}))
+    mutant("fiyat alanı çapa-1'den farklı", lambda k: None,
+           urun_degistir=lambda p: p.update({"fiyat": "200 TL"}))
     mutant("parametrik:true birlikteliği", lambda k: None,
            urun_degistir=lambda p: p.update({"parametrik": True}))
+    mutant("fiyatCapalari eksik", lambda k: k.pop("fiyatCapalari"))
+    mutant("fiyatCapalari tek çapa", lambda k: k.update({"fiyatCapalari": [[60, 150]]}))
+    mutant("capa1 en küçük boyda değil", lambda k: k.update(
+        {"fiyatCapalari": [[100, 150], [300, 1300]]}))
+    mutant("capa2.boy > max", lambda k: k.update(
+        {"fiyatCapalari": [[60, 150], [400, 1300]]}))
+    mutant("çapa fiyatları artan değil", lambda k: k.update(
+        {"fiyatCapalari": [[60, 1300], [300, 150]]}))
+    mutant("çapada negatif değer", lambda k: k.update(
+        {"fiyatCapalari": [[60, -150], [300, 1300]]}))
 
     # render_product fail-closed: geçersiz konfigur build'i DÜŞÜRÜR
     bozuk = urun(KURT_KONFIGUR)
@@ -134,27 +151,18 @@ def test_sema():
 # ------------------------------------------------------------------ (b) fiyat (gerçek JS, node)
 NODE_RUNNER = r"""
 "use strict";
-var sec = process.argv[2], konf = process.argv[3];
-require(sec);                                   // globalThis.PRUVO_SECENEK'i kurar
-var KONFIGUR = require(konf);                   // /konfigur.js modülü
-var SECENEK = globalThis.PRUVO_SECENEK;
-var veri = JSON.parse(process.argv[4]);         // {konfigur:{...}, tabanTL:N}
-var k = veri.konfigur; k.tabanFiyatTL = veri.tabanTL;
-var b = k.boyutMm, seri = [], renkEsit = true;
+var KONFIGUR = require(process.argv[2]);        // /konfigur.js modülü (gerçek dosya)
+var k = JSON.parse(process.argv[3]);            // konfigur şeması (fiyatCapalari dahil)
+var b = k.boyutMm, seri = [];
 for (var boy = b.min; boy <= b.max + 1e-9; boy += b.adim) {
-  var kurus = KONFIGUR.fiyatKurus(k, boy, "Siyah", SECENEK);
-  var beyaz = KONFIGUR.fiyatKurus(k, boy, "Beyaz", SECENEK);
-  var gri = KONFIGUR.fiyatKurus(k, boy, "Gri", SECENEK);
-  var secimsiz = KONFIGUR.fiyatKurus(k, boy, "", SECENEK);
-  if (kurus !== beyaz || kurus !== gri || kurus !== secimsiz) { renkEsit = false; }
-  seri.push({ boy: boy, kurus: kurus });
+  seri.push({ boy: boy, kurus: KONFIGUR.fiyatKurus(k, boy) });
 }
-process.stdout.write(JSON.stringify({ seri: seri, renkEsit: renkEsit }));
+process.stdout.write(JSON.stringify({ seri: seri, model: KONFIGUR.fiyatModeli(k) }));
 """
 
 
 def test_fiyat():
-    print("\n(b) FİYAT MONOTONLUĞU + TABAN ZEMİN (node ile gerçek /konfigur.js)")
+    print("\n(b) AFİN FİYAT MODELİ — kesin artanlık + çapa doğruluğu (node ile gerçek /konfigur.js)")
     node = shutil.which("node")
     kontrol(bool(node), "node bulunur (FAIL-CLOSED ön koşul — deploy.yml setup-node kurar)")
     if not node:
@@ -166,9 +174,7 @@ def test_fiyat():
         f.write(NODE_RUNNER)
     try:
         r = subprocess.run(
-            [node, runner, os.path.join(ROOT, "secenekler.js"),
-             os.path.join(ROOT, "konfigur.js"),
-             json.dumps({"konfigur": KURT_KONFIGUR, "tabanTL": TABAN_TL})],
+            [node, runner, os.path.join(ROOT, "konfigur.js"), json.dumps(KURT_KONFIGUR)],
             capture_output=True, text=True, timeout=60)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -177,31 +183,40 @@ def test_fiyat():
         return None
     sonuc = json.loads(r.stdout)
     seri = sonuc["seri"]
+    model = sonuc.get("model") or {}
 
     bm = KURT_KONFIGUR["boyutMm"]
     beklenen_adet = int(round((bm["max"] - bm["min"]) / bm["adim"])) + 1
     kontrol(len(seri) == beklenen_adet,
             "tüm kaydırıcı adımları hesaplandı (%d/%d)" % (len(seri), beklenen_adet))
     kontrol(all(x["kurus"] is not None and x["kurus"] > 0 for x in seri),
-            "her boyda pozitif kuruşlu fiyat üretilir")
+            "her boyda pozitif fiyat üretilir")
     kontrol(seri[0]["kurus"] == TABAN_TL * 100,
-            "en küçük boyda fiyat TAM taban fiyattır (zemin: %s)"
-            % build.taban_fiyat_metni(TABAN_TL))
-    kontrol(all(seri[i]["kurus"] >= seri[i - 1]["kurus"] for i in range(1, len(seri))),
-            "boy artarken fiyat AZALMAZ (monotonluk)")
+            "ÇAPA-1: en küçük boyda (6 cm) fiyat TAM %s" % build.taban_fiyat_metni(TABAN_TL))
+    kontrol(seri[-1]["kurus"] == CAPA2_TL * 100,
+            "ÇAPA-2: en büyük boyda (30 cm) fiyat TAM %s" % build.taban_fiyat_metni(CAPA2_TL))
+    kontrol(all(seri[i]["kurus"] > seri[i - 1]["kurus"] for i in range(1, len(seri))),
+            "fiyat 6 cm'den itibaren KESİN ARTAN (düz-bölge artefaktı yok)")
     kontrol(all(x["kurus"] >= TABAN_TL * 100 for x in seri),
-            "hiçbir boyda taban fiyatın altına inilmez")
-    kontrol(sonuc["renkEsit"],
-            "standart renkler (Siyah/Beyaz/Gri, seçimsiz dahil) fiyatı değiştirmez")
+            "hiçbir boyda minimum (çapa-1) fiyatın altına inilmez")
+    kontrol(all(x["kurus"] % 100 == 0 for x in seri),
+            "görünen fiyat TAM TL'ye yuvarlanır (kuruş küsuratı yok)")
+
+    # sabit/birim elle yazılmadı, çapadan çözüldü — mimarın verdiği değerlerle örtüşme.
+    kontrol(abs(model.get("birim", 0) - 1.2306) < 0.001 and
+            abs(model.get("sabit", 0) - 140.72) < 0.01,
+            "çapadan çözülen model mimar türetimiyle örtüşür (birim=%.4f TL/cm³, sabit=%.2f TL)"
+            % (model.get("birim", 0), model.get("sabit", 0)))
 
     # Python aynası (build.py JS-öncesi fiyat metni) node ile kuruşu kuruşuna aynı mı (drift)?
     sapmalar = [x["boy"] for x in seri
-                if build.konfigur_fiyat_kurus(KURT_KONFIGUR, TABAN_TL, x["boy"]) != x["kurus"]]
+                if build.konfigur_fiyat_kurus(KURT_KONFIGUR, x["boy"]) != x["kurus"]]
     kontrol(not sapmalar,
             "build.py Python aynası node/JS ile kuruşu kuruşuna aynı (sapan boy: %s)"
             % (sapmalar or "-"))
 
-    print("  --- FİYAT TABLOSU (taban %d TL, PLA, standart renk) ---" % TABAN_TL)
+    print("  --- FİYAT TABLOSU (afin: %d TL @6cm .. %d TL @30cm, PLA, standart renk) ---"
+          % (TABAN_TL, CAPA2_TL))
     for x in seri:
         if x["boy"] in (60, 100, 150, 200, 250, 300):
             print("    %5.1f cm  ->  %s" % (x["boy"] / 10.0,
@@ -297,7 +312,8 @@ def test_konfigur_sayfasi(seri):
             "Merchant feed'e taban fiyatla girer (%d TRY)" % TABAN_TL)
 
     kontrol('var URUN_KONFIGUR = {"boyutMm"' in html, "inline URUN_KONFIGUR verisi basılır")
-    kontrol('"tabanFiyatTL":%d' % TABAN_TL in html, "URUN_KONFIGUR.tabanFiyatTL = fiyat alanındaki taban")
+    kontrol('"fiyatCapalari":[[60,150],[300,1300]]' in html,
+            "URUN_KONFIGUR fiyat çapalarını taşır (eğri çapadan çözülür)")
     kontrol('<script src="/konfigur.js?v=' in html, "/konfigur.js sürümlü (?v=hash) yüklenir")
     kontrol('id="konfigurKaydirici"' in html and 'type="range"' in html,
             "boy kaydırma çubuğu basılır")

@@ -4,12 +4,15 @@
    çalışır. "konfigur" alanı OLMAYAN ürün sayfasına bu dosya HİÇ girmez (geri uyumluluk
    kabulü: tools/konfigur-test.py, konfigur'suz sayfanın bayt-eşit kaldığını doğrular).
 
-   FİYAT ÇARKI YENİ DEĞİL: secenekler.js parametrikFiyatKurus AYNEN kullanılır —
-   fiyat = tabanFiyat × max(1, hacim/tabanHacim) (PLA katsayı 1.00; Siyah/Beyaz/Gri
-   standart renk, ek yüzde yok). Hacim, referans modelden küple ölçeklenir:
-   hacim(boy) = refHacimCm3 × 1000 × (boy/refYükseklik)³ (mm³). Taban hacim = EN KÜÇÜK
-   boyun hacmi -> en küçük boyda fiyat tam taban fiyattır (zemin) ve boy büyüdükçe
-   SÜREKLİ artar (sarı seri kuralıyla aynı ilke; basamak yok).
+   FİYAT MODELİ (mimar kararı, Okan onaylı band — TUR-3): iki ÇAPA noktasından çözülen
+   AFİN model: fiyat_TL = sabit + birim × hacim_cm3(boy). Çapalar şemada
+   `fiyatCapalari: [[boyMm1, TL1], [boyMm2, TL2]]` (pilot: [[60,150],[300,1300]] →
+   birim ≈ 1,2306 TL/cm³, sabit ≈ 140,72 TL) — sabit/birim ELLE YAZILMAZ, çapadan
+   ÇÖZÜLÜR (Okan ileride tek çapa sayısını değiştirince eğri kendiliğinden türesin).
+   Hacim, referans modelden küple ölçeklenir: hacim(boy) = refHacimCm3 × 1000 ×
+   (boy/refYükseklik)³ (mm³) — doğrusallık fiyat↔hacim ilişkisindedir. Fiyat en küçük
+   boydan itibaren KESİN ARTAN (düz-bölge artefaktı yok); görünen fiyat TAM TL'ye
+   yuvarlanır. Standart renkler (Siyah/Beyaz/Gri) fiyatı değiştirmez.
 
    SEPET/SİPARİŞ TAŞIMA: seçimler mevcut parametrik satır kanalıyla taşınır
    (satir.parametreler/parametre_detay/hacim_mm3/parametrik_fiyat_kurus) + satir.konfigur
@@ -33,19 +36,24 @@
     return h.refHacimCm3 * 1000 * oran * oran * oran;
   }
 
-  // Taban hacim = en küçük boyun hacmi -> min boyda çarpan 1 (fiyat = taban, ZEMİN).
-  function tabanHacimMm3(konfigur) {
-    return hacimMm3(konfigur, konfigur.boyutMm.min);
+  // Afin modeli çapa çiftinden çözer: fiyat_TL = sabit + birim × hacim_cm3.
+  // İşlem sırası tools/build.py _konfigur_fiyat_modeli ile BİREBİR (drift nöbeti testte).
+  function fiyatModeli(konfigur) {
+    var c = konfigur.fiyatCapalari;
+    if (!c || c.length !== 2) { return null; }
+    var v1 = hacimMm3(konfigur, c[0][0]) / 1000;
+    var v2 = hacimMm3(konfigur, c[1][0]) / 1000;
+    var birim = (c[1][1] - c[0][1]) / (v2 - v1);
+    return { birim: birim, sabit: c[0][1] - birim * v1 };
   }
 
-  // Birim fiyat (kuruş). Çark TEK KAYNAK: secenekler.js parametrikFiyatKurus.
-  // Malzeme PLA sabittir (katsayı 1.00); renk Siyah/Beyaz/Gri -> ek yüzde yok.
-  function fiyatKurus(konfigur, boyMm, renk, secenekModulu) {
-    var SECENEK = secenekModulu || root.PRUVO_SECENEK;
-    if (!SECENEK || konfigur.tabanFiyatTL == null) { return null; }
-    return SECENEK.parametrikFiyatKurus(
-      konfigur.tabanFiyatTL, tabanHacimMm3(konfigur), hacimMm3(konfigur, boyMm),
-      "PLA", renk || "");
+  // Birim fiyat (kuruş): afin model, görünen fiyat TAM TL'ye yuvarlanır (mimar kararı) —
+  // kuruş = round(TL) × 100; sepet/WhatsApp aynı değeri taşır (ikinci hesap yok).
+  // Çapalar tanım gereği tam tutar: en küçük boyda TL1, çapa-2 boyunda TL2.
+  function fiyatKurus(konfigur, boyMm) {
+    var m = fiyatModeli(konfigur);
+    if (!m) { return null; }
+    return Math.round(m.sabit + m.birim * (hacimMm3(konfigur, boyMm) / 1000)) * 100;
   }
 
   // Serbest girilen boyu aralığa kırpar + adıma oturtur (mm). Geçersiz girişte
@@ -74,7 +82,7 @@
     var el = document.getElementById("opsiyonFiyat");
     if (!el || !durum.konfigur) { return; }
     var SECENEK = root.PRUVO_SECENEK;
-    var kurus = fiyatKurus(durum.konfigur, durum.boyMm, durum.seciliRenk);
+    var kurus = fiyatKurus(durum.konfigur, durum.boyMm);
     if (kurus == null || !SECENEK) { el.textContent = "Fiyat için sipariş verin"; return; }
     var adetEl = document.getElementById("adetSec");
     var adet = adetEl ? SECENEK.adetDuzelt(adetEl.value) : 1;
@@ -95,7 +103,7 @@
   var KONFIGUR = {
     // saf çekirdek
     hacimMm3: hacimMm3,
-    tabanHacimMm3: tabanHacimMm3,
+    fiyatModeli: fiyatModeli,
     fiyatKurus: fiyatKurus,
     boyDuzelt: boyDuzelt,
 
@@ -182,7 +190,7 @@
       satir.parametreler = { boy_mm: durum.boyMm };
       satir.parametre_detay = (k.boyutMm.etiket || "Boy") + ": " + cmMetni(durum.boyMm) + " cm";
       satir.hacim_mm3 = hacimMm3(k, durum.boyMm);
-      satir.parametrik_fiyat_kurus = fiyatKurus(k, durum.boyMm, satir.renk);
+      satir.parametrik_fiyat_kurus = fiyatKurus(k, durum.boyMm);
       return satir;
     }
   };

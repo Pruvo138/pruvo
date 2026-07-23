@@ -207,13 +207,14 @@ jobs:
         run: python3 tools/marka-liste-test.py
 
       # KONFIGUR KABUL TESTI: konfigure edilebilir dekor urunu (renk + boy kaydirici)
-      # altyapisi. (a) konfigur sema dogrulamasi fail-closed (bozuk sema build'i dusurur),
-      # (b) fiyat monotonlugu + taban zemin — node ile GERCEK /konfigur.js + /secenekler.js
-      # kosulur (setup-node kurulu; node yoksa test FAIL-CLOSED kirmizi), Python aynasi
-      # drift nobeti dahil, (c) konfigur'suz urun sayfasi geri-uyumlu (konfigur izi yok +
-      # merge-base bayt-esitligi), (d) konfigur'lu sayfada JSON-LD Offer.price = taban
-      # (en kucuk boy) fiyati + feed ayni fiyat. Offline, sentetik fikstur, urunler.json
-      # OKUNMAZ, dosya yazmaz; build.py'den ONCE kosar (render_product'i dogrudan cagirir).
+      # altyapisi. (a) konfigur sema dogrulamasi fail-closed (bozuk sema/capa build'i
+      # dusurur), (b) afin capa fiyat modeli — node ile GERCEK /konfigur.js kosulur
+      # (setup-node kurulu; node yoksa test FAIL-CLOSED kirmizi): kesin artanlik + capa
+      # tam-tutar dogrulugu + tam-TL yuvarlama + Python aynasi drift nobeti, (c)
+      # konfigur'suz urun sayfasi geri-uyumlu (konfigur izi yok + merge-base
+      # bayt-esitligi), (d) konfigur'lu sayfada JSON-LD Offer.price = minimum (capa-1)
+      # fiyat + feed ayni fiyat. Offline, sentetik fikstur, urunler.json OKUNMAZ, dosya
+      # yazmaz; build.py'den ONCE kosar (render_product'i dogrudan cagirir).
       - name: Konfigur (dekor konfigurator) kabul testi
         run: python3 tools/konfigur-test.py
 

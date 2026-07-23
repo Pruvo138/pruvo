@@ -626,12 +626,15 @@ def taban_fiyat_metni(tl):
 #     "renkler": ["Siyah", "Beyaz", "Gri"],            # secenekler.js RENK_SECENEKLERI alt kümesi, "Diğer" YASAK
 #     "renkGorselIndeks": {"Siyah": 0, ...},           # renk -> gorseller[i] (görsel değişimi)
 #     "boyutMm": {"min": 60, "max": 300, "adim": 10, "varsayilan": 150, "etiket": "Yükseklik"},
-#     "hacim": {"refYukseklikMm": 1899.739, "refHacimCm3": 239222.8}   # referans model ölçümü
+#     "hacim": {"refYukseklikMm": 1899.739, "refHacimCm3": 239222.8},  # referans model ölçümü
+#     "fiyatCapalari": [[60, 150], [300, 1300]]        # [boyMm, TL] × 2 — eğri bu iki çapadan çözülür
 #   }
-# FİYAT ÇARKI YENİ DEĞİL: secenekler.js parametrikFiyatKurus (PLA 1.00, standart renk) —
-# taban fiyat = ürünün "fiyat" alanındaki sayı (= EN KÜÇÜK boyun fiyatı, ZEMİN; JSON-LD
-# Offer.price ve Merchant feed'e mevcut kod yolundan otomatik bu sayı gider), taban hacim =
-# en küçük boyun hacmi -> fiyat = taban × max(1, (boy/min)³), boyla SÜREKLİ artar.
+# FİYAT MODELİ (mimar kararı, Okan onaylı band — TUR-3): iki çapadan çözülen AFİN model
+# fiyat_TL = sabit + birim × hacim_cm3(boy); pilot çapalarla birim ≈ 1,2306 TL/cm³,
+# sabit ≈ 140,72 TL. sabit/birim koda YAZILMAZ, çapadan ÇÖZÜLÜR (Okan tek çapa sayısını
+# değiştirince eğri türesin). Fiyat en küçük boydan itibaren KESİN ARTAN; görünen fiyat
+# TAM TL'ye yuvarlanır. Ürünün "fiyat" alanı = çapa-1 (EN KÜÇÜK boy) fiyatı — JSON-LD
+# Offer.price ve Merchant feed'e mevcut kod yolundan otomatik bu (minimum) sayı gider.
 
 
 def konfigur_dogrula(p):
@@ -703,10 +706,42 @@ def konfigur_dogrula(p):
                 hatalar.append("renkGorselIndeks[%r] geçersiz görsel indeksi: %r (gorseller %d adet)"
                                % (r, idx, len(gorseller)))
 
-    # Taban fiyat = "fiyat" alanındaki sayı (feed/JSON-LD ile TEK kaynak). Boşsa çark dönemez.
-    if not feed_price((p.get("fiyat") or "").strip()):
-        hatalar.append('konfigur\'lu üründe "fiyat" sayısal taban fiyat taşımalı '
-                       '(ör. "150 TL" — en küçük boyun fiyatı; JSON-LD/feed de bunu basar)')
+    # Fiyat çapaları: [boyMm, TL] × 2 — afin eğri bu iki noktadan çözülür.
+    capalar = k.get("fiyatCapalari")
+    capa_gecerli = True
+    if (not isinstance(capalar, list) or len(capalar) != 2 or
+            any(not isinstance(c, list) or len(c) != 2 for c in capalar)):
+        hatalar.append("fiyatCapalari [[boyMm, TL], [boyMm, TL]] biçiminde tam 2 çapa olmalı")
+        capa_gecerli = False
+    else:
+        for c in capalar:
+            for v in c:
+                if not isinstance(v, (int, float)) or isinstance(v, bool) or not v > 0:
+                    hatalar.append("fiyatCapalari değerleri pozitif sayı olmalı: %r" % (c,))
+                    capa_gecerli = False
+                    break
+    if capa_gecerli:
+        if not capalar[0][0] < capalar[1][0]:
+            hatalar.append("fiyatCapalari boyları artan sırada olmalı (capa1.boy < capa2.boy)")
+        if not capalar[0][1] < capalar[1][1]:
+            hatalar.append("fiyatCapalari fiyatları artan olmalı (birim > 0 -> fiyat kesin artan)")
+        if isinstance(bm, dict) and isinstance(bm.get("min"), (int, float)) and \
+                isinstance(bm.get("max"), (int, float)):
+            if abs(capalar[0][0] - bm["min"]) > 1e-9:
+                hatalar.append("capa1 EN KÜÇÜK boyda olmalı (capa1.boy == boyutMm.min) — "
+                               "JSON-LD/feed minimum fiyat beyanı bu çapadan gelir")
+            if capalar[1][0] > bm["max"] + 1e-9:
+                hatalar.append("capa2.boy boyutMm.max'ı aşamaz")
+
+    # "fiyat" alanı = çapa-1 (EN KÜÇÜK boyun) fiyatı (feed/JSON-LD ile TEK kaynak). Boş ya
+    # da çapadan farklıysa minimum fiyat beyanı yalan olur -> reddedilir.
+    fiyat_sayi = feed_price((p.get("fiyat") or "").strip())
+    if not fiyat_sayi:
+        hatalar.append('konfigur\'lu üründe "fiyat" sayısal minimum fiyat taşımalı '
+                       '(ör. "150 TL" — çapa-1/en küçük boyun fiyatı; JSON-LD/feed bunu basar)')
+    elif capa_gecerli and abs(int(fiyat_sayi) - capalar[0][1]) > 0.005:
+        hatalar.append('"fiyat" alanı (%s TL) çapa-1 fiyatıyla (%s TL) aynı olmalı '
+                       "(JSON-LD Offer.price = minimum fiyat beyanı)" % (fiyat_sayi, capalar[0][1]))
     return hatalar
 
 
@@ -719,13 +754,23 @@ def konfigur_hacim_mm3(konfigur, boy_mm):
     return float(h["refHacimCm3"]) * 1000 * oran * oran * oran
 
 
-def konfigur_fiyat_kurus(konfigur, taban_tl, boy_mm):
-    """secenekler.js parametrikFiyatKurus'un (PLA, standart renk) Python aynası:
-    kuruş = round(taban×100 × max(1, hacim/tabanHacim)). Math.round eşleniği floor(x+0.5).
+def _konfigur_fiyat_modeli(konfigur):
+    """/konfigur.js fiyatModeli'nin Python aynası (AYNI işlem sırası): iki çapadan
+    afin model çöz -> (birim TL/cm³, sabit TL)."""
+    c = konfigur["fiyatCapalari"]
+    v1 = konfigur_hacim_mm3(konfigur, c[0][0]) / 1000.0
+    v2 = konfigur_hacim_mm3(konfigur, c[1][0]) / 1000.0
+    birim = (c[1][1] - c[0][1]) / (v2 - v1)
+    return birim, c[0][1] - birim * v1
+
+
+def konfigur_fiyat_kurus(konfigur, boy_mm):
+    """/konfigur.js fiyatKurus'un Python aynası: fiyat_TL = sabit + birim × hacim_cm3,
+    TAM TL'ye yuvarlanır (Math.round eşleniği floor(x+0.5)), kuruş = TL × 100.
     Drift nöbeti: tools/konfigur-test.py bu fonksiyonu node'daki GERÇEK JS ile karşılaştırır."""
-    taban_hacim = konfigur_hacim_mm3(konfigur, konfigur["boyutMm"]["min"])
-    kurus = taban_tl * 100 * max(1.0, konfigur_hacim_mm3(konfigur, boy_mm) / taban_hacim) * (1 + 0 / 100.0)
-    return int(math.floor(kurus + 0.5))
+    birim, sabit = _konfigur_fiyat_modeli(konfigur)
+    tl = sabit + birim * (konfigur_hacim_mm3(konfigur, boy_mm) / 1000.0)
+    return int(math.floor(tl + 0.5)) * 100
 
 
 def _sayi_metni(v):
@@ -1344,12 +1389,11 @@ def render_product(p, all_products):
     elif konfigur:
         # KONFIGUR (dekor konfigüratörü): renk butonları (görsel değişimli) + boy kaydırıcısı
         # + adet/ikon satırı. Kategoriden bağımsız (pilot Dekorasyon); malzeme PLA sabittir
-        # (dropdown yok — fiyat çarkı PLA 1.00). JS öncesi fiyat = VARSAYILAN boyun kuruşlu
-        # fiyatı (/konfigur.js aynı değeri tazeler, metin zıplamaz); renk seçimi fiyatı
-        # değiştirmez (standart renkler), o yüzden "…'den başlayan" eki YOK.
-        _taban_tl = int(feed_price(fiyat))
+        # (dropdown yok). JS öncesi fiyat = VARSAYILAN boyun TAM-TL fiyatı (/konfigur.js
+        # aynı değeri tazeler, metin zıplamaz); renk seçimi fiyatı değiştirmez (standart
+        # renkler), o yüzden "…'den başlayan" eki YOK.
         _bm = konfigur["boyutMm"]
-        _varsayilan_kurus = konfigur_fiyat_kurus(konfigur, _taban_tl, _bm["varsayilan"])
+        _varsayilan_kurus = konfigur_fiyat_kurus(konfigur, _bm["varsayilan"])
         _renk_gorselleri = {r: imgs[konfigur["renkGorselIndeks"][r]]
                             for r in konfigur["renkler"]}
         _boy_araligi = "%s–%s cm" % (_sayi_metni(_bm["min"] / 10.0),
@@ -1522,7 +1566,7 @@ def render_product(p, all_products):
         _konfigur_client = {
             "boyutMm": konfigur["boyutMm"],
             "hacim": konfigur["hacim"],
-            "tabanFiyatTL": _taban_tl,
+            "fiyatCapalari": konfigur["fiyatCapalari"],
         }
         konfigur_tanim = ("\nvar URUN_KONFIGUR = "
                           + json.dumps(_konfigur_client, ensure_ascii=False,
