@@ -206,6 +206,18 @@ jobs:
       - name: Marka liste kabul testi (küratörlü çipler + varyant katlama)
         run: python3 tools/marka-liste-test.py
 
+      # KONFIGUR KABUL TESTI: konfigure edilebilir dekor urunu (renk + boy kaydirici)
+      # altyapisi. (a) konfigur sema dogrulamasi fail-closed (bozuk sema/capa build'i
+      # dusurur), (b) afin capa fiyat modeli — node ile GERCEK /konfigur.js kosulur
+      # (setup-node kurulu; node yoksa test FAIL-CLOSED kirmizi): kesin artanlik + capa
+      # tam-tutar dogrulugu + tam-TL yuvarlama + Python aynasi drift nobeti, (c)
+      # konfigur'suz urun sayfasi geri-uyumlu (konfigur izi yok + merge-base
+      # bayt-esitligi), (d) konfigur'lu sayfada JSON-LD Offer.price = minimum (capa-1)
+      # fiyat + feed ayni fiyat. Offline, sentetik fikstur, urunler.json OKUNMAZ, dosya
+      # yazmaz; build.py'den ONCE kosar (render_product'i dogrudan cagirir).
+      - name: Konfigur (dekor konfigurator) kabul testi
+        run: python3 tools/konfigur-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
@@ -245,7 +257,9 @@ jobs:
           # (index.html EDGE_KATALOG) KAPALIYKEN site onu cekmez; yine de yayina girer ki
           # bayrak acildigi an dosya CDN'de hazir olsun (eklenmeseydi bayrak acilinca
           # ana sayfa 404 alip bos kalirdi).
-          cp secenekler.js urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml filament-veri.js taban-fiyatlar.js .nojekyll _site/
+          # konfigur.js = dekor konfiguratoru modulu (urunler.json "konfigur" alanli urun
+          # sayfalari yukler; bugun urun yok, dosya yayinda hazir bekler — taban-fiyatlar deseni).
+          cp secenekler.js konfigur.js urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml filament-veri.js taban-fiyatlar.js .nojekyll _site/
           cp -r urun _site/
           # Icerik/yasal sayfa dizinleri: build.py'nin urettigi _yayin-icerik-dizinleri.txt'ten
           # (TEK KAYNAK sayfalar.py SITEMAP_SLUGS) kopyalanir -> yeni CONTENT_PAGES otomatik
