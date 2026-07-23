@@ -742,6 +742,51 @@ def konfigur_dogrula(p):
     elif capa_gecerli and abs(int(fiyat_sayi) - capalar[0][1]) > 0.005:
         hatalar.append('"fiyat" alanı (%s TL) çapa-1 fiyatıyla (%s TL) aynı olmalı '
                        "(JSON-LD Offer.price = minimum fiyat beyanı)" % (fiyat_sayi, capalar[0][1]))
+
+    # Malzeme ekseni (OPSİYONEL): "malzemeler" [{ad, katsayi}] + "varsayilanMalzeme".
+    # Alan YOKSA sayfa bugünkü gibi (renk+boy) davranır — GERİ UYUMLULUK. Alan varsa
+    # fail-closed: katsayı secenekler.js FILAMENT_FARK TEK KAYNAĞIYLA örtüşmeli (drift
+    # nöbeti — yanlış katsayı = sessiz ticari beyan hatası), ABS+Karbon SATIŞA KAPALI
+    # (FILAMENT_SIRA dışı ad reddedilir), en düşük malzeme × çapa-1 = "fiyat" (min offer).
+    malz = k.get("malzemeler")
+    if malz is not None or "varsayilanMalzeme" in k:
+        if not isinstance(malz, list) or not malz:
+            hatalar.append("malzemeler boş ya da liste değil (malzeme ekseni açıksa dolu olmalı)")
+            malz = []
+        adlar, katsayilar = [], []
+        for m in malz:
+            if not isinstance(m, dict):
+                hatalar.append("malzemeler öğesi obje değil: %r" % (m,))
+                continue
+            ad, kat = m.get("ad"), m.get("katsayi")
+            if not isinstance(ad, str) or not ad.strip():
+                hatalar.append("malzeme.ad boş/dize değil: %r" % (ad,))
+                continue
+            if ad not in FILAMENT_SIRA:
+                hatalar.append("satışa kapalı/bilinmeyen malzeme: %r (izinli: %s; "
+                               "ABS+Karbon SATIŞA KAPALI)" % (ad, ", ".join(FILAMENT_SIRA)))
+                continue
+            adlar.append(ad)
+            beklenen = 1.0 + FILAMENT_FARK.get(ad, 0) / 100.0
+            if not isinstance(kat, (int, float)) or isinstance(kat, bool) or not kat > 0:
+                hatalar.append("malzeme.katsayi pozitif sayı olmalı: %r (%s)" % (kat, ad))
+            elif abs(float(kat) - beklenen) > 1e-9:
+                hatalar.append("malzeme %s katsayısı %.2f olmalı (secenekler.js FILAMENT_FARK "
+                               "tek kaynağı), gelen: %r" % (ad, beklenen, kat))
+            else:
+                katsayilar.append(float(kat))
+        if len(set(adlar)) != len(adlar):
+            hatalar.append("malzemeler içinde mükerrer 'ad' var")
+        vm = k.get("varsayilanMalzeme")
+        if not isinstance(vm, str) or vm not in adlar:
+            hatalar.append("varsayilanMalzeme malzemeler listesindeki bir 'ad' olmalı: %r" % (vm,))
+        # JSON-LD/feed Offer.price = MİNİMUM: en düşük katsayı × çapa-1 (round-TL) == "fiyat".
+        if katsayilar and capa_gecerli and fiyat_sayi:
+            min_tl = int(math.floor(capalar[0][1] * min(katsayilar) + 0.5))
+            if abs(min_tl - int(fiyat_sayi)) > 0.005:
+                hatalar.append('malzeme ekseni açıkken "fiyat" (%s TL) EN DÜŞÜK malzeme × '
+                               "çapa-1 (%s TL) olmalı (JSON-LD Offer.price = minimum offer)"
+                               % (fiyat_sayi, min_tl))
     return hatalar
 
 
@@ -764,12 +809,15 @@ def _konfigur_fiyat_modeli(konfigur):
     return birim, c[0][1] - birim * v1
 
 
-def konfigur_fiyat_kurus(konfigur, boy_mm):
-    """/konfigur.js fiyatKurus'un Python aynası: fiyat_TL = sabit + birim × hacim_cm3,
-    TAM TL'ye yuvarlanır (Math.round eşleniği floor(x+0.5)), kuruş = TL × 100.
+def konfigur_fiyat_kurus(konfigur, boy_mm, katsayi=1.0):
+    """/konfigur.js fiyatKurus'un Python aynası: fiyat_TL = (sabit + birim × hacim_cm3) ×
+    malzeme katsayısı, TAM TL'ye yuvarlanır (Math.round eşleniği floor(x+0.5)), kuruş = TL × 100.
+    katsayi=1.0 (PLA / malzemesiz) => malzeme-öncesi kodla BİREBİR aynı (geri uyumluluk).
     Drift nöbeti: tools/konfigur-test.py bu fonksiyonu node'daki GERÇEK JS ile karşılaştırır."""
     birim, sabit = _konfigur_fiyat_modeli(konfigur)
-    tl = sabit + birim * (konfigur_hacim_mm3(konfigur, boy_mm) / 1000.0)
+    k = katsayi if (isinstance(katsayi, (int, float)) and not isinstance(katsayi, bool)
+                    and katsayi > 0) else 1.0
+    tl = (sabit + birim * (konfigur_hacim_mm3(konfigur, boy_mm) / 1000.0)) * k
     return int(math.floor(tl + 0.5)) * 100
 
 
@@ -798,6 +846,29 @@ def _konfigur_boy_html(konfigur):
                min="%s" max="%s" step="%s" value="%s" aria-hidden="true" tabindex="-1">
       </div>""" % (esc(etiket), c_min, c_max, c_adim, c_var,
                    c_min, c_max, c_adim, c_var))
+
+
+def _konfigur_malzeme_html(malzemeler, varsayilan):
+    """Malzeme seçici (renk butonlarıyla TUTARLI dil): .renk-btn görselini paylaşır
+    (yeni CSS YOK -> konfigur'suz sayfalar bayt-eşit kalır) + .malzeme-btn JS kancası.
+    Varsayılan malzeme önden 'secili'; data-katsayi /konfigur.js'e fiyat çarpanını taşır.
+    "(+%N)" etiketi katsayıdan TÜRETİLİR (secenekler.js filament çipi diliyle aynı)."""
+    btns = []
+    for m in malzemeler:
+        ad = m["ad"]
+        kat = float(m["katsayi"])
+        yuzde = int(round((kat - 1.0) * 100))
+        etk = ad + ((" (+%%%d)" % yuzde) if yuzde else "")
+        sec = " secili" if ad == varsayilan else ""
+        btns.append(
+            '<button type="button" class="renk-btn malzeme-btn%s" data-malzeme="%s" '
+            'data-katsayi="%s"><span class="renk-ad">%s</span></button>'
+            % (sec, esc(ad), _sayi_metni(kat), esc(etk)))
+    return ("""
+      <div class="opsiyon-row opsiyon-renk">
+        <label>Malzeme</label>
+        <div class="renk-butonlar" id="malzemeButonlar">""" + "".join(btns) + """</div>
+      </div>""")
 
 
 CART_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 '
@@ -1387,34 +1458,52 @@ def render_product(p, all_products):
                     IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))))
         price_html = ""
     elif konfigur:
-        # KONFIGUR (dekor konfigüratörü): renk butonları (görsel değişimli) + boy kaydırıcısı
-        # + adet/ikon satırı. Kategoriden bağımsız (pilot Dekorasyon); malzeme PLA sabittir
-        # (dropdown yok). JS öncesi fiyat = VARSAYILAN boyun TAM-TL fiyatı (/konfigur.js
-        # aynı değeri tazeler, metin zıplamaz); renk seçimi fiyatı değiştirmez (standart
-        # renkler), o yüzden "…'den başlayan" eki YOK.
+        # KONFIGUR (dekor konfigüratörü): (opsiyonel malzeme seçici) + renk butonları
+        # (görsel değişimli) + boy kaydırıcısı + adet/ikon satırı. Kategoriden bağımsız
+        # (pilot Dekorasyon). "malzemeler" alanı YOKSA malzeme PLA sabittir (seçici basılmaz,
+        # geri uyumluluk); VARSA varsayılan malzeme önden seçili ve fiyatı çarpanla ölçekler.
+        # JS öncesi fiyat = VARSAYILAN boy × VARSAYILAN malzeme TAM-TL fiyatı (/konfigur.js
+        # aynı değeri tazeler, metin zıplamaz); renk seçimi fiyatı değiştirmez (standart renkler).
         _bm = konfigur["boyutMm"]
-        _varsayilan_kurus = konfigur_fiyat_kurus(konfigur, _bm["varsayilan"])
+        _malzemeler = konfigur.get("malzemeler")
+        _vm = konfigur.get("varsayilanMalzeme")
+        _vm_katsayi = 1.0
+        if _malzemeler:
+            for _m in _malzemeler:
+                if _m.get("ad") == _vm:
+                    _vm_katsayi = float(_m.get("katsayi") or 1.0)
+                    break
+        _varsayilan_kurus = konfigur_fiyat_kurus(konfigur, _bm["varsayilan"], _vm_katsayi)
         _renk_gorselleri = {r: imgs[konfigur["renkGorselIndeks"][r]]
                             for r in konfigur["renkler"]}
         _boy_araligi = "%s–%s cm" % (_sayi_metni(_bm["min"] / 10.0),
                                      _sayi_metni(_bm["max"] / 10.0))
+        _malzeme_html = _konfigur_malzeme_html(_malzemeler, _vm) if _malzemeler else ""
+        _konf_baslik = ("Malzeme, renk ve boyutunu seçin" if _malzemeler
+                        else "Rengini ve boyutunu seçin")
+        _boy_not = ("%s %s arasında ayarlanabilir; fiyat seçtiğiniz boyut ve malzemeye göre "
+                    "hesaplanır." % (_bm.get("etiket") or "Boy", _boy_araligi)) if _malzemeler \
+            else ("%s %s arasında ayarlanabilir; fiyat seçtiğiniz boyuta göre hesaplanır."
+                  % (_bm.get("etiket") or "Boy", _boy_araligi))
         opsiyonlar_html = ("""
     <div class="opsiyonlar konf" id="opsiyonlar">
-      <div class="konf-baslik">Rengini ve boyutunu seçin</div>
+      <div class="konf-baslik">{konf_baslik}</div>
+      {malzeme}
       {renk}
       {boy}
       {adet}
       <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
       <div class="konf-hacim">{boy_not}</div>
     </div>
-    """).format(renk=_renk_butonlari_html(konfigur["renkler"], _renk_gorselleri),
+    """).format(konf_baslik=esc(_konf_baslik),
+                malzeme=_malzeme_html,
+                renk=_renk_butonlari_html(konfigur["renkler"], _renk_gorselleri),
                 boy=_konfigur_boy_html(konfigur),
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
                     IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
                 fiyat_metni=taban_fiyat_metni(_varsayilan_kurus / 100.0),
-                boy_not=esc("%s %s arasında ayarlanabilir; fiyat seçtiğiniz boyuta göre "
-                            "hesaplanır." % (_bm.get("etiket") or "Boy", _boy_araligi)))
+                boy_not=esc(_boy_not))
         price_html = ""
     elif fonksiyonel and not parametrik:
         # Kart-secim (Okan, 16 Tem): malzeme dropdown YOK — malzeme aşağıdaki filament

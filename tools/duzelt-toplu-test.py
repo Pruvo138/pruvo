@@ -257,12 +257,73 @@ def test_d():
     shutil.rmtree(repo, ignore_errors=True)
 
 
+# ---------------------------------------------------------------- (e) konfigur whitelist
+# Yapisal bosluk kapatildi: DEGISTIRILEBILIR'e "konfigur" eklendi (mevcut urunun konfigur
+# alani mesru araçla — duzelt.py --toplu — yazilabilsin). urunler-guard.py alan-agnostik +
+# deger-bagli oldugu icin GUVENLIK MODELI DEGISMEZ (yeni alan ozel muamele gormez).
+KONF = {
+    "renkler": ["Siyah"], "renkGorselIndeks": {"Siyah": 0},
+    "boyutMm": {"min": 60, "max": 300, "adim": 10, "varsayilan": 150, "etiket": "Yukseklik"},
+    "hacim": {"refYukseklikMm": 1899.739, "refHacimCm3": 239222.8},
+    "fiyatCapalari": [[60, 150], [300, 1300]],
+    "malzemeler": [{"ad": "PLA", "katsayi": 1.0}, {"ad": "PETG", "katsayi": 1.3}],
+    "varsayilanMalzeme": "PLA",
+}
+
+
+def test_konfigur():
+    print("\n(e) konfigur alani: whitelist KABUL + guard deger-bagli izin + KIRMIZI-MUTASYON")
+    # (a) konfigur op KABUL + guard._authorized deger-bagli mesru/gayrimesru ayrimi
+    repo = sahte_repo()
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_konf")
+    guard = modul_yukle(repo, "urunler-guard.py", "guard_konf")
+    kontrol("konfigur" in mod.DEGISTIRILEBILIR,
+            "DEGISTIRILEBILIR 'konfigur' icerir (yapisal bosluk kapandi)")
+    yol = islem_yaz(repo, [{"id": "test-urun-1", "alan": "konfigur", "deger": KONF}])
+    rc, out, err = cagir(mod, ["--toplu", yol])
+    kontrol(rc == 0, "konfigur op exit 0 (%s)" % (err.strip() or out.strip().splitlines()[-1:]))
+    with open(os.path.join(repo, "urunler.json"), encoding="utf-8") as f:
+        yeni = {p["id"]: p for p in json.load(f)}
+    kontrol(yeni["test-urun-1"].get("konfigur") == KONF, "urun-1 konfigur alani yazildi")
+    kontrol(yeni["test-urun-1"]["baslik"] == "Test Urun 1"
+            and yeni["test-urun-2"]["fiyat"] == "200 TL", "beyan disi alanlara DOKUNULMADI")
+    with open(os.path.join(repo, ".urunler-duzelt-izin.json"), encoding="utf-8") as f:
+        manifest = json.load(f)
+    kontrol(guard._authorized("test-urun-1", "konfigur", yeni["test-urun-1"], manifest),
+            "guard._authorized: konfigur MESRU (deger manifestle birebir esit)")
+    bozuk = dict(yeni["test-urun-1"])
+    bozuk_konf = json.loads(json.dumps(KONF))
+    bozuk_konf["fiyatCapalari"] = [[60, 999], [300, 1300]]      # farkli deger
+    bozuk["konfigur"] = bozuk_konf
+    kontrol(not guard._authorized("test-urun-1", "konfigur", bozuk, manifest),
+            "guard._authorized: BEYAN DISI konfigur degeri mesru DEGIL (deger-bagli izin)")
+    shutil.rmtree(repo, ignore_errors=True)
+
+    # (b) KIRMIZI-MUTASYON: whitelist'ten 'konfigur' cikar -> ayni op REDDEDILIR (nobetci canli).
+    repo2 = sahte_repo()
+    mod2 = modul_yukle(repo2, "duzelt.py", "duzelt_konf_mut")
+    mod2.DEGISTIRILEBILIR = frozenset(x for x in mod2.DEGISTIRILEBILIR if x != "konfigur")
+    urunler_yol = os.path.join(repo2, "urunler.json")
+    once = sha(urunler_yol)
+    yol2 = islem_yaz(repo2, [{"id": "test-urun-1", "alan": "konfigur", "deger": KONF}])
+    rc, out, err = cagir(mod2, ["--toplu", yol2])
+    cikti = out + err
+    kontrol(rc == 2, "MUTASYON: konfigur whitelist DISIYKEN op REDDEDILIR (rc=2, olculen %s)" % rc)
+    kontrol("REDDEDILDI" in cikti, "MUTASYON: 'REDDEDILDI' uyarisi basildi")
+    kontrol("izinsiz alan" in cikti, "MUTASYON: 'izinsiz alan' gerekcesi ciktida")
+    kontrol(sha(urunler_yol) == once, "MUTASYON: urunler.json BYTE-ESIT (hicbir yazim yok)")
+    kontrol(not os.path.exists(os.path.join(repo2, ".urunler-duzelt-izin.json")),
+            "MUTASYON: izin manifesti OLUSMADI")
+    shutil.rmtree(repo2, ignore_errors=True)
+
+
 def main():
     print("duzelt.py --toplu kabul testi (SAHTE katalog; gercek urunler.json'a dokunulmaz)")
     test_a()
     test_b()
     test_c()
     test_d()
+    test_konfigur()
     print("\n%s" % ("TUM KONTROLLER GECTI." if not hatalar
                     else "BASARISIZ (%d): \n  - %s" % (len(hatalar), "\n  - ".join(hatalar))))
     return 0 if not hatalar else 1

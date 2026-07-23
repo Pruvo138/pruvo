@@ -47,13 +47,15 @@
     return { birim: birim, sabit: c[0][1] - birim * v1 };
   }
 
-  // Birim fiyat (kuruş): afin model, görünen fiyat TAM TL'ye yuvarlanır (mimar kararı) —
-  // kuruş = round(TL) × 100; sepet/WhatsApp aynı değeri taşır (ikinci hesap yok).
-  // Çapalar tanım gereği tam tutar: en küçük boyda TL1, çapa-2 boyunda TL2.
-  function fiyatKurus(konfigur, boyMm) {
+  // Birim fiyat (kuruş): afin model × malzeme katsayısı, görünen fiyat TAM TL'ye yuvarlanır
+  // (mimar kararı) — kuruş = round(afin_TL × katsayi) × 100; sepet/WhatsApp aynı değeri taşır
+  // (ikinci hesap yok). katsayi verilmezse/geçersizse 1 (PLA / malzemesiz) => malzeme-öncesi
+  // kodla BİREBİR aynı (geri uyumluluk). Çapalar tanım gereği tam tutar (katsayi=1'de).
+  function fiyatKurus(konfigur, boyMm, katsayi) {
     var m = fiyatModeli(konfigur);
     if (!m) { return null; }
-    return Math.round(m.sabit + m.birim * (hacimMm3(konfigur, boyMm) / 1000)) * 100;
+    var k = (typeof katsayi === "number" && isFinite(katsayi) && katsayi > 0) ? katsayi : 1;
+    return Math.round((m.sabit + m.birim * (hacimMm3(konfigur, boyMm) / 1000)) * k) * 100;
   }
 
   // Serbest girilen boyu aralığa kırpar + adıma oturtur (mm). Geçersiz girişte
@@ -75,14 +77,15 @@
 
   // ---- sayfa entegrasyonu ----
   var durum = { konfigur: null, cb: null, seciliRenk: "", boyMm: 0,
-                sayiEl: null, kaydiriciEl: null, renkKok: null };
+                sayiEl: null, kaydiriciEl: null, renkKok: null,
+                malzemeAcik: false, seciliMalzeme: "", seciliKatsayi: 1, malzemeKok: null };
 
   // Fiyat göstergesi: kart-seçim sayfasıyla aynı dil — adet DAHİL toplam, kuruşuyla.
   function fiyatYaz() {
     var el = document.getElementById("opsiyonFiyat");
     if (!el || !durum.konfigur) { return; }
     var SECENEK = root.PRUVO_SECENEK;
-    var kurus = fiyatKurus(durum.konfigur, durum.boyMm);
+    var kurus = fiyatKurus(durum.konfigur, durum.boyMm, durum.seciliKatsayi);
     if (kurus == null || !SECENEK) { el.textContent = "Fiyat için sipariş verin"; return; }
     var adetEl = document.getElementById("adetSec");
     var adet = adetEl ? SECENEK.adetDuzelt(adetEl.value) : 1;
@@ -114,7 +117,35 @@
       durum.sayiEl = document.getElementById("konfigurBoy");
       durum.kaydiriciEl = document.getElementById("konfigurKaydirici");
       durum.renkKok = document.getElementById("renkButonlar");
+      durum.malzemeKok = document.getElementById("malzemeButonlar");
+      durum.malzemeAcik = false;
+      durum.seciliMalzeme = "";
+      durum.seciliKatsayi = 1;
       var degisim = function () { fiyatYaz(); if (durum.cb) { durum.cb(); } };
+
+      // Malzeme butonları (opsiyonel): varsayılan önden 'secili'; her butonun data-katsayi'si
+      // fiyatı çarpar. Alan yoksa (buton kökü yok) fiyat PLA sabit (katsayi=1, geri uyumluluk).
+      if (durum.malzemeKok) {
+        var mbtnlar = durum.malzemeKok.querySelectorAll(".malzeme-btn");
+        var mSec = function () {
+          durum.seciliMalzeme = this.getAttribute("data-malzeme") || "";
+          durum.seciliKatsayi = parseFloat(this.getAttribute("data-katsayi")) || 1;
+          for (var q = 0; q < mbtnlar.length; q++) {
+            mbtnlar[q].classList.toggle("secili", mbtnlar[q] === this);
+          }
+          degisim();
+        };
+        for (var mi = 0; mi < mbtnlar.length; mi++) {
+          mbtnlar[mi].addEventListener("click", mSec);
+        }
+        // Başlangıç seçimi: sunucunun 'secili' işaretlediği (varsayılan) buton; yoksa ilki.
+        var ilkM = durum.malzemeKok.querySelector(".malzeme-btn.secili") || mbtnlar[0];
+        if (ilkM) {
+          durum.malzemeAcik = true;
+          durum.seciliMalzeme = ilkM.getAttribute("data-malzeme") || "";
+          durum.seciliKatsayi = parseFloat(ilkM.getAttribute("data-katsayi")) || 1;
+        }
+      }
 
       // Renk butonları: seçim + görsel değişimi (data-gorsel build.py'den gelir).
       if (durum.renkKok) {
@@ -164,7 +195,12 @@
     },
     hazir: function () { return !!durum.konfigur; },
     // Sepete ekleme şartı: renk seçilmiş olmalı (boy her an geçerli — boyDuzelt kırpar).
-    gecerliMi: function () { return !!(durum.konfigur && durum.seciliRenk); },
+    // Malzeme ekseni açıksa varsayılan önden seçili -> seciliMalzeme daima dolu; yine de
+    // savunmacı kontrol edilir (malzeme açıkken boş kalmışsa eklemeyi kilitle).
+    gecerliMi: function () {
+      return !!(durum.konfigur && durum.seciliRenk &&
+                (!durum.malzemeAcik || durum.seciliMalzeme));
+    },
     tazele: function () { fiyatYaz(); },
     // Renk seçilmeden "Sepete Ekle": renk butonları titrer + kırmızı vurgu (kart-seçim deseni).
     eksikVurgula: function () {
@@ -186,11 +222,14 @@
       if (!durum.konfigur) { return satir; }
       var k = durum.konfigur;
       satir.renk = durum.seciliRenk || "";
+      // Malzeme ekseni açıksa seçili malzeme siparişe (sepet/WhatsApp "Malzeme: PETG") taşınır;
+      // kapalıysa satir.malzeme DEFAULT ("PLA", bosSatir) kalır -> mevcut davranış korunur.
+      if (durum.malzemeAcik && durum.seciliMalzeme) { satir.malzeme = durum.seciliMalzeme; }
       satir.konfigur = true;
       satir.parametreler = { boy_mm: durum.boyMm };
       satir.parametre_detay = (k.boyutMm.etiket || "Boy") + ": " + cmMetni(durum.boyMm) + " cm";
       satir.hacim_mm3 = hacimMm3(k, durum.boyMm);
-      satir.parametrik_fiyat_kurus = fiyatKurus(k, durum.boyMm);
+      satir.parametrik_fiyat_kurus = fiyatKurus(k, durum.boyMm, durum.seciliKatsayi);
       return satir;
     }
   };

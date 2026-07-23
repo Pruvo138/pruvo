@@ -63,7 +63,8 @@ MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
 MANIFEST_SIL = os.path.join(ROOT, ".urunler-sil-izin.json")
 LOG = os.path.join(ROOT, ".urunler-guard.log")
 
-DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "gorseller", "lisans"}
+DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "gorseller",
+                    "lisans", "konfigur"}
 
 
 def _log(msg):

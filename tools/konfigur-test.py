@@ -74,6 +74,15 @@ KURT_KONFIGUR = {
 TABAN_TL = 150      # çapa-1 fiyatı = "fiyat" alanı = JSON-LD/feed minimum fiyatı
 CAPA2_TL = 1300     # çapa-2 (en büyük boy) fiyatı
 
+# MALZEME EKSENİ (Okan KESİN katsayılar; ABS+Karbon SATIŞA KAPALI -> KOYULMAZ):
+#   PLA 1.00 (taban/varsayılan) · PETG 1.30 · ASA 1.60.
+# Katsayılar secenekler.js FILAMENT_FARK tek kaynağıyla örtüşür (konfigur_dogrula doğrular).
+MALZEMELER = [{"ad": "PLA", "katsayi": 1.0},
+              {"ad": "PETG", "katsayi": 1.3},
+              {"ad": "ASA", "katsayi": 1.6}]
+KURT_KONFIGUR_MALZEME = dict(KURT_KONFIGUR, malzemeler=[dict(m) for m in MALZEMELER],
+                             varsayilanMalzeme="PLA")
+
 
 def urun(konfigur=None, **ek):
     p = {
@@ -138,6 +147,43 @@ def test_sema():
     mutant("çapada negatif değer", lambda k: k.update(
         {"fiyatCapalari": [[60, -150], [300, 1300]]}))
 
+    # --- MALZEME EKSENİ şeması (opsiyonel alan; varsa fail-closed) ---
+    kontrol(build.konfigur_dogrula(urun(KURT_KONFIGUR_MALZEME)) == [],
+            "geçerli MALZEME ekseni (PLA/PETG/ASA) hatasız kabul edilir")
+
+    def mutant_m(ad, degistir):
+        p = urun(KURT_KONFIGUR_MALZEME)
+        degistir(p["konfigur"])
+        hatalar = build.konfigur_dogrula(p)
+        kontrol(bool(hatalar), "malzeme mutant reddedilir: %s (%s)"
+                % (ad, hatalar[0] if hatalar else "HATA YOK — sessiz kabul!"))
+
+    mutant_m("varsayilanMalzeme eksik", lambda k: k.pop("varsayilanMalzeme"))
+    mutant_m("varsayilanMalzeme listede yok",
+             lambda k: k.update({"varsayilanMalzeme": "TPU"}))
+    mutant_m("malzemeler boş liste", lambda k: k.update({"malzemeler": []}))
+    mutant_m("malzemeler öğesi obje değil",
+             lambda k: k.update({"malzemeler": ["PLA", "PETG"]}))
+    mutant_m("satışa kapalı malzeme (Karbon)", lambda k: k["malzemeler"].append(
+        {"ad": "Karbon", "katsayi": 2.0}))
+    mutant_m("satışa kapalı malzeme (ABS)", lambda k: k["malzemeler"].append(
+        {"ad": "ABS", "katsayi": 1.5}))
+    mutant_m("bilinmeyen malzeme adı", lambda k: k["malzemeler"].append(
+        {"ad": "Naylon", "katsayi": 1.4}))
+    mutant_m("PETG katsayısı yanlış (1.30!=1.50 — drift)",
+             lambda k: k["malzemeler"].__setitem__(1, {"ad": "PETG", "katsayi": 1.5}))
+    mutant_m("PLA katsayısı yanlış (1.00!=1.10)",
+             lambda k: k["malzemeler"].__setitem__(0, {"ad": "PLA", "katsayi": 1.1}))
+    mutant_m("katsayı ≤ 0", lambda k: k["malzemeler"].__setitem__(
+        0, {"ad": "PLA", "katsayi": 0}))
+    mutant_m("mükerrer malzeme adı", lambda k: k["malzemeler"].append(
+        {"ad": "PLA", "katsayi": 1.0}))
+    # En düşük malzeme (PLA 1.00) olmadan "fiyat"=150 min offer beyanı YALAN olur:
+    mutant_m("PLA yok -> min offer (195) != fiyat (150)",
+             lambda k: k.update({"malzemeler": [{"ad": "PETG", "katsayi": 1.3},
+                                                 {"ad": "ASA", "katsayi": 1.6}],
+                                 "varsayilanMalzeme": "PETG"}))
+
     # render_product fail-closed: geçersiz konfigur build'i DÜŞÜRÜR
     bozuk = urun(KURT_KONFIGUR)
     bozuk["konfigur"]["boyutMm"]["min"] = 500
@@ -153,37 +199,50 @@ NODE_RUNNER = r"""
 "use strict";
 var KONFIGUR = require(process.argv[2]);        // /konfigur.js modülü (gerçek dosya)
 var k = JSON.parse(process.argv[3]);            // konfigur şeması (fiyatCapalari dahil)
+var kat = process.argv[4];                      // opsiyonel malzeme katsayısı ("" -> 2-arg çağrı)
+var useKat = (kat !== undefined && kat !== "");
 var b = k.boyutMm, seri = [];
 for (var boy = b.min; boy <= b.max + 1e-9; boy += b.adim) {
-  seri.push({ boy: boy, kurus: KONFIGUR.fiyatKurus(k, boy) });
+  var kurus = useKat ? KONFIGUR.fiyatKurus(k, boy, parseFloat(kat))
+                     : KONFIGUR.fiyatKurus(k, boy);   // 2-arg = PLA/malzemesiz identity
+  seri.push({ boy: boy, kurus: kurus });
 }
 process.stdout.write(JSON.stringify({ seri: seri, model: KONFIGUR.fiyatModeli(k) }));
 """
 
 
-def test_fiyat():
-    print("\n(b) AFİN FİYAT MODELİ — kesin artanlık + çapa doğruluğu (node ile gerçek /konfigur.js)")
-    node = shutil.which("node")
-    kontrol(bool(node), "node bulunur (FAIL-CLOSED ön koşul — deploy.yml setup-node kurar)")
-    if not node:
-        return None
-
+def _node_seri(node, konfigur, kat_arg=""):
+    """/konfigur.js'i node ile koşup boy serisini (kuruş) döndürür. kat_arg="" -> 2-arg
+    (PLA/malzemesiz identity); "1.3"/"1.6" -> o katsayıyla. (seri, model) döner (hata -> None)."""
     tmp = tempfile.mkdtemp(prefix="konfigur-test-")
     runner = os.path.join(tmp, "runner.js")
     with open(runner, "w", encoding="utf-8") as f:
         f.write(NODE_RUNNER)
     try:
         r = subprocess.run(
-            [node, runner, os.path.join(ROOT, "konfigur.js"), json.dumps(KURT_KONFIGUR)],
+            [node, runner, os.path.join(ROOT, "konfigur.js"), json.dumps(konfigur), kat_arg],
             capture_output=True, text=True, timeout=60)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
-    kontrol(r.returncode == 0, "node koşumu başarılı (stderr: %s)" % (r.stderr.strip() or "-"))
     if r.returncode != 0:
-        return None
+        return None, r.stderr.strip() or "-"
     sonuc = json.loads(r.stdout)
-    seri = sonuc["seri"]
-    model = sonuc.get("model") or {}
+    return (sonuc["seri"], sonuc.get("model") or {}), None
+
+
+def test_fiyat():
+    print("\n(b) AFİN FİYAT MODELİ + MALZEME KATSAYISI — kesin artanlık + çapa/katsayı "
+          "doğruluğu (node ile gerçek /konfigur.js)")
+    node = shutil.which("node")
+    kontrol(bool(node), "node bulunur (FAIL-CLOSED ön koşul — deploy.yml setup-node kurar)")
+    if not node:
+        return None
+
+    taban, hata = _node_seri(node, KURT_KONFIGUR, "")   # 2-arg = PLA/malzemesiz identity
+    kontrol(taban is not None, "node koşumu başarılı (stderr: %s)" % (hata or "-"))
+    if taban is None:
+        return None
+    seri, model = taban
 
     bm = KURT_KONFIGUR["boyutMm"]
     beklenen_adet = int(round((bm["max"] - bm["min"]) / bm["adim"])) + 1
@@ -215,12 +274,66 @@ def test_fiyat():
             "build.py Python aynası node/JS ile kuruşu kuruşuna aynı (sapan boy: %s)"
             % (sapmalar or "-"))
 
-    print("  --- FİYAT TABLOSU (afin: %d TL @6cm .. %d TL @30cm, PLA, standart renk) ---"
+    # PLA=1.00 IDENTITY: 2-arg (malzemesiz) çağrı, katsayi=1.0 açık çağrıyla BİREBİR aynı
+    # (= "malzeme-öncesiyle tutar-eşit" / geri uyumluluk kanıtı).
+    pla, phata = _node_seri(node, KURT_KONFIGUR, "1")
+    kontrol(pla is not None, "node PLA (katsayi=1.0) koşumu (stderr: %s)" % (phata or "-"))
+    pla_seri = pla[0] if pla else []
+    kontrol(bool(pla_seri) and all(pla_seri[i]["kurus"] == seri[i]["kurus"]
+                                   for i in range(len(seri))),
+            "PLA katsayi=1.00 IDENTITY: malzeme-öncesi (2-arg) fiyatla BİREBİR tutar-eşit")
+
+    # --- MALZEME KATSAYILARI: PETG ×1.30, ASA ×1.60 (Okan KESİN) ---
+    tablolar = {"PLA": seri}
+    for ad, kat, kat_str in (("PETG", 1.3, "1.3"), ("ASA", 1.6, "1.6")):
+        malz, mhata = _node_seri(node, KURT_KONFIGUR, kat_str)
+        kontrol(malz is not None, "node %s (katsayi=%.2f) koşumu (stderr: %s)"
+                % (ad, kat, mhata or "-"))
+        if malz is None:
+            continue
+        mseri = malz[0]
+        tablolar[ad] = mseri
+        kontrol(len(mseri) == len(seri), "%s: tüm boy adımları hesaplandı" % ad)
+        kontrol(all(x["kurus"] % 100 == 0 for x in mseri),
+                "%s: görünen fiyat TAM TL (kuruş küsuratı yok)" % ad)
+        kontrol(all(mseri[i]["kurus"] > mseri[i - 1]["kurus"] for i in range(1, len(mseri))),
+                "%s: boyla KESİN ARTAN" % ad)
+        # Çapalarda katsayı TAM: %s = PLA × katsayı (tam TL) — 6 cm ve 30 cm.
+        kontrol(mseri[0]["kurus"] == int(round(TABAN_TL * kat)) * 100,
+                "%s ÇAPA-1 (6 cm) = %s TL (PLA %d × %.2f)"
+                % (ad, int(round(TABAN_TL * kat)), TABAN_TL, kat))
+        kontrol(mseri[-1]["kurus"] == int(round(CAPA2_TL * kat)) * 100,
+                "%s ÇAPA-2 (30 cm) = %s TL (PLA %d × %.2f)"
+                % (ad, int(round(CAPA2_TL * kat)), CAPA2_TL, kat))
+        kontrol(mseri[0]["kurus"] == seri[0]["kurus"] * kat and
+                mseri[-1]["kurus"] == seri[-1]["kurus"] * kat,
+                "%s = PLA × %.2f (çapalarda TAM tutar)" % (ad, kat))
+        # Katsayıda MONOTONLUK: her boyda %s fiyatı PLA'dan büyük.
+        kontrol(all(mseri[i]["kurus"] > seri[i]["kurus"] for i in range(len(seri))),
+                "%s her boyda PLA'dan pahalı (katsayı monotonluğu)" % ad)
+        # Drift nöbeti: Python aynası node/JS ile kuruşu kuruşuna aynı (bu katsayıda).
+        m_sap = [x["boy"] for x in mseri
+                 if build.konfigur_fiyat_kurus(KURT_KONFIGUR, x["boy"], kat) != x["kurus"]]
+        kontrol(not m_sap, "%s: build.py Python aynası node/JS ile kuruşu kuruşuna aynı "
+                "(sapan boy: %s)" % (ad, m_sap or "-"))
+
+    # ASA > PETG her boyda (katsayı sıralaması 1.60 > 1.30)
+    if "ASA" in tablolar and "PETG" in tablolar:
+        kontrol(all(tablolar["ASA"][i]["kurus"] > tablolar["PETG"][i]["kurus"]
+                    for i in range(len(seri))),
+                "ASA her boyda PETG'den pahalı (1.60 > 1.30)")
+
+    print("  --- FİYAT TABLOSU (3 malzeme × 6 boy; afin %d TL @6cm .. %d TL @30cm, standart renk) ---"
           % (TABAN_TL, CAPA2_TL))
-    for x in seri:
+    print("      boy   |     PLA(1.00)  |    PETG(1.30)  |     ASA(1.60)")
+    for i, x in enumerate(seri):
         if x["boy"] in (60, 100, 150, 200, 250, 300):
-            print("    %5.1f cm  ->  %s" % (x["boy"] / 10.0,
-                                            build.taban_fiyat_metni(x["kurus"] / 100.0)))
+            hucre = []
+            for ad in ("PLA", "PETG", "ASA"):
+                v = tablolar.get(ad, [{}] * len(seri))[i].get("kurus")
+                hucre.append(build.taban_fiyat_metni(v / 100.0) if v is not None else "-")
+            print("    %5.1f cm | %14s | %14s | %14s"
+                  % (x["boy"] / 10.0, hucre[0], hucre[1], hucre[2]))
     return seri
 
 
@@ -341,6 +454,9 @@ def test_konfigur_sayfasi(seri):
     kontrol("KART_SECIM = false" in html,
             "KART_SECIM kapalı (malzeme-kartı kilidi konfigur'da tetiklenmez)")
 
+    kontrol('id="malzemeButonlar"' not in html and "malzeme-btn" not in html,
+            "MALZEMESİZ konfigur: malzeme seçici YOK (geri uyumluluk — renk+boy)")
+
     if seri:
         varsayilan = KURT_KONFIGUR["boyutMm"]["varsayilan"]
         beklenen_kurus = next(x["kurus"] for x in seri if x["boy"] == varsayilan)
@@ -349,13 +465,57 @@ def test_konfigur_sayfasi(seri):
                 "JS öncesi fiyat metni = varsayılan boyun kuruşlu fiyatı (%s)" % beklenen_metin)
 
 
+# --------------------------------------------------------------- (e) malzeme ekseni sayfası
+def test_konfigur_malzeme_sayfasi(seri):
+    print("\n(e) MALZEME EKSENLİ KONFIGUR SAYFASI (PLA/PETG/ASA) + JSON-LD MİNİMUM")
+    p = urun(KURT_KONFIGUR_MALZEME)
+    html = build.render_product(p, [p])
+
+    ld_bloklar = re.findall(
+        r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
+    product_ld = json.loads(ld_bloklar[0])
+    offers = product_ld.get("offers") or {}
+    kontrol(offers.get("price") == str(TABAN_TL),
+            "malzeme ekseninde JSON-LD Offer.price HALA MİNİMUM (PLA 6 cm = %d): %r"
+            % (TABAN_TL, offers.get("price")))
+    feed_xml, feed_n = build.render_merchant_feed([p])
+    kontrol(feed_n == 1 and ("<g:price>%d TRY</g:price>" % TABAN_TL) in feed_xml,
+            "Merchant feed minimum (PLA) fiyatla girer (%d TRY)" % TABAN_TL)
+
+    kontrol('id="malzemeButonlar"' in html, "malzeme seçici (butonlar) basılır")
+    kontrol(html.count("malzeme-btn") == len(MALZEMELER),
+            "her malzeme bir buton (%d): %d" % (len(MALZEMELER), html.count("malzeme-btn")))
+    for m in MALZEMELER:
+        kontrol(('data-malzeme="%s"' % m["ad"]) in html, "malzeme butonu: %s" % m["ad"])
+        kontrol(('data-katsayi="%s"' % build._sayi_metni(m["katsayi"])) in html,
+                "malzeme %s -> data-katsayi=%s" % (m["ad"], build._sayi_metni(m["katsayi"])))
+    kontrol('class="renk-btn malzeme-btn secili" data-malzeme="PLA"' in html,
+            "varsayılan malzeme PLA önden 'secili'")
+    kontrol("PETG (+%30)" in html and "ASA (+%60)" in html,
+            "malzeme etiketleri katsayıdan türer (PETG +%30 · ASA +%60)")
+    kontrol('data-malzeme="ABS"' not in html and 'data-malzeme="Karbon"' not in html,
+            "ABS/Karbon malzeme SEÇENEĞİ YOK (satışa kapalı)")
+    kontrol('src="/konfigur.js' in html and 'id="cartBtn"' in html,
+            "/konfigur.js + Sepete Ekle ikonu (malzeme sayfada da) bağlı")
+    kontrol("KART_SECIM = false" in html,
+            "malzeme ekseninde de KART_SECIM kapalı (malzeme-kartı kilidi tetiklenmez)")
+
+    if seri:
+        varsayilan = KURT_KONFIGUR["boyutMm"]["varsayilan"]
+        beklenen_kurus = next(x["kurus"] for x in seri if x["boy"] == varsayilan)  # PLA serisi
+        beklenen_metin = build.taban_fiyat_metni(beklenen_kurus / 100.0)
+        kontrol(('id="opsiyonFiyat">%s<' % beklenen_metin) in html,
+                "JS öncesi fiyat = varsayılan boy × VARSAYILAN malzeme (PLA): %s" % beklenen_metin)
+
+
 # ------------------------------------------------------------------ ana akış
 def main():
-    print("KONFIGUR KABUL TESTİ (dekor konfigüratörü altyapısı)")
+    print("KONFIGUR KABUL TESTİ (dekor konfigüratörü altyapısı + malzeme ekseni)")
     test_sema()
     seri = test_fiyat()
     test_geri_uyumluluk()
     test_konfigur_sayfasi(seri)
+    test_konfigur_malzeme_sayfasi(seri)
     print("-" * 70)
     if HATALAR:
         print("SONUC: KIRMIZI ❌  (%d sorun)" % len(HATALAR))
