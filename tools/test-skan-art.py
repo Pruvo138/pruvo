@@ -6,62 +6,68 @@
 davranisi sari seri ("Jeneratör") ile BIREBIR ayni sinif: ana nav'da GIZLI, ana sayfaya
 kendi BANNER'iyle girilir, ?kategori= derin linki/arama/urun sayfasi calisir.
 
-Bu dosya o kararin KALICI NOBETCISI. Olctugu maddeler (spec: tools/paket-skan-art-kategori.md):
+Bu dosya o kararin KALICI NOBETCISI. Olctugu maddeler:
   (a) "Skan Art" gizli-kategori listesinin HER IKI kaynaginda (tools/build.py NAV_GIZLI +
       index.html GIZLI_KATEGORILER) ve AYNI sira indeksinde.
   (b) NAV CIPI YOK + DERIN LINK VAR — kaynak-metni degil DAVRANIS olculur: renderCats()
       ve applyUrlParams() index.html'den AYIKLANIP node ile GERCEKTEN kosturulur
-      (sahte DOM/location). Cip listesi ["Tümü"]+CATEGORIES'ten SAPARSA ve
-      ?kategori=Skan%20Art activeCat'i SET ETMEZSE kirmizi.
-      [23 Tem curutme: eski surum yalniz "GIZLI_KATEGORILER tanimlayicisi renderCats
-      govdesinde gecmesin" diyordu -> nav'a duz literal ("Skan Art") eklemek KACAKTI;
-      derin link kontrolu de DOSYA GENELINDE alt-dize ariyordu -> applyUrlParams beyaz
-      listesi daraltilip eski ifade YORUMDA birakilinca KACAKTI.]
-  (c) FONKSIYONEL_KATEGORILER'de (tools/build.py + secenekler.js IKISINDE, ayni icerik)
-      VE secenekler.js'in KENDI davranisi node ile olculur: fonksiyonelMi("Skan Art")
-      true, satirOzeti malzeme/renk/adet satirini ve malzeme KATSAYISINI uyguluyor.
-      [Curutme: liste ciftinin literal esitligi, fonksiyonelMi'ye eklenen
-      `&& kategori !== "Skan Art"` bypass'ini GORMUYORDU — para etkisi PETG +%30 kaybi.]
-  (d) Kompakt kart duzeni IKI ayri fiksturle olculur:
+      (sahte DOM/location).
+  (c) FONKSIYONEL_KATEGORILER'de (tools/build.py + secenekler.js IKISINDE) VE
+      secenekler.js'in KENDI davranisi node ile olculur: fonksiyonelMi("Skan Art") true,
+      satirOzeti malzeme KATSAYISINI uyguluyor (para etkisi).
+  (d) Kompakt kart duzeni UC ayri fiksturle olculur:
       (d1) kurt urununun URETILEN sayfasi (bugunku gercek kayit — konfigur'lu),
       (d2) SENTETIK semasiz/konfigursuz Skan Art urunu — kompakt duzeni SADECE
-           FONKSIYONEL_KATEGORILER uyeligi tasir. [Curutme: kurt konfigur'lu oldugu icin
-           (d1) tek basina FONKSIYONEL uyeligini HIC olcmuyor; "Skan Art" listeden
-           silinince kurt sayfasi BAYT-OZDES kaliyordu.]
+           FONKSIYONEL_KATEGORILER uyeligi tasir,
+      (d3) URETIM HATTI: build.py'nin ANA main() dongusu bir KUM HAVUZUNDA kosturulur ve
+           urun/<kurt-id>/index.html'in DISKTE olustugu + sitemap.xml'de kurt URL'inin
+           bulundugu olculur. [24 Tem curutme: main() dongusune "gizli kategoriyi atla"
+           satiri konunca kurt sayfasi HIC uretilmiyordu (urun/ 9508 -> 9486) ama test
+           yesildi; urun/ dizini TAMAMEN silinince de yesildi.]
   (e) Kurt urununun kategorisi "Skan Art", govdesi degismemis (SHA256 capasi) VE
-      katalogdaki Skan Art urun SAYISI capali. [Curutme: 168 Dekorasyon urununun
-      tamami toptan Skan Art'a tasindiginda test yesil kaliyordu.]
-  (f) Ana sayfa banner'i: <main> icinde, hedefi /?kategori=Skan%20Art, renderGrid
-      goster/gizle KABLOSU DOGRU YONDE (anaGorunum ? "" : "none" — tersi degil),
-      banner ailesinin HICBIR CSS kuralinda banner'i olduren bildirim yok
-      (display:none / visibility:hidden / opacity:0 / pointer-events:none),
-      banner ailesinin TUM CSS kurallarinda (dosya geneli, pencere YOK) SARI TOKEN yok
-      (hex + rgb()/rgba() + hsl() + CSS renk adlari cozumlenir) ve banner metni marka
-      kurallarina uyuyor ("3D baski" YOK, sehir adi YOK — CLAUDE.md).
-      [Curutme: toggle'i tersine cevirmek, .skan-banner'a display:none/pointer-events:none
-      vermek, sari override'i tarama penceresinin ALTINA koymak, sariyi rgb() ile yazmak
-      ve banner metnine "Fethiye ... 3D baski" yazmak KACAKTI.]
-  (g) Merchant feed taksonomisi: GOOGLE_PRODUCT_CATEGORY'de "Skan Art" var (yoksa
-      g:google_product_category satiri feed'e SESSIZCE hic yazilmaz).
+      katalogdaki Skan Art urun SAYISI capali.
+  (f) Ana sayfa banner'i — POZITIF GORUNURLUK OLCUMU (yasakli-bildirim listesi DEGIL):
+      banner ROOT'una uygulanan efektif CSS kurallari secici eslesmesiyle (etiket + id +
+      sinif + OZNITELIK secicisi + :not/:is/:where) toplanir, ozgulluk+kaynak sirasina gore
+      cozulur ve asgari gecerli durum dogrulanir (display != none, visibility gorunur,
+      opacity >= 0.9, pozitif hesaplanan yukseklik, ekran ici konum, kirpma yok).
+      Banner ailesinin renk paleti var(--ad) DOLAYIMI COZULEREK taranir; 8/4/6/3 haneli
+      hex + rgb()/hsl() + CSS renk adlari kapsanir, modern renk notasyonu (oklch/lab/lch/
+      color()/color-mix) banner ailesinde FAIL-CLOSED YASAK.
+      Banner metni marka kurallarina uyar ("3D baski" YOK, sehir adi YOK — CLAUDE.md).
+      renderGrid'in goster/gizle KABLOSU node'da GERCEKTEN kosturulur (kaynak-metni kalibi
+      degil): ana gorunumde display === "", kategori/arama/marka gorunumunde "none".
+      Banner HEDEFI de davranisla olculur: banner'in GERCEK href'i applyUrlParams'a
+      verilir ve activeCat "Skan Art" oluyor mu diye bakilir ("+" kodlamasi de gecerlidir).
+      [24 Tem curutme — kapatilan KACAKLAR: ':root{--skan-acc:#f5c518}' + 'background:
+      var(--skan-acc)' · '#ffd400ff' / '#ffd400CC' / 'oklch(0.86 0.17 95)' ·
+      'a[id="skanBanner"]{display:none}' · 'min-height:0;height:0;overflow:hidden' ·
+      'position:absolute;left:-9999px' · toggle blogu dururken hemen ardina
+      'getElementById("skanBanner").style.display="none"' eklemek.
+      Kapatilan YANLIS-KIRMIZILAR: '@media(max-width:400px){.skan-banner-ust{display:none}}'
+      (cocuk ETIKET gizlemek mesru — olduren-bildirim taramasi artik YALNIZ ROOT'a bakar) ·
+      href="/?kategori=Skan+Art" (davranissal olarak AYNI).]
+  (g) Merchant feed taksonomisi: GOOGLE_PRODUCT_CATEGORY'de "Skan Art" var.
   (h) Filament tavsiyesi: filamentler.json kategoriTavsiye'de "Skan Art" var ve uretilen
-      sayfada "Tavsiyemiz" rozeti duruyor (yoksa rozet SESSIZCE duserdi).
-  (i) Iki kelimeli kategori adi URL'e YUZDE-KODLU giriyor: ne gorunur breadcrumb href'inde
-      ne JSON-LD BreadcrumbList item'inde HAM BOSLUK var (bosluk sorgu dizesinde gecersiz).
-  (j) ILGILI URUNLER bolumu AYAKTA: ince alt-seride (Skan Art'ta bugun TEK urun) ayni
-      kategori havuzu bosalinca build.AKRABA_KATEGORI yedegi devreye girer. [Curutme:
-      yedek yokken kurt sayfasi 8 ic linkini kaybediyordu (rel-card 8 -> 0) ve 23 CI
-      kapisinin HICBIRI kirmiziya dusmuyordu.]
+      sayfada "Tavsiyemiz" rozeti duruyor.
+  (i) Iki kelimeli kategori adi URL'e YUZDE-KODLU giriyor (breadcrumb + JSON-LD).
+  (j) ILGILI URUNLER bolumu AYAKTA: ince alt-seride build.AKRABA_KATEGORI yedegi devrede.
+  (k) Skan Art kategorisindeki HER urun `konfigur` alani TASIR.
+      NEDEN: shop odeme Worker'i secenekler.js'i BUNDLE'a gommuyor ve deploy.yml onu
+      YAYINLAMIYOR -> canli worker "Skan Art"i bilmez, konfigursuz bir Skan Art urununde
+      malzeme/renk katsayisi SESSIZCE DUSER (olculdu: ASA + ozel renk 27.600 yerine
+      15.000 kurus). Worker bundle drift'i kapanana dek bu madde fail-closed emniyet.
 
-Ag YOK, repo dosyasina YAZMAZ, build.py'den ONCE kosabilir. NODE GEREKIR (davranis
-bolumleri) — CI'da setup-node kurulu ve node yoksa test FAIL-CLOSED kirmizi yanar
-(marka-liste-test.py / konfigur-test.py deseni). Yerelde node yoksa acik uyariyla
-atlamak icin: SKAN_ART_NODE_ATLA=1.
+Ag YOK, repo dosyasina YAZMAZ (d3 kum havuzu gecici dizinde), build.py'den ONCE kosabilir.
+NODE GEREKIR (davranis bolumleri) — CI'da setup-node kurulu ve node yoksa test FAIL-CLOSED
+kirmizi yanar. Yerelde node yoksa acik uyariyla atlamak icin: SKAN_ART_NODE_ATLA=1.
 Kullanim:  python3 tools/test-skan-art.py     (0 = gecti, 1 = kirmizi)
 """
 import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -161,18 +167,19 @@ def js_fonksiyon(metin, ad):
     return metin[m.start():k]
 
 
-# ---------------------------------------------------------------- CSS ayristirici
+# ================================================================== CSS ALTYAPISI
 def css_bloklari(html_metin):
     """index.html'deki TUM <style> bloklarinin govdesini birlestir."""
     return "\n".join(re.findall(r"<style[^>]*>(.*?)</style>", html_metin, re.S))
 
 
 def css_kurallari(css):
-    """(secici, bildirimler) ciftleri. @media/@supports gibi sarmalayicilarin ICI de duz
-    listeye acilir -> kural dosyanin NERESINDE olursa olsun taranir (pencere YOK)."""
+    """(secici, bildirimler, medya) uclusu. @media/@supports gibi sarmalayicilarin ICI de
+    duz listeye acilir -> kural dosyanin NERESINDE olursa olsun taranir (pencere YOK).
+    `medya` = ic ice @-kosullarinin listesi (bos liste = kosulsuz kural)."""
     css = re.sub(r"/\*.*?\*/", " ", css, flags=re.S)
 
-    def _ayikla(blok):
+    def _ayikla(blok, medya):
         out, i = [], 0
         while True:
             j = blok.find("{", i)
@@ -188,51 +195,370 @@ def css_kurallari(css):
                 k += 1
             govde = blok[j + 1:k - 1]
             if sec.startswith("@"):
-                out.extend(_ayikla(govde))
+                out.extend(_ayikla(govde, medya + [sec]))
             else:
-                out.append((sec, govde))
+                out.append((sec, govde, medya))
             i = k
 
-    return _ayikla(css)
+    return _ayikla(css, [])
 
 
-# Banner AILESI: banner elemanina ya da cocuklarina dokunan her secici. .jen-banner de
-# dahildir — banner o iskeleti YENIDEN KULLANIYOR, orada verilen bir display:none ikisini
-# birden oldururdu.
-BANNER_SECICI = re.compile(r"(?:\.skan-banner|\.jen-banner|#skanBanner)[\w-]*")
+def _derinlik_bol(metin, ayirici):
+    """Parantez/koseli-parantez/tirnak derinligi 0 iken `ayirici`den bol."""
+    parca, buf, derinlik, tirnak = [], "", 0, ""
+    for ch in metin:
+        if tirnak:
+            buf += ch
+            if ch == tirnak:
+                tirnak = ""
+            continue
+        if ch in "\"'":
+            tirnak = ch
+            buf += ch
+            continue
+        if ch in "([":
+            derinlik += 1
+        elif ch in ")]":
+            derinlik -= 1
+        if ch == ayirici and derinlik <= 0:
+            parca.append(buf)
+            buf = ""
+        else:
+            buf += ch
+    parca.append(buf)
+    return parca
 
-# Banner'i GORUNMEZ/TIKLANAMAZ yapan bildirimler (bosluklar esnek).
-OLDUREN_BILDIRIM = [
-    (re.compile(r"display\s*:\s*none", re.I), "display:none"),
-    (re.compile(r"visibility\s*:\s*(hidden|collapse)", re.I), "visibility:hidden"),
-    (re.compile(r"opacity\s*:\s*0(?:\.0+)?\s*(?:;|$|!)", re.I), "opacity:0"),
-    (re.compile(r"pointer-events\s*:\s*none", re.I), "pointer-events:none"),
-    (re.compile(r"content-visibility\s*:\s*hidden", re.I), "content-visibility:hidden"),
-]
+
+def bildirimleri_ayristir(govde):
+    """`a:b;c:d` -> [(ozellik, deger, onemli)] (sira korunur, kucuk harf ozellik adi)."""
+    out = []
+    for parca in _derinlik_bol(govde, ";"):
+        parca = parca.strip()
+        if not parca or ":" not in parca:
+            continue
+        ad, _, deger = parca.partition(":")
+        ad = ad.strip().lower()
+        deger = deger.strip()
+        onemli = False
+        if re.search(r"!\s*important\s*$", deger, re.I):
+            onemli = True
+            deger = re.sub(r"!\s*important\s*$", "", deger, flags=re.I).strip()
+        if ad:
+            out.append((ad, deger, onemli))
+    return out
 
 
-def banner_kurallari(css):
-    return [(s, d) for (s, d) in css_kurallari(css) if BANNER_SECICI.search(s)]
+# ---------------------------------------------------------------- secici motoru
+COZULEMEYEN_SECICI = []          # ayristirilamayan AMA banner ailesine deyen seciciler
+
+# Durum sahte-siniflari: eslesme KOSULLU ama fail-closed EŞLEŞMIŞ sayilir
+# (`#skanBanner:hover{display:none}` banner'i pratikte oldurur).
+DURUM_PCLS = {"hover", "focus", "focus-visible", "focus-within", "active", "visited",
+              "link", "any-link", "target", "lang", "dir"}
+# Bu sahte-siniflar banner ROOT'una (bir <a> elemani) HICBIR ZAMAN uymaz.
+UYMAZ_PCLS = {"root", "before", "after", "disabled", "checked", "required", "invalid", "valid"}
+LISTE_PCLS = {"is", "where", "matches", "any", "-webkit-any", "-moz-any"}
+SAHTE_ELEMAN = {"before", "after", "first-line", "first-letter", "marker", "backdrop",
+                "selection", "placeholder", "file-selector-button"}
+
+
+def _bilesikler(sec):
+    """Seciciyi kombinatorlerden bolup TUM bilesenleri dondurur (sonuncusu = SUBJECT)."""
+    out, buf, derinlik, tirnak, i = [], "", 0, "", 0
+    while i < len(sec):
+        ch = sec[i]
+        if tirnak:
+            buf += ch
+            if ch == tirnak:
+                tirnak = ""
+            i += 1
+            continue
+        if ch in "\"'":
+            tirnak = ch
+            buf += ch
+            i += 1
+            continue
+        if ch in "([":
+            derinlik += 1
+            buf += ch
+        elif ch in ")]":
+            derinlik -= 1
+            buf += ch
+        elif derinlik == 0 and (ch.isspace() or ch in ">+~"):
+            if buf:
+                out.append(buf)
+                buf = ""
+            while i < len(sec) and (sec[i].isspace() or sec[i] in ">+~"):
+                i += 1
+            continue
+        else:
+            buf += ch
+        i += 1
+    if buf:
+        out.append(buf)
+    return out
+
+
+def bilesik_ayristir(bl):
+    """Tek bilesigi (kombinatorsuz parca) yapiya cevir; ayristirilamazsa None."""
+    d = {"etiket": None, "id": None, "sinif": set(), "oz": [], "psel": [], "pcls": []}
+    i = 0
+    while i < len(bl):
+        c = bl[i]
+        if c == "*":
+            i += 1
+        elif c == "#":
+            m = re.match(r"#([\w-]+)", bl[i:])
+            if not m:
+                return None
+            d["id"] = m.group(1)
+            i += m.end()
+        elif c == ".":
+            m = re.match(r"\.([\w-]+)", bl[i:])
+            if not m:
+                return None
+            d["sinif"].add(m.group(1))
+            i += m.end()
+        elif c == "[":
+            j = bl.find("]", i)
+            if j == -1:
+                return None
+            d["oz"].append(bl[i + 1:j])
+            i = j + 1
+        elif c == ":":
+            cift = bl.startswith("::", i)
+            i += 2 if cift else 1
+            m = re.match(r"[-\w]+", bl[i:])
+            if not m:
+                return None
+            ad = m.group(0).lower()
+            i += m.end()
+            arg = None
+            if i < len(bl) and bl[i] == "(":
+                derinlik, k = 1, i + 1
+                while k < len(bl) and derinlik:
+                    if bl[k] == "(":
+                        derinlik += 1
+                    elif bl[k] == ")":
+                        derinlik -= 1
+                    k += 1
+                if derinlik:
+                    return None
+                arg = bl[i + 1:k - 1]
+                i = k
+            if cift or ad in SAHTE_ELEMAN:
+                d["psel"].append((ad, arg))
+            else:
+                d["pcls"].append((ad, arg))
+        else:
+            m = re.match(r"[-\w]+", bl[i:])
+            if not m:
+                return None
+            d["etiket"] = m.group(0).lower()
+            i += m.end()
+    return d
+
+
+def _oz_esler(ifade, kok):
+    """`[href^="/?kategori"]` gibi oznitelik secicisini kok elemaniyla esle."""
+    m = re.match(r'^\s*([-\w]+)\s*(?:([~|^$*]?=)\s*("([^"]*)"|\'([^\']*)\'|[^\s\]]+)'
+                 r'\s*([iIsS])?\s*)?$', ifade)
+    if not m:
+        return None            # ayristirilamadi -> arayan fail-closed karar verir
+    ad = m.group(1).lower()
+    varsa = kok["oz"].get(ad)
+    if m.group(2) is None:
+        return varsa is not None
+    if varsa is None:
+        return False
+    ham = m.group(3)
+    beklenen = m.group(4) if m.group(4) is not None else (m.group(5) if m.group(5) is not None else ham)
+    if m.group(6) and m.group(6).lower() == "i":
+        varsa, beklenen = varsa.lower(), beklenen.lower()
+    op = m.group(2)
+    if op == "=":
+        return varsa == beklenen
+    if op == "~=":
+        return beklenen in varsa.split()
+    if op == "|=":
+        return varsa == beklenen or varsa.startswith(beklenen + "-")
+    if op == "^=":
+        return varsa.startswith(beklenen)
+    if op == "$=":
+        return varsa.endswith(beklenen)
+    if op == "*=":
+        return beklenen in varsa
+    return None
+
+
+def bilesik_esler(bl, kok):
+    """Tek bilesik banner ROOT'una uyuyor mu? True/False/None(=cozulemedi)."""
+    d = bilesik_ayristir(bl)
+    if d is None:
+        return None
+    if d["psel"]:
+        return False           # ::before/::after AYRI bir kutu — ROOT'u oldurmez
+    if d["etiket"] and d["etiket"] != kok["etiket"]:
+        return False
+    if d["id"] and d["id"] != kok["oz"].get("id"):
+        return False
+    if not d["sinif"] <= kok["sinif"]:
+        return False
+    for ifade in d["oz"]:
+        r = _oz_esler(ifade, kok)
+        if r is None:
+            return None
+        if not r:
+            return False
+    for ad, arg in d["pcls"]:
+        if ad in DURUM_PCLS:
+            continue           # fail-closed: durum sahte-sinifi ESLESMIS sayilir
+        if ad in UYMAZ_PCLS:
+            return False
+        if ad == "not":
+            if arg is None:
+                return None
+            ic = [secici_esler(p, kok) for p in _derinlik_bol(arg, ",")]
+            if any(x is None for x in ic):
+                return None
+            if any(ic):
+                return False
+            continue
+        if ad in LISTE_PCLS:
+            if arg is None:
+                return None
+            ic = [secici_esler(p, kok) for p in _derinlik_bol(arg, ",")]
+            if any(x is None for x in ic):
+                return None
+            if not any(ic):
+                return False
+            continue
+        return None            # :nth-child vb. -> cozulemedi (fail-closed karar arayanda)
+    return True
+
+
+def secici_esler(secici, kok):
+    """Virgulsuz TEK secici: SUBJECT (son) bilesigi ROOT'a uyuyor mu?"""
+    bl = _bilesikler(secici.strip())
+    if not bl:
+        return False
+    return bilesik_esler(bl[-1], kok)
+
+
+def ozgulluk(secici):
+    """(id, sinif+oz+pcls, etiket+psel) — kabaca CSS ozgullugu."""
+    a = b = c = 0
+    for bl in _bilesikler(secici.strip()):
+        d = bilesik_ayristir(bl)
+        if d is None:
+            continue
+        a += 1 if d["id"] else 0
+        b += len(d["sinif"]) + len(d["oz"]) + len([1 for ad, _ in d["pcls"] if ad != "not"])
+        c += (1 if d["etiket"] else 0) + len(d["psel"])
+    return (a, b, c)
+
+
+BANNER_JETON = re.compile(r"skan-banner|jen-banner|skanBanner|jenBanner")
+
+
+def kok_kurallari(kurallar, kok):
+    """Banner ROOT'una GERCEKTEN uygulanan kurallar: [(sira, ozgulluk, secici, govde)].
+    Ayristirilamayan AMA banner ailesine deyen secici -> COZULEMEYEN_SECICI (fail-closed).
+
+    ⚠️ DURUST SINIR: bu motor yalniz ROOT elemanini modeller, ATA zincirini modellemez.
+    Bu yuzden COK BILESENLI (`.onay-kutu a` gibi) bir secici ancak banner jetonu tasiyorsa
+    ROOT'a uygulanmis sayilir; jetonsuz torun secicileri ATLANIR — yoksa `.onay-kutu a`
+    gibi bambaska bir bilesenin kurali banner'a sahte-kirmizi yazardi. Tek bilesenli
+    seciciler (`a`, `*`, `.skan-banner`, `a[id="skanBanner"]`) her zaman degerlendirilir."""
+    out = []
+    for sira, (secici, govde, _medya) in enumerate(kurallar):
+        for tek in _derinlik_bol(secici, ","):
+            tek = tek.strip()
+            if not tek:
+                continue
+            if len(_bilesikler(tek)) > 1 and not BANNER_JETON.search(tek):
+                continue
+            r = secici_esler(tek, kok)
+            if r is None:
+                if BANNER_JETON.search(tek) or "skanBanner" in tek:
+                    COZULEMEYEN_SECICI.append(tek)
+                continue
+            if r:
+                out.append((sira, ozgulluk(tek), tek, govde))
+    return out
+
+
+def etkin_stil(kok_kural_listesi, inline_govde=""):
+    """Kaskad: (onemli, ozgulluk, sira) en buyuk kazanir. -> {ozellik: (deger, secici)}"""
+    aday = {}
+    for sira, spec, secici, govde in kok_kural_listesi:
+        for ad, deger, onemli in bildirimleri_ayristir(govde):
+            anahtar = (1 if onemli else 0, spec, sira)
+            if ad not in aday or anahtar > aday[ad][0]:
+                aday[ad] = (anahtar, deger, secici)
+    for ad, deger, onemli in bildirimleri_ayristir(inline_govde):
+        aday[ad] = (((1 if onemli else 0), (9, 9, 9), 10 ** 9), deger, "inline style")
+    return {ad: (v[1], v[2]) for ad, v in aday.items()}
+
+
+# ---------------------------------------------------------------- var() cozumu
+VAR_CAGRI = re.compile(r"var\(\s*(--[\w-]+)\s*(?:,([^()]*(?:\([^()]*\)[^()]*)*))?\)")
+
+
+def ozel_ozellik_tanimlari(kurallar):
+    """TUM kurallardaki `--ad: deger` tanimlarini topla (son tanim kazanir)."""
+    tanim = {}
+    for secici, govde, _medya in kurallar:
+        for ad, deger, _onemli in bildirimleri_ayristir(govde):
+            if ad.startswith("--"):
+                tanim[ad] = deger
+    return tanim
+
+
+def var_coz(metin, tanimlar, derinlik=0):
+    """var(--ad[, yedek]) dolayimini (ic ice dahil) coz. -> (cozulmus, cozulemeyenler)"""
+    cozulemeyen = []
+    if derinlik > 8:
+        return metin, ["var() ic ice cozum derinligi asildi: %s" % metin[:60]]
+
+    def _degistir(m):
+        ad, yedek = m.group(1), m.group(2)
+        if ad in tanimlar:
+            alt, eksik = var_coz(tanimlar[ad], tanimlar, derinlik + 1)
+            cozulemeyen.extend(eksik)
+            return alt
+        if yedek is not None:
+            alt, eksik = var_coz(yedek.strip(), tanimlar, derinlik + 1)
+            cozulemeyen.extend(eksik)
+            return alt
+        cozulemeyen.append(ad)
+        return " "
+
+    yeni = VAR_CAGRI.sub(_degistir, metin)
+    if VAR_CAGRI.search(yeni) and yeni != metin:
+        yeni, eksik = var_coz(yeni, tanimlar, derinlik + 1)
+        cozulemeyen.extend(eksik)
+    return yeni, cozulemeyen
 
 
 # ---------------------------------------------------------------- sari tarayici
-# Sari/altin ailesinden CSS renk ADLARI (tarayicinin cozdugu isimler; "amber" CSS adi
-# degildir ama pazarlama dilinde geciyor, o yuzden kelime taramasinda kalir).
+# Sari/altin ailesinden CSS renk ADLARI. Bu liste KURATORLU: uyelik = sari sayilir
+# (pastel uyeler lemonchiffon/papayawhip doygunluk esigine takiliyordu — 24 Tem kacagi).
 SARI_ADLAR = {
-    "yellow": (255, 255, 0), "gold": (255, 215, 0), "goldenrod": (218, 165, 32),
-    "darkgoldenrod": (184, 134, 11), "palegoldenrod": (238, 232, 170),
-    "khaki": (240, 230, 140), "darkkhaki": (189, 183, 107),
-    "lightyellow": (255, 255, 224), "lemonchiffon": (255, 250, 205),
-    "cornsilk": (255, 248, 220), "moccasin": (255, 228, 181),
-    "papayawhip": (255, 239, 213), "blanchedalmond": (255, 235, 205),
-    "navajowhite": (255, 222, 173), "wheat": (245, 222, 179),
-    "greenyellow": (173, 255, 47), "yellowgreen": (154, 205, 50),
+    "yellow", "gold", "goldenrod", "darkgoldenrod", "palegoldenrod",
+    "khaki", "darkkhaki", "lightyellow", "lemonchiffon", "cornsilk",
+    "moccasin", "papayawhip", "blanchedalmond", "navajowhite", "wheat",
+    "greenyellow", "yellowgreen",
 }
 SARI_KELIME = re.compile(r"yellow|gold(?:en)?|amber|sar[ıi]\b", re.I)
-HEX = re.compile(r"#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b")
-RGB_FN = re.compile(r"\brgba?\(\s*([\d.]+)(%?)[\s,]+([\d.]+)(%?)[\s,]+([\d.]+)(%?)", re.I)
-HSL_FN = re.compile(r"\bhsla?\(\s*([\d.]+)(?:deg)?[\s,]+([\d.]+)%[\s,]+([\d.]+)%", re.I)
+# 8/4 haneli (alfali) hex de yakalanir; alternatifler EN UZUNDAN siralidir, alfa ATILIR.
+HEX = re.compile(r"#([0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{4}|[0-9a-fA-F]{3})\b")
+RGB_FN = re.compile(r"\brgba?\(\s*([\d.]+)(%?)[\s,/]+([\d.]+)(%?)[\s,/]+([\d.]+)(%?)", re.I)
+HSL_FN = re.compile(r"\bhsla?\(\s*([\d.]+)(?:deg)?[\s,/]+([\d.]+)%[\s,/]+([\d.]+)%", re.I)
 AD_FN = re.compile(r"\b(%s)\b" % "|".join(sorted(SARI_ADLAR, key=len, reverse=True)), re.I)
+# Cozemedigimiz modern renk notasyonlari: banner ailesinde FAIL-CLOSED YASAK
+# (24 Tem kacagi: 'oklch(0.86 0.17 95)' saf sari, hicbir tarayiciya takilmiyordu).
+MODERN_RENK = re.compile(r"(?<![-\w])(oklch|oklab|lab|lch|hwb|color-mix|color)\s*\(", re.I)
 YORUM = re.compile(r"/\*.*?\*/|<!--.*?-->", re.S)
 
 
@@ -251,9 +577,14 @@ def _hue_sat(r, g, b):
 
 
 def _sari_mi(r, g, b):
-    """Sari kusagi: hue 40-70 derece + doygunluk yuksek + koyu degil."""
+    """Sari kusagi. IKI dal:
+       1) doygun sari  : hue 40-70 + doygunluk >= .35 + koyu degil
+       2) PASTEL sari  : hue 40-70 + parlaklik yuksek (max >= 200) — doygunluk esigi
+          krem/pastel sarilari (or. #fff8c0) kaciriyordu (24 Tem)."""
     h, s = _hue_sat(r, g, b)
-    return 40 <= h <= 70 and s >= 0.35 and max(r, g, b) >= 120
+    if not (40 <= h <= 70):
+        return False
+    return (s >= 0.35 and max(r, g, b) >= 120) or max(r, g, b) >= 200
 
 
 def _hsl_rgb(h, s, l):
@@ -279,15 +610,18 @@ def _hsl_rgb(h, s, l):
 
 
 def sari_bulgular(parca):
-    """Metin parcasindaki SARI izleri: hex + rgb()/rgba() + hsl()/hsla() + CSS renk adi
-    + sari kelimesi. YORUMLAR once elenir: CSS/HTML yorumu boyanmaz — "SARI KESINLIKLE
-    YOK" gibi bir KURAL notunun testi kirmiziya cekmesi sahte pozitif olurdu."""
+    """Metin parcasindaki SARI izleri: hex(8/6/4/3) + rgb()/rgba() + hsl()/hsla() +
+    CSS renk adi + sari kelimesi + COZULEMEYEN modern renk notasyonu.
+    YORUMLAR once elenir: CSS/HTML yorumu boyanmaz — "SARI KESINLIKLE YOK" gibi bir
+    KURAL notunun testi kirmiziya cekmesi sahte pozitif olurdu."""
     parca = YORUM.sub(" ", parca)
     bulgu = []
     for m in HEX.finditer(parca):
         ham = m.group(1)
-        if len(ham) == 3:
-            ham = "".join(c * 2 for c in ham)
+        if len(ham) in (3, 4):
+            ham = "".join(c * 2 for c in ham[:3])
+        else:
+            ham = ham[:6]                       # 8 haneli -> alfa atilir
         r, g, b = (int(ham[i:i + 2], 16) for i in (0, 2, 4))
         if _sari_mi(r, g, b):
             bulgu.append("#" + ham)
@@ -310,17 +644,102 @@ def sari_bulgular(parca):
         if _sari_mi(*rgb):
             bulgu.append(m.group(0) + ")")
     for m in AD_FN.finditer(parca):
-        if _sari_mi(*SARI_ADLAR[m.group(1).lower()]):
-            bulgu.append(m.group(1))
+        bulgu.append(m.group(1))                # liste KURATORLU -> uyelik = sari
     for m in SARI_KELIME.finditer(parca):
         bulgu.append(m.group(0))
+    for m in MODERN_RENK.finditer(parca):
+        bulgu.append("COZULEMEYEN renk notasyonu: %s() — banner ailesinde YASAK" % m.group(1))
     # ayni bulgu birden cok tarayicidan gelebilir (gold hem ad hem kelime) -> tekille
     return sorted(set(bulgu))
 
 
+# ---------------------------------------------------------------- gorunurluk olcumu
+def _uzunluk_px(deger):
+    """CSS uzunlugunu kabaca px'e cevir; cozulemezse None. (vh/vw 800x1280 varsayimi.)"""
+    if deger is None:
+        return None
+    v = deger.strip().lower()
+    m = re.match(r"^(-?[\d.]+)(px|rem|em|vh|vw|vmin|vmax|%|pt|pc|cm|mm|in|ch|ex)?$", v)
+    if not m:
+        return None
+    try:
+        sayi = float(m.group(1))
+    except ValueError:
+        return None
+    birim = m.group(2) or "px"
+    carpan = {"px": 1.0, "rem": 16.0, "em": 16.0, "vh": 8.0, "vw": 12.8, "vmin": 8.0,
+              "vmax": 12.8, "%": 1.0, "pt": 4 / 3.0, "pc": 16.0, "cm": 37.8,
+              "mm": 3.78, "in": 96.0, "ch": 8.0, "ex": 8.0}[birim]
+    return sayi * carpan
+
+
+def gorunurluk_sorunlari(etkin):
+    """POZITIF olcum: banner ROOT'unun ASGARI gecerli gorunur durumu saglaniyor mu?"""
+    s = []
+
+    def dg(ad):
+        return etkin[ad][0] if ad in etkin else None
+
+    def kaynak(ad):
+        return etkin[ad][1] if ad in etkin else "-"
+
+    if (dg("display") or "").strip().lower() == "none":
+        s.append("display:none  [%s]" % kaynak("display"))
+    if (dg("visibility") or "").strip().lower() in ("hidden", "collapse"):
+        s.append("visibility:%s  [%s]" % (dg("visibility"), kaynak("visibility")))
+    if (dg("pointer-events") or "").strip().lower() == "none":
+        s.append("pointer-events:none  [%s]" % kaynak("pointer-events"))
+    if (dg("content-visibility") or "").strip().lower() == "hidden":
+        s.append("content-visibility:hidden  [%s]" % kaynak("content-visibility"))
+
+    op = dg("opacity")
+    if op is not None:
+        ham = op.strip()
+        try:
+            deger = float(ham[:-1]) / 100.0 if ham.endswith("%") else float(ham)
+        except ValueError:
+            deger = None
+        if deger is None:
+            s.append("opacity cozulemedi: %r  [%s]" % (op, kaynak("opacity")))
+        elif deger < 0.9:
+            s.append("opacity %s < 0.9  [%s]" % (ham, kaynak("opacity")))
+
+    mh = _uzunluk_px(dg("min-height"))
+    hh = _uzunluk_px(dg("height"))
+    mx = _uzunluk_px(dg("max-height"))
+    if mx is not None and mx <= 0:
+        s.append("max-height:%s (kutu sifirlanir)  [%s]" % (dg("max-height"), kaynak("max-height")))
+    if (mh is None or mh <= 0) and (hh is None or hh <= 0):
+        s.append("banner ROOT'unda POZITIF hesaplanan yukseklik YOK "
+                 "(min-height=%r, height=%r)" % (dg("min-height"), dg("height")))
+
+    pos = (dg("position") or "").strip().lower()
+    if pos in ("absolute", "fixed"):
+        for yon in ("left", "top", "right", "bottom"):
+            pv = _uzunluk_px(dg(yon))
+            if pv is not None and pv <= -1000:
+                s.append("%s:%s + position:%s -> ekran disi  [%s]"
+                         % (yon, dg(yon), pos, kaynak(yon)))
+
+    tr = dg("transform") or ""
+    if re.search(r"\bscale[XYZ3d]*\(\s*0*(?:\.0+)?\s*[,)]", tr, re.I):
+        s.append("transform scale(0)  [%s]" % kaynak("transform"))
+    for m in re.finditer(r"\btranslate[XYZ3d]*\(([^)]*)\)", tr, re.I):
+        for parca in m.group(1).split(","):
+            pv = _uzunluk_px(parca)
+            if pv is not None and (pv <= -1000 or pv >= 3000):
+                s.append("transform ekran disi: %s  [%s]" % (m.group(0), kaynak("transform")))
+    sc = _uzunluk_px(dg("scale"))
+    if sc is not None and sc == 0:
+        s.append("scale:0  [%s]" % kaynak("scale"))
+    for ad in ("clip-path", "clip"):
+        if dg(ad):
+            s.append("%s:%s banner ROOT'unda (gorunurlugu kirpar)  [%s]"
+                     % (ad, dg(ad), kaynak(ad)))
+    return s
+
+
 # ---------------------------------------------------------------- marka/cografya kurali
-# CLAUDE.md: pazarlama metninde "3D baski" DENMEZ; sehir adi GORUNUR pazarlamada GECMEZ
-# (istisna: JSON-LD addressLocality / yasal kunye — asagida <script> bloklari elenir).
 YASAK_IFADE = [
     (re.compile(r"3\s*[dD]\s*bask", re.I), '"3D baskı" (marka dili: "özel tasarım üretim")'),
     (re.compile(r"3\s*[dD]\s*print", re.I), '"3D print"'),
@@ -423,6 +842,17 @@ kontrol(len(skan_urunler) == SKAN_ART_URUN_SAYISI,
         "katalogda %s urun sayisi capasi == %d (bulunan: %d) — toptan kategori tasimasi kapali"
         % (KATEGORI, SKAN_ART_URUN_SAYISI, len(skan_urunler)))
 
+# ---------------------------------------------------------------- (k) konfigur ZORUNLU
+# NEDEN (tek satir): shop odeme Worker'i secenekler.js'i BUNDLE'a gommuyor + deploy.yml onu
+# yayinlamiyor -> canli worker "Skan Art"i bilmiyor; konfigursuz bir Skan Art urununde
+# malzeme/renk katsayisi sessizce DUSER (olculdu: ASA + ozel renk 27.600 yerine 15.000 kurus).
+print("(k) Skan Art urunlerinde `konfigur` ZORUNLU — worker bundle drift emniyeti")
+konfigursuz = [u.get("id") for u in skan_urunler if not u.get("konfigur")]
+kontrol(not konfigursuz,
+        "her Skan Art urunu `konfigur` tasiyor (konfigursuz: %s) — worker secenekler.js'i "
+        "bundle'a gommedigi icin konfigursuz urunde malzeme/renk katsayisi CANLIDA duser"
+        % (konfigursuz or "-"))
+
 # ---------------------------------------------------------------- (d1) gercek kurt sayfasi
 print("(d1) kurt sayfasi (gercek kayit — konfigur'lu) — kompakt kart, genis-buton YOK")
 html = build.render_product(kurt, katalog)
@@ -438,10 +868,7 @@ for isaret in FALLBACK:
 # kart_secim = bool(sema) or (fonksiyonel and not parametrik and not konfigur) ve
 # `if kart_secim or konfigur:` -> konfigur yolu kompakt duzeni ZATEN veriyor. Yani (d1)
 # FONKSIYONEL_KATEGORILER uyeligini HIC olcmuyor (olculdu 23 Tem: "Skan Art" listeden
-# silinince kurt sayfasi BAYT-OZDES kaliyor). Spec §1.5'in ASIL riski —"kategori
-# FONKSIYONEL'de olmazsa sayfa eski genis-buton fallback'ine duser"— ancak SEMASIZ +
-# KONFIGURSUZ bir Skan Art urununde gorunur. Bu fikstur o urunu temsil eder; katalogda
-# yasamaz, urunler.json'a DOKUNMAZ.
+# silinince kurt sayfasi BAYT-OZDES kaliyor).
 print("(d2) sentetik semasiz/konfigursuz Skan Art urunu — FONKSIYONEL uyeliginin nobeti")
 SENTETIK = {
     "id": "skan-art-fonksiyonel-nobetci-fiksturu",
@@ -459,6 +886,67 @@ for isaret in FALLBACK:
     kontrol(html_f.count(isaret) == 0, "sentetik sayfada genis-buton isareti YOK: %s" % isaret)
 kontrol("var KART_SECIM = true;" in html_f,
         "sentetik sayfada KART_SECIM bayragi ACIK (malzeme karti secimi kablolu)")
+
+# ---------------------------------------------------------------- (d3) URETIM HATTI
+# ⚠️ NEDEN KUM HAVUZU: (d1)/(d2) yalniz render_product()'i cagiriyor; build.py'nin ANA
+# main() dongusunu HIC gecmiyor. Olculdu (24 Tem): main() dongusune "gizli kategoriyi atla"
+# satiri konunca kurt sayfasi uretilmiyordu (urun/ 9508 -> 9486) ve urun/ dizini tamamen
+# silindiginde de test YESIL kaliyordu. Burada build.py GERCEKTEN kosturulur; ROOT gecici
+# bir sembolik-link ciftligidir -> repoya TEK BAYT yazilmaz.
+print("(d3) uretim hatti — build.py main() kum havuzunda kosuyor, sayfa DISKTE mi")
+
+
+def uretim_hatti_olc():
+    """build.py'yi kum havuzunda kostur; (kurt_sayfasi_html, sitemap_xml, hata) dondur."""
+    kum = tempfile.mkdtemp(prefix="skan-art-uretim-")
+    try:
+        uretilen = {"urun", "urunler.json", "sitemap.xml", "robots.txt", "merchant-feed.xml",
+                    "index.built.html", "ozet.json", "taban-fiyatlar.js", "filament-veri.js",
+                    "_yayin-icerik-dizinleri.txt", ".nojekyll", ".git", ".claude"}
+        yazilan_dizin = set(build.STATIK_SAYFALAR)
+        for ad in os.listdir(ROOT):
+            if ad in uretilen:
+                continue
+            hedef = os.path.join(kum, ad)
+            if ad in yazilan_dizin:              # main() bu dizinlere YAZAR -> gercek kopya
+                shutil.copytree(os.path.join(ROOT, ad), hedef)
+            else:
+                os.symlink(os.path.join(ROOT, ad), hedef)
+        # Kucuk katalog: kurt + ilgili-urun havuzu icin birkac Dekorasyon urunu.
+        alt = [kurt] + [u for u in katalog if u.get("kategori") == "Dekorasyon"][:8]
+        with open(os.path.join(kum, "urunler.json"), "w", encoding="utf-8") as f:
+            json.dump(alt, f, ensure_ascii=False)
+        r = subprocess.run([sys.executable, os.path.join(kum, "tools", "build.py")],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            return None, None, "build.py cikis kodu %d (stderr: %s)" % (
+                r.returncode, r.stderr.strip()[-300:] or "-")
+        sayfa_yolu = os.path.join(kum, "urun", PID, "index.html")
+        if not os.path.isfile(sayfa_yolu):
+            return None, None, "urun/%s/index.html DISKTE URETILMEDI (main() dongusu urunu atladi mi?)" % PID
+        with open(sayfa_yolu, encoding="utf-8") as f:
+            sayfa = f.read()
+        sm_yolu = os.path.join(kum, "sitemap.xml")
+        if not os.path.isfile(sm_yolu):
+            return sayfa, None, "sitemap.xml uretilmedi"
+        with open(sm_yolu, encoding="utf-8") as f:
+            return sayfa, f.read(), None
+    finally:
+        shutil.rmtree(kum, ignore_errors=True)
+
+
+u_sayfa, u_sitemap, u_hata = uretim_hatti_olc()
+kontrol(u_hata is None,
+        "build.py main() kum havuzunda kurt sayfasini DISKE yazdi (hata: %s)" % (u_hata or "-"))
+if u_sayfa:
+    for isaret in KOMPAKT:
+        kontrol(u_sayfa.count(isaret) == 1,
+                "URETILEN dosyada kompakt kart isareti VAR: %s" % isaret)
+    kontrol('<section class="related">' in u_sayfa,
+            "URETILEN dosyada ilgili urunler bolumu VAR")
+if u_sitemap:
+    kontrol(build.product_url(PID) in u_sitemap,
+            "sitemap.xml'de kurt URL'i VAR (%s)" % build.product_url(PID))
 
 # ---------------------------------------------------------------- (j) ilgili urunler
 print("(j) ilgili urunler bolumu — ince alt-seride yedek havuz")
@@ -510,61 +998,84 @@ kontrol("<g:product_type>%s</g:product_type>" % KATEGORI in feed_xml,
         "feed g:product_type == %s" % KATEGORI)
 
 # ---------------------------------------------------------------- (f) ana sayfa banner
-print("(f) ana sayfa Skan Art banner'i — varlik, hedef, GORUNURLUK, palet, marka dili")
+print("(f) ana sayfa Skan Art banner'i — varlik, hedef, POZITIF GORUNURLUK, palet, marka dili")
 m_ban = re.search(r'<a id="skanBanner"[^>]*>.*?</a>', index_html, re.S)
 kontrol(m_ban is not None, 'index.html icinde <a id="skanBanner"> blogu var')
 banner_html = m_ban.group(0) if m_ban else ""
-kontrol('href="/?kategori=Skan%20Art"' in banner_html,
-        'banner hedefi href="/?kategori=Skan%20Art"')
+m_ac = re.search(r'<a id="skanBanner"[^>]*>', banner_html)
+banner_ac = m_ac.group(0) if m_ac else ""
+BANNER_OZ = {ad.lower(): deger for ad, deger in
+             re.findall(r'([-\w]+)\s*=\s*"([^"]*)"', banner_ac)}
+KOK = {
+    "etiket": "a",
+    "oz": BANNER_OZ,
+    "sinif": set(BANNER_OZ.get("class", "").split()),
+}
+kontrol(KOK["oz"].get("id") == "skanBanner" and "skan-banner" in KOK["sinif"],
+        "banner ROOT elemani ayristirildi (id=%r, sinif=%s)"
+        % (KOK["oz"].get("id"), sorted(KOK["sinif"])))
+
 m_main = re.search(r"<main>(.*?)</main>", index_html, re.S)
 kontrol(m_main is not None and 'id="skanBanner"' in m_main.group(1),
         "banner <main> icinde (ana sayfa vitrininin ustunde)")
 
-# --- goster/gizle KABLOSU: hem listede kayitli hem DOGRU YONDE
-m_tog = re.search(r'\[\s*"jenBanner"\s*,\s*"skanBanner"\s*\]\s*\.forEach\s*\('
-                  r'function\s*\(\s*\w+\s*\)\s*\{(.*?)\}\s*\)\s*;', index_html, re.S)
-kontrol(m_tog is not None,
-        "renderGrid goster/gizle listesinde skanBanner kayitli "
-        "(kategori/arama gorunumunde banner gizlenir)")
-tog_govde = m_tog.group(1) if m_tog else ""
-kontrol(re.search(r'style\.display\s*=\s*anaGorunum\s*\?\s*""\s*:\s*"none"', tog_govde) is not None,
-        'toggle YONU dogru: display = anaGorunum ? "" : "none" '
-        "(tersi banner'i ana sayfada GIZLER, kategori gorunumunde gosterirdi)")
-kontrol("if(bEl)" in tog_govde or "if (bEl)" in tog_govde,
-        "banner toggle NULL-GUARD'li (id kayarsa renderGrid dusmez, grid kaybolmaz)")
-
-# --- CSS: banner ailesinin TUM kurallari (dosya geneli — pencere YOK)
+# --- CSS: kurallar + ozel ozellik (var) tanimlari + ROOT kaskadi
 css_hepsi = css_bloklari(index_html)
-b_kurallar = banner_kurallari(css_hepsi)
+tum_kurallar = css_kurallari(css_hepsi)
+VAR_TANIM = ozel_ozellik_tanimlari(tum_kurallar)
+b_kurallar = [(s, d) for (s, d, _m) in tum_kurallar if BANNER_JETON.search(s)]
 kontrol(len(b_kurallar) >= 6,
         "banner ailesi CSS kurallari bulundu (%d kural: %s)"
         % (len(b_kurallar), ", ".join(s for s, _ in b_kurallar[:4]) + " ..."))
 kontrol(any(".skan-banner" in s for s, _ in b_kurallar),
         "kurallar arasinda .skan-banner secicisi var (blok tumden silinmemis)")
 
-olduren = []
-for sec, bildirimler in b_kurallar:
-    for desen, ad in OLDUREN_BILDIRIM:
-        if desen.search(bildirimler):
-            olduren.append("%s { %s }" % (sec, ad))
-kontrol(not olduren,
-        "banner CSS'inde GORUNURLUGU olduren bildirim YOK (bulunan: %s)" % (olduren or "-"))
-# inline stil / hidden ozniteligi ile de oldurulebilir
-inline_olduren = [ad for desen, ad in OLDUREN_BILDIRIM if desen.search(banner_html)]
-if re.search(r"<a id=\"skanBanner\"[^>]*\shidden(?:\s|>|=)", banner_html):
-    inline_olduren.append("hidden ozniteligi")
-if re.search(r'aria-hidden\s*=\s*"true"', banner_html):
-    inline_olduren.append('aria-hidden="true"')
-kontrol(not inline_olduren,
-        "banner HTML'inde gizleyen inline stil/oznitelik YOK (bulunan: %s)" % (inline_olduren or "-"))
+kok_kural = kok_kurallari(tum_kurallar, KOK)
+kontrol(not COZULEMEYEN_SECICI,
+        "banner ailesine deyen TUM seciciler ayristirilabildi (FAIL-CLOSED; cozulemeyen: %s)"
+        % (sorted(set(COZULEMEYEN_SECICI)) or "-"))
+kontrol(len(kok_kural) >= 2,
+        "banner ROOT'una uygulanan kural bulundu (%d: %s)"
+        % (len(kok_kural), [s for _, _, s, _ in kok_kural][:6]))
 
-# --- SARI TARAMASI: banner HTML + banner ailesinin TUM CSS kurallari
+inline_stil = BANNER_OZ.get("style", "")
+ETKIN = etkin_stil(kok_kural, inline_stil)
+sorunlar = gorunurluk_sorunlari(ETKIN)
+kontrol(not sorunlar,
+        "banner ROOT'u POZITIF gorunurluk olcumunu geciyor (sorun: %s)" % (sorunlar or "-"))
+
+if re.search(r"<a id=\"skanBanner\"[^>]*\shidden(?:\s|>|=)", banner_ac):
+    kontrol(False, "banner HTML'inde `hidden` ozniteligi VAR")
+kontrol(BANNER_OZ.get("aria-hidden") != "true", 'banner HTML\'inde aria-hidden="true" YOK')
+
+# --- Metin sarmalayici cocuk: KOSULSUZ (medya disi) display:none = banner'i bosaltir.
+# ⚠️ Cocuk ETIKET/-ust/-btn gizlemek (ozellikle @media icinde) MESRU responsive tasarimdir
+# ve buraya GIRMEZ (24 Tem yanlis-kirmizi vakasi: @media(max-width:400px){.skan-banner-ust
+# {display:none}} nobetciyi kirmiziya cekiyordu).
+metin_olduren = []
+for secici, govde, medya in tum_kurallar:
+    if medya:
+        continue
+    if not re.search(r"\.(?:skan|jen)-banner-text\b", secici):
+        continue
+    if re.search(r"display\s*:\s*none", govde, re.I):
+        metin_olduren.append(secici)
+kontrol(not metin_olduren,
+        "banner metin sarmalayicisi KOSULSUZ gizlenmemis (bulunan: %s)" % (metin_olduren or "-"))
+
+# --- SARI TARAMASI: banner HTML + banner ailesinin TUM CSS kurallari, var() COZULEREK
 bulgu = sari_bulgular(banner_html)
+cozulemeyen_var = []
 for sec, bildirimler in b_kurallar:
-    for b in sari_bulgular(bildirimler):
+    cozulmus, eksik = var_coz(bildirimler, VAR_TANIM)
+    cozulemeyen_var.extend(eksik)
+    for b in sari_bulgular(cozulmus):
         bulgu.append("%s -> %s" % (sec, b))
-kontrol(not bulgu, "banner HTML + banner ailesi CSS'inde SARI token YOK (bulunan: %s)"
-        % (sorted(set(bulgu)) or "-"))
+kontrol(not cozulemeyen_var,
+        "banner ailesindeki HER var(--ad) cozulebildi (FAIL-CLOSED; cozulemeyen: %s)"
+        % (sorted(set(cozulemeyen_var)) or "-"))
+kontrol(not bulgu, "banner HTML + banner ailesi CSS'inde SARI token YOK (var() cozumlu; "
+        "bulunan: %s)" % (sorted(set(bulgu)) or "-"))
 kontrol(any("var(--red)" in d for s, d in b_kurallar if ".skan-banner" in s),
         "banner marka paletini kullaniyor (kirmizi aksan var(--red))")
 
@@ -580,7 +1091,7 @@ kontrol(not main_yasak,
         "(JSON-LD/script haric — bulunan: %s)" % (main_yasak or "-"))
 
 # ================================================================== DAVRANIS (node)
-print("(b/c) DAVRANIS bolumu — index.html + secenekler.js node ile GERCEKTEN kosuyor")
+print("(b/c/f) DAVRANIS bolumu — index.html + secenekler.js node ile GERCEKTEN kosuyor")
 if not node_var_mi():
     if os.environ.get("GITHUB_ACTIONS"):
         kontrol(False, "CI'da node var (FAIL-CLOSED: setup-node eksik/bozuk)")
@@ -596,6 +1107,7 @@ cat_src = js_bildirim(index_html, r"^\s*var\s+CATEGORIES\s*=.*$", "index.html CA
 giz_src = js_bildirim(index_html, r"^\s*var\s+GIZLI_KATEGORILER\s*=.*$", "index.html GIZLI_KATEGORILER")
 rendercats_src = js_fonksiyon(index_html, "renderCats")
 applyurl_src = js_fonksiyon(index_html, "applyUrlParams")
+rendergrid_src = js_fonksiyon(index_html, "renderGrid")
 
 # --- (b1) renderCats: cip listesi GERCEKTEN ne uretiyor
 IKON = "<EV-IKONU>"
@@ -637,6 +1149,12 @@ if s1:
     kontrol(KATEGORI not in cips, '"%s" nav cipi olarak basilmiyor' % KATEGORI)
 
 # --- (b2) applyUrlParams: derin link GERCEKTEN activeCat'i set ediyor mu
+# ⚠️ Banner HEDEFI de BURADAN olculur: href METNINI kalibla karsilastirmak yerine banner'in
+# GERCEK href'inin sorgu dizesi applyUrlParams'a verilir. Boylece "/?kategori=Skan+Art"
+# (URLSearchParams "+"i bosluga cozer) DAVRANISSAL olarak esdeger sayilir — 24 Tem
+# yanlis-kirmizi vakasi.
+banner_href = BANNER_OZ.get("href", "")
+banner_qs = banner_href[banner_href.find("?"):] if "?" in banner_href else ""
 b2 = r"""
 "use strict";
 __CAT__
@@ -655,21 +1173,90 @@ function dene(qs){
 }
 console.log(JSON.stringify({
   skan: dene("?kategori=Skan%20Art"),
+  banner: dene(__BANNERQS__),
   jen: dene("?kategori=Jenerat%C3%B6r"),
   dekor: dene("?kategori=Dekorasyon"),
   uydurma: dene("?kategori=BoyleBirKategoriYok")
 }));
-""".replace("__CAT__", cat_src).replace("__GIZ__", giz_src).replace("__APPLYURL__", applyurl_src)
+""".replace("__CAT__", cat_src).replace("__GIZ__", giz_src).replace("__APPLYURL__", applyurl_src) \
+   .replace("__BANNERQS__", json.dumps(banner_qs))
 
 s2 = node_kos(b2, "(b2) applyUrlParams") if applyurl_src else None
 if s2:
     kontrol(s2["skan"] == KATEGORI,
-            '?kategori=Skan%%20Art derin linki activeCat\'i "%s" yapiyor (bulunan: %r) '
-            "— banner tiklamasinin TEK girisi" % (KATEGORI, s2["skan"]))
+            '?kategori=Skan%%20Art derin linki activeCat\'i "%s" yapiyor (bulunan: %r)'
+            % (KATEGORI, s2["skan"]))
+    kontrol(s2["banner"] == KATEGORI,
+            'banner\'in GERCEK href\'i (%r) DAVRANISSAL olarak "%s" kategorisini aciyor '
+            "(bulunan: %r) — banner tiklamasinin TEK girisi"
+            % (banner_href, KATEGORI, s2["banner"]))
     kontrol(s2["jen"] == "Jeneratör", "?kategori=Jeneratör derin linki calismaya devam ediyor")
     kontrol(s2["dekor"] == "Dekorasyon", "gorunur kategori derin linki calisiyor (Dekorasyon)")
     kontrol(s2["uydurma"] == "Tümü",
             "tanimsiz kategori derin linki YOK SAYILIYOR (beyaz liste hala yuk tasiyor)")
+
+# --- (f2) renderGrid goster/gizle KABLOSU: kaynak-metni degil GERCEK KOSUM
+# ⚠️ 24 Tem kacagi: toggle blogu AYNEN dururken hemen ardina
+# `document.getElementById("skanBanner").style.display="none"` eklenince eski (regex)
+# nobetci YESIL yaniyordu. Artik renderGrid TAMAMEN kosturulur ve display'in SON degeri
+# olculur -> sonradan gelen her override yakalanir.
+b4 = r"""
+"use strict";
+__CAT__
+__GIZ__
+var EDGE_KATALOG = false;
+var edgeListe = [], edgeToplam = 0, edgeDurum = "", edgeSayfa = 1;
+var PAGE_SIZE = 24, shown = 24;
+var HOME_ORDER = [{id:"a"},{id:"b"}];
+var activeCat = "Tümü", activeBrand = "Tümü", query = "";
+var kayit = {}, elemanlar = {};
+function sahteEleman(id){
+  var o = { __id:id, style:{}, className:"", textContent:"", innerHTML:"",
+            appendChild:function(){}, setAttribute:function(){}, onclick:null, disabled:false };
+  Object.defineProperty(o.style, "display", {
+    set: function(v){ kayit[id] = v; }, get: function(){ return kayit[id]; }, configurable:true });
+  return o;
+}
+var document = {
+  getElementById: function(id){
+    if(!(id in elemanlar)){ elemanlar[id] = sahteEleman(id); }
+    return elemanlar[id];
+  },
+  createElement: function(){ return sahteEleman("__yeni__"); }
+};
+function filtered(){ return [{id:"a"},{id:"b"}]; }
+function kartCiz(){ return sahteEleman("__kart__"); }
+function renderEdgeDurum(){}
+function edgeYukle(){}
+__RENDERGRID__
+function olc(cat, q, marka){
+  kayit = {}; elemanlar = {};
+  activeCat = cat; query = q; activeBrand = marka;
+  renderGrid();
+  return ("skanBanner" in kayit) ? kayit["skanBanner"] : "__HIC-DOKUNULMADI__";
+}
+console.log(JSON.stringify({
+  ana: olc("Tümü", "", "Tümü"),
+  kategori: olc("Dekorasyon", "", "Tümü"),
+  arama: olc("Tümü", "ahsap", "Tümü"),
+  marka: olc("Tümü", "", "Audi"),
+  jenAna: (function(){ var r = olc("Tümü", "", "Tümü"); return ("jenBanner" in kayit) ? kayit["jenBanner"] : "__HIC-DOKUNULMADI__"; })()
+}));
+""".replace("__CAT__", cat_src).replace("__GIZ__", giz_src).replace("__RENDERGRID__", rendergrid_src)
+
+s4 = node_kos(b4, "(f2) renderGrid banner toggle") if rendergrid_src else None
+if s4:
+    kontrol(s4["ana"] == "",
+            'renderGrid ANA gorunumde skanBanner display === "" (bulunan: %r) '
+            "— GERCEK kosum, kaynak-metni degil" % s4["ana"])
+    kontrol(s4["kategori"] == "none",
+            'KATEGORI gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["kategori"])
+    kontrol(s4["arama"] == "none",
+            'ARAMA gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["arama"])
+    kontrol(s4["marka"] == "none",
+            'MARKA gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["marka"])
+    kontrol(s4["jenAna"] == "",
+            'emsal bozulmamis: jenBanner de ANA gorunumde display === "" (bulunan: %r)' % s4["jenAna"])
 
 # --- (c2) secenekler.js davranisi: fonksiyonelMi + satirOzeti (para etkisi)
 b3 = r"""
