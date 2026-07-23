@@ -18,7 +18,9 @@
   var FILAMENT_SIRA = ["PLA", "PETG", "ASA", "TPU"];
   var RENK_SECENEKLERI = ["Siyah", "Beyaz", "Gri", "Diğer"];
   var RENK_DIGER_YUZDE = 15;
-  var FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera"];
+  // Okan 23 Tem: Dekorasyon + Oyun/Hobi de standart ürün kartını (Renk+Adet+kompakt ikon,
+  // katsayılı fiyat) alır — Marin/Otomobil ile birebir. tools/build.py ile BİRLİKTE güncellendi.
+  var FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi"];
 
   /* Liste fiyatı metninden TL sayısı. tools/build.py feed_price ve Worker ile AYNI kural:
      İLK sayı grubunu alır ("1.250 TL" -> 1250, "300 TL (30 cm)" -> 300).
@@ -201,8 +203,8 @@
   }
 
   // Sepet/WhatsApp mesajında ürün+seçim satırının metnini ve hesaplanan fiyatını üretir.
-  // fonksiyonel OLMAYAN kategorilerde (Dekorasyon, Oyun/Hobi...) seçici hiç gösterilmediği
-  // için detay boş döner — mevcut (öncesi) davranış korunur, mesaj kirlenmez.
+  // fonksiyonel OLMAYAN kategorilerde (seçici hiç gösterilmeyen ürün) detay boş döner —
+  // mevcut (öncesi) davranış korunur, mesaj kirlenmez.
   function satirOzeti(urun, satir) {
     if (satir && satir.parametreler) { return parametrikSatirOzeti(satir); }
     var fonksiyonel = fonksiyonelMi(urun && urun.kategori);
@@ -224,7 +226,7 @@
     if (fonksiyonel && adet > 1) { parcalar.push("Adet: " + adet); }
     var temel = fiyatSayisi(urun && urun.fiyat);
     var bf = fonksiyonel ? boyFarki(urun, satir.boy_etiket) : 0;
-    // Fonksiyonel olmayan kategoride (Dekorasyon, Oyun/Hobi) seçici yok -> liste fiyatı aynen.
+    // Fonksiyonel olmayan kategoride seçici yok -> liste fiyatı aynen.
     var birim = fonksiyonel
       ? hesaplaFiyatKurus(temel, satir.malzeme, satir.renk, bf)
       : (temel == null ? null : temel * 100);

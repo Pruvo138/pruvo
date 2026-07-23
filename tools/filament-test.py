@@ -38,9 +38,10 @@ EYLEM IKONLARI (Okan madde 7, 16 Tem — buyuk butonlar -> Adet satirinda ikon c
      kart-secim duzeninde (F kalemi, 16 Tem gece — commit 68cf6939 ile Okan karari)
  22  (m) ikon sepet butonu ayni cartBtn — secimsiz ekleme kapisi + titreme AYNEN calisiyor
  23  (n) WhatsApp ikonu dogru wa.me hedefine gidiyor (statik href + JS canli mesaj guncelleme)
- 24  NOBETCI: buyuk buton yolu (build.py BUYUK_BUTONLAR_HTML) hala CANLI — panelsiz
-     (Dekorasyon / Oyun-Hobi) sayfada buyuk butonlar YERINDE, ikon cifti YOK. Test 21'den
-     parametrik iddiasi kalkinca bu kod dalini olcen tek test burasidir.
+ 24  NOBETCI: buyuk buton yolu (build.py BUYUK_BUTONLAR_HTML) hala CANLI — SENTETIK panelsiz
+     (semasiz Jeneratör) urunde buyuk butonlar YERINDE, ikon cifti YOK. Test 21'den parametrik
+     iddiasi kalkinca bu kod dalini olcen tek test burasidir (Dekorasyon/Oyun-Hobi 23 Tem
+     FONKSIYONEL oldu -> gercek katalogda panelsiz urun kalmadi, nobetci sentetik olcer).
  25  KAPI: urunler.json'da FIILEN kullanilan her kategori ya tavsiye uretir ya da testin
      icindeki BILINCLI-BOS listesinde yer alir (yeni kategori sessizce tavsiyesiz kalamaz).
 """
@@ -230,8 +231,8 @@ def main():
           not hatalar8, "; ".join(hatalar8) or "temiz")
 
     # ================= KART-SECIM (malzeme dropdown -> kart secici) =================
-    FONK = {"Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin",
-            "Bisiklet", "Bahçe", "Ofis", "Kamera"}
+    # TEK KAYNAK: build.FONKSIYONEL_KATEGORILER (elle kopya YOK -> drift olmaz).
+    FONK = set(build.FONKSIYONEL_KATEGORILER)
     fonk_urun = next((u for u in urunler
                       if u.get("kategori") in FONK and not u.get("parametrik")), None)
     fs = sayfa(fonk_urun["id"]) if fonk_urun else ""
@@ -470,26 +471,27 @@ def main():
     kayit(23, "(n) WhatsApp ikonu dogru wa.me hedefi (statik + JS)", not h23,
           "; ".join(h23[:2]) or "temiz")
 
-    # ---- 24 NOBETCI: BUYUK buton yolu hala CANLI (panelsiz Dekorasyon/Oyun-Hobi sayfasi)
-    # TEST 21'den parametrik iddiasi kalkinca build.py BUYUK_BUTONLAR_HTML dalini olcen
-    # baska hicbir iddia kalmiyordu -> dal silinse/bosalsa kimse yakalamazdi. Panelsiz sayfa
-    # = ne FONKSIYONEL kategoride ne parametrik (bugun Dekorasyon + Oyun/Hobi): opsiyon paneli
-    # basilmaz, eylem butonlari sayfa altinda BUYUK halde kalir.
+    # ---- 24 NOBETCI: BUYUK buton yolu (build.py BUYUK_BUTONLAR_HTML) hala CANLI.
+    # TEST 21'den parametrik iddiasi kalkinca bu kod dalini olcen baska iddia kalmiyordu ->
+    # dal silinse/bosalsa kimse yakalamazdi. Okan 23 Tem: Dekorasyon + Oyun/Hobi FONKSIYONEL
+    # oldu -> gercek katalogda panelsiz urun KALMADI; nobetci artik SENTETIK panelsiz urunle
+    # olcer: FONKSIYONEL disi + parametrik olmayan kategori (semasiz Jeneratör) opsiyon paneli
+    # basmaz, eylem butonlari sayfa altinda BUYUK halde kalir.
     h24 = []
-    pnl_u = next((u for u in urunler
-                  if u.get("kategori") not in FONK and not u.get("parametrik")), None)
-    if not pnl_u:
-        h24.append("panelsiz (Dekorasyon/Oyun-Hobi) urun bulunamadi — nobetci olcemiyor")
-    else:
-        pnls = sayfa(pnl_u["id"])
-        if 'class="cart-btn" id="cartBtn"' not in pnls:
-            h24.append("%s: buyuk 'Sepete Ekle' butonu yok" % pnl_u["id"])
-        if 'class="order-wa" id="orderAlt"' not in pnls:
-            h24.append("%s: buyuk 'WhatsApp'tan Sor' butonu yok" % pnl_u["id"])
-        if "ikon-btn ikon-sepet" in pnls:
-            h24.append("%s: panelsiz sayfaya ikon cifti tasinmis" % pnl_u["id"])
-    kayit(24, "NOBETCI: panelsiz (%s) sayfada BUYUK butonlar yerinde, ikon yok"
-          % ((pnl_u or {}).get("kategori") or "?"), not h24, "; ".join(h24[:3]) or "temiz")
+    pnl_sahte = {"id": "test-panelsiz-nobetci", "kategori": "Jeneratör", "marka": [],
+                 "baslik": "Panelsiz Nobetci", "aciklama": "test", "fiyat": "100 TL",
+                 "gorseller": []}
+    if pnl_sahte["kategori"] in FONK or pnl_sahte.get("parametrik"):
+        h24.append("sentetik urun panelsiz dala girmiyor (kategori FONKSIYONEL/parametrik)")
+    pnls = build.render_product(pnl_sahte, [pnl_sahte])
+    if 'class="cart-btn" id="cartBtn"' not in pnls:
+        h24.append("buyuk 'Sepete Ekle' butonu yok (BUYUK_BUTONLAR_HTML dali bosalmis)")
+    if 'class="order-wa" id="orderAlt"' not in pnls:
+        h24.append("buyuk 'WhatsApp'tan Sor' butonu yok")
+    if "ikon-btn ikon-sepet" in pnls:
+        h24.append("panelsiz sayfaya ikon cifti tasinmis")
+    kayit(24, "NOBETCI: panelsiz (sentetik semasiz-Jeneratör) sayfada BUYUK butonlar yerinde, ikon yok",
+          not h24, "; ".join(h24[:3]) or "temiz")
 
     # ---- 25 KAPI: kategori <-> tavsiye haritasi boslugu FAIL-CLOSED
     # urunler.json'da FIILEN kullanilan her kategori icin ya filament_ortak.tavsiyeler()

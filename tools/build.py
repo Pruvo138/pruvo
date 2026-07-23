@@ -48,9 +48,11 @@ CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "O
 # arama ve ?kategori=<ad> linki çalışır. "Jeneratör" = TÜM parametrik (sarı seri) ürünler.
 # index.html'deki GIZLI_KATEGORILER ile BİRLİKTE güncelle (CATEGORIES kuralının aynısı).
 NAV_GIZLI = ["Jeneratör"]
-# Malzeme/renk/boy seçicisi bu kategorilerde gösterilir (Dekorasyon, Oyun/Hobi HARİÇ).
+# Malzeme/renk seçicisi + kompakt ikon düzeni (Adet + sepet/WhatsApp ikonu üstte) bu
+# kategorilerde gösterilir. Okan 23 Tem: Dekorasyon + Oyun/Hobi de standart ürün kartını
+# (Marin/Otomobil ile birebir) alır — eski geniş sayfa-altı buton düzeni kalktı.
 # secenekler.js'deki FONKSIYONEL_KATEGORILER ile BİRLİKTE güncelle (tek karar iki yerde).
-FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera"]
+FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi"]
 
 # Malzeme katsayilari / renk listesi / adet araligi TEK KAYNAK: /secenekler.js.
 # Buraya kopyalanmaz — secici HTML'inin "(+%30)" etiketleri o dosyadan OKUNUR ki katsayi
