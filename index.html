@@ -306,6 +306,37 @@
     .jen-banner-sub{font-size:13px}
   }
 
+  /* ---------- SKAN ART BANNER (gizli dekor alt-serisi — sadece ana sayfa görünümü) ----------
+     Jeneratör banner'ıyla AYNI iskelet (.jen-banner* sınıfları yeniden kullanılır), tek fark
+     GÖRSELSİZ saf-CSS varyant olması: R2'ye yeni nesne yüklenmez, anahtar/önbellek çakışması
+     riski doğmaz. Palet marka paleti — koyu lacivert zemin + gri metin + İNCE kırmızı aksan.
+     SARI KESİNLİKLE YOK (sarı yalnız parametrik seride; CLAUDE.md).
+     Bu blok .jen-banner media query'sinden SONRA gelir ki override'lar kazansın. */
+  .skan-banner{
+    min-height:168px;
+    background:linear-gradient(135deg, var(--navy-dark) 0%, #14294a 55%, var(--navy) 100%);
+    border:1px solid rgba(255,255,255,.08);
+  }
+  /* sol kenarda ince kırmızı aksan şeridi (marka kuralı: az kırmızı vurgu) */
+  .skan-banner::before{
+    content:"";position:absolute;top:0;left:0;width:4px;height:100%;
+    background:var(--red);
+  }
+  .skan-banner-text{
+    max-width:100%;
+    background:none;              /* arka planda görsel yok -> okunurluk degradesi gereksiz */
+    padding:26px 34px 26px 38px;
+  }
+  .skan-banner-ust{
+    display:block;color:#9fb0c9;
+    font-size:12px;font-weight:700;letter-spacing:2.4px;
+    text-transform:uppercase;margin:0 0 8px;
+  }
+  @media(max-width:640px){
+    .skan-banner{min-height:150px}
+    .skan-banner-text{max-width:100%;background:none;padding:18px 20px 18px 24px}
+  }
+
   .brand-row{
     display:flex;
     align-items:center;
@@ -771,6 +802,17 @@
       <span class="jen-banner-btn">Jeneratör'ü Keşfet &rarr;</span>
     </div>
   </a>
+  <!-- PRUVO "Skan Art" banner — gizli dekor alt-serisinin ana sayfadaki TEK girişi
+       (nav çipi yok). Jeneratör banner'ıyla aynı desen + aynı göster/gizle yolu
+       (renderGrid; kategori/arama/marka görünümünde YOK). Görselsiz saf-CSS. -->
+  <a id="skanBanner" class="jen-banner skan-banner" href="/?kategori=Skan%20Art">
+    <div class="jen-banner-text skan-banner-text">
+      <span class="skan-banner-ust">Skan Art</span>
+      <h2 class="jen-banner-title">Sade çizgiler, İskandinav dokunuşu</h2>
+      <p class="jen-banner-sub">Minimal formlu dekoratif figürler ve heykeller — ölçüsünü ve rengini seç, siparişin özel üretilip gönderilsin.</p>
+      <span class="jen-banner-btn">Skan Art'ı Keşfet &rarr;</span>
+    </div>
+  </a>
   <div class="brand-row" id="brandRow">
     <span class="brand-label">Marka:</span>
     <div class="brand-chips" id="brandChips"></div>
@@ -971,8 +1013,11 @@
   var CATEGORIES = ["Marin","Otomobil","Motosiklet","Bisiklet","Tamirat","Ev","Ofis","Elektronik","Kamera","Bahçe","Dekorasyon","Oyun/Hobi"];
   // GİZLİ kategoriler (Okan, 17 Tem): menüde GÖRÜNMEZ ama ?kategori=<ad> linki, arama ve
   // ürün sayfaları çalışır. "Jeneratör" = TÜM parametrik (sarı seri) ürünler; banner +
-  // vitrin oradan beslenir. tools/build.py NAV_GIZLI ile BİRLİKTE güncelle.
-  var GIZLI_KATEGORILER = ["Jeneratör"];
+  // vitrin oradan beslenir. "Skan Art" (Okan, 23 Tem) = İskandinav tasarım dilli dekor/heykel
+  // alt-serisi; AYNI mekanizma (nav çipi YOK, banner + derin link var).
+  // GİZLEME MEKANİZMASI = bu listede olmak + CATEGORIES'te OLMAMAK (renderCats yalnız
+  // CATEGORIES'i çizer). tools/build.py NAV_GIZLI ile BİRLİKTE güncelle.
+  var GIZLI_KATEGORILER = ["Jeneratör","Skan Art"];
 
   /* REKLAM ATIF YAKALAMA (reklam-roi-sistemi.md Faz 0): reklamdan gelen ziyaretin siparişe
      bağlanması için atıf kimlikleri toplanır. UTM landing URL'sinde gelir ama iyzico redirect'i
@@ -2157,8 +2202,14 @@
       dahaVar = list.length > shown;
     }
 
-    // Jeneratör banner'ı SADECE ana sayfa görünümünde (kabul: kategori/arama görünümünde YOK)
-    document.getElementById("jenBanner").style.display = anaGorunum ? "" : "none";
+    // Gizli seri banner'ları (Jeneratör + Skan Art) SADECE ana sayfa görünümünde
+    // (kabul: kategori/arama/marka görünümünde YOK).
+    // NULL-GUARD: id yazım hatası ya da HTML bloğunun kayması renderGrid'i TypeError ile
+    // düşürmesin — o durumda TÜM grid çizilmezdi (banner kaybı grid kaybından ucuzdur).
+    ["jenBanner", "skanBanner"].forEach(function(bannerId){
+      var bEl = document.getElementById(bannerId);
+      if(bEl){ bEl.style.display = anaGorunum ? "" : "none"; }
+    });
 
     if(query.trim() !== ""){
       title.textContent = '"' + query.trim() + '" araması';

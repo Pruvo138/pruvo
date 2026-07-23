@@ -46,13 +46,14 @@ JEN_URUN_DIR = os.path.join(ROOT, "jenerator", "urunler")
 CATEGORIES = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis", "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi"]
 # GİZLİ kategoriler (Okan, 17 Tem): ana sayfa menüsünde GÖRÜNMEZ ama ürün sayfaları,
 # arama ve ?kategori=<ad> linki çalışır. "Jeneratör" = TÜM parametrik (sarı seri) ürünler.
+# "Skan Art" (Okan, 23 Tem) = İskandinav tasarım dilli dekor/heykel alt-serisi; aynı sınıf.
 # index.html'deki GIZLI_KATEGORILER ile BİRLİKTE güncelle (CATEGORIES kuralının aynısı).
-NAV_GIZLI = ["Jeneratör"]
+NAV_GIZLI = ["Jeneratör", "Skan Art"]
 # Malzeme/renk seçicisi + kompakt ikon düzeni (Adet + sepet/WhatsApp ikonu üstte) bu
 # kategorilerde gösterilir. Okan 23 Tem: Dekorasyon + Oyun/Hobi de standart ürün kartını
 # (Marin/Otomobil ile birebir) alır — eski geniş sayfa-altı buton düzeni kalktı.
 # secenekler.js'deki FONKSIYONEL_KATEGORILER ile BİRLİKTE güncelle (tek karar iki yerde).
-FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi"]
+FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi", "Skan Art"]
 
 # Malzeme katsayilari / renk listesi / adet araligi TEK KAYNAK: /secenekler.js.
 # Buraya kopyalanmaz — secici HTML'inin "(+%30)" etiketleri o dosyadan OKUNUR ki katsayi
@@ -440,6 +441,10 @@ GOOGLE_PRODUCT_CATEGORY = {
     "Bahçe": "Home & Garden > Lawn & Garden",
     "Dekorasyon": "Home & Garden > Decor",
     "Oyun/Hobi": "Toys & Games",
+    # Skan Art = dekor/heykel alt-serisi -> Dekorasyon ile ayni taksonomi dugumu.
+    # Eslesme yoksa g:google_product_category satiri feed'e HIC yazilmaz (asagida ~2210)
+    # ve Merchant siniflandirmasi sessizce duser.
+    "Skan Art": "Home & Garden > Decor",
 }
 # Marka kurali: "3D baski"/"3D printed" -> "ozel tasarim uretim". SADECE uretim iddiasi olan
 # ifadeler; kasa kodu (Passat 3B), "3D perspektif", "3D yazici" gibi masum kullanimlara DOKUNMAZ.
@@ -1142,6 +1147,27 @@ def esc(s):
     return html.escape(s or "", quote=True)
 
 
+# Sorgu dizesinde HAM birakilamayacak karakterler (bosluk basta olmak uzere: ayirici ya da
+# yapilandirilmis veride GECERSIZ). BILEREK DAR: Turkce harfler (Bahçe, Jeneratör) ve
+# "Oyun/Hobi"deki egik cizgi HAM birakilir -> aylardir yayinda olan 13 kategorinin URL'leri
+# BAYT-OZDES kalir (konfigur-test.py'nin merge-base bayt-esitlik nobetcisi bunu olcuyor).
+_KATEGORI_KACIS = {"%": "%25", " ": "%20", "#": "%23", "&": "%26", "?": "%3F",
+                   "+": "%2B", '"': "%22", "<": "%3C", ">": "%3E"}
+
+
+def kategori_url(kategori):
+    """Ana sayfa kategori derin linki: /?kategori=<ad>, gecersiz karakterler kodlu.
+
+    23 Tem'e kadar butun kategori adlari tek kelimeydi, bu yuzden kategori URL'e HAM
+    gomuluyordu. Iki kelimeli "Skan Art" ile bu, JSON-LD BreadcrumbList item'inde ve
+    <a href>'te "?kategori=Skan Art" gibi HAM BOSLUKLU (yapilandirilmis veride GECERSIZ)
+    URL uretir hale geldi. Kacis artik TEK yerden gecer.
+    index.html applyUrlParams URLSearchParams ile okur -> %20 sorunsuz cozulur.
+    Donen deger KOKE GORECE yoldur ("/?kategori=..."); mutlak gerekince SITE ile birlestir."""
+    ad = kategori or ""
+    return "/?kategori=" + "".join(_KATEGORI_KACIS.get(ch, ch) for ch in ad)
+
+
 def meta_desc(p):
     """Ürün açıklamasından ~160 karakterlik temiz meta açıklama üret."""
     txt = re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip()
@@ -1369,7 +1395,7 @@ def render_product(p, all_products):
         "itemListElement": [
             {"@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": SITE + "/"},
             {"@type": "ListItem", "position": 2, "name": kategori,
-             "item": SITE + "/?kategori=" + kategori},
+             "item": SITE + kategori_url(kategori)},
             {"@type": "ListItem", "position": 3, "name": baslik, "item": url},
         ],
     }
@@ -1729,7 +1755,7 @@ def render_product(p, all_products):
 <main>
   <nav class="crumbs" aria-label="breadcrumb">
     <a href="/">Ana Sayfa</a><span>&rsaquo;</span>
-    <a href="/?kategori={katq}">{kategori}</a><span>&rsaquo;</span>
+    <a href="{katq}">{kategori}</a><span>&rsaquo;</span>
     {baslik}
   </nav>
 
@@ -2029,7 +2055,7 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
         product_ld=ld(product_ld),
         breadcrumb_ld=ld(breadcrumb_ld),
         css=PAGE_CSS,
-        katq=esc(kategori),
+        katq=esc(kategori_url(kategori)),
         kategori=esc(kategori),
         baslik=esc(baslik),
         main_img=main_img,

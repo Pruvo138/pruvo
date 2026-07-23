@@ -20,7 +20,9 @@
   var RENK_DIGER_YUZDE = 15;
   // Okan 23 Tem: Dekorasyon + Oyun/Hobi de standart ürün kartını (Renk+Adet+kompakt ikon,
   // katsayılı fiyat) alır — Marin/Otomobil ile birebir. tools/build.py ile BİRLİKTE güncellendi.
-  var FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi"];
+  // "Skan Art" (gizli dekor alt-serisi) da aynı düzeni alır: kategori Dekorasyon'dan
+  // ayrıldığı an bu listede olmazsa ürün sessizce eski geniş-buton düzenine düşer.
+  var FONKSIYONEL_KATEGORILER = ["Otomobil", "Motosiklet", "Tamirat", "Elektronik", "Ev", "Marin", "Bisiklet", "Bahçe", "Ofis", "Kamera", "Dekorasyon", "Oyun/Hobi", "Skan Art"];
 
   /* Liste fiyatı metninden TL sayısı. tools/build.py feed_price ve Worker ile AYNI kural:
      İLK sayı grubunu alır ("1.250 TL" -> 1250, "300 TL (30 cm)" -> 300).

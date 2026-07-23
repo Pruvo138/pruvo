@@ -41,6 +41,15 @@ jobs:
       - name: Kategori/WHATSAPP parite testi (drift guard)
         run: python3 tools/kategori-parite-test.py
 
+      # SKAN ART: gizli dekor alt-serisi kategorisi + ana sayfa banner'i. Bloklayici
+      # (kategori-parite deseni): bu kararin kablolamasi 6 dosyaya yayiliyor (index.html
+      # gizli liste + banner + toggle, build.py NAV_GIZLI/FONKSIYONEL/feed taksonomisi,
+      # secenekler.js FONKSIYONEL, filamentler.json tavsiye, urunler.json kategori) ve
+      # tek bir halka kopunca hata SESSIZ (kart duzeni duser / rozet kaybolur / feed
+      # taksonomisiz gider / banner her gorunumde kalir). Offline, build.py'den ONCE kosar.
+      - name: Skan Art kategori + banner kabul testi
+        run: python3 tools/test-skan-art.py
+
       # ODEME BEYANI: statik yasal sayfalardaki siparis/odeme anlatimi canli akisla uyumlu mu
       # (kart formu/iframe yok, teslim suresi, wa.me/tel numara ayrimi). Bloklayici: uyumsuzluk
       # = musteriye yanlis odeme/teslim beyani. Offline, commit'li sayfalari okur (build.py'den ONCE).
