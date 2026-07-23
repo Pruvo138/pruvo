@@ -13,7 +13,7 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
       TAM TL, çapadan çözülen birim/sabit mimar türetimiyle örtüşür (≈1,2306 TL/cm³ /
       ≈140,72 TL) ve build.py'deki Python aynası (JS öncesi fiyat metni) node sonuçlarıyla
       kuruşu kuruşuna aynıdır (drift nöbeti). 6/10/15/20/25/30 cm tablosu rapor için basılır.
-  (c) GERİ UYUMLULUK: konfigur'suz ürün sayfaları (panelsiz Dekorasyon, kart-seçim
+  (c) GERİ UYUMLULUK: konfigur'suz ürün sayfaları (panelsiz şemasız-Jeneratör, kart-seçim
       fonksiyonel, boy_secenekli, lisanslı, parametrik sarı) merge-base'deki ESKİ build.py
       çıktısıyla BAYT-EŞİT üretilir ve hiçbirinde konfigur izi yoktur. Eski build.py
       alınamazsa (sığ klon) bayt-eşitlik GÜRÜLTÜLÜ atlanır, iz nöbeti yine koşar.
@@ -364,7 +364,13 @@ def eski_build_modulu():
 def test_geri_uyumluluk():
     print("\n(c) GERİ UYUMLULUK (konfigur'suz sayfalar)")
     fikstuler = [
-        ("panelsiz Dekorasyon", urun(None)),
+        # Panelsiz (opsiyon paneli basılmayan, sayfa-altı büyük butonlu) dal: Okan 23 Tem
+        # kararıyla Dekorasyon + Oyun/Hobi FONKSIYONEL oldu; bu dalı bugün yalnız FONKSIYONEL
+        # dışı + parametrik olmayan kategori (şemasız Jeneratör) tetikler. Fikstür oraya
+        # taşındı ki byte-eşitlik nöbeti panelsiz kod yolunu ölçmeye devam etsin.
+        ("panelsiz (şemasız Jeneratör)", urun(
+            None, id="test-panelsiz", kategori="Jeneratör",
+            baslik="Test Panelsiz Ürün", fiyat="150 TL")),
         ("kart-seçim fonksiyonel (Otomobil)", urun(
             None, id="test-oto-parca", kategori="Otomobil", marka=["Audi"],
             baslik="Test Oto Parçası", fiyat="850 TL")),
