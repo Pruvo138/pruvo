@@ -15,10 +15,10 @@ fiyat" görünür (sipariş WhatsApp'la sürer). Doldurulan fiyat
 
 | Ürün | Varsayılan ölçüler | Taban hacim | Taban fiyat (PLA) |
 |---|---|---|---|
-| Kişiye Özel Jeton / Poker Çipi / Madalyon | Çap=39 mm, Kalınlık=3.4 mm, Yazı stili=gomme, İşlenen yüz=tek, Kenar deseni=segmentli | 3.9 cm³ | 150 TL |
+| Kişiye Özel Jeton / Poker Çipi / Madalyon | Çap=39 mm, Kalınlık=3.4 mm, Yazı stili=gomme, İşlenen yüz=tek, Kenar deseni=segmentli | 3.8 cm³ | 15 TL |
 | Ölçüye Özel Birleştirme Konektörü / Modüler Eklem (Çubuk · Boru · Profil) | Kol sayısı=3 adet, Kol kesiti=yuvarlak, Çubuk veya boru çapı=10 mm, Kol boyu=25 mm, Cidar kalınlığı=2.5 mm, Geçme toleransı=normal | 7.3 cm³ | 170 TL |
 | Ölçüye Özel Cetvel / Gönye (Düz · Üçgen · L Gönye) | Cetvel tipi=duz, Ölçü sistemi=metrik, Uzunluk=15 cm / inç, Genişlik=30 mm, Kalınlık=3 mm, İşaret stili=oyma | 14.3 cm³ | 130 TL |
-| Ölçüye Özel Damga / Kaşe (Yazı · Logo · Şekil) | Yazı boyutu=8 mm, Kenar payı=5 mm, Kaşe biçimi=dikdortgen, Kabartma derinliği=1.4 mm, Sap seçimi=sapli | 15.4 cm³ | 350 TL |
+| Ölçüye Özel Damga / Kaşe (Yazı · Logo · Şekil) | Yazı boyutu=8 mm, Kenar payı=5 mm, Kaşe biçimi=dikdortgen, Kabartma derinliği=1.4 mm, Sap seçimi=sapli | 12.1 cm³ | 350 TL |
 | Ölçüye Özel Hortum Adaptörü / Redüksiyon (Süpürge · Marin · Bahçe · Atölye) | Uç 1 hortum çapı=38 mm, Uç 1 geçme tipi=ic, Uç 2 hortum çapı=32 mm, Uç 2 geçme tipi=ic, Toplam boy=80 mm, Cidar kalınlığı=2.4 mm | 19.7 cm³ | 150 TL |
 | Ölçüye Özel Huni (Mutfak · Atölye · Açılı Uç · Laboratuvar) | Ağız çapı=100 mm, Koni yüksekliği=60 mm, Akıtma ucu çapı=14 mm, Akıtma ucu boyu=54 mm, Uç kesim açısı=0 ° | 22.4 cm³ | 170 TL |
 | Ölçüye Özel Izgara / Havalandırma Menfezi / Kapak | Ürün tipi=panjur, Delik şekli=elips, Dış en=100 mm, Dış boy=100 mm, Gövde derinliği=10 mm, Panjur açısı=0 ° | 24.7 cm³ | 250 TL |

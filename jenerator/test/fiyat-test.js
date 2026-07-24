@@ -66,7 +66,7 @@ esit("büyüme: sıkı artan", buyume.every(function (v, i) {
 // motorunun STL hacimlerine kalibre edildi (kalibrasyon-referans.json "vida",
 // 77 set ≤%3) — 18/18 aile dolu, vida tabanı 100 TL (Okan kesin değeri).
 var TABAN_FIYATLAR = {
-  "kisiye-ozel-jeton-cip-madalyon": 150,
+  "kisiye-ozel-jeton-cip-madalyon": 15,
   "olcuye-ozel-baglanti-konektor": 170,
   "olcuye-ozel-cetvel": 130,
   "olcuye-ozel-damga-kase": 350,
