@@ -46,8 +46,13 @@ def haystack(u):
 
 
 def tokenlar(q):
-    """Sorguyu index.html ile ayni sekilde parcalara ayirir (bosluga gore)."""
-    return [t for t in norm(q).split() if t]
+    """Sorguyu index.html ile ayni sekilde parcalara ayirir + Turkce ek kirpma.
+
+    index.html filtered(): norm(query).split().map(aramaKok) ile BIREBIR. arama_kok
+    asagida (L88) tanimli; modul seviyesi ad, cagri aninda cozulur (forward-ref sorun degil).
+    DIKKAT: haystack()/urun_hash() DEGISMEZ — sadece SORGU tarafi kok alir, D1 kolonu ayni.
+    """
+    return [arama_kok(t) for t in norm(q).split() if t]
 
 
 def esles(hs, tokens):

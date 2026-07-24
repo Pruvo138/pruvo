@@ -1840,6 +1840,12 @@
       .replace(/ç/g,"c").replace(/ğ/g,"g").replace(/ö/g,"o")
       .replace(/ş/g,"s").replace(/ü/g,"u").replace(/â/g,"a").replace(/î/g,"i");
   }
+  // Türkçe ek kırpma (SORGU tarafı) — Ege'nin kanıtlı aramaKok'u ile BİREBİR (tools/arama.py L80-93,
+  // pruvo-bot worker/src/index.js). Sıra uzundan kısaya; İLK eşleşen ek kırpılır. Kalan kök >= 4 harf
+  // kalacaksa kırpar (fren/vida/far/kapak gibi kısa kökler DOKUNULMAZ). Kök daima orijinalin ÖN-EKİ
+  // olduğundan sonuç KAYBOLMAZ, yalnız daha esnek (superset). Ürün metni (haystack) DEĞİŞMEZ.
+  var ARAMA_EKLER=["lerimiz","larimiz","lerim","larim","lerin","larin","imiz","iniz","umuz","unuz","leri","lari","nin","nun","den","dan","tan","ten","ler","lar","yle","yla","si","su","yi","yu","ye","ya","na","ne","de","da","te","ta","in","im","un","um","i","u","e","a","m","n"];
+  function aramaKok(w){for(var i=0;i<ARAMA_EKLER.length;i++){var ek=ARAMA_EKLER[i];if(w.length-ek.length>=4&&w.slice(-ek.length)===ek){return w.slice(0,w.length-ek.length);}}return w;}
   // ürünün aranabilir metni (başlık + açıklama + marka + kategori + id/parça no)
   // ürün başına BİR KEZ hesaplanıp p._hs'te önbelleğe alınır (büyük katalogda arama hızlı kalsın)
   function haystack(p){
@@ -1980,7 +1986,7 @@
       });
       return out;
     }
-    var tokens = norm(query).split(/\s+/).filter(Boolean);
+    var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
     var counts = {};
     PRODUCTS.forEach(function(p){
       if(activeCat !== "Tümü" && p.kategori !== activeCat){ return; }
@@ -2083,7 +2089,7 @@
   }
 
   function filtered(){
-    var tokens = norm(query).split(/\s+/).filter(Boolean);
+    var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
     // Marka eşleşmesi KATLAMAYLA tutarlı: "Toyota" çipi "Toyota 86"lı, "Mercedes" çipi
     // "Mercedes-Benz"li ürünü de bulur (görünümde tek kalem + eşleşmede aynı kural).
     var hedefMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
@@ -2375,7 +2381,7 @@
         return (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
       });
     }
-    var tokens = norm(query).split(/\s+/).filter(Boolean);
+    var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
     if(tokens.length){
       liste = liste.filter(function(p){
         var hs = norm(p.baslik || "");
