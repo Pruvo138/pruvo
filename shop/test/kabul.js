@@ -314,7 +314,11 @@ function d1Kur() {
     "('test-kdv-75','h12',12,'Test KDV 75 TL','Ev','[]','75 TL',0,''), " +
     // test 5 (parametrik kanal ACIK): id'si GERCEK semayla eslesen sari urun — sunucu
     // SEMALAR.get(id) ile bulur, fiyati kendisi hesaplar (taban fiyat semadan, 100 TL o-ring).
-    "('olcuye-ozel-oring-conta','h13',13,'Test Oring (semali sari)','Jeneratör','[]','',1,'');"
+    "('olcuye-ozel-oring-conta','h13',13,'Test Oring (semali sari)','Jeneratör','[]','',1,''), " +
+    // test konfigur (dekor konfiguratoru): kurt heykeli D1'de parametrik=0 + sabit '150 TL'
+    // gorunur; konfigur oldugunu Worker SADECE bundled KONFIGURLAR'dan bilir. Gercek id
+    // KONFIGURLAR ile eslesir -> sunucu boy+malzeme'den fiyati yeniden hesaplar.
+    "('kurt-heykeli-serit-dekoratif-figur','h14',14,'Test Kurt (konfigur)','Skan Art','[]','150 TL',0,'');"
   );
   // test 24 (e-posta link + kapak resmi): gorsel kolonu DOLU / BOS(NULL) / enjekte-baslik.
   // Ayri INSERT (gorsel kolonu ile) — ustteki buyuk INSERT'e dokunmadan. XSS urununde baslikta
@@ -703,6 +707,150 @@ async function test9ParametrikAltyapi() {
     (sonuc.hata ? "HATA" : kurusMetin(sonuc.birimKurus) + " (istemcinin sahte hacim=1/fiyat=1 " +
      "YOK SAYILDI, konfiguratorle birebir)") + "; red yollari: aralik/bilinmeyen/taban-yok/" +
     "parametresiz OK; bundle dry-run=" + (dryOk ? "kuruldu" : "PATLADI") +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 25 — KONFIGUR KART ODEMESI (dekor konfiguratoru sunucu-tarafi yeniden hesabi).
+ *  Kanal ACIK (SECENEK.KONFIGUR_ODEME_ACIK=true). Konfigur urunu (kurt heykeli) D1'de
+ *  parametrik=0 + sabit '150 TL' gorunur; Worker konfigur oldugunu SADECE bundled KONFIGURLAR
+ *  haritasindan bilir -> fiyati boy+malzeme'den SUNUCUDA yeniden hesaplar. Kanit:
+ *   (a) konfigurHesapla birebir fiyat (150/286/371/457 TL zemin+kademe),
+ *   (b) istemcinin sahte parametrik_fiyat_kurus/hacim_mm3 YOK SAYILIR (HTTP + birim),
+ *   (c) boy manipulasyonu (100000/-5/NaN/adim-disi) boyDuzelt ile KIRPILIR; ham boy fiyata GIRMEZ,
+ *   (d) malzeme manipulasyonu: bilinmeyen REDDEDILIR; istemci katsayi=0,01 yollasa katsayi LISTEDEN,
+ *   (e) KONFIGUR_ODEME_ACIK=false -> Worker whatsapp-fallback (kaynak nobetcisi + tek kaynak bayrak),
+ *   (f) konfigurlar.js bundle == urunler.json "konfigur" alanlari (guard) + front/Worker DRIFT nobeti. */
+async function test25KonfigurOdeme() {
+  const hatalar = [];
+  const KURT_ID = "kurt-heykeli-serit-dekoratif-figur";
+
+  // Worker modulu (shippen dosya) + front cekirdegi (bagimsiz hesap, drift nobeti icin).
+  const KM = await import("file://" + path.join(SHOP, "src", "konfigur.js"));
+  const KL = await import("file://" + path.join(SHOP, "src", "konfigurlar.js"));
+  const FRONT = require(path.join(KOK, "konfigur.js"));
+  const urunler = JSON.parse(fs.readFileSync(path.join(KOK, "urunler.json"), "utf8"));
+  const kurt = urunler.find((u) => u.id === KURT_ID);
+  const kf = kurt.konfigur;
+  const kat = (ad) => (kf.malzemeler.find((m) => m.ad === ad) || {}).katsayi;
+  const wh = (boy, mal, extra) => KM.konfigurHesapla(
+    Object.assign({ malzeme: mal, parametreler: { boy_mm: boy } }, extra), SECENEK, kf);
+
+  // (a) BIREBIR fiyat: SPEC'ten SABIT (kaydirma yakalansin). 6cm zemin, 15cm kademe, malzeme carpani.
+  const bekle = { "60/PLA": 15000, "150/PLA": 28600, "150/PETG": 37100, "150/ASA": 45700 };
+  const olculen = {};
+  for (const [k, v] of Object.entries(bekle)) {
+    const [b, m] = k.split("/");
+    const r = wh(Number(b), m);
+    olculen[k] = r.hata ? ("HATA:" + r.hata) : r.birimKurus;
+    if (r.birimKurus !== v) { hatalar.push("(a) " + k + " = " + olculen[k] + " != " + v); }
+  }
+
+  // (b) GUVENLIK (birim): istemci sahte parametrik_fiyat_kurus=1 + hacim_mm3=1 -> YOK SAYILIR.
+  const gr = wh(150, "PLA", { parametrik_fiyat_kurus: 1, hacim_mm3: 1 });
+  if (gr.birimKurus !== 28600 || gr.hacimMm3 === 1) {
+    hatalar.push("(b) sahte fiyat/hacim kullanildi: " + JSON.stringify(gr));
+  }
+
+  // (c) BOY manipulasyonu: boyDuzelt kirpar; ham boy fiyata girmez.
+  const boyVaka = [[100000, 300, 130000], [-5, 60, 15000], ["xyz", 150, 28600], [155, 160, 31700]];
+  for (const [ham, kirp, fiyat] of boyVaka) {
+    const r = KM.konfigurHesapla({ malzeme: "PLA", parametreler: { boy_mm: ham } }, SECENEK, kf);
+    if (r.hata || r.parametreler.boy_mm !== kirp || r.birimKurus !== fiyat) {
+      hatalar.push("(c) boy " + ham + " -> " + JSON.stringify(r) + " (kirp " + kirp + "/" + fiyat + ")");
+    }
+  }
+
+  // (d) MALZEME manipulasyonu: bilinmeyen (konfigur listesinde yok) REDDEDILIR; istemci katsayi YOK SAYILIR.
+  const mBilinmeyen = wh(150, "TPU");   // TPU FILAMENT listesinde var ama konfigur.malzemeler'de YOK
+  if (mBilinmeyen.hata !== "gecersiz-malzeme") { hatalar.push("(d) bilinmeyen malzeme: " + JSON.stringify(mBilinmeyen)); }
+  const mKatsayi = KM.konfigurHesapla(
+    { malzeme: "ASA", katsayi: 0.01, parametreler: { boy_mm: 150, katsayi: 0.01 } }, SECENEK, kf);
+  if (mKatsayi.hata || mKatsayi.birimKurus !== 45700) {
+    hatalar.push("(d) istemci katsayi=0,01 kullanildi (ASA 1,6 olmali): " + JSON.stringify(mKatsayi));
+  }
+
+  // (f) GUARD: konfigurlar.js bundle == urunler.json "konfigur" alanlari (kapsam + BIREBIR).
+  function sirala(o) {
+    if (Array.isArray(o)) { return o.map(sirala); }
+    if (o && typeof o === "object") {
+      const s = {};
+      for (const k of Object.keys(o).sort()) { s[k] = sirala(o[k]); }
+      return s;
+    }
+    return o;
+  }
+  const beklenenKonf = new Map(
+    urunler.filter((u) => u.konfigur).map((u) => [u.id, u.konfigur]));
+  const bundleAnahtar = new Set(KL.KONFIGURLAR.keys());
+  const eksik = [...beklenenKonf.keys()].filter((id) => !bundleAnahtar.has(id));
+  const fazla = [...bundleAnahtar].filter((id) => !beklenenKonf.has(id));
+  if (eksik.length) { hatalar.push("(f) konfigurlar.js'te EKSIK: " + eksik.join(",")); }
+  if (fazla.length) { hatalar.push("(f) konfigurlar.js'te FAZLA (urun yok): " + fazla.join(",")); }
+  for (const [id, obj] of beklenenKonf) {
+    const b = KL.KONFIGURLAR.get(id);
+    if (b && JSON.stringify(sirala(b)) !== JSON.stringify(sirala(obj))) {
+      hatalar.push("(f) konfigur DRIFT (" + id + "): bundle != urunler.json");
+    }
+  }
+
+  // (f) DRIFT nobeti: Worker konfigurHesapla birimKurus == front /konfigur.js fiyatKurus (bagimsiz).
+  let driftOk = true;
+  for (const b of [60, 90, 150, 210, 300]) {
+    for (const m of ["PLA", "PETG", "ASA"]) {
+      const w = KM.konfigurHesapla({ malzeme: m, parametreler: { boy_mm: b } }, SECENEK, kf).birimKurus;
+      const f = FRONT.fiyatKurus(kf, FRONT.boyDuzelt(kf, b), kat(m));
+      if (w !== f) { driftOk = false; hatalar.push("(f) drift " + b + "/" + m + ": worker " + w + " != front " + f); }
+    }
+  }
+
+  // (e) KONFIGUR_ODEME_ACIK=false -> whatsapp-fallback. Bugun calisan Worker'da bayrak TRUE
+  //     (deploy'suz runtime'da cevrilemez) -> kaynak nobetcisi: index.js'te bayrak-kapisi + whatsapp
+  //     donusu DURUYOR mu (mutasyon: kapi silinirse KIRMIZI) + bayrak TEK KAYNAK (front+Worker ayni sabit).
+  const indexKaynak = fs.readFileSync(path.join(SHOP, "src", "index.js"), "utf8");
+  const kapiVar = /KONFIGURLAR\.has\(k\.id\)/.test(indexKaynak) &&
+    /!SECENEK\.KONFIGUR_ODEME_ACIK/.test(indexKaynak) &&
+    /"konfigur-urun"/.test(indexKaynak);
+  if (!kapiVar) { hatalar.push("(e) index.js konfigur bayrak-kapisi/whatsapp fallback YOK (mutasyon?)"); }
+  if (SECENEK.KONFIGUR_ODEME_ACIK !== true) { hatalar.push("(e) SECENEK.KONFIGUR_ODEME_ACIK true degil"); }
+
+  // ---- HTTP uctan uca (gercek Worker + yerel D1) ----
+  const onceInit = (await mockOku()).initSayisi;
+  // (b-HTTP) sahte fiyat/hacim -> KABUL + D1 tutar SUNUCU hesabi (28600), sahte 1 DEGIL.
+  const kalem = { id: KURT_ID, malzeme: "PLA", renk: "Siyah", adet: 1,
+    parametreler: { boy_mm: 150 }, parametrik_fiyat_kurus: 1, hacim_mm3: 1 };
+  const cPos = await baslatIstek([kalem]);
+  let d1Pos = null;
+  if (cPos.kod !== 200) { hatalar.push("(b-HTTP) konfigur baslat: " + cPos.kod + " " + JSON.stringify(cPos.govde)); }
+  else {
+    d1Pos = d1Sorgu("SELECT tutar_kurus FROM siparisler WHERE siparis_no = '" + cPos.govde.no + "'")[0];
+    if (!d1Pos || d1Pos.tutar_kurus !== 28600) {
+      hatalar.push("(b-HTTP) D1 tutar " + (d1Pos && d1Pos.tutar_kurus) + " != 28600 (sahte 1 sizdi?)");
+    }
+  }
+  // (c-HTTP) boy 100000 -> clip 300 -> 130000 (istemcinin devasa boy'u fiyata GIRMEZ).
+  const cBoy = await baslatIstek([{ id: KURT_ID, malzeme: "PLA", renk: "Siyah", adet: 1,
+    parametreler: { boy_mm: 100000 } }]);
+  if (cBoy.kod !== 200) { hatalar.push("(c-HTTP) boy-clip baslat: " + cBoy.kod); }
+  else {
+    const d = d1Sorgu("SELECT tutar_kurus FROM siparisler WHERE siparis_no = '" + cBoy.govde.no + "'")[0];
+    if (!d || d.tutar_kurus !== 130000) { hatalar.push("(c-HTTP) D1 tutar " + (d && d.tutar_kurus) + " != 130000"); }
+  }
+  // (d-HTTP) malzeme TPU (konfigur listesinde yok) -> 400 gecersiz-malzeme, iyzico oturumu ACILMAZ.
+  const araInit = (await mockOku()).initSayisi;
+  const cMal = await baslatIstek([{ id: KURT_ID, malzeme: "TPU", renk: "Siyah", adet: 1,
+    parametreler: { boy_mm: 150 } }]);
+  const sonInit = (await mockOku()).initSayisi;
+  if (cMal.kod !== 400 || cMal.govde.hata !== "gecersiz-malzeme") {
+    hatalar.push("(d-HTTP) TPU: " + cMal.kod + "/" + (cMal.govde || {}).hata + " (400 gecersiz-malzeme olmali)");
+  }
+  if (sonInit !== araInit) { hatalar.push("(d-HTTP) red kaleminde iyzico oturumu ACILDI"); }
+
+  rapor("25 konfigur kart odemesi (sunucu yeniden hesap; manipulasyon imkansiz)", hatalar.length === 0,
+    "birim: " + Object.entries(olculen).map(([k, v]) => k + "=" + v).join(" ") +
+    "; sahte-fiyat YOK SAYILDI (birim=" + gr.birimKurus + ", D1=" + (d1Pos ? d1Pos.tutar_kurus : "?") +
+    "); boy-clip 100000->300->130000 OK; malzeme bilinmeyen RED + istemci-katsayi YOK SAYILDI;" +
+    " guard kapsam " + bundleAnahtar.size + "/" + beklenenKonf.size + " birebir; drift front==worker=" +
+    (driftOk ? "OK" : "KIRIK") + "; (e) bayrak-kapisi " + (kapiVar ? "DURUYOR" : "YOK") +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
@@ -1885,6 +2033,7 @@ async function main() {
     await test15SozlesmeOnayi();
     await test5Parametrik();
     await test9ParametrikAltyapi();
+    await test25KonfigurOdeme();
     await test16CallbackTutarUyusmazligi();
     await test17ParametrikSatirAyirt();
     // Siparis yonetimi paketi (18-23). 23 worker'i ANAHTARSIZ yeniden baslatir —

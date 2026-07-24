@@ -88,6 +88,15 @@
      tek başına front push'u Worker'ı DEĞİŞTİRMEZ. */
   var PARAMETRIK_ODEME_ACIK = true;
 
+  /* Konfigur (dekor konfigüratörü, /konfigur.js) ürünlerinde SELF-SERVİS KART ÖDEMESİ anahtarı
+     — TEK yerde, front + Worker aynı sabiti okur. AÇIK (mimar kararı, 2026-07-24). Ön koşul:
+     Worker konfigur fiyatını SUNUCUDA yeniden hesaplıyor (shop/src/konfigur.js; boy KIRPILIR,
+     malzeme katsayısı şema LİSTESİNDEN, istemcinin hacim/fiyat alanları OKUNMAZ) — manipülasyon
+     imkansız. Önceden bu satırlar FAIL-CLOSED WhatsApp'a düşüyordu (Worker yeniden hesaplayamıyor
+     diye); artık hesaplayabildiği için kart kanalı açılır. KAPATMAK gerekirse: burası false +
+     Worker yeniden deploy (bundle'a gömülü) — tek başına front push'u Worker'ı DEĞİŞTİRMEZ. */
+  var KONFIGUR_ODEME_ACIK = true;
+
   /* SELF-SERVİS KARTLA ÖDEME anahtarı (sitedeki "Kartla Güvenli Öde" butonu).
      Bugün KAPALI — sebebi teknik değil, TİCARİ: elimizde yalnız iyzico SANDBOX anahtarı var
      (canlı başvuru sürüyor). Buton canlı sitede açık olsaydı müşteri GERÇEK kartını SANDBOX
@@ -278,11 +287,12 @@
       fiyatMetni: (kurus == null) ? "Ölçüye özel fiyat — teklif için sipariş verin" : kurusMetni(kurus),
       // Taban fiyat boş üründe (bugün yalnız vida) fiyat null -> ödeme akışına giremez;
       // PARAMETRIK_ODEME_ACIK ise mimarın açacağı anahtar (Worker da AYNI sabiti okur).
-      // satir.konfigur (dekor konfigüratörü, /konfigur.js): kart-ödeme kanalı FAIL-CLOSED
-      // KAPALI — Worker bu satırın fiyatını sunucuda YENİDEN HESAPLAYAMIYOR (D1'de yalnız
-      // taban fiyat var, jenerator şeması yok; istemci fiyatına güvenilmez -> sessiz eksik
-      // tahsilat riski). Kanal WhatsApp; Worker'a konfigur desteği gelince açılır.
-      odenebilir: PARAMETRIK_ODEME_ACIK && kurus != null && !satir.konfigur
+      // satir.konfigur (dekor konfigüratörü, /konfigur.js): artık Worker fiyatı SUNUCUDA
+      // yeniden hesaplıyor (shop/src/konfigur.js: boy KIRPILIR, katsayı şema listesinden,
+      // istemci hacim/fiyat OKUNMAZ) -> KONFIGUR_ODEME_ACIK ile kart kanalı açık. Bayrak
+      // false ise konfigur satırı yine WhatsApp'a düşer (Worker da AYNI sabiti okur).
+      odenebilir: PARAMETRIK_ODEME_ACIK && kurus != null &&
+                  (!satir.konfigur || KONFIGUR_ODEME_ACIK)
     };
   }
 
@@ -338,6 +348,7 @@
     kdvAyristir: kdvAyristir,
     ODEME_ACIK: ODEME_ACIK,
     PARAMETRIK_ODEME_ACIK: PARAMETRIK_ODEME_ACIK,
+    KONFIGUR_ODEME_ACIK: KONFIGUR_ODEME_ACIK,
     ONIZLEME_3D_ACIK: ONIZLEME_3D_ACIK,
     ONIZLEME_AILELER: ONIZLEME_AILELER,
     ONIZLEME_KISITLAR: ONIZLEME_KISITLAR,
