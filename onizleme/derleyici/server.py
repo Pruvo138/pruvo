@@ -57,16 +57,19 @@ SAYAC_KILIT = threading.Lock()
 # bu karakterler KALIR, gerisi (ozellikle "  \  ; < > [ ] { } = $ ` yenisatir/kontrol)
 # istisnasiz DUSER. Boylece deger Text="..." string literalinden disari cikamaz ve
 # hicbir OpenSCAD token'i enjekte edemez. Kume: ASCII harf/rakam + Turkce harfler +
-# bosluk + minimal guvenli noktalama (. , - _ / & % + ( )). Genistletmeden once
-# guvenlik gozden gecirmesi sart (her yeni karakter literal-icinde inert olsa da
-# beyaz liste bilincli olarak DAR tutulur).
+# bosluk + minimal guvenli noktalama (. , - _). Genistletmeden once guvenlik gozden
+# gecirmesi sart (her yeni karakter literal-icinde inert olsa da beyaz liste bilincli
+# olarak DAR tutulur).
+# SERTLESTIRME (deploy-oncesi son kati): / & % ( ) + ISARETLERI listeden CIKARILDI —
+# jeton yuz yazisi ad/sayi icin bunlara ihtiyac yok; beyaz listeyi daraltmak yalniz
+# izinli karakter cikardigindan yeni risk EKLEYEMEZ, saldiri yuzeyini kuculturur.
 METIN_BEYAZ_LISTE = frozenset(
     "abcdefghijklmnopqrstuvwxyz"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "0123456789"
     "ğüşıöç"   # gustioc (kucuk Turkce harfler)
     "ĞÜŞİÖÇ"   # GUSIOC (buyuk Turkce harfler)
-    " .,-_/&%+()")
+    " .,-_")
 # Sema `maksUzunluk` bu alanda 20; asagidaki tavan ONDAN BAGIMSIZ savunma-derinligi
 # (derleyici tek basina da cagrilabilir: eslem-olcum.py / ic-derle / gelecek yollar).
 METIN_SERT_TAVAN = 24
