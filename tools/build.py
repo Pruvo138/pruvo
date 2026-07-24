@@ -864,26 +864,58 @@ def _konfigur_boy_html(konfigur):
                    c_min, c_max, c_adim, c_var))
 
 
-def _konfigur_malzeme_html(malzemeler, varsayilan):
-    """Malzeme seçici (renk butonlarıyla TUTARLI dil): .renk-btn görselini paylaşır
-    (yeni CSS YOK -> konfigur'suz sayfalar bayt-eşit kalır) + .malzeme-btn JS kancası.
-    Varsayılan malzeme önden 'secili'; data-katsayi /konfigur.js'e fiyat çarpanını taşır.
-    "(+%N)" etiketi katsayıdan TÜRETİLİR (secenekler.js filament çipi diliyle aynı)."""
-    btns = []
+def _konfigur_malzeme_html(malzemeler, varsayilan, p):
+    """Malzeme seçici — sitenin STANDART filament KARTLARIYLA (filament_html) AYNI görsel
+    bileşen: ısı dayanımı + kısa etiket + bilgi balonu (tooltip) + "Tavsiyemiz" rozeti,
+    tek kaynak filamentler.json'dan türetilir. Fark: her kart /konfigur.js'in bağladığı
+    .malzeme-btn kancasını + data-katsayi fiyat çarpanını taşır ve #malzemeButonlar içinde
+    olur. Böylece konfigur ürününde TEK, tutarlı malzeme arayüzü olur (eski basit-buton
+    seçici + ayrı fancy bilgi kartı "çift-UI"si kalkar; kart-seçim/parametrik ürünlerdeki
+    filament kartıyla birebir dil). Varsayılan malzeme önden 'secili' (lacivert dolgu).
+    filamentler.json'da tanımsız / satışa kapalı (ABS/Karbon) malzeme konfigur_dogrula ile
+    ZATEN reddedilir -> burada bulunamayan malzeme savunmacı atlanır."""
+    ref = filament_ortak.referans()
+    fil_map = {f["ad"]: f for f in ref["filamentler"]}
+    tavs = {t["ad"]: t["rozet"]
+            for t in filament_ortak.tavsiyeler(p.get("kategori"), p.get("tavsiyeFilament"))}
+    kartlar = []
     for m in malzemeler:
         ad = m["ad"]
+        f = fil_map.get(ad)
+        if not f:
+            continue
         kat = float(m["katsayi"])
-        yuzde = int(round((kat - 1.0) * 100))
-        etk = ad + ((" (+%%%d)" % yuzde) if yuzde else "")
-        sec = " secili" if ad == varsayilan else ""
-        btns.append(
-            '<button type="button" class="renk-btn malzeme-btn%s" data-malzeme="%s" '
-            'data-katsayi="%s"><span class="renk-ad">%s</span></button>'
-            % (sec, esc(ad), _sayi_metni(kat), esc(etk)))
+        rozet = tavs.get(ad, "")
+        rozet_html = ""
+        if rozet:
+            rcls = "fil-rozet" if rozet == "Tavsiyemiz" else "fil-rozet fil-rozet-not"
+            rozet_html = '<span class="%s">%s</span>' % (rcls, esc(rozet))
+        # Sınıf sırası: fil-cip [tavsiyeli] malzeme-btn [secili] — "fil-cip tavsiyeli" bitişik
+        # (test-skan-art bunu arar); .malzeme-btn = /konfigur.js kancası; .secili = varsayılan.
+        cls = "fil-cip"
+        if rozet:
+            cls += " tavsiyeli"
+        cls += " malzeme-btn"
+        if ad == varsayilan:
+            cls += " secili"
+        kartlar.append(
+            '<button type="button" class="%s" data-malzeme="%s" data-katsayi="%s" '
+            'aria-expanded="false">'
+            '<span class="fil-isi">%s</span>'
+            '<span class="fil-ad">%s</span>'
+            '<span class="fil-etiket">%s</span>'
+            '%s'
+            '<span class="fil-balon" role="tooltip"><strong>%s — %s</strong><br>%s</span>'
+            '</button>'
+            % (cls, esc(ad), _sayi_metni(kat), esc(f["isiDayanimi"]), esc(ad),
+               esc(f["kisaEtiket"]), rozet_html,
+               esc(f.get("uzunAd") or ad), esc(f["kisaEtiket"]), esc(f["uzun"])))
+    # Kaplayıcı .fil-cipler (position:relative) -> .fil-balon tooltip doğru konumlanır;
+    # id="malzemeButonlar" /konfigur.js'in bağlama kancası (DEĞİŞMEDEN çalışır).
     return ("""
       <div class="opsiyon-row opsiyon-renk">
         <label>Malzeme</label>
-        <div class="renk-butonlar" id="malzemeButonlar">""" + "".join(btns) + """</div>
+        <div class="fil-cipler" id="malzemeButonlar">""" + "".join(kartlar) + """</div>
       </div>""")
 
 
@@ -1277,7 +1309,7 @@ def attribution_html(p):
 
 
 # ------------------------------------------------------------------ malzeme (filament) bölümü
-def filament_html(p, wa_not=False):
+def filament_html(p, wa_not=False, kartlar_gizli=False):
     """Fiyat bloğunun altındaki "Malzeme" bölümü: sitede satılan filament çipleri + tavsiye
     rozeti + balon. ABS ve Karbon Katkılı SİTEDE SATILMAZ (Okan, 16 Tem) — mühendislik
     malzemesi, WhatsApp özel talebiyle satılır; burada çip olarak SUNULMAZ (yalnız
@@ -1285,6 +1317,11 @@ def filament_html(p, wa_not=False):
     seçicisi/dropdown'u olmayan ürün — MALZEME_RENK_HTML basılmıyor) mühendislik malzemesi
     notu burada gösterilir; dropdown'lu üründe not zaten opsiyonlar bloğunda var, mükerrer
     basılmaz.
+
+    kartlar_gizli=True (KONFIGUR-malzemeli sayfa, Okan 24 Tem): malzeme SEÇİMİ yukarıda
+    #malzemeButonlar fancy kartlarından yapılır -> buradaki AYNI kartların ikinci kopyası
+    "çift-UI" olur; KART bölümü (başlık + fil-cipler) BASILMAZ, yalnız mühendislik-malzeme
+    (Karbon/ABS) WhatsApp notu + "Malzeme Rehberi" linki kalır (faydalı bilgi).
 
     MİMARİ İLKE: filament bilgisi ürün verisine YAZILMAZ — tavsiye, kategori haritasından
     (tools/filamentler.json) render anında türetilir; ürün "tavsiyeFilament" override'ı
@@ -1318,6 +1355,13 @@ def filament_html(p, wa_not=False):
                esc(f["kisaEtiket"]), rozet_html,
                esc(f.get("uzunAd") or f["ad"]), esc(f["kisaEtiket"]), esc(f["uzun"])))
     wa_html = MUHENDISLIK_WA_NOT if wa_not else ""
+    if kartlar_gizli:
+        # Konfigur-malzemeli sayfa: malzeme seçimi #malzemeButonlar fancy kartlarında -> burada
+        # KART bölümü (başlık + #filCipler) mükerrer olur, basılmaz; WA notu + rehber linki kalır.
+        return ('<div class="malzeme-blok">%s'
+                '<a class="malzeme-link" href="/malzeme-rehberi/">Hangi malzeme nerede kullanılır? '
+                'Malzeme Rehberi &rarr;</a>'
+                '</div>' % wa_html)
     return ('<div class="malzeme-blok">'
             '<div class="malzeme-baslik">Malzeme</div>'
             '<div class="fil-cipler" id="filCipler">%s</div>'
@@ -1520,7 +1564,7 @@ def render_product(p, all_products):
                             for r in konfigur["renkler"]}
         _boy_araligi = "%s–%s cm" % (_sayi_metni(_bm["min"] / 10.0),
                                      _sayi_metni(_bm["max"] / 10.0))
-        _malzeme_html = _konfigur_malzeme_html(_malzemeler, _vm) if _malzemeler else ""
+        _malzeme_html = _konfigur_malzeme_html(_malzemeler, _vm, p) if _malzemeler else ""
         _konf_baslik = ("Malzeme, renk ve boyutunu seçin" if _malzemeler
                         else "Rengini ve boyutunu seçin")
         _boy_not = ("%s %s arasında ayarlanabilir; fiyat seçtiğiniz boyut ve malzemeye göre "
@@ -2098,7 +2142,8 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
         # Muhendislik-malzeme WA notu kartlarin altinda — malzeme dropdown'u kalan TEK
         # dal (semasiz-parametrik-fonksiyonel, bugun urun yok) haric her sayfada; o dalda
         # not zaten _malzeme_renk_html icinde, mukerrer basilmaz.
-        malzeme=filament_html(p, wa_not=not (parametrik and fonksiyonel and not sema)),
+        malzeme=filament_html(p, wa_not=not (parametrik and fonksiyonel and not sema),
+                              kartlar_gizli=bool(konfigur and konfigur.get("malzemeler"))),
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,

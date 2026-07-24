@@ -488,19 +488,40 @@ def test_konfigur_malzeme_sayfasi(seri):
     kontrol(feed_n == 1 and ("<g:price>%d TRY</g:price>" % TABAN_TL) in feed_xml,
             "Merchant feed minimum (PLA) fiyatla girer (%d TRY)" % TABAN_TL)
 
-    kontrol('id="malzemeButonlar"' in html, "malzeme seçici (butonlar) basılır")
+    # TEK malzeme arayüzü: seçici #malzemeButonlar İÇİNDE, standart filament KARTIYLA aynı
+    # görsel bileşen (fancy .fil-cip) AMA /konfigur.js kancası .malzeme-btn + data-katsayi taşır
+    # (Okan 24 Tem: fancy kartlar seçici olsun; üstteki basit selector + alttaki bilgi kartı
+    # "çift-UI"si kalksın). Bayt-değişmez fiyat/JSON-LD/feed yukarıda kanıtlandı.
+    kontrol('id="malzemeButonlar"' in html, "malzeme seçici (#malzemeButonlar) basılır")
     kontrol(html.count("malzeme-btn") == len(MALZEMELER),
-            "her malzeme bir buton (%d): %d" % (len(MALZEMELER), html.count("malzeme-btn")))
+            "her malzeme bir .malzeme-btn kartı (%d): %d" % (len(MALZEMELER), html.count("malzeme-btn")))
     for m in MALZEMELER:
-        kontrol(('data-malzeme="%s"' % m["ad"]) in html, "malzeme butonu: %s" % m["ad"])
+        kontrol(('data-malzeme="%s"' % m["ad"]) in html, "malzeme kartı: %s" % m["ad"])
         kontrol(('data-katsayi="%s"' % build._sayi_metni(m["katsayi"])) in html,
-                "malzeme %s -> data-katsayi=%s" % (m["ad"], build._sayi_metni(m["katsayi"])))
-    kontrol('class="renk-btn malzeme-btn secili" data-malzeme="PLA"' in html,
-            "varsayılan malzeme PLA önden 'secili'")
-    kontrol("PETG (+%30)" in html and "ASA (+%60)" in html,
-            "malzeme etiketleri katsayıdan türer (PETG +%30 · ASA +%60)")
+                "malzeme %s -> data-katsayi=%s (fiyat çarpanı)" % (m["ad"], build._sayi_metni(m["katsayi"])))
+    # Fancy kart görünümü: #malzemeButonlar kaplayıcı .fil-cipler + her malzeme .fil-cip;
+    # ısı dayanımı + bilgi balonu (tooltip) filamentler.json'dan (kart-seçim ürünüyle aynı dil).
+    m_cont = re.search(r'id="malzemeButonlar">(.*?)</div>', html, re.S)
+    icerik = m_cont.group(1) if m_cont else ""
+    kontrol(icerik.count('class="fil-cip') == len(MALZEMELER),
+            "malzeme kartları fancy .fil-cip görünümünde (%d): %d"
+            % (len(MALZEMELER), icerik.count('class="fil-cip')))
+    kontrol("fil-isi" in icerik and "fil-balon" in icerik,
+            "malzeme kartları ısı (fil-isi) + bilgi balonu (fil-balon/tooltip) taşır")
+    for m_ad, isi in (("PLA", "~55-60°C"), ("PETG", "~70-75°C"), ("ASA", "~90-95°C")):
+        kontrol(isi in icerik, "%s kartı ısı dayanımını (%s) gösterir" % (m_ad, isi))
+    kontrol('class="fil-cip tavsiyeli malzeme-btn secili" data-malzeme="PLA"' in html,
+            "varsayılan PLA fancy kartı önden 'secili' (fil-cip [tavsiyeli] malzeme-btn secili)")
     kontrol('data-malzeme="ABS"' not in html and 'data-malzeme="Karbon"' not in html,
             "ABS/Karbon malzeme SEÇENEĞİ YOK (satışa kapalı)")
+    # Çift-UI kalktı: alttaki AYRI standart filament kart bölümü (#filCipler) BASILMAZ;
+    # yalnız faydalı mühendislik-malzeme WhatsApp notu + Malzeme Rehberi linki KALIR.
+    kontrol('id="filCipler"' not in html,
+            "AYRI standart filament KART bölümü YOK (çift-UI kalktı — malzeme tek yerde seçilir)")
+    kontrol("Malzeme Rehberi" in html and 'href="/malzeme-rehberi/"' in html,
+            "'Malzeme Rehberi' linki KALIR (faydalı bilgi silinmedi)")
+    kontrol("wa.me/905451386526" in html and 'class="malzeme-not"' in html,
+            "mühendislik malzemesi (Karbon/ABS) WhatsApp notu KALIR")
     kontrol('src="/konfigur.js' in html and 'id="cartBtn"' in html,
             "/konfigur.js + Sepete Ekle ikonu (malzeme sayfada da) bağlı")
     kontrol("KART_SECIM = false" in html,
