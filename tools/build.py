@@ -1386,7 +1386,12 @@ def render_product(p, all_products):
         "name": baslik,
         "image": imgs or [cover],
         "description": re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip(),
-        "sku": pid,
+        # GSC Merchant listings "sku" 50 karakter siniri: feed g:id/g:mpn ile TEK
+        # KAYNAK kanonik kimlik (feed_id: <=50 AYNEN, uzunsa pid[:41]+'-'+sha1[:8]
+        # = tam 50). Uzun urun-id'lerinde HAM pid «gecersiz uzunluk» KRITIK hatasi
+        # uretiyordu (GSC WNC-10030322, 24 Tem). product_url/link TAM pid ile kalir
+        # (sadece feed/JSON-LD kimligi kisalir). Test: tools/test-jsonld-sku.py
+        "sku": feed_id(pid),
         "category": kategori,
     }
     if ld_fiyat:
