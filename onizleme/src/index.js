@@ -41,11 +41,13 @@ const GZIP_TAVANI = 2 * 1024 * 1024;   // pakete gore cikti tavani 2 MB
 const HAM_TAVAN = 16 * 1024 * 1024;    // sisme korumasi (gzip oncesi)
 const SINIR_ADET = 10;                 // IP basina dakikada derleme
 const SINIR_PENCERE_MS = 60 * 1000;
-const ONBELLEK_SURUM = "v3";           // cozunurluk/eslem degisirse artir (eski anahtar carpismasin)
+const ONBELLEK_SURUM = "v4";           // cozunurluk/eslem degisirse artir (eski anahtar carpismasin)
                                        // v2: Faz E — eslem duzeltmeleri (yay Phase, kase gövde,
                                        // petek/cetvel kisitlari) + textmetrics bayragi
                                        // v3: eslem v5 onizleme hiz dugmeleri (17 Tem 502 turu:
                                        // cetvel/jeton/pervane/petek/izgara/ramp mesh'i degisti)
+                                       // v4: jeton yuz yazisi artik istemci metnini render eder
+                                       // (metin blogu; eski "100" gomulu mesh'leri servis etme)
 
 // ---------------------------------------------------------------- yardimcilar
 
