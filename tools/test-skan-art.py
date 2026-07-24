@@ -32,23 +32,40 @@ VE YALNIZ bunlar bloklayicidir:
       bilmez; konfigursuz bir Skan Art urununde malzeme/renk katsayisi SESSIZCE duser
       (olculdu: ASA + ozel renk 27.600 yerine 15.000 kurus). Yanlis-kirmizi yuzeyi YOK:
       urun ya alani tasir ya tasimaz. BLOKLAYICI KALIR.
-  B8. index.html'de id="skanBanner" olan bir <a> ELEMANI VAR ve href'i DAVRANIS olarak
-      "/?kategori=Skan%20Art"e denk (applyUrlParams node'da kosturulur; "+" kodlamasi da
-      gecerli sayilir — duz metin karsilastirmasi YOK).
+  B8. TAMAMEN YAPISAL (node CAGRILMAZ): (i) index.html'de id="skanBanner" olan bir <a>
+      ELEMANI VAR — HTMLParser ile bulunur, oznitelik SIRASINDAN ve bicimlendirmeden
+      BAGIMSIZ; (ii) href'i urllib.parse ile ayristirildiginda kategori parametresi
+      "Skan Art" degerine cozuluyor ("%20" ve "+" ikisi de gecerli).
   B9. build.py'nin ANA urun-yazma yolundan gecerek urun/<kurt-id>/index.html DISKTE
       uretiliyor, icinde kompakt kart isareti var ve sitemap.xml'de URL'i geciyor.
-  B10. renderGrid DAVRANISI (node + sahte DOM): ana gorunumde skanBanner display === "",
-      kategori/arama/marka gorunumunde "none". Toggle dizisinin KAC elemanli oldugu
-      OLCULMEZ — ucuncu bir seri banner'i eklenebilmelidir.
+      Kum havuzu ROOT girdilerini KOPYALAR (symlink YOK) -> gercek calisma agacina
+      HICBIR SEY yazilmaz, elde yazili "uretilen" beyaz listesine BAGIMLILIK YOK.
+  (B10 KALDIRILDI -> KATMAN 2. renderGrid toggle DAVRANISI ve B8'in davranissal href
+   olcumu 24 Tem'de UYARI katmanina indi; asagiya bak.)
 
 KATMAN 2 — UYARI  (exit koduna ASLA dokunmaz, cikti 0 doner)
 Bugunku TUM CSS/JS sezgileri buraya indi: sari taramasi (var() cozumu, hex/notasyon,
 %23/base64, kaskad), gorunurluk motoru, beyaz liste, metin-kutusu kontrolu, JS kaynak
 sozlesmesi, cozulemeyen-secici fail-closed, renderCats cip listesi, filament rozeti,
 URL yuzde-kodlamasi, ilgili urunler, sentetik FONKSIYONEL fiksturu, secenekler.js fiyat
-davranisi. Bulgular ciktida "UYARI" basligi altinda ACIKCA basilir (CI loglarinda
-gorunur) ama exit 0. Uyari katmanindaki HICBIR kod yolu — istisna/traceback dahil —
-exit'i bozamaz: her bolum try/except ile sarilidir.
+davranisi + (24 Tem) renderGrid toggle DAVRANISI (eski B10) ve banner href'inin
+DAVRANISSAL olcumu (eski B8-davranis). Bulgular ciktida "UYARI" basligi altinda ACIKCA
+basilir (CI loglarinda gorunur) ama exit 0. Uyari katmanindaki HICBIR kod yolu —
+istisna/traceback dahil — exit'i bozamaz: her bolum try/except ile sarilidir.
+
+🔴 24 Tem, IKINCI YAPI DUZELTMESI (olculdu, hepsi YANLIS-KIRMIZIYDI):
+  · B8 regexi id'yi <a>'nin BIRINCI ozniteligi olmaya zorluyordu -> 3 mesru mutasyon
+    (class/href/data-seri once) site BOZULMADAN cekirdegi kirmiziya cekiyordu.
+  · B8/B10 node duzenegi fonksiyon govdesini BOS kum havuzuna yeniden yerlestiriyordu ->
+    renderGrid/applyUrlParams'a eklenen HER YENI DIS-KAPSAM BAGI ReferenceError. Olculen
+    5 mesru rutin cekirdegi kirmiziya cekti. ILKE: JS SEMANTIGI HAKKINDA AKIL YURUTEN
+    HICBIR SEY BLOKLAYICI OLAMAZ. -> B10 tamamen, B8'in davranis olcumu de UYARIYA indi;
+    node'un returncode'u ve node'un YOKLUGU artik yalnizca uyari uretir.
+  · Liste okumalari TEK SATIR regexti -> diziyi cok satira sarmak kirmizi yakiyordu.
+    Artik liste ADI bulunur + DENGELI parantez eslemesiyle okunur (satir sonu/yorum/
+    var-let-const/bosluk farketmez). Liste ADI yoksa fail-closed KIRMIZI kalir.
+  · B9 kum havuzu ROOT girdilerini SYMLINK'liyordu -> beyaz liste disi her ROOT ciktisi
+    GERCEK calisma agacina yaziliyordu (olculdu: feed-lite.xml). Artik KOPYALANIR.
 ────────────────────────────────────────────────────────────────────────────────
 
 ⚠️ PYC BAYATLIGI (24 Tem, olculmus GERCEK KUSUR): test `import build` yaptigi icin
@@ -59,9 +76,9 @@ importlib.invalidate_caches() + build/filament_ortak modullerinin KAYNAKTAN okun
 exec edilmesi (bytecode onbellegi tamamen devre disi). Kum havuzu alt surecine de
 PYTHONDONTWRITEBYTECODE/PYTHONPYCACHEPREFIX gecirilir.
 
-Ag YOK, repo dosyasina YAZMAZ (B9 kum havuzu gecici dizinde), build.py'den ONCE kosabilir.
-NODE GEREKIR (B8 + B10) — CI'da setup-node kurulu ve node yoksa CEKIRDEK fail-closed
-kirmizi yanar. Yerelde node yoksa acik uyariyla atlamak icin: SKAN_ART_NODE_ATLA=1.
+Ag YOK, repo dosyasina YAZMAZ (B9 kum havuzu gecici dizinde + ROOT girdileri KOPYALANIR).
+CEKIRDEK NODE GEREKTIRMEZ: node yoksa/patlarsa yalnizca UYARI cikar, exit 0 kalir.
+SKAN_ART_NODE_ATLA=1 de yalnizca uyari uretir.
 Kullanim:  python3 tools/test-skan-art.py     (0 = cekirdek gecti, 1 = cekirdek kirmizi)
 """
 import importlib
@@ -75,6 +92,7 @@ import tempfile
 import traceback
 import types
 import urllib.parse
+from html.parser import HTMLParser
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
@@ -153,11 +171,12 @@ BILINEN_SINIRLAR = """
 BILINEN SINIRLAR — IKI KATMANLI KAPI (durust liste)
 
   YAPI. Bu dosya IKI katmandir:
-    · KATMAN 1 (BLOKLAYICI CEKIRDEK, exit != 0): B1-B10. Yalniz tam-belirli, yapisal,
+    · KATMAN 1 (BLOKLAYICI CEKIRDEK, exit != 0): B1-B9. Yalniz tam-belirli, yapisal,
       CSS/JS semantigi ICERMEYEN degismezler — liste dosyanin basinda, KAPALI bir kume.
     · KATMAN 2 (UYARI, exit 0): tum CSS/JS sezgileri (sari taramasi, gorunurluk motoru,
       beyaz liste, metin kutusu, JS kaynak sozlesmesi, cozulemeyen secici, renderCats,
-      filament, URL kodlamasi, ilgili urunler, fiyat davranisi).
+      filament, URL kodlamasi, ilgili urunler, fiyat davranisi) + renderGrid toggle
+      DAVRANISI (eski B10) + banner href'inin DAVRANISSAL olcumu (eski B8-davranis).
 
   1. ⚠️ UYARI KATMANI DEPLOY'U DURDURMAZ ve KASITLI BIR EDITORU ENGELLEMEZ. Kozmetik
      drift icin bir HATIRLATMADIR: banner'i kazara sariya boyayan/gizleyen bir degisiklik
@@ -170,14 +189,19 @@ BILINEN SINIRLAR — IKI KATMANLI KAPI (durust liste)
   4. CSS motoru bir TARAYICI DEGIL: kombinator sirasi (> + ~), @layer, @container, @scope,
      devralma tam degerlendirilmez; uzunluklar 800x1280 varsayimiyla kabaca px'e cevrilir.
      Bu belirsizligin TAMAMI artik UYARI katmanindadir — deploy'u etkilemez.
-  5. CEKIRDEK DE BIR GUVENLIK SINIRI DEGIL: B1-B10 yapisal degismezleri olcer, niyeti
+  5. CEKIRDEK DE BIR GUVENLIK SINIRI DEGIL: B1-B9 yapisal degismezleri olcer, niyeti
      degil. Kararli bir editor kategoriyi/banner'i bilerek kaldirirsa cekirdek kirmizi
      yanar — ama bunu ASMAK isteyen bir editor icin sonsuz gerileme kovalanmaz.
   6. CEKIRDEKTE URUN SAYISI TAVANI YOKTUR: yalniz "seri bosalmasin (>= 1)" (B6) ve
      "her Skan Art urunu `konfigur` tasisin" (B7). Kumulatif capa 21. urunde deploy'u
      kalici kirmiziya cekiyordu. Toplu tasimanin onemli kismi yine B7'ye takilir.
-  7. B8/B10 NODE GEREKTIRIR. CI'da node yoksa cekirdek FAIL-CLOSED kirmizi yanar;
-     yerelde SKAN_ART_NODE_ATLA=1 ile acik uyariyla atlanabilir (o zaman B8/B10 OLCULMEZ).
+  7. CEKIRDEK NODE'A BAGIMLI DEGIL (24 Tem). Node davranis olcumleri UYARI katmanindadir:
+     node yoksa, patlarsa ya da SKAN_ART_NODE_ATLA=1 verilirse yalniz "UYARI" satiri cikar,
+     exit 0 kalir. Bedeli acik: toggle'i tersine ceviren bir degisiklik deploy'u DURDURMAZ,
+     yalniz CI logunda uyari birakir.
+  8. CEKIRDEK BICIMLENDIRMEYI OLCMEZ: liste okumalari dengeli-parantez, banner okumasi
+     HTMLParser iledir. Oznitelik sirasi, satira sarma, yorum, var/let/const secimi
+     kirmizi URETMEZ. Liste ADI ya da banner ELEMANI yoksa fail-closed kirmizi kalir.
 """.rstrip()
 
 
@@ -196,7 +220,7 @@ def bitir():
             print("  - " + h)
         print(BILINEN_SINIRLAR)
         sys.exit(1)
-    print("BLOKLAYICI CEKIRDEK: GECTI ✅ (B1-B10 saglandi)")
+    print("BLOKLAYICI CEKIRDEK: GECTI ✅ (B1-B9 saglandi)")
     print(BILINEN_SINIRLAR)
     sys.exit(0)
 
@@ -206,26 +230,245 @@ def oku(yol):
         return f.read()
 
 
-def js_liste(metin, desen, etiket, hata=_kritik_hata):
-    """JS/Python kaynagindaki tek satirlik dizi literalini JSON olarak ayristir."""
-    m = re.search(desen, metin, re.M)
-    if not m:
-        hata("%s bulunamadi (yapi degisti mi?)" % etiket)
+# ==================================================== BICIMLENDIRMEDEN BAGIMSIZ LISTE OKUMA
+# ⚠️ 24 Tem, olculmus YANLIS-KIRMIZI: eski okuma TEK SATIR regexti (re.S yok, "var" anahtar
+# kelimesi zorunlu). Diziyi cok satira sarmak -> bloklayici kirmizi (icerik AYNI, dosya
+# gecerli JS). Kategori/malzeme listeleri buyudukce sarma KACINILMAZ.
+# Yeni kural: liste ADINI bul -> ilk "[" den DENGELI parantez eslemesiyle kapanisa kadar oku.
+# Satir sonlari, yorumlar, var/let/const, "=" cevresindeki bosluklar FARKETMEZ.
+# Liste ADI bulunamazsa fail-closed KIRMIZI (o gercek bir yapi degisimidir).
+
+def _bosluk_yorum_atla(metin, i):
+    """Bosluk + // ve /* */ yorumlarini atlayarak ilk anlamli karakterin indisini dondur."""
+    n = len(metin)
+    while i < n:
+        if metin[i].isspace():
+            i += 1
+        elif metin.startswith("//", i):
+            son = metin.find("\n", i)
+            i = n if son == -1 else son + 1
+        elif metin.startswith("/*", i):
+            son = metin.find("*/", i + 2)
+            i = n if son == -1 else son + 2
+        else:
+            break
+    return i
+
+
+def _dengeli_kose(metin, i):
+    """metin[i] == '[' iken eslesen ']' nin BIR SONRAKI indisini dondur (yoksa None).
+    Tirnak icindeki parantezler ve yorumlar sayilmaz."""
+    if i >= len(metin) or metin[i] != "[":
         return None
+    derinlik, k, n = 0, i, len(metin)
+    while k < n:
+        c = metin[k]
+        if c in "\"'`":
+            tirnak, k = c, k + 1
+            while k < n:
+                if metin[k] == "\\":
+                    k += 2
+                    continue
+                if metin[k] == tirnak:
+                    k += 1
+                    break
+                k += 1
+            continue
+        if metin.startswith("//", k):
+            son = metin.find("\n", k)
+            k = n if son == -1 else son + 1
+            continue
+        if metin.startswith("/*", k):
+            son = metin.find("*/", k + 2)
+            k = n if son == -1 else son + 2
+            continue
+        if c == "[":
+            derinlik += 1
+        elif c == "]":
+            derinlik -= 1
+            if derinlik == 0:
+                return k + 1
+        k += 1
+    return None
+
+
+def liste_govdesi(metin, ad):
+    """`<ad> = [ ... ]` dizisinin HAM govdesini (kose parantezler haric) dondur."""
+    for m in re.finditer(r"(?<![\w$.])%s(?![\w$])" % re.escape(ad), metin):
+        i = _bosluk_yorum_atla(metin, m.end())
+        if i >= len(metin) or metin[i] != "=" or metin[i:i + 2] in ("==", "=>"):
+            continue
+        i = _bosluk_yorum_atla(metin, i + 1)
+        if i >= len(metin) or metin[i] != "[":
+            continue
+        j = _dengeli_kose(metin, i)
+        if j is None:
+            continue
+        return metin[i + 1:j - 1]
+    return None
+
+
+def _ust_duzey_bol(govde):
+    """Dizi govdesini TOP-LEVEL virgullerden bol (tirnak/parantez/yorum duyarli)."""
+    parca, buf, derinlik, k, n = [], "", 0, 0, len(govde)
+    while k < n:
+        c = govde[k]
+        if c in "\"'`":
+            tirnak, bas = c, k
+            k += 1
+            while k < n:
+                if govde[k] == "\\":
+                    k += 2
+                    continue
+                if govde[k] == tirnak:
+                    k += 1
+                    break
+                k += 1
+            buf += govde[bas:k]
+            continue
+        if govde.startswith("//", k):
+            son = govde.find("\n", k)
+            k = n if son == -1 else son + 1
+            continue
+        if govde.startswith("/*", k):
+            son = govde.find("*/", k + 2)
+            k = n if son == -1 else son + 2
+            continue
+        if c in "([{":
+            derinlik += 1
+        elif c in ")]}":
+            derinlik -= 1
+        if c == "," and derinlik <= 0:
+            parca.append(buf)
+            buf = ""
+        else:
+            buf += c
+        k += 1
+    parca.append(buf)
+    return parca
+
+
+def _dize_coz(parca):
+    """Tek/cift tirnakli (ya da backtick) bir JS dize literalini Python str'e cevir."""
+    parca = parca.strip()
+    if len(parca) < 2 or parca[0] not in "\"'`" or parca[-1] != parca[0]:
+        return None
+    if parca[0] == '"':
+        try:
+            return json.loads(parca)
+        except ValueError:
+            return None
+    ic, out, k = parca[1:-1], [], 0
+    while k < len(ic):
+        c = ic[k]
+        if c == "\\" and k + 1 < len(ic):
+            n = ic[k + 1]
+            out.append(n if n in "'`" else c + n)
+            k += 2
+            continue
+        out.append('\\"' if c == '"' else c)
+        k += 1
     try:
-        return json.loads("[" + m.group(1) + "]")
-    except json.JSONDecodeError as e:
-        hata("%s ayristirilamadi: %s" % (etiket, e))
+        return json.loads('"' + "".join(out) + '"')
+    except ValueError:
         return None
 
 
-def js_bildirim(metin, desen, etiket, hata=_kritik_hata):
-    """`var X = ...;` bildiriminin TAM kaynak satirini dondur (node harness'ine gomulur)."""
-    m = re.search(desen, metin, re.M)
-    if not m:
-        hata("%s bildirimi bulunamadi (yapi degisti mi?)" % etiket)
-        return ""
-    return m.group(0)
+def js_liste(metin, ad, etiket, hata=_kritik_hata):
+    """Kaynaktaki dize dizisini BICIMLENDIRMEDEN BAGIMSIZ oku (bkz. yukaridaki blok)."""
+    govde = liste_govdesi(metin, ad)
+    if govde is None:
+        hata("%s bulunamadi (yapi degisti mi?)" % etiket)   # FAIL-CLOSED
+        return None
+    out = []
+    for parca in _ust_duzey_bol(govde):
+        if not parca.strip():
+            continue
+        deger = _dize_coz(parca)
+        if deger is None:
+            hata("%s ayristirilamadi (dize olmayan oge: %r)" % (etiket, parca.strip()[:60]))
+            return None
+        out.append(deger)
+    return out
+
+
+def js_dizi_bildirimi(ad, ogeler):
+    """Ayristirilmis listeden KANONIK bir `var <ad> = [...];` satiri uret (node harness'i
+    icin). Kaynagin bicimlendirmesini hic tasimaz -> cok satira sarma harness'i bozmaz."""
+    return "var %s = %s;" % (ad, json.dumps(ogeler, ensure_ascii=False))
+
+
+# ==================================================== HTML ELEMANI (oznitelik SIRASINDAN bagimsiz)
+# ⚠️ 24 Tem, olculmus YANLIS-KIRMIZI: eski okuma `<a id="skanBanner"...>` regexiydi ->
+# id'yi BIRINCI oznitelik olmaya zorluyordu. `<a class="..." id="skanBanner" ...>`,
+# `<a href=... id=...>`, `<a data-seri=... id=...>` ucu de site BOZULMADAN kirmizi yakiyordu.
+
+class _ElemanAvcisi(HTMLParser):
+    """Verilen etiket + id'ye sahip ILK elemanin oznitelikleri ve kaynak araligini bulur."""
+
+    def __init__(self, etiket, hedef_id):
+        HTMLParser.__init__(self, convert_charrefs=True)
+        self.etiket, self.hedef_id = etiket, hedef_id
+        self.oz = None
+        self.bas_konum = self.son_konum = None
+        self._acik, self._derinlik = False, 0
+
+    @staticmethod
+    def _sozluk(attrs):
+        return {(a or "").lower(): d for a, d in attrs}
+
+    def handle_starttag(self, tag, attrs):
+        if tag != self.etiket:
+            return
+        if self._acik:
+            self._derinlik += 1
+            return
+        if self.oz is None and self._sozluk(attrs).get("id") == self.hedef_id:
+            self.oz = self._sozluk(attrs)
+            self.bas_konum = self.getpos()
+            self._acik, self._derinlik = True, 1
+
+    def handle_startendtag(self, tag, attrs):
+        if tag != self.etiket or self._acik or self.oz is not None:
+            return
+        if self._sozluk(attrs).get("id") == self.hedef_id:
+            self.oz = self._sozluk(attrs)
+            self.bas_konum = self.son_konum = self.getpos()
+
+    def handle_endtag(self, tag):
+        if tag != self.etiket or not self._acik:
+            return
+        self._derinlik -= 1
+        if self._derinlik == 0:
+            self._acik = False
+            self.son_konum = self.getpos()
+
+
+def _konum_ofset(satir_baslari, konum):
+    satir, sutun = konum
+    if satir - 1 >= len(satir_baslari):
+        return len(satir_baslari and satir_baslari[-1] or 0)
+    return satir_baslari[satir - 1] + sutun
+
+
+def eleman_bul(html_metin, etiket, hedef_id):
+    """(bas_ofset, son_ofset, oznitelik_sozlugu) — oznitelik SIRASI/bicimi farketmez."""
+    p = _ElemanAvcisi(etiket, hedef_id)
+    try:
+        p.feed(html_metin)
+        p.close()
+    except Exception:                                   # noqa: BLE001 — fail-closed
+        return None
+    if p.oz is None or p.bas_konum is None or p.son_konum is None:
+        return None
+    satir_baslari, ofs = [0], 0
+    for satir in html_metin.split("\n")[:-1]:
+        ofs += len(satir) + 1
+        satir_baslari.append(ofs)
+    bas = _konum_ofset(satir_baslari, p.bas_konum)
+    son_bas = _konum_ofset(satir_baslari, p.son_konum)
+    kapanis = html_metin.find(">", son_bas)
+    return bas, (kapanis + 1 if kapanis != -1 else len(html_metin)), p.oz
 
 
 def js_fonksiyon(metin, ad, hata=_kritik_hata):
@@ -994,8 +1237,10 @@ def node_var_mi():
         return False
 
 
-def node_kos(kaynak, etiket, bildir=kontrol):
-    """Gecici .js dosyasi yazip node ile kosar; stdout'un SON satirini JSON ayristirir."""
+def node_kos(kaynak, etiket, bildir=uyari):
+    """Gecici .js dosyasi yazip node ile kosar; stdout'un SON satirini JSON ayristirir.
+    ⚠️ VARSAYILAN `uyari`: node cagrisinin returncode'u ARTIK CEKIRDEK KIRMIZISI URETMEZ
+    (mimar karari 24 Tem — JS semantigi hakkinda akil yuruten hicbir sey bloklayici olamaz)."""
     with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as f:
         f.write(kaynak)
         yol = f.name
@@ -1022,13 +1267,12 @@ with open(URUNLER, encoding="utf-8") as _f:
 
 print("SKAN ART KABUL TESTI — IKI KATMAN (cekirdek = bloklayici, uyari = exit 0)")
 print("=" * 70)
-print("KATMAN 1 — BLOKLAYICI CEKIRDEK (B1-B10)")
+print("KATMAN 1 — BLOKLAYICI CEKIRDEK (B1-B9; B10 UYARI katmanina indi)")
 print("=" * 70)
 
 # ============================================================ B1 — gizli liste paritesi
 print("(B1) 'Skan Art' iki gizli-nav kaynaginda ve AYNI sira indeksinde")
-i_giz = js_liste(index_html, r"var\s+GIZLI_KATEGORILER\s*=\s*\[(.*?)\]",
-                 "index.html GIZLI_KATEGORILER")
+i_giz = js_liste(index_html, "GIZLI_KATEGORILER", "index.html GIZLI_KATEGORILER")
 b_giz = list(build.NAV_GIZLI)
 kontrol(KATEGORI in b_giz, '"%s" tools/build.py NAV_GIZLI icinde (bulunan: %s)' % (KATEGORI, b_giz))
 kontrol(i_giz is not None and KATEGORI in i_giz,
@@ -1042,7 +1286,7 @@ else:
 
 # ============================================================ B2 — gorunur nav'da DEGIL
 print("(B2) 'Skan Art' GORUNUR nav cip kaynaginda DEGIL — iki kaynakta da")
-i_cat = js_liste(index_html, r"var\s+CATEGORIES\s*=\s*\[(.*?)\]", "index.html CATEGORIES")
+i_cat = js_liste(index_html, "CATEGORIES", "index.html CATEGORIES")
 kontrol(i_cat is not None and KATEGORI not in i_cat,
         '"%s" index.html CATEGORIES listesinde DEGIL' % KATEGORI)
 kontrol(KATEGORI not in build.CATEGORIES,
@@ -1050,7 +1294,7 @@ kontrol(KATEGORI not in build.CATEGORIES,
 
 # ============================================================ B3 — FONKSIYONEL uyeligi
 print("(B3) 'Skan Art' FONKSIYONEL_KATEGORILER icinde — build.py + secenekler.js")
-s_fonk = js_liste(secenekler_js, r"var\s+FONKSIYONEL_KATEGORILER\s*=\s*\[(.*?)\]",
+s_fonk = js_liste(secenekler_js, "FONKSIYONEL_KATEGORILER",
                   "secenekler.js FONKSIYONEL_KATEGORILER")
 kontrol(KATEGORI in build.FONKSIYONEL_KATEGORILER,
         '"%s" tools/build.py FONKSIYONEL_KATEGORILER icinde' % KATEGORI)
@@ -1091,22 +1335,35 @@ if kurt is None:
 print("(B9) uretim hatti — build.py main() kum havuzunda, sayfa DISKTE + sitemap")
 
 
+# ⚠️ 24 Tem, olculmus SESSIZ SAPMA: kum havuzu ROOT girdilerini SYMLINK'liyordu ->
+# build.py'nin ELDE YAZILI "uretilen" beyaz listesi disina cikan HER ROOT ciktisi sembolik
+# bagi izleyip GERCEK calisma agacina yaziliyordu (olculdu: gercek repodaki feed-lite.xml
+# icerigi TEST KOSUMUYLA degisti). Beyaz liste her yeni ciktida bayatlar ve sapma SESSIZDIR.
+# Yeni kural: ROOT girdileri KOPYALANIR (symlink YOK) -> build.py ne yazarsa kum havuzunda
+# kalir, beyaz listeye BAGIMLILIK YOKTUR. B9'un olctugu ciktilar kopyadan SILINIR ki
+# bayat bir kopya yanlis-yesil vermesin.
+KUM_ATLA = {".git", ".claude", "urunler.json"}   # girdi maliyeti/alakasizligi (cikti DEGIL)
+KUM_TEMIZLE = ["urun", "sitemap.xml"]            # B9 bunlari OLCER -> gercekten uretilsinler
+
+
 def uretim_hatti_olc():
     """build.py'yi kum havuzunda kostur; (kurt_sayfasi_html, sitemap_xml, hata) dondur."""
     kum = tempfile.mkdtemp(prefix="skan-art-uretim-")
     try:
-        uretilen = {"urun", "urunler.json", "sitemap.xml", "robots.txt", "merchant-feed.xml",
-                    "index.built.html", "ozet.json", "taban-fiyatlar.js", "filament-veri.js",
-                    "_yayin-icerik-dizinleri.txt", ".nojekyll", ".git", ".claude"}
-        yazilan_dizin = set(build.STATIK_SAYFALAR)
         for ad in os.listdir(ROOT):
-            if ad in uretilen:
+            if ad in KUM_ATLA:
                 continue
-            hedef = os.path.join(kum, ad)
-            if ad in yazilan_dizin:              # main() bu dizinlere YAZAR -> gercek kopya
-                shutil.copytree(os.path.join(ROOT, ad), hedef)
+            kaynak, hedef = os.path.join(ROOT, ad), os.path.join(kum, ad)
+            if os.path.isdir(kaynak):
+                shutil.copytree(kaynak, hedef, symlinks=False)
             else:
-                os.symlink(os.path.join(ROOT, ad), hedef)
+                shutil.copy2(kaynak, hedef, follow_symlinks=True)
+        for ad in KUM_TEMIZLE:
+            hedef = os.path.join(kum, ad)
+            if os.path.isdir(hedef):
+                shutil.rmtree(hedef, ignore_errors=True)
+            elif os.path.exists(hedef):
+                os.unlink(hedef)
         alt = [kurt] + [u for u in katalog if u.get("kategori") == "Dekorasyon"][:8]
         with open(os.path.join(kum, "urunler.json"), "w", encoding="utf-8") as f:
             json.dump(alt, f, ensure_ascii=False)
@@ -1144,124 +1401,52 @@ if u_sitemap:
     kontrol(build.product_url(PID) in u_sitemap,
             "sitemap.xml'de kurt URL'i VAR (%s)" % build.product_url(PID))
 
-# ============================================================ B8 — banner ELEMANI + hedefi
-print("(B8) ana sayfa banner ELEMANI + href'in DAVRANISSAL hedefi")
-m_ban = re.search(r'<a id="skanBanner"[^>]*>.*?</a>', index_html, re.S)
-kontrol(m_ban is not None, 'index.html icinde <a id="skanBanner"> ELEMANI var')
-banner_html = m_ban.group(0) if m_ban else ""
-m_ac = re.search(r'<a id="skanBanner"[^>]*>', banner_html)
-banner_ac = m_ac.group(0) if m_ac else ""
-BANNER_OZ = {ad.lower(): deger for ad, deger in
-             re.findall(r'([-\w]+)\s*=\s*"([^"]*)"', banner_ac)}
+# ============================================================ B8 — banner ELEMANI + href hedefi
+# 🔴 TAMAMEN YAPISAL (mimar karari 24 Tem): node CAGRILMAZ, JS semantigi hakkinda akil
+# yurutulmez. (i) id="skanBanner" olan bir <a> VAR mi (HTMLParser — oznitelik SIRASI
+# farketmez), (ii) href'i urllib.parse ile ayristirildiginda kategori parametresi
+# "Skan Art"a cozuluyor mu ("%20" ve "+" ikisi de gecerli).
+print("(B8) ana sayfa banner ELEMANI + href'in YAPISAL hedefi (HTMLParser + urllib.parse)")
+_ban = eleman_bul(index_html, "a", "skanBanner")
+kontrol(_ban is not None,
+        'index.html icinde id="skanBanner" olan bir <a> ELEMANI var '
+        "(oznitelik SIRASINDAN ve bicimlendirmeden BAGIMSIZ okuma)")
+ban_bas, ban_son, BANNER_OZ_HAM = _ban if _ban else (0, 0, {})
+banner_html = index_html[ban_bas:ban_son]
+BANNER_OZ = {a: ("" if d is None else d) for a, d in BANNER_OZ_HAM.items()}
 banner_href = BANNER_OZ.get("href", "")
-banner_qs = banner_href[banner_href.find("?"):] if "?" in banner_href else ""
 
-# ---- node harness kaynaklari (B8 + B10)
-cat_src = js_bildirim(index_html, r"^\s*var\s+CATEGORIES\s*=.*$", "index.html CATEGORIES")
-giz_src = js_bildirim(index_html, r"^\s*var\s+GIZLI_KATEGORILER\s*=.*$",
-                      "index.html GIZLI_KATEGORILER")
-applyurl_src = js_fonksiyon(index_html, "applyUrlParams")
-rendergrid_src = js_fonksiyon(index_html, "renderGrid")
+
+def href_kategori(href):
+    """href'in kategori parametresini urllib.parse ile coz ("%20" ve "+" ikisi de gecerli)."""
+    try:
+        parca = urllib.parse.urlsplit(href)
+    except ValueError:
+        return None
+    for kaynak in (parca.query, parca.fragment.partition("?")[2], parca.fragment):
+        if not kaynak:
+            continue
+        sorgu = urllib.parse.parse_qs(kaynak, keep_blank_values=True)
+        if "kategori" in sorgu:
+            return sorgu["kategori"][0]
+    return None
+
+
+banner_kategori = href_kategori(banner_href)
+kontrol(banner_kategori == KATEGORI,
+        'banner href\'inin (%r) kategori parametresi "%s" degerine cozuluyor '
+        "(bulunan: %r)" % (banner_href, KATEGORI, banner_kategori))
+
+# ---- node harness kaynaklari — ARTIK YALNIZ UYARI KATMANI KULLANIR
+# CATEGORIES/GIZLI_KATEGORILER bildirimleri KAYNAKTAN KOPYALANMAZ, ayristirilmis listeden
+# KANONIK olarak yeniden uretilir -> diziyi cok satira sarmak harness'i bozamaz.
+cat_src = js_dizi_bildirimi("CATEGORIES", i_cat) if i_cat is not None else ""
+giz_src = js_dizi_bildirimi("GIZLI_KATEGORILER", i_giz) if i_giz is not None else ""
+applyurl_src = js_fonksiyon(index_html, "applyUrlParams", hata=_uyari_hata)
+rendergrid_src = js_fonksiyon(index_html, "renderGrid", hata=_uyari_hata)
 
 NODE_VAR = node_var_mi()
-NODE_ATLANDI = False
-if not NODE_VAR:
-    if os.environ.get("GITHUB_ACTIONS"):
-        kontrol(False, "CI'da node var (FAIL-CLOSED: setup-node eksik/bozuk) — B8/B10 olculemedi")
-    elif os.environ.get("SKAN_ART_NODE_ATLA") == "1":
-        NODE_ATLANDI = True
-        print("  ⚠️  node yok + SKAN_ART_NODE_ATLA=1 → B8/B10 ACIK uyariyla ATLANDI")
-        UYARILAR.append("B8/B10 node yoklugunda atlandi (SKAN_ART_NODE_ATLA=1) — OLCULMEDI")
-    else:
-        kontrol(False, "node bulundu (yerelde kur ya da SKAN_ART_NODE_ATLA=1 ile atla)")
-
-if NODE_VAR and applyurl_src:
-    b2 = r"""
-"use strict";
-__CAT__
-__GIZ__
-var activeCat, activeBrand, query;
-var searchEl = { value: "" };
-var clearEl = { className: "" };
-function markaKatla(x){ return x; }
-var location = { hash: "", search: "", replace: function(){ throw new Error("beklenmedik yonlendirme"); } };
-__APPLYURL__
-function dene(qs){
-  activeCat = "Tümü"; activeBrand = "Tümü"; query = "";
-  location.hash = ""; location.search = qs;
-  applyUrlParams();
-  return activeCat;
-}
-console.log(JSON.stringify({
-  skan: dene("?kategori=Skan%20Art"),
-  banner: dene(__BANNERQS__)
-}));
-""".replace("__CAT__", cat_src).replace("__GIZ__", giz_src).replace("__APPLYURL__", applyurl_src) \
-       .replace("__BANNERQS__", json.dumps(banner_qs))
-    s2 = node_kos(b2, "(B8) applyUrlParams")
-    if s2:
-        kontrol(s2["skan"] == KATEGORI,
-                '?kategori=Skan%%20Art derin linki activeCat\'i "%s" yapiyor (bulunan: %r)'
-                % (KATEGORI, s2["skan"]))
-        kontrol(s2["banner"] == KATEGORI,
-                'banner href\'i (%r) DAVRANISSAL olarak "%s" kategorisini aciyor (bulunan: %r)'
-                % (banner_href, KATEGORI, s2["banner"]))
-
-# ============================================================ B10 — renderGrid DAVRANISI
-print("(B10) renderGrid goster/gizle DAVRANISI (node + sahte DOM)")
-if NODE_VAR and rendergrid_src:
-    b4 = r"""
-"use strict";
-__CAT__
-__GIZ__
-var EDGE_KATALOG = false;
-var edgeListe = [], edgeToplam = 0, edgeDurum = "", edgeSayfa = 1;
-var PAGE_SIZE = 24, shown = 24;
-var HOME_ORDER = [{id:"a"},{id:"b"}];
-var activeCat = "Tümü", activeBrand = "Tümü", query = "";
-var kayit = {}, elemanlar = {};
-function sahteEleman(id){
-  var o = { __id:id, style:{}, className:"", textContent:"", innerHTML:"",
-            appendChild:function(){}, setAttribute:function(){}, onclick:null, disabled:false };
-  Object.defineProperty(o.style, "display", {
-    set: function(v){ kayit[id] = v; }, get: function(){ return kayit[id]; }, configurable:true });
-  return o;
-}
-var document = {
-  getElementById: function(id){
-    if(!(id in elemanlar)){ elemanlar[id] = sahteEleman(id); }
-    return elemanlar[id];
-  },
-  createElement: function(){ return sahteEleman("__yeni__"); }
-};
-function filtered(){ return [{id:"a"},{id:"b"}]; }
-function kartCiz(){ return sahteEleman("__kart__"); }
-function renderEdgeDurum(){}
-function edgeYukle(){}
-__RENDERGRID__
-function olc(cat, q, marka){
-  kayit = {}; elemanlar = {};
-  activeCat = cat; query = q; activeBrand = marka;
-  renderGrid();
-  return ("skanBanner" in kayit) ? kayit["skanBanner"] : "__HIC-DOKUNULMADI__";
-}
-console.log(JSON.stringify({
-  ana: olc("Tümü", "", "Tümü"),
-  kategori: olc("Dekorasyon", "", "Tümü"),
-  arama: olc("Tümü", "ahsap", "Tümü"),
-  marka: olc("Tümü", "", "Audi")
-}));
-""".replace("__CAT__", cat_src).replace("__GIZ__", giz_src).replace("__RENDERGRID__", rendergrid_src)
-    s4 = node_kos(b4, "(B10) renderGrid banner toggle")
-    if s4:
-        kontrol(s4["ana"] == "",
-                'ANA gorunumde skanBanner display === "" (bulunan: %r)' % s4["ana"])
-        kontrol(s4["kategori"] == "none",
-                'KATEGORI gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["kategori"])
-        kontrol(s4["arama"] == "none",
-                'ARAMA gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["arama"])
-        kontrol(s4["marka"] == "none",
-                'MARKA gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["marka"])
+NODE_ATLA_BAYRAGI = os.environ.get("SKAN_ART_NODE_ATLA") == "1"
 
 # ================================================================== KATMAN 2 — UYARI
 print("")
@@ -1297,7 +1482,7 @@ def _u_hazirlik():
     DURUM["css_hepsi"] = css_bloklari(index_html)
     DURUM["tum_kurallar"] = css_kurallari(DURUM["css_hepsi"])
     DURUM["VAR_TANIM"] = ozel_ozellik_tanimlari(DURUM["tum_kurallar"])
-    DURUM["ATALAR"] = ata_zinciri(index_html, m_ban.start() if m_ban else 0)
+    DURUM["ATALAR"] = ata_zinciri(index_html, ban_bas)
     DURUM["kok_kural_tum"] = kok_kurallari(DURUM["tum_kurallar"], DURUM["KOK"], DURUM["ATALAR"])
     DURUM["kok_kural"] = [k for k in DURUM["kok_kural_tum"] if ozne_banner_jetonlu_mu(k[2])]
     DURUM["inline_stil"] = BANNER_OZ.get("style", "")
@@ -1306,7 +1491,9 @@ def _u_hazirlik():
           % (DURUM["KOK"]["oz"].get("id"), sorted(DURUM["KOK"]["sinif"])))
     m_main = re.search(r"<main>(.*?)</main>", index_html, re.S)
     DURUM["m_main"] = m_main
-    uyari(m_main is not None and 'id="skanBanner"' in m_main.group(1),
+    # OFSET ile olculur (metin eslemesi DEGIL) -> oznitelik sirasi/bicimi farketmez.
+    uyari(m_main is not None and _ban is not None
+          and m_main.start(1) <= ban_bas < m_main.end(1),
           "banner <main> icinde (ana sayfa vitrininin ustunde)")
     b_kurallar = [(s, d) for (s, d, _m) in DURUM["tum_kurallar"] if BANNER_JETON.search(s)]
     DURUM["b_kurallar"] = b_kurallar
@@ -1340,8 +1527,7 @@ def _u_gorunurluk():
     uyari(not durum_sorun,
           "durum secicileri (:hover/:focus/:active) banner'i OLDURMUYOR (sorun: %s)"
           % (durum_sorun or "-"))
-    uyari(not re.search(r"<a id=\"skanBanner\"[^>]*\shidden(?:\s|>|=)", banner_ac),
-          "banner HTML'inde `hidden` ozniteligi YOK")
+    uyari("hidden" not in BANNER_OZ_HAM, "banner HTML'inde `hidden` ozniteligi YOK")
     uyari(BANNER_OZ.get("aria-hidden") != "true", 'banner HTML\'inde aria-hidden="true" YOK')
 
 
@@ -1475,6 +1661,111 @@ def _u_js_sozlesmesi():
     uyari(not sozlesme_disi,
           "index.html JS'inde banner id'sine toggle blogu DISINDAN dokunan satir YOK "
           "(bulunan: %s)" % (sozlesme_disi or "-"))
+
+
+NODE_HARNESS_ONEK = r"""
+"use strict";
+__CAT__
+__GIZ__
+var EDGE_KATALOG = false;
+var edgeListe = [], edgeToplam = 0, edgeDurum = "", edgeSayfa = 1;
+var PAGE_SIZE = 24, shown = 24;
+var HOME_ORDER = [{id:"a"},{id:"b"}];
+var activeCat = "Tümü", activeBrand = "Tümü", query = "";
+var kayit = {}, elemanlar = {};
+function sahteEleman(id){
+  var o = { __id:id, style:{}, className:"", textContent:"", innerHTML:"",
+            appendChild:function(){}, setAttribute:function(){}, onclick:null, disabled:false };
+  Object.defineProperty(o.style, "display", {
+    set: function(v){ kayit[id] = v; }, get: function(){ return kayit[id]; }, configurable:true });
+  return o;
+}
+var document = {
+  getElementById: function(id){
+    if(!(id in elemanlar)){ elemanlar[id] = sahteEleman(id); }
+    return elemanlar[id];
+  },
+  createElement: function(){ return sahteEleman("__yeni__"); }
+};
+function filtered(){ return [{id:"a"},{id:"b"}]; }
+function kartCiz(){ return sahteEleman("__kart__"); }
+function renderEdgeDurum(){}
+function edgeYukle(){}
+"""
+
+
+def _u_banner_davranis():
+    """ESKI B8-DAVRANIS + ESKI B10 — 24 Tem'de UYARI KATMANINA INDI.
+
+    🔴 SEBEP (mimar karari, olculdu): bu duzenek fonksiyon govdesini BOS bir kum havuzuna
+    yeniden yerlestiriyor; renderGrid/applyUrlParams'a eklenen HER YENI DIS-KAPSAM BAGI
+    ReferenceError atiyordu. Olculen 5 mesru rutin cekirdegi kirmiziya cekiyordu (toggle'i
+    hoisted yardimci fonksiyona cikarmak, renderGrid icinde document.querySelector('#count'),
+    yeni sepetRozetiGuncelle() cagirmak, applyUrlParams'in dis kapsamdaki history bagi,
+    toggle dizisini modul kapsamina cikarmak) — hicbirinde gercek tarayici davranisi
+    degismiyordu. JS semantigi hakkinda akil yuruten hicbir sey BLOKLAYICI olamaz.
+    """
+    if not NODE_VAR:
+        uyari(False, "node yok%s -> banner DAVRANIS uyarilari OLCULMEDI "
+                     "(cekirdek node'a ARTIK bagimli DEGIL)"
+              % (" + SKAN_ART_NODE_ATLA=1" if NODE_ATLA_BAYRAGI else ""))
+        return
+    onek = NODE_HARNESS_ONEK.replace("__CAT__", cat_src).replace("__GIZ__", giz_src)
+    if applyurl_src:
+        b2 = onek + r"""
+var searchEl = { value: "" };
+var clearEl = { className: "" };
+function markaKatla(x){ return x; }
+var location = { hash: "", search: "", replace: function(){ throw new Error("beklenmedik yonlendirme"); } };
+__APPLYURL__
+function dene(qs){
+  activeCat = "Tümü"; activeBrand = "Tümü"; query = "";
+  location.hash = ""; location.search = qs;
+  applyUrlParams();
+  return activeCat;
+}
+console.log(JSON.stringify({
+  skan: dene("?kategori=Skan%20Art"),
+  banner: dene(__BANNERQS__)
+}));
+""".replace("__APPLYURL__", applyurl_src) \
+            .replace("__BANNERQS__", json.dumps(
+                banner_href[banner_href.find("?"):] if "?" in banner_href else ""))
+        s2 = node_kos(b2, "(u) applyUrlParams derin link")
+        if s2:
+            uyari(s2["skan"] == KATEGORI,
+                  '?kategori=Skan%%20Art derin linki activeCat\'i "%s" yapiyor (bulunan: %r)'
+                  % (KATEGORI, s2["skan"]))
+            uyari(s2["banner"] == KATEGORI,
+                  'banner href\'i (%r) DAVRANISSAL olarak "%s" kategorisini aciyor (bulunan: %r)'
+                  % (banner_href, KATEGORI, s2["banner"]))
+    if rendergrid_src:
+        b4 = onek + r"""
+__RENDERGRID__
+function olc(cat, q, marka){
+  kayit = {}; elemanlar = {};
+  activeCat = cat; query = q; activeBrand = marka;
+  renderGrid();
+  return ("skanBanner" in kayit) ? kayit["skanBanner"] : "__HIC-DOKUNULMADI__";
+}
+console.log(JSON.stringify({
+  ana: olc("Tümü", "", "Tümü"),
+  kategori: olc("Dekorasyon", "", "Tümü"),
+  arama: olc("Tümü", "ahsap", "Tümü"),
+  marka: olc("Tümü", "", "Audi")
+}));
+""".replace("__RENDERGRID__", rendergrid_src)
+        s4 = node_kos(b4, "(u) renderGrid banner toggle")
+        if s4:
+            uyari(s4["ana"] == "",
+                  'ANA gorunumde skanBanner display === "" (bulunan: %r)' % s4["ana"])
+            uyari(s4["kategori"] == "none",
+                  'KATEGORI gorunumunde skanBanner display === "none" (bulunan: %r)'
+                  % s4["kategori"])
+            uyari(s4["arama"] == "none",
+                  'ARAMA gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["arama"])
+            uyari(s4["marka"] == "none",
+                  'MARKA gorunumunde skanBanner display === "none" (bulunan: %r)' % s4["marka"])
 
 
 def _u_liste_paritesi():
@@ -1698,6 +1989,8 @@ for _baslik, _fn in [
     ("(u4) SARI taramasi (var() cozumlu, kaskad + %23 + base64)", _u_sari),
     ("(u5) marka/cografya dili", _u_marka_dili),
     ("(u6) JS kaynak sozlesmesi", _u_js_sozlesmesi),
+    ("(u6b) banner DAVRANISI — eski B8-davranis + eski B10 (node + sahte DOM)",
+     _u_banner_davranis),
     ("(u7) liste paritesi (tam liste esitligi)", _u_liste_paritesi),
     ("(u8) urun sayfasi kompakt kart + sentetik FONKSIYONEL fiksturu", _u_urun_sayfasi),
     ("(u9) ilgili urunler + filament + URL kodlamasi", _u_ilgili_filament_url),
