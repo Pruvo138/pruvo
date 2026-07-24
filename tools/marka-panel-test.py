@@ -86,8 +86,9 @@ EK_MARKALAR = ["DeWalt", "Metabo", "Festool", "Hilti", "HiKOKI", "Black+Decker",
 # ---- (a) markaKatla portu site ile tutarli -----------------------------------
 print("(a) markaKatla portu (sabit vaka + site kuplaji)")
 vaka = {
-    "Toyota cover": "Toyota", "Mercedes-Benz": "Mercedes", "volkswagen": "Volkswagen",
-    "DeWalt": "DeWalt", "Black and Decker": "Black+Decker", "Black & Decker": "Black+Decker",
+    "Toyota cover": "Toyota", "Toyota 86": "Toyota", "Mercedes-Benz": "Mercedes",
+    "volkswagen": "Volkswagen", "DeWalt": "DeWalt",
+    "Black and Decker": "Black+Decker", "Black & Decker": "Black+Decker",
 }
 for giris, bek in vaka.items():
     kontrol("markaKatla(%r) == %r" % (giris, bek), mk.markaKatla(giris) == bek)
@@ -163,5 +164,46 @@ kontrol("agg gerçek-sayımlı kümesi == ham-defter bağımsız türetimi (%d m
 # spesifik: katlamaya bagimli markalar sayida
 for b in ["Mercedes", "Volvo", "Volkswagen", "Toyota"]:
     kontrol("%s gerçek sayımlı (katlama sonrası korundu)" % b, b in gercek)
+
+# ---- (f) markaKatla ONEK kurali: ALT-DIZE yanlis-pozitifi YASAK --------------
+# markaKatla onek kurali: n.startswith(nm+" ") or n.startswith(nm+"-"). Yani taninmis
+# marka YALNIZ boSluk/tire ile onekliyse katlanir; ALT-DIZE (icinde gecmesi) DEGIL.
+# Bu bolum o farki kilitler: onek kurali 'nm in n' alt-dize'ye ya da ayiraci ('/'-')
+# kaldiran startswith(nm)'ye MUTE edilirse asagidaki cop degerler taninmis markaya
+# sizar -> KIRMIZI. Deger -> markaNorm sonrasi ALT-DIZE olarak icerdigi taninmis marka:
+print("(f) alt-dize yanlis-pozitif yasak (önek mutasyon kilidi)")
+ALTDIZE_COP = {
+    "Fortoyota":  "Toyota",   # 'toyota' ORTADA -> ne onek ne ayiracli; 'nm in n' sizdirir
+    "xToyota":    "Toyota",   # 'toyota' sonda; 'nm in n' sizdirir
+    "seatbelt":   "Seat",     # 'seat' BASTA ayiracsiz; startswith(nm) mutasyonu da sizdirir
+    "Audiophile": "Audi",     # 'audi' basta ayiracsiz
+    "Fordable":   "Ford",     # 'ford' basta ayiracsiz
+    "Minimalist": "Mini",     # 'mini' basta ayiracsiz
+    "Bmwx":       "BMW",      # 'bmw' basta ayiracsiz
+}
+# on-kosul: sizabilecekleri taban markalar GERCEKTEN taninmis (yoksa mutasyon kanit degil)
+for ic_marka in sorted(set(ALTDIZE_COP.values())):
+    kontrol("ön-koşul: %s taninmis marka (sızma hedefi gerçek)" % ic_marka,
+            mk.taninmisMarkaMi(ic_marka))
+# 1) hicbir cop deger taninmis markaya katlanmaz (kendisi olarak doner)
+for cop_ad, ic_marka in ALTDIZE_COP.items():
+    kontrol("markaKatla(%r) katlanmaz (kendisi, %r DEĞİL)" % (cop_ad, ic_marka),
+            mk.markaKatla(cop_ad) == cop_ad)
+    kontrol("kanonik_veya_none(%r) is None (alt-dize tanınmaz)" % cop_ad,
+            mk.kanonik_veya_none(cop_ad) is None)
+# 2) copFIX ile agg: cop anahtar satir DEGIL + icerdikleri marka sifir-kapsam (sayim SIZMADI)
+copFIX = {ad: {"Thingiverse": {"eklenen": 99, "parti": 1}} for ad in ALTDIZE_COP}
+cop_agg = mk.kanonik_kapsama(copFIX)
+sizan_satir = [ad for ad in ALTDIZE_COP if ad in cop_agg]
+kontrol("alt-dize çöp anahtar satır DEĞİL (sızan: %s)" % (sizan_satir or "-"),
+        not sizan_satir)
+hedef = sorted(set(ALTDIZE_COP.values()))
+sizan_sayim = [b for b in hedef if any(mk.hucre_deger(cop_agg[b].get(p)) for p in PLATS)]
+kontrol("alt-dize sızıntı YOK: %s hâlâ sıfır-kapsam (sızan: %s)"
+        % (hedef, sizan_sayim or "-"), not sizan_sayim)
+# 3) POZITIF karsi-kanit: gercek onek (boSluk/tire) HALA katlanir (mutasyon asiri-daralmasin)
+for giris, bek in {"Toyota 86": "Toyota", "Seat-Leon": "Seat", "Ford Focus": "Ford"}.items():
+    kontrol("pozitif önek korunur: markaKatla(%r) == %r" % (giris, bek),
+            mk.markaKatla(giris) == bek)
 
 bitir()
