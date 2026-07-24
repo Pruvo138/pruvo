@@ -261,6 +261,18 @@ jobs:
       - name: JSON-LD offers kabul testi (uretilen sayfalar)
         run: python3 tools/test-jsonld-offers.py
 
+      # JSON-LD SKU KAPISI: uretilen TUM urun sayfalarinda Product.sku 50 karakter
+      # sinirini asmasin. Google Merchant "sku" 50 karakter kisitlidir; feed g:id/g:mpn
+      # bunu feed_id(pid) ile uyguluyordu ama JSON-LD sku HAM pid basiyordu -> uzun
+      # urun-id'lerinde «sku gecersiz uzunluk» KRITIK hatasi (GSC WNC-10030322, 24 Tem).
+      # Onarim: sku = feed_id(pid) (feed g:id/g:mpn ile TEK KAYNAK; product_url/link TAM
+      # pid ile kalir). Test: her sayfa sku<=50 + sku==feed_id(pid) + kisa-id churn yok +
+      # merchant-feed.xml g:mpn capraz-kontrol + katalogdan bagimsiz sentetik uzun-id
+      # mutasyon nobeti. build.py'den SONRA kosmak ZORUNDA (urun/ + merchant-feed.xml'e
+      # muhtac). Offline, stdlib (build'i modul olarak import eder), yazma yok.
+      - name: JSON-LD sku kabul testi (uretilen sayfalar + feed capraz-kontrol)
+        run: python3 tools/test-jsonld-sku.py
+
       # SADECE sitenin ihtiyac duydugu dosyalar yayina girer (beyaz liste).
       # Eskiden path: . tum repoyu yayinliyordu -> tools/*.py canli siteden
       # indirilebiliyordu (ic araclar + ticari mahremiyet; denetim 2026-07-15).
