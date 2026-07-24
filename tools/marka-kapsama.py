@@ -18,7 +18,11 @@ import argparse
 import fcntl
 import json
 import os
+import sys
 from datetime import datetime, timezone
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import marka_katla as mk  # noqa: E402
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEFTER = os.path.join(KOK, ".marka-kapsama.json")
@@ -119,11 +123,14 @@ def backfill():
 
 
 def rapor(tek_marka=None):
-    d = _defter_oku()
-    if not d:
+    raw = _defter_oku()
+    if not raw:
         print("defter bos. once: python3 tools/marka-kapsama.py --backfill")
         return
-    markalar = [tek_marka] if tek_marka else sorted(d.keys())
+    # Rapor satır evreni = KANONIK TANINMIS_MARKALAR; ham anahtarlar markaKatla ile
+    # kanonik markaya katlanır (Toyota cover... -> Toyota), çöp anahtar HİÇ görünmez.
+    d = mk.kanonik_kapsama(raw)
+    markalar = [mk.markaKatla(tek_marka)] if tek_marka else sorted(d.keys())
     bas = "MARKA".ljust(24) + "".join(p[:4].ljust(7) for p in PLATFORMLAR) + " EKSIK"
     print(bas)
     print("-" * len(bas))

@@ -1896,10 +1896,12 @@
     "Husqvarna","Kawasaki","KTM","Vespa","Yamaha",
     // marin
     "Beneteau","Jeanneau","Mercury","Zodiac",
-    // ev / mutfak / bahçe / atölye
-    "Beko","Bosch","Einhell","Grundig","IKEA","John Deere","Kärcher","Kenwood","Krups",
-    "Makita","Miele","Moulinex","Philips","Roborock","Ryobi","Siemens","Smeg","Sodastream",
-    "Stanley","Stihl","Thermomix",
+    // ev / mutfak / bahçe / atölye / beyaz eşya / tesisat / elektrikli el aleti
+    "AEG","Arçelik","Beko","Black+Decker","Bosch","Braun","DeLonghi","DeWalt","Dyson",
+    "Einhell","Electrolux","Festool","Grohe","Grundig","Hansgrohe","HiKOKI","Hilti","IKEA",
+    "John Deere","Kärcher","Kenwood","Krups","Makita","Metabo","Miele","Moulinex","Philips",
+    "Roborock","Ryobi","Siemens","Smeg","Sodastream","Stanley","Stihl","Tefal","Thermomix",
+    "Vestel","Whirlpool",
     // elektronik / kamera
     "Acer","Anker","Apple","Canon","DJI","Fujifilm","Garmin","GoPro","Google","Huawei",
     "Logitech","Motorola","Nikon","Oppo","Raspberry Pi","Samsung","Sigma","Sony","TomTom",
@@ -1909,7 +1911,14 @@
   ];
   // markaNorm: norm() (Türkçe-duyarlı) + Latin aksan sadeleştirme ("Citroën"→"citroen").
   // norm()'un KENDİSİNE dokunulmaz (arama/skorlama değişmez); bu yalnız marka karşılaştırması için.
-  function markaNorm(s){ return norm(s).replace(/[éèë]/g,"e").replace(/ä/g,"a"); }
+  function markaNorm(s){
+    var n = norm(s).replace(/[éèë]/g,"e").replace(/ä/g,"a");
+    // marka ayıraç kanonikleştirme: "Black+Decker" == "Black & Decker" == "Black and Decker"
+    // (yalnız marka karşılaştırması; norm()/arama DEĞİŞMEZ). Liste dışı & / + / and içeren
+    // değerler (K&N, Briggs & Stratton) tanınmaz kalır — collapse yalnız eşleştirmeyi hizalar.
+    n = n.replace(/ and /g, " ").replace(/&/g, " ").replace(/\+/g, " ");
+    return n.replace(/\s+/g, " ").replace(/^ | $/g, "");
+  }
   var MARKA_KANONIK = {};                 // markaNorm(ad) → listedeki kanonik yazım
   TANINMIS_MARKALAR.forEach(function(m){ MARKA_KANONIK[markaNorm(m)] = m; });
   var MARKA_NORMLU = TANINMIS_MARKALAR.map(markaNorm);

@@ -5,7 +5,11 @@ Hucre: sayi = eklenen | 0 = arandi, urun yok | bos = HIC aranmamis (arastirma ek
 import csv
 import json
 import os
+import sys
 import time
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import marka_katla as mk  # noqa: E402
 
 DEFTER = "/Users/okan/dev/pruvo/.marka-kapsama.json"
 OUT = "/Users/okan/Desktop/pruvo-marka-platform.csv"
@@ -21,18 +25,12 @@ def oku():
     return {}
 
 
-d = oku()
+# Satır evreni = KANONIK TANINMIS_MARKALAR; ham defter markaKatla ile katlanır, çöp görünmez.
+d = mk.kanonik_kapsama(oku())
 
 
 def hucre(m, p):
-    k = d.get(m, {}).get(p)
-    if not k:
-        return None
-    if k.get("eklenen", 0) > 0:
-        return k["eklenen"]
-    if k.get("taranan", 0) > 0:
-        return 0
-    return None
+    return mk.hucre_deger(d.get(m, {}).get(p))
 
 
 def toplam(m):
@@ -41,18 +39,12 @@ def toplam(m):
 
 def durum(m):
     vals = {p: hucre(m, p) for p in PLATS}
-    tot = sum(v for v in vals.values() if v)
-    hic = [p for p in PLATS if vals[p] is None]
-    ekli = {p: v for p, v in vals.items() if v}
+    kirmizi, sari = mk.durum_hucreler(vals, PLATS)
     notlar = []
-    if hic and tot >= 3:
-        notlar.append("hic aranmadi: " + ", ".join(hic))
-    if len(ekli) >= 2:
-        en = max(ekli.values())
-        if en >= 10:
-            az = [p for p, v in ekli.items() if v < en * 0.5]
-            if az:
-                notlar.append("az kalmis: " + ", ".join(az))
+    if kirmizi:
+        notlar.append("hic aranmadi: " + ", ".join(kirmizi))
+    if sari:
+        notlar.append("az kalmis: " + ", ".join(sari))
     return " | ".join(notlar) if notlar else "dengeli"
 
 

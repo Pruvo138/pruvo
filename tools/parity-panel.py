@@ -5,7 +5,11 @@
 ⚪ arandi ama urun yok · 🟢 yeterli. Arama + 'sadece yapilacaklar' + siralama. Yenile: scripti tekrar kos."""
 import json
 import os
+import sys
 from datetime import datetime
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import marka_katla as mk  # noqa: E402
 
 DEFTER = "/Users/okan/dev/pruvo/.marka-kapsama.json"
 OUT = "/Users/okan/Desktop/pruvo-marka-durum.html"
@@ -18,17 +22,13 @@ LAST_SUMMARY = {"toplam_marka": 0, "yapilacak_marka": 0, "kirmizi_hucre": 0, "sa
 
 
 def render_html():
-    d = json.load(open(DEFTER, encoding="utf-8")) if os.path.exists(DEFTER) else {}
+    # Satır evreni = KANONIK TANINMIS_MARKALAR (index.html'den PARSE, worktree kopyası);
+    # ham defter anahtarları markaKatla ile kanonik markaya KATLANIR, çöp anahtar görünmez.
+    raw = json.load(open(DEFTER, encoding="utf-8")) if os.path.exists(DEFTER) else {}
+    d = mk.kanonik_kapsama(raw)
 
     def hucre(m, p):
-        k = d.get(m, {}).get(p)
-        if not k:
-            return None
-        if k.get("eklenen", 0) > 0:
-            return k["eklenen"]
-        if k.get("taranan", 0) > 0:
-            return 0
-        return None
+        return mk.hucre_deger(d.get(m, {}).get(p))
 
     def toplam(m):
         return sum(v for p in PLATS for v in [hucre(m, p)] if v)
@@ -36,13 +36,7 @@ def render_html():
     def _durum_hucreler(m):
         """(kirmizi_platformlar, sari_platformlar) — kirmizi=hic aranmadi, sari=az kalmis (orantili)."""
         vals = {p: hucre(m, p) for p in PLATS}
-        tot = sum(v for v in vals.values() if v)
-        en = max([v for v in vals.values() if v] or [0])
-        kirmizi = [p for p in PLATS if vals[p] is None] if tot >= 3 else []
-        sari = []
-        if en >= AZ_MIN:
-            sari = [p for p in PLATS if vals[p] and vals[p] < en * AZ_ORAN]
-        return kirmizi, sari
+        return mk.durum_hucreler(vals, PLATS)
 
     def durum(m):
         kirmizi, sari = _durum_hucreler(m)

@@ -223,6 +223,14 @@ jobs:
       - name: Marka liste kabul testi (küratörlü çipler + varyant katlama)
         run: python3 tools/marka-liste-test.py
 
+      # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
+      # anahtarları değil KANONIK TANINMIS_MARKALAR'dan gelir; ham defterdeki sayımlar
+      # markaKatla ile kanonik markaya KATLANIR (Toyota cover/mount... -> tek Toyota),
+      # tanınmayan (tasarımcı-adı/model-kodu) çöp anahtar satır DEĞİL, harvest edilmemiş
+      # tanınmış marka (DeWalt...) 🔴 to-do. Saf Python, sentetik fikstür, OFFLINE, ~1 s.
+      - name: Marka durum paneli kabul testi (kanonik satır + katlama)
+        run: python3 tools/marka-panel-test.py
+
       # KONFIGUR KABUL TESTI: konfigure edilebilir dekor urunu (renk + boy kaydirici)
       # altyapisi. (a) konfigur sema dogrulamasi fail-closed (bozuk sema/capa build'i
       # dusurur), (b) afin capa fiyat modeli — node ile GERCEK /konfigur.js kosulur
