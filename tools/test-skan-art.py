@@ -25,11 +25,11 @@ Bu dosya o kararin KALICI NOBETCISI. Olctugu maddeler:
            satiri konunca kurt sayfasi HIC uretilmiyordu (urun/ 9508 -> 9486) ama test
            yesildi; urun/ dizini TAMAMEN silinince de yesildi.]
   (e) Kurt urununun KARAR TASIYAN alanlari: kategori == "Skan Art" + `konfigur` MEVCUT.
-      Seri KAPSAMI: 1 <= urun sayisi <= SKAN_ART_TAVAN ve tek seferde SKAN_ART_TOPLU_ESIK
-      kadar urun birden girmemis. [24 Tem: govde SHA256 capasi + kati "== 1" sayi capasi
-      KALDIRILDI — rutin fiyat/gorsel guncellemesi ve seriye 2. urun eklemek bu BLOKLAYICI
-      adimi kirmiziya cekip TUM SITE DEPLOY'unu durduruyordu; urunler.json'un yazari baska
-      bir mimar, kod duzlemi veri duzlemine kilitlenmez.]
+      Seri KAPSAMI: yalniz "seri BOS DEGIL (>= 1)". [24 Tem: govde SHA256 capasi + kati
+      "== 1" sayi capasi KALDIRILDI; SON TURDA tavan/toplu-tasima capalari da TAMAMEN
+      KALDIRILDI — kumulatif olduklari icin seri 21. urune ulastiginda deploy KALICI
+      kirmizi oluyordu. urunler.json'un yazari baska bir mimar, kod duzlemi veri duzlemine
+      kilitlenmez; yanlis kirmizinin bedeli toplu-tasima riskinden buyuk.]
   (f) Ana sayfa banner'i — POZITIF GORUNURLUK OLCUMU (yasakli-bildirim listesi DEGIL):
       banner ROOT'una uygulanan efektif CSS kurallari secici eslesmesiyle (etiket + id +
       sinif + OZNITELIK secicisi + :not/:is/:where) toplanir, ozgulluk+kaynak sirasina gore
@@ -38,6 +38,13 @@ Bu dosya o kararin KALICI NOBETCISI. Olctugu maddeler:
       Banner ailesinin renk paleti var(--ad) DOLAYIMI COZULEREK taranir; 8/4/6/3 haneli
       hex + rgb()/hsl() + CSS renk adlari kapsanir, modern renk notasyonu (oklch/lab/lch/
       color()/color-mix) banner ailesinde FAIL-CLOSED YASAK.
+      [24 Tem SON TUR — KAPI EKSENI ELEMANDAN HEDEF JETONUNA TASINDI: gorunurluk + beyaz
+      liste YALNIZ oznesi banner jetonu tasiyan kurallarda olculur (banner ROOT'u bir <a>
+      oldugu icin site geneli `a{}`/`*{}` kurallari kaskada giriyor ve banner'la ILGISIZ
+      rutin CSS eklemeleri TUM SITE DEPLOY'unu durduruyordu). Beyaz liste yalniz KOSULSUZ
+      (medyasiz + durum-sahte-sinifsiz) kaskadda kosar. SARI taramasi YALNIZ skan-banner/
+      skanBanner ailesinde kosar — jen-banner PARAMETRIK seridir, orada sari MESRUDUR.
+      "var(--red) literali zorunlu" maddesi KALDIRILDI. Bedeller: BILINEN SINIRLAR 4-6.]
       Banner metni marka kurallarina uyar ("3D baski" YOK, sehir adi YOK — CLAUDE.md).
       renderGrid'in goster/gizle KABLOSU node'da GERCEKTEN kosturulur (kaynak-metni kalibi
       degil): ana gorunumde display === "", kategori/arama/marka gorunumunde "none".
@@ -113,17 +120,14 @@ import filament_ortak  # noqa: E402
 
 KATEGORI = "Skan Art"
 PID = "kurt-heykeli-serit-dekoratif-figur"
-# (e) KAPSAM capalari — 24 Tem: KATI ESITLIK KALDIRILDI.
-# NEDEN: kati "== 1" capasi seriye 2. urun eklenince CI'yi kirmiziya cekiyordu; bu adim
-# bloklayici oldugu icin TUM SITE DEPLOY'unu durdururdu. urunler.json'un yazari BASKA bir
-# mimar (MaCiT) -> kod duzlemi ile veri duzlemi birbirine kilitlenmemeli. Yerine ARALIK +
-# TOPLU-TASIMA korumasi: seri normal buyume hizinda serbest, toptan kategori tasimasi kirmizi.
-SKAN_ART_TAVAN = 50            # seri bu sayiyi asarsa kategori tanimi kaymis demektir
+# (e) KAPSAM capasi — 24 Tem SON TUR: SAYI TAVANI TAMAMEN KALDIRILDI.
+# NEDEN (olculdu): TAVAN/TOPLU_ESIK/BILINEN_SAYI ucluSU pratikte KUMULATIF bir capaydi —
+# BILINEN_SAYI donmus bir sabit oldugu icin "tek seferde artis" aslinda "TOPLAM sayi"yi
+# olcuyordu: seri 20 urunde exit 0, 21 urunde exit 1 ("artis 20 < 20"), 30 urunde exit 1.
+# Yani seri 21. urune ulastigi anda deploy KALICI kirmizi olurdu. Yanlis kirmizinin bedeli
+# (TUM SITE DEPLOY'unun durmasi) toplu-tasima riskinden BUYUK -> capa yok.
+# Geriye tek veri kurali kaldi: seri BOSALMASIN (>= 1) + (k) her Skan Art urunu konfigur tasisin.
 SKAN_ART_TABAN = 1             # seri bosalirsa banner bos kategoriye link verir
-SKAN_ART_TOPLU_ESIK = 20       # tek seferde bu kadar urun girerse "toplu tasima" sayilir
-# En son BILEREK olculen Skan Art urun sayisi. Seri buyudukce (20'den kucuk adimlarla)
-# guncellenmesi ZORUNLU DEGIL; yalniz toplu-tasima esigi bu tabana gore olculur.
-SKAN_ART_BILINEN_SAYI = 1
 # (f) Banner ROOT'unun mesru sayilan ASGARI hesaplanan yuksekligi. Bugunku tasarim 168px
 # (dar ekranda 168 -> 150px). 40px = mesru "kompakt banner" tabani; altindaki her sey
 # (min-height:2px;overflow:hidden gibi) gorunurlugu pratikte oldurur.
@@ -156,10 +160,40 @@ BILINEN SINIRLAR (bu kapinin OLCMEDIGI seyler — durust liste)
   3. CSS motoru bir TARAYICI DEGIL: ata zinciri modellenir ama kombinator SIRASI (> + ~),
      kaskad katmanlari (@layer), @container, @scope, @supports dallanmasi ve devralma
      (inheritance) tam degerlendirilmez. Uzunluklar 800x1280 varsayimiyla kabaca px'e cevrilir.
-  4. BU KAPI BIR DISIPLIN CIHAZIDIR, GUVENLIK SINIRI DEGIL. Amaci, iyi niyetli bir gelecek
-     editorunun banner'i KAZAYLA sariya boyamasini / gizlemesini / seriyi toptan tasimasini
-     yakalamaktir. Kararli bir editor (string parcalama, dinamik id uretimi, ayri dosyaya
-     tasima) bu kapiyi ASAR — bunu durdurmak HEDEF DEGIL: sonsuz gerileme olurdu.
+  4. 🔴 SITE GENELI (JETONSUZ) SECICILER GORUNURLUK DENETIMININ DISINDADIR. Kapinin ekseni
+     ELEMAN degil HEDEF JETONUDUR: yalniz oznesi skan-banner/skanBanner/jen-banner/jenBanner
+     tasiyan kurallar denetlenir. Banner ROOT'u bir <a> oldugu icin `a{display:none}`,
+     `*{...}`, `main a{...}` gibi bir kural banner'i teknik olarak gizleyebilir ve bu kapi
+     GORMEZ. Bedel BILEREK kabul edildi: ters kurulum (eleman ekseni) banner'la ILGISIZ
+     rutin CSS eklemelerinin TUM SITE DEPLOY'unu durdurmasina yol aciyordu (olculdu 24 Tem:
+     18 rutin eklemenin 10'u kirmizi). SARI taramasi bu daralmanin disindadir — orada
+     jetonsuz/yapisal seciciler de taranir.
+  5. jen-banner / jenBanner (PARAMETRIK "sari seri") SARI DENETIMININ DISINDADIR: CLAUDE.md
+     "sari yalniz parametrik seri" der, yani o ailede sari MESRUDUR (olculdu 24 Tem:
+     `.jen-banner-btn{border-color:#ffd400}` MESRU bir degisiklikti ve nobetciyi kirmiziya
+     cekiyordu — marka kuralinin TERSI). AYRIM: Skan Art banner'inin ROOT'u
+     `class="jen-banner skan-banner"` tasidigi icin, jen ailesine yazilan bir kural GERCEKTEN
+     Skan Art ROOT'una inerse KASKAD katmani onu yine yakalar (olculdu: `.jen-banner
+     {background:#ffd400}` KIRMIZI). Disarida kalan sey yalniz jen-e OZEL cocuklardir
+     (`.jen-banner-btn`, `.jen-banner-title` ...). Gorunurluk denetimi jen icin TAMAMEN durur.
+  6. URUN SAYISI TAVANI YOKTUR. Yalniz "seri bosalmasin (>= 1)" + "her Skan Art urunu
+     `konfigur` tasisin" kurallari bloklayicidir. Tek seferde kac urun eklendigi/tasindigi
+     OLCULMEZ: kumulatif capa 21. urunde deploy'u kalici kirmiziya cekiyordu, yanlis
+     kirmizinin bedeli toplu-tasima riskinden buyuk. (Toplu tasimanin ONEMLI kismi yine de
+     yakalanir: tasinan urunler `konfigur` tasimadigi icin (k) maddesi kirmizi yanar —
+     olculdu: 168 urunluk toplu tasima KIRMIZI.)
+  7. BEYAZ LISTE YALNIZ KOSULSUZ (medyasiz + durum-sahte-sinifsiz) KASKADDA KOSAR. Bir
+     @media sarmalayicisi icine yazilan tanimadik ozellik beyaz listeye TAKILMAZ (olculdu:
+     `@media(min-width:0px){.skan-banner{mask-image:...}}` ve `{zoom:0}` YESIL gecer; ayni
+     bildirimler KOSULSUZ yazilinca KIRMIZI). Bedel bilerek kabul edildi: beyaz liste medya
+     dahil kosarken mesru responsive alani cok daraliyordu
+     (`@media(max-width:640px){.skan-banner{transform:none}}` yanlis-kirmizi yakiyordu).
+     ⚠️ OLDURUCU kanallar (display:none/contents, visibility, opacity==0, sifir/kucuk kutu,
+     ekran disina itme, `filter` deger denetimi) @media DAHIL olculmeye devam eder.
+  8. BU KAPI BIR DISIPLIN CIHAZIDIR, GUVENLIK SINIRI DEGIL. Amaci, iyi niyetli bir gelecek
+     editorunun banner'i KAZAYLA sariya boyamasini / gizlemesini yakalamaktir. Kararli bir
+     editor (string parcalama, dinamik id uretimi, jetonsuz secici, ayri dosyaya tasima) bu
+     kapiyi ASAR — bunu durdurmak HEDEF DEGIL: sonsuz gerileme olurdu.
 """.rstrip()
 
 
@@ -562,6 +596,44 @@ def ozgulluk(secici):
 
 
 BANNER_JETON = re.compile(r"skan-banner|jen-banner|skanBanner|jenBanner")
+# SARI denetiminin jetonu DAHA DAR: sari YALNIZ parametrik seride (jen-banner) MESRUDUR
+# — CLAUDE.md "sarı yalnız parametrik seri". jen ailesi sari taramasinin TAMAMEN disindadir
+# (olculdu 24 Tem: `.jen-banner-btn{border-color:#ffd400}` MESRU bir degisiklikti ve
+# nobetciyi kirmiziya cekiyordu -> marka kuralinin TERSI).
+SARI_JETON = re.compile(r"skan-banner|skanBanner")
+
+
+def ozne_banner_jetonlu_mu(tek_secici):
+    """Secicinin OZNESI (son bilesik) banner jetonunu SINIF/ID/OZNITELIK olarak tasiyor mu?
+
+    🔴 24 Tem SON TUR — KAPI EKSENI ELEMANDAN JETONA TASINDI. Banner ROOT'u bir <a>
+    oldugu icin site geneli `a{...}` ve `*{...}` kurallari da onun kaskadina giriyordu:
+    banner'la ILGISIZ rutin bir CSS eklemesi (`a{list-style:none}`,
+    `*{scrollbar-width:thin}`, `main a{text-rendering:optimizeLegibility}`,
+    `@media print{a{page-break-inside:avoid}}`, global reset satirina
+    `-webkit-text-size-adjust` eklemek ...) beyaz listeye takilip TUM SITE DEPLOY'unu
+    durduruyordu — olculdu: 18 rutin eklemenin 10'u kirmizi.
+    Artik GORUNURLUK + BEYAZ LISTE denetimi YALNIZ oznesi banner jetonu tasiyan kurallara
+    uygulanir. Jetonsuz secicilerden (*, a, main a, :nth-of-type, yapisal seciciler) gelen
+    bildirimler gorunurluk kaskadina GIRMEZ.
+    ⚠️ BEDELI (bilerek kabul edildi, BILINEN SINIRLAR'a yazildi): site geneli bir `a{}`
+    kurali ile banner gizlenebilir. Bu kapi bir DISIPLIN CIHAZIDIR, guvenlik siniri degil.
+    ⚠️ SARI taramasi bu daralmanin DISINDADIR: genis kaskad orada KALIR (sari yakalamak
+    ucuz ve yanlis-kirmizi uretmiyor)."""
+    bl = _bilesikler(tek_secici.strip())
+    if not bl:
+        return False
+    ozne = bl[-1]
+    d = bilesik_ayristir(ozne)
+    if d is None:
+        return bool(BANNER_JETON.search(ozne))      # cozulemedi -> fail-closed: jeton varsa AL
+    if d["id"] and BANNER_JETON.search(d["id"]):
+        return True
+    if any(BANNER_JETON.search(s) for s in d["sinif"]):
+        return True
+    if any(BANNER_JETON.search(o) for o in d["oz"]):
+        return True                                 # a[id="skanBanner"] gibi
+    return any(BANNER_JETON.search(arg or "") for _ad, arg in d["pcls"])  # :is(#skanBanner)
 
 
 VOID_ETIKET = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link",
@@ -909,9 +981,14 @@ def filtre_sorunlari(deger, kaynak):
 def gorunurluk_sorunlari(etkin, mod="kosulsuz"):
     """POZITIF olcum: banner ROOT'unun ASGARI gecerli gorunur durumu saglaniyor mu?
 
-    mod="taban"    -> KOSULSUZ + MEDYASIZ kaskad: yalniz POZITIF TABANLAR
-                      (yukseklik/genislik/font-size esikleri). Dar-ekran kurali genis
-                      ekrani kurtaramasin diye ayri olculur.
+    mod="taban"    -> KOSULSUZ + MEDYASIZ kaskad: POZITIF TABANLAR
+                      (yukseklik/genislik/font-size esikleri) + BEYAZ LISTE. Dar-ekran
+                      kurali genis ekrani kurtaramasin diye ayri olculur.
+                      ⚠️ 24 Tem SON TUR: BEYAZ LISTE buraya TASINDI. Eskiden medya DAHIL
+                      kaskada uygulaniyordu ve mesru responsive alani cok daraliyordu
+                      (olculdu: `@media(max-width:640px){.skan-banner{transform:none}}`
+                      yanlis-kirmizi yakiyordu). @media icindeki bildirimler beyaz
+                      listeden MUAF; oldurucu kanallar + filtre denetimi medya DAHIL kalir.
     mod="kosulsuz" -> durum-disi (medya DAHIL) kaskad: oldurucu kanallar + ekran disina
                       itme + kirpma + FILTRE denetimi + BEYAZ LISTE.
     mod="durum"    -> :hover/:focus/:active dahil kaskad: YALNIZ OLDURUCU kanallar
@@ -954,6 +1031,15 @@ def gorunurluk_sorunlari(etkin, mod="kosulsuz"):
         if fs is not None and fs < 8:
             s.append("font-size:%s (metin sifirlanir)  [%s]"
                      % (dg("font-size"), kaynak("font-size")))
+        # --- BEYAZ LISTE (fail-closed): tanimadigimiz her ozellik aciklanmamis risktir.
+        # YALNIZ KOSULSUZ (medyasiz + durum-sahte-sinifsiz) kaskadda; @media icindeki
+        # bildirimler MUAF (mesru responsive alani).
+        for ad in sorted(etkin):
+            if ad.startswith("--") or ad in IZINLI_KOK_OZELLIKLERI:
+                continue
+            s.append("banner ROOT'unda BEYAZ LISTE DISI ozellik: %s:%s  [%s] "
+                     "(yerlesim/boyama etkisi denetlenmedi -> fail-closed)"
+                     % (ad, dg(ad), kaynak(ad)))
         return s
 
     disp = (dg("display") or "").strip().lower()
@@ -1027,13 +1113,9 @@ def gorunurluk_sorunlari(etkin, mod="kosulsuz"):
             s.append("%s:%s banner ROOT'unda (gorunurlugu kirpar)  [%s]"
                      % (ad, dg(ad), kaynak(ad)))
 
-    # --- BEYAZ LISTE (fail-closed): tanimadigimiz her ozellik aciklanmamis risktir.
-    for ad in sorted(etkin):
-        if ad.startswith("--") or ad in IZINLI_KOK_OZELLIKLERI:
-            continue
-        s.append("banner ROOT'unda BEYAZ LISTE DISI ozellik: %s:%s  [%s] "
-                 "(yerlesim/boyama etkisi denetlenmedi -> fail-closed)"
-                 % (ad, dg(ad), kaynak(ad)))
+    # ⚠️ BEYAZ LISTE burada DEGIL, mod="taban" kaskadinda olculur (24 Tem SON TUR):
+    # bu kaskad @media'yi de icerir ve responsive bir `transform:none` beyaz listeye
+    # takilip yanlis-kirmizi yakiyordu.
     return s
 
 
@@ -1141,13 +1223,8 @@ n_skan = len(skan_urunler)
 kontrol(n_skan >= SKAN_ART_TABAN,
         "Skan Art serisi BOS DEGIL (>= %d; bulunan: %d) — banner bos kategoriye link vermiyor"
         % (SKAN_ART_TABAN, n_skan))
-kontrol(n_skan <= SKAN_ART_TAVAN,
-        "Skan Art urun sayisi TAVANIN altinda (<= %d; bulunan: %d) — kategori tanimi kaymamis"
-        % (SKAN_ART_TAVAN, n_skan))
-kontrol(n_skan - SKAN_ART_BILINEN_SAYI < SKAN_ART_TOPLU_ESIK,
-        "tek seferde TOPLU TASIMA yok: artis %d < %d (bilinen taban %d -> bulunan %d) — "
-        "olculen curutme: 168 Dekorasyon urununun hepsi birden Skan Art'a tasinmisti"
-        % (n_skan - SKAN_ART_BILINEN_SAYI, SKAN_ART_TOPLU_ESIK, SKAN_ART_BILINEN_SAYI, n_skan))
+# ⚠️ TAVAN + TOPLU-TASIMA capalari 24 Tem SON TURDA KALDIRILDI (bkz. SKAN_ART_TABAN notu):
+# kumulatif olduklari icin seri 21. urune ulastiginda deploy'u KALICI kirmiziya cekiyorlardi.
 
 # ---------------------------------------------------------------- (k) konfigur ZORUNLU
 # NEDEN (tek satir): shop odeme Worker'i secenekler.js'i BUNDLE'a gommuyor + deploy.yml onu
@@ -1345,13 +1422,19 @@ kontrol(any(a["etiket"] == "main" for a in ATALAR),
         % " > ".join(a["etiket"] + ("#" + a["oz"]["id"] if a["oz"].get("id") else "")
                      for a in ATALAR))
 
-kok_kural = kok_kurallari(tum_kurallar, KOK, ATALAR)
+kok_kural_tum = kok_kurallari(tum_kurallar, KOK, ATALAR)
 kontrol(not COZULEMEYEN_SECICI,
         "banner ailesine deyen TUM seciciler ayristirilabildi (FAIL-CLOSED; cozulemeyen: %s)"
         % (sorted(set(COZULEMEYEN_SECICI)) or "-"))
+
+# 🔴 KAPI EKSENI = HEDEF JETONU (24 Tem SON TUR). Gorunurluk + beyaz liste YALNIZ oznesi
+# banner jetonu tasiyan kurallarda olculur; jetonsuz site-geneli seciciler (`a`, `*`,
+# `main a`, yapisal seciciler) kaskada GIRMEZ. Gerekcesi ve bedeli: ozne_banner_jetonlu_mu().
+kok_kural = [k for k in kok_kural_tum if ozne_banner_jetonlu_mu(k[2])]
+jetonsuz_atlanan = [k[2] for k in kok_kural_tum if k not in kok_kural]
 kontrol(len(kok_kural) >= 2,
-        "banner ROOT'una uygulanan kural bulundu (%d: %s)"
-        % (len(kok_kural), [k[2] for k in kok_kural][:6]))
+        "banner ROOT'una uygulanan JETONLU kural bulundu (%d: %s | jetonsuz atlanan: %d)"
+        % (len(kok_kural), [k[2] for k in kok_kural][:6], len(jetonsuz_atlanan)))
 
 # UC KASKAD (her biri farkli soruya cevap verir):
 #  TABAN    = kosulsuz + MEDYASIZ -> POZITIF tabanlar (yukseklik/genislik esikleri)
@@ -1420,8 +1503,12 @@ kontrol(not metin_olduren,
 #     jetonsuz sinif / yapisal secici yollarini kapatir (olculdu 24 Tem: sari_bulgular
 #     yalniz "banner jetonu tasiyan kurallarda" tarayinca `.nordik-yama{background:#ffd400}`
 #     ve `main > a:nth-of-type(2){background:#ffd400}` KACIYORDU).
-#  3) banner ailesinin jetonlu kurallari — COCUK elemanlar icin EK katman (kaskad yalniz
-#     ROOT'u modeller; .jen-banner-title vb. cocuklar buradan taranir).
+#  3) SKAN banner ailesinin jetonlu kurallari — COCUK elemanlar icin EK katman (kaskad
+#     yalniz ROOT'u modeller; .skan-banner-title vb. cocuklar buradan taranir).
+#     ⚠️ 24 Tem SON TUR: bu katman artik YALNIZ skan-banner/skanBanner ailesini tarar.
+#     jen-banner/jenBanner (PARAMETRIK seri = sarinin MESRU evi, CLAUDE.md) sari
+#     denetiminin TAMAMEN DISINDADIR — gorunurluk denetimi onlar icin duruyor.
+sari_kurallar = [(s, d) for (s, d, _m) in tum_kurallar if SARI_JETON.search(s)]
 bulgu = sari_bulgular(banner_html)
 cozulemeyen_var = []
 
@@ -1436,30 +1523,33 @@ for ad, (deger, sec) in sorted(ETKIN_GENIS.items()):
     for b in sari_bulgular(cozulmus):
         bulgu.append("KASKAD %s{%s:%s} -> %s" % (sec, ad, cozulmus.strip()[:40], b))
 
-# (3) banner ailesi (cocuklar dahil)
-for sec, bildirimler in b_kurallar:
+# (3) SKAN banner ailesi (cocuklar dahil) — jen ailesi bu taramaya GIRMEZ
+for sec, bildirimler in sari_kurallar:
     cozulmus, eksik = var_coz(bildirimler, VAR_TANIM)
     cozulemeyen_var.extend(eksik)
     for b in sari_bulgular(cozulmus):
         bulgu.append("%s -> %s" % (sec, b))
 kontrol(not cozulemeyen_var,
-        "banner ailesindeki HER var(--ad) cozulebildi (FAIL-CLOSED; cozulemeyen: %s)"
+        "SKAN banner ailesindeki HER var(--ad) cozulebildi (FAIL-CLOSED: cozulemeyen bir "
+        "var() sari taranamaz demektir; cozulemeyen: %s)"
         % (sorted(set(cozulemeyen_var)) or "-"))
 
 # (C4) COZULEMEYEN RENK KAYNAGI: base64 data-URI icindeki rengi hicbir tarayici goremez.
 b64_kaynak = []
 for etiket, metin in ([("banner HTML", banner_html)]
-                      + [("kural " + s, d) for s, d in b_kurallar]
+                      + [("kural " + s, d) for s, d in sari_kurallar]
                       + [("KASKAD " + a, v[0]) for a, v in sorted(ETKIN_GENIS.items())]):
     if re.search(r"url\(\s*['\"]?\s*data:[^)]*;\s*base64", metin, re.I):
         b64_kaynak.append(etiket)
 kontrol(not b64_kaynak,
-        "banner ailesinde base64 data-URI YOK (FAIL-CLOSED: icerigi taranamayan renk "
+        "SKAN banner ailesinde base64 data-URI YOK (FAIL-CLOSED: icerigi taranamayan renk "
         "kaynagi; bulunan: %s)" % (b64_kaynak or "-"))
-kontrol(not bulgu, "banner HTML + banner ailesi CSS'inde SARI token YOK (var() cozumlu; "
+kontrol(not bulgu, "banner HTML + SKAN banner ailesi CSS'inde SARI token YOK (var() cozumlu; "
         "bulunan: %s)" % (sorted(set(bulgu)) or "-"))
-kontrol(any("var(--red)" in d for s, d in b_kurallar if ".skan-banner" in s),
-        "banner marka paletini kullaniyor (kirmizi aksan var(--red))")
+# ⚠️ "var(--red) LITERALI zorunlu" maddesi 24 Tem SON TURDA KALDIRILDI. NEDEN: CLAUDE.md
+# kirmizi aksani TAVSIYE ediyor, ZORUNLU kilmiyor; kural bir LITERAL METIN ariyordu ve
+# gorunumu BIREBIR koruyan mesru refactor'lari (`.skan-banner{--skan-accent:#c0392b}` +
+# `background:var(--skan-accent)`) ve aksan seridinin kaldirilmasini kirmiziya cekiyordu.
 
 # --- MARKA/COGRAFYA DILI: banner metni + ana sayfanin GORUNUR pazarlama govdesi
 kontrol(not yasak_ifadeler(banner_html),
