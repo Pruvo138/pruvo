@@ -33,6 +33,9 @@ function norm(s) {
     .replace(/ç/g, "c").replace(/ğ/g, "g").replace(/ö/g, "o")
     .replace(/ş/g, "s").replace(/ü/g, "u").replace(/â/g, "a").replace(/î/g, "i");
 }
+// Türkçe ek kırpma (SORGU tarafı) — index.html ile BİREBİR (degistirme).
+var ARAMA_EKLER=["lerimiz","larimiz","lerim","larim","lerin","larin","imiz","iniz","umuz","unuz","leri","lari","nin","nun","den","dan","tan","ten","ler","lar","yle","yla","si","su","yi","yu","ye","ya","na","ne","de","da","te","ta","in","im","un","um","i","u","e","a","m","n"];
+function aramaKok(w){for(var i=0;i<ARAMA_EKLER.length;i++){var ek=ARAMA_EKLER[i];if(w.length-ek.length>=4&&w.slice(-ek.length)===ek){return w.slice(0,w.length-ek.length);}}return w;}
 function haystack(p) {
   if (p._hs === undefined) {
     p._hs = norm([p.baslik, p.aciklama, (p.marka || []).join(" "),
@@ -41,7 +44,7 @@ function haystack(p) {
   return p._hs;
 }
 function filtered(PRODUCTS, query, activeCat, activeBrand) {
-  var tokens = norm(query).split(/\s+/).filter(Boolean);
+  var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
   return PRODUCTS.filter(function (p) {
     var catOk = activeCat === "Tümü" || p.kategori === activeCat;
     var brandOk = activeBrand === "Tümü" || (p.marka && p.marka.indexOf(activeBrand) !== -1);
