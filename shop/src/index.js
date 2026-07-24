@@ -27,6 +27,8 @@ import "../../secenekler.js";
 import { cfBaslat, cfDetay } from "./iyzico.js";
 import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
+import { konfigurHesapla } from "./konfigur.js";
+import { KONFIGURLAR } from "./konfigurlar.js";
 import { yonet, gecmiseEkle } from "./yonet.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
@@ -234,7 +236,25 @@ async function baslat(request, env, url, ctx) {
     if (!u) return json({ hata: "bilinmeyen-urun", id: k.id }, 400, env);
 
     let birimKurus, ekAlanlar = {};
-    if (u.parametrik) {
+    if (KONFIGURLAR.has(k.id)) {
+      // Konfigur (dekor konfiguratoru, /konfigur.js). Bu urun D1'de parametrik=0 + sabit fiyatli
+      // (kart-secim urunu gibi) gorunur -> u.parametrik kolu YAKALAMAZ; konfigur oldugunu SADECE
+      // bundled KONFIGURLAR haritasindan biliriz (D1'de konfigur alani YOK). Bu yuzden kontrol
+      // parametrik/sabit kollarindan AYRI ve ONCE. Kanal SECENEK.KONFIGUR_ODEME_ACIK ile ACIK;
+      // fiyat SUNUCUDA boy+malzeme'den yeniden hesaplanir (konfigur.js: /konfigur.js cekirdegi;
+      // istemcinin boy'u KIRPILIR, katsayi LISTEDEN, hacim/fiyat alanlari OKUNMAZ). Kapaliyken
+      // kalem WhatsApp'a yonlendirilir.
+      if (!SECENEK.KONFIGUR_ODEME_ACIK) {
+        return json({ hata: "konfigur-urun", id: k.id,
+                      mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, 400, env);
+      }
+      const konfigur = KONFIGURLAR.get(k.id);
+      const kh = konfigurHesapla(k, SECENEK, konfigur);
+      if (kh.hata) { return json({ hata: kh.hata, id: k.id }, 400, env); }
+      birimKurus = kh.birimKurus;
+      ekAlanlar = { parametreler: kh.parametreler, parametre_detay: kh.detay,
+                    hacim_mm3: kh.hacimMm3 };
+    } else if (u.parametrik) {
       // Olcuye ozel (sari seri). Kanal SECENEK.PARAMETRIK_ODEME_ACIK ile ACIK (17 Tem);
       // fiyat SUNUCUDA yeniden hesaplanir (parametrik.js: sema + hacim.js + taban fiyat;
       // istemcinin hacim/fiyat alanlari OKUNMAZ). Anahtar kapatilirsa asagidaki kol
