@@ -247,6 +247,7 @@ IZIN_LISTESI = {
     "tools/olculmemis-siparis-test.py": R_SONRA,
     "tools/printables-lisans-test.py": R_SONRA,
     "tools/siparisler-test.py": R_SONRA,
+    "tools/stl-bbox-binary-test.py": R_SONRA,  # harvest-adaptor birim testi (printables-api.py stl_bbox); sentetik/offline/<1s -> ayni sinif printables-lisans-test.py / test-bbox-3mf muaf, deploy.yml'ye kor-eklenmedi
     "tools/surum-test.py": R_SONRA,
     "tools/test-baski-senkron.py": R_SONRA,
     "tools/test-merchant-feed.py": R_SONRA,
