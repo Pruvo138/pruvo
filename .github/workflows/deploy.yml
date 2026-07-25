@@ -243,6 +243,17 @@ jobs:
       - name: Konfigur (dekor konfigurator) kabul testi
         run: python3 tools/konfigur-test.py
 
+      # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
+      # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,
+      # genel GO/NO-GO, worker 403->BLOKLU(HocA), d1 kimlik-hatasi->BLOKLU(Okan), origin turetme,
+      # bayrak ayiklama) sentetik girdilerle KIRMIZI-MUTASYON uslubunda kanitlar. Agsiz, stdlib:
+      # araci yalnizca IMPORT eder (main() cagrilmaz -> import-aninda subprocess/HTTP/d1 I/O YOK,
+      # tum canli I/O fonksiyon govdesinde ve __main__'de). Bloklayici: kapinin karar mantigi
+      # bozulursa (or. sahte-GO / yanlis band / 12.000 esik kaymasi) bu test kirmizi yanar.
+      # build.py'den ONCE kosar, ~40 ms.
+      - name: Edge flip hazirlik kapisi kabul testi (saf karar mantigi)
+        run: python3 tools/edge-flip-hazirlik-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
