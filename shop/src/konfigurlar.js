@@ -19,7 +19,7 @@ const kurtHeykeli = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 1899.739, refHacimCm3: 239222.8 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },
@@ -34,7 +34,7 @@ const atBustu = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 267.47 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },
@@ -49,7 +49,7 @@ const yeleliAtBustu = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 152.83 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },
@@ -64,7 +64,7 @@ const balina = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 213.12 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },
@@ -79,7 +79,7 @@ const sonsuzlukHalkasi = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 221.9 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },
@@ -94,7 +94,7 @@ const sonsuzlukDugumu = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 133.94 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },
@@ -109,7 +109,7 @@ const atSilueti = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 41.75 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },
@@ -124,7 +124,7 @@ const yaprak = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 33.57 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },
@@ -139,7 +139,7 @@ const geyik = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 55.68 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },
@@ -154,7 +154,7 @@ const atFiguru = {
   renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 269.34 },
-  fiyatCapalari: [[60, 150], [300, 1300]],
+  fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
     { ad: "PETG", katsayi: 1.3 },

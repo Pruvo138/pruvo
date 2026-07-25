@@ -736,7 +736,7 @@ async function test25KonfigurOdeme() {
     Object.assign({ malzeme: mal, parametreler: { boy_mm: boy } }, extra), SECENEK, kf);
 
   // (a) BIREBIR fiyat: SPEC'ten SABIT (kaydirma yakalansin). 6cm zemin, 15cm kademe, malzeme carpani.
-  const bekle = { "60/PLA": 15000, "150/PLA": 28600, "150/PETG": 37100, "150/ASA": 45700 };
+  const bekle = { "60/PLA": 50000, "150/PLA": 73600, "150/PETG": 95700, "150/ASA": 117700 };
   const olculen = {};
   for (const [k, v] of Object.entries(bekle)) {
     const [b, m] = k.split("/");
@@ -747,12 +747,12 @@ async function test25KonfigurOdeme() {
 
   // (b) GUVENLIK (birim): istemci sahte parametrik_fiyat_kurus=1 + hacim_mm3=1 -> YOK SAYILIR.
   const gr = wh(150, "PLA", { parametrik_fiyat_kurus: 1, hacim_mm3: 1 });
-  if (gr.birimKurus !== 28600 || gr.hacimMm3 === 1) {
+  if (gr.birimKurus !== 73600 || gr.hacimMm3 === 1) {
     hatalar.push("(b) sahte fiyat/hacim kullanildi: " + JSON.stringify(gr));
   }
 
   // (c) BOY manipulasyonu: boyDuzelt kirpar; ham boy fiyata girmez.
-  const boyVaka = [[100000, 300, 130000], [-5, 60, 15000], ["xyz", 150, 28600], [155, 160, 31700]];
+  const boyVaka = [[100000, 300, 250000], [-5, 60, 50000], ["xyz", 150, 73600], [155, 160, 79000]];
   for (const [ham, kirp, fiyat] of boyVaka) {
     const r = KM.konfigurHesapla({ malzeme: "PLA", parametreler: { boy_mm: ham } }, SECENEK, kf);
     if (r.hata || r.parametreler.boy_mm !== kirp || r.birimKurus !== fiyat) {
@@ -765,7 +765,7 @@ async function test25KonfigurOdeme() {
   if (mBilinmeyen.hata !== "gecersiz-malzeme") { hatalar.push("(d) bilinmeyen malzeme: " + JSON.stringify(mBilinmeyen)); }
   const mKatsayi = KM.konfigurHesapla(
     { malzeme: "ASA", katsayi: 0.01, parametreler: { boy_mm: 150, katsayi: 0.01 } }, SECENEK, kf);
-  if (mKatsayi.hata || mKatsayi.birimKurus !== 45700) {
+  if (mKatsayi.hata || mKatsayi.birimKurus !== 117700) {
     hatalar.push("(d) istemci katsayi=0,01 kullanildi (ASA 1,6 olmali): " + JSON.stringify(mKatsayi));
   }
 
@@ -815,7 +815,7 @@ async function test25KonfigurOdeme() {
 
   // ---- HTTP uctan uca (gercek Worker + yerel D1) ----
   const onceInit = (await mockOku()).initSayisi;
-  // (b-HTTP) sahte fiyat/hacim -> KABUL + D1 tutar SUNUCU hesabi (28600), sahte 1 DEGIL.
+  // (b-HTTP) sahte fiyat/hacim -> KABUL + D1 tutar SUNUCU hesabi (73600), sahte 1 DEGIL.
   const kalem = { id: KURT_ID, malzeme: "PLA", renk: "Siyah", adet: 1,
     parametreler: { boy_mm: 150 }, parametrik_fiyat_kurus: 1, hacim_mm3: 1 };
   const cPos = await baslatIstek([kalem]);
@@ -823,17 +823,17 @@ async function test25KonfigurOdeme() {
   if (cPos.kod !== 200) { hatalar.push("(b-HTTP) konfigur baslat: " + cPos.kod + " " + JSON.stringify(cPos.govde)); }
   else {
     d1Pos = d1Sorgu("SELECT tutar_kurus FROM siparisler WHERE siparis_no = '" + cPos.govde.no + "'")[0];
-    if (!d1Pos || d1Pos.tutar_kurus !== 28600) {
-      hatalar.push("(b-HTTP) D1 tutar " + (d1Pos && d1Pos.tutar_kurus) + " != 28600 (sahte 1 sizdi?)");
+    if (!d1Pos || d1Pos.tutar_kurus !== 73600) {
+      hatalar.push("(b-HTTP) D1 tutar " + (d1Pos && d1Pos.tutar_kurus) + " != 73600 (sahte 1 sizdi?)");
     }
   }
-  // (c-HTTP) boy 100000 -> clip 300 -> 130000 (istemcinin devasa boy'u fiyata GIRMEZ).
+  // (c-HTTP) boy 100000 -> clip 300 -> 250000 (istemcinin devasa boy'u fiyata GIRMEZ).
   const cBoy = await baslatIstek([{ id: KURT_ID, malzeme: "PLA", renk: "Siyah", adet: 1,
     parametreler: { boy_mm: 100000 } }]);
   if (cBoy.kod !== 200) { hatalar.push("(c-HTTP) boy-clip baslat: " + cBoy.kod); }
   else {
     const d = d1Sorgu("SELECT tutar_kurus FROM siparisler WHERE siparis_no = '" + cBoy.govde.no + "'")[0];
-    if (!d || d.tutar_kurus !== 130000) { hatalar.push("(c-HTTP) D1 tutar " + (d && d.tutar_kurus) + " != 130000"); }
+    if (!d || d.tutar_kurus !== 250000) { hatalar.push("(c-HTTP) D1 tutar " + (d && d.tutar_kurus) + " != 250000"); }
   }
   // (d-HTTP) malzeme TPU (konfigur listesinde yok) -> 400 gecersiz-malzeme, iyzico oturumu ACILMAZ.
   const araInit = (await mockOku()).initSayisi;
@@ -848,7 +848,7 @@ async function test25KonfigurOdeme() {
   rapor("25 konfigur kart odemesi (sunucu yeniden hesap; manipulasyon imkansiz)", hatalar.length === 0,
     "birim: " + Object.entries(olculen).map(([k, v]) => k + "=" + v).join(" ") +
     "; sahte-fiyat YOK SAYILDI (birim=" + gr.birimKurus + ", D1=" + (d1Pos ? d1Pos.tutar_kurus : "?") +
-    "); boy-clip 100000->300->130000 OK; malzeme bilinmeyen RED + istemci-katsayi YOK SAYILDI;" +
+    "); boy-clip 100000->300->250000 OK; malzeme bilinmeyen RED + istemci-katsayi YOK SAYILDI;" +
     " guard kapsam " + bundleAnahtar.size + "/" + beklenenKonf.size + " birebir; drift front==worker=" +
     (driftOk ? "OK" : "KIRIK") + "; (e) bayrak-kapisi " + (kapiVar ? "DURUYOR" : "YOK") +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
