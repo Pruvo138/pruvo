@@ -1,4 +1,553 @@
 [
+{
+    "id": "at-bustu-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "At Büstü Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "Akışkan şerit formuyla tasarlanmış zarif bir at büstü. Yeleden boyna uzanan spiral şeritler figüre her açıdan farklı bir derinlik kazandırır; ışıkta zarif gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 113 × 117 × 150 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/at-bustu-serit-dekoratif-figur-1.jpg",
+      "https://media.pruvo3d.com/urunler/at-bustu-serit-dekoratif-figur-2.jpg",
+      "https://media.pruvo3d.com/urunler/at-bustu-serit-dekoratif-figur-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 267.47
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          150
+        ],
+        [
+          300,
+          1300
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "yeleli-at-bustu-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "Yeleli At Büstü Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "Rüzgârda savrulan gür yelesiyle dinamik bir at büstü. Kat kat akan şeritler başın gücünü ve hareketini vurgular; ışıkta canlı gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 71 × 115 × 150 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/yeleli-at-bustu-serit-dekoratif-figur-1.jpg",
+      "https://media.pruvo3d.com/urunler/yeleli-at-bustu-serit-dekoratif-figur-2.jpg",
+      "https://media.pruvo3d.com/urunler/yeleli-at-bustu-serit-dekoratif-figur-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 152.83
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          150
+        ],
+        [
+          300,
+          1300
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "balina-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "Balina Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "Dalgaların arasından yükselen bir balinayı anlatan akışkan şerit heykel. Kuyruğundan gövdesine sarılan spiral şeritler suyun hareketini taşır; ışıkta zarif gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 99 × 150 × 150 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/balina-serit-dekoratif-figur-1.jpg",
+      "https://media.pruvo3d.com/urunler/balina-serit-dekoratif-figur-2.jpg",
+      "https://media.pruvo3d.com/urunler/balina-serit-dekoratif-figur-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 213.12
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          150
+        ],
+        [
+          300,
+          1300
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "sonsuzluk-halkasi-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "Sonsuzluk Halkası Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "İç içe akan halkalardan oluşan soyut bir sonsuzluk figürü. Kesintisiz kıvrılan şeritler bakışı içine çeker; ışıkta her açıdan değişen zarif gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 132 × 86 × 150 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sonsuzluk-halkasi-serit-dekoratif-figur-1.jpg",
+      "https://media.pruvo3d.com/urunler/sonsuzluk-halkasi-serit-dekoratif-figur-2.jpg",
+      "https://media.pruvo3d.com/urunler/sonsuzluk-halkasi-serit-dekoratif-figur-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 221.9
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          150
+        ],
+        [
+          300,
+          1300
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "sonsuzluk-dugumu-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "Sonsuzluk Düğümü Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "Birbirine örülen şeritlerden yükselen bir sonsuzluk düğümü. Sarmal örgü her yönden farklı bir derinlik sunar; ışıkta zarif gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 73 × 73 × 150 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sonsuzluk-dugumu-serit-dekoratif-figur-1.jpg",
+      "https://media.pruvo3d.com/urunler/sonsuzluk-dugumu-serit-dekoratif-figur-2.jpg",
+      "https://media.pruvo3d.com/urunler/sonsuzluk-dugumu-serit-dekoratif-figur-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 133.94
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          150
+        ],
+        [
+          300,
+          1300
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "at-silueti-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "At Silüeti Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "Tek bir akışkan çizgiyle biçimlenmiş minimal bir at silüeti. İnce şerit gövde ve kıvrılan kuyruk sade bir zarafet taşır; ışıkta net gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 42 × 148 × 150 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/at-silueti-serit-dekoratif-figur-1.jpg",
+      "https://media.pruvo3d.com/urunler/at-silueti-serit-dekoratif-figur-2.jpg",
+      "https://media.pruvo3d.com/urunler/at-silueti-serit-dekoratif-figur-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 41.75
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          150
+        ],
+        [
+          300,
+          1300
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "yaprak-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "Yaprak Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "Damarlarıyla birlikte açık hatlarla işlenmiş sade bir yaprak figürü. İnce şerit çerçeve ve yaprak damarları hafif bir denge kurar; ışıkta zarif gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 129 × 47 × 150 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/yaprak-serit-dekoratif-figur-1.jpg",
+      "https://media.pruvo3d.com/urunler/yaprak-serit-dekoratif-figur-2.jpg",
+      "https://media.pruvo3d.com/urunler/yaprak-serit-dekoratif-figur-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 33.57
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          150
+        ],
+        [
+          300,
+          1300
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "geyik-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "Geyik Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "Görkemli boynuzlarıyla ayakta duran bir geyik heykeli. Gövdeyi saran kat kat şeritler figüre her açıdan derinlik kazandırır; ışıkta zarif gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 50 × 107 × 150 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/geyik-serit-dekoratif-figur-1.jpg",
+      "https://media.pruvo3d.com/urunler/geyik-serit-dekoratif-figur-2.jpg",
+      "https://media.pruvo3d.com/urunler/geyik-serit-dekoratif-figur-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 55.68
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          150
+        ],
+        [
+          300,
+          1300
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
+    "id": "at-figuru-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "At Figürü Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "Yumuşak hatlarla yontulmuş dolgun bir at figürü. Sade, akışkan yüzeyler duruşundaki dinginliği öne çıkarır; ışıkta zarif gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 42 × 147 × 150 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/at-figuru-serit-dekoratif-figur-1.jpg",
+      "https://media.pruvo3d.com/urunler/at-figuru-serit-dekoratif-figur-2.jpg",
+      "https://media.pruvo3d.com/urunler/at-figuru-serit-dekoratif-figur-3.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 269.34
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          150
+        ],
+        [
+          300,
+          1300
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
   {
     "id": "ford-atesleme-bobini-stand-teshir-aparati",
     "kategori": "Otomobil",

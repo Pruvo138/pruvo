@@ -28,10 +28,154 @@ const kurtHeykeli = {
   varsayilanMalzeme: "PLA",
 };
 
+// at-bustu-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const atBustu = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 267.47 },
+  fiyatCapalari: [[60, 150], [300, 1300]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
+// yeleli-at-bustu-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const yeleliAtBustu = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 152.83 },
+  fiyatCapalari: [[60, 150], [300, 1300]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
+// balina-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const balina = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 213.12 },
+  fiyatCapalari: [[60, 150], [300, 1300]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
+// sonsuzluk-halkasi-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const sonsuzlukHalkasi = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 221.9 },
+  fiyatCapalari: [[60, 150], [300, 1300]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
+// sonsuzluk-dugumu-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const sonsuzlukDugumu = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 133.94 },
+  fiyatCapalari: [[60, 150], [300, 1300]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
+// at-silueti-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const atSilueti = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 41.75 },
+  fiyatCapalari: [[60, 150], [300, 1300]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
+// yaprak-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const yaprak = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 33.57 },
+  fiyatCapalari: [[60, 150], [300, 1300]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
+// geyik-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const geyik = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 55.68 },
+  fiyatCapalari: [[60, 150], [300, 1300]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
+// at-figuru-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const atFiguru = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 269.34 },
+  fiyatCapalari: [[60, 150], [300, 1300]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
 // Anahtar urunler.json'daki kebab-id ile eslesir; eslesmezse index.js konfigur kolu bu urunu
 // GORMEZ (KONFIGURLAR.has=false) ve urun sabit-fiyat koluna duser -> guard bunu yakalar.
 export const KONFIGURLAR = new Map([
   ["kurt-heykeli-serit-dekoratif-figur", kurtHeykeli],
+  ["at-bustu-serit-dekoratif-figur", atBustu],
+  ["yeleli-at-bustu-serit-dekoratif-figur", yeleliAtBustu],
+  ["balina-serit-dekoratif-figur", balina],
+  ["sonsuzluk-halkasi-serit-dekoratif-figur", sonsuzlukHalkasi],
+  ["sonsuzluk-dugumu-serit-dekoratif-figur", sonsuzlukDugumu],
+  ["at-silueti-serit-dekoratif-figur", atSilueti],
+  ["yaprak-serit-dekoratif-figur", yaprak],
+  ["geyik-serit-dekoratif-figur", geyik],
+  ["at-figuru-serit-dekoratif-figur", atFiguru],
 ]);
 
 export default KONFIGURLAR;
