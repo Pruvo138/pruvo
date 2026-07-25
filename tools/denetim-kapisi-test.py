@@ -140,6 +140,18 @@ ekle(urun("canli-mevcut", "Renault Kaptur bagaj kancasi", aciklama=canli_acik),
 ekle(urun("yeni-jenerik", "Renault Kaptur bagaj kancasi", aciklama=canli_acik, gorsel="yeni-jenerik"),
      kaynak_cc("yeni-jenerik"))
 
+# FIX B (olcu capasi — MaCiT teshisi): SADECE kismi spec-mm (otomatik CAPALI on-ek YOK) tasiyan
+# Printables urunu OLCUSUZ sayilmali -> auto_sil(olcu). Eski gevsek regex bunu "olculu" sanip
+# auto_sil'den YANLIS-NEGATIF kacirdi.
+ekle(urun("kismi-specmm-urun", "Renault Trafic yag tapasi",
+          aciklama="M32×3.5 vida disi, yaklasik 31 mm dis cap. Dayanikli conta tapasi.",
+          gorsel="kismi-specmm"), kaynak_cc("kismi-specmm-urun"))
+# FIX B (Ictihat 71 korumasi): mesru CAPALI olcu satiri aciklamaya GOMULU -> HALA "olculu" ->
+# olcu kapisindan GECER (auto_sil YOK). Fix ters yone kacip mesru olcuyu ELEMEMELI.
+ekle(urun("capali-olcu-urun", "Renault Trafic kapi kolu",
+          aciklama="Saglam kapi kolu. Yaklaşık dış ölçüler: 20 × 30 × 5 mm. Kolay montaj.",
+          gorsel="capali-olcu"), kaynak_cc("capali-olcu-urun"))
+
 # yeni parti = canli-mevcut HARIC hepsi; HEAD = {canli-mevcut}
 head_ids = {"canli-mevcut"}
 yeni_ids = {u["id"] for u in urunler if u["id"] not in head_ids}
@@ -163,6 +175,10 @@ check("logo silinmiyor", "logo-urun" not in sil_ids and "logo-urun" not in auto_
 check("satilamaz -> auto_sil(lisans)", ("satilamaz-urun", "lisans") in auto)
 # 3 olcu
 check("olcusuz -> auto_sil(olcu)", ("olcusuz-urun", "olcu") in auto)
+# 3b FIX B (kapi seviyesi): kismi spec-mm (on-ek YOK) -> auto_sil(olcu) [yanlis-negatif giderildi]
+check("kismi spec-mm -> auto_sil(olcu)", ("kismi-specmm-urun", "olcu") in auto)
+# 3c FIX B (kapi seviyesi): gomulu CAPALI olcu satiri -> auto_sil YOK [Ictihat 71 korumasi]
+check("capali-olcu urun olcu kapisinden gecer", "capali-olcu-urun" not in auto_ids)
 # 4 gorsel cakisma -> eskalasyon, silme YOK
 check("cakisma-a -> eskalasyon(gorsel)", ("cakisma-a", "gorsel-cakisma") in esk_ids)
 check("cakisma-b -> eskalasyon(gorsel)", ("cakisma-b", "gorsel-cakisma") in esk_ids)
@@ -219,6 +235,47 @@ for ham, bekle in [
     ("", False), (None, False),
 ]:
     check("lisans_kisaltma %r -> satilabilir=%s" % (ham, bekle), sat(ham) is bekle)
+
+
+# =============================================================================
+# FIX B: _olculu() CAPALI on-ek eslesmesi — CIFT-YON kirmizi-mutasyon (birim)
+# =============================================================================
+# KUSUR (MaCiT): eski gevsek desen r"\d[\d\s.,×xX*+-]*mm\b" "aciklamada HERHANGI bir mm var mi"
+# bakiyordu -> gercek olcu satiriyla, kismi spec-mm degerini ("M32×3.5, ~31 mm") AYIRT EDEMIYOR;
+# olcusuz urun "olculu" sanilip auto_sil'den YANLIS-NEGATIF kaciyordu. FIX: SADECE otomatik
+# uretilen CAPALI on-ek ("Yaklasik dis olculer: ... mm") olculu sayilir.
+import re as _re  # noqa: E402 (test-ici, kirmizi-mutasyon mutantlari icin)
+
+_MUT_LOOSE = _re.compile(r"\d[\d\s.,×xX*+-]*mm\b", _re.IGNORECASE)          # eski desen (too-LAX)
+_MUT_STRICT = _re.compile(r"^\s*" + dk._OLCU_PREFIX + r"\s*\d[\d\s.,×xX*+-]*mm\b\.?\s*$",
+                          _re.UNICODE)                                      # tum-string (too-STRICT)
+
+
+def _olculu_mut(rx, aciklama):
+    return isinstance(aciklama, str) and rx.search(aciklama) is not None
+
+
+KISMI = "M32×3.5 vida disi, yaklasik 31 mm dis cap. Dayanikli conta tapasi."   # kismi spec-mm, on-ek YOK
+GOMULU = "Saglam kapi kolu. Yaklaşık dış ölçüler: 20 × 30 × 5 mm. Kolay montaj."  # mesru satir, gomulu
+ASCII_OLCU = "Dayanikli braket. Yaklasik dis olculer: 40 x 25 x 10 mm."        # eski ASCII on-ek (5 urun)
+YOK_OLCU = "Dayanikli klips, kolay takilir. Olcu satiri yok."                  # hic olcu yok
+
+# canli _olculu() dogru siniflandiriyor mu (dogru yon)
+check("_olculu kismi spec-mm -> False", dk._olculu({"aciklama": KISMI}) is False)
+check("_olculu gomulu capali satir -> True (Ictihat 71)", dk._olculu({"aciklama": GOMULU}) is True)
+check("_olculu ASCII on-ek -> True (geri-uyum)", dk._olculu({"aciklama": ASCII_OLCU}) is True)
+check("_olculu olcu yok -> False", dk._olculu({"aciklama": YOK_OLCU}) is False)
+
+# CIFT-YON kirmizi-mutasyon — her mutant en az bir vakada canliyla AYRISMALI:
+#  A) too-LAX (eski regex): kismi spec-mm'i YANLIS "olculu" sayar; canli False.
+check("MUT-LOOSE kismi spec-mm -> True (eski BUG; kirmizi)", _olculu_mut(_MUT_LOOSE, KISMI) is True)
+check("MUT-LOOSE canliyla AYRISIR (kismi)",
+      _olculu_mut(_MUT_LOOSE, KISMI) != dk._olculu({"aciklama": KISMI}))
+#  B) too-STRICT (tum-string): gomulu mesru satiri YANLIS "olcusuz" sayar (Ictihat 71 regresyonu); canli True.
+check("MUT-STRICT gomulu satir -> False (Ictihat 71 regresyonu; kirmizi)",
+      _olculu_mut(_MUT_STRICT, GOMULU) is False)
+check("MUT-STRICT canliyla AYRISIR (gomulu)",
+      _olculu_mut(_MUT_STRICT, GOMULU) != dk._olculu({"aciklama": GOMULU}))
 
 
 # --- KAPI 1 (lisans) KAYNAGA-OZEL denetim — her platform KENDI natif bicimini dogru okur -------

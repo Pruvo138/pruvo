@@ -85,8 +85,20 @@ _c3 = _load_adaptor("cults3d-api.py", "c3_api")
 _mmf = _load_adaptor("myminifactory-api.py", "mmf_api")
 tr_lower = pr.tr_lower
 
-# --- olcu ifadesi (parti-kontrol.py ile ayni desen) --------------------------
-_OLCU_RE = re.compile(r"\d[\d\s.,×xX*+-]*mm\b", re.IGNORECASE)
+# --- olcu ifadesi: OTOMATIK URETILEN CAPALI on-eki eslestir ------------------
+# KUSUR (MaCiT teshisi): eski gevsek desen (r"\d[\d\s.,×xX*+-]*mm\b") "aciklamada HERHANGI
+# bir mm-degeri var mi" bakiyordu -> gercek olcu satiriyla, aciklamada rastgele gecen KISMI
+# spec-mm degerini ("M32×3.5 vida disi, ~31 mm dis cap") AYIRT EDEMIYORDU. Sonuc: gercekte
+# olcusuz bir urun "olculu" sayilip kapi_olcu'nun auto_sil'inden YANLIS-NEGATIF kaciyordu.
+# FIX: "olculu" SADECE otomatik uretilen CAPALI on-eke ("Yaklasik dis olculer:" + boyut + mm)
+# baglanir; aciklamadaki serbest/kismi mm-degerleri SAYILMAZ.
+#   * On-ek Turkce yazimla gelir ("Yaklaşık dış ölçüler:" — 9992 urun) ama eski ASCII yazim da
+#     ("Yaklasik dis olculer:" — 5 eski urun) desteklenir; her Turkce harf icin ASCII fallback.
+#   * ⚠️ ICTIHAT 71: gecmiste ters yonde bir regex degisikligi YANLIS-POZITIF verip GERCEK olcu
+#     satirini "olculu degil" sayarak olcu eklemeyi ENGELLEMISTI. Bu desen mesru satiri (on-ek +
+#     boyut + mm, aciklama icinde gomulu olsa da) HALA "olculu" sayar (bkz kabul testi).
+_OLCU_PREFIX = r"Yakla[şs][ıi]k\s+d[ıi][şs]\s+[öo]l[çc][üu]ler\s*:"
+_OLCU_RE = re.compile(_OLCU_PREFIX + r"\s*\d[\d\s.,×xX*+-]*mm\b", re.UNICODE)
 
 # --- KAPI 2: maket/logo tiers (OLCUM temelli — bkz. RAPOR-MIMARA.md) ----------
 # metin tr_lower'lanmis (kucuk, Turkce-duyarli) verilir; desenler de oyle yazilir.
