@@ -10,6 +10,11 @@
   var REF_RE = /^REF:[A-Z]{2}-[A-Z0-9]{2,4}-[A-Z0-9]{4}$/;
   var LEAD_ENDPOINT = "/api/shop/ref";
   var CONSENT_KEY = "pruvo_onay_analitik";
+  // ORGANIK ATIF: click-id YOKKEN, referrer bir ARAMA MOTORU ise organik REF (src=OG) uretilir.
+  // Etiket-tam eslesme -> alt-domain + tld varyanti kapsanir (www.google.com, google.com.tr,
+  // r.search.yahoo.com). Dogrudan (referrer bos) / ic gezinme (pruvo3d.com) / baska site -> REF YOK.
+  var SEARCH_SRC = "OG";
+  var ARAMA_MOTORLARI = ["google", "bing", "duckduckgo", "yandex", "yahoo", "ecosia"];
   // Kayitta tiklama kimligi tasiyan alanlar: riza YOKKEN yazilmaz, yazilmissa SILINIR.
   var CLICK_FIELDS = ["gclid", "gbraid", "wbraid"];
   // Ana sayfadaki PRUVO_ATIF katmaninin kaydi (index.html yazar, fbclid -> fbc). Bu modul HER
@@ -152,6 +157,28 @@
     };
   }
 
+  // Referrer host'u (kucuk harf). Okunamaz/bos -> "".
+  function refererHost() {
+    var r = "";
+    try { r = document.referrer || ""; } catch (error) { return ""; }
+    if (!r) { return ""; }
+    try { return new URL(r).hostname.toLowerCase(); } catch (error) { return ""; }
+  }
+
+  // Host etiketlerinden biri bilinen bir arama motoruysa true (alt-domain + tld varyanti dahil,
+  // etiket-TAM eslesme -> "notgoogle.com" gecmez). Kendi domainimiz zaten listede yok -> ic
+  // gezinme organik SAYILMAZ.
+  function isAramaMotoru(host) {
+    if (!host) { return false; }
+    var parcalar = host.split(".");
+    for (var i = 0; i < parcalar.length; i++) {
+      for (var j = 0; j < ARAMA_MOTORLARI.length; j++) {
+        if (parcalar[i] === ARAMA_MOTORLARI[j]) { return true; }
+      }
+    }
+    return false;
+  }
+
   function initialize() {
     var params = new URLSearchParams(location.search);
     var url = urlClickIds();
@@ -167,22 +194,41 @@
       cerezTemizle();
     }
 
-    if (!hasClickId && !record) { return; }
+    // Var olan gecerli kayit: paid ayni tik VEYA click-id'siz donus -> REF'i yeniden kullan
+    // (paid oturum 90 gun korunur; organik OG donuste de ayni REF surer). Paid > organik: paid
+    // ziyaretci sonradan arama motorundan donse bile eski paid REF'i korur (dogru atif onceligi).
     if (record && (!hasClickId || record.gclid === url.gclid)) {
       activeRef = record.ref;
       return;
     }
 
-    var group = normalize(params.get("pg"), GROUP_RE, "G0");
-    var source = normalize(params.get("s"), SOURCE_RE, "GS");
-    var ref = makeRef(source, group);
-    if (!ref) { return; }
-    // Click-id'ler YALNIZ riza varken kayda girer; REF her hâlükârda uretilir.
-    record = { ref: ref, gclid: consent ? url.gclid : null,
-               gbraid: consent ? url.gbraid : null, wbraid: consent ? url.wbraid : null,
-               grup: group, src: source, ts: now };
+    if (hasClickId) {
+      // PAID yol — DEGISMEZ.
+      var group = normalize(params.get("pg"), GROUP_RE, "G0");
+      var source = normalize(params.get("s"), SOURCE_RE, "GS");
+      var ref = makeRef(source, group);
+      if (!ref) { return; }
+      // Click-id'ler YALNIZ riza varken kayda girer; REF her hâlükârda uretilir.
+      record = { ref: ref, gclid: consent ? url.gclid : null,
+                 gbraid: consent ? url.gbraid : null, wbraid: consent ? url.wbraid : null,
+                 grup: group, src: source, ts: now };
+      writeRecord(record);
+      activeRef = ref;
+      return;
+    }
+
+    // ORGANIK yol (YENI): click-id YOK + gecerli kayit YOK. Yalniz referrer bir ARAMA MOTORU ise
+    // organik REF uret (src=OG). Dogrudan/ic-gezinme/baska-site -> REF YOK (eski sessiz davranis;
+    // gurultu/spam yuzeyi dar tutulur). OG kaydinda click-id YOK -> PII yok -> riza kapisi
+    // gerekmez (REF/grup/src/ts eski sinifla ayni; paid REF de rizasiz uretiliyor).
+    if (!isAramaMotoru(refererHost())) { return; }
+    var ogGroup = normalize(params.get("pg"), GROUP_RE, "G0");
+    var ogRef = makeRef(SEARCH_SRC, ogGroup);
+    if (!ogRef) { return; }
+    record = { ref: ogRef, gclid: null, gbraid: null, wbraid: null,
+               grup: ogGroup, src: SEARCH_SRC, ts: now };
     writeRecord(record);
-    activeRef = ref;
+    activeRef = ogRef;
   }
 
   // Riza sayfa yuklendikten SONRA verilirse (banner "Kabul Et"), URL'de hâlâ duran click-id
@@ -236,22 +282,29 @@
     }
   }
 
-  // Lead aninda (wa.me tikinda) REF->click-id'yi sunucuya kalicilastir. Guard'lar (HEPSI
-  // saglanmali): tiklanan link wa.me hedefi, activeRef set, analitik rizasi 'kabul', kayitta
-  // >=1 click-id (organik gonderilmez), REF daha once loglanmamis. Fire-and-forget: yanit
-  // beklenmez, hata yutulur.
+  // Lead aninda (wa.me tikinda) REF'i (+ paid ise click-id'yi) sunucuya kalicilastir.
+  // Ortak guard'lar: tiklanan link wa.me hedefi, activeRef set, REF daha once loglanmamis.
+  //  - PAID (src != OG): EK olarak analitik rizasi 'kabul' + kayitta >=1 click-id sart (DEGISMEZ).
+  //  - ORGANIK (src == OG): click-id YOK -> PII yok -> riza gerekmez; yalniz ref/grup/src/ts gider.
+  // Fire-and-forget: yanit beklenmez, hata yutulur.
   function sendLead(anchor) {
     if (leadSent || !activeRef || !anchor || !anchor.getAttribute) { return; }
     var href = anchor.getAttribute("href") || "";
     var url;
     try { url = new URL(href, location.href); } catch (error) { return; }
     if (!isTarget(url)) { return; }
-    if (!hasConsent()) { return; }
-    // Riza sayfa acildiktan sonra verilmis olabilir -> click-id'yi simdi yakala (riza kapili).
-    captureClickIds();
     var record = readRecord(Date.now());
     if (!record || record.ref !== activeRef) { return; }
-    if (!(record.gclid || record.gbraid || record.wbraid)) { return; }
+
+    if (record.src !== SEARCH_SRC) {
+      // PAID yol — DEGISMEZ: riza sart; riza sayfa acildiktan sonra verilmis olabilir -> click-id'yi
+      // simdi yakala (riza kapili) ve kaydi yeniden oku.
+      if (!hasConsent()) { return; }
+      captureClickIds();
+      record = readRecord(Date.now());
+      if (!record || record.ref !== activeRef) { return; }
+      if (!(record.gclid || record.gbraid || record.wbraid)) { return; }
+    }
     if (record.logged) { leadSent = true; return; }
 
     var payload = { ref: record.ref, grup: record.grup, src: record.src, ts: record.ts };
