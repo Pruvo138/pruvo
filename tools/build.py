@@ -1055,6 +1055,8 @@ PAGE_CSS = """
   .konf-hacim{font-size:12.5px;color:var(--gray-text);margin-top:4px}
   .cart-btn.kilitli{opacity:.45;cursor:not-allowed}
   .desc{font-size:15px;color:#39434f;line-height:1.7;margin-bottom:26px}
+  .desc-satir{display:block}
+  .desc-bosluk{height:.85em}
   .order-btn{background:var(--red);color:#fff;border:none;border-radius:9px;
     padding:15px 22px;font-size:16px;font-weight:700;cursor:pointer;
     text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
@@ -1397,7 +1399,16 @@ def render_product(p, all_products):
             raise SystemExit("HATA: %s urununde gecersiz konfigur alani:\n  - %s"
                              % (pid, "\n  - ".join(_konf_hatalar)))
 
-    aciklama_html = esc(p.get("aciklama") or "").replace("\n", "<br>")
+    # Safari Reader Mode kaçınması: açıklama TEK büyük <p>/<br> yerine, WebKit
+    # isProbablyReaderable skorlayıcısının SAYMADIĞI düğümlerde emit edilir —
+    # her kaynak satırı bir <div class="desc-satir">, boş satır bir
+    # <div class="desc-bosluk">. Metin bayt-bayt korunur (yalnız sarma etiketi
+    # <br> yerine satır-başı <div> olur). → [[safari-reader-desc]]
+    _desc_satir = (p.get("aciklama") or "").split("\n")
+    aciklama_html = "".join(
+        ('<div class="desc-satir">%s</div>' % esc(ln)) if ln.strip()
+        else '<div class="desc-bosluk" aria-hidden="true"></div>'
+        for ln in _desc_satir)
 
     # --- JSON-LD Product
     # Fiyat temsili (GSC Merchant listings): FİYATSIZ Offer basmak «"price" alanı
@@ -1840,7 +1851,7 @@ def render_product(p, all_products):
       {price}
       {opsiyonlar}
       {malzeme}
-      <p class="desc">{aciklama}</p>
+      <div class="desc">{aciklama}</div>
       {eylem_butonlar}
     </div>
   </div>
