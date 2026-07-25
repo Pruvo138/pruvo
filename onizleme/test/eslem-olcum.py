@@ -17,6 +17,7 @@ Kullanim:
 Gerekli: eslem-ozel.json (gitignore'lu) + uyelik/jenerator .scad kaynaklari.
 """
 import argparse
+import hashlib
 import importlib.util
 import io
 import json
@@ -183,6 +184,89 @@ def aile_olc(aile, eslem, paket, openscad, set_sayisi, tohumlar, kisit):
     return sonuc
 
 
+def _text_deger(bayraklar):
+    """-D Text=\"...\" token'inin tirnakli deger kismi ('\"...\"'). Beyaz liste
+    icerikte \" birakmadigindan ilk sonraki \" kapanistir."""
+    m = " ".join(bayraklar or [])
+    i = m.find('Text="')
+    if i < 0:
+        return "BOZUK"
+    j = m.find('"', i + 6)
+    return m[i + 5:j + 1] if j >= 0 else "BOZUK"
+
+
+def metin_render_testi(uyelik_dir):
+    """Jeton yuz yazisi RENDER + enjeksiyon guvenligi (onizleme derleme yolu, gercek
+    openscad). Kendi kendine yeter: eslem-ozel.json'u dogrudan okur (paket toplamaz),
+    .scad'i uyelik dizininden alir. openscad ya da .scad yoksa ATLA (kabul disi).
+      (a) iki farkli yazi -> iki FARKLI mesh (yazi gercekten render ediliyor)
+      (b) kotu niyetli yazi -> GUVENLI derlenir + -D Text degeri sanitize."""
+    aile = "kisiye-ozel-jeton-cip-madalyon"
+    openscad = openscad_yolu()
+    eslem_dir = os.path.join(REPO, "onizleme", "derleyici")
+    eslem = server.eslem_yukle(eslem_dir)
+    if aile not in eslem:
+        print("  [YOK ] %s eslem-ozel.json'da yok" % aile)
+        return 1
+    ea = eslem[aile]
+    ortak = ea.get("ortak") or {}
+    scad_yol = os.path.join(uyelik_dir, ea["scad"])
+    hatalar = []
+
+    def dg(ad, kosul, ek=""):
+        print(("  [OK ] " if kosul else "  [HATA] ") + ad + (" — " + ek if ek else ""))
+        if not kosul:
+            hatalar.append(ad)
+
+    # Deploy-hazirlik: eslem jeton ailesinde metin blogu var + sabit'te Text yok.
+    dg("eslem: jeton ortak.metin = {'Text': {'param': 'yazi'}}",
+       ortak.get("metin") == {"Text": {"param": "yazi"}},
+       json.dumps(ortak.get("metin"), ensure_ascii=False))
+    dg("eslem: jeton sabit'te artik Text yok",
+       "Text" not in (ortak.get("sabit") or {}))
+
+    if not openscad or not os.path.exists(scad_yol):
+        print("  [ATLA] mesh testi kosulmadi (openscad=%s scad=%s) — KABUL DISI"
+              % (bool(openscad), os.path.exists(scad_yol)))
+        return 1 if hatalar else 2  # 2 = yapi OK ama mesh atlandi (kabul disi)
+
+    def taban(yazi):
+        return {"cap": 39, "kalinlik": 3.4, "yazi_stili": "gomme",
+                "yuz_sayisi": "tek", "kenar_deseni": "segmentli", "yazi": yazi}
+
+    def render(yazi):
+        bayraklar, sebep = server.d_bayraklari(ea, taban(yazi))
+        if bayraklar is None:
+            return None, "", "d_bayraklari ret: %s" % sebep
+        with tempfile.TemporaryDirectory() as tmp:
+            stl = os.path.join(tmp, "j.stl")
+            komut = [openscad, "-o", stl, "--export-format", "binstl"] + \
+                server.OPENSCAD_EK_BAYRAKLAR + bayraklar + [scad_yol]
+            proc = subprocess.run(komut, capture_output=True, timeout=180)
+            if proc.returncode != 0 or not os.path.exists(stl):
+                return None, "", proc.stderr.decode("utf-8", "replace")[-200:]
+            veri = open(stl, "rb").read()
+        return veri, hashlib.sha256(veri).hexdigest()[:16], ""
+
+    d1, h1, e1 = render("100")
+    d2, h2, e2 = render("AYSU 2026")
+    dg("(a) '100' render edildi", d1 is not None, e1)
+    dg("(a) 'AYSU 2026' render edildi", d2 is not None, e2)
+    dg("(a) iki farkli yazi -> FARKLI mesh (yazi render ediliyor)",
+       bool(d1) and bool(d2) and h1 != h2, "sha(100)=%s sha(AYSU)=%s" % (h1, h2))
+
+    kotu = '"; import("/etc/passwd"); a'
+    bayr, _ = server.d_bayraklari(ea, taban(kotu))
+    tv = _text_deger(bayr)
+    dg("(b) kotu niyet -D sanitize (tirnak cifti, ters-bolu/; yok)",
+       tv.count('"') == 2 and "\\" not in tv and ";" not in tv, "Text=%s" % tv)
+    dk, hk, ek = render(kotu)
+    dg("(b) kotu niyetli yazi GUVENLI derlendi (returncode 0)", dk is not None, ek)
+
+    print("metin-testi: %d hata" % len(hatalar))
+    return 1 if hatalar else 0
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("aileler", nargs="*")
@@ -190,7 +274,13 @@ def main():
     ap.add_argument("--set", type=int, default=5)
     ap.add_argument("--tohumlar", default="20260716,20260717")
     ap.add_argument("--json", help="ozeti bu dosyaya JSON dok")
+    ap.add_argument("--metin-testi", action="store_true",
+                    help="jeton yuz yazisi render + enjeksiyon guvenligi testi (kalibrasyon disi)")
     args = ap.parse_args()
+
+    if args.metin_testi:
+        sys.exit(metin_render_testi(os.environ.get(
+            "PRUVO_UYELIK_DIR", "/Users/okan/dev/pruvo/.uyelik-kodlar")))
     tohumlar = [int(x) for x in args.tohumlar.split(",")]
 
     paket = paket_topla()

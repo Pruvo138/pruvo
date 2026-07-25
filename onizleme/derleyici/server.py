@@ -7,11 +7,15 @@ surulecegi tamamen GIZLI eslem dosyasindan (paket dizinindeki eslem-ozel.json,
 gitignore'lu; kanonik kopya R2 pruvo-ozel) okunur. Uretec kaynak kodu ve
 degisken adlari istemciye/repoya gitmez; istemciye yalnizca derlenmis mesh doner.
 
-ENJEKSIYON MODELI (tasarimla imkansiz): istemciden gelen deger -D satirina
-HICBIR ZAMAN metin olarak gecmez. Sayisal parametreler yalniz sonlu float
-olarak dogrusal kombinasyona girer ("%.6f" formatlanir); secim parametreleri
-yalniz eslem dosyasindaki tablo'da TANIMLI anahtarlarin KARSILIKLARINI secer.
-Yani -D'ye yazilan her metin bizim dosyamizdan gelir, istekten degil.
+ENJEKSIYON MODELI: sayisal parametreler yalniz sonlu float olarak dogrusal
+kombinasyona girer ("%.6f" formatlanir); secim parametreleri yalniz eslem
+dosyasindaki tablo'da TANIMLI anahtarlarin KARSILIKLARINI secer; sabitler
+bizim dosyamizdan gelir. TEK istisna: `metin` blogu (or. jeton yuz yazisi)
+istemci metnini -D'ye string degisken olarak gecirir — ama once SIKI BEYAZ
+LISTE'den gecer (yalniz harf/rakam/Turkce harf/bosluk + minimal noktalama
+KALIR, gerisi DUSER) ve bagimsiz SERT uzunluk tavaniyla kirpilir. Beyaz liste
+" \\ yenisatir ve her tehlikeli OpenSCAD token'ini DISLAR; boylece deger
+Text="..." literalinin GUVENLI icinden disari cikamaz, token enjekte edemez.
 (subprocess argv listesi kullanilir; shell yorumlamasi da yoktur.)
 
 Calisma bicimleri:
@@ -48,6 +52,27 @@ OPENSCAD_EK_BAYRAKLAR = ["--enable=textmetrics"]
 HAM_STL_TAVANI = 20 * 1024 * 1024  # guvenlik tavani; asil 2 MB gzip tavani Worker'da
 SAYAC = {"derleme": 0}
 SAYAC_KILIT = threading.Lock()
+
+# `metin` blogu icin SIKI BEYAZ LISTE (kara liste DEGIL): istemci metninde YALNIZ
+# bu karakterler KALIR, gerisi (ozellikle "  \  ; < > [ ] { } = $ ` yenisatir/kontrol)
+# istisnasiz DUSER. Boylece deger Text="..." string literalinden disari cikamaz ve
+# hicbir OpenSCAD token'i enjekte edemez. Kume: ASCII harf/rakam + Turkce harfler +
+# bosluk + minimal guvenli noktalama (. , - _). Genistletmeden once guvenlik gozden
+# gecirmesi sart (her yeni karakter literal-icinde inert olsa da beyaz liste bilincli
+# olarak DAR tutulur).
+# SERTLESTIRME (deploy-oncesi son kati): / & % ( ) + ISARETLERI listeden CIKARILDI —
+# jeton yuz yazisi ad/sayi icin bunlara ihtiyac yok; beyaz listeyi daraltmak yalniz
+# izinli karakter cikardigindan yeni risk EKLEYEMEZ, saldiri yuzeyini kuculturur.
+METIN_BEYAZ_LISTE = frozenset(
+    "abcdefghijklmnopqrstuvwxyz"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "0123456789"
+    "ğüşıöç"   # gustioc (kucuk Turkce harfler)
+    "ĞÜŞİÖÇ"   # GUSIOC (buyuk Turkce harfler)
+    " .,-_")
+# Sema `maksUzunluk` bu alanda 20; asagidaki tavan ONDAN BAGIMSIZ savunma-derinligi
+# (derleyici tek basina da cagrilabilir: eslem-olcum.py / ic-derle / gelecek yollar).
+METIN_SERT_TAVAN = 24
 
 
 def openscad_yolu():
@@ -118,8 +143,16 @@ def sayisal_kural(kural, parametreler, hatalar, scad_ad):
     return toplam
 
 
+def metin_temizle(ham):
+    """Istemci metnini SIKI BEYAZ LISTE'yle temizler + SERT tavana kirpar.
+    Yalniz METIN_BEYAZ_LISTE'deki karakterler kalir; " \\ yenisatir dahil gerisi
+    DUSER — donen deger Text="..." literalinin GUVENLI icidir (enjeksiyon imkansiz)."""
+    temiz = "".join(ch for ch in ham if ch in METIN_BEYAZ_LISTE)
+    return temiz[:METIN_SERT_TAVAN]
+
+
 def blok_uygula(blok, parametreler, dler, hatalar):
-    """Tek eslem blogunu (sayisal/vektor/secim/sabit) -D sozlugune isler."""
+    """Tek eslem blogunu (sayisal/vektor/secim/metin/sabit) -D sozlugune isler."""
     for scad_ad, kural in (blok.get("sayisal") or {}).items():
         toplam = sayisal_kural(kural, parametreler, hatalar, scad_ad)
         if toplam is None:
@@ -145,6 +178,24 @@ def blok_uygula(blok, parametreler, dler, hatalar):
             hatalar.append("secim-tanimsiz:" + kural["param"])
             return
         dler[scad_ad] = d_deger(tablo[v])
+    for scad_ad, kural in (blok.get("metin") or {}).items():
+        # `metin` blogu: {"<SCAD_VAR>": {"param": "<param_ad>"}}. Istemci metnini
+        # SIKI beyaz listeden gecirip SCAD string degiskeni yapar. Guvenlik burada:
+        # beyaz liste + sert tavan, ARDINDAN d_deger'in ikinci-kat tirnak savunmasi.
+        ham = parametreler.get(kural["param"])
+        if isinstance(ham, str):
+            metin = ham
+        elif sayi_mi(ham):
+            # Metin alanina sayi gelirse (bool DEGIL) kanonik sayi metnine cevir;
+            # cikti zaten tamamen beyaz-liste icidir (rakam/./-). Worker maksUzunluk
+            # sayilari da String()'ledigi icin bu yol worker ile tutarli kalir.
+            metin = sayi_metni(ham)
+        else:
+            hatalar.append("metin-degil:" + kural["param"])
+            return
+        # d_deger'e beyaz-listelenmis + kirpilmis metin gider: tirnak/ters-bolu/
+        # yenisatir zaten yok, d_deger yalniz '"..."' ile sarar (ikinci savunma kati).
+        dler[scad_ad] = d_deger(metin_temizle(metin))
     for scad_ad, deger in (blok.get("sabit") or {}).items():
         dler[scad_ad] = d_deger(deger)
 
@@ -360,6 +411,54 @@ def oz_test():
     dogrula("izgara disi sayi secimi -> ret", b is None and "secim-tanimsiz" in sebep)
     b, sebep = d_bayraklari(eslem2, {"en": "x", "boy": 60, "cap": 5})
     dogrula("vektor bileseninde string -> ret", b is None and "sayisal-degil" in sebep)
+
+    # 9) METIN blogu (jeton yuz yazisi): istemci metni -D'ye string olarak GECER,
+    #    ama SIKI beyaz listeden. Ana bulgu: iki farkli yazi -> iki farkli -D;
+    #    kotu niyetli yazi enjeksiyonsuz, guvenli literale temizlenir.
+    eslem3 = {"scad": "chipmaker.scad",
+              "ortak": {"metin": {"Text": {"param": "yazi"}},
+                        "sabit": {"Text_Size": 0.447}}}
+
+    def dval(b):  # -D Text="..." token'inin tirnakli deger kismi ('"..."')
+        m = " ".join(b or [])
+        i = m.find('Text="')
+        if i < 0:
+            return ""
+        # Kapanis tirnagi: beyaz liste icerikte " birakmaz, o yuzden ilk sonraki
+        # " kapanistir. Sanitasyon kacirsaydi bu esitlik testleri KIRMIZI yanar.
+        j = m.find('"', i + 6)
+        return m[i + 5:j + 1] if j >= 0 else "BOZUK"
+
+    b, _ = d_bayraklari(eslem3, {"yazi": "AYSU 2026"})
+    dogrula("metin: gecerli deger -D'ye gecer", b is not None and
+            dval(b) == '"AYSU 2026"')
+    ba, _ = d_bayraklari(eslem3, {"yazi": "100"})
+    bb, _ = d_bayraklari(eslem3, {"yazi": "AHSAP"})
+    dogrula("metin: farkli yazi -> farkli -D",
+            ba is not None and bb is not None and dval(ba) != dval(bb) and
+            dval(ba) == '"100"' and dval(bb) == '"AHSAP"')
+    dogrula("metin: Turkce harf korunur",
+            dval(d_bayraklari(eslem3, {"yazi": "GÖÇ ışık"})[0]) == '"GÖÇ ışık"')
+    # Kotu niyet: tirnak/ters-bolu/yenisatir/; hepsi DUSER; enjeksiyon -D'ye ULASMAZ.
+    kotu = d_bayraklari(eslem3, {"yazi": '"; import("/etc/passwd"); a'})[0]
+    mk = " ".join(kotu or [])
+    dogrula("metin: enjeksiyon temizlendi", kotu is not None and
+            mk.count('"') == 2 and ";" not in mk and "\\" not in mk and
+            "\n" not in mk and "import" in mk)  # 'import' GLYPH olarak kalir, cagri DEGIL
+    kotu2 = d_bayraklari(eslem3, {"yazi": 'a\\b"c\nd; <e> [f]={g}'})[0]
+    mk2 = dval(kotu2)
+    # \ " yenisatir ; < > [ ] = { } hepsi DUSER; yalniz harf + korunan bosluklar kalir.
+    dogrula("metin: ters-bolu/tirnak/yenisatir/token sokuldu",
+            mk2 == '"abcd e fg"')
+    # SERT tavan: 100 karakter -> 24'e kirpilir (sema maksUzunluk'tan bagimsiz).
+    uzun = d_bayraklari(eslem3, {"yazi": "A" * 100})[0]
+    dogrula("metin: sert uzunluk tavani (24)",
+            dval(uzun) == '"' + "A" * 24 + '"')
+    # String-disi (bool/None/liste) -> fail-closed ret; sayi -> kanonik metne cevrilir.
+    br, sebep = d_bayraklari(eslem3, {"yazi": True})
+    dogrula("metin: bool -> ret", br is None and "metin-degil" in (sebep or ""))
+    dogrula("metin: sayi -> kanonik metin",
+            dval(d_bayraklari(eslem3, {"yazi": 42})[0]) == '"42"')
 
     print("oz-test: %d hata" % len(hatalar))
     return 1 if hatalar else 0
