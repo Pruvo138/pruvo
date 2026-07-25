@@ -146,10 +146,11 @@ ekle(urun("yeni-jenerik", "Renault Kaptur bagaj kancasi", aciklama=canli_acik, g
 ekle(urun("kismi-specmm-urun", "Renault Trafic yag tapasi",
           aciklama="M32×3.5 vida disi, yaklasik 31 mm dis cap. Dayanikli conta tapasi.",
           gorsel="kismi-specmm"), kaynak_cc("kismi-specmm-urun"))
-# FIX B (Ictihat 71 korumasi): mesru CAPALI olcu satiri aciklamaya GOMULU -> HALA "olculu" ->
-# olcu kapisindan GECER (auto_sil YOK). Fix ters yone kacip mesru olcuyu ELEMEMELI.
+# FIX B (Ictihat 71 korumasi + KUSUR-2): mesru CAPALI olcu satiri (iki-noktadan sonra ETIKET +
+# gercek boyut, gomulu) -> HALA "olculu" -> olcu kapisindan GECER (auto_sil YOK). Fix ters yone
+# kacip mesru olcuyu ELEMEMELI (gercek-veri regresyonu: 40+ canli urun bu bicimde).
 ekle(urun("capali-olcu-urun", "Renault Trafic kapi kolu",
-          aciklama="Saglam kapi kolu. Yaklaşık dış ölçüler: 20 × 30 × 5 mm. Kolay montaj.",
+          aciklama="Saglam kapi kolu. Yaklaşık dış ölçüler: taban 137 × 135 × 70 mm. Kolay montaj.",
           gorsel="capali-olcu"), kaynak_cc("capali-olcu-urun"))
 
 # yeni parti = canli-mevcut HARIC hepsi; HEAD = {canli-mevcut}
@@ -238,44 +239,110 @@ for ham, bekle in [
 
 
 # =============================================================================
-# FIX B: _olculu() CAPALI on-ek eslesmesi — CIFT-YON kirmizi-mutasyon (birim)
+# FIX B: _olculu() CAPALI ifade eslesmesi — CIFT-YON kirmizi-mutasyon + GERCEK-VERI nobetcisi
 # =============================================================================
-# KUSUR (MaCiT): eski gevsek desen r"\d[\d\s.,×xX*+-]*mm\b" "aciklamada HERHANGI bir mm var mi"
-# bakiyordu -> gercek olcu satiriyla, kismi spec-mm degerini ("M32×3.5, ~31 mm") AYIRT EDEMIYOR;
-# olcusuz urun "olculu" sanilip auto_sil'den YANLIS-NEGATIF kaciyordu. FIX: SADECE otomatik
-# uretilen CAPALI on-ek ("Yaklasik dis olculer: ... mm") olculu sayilir.
+# KUSUR-1 (MaCiT): eski gevsek desen r"\d[\d\s.,×xX*+-]*mm\b" "aciklamada HERHANGI mm var mi"
+#   bakiyordu -> kismi spec-mm ("M32×3.5, ~31 mm") gercek olcuyle karisip olcusuz urunu "olculu"
+#   sayiyordu (yanlis-negatif).
+# KUSUR-2 (bagimsiz curutucu, gercek-veri regresyonu): otomatik uretici iki-noktadan SONRA
+#   etiket/parantez koyabiliyor ("... : taban 137 × 135 × 70 mm.", "(15 cm boyda): 113 × ...").
+#   Iki-noktadan HEMEN sonra \s*\d isteyen desen bunlari KACIRIR -> 40+ canli olculu urun
+#   "olcusuz" sanilir (Ictihat 71 kitlesel-silme). FIX: capa ifadesine baglan + AYNI SATIRDA
+#   lazy ([^\n]*?) ilk boyut tokenina ilerle.
 import re as _re  # noqa: E402 (test-ici, kirmizi-mutasyon mutantlari icin)
 
-_MUT_LOOSE = _re.compile(r"\d[\d\s.,×xX*+-]*mm\b", _re.IGNORECASE)          # eski desen (too-LAX)
-_MUT_STRICT = _re.compile(r"^\s*" + dk._OLCU_PREFIX + r"\s*\d[\d\s.,×xX*+-]*mm\b\.?\s*$",
-                          _re.UNICODE)                                      # tum-string (too-STRICT)
+# too-LAX = KUSUR-1'in eski (duz) regexi: kismi spec-mm'i yanlis "olculu" sayar.
+_MUT_LOOSE = _re.compile(r"\d[\d\s.,×xX*+-]*mm\b", _re.IGNORECASE)
+# too-STRICT = KUSUR-2'nin ta kendisi: capa + iki-nokta + HEMEN \d (araya etiket/parantez giremez).
+# Bu, bagimsiz curutucunun yakaladigi GERCEK regresyon; etiketli/parantezli mesru satiri KACIRIR.
+_MUT_COLON = _re.compile(r"Yakla[şs][ıi]k\s+d[ıi][şs]\s+[öo]l[çc][üu]ler\s*:\s*\d[\d\s.,×xX*+-]*mm\b",
+                         _re.UNICODE)
 
 
 def _olculu_mut(rx, aciklama):
     return isinstance(aciklama, str) and rx.search(aciklama) is not None
 
 
-KISMI = "M32×3.5 vida disi, yaklasik 31 mm dis cap. Dayanikli conta tapasi."   # kismi spec-mm, on-ek YOK
-GOMULU = "Saglam kapi kolu. Yaklaşık dış ölçüler: 20 × 30 × 5 mm. Kolay montaj."  # mesru satir, gomulu
-ASCII_OLCU = "Dayanikli braket. Yaklasik dis olculer: 40 x 25 x 10 mm."        # eski ASCII on-ek (5 urun)
+KISMI = "M32×3.5 vida disi, yaklasik 31 mm dis cap. Dayanikli conta tapasi."   # kismi spec-mm, capa YOK
+GOMULU = "Saglam kapi kolu. Yaklaşık dış ölçüler: 20 × 30 × 5 mm. Kolay montaj."  # basit gomulu
+ASCII_OLCU = "Dayanikli braket. Yaklasik dis olculer: 40 x 25 x 10 mm."        # eski ASCII yazim
 YOK_OLCU = "Dayanikli klips, kolay takilir. Olcu satiri yok."                  # hic olcu yok
+# KUSUR-2 GERCEK-VERI bicimleri (curutucu ornekleri; iki-noktadan sonra etiket/parantez):
+LABELED = [
+    "Renault Arkana bagaj kancasi. Yaklaşık dış ölçüler: taban 137 × 135 × 70 mm.",
+    "Audi A4 B9 orta kolcak destek. Yaklaşık dış ölçüler: iç parça 42 × 30 × 8 mm sağlam oturur.",
+    "Bosch POF 500/600 freze insert. Yaklaşık dış ölçüler: insert 52 × 24 × 18 mm.",
+    "Audi A3 8P bagaj perde mafsali. Yaklaşık dış ölçüler: mafsal gövdesi 64 × 40 × 24 mm.",
+    "Yamaha FZ1N sinyal adaptoru. Yaklaşık dış ölçüler (15 cm boyda): 113 × 117 × 150 mm.",
+]
+# Placeholder: capa VAR ama gercek boyut YOK (dijitsiz) -> gercekten olcusuz, False KALMALI.
+# (bare-phrase oracle bunlari yanlislikla True'ya zorlar = KUSUR-1'i geri getirir -> yasak.)
+PLACEHOLDER = [
+    "Ic tutamac ara parca. Yaklaşık dış ölçüler: yok.",
+    "Copluk. Yaklaşık dış ölçüler: Belirtilmedi.",
+    "Sandladder. Yaklaşık dış ölçüler: Belirtilmemiş × Belirtilmemiş × Belirtilmemiş mm.",
+    "Molle aparat. Yaklaşık dış ölçüler: - × - × - mm.",
+]
 
-# canli _olculu() dogru siniflandiriyor mu (dogru yon)
+# --- canli _olculu() dogru siniflandiriyor mu (dogru yon) ---
 check("_olculu kismi spec-mm -> False", dk._olculu({"aciklama": KISMI}) is False)
-check("_olculu gomulu capali satir -> True (Ictihat 71)", dk._olculu({"aciklama": GOMULU}) is True)
-check("_olculu ASCII on-ek -> True (geri-uyum)", dk._olculu({"aciklama": ASCII_OLCU}) is True)
+check("_olculu basit gomulu capali -> True (Ictihat 71)", dk._olculu({"aciklama": GOMULU}) is True)
+check("_olculu ASCII yazim -> True (geri-uyum)", dk._olculu({"aciklama": ASCII_OLCU}) is True)
 check("_olculu olcu yok -> False", dk._olculu({"aciklama": YOK_OLCU}) is False)
+for i, s in enumerate(LABELED):
+    check("_olculu etiketli/parantezli biciM [%d] -> True (KUSUR-2)" % i, dk._olculu({"aciklama": s}) is True)
+for i, s in enumerate(PLACEHOLDER):
+    check("_olculu placeholder (gercek boyut yok) [%d] -> False" % i, dk._olculu({"aciklama": s}) is False)
 
-# CIFT-YON kirmizi-mutasyon — her mutant en az bir vakada canliyla AYRISMALI:
-#  A) too-LAX (eski regex): kismi spec-mm'i YANLIS "olculu" sayar; canli False.
-check("MUT-LOOSE kismi spec-mm -> True (eski BUG; kirmizi)", _olculu_mut(_MUT_LOOSE, KISMI) is True)
+# --- CIFT-YON kirmizi-mutasyon — her mutant en az bir vakada canliyla AYRISMALI ---
+#  A) too-LAX (KUSUR-1 eski regex): kismi spec-mm'i YANLIS "olculu" sayar; canli False.
+check("MUT-LOOSE kismi spec-mm -> True (KUSUR-1 BUG; kirmizi)", _olculu_mut(_MUT_LOOSE, KISMI) is True)
 check("MUT-LOOSE canliyla AYRISIR (kismi)",
       _olculu_mut(_MUT_LOOSE, KISMI) != dk._olculu({"aciklama": KISMI}))
-#  B) too-STRICT (tum-string): gomulu mesru satiri YANLIS "olcusuz" sayar (Ictihat 71 regresyonu); canli True.
-check("MUT-STRICT gomulu satir -> False (Ictihat 71 regresyonu; kirmizi)",
-      _olculu_mut(_MUT_STRICT, GOMULU) is False)
-check("MUT-STRICT canliyla AYRISIR (gomulu)",
-      _olculu_mut(_MUT_STRICT, GOMULU) != dk._olculu({"aciklama": GOMULU}))
+#  B) too-STRICT (KUSUR-2 gercek regresyon): etiketli mesru satiri YANLIS "olcusuz" sayar; canli True.
+check("MUT-COLON etiketli biciM -> False (KUSUR-2/Ictihat 71 regresyonu; kirmizi)",
+      _olculu_mut(_MUT_COLON, LABELED[0]) is False)
+check("MUT-COLON canliyla AYRISIR (etiketli)",
+      _olculu_mut(_MUT_COLON, LABELED[0]) != dk._olculu({"aciklama": LABELED[0]}))
+
+# =============================================================================
+# GERCEK-VERI ICTIHAT-71 NOBETCISI (izlenen urunler.json, SALT-OKUMA)
+# =============================================================================
+# Bu nobetci tam da bagimsiz curutucunun buldugu regresyonu yakalar: capa ifadesi + GERCEK
+# 3-eksen SAYISAL boyut tasiyan HER canli urun _olculu() -> True olmali. Placeholder ("yok"/
+# "Belirtilmedi"/"- × -", DIJITSIZ) urunler gercekten olcusuzdur; oracle onlari HARIC tutar
+# (bare-phrase oracle onlari True'ya zorlarsa KUSUR-1'i geri getirir). ESKI kirik regex bu
+# kumede 40 urunu False verirdi -> nobetci KIRMIZI (regresyon kaniti); yeni regex 0 kacan.
+import json as _json  # noqa: E402
+_UR = os.path.join(DIR, "..", "urunler.json")
+_PHRASE = _re.compile(r"Yakla[şs][ıi]k\s+d[ıi][şs]\s+[öo]l[çc][üu]ler", _re.UNICODE)
+_REAL3 = _re.compile(r"\d[\d.,]*\s*[×xX*]\s*\d[\d.,]*\s*[×xX*]\s*\d[\d.,]*\s*mm\b", _re.UNICODE)
+try:
+    with open(_UR, encoding="utf-8") as _f:
+        _canli = _json.load(_f)
+except (OSError, ValueError):
+    _canli = None
+check("gercek-veri nobetcisi: urunler.json okunabildi (dizi)", isinstance(_canli, list))
+if isinstance(_canli, list):
+    _hedef = 0
+    _kacan = []
+    for _u in _canli:
+        if not isinstance(_u, dict):
+            continue
+        _a = _u.get("aciklama")
+        if not isinstance(_a, str):
+            continue
+        if _PHRASE.search(_a) and _REAL3.search(_a):
+            _hedef += 1
+            if not dk._olculu({"aciklama": _a}):
+                _kacan.append(_u.get("id"))
+    check("gercek-veri nobetcisi: >=5000 capa+gercek-boyut urun denetlendi", _hedef >= 5000)
+    check("gercek-veri nobetcisi: capa+gercek-boyut tasiyan HER urun _olculu()=True (Ictihat 71)",
+          len(_kacan) == 0)
+    if _kacan:
+        print("ICTIHAT-71 KACAN (%d): %s" % (len(_kacan), ", ".join(str(x) for x in _kacan[:30])),
+              file=sys.stderr)
+    print("gercek-veri nobetcisi: %d capa+gercek-boyut urun denetlendi, %d kacan" % (_hedef, len(_kacan)))
 
 
 # --- KAPI 1 (lisans) KAYNAGA-OZEL denetim — her platform KENDI natif bicimini dogru okur -------

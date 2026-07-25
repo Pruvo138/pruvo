@@ -69,7 +69,15 @@ MEDYA_ONEK = "https://media.pruvo3d.com/"
 
 _KEBAB_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 _FIYAT_RE = re.compile(r"^\d[\d.,]* TL$")
-_OLCU_RE = re.compile(r"\d[\d\s.,×xX*+-]*mm\b", re.IGNORECASE)
+# olcu ifadesi: OTOMATIK URETILEN CAPALI ifadeye baglan (denetim-kapisi._OLCU_RE ile AYNI karar).
+# Eski gevsek desen (r"\d[\d\s.,×xX*+-]*mm\b") aciklamadaki KISMI spec-mm degerini ("M32×3.5,
+# ~31 mm") gercek olcu satiriyla karistirip olcusuz urunu "olculu" sayiyordu (yanlis-negatif).
+# Capa ifadesine ("Yaklasik dis olculer" + eski ASCII yazim) baglanip AYNI SATIRDA araya giren
+# etiket/parantez metnine ([^\n]*?) izin vererek ilk "<sayi> … mm" tokenina ilerle -> etiketli/
+# parantezli biciM ("... : taban 137 × 135 × 70 mm.", "(15 cm boyda): 113 × ...") de yakalanir;
+# placeholder ("… : yok." / "- × - mm.") DIJIT tasimadigi icin olcusuz kalir (dogru).
+_OLCU_RE = re.compile(
+    r"Yakla[şs][ıi]k\s+d[ıi][şs]\s+[öo]l[çc][üu]ler[^\n]*?\d[\d\s.,×xX*+-]*mm\b", re.UNICODE)
 
 
 def _git(*args):
@@ -394,12 +402,13 @@ def _oz_sinama():
             "https://media.pruvo3d.com/urunler/a-2.jpg",
         ])),
 
-        # 6. 3d bask
+        # 6. 3d bask (aciklamalar CAPALI olcu ifadesi tasir ki olcu kapisina takilmasinlar;
+        #    boylece bu kontroller yalniz "3d bask" bulgusunu izole eder)
         ("3dbask yakala", yakalar(
-            "3d bask", aciklama="Bu urun 3D baski ile uretilir. 10 mm.")),
+            "3d bask", aciklama="Bu urun 3D baski ile uretilir. Yaklasik dis olculer: 10 x 8 x 5 mm.")),
         ("3dbask yakala (kucuk)", yakalar(
-            "3d bask", aciklama="3d baski parcasi. 10 mm.")),
-        ("3dbask gec", temiz(aciklama="Ozel uretim parca. 10 mm.")),
+            "3d bask", aciklama="3d baski parcasi. Yaklasik dis olculer: 10 x 8 x 5 mm.")),
+        ("3dbask gec", temiz(aciklama="Ozel uretim parca. Yaklasik dis olculer: 10 x 8 x 5 mm.")),
 
         # 7. fiyat
         ("fiyat yakala (bos)", yakalar("<sayi> TL", fiyat="")),
@@ -410,10 +419,19 @@ def _oz_sinama():
          yakalar("parametrik urunde fiyat", parametrik=True, fiyat="500 TL")),
         ("parametrik fiyat gec", temiz(parametrik=True, fiyat="")),
 
-        # 8. olcu (mm)
+        # 8. olcu (mm) — CAPALI ifade (denetim-kapisi ile ayni). KUSUR-1: kismi spec-mm capa
+        #    ifadesi tasimadigi icin olcusuz sayilir. KUSUR-2: etiketli/parantezli capali biciM
+        #    (":taban ... mm", "(15 cm boyda): ...") olculu sayilir (Ictihat 71 korumasi).
         ("olcu yakala", yakalar(
             "olcu (mm)", aciklama="Guzel bir parca, olcusuz aciklama.")),
-        ("olcu gec", temiz(aciklama="Boyut: 12 x 8 x 5 mm dayanikli.")),
+        ("olcu yakala (kismi spec-mm)", yakalar(
+            "olcu (mm)", aciklama="M32×3.5 vida disi, yaklasik 31 mm dis cap. Dayanikli.")),
+        ("olcu gec (gomulu capali)", temiz(
+            aciklama="Saglam parca. Yaklasik dis olculer: 12 × 8 × 5 mm. Kolay montaj.")),
+        ("olcu gec (etiketli capali)", temiz(
+            aciklama="Braket. Yaklaşık dış ölçüler: taban 137 × 135 × 70 mm.")),
+        ("olcu gec (parantezli capali)", temiz(
+            aciklama="Sinyal adaptoru. Yaklaşık dış ölçüler (15 cm boyda): 113 × 117 × 150 mm.")),
 
         # 9. lisans
         ("lisans yakala (dict degil)",
