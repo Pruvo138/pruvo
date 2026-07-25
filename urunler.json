@@ -1,5 +1,69 @@
 [
   {
+    "id": "gozu-bagli-baykus-serit-dekoratif-figur",
+    "kategori": "Skan Art",
+    "marka": [],
+    "baslik": "Gözü Bağlı Baykuş Heykeli — Şerit Tasarım Dekoratif Figür (6-30 cm Boyut Seçenekli)",
+    "aciklama": "Gözleri bir bantla bağlı, yine de başı dik ve sakin duran bir baykuş. Akışkan şerit formu gövdeyi negatif boşluklarla örer; ışıkta her açıdan değişen zarif gölge oyunları oluşturur.\n- Salon, kitaplık, çalışma masası ve vitrin için etkileyici bir dekor parçası.\n- Boyut seçenekli: 6 ile 30 cm arasında dilediğiniz yüksekliği kaydırıcıyla seçin; fiyat seçtiğiniz boyuta göre anında hesaplanır.\n- Farklı renk seçenekleri: Siyah, Beyaz ve Gri.\n- Malzeme: PLA, mat yüzey; iç mekân dekorasyonu amaçlıdır.\n- Özgün tasarım — özel tasarım üretimle sipariş üzerine hazırlanır.\nYaklaşık dış ölçüler (15 cm boyda): 129 × 108 × 150 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/gozu-bagli-baykus-serit-dekoratif-figur-p1.jpg",
+      "https://media.pruvo3d.com/urunler/gozu-bagli-baykus-serit-dekoratif-figur-p2.jpg",
+      "https://media.pruvo3d.com/urunler/gozu-bagli-baykus-serit-dekoratif-figur-p3.jpg",
+      "https://media.pruvo3d.com/urunler/gozu-bagli-baykus-serit-dekoratif-figur-p4.jpg",
+      "https://media.pruvo3d.com/urunler/gozu-bagli-baykus-serit-dekoratif-figur-p5.jpg",
+      "https://media.pruvo3d.com/urunler/gozu-bagli-baykus-serit-dekoratif-figur-p6.jpg"
+    ],
+    "konfigur": {
+      "renkler": [
+        "Siyah",
+        "Beyaz",
+        "Gri"
+      ],
+      "renkGorselIndeks": {
+        "Gri": 0,
+        "Siyah": 1,
+        "Beyaz": 2
+      },
+      "boyutMm": {
+        "min": 60,
+        "max": 300,
+        "adim": 10,
+        "varsayilan": 150,
+        "etiket": "Yükseklik"
+      },
+      "hacim": {
+        "refYukseklikMm": 150,
+        "refHacimCm3": 346.49
+      },
+      "fiyatCapalari": [
+        [
+          60,
+          500
+        ],
+        [
+          300,
+          2500
+        ]
+      ],
+      "malzemeler": [
+        {
+          "ad": "PLA",
+          "katsayi": 1.0
+        },
+        {
+          "ad": "PETG",
+          "katsayi": 1.3
+        },
+        {
+          "ad": "ASA",
+          "katsayi": 1.6
+        }
+      ],
+      "varsayilanMalzeme": "PLA"
+    }
+  },
+  {
     "id": "ford-f-serisi-1973-1979-ses-ve-radyo-ayar-dugmesi",
     "kategori": "Otomobil",
     "marka": [
