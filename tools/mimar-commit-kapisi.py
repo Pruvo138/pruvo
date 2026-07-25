@@ -133,7 +133,17 @@ def kaynak_mi(yol: str) -> bool:
 
     KOK-TAM-YOL muafiyeti: shop/src/konfigurlar.js veri-config düzlemidir (urunler.json
     gibi), KAYNAK sayilmaz. Yalniz TAM yol muaf — alt-dizin/backslash konfigurlar.js
-    hala .js kaynak (blok DARALMAZ)."""
+    hala .js kaynak (blok DARALMAZ).
+
+    VERI_BASENAME SAVUNMA DALI (savunma-derinligi, davranissal olarak OLU): asagidaki
+    'basename in VERI_BASENAME -> return False' dali kaynak/veri AYRIMINI (bir veri
+    dosyasi ASLA kaynak sayilmaz) ACIK + saglam kilar. Bugun VERI_BASENAME'in tamami
+    .json (kaynak-disi) oldugundan uzanti kontrolu zaten ayni sonucu verir -> dalin
+    BAGIMSIZ davranissal etkisi YOK; hicbir mutasyon onu kirmizi yakamaz (bkz.
+    mimar-commit-kapisi-mutasyon.py: 'M4 KALDIRILDI' + guard_olu_mu invariant'i). Dal
+    KALIR (savunma-derinligi): bir gun bir veri basename'i kaynak uzantisi kazanirsa
+    (or. .js), bu dal o veri dosyasinin kaynak sanilip env=worker veri commit'inin
+    YANLISLIKLA bloklanmasini onler."""
     if konfig_veri_mi(yol):
         return False
     basename = _basename(yol)

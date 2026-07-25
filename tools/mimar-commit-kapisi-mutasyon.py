@@ -14,6 +14,7 @@ surumdur; o zaman ONCE_REF olarak daraltmadan onceki SHA verilmelidir. Ref'in
 icerigi bugunku gate ile AYNI cikarsa satir "AYNI-ICERIK" damgalanir ve kanit
 sayilmaz (sessiz yesil yerine gorunur uyari).
 """
+import importlib.util
 import os
 import re
 import subprocess
@@ -27,6 +28,12 @@ TEST = os.path.join(TOOLS, "mimar-commit-kapisi-test.py")
 TMP = tempfile.mkdtemp(prefix="kapi-mutasyon-")
 
 KAYNAK = open(GATE, encoding="utf-8").read()
+
+# guard_olu_mu() invariant'i icin gate MODUL olarak yuklenir (import-zamani yan etki YOK:
+# main() yalniz __main__ altinda kosar). VERI_BASENAME / KAYNAK_UZANTI kumelerini OKUR.
+_gate_spec = importlib.util.spec_from_file_location("mimar_commit_kapisi_gate", GATE)
+GATE_MOD = importlib.util.module_from_spec(_gate_spec)
+_gate_spec.loader.exec_module(GATE_MOD)
 
 ONCE_REF = sys.argv[1] if len(sys.argv) > 1 else "HEAD"
 ONCE_SURUM = subprocess.run(
@@ -66,12 +73,14 @@ def mutasyon_m3(s):
     return s.replace(hedef, yeni)
 
 
-def mutasyon_m4(s):
-    """kaynak_mi icindeki VERI_BASENAME savunma dallanmasini kaldir."""
-    hedef = "    if not basename or basename in VERI_BASENAME:"
-    yeni = "    if not basename:  # MUTASYON M4"
-    assert hedef in s, "M4 hedefi bulunamadi"
-    return s.replace(hedef, yeni)
+# M4 KALDIRILDI (25 Tem): "kaynak_mi VERI_BASENAME savunma dallanmasini kaldir" mutasyonu
+# NOBETSIZDI (sifir kirmizi). Dal ('if ... or basename in VERI_BASENAME: return False')
+# yalniz bir VERI_BASENAME girdisinin uzantisi KAYNAK_UZANTI'da olsaydi davranis
+# degistirirdi; VERI_BASENAME'in tamami .json (kaynak-disi) oldugundan uzanti kontrolu
+# zaten ayni sonucu verir -> mutasyon hicbir kabul vakasini kizartamaz (kapi-disiplin-ilkesi
+# ihlali). Dal, GATE'te savunma-derinligi olarak KALIR (bkz. kaynak_mi docstring). Mutasyon
+# yerine guard_olu_mu() invariant'i eklendi: 'olu' varsayim bozulursa (bir veri basename'i
+# kaynak uzantisi kazanirsa) MAKINE ile patlar ve GERCEK bir sentinel gerektigini bildirir.
 
 
 def mutasyon_m5(s):
@@ -133,6 +142,18 @@ def mutasyon_m10(s):
     return s.replace(hedef, yeni)
 
 
+def guard_olu_mu():
+    """kaynak_mi'deki VERI_BASENAME savunma dalinin 'davranissal olarak OLU' oldugunu
+    dogrular (M4 KALDIRILDI gerekcesi). Dal yalniz bir VERI_BASENAME girdisinin uzantisi
+    KAYNAK_UZANTI'da olsaydi CANLANIRDI. Doner: guard'i canlandiran (varsa) VERI_BASENAME
+    girdileri. BOS liste => dal olu => M4'un olmamasi HAKLI. Dolu liste => dal canli =>
+    GERCEK bir kirmizi-mutasyon sentinel'i ISTENIR."""
+    return sorted(
+        b for b in GATE_MOD.VERI_BASENAME
+        if os.path.splitext(b)[1].lower() in GATE_MOD.KAYNAK_UZANTI
+    )
+
+
 def kostur(etiket, icerik):
     yol = os.path.join(TMP, "mutant-" + etiket + ".py")
     acik = open(yol, "w", encoding="utf-8")
@@ -152,7 +173,7 @@ def main():
         ("M1", mutasyon_m1(KAYNAK), "worker bypass daraltmasi devre disi"),
         ("M2", mutasyon_m2(KAYNAK), "env-yok veri korumasi devre disi"),
         ("M3", mutasyon_m3(KAYNAK), "worktree muafiyeti devre disi"),
-        ("M4", mutasyon_m4(KAYNAK), "kaynak_mi VERI istisnasi devre disi"),
+        # M4 KALDIRILDI (25 Tem) — NOBETSIZDI; yerine guard_olu_mu() invariant'i (bkz. main).
         ("M5", mutasyon_m5(KAYNAK), ".py kaynak uzantisi listeden dusuruldu"),
         ("M6", mutasyon_m6(KAYNAK), "T3: gecis veri-DISI dosyaya genisletildi"),
         ("M7", mutasyon_m7(KAYNAK), "T3: gecis yine allow-escape diye loglaniyor"),
@@ -170,8 +191,15 @@ def main():
     nobetsiz = []
     for etiket, icerik, aciklama in vakalar:
         rc, kirmizi = kostur(etiket, icerik)
-        etiketli = ",".join(kirmizi) if kirmizi else "(YOK - NOBETSIZ)"
-        if not kirmizi:
+        # ONCE-* REFERANS satiridir (mutasyon DEGIL, taban gate): dogru gate sifir kirmizi
+        # verir -> NOBETSIZ SAYILMAZ (yoksa varsayilan HEAD kosumu daima kizardi; AYNI-ICERIK
+        # durumu zaten ACIKLAMA sutununda ayri isaretlenir). Yalniz GERCEK mutasyonlar sentinel ister.
+        referans = etiket.startswith("ONCE-")
+        if kirmizi:
+            etiketli = ",".join(kirmizi)
+        else:
+            etiketli = "(REFERANS - taban)" if referans else "(YOK - NOBETSIZ)"
+        if not kirmizi and not referans:
             nobetsiz.append(etiket)
         print("{:<16}{:<7}{:<22}{}".format(etiket, rc, etiketli, aciklama))
     print("-" * 88)
@@ -179,8 +207,22 @@ def main():
         print("NOBETSIZ mutasyonlar: " + ", ".join(nobetsiz))
     else:
         print("Her mutasyon en az bir vakayi KIRMIZI yakti.")
+
+    # M4 KALDIRILDI yerine: kaynak_mi VERI_BASENAME savunma dalinin 'davranissal olarak
+    # olu' varsayimini MAKINE ile dogrula (yalniz yorumla degil). Canli girdi cikarsa dal
+    # sentinel ISTER ve bu kosum KIRMIZI doner.
+    canli = guard_olu_mu()
+    if canli:
+        print("!! INVARIANT BOZULDU: VERI_BASENAME artik kaynak-uzantili girdi iceriyor: "
+              + ", ".join(canli) + " — kaynak_mi VERI savunma dali CANLANDI; GERCEK bir "
+              "kirmizi-mutasyon sentinel'i EKLENMELI (M4'u geri getir).")
+    else:
+        print("INVARIANT OK: kaynak_mi VERI_BASENAME savunma dali davranissal olarak OLU "
+              "(VERI_BASENAME tamamen kaynak-disi) — M4 hakli olarak KALDIRILDI; dal "
+              "savunma-derinligi olarak GATE'te kalir.")
+
     print("Gercek gate degismedi (mutasyon yalniz " + TMP + " altinda).")
-    return 0
+    return 1 if (nobetsiz or canli) else 0
 
 
 if __name__ == "__main__":
