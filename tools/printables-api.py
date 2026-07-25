@@ -207,7 +207,22 @@ def stl_bbox(path):
     if head.startswith(b"<") or b"<html" in head or b"just a moment" in head:
         return None
     xs, ys, zs = [], [], []
-    if b"vertex" in data[:2000] or data[:5].lower() == b"solid":
+    # BINARY-ONCE tespit: aritmetik kesin, "solid" basligina GUVENME. Binary STL =
+    # 80 bayt baslik + uint32 ucgen sayisi (n) + n*50 bayt govde. n>0 VE len==84+n*50
+    # TAM eslesirse header'da duz metin "solid ..." (Fusion360/SolidWorks export) olsa
+    # DA binary parse et -- boylece binary cop ASCII sanilip sessizce yanlis bbox uretmez.
+    if len(data) >= 84:
+        n = struct.unpack("<I", data[80:84])[0]
+        if n > 0 and 84 + n * 50 == len(data):
+            off = 84
+            for _ in range(n):
+                if off + 48 > len(data):
+                    break
+                v = struct.unpack("<12f", data[off:off + 48]); off += 50
+                for j in range(3, 12, 3):
+                    xs.append(v[j]); ys.append(v[j + 1]); zs.append(v[j + 2])
+    # Binary degilse ASCII yolu (DEGISMEDEN): "vertex" satirlarindan koordinat topla.
+    if not xs and (b"vertex" in data[:2000] or data[:5].lower() == b"solid"):
         for line in data.decode("utf-8", "ignore").splitlines():
             p = line.strip().split()
             if len(p) == 4 and p[0] == "vertex":
@@ -215,17 +230,6 @@ def stl_bbox(path):
                     xs.append(float(p[1])); ys.append(float(p[2])); zs.append(float(p[3]))
                 except ValueError:
                     pass
-    if not xs and len(data) >= 84:
-        n = struct.unpack("<I", data[80:84])[0]
-        if 84 + n * 50 != len(data):
-            return None
-        off = 84
-        for _ in range(n):
-            if off + 48 > len(data):
-                break
-            v = struct.unpack("<12f", data[off:off + 48]); off += 50
-            for j in range(3, 12, 3):
-                xs.append(v[j]); ys.append(v[j + 1]); zs.append(v[j + 2])
     if not xs:
         return None
     d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
