@@ -18,7 +18,9 @@ BYPASS MUHASEBESI (kapi bir DISIPLIN cihazidir, hapishane degil — hepsi KAYITL
   1. PRUVO_MIMAR_ONAY=worker  → yalniz VERI duzlemi. T3 AYRIMI (22 Tem): staged
      YALNIZ KOKTEKI veri dosyalarindan olusuyorsa (KOK-TAM-YOL, kok_veri_mi —
      2. tur: tools/urunler.json gibi ad-benzeri/alt-dizin/backslash yol temiz
-     kategoriye GIREMEZ) bu MESRU veri-yazari (MaCiT) hattidir →
+     kategoriye GIREMEZ) bu MESRU veri-yazari (MaCiT) hattidir → (veri düzlemi
+     ayrica KaaN'in shop/src/konfigurlar.js KOK-TAM-YOL config'ini kapsar,
+     konfig_veri_mi)
      log satiri "veri-duzlemi-gecis" (escape SAYILMAZ; 'allow-' oneki tasimaz ki
      haftalik sayim temiz kalsin). Staged BOS ya da veri-disi dosya iceriyorsa
      ESKISI GIBI "allow-escape" (gercek istisna gurultulu kalir). Gerekce: eski
@@ -64,6 +66,9 @@ import time
 ANA_REPO = "/Users/okan/dev/pruvo"
 KAYNAK_UZANTI = {".py", ".js", ".mjs", ".ts", ".html", ".css", ".sql"}
 VERI_BASENAME = {"urunler.json", ".urun-kaynaklari.json"}
+# KaaN'in (jeneratör mimari) veri-config düzlemi: TEK dosya, KOK-TAM-YOL. urunler.json
+# emsali — env=worker ile commit'lenebilir, env yoksa BLOKLU. Ayrinti: konfig_veri_mi.
+KONFIG_VERI_YOL = "shop/src/konfigurlar.js"
 
 # Bir merge/cherry-pick/revert/rebase suruyorsa commit KORUNAN DOSYA YOKKEN gecer
 # (gurultulu + loglu). Korunan dosya varsa sequencer istisnasi ISLEMEZ — bkz. R1.
@@ -105,11 +110,32 @@ def kok_veri_mi(yol: str) -> bool:
     return temiz in VERI_BASENAME
 
 
+def konfig_veri_mi(yol: str) -> bool:
+    """shop/src/konfigurlar.js'in KENDISI mi? KOK-TAM-YOL — ./ soyulur, BASKA
+    normalizasyon YOK (backslash'li ad ESLESMEZ, alt-dizin ESLESMEZ). kok_veri_mi
+    ile AYNI fail-closed disiplin: yalniz REPO KOKUNDEKI tam yol TRUE.
+
+    KaaN'in veri-config düzlemi (urunler.json emsali): env=worker ile ana checkout'ta
+    commit'lenebilir, env yoksa BLOKLU kalir. BLOK tarafi (kaynak_mi/.js) DARALMAZ —
+    'evil/konfigurlar.js' ya da 'shop\\src\\konfigurlar.js' konfig_veri_mi=False → hala
+    .js kaynak → env=worker'da bile BLOKLU."""
+    temiz = (yol or "").strip()
+    if temiz.startswith("./"):
+        temiz = temiz[2:]
+    return temiz == KONFIG_VERI_YOL
+
+
 def kaynak_mi(yol: str) -> bool:
     """Dosya yolu KAYNAK kodu mu? (.py/.js/.mjs/.ts/.html/.css/.sql; veri HARIC)
 
     Uzanti karsilastirmasi KUCUK HARFE indirilir — 'tools/x.PY' olculmus bir kacakti
-    (macOS dosya sistemi harf duyarsiz, git yolu oldugu gibi tasir)."""
+    (macOS dosya sistemi harf duyarsiz, git yolu oldugu gibi tasir).
+
+    KOK-TAM-YOL muafiyeti: shop/src/konfigurlar.js veri-config düzlemidir (urunler.json
+    gibi), KAYNAK sayilmaz. Yalniz TAM yol muaf — alt-dizin/backslash konfigurlar.js
+    hala .js kaynak (blok DARALMAZ)."""
+    if konfig_veri_mi(yol):
+        return False
     basename = _basename(yol)
     if not basename or basename in VERI_BASENAME:
         return False
@@ -118,8 +144,9 @@ def kaynak_mi(yol: str) -> bool:
 
 
 def korunan_mi(yol: str) -> bool:
-    """Dosya kaynak VEYA veri mi? (env yoksa ikisi de bloklanir)"""
-    return kaynak_mi(yol) or veri_mi(yol)
+    """Dosya kaynak VEYA veri VEYA konfig-veri mi? (env yoksa hepsi bloklanir —
+    shop/src/konfigurlar.js de urunler.json gibi env=worker ister)."""
+    return kaynak_mi(yol) or veri_mi(yol) or konfig_veri_mi(yol)
 
 
 def _git_cikti(komut: list[str]) -> str:
@@ -234,7 +261,10 @@ def main() -> int:
         # GIBI allow-escape gurultusudur — gercek istisna gorunur kalir.
         # T3 2. TUR: kontrol KOK-TAM-YOL (kok_veri_mi) — basename-bazli veri_mi
         # burada KULLANILMAZ (tools/urunler.json sinifi temiz kategoriye giremez).
-        veriler = [yol for yol in staged if kok_veri_mi(yol)]
+        # KaaN veri-config düzlemi shop/src/konfigurlar.js de KOK-TAM-YOL temiz
+        # kategoridedir (konfig_veri_mi) — env=worker + SAF konfig/veri commit'i
+        # 'veri-duzlemi-gecis' (allow-escape DEGIL).
+        veriler = [yol for yol in staged if kok_veri_mi(yol) or konfig_veri_mi(yol)]
         if staged and len(veriler) == len(staged):
             bypass_kaydet(
                 gitdir, kok, "veri-duzlemi-gecis",

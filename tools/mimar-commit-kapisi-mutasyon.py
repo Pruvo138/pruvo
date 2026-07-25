@@ -48,9 +48,10 @@ def mutasyon_m1(s):
 
 
 def mutasyon_m2(s):
-    """Veri duzlemi korumasini kaldir: env yokken urunler.json bloklanmasin."""
-    hedef = "    return kaynak_mi(yol) or veri_mi(yol)"
-    yeni = "    return kaynak_mi(yol)  # MUTASYON M2"
+    """Veri duzlemi korumasini kaldir: env yokken urunler.json bloklanmasin.
+    (konfig korumasi KORUNUR — bu mutasyon YALNIZ veri_mi'yi dusurur.)"""
+    hedef = "    return kaynak_mi(yol) or veri_mi(yol) or konfig_veri_mi(yol)"
+    yeni = "    return kaynak_mi(yol) or konfig_veri_mi(yol)  # MUTASYON M2"
     assert hedef in s, "M2 hedefi bulunamadi"
     return s.replace(hedef, yeni)
 
@@ -110,6 +111,28 @@ def mutasyon_m8(s):
     return s.replace(hedef, yeni)
 
 
+def mutasyon_m9(s):
+    """MUT-KONFIG-GENIS: konfig_veri_mi'yi KOK-TAM-YOL yerine basename-bazli yap
+    (blok tarafini konfig icin GENISLETIR: alt-dizin/backslash konfigurlar.js de
+    'muaf' sayilir). Beklenen KIRMIZI: 25 (alt-dizin) — worker'da exit 1 yerine 0
+    doner. 26 (backslash) da kizarir. Nobetci konfig muafiyetinin DAR (tek tam-yol)
+    kalmasini korur."""
+    hedef = "    return temiz == KONFIG_VERI_YOL"
+    yeni = '    return _basename(yol) == "konfigurlar.js"  # MUTASYON M9'
+    assert hedef in s, "M9 hedefi bulunamadi"
+    return s.replace(hedef, yeni)
+
+
+def mutasyon_m10(s):
+    """MUT-KONFIG-KALDIR: korunan_mi'den 'or konfig_veri_mi(yol)'u cikar (env YOKKEN
+    konfigurlar.js bloklanmasin). Beklenen KIRMIZI: 23 (env-siz konfig commit) —
+    exit 1 yerine 0 doner. Nobetci konfig'in env'siz BLOKLU kalmasini korur."""
+    hedef = "    return kaynak_mi(yol) or veri_mi(yol) or konfig_veri_mi(yol)"
+    yeni = "    return kaynak_mi(yol) or veri_mi(yol)  # MUTASYON M10"
+    assert hedef in s, "M10 hedefi bulunamadi"
+    return s.replace(hedef, yeni)
+
+
 def kostur(etiket, icerik):
     yol = os.path.join(TMP, "mutant-" + etiket + ".py")
     acik = open(yol, "w", encoding="utf-8")
@@ -134,6 +157,8 @@ def main():
         ("M6", mutasyon_m6(KAYNAK), "T3: gecis veri-DISI dosyaya genisletildi"),
         ("M7", mutasyon_m7(KAYNAK), "T3: gecis yine allow-escape diye loglaniyor"),
         ("M8", mutasyon_m8(KAYNAK), "T3-2: kok-tam-yol kontrolu basename'e dustu"),
+        ("M9", mutasyon_m9(KAYNAK), "KONFIG-GENIS: konfig muafiyeti basename'e dustu"),
+        ("M10", mutasyon_m10(KAYNAK), "KONFIG-KALDIR: korunan_mi'den konfig cikti"),
     ]
     print("=" * 88)
     print("KIRMIZI-MUTASYON OLCUMU — gate KOPYASI mutasyona ugrar, DAL TEMIZ KALIR")
