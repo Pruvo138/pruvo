@@ -248,6 +248,11 @@ IZIN_LISTESI = {
     "tools/printables-lisans-test.py": R_SONRA,
     "tools/siparisler-test.py": R_SONRA,
     "tools/stl-bbox-binary-test.py": R_SONRA,  # harvest-adaptor birim testi (printables-api.py stl_bbox); sentetik/offline/<1s -> ayni sinif printables-lisans-test.py / test-bbox-3mf muaf, deploy.yml'ye kor-eklenmedi
+    "tools/thing-hazirla-bbox-test.py": (
+        "thing-hazirla.py import aninda hardcoded ROOT=/Users/okan/dev/pruvo altindan .thingiverse-token "
+        "okur -> CI fresh-checkout'ta import PATLAR (yapisal CI-kirmizi, R_YOL sinifi). bbox() "
+        "BELIRSIZ-BIRIM birim testi (metre-sezgisi 2. kopyasi, stl-bbox testi bu ayri fonksiyonu "
+        "kapsamaz); sentetik/offline/<1s, yerelde YESIL. test-bbox-3mf emsali: deploy.yml'e kor-eklenmedi."),
     "tools/surum-test.py": R_SONRA,
     "tools/test-baski-senkron.py": R_SONRA,
     "tools/test-merchant-feed.py": R_SONRA,

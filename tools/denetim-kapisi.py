@@ -85,8 +85,27 @@ _c3 = _load_adaptor("cults3d-api.py", "c3_api")
 _mmf = _load_adaptor("myminifactory-api.py", "mmf_api")
 tr_lower = pr.tr_lower
 
-# --- olcu ifadesi (parti-kontrol.py ile ayni desen) --------------------------
-_OLCU_RE = re.compile(r"\d[\d\s.,×xX*+-]*mm\b", re.IGNORECASE)
+# --- olcu ifadesi: OTOMATIK URETILEN CAPALI IFADEye baglan -------------------
+# KUSUR-1 (MaCiT teshisi): eski gevsek desen (r"\d[\d\s.,×xX*+-]*mm\b") "aciklamada HERHANGI
+#   mm-degeri var mi" bakiyordu -> gercek olcu satiriyla, aciklamadaki KISMI spec-mm degerini
+#   ("M32×3.5 vida disi, ~31 mm dis cap") AYIRT EDEMIYOR; olcusuz urun "olculu" sayilip
+#   auto_sil'den YANLIS-NEGATIF kaciyordu.
+# KUSUR-2 (bagimsiz curutucu, GERCEK-VERI regresyonu): otomatik uretici iki-noktadan SONRA
+#   etiket/parantez koyabiliyor: "... : taban 137 × 135 × 70 mm.", "... : iç parça 42 × 30 × 8 mm",
+#   "Yaklaşık dış ölçüler (15 cm boyda): 113 × 117 × 150 mm.". Iki-noktadan HEMEN sonra \s*\d
+#   isteyen bir desen bunlari KACIRIR -> gercekten olculu 40+ canli urun "olcusuz" sanilir
+#   (Ictihat 71 kitlesel-silme).
+# FIX: TAM capa ifadesine ("Yaklasik dis olculer" + eski ASCII yazim) baglan; sonra AYNI SATIRDA
+#   (newline YOK) araya giren etiket/parantez metnine izin verip ilk "<sayi> … mm" boyut tokenina
+#   lazy [^\n]*? ile ilerle. Capa ifadesinin kendisi ayirt edici — otomatik uretici bunu YALNIZ
+#   gercek boyutla basar. Boylece:
+#     * Turkce ("Yaklaşık dış ölçüler", 9990+ urun) + eski ASCII ("Yaklasik dis olculer"): her
+#       Turkce harf icin ASCII fallback. Placeholder ("… : yok." / "- × - × - mm." / "Belirtilmemiş
+#       × … mm") DIJIT tasimadigi icin eslesMEZ -> gercekten olcusuz kalir (dogru).
+#     * Kismi spec-mm capa ifadesi TASIMADIGI icin hala False (KUSUR-1 giderme korunur).
+#     * Gomulu/etiketli mesru satir (.search, satir-ici) hala True (Ictihat 71 korumasi + KUSUR-2).
+_OLCU_PREFIX = r"Yakla[şs][ıi]k\s+d[ıi][şs]\s+[öo]l[çc][üu]ler"
+_OLCU_RE = re.compile(_OLCU_PREFIX + r"[^\n]*?\d[\d\s.,×xX*+-]*mm\b", re.UNICODE)
 
 # --- KAPI 2: maket/logo tiers (OLCUM temelli — bkz. RAPOR-MIMARA.md) ----------
 # metin tr_lower'lanmis (kucuk, Turkce-duyarli) verilir; desenler de oyle yazilir.

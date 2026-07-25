@@ -12,14 +12,23 @@ hicbiri gecmezse fail-closed (None).
 Deterministik sentetik fikstur: 10mm kenarli kup (8 kose, 12 ucgen) 3 STL biciminde
 INSA edilir; beklenen bbox = [10, 10, 10]. Gercek STL dosyasi GEREKMEZ.
 
-Vakalar:
+Vakalar (BINARY-ONCE tespit):
   1. TUZAK      : header'i "solid Fusion..." ile baslayan + icinde aldatici "vertex"
                   metni tasiyan GECERLI binary kup -> binary yol, 10x10x10 (asil fix).
   2. REGR-ASCII : gercek ASCII kup -> 10x10x10 (ASCII yolu bozulmadi).
   3. REGR-BINARY: "solid" ile BASLAMAYAN gecerli binary kup -> 10x10x10.
   4. FAIL-CLOSED: len<84 / 0-ucgen / bozuk-kesik / html -> cokme YOK, None (uydurma YOK).
-KIRMIZI-MUTASYON: tespit sirasini ESKIYE al (ASCII-once) -> TUZAK (1) KIRMIZI yanar
-  (mutasyon IZOLE kopyada uygulanir; canli printables-api.py'ye DOKUNULMAZ).
+
+Vakalar (BELIRSIZ-BIRIM fail-closed — MaCiT teshisi, metre-sezgisi kaldirildi):
+  5. BELIRSIZ   : ham 0.65-birim parca (aslinda ~16.5mm inc) -> None (650mm DEGIL). Eski kod
+                  "<2 birim => metre" sanip x1000 ile FIZIK-DISI 650mm uretiyordu; artik None.
+  6. NORMAL-MM  : 50mm parca -> ~50mm (esik ustu, oldugu gibi doner).
+  7. INCE-LEVHA : 100 x 100 x 0.5 -> DONER (max=100 >= 2; SADECE en buyuk boyut <2 belirsizdir).
+KIRMIZI-MUTASYON (CIFT-YON):
+  A) tespit sirasini ESKIYE al (ASCII-once) -> TUZAK (1) KIRMIZI (900/800/700).
+  B) metre-sezgisi (too-LAX, eski x1000) -> vaka 5 (0.65 parca) 650mm verir = KIRMIZI.
+  C) min-boyut esigi (too-STRICT, min(d)<2 -> None) -> vaka 7 (ince levha) None verir = KIRMIZI.
+  (mutasyonlar IZOLE kopyada uygulanir; canli printables-api.py'ye DOKUNULMAZ.)
 
 Kullanim: python3 tools/stl-bbox-binary-test.py  (argumansiz; basarisizlikta exit!=0)
 """
@@ -141,6 +150,66 @@ def kup_mu(d, tol=0.01):
     return all(abs(x - 10.0) <= tol for x in d)
 
 
+# --- FIX A (BELIRSIZ-BIRIM) yardimcilari -------------------------------------
+def box_tris(sx, sy, sz):
+    """Kenar olculeri (sx,sy,sz) olan eksen-hizali kutu -> 12 ucgen (her eksende 0..s)."""
+    v = [(0, 0, 0), (sx, 0, 0), (sx, sy, 0), (0, sy, 0),
+         (0, 0, sz), (sx, 0, sz), (sx, sy, sz), (0, sy, sz)]
+    return [(v[a], v[b], v[c]) for (a, b, c) in _TRIS_IDX]
+
+
+def yaklasik(d, exp, tol=0.05):
+    """d, exp listesine (± tol) esit mi? (float32 yuvarlama toleransli)."""
+    if not isinstance(d, list) or len(d) != len(exp):
+        return False
+    return all(abs(a - b) <= tol for a, b in zip(sorted(d, reverse=True), sorted(exp, reverse=True)))
+
+
+def _raw_dims(path):
+    """path'ten HAM (esiksiz) sorted-desc boyutlar — mutant tail mantigi bunun uzerine
+    uygulanir. Binary STL parse (bu testin fikstyurleri binary). Bulunamazsa None."""
+    with open(path, "rb") as f:
+        data = f.read()
+    xs, ys, zs = [], [], []
+    if len(data) >= 84:
+        n = struct.unpack("<I", data[80:84])[0]
+        if n > 0 and 84 + n * 50 == len(data):
+            off = 84
+            for _ in range(n):
+                v = struct.unpack("<12f", data[off:off + 48]); off += 50
+                for j in range(3, 12, 3):
+                    xs.append(v[j]); ys.append(v[j + 1]); zs.append(v[j + 2])
+    if not xs:
+        return None
+    return sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
+
+
+def _mut_metre(path):
+    """MUTANT B (too-LAX) = FIX ONCESI metre-sezgisi: en buyuk boyut <2 -> x1000. Canli dosyada
+    DEGIL; 0.65 parcayi 650mm yapip vaka 5'i KIRMIZI yakmasi beklenir."""
+    d = _raw_dims(path)
+    if d is None:
+        return None
+    if d[0] < 2.0:
+        d = [x * 1000 for x in d]
+    if d[0] <= 0 or d[0] > 100000:
+        return None
+    return d
+
+
+def _mut_anydim(path):
+    """MUTANT C (too-STRICT) = HERHANGI boyut <2 -> None (naif asiri-kati alternatif fix). Canli
+    dosyada DEGIL; ince levhayi (0.5) yanlislikla eleyip vaka 7'yi KIRMIZI yakmasi beklenir."""
+    d = _raw_dims(path)
+    if d is None:
+        return None
+    if min(d) < 2.0:
+        return None
+    if d[0] <= 0 or d[0] > 100000:
+        return None
+    return d
+
+
 def main():
     tmp = []
     hata = []
@@ -153,6 +222,10 @@ def main():
         p_kesik = yaz(pad80(b"PRUVO trunc") + struct.pack("<I", 12) + b"\x00" * 20)
         tmp.append(p_kesik)                                                   # bozuk: 12 iddia, govde eksik
         p_html = yaz(b"<html><body>Just a moment...</body></html>"); tmp.append(p_html)
+        # FIX A fikstyurleri (BELIRSIZ-BIRIM): 0.65-birim / 50mm / ince levha (binary)
+        p_kucuk = yaz(binary_stl(pad80(b"PRUVO small 0.65"), box_tris(0.65, 0.65, 0.65))); tmp.append(p_kucuk)
+        p_50 = yaz(binary_stl(pad80(b"PRUVO 50mm"), box_tris(50.0, 50.0, 50.0))); tmp.append(p_50)
+        p_levha = yaz(binary_stl(pad80(b"PRUVO thin plate"), box_tris(100.0, 100.0, 0.5))); tmp.append(p_levha)
 
         print("stl_bbox() BINARY-ONCE tespit kabul testi")
         print("-" * 64)
@@ -205,13 +278,59 @@ def main():
             hata.append("MUTASYON ETKISIZ: ASCII-once mutant da TUZAK'i 10x10x10 verdi (%r) "
                         "-> test kusuru yakalamiyor" % (mutant,))
 
+        # ================= FIX A: BELIRSIZ-BIRIM (metre-sezgisi kaldirildi) =================
+        print("-" * 64)
+        # 5) BELIRSIZ: 0.65-birim parca -> None (650mm DEGIL) — asil fix
+        d5 = pa.stl_bbox(p_kucuk)
+        ok5 = d5 is None
+        print("  5 BELIRSIZ    0.65-birim parca        -> %-18s %s" % (d5, "OK" if ok5 else "FAIL"))
+        if not ok5:
+            hata.append("BELIRSIZ: 0.65-birim parca None donmeli (650mm DEGIL), gelen %r" % (d5,))
+        # 6) NORMAL-MM: 50mm -> ~50 (esik ustu, oldugu gibi doner)
+        d6 = pa.stl_bbox(p_50)
+        ok6 = yaklasik(d6, [50, 50, 50])
+        print("  6 NORMAL-MM   50mm parca              -> %-18s %s" % (d6, "OK" if ok6 else "FAIL"))
+        if not ok6:
+            hata.append("NORMAL-MM: ~50mm bekleniyordu, gelen %r" % (d6,))
+        # 7) INCE-LEVHA: 100 x 100 x 0.5 -> DONER (max=100>=2, None DEGIL)
+        d7 = pa.stl_bbox(p_levha)
+        ok7 = yaklasik(d7, [100, 100, 0.5])
+        print("  7 INCE-LEVHA  100 x 100 x 0.5         -> %-18s %s" % (d7, "OK" if ok7 else "FAIL"))
+        if not ok7:
+            hata.append("INCE-LEVHA: [100,100,0.5] bekleniyordu (None DEGIL), gelen %r" % (d7,))
+
+        # KIRMIZI-MUTASYON B (too-LAX metre-sezgisi): 0.65 parca 650mm = KIRMIZI, canli None = dogru
+        print("-" * 64)
+        mB = _mut_metre(p_kucuk)
+        canli5 = pa.stl_bbox(p_kucuk)
+        mB_kirmizi = mB is not None            # mutant None VERMEMELI (yanlis ~650 verir)
+        print("  MUT-B  metre-sezgisi 0.65 parca -> %-18s %s" % (mB, "RED(beklenen)" if mB_kirmizi else "GREEN(!)"))
+        print("  MUT-B  canli        0.65 parca  -> %-18s %s" % (canli5, "GREEN" if canli5 is None else "RED(!)"))
+        if not mB_kirmizi:
+            hata.append("MUT-B ETKISIZ: metre-sezgisi mutant 0.65 parcada da None verdi -> test kusuru yakalamiyor")
+        elif not (isinstance(mB, list) and mB[0] > 600):
+            hata.append("MUT-B beklenen ~650mm (fizik-disi), gelen %r" % (mB,))
+        if canli5 is not None:
+            hata.append("MUT-B canli: 0.65 parca None donmedi (%r)" % (canli5,))
+
+        # KIRMIZI-MUTASYON C (too-STRICT min-boyut): ince levha None = KIRMIZI, canli doner = dogru
+        mC = _mut_anydim(p_levha)
+        canli7 = pa.stl_bbox(p_levha)
+        mC_kirmizi = mC is None                # mutant ince levhayi yanlislikla eler
+        print("  MUT-C  min-esik ince levha      -> %-18s %s" % (mC, "RED(beklenen)" if mC_kirmizi else "GREEN(!)"))
+        print("  MUT-C  canli    ince levha      -> %-18s %s" % (canli7, "GREEN" if canli7 is not None else "RED(!)"))
+        if not mC_kirmizi:
+            hata.append("MUT-C ETKISIZ: min-esik mutant ince levhayi elemedi -> test kusuru yakalamiyor")
+        if canli7 is None:
+            hata.append("MUT-C canli: ince levha None dondu (elenmemeliydi)")
+
         print("-" * 64)
         if hata:
             for h in hata:
                 print("  X " + h)
             print("SONUC: KIRMIZI  (%d sorun)" % len(hata))
             return 1
-        print("SONUC: YESIL  — 4 vaka + kirmizi-mutasyon gecti.")
+        print("SONUC: YESIL  — 7 vaka + 3 kirmizi-mutasyon (A ASCII-once, B metre-lax, C min-strict) gecti.")
         return 0
     finally:
         for y in tmp:

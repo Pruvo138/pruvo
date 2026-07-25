@@ -200,7 +200,8 @@ def cc_turu(abbr):
 
 def stl_bbox(path):
     """STL dosyasinin sinir kutusu olcusu (mm, buyukten kucuge, tam sayi liste) ya da None.
-    HTML/bozuk dosyalari eler; metre gelirse mm'ye cevirir."""
+    HTML/bozuk dosyalari eler. Binary STL BIRIM BEYANI TASIMAZ -> en buyuk boyut belirsiz-birim
+    bolgesindeyse (< 2 birim) olcu KAYNAK-DOGRULANAMAZ; uydurma yerine None doner (fail-closed)."""
     with open(path, "rb") as f:
         data = f.read()
     head = data[:512].lstrip().lower()
@@ -233,8 +234,16 @@ def stl_bbox(path):
     if not xs:
         return None
     d = sorted([max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)], reverse=True)
-    if d[0] < 2.0:
-        d = [x * 1000 for x in d]
+    # BELIRSIZ-BIRIM (fail-closed): binary STL'de birim beyani YOK -> mm mi metre mi inc mi
+    # ayirt edilemez. EN BUYUK boyut < 2 birim ise olcu kaynak-dogrulanamaz. Eski kod bunu
+    # "buyuk ihtimalle metre" sanip x1000 ile 650mm gibi FIZIK-DISI bir bbox uretiyordu
+    # (0.65 inc bir parca ~16.5mm iken 650mm cikiyordu). Uydurma kucuk/buyuk olcu YAZMAK yerine
+    # None dondur (bu urunler "kalici olculemez" kovasina duser).
+    #   ⚠️ Esik EN BUYUK boyutta (max(d)), d[0] mantigina degil geometriye baglidir: ince bir
+    #   levha (100 x 100 x 0.5) max=100 -> tetiklenmez, dogru sekilde mm doner. SADECE en buyuk
+    #   boyutu < 2 olan parcalar belirsiz sayilir.
+    if max(d) < 2.0:
+        return None
     if d[0] <= 0 or d[0] > 100000:
         return None
     return d
