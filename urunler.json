@@ -1,5 +1,1611 @@
 [
   {
+    "id": "ford-f150-2018-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-150"
+    ],
+    "baslik": "Ford F-150 (2018) Telefon Tutucu",
+    "aciklama": "Ford F-150 (2018) için tasarlanmış akıllı telefon tutucusudur.\nCırt bant ile 5 noktadan sabitlenir.\nOrijinal telefon yuvasının yetersiz kaldığı durumlar için uygundur.\nYaklaşık dış ölçüler: 160 × 85 × 23 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3649031-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3649031-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3649031-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3649031-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jammbo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-maverick-arka-koltuk-saklama-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Maverick"
+    ],
+    "baslik": "Ford Maverick Arka Koltuk Altı Saklama Kutusu",
+    "aciklama": "Ford Maverick arka koltuk zeminine sıkıca oturan, kapaklı saklama kutusudur.\nSaklama bölmesi veya çöp kutusu olarak kullanılabilir.\nFarklı kapak seçenekleriyle ihtiyaca göre uyarlanabilir.\nYaklaşık dış ölçüler: 228 × 160 × 29 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5419975-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5419975-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5419975-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5419975-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5419975-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tfutral51",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-transit-mk7-surgulu-kapi-hizalama-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Transit"
+    ],
+    "baslik": "Ford Transit MK7 Sürgülü Kapı Ön Kenar Hizalama Parçası",
+    "aciklama": "Ford Transit MK7 sürgülü kapının ön kenarını gövdeyle hizalayan parçadır.\nKapının düzgün kapanmasına yardımcı olur.\nMevcut kapı kenarına doğrudan takılır.\nYaklaşık dış ölçüler: 90 × 25 × 22 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4333801-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4333801-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stav242",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-bronco-1986-anahtar-paneli-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Bronco"
+    ],
+    "baslik": "Ford Bronco (1986) Anahtar Paneli Çerçevesi",
+    "aciklama": "Ford Bronco XLT (1986) kapı panelindeki cam/kilit anahtarları için çerçevedir.\nEskiyip ufalanan orijinal çerçevenin yerine kullanılabilir.\nMevcut anahtar paneli boşluğuna doğrudan yerleşir.\nYaklaşık dış ölçüler: 67 × 51 × 19 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4517015-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4517015-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sention",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-ranger-far-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Ranger"
+    ],
+    "baslik": "Ford Ranger Far Klipsi",
+    "aciklama": "Ford Ranger (2000 model dönemi) far ünitesini gövdeye tutturan klipstir.\nKırılan orijinal klipsin yerine kullanılabilir.\nMevcut far yuvasına doğrudan takılır.\nYaklaşık dış ölçüler: 23 × 28 × 8 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6244613-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AndyR1971",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-f150-kasa-zemini-desenli-panel",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-150"
+    ],
+    "baslik": "Ford F-150 Kasa Zemini Desenli Kaplama Paneli",
+    "aciklama": "Ford F-150 kasa (yük bölmesi) zemini için desenli koruma panelidir.\nKaymayı azaltan yüzey deseni taşır.\nMevcut kasa zeminine doğrudan yerleştirilir.\nYaklaşık dış ölçüler: 145 × 122 × 2 mm.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th890771-1.jpg",
+      "https://media.pruvo3d.com/urunler/th890771-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zerogun1985",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-obs-debriyaj-pedali-burc-iptal-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-150"
+    ],
+    "baslik": "Ford OBS Debriyaj Pedalı Burç İptal Parçası",
+    "aciklama": "Ford OBS dönemi (1980-90'lar) manuel şanzımanlı araçlarda debriyaj pedalı bağlantı burcunun yerine kullanılabilir.\nAşınan orijinal burcun sebep olduğu boşluğu giderir.\nMevcut pedal miline doğrudan takılır.\nYaklaşık dış ölçüler: 15 × 13 × 13 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6906715-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6906715-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bondbros1",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-nacs-adaptoru-kilit-durdurucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mustang Mach-E"
+    ],
+    "baslik": "Ford NACS Şarj Adaptörü Kilit Durdurucu",
+    "aciklama": "Ford Mustang Mach-E gibi NACS şarj soketi kullanan modellerde, şarj sırasında adaptörün izinsiz çıkarılmasını zorlaştıran parçadır.\nŞarj başladıktan sonra takılır, kolu hareket ettirmeyi engeller.\nMevcut soket gövdesine doğrudan takılır.\nYaklaşık dış ölçüler: 30 × 29 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6695435-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6695435-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JustBob6",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-transit-connect-vites-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Transit Connect"
+    ],
+    "baslik": "Ford Transit Connect (2014-2019) Şanzıman Vites Burcu",
+    "aciklama": "Ford Transit Connect (2014-2019) otomatik şanzıman vites bağlantısı için burçtur.\nEsnek yapısı sayesinde kablo ucuna kolayca takılır.\nMevcut vites koluna doğrudan monte edilir.\nYaklaşık dış ölçüler: 14 × 14 × 11 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3916290-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3916290-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3916290-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3916290-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gilesclement",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-mk3-sol-koltuk-ayar-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus MK3 Sol Koltuk Ayar Kolu",
+    "aciklama": "Ford Focus MK3 sürücü koltuğu sol tarafındaki yükseklik/konum ayar koludur.\nKırılan orijinal kolun yerine kullanılabilir.\nMevcut koltuk mekanizmasına doğrudan takılır.\nYaklaşık dış ölçüler: 133 × 106 × 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6163895-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6163895-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6163895-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gnx78",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-mustang-klasik-takometre-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mustang"
+    ],
+    "baslik": "Ford Mustang (Klasik) Takometre Tutucusu",
+    "aciklama": "Ford Mustang (1965-1966 ve sonrası uyumlu) direksiyon koluna monte edilen harici takometre tutucusudur.\nEski hortum kelepçeli montajların yerine daha sağlam bir çözüm sunar.\nDireksiyon koluna civatayla sabitlenir.\nYaklaşık dış ölçüler: 76 × 73 × 20 mm.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4957876-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4957876-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4957876-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4957876-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pluzz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-maverick-fits-buyuk-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Maverick"
+    ],
+    "baslik": "Ford Maverick FITS Büyük Bardaklık",
+    "aciklama": "Ford Maverick FITS montaj sistemine uyan, büyük hacimli termos/şişelere uygun bardaklıktır.\nBirden fazla bardaklık art arda FITS yuvalarına takılabilir.\nMevcut FITS yuvasına doğrudan oturur.\nYaklaşık dış ölçüler: 144 × 141 × 110 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5999750-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5999750-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5999750-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5999750-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5999750-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Campbla7797",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-mk2-torpido-kutusu-onarim-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus MK2 Torpido Saklama Kutusu Onarım Parçası",
+    "aciklama": "Ford Focus MK2 torpido gözü saklama kutusundaki kırılan menteşe/mandal parçasının onarımı için kullanılır.\nMevcut kutu gövdesine doğrudan takılır.\nYaklaşık dış ölçüler: 21 × 19 × 11 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5025003-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5025003-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5025003-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5025003-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "T1mio",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-silecek-kolu-somun-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Silecek Kolu Somun Kapağı (15 mm)",
+    "aciklama": "Ford araçlarda silecek kolu somununu kapatan kapaktır.\n15 mm somun ölçüsüne uygundur.\nMevcut somuna sıkı geçme ile takılır.\nYaklaşık dış ölçüler: 20 × 20 × 12 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5725565-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5725565-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5725565-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "deatwisedog",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-mondeo-mk1-led-far-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mondeo"
+    ],
+    "baslik": "Ford Mondeo MK1 LED Far Adaptörü",
+    "aciklama": "Ford Mondeo MK1 farlarına LED ampul takmak için kullanılan uzatma adaptörüdür.\nStandart far yuvasını LED boyuna uzatır.\nSağ ve sol farlarda kullanılabilir.\nYaklaşık dış ölçüler: 134 × 74 × 59 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3855416-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3855416-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3855416-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3855416-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3855416-5.jpg",
+      "https://media.pruvo3d.com/urunler/th3855416-6.jpg",
+      "https://media.pruvo3d.com/urunler/th3855416-7.jpg",
+      "https://media.pruvo3d.com/urunler/th3855416-8.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dionisnation",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-fiesta-mk7-spoyler-yukseltici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fiesta"
+    ],
+    "baslik": "Ford Fiesta MK7 / MK7.5 Arka Spoyler Yükseltici",
+    "aciklama": "Ford Fiesta MK7 / MK7.5 arka spoylerini gövdeden yükseltmek için kullanılan destek parçasıdır.\nİki adet birlikte kullanılır.\nMevcut spoyler montaj noktalarına doğrudan takılır.\nYaklaşık dış ölçüler: 27 × 13 × 13 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3197872-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3197872-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3197872-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3197872-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brian44",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-transit-surgulu-kapi-kilit-uzatici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Transit"
+    ],
+    "baslik": "Ford Transit Sürgülü Kapı Kilit Mandalı Uzatıcı",
+    "aciklama": "Ford Transit karavan/kamper dönüşümlerinde sürgülü kapı kilidini panel üzerinden çalıştırmak için kullanılan uzatma parçasıdır.\nKilit mekanizmasının panelden erişilebilir kalmasını sağlar.\nMevcut kilit koluna doğrudan monte edilir.\nYaklaşık dış ölçüler: 75 × 17 × 12 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3707480-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3707480-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3707480-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3707480-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3707480-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LostMFG",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-silecek-lastigi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus Silecek Lastiği Klipsi",
+    "aciklama": "Ford Focus silecek lastiğini silecek koluna tutturan klipstir.\nKırılan orijinal klipsin yerine kullanılabilir.\nMevcut silecek koluna doğrudan takılır.\nYaklaşık dış ölçüler: 21 × 13 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4303726-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4303726-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4303726-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4303726-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "squonk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-arka-camlik-ip-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mondeo"
+    ],
+    "baslik": "Ford Mondeo Arka Camlık İp Klipsi",
+    "aciklama": "Ford Mondeo ve benzer modellerde arka camlığı (parsel rafı) tutan iplerin bağlandığı klipstir.\nKırılan orijinal klipsin yerine kullanılabilir.\nMevcut camlık deliğine doğrudan takılır.\nYaklaşık dış ölçüler: 97 × 25 × 9 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2551386-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2551386-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2551386-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2551386-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wildstyle4",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-f150-1997-kapi-saklama-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-150"
+    ],
+    "baslik": "Ford F-150 (1997) Kapı Saklama Kutusu",
+    "aciklama": "Ford F-150 (1997) kapı iç panelindeki boşluğa oturan saklama kutusudur.\nKüçük eşyaları düzenli tutmak için kullanılır.\nMevcut kapı panel boşluğuna doğrudan yerleşir.\nYaklaşık dış ölçüler: 299 × 203 × 94 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2409894-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2409894-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2409894-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2409894-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ColtonHenning",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-ka-gosterge-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Ka"
+    ],
+    "baslik": "Ford Ka Gösterge (Saat) Çerçevesi",
+    "aciklama": "Ford Ka gösterge panelindeki saat/gösterge ünitesi için montaj çerçevesidir.\nKırılan veya kaybolan orijinal çerçevenin yerine kullanılabilir.\nMevcut gösterge paneli boşluğuna doğrudan yerleşir.\nYaklaşık dış ölçüler: 92 × 88 × 18 mm.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4945237-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4945237-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "arnaudwok",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-direksiyon-kolonu-vites-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Ranger"
+    ],
+    "baslik": "Ford Direksiyon Kolonu Vites Burcu",
+    "aciklama": "Ford Ranger direksiyon kolonu vites mekanizmasındaki aşınmış burçların yerine kullanılabilir.\nSert vites geçişi ve anahtar sıkışması sorununu giderir.\nMevcut kolon miline doğrudan takılır.\nYaklaşık dış ölçüler: 28 × 27 × 22 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5694478-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5694478-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5694478-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Asylestru",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-f150-vites-kablosu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-150"
+    ],
+    "baslik": "Ford F-150 Vites Kablosu Burcu",
+    "aciklama": "Ford F-150 vites seçici kablosundaki kırılan burcun yerine kullanılabilir.\nOtomatik şanzımanlı, konsoldan geçişli vites sistemleriyle uyumludur.\nMevcut vites kablosu ucuna doğrudan takılır.\nYaklaşık dış ölçüler: 13 × 13 × 12 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3723275-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3723275-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3723275-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3723275-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3723275-5.jpg",
+      "https://media.pruvo3d.com/urunler/th3723275-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "puravida13",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-2006-vites-kolu-butonu-alternatif",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus (2006) Vites Kolu Butonu (Alternatif Tasarım)",
+    "aciklama": "Ford Focus (2006) vites koluna ait değiştirme butonudur.\nKırılan veya aşınan orijinal butonun yerine kullanılabilir.\nMevcut vites koluna klips mekanizmasıyla takılır.\nYaklaşık dış ölçüler: 32 × 32 × 21 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2071516-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2071516-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jchristman",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-falcon-au-bf-kapi-kolu-vida-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Falcon"
+    ],
+    "baslik": "Ford Falcon (AU-BF) Kapı Kolu Vida Kapağı",
+    "aciklama": "Ford Falcon AU-BF serisi kapı kolu montaj vidasını kapatan küçük kapaktır.\nKaybolan orijinal kapağın yerine kullanılabilir.\nMevcut kapı koluna doğrudan takılır.\nYaklaşık dış ölçüler: 21 × 21 × 5 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4676231-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4676231-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4676231-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4676231-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sonny_Jim",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-mustang-s197-vites-kolu-manseti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mustang"
+    ],
+    "baslik": "Ford Mustang S197 (2013-2014) Vites Kolu Manşeti",
+    "aciklama": "Ford Mustang S197 (2013-2014) vites koluna takılan, piyasada satılan yuvarlak vites topuzlarıyla uyumlu manşettir.\nFabrika körüğüne doğru oturacak şekilde tasarlanmıştır.\nMevcut vites koluna vidalı olarak takılır.\nYaklaşık dış ölçüler: 51 × 38 × 38 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4796471-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4796471-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "shabbee",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-escape-cekme-kancasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Escape"
+    ],
+    "baslik": "Ford Escape (2013-2016) Çekme Kancası Yuvası Kapağı",
+    "aciklama": "Ford Escape (2013-2016) ön tampondaki çekme kancası yuvasını kapatan parçadır.\nKullanılmayan yuvayı düzgün görünümle kapatır.\nMevcut tampon boşluğuna doğrudan yerleşir.\nYaklaşık dış ölçüler: 71 × 49 × 22 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4760601-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4760601-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4760601-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4760601-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dmeyer302",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-mustang-87-90-far-tutucu-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mustang"
+    ],
+    "baslik": "Ford Mustang (1987-1990) Far Tutucu Halkası (LED Uyumlu)",
+    "aciklama": "Ford Mustang (1987-1990) far tutucu halkasının LED far takılabilecek şekilde uyarlanmış halidir.\nDış yüzeyinde tutuş için tırtıklı doku bulunur.\nMevcut far yuvasına doğrudan takılır.\nYaklaşık dış ölçüler: 49 × 49 × 17 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5237518-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5237518-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5237518-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5237518-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tomiscampbell",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-mustang-79-84-yan-kaplama-seridi-gecis-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mustang"
+    ],
+    "baslik": "Ford Mustang (1979-1984) Yan Kaplama Şeridi Geçiş Parçası",
+    "aciklama": "Ford Mustang (1979-1984) gövde yan kaplama şeridi sökülmüş araçlar için geçiş parçasıdır.\nÖn veya arkadan yana temiz bir geçiş sağlar.\nMevcut gövde hattına doğrudan yerleşir.\nYaklaşık dış ölçüler: 96 × 80 × 16 mm.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4540051-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4540051-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4540051-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4540051-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4540051-5.jpg",
+      "https://media.pruvo3d.com/urunler/th4540051-6.jpg",
+      "https://media.pruvo3d.com/urunler/th4540051-7.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "warpstarpilot",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-1-sis-fari-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus 1 Sis Farı Kapağı",
+    "aciklama": "Ford Focus (1. nesil) sis farı boşluğu için basitleştirilmiş kapak parçasıdır.\nKullanılmayan sis farı yuvasını kapatmak için uygundur.\nMevcut tampon boşluğuna doğrudan yerleşir.\nYaklaşık dış ölçüler: 57 × 52 × 35 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3352813-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3352813-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3352813-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3352813-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wromka",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-fiesta-mk6-sirkulasyon-aktuator-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fiesta"
+    ],
+    "baslik": "Ford Fiesta MK6 Sirkülasyon Aktüatör Kolu",
+    "aciklama": "Ford Fiesta MK6 iklimlendirme sirkülasyon aktüatörü ile kanat kablolarını bağlayan koldur.\nManuel ve otomatik klima kontrollü modellerle uyumludur.\nMevcut aktüatör miline doğrudan takılır.\nYaklaşık dış ölçüler: 59 × 23 × 17 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4914257-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4914257-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4914257-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4914257-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lukeyson",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-smax-mk1-tavan-ragi-yuva-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "S-Max"
+    ],
+    "baslik": "Ford S-Max MK1 Tavan Rayı Yuva Kapağı",
+    "aciklama": "Ford S-Max MK1/WA6 tavan rayı vida yuvalarını kapatan parçadır.\nHasar görmüş orijinal kapağın yerine kullanılabilir.\nVida ucunu uzatarak kapağın içeri düşmesini önler.\nMevcut ray yuvasına doğrudan takılır.\nYaklaşık dış ölçüler: 23 × 18 × 16 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6147571-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6147571-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6147571-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6147571-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6147571-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dag1970",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-mondeo-mk3-kaput-kilidi-uzatmasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mondeo"
+    ],
+    "baslik": "Ford Mondeo MK3 Kaput Kilidi Uzatma Parçası",
+    "aciklama": "Ford Mondeo MK3 kaput kilit mekanizmasının aşınan uzatma parçasının yerine kullanılabilir.\nKaput açılmama sorununu giderir.\nMevcut kilit mekanizmasına doğrudan monte edilir.\nYaklaşık dış ölçüler: 96 × 14 × 14 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3366505-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3366505-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3366505-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3366505-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "schipcas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-koltuk-ayar-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-150"
+    ],
+    "baslik": "Ford Koltuk Ayar Topuzu (Excursion / Expedition / F-150)",
+    "aciklama": "Ford Excursion, Expedition ve F-150 modellerinde koltuk ayar koluna takılan topuzdur.\nKırılan veya kaybolan orijinal topuzun yerine kullanılabilir.\nMevcut ayar koluna sıkı geçme ile takılır.\nYaklaşık dış ölçüler: 63 × 63 × 32 mm.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3479982-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3479982-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3479982-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3479982-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Texmex1970",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-mk3-kablosuz-sarj-standi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus MK3 Kablosuz Şarj Standı",
+    "aciklama": "Ford Focus MK3 için tasarlanmış, masaüstünde de kullanılabilen kablosuz şarj standıdır.\nKompakt boy akıllı telefonlarla uyumludur.\nHem araç konsolunda hem masaüstünde ayrı ayrı kullanılabilir.\nYaklaşık dış ölçüler: 93 × 91 × 77 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5505239-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5505239-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5505239-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5505239-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5505239-5.jpg",
+      "https://media.pruvo3d.com/urunler/th5505239-6.jpg",
+      "https://media.pruvo3d.com/urunler/th5505239-7.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KULEndustri",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-fseries-bronco-87-91-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Bronco"
+    ],
+    "baslik": "Ford F-Series / Bronco (1987-1991) Bardaklık",
+    "aciklama": "Ford F-Series ve Bronco (1987-1991) modellerinde fabrika bardaklığı bulunmayan konsollar için eklenen bardaklıktır.\nMevcut konsol boşluğuna doğrudan oturur.\nYaklaşık dış ölçüler: 154 × 91 × 74 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6523239-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6523239-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6523239-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6523239-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6523239-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "VolvoPoppe",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-ka-courier-fiesta-cam-suyu-deposu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fiesta"
+    ],
+    "baslik": "Ford Ka / Courier / Fiesta Cam Suyu Deposu Kapağı",
+    "aciklama": "Ford Ka, Courier ve Fiesta modellerinde ön cam suyu deposu kapağıdır.\nKaybolan veya kırılan orijinal kapağın yerine kullanılabilir.\nMevcut depo ağzına doğrudan takılır.\nYaklaşık dış ölçüler: 70 × 40 × 8 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6047094-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6047094-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6047094-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Matu7322",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-ranger-1994-2004-konsol-kolcak-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Ranger"
+    ],
+    "baslik": "Ford Ranger (1994-2004) Konsol Kolçak Mandalı",
+    "aciklama": "Ford Ranger (1994-2004) orta konsol kolçak kapağının kilit mandalıdır.\nAraç üzerinde değişiklik gerektirmeden takılır.\nMevcut kolçak menteşesine doğrudan monte edilir.\nYaklaşık dış ölçüler: 46 × 42 × 18 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6782809-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6782809-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6782809-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6782809-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fast_Plastics",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-2-kaput-acma-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus II Kaput Açma Mandalı",
+    "aciklama": "Ford Focus II kaput kilit açma mekanizmasına ait parçadır.\nKırılan orijinal mandalın yerine kullanılabilir.\nMevcut kaput kilit mekanizmasına doğrudan takılır.\nYaklaşık dış ölçüler: 104 × 19 × 8 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3042941-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3042941-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3042941-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3042941-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Squall290586",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-teyp-destek-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Teyp (Oto Radyo) Destek Braketi",
+    "aciklama": "Ford araçlarda çift-DIN teyp ünitesini gövdeye sabitleyen destek braketidir.\n1996-2008 dönemi birçok modelle uyumludur.\nKırılan orijinal braketin yerine kullanılabilir.\nYaklaşık dış ölçüler: 48 × 46 × 13 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2326426-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2326426-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Xoliul",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-mk4-kare-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus MK4 Kare Bardaklık",
+    "aciklama": "Ford Focus MK4 (ve Kuga) orta konsol bardaklık boşluğuna uyan kare kesitli bardaklıktır.\nStandart yuvarlak bardaklıklara göre daha fazla iç hacim sunar.\nMevcut konsol boşluğuna doğrudan oturur.\nYaklaşık dış ölçüler: 120 × 77 × 77 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5280075-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5280075-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5280075-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "akiwayne",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-ranger-far-tutturma-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Ranger"
+    ],
+    "baslik": "Ford Ranger Far Tutturma Klipsi (Alternatif Tasarım)",
+    "aciklama": "Ford Ranger far ünitesini gövdeye tutturan alternatif tasarımlı klipstir.\nKırılan orijinal klipsin yerine kullanılabilir.\nMevcut far yuvasına doğrudan takılır.\nYaklaşık dış ölçüler: 28 × 22 × 8 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6397170-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6397170-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6397170-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "seanb223",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-kaput-destek-cubugu-klipsi-th1363283",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Kaput Destek Çubuğu Klipsi (Alternatif Tasarım)",
+    "aciklama": "Ford araçlarda kaput destek çubuğunu gövdeye tutturan klipstir.\nKırılan veya kaybolan orijinal klipsin yerine kullanılabilir.\nMevcut montaj deliğine doğrudan takılır.\nYaklaşık dış ölçüler: 60 × 23 × 13 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1363283-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1363283-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1363283-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1363283-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TothAndras",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-emniyet-kemeri-alarm-onleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Emniyet Kemeri Alarm Önleyici Tapa",
+    "aciklama": "Ford araçlarda orta koltuk emniyet kemeri sensörünün hatalı algılamasından kaynaklanan alarmı geçici olarak önlemek için kullanılan tapadır.\nSensör arızası giderilene kadar geçici çözüm sağlar.\nMevcut kemer tokasına doğrudan takılır.\nYaklaşık dış ölçüler: 48 × 40 × 4 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5862023-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5862023-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5862023-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "HenkK",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-maverick-fits-cop-torbasi-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Maverick"
+    ],
+    "baslik": "Ford Maverick FITS Çöp Torbası Tutucusu",
+    "aciklama": "Ford Maverick FITS montaj sistemine uyan çöp torbası tutucusudur.\nİki uçtaki kancalar market poşetini kolayca asar.\nMevcut FITS yuvasına doğrudan oturur.\nYaklaşık dış ölçüler: 254 × 60 × 57 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6509516-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6509516-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6509516-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6509516-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DavisH08",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-truck-1973-79-kolcak-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-150"
+    ],
+    "baslik": "Ford Truck (1973-1979) Kolçak Kolu",
+    "aciklama": "Ford F100, F150, F250, F350 ve Bronco (1973-1979) modellerinde kapı kolçak kolunun yerine kullanılabilir.\nOrijinal plastikten daha kalın ve dayanıklı üretilmiştir.\nMevcut kapı paneline doğrudan takılır.\nYaklaşık dış ölçüler: 114 × 35 × 30 mm.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7056860-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7056860-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GuiFerrari",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-mondeo-20-tdci-motor-kapagi-lastigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mondeo"
+    ],
+    "baslik": "Ford Mondeo 2.0 TDCi Motor Üst Kapağı Lastiği",
+    "aciklama": "Ford Mondeo 2.0 TDCi motorunun üst kapağını tutan lastik yuvadır.\n4 adet birlikte kullanılır.\nMevcut motor bloğu pimine doğrudan takılır.\nYaklaşık dış ölçüler: 32 × 32 × 23 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4892495-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4892495-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4892495-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4892495-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Madblokey",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-st-a-diregi-olcum-cihazi-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus ST"
+    ],
+    "baslik": "Ford Focus ST A Direği Performans Ölçüm Cihazı Tutucusu",
+    "aciklama": "Ford Focus ST A direğine monte edilen performans ölçüm cihazı tutucusudur.\nSol direksiyonlu araçlara uygun sağlamlaştırılmış montaj mekanizması taşır.\nMevcut A direği paneline doğrudan takılır.\nYaklaşık dış ölçüler: 85 × 84 × 60 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3802795-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3802795-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3802795-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "junits15",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-mk2-silecek-kolu-somun-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus MK2 Silecek Kolu Somun Kapağı",
+    "aciklama": "Ford Focus MK2 (Avrupa modeli) silecek kolu somununu kapatan kapaktır.\nMK2.5 ile de uyumlu olabilir.\nMevcut somuna sıkı geçme ile takılır.\nYaklaşık dış ölçüler: 22 × 22 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6249672-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6249672-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6249672-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6249672-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "madikrisztian",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-fiesta-ecoboost-st180-hava-debisi-sensoru-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fiesta"
+    ],
+    "baslik": "Ford Fiesta EcoBoost / ST180 Hava Debisi Sensörü Gövdesi",
+    "aciklama": "Ford Fiesta EcoBoost ve ST180 motorları için hava debisi sensörü gövde parçasıdır.\nAraca uygun doğru ölçünün seçilmesi gerekir.\nMevcut hava emiş kanalına doğrudan takılır.\nYaklaşık dış ölçüler: 105 × 96 × 73 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5562131-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5562131-2.jpg"
+    ]
+  },
+  {
+    "id": "ford-pickup-90lar-konsol-bardakligi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Pickup (90'lar) Orta Konsol Bardaklığı",
+    "aciklama": "Ford pickup modellerinin orta konsol seçeneğinde kullanılan bardaklık parçasıdır.\nKaybolan veya kırılan orijinal bardaklığın yerine kullanılabilir.\nMevcut konsol boşluğuna doğrudan oturur.\nYaklaşık dış ölçüler: 78 × 78 × 41 mm.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th12536-1.jpg",
+      "https://media.pruvo3d.com/urunler/th12536-2.jpg",
+      "https://media.pruvo3d.com/urunler/th12536-3.jpg",
+      "https://media.pruvo3d.com/urunler/th12536-4.jpg"
+    ]
+  },
+  {
+    "id": "ford-f350-2005-arka-kapi-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-350"
+    ],
+    "baslik": "Ford F-350 (2005) Arka Kapı Bardaklığı",
+    "aciklama": "Ford F-350 (2005) arka kapılarında bardaklık bulunmayan modeller için eklenen bardaklıktır.\nM5 cıvata ile kapı paneline monte edilir.\nStandart bardak ve kutu içeceklerle uyumludur.\nYaklaşık dış ölçüler: 180 × 122 × 85 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5699186-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5699186-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5699186-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dieusername1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-emniyet-kemeri-alarm-onleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus Emniyet Kemeri Alarm Önleyici Tapa",
+    "aciklama": "Ford Focus (2010 ve benzeri) için tasarlanmış emniyet kemeri alarm önleyici tapadır.\nSensör arızası veya boş koltuk durumunda geçici çözüm sağlar.\nMevcut kemer tokasına doğrudan takılır.\nYaklaşık dış ölçüler: 72 × 52 × 6 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5958567-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5958567-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5958567-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5958567-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jmynheir",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-4-dugmeli-kumanda-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford 4 Düğmeli Anahtar Kumanda Kutusu",
+    "aciklama": "Ford araçların 4 düğmeli uzaktan kumanda anahtarı için dış kutu parçasıdır.\nOrijinal parçaya yakın ölçülerde tasarlanmıştır.\nPil değişimi için kolay açılan bir kenar noktası içerir.\nYaklaşık dış ölçüler: 49 × 36 × 9 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4643648-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4643648-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4643648-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4643648-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SkidRoe",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-mondeo-mk3-2003-vites-kolu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mondeo"
+    ],
+    "baslik": "Ford Mondeo MK3 (2003) Vites Kolu Kapağı",
+    "aciklama": "Ford Mondeo MK3 (2003) vites koluna takılan kapak parçasıdır.\nKırılan veya kaybolan orijinal kapağın yerine kullanılabilir.\nMevcut vites koluna doğrudan takılır.\nYaklaşık dış ölçüler: 34 × 29 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3736146-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3736146-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3736146-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dav111",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-explorer-blend-door-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Explorer"
+    ],
+    "baslik": "Ford Explorer Blend Door (Karışım Kapağı) Kolu",
+    "aciklama": "Ford Explorer ısıtma/havalandırma sisteminde blend door aktüatörüne bağlanan koldur.\nHava dağıtımı çalışmayan araçlarda kırılan orijinal kolun yerine kullanılabilir.\nMevcut aktüatör miline doğrudan takılır.\nYaklaşık dış ölçüler: 62 × 37 × 17 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1903517-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1903517-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FET",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-ranger-1993-fan-kontrol-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Ranger"
+    ],
+    "baslik": "Ford Ranger (1993) Fan Kontrol Düğmesi",
+    "aciklama": "Ford Ranger (1993) kalorifer fanı hız kontrol düğmesinin yerine kullanılabilir.\nKırılan orijinal düğmenin yerine sıkı geçme ile takılır.\nMevcut fan miline doğrudan monte edilir.\nYaklaşık dış ölçüler: 42 × 22 × 21 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4835847-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4835847-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4835847-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4835847-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SpiderEdward",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-transit-custom-cam-onu-tepsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Transit Custom"
+    ],
+    "baslik": "Ford Transit Custom Cam Önü Depolama Tepsisi",
+    "aciklama": "Ford Transit Custom kapı camı önüne monte edilen depolama tepsisidir.\nMatkap ucu, bant, kalem gibi küçük eşyaları düzenli tutar.\nÇift taraflı bant veya vantuz ile sabitlenebilir.\nYaklaşık dış ölçüler: 230 × 80 × 80 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5621501-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5621501-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5621501-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5621501-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5621501-5.jpg",
+      "https://media.pruvo3d.com/urunler/th5621501-6.jpg",
+      "https://media.pruvo3d.com/urunler/th5621501-7.jpg",
+      "https://media.pruvo3d.com/urunler/th5621501-8.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pioonek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-isi-kalkani-somunu-24mm",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Isı Kalkanı Somunu (24 mm Altıgen)",
+    "aciklama": "Ford araçlarda egzoz ısı kalkanını gövdeye sabitleyen somun parçasıdır.\nMontaj deliği büyümüş araçlar için kalınlaştırılmış tasarıma sahiptir.\n24 mm altıgen anahtar ölçüsüne uygundur.\nYaklaşık dış ölçüler: 30 × 30 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2979184-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2979184-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2979184-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2979184-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2979184-5.jpg",
+      "https://media.pruvo3d.com/urunler/th2979184-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gigante",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-fusion-15-inc-jant-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fusion"
+    ],
+    "baslik": "Ford Fusion 15 İnç Jant Kapağı",
+    "aciklama": "Ford Fusion 15 inç çelik jant diskleri için kapaktır.\nKaybolan veya kırılan orijinal kapağın yerine kullanılabilir.\nMevcut jant diskine doğrudan oturur.\nYaklaşık dış ölçüler: 165 × 162 × 21 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1913136-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1913136-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_Kent_",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-mondeo-el-freni-kolu-ucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Mondeo"
+    ],
+    "baslik": "Ford Mondeo El Freni Kolu Ucu",
+    "aciklama": "Ford Mondeo el freni koluna takılan uç/başlık parçasıdır.\nKırılan veya kaybolan orijinal ucun yerine kullanılabilir.\nMevcut el freni koluna doğrudan takılır.\nYaklaşık dış ölçüler: 22 × 18 × 15 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1783657-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1783657-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Noboby223",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-ranger-kapi-panel-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Ranger"
+    ],
+    "baslik": "Ford Ranger Kapı Alt Panel Tutturma Klipsi",
+    "aciklama": "Ford Ranger tavan döşemesi ve alt panel montajında kullanılan tutturma klipsidir.\nOrijinal parça numarası N806363-S ile uyumludur.\nDaha kalın ve dayanıklı üretilmiştir.\nYaklaşık dış ölçüler: 24 × 24 × 12 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4625846-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4625846-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4625846-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4625846-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "leotarded",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-fiesta-mk3-arka-denge-cubugu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fiesta"
+    ],
+    "baslik": "Ford Fiesta MK3 Arka Denge Çubuğu Burcu",
+    "aciklama": "Ford Fiesta MK3 (XR2i / RS Turbo) arka denge çubuğu için burçtur.\nAşınan orijinal burcun yerine kullanılabilir.\nMevcut denge çubuğu montajına doğrudan takılır.\nYaklaşık dış ölçüler: 32 × 32 × 28 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3849560-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3849560-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3849560-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Palmout",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-nugget-sandalye-askisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Transit"
+    ],
+    "baslik": "Ford Nugget Sandalye Saklama Askısı",
+    "aciklama": "Ford Nugget kamper modelinde katlanır sandalyenin asılı saklanması için kancadır.\nYapıştırma veya delme gerektirmeden takılabilir.\nMevcut iç panele doğrudan monte edilir.\nYaklaşık dış ölçüler: 44 × 33 × 20 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6160024-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6160024-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6160024-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6160024-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ReadYto3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-transit-mk7-suruklu-kapi-ray-ucu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Transit"
+    ],
+    "baslik": "Ford Transit MK7 Sürgülü Kapı Ray Ucu Kapağı",
+    "aciklama": "Ford Transit MK7 sürgülü kapı rayının uç kapağıdır.\nKırılan orijinal kapağın yerine kullanılabilir.\nMevcut ray ucuna pim ile takılır.\nYaklaşık dış ölçüler: 48 × 46 × 23 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5203708-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5203708-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5203708-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5203708-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Aarronsharp",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-fusion-mondeo5-bagaj-agi-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fusion"
+    ],
+    "baslik": "Ford Fusion SE / Mondeo 5 Bagaj Ağı Tutucusu",
+    "aciklama": "Ford Fusion SE ve Mondeo 5 bagaj bölmesindeki ağ tutucu kancasının yerine kullanılabilir.\nKaybolan veya kırılan orijinal tutucunun yerine takılabilir.\nMevcut bagaj montaj noktasına doğrudan yerleşir.\nYaklaşık dış ölçüler: 28 × 28 × 19 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4636098-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4636098-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4636098-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4636098-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "m1lk1way",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-fusion-mondeo-telefon-tutucu-surtunmeli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fusion"
+    ],
+    "baslik": "Ford Fusion / Mondeo Telefon Tutucu (Sürtünmeli Montaj)",
+    "aciklama": "Ford Fusion / Mondeo klima kumanda düğmelerine sürtünme ile tutunan telefon tutucusudur.\nUSB kablosu ek destek sağlar.\nHaritalar ve video izleme için uygundur.\nYaklaşık dış ölçüler: 213 × 46 × 29 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3610128-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3610128-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3610128-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3610128-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "360alaska",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-fiesta-st-far-lastigi-uzatmasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fiesta ST"
+    ],
+    "baslik": "Ford Fiesta ST Far Lastiği Uzatma Parçası (LED Uyumlu)",
+    "aciklama": "Ford Fiesta ST'ye LED far takıldığında orijinal arka lastik kapağın oturmaması sorununu çözen uzatma parçasıdır.\nEsnek TPU malzemeden üretilir.\nOrijinal lastik kapağın tekrar kullanılmasını ve su yalıtımının korunmasını sağlar.\nYaklaşık dış ölçüler: 83 × 83 × 30 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5447267-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5447267-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5447267-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5447267-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bmsweb",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-f150-tavan-konsolu-anahtar-paneli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-150"
+    ],
+    "baslik": "Ford F-150 Tavan Konsolu Anahtar Paneli",
+    "aciklama": "Ford F-150 (2017 ve benzeri) tavan konsolunda ek anahtarlar için boş panel parçasıdır.\nAraç üzerinde değişiklik gerektirmeden fabrika parçasının yerine takılır.\nYaklaşık dış ölçüler: 174 × 38 × 3 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5893984-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5893984-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wesleywest",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-mk4-bardaklik-ayirici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus MK4 Bardaklık Ayırıcı",
+    "aciklama": "Ford Focus MK4 ortadaki bardaklık boşluğuna oturan, bölmeyi üçe ayıran ayırıcıdır.\nKüçük şişe veya kutuların düşmesini önler.\nMevcut bardaklık boşluğuna doğrudan yerleşir.\nYaklaşık dış ölçüler: 51 × 48 × 40 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5137780-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5137780-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5137780-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5137780-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5137780-5.jpg",
+      "https://media.pruvo3d.com/urunler/th5137780-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FruSci",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-superduty-2017-navigasyon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Super Duty"
+    ],
+    "baslik": "Ford Super Duty (2017) Navigasyon Cihazı Tutucusu",
+    "aciklama": "Ford Super Duty (2017) gösterge paneli V bölgesine monte edilen navigasyon cihazı tutucusudur.\nÇift taraflı bant ile sabitlenir.\nStandart top-başlı navigasyon tutucularıyla uyumludur.\nYaklaşık dış ölçüler: 45 × 37 × 35 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2695856-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2695856-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2695856-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2695856-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2695856-5.jpg",
+      "https://media.pruvo3d.com/urunler/th2695856-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TyCreek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-escort-mk7-mikrofon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Escort"
+    ],
+    "baslik": "Ford Escort MK7 Bluetooth Mikrofon Tutucusu",
+    "aciklama": "Ford Escort MK7 güneşlik arası boşluğa oturan mikrofon tutucusudur.\nHarici bluetooth mikrofon modüllerini sabitlemek için kullanılır.\nMevcut küçük kapak boşluğunun yerine takılır.\nYaklaşık dış ölçüler: 80 × 50 × 32 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3437375-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3437375-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3437375-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3437375-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "aderbalito",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-truck-1973-79-direksiyon-mili-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "F-150"
+    ],
+    "baslik": "Ford Truck (1973-1979) Direksiyon Mili Burcu",
+    "aciklama": "Ford kamyonet (1973-1979 dönemi) direksiyon mili için aşınan burcun yerine kullanılabilir.\nGres ile birlikte kullanılması önerilir.\nMevcut direksiyon miline doğrudan takılır.\nYaklaşık dış ölçüler: 60 × 60 × 18 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4714095-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4714095-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4714095-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tersplat",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ford-traktor-debriyaj-merkezleme-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Traktör Debriyaj Merkezleme Aleti",
+    "aciklama": "Ford traktör modellerinde yeni debriyaj takarken diski merkezlemek için kullanılan araçtır.\n1950'ler dönemi Ford traktör motorlarıyla geniş uyumluluk sağlar.\nDebriyaj diski deliğine doğrudan geçirilerek kullanılır.\nYaklaşık dış ölçüler: 113 × 35 × 35 mm.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6537475-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6537475-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6537475-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6537475-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6537475-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dakotavogel",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-mk1-jant-gobek-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus MK1 Jant Göbek Kapağı",
+    "aciklama": "Ford Focus MK1 jantları için göbek kapağıdır.\nKaybolan veya kırılan orijinal kapağın yerine kullanılabilir.\nMevcut jant göbeğine doğrudan oturur.\nYaklaşık dış ölçüler: 149 × 148 × 34 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7062066-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7062066-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7062066-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7062066-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "guitarisgod",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-mk4-kuga-mk3-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus MK4 / Kuga MK3 Telefon Tutucu",
+    "aciklama": "Ford Focus MK4 ve Kuga MK3 için tasarlanmış, güçlendirilmiş arka desteğe sahip telefon tutucusudur.\nUzun süreli kullanımda deformasyonu azaltan takviye yapısı içerir.\nKlima ızgarasına klemens sistemiyle takılır.\nYaklaşık dış ölçüler: 160 × 84 × 64 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6816442-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6816442-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6816442-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6816442-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Malanoch3",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-maverick-fits-el-dezenfektani-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Maverick"
+    ],
+    "baslik": "Ford Maverick FITS Yuvası El Dezenfektanı Tutucusu",
+    "aciklama": "Ford Maverick FITS montaj sistemine takılan, minimal tasarımlı el dezenfektanı tutucusudur.\nOrta boy dezenfektan şişeleriyle uyumludur.\nMevcut FITS yuvasına doğrudan oturur.\nYaklaşık dış ölçüler: 54 × 50 × 46 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5139253-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5139253-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5139253-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5139253-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jackharvest",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ford-focus-2-koltuk-alcaltma-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Focus"
+    ],
+    "baslik": "Ford Focus 2 (Coupe) Koltuk Alçaltma Kolu",
+    "aciklama": "Ford Focus 2 Coupe koltuk yükseklik ayar koludur.\nKırılan orijinal kolun yerine kullanılabilir.\nMevcut koltuk mekanizmasına doğrudan takılır.\nYaklaşık dış ölçüler: 68 × 60 × 23 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6760414-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6760414-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6760414-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6760414-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6760414-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "F1132",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "ford-f250-1999-2007-led-ampul-yuvasi",
     "kategori": "Otomobil",
     "marka": [
