@@ -52,6 +52,7 @@ function run(search, storage, hrefs, random, options) {
   var listeners = {};
   var document = {
     readyState: "complete",
+    referrer: options.referrer || "",
     querySelectorAll: function () { return anchors; },
     addEventListener: function (name, handler) { listeners[name] = handler; }
   };
@@ -277,4 +278,81 @@ scenario("lead beacon basarisizsa loglanmaz", function () {
   assert(!kayit.logged, "basarisiz beacon logged=true yazdi");
 });
 
-console.log("PASS " + passed + "/19");
+// ---- ORGANIK ATIF (YENI): arama motoru referrer -> src=OG ----
+
+scenario("organik arama REF + wa.me zenginlesir", function () {
+  var result = run("", new Storage(), [WA], null,
+    { referrer: "https://www.google.com/search?q=pruvo" });
+  var ref = result.window.pruvoRef();
+  assert(/^REF:OG-G0-[A-Z0-9]{4}$/.test(ref), "organik OG REF gecersiz: " + ref);
+  assert(message(result.anchors[0]).slice(-ref.length) === ref, "wa.me OG REF ile bitmedi");
+});
+
+scenario("organik arama alt-domain + tld varyanti", function () {
+  var a = run("", new Storage(), [], null, { referrer: "https://google.com.tr/" });
+  assert(/^REF:OG-/.test(a.window.pruvoRef() || ""), "google.com.tr OG uretmedi");
+  var b = run("", new Storage(), [], null, { referrer: "https://r.search.yahoo.com/x" });
+  assert(/^REF:OG-/.test(b.window.pruvoRef() || ""), "yahoo alt-domain OG uretmedi");
+  var c = run("", new Storage(), [], null, { referrer: "https://duckduckgo.com/" });
+  assert(/^REF:OG-/.test(c.window.pruvoRef() || ""), "duckduckgo OG uretmedi");
+});
+
+scenario("dogrudan (referrer yok) -> REF YOK", function () {
+  var href = "https://wa.me/905451386526?text=Merhaba";
+  var result = run("", new Storage(), [href], null, { referrer: "" });
+  assert(!result.window.pruvoRef(), "dogrudan ziyarette REF uretildi");
+  assert(result.anchors[0].getAttribute("href") === href, "dogrudan link degisti");
+});
+
+scenario("ic gezinme (pruvo3d.com) -> REF YOK", function () {
+  var result = run("", new Storage(), [WA], null, { referrer: "https://pruvo3d.com/urun/x/" });
+  assert(!result.window.pruvoRef(), "ic gezinmede REF uretildi");
+});
+
+scenario("baska site referrer -> REF YOK", function () {
+  var result = run("", new Storage(), [WA], null, { referrer: "https://forum.example.com/thread" });
+  assert(!result.window.pruvoRef(), "arama-disi site REF uretti");
+  // "notgoogle.com" etiket-tam eslesmeye takilmamali (alt-dize degil).
+  var sahte = run("", new Storage(), [WA], null, { referrer: "https://notgoogle.com/" });
+  assert(!sahte.window.pruvoRef(), "notgoogle.com yanlislikla OG uretti");
+});
+
+scenario("organik arama beacon (src=OG, click-id yok)", function () {
+  var result = run("", new Storage({ pruvo_onay_analitik: "kabul" }), [WA], null,
+    { referrer: "https://www.google.com/search?q=pruvo" });
+  click(result);
+  assert(result.beacons.length === 1, "organik beacon gitmedi: " + result.beacons.length);
+  assert(result.beacons[0].url === "/api/shop/ref", "beacon ucu yanlis");
+  var p = JSON.parse(result.beacons[0].body);
+  assert(p.ref === result.window.pruvoRef() && /^REF:OG-/.test(p.ref), "payload OG ref yanlis: " + p.ref);
+  assert(p.src === "OG", "payload src OG degil: " + p.src);
+  assert(!("gclid" in p) && !("gbraid" in p) && !("wbraid" in p), "organik payload click-id tasidi");
+});
+
+scenario("organik beacon rizadan bagimsiz (PII yok)", function () {
+  // OG kaydi click-id/PII tasimaz -> analitik rizasi olmasa da beacon gider (organik olcum).
+  var result = run("", new Storage(), [WA], null, { referrer: "https://bing.com/search?q=x" });
+  click(result);
+  assert(result.beacons.length === 1, "rizasiz organik beacon gitmedi: " + result.beacons.length);
+  var p = JSON.parse(result.beacons[0].body);
+  assert(p.src === "OG" && !("gclid" in p), "rizasiz organik payload yanlis");
+});
+
+scenario("organik OG REF sayfalar arasi surer", function () {
+  var storage = new Storage();
+  var first = run("", storage, [WA], null, { referrer: "https://www.google.com/" });
+  var ilk = first.window.pruvoRef();
+  assert(/^REF:OG-/.test(ilk || ""), "ilk sayfada OG uretilmedi");
+  // Sonraki sayfa ic gezinme (pruvo referrer): yeni OG uretmez, ayni REF surer.
+  var second = run("", storage, [WA], null, { referrer: "https://pruvo3d.com/" });
+  assert(second.window.pruvoRef() === ilk, "OG REF sayfalar arasi degisti/silindi");
+});
+
+scenario("paid arama referrer'inda bile OG'ye donmez", function () {
+  // gclid + google referrer: paid yol kazanir, src=GS (OG DEGIL) -> paid davranis birebir.
+  var result = run("?gclid=X&pg=BYP", new Storage(), [], null,
+    { referrer: "https://www.google.com/" });
+  assert(/^REF:GS-BYP-[A-Z0-9]{4}$/.test(result.window.pruvoRef()), "paid REF OG'ye kaydi");
+});
+
+console.log("PASS " + passed + "/28");
