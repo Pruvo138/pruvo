@@ -28,8 +28,12 @@ cikti.
 NE OLCER (KAPSAM DAR — bilerek):
   (A) ISTEK: musteriden URETIM icin olcu / cizim / teknik detay isteyen EMIR
   (B) URETIM SOZU: "ozel uretiriz" sinifi 1. cogul uretim taahhudu
-  (C) YAKLASIK-FIYAT SOZU: "yaklasik/tahminen/civari/ortalama/bandinda ... TL"
-      tipi TAHMIN taahhudu + acik "fiyat sozu ver" kaliplari
+  (C) FIYAT TAAHHUDU — IKI KANATLI (bkz. TAAHHUT_GUCLU_RE / TAAHHUT_ZAYIF_RE):
+      · para + GUCLU kip ("800 TL tutar", "diyebiliriz", "veririz")      -> yanar
+      · para + YAKLASIK + ZAYIF kip ("yaklasik 700 TL ... yazar/olur")   -> yanar
+      · para + ZAYIF kip, tahmin jetonu YOK ("fiyat sayfada yazar")      -> YANMAZ
+        (BETIMLEMEDIR; belgenin l.7/l.9/l.45'i tam bu sinifta)
+      + acik "fiyat sozu ver" kaliplari
   🔴 (C) DUZ KESIN FIYAT BEYANINI KAPSAMAZ ("Bu parca 1.200 TL."). Kapsayamaz:
   belgenin MESRU icerigi fiyat/TL dolu (l.9 kargo esigi + ornek hesap), duz rakam
   yakalayan bir kural TUM SITE deploy'unu sahte-kirmizi ile durdururdu. Bu bir
@@ -118,14 +122,33 @@ PARA_RE = re.compile(r"\bfiyat|\bTL\b|\btutar|\bücret|\bmaliyet", re.IGNORECASE
 # ("bu fiyat sizin parcaniz icin gecerlidir" baglayicidir) ve artik TAAHHUT tarafinda.
 # NOT: YAKLASIK sarti KALKTI — "1.250,50 TL olur" cumlesinde tahmin jetonu yok ama
 # taahhut var; eski tasarim bunu goremezdi.
-TAAHHUT_RE = re.compile(
+# 🔴 TAAHHUT IKI KANATLIDIR (TUR 5 duzeltmesi). TUR 4'te tek listeydi ve
+# `olur/olacak/gecerlidir/yazar/cikar` oraya konmustu — ROL TERSINE DONMUSTU: bunlar
+# TUR 3'te BETIMLEME bastiricisiydi. PARA_RE ONEK esleseni oldugu icin
+# (ucretsiz/ucreti/fiyati/tutari/maliyeti hepsi para sayilir) sonuc: para + "olur"
+# iceren HER cumlecik kirmizi. OLCULDU: 17 mesru betimleyici cumlenin 15'i KIRMIZI,
+# belgenin KENDI l.9/l.7/l.45 varyantlari DAHIL. `deploy: needs: build` -> bu
+# satirlardan biri yazilirsa TUM pruvo3d.com yayini durardi.
+#
+# GUCLU  = tek basina taahhut kurar; PARA jetonuyla yanar.
+# ZAYIF  = tek basina BETIMLEME de olabilir ("fiyat sayfada yazar"); yalnizca
+#          YAKLASIK/tahmin jetonuyla BIRLIKTE taahhut sayilir
+#          ("yaklasik 700 TL civari bir maliyet yazar").
+# Boylece hem betimleme yesil kalir hem TUR 3'un yakaladigi tahmin ekseni geri gelir.
+TAAHHUT_GUCLU_RE = re.compile(
     r"(?:TL|lira)\s*['’]?\s*tutar"          # "800 TL tutar" (fiil); "yaklasik tutar" (isim) DEGIL
     r"|\btutuyor\b"
-    r"|\bolur\b|\bolacak\b|\bolacaktır\b"
     r"|\bderiz\b|\bdiyebiliriz\b|\bsöyleriz\b|\bsöyleyebiliriz\b"
     r"|\bveririz\b|\bveririm\b|\bvereceğiz\b|\bvereceğim\b"
-    r"|\bhesaplarız\b|\bhesaplarım\b"       # "hesaplar" (3. tekil betimleme) BILEREK YOK: l.7
-    r"|\bgeçerlidir\b|\byazar\b|\bçıkar\b|\byaparız\b",
+    r"|\bhesaplarız\b|\bhesaplarım\b|\byaparız\b",
+    re.IGNORECASE)
+
+# ⚠️ Bu listeye BETIMLEYICI edilgenler (gorunur/eklenir/gosterilir/listelenir) ASLA
+# girmez: M12/M13 tam da YAKLASIK + PARA tasir, oraya konursa sahte-kirmizi yanar.
+TAAHHUT_ZAYIF_RE = re.compile(
+    r"\bolur\b|\bolacak\b|\bolacaktır\b|\bgeçerlidir\b|\byazar\b|\bçıkar\b"
+    r"|\bhesaplar\b|\bbulur\b|\bkalır\b|\bseyreder\b"
+    r"|\bseviyesinde\w*|\bbandında\w*|\bcivarında\w*",
     re.IGNORECASE)
 
 # --- (A) "sorun" HOMOGRAFI: emir "sor-un" vs isim "sorun" (=problem) --------
@@ -230,11 +253,18 @@ def bulgular(metin):
                 out.append((no, "B/URETIM-SOZU", c,
                             "musterinin parcasi icin uretim taahhudu "
                             "(uretecegimize Okan karar verir — :41/:2467)"))
-            # POZITIF SART: para jetonu VE taahhut isareti (negatif veto YOK).
-            if FIYAT_SOZ_RE.search(c) or (PARA_RE.search(c) and TAAHHUT_RE.search(c)):
+            # POZITIF SART (negatif veto YOK), IKI KANATLI:
+            #   para + GUCLU taahhut            -> yanar
+            #   para + YAKLASIK + ZAYIF taahhut -> yanar
+            # ZAYIF tek basina yanmaz: "fiyat sayfada yazar" BETIMLEMEDIR.
+            para = PARA_RE.search(c)
+            guclu = para and TAAHHUT_GUCLU_RE.search(c)
+            zayif = (para and YAKLASIK_RE.search(c) and TAAHHUT_ZAYIF_RE.search(c))
+            if FIYAT_SOZ_RE.search(c) or guclu or zayif:
                 out.append((no, "C/FIYAT-SOZU", c,
-                            "fiyat TAAHHUDU (para jetonu + taahhut kipi) "
-                            "(:57 'yaklasik su kadar tutar' DEME)"))
+                            "fiyat TAAHHUDU (para + %s taahhut kipi) "
+                            "(:57 'yaklasik su kadar tutar' DEME)"
+                            % ("GUCLU" if guclu else "YAKLASIK+ZAYIF")))
         i += 1
     return out
 
@@ -245,8 +275,10 @@ def olcumu_bas(yol, metin, sessiz=False):
         print("EGE KABILIYET-SINIRI KAPISI")
         print("  Dosya : %s" % yol)
         print("  Olcum : %d satir, %d karakter" % (len(metin.split("\n")), len(metin)))
-        print("  Kapsam: (A) olcu/cizim ISTEGI · (B) uretim sozu · (C) YAKLASIK fiyat sozu")
-        print("          (C) duz kesin fiyat beyanini OLCMEZ — ilan edilmis kor nokta)")
+        print("  Kapsam: (A) olcu/cizim ISTEGI · (B) uretim sozu · (C) fiyat TAAHHUDU")
+        print("          (C) = para + GUCLU kip, ya da para + YAKLASIK + ZAYIF kip.")
+        print("          (C) OLCMEZ: duz kesin fiyat beyani · tahmin jetonu tasimayan")
+        print("          betimleme ('fiyat sayfada yazar') — ilan edilmis kor noktalar.")
         print("-" * 70)
         if not b:
             print("  Bulgu YOK.")
@@ -297,6 +329,13 @@ NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
     bastirici zararli emri de susturur. Dar tutuldu (yalniz bu homograf), ama
     BYPASS EDILEBILIR — bilerek kabul edildi, alternatifi tum siteyi durduran
     sahte-kirmiziydi.
+  · 🔴 (C) ZAYIF KANAT TAHMIN JETONUNA BAGLIDIR. "Fiyat sayfada yazar" · "Kargo
+    bedeli 250 TL olur" · "Sitede yazan fiyat gecerlidir" YESIL gecer — bunlar
+    BETIMLEMEDIR ve belgenin kendi l.7/l.9/l.45'i tam bu sinifta. Bedeli: tahmin
+    jetonu TASIMAYAN bir fiyat taahhudu ("Bu is 2.000 TL olur" gibi) YAKALANMAZ.
+    Bilincli takas — alternatifi olculdu: ZAYIF kipleri kosulsuz yakan surum
+    17 mesru cumlenin 15'ini KIRMIZI yakiyordu ve TUM SITE yayinini durdururdu.
+    Fiksturler Z1-Z6 bu sinirin YESIL tarafini, Z7-Z12 KIRMIZI tarafini nobetler.
   · 🔴 (C) BETIMLEYICI EDILGEN CUMLEYI AYIRT EDEMEZ. Olculdu (TUR 4):
     "Kargo ucreti yaklasik 250 TL olarak sepete eklenir." (MESRU, yesil kalmali) ile
     "Fiyat yaklasik 800 TL olarak eklenir." (tahmini fiyat beyani) DILBILGISEL
@@ -421,7 +460,38 @@ FIKSTURLER = [
      "isim baglami — emir sanilmamali"),
     ("M27 belgenin l.7 konfigurator cumlesi",
      "- konfigüratör girilen ölçüye göre fiyatı hesaplar, onlar da sepetten kartla ödenir.",
-     False, "'hesaplar' 3. tekil BETIMLEME — TAAHHUT listesinde bilerek YOK"),
+     False, "'hesaplar' ZAYIF — YAKLASIK jetonu olmadan yanmaz"),
+    # ═══ TUR 5: ZAYIF KANADIN TAM USTUNE OTURAN FIKSTURLER ═══
+    # 🔴 NEDEN: TUR 4'te bu dort fiil (olur/yazar/cikar/gecerlidir) BETIMLEME'den
+    # TAAHHUT'e tasindi, AMA hicbir yanlis-pozitif fiksturunde PARA jetonuyla birlikte
+    # gecmiyordu (M12 yalniz "gorunur", M13 yalniz "eklenir" nobetliyordu) -> 36/36
+    # YESIL yandi ve bu sinif hakkinda HICBIR SEY ispatlamadi. 17 mesru cumlenin 15'i
+    # kirmiziydi ve kimse gormedi. Ders: bir davranisi degistirdiginde fikstur o
+    # davranisin TAM USTUNE oturmali; yanindan gecen test seni YANILTIR.
+    ("Z1 PARA + 'olur' (betimleme)", "- Kargo bedeli 250 TL olur.", False,
+     "ZAYIF tek basina yanmamali"),
+    ("Z2 PARA + 'yazar' (betimleme)", "- Fiyat ürün sayfasında yazar.", False,
+     "ZAYIF tek basina yanmamali"),
+    ("Z3 PARA + 'cikar' (betimleme)", "- Fiyat konfigüratörden çıkar.", False,
+     "ZAYIF tek basina yanmamali"),
+    ("Z4 PARA + 'gecerlidir' (betimleme)", "- Sitede yazan fiyat geçerlidir.", False,
+     "ZAYIF tek basina yanmamali"),
+    ("Z5 belgenin l.9 minimal varyanti",
+     "- altında gönderi başına 250 TL kargo olur.", False,
+     "canli belgenin kendi kargo satirinin anlamca ayni hali — KIRMIZI olursa yayin durur"),
+    ("Z6 belgenin l.45 minimal varyanti",
+     "- Liste fiyatı olanı söyle; özel/parametrikte fiyatı çıkar ve ilet + [DEVRET].",
+     False, "l.45 varyanti — 'cikar' betimleme"),
+    # ZAYIF kanadi YAKLASIK ile BIRLIKTE yanmali (ayni fiiller, taahhut baglaminda):
+    ("Z7 YAKLASIK + 'olur'", "- Yaklaşık 1.250,50 TL olur.", True, "ZAYIF + tahmin = taahhut"),
+    ("Z8 YAKLASIK + 'yazar'", "- Yaklaşık 700 TL civarı bir maliyet yazar.", True,
+     "ZAYIF + tahmin = taahhut"),
+    ("Z9 YAKLASIK + 'gecerlidir'", "- Tahminen 2.000 TL geçerlidir.", True,
+     "ZAYIF + tahmin = taahhut"),
+    ("Z10 tahmin ekseni: seviyesindedir", "- Aşağı yukarı 1.700 TL seviyesindedir.",
+     True, "TUR 4'te bu eksen TAMAMEN olmustu (5/5 yesil)"),
+    ("Z11 tahmin ekseni: seyreder", "- 3.300 TL civarında seyreder.", True, "ayni eksen"),
+    ("Z12 tahmin ekseni: bulur", "- Yaklaşık 1.400 TL'yi bulur.", True, "ayni eksen"),
 ]
 
 
@@ -487,9 +557,11 @@ def main():
     # 🔴 "fiyat sozu YOK" DEME — kapi duz kesin fiyat beyanini OLCMUYOR.
     # Bir kapi olcmedigi seyi olcmus gibi raporlayamaz (mimar hukmu 26 Tem).
     print("SONUC: YESIL ✅ — aranan uc kalip BULUNAMADI:")
-    print("  (A) olcu/cizim istegi · (B) uretim sozu · (C) YAKLASIK/tahmini fiyat taahhudu")
-    print("  ⚠️  BU 'fiyat sozu yok' DEMEK DEGILDIR: duz kesin fiyat beyani")
-    print("      ('Bu parca 1.200 TL') bu kapiyla OLCULMEZ — ustteki listeye bak.")
+    print("  (A) olcu/cizim istegi · (B) uretim sozu · (C) fiyat TAAHHUDU")
+    print("  ⚠️  BU 'fiyat sozu yok' DEMEK DEGILDIR. (C) sunlari OLCMEZ:")
+    print("      · duz kesin fiyat beyani            ('Bu parca 1.200 TL')")
+    print("      · tahmin jetonu tasimayan betimleme ('Fiyat sayfada yazar')")
+    print("      Ikisi de BILEREK disarida — ustteki NE OLCULMEDI listesine bak.")
     return 0
 
 

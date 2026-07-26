@@ -156,10 +156,12 @@ jobs:
       # bakmaz. 26 Tem'de tam bu sinif tum testler YESILken bir dala girdi ("foto/olcu/cizim
       # iste"); kapi o dersin ciktisi. Kapsam BILEREK dar (3 sinif) — genisletmek l.11/l.18/l.38
       # gibi mesru satirlari sahte-kirmizi yakar.
-      # ⚠️ (C) sinifi YAKLASIK/tahmini fiyat taahhudunu olcer; DUZ KESIN FIYAT BEYANINI
-      # ("Bu parca 1.200 TL") OLCMEZ ve yesil ciktisinda bunu ACIKCA ilan eder — belgenin
-      # mesru icerigi fiyat/TL dolu oldugu icin duz rakam yakalamak tum siteyi durdururdu.
-      # Offline, stdlib, ~5 ms.
+      # ⚠️ (C) sinifi IKI KANATLIDIR: para + GUCLU kip ("800 TL tutar", "diyebiliriz")
+      # tek basina yanar; olur/yazar/cikar/gecerlidir gibi ZAYIF kipler ancak YAKLASIK
+      # jetonuyla BIRLIKTE yanar — cunku tek baslarina BETIMLEMEdirler ("fiyat sayfada
+      # yazar") ve belgenin KENDI l.7/l.9/l.45'i tam o sinifta. (C) ayrica DUZ KESIN
+      # FIYAT BEYANINI ("Bu parca 1.200 TL") OLCMEZ. Kapi yesil ciktisinda bu iki kor
+      # noktayi ACIKCA ilan eder. Offline, stdlib, ~5 ms.
       - name: Ege kabiliyet-siniri kapisi (olcu/cizim istegi · uretim/fiyat sozu)
         run: python3 tools/ege-kabiliyet-kapisi.py
 
@@ -172,7 +174,12 @@ jobs:
       # icin bunu goremiyordu (ders: fiksturler gercek dagilimi ornekleMEZse yesil bir sey
       # ispatlamaz). (A) sinifi CUMLE penceresinde jeton arar (virgullu devrik tumce),
       # olumsuzlamayi CUMLECIK penceresinde kontrol eder.
-      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 36 fiksturle olcer. Hem YAKALAMA
+      # TUR 5 DERSI (fikstur yerlesimi): TUR 4'te dort fiil BETIMLEME'den TAAHHUT'e
+      # tasindi ama hicbir yanlis-pozitif fiksturunde PARA jetonuyla birlikte gecmiyordu
+      # -> 36/36 YESIL yandi ve 17 mesru cumlenin 15'i KIRMIZIyken kimse gormedi.
+      # Fikstur, degisen davranisin TAM USTUNE oturmali; yanindan gecen test YANILTIR.
+      # Z1-Z6 (yesil) + Z7-Z12 (kirmizi) bu sinirin iki tarafini da nobetler.
+      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 48 fiksturle olcer. Hem YAKALAMA
       # (eski dal metni · "ozel uretiriz" · mm/kumpas/cap olcu talebi · yaklasik/tahminen/
       # civari/ortalama/bandinda fiyat · ortuk "yapabiliriz") hem YANLIS-POZITIF yonu olculur.
       # 🔴 YANLIS-POZITIF NEDEN OLUMCUL: bu kapi `build` isinde kosuyor ve `deploy: needs: build`
