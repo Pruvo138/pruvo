@@ -361,6 +361,12 @@ def edge_satirlari(e):
 # ve salt-okunur yapilir.
 
 YEDEK_DAMGA_ADI = ".son-yedek.json"
+# ATLAMA KAYDI ayri dosyada: damgayi yalniz kilidi tutan kosum yazar, atlamayi ise
+# kilidi ALAMAYAN kosum -> ayni dosyada oku-degistir-yaz birbirini eziyordu (olculdu:
+# 20 paralel ciftin 2'sinde yanlis ⚠⚠). Pano ikisini BIRLESTIREREK okur; eski
+# surumlerde alanlar damganin ICINDE olabilir, o yuzden birlestirmede AYRI DOSYA
+# onceliklidir (daha yeni kayit odur).
+YEDEK_ATLAMA_ADI = ".son-yedek-atlama.json"
 YEDEK_BAYAT_SANIYE = 2 * 86400   # ~2 gun. TEK YER — esigi baska yere serpistirme.
 YEDEK_ZAMAN_ASIMI = 5.0          # saniye. Olculen normal sure: 0,0005 s.
 
@@ -496,6 +502,16 @@ def yedek_durumu(backup_dizini, hal="var", simdi=None, esik=None):
             damga = json.load(f)
     except (OSError, ValueError, UnicodeDecodeError):
         damga = None
+    # ATLAMA KAYDI ayri dosyadan gelir ve damgadaki (eski surum) kopyasini EZER.
+    try:
+        with open(os.path.join(backup_dizini, YEDEK_ATLAMA_ADI), "r", errors="replace") as f:
+            atlama_kaydi = json.load(f)
+        if isinstance(atlama_kaydi, dict) and isinstance(damga, dict):
+            damga = dict(damga)
+            damga.update({k: v for k, v in atlama_kaydi.items()
+                          if k.startswith("son_atlama")})
+    except (OSError, ValueError, UnicodeDecodeError):
+        pass
     if not isinstance(damga, dict) or not isinstance(damga.get("zaman"), (int, float)):
         sonuc["hal"] = "damgasiz"
         return sonuc
@@ -628,29 +644,89 @@ def yedek_satirlari(d):
     return satirlar
 
 
-def _surec_canli(pid):
-    """pid yasiyor mu? True/False, bilinemiyorsa None. SALT-OKUNUR: sinyal 0 hicbir
-    sey GONDERMEZ, yalnizca 'boyle bir surec var mi' diye sorar."""
+def _etime_saniye(metin):
+    """ps ETIME bicimini saniyeye cevirir: [[DD-]HH:]MM:SS. Cozulemezse None."""
+    metin = (metin or "").strip()
+    gun = 0
+    if "-" in metin:
+        g, _sep, metin = metin.partition("-")
+        try:
+            gun = int(g)
+        except ValueError:
+            return None
+    parcalar = metin.split(":")
+    try:
+        sayilar = [int(p) for p in parcalar]
+    except ValueError:
+        return None
+    if len(sayilar) == 2:
+        sa, dk, sn = 0, sayilar[0], sayilar[1]
+    elif len(sayilar) == 3:
+        sa, dk, sn = sayilar
+    else:
+        return None
+    return gun * 86400 + sa * 3600 + dk * 60 + sn
+
+
+def _surec_bilgisi(pid):
+    """(gecen_saniye, komut) — `ps` ile. Okunamazsa (None, None). SALT-OKUNUR."""
+    try:
+        p = subprocess.run(["ps", "-p", str(pid), "-o", "etime=,comm="],
+                           capture_output=True, text=True, timeout=2)
+    except (OSError, subprocess.SubprocessError):
+        return None, None
+    satir = (p.stdout or "").strip()
+    if p.returncode != 0 or not satir:
+        return None, None
+    parcalar = satir.split(None, 1)
+    gecen = _etime_saniye(parcalar[0])
+    komut = parcalar[1].strip() if len(parcalar) > 1 else ""
+    return gecen, komut
+
+
+def _surec_canli(pid, baslangic=None, tolerans=2.0):
+    """Bu pid, kilidi yazan kosumun SURECI OLABILIR mi?
+      True  -> yasiyor ve kimligi tutarli
+      False -> surec yok, YA DA pid yeniden kullanilmis (baska program / kilitten
+               SONRA baslamis bir surec)
+      None  -> olculemedi (ps yok/yanit vermedi)
+    SALT-OKUNUR: sinyal 0 hicbir sey GONDERMEZ, `ps` yalnizca okur.
+
+    🔴 NEDEN KIMLIK DOGRULAMASI (curutucu C): yalnizca "pid var mi" sormak iki yonlu
+    yaniltir — yeniden kullanilan pid'de pano YANLIS SUSAR ('yarim' yerine 'tutuluyor'),
+    ve 1 saati asinca ALAKASIZ CANLI bir sureci (pid=1/launchd dahil) "sonlandir" diye
+    gosterir. Iki olcut: (1) komut adi python olmali (yedegi python kosar),
+    (2) surec, kilit imzasindan ONCE var olmali — imzadan SONRA baslamis bir surec
+    tanim geregi baska bir surectir. `tolerans` yalnizca ETIME'in 1 sn cozunurlugu icin.
+    ⚠️ Burada DAIMA gercek saat kullanilir; kilit_durumu'nun `simdi` parametresi
+    (test icin ileri alinabilir) YASI olcer, surec kimligini DEGIL."""
     if not isinstance(pid, int) or pid <= 0:
         return None
     try:
         os.kill(pid, 0)
-        return True
     except ProcessLookupError:
         return False
     except PermissionError:
-        return True                       # baska kullanicinin sureci: VAR
+        pass                              # baska kullanicinin sureci: VAR, kimlige bak
     except OSError:
         return None
+    gecen, komut = _surec_bilgisi(pid)
+    if gecen is None:
+        return None                       # ps olcemedi -> bilinmiyor de, uydurma
+    if komut and "python" not in os.path.basename(komut).lower():
+        return False                      # baska bir program bu pid'i almis
+    if isinstance(baslangic, (int, float)) and (time.time() - gecen) > baslangic + tolerans:
+        return False                      # surec kilitten SONRA basladi -> yeniden kullanim
+    return True
 
 
 def kilit_durumu(repo_kok, simdi=None, esik=None):
     """`.yedek.lock`'i SALT-OKUNUR yorumlar. Kilidi ALMAYA CALISMAZ.
 
-    hal: 'yok'       -> dosya yok/bos: kimse tutmuyor (yedekle.py birakirken temizler)
+    hal: 'yok'       -> dosya yok/bos YA DA `bitti=` isaretli: kimse tutmuyor
          'tutuluyor' -> canli sahip, yas esigin altinda (NORMAL: pano susar)
          'asili'     -> canli sahip ama yas esigi asti -> yeni yedekler ATLANIYOR
-         'yarim'     -> icerik var ama sahip pid'i YOK: kosum ortasinda olmus
+         'yarim'     -> `bitti=` YOK ve sahip surec YOK/BASKASI: kosum ortasinda kesilmis
          'okunamadi' -> imza cozulemedi (bozuk satir)
     """
     esik = YEDEK_KILIT_ASILI if esik is None else esik
@@ -664,7 +740,7 @@ def kilit_durumu(repo_kok, simdi=None, esik=None):
         return sonuc
     if not ham:
         return sonuc
-    pid = baslangic = None
+    pid = baslangic = bitti = None
     for parca in ham.split():
         if parca.startswith("pid="):
             try:
@@ -676,11 +752,23 @@ def kilit_durumu(repo_kok, simdi=None, esik=None):
                 baslangic = float(parca.split("=", 1)[1])
             except ValueError:
                 baslangic = None
+        elif parca.startswith("bitti="):
+            try:
+                bitti = float(parca.split("=", 1)[1])
+            except ValueError:
+                bitti = None
     sonuc["pid"] = pid
-    sonuc["canli"] = _surec_canli(pid)
+    # `bitti=` isareti: kosum DUZGUN bitti, kilit birakildi -> kimse tutmuyor.
+    # (yedekle.kilit_birak yazar; bosaltmak atlayan kosumun sahibi tanimasini
+    #  engelledigi icin birakildi — bkz. yedekle.py kilit_birak gerekcesi.)
+    if bitti is not None:
+        sonuc["bitti"] = bitti
+        return sonuc                      # hal 'yok'
     if baslangic is None:
         sonuc["hal"] = "okunamadi"
+        sonuc["canli"] = _surec_canli(pid)
         return sonuc
+    sonuc["canli"] = _surec_canli(pid, baslangic)
     sonuc["yas"] = simdi - baslangic
     if sonuc["canli"] is False:
         sonuc["hal"] = "yarim"
@@ -701,11 +789,12 @@ def kilit_satirlari(d):
         return ["  ⚠ yedek kilidi (%s) dolu ama imzasi COZULEMEDI — elle bak."
                 % YEDEK_KILIT_ADI]
     if hal == "yarim":
-        return ["  ⚠⚠ YARIM KALMIS YEDEK: kilit izi duruyor ama sahip surec (pid %s) YOK "
-                "-> kosum ortasinda kesilmis." % d["pid"],
+        return ["  ⚠⚠ YARIM KALMIS YEDEK: kilit izi 'bitti' isareti TASIMIYOR ve sahip "
+                "surec (pid %s) artik YOK -> kosum ortasinda kesilmis." % d["pid"],
                 "  Kos: python3 tools/yedekle.py     (bir sonraki kosum izi temizler)"]
-    return ["  ⚠⚠ YEDEK KILIDI %.1f saattir tutuluyor (pid %s CANLI) — bu sirada gelen "
-            "yedekler ATLANIYOR." % ((d["yas"] or 0) / 3600.0, d["pid"]),
+    return ["  ⚠⚠ YEDEK KILIDI %.1f saattir tutuluyor (pid %s %s) — bu sirada gelen "
+            "yedekler ATLANIYOR." % ((d["yas"] or 0) / 3600.0, d["pid"],
+                                     "CANLI" if d["canli"] else "canliligi OLCULEMEDI"),
             "  Kilit KIRILMAZ (yasayan yazici veriyi bozar): sureci kontrol et, "
             "gerekirse elle sonlandir. Kilit: %s" % d["yol"]]
 

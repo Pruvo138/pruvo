@@ -260,9 +260,10 @@ IZIN_LISTESI = {
     "tools/thingiverse-gallery-test.py": R_SONRA,
     "tools/yargi-firearm-test.py": R_SONRA,
     "tools/yazdir-test.py": R_SONRA,
-    "tools/durum-yedek-test.py": (
-        R_SONRA + " Ek olarak durum.py panosunun Drive/yerel-makine dunyasini olcer "
-        "(durum-test.py ve durum-edge-test.py ile ayni sinif, ikisi de bu listede)."),
+    # NOT: tools/durum-yedek-test.py 27 Tem'de MUAFIYETTEN CIKARILDI -> deploy.yml'de
+    # bloklayici adim olarak kosuyor. Olcum: CI taklidinde (bos HOME, Drive yok, sadece
+    # takip edilen dosyalar) 88/88 yesil = tam hermetik. Buraya GERI EKLEME: iki yerde
+    # birden sayilirsa bu kapi "hem kosuluyor hem muaf" celiskisini yakalar.
     "tools/yedek-hook-test.py": (
         R_YOL + " Somut olarak: .git/hooks/pre-push commit EDILMEZ (per-makine) -> CI "
         "fresh checkout'unda kurulu blok YOKTUR, 'olu konum' nobetcisi orada yapisal "

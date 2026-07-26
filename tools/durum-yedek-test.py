@@ -295,6 +295,28 @@ def main():
                 sat_b2[0])
         kontrol("(b2) sebep aciklikla yaziyor", "HIC YAZMADI" in sat_b2[0])
 
+        # (b2b) ATLAMA KAYDI AYRI DOSYADAN da okunmali (yeni surum yazicisi orayi kullanir)
+        b2b = damga_kur(os.path.join(td, "b2b"), 600, baslangic=simdi - 660)
+        with open(os.path.join(b2b, ".son-yedek-atlama.json"), "w") as fh:
+            json.dump({"son_atlama": simdi - 300, "son_atlama_iso": "AYRI-DOSYA",
+                       "son_atlama_sebep": "baska yedek kosuyordu",
+                       "son_atlama_kapsandi": True,
+                       "son_atlama_sahip_baslangici": simdi - 400}, fh)
+        sat_b2b = durum.yedek_satirlari(durum.yedek_durumu(b2b, "var"))
+        kontrol("(b2b) ayri dosyadaki atlama kaydi PANOYA giriyor",
+                "ATLANDI" in sat_b2b[0] and "AYRI-DOSYA" in sat_b2b[0], sat_b2b[0][:90])
+        # ayni dizinde damga-ici ESKI kopya varsa AYRI DOSYA kazanir (daha yeni yazici)
+        b2c = damga_kur(os.path.join(td, "b2c"), 600, baslangic=simdi - 660,
+                        son_atlama=simdi - 300, son_atlama_iso="DAMGA-ICI",
+                        son_atlama_kapsandi=False)
+        with open(os.path.join(b2c, ".son-yedek-atlama.json"), "w") as fh:
+            json.dump({"son_atlama": simdi - 900, "son_atlama_iso": "AYRI-DOSYA",
+                       "son_atlama_kapsandi": True,
+                       "son_atlama_sahip_baslangici": simdi - 1000}, fh)
+        sat_b2c = durum.yedek_satirlari(durum.yedek_durumu(b2c, "var"))
+        kontrol("(b2c) ayri dosya damga-ici eski kopyayi EZIYOR (uyari yok)",
+                sat_b2c[0].strip().startswith("taze:"), sat_b2c[0][:90])
+
         # (b3) sahip alani HIC YOK (cozulemez) -> fail-closed UYAR
         b3 = damga_kur(os.path.join(td, "b3"), 600, baslangic=simdi - 660,
                        son_atlama=simdi - 300, son_atlama_kapsandi=True)
@@ -372,6 +394,20 @@ def main():
         kontrol("bos kilit (birakilmis) -> hal 'yok', satir YOK",
                 durum.kilit_durumu(kok)["hal"] == "yok"
                 and durum.kilit_satirlari(durum.kilit_durumu(kok)) == [])
+        # BAGIMLILIK NOBETCISI: surec kimligi `ps` (procps) ile olculur. Kosullu
+        # ATLAMA YOK — ps yoksa bu kontrol GURULTULU kirmizi yanar (sessizce
+        # atlanan bir nobetci, olmeyen ama olculmeyen nobetcidir).
+        kontrol("ps ile surec bilgisi okunabiliyor (kimlik dogrulamasinin on kosulu)",
+                durum._surec_bilgisi(os.getpid())[0] is not None,
+                str(durum._surec_bilgisi(os.getpid())))
+        # `bitti=` isaretli iz: kosum DUZGUN bitti, kimse tutmuyor -> SESSIZ
+        with open(yol, "w") as fh:
+            fh.write("pid=%d baslangic=%r iso=TEST bitti=%r\n"
+                     % (os.getpid(), simdi - 5, simdi - 4))
+        d_bitti = durum.kilit_durumu(kok)
+        kontrol("'bitti=' isaretli iz -> hal 'yok', satir YOK (temiz birakma)",
+                d_bitti["hal"] == "yok" and durum.kilit_satirlari(d_bitti) == [],
+                d_bitti["hal"])
         # canli sahip, yas kucuk -> NORMAL: pano susar (gurultu yapmaz)
         with open(yol, "w") as fh:
             fh.write("pid=%d baslangic=%r iso=TEST\n" % (os.getpid(), simdi))
@@ -379,21 +415,36 @@ def main():
         kontrol("canli + yeni kilit -> 'tutuluyor', satir YOK",
                 d_norm["hal"] == "tutuluyor" and durum.kilit_satirlari(d_norm) == [],
                 d_norm["hal"])
-        # 2 saattir tutan CANLI sahip -> UYARI
-        with open(yol, "w") as fh:
-            fh.write("pid=%d baslangic=%r iso=TEST\n" % (os.getpid(), simdi - 7200))
-        d_asili = durum.kilit_durumu(kok)
-        sat_asili = durum.kilit_satirlari(d_asili)
-        print("     --- pano ciktisi (kilit 2 saattir asili) ---")
-        for s in sat_asili:
-            print("    " + s)
-        kontrol("2 saatlik canli kilit -> hal 'asili'", d_asili["hal"] == "asili",
-                d_asili["hal"])
-        kontrol("pano SURESINI ve pid'i SOYLUYOR",
-                "2.0 saattir" in sat_asili[0] and str(os.getpid()) in sat_asili[0])
-        kontrol("pano 'yedekler ATLANIYOR' diyor", "ATLANIYOR" in sat_asili[0])
-        kontrol("pano kilidi KIRMA talimati vermiyor, elle kontrol diyor",
-                "KIRILMAZ" in sat_asili[1])
+        # 2 saattir tutan GERCEKTEN canli sahip -> UYARI
+        # (yas simule edilir; surec kimligi DAIMA gercek saatle olculur)
+        cocuk = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+        try:
+            with open(yol, "w") as fh:
+                fh.write("pid=%d baslangic=%r iso=TEST\n" % (cocuk.pid, time.time()))
+            d_asili = durum.kilit_durumu(kok, simdi=time.time() + 7200)
+            sat_asili = durum.kilit_satirlari(d_asili)
+            print("     --- pano ciktisi (kilit 2 saattir asili) ---")
+            for s in sat_asili:
+                print("    " + s)
+            kontrol("2 saatlik CANLI python sahibi -> hal 'asili'",
+                    d_asili["hal"] == "asili", d_asili["hal"])
+            kontrol("pano SURESINI ve pid'i SOYLUYOR",
+                    "2.0 saattir" in sat_asili[0] and str(cocuk.pid) in sat_asili[0])
+            kontrol("pano 'yedekler ATLANIYOR' diyor", "ATLANIYOR" in sat_asili[0])
+            kontrol("pano kilidi KIRMA talimati vermiyor, elle kontrol diyor",
+                    "KIRILMAZ" in sat_asili[1])
+            # ESIK SABITI OLU MU: ayni canli sahip, yas 60 sn -> varsayilan esikte
+            # 'tutuluyor', esik 10 sn'ye cekilince 'asili' olmali.
+            ileri = time.time() + 60
+            kontrol("60 sn'lik kilit varsayilan esikte 'tutuluyor'",
+                    durum.kilit_durumu(kok, simdi=ileri)["hal"] == "tutuluyor")
+            kontrol("esik 10 sn'ye cekilince ayni kilit 'asili' oluyor",
+                    durum.kilit_durumu(kok, simdi=ileri, esik=10)["hal"] == "asili")
+        finally:
+            cocuk.kill()
+            cocuk.wait()
+        kontrol("sahip surec olunce ayni iz 'yarim' oluyor",
+                durum.kilit_durumu(kok)["hal"] == "yarim")
         # OLU sahip: yarim kalmis kosum izi
         with open(yol, "w") as fh:
             fh.write("pid=999999 baslangic=%r iso=TEST\n" % (simdi - 60))
@@ -402,17 +453,44 @@ def main():
                 d_yarim["hal"] == "yarim" and d_yarim["canli"] is False, d_yarim["hal"])
         kontrol("yarim kilit panoda UYARIYOR",
                 "YARIM KALMIS" in durum.kilit_satirlari(d_yarim)[0])
+
+        # 🔴 PID YENIDEN KULLANIMI (C) — pid CANLI ama bu kilidin sahibi DEGIL
+        # (surec, imzadan SONRA basladi). Pano yanlis SUSMAMALI ve alakasiz sureci
+        # "sonlandir" diye GOSTERMEMELI.
+        with open(yol, "w") as fh:                       # kendi pid'imiz: python, ama
+            fh.write("pid=%d baslangic=%r iso=TEST\n"    # kilit 2 saat once alinmis
+                     % (os.getpid(), simdi - 7200))      # -> surec kilitten SONRA basladi
+        d_geri = durum.kilit_durumu(kok)
+        sat_geri = durum.kilit_satirlari(d_geri)
+        kontrol("yeniden kullanilan pid -> 'tutuluyor' DEGIL 'yarim'",
+                d_geri["hal"] == "yarim" and d_geri["canli"] is False, d_geri["hal"])
+        kontrol("yeniden kullanilan pid'de 'sonlandir' onerisi YOK",
+                not any("sonlandir" in s for s in sat_geri), " | ".join(sat_geri)[:90])
+        # launchd (pid 1): canli ama python DEGIL -> sahip olamaz
+        with open(yol, "w") as fh:
+            fh.write("pid=1 baslangic=%r iso=TEST\n" % (simdi - 7200))
+        d_launchd = durum.kilit_durumu(kok)
+        kontrol("pid=1 (launchd) sahip SAYILMIYOR -> 'yarim'",
+                d_launchd["hal"] == "yarim", d_launchd["hal"])
+        kontrol("pid=1 icin 'sonlandir' onerisi YOK",
+                not any("sonlandir" in s for s in durum.kilit_satirlari(d_launchd)))
+        # KIRMIZI-MUTASYON: kimlik dogrulamasi kaldirilirsa ikisi de yanlis siniflanir
+        mut_pid = mutant_yaz(td,
+                             '    if komut and "python" not in os.path.basename(komut).lower():\n'
+                             "        return False                      "
+                             "# baska bir program bu pid'i almis",
+                             "    if False:\n        return False  # MUTANT: kimlik yok",
+                             ad="durum_mutant_pid.py")
+        mmod_pid = modul_yukle(mut_pid, "durum_mutant_pid")
+        kontrol("MUTANTTA (kimlik yok) launchd 'asili' gorunuyor (kontrol KIRMIZI yanardi)",
+                mmod_pid.kilit_durumu(kok)["hal"] == "asili",
+                mmod_pid.kilit_durumu(kok)["hal"])
         # bozuk imza
         with open(yol, "w") as fh:
             fh.write("bozuk satir\n")
         kontrol("bozuk imza -> 'okunamadi', pano yine konusuyor",
                 durum.kilit_durumu(kok)["hal"] == "okunamadi"
                 and "COZULEMEDI" in durum.kilit_satirlari(durum.kilit_durumu(kok))[0])
-        # esik SABITI gercekten kullaniliyor mu (olu sabit nobetcisi)
-        with open(yol, "w") as fh:
-            fh.write("pid=%d baslangic=%r iso=TEST\n" % (os.getpid(), simdi - 60))
-        kontrol("esik 10 sn'ye cekilince ayni kilit 'asili' oluyor",
-                durum.kilit_durumu(kok, esik=10)["hal"] == "asili")
         # iki dosyadaki esik/ad AYNI mi (surukleme nobetcisi)
         yedekle_mod = modul_yukle(os.path.join(TOOLS, "yedekle.py"), "yedekle_esik")
         kontrol("kilit ADI iki dosyada ayni",

@@ -323,6 +323,18 @@ jobs:
       - name: Edge flip hazirlik kapisi kabul testi (saf karar mantigi)
         run: python3 tools/edge-flip-hazirlik-test.py
 
+      # YEDEK TAZELIK PANOSU (durum.py bolum 7): yedegin kendisi degil, YEDEGIN SESSIZCE
+      # DURMASI oldurucu — pano bayatligi/atlanmis kosumu/asili kilidi GORUNUR kilan tek
+      # kanaldir (pre-push yedek ciktisini /dev/null'a yutar). Testin iddiasi "pano yalan
+      # soylemiyor mu": bayat/kismi/gelecek-tarihli/atlanmis/asili-kilit hallerinde "taze"
+      # DEMEMELI, kapsanmis atlamada da bosuna uyarmamali (gurultulu pano = olu pano).
+      # TAM HERMETIK: tempdir fiksturleri + sentetik damga; Drive/skills/ag GEREKMEZ
+      # (CI taklidinde 89/89 yesil olculdu, ~2 s). Bloklayici, continue-on-error YOK.
+      # TEK ORTAM BAGIMLILIGI: `ps` (procps, runner imajinda var) — pid kimlik
+      # dogrulamasi onunla olculur; yoksa test SESSIZCE ATLAMAZ, gurultulu kirmizi yanar.
+      - name: Yedek tazelik panosu kabul testi (durum.py bolum 7 — sessiz-hata nobeti)
+        run: python3 tools/durum-yedek-test.py
+
       # WA PREFILL KAPISI: urun sayfasindaki BAGLAM-KOR olmamasi gereken iki WhatsApp
       # linki (organik "Bizimle Iletisime Gecin" help-cta-btn + mühendislik malzeme notu)
       # prefill'inde urun ADI + canonical URL tasir; Turkce karakterler TEK KEZ dogru

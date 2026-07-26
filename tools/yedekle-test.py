@@ -155,12 +155,25 @@ def hedef_dosyalari(hedef):
                   for d, _alt, adlar in os.walk(hedef) for a in adlar)
 
 
-def damga_json(hedef):
+def damga_json(hedef, ad=".son-yedek.json"):
     try:
-        with open(os.path.join(hedef, ".son-yedek.json"), encoding="utf-8") as f:
+        with open(os.path.join(hedef, ad), encoding="utf-8") as f:
             return json.load(f)
     except (OSError, ValueError):
         return None
+
+
+def atlama_json(hedef):
+    """Atlama kaydi AYRI dosyada (yazici sinifi ayri; bkz. yedekle.ATLAMA_ADI)."""
+    return damga_json(hedef, ".son-yedek-atlama.json")
+
+
+def birlesik_json(hedef):
+    """Panonun gordugu birlesik gorunum: damga + atlama kaydi (durum.py ile ayni kural)."""
+    d = dict(damga_json(hedef) or {})
+    d.update({k: v for k, v in (atlama_json(hedef) or {}).items()
+              if k.startswith("son_atlama")})
+    return d
 
 
 def gercek_damga_parmakizi(yedekle):
@@ -371,12 +384,15 @@ def main():
                 "rc=%d %s" % (r.returncode, r.stderr.strip()[:80]))
         kontrol("cikti 'yedek ATLANDI' diyor", "yedek ATLANDI" in r.stdout,
                 r.stdout.strip().splitlines()[0] if r.stdout.strip() else "(bos)")
-        kontrol("ATLANAN kosum HICBIR dosya kopyalamadi",
+        kontrol("ATLANAN kosum HICBIR dosya kopyalamadi (yalniz atlama kaydi)",
                 "bitti ->" not in r.stdout and hedef_dosyalari(o["hedef"]) ==
-                [".son-yedek.json"], str(hedef_dosyalari(o["hedef"])))
-        d = damga_json(o["hedef"]) or {}
-        kontrol("damga TAM GUVEN atmadi ('zaman' YOK)", "zaman" not in d, str(sorted(d)))
-        kontrol("damgada atlama kaydi VAR", isinstance(d.get("son_atlama"), float))
+                [".son-yedek-atlama.json"], str(hedef_dosyalari(o["hedef"])))
+        kontrol("ATLANAN kosum DAMGAYA hic dokunmadi (damga YOK)",
+                damga_json(o["hedef"]) is None)
+        d = atlama_json(o["hedef"]) or {}
+        kontrol("atlama kaydinda TAM GUVEN alani YOK ('zaman' yok)", "zaman" not in d,
+                str(sorted(d)))
+        kontrol("atlama kaydi VAR", isinstance(d.get("son_atlama"), float))
         kontrol("atlama sebebi yazili", "baska yedek kosuyordu" in
                 str(d.get("son_atlama_sebep")), str(d.get("son_atlama_sebep"))[:70])
         kontrol("kaynak degismemisken atlama KAPSANDI (pano bosuna uyarmaz)",
@@ -391,7 +407,7 @@ def main():
                                "-Users-okan-dev-pruvo", "memory", "not-000.md"), "w") as fh:
             fh.write("kilit tutulurken YENI degisiklik\n")
         r3 = izole_kos(o, "--gerekliyse")
-        d3 = damga_json(o["hedef"]) or {}
+        d3 = atlama_json(o["hedef"]) or {}
         kontrol("kilit tutulurken degisen kaynak -> atlama KAPSANMADI",
                 d3.get("son_atlama_kapsandi") is False, str(d3.get("son_atlama_kapsandi")))
         kontrol("kapsanmayan atlamada cikti UYARIYOR",
@@ -402,7 +418,8 @@ def main():
         fcntl.flock(kilitci, fcntl.LOCK_UN)
         kilitci.close()
         r2 = izole_kos(o)
-        bekle = o["memory_adet"] + o["skills_adet"] + len(yedekle.REPO_BEKLENEN) + 1
+        # +2: damga + (onceki atlamadan kalan) atlama kaydi
+        bekle = o["memory_adet"] + o["skills_adet"] + len(yedekle.REPO_BEKLENEN) + 2
         gercek_dosya = hedef_dosyalari(o["hedef"])
         kontrol("kilit birakilinca yedek GERCEKTEN alindi (exit 0 + 'bitti ->')",
                 r2.returncode == 0 and "bitti ->" in r2.stdout, "rc=%d" % r2.returncode)
@@ -413,8 +430,8 @@ def main():
                 d2.get("tam") is True and d2.get("memory") == o["memory_adet"]
                 and d2.get("skills") == o["skills_adet"],
                 "memory=%s skills=%s" % (d2.get("memory"), d2.get("skills")))
-        kontrol("onceki ATLAMA kaydi damgada KORUNDU (pano gorebilsin)",
-                isinstance(d2.get("son_atlama"), float))
+        kontrol("onceki ATLAMA kaydi KORUNDU (tamamlanan kosum onu silmez)",
+                isinstance((atlama_json(o["hedef"]) or {}).get("son_atlama"), float))
         kontrol("gecici damga dosyasi kalmadi",
                 not any(".tmp-" in x for x in gercek_dosya))
 
@@ -472,7 +489,7 @@ def main():
         asili.write(yedekle._sahip_imzasi(time.time(), pid=999999))
         asili.flush()
         r1 = izole_kos(o, "--gerekliyse")              # 4) push atladi
-        d1 = damga_json(o["hedef"]) or {}
+        d1 = birlesik_json(o["hedef"])
         sat = durum.yedek_satirlari(durum.yedek_durumu(o["hedef"], "var"))
         print("     --- pano ciktisi (sahip bitirmedi) ---")
         for s in sat:
@@ -582,8 +599,9 @@ def main():
             yazan = sum(1 for c in ciktilar if "bitti ->" in c)
             atlayan = sum(1 for c in ciktilar if "yedek ATLANDI" in c)
             dosyalar = hedef_dosyalari(o["hedef"])
-            bekle = o["memory_adet"] + o["skills_adet"] + len(yedekle.REPO_BEKLENEN) + 1
-            d = damga_json(o["hedef"]) or {}
+            # +2: damga + atlama kaydi (atlayan kosum kendi dosyasina yazar)
+            bekle = o["memory_adet"] + o["skills_adet"] + len(yedekle.REPO_BEKLENEN) + 2
+            d = birlesik_json(o["hedef"])
             tur_sonuc.append({
                 "yazan": yazan, "atlayan": atlayan, "kodlar": kodlar,
                 "dosya": len(dosyalar), "bekle": bekle, "damga": d,
@@ -605,7 +623,7 @@ def main():
                 "tam=%s memory=%s skills=%s" % (t["damga"].get("tam"),
                                                 t["damga"].get("memory"),
                                                 t["damga"].get("skills")))
-        kontrol("tur%d: ATLAYAN kosum damgada iz birakti" % i,
+        kontrol("tur%d: ATLAYAN kosum kendi kaydinda iz birakti" % i,
                 isinstance(t["damga"].get("son_atlama"), float)
                 and isinstance(t["damga"].get("baslangic"), float))
         # Eszamanli ciftte kaynak DEGISMEZ -> atlama kapsanir; pano her paralel
@@ -619,6 +637,76 @@ def main():
                               t["damga"].get("son_atlama_sahip_baslangici")))
         kontrol("tur%d: PANO SUSUYOR (normal eszamanli ciftte bos uyari yok)" % i,
                 t["pano"][0].strip().startswith("taze:"), t["pano"][0])
+
+    # ---------------- 14b) GERCEK URETIM YOLU: paralel `--gerekliyse` cifti ----
+    # 🔴 Bolum 14 SENTETIK ciftti (kaynak taze, tam kopyalama). Baskin GERCEK yol
+    # iki paralel push = `--gerekliyse` + KAYNAKTA DEGISIKLIK YOK. Curutucu bu yolda
+    # 20/20 YAPISKAN yanlis "⚠⚠ KISMI YEDEK" olctu. Iki bagimsiz sebep vardi:
+    #   (F1) kilit_birak dosyayi BOSALTIYORDU -> atlayan kosum sahibi tanimlayamiyor,
+    #   (F2) GUNCEL yolu damga YAZMIYORDU     -> "sahip bitirdi mi" TANIM GEREGI hayir.
+    # Ikisi de kapatildi; asagida gercek yolun yanlis-uyari sayisi 0 olmali.
+    print("\n14b) GERCEK YOL — paralel `--gerekliyse` cifti (kaynak DEGISMEDI)")
+
+    def paralel_gerekliyse(o, tur_sayisi):
+        """Doner: (yanlis_uyari, sahip_okunamadi, kod_hatasi, ornek_satir)."""
+        yanlis = okunamadi = kod_hatasi = 0
+        ornek = ""
+        for _ in range(tur_sayisi):
+            p1, p2 = izole_baslat(o, "--gerekliyse"), izole_baslat(o, "--gerekliyse")
+            c1, c2 = p1.communicate(), p2.communicate()
+            if p1.returncode != 0 or p2.returncode != 0:
+                kod_hatasi += 1
+            if any("sahip bilgisi yok" in c for c in (c1[0], c2[0])):
+                okunamadi += 1
+            sat = durum.yedek_satirlari(durum.yedek_durumu(o["hedef"], "var"))
+            if not sat[0].strip().startswith("taze:"):
+                yanlis += 1
+                ornek = ornek or sat[0].strip()
+        return yanlis, okunamadi, kod_hatasi, ornek
+
+    with tempfile.TemporaryDirectory() as td:
+        o = izole_ortam(td, yedekle)
+        izole_kos(o)                                   # ilk tam yedek (damga olussun)
+        yanlis, okunamadi, kod_hatasi, ornek = paralel_gerekliyse(o, 20)
+        kontrol("🔢 20 paralel `--gerekliyse` cifti: YANLIS UYARI 0",
+                yanlis == 0, "yanlis=%d/20  %s" % (yanlis, ornek[:80]))
+        kontrol("20 ciftte 'sahip bilgisi yok' 0 (kilit izi okunabiliyor)",
+                okunamadi == 0, "okunamadi=%d/20" % okunamadi)
+        kontrol("20 ciftte exit!=0 yok (fail-open)", kod_hatasi == 0,
+                "hata=%d/20" % kod_hatasi)
+        d = damga_json(o["hedef"]) or {}
+        kontrol("GUNCEL yolu damgayi DOGRULADI (baslangic ilerledi, zaman DOKUNULMADI)",
+                isinstance(d.get("dogrulandi_iso"), str)
+                and d.get("baslangic", 0) > d.get("zaman", 0),
+                "baslangic-zaman=%.3f sn" % (d.get("baslangic", 0) - d.get("zaman", 0)))
+        kontrol("dogrulama sayaclara/tamlik iddiasina DOKUNMADI",
+                d.get("tam") is True and d.get("memory") == o["memory_adet"]
+                and d.get("skills") == o["skills_adet"],
+                "memory=%s skills=%s" % (d.get("memory"), d.get("skills")))
+
+    # 14c) IKI DUZELTME DE GEREKLI MI? (birini kapatip ayni fiksturu olc)
+    print("\n14c) HER IKI DUZELTME DE GEREKLI — birini kapatinca yanlis uyari donuyor mu?")
+    for etiket, capa, yerine in (
+            ("F1 kapali (kilit izi bosaltiliyor)",
+             "                os.write(fd, _sahip_imzasi(baslangic, "
+             "bitti=time.time()).encode(\"utf-8\"))",
+             "                pass  # MUTANT: iz birakma"),
+            ("F2 kapali (GUNCEL yolu damga yazmiyor)",
+             "            tazelendi = damga_tazele(backup, baslangic)",
+             "            tazelendi = False  # MUTANT")):
+        with tempfile.TemporaryDirectory() as td:
+            o = izole_ortam(td, yedekle)
+            with open(o["betik"], encoding="utf-8") as f:
+                gov = f.read()
+            if capa not in gov:
+                raise RuntimeError("MUTASYON CAPASI BULUNAMADI: %r" % capa)
+            with open(o["betik"], "w", encoding="utf-8") as f:
+                f.write(gov.replace(capa, yerine, 1))
+            izole_kos(o)
+            m_yanlis, m_okunamadi, _h, m_ornek = paralel_gerekliyse(o, 10)
+            kontrol("MUTANT [%s] -> yanlis uyari GERI GELDI" % etiket,
+                    m_yanlis > 0, "yanlis=%d/10 sahip-okunamadi=%d/10  %s"
+                    % (m_yanlis, m_okunamadi, m_ornek[:60]))
 
     # ---------------- 15) GERCEK HEDEF DOKUNULMADI ----------------
     print("\n15) IZOLASYON KANITI — gercek Drive damgasi DEGISMEDI")
