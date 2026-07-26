@@ -191,7 +191,12 @@ jobs:
       # ILKE: yanlis-pozitif GURULTULUdur, dakikalar icinde duzeltilir; (B)/(C) kacisi
       # SESSIZdir ve musteriye TICARI BEYAN olarak gider. Onarim bastiriciyla degil
       # BAGLAM GENISLETEREK yapildi (G7-G13 o genislemenin bedelini olcer).
-      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 66 fiksturle olcer. Hem YAKALAMA
+      # TUR 8: "veririz/vereceğiz" ailesi AYRI ve DAR bir baglam listesi kullanir — ciplak
+      # zamir ("size/biz") TETIKLEYICI DEGIL. Sebep olculdu: "vermek" bilgi/link/kargo/oneri
+      # de verir; tek GENIS listeyle "2.500 TL uzerinde kargoyu SIZE ucretsiz veririz"
+      # KIRMIZI yaniyordu ve tetikleyici canli belgede MEVCUT ("size" l.14, "biz" l.13).
+      # V1-V7 bu ayrimin iki tarafini da nobetler; MUT8 (listeleri birlestir) V1-V5'i kirar.
+      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 73 fiksturle olcer. Hem YAKALAMA
       # (eski dal metni · "ozel uretiriz" · mm/kumpas/cap olcu talebi · yaklasik/tahminen/
       # civari/ortalama/bandinda fiyat · ortuk "yapabiliriz") hem YANLIS-POZITIF yonu olculur.
       # 🔴 YANLIS-POZITIF NEDEN OLUMCUL: bu kapi `build` isinde kosuyor ve `deploy: needs: build`

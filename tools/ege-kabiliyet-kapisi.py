@@ -140,17 +140,37 @@ URETIM_ACIK_RE = re.compile(
 # GENEL = uretim DISI baglamda da dogal olan fiiller; MUSTERI-ISI baglami ister.
 # Mesru kalmasi gerekenler: "Kargo cikisini ayni gun yaparız." (G1) ·
 # "2.500 TL uzerinde kargoyu ucretsiz veririz." (G2)
-URETIM_GENEL_RE = re.compile(
-    r"\byaparız\b|\bveririz\b|\bveririm\b|\bvereceğiz\b|\bvereceğim\b",
-    re.IGNORECASE)
-# BAGLAM = "bu soz MUSTERININ ISI icin mi veriliyor". Urun/uretim jetonlarina ek olarak
-# 1. cogul zamir + musteri-nesnesi + "TL'ye" (fiyata is alma) jetonlari.
-# ⚠️ Ciplak "TL" BILEREK YOK: "2.500 TL uzerinde kargoyu ucretsiz veririz" mesrudur.
-URUN_BAGLAM_RE = re.compile(
+# 🔴 GENEL fiiller IKI AILEYE, IKI AYRI BAGLAM LISTESINE bolundu (TUR 8).
+# TUR 7'de ikisi de ayni GENIS listeyi kullaniyordu ve liste ciplak zamirlerle
+# (biz|size|sizin|bunu...) genislemisti. Sonuc OLCULDU: "vermek" fiili uretim/fiyat
+# DISI baglamda cok dogaldir, zamirle birlesince para/uretim jetonu OLMADAN yaniyordu:
+#     "2.500 TL uzerinde kargoyu SIZE ucretsiz veririz."  -> KIRMIZI (oysa kapinin
+#      KENDI fikstur aciklamasi bunu "fiyat taahhudu DEGIL" diye yaziyor)
+#     "IBAN'i buradan size veririz." · "Siparisi ... size kargoya veririz."
+#     "Malzeme onerisini size veririz." · "Kargo takip numarasini size veririz."
+# Tetikleyici canli belgede MEVCUT ("size" l.14'te, "biz" l.13'te) -> erisilebilir.
+# TUR5'e gore 6 YENI yanlis-pozitif olculdu.
+URETIM_YAPARIZ_RE = re.compile(r"\byaparız\b", re.IGNORECASE)
+URETIM_VERIRIZ_RE = re.compile(
+    r"\bveririz\b|\bveririm\b|\bvereceğiz\b|\bvereceğim\b", re.IGNORECASE)
+
+# GENIS (yalniz "yaparız"): "yapmak" burada is-yapma fiilidir, zamir onu musteri
+# isine baglar -> "...yoksa BIZ DE yaparız" (G7, M2 parafrazi) korunur.
+URUN_BAGLAM_GENIS_RE = re.compile(
     r"üret|imal|\bparça|baskı|\bözel\b|tasarım|kalıp"
     r"|sizin\s+için|size\s+özel|sizin\s+adınıza|sizin\s+yerinize|\bsize\b|\bsizin\b"
     r"|\bbiz\b|\bbizde\b|\baynısını\b|\byenisini\b|\bbunu\b|\bbunları\b|\bşunu\b"
     r"|TL['’]ye|\bfiyat|\bölçünüze\b|\bölçüye\b|\bölçüsüne\b|\bmodele\b",
+    re.IGNORECASE)
+
+# DAR (yalniz "veririz/vereceğiz") — ZAMIR YOK. "vermek" bilgi/link/kargo/oneri de
+# verir; taahhut sayilmasi icin URETIM ya da FIYAT-TAAHHUDU jetonu SART.
+# ⚠️ "fiyat" var ama "fiyat ÇALIŞMASI" HARIC: o, fiyatin KENDISI degil surecidir ve
+#    canli belgenin l.49'unda aynen geciyor ("Fiyat calismasi birkac saat surebilir").
+# ⚠️ Ciplak "TL" YOK: "2.500 TL uzerinde ... ucretsiz veririz" mesrudur.
+URUN_BAGLAM_DAR_RE = re.compile(
+    r"üret|imal|\bparça|baskı|\bözel\b|tasarım|kalıp"
+    r"|\bindirim|TL['’]ye|\bfiyat\b(?!\s+çalışma)",
     re.IGNORECASE)
 
 # FIYAT SOZU — kesin VEYA yaklasik. Yaklasik/tahmini yalniz PARA jetonuna yakinsa
@@ -304,9 +324,11 @@ def bulgular(metin):
         for c in cumlecikler(satir):
             if olumsuz(c):
                 continue
-            # (B) IKI KADEME: acik uretim fiili tek basina; jenerik fiil URUN baglami ister.
-            if URETIM_ACIK_RE.search(c) or (URETIM_GENEL_RE.search(c)
-                                            and URUN_BAGLAM_RE.search(c)):
+            # (B) UC KADEME: acik uretim fiili tek basina; "yaparız" GENIS baglam,
+            # "veririz/vereceğiz" DAR baglam ister (zamir yeterli DEGIL).
+            if (URETIM_ACIK_RE.search(c)
+                    or (URETIM_YAPARIZ_RE.search(c) and URUN_BAGLAM_GENIS_RE.search(c))
+                    or (URETIM_VERIRIZ_RE.search(c) and URUN_BAGLAM_DAR_RE.search(c))):
                 out.append((no, "B/URETIM-SOZU", c,
                             "musterinin parcasi icin uretim taahhudu "
                             "(uretecegimize Okan karar verir — :41/:2467)"))
@@ -382,6 +404,28 @@ NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
     ve 28 cumlelik taahhut korpusunda yakalama 27 -> 10'a dusmustu (M2'nin, yani
     kapinin KURULUS VAKASININ parafrazlari dahil). TUR 7'de geri alindi: cozum
     BASTIRICI degil BAGLAM GENISLETME + acik fiilleri standalone birakma. G1-G13.
+    TUR 8: "veririz/vereceğiz" ailesi AYRI ve DAR bir baglam listesi kullanir (zamir
+    TETIKLEYICI DEGIL) — cunku "vermek" bilgi/link/kargo/oneri de verir. V1-V7.
+
+  · 🔴🔴 BU DOSYAYI DUZENLEYECEK KISIYE — INDIRGENEMEZ BEDEL, ONCEDEN SOYLUYORUZ:
+    Su fiiller TEK BASINA (baglam aranmadan) KIRMIZI yakar, cunku onlari baglama
+    baglamak kapinin KURULUS VAKASINI (M2: "...yoksa ozel uretiriz") ve tek kelimelik
+    parafrazlarini ("...yoksa hallederiz") KACIRIYORDU:
+        uretiriz · uretebiliriz · uretiveririz · ustleniriz · basariz · tasarlariz
+        · hallederiz · hallederim · yapabiliriz · yaptirabiliriz
+    BEDELI: bu fiilleri URETIM DISI, MESRU bir cumlede kullanirsan kapi KIRMIZI yanar
+    ve `deploy: needs: build` oldugu icin TUM SITE yayini durur. En olasi carpisma:
+        "Sepette takilirsa WhatsApp'tan da HALLEDERIZ."   -> KIRMIZI yanar
+    (canli l.7 zaten "WhatsApp'tan da hallettigini ekle" diyor, yani bu ifade bu
+    belgenin dogal uslubunda.) Bu, kelime kapisinin INDIRGENEMEZ gerilimidir —
+    TUR 5'ten beri aynidir, regresyon DEGILDIR.
+    ALTERNATIF IFADE (kapiyi yakmadan ayni seyi soyle):
+        "hallederiz"   -> "yardimci oluruz" · "cozume kavustururuz" · "ilgilenir,
+                          size doneriz" · "WhatsApp'tan da ilerletebiliriz"
+        "yapabiliriz"  -> "arastirip doneriz" · "degerlendirip bildiririz"
+        "uretiriz"     -> (KASITLI YASAK — uretim sozu Okan'in karari, :41)
+    Yani: uretim/fiyat SOZU vermeyen bir cumle kuruyorsan yukaridaki karsiliklari
+    kullan; kapi seni bilerek bu yone itiyor.
   · 🔴 DUZ KESIN FIYAT BEYANI OLCULMEZ. "Bu parca 1.200 TL." · "Fiyat 900-1100 TL."
     gibi RAKAMLI DUZ beyanlar bu kapidan YESIL gecer. Kapsanamaz: belgenin MESRU
     icerigi fiyat/TL dolu (l.9 kargo esigi + ornek hesap), duz rakam yakalayan bir
@@ -625,7 +669,28 @@ FIKSTURLER = [
     ("G12 'Ölçünüze göre hallederiz.'", "- Ölçünüze göre hallederiz.", True,
      "ACIK fiil; TUR 6'da KACIYORDU"),
     ("G13 'Size 800 TL'ye veririz.'", "- Size 800 TL'ye veririz.", True,
-     "baglam: 'size' + \"TL'ye\"; TUR 6'da KACIYORDU"),
+     "baglam: \"TL'ye\" (DAR listede); TUR 6'da KACIYORDU"),
+    # ═══ TUR 8: "veririz" AILESI DAR BAGLAM — zamir tetikleyici DEGIL ═══
+    # 🔴 MUT8 (iki baglam listesini BIRLESTIR) V1-V5'i kirar: TUR 7'de tek GENIS liste
+    # vardi ve ciplak "size" para/uretim jetonu OLMADAN yaniyordu. Tetikleyici canli
+    # belgede MEVCUT ("size" l.14, "biz" l.13) -> TUM SITE yayinini durdururdu.
+    ("V1 kapinin KENDI G2 fiksturunun 'size'li hali",
+     "- 2.500 TL üzerinde kargoyu size ücretsiz veririz.", False,
+     "G2 ile ayni cumle + 'size' — fiyat taahhudu DEGIL, YESIL kalmali"),
+    ("V2 canli l.6 capali: IBAN verme",
+     "- Ödeme linkini ya da IBAN'ı buradan size veririz.", False,
+     "bilgi verme; uretim/fiyat jetonu YOK"),
+    ("V3 canli l.8 capali: kargoya verme",
+     "- Siparişi 3-5 iş gününde size kargoya veririz.", False, "teslim betimlemesi"),
+    ("V4 canli l.49 capali: fiyat CALISMASI",
+     "- Fiyat çalışması sonucu size veririz.", False,
+     "'fiyat calismasi' fiyatin KENDISI degil SURECI — DAR listede istisna"),
+    ("V5 malzeme onerisi verme", "- Malzeme önerisini size veririz.", False,
+     "oneri verme; taahhut DEGIL"),
+    ("V6 DAR listenin POZITIF tarafi: 'uygun fiyat veririz'",
+     "- Size uygun fiyat veririz.", True, "'fiyat' jetonu DAR listede -> yanmali"),
+    ("V7 DAR liste: 'parça için indirim veririz'",
+     "- Parça için indirim veririz.", True, "'parca' + 'indirim' -> yanmali"),
 ]
 
 
