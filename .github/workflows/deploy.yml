@@ -254,6 +254,19 @@ jobs:
       - name: Edge flip hazirlik kapisi kabul testi (saf karar mantigi)
         run: python3 tools/edge-flip-hazirlik-test.py
 
+      # WA PREFILL KAPISI: urun sayfasindaki BAGLAM-KOR olmamasi gereken iki WhatsApp
+      # linki (organik "Bizimle Iletisime Gecin" help-cta-btn + mühendislik malzeme notu)
+      # prefill'inde urun ADI + canonical URL tasir; Turkce karakterler TEK KEZ dogru
+      # percent-kodlanir (double-encode yok, numara = WHATSAPP sabiti, arama 4005 asla).
+      # NIYET EKSENI de olculur: help-cta "aradigimi bulamadim" niyetini tasir ve
+      # "bu urunu istiyorum" DEMEZ (yanlis niyet Ege'yi yanlis akisa sokar, baglamsizdan
+      # beter); malzeme notu ise KENDI niyetini (malzeme/ozel uretim) korur. REF/atif
+      # butonu (orderAlt) regresyon nobeti: ad+URL+"ilgileniyorum" bozulmamis olmali.
+      # Offline, sentetik fikstur, urunler.json OKUNMAZ, dosya yazmaz; render_product'i
+      # dogrudan cagirir -> build.py'den ONCE kosar, ~0,2 s.
+      - name: WhatsApp prefill kabul testi (urun sayfasi baglami + niyet)
+        run: python3 tools/test-wa-prefill-organik.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.

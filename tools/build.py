@@ -500,10 +500,26 @@ WA_ICON = ('<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 '
 # özel talebi (secenekler.js FILAMENT_SIRA'da zaten yok). Not metni TEK KAYNAK: hem malzeme
 # seçicisinin altında (fonksiyonel/parametrik ürün) hem de seçici olmayan ürünlerdeki filament
 # bilgi bloğunda (filament_html) aynen kullanılır.
-MUHENDISLIK_WA_NOT = ('<p class="malzeme-not">Karbon fiber veya diğer mühendislik malzemeleriyle '
-    'üretim için <a href="https://wa.me/905451386526?text=Merhaba%2C%20m%C3%BChendislik%20'
-    'malzemesiyle%20%C3%B6zel%20%C3%BCretim%20hakk%C4%B1nda%20bilgi%20almak%20istiyorum." '
-    'target="_blank" rel="noopener">WhatsApp\'tan bize yazın</a>.</p>')
+def muhendislik_wa_not(p=None, url=None):
+    """Mühendislik-malzeme (karbon fiber/ABS) özel üretim WhatsApp notu.
+
+    NİYET KORUNUR: bu link "malzeme/özel üretim sorusu"dur — help-cta'nın "aradığımı
+    bulamadım" niyetiyle KARIŞTIRILMAZ. Eklenen tek şey SAYFA BAĞLAMI (ürün adı +
+    canonical URL) ki Ege hangi üründe hangi malzemenin sorulduğunu bilsin; bağlam
+    yoksa (p/url verilmemişse) metin eskisi gibi bağlamsız kalır.
+
+    Kodlama: quote() ile TEK KEZ percent-kodlama (wa_href sözleşmesi), döndürülen
+    HTML'de href zaten kodlu -> %-biçimlendirme KULLANILMAZ (URL'i bozar), parçalar
+    birleştirilir. Numara = WHATSAPP sabiti."""
+    from urllib.parse import quote
+    msg = u"Merhaba, mühendislik malzemesiyle özel üretim hakkında bilgi almak istiyorum."
+    if p is not None and url:
+        msg = (u"Merhaba, şu sayfadaydım: " + (p.get("baslik") or "") + "\n" + url + "\n"
+               + u"Mühendislik malzemesiyle (karbon fiber vb.) özel üretim hakkında "
+                 u"bilgi almak istiyorum.")
+    return ('<p class="malzeme-not">Karbon fiber veya diğer mühendislik malzemeleriyle '
+            'üretim için <a href="https://wa.me/' + WHATSAPP + '?text=' + quote(msg) + '" '
+            'target="_blank" rel="noopener">WhatsApp\'tan bize yazın</a>.</p>')
 
 # Malzeme/renk satırları — klasik opsiyon bloğu ve parametrik konfigüratör AYNI bileşeni
 # kullanır. Seçenekler ve "(+%30)" etiketleri secenekler.js'ten ÜRETİLİR (elle yazılmaz):
@@ -564,9 +580,10 @@ def _renk_butonlari_html(renkler=None, renk_gorselleri=None):
              placeholder="istediğiniz rengi yazın (ör. turuncu)" style="display:none">""")
 
 
-def _malzeme_renk_html():
+def _malzeme_renk_html(p=None, url=None):
     """Malzeme dropdown + mühendislik-malzeme WA notu + renk. YALNIZ parametrik (konfigüratör)
-    ürün sayfası kullanır — fonksiyonel ürünlerde malzeme artık kartlardan seçilir (dropdown yok)."""
+    ürün sayfası kullanır — fonksiyonel ürünlerde malzeme artık kartlardan seçilir (dropdown yok).
+    p/url verilirse WA notu sayfa bağlamını (ad + canonical URL) taşır."""
     malzeme_opts = "".join(
         '\n          <option value="%s">%s</option>' % (
             esc(m), esc(m + (" (standart)" if not FILAMENT_FARK.get(m)
@@ -580,7 +597,7 @@ def _malzeme_renk_html():
         <select id="malzemeSec">""" + malzeme_opts + """
         </select>
       </div>
-      """ + MUHENDISLIK_WA_NOT + _renk_html())
+      """ + muhendislik_wa_not(p, url) + _renk_html())
 
 
 # Adet seçici — klasik blok ve konfigüratör ortak (Okan, 16 Tem: varsayılan 1, aralık 1-99).
@@ -1285,9 +1302,13 @@ def wa_href(p, url):
 def help_cta_href(p, url):
     """ORGANİK "Bizimle İletişime Geçin" (help-cta-btn) butonunun wa.me href'i.
 
-    Eskiden prefill BAĞLAM-KÖRdü (sabit "aradığım bir yedek parça var" — ürün
-    ADI/URL yok) -> Ege hangi katalog ürününden gelindiğini bilemez, lead düşer.
-    Artık prefill ürün ADI + canonical URL taşır -> Ege anında eşleştirir.
+    ⚠️ BU BUTONUN NİYETİ: kendi metni "Aradığınız parçayı bulamadınız mı? Bizimle
+    iletişime geçin, üretelim!" -> basan müşteri SAYFADAKİ ürünü İSTEMİYOR, BULAMADIĞI
+    BAŞKA bir parçayı arıyor. Prefill bu yüzden "bu ürünü istiyorum" DEMEZ; yoksa Ege
+    yanlış niyetle o ürün için fiyat/malzeme akışı başlatır (bağlamsızdan beter).
+    Eskiden prefill BAĞLAM-KÖRdü (sabit metin — hangi sayfadan gelindiği belirsiz).
+    Çözüm: sayfa bağlamını (ad + canonical URL) VER, niyeti ("aradığımı bulamadım,
+    üretebilir misiniz?") KORU.
 
     Kodlama sözleşmesi wa_href ile BİREBİR AYNI: metin quote() ile TEK KEZ
     percent-kodlanır (boşluk=%20, Türkçe ç/ğ/ı/ö/ş/ü UTF-8 %XX), döndürülen URL
@@ -1295,9 +1316,9 @@ def help_cta_href(p, url):
     için esc no-op) — double-encode YOK. Numara = WHATSAPP sabiti (arama 4005 ASLA).
     REF/atıf butonu (orderAlt) AYRIDIR; buraya dokunmak onu etkilemez."""
     from urllib.parse import quote
-    msg = (u"Merhaba, şu ürün sayfasındaydım: " + (p.get("baslik") or "")
+    msg = (u"Merhaba, şu sayfadaydım: " + (p.get("baslik") or "")
            + "\n" + url + "\n"
-           + u"Bu parça hakkında bilgi almak istiyorum.")
+           + u"Aradığım parçayı bulamadım, üretebilir misiniz?")
     return "https://wa.me/" + WHATSAPP + "?text=" + quote(msg)
 
 
@@ -1375,7 +1396,7 @@ def filament_html(p, wa_not=False, kartlar_gizli=False):
             % (" tavsiyeli" if rozet else "", esc(f["ad"]), esc(f["isiDayanimi"]), esc(f["ad"]),
                esc(f["kisaEtiket"]), rozet_html,
                esc(f.get("uzunAd") or f["ad"]), esc(f["kisaEtiket"]), esc(f["uzun"])))
-    wa_html = MUHENDISLIK_WA_NOT if wa_not else ""
+    wa_html = muhendislik_wa_not(p, product_url(p.get("id") or "")) if wa_not else ""
     if kartlar_gizli:
         # Konfigur-malzemeli sayfa: malzeme seçimi #malzemeButonlar fancy kartlarında -> burada
         # KART bölümü (başlık + #filCipler) mükerrer olur, basılmaz; WA notu + rehber linki kalır.
@@ -1668,7 +1689,7 @@ def render_product(p, all_products):
       {adet}
       <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
     </div>
-    """).format(malzeme_renk=_malzeme_renk_html(), boy=boy_html,
+    """).format(malzeme_renk=_malzeme_renk_html(p, url), boy=boy_html,
                 adet=ADET_HTML % (ADET_EN_AZ, ADET_EN_COK),
                 fiyat_metni=esc(price_text))
         price_html = ""
