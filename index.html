@@ -259,10 +259,14 @@
   /* ---------- JENERATÖR BANNER (sadece ana sayfa görünümü) ----------
      Tasarım dili: lacivert/gri; sarı SADECE arka plan ürün görselinde (CLAUDE.md).
      Metin, görselin üstünde HTML overlay — soldan sağa lacivert degrade okunurluk verir. */
+  /* İki gizli-seri banner'ı yan yana: yarı-boy 2'li grid (mobilde tek kolona düşer). */
+  .banner-row{
+    display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:0 0 22px;
+  }
   .jen-banner{
     display:flex;align-items:center;
-    margin:0 0 22px;border-radius:14px;overflow:hidden;
-    min-height:216px;text-decoration:none;position:relative;
+    margin:0;border-radius:14px;overflow:hidden;
+    min-height:96px;text-decoration:none;position:relative;
     background:var(--navy-dark);
     box-shadow:0 6px 18px rgba(18,41,77,.22);
   }
@@ -275,14 +279,14 @@
   .jen-banner-text{
     position:relative;z-index:1;
     max-width:62%;
-    padding:28px 34px;
+    padding:16px 24px;
     /* degrade overlay: sol koyu lacivert -> sağda görsel açık kalır */
     background:linear-gradient(90deg, rgba(13,30,58,.94) 0%, rgba(13,30,58,.86) 55%, rgba(13,30,58,0) 100%);
     align-self:stretch;display:flex;flex-direction:column;justify-content:center;
   }
   .jen-banner-title{
-    margin:0 0 8px;color:#fff;
-    font-size:23px;font-weight:800;line-height:1.25;letter-spacing:.2px;
+    margin:0 0 10px;color:#fff;
+    font-size:18px;font-weight:800;line-height:1.2;letter-spacing:.2px;
   }
   .jen-banner-sub{
     margin:0 0 14px;color:#c9d4e8;
@@ -292,18 +296,22 @@
     align-self:flex-start;
     color:#fff;font-size:14px;font-weight:700;
     border:1.5px solid rgba(255,255,255,.65);border-radius:9px;
-    padding:9px 16px;transition:.15s;
+    padding:7px 15px;transition:.15s;
   }
   .jen-banner:hover .jen-banner-btn{background:#fff;color:var(--navy);border-color:#fff}
   @media(max-width:640px){
-    .jen-banner{min-height:170px}
+    .jen-banner{min-height:84px}
     .jen-banner-text{
-      max-width:100%;padding:18px 20px;
+      max-width:100%;padding:14px 18px;
       /* dar ekranda görselin tamamı metnin altında kalır -> degrade tümünü kaplasın */
       background:linear-gradient(90deg, rgba(13,30,58,.94) 0%, rgba(13,30,58,.80) 100%);
     }
-    .jen-banner-title{font-size:18px}
+    .jen-banner-title{font-size:16px}
     .jen-banner-sub{font-size:13px}
+  }
+  /* Dar ekran: yan yana grid tek kolona düşer (banner'lar alt alta). */
+  @media(max-width:560px){
+    .banner-row{grid-template-columns:1fr}
   }
 
   /* ---------- SKAN ART BANNER (gizli dekor alt-serisi — sadece ana sayfa görünümü) ----------
@@ -313,19 +321,21 @@
      SARI KESİNLİKLE YOK (sarı yalnız parametrik seride; CLAUDE.md).
      Bu blok .jen-banner media query'sinden SONRA gelir ki override'lar kazansın. */
   .skan-banner{
-    min-height:168px;
+    min-height:96px;
+    /* görsel yüklenmezse taban lacivert degrade fallback kalır */
     background:linear-gradient(135deg, var(--navy-dark) 0%, #14294a 55%, var(--navy) 100%);
     border:1px solid rgba(255,255,255,.08);
   }
-  /* sol kenarda ince kırmızı aksan şeridi (marka kuralı: az kırmızı vurgu) */
+  /* dekor figürü (baykuş) sağ panelde: açık galeri zemini görünür, baş bölgesi çerçevede */
+  .skan-banner-img{object-position:right 28%}
+  /* kırmızı aksan şeridi metin degradesinin ÜSTÜNDE kalsın (z-index) ki görselle yıkanmasın */
   .skan-banner::before{
     content:"";position:absolute;top:0;left:0;width:4px;height:100%;
-    background:var(--red);
+    background:var(--red);z-index:2;
   }
+  /* metin katı .jen-banner-text degradesini miras alır (okunurluk); yalnız padding override */
   .skan-banner-text{
-    max-width:100%;
-    background:none;              /* arka planda görsel yok -> okunurluk degradesi gereksiz */
-    padding:26px 34px 26px 38px;
+    padding:16px 24px 16px 28px;
   }
   .skan-banner-ust{
     display:block;color:#9fb0c9;
@@ -333,8 +343,8 @@
     text-transform:uppercase;margin:0 0 8px;
   }
   @media(max-width:640px){
-    .skan-banner{min-height:150px}
-    .skan-banner-text{max-width:100%;background:none;padding:18px 20px 18px 24px}
+    .skan-banner{min-height:84px}
+    .skan-banner-text{padding:14px 18px 14px 22px}
   }
 
   .brand-row{
@@ -771,48 +781,43 @@
   </div>
 </header>
 
+<!-- Tek değer cümlesi + tek WhatsApp CTA (eski help-cta + info-strip 3× tekrar birleştirildi). -->
 <section class="help-cta">
   <div class="help-cta-inner">
-    <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
+    <span class="help-cta-text">Bulamadığın parçayı üretiyoruz: model numarası ya da kırık bir eşini gönder — ölçüye özel üretip gönderelim.</span>
     <a class="help-cta-btn"
        href="https://wa.me/905451386526?text=Merhaba%2C%20arad%C4%B1%C4%9F%C4%B1m%20bir%20yedek%20par%C3%A7a%20var.%20%C3%9Cretebilir%20misiniz%3F"
        target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm5.8 14.13c-.24.68-1.42 1.31-1.96 1.35-.5.05-.98.24-3.3-.69-2.77-1.09-4.56-3.9-4.7-4.08-.14-.19-1.12-1.49-1.12-2.84 0-1.35.71-2.02.96-2.29.24-.27.53-.34.71-.34.18 0 .35 0 .51.01.16.01.38-.06.6.46.24.56.79 1.94.86 2.08.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.72 1.18 1.54 1.91 1.06.94 1.95 1.24 2.23 1.38.28.14.44.12.6-.07.16-.19.69-.8.87-1.08.18-.28.36-.23.6-.14.24.09 1.55.73 1.81.86.27.14.45.21.51.32.06.11.06.64-.18 1.32z"/></svg>
-      Bizimle İletişime Geçin
+      WhatsApp'tan Yaz
     </a>
   </div>
 </section>
 
-<section class="info-strip">
-  <div class="info-strip-inner">
-    <p><strong>Model numarasını</strong> biliyorsanız gönderin, <strong>araştıralım</strong>; ya da <strong>parçanın bir eşini</strong> (kırık olsa da) gönderin, <strong>endüstriyel tarayıcıyla modelleyelim</strong>.</p>
-  </div>
-</section>
-
 <main>
-  <!-- PRUVO Jeneratör banner — SADECE ana sayfa görünümünde (renderGrid gösterir/gizler;
-       kategori/arama/marka görünümünde YOK). Metin HTML overlay'dir, görsele yazı
-       BASILMAZ (CLAUDE.md kuralı); arka plan görseli R2'de (Codex render, logosuz). -->
+  <!-- PRUVO gizli-seri banner'ları (Jeneratör + Skan Art) — SADECE ana sayfa görünümünde
+       (renderGrid #bannerRow'u gösterir/gizler; kategori/arama/marka görünümünde YOK).
+       Yarı-boy 2'li grid (yan yana; mobilde tek kolon). Metin HTML overlay'dir, görsele
+       yazı BASILMAZ (CLAUDE.md kuralı); arka plan görselleri R2'de (logosuz). -->
+  <div id="bannerRow" class="banner-row">
   <a id="jenBanner" class="jen-banner" href="/?kategori=Jenerat%C3%B6r">
     <img class="jen-banner-img" alt=""
          src="https://media.pruvo3d.com/urunler/jenerator-banner-cx1.jpg">
     <div class="jen-banner-text">
-      <h2 class="jen-banner-title">PRUVO Jeneratör ile sana özel parça tasarla, biz üretelim</h2>
-      <p class="jen-banner-sub">Ölçünü gir, fiyatını anında gör, siparişini ver — özel üretilip kargolanır.</p>
-      <span class="jen-banner-btn">Jeneratör'ü Keşfet &rarr;</span>
+      <h2 class="jen-banner-title">Ölçüne özel parça tasarla</h2>
+      <span class="jen-banner-btn">Keşfet &rarr;</span>
     </div>
   </a>
-  <!-- PRUVO "Skan Art" banner — gizli dekor alt-serisinin ana sayfadaki TEK girişi
-       (nav çipi yok). Jeneratör banner'ıyla aynı desen + aynı göster/gizle yolu
-       (renderGrid; kategori/arama/marka görünümünde YOK). Görselsiz saf-CSS. -->
   <a id="skanBanner" class="jen-banner skan-banner" href="/?kategori=Skan%20Art">
+    <img class="jen-banner-img skan-banner-img" alt=""
+         src="https://media.pruvo3d.com/banner/skan-baykus-b5.jpg">
     <div class="jen-banner-text skan-banner-text">
       <span class="skan-banner-ust">Skan Art</span>
-      <h2 class="jen-banner-title">Sade çizgiler, İskandinav dokunuşu</h2>
-      <p class="jen-banner-sub">Minimal formlu dekoratif figürler ve heykeller — ölçüsünü ve rengini seç, siparişin özel üretilip gönderilsin.</p>
-      <span class="jen-banner-btn">Skan Art'ı Keşfet &rarr;</span>
+      <h2 class="jen-banner-title">Sade çizgiler, sakin formlar</h2>
+      <span class="jen-banner-btn">Keşfet &rarr;</span>
     </div>
   </a>
+  </div>
   <div class="brand-row" id="brandRow">
     <span class="brand-label">Marka:</span>
     <div class="brand-chips" id="brandChips"></div>
@@ -2218,10 +2223,12 @@
     }
 
     // Gizli seri banner'ları (Jeneratör + Skan Art) SADECE ana sayfa görünümünde
-    // (kabul: kategori/arama/marka görünümünde YOK).
+    // (kabul: kategori/arama/marka görünümünde YOK). Artık tek grid sarmalayıcı
+    // (#bannerRow) toggle'lanır; ayrıca iki banner da güvenlik için toggle'lanır
+    // (sarmalayıcı id kayarsa banner'lar yine gizlenir).
     // NULL-GUARD: id yazım hatası ya da HTML bloğunun kayması renderGrid'i TypeError ile
     // düşürmesin — o durumda TÜM grid çizilmezdi (banner kaybı grid kaybından ucuzdur).
-    ["jenBanner", "skanBanner"].forEach(function(bannerId){
+    ["bannerRow", "jenBanner", "skanBanner"].forEach(function(bannerId){
       var bEl = document.getElementById(bannerId);
       if(bEl){ bEl.style.display = anaGorunum ? "" : "none"; }
     });
