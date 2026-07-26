@@ -219,6 +219,47 @@ def main():
     kontrol("en_yeni_kaynak_mtime sayi donduruyor",
             isinstance(yedekle.en_yeni_kaynak_mtime(), float))
 
+    # ---------------- 10) F1: KOK ANA AGACA COZULUYOR MU ----------------
+    print("\n10) F1 SAHTE TAZELIK — kok WORKTREE'den de ANA agaci gostermeli")
+    wt = os.path.abspath(os.path.join(TOOLS, ".."))    # bu betik bir worktree'de kosuyor olabilir
+    ana = yedekle.ana_calisma_agaci(wt)
+    # Bagimsiz ayirt edici: ANA agacta .git bir DIZIN, worktree'de bir DOSYA.
+    kontrol("cozulen kok ANA agac (.git DIZIN)", os.path.isdir(os.path.join(ana, ".git")), ana)
+    kontrol("modul ROOT'u da ANA agac", yedekle.ROOT == ana, yedekle.ROOT)
+    eksik = yedekle.repo_eksikleri()
+    kontrol("beklenen repo dosyalarinin HEPSI bulundu (kismi yedek YOK)", eksik == [],
+            "eksik: %s" % (eksik or "-"))
+    kontrol("_repo_dosyalari 4 dosya donduruyor", len(yedekle._repo_dosyalari(False)) == 4,
+            str(len(yedekle._repo_dosyalari(False))))
+    with tempfile.TemporaryDirectory() as td:
+        mut = mutant_yaz(td, [("        if p.returncode == 0 and ortak:",
+                               "        if False:  # MUTANT: git cozumu devre disi")])
+        mmod = modul_yukle(mut, "yedekle_mutant_kok")
+        kontrol("MUTANTTA kok WORKTREE'ye dusuyor (kontrol KIRMIZI yanardi)",
+                mmod.ana_calisma_agaci(wt) == wt, mmod.ana_calisma_agaci(wt))
+
+    # ---------------- 11) F1: KISMI YEDEK DAMGASI ----------------
+    print("\n11) F1 — eksik dosya varsa TAM GUVEN damgasi ATILMAMALI")
+    with tempfile.TemporaryDirectory() as td:
+        yedekle.damga_yaz(td, {"memory": 1, "skills": 1, "repo": 2},
+                          eksik=[".urun-kaynaklari.json", "DEVAM-ARSIV.md"])
+        d = yedekle.damga_oku(td)
+        kontrol("damga tam=False", d.get("tam") is False)
+        kontrol("eksik listesi damgada", d.get("eksik") == [".urun-kaynaklari.json",
+                                                           "DEVAM-ARSIV.md"])
+        yedekle.damga_yaz(td, {"memory": 1, "skills": 1, "repo": 4}, eksik=[])
+        kontrol("eksiksiz kosumda tam=True", yedekle.damga_oku(td).get("tam") is True)
+
+    # ---------------- 12) F4: BUDANAN DIZIN RAPORLANIYOR MU ----------------
+    print("\n12) F4 — budanan gurultu dizini SESSIZCE yutulmamali")
+    with tempfile.TemporaryDirectory() as td:
+        kok = os.path.join(td, "skills")
+        fikstur_kur(kok)                                   # __pycache__/x.pyc iceriyor
+        _d, _h, g = yedekle.skills_plani(kok=kok)
+        kontrol("budanan dizin gurultu listesinde", any("__pycache__" in x for x in g),
+                str(g))
+        kontrol("dizin oldugu belirtiliyor", any("(dizin budandi)" in x for x in g))
+
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok, _ in SONUC if not ok]
     print("\n" + "=" * 70)

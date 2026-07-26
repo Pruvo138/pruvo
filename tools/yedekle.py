@@ -34,12 +34,51 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 import time
 
-ROOT = os.path.join(os.path.dirname(__file__), "..")
+
+def ana_calisma_agaci(taban=None):
+    """Repo koku — DAIMA ANA calisma agaci, worktree DEGIL.
+
+    `taban` verilirse o dizinden cozer (test bir WORKTREE yolu verip ANA agaci
+    dondurdugunu kanitlayabilsin diye; varsayilan betigin kendi konumu).
+
+    🔴 NEDEN (F1, 26 Tem — "sahte tazelik" hatasi): kok eskiden __file__'dan
+    cozuluyordu (dirname(__file__)/..). Hook ise `git rev-parse --show-toplevel`
+    kullanir -> WORKTREE'den push edilince ROOT=WORKTREE oluyordu. Worktree'de
+    .urun-kaynaklari.json ve DEVAM-ARSIV.md gitignore'lu (YOK) -> o iki dosya
+    TAZELENMIYOR ama TAM GUVEN damgasi yaziliyor ve panonun saati sifirlaniyordu.
+    Bu repoda normal push ZATEN worktree push'u (mühendisler worktree'de calisir)
+    -> hata surekli tetiklenirdi. Olculdu: pano "14 dk once" derken
+    .urun-kaynaklari.json yedegi ~21 saat, DEVAM-ARSIV.md ~2 gun bayatti.
+    Ayrica worktree'nin CLAUDE.md/DEVAM.md fotografi ana kopyanin UZERINE yaziliyordu.
+
+    --git-common-dir worktree'de de ANA .git'i gosterir (durum.py'nin ana_repo()
+    ile ayni yontem). Git yoksa __file__ tabanina duser."""
+    if taban is None:
+        taban = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+    try:
+        p = subprocess.run(["git", "-C", taban, "rev-parse", "--path-format=absolute",
+                            "--git-common-dir"], capture_output=True, text=True)
+        ortak = p.stdout.strip()
+        if p.returncode == 0 and ortak:
+            return os.path.dirname(ortak.rstrip("/"))
+    except OSError:
+        pass
+    return taban
+
+
+ROOT = ana_calisma_agaci()
 MEMORY = os.path.expanduser("~/.claude/projects/-Users-okan-dev-pruvo/memory")
 SKILLS = os.path.expanduser("~/.claude/skills")
+
+# Repo kokunden BEKLENEN dosyalar. Biri eksikse yedek KISMIDIR -> tam guven
+# damgasi ATILMAZ (bkz. damga_yaz "tam" alani). Ilke: eksik yedek, eksik oldugunu SOYLER.
+REPO_BEKLENEN = (".urun-kaynaklari.json", "CLAUDE.md", "DEVAM.md", "DEVAM-ARSIV.md")
+REPO_SIR = (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir",
+            ".onizleme-kapat-anahtar", ".mukerrer-istisna.json")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import drive_yolu
@@ -123,13 +162,22 @@ def skills_plani(kok=None):
     Doner: (dahil, haric, gurultu)
       dahil   : [koke gorece yol]           -> yedege GIRER
       haric   : [(gorece yol, sebep)]       -> SIR nobeti eledi
-      gurultu : [gorece yol]                -> turetilmis (pyc/.DS_Store), sessizce atlanir
+      gurultu : [gorece yol | "<dizin>/ (dizin budandi)"]  -> turetilmis, alinmaz
+
+    F4 DUZELTMESI (26 Tem): budanan dizinler (__pycache__ ...) RAPORLANIR. Eskiden
+    os.walk budamasi sessizce yutuyordu -> kuru kosum "[skills-gurultu] 0" diyordu
+    ama agacta 2 .pyc vardi (15 dosya -> 13+0+0 raporlaniyordu). "Elenen her sey
+    raporlanir" iddiasi tutmuyordu. Dizin ADIYLA raporlanir, ICI GEZILMEZ: .git /
+    node_modules gibi devasa dizinlerde sayim icin yuruyus yapmak pahaliya patlar.
     """
     kok = SKILLS if kok is None else kok
     dahil, haric, gurultu = [], [], []
     if not os.path.isdir(kok):
         return dahil, haric, gurultu
     for dizin, altlar, dosyalar in os.walk(kok):
+        for budanan in sorted(a for a in altlar if a in GURULTU_DIZIN):
+            gurultu.append(os.path.relpath(os.path.join(dizin, budanan), kok)
+                           + "/ (dizin budandi)")
         altlar[:] = sorted(a for a in altlar if a not in GURULTU_DIZIN)
         for ad in sorted(dosyalar):
             tam = os.path.join(dizin, ad)
@@ -184,13 +232,16 @@ def _agac_dosyalari(kok):
 
 
 def _repo_dosyalari(sirlar):
-    """Repo kokunden yedeklenecek dosya adlari (varsayilan + --sirlar sancakli listesi)."""
-    adlar = [".urun-kaynaklari.json", "CLAUDE.md", "DEVAM.md", "DEVAM-ARSIV.md"]
-    if sirlar:
-        adlar += [".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir",
-                  ".onizleme-kapat-anahtar", ".mukerrer-istisna.json"]
+    """Repo kokunden yedeklenecek dosya adlari — BULUNANLAR (varsayilan + --sirlar)."""
+    adlar = list(REPO_BEKLENEN) + (list(REPO_SIR) if sirlar else [])
     return [a for a in adlar
             if os.path.exists(os.path.join(ROOT, a)) and not os.path.islink(os.path.join(ROOT, a))]
+
+
+def repo_eksikleri():
+    """BEKLENEN ama repo kokunde OLMAYAN dosyalar. Bos degilse yedek KISMIDIR.
+    (Sir listesi burada sayilmaz: onlar zaten kosullu/istege bagli.)"""
+    return [a for a in REPO_BEKLENEN if not os.path.exists(os.path.join(ROOT, a))]
 
 
 def damga_oku(backup):
@@ -203,11 +254,16 @@ def damga_oku(backup):
     return veri if isinstance(veri, dict) else None
 
 
-def damga_yaz(backup, sayilar):
+def damga_yaz(backup, sayilar, eksik=None):
     """Kosum sonunda tazelik damgasini yazar. Basarisiz olursa YEDEGI BOZMAZ
-    (uyari basar, cikis kodunu degistirmez) — damga bir kolaylik, yedek asil is."""
-    veri = {"surum": 1, "zaman": time.time(),
-            "iso": time.strftime("%Y-%m-%d %H:%M:%S")}
+    (uyari basar, cikis kodunu degistirmez) — damga bir kolaylik, yedek asil is.
+
+    F1: `eksik` doluysa damga "tam": False ile isaretlenir. TAM GUVEN damgasi
+    yalniz gercekten eksiksiz kosumda atilir; pano kismi yedegi TAZE SAYMAZ."""
+    eksik = list(eksik or [])
+    veri = {"surum": 2, "zaman": time.time(),
+            "iso": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "tam": not eksik, "eksik": eksik, "kok": ROOT}
     veri.update(sayilar)
     try:
         with open(os.path.join(backup, DAMGA_ADI), "w", encoding="utf-8") as f:
@@ -295,13 +351,18 @@ def main():
         print("[skills-HARIC (sir nobeti)] %d dosya" % len(haric))
         for g, sebep in haric:
             print("    skills/%s   -> ELENDI: %s" % (g, sebep))
-        print("[skills-gurultu (turetilmis)] %d dosya" % len(gurultu))
+        print("[skills-gurultu (turetilmis)] %d giris" % len(gurultu))
         for g in gurultu:
             print("    skills/" + g)
         repo = _repo_dosyalari(sirlar)
-        print("[repo] %d dosya%s" % (len(repo), "  (--sirlar ACIK)" if sirlar else ""))
+        print("[repo] %d dosya  <- %s%s"
+              % (len(repo), ROOT, "  (--sirlar ACIK)" if sirlar else ""))
         for a in repo:
             print("    " + a)
+        eksik = repo_eksikleri()
+        print("[repo-EKSIK (beklenen ama yok)] %d" % len(eksik))
+        for a in eksik:
+            print("    %s   -> KISMI YEDEK: damga 'tam: false' olur" % a)
         print("-" * 70)
         print("TOPLAM YEDEKLENECEK: %d dosya (memory %d + skills %d + repo %d)"
               % (len(mem) + len(dahil) + len(repo), len(mem), len(dahil), len(repo)))
@@ -377,9 +438,14 @@ def main():
 
     # TAZELIK DAMGASI — en sonda: yalniz kosum GERCEKTEN tamamlandiysa yazilir.
     # (Basta yazilsaydi yarida patlayan bir kosum "taze" gorunurdu = sahte guven.)
+    eksik = repo_eksikleri()
+    if eksik:
+        print("⚠️ KISMI YEDEK — repo kokunde BULUNAMAYAN beklenen dosya(lar): %s"
+              % ", ".join(eksik))
+        print("   kok: %s   (damga 'tam: false' isaretlenecek, pano TAZE SAYMAYACAK)" % ROOT)
     damga_yaz(backup, {"memory": len(_agac_dosyalari(MEMORY)),
                        "skills": yazilan, "skills_haric": len(haric),
-                       "repo": len(repo_adlari)})
+                       "repo": len(repo_adlari)}, eksik=eksik)
 
     print("bitti ->", backup)
     return 0

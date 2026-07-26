@@ -57,9 +57,10 @@ def mutant_yaz(dizin, eski, yeni, ad="durum_mutant.py"):
 
 
 def damga_kur(backup, yas_saniye, **ekstra):
+    """yas_saniye NEGATIF verilirse damga GELECEK tarihli olur (F3 senaryosu)."""
     os.makedirs(backup, exist_ok=True)
-    veri = {"surum": 1, "zaman": time.time() - yas_saniye, "iso": "TEST",
-            "memory": 112, "skills": 13, "repo": 4}
+    veri = {"surum": 2, "zaman": time.time() - yas_saniye, "iso": "TEST", "tam": True,
+            "eksik": [], "memory": 0, "skills": 0, "repo": 4}
     veri.update(ekstra)
     with open(os.path.join(backup, ".son-yedek.json"), "w") as f:
         json.dump(veri, f)
@@ -161,6 +162,60 @@ def main():
         mmod.yedek_dizini(kok)
         kontrol("MUTANTTA dosya DEGISTI (kontrol KIRMIZI yanardi)",
                 open(cfg).read() != onceki)
+
+    # ---------------- 6b) F2: DAMGANIN IDDIASI vs DRIVE'IN GERCEGI ----------------
+    print("\n6b) F2 — 'icerik' satiri damganin IDDIASI; gercekle karsilastirilmali")
+    with tempfile.TemporaryDirectory() as td:
+        b = os.path.join(td, "backup")
+        damga_kur(b, 3600, memory=3, skills=2)
+        for alt, adet in (("memory", 3), ("skills", 2)):
+            os.makedirs(os.path.join(b, alt))
+            for i in range(adet):
+                with open(os.path.join(b, alt, "d%d.txt" % i), "w") as f:
+                    f.write("x")
+        saglam = " ".join(durum.yedek_satirlari(durum.yedek_durumu(b, "var")))
+        kontrol("saglam yedekte ICERIK EKSIK uyarisi YOK", "ICERIK EKSIK" not in saglam)
+        # F2 senaryosu: yedek icerigi silindi, damga aynen duruyor
+        shutil.rmtree(os.path.join(b, "skills"))
+        d = durum.yedek_durumu(b, "var")
+        bozuk = " ".join(durum.yedek_satirlari(d))
+        kontrol("silinen icerik YAKALANDI", "ICERIK EKSIK" in bozuk, bozuk[-120:])
+        kontrol("sayim gercekle karsilastirildi", d["sayim"].get("skills") == (0, 2),
+                str(d["sayim"]))
+        kontrol("hala 'taze' diyor ama uyari EKLI (sahte guven yok)",
+                d["hal"] == "taze" and "⚠⚠" in bozuk)
+
+    # ---------------- 6c) F3: GELECEK TARIHLI DAMGA ----------------
+    print("\n6c) F3 — gelecek tarihli damga 'taze' DEMEMELI")
+    with tempfile.TemporaryDirectory() as td:
+        b = damga_kur(os.path.join(td, "backup"), -3600)      # 1 saat GELECEKTE
+        d = durum.yedek_durumu(b, "var")
+        satir = " ".join(durum.yedek_satirlari(d))
+        kontrol("hal 'supheli'", d["hal"] == "supheli", d["hal"])
+        kontrol("'taze' DEMIYOR", "taze:" not in satir)
+        kontrol("ŞÜPHELİ + ÖLÇÜLEMEDİ diyor", "ŞÜPHELİ" in satir and "ÖLÇÜLEMEDİ" in satir)
+        kontrol("1 saniye gelecek bile taze SAYILMIYOR (tolerans yok)",
+                durum.yedek_durumu(damga_kur(os.path.join(td, "b2"), -1), "var")["hal"]
+                == "supheli")
+
+    # ---------------- 6d) F1: KISMI DAMGA PANODA ----------------
+    print("\n6d) F1 — kismi yedek panoda TAZE gibi gecmemeli")
+    with tempfile.TemporaryDirectory() as td:
+        b = damga_kur(os.path.join(td, "backup"), 60, tam=False,
+                      eksik=[".urun-kaynaklari.json", "DEVAM-ARSIV.md"])
+        satir = " ".join(durum.yedek_satirlari(durum.yedek_durumu(b, "var")))
+        kontrol("KISMI YEDEK uyarisi VAR", "KISMI YEDEK" in satir)
+        kontrol("eksik dosya adlari yaziliyor", ".urun-kaynaklari.json" in satir)
+        b2 = damga_kur(os.path.join(td, "b2"), 60, tam=True, eksik=[])
+        kontrol("tam yedekte KISMI uyarisi YOK",
+                "KISMI YEDEK" not in " ".join(durum.yedek_satirlari(durum.yedek_durumu(b2, "var"))))
+        b3 = os.path.join(td, "b3")
+        os.makedirs(b3)
+        with open(os.path.join(b3, ".son-yedek.json"), "w") as f:
+            json.dump({"zaman": time.time() - 60, "iso": "ESKI", "memory": 1}, f)
+        kontrol("eski surum damgasi 'tamlik bilgisi yok' notu aliyor",
+                "tamlik bilgisi yok" in " ".join(
+                    durum.yedek_satirlari(durum.yedek_durumu(b3, "var"))))
 
     # ---------------- 7) UCTAN UCA: gercek pano ----------------
     print("\n7) UCTAN UCA — python3 tools/durum.py")
