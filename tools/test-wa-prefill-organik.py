@@ -104,9 +104,14 @@ URUN_PARAMETRIK = {
 # "wa.me/<numara>" dizisi de denetlenir (ör. ürün başlığında). Bu bilerekdir — arama
 # hattını wa.me ile yan yana BASMAK da aynı kuralın ihlalidir. Ölçüldü: 344 gerçek
 # üründe bu yüzden tek bir kırmızı bile yok (sentetik olarak zorlandığında yanıyor).
+# ⚠️ IGNORECASE: host ve şema HARF-DUYARSIZ eşleşir — "https://WA.ME/<numara>" ve "Wa.Me/..."
+# tarayıcıda AYNI linktir (host case-insensitive), ama nöbetçiden kaçıyordu (ölçüldü: N14/N15).
+# Bayrak YALNIZ URL yakalamayı etkiler; numara/?phone= AYRIŞTIRMASI ayrı fonksiyonda ve
+# rakam kalıbı harf içermediği için davranışı DEĞİŞMEZ. Ölçüldü: 12.234 üründe 0 fazladan
+# eşleşme. chat.whatsapp.com harf-duyarsızlıkla da kapsama GİRMEZ (alternasyonda yok).
 WA_URL_RE = re.compile(
     r"(?<![\w.-])(?:https?://)?(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/[^\s\"'<>]*"
-    r"|(?<![\w.-])whatsapp://[^\s\"'<>]*")
+    r"|(?<![\w.-])whatsapp://[^\s\"'<>]*", re.IGNORECASE)
 # Geçerli uluslararası numara: yalnız rakam (baştaki + serbest), 10-15 hane. Boşluklu/
 # tireli/noktalı bir "numara" bu kalıba UYMAZ -> ayrıştırılamaz sayılır (fail-closed).
 GECERLI_NUMARA_RE = re.compile(r"\+?\d{10,15}")
@@ -186,18 +191,24 @@ def wa_numara_adaylari(url):
         (yolları sabit "send"dir, numara taşımaz -> yol taranmaz, yoksa "send" hep
         ayrıştırılamayan numara sanılıp yanlış-pozitif üretirdi)
     Boş liste = link numara literali taşımıyor (JS'te değişkenle kuruluyor)."""
-    if url.startswith("whatsapp://"):
-        host, kalan = "whatsapp://", url[len("whatsapp://"):]
+    # Şema/host HARF-DUYARSIZ karşılaştırılır (WA.ME/... tarayıcıda aynı linktir; küçük
+    # harfe indirmezsek host eşleşmesi tutmaz ve numara YOLDAN hiç okunmazdı -> N14/N15).
+    # Numaranın KENDİSİ asla küçültülmez/değiştirilmez (rakam, harf-duyarsızlığı yok).
+    if url.lower().startswith("whatsapp://"):
+        host, kalan = "whatsapp", url[len("whatsapp://"):]
     else:
-        kalan = re.sub(r"^https?://", "", url)
+        kalan = re.sub(r"^https?://", "", url, flags=re.IGNORECASE)
         host, _, kalan = kalan.partition("/")
+        host = host.lower()
     yol, _, sorgu = kalan.partition("?")
     adaylar = []
     if host == "wa.me":
         seg = yol.strip("/")
         if seg:
             adaylar.append(("yol", unquote(seg)))
-    q = re.search(r"(?:^|&)phone=([^&]*)", sorgu)
+    # Anahtar adı da harf-duyarsız aranır (?Phone=). "(?:^|&)" çapası sayesinde
+    # "telephone=" gibi daha uzun bir anahtarın sonuna yanlış eşleşmez.
+    q = re.search(r"(?:^|&)phone=([^&]*)", sorgu, re.IGNORECASE)
     if q and q.group(1):
         adaylar.append(("phone=", unquote(q.group(1))))
     return adaylar
@@ -222,33 +233,54 @@ def numara_kontrol(ad, doc, fails):
         fails.append("%s: WhatsApp ve arama numarası AYNI (%s) — CLAUDE.md hat ayrımı "
                      "çökmüş" % (ad, wa))
 
-    bulunan = []          # (url, numara) — GEÇERLİ ayrıştırılmış numaralar
+    bulunan = []          # (url, numara) — GEÇERLİ ayrıştırılmış numaralar (HAM metinden)
     dinamik = []          # numara LİTERALİ taşımayan link parçası (JS'te değişkenle kurulan)
-    for m in WA_URL_RE.finditer(doc):
-        url = _html.unescape(m.group(0))
-        adaylar = wa_numara_adaylari(url)
-        if not adaylar:
-            dinamik.append(url)
-            continue
-        for kaynak, ham in adaylar:
-            if not GECERLI_NUMARA_RE.fullmatch(ham):
-                # FAIL-CLOSED: ayrıştırılamayan numara SESSİZCE ATLANMAZ. Boşluk/tire/nokta
-                # ya da eksik hane -> link ya bozuk ya da denetimden kaçırma girişimi;
-                # atlanırsa taban(3) onu "yutar" ve kaçak sahte-yeşil geçerdi (ölçüldü).
-                fails.append(
-                    "%s: WhatsApp linkinin numarası AYRIŞTIRILAMADI (%s=%r, rakama "
-                    "indirgenince %r%s) — sessizce ATLANMAZ, KIRMIZI -> %r"
-                    % (ad, kaynak, ham, _rakam(ham),
-                       ", bu ARAMA hattı" if _rakam(ham) == arama else "", url[:120]))
+    gorulen = set()       # aynı ihlali iki taramada iki kez bildirme
+
+    def _tara(metin, tabana_say):
+        for m in WA_URL_RE.finditer(metin):
+            url = _html.unescape(m.group(0))
+            adaylar = wa_numara_adaylari(url)
+            if not adaylar:
+                if tabana_say:
+                    dinamik.append(url)
                 continue
-            n = _rakam(ham)
-            bulunan.append((url, n))
-            if n != wa:
-                fails.append(
-                    "%s: WhatsApp linki YANLIŞ numara taşıyor (%s, beklenen %s)%s -> %r"
-                    % (ad, n, wa,
-                       " — bu ARAMA hattı, WhatsApp linkinde ASLA olmaz" if n == arama else "",
-                       url[:120]))
+            for kaynak, ham in adaylar:
+                if not GECERLI_NUMARA_RE.fullmatch(ham):
+                    # FAIL-CLOSED: ayrıştırılamayan numara SESSİZCE ATLANMAZ. Boşluk/tire/
+                    # nokta ya da eksik hane -> link ya bozuk ya da denetimden kaçırma
+                    # girişimi; atlanırsa taban(3) onu "yutar", kaçak sahte-yeşil geçerdi.
+                    anahtar = ("ayristirilamaz", url, ham)
+                    if anahtar not in gorulen:
+                        gorulen.add(anahtar)
+                        fails.append(
+                            "%s: WhatsApp linkinin numarası AYRIŞTIRILAMADI (%s=%r, rakama "
+                            "indirgenince %r%s) — sessizce ATLANMAZ, KIRMIZI -> %r"
+                            % (ad, kaynak, ham, _rakam(ham),
+                               ", bu ARAMA hattı" if _rakam(ham) == arama else "", url[:120]))
+                    continue
+                n = _rakam(ham)
+                if tabana_say:
+                    bulunan.append((url, n))
+                if n != wa:
+                    anahtar = ("yanlis", url, n)
+                    if anahtar not in gorulen:
+                        gorulen.add(anahtar)
+                        fails.append(
+                            "%s: WhatsApp linki YANLIŞ numara taşıyor (%s, beklenen %s)%s "
+                            "-> %r"
+                            % (ad, n, wa,
+                               " — bu ARAMA hattı, WhatsApp linkinde ASLA olmaz"
+                               if n == arama else "", url[:120]))
+
+    _tara(doc, True)
+    # İKİNCİ TARAMA — VARLIK-KODLU gizleme: href="https://wa&#46;me/<numara>" tarayıcıda
+    # ÇALIŞAN bir linktir ama ham metinde regex'e görünmez (ölçüldü). Çözülmüş metin
+    # YALNIZ İHLAL ARAR: tabana ve dinamik listesine SAYILMAZ, yoksa her link iki kez
+    # sayılıp taban anlamsızlaşırdı (pozitif nöbetçiyi kapsam büyütmeyle öldürme tuzağı).
+    cozulmus = _html.unescape(doc)
+    if cozulmus != doc:
+        _tara(cozulmus, False)
     print("  [%s] WhatsApp link sayısı=%d, numaralar=%s"
           % (ad, len(bulunan), sorted(set(n for _, n in bulunan)) or "-"))
     if dinamik:
