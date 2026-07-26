@@ -27,9 +27,15 @@ cikti.
 
 NE OLCER (KAPSAM DAR — bilerek):
   (A) ISTEK: musteriden URETIM icin olcu / cizim / teknik detay isteyen EMIR
-  (B) URETIM SOZU: "ozel uretiriz" sinifi 1. cogul uretim taahhudu
+  (B) URETIM SOZU — IKI KADEME (bkz. URETIM_ACIK_RE / URETIM_GENEL_RE):
+      · ACIK kip tek basina ("uretiriz", "yapabiliriz", "hallederiz")    -> yanar
+      · GENEL kip ("yaparız", "veririz") + MUSTERI-ISI baglami           -> yanar
+        (baglam: urun/uretim jetonu · biz/size/sizin · bunu/aynisini · TL'ye · fiyat)
+      · GENEL kip, baglam YOK ("Kargo cikisini ayni gun yaparız")        -> YANMAZ
   (C) FIYAT TAAHHUDU — IKI KANATLI (bkz. TAAHHUT_GUCLU_RE / TAAHHUT_ZAYIF_RE):
-      · para + GUCLU kip ("800 TL tutar", "diyebiliriz", "veririz")      -> yanar
+      · para + GUCLU kip ("800 TL tutar", "diyebiliriz", "hesaplariz")   -> yanar
+        ⚠️ "veririz/vereceğiz" GUCLU DEGILDIR (TUR 6'da cikti) -> (B)/GENEL kanadinda
+           baglamla yakalanir; baglamsiz "800 TL veririz" (C)'den KACAR (asagi bak)
       · para + YAKLASIK + ZAYIF kip ("yaklasik 700 TL ... yazar/olur")   -> yanar
       · para + ZAYIF kip, tahmin jetonu YOK ("fiyat sayfada yazar")      -> YANMAZ
         (BETIMLEMEDIR; belgenin l.7/l.9/l.45'i tam bu sinifta)
@@ -108,16 +114,43 @@ ISTEK_RE = re.compile(
 # TUTARLILIK NOTU: belgenin gercek 1. cogullari ("kargolariz" l.14, "oturturuz" l.10)
 # BILEREK listede yok — musterinin parcasi icin VERILEN SOZ degil, kendi surecimizin
 # anlatimidirlar.
+# 🔴 TUR 7 ONARIMI — TUR 6'nin daraltmasi ASIRI-DUZELTMEYDI, GERI ALINDI.
+# Olculdu: daraltmanin onledigi yanlis-pozitifler ERISILEBILIR DEGILDI
+# (yaparız/veririz/hallederiz/yapabiliriz -> canli ege-bilgi.md'de x0; kapi TUR 4-5-6'da
+# canli belgede zaten 0 bulgu veriyordu). Karsiliginda 28 cumlelik gercek taahhut
+# korpusunda yakalama 21 -> 4 dustu; kacanlar arasinda M2'nin (26 Tem kazasi, bu kapinin
+# KURULUS SEBEBI) tek kelimelik parafrazlari vardi: "...yoksa biz de yaparız."
+# ASIMETRI (mimar dersi): yanlis-pozitif GURULTULUdur, dakikalar icinde duzeltilir;
+# (B)/(C) kacisi SESSIZdir ve canli musteriye TICARI BEYAN olarak gider.
+# ONARIM YONTEMI: bastirici/negatif veto DEGIL (TUR 4 onu bilerek oldurdu) -> BAGLAMI
+# GENISLET. Olculdu: yakalama 4 -> 17+/28, mesru korpusta yanlis-pozitif 0 (degismedi).
+#
+# hallederiz/hallederim TUR 7'de ACIK listeye TASINDI: "...yoksa hallederiz" tek basina
+# M2 sinifi bir taahhuttur ve baglam kelimesi TASIMAZ (fikstur G9).
+# ACIK = tek basina KABILIYET/TAAHHUT beyani; baglam gerekmez.
+# "yapabiliriz/yaptirabiliriz" TUR 7'de buraya alindi: bunlar "bunu YAPABILIRIZ" =
+# duz kabiliyet iddiasidir ve tam da :41'in yasakladigi sozdur ("Elbette yapabiliriz."
+# baglam kelimesi TASIMAZ ama taahhuttur — fikstur G11).
+# "hallederiz/hallederim" de ACIK: "...yoksa hallederiz" M2 sinifi taahhut (G9).
 URETIM_ACIK_RE = re.compile(
     r"\büretiriz\b|\büretebiliriz\b|\büretiveririz\b|\büstleniriz\b"
-    r"|\bbasarız\b|\btasarlarız\b|sıfır\s+toleransla",
+    r"|\bbasarız\b|\btasarlarız\b|\bhallederiz\b|\bhallederim\b"
+    r"|\byapabiliriz\b|\byaptırabiliriz\b|sıfır\s+toleransla",
     re.IGNORECASE)
+# GENEL = uretim DISI baglamda da dogal olan fiiller; MUSTERI-ISI baglami ister.
+# Mesru kalmasi gerekenler: "Kargo cikisini ayni gun yaparız." (G1) ·
+# "2.500 TL uzerinde kargoyu ucretsiz veririz." (G2)
 URETIM_GENEL_RE = re.compile(
-    r"\byaparız\b|\byapabiliriz\b|\byaptırabiliriz\b|\bhallederiz\b|\bhallederim\b"
-    r"|\bveririz\b|\bveririm\b|\bvereceğiz\b|\bvereceğim\b",
+    r"\byaparız\b|\bveririz\b|\bveririm\b|\bvereceğiz\b|\bvereceğim\b",
     re.IGNORECASE)
+# BAGLAM = "bu soz MUSTERININ ISI icin mi veriliyor". Urun/uretim jetonlarina ek olarak
+# 1. cogul zamir + musteri-nesnesi + "TL'ye" (fiyata is alma) jetonlari.
+# ⚠️ Ciplak "TL" BILEREK YOK: "2.500 TL uzerinde kargoyu ucretsiz veririz" mesrudur.
 URUN_BAGLAM_RE = re.compile(
-    r"üret|imal|\bparça|baskı|\bözel\b|tasarım|kalıp|sizin\s+için|size\s+özel",
+    r"üret|imal|\bparça|baskı|\bözel\b|tasarım|kalıp"
+    r"|sizin\s+için|size\s+özel|sizin\s+adınıza|sizin\s+yerinize|\bsize\b|\bsizin\b"
+    r"|\bbiz\b|\bbizde\b|\baynısını\b|\byenisini\b|\bbunu\b|\bbunları\b|\bşunu\b"
+    r"|TL['’]ye|\bfiyat|\bölçünüze\b|\bölçüye\b|\bölçüsüne\b|\bmodele\b",
     re.IGNORECASE)
 
 # FIYAT SOZU — kesin VEYA yaklasik. Yaklasik/tahmini yalniz PARA jetonuna yakinsa
@@ -318,7 +351,10 @@ def olcumu_bas(yol, metin, sessiz=False):
 
 
 def ne_olculmedi():
-    print("""
+    # r""" ZORUNLU: govde `\bçap`, `\w*` gibi ham regex parcalari iceriyor; ham
+    # olmayan dizgide bunlar SyntaxWarning uretir ve `-W error::SyntaxWarning`
+    # altinda IMPORT'U KIRAR (TUR 6'da CI stderr'ine basiyordu).
+    print(r"""
 NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
   · 🔴 PARAFRAZ KACISI GENISTIR — bu maddeyi kucumseme. Bu kapi PROSE ONAYI VERMEZ.
     Yesil = "aranan uc kalibin SOZDIZIMI bulunamadi" demektir; "metin dogru" demek
@@ -333,11 +369,19 @@ NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
     "çapa" (MARIN kategorisinin cekirdek urunu — biz capa parcasi satiyoruz),
     "çapak" (baski artigi) ve "çapraz" DISARIDA tutulur. Bedeli: "çapa" ile
     BASLAYAN gercek bir olcu kelimesi olsaydi kacardi. Fiksturler C1-C5.
-  · KOR NOKTA — jenerik 1. cogul fiiller ("yaparız/yapabiliriz/veririz/hallederiz")
-    yalniz URUN/URETIM baglami varken (B) sayilir. Bedeli: baglam kelimesi
-    gecmeyen ortuk bir uretim sozu ("Sizin adiniza hallederiz") KACAR. Alternatifi
-    olculdu: baglamsiz surum "Kargo cikisini ayni gun yaparız" ve "kargoyu ucretsiz
-    veririz" cumlelerini KIRMIZI yakip TUM SITE yayinini durduruyordu. G1-G6.
+  · KOR NOKTA — GENEL fiiller ("yaparız/veririz/vereceğiz") yalniz MUSTERI-ISI
+    baglami varken (B) sayilir (baglam: urun/uretim jetonu · biz/size/sizin ·
+    bunu/aynisini/yenisini · TL'ye · fiyat). ACIK fiiller (uretiriz/yapabiliriz/
+    hallederiz/basariz/tasarlariz/ustleniriz) baglam ISTEMEZ.
+    OLCULEN BEDEL — su siniflar KACAR (26 Tem, onarim SONRASI olculdu):
+      · "800 TL veririz." · "1.500 TL vereceğiz."  -> baglamsiz GENEL fiil + para.
+        (C) bunlari GORMEZ cunku "veririz/vereceğiz" TUR 6'da GUCLU listeden cikti;
+        (B) de gormez cunku baglam jetonu yok. ILAN EDILMIS BOSLUK.
+      · "Kargo cikisini ayni gun yaparız." -> KASITLI: bu MESRU bir cumle, yanmamali.
+    TUR 6 dersi: bu baglam sarti bir donem `yapabiliriz/hallederiz`e de uygulanmisti
+    ve 28 cumlelik taahhut korpusunda yakalama 27 -> 10'a dusmustu (M2'nin, yani
+    kapinin KURULUS VAKASININ parafrazlari dahil). TUR 7'de geri alindi: cozum
+    BASTIRICI degil BAGLAM GENISLETME + acik fiilleri standalone birakma. G1-G13.
   · 🔴 DUZ KESIN FIYAT BEYANI OLCULMEZ. "Bu parca 1.200 TL." · "Fiyat 900-1100 TL."
     gibi RAKAMLI DUZ beyanlar bu kapidan YESIL gecer. Kapsanamaz: belgenin MESRU
     icerigi fiyat/TL dolu (l.9 kargo esigi + ornek hesap), duz rakam yakalayan bir
@@ -560,6 +604,28 @@ FIKSTURLER = [
      "baglam sarti (B) sinifini DELMEMELI"),
     ("G6 URUN baglaminda 'veririz'", "- Parça için 2.000 TL fiyat veririz.", True,
      "'parca' baglami var -> uretim/fiyat sozu"),
+    # ═══ TUR 7: BAGLAM SARTININ BEDELINI OLCEN FIKSTURLER ═══
+    # 🔴 NEDEN: G5/G6 tam da test ettikleri baglam kelimesinin ("sizin için" / "parça")
+    # USTUNE oturmustu -> baglam sartinin BEDELINI olcemiyorlardi. TUR 6'da bu yuzden
+    # 59/59 yesil yanarken 28 cumlelik taahhut korpusunda yakalama 27 -> 10'a dusmustu
+    # ve M2'nin (kapinin KURULUS VAKASI) parafrazlari kaciyordu. Asagidakiler o
+    # bosluğun UZERINDE oturur: MUT (baglam genislemesini geri al) hepsini kirar.
+    ("G7 M2 parafrazi: '...yoksa biz de yaparız'",
+     "- *Yapabilir misiniz?* → katalogda benzeri varsa oradan git, yoksa biz de yaparız.",
+     True, "26 Tem kazasinin TEK KELIMELIK parafrazi — kacarsa kapi kendi dogus vakasini gormez"),
+    ("G8 M2 parafrazi: '...yoksa hallederiz'",
+     "- *Yapabilir misiniz?* → katalogda benzeri varsa oradan git, yoksa hallederiz.",
+     True, "ayni sinif; 'hallederiz' ACIK oldugu icin baglamsiz da yanar"),
+    ("G9 'Sizin adınıza yapabiliriz.'", "- Sizin adınıza yapabiliriz.", True,
+     "ACIK fiil — baglam olmadan da yanmali"),
+    ("G10 '2.000 TL fiyat veririz.' (urun kelimesi YOK)",
+     "- 2.000 TL fiyat veririz.", True, "baglam 'fiyat' jetonundan gelir"),
+    ("G11 'Elbette yapabiliriz.' (HIC baglam yok)", "- Elbette yapabiliriz.", True,
+     "duz kabiliyet iddiasi; TUR 6'da KACIYORDU"),
+    ("G12 'Ölçünüze göre hallederiz.'", "- Ölçünüze göre hallederiz.", True,
+     "ACIK fiil; TUR 6'da KACIYORDU"),
+    ("G13 'Size 800 TL'ye veririz.'", "- Size 800 TL'ye veririz.", True,
+     "baglam: 'size' + \"TL'ye\"; TUR 6'da KACIYORDU"),
 ]
 
 
