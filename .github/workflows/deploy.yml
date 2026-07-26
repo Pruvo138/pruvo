@@ -144,6 +144,31 @@ jobs:
       - name: Ege-bilgi tavan kapisi ic nobetci (kapinin kendi mantigi)
         run: python3 tools/ege-bilgi-tavan-test.py --ic-nobetci
 
+      # EGE KABILIYET-SINIRI KAPISI (26 Tem): ege-bilgi.md musteriden URETIM olcusu/cizimi
+      # ISTIYOR mu, ya da uretim/fiyat SOZU veriyor mu? Canli SISTEM_TALIMATI bunu katalog-bos
+      # dalinda uc yerde yasakliyor (pruvo-bot worker/src/index.js :41, :52, :2467; ayrica :57
+      # "yaklasik su kadar tutar' DEME"). ege-bilgi.md her konusmada o talimatin YANINA enjekte
+      # edildigi icin buradaki bir "olcu/cizim iste" ya da "ozel uretiriz" satiri AYNI prompt
+      # icinde iki zit talimat yaratir -> model rastgele birini secer, yasak SESSIZCE delinir.
+      # NEDEN AYRI KAPI: bu hata sinifini olcen test YOKTU — bot tarafindaki
+      # ege-bilgi-nobetci.mjs'in 5 ekseninde (ODEME/TESLIM/KARGO/MALZEME/FIYAT) kabiliyet-siniri
+      # ekseni yok, musteri-bacagi-nobetci.mjs ise SENTETIK fikstur okur, gercek ege-bilgi.md'ye
+      # bakmaz. 26 Tem'de tam bu sinif tum testler YESILken bir dala girdi ("foto/olcu/cizim
+      # iste"); kapi o dersin ciktisi. Kapsam BILEREK dar (3 sinif) — genisletmek l.11/l.18/l.38
+      # gibi mesru satirlari sahte-kirmizi yakar. Offline, stdlib, ~5 ms.
+      - name: Ege kabiliyet-siniri kapisi (olcu/cizim istegi · uretim/fiyat sozu)
+        run: python3 tools/ege-kabiliyet-kapisi.py
+
+      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 10 fiksturle olcer. Hem YAKALAMA
+      # (eski dal metni · "ozel uretiriz" · mm/kumpas olcu talebi · yaklasik fiyat) hem
+      # YANLIS-POZITIF yonu (teshis fotosu SERBEST · kosul sormak SERBEST · isi araligindaki
+      # "yaklasik" fiyat degil · olumsuz emir) olculur. Kritik fikstur M1: olumsuzlama CUMLECIK
+      # duzeyinde aranmali — satir duzeyinde arayan bir surum, ayni satirdaki "verme" jetonunu
+      # gorup "olcu/cizim iste" emrini MASKELER ve sahte-yesil yanar (olculdu). Fiksturler
+      # bellekte; repo dosyalarina DOKUNMAZ. Offline, stdlib.
+      - name: Ege kabiliyet kapisi ic nobetci (kirmizi-mutasyon)
+        run: python3 tools/ege-kabiliyet-kapisi.py --ic-nobetci
+
       # ENJEKSIYON KAPISI: build.py'nin sayfalara inline bastigi JS (attribution/riza + meta)
       # bayt-bayt bozulmadan mi gidiyor. Yasanmis hata: re.sub REPLACEMENT kacisi yorumlayinca
       # ya JS string'i kiriliyor (sayfa acilir, script SESSIZCE hic calismaz) ya da build tumden
