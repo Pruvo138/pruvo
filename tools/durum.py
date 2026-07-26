@@ -33,6 +33,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 
 ANA_DAL = "main"
@@ -342,6 +343,240 @@ def edge_satirlari(e):
     return satirlar
 
 
+# ------------------------------------------------------------------- YEDEK TAZELIGI
+# Kaynak: tools/yedekle.py -> Drive'daki backup/.son-yedek.json damgasi.
+#
+# NEDEN VAR (26 Tem olcumu): yedekle.py DOGRU calisiyordu ama ELLE cagriliyordu; 5 gun
+# kosulmadi, mutasyon-kanitli skill dosyalari yedekte bayat kaldi ve HICBIR SEY bunu
+# gostermiyordu. Sessizce durmus yedek = yedek yok. Gorunurluk otomasyondan ONCE gelir.
+#
+# NEDEN DAMGA, NEDEN MTIME DEGIL: yedekle.py shutil.copy2 kullanir -> KAYNAK mtime'ini
+# korur. Yedekteki dosyanin mtime'i "yedek ne zaman kosuldu"yu degil "kaynak ne zaman
+# duzenlendi"yi soyler; tazeligi ondan olcmek YANILTIR (Drive'daki dosyalar 21 Tem
+# gorunuyordu cunku kaynak o tarihliydi).
+#
+# ⚠️ SALT-OKUNUR SOZLESMESI: drive_yolu.stl_dizini() BILEREK cagrilmaz — o fonksiyon
+# bayat .stl-backup-dir'i DUZELTIR, yani DOSYA YAZAR. Pano yazmaz (modul basligindaki
+# sozlesme). Burada yalniz drive_yolu.DESEN sabiti (tek kaynak) okunur, cozum yerelde
+# ve salt-okunur yapilir.
+
+YEDEK_DAMGA_ADI = ".son-yedek.json"
+YEDEK_BAYAT_SANIYE = 2 * 86400   # ~2 gun. TEK YER — esigi baska yere serpistirme.
+YEDEK_ZAMAN_ASIMI = 5.0          # saniye. Olculen normal sure: 0,0005 s.
+
+# N3 — PANO ASLA ASILMAZ. Bolum 7 bir AG/BULUT mount'una (CloudStorage) dokunuyor;
+# mount yanit vermezse glob/isdir/os.walk KILITLENIR ve `durum.py` asilir. Bu arac her
+# oturumun ILK komutu -> asilirsa mimarin butun acilisi bloklanir. Cozum: olcumu ayri
+# bir DAEMON is parcaciginda kos, sureyi asarsa PARCACIGI TERK ET ve panoya devam et.
+# Neden signal.alarm DEGIL: SIGALRM yalniz ana is parcaciginda kurulabilir ve asili
+# bir mount'ta kesintisiz (uninterruptible) sistem cagrisini kesmeyebilir; daemon
+# parcacik asilsa bile yorumlayici cikisini engellemez.
+
+
+def zaman_asimiyla(fonk, saniye=None):
+    """fonk()'u zaman siniriyla kosar. Doner: (sonuc, asildi_mi).
+
+    saniye None ise modul sabiti CALISMA ANINDA okunur (edge_esigi/yedek_durumu ile
+    ayni desen) -> test sabiti gecici kisaltip zaman asimi yolunu kanitlayabilir.
+    fonk icinde olusan istisna CAGIRANA aynen aktarilir (davranis degismesin)."""
+    if saniye is None:
+        saniye = YEDEK_ZAMAN_ASIMI
+    kutu = {}
+
+    def sar():
+        try:
+            kutu["sonuc"] = fonk()
+        except BaseException as e:                     # pano: hicbir hal disari sizmasin
+            kutu["hata"] = e
+
+    ip = threading.Thread(target=sar, daemon=True)
+    ip.start()
+    ip.join(saniye)
+    if ip.is_alive():
+        return None, True                              # parcacik TERK EDILDI (daemon)
+    if "hata" in kutu:
+        raise kutu["hata"]
+    return kutu.get("sonuc"), False
+
+
+def _drive_deseni():
+    """drive_yolu.DESEN (Drive mount joker deseni) — tek kaynak. Modul yoksa None.
+    drive_yolu import aninda HICBIR SEY yazmaz/calistirmaz (yalniz sabit tanimlar)."""
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import drive_yolu
+        return drive_yolu.DESEN
+    except Exception:
+        return None
+
+
+def yedek_dizini(repo_kok):
+    """Drive'daki backup/ dizinini SALT-OKUNUR cozer. (yol, hal) doner.
+    hal: 'var' | 'klasor-yok' (Drive bagli ama backup yok) | 'drive-yok'."""
+    adaylar = []
+    cfg = os.path.join(repo_kok, ".stl-backup-dir")
+    try:
+        if os.path.isfile(cfg):
+            with open(cfg, "r", errors="replace") as f:
+                kayitli = f.read().strip()
+            if kayitli:
+                adaylar.append(kayitli)
+    except OSError:
+        pass
+    desen = _drive_deseni()
+    if desen:
+        try:
+            adaylar += sorted(glob.glob(desen))
+        except OSError:
+            pass
+    drive_bagli = False
+    for stl in adaylar:
+        ust = os.path.dirname(stl.rstrip("/"))       # .../Pruvo/STL -> .../Pruvo
+        try:
+            if not os.path.isdir(ust):
+                continue                              # kayitli yol bayat/mount yok
+            drive_bagli = True
+            backup = os.path.join(ust, "backup")
+            if os.path.isdir(backup):
+                return backup, "var"
+        except OSError:
+            continue
+    return None, ("klasor-yok" if drive_bagli else "drive-yok")
+
+
+def _agac_say(dizin):
+    """SALT-OKUNUR dosya sayimi (os.walk). Okunamazsa None. HICBIR SEY YAZMAZ."""
+    try:
+        if not os.path.isdir(dizin):
+            return 0
+        adet = 0
+        for _d, _altlar, dosyalar in os.walk(dizin):
+            adet += len(dosyalar)
+        return adet
+    except OSError:
+        return None
+
+
+def yedek_durumu(backup_dizini, hal="var", simdi=None, esik=None):
+    """Damgayi okuyup yasi esikle karsilastirir + damganin IDDIASINI dogrular.
+
+    esik None ise modul sabiti CALISMA ANINDA okunur (varsayilani def anina
+    SABITLEMEZ) -- edge_esigi() ile ayni desen: test sabiti gecici degistirip
+    bu fonksiyonun gercekten onu kullandigini kanitlayabilir.
+
+    F2 (26 Tem): "icerik: memory 112 + skills 13" satiri DAMGANIN IDDIASIYDI,
+    Drive'in gercegi degil -- backup/skills silinse bile pano "taze" diyordu.
+    Artik backup/memory + backup/skills SAYILIR ve iddiayla karsilastirilir.
+    Gercek < iddia ise uyarilir. (Gercek > iddia NORMALDIR: kaynaktan silinen
+    dosyanin yedek kopyasi durur; yedek eklemelidir, ayna degil.)
+    F3: damga GELECEKTE ise "taze" DENMEZ -- saat kaymasi/bozuk yazim panoyu
+    yesile civilemesin. Tolerans YOK (bilerek): sahte-yesil, tek seferlik
+    "supheli" gurultusunden pahalidir; bir sonraki yedek kendi kendine duzeltir.
+    """
+    if esik is None:
+        esik = YEDEK_BAYAT_SANIYE
+    simdi = time.time() if simdi is None else simdi
+    sonuc = {"hal": hal, "yas": None, "damga": None, "esik": esik,
+             "yol": backup_dizini, "sayim": {}}
+    if hal != "var" or not backup_dizini:
+        return sonuc
+    damga = None
+    try:
+        with open(os.path.join(backup_dizini, YEDEK_DAMGA_ADI), "r", errors="replace") as f:
+            damga = json.load(f)
+    except (OSError, ValueError, UnicodeDecodeError):
+        damga = None
+    if not isinstance(damga, dict) or not isinstance(damga.get("zaman"), (int, float)):
+        sonuc["hal"] = "damgasiz"
+        return sonuc
+    sonuc["damga"] = damga
+    sonuc["yas"] = simdi - damga["zaman"]
+
+    # F2: damganin iddiasini Drive'daki GERCEK dosya sayisiyla karsilastir.
+    for ad in ("memory", "skills"):
+        iddia = damga.get(ad)
+        if not isinstance(iddia, int):
+            continue
+        gercek = _agac_say(os.path.join(backup_dizini, ad))
+        sonuc["sayim"][ad] = (gercek, iddia)
+
+    if sonuc["yas"] < 0:
+        sonuc["hal"] = "supheli"                      # F3: damga gelecekte
+    else:
+        sonuc["hal"] = "bayat" if sonuc["yas"] >= esik else "taze"
+    return sonuc
+
+
+def yedek_satirlari(d):
+    """basim icin metin satirlari (kabul testi de dogrudan bunu okur)."""
+    esik_gun = d["esik"] / 86400.0
+    hal = d["hal"]
+    if hal == "drive-yok":
+        return ["  ÖLÇÜLEMEDİ: Drive bagli degil — yedek tazeligi bilinmiyor.",
+                "  (Drive uygulamasini ac; pano bu yuzden hata VERMEZ, sadece olcemez.)"]
+    if hal == "klasor-yok":
+        return ["  ⚠ Drive bagli ama backup/ klasoru YOK — hic yedek alinmamis olabilir.",
+                "  Kos: python3 tools/yedekle.py"]
+    if hal == "damgasiz":
+        return ["  ⚠ ÖLÇÜLEMEDİ: yedek var ama tazelik damgasi (%s) YOK." % YEDEK_DAMGA_ADI,
+                "  (Damga oncesi surumle alinmis.) Bir kez kos: python3 tools/yedekle.py"]
+    dmg = d["damga"] or {}
+    ozet = "memory %s + skills %s + repo %s" % (
+        dmg.get("memory", "?"), dmg.get("skills", "?"), dmg.get("repo", "?"))
+    ne_zaman = _gecen(time.time() - d["yas"])
+
+    # N2: ILK SATIR DURUMU SOYLER. "taze" YALNIZ tam + zamaninda + icerigi tutuyor iken
+    # yazilir. Eskiden basligi hep "taze:" olup ⚠⚠ ALTTA kaliyordu -> goz gezdiren yanlis
+    # sonuca variyordu. Panonun tek isi bu; 5 gunluk bayatligin fark edilmeme sebebi de buydu.
+    kismi = dmg.get("tam") is False
+    eksik_icerik = []
+    sayilamayan = []
+    for ad, (gercek, iddia) in sorted((d.get("sayim") or {}).items()):
+        if gercek is None:
+            sayilamayan.append(ad)
+        elif gercek < iddia:
+            eksik_icerik.append((ad, gercek, iddia))
+
+    kos = "  Kos: python3 tools/yedekle.py"
+    if hal == "supheli":                              # F3
+        return ["  ⚠ ŞÜPHELİ: damga GELECEK tarihli (%s) — tazelik ÖLÇÜLEMEDİ."
+                % dmg.get("iso", "?"),
+                "  (Saat kaymasi ya da bozuk yazim.)" + kos[1:]]
+    if hal == "bayat":
+        satirlar = ["  ⚠⚠ YEDEK BAYAT: son yedek %s (%s) — esik %.0f gun."
+                    % (ne_zaman, dmg.get("iso", "?"), esik_gun),
+                    kos + "     (damga iddiasi: %s)" % ozet]
+    elif kismi:
+        # F1: kismi yedek ASLA "taze" diye gecmez — eksik yedek, eksik oldugunu SOYLER.
+        satirlar = ["  ⚠⚠ KISMI YEDEK: son kosum %s ama beklenen repo dosyalari EKSIKTI (%s)"
+                    % (ne_zaman, ", ".join(dmg.get("eksik") or []) or "?"),
+                    "  -> bu dosyalarin yedegi TAZELENMEDI; ANA repodan kos: "
+                    "python3 tools/yedekle.py"]
+    elif eksik_icerik:
+        ad, gercek, iddia = eksik_icerik[0]
+        satirlar = ["  ⚠⚠ ICERIK EKSIK: backup/%s icinde %d dosya var, damga %d diyor "
+                    "-> yedek bozulmus/silinmis." % (ad, gercek, iddia),
+                    "  (son kosum %s)" % ne_zaman + kos[1:]]
+        eksik_icerik = eksik_icerik[1:]
+    else:
+        satirlar = ["  taze: son yedek %s (%s) — esik %.0f gun."
+                    % (ne_zaman, dmg.get("iso", "?"), esik_gun),
+                    "  damga iddiasi: %s" % ozet]
+
+    # Baslikta yer bulamayan kalan sorunlar (baslik zaten uyariyor).
+    if kismi and hal == "bayat":
+        satirlar.append("  ⚠⚠ KISMI YEDEK: beklenen repo dosyalari EKSIKTI (%s)"
+                        % (", ".join(dmg.get("eksik") or []) or "?"))
+    if "tam" not in dmg:
+        satirlar.append("  not: damga eski surum (tamlik bilgisi yok) — bir kez yeniden kos.")
+    for ad in sayilamayan:
+        satirlar.append("  ⚠ %s/ sayilamadi (izin/okuma hatasi) — icerik DOGRULANAMADI." % ad)
+    for ad, gercek, iddia in eksik_icerik:
+        satirlar.append("  ⚠⚠ ICERIK EKSIK: backup/%s icinde %d dosya var, damga %d diyor."
+                        % (ad, gercek, iddia))
+    return satirlar
+
+
 def main():
     repo = repo_koku()
     kok = ana_repo(repo)
@@ -418,6 +653,26 @@ def main():
     else:
         for satir in edge_satirlari(edge_esigi(sayi)):
             print(satir)
+
+    # 7) YEDEK TAZELIGI — pano ASLA patlamaz ve ASLA ASILMAZ:
+    #    Drive yoksa/okunamazsa "ÖLÇÜLEMEDİ", yanit vermezse zaman asimi (N3).
+    print("\n7) YEDEK TAZELIGI (Drive)")
+
+    def _olc():
+        yol, hal = yedek_dizini(kok)
+        return yedek_satirlari(yedek_durumu(yol, hal))
+
+    try:
+        satirlar, asildi = zaman_asimiyla(_olc)
+        if asildi:
+            satirlar = ["  ⚠ ÖLÇÜLEMEDİ: Drive yanit vermiyor (%.0f sn zaman asimi asildi)."
+                        % YEDEK_ZAMAN_ASIMI,
+                        "  (Mount asili olabilir; pano BEKLEMEDI, devam ediyor.)"]
+    except Exception as e:                    # pano bir KAPI degil: hicbir hal exit'i bozmaz
+        satirlar = ["  ÖLÇÜLEMEDİ: yedek tazeligi okunamadi (%s)" % type(e).__name__]
+    for satir in satirlar:
+        print(satir)
+
     print("")
     return 0
 
