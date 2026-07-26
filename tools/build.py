@@ -1282,6 +1282,25 @@ def wa_href(p, url):
     return "https://wa.me/" + WHATSAPP + "?text=" + quote(msg)
 
 
+def help_cta_href(p, url):
+    """ORGANİK "Bizimle İletişime Geçin" (help-cta-btn) butonunun wa.me href'i.
+
+    Eskiden prefill BAĞLAM-KÖRdü (sabit "aradığım bir yedek parça var" — ürün
+    ADI/URL yok) -> Ege hangi katalog ürününden gelindiğini bilemez, lead düşer.
+    Artık prefill ürün ADI + canonical URL taşır -> Ege anında eşleştirir.
+
+    Kodlama sözleşmesi wa_href ile BİREBİR AYNI: metin quote() ile TEK KEZ
+    percent-kodlanır (boşluk=%20, Türkçe ç/ğ/ı/ö/ş/ü UTF-8 %XX), döndürülen URL
+    format() içinde esc() ile HTML-escape edilir (quote çıktısında &/<>/" olmadığı
+    için esc no-op) — double-encode YOK. Numara = WHATSAPP sabiti (arama 4005 ASLA).
+    REF/atıf butonu (orderAlt) AYRIDIR; buraya dokunmak onu etkilemez."""
+    from urllib.parse import quote
+    msg = (u"Merhaba, şu ürün sayfasındaydım: " + (p.get("baslik") or "")
+           + "\n" + url + "\n"
+           + u"Bu parça hakkında bilgi almak istiyorum.")
+    return "https://wa.me/" + WHATSAPP + "?text=" + quote(msg)
+
+
 def product_url(pid):
     return SITE + "/urun/" + pid + "/"
 
@@ -1822,7 +1841,7 @@ def render_product(p, all_products):
 <section class="help-cta">
   <div class="help-cta-inner">
     <span class="help-cta-text">Aradığınız parçayı bulamadınız mı? <strong>Bizimle iletişime geçin, üretelim!</strong></span>
-    <a class="help-cta-btn" href="https://wa.me/905451386526?text=Merhaba%2C%20arad%C4%B1%C4%9F%C4%B1m%20bir%20yedek%20par%C3%A7a%20var.%20%C3%9Cretebilir%20misiniz%3F" target="_blank" rel="noopener">{icon} Bizimle İletişime Geçin</a>
+    <a class="help-cta-btn" href="{help_wa}" target="_blank" rel="noopener">{icon} Bizimle İletişime Geçin</a>
   </div>
 </section>
 
@@ -2147,6 +2166,7 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
         badge=badge_html,
         aciklama=aciklama_html,
         wa=esc(wa_href(p, url)),
+        help_wa=esc(help_cta_href(p, url)),
         icon=WA_ICON,
         pid=esc(p.get("id") or ""),
         cart_icon=CART_ICON,
