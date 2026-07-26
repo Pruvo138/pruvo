@@ -149,15 +149,18 @@ GECERLI_NUMARA_RE = re.compile(r"\+?\d{10,15}")
 # ayrı kalıp): pozitif nöbetin çapası budur -> WA_URL_RE körleşirse bu hâlâ görür.
 LITERAL_WA_RE = re.compile(r"wa\.me/\d{6,}", re.IGNORECASE)
 
-# --- CTA VARLIK NÖBETİ kalıpları (toplu link silme sınıfı; tur 3 regresyonu)
-ANCHOR_RE = re.compile(r"<a\b([^>]*)>(.*?)</a>", re.S | re.IGNORECASE)
-HREF_ATTR_RE = re.compile(r'href\s*=\s*"([^"]*)"', re.IGNORECASE)
-WA_HEDEF_RE = re.compile(r"wa\.me|api\.whatsapp\.com|web\.whatsapp\.com|whatsapp://",
-                         re.IGNORECASE)
-# ŞEMA'lı literal = URL KURUCUSU ("https://wa.me/" + numara). Şemasız ham "wa.me/" dizesi
-# EŞLEŞTİRİCİdir (attribution-ref.js linkleri TANIR, kurmaz). Ölçüldü: kurucu yalnız
-# index.html'de (2 adet), diğer 172 belgede 0 -> "CTA kuran sayfa" sınıfı bu kadar dar.
-JS_WA_KURUCU_RE = re.compile(r'"https?://wa\.me/"', re.IGNORECASE)
+# ⛔ CTA VARLIK NÖBETİ (K1/K2/K3) 27 Tem'de EKLENDİ ve AYNI GÜN TAMAMEN GERİ ALINDI.
+# Ölçüm (bağımsız çürütücü): K1'in yakalama katkısı SIFIR (kapatıldığında 5 CTA
+# fikstürünün 5'i de hâlâ kırmızıydı) ama bedeli devasa — gömülü ref betiğini harici
+# .js'e taşıyan RUTİN bir perf refaktörü 156 bağsız içerik sayfasının 154'ünü kırmızı
+# yakıyordu (K1'i bugün doyuran şey tıklanabilir CTA değil, betiğin "wa.me/" eşleştirme
+# dizesiymiş -> pozitif taban SAHTE). 24 geçerli ilgisiz senaryonun 8'i sahte kırmızıydı
+# (href="#"+onclick · <button onclick> · <span role=button> · <form action="wa.me"> ·
+# WhatsApp etiketli bağı /iletisim/'e yöneltme · numara yazıp link koymayan yeni sayfa ·
+# hero CTA'yı JS'e taşıma). K2'nin href muafiyeti ayrıca DELİKTİ (href'siz + JS de
+# doldurmuyor = ölü CTA sessizce geçiyordu). Ev kuralı: "gürültülü kapı = ölü kapı" ve
+# yakalama katkısı 0 olan kural KALDIRILIR. Sınıf artık KÖR NOKTA olarak sayıyla beyan
+# ediliyor (aşağıda madde 9) — dürüst beyan, sahte kapıdan değerlidir.
 # Sayfaya gömülen ref-atıf betiğinin wa.me EŞLEŞTİRME sabiti (attribution-ref.js).
 # build.WHATSAPP'tan sapması sessiz hatadır: linkler doğru numarayı taşır ama betik
 # onları WhatsApp linki olarak TANIMAZ -> reklam atfı (ref) sessizce düşer.
@@ -643,87 +646,6 @@ def gorunur_numara_kontrol(ad, doc, fails, sessiz=False):
     return (wa_baglam, notr, notr_mesaj)
 
 
-def wa_numara_sinyali(doc, wa):
-    """Belge WhatsApp numarasını (herhangi bir yazımda) TAŞIYOR mu — sınıf işareti.
-
-    Ayırıcılar serbest ("905451386526", "+90 545 138 6526", "wa.me/905..."): amaç
-    "bu sayfa müşteriyi WhatsApp'a yönlendirmeye ÇALIŞIYOR mu" sorusuna belgenin
-    KENDİSİNDEN cevap vermek. Yalnız "WhatsApp" KELİMESİNE bakmak yetmez, hatta
-    tehlikelidir: numarasız/linksiz sadece WhatsApp'tan SÖZ EDEN bir sayfa (blog,
-    SSS maddesi) sınıfa girip yanlış kırmızı üretirdi."""
-    if len(wa) < 10:
-        return False
-    return re.search(r"[\s.\-()]{0,3}".join(wa[-10:]), doc) is not None
-
-
-def cta_varlik_kontrol(ad, doc, fails, hedef_sayisi, sessiz=False):
-    """CTA VARLIK NÖBETİ — 'toplu link silme' sınıfı (tur 3 regresyonu, çürütücü bulgusu).
-
-    Numara DOĞRU ama TIKLANACAK YOL YOK durumunu kapatır: wa.me literalleri toplu
-    silinse / CTA <a>'ları kaldırılsa / "wa.me" -> "wa-me" yapılsa numara nöbetleri
-    YEŞİL yanıyordu (numara ihlali yok çünkü ortada numara da yok).
-
-    ⚠️ SAYI ÇAPASI YOK — "kaç link" değil "VAR MI" sorulur; nöbet SAYFA BAZLIDIR
-    (her belge kendi içeriğinden yargılanır, korpus geneli toplam kullanılmaz):
-      K1 Belge WhatsApp numara sinyali taşıyorsa, en az bir ayrıştırılabilir WhatsApp
-         hedefi (literal link · JS kurucusu · kısa link) BULUNMALI.
-      K2 Görünür etiketi "WhatsApp" ya da WhatsApp NUMARASI olan bir <a>'nın href'i ya
-         WhatsApp hedefi olmalı YA DA href özniteliği HİÇ olmamalı/boş olmalı (repo
-         konvansiyonu: JS'in dolduracağı bağ — ör. <a id="cartOrder" ...> href'siz).
-         "#" gibi ölü hedef = ölü CTA -> KIRMIZI.
-      K3 Belgenin JS'i ŞEMA'lı wa.me URL'i KURUYORSA, HTML'de en az bir <a> gerçek bir
-         WhatsApp hedefi taşımalı (JS kapalı/eleman silinmiş halde tıklanacak yol kalsın).
-
-    KIRMIZI mı ÖLÇÜLEMEDİ mi? -> KIRMIZI seçildi. Gerekçe (ölçüm): 173 belgede ve
-    çürütücünün 32 ilgisiz senaryosunda üç kuralın da yanlış-pozitifi 0; kurallar SAYI
-    değil VARLIK sorguluyor, dolayısıyla içerik/tipografi/etiket düzenlemeleri onları
-    tetiklemiyor. K3'ün tek teorik yanlış-pozitifi "hero CTA'yı tamamen JS'e taşımak"
-    olur; bu zaten WhatsApp CTA'sına dokunan bir değişikliktir ve JS kapalıyken linki
-    yok ettiği için düzeltilmesi gereken bir regresyondur (mesajda açıkça yazıyor)."""
-    wa, _arama = numaralar()
-    if not wa_numara_sinyali(doc, wa):
-        if not sessiz:
-            print("  [%s] CTA varlık nöbeti: belge WhatsApp numara sinyali taşımıyor — "
-                  "sınıf DIŞI (ölçülmedi)" % ad)
-        return 0
-    # --- K1
-    if hedef_sayisi == 0:
-        fails.append("%s: sayfa WhatsApp numarasını taşıyor ama TIKLANABİLİR HİÇBİR "
-                     "WhatsApp hedefi YOK (wa.me / api.-web.whatsapp.com / whatsapp:// / "
-                     "kısa link) — CTA'ların TAMAMI kaybolmuş; numara nöbetleri bunu "
-                     "göremez (ihlal edecek numara kalmadığı için)" % ad)
-    # --- K2 + K3
-    etiketli = wa_hedefli_anchor = 0
-    for m in ANCHOR_RE.finditer(doc):
-        etiket = _html.unescape(re.sub(r"<[^>]+>", " ", m.group(2)))
-        h = HREF_ATTR_RE.search(m.group(1))
-        href = h.group(1).strip() if h else None
-        if href and WA_HEDEF_RE.search(href):
-            wa_hedefli_anchor += 1
-        wa_etiketi = "whatsapp" in etiket.lower() or any(
-            _rakam(t.group(0)) == wa for t in KATI_TEL_RE.finditer(etiket))
-        if not wa_etiketi:
-            continue
-        etiketli += 1
-        if href is None or href == "":
-            continue          # JS'in dolduracağı bağ (repo konvansiyonu) — meşru
-        if not WA_HEDEF_RE.search(href):
-            fails.append("%s: görünür etiketi WhatsApp olan bağın href'i WhatsApp'a "
-                         "GİTMİYOR (%r) — ölü CTA. Meşru tek istisna href'in HİÇ "
-                         "olmaması (JS dolduruyor); '#' değil. Etiket: %r"
-                         % (ad, href[:60], " ".join(etiket.split())[:60]))
-    if JS_WA_KURUCU_RE.search(doc) and wa_hedefli_anchor == 0:
-        fails.append("%s: JS wa.me URL'i KURUYOR ama HTML'de WhatsApp hedefli TEK BİR "
-                     "<a> bile YOK — CTA bağları kaldırılmış; JS kapalıyken (ve eleman "
-                     "silinmişse JS açıkken de) tıklanacak yol kalmaz. Düzeltme: en az "
-                     "bir CTA'yı statik href ile bas." % ad)
-    if not sessiz:
-        print("  [%s] CTA varlık nöbeti: WhatsApp hedefli bağ=%d, WhatsApp etiketli "
-              "bağ=%d, JS kurucu=%d" % (ad, wa_hedefli_anchor, etiketli,
-                                        len(JS_WA_KURUCU_RE.findall(doc))))
-    return wa_hedefli_anchor
-
-
 def belge_denetle(ad, doc, fails, taban=None, sessiz=False):
     """Bir BELGE için numara sözleşmesinin TAMAMI (4 düzlem, tek çağrı).
 
@@ -734,11 +656,10 @@ def belge_denetle(ad, doc, fails, taban=None, sessiz=False):
     ters = ters_yon_kontrol(ad, doc, fails, sessiz=sessiz)
     js_y, js_s = js_sabit_kontrol(ad, doc, fails, sessiz=sessiz)
     g_wa, g_notr, g_notr_mesaj = gorunur_numara_kontrol(ad, doc, fails, sessiz=sessiz)
-    cta = cta_varlik_kontrol(ad, doc, fails, literal + dinamik + kisa, sessiz=sessiz)
     return {"wa_literal": literal, "wa_dinamik": dinamik, "wa_kisa": kisa,
             "ters_alan": ters, "js_yargilanan": js_y, "js_yargisiz": js_s,
             "gorunur_wa": g_wa, "gorunur_notr": g_notr,
-            "gorunur_notr_mesaj": g_notr_mesaj, "cta_bag": cta}
+            "gorunur_notr_mesaj": g_notr_mesaj}
 
 
 def _topla(hedef, kaynak):
@@ -797,11 +718,11 @@ def sayfa_duzlemi(fails):
         _topla(toplam, belge_denetle(ad, doc, fails, sessiz=True))
         sayfa += 1
     print("  [sayfalar.py korpusu] üretilen sayfa=%d, wa literal link=%d, dinamik=%d, "
-          "ters yön alan=%d, JS sabiti=%d, CTA bağı=%d, görünür literal=%d (WhatsApp "
+          "ters yön alan=%d, JS sabiti=%d, görünür literal=%d (WhatsApp "
           "bağlamı) + %d (nötr; %d'si mesajlaşma fiilli)"
           % (sayfa, toplam.get("wa_literal", 0), toplam.get("wa_dinamik", 0),
              toplam.get("ters_alan", 0), toplam.get("js_yargilanan", 0),
-             toplam.get("cta_bag", 0), toplam.get("gorunur_wa", 0),
+             toplam.get("gorunur_wa", 0),
              toplam.get("gorunur_notr", 0), toplam.get("gorunur_notr_mesaj", 0)))
     if sayfa == 0:
         fails.append("sayfalar.py: hiç içerik sayfası üretilmedi — CONTENT_PAGES boş mu? "
@@ -874,28 +795,20 @@ def _mutasyon(ad, doc, eski, yeni, fails, kirmizi_bekle):
     _yargila(ad, doc, doc.replace(eski, yeni), fails, kirmizi_bekle)
 
 
-def _mutasyon_re(ad, doc, kalip, yeni_fn, fails, kirmizi_bekle, hepsi=False):
+def _mutasyon_re(ad, doc, kalip, yeni_fn, fails, kirmizi_bekle):
     """TÜRETİLMİŞ çapa: kalıp belgenin YAPISINDAN eşleşir, yeni değer eşleşenden üretilir.
 
     ⚠️ İki tuzak da ölçüldü: sabit ÇAPA (ör. `--navy:#12294d`) alakasız bir renk
     düzenlemesinde yok olur; sabit YENİ DEĞER ise belge zaten o değerdeyse mutasyonu
-    etkisiz bırakır. İkisi de fikstürü sahte kırmızıya çevirir.
-    hepsi=True: TÜM eşleşmeler değişir. "Toplu silme" fikstürleri bunu ZORUNLU kullanır —
-    tek eşleşmeyi silmek belgede başka bir WhatsApp bağı bırakır ve fikstür (haklı olarak)
-    yeşil yanıp kendi kendini bozar (ölçüldü: sayfaya meşru bir kısa link eklenince
-    'CTA silindi' fikstürü sahte kırmızı verdi)."""
+    etkisiz bırakır. İkisi de fikstürü sahte kırmızıya çevirir."""
     if doc is None:
         _olculemedi(ad, "fikstür belgesi seçilemedi")
         return
-    if not re.search(kalip, doc, re.S):
+    m = re.search(kalip, doc, re.S)
+    if not m:
         _olculemedi(ad, "türetilmiş çapa kalıbı belgede yok: %r" % kalip)
         return
-    if hepsi:
-        mutant = re.sub(kalip, lambda m: yeni_fn(m), doc, flags=re.S)
-    else:
-        m = re.search(kalip, doc, re.S)
-        mutant = doc[:m.start()] + yeni_fn(m) + doc[m.end():]
-    _yargila(ad, doc, mutant, fails, kirmizi_bekle)
+    _yargila(ad, doc, doc[:m.start()] + yeni_fn(m) + doc[m.end():], fails, kirmizi_bekle)
 
 
 def gorunur_bicim(d):
@@ -1006,20 +919,8 @@ def fikstur_kontrol(fails):
     _mutasyon("sayfalar.py TARGET_PHONE -> arama hattı", icerik,
               'TARGET_PHONE = "' + wa + '"', 'TARGET_PHONE = "' + arama + '"', fails, True)
 
-    # ---------------- KIRMIZI beklenen: CTA VARLIK sınıfı (toplu link silme)
-    # Numara DOĞRU ama tıklanacak yol YOK -> numara nöbetleri kör kalıyordu (tur 3 regresyonu).
-    _mutasyon("index.html TÜM wa.me hedefleri yok (wa.me -> wa-me)", idx,
-              "wa.me", "wa-me", fails, True)
-    _mutasyon_re("index.html WhatsApp etiketli CTA href'i ölü ('#')", idx,
-                 r'href="https://wa\.me/[^"]*"', lambda m: 'href="#"', fails, True,
-                 hepsi=True)
-    _mutasyon_re("index.html WhatsApp bağı taşıyan <a>'lar silindi", idx,
-                 r"<a\b[^>]*wa\.me[^>]*>.*?</a>", lambda m: "", fails, True, hepsi=True)
-    _mutasyon("sayfalar.py çıktısı TÜM wa.me hedefleri yok", icerik,
-              "wa.me", "wa-me", fails, True)
-    _mutasyon_re("sayfalar.py çıktısı CTA href'i ölü ('#')", icerik,
-                 r'href="https://wa\.me/[^"]*"', lambda m: 'href="#"', fails, True,
-                 hepsi=True)
+    # ⛔ CTA VARLIK fikstürleri (5 adet) 27 Tem'de kuralla birlikte GERİ ALINDI —
+    # gerekçe dosya başındaki blokta + kör nokta 9'da (sınıf artık sayıyla beyan edilir).
 
     # ---------------- YEŞİL kalması ZORUNLU: numarayla İLGİSİZ rutin düzenlemeler
     # Çapa da yeni değer de BELGEDEN türetilir (ikisinin de sabit olması ölçülmüş tuzak).
@@ -1119,13 +1020,19 @@ KÖR NOKTALAR (bu nöbetçinin ÖLÇMEDİĞİ şeyler — sessiz kalmasın diye 
      yayındaki HTML de doğrulanmaz (kaynak + üretilen çıktı düzlemi doğrulanır).
   8. Fikstür çapası kaybolduğunda o fikstür ÖLÇÜLEMEDİ sayılır (kırmızı değil);
      duyarlılık ölçümü o tur için düşer — özet satırındaki sayı bunu gösterir.
-  9. CTA VARLIK nöbetinin ölçülen sınırı: bir İÇERİK sayfasındaki wa.me <a> bağının
-     KOMPLE silinmesi yakalanmaz. Sebep yapısal: korpusun 168 sayfasının 156'sında
-     bugün de hiç wa.me bağı YOK (numara düz yazı olarak basılıyor), yani "bağı
-     silinmiş sayfa" ile "zaten bağsız meşru sayfa" belgeden ayırt EDİLEMEZ. Ayırt
-     etmek için sayfa başına beklenen-bağ listesi (veri çapası) gerekirdi; o çapa
-     alakasız düzenlemelerde tüm deploy'u durdurduğu için BİLEREK konmadı. Ana
-     sayfada aynı silme YAKALANIR (JS kurucu sınıfı: K3)."""
+  9. 🔴 TOPLU LİNK SİLME SINIFI ÖLÇÜLMÜYOR (kapı denendi ve GERİ ALINDI, 27 Tem):
+     korpusun 168 sayfasının 156'sında bugün ZATEN hiç wa.me bağı yok (numara düz yazı
+     basılıyor); bağı olan 12 sayfada bağın silinmesi 0/12 YAKALANMIYOR. Ana sayfada
+     da toplu silme YAKALANMIYOR. Ayırt etmek sayfa-başı beklenen-bağ listesi
+     (= veri çapası) isterdi; ölçüldü, o kapı 24 ilgisiz senaryonun 8'ini ve rutin bir
+     "gömülü betiği harici .js'e taşıma" refaktöründe 156 sayfanın 154'ünü SAHTE
+     KIRMIZI yakıyordu (adım continue-on-error taşımıyor = tüm yayın durur), buna
+     karşılık yakalama katkısı 0'dı -> BİLEREK konmadı. Sipariş butonunun yok olması
+     gürültülü/görünür bir arızadır; sessiz olan numara ihlali zaten kapsanıyor.
+ 10. 🔴 <script> GÖVDESİNDEKİ literal `a.href="tel:+<WhatsApp numarası>"` YAKALANMAZ:
+     ters yön taraması betik gövdelerini bilerek atıyor (pv betiğindeki `a.href="tel:"`
+     satırı 168 sayfada sahte kırmızı üretiyordu). Yani WhatsApp numarasını ARAMA
+     bağına yazan bir JS satırı bugün YEŞİL geçer."""
           % (notr, notr_mesaj))
 
 
@@ -1218,11 +1125,10 @@ def main():
             ("parametrik", URUN_PARAMETRIK, None)):
         if doc is None:
             doc = build.render_product(urun, [urun])
-        lit, dyn, ks = numara_kontrol(ad, doc, fails, taban=WA_URL_TABAN)
+        numara_kontrol(ad, doc, fails, taban=WA_URL_TABAN)
         ters_yon_kontrol(ad, doc, fails)
         js_sabit_kontrol(ad, doc, fails)
         gorunur_numara_kontrol(ad, doc, fails)
-        cta_varlik_kontrol(ad, doc, fails, lit + dyn + ks)
 
     # ---------------- ANA SAYFA + YASAL/İÇERİK SAYFALARI (kapsam genişletmesi)
     toplam = sayfa_duzlemi(fails)
