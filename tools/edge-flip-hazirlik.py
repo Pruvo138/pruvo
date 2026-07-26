@@ -129,13 +129,24 @@ def deg_worker(durum_kodu, json_obj, ag_hata=False):
 
 
 def deg_komut(dosya_var, exit_kodu):
-    """faz3 / parite adimlari. Dosya yoksa BLOKLU; varsa exit 0 -> PASS, degilse FAIL. SAF."""
+    """faz3 / parite adimlari. Dosya yoksa BLOKLU; exit 0 -> PASS, exit 2 -> BLOKLU
+    (OLCULEMEDI), diger nonzero -> FAIL. SAF.
+
+    exit 2 = "OLCULEMEDI/KOSULAMADI" bu depoda YERLESIK sozlesme:
+      - faz3-gecikme.js : uc cevap vermiyor VEYA yanitta worker-ici sure alani yok
+      - parite-ege.js   : bot kaynagi yok / fonksiyon yeniden adlandirilmis
+    Bunlar bir GERILEME degildir; FAIL yazmak yanlis suclama olur (kapi kirmizi yanar,
+    kimse kodda bir sey bulamaz). BLOKLU: "hukum veremedim, once sunu ac".
+    """
     if not dosya_var:
         return (BLOKLU, None, "test dosyasi bulunamadi")
     if exit_kodu == 0:
         return (PASS, None, "exit 0")
     if exit_kodu is None:
         return (FAIL, None, "kosum tamamlanmadi (zaman asimi/hata)")
+    if exit_kodu == 2:
+        return (BLOKLU, "HocA",
+                "exit 2 — OLCULEMEDI (uc cevap vermiyor / yanitta alan yok); gerileme DEGIL")
     return (FAIL, None, "exit %s" % exit_kodu)
 
 

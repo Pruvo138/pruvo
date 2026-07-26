@@ -72,11 +72,17 @@ ONA(M.deg_worker(200, {"foo": 1})[0] == M.FAIL, "worker 200 + cop JSON -> FAIL")
 ONA(M.deg_worker(200, None)[0] == M.FAIL, "worker 200 + JSON degil -> FAIL")
 ONA(M.deg_worker(500, None)[0] == M.FAIL, "worker 500 -> FAIL")
 
-# ── deg_komut (faz3/parite): dosya yok BLOKLU, exit 0 PASS, nonzero FAIL ─────────
+# ── deg_komut (faz3/parite): dosya yok BLOKLU, exit 0 PASS, exit 2 BLOKLU, dgr FAIL ──
 ONA(M.deg_komut(False, None)[0] == M.BLOKLU, "komut dosya yok -> BLOKLU")
 ONA(M.deg_komut(True, 0)[0] == M.PASS, "komut exit 0 -> PASS")
 ONA(M.deg_komut(True, 1)[0] == M.FAIL, "komut exit 1 -> FAIL")
 ONA(M.deg_komut(True, None)[0] == M.FAIL, "komut zaman asimi -> FAIL")
+# exit 2 = OLCULEMEDI (faz3-gecikme.js: uc kapali/alan yok; parite-ege.js: kaynak yok).
+# Gerileme DEGIL -> FAIL yazmak yanlis suclama. BLOKLU(HocA) olmali.
+d, kim, detay = M.deg_komut(True, 2)
+ONA(d == M.BLOKLU and kim == "HocA", "komut exit 2 (olculemedi) -> BLOKLU(HocA)")
+ONA("OLCULEMEDI" in detay, "exit 2 detayi OLCULEMEDI diyor")
+ONA(M.deg_komut(True, 3)[0] == M.FAIL, "komut exit 3 -> FAIL (exit 2 ozel, digerleri degil)")
 
 # ── deg_d1: kimlik hatasi BLOKLU(Okan), exit 0 PASS, nonzero FAIL ────────────────
 d, kim, _ = M.deg_d1(1, "D1 KIMLIK HATASI (code 10000)")
