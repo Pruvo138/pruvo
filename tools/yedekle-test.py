@@ -1,24 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""KABUL TESTI — tools/yedekle.py'nin SKILL KAPSAMI + SIR NOBETI.
+"""KABUL TESTI — tools/yedekle.py'nin SKILL KAPSAMI + SIR NOBETI + ESZAMANLILIK KILIDI.
 
 NEDEN VAR: ~/.claude/skills (merge-kapisi + ege-diyalog) GIT DISINDA, tek kopya bu makinede.
-yedekle.py onu Drive'a tasiyan tek yol. Iki sessiz-hata sinifi var:
+yedekle.py onu Drive'a tasiyan tek yol. Uc sessiz-hata sinifi var:
   (A) KAPSAM CURUMESI — skills bloku bozulur/silinir, arac YINE "bitti" der, disk kaybinda
       mutasyon-kanitli dal-olc.py + kabul-test.py topluca gider (kimse fark etmez).
   (B) SIR SIZINTISI — skills agaci vetted degil; oraya dusen bir jeton/anahtar yedek klasorune
       (paylasilabilir Drive) tasinir.
-Bu yuzden IKI iddianin da KIRMIZI-MUTASYON kaniti var: kapsami/nobeti devre disi birakan
-mutant surumde ilgili kontrol KIRMIZI yanmalidir; yanmazsa kontrol olcmuyor demektir.
+  (C) ESZAMANLI YAZMA — yedekle.py her push'ta kosuyor, bu repoda paralel oturum NORMAL;
+      kilitsiz iki kosum AYNI hedefe yazar, sonda damga yine "tam" der. Pano "taze"
+      derken yedek karismis olabilir (bolum 13-15).
+Bu yuzden her iddianin KIRMIZI-MUTASYON ya da davranissal kaniti var: kontrolu devre disi
+birakan mutant surumde ilgili kontrol KIRMIZI yanmalidir; yanmazsa kontrol olcmuyor demektir.
+
+⚠️ GERCEK HEDEFE YAZILMAZ: 13-15 tamamen izole ortamda kosar (sahte HOME + sahte git
+deposu + drive_yolu STUB'u). Bolum 15 gercek Drive damgasinin bayt bayt DEGISMEDIGINI
+ayrica kanitlar.
 
 Kosum:  python3 tools/yedekle-test.py
 """
+import fcntl
 import importlib.util
+import json
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 YEDEKLE = os.path.join(TOOLS, "yedekle.py")
@@ -87,8 +97,93 @@ def fikstur_kur(kok):
     }
 
 
+def izole_ortam(td, yedekle, memory_adet=40, skills_adet=20):
+    """GERCEK Drive'a/HOME'a DOKUNMAYAN tam izole kosum ortami.
+
+    - kok   : sahte git deposu -> yedekle.py'nin ROOT'u (ve `.yedek.lock`) buraya duser
+    - HOME  : sahte ev -> MEMORY + SKILLS expanduser ile buraya duser
+    - hedef : td/drive/Pruvo/backup (drive_yolu STUB'u; gercek mount ASLA cozulmez)
+    Beklenen repo dosyalari yedekle.REPO_BEKLENEN'den okunur (fikstur bayatlamasin)."""
+    kok = os.path.join(td, "repo")
+    os.makedirs(os.path.join(kok, "tools"))
+    shutil.copy2(YEDEKLE, os.path.join(kok, "tools", "yedekle.py"))
+    pruvo = os.path.join(td, "drive", "Pruvo")
+    os.makedirs(pruvo)
+    with open(os.path.join(kok, "tools", "drive_yolu.py"), "w") as f:
+        f.write('DESEN = "/olmayan-mount/*/STL"\n'
+                'def stl_dizini(sessiz=False):\n    return %r\n'
+                'def pruvo_dizini(sessiz=False):\n    return %r\n'
+                % (os.path.join(pruvo, "STL"), pruvo))
+    subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
+    for ad in yedekle.REPO_BEKLENEN:
+        with open(os.path.join(kok, ad), "w") as f:
+            f.write("izole test icerigi: %s\n" % ad)
+    ev = os.path.join(td, "ev")
+    mem = os.path.join(ev, ".claude", "projects", "-Users-okan-dev-pruvo", "memory")
+    sk = os.path.join(ev, ".claude", "skills", "ornek-skill")
+    os.makedirs(mem)
+    os.makedirs(sk)
+    for i in range(memory_adet):
+        with open(os.path.join(mem, "not-%03d.md" % i), "w") as f:
+            f.write("hafiza kaydi %d\n" % i)
+    for i in range(skills_adet):
+        with open(os.path.join(sk, "adim-%03d.md" % i), "w") as f:
+            f.write("skill adimi %d\n" % i)
+    ortam = dict(os.environ)
+    ortam["HOME"] = ev
+    return {"kok": kok, "betik": os.path.join(kok, "tools", "yedekle.py"),
+            "ev": ev, "pruvo": pruvo, "hedef": os.path.join(pruvo, "backup"),
+            "kilit": os.path.join(kok, yedekle.KILIT_ADI), "ortam": ortam,
+            "memory_adet": memory_adet, "skills_adet": skills_adet}
+
+
+def izole_kos(o, *bayraklar):
+    return subprocess.run([sys.executable, o["betik"]] + list(bayraklar),
+                          capture_output=True, text=True, env=o["ortam"], cwd=o["kok"])
+
+
+def izole_baslat(o, *bayraklar):
+    return subprocess.Popen([sys.executable, o["betik"]] + list(bayraklar),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                            env=o["ortam"], cwd=o["kok"])
+
+
+def hedef_dosyalari(hedef):
+    if not os.path.isdir(hedef):
+        return []
+    return sorted(os.path.relpath(os.path.join(d, a), hedef)
+                  for d, _alt, adlar in os.walk(hedef) for a in adlar)
+
+
+def damga_json(hedef):
+    try:
+        with open(os.path.join(hedef, ".son-yedek.json"), encoding="utf-8") as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def gercek_damga_parmakizi(yedekle):
+    """GERCEK Drive damgasinin (varsa) bayt+mtime parmak izi. Test sonunda AYNI olmali."""
+    try:
+        sys.path.insert(0, TOOLS)
+        import drive_yolu
+        pruvo = drive_yolu.pruvo_dizini(sessiz=True)
+    except Exception:
+        pruvo = None
+    if not pruvo:
+        return None, None
+    yol = os.path.join(pruvo, "backup", yedekle.DAMGA_ADI)
+    try:
+        with open(yol, "rb") as f:
+            return yol, (f.read(), os.path.getmtime(yol))
+    except OSError:
+        return yol, None
+
+
 def main():
     yedekle = modul_yukle(YEDEKLE, "yedekle_gercek")
+    gercek_yol, gercek_once = gercek_damga_parmakizi(yedekle)
 
     # ---------------- 1) KAPSAM (gercek agac) ----------------
     print("\n1) KAPSAM — gercek ~/.claude/skills agaci planda mi?")
@@ -259,6 +354,203 @@ def main():
         kontrol("budanan dizin gurultu listesinde", any("__pycache__" in x for x in g),
                 str(g))
         kontrol("dizin oldugu belirtiliyor", any("(dizin budandi)" in x for x in g))
+
+    # ---------------- 13) KILIT: DETERMINISTIK KARSILIKLI DISLAMA ----------------
+    print("\n13) KILIT — kilit BASKASINDAYKEN kosum ATLAR, damga YALAN SOYLEMEZ")
+    with tempfile.TemporaryDirectory() as td:
+        o = izole_ortam(td, yedekle)
+        kontrol("test hedefi gecici dizinde (gercek Drive DEGIL)",
+                o["hedef"].startswith(td), o["hedef"])
+        kilitci = open(o["kilit"], "a+")               # "kosan yedek" taklidi
+        fcntl.flock(kilitci, fcntl.LOCK_EX)
+        kilitci.write("pid=999999 baslangic=%.3f iso=TEST\n" % time.time())
+        kilitci.flush()
+        r = izole_kos(o, "--gerekliyse")
+        kontrol("kilit doluyken exit 0 (FAIL-OPEN: push bloklanmaz)", r.returncode == 0,
+                "rc=%d %s" % (r.returncode, r.stderr.strip()[:80]))
+        kontrol("cikti 'yedek ATLANDI' diyor", "yedek ATLANDI" in r.stdout,
+                r.stdout.strip().splitlines()[0] if r.stdout.strip() else "(bos)")
+        kontrol("ATLANAN kosum HICBIR dosya kopyalamadi",
+                "bitti ->" not in r.stdout and hedef_dosyalari(o["hedef"]) ==
+                [".son-yedek.json"], str(hedef_dosyalari(o["hedef"])))
+        d = damga_json(o["hedef"]) or {}
+        kontrol("damga TAM GUVEN atmadi ('zaman' YOK)", "zaman" not in d, str(sorted(d)))
+        kontrol("damgada atlama kaydi VAR", isinstance(d.get("son_atlama"), float))
+        kontrol("atlama sebebi yazili", "baska yedek kosuyordu" in
+                str(d.get("son_atlama_sebep")), str(d.get("son_atlama_sebep"))[:70])
+        kontrol("kaynak degismemisken atlama KAPSANDI (pano bosuna uyarmaz)",
+                d.get("son_atlama_kapsandi") is True, str(d.get("son_atlama_kapsandi")))
+
+        # 13a) KAPSANMAYAN atlama: kilit tutulurken kaynak DEGISIRSE uyari SART
+        time.sleep(0.02)
+        with open(os.path.join(o["ev"], ".claude", "projects",
+                               "-Users-okan-dev-pruvo", "memory", "not-000.md"), "w") as fh:
+            fh.write("kilit tutulurken YENI degisiklik\n")
+        r3 = izole_kos(o, "--gerekliyse")
+        d3 = damga_json(o["hedef"]) or {}
+        kontrol("kilit tutulurken degisen kaynak -> atlama KAPSANMADI",
+                d3.get("son_atlama_kapsandi") is False, str(d3.get("son_atlama_kapsandi")))
+        kontrol("kapsanmayan atlamada cikti UYARIYOR",
+                "KAPSAMAYABILIR" in r3.stdout, r3.stdout.strip().splitlines()[-1][:80])
+        kontrol("kapsanmayan atlamada da exit 0 (fail-open)", r3.returncode == 0)
+
+        # kilit birakilinca ayni ortam NORMAL calismali (regresyon)
+        fcntl.flock(kilitci, fcntl.LOCK_UN)
+        kilitci.close()
+        r2 = izole_kos(o)
+        bekle = o["memory_adet"] + o["skills_adet"] + len(yedekle.REPO_BEKLENEN) + 1
+        gercek_dosya = hedef_dosyalari(o["hedef"])
+        kontrol("kilit birakilinca yedek GERCEKTEN alindi (exit 0 + 'bitti ->')",
+                r2.returncode == 0 and "bitti ->" in r2.stdout, "rc=%d" % r2.returncode)
+        kontrol("hedefte beklenen dosya sayisi", len(gercek_dosya) == bekle,
+                "%d/%d" % (len(gercek_dosya), bekle))
+        d2 = damga_json(o["hedef"]) or {}
+        kontrol("damga tam=True + sayilar dogru",
+                d2.get("tam") is True and d2.get("memory") == o["memory_adet"]
+                and d2.get("skills") == o["skills_adet"],
+                "memory=%s skills=%s" % (d2.get("memory"), d2.get("skills")))
+        kontrol("onceki ATLAMA kaydi damgada KORUNDU (pano gorebilsin)",
+                isinstance(d2.get("son_atlama"), float))
+        kontrol("gecici damga dosyasi kalmadi",
+                not any(".tmp-" in x for x in gercek_dosya))
+
+    # ---------------- 13c) atlama_kapsandi_mi SAF FONKSIYON (fail-closed) -------
+    print("\n13c) KAPSAMA KARARI — olcemedigimiz her hal 'kapsanmadi' (fail-closed)")
+    kontrol("kaynak sahip baslangicindan ESKI -> kapsandi",
+            yedekle.atlama_kapsandi_mi(100.0, 50.0) is True)
+    kontrol("kaynak sahip baslangiciyla AYNI -> kapsandi",
+            yedekle.atlama_kapsandi_mi(100.0, 100.0) is True)
+    kontrol("kaynak sahip baslangicindan YENI -> KAPSANMADI",
+            yedekle.atlama_kapsandi_mi(100.0, 150.0) is False)
+    kontrol("sahip baslangici bilinmiyor -> KAPSANMADI",
+            yedekle.atlama_kapsandi_mi(None, 150.0) is False)
+    kontrol("kaynak mtime olculemedi -> KAPSANMADI",
+            yedekle.atlama_kapsandi_mi(100.0, None) is False)
+
+    # ---------------- 13d) kilit_al/kilit_birak BIRIM DAVRANISI ----------------
+    print("\n13d) KILIT BIRIMI — al/birak, ikinci alis MESGUL, kurulamayan yol FAIL-OPEN")
+    with tempfile.TemporaryDirectory() as td:
+        yol = os.path.join(td, ".yedek.lock")
+        hal1, fd1, _b1 = yedekle.kilit_al(yol)
+        kontrol("bos kilit ALINIYOR", hal1 == "alindi" and fd1 is not None, hal1)
+        hal2, fd2, bilgi2 = yedekle.kilit_al(yol)
+        kontrol("tutulurken ikinci alis MESGUL", hal2 == "mesgul" and fd2 is None, hal2)
+        kontrol("sahip imzasi (pid+baslangic) okunabiliyor",
+                "pid=%d" % os.getpid() in bilgi2[0] and isinstance(bilgi2[2], float),
+                bilgi2[0][:60])
+        # Alt sinir -1: time.time() MONOTON DEGIL; sahip imzasi ile okuma arasinda
+        # milisaniye altinda negatif fark olculebiliyor (olculdu: -0,0003 sn). Yas
+        # yalniz "asili sahip" (>1 saat) uyarisinda kullanildigi icin zararsiz.
+        kontrol("sahip yasi hesaplaniyor (~0 sn)",
+                isinstance(bilgi2[1], float) and -1 <= bilgi2[1] < 5, str(bilgi2[1]))
+        yedekle.kilit_birak(fd1)
+        hal3, fd3, _b3 = yedekle.kilit_al(yol)
+        kontrol("birakilinca yeniden ALINIYOR", hal3 == "alindi", hal3)
+        yedekle.kilit_birak(fd3)
+        kontrol("kilit dosyasi SILINMEDI (inode yarisi onlenir)", os.path.exists(yol))
+        kontrol("birakilan kilidin icerigi temizlendi (bayat sahip yaniltmasin)",
+                open(yol).read().strip() == "")
+        hal4, fd4, bilgi4 = yedekle.kilit_al(os.path.join(td, "olmayan-dizin", "x.lock"))
+        kontrol("acilamayan kilit yolu -> 'kurulamadi' (FAIL-OPEN, yedek yine alinir)",
+                hal4 == "kurulamadi" and fd4 is None, "%s / %s" % (hal4, str(bilgi4)[:50]))
+        kontrol("kilit_birak(None) patlamiyor", yedekle.kilit_birak(None) is None)
+        # kilitsiz kosum damgada ISARETLENIR (pano not duser)
+        yedekle.damga_yaz(td, {"memory": 1, "skills": 1, "repo": 4}, kilitsiz=True)
+        kontrol("kilitsiz kosum damgada isaretli",
+                yedekle.damga_oku(td).get("kilitsiz") is True)
+        yedekle.damga_yaz(td, {"memory": 1, "skills": 1, "repo": 4})
+        kontrol("kilitli kosumda isaret YOK", "kilitsiz" not in yedekle.damga_oku(td))
+        kontrol("damgada baslangic alani var (gerekli_mi + pano referansi)",
+                isinstance(yedekle.damga_oku(td).get("baslangic"), float))
+        kontrol("gerekli_mi ARTIK baslangici referans aliyor",
+                yedekle.gerekli_mi({"zaman": 200, "baslangic": 100}, 150) is True
+                and yedekle.gerekli_mi({"zaman": 200, "baslangic": 100}, 90) is False)
+
+    # ---------------- 13b) KIRMIZI-MUTASYON: kilit devre disi ----------------
+    print("\n13b) KIRMIZI-MUTASYON — kilit kaldirilirsa eszamanli kosum GECER mi?")
+    with tempfile.TemporaryDirectory() as td:
+        o = izole_ortam(td, yedekle)
+        # kilit_al DAIMA 'alindi' der (mutant): kilitli hedefe ikinci kosum yine yazar
+        with open(o["betik"], encoding="utf-8") as f:
+            gov = f.read()
+        capa = '    hal, kilit_fd, kilit_bilgi = kilit_al()'
+        if capa not in gov:
+            raise RuntimeError("MUTASYON CAPASI BULUNAMADI (yedekle.py degismis): %r" % capa)
+        with open(o["betik"], "w", encoding="utf-8") as f:
+            f.write(gov.replace(capa, '    hal, kilit_fd, kilit_bilgi = ("alindi", None, None)'
+                                       '  # MUTANT', 1))
+        kilitci = open(o["kilit"], "a+")
+        fcntl.flock(kilitci, fcntl.LOCK_EX)
+        rm = izole_kos(o, "--gerekliyse")
+        fcntl.flock(kilitci, fcntl.LOCK_UN)
+        kilitci.close()
+        kontrol("MUTANTTA kilit dinlenmedi, yedek YINE yazildi (kontrol KIRMIZI yanardi)",
+                "bitti ->" in rm.stdout and "yedek ATLANDI" not in rm.stdout,
+                "rc=%d" % rm.returncode)
+
+    # ---------------- 14) ESZAMANLILIK: iki kosum AYNI ANDA ----------------
+    print("\n14) ESZAMANLILIK — 3 turda 2'ser kosum: biri yedekler, obur ATLAR")
+    tur_sonuc = []
+    for tur in range(3):
+        with tempfile.TemporaryDirectory() as td:
+            o = izole_ortam(td, yedekle, memory_adet=400, skills_adet=150)
+            p1, p2 = izole_baslat(o), izole_baslat(o)
+            c1 = p1.communicate()
+            c2 = p2.communicate()
+            ciktilar = [c1[0], c2[0]]
+            kodlar = [p1.returncode, p2.returncode]
+            yazan = sum(1 for c in ciktilar if "bitti ->" in c)
+            atlayan = sum(1 for c in ciktilar if "yedek ATLANDI" in c)
+            dosyalar = hedef_dosyalari(o["hedef"])
+            bekle = o["memory_adet"] + o["skills_adet"] + len(yedekle.REPO_BEKLENEN) + 1
+            d = damga_json(o["hedef"]) or {}
+            tur_sonuc.append({
+                "yazan": yazan, "atlayan": atlayan, "kodlar": kodlar,
+                "dosya": len(dosyalar), "bekle": bekle, "damga": d,
+                "artik": [x for x in dosyalar if ".tmp-" in x],
+            })
+    for i, t in enumerate(tur_sonuc, 1):
+        kontrol("tur%d: TAM 1 kosum yedekledi, 1 kosum ATLADI" % i,
+                t["yazan"] == 1 and t["atlayan"] == 1,
+                "yazan=%d atlayan=%d" % (t["yazan"], t["atlayan"]))
+        kontrol("tur%d: IKI kosum da exit 0 (push bloklanmadi)" % i, t["kodlar"] == [0, 0],
+                str(t["kodlar"]))
+        kontrol("tur%d: hedefte yarim/karismis cikti YOK (%d dosya)" % (i, t["dosya"]),
+                t["dosya"] == t["bekle"] and not t["artik"],
+                "beklenen %d, artik %s" % (t["bekle"], t["artik"] or "-"))
+        kontrol("tur%d: damga TAM OLARAK BIR tam kosum bildiriyor" % i,
+                t["damga"].get("tam") is True
+                and t["damga"].get("memory") == 400 and t["damga"].get("skills") == 150,
+                "tam=%s memory=%s skills=%s" % (t["damga"].get("tam"),
+                                                t["damga"].get("memory"),
+                                                t["damga"].get("skills")))
+        kontrol("tur%d: ATLAYAN kosum damgada iz birakti" % i,
+                isinstance(t["damga"].get("son_atlama"), float)
+                and isinstance(t["damga"].get("baslangic"), float))
+        # Eszamanli ciftte kaynak DEGISMEZ -> atlama kapsanir; pano her paralel
+        # push'ta bosuna sariya donmemeli (gurultulu pano = olu pano).
+        kontrol("tur%d: atlama KAPSANDI olarak isaretlendi (bos uyari yok)" % i,
+                t["damga"].get("son_atlama_kapsandi") is True,
+                str(t["damga"].get("son_atlama_kapsandi")))
+
+    # ---------------- 15) GERCEK HEDEF DOKUNULMADI ----------------
+    print("\n15) IZOLASYON KANITI — gercek Drive damgasi DEGISMEDI")
+    gercek_sonra_yol, gercek_sonra = gercek_damga_parmakizi(yedekle)
+    kontrol("gercek damga yolu ile test yolu FARKLI",
+            gercek_yol is None or not gercek_yol.startswith(tempfile.gettempdir()),
+            str(gercek_yol))
+    kontrol("gercek damga bayt+mtime AYNI (test yazmadi)",
+            gercek_once == gercek_sonra and gercek_yol == gercek_sonra_yol,
+            "damga %s" % ("yok (Drive bagli degil)" if gercek_once is None else "degismedi"))
+    if gercek_once:
+        try:
+            eski = json.loads(gercek_once[0].decode("utf-8"))
+            kontrol("gercek damga sayaclari korundu",
+                    isinstance(eski.get("memory"), int),
+                    "memory=%s skills=%s repo=%s" % (eski.get("memory"), eski.get("skills"),
+                                                     eski.get("repo")))
+        except ValueError:
+            kontrol("gercek damga JSON okunabilir", False)
 
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok, _ in SONUC if not ok]

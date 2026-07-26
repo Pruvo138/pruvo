@@ -529,6 +529,26 @@ def yedek_satirlari(d):
     # yazilir. Eskiden basligi hep "taze:" olup ⚠⚠ ALTTA kaliyordu -> goz gezdiren yanlis
     # sonuca variyordu. Panonun tek isi bu; 5 gunluk bayatligin fark edilmeme sebebi de buydu.
     kismi = dmg.get("tam") is False
+
+    # ATLANAN KOSUM (26 Tem, kilit): yedekle.py kilidi alamazsa hicbir sey kopyalamaz
+    # ve damgaya YALNIZ `son_atlama*` yazar (guven alanlarina dokunmaz). Iki kosul
+    # birlikte uyarir:
+    #   (1) `son_atlama_kapsandi` False -> atlayan kosum OLCTU: o an kosan yedek,
+    #       kendisinden sonraki degisiklikleri kapsamiyordu (True ise atlama zararsiz,
+    #       pano susar; alan HIC yoksa bilinmiyor sayilir -> fail-closed UYAR).
+    #   (2) atlama, son TAMAMLANAN kosumun BASLANGICINDAN sonra -> daha sonra kosan
+    #       tam bir yedek bu kaybi zaten kapatmis olurdu (kendi kendine temizlenir).
+    # `baslangic` yoksa (eski surum damgasi) `zaman`a duseriz.
+    atlama = dmg.get("son_atlama")
+    _ref = dmg.get("baslangic")
+    if not isinstance(_ref, (int, float)):
+        _ref = dmg.get("zaman")
+    atlanmis = (isinstance(atlama, (int, float)) and isinstance(_ref, (int, float))
+                and atlama > _ref and dmg.get("son_atlama_kapsandi") is not True)
+    atlama_satiri = (
+        "  ⚠⚠ KISMI YEDEK: son kosumdan SONRA bir yedek ATLANDI (%s) — %s"
+        % (dmg.get("son_atlama_iso", "?"), dmg.get("son_atlama_sebep", "?")))
+
     eksik_icerik = []
     sayilamayan = []
     for ad, (gercek, iddia) in sorted((d.get("sayim") or {}).items()):
@@ -558,6 +578,11 @@ def yedek_satirlari(d):
                     "-> yedek bozulmus/silinmis." % (ad, gercek, iddia),
                     "  (son kosum %s)" % ne_zaman + kos[1:]]
         eksik_icerik = eksik_icerik[1:]
+    elif atlanmis:
+        satirlar = [atlama_satiri,
+                    "  -> o kosumun degisiklikleri yedekte OLMAYABILIR (son tam kosum %s)."
+                    % ne_zaman + kos[1:]]
+        atlanmis = False                              # baslikta anlatildi
     else:
         satirlar = ["  taze: son yedek %s (%s) — esik %.0f gun."
                     % (ne_zaman, dmg.get("iso", "?"), esik_gun),
@@ -567,6 +592,11 @@ def yedek_satirlari(d):
     if kismi and hal == "bayat":
         satirlar.append("  ⚠⚠ KISMI YEDEK: beklenen repo dosyalari EKSIKTI (%s)"
                         % (", ".join(dmg.get("eksik") or []) or "?"))
+    if atlanmis:                                      # baslik baska sorunu anlatiyor
+        satirlar.append(atlama_satiri)
+    if dmg.get("kilitsiz"):
+        satirlar.append("  ⚠ son kosum KILITSIZ alindi (kilit dosyasi kurulamadi) — "
+                        "eszamanli bir kosum varsa icerik karismis olabilir.")
     if "tam" not in dmg:
         satirlar.append("  not: damga eski surum (tamlik bilgisi yok) — bir kez yeniden kos.")
     for ad in sayilamayan:

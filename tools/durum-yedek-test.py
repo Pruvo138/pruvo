@@ -253,6 +253,77 @@ def main():
         kontrol("(e) bayat+kismi: baslik BAYAT, kismi da raporlu",
                 "BAYAT" in sat_e[0] and any("KISMI YEDEK" in s for s in sat_e[1:]))
 
+    # ---------------- 6g) ATLANAN KOSUM (kilit) ----------------
+    # yedekle.py kilidi alamazsa hicbir sey kopyalamaz; damgaya yalniz `son_atlama*`
+    # yazar. Pano bu hali TAZE SAYMAMALI — ama KAPSANMIS atlamada da bosuna
+    # uyarmamali (her paralel push'ta sari pano = kimsenin bakmadigi pano).
+    print("\n6g) ATLANAN KOSUM — kapsanmayan atlama uyarir, kapsanan SUSAR")
+    with tempfile.TemporaryDirectory() as td:
+        simdi = time.time()
+        # (a) KAPSANMAYAN atlama: son tam kosum bitti, SONRA bir kosum atlandi
+        a = damga_kur(os.path.join(td, "a"), 600, baslangic=simdi - 660,
+                      son_atlama=simdi - 300, son_atlama_iso="2026-07-26 12:00:00",
+                      son_atlama_sebep="baska yedek kosuyordu (pid=1234)",
+                      son_atlama_kapsandi=False)
+        sat_a = durum.yedek_satirlari(durum.yedek_durumu(a, "var"))
+        print("     --- pano ciktisi (a) ---")
+        for s in sat_a:
+            print("    " + s)
+        kontrol("(a) ILK SATIR 'taze' DEMIYOR", "taze:" not in sat_a[0], sat_a[0])
+        kontrol("(a) mevcut sozluk: 'KISMI YEDEK' + 'ATLANDI'",
+                "KISMI YEDEK" in sat_a[0] and "ATLANDI" in sat_a[0])
+        kontrol("(a) sebep ve zaman yaziyor",
+                "2026-07-26 12:00:00" in sat_a[0] and "baska yedek" in sat_a[0])
+        kontrol("(a) ne yapilacagi yazili", "tools/yedekle.py" in " ".join(sat_a))
+
+        # (b) KAPSANAN atlama (eszamanli push cifti): uyari YOK
+        b = damga_kur(os.path.join(td, "b"), 600, baslangic=simdi - 660,
+                      son_atlama=simdi - 300, son_atlama_kapsandi=True)
+        sat_b = durum.yedek_satirlari(durum.yedek_durumu(b, "var"))
+        kontrol("(b) kapsanan atlamada pano SUSUYOR ('taze')",
+                sat_b[0].strip().startswith("taze:") and not any("ATLANDI" in s for s in sat_b),
+                sat_b[0])
+
+        # (c) ESKI atlama: sonrasinda TAM bir kosum BASLADI -> kendi kendine temizlenir
+        c = damga_kur(os.path.join(td, "c"), 60, baslangic=simdi - 120,
+                      son_atlama=simdi - 3000, son_atlama_kapsandi=False)
+        sat_c = durum.yedek_satirlari(durum.yedek_durumu(c, "var"))
+        kontrol("(c) sonraki tam kosum atlamayi KAPATIR (uyari yok)",
+                sat_c[0].strip().startswith("taze:"), sat_c[0])
+
+        # (d) HIC yedek yokken atlanan kosum: damgada `zaman` YOK -> ÖLÇÜLEMEDİ
+        d6 = os.path.join(td, "d")
+        os.makedirs(d6)
+        with open(os.path.join(d6, ".son-yedek.json"), "w") as fh:
+            json.dump({"son_atlama": simdi, "son_atlama_iso": "TEST",
+                       "son_atlama_sebep": "baska yedek kosuyordu",
+                       "son_atlama_kapsandi": False}, fh)
+        dd = durum.yedek_durumu(d6, "var")
+        sat_d = durum.yedek_satirlari(dd)
+        print("     --- pano ciktisi (d) ---")
+        for s in sat_d:
+            print("    " + s)
+        kontrol("(d) atlama-only damga 'damgasiz' sayiliyor", dd["hal"] == "damgasiz",
+                dd["hal"])
+        kontrol("(d) 'taze' DEMIYOR + ÖLÇÜLEMEDİ diyor",
+                "taze:" not in " ".join(sat_d) and "ÖLÇÜLEMEDİ" in " ".join(sat_d))
+
+        # (e) KILITSIZ kosum notu
+        e = damga_kur(os.path.join(td, "e"), 60, baslangic=simdi - 120, kilitsiz=True)
+        kontrol("(e) kilitsiz kosum panoda NOT olarak gorunuyor",
+                any("KILITSIZ" in s for s in durum.yedek_satirlari(durum.yedek_durumu(e, "var"))))
+
+        # (f) KIRMIZI-MUTASYON: atlama kontrolu kaldirilirsa (a) sessizce TAZE olur
+        mut = mutant_yaz(td,
+                         '                and atlama > _ref and dmg.get("son_atlama_kapsandi") '
+                         'is not True)',
+                         '                and False)  # MUTANT: atlama gorulmuyor',
+                         ad="durum_mutant_atlama.py")
+        mmod = modul_yukle(mut, "durum_mutant_atlama")
+        m_sat = mmod.yedek_satirlari(mmod.yedek_durumu(a, "var"))
+        kontrol("MUTANTTA atlanan yedek 'taze' gorunuyor (kontrol KIRMIZI yanardi)",
+                m_sat[0].strip().startswith("taze:"), m_sat[0])
+
     # ---------------- 6f) N3: ZAMAN ASIMI — PANO ASILMAZ ----------------
     print("\n6f) N3 — Drive yanit vermezse pano BEKLEMEZ")
     with tempfile.TemporaryDirectory() as td:
