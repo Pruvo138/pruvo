@@ -323,6 +323,21 @@ jobs:
       - name: Edge flip hazirlik kapisi kabul testi (saf karar mantigi)
         run: python3 tools/edge-flip-hazirlik-test.py
 
+      # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
+      # O betik eskiden uctan uca RTT'yi butceyle karsilastiriyordu: Fethiye→Cloudflare ag
+      # gecikmesi tek basina 300 ms'i asabildigi icin SAGLIKLI sistemde KIRMIZI yaniyordu,
+      # simetrigi de vardi (hizli agda yavas Worker YESIL). Karar artik yalniz worker-ici
+      # sureye ("ms") gore verilir; RTT bilgi olarak raporlanir. Bu adim kusrun geri
+      # gelmesini engeller: sahte bir uc kaldirip AG gecikmesi ile WORKER-ICI sureyi
+      # BAGIMSIZ oynatir (tek eksenli fikstur RTT'ye bakan betigi de yesil yakar, yani
+      # hicbir sey olcmez). 6 senaryo: yavas-ag/saglikli -> exit 0, yavas-worker -> exit 1,
+      # hizli-ag/yavas-worker -> exit 1, "ms" alani yok -> exit 2 (OLCULEMEDI),
+      # uc kapali -> exit 2, kismi hata -> exit 1 ("butce" diye raporlanmaz).
+      # OFFLINE: yalniz 127.0.0.1; urunler.json/D1/R2/canli Worker OKUNMAZ. node gerekir
+      # (setup-node yukarida bloklayici on-kosul; node yoksa FAIL-CLOSED exit 1). ~23 s.
+      - name: Faz3 gecikme nobetcisi (RTT degil worker-ici sure ile karar)
+        run: python3 tools/faz3-gecikme-test.py
+
       # WA PREFILL KAPISI: urun sayfasindaki BAGLAM-KOR olmamasi gereken iki WhatsApp
       # linki (organik "Bizimle Iletisime Gecin" help-cta-btn + mühendislik malzeme notu)
       # prefill'inde urun ADI + canonical URL tasir; Turkce karakterler TEK KEZ dogru
