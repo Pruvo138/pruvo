@@ -260,6 +260,13 @@ IZIN_LISTESI = {
     "tools/thingiverse-gallery-test.py": R_SONRA,
     "tools/yargi-firearm-test.py": R_SONRA,
     "tools/yazdir-test.py": R_SONRA,
+    "tools/yedekle-test.py": (
+        "Olcum girdisi MAKINEYE OZGU ve git DISI: ~/.claude/skills agaci (yedeklenen sey) ile "
+        "Google Drive mount'u. CI fresh checkout'unda ikisi de YOK -> kapsam kontrolleri "
+        "yapisal olarak KIRMIZI yanar (R_YOL sinifi; sentetik sir/mutasyon bolumleri offline "
+        "yesil olsa da testin cekirdek iddiasi 'gercek skill agaci planda mi' CI'da "
+        "olculemez). Ayrica yedekle.py yayin hattinin parcasi degil: yerel disk-kaybi "
+        "sigortasi -> Pages build'ini bloklamasi orantisiz."),
 }
 
 
