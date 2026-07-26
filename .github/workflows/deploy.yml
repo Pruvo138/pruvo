@@ -155,17 +155,28 @@ jobs:
       # ekseni yok, musteri-bacagi-nobetci.mjs ise SENTETIK fikstur okur, gercek ege-bilgi.md'ye
       # bakmaz. 26 Tem'de tam bu sinif tum testler YESILken bir dala girdi ("foto/olcu/cizim
       # iste"); kapi o dersin ciktisi. Kapsam BILEREK dar (3 sinif) — genisletmek l.11/l.18/l.38
-      # gibi mesru satirlari sahte-kirmizi yakar. Offline, stdlib, ~5 ms.
+      # gibi mesru satirlari sahte-kirmizi yakar.
+      # ⚠️ (C) sinifi YAKLASIK/tahmini fiyat taahhudunu olcer; DUZ KESIN FIYAT BEYANINI
+      # ("Bu parca 1.200 TL") OLCMEZ ve yesil ciktisinda bunu ACIKCA ilan eder — belgenin
+      # mesru icerigi fiyat/TL dolu oldugu icin duz rakam yakalamak tum siteyi durdururdu.
+      # Offline, stdlib, ~5 ms.
       - name: Ege kabiliyet-siniri kapisi (olcu/cizim istegi · uretim/fiyat sozu)
         run: python3 tools/ege-kabiliyet-kapisi.py
 
-      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 10 fiksturle olcer. Hem YAKALAMA
-      # (eski dal metni · "ozel uretiriz" · mm/kumpas olcu talebi · yaklasik fiyat) hem
-      # YANLIS-POZITIF yonu (teshis fotosu SERBEST · kosul sormak SERBEST · isi araligindaki
-      # "yaklasik" fiyat degil · olumsuz emir) olculur. Kritik fikstur M1: olumsuzlama CUMLECIK
-      # duzeyinde aranmali — satir duzeyinde arayan bir surum, ayni satirdaki "verme" jetonunu
-      # gorup "olcu/cizim iste" emrini MASKELER ve sahte-yesil yanar (olculdu). Fiksturler
-      # bellekte; repo dosyalarina DOKUNMAZ. Offline, stdlib.
+      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 24 fiksturle olcer. Hem YAKALAMA
+      # (eski dal metni · "ozel uretiriz" · mm/kumpas/cap olcu talebi · yaklasik/tahminen/
+      # civari/ortalama/bandinda fiyat · ortuk "yapabiliriz") hem YANLIS-POZITIF yonu olculur.
+      # 🔴 YANLIS-POZITIF NEDEN OLUMCUL: bu kapi `build` isinde kosuyor ve `deploy: needs: build`
+      # -> ege-bilgi.md'ye yapilan MESRU bir duzenleme kapiyi kirmizi yakarsa Ege degil TUM
+      # pruvo3d.com yayini durur. Bu yuzden M11-M15 + M21 kalici nobetci: "sorun" homografi
+      # (=problem ismi) · arayuz/ucret BETIMLEMESI ("yaklasik tutar GORUNUR", "250 TL EKLENIR")
+      # · belgenin KENDI l.9 kargo cumlesi · l.11 "netlestir" dili · duz kesin fiyat beyani
+      # (ILAN EDILMIS kor nokta — "duzeltmek" l.9'u kirar).
+      # Kritik fikstur M1: olumsuzlama CUMLECIK duzeyinde aranmali — satir duzeyinde arayan bir
+      # surum, ayni satirdaki "verme" jetonunu gorup "olcu/cizim iste" emrini MASKELER ve
+      # sahte-yesil yanar (olculdu). M16: baglac (cunku/ama/fakat) da ayirici olmali, yoksa
+      # "Olcuyu gonderin CUNKU tahmin yeterli DEGIL" maskelenir. Fiksturler bellekte; repo
+      # dosyalarina DOKUNMAZ. Offline, stdlib.
       - name: Ege kabiliyet kapisi ic nobetci (kirmizi-mutasyon)
         run: python3 tools/ege-kabiliyet-kapisi.py --ic-nobetci
 
