@@ -88,11 +88,14 @@ var TABAN_FIYATLAR = {
   // başlar (taban = zemin; varsayılan ölçünün altında bu fiyatın altına inilmez).
   "olcuye-ozel-hortum-adaptoru": 150,
   "olcuye-ozel-kutu-organizer": 150,
-  "olcuye-ozel-vidali-kavanoz-tapa": 150
+  "olcuye-ozel-vidali-kavanoz-tapa": 150,
+  // Olcuye ozel toka (yeni sari aile, 2026-07-26 — Okan karari): 150 TL taban/zemin
+  // (varsayilan 25mm/PLA/dikis). Drift kilidi: sema sayisi 21 -> 22 lockstep.
+  "olcuye-ozel-toka": 150
 };
 var URUN_DIR = path.join(KOK, "jenerator", "urunler");
 var semaDosyalari = fs.readdirSync(URUN_DIR).filter(function (f) { return /\.json$/.test(f); });
-esit("şema sayısı 21", semaDosyalari.length, 21);
+esit("şema sayısı 22", semaDosyalari.length, 22);
 semaDosyalari.forEach(function (dosya) {
   var s = JSON.parse(fs.readFileSync(path.join(URUN_DIR, dosya), "utf8"));
   esit("tabanFiyatTL " + s.id, s.tabanFiyatTL, TABAN_FIYATLAR[s.id]);

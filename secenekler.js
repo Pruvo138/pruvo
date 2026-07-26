@@ -139,7 +139,18 @@
     "olcuye-ozel-triger-kayisi", "olcuye-ozel-petek-delikli-panel",
     "olcuye-ozel-pervane-fan-cark", "olcuye-ozel-izgara-menfez-kapak",
     "olcuye-ozel-hortum-adaptoru", "olcuye-ozel-kutu-organizer",
-    "olcuye-ozel-vidali-kavanoz-tapa"];
+    "olcuye-ozel-vidali-kavanoz-tapa",
+    "olcuye-ozel-toka"];
+
+  /* Onizleme model RENGI (aile bazli; viewer.js taban rengi). Liste DISI aileler
+     sari-seri kimlik rengini (viewer.js varsayilani, parlak sari) alir. Toka
+     (Okan direktifi 26 Tem): toka SIYAH gorunmeli — kemer donanimi sari degil.
+     Deger = golgelendirici taban rengi [r,g,b] (0..1); viewer isik carpaniyla
+     0.32..~1.06 arasi olcekler, bu yuzden koyu ama sifir-olmayan taban form
+     detayini korur (saf 0 tum yuzu duz siyaha yutardi). */
+  var ONIZLEME_RENKLER = {
+    "olcuye-ozel-toka": [0.12, 0.12, 0.13]
+  };
 
   /* Onizleme secenek kisitlari: uretim motorunda 3D karsiligi olmayan secim
      degerleri (mimar tablosunda; siparis/fiyat AKISINA DOKUNMAZ, yalniz 3D
@@ -352,6 +363,7 @@
     ONIZLEME_3D_ACIK: ONIZLEME_3D_ACIK,
     ONIZLEME_AILELER: ONIZLEME_AILELER,
     ONIZLEME_KISITLAR: ONIZLEME_KISITLAR,
+    ONIZLEME_RENKLER: ONIZLEME_RENKLER,
     fiyatSayisi: fiyatSayisi,
     fonksiyonelMi: fonksiyonelMi,
     boyFarki: boyFarki,

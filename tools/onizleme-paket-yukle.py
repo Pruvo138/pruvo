@@ -46,6 +46,8 @@ ACIK_AILELER = {
     "olcuye-ozel-hortum-adaptoru": "adaptor",
     "olcuye-ozel-kutu-organizer": "kutu",
     "olcuye-ozel-vidali-kavanoz-tapa": "kavanoz",
+    # Olcuye ozel toka (2026-07-26) — bizim uretecimiz (jeneratorler/toka.scad)
+    "olcuye-ozel-toka": "toka",
 }
 
 
