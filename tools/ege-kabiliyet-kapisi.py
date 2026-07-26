@@ -63,7 +63,8 @@ VARSAYILAN = os.path.join(KOK, "ege-bilgi.md")
 # gibi mesru satirlar sahte-kirmizi yanar.
 OLCU_RE = re.compile(
     r"ölçü|ölçüler|çizim|teknik\s+resim|teknik\s+detay|teknik\s+çizim"
-    r"|\bmm\b|\bcm\b|\bsantim|\bçap\b|\bçapı\b|kumpas"
+    # \bçap\w* -> "çap/çapı/çapını/çapında"; (?!raz) "çapraz"i disarida tutar
+    r"|\bmm\b|\bcm\b|\bsantim|\bçap(?!raz)\w*|kumpas"
     r"|merkez-\s*merkez|şerit\s*metre",
     re.IGNORECASE)
 
@@ -73,11 +74,15 @@ OLCU_RE = re.compile(
 # 🔴 "\bsorun\b" BILEREK YOK: emir kipi "sor-un" ile Turkcenin en sik ismi "sorun"
 #    (=problem) HOMOGRAF. "Olcuyle ilgili bir sorun olursa" cumlesi TUM SITE
 #    deploy'unu durduruyordu (fikstur M11). Tek kelime ugruna deploy riski alinmaz.
+# 🔴 "\byaz\b|\byazın\b" TUR 4'te CIKARILDI: nesnesi SERBEST oldugu icin sahte-kirmizi
+#    uretiyordu — "Ölçüde sorun yaşarsanız yazın." (=bize yaz) OLCU talebi DEGIL ama
+#    KIRMIZI yaniyordu. Deploy durduran bir kapida bu kabul edilemez. Bedeli ILAN
+#    EDILDI: "Ölçüleri yazın" tipi talep artik YAKALANMAZ (fikstur M25).
 ISTEK_RE = re.compile(
     r"\biste\b|\bisteyin\b|\bistersin\b|\btalep\s+et\b|\btalep\s+edin\b"
     r"|\btopla\b|\btoplayın\b|\baldır\b|\bölçtür\b|\bölçün\b"
     r"|\bgönder\b|\bgönderin\b|\bgöndersin\b|\bgöndermeniz\b|\bgönderiniz\b"
-    r"|\biletin\b|\byaz\b|\byazın\b|\bpaylaşın\b|\bsor\b",
+    r"|\biletin\b|\bpaylaşın\b",
     re.IGNORECASE)
 
 # URETIM SOZU — 1. cogul taahhut kipi. "üretilir/üretip/üretiyoruz/ürettiğimiz"
@@ -100,15 +105,37 @@ YAKLASIK_RE = re.compile(
     re.IGNORECASE)
 PARA_RE = re.compile(r"\bfiyat|\bTL\b|\btutar|\bücret|\bmaliyet", re.IGNORECASE)
 
-# 🔴 BETIMLEME BASTIRICI — (C)'nin KOSULSUZ yanmasi uc sahte-kirmizi uretiyordu:
-#   "Sepette yaklasik tutar odeme oncesi GORUNUR."         -> arayuz betimlemesi
-#   "Kargo ucreti yaklasik 250 TL olarak sepete EKLENIR."  -> sabit ucret betimlemesi
-# Bunlar TAAHHUT degil BETIMLEME; belgenin kendi l.9'u da bu sinifa bir tik uzakta.
-# Edilgen/betimleyici yuklem varsa (C) yanmaz. Taahhut kipleri (tutar/olur/deriz/
-# diyebiliriz) bu listede YOKTUR — onlar yanmaya devam eder.
-BETIMLEME_RE = re.compile(
-    r"görünür|görüntülenir|gösterilir|eklenir|yazar\b|hesaplanır|yansır"
-    r"|listelenir|belirtilir|geçerlidir",
+# 🔴 POZITIF SART (TUR 4 mimar hukmu — NEGATIF VETO KALDIRILDI).
+# ESKI TASARIM: (C) = YAKLASIK + PARA + not BETIMLEME.  Bu BYPASS'a acikti: bastirici
+# KOSULSUZ veto veriyordu, taahhut kipiyle YARISMIYOR onu EZIYORDU. Olculdu — bir fiil
+# EKLEYEREK kural susturulabiliyordu:
+#     "Yaklasik 900 TL tutar ve sepette GORUNUR."   -> YESIL (oysa taahhut)
+#     "Yaklasik 700 TL civari bir maliyet YAZAR."   -> YESIL
+# ILKE: kelime EKLEYEREK susturulabilen kural, kural degildir.
+# YENI TASARIM: (C) yanar <=> ayni cumlecikte [PARA jetonu] VE [TAAHHUT isareti].
+# Betimleyici cumleler taahhut isareti TASIMADIGI icin zaten yesil kalir; bastiriciya
+# gerek yok. Ayrica "gecerlidir" ESKIDEN bastiriciydi — YANLISTI, o bir TAAHHUTTUR
+# ("bu fiyat sizin parcaniz icin gecerlidir" baglayicidir) ve artik TAAHHUT tarafinda.
+# NOT: YAKLASIK sarti KALKTI — "1.250,50 TL olur" cumlesinde tahmin jetonu yok ama
+# taahhut var; eski tasarim bunu goremezdi.
+TAAHHUT_RE = re.compile(
+    r"(?:TL|lira)\s*['’]?\s*tutar"          # "800 TL tutar" (fiil); "yaklasik tutar" (isim) DEGIL
+    r"|\btutuyor\b"
+    r"|\bolur\b|\bolacak\b|\bolacaktır\b"
+    r"|\bderiz\b|\bdiyebiliriz\b|\bsöyleriz\b|\bsöyleyebiliriz\b"
+    r"|\bveririz\b|\bveririm\b|\bvereceğiz\b|\bvereceğim\b"
+    r"|\bhesaplarız\b|\bhesaplarım\b"       # "hesaplar" (3. tekil betimleme) BILEREK YOK: l.7
+    r"|\bgeçerlidir\b|\byazar\b|\bçıkar\b|\byaparız\b",
+    re.IGNORECASE)
+
+# --- (A) "sorun" HOMOGRAFI: emir "sor-un" vs isim "sorun" (=problem) --------
+# TUR 3'te jetonu tumden atmistim; TUR 4 olctu ki ikilem GERCEK DEGIL — ucuz bir
+# ayirt edici isim baglamlarini disliyor ve kapinin KURULUS SEBEBI olan
+# "Musteriye olculeri sorun." vakasini geri kazandiriyor.
+SORUN_EMIR_RE = re.compile(r"\bsorun\b|\bsorunuz\b", re.IGNORECASE)
+SORUN_ISIM_RE = re.compile(
+    r"\bbir\s+sorun\b|\bsorun\s+(?:olursa|olur|varsa|var|yok|çıkar|çıkarsa|yaşa\w*)"
+    r"|\bsorunu\b|\bsorunsuz\b|\bsorunla\b|\bsorunlar\w*|\bsorunlu\b",
     re.IGNORECASE)
 FIYAT_SOZ_RE = re.compile(
     r"kesin\s+fiyat\s+(ver|söyle|yaz)\b|fiyat\s+(sözü|garantisi)\s+ver\b"
@@ -130,13 +157,43 @@ OLUMSUZ_RE = re.compile(
 # maskesi bypass'i OLCULDU -> "Olcuyu gonderin CUNKU tahmin yeterli DEGIL" tek
 # cumlecik sayiliyor, sondaki "degil" bastaki zararli EMRI susturuyordu (M16).
 # Baglac sinirinda bolununce emir kendi cumleciginde degerlendirilir.
-CUMLECIK_AYIRICI = re.compile(
-    r"[.;,]|\n|\bçünkü\b|\bama\b|\bfakat\b|\bancak\b|\bzira\b", re.IGNORECASE)
+# 🔴 RAKAM KORUMASI (TUR 4): duz `[.;,]` TURKCE BINLIK AYRACINI da boluyordu ->
+# "Yaklasik 1.500 TL tutar." -> ['- Yaklasik 1', '500 TL tutar'] -> tahmin jetonu ile
+# para jetonu AYRI cumleciklere dusuyor, (C) HIC yanmiyordu. Yani (C) sinifi 1.000 TL
+# ustunde TAMAMEN OLUYDU — ve gercek ticari buyuklugumuz (ozel uretim) tam orada.
+# Turkce ONDALIK ayraci VIRGUL oldugu icin ("1.250,50 TL") koruma virgule de uygulanir.
+# Kural: [.;,] iki RAKAM ARASINDAYSA bolme.
+_AYIRAC = r"(?:(?<!\d)[.;,]|[.;,](?!\d))"
+_BAGLAC = r"\bçünkü\b|\bama\b|\bfakat\b|\bancak\b|\bzira\b"
+CUMLECIK_AYIRICI = re.compile(_AYIRAC + r"|\n|" + _BAGLAC, re.IGNORECASE)
+
+# CUMLE ayirici — VIRGUL ICERMEZ. (A) sinifi bu GENIS pencerede olculur: Turkcede
+# devrik/virgullu tumce dogaldir ve virgul, olcu jetonuyla emri AYIRIYORDU (TUR 4):
+#   "Deliğin çapını, bize gönderin."  · "Teknik çizimi, mümkünse paylaşın."
+# ⚠️ OLUMSUZLAMA yine CUMLECIK duzeyinde kalir — cumle duzeyine tasinirsa M9
+# ("ölçü isteme, çizim toplama") gibi YASAK metinleri sahte-kirmizi yanar.
+CUMLE_AYIRICI = re.compile(
+    r"(?:(?<!\d)[.;]|[.;](?!\d))|\n|" + _BAGLAC, re.IGNORECASE)
 
 
 def cumlecikler(satir):
-    """Satiri cumleciklere boler. Olumsuzlama BU pencerede aranir."""
-    return [p.strip() for p in CUMLECIK_AYIRICI.split(satir) if p.strip()]
+    """Satiri cumleciklere boler (virgul DAHIL). Olumsuzlama BU pencerede aranir."""
+    return [p.strip() for p in CUMLECIK_AYIRICI.split(satir) if p and p.strip()]
+
+
+def cumleler(satir):
+    """Satiri cumlelere boler (virgul HARIC). (A) jeton penceresi budur."""
+    return [p.strip() for p in CUMLE_AYIRICI.split(satir) if p and p.strip()]
+
+
+def istek_var(c):
+    """Cumlecikte musteriden girdi TALEP EDEN emir var mi?
+    'sorun' yalniz ISIM baglami YOKKEN emir sayilir (homograf ayirt edicisi)."""
+    if ISTEK_RE.search(c):
+        return True
+    if SORUN_EMIR_RE.search(c) and not SORUN_ISIM_RE.search(c):
+        return True
+    return False
 
 
 def olumsuz(c):
@@ -151,27 +208,33 @@ def bulgular(metin):
     while i < len(satirlar):
         satir = satirlar[i]
         no = i + 1
-        j = 0
-        parcalar = cumlecikler(satir)
-        while j < len(parcalar):
-            c = parcalar[j]
-            if not olumsuz(c):
-                if OLCU_RE.search(c) and ISTEK_RE.search(c):
-                    out.append((no, "A/ISTEK", c,
+
+        # ---- (A) ISTEK: jeton penceresi CUMLE, olumsuzlama penceresi CUMLECIK ----
+        # Iki ayri pencere sart: cumle olmadan virgullu devrik tumce kacar (TUR 4),
+        # cumlecik olmadan yasak metinleri sahte-kirmizi yanar (M9).
+        for cumle in cumleler(satir):
+            if not OLCU_RE.search(cumle):
+                continue
+            for c in cumlecikler(cumle):
+                if istek_var(c) and not olumsuz(c):
+                    out.append((no, "A/ISTEK", cumle,
                                 "musteriden URETIM olcusu/cizimi isteniyor "
                                 "(SISTEM_TALIMATI :41/:52/:2467 YASAKLIYOR)"))
-                if URETIM_SOZ_RE.search(c):
-                    out.append((no, "B/URETIM-SOZU", c,
-                                "musterinin parcasi icin uretim taahhudu "
-                                "(uretecegimize Okan karar verir — :41/:2467)"))
-                yaklasik_taahhut = bool(
-                    YAKLASIK_RE.search(c) and PARA_RE.search(c)
-                    and not BETIMLEME_RE.search(c))
-                if FIYAT_SOZ_RE.search(c) or yaklasik_taahhut:
-                    out.append((no, "C/FIYAT-SOZU", c,
-                                "yaklasik/tahmini fiyat taahhudu "
-                                "(:57 'yaklasik su kadar tutar' DEME)"))
-            j += 1
+                    break
+
+        # ---- (B) ve (C): CUMLECIK duzeyi ----
+        for c in cumlecikler(satir):
+            if olumsuz(c):
+                continue
+            if URETIM_SOZ_RE.search(c):
+                out.append((no, "B/URETIM-SOZU", c,
+                            "musterinin parcasi icin uretim taahhudu "
+                            "(uretecegimize Okan karar verir — :41/:2467)"))
+            # POZITIF SART: para jetonu VE taahhut isareti (negatif veto YOK).
+            if FIYAT_SOZ_RE.search(c) or (PARA_RE.search(c) and TAAHHUT_RE.search(c)):
+                out.append((no, "C/FIYAT-SOZU", c,
+                            "fiyat TAAHHUDU (para jetonu + taahhut kipi) "
+                            "(:57 'yaklasik su kadar tutar' DEME)"))
         i += 1
     return out
 
@@ -216,13 +279,31 @@ NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
     tek cumlecikte olumsuzlama HALA maskeler — or. "Olcuyu gonderin tahmin yeterli
     degil". Belgenin uslubu DEGIL/YOK/ASLA vurgusuyla dolu oldugu icin bu GERCEK
     bir risktir; prose degisikliginde INSAN okumasi sart.
+  · JETON PENCERELERI FARKLI (bilerek): (A) CUMLE duzeyinde jeton arar (virgullu
+    devrik tumce icin), olumsuzlamayi CUMLECIK duzeyinde kontrol eder. (B)/(C)
+    tumuyle cumlecik duzeyindedir. Cok cumlecikli uzun bir satirda (A)'nin olcu
+    jetonu ile emri FARKLI cumlelerdeyse yakalanmaz.
   · KOR NOKTA — "netleştir": l.11 "ölçü/koşul belirsizse netleştir" ISTEK
     fiili saymaz (mesru ic refleks kabul edildi). Biri olcu talebini "netleştir"
     diye yazarsa bu kapi GORMEZ. Bilincli sinir; genisletmek l.11/l.18/l.38'i
     sahte-kirmizi yakar.
-  · KOR NOKTA — "sorun": emir kipi "sor-un" desenden CIKARILDI, cunku "sorun"
-    (=problem) ismiyle homograf ve sahte-kirmizi uretiyordu (M11). "Olculeri bize
-    sorun" gibi bir cumle bu kapidan GECER. Deploy riski > tek kelime kazanci.
+  · KOR NOKTA — "yaz/yazın": ISTEK deseninden CIKARILDI (TUR 4). Nesnesi SERBEST
+    oldugu icin sahte-kirmizi uretiyordu ("Ölçüde sorun yaşarsanız yazın" = bize
+    yaz, olcu talebi DEGIL). Bedeli: "Ölçüleri yazın" tipi GERCEK bir talep artik
+    YAKALANMAZ. Fikstur M25 bu bedeli kalici olarak gorunur tutar.
+  · KOR NOKTA — "sorun" ayirt edicisi BIR BASTIRICIDIR: isim baglami
+    ("bir sorun / sorun olursa / sorun yaşarsanız / sorunsuz") gorununce "sorun"
+    emir SAYILMAZ. Yani "Ölçüyü sorun, sorun olursa yazın" gibi bir cumlede
+    bastirici zararli emri de susturur. Dar tutuldu (yalniz bu homograf), ama
+    BYPASS EDILEBILIR — bilerek kabul edildi, alternatifi tum siteyi durduran
+    sahte-kirmiziydi.
+  · 🔴 (C) BETIMLEYICI EDILGEN CUMLEYI AYIRT EDEMEZ. Olculdu (TUR 4):
+    "Kargo ucreti yaklasik 250 TL olarak sepete eklenir." (MESRU, yesil kalmali) ile
+    "Fiyat yaklasik 800 TL olarak eklenir." (tahmini fiyat beyani) DILBILGISEL
+    OLARAK AYNIDIR — ikisi de edilgen betimleme; yalnizca OZNE farkli. Kelime
+    duzeyinde bir kapi bunlari ayiramaz; ozneye ("kargo" mu "fiyat" mi) gore kural
+    yazmak kirilgan asiri-uydurma olurdu. Ikisi de YESIL gecer. Bu sinif INSAN
+    okumasi ister.
   · KAPSAM DISI — ege-bilgi.md l.14 ("siparis sonrasi size ozel uretilir"):
     KOSULSUZ uretim taahhudu olarak mimar tarafindan AYRI bir acik madde olarak
     alindi (26 Tem). Pasif "üretilir" bilerek desende YOK — SISTEM_TALIMATI:2467
@@ -279,9 +360,31 @@ FIKSTURLER = [
     ("M20 'bandinda' tahmini", "- Fiyat 900-1100 TL bandında olur.", True,
      "bant tahmini de taahhuttur"),
     ("M22 teknik resim talebi", "- Teknik resim gönderin.", True, "cizim sinifi"),
-    ("M23 cap/cm talebi", "- Çapı cm olarak yazın.", True, "olcu sinifi"),
+    ("M23 cap/cm talebi", "- Çapı cm olarak gönderin.", True, "olcu sinifi"),
     ("M24 ortuk uretim sozu", "- Sizin için yapabiliriz.", True,
      "ortuk 1. cogul uretim sozu"),
+    # ═══ TUR 4: KARSI-OLGU REGRESYON (eski surumde KIRMIZI yanan hicbir cumle
+    #     yeni surumde YESIL olmayacak — negatif veto kaldirilinca geri kazanildi) ═══
+    ("R1 bastirici bypass'i (gorunur)", "- Yaklaşık 900 TL tutar ve sepette görünür.",
+     True, "eski BETIMLEME vetosu bunu susturuyordu; taahhut kipi 'TL tutar' yanmali"),
+    ("R2 bastirici bypass'i (yazar)", "- Yaklaşık 700 TL civarı bir maliyet yazar.",
+     True, "'yazar' vetosu susturuyordu; artik TAAHHUT tarafinda"),
+    # ═══ TUR 4: BINLIK/ONDALIK AYRAC — (C) 1.000 TL ustunde TAMAMEN OLUYDU ═══
+    ("R3 binlik ayrac 4 hane", "- Yaklaşık 1.500 TL tutar.", True,
+     "'1.500' bolununce tahmin ile para ayri cumleciklere dusuyordu"),
+    ("R4 binlik ayrac + diyebiliriz", "- Ortalama 2.400 TL diyebiliriz.", True,
+     "ayni bolunme sinifi"),
+    ("R5 ondalik VIRGUL", "- Yaklaşık 1.250,50 TL olur.", True,
+     "Turkce ondalik ayraci virgul — o da bolunuyordu"),
+    ("R6 bes haneli gercekci fiyat", "- Tahminen 12.750 TL tutar.", True,
+     "gercek ticari buyuklugumuz 1.000+ TL; fiksturler 3 haneli kalirsa yesil bir sey ispatlamaz"),
+    # ═══ TUR 4: 'sorun' homografi geri kazanildi + virgullu devrik tumce ═══
+    ("R7 'sorun' EMRI (kurulus sebebi)", "- Müşteriye ölçüleri sorun.", True,
+     "TUR 3'te jetonu atmistim; isim-baglami ayirt edicisiyle geri kazanildi"),
+    ("R8 virgullu devrik tumce (A)", "- Deliğin çapını, bize gönderin.", True,
+     "virgul olcu jetonuyla emri ayiriyordu -> (A) artik CUMLE penceresinde"),
+    ("R9 virgullu devrik tumce (A/2)", "- Teknik çizimi, mümkünse paylaşın.", True,
+     "ayni sinif"),
     # ═══ YANLIS-POZITIF NOBETCILERI ═══
     # ⚠️ Bu kapi `build` isinde kosar, `deploy: needs: build` -> asagidakilerden biri
     # KIRMIZI yanarsa yalniz Ege degil TUM pruvo3d.com yayini durur.
@@ -311,6 +414,14 @@ FIKSTURLER = [
     ("M21 duz kesin fiyat = ILAN EDILMIS KOR NOKTA", "- Bu parça 1.200 TL.", False,
      "KAPSAM DISI ve OYLE ILAN EDILDI — burayi 'duzeltmek' belgenin l.9'unu "
      "sahte-kirmizi yakar ve tum siteyi durdurur"),
+    ("M25 'yazın' = ILAN EDILMIS KOR NOKTA", "- Ölçüde sorun yaşarsanız yazın.", False,
+     "'yaz/yazın' nesnesi SERBEST -> ISTEK'ten cikarildi; bedeli: 'Ölçüleri yazın' "
+     "tipi talep artik YAKALANMAZ (ne_olculmedi()'de yazili)"),
+    ("M26 'sorun' isim baglami (2)", "- Ölçüyle ilgili sorun yok.", False,
+     "isim baglami — emir sanilmamali"),
+    ("M27 belgenin l.7 konfigurator cumlesi",
+     "- konfigüratör girilen ölçüye göre fiyatı hesaplar, onlar da sepetten kartla ödenir.",
+     False, "'hesaplar' 3. tekil BETIMLEME — TAAHHUT listesinde bilerek YOK"),
 ]
 
 
