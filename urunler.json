@@ -1,5 +1,379 @@
 [
   {
+    "id": "renault-clio-2-telefon-tablet-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio 2 Telefon ve Tablet Tutucu",
+    "aciklama": "Renault Clio 2 ön panelindeki küçük eşya gözünün yerine takılan telefon ve tablet tutucu. İçinden USB şarj kablosunun geçirilebileceği bir kanal bırakılmıştır; saatin hemen önündeki bölmeye oturacak şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 39 × 35 × 22 mm.",
+    "fiyat": "210 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1763888-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1763888-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1763888-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1763888-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Iya",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-3-debriyaj-silindiri-topuz-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio 3 Debriyaj Silindiri Top Yuvası",
+    "aciklama": "Renault Clio 3 ve sonrası bazı modellerde kullanılan plastik debriyaj master silindirinin kırılgan beyaz top-yuvasının (balljoint seat) yerine geçen yedek parça. Yuva kırıldığında debriyaj pedalında oluşan boşluk ve tıklama sesini giderir.\nYaklaşık dış ölçüler: 21 × 15 × 14 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4548044-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4548044-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4548044-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4548044-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dnemec",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "renault-clio-1-kapi-kolu-destek-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio 1 Kapı Kolu Destek Parçası",
+    "aciklama": "Renault Clio 1 (1996 model yılı ve sonrası) iç kapı kolu mekanizması için destek/gövde parçası. Ön veya arka, sol ya da sağ kapıya ayna simetriğiyle uyumludur; kırılan orijinal desteğin yerine takılır.\nYaklaşık dış ölçüler: 108 × 64 × 29 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4277446-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4277446-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "perefracas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-scenic-2-silecek-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Scenic II Silecek Adaptörü",
+    "aciklama": "Renault Scenic II (Faz 1) ön cam sileceklerine kanca (hook) tipi piyasa silecek süpürgelerinin takılabilmesini sağlayan adaptör. Orijinal silecek kolunun ucuna monte edilir.\nYaklaşık dış ölçüler: 55 × 45 × 15 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3517280-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3517280-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3517280-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3517280-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "michaldck",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-duster-kaput-destek-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Duster Kaput Destek Kapağı",
+    "aciklama": "Renault Duster motor kaputu destek çubuğunun bağlantı somunlarını kapatan koruyucu trim kapağı. Kaput altındaki bağlantı noktasını düzenli görünüm ve tozdan korumayla kapatır.\nYaklaşık dış ölçüler: 122 × 87 × 12 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6825666-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6825666-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "maipo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-twingo-1-orta-havalandirma-menfezi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Twingo 1 Orta Havalandırma Menfezi",
+    "aciklama": "Renault Twingo 1 gösterge panelindeki orta klima/havalandırma menfezinin tam yerine oturan, sağa-sola ve yukarı-aşağı yönlendirilebilir yedek parçası. Kırılan veya kaybolan orijinal menfezin yerine takılır.\nYaklaşık dış ölçüler: 80 × 69 × 31 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7007382-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7007382-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7007382-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7007382-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "erecik",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-fluence-megane-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Fluence Megane Telefon Tutucu",
+    "aciklama": "Renault Fluence ve Megane III kokpitine özel, kafes gövdeli destek koluna sahip telefon tutucu. Kolu sayesinde telefonu sürüş sırasında sabit ve görüş açısında tutar.\nYaklaşık dış ölçüler: 133 × 88 × 43 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2828238-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2828238-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2828238-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2828238-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tipaaetaa",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-opel-vivaro-koltuk-tutamagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Opel"
+    ],
+    "baslik": "Renault Trafic / Opel Vivaro Koltuk Tutamağı",
+    "aciklama": "Renault Trafic ve Opel Vivaro modellerinde koltuk çerçevesine takılan sol-sağ çift tutamak seti. Kırılan orijinal tutamakların yerine geçer.\nYaklaşık dış ölçüler: 183 × 38 × 35 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4826016-1.jpg"
+    ]
+  },
+  {
+    "id": "renault-espace-4-koltuk-rayi-sabitleme-noktasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Espace 4 Koltuk Rayı Sabitleme Noktası",
+    "aciklama": "Renault Espace IV koltuk rayına monte edilen, ayarlanabilir sabitleme/bağlama noktası. Bagaj bölmesinde veya kabin içinde eşya sabitlemek için kullanılır; metal ara parça ve vida ile birlikte monte edilir.\nYaklaşık dış ölçüler: 50 × 42 × 32 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1614703-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1614703-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1614703-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "brandy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-2-cam-kilavuz-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane II Cam Kanalı Kılavuz Braketi",
+    "aciklama": "Renault Megane II sürücü kapısı cam krikosu mekanizmasında sık kırılan plastik kılavuz/kayar bloğun yerine geçen yedek parça. Orijinal mekanizmanın tamamını değiştirmek yerine sadece bu parçanın yenilenmesini sağlar.\nYaklaşık dış ölçüler: 45 × 40 × 14 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th300711-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DePeralta",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-4-tavan-rayi-gozluk-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane 4 Tavan Rayı Gözlük Tutucusu",
+    "aciklama": "Renault Megane 4 sunroof (güneşli tavan) rayına takılan gözlük tutucu aksesuar. Güneş gözlüğünüzü sürüş sırasında pratik ve göz önünde bir yerde tutar.\nYaklaşık dış ölçüler: 53 × 35 × 29 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3350375-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3350375-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3350375-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3350375-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "celiktse",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-opel-vivaro-cam-suyu-depo-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Opel"
+    ],
+    "baslik": "Renault Trafic / Opel Vivaro Cam Suyu Depo Kapağı",
+    "aciklama": "Renault Trafic ve Opel Vivaro modellerinde oval ağızlı cam suyu deposuna uyan esnek malzemeden kapak. Havalandırma delikli ve deliksiz olmak üzere iki seçenekle birlikte gelir.\nYaklaşık dış ölçüler: 120 × 44 × 13 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6218592-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6218592-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6218592-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6218592-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "l_hankel",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-twingo-1-arka-raf-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Twingo 1 Arka Raf Tutucu",
+    "aciklama": "Renault Twingo 1 arka eşya rafının sabitlenmesinde kullanılan yedek tutucu/braket. Yuvasına baskıyla oturtularak monte edilir.\nYaklaşık dış ölçüler: 31 × 28 × 20 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3084824-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3084824-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3084824-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jeffrey_om",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-scenic-2-megane-2-modus-torpido-kapagi-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Scenic II / Megane II / Modus Torpido Kapağı Kolu",
+    "aciklama": "Renault Scenic II, Megane II ve Modus modellerinde torpido gözü kapağını açan kol/mandal parçası. Orijinal parça numarası 7701062156 ile uyumlu ölçülerde tasarlanmıştır.\nYaklaşık dış ölçüler: 42 × 37 × 9 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3459473-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3459473-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "michaldck",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-2-klima-radyatoru-koruma-izgarasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane II Klima Radyatörü Koruma Izgarası (2005-2007)",
+    "aciklama": "Renault Megane II ön tampon arkasındaki klima kondenserini taş ve çakıl darbelerinden korumak için tasarlanmış geniş ızgara. Tamponun iç yüzeyindeki mevcut bağlantı pimlerine oturur.\nYaklaşık dış ölçüler: 204 × 161 × 6 mm.",
+    "fiyat": "230 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2447267-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2447267-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2447267-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2447267-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Doupem",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-opel-vivaro-sogutma-hortumu-ayirici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Opel"
+    ],
+    "baslik": "Renault Trafic / Opel Vivaro Soğutma Hortumu Ayırıcı",
+    "aciklama": "Renault Trafic ve Opel Vivaro dCi motorlarda soğutma suyu deposu yanındaki hortum ayırıcı/tutucu parça. Kırılan orijinal ayırıcının yerine takılır.\nYaklaşık dış ölçüler: 60 × 30 × 12 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6491461-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6491461-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "l_hankel",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-cam-suyu-depo-kapagi-yuvarlak",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio Cam Suyu Deposu Kapağı (Yuvarlak Tip)",
+    "aciklama": "Renault Clio cam suyu deposu ağzına uyan, küçük yuvarlak ve silindirik gövdeli kapak. Katalogdaki geniş-oval kapaklardan farklı, dar iç çaplı depo ağızlarına uygun kompakt bir tasarımdır.\nYaklaşık dış ölçüler: 51 × 46 × 16 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6350323-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6350323-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "klemza",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-2-on-cam-kriko-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane II Ön Cam Kriko Klipsi",
+    "aciklama": "Renault Megane II ön camlarında (sağ ve sol) kullanılan küçük cam kriko klipsi. Zamanla kırılan orijinal klipsin yerine geçer.\nYaklaşık dış ölçüler: 32 × 16 × 13 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th894254-1.jpg",
+      "https://media.pruvo3d.com/urunler/th894254-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jos31",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-ev-sarj-soketi-duvar-dock-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault EV Type 2 Şarj Soketi Duvar Dock Yuvası",
+    "aciklama": "Renault elektrikli araç modellerinde kullanılan Type 2 şarj soketini duvara monte ederek kablosuyla birlikte düzenli tutan dock yuvası. Fişi askıda bırakmak yerine içine oturtarak saklar, entegre kablo tutucusu sayesinde şarj kablosunu da toplu tutar.\nYaklaşık dış ölçüler: 107 × 100 × 71 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4941222-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "danielebenini",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-scenic-megane-tavan-portbagaj-ray-destegi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Scenic / Megane Tavan Portbagaj Ray Şimi",
+    "aciklama": "Renault Scenic veya Megane tavan portbagaj rayının araç tavanına bağlandığı destek/şim parçası. Kaybolan veya kırılan orijinal ray desteğinin yerine geçer; mevcut ince sabitleme plakasından farklı, kalın gövdeli ve rayı kavrayan oturma yuvası olan bir tasarımdır.\nYaklaşık dış ölçüler: 100 × 47 × 35 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th948952-1.jpg",
+      "https://media.pruvo3d.com/urunler/th948952-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "juancmar",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "renault-megane-2-cam-suyu-hortum-t-adaptoru",
     "kategori": "Otomobil",
     "marka": [
