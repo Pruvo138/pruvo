@@ -81,7 +81,6 @@ import build  # noqa: E402
 import sayfalar  # noqa: E402  (yasal/içerik sayfalarının TEK kaynağı)
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SAYFALAR_KAYNAK = os.path.join(KOK, "tools", "sayfalar.py")
 
 # Türkçe karakterlerin TAMAMINI (ç ğ ı ö ş ü İ) + boşluk + em-dash içeren örnek ürün.
 URUN = {
@@ -146,6 +145,9 @@ WA_URL_RE = re.compile(
 # Geçerli uluslararası numara: yalnız rakam (baştaki + serbest), 10-15 hane. Boşluklu/
 # tireli/noktalı bir "numara" bu kalıba UYMAZ -> ayrıştırılamaz sayılır (fail-closed).
 GECERLI_NUMARA_RE = re.compile(r"\+?\d{10,15}")
+# "Belgede literal numaralı wa.me linki VAR MI" sorusunun BAĞIMSIZ cevabı (WA_URL_RE'den
+# ayrı kalıp): pozitif nöbetin çapası budur -> WA_URL_RE körleşirse bu hâlâ görür.
+LITERAL_WA_RE = re.compile(r"wa\.me/\d{6,}", re.IGNORECASE)
 # Sayfaya gömülen ref-atıf betiğinin wa.me EŞLEŞTİRME sabiti (attribution-ref.js).
 # build.WHATSAPP'tan sapması sessiz hatadır: linkler doğru numarayı taşır ama betik
 # onları WhatsApp linki olarak TANIMAZ -> reklam atfı (ref) sessizce düşer.
@@ -166,7 +168,9 @@ PV_SPAN_RE = re.compile(r'<span class="pv pv-blok"((?:\s+data-[a-l]="[^"]*")+)\s
 PV_ATTR_RE = re.compile(r'data-([a-l])="([^"]*)"')
 PV_ALFABE = "abcdefghijkl"
 # Künye tablosundaki telefon hücresi (sayfalar._seller_table) + JS'in tel: kuracağı bağ.
-PV_TELEFON_HUCRE_RE = re.compile(r"<td>Telefon</td><td>(.*?)</td>", re.S)
+# ⚠️ Etiket metni ESNEK eşleşir ("Telefon", "Telefon (arama)", "Telefon / Faks"): etiketi
+# birebir çapalamak, alakasız bir etiket düzenlemesinde pozitif nöbeti sessizce öldürürdü.
+PV_TELEFON_HUCRE_RE = re.compile(r"<td>\s*Telefon[^<]*</td>\s*<td>(.*?)</td>", re.S)
 PV_TEL_BAG_RE = re.compile(r'<a[^>]*data-pv-link="tel"[^>]*>(.*?)</a>', re.S)
 
 # --- JS telefon sabiti: linki ÇALIŞMA ZAMANINDA kuran numara (URL taraması göremez).
@@ -187,11 +191,12 @@ WA_ADI_RE = re.compile(r"whats?app|wa_?(?:num|no|phone|hat)|phone", re.I)
 KATI_TEL_RE = re.compile(
     r"\+90[\s.\-]?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{2}[\s.\-]?\d{2}(?!\d)")
 WA_BAGLAM_RE = re.compile(r"whatsapp|wa\.me", re.I)
+# Nötr bağlamdaki literalin NİYETİNİ sınıflandırmak için (kural DEĞİL, yalnız ÖLÇÜM):
+# "... numarasına GÖNDERİN/YAZIN/İLETİN" = mesajlaşma niyeti -> pratikte WhatsApp hattı.
+# Bu sınıflandırma kırmızı yakmaz; kör nokta raporunda SAYIYLA yayınlanır ki kuralın
+# yazılabilir olup olmadığı ölçümle görülsün (bugün: hepsi tek "Sipariş" şablonundan).
+MESAJ_FIIL_RE = re.compile(r"gönderin|gonderin|yazın|yazin|iletin|at[ıi]n", re.I)
 GORUNUR_PENCERE = 140          # literalin SOLUNDA bakılan karakter (bağlam cümlesi)
-
-# sayfalar.py KAYNAĞINDAKİ literal wa.me link sayısı -> üretilen korpusun pozitif tabanı.
-# ÇAPA DEĞİL: kaynağa link eklenince beklenti kendiliğinden yükselir, silinince düşer.
-KAYNAK_WA_LITERAL_RE = re.compile(r"wa\.me/(\d{6,})")
 
 # Sayfada GEÇERLİ numara taşıyan EN AZ bu kadar WhatsApp linki bulunmalı (bugün ölçülen:
 # 4 — help-cta, malzeme-not, orderAlt statik href, orderAlt'ı JS'te yeniden kuran satır).
@@ -260,6 +265,7 @@ def wa_numara_adaylari(url):
       * send'li biçimler (api./web.whatsapp.com, whatsapp://) -> ?phone= SORGUSUNDA
         (yolları sabit "send"dir, numara taşımaz -> yol taranmaz, yoksa "send" hep
         ayrıştırılamayan numara sanılıp yanlış-pozitif üretirdi)
+      * wa.me/message/<KOD> -> KISA LİNK, numara TAŞIMAZ (aşağıdaki wa_kisa_link_mi)
     Boş liste = link numara literali taşımıyor (JS'te değişkenle kuruluyor)."""
     # Şema/host HARF-DUYARSIZ karşılaştırılır (WA.ME/... tarayıcıda aynı linktir; küçük
     # harfe indirmezsek host eşleşmesi tutmaz ve numara YOLDAN hiç okunmazdı -> N14/N15).
@@ -282,6 +288,28 @@ def wa_numara_adaylari(url):
     if q and q.group(1):
         adaylar.append(("phone=", unquote(q.group(1))))
     return adaylar
+
+
+def wa_kisa_link_mi(url):
+    """RESMÎ kısa link mi: https://wa.me/message/<KOD> (numara TAŞIMAZ) -> KOD, yoksa None.
+
+    ⚠️ Bu biçim numara içermez; kod WhatsApp Business hesabına bağlıdır. Numara kuralı
+    UYGULANAMAZ -> "ayrıştırılamadı" diye KIRMIZI yakmak YANLIŞ-POZİTİFTİR (meşru resmî
+    link tüm site deploy'unu durdururdu). SESSİZCE de yutulmaz: her koşumda görünür bir
+    bilgi satırı basılır ve kör nokta listesinde yer alır — o kod BAŞKA bir numaraya
+    bağlı olabilir ve bunu bu nöbetçi ÖLÇEMEZ (kodun hangi hatta gittiği yalnız WhatsApp
+    Business panelinden görülür)."""
+    if url.lower().startswith("whatsapp://"):
+        return None
+    kalan = re.sub(r"^https?://", "", url, flags=re.IGNORECASE)
+    host, _, kalan = kalan.partition("/")
+    if host.lower() != "wa.me":
+        return None
+    yol = kalan.partition("?")[0].strip("/")
+    parcalar = yol.split("/")
+    if len(parcalar) >= 2 and parcalar[0].lower() == "message" and parcalar[1]:
+        return parcalar[1]
+    return None
 
 
 def numara_kontrol(ad, doc, fails, taban=None, sessiz=False):
@@ -312,11 +340,20 @@ def numara_kontrol(ad, doc, fails, taban=None, sessiz=False):
 
     bulunan = []          # (url, numara) — GEÇERLİ ayrıştırılmış numaralar (HAM metinden)
     dinamik = []          # numara LİTERALİ taşımayan link parçası (JS'te değişkenle kurulan)
+    kisa = []             # wa.me/message/<KOD> — numara TAŞIMAYAN resmî kısa link
     gorulen = set()       # aynı ihlali iki taramada iki kez bildirme
 
     def _tara(metin, tabana_say):
         for m in WA_URL_RE.finditer(metin):
             url = _html.unescape(m.group(0))
+            kod = wa_kisa_link_mi(url)
+            if kod:
+                # Numara TAŞIMAYAN resmî biçim -> numara kuralı uygulanamaz (kapsam dışı).
+                # KIRMIZI YAKILMAZ (meşru link deploy'u durduramaz) ama SESSİZ de kalmaz:
+                # aşağıda görünür bilgi satırı basılır.
+                if tabana_say:
+                    kisa.append((url, kod))
+                continue
             adaylar = wa_numara_adaylari(url)
             if not adaylar:
                 if tabana_say:
@@ -367,18 +404,28 @@ def numara_kontrol(ad, doc, fails, taban=None, sessiz=False):
         # aşağıdaki TARGET_PHONE assert'iyle kapatılıyor.
         print("  [%s] NOT: numara LİTERALİ taşımayan %d WhatsApp link parçası — numarası "
               "ÖLÇÜLEMEZ (değişkenle kuruluyor): %s" % (ad, len(dinamik), dinamik[:2]))
+    if kisa and not sessiz:
+        print("  [%s] BİLGİ: %d adet wa.me/message/<KOD> kısa linki — numara TAŞIMAZ, "
+              "numara kuralı UYGULANAMAZ (kod başka bir hatta bağlı olabilir, bu "
+              "nöbetçi ÖLÇEMEZ): %s" % (ad, len(kisa), [k for _u, k in kisa][:3]))
     if taban is not None and len(bulunan) < taban:
         fails.append("%s: geçerli numara taşıyan WhatsApp linki %d < taban %d — sipariş/"
                      "iletişim linkleri kaybolmuş ya da regex artık tutmuyor (küme "
                      "kontrolü BOŞ kümeye bakıp sahte-yeşil yanamaz)"
                      % (ad, len(bulunan), taban))
-    # TÜRETİLMİŞ boş-küme nöbeti (her belgede, sayı çapası OLMADAN): belge içinde
-    # "wa.me/" dizisi VARSA tarama en az bir link üretmek ZORUNDA. Regex bozulur ya da
-    # link biçimi tanınmaz hale gelirse küme boşalır ve tüm numara nöbeti sessizce
-    # sahte-yeşil yanardı — asıl korunan sessiz hata budur.
-    if "wa.me/" in doc.lower() and not bulunan and not dinamik:
+    # TÜRETİLMİŞ boş-küme nöbetleri (her belgede, SAYI ÇAPASI OLMADAN). İkisi de
+    # belgenin KENDİ içeriğinden türer; başka bir dosyanın sayısına BAĞLANMAZ
+    # (kaynak dosyadaki literal sayısına bağlamak meşru değişimi kırmızı yakıyordu:
+    # sayfa CONTENT_PAGES'ten çıkınca korpus düşer, kaynağa yorum eklenince kaynak artar).
+    # (1) belgede "wa.me/" geçiyorsa tarama en az bir şey üretmeli (regex tamamen bozuldu mu)
+    if "wa.me/" in doc.lower() and not bulunan and not dinamik and not kisa:
         fails.append("%s: belgede 'wa.me/' geçiyor ama numara taraması HİÇ link "
                      "üretmedi — WA_URL_RE artık tutmuyor, küme nöbeti kör" % ad)
+    # (2) belgede LİTERAL numaralı bir wa.me linki geçiyorsa en az bir tanesi
+    #     AYRIŞTIRILMIŞ olmalı (literal tarayıcı körleşti mi)
+    if LITERAL_WA_RE.search(doc) and not bulunan:
+        fails.append("%s: belgede literal 'wa.me/<numara>' var ama ayrıştırılmış link "
+                     "YOK — literal tarayıcı kör (numara nöbeti sahte-yeşil yanardı)" % ad)
 
     # Gömülü ref-atıf betiğinin eşleştirme sabiti de AYNI numara olmalı (sessiz drift).
     hedefler = TARGET_PHONE_RE.findall(doc)
@@ -556,9 +603,9 @@ def gorunur_numara_kontrol(ad, doc, fails, sessiz=False):
     Nötr bağlamdaki literalin hangi hat olması gerektiği YARGILANMAZ (kör nokta)."""
     wa, arama = numaralar()
     if len(wa) < 10:
-        return (0, 0)
+        return (0, 0, 0)
     metin = gorunur_metin(doc)
-    wa_baglam = notr = 0
+    wa_baglam = notr = notr_mesaj = 0
     for m in KATI_TEL_RE.finditer(metin):
         d = _rakam(m.group(0))
         pencere = metin[max(0, m.start() - GORUNUR_PENCERE):m.end() + 60]
@@ -567,6 +614,9 @@ def gorunur_numara_kontrol(ad, doc, fails, sessiz=False):
             wa_baglam += 1
         else:
             notr += 1
+            # ÖLÇÜM (kural değil): nötr literal aslında mesajlaşma cümlesinde mi?
+            if MESAJ_FIIL_RE.search(pencere):
+                notr_mesaj += 1
         if d not in (wa, arama):
             fails.append("%s: görünür metinde TANINMAYAN telefon literali %r (%s) — "
                          "ne WhatsApp (%s) ne arama (%s) hattı, fail-closed KIRMIZI"
@@ -578,8 +628,9 @@ def gorunur_numara_kontrol(ad, doc, fails, sessiz=False):
                          % (ad, d, pencere[-120:].replace("\n", " ")))
     if not sessiz:
         print("  [%s] görünür telefon literali: WhatsApp bağlamı=%d, nötr bağlam=%d "
-              "(nötr olanın hattı YARGILANMAZ)" % (ad, wa_baglam, notr))
-    return (wa_baglam, notr)
+              "(%d'si mesajlaşma fiilli; nötr olanın hattı YARGILANMAZ)"
+              % (ad, wa_baglam, notr, notr_mesaj))
+    return (wa_baglam, notr, notr_mesaj)
 
 
 def belge_denetle(ad, doc, fails, taban=None, sessiz=False):
@@ -591,31 +642,17 @@ def belge_denetle(ad, doc, fails, taban=None, sessiz=False):
     literal, dinamik = numara_kontrol(ad, doc, fails, taban=taban, sessiz=sessiz)
     ters = ters_yon_kontrol(ad, doc, fails, sessiz=sessiz)
     js_y, js_s = js_sabit_kontrol(ad, doc, fails, sessiz=sessiz)
-    g_wa, g_notr = gorunur_numara_kontrol(ad, doc, fails, sessiz=sessiz)
+    g_wa, g_notr, g_notr_mesaj = gorunur_numara_kontrol(ad, doc, fails, sessiz=sessiz)
     return {"wa_literal": literal, "wa_dinamik": dinamik, "ters_alan": ters,
             "js_yargilanan": js_y, "js_yargisiz": js_s,
-            "gorunur_wa": g_wa, "gorunur_notr": g_notr}
+            "gorunur_wa": g_wa, "gorunur_notr": g_notr,
+            "gorunur_notr_mesaj": g_notr_mesaj}
 
 
 def _topla(hedef, kaynak):
     for k, v in kaynak.items():
         hedef[k] = hedef.get(k, 0) + v
     return hedef
-
-
-def kaynak_wa_literal_sayisi():
-    """tools/sayfalar.py KAYNAĞINDAKİ literal wa.me link sayısı (üretilen korpusun tabanı).
-
-    ÇAPA DEĞİL, TÜRETME: kaynağa link eklenince beklenti kendiliğinden yükselir,
-    silinince düşer. Amaç yalnızca boş-küme sahte-yeşilini engellemek: kaynakta N
-    literal wa.me linki varsa üretilen korpus en az N tane üretmek zorundadır (aksi
-    halde ya sayfa CONTENT_PAGES'e bağlanmamış ya da tarama bozulmuştur)."""
-    try:
-        with open(SAYFALAR_KAYNAK, encoding="utf-8") as f:
-            kaynak = f.read()
-    except IOError:
-        return None
-    return len(KAYNAK_WA_LITERAL_RE.findall(kaynak))
 
 
 def icerik_sayfalari():
@@ -668,25 +705,25 @@ def sayfa_duzlemi(fails):
         _topla(toplam, belge_denetle(ad, doc, fails, sessiz=True))
         sayfa += 1
     print("  [sayfalar.py korpusu] üretilen sayfa=%d, wa literal link=%d, dinamik=%d, "
-          "ters yön alan=%d, JS sabiti=%d, görünür literal=%d (WhatsApp bağlamı) + %d (nötr)"
+          "ters yön alan=%d, JS sabiti=%d, görünür literal=%d (WhatsApp bağlamı) + %d "
+          "(nötr; %d'si mesajlaşma fiilli)"
           % (sayfa, toplam.get("wa_literal", 0), toplam.get("wa_dinamik", 0),
              toplam.get("ters_alan", 0), toplam.get("js_yargilanan", 0),
-             toplam.get("gorunur_wa", 0), toplam.get("gorunur_notr", 0)))
+             toplam.get("gorunur_wa", 0), toplam.get("gorunur_notr", 0),
+             toplam.get("gorunur_notr_mesaj", 0)))
     if sayfa == 0:
         fails.append("sayfalar.py: hiç içerik sayfası üretilmedi — CONTENT_PAGES boş mu? "
                      "(korpus nöbeti BOŞ kümeye bakıp sahte-yeşil yanamaz)")
-    kaynak_n = kaynak_wa_literal_sayisi()
-    if kaynak_n is None:
-        fails.append("sayfalar.py kaynağı okunamadı (%s) — korpus tabanı TÜRETİLEMEDİ"
-                     % SAYFALAR_KAYNAK)
-    else:
-        print("  [sayfalar.py korpusu] kaynaktaki literal wa.me link sayısı=%d "
-              "(türetilmiş taban, sabit çapa değil)" % kaynak_n)
-        if toplam.get("wa_literal", 0) < kaynak_n:
-            fails.append("sayfalar.py: üretilen korpusta %d literal wa.me linki var ama "
-                         "kaynakta %d tane — link üretilen sayfaya çıkmıyor (sayfa "
-                         "CONTENT_PAGES'e bağlanmamış) ya da tarama bozuldu"
-                         % (toplam.get("wa_literal", 0), kaynak_n))
+    # ⚠️ KORPUS TABANI KAYNAK SAYISINA BAĞLANMAZ (kaldırıldı, gerekçe ölçülmüş):
+    # "korpus literal sayısı >= sayfalar.py kaynağındaki literal sayısı" kuralı bugün
+    # 12 == 12 ile SIFIR PAYLA çalışıyordu -> kaynağa açıklama satırı olarak örnek bir
+    # wa.me yazmak (kaynak 13) ya da bir sayfayı CONTENT_PAGES'ten çıkarmak (korpus 11)
+    # gibi numarayla İLGİSİZ meşru düzenlemeler tüm site deploy'unu durduruyordu.
+    # Boş-küme sahte-yeşiline karşı koruma artık BELGE BAZINDA ve belgenin kendi
+    # içeriğinden türeyerek çalışıyor (numara_kontrol içindeki iki türetilmiş nöbet).
+    # Bilinen kör nokta: CONTENT_PAGES'e bağlanmamış bir sayfa gövdesi hiç üretilmediği
+    # için hiç taranmaz — kör nokta listesinde yazılı.
+    return toplam
 
 
 # --------------------------------------------------------------------- FİKSTÜRLER
@@ -694,29 +731,50 @@ def sayfa_duzlemi(fails):
 # RUTİN DÜZENLEME fikstürünü çalıştırır. İkincisi olmadan kapı "hangi elemanı
 # koruyorum" eksenine kayar ve numarayla ilgisi olmayan bir CSS/metin düzenlemesi tüm
 # site deploy'unu durdurur (bu repoda ÖLÇÜLMÜŞ tuzak).
+# 🔴 ÇAPA YOKLUĞU = "ÖLÇEMEDİM", "İHLAL VAR" DEĞİL (bağımsız çürütücü bulgusu, 27 Tem).
+# Fikstür çapası bulunamayınca KIRMIZI yakmak yanlış-pozitiftir: `var WA_NO=...;
+# var WHATSAPP=WA_NO;` refaktörü, künye etiketinin "Telefon (arama)" olması ya da basılan
+# numaranın tipografisinin değişmesi (65 26 / 6526) NUMARAYI BOZMAZ ama çapayı yok eder;
+# adım continue-on-error taşımadığı için bunların her biri TÜM EKİBİN yayınını durduruyordu.
+# Artık: görünür "ÖLÇÜLEMEDİ" satırı + sayaç, çıkış 0. Sessiz ölmesin diye ÖLÜ-NÖBETÇİ
+# kontrolü var: hiçbir kırmızı fikstür koşamadıysa (self-test tamamen ölmüş) O ZAMAN kırmızı.
+FIKSTUR_SAYAC = {"kirmizi_kosan": 0, "yesil_kosan": 0, "olculemedi": 0}
+
+
+def _olculemedi(ad, sebep):
+    FIKSTUR_SAYAC["olculemedi"] += 1
+    print("     %-46s -> ÖLÇÜLEMEDİ (%s)" % (ad, sebep))
+
+
 def _yargila(ad, doc, mutant, fails, kirmizi_bekle):
     if mutant == doc:
-        fails.append("FİKSTÜR BOZUK (%s): mutasyon belgeyi DEĞİŞTİRMEDİ" % ad)
+        _olculemedi(ad, "mutasyon belgeyi değiştirmedi")
         return
     yerel = []
     belge_denetle("fikstür/" + ad, mutant, yerel, sessiz=True)
-    if kirmizi_bekle and not yerel:
-        fails.append("FİKSTÜR: %s mutasyonu KIRMIZI yakmadı — nöbetçi bu ihlali GÖRMÜYOR"
-                     % ad)
-    if not kirmizi_bekle and yerel:
-        fails.append("FİKSTÜR: İLGİSİZ rutin düzenleme (%s) nöbetçiyi KIRMIZI yaktı — "
-                     "kapı kapsamı yanlış eksende, alakasız düzenleme deploy'u durdurur: %s"
-                     % (ad, yerel[:2]))
+    if kirmizi_bekle:
+        FIKSTUR_SAYAC["kirmizi_kosan"] += 1
+        if not yerel:
+            fails.append("FİKSTÜR: %s mutasyonu KIRMIZI yakmadı — nöbetçi bu ihlali "
+                         "GÖRMÜYOR" % ad)
+    else:
+        FIKSTUR_SAYAC["yesil_kosan"] += 1
+        if yerel:
+            fails.append("FİKSTÜR: İLGİSİZ rutin düzenleme (%s) nöbetçiyi KIRMIZI yaktı — "
+                         "kapı kapsamı yanlış eksende, alakasız düzenleme deploy'u "
+                         "durdurur: %s" % (ad, yerel[:2]))
     print("     %-46s -> %s (%d bulgu)"
           % (ad, "KIRMIZI" if yerel else "yeşil", len(yerel)))
 
 
 def _mutasyon(ad, doc, eski, yeni, fails, kirmizi_bekle):
-    """Numara çapalı mutasyon. Çapa NUMARA SABİTİNDEN türetilir (hardcode yok);
-    çapa yoksa fail-closed KIRMIZI: o düzlem sessizce ölçülmemiş olurdu."""
+    """Metin çapalı mutasyon. Çapa NUMARA SABİTİNDEN türetilir (hardcode yok).
+    Çapa yoksa ÖLÇÜLEMEDİ (kırmızı DEĞİL) — gerekçe yukarıdaki blokta."""
+    if doc is None:
+        _olculemedi(ad, "fikstür belgesi seçilemedi")
+        return
     if eski not in doc:
-        fails.append("FİKSTÜR BOZUK (%s): mutasyon çapası bulunamadı %r — fikstür "
-                     "sessizce çalışmıyor demektir, fail-closed KIRMIZI" % (ad, eski[:60]))
+        _olculemedi(ad, "mutasyon çapası belgede yok: %r" % (eski[:48],))
         return
     # TÜM geçişler değiştirilir: tek geçiş değiştirilseydi mutasyon yanlış yere düşüp
     # (ör. künye tablosu yerine düz cümledeki aynı pv değeri) fikstür sahte-yeşil
@@ -725,41 +783,82 @@ def _mutasyon(ad, doc, eski, yeni, fails, kirmizi_bekle):
 
 
 def _mutasyon_re(ad, doc, kalip, yeni_fn, fails, kirmizi_bekle):
-    """İLGİSİZ rutin düzenleme fikstürleri için TÜRETİLMİŞ çapa.
+    """TÜRETİLMİŞ çapa: kalıp belgenin YAPISINDAN eşleşir, yeni değer eşleşenden üretilir.
 
-    ⚠️ Neden regex: ilk sürümde bu fikstür çapası sabit bir içerik değeriydi
-    (`--navy:#12294d`). Ölçüldü — marka rengini değiştiren ALAKASIZ bir rutin
-    düzenleme fikstürün çapasını yok edip nöbetçiyi KIRMIZI yaktı, yani kapının
-    kendisi 'ilgisiz düzenleme deploy'u durdurmasın' kuralını ihlal ediyordu.
-    Çapa artık BELGENİN YAPISINDAN türetilir (ilk renk kodu, ilk paragraf, meta
-    açıklama alanı): içerik değeri değişse de fikstür yaşar."""
+    ⚠️ İki tuzak da ölçüldü: sabit ÇAPA (ör. `--navy:#12294d`) alakasız bir renk
+    düzenlemesinde yok olur; sabit YENİ DEĞER ise belge zaten o değerdeyse mutasyonu
+    etkisiz bırakır. İkisi de fikstürü sahte kırmızıya çevirir."""
+    if doc is None:
+        _olculemedi(ad, "fikstür belgesi seçilemedi")
+        return
     m = re.search(kalip, doc, re.S)
     if not m:
-        fails.append("FİKSTÜR BOZUK (%s): türetilmiş çapa kalıbı %r belgede yok"
-                     % (ad, kalip))
+        _olculemedi(ad, "türetilmiş çapa kalıbı belgede yok: %r" % kalip)
         return
     _yargila(ad, doc, doc[:m.start()] + yeni_fn(m) + doc[m.end():], fails, kirmizi_bekle)
 
 
 def gorunur_bicim(d):
-    """905451386526 -> '+90 545 138 6526' (sayfada BASILAN biçim).
+    """905451386526 -> '+90 545 138 6526' (numara sabitinden türetilmiş YAZIM biçimi).
 
-    Numara buraya da HARDCODE EDİLMEZ: sabitten türetilir, yoksa numara değişince
-    fikstür çapası bulunamaz ve fikstür sessizce ölür."""
+    ⚠️ Yalnız YENİ DEĞER üretmek için kullanılır, ÇAPA olarak DEĞİL: sayfadaki
+    tipografi başka gruplanabilir ("+90 545 138 65 26") ve çapa olarak kullanılsa
+    alakasız bir tipografi düzenlemesi fikstürü öldürürdü (ölçüldü)."""
     return "+%s %s %s %s" % (d[:2], d[2:5], d[5:8], d[8:])
 
 
-def ornek_sayfa(kosul, aciklama, fails):
-    """İçerik korpusundan koşulu SAĞLAYAN ilk üretilmiş sayfa (fikstür çapası).
+def gorunur_literal_bul(doc, hane):
+    """Belgede BASILI duran, rakamları `hane` olan telefon literalini OLDUĞU GİBİ döndür.
+
+    Tipografiden bağımsız (KATI_TEL_RE her gruplamayı tanır) -> görünür metin fikstürü
+    yazım biçimi değişse de yaşar."""
+    if not doc:
+        return None
+    for m in KATI_TEL_RE.finditer(gorunur_metin(doc)):
+        if _rakam(m.group(0)) == hane:
+            return m.group(0)
+    return None
+
+
+def ornek_sayfa(kosul):
+    """İçerik korpusundan koşulu SAĞLAYAN ilk üretilmiş sayfa (fikstür belgesi).
 
     Sabit slug seçmek çapadır (o sayfa değişince fikstür sessizce ölür) -> sayfa
-    İÇERİĞİNE göre seçilir. Hiçbiri uymuyorsa fikstür KIRIK sayılır (fail-closed)."""
-    for ad, doc in icerik_sayfalari():
+    İÇERİĞİNE göre seçilir. Hiçbiri uymuyorsa None -> fikstür ÖLÇÜLEMEDİ sayılır."""
+    for _ad, doc in icerik_sayfalari():
         if kosul(doc):
             return doc
-    fails.append("FİKSTÜR BOZUK: %s koşulunu sağlayan içerik sayfası YOK — mutasyon "
-                 "fikstürü koşturulamadı (fail-closed KIRMIZI)" % aciklama)
     return None
+
+
+def _korpus_fikstur(fails):
+    """A09 sınıfı: bir sayfa CONTENT_PAGES'ten ÇIKARILINCA korpus nöbeti YEŞİL kalmalı.
+
+    Eski sürümde korpus tabanı sayfalar.py kaynağındaki literal sayısına bağlıydı ve
+    sıfır payla çalışıyordu -> sayfayı listeden çıkarmak (gövde kaynakta kalır) tüm
+    deploy'u durduruyordu. Bu fikstür o regresyonun geri gelmesini engeller."""
+    asil = sayfalar.CONTENT_PAGES
+    if len(asil) < 2:
+        _olculemedi("İLGİSİZ: sayfayı CONTENT_PAGES'ten çıkarmak", "korpus çok küçük")
+        return
+    yerel = []
+    try:
+        sayfalar.CONTENT_PAGES = asil[:-1]
+        sayfa = 0
+        for ad, doc in icerik_sayfalari():
+            belge_denetle(ad, doc, yerel, sessiz=True)
+            sayfa += 1
+        if sayfa == 0:
+            yerel.append("korpus boş")
+    finally:
+        sayfalar.CONTENT_PAGES = asil
+    FIKSTUR_SAYAC["yesil_kosan"] += 1
+    if yerel:
+        fails.append("FİKSTÜR: İLGİSİZ rutin düzenleme (sayfayı CONTENT_PAGES'ten "
+                     "çıkarmak) nöbetçiyi KIRMIZI yaktı: %s" % yerel[:2])
+    print("     %-46s -> %s (%d bulgu)"
+          % ("İLGİSİZ: sayfayı CONTENT_PAGES'ten çıkarmak",
+             "KIRMIZI" if yerel else "yeşil", len(yerel)))
 
 
 def fikstur_kontrol(fails):
@@ -768,16 +867,14 @@ def fikstur_kontrol(fails):
         fails.append("FİKSTÜR: numara sabitleri türetilemedi — mutasyon fikstürleri "
                      "koşturulamaz (fail-closed)")
         return
-    wa_yazi, arama_yazi = gorunur_bicim(wa), gorunur_bicim(arama)
+    arama_yazi = gorunur_bicim(arama)
     idx = ana_sayfa_metni()
     print("\nFİKSTÜRLER (nöbetçinin kendi kabul testi — her koşumda koşar)")
-    icerik = ornek_sayfa(lambda d: "wa.me/" + wa in d, "literal wa.me linki", fails)
-    gorunur_s = ornek_sayfa(lambda d: wa_yazi in d, "görünür +90 telefon literali", fails)
-    yasal = ornek_sayfa(lambda d: "<td>Telefon</td>" in d, "pv künye Telefon hücresi", fails)
-    if icerik is None or gorunur_s is None or yasal is None:
-        return
+    icerik = ornek_sayfa(lambda d: ("wa.me/" + wa) in d)
+    gorunur_s = ornek_sayfa(lambda d: gorunur_literal_bul(d, wa) is not None)
+    yasal = ornek_sayfa(lambda d: PV_TELEFON_HUCRE_RE.search(d) is not None)
 
-    # --- KIRMIZI beklenen: index.html numara ihlalleri
+    # ---------------- KIRMIZI beklenen: index.html numara ihlalleri
     _mutasyon("index.html wa.me -> arama hattı", idx,
               "wa.me/" + wa, "wa.me/" + arama, fails, True)
     _mutasyon("index.html JSON-LD contactPoint -> WhatsApp", idx,
@@ -786,24 +883,31 @@ def fikstur_kontrol(fails):
               'WHATSAPP = "' + wa + '"', 'WHATSAPP = "' + arama + '"', fails, True)
     _mutasyon("index.html wa.me -> AYRIŞTIRILAMAZ numara", idx,
               "wa.me/" + wa, "wa.me/90 545-138.65", fails, True)
+    # Kural bazında ÖLÜ NÖBETÇİ kontrolü — bu üç kuralın fikstürü YOKTU (çürütücü bulgusu):
+    #   (1) VARLIK-KODLU (entity) ikinci tarama  (2) harf-duyarsız host  (3) türetilmiş
+    #   literal-pozitif nöbeti
+    _mutasyon("index.html VARLIK-KODLU (entity) gizlenmiş arama hattı", idx,
+              "</body>",
+              '<a href="https://wa&#46;me/' + arama + '">gizli</a>\n</body>', fails, True)
+    _mutasyon("index.html BÜYÜK HARF WA.ME + arama hattı", idx,
+              "</body>",
+              '<a href="https://WA.ME/' + arama + '">buyuk</a>\n</body>', fails, True)
+    _mutasyon("index.html literal tarayıcı körlenmesi (pozitif nöbet)", idx,
+              "https://wa.me/" + wa, "https://xwa.me/" + wa, fails, True)
 
-    # --- KIRMIZI beklenen: sayfalar.py ÜRETİLEN çıktı düzlemi
+    # ---------------- KIRMIZI beklenen: sayfalar.py ÜRETİLEN çıktı düzlemi
     _mutasyon("sayfalar.py çıktısı wa.me -> arama hattı", icerik,
               "wa.me/" + wa, "wa.me/" + arama, fails, True)
     _mutasyon("sayfalar.py çıktısı görünür metin -> arama hattı", gorunur_s,
-              wa_yazi, arama_yazi, fails, True)
+              gorunur_literal_bul(gorunur_s, wa) or "", arama_yazi, fails, True)
     _mutasyon("sayfalar.py künye pv Telefon -> WhatsApp", yasal,
-              sayfalar.pv_html(sayfalar.SELLER["tel"]), sayfalar.pv_html(wa_yazi),
-              fails, True)
+              sayfalar.pv_html(sayfalar.SELLER["tel"]),
+              sayfalar.pv_html(gorunur_bicim(wa)), fails, True)
     _mutasyon("sayfalar.py TARGET_PHONE -> arama hattı", icerik,
               'TARGET_PHONE = "' + wa + '"', 'TARGET_PHONE = "' + arama + '"', fails, True)
 
-    # --- YEŞİL kalması ZORUNLU: numarayla İLGİSİZ rutin düzenlemeler
-    # Çapa da yeni değer de BELGEDEN türetilir. İkisi de sabit yazılamaz:
-    #   * sabit ÇAPA -> alakasız içerik değişimi çapayı yok eder (ölçüldü, kırmızı yandı)
-    #   * sabit YENİ DEĞER -> belge zaten o değerdeyse mutasyon hiçbir şeyi değiştirmez
-    #     ve fikstür "belgeyi DEĞİŞTİRMEDİ" diye kırmızı yanar (ölçüldü)
-    # Bu yüzden yeni değer DAİMA eşleşen metnin dönüştürülmüş halidir -> her koşulda farklı.
+    # ---------------- YEŞİL kalması ZORUNLU: numarayla İLGİSİZ rutin düzenlemeler
+    # Çapa da yeni değer de BELGEDEN türetilir (ikisinin de sabit olması ölçülmüş tuzak).
     _mutasyon_re("İLGİSİZ: index.html'e HTML yorumu eklemek", idx,
                  r"</body>", lambda m: "<!-- rutin duzenleme -->\n" + m.group(0),
                  fails, False)
@@ -821,28 +925,74 @@ def fikstur_kontrol(fails):
                  r"<li>(.*?)</li>",
                  lambda m: "<li>Rutin olarak güncellenmiş madde. %s</li>" % m.group(1),
                  fails, False)
+    # --- Bağımsız çürütücünün SAHTE KIRMIZI bulduğu 6 senaryo (A09/A16/A17/A19/A21/A22),
+    #     bir daha kaçmasın diye her biri kendi fikstürüyle:
+    _mutasyon_re("İLGİSİZ (A16): resmî wa.me/message/<KOD> kısa linki", idx,
+                 r"</body>",
+                 lambda m: '<a href="https://wa.me/message/ABCDEFGHIJKL2">kisa</a>\n'
+                           + m.group(0), fails, False)
+    _mutasyon_re("İLGİSİZ (A17): örnek wa.me'li HTML yorumu", idx,
+                 r"</body>",
+                 lambda m: "<!-- ornek: https://wa.me/%s?text=... -->\n%s"
+                           % (wa, m.group(0)), fails, False)
+    _mutasyon("İLGİSİZ (A19): var WA_NO refaktörü (numara DOĞRU)", idx,
+              'WHATSAPP = "' + wa + '"',
+              'WA_NO = "' + wa + '";\n  var WHATSAPP = WA_NO', fails, False)
+    _mutasyon_re("İLGİSİZ (A21): künye etiketi 'Telefon (arama)'", yasal,
+                 r"<td>\s*Telefon\s*</td>", lambda m: "<td>Telefon (arama)</td>",
+                 fails, False)
+    _mutasyon("İLGİSİZ (A22): basılan numaranın tipografisi", gorunur_s,
+              gorunur_literal_bul(gorunur_s, wa) or "",
+              "+%s %s %s %s %s" % (wa[:2], wa[2:5], wa[5:8], wa[8:10], wa[10:]),
+              fails, False)
+    _korpus_fikstur(fails)                      # A09
+
+    # ---------------- ÖLÜ NÖBETÇİ kontrolü (çapa yokluğu artık kırmızı yakmadığı için)
+    print("     -> fikstür özeti: %d kırmızı koştu, %d ilgisiz-yeşil koştu, %d ÖLÇÜLEMEDİ"
+          % (FIKSTUR_SAYAC["kirmizi_kosan"], FIKSTUR_SAYAC["yesil_kosan"],
+             FIKSTUR_SAYAC["olculemedi"]))
+    if FIKSTUR_SAYAC["kirmizi_kosan"] == 0:
+        fails.append("FİKSTÜR: HİÇBİR kırmızı mutasyon fikstürü koşamadı (hepsinin çapası "
+                     "kayıp) — nöbetçinin duyarlılığı ARTIK ÖLÇÜLMÜYOR, ölü nöbetçi riski")
+    if FIKSTUR_SAYAC["yesil_kosan"] == 0:
+        fails.append("FİKSTÜR: HİÇBİR 'ilgisiz rutin düzenleme' fikstürü koşamadı — "
+                     "kapının yanlış-pozitif ekseni ARTIK ÖLÇÜLMÜYOR")
 
 
-def kor_noktalar():
-    """Nöbetçinin ÖLÇMEDİĞİ şeyler — her koşumda açıkça ilan edilir (repo standardı)."""
+def kor_noktalar(toplam):
+    """Nöbetçinin ÖLÇMEDİĞİ şeyler — her koşumda SAYIYLA ilan edilir (repo standardı)."""
+    notr = toplam.get("gorunur_notr", 0)
+    notr_mesaj = toplam.get("gorunur_notr_mesaj", 0)
     print("""
-KÖR NOKTALAR (bu nöbetçinin ÖLÇMEDİĞİ şeyler — sessiz kalmasın diye yazılır):
+KÖR NOKTALAR (bu nöbetçinin ÖLÇMEDİĞİ şeyler — sessiz kalmasın diye SAYIYLA yazılır):
   1. Numarası kaynakta LİTERAL geçmeyen, JS'te değişkenle kurulan link parçası; yalnız
      sabitin KENDİSİ (var WHATSAPP / TARGET_PHONE) doğrulanır, o sabitten kurulan URL
      çalışma zamanında oluşur -> tarayıcıda koşulmaz.
   2. Adı ne WhatsApp ne arama kümesine uyan telefon-benzeri JS sabiti YARGILANMAZ
      (rapordaki 'adı sınıflanamayan' sayısı bunu gösterir).
-  3. Görünür metinde NÖTR bağlamdaki (yakınında whatsapp|wa.me geçmeyen) telefon
-     literalinin hangi hatta ait olması gerektiği yargılanmaz — yalnız BİLİNEN bir hat
-     olması zorunludur.
+  3. 🔴 CANLI KAÇAK (beyan): görünür metinde NÖTR bağlamdaki telefon literalinin HANGİ
+     HATTA ait olması gerektiği YARGILANMAZ -> bugün korpusta %d nötr literal var ve
+     bunların %d'si "... numarasına GÖNDERİN/YAZIN/İLETİN" gibi MESAJLAŞMA cümlesinde.
+     Yani biri arama hattına çevrilse nöbetçi YEŞİL kalır, müşteri WhatsApp sanıp
+     arama hattına yazar. Kural BİLEREK zorlanmadı: "arama bağlamı" kuralı 168 SEO
+     sayfasında (telefon tutucu/klipsi gibi ÜRÜN cümleleri yüzünden) yanlış-kırmızı
+     üretirdi. Ölçüm hepsinin TEK bir "Sipariş" şablonundan geldiğini gösteriyor ->
+     kural yazılabilir; AYRI turda kapatılacak.
   4. Görünür metin taraması KATI +90 biçimini arar; ölçüm gerekçesi: gevşek kalıp
      etiket temizliğinden sonra cümleler arası rakamları birleştirip sahte aday
      üretiyordu. Yerel/uluslararası başka biçimde (0545..., 0090...) basılan numara
      GÖRÜLMEZ.
-  5. chat.whatsapp.com grup davet linkleri (numara taşımaz) kapsam dışıdır.
-  6. Ege (WhatsApp botu) tarafındaki numara/metin bu testin düzlemi DEĞİLDİR.
-  7. Canlı yayındaki HTML doğrulanmaz; kaynak + üretilen çıktı düzlemi doğrulanır
-     (CDN önbelleği ayrı sorun).""")
+  5. wa.me/message/<KOD> kısa linkleri numara TAŞIMAZ -> numara kuralı uygulanamaz;
+     kırmızı yakılmaz, koşum başına bilgi satırı basılır. O kodun hangi hatta bağlı
+     olduğu YALNIZ WhatsApp Business panelinden görülür, burada ÖLÇÜLEMEZ.
+     chat.whatsapp.com grup davet linkleri de (numara taşımaz) kapsam dışıdır.
+  6. CONTENT_PAGES'e BAĞLANMAMIŞ sayfa gövdesi hiç üretilmediği için hiç TARANMAZ
+     (kaynak dosya grep'lenmez: kaynağa bağlı sayım meşru düzenlemeyi kırmızı yakıyordu).
+  7. Ege (WhatsApp botu) tarafındaki numara/metin bu testin düzlemi DEĞİLDİR; canlı
+     yayındaki HTML de doğrulanmaz (kaynak + üretilen çıktı düzlemi doğrulanır).
+  8. Fikstür çapası kaybolduğunda o fikstür ÖLÇÜLEMEDİ sayılır (kırmızı değil);
+     duyarlılık ölçümü o tur için düşer — özet satırındaki sayı bunu gösterir."""
+          % (notr, notr_mesaj))
 
 
 def main():
@@ -940,12 +1090,12 @@ def main():
         gorunur_numara_kontrol(ad, doc, fails)
 
     # ---------------- ANA SAYFA + YASAL/İÇERİK SAYFALARI (kapsam genişletmesi)
-    sayfa_duzlemi(fails)
+    toplam = sayfa_duzlemi(fails)
 
     # ---------------- nöbetçinin KENDİ kabul testi (kırmızı + İLGİSİZ-yeşil fikstürler)
     fikstur_kontrol(fails)
 
-    kor_noktalar()
+    kor_noktalar(toplam)
 
     if fails:
         print("\nFAIL (%d):" % len(fails))

@@ -337,10 +337,13 @@ jobs:
       # whatsapp://), ters yon (tel:/JSON-LD telephone-contactPoint/pv-kodlu kunye
       # telefonu), JS telefon sabitleri (var WHATSAPP / TARGET_PHONE) ve GORUNUR metne
       # basilan +90 literalleri dogrulanir; ayristirilamayan numara fail-closed KIRMIZI.
-      # Test kendi kabul fiksturlerini de kosar: 8 kirmizi mutasyon + 5 "ILGISIZ rutin
-      # duzenleme YESIL kalmali" fiksturu (kapinin kapsamini yanlis eksene kaymaktan korur).
+      # Test kendi kabul fiksturlerini de kosar: 11 kirmizi mutasyon + 11 "ILGISIZ rutin
+      # duzenleme YESIL kalmali" fiksturu (kapinin kapsamini yanlis eksene kaymaktan korur;
+      # ikincisi olmadan renk/etiket/tipografi gibi alakasiz duzenlemeler TUM deploy'u
+      # durduruyordu — bagimsiz curutucu olcumu). Fikstur capasi kaybolursa KIRMIZI degil
+      # "OLCULEMEDI" basar; hicbir kirmizi fikstur kosamazsa (olu nobetci) kirmizi yanar.
       # Offline, sentetik fikstur, urunler.json OKUNMAZ, dosya yazmaz; render_product ve
-      # render_content_page'i dogrudan cagirir -> build.py'den ONCE kosar, ~0,9 s.
+      # render_content_page'i dogrudan cagirir -> build.py'den ONCE kosar, ~1,7 s.
       - name: WhatsApp numara/prefill kabul testi (urun + ana sayfa + yasal sayfalar)
         run: python3 tools/test-wa-prefill-organik.py
 
