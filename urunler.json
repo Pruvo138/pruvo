@@ -1,5 +1,422 @@
 [
   {
+    "id": "renault-kangoo-2016-telefon-tutucu-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Kangoo"
+    ],
+    "baslik": "Renault Kangoo (2016) Telefon Tutucu Yuvası",
+    "aciklama": "Renault Kangoo (2016) modeli için araç içi telefon tutucu yuvasıdır.\nKompakt boyutlu telefonlarla uyumlu şekilde tasarlanmıştır.\nMontaj için ekstra parça gerektirmez, mevcut iç donanıma oturur.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw57564-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tom.hae",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-orta-konsol-bardaklik-eklentisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Orta Konsol Bardaklık Eklentisi",
+    "aciklama": "Renault modelleri için orta konsol bölümüne yerleşen bardaklık eklentisidir.\nMevcut boşluğu bardaklık olarak kullanılabilir hale getirir.\nKolay takılıp çıkarılabilir yapıdadır.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw524109-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SoundArtMW",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-3-far-yikama-kor-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Clio"
+    ],
+    "baslik": "Renault Clio 3 Far Yıkama Ünitesi Kör Tapası",
+    "aciklama": "Renault Clio 3 modelinde far yıkama ünitesi bulunmayan araçlar için kör tapa/kapak parçasıdır.\nBoş kalan yuvaya klips mantığıyla oturur.\nSökülüp takılabilir, ek vida gerektirmez.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw933248-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jonsja",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-arkana-bagaj-canta-kancasi-2",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Arkana"
+    ],
+    "baslik": "Renault Arkana Bagaj Çanta Kancası",
+    "aciklama": "Renault Arkana bagaj bölümündeki orijinal montaj noktalarına zarar vermeden takılan çanta/poşet kancasıdır.\nVidalı hızlı sökme-takma yapısına sahiptir.\nBagaj tabanını değiştirmeden ek yük taşıma noktası kazandırır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1836350-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Elmix",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-fluence-fren-tutucu-klipsi-7703079779",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Fluence"
+    ],
+    "baslik": "Renault Fluence Fren Tutucu Klipsi (7703079779)",
+    "aciklama": "Renault Fluence için orijinal 7703079779 parça numaralı fren tutucu klipsinin yedek üretimidir.\nKırılan orijinal parçanın yerine doğrudan takılır.\nAraç içi kablo/hat sabitleme noktasını korur.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw40835-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LPY971010",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-termos-bardaklik-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Trafic"
+    ],
+    "baslik": "Renault Trafic Termos Bardaklık Adaptörü",
+    "aciklama": "Renault Trafic orta bardaklığına oturan, termos/mug gibi büyük kapların sabitlenmesini sağlayan adaptördür.\nAdaptörsüz bırakılan boşlukta kapların oynamasını önler.\nDoğrudan mevcut bardaklığa yerleştirilir, ek montaj gerekmez.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1995003-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brati & Larry2.0",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-twingo-havalandirma-fan-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Twingo"
+    ],
+    "baslik": "Renault Twingo Havalandırma Fan Düğmesi",
+    "aciklama": "Renault Twingo için havalandırma fan kontrol düğmesinin yedek üretimidir.\nKırılan veya kaybolan orijinal düğmenin yerine doğrudan takılır.\nMevcut mekanizmaya uyumlu ölçüde tasarlanmıştır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2690842-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2690842-2.jpg"
+    ]
+  },
+  {
+    "id": "renault-espace-4-koltuk-iskeleti-kapak-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Espace"
+    ],
+    "baslik": "Renault Espace IV Koltuk İskeleti Kapak Parçası",
+    "aciklama": "Renault Espace IV koltuk iskeletindeki tutucu yuvasının kapak parçasıdır.\nKırılan veya eksik olan orijinal kapağın yerini alır.\nDoğrudan iskelete oturacak şekilde tasarlanmıştır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw253927-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "migas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-jant-kapak-vidasi-sokme-ucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Jant Kapağı Vidası Sökme Ucu",
+    "aciklama": "Bazı Renault modellerinin jant kapağı vidalarını sökmek için matkap ucu olarak kullanılan aparattır.\nÖzel vida başlığına uyacak şekilde tasarlanmıştır.\nStandart matkaba takılarak hızlı söküm sağlar.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw522239-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gunnar",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-3-usb-girisli-konsol-cekmecesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Clio"
+    ],
+    "baslik": "Renault Clio 3 USB Girişli Konsol Çekmecesi",
+    "aciklama": "Renault Clio 3 radyo yuvasının yerine takılan, çift USB girişli saklama çekmecesidir.\nAraç içi küçük eşyaları düzenli tutmayı sağlar.\nMevcut kablo tesisatına doğrudan bağlanacak şekilde tasarlanmıştır.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2396398-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jose A.",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-captur-clio-radyo-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Captur",
+      "Clio"
+    ],
+    "baslik": "Renault Captur / Clio R&Go Radyo Telefon Tutucu",
+    "aciklama": "Renault Captur ve R&Go radyo sistemine sahip Clio modelleri için radyo ünitesinin ortasına oturan telefon tutucudur.\nNavigasyon uygulamaları için daha iyi görüş açısı sağlar.\nMevcut radyo çerçevesine ek vida gerektirmeden yerleşir.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2512542-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fly44",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-kadjar-bagaj-rulo-perde-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Kadjar"
+    ],
+    "baslik": "Renault Kadjar Bagaj Rulo Perde Parçası",
+    "aciklama": "Renault Kadjar bagaj rulo perdesinin kırılan mekanizma parçasının yedek üretimidir.\nOrijinal parçanın yerine doğrudan takılır.\nRulo perdenin açılıp kapanma fonksiyonunu geri kazandırır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2620890-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dakaris83",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "renault-scenic-kol-dayama-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Scenic"
+    ],
+    "baslik": "Renault Scenic Kol Dayama Kapağı",
+    "aciklama": "Renault Scenic kol dayama bölümündeki kayıp veya kırık kapağın yedek üretimidir.\nMevcut yuvaya doğrudan oturacak şekilde tasarlanmıştır.\nAraç içi görünümü sade şekilde tamamlar.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1967459-1.jpg"
+    ]
+  },
+  {
+    "id": "renault-clio-3-anahtar-kumanda-butonu-kisisel",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Clio"
+    ],
+    "baslik": "Renault Clio 3 Anahtar Kumanda Düğmesi",
+    "aciklama": "Renault Clio 3 uzaktan kumandalı anahtarının aşınan veya kırılan düğmesinin yedek üretimidir.\nOrijinal kumanda gövdesine doğrudan oturur.\nSağlam basma hissi için tasarlanmıştır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2652189-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "furkanserifoglu",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "renault-keycard-anahtarlik-kilifi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Keycard Anahtarlık Kılıfı",
+    "aciklama": "Renault keycard'ını anahtarlığa takılabilir hale getiren koruyucu kılıftır.\nKart üzerindeki düğmelere erişimi engellemeden taşımayı kolaylaştırır.\nKompakt ve hafif yapıdadır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1709195-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Yannik Barth",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "renault-zoe-type-2-sarj-soketi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Zoe"
+    ],
+    "baslik": "Renault Zoe Type 2 Şarj Soketi Kapağı",
+    "aciklama": "Renault Zoe Type 2 şarj soketi için koruyucu kapaktır.\nSoketi toz ve nemden korur.\nMevcut sokete doğrudan takılıp çıkarılabilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1474550-1.jpg"
+    ]
+  },
+  {
+    "id": "renault-master-1999-hoparlor-destegi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Master"
+    ],
+    "baslik": "Renault Master (1999) Hoparlör Desteği",
+    "aciklama": "Renault Master 1999 model için hoparlör montaj desteğidir.\nHoparlörü kapı panelinde sabit tutar.\nOrijinal montaj noktalarını kullanacak şekilde tasarlanmıştır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw216826-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "user_2408728629",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-19-siluet-anahtarlik-askisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 19 Siluet Anahtarlık Askısı",
+    "aciklama": "Renault 19 yan siluetinde tasarlanmış, beş adet anahtarlık/askı kancası içeren duvar askısıdır.\nGiriş veya ofis duvarına monte edilerek anahtar ve aksesuar düzenlemesi sağlar.\nTek parça olarak üretilir.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2956974-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hektors94",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-estafette-cam-acma-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Estafette"
+    ],
+    "baslik": "Renault Estafette Cam Açma Mandalı",
+    "aciklama": "Renault Estafette yan camlarının açma mandalı için yedek parçadır.\nOrijinal yay ile birlikte kullanılması gerekir.\nEski model kamyonetlerde kırılan mandalın yerine doğrudan takılır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw947066-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw947066-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Thierry",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "renault-twingo-bagaj-kapagi-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Twingo"
+    ],
+    "baslik": "Renault Twingo Bagaj Kapağı Düğmesi",
+    "aciklama": "Renault Twingo bagaj kapağı açma düğmesinin yedek üretimidir.\nKırılan orijinal düğmenin yerine doğrudan takılır.\nMevcut mekanizmaya uyumlu ölçüde tasarlanmıştır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2878484-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Edemihcra",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-laguna-2-radyo-kapak-cubugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Laguna"
+    ],
+    "baslik": "Renault Laguna 2 (Phase 2) Radyo Kapak Çubuğu",
+    "aciklama": "Renault Laguna 2 Phase 2 radyo/raf kapağında eksik olan küçük plastik çubuk parçasıdır.\nOrijinal rengi bilinmeyen veya değişmiş kapaklar için pratik bir çözümdür.\nDoğrudan yerine oturacak şekilde tasarlanmıştır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw33247-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wydryszek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-scenic-jant-gobegi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Scenic"
+    ],
+    "baslik": "Renault Scenic Uyumlu Jant Göbeği Kapağı",
+    "aciklama": "Renault Scenic (Grand Scenic IV) jant göbeğindeki aşınmış veya eksik orijinal kapağın yerine geçer.\nJant merkezine doğrudan oturacak şekilde tasarlanmıştır.\nDikey konumda ve destek yapısıyla basılması daha pürüzsüz bir yüzey sağlar.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1407287-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1407287-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brian Leffler Kruse",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-laguna-2-jant-gobegi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Laguna"
+    ],
+    "baslik": "Renault Laguna 2 Uyumlu Jant Göbeği Kapağı",
+    "aciklama": "Renault Laguna 2 jant göbeğindeki kayıp veya kırık orijinal kapağın yedek üretimidir.\nBirçok Renault jant modeliyle uyumlu genel bir tasarıma sahiptir.\nTek parça olarak basılır, ek vida veya aparat gerektirmez.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1418510-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1418510-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1418510-3.jpg"
+    ]
+  },
+  {
+    "id": "renault-jant-gobegi-merkezi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Uyumlu Jant Göbeği Merkezi Kapağı",
+    "aciklama": "Renault modelleri için jant göbeği merkezine oturan kapaktır.\nEksik veya kırılan orijinal kapağın yerini alır.\nDaha kalın katmanlarla basılması parçanın dayanıklılığını artırır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1359225-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "N3Dprint",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "ford-bronco-byod-pano-rayi-slingshot-kol-seti",
     "kategori": "Otomobil",
     "marka": [
