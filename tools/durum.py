@@ -33,6 +33,7 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import time
 
 ANA_DAL = "main"
@@ -361,6 +362,41 @@ def edge_satirlari(e):
 
 YEDEK_DAMGA_ADI = ".son-yedek.json"
 YEDEK_BAYAT_SANIYE = 2 * 86400   # ~2 gun. TEK YER — esigi baska yere serpistirme.
+YEDEK_ZAMAN_ASIMI = 5.0          # saniye. Olculen normal sure: 0,0005 s.
+
+# N3 — PANO ASLA ASILMAZ. Bolum 7 bir AG/BULUT mount'una (CloudStorage) dokunuyor;
+# mount yanit vermezse glob/isdir/os.walk KILITLENIR ve `durum.py` asilir. Bu arac her
+# oturumun ILK komutu -> asilirsa mimarin butun acilisi bloklanir. Cozum: olcumu ayri
+# bir DAEMON is parcaciginda kos, sureyi asarsa PARCACIGI TERK ET ve panoya devam et.
+# Neden signal.alarm DEGIL: SIGALRM yalniz ana is parcaciginda kurulabilir ve asili
+# bir mount'ta kesintisiz (uninterruptible) sistem cagrisini kesmeyebilir; daemon
+# parcacik asilsa bile yorumlayici cikisini engellemez.
+
+
+def zaman_asimiyla(fonk, saniye=None):
+    """fonk()'u zaman siniriyla kosar. Doner: (sonuc, asildi_mi).
+
+    saniye None ise modul sabiti CALISMA ANINDA okunur (edge_esigi/yedek_durumu ile
+    ayni desen) -> test sabiti gecici kisaltip zaman asimi yolunu kanitlayabilir.
+    fonk icinde olusan istisna CAGIRANA aynen aktarilir (davranis degismesin)."""
+    if saniye is None:
+        saniye = YEDEK_ZAMAN_ASIMI
+    kutu = {}
+
+    def sar():
+        try:
+            kutu["sonuc"] = fonk()
+        except BaseException as e:                     # pano: hicbir hal disari sizmasin
+            kutu["hata"] = e
+
+    ip = threading.Thread(target=sar, daemon=True)
+    ip.start()
+    ip.join(saniye)
+    if ip.is_alive():
+        return None, True                              # parcacik TERK EDILDI (daemon)
+    if "hata" in kutu:
+        raise kutu["hata"]
+    return kutu.get("sonuc"), False
 
 
 def _drive_deseni():
@@ -487,36 +523,57 @@ def yedek_satirlari(d):
     dmg = d["damga"] or {}
     ozet = "memory %s + skills %s + repo %s" % (
         dmg.get("memory", "?"), dmg.get("skills", "?"), dmg.get("repo", "?"))
+    ne_zaman = _gecen(time.time() - d["yas"])
 
-    if hal == "supheli":                              # F3
-        satirlar = ["  ⚠ ŞÜPHELİ: damga GELECEK tarihli (%s) — tazelik ÖLÇÜLEMEDİ."
-                    % dmg.get("iso", "?"),
-                    "  (Saat kaymasi ya da bozuk yazim.) Kos: python3 tools/yedekle.py"]
-    elif hal == "bayat":
-        satirlar = ["  ⚠⚠ YEDEK BAYAT: son yedek %s (%s) — esik %.0f gun."
-                    % (_gecen(time.time() - d["yas"]), dmg.get("iso", "?"), esik_gun),
-                    "  Kos: python3 tools/yedekle.py     (damga iddiasi: %s)" % ozet]
-    else:
-        satirlar = ["  taze: son yedek %s (%s) — esik %.0f gun."
-                    % (_gecen(time.time() - d["yas"]), dmg.get("iso", "?"), esik_gun),
-                    "  damga iddiasi: %s" % ozet]
-
-    # F1: kismi yedek TAZE SAYILMAZ — eksik yedek, eksik oldugunu SOYLEMELI.
-    if dmg.get("tam") is False:
-        satirlar.append("  ⚠⚠ KISMI YEDEK: beklenen repo dosyalari EKSIKTI (%s)"
-                        % (", ".join(dmg.get("eksik") or []) or "?"))
-        satirlar.append("  -> bu dosyalarin yedegi TAZELENMEDI; ana repodan kos: "
-                        "python3 tools/yedekle.py")
-    elif "tam" not in dmg:
-        satirlar.append("  not: damga eski surum (tamlik bilgisi yok) — bir kez yeniden kos.")
-
-    # F2: damganin iddiasi vs Drive'daki GERCEK dosya sayisi.
+    # N2: ILK SATIR DURUMU SOYLER. "taze" YALNIZ tam + zamaninda + icerigi tutuyor iken
+    # yazilir. Eskiden basligi hep "taze:" olup ⚠⚠ ALTTA kaliyordu -> goz gezdiren yanlis
+    # sonuca variyordu. Panonun tek isi bu; 5 gunluk bayatligin fark edilmeme sebebi de buydu.
+    kismi = dmg.get("tam") is False
+    eksik_icerik = []
+    sayilamayan = []
     for ad, (gercek, iddia) in sorted((d.get("sayim") or {}).items()):
         if gercek is None:
-            satirlar.append("  ⚠ %s/ sayilamadi (izin/okuma hatasi) — icerik DOGRULANAMADI." % ad)
+            sayilamayan.append(ad)
         elif gercek < iddia:
-            satirlar.append("  ⚠⚠ ICERIK EKSIK: backup/%s icinde %d dosya var, damga %d diyor "
-                            "-> yedek bozulmus/silinmis." % (ad, gercek, iddia))
+            eksik_icerik.append((ad, gercek, iddia))
+
+    kos = "  Kos: python3 tools/yedekle.py"
+    if hal == "supheli":                              # F3
+        return ["  ⚠ ŞÜPHELİ: damga GELECEK tarihli (%s) — tazelik ÖLÇÜLEMEDİ."
+                % dmg.get("iso", "?"),
+                "  (Saat kaymasi ya da bozuk yazim.)" + kos[1:]]
+    if hal == "bayat":
+        satirlar = ["  ⚠⚠ YEDEK BAYAT: son yedek %s (%s) — esik %.0f gun."
+                    % (ne_zaman, dmg.get("iso", "?"), esik_gun),
+                    kos + "     (damga iddiasi: %s)" % ozet]
+    elif kismi:
+        # F1: kismi yedek ASLA "taze" diye gecmez — eksik yedek, eksik oldugunu SOYLER.
+        satirlar = ["  ⚠⚠ KISMI YEDEK: son kosum %s ama beklenen repo dosyalari EKSIKTI (%s)"
+                    % (ne_zaman, ", ".join(dmg.get("eksik") or []) or "?"),
+                    "  -> bu dosyalarin yedegi TAZELENMEDI; ANA repodan kos: "
+                    "python3 tools/yedekle.py"]
+    elif eksik_icerik:
+        ad, gercek, iddia = eksik_icerik[0]
+        satirlar = ["  ⚠⚠ ICERIK EKSIK: backup/%s icinde %d dosya var, damga %d diyor "
+                    "-> yedek bozulmus/silinmis." % (ad, gercek, iddia),
+                    "  (son kosum %s)" % ne_zaman + kos[1:]]
+        eksik_icerik = eksik_icerik[1:]
+    else:
+        satirlar = ["  taze: son yedek %s (%s) — esik %.0f gun."
+                    % (ne_zaman, dmg.get("iso", "?"), esik_gun),
+                    "  damga iddiasi: %s" % ozet]
+
+    # Baslikta yer bulamayan kalan sorunlar (baslik zaten uyariyor).
+    if kismi and hal == "bayat":
+        satirlar.append("  ⚠⚠ KISMI YEDEK: beklenen repo dosyalari EKSIKTI (%s)"
+                        % (", ".join(dmg.get("eksik") or []) or "?"))
+    if "tam" not in dmg:
+        satirlar.append("  not: damga eski surum (tamlik bilgisi yok) — bir kez yeniden kos.")
+    for ad in sayilamayan:
+        satirlar.append("  ⚠ %s/ sayilamadi (izin/okuma hatasi) — icerik DOGRULANAMADI." % ad)
+    for ad, gercek, iddia in eksik_icerik:
+        satirlar.append("  ⚠⚠ ICERIK EKSIK: backup/%s icinde %d dosya var, damga %d diyor."
+                        % (ad, gercek, iddia))
     return satirlar
 
 
@@ -597,11 +654,20 @@ def main():
         for satir in edge_satirlari(edge_esigi(sayi)):
             print(satir)
 
-    # 7) YEDEK TAZELIGI — pano ASLA patlamaz: Drive yoksa/okunamazsa "ÖLÇÜLEMEDİ" yazar.
+    # 7) YEDEK TAZELIGI — pano ASLA patlamaz ve ASLA ASILMAZ:
+    #    Drive yoksa/okunamazsa "ÖLÇÜLEMEDİ", yanit vermezse zaman asimi (N3).
     print("\n7) YEDEK TAZELIGI (Drive)")
-    try:
+
+    def _olc():
         yol, hal = yedek_dizini(kok)
-        satirlar = yedek_satirlari(yedek_durumu(yol, hal))
+        return yedek_satirlari(yedek_durumu(yol, hal))
+
+    try:
+        satirlar, asildi = zaman_asimiyla(_olc)
+        if asildi:
+            satirlar = ["  ⚠ ÖLÇÜLEMEDİ: Drive yanit vermiyor (%.0f sn zaman asimi asildi)."
+                        % YEDEK_ZAMAN_ASIMI,
+                        "  (Mount asili olabilir; pano BEKLEMEDI, devam ediyor.)"]
     except Exception as e:                    # pano bir KAPI degil: hicbir hal exit'i bozmaz
         satirlar = ["  ÖLÇÜLEMEDİ: yedek tazeligi okunamadi (%s)" % type(e).__name__]
     for satir in satirlar:

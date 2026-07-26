@@ -42,7 +42,7 @@ def modul_yukle(yol, ad):
     return m
 
 
-def mutant_yaz(dizin, eski, yeni, ad="durum_mutant.py"):
+def mutant_yaz(dizin, eski, yeni, ad="durum_mutant.py"):  # noqa: D401 (bkz. asagi)
     """durum.py'nin mutasyonlu kopyasi. Capa yoksa RuntimeError (bayat capa sessiz gecmesin).
     ⚠️ drive_yolu.py mutantin YANINA KOPYALANMAZ: o modulun ROOT'u GERCEK repoyu gosterir,
     mutant onu cagirsa gercek .stl-backup-dir'e yazardi."""
@@ -216,6 +216,92 @@ def main():
         kontrol("eski surum damgasi 'tamlik bilgisi yok' notu aliyor",
                 "tamlik bilgisi yok" in " ".join(
                     durum.yedek_satirlari(durum.yedek_durumu(b3, "var"))))
+
+    # ---------------- 6e) N2: ILK SATIR DURUMU SOYLUYOR MU ----------------
+    print("\n6e) N2 — goz gezdiren ILK SATIRDAN yanlis sonuca VARAMAMALI")
+    with tempfile.TemporaryDirectory() as td:
+        # (a) tam + taze + icerik tutuyor -> tek mesru "taze" hali
+        a = damga_kur(os.path.join(td, "a"), 60, memory=1, skills=1)
+        for alt in ("memory", "skills"):
+            os.makedirs(os.path.join(a, alt))
+            with open(os.path.join(a, alt, "d.txt"), "w") as f:
+                f.write("x")
+        bas_a = durum.yedek_satirlari(durum.yedek_durumu(a, "var"))[0]
+        kontrol("(a) tam-taze ILK SATIR 'taze'", bas_a.strip().startswith("taze:"), bas_a)
+
+        # (b) kismi yedek
+        b = damga_kur(os.path.join(td, "b"), 60, tam=False, eksik=[".urun-kaynaklari.json"])
+        bas_b = durum.yedek_satirlari(durum.yedek_durumu(b, "var"))[0]
+        kontrol("(b) kismi ILK SATIR 'KISMI YEDEK'", "KISMI YEDEK" in bas_b, bas_b)
+        kontrol("(b) ILK SATIR 'taze' DEMIYOR", "taze:" not in bas_b)
+
+        # (c) icerik eksik
+        c = damga_kur(os.path.join(td, "c"), 60, memory=0, skills=5)
+        bas_c = durum.yedek_satirlari(durum.yedek_durumu(c, "var"))[0]
+        kontrol("(c) icerik-eksik ILK SATIR 'ICERIK EKSIK'", "ICERIK EKSIK" in bas_c, bas_c)
+        kontrol("(c) ILK SATIR 'taze' DEMIYOR", "taze:" not in bas_c)
+
+        # (d) gelecek tarihli
+        d4 = damga_kur(os.path.join(td, "d"), -3600)
+        bas_d = durum.yedek_satirlari(durum.yedek_durumu(d4, "var"))[0]
+        kontrol("(d) gelecek-tarihli ILK SATIR 'ŞÜPHELİ'", "ŞÜPHELİ" in bas_d, bas_d)
+        kontrol("(d) ILK SATIR 'taze' DEMIYOR", "taze:" not in bas_d)
+
+        # bayat + kismi birlikte: baslik uyariyor, digeri de kaybolmuyor
+        e = damga_kur(os.path.join(td, "e"), 3 * 86400, tam=False, eksik=["DEVAM-ARSIV.md"])
+        sat_e = durum.yedek_satirlari(durum.yedek_durumu(e, "var"))
+        kontrol("(e) bayat+kismi: baslik BAYAT, kismi da raporlu",
+                "BAYAT" in sat_e[0] and any("KISMI YEDEK" in s for s in sat_e[1:]))
+
+    # ---------------- 6f) N3: ZAMAN ASIMI — PANO ASILMAZ ----------------
+    print("\n6f) N3 — Drive yanit vermezse pano BEKLEMEZ")
+    with tempfile.TemporaryDirectory() as td:
+        b = damga_kur(os.path.join(td, "backup"), 60)
+        eski_say, eski_asim = durum._agac_say, durum.YEDEK_ZAMAN_ASIMI
+
+        def asili_say(dizin):                      # yanit vermeyen mount taklidi
+            time.sleep(2.0)
+            return 0
+
+        try:
+            durum._agac_say = asili_say
+            durum.YEDEK_ZAMAN_ASIMI = 0.2
+            bas = time.time()
+            sonuc, asildi = durum.zaman_asimiyla(
+                lambda: durum.yedek_satirlari(durum.yedek_durumu(b, "var")))
+            sure = time.time() - bas
+            kontrol("zaman asimina DUSTU", asildi is True)
+            kontrol("sure SINIRLI (<1 sn)", sure < 1.0, "%.3f sn" % sure)
+            kontrol("sonuc dondurulmedi (terk edildi)", sonuc is None)
+
+            # KIRMIZI-MUTASYON: zaman asimi kaldirilirsa asili mount panoyu bekletir
+            mut = mutant_yaz(td,
+                             "    ip = threading.Thread(target=sar, daemon=True)",
+                             "    sar()  # MUTANT: zaman asimi YOK\n"
+                             "    return kutu.get('sonuc'), False\n"
+                             "    ip = threading.Thread(target=sar, daemon=True)",
+                             ad="durum_mutant_asim.py")
+            mmod = modul_yukle(mut, "durum_mutant_asim")
+            mmod._agac_say = asili_say
+            mmod.YEDEK_ZAMAN_ASIMI = 0.2
+            bas = time.time()
+            _s, m_asildi = mmod.zaman_asimiyla(
+                lambda: mmod.yedek_satirlari(mmod.yedek_durumu(b, "var")))
+            m_sure = time.time() - bas
+            kontrol("MUTANTTA zaman asimi YOK (asili mount panoyu bekletti)",
+                    m_asildi is False and m_sure >= 1.5, "%.3f sn" % m_sure)
+        finally:
+            durum._agac_say, durum.YEDEK_ZAMAN_ASIMI = eski_say, eski_asim
+        kontrol("saglam olcum zaman asimina DUSMUYOR",
+                durum.zaman_asimiyla(lambda: "ok") == ("ok", False))
+        kontrol("varsayilan zaman asimi makul (1-30 sn)",
+                1 <= durum.YEDEK_ZAMAN_ASIMI <= 30, str(durum.YEDEK_ZAMAN_ASIMI))
+        # KABLOLAMA NOBETCISI: yardimci VAR ama main() onu KULLANMIYORSA yukaridaki
+        # davranissal kanit anlamsizdir (gercek Drive'i asili yapamadigimiz icin
+        # uctan uca olculemiyor) -> kaynak capasiyla baglanti dogrulanir.
+        gov = open(DURUM, encoding="utf-8").read()
+        kontrol("main() olcumu zaman_asimiyla ile sariyor", "zaman_asimiyla(_olc)" in gov)
+        kontrol("zaman asimi mesaji panoda tanimli", "Drive yanit vermiyor" in gov)
 
     # ---------------- 7) UCTAN UCA: gercek pano ----------------
     print("\n7) UCTAN UCA — python3 tools/durum.py")
