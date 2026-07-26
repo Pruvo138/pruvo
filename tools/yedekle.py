@@ -16,17 +16,26 @@ BAYAT SIR NOBETI: bu filtre 26 Tem'de eklendi; ondan onceki surum skills agacini
 copytree ile kopyaliyordu. Hedefte elenmis bir dosyanin ESKI kopyasi duruyorsa gurultulu
 uyarilir; "--sir-temizle" ile silinir (varsayilan SILMEZ — yedekten veri silmek elle onaylanir).
 
+TAZELIK DAMGASI (26 Tem): kosum sonunda `backup/.son-yedek.json` yazilir (zaman + sayilar).
+NEDEN DAMGA, NEDEN MTIME DEGIL: shutil.copy2 KAYNAK mtime'ini korur -> yedekteki dosyanin
+mtime'i "yedek ne zaman kosuldu"yu DEGIL "kaynak ne zaman duzenlendi"yi soyler. Tazeligi
+mtime'dan olcmek yaniltir (26 Tem: Drive'daki dosyalar 21 Tem gorunuyordu cunku kaynak o
+tarihliydi). Damgayi `tools/durum.py` panosu okur -> bayatlik GORUNUR olur.
+
 Kullanim:
     python3 tools/yedekle.py              # sirsiz (memory + skills + kaynak haritasi + .md)
     python3 tools/yedekle.py --kuru       # KURU KOSUM: ne kopyalanacagini listeler, YAZMAZ
+    python3 tools/yedekle.py --gerekliyse # UCUZ MOD: son damgadan beri degisiklik yoksa CIKAR
     python3 tools/yedekle.py --sirlar     # + token + r2 creds (repo kokundeki sancakli liste)
     python3 tools/yedekle.py --sir-temizle  # hedefteki bayat sir kopyalarini SIL
 """
 import fnmatch
+import json
 import os
 import re
 import shutil
 import sys
+import time
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 MEMORY = os.path.expanduser("~/.claude/projects/-Users-okan-dev-pruvo/memory")
@@ -35,7 +44,10 @@ SKILLS = os.path.expanduser("~/.claude/skills")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import drive_yolu
 
-BAYRAKLAR = {"--kuru", "--dry-run", "--sirlar", "--sir-temizle", "-h", "--help"}
+BAYRAKLAR = {"--kuru", "--dry-run", "--gerekliyse", "--sirlar", "--sir-temizle", "-h", "--help"}
+
+# Tazelik damgasi — backup/ kokunde. durum.py panosu BU dosyayi okur (tek kaynak).
+DAMGA_ADI = ".son-yedek.json"
 
 # ---- GURULTU (turetilmis; sir DEGIL, sadece yedege deger etmez) --------------
 GURULTU_DIZIN = {"__pycache__", ".git", "node_modules", ".venv", ".mypy_cache", ".pytest_cache"}
@@ -181,6 +193,71 @@ def _repo_dosyalari(sirlar):
             if os.path.exists(os.path.join(ROOT, a)) and not os.path.islink(os.path.join(ROOT, a))]
 
 
+def damga_oku(backup):
+    """backup/.son-yedek.json -> dict, yoksa/bozuksa None (ASLA patlamaz)."""
+    try:
+        with open(os.path.join(backup, DAMGA_ADI), encoding="utf-8", errors="replace") as f:
+            veri = json.load(f)
+    except (OSError, ValueError):
+        return None
+    return veri if isinstance(veri, dict) else None
+
+
+def damga_yaz(backup, sayilar):
+    """Kosum sonunda tazelik damgasini yazar. Basarisiz olursa YEDEGI BOZMAZ
+    (uyari basar, cikis kodunu degistirmez) — damga bir kolaylik, yedek asil is."""
+    veri = {"surum": 1, "zaman": time.time(),
+            "iso": time.strftime("%Y-%m-%d %H:%M:%S")}
+    veri.update(sayilar)
+    try:
+        with open(os.path.join(backup, DAMGA_ADI), "w", encoding="utf-8") as f:
+            json.dump(veri, f, ensure_ascii=False, indent=1, sort_keys=True)
+        return True
+    except OSError as e:
+        print("NOT: tazelik damgasi yazilamadi (%s) — yedek YINE DE alindi." % e)
+        return False
+
+
+def en_yeni_kaynak_mtime(sirlar=False):
+    """Yedeklenecek kaynaklardaki EN YENI mtime. Hicbiri okunamazsa None.
+    Ucuz: ~130 stat cagrisi (memory + skills + birkac repo dosyasi)."""
+    enyeni = None
+    for kok in (MEMORY, SKILLS):
+        if not os.path.isdir(kok):
+            continue
+        for dizin, altlar, dosyalar in os.walk(kok):
+            altlar[:] = [a for a in altlar if a not in GURULTU_DIZIN]
+            for ad in dosyalar:
+                try:
+                    m = os.path.getmtime(os.path.join(dizin, ad))
+                except OSError:
+                    continue
+                if enyeni is None or m > enyeni:
+                    enyeni = m
+    for ad in _repo_dosyalari(sirlar):
+        try:
+            m = os.path.getmtime(os.path.join(ROOT, ad))
+        except OSError:
+            continue
+        if enyeni is None or m > enyeni:
+            enyeni = m
+    return enyeni
+
+
+def gerekli_mi(damga, kaynak_mtime):
+    """--gerekliyse karari (saf fonksiyon). FAIL-OPEN: emin olamadigimiz her halde
+    YEDEKLE (damga yok/bozuk, mtime olculemedi). Yalniz 'damga var VE kaynak ondan
+    eski' halinde atlar — yani atlamak KANITA bagli, yedeklemek varsayilan."""
+    if not isinstance(damga, dict):
+        return True
+    zaman = damga.get("zaman")
+    if not isinstance(zaman, (int, float)):
+        return True
+    if kaynak_mtime is None:
+        return True
+    return kaynak_mtime > zaman
+
+
 def main():
     # --help yedekleme BASLATMASIN (denetim 2026-07-15: --help dogrudan yaziyordu).
     if "-h" in sys.argv or "--help" in sys.argv:
@@ -195,6 +272,7 @@ def main():
         return 2
 
     kuru = ("--kuru" in sys.argv) or ("--dry-run" in sys.argv)
+    gerekliyse = "--gerekliyse" in sys.argv
     sirlar = "--sirlar" in sys.argv
     sir_temizle = "--sir-temizle" in sys.argv
 
@@ -229,16 +307,30 @@ def main():
               % (len(mem) + len(dahil) + len(repo), len(mem), len(dahil), len(repo)))
         if haric:
             print("SIR NOBETI: %d dosya paket DISINDA birakilacak." % len(haric))
+        damga = damga_oku(hedef) if hedef else None
+        print("TAZELIK DAMGASI: %s" % (damga.get("iso") if damga else "(yok)"))
+        print("--gerekliyse karari: %s"
+              % ("YEDEKLE" if gerekli_mi(damga, en_yeni_kaynak_mtime(sirlar)) else "ATLA (guncel)"))
         return 0
 
     # ---- GERCEK KOSUM ----------------------------------------------------
     # Drive yolunu drive_yolu cozer: bayatsa kendi duzeltir, mount yoksa uyarip None doner.
     # None'da DURUYORUZ — eskiden makedirs Drive yerine sahte yerel klasor yaratip "yedeklendi" diyordu.
-    pruvo_drive = drive_yolu.pruvo_dizini()           # .../Pruvo
+    pruvo_drive = drive_yolu.pruvo_dizini(sessiz=gerekliyse)   # .../Pruvo
     if not pruvo_drive:
         print("Yedek ALINMADI — Drive yolu cozulemedi (yukaridaki uyariya bak).")
         return 1
     backup = os.path.join(pruvo_drive, "backup")
+
+    # UCUZ MOD (pre-push hook'u icin): son damgadan beri hicbir kaynak degismediyse
+    # tek dosya bile kopyalama. Karar gerekli_mi()'de — fail-open (suphede yedekler).
+    if gerekliyse:
+        damga = damga_oku(backup)
+        if not gerekli_mi(damga, en_yeni_kaynak_mtime(sirlar)):
+            print("yedek GUNCEL (son damga: %s) — degisiklik yok, kopyalanmadi."
+                  % damga.get("iso", "?"))
+            return 0
+
     os.makedirs(os.path.join(backup, "memory"), exist_ok=True)
 
     # memory klasoru
@@ -250,6 +342,7 @@ def main():
     # (mimar karari 21 Tem: repoya tasinmayacak) -> TEK kopya bu makinede. Yedeklenmezse
     # disk kaybinda SKILL.md + dal-olc.py + kabul-test.py (davranissal batarya) topluca gider.
     # Artik copytree DEGIL dosya-dosya: her dosya sir nobetinden gecer (bkz. sir_sebebi).
+    yazilan = 0
     if os.path.isdir(SKILLS):
         hedef = os.path.join(backup, "skills")
         yazilan, bayat = skills_yaz(SKILLS, hedef, dahil, haric, sir_temizle=sir_temizle)
@@ -268,7 +361,8 @@ def main():
     # Sirsiz kaynak haritasi + ajan baglam dosyalari. HEPSI GITIGNORE'DA (repo public, icerik
     # ticari gizli) -> git'te KOPYASI YOK, yani bu makine olurse tamamen kaybolurlardi.
     # (AGENTS.md kopyalanmaz: CLAUDE.md'ye symlink, ayri dosya degil.)
-    for ad in _repo_dosyalari(sirlar=False):
+    repo_adlari = _repo_dosyalari(sirlar=False)
+    for ad in repo_adlari:
         shutil.copy2(os.path.join(ROOT, ad), os.path.join(backup, ad))
         print("yedek:", ad)
 
@@ -280,6 +374,12 @@ def main():
                 shutil.copy2(p, os.path.join(backup, name))
                 print("yedek (SIR):", name)
         print("NOT: bu klasoru kimseyle PAYLASMA — sir icerir.")
+
+    # TAZELIK DAMGASI — en sonda: yalniz kosum GERCEKTEN tamamlandiysa yazilir.
+    # (Basta yazilsaydi yarida patlayan bir kosum "taze" gorunurdu = sahte guven.)
+    damga_yaz(backup, {"memory": len(_agac_dosyalari(MEMORY)),
+                       "skills": yazilan, "skills_haric": len(haric),
+                       "repo": len(repo_adlari)})
 
     print("bitti ->", backup)
     return 0

@@ -198,6 +198,27 @@ def main():
     kontrol("bilinmeyen bayrakta yedek CALISMADI",
             "bitti ->" not in r.stdout and "yedek:" not in r.stdout)
 
+    # ---------------- 9) TAZELIK DAMGASI + UCUZ MOD ----------------
+    print("\n9) DAMGA + --gerekliyse — pano bunu okur, hook bunu kullanir")
+    with tempfile.TemporaryDirectory() as td:
+        kontrol("damga yoksa None (patlamaz)", yedekle.damga_oku(td) is None)
+        yedekle.damga_yaz(td, {"memory": 5, "skills": 3, "repo": 2, "skills_haric": 0})
+        d = yedekle.damga_oku(td)
+        kontrol("damga yazilip okunuyor", isinstance(d, dict) and d.get("skills") == 3)
+        kontrol("damgada zaman VAR", isinstance(d.get("zaman"), (int, float)))
+        with open(os.path.join(td, yedekle.DAMGA_ADI), "w") as fh:
+            fh.write("{bozuk")
+        kontrol("bozuk damga None doner", yedekle.damga_oku(td) is None)
+    # gerekli_mi: FAIL-OPEN — atlamak KANITA bagli, yedeklemek varsayilan
+    kontrol("damga yok  -> YEDEKLE", yedekle.gerekli_mi(None, 100) is True)
+    kontrol("damga bozuk-> YEDEKLE", yedekle.gerekli_mi({"zaman": "abc"}, 100) is True)
+    kontrol("mtime olculemedi -> YEDEKLE", yedekle.gerekli_mi({"zaman": 100}, None) is True)
+    kontrol("kaynak damgadan YENI -> YEDEKLE", yedekle.gerekli_mi({"zaman": 100}, 150) is True)
+    kontrol("kaynak damgadan ESKI -> ATLA", yedekle.gerekli_mi({"zaman": 100}, 50) is False)
+    kontrol("--gerekliyse gecerli bayrak", "--gerekliyse" in yedekle.BAYRAKLAR)
+    kontrol("en_yeni_kaynak_mtime sayi donduruyor",
+            isinstance(yedekle.en_yeni_kaynak_mtime(), float))
+
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok, _ in SONUC if not ok]
     print("\n" + "=" * 70)

@@ -260,6 +260,13 @@ IZIN_LISTESI = {
     "tools/thingiverse-gallery-test.py": R_SONRA,
     "tools/yargi-firearm-test.py": R_SONRA,
     "tools/yazdir-test.py": R_SONRA,
+    "tools/durum-yedek-test.py": (
+        R_SONRA + " Ek olarak durum.py panosunun Drive/yerel-makine dunyasini olcer "
+        "(durum-test.py ve durum-edge-test.py ile ayni sinif, ikisi de bu listede)."),
+    "tools/yedek-hook-test.py": (
+        R_YOL + " Somut olarak: .git/hooks/pre-push commit EDILMEZ (per-makine) -> CI "
+        "fresh checkout'unda kurulu blok YOKTUR, 'olu konum' nobetcisi orada yapisal "
+        "olarak kirmizi yanar. Yerel push disiplini araci; deploy CI adimi degil."),
     "tools/yedekle-test.py": (
         "Olcum girdisi MAKINEYE OZGU ve git DISI: ~/.claude/skills agaci (yedeklenen sey) ile "
         "Google Drive mount'u. CI fresh checkout'unda ikisi de YOK -> kapsam kontrolleri "
