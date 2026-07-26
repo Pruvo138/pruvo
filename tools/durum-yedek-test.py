@@ -276,13 +276,30 @@ def main():
                 "2026-07-26 12:00:00" in sat_a[0] and "baska yedek" in sat_a[0])
         kontrol("(a) ne yapilacagi yazili", "tools/yedekle.py" in " ".join(sat_a))
 
-        # (b) KAPSANAN atlama (eszamanli push cifti): uyari YOK
+        # (b) KAPSANAN atlama + sahip damgayi YAZDI (eszamanli push cifti): uyari YOK
         b = damga_kur(os.path.join(td, "b"), 600, baslangic=simdi - 660,
-                      son_atlama=simdi - 300, son_atlama_kapsandi=True)
+                      son_atlama=simdi - 300, son_atlama_kapsandi=True,
+                      son_atlama_sahip_baslangici=simdi - 660)
         sat_b = durum.yedek_satirlari(durum.yedek_durumu(b, "var"))
-        kontrol("(b) kapsanan atlamada pano SUSUYOR ('taze')",
+        kontrol("(b) kapsanan + sahip bitirmis atlamada pano SUSUYOR ('taze')",
                 sat_b[0].strip().startswith("taze:") and not any("ATLANDI" in s for s in sat_b),
                 sat_b[0])
+
+        # (b2) 🔴 KAPSANAN ama sahip damgayi HIC YAZMAMIS (asildi/oldu) -> UYARI SART
+        b2 = damga_kur(os.path.join(td, "b2"), 600, baslangic=simdi - 660,
+                       son_atlama=simdi - 300, son_atlama_kapsandi=True,
+                       son_atlama_sahip_baslangici=simdi - 400)   # damga ondan ESKI
+        sat_b2 = durum.yedek_satirlari(durum.yedek_durumu(b2, "var"))
+        kontrol("(b2) sahip bitirmemisken 'kapsandi' SUSTURMUYOR",
+                not sat_b2[0].strip().startswith("taze:") and "ATLANDI" in sat_b2[0],
+                sat_b2[0])
+        kontrol("(b2) sebep aciklikla yaziyor", "HIC YAZMADI" in sat_b2[0])
+
+        # (b3) sahip alani HIC YOK (cozulemez) -> fail-closed UYAR
+        b3 = damga_kur(os.path.join(td, "b3"), 600, baslangic=simdi - 660,
+                       son_atlama=simdi - 300, son_atlama_kapsandi=True)
+        kontrol("(b3) sahip alani yoksa fail-closed UYARIYOR",
+                "ATLANDI" in durum.yedek_satirlari(durum.yedek_durumu(b3, "var"))[0])
 
         # (c) ESKI atlama: sonrasinda TAM bir kosum BASLADI -> kendi kendine temizlenir
         c = damga_kur(os.path.join(td, "c"), 60, baslangic=simdi - 120,
@@ -313,16 +330,99 @@ def main():
         kontrol("(e) kilitsiz kosum panoda NOT olarak gorunuyor",
                 any("KILITSIZ" in s for s in durum.yedek_satirlari(durum.yedek_durumu(e, "var"))))
 
-        # (f) KIRMIZI-MUTASYON: atlama kontrolu kaldirilirsa (a) sessizce TAZE olur
+        # (f) KIRMIZI-MUTASYON 1: atlama kontrolu tumden kaldirilirsa (a) TAZE olur
         mut = mutant_yaz(td,
-                         '                and atlama > _ref and dmg.get("son_atlama_kapsandi") '
-                         'is not True)',
+                         "                and atlama > _ref\n"
+                         '                and not (dmg.get("son_atlama_kapsandi") is True '
+                         'and _sahip_bitti))',
                          '                and False)  # MUTANT: atlama gorulmuyor',
                          ad="durum_mutant_atlama.py")
         mmod = modul_yukle(mut, "durum_mutant_atlama")
         m_sat = mmod.yedek_satirlari(mmod.yedek_durumu(a, "var"))
         kontrol("MUTANTTA atlanan yedek 'taze' gorunuyor (kontrol KIRMIZI yanardi)",
                 m_sat[0].strip().startswith("taze:"), m_sat[0])
+
+        # (g) KIRMIZI-MUTASYON 2: SAHIP COZUMU kaldirilirsa (b2) sessizce TAZE olur
+        #     = curutucunun buldugu sessiz veri kaybi yolu, geri gelirse yakalanir.
+        mut2 = mutant_yaz(td,
+                          "    _sahip_bitti = (isinstance(_sahip, (int, float)) and "
+                          "isinstance(_ref, (int, float))\n"
+                          "                    and _ref >= _sahip)",
+                          "    _sahip_bitti = True  # MUTANT: sahip bitirdi VARSAYILIYOR",
+                          ad="durum_mutant_sahip.py")
+        mmod2 = modul_yukle(mut2, "durum_mutant_sahip")
+        m2 = mmod2.yedek_satirlari(mmod2.yedek_durumu(b2, "var"))
+        kontrol("MUTANTTA (varsayim) asili sahip 'taze' gorunuyor (kontrol KIRMIZI yanardi)",
+                m2[0].strip().startswith("taze:"), m2[0])
+
+    # ---------------- 6h) YEDEK KILIDI PANODA ----------------
+    # Atlama push aninda %100 SESSIZ (pre-push blogu stdout+stderr'i yutar, atlama
+    # exit 0). Saatlerdir asili kilit yalnizca BURADA gorunur.
+    print("\n6h) KILIT PANODA — asili/yarim kilit GORUNUR, normal kilit SESSIZ")
+    with tempfile.TemporaryDirectory() as td:
+        simdi = time.time()
+        kok = os.path.join(td, "repo")
+        os.makedirs(kok)
+        yol = os.path.join(kok, ".yedek.lock")
+        kontrol("kilit dosyasi YOK -> hal 'yok', satir YOK",
+                durum.kilit_durumu(kok)["hal"] == "yok"
+                and durum.kilit_satirlari(durum.kilit_durumu(kok)) == [])
+        with open(yol, "w") as fh:
+            fh.write("")
+        kontrol("bos kilit (birakilmis) -> hal 'yok', satir YOK",
+                durum.kilit_durumu(kok)["hal"] == "yok"
+                and durum.kilit_satirlari(durum.kilit_durumu(kok)) == [])
+        # canli sahip, yas kucuk -> NORMAL: pano susar (gurultu yapmaz)
+        with open(yol, "w") as fh:
+            fh.write("pid=%d baslangic=%r iso=TEST\n" % (os.getpid(), simdi))
+        d_norm = durum.kilit_durumu(kok)
+        kontrol("canli + yeni kilit -> 'tutuluyor', satir YOK",
+                d_norm["hal"] == "tutuluyor" and durum.kilit_satirlari(d_norm) == [],
+                d_norm["hal"])
+        # 2 saattir tutan CANLI sahip -> UYARI
+        with open(yol, "w") as fh:
+            fh.write("pid=%d baslangic=%r iso=TEST\n" % (os.getpid(), simdi - 7200))
+        d_asili = durum.kilit_durumu(kok)
+        sat_asili = durum.kilit_satirlari(d_asili)
+        print("     --- pano ciktisi (kilit 2 saattir asili) ---")
+        for s in sat_asili:
+            print("    " + s)
+        kontrol("2 saatlik canli kilit -> hal 'asili'", d_asili["hal"] == "asili",
+                d_asili["hal"])
+        kontrol("pano SURESINI ve pid'i SOYLUYOR",
+                "2.0 saattir" in sat_asili[0] and str(os.getpid()) in sat_asili[0])
+        kontrol("pano 'yedekler ATLANIYOR' diyor", "ATLANIYOR" in sat_asili[0])
+        kontrol("pano kilidi KIRMA talimati vermiyor, elle kontrol diyor",
+                "KIRILMAZ" in sat_asili[1])
+        # OLU sahip: yarim kalmis kosum izi
+        with open(yol, "w") as fh:
+            fh.write("pid=999999 baslangic=%r iso=TEST\n" % (simdi - 60))
+        d_yarim = durum.kilit_durumu(kok)
+        kontrol("olu pid -> hal 'yarim' (kosum ortasinda kesilmis)",
+                d_yarim["hal"] == "yarim" and d_yarim["canli"] is False, d_yarim["hal"])
+        kontrol("yarim kilit panoda UYARIYOR",
+                "YARIM KALMIS" in durum.kilit_satirlari(d_yarim)[0])
+        # bozuk imza
+        with open(yol, "w") as fh:
+            fh.write("bozuk satir\n")
+        kontrol("bozuk imza -> 'okunamadi', pano yine konusuyor",
+                durum.kilit_durumu(kok)["hal"] == "okunamadi"
+                and "COZULEMEDI" in durum.kilit_satirlari(durum.kilit_durumu(kok))[0])
+        # esik SABITI gercekten kullaniliyor mu (olu sabit nobetcisi)
+        with open(yol, "w") as fh:
+            fh.write("pid=%d baslangic=%r iso=TEST\n" % (os.getpid(), simdi - 60))
+        kontrol("esik 10 sn'ye cekilince ayni kilit 'asili' oluyor",
+                durum.kilit_durumu(kok, esik=10)["hal"] == "asili")
+        # iki dosyadaki esik/ad AYNI mi (surukleme nobetcisi)
+        yedekle_mod = modul_yukle(os.path.join(TOOLS, "yedekle.py"), "yedekle_esik")
+        kontrol("kilit ADI iki dosyada ayni",
+                durum.YEDEK_KILIT_ADI == yedekle_mod.KILIT_ADI, durum.YEDEK_KILIT_ADI)
+        kontrol("asili esigi iki dosyada ayni",
+                durum.YEDEK_KILIT_ASILI == yedekle_mod.KILIT_UYARI_YASI,
+                "%s / %s" % (durum.YEDEK_KILIT_ASILI, yedekle_mod.KILIT_UYARI_YASI))
+        # pano ana akisi kilidi GERCEKTEN cagiriyor mu (kablolama nobetcisi)
+        gov = open(DURUM, encoding="utf-8").read()
+        kontrol("main() kilit satirlarini ekliyor", "kilit_satirlari(kilit_durumu(kok))" in gov)
 
     # ---------------- 6f) N3: ZAMAN ASIMI — PANO ASILMAZ ----------------
     print("\n6f) N3 — Drive yanit vermezse pano BEKLEMEZ")

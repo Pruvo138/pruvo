@@ -363,7 +363,8 @@ def main():
                 o["hedef"].startswith(td), o["hedef"])
         kilitci = open(o["kilit"], "a+")               # "kosan yedek" taklidi
         fcntl.flock(kilitci, fcntl.LOCK_EX)
-        kilitci.write("pid=999999 baslangic=%.3f iso=TEST\n" % time.time())
+        sahip_bas = time.time()
+        kilitci.write(yedekle._sahip_imzasi(sahip_bas, pid=999999))
         kilitci.flush()
         r = izole_kos(o, "--gerekliyse")
         kontrol("kilit doluyken exit 0 (FAIL-OPEN: push bloklanmaz)", r.returncode == 0,
@@ -380,6 +381,9 @@ def main():
                 str(d.get("son_atlama_sebep")), str(d.get("son_atlama_sebep"))[:70])
         kontrol("kaynak degismemisken atlama KAPSANDI (pano bosuna uyarmaz)",
                 d.get("son_atlama_kapsandi") is True, str(d.get("son_atlama_kapsandi")))
+        kontrol("beklenen SAHIBIN baslangici TAM HASSAS kaydedildi",
+                d.get("son_atlama_sahip_baslangici") == sahip_bas,
+                "%r vs %r" % (d.get("son_atlama_sahip_baslangici"), sahip_bas))
 
         # 13a) KAPSANMAYAN atlama: kilit tutulurken kaynak DEGISIRSE uyari SART
         time.sleep(0.02)
@@ -413,6 +417,82 @@ def main():
                 isinstance(d2.get("son_atlama"), float))
         kontrol("gecici damga dosyasi kalmadi",
                 not any(".tmp-" in x for x in gercek_dosya))
+
+    # ---------------- 13e) IMZA HASSASIYETI (flake kaynagi) ----------------
+    # Curutucu olcumu: imza `%.3f` ile yuvarlanirken karsilastirma tam hassas mtime
+    # ile yapiliyordu -> 200 denemenin 94'u (%47) YANLIS karar; yedekle-test 16
+    # kosumun 6'sinda kirmizi. Burada 2000 ornekte YANLIS KARAR 0 olmali.
+    print("\n13e) IMZA HASSASIYETI — 2000 ornek, yanlis karar 0 (flake kapisi)")
+    taban = time.time()
+    sapmalar = (0.0, 1e-6, -1e-6, 1e-4, -1e-4)
+    yanlis_yeni = yanlis_eski = tur_kaybi = 0
+    for i in range(2000):
+        t = taban + i * 0.000173                      # ms-alti kaymalari tarar
+        coz = yedekle._imza_coz(yedekle._sahip_imzasi(t, pid=1))[1]
+        if coz != t:
+            tur_kaybi += 1
+        eski_coz = yedekle._imza_coz("pid=1 baslangic=%.3f iso=x" % t)[1]  # ESKI bicim
+        for s in sapmalar:
+            dogru = yedekle.atlama_kapsandi_mi(t, t + s)
+            if yedekle.atlama_kapsandi_mi(coz, t + s) is not dogru:
+                yanlis_yeni += 1
+            if yedekle.atlama_kapsandi_mi(eski_coz, t + s) is not dogru:
+                yanlis_eski += 1
+    kontrol("imza TAM tur-donusu yapiyor (float(repr(x)) == x)", tur_kaybi == 0,
+            "%d/2000 kayip" % tur_kaybi)
+    kontrol("2000 ornek x 5 sapma = 10000 kararda YANLIS 0", yanlis_yeni == 0,
+            "yanlis=%d/10000" % yanlis_yeni)
+    kontrol("ESKI %.3f bicimi AYNI fikstürde yaniliyordu (kontrol olcuyor)",
+            yanlis_eski > 0, "eski bicim yanlis=%d/10000 (%.0f%%)"
+            % (yanlis_eski, 100.0 * yanlis_eski / 10000))
+
+    # ---------------- 13f) SAHIP ASILDI/OLDU -> PANO SUSMAMALI ----------------
+    # Curutucu senaryosu: kaynak degisti -> SONRA bir yedek kilidi aldi (kapsandi=True)
+    # -> sahip asildi/oldu, damgayi HIC yazmadi. Dosya yedekte YOK ama eski damga
+    # "taze" gorunuyor. Pano UYARMAK ZORUNDA.
+    print("\n13f) SAHIP BITIRMEDI — 'kapsandi' tek basina yeter mi? (pano ucu)")
+    sys.path.insert(0, TOOLS)
+    durum = modul_yukle(os.path.join(TOOLS, "durum.py"), "durum_kilit_kontrol")
+    with tempfile.TemporaryDirectory() as td:
+        o = izole_ortam(td, yedekle)
+        r0 = izole_kos(o)                              # 1) gercek bir yedek tamamlandi
+        kontrol("hazirlik: ilk yedek tamamlandi", "bitti ->" in r0.stdout)
+        d0 = damga_json(o["hedef"]) or {}
+        taze_once = durum.yedek_satirlari(durum.yedek_durumu(o["hedef"], "var"))
+        kontrol("hazirlik: pano bu noktada TAZE", taze_once[0].strip().startswith("taze:"),
+                taze_once[0])
+        time.sleep(0.02)
+        with open(os.path.join(o["ev"], ".claude", "projects",     # 2) KAYNAK DEGISTI
+                               "-Users-okan-dev-pruvo", "memory", "not-001.md"), "w") as fh:
+            fh.write("yedeklenmesi GEREKEN yeni icerik\n")
+        time.sleep(0.02)
+        asili = open(o["kilit"], "a+")                 # 3) sahip kilidi aldi ve ASILDI
+        fcntl.flock(asili, fcntl.LOCK_EX)
+        asili.truncate(0)
+        asili.write(yedekle._sahip_imzasi(time.time(), pid=999999))
+        asili.flush()
+        r1 = izole_kos(o, "--gerekliyse")              # 4) push atladi
+        d1 = damga_json(o["hedef"]) or {}
+        sat = durum.yedek_satirlari(durum.yedek_durumu(o["hedef"], "var"))
+        print("     --- pano ciktisi (sahip bitirmedi) ---")
+        for s in sat:
+            print("    " + s)
+        kontrol("atlama 'kapsandi' olctu (degisiklik sahipten ONCE)",
+                d1.get("son_atlama_kapsandi") is True, str(d1.get("son_atlama_kapsandi")))
+        kontrol("damganin `baslangic`i HALA ilk kosumun (sahip yazmadi)",
+                d1.get("baslangic") == d0.get("baslangic"))
+        kontrol("🔴 PANO SUSMUYOR: 'taze' DEMIYOR", not sat[0].strip().startswith("taze:"),
+                sat[0])
+        kontrol("pano sahibin bitirmedigini SOYLUYOR",
+                "HIC YAZMADI" in sat[0] and "ATLANDI" in sat[0])
+        kontrol("atlanan kosum yine exit 0 (fail-open bozulmadi)", r1.returncode == 0)
+        # sahip serbest kalip GERCEKTEN kosunca uyari kendi kendine kapanmali
+        fcntl.flock(asili, fcntl.LOCK_UN)
+        asili.close()
+        izole_kos(o)
+        sat2 = durum.yedek_satirlari(durum.yedek_durumu(o["hedef"], "var"))
+        kontrol("gercek kosumdan sonra uyari KENDILIGINDEN kapandi",
+                sat2[0].strip().startswith("taze:"), sat2[0])
 
     # ---------------- 13c) atlama_kapsandi_mi SAF FONKSIYON (fail-closed) -------
     print("\n13c) KAPSAMA KARARI — olcemedigimiz her hal 'kapsanmadi' (fail-closed)")
@@ -508,6 +588,7 @@ def main():
                 "yazan": yazan, "atlayan": atlayan, "kodlar": kodlar,
                 "dosya": len(dosyalar), "bekle": bekle, "damga": d,
                 "artik": [x for x in dosyalar if ".tmp-" in x],
+                "pano": durum.yedek_satirlari(durum.yedek_durumu(o["hedef"], "var")),
             })
     for i, t in enumerate(tur_sonuc, 1):
         kontrol("tur%d: TAM 1 kosum yedekledi, 1 kosum ATLADI" % i,
@@ -532,6 +613,12 @@ def main():
         kontrol("tur%d: atlama KAPSANDI olarak isaretlendi (bos uyari yok)" % i,
                 t["damga"].get("son_atlama_kapsandi") is True,
                 str(t["damga"].get("son_atlama_kapsandi")))
+        kontrol("tur%d: beklenen sahip damgayi YAZDI (baslangic == sahip baslangici)" % i,
+                t["damga"].get("baslangic") == t["damga"].get("son_atlama_sahip_baslangici"),
+                "%r vs %r" % (t["damga"].get("baslangic"),
+                              t["damga"].get("son_atlama_sahip_baslangici")))
+        kontrol("tur%d: PANO SUSUYOR (normal eszamanli ciftte bos uyari yok)" % i,
+                t["pano"][0].strip().startswith("taze:"), t["pano"][0])
 
     # ---------------- 15) GERCEK HEDEF DOKUNULMADI ----------------
     print("\n15) IZOLASYON KANITI — gercek Drive damgasi DEGISMEDI")

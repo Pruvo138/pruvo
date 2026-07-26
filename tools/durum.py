@@ -364,6 +364,16 @@ YEDEK_DAMGA_ADI = ".son-yedek.json"
 YEDEK_BAYAT_SANIYE = 2 * 86400   # ~2 gun. TEK YER — esigi baska yere serpistirme.
 YEDEK_ZAMAN_ASIMI = 5.0          # saniye. Olculen normal sure: 0,0005 s.
 
+# YEDEK KILIDI (tools/yedekle.py `.yedek.lock`) — panonun IKINCI kanali.
+# NEDEN VAR: atlanan yedek push aninda %100 SESSIZDIR (pre-push blogu stdout+stderr'i
+# /dev/null'a yutar ve atlama exit 0 oldugu icin "YEDEK alinamadi" da basilmaz).
+# Kilit saatlerdir asili olsa bile kullanicinin gorecegi TEK yer burasi.
+# ⚠️ Pano kilidi ALMAYA CALISMAZ: bir an icin almak, o sirada kosan GERCEK bir yedegi
+# atlatirdi. Yalnizca dosya icerigi okunur + pid CANLILIGI sorulur (sinyal 0 = yalniz
+# varlik sorusu, surece hicbir sey gondermez). Dosya yerel diskte -> Drive gibi asilmaz.
+YEDEK_KILIT_ADI = ".yedek.lock"
+YEDEK_KILIT_ASILI = 3600.0       # sn — yedekle.KILIT_UYARI_YASI ile AYNI (test esitler)
+
 # N3 — PANO ASLA ASILMAZ. Bolum 7 bir AG/BULUT mount'una (CloudStorage) dokunuyor;
 # mount yanit vermezse glob/isdir/os.walk KILITLENIR ve `durum.py` asilir. Bu arac her
 # oturumun ILK komutu -> asilirsa mimarin butun acilisi bloklanir. Cozum: olcumu ayri
@@ -531,23 +541,34 @@ def yedek_satirlari(d):
     kismi = dmg.get("tam") is False
 
     # ATLANAN KOSUM (26 Tem, kilit): yedekle.py kilidi alamazsa hicbir sey kopyalamaz
-    # ve damgaya YALNIZ `son_atlama*` yazar (guven alanlarina dokunmaz). Iki kosul
-    # birlikte uyarir:
-    #   (1) `son_atlama_kapsandi` False -> atlayan kosum OLCTU: o an kosan yedek,
-    #       kendisinden sonraki degisiklikleri kapsamiyordu (True ise atlama zararsiz,
-    #       pano susar; alan HIC yoksa bilinmiyor sayilir -> fail-closed UYAR).
-    #   (2) atlama, son TAMAMLANAN kosumun BASLANGICINDAN sonra -> daha sonra kosan
-    #       tam bir yedek bu kaybi zaten kapatmis olurdu (kendi kendine temizlenir).
+    # ve damgaya YALNIZ `son_atlama*` yazar (guven alanlarina dokunmaz). Atlama ancak
+    # UC kosul birden saglanirsa SESSIZ gecer; biri bile tutmazsa UYARILIR:
+    #   (1) atlama, son TAMAMLANAN kosumun BASLANGICINDAN once -> daha sonra kosan
+    #       tam bir yedek kaybi zaten kapatmistir (kendi kendine temizlenir), ya da
+    #   (2) `son_atlama_kapsandi` True  -> atlayan kosum OLCTU: o an kosan yedek
+    #       basladiginda butun degisiklikler yerindeydi, VE
+    #   (3) `son_atlama_sahip_baslangici` <= damganin `baslangic`i -> beklenen o
+    #       kosum damgayi GERCEKTEN yazdi (bitti).
+    # 🔴 (3) OLMADAN (2) BIR VARSAYIMDIR: sahip kilidi alip asilir/olurse dosya
+    # yedege girmez, pano esige kadar (2 gun) "taze" der — kapatmaya calistigimiz
+    # sessiz-hata sinifinin ta kendisi. Alan YOKSA cozulemez sayilir -> UYAR.
     # `baslangic` yoksa (eski surum damgasi) `zaman`a duseriz.
     atlama = dmg.get("son_atlama")
     _ref = dmg.get("baslangic")
     if not isinstance(_ref, (int, float)):
         _ref = dmg.get("zaman")
+    _sahip = dmg.get("son_atlama_sahip_baslangici")
+    _sahip_bitti = (isinstance(_sahip, (int, float)) and isinstance(_ref, (int, float))
+                    and _ref >= _sahip)
     atlanmis = (isinstance(atlama, (int, float)) and isinstance(_ref, (int, float))
-                and atlama > _ref and dmg.get("son_atlama_kapsandi") is not True)
+                and atlama > _ref
+                and not (dmg.get("son_atlama_kapsandi") is True and _sahip_bitti))
     atlama_satiri = (
         "  ⚠⚠ KISMI YEDEK: son kosumdan SONRA bir yedek ATLANDI (%s) — %s"
         % (dmg.get("son_atlama_iso", "?"), dmg.get("son_atlama_sebep", "?")))
+    if isinstance(atlama, (int, float)) and dmg.get("son_atlama_kapsandi") is True \
+            and not _sahip_bitti:
+        atlama_satiri += "; beklenen kosum damgayi HIC YAZMADI (asildi/oldu)"
 
     eksik_icerik = []
     sayilamayan = []
@@ -605,6 +626,88 @@ def yedek_satirlari(d):
         satirlar.append("  ⚠⚠ ICERIK EKSIK: backup/%s icinde %d dosya var, damga %d diyor."
                         % (ad, gercek, iddia))
     return satirlar
+
+
+def _surec_canli(pid):
+    """pid yasiyor mu? True/False, bilinemiyorsa None. SALT-OKUNUR: sinyal 0 hicbir
+    sey GONDERMEZ, yalnizca 'boyle bir surec var mi' diye sorar."""
+    if not isinstance(pid, int) or pid <= 0:
+        return None
+    try:
+        os.kill(pid, 0)
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True                       # baska kullanicinin sureci: VAR
+    except OSError:
+        return None
+
+
+def kilit_durumu(repo_kok, simdi=None, esik=None):
+    """`.yedek.lock`'i SALT-OKUNUR yorumlar. Kilidi ALMAYA CALISMAZ.
+
+    hal: 'yok'       -> dosya yok/bos: kimse tutmuyor (yedekle.py birakirken temizler)
+         'tutuluyor' -> canli sahip, yas esigin altinda (NORMAL: pano susar)
+         'asili'     -> canli sahip ama yas esigi asti -> yeni yedekler ATLANIYOR
+         'yarim'     -> icerik var ama sahip pid'i YOK: kosum ortasinda olmus
+         'okunamadi' -> imza cozulemedi (bozuk satir)
+    """
+    esik = YEDEK_KILIT_ASILI if esik is None else esik
+    simdi = time.time() if simdi is None else simdi
+    sonuc = {"hal": "yok", "yas": None, "pid": None, "canli": None,
+             "yol": os.path.join(repo_kok, YEDEK_KILIT_ADI), "esik": esik}
+    try:
+        with open(sonuc["yol"], "r", errors="replace") as f:
+            ham = f.read(256).strip()
+    except OSError:
+        return sonuc
+    if not ham:
+        return sonuc
+    pid = baslangic = None
+    for parca in ham.split():
+        if parca.startswith("pid="):
+            try:
+                pid = int(parca.split("=", 1)[1])
+            except ValueError:
+                pid = None
+        elif parca.startswith("baslangic="):
+            try:
+                baslangic = float(parca.split("=", 1)[1])
+            except ValueError:
+                baslangic = None
+    sonuc["pid"] = pid
+    sonuc["canli"] = _surec_canli(pid)
+    if baslangic is None:
+        sonuc["hal"] = "okunamadi"
+        return sonuc
+    sonuc["yas"] = simdi - baslangic
+    if sonuc["canli"] is False:
+        sonuc["hal"] = "yarim"
+    elif sonuc["yas"] >= esik:
+        sonuc["hal"] = "asili"
+    else:
+        sonuc["hal"] = "tutuluyor"
+    return sonuc
+
+
+def kilit_satirlari(d):
+    """Kilit icin basim satirlari. NORMAL hallerde BOS liste doner (gurultu yapmaz);
+    yalniz asili/yarim/bozuk kilitte konusur."""
+    hal = d["hal"]
+    if hal in ("yok", "tutuluyor"):
+        return []
+    if hal == "okunamadi":
+        return ["  ⚠ yedek kilidi (%s) dolu ama imzasi COZULEMEDI — elle bak."
+                % YEDEK_KILIT_ADI]
+    if hal == "yarim":
+        return ["  ⚠⚠ YARIM KALMIS YEDEK: kilit izi duruyor ama sahip surec (pid %s) YOK "
+                "-> kosum ortasinda kesilmis." % d["pid"],
+                "  Kos: python3 tools/yedekle.py     (bir sonraki kosum izi temizler)"]
+    return ["  ⚠⚠ YEDEK KILIDI %.1f saattir tutuluyor (pid %s CANLI) — bu sirada gelen "
+            "yedekler ATLANIYOR." % ((d["yas"] or 0) / 3600.0, d["pid"]),
+            "  Kilit KIRILMAZ (yasayan yazici veriyi bozar): sureci kontrol et, "
+            "gerekirse elle sonlandir. Kilit: %s" % d["yol"]]
 
 
 def main():
@@ -700,6 +803,12 @@ def main():
                         "  (Mount asili olabilir; pano BEKLEMEDI, devam ediyor.)"]
     except Exception as e:                    # pano bir KAPI degil: hicbir hal exit'i bozmaz
         satirlar = ["  ÖLÇÜLEMEDİ: yedek tazeligi okunamadi (%s)" % type(e).__name__]
+    # KILIT: Drive olcumunun DISINDA — yerel dosya, asilma riski yok; Drive zaman
+    # asimina dusse bile asili/yarim kilit GORUNMELI (atlama push'ta sessiz).
+    try:
+        satirlar = satirlar + kilit_satirlari(kilit_durumu(kok))
+    except Exception:
+        pass
     for satir in satirlar:
         print(satir)
 
