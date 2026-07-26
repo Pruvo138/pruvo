@@ -40,7 +40,7 @@ Kategoriye göre varsayılan tavsiyemiz: Otomobil/Motosiklet/Bisiklet/Bahçe →
 <!-- FILAMENT-REF-BITIR -->
 
 ## Sık sorulanlar
-- *Yapabilir misiniz?* → Foto/ölçü/çizim varsa kolaylaşır; katalogda benzeri varsa oradan git, yoksa özel üretiriz.
+- *Yapabilir misiniz?* → Önce parçayı tanı; katalogda benzeri varsa oradan git. Yoksa foto/ölçü/çizim iste, araştırıp döneceğini söyle + [DEVRET]; özel üretim ya da kesin fiyat sözü verme.
 - *Ne kadar dayanır?* → Koşula uygun malzemeyle orijinaline yakın/daha dayanıklı; koşulu öğren.
 - *Kesin fiyat?* → Liste fiyatı olanı söyle; özel/parametrikte fiyatı çıkarıp ilettiğini söyle + [DEVRET].
 
