@@ -395,7 +395,11 @@ ONIZLEME_JS = """
       return c.arrayBuffer();
     })
     .then(function(buf){
-      PRUVO_VIEWER.goster(tuval, buf);
+      /* Aile bazli onizleme rengi (tek kaynak /secenekler.js ONIZLEME_RENKLER);
+         listede yoksa viewer sari-seri varsayilan sari rengini kullanir. Toka
+         SIYAH (Okan 26 Tem). */
+      var onzRenk=(window.PRUVO_SECENEK&&PRUVO_SECENEK.ONIZLEME_RENKLER||{})[URUN.id];
+      PRUVO_VIEWER.goster(tuval, buf, onzRenk?{ renk:onzRenk }:undefined);
       de("Sürükleyerek döndürün · tekerlek/iki parmakla yakınlaştırın");
     })
     .catch(function(e){

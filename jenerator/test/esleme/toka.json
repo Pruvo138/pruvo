@@ -1,0 +1,7 @@
+{
+  "urunId":"olcuye-ozel-toka",
+  "scad":"toka.scad",
+  "fonksiyon":"toka",
+  "esleme":{"kemer_genisligi":"kemer_genisligi","kalinlik":"kalinlik","kayis_baglanti":"kayis_baglanti"},
+  "sabit":{"parca":"ikisi","fn":48}
+}

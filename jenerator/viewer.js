@@ -95,15 +95,19 @@
     "void main(){ vNor = mat3(uDonus[0].xyz, uDonus[1].xyz, uDonus[2].xyz) * aNor;" +
     " gl_Position = uProj * uGoruntu * uDonus * vec4(aPoz, 1.0); }";
 
-  var FS = "precision mediump float; varying vec3 vNor;" +
+  // Taban rengi UNIFORM (uRenk): varsayilan parlak sari (sari seri kimligi, Okan
+  // 16 Tem — sitedeki sari rozetle #f7b500 uyumlu). Aile bazli override edilebilir
+  // (goster(canvas, buf, {renk:[r,g,b]}) — or. toka SIYAH, Okan 26 Tem). Uniform'suz
+  // eski cikti ile ozdes: renk gecilmezse VARSAYILAN_RENK yine 0.97/0.71/0.03.
+  var VARSAYILAN_RENK = [0.97, 0.71, 0.03];
+  var FS = "precision mediump float; varying vec3 vNor; uniform vec3 uRenk;" +
     "void main(){ vec3 n = normalize(vNor);" +
     " float i1 = max(dot(n, normalize(vec3(0.5, 0.7, 0.6))), 0.0);" +
     " float i2 = max(dot(n, normalize(vec3(-0.6, -0.3, 0.4))), 0.0) * 0.35;" +
-    // Sari seri kimligi (Okan, 16 Tem): model sitedeki sari rozetle (#f7b500)
-    // uyumlu parlak sari. Carpan araligi 0.32..~1.06 tutulur: tavan 1'i ancak
-    // en dik acida asar, kanal doygunlasip yuzey detayini yutmaz; 0.32 taban
-    // golgeli yuzleri koyu-sari birakir (acik gri zeminle cakismaz).
-    " vec3 renk = vec3(0.97, 0.71, 0.03) * (0.32 + 0.60 * i1 + 0.5 * i2);" +
+    // Carpan araligi 0.32..~1.06 tutulur: tavan 1'i ancak en dik acida asar, kanal
+    // doygunlasip yuzey detayini yutmaz; 0.32 taban golgeli yuzleri koyu birakir
+    // (acik gri zeminle cakismaz). Taban rengi uRenk ile disaridan verilir.
+    " vec3 renk = uRenk * (0.32 + 0.60 * i1 + 0.5 * i2);" +
     " gl_FragColor = vec4(renk, 1.0); }";
 
   function derleProgram(gl) {
@@ -130,7 +134,7 @@
 
   var kayitlar = new WeakMap(); // canvas -> durum (ayni canvas'a tekrar yukleme)
 
-  function goster(canvas, stlBuf) {
+  function goster(canvas, stlBuf, secenek) {
     var durum = kayitlar.get(canvas);
     if (!durum) {
       var gl = canvas.getContext("webgl", { antialias: true }) ||
@@ -139,6 +143,9 @@
       durum = kur(canvas, gl);
       kayitlar.set(canvas, durum);
     }
+    // Aile bazli taban rengi (opsiyonel): {renk:[r,g,b]}. Verilmezse sari kalir.
+    var renk = secenek && secenek.renk;
+    durum.renkAyarla(renk && renk.length === 3 ? renk : VARSAYILAN_RENK);
     durum.yukle(stlCoz(stlBuf));
     return { sifirla: durum.sifirla, yokEt: durum.yokEt };
   }
@@ -150,12 +157,14 @@
     var uProj = gl.getUniformLocation(prog, "uProj");
     var uGoruntu = gl.getUniformLocation(prog, "uGoruntu");
     var uDonus = gl.getUniformLocation(prog, "uDonus");
+    var uRenk = gl.getUniformLocation(prog, "uRenk");
     var aPoz = gl.getAttribLocation(prog, "aPoz");
     var aNor = gl.getAttribLocation(prog, "aNor");
     var pozTampon = gl.createBuffer();
     var norTampon = gl.createBuffer();
 
     var model = null;         // {adet, merkez, yaricap}
+    var renk = VARSAYILAN_RENK; // taban rengi (aile bazli; varsayilan sari)
     var yaw = 0.6, pitch = -0.5, zoom = 1;
     var cizimIste = null;
 
@@ -187,6 +196,7 @@
                                     -model.merkez[0], -model.merkez[1], -model.merkez[2], 1]);
       var donus = mat4Carp(mat4Carp(donusX(pitch), donusY(yaw)), otele);
       gl.uniformMatrix4fv(uDonus, false, donus);
+      gl.uniform3fv(uRenk, renk);
       gl.drawArrays(gl.TRIANGLES, 0, model.adet * 3);
     }
 
@@ -252,6 +262,7 @@
     root.addEventListener("resize", cizPlanla);
 
     return {
+      renkAyarla: function (r) { renk = r; cizPlanla(); },
       yukle: function (veri) {
         gl.bindBuffer(gl.ARRAY_BUFFER, pozTampon);
         gl.bufferData(gl.ARRAY_BUFFER, veri.poz, gl.STATIC_DRAW);
