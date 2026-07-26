@@ -6,6 +6,6 @@
     {"ad":"kalinlik","etiket":"Toka kalınlığı","birim":"mm","tip":"sayi","min":8,"max":14,"adim":0.2,"varsayilan":10.8,"aciklama":"Toka gövde kalınlığı; yüksekliği sürer"},
     {"ad":"kayis_baglanti","etiket":"Kayış bağlantısı","tip":"secim","varsayilan":"dikis","secenekler":[{"deger":"dikis","etiket":"Dikiş yuvası"},{"deger":"triglide","etiket":"Üçlü ayar (triglide)"}]}
   ],
-  "tabanHacimMm3": 13039.492563026683,
+  "tabanHacimMm3": 14877.48271244191,
   "tabanFiyatTL": 150
 }

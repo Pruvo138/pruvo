@@ -231538,7 +231538,12 @@
     "baslik": "Ölçüye Özel Toka / Kayış Tokası (Yan Bırakmalı · Dikişli · Triglide)",
     "aciklama": "Kayışınızın enine göre toka üretiyoruz — çanta, kemer, sırt çantası, evcil hayvan tasması ve dış giyim kayışları için. Yan bırakmalı (yandan basınca açılan) mekanizma; erkek ve dişi parça birlikte gelir.\n\nNeyi ayarlıyoruz?\n• Kemer / kayış eni — 12–45 mm (kayışın enini ölçün, toka gövde genişliği ona göre çıkar)\n• Toka kalınlığı — 8–14 mm (gövde kalınlığı / yüksekliği)\n• Kayış bağlantısı — dikiş yuvası ya da üçlü ayar (triglide; kayış boyu ayarlanabilir)\n• Malzeme & dayanıklılık — sağlam PETG/PLA+, esnek TPU; farklı renk seçenekleri\n\nKullanım: çanta ve sırt çantası kayışları, tasma ve göğüs tasması, kemer, tulum/önlük ve dış giyim ayar kayışları, yedek/kırılan toka değişimi.\n\nNasıl sipariş edilir?\nKayış eninizi (ve isterseniz kalınlığı) ve dikiş mi triglide mi istediğinizi WhatsApp'tan gönderin; ölçüye özel üretip adresinize gönderelim.\n\nNot: yük taşıyan kayışlarda malzeme seçimini birlikte netleştirelim.",
     "fiyat": "",
-    "gorseller": [],
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-toka-p1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-toka-p2.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-toka-p3.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-toka-p4.jpg"
+    ],
     "parametrik": true
   }
 ]
