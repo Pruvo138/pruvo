@@ -23,8 +23,15 @@ onun BOZULMADIĞINI da (ad+URL hâlâ var) regresyon olarak doğrular.
   23 CI kapısının HİÇBİRİ kırmızı yanmadı; aynı mutasyon help_cta_href()'te 2 kapı
   yakaladı. Yani koruma "hangi butonu saydıysam o" düzeyindeydi ve YENİ eklenen her
   buton NÖBETSİZ doğuyordu. Bu yüzden numara nöbeti KÜME olarak kurulur: sayfadaki
-  TÜM wa.me URL'leri taranır, her birinin numarası tek tek doğrulanır -> gelecekte
-  eklenen 4. bir buton hiçbir şey yazılmadan kapsama girer.
+  TÜM WhatsApp URL'leri (wa.me · api./web.whatsapp.com/send?phone= · whatsapp://send)
+  taranır, her birinin numarası tek tek doğrulanır -> gelecekte eklenen 4. bir buton
+  hiçbir şey yazılmadan kapsama girer.
+  FAIL-CLOSED: numarası AYRIŞTIRILAMAYAN bir WhatsApp linki (boşluklu/tireli/noktalı,
+  eksik haneli) SESSİZCE ATLANMAZ -> KIRMIZI. Aksi halde link kümeye girip numarasız
+  sayılıyor, sayı tabanın altına düşmediği için kaçak sahte-yeşil geçiyordu (ölçüldü).
+  ÖLÇÜLEMEYEN TEK HAL (açıkça beyan edilir, her koşumda basılır): numarası kaynakta
+  literal geçmeyen, JS'te değişkenle kurulan link parçası — bugünkü tek örneği
+  attribution-ref.js eşleştirme dizesi, onun numarası TARGET_PHONE assert'iyle kapanır.
   Kural (CLAUDE.md): WhatsApp hattı = tüm wa.me linkleri · arama hattı = YALNIZ tel:/
   JSON-LD contactPoint. İki yön de denetlenir (arama hattı wa.me'de YOK, WhatsApp
   hattı tel:/contactPoint'te YOK).
@@ -80,11 +87,29 @@ URUN_PARAMETRIK = {
     "gorseller": ["https://media.pruvo3d.com/urunler/test-param-1.jpg"],
 }
 
-# Sayfadaki WhatsApp URL'lerinin TAMAMI (şema opsiyonel: JS içinde "wa.me/" + değişken
-# biçiminde de kurulabiliyor). Numara ya YOLDA (wa.me/<numara>) ya da ?phone= sorgusunda
-# taşınır — ikisi de taranır. ?text= içeriği KASITLI olarak tarama dışı (orada ürün
-# URL'i/ölçüsü kaynaklı uzun rakam dizisi yanlış-pozitif üretirdi).
-WA_URL_RE = re.compile(r"(?:https?://)?(?:wa\.me|api\.whatsapp\.com)/[^\s\"'<>]*")
+# ÇALIŞAN WhatsApp link biçimlerinin TAMAMI (şema opsiyonel: JS içinde "wa.me/" +
+# değişken biçiminde de kurulabiliyor). Doğrulanmış biçimler:
+#   https://wa.me/<numara>?text=...               Click-to-Chat — sitenin kullandığı biçim
+#   https://api.whatsapp.com/send?phone=<numara>  eski resmî biçim (attribution-ref.js de tanır)
+#   https://web.whatsapp.com/send?phone=<numara>  masaüstü web akışı — ÇALIŞAN link
+#   whatsapp://send?phone=<numara>                uygulama derin-linki (custom scheme)
+# ⚠️ web.whatsapp.com bu regex'te YOKTU (26 Tem bypass avı): o biçimde eklenen bir buton
+# müşteriyi sessizce ARAMA hattına gönderebilirdi ve hiçbir kapı yanmazdı.
+# KAPSAM DIŞI (bilerek, numara TAŞIMADIĞI için): chat.whatsapp.com/<davet-kodu> = grup daveti.
+# ?text= içeriği KASITLI olarak tarama dışı (orada ürün URL'i/ölçüsü kaynaklı uzun rakam
+# dizisi yanlış-pozitif üretirdi) — numara YALNIZ yoldan ya da ?phone='dan okunur.
+# TARAMA BELGE GENELİDİR, "href=" ile SINIRLI DEĞİL: sipariş butonunun href'i JS'te de
+# kuruluyor (orderAlt.href = "https://wa.me/..."), href'e daraltmak o yolu nöbetsiz
+# bırakırdı. BEYAN EDİLEN SONUÇ: sayfaya GÖRÜNÜR METİN olarak yazılmış bir
+# "wa.me/<numara>" dizisi de denetlenir (ör. ürün başlığında). Bu bilerekdir — arama
+# hattını wa.me ile yan yana BASMAK da aynı kuralın ihlalidir. Ölçüldü: 344 gerçek
+# üründe bu yüzden tek bir kırmızı bile yok (sentetik olarak zorlandığında yanıyor).
+WA_URL_RE = re.compile(
+    r"(?<![\w.-])(?:https?://)?(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/[^\s\"'<>]*"
+    r"|(?<![\w.-])whatsapp://[^\s\"'<>]*")
+# Geçerli uluslararası numara: yalnız rakam (baştaki + serbest), 10-15 hane. Boşluklu/
+# tireli/noktalı bir "numara" bu kalıba UYMAZ -> ayrıştırılamaz sayılır (fail-closed).
+GECERLI_NUMARA_RE = re.compile(r"\+?\d{10,15}")
 # Sayfaya gömülen ref-atıf betiğinin wa.me EŞLEŞTİRME sabiti (attribution-ref.js).
 # build.WHATSAPP'tan sapması sessiz hatadır: linkler doğru numarayı taşır ama betik
 # onları WhatsApp linki olarak TANIMAZ -> reklam atfı (ref) sessizce düşer.
@@ -93,10 +118,12 @@ TARGET_PHONE_RE = re.compile(r'TARGET_PHONE\s*=\s*"([^"]*)"')
 TEL_HREF_RE = re.compile(r'href="\s*(tel:[^"]*)"')
 TEL_ALAN_ANAHTARLARI = ("telephone", "contactPoint", "faxNumber")
 
-# Sayfada numara taşıyan EN AZ bu kadar wa.me URL'i bulunmalı (bugün ölçülen: 4 —
-# help-cta, malzeme-not, orderAlt statik href, orderAlt'ı JS'te yeniden kuran satır).
+# Sayfada GEÇERLİ numara taşıyan EN AZ bu kadar WhatsApp linki bulunmalı (bugün ölçülen:
+# 4 — help-cta, malzeme-not, orderAlt statik href, orderAlt'ı JS'te yeniden kuran satır).
 # TABAN'dır, çapa DEĞİL: yeni buton eklenince kırmızı yanmaz, ama linkler toptan
 # kaybolup küme kontrolü BOŞ kümeye bakarak sahte-yeşil yanamaz.
+# ⚠️ TABAN ARTIK "YUTMAZ": ayrıştırılamayan numara sayıyı düşürüp tabanın altına saklanmak
+# yerine DOĞRUDAN kırmızı yakar (aşağıda fail-closed), yani taban bir mazeret yolu değil.
 WA_URL_TABAN = 3
 
 # help-cta prefill'inde BULUNMAMASI gereken "bu ürünü istiyorum" niyet kalıpları.
@@ -150,6 +177,32 @@ def numaralar():
     return _rakam(build.WHATSAPP), _rakam((build.SELLER or {}).get("tel"))
 
 
+def wa_numara_adaylari(url):
+    """Bir WhatsApp linkinin numara TAŞIYAN yerlerini [(kaynak, ham değer)] döndür.
+
+    Biçime göre değişir (ezberle değil, gerçek link biçimlerine göre):
+      * wa.me      -> numara YOLDA          (wa.me/<numara>)
+      * send'li biçimler (api./web.whatsapp.com, whatsapp://) -> ?phone= SORGUSUNDA
+        (yolları sabit "send"dir, numara taşımaz -> yol taranmaz, yoksa "send" hep
+        ayrıştırılamayan numara sanılıp yanlış-pozitif üretirdi)
+    Boş liste = link numara literali taşımıyor (JS'te değişkenle kuruluyor)."""
+    if url.startswith("whatsapp://"):
+        host, kalan = "whatsapp://", url[len("whatsapp://"):]
+    else:
+        kalan = re.sub(r"^https?://", "", url)
+        host, _, kalan = kalan.partition("/")
+    yol, _, sorgu = kalan.partition("?")
+    adaylar = []
+    if host == "wa.me":
+        seg = yol.strip("/")
+        if seg:
+            adaylar.append(("yol", unquote(seg)))
+    q = re.search(r"(?:^|&)phone=([^&]*)", sorgu)
+    if q and q.group(1):
+        adaylar.append(("phone=", unquote(q.group(1))))
+    return adaylar
+
+
 def numara_kontrol(ad, doc, fails):
     """KÜME nöbeti: sayfadaki TÜM WhatsApp URL'lerinin numarasını doğrula.
 
@@ -169,29 +222,46 @@ def numara_kontrol(ad, doc, fails):
         fails.append("%s: WhatsApp ve arama numarası AYNI (%s) — CLAUDE.md hat ayrımı "
                      "çökmüş" % (ad, wa))
 
-    bulunan = []          # (url, numara)
+    bulunan = []          # (url, numara) — GEÇERLİ ayrıştırılmış numaralar
+    dinamik = []          # numara LİTERALİ taşımayan link parçası (JS'te değişkenle kurulan)
     for m in WA_URL_RE.finditer(doc):
         url = _html.unescape(m.group(0))
-        parca = url.split("?", 1)
-        yol, sorgu = parca[0], (parca[1] if len(parca) > 1 else "")
-        bu_url_numaralari = re.findall(r"\d{6,}", yol)
-        q = re.search(r"(?:^|&)phone=([^&]+)", sorgu)
-        if q:
-            bu_url_numaralari.append(_rakam(unquote(q.group(1))))
-        for n in bu_url_numaralari:
+        adaylar = wa_numara_adaylari(url)
+        if not adaylar:
+            dinamik.append(url)
+            continue
+        for kaynak, ham in adaylar:
+            if not GECERLI_NUMARA_RE.fullmatch(ham):
+                # FAIL-CLOSED: ayrıştırılamayan numara SESSİZCE ATLANMAZ. Boşluk/tire/nokta
+                # ya da eksik hane -> link ya bozuk ya da denetimden kaçırma girişimi;
+                # atlanırsa taban(3) onu "yutar" ve kaçak sahte-yeşil geçerdi (ölçüldü).
+                fails.append(
+                    "%s: WhatsApp linkinin numarası AYRIŞTIRILAMADI (%s=%r, rakama "
+                    "indirgenince %r%s) — sessizce ATLANMAZ, KIRMIZI -> %r"
+                    % (ad, kaynak, ham, _rakam(ham),
+                       ", bu ARAMA hattı" if _rakam(ham) == arama else "", url[:120]))
+                continue
+            n = _rakam(ham)
             bulunan.append((url, n))
             if n != wa:
                 fails.append(
-                    "%s: wa.me linki YANLIŞ numara taşıyor (%s, beklenen %s)%s -> %r"
+                    "%s: WhatsApp linki YANLIŞ numara taşıyor (%s, beklenen %s)%s -> %r"
                     % (ad, n, wa,
-                       " — bu ARAMA hattı, wa.me'de ASLA olmaz" if n == arama else "",
+                       " — bu ARAMA hattı, WhatsApp linkinde ASLA olmaz" if n == arama else "",
                        url[:120]))
-    print("  [%s] wa.me URL sayısı=%d, numaralar=%s"
+    print("  [%s] WhatsApp link sayısı=%d, numaralar=%s"
           % (ad, len(bulunan), sorted(set(n for _, n in bulunan)) or "-"))
+    if dinamik:
+        # Bu biçimin numarası kaynakta LİTERAL geçmez -> burada ÖLÇÜLEMEZ (açıkça beyan).
+        # Bugünkü tek örneği attribution-ref.js'in eşleştirme dizesi; onun numarası
+        # aşağıdaki TARGET_PHONE assert'iyle kapatılıyor.
+        print("  [%s] NOT: numara LİTERALİ taşımayan %d WhatsApp link parçası — numarası "
+              "ÖLÇÜLEMEZ (değişkenle kuruluyor): %s" % (ad, len(dinamik), dinamik[:2]))
     if len(bulunan) < WA_URL_TABAN:
-        fails.append("%s: numara taşıyan wa.me linki %d < taban %d — sipariş/iletişim "
-                     "linkleri kaybolmuş ya da regex artık tutmuyor (küme kontrolü BOŞ "
-                     "kümeye bakıp sahte-yeşil yanamaz)" % (ad, len(bulunan), WA_URL_TABAN))
+        fails.append("%s: geçerli numara taşıyan WhatsApp linki %d < taban %d — sipariş/"
+                     "iletişim linkleri kaybolmuş ya da regex artık tutmuyor (küme "
+                     "kontrolü BOŞ kümeye bakıp sahte-yeşil yanamaz)"
+                     % (ad, len(bulunan), WA_URL_TABAN))
 
     # Gömülü ref-atıf betiğinin eşleştirme sabiti de AYNI numara olmalı (sessiz drift).
     hedefler = TARGET_PHONE_RE.findall(doc)
@@ -344,8 +414,9 @@ def main():
             print("  -", f)
         return 1
     print("\nPASS: organik + malzeme-not prefill'leri sayfa bağlamı taşıyor, niyetleri "
-          "DOĞRU ve AYRI; REF butonu sağlam; 3 ürün tipinde de TÜM wa.me linkleri "
-          "WhatsApp hattını taşıyor (arama hattı hiçbirinde yok).")
+          "DOĞRU ve AYRI; REF butonu sağlam; 3 ürün tipinde de TÜM WhatsApp linkleri "
+          "(wa.me · api./web.whatsapp.com · whatsapp://) WhatsApp hattını taşıyor, "
+          "hepsi ayrıştırılabilir, arama hattı hiçbirinde yok.")
     return 0
 
 
