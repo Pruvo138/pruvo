@@ -12,6 +12,15 @@ ayar dosyasini degistirmez. Bu araci Okan (ya da mimar) BIR KEZ kostururur:
 
 Kurulumdan sonra dogrulama:
     python3 /Users/okan/dev/pruvo/tools/mimar-kilit-test.py
+
+26 TEM EKI — '--izinler': permissions.allow dizisine codex icin IKI BELGELEYICI satir
+ekler (kapi karari tools/mimar-icra-kapisi.py'de; bu satirlar YALNIZ belge/niyet).
+Ayri mod olmasinin sebebi OLCULDU: .claude/ gitignore'da, yani muhendis dalindan
+merge ile TASINMAZ — canli makinedeki dosyaya ancak commit'li bir araci kosturarak
+girer. Kanca kurulumuyla ayni desen: DAR + IDEMPOTENT + TEK YONLU (silmez).
+
+    python3 /Users/okan/dev/pruvo/tools/mimar-kapi-kur.py --izinler
+    python3 /Users/okan/dev/pruvo/tools/mimar-kapi-kur.py --izinler --uygula
 """
 import io
 import json
@@ -30,6 +39,58 @@ KAYIT = {
 
 
 PRECOMMIT = "/Users/okan/dev/pruvo/.git/hooks/pre-commit"
+
+# 26 TEM (BaBa hukmu): codex cagrisi mimara ACILDI (tools/mimar-icra-kapisi.py kalite
+# kapisi: cikti dosyasi bayragi sart). Bu iki satir permissions.allow'da BELGELEYICIDIR
+# — kapi karari degil, niyet kaydi.
+IZIN_SATIRLARI = [
+    "Bash(/Applications/ChatGPT.app/Contents/Resources/codex exec *)",
+    "Bash(/Applications/ChatGPT.app/Contents/Resources/codex --version)",
+]
+
+
+def _guvenli_yaz(veri):
+    """AYAR'a yedekli yazar; uretilen JSON bozuksa yedegi geri koyar. Doner: True/False."""
+    yedek = AYAR + ".yedek"
+    shutil.copyfile(AYAR, yedek)
+    io.open(AYAR, "w", encoding="utf-8").write(
+        json.dumps(veri, ensure_ascii=False, indent=2) + "\n")
+    try:
+        json.loads(io.open(AYAR, encoding="utf-8").read())
+    except Exception as hata:
+        shutil.copyfile(yedek, AYAR)
+        print("BOZUK JSON URETILDI — yedek geri konuldu. Hata: " + str(hata))
+        return False
+    return True
+
+
+def izinler(uygula):
+    """permissions.allow'a EKSIK olan codex satirlarini ekler. Hicbir girdiyi SILMEZ."""
+    if not os.path.exists(AYAR):
+        print("BULUNAMADI: " + AYAR)
+        sys.exit(1)
+    veri = json.loads(io.open(AYAR, encoding="utf-8").read())
+    liste = veri.setdefault("permissions", {}).setdefault("allow", [])
+    eksik = [s for s in IZIN_SATIRLARI if s not in liste]
+    print("AYAR_DOSYASI=" + AYAR)
+    print("MEVCUT_IZIN_SAYISI=" + str(len(liste)))
+    print("EKSIK_SATIR=" + str(len(eksik)))
+    if not eksik:
+        print("ZATEN TAM — degisiklik yok.")
+        sys.exit(0)
+    for s in eksik:
+        print("EKLENECEK: " + s)
+    print("SILINEN/DEGISEN: YOK (arac yalnizca ekler)")
+    if not uygula:
+        print("")
+        print("Kuru kosum. Uygulamak icin ayni komuta --uygula ekle.")
+        sys.exit(0)
+    liste.extend(eksik)
+    if not _guvenli_yaz(veri):
+        sys.exit(1)
+    print("")
+    print("EKLENDI. Yedek: " + AYAR + ".yedek")
+    sys.exit(0)
 
 
 def _pretooluse(veri):
@@ -92,6 +153,9 @@ def main():
 
     if "--durum" in argv:  # SALT-OKUNUR: settings.json'a YAZMAZ
         durum()
+
+    if "--izinler" in argv:  # 26 Tem: codex belgeleyici izin satirlari
+        izinler(uygula)
 
     if not os.path.exists(AYAR):
         print("BULUNAMADI: " + AYAR)

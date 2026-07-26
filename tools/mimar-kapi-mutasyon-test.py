@@ -226,11 +226,49 @@ MUTASYONLAR = [
                            "        if False and ad in OLCUM_KOMUTLARI:\n"),
      "22Tem: OLCUM/dosya-tarama denetimi kapatilir (du/ps/find/wc/head/... acilir)",
      {200, 201, 202, 203, 216}, False, 5),
-    ("ME2", lambda d: yama(d, ICRA,
-                           "        if _codex_var(tokenlar):\n",
-                           "        if False and _codex_var(tokenlar):\n"),
-     "22Tem: codex denetimi kapatilir (codex exec / ChatGPT.app tam yolu acilir)",
-     {230, 231}, False, 2),
+    # ME2 (26 Tem REPOINT): kural artik "codex = RED" degil, "codex ciktisiz = RED".
+    # Mutasyon kurali komple kapatir -> bayraksiz cagrilar (25/230/231/235) acilir.
+    ("ME2", lambda d: yama(
+        d, ICRA,
+        '        if codex_karari is not None and codex_karari != "gecer":\n',
+        '        if False and codex_karari is not None and codex_karari != "gecer":\n'),
+     "26Tem: codex KALITE KAPISI komple kapatilir (bayraksiz codex exec acilir)",
+     {25, 230, 231, 235}, False, 4),
+    # ME6 (26 Tem): POZITIF yonun nobetcisi — '-o' muafiyeti silinirse delege KOMPLE
+    # kapanir (22 Tem'e geri donus) ve 232/233 kirmizi yanar.
+    ("ME6", lambda d: yama(
+        d, ICRA,
+        "    for t in kalan:\n"
+        "        if t in CODEX_CIKTI_BAYRAKLARI or t.startswith(CODEX_CIKTI_ONEKI):\n"
+        '            return "gecer"\n',
+        "    for t in kalan:\n"
+        "        if False:\n"
+        '            return "gecer"\n'),
+     "26Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED)",
+     {232, 233}, True, 2),
+    ("ME7", lambda d: yama(
+        d, ICRA,
+        "    if kalan and all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):\n"
+        '        return "gecer"\n',
+        "    if False:\n"
+        '        return "gecer"\n'),
+     "26Tem: zararsiz gozlem muafiyeti silinir ('codex --version' reddedilir)",
+     {234}, True, 1),
+    # ME8 (26 Tem): codex ALLOW yolunda 'continue' YOK kararinin nobetcisi. Mutasyon
+    # continue ekler -> segmentin kalan denetimleri kapanir, yani token dizisine
+    # 'codex' + '-o' serpistirmek repo-disi betik kosturmanin anahtari olur.
+    ("ME8", lambda d: yama(
+        d, ICRA,
+        "        codex_karari = _codex_karari(tokenlar)\n"
+        '        if codex_karari is not None and codex_karari != "gecer":\n'
+        "            reddet(codex_karari, sonu=CODEX_GEREKCE_SONU)\n",
+        "        codex_karari = _codex_karari(tokenlar)\n"
+        "        if codex_karari is not None:\n"
+        '            if codex_karari != "gecer":\n'
+        "                reddet(codex_karari, sonu=CODEX_GEREKCE_SONU)\n"
+        "            continue\n"),
+     "26Tem: codex ALLOW yoluna 'continue' eklenir (kalan denetimler kapanir = kalkan deligi)",
+     {236}, True, 1),
     ("ME3", lambda d: yama(d, ICRA,
                            '        if ad in ("curl", "wget"):\n',
                            '        if False and ad in ("curl", "wget"):\n'),

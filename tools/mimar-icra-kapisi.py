@@ -46,7 +46,7 @@ kacan sinif HAFIF OLCUMLER). Mimar kimliginde (agent_id BOS) EK REDLER:
   1. OLCUM/dosya-tarama: du df ps top vm_stat memory_pressure sysctl find wc head tail sed
      awk sort stat file — HERHANGI bir segmentte (pipe dahil) argv0 ise RED.
   2. curl/wget — canli dogrulama iscinin isi, ISTISNA YOK.
-  3. codex (her bicim: 'codex' basename ya da ChatGPT.app tam yolu) — iscinin cagirdigi arac.
+  3. [26 TEM'DE DEGISTI — asagidaki BaBa hukmune bak] codex artik KOSULSUZ redde DEGIL.
   4. python3/node — YALNIZ 'python3 tools/durum.py' ve 'python3 tools/d1-sync.py --durum'
      serbest (tam-yol ya da repo-goreli TAM esitlik; ekstra argüman = RED). Diger TUM
      tools/ araclari + node --check + -m + repo-ici betik = RED (test kosumu dahil).
@@ -56,7 +56,20 @@ kacan sinif HAFIF OLCUMLER). Mimar kimliginde (agent_id BOS) EK REDLER:
   icin KALDI (onlarda -m yok). Sertligin bedeli YALNIZ mimara: ISCI (agent_id dolu)
   bu redlerin HICBIRINE takilmaz (main() basinda muaf; kanit: ISCI ikizleri).
 
+🟢 26 TEM DOKTRIN DEGISIKLIGI (Senyor Advisor / BaBa hukmu — 22 Tem kural 3 GERI ALINDI):
+  "'codex exec' cagirmak KENDI ELIYLE IS YAPMAK DEGIL, ISCI DAGITMAKTIR — Agent araciyla
+  muhendis acmakla AYNI SINIF. Araya bir de Claude isci koymak (mimar->Claude->Codex)
+  mekanik ise pahali katman bindirir, token rejimine aykiri." KraL evi bu hukme hizalandi;
+  diger 5 evde codex zaten serbestti (tutarsizlik kapandi).
+  KALAN TEK SART = KALITE KAPISI (kural degil, standart): cagri 'codex-isci' standardiyla
+  yapilir, yani SONUC BIR DOSYAYA yazilir → '-o' / '--output-last-message'. Bu bayragi
+  tasimayan 'codex exec' RED (raporsuz delege = kabul kapisi kurulmamis is).
+  'codex --version' gibi ZARARSIZ GOZLEM cagrilari GECER.
+  Ayristirma taklidi YOK: bayrak TAM TOKEN esitligiyle aranir, supheli form REDDEDILIR
+  (memory/mimar-kapi-parser-taklidi.md — bu eksende ucuncu kez delik cikti).
+
 SERBEST (mimar eliyle — yanlislikla kapatma, kapatirsan is durur):
+  * codex: 'codex exec ... -o <dosya> "<spec>"' (delege = mimarlik) + 'codex --version'
   * python YALNIZ: python3 tools/durum.py + python3 tools/d1-sync.py --durum (baska YOK)
   * git'in tamami (status/diff/log/merge-base/merge/commit/push/worktree) — merge mimarin
     kapisidir; MAKINE reddine sokulmaz (kilitlenme riski), DAVRANISSAL kural isciye delege
@@ -172,6 +185,16 @@ SARMALAYICI = {"env", "command", "exec", "nohup", "time", "caffeinate", "stdbuf"
 SURUM_BAYRAKLARI = {"--version", "-V", "--help", "-h", "-v"}
 SATIR_ICI = {"-c", "-e", "--eval", "--eval-file", "-p", "--print", "-"}
 
+# === 26 TEM (BaBa hukmu): codex KOSULSUZ RED -> KALITE KAPISI ===
+# Codex'e is DEVRETMEK mimarin isidir; devretmenin KABUL KAPISI sonucun bir DOSYAYA
+# yazilmasidir (skill: codex-isci). Bayrak TAM TOKEN esitligiyle aranir — bitisik kisa
+# form ('-o/tmp/x.txt') BILEREK kabul edilmez: clap/argparse ayristirmasini taklit etmek
+# bu repoda uc onarim turu boyunca delik uretti; supheli form = RED (fail-closed).
+CODEX_CIKTI_BAYRAKLARI = {"-o", "--output-last-message"}
+CODEX_CIKTI_ONEKI = "--output-last-message="
+# Zararsiz GOZLEM cagrilari (icra degil): yalnizca KALAN TUM tokenlar bunlardansa gecer.
+CODEX_GOZLEM_BAYRAKLARI = {"--version", "-V", "--help", "-h"}
+
 # '-m X' (python modul) DENETIMI KALDIRILDI (22 Tem). Neden: PY_NODE ALLOWLIST'i python'i
 # yalnizca iki tam komuta indirdi — '-m pip'/'-m timeit'/'-m http.server' vs. artik
 # allowlist tarafindan reddedilir (durum.py/d1-sync.py degil). Ayri bir -m ayristirmasi
@@ -203,12 +226,23 @@ GEREKCE_SONU = (
 )
 
 
-def reddet(neden):
+# Codex reddinde GEREKCE_SONU KULLANILMAZ: o metin "bu isi isciye delege et" der, oysa
+# codex cagrisi ZATEN delegedir (26 Tem hukmu) — yanlis yol tarif ederdi. Yerine eksik
+# olan TEK seyi soyleyen kisa kuyruk.
+CODEX_GEREKCE_SONU = (
+    " DOGRUSU: codex exec -C /Users/okan/dev/pruvo -s workspace-write "
+    "-o /<scratchpad>/son-mesaj.txt \"<spec>\" — sonra dosyayi oku, sayiyla kapat. "
+    "(skill: codex-isci)"
+)
+
+
+def reddet(neden, sonu=None):
     print(json.dumps({
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": GEREKCE_BASI + neden + GEREKCE_SONU,
+            "permissionDecisionReason": GEREKCE_BASI + neden +
+                                        (GEREKCE_SONU if sonu is None else sonu),
         }
     }, ensure_ascii=False))
     sys.exit(0)
@@ -306,13 +340,47 @@ def repo_ici(yol, cwd):
 def _codex_var(tokenlar):
     """Segmentte HERHANGI bir bicimde Codex cagrisi var mi? 'codex' basename'i (or.
     'codex exec ...') ya da ChatGPT.app tam yolu (or.
-    /Applications/ChatGPT.app/Contents/Resources/codex). Codex = ISCININ cagirdigi arac."""
+    /Applications/ChatGPT.app/Contents/Resources/codex). TESPIT 22 Tem'deki gibi KABA
+    kaldi (bilerek): degisen sey tespit degil, tespitten sonraki KARAR."""
     for t in tokenlar:
         if os.path.basename(t) == "codex":
             return True
         if "ChatGPT.app" in t:
             return True
     return False
+
+
+def _codex_karari(tokenlar):
+    """26 TEM (BaBa hukmu) — codex cagrisinin KARARI. Doner:
+        None      → segmentte codex yok (kural uygulanmaz)
+        "gecer"   → izinli (delege = mimarlik) — cagiran YINE DE devam eder, yani
+                    diger kurallar bu segmentte KAPANMAZ (bkz. main(): 'continue' YOK;
+                    'python3 /tmp/x.py -o out.txt codex' gibi bir dize codex kalkani
+                    arkasina saklanamaz)
+        str       → red gerekcesi
+
+    KABA + FAIL-CLOSED (parser taklidi YASAK — memory/mimar-kapi-parser-taklidi.md):
+      * Cikti bayragi TAM TOKEN esitligi ('-o', '--output-last-message') ya da
+        '--output-last-message=<yol>' oneki ile aranir. Bitisik kisa form
+        ('-o/tmp/x.txt') KABUL EDILMEZ — supheli form RED, bedeli tek: bosluk koy.
+      * Gozlem cagrisi ancak KALAN TUM tokenlar gozlem bayragiysa gecer; tek fazladan
+        token (or. 'exec') varsa cagri ICRA sayilir ve cikti bayragi aranir.
+      * Ciplak 'codex' (argumansiz, etkilesimli TUI) = RED (kabul kapisi kurulamaz)."""
+    if not _codex_var(tokenlar):
+        return None
+    kalan = [t for t in tokenlar
+             if os.path.basename(t) != "codex" and "ChatGPT.app" not in t]
+    if kalan and all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):
+        return "gecer"
+    for t in kalan:
+        if t in CODEX_CIKTI_BAYRAKLARI or t.startswith(CODEX_CIKTI_ONEKI):
+            return "gecer"
+    return (
+        "Codex çağrısı 'codex-isci' STANDARDINA uymuyor: sonucu dosyaya yazan bayrak YOK "
+        "('-o <dosya>' ya da '--output-last-message <dosya>', boşlukla ayrılmış). Codex'e "
+        "iş DEVRETMEK serbest (26 Tem: işçi dağıtmak mimarlıktır), raporsuz delege değil — "
+        "kabul kapısı kurulmadan çağırma."
+    )
 
 
 def _py_izinli(ad, argumanlar, cwd):
@@ -411,11 +479,13 @@ def main():
                 "ağ / canlı doğrulama komutu (" + ad + "). Canonical URL, feed, deploy "
                 "çıktısı doğrulamasını İŞÇİYE yaptır (git ve gh serbest kalır)."
             )
-        if _codex_var(tokenlar):
-            reddet(
-                "Codex çağrısı. Codex'i İŞÇİ çağırır (delege ettiğin işi o koşturur); "
-                "mimar spec yazar, çağırmaz."
-            )
+        # 26 TEM: kosulsuz codex reddi KALKTI; yerine kalite kapisi (cikti dosyasi sarti).
+        # DIKKAT — 'gecer' halinde CONTINUE YOK: segmentin kalan denetimleri (repo-disi
+        # betik, satir-ici kod, yol taramasi) calismaya devam eder. Aksi halde token
+        # dizisine 'codex' + '-o' serpistirmek TUM kapiyi atlatan bir anahtar olurdu.
+        codex_karari = _codex_karari(tokenlar)
+        if codex_karari is not None and codex_karari != "gecer":
+            reddet(codex_karari, sonu=CODEX_GEREKCE_SONU)
 
         # A) Repo disi calistirilabilir dosyayi dogrudan cagirma (./x.sh, /tmp/.../x.py)
         if ("/" in argv0 or argv0.startswith(".")) and argv0.lower().endswith(ICRA_UZANTILARI):

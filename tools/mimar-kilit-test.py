@@ -124,7 +124,7 @@ EK_VAKALAR = [
     (24, "allow", "Bash", "grep -rn WHATSAPP " + REPO + "/index.html", None,
      "arama/okuma"),
     (25, "deny", "Bash", "codex exec \"specteki isi yap\"", None,
-     "22Tem: Codex'i ISCI cagirir (mimar spec yazar)"),
+     "26Tem: codex DELEGE serbest ama cikti dosyasi bayraksiz cagri RED"),
     (26, "allow", "Write", REPO + "/tools/paket-yeni-is.md", None,
      "muhendislik paketi (spec)"),
     (27, "deny", "Bash", "python3 " + REPO + "/tools/parite-ege.js", None,
@@ -430,11 +430,27 @@ MIMAR_22TEM_VAKALARI = [
     # (2) curl / wget
     (220, "deny", "Bash", "curl -s https://example.org", None, "canli dogrulama: curl"),
     (221, "deny", "Bash", "wget https://example.org", None, "canli dogrulama: wget"),
-    # (3) codex (her bicim)
-    (230, "deny", "Bash", "codex exec \"x\"", None, "codex basename"),
+    # (3) codex — 26 TEM (BaBa hukmu): KOSULSUZ RED KALKTI, yerine KALITE KAPISI.
+    #     Delege serbest; sart tek: sonuc bir DOSYAYA yazilsin (-o/--output-last-message).
+    (230, "deny", "Bash", "codex exec \"x\"", None,
+     "26Tem: cikti dosyasi bayragi YOK (raporsuz delege) = RED"),
     (231, "deny", "Bash",
      "/Applications/ChatGPT.app/Contents/Resources/codex exec \"x\"", None,
-     "codex tam yol (ChatGPT.app)"),
+     "26Tem: tam yol da olsa bayraksiz = RED"),
+    (232, "allow", "Bash",
+     "codex exec -C " + REPO + " -s workspace-write -o " + SCRATCH +
+     "/son-mesaj.txt \"spec dosyasindaki isi yap\"", None,
+     "26Tem POZITIF: -o ile codex-isci standardi = GECER"),
+    (233, "allow", "Bash",
+     "/Applications/ChatGPT.app/Contents/Resources/codex exec --output-last-message " +
+     SCRATCH + "/son-mesaj.txt \"spec\"", None,
+     "26Tem POZITIF: tam yol + --output-last-message = GECER"),
+    (234, "allow", "Bash", "codex --version", None,
+     "26Tem: zararsiz gozlem cagrisi = GECER"),
+    (235, "deny", "Bash", "codex", None,
+     "ciplak codex (etkilesimli TUI, kabul kapisi yok) = RED"),
+    (236, "deny", "Bash", "python3 " + SCRATCH + "/analiz.py -o /tmp/x.txt codex", None,
+     "codex kalkani ARKASINA saklanma: -o + 'codex' token'i kapiyi ACMAZ"),
     # (4) python/node ALLOWLIST
     (240, "deny", "Bash", "python3 " + REPO + "/tools/build.py", None,
      "python repo-ici arac (allowlist disi) = RED"),
