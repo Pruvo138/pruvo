@@ -17,9 +17,25 @@ sayfasından gelindiğini bilemiyor, lead düşüyor.
 REF/reklam-atıf butonu (orderAlt "WhatsApp'tan Sor") FARKLI ve zaten doğru — bu test
 onun BOZULMADIĞINI da (ad+URL hâlâ var) regresyon olarak doğrular.
 
+🔴 NUMARA EKSENİ (ölçülmüş kör nokta, 26 Tem):
+  Prefill nöbetleri LİNK LİNK yazılmıştı -> yalnız ADI GEÇEN butonlar korunuyordu.
+  Ölçüm: wa_href() (ana sipariş butonu / orderAlt) numarası arama hattına çevrildiğinde
+  23 CI kapısının HİÇBİRİ kırmızı yanmadı; aynı mutasyon help_cta_href()'te 2 kapı
+  yakaladı. Yani koruma "hangi butonu saydıysam o" düzeyindeydi ve YENİ eklenen her
+  buton NÖBETSİZ doğuyordu. Bu yüzden numara nöbeti KÜME olarak kurulur: sayfadaki
+  TÜM wa.me URL'leri taranır, her birinin numarası tek tek doğrulanır -> gelecekte
+  eklenen 4. bir buton hiçbir şey yazılmadan kapsama girer.
+  Kural (CLAUDE.md): WhatsApp hattı = tüm wa.me linkleri · arama hattı = YALNIZ tel:/
+  JSON-LD contactPoint. İki yön de denetlenir (arama hattı wa.me'de YOK, WhatsApp
+  hattı tel:/contactPoint'te YOK).
+  ⚠️ Numaralar bu dosyaya HARDCODE EDİLMEZ: build.py'nin kendi sabitlerinden türetilir
+  (WhatsApp = build.WHATSAPP, arama = build.SELLER["tel"]) — aksi halde sabit değişince
+  nöbetçi sessizce bayatlar.
+
 Çalıştır:  python3 tools/test-wa-prefill-organik.py
 Başarı = çıkış 0 + "PASS". Herhangi bir assert kırmızı = çıkış 1 + "FAIL".
 """
+import json
 import os
 import re
 import sys
@@ -39,6 +55,49 @@ URUN = {
     "fiyat": "850 TL",
     "gorseller": ["https://media.pruvo3d.com/urunler/test-1.jpg"],
 }
+
+# NUMARA nöbeti ÜRÜN TİPİNDEN bağımsız olmalı: parametrik (sarı) sayfa farklı buton
+# seti basar (.order-wa vs .ikon-wa), lisanslı üründe atıf bloğu eklenir. Kör nokta tam
+# olarak "başka şablon dalı = nöbetsiz link" sınıfıydı -> numara kontrolü üç tipte de koşar.
+URUN_LISANSLI = {
+    "id": "test-lisansli-urun",
+    "kategori": "Ev",
+    "marka": [],
+    "baslik": u"Lisanslı Test Ürünü",
+    "aciklama": u"Test açıklaması.\nYaklaşık dış ölçüler: 5 × 5 × 5 mm",
+    "fiyat": "300 TL",
+    "gorseller": ["https://media.pruvo3d.com/urunler/test-lisans-1.jpg"],
+    "lisans": {"tasarimci": "stensino", "tur": "CC BY 4.0"},
+}
+URUN_PARAMETRIK = {
+    "id": "test-parametrik-urun",
+    "kategori": u"Jeneratör",
+    "marka": [],
+    "baslik": u"Parametrik Test Kelepçesi",
+    "aciklama": u"Ölçüye özel üretilir.",
+    "fiyat": "",
+    "parametrik": True,
+    "gorseller": ["https://media.pruvo3d.com/urunler/test-param-1.jpg"],
+}
+
+# Sayfadaki WhatsApp URL'lerinin TAMAMI (şema opsiyonel: JS içinde "wa.me/" + değişken
+# biçiminde de kurulabiliyor). Numara ya YOLDA (wa.me/<numara>) ya da ?phone= sorgusunda
+# taşınır — ikisi de taranır. ?text= içeriği KASITLI olarak tarama dışı (orada ürün
+# URL'i/ölçüsü kaynaklı uzun rakam dizisi yanlış-pozitif üretirdi).
+WA_URL_RE = re.compile(r"(?:https?://)?(?:wa\.me|api\.whatsapp\.com)/[^\s\"'<>]*")
+# Sayfaya gömülen ref-atıf betiğinin wa.me EŞLEŞTİRME sabiti (attribution-ref.js).
+# build.WHATSAPP'tan sapması sessiz hatadır: linkler doğru numarayı taşır ama betik
+# onları WhatsApp linki olarak TANIMAZ -> reklam atfı (ref) sessizce düşer.
+TARGET_PHONE_RE = re.compile(r'TARGET_PHONE\s*=\s*"([^"]*)"')
+# Ters yön: arama hattına ait alanlar.
+TEL_HREF_RE = re.compile(r'href="\s*(tel:[^"]*)"')
+TEL_ALAN_ANAHTARLARI = ("telephone", "contactPoint", "faxNumber")
+
+# Sayfada numara taşıyan EN AZ bu kadar wa.me URL'i bulunmalı (bugün ölçülen: 4 —
+# help-cta, malzeme-not, orderAlt statik href, orderAlt'ı JS'te yeniden kuran satır).
+# TABAN'dır, çapa DEĞİL: yeni buton eklenince kırmızı yanmaz, ama linkler toptan
+# kaybolup küme kontrolü BOŞ kümeye bakarak sahte-yeşil yanamaz.
+WA_URL_TABAN = 3
 
 # help-cta prefill'inde BULUNMAMASI gereken "bu ürünü istiyorum" niyet kalıpları.
 # (Buton "aradığını bulamayan" müşteri içindir — sayfadaki ürünü talep ETMEZ.)
@@ -75,6 +134,116 @@ def _kodlama_kontrol(ad, href, metin, fails):
     # Decode sonrası '%' kalıntısı = double-encode şüphesi.
     if metin and "%" in metin:
         fails.append("%s: decode sonrası '%%' kalıntısı — double-encode şüphesi" % ad)
+
+
+def _rakam(s):
+    return re.sub(r"\D", "", s or "")
+
+
+def numaralar():
+    """(whatsapp, arama) — İKİSİ DE build.py'nin kendi sabitlerinden TÜRETİLİR.
+
+    whatsapp = build.WHATSAPP (tüm wa.me linklerinin numarası)
+    arama    = build.SELLER["tel"] (künye/yasal sayfa telefonu = arama hattı)
+    Teste hardcode edilmemesinin sebebi: sabit değişince nöbetçi sessizce bayatlar
+    (eski numarayı doğru sanıp yeni yanlışı görmez)."""
+    return _rakam(build.WHATSAPP), _rakam((build.SELLER or {}).get("tel"))
+
+
+def numara_kontrol(ad, doc, fails):
+    """KÜME nöbeti: sayfadaki TÜM WhatsApp URL'lerinin numarasını doğrula.
+
+    Tek tek href yakalamak yerine belgedeki her wa.me/api.whatsapp.com URL'i taranır
+    -> sonradan eklenen butonlar da otomatik kapsanır (kör noktanın kendisi buydu)."""
+    wa, arama = numaralar()
+    # Sabitlerin kendisi sağlam mı (fail-closed: türetme çalışmıyorsa nöbet anlamsız).
+    if len(wa) < 10:
+        fails.append("%s: build.WHATSAPP geçersiz/boş (%r) — numara nöbeti kurulamaz" % (ad, wa))
+        return
+    # Arama hattı yalnız TEŞHİSİ zenginleştirir (hangi yanlış numara?) — türetilemese
+    # bile wa.me küme taraması SÜRER (kırmızı yine yanar), sadece kaydedilir.
+    if len(arama) < 10:
+        fails.append("%s: arama hattı build.SELLER['tel']'den türetilemedi (%r) — "
+                     "ters yön denetimi kör kalır" % (ad, arama))
+    elif wa == arama:
+        fails.append("%s: WhatsApp ve arama numarası AYNI (%s) — CLAUDE.md hat ayrımı "
+                     "çökmüş" % (ad, wa))
+
+    bulunan = []          # (url, numara)
+    for m in WA_URL_RE.finditer(doc):
+        url = _html.unescape(m.group(0))
+        parca = url.split("?", 1)
+        yol, sorgu = parca[0], (parca[1] if len(parca) > 1 else "")
+        bu_url_numaralari = re.findall(r"\d{6,}", yol)
+        q = re.search(r"(?:^|&)phone=([^&]+)", sorgu)
+        if q:
+            bu_url_numaralari.append(_rakam(unquote(q.group(1))))
+        for n in bu_url_numaralari:
+            bulunan.append((url, n))
+            if n != wa:
+                fails.append(
+                    "%s: wa.me linki YANLIŞ numara taşıyor (%s, beklenen %s)%s -> %r"
+                    % (ad, n, wa,
+                       " — bu ARAMA hattı, wa.me'de ASLA olmaz" if n == arama else "",
+                       url[:120]))
+    print("  [%s] wa.me URL sayısı=%d, numaralar=%s"
+          % (ad, len(bulunan), sorted(set(n for _, n in bulunan)) or "-"))
+    if len(bulunan) < WA_URL_TABAN:
+        fails.append("%s: numara taşıyan wa.me linki %d < taban %d — sipariş/iletişim "
+                     "linkleri kaybolmuş ya da regex artık tutmuyor (küme kontrolü BOŞ "
+                     "kümeye bakıp sahte-yeşil yanamaz)" % (ad, len(bulunan), WA_URL_TABAN))
+
+    # Gömülü ref-atıf betiğinin eşleştirme sabiti de AYNI numara olmalı (sessiz drift).
+    hedefler = TARGET_PHONE_RE.findall(doc)
+    if not hedefler:
+        print("  [%s] NOT: TARGET_PHONE sabiti sayfada yok — ref-atıf eşleşmesi "
+              "ÖLÇÜLEMEDİ" % ad)
+    for t in hedefler:
+        if _rakam(t) != wa:
+            fails.append("%s: gömülü ref-atıf betiğinin TARGET_PHONE'u (%s) "
+                         "build.WHATSAPP (%s) ile UYUŞMUYOR — linkler doğru numarayı "
+                         "taşısa bile betik onları tanımaz, ref atfı sessizce düşer"
+                         % (ad, t, wa))
+
+
+def ters_yon_kontrol(ad, doc, fails):
+    """TERS YÖN: WhatsApp numarası tel:/JSON-LD contactPoint alanlarında GEÇMEZ.
+
+    Bugün ürün sayfası bu alanlardan HİÇBİRİNİ basmıyor (JSON-LD yalnız Product +
+    BreadcrumbList; künye/tel: bloğu yasal sayfalarda — tools/sayfalar.py). Bu yüzden
+    kontrol BUGÜN BOŞ KÜMEYE bakar (ölçülemez) ve bunu açıkça yazar; uydurma bir
+    pozitif assert eklenmez. İleride sayfaya tel:/contactPoint girerse nöbet ısırır."""
+    wa, _ = numaralar()
+    if len(wa) < 10:
+        return
+    alanlar = []          # (nerede, ham değer)
+    for m in TEL_HREF_RE.finditer(doc):
+        alanlar.append(("tel: href", m.group(1)))
+    for m in re.finditer(r'<script type="application/ld\+json">(.*?)</script>', doc, re.S):
+        try:
+            veri = json.loads(m.group(1))
+        except ValueError:
+            continue      # JSON-LD biçim denetimi AYRI testlerin işi (test-jsonld-*)
+        yigin = [veri]
+        while yigin:
+            d = yigin.pop()
+            if isinstance(d, dict):
+                for k, v in d.items():
+                    if k in TEL_ALAN_ANAHTARLARI:
+                        alanlar.append(("JSON-LD " + k, json.dumps(v, ensure_ascii=False)))
+                    yigin.append(v)
+            elif isinstance(d, list):
+                yigin.extend(d)
+    if not alanlar:
+        print("  [%s] TERS YÖN ÖLÇÜLEMEDİ: sayfada hiç tel: href / JSON-LD %s alanı yok "
+              "(bu alanlar yasal sayfalarda üretiliyor, ürün sayfasında değil)"
+              % (ad, "|".join(TEL_ALAN_ANAHTARLARI)))
+        return
+    print("  [%s] ters yön alan sayısı=%d" % (ad, len(alanlar)))
+    for nerede, deger in alanlar:
+        if wa in _rakam(deger):
+            fails.append("%s: %s alanında WHATSAPP numarası (%s) var — orada YALNIZ "
+                         "arama hattı olur: %r" % (ad, nerede, wa, deger[:120]))
 
 
 def main():
@@ -156,13 +325,27 @@ def main():
         if ref_text and u"ilgileniyorum" not in ref_text.lower():
             fails.append("orderAlt (REF) 'ilgileniyorum' niyetini kaybetti — regresyon")
 
+    # -------------------------------------- NUMARA SINIFI (küme nöbeti, 3 ürün tipi)
+    wa_num, arama_num = numaralar()
+    print("\nNUMARA NÖBETİ — WhatsApp=%s (build.WHATSAPP), arama=%s (build.SELLER['tel'])"
+          % (wa_num or "?", arama_num or "?"))
+    for ad, urun, doc in (
+            ("normal", URUN, html_doc),
+            ("lisanslı", URUN_LISANSLI, None),
+            ("parametrik", URUN_PARAMETRIK, None)):
+        if doc is None:
+            doc = build.render_product(urun, [urun])
+        numara_kontrol(ad, doc, fails)
+        ters_yon_kontrol(ad, doc, fails)
+
     if fails:
         print("\nFAIL (%d):" % len(fails))
         for f in fails:
             print("  -", f)
         return 1
     print("\nPASS: organik + malzeme-not prefill'leri sayfa bağlamı taşıyor, niyetleri "
-          "DOĞRU ve AYRI; REF butonu sağlam.")
+          "DOĞRU ve AYRI; REF butonu sağlam; 3 ürün tipinde de TÜM wa.me linkleri "
+          "WhatsApp hattını taşıyor (arama hattı hiçbirinde yok).")
     return 0
 
 
