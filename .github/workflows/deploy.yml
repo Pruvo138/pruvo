@@ -354,9 +354,23 @@ jobs:
       # "bu urunu istiyorum" DEMEZ (yanlis niyet Ege'yi yanlis akisa sokar, baglamsizdan
       # beter); malzeme notu ise KENDI niyetini (malzeme/ozel uretim) korur. REF/atif
       # butonu (orderAlt) regresyon nobeti: ad+URL+"ilgileniyorum" bozulmamis olmali.
-      # Offline, sentetik fikstur, urunler.json OKUNMAZ, dosya yazmaz; render_product'i
-      # dogrudan cagirir -> build.py'den ONCE kosar, ~0,2 s.
-      - name: WhatsApp prefill kabul testi (urun sayfasi baglami + niyet)
+      # NUMARA NOBETI 4 DUZLEMDE: urun sayfasi + index.html + tools/sayfalar.py'nin
+      # URETILEN cikti korpusu (168 icerik/yasal sayfa) + elle yazilmis statik yasal
+      # sayfalar. Her belgede: tum WhatsApp URL bicimleri (wa.me/api./web.whatsapp.com/
+      # whatsapp://), ters yon (tel:/JSON-LD telephone-contactPoint/pv-kodlu kunye
+      # telefonu), JS telefon sabitleri (var WHATSAPP / TARGET_PHONE) ve GORUNUR metne
+      # basilan +90 literalleri dogrulanir; ayristirilamayan numara fail-closed KIRMIZI.
+      # NOT: "toplu link silme" sinifi (CTA'larin komple kaybi) BILEREK olculmuyor —
+      # denenen kapinin yakalama katkisi 0, sahte-kirmizi bedeli devasadi (bkz. testin
+      # kor nokta 9 maddesi). O ariza gorunur/gurultuludur; sessiz olan numara ihlalidir.
+      # Test kendi kabul fiksturlerini de kosar: 11 kirmizi mutasyon + 14 "ILGISIZ rutin
+      # duzenleme YESIL kalmali" fiksturu (kapinin kapsamini yanlis eksene kaymaktan korur;
+      # ikincisi olmadan renk/etiket/tipografi gibi alakasiz duzenlemeler TUM deploy'u
+      # durduruyordu — bagimsiz curutucu olcumu). Fikstur capasi kaybolursa KIRMIZI degil
+      # "OLCULEMEDI" basar; hicbir kirmizi fikstur kosamazsa (olu nobetci) kirmizi yanar.
+      # Offline, sentetik fikstur, urunler.json OKUNMAZ, dosya yazmaz; render_product ve
+      # render_content_page'i dogrudan cagirir -> build.py'den ONCE kosar, ~1,6 s.
+      - name: WhatsApp numara/prefill kabul testi (urun + ana sayfa + yasal sayfalar)
         run: python3 tools/test-wa-prefill-organik.py
 
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
