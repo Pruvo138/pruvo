@@ -1,5 +1,319 @@
 [
   {
+    "id": "renault-twingo-3-smart-yolcu-tutamagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Twingo 3 / Smart Yolcu Tutamağı",
+    "aciklama": "Renault Twingo 3 (ve ikiz platformu Smart Forfour) iç tavanında yolcu tutamağı bulunmayan alt donanım seviyeleri için ekonomik tamamlama parçası. Orijinal montaj noktalarına doğrudan takılır; ince kesitli olduğu için düşük katman yüksekliğiyle basılması önerilir.\nYaklaşık dış ölçüler: 176 × 48 × 30 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4539011-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4539011-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4539011-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Minihawk",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-grand-scenic-3-sira-kemer-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Grand Scenic 3. Sıra Emniyet Kemeri Tutucusu",
+    "aciklama": "Renault Grand Scenic 3. sıra koltuklarındaki emniyet kemeri tutucusunun yedeği; kemer yanlış yönde çekildiğinde kırılan orijinal parçanın yerini alır. İki parça halinde basılıp yapıştırılarak monte edilir, sağ ve sol taraf için ortak kullanılabilir.\nYaklaşık dış ölçüler: 72 × 67 × 11 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3218341-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3218341-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3218341-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "joov",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-laguna-2-arka-cam-destegi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Laguna II Arka Cam Desteği",
+    "aciklama": "Renault Laguna II arka cam mekanizması için küçük destek/bağlantı parçası. Kırılan veya kaybolan orijinal desteğin yerine takılır.\nYaklaşık dış ölçüler: 25 × 24 × 17 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1946175-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "drzoi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-19-gunes-siperi-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 19 Güneş Siperi Tutucusu",
+    "aciklama": "Renault 19 güneş siperini yuvasında tutan klips. Yaz sıcağına dayanıklı olması için ısıya dayanıklı bir filamentle basılması önerilir.\nYaklaşık dış ölçüler: 35 × 35 × 27 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6166731-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6166731-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6166731-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6166731-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JulienBmp",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-2-scenic-2-direksiyon-kablo-tamir-kiti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane 2 / Scenic 2 Direksiyon Kablo Tamir Kiti",
+    "aciklama": "Renault Megane 2 ve Scenic 2 direksiyon simidindeki airbag/hız sabitleyici şerit kablosu (clockspring) için tamir parçası. Direksiyon çevrilirken çıtırtı sesi duyulmasına neden olan kırık tutma dilini değiştirerek şerit kablonun bükülüp kopmasını önler.\nYaklaşık dış ölçüler: 63 × 63 × 3 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6952988-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6952988-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6952988-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6952988-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LuMiXiZ",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-3-ceki-kancasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane III Çeki Kancası Kapağı",
+    "aciklama": "Renault Megane III / 3 Coupe ön tampondaki çeki kancası deliğinin kapağı. Kaybolan veya kırılan orijinal kapağın yerine takılır.\nYaklaşık dış ölçüler: 62 × 60 × 17 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2849417-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "007bull",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-laguna-far-yikama-fiskiyesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Laguna Far Yıkama Fışkırtma Ucu",
+    "aciklama": "Renault Laguna far yıkama sistemi için fışkırtma ucu/nozul. Kırılan veya tıkanan orijinal parçanın yerine takılır.\nYaklaşık dış ölçüler: 69 × 44 × 25 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5374360-1.jpg"
+    ]
+  },
+  {
+    "id": "renault-sogutma-ve-fren-deposu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Soğutma Sıvısı / Fren Deposu Kapağı",
+    "aciklama": "Renault modellerinde kullanılan soğutma sıvısı genleşme kabı ile fren hidrolik deposunun ortak kapağı. Devreyi basınç altında tutarak kaçak tespiti ve hava tahliyesi yapılmasına imkan tanır; kauçuk conta ve valf ile birlikte kullanılır.\nYaklaşık dış ölçüler: 56 × 55 × 17 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5505220-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5505220-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5505220-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5505220-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "prise",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-anahtar-dugme-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Trafic Anahtar Düğme Seti (3'lü)",
+    "aciklama": "Renault Trafic anahtar kumandasının aşınıp kabuğundan düşen üç düğmesinin yedek seti. Anahtar kabuğu açılarak orijinal düğmelerin yerine takılır.\nYaklaşık dış ölçüler: 53 × 14 × 8 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6633123-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6633123-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6633123-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hobiepaulo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-scenic-2-hoparlor-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Scenic II Hoparlör Adaptörü",
+    "aciklama": "Renault Scenic II ön ve arka kapılarına hoparlör montajı için adaptör halkası. Orijinal kapı yuvasına hoparlörün doğru derinlik ve hizada oturmasını sağlar.\nYaklaşık dış ölçüler: 146 × 130 × 12 mm.",
+    "fiyat": "210 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3993727-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3993727-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3993727-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "michaldck",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-4-bagaj-rulo-kapak-sursusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane IV Bagaj Rulo Kapağı Sürgüsü",
+    "aciklama": "Renault Megane IV bagaj rulo kapağı mekanizmasının sürgü parçası. Aşınan veya kırılan orijinal sürgünün yerine takılır.\nYaklaşık dış ölçüler: 84 × 32 × 24 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4941972-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "alexis133",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-3-obd-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane 3 OBD Kapağı",
+    "aciklama": "Renault Megane 3 OBD-II soket girişini kapatan kapak; içine takılı bir OBD adaptörünü de kapsayacak şekilde tasarlanmıştır. Yuvasına bastırılarak takılır.\nYaklaşık dış ölçüler: 145 × 59 × 45 mm.",
+    "fiyat": "210 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3320304-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Michalus624",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-twingo-3-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Twingo 3 Telefon Tutucu",
+    "aciklama": "Renault Twingo 3 orta konsol kutusuna oturan telefon tutucu. Ek vida veya yapıştırıcı gerektirmeden mevcut yuvaya yerleşir.\nYaklaşık dış ölçüler: 216 × 80 × 23 mm.",
+    "fiyat": "220 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3638096-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3638096-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3638096-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3638096-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "swr85",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-espace-3-tavan-store-cekme-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Espace 3 Tavan Storu Çekme Mandalı",
+    "aciklama": "Renault Espace 3 manuel açılır tavan storunun çekme mandalı. Kırılan veya kaybolan orijinal mandalın yerine takılır.\nYaklaşık dış ölçüler: 34 × 22 × 8 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th119173-1.jpg",
+      "https://media.pruvo3d.com/urunler/th119173-2.jpg",
+      "https://media.pruvo3d.com/urunler/th119173-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ljoets",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-modus-elektrikli-cam-sursusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Modus Elektrikli Cam Sürgüsü",
+    "aciklama": "Renault Modus elektrikli cam kaldırma mekanizmasının kırılan sürgü/klips parçası. Sağ taraf için tasarlanmıştır; sol taraf için ayna simetriği alınarak basılabilir.\nYaklaşık dış ölçüler: 78 × 38 × 23 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3761693-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3761693-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "InnerBushman",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-4l-kaput-destek-cubugu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 4L Kaput Destek Çubuğu Klipsi",
+    "aciklama": "Renault 4 / 4L kaput destek çubuğunu yerinde tutan klips. Yarım daire ve alt kanatçıkları sayesinde çubuğa sıkıca tutunur.\nYaklaşık dış ölçüler: 13 × 10 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5892526-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5892526-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5892526-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5892526-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "delma69330",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-opel-vivaro-perde-rayi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault",
+      "Opel"
+    ],
+    "baslik": "Renault Trafic / Opel Vivaro Perde Rayı Klipsi",
+    "aciklama": "Renault Trafic ve Opel Vivaro panelvan modellerine perde sistemi monte ederken kullanılan ray uç klipsi. Orijinal uç parçalarından daha kısa üretilmiştir; kayıp klipslerin yerine veya ikinci bir perde takarken ek klips olarak kullanılabilir.\nYaklaşık dış ölçüler: 42 × 11 × 9 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4821476-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4821476-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4821476-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pixelfuzzi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "renault-clio-2-telefon-tablet-tutucu",
     "kategori": "Otomobil",
     "marka": [
