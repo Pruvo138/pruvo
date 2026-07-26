@@ -233,42 +233,75 @@ MUTASYONLAR = [
         '        if codex_karari is not None and codex_karari != "gecer":\n',
         '        if False and codex_karari is not None and codex_karari != "gecer":\n'),
      "26Tem: codex KALITE KAPISI komple kapatilir (bayraksiz codex exec acilir)",
-     {25, 230, 231, 235}, False, 4),
-    # ME6 (26 Tem): POZITIF yonun nobetcisi — '-o' muafiyeti silinirse delege KOMPLE
-    # kapanir (22 Tem'e geri donus) ve 232/233 kirmizi yanar.
+     {25, 230, 231, 235, 264, 265, 266, 267, 268, 269, 270, 275, 277, 278}, False, 14),
+    # ME6 (26 Tem, 27 Tem REPOINT): POZITIF yonun nobetcisi — cikti-bayragi muafiyeti
+    # silinirse delege KOMPLE kapanir (22 Tem'e geri donus) ve mesru cagrilar kizarir.
     ("ME6", lambda d: yama(
         d, ICRA,
-        "    for t in kalan:\n"
-        "        if t in CODEX_CIKTI_BAYRAKLARI or t.startswith(CODEX_CIKTI_ONEKI):\n"
-        '            return "gecer"\n',
-        "    for t in kalan:\n"
-        "        if False:\n"
-        '            return "gecer"\n'),
-     "26Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED)",
-     {232, 233}, True, 2),
+        "    if not _codex_cikti_degerli(kalan[1:]):\n",
+        "    if True:\n"),
+     "26/27Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED)",
+     {232, 233, 273, 274}, True, 4),
     ("ME7", lambda d: yama(
         d, ICRA,
-        "    if kalan and all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):\n"
+        "    if all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):\n"
         '        return "gecer"\n',
         "    if False:\n"
         '        return "gecer"\n'),
-     "26Tem: zararsiz gozlem muafiyeti silinir ('codex --version' reddedilir)",
-     {234}, True, 1),
-    # ME8 (26 Tem): codex ALLOW yolunda 'continue' YOK kararinin nobetcisi. Mutasyon
-    # continue ekler -> segmentin kalan denetimleri kapanir, yani token dizisine
-    # 'codex' + '-o' serpistirmek repo-disi betik kosturmanin anahtari olur.
-    ("ME8", lambda d: yama(
+     "26/27Tem: zararsiz gozlem muafiyeti silinir ('codex --version/-v/-V/-h' reddedilir)",
+     {234, 271, 272, 276}, True, 4),
+    # ME8 KALDIRILDI (27 Tem): "codex ALLOW yolunda 'continue' YOK" kararinin nobetcisiydi
+    # (mutasyon continue ekler -> segmentin kalan denetimleri kapanir). 27 Tem DARALTMASI
+    # bu kararin ANLAMINI da ortadan kaldirdi: kural artik yalnizca argv0 basename'i
+    # 'codex' olan segmentte calisir; boyle bir segmentte kalan denetimlerin HICBIRI
+    # (olcum/curl/A-blogu/YORUMLAYICI) zaten atesleyemez, cunku 'codex' ne olcum komutu,
+    # ne ICRA_UZANTILI bir betik, ne de yorumlayicidir. Mutasyon SIFIR kirmizi uretiyordu
+    # (NOBETSIZ BOLGE). Yerine gecen nobetci ME9'dur: 'codex + -o serpistirme' saldirisini
+    # artik 'continue yok' degil, DARALTMANIN KENDISI imkansiz kiliyor — ve daraltmanin
+    # geri alinmasi ME9'da kirmizi yaniyor. (Ayni gerekce: M8/M17 kaldirmalari.)
+    # --- 27 TEM SIKILASTIRMA NOBETCILERI ---
+    # ME9: DARALTMANIN nobetcisi (TERS yonlu mutasyon — kural GENISLETILIR, ALLOW
+    # vakalari kizarir). Genis token taramasi geri gelirse 4 on-var yanlis-pozitif doner.
+    ("ME9", lambda d: yama(
         d, ICRA,
-        "        codex_karari = _codex_karari(tokenlar)\n"
-        '        if codex_karari is not None and codex_karari != "gecer":\n'
-        "            reddet(codex_karari, sonu=CODEX_GEREKCE_SONU)\n",
-        "        codex_karari = _codex_karari(tokenlar)\n"
-        "        if codex_karari is not None:\n"
-        '            if codex_karari != "gecer":\n'
-        "                reddet(codex_karari, sonu=CODEX_GEREKCE_SONU)\n"
-        "            continue\n"),
-     "26Tem: codex ALLOW yoluna 'continue' eklenir (kalan denetimler kapanir = kalkan deligi)",
-     {236}, True, 1),
+        "    if not tokenlar or not _codex_programi(tokenlar[0]):\n"
+        "        return None\n",
+        '    if not any(os.path.basename(t) == "codex" or "ChatGPT.app" in t\n'
+        "               for t in tokenlar):\n"
+        "        return None\n"),
+     "27Tem: DARALTMA geri alinir (argv0 yerine TUM token taramasi) -> 4 yanlis-pozitif doner",
+     {260, 261, 262, 263}, True, 4),
+    ("ME10", lambda d: yama(
+        d, ICRA,
+        "    if kalan[0] != CODEX_IZINLI_ALTKOMUT:\n",
+        "    if False and kalan[0] != CODEX_IZINLI_ALTKOMUT:\n"),
+     "27Tem: ALT-KOMUT kapisi kapatilir (resume/mcp/login/apply acilir)",
+     {264, 265, 266, 275}, True, 4),
+    ("ME11", lambda d: yama(
+        d, ICRA,
+        "            if i + 1 >= len(tokenlar):\n"
+        "                return False\n"
+        "            deger = tokenlar[i + 1]\n"
+        '            if not deger or deger.startswith("-"):\n'
+        "                return False\n"
+        "            return True\n",
+        "            return True\n"),
+     "27Tem: AYRIK bayragin DEGER sarti silinir ('codex exec -o' bos bayrakla gecer)",
+     {267, 268, 269, 277}, True, 4),
+    ("ME12", lambda d: yama(
+        d, ICRA,
+        "CODEX_GOZLEM_BAYRAKLARI = SURUM_BAYRAKLARI\n",
+        'CODEX_GOZLEM_BAYRAKLARI = {"--version", "-V", "--help", "-h"}\n'),
+     "27Tem: gozlem SIMETRISI bozulur (eski 4'lu liste; '-v' yeniden reddedilir)",
+     {271}, True, 1),
+    ("ME13", lambda d: yama(
+        d, ICRA,
+        "        if t.startswith(CODEX_CIKTI_ONEKI):\n"
+        "            return bool(t[len(CODEX_CIKTI_ONEKI):])\n",
+        "        if t.startswith(CODEX_CIKTI_ONEKI):\n"
+        "            return True\n"),
+     "27Tem: ESITLIKLI bicimde BOS deger toleransi ('--output-last-message=' gecer)",
+     {270}, True, 1),
     ("ME3", lambda d: yama(d, ICRA,
                            '        if ad in ("curl", "wget"):\n',
                            '        if False and ad in ("curl", "wget"):\n'),
