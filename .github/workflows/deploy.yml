@@ -144,6 +144,75 @@ jobs:
       - name: Ege-bilgi tavan kapisi ic nobetci (kapinin kendi mantigi)
         run: python3 tools/ege-bilgi-tavan-test.py --ic-nobetci
 
+      # EGE KABILIYET-SINIRI KAPISI (26 Tem): ege-bilgi.md musteriden URETIM olcusu/cizimi
+      # ISTIYOR mu, ya da uretim/fiyat SOZU veriyor mu? Canli SISTEM_TALIMATI bunu katalog-bos
+      # dalinda uc yerde yasakliyor (pruvo-bot worker/src/index.js :41, :52, :2467; ayrica :57
+      # "yaklasik su kadar tutar' DEME"). ege-bilgi.md her konusmada o talimatin YANINA enjekte
+      # edildigi icin buradaki bir "olcu/cizim iste" ya da "ozel uretiriz" satiri AYNI prompt
+      # icinde iki zit talimat yaratir -> model rastgele birini secer, yasak SESSIZCE delinir.
+      # NEDEN AYRI KAPI: bu hata sinifini olcen test YOKTU — bot tarafindaki
+      # ege-bilgi-nobetci.mjs'in 5 ekseninde (ODEME/TESLIM/KARGO/MALZEME/FIYAT) kabiliyet-siniri
+      # ekseni yok, musteri-bacagi-nobetci.mjs ise SENTETIK fikstur okur, gercek ege-bilgi.md'ye
+      # bakmaz. 26 Tem'de tam bu sinif tum testler YESILken bir dala girdi ("foto/olcu/cizim
+      # iste"); kapi o dersin ciktisi. Kapsam BILEREK dar (3 sinif) — genisletmek l.11/l.18/l.38
+      # gibi mesru satirlari sahte-kirmizi yakar.
+      # ⚠️ (C) sinifi IKI KANATLIDIR: para + GUCLU kip ("800 TL tutar", "diyebiliriz")
+      # tek basina yanar; olur/yazar/cikar/gecerlidir gibi ZAYIF kipler ancak YAKLASIK
+      # jetonuyla BIRLIKTE yanar — cunku tek baslarina BETIMLEMEdirler ("fiyat sayfada
+      # yazar") ve belgenin KENDI l.7/l.9/l.45'i tam o sinifta. (C) ayrica DUZ KESIN
+      # FIYAT BEYANINI ("Bu parca 1.200 TL") OLCMEZ. Kapi yesil ciktisinda bu iki kor
+      # noktayi ACIKCA ilan eder. Offline, stdlib, ~5 ms.
+      - name: Ege kabiliyet-siniri kapisi (olcu/cizim istegi · uretim/fiyat sozu)
+        run: python3 tools/ege-kabiliyet-kapisi.py
+
+      # TUR 4 TASARIM NOTU: (C) sinifi POZITIF SART ile calisir — [para jetonu] VE
+      # [taahhut kipi]. Onceki NEGATIF VETO ("betimleme varsa susturma") bypass'a acikti:
+      # bir fiil EKLEYEREK kural susturulabiliyordu ("... ve sepette GORUNUR" -> yesil).
+      # Ilke: kelime EKLEYEREK susturulabilen kural, kural degildir. Ayrica cumlecik
+      # bolucusu RAKAM ARASINDAKI nokta/virgulu BOLMEZ — Turkce binlik ayraci ("1.500 TL")
+      # (C) sinifini 1.000 TL ustunde TAMAMEN OLDURUYORDU ve fiksturler 3 haneli oldugu
+      # icin bunu goremiyordu (ders: fiksturler gercek dagilimi ornekleMEZse yesil bir sey
+      # ispatlamaz). (A) sinifi CUMLE penceresinde jeton arar (virgullu devrik tumce),
+      # olumsuzlamayi CUMLECIK penceresinde kontrol eder.
+      # TUR 5 DERSI (fikstur yerlesimi): TUR 4'te dort fiil BETIMLEME'den TAAHHUT'e
+      # tasindi ama hicbir yanlis-pozitif fiksturunde PARA jetonuyla birlikte gecmiyordu
+      # -> 36/36 YESIL yandi ve 17 mesru cumlenin 15'i KIRMIZIyken kimse gormedi.
+      # Fikstur, degisen davranisin TAM USTUNE oturmali; yanindan gecen test YANILTIR.
+      # Z1-Z6 (yesil) + Z7-Z12 (kirmizi) bu sinirin iki tarafini da nobetler.
+      # TUR 6: CIPLAK TURKCE KELIMEYE ASILI DESEN = YANLIS-POZITIF URETECI. Uc homograf
+      # ayiklandi: "sorun"(=problem) · "çapa"(MARIN kategorisinin CEKIRDEK URUNU) ·
+      # "çapak"(baski artigi). Ayrica jenerik 1. cogul fiiller (yaparız/veririz) URUN
+      # baglami ister — "Kargo cikisini ayni gun yaparız" bir uretim sozu DEGILDIR ve
+      # o cumle yuzunden tum sitenin yayini duramaz.
+      # TUR 7: (B) daraltmasi GERI ALINDI (asiri-duzeltmeydi). Olculdu — daraltmanin
+      # onledigi yanlis-pozitifler ERISILEBILIR DEGILDI (yaparız/veririz canli belgede x0),
+      # bedeli ise 28 cumlelik taahhut korpusunda yakalamanin 27 -> 10'a dusmesiydi;
+      # kacanlar arasinda kapinin KURULUS VAKASININ (M2) parafrazlari vardi.
+      # ILKE: yanlis-pozitif GURULTULUdur, dakikalar icinde duzeltilir; (B)/(C) kacisi
+      # SESSIZdir ve musteriye TICARI BEYAN olarak gider. Onarim bastiriciyla degil
+      # BAGLAM GENISLETEREK yapildi (G7-G13 o genislemenin bedelini olcer).
+      # TUR 8: "veririz/vereceğiz" ailesi AYRI ve DAR bir baglam listesi kullanir — ciplak
+      # zamir ("size/biz") TETIKLEYICI DEGIL. Sebep olculdu: "vermek" bilgi/link/kargo/oneri
+      # de verir; tek GENIS listeyle "2.500 TL uzerinde kargoyu SIZE ucretsiz veririz"
+      # KIRMIZI yaniyordu ve tetikleyici canli belgede MEVCUT ("size" l.14, "biz" l.13).
+      # V1-V7 bu ayrimin iki tarafini da nobetler; MUT8 (listeleri birlestir) V1-V5'i kirar.
+      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 73 fiksturle olcer. Hem YAKALAMA
+      # (eski dal metni · "ozel uretiriz" · mm/kumpas/cap olcu talebi · yaklasik/tahminen/
+      # civari/ortalama/bandinda fiyat · ortuk "yapabiliriz") hem YANLIS-POZITIF yonu olculur.
+      # 🔴 YANLIS-POZITIF NEDEN OLUMCUL: bu kapi `build` isinde kosuyor ve `deploy: needs: build`
+      # -> ege-bilgi.md'ye yapilan MESRU bir duzenleme kapiyi kirmizi yakarsa Ege degil TUM
+      # pruvo3d.com yayini durur. Bu yuzden M11-M15 + M21 kalici nobetci: "sorun" homografi
+      # (=problem ismi) · arayuz/ucret BETIMLEMESI ("yaklasik tutar GORUNUR", "250 TL EKLENIR")
+      # · belgenin KENDI l.9 kargo cumlesi · l.11 "netlestir" dili · duz kesin fiyat beyani
+      # (ILAN EDILMIS kor nokta — "duzeltmek" l.9'u kirar).
+      # Kritik fikstur M1: olumsuzlama CUMLECIK duzeyinde aranmali — satir duzeyinde arayan bir
+      # surum, ayni satirdaki "verme" jetonunu gorup "olcu/cizim iste" emrini MASKELER ve
+      # sahte-yesil yanar (olculdu). M16: baglac (cunku/ama/fakat) da ayirici olmali, yoksa
+      # "Olcuyu gonderin CUNKU tahmin yeterli DEGIL" maskelenir. Fiksturler bellekte; repo
+      # dosyalarina DOKUNMAZ. Offline, stdlib.
+      - name: Ege kabiliyet kapisi ic nobetci (kirmizi-mutasyon)
+        run: python3 tools/ege-kabiliyet-kapisi.py --ic-nobetci
+
       # ENJEKSIYON KAPISI: build.py'nin sayfalara inline bastigi JS (attribution/riza + meta)
       # bayt-bayt bozulmadan mi gidiyor. Yasanmis hata: re.sub REPLACEMENT kacisi yorumlayinca
       # ya JS string'i kiriliyor (sayfa acilir, script SESSIZCE hic calismaz) ya da build tumden
