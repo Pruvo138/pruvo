@@ -67,8 +67,13 @@ VARSAYILAN = os.path.join(KOK, "ege-bilgi.md")
 # gibi mesru satirlar sahte-kirmizi yanar.
 OLCU_RE = re.compile(
     r"ölçü|ölçüler|çizim|teknik\s+resim|teknik\s+detay|teknik\s+çizim"
-    # \bçap\w* -> "çap/çapı/çapını/çapında"; (?!raz) "çapraz"i disarida tutar
-    r"|\bmm\b|\bcm\b|\bsantim|\bçap(?!raz)\w*|kumpas"
+    # \bçap\w* -> "çap/çapı/çapını/çapında".
+    # 🔴 (?!raz|a) UC homografi disarida tutar (TUR 6):
+    #    "çapraz" · "ÇAPA" (= Marin kategorisinin CEKIRDEK URUNU, biz capa parcasi
+    #    satiyoruz) · "çapak" (baski artigi). Olculdu: bu koruma olmadan
+    #    "Çapa braketini tanımak için fotoğraf iste." KIRMIZI yaniyordu — oysa bu
+    #    M4 ile ACIKCA IZIN VERILMIS teshis-fotografi davranisi. Fikstur C1-C4.
+    r"|\bmm\b|\bcm\b|\bsantim|\bçap(?!raz|a)\w*|kumpas"
     r"|merkez-\s*merkez|şerit\s*metre",
     re.IGNORECASE)
 
@@ -93,10 +98,26 @@ ISTEK_RE = re.compile(
 # BILEREK YOK: bunlar firma-kimligi/akis anlatimidir ve SISTEM_TALIMATI:2467 kimlik
 # cumlesini ACIKCA serbest birakir ("ozel uretim yapan bir firmayiz, AMA ... sozunu
 # SEN verme"). Yasak olan, MUSTERININ PARCASI icin verilen soz.
-URETIM_SOZ_RE = re.compile(
-    r"\büretiriz\b|\büretebiliriz\b|\büretiveririz\b|\byaparız\b|\byapabiliriz\b"
-    r"|\byaptırabiliriz\b|\bhallederiz\b|\büstleniriz\b|\bbasarız\b|\btasarlarız\b"
-    r"|sıfır\s+toleransla",
+# 🔴 IKI KADEME (TUR 6). "yaparız / veririz" gibi JENERIK 1. cogul fiiller uretim
+# DISI baglamda da dogaldir ve bu belgede yazilmasi COK olasidir:
+#     "Kargo cikisini ayni gun YAPARIZ."              -> uretim sozu DEGIL
+#     "2.500 TL uzerinde kargoyu ucretsiz VERIRIZ."   -> fiyat taahhudu DEGIL
+# Bir kargo/teslim cumlesi yuzunden tum sitenin yayini duramaz. Bu yuzden jenerik
+# fiiller URUN/URETIM BAGLAMI ister; "uretiriz" gibi TEK BASINA ACIK olanlar
+# standalone kalir (daraltirken (B) sinifi delinmez).
+# TUTARLILIK NOTU: belgenin gercek 1. cogullari ("kargolariz" l.14, "oturturuz" l.10)
+# BILEREK listede yok — musterinin parcasi icin VERILEN SOZ degil, kendi surecimizin
+# anlatimidirlar.
+URETIM_ACIK_RE = re.compile(
+    r"\büretiriz\b|\büretebiliriz\b|\büretiveririz\b|\büstleniriz\b"
+    r"|\bbasarız\b|\btasarlarız\b|sıfır\s+toleransla",
+    re.IGNORECASE)
+URETIM_GENEL_RE = re.compile(
+    r"\byaparız\b|\byapabiliriz\b|\byaptırabiliriz\b|\bhallederiz\b|\bhallederim\b"
+    r"|\bveririz\b|\bveririm\b|\bvereceğiz\b|\bvereceğim\b",
+    re.IGNORECASE)
+URUN_BAGLAM_RE = re.compile(
+    r"üret|imal|\bparça|baskı|\bözel\b|tasarım|kalıp|sizin\s+için|size\s+özel",
     re.IGNORECASE)
 
 # FIYAT SOZU — kesin VEYA yaklasik. Yaklasik/tahmini yalniz PARA jetonuna yakinsa
@@ -139,8 +160,9 @@ TAAHHUT_GUCLU_RE = re.compile(
     r"(?:TL|lira)\s*['’]?\s*tutar"          # "800 TL tutar" (fiil); "yaklasik tutar" (isim) DEGIL
     r"|\btutuyor\b"
     r"|\bderiz\b|\bdiyebiliriz\b|\bsöyleriz\b|\bsöyleyebiliriz\b"
-    r"|\bveririz\b|\bveririm\b|\bvereceğiz\b|\bvereceğim\b"
-    r"|\bhesaplarız\b|\bhesaplarım\b|\byaparız\b",
+    # veririz/vereceğiz/yaparız ailesi TUR 6'da BURADAN CIKTI -> URETIM_GENEL_RE
+    # (jenerik; "kargoyu ucretsiz veririz" fiyat taahhudu DEGIL, baglam ister).
+    r"|\bhesaplarız\b|\bhesaplarım\b",
     re.IGNORECASE)
 
 # ⚠️ Bu listeye BETIMLEYICI edilgenler (gorunur/eklenir/gosterilir/listelenir) ASLA
@@ -249,7 +271,9 @@ def bulgular(metin):
         for c in cumlecikler(satir):
             if olumsuz(c):
                 continue
-            if URETIM_SOZ_RE.search(c):
+            # (B) IKI KADEME: acik uretim fiili tek basina; jenerik fiil URUN baglami ister.
+            if URETIM_ACIK_RE.search(c) or (URETIM_GENEL_RE.search(c)
+                                            and URUN_BAGLAM_RE.search(c)):
                 out.append((no, "B/URETIM-SOZU", c,
                             "musterinin parcasi icin uretim taahhudu "
                             "(uretecegimize Okan karar verir — :41/:2467)"))
@@ -296,9 +320,24 @@ def olcumu_bas(yol, metin, sessiz=False):
 def ne_olculmedi():
     print("""
 NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
-  · Bu kapi PROSE ONAYI VERMEZ. Yesil = "aranan uc kalip bulunamadi" demektir;
-    "metin dogru" demek DEGILDIR. Bu repoda olculdu: anlami tersine ceviren 25
-    mutasyonun 22'si kelime arayan testten YESIL gecti.
+  · 🔴 PARAFRAZ KACISI GENISTIR — bu maddeyi kucumseme. Bu kapi PROSE ONAYI VERMEZ.
+    Yesil = "aranan uc kalibin SOZDIZIMI bulunamadi" demektir; "metin dogru" demek
+    DEGILDIR. OLCULDU (curutucu, 26 Tem): 30 bypass varyantinin 25'i KACTI. Kacan
+    ornekler: fiyat icin "gelir / duser / ongoruyoruz"; uretim icin "basabiliriz /
+    hallederim"; olcu talebi icin SORU kipi "Deliğin çapı kaç mm?". Yani ayni anlami
+    baska kelimelerle yazan bir metin bu kapidan RAHATCA gecer. Bu bir KUSUR DEGIL,
+    kelime kapisinin DOGASIDIR — ama kapiyi "metni dogruladi" diye okuma. Ayrica bu
+    repoda olculdu: anlami tersine ceviren 25 mutasyonun 22'si kelime arayan testten
+    YESIL gecti.
+  · KOR NOKTA — "çapa/çapak" homografi: OLCU deseni `\bçap(?!raz|a)\w*` ile
+    "çapa" (MARIN kategorisinin cekirdek urunu — biz capa parcasi satiyoruz),
+    "çapak" (baski artigi) ve "çapraz" DISARIDA tutulur. Bedeli: "çapa" ile
+    BASLAYAN gercek bir olcu kelimesi olsaydi kacardi. Fiksturler C1-C5.
+  · KOR NOKTA — jenerik 1. cogul fiiller ("yaparız/yapabiliriz/veririz/hallederiz")
+    yalniz URUN/URETIM baglami varken (B) sayilir. Bedeli: baglam kelimesi
+    gecmeyen ortuk bir uretim sozu ("Sizin adiniza hallederiz") KACAR. Alternatifi
+    olculdu: baglamsiz surum "Kargo cikisini ayni gun yaparız" ve "kargoyu ucretsiz
+    veririz" cumlelerini KIRMIZI yakip TUM SITE yayinini durduruyordu. G1-G6.
   · 🔴 DUZ KESIN FIYAT BEYANI OLCULMEZ. "Bu parca 1.200 TL." · "Fiyat 900-1100 TL."
     gibi RAKAMLI DUZ beyanlar bu kapidan YESIL gecer. Kapsanamaz: belgenin MESRU
     icerigi fiyat/TL dolu (l.9 kargo esigi + ornek hesap), duz rakam yakalayan bir
@@ -492,6 +531,35 @@ FIKSTURLER = [
      True, "TUR 4'te bu eksen TAMAMEN olmustu (5/5 yesil)"),
     ("Z11 tahmin ekseni: seyreder", "- 3.300 TL civarında seyreder.", True, "ayni eksen"),
     ("Z12 tahmin ekseni: bulur", "- Yaklaşık 1.400 TL'yi bulur.", True, "ayni eksen"),
+    # ═══ TUR 6: 'çapa/çapak' HOMOGRAFI (bizim KENDI urunumuz) ═══
+    # MUT: (?!raz|a) -> (?!raz) yapilirsa C1-C3 KIRMIZI yanar (oldurucu mutant).
+    ("C1 'çapa' = Marin urunu + teshis fotosu",
+     "- Çapa braketini tanımak için fotoğraf iste.", False,
+     "capa MARIN kategorisinin cekirdek urunu; M4 ile izin verilmis teshis davranisi"),
+    ("C2 'çapa' urun cumlesi", "- Çapa makarası parçasını katalogdan gönder.", False,
+     "capa = urun adi, OLCU jetonu DEGIL"),
+    ("C3 'çapak' baski artigi", "- Çapak kalırsa temizleyip gönderin.", False,
+     "capak = baski artigi, OLCU jetonu DEGIL"),
+    ("C4 'çapraz' (eski koruma korunuyor)", "- Çapraz bağlantıyı gönderin.", False,
+     "capraz zaten disaridaydi — regresyon nobetcisi"),
+    ("C5 gercek CAP talebi hala yakalaniyor", "- Deliğin çapını gönderin.", True,
+     "homograf korumasi GERCEK olcu talebini delmemeli"),
+    # ═══ TUR 6: JENERIK 1. COGUL FIIL BAGLAM SARTI ═══
+    # MUT: baglam sarti kaldirilirsa G1-G2 KIRMIZI yanar (oldurucu mutant).
+    ("G1 kargo baglaminda 'yaparız'", "- Kargo çıkışını aynı gün yaparız.", False,
+     "uretim sozu DEGIL; jenerik fiil URUN baglami ister"),
+    ("G2 kargo baglaminda 'veririz'",
+     "- 2.500 TL üzerinde kargoyu ücretsiz veririz.", False,
+     "fiyat taahhudu DEGIL; 'ucretsiz' PARA_RE onek eslesmesi + 'veririz' yanmamali"),
+    ("G3 belgenin l.14 'kargolarız'",
+     "- kırılan/aşınan/bulunamayan parçayı üretip kargolarız.", False,
+     "kendi surecimizin anlatimi; musteriye VERILEN SOZ degil"),
+    ("G4 belgenin l.10 'oturturuz'",
+     "- yuvası açıp somunu oturturuz; rahatça sun.", False, "ayni sinif"),
+    ("G5 URUN baglaminda 'yapabiliriz' hala yaniyor", "- Sizin için yapabiliriz.", True,
+     "baglam sarti (B) sinifini DELMEMELI"),
+    ("G6 URUN baglaminda 'veririz'", "- Parça için 2.000 TL fiyat veririz.", True,
+     "'parca' baglami var -> uretim/fiyat sozu"),
 ]
 
 
