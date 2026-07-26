@@ -305,12 +305,20 @@ jobs:
       # dusurur), (b) afin capa fiyat modeli — node ile GERCEK /konfigur.js kosulur
       # (setup-node kurulu; node yoksa test FAIL-CLOSED kirmizi): kesin artanlik + capa
       # tam-tutar dogrulugu + tam-TL yuvarlama + Python aynasi drift nobeti, (c)
-      # konfigur'suz urun sayfasi geri-uyumlu (konfigur izi yok + merge-base
-      # bayt-esitligi), (d) konfigur'lu sayfada JSON-LD Offer.price = minimum (capa-1)
-      # fiyat + feed ayni fiyat. Offline, sentetik fikstur, urunler.json OKUNMAZ, dosya
-      # yazmaz; build.py'den ONCE kosar (render_product'i dogrudan cagirir).
+      # konfigur'suz urun sayfasi geri-uyumlu — REFERANSSIZ ve KALICI uc iddia: c1 konfigur
+      # izi yok, c2 sayfa sinifinin yapisal cekirdegi (#filCipler / KART_SECIM / #opsiyonlar /
+      # #boySec / .attribution / jenerator modulleri) yerinde, c3 malzeme arayuzu XOR
+      # (kart bolumu YA DA secici, ikisi birden ya da hicbiri degil). c4 (merge-base build.py
+      # ile bayt-esitlik) ANA HATTA YAPISAL OLARAK OLCULEMEZ — main'e push'ta merge-base ==
+      # HEAD oldugu icin referans build.py CALISANLA AYNI cikar, karsilastirma totolojiye
+      # doner; bu yuzden "--anahat" ile kosuyoruz: ⚪ OLCULEMEDI GURULTULU raporlanir ama
+      # yayini kilitlemez (surekli-kirmizi = yayin kilidi de en az sessiz-yesil kadar
+      # yanlis). Bloklayici koruma c1/c2/c3 + (a)/(b)/(d)/(e) uzerindedir; continue-on-error
+      # YOK. (d) konfigur'lu sayfada JSON-LD Offer.price = minimum (capa-1) fiyat + feed
+      # ayni fiyat. Offline, sentetik fikstur, urunler.json OKUNMAZ, dosya yazmaz;
+      # build.py'den ONCE kosar (render_product'i dogrudan cagirir).
       - name: Konfigur (dekor konfigurator) kabul testi
-        run: python3 tools/konfigur-test.py
+        run: python3 tools/konfigur-test.py --anahat
 
       # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
       # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,

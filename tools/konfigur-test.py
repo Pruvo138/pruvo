@@ -13,12 +13,27 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
       TAM TL, çapadan çözülen birim/sabit mimar türetimiyle örtüşür (≈1,2306 TL/cm³ /
       ≈140,72 TL) ve build.py'deki Python aynası (JS öncesi fiyat metni) node sonuçlarıyla
       kuruşu kuruşuna aynıdır (drift nöbeti). 6/10/15/20/25/30 cm tablosu rapor için basılır.
-  (c) GERİ UYUMLULUK: konfigur'suz ürün sayfaları (panelsiz şemasız-Jeneratör, kart-seçim
-      fonksiyonel, boy_secenekli, lisanslı, parametrik sarı) merge-base'deki ESKİ build.py
-      çıktısıyla BAYT-EŞİT üretilir ve hiçbirinde konfigur izi yoktur. Eski build.py
-      alınamazsa (sığ klon) bayt-eşitlik GÜRÜLTÜLÜ atlanır, iz nöbeti yine koşar.
-      NOT (bayat-taban): merge sonrası merge-base HEAD'e eşitlenir -> karşılaştırma
-      kendiliğinden yeşilleşir; kalıcı CI nöbeti İZ YOKLUĞU + (a)/(b)/(d) değişmezleridir.
+  (c) GERİ UYUMLULUK — konfigur'suz ürün sayfaları (panelsiz şemasız-Jeneratör, kart-seçim
+      fonksiyonel, boy_secenekli, lisanslı, parametrik sarı). DÖRT AYRI İDDİA; ilk üçü
+      REFERANSSIZ ve KALICI (CI'da kırmızı yakabilir), dördüncüsü referansa bağlı:
+        c1 İZ YOKLUĞU (referanssız): konfigur'a ÖZGÜ hiçbir kanca konfigur'suz sayfaya
+           sızmaz (URUN_KONFIGUR / konfigur.js / PRUVO_KONFIGUR / kaydırıcı / data-gorsel
+           + malzeme EKSENİ kancaları #malzemeButonlar / .malzeme-btn / data-katsayi).
+        c2 YAPISAL ÇEKİRDEK (referanssız, SAYFA BAZLI): her sayfa sınıfı kendi kimlik
+           kancalarını KORUR (#filCipler, KART_SECIM bayrağı, #opsiyonlar / büyük buton,
+           #boySec, .attribution, jenerator modülleri). SAYI ÇAPASI YOK: "en az 1" / "hiç
+           yok" aranır; metin/CSS/kategori düzenlemesi bunları oynatmaz.
+        c3 MALZEME ARAYÜZÜ XOR (referanssız, TÜM sayfalarda): her ürün sayfasında malzeme
+           arayüzü TAM OLARAK BİR biçimdedir — konfigur+malzemeli sayfa #malzemeButonlar
+           (kart bölümü YOK), diğer HER sayfa #filCipler (seçici YOK). Hem "çift-UI"yı
+           hem de "konfigur'un kart gizlemesi tüm katalogda tetiklendi" sızıntısını yakar.
+        c4 BAYT-EŞİTLİK (REFERANSA BAĞLI — DAL-İÇİ, BLOKLAMAZ): konfigur'suz sayfalar
+           merge-base'deki ESKİ build.py çıktısıyla bayt-eşit mi? Bu bir DEĞİŞİM
+           dedektörüdür, konfigur EKSENİNİ ölçmez: ana hatta (merge-base == HEAD ->
+           referans build.py çalışanla AYNI) karşılaştırma TOTOLOJİdir, dalda ise her
+           meşru build.py düzenlemesinde (CSS/metin/JSON-LD) ayrışır. Bu yüzden hard-red
+           DEĞİL: ölçülemediğinde ⚪ ÖLÇÜLEMEDİ (çıkış 2, --anahat ile bloklamaz),
+           ölçülüp ayrıştığında ⚠️ UYARI. Kalıcı koruma c1/c2/c3'tedir.
   (d) KONFIGUR SAYFASI: JSON-LD Offer.price = taban (EN KÜÇÜK boyun) fiyatı, Merchant
       feed aynı fiyatla basılır; sayfada URUN_KONFIGUR + /konfigur.js?v= + renk butonları
       (data-gorsel) + kaydırıcı + kancalar vardır; 'Diğer'/renkOzel ve büyük butonlar YOKTUR;
@@ -27,7 +42,17 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
 Offline (ağ yok), gerçek urunler.json OKUNMAZ (sentetik fikstürler), repo dosyasına YAZMAZ.
 node ZORUNLU (deploy.yml setup-node kurar); yoksa FAIL-CLOSED kırmızı.
 
-Kullanım:  python3 tools/konfigur-test.py
+ÇIKIŞ KODLARI (repo sözleşmesi — parite-ege.js / faz3-gecikme.js ile aynı):
+  0 = YEŞİL       — bütün KALICI iddialar ölçüldü ve geçti.
+  1 = KIRMIZI     — en az bir KALICI iddia (a/b/c1/c2/c3/d/e) ihlal edildi.
+  2 = ÖLÇÜLEMEDİ  — kalıcı iddialar yeşil ama c4'ün referansı alınamadı/totoloji
+                    (ne yeşil ne kırmızı). "--anahat" verilirse 2 yerine 0 döner.
+
+Kullanım:
+  python3 tools/konfigur-test.py             # geliştirici / dal: ölçülemedi = çıkış 2
+  python3 tools/konfigur-test.py --anahat    # ANA HAT (deploy.yml): c4 yapısal olarak
+                                             # ölçülemez (merge-base == HEAD) -> ⚪ raporlanır,
+                                             # yayını KİLİTLEMEZ; koruma c1/c2/c3'te.
 """
 import copy
 import json
@@ -44,7 +69,9 @@ sys.path.insert(0, TOOLS)
 
 import build  # noqa: E402
 
-HATALAR = []
+HATALAR = []        # KALICI iddia ihlali -> çıkış 1 (KIRMIZI)
+UYARILAR = []       # ölçüldü ama BLOKLAMAYAN bulgu (c4 ayrışması) -> çıkış kodunu etkilemez
+OLCULEMEDI = []     # ölçüm yapılamadı (referans yok / totoloji) -> çıkış 2 (--anahat ile 0)
 
 
 def kontrol(kosul, mesaj):
@@ -53,6 +80,18 @@ def kontrol(kosul, mesaj):
     else:
         print("  ❌ " + mesaj)
         HATALAR.append(mesaj)
+
+
+def uyar(mesaj):
+    """BLOKLAMAYAN bulgu: ölçüldü, ihlal olabilir ama yanlış-pozitif riski yüksek eksen."""
+    print("  ⚠️  " + mesaj)
+    UYARILAR.append(mesaj)
+
+
+def olculemedi(mesaj):
+    """SESSİZ YEŞİL YASAK: ölçüm yapılamadıysa 'geçti' deme, ÖLÇÜLEMEDİ de."""
+    print("  ⚪ ÖLÇÜLEMEDİ — " + mesaj)
+    OLCULEMEDI.append(mesaj)
 
 
 # ------------------------------------------------------------------ fikstürler
@@ -338,36 +377,95 @@ def test_fiyat():
 
 
 # ------------------------------------------------------------------ (c) geri uyumluluk
+# c1 İZ LİSTESİ (NEGATİF, KÜRESEL): konfigur'a ÖZGÜ kancalar. Konfigur'suz HİÇBİR sayfada
+# geçmemeli. Malzeme ekseni kancaları da buraya dahil — onlar da yalnız konfigur'lu sayfada
+# üretilir; konfigur'suz sayfada görünmeleri "konfigur kodu genel yola sızdı" demektir.
 KONFIGUR_IZLERI = ["URUN_KONFIGUR", "konfigur.js", "konfigurBoy", "konfigurKaydirici",
-                   "PRUVO_KONFIGUR", "data-gorsel"]
+                   "PRUVO_KONFIGUR", "data-gorsel",
+                   'id="malzemeButonlar"', "malzeme-btn", "data-katsayi"]
+
+# c2 YAPISAL ÇEKİRDEK (POZİTİF, SAYFA BAZLI — [[kapi-kapsam-genisletme-tuzagi]]):
+# her konfigur'suz sayfa sınıfının KİMLİK kancaları. Yalnız YAPI aranır (element id'si, JS
+# bayrağı, modül yolu) — görünen metin, CSS sınıf stili, kategori adı, fiyat DEĞİL; böylece
+# ilgisiz rutin düzenleme (metin/CSS/yeni kategori/yorum) bu nöbeti YAKMAZ.
+# ÇAPA YOK: "en az bir kez geçmeli" (olmali) / "hiç geçmemeli" (olmamali); SAYI karşılaştırması
+# yapılmaz -> filament sayısı, ilgili ürün sayısı vb. değişince kırmızı yanmaz.
+YAPISAL_CEKIRDEK = {
+    # panelsiz dal: opsiyon paneli YOK, sayfa altında BÜYÜK butonlar var, KART_SECIM kapalı
+    "test-panelsiz": (['id="filCipler"', "KART_SECIM = false", 'class="cart-btn"'],
+                      ['id="opsiyonlar"', "KART_SECIM = true"]),
+    # kart-seçim dalı: opsiyon paneli + ikon düzeni (sayfa altı büyük buton YOK)
+    "test-oto-parca": (['id="filCipler"', "KART_SECIM = true", 'id="opsiyonlar"',
+                        'id="cartBtn"'],
+                       ['class="cart-btn"', "KART_SECIM = false"]),
+    # boy seçenekli: boy açılır kutusu (#boySec) kart-seçim düzeninin İÇİNDE
+    "test-boylu": (['id="filCipler"', "KART_SECIM = true", 'id="opsiyonlar"',
+                    'id="boySec"'],
+                   ['class="cart-btn"']),
+    # lisanslı: CC atıf bloğu KALIR (lisans kuralı — silinmesi ticari/hukuki risk)
+    "test-lisansli": (['id="filCipler"', "KART_SECIM = true", 'class="attribution"',
+                       'rel="license'],
+                      ['class="cart-btn"']),
+    # parametrik sarı: jeneratör konfigüratör modülleri sayfaya bağlanır
+    "olcuye-ozel-huni": (['id="filCipler"', "KART_SECIM = true",
+                          "jenerator/konfigurator.js", "jenerator/hacim.js"],
+                         ['class="cart-btn"']),
+}
+
+# c4 referans durumları
+REF_OLCULDU = "OLCULDU"      # referans build.py alındı ve ÇALIŞANDAN FARKLI -> gerçek ölçüm
+REF_TOTOLOJI = "TOTOLOJI"    # referans build.py çalışanla BAYT AYNI -> karşılaştırma boş
+REF_YOK = "YOK"              # referans hiç alınamadı (sığ klon / ref yok / git yok)
 
 
 def eski_build_modulu():
     """merge-base'deki (dal ayrım noktası) tools/build.py'yi ayrı modül olarak yükler.
-    (None, sebep) dönerse bayt-eşitlik karşılaştırması atlanır (İZ nöbeti yine koşar)."""
-    for ref in ("origin/main", "main", "HEAD"):
+
+    (modul, durum, ayrinti) döner. "HEAD" ARTIK REFERANS DEĞİL: `merge-base HEAD HEAD`
+    daima HEAD'i verir -> karşılaştırma bir şeyi KENDİSİYLE karşılaştırır (totoloji) ve
+    nöbetçi sessizce yeşil yanar. Ana hatta (main'e push) merge-base zaten HEAD olduğu
+    için referans build.py çalışan build.py ile BAYT AYNI çıkar; bunu TOTOLOJI olarak
+    ayrı raporlarız — "BAYT-EŞİT ✅" yazmak YALAN olurdu."""
+    calisan = open(os.path.join(TOOLS, "build.py"), "rb").read()
+    for ref in ("origin/main", "main"):
         mb = subprocess.run(["git", "-C", ROOT, "merge-base", "HEAD", ref],
                             capture_output=True, text=True)
         if mb.returncode != 0:
             continue
         commit = mb.stdout.strip()
         kaynak = subprocess.run(["git", "-C", ROOT, "show", commit + ":tools/build.py"],
-                                capture_output=True, text=True)
+                                capture_output=True)
         if kaynak.returncode != 0:
             continue
+        taban = "%s (merge-base HEAD..%s)" % (commit[:12], ref)
+        if kaynak.stdout == calisan:
+            return None, REF_TOTOLOJI, taban
         g = {"__file__": os.path.join(TOOLS, "build.py"), "__name__": "build_eski"}
-        exec(compile(kaynak.stdout, "build_eski<%s>" % commit[:12], "exec"), g)
-        return g, "%s (merge-base HEAD..%s)" % (commit[:12], ref)
-    return None, "merge-base/git show alınamadı (sığ klon?)"
+        exec(compile(kaynak.stdout.decode("utf-8"),
+                     "build_eski<%s>" % commit[:12], "exec"), g)
+        return g, REF_OLCULDU, taban
+    return None, REF_YOK, "merge-base/git show alınamadı (sığ klon / origin-main yok?)"
+
+
+def _malzeme_arayuzu(html):
+    """(kart_bolumu_var, secici_var) — sayfadaki malzeme arayüzünün biçimi."""
+    return ('id="filCipler"' in html, 'id="malzemeButonlar"' in html)
 
 
 def test_geri_uyumluluk():
-    print("\n(c) GERİ UYUMLULUK (konfigur'suz sayfalar)")
+    print("\n(c) KONFIGUR'SUZ SAYFA GERİ UYUMLULUĞU")
+    print("    İDDİA c1 (referanssız/kalıcı): konfigur'a özgü kanca konfigur'suz sayfaya SIZMAZ.")
+    print("    İDDİA c2 (referanssız/kalıcı): her sayfa sınıfı yapısal çekirdeğini KORUR.")
+    print("    İDDİA c3 (referanssız/kalıcı): malzeme arayüzü XOR — kart bölümü ya da seçici,")
+    print("             ikisi birden ya da hiçbiri DEĞİL.")
+    print("    İDDİA c4 (referansa bağlı/BLOKLAMAZ): merge-base build.py ile bayt-eşitlik.")
+    print("    MEŞRU DEĞİŞİKLİK (kırmızı yakmamalı): metin/CSS/yeni kategori/yeni sayfa/yorum/")
+    print("             yeniden adlandırma/JSON-LD alanı — konfigur eksenine dokunmayan her şey.")
     fikstuler = [
         # Panelsiz (opsiyon paneli basılmayan, sayfa-altı büyük butonlu) dal: Okan 23 Tem
         # kararıyla Dekorasyon + Oyun/Hobi FONKSIYONEL oldu; bu dalı bugün yalnız FONKSIYONEL
         # dışı + parametrik olmayan kategori (şemasız Jeneratör) tetikler. Fikstür oraya
-        # taşındı ki byte-eşitlik nöbeti panelsiz kod yolunu ölçmeye devam etsin.
+        # taşındı ki panelsiz kod yolu ölçülmeye devam etsin.
         ("panelsiz (şemasız Jeneratör)", urun(
             None, id="test-panelsiz", kategori="Jeneratör",
             baslik="Test Panelsiz Ürün", fiyat="150 TL")),
@@ -390,25 +488,56 @@ def test_geri_uyumluluk():
         html = build.render_product(p, tumu)
         yeni_ciktilar[p["id"]] = html
         izler = [iz for iz in KONFIGUR_IZLERI if iz in html]
-        kontrol(not izler, "konfigur izi yok: %s (sızan: %s)" % (ad, izler or "-"))
+        kontrol(not izler, "c1 konfigur izi yok: %s (sızan: %s)" % (ad, izler or "-"))
 
-    eski, sebep = eski_build_modulu()
-    if eski is None:
-        print("  UYARI: eski build.py yüklenemedi -> bayt-eşitlik ATLANDI (%s). "
-              "İz nöbeti + (a)/(b)/(d) koştu." % sebep)
+    # --- c2: yapısal çekirdek (POZİTİF, sayfa bazlı) ---
+    for ad, p in fikstuler:
+        html = yeni_ciktilar[p["id"]]
+        olmali, olmamali = YAPISAL_CEKIRDEK[p["id"]]
+        eksik = [m for m in olmali if m not in html]
+        fazla = [m for m in olmamali if m in html]
+        kontrol(not eksik and not fazla,
+                "c2 yapısal çekirdek yerinde: %s (kayıp: %s / sızan: %s)"
+                % (ad, eksik or "-", fazla or "-"))
+
+    # --- c3: malzeme arayüzü XOR — konfigur'lu sayfalar da dahil TÜM sınıflarda ---
+    xor_fikstur = [(ad, p, False) for ad, p in fikstuler]
+    xor_fikstur.append(("konfigur (malzemesiz)", urun(KURT_KONFIGUR), False))
+    xor_fikstur.append(("konfigur + malzeme ekseni", urun(KURT_KONFIGUR_MALZEME), True))
+    for ad, p, secici_beklenir in xor_fikstur:
+        html = yeni_ciktilar.get(p["id"]) or build.render_product(p, [p])
+        kart, secici = _malzeme_arayuzu(html)
+        beklenen = (not secici_beklenir, secici_beklenir)
+        kontrol((kart, secici) == beklenen,
+                "c3 malzeme arayüzü XOR: %s (#filCipler=%s #malzemeButonlar=%s, beklenen %s/%s)"
+                % (ad, kart, secici, beklenen[0], beklenen[1]))
+
+    # --- c4: bayt-eşitlik (referansa bağlı; BLOKLAMAZ — gerekçe modül docstring'inde) ---
+    eski, durum, taban = eski_build_modulu()
+    if durum == REF_YOK:
+        olculemedi("c4 bayt-eşitlik: referans build.py alınamadı (%s). "
+                   "Kalıcı koruma c1/c2/c3'te koştu." % taban)
         return
-    print("  eski build.py tabanı: %s" % sebep)
+    if durum == REF_TOTOLOJI:
+        olculemedi("c4 bayt-eşitlik: referans build.py ÇALIŞANLA BAYT AYNI -> karşılaştırma "
+                   "totoloji, hiçbir şey ölçülmedi. Taban: %s. (Ana hatta beklenen durum; "
+                   "kalıcı koruma c1/c2/c3'te koştu.)" % taban)
+        return
+    print("  c4 referans build.py tabanı: %s (çalışandan FARKLI -> ölçülebilir)" % taban)
     for ad, p in fikstuler:
         eski_html = eski["render_product"](p, tumu)
-        esit = eski_html == yeni_ciktilar[p["id"]]
-        kontrol(esit, "BAYT-EŞİT: %s" % ad)
-        if not esit:
-            # ilk ayrışan bölgeyi raporla (tanılama)
-            y = yeni_ciktilar[p["id"]]
-            i = next((j for j in range(min(len(y), len(eski_html)))
-                      if y[j] != eski_html[j]), min(len(y), len(eski_html)))
-            print("     ilk fark ofset %d: eski=%r yeni=%r"
-                  % (i, eski_html[max(0, i - 40):i + 40], y[max(0, i - 40):i + 40]))
+        y = yeni_ciktilar[p["id"]]
+        if eski_html == y:
+            print("  ✅ c4 BAYT-EŞİT: %s" % ad)
+            continue
+        # ilk ayrışan bölgeyi raporla (tanılama). BLOKLAMAZ: build.py'ye yapılan MEŞRU
+        # düzenleme (CSS/metin/JSON-LD) de burada ayrışır -> kırmızı yakmak yanlış-pozitif
+        # olurdu; konfigur ekseni c1/c2/c3 ile ölçülür.
+        i = next((j for j in range(min(len(y), len(eski_html)))
+                  if y[j] != eski_html[j]), min(len(y), len(eski_html)))
+        uyar("c4 BAYT AYRIŞTI (bloklamaz): %s — ilk fark ofset %d\n"
+             "        eski=%r\n        yeni=%r"
+             % (ad, i, eski_html[max(0, i - 40):i + 40], y[max(0, i - 40):i + 40]))
 
 
 # ------------------------------------------------------------------ (d) konfigur sayfası
@@ -536,19 +665,49 @@ def test_konfigur_malzeme_sayfasi(seri):
 
 
 # ------------------------------------------------------------------ ana akış
-def main():
-    print("KONFIGUR KABUL TESTİ (dekor konfigüratörü altyapısı + malzeme ekseni)")
+CIK_YESIL = 0
+CIK_KIRMIZI = 1
+CIK_OLCULEMEDI = 2
+
+
+def main(argv=None):
+    argv = list(sys.argv[1:] if argv is None else argv)
+    # ANA HAT modu: c4 (bayt-eşitlik) main'de YAPISAL OLARAK ölçülemez (merge-base == HEAD).
+    # deploy.yml bu bayrakla koşar: ÖLÇÜLEMEDİ hâlâ GÜRÜLTÜLÜ raporlanır ama yayını
+    # KİLİTLEMEZ — sessiz yeşil kadar, sürekli kırmızı da yanlış olurdu.
+    anahat = "--anahat" in argv
+    for a in argv:
+        if a not in ("--anahat",):
+            print("Bilinmeyen argüman: %s (yalnız --anahat)" % a)
+            return CIK_KIRMIZI
+    print("KONFIGUR KABUL TESTİ (dekor konfigüratörü altyapısı + malzeme ekseni)%s"
+          % (" [ANA HAT MODU]" if anahat else ""))
     test_sema()
     seri = test_fiyat()
     test_geri_uyumluluk()
     test_konfigur_sayfasi(seri)
     test_konfigur_malzeme_sayfasi(seri)
     print("-" * 70)
+    if UYARILAR:
+        print("UYARI (bloklamaz): %d bulgu" % len(UYARILAR))
     if HATALAR:
         print("SONUC: KIRMIZI ❌  (%d sorun)" % len(HATALAR))
-        return 1
+        return CIK_KIRMIZI
+    if OLCULEMEDI:
+        # Kalıcı iddialar (a/b/c1/c2/c3/d/e) YEŞİL; yalnız referansa bağlı c4 ölçülemedi.
+        print("SONUC: YESIL ✅ (kalıcı iddialar) — ANCAK %d iddia ÖLÇÜLEMEDİ ⚪:"
+              % len(OLCULEMEDI))
+        for m in OLCULEMEDI:
+            print("   ⚪ " + m.split(".")[0])
+        if anahat:
+            print("   --anahat: ÖLÇÜLEMEDİ ana hatta BEKLENEN durumdur -> çıkış %d."
+                  % CIK_YESIL)
+            return CIK_YESIL
+        print("   Çıkış %d = ÖLÇÜLEMEDİ (ne yeşil ne kırmızı). Ana hatta bu beklenendir:"
+              " 'python3 tools/konfigur-test.py --anahat'." % CIK_OLCULEMEDI)
+        return CIK_OLCULEMEDI
     print("SONUC: YESIL ✅")
-    return 0
+    return CIK_YESIL
 
 
 if __name__ == "__main__":
