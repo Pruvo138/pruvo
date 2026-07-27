@@ -93,15 +93,36 @@ def main():
             bekle(all(p.get("id") in opel_ids for p in vaux),
                   "Vauxhall ürünleri Opel'e katlanmadı")
 
-        # ===== 2: collision =====
+        # ===== 2: collision (YAPISAL — sabit katalog sayısına bağlı DEĞİL, drift'e dayanıklı) =====
         ford_gruplar = veri["Ford"]["gruplar"]
         f150 = next((g for g in ford_gruplar.values() if g["slug"] == "f-150"), None)
-        bekle(f150 is not None and len(f150["urunler"]) >= 201,
-              "F-150 collision birleşmedi (>=201 bekleniyor)")
+        # F-150 model sayfası DİSKTE var + ürün sayısı >= eşik (201 gibi sabit sayı DEĞİL) +
+        # AYRI f150/f-series slug YOK -> collision birleşmesi yapısal olarak kanıtlanır.
+        bekle(f150 is not None and len(f150["urunler"]) >= mm.ESIK, "F-150 grubu yok / <eşik")
+        bekle(os.path.exists(os.path.join(tmp, "marka", "ford", "f-150", "index.html")),
+              "F-150 model sayfası DİSKTE yok")
         bekle(not any(g["slug"] == "f150" for g in ford_gruplar.values()),
               "ayrı 'f150' slug (collision folded değil)")
         bekle(not any(g["slug"] == "f-series" for g in ford_gruplar.values()),
               "F-Series ayrı slug (alias uygulanmadı)")
+        # Peugeot 206 TEK URL (çift-marka/collision regresyon kanıtı): '206' var, 'peugeot-206' YOK.
+        if "Peugeot" in veri:
+            psl = {g["slug"] for g in veri["Peugeot"]["gruplar"].values()}
+            bekle("peugeot-206" not in psl and "peugeot-205" not in psl,
+                  "Peugeot çift-marka slug (peugeot-206/205) hâlâ var")
+        # ÇİFT-MARKA H1 GUARD (§9.1): hiçbir grup display'i markayla başlamamalı
+        # ("Peugeot Peugeot 206" gibi). Yapısal — katalog sayısından bağımsız.
+        cift_marka = []
+        for mk, dd in veri.items():
+            for g in dd["gruplar"].values():
+                t = g["display"].split()
+                if len(t) > 1 and evren.taninmis_mi(t[0]) and evren.katla(t[0]) == mk:
+                    cift_marka.append((mk, g["display"]))
+        bekle(not cift_marka, "çift-marka H1 var: %s" % cift_marka[:5])
+        # Model slug her marka içinde eşsiz (global collision nöbeti)
+        for mk, dd in veri.items():
+            sl = [g["slug"] for g in dd["gruplar"].values()]
+            bekle(len(sl) == len(set(sl)), "%s: model slug collision" % mk)
         marka_sluglar = [mm._slug(m) for m in sonuc["slug_map"]]
         bekle(len(marka_sluglar) == len(set(marka_sluglar)), "marka slug'ları eşsiz değil")
 
@@ -227,7 +248,11 @@ def main():
         bekle(len(chip_hrefs) >= 20, "SSR çip linki az (%d)" % len(chip_hrefs))
         for m in sonuc["chip_markalar"]:
             if m in sonuc["slug_map"]:
-                bekle(('/marka/%s/' % sonuc["slug_map"][m]) in chip_links, "%s çipi linkli değil" % m)
+                slug = sonuc["slug_map"][m]
+                bekle(('/marka/%s/' % slug) in chip_links, "%s çipi linkli değil" % m)
+                # Çip-hedef sayfası DİSKTE var mı — slug_map'e körü körüne GÜVENME (dangling link nöbeti)
+                bekle(os.path.exists(os.path.join(tmp, "marka", slug, "index.html")),
+                      "%s çip-hedefi /marka/%s/ DİSKTE yok (dangling link)" % (m, slug))
         bekle(len(sonuc["sayfasiz_cipler"]) == 0, "sayfasız çip var: %s" % sonuc["sayfasiz_cipler"])
         enj = build._marka_cip_enjekte(index_html, chip_links, sonuc["slug_map"])
         bekle('<div class="brand-chips" id="brandChips"><a class="brand-btn brand-link' in enj,

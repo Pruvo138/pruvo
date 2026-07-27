@@ -62,6 +62,21 @@ def _slug(s):
     return re.sub(r"-+", "-", s).strip("-")
 
 
+def _strip_marka_oneki(marka, model_ham, evren):
+    """marka[1] modelinin BAŞINDAKI gereksiz marka token'ını sıyır (kanonik marka'ya katlanan):
+    'Peugeot 206'->'206', 'Renault 5 E-Tech'->'5 E-Tech', 'Alfa Romeo Giulia'->'Giulia',
+    'Vauxhall Astra' (Opel)->'Astra'. TAM-TOKEN eşleşme (en uzun marka öneki önce) + folded marka
+    ile aynı olma şartı — substring/yanlış-marka sıyrılmaz. Model TÜMÜYLE markaysa '' döner
+    (çağıran marka-only sayar). Böylece 'peugeot206'->'206' mükerreri BİRLEŞİR (spec §9.1),
+    'Peugeot Peugeot 206' gibi çift-marka H1 doğmaz. urunler.json DEĞİŞMEZ (yalnız build-anı)."""
+    toks = model_ham.split()
+    for k in range(len(toks), 0, -1):
+        onek = " ".join(toks[:k])
+        if evren.taninmis_mi(onek) and evren.katla(onek) == marka:
+            return " ".join(toks[k:]).strip()
+    return model_ham
+
+
 # ---- Marka evreni: anasayfa çip küratörlüğü (index.html TANINMIS_MARKALAR) TEK KAYNAK ----
 # Çip↔sayfa slug'ı BİREBİR tutsun diye marka listesi + katlama mantığı index.html'den AYIKLANIR
 # (kopya tutulmaz; drift olmaz). norm/markaNorm/markaKatla index.html'deki JS ile BİREBİR port.
@@ -226,7 +241,10 @@ def gruplandir(products, evren):
         if len(m) < 2 or not (m[1] or "").strip():
             d["marka_only"].append(p)
             continue
-        model_ham = m[1].strip()
+        model_ham = _strip_marka_oneki(marka, m[1].strip(), evren)
+        if not model_ham:                        # marka[1] tümüyle marka -> marka-only say
+            d["marka_only"].append(p)
+            continue
         canon = _canon(model_ham)
         canon = _ALIAS.get((marka, canon), canon)
         g = d["gruplar"].get(canon)
