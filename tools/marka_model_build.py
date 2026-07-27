@@ -29,8 +29,12 @@ from collections import Counter
 
 WHATSAPP = "905451386526"
 WA_TEL_GORUNUR = "+90 545 138 6526"
-PILOT_MARKALAR = ["Ford", "BMW"]
-ESIK = 3                       # model sayfası yalnız >= ESIK ürünlü modeller için (spec §3.4)
+ESIK = 3                       # model sayfası + marka sayfası yalnız >= ESIK ürünlü için (spec §3.4)
+
+# Marka-düzeyi alias (TANINMIS içinde ayrı yazılan ama AYNI markanın adları). Vauxhall = Opel'in
+# İngiltere adı → tek marka sayfası. (MINI/Mini, KIA/Kia gibi büyük/küçük ikizleri markaNorm
+# case-fold ile zaten birleşir; bu tablo yalnız markaNorm'un yakalayamadığı ad-eşitlikleri içindir.)
+MARKA_ALIAS = {"Vauxhall": "Opel"}
 
 # Türkçe harf -> ascii (slug/canon için)
 _TR = {"ı": "i", "İ": "i", "ş": "s", "Ş": "s", "ğ": "g", "Ğ": "g",
@@ -51,10 +55,64 @@ def _canon(s):
 
 def _slug(s):
     """URL slug'ı: küçük harf, alfanümerik dışı -> tek '-'. 'F-150'->'f-150',
-    'Focus ST'->'focus-st', 'i3'->'i3', '1 Serisi'->'1-serisi'."""
-    s = _ascii_lower(s)
+    'Focus ST'->'focus-st', 'i3'->'i3', '1 Serisi'->'1-serisi'.
+    '+' anlamlıdır (Peugeot 206+ != 206) -> 'plus'; yoksa iki farklı model AYNI URL'e düşer."""
+    s = _ascii_lower(s).replace("+", " plus ")
     s = re.sub(r"[^a-z0-9]+", "-", s)
     return re.sub(r"-+", "-", s).strip("-")
+
+
+# ---- Marka evreni: anasayfa çip küratörlüğü (index.html TANINMIS_MARKALAR) TEK KAYNAK ----
+# Çip↔sayfa slug'ı BİREBİR tutsun diye marka listesi + katlama mantığı index.html'den AYIKLANIR
+# (kopya tutulmaz; drift olmaz). norm/markaNorm/markaKatla index.html'deki JS ile BİREBİR port.
+def _norm(s):
+    """index.html norm() portu: Türkçe-duyarlı küçük harf + aksan sadeleştirme."""
+    s = (s or "").replace("I", "ı").replace("İ", "i").lower()
+    for a, b in (("ı", "i"), ("ç", "c"), ("ğ", "g"), ("ö", "o"),
+                 ("ş", "s"), ("ü", "u"), ("â", "a"), ("î", "i")):
+        s = s.replace(a, b)
+    return s
+
+
+def _marka_norm(s):
+    """index.html markaNorm() portu: norm + é/è/ë->e, ä->a + ayıraç ('and'/&/+) sadeleştirme."""
+    n = _norm(s)
+    for a, b in (("é", "e"), ("è", "e"), ("ë", "e"), ("ä", "a")):
+        n = n.replace(a, b)
+    n = n.replace(" and ", " ").replace("&", " ").replace("+", " ")
+    return re.sub(r"\s+", " ", n).strip()
+
+
+class MarkaEvreni:
+    """index.html'den ayıklanmış marka küratörlüğü: TANINMIS liste + katlama + chip limiti."""
+
+    def __init__(self, index_html):
+        m = re.search(r"var TANINMIS_MARKALAR = \[(.*?)\];", index_html, re.S)
+        if not m:
+            raise SystemExit("HATA: index.html'de TANINMIS_MARKALAR bulunamadı "
+                             "(marka çip küratörlüğü tek kaynağı bozuk).")
+        self.taninmis = re.findall(r'"([^"]+)"', m.group(1))
+        lm = re.search(r"var MARKA_LIMIT = (\d+);", index_html)
+        self.limit = int(lm.group(1)) if lm else 32
+        self._kanonik = {}
+        for x in self.taninmis:
+            self._kanonik[_marka_norm(x)] = x
+        self._normlu = [_marka_norm(x) for x in self.taninmis]
+
+    def taninmis_mi(self, m):
+        return _marka_norm(m) in self._kanonik
+
+    def katla(self, m):
+        """index.html markaKatla() portu + marka-düzeyi alias (Vauxhall->Opel)."""
+        n = _marka_norm(m)
+        base = self._kanonik.get(n)
+        if base is None:
+            base = m
+            for i, mn in enumerate(self._normlu):
+                if n.startswith(mn + " ") or n.startswith(mn + "-"):
+                    base = self.taninmis[i]
+                    break
+        return MARKA_ALIAS.get(base, base)
 
 
 # Semantik alias (canon_key yakalayamayan TR/EN birleşmeleri, spec §3.1). Pilot: F-Series -> F-Serisi.
@@ -147,33 +205,37 @@ _MARKA_GIRIS = {
 
 
 # --------------------------------------------------------------------- veri gruplama
-def gruplandir(products):
-    """Pilot markaları (marka[0]) topla: marka -> {"marka_only":[p...], "gruplar":{canon:{...}}}.
-    Grup: {"display":str, "slug":str, "canon":str, "urunler":[p...]}. urunler.json DEĞİŞMEZ."""
+def gruplandir(products, evren):
+    """Katalogdaki TANINMIS markaları (marka[0], KATLANMIŞ kanonik) topla:
+    kanonik_marka -> {"marka_only":[p...], "gruplar":{canon:{...}}}.
+    Grup: {"display":str, "slug":str, "canon":str, "urunler":[p...]}. urunler.json DEĞİŞMEZ.
+    Yalnız TANINMIS markalar (anasayfa çip evreni) dahil; model/motor kodu marka[0] atlanır."""
     veri = {}
-    for marka in PILOT_MARKALAR:
-        veri[marka] = {"marka_only": [], "gruplar": {}, "_spelling": {}}
-
     for p in products:
         m = p.get("marka") or []
         if not m:
             continue
-        marka = m[0]
-        if marka not in veri:
+        ham0 = m[0]
+        if not evren.taninmis_mi(ham0):
             continue
+        marka = evren.katla(ham0)               # kanonik marka (Mercedes-Benz->Mercedes, Vauxhall->Opel)
+        d = veri.get(marka)
+        if d is None:
+            d = {"marka_only": [], "gruplar": {}, "_spelling": {}}
+            veri[marka] = d
         if len(m) < 2 or not (m[1] or "").strip():
-            veri[marka]["marka_only"].append(p)
+            d["marka_only"].append(p)
             continue
         model_ham = m[1].strip()
         canon = _canon(model_ham)
         canon = _ALIAS.get((marka, canon), canon)
-        g = veri[marka]["gruplar"].get(canon)
+        g = d["gruplar"].get(canon)
         if g is None:
             g = {"canon": canon, "urunler": []}
-            veri[marka]["gruplar"][canon] = g
-            veri[marka]["_spelling"][canon] = Counter()
+            d["gruplar"][canon] = g
+            d["_spelling"][canon] = Counter()
         g["urunler"].append(p)
-        veri[marka]["_spelling"][canon][model_ham] += 1
+        d["_spelling"][canon][model_ham] += 1
 
     # kanonik gösterim + slug
     for marka, d in veri.items():
@@ -353,12 +415,12 @@ def _model_sayfasi(ctx, marka, g):
     else:
         h1 = marka + " " + display + " Yedek Parça — Ölçüye Özel Üretim"
         giris = (marka + " " + display + " için kırılan ya da artık bulunamayan plastik "
-                 "parçaları mı arıyorsunuz? İç trim klipsleri, kapak ve tutamaklar, "
-                 "braketler, kablo kanalları ve bağlantı parçaları gibi küçük ama aracı "
-                 "zorlayan " + display + " parçalarını ölçüye özel üretiyoruz. Piyasada "
-                 "kalmayan bu parçaları elinizdeki numuneden birebir, sıradan plastikten "
-                 "değil parçanın çalışacağı yere göre doğru malzemeden, farklı renk "
-                 "seçenekleriyle yeniden üretiyoruz.")
+                 "parçaları mı arıyorsunuz? Klipsler, kapak ve tutamaklar, dişliler, "
+                 "braketler, kablo kanalları ve bağlantı parçaları gibi küçük ama önemli "
+                 + display + " parçalarını ölçüye özel üretiyoruz. Piyasada kalmayan bu "
+                 "parçaları elinizdeki numuneden birebir, sıradan plastikten değil parçanın "
+                 "çalışacağı yere göre doğru malzemeden, farklı renk seçenekleriyle yeniden "
+                 "üretiyoruz.")
         huni_govde = ("Aradığınız " + marka + " " + display + " parçasını listede "
                       "bulamadıysanız üretemeyeceğimiz anlamına gelmez. Kırık ya da eski "
                       "parçayı bize getirin ya da fotoğraflayın; milimetrik ölçüp, "
@@ -416,7 +478,11 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler):
 
     h1 = marka + " Yedek Parça — Ölçüye Özel Üretim"
     toplam = sum(len(g["urunler"]) for g in buyuk_gruplar) + len(kucuk_urunler) + len(d["marka_only"])
-    giris = _MARKA_GIRIS.get(marka, marka + " için ölçüye özel plastik yedek parça üretiyoruz.")
+    giris = _MARKA_GIRIS.get(marka, (
+        marka + " için kırılan ya da artık bulunamayan plastik parçaları modele göre ölçüye "
+        "özel üretiyoruz. Modelinizi seçin; klips, kapak, tutamak, dişli, braket ve bağlantı "
+        "gibi parçaları elinizdeki numuneden birebir, çalışacağı yere göre doğru malzemeyle "
+        "yeniden üretelim. Ölçü sizden, üretim bizden."))
     description = (marka + " yedek parçaları: modele göre gezinin, kırılan ya da bulunamayan "
                    "parçayı ölçüye özel üretelim. " + str(len(buyuk_gruplar)) + " model, "
                    + str(toplam) + " parça listeleniyor.")
@@ -482,13 +548,13 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler):
 
 
 def _marka_index(ctx, ozet):
-    """/marka/ — pilot marka dizini. ozet = [(marka, marka_url, model_sayisi, parca_sayisi), ...]"""
+    """/marka/ — marka dizini (tüm üretilen markalar). ozet = [(marka, marka_url, model_sayisi, parca_sayisi), ...]"""
     esc = ctx["esc"]
     SITE = ctx["SITE"]
     url = SITE + "/marka/"
-    h1 = "Marka ve Modele Göre Yedek Parça"
-    description = ("Aracınızın markasını ve modelini seçin; kırılan ya da bulunamayan plastik "
-                   "yedek parçayı numunenizden ölçüye özel üretelim. Ölçü sizden, üretim bizden.")
+    h1 = "Markaya ve Modele Göre Yedek Parça"
+    description = ("Markanızı ve modelinizi seçin; kırılan ya da bulunamayan plastik yedek "
+                   "parçayı numunenizden ölçüye özel üretelim. Ölçü sizden, üretim bizden.")
     bc = '<nav class="mm-bc" aria-label="breadcrumb"><a href="/">Ana Sayfa</a> &rsaquo; Markalar</nav>'
     btns = []
     for marka, marka_url, msay, psay in ozet:
@@ -515,34 +581,56 @@ def _marka_index(ctx, ozet):
     return url, _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body)
 
 
+def _chip_link_html(esc, marka, slug, aktif=False):
+    """SSR anasayfa marka çipi: JS-siz curl'de görünen düz <a> (discovery kök-fix)."""
+    return ('<a class="brand-btn brand-link%s" href="/marka/%s/">%s</a>'
+            % (" active" if aktif else "", esc(slug), esc(marka)))
+
+
 # --------------------------------------------------------------------- ana giriş
 def uret(products, ctx):
-    """Pilot (Ford + BMW) marka/model sayfalarını ctx['ROOT']/marka/ altına yazar.
-    Dönüş: (sitemap_kayitlari, ust_dizinler)."""
+    """Anasayfa çip-marka evrenindeki (index.html TANINMIS_MARKALAR) TÜM markalar için
+    /marka/<marka>/ (+ >=3-ürünlü model sayfaları) üretir. ctx['ROOT']/index.html'den marka
+    listesini AYIKLAR (çip↔sayfa slug birebir). urunler.json DEĞİŞMEZ.
+    Dönüş: {"sitemap":[...], "dizinler":["marka"], "chip_links":"<a..>", "slug_map":{marka:slug},
+            "sayim":{...}, "chip_markalar":[...], "sayfasiz_cipler":[...]}."""
     ROOT = ctx["ROOT"]
     SITE = ctx["SITE"]
-    veri = gruplandir(products)
-
-    marka_kok = os.path.join(ROOT, "marka")
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
+        evren = MarkaEvreni(f.read())
+    veri = gruplandir(products, evren)
 
     def yaz(url, html):
-        # url -> ROOT altı yol (SITE + "/marka/..." -> marka/.../index.html)
         yol = url[len(SITE):].strip("/")          # "marka/ford/focus"
         klasor = os.path.join(ROOT, *yol.split("/"))
         os.makedirs(klasor, exist_ok=True)
         with open(os.path.join(klasor, "index.html"), "w", encoding="utf-8") as f:
             f.write(html)
 
-    sitemap = []     # (loc, priority, changefreq)
-    slug_gorulen = {}  # (marka_slug, model_slug) -> canon (collision nöbeti)
-    sayim = {}       # marka -> {"marka":1, "model":n}
+    # Marka sayfası eşiği: >= ESIK toplam ürünlü kanonik markalar (ince marka sayfası olmasın).
+    marka_toplam = {marka: (sum(len(g["urunler"]) for g in d["gruplar"].values())
+                            + len(d["marka_only"]))
+                    for marka, d in veri.items()}
+    sayfali_markalar = sorted([m for m, t in marka_toplam.items() if t >= ESIK],
+                              key=lambda m: (-marka_toplam[m], m))
+
+    sitemap = []
+    slug_gorulen = {}   # (marka_slug, model_slug) -> canon (model collision nöbeti)
+    marka_slug_gorulen = {}   # marka_slug -> marka (marka slug collision nöbeti)
+    slug_map = {}       # kanonik marka -> slug (JS çip linki için; yalnız sayfası olan markalar)
+    sayim = {}
     index_ozet = []
 
-    for marka in PILOT_MARKALAR:
+    for marka in sayfali_markalar:
         d = veri[marka]
         marka_slug = _slug(marka)
+        if marka_slug in marka_slug_gorulen and marka_slug_gorulen[marka_slug] != marka:
+            raise SystemExit("HATA: marka slug collision — %s hem %r hem %r (folding bozuk)."
+                             % (marka_slug, marka_slug_gorulen[marka_slug], marka))
+        marka_slug_gorulen[marka_slug] = marka
+        slug_map[marka] = marka_slug
+
         gruplar = list(d["gruplar"].values())
-        # collision nöbeti: aynı (marka_slug, model_slug) iki farklı canon'dan gelemez
         for g in gruplar:
             anahtar = (marka_slug, g["slug"])
             if anahtar in slug_gorulen and slug_gorulen[anahtar] != g["canon"]:
@@ -559,27 +647,41 @@ def uret(products, ctx):
             if len(g["urunler"]) < ESIK:
                 kucuk_urunler.extend(g["urunler"])
 
-        # marka sayfası
         murl, mhtml = _marka_sayfasi(ctx, marka, d, buyuk, kucuk_urunler)
         yaz(murl, mhtml)
         sitemap.append((murl, "0.7", "weekly"))
 
-        # model sayfaları (>= ESIK)
         for g in buyuk:
             url, html = _model_sayfasi(ctx, marka, g)
             yaz(url, html)
             sitemap.append((url, "0.7", "weekly"))
 
-        toplam_parca = (sum(len(g["urunler"]) for g in buyuk)
-                        + len(kucuk_urunler) + len(d["marka_only"]))
         sayim[marka] = {"marka_sayfasi": 1, "model_sayfasi": len(buyuk),
-                        "toplam_parca": toplam_parca}
-        index_ozet.append((marka, murl, len(buyuk), toplam_parca))
+                        "toplam_parca": marka_toplam[marka]}
+        index_ozet.append((marka, murl, len(buyuk), marka_toplam[marka]))
 
-    # /marka/ index
+    # /marka/ index (tüm üretilen markalar)
     iurl, ihtml = _marka_index(ctx, index_ozet)
     yaz(iurl, ihtml)
     sitemap.append((iurl, "0.6", "weekly"))
 
+    # Anasayfa çipleri: JS sortedBrands ile AYNI = TANINMIS + ürün sayısına göre azalan, top MARKA_LIMIT.
+    # Yalnız SAYFASI OLAN markalar link olur; sayfası olmayan (çok nadir, <3 ürün) NOT'a düşer.
+    chip_sirasi = sorted(marka_toplam.keys(), key=lambda m: (-marka_toplam[m], m))
+    chip_markalar = chip_sirasi[:evren.limit]
+    chip_links = "".join(_chip_link_html(ctx["esc"], m, slug_map[m])
+                         for m in chip_markalar if m in slug_map)
+    sayfasiz_cipler = [m for m in chip_markalar if m not in slug_map]
+
     ctx.setdefault("_mm_sayim", {}).update(sayim)
-    return sitemap, ["marka"]
+    return {
+        "sitemap": sitemap,
+        "dizinler": ["marka"],
+        "chip_links": chip_links,
+        "slug_map": slug_map,
+        "chip_markalar": chip_markalar,
+        "sayfasiz_cipler": sayfasiz_cipler,
+        "sayim": sayim,
+        "marka_sayfasi_sayisi": len(sayfali_markalar),
+        "model_sayfasi_sayisi": sum(s["model_sayfasi"] for s in sayim.values()),
+    }
