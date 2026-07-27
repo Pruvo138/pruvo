@@ -11,13 +11,21 @@ metnini okur; "Imaj duman testi" adiminin run govdesinde toka duman curl'unun
 eksiksiz durdugunu kanitlar.
 
 UC KAT + negatif kontrol:
-  (A) YAPISAL          — run govdesinde: toka /derle POST ('"aile":"olcuye-ozel-toka"'),
-                         uc parametre (kemer_genisligi + kalinlik + kayis_baglanti),
-                         '-o duman-toka.stl', 'wc -c' satirinda duman-toka.stl,
-                         sondaki 'test -s' zincirinde 'test -s duman-toka.stl'.
-  (B) MUTASYON         — toka curl'u (ve ayrica 'test -s duman-toka.stl') CIKARILAN
-                         kopya YAPISAL kontrolu KIRMIZI vermeli. Vermezse kapi
-                         lastik damgadir (kor) -> test KIRMIZI.
+  (A) YAPISAL          — run govdesinde toka /derle POST'u TAM-TOKEN ad+DEGER pin'iyle
+                         dogrular (substring DEGIL; regex, ':' sonrasi bosluga tolere):
+                         "aile":"olcuye-ozel-toka" , "kemer_genisligi":25 ,
+                         "kalinlik":10.8 , "kayis_baglanti":"dikis" ; ayrica eslem'de
+                         SABIT olan parca/fn toka govdesinde GECMEMELI; '-o duman-toka.stl',
+                         'wc -c' satirinda duman-toka.stl, sondaki 'test -s' zincirinde
+                         'test -s duman-toka.stl'.
+  (B) MUTASYON         — DORT kopya da YAPISAL kontrolu KIRMIZI vermeli, yoksa kapi
+                         lastik damga (kor) -> test KIRMIZI:
+                           curl-sil   : toka curl'u tumden CIKARILAN kopya,
+                           test-s-sil : 'test -s duman-toka.stl' CIKARILAN kopya,
+                           ad-boz     : 'kayis_baglanti' -> 'kayis_baglantiXX' (substring
+                                        deligi 1: eski ad-only kontrol bunu YESIL gecirirdi),
+                           deger-boz  : '"kalinlik":10.8' -> '"kalinlik":99' (deger deligi 2:
+                                        eski kontrol yalniz ADI arardi, DEGERI degil).
   (C) YANLIS-POZITIF   — ilgisiz rutin duzenleme (zararsiz yorum + sahte 12. aile
                          curl'u) EKLENEN kopya YAPISAL kontrolu YINE YESIL kalmali.
                          Kalmazsa kapi fazla genis/kirilgan -> test KIRMIZI.
@@ -37,8 +45,23 @@ REPO = os.path.dirname(os.path.dirname(TEST_DIR))
 YML = os.path.join(REPO, ".github", "workflows", "onizleme-imaj.yml")
 
 ADIM_ADI = "Imaj duman testi"
+# curl-sil mutasyonu bu satiri bulmakta kullanir (gercek govdede bosluksuz gecer).
 TOKA_AILE = '"aile":"olcuye-ozel-toka"'
-TOKA_PARAMS = ("kemer_genisligi", "kalinlik", "kayis_baglanti")
+# TAM-TOKEN ad+DEGER pin (etiket, regex). substring/deger deligine KAPALI: ad tam
+# tirnakla, deger ':' sonrasi opsiyonel bosluga tolere ama BITISI sabit (\b / (?![0-9])
+# / kapanis tirnagi) — 'kayis_baglantiXX' ve 'kalinlik:99' gibi mutasyonlar ESLESMEZ.
+TOKA_ESLESMELER = (
+    ('"aile":"olcuye-ozel-toka"', r'"aile"\s*:\s*"olcuye-ozel-toka"'),
+    ('"kemer_genisligi":25',      r'"kemer_genisligi"\s*:\s*25\b'),
+    ('"kalinlik":10.8',           r'"kalinlik"\s*:\s*10\.8(?![0-9])'),
+    ('"kayis_baglanti":"dikis"',  r'"kayis_baglanti"\s*:\s*"dikis"'),
+)
+# eslem'de SABIT alanlar (parca="ikisi", fn=48) — toka GOVDESINDE gecerse sozlesme
+# ihlali -> KIRMIZI. JSON anahtar bicimiyle aranir (yanlis-eslesme yok).
+TOKA_YASAK = (
+    ('parca', r'"parca"\s*:'),
+    ('fn',    r'"fn"\s*:'),
+)
 TOKA_STL = "duman-toka.stl"
 DERLE = "/derle"
 
@@ -116,20 +139,26 @@ def adim_govdesi(metin):
 # ------------------------------------------------------------ yapisal denetim
 
 def yapisal_kusurlar(govde):
-    """Toka duman curl'unun run govdesinde EKSIKSIZ oldugunu dogrular.
-    Kusur listesi dondurur (bos liste = YESIL)."""
+    """Toka duman curl'unun run govdesinde EKSIKSIZ + DOGRU DEGERLE oldugunu dogrular.
+    ADLARIN yani sira DEGERLERI de TAM-TOKEN eslesmesiyle pinler (substring/deger
+    deligine kapali). Kusur listesi dondurur (bos liste = YESIL)."""
     if govde is None:
         return ["run govdesi bulunamadi (adim ya da 'run: |' yok)"]
     kusurlar = []
 
-    if TOKA_AILE not in govde:
-        kusurlar.append("toka /derle POST yok: %s gecmiyor" % TOKA_AILE)
     if DERLE not in govde:
         kusurlar.append("%s ucu run govdesinde yok" % DERLE)
 
-    for p in TOKA_PARAMS:
-        if p not in govde:
-            kusurlar.append("toka govdesinde parametre eksik: %s" % p)
+    # (A) TAM-TOKEN ad+deger pin — substring DEGIL. Ad tam tirnakla, deger sabit;
+    # 'kayis_baglanti'->'kayis_baglantiXX' ve '"kalinlik":10.8'->':99' ESLESMEZ.
+    for etiket, desen in TOKA_ESLESMELER:
+        if not re.search(desen, govde):
+            kusurlar.append("toka govdesinde TAM-TOKEN ad+deger eslesmesi yok: %s" % etiket)
+
+    # eslem'de SABIT olan alanlar toka govdesinde GECMEMELI (gecerse sozlesme ihlali).
+    for etiket, desen in TOKA_YASAK:
+        if re.search(desen, govde):
+            kusurlar.append("toka govdesinde OLMAMASI gereken (eslem'de sabit) alan var: %s" % etiket)
 
     if ("-o " + TOKA_STL) not in govde:
         kusurlar.append("cikti bayragi yok: -o %s" % TOKA_STL)
@@ -167,6 +196,22 @@ def mutasyon_test_s_cikar(metin):
     t = t.replace(hedef + " && ", "")
     t = t.replace(hedef, "")
     return t
+
+
+def mutasyon_kayis_ad_boz(metin):
+    """MUT-ad (substring deligi 1): toka govdesinde 'kayis_baglanti' -> 'kayis_baglantiXX'.
+    Eski ad-only substring kontrolu ('kayis_baglanti' in govde) bunu YESIL gecirirdi;
+    TAM-TOKEN kontrolu ('"kayis_baglanti"\\s*:\\s*"dikis"') KIRMIZI vermeli.
+    'kayis_baglanti' YML'de yalniz toka -d JSON'unda gecer (tek yer)."""
+    return metin.replace("kayis_baglanti", "kayis_baglantiXX")
+
+
+def mutasyon_kalinlik_deger_boz(metin):
+    """MUT-deger (deger deligi 2): toka govdesinde '"kalinlik":10.8' -> '"kalinlik":99'
+    (aralik disi deger). Eski kontrol yalniz ADI arardi -> YESIL gecirirdi; DEGER pin'i
+    ('"kalinlik"\\s*:\\s*10\\.8(?![0-9])') KIRMIZI vermeli. '"kalinlik":10.8' YML'de
+    yalniz toka govdesinde gecer (braket=4, disli=7 farkli deger)."""
+    return metin.replace('"kalinlik":10.8', '"kalinlik":99')
 
 
 def mutasyon_ilgisiz_ekleme(metin):
@@ -254,21 +299,34 @@ def main():
         for k in a_kusur:
             hatalar.append("(A) YAPISAL: " + k)
     else:
-        print("  [OK ] (A) YAPISAL: toka /derle POST + 3 parametre + -o + wc + test -s tam")
+        print("  [OK ] (A) YAPISAL: toka /derle POST + TAM-TOKEN ad+deger (aile/kemer_genisligi:25/"
+              "kalinlik:10.8/kayis_baglanti:dikis) + parca/fn YOK + -o + wc + test -s tam")
 
-    # (B) MUTASYON — bag(layici) mi? Iki mutasyon da KIRMIZI vermeli.
-    m1 = yapisal_kusurlar(*adim_govdesi(mutasyon_toka_curl_cikar(metin))[1:])
-    m2 = yapisal_kusurlar(*adim_govdesi(mutasyon_test_s_cikar(metin))[1:])
-    mutasyon_bagliyor = bool(m1) and bool(m2)
-    if not m1:
+    # (B) MUTASYON — bag(layici) mi? DORT mutasyon da KIRMIZI vermeli.
+    m_curl = yapisal_kusurlar(adim_govdesi(mutasyon_toka_curl_cikar(metin))[1])
+    m_tests = yapisal_kusurlar(adim_govdesi(mutasyon_test_s_cikar(metin))[1])
+    m_ad = yapisal_kusurlar(adim_govdesi(mutasyon_kayis_ad_boz(metin))[1])
+    m_deger = yapisal_kusurlar(adim_govdesi(mutasyon_kalinlik_deger_boz(metin))[1])
+    mutasyon_bagliyor = bool(m_curl) and bool(m_tests) and bool(m_ad) and bool(m_deger)
+    if not m_curl:
         hatalar.append("(B) MUTASYON KOR: toka curl'u cikinca yapisal kontrol YINE gecti "
                        "(kapi lastik damga)")
-    if not m2:
+    if not m_tests:
         hatalar.append("(B) MUTASYON KOR: 'test -s duman-toka.stl' cikinca yapisal kontrol "
                        "YINE gecti (kapi lastik damga)")
+    if not m_ad:
+        hatalar.append("(B) MUTASYON KOR: 'kayis_baglanti'->'kayis_baglantiXX' yeniden "
+                       "adlandirmasi YINE YESIL gecti (substring deligi 1 hala acik)")
+    if not m_deger:
+        hatalar.append("(B) MUTASYON KOR: '\"kalinlik\":10.8'->'\"kalinlik\":99' deger "
+                       "degisikligi YINE YESIL gecti (deger deligi 2 hala acik)")
     if mutasyon_bagliyor:
-        print("  [OK ] (B) MUTASYON: toka curl'u VE 'test -s duman-toka.stl' cikinca "
-              "kontrol KIRMIZI -> kapi BAGLAYICI")
+        print("  [OK ] (B) MUTASYON: curl-sil + test-s-sil + ad-boz + deger-boz DORT'u de "
+              "KIRMIZI -> kapi BAGLAYICI")
+    # Yeni iki mutasyonun GERCEKTEN kirmizi verdigini acikca raporla.
+    print("  [B-detay] curl-sil KIRMIZI=%s · test-s-sil KIRMIZI=%s · MUT-ad KIRMIZI=%s · "
+          "MUT-deger KIRMIZI=%s"
+          % (bool(m_curl), bool(m_tests), bool(m_ad), bool(m_deger)))
 
     # (C) YANLIS-POZITIF — ilgisiz rutin ekleme YESIL kalmali.
     c_kusur = yapisal_kusurlar(adim_govdesi(mutasyon_ilgisiz_ekleme(metin))[1])
@@ -281,8 +339,9 @@ def main():
               "YINE YESIL")
 
     # Ozet satirlari (donus semasi icin makine-okunur).
-    print("OZET: mutation_bind_fails=%s falsepos_stays_green=%s"
-          % (str(mutasyon_bagliyor).lower(), str(falsepos_yesil).lower()))
+    print("OZET: mutation_bind_fails=%s falsepos_stays_green=%s mut_ad_red=%s mut_deger_red=%s"
+          % (str(mutasyon_bagliyor).lower(), str(falsepos_yesil).lower(),
+             str(bool(m_ad)).lower(), str(bool(m_deger)).lower()))
 
     if hatalar:
         print("\n".join("KIRMIZI: " + h for h in hatalar))
