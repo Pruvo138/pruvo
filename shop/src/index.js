@@ -198,8 +198,13 @@ function istekCoz(govde) {
     // (parametrik.js). Istemcinin yolladigi hacim_mm3/parametrik_fiyat_kurus BILEREK atilir.
     const parametreler = (k.parametreler && typeof k.parametreler === "object" &&
                           !Array.isArray(k.parametreler)) ? k.parametreler : null;
+    // yazi_renk (cerceve 2-renk yazi): OPSIYONEL 2. renk — standart palette'ten dogrulanir,
+    // gecersiz/yoksa null (tek renk). parametrik.js bunu okuyup +75 TL 2-renk ek ucretini
+    // uygular; burada whitelist edilmezse client'in gonderdigi alan DUSER ve sunucu 2-renk'i
+    // GORMEZ -> front 675 gosterip sunucu 600 tahsil ederdi (sessiz eksik tahsilat).
+    const yazi_renk = SECENEK.RENK_SECENEKLERI.includes(k.yazi_renk) ? k.yazi_renk : null;
     kalemler.push({ id, malzeme, renk, renk_ozel: renk_ozel || "", boy_etiket: null, adet,
-                    parametreler });
+                    parametreler, yazi_renk });
   }
   return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler, odeme,
            atif: atifTemizle(govde) };

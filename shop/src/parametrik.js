@@ -43,15 +43,33 @@ export function parametrikHesapla(kalem, secenek, sema) {
   const hacimMm3 = KONF.hacimMm3(sema, p, HACIM);
   if (hacimMm3 == null) { return { hata: "hacim-hesaplanamadi" }; }
 
-  const birimKurus = secenek.parametrikFiyatKurus(
+  let birimKurus = secenek.parametrikFiyatKurus(
     sema.tabanFiyatTL, sema.tabanHacimMm3, hacimMm3, kalem.malzeme, kalem.renk);
   // tabanFiyatTL null (bugun 18/18) -> fiyat yok -> odeme akisina giremez.
   if (birimKurus == null || !(birimKurus > 0)) { return { hata: "taban-fiyat-yok" }; }
 
+  // 2-RENK YAZI EK UCRETI (cerceve): yazi dolu VE yazi_renk cerceve renginden farkli ise
+  // ayri govde uretimi (AMS 2 filaman) -> +75 TL. Boyut/3x tavanin DISINDA: hacme girmez,
+  // clamp'ten SONRA eklenir (tavan yaziyi icermez). yazi param olmayan urunlerde (p.yazi
+  // undefined) veya yazi_renk yoksa/esitse tetiklenmez -> diger sari aileleri etkilemez.
+  const ikiRenk = p.yazi && kalem.yazi_renk && kalem.yazi_renk !== kalem.renk;
+  let detay = KONF.detayMetni(sema, p);
+  if (ikiRenk) {
+    // 2-renk basilabilirlik: kabartma yazi mevcut alt kenara oturur (Caption_Fit=existing),
+    // kenar dar ise yazi sigmaz/SCAD assert atar. Dar kenarda 2-renk siparisini REDDET.
+    // min kenar 10 mm (KaaN render: production floor; 9mm stem 0.69mm<nozul kirilgan, 10mm 0.89mm robust).
+    const IKI_RENK_MIN_KENAR = 10;
+    if (!(kalem.parametreler.kenar_genisligi >= IKI_RENK_MIN_KENAR)) {
+      return { hata: "iki-renk-kenar-dar", enAz: IKI_RENK_MIN_KENAR };
+    }
+    birimKurus += 7500;
+    detay += " · Yazı rengi: " + kalem.yazi_renk + " (2 renk, +75 TL)";
+  }
+
   return {
     birimKurus: birimKurus,
     hacimMm3: hacimMm3,
-    detay: KONF.detayMetni(sema, p),
+    detay: detay,
     parametreler: p,
   };
 }

@@ -141,6 +141,9 @@
     "olcuye-ozel-hortum-adaptoru", "olcuye-ozel-kutu-organizer",
     "olcuye-ozel-vidali-kavanoz-tapa",
     "olcuye-ozel-toka"];
+  // v1.1 NOTU: "olcuye-ozel-cerceve" v1'de listeden CIKARILDI — onizleme paketi
+  // (eslem-ozel + R2 + container) HENUZ YOK, buton cerceve sayfasinda render'i patlatirdi;
+  // paket hazir olunca geri eklenir.
 
   /* Onizleme model RENGI (aile bazli; viewer.js taban rengi). Liste DISI aileler
      sari-seri kimlik rengini (viewer.js varsayilani, parlak sari) alir. Toka
@@ -149,7 +152,10 @@
      0.32..~1.06 arasi olcekler, bu yuzden koyu ama sifir-olmayan taban form
      detayini korur (saf 0 tum yuzu duz siyaha yutardi). */
   var ONIZLEME_RENKLER = {
-    "olcuye-ozel-toka": [0.12, 0.12, 0.13]
+    "olcuye-ozel-toka": [0.12, 0.12, 0.13],
+    // Cerceve: gercekci koyu ton (foto-pano cercevesi) — sari-seri kimlik
+    // rengine dusmesin diye acikca koyu taban verilir (onizleme TEK renk).
+    "olcuye-ozel-cerceve": [0.15, 0.15, 0.16]
   };
 
   /* Onizleme secenek kisitlari: uretim motorunda 3D karsiligi olmayan secim
@@ -221,7 +227,10 @@
   /* Aynı konfigürasyonun tek satırda toplanması için anahtar. ADET BİLEREK DIŞARIDA:
      aynı ürün+malzeme+renk+boy ikinci kez eklenince yeni satır değil, adet artmalı. */
   function satirAnahtari(satir) {
+    // yazi_renk (cerceve 2. renk) anahtara girer: farkli yazi rengi AYRI satir olmali,
+    // yoksa iki farkli 2-renk konfigurasyonu tek satira toplanip biri sessizce kaybolur.
     return [satir.id, satir.malzeme, satir.renk, satir.renk_ozel || "", satir.boy_etiket || "",
+            satir.yazi_renk || "",
             satir.parametreler ? JSON.stringify(satir.parametreler) : ""].join("|");
   }
 
@@ -331,6 +340,9 @@
           s.parametre_detay = x.parametre_detay || "";
           s.hacim_mm3 = x.hacim_mm3 || null;
           s.parametrik_fiyat_kurus = (x.parametrik_fiyat_kurus == null) ? null : x.parametrik_fiyat_kurus;
+          // yazi_renk (cerceve 2. renk): korunur — dusen satir yenilenince 2-renk
+          // ek ucreti + ayri-satir anahtari sessizce kaybolurdu.
+          if (x.yazi_renk) { s.yazi_renk = x.yazi_renk; }
           // Konfigur (dekor konfigüratörü) bayrağı korunur: parametrikSatirOzeti kart-ödeme
           // kanalını bu bayrakla kapatır; düşerse satır sayfa yenilenince ödenebilir görünürdü.
           if (x.konfigur === true) { s.konfigur = true; }
