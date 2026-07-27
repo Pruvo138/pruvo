@@ -596,6 +596,11 @@ KENDINI_TEST_TANI = (
     "oz-nobetcileri' adimi, `run: python3 tools/ci-kapsam-test.py --kendini-test` "
     "(BICIM SERBEST: inline / tirnakli skalar / `run: |` / `>-` / `bash -c` / `python3 -u` "
     "hepsi gecerli). Bayrak adi bilerek degistiyse KENDINI_TEST_BAYRAGI sabitini guncelle.")
+KENDINI_TEST_SABIT_TANI = (
+    "KENDINI_TEST_BAYRAGI sabiti BOZULMUS (deger: %r). Bos ya da `--` ile baslamayan bir "
+    "sabit duz alt-dize aramasini ANLAMSIZ kilar: bos dize HER govdede gecer -> adim "
+    "silinse bile nobetci YESIL kalirdi. Sabiti gercek bayrak metnine geri koy "
+    "(`--kendini-test`).")
 
 
 def kendini_test_adimi_kontrol():
@@ -639,12 +644,27 @@ def kendini_test_adimi_kontrol():
 
     🔴 KABUL EDILEN BEDEL (bilincli daraltma, [[kapi-disiplin-ilkesi]] — kapi disiplin
     cihazidir, hapishane degil): duz alt-dize aramasi MENSIYONU da "duruyor" sayar.
-    Somut olarak su UC hal artik YESIL gecer ve bu BEKLENEN davranistir:
+    Somut olarak su hal(ler) artik YESIL gecer ve bu BEKLENEN davranistir:
       * tirnaksiz `echo` mensiyonu:  `run: echo python3 tools/x.py --kendini-test`
       * bayragin BASKA bir betige verilmesi: `run: python3 tools/baska.py --kendini-test`
       * bayragin herhangi bir icra govdesinde serbest metin olarak gecmesi
-    YORUM ve `name:` mensiyonlari YAKALANMAYA devam eder (suzgec onlari eler) — kapinin
-    korudugu asil sinif "adim silindi / bayrak dustu" zaten budur.
+
+    MENSIYON ELEMESININ GERCEK SINIRI (olculdu TUR 5; onceki surumde bu cumle FAZLA
+    IDDIALIYDI): suzgec yalnizca SATIR BASINI eler — strip() sonrasi `#`, `- name:` ya da
+    `name:` ile BASLAYAN satirlar. Dolayisiyla YAKALANAN sey "kanonik yazilmis yorum /
+    step adi" mensiyonudur; su UC MESRU YAML biciminde mensiyon SUZGECTEN GECER ve kapi
+    YESIL kalir (olculdu, kapi yanlis davranmiyor — iddia zaten "METIN DURUYOR"):
+      * `-  name:`   (tireden sonra IKI bosluk)
+      * `- "name":`  (tirnakli anahtar)
+      * SATIR SONU yorumu:  `run: echo ok   # ... --kendini-test`
+    ⚠️ Suzgec bu yuzden GENISLETILMEZ: her genisletme yeni bir bicim-tahmini, yani yeni
+    bir sahte-kirmizi yuzeyidir (TUR 2/3 dersi).
+
+    BEYAN — argparse KISALTMALARI: `--kendini` / `--kend` gibi kisaltmalar argparse'ta
+    CALISAN komutlardir, ama bayrak metni harfiyen gecmedigi icin bu nobetci onlari
+    KIRMIZI yakar. Tani zaten dogru seyi soyler ("adim kalkmis ya da bayragi dusmus" ->
+    tam metni yaz). Bilincli tercih: kisaltma yazmak ucuzdur, bicim tahmin eden bir
+    esneklik ise pahalidir.
 
     NE KANITLAR / NE KANITLAMAZ: bu nobetci "adim KOSUYOR ve BLOKLUYOR" demez —
     yalnizca "METIN DURUYOR" der. Kapsam disi kalan SESSIZ-YESIL komsu siniflar
@@ -661,6 +681,11 @@ def kendini_test_adimi_kontrol():
       KIRMIZI 4/4: adim silindi · bayrak dustu · `name:` icinde tam komut · yalniz
         YAML YORUMU mensiyonu.
     (ok, hata_satirlari) dondurur."""
+    # FAIL-CLOSED SABIT DAYANAGI (TUR 5, duz-`in`'in getirdigi yeni yuzey): bos bir sabit
+    # HER govdede gecer -> adim silinse bile nobetci YESIL kalirdi. Sahte-kirmizi riski
+    # YOK (sabit hep `--kendini-test`), sessiz-yesil riski buyuktu.
+    if not KENDINI_TEST_BAYRAGI or not KENDINI_TEST_BAYRAGI.startswith("--"):
+        return False, [KENDINI_TEST_SABIT_TANI % (KENDINI_TEST_BAYRAGI,)]
     if not os.path.exists(DEPLOY_VARSAYILAN):
         return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
     with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
