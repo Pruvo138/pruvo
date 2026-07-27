@@ -120,6 +120,14 @@ def _sayfa_sku_kontrol(pid, prod, goreli, hatalar, sayaclar):
         if sku == pid:
             hatalar.append((goreli, "UZUN id (%d>%d) sku HAM pid ile ayni (kisaltilmadi): %r"
                             % (len(pid), SKU_MAX, pid)))
+    # ONARIM KILIDI (27 Tem): mpn = sku (brand+mpn GECERLI tanimlayici cifti; feed g:mpn ile TEK
+    # kaynak = feed_id). Yok/farkli ise GSC "genel tanimlayici verilmemis" gerilemesi -> KIRMIZI.
+    mpn = prod.get("mpn")
+    if not (isinstance(mpn, str) and mpn.strip()):
+        hatalar.append((goreli, "Product'ta mpn YOK/bos (brand+mpn tanimlayici cifti gerilemesi)"))
+    elif mpn != sku:
+        hatalar.append((goreli, "mpn != sku: mpn=%r sku=%r (feed g:mpn ile tek kaynak olmali)"
+                        % (mpn, sku)))
 
 
 def sinif_geneli(hatalar, sayaclar):

@@ -278,12 +278,34 @@ _MM_CSS = """
     color:var(--navy);font-weight:600;font-size:15px}
   .mm-model-btn:hover{border-color:var(--navy-2);background:#fff}
   .mm-model-btn .adet{color:#8996ad;font-weight:500;font-size:12.5px}
-  .mm-grid{list-style:none;padding:0;margin:14px 0;display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
-  .mm-grid li{margin:0}
-  .mm-grid a{display:block;padding:9px 12px;border:1px solid var(--gray-line);border-radius:8px;
-    color:#39434f;text-decoration:none;font-size:13.5px;line-height:1.4;background:#fff}
-  .mm-grid a:hover{border-color:var(--navy-2);color:var(--navy)}
+  /* Ürün-liste kartı = sitenin STANDART katalog kartı (index.html kartCiz ile BİREBİR sınıf/
+     yapı/CSS). Kart CSS'i PAGE_CSS'te YOK (ürün sayfası tek ürün gösterir) -> buraya kopyalandı;
+     :root değişkenleri (--radius/--shadow/--navy/--gray-*) PAGE_CSS'te tanımlı. */
+  .content.mm .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:20px;margin:14px 0}
+  .content.mm .card{background:var(--gray-card);border:1px solid var(--gray-line);
+    border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:var(--shadow);transition:transform .15s, box-shadow .15s}
+  .content.mm .card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(18,41,77,.14)}
+  .content.mm .card-main{display:flex;flex-direction:column;flex:1;text-decoration:none;
+    color:inherit;position:relative}
+  .content.mm .card-badge{position:absolute;top:10px;left:10px;z-index:2;background:#f7b500;
+    color:#12294d;font-size:11px;font-weight:800;letter-spacing:.3px;padding:5px 11px;
+    border-radius:14px;box-shadow:0 2px 7px rgba(0,0,0,.20)}
+  .content.mm .card-img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#dbe2ec;display:block}
+  .content.mm .card-body{padding:14px 15px 16px;display:flex;flex-direction:column;flex:1}
+  .content.mm .card-cat{display:inline-block;align-self:flex-start;background:var(--navy);
+    color:#fff;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
+    padding:3px 9px;border-radius:20px;margin-bottom:9px}
+  .content.mm .card-title{font-size:16px;font-weight:700;margin-bottom:6px;line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .content.mm .card-desc{font-size:13.5px;color:var(--gray-text);margin-bottom:12px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .content.mm .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-top:auto}
+  .content.mm .card-price.empty{color:var(--gray-text);font-weight:600;font-size:13px}
+  @media (max-width:520px){
+    .content.mm .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+  }
   .mm-huni{margin:26px 0 6px;padding:18px 20px;border:1px solid var(--gray-line);
     border-radius:12px;background:var(--gray-card)}
   .mm-huni h2{margin:0 0 8px;font-size:18px;color:var(--navy)}
@@ -385,19 +407,200 @@ def _ld(obj):
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
-def _urun_grid(ctx, urunler):
+# ---- KART-ÖZEL marka-kuralı temizleyicisi (CLAUDE.md "3D BASKI DENMEZ") ----
+# YALNIZ kart BAŞLIĞINDA (baslik) çağrılır -> Merchant feed + /urun/ sayfası BYTE aynı kalır
+# (build.py marka_temiz / render_merchant_feed / render_product DEĞİŞMEZ). (Kart açıklaması 27 Tem
+# KALDIRILDI; temizleyici başlığı /urun/ sayfasıyla tutarlı kılmak için başlıkta korunur.)
+#
+# 🔴 FAIL-SAFE (çürütücü over-clean bulgusu, 27 Tem): Türkçe "baskı" hem PRINTING hem BASINÇ/press
+# demektir (baskı plakası=debriyaj, baskı balata, baskı uygula/altında=basınç, rulman baskısı=press,
+# baskıyı hizala=debriyaj). "basıl" hem "üretilir/printed" hem "düğmeye basılır/button-press".
+# İLKE: bir basınç/buton anlamını mangle etmektense belirsizi KORU. Bu yüzden BARE "baskı" (tüm
+# çekimleri) ve tüm "basma/basmak" ASLA çevrilmez; "basıl" YALNIZ printing bağlamında (buton
+# yakınında/önle-engelle-karşı DEĞİL) çevrilir. Çevrilenler = kesin/açık printing:
+_KART_BILESIK = [   # bileşik/çok-kelime — açık printing, basınç ambiguity YOK
+    (re.compile(r"3\s*[dD]\s*[-\s]?bask[ıi]\w*", re.I), "özel tasarım üretim"),   # 3D baskı/baskılı
+    (re.compile(r"3\s*boyutlu\s+bask[ıi]\w*", re.I), "özel tasarım üretim"),
+    (re.compile(r"3\s*[dD]\s*print\w*", re.I), "özel tasarım üretim"),
+    (re.compile(r"3\s*[dD]\s*yaz[ıi]c[ıi]\w*", re.I), "özel üretim"),             # 3D yazıcı
+    (re.compile(r"(desteksiz|destekli)\s+bask[ıi]\w*", re.I), r"\1 üretim"),      # desteksiz/destekli baskı
+    (re.compile(r"masa\s*[üu]st[üu]\s+bask[ıi]\w*", re.I), "özel üretim"),        # masaüstü baskı
+    (re.compile(r"bask[ıi]\s+(tabla\w*)", re.I), r"üretim \1"),                   # baskı tablası (print-bed)
+]
+# BUTON/basınç-BASIL koruması: bu bağlamlardaki "basıl" ÇEVRİLMEZ (maskelenir). Cümle içi (nokta
+# geçmez); "basılması önerilir" (printing) MASKELENMEZ ('öner' != 'önle'). Sanitize + lint AYNI maskeyi kullanır.
+_KART_KORU = [re.compile(p, re.I) for p in (
+    r"(?:düğme|buton|korna)\w*[^.]{0,32}?bas[ıi]l\w*",     # düğmeye/butona basılması (button-press)
+    r"bas[ıi]l\w*[^.]{0,26}?(?:önle|engelle|karşı)\w*",    # basılmasını önler / basılmaya karşı (button)
+)]
+# BAĞLAM-DUYARLI bare "baskı" (çürütücü son ayar, 27 Tem): bare "baskı" VARSAYILAN KORUNUR (basınç:
+# baskı balata/plakası/uygula/altında/yaparak/hizala), AMA printing SİNYALİ bitişikse ÇEVRİLİR:
+# (a) malzeme adı ÖNCE (PLA/PETG/ABS/PA/PC/ASA/TPU/reçine/naylon) · (b) doluluk/infill/ölçek ÖNCE ·
+# (c) hassas/test/kolay/hızlı/düz/dikey/yatay ÖNCE · (d) SONRA printing-tavsiyesi (önerilir/yeterli/
+# gerektirir/kalitesi/ayarı/çözünürlüğü/hassasiyeti). Ölçüldü: 79 printing-"baskı" yakalanır, 21 basınç
+# "baskı" DOKUNULMAZ, örtüşme 0. Basınç kolokasyonu bu sinyallerden hiçbirini taşımaz -> güvenli.
+_PRINT_SIG = (r"(?:pla|petg|abs|asa|tpu|pa-?cf|pa-?gf|pa|pc|reçine\w*|naylon|poliamid"
+              r"|doluluk\w*|dolulukta|dolulukla|dolu|infill|ölçek\w*"
+              r"|hassas|test|kolay|hızlı|düz|dikey|yatay)")
+_PRINT_ADV = (r"(?:öneril\w*|yeterli\w*|gerektir\w*|kalites\w*|ayar\w*"
+              r"|çözünürl\w*|hassasiyet\w*)")
+_KART_PRINT_1 = re.compile(r"(\b" + _PRINT_SIG + r"\s+(?:ile\s+)?)(bask[ıi]\w*)", re.I)
+_KART_PRINT_2 = re.compile(r"(bask[ıi]\w*)(\s+" + _PRINT_ADV + r")", re.I)
+_BASK_DON = {"baskı": "üretim", "baskıya": "üretime", "baskıda": "üretimde",
+             "baskıyla": "üretimle", "baskısı": "üretimi",
+             "baskıyı": "üretimi", "baskıdan": "üretimden", "baski": "üretim"}
+
+
+def _bask_don_w(w):
+    r = _BASK_DON.get(w.lower(), "üretim")
+    if w[:1].isupper():
+        r = r[:1].upper() + r[1:]
+    return r
+# Tekil printing kelime formları (basınç/buton maskelendi/yok). Türkçe ek uyumlu ENUMERE karşılık;
+# yoksa kök-bazlı yedek. NOT: bare "baskı"/"basma" YOK (fail-safe koru).
+_KART_KELIME = {
+    "baskılı": "özel üretim",
+    "basılması": "üretilmesi", "basılıp": "üretilip", "basılır": "üretilir",
+    "basıldığında": "üretildiğinde", "basılabilir": "üretilebilir", "basılmasını": "üretilmesini",
+    "basılan": "üretilen", "basılmaya": "üretilmeye", "basılarak": "üretilerek",
+    "basılmış": "üretilmiş", "basılabilen": "üretilebilen", "basıldıktan": "üretildikten",
+    "basılmasına": "üretilmesine", "basılmalı": "üretilmeli", "basılmalıdır": "üretilmelidir",
+    "basılırsa": "üretilirse", "basılabilmesi": "üretilebilmesi", "basılabilecek": "üretilebilecek",
+    "filament": "malzeme", "filamentle": "malzemeyle", "filamentte": "malzemede",
+    "filamentlerle": "malzemelerle", "filamentlerde": "malzemelerde",
+    "yazıcı": "özel üretim", "yazıcılarda": "özel üretimlerde", "yazıcıların": "özel üretimlerin",
+    "yazıcıya": "özel üretime", "yazıcıda": "özel üretimde", "yazıcının": "özel üretimin",
+    "yazdırmaya": "üretime", "yazdırma": "üretim", "yazdırılan": "üretilen",
+}
+# Kök seti: yalnız ÇEVRİLECEKLER — filament, yazıcı, yazdır, baskılı, basıl (production). Bare
+# "baskı" ve "basma" KAPSAM DIŞI (fail-safe koru). 'baskılı' 'basıl'dan ÖNCE (baskılı ≠ basıl).
+_KART_ROOT_RE = re.compile(
+    r"\b(?:filament|yaz[ıi]c[ıi]|yazd[ıi]r|bask[ıi]l[ıi]|bas[ıi]l)\w*", re.I)
+
+
+def _kart_root_rep(m):
+    w = m.group(0)
+    dl = _kart_kelime_yardim(w.lower())
+    if w[:1].isupper():                              # kapitalizasyonu koru
+        dl = dl[:1].upper() + dl[1:]
+    return dl
+
+
+def _kart_kelime_yardim(w):
+    if w in _KART_KELIME:
+        return _KART_KELIME[w]
+    if w.startswith("filament"):
+        return "malzeme"
+    if w.startswith("baskıl") or w.startswith("baskil"):   # baskılı (printed)
+        return "özel üretim"
+    if w.startswith("bas") and ("basıl" in w or "basil" in w):
+        return "üretilen"
+    if w.startswith("yazıc") or w.startswith("yazic"):
+        return "özel üretim"
+    if w.startswith("yazdır") or w.startswith("yazdir"):
+        return "üretim"
+    return w
+
+
+def _kart_temizle(txt):
+    """Kart BAŞLIĞINDAKİ AÇIK printing jargonunu temizle. Bare 'baskı' (basınç dahil) +
+    'basma' + buton-'basıl' KORUNUR (fail-safe, over-clean YOK)."""
+    if not txt:
+        return txt
+    # hızlı yol: hiçbir tetikleyici alt-dize yoksa dokunma. Tetikleyiciler ÇEVRİLECEK kökleri kapsar:
+    # filament · yazıcı · yazdır · "bask" (3D/desteksiz/masaüstü/tabla baskı + baskılı) · print · basıl.
+    if not re.search(r"filament|yaz[ıi]c[ıi]|yazd[ıi]r|bask|print|bas[ıi]l", txt, re.I):
+        return txt
+    masks = []
+
+    def _mask(m):
+        masks.append(m.group(0))
+        return "\x00%dM\x00" % (len(masks) - 1)
+
+    for pat in _KART_KORU:                           # 1) buton-basıl maskele (koru)
+        txt = pat.sub(_mask, txt)
+    for pat, rep in _KART_BILESIK:                   # 2) 3D/desteksiz/masaüstü/tabla bileşik
+        txt = pat.sub(rep, txt)
+    # 3) BAĞLAM-DUYARLI bare "baskı": printing sinyali bitişikse çevir (basınç KORUNUR)
+    txt = _KART_PRINT_1.sub(lambda m: m.group(1) + _bask_don_w(m.group(2)), txt)
+    txt = _KART_PRINT_2.sub(lambda m: _bask_don_w(m.group(1)) + m.group(2), txt)
+    txt = _KART_ROOT_RE.sub(_kart_root_rep, txt)     # 4) filament/yazıcı/yazdır/baskılı/basıl
+    for i, o in enumerate(masks):                    # 5) maskeleri geri koy
+        txt = txt.replace("\x00%dM\x00" % i, o)
+    return txt
+
+
+def _placeholder(txt):
+    """index.html placeholder() portu — görselsiz/kırık görsel yerine SVG (kataloğla aynı)."""
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">'
+            '<rect width="400" height="300" fill="#1c3a6b"/>'
+            '<text x="50%" y="50%" fill="#9db1d4" font-family="Arial" font-size="26" '
+            'font-weight="bold" text-anchor="middle" dominant-baseline="middle">PRUVO · '
+            + txt + '</text></svg>')
+
+
+def _ph_data(kat):
+    """index.html phData() portu: SVG placeholder -> data URI."""
+    return "data:image/svg+xml;utf8," + quote(_placeholder(kat or "Ürün"), safe="")
+
+
+def _kart_fiyat(ctx, p):
+    """index.html kartCiz fiyat mantığı BİREBİR: fiyat -> taban ('X TL'den başlayan') ->
+    'Ölçüye özel fiyat'/'Fiyat için sipariş verin'. (metin, empty_mi) döner."""
+    fiyat = (p.get("fiyat") or "").strip()
+    parametrik = bool(p.get("parametrik"))
+    if fiyat:
+        return fiyat, False
+    taban = None
+    if parametrik:
+        sema = ctx["konf_sema"](p.get("id"))
+        if sema:
+            taban = sema.get("tabanFiyatTL")
+    if taban is not None:
+        return ctx["taban_fiyat_metni"](taban) + "'den başlayan", False
+    return ("Ölçüye özel fiyat" if parametrik else "Fiyat için sipariş verin"), True
+
+
+def _kart(ctx, p):
+    """Sitenin STANDART katalog kartı (index.html kartCiz) — SSR/crawlable birebir eşi:
+    <a class="card-main" href="/urun/<id>/"> img(card-img, lazy, gerçek görsel) + card-body
+    (card-cat/card-title/card-price) + parametrikse card-badge.
+    AÇIKLAMA (card-desc) KALDIRILDI (Okan direktifi, 27 Tem): kart yalnız görsel + başlık +
+    kategori + fiyat taşır; baskı/filament/yazıcı jargon-kaçağı açıklamada doğduğu için
+    KAYNAĞINDA kesildi (bağlam-duyarlı sınıflandırıcı whack-a-mole yerine yapısal çözüm)."""
     esc = ctx["esc"]
-    product_url = ctx["product_url"]
-    parts = []
-    for p in urunler:
-        pid = p.get("id")
-        if not pid:
-            continue
-        parts.append('<li><a href="%s">%s</a></li>'
-                     % (esc(product_url(pid)), esc((p.get("baslik") or "").strip() or pid)))
+    pid = p.get("id")
+    # KART-ÖZEL marka-kuralı temizliği (baskı-jargonu -> okunur karşılık; mekanik anlam korunur).
+    # YALNIZ kart BAŞLIĞINDA; feed/urun DEĞİŞMEZ.
+    baslik = _kart_temizle((p.get("baslik") or "").strip()) or pid
+    kategori = (p.get("kategori") or "").strip()
+    imgs = ctx["images_of"](p)
+    # Görseli olan (neredeyse tümü) gerçek media URL'ini taşır; görselsiz nadir ürün placeholder
+    # data-URI'sini SRC olarak alır. NOT: kataloğun kartCiz'i onerror'ı JS'te bağlar; SSR'de her
+    # karta gömülen data-URI onerror sayfayı ŞİŞİRİR (ölçüldü: BMW marka 1.5 MB) -> gömülmez.
+    cover = imgs[0] if imgs else _ph_data(kategori)
+    fiyat_metni, bos = _kart_fiyat(ctx, p)
+
+    badge = ('<span class="card-badge">Ölçüye Özel</span>'
+             if p.get("parametrik") else "")
+    return (
+        '<div class="card"><a class="card-main" href="%s">'
+        '<img class="card-img" alt="%s" loading="lazy" src="%s">'
+        '<div class="card-body">'
+        '<span class="card-cat">%s</span>'
+        '<div class="card-title">%s</div>'
+        '<div class="card-price%s">%s</div>'
+        '</div>%s</a></div>'
+        % (esc(ctx["product_url"](pid)), esc(baslik), esc(cover),
+           esc(kategori), esc(baslik),
+           " empty" if bos else "", esc(fiyat_metni), badge))
+
+
+def _urun_grid(ctx, urunler):
+    parts = [_kart(ctx, p) for p in urunler if p.get("id")]
     if not parts:
         return ""
-    return '<ul class="mm-grid">' + "".join(parts) + "</ul>"
+    return '<div class="grid">' + "".join(parts) + "</div>"
 
 
 def _itemlist(ctx, urunler, limit=None):

@@ -51,10 +51,18 @@ BANNED_RE = [re.compile(p, re.I) for p in BANNED]
 
 
 def authored(page):
-    ms = page.find('<main class="content mm">')
-    me = page.find('</main>')
-    body = page[ms:me] if (ms >= 0 and me > ms) else page
-    return re.sub(r'<ul class="mm-grid">.*?</ul>', " ", body, flags=re.S)
+    """Yalnız SAYFANIN AUTHORED copy'sini (H1/giriş/başlık/breadcrumb/huni/model-buton +
+    meta description) toplar. Ürün kartları (<div class="grid"> — KATALOG verisi: başlık/
+    açıklama /urun/ sayfasında aynen görünür) marka-lint KAPSAMI DIŞI (koordinatör notu).
+    Extract yaklaşımı: kart div'leri iç içe olduğundan strip yerine authored bölgeleri ayıklar."""
+    parts = re.findall(r'<h1>.*?</h1>', page, re.S)
+    parts += re.findall(r'<p class="lead">.*?</p>', page, re.S)
+    parts += re.findall(r'<h2 class="mm-sec-h">.*?</h2>', page, re.S)
+    parts += re.findall(r'<nav class="mm-bc".*?</nav>', page, re.S)
+    parts += re.findall(r'<div class="mm-huni">.*?</div>', page, re.S)
+    parts += re.findall(r'<a class="mm-model-btn"[^>]*>.*?</a>', page, re.S)
+    parts += re.findall(r'<meta name="description" content="[^"]*">', page)
+    return " ".join(parts)
 
 
 def main():
@@ -184,6 +192,21 @@ def main():
             bekle("<h1>" in page and "Yedek Parça" in page, "%s SSR H1 yok" % g["slug"])
             bekle(len(re.findall(r'href="https://pruvo3d\.com/urun/', page)) >= mm.ESIK,
                   "%s ürün linki < %d" % (g["slug"], mm.ESIK))
+            # GÖRSELLİ KART (düz-yazı regresyon nöbeti): standart katalog kartı = card-main +
+            # card-img (lazy, gerçek görsel src) + card-cat/card-title/card-price (kartCiz ile aynı).
+            bekle(len(re.findall(r'<a class="card-main" href="', page)) >= mm.ESIK,
+                  "%s card-main < eşik (kart bileşeni yok)" % g["slug"])
+            imglar = re.findall(r'<img class="card-img"[^>]*\bloading="lazy"[^>]*\bsrc="([^"]+)"', page)
+            bekle(len(imglar) >= mm.ESIK,
+                  "%s card-img < eşik — DÜZ YAZIYA regresyon?" % g["slug"])
+            bekle(any(s.startswith("https://") for s in imglar),
+                  "%s gerçek görsel src yok (hepsi placeholder?)" % g["slug"])
+            for kls in ('card-cat', 'card-title', 'card-price'):
+                bekle(('class="%s"' % kls) in page, "%s katalog kart sınıfı '%s' yok" % (g["slug"], kls))
+            # AÇIKLAMA KALDIRILDI (Okan 27 Tem): örnek model sayfasında card-desc ELEMENTİ olmamalı.
+            bekle('<div class="card-desc"' not in page,
+                  "%s card-desc kaldırılmadı (kart-açıklama elementi hâlâ var)" % g["slug"])
+            bekle('<div class="grid">' in page, "%s kart grid container'ı yok" % g["slug"])
             bekle(('<link rel="canonical" href="%s">' % url) in page, "%s self-canonical yok" % g["slug"])
             bekle('<meta name="robots" content="index,follow">' in page, "%s robots yok" % g["slug"])
             for t in ('"ItemList"', '"CollectionPage"', '"BreadcrumbList"'):
@@ -262,6 +285,45 @@ def main():
               "enjekte HTML'de ford/bmw çip linki yok (JS-siz SSR)")
         BILGI.append("SSR çip: %d marka linki (JS-siz), sayfasız çip: %d"
                      % (len(chip_hrefs), len(sonuc["sayfasiz_cipler"])))
+
+        # ===== 8: KART AÇIKLAMASI KALDIRILDI (removed-description gate) + başlık over-clean guard =====
+        # Okan direktifi (27 Tem — bağlam-duyarlı sınıflandırıcı whack-a-mole'ünü GEÇERSİZ kılar):
+        # kart açıklaması KART'tan tamamen ÇIKARILDI, böylece baskı/filament/yazıcı jargon-kaçağı
+        # KAYNAĞINDA kesildi. Kart artık yalnız görsel + başlık + kategori + fiyat taşır.
+        # GATE (bağımsız doğrulama, çıktıyı tarar): üretilen HİÇBİR /marka sayfasında card-desc
+        # ELEMENTİ (<div class="card-desc">) kalmamalı — 0. Sabotaj nöbeti: jargonlu bir açıklama
+        # geri eklenirse bu sayaç >0 olur -> KIRMIZI. (kart_sayisi>0: walk boşsa gate boşa geçmesin.)
+        card_desc_re = re.compile(r'<div class="card-desc"')
+        card_main_re = re.compile(r'<a class="card-main" href="')
+        toplam_desc = 0
+        kart_sayisi = 0
+        for dp, _d, fs in os.walk(os.path.join(tmp, "marka")):
+            for fn in fs:
+                if fn != "index.html":
+                    continue
+                with open(os.path.join(dp, fn), encoding="utf-8") as f:
+                    b = f.read()
+                toplam_desc += len(card_desc_re.findall(b))
+                kart_sayisi += len(card_main_re.findall(b))
+        bekle(kart_sayisi > 0, "hiç kart üretilmedi (walk boş — removed-description gate boşa geçmesin)")
+        bekle(toplam_desc == 0,
+              "card-desc ELEMENTİ %d kart-açıklaması hâlâ var (kaldırılmadı / geri eklendi)" % toplam_desc)
+        # BAŞLIK SANITIZER OVER-CLEAN GUARD: mm._kart_temizle başlıkta KORUNDU (/urun ile tutarlı).
+        # Başlık "Baskı Balatası" / "basmalı düğme" gibi basınç/buton terimleri taşıyabilir; temizleyici
+        # bunları MANGLE ETMEMELİ. Birim iddiası (çıktıdan bağımsız); sabotaj (bare-baskı çevirisi geri
+        # eklenirse) bu ifadeler değişir -> KIRMIZI.
+        basinc_ifade = [
+            "debriyaj diski ve baskıyı hizalamak", "baskı plakasına tam merkezli",
+            "cama baskı uygulanmaması önerilir", "baskı balatayı kusursuz şekilde hizalama",
+            "baskı ve balatanın kusursuz", "rulmana baskı yaparak", "baskı altında zayıf",
+            "volan/baskı merkezine", "baskıyla oturtularak", "rulman baskısı için",
+            "kontrollü baskı uygulanmasına", "basmalı düğmenin", "basma butonunun",
+        ]
+        for ifade in basinc_ifade:
+            bekle(mm._kart_temizle(ifade) == ifade,
+                  "PRESSURE/BUTTON mangle: %r -> %r" % (ifade, mm._kart_temizle(ifade)))
+        BILGI.append("kart: %d kart · card-desc ELEMENT=%d (KALDIRILDI) · başlık over-clean guard geçti"
+                     % (kart_sayisi, toplam_desc))
 
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
