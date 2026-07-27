@@ -1,5 +1,199 @@
 [
   {
+    "id": "opel-vauxhall-astra-h-yolcu-yan-ayna-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Astra H"
+    ],
+    "baslik": "Opel / Vauxhall Astra H Yolcu Yan Ayna Kapağı",
+    "aciklama": "Opel / Vauxhall Astra H makyajlı kasa için yolcu tarafı dış dikiz ayna gövde kapağıdır.\nKırılan veya çatlayan orijinal ayna kapağının yerine geçer; ayna mekanizmasını ve camını tozdan korur.\nMevcut ayna gövdesine oturacak şekilde hazırlanmıştır, ek parça gerektirmeden yerleşir.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1686372-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1686372-2.jpg"
+    ]
+  },
+  {
+    "id": "opel-katlanir-anahtar-mentese-onarim-kabugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Karl"
+    ],
+    "baslik": "Opel Katlanır Anahtar Menteşe Onarım Kabuğu",
+    "aciklama": "Opel katlanır (çakma) anahtarların menteşe bölgesi için onarım kabuğu / kelepçesidir.\nZamanla gevşeyen veya kırılan menteşe kısmını sararak anahtarın açılıp kapanmasını yeniden düzgün hale getirir.\nOrijinal anahtar gövdesine oturacak şekilde hazırlanmıştır; ek parça gerektirmeden takılır.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1348787-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1348787-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Andre",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-vectra-c-kalorifer-fan-hiz-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Vectra C"
+    ],
+    "baslik": "Opel Vectra C Kalorifer Fan Hız Düğmesi (2002-2010)",
+    "aciklama": "Opel Vectra C kalorifer / havalandırma kontrol panelindeki fan hız ayar düğmesidir.\nKırılan veya aşınan orijinal düğmenin yerine geçer; aynı mile bastırmalı olarak oturur.\nSıcaklık ayar tarafında da kullanılabilir; panel yuvasına doğrudan takılır.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1476558-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1476558-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fang",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-ascona-c-kadett-e-corsa-a-anahtar-kor-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Ascona C"
+    ],
+    "baslik": "Opel Ascona C / Kadett E / Corsa A Anahtar Kör Tapası",
+    "aciklama": "Opel Ascona C, Kadett E ve Corsa A gösterge paneli anahtar boşluğu için kör tapa / kapatma parçasıdır.\nKullanılmayan düğme yuvasını düzgün şekilde kapatır; ayrıca istenirse ek aparat tutucu olarak da değerlendirilebilir.\nOrijinal yuvaya oturacak şekilde hazırlanmış yedek parçadır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1594370-1.jpg"
+    ]
+  },
+  {
+    "id": "opel-astra-cam-suyu-su-deposu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Astra"
+    ],
+    "baslik": "Opel Astra Cam Suyu Deposu Kapağı",
+    "aciklama": "Klasik Opel Astra ön cam yıkama suyu deposunun ağız kapağıdır.\nKaybolan veya kırılan orijinal kapağın yerine geçer; depo ağzını toz ve sıçramaya karşı kapatır.\nMevcut depo boğazına oturacak şekilde hazırlanmıştır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2222431-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3d labor",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-corsa-c-vita-c-arka-koltuk-katlama-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Corsa C"
+    ],
+    "baslik": "Opel Corsa C / Vita C Arka Koltuk Katlama Kolu",
+    "aciklama": "Opel Corsa C / Vita C arka katlanır koltuk için katlama kolu / tutamağıdır.\nKırılan orijinal kolun yerine doğrudan geçer; sağ ve sol taraf aynı parça ile karşılanır, iki tarafta da kullanılabilir.\nÇoğu durumda ek işlem gerektirmeden yerine oturur.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2715432-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2715432-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "soulus",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-corsa-f-motor-sigorta-kutusu-kapak-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Corsa F"
+    ],
+    "baslik": "Opel Corsa F Motor Sigorta Kutusu Kapak Klipsi",
+    "aciklama": "Opel Corsa F motor bölmesindeki sigorta kutusu kapağını sabitleyen klipstir.\nKopan veya kaybolan orijinal klipsin yerine geçer; kapağı yerinde tutar.\nMotor bölmesinde yüksek sıcaklığa dayanıklı malzeme ile üretilmesi önerilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1785997-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1785997-2.jpg"
+    ]
+  },
+  {
+    "id": "opel-corsa-c-radyo-alti-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Corsa C"
+    ],
+    "baslik": "Opel Corsa C Radyo Altı Bardaklık",
+    "aciklama": "Opel Corsa C torpido bölgesinde radyo altındaki kullanılmayan boşluğa oturan bardaklıktır.\nBoşta duran gözü işlevsel bir içecek tutucuya dönüştürür; kutu ve şişeleri sabit tutar.\nMevcut yuvaya kayarak yerleşir, ek parça gerektirmez.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2900510-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2900510-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DerkR",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-ascona-c-kapi-kilit-silindiri-hareket-dili",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Ascona C"
+    ],
+    "baslik": "Opel Ascona C Kapı Kilit Silindiri Hareket Dili",
+    "aciklama": "Opel Ascona C kapı kilit silindirinin hareket / tetikleme dilidir.\nKırılan orijinal parçanın yerine geçer; anahtarın çevrilmesiyle kilit mekanizmasını harekete geçiren bağlantıyı yeniden kurar.\nOrijinal silindire uyacak şekilde hazırlanmış yedek parçadır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1594378-1.jpg"
+    ]
+  },
+  {
+    "id": "opel-ascona-c-bagaj-havalandirma-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Ascona C"
+    ],
+    "baslik": "Opel Ascona C Bagaj Havalandırma Kapağı",
+    "aciklama": "Opel Ascona C bagaj bölmesi havalandırma açıklığı için kapak / blende parçasıdır.\nKaybolan veya kırılan orijinal kapağın yerine geçer.\nBiri bagaj aydınlatmasına yer bırakan, diğeri düz olmak üzere iki farklı biçimde değerlendirilebilir.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1594396-1.jpg"
+    ]
+  },
+  {
+    "id": "opel-ascona-c-kapi-kilit-silindiri-surukleyicisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Ascona C"
+    ],
+    "baslik": "Opel Ascona C Kapı Kilit Silindiri Sürükleyicisi",
+    "aciklama": "Opel Ascona C kapı kilit silindirinin sürükleyici (mitnehmer) parçasıdır.\nKırılan orijinal parçanın yerine geçer; silindir ile kilit mekanizması arasındaki hareket aktarımını sağlar.\nOrijinal silindire oturacak şekilde hazırlanmış yedek parçadır.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1594511-1.jpg"
+    ]
+  },
+  {
+    "id": "opel-ascona-c-yakit-dolum-lastik-takozu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Ascona C"
+    ],
+    "baslik": "Opel Ascona C Yakıt Dolum Lastik Takozu",
+    "aciklama": "Opel Ascona C yakıt dolum kapağı için lastik takoz / tampondur.\nKapağın gövdeye çarparak ses ve aşınma yapmasını önler; sıkı ve sessiz bir oturma sağlar.\nEsnek malzemeyle üretilmesi önerilir, kaybolan veya yıpranan orijinal parçanın yerine geçer.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1594387-1.jpg"
+    ]
+  },
+  {
     "id": "volvo-v60-s60-torpido-ustu-telefon-tutucu",
     "kategori": "Otomobil",
     "marka": [
