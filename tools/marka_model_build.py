@@ -278,12 +278,34 @@ _MM_CSS = """
     color:var(--navy);font-weight:600;font-size:15px}
   .mm-model-btn:hover{border-color:var(--navy-2);background:#fff}
   .mm-model-btn .adet{color:#8996ad;font-weight:500;font-size:12.5px}
-  .mm-grid{list-style:none;padding:0;margin:14px 0;display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
-  .mm-grid li{margin:0}
-  .mm-grid a{display:block;padding:9px 12px;border:1px solid var(--gray-line);border-radius:8px;
-    color:#39434f;text-decoration:none;font-size:13.5px;line-height:1.4;background:#fff}
-  .mm-grid a:hover{border-color:var(--navy-2);color:var(--navy)}
+  /* Ürün-liste kartı = sitenin STANDART katalog kartı (index.html kartCiz ile BİREBİR sınıf/
+     yapı/CSS). Kart CSS'i PAGE_CSS'te YOK (ürün sayfası tek ürün gösterir) -> buraya kopyalandı;
+     :root değişkenleri (--radius/--shadow/--navy/--gray-*) PAGE_CSS'te tanımlı. */
+  .content.mm .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:20px;margin:14px 0}
+  .content.mm .card{background:var(--gray-card);border:1px solid var(--gray-line);
+    border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;
+    box-shadow:var(--shadow);transition:transform .15s, box-shadow .15s}
+  .content.mm .card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(18,41,77,.14)}
+  .content.mm .card-main{display:flex;flex-direction:column;flex:1;text-decoration:none;
+    color:inherit;position:relative}
+  .content.mm .card-badge{position:absolute;top:10px;left:10px;z-index:2;background:#f7b500;
+    color:#12294d;font-size:11px;font-weight:800;letter-spacing:.3px;padding:5px 11px;
+    border-radius:14px;box-shadow:0 2px 7px rgba(0,0,0,.20)}
+  .content.mm .card-img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#dbe2ec;display:block}
+  .content.mm .card-body{padding:14px 15px 16px;display:flex;flex-direction:column;flex:1}
+  .content.mm .card-cat{display:inline-block;align-self:flex-start;background:var(--navy);
+    color:#fff;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;
+    padding:3px 9px;border-radius:20px;margin-bottom:9px}
+  .content.mm .card-title{font-size:16px;font-weight:700;margin-bottom:6px;line-height:1.3;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .content.mm .card-desc{font-size:13.5px;color:var(--gray-text);margin-bottom:12px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .content.mm .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-top:auto}
+  .content.mm .card-price.empty{color:var(--gray-text);font-weight:600;font-size:13px}
+  @media (max-width:520px){
+    .content.mm .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+  }
   .mm-huni{margin:26px 0 6px;padding:18px 20px;border:1px solid var(--gray-line);
     border-radius:12px;background:var(--gray-card)}
   .mm-huni h2{margin:0 0 8px;font-size:18px;color:var(--navy)}
@@ -385,19 +407,76 @@ def _ld(obj):
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
-def _urun_grid(ctx, urunler):
+def _placeholder(txt):
+    """index.html placeholder() portu — görselsiz/kırık görsel yerine SVG (kataloğla aynı)."""
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">'
+            '<rect width="400" height="300" fill="#1c3a6b"/>'
+            '<text x="50%" y="50%" fill="#9db1d4" font-family="Arial" font-size="26" '
+            'font-weight="bold" text-anchor="middle" dominant-baseline="middle">PRUVO · '
+            + txt + '</text></svg>')
+
+
+def _ph_data(kat):
+    """index.html phData() portu: SVG placeholder -> data URI."""
+    return "data:image/svg+xml;utf8," + quote(_placeholder(kat or "Ürün"), safe="")
+
+
+def _kart_fiyat(ctx, p):
+    """index.html kartCiz fiyat mantığı BİREBİR: fiyat -> taban ('X TL'den başlayan') ->
+    'Ölçüye özel fiyat'/'Fiyat için sipariş verin'. (metin, empty_mi) döner."""
+    fiyat = (p.get("fiyat") or "").strip()
+    parametrik = bool(p.get("parametrik"))
+    if fiyat:
+        return fiyat, False
+    taban = None
+    if parametrik:
+        sema = ctx["konf_sema"](p.get("id"))
+        if sema:
+            taban = sema.get("tabanFiyatTL")
+    if taban is not None:
+        return ctx["taban_fiyat_metni"](taban) + "'den başlayan", False
+    return ("Ölçüye özel fiyat" if parametrik else "Fiyat için sipariş verin"), True
+
+
+def _kart(ctx, p):
+    """Sitenin STANDART katalog kartı (index.html kartCiz) — SSR/crawlable birebir eşi:
+    <a class="card-main" href="/urun/<id>/"> img(card-img, lazy, gerçek görsel) + card-body
+    (card-cat/card-title/card-desc/card-price) + parametrikse card-badge."""
     esc = ctx["esc"]
-    product_url = ctx["product_url"]
-    parts = []
-    for p in urunler:
-        pid = p.get("id")
-        if not pid:
-            continue
-        parts.append('<li><a href="%s">%s</a></li>'
-                     % (esc(product_url(pid)), esc((p.get("baslik") or "").strip() or pid)))
+    pid = p.get("id")
+    baslik = (p.get("baslik") or "").strip() or pid
+    kategori = (p.get("kategori") or "").strip()
+    aciklama = re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip()
+    if len(aciklama) > 160:                    # 2 satır clamp'e denk; kart-özeti (ozet.json) ile aynı
+        aciklama = aciklama[:160].rsplit(" ", 1)[0]
+    imgs = ctx["images_of"](p)
+    # Görseli olan (neredeyse tümü) gerçek media URL'ini taşır; görselsiz nadir ürün placeholder
+    # data-URI'sini SRC olarak alır. NOT: kataloğun kartCiz'i onerror'ı JS'te bağlar; SSR'de her
+    # karta gömülen data-URI onerror sayfayı ŞİŞİRİR (ölçüldü: BMW marka 1.5 MB) -> gömülmez.
+    cover = imgs[0] if imgs else _ph_data(kategori)
+    fiyat_metni, bos = _kart_fiyat(ctx, p)
+
+    badge = ('<span class="card-badge">Ölçüye Özel</span>'
+             if p.get("parametrik") else "")
+    return (
+        '<div class="card"><a class="card-main" href="%s">'
+        '<img class="card-img" alt="%s" loading="lazy" src="%s">'
+        '<div class="card-body">'
+        '<span class="card-cat">%s</span>'
+        '<div class="card-title">%s</div>'
+        '<div class="card-desc">%s</div>'
+        '<div class="card-price%s">%s</div>'
+        '</div>%s</a></div>'
+        % (esc(ctx["product_url"](pid)), esc(baslik), esc(cover),
+           esc(kategori), esc(baslik), esc(aciklama),
+           " empty" if bos else "", esc(fiyat_metni), badge))
+
+
+def _urun_grid(ctx, urunler):
+    parts = [_kart(ctx, p) for p in urunler if p.get("id")]
     if not parts:
         return ""
-    return '<ul class="mm-grid">' + "".join(parts) + "</ul>"
+    return '<div class="grid">' + "".join(parts) + "</div>"
 
 
 def _itemlist(ctx, urunler, limit=None):
