@@ -128,15 +128,18 @@ def deg_worker(durum_kodu, json_obj, ag_hata=False):
     return (PASS, None, "/katalog 200 + anlamli JSON (toplam=%s)" % json_obj.get("toplam"))
 
 
-def deg_komut(dosya_var, exit_kodu):
-    """faz3 / parite adimlari. Dosya yoksa BLOKLU; exit 0 -> PASS, exit 2 -> BLOKLU
+def deg_komut(dosya_var, exit_kodu, cikti=""):
+    """faz3 / parite adimlari. Dosya yoksa BLOKLU; exit 0 -> PASS, exit 2/3 -> BLOKLU
     (OLCULEMEDI), diger nonzero -> FAIL. SAF.
 
     exit 2 = "OLCULEMEDI/KOSULAMADI" bu depoda YERLESIK sozlesme:
       - faz3-gecikme.js : uc cevap vermiyor VEYA yanitta worker-ici sure alani yok
       - parite-ege.js   : bot kaynagi yok / fonksiyon yeniden adlandirilmis
-    Bunlar bir GERILEME degildir; FAIL yazmak yanlis suclama olur (kapi kirmizi yanar,
-    kimse kodda bir sey bulamaz). BLOKLU: "hukum veremedim, once sunu ac".
+    exit 3 = parite testlerinin (27 Tem) GURULTU AYIRIMI:
+      - checkout BAYAT (yalniz senkron gecikmesi: D1'de var, yerelde yok) VEYA WAF/UA duvari
+      Bu da bir GERILEME DEGIL — "yerelde var / D1'de yok" ve SIRA farki hala exit 1 (FAIL).
+    Bunlara FAIL yazmak yanlis suclama olur (kapi kirmizi yanar, kimse kodda bir sey
+    bulamaz). BLOKLU: "hukum veremedim, once sunu ac".
     """
     if not dosya_var:
         return (BLOKLU, None, "test dosyasi bulunamadi")
@@ -147,6 +150,16 @@ def deg_komut(dosya_var, exit_kodu):
     if exit_kodu == 2:
         return (BLOKLU, "HocA",
                 "exit 2 — OLCULEMEDI (uc cevap vermiyor / yanitta alan yok); gerileme DEGIL")
+    if exit_kodu == 3:
+        c = cikti or ""
+        if "WAF/UA" in c:
+            neden = "WAF/UA duvari (403) — canli uc olculemedi"
+        else:
+            m = re.search(r"checkout BAYAT: yerel=(\d+) < canli=(\d+)", c)
+            neden = ("checkout BAYAT: yerel %s < canli %s (senkron gecikmesi)"
+                     % (m.group(1), m.group(2))) if m else "senkron gecikmesi / olculemedi"
+        return (BLOKLU, None, "exit 3 — OLCULEMEDI: %s; gerileme DEGIL "
+                              "(aciklanamayan ayrisim olsa exit 1 olurdu)" % neden)
     return (FAIL, None, "exit %s" % exit_kodu)
 
 
@@ -394,11 +407,11 @@ def main():
     # ── Adim 4: parite-test (site) + parite-ege (Ege) ─────────────────────────
     parite_env = {"ARA_UC": ara_uc} if ara_uc else {}
     var, ex, cikti = kost_node(PARITE_SITE, env_ek=parite_env, ek_argv=parite_argv)
-    durum, kim, detay = deg_komut(var, ex)
+    durum, kim, detay = deg_komut(var, ex, cikti)
     adimlar.append(("4a. parite-test.js (site)", durum, kim, detay + " | " + son_satir(cikti)))
 
     var, ex, cikti = kost_node(PARITE_EGE, env_ek=parite_env, ek_argv=parite_argv)
-    durum, kim, detay = deg_komut(var, ex)
+    durum, kim, detay = deg_komut(var, ex, cikti)
     adimlar.append(("4b. parite-ege.js (Ege)", durum, kim, detay + " | " + son_satir(cikti)))
 
     # ── Adim 5 (bilgi): d1-sync --durum ───────────────────────────────────────

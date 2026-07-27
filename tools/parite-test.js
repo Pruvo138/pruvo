@@ -16,12 +16,23 @@
  *
  * Karsilastirilan: (1) toplam eslesme sayisi, (2) donen id listesi SIRASIYLA
  * (seq DESC = katalog sirasi iddiasi da boylece sinanir).
+ *
+ * ⚠️ CIKIS KODLARI (27 Tem — gurultu imzasi ayrildi, bkz. tools/parite-ortak.js):
+ *   0 = birebir parite
+ *   1 = AÇIKLANAMAYAN ayrisim (yerelde var/D1'de yok  ya da  SIRA farki) = GERCEK KIRMIZI
+ *   3 = OLCULEMEDI: ya checkout BAYAT (yalniz senkron gecikmesi) ya WAF/UA duvari
+ * Bu test YEREL checkout'un urunler.json'unu okur; bayat bir worktree'de kosarsa eskiden
+ * KIRMIZI yaniyordu (olculdu: 108/300, tamami "D1 fazla" yonunde). Artik ayirt ediliyor.
  */
 
 const fs = require("fs");
 const path = require("path");
+const ortak = require("./parite-ortak.js");
 
 const KOK = path.dirname(__dirname);
+// Katalog yolu: DAIMA bu checkout'un kendisi. PARITE_URUNLER yalniz fikstur/kabul testi
+// icin vardir (tools/parite-fikstur.js) — normal kosumda verilmez.
+const URUNLER_YOLU = process.env.PARITE_URUNLER || path.join(KOK, "urunler.json");
 const UC = process.env.ARA_UC || "https://pruvo-whatsapp-bot.gmlmz.workers.dev/ara";
 const LIMIT = 1000;          // /ara'nin azami limiti; ustu sorgular sadece sayidan karsilastirilir
 const ESZAMANLI = 8;
@@ -57,7 +68,9 @@ function filtered(PRODUCTS, query, activeCat, activeBrand) {
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PRODUCTS = JSON.parse(fs.readFileSync(path.join(KOK, "urunler.json"), "utf8"));
+const PRODUCTS = JSON.parse(fs.readFileSync(URUNLER_YOLU, "utf8"));
+const YEREL_IDLER = [...new Set(PRODUCTS.map((p) => p.id))];
+const YEREL_ID_KUME = new Set(YEREL_IDLER);
 
 /** Gercekci sorgu havuzu: katalogun kendi kelimeleri + markalar + kategoriler + kenar durumlar. */
 function sorgulariUret(hedef) {
@@ -129,7 +142,8 @@ function sorgulariUret(hedef) {
 }
 
 // Her calisma icin benzersiz — asagiya bak.
-const NONCE = Date.now().toString(36) + "-" + process.pid;
+const NONCE = ortak.nonceUret();
+const SAYAC = ortak.sayacYeni();
 
 async function araSor({ q, kat, marka }) {
   const u = new URL(UC);
@@ -143,30 +157,52 @@ async function araSor({ q, kat, marka }) {
   // once onbellege girmis DOGRU cevapla YESIL yanabilir. FAZ 2'de yasandi (15 Tem),
   // ayni hata bu dosyada da vardi; parite-ege.js ile ayni cozum.
   u.searchParams.set("_nonce", NONCE);
-  for (let deneme = 0; deneme < 3; deneme++) {
-    try {
-      const r = await fetch(u, { headers: { "cache-control": "no-cache" } });
-      const j = await r.json();
-      if (j.hata) throw new Error(j.hata);
-      return j;
-    } catch (e) {
-      if (deneme === 2) throw e;
-      await new Promise((res) => setTimeout(res, 400 * (deneme + 1)));
-    }
-  }
+  // UA: Cloudflare WAF varsayilan urllib/requests UA'sina 403 verir; 403/429 "ayrisma"
+  // DEGIL "olculemedi" olarak yukari atilir (ortak.WafHatasi).
+  const { govde } = await ortak.canliGetir(u.toString(), SAYAC, 3);
+  if (govde && govde.hata) throw new Error(govde.hata);
+  return govde;
 }
 
-(async () => {
+// Referans fonksiyonlari DISA VER: kabul fikstur'u (tools/parite-fikstur.js) sahte "D1"
+// ucunu BU fonksiyonlarla kurar. Elle kopya olsaydi fikstur zamanla ESKI davranisi
+// dogrulamaya devam ederdi. `require.main` kapisi: import etmek testi KOSTURMAZ.
+module.exports = { norm, aramaKok, haystack, filtered, sorgulariUret, KOK, LIMIT };
+
+if (require.main === module) (async () => {
   const hedef = parseInt(process.argv[2] || "", 10);
   const sorgular = sorgulariUret(Number.isFinite(hedef) ? hedef : 0);
-  console.log("Parite testi: %d sorgu | %d urun | uc: %s\n", sorgular.length, PRODUCTS.length, UC);
+  console.log("Parite testi: %d sorgu | %d urun (%s) | uc: %s\n",
+    sorgular.length, PRODUCTS.length, URUNLER_YOLU, UC);
+  // Sessiz baypas olmasin: katalog yolu ELLE gecildiyse GORUNUR olsun.
+  if (process.env.PARITE_URUNLER) {
+    console.log("⚠️ PARITE_URUNLER ELLE verildi -> checkout'un katalogu OKUNMUYOR (fikstur modu)");
+  }
 
-  let gecti = 0, kaldi = 0, atlandi = 0;
+  // ── ON-KOSUL: checkout katalogu CANLI ile ayni mi? (gurultu imzasini ayirmak icin) ──
+  let onKosul;
+  try {
+    onKosul = await ortak.onKosulOlc({ uc: UC, yerelIdler: YEREL_IDLER, sayac: SAYAC, nonce: NONCE });
+  } catch (e) {
+    if (e && e.waf) process.exit(ortak.wafYaz(e, SAYAC, "site"));
+    throw e;
+  }
+  for (const n of onKosul.notlar) console.log("  " + n);
+  if (onKosul.kirmizi) {
+    console.log("\nSONUC: PARITE YOK ❌ — %s", onKosul.kirmizi);
+    console.log("   (Bu yon senkron gecikmesiyle ACIKLANAMAZ: site gosterir, Ege GOREMEZ.)");
+    console.log("canli istek: %d", SAYAC.istek);
+    process.exit(ortak.CIKIS_KIRMIZI);
+  }
+
+  let gecti = 0, atlandi = 0;
   const hatalar = [];
+  const fazlaKume = new Set();
   let sirada = 0;
+  let wafHatasi = null;
 
   async function isci() {
-    while (sirada < sorgular.length) {
+    while (sirada < sorgular.length && !wafHatasi) {
       const s = sorgular[sirada++];
       // Referans: sitenin BUGUNKU sonucu
       const bek = filtered(PRODUCTS, s.q, s.kat, s.marka);
@@ -177,38 +213,43 @@ async function araSor({ q, kat, marka }) {
 
       let g;
       try { g = await araSor(s); } catch (e) {
-        kaldi++; hatalar.push({ ...s, sebep: "istek hatasi: " + e.message }); continue;
+        if (e && e.waf) { wafHatasi = e; return; }
+        hatalar.push({ ...s, sinif: ortak.SINIF_ACIKLANAMAYAN, sebep: "istek hatasi: " + e.message });
+        continue;
       }
 
-      if (g.toplam !== bekIds.length) {
-        kaldi++;
-        hatalar.push({ ...s, sebep: `sayi: /ara=${g.toplam} site=${bekIds.length}` });
-        continue;
-      }
-      const alinan = g.urunler.map((u) => u.id);
-      const bekKirpik = bekIds.slice(0, LIMIT);
-      if (alinan.length !== bekKirpik.length || alinan.some((id, i) => id !== bekKirpik[i])) {
-        const ilk = alinan.findIndex((id, i) => id !== bekKirpik[i]);
-        kaldi++;
-        hatalar.push({ ...s, sebep: `sira/icerik ${ilk}. sirada: /ara=${alinan[ilk]} site=${bekKirpik[ilk]}` });
-        continue;
-      }
-      gecti++;
+      const k = ortak.siniflandir({
+        bekIds,
+        alinan: (g.urunler || []).map((u) => u.id),
+        toplam: g.toplam,
+        limit: LIMIT,
+        yerelIdKume: YEREL_ID_KUME,
+        gecikmeModu: onKosul.gecikmeModu,
+      });
+      for (const id of k.fazla) fazlaKume.add(id);
+      if (k.sinif === ortak.SINIF_GECTI) { gecti++; continue; }
+      hatalar.push({ ...s, sinif: k.sinif, sebep: k.sebep });
     }
   }
 
   const t0 = Date.now();
   await Promise.all(Array.from({ length: ESZAMANLI }, isci));
   const sn = ((Date.now() - t0) / 1000).toFixed(1);
+  if (wafHatasi) process.exit(ortak.wafYaz(wafHatasi, SAYAC, "site"));
 
-  console.log("gecti: %d | KALDI: %d | atlandi: %d | %s sn", gecti, kaldi, atlandi, sn);
-  if (hatalar.length) {
-    console.log("\nAYRISAN SORGULAR (ilk 25):");
-    for (const h of hatalar.slice(0, 25)) {
-      console.log("  q=%j kat=%j marka=%j\n    -> %s", h.q, h.kat, h.marka, h.sebep);
-    }
-    console.log("\nSONUC: PARITE YOK ❌ (%d/%d ayristi)", kaldi, gecti + kaldi);
-    process.exit(1);
+  // "Senkron gecikmesi" aciklamasi, GORULEN fazlaligi tasiyabiliyor mu? Tasimiyorsa
+  // (D1'de yetim satir vb.) aciklama COKER -> KIRMIZI.
+  const t = ortak.fazlaKumeTutarli(fazlaKume, onKosul.acik);
+  if (!t.tutarli) {
+    hatalar.push({ q: "(kosum geneli)", kat: "-", marka: "-",
+      sinif: ortak.SINIF_ACIKLANAMAYAN, sebep: t.sebep });
   }
-  console.log("\nSONUC: BIREBIR PARITE ✅ (%d sorgu, site ile ayni)", gecti);
+
+  const kod = ortak.sonucYaz({
+    etiket: "site", gecti, atlandi, hatalar, onKosul, sayac: SAYAC, sn, fazlaKume,
+  });
+  if (kod === ortak.CIKIS_GECTI) {
+    console.log("\nSONUC: BIREBIR PARITE ✅ (%d sorgu, site ile ayni)", gecti);
+  }
+  process.exit(kod);
 })();
