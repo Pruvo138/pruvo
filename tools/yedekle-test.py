@@ -152,6 +152,25 @@ def izole_kos(o, *bayraklar):
                           capture_output=True, text=True, env=o["ortam"], cwd=o["kok"])
 
 
+def izole_imza(o):
+    """KUM HAVUZUNUN kendi kaynak imzasi — kum havuzunun KENDI yedekle.py'si ve sahte
+    HOME'u ile olculur (gercek makinenin ~/.claude'u KARISMAZ). dict ya da None.
+    Pano ucu testlerinde `durum._canli_kaynak_imzasi` yerine bu verilir; aksi halde
+    pano gercek makineyi olcer ve kum havuzu damgasiyla karsilastirma anlamsiz olur."""
+    r = subprocess.run(
+        [sys.executable, "-c",
+         "import importlib.util,json;"
+         "spec=importlib.util.spec_from_file_location('y', %r);"
+         "m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);"
+         "print(json.dumps(m.kaynak_imzasi()))" % o["betik"]],
+        capture_output=True, text=True, env=o["ortam"], cwd=o["kok"])
+    try:
+        veri = json.loads(r.stdout.strip())
+    except ValueError:
+        return None
+    return veri if isinstance(veri, dict) else None
+
+
 def izole_baslat(o, *bayraklar):
     return subprocess.Popen([sys.executable, o["betik"]] + list(bayraklar),
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
@@ -972,14 +991,51 @@ def main():
         eski["zaman"] = time.time() - 3 * 86400
         with open(os.path.join(o["hedef"], yedekle.DAMGA_ADI), "w", encoding="utf-8") as fh:
             json.dump(eski, fh)
-        dd = durum.yedek_durumu(o["hedef"], "var")
-        sat = durum.yedek_satirlari(dd)
-        print("     --- pano ciktisi (3 gun eski ama DOGRULANMIS) ---")
-        for s in sat:
-            print("    " + s)
-        kontrol("🔴 K3: 3 gun eski ama dogrulanmis yedek 'guncel' (BOSUNA BAYAT DEMIYOR)",
-                dd["hal"] == "guncel" and "GÜNCEL" in sat[0]
-                and not any("BAYAT" in s for s in sat), dd["hal"])
+        # 🔴 K5 (6. tur): pano artik KAYNAKLARIN SU ANKI imzasini da olcuyor. Burada
+        # kaynaklar IZOLE KUM HAVUZUNDA (sahte HOME + sahte repo); panonun kendi
+        # `_canli_kaynak_imzasi`i ise GERCEK makineyi olcer -> karsilastirma anlamsiz
+        # olurdu. O yuzden olcum KUM HAVUZUNUN KENDI yedekle.py'siyle yapilir ve
+        # panoya verilir: uctan uca zincir (yazici -> damga -> pano) gercekten olculur.
+        _kum_imza = izole_imza(o)
+        kontrol("hazirlik: kum havuzunun canli imzasi OLCULDU (fikstur ISIRIYOR)",
+                isinstance(_kum_imza, dict) and _kum_imza.get("adet", 0) > 0,
+                str(_kum_imza))
+        _pano_gercek_canli = durum._canli_kaynak_imzasi
+        durum._canli_kaynak_imzasi = lambda: {"kok": o["kok"], "adaylar": [_kum_imza]}
+        try:
+            dd = durum.yedek_durumu(o["hedef"], "var")
+            sat = durum.yedek_satirlari(dd)
+            print("     --- pano ciktisi (3 gun eski ama DOGRULANMIS) ---")
+            for s in sat:
+                print("    " + s)
+            kontrol("🔴 K3: 3 gun eski ama dogrulanmis yedek 'guncel' "
+                    "(BOSUNA BAYAT DEMIYOR)",
+                    dd["hal"] == "guncel" and "GÜNCEL" in sat[0]
+                    and not any("BAYAT" in s for s in sat), dd["hal"])
+            # 🔴 K5 UCTAN UCA: kum havuzunda GERCEK bir dosya degisince (mtime KORUNARAK)
+            # ayni damga artik GUNCEL SAYILMAZ — kardes kosum damgaya HIC DOKUNMASA da.
+            _degisen = os.path.join(o["ev"], ".claude", "projects",
+                                    "-Users-okan-dev-pruvo", "memory", "not-001.md")
+            _st = os.stat(_degisen)
+            with open(_degisen, "w") as fh:
+                fh.write("mtime KORUNARAK buyutulmus icerik (K5 uctan uca nobeti)\n")
+            os.utime(_degisen, (_st.st_atime, _st.st_mtime))     # mtime GERI alindi
+            _kum_imza2 = izole_imza(o)
+            kontrol("K5 hazirlik: mtime KORUNMUS degisim imzayi DEGISTIRDI (bayt ekseni)",
+                    isinstance(_kum_imza2, dict)
+                    and _kum_imza2.get("bayt") != _kum_imza.get("bayt")
+                    and _kum_imza2.get("mtime") == _kum_imza.get("mtime"),
+                    "%s -> %s" % (_kum_imza.get("bayt"), (_kum_imza2 or {}).get("bayt")))
+            durum._canli_kaynak_imzasi = lambda: {"kok": o["kok"],
+                                                  "adaylar": [_kum_imza2]}
+            dd2 = durum.yedek_durumu(o["hedef"], "var")
+            sat2 = durum.yedek_satirlari(dd2)
+            kontrol("🔴 K5 UCTAN UCA: kaynak degisti + damgaya kimse dokunmadi -> "
+                    "pano GUNCEL DEMIYOR",
+                    dd2["hal"] == "kapsam-degisti" and "GÜNCEL" not in sat2[0]
+                    and "KAPSAMIYOR" in sat2[0], "%s | %s" % (dd2["hal"], sat2[0][:70]))
+        finally:
+            durum._canli_kaynak_imzasi = _pano_gercek_canli
 
         # SESSIZ-YESIL NOBETI: kaynak GERCEKTEN degisirse ayni damga GUNCEL SAYILMAZ
         with open(os.path.join(o["ev"], ".claude", "projects",

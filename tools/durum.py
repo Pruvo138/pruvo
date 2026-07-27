@@ -29,6 +29,7 @@ Repo yolu sabit yazili DEGIL: betik kendi konumundan repo kokunu bulur.
 Harici bagimlilik yok — saf stdlib + git.
 """
 import glob
+import importlib.util
 import json
 import os
 import subprocess
@@ -473,6 +474,121 @@ def _agac_say(dizin):
         return None
 
 
+def _atlama_kaydi_oku(backup_dizini):
+    """Ayri atlama dosyasinin (.son-yedek-atlama.json) hali. SALT-OKUNUR, ASLA patlamaz.
+
+    Doner (kayit, hal):
+      'var'        -> dosya var ve DICT olarak cozuldu (kayit = o dict)
+      'yok'        -> dosya YOK. Bu KESIN bir cevaptir: ayri kayit hic tutulmamis.
+      'bilinmiyor' -> dosya VAR ama ondan dict elde EDILEMEDI (bozuk JSON, bos dosya,
+                      kesik JSON, dict-olmayan JSON, izinsiz, dizin, ikili cop...).
+
+    🔴 NEDEN 'yok' ILE 'bilinmiyor' AYRI (K2, 27 Tem — 6. tur): eskiden ikisi de tek
+    bir `except: pass` icindeydi, yani "dosyayi okuyamadim" ile "dosya hic yok" AYNI
+    sonucu veriyordu: damgadan gelen `son_atlama*` mirasi ayakta kaliyor ve fail-closed
+    uyariyi SUSTURUYORDU (olculdu: 8 bozuk-dosya biciminin 6'sinda pano "taze" diyordu).
+    Okunamayan dosya bir CEVAP DEGILDIR; atlama duzlemi BILINMIYOR demektir."""
+    yol = os.path.join(backup_dizini, YEDEK_ATLAMA_ADI)
+    try:
+        with open(yol, "r", errors="replace") as f:
+            kayit = json.load(f)
+    except FileNotFoundError:
+        return None, "yok"
+    except (OSError, ValueError, UnicodeDecodeError):
+        # IsADirectoryError / PermissionError / JSONDecodeError ...: dosya VAR ama
+        # cozulemedi. (Yaris: arada silinmisse exists False -> 'yok'a duseriz.)
+        return None, ("bilinmiyor" if os.path.exists(yol) else "yok")
+    if not isinstance(kayit, dict):
+        return None, "bilinmiyor"          # JSON gecerli ama dict DEGIL (liste/dize/sayi)
+    return kayit, "var"
+
+
+# Atlamayi SUSTURABILEN alanlar: "o atlama zararsizdi" hukmunu bu ikisi verir.
+# Yalniz atlamayi GERCEKTEN goren yazici (ayri dosya) ya da atlamayi damganin ICINE
+# yazan ESKI surum (<=2) bunlari uretebilir; baska her kaynak KALINTIdir.
+ATLAMA_SUSTURUCU = ("son_atlama_kapsandi", "son_atlama_sahip_baslangici")
+# Atlamayi ayri dosyaya yazan ILK damga surumu. Bundan itibaren damganin ICINDEKI
+# `son_atlama*` alanlari yalnizca damga_yaz'in TASIDIGI kalintidir.
+ATLAMA_AYRI_DOSYA_SURUMU = 3
+
+
+def _atlama_birlestir(damga, atlama_kaydi, atlama_hali):
+    """Atlama duzlemini damgayla birlestirir. Doner: (damga, okunamadi, kalinti).
+
+    ILKE: bir atlamayi SUSTURMAK icin KANIT gerekir; uyarmak icin gerekmez.
+      'var'        -> ayri dosya TEK KAYNAK: damgadan gelen TUM `son_atlama*` DUSER
+                      (kismi miras yok), yerine dosyadakiler gecer.
+      'bilinmiyor' -> damgadan gelen TUM `son_atlama*` DUSER **ve** panoya gorunur bir
+                      "atlama kaydi OKUNAMADI" uyarisi cikar (fail-closed). Miras ne
+                      susturabilir ne de uydurabilir.
+      'yok'        -> ayri kayit hic tutulmamis.
+                      * damga ESKI surum (<3): atlamayi damganin ICINE yazan yazici
+                        buydu -> alanlar MESRU, oldugu gibi kalir.
+                      * damga YENI surum (>=3): bu alanlar damga_yaz'in onceki damgadan
+                        TASIDIGI kalintidir (bir kez girdi mi sonsuza dek yasar) ->
+                        SUSTURUCU ikili DUSER, atlamanin KENDISI kalir ki pano UYARSIN."""
+    son_atlama_var = any(k.startswith("son_atlama") for k in damga)
+    if atlama_hali == "var":
+        damga = {k: v for k, v in damga.items() if not k.startswith("son_atlama")}
+        damga.update({k: v for k, v in (atlama_kaydi or {}).items()
+                      if k.startswith("son_atlama")})
+        return damga, False, False
+    if atlama_hali == "bilinmiyor":
+        return ({k: v for k, v in damga.items() if not k.startswith("son_atlama")},
+                True, False)
+    surum = damga.get("surum")
+    eski_yazici = (isinstance(surum, (int, float)) and not isinstance(surum, bool)
+                   and surum < ATLAMA_AYRI_DOSYA_SURUMU)
+    if son_atlama_var and not eski_yazici:
+        return ({k: v for k, v in damga.items() if k not in ATLAMA_SUSTURUCU},
+                False, True)
+    return damga, False, False
+
+
+def _yedekle_modulu():
+    """tools/yedekle.py'yi TEMBEL + KORUMALI yukler (imza olcumunun TEK kaynagi).
+
+    🔴 NEDEN KOPYALAMIYORUZ: imza tanimini panoda IKINCI kez yazmak, iki tanimin
+    sessizce ayrisma riskidir (tam da kapatmaya calistigimiz sinif). Import yalnizca
+    okur (modul duzeyinde tek `git rev-parse` var, yazma YOK) ve olcum zaman asimi
+    sarmalayicisinin ICINDE kosar."""
+    global _YEDEKLE_MODULU
+    if _YEDEKLE_MODULU is None:
+        yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), "yedekle.py")
+        spec = importlib.util.spec_from_file_location("yedekle_pano", yol)
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+        _YEDEKLE_MODULU = m
+    return _YEDEKLE_MODULU
+
+
+_YEDEKLE_MODULU = None
+
+
+def _canli_kaynak_imzasi():
+    """Kaynak kumesinin SU ANKI olcumu. SALT-OKUNUR, ASLA patlamaz.
+    Doner: {"kok": <olcumun ait oldugu ana agac>, "adaylar": [imza, ...]} ya da None.
+
+    IKI ADAY (`--sirlar` kapali/acik): damgadaki imzayi hangi bayrakla kosan bir yedek
+    yazdi bilemeyiz; ikisinden BIRI tutuyorsa kapsam saglanmistir. Fail-closed yon:
+    hicbiri tutmuyorsa "degisti" denir.
+
+    `kok` NEDEN DONER: imza yalnizca AYNI kaynak agaci icin anlamlidir. Damga baska bir
+    agac icin yazilmissa (yasanmis F1 hatasi: ROOT worktree'ye dusuyordu; ayrica izole
+    kum havuzu kosumlari) karsilastirma "degisti" diye BAGIRIR ve pano gurultuye boger —
+    gurultulu pano olu panodur. O halde cevap "olculemedi"dir, yanlis alarm DEGIL.
+    Maliyet olculdu: import 0,017 sn + aday basina 0,002 sn (stat gezinmesi, okuma YOK)."""
+    try:
+        yedekle = _yedekle_modulu()
+        adaylar = [imza for imza in (yedekle.kaynak_imzasi(s) for s in (False, True))
+                   if isinstance(imza, dict)]
+        if not adaylar:
+            return None
+        return {"kok": yedekle.ROOT, "adaylar": adaylar}
+    except Exception:                      # pano bir KAPI degil: olcemedik -> None
+        return None
+
+
 def yedek_durumu(backup_dizini, hal="var", simdi=None, esik=None):
     """Damgayi okuyup yasi esikle karsilastirir + damganin IDDIASINI dogrular.
 
@@ -503,27 +619,12 @@ def yedek_durumu(backup_dizini, hal="var", simdi=None, esik=None):
     except (OSError, ValueError, UnicodeDecodeError):
         damga = None
     # ATLAMA KAYDI ayri dosyadan gelir ve damgadaki (eski surum) kopyasini EZER.
-    #
-    # 🔴 REPLACE, `update` DEGIL (K2, 27 Tem — MERGE BLOKLAYICI kusurun onarimi):
-    # anahtar-anahtar `update` yalnizca ayri dosyada BULUNAN alanlari eziyordu; ayri
-    # dosyada OLMAYAN bir `son_atlama*` alani damgadan MIRAS kaliyordu. Somut zarar:
-    # damgadaki miras `son_atlama_sahip_baslangici`, ayri dosyanin "sahibi
-    # tanimlayamadim" (alan YOK) fail-closed uyarisini SUSTURUYORDU -> pano "taze"
-    # diyordu. yedekle.py damga_yaz onceki damgadan `son_atlama*` alanlarini TASIDIGI
-    # icin boyle bir alan bir kez girdiginde SONSUZA DEK yasar. Bugun gercek damga
-    # o alani icermiyor (surum 3+ ayri dosyaya yazar) ama dalin kendi tur-1/tur-2
-    # kodu tam olarak damganin ICINE yaziyordu; geri gelirse sessiz olurdu.
-    # ILKE: ayri dosya VARSA atlama duzleminin TEK KAYNAGIDIR — damgadan gelen TUM
-    # `son_atlama*` alanlari DUSURULUR (kismi miras yok).
-    try:
-        with open(os.path.join(backup_dizini, YEDEK_ATLAMA_ADI), "r", errors="replace") as f:
-            atlama_kaydi = json.load(f)
-        if isinstance(atlama_kaydi, dict) and isinstance(damga, dict):
-            damga = {k: v for k, v in damga.items() if not k.startswith("son_atlama")}
-            damga.update({k: v for k, v in atlama_kaydi.items()
-                          if k.startswith("son_atlama")})
-    except (OSError, ValueError, UnicodeDecodeError):
-        pass
+    # UC HAL ayri ayri yorumlanir (bkz. _atlama_kaydi_oku): 'var' | 'yok' | 'bilinmiyor'.
+    atlama_kaydi, atlama_hali = _atlama_kaydi_oku(backup_dizini)
+    sonuc["atlama_hali"] = atlama_hali
+    if isinstance(damga, dict):
+        damga, sonuc["atlama_okunamadi"], sonuc["atlama_kalintisi"] = \
+            _atlama_birlestir(damga, atlama_kaydi, atlama_hali)
     if not isinstance(damga, dict) or not isinstance(damga.get("zaman"), (int, float)):
         sonuc["hal"] = "damgasiz"
         return sonuc
@@ -547,17 +648,22 @@ def yedek_durumu(backup_dizini, hal="var", simdi=None, esik=None):
     return sonuc
 
 
-def _dogrulama_hali(damga, simdi, esik):
+def _dogrulama_hali(damga, simdi, esik, canli=None):
     """K3 — esik asilmis bir damganin DOGRULAMA kaydini yorumlar (saf fonksiyon).
-    Doner: 'guncel' | 'olculemedi' | None (dogrulama iddiasi HIC yok).
+    Doner: 'guncel' | 'olculemedi' | 'kapsam-degisti' | 'kapsam-olculemedi' | None.
 
-    'guncel' demek icin DORT sart birden (biri tutmazsa yesil VERILMEZ):
+    `canli`: kaynaklarin SU ANKI imzalari (aday listesi) ya da None (olculemedi).
+    Cagiran olcer (bkz. _bayat_mi_guncel_mi); bu fonksiyon SAF kalir.
+
+    'guncel' demek icin BES sart birden (biri tutmazsa yesil VERILMEZ):
       1. `dogrulandi` sayi VE kendisi TAZE (esigi asmamis) — yoksa dogrulama da bayat,
       2. `dogrulandi` >= damganin `baslangic`i — yani dogrulama, damgaya EN SON dokunan
          kosuma ait (bkz. asagidaki KARISIK SURUM gerekcesi),
       3. `dogrulama_imzasi` ile damganin `kaynak_imzasi` KARSILASTIRILABILIR (ikisi de
          adet/bayt/mtime tasiyan sozluk),
       4. iki imza ESIT — yani o kosum "kopyadaki kaynak kumesi HALA aynidir" OLCTU.
+      5. KAYNAKLARIN SU ANKI imzasi kopyanin imzasina ESIT — yani "degisiklik yok"
+         iddiasi SIMDI de gecerli (bkz. asagidaki SART 5 gerekcesi).
     Sart 3 tutmazsa 'olculemedi' (GORUNUR) doner: iddia var ama dogrulanamiyor.
     🔴 NEDEN PANO KENDI DOGRULUYOR: yazicinin "degisiklik yok" iddiasina GUVENMEK,
     K1'de kapatilan sessiz-yesil deligini baska kapidan acmak olurdu.
@@ -570,7 +676,20 @@ def _dogrulama_hali(damga, simdi, esik):
     ATLADI ve `damga_tazele`si `dict(onceki)` yaptigi icin BAYAT `dogrulandi`/`dogrulama_imzasi`
     ciftini AYNEN korudu -> pano "✅ GUNCEL" dedi, degisiklik ise yedekte YOK. Sart 2 bunu
     kapatir: ESKI surum `baslangic`i ilerletir ama `dogrulandi`ya DOKUNMAZ -> `dogrulandi`
-    geride kalir -> yesil verilmez. YENI surumde ikisi ayni cagride ayni degere yazilir."""
+    geride kalir -> yesil verilmez. YENI surumde ikisi ayni cagride ayni degere yazilir.
+
+    🔴 SART 5 — SART 2 YETMEZ (27 Tem, 6. tur; curutucu olcumu): sart 2'nin tetiklenmesi
+    kardes surumun damgaya DOKUNMASINA bagliydi. Bugun 14 worktree'nin 12'si `main`
+    surumundedir ve `main`'in `--gerekliyse` ATLA yolu damgaya HIC DOKUNMAZ -> sart 2 hic
+    tetiklenmez -> ayni sira (mtime KORUNARAK degisen dosya + bayat kardes kosum) panoyu
+    yine "✅ GUNCEL" yakiyordu, degisiklik yedekte YOKKEN. Yani gercek dunyadaki baskin
+    hal kapsanmiyordu. Cozum: tazelik artik BASKA BIR KOSUMUN DAVRANISINDAN degil,
+    OLCULEN ICERIKTEN turetilir — kopyanin imzasi kaynaklarin SU ANKI imzasiyla
+    karsilastirilir. Kim ne kosarsa kossun (ya da hic kosmasin), degisen kaynak yesil
+    vermez. Olculemezse (imza alinamadi) 'kapsam-olculemedi' -> GORUNUR, yesil DEGIL.
+    ⚠️ ILAN EDILMIS KOR NOKTA: adet+bayt+mtime UCUNU birden koruyan bir icerik degisimi
+    (ayni boyutta yerinde bayt takasi + mtime geri yazimi) bu eksende de gorunmez;
+    ne_olculmedi() bunu tam kosuluyla ILAN eder."""
     dogrulandi = damga.get("dogrulandi")
     imza = damga.get("dogrulama_imzasi")
     kopya = damga.get("kaynak_imzasi")
@@ -586,7 +705,20 @@ def _dogrulama_hali(damga, simdi, esik):
     for alan in ("adet", "bayt", "mtime"):
         if imza[alan] != kopya[alan]:
             return "olculemedi"                       # degisiklik VAR: yesil verilmez
-    return "guncel"
+    # SART 5: iddiaya degil, SU ANA bak.
+    if not isinstance(canli, dict) or not canli.get("adaylar"):
+        return "kapsam-olculemedi"                    # olcemedik -> GORUNUR, yesil YOK
+    dmg_kok, canli_kok = damga.get("kok"), canli.get("kok")
+    # realpath: symlink'li yollar (macOS /var -> /private/var) ayni agaci gosterirken
+    # metin olarak farklidir; normpath ile karsilastirmak SAHTE uyusmazlik uretiyordu.
+    if (isinstance(dmg_kok, str) and dmg_kok and isinstance(canli_kok, str) and canli_kok
+            and os.path.realpath(dmg_kok) != os.path.realpath(canli_kok)):
+        return "kapsam-olculemedi"                    # damga BASKA agac icin: kiyaslanamaz
+    for aday in canli["adaylar"]:
+        if _imza_kullanilir(aday) and all(aday[a] == kopya[a]
+                                          for a in ("adet", "bayt", "mtime")):
+            return "guncel"
+    return "kapsam-degisti"
 
 
 def _imza_kullanilir(imza):
@@ -607,12 +739,17 @@ def _bayat_mi_guncel_mi(damga, simdi, esik):
     ama `--gerekliyse` yolu hicbir sey kopyalamadigi icin degismeyen bir sistemde
     `zaman` hic ilerlemez ve pano 2 gun sonra BOSUNA "⚠⚠ YEDEK BAYAT" der. Bosuna
     uyaran pano, kimsenin bakmadigi panodur. "YEDEK GEREKSIZ" ile "YEDEK BAYAT" ayri
-    seylerdir; ayrimi OLCUM yapar (bkz. _dogrulama_hali), varsayim degil."""
-    hal = _dogrulama_hali(damga, simdi, esik)
+    seylerdir; ayrimi OLCUM yapar (bkz. _dogrulama_hali), varsayim degil.
+
+    CANLI IMZA burada olculur (yan etkili adim) ve saf _dogrulama_hali'ye VERILIR ->
+    test olcumu `durum._canli_kaynak_imzasi`i degistirerek belirlenimli kilabilir."""
+    hal = _dogrulama_hali(damga, simdi, esik, canli=_canli_kaynak_imzasi())
     if hal == "guncel":
         return "guncel"
     if hal == "olculemedi":
         return "dogrulama-olculemedi"
+    if hal in ("kapsam-degisti", "kapsam-olculemedi"):
+        return hal
     return "bayat"
 
 
@@ -652,6 +789,8 @@ def yedek_satirlari(d):
     # yedege girmez, pano esige kadar (2 gun) "taze" der — kapatmaya calistigimiz
     # sessiz-hata sinifinin ta kendisi. Alan YOKSA cozulemez sayilir -> UYAR.
     # `baslangic` yoksa (eski surum damgasi) `zaman`a duseriz.
+    # K2: atlama duzleminin BILINMEDIGI hal, basligi "taze"den ALIR (fail-closed).
+    atlama_okunamadi = bool(d.get("atlama_okunamadi"))
     atlama = dmg.get("son_atlama")
     _ref = dmg.get("baslangic")
     if not isinstance(_ref, (int, float)):
@@ -707,6 +846,25 @@ def yedek_satirlari(d):
                     "  -> o kosumun degisiklikleri yedekte OLMAYABILIR (son tam kosum %s)."
                     % ne_zaman + kos[1:]]
         atlanmis = False                              # baslikta anlatildi
+    elif atlama_okunamadi:
+        # K2 fail-closed: ayri atlama dosyasi VAR ama cozulemedi -> atlanmis bir yedek
+        # olup olmadigi BILINMIYOR. Miras alanlar bu hukmu VERMEZ (dusuruldu).
+        satirlar = ["  ⚠ ÖLÇÜLEMEDİ: atlama kaydi (%s) VAR ama OKUNAMADI — atlanmis bir "
+                    "yedek olup olmadigi BILINMIYOR." % YEDEK_ATLAMA_ADI,
+                    "  (bozuk/bos/izinsiz kayit; son tam kosum %s)" % ne_zaman + kos[1:]]
+        atlama_okunamadi = False                      # baslikta anlatildi
+    elif hal == "kapsam-degisti":
+        # K5 fail-closed: "degisiklik yok" dogrulamasi vardi ama kaynaklarin SU ANKI
+        # imzasi kopyanin imzasindan FARKLI -> yedek bugunku kaynaklari KAPSAMIYOR.
+        # (Kardes bir kosumun damgaya dokunup dokunmadigindan BAGIMSIZ olcum.)
+        satirlar = ["  ⚠⚠ YEDEK KAPSAMIYOR: kaynaklar son yedekten (%s / %s) SONRA "
+                    "DEGISTI — 'degisiklik yok' dogrulamasi artik gecerli DEGIL."
+                    % (dmg.get("iso", "?"), ne_zaman),
+                    "  (kaynak imzasi kopyanin imzasiyla UYUSMUYOR.)" + kos[1:]]
+    elif hal == "kapsam-olculemedi":
+        satirlar = ["  ⚠ ÖLÇÜLEMEDİ: 'degisiklik yok' dogrulamasi var ama kaynaklarin "
+                    "SU ANKI imzasi OLCULEMEDI (son yedek %s)." % ne_zaman,
+                    "  (yedekle.py imza olcumu basarisiz — GUNCEL denmez.)" + kos[1:]]
     elif hal == "dogrulama-olculemedi":
         # K3 fail-closed ucu: "degisiklik yok" iddiasi VAR ama pano onu DOGRULAYAMIYOR
         # (imza eksik/bozuk ya da imzalar FARKLI). Sessiz yesil YOK — gorunur olcum yok.
@@ -733,6 +891,12 @@ def yedek_satirlari(d):
                         % (", ".join(dmg.get("eksik") or []) or "?"))
     if atlanmis:                                      # baslik baska sorunu anlatiyor
         satirlar.append(atlama_satiri)
+    if atlama_okunamadi:                              # baslik baska sorunu anlatiyor
+        satirlar.append("  ⚠ atlama kaydi (%s) VAR ama OKUNAMADI — atlanmis yedek olup "
+                        "olmadigi BILINMIYOR." % YEDEK_ATLAMA_ADI)
+    if d.get("atlama_kalintisi"):
+        satirlar.append("  ⚠ damgadaki `son_atlama*` alanlari KALINTI (ayri kayit yok, "
+                        "damga yeni surum) — 'zararsiz atlama' hukmu VERMEZ.")
     if dmg.get("kilitsiz"):
         satirlar.append("  ⚠ son kosum KILITSIZ alindi (kilit dosyasi kurulamadi) — "
                         "eszamanli bir kosum varsa icerik karismis olabilir.")
@@ -743,6 +907,41 @@ def yedek_satirlari(d):
     for ad, gercek, iddia in eksik_icerik:
         satirlar.append("  ⚠⚠ ICERIK EKSIK: backup/%s icinde %d dosya var, damga %d diyor."
                         % (ad, gercek, iddia))
+    return satirlar
+
+
+# ILAN EDILMIS KOR NOKTALAR — bolum 7'nin OLCMEDIGI seyler, TAM KOSULUYLA.
+# 🔴 NEDEN AYRI BIR KANAL: "olculmedi" ile "sorun yok" ayni cikti icinde birbirine
+# karisirsa pano sessiz-yesile doner. Bir sinif yapisal olarak olculemiyorsa (ya da
+# bilerek olculmuyorsa) burada YUKSEK SESLE ilan edilir; okuyan neyin GARANTI
+# OLMADIGINI bilir. Yeni bir kapi/eksen eklenince buraya da yazilir (kabul testi
+# bu listenin BOS OLMADIGINI ve tam kosul tasidigini nobetler).
+KOR_NOKTALAR = (
+    ("adet+bayt+mtime UCUNU birden koruyan icerik degisimi",
+     "yerinde ayni boyutta bayt takasi YAPILIR **VE** mtime eski degerine geri yazilir "
+     "-> kaynak imzasi (adet/bayt/mtime) DEGISMEZ, pano 'GUNCEL' der. Hash alinmiyor "
+     "(her oturum acilisinda ~6 MB okumanin bedeli olcuye deger bulunmadi)."),
+    ("`ps` binary'si PATH'te yokken surec KIMLIGI",
+     "kilit sahibinin pid'i CANLI mi + KIMLIGI tutuyor mu sorusu `ps`e baglidir; `ps` "
+     "YOKSA pano 'asili/yarim' ayrimini yapamaz ve ⚪ OLCULEMEDI der (kirmizi yanmaz: "
+     "bloklayici kapinin dis binary yoklugunda tum yayini durdurmasi yasanmis ariza)."),
+    ("KILITSIZ bir KOPYALAMA'dan sonra kilitli bir DOGRULAMA kosumu",
+     "dogrulama kosumu `kilitsiz` notunu temizler (not kosum-yereldir) ama `zaman` ve "
+     "sayilar hala o kilitsiz kopyaya aittir -> 'eszamanli kosum icerigi karistirdi' "
+     "riski panoda GORUNMEZ olur."),
+    ("Drive mount ASILI iken yedegin GERCEK icerigi",
+     "olcum %.0f sn zaman asimina duserse pano 'Drive yanit vermiyor' der; o an yedegin "
+     "bayat/kismi/bozuk olup olmadigi OLCULMEMISTIR (asili mount okunamaz)."
+     % YEDEK_ZAMAN_ASIMI),
+)
+
+
+def ne_olculmedi():
+    """Ilan edilmis kor noktalar — basim icin metin satirlari."""
+    satirlar = ["  (pano bunlari OLCMEZ — 'sorun yok' demek DEGILDIR:)"]
+    for baslik, kosul in KOR_NOKTALAR:
+        satirlar.append("  ⚪ %s" % baslik)
+        satirlar.append("     KOSUL: %s" % kosul)
     return satirlar
 
 
@@ -1002,6 +1201,15 @@ def main():
         pass
     for satir in satirlar:
         print(satir)
+    # ILAN EDILMIS KOR NOKTALAR: her kosumda 9 satir basmak panoyu gurultuye bogar
+    # (gurultulu pano = olu pano) -> tam metin BAYRAKLA, isaret ise ÖLÇÜLEMEDİ ciktigi
+    # anda GORUNUR. Boylece "olculemedi" hicbir zaman "sorun yok" gibi okunmaz.
+    if "--ne-olculmedi" in sys.argv:
+        print("\n7b) NE ÖLÇÜLMEDİ (ilan edilmis kor noktalar)")
+        for satir in ne_olculmedi():
+            print(satir)
+    elif any("ÖLÇÜLEMEDİ" in s for s in satirlar):
+        print("  (neyin olculMEDIGI icin: python3 tools/durum.py --ne-olculmedi)")
 
     print("")
     return 0

@@ -42,7 +42,12 @@ ALT_KOSUM = "--ps-yok-alt-kosum"
 SONUC = []
 OLCULEMEDI = []
 PS_BAGIMLI = [0]          # ps'e bagli kontrol SAYISI (ilan; alt kosum bunu dogrular)
-PS_VAR = [True]
+ORTAM_BAGIMLI = [0]       # ps DISI ortam bagimliligi (yedeklenecek KAYNAK kumesi)
+EKSEN = {}                # eksen -> ⚪ sayisi ("ps" | "kaynak" | "fikstur")
+PS_ORTAMI = ["var"]       # "var" | "yok" | "bozuk"  (bkz. ps_ortami)
+# `ps` sorgusunun zaman siniri. CALISMA ANINDA okunur (durum.YEDEK_ZAMAN_ASIMI deseni)
+# -> fikstur bunu gecici kisaltip "asili ps" yolunu SANIYE HARCAMADAN kanitlayabilir.
+PS_SORGU_ZAMAN_ASIMI = [5.0]
 
 
 def kontrol(ad, ok, ayrinti=""):
@@ -51,15 +56,34 @@ def kontrol(ad, ok, ayrinti=""):
     return bool(ok)
 
 
-def olculemedi(ad, ayrinti=""):
-    """GORUNUR olculemedi: cikis kodunu BOZMAZ ama ozette SAYILIR (sessiz atlama YOK)."""
-    OLCULEMEDI.append((ad, ayrinti))
+def olculemedi(ad, ayrinti="", eksen="?"):
+    """GORUNUR olculemedi: cikis kodunu BOZMAZ ama ozette SAYILIR (sessiz atlama YOK).
+
+    `eksen`: HANGI ortam eksigi yuzunden olculemedi ("ps" | "kaynak" | "fikstur").
+    🔴 NEDEN EKSEN: nobetci "ps VARKEN ⚪ SAYISI 0 olmali" der; eksen ayrimi olmadan
+    ALAKASIZ bir eksenin ⚪'si o nobetciyi kirmiziya cevirir (CI taklidinde olctum:
+    kaynak-kumesi eksigi ps nobetcisini yaniltip kapiyi kirmizi yakiyordu)."""
+    OLCULEMEDI.append((ad, ayrinti, eksen))
+    EKSEN[eksen] = EKSEN.get(eksen, 0) + 1
     print("  ⚪ ÖLÇÜLEMEDİ  " + ad + (("  — " + ayrinti) if ayrinti else ""))
     return None
 
 
-def ps_kullanilabilir():
-    """`ps` binary'si GERCEKTEN var ve calisiyor mu — durum.py'den BAGIMSIZ olcum.
+def ps_ortami():
+    """`ps` ORTAMININ UC HALI — durum.py'den BAGIMSIZ olcum:
+      "yok"   -> binary PATH'te HIC YOK. Bu bir ORTAM EKSIKLIGIDIR (ariza degil):
+                 ps'e bagli kontroller ⚪ OLCULEMEDI olur, deploy BLOKLANMAZ.
+      "bozuk" -> binary PATH'te VAR ama calismiyor (rc!=0 / cikti BOS / asildi / OSError).
+                 Bu bir ARIZADIR -> fail-closed KIRMIZI (sessiz yesile CEVRILMEZ).
+      "var"   -> binary var ve calisiyor: kontroller NORMAL (bloklayici) kosar.
+
+    🔴 NEDEN UC HAL, IKI DEGIL (6. tur onarimi): "yok" ile "bozuk" tek bir False'a
+    katlaninca ikisi de AYNI muameleyi goruyordu ve kapi ancak 882. satirdaki
+    "OLCULEMEDI 0" iddiasi sayesinde kirmizi yanabiliyordu. O iddiayi kosullu yapmak
+    (K4'un cozumu) `bos`/`rc=1`/`asili` ps arizalarinin KIRMIZISINI da sessizce
+    oldururdu — OLCULDU: 5 K3 fiksturunun 3'unun kirmizisi YALNIZ o satirdan geliyordu.
+    Ayrim ORTAM ekseninde yapilir: eksik bagimlilik yayini durdurmaz, BOZUK bagimlilik
+    durdurur.
 
     🔴 NEDEN durum._surec_bilgisi KULLANILMAZ: kapiyi olculen kodun kendi fonksiyonuna
     baglamak SESSIZ YESIL uretir — o fonksiyonu olduren bir mutasyon "ps yokmus"
@@ -67,22 +91,69 @@ def ps_kullanilabilir():
     sorgulanir; kodun dogrulugu ayri (6h mutant nobetcisi)."""
     yol = shutil.which("ps")
     if not yol:
-        return False
+        return "yok"
     try:
         p = subprocess.run([yol, "-p", str(os.getpid()), "-o", "etime=,comm="],
-                           capture_output=True, text=True, timeout=5)
+                           capture_output=True, text=True,
+                           timeout=PS_SORGU_ZAMAN_ASIMI[0])
     except (OSError, subprocess.SubprocessError):
-        return False
-    return p.returncode == 0 and bool((p.stdout or "").strip())
+        return "bozuk"                       # asildi / calistirilamadi -> ARIZA
+    if p.returncode != 0 or not (p.stdout or "").strip():
+        return "bozuk"                       # rc!=0 ya da cikti BOS -> ARIZA
+    return "var"
 
 
 def ps_kontrol(ad, ok, ayrinti=""):
-    """`ps`e BAGIMLI kontrol: binary varsa NORMAL kontrol (kirmizi yanabilir),
-    yoksa GORUNUR ⚪ OLCULEMEDI (deploy BLOKLANMAZ). Bkz. modul basligi K4."""
+    """`ps`e BAGIMLI kontrol: ortam "var" ise NORMAL kontrol (kirmizi yanabilir),
+    "yok"/"bozuk" ise GORUNUR ⚪ OLCULEMEDI. "bozuk" halinde kapinin KIRMIZISI ayrica
+    bolum 9'daki ORTAM kontrolunden gelir (fail-closed). Bkz. modul basligi K4."""
     PS_BAGIMLI[0] += 1
-    if PS_VAR[0]:
+    if PS_ORTAMI[0] == "var":
         return kontrol(ad, ok, ayrinti)
-    return olculemedi(ad, "`ps` binary'si yok — surec kimligi olculemez")
+    return olculemedi(ad, "`ps` ortami '%s' — surec kimligi olculemez" % PS_ORTAMI[0],
+                      eksen="ps")
+
+
+def kaynak_ortami():
+    """Bu makinede YEDEKLENECEK KAYNAK var mi? "var" | "yok" — ORTAM sorgusu.
+
+    🔴 NEDEN VAR (27 Tem, 6. tur; CI TAKLIDINDE YAKALANDI): K5 canli-imza olcumunun
+    GERCEK (enjeksiyonsuz) ucunu kosulsuz bloklayici yapmak, CI fresh checkout'unda
+    kapiyi KIRMIZI yakiyordu -> `deploy: needs: build` zinciri TUM pruvo3d.com yayinini
+    durdururdu. Sebep: CI'da HOME BOS (~/.claude YOK) ve yedeklenen 4 repo dosyasi
+    gitignore'lu (izlenen degil) -> olculecek KAYNAK KUMESI hic yoktur, imza tanim
+    geregi None doner. Bu bir ARIZA DEGIL, ortam eksikligidir (ps ile ayni sinif).
+
+    🔴 NEDEN durum._canli_kaynak_imzasi KULLANILMAZ: kapiyi olculen fonksiyona baglamak
+    SESSIZ YESIL uretir (o fonksiyonu olduren mutasyon "kaynak yokmus" kilifina girer).
+    Burada yalniz ORTAM sorgulanir: yedekle.py'nin ilan ettigi MEMORY/SKILLS dizinleri
+    ve REPO_BEKLENEN dosyalarindan HERHANGI BIRI diskte var mi?"""
+    try:
+        yedekle = modul_yukle(os.path.join(TOOLS, "yedekle.py"), "yedekle_ortam")
+    except Exception:
+        return "yok"
+    if os.path.isdir(yedekle.MEMORY) or os.path.isdir(yedekle.SKILLS):
+        return "var"
+    for ad in yedekle.REPO_BEKLENEN:
+        if os.path.isfile(os.path.join(yedekle.ROOT, ad)):
+            return "var"
+    return "yok"
+
+
+def ortam_kontrol(ad, ortam_var, ok, ayrinti=""):
+    """ORTAMA bagli kontrol: ortam varsa NORMAL (bloklayici), yoksa GORUNUR ⚪."""
+    ORTAM_BAGIMLI[0] += 1
+    if ortam_var:
+        return kontrol(ad, ok, ayrinti)
+    return olculemedi(ad, "yedeklenecek KAYNAK kumesi bu makinede yok "
+                          "(fresh checkout / bos HOME) — olculemez", eksen="kaynak")
+
+
+def canli_olcum(adaylar, kok=None):
+    """`durum._canli_kaynak_imzasi` enjeksiyonu icin olcum sozlugu uretir (K5).
+    `kok=None` -> damga/olcum agac karsilastirmasi ATLANIR (fikstur damgalarinda
+    `kok` alani zaten yok); kok verilirse agac-uyusmazligi yolu olculur."""
+    return {"kok": kok, "adaylar": [dict(a) for a in adaylar]}
 
 
 def modul_yukle(yol, ad):
@@ -118,10 +189,13 @@ def damga_kur(backup, yas_saniye, **ekstra):
 
 
 def main():
-    PS_VAR[0] = ps_kullanilabilir()
-    if not PS_VAR[0]:
+    PS_ORTAMI[0] = ps_ortami()
+    if PS_ORTAMI[0] == "yok":
         print("⚪ NOT: `ps` binary'si YOK -> surec kimligi kontrolleri OLCULEMEDI "
               "olarak isaretlenecek (deploy BLOKLANMAZ; bkz. modul basligi K4).")
+    elif PS_ORTAMI[0] == "bozuk":
+        print("❌ NOT: `ps` PATH'te VAR ama CALISMIYOR -> fail-closed KIRMIZI "
+              "(bozuk bagimlilik, eksik bagimliliktan farklidir; bkz. ps_ortami).")
     durum = modul_yukle(DURUM, "durum_gercek")
 
     # ---------------- 1) TAZE ----------------
@@ -404,14 +478,162 @@ def main():
                 sat_b2d[0][:90])
         # KIRMIZI-MUTASYON: `update` semantigine donunce miras alan geri gelir ve susturur
         mut_k2 = mutant_yaz(td,
-                            "            damga = {k: v for k, v in damga.items() "
-                            'if not k.startswith("son_atlama")}',
-                            "            damga = dict(damga)  # MUTANT: update semantigi",
+                            '        damga = {k: v for k, v in damga.items() '
+                            'if not k.startswith("son_atlama")}\n'
+                            '        damga.update({k: v for k, v in (atlama_kaydi or {}).items()\n'
+                            '                      if k.startswith("son_atlama")})',
+                            '        damga = dict(damga)  # MUTANT: update semantigi\n'
+                            '        damga.update({k: v for k, v in (atlama_kaydi or {}).items()\n'
+                            '                      if k.startswith("son_atlama")})',
                             ad="durum_mutant_miras.py")
         mmod_k2 = modul_yukle(mut_k2, "durum_mutant_miras")
         m_k2 = mmod_k2.yedek_satirlari(mmod_k2.yedek_durumu(b2d, "var"))
         kontrol("MUTANTTA (update) miras alan panoyu SUSTURUYOR (kontrol KIRMIZI yanardi)",
                 m_k2[0].strip().startswith("taze:"), m_k2[0][:90])
+
+        # ---- (b2e) 🔴 K2 / 6. TUR: BOZUK ATLAMA DOSYASINDA MIRAS YASIYORDU ----------
+        # Curutucu olcumu: `except: pass` yuzunden ayri dosya OKUNAMADIGINDA damgadan
+        # gelen miras `son_atlama_sahip_baslangici` ayakta kaliyor ve fail-closed uyariyi
+        # SUSTURUYORDU -> pano "taze". 8 bozuk-dosya biciminin 6'sinda oldu.
+        # ILKE (mimar karari): ayri dosya VAR ama ondan dict elde EDILEMIYORSA atlama
+        # duzlemi BILINMIYOR'dur -> damganin mirasi ASLA devreye girmez, sonuc GORUNUR
+        # uyaridir, hicbir bicimde "taze"/"GUNCEL" DENMEZ.
+        print("\n6g2) K2 — BOZUK atlama dosyasinin 8 bicimi: miras SUSTURMAMALI")
+        BOZUK_BICIMLER = (
+            ("gecersiz JSON", b'{"son_atlama": bozuk,,'),
+            ("BOS dosya (0 bayt)", b""),
+            ("kesik/kismi JSON", b'{"son_atlama": 1785000000, "son_atlama_kapsandi"'),
+            ("dict DEGIL — liste", b"[1, 2, 3]"),
+            ("dict DEGIL — dize", b'"son_atlama"'),
+            ("dict DEGIL — sayi", b"12345"),
+            ("ikili cop (UTF-8 degil)", b"\xff\xfe\x00\x01\x02gurultu\x80\x81"),
+            ("yalniz bosluk", b"   \n\t  \n"),
+        )
+        for etiket, ham in BOZUK_BICIMLER:
+            bz = damga_kur(os.path.join(td, "bz-" + etiket[:12].replace(" ", "_")), 600,
+                           baslangic=simdi - 660,
+                           son_atlama=simdi - 300, son_atlama_iso="DAMGA-ICI-MIRAS",
+                           son_atlama_kapsandi=True,
+                           son_atlama_sahip_baslangici=simdi - 5000)  # MIRAS susturucu
+            with open(os.path.join(bz, ".son-yedek-atlama.json"), "wb") as fh:
+                fh.write(ham)
+            d_bz = durum.yedek_durumu(bz, "var")
+            sat_bz = durum.yedek_satirlari(d_bz)
+            tum = " ".join(sat_bz)
+            kontrol("(bozuk: %s) hal 'bilinmiyor' + miras DUSTU" % etiket,
+                    d_bz.get("atlama_hali") == "bilinmiyor"
+                    and not any(k.startswith("son_atlama") for k in (d_bz["damga"] or {})),
+                    "hal=%s alanlar=%s" % (d_bz.get("atlama_hali"),
+                                           sorted(k for k in (d_bz["damga"] or {})
+                                                  if k.startswith("son_atlama"))))
+            kontrol("(bozuk: %s) pano 'taze'/'GUNCEL' DEMIYOR + GORUNUR uyari" % etiket,
+                    not sat_bz[0].strip().startswith("taze:")
+                    and "GÜNCEL" not in sat_bz[0]
+                    and ("ÖLÇÜLEMEDİ" in tum or "⚠" in tum)
+                    and "OKUNAMADI" in tum,
+                    sat_bz[0][:100])
+        # IKI IZINSIZ/YAPISAL BICIM (ayri kurulum gerekiyor: chmod + dizin)
+        bz_izin = damga_kur(os.path.join(td, "bz-izin"), 600, baslangic=simdi - 660,
+                            son_atlama=simdi - 300, son_atlama_kapsandi=True,
+                            son_atlama_sahip_baslangici=simdi - 5000)
+        _izin_yolu = os.path.join(bz_izin, ".son-yedek-atlama.json")
+        with open(_izin_yolu, "w") as fh:
+            json.dump({"son_atlama": simdi - 300}, fh)
+        os.chmod(_izin_yolu, 0o000)
+        bz_dizin = damga_kur(os.path.join(td, "bz-dizin"), 600, baslangic=simdi - 660,
+                             son_atlama=simdi - 300, son_atlama_kapsandi=True,
+                             son_atlama_sahip_baslangici=simdi - 5000)
+        os.makedirs(os.path.join(bz_dizin, ".son-yedek-atlama.json"))
+        for etiket, yer in (("IZINSIZ dosya (chmod 000)", bz_izin),
+                            ("yolda DIZIN var (dosya degil)", bz_dizin)):
+            d_bz = durum.yedek_durumu(yer, "var")
+            sat_bz = durum.yedek_satirlari(d_bz)
+            tum = " ".join(sat_bz)
+            if etiket.startswith("IZINSIZ") and d_bz.get("atlama_hali") == "var":
+                # root olarak kosuluyorsa chmod 000 ISIRMAZ -> fikstur GECERSIZ, sessiz
+                # gecmesin: GORUNUR olculemedi (kirmizi degil, cunku kod degil ORTAM).
+                olculemedi("(bozuk: %s) fikstur ISIRMADI (root?)" % etiket,
+                           "chmod 000 dosya yine okundu", eksen="fikstur")
+                continue
+            kontrol("(bozuk: %s) hal 'bilinmiyor' + miras DUSTU" % etiket,
+                    d_bz.get("atlama_hali") == "bilinmiyor"
+                    and not any(k.startswith("son_atlama") for k in (d_bz["damga"] or {})),
+                    "hal=%s" % d_bz.get("atlama_hali"))
+            kontrol("(bozuk: %s) pano 'taze'/'GUNCEL' DEMIYOR + GORUNUR uyari" % etiket,
+                    not sat_bz[0].strip().startswith("taze:")
+                    and "GÜNCEL" not in sat_bz[0] and "OKUNAMADI" in tum,
+                    sat_bz[0][:100])
+        os.chmod(_izin_yolu, 0o644)                  # tempdir silinebilsin
+        # SAGLIKLI DICT bicimleri (bozuk DEGIL): replace zaten mirasi dusuruyor ->
+        # POZITIF nobetci (kapsam yanlis eksene kaymasin: bunlar uyari URETMEZ)
+        for etiket, kayit in (("bos dict {}", {}),
+                              ("alakasiz anahtarli dict", {"baska": 1})):
+            sg = damga_kur(os.path.join(td, "sg-" + etiket[:8].replace(" ", "_")), 600,
+                           baslangic=simdi - 660, son_atlama=simdi - 300,
+                           son_atlama_kapsandi=True,
+                           son_atlama_sahip_baslangici=simdi - 5000)
+            with open(os.path.join(sg, ".son-yedek-atlama.json"), "w") as fh:
+                json.dump(kayit, fh)
+            d_sg = durum.yedek_durumu(sg, "var")
+            kontrol("(saglikli: %s) hal 'var' + miras DUSTU + OKUNAMADI uyarisi YOK"
+                    % etiket,
+                    d_sg.get("atlama_hali") == "var"
+                    and not any(k.startswith("son_atlama") for k in (d_sg["damga"] or {}))
+                    and "OKUNAMADI" not in " ".join(durum.yedek_satirlari(d_sg)),
+                    "hal=%s" % d_sg.get("atlama_hali"))
+        # KIRMIZI-MUTASYON: 'bilinmiyor' yeniden 'yok' gibi ele alinirsa miras geri gelir
+        mut_k2b = mutant_yaz(td,
+                             '        return None, ("bilinmiyor" if os.path.exists(yol) '
+                             'else "yok")',
+                             '        return None, "yok"  # MUTANT: bozuk == yok',
+                             ad="durum_mutant_bozuk_atlama.py")
+        mmod_k2b = modul_yukle(mut_k2b, "durum_mutant_bozuk_atlama")
+        bz_m = damga_kur(os.path.join(td, "bz-mutant"), 600, baslangic=simdi - 660,
+                         son_atlama=simdi - 300, son_atlama_kapsandi=True,
+                         son_atlama_sahip_baslangici=simdi - 5000)
+        with open(os.path.join(bz_m, ".son-yedek-atlama.json"), "w") as fh:
+            fh.write("{bozuk")
+        m_k2b = mmod_k2b.yedek_satirlari(mmod_k2b.yedek_durumu(bz_m, "var"))
+        kontrol("MUTANTTA (bozuk==yok) bozuk dosyada miras SUSTURUYOR "
+                "(kontrol KIRMIZI yanardi)",
+                m_k2b[0].strip().startswith("taze:"), m_k2b[0][:90])
+
+        # ---- (b2f) K2: ayri dosya YOK + YENI surum damga -> miras KALINTIdir --------
+        # `damga_yaz` onceki damgadan `son_atlama*` alanlarini TASIR: bir kez girdiginde
+        # SONSUZA DEK yasar. Surum >= 3 atlamayi AYRI dosyaya yazar; o halde damganin
+        # ICINDEKI alanlar kalintidir -> SUSTURMA yetkisi TASIMAZ (uyari fail-closed).
+        b2f = damga_kur(os.path.join(td, "b2f"), 600, baslangic=simdi - 660, surum=4,
+                        son_atlama=simdi - 300, son_atlama_iso="KALINTI",
+                        son_atlama_kapsandi=True,
+                        son_atlama_sahip_baslangici=simdi - 5000)
+        d_b2f = durum.yedek_durumu(b2f, "var")
+        sat_b2f = durum.yedek_satirlari(d_b2f)
+        kontrol("(b2f) YENI surum + ayri dosya YOK: susturucu ikili DUSTU",
+                d_b2f.get("atlama_kalintisi") is True
+                and "son_atlama_sahip_baslangici" not in (d_b2f["damga"] or {})
+                and "son_atlama_kapsandi" not in (d_b2f["damga"] or {}),
+                "kalinti=%s" % d_b2f.get("atlama_kalintisi"))
+        kontrol("(b2f) atlamanin KENDISI kaldi -> pano UYARIYOR ('taze' DEMIYOR)",
+                not sat_b2f[0].strip().startswith("taze:") and "ATLANDI" in sat_b2f[0],
+                sat_b2f[0][:90])
+        # POZITIF nobetci: ESKI surum (<3) damgayi TEK yazici olarak kullanirdi ->
+        # onun susturucusu MESRUDUR (asiri-daralma olmasin; (b) fiksturu bunu tasiyor)
+        b2g = damga_kur(os.path.join(td, "b2g"), 600, baslangic=simdi - 660, surum=2,
+                        son_atlama=simdi - 300, son_atlama_kapsandi=True,
+                        son_atlama_sahip_baslangici=simdi - 660)
+        kontrol("(b2g) ESKI surum (<3) damga-ici susturucu MESRU (asiri-daralma YOK)",
+                durum.yedek_satirlari(durum.yedek_durumu(b2g, "var"))[0]
+                .strip().startswith("taze:"),
+                durum.yedek_satirlari(durum.yedek_durumu(b2g, "var"))[0][:90])
+        # KIRMIZI-MUTASYON: kalinti kurali kaldirilirsa (b2f) sessizce "taze" olur
+        mut_k2c = mutant_yaz(td,
+                             "    if son_atlama_var and not eski_yazici:",
+                             "    if False:  # MUTANT: kalinti kurali YOK",
+                             ad="durum_mutant_kalinti.py")
+        mmod_k2c = modul_yukle(mut_k2c, "durum_mutant_kalinti")
+        m_k2c = mmod_k2c.yedek_satirlari(mmod_k2c.yedek_durumu(b2f, "var"))
+        kontrol("MUTANTTA (kalinti kurali yok) (b2f) 'taze' diyor (kontrol KIRMIZI yanardi)",
+                m_k2c[0].strip().startswith("taze:"), m_k2c[0][:90])
 
         # (c) ESKI atlama: sonrasinda TAM bir kosum BASLADI -> kendi kendine temizlenir
         c = damga_kur(os.path.join(td, "c"), 60, baslangic=simdi - 120,
@@ -620,6 +842,12 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         simdi = time.time()
         imza = {"adet": 133, "bayt": 5771055, "mtime": simdi - 90000}
+        # 🔴 K5 SART 5: pano artik KAYNAKLARIN SU ANKI imzasini da olcuyor. Fikstur
+        # sentetik bir imza kullandigi icin canli olcum ENJEKTE edilir (aksi halde
+        # gercek makinenin imzasi karsilastirmaya girer -> belirlenimsiz test).
+        # Enjeksiyon deseni durum._agac_say ile ayni (6f'de kullanilan).
+        _gercek_canli = durum._canli_kaynak_imzasi
+        durum._canli_kaynak_imzasi = lambda: canli_olcum([imza])
 
         # (a) esik asildi AMA taze + ESLESEN dogrulama var -> ✅ GUNCEL
         a = damga_kur(os.path.join(td, "a"), 3 * 86400, kaynak_imzasi=dict(imza),
@@ -712,6 +940,7 @@ def main():
                             "    if False:\n        return None  # MUTANT: sart yok",
                             ad="durum_mutant_karisik.py")
         mmod_e4 = modul_yukle(mut_e4, "durum_mutant_karisik")
+        mmod_e4._canli_kaynak_imzasi = lambda: canli_olcum([imza])   # sart 5 nobeti ayri
         kontrol("MUTANTTA (karisik surum sarti yok) (e4) GUNCEL gorunuyor "
                 "(kontrol KIRMIZI yanardi)",
                 mmod_e4.yedek_durumu(e4, "var")["hal"] == "guncel",
@@ -746,15 +975,158 @@ def main():
         # KIRMIZI-MUTASYON 2: 'guncel' hali oldurulurse (a) bosuna BAYAT der
         #   (POZITIF nobetci: yeni hal GERCEKTEN erisilebilir olmali)
         mut_g2 = mutant_yaz(td,
-                            '    hal = _dogrulama_hali(damga, simdi, esik)',
+                            '    hal = _dogrulama_hali(damga, simdi, esik, '
+                            'canli=_canli_kaynak_imzasi())',
                             '    hal = None  # MUTANT: dogrulama gorulmuyor\n'
                             '    _ = _dogrulama_hali',
                             ad="durum_mutant_guncelsiz.py")
         mmod_g2 = modul_yukle(mut_g2, "durum_mutant_guncelsiz")
+        mmod_g2._canli_kaynak_imzasi = lambda: canli_olcum([imza])
         kontrol("MUTANTTA (dogrulama korlestirilmis) (a) BOSUNA 'bayat' diyor "
                 "(kontrol KIRMIZI yanardi)",
                 mmod_g2.yedek_durumu(a, "var")["hal"] == "bayat",
                 mmod_g2.yedek_durumu(a, "var")["hal"])
+
+        # ---- 6i2) 🔴 K5 / 6. TUR: KARDES SURUM DAMGAYA HIC DOKUNMAZSA ---------------
+        # Curutucu olcumu: sart 2 yalniz `damga_tazele` CAGIRAN eski surume karsi
+        # calisiyordu. `main`'in surumu `--gerekliyse` ATLA yolunda damgaya HIC
+        # DOKUNMUYOR (14 worktree'nin 12'si o surumde) -> sart hic tetiklenmiyor ve
+        # pano `✅ GUNCEL` kaliyordu, degisiklik yedekte YOKKEN. Cozum: tazelik artik
+        # baska bir kosumun DAVRANISINDAN degil, OLCULEN ICERIKTEN turetilir.
+        print("\n6i2) K5 — kapsam OLCULEN icerikten: kardes surum damgaya dokunmasa da")
+        # (h) K5 SENARYOSU BIREBIR: damga tutarli (dogrulandi == baslangic, imzalar esit)
+        #     ama KAYNAKLAR degismis (canli imza FARKLI) ve kardes kosum damgaya
+        #     DOKUNMAMIS (baslangic ilerlememis) -> sart 2 sessiz, sart 5 YAKALAR.
+        h = damga_kur(os.path.join(td, "h"), 3 * 86400, kaynak_imzasi=dict(imza),
+                      dogrulandi=simdi - 300, dogrulama_imzasi=dict(imza),
+                      baslangic=simdi - 300)
+        canli_degismis = dict(imza)
+        canli_degismis["bayt"] = imza["bayt"] + 4096      # mtime KORUNMUS icerik degisimi
+        durum._canli_kaynak_imzasi = lambda: canli_olcum([canli_degismis])
+        d_h = durum.yedek_durumu(h, "var")
+        sat_h = durum.yedek_satirlari(d_h)
+        print("     --- pano ciktisi (K5 h: kaynak degisti, kardes dokunmadi) ---")
+        for s in sat_h:
+            print("    " + s)
+        kontrol("(h) K5: canli imza FARKLI -> hal 'kapsam-degisti'",
+                d_h["hal"] == "kapsam-degisti", d_h["hal"])
+        kontrol("(h) K5: pano '✅ GÜNCEL' DEMIYOR (sessiz yesil KAPANDI)",
+                "GÜNCEL" not in sat_h[0] and not sat_h[0].strip().startswith("taze:"),
+                sat_h[0][:100])
+        kontrol("(h) K5: uyari NE oldugunu SOYLUYOR (kaynaklar DEGISTI)",
+                "KAPSAMIYOR" in sat_h[0] and "DEGISTI" in sat_h[0], sat_h[0][:100])
+        kontrol("(h) K5: ne yapilacagi yazili", "tools/yedekle.py" in " ".join(sat_h))
+        # (h2) BASLANGIC HIC ILERLEMEMIS (kardes kosum damgayi gercekten hic yazmadi):
+        #      sart 2'nin TANIM GEREGI sessiz kaldigi hal -> yine yakalanmali
+        h2 = damga_kur(os.path.join(td, "h2"), 3 * 86400, kaynak_imzasi=dict(imza),
+                       dogrulandi=simdi - 300, dogrulama_imzasi=dict(imza),
+                       baslangic=simdi - 3 * 86400)      # damgaya sonradan DOKUNULMADI
+        kontrol("(h2) K5: kardes damgaya HIC dokunmasa da yesil verilmiyor",
+                durum.yedek_durumu(h2, "var")["hal"] == "kapsam-degisti",
+                durum.yedek_durumu(h2, "var")["hal"])
+        # (h3) POZITIF nobetci — asiri-daralma YOK: canli imza ESITSE yine GUNCEL
+        durum._canli_kaynak_imzasi = lambda: canli_olcum([imza])
+        kontrol("(h3) K5: canli imza ESIT ise hal yine 'guncel' (asiri-daralma YOK)",
+                durum.yedek_durumu(h, "var")["hal"] == "guncel",
+                durum.yedek_durumu(h, "var")["hal"])
+        # (h4) `--sirlar` VARYANTI: damgayi hangi bayrakla kosan yedek yazdi bilinmez ->
+        #      iki adaydan BIRI tutuyorsa kapsam saglanmistir (bosuna uyarma yok)
+        durum._canli_kaynak_imzasi = lambda: canli_olcum([canli_degismis, imza])
+        kontrol("(h4) K5: iki aday imzadan BIRI tutuyorsa GUNCEL (sirlar varyanti)",
+                durum.yedek_durumu(h, "var")["hal"] == "guncel",
+                durum.yedek_durumu(h, "var")["hal"])
+        # (h4b) DAMGA BASKA KAYNAK AGACINA ait (yasanmis F1: ROOT worktree'ye dusuyordu,
+        #       ayrica izole kum havuzu kosumlari) -> "degisti" diye BAGIRMAK yanlis
+        #       alarmdir; dogru cevap GORUNUR 'olculemedi' (gurultulu pano = olu pano).
+        h4b = damga_kur(os.path.join(td, "h4b"), 3 * 86400, kaynak_imzasi=dict(imza),
+                        dogrulandi=simdi - 300, dogrulama_imzasi=dict(imza),
+                        baslangic=simdi - 300, kok="/baska/kaynak/agaci")
+        durum._canli_kaynak_imzasi = lambda: canli_olcum([imza], kok="/gercek/agac")
+        kontrol("(h4b) K5: damga BASKA agac icin yazilmissa 'kapsam-olculemedi' "
+                "(yanlis alarm YOK)",
+                durum.yedek_durumu(h4b, "var")["hal"] == "kapsam-olculemedi",
+                durum.yedek_durumu(h4b, "var")["hal"])
+        durum._canli_kaynak_imzasi = lambda: canli_olcum([imza],
+                                                        kok="/baska/kaynak/agaci")
+        kontrol("(h4c) K5: agac AYNI ise karsilastirma yapiliyor (asiri-daralma YOK)",
+                durum.yedek_durumu(h4b, "var")["hal"] == "guncel",
+                durum.yedek_durumu(h4b, "var")["hal"])
+        # (h4d) 🔴 SYMLINK'LI YOL AYNI AGACTIR: macOS'ta /var -> /private/var; damgayi
+        # yazan kosum bir yolu, panonun olcumu digerini gorebilir. Metin karsilastirmasi
+        # (normpath) burada SAHTE uyusmazlik uretir ve pano her acilista bosuna
+        # "olculemedi" der. GERCEK symlink ile olculur (sentetik dize yetmez: iki
+        # fonksiyon sentetik dizede AYNI sonucu verir -> mutant kacar).
+        _gercek = os.path.join(td, "agac-gercek")
+        os.makedirs(_gercek)
+        _bag = os.path.join(td, "agac-symlink")
+        os.symlink(_gercek, _bag)
+        h4d = damga_kur(os.path.join(td, "h4d"), 3 * 86400, kaynak_imzasi=dict(imza),
+                        dogrulandi=simdi - 300, dogrulama_imzasi=dict(imza),
+                        baslangic=simdi - 300, kok=_bag)          # damga: SYMLINK yolu
+        durum._canli_kaynak_imzasi = lambda: canli_olcum([imza], kok=_gercek)  # olcum: GERCEK
+        kontrol("(h4d) K5: symlink'li yol ile gercek yol AYNI agac sayiliyor "
+                "(sahte uyusmazlik YOK)",
+                durum.yedek_durumu(h4d, "var")["hal"] == "guncel",
+                "%s  (%s -> %s)" % (durum.yedek_durumu(h4d, "var")["hal"], _bag, _gercek))
+        # (h5) CANLI IMZA OLCULEMEDI -> GORUNUR 'kapsam-olculemedi', sessiz yesil YOK
+        durum._canli_kaynak_imzasi = lambda: None
+        d_h5 = durum.yedek_durumu(h, "var")
+        sat_h5 = durum.yedek_satirlari(d_h5)
+        kontrol("(h5) K5: canli imza olculemezse hal 'kapsam-olculemedi'",
+                d_h5["hal"] == "kapsam-olculemedi", d_h5["hal"])
+        kontrol("(h5) K5: ÖLÇÜLEMEDİ diyor, GUNCEL/taze DEMIYOR",
+                "ÖLÇÜLEMEDİ" in sat_h5[0] and "GÜNCEL" not in sat_h5[0]
+                and not sat_h5[0].strip().startswith("taze:"), sat_h5[0][:100])
+        # (h6) BOS aday listesi de olculemedi sayilir (fail-closed)
+        durum._canli_kaynak_imzasi = lambda: canli_olcum([])
+        kontrol("(h6) K5: bos aday listesi de 'kapsam-olculemedi' (fail-closed)",
+                durum.yedek_durumu(h, "var")["hal"] == "kapsam-olculemedi",
+                durum.yedek_durumu(h, "var")["hal"])
+        # KIRMIZI-MUTASYON: sart 5 kaldirilirsa (h) sessizce GUNCEL olur
+        durum._canli_kaynak_imzasi = lambda: canli_olcum([canli_degismis])
+        mut_h = mutant_yaz(td,
+                           "    if not isinstance(canli, dict) or not "
+                           'canli.get("adaylar"):\n'
+                           '        return "kapsam-olculemedi"',
+                           "    if False:\n"
+                           '        return "kapsam-olculemedi"\n'
+                           '    return "guncel"  # MUTANT: sart 5 YOK',
+                           ad="durum_mutant_kapsam.py")
+        mmod_h = modul_yukle(mut_h, "durum_mutant_kapsam")
+        mmod_h._canli_kaynak_imzasi = lambda: canli_olcum([canli_degismis])
+        kontrol("MUTANTTA (sart 5 yok) (h) GUNCEL gorunuyor (kontrol KIRMIZI yanardi)",
+                mmod_h.yedek_durumu(h, "var")["hal"] == "guncel",
+                mmod_h.yedek_durumu(h, "var")["hal"])
+        # KABLOLAMA NOBETCISI: canli olcum GERCEKTEN cagriliyor mu (enjeksiyon bir
+        # test kolayligi; kod yolunun kendisi de baglanmis olmali)
+        gov_k5 = open(DURUM, encoding="utf-8").read()
+        kontrol("K5: _bayat_mi_guncel_mi canli imzayi GERCEKTEN gecirivor",
+                "_dogrulama_hali(damga, simdi, esik, canli=_canli_kaynak_imzasi())" in gov_k5)
+        kontrol("K5: canli olcum yedekle.py'nin TEK kaynagini kullaniyor "
+                "(ikinci tanim YOK)",
+                "yedekle.kaynak_imzasi(s)" in gov_k5 and "_yedekle_modulu()" in gov_k5)
+        # GERCEK (enjeksiyonsuz) olcum ISLIYOR mu — ortam ekseninde
+        durum._canli_kaynak_imzasi = _gercek_canli
+        _canli_gercek = durum._canli_kaynak_imzasi()
+        _kaynak_var = kaynak_ortami() == "var"
+        ortam_kontrol("K5: GERCEK canli imza olcumu adet/bayt/mtime + kok dondurdu",
+                      _kaynak_var,
+                      isinstance(_canli_gercek, dict) and _canli_gercek.get("adaylar")
+                      and isinstance(_canli_gercek.get("kok"), str)
+                      and all(durum._imza_kullanilir(x)
+                              for x in (_canli_gercek or {}).get("adaylar", [])),
+                      str(_canli_gercek)[:130])
+        ortam_kontrol("K5: GERCEK olcum ANA calisma agacini gosteriyor (worktree DEGIL)",
+                      _kaynak_var,
+                      ".claude/worktrees" not in (_canli_gercek or {}).get("kok", "x"),
+                      (_canli_gercek or {}).get("kok"))
+        # FAIL-CLOSED yon: kaynak YOKKEN olcum None DONMELI (uydurma imza URETMEMELI)
+        kontrol("K5: kaynak yoksa olcum None doner (uydurma imza YOK)",
+                _kaynak_var or _canli_gercek is None,
+                "kaynak=%s olcum=%s" % (kaynak_ortami(), str(_canli_gercek)[:60]))
+        # ---- 6i) SONU: enjeksiyon GERI ALINDI (sizinti yok) ----
+        kontrol("6i sonunda canli olcum GERCEK fonksiyona geri alindi",
+                durum._canli_kaynak_imzasi is _gercek_canli)
 
     # ---------------- 6f) N3: ZAMAN ASIMI — PANO ASILMAZ ----------------
     print("\n6f) N3 — Drive yanit vermezse pano BEKLEMEZ")
@@ -871,24 +1243,110 @@ def main():
                     "⚪ ÖLÇÜLEMEDİ" in cik)
             kontrol("ps YOKKEN ozet OLCULEMEDI SAYISINI yaziyor (CI log'unda goze batar)",
                     _sayi("OLCULEMEDI: ") is not None, str(_sayi("OLCULEMEDI: ")))
-            kontrol("ps YOKKEN olculemeyen sayisi = ilan edilen ps-bagimli sayisi",
-                    _sayi("OLCULEMEDI: ") == _sayi("PS BAGIMLI: ")
+            # ps EKSENINDEKI ⚪ SAYISI = ILAN EDILEN ps-bagimli kontrol SAYISI.
+            # (Toplam ⚪ ile karsilastirmak YANLIS olur: baska eksenler de ⚪ uretebilir —
+            # CI taklidinde kaynak ekseni tam bunu yapti.)
+            kontrol("ps YOKKEN ps-ekseni ⚪ sayisi = ilan edilen ps-bagimli sayisi",
+                    _sayi("PS EKSEN OLCULEMEDI: ") == _sayi("PS BAGIMLI: ")
                     and (_sayi("PS BAGIMLI: ") or 0) > 0,
-                    "olculemedi=%s / ps-bagimli=%s"
-                    % (_sayi("OLCULEMEDI: "), _sayi("PS BAGIMLI: ")))
+                    "ps-eksen-⚪=%s / ps-bagimli=%s"
+                    % (_sayi("PS EKSEN OLCULEMEDI: "), _sayi("PS BAGIMLI: ")))
+            # HER ⚪ EKSENINI ILAN ETMELI: eksensiz ⚪ = sebebi yazilmamis atlama.
+            kontrol("ps YOKKEN her ⚪ ortam eksenini ILAN ETMIS (eksensiz 0)",
+                    _sayi("EKSENSIZ OLCULEMEDI: ") == 0,
+                    "eksensiz=%s" % _sayi("EKSENSIZ OLCULEMEDI: "))
             kontrol("ps YOKKEN kapinin GERI KALANI hala BLOKLAYICI (kirmizi 0 + coklu yesil)",
                     _sayi("KIRMIZI: ") == 0 and (_sayi("GECTI: ") or 0) > 50,
                     "gecti=%s kirmizi=%s" % (_sayi("GECTI: "), _sayi("KIRMIZI: ")))
-            kontrol("ps VARKEN bu makinede OLCULEMEDI 0 (kapi burada TAM olcuyor)",
-                    PS_VAR[0] and not OLCULEMEDI,
-                    "ps=%s olculemedi=%d" % (PS_VAR[0], len(OLCULEMEDI)))
+            # 🔴 K4 MERGE BLOKLAYICISININ TA KENDISI (6. tur): bu iddia KOSULSUZ
+            # bloklayiciydi -> `ps` YOKKEN kapi rc=1 veriyor, `deploy: needs: build`
+            # zinciri yuzunden TUM pruvo3d.com yayini duruyordu. Artik ORTAM ekseninde
+            # ucce ayrilir; "yok" tek basina yayini durdurmaz, "bozuk" DURDURUR.
+            if PS_ORTAMI[0] == "yok":
+                PS_BAGIMLI[0] += 1            # "⚪ == ilan edilen ortam bagimliligi"
+                olculemedi("ps VARKEN ps-ekseninde OLCULEMEDI 0 (kapi TAM olcuyor)",
+                           "`ps` binary'si PATH'te YOK — bu makinede kapinin TAM "
+                           "olcumu yapilamaz (yayin BLOKLANMAZ; bkz. K4)", eksen="ps")
+            else:
+                # "var" -> nobetci CANLI: ps'e bagli hicbir kontrol OLCULEMEDI'ye
+                # KACAMAZ (_surec_bilgisi'ni olduren mutantin kacis yolu buydu).
+                # "bozuk" -> fail-closed KIRMIZI (bozuk bagimlilik yayini durdurur).
+                # ⚠️ YALNIZ ps EKSENI sayilir: alakasiz bir eksenin ⚪'si (or. CI'da
+                # kaynak kumesinin yoklugu) bu nobetciyi kirmiziya cevirmemeli — CI
+                # taklidinde olculdu, tam bu olmustu.
+                kontrol("ps VARKEN ps-ekseninde OLCULEMEDI 0 (kapi TAM olcuyor)",
+                        PS_ORTAMI[0] == "var" and EKSEN.get("ps", 0) == 0,
+                        "ps_ortami=%s ps-eksen-⚪=%d (toplam ⚪=%d)"
+                        % (PS_ORTAMI[0], EKSEN.get("ps", 0), len(OLCULEMEDI)))
+            # AYNI NOBET, KAYNAK EKSENI: kaynak kumesi VARSA hicbir kontrol
+            # "kaynak yok" kilifina kacamaz (aksi halde K5 sessizce olculmez olurdu).
+            if kaynak_ortami() == "var":
+                kontrol("kaynak VARKEN kaynak-ekseninde OLCULEMEDI 0",
+                        EKSEN.get("kaynak", 0) == 0,
+                        "kaynak-eksen-⚪=%d" % EKSEN.get("kaynak", 0))
+            else:
+                ORTAM_BAGIMLI[0] += 1
+                olculemedi("kaynak VARKEN kaynak-ekseninde OLCULEMEDI 0",
+                           "yedeklenecek KAYNAK kumesi yok — bu nobet burada "
+                           "kosulamaz", eksen="kaynak")
+
+            # ---- 9b) ORTAM SINIFLANDIRICISININ KENDI KABUL FIKSTURLERI ----
+            # 🔴 NEDEN: artik "yok" hali rc'yi BOZMUYOR -> ps_ortami()'yi "hep yok
+            # dondur" diye olduren bir mutasyon TUM ps eksenini sessizce ⚪'ya cevirip
+            # YESIL yanardi. Bu fiksturler SENTETIK PATH ile kosar, yani GERCEK ortamdan
+            # BAGIMSIZ: `ps` olmayan bir makinede de mutant kirmizi yanar.
+            print("\n9b) ps_ortami() siniflandiricisi — sentetik PATH fiksturleri")
+            eski_path = os.environ.get("PATH", "")
+            SAHTE = {                             # ad -> (govde, beklenen hal)
+                "yok": (None, "yok"),
+                "calisan": ("#!/bin/sh\necho '01:23 python3'\nexit 0\n", "var"),
+                "bos-cikti": ("#!/bin/sh\nexit 0\n", "bozuk"),
+                "rc1": ("#!/bin/sh\necho hata\nexit 1\n", "bozuk"),
+                "calistirilamaz": ("bu bir betik DEGIL\n", "bozuk"),
+                # ASILI ps: zaman asimi gecici olarak 0,3 sn'ye cekilir -> gercek 5 sn
+                # beklemeden "asili -> bozuk" yolu KANITLANIR (kapi hizli kalir).
+                "asili": ("#!/bin/sh\nsleep 5\n", "bozuk"),
+            }
+            try:
+                for ad in sorted(SAHTE):
+                    govde, beklenen = SAHTE[ad]
+                    PS_SORGU_ZAMAN_ASIMI[0] = 0.3 if ad == "asili" else 5.0
+                    with tempfile.TemporaryDirectory() as ftd:
+                        kutu2 = os.path.join(ftd, "bin")
+                        os.makedirs(kutu2)
+                        if govde is not None:
+                            sahte_ps = os.path.join(kutu2, "ps")
+                            with open(sahte_ps, "w") as fh:
+                                fh.write(govde)
+                            os.chmod(sahte_ps, 0o755)
+                        os.environ["PATH"] = kutu2
+                        gorulen = ps_ortami()
+                    kontrol("ps_ortami() '%s' fiksturunu '%s' diye siniflandiriyor"
+                            % (ad, beklenen), gorulen == beklenen, "gorulen=%s" % gorulen)
+            finally:
+                os.environ["PATH"] = eski_path
+                PS_SORGU_ZAMAN_ASIMI[0] = 5.0
+            kontrol("ps_ortami() gercek ortami ILAN ETTIGI gibi goruyor (tekrarlanabilir)",
+                    ps_ortami() == PS_ORTAMI[0], "%s == %s" % (ps_ortami(), PS_ORTAMI[0]))
+            kontrol("varsayilan `ps` zaman asimi makul (1-15 sn)",
+                    1 <= PS_SORGU_ZAMAN_ASIMI[0] <= 15, str(PS_SORGU_ZAMAN_ASIMI[0]))
 
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok in SONUC if not ok]
     print("\n" + "=" * 70)
     # Makine-okunur ozet (alt kosum bunlari ayristirir; sabit sayi YOK).
-    print("PS: " + ("VAR" if PS_VAR[0] else "YOK"))
+    print("PS: " + PS_ORTAMI[0].upper())      # VAR | YOK | BOZUK
     print("PS BAGIMLI: %d" % PS_BAGIMLI[0])
+    print("ORTAM BAGIMLI: %d" % ORTAM_BAGIMLI[0])
+    print("KAYNAK ORTAMI: " + kaynak_ortami().upper())
+    # EKSEN BAZLI ⚪ SAYILARI (alt kosum bunlari ayristirir; sabit sayi YOK).
+    # "EKSENSIZ" > 0 demek: bir ⚪ hangi ortam eksigi yuzunden yazildigini ILAN
+    # ETMEMISTIR -> sessiz atlamaya en yakin hal, nobetci onu KIRMIZI yakar.
+    print("PS EKSEN OLCULEMEDI: %d" % EKSEN.get("ps", 0))
+    print("KAYNAK EKSEN OLCULEMEDI: %d" % EKSEN.get("kaynak", 0))
+    print("FIKSTUR EKSEN OLCULEMEDI: %d" % EKSEN.get("fikstur", 0))
+    print("EKSENSIZ OLCULEMEDI: %d"
+          % sum(n for e, n in EKSEN.items() if e not in ("ps", "kaynak", "fikstur")))
     print("GECTI: %d" % (len(SONUC) - len(kirmizi)))
     print("KIRMIZI: %d" % len(kirmizi))
     print("OLCULEMEDI: %d" % len(OLCULEMEDI))
@@ -896,8 +1354,8 @@ def main():
           % (len(SONUC), len(kirmizi), len(OLCULEMEDI)))
     for a in kirmizi:
         print("  ❌ " + a)
-    for a, ayrinti in OLCULEMEDI:
-        print("  ⚪ ÖLÇÜLEMEDİ: %s  (%s)" % (a, ayrinti))
+    for a, ayrinti, eksen in OLCULEMEDI:
+        print("  ⚪ ÖLÇÜLEMEDİ [%s]: %s  (%s)" % (eksen, a, ayrinti))
     if OLCULEMEDI:
         print("NOT: ⚪ OLCULEMEDI cikis kodunu BOZMAZ (ortam eksikligi yayini durdurmaz) "
               "ama GORUNURDUR — bkz. modul basligi K4.")
