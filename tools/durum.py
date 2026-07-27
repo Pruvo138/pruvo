@@ -503,11 +503,23 @@ def yedek_durumu(backup_dizini, hal="var", simdi=None, esik=None):
     except (OSError, ValueError, UnicodeDecodeError):
         damga = None
     # ATLAMA KAYDI ayri dosyadan gelir ve damgadaki (eski surum) kopyasini EZER.
+    #
+    # 🔴 REPLACE, `update` DEGIL (K2, 27 Tem — MERGE BLOKLAYICI kusurun onarimi):
+    # anahtar-anahtar `update` yalnizca ayri dosyada BULUNAN alanlari eziyordu; ayri
+    # dosyada OLMAYAN bir `son_atlama*` alani damgadan MIRAS kaliyordu. Somut zarar:
+    # damgadaki miras `son_atlama_sahip_baslangici`, ayri dosyanin "sahibi
+    # tanimlayamadim" (alan YOK) fail-closed uyarisini SUSTURUYORDU -> pano "taze"
+    # diyordu. yedekle.py damga_yaz onceki damgadan `son_atlama*` alanlarini TASIDIGI
+    # icin boyle bir alan bir kez girdiginde SONSUZA DEK yasar. Bugun gercek damga
+    # o alani icermiyor (surum 3+ ayri dosyaya yazar) ama dalin kendi tur-1/tur-2
+    # kodu tam olarak damganin ICINE yaziyordu; geri gelirse sessiz olurdu.
+    # ILKE: ayri dosya VARSA atlama duzleminin TEK KAYNAGIDIR — damgadan gelen TUM
+    # `son_atlama*` alanlari DUSURULUR (kismi miras yok).
     try:
         with open(os.path.join(backup_dizini, YEDEK_ATLAMA_ADI), "r", errors="replace") as f:
             atlama_kaydi = json.load(f)
         if isinstance(atlama_kaydi, dict) and isinstance(damga, dict):
-            damga = dict(damga)
+            damga = {k: v for k, v in damga.items() if not k.startswith("son_atlama")}
             damga.update({k: v for k, v in atlama_kaydi.items()
                           if k.startswith("son_atlama")})
     except (OSError, ValueError, UnicodeDecodeError):
@@ -528,9 +540,65 @@ def yedek_durumu(backup_dizini, hal="var", simdi=None, esik=None):
 
     if sonuc["yas"] < 0:
         sonuc["hal"] = "supheli"                      # F3: damga gelecekte
+    elif sonuc["yas"] < esik:
+        sonuc["hal"] = "taze"
     else:
-        sonuc["hal"] = "bayat" if sonuc["yas"] >= esik else "taze"
+        sonuc["hal"] = _bayat_mi_guncel_mi(damga, simdi, esik)
     return sonuc
+
+
+def _dogrulama_hali(damga, simdi, esik):
+    """K3 — esik asilmis bir damganin DOGRULAMA kaydini yorumlar (saf fonksiyon).
+    Doner: 'guncel' | 'olculemedi' | None (dogrulama iddiasi HIC yok).
+
+    'guncel' demek icin UC sart birden (biri tutmazsa yesil VERILMEZ):
+      1. `dogrulandi` sayi VE kendisi TAZE (esigi asmamis) — yoksa dogrulama da bayat,
+      2. `dogrulama_imzasi` ile damganin `kaynak_imzasi` KARSILASTIRILABILIR (ikisi de
+         adet/bayt/mtime tasiyan sozluk),
+      3. iki imza ESIT — yani o kosum "kopyadaki kaynak kumesi HALA aynidir" OLCTU.
+    Sart 2 tutmazsa 'olculemedi' (GORUNUR) doner: iddia var ama dogrulanamiyor.
+    🔴 NEDEN PANO KENDI DOGRULUYOR: yazicinin "degisiklik yok" iddiasina GUVENMEK,
+    K1'de kapatilan sessiz-yesil deligini baska kapidan acmak olurdu."""
+    dogrulandi = damga.get("dogrulandi")
+    imza = damga.get("dogrulama_imzasi")
+    kopya = damga.get("kaynak_imzasi")
+    if not isinstance(dogrulandi, (int, float)) or isinstance(dogrulandi, bool):
+        return None                                   # dogrulama iddiasi YOK -> bayat
+    if dogrulandi > simdi or (simdi - dogrulandi) >= esik:
+        return None                                   # dogrulamanin KENDISI bayat
+    if not _imza_kullanilir(imza) or not _imza_kullanilir(kopya):
+        return "olculemedi"
+    for alan in ("adet", "bayt", "mtime"):
+        if imza[alan] != kopya[alan]:
+            return "olculemedi"                       # degisiklik VAR: yesil verilmez
+    return "guncel"
+
+
+def _imza_kullanilir(imza):
+    """Kaynak imzasi karsilastirilabilir mi (adet/bayt/mtime sayisal)? fail-closed."""
+    if not isinstance(imza, dict):
+        return False
+    for alan in ("adet", "bayt", "mtime"):
+        d = imza.get(alan)
+        if not isinstance(d, (int, float)) or isinstance(d, bool):
+            return False
+    return True
+
+
+def _bayat_mi_guncel_mi(damga, simdi, esik):
+    """Esik asildi: gercekten BAYAT mi, yoksa 'degisiklik YOK' diye DOGRULANMIS mi?
+
+    🔴 K3 GEREKCESI: bayatlik `zaman`dan (son GERCEK kopyalama) olculur ve bu DOGRU;
+    ama `--gerekliyse` yolu hicbir sey kopyalamadigi icin degismeyen bir sistemde
+    `zaman` hic ilerlemez ve pano 2 gun sonra BOSUNA "⚠⚠ YEDEK BAYAT" der. Bosuna
+    uyaran pano, kimsenin bakmadigi panodur. "YEDEK GEREKSIZ" ile "YEDEK BAYAT" ayri
+    seylerdir; ayrimi OLCUM yapar (bkz. _dogrulama_hali), varsayim degil."""
+    hal = _dogrulama_hali(damga, simdi, esik)
+    if hal == "guncel":
+        return "guncel"
+    if hal == "olculemedi":
+        return "dogrulama-olculemedi"
+    return "bayat"
 
 
 def yedek_satirlari(d):
@@ -599,6 +667,10 @@ def yedek_satirlari(d):
         return ["  ⚠ ŞÜPHELİ: damga GELECEK tarihli (%s) — tazelik ÖLÇÜLEMEDİ."
                 % dmg.get("iso", "?"),
                 "  (Saat kaymasi ya da bozuk yazim.)" + kos[1:]]
+    dogrulandi_ne_zaman = ""
+    if isinstance(dmg.get("dogrulandi"), (int, float)):
+        dogrulandi_ne_zaman = _gecen(dmg["dogrulandi"])
+
     if hal == "bayat":
         satirlar = ["  ⚠⚠ YEDEK BAYAT: son yedek %s (%s) — esik %.0f gun."
                     % (ne_zaman, dmg.get("iso", "?"), esik_gun),
@@ -620,6 +692,21 @@ def yedek_satirlari(d):
                     "  -> o kosumun degisiklikleri yedekte OLMAYABILIR (son tam kosum %s)."
                     % ne_zaman + kos[1:]]
         atlanmis = False                              # baslikta anlatildi
+    elif hal == "dogrulama-olculemedi":
+        # K3 fail-closed ucu: "degisiklik yok" iddiasi VAR ama pano onu DOGRULAYAMIYOR
+        # (imza eksik/bozuk ya da imzalar FARKLI). Sessiz yesil YOK — gorunur olcum yok.
+        satirlar = ["  ⚠ ÖLÇÜLEMEDİ: son gercek yedek %s (%s) esigi (%.0f gun) asti; "
+                    "'degisiklik yok' dogrulamasi var ama DOGRULANAMIYOR."
+                    % (ne_zaman, dmg.get("iso", "?"), esik_gun),
+                    "  (kaynak imzasi eksik/bozuk ya da imzalar FARKLI.)" + kos[1:]]
+    elif hal == "guncel":
+        # K3: esik asildi AMA bu kosum "hicbir kaynak degismemis" OLCTU ve pano
+        # olcumu DOGRULADI -> yedek gereksizdi, bayat DEGIL.
+        satirlar = ["  ✅ GÜNCEL (son gercek yedek: %s / %s) — degisiklik YOK, "
+                    "dogrulandi %s." % (dmg.get("iso", "?"), ne_zaman,
+                                        dogrulandi_ne_zaman or "?"),
+                    "  damga iddiasi: %s   (esik %.0f gun; kopyalamaya gerek olmadi)"
+                    % (ozet, esik_gun)]
     else:
         satirlar = ["  taze: son yedek %s (%s) — esik %.0f gun."
                     % (ne_zaman, dmg.get("iso", "?"), esik_gun),

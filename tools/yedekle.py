@@ -53,6 +53,19 @@ flock (`.urunler.lock` deseni).
     1 saati asan sahip icin gurultulu uyarir, damga tazelenmedigi icin pano esikte
     "YEDEK BAYAT" der.
 
+K1 (27 Tem) — `bitti=` YALNIZ TAMAMLANAN KOSUMDA: kilit izine basari isareti sadece
+  _yedekle() normal donup 0 verdiginde yazilir; istisnada `hata=` yazilir ve pano
+  "⚠⚠ YARIM KALMIS YEDEK" der. Eskiden `finally` istisnada da `bitti=` yaziyordu ->
+  kosum ortada cokse bile pano "taze" diyordu (gercek icrayla olculdu). MESRU ATLAMA
+  (kilit mesgul) bu yoldan AYRIDIR: orada kilit hic bizde olmaz, kirmiziya cevrilmez.
+
+K3 (27 Tem) — "DEGISIKLIK YOK" != "YEDEK BAYAT": `--gerekliyse` GUNCEL yolu artik
+  olcumunu damgaya yazar (`dogrulandi` + `dogrulama_imzasi`) ve pano esik asilsa bile
+  "✅ GUNCEL (son gercek yedek: ...)" der. Iddia OLCUME dayanir: kaynak imzasi
+  (dosya ADEDI + TOPLAM BAYT + en yeni mtime) kopyanin `kaynak_imzasi`na esit olmali;
+  imza olculemezse dogrulama alani YAZILMAZ -> pano ⚪ OLCULEMEDI/BAYAT der. `kilitsiz`
+  notu KOSUM-YEREL: dogrulama kosumu kilidi tuttuysa miras bayrak silinir.
+
 Kullanim:
     python3 tools/yedekle.py              # sirsiz (memory + skills + kaynak haritasi + .md)
     python3 tools/yedekle.py --kuru       # KURU KOSUM: ne kopyalanacagini listeler, YAZMAZ
@@ -304,7 +317,7 @@ SAHIP_OKUMA_DENEME = 5        # x SAHIP_OKUMA_ARALIGI = en fazla 100 ms (kilidi 
 SAHIP_OKUMA_ARALIGI = 0.02
 
 
-def _sahip_imzasi(baslangic, pid=None, bitti=None):
+def _sahip_imzasi(baslangic, pid=None, bitti=None, hata=None):
     """Kilit dosyasina yazilan sahip satiri.
 
     🔴 TAM HASSASIYET (repr): imza eskiden `%.3f` ile MILISANIYEYE YUVARLANIYORDU,
@@ -318,12 +331,24 @@ def _sahip_imzasi(baslangic, pid=None, bitti=None):
     BOSALTIYORDU. Sahip hizli bitince (or. `--gerekliyse` GUNCEL yolu) atlayan kosum
     kilidi hala TUTULUYOR bulup imzayi BOS okuyordu (20 kosumun 15'i) -> sahip
     tanimlanamiyor -> fail-closed yanlis ⚠⚠ uyari. Iz birakmak hem bu bosluğu kapatir
-    hem panoya "temiz bitti mi, yarida mi kaldi" ayrimini verir."""
+    hem panoya "temiz bitti mi, yarida mi kaldi" ayrimini verir.
+
+    🔴 `hata` (K1, 27 Tem — MERGE BLOKLAYICI kusurun onarimi): kosum ISTISNAYLA
+    bittiginde iz `bitti=` TASIMAZ, yerine `hata=<an>` tasir. Sebep tur-4'te GERCEK
+    ICRAYLA olculdu: `main()`in `finally` blogu istisna yolunda DA `bitti=` yaziyordu
+    -> durum.kilit_durumu izi 'yok' sayiyor, pano "YARIM KALMIS YEDEK" DEMIYOR, damga
+    da eski kaldigi icin "taze" diyordu. Yani dalin getirdigi nobetci, kilidin EN SIK
+    hata biciminde OLUYDU (izden `bitti=` elle silinince pano dogru sekilde
+    "⚠⚠ YARIM KALMIS YEDEK" diyor). `hata=` alanini durum.py'nin ayristirmasi
+    GORMEZDEN gelir (yalniz pid/baslangic/bitti arar) -> iz `bitti=`siz kalir,
+    surec de olmustur => pano 'yarim' der. Teshis icin an yine kayitli olur."""
     satir = "pid=%d baslangic=%s iso=%s" % (
         os.getpid() if pid is None else pid, repr(float(baslangic)),
         time.strftime("%Y-%m-%d %H:%M:%S"))
     if bitti is not None:
         satir += " bitti=%s" % repr(float(bitti))
+    if hata is not None:
+        satir += " hata=%s" % repr(float(hata))
     return satir + "\n"
 
 
@@ -433,15 +458,24 @@ def kilit_al(yol=None):
     return "alindi", fd, alis
 
 
-def kilit_birak(fd, baslangic=None):
+def kilit_birak(fd, baslangic=None, basardi=False):
     """Kilidi birakir. Dosyayi SILMEZ (silmek iki surecin ayri inode kilitlemesine
-    yol acar) ve BOSALTMAZ: imzanin ustune `bitti=` isareti yazar.
+    yol acar) ve BOSALTMAZ: imzanin ustune sonuc isaretini yazar.
 
     🔴 NEDEN BOSALTMIYORUZ: bosaltma, kilit HALA TUTULURKEN oluyordu; hizli biten bir
     sahibi yakalayan atlayan kosum imzayi bos okuyup sahibi tanimlayamiyordu (olculdu:
     20 kosumun 15'i) ve fail-closed yanlis uyari uretiyordu. `bitti=` isareti hem bu
     boslugu kapatir hem panoya "temiz bitti" (sessiz) ile "yarida kaldi" (pid olu,
-    isaret yok -> UYAR) ayrimini kazandirir."""
+    isaret yok -> UYAR) ayrimini kazandirir.
+
+    🔴 `basardi` (K1, 27 Tem): `bitti=` YALNIZ tamamlanan kosumda yazilir. Eskiden
+    `finally` blogu istisnada da `bitti=` yaziyordu ve pano en sik hata biciminde
+    (kosum ortada cokuyor) SUSUYORDU — dalin kendi amaci olen yerdi. Simdi:
+      basardi=True  -> `bitti=` (pano SESSIZ; temiz birakma)
+      basardi=False -> `hata=`  (pano 'yarim' -> ⚠⚠ YARIM KALMIS YEDEK)
+    FAIL-CLOSED varsayilan: cagiran basariyi ACIKCA bildirmezse iz `bitti=` TASIMAZ.
+    ⚠️ MESRU ATLAMA YOLU BUNDAN AYRIDIR: kilit mesgulse main() kilit_fd=None ile
+    doner, buraya hic girmez (fail-open atlama kirmiziya CEVRILMEZ)."""
     if fd is None:
         return
     try:
@@ -449,7 +483,12 @@ def kilit_birak(fd, baslangic=None):
             if isinstance(baslangic, (int, float)):
                 os.ftruncate(fd, 0)
                 os.lseek(fd, 0, os.SEEK_SET)
-                os.write(fd, _sahip_imzasi(baslangic, bitti=time.time()).encode("utf-8"))
+                simdi = time.time()
+                if basardi:
+                    imza = _sahip_imzasi(baslangic, bitti=simdi)
+                else:
+                    imza = _sahip_imzasi(baslangic, hata=simdi)
+                os.write(fd, imza.encode("utf-8"))
             else:
                 os.ftruncate(fd, 0)     # baslangic bilinmiyorsa iz birakma
         except OSError:
@@ -498,7 +537,7 @@ def _damga_dosyasi_yaz(backup, veri):
     return _json_atomik_yaz(backup, DAMGA_ADI, veri)
 
 
-def damga_yaz(backup, sayilar, eksik=None, baslangic=None, kilitsiz=False):
+def damga_yaz(backup, sayilar, eksik=None, baslangic=None, kilitsiz=False, imza=None):
     """Kosum sonunda tazelik damgasini yazar. Basarisiz olursa YEDEGI BOZMAZ
     (uyari basar, cikis kodunu degistirmez) — damga bir kolaylik, yedek asil is.
 
@@ -513,12 +552,19 @@ def damga_yaz(backup, sayilar, eksik=None, baslangic=None, kilitsiz=False):
     bir kosumun izini siler ve pano o kaybi hic gormezdi."""
     eksik = list(eksik or [])
     onceki = damga_oku(backup) or {}
-    veri = {"surum": 3, "zaman": time.time(),
+    veri = {"surum": 4, "zaman": time.time(),
             "iso": time.strftime("%Y-%m-%d %H:%M:%S"),
             "baslangic": baslangic if isinstance(baslangic, (int, float)) else time.time(),
             "tam": not eksik, "eksik": eksik, "kok": ROOT}
     if kilitsiz:
         veri["kilitsiz"] = True
+    # 🔴 KAYNAK IMZASI (K3): bu KOPYANIN ICINDEKI kaynak kumesinin parmak izi.
+    # ⚠️ KOSUM BASINDA olculur, sonunda DEGIL: kopyalama atomik degil, kosum
+    # SIRASINDA degisen bir dosya yedege GIRMEMIS olabilir. Sonda olcsek o
+    # degisiklik imzaya girer ve bir sonraki `--gerekliyse` "imzalar ayni" deyip
+    # panoyu GUNCEL yakardi — kapatmaya calistigimiz sessiz-yesilin ta kendisi.
+    if isinstance(imza, dict):
+        veri["kaynak_imzasi"] = imza
     # ONEK ILE tasi, ELLE LISTELEME: sabit liste bir kez eksik kaldi ve pano her
     # paralel push'ta bosuna uyardi (kabul testi yakaladi). Yeni bir `son_atlama_*`
     # alani eklendiginde burayi guncellemek GEREKMEZ.
@@ -529,7 +575,7 @@ def damga_yaz(backup, sayilar, eksik=None, baslangic=None, kilitsiz=False):
     return _damga_dosyasi_yaz(backup, veri)
 
 
-def damga_tazele(backup, baslangic):
+def damga_tazele(backup, baslangic, imza=None, kilitsiz=False):
     """`--gerekliyse` OLCUMU: kopyalama YAPILMADI ama "hicbir kaynak son kosumdan beri
     degismemis" OLCULDU -> damganin `baslangic`i bu ana ilerletilir.
 
@@ -545,13 +591,40 @@ def damga_tazele(backup, baslangic):
     taramadan sonra degisen dosya bir sonraki kosumda YINE yakalanir. `zaman` ve
     sayilar DOKUNULMAZ — onlar son GERCEK kopyalamaya aittir, pano yasi ondan okur.
     `eksik/tam` yeniden degerlendirilir (4 ucuz exists cagrisi): araya silinmis bir
-    beklenen dosya "tam" kalmasin."""
+    beklenen dosya "tam" kalmasin.
+
+    🔴 K3 — "DEGISIKLIK YOK" ILE "YEDEK BAYAT" AYRI SEYLERDIR: bu yol `zaman`a
+    DOKUNMAZ (dogru: son GERCEK kopyalama o an oldu), ama pano bayatligi `zaman`dan
+    olctugu icin degismeyen bir sistemde 2 gun sonra BOSUNA "⚠⚠ YEDEK BAYAT" diyordu.
+    Artik bu kosum OLCUMUNU damgaya yazar:
+      `dogrulandi`        -> dogrulamanin ANI (sayi; pano tazeligini buradan olcer)
+      `dogrulama_imzasi`  -> O KOSUMDA olculen kaynak imzasi
+    Pano GUNCEL diyebilmek icin `dogrulama_imzasi`nin damganin `kaynak_imzasi`na
+    (kopyanin icerigi) ESIT oldugunu KENDISI dogrular — iddiaya GUVENMEZ.
+    ⚠️ IMZA OLCULEMEDIYSE (imza=None) dogrulama alanlari YAZILMAZ, varsa SILINIR:
+    sessiz yesil uretmek yerine pano ⚪ OLCULEMEDI/BAYAT der (fail-closed).
+
+    🔴 `kilitsiz` KOSUM-YEREL (K3): eskiden `dict(onceki)` ile MIRAS aliniyordu ->
+    bir kez kilitsiz kosan sistemde not SONSUZA DEK yapisiyordu. Artik bayrak bu
+    kosumun kendi halini gosterir (kilitliyse SILINIR).
+    ⚠️ ILAN EDILMIS KOR NOKTA: kilitsiz bir KOPYALAMA'dan sonra kilitli bir
+    dogrulama kosumu notu temizler; `zaman`/sayilar hala o kopyaya aittir."""
     onceki = damga_oku(backup)
     if not isinstance(onceki, dict) or not isinstance(onceki.get("zaman"), (int, float)):
         return False                    # ortada tamamlanmis kosum yok -> uydurma
     veri = dict(onceki)
     veri["baslangic"] = float(baslangic)
     veri["dogrulandi_iso"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    if isinstance(imza, dict):
+        veri["dogrulandi"] = float(baslangic)
+        veri["dogrulama_imzasi"] = imza
+    else:                               # OLCULEMEDI -> yesil iddia BIRAKMA
+        veri.pop("dogrulandi", None)
+        veri.pop("dogrulama_imzasi", None)
+    if kilitsiz:
+        veri["kilitsiz"] = True
+    else:
+        veri.pop("kilitsiz", None)
     eksik = repo_eksikleri()
     veri["eksik"] = eksik
     veri["tam"] = (not eksik) and bool(onceki.get("tam", True))
@@ -589,9 +662,24 @@ def atlama_kaydet(backup, sebep, kapsandi=False, sahip_baslangici=None):
     return _json_atomik_yaz(backup, ATLAMA_ADI, veri)
 
 
-def en_yeni_kaynak_mtime(sirlar=False):
-    """Yedeklenecek kaynaklardaki EN YENI mtime. Hicbiri okunamazsa None.
-    Ucuz: ~130 stat cagrisi (memory + skills + birkac repo dosyasi)."""
+def kaynak_imzasi(sirlar=False):
+    """Yedeklenecek kaynak KUMESININ icerik parmak izi — tek gezinme, tek stat/dosya.
+    Doner: {"adet": n, "bayt": toplam_boyut, "mtime": en_yeni} ya da olculemezse None.
+
+    🔴 NEDEN MTIME TEK BASINA YETMEZ (K3, 27 Tem): pano artik esigi asmis bir yedegi
+    "degisiklik YOK" OLCUMUNE dayanarak GUNCEL sayabiliyor. Boyle bir iddia mtime'dan
+    fazlasina dayanmak zorunda, yoksa K1'i kapatip ayni sessiz-yesil deligini baska
+    kapidan acmis olurduk. Imza UC eksen tasir:
+      adet  -> dosya EKLENMESI/SILINMESI (mtime tabani hic degismeyebilir)
+      bayt  -> mtime KORUNARAK yapilan icerik degisikligi (kopyalama/geri yukleme)
+      mtime -> siradan duzenleme (mevcut davranis)
+    Maliyet artmaz: os.stat TEK cagride hem boyut hem mtime verir; eskiden getmtime
+    de ayni stat'i yapiyordu.
+
+    OKUNAMAYAN DOSYA ATLANMAZ, SAYILIR DEGIL: stat patlarsa o dosya imzaya girmez —
+    bu imzayi DEGISTIRIR (adet duser) ve karsilastirma "degisti" der = fail-closed."""
+    adet = 0
+    bayt = 0
     enyeni = None
     for kok in (MEMORY, SKILLS):
         if not os.path.isdir(kok):
@@ -600,22 +688,49 @@ def en_yeni_kaynak_mtime(sirlar=False):
             altlar[:] = [a for a in altlar if a not in GURULTU_DIZIN]
             for ad in dosyalar:
                 try:
-                    m = os.path.getmtime(os.path.join(dizin, ad))
+                    st = os.stat(os.path.join(dizin, ad))
                 except OSError:
                     continue
-                if enyeni is None or m > enyeni:
-                    enyeni = m
+                adet += 1
+                bayt += st.st_size
+                if enyeni is None or st.st_mtime > enyeni:
+                    enyeni = st.st_mtime
     for ad in _repo_dosyalari(sirlar):
         try:
-            m = os.path.getmtime(os.path.join(ROOT, ad))
+            st = os.stat(os.path.join(ROOT, ad))
         except OSError:
             continue
-        if enyeni is None or m > enyeni:
-            enyeni = m
-    return enyeni
+        adet += 1
+        bayt += st.st_size
+        if enyeni is None or st.st_mtime > enyeni:
+            enyeni = st.st_mtime
+    if enyeni is None:
+        return None                      # hicbir kaynak okunamadi -> OLCULEMEDI
+    return {"adet": adet, "bayt": bayt, "mtime": enyeni}
 
 
-def gerekli_mi(damga, kaynak_mtime):
+def imza_esit_mi(a, b):
+    """Iki kaynak imzasi AYNI kumeyi mi gosteriyor? (saf fonksiyon, fail-closed)
+    Eksik/bozuk/tur uyusmayan her halde False -> "degisti" say, yedekle/uyar."""
+    if not isinstance(a, dict) or not isinstance(b, dict):
+        return False
+    for alan in ("adet", "bayt", "mtime"):
+        x, y = a.get(alan), b.get(alan)
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            return False
+        if x != y:
+            return False
+    return True
+
+
+def en_yeni_kaynak_mtime(sirlar=False):
+    """Yedeklenecek kaynaklardaki EN YENI mtime. Hicbiri okunamazsa None.
+    (kaynak_imzasi'nin mtime eksenine ince kabuk — TEK gezinme kodu orada.)"""
+    imza = kaynak_imzasi(sirlar)
+    return None if imza is None else imza["mtime"]
+
+
+def gerekli_mi(damga, kaynak_mtime, imza=None):
     """--gerekliyse karari (saf fonksiyon). FAIL-OPEN: emin olamadigimiz her halde
     YEDEKLE (damga yok/bozuk, mtime olculemedi). Yalniz 'damga var VE kaynak ondan
     eski' halinde atlar — yani atlamak KANITA bagli, yedeklemek varsayilan.
@@ -623,7 +738,12 @@ def gerekli_mi(damga, kaynak_mtime):
     REFERANS = `baslangic` (kosumun BASLADIGI an), varsa. Bitis (`zaman`) ile
     karsilastirmak yaniltir: kopyalama atomik degil, kosum SIRASINDA degisen dosya
     yedege girmemis olabilir ama mtime'i bitisten KUCUK oldugu icin "guncel" sayilirdi.
-    Eski surum damgalarinda `baslangic` yok -> `zaman`a duser (davranis degismez)."""
+    Eski surum damgalarinda `baslangic` yok -> `zaman`a duser (davranis degismez).
+
+    🔴 IMZA EKSENI (K3): `imza` verildi VE damgada karsilastirilabilir bir
+    `kaynak_imzasi` VARSA, imzalar farkliysa mtime ne derse desin YEDEKLE. Bu
+    daraltma DEGIL genisletmedir (atlama sartlari artti) -> fail-open korunur;
+    ayrica mtime'i korunarak degistirilmis dosyanin sessizce atlanmasini kapatir."""
     if not isinstance(damga, dict):
         return True
     referans = damga.get("baslangic")
@@ -633,6 +753,9 @@ def gerekli_mi(damga, kaynak_mtime):
         return True
     if kaynak_mtime is None:
         return True
+    if isinstance(imza, dict) and isinstance(damga.get("kaynak_imzasi"), dict):
+        if not imza_esit_mi(imza, damga["kaynak_imzasi"]):
+            return True
     return kaynak_mtime > referans
 
 
@@ -692,8 +815,11 @@ def main():
             print("SIR NOBETI: %d dosya paket DISINDA birakilacak." % len(haric))
         damga = damga_oku(hedef) if hedef else None
         print("TAZELIK DAMGASI: %s" % (damga.get("iso") if damga else "(yok)"))
+        k_imza = kaynak_imzasi(sirlar)
+        print("KAYNAK IMZASI: %s" % (k_imza or "(OLCULEMEDI)"))
         print("--gerekliyse karari: %s"
-              % ("YEDEKLE" if gerekli_mi(damga, en_yeni_kaynak_mtime(sirlar)) else "ATLA (guncel)"))
+              % ("YEDEKLE" if gerekli_mi(damga, None if k_imza is None else k_imza["mtime"],
+                                         imza=k_imza) else "ATLA (guncel)"))
         # Kilit DENENMEZ: kuru kosumda kilidi bir an icin almak, o sirada kosan
         # GERCEK bir yedegi atlatirdi. Sadece dosya icerigine bakilir (best effort).
         tutuluyor = ""
@@ -744,12 +870,19 @@ def main():
         print("UYARI: %s — yedek KILITSIZ kosuyor (eszamanli kosum varsa yaris riski)."
               % kilit_bilgi, file=sys.stderr)
 
+    # 🔴 K1: BASARI BAYRAGI. `finally` istisnada da kosar; iz `bitti=` yalniz
+    # _yedekle() NORMAL donduyse ve cikis kodu 0 ise yazilir. Istisna ya da
+    # sifir-olmayan kod -> `hata=` -> pano "⚠⚠ YARIM KALMIS YEDEK" der.
+    basardi = False
     try:
-        return _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric,
-                        kilitsiz=(hal == "kurulamadi"),
-                        baslangic=kilit_bilgi if hal == "alindi" else None)
+        kod = _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric,
+                       kilitsiz=(hal == "kurulamadi"),
+                       baslangic=kilit_bilgi if hal == "alindi" else None)
+        basardi = (kod == 0)
+        return kod
     finally:
-        kilit_birak(kilit_fd, baslangic=kilit_bilgi if hal == "alindi" else None)
+        kilit_birak(kilit_fd, baslangic=kilit_bilgi if hal == "alindi" else None,
+                    basardi=basardi)
 
 
 def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=False,
@@ -763,14 +896,19 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     if not isinstance(baslangic, (int, float)):
         baslangic = time.time()     # kilitsiz yol (kilit kurulamadi)
 
+    # KAYNAK IMZASI kosum BASINDA olculur (bkz. damga_yaz gerekcesi): kopyalama
+    # sirasinda degisen dosya imzaya GIRMEZ, bir sonraki kosumda YAKALANIR.
+    bas_imza = kaynak_imzasi(sirlar)
+
     # UCUZ MOD (pre-push hook'u icin): son damgadan beri hicbir kaynak degismediyse
     # tek dosya bile kopyalama. Karar gerekli_mi()'de — fail-open (suphede yedekler).
     if gerekliyse:
         damga = damga_oku(backup)
-        if not gerekli_mi(damga, en_yeni_kaynak_mtime(sirlar)):
+        if not gerekli_mi(damga, None if bas_imza is None else bas_imza["mtime"],
+                          imza=bas_imza):
             # OLCUMU KAYDET (bkz. damga_tazele): "degisiklik yok" bir olcumdur, damga
             # yazmaya hakki vardir; yoksa atlayan kardes kosumun uyarisi YAPISKAN kalir.
-            tazelendi = damga_tazele(backup, baslangic)
+            tazelendi = damga_tazele(backup, baslangic, imza=bas_imza, kilitsiz=kilitsiz)
             print("yedek GUNCEL (son damga: %s) — degisiklik yok, kopyalanmadi.%s"
                   % (damga.get("iso", "?"),
                      "  (damga dogrulandi)" if tazelendi else ""))
@@ -830,7 +968,7 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     damga_yaz(backup, {"memory": len(_agac_dosyalari(MEMORY)),
                        "skills": yazilan, "skills_haric": len(haric),
                        "repo": len(repo_adlari)}, eksik=eksik,
-              baslangic=baslangic, kilitsiz=kilitsiz)
+              baslangic=baslangic, kilitsiz=kilitsiz, imza=bas_imza)
 
     print("bitti ->", backup)
     return 0

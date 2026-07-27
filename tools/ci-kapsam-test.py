@@ -262,8 +262,11 @@ IZIN_LISTESI = {
     "tools/yazdir-test.py": R_SONRA,
     # NOT: tools/durum-yedek-test.py 27 Tem'de MUAFIYETTEN CIKARILDI -> deploy.yml'de
     # bloklayici adim olarak kosuyor. Olcum: CI taklidinde (bos HOME, Drive yok, sadece
-    # takip edilen dosyalar) 88/88 yesil = tam hermetik. Buraya GERI EKLEME: iki yerde
-    # birden sayilirsa bu kapi "hem kosuluyor hem muaf" celiskisini yakalar.
+    # takip edilen dosyalar) TAM HERMETIK yesil. Kontrol SAYISI buraya YAZILMAZ —
+    # sayi betigin KENDI ciktisindadir; sabit sayi bir VERI CAPASIDIR ve her yeni
+    # nobetci eklendiginde sessizce bayatlar (olculdu: yorumdaki "88/88" gerceginde
+    # 89'du, "89/89 ~2 s" ise 4,6 s). Buraya GERI EKLEME: iki yerde birden sayilirsa
+    # bu kapi "hem kosuluyor hem muaf" celiskisini yakalar.
     "tools/yedek-hook-test.py": (
         R_YOL + " Somut olarak: .git/hooks/pre-push commit EDILMEZ (per-makine) -> CI "
         "fresh checkout'unda kurulu blok YOKTUR, 'olu konum' nobetcisi orada yapisal "
