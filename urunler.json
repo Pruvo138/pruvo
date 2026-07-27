@@ -1,5 +1,328 @@
 [
   {
+    "id": "volvo-penta-2001-gaz-kolu-sapi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta 2001 Gaz Kolu Sapı (Kumanda)",
+    "aciklama": "Volvo Penta 2001 ic-tahrik (inboard) dizel motorlarda gaz/kumanda kolunun sap parcasi. Kirilan veya asinan orijinal sapin yerine gecer, rahat ve saglam kavrama saglar.\n- Volvo Penta 2001 kumanda koluyla uyumludur.\n- Ergonomik kavrama sunar.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 102 × 50 × 30 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1001706-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1001706-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1001706-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "slartibartfast68",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-826341-parca",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta 826341 Uyumlu Parça",
+    "aciklama": "Volvo Penta 826341 numarali parcayla uyumlu yedek eleman. Asinan veya kirilan orijinal parcanin yerine gecmek uzere ozel uretilir.\n- 826341 parca numarasiyla eslesir.\n- Orijinal olculere gore hazirlanir.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 46 × 46 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2746997-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2746997-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2746997-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kkooima1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-gosterge-paneli",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Gösterge Paneli (Yuvarlak)",
+    "aciklama": "Volvo Penta deniz motoru icin yuvarlak gosterge panelini cerceveleyen parca. Gostergenin panelde tam oturmasini ve duzgun gorunmesini saglar.\n- Yuvarlak gosterge yuvasiyla uyumludur.\n- Eksik veya hasarli cercevenin yerine gecer.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 67 × 67 × 25 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3813579-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3813579-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3813579-3.jpg"
+    ]
+  },
+  {
+    "id": "volvo-penta-kontak-anahtar-klipsi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Kontak Anahtarı Klipsi",
+    "aciklama": "Volvo Penta tekne kontak anahtarini duzenli tutan klips/tutucu parca. Anahtarin panelde saglam durmasini ve kaybolmamasini saglar.\n- Standart tekne kontak anahtariyla uyumludur.\n- Pratik takip cozumu sunar.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 30 × 19 × 14 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4524719-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4524719-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4524719-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jankluo430",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-devir-gostergesi-koruma-kapagi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Devir Göstergesi Koruma Kapağı",
+    "aciklama": "Volvo Penta deniz motoru devir gostergesini (takometre) toz ve nemden koruyan kapak. Gosterge bolgesini kapatarak asinmayi ve kirlenmeyi azaltir.\n- Devir gostergesi olcusuyle uyumludur.\n- Gostergeyi dis etkenlerden korur.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 99 × 99 × 21 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5234889-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5234889-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5234889-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "michel-latimier",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-kontak-anahtar-koruma-kapagi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Kontak Anahtarı Koruma Kapağı",
+    "aciklama": "Volvo Penta kontak anahtarini su, tuz ve hava kosullarindan koruyan kapak. Anahtar yuvasini kapatarak korozyon ve kirlenmeyi onler.\n- Standart kontak yuvasiyla uyumludur.\n- Disaridan gelen neme karsi koruma saglar.\n- Dayanikli, UV'ye toleransli malzemeyle uretimi onerilir.\nYaklaşık dış ölçüler: 52 × 52 × 19 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5265336-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5265336-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5265336-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5265336-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "turmiola",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-aq151-devirdaim-silentblok",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta AQ151 Devirdaim Pompası Silentblok",
+    "aciklama": "Volvo Penta AQ151 motorlarda deniz suyu / devirdaim pompasinin titresimini sonumleyen silentblok (takoz) parcasi. Pompayi sabitleyip gurultuyu azaltir.\n- AQ151 devirdaim pompasiyla uyumludur.\n- Titresim ve gurultuyu azaltir.\n- Esnek, dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 39 × 27 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6098384-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6098384-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6098384-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nolux32",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-dpg-antifriz-baglantisi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta DPG Antifriz Bağlantı Aparatı",
+    "aciklama": "Volvo Penta DPG kic-tahrik sistemlerinde kislama oncesi antifriz dolasimini kolaylastiran baglanti aparati. Sogutma devresine antifrizin temiz sekilde verilmesini saglar.\n- DPG tahrik grubuyla uyumludur.\n- Kislama bakimini hizlandirir.\n- Kimyasala dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 40 × 28 × 28 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6339206-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6339206-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6339206-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NaitsInTheDark",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-aq131-aq151-oring-conta",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta AQ131 / AQ151 O-Ring Conta",
+    "aciklama": "Volvo Penta AQ131 ve AQ151 motorlarinda su devresi baglantilarinin sizdirmazligini saglayan O-ring / torik conta. Eskiyip sertlesen contanin yerine gecer.\n- AQ131 ve AQ151 motorlarla uyumludur.\n- Su kacaklarini onler.\n- Esnek ve dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 30 × 30 × 4 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6341972-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6341972-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6341972-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nolux32",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-280-sterndrive-yag-dolum",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta 280 Sterndrive Yağ Dolum Aparatı",
+    "aciklama": "Volvo Penta 280 kic-tahrik (sterndrive) sisteminde disli yaginin temiz ve dokulmeden doldurulmasini saglayan dolum aparati. Bakim sirasinda kolay ve duzenli yag ikmali sunar.\n- Volvo Penta 280 sterndrive ile uyumludur.\n- Yag dokulmesini ve kirlenmeyi azaltir.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 190 × 179 × 160 mm.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6474240-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6474240-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6474240-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6474240-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "splimp",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-hava-filtresi-contasi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Hava Filtresi Sızdırmazlık Contası",
+    "aciklama": "Volvo Penta hava filtresi tutucusunda kullanilan sizdirmazlik contasi. Filtre ile govde arasinda tam oturma ve toz sizdirmazligi saglar.\n- Filtre tutucu olcusuyle uyumludur.\n- Ince ve esnek yapisiyla tam kapanir.\n- Contaya uygun esnek malzemeyle uretilir.\nYaklaşık dış ölçüler: 177 × 167 mm (ince conta).",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6704138-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6704138-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6704138-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6704138-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Handtuch1",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-gaz-kolu-kapagi-3857772",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Gaz Kolu Kapağı (3857772)",
+    "aciklama": "Volvo Penta tekne gaz/kumanda kolu uzerindeki 3857772 numarali kapak parcasi. Kolun ic mekanizmasini korur ve duzgun gorunumu surdurur.\n- 3857772 orijinal parcayla uyumludur.\n- Asinan kapagin yerine gecer.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 77 × 73 × 29 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6748140-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6748140-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6748140-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "somthinboutaboat",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-850888-conta-pulu",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta 850888 Conta Pulu (Sierra 18-4211)",
+    "aciklama": "Volvo Penta 850888 (Sierra 18-4211 / GLM 23070 muadili) conta pulu. Baglanti noktasinda sizdirmazlik ve dogru sikma yuzeyi saglar.\n- 850888 orijinal olcusuyle uyumludur.\n- Asinan contanin yerine gecer.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 79 × 79 × 2 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6921888-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6921888-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6921888-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SALIDA999",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-bos-vites-dugme-kapagi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Boş Vites (Neutral) Düğme Kapağı",
+    "aciklama": "Volvo Penta gaz/vites kolu uzerindeki bos vites (neutral) dugmesinin kirilan veya kaybolan kapak parcasi. Dugmeyi tekrar duzgun kavranir hale getirir.\n- Orijinal dugme oturmasiyla uyumludur.\n- Kolay yenileme saglar.\n- Dayanikli malzemeyle uretimi onerilir.\nYaklaşık dış ölçüler: 13 × 10 × 10 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6971383-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6971383-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6971383-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sukramb",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-empeller-motor-stop-tirnagi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Empeller Yuvası Motor Stop Tırnağı",
+    "aciklama": "Volvo Penta deniz suyu pompasinin empeller (impeller) yuvasinda kullanilan motor stop tirnagi/kilit parcasi. Empeller kapaginin dogru konumda sabitlenmesine yardimci olur.\n- Empeller yuvasiyla uyumludur.\n- Bakim sirasinda dogru montaji kolaylastirir.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 33 × 30 × 27 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7321419-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7321419-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7321419-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7321419-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "shadow_tek001",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-gaz-neutral-dugme-kapagi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Gaz Kolu Neutral Düğme Kapağı",
+    "aciklama": "Volvo Penta gaz kolu uzerindeki neutral (bos vites) dugmesinin koruyucu kapagi. Asinmis veya catlamis kapagin yerine gecerek dugmenin duzgun calismasini surdurur.\n- Gaz kolu dugme yuvasiyla uyumludur.\n- Konforlu ve saglam kavrama saglar.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 33 × 33 × 15 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7359989-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7359989-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7359989-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kafziel",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-trim-tilt-sensor-arabirimi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Trim/Tilt Sensör Arabirimi (3594989)",
+    "aciklama": "Volvo Penta kic-tahrik (sterndrive) sistemlerinde trim/tilt konum sensorunu dogru konumda tutan arabirim/baglanti parcasi. 3594989 numarali duzenekle uyumludur.\n- Trim/tilt sensorunun montaj arabirimidir.\n- Konum olcumunun dogru calismasina yardimci olur.\n- Dayanikli malzemeyle uretilir.\nYaklaşık dış ölçüler: 28 × 21 × 19 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th937384-1.jpg",
+      "https://media.pruvo3d.com/urunler/th937384-2.jpg",
+      "https://media.pruvo3d.com/urunler/th937384-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mater365",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "opel-astra-h-kapi-tutucu-stop-tapasi",
     "kategori": "Otomobil",
     "marka": [
