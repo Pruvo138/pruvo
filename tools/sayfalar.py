@@ -123,6 +123,7 @@ PAY_BAND_HTML = """<div class="pay-band">
 # footer alt navigasyon (yasal + kurumsal linkler)
 FOOT_NAV_HTML = (
     '<div class="foot-nav">'
+    '<a href="/marka/">Markalar</a> &middot; '
     '<a href="/hakkimizda/">Hakkımızda</a> &middot; '
     '<a href="/iletisim/">İletişim</a> &middot; '
     '<a href="/sss/">S.S.S.</a> &middot; '

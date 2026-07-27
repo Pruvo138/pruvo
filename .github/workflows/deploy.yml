@@ -445,6 +445,15 @@ jobs:
       - name: CI kapsam kapisi oz-nobetcileri (bulgu1 + muaf sayaci, dogrudan)
         run: python3 tools/ci-kapsam-test.py --kendini-test
 
+      # MARKA->MODEL PILOT KAPISI: marka_model_build jeneratorunu izole temp ROOT'a kosar ve
+      # uretilen HTML'i spec kabul kriterleriyle olcer — collision (F-150 tek URL), >=3 esik,
+      # SSR icerik + self-canonical + ItemList/CollectionPage/BreadcrumbList JSON-LD + sitemap
+      # lastmod, huni wa.me prefill + attribution modulu, token sizinti, marka kurallari (authored
+      # copy'de 3d/baski/filament/sehir/'her renk'/532 YOK), oksuz-yok (pilot markanin tum urunleri
+      # linkli). build.py'nin urun/ ciktisina MUHTAC DEGIL (modulu dogrudan cagirir), ~1 s. Offline.
+      - name: Marka->model pilot kabul testi (Ford + BMW)
+        run: python3 tools/marka-model-test.py
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 

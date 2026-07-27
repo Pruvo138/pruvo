@@ -33,6 +33,7 @@ from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
                       CONTENT_CSS, CONTENT_PAGES, SITEMAP_SLUGS,
                       STATIK_SAYFALAR, PV_SCRIPT_HTML)
 import filament_ortak
+import marka_model_build
 
 # ------------------------------------------------------------------ ayarlar
 SITE = "https://pruvo3d.com"
@@ -2296,13 +2297,17 @@ def render_content_page(slug, title, meta, body_html):
 
 
 # ------------------------------------------------------------------ sitemap
-def render_sitemap(products):
+def render_sitemap(products, extra_urls=None):
     urls = []
     urls.append((SITE + "/", "1.0", "daily"))
     for slug in SITEMAP_SLUGS:
         urls.append((SITE + "/" + slug + "/", "0.4", "monthly"))
     for p in products:
         urls.append((product_url(p["id"]), "0.8", "weekly"))
+    # marka->model pilot URL'leri (build.py main -> marka_model_build.uret döndürür): her
+    # marka + >=3-ürünlü model URL'i lastmod'lu girer (spec §5, keşif kök-çözümü).
+    if extra_urls:
+        urls.extend(extra_urls)
     items = []
     for loc, prio, freq in urls:
         items.append(
@@ -2474,6 +2479,22 @@ def uret_taban_fiyatlar():
     return harita
 
 
+# ------------------------------------------------------------------ marka->model pilot ctx
+def marka_model_ctx():
+    """marka_model_build.uret'e verilen yardımcı/sabit sözlüğü (döngüsel import olmadan;
+    modül build.py'yi import ETMEZ, gereken her şeyi buradan alır)."""
+    return {
+        "ROOT": ROOT, "SITE": SITE, "TODAY": TODAY,
+        "esc": esc, "surumle_scriptler": surumle_scriptler,
+        "product_url": product_url, "FAVICON": FAVICON,
+        "PAGE_CSS": PAGE_CSS, "FOOT_NAV_HTML": FOOT_NAV_HTML,
+        "PAY_BAND_HTML": PAY_BAND_HTML, "PV_SCRIPT_HTML": PV_SCRIPT_HTML,
+        "GA_HEAD_SNIPPET": GA_HEAD_SNIPPET, "META_HEAD_SNIPPET": META_HEAD_SNIPPET,
+        "attribution_head_snippet": attribution_head_snippet,
+        "GA_BANNER_SNIPPET": GA_BANNER_SNIPPET,
+    }
+
+
 # ------------------------------------------------------------------ ana akış
 def main():
     # --sadece-taban: yalnız taban-fiyatlar.js'i üret (kabul testi hızlı koşsun;
@@ -2528,16 +2549,20 @@ def main():
         with open(os.path.join(cdir, "index.html"), "w", encoding="utf-8") as f:
             f.write(render_content_page(slug, title, meta, fn()))
 
-    # deploy.yml beyaz-listesi için TEK KAYNAK manifesti: içerik/yasal sayfa dizinleri
-    # (statik hakkimizda/iletisim/sss/gizlilik + üretilen CONTENT_PAGES) = SITEMAP_SLUGS.
-    # CI bu dosyayı okuyup her slug'ı _site'a kopyalar; böylece yeni CONTENT_PAGES eklenince
-    # deploy.yml elle güncellenmese de SESSİZCE 404 olmaz (eski elle beyaz-liste tuzağı).
-    with open(os.path.join(ROOT, "_yayin-icerik-dizinleri.txt"), "w", encoding="utf-8") as f:
-        f.write("\n".join(SITEMAP_SLUGS) + "\n")
+    # marka -> model hiyerarşik gezinme pilotu (Ford + BMW) — additive ek modül. urunler.json'a
+    # DOKUNMAZ; /marka/... sayfalarını yazar, sitemap kayıtları + kopyalanacak üst dizin(ler) döner.
+    marka_sitemap, marka_dizinleri = marka_model_build.uret(products, marka_model_ctx())
 
-    # sitemap.xml
+    # deploy.yml beyaz-listesi için TEK KAYNAK manifesti: içerik/yasal sayfa dizinleri
+    # (statik hakkimizda/iletisim/sss/gizlilik + üretilen CONTENT_PAGES) = SITEMAP_SLUGS +
+    # marka->model pilot üst dizini ("marka"). CI bu dosyayı okuyup her slug'ı _site'a kopyalar;
+    # böylece yeni CONTENT_PAGES/marka eklenince deploy.yml elle güncellenmese de SESSİZCE 404 olmaz.
+    with open(os.path.join(ROOT, "_yayin-icerik-dizinleri.txt"), "w", encoding="utf-8") as f:
+        f.write("\n".join(SITEMAP_SLUGS + marka_dizinleri) + "\n")
+
+    # sitemap.xml (marka->model pilot URL'leri lastmod'lu eklenir)
     with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
-        f.write(render_sitemap(products))
+        f.write(render_sitemap(products, extra_urls=marka_sitemap))
 
     # merchant-feed.xml  (Google Merchant Center — sadece sabit fiyatli urunler)
     feed_xml, feed_n = render_merchant_feed(products)
