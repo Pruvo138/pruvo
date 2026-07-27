@@ -63,16 +63,23 @@ ORTAM_BAGIMLI = [0]       # ps/git DISI ortam bagimliligi (yedeklenecek KAYNAK k
 # git_kontrol'e sarilirsa (yani binary yoklugunda ⚪'ya kacarsa) alt kosumun sayisi
 # duser ve kapi KIRMIZI yanar. Nobetcinin nobetcisi budur.
 BAGIMSIZ_NOBET = [0]
-EKSEN = {}                # eksen -> ⚪ sayisi ("ps" | "git" | "kaynak" | "fikstur")
+EKSEN = {}                # eksen -> ⚪ sayisi ("ps" | "git" | "kaynak" | "fikstur" | "launchd")
 PS_ORTAMI = ["var"]       # "var" | "yok" | "bozuk"  (bkz. ps_ortami)
 GIT_ORTAMI = ["var"]      # "var" | "yok" | "bozuk"  (bkz. git_ortami)
+LAUNCHD_BAGIMLI = [0]     # pid=1 (launchd/init) 'asili sahip' surrogatina bagli kontrol SAYISI
+LAUNCHD_ORTAMI = ["?"]    # "var" | "yok"  (bkz. launchd_ortami)
+# pid=1 mutant fiksturunun kilit YASI (sn). Kimlik-yok mutantinin pid=1'i 'asili' sanmasi
+# (macOS'ta KIRMIZI) ANCAK pid=1 bu yastan YASLIYSA gorunur; genc pid=1'de (taze-boot CI
+# runner) baslangic-yeniden-kullanim clause'u mutantta da pid=1'i eler -> fikstur mutanti
+# OLCEMEZ. Fikstur kilit yasi (6h) ile launchd_ortami esigi TEK sabitle baglidir (drift YOK).
+LAUNCHD_MUT_KILIT_YASI = 7200.0
 # `ps` sorgusunun zaman siniri. CALISMA ANINDA okunur (durum.YEDEK_ZAMAN_ASIMI deseni)
 # -> fikstur bunu gecici kisaltip "asili ps" yolunu SANIYE HARCAMADAN kanitlayabilir.
 PS_SORGU_ZAMAN_ASIMI = [5.0]
 GIT_SORGU_ZAMAN_ASIMI = [5.0]     # ayni desen, `git` siniflandiricisi icin
 # ⚪ eksen ADLARI — ozet "EKSENSIZ" sayacini bunlarin DISINDA kalan her ⚪ besler
 # (sebebi ILAN EDILMEMIS atlama = sessiz atlamaya en yakin hal, nobetci onu yakar).
-BILINEN_EKSENLER = ("ps", "git", "kaynak", "fikstur")
+BILINEN_EKSENLER = ("ps", "git", "kaynak", "fikstur", "launchd")
 
 
 def kontrol(ad, ok, ayrinti=""):
@@ -212,6 +219,93 @@ def git_kontrol(ad, ok, ayrinti="", ek_ortam=True, ek_ayrinti=""):
     return kontrol(ad, ok, ayrinti)
 
 
+def _etime_yerel(metin):
+    """ps ETIME bicimini ([[DD-]HH:]MM:SS) saniyeye cevirir. Cozulemezse None.
+
+    🔴 NEDEN durum._etime_saniye DEGIL (BAGIMSIZ kopya): launchd_ortami ORTAM sorgusudur;
+    onu olculen kodun (durum.py) bir yardimcisina baglamak, o yardimciyi olduren bir
+    mutasyonun "launchd yokmus" kilifina girip pid=1 nobetini SESSIZ ⚪'ya kacirmasina
+    izin verirdi (ps_ortami/git_ortami ile AYNI doktrin: ortam bagimsiz sorgulanir)."""
+    metin = (metin or "").strip()
+    gun = 0
+    if "-" in metin:
+        g, _sep, metin = metin.partition("-")
+        if not g.isdigit():
+            return None
+        gun = int(g)
+    parcalar = metin.split(":")
+    if not parcalar or not all(p.isdigit() for p in parcalar):
+        return None
+    sayilar = [int(p) for p in parcalar]
+    if len(sayilar) == 2:
+        sa, dk, sn = 0, sayilar[0], sayilar[1]
+    elif len(sayilar) == 3:
+        sa, dk, sn = sayilar
+    else:
+        return None
+    return gun * 86400 + sa * 3600 + dk * 60 + sn
+
+
+def launchd_ortami():
+    """pid=1 (launchd/init) fiksturu 'asili sahip' surrogatini SUNUYOR mu? "var" | "yok".
+
+    Kimlik-yok mutantinin (6h) pid=1'i YANLISLIKLA 'asili' siniflamasi -> yani mutanti
+    KIRMIZI yakabilmemiz- ANCAK pid=1:
+      (a) canli,  (b) komutu python DEGIL,
+      (c) gecen suresi LAUNCHD_MUT_KILIT_YASI'ndan (fikstur kilit yasi) BUYUK
+          -> baslangic-yeniden-kullanim clause'u onu BAGIMSIZ elemez
+    ise gorunur. macOS'ta launchd gunlerdir canli -> (a)(b)(c) tutar, mutant KIRMIZI.
+    Taze-boot CI runner'inda (Ubuntu) pid=1 (systemd) DAKIKALAR oncedir -> (c) TUTMAZ:
+    baslangic clause'u mutantta da pid=1'i 'yarim' yapar, fikstur mutanti OLCEMEZ. Bu bir
+    ORTAM EKSIKLIGIDIR (ps yoklugu ile AYNI sinif) -> ⚪ OLCULEMEDI [launchd], KIRMIZI DEGIL.
+
+    Tespit `sys.platform`/`platform.system()` DEGIL, YETENEGE gore (CI'da bir Linux'ta
+    pid=1 2 saatten yasliysa fikstur GECERLIDIR ve orada da kosar).
+    🔴 durum._surec_bilgisi/_surec_canli KULLANILMAZ (ps_ortami doktrini): kapiyi olculen
+    koda baglamak SESSIZ YESIL uretir; burada YALNIZ ORTAM sorgulanir (kendi `ps`+parser)."""
+    yol = shutil.which("ps")
+    if not yol:
+        return "yok"                          # `ps` yok -> pid=1 olculemez (ps ekseniyle ayni sinif)
+    try:
+        os.kill(1, 0)                         # pid=1 canli mi (POSIX init/launchd; ProcessLookupError -> yok)
+    except ProcessLookupError:
+        return "yok"
+    except (PermissionError, OSError):
+        pass                                  # var ama baska kullanici -> kimlige `ps` ile bak
+    try:
+        p = subprocess.run([yol, "-p", "1", "-o", "etime=,comm="],
+                           capture_output=True, text=True,
+                           timeout=PS_SORGU_ZAMAN_ASIMI[0])
+    except (OSError, subprocess.SubprocessError):
+        return "yok"
+    satir = (p.stdout or "").strip()
+    if p.returncode != 0 or not satir:
+        return "yok"
+    parcalar = satir.split(None, 1)
+    gecen = _etime_yerel(parcalar[0])
+    komut = parcalar[1].strip() if len(parcalar) > 1 else ""
+    if gecen is None:
+        return "yok"
+    if komut and "python" in os.path.basename(komut).lower():
+        return "yok"                          # pid=1 python ise fikstur anlamsiz (fail-open)
+    if gecen < LAUNCHD_MUT_KILIT_YASI - 2.0:  # taze-boot: baslangic clause pid=1'i BAGIMSIZ eler
+        return "yok"
+    return "var"
+
+
+def launchd_kontrol(ad, ok, ayrinti=""):
+    """pid=1 (launchd/init) 'asili sahip' surrogatina BAGIMLI kontrol: ortam "var" ise
+    NORMAL bloklayici (macOS'ta mutant KIRMIZI yanar); "yok" ise GORUNUR ⚪ OLCULEMEDI
+    [launchd] (taze-boot CI runner / `ps` yok / pid=1 python — yayin BLOKLANMAZ).
+    ps_kontrol/git_kontrol ekseninin BIREBIR deseni. Bkz. launchd_ortami."""
+    LAUNCHD_BAGIMLI[0] += 1
+    if LAUNCHD_ORTAMI[0] == "var":
+        return kontrol(ad, ok, ayrinti)
+    return olculemedi(ad, "pid=1 (launchd/init) 'asili' surrogati bu ortamda yok "
+                          "(taze-boot runner / ps yok / pid=1 python) — mutant olculemez",
+                      eksen="launchd")
+
+
 def kaynak_ortami():
     """Bu makinede YEDEKLENECEK KAYNAK var mi? "var" | "yok" — ORTAM sorgusu.
 
@@ -289,6 +383,11 @@ def damga_kur(backup, yas_saniye, **ekstra):
 def main():
     PS_ORTAMI[0] = ps_ortami()
     GIT_ORTAMI[0] = git_ortami()
+    LAUNCHD_ORTAMI[0] = launchd_ortami()
+    if LAUNCHD_ORTAMI[0] != "var":
+        print("⚪ NOT: pid=1 (launchd/init) 'asili' surrogati YOK (taze-boot runner / ps "
+              "yok / pid=1 python) -> pid=1 mutant nobeti OLCULEMEDI [launchd] olur "
+              "(deploy BLOKLANMAZ; kimlik regresyonu 6h2-(3) ile her platformda KIRMIZI).")
     if PS_ORTAMI[0] == "yok":
         print("⚪ NOT: `ps` binary'si YOK -> surec kimligi kontrolleri OLCULEMEDI "
               "olarak isaretlenecek (deploy BLOKLANMAZ; bkz. modul basligi K4).")
@@ -889,9 +988,12 @@ def main():
                    d_geri["hal"] == "yarim" and d_geri["canli"] is False, d_geri["hal"])
         ps_kontrol("yeniden kullanilan pid'de 'sonlandir' onerisi YOK",
                    not any("sonlandir" in s for s in sat_geri), " | ".join(sat_geri)[:90])
-        # launchd (pid 1): canli ama python DEGIL -> sahip olamaz
+        # launchd (pid 1): canli ama python DEGIL -> sahip olamaz.
+        # Kilit YASI = LAUNCHD_MUT_KILIT_YASI: kimlik-yok mutantinin bunu 'asili' sanmasi
+        # (macOS'ta KIRMIZI) ANCAK pid=1 bu yastan yasliysa gorunur; surrogat kapisi
+        # (launchd_ortami) tam bu esigi olcer -> ikisi AYNI sabitle baglidir (drift YOK).
         with open(yol, "w") as fh:
-            fh.write("pid=1 baslangic=%r iso=TEST\n" % (simdi - 7200))
+            fh.write("pid=1 baslangic=%r iso=TEST\n" % (simdi - LAUNCHD_MUT_KILIT_YASI))
         d_launchd = durum.kilit_durumu(kok)
         ps_kontrol("pid=1 (launchd) sahip SAYILMIYOR -> 'yarim'",
                    d_launchd["hal"] == "yarim", d_launchd["hal"])
@@ -905,7 +1007,17 @@ def main():
                              "    if False:\n        return False  # MUTANT: kimlik yok",
                              ad="durum_mutant_pid.py")
         mmod_pid = modul_yukle(mut_pid, "durum_mutant_pid")
-        kontrol("MUTANTTA (kimlik yok) launchd 'asili' gorunuyor (kontrol KIRMIZI yanardi)",
+        # ⚪ PLATFORM-DAYANIKLILIK (CI-parite, 27 Tem): bu fikstur pid=1'i (launchd/init)
+        # 'asili sahip' surrogati olarak kullanir. macOS'ta launchd gunlerdir canlidir ->
+        # kimlik-yok mutanti pid=1'i 'asili' sanar (KIRMIZI). Taze-boot CI runner'inda
+        # (Ubuntu) pid=1 (systemd) dakikalar oncedir -> baslangic-yeniden-kullanim clause'u
+        # mutantta da pid=1'i 'yarim' yapar -> fikstur mutanti OLCEMEZ. Bu bir ORTAM
+        # EKSIKLIGIDIR (ps/git yoklugu sinifiyla ayni): launchd_kontrol ile ⚪ OLCULEMEDI
+        # [launchd] olur, KIRMIZI DEGIL -> deploy BLOKLANMAZ. macOS'ta mutant yakalanir.
+        # (Kimlik clause'unun GERCEK regresyonu ORTAMDAN BAGIMSIZ 6h2-(3) sentetik-ps
+        #  nobetiyle her platformda KIRMIZI kalir; bu, o mutant-ISPATININ pid=1 ucudur.)
+        launchd_kontrol(
+                "MUTANTTA (kimlik yok) launchd/init 'asili' gorunuyor (kontrol KIRMIZI yanardi)",
                 mmod_pid.kilit_durumu(kok)["hal"] == "asili",
                 mmod_pid.kilit_durumu(kok)["hal"])
 
@@ -1604,6 +1716,24 @@ def main():
                         GIT_ORTAMI[0] == "var" and EKSEN.get("git", 0) == 0,
                         "git_ortami=%s git-eksen-⚪=%d (toplam ⚪=%d)"
                         % (GIT_ORTAMI[0], EKSEN.get("git", 0), len(OLCULEMEDI)))
+            # AYNI NOBET, LAUNCHD EKSENI: pid=1 (launchd/init) 'asili' surrogati VARSA
+            # (macOS: launchd gunlerdir canli) pid=1 mutant nobeti GERCEKTEN kosmali ->
+            # launchd ekseninde ⚪ 0. Surrogat YOKSA (taze-boot CI runner) ⚪ >=1 BEKLENIR
+            # (fail-open): bu nobet burada kosulamaz, deploy DURMAZ. Bu, "launchd_ortami'yi
+            # hep 'var' dondur" diye olduren bir mutasyonun (macOS'ta ⚪'yi gizleyip
+            # sessiz-yesil verecek) kacis yolunu da kapatir.
+            if LAUNCHD_ORTAMI[0] == "var":
+                kontrol("launchd surrogati VARKEN launchd-ekseninde OLCULEMEDI 0 "
+                        "(pid=1 mutant nobeti GERCEKTEN kostu)",
+                        EKSEN.get("launchd", 0) == 0,
+                        "launchd_ortami=%s launchd-eksen-⚪=%d"
+                        % (LAUNCHD_ORTAMI[0], EKSEN.get("launchd", 0)))
+            else:
+                LAUNCHD_BAGIMLI[0] += 1
+                olculemedi("launchd surrogati VARKEN launchd-ekseninde OLCULEMEDI 0",
+                           "pid=1 (launchd/init) 'asili' surrogati bu ortamda yok "
+                           "(taze-boot runner / ps yok) — bu nobet burada kosulamaz",
+                           eksen="launchd")
 
             # ---- 9b) ORTAM SINIFLANDIRICISININ KENDI KABUL FIKSTURLERI ----
             # 🔴 NEDEN: artik "yok" hali rc'yi BOZMUYOR -> ps_ortami()'yi "hep yok
@@ -1685,14 +1815,60 @@ def main():
             kontrol("varsayilan `git` zaman asimi makul (1-15 sn)",
                     1 <= GIT_SORGU_ZAMAN_ASIMI[0] <= 15, str(GIT_SORGU_ZAMAN_ASIMI[0]))
 
+            # ---- 9d) launchd_ortami() SINIFLANDIRICISININ KENDI KABUL FIKSTURLERI ----
+            # 9b/9c ile AYNI gerekce: launchd_ortami()'yi "hep yok dondur" diye olduren
+            # bir mutasyon pid=1 mutant nobetini sessizce ⚪'ya cevirir, "hep var dondur"
+            # diye olduren bir mutasyon taze-boot CI'da SAHTE-KIRMIZI yakar. Sentetik `ps`
+            # (pid=1'i istedigimiz etime/comm ile raporlar) => GERCEK ortamdan BAGIMSIZ
+            # olcum: bu makinede pid=1 ne olursa olsun siniflandirici KIRMIZI yanar.
+            print("\n9d) launchd_ortami() siniflandiricisi — sentetik `ps` (pid=1) fiksturleri")
+            eski_path = os.environ.get("PATH", "")
+            YASLI = "%02d:00:00" % (int(LAUNCHD_MUT_KILIT_YASI // 3600) + 2)  # esikten YASLI
+            SAHTE_LD = {                          # ad -> (etime, komut, beklenen hal)
+                "eski-launchd": (YASLI, "launchd", "var"),    # yasli + python-disi -> surrogat VAR
+                "taze-init":    ("00:05:00", "systemd", "yok"),   # 300 sn < esik -> taze-boot CI
+                "python-pid1":  (YASLI, "python3", "yok"),    # pid=1 python -> fikstur anlamsiz
+                "cozulemez":    ("COZULEMEZ", "launchd", "yok"),  # etime ayristirilamaz -> yok
+            }
+            try:
+                for ad in sorted(SAHTE_LD):
+                    etime_s, komut_s, beklenen = SAHTE_LD[ad]
+                    with tempfile.TemporaryDirectory() as ftd:
+                        kutu4 = os.path.join(ftd, "bin")
+                        os.makedirs(kutu4)
+                        sahte_ps = os.path.join(kutu4, "ps")
+                        with open(sahte_ps, "w") as fh:
+                            fh.write("#!/bin/sh\necho '   %s %s'\nexit 0\n"
+                                     % (etime_s, komut_s))
+                        os.chmod(sahte_ps, 0o755)
+                        os.environ["PATH"] = kutu4
+                        gorulen = launchd_ortami()
+                    kontrol("launchd_ortami() '%s' fiksturunu '%s' diye siniflandiriyor"
+                            % (ad, beklenen), gorulen == beklenen, "gorulen=%s" % gorulen)
+                # `ps` HIC YOK -> "yok" (ps ekseniyle ayni sinif; pid=1 olculemez)
+                with tempfile.TemporaryDirectory() as ftd:
+                    kutu4 = os.path.join(ftd, "bin")
+                    os.makedirs(kutu4)
+                    os.environ["PATH"] = kutu4
+                    gorulen = launchd_ortami()
+                kontrol("launchd_ortami() `ps` YOKKEN 'yok' diye siniflandiriyor",
+                        gorulen == "yok", "gorulen=%s" % gorulen)
+            finally:
+                os.environ["PATH"] = eski_path
+            kontrol("launchd_ortami() gercek ortami ILAN ETTIGI gibi goruyor (tekrarlanabilir)",
+                    launchd_ortami() == LAUNCHD_ORTAMI[0],
+                    "%s == %s" % (launchd_ortami(), LAUNCHD_ORTAMI[0]))
+
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok in SONUC if not ok]
     print("\n" + "=" * 70)
     # Makine-okunur ozet (alt kosum bunlari ayristirir; sabit sayi YOK).
     print("PS: " + PS_ORTAMI[0].upper())      # VAR | YOK | BOZUK
     print("GIT: " + GIT_ORTAMI[0].upper())    # VAR | YOK | BOZUK
+    print("LAUNCHD: " + LAUNCHD_ORTAMI[0].upper())  # VAR | YOK (pid=1 surrogati)
     print("PS BAGIMLI: %d" % PS_BAGIMLI[0])
     print("GIT BAGIMLI: %d" % GIT_BAGIMLI[0])
+    print("LAUNCHD BAGIMLI: %d" % LAUNCHD_BAGIMLI[0])
     print("ORTAM BAGIMLI: %d" % ORTAM_BAGIMLI[0])
     print("KAYNAK ORTAMI: " + kaynak_ortami().upper())
     # ORTAMDAN BAGIMSIZ (sentetik PATH ile kosan) nobet sayisi — bolum 9 alt kosumun
@@ -1705,6 +1881,7 @@ def main():
     print("GIT EKSEN OLCULEMEDI: %d" % EKSEN.get("git", 0))
     print("KAYNAK EKSEN OLCULEMEDI: %d" % EKSEN.get("kaynak", 0))
     print("FIKSTUR EKSEN OLCULEMEDI: %d" % EKSEN.get("fikstur", 0))
+    print("LAUNCHD EKSEN OLCULEMEDI: %d" % EKSEN.get("launchd", 0))
     print("EKSENSIZ OLCULEMEDI: %d"
           % sum(n for e, n in EKSEN.items() if e not in BILINEN_EKSENLER))
     print("GECTI: %d" % (len(SONUC) - len(kirmizi)))
