@@ -1,5 +1,108 @@
 [
   {
+    "id": "toyota-pickup-1983-guneslik-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Pickup (1983) Güneşlik Klipsi",
+    "aciklama": "1983 Toyota Pickup güneşliğini tavana sabitleyen tutucu klips. Yıllar içinde kırılan ya da gevşeyen orijinal klipsin yerine takılır; güneşliği yerinde sabit tutar, sürüş sırasında sallanmasını ve düşmesini önler. Yuvaya elle bastırılarak kolayca oturur.\nYaklaşık dış ölçüler: 38 × 37 × 18 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th135242-1.jpg",
+      "https://media.pruvo3d.com/urunler/th135242-2.jpg",
+      "https://media.pruvo3d.com/urunler/th135242-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rmurray",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:135242"
+    }
+  },
+  {
+    "id": "toyota-mr2-spyder-6-5-inc-hoparlor-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota MR2 Spyder 6,5 inç Hoparlör Braketi",
+    "aciklama": "Toyota MR2 Spyder kapı hoparlör yuvasına 6,5 inç hoparlör montajı için adaptör braketi. Sonradan takılan hoparlörü orijinal yuvaya boşluksuz oturtur; sıkı, titreşimsiz ve merkezli bir bağlantı sağlayarak ses kalitesini korur ve montajı kolaylaştırır.\nYaklaşık dış ölçüler: 150 × 150 × 35 mm.",
+    "fiyat": "175 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2149623-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2149623-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2149623-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2149623-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2149623-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kelchm",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:2149623"
+    }
+  },
+  {
+    "id": "toyota-tacoma-orta-konsol-molle-panel-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Tacoma Orta Konsol MOLLE Panel Kapağı",
+    "aciklama": "Toyota Tacoma orta konsol kapağının üzerine oturan MOLLE dokuma delikli panel. Standart MOLLE kılıf, kese ve tutucuları sabitlemeye yarar; konsol kapağını ek eşya taşımak için işlevsel bir yüzeye dönüştürür. Orijinal kapak hatlarına uyacak şekilde tasarlanmış olup sağlam biçimde oturur.\nYaklaşık dış ölçüler: 152 × 136 × 7 mm.",
+    "fiyat": "205 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4834243-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4834243-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4834243-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4834243-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DryFly",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4834243"
+    }
+  },
+  {
+    "id": "toyota-pickup-1983-cam-kolu-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Pickup (1983) Cam Kolu Topuzu",
+    "aciklama": "1983 Toyota Pickup manuel cam açma kolunun ucundaki topuz. Kırılan veya kaybolan orijinalin yerine geçer; kola sıkıca oturarak camı rahat ve güvenli çevirmeyi sağlar. Aynı kol yapısına sahip birçok eski Toyota modeline de uyum gösterir.\nYaklaşık dış ölçüler: 30 × 30 × 22 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th206065-1.jpg",
+      "https://media.pruvo3d.com/urunler/th206065-2.jpg",
+      "https://media.pruvo3d.com/urunler/th206065-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rmurray",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:206065"
+    }
+  },
+  {
+    "id": "toyota-guneslik-otopark-bileti-tutucu-klips",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Güneşlik Otopark Bileti Tutucu Klipsi",
+    "aciklama": "Güneşliğe geçirilen ve otopark ya da geçiş biletini güvenle tutan klips. Bileti göz hizasında sabit tutar, koltuğa veya ayak boşluğuna düşmesini engeller; çıkışta bileti kolayca almanızı sağlar. Güneşlik kenarına baskıyla takılır ve yerinden oynamaz.\nYaklaşık dış ölçüler: 54 × 50 × 31 mm.",
+    "fiyat": "165 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1510623-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1510623-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1510623-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Suachris",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:1510623"
+    }
+  },
+  {
     "id": "volvo-penta-2001-gaz-kolu-sapi",
     "kategori": "Marin",
     "marka": [
