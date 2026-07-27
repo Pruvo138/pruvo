@@ -339,7 +339,14 @@ SENTETIK_KAPSAMSIZ = "tools/zzz-sentetik-kapsamsiz-test.py"
 
 # Iddia RAPOR SATIRININ KENDISINE capalanir (etiketi degistiren biri nobetciyi de
 # guncellemek zorunda kalsin diye) — degeri gövde degiskeninden degil, basilan metinden oku.
-MUAF_SATIR_RE = re.compile(r"^\s*Muaf \(izin listesi\)\s*:\s*(\d+)\s*$")
+# CAPA SATIR SONUNA DEGIL SAYIYA (3. tur curutucu olcumu): eski `\s*$` capasi asiri
+# kirilgandi — rapor satirinin SONUNA kozmetik bir ek yapilsa ('kosulan' satirindaki gibi
+# parantezli detay listesi) SAYI DOGRU basildigi halde regex eslesmiyor -> n is None ->
+# kapi SAHTE-KIRMIZI, ustelik teshis "etiket degistiyse guncelle" diyor ama etiket
+# DEGISMEMIS oluyor. Bu kapi deploy.yml'de continue-on-error'suz kosar; yanlis-pozitif TUM
+# yayini durdurur ([[kapi-kapsam-eksen-secimi]]). `\b` ile etiket GERCEKTEN degisirse hala
+# eslesmez ve dogru teshisi verir — istenen davranis odur, o KALIR.
+MUAF_SATIR_RE = re.compile(r"^\s*Muaf \(izin listesi\)\s*:\s*(\d+)\b")
 
 
 def _muaf_sayisi(satirlar):
@@ -370,11 +377,14 @@ def muaf_sayaci_kontrol():
     yol enjekte edilir ve denetle(..., kontroller=False) cagrilir -> CI'da kosan kodun TA
     KENDISI olculur, kopya mantik yazilmaz. (kontroller=False sart: ozyineleme korumasi.)
       TEMEL: sentetiksiz kosum; basilan Muaf sayisi = N, exit kodu = TEMEL_KOD.
+      MUTLAK: TEMEL_KOD == 0 iken N == len(IZIN_LISTESI) OLMAK ZORUNDA (asagida gerekcesi).
       (a) kesif + SENTETIK, izin = IZIN_LISTESI
           -> exit 1 + SENTETIK icin KAPSAMSIZ satiri + Muaf sayisi HALA N (sizmamali).
       (b) kesif + SENTETIK, izin = IZIN_LISTESI + {SENTETIK: gerekce}
           -> exit TEMEL_KOD (muafiyet kapiyi temelin verdigi hale geri dondurur)
              + Muaf sayisi TAM OLARAK N+1 (muafiyete kor olmamali).
+    (a)/(b) DELTA iddialaridir; tek baslarina sabit bir kaydirmayi (or. satiri `len(muaf)-1`
+    basmak) YAKALAYAMAZ — merge prosedürü MUTLAK sayiyi okudugu icin MUTLAK capa sarttir.
 
     TEMEL KIRMIZI OLSA DA CALISIR (duzeltme, 27 Tem): iddialar MUTLAK degil TEMELE GORELI
     DELTA'dir -> "temel kirmizi, olcum anlamsiz" diye erken donmez. Eski hali tam da bu
@@ -405,6 +415,22 @@ def muaf_sayaci_kontrol():
 
     kesif_sentetik = sorted(list(kesif) + [SENTETIK_KAPSAMSIZ])
     hata = []
+
+    # MUTLAK CAPA (3. tur curutucu olcumu): asagidaki (a)/(b) iddialari DELTA'dir ve n, n_a,
+    # n_b UCU DE AYNI rapor satirindan okunur -> sabit bir KAYDIRMA (olculdu: satiri
+    # `len(muaf) - 1` basacak sekilde degistirmek) delta'lari BOZMAZ, nobetci HIC KONUSMAZ,
+    # ama basilan mutlak sayi (70) yalan olur. merge prosedürü tam da bu MUTLAK sayiyi olcum
+    # olarak okudugu icin delta korunumu YETMEZ.
+    # NEDEN GECERLI: kapi YESIL iken kural 3 (bayat izin: artik kesfedilmiyor) ve kural 4
+    # (bayat izin: artik kosuluyor) ZATEN sifirdir -> izin ⊆ kesif ve izin ∩ kos = bos ->
+    # tanim geregi muaf == IZIN_LISTESI. Yani yesil kosumda basilan sayi len(IZIN_LISTESI)'ne
+    # ESIT OLMAK ZORUNDA. temel_kod != 0 iken bu esitlik GECERLI DEGILDIR (bayat girisler
+    # sapma yaratir) -> capa YALNIZ yesil temelde uygulanir; (a)/(b) delta iddialari her iki
+    # halde de aynen kalir.
+    if temel_kod == 0 and n != len(IZIN_LISTESI):
+        hata.append("MUTLAK SAYI YALAN: basilan %r, gercek izin listesi %d -> delta korunmus "
+                    "olsa da rapor sayisi merge olcumunu yaniltir"
+                    % (n, len(IZIN_LISTESI)))
 
     # (a) sentetik yol KAPSAMSIZ: red semantigi korunmali VE muaf sayisina SIZMAMALI
     kod_a, satir_a = denetle(gercek, kesif_sentetik, IZIN_LISTESI, kontroller=False)
