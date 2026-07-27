@@ -2518,6 +2518,9 @@ def marka_model_ctx():
         "GA_HEAD_SNIPPET": GA_HEAD_SNIPPET, "META_HEAD_SNIPPET": META_HEAD_SNIPPET,
         "attribution_head_snippet": attribution_head_snippet,
         "GA_BANNER_SNIPPET": GA_BANNER_SNIPPET,
+        # Standart katalog kartı (kartCiz) için: görsel + parametrik taban fiyatı
+        "images_of": images_of, "konf_sema": konf_sema,
+        "taban_fiyat_metni": taban_fiyat_metni,
     }
 
 

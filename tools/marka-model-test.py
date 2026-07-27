@@ -51,10 +51,18 @@ BANNED_RE = [re.compile(p, re.I) for p in BANNED]
 
 
 def authored(page):
-    ms = page.find('<main class="content mm">')
-    me = page.find('</main>')
-    body = page[ms:me] if (ms >= 0 and me > ms) else page
-    return re.sub(r'<ul class="mm-grid">.*?</ul>', " ", body, flags=re.S)
+    """Yalnız SAYFANIN AUTHORED copy'sini (H1/giriş/başlık/breadcrumb/huni/model-buton +
+    meta description) toplar. Ürün kartları (<div class="grid"> — KATALOG verisi: başlık/
+    açıklama /urun/ sayfasında aynen görünür) marka-lint KAPSAMI DIŞI (koordinatör notu).
+    Extract yaklaşımı: kart div'leri iç içe olduğundan strip yerine authored bölgeleri ayıklar."""
+    parts = re.findall(r'<h1>.*?</h1>', page, re.S)
+    parts += re.findall(r'<p class="lead">.*?</p>', page, re.S)
+    parts += re.findall(r'<h2 class="mm-sec-h">.*?</h2>', page, re.S)
+    parts += re.findall(r'<nav class="mm-bc".*?</nav>', page, re.S)
+    parts += re.findall(r'<div class="mm-huni">.*?</div>', page, re.S)
+    parts += re.findall(r'<a class="mm-model-btn"[^>]*>.*?</a>', page, re.S)
+    parts += re.findall(r'<meta name="description" content="[^"]*">', page)
+    return " ".join(parts)
 
 
 def main():
@@ -184,6 +192,18 @@ def main():
             bekle("<h1>" in page and "Yedek Parça" in page, "%s SSR H1 yok" % g["slug"])
             bekle(len(re.findall(r'href="https://pruvo3d\.com/urun/', page)) >= mm.ESIK,
                   "%s ürün linki < %d" % (g["slug"], mm.ESIK))
+            # GÖRSELLİ KART (düz-yazı regresyon nöbeti): standart katalog kartı = card-main +
+            # card-img (lazy, gerçek görsel src) + card-cat/card-title/card-price (kartCiz ile aynı).
+            bekle(len(re.findall(r'<a class="card-main" href="', page)) >= mm.ESIK,
+                  "%s card-main < eşik (kart bileşeni yok)" % g["slug"])
+            imglar = re.findall(r'<img class="card-img"[^>]*\bloading="lazy"[^>]*\bsrc="([^"]+)"', page)
+            bekle(len(imglar) >= mm.ESIK,
+                  "%s card-img < eşik — DÜZ YAZIYA regresyon?" % g["slug"])
+            bekle(any(s.startswith("https://") for s in imglar),
+                  "%s gerçek görsel src yok (hepsi placeholder?)" % g["slug"])
+            for kls in ('card-cat', 'card-title', 'card-desc', 'card-price'):
+                bekle(('class="%s"' % kls) in page, "%s katalog kart sınıfı '%s' yok" % (g["slug"], kls))
+            bekle('<div class="grid">' in page, "%s kart grid container'ı yok" % g["slug"])
             bekle(('<link rel="canonical" href="%s">' % url) in page, "%s self-canonical yok" % g["slug"])
             bekle('<meta name="robots" content="index,follow">' in page, "%s robots yok" % g["slug"])
             for t in ('"ItemList"', '"CollectionPage"', '"BreadcrumbList"'):
