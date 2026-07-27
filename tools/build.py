@@ -879,6 +879,9 @@ def konfigur_fiyat_kurus(konfigur, boy_mm, katsayi=1.0):
     k = katsayi if (isinstance(katsayi, (int, float)) and not isinstance(katsayi, bool)
                     and katsayi > 0) else 1.0
     tl = (sabit + birim * (konfigur_hacim_mm3(konfigur, boy_mm) / 1000.0)) * k
+    tavan = 3 * konfigur["fiyatCapalari"][0][1]   # 3× TAVAN (Okan)
+    if tl > tavan:
+        tl = tavan
     return int(math.floor(tl + 0.5)) * 100
 
 

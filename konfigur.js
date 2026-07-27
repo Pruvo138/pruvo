@@ -55,7 +55,10 @@
     var m = fiyatModeli(konfigur);
     if (!m) { return null; }
     var k = (typeof katsayi === "number" && isFinite(katsayi) && katsayi > 0) ? katsayi : 1;
-    return Math.round((m.sabit + m.birim * (hacimMm3(konfigur, boyMm) / 1000)) * k) * 100;
+    var tl = (m.sabit + m.birim * (hacimMm3(konfigur, boyMm) / 1000)) * k;
+    var tavan = 3 * konfigur.fiyatCapalari[0][1];   // 3× TAVAN (Okan)
+    if (tl > tavan) { tl = tavan; }
+    return Math.round(tl) * 100;
   }
 
   // Serbest girilen boyu aralığa kırpar + adıma oturtur (mm). Geçersiz girişte

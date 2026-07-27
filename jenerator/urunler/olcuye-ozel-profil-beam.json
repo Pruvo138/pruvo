@@ -26,7 +26,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 20,
-      "max": 200,
+      "max": 120,
       "adim": 1,
       "varsayilan": 40,
       "aciklama": "Profilin dıştan dışa kesit yüksekliği"
@@ -37,7 +37,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 20,
-      "max": 200,
+      "max": 120,
       "adim": 1,
       "varsayilan": 30,
       "aciklama": "Profilin dıştan dışa genişliği veya flanş eni"
@@ -59,7 +59,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 20,
-      "max": 1000,
+      "max": 300,
       "adim": 1,
       "varsayilan": 100,
       "aciklama": "Kesitin doğrusal olarak uzatıldığı toplam boy"

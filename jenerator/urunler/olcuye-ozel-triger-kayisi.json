@@ -90,7 +90,7 @@
       "birim": "adet",
       "tip": "sayi",
       "min": 20,
-      "max": 300,
+      "max": 150,
       "adim": 1,
       "varsayilan": 60,
       "aciklama": "Toplam uzunluğu belirleyen diş adedi; çevre uzunluğu diş sayısı ile profil adımının çarpımıdır"
@@ -101,7 +101,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 3,
-      "max": 50,
+      "max": 25,
       "adim": 0.5,
       "varsayilan": 6,
       "aciklama": "Kasnak kanalına oturan eksenel kayış eni"

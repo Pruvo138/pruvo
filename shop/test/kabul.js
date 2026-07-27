@@ -752,7 +752,7 @@ async function test25KonfigurOdeme() {
   }
 
   // (c) BOY manipulasyonu: boyDuzelt kirpar; ham boy fiyata girmez.
-  const boyVaka = [[100000, 300, 250000], [-5, 60, 50000], ["xyz", 150, 73600], [155, 160, 79000]];
+  const boyVaka = [[100000, 300, 150000], [-5, 60, 50000], ["xyz", 150, 73600], [155, 160, 79000]];
   for (const [ham, kirp, fiyat] of boyVaka) {
     const r = KM.konfigurHesapla({ malzeme: "PLA", parametreler: { boy_mm: ham } }, SECENEK, kf);
     if (r.hata || r.parametreler.boy_mm !== kirp || r.birimKurus !== fiyat) {
@@ -827,13 +827,13 @@ async function test25KonfigurOdeme() {
       hatalar.push("(b-HTTP) D1 tutar " + (d1Pos && d1Pos.tutar_kurus) + " != 73600 (sahte 1 sizdi?)");
     }
   }
-  // (c-HTTP) boy 100000 -> clip 300 -> 250000 (istemcinin devasa boy'u fiyata GIRMEZ).
+  // (c-HTTP) boy 100000 -> clip 300 -> 150000 (istemcinin devasa boy'u fiyata GIRMEZ; 3× TAVAN).
   const cBoy = await baslatIstek([{ id: KURT_ID, malzeme: "PLA", renk: "Siyah", adet: 1,
     parametreler: { boy_mm: 100000 } }]);
   if (cBoy.kod !== 200) { hatalar.push("(c-HTTP) boy-clip baslat: " + cBoy.kod); }
   else {
     const d = d1Sorgu("SELECT tutar_kurus FROM siparisler WHERE siparis_no = '" + cBoy.govde.no + "'")[0];
-    if (!d || d.tutar_kurus !== 250000) { hatalar.push("(c-HTTP) D1 tutar " + (d && d.tutar_kurus) + " != 250000"); }
+    if (!d || d.tutar_kurus !== 150000) { hatalar.push("(c-HTTP) D1 tutar " + (d && d.tutar_kurus) + " != 150000"); }
   }
   // (d-HTTP) malzeme TPU (konfigur listesinde yok) -> 400 gecersiz-malzeme, iyzico oturumu ACILMAZ.
   const araInit = (await mockOku()).initSayisi;
@@ -848,7 +848,7 @@ async function test25KonfigurOdeme() {
   rapor("25 konfigur kart odemesi (sunucu yeniden hesap; manipulasyon imkansiz)", hatalar.length === 0,
     "birim: " + Object.entries(olculen).map(([k, v]) => k + "=" + v).join(" ") +
     "; sahte-fiyat YOK SAYILDI (birim=" + gr.birimKurus + ", D1=" + (d1Pos ? d1Pos.tutar_kurus : "?") +
-    "); boy-clip 100000->300->250000 OK; malzeme bilinmeyen RED + istemci-katsayi YOK SAYILDI;" +
+    "); boy-clip 100000->300->150000 OK; malzeme bilinmeyen RED + istemci-katsayi YOK SAYILDI;" +
     " guard kapsam " + bundleAnahtar.size + "/" + beklenenKonf.size + " birebir; drift front==worker=" +
     (driftOk ? "OK" : "KIRIK") + "; (e) bayrak-kapisi " + (kapiVar ? "DURUYOR" : "YOK") +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));

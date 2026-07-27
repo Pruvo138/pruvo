@@ -195,7 +195,13 @@ KURT_KONFIGUR = {
     "fiyatCapalari": [[60, 150], [300, 1300]],
 }
 TABAN_TL = 150      # çapa-1 fiyatı = "fiyat" alanı = JSON-LD/feed minimum fiyatı
-CAPA2_TL = 1300     # çapa-2 (en büyük boy) fiyatı
+CAPA2_TL = 1300     # çapa-2 (en büyük boy) fiyatı — clamp'siz; 3× TAVAN'ı AŞAR (bkz. TAVAN_TL)
+# 3× FİYAT TAVANI (Okan, 2026-07-27): müşteriye çıkan max fiyat = 3 × çapa-1 (malzeme+renk
+# DAHİL, son-kuruş). Fixture çapa-2 (1300 TL) > tavan (450 TL) olduğundan en büyük boylarda
+# clamp BİNER: fiyat DÜZ PLATO'ya oturur, malzeme farkı tavanda ERİR (ASA max = PLA max =
+# 3× taban). Bu test o clamp'i DOĞRULAR (tavan-altı kesin artan + tavan-üstü plato).
+TAVAN_TL = 3 * TABAN_TL      # 450 TL — 3× çapa-1
+TAVAN_KR = TAVAN_TL * 100    # 45000 kr
 
 # MALZEME EKSENİ (Okan KESİN katsayılar; ABS+Karbon SATIŞA KAPALI -> KOYULMAZ):
 #   PLA 1.00 (taban/varsayılan) · PETG 1.30 · ASA 1.60.
@@ -353,6 +359,29 @@ def _node_seri(node, konfigur, kat_arg=""):
     return (sonuc["seri"], sonuc.get("model") or {}), None
 
 
+def _tavan_sekli(kuruslar, ad):
+    """3× TAVAN clamp'inin ŞEKİL doğrulaması (Okan kuralını GERÇEKTEN sınar — [A]):
+      (1) hiçbir boyda tavan AŞILMAZ (son-kuruş ≤ 3× taban),
+      (2) fiyat boyla MONOTON (azalmaz),
+      (3) tavan ALTINDA KESİN ARTAN (clamp binmeyen bölgede düz-plato artefaktı YOK),
+      (4) tavana ULAŞINCA DÜZ PLATO (ilk tavan indeksinden sonrası hep tavan),
+      (5) EN BÜYÜK boy = 3× taban PLATO (fixture çapa-2 tavanı aştığı için binmesi ZORUNLU).
+    Clamp kaldırılırsa (1),(4),(5) KIRMIZI yanar -> vakum nöbeti gerçek."""
+    kontrol(all(v <= TAVAN_KR for v in kuruslar),
+            "%s: hiçbir boyda 3× tavan (%d kr) AŞILMAZ" % (ad, TAVAN_KR))
+    kontrol(all(kuruslar[i] >= kuruslar[i - 1] for i in range(1, len(kuruslar))),
+            "%s: fiyat boyla MONOTON (azalmaz)" % ad)
+    alti = [i for i in range(1, len(kuruslar)) if kuruslar[i] < TAVAN_KR]
+    kontrol(all(kuruslar[i] > kuruslar[i - 1] for i in alti),
+            "%s: tavan ALTINDA fiyat KESİN ARTAN (clamp binmeyen bölge düz değil)" % ad)
+    ilk = next((i for i, v in enumerate(kuruslar) if v == TAVAN_KR), None)
+    kontrol(ilk is not None and all(v == TAVAN_KR for v in kuruslar[ilk:]),
+            "%s: tavana ULAŞINCA DÜZ PLATO (ilk tavan idx=%s sonrası hep %d kr)"
+            % (ad, ilk, TAVAN_KR))
+    kontrol(kuruslar[-1] == TAVAN_KR,
+            "%s: EN BÜYÜK boy = 3× taban PLATO (%d kr)" % (ad, TAVAN_KR))
+
+
 def test_fiyat():
     print("\n(b) AFİN FİYAT MODELİ + MALZEME KATSAYISI — kesin artanlık + çapa/katsayı "
           "doğruluğu (node ile gerçek /konfigur.js)")
@@ -375,10 +404,10 @@ def test_fiyat():
             "her boyda pozitif fiyat üretilir")
     kontrol(seri[0]["kurus"] == TABAN_TL * 100,
             "ÇAPA-1: en küçük boyda (6 cm) fiyat TAM %s" % build.taban_fiyat_metni(TABAN_TL))
-    kontrol(seri[-1]["kurus"] == CAPA2_TL * 100,
-            "ÇAPA-2: en büyük boyda (30 cm) fiyat TAM %s" % build.taban_fiyat_metni(CAPA2_TL))
-    kontrol(all(seri[i]["kurus"] > seri[i - 1]["kurus"] for i in range(1, len(seri))),
-            "fiyat 6 cm'den itibaren KESİN ARTAN (düz-bölge artefaktı yok)")
+    # 3× TAVAN: fixture çapa-2 (1300 TL) tavanı (450) AŞAR -> en büyük boy artık ÇAPA-2 DEĞİL
+    # PLATO (3× taban). Eski "çapa-2 == 1300" + "her boy KESİN ARTAN" iddiaları clamp platosuyla
+    # KIRILIRDI; yerine clamp-uyumlu ŞEKİL kontrolü (tavan altı kesin artan + tavan üstü plato).
+    _tavan_sekli([x["kurus"] for x in seri], "PLA")
     kontrol(all(x["kurus"] >= TABAN_TL * 100 for x in seri),
             "hiçbir boyda minimum (çapa-1) fiyatın altına inilmez")
     kontrol(all(x["kurus"] % 100 == 0 for x in seri),
@@ -419,32 +448,51 @@ def test_fiyat():
         kontrol(len(mseri) == len(seri), "%s: tüm boy adımları hesaplandı" % ad)
         kontrol(all(x["kurus"] % 100 == 0 for x in mseri),
                 "%s: görünen fiyat TAM TL (kuruş küsuratı yok)" % ad)
-        kontrol(all(mseri[i]["kurus"] > mseri[i - 1]["kurus"] for i in range(1, len(mseri))),
-                "%s: boyla KESİN ARTAN" % ad)
-        # Çapalarda katsayı TAM: %s = PLA × katsayı (tam TL) — 6 cm ve 30 cm.
-        kontrol(mseri[0]["kurus"] == int(round(TABAN_TL * kat)) * 100,
-                "%s ÇAPA-1 (6 cm) = %s TL (PLA %d × %.2f)"
+        mkurus = [x["kurus"] for x in mseri]
+        # 3× TAVAN clamp'i malzeme çarpanından SONRA biner -> aynı ŞEKİL kontrolü.
+        _tavan_sekli(mkurus, ad)
+        # ÇAPA-1 (6 cm, tavan ALTINDA): PLA 150×1.30=195 / ×1.60=240 < 450 tavan -> clamp BİNMEZ,
+        # katsayı TAM biner (malzeme farkı yalnız tavanın ALTINDA görünür — Okan kuralının sonucu).
+        kontrol(mseri[0]["kurus"] == int(round(TABAN_TL * kat)) * 100 and
+                mseri[0]["kurus"] < TAVAN_KR,
+                "%s ÇAPA-1 (6 cm) = %s TL = PLA %d × %.2f (tavan ALTI, malzeme farkı görünür)"
                 % (ad, int(round(TABAN_TL * kat)), TABAN_TL, kat))
-        kontrol(mseri[-1]["kurus"] == int(round(CAPA2_TL * kat)) * 100,
-                "%s ÇAPA-2 (30 cm) = %s TL (PLA %d × %.2f)"
-                % (ad, int(round(CAPA2_TL * kat)), CAPA2_TL, kat))
-        kontrol(mseri[0]["kurus"] == seri[0]["kurus"] * kat and
-                mseri[-1]["kurus"] == seri[-1]["kurus"] * kat,
-                "%s = PLA × %.2f (çapalarda TAM tutar)" % (ad, kat))
-        # Katsayıda MONOTONLUK: her boyda %s fiyatı PLA'dan büyük.
-        kontrol(all(mseri[i]["kurus"] > seri[i]["kurus"] for i in range(len(seri))),
-                "%s her boyda PLA'dan pahalı (katsayı monotonluğu)" % ad)
+        kontrol(mseri[0]["kurus"] == seri[0]["kurus"] * kat,
+                "%s çapa-1 = PLA × %.2f (tavan altı TAM tutar)" % (ad, kat))
+        # ÇAPA-2 (30 cm): PLA×kat (1690/2080 TL) tavanı AŞAR -> clamp -> PLATO = 3× taban,
+        # MALZEMEDEN BAĞIMSIZ (malzeme farkı tavanda ERİR — Okan kuralının doğrudan sonucu).
+        kontrol(mseri[-1]["kurus"] == TAVAN_KR,
+                "%s ÇAPA-2 (30 cm) = 3× taban PLATO %d kr (malzeme farkı tavanda erir)"
+                % (ad, TAVAN_KR))
+        # Katsayı MONOTONLUĞU (clamp-uyumlu): malzeme HİÇBİR boyda PLA'dan UCUZ değil;
+        # kendi tavanının ALTINDA KESİN pahalı (tavanda ikisi de 3× tabanda eşitlenir).
+        kontrol(all(mseri[i]["kurus"] >= seri[i]["kurus"] for i in range(len(seri))),
+                "%s hiçbir boyda PLA'dan ucuz değil (clamp monoton)" % ad)
+        kontrol(all(mseri[i]["kurus"] > seri[i]["kurus"]
+                    for i in range(len(seri)) if mseri[i]["kurus"] < TAVAN_KR),
+                "%s tavan ALTINDA PLA'dan KESİN pahalı (malzeme farkı görünür)" % ad)
         # Drift nöbeti: Python aynası node/JS ile kuruşu kuruşuna aynı (bu katsayıda).
         m_sap = [x["boy"] for x in mseri
                  if build.konfigur_fiyat_kurus(KURT_KONFIGUR, x["boy"], kat) != x["kurus"]]
         kontrol(not m_sap, "%s: build.py Python aynası node/JS ile kuruşu kuruşuna aynı "
                 "(sapan boy: %s)" % (ad, m_sap or "-"))
 
-    # ASA > PETG her boyda (katsayı sıralaması 1.60 > 1.30)
+    # ASA >= PETG her boyda; tavan ALTINDA KESİN pahalı (tavanda ikisi de 3× tabanda erir).
     if "ASA" in tablolar and "PETG" in tablolar:
-        kontrol(all(tablolar["ASA"][i]["kurus"] > tablolar["PETG"][i]["kurus"]
-                    for i in range(len(seri))),
-                "ASA her boyda PETG'den pahalı (1.60 > 1.30)")
+        asa = [x["kurus"] for x in tablolar["ASA"]]
+        petg = [x["kurus"] for x in tablolar["PETG"]]
+        kontrol(all(asa[i] >= petg[i] for i in range(len(seri))),
+                "ASA hiçbir boyda PETG'den ucuz değil (1.60 >= 1.30, clamp monoton)")
+        kontrol(all(asa[i] > petg[i] for i in range(len(seri)) if asa[i] < TAVAN_KR),
+                "ASA tavan ALTINDA PETG'den KESİN pahalı (üstte 3× tabanda eşitlenir)")
+    # EN BÜYÜK BOY MALZEMEDEN BAĞIMSIZ: tavanda PLA = PETG = ASA = 3× taban (Okan kuralı;
+    # "literal son-kuruş, malzeme+renk DAHİL" -> malzeme farkı tavanda YOK OLUR).
+    if "PETG" in tablolar and "ASA" in tablolar:
+        kontrol(seri[-1]["kurus"] == TAVAN_KR
+                and tablolar["PETG"][-1]["kurus"] == TAVAN_KR
+                and tablolar["ASA"][-1]["kurus"] == TAVAN_KR,
+                "en büyük boy = 3× taban (%d kr) TÜM malzemede EŞİT (malzeme farkı erir)"
+                % TAVAN_KR)
 
     print("  --- FİYAT TABLOSU (3 malzeme × 6 boy; afin %d TL @6cm .. %d TL @30cm, standart renk) ---"
           % (TABAN_TL, CAPA2_TL))

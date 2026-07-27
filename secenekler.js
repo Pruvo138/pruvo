@@ -193,6 +193,7 @@
     var yuzde = FILAMENT_FARK.hasOwnProperty(malzeme) ? FILAMENT_FARK[malzeme] : 0;
     var kurus = tabanFiyatTL * 100 * Math.max(1, hacimMm3 / tabanHacimMm3) * (1 + yuzde / 100);
     if (renk === "Diğer") { kurus = kurus * (1 + RENK_DIGER_YUZDE / 100); }
+    kurus = Math.min(kurus, tabanFiyatTL * 100 * 3);   // 3× TAVAN (Okan) — malzeme+renk DAHİL
     return Math.round(kurus);
   }
 

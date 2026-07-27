@@ -56,7 +56,8 @@ esit("zemin: filament+renk zemine uygulanır (100×1×1.60×1.15)",
 var buyume = [1000, 1080, 2000, 5000].map(function (h) {
   return SECENEK.parametrikFiyatKurus(100, 1000, h, "PLA", "Siyah");
 });
-esit("büyüme: taban üstü sürekli oran", buyume, [10000, 10800, 20000, 50000]);
+esit("büyüme: taban üstü sürekli oran (son adım 3× TAVANA çarpar: 50000->30000)",
+     buyume, [10000, 10800, 20000, 30000]);
 esit("büyüme: sıkı artan", buyume.every(function (v, i) {
   return i === 0 || v > buyume[i - 1];
 }), true);

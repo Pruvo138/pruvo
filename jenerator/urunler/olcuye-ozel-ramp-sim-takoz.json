@@ -8,7 +8,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 10,
-      "max": 200,
+      "max": 150,
       "adim": 1,
       "varsayilan": 40,
       "aciklama": "Rampanın veya takozun yanal dış ölçüsü"
@@ -19,7 +19,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 20,
-      "max": 300,
+      "max": 250,
       "adim": 1,
       "varsayilan": 80,
       "aciklama": "Eğim yönündeki taban uzunluğu"
@@ -30,7 +30,7 @@
       "birim": "mm",
       "tip": "sayi",
       "min": 2,
-      "max": 150,
+      "max": 100,
       "adim": 1,
       "varsayilan": 20,
       "aciklama": "Doğrudan yükseklik yöntemi seçildiğinde kalın uç yüksekliği"
@@ -52,7 +52,7 @@
       "birim": "°",
       "tip": "sayi",
       "min": 4,
-      "max": 60,
+      "max": 30,
       "adim": 1,
       "varsayilan": 15,
       "aciklama": "Açıdan hesaplama yöntemi seçildiğinde kullanılacak rampa açısı"
