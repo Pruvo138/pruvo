@@ -34,10 +34,12 @@ import kutu from "../../jenerator/urunler/olcuye-ozel-kutu-organizer.json";
 import kavanoz from "../../jenerator/urunler/olcuye-ozel-vidali-kavanoz-tapa.json";
 // Olcuye ozel toka (yeni sari aile, 2026-07-26)
 import toka from "../../jenerator/urunler/olcuye-ozel-toka.json";
+// Olcuye ozel cerceve (yeni parametrik aile, 2026-07-27; opsiyonel 2-renk yazi)
+import cerceve from "../../jenerator/urunler/olcuye-ozel-cerceve.json";
 
 const HEPSI = [jeton, konektor, cetvel, kase, huni, izgara, braket, oring, pervane, petek,
                profil, ramp, rulman, kasnak, kayis, vida, yay, disli,
-               adaptor, kutu, kavanoz, toka];
+               adaptor, kutu, kavanoz, toka, cerceve];
 
 // Anahtar semanin KENDI id'sinden gelir (dosya adindan degil): sema id'si urunler.json'daki
 // kebab-id ile eslesmezse zaten sema bulunamaz ve odeme reddedilir.

@@ -1,0 +1,24 @@
+{
+  "id": "olcuye-ozel-cerceve",
+  "hacimFormulu": "cerceve",
+  "parametreler": [
+    { "ad": "acilik_eni",      "etiket": "Açıklık eni",      "birim": "mm", "tip": "sayi", "min": 40, "max": 250, "adim": 1,   "varsayilan": 100 },
+    { "ad": "acilik_boyu",     "etiket": "Açıklık boyu",     "birim": "mm", "tip": "sayi", "min": 40, "max": 300, "adim": 1,   "varsayilan": 150 },
+    { "ad": "kenar_genisligi", "etiket": "Kenar genişliği",  "birim": "mm", "tip": "sayi", "min": 5,  "max": 30,  "adim": 0.5, "varsayilan": 12 },
+    { "ad": "derinlik",        "etiket": "Derinlik",         "birim": "mm", "tip": "sayi", "min": 3,  "max": 15,  "adim": 0.2, "varsayilan": 5.2 },
+    { "ad": "kenar_stili", "etiket": "Kenar stili", "tip": "secim",
+      "secenekler": [
+        { "deger": "flat",    "etiket": "Düz" },
+        { "deger": "chamfer", "etiket": "Pahlı" },
+        { "deger": "rounded", "etiket": "Yuvarlatılmış" },
+        { "deger": "concave", "etiket": "İçbükey" },
+        { "deger": "ogee",    "etiket": "Ogee (S)" },
+        { "deger": "stepped", "etiket": "Kademeli" }
+      ],
+      "varsayilan": "chamfer" },
+    { "ad": "yazi", "etiket": "Çerçeve yazısı", "tip": "metin", "varsayilan": "", "maksUzunluk": 24,
+      "aciklama": "İsteğe bağlı: alt kenara kabartma olarak işlenecek yazı. Boş bırakılırsa yazısız. Yazı rengi çerçeveden farklı seçilebilir (2 renk / ek ücret)." }
+  ],
+  "tabanHacimMm3": 33422.6548,
+  "tabanFiyatTL": 200
+}

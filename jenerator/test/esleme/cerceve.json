@@ -1,0 +1,16 @@
+{
+  "urunId": "olcuye-ozel-cerceve",
+  "scad": "cerceve.scad",
+  "fonksiyon": "cerceve",
+  "esleme": {
+    "acilik_eni": "Opening_Width",
+    "acilik_boyu": "Opening_Height",
+    "kenar_genisligi": "Border_Width",
+    "derinlik": "Frame_Depth",
+    "kenar_stili": "Edge_Style"
+  },
+  "sabit": {
+    "Caption_Text": "",
+    "Output": "frame"
+  }
+}
