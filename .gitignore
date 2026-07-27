@@ -216,14 +216,62 @@ gorseller/
 # Ic notlar — bu repo PUBLIC; DEVAM.md yayina girmesin (bugune dek de hic commit edilmedi).
 DEVAM.md
 DEVAM-ARSIV.md
-# Muhendis raporlari worktree-lokal kalir (ILETISIM PROTOKOLU); PUBLIC repoya girmez.
+# >>> IC RAPOR AILESI — isci->mimar raporlari, PUBLIC repoya ASLA girmez (elle tutulur blok).
+# NEDEN TEK BLOK: bu desen ailesi 27 Tem'de UC KEZ ayni sebeple kacti — mimar spec'lerinde
+# rapor adi standart degildi. RAPOR-*.md dislaniyordu; bir curutucu raporunu CURUTME-RAPORU.md
+# yazdi (desen disinda kaldi, dalinda commit'lendi); ardindan ONARIM-RAPORU.md ayni sekilde
+# kacti ve IZLENEN olarak bir dalda main'e girmek uzereydi. Bu raporlar kapi bypass yollari,
+# dal/ajan kimlikleri ve ic olcum detayi tasir.
+# ⚠️ BURASI YALNIZ KOLAYLIKTIR, GUVENCE DEGIL: git desenleri HARF-DUYARLIDIR ve yalniz .md
+# kapsanir. ASIL NOBETCI tools/kisisel-veri-test.py icindeki "IC RAPOR SIZINTI NOBETCISI"dir
+# (CI'da bloklayici, harf-duyarsiz, Turkce harf katlamali, .md/.markdown/.txt kapsar ve
+# IZLENEN dosyalari tarar). Nobetci burada karsiligi olmayan bir ad icin kirmizi yanarsa
+# cozum desen eklemek DEGIL, dosyayi RAPOR-MIMARA.md'ye tasimak / izlemeden cikarmaktir.
+# PROTOKOL ADI: isci raporu DAIMA RAPOR-MIMARA.md (baska ad kullanilmaz).
+# ⚠️ ONEKLER AYIRAC SARTLIDIR ("ONARIM-" evet, "ONARIMLAR" hayir). Olculdu: kisa
+# "ONARIM*.md" bicimi MESRU bir onarimlar.md dosyasini SESSIZCE ignore ediyordu —
+# ignore edilen mesru dosya commit'lenmez ve kimse fark etmez (sessiz kayip).
+RAPOR.md
 RAPOR-*.md
-# Bagimsiz curutme raporlari da IC metin: 27 Tem'de bir curutucu raporunu CURUTME-RAPORU.md
-# adiyla yazdi -> RAPOR-*.md deseninin DISINA dustu ve dalinda commit'lendi (PUBLIC sizinti
-# riski). Desen ic rapor ADLANDIRMASINI takip etmeli, tersi degil.
+RAPOR_*.md
+CURUTME.md
 CURUTME-*.md
-# ic yedek/varlik envanteri — PUBLIC repoya girmez
+CURUTME_*.md
+ONARIM.md
+ONARIM-*.md
+ONARIM_*.md
+DENETIM.md
+DENETIM-*.md
+DENETIM_*.md
+OLCUM.md
+OLCUM-*.md
+OLCUM_*.md
+*-RAPOR.md
+*-RAPORU.md
+*_RAPOR.md
+*_RAPORU.md
+rapor.md
+rapor-*.md
+rapor_*.md
+curutme.md
+curutme-*.md
+curutme_*.md
+onarim.md
+onarim-*.md
+onarim_*.md
+denetim.md
+denetim-*.md
+denetim_*.md
+olcum.md
+olcum-*.md
+olcum_*.md
+*-rapor.md
+*-raporu.md
+*_rapor.md
+*_raporu.md
+# ic yedek/varlik envanteri — ayni aile (sonek kurali *-raporu.md zaten yakalar, acik tutuluyor)
 tools/yedek-topolojisi-raporu.md
+# <<< IC RAPOR AILESI
 __pycache__/
 stl/
 .stl-backup-dir
