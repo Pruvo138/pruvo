@@ -12,6 +12,15 @@ Default suite:
 
 Use --demo-fail to inject a deliberate failure at the front of the queue and prove
 that the gate blocks.
+
+🔴 PARITE CIKIS KODU SOZLESMESI TEK KAYNAKTADIR: tools/parite-ortak.js dosya basindaki
+"CIKIS KODU SOZLESMESI" blogu (tablo burada TEKRARLANMAZ). Bu kapinin sozlesmedeki YERI:
+    exit 3 (OLCULEMEDI) -> BLOKE KALIR.
+Gerekce: bu kapi yayin-oncesi son kapidir ve yonetici ilke "olculemeyen hicbir sey YESILE
+donusemez" der. Parite OLCULEMEDIYSE gecirmek, gerilemeyi gormeden yayina birakmaktir ->
+fail-closed dogru davranistir (kardes tuketiciler filament-test.py / edge-flip-hazirlik.py
+ayni 3'u ATLANDI/BLOKLU sayar; onlar yayin yolunda DEGIL). Esleme kabul testi:
+tools/parite-sozlesme-test.py.
 """
 import argparse
 import os
@@ -42,7 +51,10 @@ def _run(label, cmd, expect):
     out = (p.stdout or "") + (("\n" + p.stderr) if p.stderr else "")
     print(out, end="" if out.endswith("\n") else "\n", flush=True)
     if p.returncode != 0:
-        print("BLOKE: %s exit=%d" % (label, p.returncode), file=sys.stderr, flush=True)
+        # exit 3 = OLCULEMEDI. Bu kapida BLOKE KALIR (yukaridaki sozlesme notu): sebebi
+        # GORUNUR yaz ki "kapi kirmizi ama kodda bir sey yok" saskinligi olmasin.
+        ek = " — OLCULEMEDI (parite BELGELENMEDI; fail-closed BLOKE)" if p.returncode == 3 else ""
+        print("BLOKE: %s exit=%d%s" % (label, p.returncode, ek), file=sys.stderr, flush=True)
         return p.returncode
     if expect and expect not in out:
         print("BLOKE: %s beklenen desen yok: %s" % (label, expect), file=sys.stderr, flush=True)

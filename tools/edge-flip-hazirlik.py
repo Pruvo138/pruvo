@@ -132,14 +132,17 @@ def deg_komut(dosya_var, exit_kodu, cikti=""):
     """faz3 / parite adimlari. Dosya yoksa BLOKLU; exit 0 -> PASS, exit 2/3 -> BLOKLU
     (OLCULEMEDI), diger nonzero -> FAIL. SAF.
 
+    🔴 CIKIS KODU SOZLESMESI TEK KAYNAKTADIR: tools/parite-ortak.js dosya basindaki
+    "CIKIS KODU SOZLESMESI" blogu (tablo burada TEKRARLANMAZ). Bu dosyanin sozlesmedeki
+    YERI:  exit 3 -> BLOKLU (ATLANDI/OLCULEMEDI: GERILEME DEGIL, kimseyi suclamaz; ama
+    GO da VERMEZ). Gerekce: yonetici ilke "olculemeyen hicbir sey YESILE donusemez" —
+    PASS yazmak, parite KANITLANMADAN flip'e GO demek olurdu. FAIL yazmak ise yanlis
+    suclama olur (kapi kirmizi yanar, kimse kodda bir sey bulamaz). BLOKLU tam olarak
+    "1 > 3 > 0" siralamasinin ortasidir: FAIL > BLOKLU > PASS.
     exit 2 = "OLCULEMEDI/KOSULAMADI" bu depoda YERLESIK sozlesme:
       - faz3-gecikme.js : uc cevap vermiyor VEYA yanitta worker-ici sure alani yok
       - parite-ege.js   : bot kaynagi yok / fonksiyon yeniden adlandirilmis
-    exit 3 = parite testlerinin (27 Tem) GURULTU AYIRIMI:
-      - checkout BAYAT (yalniz senkron gecikmesi: D1'de var, yerelde yok) VEYA WAF/UA duvari
-      Bu da bir GERILEME DEGIL — "yerelde var / D1'de yok" ve SIRA farki hala exit 1 (FAIL).
-    Bunlara FAIL yazmak yanlis suclama olur (kapi kirmizi yanar, kimse kodda bir sey
-    bulamaz). BLOKLU: "hukum veremedim, once sunu ac".
+    Eslemenin dordu birden tools/parite-sozlesme-test.py ile TEK TEK olculur.
     """
     if not dosya_var:
         return (BLOKLU, None, "test dosyasi bulunamadi")
@@ -151,16 +154,36 @@ def deg_komut(dosya_var, exit_kodu, cikti=""):
         return (BLOKLU, "HocA",
                 "exit 2 — OLCULEMEDI (uc cevap vermiyor / yanitta alan yok); gerileme DEGIL")
     if exit_kodu == 3:
-        c = cikti or ""
-        if "WAF/UA" in c:
-            neden = "WAF/UA duvari (403) — canli uc olculemedi"
-        else:
-            m = re.search(r"checkout BAYAT: yerel=(\d+) < canli=(\d+)", c)
-            neden = ("checkout BAYAT: yerel %s < canli %s (senkron gecikmesi)"
-                     % (m.group(1), m.group(2))) if m else "senkron gecikmesi / olculemedi"
-        return (BLOKLU, None, "exit 3 — OLCULEMEDI: %s; gerileme DEGIL "
-                              "(aciklanamayan ayrisim olsa exit 1 olurdu)" % neden)
+        return (BLOKLU, None, "exit 3 — ATLANDI/OLCULEMEDI: %s; gerileme DEGIL "
+                              "(aciklanamayan ayrisim olsa exit 1 olurdu), ama parite "
+                              "KANITLANMADIGI icin GO da VERMEZ" % parite3_neden(cikti))
     return (FAIL, None, "exit %s" % exit_kodu)
+
+
+def parite3_neden(cikti):
+    """exit 3'un GORUNUR sebebi, OLCULEN kanittan turetilir. SAF.
+
+    ⚠️ 'checkout bayat' KESIN HUKUM olarak yazilmaz: ayni imza D1'deki YETIM satirdan da
+    cikar (parite-ortak.js 'TESHIS DURUSTLUGU'). Sirasi ONEMLI: sert arizalar once."""
+    c = cikti or ""
+    if "FIKSTUR MODU" in c:
+        return "FIKSTUR MODU (test-only env) — kanonik katalog/uc olculmedi"
+    if "WAF/UA" in c:
+        return "WAF/UA duvari (403) — canli uc olculemedi"
+    if "HIZ SINIRI" in c:
+        return "hiz siniri (429) — yeniden denemeler tukendi"
+    if "ZAMAN ASIMI" in c:
+        return "zaman asimi — canli uc susuyor"
+    if "TAVAN" in c:
+        return "supurme tavani asildi — 'yerel ⊆ D1' kaniti uretilemedi"
+    m = re.search(r"D1 FAZLALIGI: yerel=(\d+) < canli=(\d+) \| fazla=(\d+)", c)
+    if m:
+        return ("katalog farki: yerel %s < canli %s (D1'de %s fazla satir); sebep AYIRT "
+                "EDILEMEDI — dal bayat ya da D1'de yetim satir"
+                % (m.group(1), m.group(2), m.group(3)))
+    if "SENKRON GEC" in c:
+        return "katalog farki (senkron gecikmesi ya da yetim satir)"
+    return "olculemedi (sebep cikti'da bulunamadi)"
 
 
 def deg_d1(exit_kodu, cikti=""):

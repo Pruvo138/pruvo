@@ -80,14 +80,12 @@ SONUC = []
 
 
 # ── PARITE CIKIS KODU ESLEMESI (SAF — kabul testi asagida, `--parite-eslem-testi`) ──────
-# 27 Tem: parite testleri artik gurultuyu ayiriyor (tools/parite-ortak.js):
-#   0 = birebir parite                            -> GECTI
-#   1 = ACIKLANAMAYAN ayrisim (yerelde var/D1'de   -> KIRMIZI (gercek gerileme)
-#       yok  ya da  SIRA farki)
-#   3 = OLCULEMEDI: checkout BAYAT (yalniz senkron -> ATLANDI (KIRMIZI DEGIL) + GORUNUR sebep
-#       gecikmesi) ya da WAF/UA duvari
-#   2 = test kosulamadi (bot kaynagi yok / fonksiyon yeniden adlandirilmis) -> KIRMIZI
-#       (fail-closed: "test bayatlamis" sinyalini gurultu diye yutmuyoruz)
+# 🔴 CIKIS KODU SOZLESMESI TEK KAYNAKTADIR: tools/parite-ortak.js dosya basindaki
+#    "CIKIS KODU SOZLESMESI" blogu. Burada tablo TEKRARLANMAZ (dort tuketicide dort ayri
+#    surum olusmasi tam olarak yasanan hataydi). Bu dosyanin sozlesmedeki YERI:
+#        exit 3 -> ATLANDI (GORUNUR sebep, bu testi BLOKLAMAZ)
+#    Diger uc tuketici ve gerekceleri o blokta yazilidir; eslesmenin dordu birden
+#    tools/parite-sozlesme-test.py ile TEK TEK olculur.
 # ⚠️ TUZAK (yasandi): baska bir betigin exit 2'si yanlislikla FAIL sayilmisti. Bu yuzden
 # eslesme SAF fonksiyona alindi ve fikstur'le tek tek olculuyor — tahminle degil.
 PARITE_GECTI = "GECTI"
@@ -96,15 +94,30 @@ PARITE_ATLANDI = "ATLANDI"
 
 
 def parite_sebep_ayikla(cikti):
-    """Cikis 3'un GORUNUR sebebi: 'checkout bayat: yerel N < canli M' ya da WAF/UA. SAF."""
+    """Cikis 3'un GORUNUR sebebi. SAF.
+
+    ⚠️ Sebep metni OLCULEN kanittan turetilir; 'checkout bayat' KESIN HUKUM olarak
+    yazilmaz (ayni imza D1'deki yetim satirdan da cikar — parite-ortak.js "TESHIS
+    DURUSTLUGU"). Sirasi ONEMLI: fikstur modu ve sert arizalar once."""
     c = cikti or ""
-    m = re.search(r"checkout BAYAT: yerel=(\d+) < canli=(\d+)", c)
-    if m:
-        return "checkout bayat: yerel %s < canli %s (senkron gecikmesi)" % (m.group(1), m.group(2))
+    if "FIKSTUR MODU" in c:
+        return ("olculemedi: FIKSTUR MODU (test-only env) — kanonik katalog/uc OLCULMEDI, "
+                "parite BELGELENMEDI")
     if "WAF/UA" in c:
         return "olculemedi: WAF/UA duvari (403) — ayrisma SAYILMADI"
+    if "HIZ SINIRI" in c:
+        return "olculemedi: hiz siniri (429) — yeniden denemeler tukendi"
+    if "ZAMAN ASIMI" in c:
+        return "olculemedi: zaman asimi — canli uc susuyor"
+    if "TAVAN" in c:
+        return "olculemedi: supurme tavani asildi — 'yerel ⊆ D1' kaniti uretilemedi"
+    m = re.search(r"D1 FAZLALIGI: yerel=(\d+) < canli=(\d+) \| fazla=(\d+)", c)
+    if m:
+        return ("olculemedi: katalog farki — yerel %s < canli %s (D1'de %s fazla satir); "
+                "sebep AYIRT EDILEMEDI: dal bayat ya da D1'de yetim satir"
+                % (m.group(1), m.group(2), m.group(3)))
     if "SENKRON GEC" in c:
-        return "senkron gecikmesi (checkout bayat)"
+        return "olculemedi: katalog farki (senkron gecikmesi ya da yetim satir)"
     return "olculemedi (sebep cikti'da bulunamadi)"
 
 
@@ -130,21 +143,43 @@ def parite_eslem_testi():
         if not kosul:
             kalan.append(ad)
 
-    ok, et, sb = parite_exit_yorumla(0, "SONUC: BIREBIR PARITE ✅ (1199 sorgu)")
+    # VERI CAPASI YOK: asagidaki sayilar SENTETIK fikstur girdisidir, gercek katalog/sorgu
+    # sayisi DEGILDIR (atil bir "1199" literali burada capa gorevi goruyordu — kaldirildi).
+    ok, et, sb = parite_exit_yorumla(0, "SONUC: BIREBIR PARITE ✅ (N sorgu, site ile ayni)")
     ona(ok and et == PARITE_GECTI and sb == "", "exit 0 -> GECTI")
 
     ok, et, sb = parite_exit_yorumla(1, "SONUC: PARITE YOK ❌ (7 aciklanamayan / 300 sorgu)")
     ona((not ok) and et == PARITE_KIRMIZI, "exit 1 -> KIRMIZI")
 
-    cikti3 = ("  checkout BAYAT: yerel=1234 < canli=1299 | yerel id'lerin TAMAMI D1'de\n"
-              "⚪ SENKRON GECİKMESİ (108 ayrisim) — PARITE KIRIK DEGIL, checkout BAYAT.")
+    cikti3 = ("  D1 FAZLALIGI: yerel=1234 < canli=1299 | fazla=65 satir; supurme kaniti: "
+              "yerel id'lerin TAMAMI D1'de. SEBEP AYIRT EDILEMEDI -> (a) dal/checkout BAYAT "
+              "ya da (b) D1'de YETIM satir.\n"
+              "⚪ SENKRON GECİKMESİ / KATALOG FARKI (108 ayrisim) — PARITE KIRIK DEGIL.")
     ok, et, sb = parite_exit_yorumla(3, cikti3)
     ona(ok and et == PARITE_ATLANDI, "exit 3 -> ATLANDI (KIRMIZI DEGIL)")
-    ona("1234" in sb and "1299" in sb and "bayat" in sb.lower(),
-        "exit 3 sebebi GORUNUR: 'checkout bayat: yerel N < canli M'")
+    ona("1234" in sb and "1299" in sb and "65" in sb,
+        "exit 3 sebebi SAYIYLA GORUNUR (olculen kanit)")
+    ona("AYIRT EDILEMEDI" in sb and "yetim" in sb.lower(),
+        "exit 3 sebebi KESIN HUKUM basmiyor (iki olasilik ADIYLA)")
 
     ok, et, sb = parite_exit_yorumla(3, "⚪ ÖLÇÜLEMEDİ: WAF/UA — canli uc HTTP 403 dondu")
     ona(ok and et == PARITE_ATLANDI and "WAF/UA" in sb, "exit 3 (WAF/UA) -> ATLANDI + sebep")
+
+    ok, et, sb = parite_exit_yorumla(3, "⚪ ÖLÇÜLEMEDİ: HIZ SINIRI (429) — 3 deneme TUKENDI")
+    ona(ok and et == PARITE_ATLANDI and "429" in sb, "exit 3 (429) -> ATLANDI + sebep")
+
+    ok, et, sb = parite_exit_yorumla(3, "⚪ ÖLÇÜLEMEDİ: ZAMAN ASIMI (20000 ms/istek)")
+    ona(ok and et == PARITE_ATLANDI and "zaman asimi" in sb.lower(),
+        "exit 3 (zaman asimi) -> ATLANDI + sebep")
+
+    ok, et, sb = parite_exit_yorumla(3, "⚪ ÖLÇÜLEMEDİ: TAVAN — supurme TAVANI asildi")
+    ona(ok and et == PARITE_ATLANDI and "tavan" in sb.lower(),
+        "exit 3 (supurme tavani) -> ATLANDI + sebep")
+
+    # A15 NOBETI: alt-kume/fikstur kosumu ATLANDI'ya dusse bile sebebi tuketiciye ULASMALI.
+    ok, et, sb = parite_exit_yorumla(3, "⚠️ FIKSTUR MODU: test-only env verildi (PARITE_URUNLER)")
+    ona(ok and et == PARITE_ATLANDI and "FIKSTUR MODU" in sb,
+        "exit 3 (PARITE_URUNLER/fikstur modu) -> ATLANDI + GORUNUR uyari (yutulmaz)")
 
     ok, et, sb = parite_exit_yorumla(2, "index.js'te urunAra() bulunamadi")
     ona((not ok) and et == PARITE_KIRMIZI, "exit 2 -> KIRMIZI (fail-closed, kosulamadi)")
@@ -278,6 +313,10 @@ def main():
         if not ok:
             det += " | " + (p1.stdout + p1.stderr + p2.stdout + p2.stderr).strip()[-300:]
         kayit(5, "parite (site + ege) — aciklama degismedi kaniti", ok, det)
+        # A15 NOBETI: ATLANDI sessizce "yesil" gorunmesin — STDERR'e de dusur.
+        if PARITE_ATLANDI in (et1, et2):
+            print("⚪ PARITE ATLANDI (parite BELGELENMEDI, cikis 3): %s" % det,
+                  file=sys.stderr, flush=True)
 
     # ---- 6) override: sahte urunle render -> harita degil override basiliyor
     import importlib

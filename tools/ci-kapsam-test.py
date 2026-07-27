@@ -197,6 +197,23 @@ IZIN_LISTESI = {
     "tools/marka-limit-test.js": R_NODE,
     "tools/riza-tikkimligi-test.js": R_NODE,
     "tools/parite-test.js": R_AG,
+    # --- parite karar-cekirdegi harness'leri (27 Tem): AGSIZ + yerelde YESIL ---
+    # ⚠️ NOT (durust gerekce): CI'da setup-node VAR, yani bu ucu TEKNIK olarak deploy.yml'e
+    # eklenebilirdi. Eklenmemelerinin sebebi teknik degil SURECSEL: bu turda deploy.yml'e
+    # 0 HUNK sarti var (dosyanin yazari paralel bir isci dali). Sonraki turda eklenmeli —
+    # onerilen sira: parite-sozlesme-test.py (0,2 s) -> parite-fikstur-test.js (5,6 s) ->
+    # parite-mutasyon-test.js (50,5 s, ayri/izole job).
+    "tools/parite-fikstur-test.js": (
+        R_SONRA + " Somut: AGSIZ karar-cekirdegi fiksturu (22 senaryo, 138 iddia, 5,6 s "
+        "olculdu, canliya 0 istek). deploy.yml'e 0-hunk sarti nedeniyle bu turda eklenmedi."),
+    "tools/parite-mutasyon-test.js": (
+        R_YAVAS + " OLCULDU: 8 mutant x fikstur kosumu = 50,5 s (tek build job'unu blokar). "
+        "Ayrica deploy.yml'e 0-hunk sarti nedeniyle bu turda eklenmedi; izole/ayri job'a "
+        "alinmasi onerilir."),
+    "tools/parite-sozlesme-test.py": (
+        R_SONRA + " Somut: 4 tuketicinin cikis-kodu eslemesini olcer (47 iddia, 0,2 s, "
+        "agsiz). deploy.yml'e 0-hunk sarti nedeniyle bu turda eklenmedi — CI'ya alinacak "
+        "ILK aday budur (en ucuz, en yuksek getirili)."),
     "tools/url-senkron-test.js": R_NODE,  # E paketi YESILLEDI; JS suite, CI'da node yok
     # --- tools/ python: mimar-disiplin (mutlak yol + commit'siz kablolama) ---
     "tools/mimar-kilit-test.py": R_YOL,

@@ -20,9 +20,10 @@
  * olarak ice aktarilir (dosyada package.json/"type":"module" yok, o yuzden uzanti hilesi).
  * Elle kopyalasaydik kod degisince test sessizce ESKI davranisi dogrulamaya devam ederdi.
  *
- * ⚠️ CIKIS KODLARI (27 Tem): 0 = parite · 1 = AÇIKLANAMAYAN ayrisim (yerelde var/D1'de yok
- * ya da SIRA farki) · 2 = bot kaynagi/fonksiyonu yok (test kosulamadi) · 3 = OLCULEMEDI
- * (checkout BAYAT / WAF-UA). Ayirim: tools/parite-ortak.js.
+ * ⚠️ CIKIS KODLARI: TEK KAYNAK -> tools/parite-ortak.js dosya basindaki "CIKIS KODU
+ *   SOZLESMESI" blogu (burada IKINCI TABLO YAZILMAZ). Ozet: 0 parite · 1 aciklanamayan
+ *   ayrisim · 2 test kosulamadi (bot kaynagi/fonksiyonu yok) · 3 OLCULEMEDI.
+ *   Yonetici ilke: 1 > 3 > 0; hicbir ariza yolu 0 uretemez.
  */
 
 const fs = require("fs");
@@ -160,7 +161,7 @@ async function araSor(q) {
   u.searchParams.set("_nonce", NONCE);
   // UA: WAF varsayilan urllib UA'sina 403 verir; 403/429 "ayrisma" DEGIL "olculemedi"
   // olarak yukari atilir (ortak.WafHatasi). 400 = kavram cikmayan sorgu -> normal.
-  const { durum, govde } = await ortak.canliGetir(u.toString(), SAYAC, 3);
+  const { durum, govde } = await ortak.canliGetir(u.toString(), SAYAC, ortak.DENEME);
   if (durum >= 500) throw new Error("HTTP " + durum);
   return govde;
 }
@@ -174,37 +175,57 @@ async function main() {
 
   const hedef = parseInt(process.argv[2], 10);
   const sorgular = sorgulariUret(EGE, PRODUCTS, Number.isFinite(hedef) ? hedef : 0);
-  console.log("Ege parite testi: %d sorgu | %d urun (%s) | uc: %s\n",
+  const OLCULEMEDI = [];
+  console.log("Ege parite testi: %d sorgu | %d urun (%s) | uc: %s",
     sorgular.length, PRODUCTS.length, URUNLER, UC);
-  // Sessiz baypas olmasin: katalog yolu ELLE gecildiyse GORUNUR olsun.
-  if (process.env.PARITE_URUNLER) {
-    console.log("⚠️ PARITE_URUNLER ELLE verildi -> checkout'un katalogu OKUNMUYOR (fikstur modu)");
+  console.log("ISTEK BUTCESI: sorgu(%d) + on-kosul(1) [+ sayilar ayriysa supurme " +
+    "min(ceil(%d/%d), tavan %d) = %d parti] | zaman asimi %d ms/istek, deneme %d\n",
+    sorgular.length, YEREL_IDLER.length, ortak.IDS_PARTI, ortak.SUPURME_TAVANI,
+    Math.min(Math.ceil(YEREL_IDLER.length / ortak.IDS_PARTI), ortak.SUPURME_TAVANI),
+    ortak.ZAMAN_ASIMI_MS, ortak.DENEME);
+
+  // Sessiz baypas olmasin: test-only env verildiyse HEM stdout HEM stderr'e (A15).
+  const fikstur = ortak.fiksturNotu();
+  if (fikstur) {
+    console.log("⚠️ " + fikstur);
+    console.error("⚠️ " + fikstur);
+    OLCULEMEDI.push(fikstur);
   }
+
+  const t0 = Date.now();
 
   // ── ON-KOSUL: checkout katalogu CANLI ile ayni mi? (parite-test.js ile AYNI kural) ──
   let onKosul;
   try {
     onKosul = await ortak.onKosulOlc({ uc: UC, yerelIdler: YEREL_IDLER, sayac: SAYAC, nonce: NONCE });
   } catch (e) {
-    if (e && e.waf) process.exit(ortak.wafYaz(e, SAYAC, "ege"));
+    if (e && e.olcum) {
+      OLCULEMEDI.push(ortak.olcumNotu(e, "ege"));
+      OLCULEMEDI.push("on-kosul basarisiz -> 0/" + sorgular.length + " sorgu olculdu");
+      return process.exit(ortak.sonucYaz({
+        etiket: "ege", gecti: 0, atlandi: 0, hatalar: [], onKosul: null,
+        sayac: SAYAC, sn: ((Date.now() - t0) / 1000).toFixed(1),
+        fazlaKume: null, olculemedi: OLCULEMEDI,
+      }));
+    }
     throw e;
   }
   for (const n of onKosul.notlar) console.log("  " + n);
   if (onKosul.kirmizi) {
     console.log("\nSONUC: PARITE YOK ❌ — %s", onKosul.kirmizi);
-    console.log("   (Bu yon senkron gecikmesiyle ACIKLANAMAZ: site gosterir, Ege GOREMEZ.)");
+    console.log("   (Bu yon katalog farkiyla ACIKLANAMAZ: site gosterir, Ege GOREMEZ.)");
     console.log("canli istek: %d", SAYAC.istek);
-    process.exit(ortak.CIKIS_KIRMIZI);
+    return process.exit(ortak.CIKIS_KIRMIZI);
   }
 
   let gecti = 0;
   const hatalar = [];
   const fazlaKume = new Set();
   let sirada = 0;
-  let wafHatasi = null;
+  let olcumArizasi = null;
 
   async function isci() {
-    while (sirada < sorgular.length && !wafHatasi) {
+    while (sirada < sorgular.length && !olcumArizasi) {
       const q = sorgular[sirada++];
 
       // BEKLENEN = Ege'nin gercek kodu, TUM eslesmeler (sirali).
@@ -213,7 +234,7 @@ async function main() {
 
       let g;
       try { g = await araSor(q); } catch (e) {
-        if (e && e.waf) { wafHatasi = e; return; }
+        if (e && e.olcum) { olcumArizasi = olcumArizasi || e; return; }
         hatalar.push({ q, sinif: ortak.SINIF_ACIKLANAMAYAN, sebep: "istek hatasi: " + e.message });
         continue;
       }
@@ -233,23 +254,32 @@ async function main() {
     }
   }
 
-  const t0 = Date.now();
   await Promise.all(Array.from({ length: ESZAMAN }, isci));
   const sn = ((Date.now() - t0) / 1000).toFixed(1);
-  if (wafHatasi) process.exit(ortak.wafYaz(wafHatasi, SAYAC, "ege"));
 
-  const t = ortak.fazlaKumeTutarli(fazlaKume, onKosul.acik);
-  if (!t.tutarli) {
-    hatalar.push({ q: "(kosum geneli)", sinif: ortak.SINIF_ACIKLANAMAYAN, sebep: t.sebep });
+  // 🔴 KOK SEBEP ONARIMI: ariza cikis VERMEZ, NOT olur; karar sonucYaz'da (1 > 3 > 0).
+  if (olcumArizasi) {
+    OLCULEMEDI.push(ortak.olcumNotu(olcumArizasi, "ege"));
+    OLCULEMEDI.push("kosum ERKEN DURDU: " + (gecti + hatalar.length) + "/" +
+      sorgular.length + " sorgu olculdu");
+  }
+
+  const t = ortak.fazlalikTeshis(fazlaKume, onKosul.acik);
+  if (t.kirmizi) {
+    hatalar.push({ q: "(kosum geneli)", sinif: ortak.SINIF_ACIKLANAMAYAN, sebep: t.kirmizi });
   }
 
   const kod = ortak.sonucYaz({
     etiket: "ege", gecti, atlandi: 0, hatalar, onKosul, sayac: SAYAC, sn, fazlaKume,
+    olculemedi: OLCULEMEDI,
   });
   if (kod === ortak.CIKIS_GECTI) {
     console.log("\nSONUC: BIREBIR PARITE ✅ (%d sorgu, Ege kodu ile ayni)", gecti);
   }
-  process.exit(kod);
+  if (kod === ortak.CIKIS_OLCULEMEDI && fikstur && !hatalar.length) {
+    console.log("\nFIKSTUR: BIREBIR ESLESTI (%d sorgu) — cikis 0 VERILMEZ (fikstur modu)", gecti);
+  }
+  return process.exit(kod);
 }
 
 // Fikstur (tools/parite-fikstur.js) sahte Ege ucunu GERCEK bot koduyla kurar diye
