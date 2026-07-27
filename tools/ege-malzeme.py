@@ -40,13 +40,16 @@ def bolum_uret():
             continue
         # 🔴 TEKRAR ETMEYEN KUYRUK (27 Tem): "standart siparis akisinda YOK, WhatsApp ozel
         # talebiyle degerlendirilir — uretim kararidir, kosulu netlestir" kuyrugu ESKIDEN
-        # HER kalemde tekrar ediliyordu (2 dongu kalemi + asagidaki Naylon satiri = 3 kez,
-        # ~122 UTF-16 birimi x3). Kuyruk ARTIK bir kez, asagidaki GRUP BASLIGINDA duruyor.
+        # HER kalemde tekrar ediliyordu. Kuyruk ARTIK bir kez, asagidaki GRUP BASLIGINDA
+        # duruyor. OLCULDU (UTF-16 birimi): tam kuyruk 110 x 2 dongu kalemi (ABS, Karbon)
+        # + kisa varyanti 37 x 1 (asagidaki Naylon satiri) = 257 kalkti, grup basligi 88
+        # buyudu -> NET 169. Tekrarlar ESIT DEGILDI: Naylon satiri kuyrugun yalnizca son
+        # cumlesini tasiyordu — "3 esit tekrar" diye okuma.
         # NEDEN onemli: ege-bilgi.md Ege'nin HER mesajinda prompta enjekte edilir ve
         # pruvo-bot/worker/src/index.js icinde .slice(0, 6000) ile UTF-16 birimi uzerinden
         # KESILIR (sessizce, log yok) -> tekrar hem her mesajin butcesini hem tavan payini
-        # yiyor. Olculdu: bu tekilleştirme tavan payini 239 -> 415 birime cikardi
-        # (nobetci tools/ege-bilgi-tavan-test.py, GUVENLIK_MARJI=400 esigi asildi).
+        # yiyor. Olculdu: bu tekillestirme dosyayi 5761 -> 5592 u16'ya indirdi, tavan payi
+        # 239 -> 408 (nobetci tools/ege-bilgi-tavan-test.py, GUVENLIK_MARJI=400 esigi asildi).
         # ⚠️ "+ [DEVRET]" HER KALEMDE KALIR (grup basligina TASINMADI): jeton sayisi
         # bilerek 7'de sabit tutuldu ve devret refleksi kalem duzeyinde gorunur kaldi.
         ozel_satirlar.append(

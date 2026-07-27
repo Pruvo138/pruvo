@@ -5,7 +5,7 @@
 NEDEN VAR: WhatsApp botu Ege, sirket/isleyis bilgisini canli olarak
 https://pruvo3d.com/ege-bilgi.md adresinden ceker ve okurken KESER:
 
-    pruvo-bot/worker/src/index.js:2232
+    pruvo-bot/worker/src/index.js:2658
         return (await r.text()).slice(0, 6000);
 
 Kirpma SESSIZDIR: log yok, uyari yok, hata yok. Dosya tavani asarsa metnin KUYRUGU
@@ -167,7 +167,7 @@ TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 VARSAYILAN_DOSYA = os.path.join(ROOT, "ege-bilgi.md")
 
-# GERCEK tavan: pruvo-bot/worker/src/index.js:2232 -> (await r.text()).slice(0, 6000)
+# GERCEK tavan: pruvo-bot/worker/src/index.js:2658 -> (await r.text()).slice(0, 6000)
 # (yukaridaki CAPRAZ-REPO BAYATLIK ACIGI notuna bak — bu bir KOPYADIR.)
 TAVAN = 6000
 
@@ -338,7 +338,7 @@ def degerlendir(dosya):
             uyarilar.append(
                 "ILAN/SABIT UYUSMAZLIGI (uyari, kapi DEGIL): dosya '%d karakter' ilan "
                 "ediyor, kapi sabiti TAVAN=%d. Ilan satiri: %r. Gercek tavan "
-                "pruvo-bot/worker/src/index.js:2232'de — hangisi bayat? Ikisini hizala. "
+                "pruvo-bot/worker/src/index.js:2658'de — hangisi bayat? Ikisini hizala. "
                 "Yayin durdurulmuyor: bu bir BAYATLIK SEZGISIDIR, icerik kaybi hukmunu "
                 "uzunluk olcusu (K1) tek basina verir."
                 % (tekil[0], TAVAN, bas_kesin[tekil[0]].strip()[:160]))
@@ -395,7 +395,7 @@ def degerlendir(dosya):
 
     r.append("EGE-BILGI TAVAN KAPISI")
     r.append("  Dosya                 : %s" % dosya)
-    r.append("  TAVAN (kopya sabit)   : %d  [gercegi: pruvo-bot/worker/src/index.js:2232 slice(0, 6000)]" % TAVAN)
+    r.append("  TAVAN (kopya sabit)   : %d  [gercegi: pruvo-bot/worker/src/index.js:2658 slice(0, 6000)]" % TAVAN)
     r.append("  GUVENLIK_MARJI        : %d  [bot nobetcisi ege-bilgi-nobetci.mjs:310 ile AYNI sayi]" % GUVENLIK_MARJI)
     r.append("  Ilan edilen tavan     : %s"
              % (tekil if tekil else "YOK (bastaki %d satirda)" % ILAN_SATIR_SAYISI))
