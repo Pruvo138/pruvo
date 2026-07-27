@@ -82,7 +82,17 @@ ONA(M.deg_komut(True, None)[0] == M.FAIL, "komut zaman asimi -> FAIL")
 d, kim, detay = M.deg_komut(True, 2)
 ONA(d == M.BLOKLU and kim == "HocA", "komut exit 2 (olculemedi) -> BLOKLU(HocA)")
 ONA("OLCULEMEDI" in detay, "exit 2 detayi OLCULEMEDI diyor")
-ONA(M.deg_komut(True, 3)[0] == M.FAIL, "komut exit 3 -> FAIL (exit 2 ozel, digerleri degil)")
+# exit 3 = parite testlerinin GURULTU AYIRIMI (27 Tem): checkout BAYAT (yalniz senkron
+# gecikmesi) ya da WAF/UA duvari -> OLCULEMEDI, gerileme DEGIL. "yerelde var / D1'de yok"
+# ve SIRA farki hala exit 1 = FAIL (kapinin var olus sebebi o yon).
+d, kim, detay = M.deg_komut(True, 3,
+                            "  checkout BAYAT: yerel=1234 < canli=1299 | ...\n⚪ SENKRON GECİKMESİ")
+ONA(d == M.BLOKLU, "komut exit 3 (senkron gecikmesi) -> BLOKLU")
+ONA("1234" in detay and "1299" in detay, "exit 3 detayi SAYIYLA sebep veriyor")
+d, _, detay = M.deg_komut(True, 3, "⚪ ÖLÇÜLEMEDİ: WAF/UA — canli uc HTTP 403 dondu")
+ONA(d == M.BLOKLU and "WAF/UA" in detay, "komut exit 3 (WAF/UA) -> BLOKLU + sebep")
+ONA(M.deg_komut(True, 4)[0] == M.FAIL, "komut exit 4 -> FAIL (yalniz 2 ve 3 ozel)")
+ONA(M.deg_komut(True, 1)[0] == M.FAIL, "komut exit 1 -> FAIL (aciklanamayan ayrisim)")
 
 # ── deg_d1: kimlik hatasi BLOKLU(Okan), exit 0 PASS, nonzero FAIL ────────────────
 d, kim, _ = M.deg_d1(1, "D1 KIMLIK HATASI (code 10000)")
