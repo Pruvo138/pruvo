@@ -1,5 +1,103 @@
 [
   {
+    "id": "opel-insignia-a-bardaklik-ara-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Insignia"
+    ],
+    "baslik": "Opel Insignia A Bardaklık Ara Parçası",
+    "aciklama": "Opel Insignia A (makyajlı) orijinal bardaklık yuvasına takılan ara parça. Yuvanın çapını daraltarak küçük bardak, kutu ya da termosun sürüş sırasında sallanmadan sabit durmasını sağlar.\nÇıkarılıp takılabilir; orijinal bardaklığa zarar vermez.\nYaklaşık dış ölçüler: 77 × 70 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr245400-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr245400-2.jpg"
+    ]
+  },
+  {
+    "id": "opel-meriva-a-jant-gobek-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Meriva"
+    ],
+    "baslik": "Opel Meriva A Jant Göbek Kapağı (M20)",
+    "aciklama": "Opel Meriva A çelik jantların merkezindeki M20 somunu örten göbek kapağı. Kaybolan ya da kırılan orijinal kapağın yerine geçerek somunu tozdan ve nemden korur, jant merkezine düzgün bir görünüm verir.\nMerkeze geçmeli olarak oturur; ön çelik jantlar için tasarlanmıştır, diğer bazı modellere de uyabilir.\nYaklaşık dış ölçüler: 54 × 54 × 34 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr445217-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr445217-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Krzysztof Abucewicz",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-corsa-e-cam-suyu-deposu-suzgeci",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Corsa"
+    ],
+    "baslik": "Opel Corsa E Cam Suyu Deposu Süzgeci",
+    "aciklama": "Opel Corsa E ön cam yıkama sıvısı deposunun ağzına takılan süzgeç. Depoya kaçan yaprak, toz ve tortuyu tutarak fıskiye pompasının ve memelerin tıkanmasını önler.\nDesteksiz basılabilir; yuvaya geçmeli olarak yerleşir.\nYaklaşık dış ölçüler: 39 × 39 × 35 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1789042-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1789042-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1789042-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nerijus Navickas",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-vauxhall-corsa-d-bagaj-rafi-kayis-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Vauxhall",
+      "Corsa"
+    ],
+    "baslik": "Opel / Vauxhall Corsa D Bagaj Rafı Kayış Klipsi",
+    "aciklama": "Opel / Vauxhall Corsa D bagaj rafını bagaj kapağına bağlayan kayışın uç klipsleri (üst ve alt parça). Kırılan orijinal klipslerin yerine geçerek bagaj rafının kapak açıldığında yukarı kalkmasını yeniden sağlar.\nYerine geçmeli montaj.\nYaklaşık dış ölçüler: 20 × 20 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr230124-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr230124-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr230124-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr230124-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brian",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-vauxhall-insignia-estate-bagaj-perde-uc-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Vauxhall",
+      "Insignia"
+    ],
+    "baslik": "Opel / Vauxhall Insignia Estate Bagaj Perdesi Uç Parçası",
+    "aciklama": "Opel / Vauxhall Insignia Estate (Sports Tourer) bagaj rolo perdesinin yan brakete oturan uç parçası. Kırılan ya da kaybolan orijinal ucun yerine geçerek perdenin yerine sağlamca kilitlenmesini sağlar.\nYatay basım önerilir; yerine geçmeli montaj.\nYaklaşık dış ölçüler: 68 × 36 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr191415-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr191415-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr191415-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr191415-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fazzical",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "volvo-240-station-wagon-arka-koltuk-acma-kolu",
     "kategori": "Otomobil",
     "marka": [
