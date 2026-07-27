@@ -369,12 +369,21 @@ def muaf_sayaci_kontrol():
     YONTEM: GERCEK deploy.yml + GERCEK kesif uzerine yalniz bellekte SENTETIK bir kapsamsiz
     yol enjekte edilir ve denetle(..., kontroller=False) cagrilir -> CI'da kosan kodun TA
     KENDISI olculur, kopya mantik yazilmaz. (kontroller=False sart: ozyineleme korumasi.)
-      TEMEL: sentetiksiz kosum YESIL olmali; basilan Muaf sayisi = N.
+      TEMEL: sentetiksiz kosum; basilan Muaf sayisi = N, exit kodu = TEMEL_KOD.
       (a) kesif + SENTETIK, izin = IZIN_LISTESI
           -> exit 1 + SENTETIK icin KAPSAMSIZ satiri + Muaf sayisi HALA N (sizmamali).
       (b) kesif + SENTETIK, izin = IZIN_LISTESI + {SENTETIK: gerekce}
-          -> exit 0 + Muaf sayisi TAM OLARAK N+1 (muafiyete kor olmamali).
-    (ok, hata_satirlari) dondurur."""
+          -> exit TEMEL_KOD (muafiyet kapiyi temelin verdigi hale geri dondurur)
+             + Muaf sayisi TAM OLARAK N+1 (muafiyete kor olmamali).
+
+    TEMEL KIRMIZI OLSA DA CALISIR (duzeltme, 27 Tem): iddialar MUTLAK degil TEMELE GORELI
+    DELTA'dir -> "temel kirmizi, olcum anlamsiz" diye erken donmez. Eski hali tam da bu
+    bug'in gorundugu senaryoda (repoda GERCEK bir kapsamsiz test dosyasi varken) kapiya
+    IKINCI bir ❌ satiri ekliyordu: kapi zaten KAPSAMSIZ ile kirmiziyken "SONUC: KIRMIZI
+    (2 sorun)" cikiyordu. merge prosedürü bu SORUN SAYISINI okur -> olcum kanalini duzeltmek
+    icin yazilan nobetci, kirmizi halde olcum kanalini yeniden kirletiyordu; ustelik nobetci
+    en cok ise yarayacagi anda (kapsamsiz VARKEN) kendini kapatiyordu. Tek istisna n is None:
+    etiket/regex kaymasinda gercekten olculecek sey yoktur, orada erken donus KALIR."""
     if not os.path.exists(DEPLOY_VARSAYILAN):
         return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
     with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
@@ -387,11 +396,12 @@ def muaf_sayaci_kontrol():
     temel_kod, temel_satirlar = denetle(gercek, kesif, IZIN_LISTESI, kontroller=False)
     n = _muaf_sayisi(temel_satirlar)
     if n is None:
+        # TEK mesru erken donus: etiket/regex kaymissa olculecek sayi YOKTUR.
         return False, ["temel raporda 'Muaf (izin listesi)' satiri bulunamadi "
                        "(etiket degistiyse MUAF_SATIR_RE'yi guncelle)"]
-    if temel_kod != 0:
-        return False, ["temel denetim KIRMIZI (exit=%d) -> muaf sayaci olcumu anlamsiz; "
-                       "once asil kapsam hatalarini duzelt" % temel_kod]
+    # NOT: temel_kod KIRMIZI olabilir (repoda gercek bir kapsamsiz dosya varken normaldir).
+    # Erken DONULMEZ; asagidaki iddialar temel_kod'a GORELI kurulur -> nobetci o halde de
+    # olcer ve kapinin sorun sayisini SISIRMEZ.
 
     kesif_sentetik = sorted(list(kesif) + [SENTETIK_KAPSAMSIZ])
     hata = []
@@ -410,16 +420,19 @@ def muaf_sayaci_kontrol():
                     "sayisina girdi (beklenen %d, basilan %r) -> sayi etiketine uymuyor "
                     "(27 Tem hatasinin ta kendisi)" % (n, n_a))
 
-    # (b) sentetik yol GEREKCELI MUAF: kabul semantigi korunmali VE sayi TAM 1 artmali
+    # (b) sentetik yol GEREKCELI MUAF: kabul semantigi korunmali VE sayi TAM 1 artmali.
+    #     Iddia TEMELE GORELI: gerekceli muafiyet kapiyi TEMELIN verdigi hale geri dondurur
+    #     (temel yesilse 0, temel kirmiziysa 1 kalir) -> temel kirmizi iken de kirilgan degil.
     izin_b = dict(IZIN_LISTESI)
     izin_b[SENTETIK_KAPSAMSIZ] = ("SENTETIK NOBETCI GIRISI — yalniz bellekte, repoda "
                                   "karsilik gelen dosya yok.")
     kod_b, satir_b = denetle(gercek, kesif_sentetik, izin_b, kontroller=False)
     n_b = _muaf_sayisi(satir_b)
-    if kod_b != 0:
+    if kod_b != temel_kod:
         hata.append("(b) MUAFIYET KABULU BOZUK: sentetik yol gerekceyle izin listesine "
-                    "eklenince exit 0 bekleniyordu, exit %r geldi (%s)"
-                    % (kod_b, "; ".join(s.strip() for s in satir_b if s.strip().startswith("❌"))))
+                    "eklenince kapi temel verdigi exit %r'e donmeliydi, exit %r geldi (%s)"
+                    % (temel_kod, kod_b,
+                       "; ".join(s.strip() for s in satir_b if s.strip().startswith("❌"))))
     if n_b != n + 1:
         hata.append("(b) MUAF SAYACI KOR: muafiyet eklenince sayi %d -> %d olmaliydi, "
                     "basilan %r (27 Tem'de olculen 71 -> 71 kor sayaci)" % (n, n + 1, n_b))
