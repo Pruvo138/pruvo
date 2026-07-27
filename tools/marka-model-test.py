@@ -201,8 +201,11 @@ def main():
                   "%s card-img < eşik — DÜZ YAZIYA regresyon?" % g["slug"])
             bekle(any(s.startswith("https://") for s in imglar),
                   "%s gerçek görsel src yok (hepsi placeholder?)" % g["slug"])
-            for kls in ('card-cat', 'card-title', 'card-desc', 'card-price'):
+            for kls in ('card-cat', 'card-title', 'card-price'):
                 bekle(('class="%s"' % kls) in page, "%s katalog kart sınıfı '%s' yok" % (g["slug"], kls))
+            # AÇIKLAMA KALDIRILDI (Okan 27 Tem): örnek model sayfasında card-desc ELEMENTİ olmamalı.
+            bekle('<div class="card-desc"' not in page,
+                  "%s card-desc kaldırılmadı (kart-açıklama elementi hâlâ var)" % g["slug"])
             bekle('<div class="grid">' in page, "%s kart grid container'ı yok" % g["slug"])
             bekle(('<link rel="canonical" href="%s">' % url) in page, "%s self-canonical yok" % g["slug"])
             bekle('<meta name="robots" content="index,follow">' in page, "%s robots yok" % g["slug"])
@@ -283,27 +286,16 @@ def main():
         BILGI.append("SSR çip: %d marka linki (JS-siz), sayfasız çip: %d"
                      % (len(chip_hrefs), len(sonuc["sayfasiz_cipler"])))
 
-        # ===== 8: KART MARKA-LINT (temizleme sonrası) — baskı-jargonu 0, over-clean YOK =====
-        # Kart title/desc = KATALOG metni; sanitize (mm._kart_temizle) baskı-jargonunu okunur
-        # karşılığa çevirir, mekanik anlamı (baskı plakası/basma butonu/baskı altında) KORUR.
-        # Bağımsız doğrulama: üretilen TÜM /marka/ kartlarını tarar; temizleyici baypaslanırsa
-        # jargon görünür -> KIRMIZI (sabotaj nöbeti, tautoloji değil — çıktıyı tarar).
-        card_re = re.compile(r'<div class="card-(?:title|desc)">(.*?)</div>', re.S)
-        toplam_jargon = 0
-        jargon_ornek = []
-        # basınç/mekanik KORUMA sayaçları (over-clean nöbeti — bu terimler ÇIKTIDA durmalı)
-        koru = {"3D-Tarama": r"3\s*d\s*tara", "baskı-plakası": r"bask[ıi]\w*\s+plaka",
-                "baskı-balata": r"bask[ıi]\w*\s+(?:ve\s+)?balata", "baskı-uygula": r"bask[ıi]\w*\s+uygula",
-                "baskı-altında": r"bask[ıi]\w*\s+alt[ıi]", "baskıyı": r"\bbaskıyı\b",
-                "basma-buton/düğme": r"basma\s+buton|basmal[ıi]\s+düğme"}
-        koru_say = {k: 0 for k in koru}
-        # MANGLE dedektörü (DAR — false-positive'siz): basınç-"baskı plakası/balata/altında"nın
-        # "üretim ..."e mangle'ı ancak POSSESSIF/kesin biçimde görünür. "üretilen plaka tutucu"
-        # (meşru ürün) gibi biçimler HARİÇ (plakas≠plaka, üretilen≠üretim+balata).
-        mangle_re = re.compile(r"üretim\s+plakas|üreti[lm]\w*\s+balata|üretim\s+ve\s+balata"
-                               r"|üretim\s+alt[ıi]nda", re.I)
-        mangle_toplam = 0
-        mangle_ornek = []
+        # ===== 8: KART AÇIKLAMASI KALDIRILDI (removed-description gate) + başlık over-clean guard =====
+        # Okan direktifi (27 Tem — bağlam-duyarlı sınıflandırıcı whack-a-mole'ünü GEÇERSİZ kılar):
+        # kart açıklaması KART'tan tamamen ÇIKARILDI, böylece baskı/filament/yazıcı jargon-kaçağı
+        # KAYNAĞINDA kesildi. Kart artık yalnız görsel + başlık + kategori + fiyat taşır.
+        # GATE (bağımsız doğrulama, çıktıyı tarar): üretilen HİÇBİR /marka sayfasında card-desc
+        # ELEMENTİ (<div class="card-desc">) kalmamalı — 0. Sabotaj nöbeti: jargonlu bir açıklama
+        # geri eklenirse bu sayaç >0 olur -> KIRMIZI. (kart_sayisi>0: walk boşsa gate boşa geçmesin.)
+        card_desc_re = re.compile(r'<div class="card-desc"')
+        card_main_re = re.compile(r'<a class="card-main" href="')
+        toplam_desc = 0
         kart_sayisi = 0
         for dp, _d, fs in os.walk(os.path.join(tmp, "marka")):
             for fn in fs:
@@ -311,29 +303,15 @@ def main():
                     continue
                 with open(os.path.join(dp, fn), encoding="utf-8") as f:
                     b = f.read()
-                for cm in card_re.finditer(b):
-                    kart_sayisi += 1
-                    txt = html.unescape(cm.group(1))
-                    ihl = mm.kart_lint_ihlaller(txt)
-                    if ihl:
-                        toplam_jargon += len(ihl)
-                        if len(jargon_ornek) < 6:
-                            jargon_ornek.append((ihl, txt[:70]))
-                    low = txt.lower()
-                    for k, rx in koru.items():
-                        if re.search(rx, low):
-                            koru_say[k] += 1
-                    mg = mangle_re.findall(txt)
-                    if mg:
-                        mangle_toplam += len(mg)
-                        if len(mangle_ornek) < 6:
-                            mangle_ornek.append((mg, txt[:70]))
-        # (1) JARGON-KAÇAĞI 0 (kesin printing token; temizleyici baypas -> KIRMIZI)
-        bekle(toplam_jargon == 0,
-              "kartlarda printing-jargonu %d (temizleyici baypas?): %s" % (toplam_jargon, jargon_ornek))
-        # (2a) BİRİM-DÜZEY MANGLE KİLİDİ (kesin, false-positive'siz): temizleyici basınç/mekanik
-        # "baskı" kolokasyonlarını DEĞİŞTİRMEMELİ (çürütücünün bulduğu 16 mangle sınıfı). Sabotaj
-        # (bare-baskı çevirisi geri eklenirse) bu ifadeler değişir -> KIRMIZI.
+                toplam_desc += len(card_desc_re.findall(b))
+                kart_sayisi += len(card_main_re.findall(b))
+        bekle(kart_sayisi > 0, "hiç kart üretilmedi (walk boş — removed-description gate boşa geçmesin)")
+        bekle(toplam_desc == 0,
+              "card-desc ELEMENTİ %d kart-açıklaması hâlâ var (kaldırılmadı / geri eklendi)" % toplam_desc)
+        # BAŞLIK SANITIZER OVER-CLEAN GUARD: mm._kart_temizle başlıkta KORUNDU (/urun ile tutarlı).
+        # Başlık "Baskı Balatası" / "basmalı düğme" gibi basınç/buton terimleri taşıyabilir; temizleyici
+        # bunları MANGLE ETMEMELİ. Birim iddiası (çıktıdan bağımsız); sabotaj (bare-baskı çevirisi geri
+        # eklenirse) bu ifadeler değişir -> KIRMIZI.
         basinc_ifade = [
             "debriyaj diski ve baskıyı hizalamak", "baskı plakasına tam merkezli",
             "cama baskı uygulanmaması önerilir", "baskı balatayı kusursuz şekilde hizalama",
@@ -344,16 +322,8 @@ def main():
         for ifade in basinc_ifade:
             bekle(mm._kart_temizle(ifade) == ifade,
                   "PRESSURE/BUTTON mangle: %r -> %r" % (ifade, mm._kart_temizle(ifade)))
-        # (2b) ÇIKTI HEURİSTİĞİ (dar): basınç-baskı mangle imzası çıktıda 0.
-        bekle(mangle_toplam == 0,
-              "MANGLE %d: basınç-baskı 'üretim'e mangle edilmiş (over-clean): %s"
-              % (mangle_toplam, mangle_ornek))
-        # (3) KORUMA yapısal: basınç/mekanik kolokasyonlar çıktıda KORUNMUŞ olmalı (>0)
-        for k in ("3D-Tarama", "baskı-plakası", "baskı-balata", "baskı-uygula", "basma-buton/düğme"):
-            bekle(koru_say[k] > 0, "'%s' hiçbir kartta korunmadı — aşırı-temizleme şüphesi" % k)
-        BILGI.append("kart marka-lint: %d kart · printing-jargon=%d · MANGLE=%d · korundu: %s"
-                     % (kart_sayisi, toplam_jargon, mangle_toplam,
-                        " ".join("%s=%d" % (k, koru_say[k]) for k in koru)))
+        BILGI.append("kart: %d kart · card-desc ELEMENT=%d (KALDIRILDI) · başlık over-clean guard geçti"
+                     % (kart_sayisi, toplam_desc))
 
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

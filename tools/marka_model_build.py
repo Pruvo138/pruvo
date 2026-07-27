@@ -408,8 +408,9 @@ def _ld(obj):
 
 
 # ---- KART-ÖZEL marka-kuralı temizleyicisi (CLAUDE.md "3D BASKI DENMEZ") ----
-# YALNIZ kartta (baslik+aciklama) çağrılır -> Merchant feed + /urun/ sayfası BYTE aynı kalır
-# (build.py marka_temiz / render_merchant_feed / render_product DEĞİŞMEZ).
+# YALNIZ kart BAŞLIĞINDA (baslik) çağrılır -> Merchant feed + /urun/ sayfası BYTE aynı kalır
+# (build.py marka_temiz / render_merchant_feed / render_product DEĞİŞMEZ). (Kart açıklaması 27 Tem
+# KALDIRILDI; temizleyici başlığı /urun/ sayfasıyla tutarlı kılmak için başlıkta korunur.)
 #
 # 🔴 FAIL-SAFE (çürütücü over-clean bulgusu, 27 Tem): Türkçe "baskı" hem PRINTING hem BASINÇ/press
 # demektir (baskı plakası=debriyaj, baskı balata, baskı uygula/altında=basınç, rulman baskısı=press,
@@ -475,16 +476,6 @@ _KART_KELIME = {
 # "baskı" ve "basma" KAPSAM DIŞI (fail-safe koru). 'baskılı' 'basıl'dan ÖNCE (baskılı ≠ basıl).
 _KART_ROOT_RE = re.compile(
     r"\b(?:filament|yaz[ıi]c[ıi]|yazd[ıi]r|bask[ıi]l[ıi]|bas[ıi]l)\w*", re.I)
-# LINT (test tüketir): buton-basıl maskelendikten SONRA kalan KESİN printing token + BAĞLAM-DUYARLI
-# printing-"baskı" (malzeme/doluluk/tavsiye sinyalli). Basınç bare "baskı" (baskı balata/plakası/...)
-# sinyal taşımaz -> kapsanmaz (false-positive yok). 3D Tarama/model/Sprinter kök taşımaz.
-_KART_LINT_RE = re.compile(
-    r"\b(?:filament|yaz[ıi]c[ıi]|yazd[ıi]r|bask[ıi]l[ıi]|bas[ıi]l)\w*"
-    r"|3\s*[dD]\s*bask\w*|3\s*boyutlu\s+bask\w*|3\s*[dD]\s*print\w*"
-    r"|3\s*[dD]\s*yaz[ıi]c\w*|(?:desteksiz|destekli)\s+bask[ıi]\w*"
-    r"|masa\s*[üu]st[üu]\s+bask[ıi]\w*|bask[ıi]\s+tabla\w*"
-    r"|\b" + _PRINT_SIG + r"\s+(?:ile\s+)?bask[ıi]\w*"      # PLA/dolulukta/hassas baskı
-    r"|bask[ıi]\w*\s+" + _PRINT_ADV, re.I)                  # baskı önerilir/ayarı
 
 
 def _kart_root_rep(m):
@@ -512,7 +503,7 @@ def _kart_kelime_yardim(w):
 
 
 def _kart_temizle(txt):
-    """Kart başlık/açıklamasındaki AÇIK printing jargonunu temizle. Bare 'baskı' (basınç dahil) +
+    """Kart BAŞLIĞINDAKİ AÇIK printing jargonunu temizle. Bare 'baskı' (basınç dahil) +
     'basma' + buton-'basıl' KORUNUR (fail-safe, over-clean YOK)."""
     if not txt:
         return txt
@@ -537,16 +528,6 @@ def _kart_temizle(txt):
     for i, o in enumerate(masks):                    # 5) maskeleri geri koy
         txt = txt.replace("\x00%dM\x00" % i, o)
     return txt
-
-
-def kart_lint_ihlaller(txt):
-    """Kart metninde (temizleme SONRASI) kalan KESİN printing token — buton-basıl maskeli, bare
-    'baskı'/'basma' kapsam dışı (fail-safe). Boş liste = temiz. Test üretilen kart-metnine uygular
-    (bağımsız doğrulama; temizleyici baypaslanırsa token görünür -> KIRMIZI)."""
-    s = txt or ""
-    for pat in _KART_KORU:
-        s = pat.sub(" ", s)
-    return _KART_LINT_RE.findall(s)
 
 
 def _placeholder(txt):
@@ -583,16 +564,16 @@ def _kart_fiyat(ctx, p):
 def _kart(ctx, p):
     """Sitenin STANDART katalog kartı (index.html kartCiz) — SSR/crawlable birebir eşi:
     <a class="card-main" href="/urun/<id>/"> img(card-img, lazy, gerçek görsel) + card-body
-    (card-cat/card-title/card-desc/card-price) + parametrikse card-badge."""
+    (card-cat/card-title/card-price) + parametrikse card-badge.
+    AÇIKLAMA (card-desc) KALDIRILDI (Okan direktifi, 27 Tem): kart yalnız görsel + başlık +
+    kategori + fiyat taşır; baskı/filament/yazıcı jargon-kaçağı açıklamada doğduğu için
+    KAYNAĞINDA kesildi (bağlam-duyarlı sınıflandırıcı whack-a-mole yerine yapısal çözüm)."""
     esc = ctx["esc"]
     pid = p.get("id")
     # KART-ÖZEL marka-kuralı temizliği (baskı-jargonu -> okunur karşılık; mekanik anlam korunur).
-    # YALNIZ kartta; feed/urun DEĞİŞMEZ. Sanitize ÖNCE, truncate SONRA (kesim ortada bozmasın).
+    # YALNIZ kart BAŞLIĞINDA; feed/urun DEĞİŞMEZ.
     baslik = _kart_temizle((p.get("baslik") or "").strip()) or pid
     kategori = (p.get("kategori") or "").strip()
-    aciklama = _kart_temizle(re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip())
-    if len(aciklama) > 160:                    # 2 satır clamp'e denk; kart-özeti (ozet.json) ile aynı
-        aciklama = aciklama[:160].rsplit(" ", 1)[0]
     imgs = ctx["images_of"](p)
     # Görseli olan (neredeyse tümü) gerçek media URL'ini taşır; görselsiz nadir ürün placeholder
     # data-URI'sini SRC olarak alır. NOT: kataloğun kartCiz'i onerror'ı JS'te bağlar; SSR'de her
@@ -608,11 +589,10 @@ def _kart(ctx, p):
         '<div class="card-body">'
         '<span class="card-cat">%s</span>'
         '<div class="card-title">%s</div>'
-        '<div class="card-desc">%s</div>'
         '<div class="card-price%s">%s</div>'
         '</div>%s</a></div>'
         % (esc(ctx["product_url"](pid)), esc(baslik), esc(cover),
-           esc(kategori), esc(baslik), esc(aciklama),
+           esc(kategori), esc(baslik),
            " empty" if bos else "", esc(fiyat_metni), badge))
 
 
