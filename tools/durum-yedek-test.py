@@ -536,6 +536,19 @@ def _senaryo_cokme(yb, ekstra_degisimler):
                 "cokdu": r1.returncode != 0}
 
 
+def _capa(ad, fn):
+    """Bolum 10 anchor-miss KALKANI (ekip-bloklayici kapi FAIL-OPEN): senaryo fn()'in
+    anchor'i MESRU refaktorle kayarsa ('CAPASI BULUNAMADI') o kontrol ⚪+None olur, suite
+    ABORT ETMEZ. DAR: base davranissal KIRMIZI (ok=False) korunur; disi istisna re-raise."""
+    try:
+        return fn()
+    except RuntimeError as e:
+        if "CAPASI BULUNAMADI" not in str(e):
+            raise
+        olculemedi(ad, "yedekle.py yapisi degisti — capa guncellenmeli", "fikstur")
+        return None
+
+
 def main():
     PS_ORTAMI[0] = ps_ortami()
     GIT_ORTAMI[0] = git_ortami()
@@ -2056,54 +2069,66 @@ def main():
         kontrol("(a) flock BASE: kilit baskasindayken kosum ATLADI (serilestirme calisiyor)",
                 a_base_atladi and not a_base_bitti,
                 "atladi=%s bitti=%s" % (a_base_atladi, a_base_bitti))
-        a_mut_atladi, a_mut_bitti = _senaryo_flock(yb, [MUT_FLOCK])
-        kontrol("(a) flock POZITIF MUTANT (flock cagrisi silindi) -> kosum ATLAMADI, "
+        a_mut = _capa("(a) flock POZITIF MUTANT [capa]", lambda: _senaryo_flock(yb, [MUT_FLOCK]))
+        a_mut_atladi, a_mut_bitti = a_mut or (None, None)
+        a_mut is None or kontrol("(a) flock POZITIF MUTANT (flock cagrisi silindi) -> kosum ATLAMADI, "
                 "kilitli hedefe YAZDI (base kontrol KIRMIZI yanardi)",
                 a_mut_bitti and not a_mut_atladi,
                 "atladi=%s bitti=%s" % (a_mut_atladi, a_mut_bitti))
 
         # ---- GUVENCE (b): `bitti=` basari izi YALNIZ basari yolunda ----
-        b_base = _senaryo_cokme(yb, [])
-        kontrol("(b) hazirlik: ilk yedek tamamlandi + coken kosum GERCEKTEN cokuyor",
+        b_base = _capa("(b) base cokme senaryosu [capa]", lambda: _senaryo_cokme(yb, []))
+        b_base is None or kontrol("(b) hazirlik: ilk yedek tamamlandi + coken kosum GERCEKTEN cokuyor",
                 b_base["r0_ok"] and b_base["cokdu"] and b_base["T0"] is not None,
                 "r0_ok=%s cokdu=%s" % (b_base["r0_ok"], b_base["cokdu"]))
-        kontrol("(b) damga-finally BASE: kosum coktugunde iz `bitti=` TASIMIYOR, `hata=` "
+        b_base is None or kontrol("(b) damga-finally BASE: kosum coktugunde iz `bitti=` TASIMIYOR, `hata=` "
                 "tasiyor (basari izi yalniz basari yolunda)",
                 (not b_base["iz_bitti"]) and b_base["iz_hata"],
                 "bitti=%s hata=%s" % (b_base["iz_bitti"], b_base["iz_hata"]))
-        b_mut = _senaryo_cokme(yb, [MUT_FINALLY])
-        kontrol("(b) damga-finally POZITIF MUTANT (basardi=True finally) -> coken kosumun "
+        b_mut = _capa("(b) mutant cokme senaryosu [capa]", lambda: _senaryo_cokme(yb, [MUT_FINALLY]))
+        b_mut is None or kontrol("(b) damga-finally POZITIF MUTANT (basardi=True finally) -> coken kosumun "
                 "izi `bitti=` TASIYOR = sahte-yesil (base kontrol KIRMIZI yanardi)",
                 b_mut["iz_bitti"], "bitti=%s hata=%s" % (b_mut["iz_bitti"], b_mut["iz_hata"]))
 
         # ---- GUVENCE (c): cikis damgasi (.son-yedek.json) YALNIZ basari yolunda ----
-        c_base = _senaryo_cokme(yb, [])
-        kontrol("(c) cikis-damgasi BASE: kosum coktugunde .son-yedek.json TAZELENMEDI "
+        c_base = _capa("(c) base cokme senaryosu [capa]", lambda: _senaryo_cokme(yb, []))
+        c_base is None or kontrol("(c) cikis-damgasi BASE: kosum coktugunde .son-yedek.json TAZELENMEDI "
                 "(damga en sonda, yalniz tamamlaninca)",
                 not c_base["damga_degisti"], "damga_degisti=%s" % c_base["damga_degisti"])
-        c_mut = _senaryo_cokme(yb, [MUT_CIKIS])
-        kontrol("(c) cikis-damgasi POZITIF MUTANT (damga basa tasindi) -> coken kosum TAZE "
+        c_mut = _capa("(c) mutant cokme senaryosu [capa]", lambda: _senaryo_cokme(yb, [MUT_CIKIS]))
+        c_mut is None or kontrol("(c) cikis-damgasi POZITIF MUTANT (damga basa tasindi) -> coken kosum TAZE "
                 "damga yazdi = sahte-yesil (base kontrol KIRMIZI yanardi)",
                 c_mut["damga_degisti"], "damga_degisti=%s" % c_mut["damga_degisti"])
 
         # ---- NEGATIF FIKSTUR (yanlis-pozitif YOK): mesru refaktor base kontrolu YESIL birakir ----
-        n1_atladi, n1_bitti = _senaryo_flock(yb, [REF_YORUM])
-        kontrol("(neg-1) mesru refaktor (flock'a yorum satiri) -> (a) BASE davranisi AYNEN "
+        n1 = _capa("(neg-1) flock refaktor senaryosu [capa]", lambda: _senaryo_flock(yb, [REF_YORUM]))
+        n1_atladi, n1_bitti = n1 or (None, None)
+        n1 is None or kontrol("(neg-1) mesru refaktor (flock'a yorum satiri) -> (a) BASE davranisi AYNEN "
                 "YESIL (FP yok)", n1_atladi and not n1_bitti,
                 "atladi=%s bitti=%s" % (n1_atladi, n1_bitti))
-        n2 = _senaryo_cokme(yb, [REF_RENAME])
-        kontrol("(neg-2) mesru refaktor (bas_imza -> baslangic_imzasi yeniden adlandirma) -> "
+        n2 = _capa("(neg-2) cokme refaktor senaryosu [capa]", lambda: _senaryo_cokme(yb, [REF_RENAME]))
+        n2 is None or kontrol("(neg-2) mesru refaktor (bas_imza -> baslangic_imzasi yeniden adlandirma) -> "
                 "(b)+(c) BASE davranisi AYNEN YESIL (FP yok)",
                 (not n2["iz_bitti"]) and n2["iz_hata"] and (not n2["damga_degisti"])
                 and n2["cokdu"],
                 "bitti=%s hata=%s damga_degisti=%s" % (n2["iz_bitti"], n2["iz_hata"],
                                                        n2["damga_degisti"]))
-        n3 = _senaryo_cokme(yb, [REF_YORUM2])
-        kontrol("(neg-3) mesru refaktor (basardi'ya yorum satiri) -> (b)+(c) BASE davranisi "
+        n3 = _capa("(neg-3) cokme refaktor senaryosu [capa]", lambda: _senaryo_cokme(yb, [REF_YORUM2]))
+        n3 is None or kontrol("(neg-3) mesru refaktor (basardi'ya yorum satiri) -> (b)+(c) BASE davranisi "
                 "AYNEN YESIL (FP yok)",
                 (not n3["iz_bitti"]) and n3["iz_hata"] and (not n3["damga_degisti"]),
                 "bitti=%s hata=%s damga_degisti=%s" % (n3["iz_bitti"], n3["iz_hata"],
                                                        n3["damga_degisti"]))
+
+        # KALICI FIKSTUR (anchor-kirilgan DEGIL): '__CAPA_FIKSTUR_ASLA_YOK__' hicbir yedekle.py'de
+        # yok = anchor-KIRAN mesru refaktor; _capa onu tam 1 ⚪+None yapmali, suite ABORT etmemeli.
+        _ol0 = len(OLCULEMEDI)
+        _fx = _capa("(fikstur) kasitli anchor-KIRAN refaktor",
+                    lambda: _senaryo_flock(yb, [("__CAPA_FIKSTUR_ASLA_YOK__", "x")]))
+        kontrol("(fikstur) anchor-KIRAN refaktor GRACEFUL: _capa None dondu + tam 1 ⚪ "
+                "uretti + suite ABORT ETMEDI (FP mayini kapali kalir)",
+                _fx is None and len(OLCULEMEDI) == _ol0 + 1,
+                "None=%s yeni_olculemedi=%d" % (_fx is None, len(OLCULEMEDI) - _ol0))
 
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok in SONUC if not ok]
