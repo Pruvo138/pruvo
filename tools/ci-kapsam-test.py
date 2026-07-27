@@ -37,6 +37,8 @@ KENDI NOBETCILERI (kontroller=True iken BLOKLAYICI, yani CI'da fiilen kosar):
   * bulgu1_mutasyon_kontrol() — yalniz-yorum mensiyonu 'kosuluyor' sayilmasin.
   * muaf_sayaci_kontrol()     — rapordaki "Muaf (izin listesi)" sayisi GERCEKTEN izin
     listesini saysin (kapsamsiz dosya o sayiya sizmasin, muafiyet eklenince sayi artsin).
+  * kendini_test_adimi_kontrol() — deploy.yml'de "--kendini-test" ADIMI FIILEN duruyor mu
+    (ZINCIRIN SON HALKASI; olculdu 27 Tem, bkz. fonksiyon docstring'i).
 
 Kullanim:
     python3 tools/ci-kapsam-test.py
@@ -555,6 +557,112 @@ def muaf_sayaci_kontrol():
     return (not hata), hata
 
 
+# ---- OZ-NOBETCI ADIMI (zincirin son halkasi) -------------------------------
+HEDEF_KAPI = "tools/ci-kapsam-test.py"
+KENDINI_TEST_BAYRAGI = "--kendini-test"
+KENDINI_TEST_TANI = (
+    "deploy.yml'den `python3 tools/ci-kapsam-test.py --kendini-test` adimi kalkmis / "
+    "bayrak dusmus. GERI KOY (mevcut 'CI kapsam kapisi oz-nobetcileri' adimi), ya da "
+    "cagri bicimi bilerek degistiyse bu nobetciyi (kendini_test_adimi_kontrol) guncelle.")
+
+
+def _kendini_test_icra_satirlari(deploy_metin, yol=HEDEF_KAPI):
+    """<yol>'u --kendini-test BAYRAGIYLA FIILEN kosan satirlarin indeksleri.
+
+    CAPA TEK KAYNAKTAN: 'bu satir icra mi' sorusunu _icra_govdesi(), 'bu govde <yol>'u
+    mu kosuyor' sorusunu _onek_re() cevaplar — DORDUNCU bir eslesme mantigi YAZILMAZ.
+    Buraya eklenen TEK sey, on-ekten SONRA kalan argumanlar arasinda bayragin JETON
+    olarak bulunmasidir. Bunun dogal sonuclari (YANLIS-POZITIF BUTCESI SIFIR icin sart,
+    hepsi fikstur olarak olculdu):
+      * fazla bosluk ('run:   python3   tools/...   --kendini-test') -> _onek_re \\s+ ile
+        gecer, kalan argumanlar split() ile jetonlanir;
+      * 'run: |' blok bicimi -> blok basi ('|') icra govdesi olarak anlamsizdir, komut
+        BIR SONRAKI satirdadir ve _icra_govdesi onu aynen dondurur;
+      * ek bayrak ('--kendini-test --deploy X') -> jeton listesinde aranir, sira/sayi
+        onemsiz; adimin job icinde tasinmasi/sira degisimi -> satir indeksi umursanmaz;
+      * YORUM ya da echo-string mensiyonu -> _icra_govdesi yorumu ELER, echo satiri
+        'python3' ile BASLAMADIGI icin _onek_re eslesmez (T7 sinifi SAYILMAZ).
+    argparse benzersiz-onek kisaltmasina izin verdigi icin ('--kendini', '--kend' ...)
+    bayragin ON-EKI de kabul edilir: mesru bir kisaltma sahte-kirmizi yakmasin."""
+    onek = _onek_re(yol)
+    idx = []
+    for i, ham in enumerate(deploy_metin.splitlines()):
+        g = _icra_govdesi(ham)
+        if not g:
+            continue
+        m = onek.match(g)
+        if not m:
+            continue
+        for jeton in g[m.end():].split():
+            if jeton.startswith("--k") and KENDINI_TEST_BAYRAGI.startswith(jeton):
+                idx.append(i)
+                break
+    return idx
+
+
+def kendini_test_adimi_kontrol():
+    """OZ-NOBETCI ADIMI KALICI NOBETCISI (3. tur curutucu olcumu, 27 Tem).
+
+    OLCULEN DELIK: 791b0366 deploy.yml'e `python3 tools/ci-kapsam-test.py --kendini-test`
+    adimini ekledi ve CI'da yesil kostu — AMA EKLENEN ADIMIN KENDISI NOBETCISIZDI.
+    Iki mutant sinifi repoda TEK BIR KIRMIZI bile yakmiyordu (olculdu: ikisinde de
+    bayraksiz kosum 0, --kendini-test kosumu 0):
+      (1) `--kendini-test` adimi deploy.yml'den SILINDI,
+      (2) adim duruyor ama `--kendini-test` BAYRAGI dusuruldu (adim ikinci kez duz
+          `python3 tools/ci-kapsam-test.py` kosuyor).
+    Yani biri oz-nobetci adimini kaldirsa zincir SESSIZCE kopuyordu: bulgu1 +
+    muaf sayaci nobetcileri hala denetle(kontroller=True) yolundan cagriliyor gorunse
+    de, o adimin korudugu IKI mutant sinifi (nobetci CAGRILARININ silinmesi ve
+    denetle()'nin kirmizi cikis yolunun sakatlanmasi) yeniden ORTULU hale geliyordu.
+
+    NEDEN BAYRAKSIZ (BLOKLAYICI) KOLDA YASAR: bu nobetci `--kendini-test` kolunda
+    OLURDU — adim silindiginde o kol CI'da ZATEN kosmaz, yani kendi olumunu haber
+    veremezdi. Kanit hala kosan DUZ adimdan gelmek ZORUNDA; bu yuzden
+    denetle(..., kontroller=True) icinden cagrilir. (--kendini-test kolunda AYRICA
+    raporlanir, ama tek GERCEK kapi bayraksiz kosumdur.)
+
+    IDDIALAR (hepsi GERCEK deploy.yml uzerinden, kopya mantik yok):
+      + POZITIF: en az bir icra satiri <hedef>'i --kendini-test ile kosuyor.
+      + T7 KANARYASI: ayni satirlar YORUMA cevrilince (yorum mutanti) hicbiri
+        sayilmamali -> 'yorum/echo mensiyonu yeter' bypass'i geri gelirse KIRMIZI.
+      + BAYAT-HARNESS (fail-closed): silme mutanti hicbir satir birakmamali.
+
+    OLCULDU (27 Tem, gecici worktree'de; canli dosyaya mutasyon UYGULANMADI) — 13 senaryo:
+      KIRMIZI olmasi gerekenler: adim silindi -> 1 · bayrak dustu -> 1 · adim silindi ama
+      yorum+echo mensiyonu birakildi -> 1 (T7: mensiyon YETMEZ).
+      YESIL kalmasi gerekenler (YANLIS-POZITIF BUTCESI SIFIR): fazla bosluk · 'run: |' blok
+      bicimi · adim sirasi degisimi · ek bayrak (--deploy X) · adimin job icinde baska
+      konuma tasinmasi · ilgisiz rutin adim/yorum eklenmesi -> 6/6 exit 0.
+      Kablolama kaniti: bu nobetcinin denetle() icindeki CAGRISI silinip adim da silinince
+      bayraksiz kosum 0 verir -> kirmiziyi ureten sey gercekten bu cagridir.
+      ACIK KALAN SINIF (bilerek): nobetcinin GOVDESI no-op'a ('return True, []') cevrilirse
+      temiz repoda kimse yanmaz — bu, kapinin kendi govdesini koruyan bir ust-harness
+      sorusudur (nobetci-mutasyon-test.py sinifi), bu fonksiyonun cozebilecegi bir sey degil.
+    (ok, hata_satirlari) dondurur."""
+    if not os.path.exists(DEPLOY_VARSAYILAN):
+        return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
+    with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+        gercek = f.read()
+
+    bayrakli = _kendini_test_icra_satirlari(gercek)
+    if not bayrakli:
+        return False, [KENDINI_TEST_TANI]
+
+    hata = []
+    # T7: ayni satirlar yorum olsaydi SAYILMAMALIYDI (capa gercek icra baglamina bagli mi).
+    yorum_mutant, _ = _yorum_mutanti(gercek, HEDEF_KAPI)
+    if _kendini_test_icra_satirlari(yorum_mutant):
+        hata.append("T7 YORUM-BYPASS: icra satirlari '# python3 ...' yorumuna cevrilince "
+                    "bile --kendini-test adimi 'duruyor' sayildi -> capa icra baglamini "
+                    "kaybetmis (yorum satirlari _icra_govdesi'nde elenmeli)")
+    # Fail-closed: silme mutantinda hedefi kosan satir kalmamali (harness bayatlamasin).
+    silme_mutant, _ = _silme_mutanti(gercek, HEDEF_KAPI)
+    if _kendini_test_icra_satirlari(silme_mutant):
+        hata.append("HARNESS BAYAT: silme mutantinda --kendini-test adimi hala sayiliyor "
+                    "-> mutasyon capasi cok dar, bu nobetciyi guncelle")
+    return (not hata), hata
+
+
 # ---- SAF DENETIM GOVDESI ---------------------------------------------------
 # main() eskiden hem karar veriyor hem BASIYORDU -> govdeyi disaridan (nobetciden)
 # olcmek imkansizdi ve "CI'da kosan kod" ile "test edilen kod" ayrisiyordu.
@@ -613,6 +721,12 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True):
         _, muaf_hata = muaf_sayaci_kontrol()
         for h in muaf_hata:
             hatalar.append("MUAF-SAYACI: " + h)
+        # ZINCIRIN SON HALKASI: oz-nobetci ADIMI deploy.yml'de duruyor mu. BURADA
+        # (bayraksiz/bloklayici kolda) yasamak ZORUNDA — --kendini-test kolunda olsa,
+        # adim silindiginde o kol kosmayacagi icin nobetci OLU olurdu.
+        _, adim_hata = kendini_test_adimi_kontrol()
+        for h in adim_hata:
+            hatalar.append("KENDINI-TEST-ADIMI: " + h)
 
     # ---- rapor ----
     # FIX (27 Tem, olculdu): eski hal `[y for y in kesif if y not in kos]` idi -> etiket
@@ -663,7 +777,16 @@ def main():
         else:
             for h in hata2:
                 print("  ❌ " + h)
-        if ok1 and ok2:
+        # 3. nobetci BU KOLDA yalnizca RAPORLANIR — gercek kapisi bayraksiz kosumdadir
+        # (bu adim silinirse bu kol CI'da hic kosmaz; bkz. kendini_test_adimi_kontrol).
+        ok3, hata3 = kendini_test_adimi_kontrol()
+        print("OZ-NOBETCI ADIMI NOBETCISI")
+        if ok3:
+            print("  ✅ deploy.yml `%s --kendini-test` adimini FIILEN kosuyor" % HEDEF_KAPI)
+        else:
+            for h in hata3:
+                print("  ❌ " + h)
+        if ok1 and ok2 and ok3:
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")
