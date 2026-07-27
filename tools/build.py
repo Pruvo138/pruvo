@@ -305,12 +305,35 @@ def surumle_scriptler(html_metni):
     return _SCRIPT_SRC_RE.sub(_degistir, html_metni)
 
 
-def yayin_index():
+def _marka_cip_enjekte(html_metni, chip_links, slug_map):
+    """Anasayfa marka çiplerini SSR yapar: JS-siz curl'de görünsün diye çip <a> linklerini
+    #brandChips'e basar + renderBrands'in okuduğu window.PRUVO_MARKA_SLUG haritasını <head>'e
+    inline gömer (marka_model_build çip↔sayfa slug'ı ile TEK KAYNAK). KAYNAK index.html
+    DEGISMEZ; yalnız YAYIN kopyası (index.built.html) zenginleşir. chip_links boşsa no-op."""
+    if not chip_links:
+        return html_metni
+    harita = json.dumps(slug_map, ensure_ascii=False, separators=(",", ":"))
+    script = ('<script>window.PRUVO_MARKA_SLUG=' + harita + ';</script>\n</head>')
+    if "</head>" in html_metni:
+        html_metni = html_metni.replace("</head>", script, 1)
+    bos = '<div class="brand-chips" id="brandChips"></div>'
+    dolu = '<div class="brand-chips" id="brandChips">' + chip_links + '</div>'
+    if bos in html_metni:
+        html_metni = html_metni.replace(bos, dolu, 1)
+    return html_metni
+
+
+def yayin_index(marka_sonuc=None):
     """Yayinlanan ana sayfa: KAYNAK index.html'in script src'leri surumlenmis kopyasi.
     Kaynak dosya DEGISTIRILMEZ (curumesin diye); cikti index.built.html'e yazilir, deploy
-    onu _site/index.html olarak kopyalar. taban-fiyatlar.js bu asamada uretilmis olmali."""
+    onu _site/index.html olarak kopyalar. taban-fiyatlar.js bu asamada uretilmis olmali.
+    marka_sonuc verilirse anasayfa marka çipleri SSR link'e çevrilir (discovery kök-fix)."""
     with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
-        return surumle_scriptler(attribution_ekle(f.read()))
+        metin = f.read()
+    if marka_sonuc:
+        metin = _marka_cip_enjekte(metin, marka_sonuc.get("chip_links", ""),
+                                   marka_sonuc.get("slug_map", {}))
+    return surumle_scriptler(attribution_ekle(metin))
 
 
 def _js_sabiti(kaynak, ad):
@@ -2549,20 +2572,21 @@ def main():
         with open(os.path.join(cdir, "index.html"), "w", encoding="utf-8") as f:
             f.write(render_content_page(slug, title, meta, fn()))
 
-    # marka -> model hiyerarşik gezinme pilotu (Ford + BMW) — additive ek modül. urunler.json'a
-    # DOKUNMAZ; /marka/... sayfalarını yazar, sitemap kayıtları + kopyalanacak üst dizin(ler) döner.
-    marka_sitemap, marka_dizinleri = marka_model_build.uret(products, marka_model_ctx())
+    # marka -> model hiyerarşik gezinme (anasayfa çip-marka evreni) — additive ek modül.
+    # urunler.json'a DOKUNMAZ; /marka/... sayfalarını yazar; sitemap kayıtları + kopyalanacak
+    # üst dizin(ler) + anasayfa SSR çip linkleri + çip slug haritasını döner.
+    marka_sonuc = marka_model_build.uret(products, marka_model_ctx())
 
     # deploy.yml beyaz-listesi için TEK KAYNAK manifesti: içerik/yasal sayfa dizinleri
     # (statik hakkimizda/iletisim/sss/gizlilik + üretilen CONTENT_PAGES) = SITEMAP_SLUGS +
-    # marka->model pilot üst dizini ("marka"). CI bu dosyayı okuyup her slug'ı _site'a kopyalar;
+    # marka->model üst dizini ("marka"). CI bu dosyayı okuyup her slug'ı _site'a kopyalar;
     # böylece yeni CONTENT_PAGES/marka eklenince deploy.yml elle güncellenmese de SESSİZCE 404 olmaz.
     with open(os.path.join(ROOT, "_yayin-icerik-dizinleri.txt"), "w", encoding="utf-8") as f:
-        f.write("\n".join(SITEMAP_SLUGS + marka_dizinleri) + "\n")
+        f.write("\n".join(SITEMAP_SLUGS + marka_sonuc["dizinler"]) + "\n")
 
-    # sitemap.xml (marka->model pilot URL'leri lastmod'lu eklenir)
+    # sitemap.xml (marka->model URL'leri lastmod'lu eklenir)
     with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
-        f.write(render_sitemap(products, extra_urls=marka_sitemap))
+        f.write(render_sitemap(products, extra_urls=marka_sonuc["sitemap"]))
 
     # merchant-feed.xml  (Google Merchant Center — sadece sabit fiyatli urunler)
     feed_xml, feed_n = render_merchant_feed(products)
@@ -2587,7 +2611,7 @@ def main():
     # surumlenir (KAYNAK index.html degismez). deploy.yml bunu _site/index.html yapar.
     # taban-fiyatlar.js YUKARIDA uretildi -> hash'i artik hesaplanabilir.
     with open(os.path.join(ROOT, "index.built.html"), "w", encoding="utf-8") as f:
-        f.write(yayin_index())
+        f.write(yayin_index(marka_sonuc))
 
     # robots.txt
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:

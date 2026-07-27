@@ -374,6 +374,9 @@
     transition:.15s;
   }
   .brand-btn:hover{border-color:var(--navy-2)}
+  /* Marka çipi <a> varyantı (marka sayfasına link): buton görünümünü korur, link mavisi/altı çizgi yok. */
+  a.brand-link{text-decoration:none;display:inline-block;line-height:1.2;color:var(--navy)}
+  a.brand-link.active{color:#fff}
   .brand-btn.active{
     background:var(--navy);
     color:#fff;
@@ -2025,6 +2028,19 @@
     el.innerHTML = "";
 
     function chip(m){
+      // Marka çipi artık FİLTRE değil, o markanın /marka/<slug>/ sayfasına LİNK'tir (Okan, 27 Tem:
+      // "eski JS-filtre yerine link"). Slug haritası (window.PRUVO_MARKA_SLUG) yalnız YAYIN kopyasına
+      // (index.built.html) build.py'de gömülür ve yalnız SAYFASI OLAN markaları içerir; olmayan marka
+      // ya da "Tümü" eski buton/filtre davranışında kalır (404 link bırakılmaz). SSR: build.py aynı
+      // linkleri #brandChips'e önceden basar (JS-siz curl'de görünür — discovery kök-fix).
+      var slug = (window.PRUVO_MARKA_SLUG || {})[m];
+      if(slug){
+        var a = document.createElement("a");
+        a.className = "brand-btn brand-link" + (m === activeBrand ? " active" : "");
+        a.textContent = m;
+        a.href = "/marka/" + slug + "/";
+        return a;
+      }
       var b = document.createElement("button");
       b.className = "brand-btn" + (m === activeBrand ? " active" : "");
       b.textContent = m;
