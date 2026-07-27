@@ -37,8 +37,10 @@ KENDI NOBETCILERI (kontroller=True iken BLOKLAYICI, yani CI'da fiilen kosar):
   * bulgu1_mutasyon_kontrol() — yalniz-yorum mensiyonu 'kosuluyor' sayilmasin.
   * muaf_sayaci_kontrol()     — rapordaki "Muaf (izin listesi)" sayisi GERCEKTEN izin
     listesini saysin (kapsamsiz dosya o sayiya sizmasin, muafiyet eklenince sayi artsin).
-  * kendini_test_adimi_kontrol() — deploy.yml'de "--kendini-test" ADIMI FIILEN duruyor mu
-    (ZINCIRIN SON HALKASI; olculdu 27 Tem, bkz. fonksiyon docstring'i).
+  * kendini_test_adimi_kontrol() — deploy.yml'de YORUM OLMAYAN bir icra govdesi
+    "--kendini-test" jetonunu tasiyor mu (ZINCIRIN SON HALKASI). IDDIA BILEREK DAR:
+    "metin duruyor" der, "adim kosuyor + blokluyor" DEMEZ; bicim sorulmaz. Gerekcesi
+    ve kapsam disi birakilan 4 sessiz-yesil sinif fonksiyon docstring'inde.
 
 Kullanim:
     python3 tools/ci-kapsam-test.py
@@ -78,13 +80,23 @@ def kesfet():
 def _icra_govdesi(ham_satir):
     """TEK KAYNAK — bir deploy.yml satirini FIILEN kosan komut govdesine indirger.
 
-    Yorum satiri (strip -> '#') ve bos satir ELENIR; 'run:' oneki soyulur. Icra
-    degilse None. _icra_komutlari(), _icra_satir_indeksleri() ve mutant ureticileri
-    HEP bunu kullanir -> repoda iki farkli 'satir icra mi' mantigi TUTULMAZ.
-    Kaba ve fail-closed: YAML ayristiricisi taklit ETMEZ (bkz. mimar-kapi-parser-taklidi)."""
+    Yorum satiri (strip -> '#'), bos satir ve ADIM ADI ('- name:' / 'name:') ELENIR;
+    'run:' oneki soyulur. Icra degilse None. _icra_komutlari(), _icra_satir_indeksleri()
+    ve mutant ureticileri HEP bunu kullanir -> repoda iki farkli 'satir icra mi' mantigi
+    TUTULMAZ. Kaba ve fail-closed: YAML ayristiricisi taklit ETMEZ (bkz.
+    mimar-kapi-parser-taklidi).
+
+    'name:' ELEMESI NEDEN BURADA (28 Tem, curutucu turu): bir step ADI HICBIR ZAMAN icra
+    degildir — T7'nin ('mensiyon kosuluyor sayilmasin') ta kendisidir. Eskiden yalniz
+    yorumlar eleniyordu; 'run:' satiri silinip komut metni step ADINA tasinirsa
+    (`- name: python3 tools/x-test.py`) satir icra govdesi olarak listeye giriyordu.
+    Bu, paylasilan capayi (kosulan() dahil) DOGRU yonde sertlestirir; olculdu: kosulan
+    sayisi ve bulgu1/muaf nobetcileri DEGISMEDI (rapor TUR 3)."""
     s = ham_satir.strip()
     if not s or s.startswith("#"):
         return None  # bos satir ya da YAML yorumu -> icra degil
+    if s.startswith("- name:") or s.startswith("name:"):
+        return None  # step ADI -> icra degil (mensiyon, T7 sinifi)
     if s.startswith("run:"):
         s = s[4:].strip()  # inline 'run: <komut>' ya da blok basi 'run: |'
     return s or None
@@ -561,43 +573,49 @@ def muaf_sayaci_kontrol():
 HEDEF_KAPI = "tools/ci-kapsam-test.py"
 KENDINI_TEST_BAYRAGI = "--kendini-test"
 KENDINI_TEST_TANI = (
-    "deploy.yml'den `python3 tools/ci-kapsam-test.py --kendini-test` adimi kalkmis / "
-    "bayrak dusmus. GERI KOY (mevcut 'CI kapsam kapisi oz-nobetcileri' adimi), ya da "
-    "cagri bicimi bilerek degistiyse bu nobetciyi (kendini_test_adimi_kontrol) guncelle.")
+    "deploy.yml'de YORUM OLMAYAN hicbir icra govdesinde `--kendini-test` jetonu YOK -> "
+    "oz-nobetci adimi kalkmis ya da bayragi dusmus. GERI KOY: 'CI kapsam kapisi "
+    "oz-nobetcileri' adimi, `run: python3 tools/ci-kapsam-test.py --kendini-test` "
+    "(bicim serbest: inline / `run: |` / `>-` / `python3 -u` hepsi gecerli). Bayrak adi "
+    "bilerek degistiyse KENDINI_TEST_BAYRAGI sabitini guncelle.")
 
 
-def _kendini_test_icra_satirlari(deploy_metin, yol=HEDEF_KAPI):
-    """<yol>'u --kendini-test BAYRAGIYLA FIILEN kosan satirlarin indeksleri.
+def _bayrak_jetonu(jeton, bayrak=KENDINI_TEST_BAYRAGI):
+    """Bir komut jetonu BAYRAGIN KENDISI mi (dengeli tirnak soyulur).
 
-    CAPA TEK KAYNAKTAN: 'bu satir icra mi' sorusunu _icra_govdesi(), 'bu govde <yol>'u
-    mu kosuyor' sorusunu _onek_re() cevaplar — DORDUNCU bir eslesme mantigi YAZILMAZ.
-    Buraya eklenen TEK sey, on-ekten SONRA kalan argumanlar arasinda bayragin JETON
-    olarak bulunmasidir. Bunun dogal sonuclari (YANLIS-POZITIF BUTCESI SIFIR icin sart,
-    hepsi fikstur olarak olculdu):
-      * fazla bosluk ('run:   python3   tools/...   --kendini-test') -> _onek_re \\s+ ile
-        gecer, kalan argumanlar split() ile jetonlanir;
-      * 'run: |' blok bicimi -> blok basi ('|') icra govdesi olarak anlamsizdir, komut
-        BIR SONRAKI satirdadir ve _icra_govdesi onu aynen dondurur;
-      * ek bayrak ('--kendini-test --deploy X') -> jeton listesinde aranir, sira/sayi
-        onemsiz; adimin job icinde tasinmasi/sira degisimi -> satir indeksi umursanmaz;
-      * YORUM ya da echo-string mensiyonu -> _icra_govdesi yorumu ELER, echo satiri
-        'python3' ile BASLAMADIGI icin _onek_re eslesmez (T7 sinifi SAYILMAZ).
+    Dengeli tirnak ('"--kendini-test"') mesru kabuk yazimidir -> KABUL. Dengesiz tirnak
+    ('--kendini-test"') ise jetonun bir STRING'in ICINDEN kirpildigini gosterir — tipik
+    ornek `echo "python3 tools/ci-kapsam-test.py --kendini-test"`: son jeton kapanis
+    tirnagi tasir. O bir MENSIYONDUR, icra degil (T7 sinifi) -> RED.
     argparse benzersiz-onek kisaltmasina izin verdigi icin ('--kendini', '--kend' ...)
     bayragin ON-EKI de kabul edilir: mesru bir kisaltma sahte-kirmizi yakmasin."""
-    onek = _onek_re(yol)
-    idx = []
-    for i, ham in enumerate(deploy_metin.splitlines()):
-        g = _icra_govdesi(ham)
-        if not g:
-            continue
-        m = onek.match(g)
-        if not m:
-            continue
-        for jeton in g[m.end():].split():
-            if jeton.startswith("--k") and KENDINI_TEST_BAYRAGI.startswith(jeton):
-                idx.append(i)
-                break
-    return idx
+    t = jeton
+    if len(t) >= 2 and t[0] == t[-1] and t[0] in "\"'":
+        t = t[1:-1]
+    return t.startswith("--k") and bayrak.startswith(t)
+
+
+def _kendini_test_gecen_govdeler(deploy_metin):
+    """`--kendini-test` jetonunu tasiyan YORUM OLMAYAN icra govdeleri.
+
+    IDDIA BILEREK DARDIR (mimar hukmu, TUR 3 — [[mimar-kapi-parser-taklidi]]): soru
+    "adim su BICIMDE mi yazilmis" DEGIL, yalnizca "bu jeton yorum olmayan bir icra
+    govdesinde geciyor mu". Yol/`python3` on-eki ARANMAZ, satirlar arasi iliski
+    KURULMAZ -> bicim tamamen serbest.
+
+    NEDEN DARALDI (olculdu, 3 SAHTE-KIRMIZI): onceki surum `^python3 <yol>` on-ekine
+    capalanmisti ve su UC MESRU bicimi KIRMIZI yakiyordu — `run: >-` katlanan blokta
+    bayragin alt satira dusmesi · `run: |` + kabuk satir devami (`\\`) · `python3 -u
+    tools/...`. Ucunde de adim gozle gorulur sekilde bayragiyla DURUYORDU ve tani
+    YANLIS SINIFI gosteriyordu. Bu kapi deploy.yml'de continue-on-error'SUZ kosar ->
+    sahte-kirmizi TUM ekibin yayinini durdurur ([[kapi-kapsam-eksen-secimi]]); bicim
+    tahmin eden bir capa bu kapida TASINAMAZ bir risktir.
+
+    T7 (mensiyon sayilmasin) artik BICIM TAHMINIYLE degil YAPISAL olarak korunur:
+    yorum satirlarini ve step ADLARINI _icra_govdesi() eler, string icinden kirpilmis
+    jetonu _bayrak_jetonu() eler."""
+    return [g for g in _icra_komutlari(deploy_metin)
+            if any(_bayrak_jetonu(j) for j in g.split())]
 
 
 def kendini_test_adimi_kontrol():
@@ -621,46 +639,39 @@ def kendini_test_adimi_kontrol():
     denetle(..., kontroller=True) icinden cagrilir. (--kendini-test kolunda AYRICA
     raporlanir, ama tek GERCEK kapi bayraksiz kosumdur.)
 
-    IDDIALAR (hepsi GERCEK deploy.yml uzerinden, kopya mantik yok):
-      + POZITIF: en az bir icra satiri <hedef>'i --kendini-test ile kosuyor.
-      + T7 KANARYASI: ayni satirlar YORUMA cevrilince (yorum mutanti) hicbiri
-        sayilmamali -> 'yorum/echo mensiyonu yeter' bypass'i geri gelirse KIRMIZI.
-      + BAYAT-HARNESS (fail-closed): silme mutanti hicbir satir birakmamali.
+    IDDIA (TEK, BILEREK DAR — mimar hukmu TUR 3): GERCEK deploy.yml'de YORUM OLMAYAN
+    en az bir icra govdesi `--kendini-test` jetonunu tasiyor. Bicim SORULMAZ.
 
-    OLCULDU (27 Tem, gecici worktree'de; canli dosyaya mutasyon UYGULANMADI) — 13 senaryo:
-      KIRMIZI olmasi gerekenler: adim silindi -> 1 · bayrak dustu -> 1 · adim silindi ama
-      yorum+echo mensiyonu birakildi -> 1 (T7: mensiyon YETMEZ).
-      YESIL kalmasi gerekenler (YANLIS-POZITIF BUTCESI SIFIR): fazla bosluk · 'run: |' blok
-      bicimi · adim sirasi degisimi · ek bayrak (--deploy X) · adimin job icinde baska
-      konuma tasinmasi · ilgisiz rutin adim/yorum eklenmesi -> 6/6 exit 0.
+    🔴 NE KANITLAR / NE KANITLAMAZ (kapsam bilerek budur, [[kapi-disiplin-ilkesi]]):
+    Bu nobetci "adim KOSUYOR ve BLOKLUYOR" demez — yalnizca "METIN DURUYOR" der.
+    Curutucu (TUR 3) dort SESSIZ-YESIL komsu sinif olctu, dordu de bu kapinin ACIK
+    kalan kapsam disidir ve BILEREK kapatilmamistir:
+      * bu nobetcinin GOVDESI `return True, []` yapilir (ust-harness sorusu —
+        nobetci-mutasyon-test.py sinifi, bu fonksiyonun icinden cozulemez);
+      * adima `if: false` konur;
+      * adima `continue-on-error: true` konur;
+      * komuta `|| true` eklenir.
+    Son ucu deponun 30+ adiminin HEPSI icin gecerlidir (bu nobetcinin gerilemesi
+    DEGIL, ayri ve daha buyuk bir is). Kapatilmalari ayri bir mimar karari.
+
+    OLCULDU (28 Tem TUR 3, gecici worktree'de; canli dosyaya mutasyon UYGULANMADI):
+      KIRMIZI: adim silindi · bayrak dustu · adim yok + yorum/echo mensiyonu ·
+               adim yok + `name:` icinde TAM komut metni  -> 4/4 exit 1.
+      YESIL (yanlis-pozitif butcesi SIFIR): `run: >-` katlanan blok (bayrak alt satirda) ·
+               `run: |` + kabuk satir devami (`\\`) · `python3 -u ...` · fazla bosluk ·
+               `run: |` blok · adim sirasi · ek bayrak (--deploy X) · adimin baska konuma
+               tasinmasi · ilgisiz rutin adim/yorum  -> 9/9 exit 0.
+      Ilk uc yesil, TUR 2'nin on-ek capasinda SAHTE-KIRMIZI yaniyordu — daraltmanin sebebi.
       Kablolama kaniti: bu nobetcinin denetle() icindeki CAGRISI silinip adim da silinince
       bayraksiz kosum 0 verir -> kirmiziyi ureten sey gercekten bu cagridir.
-      ACIK KALAN SINIF (bilerek): nobetcinin GOVDESI no-op'a ('return True, []') cevrilirse
-      temiz repoda kimse yanmaz — bu, kapinin kendi govdesini koruyan bir ust-harness
-      sorusudur (nobetci-mutasyon-test.py sinifi), bu fonksiyonun cozebilecegi bir sey degil.
     (ok, hata_satirlari) dondurur."""
     if not os.path.exists(DEPLOY_VARSAYILAN):
         return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
     with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
         gercek = f.read()
-
-    bayrakli = _kendini_test_icra_satirlari(gercek)
-    if not bayrakli:
+    if not _kendini_test_gecen_govdeler(gercek):
         return False, [KENDINI_TEST_TANI]
-
-    hata = []
-    # T7: ayni satirlar yorum olsaydi SAYILMAMALIYDI (capa gercek icra baglamina bagli mi).
-    yorum_mutant, _ = _yorum_mutanti(gercek, HEDEF_KAPI)
-    if _kendini_test_icra_satirlari(yorum_mutant):
-        hata.append("T7 YORUM-BYPASS: icra satirlari '# python3 ...' yorumuna cevrilince "
-                    "bile --kendini-test adimi 'duruyor' sayildi -> capa icra baglamini "
-                    "kaybetmis (yorum satirlari _icra_govdesi'nde elenmeli)")
-    # Fail-closed: silme mutantinda hedefi kosan satir kalmamali (harness bayatlamasin).
-    silme_mutant, _ = _silme_mutanti(gercek, HEDEF_KAPI)
-    if _kendini_test_icra_satirlari(silme_mutant):
-        hata.append("HARNESS BAYAT: silme mutantinda --kendini-test adimi hala sayiliyor "
-                    "-> mutasyon capasi cok dar, bu nobetciyi guncelle")
-    return (not hata), hata
+    return True, []
 
 
 # ---- SAF DENETIM GOVDESI ---------------------------------------------------
@@ -782,7 +793,9 @@ def main():
         ok3, hata3 = kendini_test_adimi_kontrol()
         print("OZ-NOBETCI ADIMI NOBETCISI")
         if ok3:
-            print("  ✅ deploy.yml `%s --kendini-test` adimini FIILEN kosuyor" % HEDEF_KAPI)
+            print("  ✅ deploy.yml'de yorum-olmayan bir icra govdesi `%s` jetonunu tasiyor "
+                  "(bicim serbest; 'kosuyor+blokluyor' IDDIA EDILMEZ)"
+                  % KENDINI_TEST_BAYRAGI)
         else:
             for h in hata3:
                 print("  ❌ " + h)
