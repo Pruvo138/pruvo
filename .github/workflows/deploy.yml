@@ -332,6 +332,8 @@ jobs:
         run: python3 tools/edge-flip-hazirlik-test.py
 
       # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
+      # (Bu blok ile alttaki YEDEK TAZELIK blogu BAGIMSIZ iki hunk'tir; merge cakismasinda
+      # ikisi de KORUNUR — biri digerinin yerine gecmez.)
       # O betik eskiden uctan uca RTT'yi butceyle karsilastiriyordu: Fethiye→Cloudflare ag
       # gecikmesi tek basina 300 ms'i asabildigi icin SAGLIKLI sistemde KIRMIZI yaniyordu,
       # simetrigi de vardi (hizli agda yavas Worker YESIL). Karar artik yalniz worker-ici
@@ -345,6 +347,46 @@ jobs:
       # (setup-node yukarida bloklayici on-kosul; node yoksa FAIL-CLOSED exit 1). ~23 s.
       - name: Faz3 gecikme nobetcisi (RTT degil worker-ici sure ile karar)
         run: python3 tools/faz3-gecikme-test.py
+
+      # YEDEK TAZELIK PANOSU (durum.py bolum 7): yedegin kendisi degil, YEDEGIN SESSIZCE
+      # DURMASI oldurucu — pano bayatligi/atlanmis kosumu/asili kilidi GORUNUR kilan tek
+      # kanaldir (pre-push yedek ciktisini /dev/null'a yutar). Testin iddiasi "pano yalan
+      # soylemiyor mu": bayat/kismi/gelecek-tarihli/atlanmis/asili-kilit hallerinde "taze"
+      # DEMEMELI, kapsanmis atlamada da bosuna uyarmamali (gurultulu pano = olu pano).
+      # HERMETIK: tempdir fiksturleri + sentetik damga; Drive/ag GEREKMEZ, dosya YAZMAZ.
+      # Kontrol SAYISI ve sure betigin KENDI ciktisindadir — buraya SABIT SAYI YAZILMAZ.
+      # Gerekce: yoruma gomulu sayi bir VERI CAPASIDIR, her yeni nobetciyle sessizce
+      # bayatlar ve okuyani yaniltir (bu yorumun onceki surumunde tam bu oldu: yazili
+      # kontrol sayisi ve sure ikisi de gercekle uyusmuyordu). Bloklayici,
+      # continue-on-error YOK.
+      #
+      # ⚠️ SUREYI/RC'YI OLCERKEN: bu betik bolum 9'da KENDINI `ps`siz bir PATH ile
+      # YENIDEN CAGIRIR (alt kosum, `--ps-yok-alt-kosum`). Alt kosumun ciktisi ve suresi
+      # BU ADIMIN DEGILDIR — alt kosum bolum 9'u atlar, yani kapinin kirmizisini yakan
+      # kontrolleri de atlar. Bu hat iki ayri turda tam bu yuzden YANLIS olctu (bir kez
+      # rc, bir kez sure). Olcum DAIMA yukaridaki `run:` satirinin BIREBIR komutuyla,
+      # bayraksiz yapilir; olculdu: ana kosum ~2x alt kosum suresi.
+      #
+      # ORTAM BAGIMLILIKLARI — IKI EKSEN, ikisi de GORUNUR ⚪ OLCULEMEDI verir ve
+      # cikis kodunu BOZMAZ; sessiz yesile de cevrilmez (ozet eksen bazinda sayar:
+      # "PS EKSEN OLCULEMEDI / KAYNAK EKSEN OLCULEMEDI / EKSENSIZ OLCULEMEDI").
+      #   (1) `ps` (procps) — pid KIMLIK dogrulamasi onunla olculur. UC HAL ayrilir:
+      #       PATH'te YOK      -> ⚪ OLCULEMEDI, deploy BLOKLANMAZ (olculdu: rc 0),
+      #       VAR ama BOZUK    -> KIRMIZI, fail-closed (cop/bos/rc!=0/asili/GNU-sirali
+      #                           `ps` fiksturlerinin 5'i de rc 1; olculdu),
+      #       VAR ve calisiyor -> kontroller NORMAL, bloklayici.
+      #   (2) YEDEKLENECEK KAYNAK KUMESI (~/.claude/{projects/*/memory,skills} + repo
+      #       kokundeki 4 beklenen dosya) — K5 canli-imza olcumunun GERCEK ucu buna
+      #       baglidir. CI fresh checkout'unda HOME BOS ve o 4 dosya gitignore'lu
+      #       (izlenen DEGIL) -> kaynak kumesi YOKTUR, o iki kontrol ⚪ olur.
+      # Gerekce (ikisi icin de): bloklayici bir kapinin dis bagimlilik/ortam yoklugunda
+      # TUM SITE YAYININI durdurmasi bu depoda YASANMIS bir ariza sinifidir
+      # ([[kapi-kapsam-eksen-secimi]]) — ve bu adimda iki kez daha yasandi: `ps`siz
+      # makinede rc 1, sonra CI taklidinde kaynak kumesi yoklugundan rc 1.
+      # EKSEN AYRIMI SART: "ps VARKEN ⚪ 0" nobetcisi TOPLAM ⚪'ya bakarsa alakasiz bir
+      # eksenin ⚪'si onu kirmiziya cevirir (CI taklidinde olculdu).
+      - name: Yedek tazelik panosu kabul testi (durum.py bolum 7 — sessiz-hata nobeti)
+        run: python3 tools/durum-yedek-test.py
 
       # WA PREFILL KAPISI: urun sayfasindaki BAGLAM-KOR olmamasi gereken iki WhatsApp
       # linki (organik "Bizimle Iletisime Gecin" help-cta-btn + mühendislik malzeme notu)
