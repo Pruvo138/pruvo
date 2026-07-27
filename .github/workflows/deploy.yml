@@ -332,6 +332,8 @@ jobs:
         run: python3 tools/edge-flip-hazirlik-test.py
 
       # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
+      # (Bu blok ile alttaki YEDEK TAZELIK blogu BAGIMSIZ iki hunk'tir; merge cakismasinda
+      # ikisi de KORUNUR — biri digerinin yerine gecmez.)
       # O betik eskiden uctan uca RTT'yi butceyle karsilastiriyordu: Fethiye→Cloudflare ag
       # gecikmesi tek basina 300 ms'i asabildigi icin SAGLIKLI sistemde KIRMIZI yaniyordu,
       # simetrigi de vardi (hizli agda yavas Worker YESIL). Karar artik yalniz worker-ici
@@ -345,6 +347,56 @@ jobs:
       # (setup-node yukarida bloklayici on-kosul; node yoksa FAIL-CLOSED exit 1). ~23 s.
       - name: Faz3 gecikme nobetcisi (RTT degil worker-ici sure ile karar)
         run: python3 tools/faz3-gecikme-test.py
+
+      # YEDEK TAZELIK PANOSU (durum.py bolum 7): yedegin kendisi degil, YEDEGIN SESSIZCE
+      # DURMASI oldurucu — pano bayatligi/atlanmis kosumu/asili kilidi GORUNUR kilan tek
+      # kanaldir (pre-push yedek ciktisini /dev/null'a yutar). Testin iddiasi "pano yalan
+      # soylemiyor mu": bayat/kismi/gelecek-tarihli/atlanmis/asili-kilit hallerinde "taze"
+      # DEMEMELI, kapsanmis atlamada da bosuna uyarmamali (gurultulu pano = olu pano).
+      # Fiksturler tempdir + sentetik damga uzerinde kosar; Drive/ag GEREKMEZ ve betik
+      # DOSYA YAZMAZ. "Hermetik" DEMIYORUZ: kontrollerin bir kismi makinenin ORTAMINI
+      # (asagidaki eksenler) sorgular, o yuzden kontrol sayisi makineden makineye
+      # DEGISIR — sayiyi buraya YAZMA, betigin KENDI ozetinden oku.
+      # Kontrol SAYISI ve sure betigin KENDI ciktisindadir — buraya SABIT SAYI YAZILMAZ.
+      # Gerekce: yoruma gomulu sayi bir VERI CAPASIDIR, her yeni nobetciyle sessizce
+      # bayatlar ve okuyani yaniltir — bu yorumun onceki surumlerinde tekrar tekrar
+      # oldu (kontrol sayisi, sure, eksen sayisi). Bloklayici, continue-on-error YOK.
+      #
+      # ⚠️ SUREYI/RC'YI OLCERKEN: bu betik bolum 9'da KENDINI `ps`siz bir PATH ile
+      # YENIDEN CAGIRIR (alt kosum, `--ps-yok-alt-kosum`). Alt kosumun ciktisi ve suresi
+      # BU ADIMIN DEGILDIR — alt kosum bolum 9'u atlar, yani kapinin kirmizisini yakan
+      # kontrolleri de atlar (bu yuzden ana kosum alt kosumdan HEP UZUN surer). Bu hat
+      # iki ayri turda tam bu yuzden YANLIS olctu (bir kez rc, bir kez sure). Olcum
+      # DAIMA yukaridaki `run:` satirinin BIREBIR komutuyla, bayraksiz yapilir.
+      #
+      # ORTAM BAGIMLILIKLARI: dis binary / kaynak kumesi yoklugu GORUNUR ⚪ OLCULEMEDI
+      # verir ve cikis kodunu BOZMAZ; sessiz yesile de cevrilmez. EKSENLERIN SAYISINI
+      # BURAYA YAZMA — betigin ozeti her ekseni AYRI satirda kendisi sayar ("PS/GIT/
+      # KAYNAK/FIKSTUR EKSEN OLCULEMEDI") ve ilan edilmemis her ⚪'yi "EKSENSIZ
+      # OLCULEMEDI" ile yakalar. Her ⚪ satiri hangi eksende oldugunu kendi basar.
+      #   - `ps` (procps) — pid KIMLIK dogrulamasi onunla olculur.
+      #   - `git` — ANA calisma agaci cozumu onunla yapilir (yoksa kok WORKTREE'ye duser).
+      #   Ikisi de UC HALLI: PATH'te YOK -> ⚪, deploy BLOKLANMAZ · VAR ama BOZUK ->
+      #   KIRMIZI, fail-closed (bozuk bagimlilik eksik bagimliliktan farklidir) ·
+      #   VAR ve calisiyor -> kontroller NORMAL, bloklayici.
+      #   - YEDEKLENECEK KAYNAK KUMESI (~/.claude/{projects/*/memory,skills} + repo
+      #     kokundeki beklenen dosyalar) — K5 canli-imza olcumunun GERCEK ucu buna
+      #     baglidir. CI fresh checkout'unda HOME BOS ve o dosyalar gitignore'lu
+      #     (izlenen DEGIL) -> kaynak kumesi YOKTUR, o kontroller ⚪ olur.
+      # Gerekce (hepsi icin): bloklayici bir kapinin dis bagimlilik/ortam yoklugunda
+      # TUM SITE YAYININI durdurmasi bu depoda YASANMIS bir ariza sinifidir
+      # ([[kapi-kapsam-eksen-secimi]]) — bu adimda tekrar tekrar yasandi: `ps`siz
+      # makinede rc 1, CI taklidinde kaynak kumesi yoklugundan rc 1, `git`siz makinede
+      # rc 1 + yakalanmamis FileNotFoundError.
+      # EKSEN AYRIMI SART: "ps VARKEN ⚪ 0" nobetcisi TOPLAM ⚪'ya bakarsa alakasiz bir
+      # eksenin ⚪'si onu kirmiziya cevirir (CI taklidinde olculdu).
+      # 🔴 NOBETCIYI, KORUDUGU KOSULUN ICINE KOYMA: kimlik nobetleri ve gitsiz-pano
+      # nobeti SENTETIK PATH fiksturuyle kosar (ozet "BAGIMSIZ NOBET" diye sayar),
+      # yani makinede `ps`/`git` olsa da olmasa da AYNI olcumu yapar. Onceki surumde
+      # nobetcinin kendisi `ps`e bagliydi ve `ps`siz makinede iki gercek mutant sessiz
+      # YESIL geciyordu (olculdu).
+      - name: Yedek tazelik panosu kabul testi (durum.py bolum 7 — sessiz-hata nobeti)
+        run: python3 tools/durum-yedek-test.py
 
       # WA PREFILL KAPISI: urun sayfasindaki BAGLAM-KOR olmamasi gereken iki WhatsApp
       # linki (organik "Bizimle Iletisime Gecin" help-cta-btn + mühendislik malzeme notu)
