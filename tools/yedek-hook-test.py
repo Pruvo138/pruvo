@@ -12,14 +12,12 @@ Ikisinin de kaniti asagida; (A) icin Drive'i ERISILEMEZ yapan gercek bir mutasyo
 
 Kosum:  python3 tools/yedek-hook-test.py
 """
-import fcntl
 import importlib.util
 import os
 import shutil
 import subprocess
 import sys
 import tempfile
-import time
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 KUR = os.path.join(TOOLS, "yedek-hook-kur.py")
@@ -140,39 +138,6 @@ def main():
                 r.stdout.strip()[:90])
         kontrol("damga yazildi (yedek gercekten kosdu)",
                 os.path.isfile(os.path.join(td, "drive", "Pruvo", "backup", ".son-yedek.json")))
-
-    # ---------------- 5b) KILIT DOLUYKEN PUSH YOLU (fail-open) ----------------
-    # 26 Tem: yedekle.py artik flock aliyor. Kilit baska bir kosumdaysa bu kosum
-    # ATLAR — ama push'u ASLA bloklamamali ve "yedek alinamadi" diye HATA da
-    # basmamali (atlama bir hata degil; isi zaten oteki kosum yapiyor).
-    print("\n5b) KILIT DOLU — push yolu YINE exit 0, hata gurultusu YOK")
-    with tempfile.TemporaryDirectory() as td:
-        kok = sahte_repo(td, drive_erisilebilir=True)
-        kilit = open(os.path.join(kok, ".yedek.lock"), "a+")
-        fcntl.flock(kilit, fcntl.LOCK_EX)
-        kilit.write("pid=999999 baslangic=%.3f iso=TEST\n" % time.time())
-        kilit.flush()
-        r = hook_kos(kok, blok_hook)
-        kontrol("kilit doluyken hook exit 0 (PUSH DURMAZ)", r.returncode == 0,
-                "rc=%d %s" % (r.returncode, r.stderr.strip()[:100]))
-        kontrol("hata uyarisi BASILMADI (atlama hata degil)",
-                "YEDEK alinamadi" not in r.stdout, r.stdout.strip()[:90])
-        # Hook ciktisi yutuyor (>/dev/null) -> atlamayi dogrudan betikten dogrula
-        d = subprocess.run([sys.executable, os.path.join(kok, "tools", "yedekle.py"),
-                            "--gerekliyse"], capture_output=True, text=True, cwd=kok)
-        kontrol("ayni kosum tek basina da ATLIYOR + exit 0",
-                d.returncode == 0 and "yedek ATLANDI" in d.stdout,
-                "rc=%d %s" % (d.returncode, d.stdout.strip().splitlines()[0][:70]
-                              if d.stdout.strip() else ""))
-        kontrol("ATLANAN kosum hedefe yedek YAZMADI", "bitti ->" not in d.stdout)
-        fcntl.flock(kilit, fcntl.LOCK_UN)
-        kilit.close()
-        # kilit birakilinca ayni hook normal calisir (regresyon)
-        r2 = hook_kos(kok, blok_hook)
-        kontrol("kilit birakilinca hook yine exit 0 + yedek alindi",
-                r2.returncode == 0 and os.path.isfile(
-                    os.path.join(td, "drive", "Pruvo", "backup", ".son-yedek.json")),
-                "rc=%d" % r2.returncode)
 
     # ---------------- 5) BLOK ICINDE 'exit' OLMAMALI ----------------
     print("\n5) YAPISAL — blok push'u kesecek 'exit' ICERMEMELI")

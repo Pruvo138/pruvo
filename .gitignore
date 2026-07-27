@@ -281,8 +281,6 @@ tools/URUN-EKLEME-REHBERI.md
 .devam.lock
 # parity-sequential-flock.py parti mutex'i (yerel kilit dosyasi; kardesleri yukarida)
 .parity-batch.lock
-# yedekle.py eszamanlilik kilidi (her push'ta pre-push hook cagirir; yerel, 0 bayt)
-.yedek.lock
 # urunler.json guard katmani: duzeltme/silme izni manifestleri + guard log (asla commit'lenmez)
 .urunler-duzelt-izin.json
 .urunler-sil-izin.json
