@@ -283,6 +283,47 @@ def main():
         BILGI.append("SSR çip: %d marka linki (JS-siz), sayfasız çip: %d"
                      % (len(chip_hrefs), len(sonuc["sayfasiz_cipler"])))
 
+        # ===== 8: KART MARKA-LINT (temizleme sonrası) — baskı-jargonu 0, over-clean YOK =====
+        # Kart title/desc = KATALOG metni; sanitize (mm._kart_temizle) baskı-jargonunu okunur
+        # karşılığa çevirir, mekanik anlamı (baskı plakası/basma butonu/baskı altında) KORUR.
+        # Bağımsız doğrulama: üretilen TÜM /marka/ kartlarını tarar; temizleyici baypaslanırsa
+        # jargon görünür -> KIRMIZI (sabotaj nöbeti, tautoloji değil — çıktıyı tarar).
+        card_re = re.compile(r'<div class="card-(?:title|desc)">(.*?)</div>', re.S)
+        toplam_jargon = 0
+        jargon_ornek = []
+        tarama_korundu = plaka_korundu = buton_korundu = 0
+        kart_sayisi = 0
+        for dp, _d, fs in os.walk(os.path.join(tmp, "marka")):
+            for fn in fs:
+                if fn != "index.html":
+                    continue
+                with open(os.path.join(dp, fn), encoding="utf-8") as f:
+                    b = f.read()
+                for cm in card_re.finditer(b):
+                    kart_sayisi += 1
+                    txt = html.unescape(cm.group(1))
+                    ihl = mm.kart_lint_ihlaller(txt)
+                    if ihl:
+                        toplam_jargon += len(ihl)
+                        if len(jargon_ornek) < 6:
+                            jargon_ornek.append((ihl, txt[:70]))
+                    low = txt.lower()
+                    if re.search(r"3\s*d\s*tara", low):
+                        tarama_korundu += 1
+                    if re.search(r"bask[ıi]\w*\s+plaka", low):
+                        plaka_korundu += 1
+                    if re.search(r"basma\s+buton|basmal[ıi]\s+düğme", low):
+                        buton_korundu += 1
+        bekle(toplam_jargon == 0,
+              "kartlarda baskı-jargonu %d (temizleyici baypas?): %s" % (toplam_jargon, jargon_ornek))
+        # OVER-CLEAN NÖBETİ: meşru mekanik/tarama terimleri KORUNMALI (aşırı-temizleme yok).
+        bekle(tarama_korundu > 0, "'3D Tarama' hiçbir kartta yok — aşırı-temizlenmiş olabilir")
+        bekle(plaka_korundu > 0, "'baskı plakası' (pressure plate) korunmadı — aşırı-temizleme")
+        bekle(buton_korundu > 0, "'basma butonu/basmalı düğme' (push button) korunmadı — aşırı-temizleme")
+        BILGI.append("kart marka-lint: %d kart tarandı, baskı-jargonu=%d · korundu: 3D-Tarama %d / "
+                     "baskı-plakası %d / basma-butonu %d"
+                     % (kart_sayisi, toplam_jargon, tarama_korundu, plaka_korundu, buton_korundu))
+
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

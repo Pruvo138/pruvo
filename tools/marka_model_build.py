@@ -407,6 +407,117 @@ def _ld(obj):
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
+# ---- KART-ÖZEL marka-kuralı temizleyicisi (CLAUDE.md "3D BASKI DENMEZ") ----
+# YALNIZ kartta (baslik+aciklama) çağrılır -> Merchant feed + /urun/ sayfası BYTE aynı kalır
+# (build.py marka_temiz / render_merchant_feed / render_product DEĞİŞMEZ). Baskı-JARGONUNU temizler;
+# "baskı"nın MEKANİK anlamlarını (baskı plakası=debriyaj, baskı altında=basınç, rulman baskısı=press,
+# basma butonu/basmalı düğme=buton, baskıyla oturt=press-fit) KORUR (over-clean YOK). "3D Tarama",
+# "3D model", "Sprinter"/"sprint" (print alt-dizesi) DOKUNULMAZ (root eşleşmez).
+_KART_KORU = [re.compile(p, re.I) for p in (
+    r"bask[ıi]\w*\s+plaka\w*",       # baskı plakası (debriyaj — pressure plate)
+    r"bask[ıi]\w*\s+merkez\w*",      # (volan/)baskı merkezi (pressure center)
+    r"bask[ıi]\w*\s+alt[ıi]\w*",     # baskı altında (basınç altında)
+    r"rulman\w*\s+bask[ıi]\w*",      # rulman baskısı (bearing press aleti)
+    r"bask[ıi]yla\s+otur\w*",        # baskıyla oturtularak (press-fit montaj)
+    r"basmal[ıi]\s+düğme\w*",        # basmalı düğme (push button)
+    r"basma\s+buton\w*",             # basma butonu (push button)
+    r"basma\s+hiss\w*",              # (sağlam) basma hissi (buton hissi)
+)]
+# 3D bileşik + desteksiz/destekli/masaüstü baskı -> okunur karşılık (marka_temiz mantığı).
+_KART_BILESIK = [
+    (re.compile(r"3\s*[dD]\s*[-\s]?bask[ıi]\w*", re.I), "özel tasarım üretim"),
+    (re.compile(r"3\s*boyutlu\s+bask[ıi]\w*", re.I), "özel tasarım üretim"),
+    (re.compile(r"3\s*[dD]\s*print\w*", re.I), "özel tasarım üretim"),
+    (re.compile(r"3\s*[dD]\s*yaz[ıi]c[ıi]\w*", re.I), "özel üretim"),
+    (re.compile(r"(desteksiz|destekli)\s+bask[ıi]\w*", re.I), r"\1 üretim"),
+    (re.compile(r"masa\s*[üu]st[üu]\s+bask[ıi]\w*", re.I), "özel üretim"),
+]
+# Tekil kelime formları (mekanik maskelendi -> kalan baskı/basıl/basma PRINTING). Türkçe ek uyumu
+# için ENUMERE edilmiş doğal karşılık; şemada yoksa kök-bazlı yedek (0-jargon garanti).
+_KART_KELIME = {
+    "baskı": "üretim", "baskıya": "üretime", "baskıyla": "üretimle", "baskıdan": "üretimden",
+    "baskıda": "üretimde", "baskısı": "üretimi", "baskıyı": "üretimi", "baski": "üretim",
+    "baskılı": "özel üretim",
+    "basılması": "üretilmesi", "basılıp": "üretilip", "basılır": "üretilir",
+    "basıldığında": "üretildiğinde", "basılabilir": "üretilebilir", "basılmasını": "üretilmesini",
+    "basılan": "üretilen", "basılmaya": "üretilmeye", "basılarak": "üretilerek",
+    "basılmış": "üretilmiş", "basılabilen": "üretilebilen", "basıldıktan": "üretildikten",
+    "basılmasına": "üretilmesine",
+    "basma": "üretme", "basmayı": "üretmeyi", "basmasına": "üretilmesine",
+    "basmak": "üretmek", "basmalarına": "üretilmelerine", "basmalı": "özel üretim",
+    "filament": "malzeme", "filamentle": "malzemeyle", "filamentte": "malzemede",
+    "filamentlerle": "malzemelerle", "filamentlerde": "malzemelerde",
+    "yazıcı": "özel üretim", "yazıcılarda": "özel üretimlerde", "yazıcıların": "özel üretimlerin",
+    "yazıcıya": "özel üretime", "yazıcıda": "özel üretimde",
+    "yazdırmaya": "üretime", "yazdırma": "üretim", "yazdırılan": "üretilen",
+}
+_KART_ROOT_RE = re.compile(
+    r"\b(?:bask[ıi]|bas[ıi]l|basma|basmak|filament|yaz[ıi]c[ıi]|yazd[ıi]r)\w*", re.I)
+# LINT (test tüketir): mekanik maskelendikten SONRA kalan PRINTING kökü. 'print' YALNIZ '3d print'
+# (bare print YOK -> Sprinter/sprint güvenli). 3D Tarama/model kök taşımaz -> yakalanmaz.
+_KART_LINT_RE = re.compile(
+    r"\b(?:bask[ıi]|bas[ıi]l|basma|basmak|filament|yaz[ıi]c[ıi]|yazd[ıi]r)\w*", re.I)
+
+
+def _kart_root_rep(m):
+    w = m.group(0)
+    dl = _kart_kelime_yardim(w.lower())
+    # kapitalizasyonu koru (cümle başı 'Baskı' -> 'Üretim')
+    if w[:1].isupper():
+        dl = dl[:1].upper() + dl[1:]
+    return dl
+
+
+def _kart_kelime_yardim(w):
+    if w in _KART_KELIME:
+        return _KART_KELIME[w]
+    if w.startswith("filament"):
+        return "malzeme"
+    if w.startswith("bask"):
+        return "üretim"
+    if w.startswith("bas") and ("basıl" in w or "basil" in w):
+        return "üretilen"
+    if w.startswith("basma") or w == "basmak":
+        return "üretme"
+    if w.startswith("yazıc") or w.startswith("yazic"):
+        return "özel üretim"
+    if w.startswith("yazdır") or w.startswith("yazdir"):
+        return "üretim"
+    return w
+
+
+def _kart_temizle(txt):
+    """Kart başlık/açıklamasındaki baskı-jargonunu temizle (mekanik anlamları KORUYARAK)."""
+    if not txt:
+        return txt
+    if not (_KART_ROOT_RE.search(txt) or re.search(r"3\s*[dD]\s*(?:bask|print|yaz)", txt)):
+        return txt                                   # hızlı yol: jargon yok
+    masks = []
+
+    def _mask(m):
+        masks.append(m.group(0))
+        return "\x00%dM\x00" % (len(masks) - 1)
+
+    for pat in _KART_KORU:                           # 1) mekanik kolokasyonları maskele
+        txt = pat.sub(_mask, txt)
+    for pat, rep in _KART_BILESIK:                   # 2) 3D bileşik + desteksiz/masaüstü
+        txt = pat.sub(rep, txt)
+    txt = _KART_ROOT_RE.sub(_kart_root_rep, txt)     # 3) tekil kelime formları
+    for i, o in enumerate(masks):                    # 4) maskeleri geri koy
+        txt = txt.replace("\x00%dM\x00" % i, o)
+    return txt
+
+
+def kart_lint_ihlaller(txt):
+    """Kart metninde (temizleme SONRASI) kalan baskı-jargonu kökleri — mekanik anlamlar maskeli
+    (over-clean değil). Boş liste = temiz. Test bunu üretilen kart-metnine uygular (bağımsız
+    doğrulama; temizleyici baypaslanırsa kökler görünür -> KIRMIZI)."""
+    s = txt or ""
+    for pat in _KART_KORU:
+        s = pat.sub(" ", s)
+    return _KART_LINT_RE.findall(s)
+
+
 def _placeholder(txt):
     """index.html placeholder() portu — görselsiz/kırık görsel yerine SVG (kataloğla aynı)."""
     return ('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300">'
@@ -444,9 +555,11 @@ def _kart(ctx, p):
     (card-cat/card-title/card-desc/card-price) + parametrikse card-badge."""
     esc = ctx["esc"]
     pid = p.get("id")
-    baslik = (p.get("baslik") or "").strip() or pid
+    # KART-ÖZEL marka-kuralı temizliği (baskı-jargonu -> okunur karşılık; mekanik anlam korunur).
+    # YALNIZ kartta; feed/urun DEĞİŞMEZ. Sanitize ÖNCE, truncate SONRA (kesim ortada bozmasın).
+    baslik = _kart_temizle((p.get("baslik") or "").strip()) or pid
     kategori = (p.get("kategori") or "").strip()
-    aciklama = re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip()
+    aciklama = _kart_temizle(re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip())
     if len(aciklama) > 160:                    # 2 satır clamp'e denk; kart-özeti (ozet.json) ile aynı
         aciklama = aciklama[:160].rsplit(" ", 1)[0]
     imgs = ctx["images_of"](p)
