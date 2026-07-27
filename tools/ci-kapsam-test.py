@@ -181,6 +181,7 @@ IZIN_LISTESI = {
     "onizleme/test/eslem-olcum.py": R_AYRI,
     "onizleme/test/kabul.js": R_AYRI,
     "onizleme/test/kapi1.js": R_AYRI,
+    "onizleme/test/duman_toka_kabul.py": R_AYRI,  # onizleme ayri deploy hedefi (onizleme-imaj.yml + wrangler); duman adimi statik kabul testi (toka govdesi), ana site deploy.yml'e ait degil — KaaN, Okan onayli 27 Tem
     "jenerator/test/birlestir.py": R_AYRI,
     "jenerator/test/dogrula.py": R_AYRI,
     "jenerator/test/fiyat-tablosu-uret.py": R_AYRI,
