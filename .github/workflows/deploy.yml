@@ -353,38 +353,48 @@ jobs:
       # kanaldir (pre-push yedek ciktisini /dev/null'a yutar). Testin iddiasi "pano yalan
       # soylemiyor mu": bayat/kismi/gelecek-tarihli/atlanmis/asili-kilit hallerinde "taze"
       # DEMEMELI, kapsanmis atlamada da bosuna uyarmamali (gurultulu pano = olu pano).
-      # HERMETIK: tempdir fiksturleri + sentetik damga; Drive/ag GEREKMEZ, dosya YAZMAZ.
+      # Fiksturler tempdir + sentetik damga uzerinde kosar; Drive/ag GEREKMEZ ve betik
+      # DOSYA YAZMAZ. "Hermetik" DEMIYORUZ: kontrollerin bir kismi makinenin ORTAMINI
+      # (asagidaki eksenler) sorgular, o yuzden kontrol sayisi makineden makineye
+      # DEGISIR — sayiyi buraya YAZMA, betigin KENDI ozetinden oku.
       # Kontrol SAYISI ve sure betigin KENDI ciktisindadir — buraya SABIT SAYI YAZILMAZ.
       # Gerekce: yoruma gomulu sayi bir VERI CAPASIDIR, her yeni nobetciyle sessizce
-      # bayatlar ve okuyani yaniltir (bu yorumun onceki surumunde tam bu oldu: yazili
-      # kontrol sayisi ve sure ikisi de gercekle uyusmuyordu). Bloklayici,
-      # continue-on-error YOK.
+      # bayatlar ve okuyani yaniltir — bu yorumun onceki surumlerinde tekrar tekrar
+      # oldu (kontrol sayisi, sure, eksen sayisi). Bloklayici, continue-on-error YOK.
       #
       # ⚠️ SUREYI/RC'YI OLCERKEN: bu betik bolum 9'da KENDINI `ps`siz bir PATH ile
       # YENIDEN CAGIRIR (alt kosum, `--ps-yok-alt-kosum`). Alt kosumun ciktisi ve suresi
       # BU ADIMIN DEGILDIR — alt kosum bolum 9'u atlar, yani kapinin kirmizisini yakan
-      # kontrolleri de atlar. Bu hat iki ayri turda tam bu yuzden YANLIS olctu (bir kez
-      # rc, bir kez sure). Olcum DAIMA yukaridaki `run:` satirinin BIREBIR komutuyla,
-      # bayraksiz yapilir; olculdu: ana kosum ~2x alt kosum suresi.
+      # kontrolleri de atlar (bu yuzden ana kosum alt kosumdan HEP UZUN surer). Bu hat
+      # iki ayri turda tam bu yuzden YANLIS olctu (bir kez rc, bir kez sure). Olcum
+      # DAIMA yukaridaki `run:` satirinin BIREBIR komutuyla, bayraksiz yapilir.
       #
-      # ORTAM BAGIMLILIKLARI — IKI EKSEN, ikisi de GORUNUR ⚪ OLCULEMEDI verir ve
-      # cikis kodunu BOZMAZ; sessiz yesile de cevrilmez (ozet eksen bazinda sayar:
-      # "PS EKSEN OLCULEMEDI / KAYNAK EKSEN OLCULEMEDI / EKSENSIZ OLCULEMEDI").
-      #   (1) `ps` (procps) — pid KIMLIK dogrulamasi onunla olculur. UC HAL ayrilir:
-      #       PATH'te YOK      -> ⚪ OLCULEMEDI, deploy BLOKLANMAZ (olculdu: rc 0),
-      #       VAR ama BOZUK    -> KIRMIZI, fail-closed (cop/bos/rc!=0/asili/GNU-sirali
-      #                           `ps` fiksturlerinin 5'i de rc 1; olculdu),
-      #       VAR ve calisiyor -> kontroller NORMAL, bloklayici.
-      #   (2) YEDEKLENECEK KAYNAK KUMESI (~/.claude/{projects/*/memory,skills} + repo
-      #       kokundeki 4 beklenen dosya) — K5 canli-imza olcumunun GERCEK ucu buna
-      #       baglidir. CI fresh checkout'unda HOME BOS ve o 4 dosya gitignore'lu
-      #       (izlenen DEGIL) -> kaynak kumesi YOKTUR, o iki kontrol ⚪ olur.
-      # Gerekce (ikisi icin de): bloklayici bir kapinin dis bagimlilik/ortam yoklugunda
+      # ORTAM BAGIMLILIKLARI: dis binary / kaynak kumesi yoklugu GORUNUR ⚪ OLCULEMEDI
+      # verir ve cikis kodunu BOZMAZ; sessiz yesile de cevrilmez. EKSENLERIN SAYISINI
+      # BURAYA YAZMA — betigin ozeti her ekseni AYRI satirda kendisi sayar ("PS/GIT/
+      # KAYNAK/FIKSTUR EKSEN OLCULEMEDI") ve ilan edilmemis her ⚪'yi "EKSENSIZ
+      # OLCULEMEDI" ile yakalar. Her ⚪ satiri hangi eksende oldugunu kendi basar.
+      #   - `ps` (procps) — pid KIMLIK dogrulamasi onunla olculur.
+      #   - `git` — ANA calisma agaci cozumu onunla yapilir (yoksa kok WORKTREE'ye duser).
+      #   Ikisi de UC HALLI: PATH'te YOK -> ⚪, deploy BLOKLANMAZ · VAR ama BOZUK ->
+      #   KIRMIZI, fail-closed (bozuk bagimlilik eksik bagimliliktan farklidir) ·
+      #   VAR ve calisiyor -> kontroller NORMAL, bloklayici.
+      #   - YEDEKLENECEK KAYNAK KUMESI (~/.claude/{projects/*/memory,skills} + repo
+      #     kokundeki beklenen dosyalar) — K5 canli-imza olcumunun GERCEK ucu buna
+      #     baglidir. CI fresh checkout'unda HOME BOS ve o dosyalar gitignore'lu
+      #     (izlenen DEGIL) -> kaynak kumesi YOKTUR, o kontroller ⚪ olur.
+      # Gerekce (hepsi icin): bloklayici bir kapinin dis bagimlilik/ortam yoklugunda
       # TUM SITE YAYININI durdurmasi bu depoda YASANMIS bir ariza sinifidir
-      # ([[kapi-kapsam-eksen-secimi]]) — ve bu adimda iki kez daha yasandi: `ps`siz
-      # makinede rc 1, sonra CI taklidinde kaynak kumesi yoklugundan rc 1.
+      # ([[kapi-kapsam-eksen-secimi]]) — bu adimda tekrar tekrar yasandi: `ps`siz
+      # makinede rc 1, CI taklidinde kaynak kumesi yoklugundan rc 1, `git`siz makinede
+      # rc 1 + yakalanmamis FileNotFoundError.
       # EKSEN AYRIMI SART: "ps VARKEN ⚪ 0" nobetcisi TOPLAM ⚪'ya bakarsa alakasiz bir
       # eksenin ⚪'si onu kirmiziya cevirir (CI taklidinde olculdu).
+      # 🔴 NOBETCIYI, KORUDUGU KOSULUN ICINE KOYMA: kimlik nobetleri ve gitsiz-pano
+      # nobeti SENTETIK PATH fiksturuyle kosar (ozet "BAGIMSIZ NOBET" diye sayar),
+      # yani makinede `ps`/`git` olsa da olmasa da AYNI olcumu yapar. Onceki surumde
+      # nobetcinin kendisi `ps`e bagliydi ve `ps`siz makinede iki gercek mutant sessiz
+      # YESIL geciyordu (olculdu).
       - name: Yedek tazelik panosu kabul testi (durum.py bolum 7 — sessiz-hata nobeti)
         run: python3 tools/durum-yedek-test.py
 

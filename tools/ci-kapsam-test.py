@@ -277,7 +277,9 @@ IZIN_LISTESI = {
     "tools/yazdir-test.py": R_SONRA,
     # NOT: tools/durum-yedek-test.py 27 Tem'de MUAFIYETTEN CIKARILDI -> deploy.yml'de
     # bloklayici adim olarak kosuyor. Olcum: CI taklidinde (bos HOME, Drive yok, sadece
-    # takip edilen dosyalar) TAM HERMETIK yesil. Kontrol SAYISI buraya YAZILMAZ —
+    # takip edilen dosyalar) YESIL (cikis 0). "Hermetik" DEGIL: ortam eksenleri
+    # (`ps`/`git`/kaynak kumesi) sorgulandigi icin bir kismi ⚪ OLCULEMEDI olur ve
+    # kontrol SAYISI makineye gore degisir. Kontrol SAYISI buraya YAZILMAZ —
     # sayi betigin KENDI ciktisindadir; sabit sayi bir VERI CAPASIDIR ve her yeni
     # nobetci eklendiginde sessizce bayatlar (olculdu: yorumdaki "88/88" gerceginde
     # 89'du, "89/89 ~2 s" ise 4,6 s). Buraya GERI EKLEME: iki yerde birden sayilirsa

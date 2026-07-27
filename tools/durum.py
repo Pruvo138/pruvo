@@ -41,9 +41,21 @@ ANA_DAL = "main"
 
 
 def git(repo, *args):
-    """Salt-okunur git cagrisi. (cikti, cikis_kodu) doner; hata basmaz."""
-    p = subprocess.run(["git", "-C", repo] + list(args),
-                       capture_output=True, text=True)
+    """Salt-okunur git cagrisi. (cikti, cikis_kodu) doner; hata basmaz.
+
+    🔴 `git` BINARY'SI YOKKEN COKMEZ (8. tur olcumu, 27 Tem): eskiden yakalanmamis
+    FileNotFoundError firlatiyordu -> panonun KENDISI cokuyor, panoyu ucdan uca kosan
+    BLOKLAYICI CI adimi kirmiziya donuyor ve `deploy: needs: build` zinciriyle TUM
+    yayin duruyordu. Bu, `ps` ekseninde daha once yasanan arizanin AYNISI (dis binary
+    yoklugu = ORTAM EKSIKLIGI, ariza degil). Cagiranlarin hepsi zaten `kod != 0`
+    yolunu tasiyor (repo_koku/ana_repo/worktreeler fallback'li) -> git yoksa
+    "calistirilamadi" cikis kodu donerek ayni yola girilir.
+    ⚠️ git VARKEN davranis DEGISMEZ: subprocess.run istisna atmaz, ayni (cikti, rc)."""
+    try:
+        p = subprocess.run(["git", "-C", repo] + list(args),
+                           capture_output=True, text=True)
+    except OSError:
+        return "", 127                    # `git` yok/calistirilamadi (sh emsali: 127)
     return p.stdout.strip(), p.returncode
 
 

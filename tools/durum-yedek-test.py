@@ -21,6 +21,20 @@ cikis kodunu BOZMAZ; kapinin geri kalani BLOKLAYICI kalir.
 varligina bakar (ps_kullanilabilir). Yoksa `_surec_bilgisi`'ni olduren bir mutasyon
 "OLCULEMEDI" kilifina girip kacardi — bunun kaniti 6h'deki mutant nobetcidir.
 
+🔴 8. TUR (27 Tem) — IKI ONARIM, ikisi de AYNI hatanin duzeltmesi:
+"nobetciyi, korumasi gereken kosulun ICINE koymak".
+  (1) `ps` YOKKEN kimlik nobetcisinin KENDISI de ⚪ oluyordu -> `_surec_bilgisi`'ni ve
+      pid-yeniden-kullanim tespitini olduren iki GERCEK mutant o makinede rc 0 / YESIL
+      kaliyordu (olculdu). Onarim: 6h2 — nobet artik ENJEKTE EDILMIS SENTETIK `ps`
+      fiksturuyle kosar, makinenin `ps` durumundan BAGIMSIZ ve DAIMA bloklayici.
+  (2) UCUNCU ORTAM EKSENI: `git`. Bolum 8'deki `git init` korumasizdi -> git'siz
+      makinede YAKALANMAMIS FileNotFoundError + rc 1 = TUM YAYIN DURUYORDU; ustelik
+      panonun kendisi (durum.git) de cokuyordu. Onarim: git_ortami/git_kontrol ile
+      `ps` ile AYNI doktrin (yok -> ⚪ [git], bozuk -> fail-closed KIRMIZI, var ->
+      bloklayici) + durum.git() fail-soft + 8b sentetik gitsiz-PATH nobeti.
+Ortam eksenlerinin SAYISI buraya YAZILMAZ (veri capasi): ozet her ekseni AYRI satirda
+kendisi basar ve "EKSENSIZ OLCULEMEDI" ilan edilmemis her ⚪'yi yakalar.
+
 Kosum:  python3 tools/durum-yedek-test.py
 """
 import importlib.util
@@ -42,12 +56,23 @@ ALT_KOSUM = "--ps-yok-alt-kosum"
 SONUC = []
 OLCULEMEDI = []
 PS_BAGIMLI = [0]          # ps'e bagli kontrol SAYISI (ilan; alt kosum bunu dogrular)
-ORTAM_BAGIMLI = [0]       # ps DISI ortam bagimliligi (yedeklenecek KAYNAK kumesi)
-EKSEN = {}                # eksen -> ⚪ sayisi ("ps" | "kaynak" | "fikstur")
+GIT_BAGIMLI = [0]         # `git`e bagli kontrol SAYISI (ayni ilan/dogrulama deseni)
+ORTAM_BAGIMLI = [0]       # ps/git DISI ortam bagimliligi (yedeklenecek KAYNAK kumesi)
+# DIS BINARY ORTAMINDAN BAGIMSIZ (sentetik PATH ile kosan) nobetlerin SAYISI. Bolum 9
+# alt kosumun AYNI sayiyi raporlamasini ISTER -> bu nobetlerden biri ps_kontrol/
+# git_kontrol'e sarilirsa (yani binary yoklugunda ⚪'ya kacarsa) alt kosumun sayisi
+# duser ve kapi KIRMIZI yanar. Nobetcinin nobetcisi budur.
+BAGIMSIZ_NOBET = [0]
+EKSEN = {}                # eksen -> ⚪ sayisi ("ps" | "git" | "kaynak" | "fikstur")
 PS_ORTAMI = ["var"]       # "var" | "yok" | "bozuk"  (bkz. ps_ortami)
+GIT_ORTAMI = ["var"]      # "var" | "yok" | "bozuk"  (bkz. git_ortami)
 # `ps` sorgusunun zaman siniri. CALISMA ANINDA okunur (durum.YEDEK_ZAMAN_ASIMI deseni)
 # -> fikstur bunu gecici kisaltip "asili ps" yolunu SANIYE HARCAMADAN kanitlayabilir.
 PS_SORGU_ZAMAN_ASIMI = [5.0]
+GIT_SORGU_ZAMAN_ASIMI = [5.0]     # ayni desen, `git` siniflandiricisi icin
+# ⚪ eksen ADLARI — ozet "EKSENSIZ" sayacini bunlarin DISINDA kalan her ⚪ besler
+# (sebebi ILAN EDILMEMIS atlama = sessiz atlamaya en yakin hal, nobetci onu yakar).
+BILINEN_EKSENLER = ("ps", "git", "kaynak", "fikstur")
 
 
 def kontrol(ad, ok, ayrinti=""):
@@ -112,6 +137,79 @@ def ps_kontrol(ad, ok, ayrinti=""):
         return kontrol(ad, ok, ayrinti)
     return olculemedi(ad, "`ps` ortami '%s' — surec kimligi olculemez" % PS_ORTAMI[0],
                       eksen="ps")
+
+
+def bagimsiz_kontrol(ad, ok, ayrinti=""):
+    """DIS BINARY ORTAMINDAN BAGIMSIZ nobet — DAIMA bloklayici, ASLA ⚪ olmaz.
+
+    🔴 NEDEN AYRI SARMALAYICI (8. tur, curutucu olcumu): 7. turda kimlik nobetlerinin
+    HEPSI `ps_kontrol` ile sariliydi; `ps` PATH'te yokken nobetcinin KENDISI de ⚪
+    oluyordu -> `_surec_bilgisi`'ni ve pid-yeniden-kullanim tespitini olduren IKI
+    GERCEK mutant o makinede rc 0 / YESIL kaliyordu (olculdu: 2 sessiz yesil hucre).
+    Ders: "nobetciyi, koruması gereken kosulun ICINE koymak" = nobetciyi kendi kor
+    noktasina hapsetmek. Cozum: bu nobetler SENTETIK bir `ps` fiksturuyle (kendi
+    PATH'iyle) kosar, yani makinede `ps` olsa da olmasa da bozuk olsa da AYNI olcumu
+    yapar.
+
+    ⚠️ AD ISARETI ZORUNLU ("[sentetik…"): bolum 9 alt kosumun CIKTISINDA bu isareti
+    sayar. SAYAC TEK BASINA YETMEZ — olculdu: bir nobeti ps_kontrol'e sarmak sayaci
+    ANA ve ALT kosumda ESIT dusurur, yani sayac karsilastirmasi mutanti KACIRIR.
+    Isaret sayesinde alt kosumda "⚪ … [sentetik…" satiri BELIRIR ve nobetci yakar."""
+    if not ad.startswith("[sentetik"):
+        ad = "[sentetik] " + ad
+    BAGIMSIZ_NOBET[0] += 1
+    return kontrol(ad, ok, ayrinti)
+
+
+def git_ortami():
+    """`git` ORTAMININ UC HALI — ps_ortami ile AYNI doktrin, AYRI eksen.
+
+      "yok"   -> binary PATH'te HIC YOK: ORTAM EKSIKLIGI. git'e bagli kontroller
+                 ⚪ OLCULEMEDI olur, deploy BLOKLANMAZ.
+      "bozuk" -> PATH'te VAR ama calismiyor (rc!=0 / cikti BOS / asildi / OSError):
+                 ARIZA -> fail-closed KIRMIZI (bolum 9'daki ORTAM nobetcisinden gelir).
+      "var"   -> normal: git'e bagli kontroller BLOKLAYICI kosar.
+
+    🔴 NEDEN VAR (8. tur, curutucu UCUNCU ekseni olctu): `git` PATH'te yokken bu adim
+    rc 1 + YAKALANMAMIS FileNotFoundError veriyordu (bolum 8'deki `git init`), yani
+    dalin kapatmak icin var oldugu ariza sinifinin (dis binary yoklugu TUM YAYINI
+    durduruyor) AYNISI acikti. Kod git'sizligi zaten BILIYORDU — yedekle.ana_calisma_agaci
+    OSError'i yutuyor, bolum 9 `if git_yolu:` ile korumali — ama bolum 8 korumasizdi.
+
+    🔴 NEDEN BOZUK GIT KIRMIZI: git VAR ama calismiyorsa yedekle.ana_calisma_agaci
+    sessizce __file__ tabanina duser -> ROOT WORKTREE olur. Bu, 26 Tem'de olculen
+    "sahte tazelik" (F1) hatasinin ta kendisidir: worktree'de gitignore'lu dosyalar
+    yedeklenmeden TAM GUVEN damgasi atilir. Sessiz veri kaybi -> fail-closed.
+
+    🔴 NEDEN yedekle.ana_calisma_agaci KULLANILMAZ: kapiyi olculen fonksiyona baglamak
+    SESSIZ YESIL uretir (o fonksiyonu olduren mutasyon "git yokmus" kilifina girer).
+    Burada yalniz ORTAM sorgulanir."""
+    yol = shutil.which("git")
+    if not yol:
+        return "yok"
+    try:
+        p = subprocess.run([yol, "--version"], capture_output=True, text=True,
+                           timeout=GIT_SORGU_ZAMAN_ASIMI[0])
+    except (OSError, subprocess.SubprocessError):
+        return "bozuk"
+    if p.returncode != 0 or not (p.stdout or "").strip():
+        return "bozuk"
+    return "var"
+
+
+def git_kontrol(ad, ok, ayrinti="", ek_ortam=True, ek_ayrinti=""):
+    """`git`e BAGIMLI kontrol: ortam "var" ise NORMAL (kirmizi yanabilir), aksi halde
+    GORUNUR ⚪ OLCULEMEDI [git]. "bozuk" halinde kapinin KIRMIZISI bolum 9'daki ORTAM
+    nobetcisinden gelir (fail-closed). `ek_ortam` False ise (or. yedeklenecek KAYNAK
+    kumesi yok) ⚪ KAYNAK ekseninde yazilir — eksenler KARISTIRILMAZ."""
+    GIT_BAGIMLI[0] += 1
+    if GIT_ORTAMI[0] != "var":
+        return olculemedi(ad, "`git` ortami '%s' — ana calisma agaci COZULEMEZ"
+                          % GIT_ORTAMI[0], eksen="git")
+    if not ek_ortam:
+        ORTAM_BAGIMLI[0] += 1
+        return olculemedi(ad, ek_ayrinti or "ortam eksik", eksen="kaynak")
+    return kontrol(ad, ok, ayrinti)
 
 
 def kaynak_ortami():
@@ -190,12 +288,21 @@ def damga_kur(backup, yas_saniye, **ekstra):
 
 def main():
     PS_ORTAMI[0] = ps_ortami()
+    GIT_ORTAMI[0] = git_ortami()
     if PS_ORTAMI[0] == "yok":
         print("⚪ NOT: `ps` binary'si YOK -> surec kimligi kontrolleri OLCULEMEDI "
               "olarak isaretlenecek (deploy BLOKLANMAZ; bkz. modul basligi K4).")
+        print("   (Kimlik nobetlerinin SENTETIK `ps` ile kosan ucu buradan ETKILENMEZ "
+              "— bkz. 6h2; mutantlar bu makinede de KIRMIZI yanar.)")
     elif PS_ORTAMI[0] == "bozuk":
         print("❌ NOT: `ps` PATH'te VAR ama CALISMIYOR -> fail-closed KIRMIZI "
               "(bozuk bagimlilik, eksik bagimliliktan farklidir; bkz. ps_ortami).")
+    if GIT_ORTAMI[0] == "yok":
+        print("⚪ NOT: `git` binary'si YOK -> ana calisma agaci kontrolleri OLCULEMEDI "
+              "[git] olarak isaretlenecek (deploy BLOKLANMAZ; bkz. git_ortami).")
+    elif GIT_ORTAMI[0] == "bozuk":
+        print("❌ NOT: `git` PATH'te VAR ama CALISMIYOR -> fail-closed KIRMIZI "
+              "(bozuk bagimlilik: ROOT sessizce worktree'ye duser; bkz. git_ortami).")
     durum = modul_yukle(DURUM, "durum_gercek")
 
     # ---------------- 1) TAZE ----------------
@@ -498,7 +605,6 @@ def main():
         # ILKE (mimar karari): ayri dosya VAR ama ondan dict elde EDILEMIYORSA atlama
         # duzlemi BILINMIYOR'dur -> damganin mirasi ASLA devreye girmez, sonuc GORUNUR
         # uyaridir, hicbir bicimde "taze"/"GUNCEL" DENMEZ.
-        print("\n6g2) K2 — BOZUK atlama dosyasinin 8 bicimi: miras SUSTURMAMALI")
         BOZUK_BICIMLER = (
             ("gecersiz JSON", b'{"son_atlama": bozuk,,'),
             ("BOS dosya (0 bayt)", b""),
@@ -509,6 +615,11 @@ def main():
             ("ikili cop (UTF-8 degil)", b"\xff\xfe\x00\x01\x02gurultu\x80\x81"),
             ("yalniz bosluk", b"   \n\t  \n"),
         )
+        # ⚠️ BASLIKTAKI SAYI ELLE YAZILMAZ: bu satirda "8 bicimi" yaziyordu, gercekte
+        # 10 bicim kosuyor (tuple + asagidaki 2 yapisal bicim) — yani basligin kendisi
+        # bayat bir VERI CAPASIYDI. Sayiyi listenin uzunlugu basar.
+        print("\n6g2) K2 — BOZUK atlama dosyasinin %d bicimi: miras SUSTURMAMALI"
+              % (len(BOZUK_BICIMLER) + 2))
         for etiket, ham in BOZUK_BICIMLER:
             bz = damga_kur(os.path.join(td, "bz-" + etiket[:12].replace(" ", "_")), 600,
                            baslangic=simdi - 660,
@@ -833,6 +944,108 @@ def main():
         gov = open(DURUM, encoding="utf-8").read()
         kontrol("main() kilit satirlarini ekliyor", "kilit_satirlari(kilit_durumu(kok))" in gov)
 
+    # ---------------- 6h2) PS'TEN BAGIMSIZ KIMLIK NOBETI ----------------
+    # 🔴 8. TURUN MERGE BLOKLAYICISI (curutucu olctu): yukaridaki kimlik kontrollerinin
+    # HEPSI `ps_kontrol` ile sariliydi -> `ps` PATH'te YOKKEN nobetcinin KENDISI ⚪
+    # oluyordu ve IKI GERCEK mutant sessizce YESIL geciyordu:
+    #   MA  `_surec_bilgisi` olduruldu            -> ps=VAR rc1 / ps=YOK **rc0** 🔴
+    #   MB  pid-yeniden-kullanim tespiti olduruldu -> ps=VAR rc1 / ps=YOK **rc0** 🔴
+    # Cozum (fizibilitesi 9b'de zaten kanitli): sozlesmeyi GERCEK `ps` binary'siyle
+    # degil, ENJEKTE EDILMIS SENTETIK bir `ps` ile sina. Boylece olcum makinenin ps
+    # durumundan (yok/bozuk/var) BAGIMSIZ olur -> bu blok DAIMA bloklayici (⚪ YOK).
+    # Sahte `ps` GERCEK ps'in ASLA dondurmeyecegi bir komut adi basar ("*-SAHTE"):
+    # fikstur ISIRMAZSA (PATH enjeksiyonu tutmazsa) ilk kontrol KIRMIZI yanar, yani
+    # nobetin kendisi de olculur.
+    print("\n6h2) SENTETIK `ps` — kimlik nobeti gercek `ps`e BAGLI DEGIL (⚪'ya kacamaz)")
+    _eski_path = os.environ.get("PATH", "")
+    with tempfile.TemporaryDirectory() as td:
+        simdi = time.time()
+        kok = os.path.join(td, "repo")
+        os.makedirs(kok)
+        yol = os.path.join(kok, ".yedek.lock")
+
+        def sahte_ps_path(dizin, etime, komut):
+            """PATH'i YALNIZ sahte `ps` iceren bir dizine cevirir; dizini dondurur."""
+            kutu = os.path.join(dizin, "bin")
+            os.makedirs(kutu)
+            sahte = os.path.join(kutu, "ps")
+            with open(sahte, "w") as fh:
+                fh.write("#!/bin/sh\necho '   %s %s'\nexit 0\n" % (etime, komut))
+            os.chmod(sahte, 0o755)
+            os.environ["PATH"] = kutu
+            return kutu
+
+        def kilit_yaz(pid, baslangic):
+            with open(yol, "w") as fh:
+                fh.write("pid=%d baslangic=%r iso=TEST\n" % (pid, baslangic))
+
+        try:
+            # (1) FIKSTUR ISIRIYOR MU + MA NOBETI: sozlesme "gecen sn + komut adi".
+            #     MA (_surec_bilgisi olduruldu) burada (None, None) doner -> KIRMIZI.
+            with tempfile.TemporaryDirectory() as ftd:
+                sahte_ps_path(ftd, "01:23", "python3-SAHTE")     # 1 dk 23 sn = 83 sn
+                gecen, komut = durum._surec_bilgisi(os.getpid())
+                bagimsiz_kontrol("[sentetik ps] _surec_bilgisi sahte ciktiyi OKUYOR "
+                                 "(fikstur ISIRIYOR; MA mutanti burada olur)",
+                                 gecen == 83 and komut == "python3-SAHTE",
+                                 "gecen=%s komut=%s" % (gecen, komut))
+                # (2) MB NOBETI — pid YENIDEN KULLANILMIS: surec 83 sn once basladi,
+                #     kilit 2 saat once alindi -> bu surec kilidin sahibi OLAMAZ.
+                kilit_yaz(os.getpid(), simdi - 7200)
+                d_mb = durum.kilit_durumu(kok)
+                sat_mb = durum.kilit_satirlari(d_mb)
+                bagimsiz_kontrol("[sentetik ps] kilitten SONRA baslamis surec sahip DEGIL "
+                                 "-> 'yarim' (MB mutanti burada olur)",
+                                 d_mb["hal"] == "yarim" and d_mb["canli"] is False,
+                                 "hal=%s canli=%s" % (d_mb["hal"], d_mb["canli"]))
+                bagimsiz_kontrol("[sentetik ps] yeniden kullanilan pid'de 'sonlandir' "
+                                 "onerisi YOK",
+                                 not any("sonlandir" in s for s in sat_mb),
+                                 " | ".join(sat_mb)[:90])
+                # (2b) GOMULU MUTANT KANITI, ps'ten BAGIMSIZ: kodu (ps'i degil) bozan
+                #      mutant kimligi KAYBEDER, GERCEK kod KAYBETMEZ. Iki uc birlikte
+                #      olculur -> tek yon bozulunca kontrol KIRMIZI yanar.
+                mut2 = mutant_yaz(td,
+                                  "    satir = (p.stdout or \"\").strip()",
+                                  "    satir = \"\"  # MUTANT: ps ciktisi yok sayiliyor",
+                                  ad="durum_mutant_ps_sentetik.py")
+                mmod2 = modul_yukle(mut2, "durum_mutant_ps_sentetik")
+                bagimsiz_kontrol("[sentetik ps] _surec_bilgisi'ni olduren mutant kimligi "
+                                 "KAYBEDIYOR, GERCEK kod KAYBETMIYOR",
+                                 mmod2._surec_bilgisi(os.getpid())[0] is None
+                                 and durum._surec_bilgisi(os.getpid())[0] is not None,
+                                 "mutant=%s gercek=%s"
+                                 % (mmod2._surec_bilgisi(os.getpid()),
+                                    durum._surec_bilgisi(os.getpid())))
+            # (3) KIMLIK (komut adi) NOBETI: kilit GENC (yeniden-kullanim yolu
+            #     TETIKLENMEZ), ama komut python DEGIL -> sahip olamaz.
+            with tempfile.TemporaryDirectory() as ftd:
+                sahte_ps_path(ftd, "01:23", "launchd-SAHTE")
+                kilit_yaz(os.getpid(), simdi - 10)
+                d_kim = durum.kilit_durumu(kok)
+                bagimsiz_kontrol("[sentetik ps] python OLMAYAN komut sahip SAYILMIYOR "
+                                 "-> 'yarim' (kimlik mutanti burada olur)",
+                                 d_kim["hal"] == "yarim" and d_kim["canli"] is False,
+                                 "hal=%s canli=%s" % (d_kim["hal"], d_kim["canli"]))
+            # (4) POZITIF NOBET — "hep yarim" DEGIL: surec kilitten ONCE basladi ve
+            #     python; kilit genc -> NORMAL 'tutuluyor', pano SUSAR.
+            #     (Bu ucu olmadan "canli hep False" diyen bir mutant yesil gecerdi.)
+            with tempfile.TemporaryDirectory() as ftd:
+                sahte_ps_path(ftd, "07:11:13", "python3-SAHTE")   # 25873 sn once basladi
+                kilit_yaz(os.getpid(), simdi - 60)
+                d_poz = durum.kilit_durumu(kok)
+                bagimsiz_kontrol("[sentetik ps] kilitten ONCE baslamis python sahibi "
+                                 "NORMAL: 'tutuluyor' + pano SUSUYOR",
+                                 d_poz["hal"] == "tutuluyor" and d_poz["canli"] is True
+                                 and durum.kilit_satirlari(d_poz) == [],
+                                 "hal=%s canli=%s" % (d_poz["hal"], d_poz["canli"]))
+        finally:
+            os.environ["PATH"] = _eski_path
+    # Enjeksiyon SIZINTI birakmadi mi (6i'deki geri-alma nobetcisinin emsali).
+    kontrol("6h2 sonunda PATH GERI ALINDI (sentetik ps sizmadi)",
+            os.environ.get("PATH", "") == _eski_path,
+            "PATH uzunlugu=%d" % len(os.environ.get("PATH", "")))
+
     # ---------------- 6i) K3: "DEGISIKLIK YOK" != "YEDEK BAYAT" ----------------
     # `--gerekliyse` GUNCEL yolu hicbir sey kopyalamaz -> `zaman` ilerlemez. Degismeyen
     # bir sistemde pano 2 gun sonra BOSUNA "⚠⚠ YEDEK BAYAT" diyordu (gurultulu pano =
@@ -1116,10 +1329,16 @@ def main():
                       and all(durum._imza_kullanilir(x)
                               for x in (_canli_gercek or {}).get("adaylar", [])),
                       str(_canli_gercek)[:130])
-        ortam_kontrol("K5: GERCEK olcum ANA calisma agacini gosteriyor (worktree DEGIL)",
-                      _kaynak_var,
-                      ".claude/worktrees" not in (_canli_gercek or {}).get("kok", "x"),
-                      (_canli_gercek or {}).get("kok"))
+        # 🔴 IKI EKSENLI: hem yedeklenecek KAYNAK kumesi hem `git` gerekir. git yoksa
+        # yedekle.ana_calisma_agaci() TANIM GEREGI __file__ tabanina duser (worktree'de
+        # kosuluyorsa kok worktree'dir) -> bu, olculecek bir DAVRANIS degil, ORTAM
+        # eksikligidir. 7. turda korumasizdi: git'siz makinede KIRMIZI yaniyordu.
+        git_kontrol("K5: GERCEK olcum ANA calisma agacini gosteriyor (worktree DEGIL)",
+                    ".claude/worktrees" not in (_canli_gercek or {}).get("kok", "x"),
+                    (_canli_gercek or {}).get("kok"),
+                    ek_ortam=_kaynak_var,
+                    ek_ayrinti="yedeklenecek KAYNAK kumesi bu makinede yok "
+                               "(fresh checkout / bos HOME) — olculemez")
         # FAIL-CLOSED yon: kaynak YOKKEN olcum None DONMELI (uydurma imza URETMEMELI)
         kontrol("K5: kaynak yoksa olcum None doner (uydurma imza YOK)",
                 _kaynak_var or _canli_gercek is None,
@@ -1195,7 +1414,21 @@ def main():
         os.makedirs(sahte_ev)
         shutil.copy2(DURUM, os.path.join(kok, "tools", "durum.py"))
         shutil.copy2(DRIVE_YOLU, os.path.join(kok, "tools", "drive_yolu.py"))
-        subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
+        # 🔴 GIT EKSENI (8. tur onarimi): burasi KORUMASIZ `git` cagiriyordu ->
+        # `git` PATH'te yokken YAKALANMAMIS FileNotFoundError, adim rc 1, `deploy:
+        # needs: build` ile TUM YAYIN DURUYORDU (ps ekseninde kapatilan arizanin
+        # AYNISI). Artik ORTAM sorgulanir: git yoksa fikstur git DEPOSU OLMADAN kosar
+        # (asagidaki uc kontrol BLOKLAYICI kalir) ve eksik olcum GORUNUR ⚪ [git] olur.
+        if GIT_ORTAMI[0] == "var":
+            subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
+            GIT_BAGIMLI[0] += 1
+            kontrol("8) fikstur GIT DEPOSU olarak kuruldu (pano repo baglaminda olculdu)",
+                    os.path.isdir(os.path.join(kok, ".git")))
+        else:
+            GIT_BAGIMLI[0] += 1
+            olculemedi("8) fikstur GIT DEPOSU olarak kuruldu (pano repo baglaminda olculdu)",
+                       "`git` ortami '%s' — fikstur deposu kurulamaz; asagidaki cokme "
+                       "kontrolleri yine BLOKLAYICI kosar" % GIT_ORTAMI[0], eksen="git")
         ortam = dict(os.environ)
         ortam["HOME"] = sahte_ev                 # Drive mount deseni HICBIR SEYE uymaz
         r = subprocess.run([sys.executable, os.path.join(kok, "tools", "durum.py")],
@@ -1204,6 +1437,40 @@ def main():
                 "rc=%d %s" % (r.returncode, r.stderr.strip()[:120]))
         kontrol("ÖLÇÜLEMEDİ yazdi", "ÖLÇÜLEMEDİ" in r.stdout)
         kontrol("traceback YOK", "Traceback" not in r.stderr)
+
+        # ---- 8b) GIT'SIZ PATH ile AYNI PANO — SENTETIK, ORTAMDAN BAGIMSIZ ----
+        # 🔴 NEDEN SENTETIK: makinede `git` varsa da yoksa da AYNI olcum yapilsin.
+        # (6h2'nin `ps` icin yaptigini bu blok `git` icin yapar: nobetci, korudugu
+        # kosulun ICINE konmaz.) durum.git() eskiden FileNotFoundError firlatiyordu ->
+        # PANONUN KENDISI cokuyordu; bu kontrol o cokusun geri gelmesini engeller.
+        bos_kutu = os.path.join(td, "gitsiz-bin")
+        os.makedirs(bos_kutu)
+        ortam_gitsiz = dict(ortam)
+        ortam_gitsiz["PATH"] = bos_kutu           # `git` (ve `ps`) BULUNAMAZ
+        r_g = subprocess.run([sys.executable, os.path.join(kok, "tools", "durum.py")],
+                             capture_output=True, text=True, env=ortam_gitsiz)
+        bagimsiz_kontrol("[sentetik gitsiz PATH] pano exit 0 (COKMEDI)",
+                         r_g.returncode == 0,
+                         "rc=%d %s" % (r_g.returncode, r_g.stderr.strip()[:120]))
+        bagimsiz_kontrol("[sentetik gitsiz PATH] traceback YOK "
+                         "(FileNotFoundError: 'git' geri gelmedi)",
+                         "Traceback" not in r_g.stderr and "FileNotFoundError"
+                         not in r_g.stderr, r_g.stderr.strip()[-120:])
+        # durum.git() SOZLESMESI: git yoksa ISTISNA DEGIL (cikti, rc!=0) doner.
+        try:
+            _g_cikti, _g_rc = "", None
+            _eski_p = os.environ.get("PATH", "")
+            os.environ["PATH"] = bos_kutu
+            try:
+                _g_cikti, _g_rc = durum.git(kok, "rev-parse", "--show-toplevel")
+            finally:
+                os.environ["PATH"] = _eski_p
+            _g_ok = _g_rc not in (0, None) and _g_cikti == ""
+        except OSError as e:                      # try/except kaldirilirsa buraya duser
+            _g_ok, _g_rc = False, "ISTISNA: %s" % e
+        bagimsiz_kontrol("[sentetik gitsiz PATH] durum.git() ISTISNA ATMIYOR, "
+                         "cikis kodu != 0 donuyor (fail-soft sozlesme)",
+                         _g_ok, "rc=%s cikti=%r" % (_g_rc, _g_cikti))
 
     # ---------------- 9) K4: `ps` YOKKEN KAPI YAYINI DURDURMAZ ----------------
     # Kendini `ps`siz bir PATH ile YENIDEN cagirir (gercek ortam yoklugu taklidi).
@@ -1255,9 +1522,43 @@ def main():
             kontrol("ps YOKKEN her ⚪ ortam eksenini ILAN ETMIS (eksensiz 0)",
                     _sayi("EKSENSIZ OLCULEMEDI: ") == 0,
                     "eksensiz=%s" % _sayi("EKSENSIZ OLCULEMEDI: "))
+            # ...ve SAYAC degil, BASILAN SATIR olculur: ozet sayaci dogru kalirken
+            # listeleme "[?]" basan bir mutasyon olculdu ve YUKARIDAKI kontrolden
+            # KACIYORDU. CI log'unu okuyan kisi hangi bagimliligin eksik oldugunu
+            # satirin ETIKETINDEN gorur -> etiket, ⚪'nin kendisi kadar zorunludur.
+            _etiketli = [s for s in cik.splitlines() if "⚪ ÖLÇÜLEMEDİ [" in s]
+            _bilinmeyen = [s for s in _etiketli
+                           if not any("[%s]" % e in s for e in BILINEN_EKSENLER)]
+            kontrol("ps YOKKEN BASILAN her ⚪ satiri BILINEN eksen etiketi tasiyor",
+                    len(_etiketli) > 0 and not _bilinmeyen,
+                    "etiketli=%d bilinmeyen=%d %s"
+                    % (len(_etiketli), len(_bilinmeyen),
+                       _bilinmeyen[0].strip()[:70] if _bilinmeyen else ""))
             kontrol("ps YOKKEN kapinin GERI KALANI hala BLOKLAYICI (kirmizi 0 + coklu yesil)",
                     _sayi("KIRMIZI: ") == 0 and (_sayi("GECTI: ") or 0) > 50,
                     "gecti=%s kirmizi=%s" % (_sayi("GECTI: "), _sayi("KIRMIZI: ")))
+            # 🔴 NOBETCININ NOBETCISI (8. tur): ORTAMDAN BAGIMSIZ nobetler (6h2 + 8b)
+            # `ps` YOKKEN de AYNEN kosmali — 7. turda sessiz yesile kacan iki mutant
+            # tam bu nobetin yoklugundan kacti.
+            # ⚠️ SAYAC KARSILASTIRMASI TEK BASINA YETMEZ (olculdu): bir nobeti
+            # ps_kontrol'e sarmak sayaci ANA ve ALT kosumda ESIT dusurur -> mutant
+            # kacardi. O yuzden alt kosumun CIKTISI okunur: "[sentetik…" isaretli
+            # satirlarin ✅ olani ilan edilen sayiya ESIT, ⚪ olani SIFIR olmali.
+            # Sabit sayi YOK; iki kosumun kendi ilan ettikleri karsilastirilir.
+            _ok_sent = sum(1 for s in cik.splitlines() if s.startswith("  ✅ [sentetik"))
+            _beyaz_sent = sum(1 for s in cik.splitlines()
+                              if "ÖLÇÜLEMEDİ" in s and "[sentetik" in s)
+            kontrol("ps YOKKEN ORTAMDAN BAGIMSIZ nobetler AYNEN kostu "
+                    "(alt kosumda ✅ = ilan, ⚪ = 0)",
+                    _ok_sent == BAGIMSIZ_NOBET[0] and BAGIMSIZ_NOBET[0] > 0
+                    and _beyaz_sent == 0,
+                    "alt-✅=%d alt-⚪=%d ana-ilan=%d"
+                    % (_ok_sent, _beyaz_sent, BAGIMSIZ_NOBET[0]))
+            # Ozetteki ILAN ile CIKTIDAKI gercek de uyusmali (ozet satirini uyduran
+            # bir mutasyon buradan yakalanir).
+            kontrol("ps YOKKEN ozetteki 'BAGIMSIZ NOBET' ilani ciktiyla UYUSUYOR",
+                    _sayi("BAGIMSIZ NOBET: ") == _ok_sent and _ok_sent > 0,
+                    "ilan=%s cikti=%d" % (_sayi("BAGIMSIZ NOBET: "), _ok_sent))
             # 🔴 K4 MERGE BLOKLAYICISININ TA KENDISI (6. tur): bu iddia KOSULSUZ
             # bloklayiciydi -> `ps` YOKKEN kapi rc=1 veriyor, `deploy: needs: build`
             # zinciri yuzunden TUM pruvo3d.com yayini duruyordu. Artik ORTAM ekseninde
@@ -1289,6 +1590,20 @@ def main():
                 olculemedi("kaynak VARKEN kaynak-ekseninde OLCULEMEDI 0",
                            "yedeklenecek KAYNAK kumesi yok — bu nobet burada "
                            "kosulamaz", eksen="kaynak")
+            # AYNI NOBET, GIT EKSENI (8. tur): git VARSA hicbir kontrol "git yok"
+            # kilifina kacamaz; git BOZUKSA fail-closed KIRMIZI (ROOT sessizce
+            # worktree'ye duser -> 26 Tem'in "sahte tazelik" veri kaybi sinifi).
+            if GIT_ORTAMI[0] == "yok":
+                GIT_BAGIMLI[0] += 1
+                olculemedi("git VARKEN git-ekseninde OLCULEMEDI 0 (kapi TAM olcuyor)",
+                           "`git` binary'si PATH'te YOK — bu makinede kapinin TAM "
+                           "olcumu yapilamaz (yayin BLOKLANMAZ; bkz. git_ortami)",
+                           eksen="git")
+            else:
+                kontrol("git VARKEN git-ekseninde OLCULEMEDI 0 (kapi TAM olcuyor)",
+                        GIT_ORTAMI[0] == "var" and EKSEN.get("git", 0) == 0,
+                        "git_ortami=%s git-eksen-⚪=%d (toplam ⚪=%d)"
+                        % (GIT_ORTAMI[0], EKSEN.get("git", 0), len(OLCULEMEDI)))
 
             # ---- 9b) ORTAM SINIFLANDIRICISININ KENDI KABUL FIKSTURLERI ----
             # 🔴 NEDEN: artik "yok" hali rc'yi BOZMUYOR -> ps_ortami()'yi "hep yok
@@ -1331,22 +1646,67 @@ def main():
             kontrol("varsayilan `ps` zaman asimi makul (1-15 sn)",
                     1 <= PS_SORGU_ZAMAN_ASIMI[0] <= 15, str(PS_SORGU_ZAMAN_ASIMI[0]))
 
+            # ---- 9c) `git` SINIFLANDIRICISININ KENDI KABUL FIKSTURLERI ----
+            # 9b ile AYNI gerekce: "yok" hali artik rc'yi bozmuyor -> git_ortami()'yi
+            # "hep yok dondur" diye olduren bir mutasyon git eksenini sessizce ⚪'ya
+            # cevirip YESIL yanardi. Sentetik PATH => gercek ortamdan BAGIMSIZ olcum.
+            print("\n9c) git_ortami() siniflandiricisi — sentetik PATH fiksturleri")
+            eski_path = os.environ.get("PATH", "")
+            SAHTE_GIT = {                         # ad -> (govde, beklenen hal)
+                "yok": (None, "yok"),
+                "calisan": ("#!/bin/sh\necho 'git version 2.39.0'\nexit 0\n", "var"),
+                "bos-cikti": ("#!/bin/sh\nexit 0\n", "bozuk"),
+                "rc1": ("#!/bin/sh\necho hata\nexit 1\n", "bozuk"),
+                "calistirilamaz": ("bu bir betik DEGIL\n", "bozuk"),
+                "asili": ("#!/bin/sh\nsleep 5\n", "bozuk"),
+            }
+            try:
+                for ad in sorted(SAHTE_GIT):
+                    govde, beklenen = SAHTE_GIT[ad]
+                    GIT_SORGU_ZAMAN_ASIMI[0] = 0.3 if ad == "asili" else 5.0
+                    with tempfile.TemporaryDirectory() as ftd:
+                        kutu3 = os.path.join(ftd, "bin")
+                        os.makedirs(kutu3)
+                        if govde is not None:
+                            sahte_git = os.path.join(kutu3, "git")
+                            with open(sahte_git, "w") as fh:
+                                fh.write(govde)
+                            os.chmod(sahte_git, 0o755)
+                        os.environ["PATH"] = kutu3
+                        gorulen = git_ortami()
+                    kontrol("git_ortami() '%s' fiksturunu '%s' diye siniflandiriyor"
+                            % (ad, beklenen), gorulen == beklenen, "gorulen=%s" % gorulen)
+            finally:
+                os.environ["PATH"] = eski_path
+                GIT_SORGU_ZAMAN_ASIMI[0] = 5.0
+            kontrol("git_ortami() gercek ortami ILAN ETTIGI gibi goruyor (tekrarlanabilir)",
+                    git_ortami() == GIT_ORTAMI[0],
+                    "%s == %s" % (git_ortami(), GIT_ORTAMI[0]))
+            kontrol("varsayilan `git` zaman asimi makul (1-15 sn)",
+                    1 <= GIT_SORGU_ZAMAN_ASIMI[0] <= 15, str(GIT_SORGU_ZAMAN_ASIMI[0]))
+
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok in SONUC if not ok]
     print("\n" + "=" * 70)
     # Makine-okunur ozet (alt kosum bunlari ayristirir; sabit sayi YOK).
     print("PS: " + PS_ORTAMI[0].upper())      # VAR | YOK | BOZUK
+    print("GIT: " + GIT_ORTAMI[0].upper())    # VAR | YOK | BOZUK
     print("PS BAGIMLI: %d" % PS_BAGIMLI[0])
+    print("GIT BAGIMLI: %d" % GIT_BAGIMLI[0])
     print("ORTAM BAGIMLI: %d" % ORTAM_BAGIMLI[0])
     print("KAYNAK ORTAMI: " + kaynak_ortami().upper())
+    # ORTAMDAN BAGIMSIZ (sentetik PATH ile kosan) nobet sayisi — bolum 9 alt kosumun
+    # AYNI sayiyi raporladigini dogrular (nobetcinin nobetcisi).
+    print("BAGIMSIZ NOBET: %d" % BAGIMSIZ_NOBET[0])
     # EKSEN BAZLI ⚪ SAYILARI (alt kosum bunlari ayristirir; sabit sayi YOK).
     # "EKSENSIZ" > 0 demek: bir ⚪ hangi ortam eksigi yuzunden yazildigini ILAN
     # ETMEMISTIR -> sessiz atlamaya en yakin hal, nobetci onu KIRMIZI yakar.
     print("PS EKSEN OLCULEMEDI: %d" % EKSEN.get("ps", 0))
+    print("GIT EKSEN OLCULEMEDI: %d" % EKSEN.get("git", 0))
     print("KAYNAK EKSEN OLCULEMEDI: %d" % EKSEN.get("kaynak", 0))
     print("FIKSTUR EKSEN OLCULEMEDI: %d" % EKSEN.get("fikstur", 0))
     print("EKSENSIZ OLCULEMEDI: %d"
-          % sum(n for e, n in EKSEN.items() if e not in ("ps", "kaynak", "fikstur")))
+          % sum(n for e, n in EKSEN.items() if e not in BILINEN_EKSENLER))
     print("GECTI: %d" % (len(SONUC) - len(kirmizi)))
     print("KIRMIZI: %d" % len(kirmizi))
     print("OLCULEMEDI: %d" % len(OLCULEMEDI))
