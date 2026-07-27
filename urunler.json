@@ -1,5 +1,164 @@
 [
   {
+    "id": "renault-5-express-hava-cikis-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 5 / Express Hava Çıkış Kapağı",
+    "aciklama": "Renault 5, Süper Cinq ve Express modellerinin havalandırma çıkışına takılan kapak (flap). Kırılan veya kaybolan orijinalin yerine geçer; işaretlenen deliklerden kendi konumuna sabitlenir.\nYaklaşık dış ölçüler: 155 × 55 × 2 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7281859-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7281859-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "G2L",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-4-kalorifer-kumanda-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 4 Kalorifer Kumanda Düğmesi",
+    "aciklama": "Renault 4 kalorifer (ısıtma) kumandasının düğmesi/kolu. Sıklıkla kırılan orijinalin yerine takılır; ısıya maruz kaldığından reçine veya yüksek sıcaklığa dayanıklı malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 34 × 15 × 13 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7250581-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7250581-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "xgiralt64",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-espace-4-bagaj-kapagi-tamponu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Espace 4 Bagaj Kapağı Tamponu",
+    "aciklama": "Renault Espace 4 bagaj kapağının kapanırken oturduğu tampon/durdurucu parça. Kırılan veya kaybolan orijinalin yerine takılarak kapağın gövdeye düzgün oturmasını ve takırdamamasını sağlar.\nYaklaşık dış ölçüler: 31 × 22 × 22 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7330032-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7330032-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gdargery",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-master-koltuk-montaj-deligi-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Master Koltuk Montaj Deliği Tapası",
+    "aciklama": "Renault Master'da çift koltuk çıkarılıp tekli koltuk takıldığında açıkta kalan montaj deliklerini kapatan tapa. Zemindeki boş delikleri örterek düzgün bir görünüm sağlar.\nYaklaşık dış ölçüler: 110 × 70 × 20 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7088476-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Raymondo1",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-mio-bagaj-destek-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio Mio Bagaj Destek Aparatı",
+    "aciklama": "Renault Clio Mio bagaj bölmesinde kullanılan destek/tutucu aparatı. İlgili yuvaya geçerek bagaj bölgesindeki parçayı yerinde ve sabit tutar.\nYaklaşık dış ölçüler: 52 × 9 × 9 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7023466-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jassampi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-twingo-1-bagaj-rafi-ip-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Twingo 1 Bagaj Rafı İp Tutucu",
+    "aciklama": "Renault Twingo 1 bagaj kapağı açıldığında pandizot/bagaj rafını kaldıran ipi tutan küçük parça. Kırılan orijinal çentiğin yerine geçer; iki taraf için biri aynalanarak üretilir.\nYaklaşık dış ölçüler: 23 × 14 × 13 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7367030-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7367030-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7367030-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pleslin",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-3-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio 3 Vites Topuzu",
+    "aciklama": "Renault Clio 3 için klasik top biçimli vites topuzu. Vites koluna tam oturacak şekilde tasarlanmıştır; eskiyen veya kaybolan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 81 × 50 × 50 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7347121-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7347121-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lrc64",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-4-far-ampul-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane 4 Far Ampul Kapağı",
+    "aciklama": "Renault Megane 4 ön far ünitesinin arkasındaki ampul erişim kapağı. Vidalı yapısıyla far gövdesine oturarak ampul bölmesini toz ve neme karşı kapatır; kırılan veya kaybolan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 83 × 83 × 40 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7137640-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7137640-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7137640-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Egemen55",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-debriyaj-teli-ara-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio Debriyaj Teli Ara Parçası",
+    "aciklama": "Renault Clio debriyaj telinde kullanılan yardımcı ara/mesafe parçası. Telin boyunu ayarlayarak pedal boşluğunu gidermek için tele geçirilir; farklı uzunluklarda kullanılabilir.\nYaklaşık dış ölçüler: 35 × 35 × 33 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7028403-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7028403-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7028403-3.jpg"
+    ]
+  },
+  {
     "id": "renault-clio-2-bardaklik",
     "kategori": "Otomobil",
     "marka": [
