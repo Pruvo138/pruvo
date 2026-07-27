@@ -449,14 +449,16 @@ def rutin_fiksturler():
          {BUILD: [(link_anchor,
                    '<a href="/malzeme-rehberi/" class="malzeme-link">')]},
          None, YESIL, ""),
+        # R06/R07: eski MIRAS yanlis-pozitifleri KAPANDI — c2 ekseni JS-bayrak metninden
+        # #opsiyonlar YAPISINA tasindi (konfigur-test.py). Artik ilgisiz refaktor: YESIL.
         ("R06", "gomulu JS bayragi config objesine tasindi (script-harici refaktoru)",
          {BUILD: [("  var KART_SECIM = {kart_secim};",
                    "  var PRUVO_CFG = {{ kartSecim: {kart_secim} }};\n"
                    "  var KART_SECIM = PRUVO_CFG.kartSecim;")]},
-         None, MIRAS, "KART_SECIM"),
+         None, YESIL, ""),
         ("R07", "JS MINIFY: bayraktaki bosluk kaldirildi (KART_SECIM={x})",
          {BUILD: [("var KART_SECIM = {kart_secim};", "var KART_SECIM={kart_secim};")]},
-         None, MIRAS, "KART_SECIM"),
+         None, YESIL, ""),
         ("R08", "HTML MINIFY: <main> ile <nav> arasi bosluk kaldirildi",
          {BUILD: [(main_ac, '<main><nav class="crumbs" aria-label="breadcrumb">')]},
          None, YESIL, ""),
@@ -466,11 +468,14 @@ def rutin_fiksturler():
          {SAYFALAR: [('<a href="/malzeme-rehberi/">Malzeme Rehberi</a> &middot; ',
                       '<a href="/malzeme-kilavuzu/">Malzeme Kılavuzu</a> &middot; ')]},
          None, YESIL, ""),
+        # R11: eski MIRAS KAPANDI — c2 olmamali civisi ciplak 'class="cart-btn"' yerine
+        # buyuk-buton ACILIS etiketi '<button class="cart-btn"'; footer <a class="cart-btn">
+        # bunu KARSILAMAZ -> ilgisiz refaktor: YESIL.
         ("R11", "FOOTER nav'a .cart-btn sinifli yeni buton eklendi",
          {SAYFALAR: [('    \'<a href="/hakkimizda/">Hakkımızda</a> &middot; \'',
                       '    \'<a class="cart-btn" href="/sepet/">Sepet</a> &middot; \'\n'
                       '    \'<a href="/hakkimizda/">Hakkımızda</a> &middot; \'')]},
-         None, MIRAS, "cart-btn"),
+         None, YESIL, ""),
         ("R12", "KATALOGDA yeni urun (sentetik urunler.json'un BASINA)",
          None, {"urunler.json": _sentetik_katalog(yeni_urun=True, marin_bos=False)},
          YESIL, ""),
@@ -573,6 +578,52 @@ def base_nobetci():
 
 
 SINIF_IKON = {YESIL: "✅", BORC: "🟠", MIRAS: "🔴"}
+
+
+# ---------------------------------------------------------------- H) konfigur kart-kilit
+# Bagimsiz curutme C1 sessiz deligini KALICI fiksture baglar: konfigur sayfasinda kart-secim
+# malzeme kilidinin YANLISLIKLA ACILMASI (kart_secim=true) regresyonu, EMISYON BICIMINDEN
+# BAGIMSIZ yakalanmali. Eski (aec19cbb) negatif iddia yalniz 'KART_SECIM = true' LITERALini
+# goruyordu -> bayrak config objesine tasininca (kartSecim: true) kilit-ACIK regresyonu
+# SESSIZCE gecti (DAL exit 0, olmasi gereken exit 1). Onarim: KILIT_ACIK_RE hem literal
+# hem config-obje bicimini kapsar. Bu bolum DENGEYI kanitlar:
+#   kilit-ACIK (true)  -> iki emisyon biciminde de KIRMIZI (delik kapali)
+#   kilit-KAPALI (false, config-obje bicim) -> YESIL (FP geri gelmedi)
+# FLIP: build.py line ~1714 kart_secim = ... and not konfigur -> 'and not konfigur' cikar =
+#   konfigur sayfalari kart_secim=true olur (kilit-ACIK regresyonu; baska sayfa etkilenmez).
+_FLIP = ("fonksiyonel and not parametrik and not konfigur",
+         "fonksiyonel and not parametrik")
+# R06 emisyonu: bayragi config objesine tasir (kartSecim: <deger>) -> C1'in kacan bicimi.
+_R06_EMIT = ("  var KART_SECIM = {kart_secim};",
+             "  var PRUVO_CFG = {{ kartSecim: {kart_secim} }};\n"
+             "  var KART_SECIM = PRUVO_CFG.kartSecim;")
+_KILIT_ISARET = "kilidi AÇILMAZ"     # (d)/(e) KILIT_ACIK_RE iddiasinin kirmizi satiri
+
+
+def bolum_h():
+    print("\nH) KONFIGUR KART-KILIT true-flip (EMISYON-BICIMI BAGIMSIZ — C1 sessiz delik)")
+    print("   Kabul: kilit-ACIK (kart_secim=true) HER emisyon biciminde KIRMIZI + kendi")
+    print("   adiyla ('%s'); kilit-KAPALI config-obje bicim YESIL (FP geri gelmedi)." % _KILIT_ISARET)
+    vakalar = [
+        ("H1 kilit-ACIK / DIRECT emisyon (var KART_SECIM = true)",
+         {BUILD: [_FLIP]}, "KIRMIZI"),
+        ("H2 kilit-ACIK / CONFIG-OBJE emisyon (kartSecim: true) [C1 delik]",
+         {BUILD: [_FLIP, _R06_EMIT]}, "KIRMIZI"),
+        ("H3 kilit-KAPALI / CONFIG-OBJE emisyon (kartSecim: false) — mesru",
+         {BUILD: [_R06_EMIT]}, "YESIL"),
+    ]
+    for etiket, mut, beklenti in vakalar:
+        rc, cikti, kirmizi = kos(mut, etiket=etiket[:22])
+        if beklenti == "KIRMIZI":
+            isaretli = [s for s in kirmizi if _KILIT_ISARET in s]
+            gecti = (rc == 1) and bool(isaretli)
+            detay = ("cikis=%d kirmizi=%d isaretli=%s"
+                     % (rc, len(kirmizi), isaretli[0][:80] if isaretli else "YOK"))
+        else:
+            gecti = (rc == 0) and not kirmizi
+            detay = "cikis=%d kirmizi=%d %s" % (rc, len(kirmizi),
+                                                kirmizi[0][:80] if kirmizi else "")
+        check("%s -> %s" % (etiket, beklenti), gecti, detay)
 
 
 def bolum_c():
@@ -821,6 +872,7 @@ def main():
         return 1
     bolum_a()
     bolum_b()
+    bolum_h()
     bolum_c()
     bolum_d()
     bolum_e()

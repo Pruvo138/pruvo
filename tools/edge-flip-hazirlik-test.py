@@ -82,7 +82,30 @@ ONA(M.deg_komut(True, None)[0] == M.FAIL, "komut zaman asimi -> FAIL")
 d, kim, detay = M.deg_komut(True, 2)
 ONA(d == M.BLOKLU and kim == "HocA", "komut exit 2 (olculemedi) -> BLOKLU(HocA)")
 ONA("OLCULEMEDI" in detay, "exit 2 detayi OLCULEMEDI diyor")
-ONA(M.deg_komut(True, 3)[0] == M.FAIL, "komut exit 3 -> FAIL (exit 2 ozel, digerleri degil)")
+# exit 3 = OLCULEMEDI (sozlesme: tools/parite-ortak.js). Gerileme DEGIL -> FAIL yazilmaz;
+# ama parite KANITLANMADIGI icin PASS de yazilmaz (GO vermez) -> BLOKLU.
+# "yerelde var / D1'de yok" ve SIRA farki hala exit 1 = FAIL (kapinin var olus sebebi o yon).
+d, kim, detay = M.deg_komut(True, 3,
+                            "  D1 FAZLALIGI: yerel=1234 < canli=1299 | fazla=65 satir; "
+                            "SEBEP AYIRT EDILEMEDI\n⚪ SENKRON GECİKMESİ / KATALOG FARKI")
+ONA(d == M.BLOKLU, "komut exit 3 (katalog farki) -> BLOKLU")
+ONA(d != M.PASS, "komut exit 3 -> PASS DEGIL (olculemeyen YESILE donmez)")
+ONA("1234" in detay and "1299" in detay and "65" in detay,
+    "exit 3 detayi SAYIYLA sebep veriyor (olculen kanit)")
+ONA("AYIRT EDILEMEDI" in detay,
+    "exit 3 detayi KESIN HUKUM basmiyor (checkout bayat / yetim satir ayrilmadi)")
+ONA("GO da VERMEZ" in detay, "exit 3 detayi GO vermedigini ACIKCA yaziyor")
+d, _, detay = M.deg_komut(True, 3, "⚪ ÖLÇÜLEMEDİ: WAF/UA — canli uc HTTP 403 dondu")
+ONA(d == M.BLOKLU and "WAF/UA" in detay, "komut exit 3 (WAF/UA) -> BLOKLU + sebep")
+d, _, detay = M.deg_komut(True, 3, "⚪ ÖLÇÜLEMEDİ: HIZ SINIRI (429) — deneme tukendi")
+ONA(d == M.BLOKLU and "429" in detay, "komut exit 3 (429) -> BLOKLU + sebep")
+d, _, detay = M.deg_komut(True, 3, "⚪ ÖLÇÜLEMEDİ: ZAMAN ASIMI (20000 ms/istek)")
+ONA(d == M.BLOKLU and "zaman asimi" in detay.lower(), "komut exit 3 (zaman asimi) -> BLOKLU + sebep")
+d, _, detay = M.deg_komut(True, 3, "⚠️ FIKSTUR MODU: test-only env verildi (PARITE_URUNLER)")
+ONA(d == M.BLOKLU and "FIKSTUR MODU" in detay,
+    "komut exit 3 (PARITE_URUNLER/fikstur modu) -> BLOKLU + GORUNUR uyari (A15)")
+ONA(M.deg_komut(True, 4)[0] == M.FAIL, "komut exit 4 -> FAIL (yalniz 2 ve 3 ozel)")
+ONA(M.deg_komut(True, 1)[0] == M.FAIL, "komut exit 1 -> FAIL (aciklanamayan ayrisim)")
 
 # ── deg_d1: kimlik hatasi BLOKLU(Okan), exit 0 PASS, nonzero FAIL ────────────────
 d, kim, _ = M.deg_d1(1, "D1 KIMLIK HATASI (code 10000)")

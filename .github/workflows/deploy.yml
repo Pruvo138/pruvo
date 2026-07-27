@@ -431,6 +431,20 @@ jobs:
       - name: CI kapsam kapisi (her kabul testi kosuluyor mu / gerekceli muaf mi)
         run: python3 tools/ci-kapsam-test.py
 
+      # KAPININ KENDI NOBETCILERI — ayri adim olmak ZORUNDA (olculdu 27 Tem):
+      # ci-kapsam-test.py'nin kendi mutasyon nobetcileri (bulgu1_mutasyon_kontrol +
+      # muaf_sayaci_kontrol) yukaridaki BAYRAKSIZ kosumda YALNIZ denetle(..., kontroller=True)
+      # yolundan cagriliyor. Bu iki mutant sinifi orada SESSIZ kaliyordu:
+      #   (1) denetle() icindeki nobetci CAGRILARI silinirse -> bayraksiz kosum exit 0,
+      #       nobetcinin korudugu bug (muaf sayaci kapsamsizi sayar / yalniz-yorum mensiyonu
+      #       'kosuluyor' sayilir) geri gelse bile CI YESIL.
+      #   (2) denetle()'nin KIRMIZI CIKIS YOLU sakatlanirsa (return 1 -> return 0) ekrana
+      #       "SONUC: KIRMIZI ❌" basilsa da adim exit 0 verir -> Actions BASARILI sayar.
+      # --kendini-test nobetcileri DOGRUDAN cagirir ve exit kodunu kendi uretir -> her iki
+      # sinif BLOKLAYICI olur. Offline, deploy.yml disinda girdi okumaz, <1 s.
+      - name: CI kapsam kapisi oz-nobetcileri (bulgu1 + muaf sayaci, dogrudan)
+        run: python3 tools/ci-kapsam-test.py --kendini-test
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
