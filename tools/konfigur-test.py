@@ -142,6 +142,42 @@ def blok(html, desen):
     return m.group(0) if m else ""
 
 
+# Büyük-buton (panelsiz düzen) AÇILIŞ etiketi — attribute SIRASINDAN BAĞIMSIZ: <button ...
+# class="...cart-btn...". Neden regex: çıplak '<button class="cart-btn"' alt-dizesi
+# attribute sırasına duyarlıydı -> meşru bir reorder (<button type="submit" class="cart-btn">)
+# YANLIŞ-POZİTİF yakardı (panelsiz olmali "kayıp"). Footer <a class="cart-btn"> bunu
+# KARŞILAMAZ (<button gerekir -> R11 refaktörü yeşil kalır); ikon butonu
+# class="ikon-btn ikon-sepet" de karşılamaz (cart-btn kelime sınırıyla aranır).
+BUTON_CART = re.compile(r'<button[^>]*\bclass="[^"]*\bcart-btn\b')
+
+# Konfigur sayfasında kart-seçim malzeme kilidinin YANLIŞLIKLA AÇILMASINI (kart_secim=true)
+# EMİSYON BİÇİMİNDEN BAĞIMSIZ yakalar. Bağımsız çürütme ölçtü (C1 sessiz delik): yalnız
+# 'KART_SECIM = true' LİTERAL biçimini arayan negatif iddia, bayrak config objesine taşınırsa
+# (var PRUVO_CFG = { kartSecim: true }) kilit-AÇIK regresyonunu KAÇIRIYORDU -> malzemesiz
+# konfigur sayfasında "önce malzeme seç" kilidi açık kalır, Sepete Ekle kalıcı kilitli =
+# SESSİZ satış kaybı, kapı yeşil. Bu desen HEM 'KART_SECIM = true' (snake, =) HEM
+# 'kartSecim: true' (camel, config-obje :) biçimini kapsar (alt çizgi opsiyonel + [:=] +
+# büyük/küçük harf duyarsız). Meşru panelsiz/konfigur sayfa (kart_secim=FALSE, hangi biçimde
+# olursa) EŞLEŞMEZ -> R06/R07 refaktörü yeşil kalır (FP geri gelmez). KÖR NOKTA (ne_olculmedi
+# beyanı): 'true' harfi yerine truthy başka kodlama (1 / !0 / Boolean(1)) kullanan bir
+# regresyonu bu literal-truthy iddia görmez; o eksen build.py taraf test_sema fail-closed'una
+# ve mimar gözden geçirmesine bırakılmıştır.
+KILIT_ACIK_RE = re.compile(r"kart_?secim\s*[:=]\s*true\b", re.I)
+
+
+def _iz_var(marker, html):
+    """c2 marker'ı HTML'de var mı? Derlenmiş regex -> search (attribute-sıra dayanıklı);
+    düz dizge -> alt-dize. Böylece element id'leri düz kalırken büyük-buton sıra-bağımsız aranır."""
+    if hasattr(marker, "search"):
+        return bool(marker.search(html))
+    return marker in html
+
+
+def _iz_goster(markerlar):
+    """Rapor için: regex marker'ı desen metniyle, dizgeyi olduğu gibi gösterir."""
+    return [getattr(m, "pattern", m) for m in markerlar]
+
+
 # ------------------------------------------------------------------ fikstürler
 GORSELLER = [
     "https://media.pruvo3d.com/urunler/test-kurt-siyah-1.jpg",
@@ -451,22 +487,22 @@ KONFIGUR_IZLERI = ["URUN_KONFIGUR", "konfigur.js", "konfigurBoy", "konfigurKaydi
 # yapılmaz -> filament sayısı, ilgili ürün sayısı vb. değişince kırmızı yanmaz.
 YAPISAL_CEKIRDEK = {
     # panelsiz dal: opsiyon paneli YOK (#opsiyonlar yok), sayfa altında BÜYÜK buton var
-    "test-panelsiz": (['id="filCipler"', '<button class="cart-btn"'],
+    "test-panelsiz": (['id="filCipler"', BUTON_CART],
                       ['id="opsiyonlar"']),
     # kart-seçim dalı: opsiyon paneli + ikon düzeni (sayfa altı büyük buton YOK)
     "test-oto-parca": (['id="filCipler"', 'id="opsiyonlar"', 'id="cartBtn"'],
-                       ['<button class="cart-btn"']),
+                       [BUTON_CART]),
     # boy seçenekli: boy açılır kutusu (#boySec) kart-seçim düzeninin İÇİNDE
     "test-boylu": (['id="filCipler"', 'id="opsiyonlar"', 'id="boySec"'],
-                   ['<button class="cart-btn"']),
+                   [BUTON_CART]),
     # lisanslı: CC atıf bloğu KALIR (lisans kuralı — silinmesi ticari/hukuki risk)
     "test-lisansli": (['id="filCipler"', 'id="opsiyonlar"', 'class="attribution"',
                        'rel="license'],
-                      ['<button class="cart-btn"']),
+                      [BUTON_CART]),
     # parametrik sarı: jeneratör konfigüratör modülleri sayfaya bağlanır
     "olcuye-ozel-huni": (['id="filCipler"', 'id="opsiyonlar"',
                           "jenerator/konfigurator.js", "jenerator/hacim.js"],
-                         ['<button class="cart-btn"']),
+                         [BUTON_CART]),
 }
 
 # ---------------------------------------------------- KATEGORİ EKSENİ (c1/c2/c3 kapsaması)
@@ -488,7 +524,7 @@ YAPISAL_CEKIRDEK = {
 # güncellenir (test-skan-art.py B3 ile aynı sözleşme).
 # ÇAPA YOK: kategori SAYISI, ürün sayısı, SHA, tarih hiçbir yerde karşılaştırılmaz.
 KART_SECIM_CEKIRDEK = (['id="filCipler"', 'id="opsiyonlar"', 'id="cartBtn"'],
-                       ['<button class="cart-btn"'])
+                       [BUTON_CART])
 
 # Sayfa-sınıfı fikstürlerinin ZATEN render ettiği kategoriler burada TEKRAR EDİLMEZ
 # (Otomobil = test-oto-parca, Ev = test-boylu, Kamera = test-lisansli, Jeneratör =
@@ -633,11 +669,11 @@ def test_geri_uyumluluk():
     for ad, p in fikstuler:
         html = yeni_ciktilar[p["id"]]
         olmali, olmamali = YAPISAL_CEKIRDEK[p["id"]]
-        eksik = [m for m in olmali if m not in html]
-        fazla = [m for m in olmamali if m in html]
+        eksik = [m for m in olmali if not _iz_var(m, html)]
+        fazla = [m for m in olmamali if _iz_var(m, html)]
         kontrol(not eksik and not fazla,
                 "c2 yapısal çekirdek yerinde: %s (kayıp: %s / sızan: %s)"
-                % (ad, eksik or "-", fazla or "-"))
+                % (ad, _iz_goster(eksik) or "-", _iz_goster(fazla) or "-"))
 
     # --- c3: malzeme arayüzü XOR — konfigur'lu sayfalar da dahil TÜM sınıflarda ---
     xor_fikstur = [(ad, p, False) for ad, p in fikstuler]
@@ -716,7 +752,7 @@ def test_konfigur_sayfasi(seri):
     kontrol('id="renkOzel"' not in html, "'Diğer'/serbest renk kutusu YOK (standart 3 renk)")
     kontrol("Diğer" not in html.split('id="renkButonlar"')[1].split("</div>")[0],
             "renk butonlarında 'Diğer' yok")
-    kontrol('<button class="cart-btn"' not in html,
+    kontrol(not BUTON_CART.search(html),
             "sayfa altı büyük butonlar yerine ikon düzeni kullanılır")
     kontrol('id="cartBtn"' in html and "ikon-sepet" in html, "Sepete Ekle ikonu vardır")
     kontrol("PRUVO_KONFIGUR.kur(URUN_KONFIGUR, URUN, render)" in html,
@@ -731,11 +767,12 @@ def test_konfigur_sayfasi(seri):
     # DEĞER TESTİ (biçim çivisi DEĞİL): konfigur sayfası kart-seçim malzeme kilidini
     # AÇMAMALI. Eskiden "KART_SECIM = false" DİZGESİ aranıyordu -> JS minify (KART_SECIM=false)
     # ve bayrağın config objesine taşınması (var KART_SECIM = CFG.kartSecim) bu iddiayı
-    # sahte-KIRMIZI yapıyordu. Biçimden bağımsız NEGATİF iddia: bayrak DOĞRUDAN true'ya
-    # kurulmuyor (regresyon konfigur'u kart-seçime çevirirse 'KART_SECIM = true' basılır).
-    kontrol(not re.search(r"KART_SECIM\s*=\s*true\b", html),
-            "konfigur sayfasında kart-seçim malzeme kilidi AÇILMAZ (KART_SECIM true'ya "
-            "kurulmuyor; biçimden bağımsız — minify/config-obje refaktörü YAKMAZ)")
+    # sahte-KIRMIZI yapıyordu. Biçimden bağımsız NEGATİF iddia (KILIT_ACIK_RE): bayrak
+    # DOĞRUDAN true'ya kurulmuyor — hem 'KART_SECIM = true' hem config-obje 'kartSecim: true'
+    # biçimini kapsar (C1 sessiz delik onarımı; gerekçe KILIT_ACIK_RE tanımında).
+    kontrol(not KILIT_ACIK_RE.search(html),
+            "konfigur sayfasında kart-seçim malzeme kilidi AÇILMAZ (kart_secim true'ya "
+            "kurulmuyor; biçimden bağımsız — literal VE config-obje biçimi)")
 
     kontrol('id="malzemeButonlar"' not in html and "malzeme-btn" not in html,
             "MALZEMESİZ konfigur: malzeme seçici YOK (geri uyumluluk — renk+boy)")
@@ -824,9 +861,10 @@ def test_konfigur_malzeme_sayfasi(seri):
     kontrol('src="/konfigur.js' in html and 'id="cartBtn"' in html,
             "/konfigur.js + Sepete Ekle ikonu (malzeme sayfada da) bağlı")
     # DEĞER TESTİ (biçim çivisi DEĞİL — (d) ile aynı gerekçe): malzeme ekseninde de konfigur
-    # kart-seçim kilidini AÇMAMALI; biçimden bağımsız NEGATİF iddia (minify/config refaktörü YAKMAZ).
-    kontrol(not re.search(r"KART_SECIM\s*=\s*true\b", html),
-            "malzeme ekseninde de kart-seçim kilidi AÇILMAZ (KART_SECIM true'ya kurulmuyor)")
+    # kart-seçim kilidini AÇMAMALI; biçimden bağımsız NEGATİF iddia (KILIT_ACIK_RE: literal
+    # VE config-obje biçimi — C1 sessiz delik onarımı).
+    kontrol(not KILIT_ACIK_RE.search(html),
+            "malzeme ekseninde de kart-seçim kilidi AÇILMAZ (kart_secim true'ya kurulmuyor)")
 
     if seri:
         varsayilan = KURT_KONFIGUR["boyutMm"]["varsayilan"]
@@ -864,14 +902,22 @@ NE ÖLÇÜLMEDİ / BEYAN EDİLMİŞ BORÇ (yeşil çıktı bunları kapsamaz):
   · 🔴 BU BÖLÜM ÜRÜN VERİSİNİ ÖLÇMEZ — nöbetçi urunler.json'u OKUMAZ (sentetik fikstür).
     Katalogda bir kategorinin tamamen boşalması, ürün silinmesi/eklenmesi bu kapıyı
     ETKİLEMEZ; o eksen kategori-kapisi.py'de. Buradaki yeşil "katalog sağlam" DEMEZ.
-  · ✔ KAPANDI (eski MİRAS borcu): c2'nin biçim çivileri "KART_SECIM = true/false"
+  · ↺ EKSEN TAŞINDI (eski MİRAS borcu): c2'nin biçim çivileri "KART_SECIM = true/false"
     (JS sözdizimi) ve ÇIPLAK 'class="cart-btn"' KALDIRILDI. Fonksiyonel/panelsiz ayrımı
     artık KALICI YAPIYLA ölçülür: #opsiyonlar (kart-seçim paneli VAR/YOK) + büyük-buton
-    AÇILIŞ etiketi (<button class="cart-btn"). Üç rutin refaktör (bayrağın config objesine
-    taşınması · JS minify · footer'a .cart-btn sınıflı <a>) artık kapıyı YAKMAZ; katkısı
-    ÖLÇÜLDÜ = 0 (kategori matrisi 14/14 KIRMIZI, nöbetsiz mutant sayısı ARTMADI). Fikstür
-    KALICI: konfigur-nobet-mutasyon.py C bölümü R06/R07/R11 artık ✅ YEŞİL beklentisiyle
-    koşar — bu borç sessizce geri gelirse harness KIRMIZI yanar.""")
+    AÇILIŞ etiketi (BUTON_CART regex, attribute-sıra dayanıklı). Üç rutin refaktör (bayrağın
+    config objesine taşınması · JS minify · footer'a .cart-btn sınıflı <a>) artık kapıyı
+    YAKMAZ; katkısı ÖLÇÜLDÜ = 0 (kategori matrisi 14/14 KIRMIZI, nöbetsiz mutant ARTMADI).
+    Fikstür KALICI: konfigur-nobet-mutasyon.py C bölümü R06/R07/R11 YEŞİL + H bölümü
+    kilit-AÇIK true-flip'i (iki emisyon biçimi) KIRMIZI bekler.
+  · 🔴 KİLİT-AÇIK REGRESYONU literal-truthy iddiadır ('true' harfi): (d)/(e) KILIT_ACIK_RE
+    konfigur sayfasında kart_secim'in true'ya kurulmadığını hem 'KART_SECIM = true' hem
+    config-obje 'kartSecim: true' biçiminde arar (bağımsız çürütme C1 sessiz deliği bu
+    ikinci biçimi ölçtü — kapatıldı). AMA 'true' harfi yerine BAŞKA TRUTHY kodlama
+    (kartSecim: 1 / !0 / Boolean(1)) kullanan bir kilit-açık regresyonunu bu iddia GÖRMEZ;
+    o eksen build.py tarafı (kart_secim boolean üretimi) + test_sema fail-closed'una ve
+    mimar gözden geçirmesine bırakılmıştır. Buradaki yeşil "kilit her biçimde kapalı" DEMEZ,
+    "'true' literaliyle açılmıyor" DER.""")
 
 
 # ------------------------------------------------------------------ ana akış
