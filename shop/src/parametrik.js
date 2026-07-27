@@ -57,8 +57,8 @@ export function parametrikHesapla(kalem, secenek, sema) {
   if (ikiRenk) {
     // 2-renk basilabilirlik: kabartma yazi mevcut alt kenara oturur (Caption_Fit=existing),
     // kenar dar ise yazi sigmaz/SCAD assert atar. Dar kenarda 2-renk siparisini REDDET.
-    // KAAN-RENDER-DOGRULA: esik TASLAK 9 mm; KaaN SCAD assert render'iyla kesinlestirecek.
-    const IKI_RENK_MIN_KENAR = 9;
+    // min kenar 10 mm (KaaN render: production floor; 9mm stem 0.69mm<nozul kirilgan, 10mm 0.89mm robust).
+    const IKI_RENK_MIN_KENAR = 10;
     if (!(kalem.parametreler.kenar_genisligi >= IKI_RENK_MIN_KENAR)) {
       return { hata: "iki-renk-kenar-dar", enAz: IKI_RENK_MIN_KENAR };
     }

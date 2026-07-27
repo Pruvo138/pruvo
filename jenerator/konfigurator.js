@@ -9,11 +9,11 @@
   "use strict";
 
   // Cerceve 2-renk yazi ek ucreti (kurus) + basilabilirlik esigi + beyaz liste.
-  // TEK KAYNAK degerleri: +75 TL = shop/src/parametrik.js ile AYNI; min kenar 9 mm
-  // (KAAN-RENDER-DOGRULA: TASLAK, SCAD assert render'iyla kesinlesecek); beyaz liste
-  // = onizleme/derleyici/server.py METIN_BEYAZ_LISTE kumesiyle AYNI (harf/rakam + . , - _).
+  // TEK KAYNAK degerleri: +75 TL = shop/src/parametrik.js ile AYNI; min kenar 10 mm
+  // (KaaN render: production floor; 9mm stem 0.69mm<nozul kirilgan, 10mm 0.89mm robust);
+  // beyaz liste = onizleme/derleyici/server.py METIN_BEYAZ_LISTE kumesiyle AYNI (harf/rakam + . , - _).
   var IKI_RENK_EK_KURUS = 7500;
-  var IKI_RENK_MIN_KENAR = 9;
+  var IKI_RENK_MIN_KENAR = 10;
   var YAZI_BEYAZ_LISTE = /^[A-Za-z0-9ğüşıöçĞÜŞİÖÇ .,\-_]*$/;
 
   // ---- saf yardımcılar (node testlerinde de kullanılır) ----

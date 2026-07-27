@@ -140,8 +140,10 @@
     "olcuye-ozel-pervane-fan-cark", "olcuye-ozel-izgara-menfez-kapak",
     "olcuye-ozel-hortum-adaptoru", "olcuye-ozel-kutu-organizer",
     "olcuye-ozel-vidali-kavanoz-tapa",
-    "olcuye-ozel-toka",
-    "olcuye-ozel-cerceve"];
+    "olcuye-ozel-toka"];
+  // v1.1 NOTU: "olcuye-ozel-cerceve" v1'de listeden CIKARILDI — onizleme paketi
+  // (eslem-ozel + R2 + container) HENUZ YOK, buton cerceve sayfasinda render'i patlatirdi;
+  // paket hazir olunca geri eklenir.
 
   /* Onizleme model RENGI (aile bazli; viewer.js taban rengi). Liste DISI aileler
      sari-seri kimlik rengini (viewer.js varsayilani, parlak sari) alir. Toka
