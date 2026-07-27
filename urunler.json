@@ -1,5 +1,943 @@
 [
   {
+    "id": "renault-clio-2-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio 2 Bardaklık",
+    "aciklama": "Renault Clio 2 için tasarlanan, sürüş sırasında içecek bardağını sabit tutan bardaklık. Konsol bölgesine oturarak bardağın devrilmesini önler.\nYaklaşık dış ölçüler: 85 × 60 × 43 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7307690-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7307690-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7307690-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dtmf75",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-laguna-kart-okuyucu-tamir-parcasi-2",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Laguna Kart Okuyucu Tamir Parçası (2. Konum)",
+    "aciklama": "Renault Laguna kart okuyucusundaki ikinci düğmenin konumunu düzelten tamir parçası. Kartın algılanmaması sorununu gidermek için okuyucu mekanizmasına yerleştirilir.\nYaklaşık dış ölçüler: 61 × 9 × 8 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7105188-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7105188-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3dsokol",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-3-fluence-debriyaj-pedali-ara-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane 3 / Fluence Debriyaj Pedalı Ara Parçası",
+    "aciklama": "Renault Megane 3 ve Fluence debriyaj pedalına takılan ara parça. Pedal hissini hafifleterek daha rahat vites değişimi sağlar.\nYaklaşık dış ölçüler: 59 × 58 × 2 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6975803-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6975803-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "imicopycat",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-cabrio-tavan-su-tahliye-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane Cabrio Tavan Su Tahliye Tapası",
+    "aciklama": "Renault Megane Cabrio (üstü açılır) modelinin tavan su toplama haznesindeki tahliye tapası. Orijinaline uygun şekilde oturarak su sızıntısını engeller.\nYaklaşık dış ölçüler: 60 × 55 × 11 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6471287-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6471287-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6471287-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gonza88ar",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-espace-4-bagaj-baglama-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Espace 4 Bagaj Bağlama Kancası",
+    "aciklama": "Renault Espace 4 bagaj/koltuk raylarına klipslenen yük bağlama kancası. Bagajdaki yükün kaymasını önlemek için raya oturur; sabit ve kayan versiyonlarıyla farklı ihtiyaçlara uyar.\nYaklaşık dış ölçüler: 47 × 30 × 28 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6333741-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6333741-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6333741-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6333741-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gdargery",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-twingo-1-hoparlor-ara-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Twingo 1 Hoparlör Ara Halkası (13-16 cm)",
+    "aciklama": "Renault Twingo 1 için tasarlanan hoparlör ara halkası. Orijinal 13 cm hoparlörlerin yerine 16 cm hoparlör takılmasına olanak tanır.\nYaklaşık dış ölçüler: 190 × 190 × 12 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6928940-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dutant-design",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-5-kilit-butonu-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 5 Kilit Butonu Contası",
+    "aciklama": "Renault 5 (ikinci seri) kapı kilidi basma butonunun contası. Eskiyen veya kaybolan orijinal contanın yerine takılır.\nYaklaşık dış ölçüler: 34 × 34 × 5 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6672367-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6672367-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rafawana",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "renault-koltuk-ayar-kolu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Koltuk Ayarlama Kolu Klipsi",
+    "aciklama": "Birçok Renault modelinde koltuk ayarlama kolunu sabitleyen bağlantı klipsi. Kırılan orijinal klipsin yerine takılarak kolun düzgün çalışmasını sağlar.\nYaklaşık dış ölçüler: 27 × 27 × 16 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5155570-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5155570-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5155570-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MartinGer",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "renault-5-direksiyon-merkez-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 5 Direksiyon Merkez Kapağı",
+    "aciklama": "Renault 5 direksiyon göbeğine takılan merkez/korna kapağı. Orijinal amblem veya korna butonu ortadaki yükseltilmiş göbeğe oturur; dört cıvata deliğiyle direksiyon göbeğine sabitlenir. Baskıda logo taşımaz; kırılan veya kaybolan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 102 × 102 × 30 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6420389-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rafawana",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "renault-koleos-bagaj-mandal-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Koleos Bagaj Mandalı Kapağı",
+    "aciklama": "Renault Koleos arka kapı/bagaj mandalını örten kapak plakası. Orijinaline uygun şekilde mandalın üzerine oturur.\nYaklaşık dış ölçüler: 67 × 27 × 7 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6009029-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6009029-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6009029-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Max_Cathalifaud",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-yag-kapagi-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Yağ Kapağı Contası",
+    "aciklama": "Renault motor yağ dolum kapağının contası. Eskiyen orijinal contanın yerine takılarak sızdırmazlığı sağlar.\nYaklaşık dış ölçüler: 36 × 36 × 4 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5994143-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Oleg",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-motor-bolmesi-kablo-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Motor Bölmesi Kablo Klipsi",
+    "aciklama": "Renault motor bölmesinde kabloları düzenli ve sabit tutan klips. Kırılan orijinal klipsin yerine takılır.\nYaklaşık dış ölçüler: 21 × 16 × 16 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5796935-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Oracol",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-zoe-50-bagaj-kapaklari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Zoe 50 Bagaj Kapakları",
+    "aciklama": "Renault Zoe 50 bagaj bölmesindeki boşlukları örten kapaklar. Orijinal kapakların yerine takılarak bagaj bölgesini düzenli gösterir.\nYaklaşık dış ölçüler: 175 × 106 × 8 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6023210-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BourrinDesBois",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-kadjar-yag-kapagi-kemirgen-korumasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Kadjar Yağ Kapağı Kemirgen Koruması",
+    "aciklama": "Renault Kadjar motorunda yağ dolum kapağının üzerindeki boşluğu kapatan koruma parçası. Kemirgenlerin bu boşluğa yerleşip kaput izolasyonuna zarar vermesini engellemek için kapağın üzerine klipslenir.\nYaklaşık dış ölçüler: 118 × 114 × 90 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4672360-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4672360-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Laserdroid",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-koleos-govde-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Koleos Gövde Klipsi",
+    "aciklama": "Renault Koleos döşeme parçalarını sabitleyen gövde klipsi. Kırılan orijinal klipsin yerine takılır.\nYaklaşık dış ölçüler: 38 × 28 × 16 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5796932-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Oracol",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-captur-port-bagaj-lastik-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Captur Port Bagaj Lastik Tapası",
+    "aciklama": "Renault Captur tavan port bagajının montaj noktasındaki lastik tapa. Sol ve sağ için aynalanabilir; kaybolan orijinalin yerine geçer.\nYaklaşık dış ölçüler: 124 × 26 × 6 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4438510-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4438510-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4438510-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gariel22",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-2-arka-kapi-vida-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Trafic 2 Arka Kapı Vida Tapası",
+    "aciklama": "Renault Trafic 2 arka kapı iç kısmındaki vida deliğini örten tapa. Kaybolan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 17 × 17 × 16 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6145953-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dromo-sdr",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-scenic-1-arka-koltuk-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Scenic 1 Arka Koltuk Bardaklığı",
+    "aciklama": "Renault Scenic 1 arka koltuk arkasındaki büyük şişe yuvalarına oturan bardaklık. Sol ve sağ farklıdır; çift taraflı bantla sabitlenebilir.\nYaklaşık dış ölçüler: 120 × 115 × 55 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3468544-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3468544-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dip2019",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-alpine-a310-koltuk-kolu-kilavuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Alpine A310 Koltuk Kolu Kılavuzu",
+    "aciklama": "Renault Alpine A310 ve aynı parçayı kullanan diğer Renault modelleri için koltuk ayar kolu kılavuzu. Kırılan orijinalin doğrudan yerine takılır.\nYaklaşık dış ölçüler: 95 × 25 × 6 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4020431-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4020431-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4020431-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ricotobbs",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-twingo-2-ayna-cami-destegi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Twingo 2 Ayna Camı Desteği",
+    "aciklama": "Renault Twingo 2 dış dikiz aynası camının arkasındaki destek plakası. İki vidayla orijinal ayna gövdesine sabitlenir; ayna camı üzerine yerleşir.\nYaklaşık dış ölçüler: 145 × 100 × 7 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3475643-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3475643-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3d-phenomen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-espace-panorama-tavan-kizak-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Espace Panorama Tavan Kızak Parçası",
+    "aciklama": "Renault Espace 4 panoramik tavanının kızak parçası. Ray içinde hareket eden bu parça, başka Renault modellerinde de kullanılabilir.\nYaklaşık dış ölçüler: 20 × 16 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6689895-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ThomasS31",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-mikrofon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Trafic Mikrofon Tutucu",
+    "aciklama": "Renault Trafic ve Opel Vivaro araçlara telsiz/mikrofon tutucusunu monte etmek için tasarlanan aparat.\nYaklaşık dış ölçüler: 33 × 33 × 7 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6599025-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6599025-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gorkalertxundi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-twizy-arka-tampon-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Twizy Arka Tampon Braketi",
+    "aciklama": "Renault Twizy arka tamponunu yeniden sabitlemek için tasarlanan braket. Kırılan orijinal tutucuların yerine geçer.\nYaklaşık dış ölçüler: 76 × 75 × 23 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7103537-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Roelli",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-2-alize-bardaklik-konsolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio 2 Alize Bardaklık Konsolu",
+    "aciklama": "Renault Clio 2 (Alize) için tasarlanan bardaklık konsolu. Orijinal bardaklık yerine geçerek içecekleri sabit tutar.\nYaklaşık dış ölçüler: 260 × 110 × 90 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7343604-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7343604-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7343604-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7343604-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "2leo2leo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-4-vites-topuzu-1963-1965",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 4 Vites Topuzu (1963-1965)",
+    "aciklama": "Renault 4 modelinin 1963-1965 yılları arasındaki 3 vitesli yuvarlak vites topuzu. Eskiyen veya kaybolan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 52 × 48 × 48 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7089772-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7089772-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "axelpg",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-laguna-1-anahtar-butonu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Laguna 1 Anahtar Butonu Kapağı",
+    "aciklama": "Renault Laguna anahtarlarında zamanla aşınıp kırılan buton kapağının yedeği. Orijinal kapağın yerine takılarak butonların düzgün çalışmasını sağlar.\nYaklaşık dış ölçüler: 17 × 12 × 4 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6952915-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6952915-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6952915-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Andrei1744",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-1-jigle-kolu-ucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio 1 Jigle Kolu Ucu",
+    "aciklama": "Renault Clio 1 jigle (starter) kolunun uç başlığı. Kırılan veya kaybolan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 22 × 20 × 11 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6458293-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6458293-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6458293-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pilote50",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-2-vites-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane 2 Vites Çerçevesi",
+    "aciklama": "Renault Megane 2 vites kolu çevresindeki döşeme çerçevesi. Kırılan orijinalin yerine geçer; deri kaplama küçük vidalarla sabitlenebilir.\nYaklaşık dış ölçüler: 160 × 160 × 20 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6973211-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6973211-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "midnunes",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-1-mentese-tamir-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane 1 Menteşe Tamir Seti",
+    "aciklama": "Renault Megane 1 için menteşe tamir seti (orijinal parça no 7701204548). Kırılan menteşenin yerine takılır.\nYaklaşık dış ölçüler: 29 × 24 × 20 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6553190-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6553190-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6553190-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6553190-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lioncyber",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-3-radyo-kumanda-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane 3 Radyo Kumanda Düğmesi",
+    "aciklama": "Renault Megane 3 radyosunun sol kumanda düğmesi (menü ve parça geçiş düğmesi). Kaybolan orijinalin yerine takılır; belirli radyo modeline uyar.\nYaklaşık dış ölçüler: 15 × 15 × 14 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6912654-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6912654-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6912654-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tonedepear",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-duster-yedek-lastik-somunu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Duster Yedek Lastik Sabitleme Somunu",
+    "aciklama": "Renault Duster 1 ve 2 modellerinde yedek lastiği sabitleyen somun. Kırılan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 85 × 85 × 10 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7084392-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7084392-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phantomc35",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-clio-elektrikli-ayna-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Clio Elektrikli Ayna Düğmesi",
+    "aciklama": "Renault Clio (182) elektrikli dış dikiz ayna ayar düğmesi. Kaybolan orijinalin yerine takılır; düz yüzeyi isteğe göre kişiselleştirilebilir.\nYaklaşık dış ölçüler: 33 × 33 × 17 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7307319-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7307319-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7307319-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gd_Prints",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-scenic-2-otomatik-vites-kolu-tamir-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Scenic 2 Otomatik Vites Kolu Tamir Parçası",
+    "aciklama": "Renault Scenic 2 otomatik şanzıman vites kolundaki boşluğu gideren tamir parçası. Vites kolu D konumuna zor geçtiğinde kırılan arka parçanın yerine takılır.\nYaklaşık dış ölçüler: 19 × 14 × 7 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7017559-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7017559-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "matt978",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-megane-e-tech-kablosuz-sarj-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane E-Tech Kablosuz Şarj Aparatı",
+    "aciklama": "Renault Megane E-Tech için kablosuz şarj modülünü konsola entegre etmeye yarayan tutucu aparat. Telefonu sabit tutarken kablosuz şarjı mümkün kılar.\nYaklaşık dış ölçüler: 136 × 95 × 15 mm.",
+    "fiyat": "180 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6627332-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brudertac",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-kart-anahtar-donusum-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Kart Anahtarını Küçük Anahtara Dönüştürme Gövdesi",
+    "aciklama": "Renault kart anahtarının elektroniğini kompakt bir anahtar gövdesine taşımak için tasarlanan parça seti. Kartın elektroniği bu gövdeye yerleştirilerek cepte taşınabilir küçük bir anahtar elde edilir.\nYaklaşık dış ölçüler: 63 × 36 × 7 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6340074-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6340074-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6340074-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6340074-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "michtill",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-laguna-kart-okuyucu-tamir-parcasi-1",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Laguna Kart Okuyucu Tamir Parçası (1. Konum)",
+    "aciklama": "Renault Laguna kart okuyucusundaki birinci düğmenin hareketini iyileştiren tamir parçası. Ucundaki küçük rampa sayesinde kart takıldığında hareket daha belirgin olur.\nYaklaşık dış ölçüler: 22 × 13 × 13 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7105178-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3dsokol",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-klima-hava-yonlendirme-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Klima Hava Yönlendirme Kutusu",
+    "aciklama": "Renault araçlar için klima ve kalorifer çıkış haznesi, hava yönlendirme kutusu. Hava akışını yönlendirmek için havalandırma çıkışına takılır.\nYaklaşık dış ölçüler: 123 × 90 × 67 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6422369-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6422369-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6422369-3.jpg"
+    ]
+  },
+  {
+    "id": "renault-espace-5-bagaj-perde-stoperi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Espace 5 Bagaj Perde Stoperi",
+    "aciklama": "Renault Espace 5 bagaj perdesinin stoper parçası. Kırılan orijinalin yerine takılır; sağ ve sol (aynalanmış) versiyonları mevcuttur.\nYaklaşık dış ölçüler: 63 × 41 × 17 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7148200-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7148200-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7148200-3.jpg"
+    ]
+  },
+  {
+    "id": "renault-5-tx-sis-far-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 5 TX Sis Farı Çerçevesi",
+    "aciklama": "Renault 5 TX ızgarasındaki sis farı çerçevesi. Kırılan veya kaybolan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 195 × 81 × 41 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6418863-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6418863-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rafawana",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "renault-trafic-1-debriyaj-merkezleme-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Trafic 1 Debriyaj Merkezleme Aparatı",
+    "aciklama": "Renault Trafic 1 (2.5 dizel) debriyaj merkezleme aparatı. Debriyaj montajında balatayı hizalamak için kullanılır.\nYaklaşık dış ölçüler: 100 × 21 × 21 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6979100-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ultimakalex",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-espace-3-anahtar-butonu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Espace 3 Anahtar Butonu",
+    "aciklama": "Renault Espace 3 anahtarının basma butonu. Aşınan veya kırılan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 21 × 16 × 3 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5644698-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ster11591",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-twingo-arka-silecek-kor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Twingo Arka Silecek Kör Kapağı",
+    "aciklama": "Renault Twingo arka silecek deliğini kapatan kör kapak. Silecek söküldüğünde cam görünümünü koruyarak deliği örter.\nYaklaşık dış ölçüler: 175 × 57 × 5 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4588847-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4588847-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4588847-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "NoxAtra",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "renault-master-2-camurluk-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Master 2 Çamurluk Braketi",
+    "aciklama": "Renault Master 2 çamurluk montaj braketi (orijinal parça no 7700352229). Kırılan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 69 × 26 × 26 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7370681-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hondys",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-9-anahtar-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 9 Anahtar Gövdesi",
+    "aciklama": "Renault 9 araç anahtarının plastik gövdesi/kabı. Eskiyen veya kırılan orijinal plastiğin yerine takılır.\nYaklaşık dış ölçüler: 147 × 46 × 8 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6710641-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6710641-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6710641-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ideangelis",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-4-plaka-lambasi-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault 4 Plaka Lambası Contası",
+    "aciklama": "Renault 4 (F6) geri vites/plaka aydınlatma lambasının contası. Uyumlu lamba gövdesine oturur.\nYaklaşık dış ölçüler: 130 × 96 × 9 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6937737-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JoaStr",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-symbol-direksiyon-pompa-baglanti-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Symbol Direksiyon-Pompa Bağlantı Parçası",
+    "aciklama": "Renault Symbol modelinde direksiyon kutusu ile hidrolik pompa arasındaki bağlantıyı sağlayan parça. Kırılan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 17 × 17 × 12 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6921476-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6921476-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6921476-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mitrielectron3d",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-kadjar-konsol-bozuk-para-usb-organizeri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Kadjar Konsol Bozuk Para ve USB Organizeri",
+    "aciklama": "Renault Kadjar orta konsolundaki boşluğa oturan organizer. Market arabası jetonu için üç yuva ve USB girişleri için yuvalar içerir; içindekilerin takırdamasını önler.\nYaklaşık dış ölçüler: 60 × 60 × 27 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7339283-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7339283-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7339283-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7339283-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mykel_DK",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-1-kriko-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Trafic 1 Kriko Tutucu",
+    "aciklama": "Renault Trafic 1 için kriko tutucu yuvası. Krikoyu yerinde sabit tutar.\nYaklaşık dış ölçüler: 38 × 29 × 22 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6925836-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "romlol",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-1-vites-kolu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Trafic 1 Vites Kolu Burcu",
+    "aciklama": "Renault Trafic 1 vites kolu burcu. Vites kolundaki boşluğu ve takırtıyı gidererek sessiz çalışma sağlar.\nYaklaşık dış ölçüler: 45 × 45 × 9 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7387205-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "romlol",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-master-2-arka-kapi-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Master 2 Arka Kapı Kolu",
+    "aciklama": "Renault Master 2 arka kapı açma kolu. Kırılan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 73 × 58 × 34 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6539922-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6539922-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6539922-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "myroska",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-trafic-2-sigorta-kutusu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Trafic 2 Sigorta Kutusu Kapağı",
+    "aciklama": "Renault Trafic 2 sigorta kutusu kapağı. Kaybolan orijinal kapağın yerine takılır; geniş kapak iki parça halinde birleştirilebilir.\nYaklaşık dış ölçüler: 190 × 134 × 11 mm.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7133016-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7133016-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7133016-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7133016-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hunett97",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "renault-captur-kapi-kilit-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Captur Kapı Kilit Mandalı",
+    "aciklama": "Renault Captur kapı kilit mandalı/selektörü. Kırılan orijinalin yerine takılır.\nYaklaşık dış ölçüler: 29 × 7 × 7 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6438247-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wilsonnilo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "renault-espace-4-aku-terminal-kapagi",
     "kategori": "Otomobil",
     "marka": [
