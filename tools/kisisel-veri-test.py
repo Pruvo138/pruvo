@@ -294,6 +294,97 @@ def ic_rapor_nobeti(kosucu=None, fikstur=True):
     return hatalar, len(yollar)
 
 
+# ==================================================================================
+# TEDARIKCI/URUN ADI SIZINTI NOBETCISI — KURESEL NEGATIF ICERIK KURALI
+# ==================================================================================
+# NEDEN VAR (olculdu, 27 Tem): parametrik sari serinin uretecinin turedigi ucuncu
+# taraf tedarikci/urun adi, aile kaynagindaki bir yoruma yazilmisti; birlestir.py
+# onu jenerator/hacim.js'e tasiyor ve build.py hacim.js'i HER parametrik urun
+# sayfasina <script> ile gomuyor -> merge edilseydi CANLIYA + PUBLIC repoya
+# (Pruvo138/pruvo) tedarikci adi sizardi. Guvenlik-para-gizlilik: para odenen
+# kaynagin adi hicbir public yerde gecmez (CLAUDE.md kurali). Aile kaynagi
+# temizlendi; bu nobetci REGRESYONU kapatir (adi geri koyan degisiklik kirmizi yanar).
+#
+# EKSEN: DOSYA ICERIGI (rapor nobetcisinden farkli — o dosya ADI ekseninde). Izlenen
+# (git ls-files) dosyalarin ICERIGINDE, kucuk-harf normalize edilmis, DAR 3 literal
+# aranir. Literal listesi kasitla PARCALARDAN kurulur: boylece bu kaynak dosyanin
+# KENDISI (izlenen) kendi kalibiyla eslesmez (aksi halde tarayici kendi kaynagini
+# kirmizi yakardi). Fikstur kirmizi/yesil ornekleri de calisma-aninda kurulur.
+# YANLIS-POZITIF DARLIGI: 3 tam literal; near-miss (framework, kool maker) yesil.
+_TED_PARCALAR = (("koo", "lm"), ("frame", "maker"), ("frame ", "maker"))
+_TED_KALIPLAR = tuple("".join(p) for p in _TED_PARCALAR)
+
+
+def _ted_eslesme(metin):
+    """metin icinde gizli tedarikci/urun adi kaliplarindan gecenler (kucuk harf, sirali).
+    Kalip listesi DAR (3 tam literal) -> alakasiz icerikte yanlis-pozitif 0."""
+    d = metin.lower()
+    return [k for k in _TED_KALIPLAR if k in d]
+
+
+def _dosya_oku(yol):
+    with open(os.path.join(ROOT, yol), "rb") as f:
+        return f.read()
+
+
+def tedarikci_isabetleri(yollar, oku=None):
+    """Izlenen yol listesi -> (yol, kalip) isabetleri, sirali. GERCEK tarama ve fikstur
+    oz-kontrolu AYNI fonksiyonu kullanir: govdesi no-op yapilirsa (or. 'return []')
+    fikstur oz-kontrolu de kirmizi yanar (olu tarayici korumasi)."""
+    oku = oku or _dosya_oku
+    isabet = []
+    for yol in yollar:
+        try:
+            ham = oku(yol)
+        except OSError:
+            continue
+        metin = ham.decode("utf-8", "ignore")
+        for k in _ted_eslesme(metin):
+            isabet.append((yol, k))
+    return sorted(isabet)
+
+
+def tedarikci_fikstur_hatalari():
+    """Nobetcinin KENDI hukmunu olcer (olu nobetci + asiri-genisleme korumasi).
+    Bellekte calisir, diske/aga DOKUNMAZ."""
+    hatalar = []
+    # (0) TARAYICI OZ-KONTROLU: sentetik izlenen icerik -> isabet eslemesi CANLI mi.
+    _kirmizi = "// cerceve.scad " + _TED_KALIPLAR[0] + " tureviyle uretilir"
+    _yesil = "picture framework and a kool tool: makers of frames"
+    _sahte = {"a/kirmizi.js": _kirmizi.encode("utf-8"),
+              "b/yesil.js": _yesil.encode("utf-8")}
+    _beklenen = [("a/kirmizi.js", _TED_KALIPLAR[0])]
+    _bulunan = tedarikci_isabetleri(sorted(_sahte), oku=lambda y: _sahte[y])
+    if _bulunan != _beklenen:
+        hatalar.append("TARAYICI OLU/BOZUK: sentetik icerik taramasi beklenen %r "
+                       "yerine %r bulundu" % (_beklenen, _bulunan))
+    # (1) DESEN CANLI: her tam literal bir eslesme yakalamali.
+    for k in _TED_KALIPLAR:
+        if _ted_eslesme("x " + k + " y") != [k]:
+            hatalar.append("DESEN OLU: %r yakalanmiyor" % k)
+    # (2) DARLIK: near-miss (tam literal olmayan) YANMAMALI.
+    for nm in ("framework", "kool maker", "makers of frames", "a frame and a maker"):
+        if _ted_eslesme(nm):
+            hatalar.append("YANLIS-POZITIF near-miss: %r yandi (kural DARALTILMALI)" % nm)
+    return hatalar
+
+
+def tedarikci_nobeti():
+    """(hatalar, taranan_dosya_sayisi). Fail-loud: git okunamazsa sessiz yesil VERILMEZ."""
+    hatalar = tedarikci_fikstur_hatalari()
+    yollar, hata = _izlenen_dosyalar()
+    if hata:
+        hatalar.append("OLCULEMEDI (tedarikci nobeti) — %s" % hata)
+        return hatalar, 0
+    for yol, _k in tedarikci_isabetleri(yollar):
+        hatalar.append(
+            "TEDARIKCI ADI SIZINTISI: %s icinde gizli tedarikci/urun adi kalibi gecti — "
+            "PUBLIC repoya girer (para odenen kaynak adi hicbir public yerde gecmez). "
+            "Cozum: kaynak yorumunu notrlestir (hacim.js icin aile kaynagi + birlestir.py)."
+            % yol)
+    return hatalar, len(yollar)
+
+
 def normalize(metin):
     metin = metin.lower()
     for c in (" ", "\t", "\n", " ", "-", "(", ")"):
@@ -348,7 +439,10 @@ def main():
     # 3) IC RAPOR SIZINTI NOBETCISI (kuresel negatif kural + kendi fiksturleri)
     rapor_hatalari, taranan = ic_rapor_nobeti()
 
-    if hatalar or rapor_hatalari:
+    # 4) TEDARIKCI/URUN ADI SIZINTI NOBETCISI (kuresel negatif ICERIK kurali)
+    tedarikci_hatalari, ted_taranan = tedarikci_nobeti()
+
+    if hatalar or rapor_hatalari or tedarikci_hatalari:
         if hatalar:
             print("KIRMIZI — kişisel veri testi %d hata:" % len(hatalar))
             for h in hatalar:
@@ -356,6 +450,11 @@ def main():
         if rapor_hatalari:
             print("KIRMIZI — iç rapor sızıntı nöbetçisi %d hata:" % len(rapor_hatalari))
             for h in rapor_hatalari:
+                print("  - " + h)
+        if tedarikci_hatalari:
+            print("KIRMIZI — tedarikçi/ürün adı sızıntı nöbetçisi %d hata:"
+                  % len(tedarikci_hatalari))
+            for h in tedarikci_hatalari:
                 print("  - " + h)
         sys.exit(1)
     print("YEŞİL — kişisel veri testi geçti (%d sayfa, %d kalıp, "
@@ -365,6 +464,9 @@ def main():
           "%d kırmızı + %d yeşil fikstür, %d istisna)."
           % (taranan, len(_IC_RAPOR_KIRMIZI), len(_IC_RAPOR_YESIL),
              len(IC_RAPOR_ISTISNA)))
+    print("YEŞİL — tedarikçi/ürün adı sızıntı nöbetçisi geçti "
+          "(%d izlenen dosya içeriği tarandı, %d dar literal)."
+          % (ted_taranan, len(_TED_KALIPLAR)))
 
 
 if __name__ == "__main__":

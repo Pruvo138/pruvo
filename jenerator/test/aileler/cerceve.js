@@ -1,5 +1,5 @@
 function cerceve(p) {
-  // Olcuye-ozel CERCEVE (Koolm Frame Maker tureviyle uretilir): cerceve.scad
+  // Olcuye-ozel CERCEVE parametrik uretici: cerceve.scad
   // sozlesmesi. Musteri 5 param: acilik_eni/boyu, kenar_genisligi, derinlik,
   // kenar_stili. caption KAPALI, mounting/lip/retainer YOK (guvenli varsayilan).
   //
