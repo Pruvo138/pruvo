@@ -432,6 +432,29 @@ _KART_KORU = [re.compile(p, re.I) for p in (
     r"(?:düğme|buton|korna)\w*[^.]{0,32}?bas[ıi]l\w*",     # düğmeye/butona basılması (button-press)
     r"bas[ıi]l\w*[^.]{0,26}?(?:önle|engelle|karşı)\w*",    # basılmasını önler / basılmaya karşı (button)
 )]
+# BAĞLAM-DUYARLI bare "baskı" (çürütücü son ayar, 27 Tem): bare "baskı" VARSAYILAN KORUNUR (basınç:
+# baskı balata/plakası/uygula/altında/yaparak/hizala), AMA printing SİNYALİ bitişikse ÇEVRİLİR:
+# (a) malzeme adı ÖNCE (PLA/PETG/ABS/PA/PC/ASA/TPU/reçine/naylon) · (b) doluluk/infill/ölçek ÖNCE ·
+# (c) hassas/test/kolay/hızlı/düz/dikey/yatay ÖNCE · (d) SONRA printing-tavsiyesi (önerilir/yeterli/
+# gerektirir/kalitesi/ayarı/çözünürlüğü/hassasiyeti). Ölçüldü: 79 printing-"baskı" yakalanır, 21 basınç
+# "baskı" DOKUNULMAZ, örtüşme 0. Basınç kolokasyonu bu sinyallerden hiçbirini taşımaz -> güvenli.
+_PRINT_SIG = (r"(?:pla|petg|abs|asa|tpu|pa-?cf|pa-?gf|pa|pc|reçine\w*|naylon|poliamid"
+              r"|doluluk\w*|dolulukta|dolulukla|dolu|infill|ölçek\w*"
+              r"|hassas|test|kolay|hızlı|düz|dikey|yatay)")
+_PRINT_ADV = (r"(?:öneril\w*|yeterli\w*|gerektir\w*|kalites\w*|ayar\w*"
+              r"|çözünürl\w*|hassasiyet\w*)")
+_KART_PRINT_1 = re.compile(r"(\b" + _PRINT_SIG + r"\s+(?:ile\s+)?)(bask[ıi]\w*)", re.I)
+_KART_PRINT_2 = re.compile(r"(bask[ıi]\w*)(\s+" + _PRINT_ADV + r")", re.I)
+_BASK_DON = {"baskı": "üretim", "baskıya": "üretime", "baskıda": "üretimde",
+             "baskıyla": "üretimle", "baskısı": "üretimi",
+             "baskıyı": "üretimi", "baskıdan": "üretimden", "baski": "üretim"}
+
+
+def _bask_don_w(w):
+    r = _BASK_DON.get(w.lower(), "üretim")
+    if w[:1].isupper():
+        r = r[:1].upper() + r[1:]
+    return r
 # Tekil printing kelime formları (basınç/buton maskelendi/yok). Türkçe ek uyumlu ENUMERE karşılık;
 # yoksa kök-bazlı yedek. NOT: bare "baskı"/"basma" YOK (fail-safe koru).
 _KART_KELIME = {
@@ -452,13 +475,16 @@ _KART_KELIME = {
 # "baskı" ve "basma" KAPSAM DIŞI (fail-safe koru). 'baskılı' 'basıl'dan ÖNCE (baskılı ≠ basıl).
 _KART_ROOT_RE = re.compile(
     r"\b(?:filament|yaz[ıi]c[ıi]|yazd[ıi]r|bask[ıi]l[ıi]|bas[ıi]l)\w*", re.I)
-# LINT (test tüketir): buton-basıl maskelendikten SONRA kalan KESİN printing token.
-# Bare "baskı"/"basma" YOK (koruma — false-positive olmasın); 3D Tarama/model/Sprinter kök taşımaz.
+# LINT (test tüketir): buton-basıl maskelendikten SONRA kalan KESİN printing token + BAĞLAM-DUYARLI
+# printing-"baskı" (malzeme/doluluk/tavsiye sinyalli). Basınç bare "baskı" (baskı balata/plakası/...)
+# sinyal taşımaz -> kapsanmaz (false-positive yok). 3D Tarama/model/Sprinter kök taşımaz.
 _KART_LINT_RE = re.compile(
     r"\b(?:filament|yaz[ıi]c[ıi]|yazd[ıi]r|bask[ıi]l[ıi]|bas[ıi]l)\w*"
     r"|3\s*[dD]\s*bask\w*|3\s*boyutlu\s+bask\w*|3\s*[dD]\s*print\w*"
     r"|3\s*[dD]\s*yaz[ıi]c\w*|(?:desteksiz|destekli)\s+bask[ıi]\w*"
-    r"|masa\s*[üu]st[üu]\s+bask[ıi]\w*|bask[ıi]\s+tabla\w*", re.I)
+    r"|masa\s*[üu]st[üu]\s+bask[ıi]\w*|bask[ıi]\s+tabla\w*"
+    r"|\b" + _PRINT_SIG + r"\s+(?:ile\s+)?bask[ıi]\w*"      # PLA/dolulukta/hassas baskı
+    r"|bask[ıi]\w*\s+" + _PRINT_ADV, re.I)                  # baskı önerilir/ayarı
 
 
 def _kart_root_rep(m):
@@ -504,8 +530,11 @@ def _kart_temizle(txt):
         txt = pat.sub(_mask, txt)
     for pat, rep in _KART_BILESIK:                   # 2) 3D/desteksiz/masaüstü/tabla bileşik
         txt = pat.sub(rep, txt)
-    txt = _KART_ROOT_RE.sub(_kart_root_rep, txt)     # 3) filament/yazıcı/yazdır/baskılı/basıl
-    for i, o in enumerate(masks):                    # 4) maskeleri geri koy
+    # 3) BAĞLAM-DUYARLI bare "baskı": printing sinyali bitişikse çevir (basınç KORUNUR)
+    txt = _KART_PRINT_1.sub(lambda m: m.group(1) + _bask_don_w(m.group(2)), txt)
+    txt = _KART_PRINT_2.sub(lambda m: _bask_don_w(m.group(1)) + m.group(2), txt)
+    txt = _KART_ROOT_RE.sub(_kart_root_rep, txt)     # 4) filament/yazıcı/yazdır/baskılı/basıl
+    for i, o in enumerate(masks):                    # 5) maskeleri geri koy
         txt = txt.replace("\x00%dM\x00" % i, o)
     return txt
 
