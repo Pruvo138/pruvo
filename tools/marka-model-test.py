@@ -291,7 +291,19 @@ def main():
         card_re = re.compile(r'<div class="card-(?:title|desc)">(.*?)</div>', re.S)
         toplam_jargon = 0
         jargon_ornek = []
-        tarama_korundu = plaka_korundu = buton_korundu = 0
+        # basınç/mekanik KORUMA sayaçları (over-clean nöbeti — bu terimler ÇIKTIDA durmalı)
+        koru = {"3D-Tarama": r"3\s*d\s*tara", "baskı-plakası": r"bask[ıi]\w*\s+plaka",
+                "baskı-balata": r"bask[ıi]\w*\s+(?:ve\s+)?balata", "baskı-uygula": r"bask[ıi]\w*\s+uygula",
+                "baskı-altında": r"bask[ıi]\w*\s+alt[ıi]", "baskıyı": r"\bbaskıyı\b",
+                "basma-buton/düğme": r"basma\s+buton|basmal[ıi]\s+düğme"}
+        koru_say = {k: 0 for k in koru}
+        # MANGLE dedektörü (DAR — false-positive'siz): basınç-"baskı plakası/balata/altında"nın
+        # "üretim ..."e mangle'ı ancak POSSESSIF/kesin biçimde görünür. "üretilen plaka tutucu"
+        # (meşru ürün) gibi biçimler HARİÇ (plakas≠plaka, üretilen≠üretim+balata).
+        mangle_re = re.compile(r"üretim\s+plakas|üreti[lm]\w*\s+balata|üretim\s+ve\s+balata"
+                               r"|üretim\s+alt[ıi]nda", re.I)
+        mangle_toplam = 0
+        mangle_ornek = []
         kart_sayisi = 0
         for dp, _d, fs in os.walk(os.path.join(tmp, "marka")):
             for fn in fs:
@@ -308,21 +320,40 @@ def main():
                         if len(jargon_ornek) < 6:
                             jargon_ornek.append((ihl, txt[:70]))
                     low = txt.lower()
-                    if re.search(r"3\s*d\s*tara", low):
-                        tarama_korundu += 1
-                    if re.search(r"bask[ıi]\w*\s+plaka", low):
-                        plaka_korundu += 1
-                    if re.search(r"basma\s+buton|basmal[ıi]\s+düğme", low):
-                        buton_korundu += 1
+                    for k, rx in koru.items():
+                        if re.search(rx, low):
+                            koru_say[k] += 1
+                    mg = mangle_re.findall(txt)
+                    if mg:
+                        mangle_toplam += len(mg)
+                        if len(mangle_ornek) < 6:
+                            mangle_ornek.append((mg, txt[:70]))
+        # (1) JARGON-KAÇAĞI 0 (kesin printing token; temizleyici baypas -> KIRMIZI)
         bekle(toplam_jargon == 0,
-              "kartlarda baskı-jargonu %d (temizleyici baypas?): %s" % (toplam_jargon, jargon_ornek))
-        # OVER-CLEAN NÖBETİ: meşru mekanik/tarama terimleri KORUNMALI (aşırı-temizleme yok).
-        bekle(tarama_korundu > 0, "'3D Tarama' hiçbir kartta yok — aşırı-temizlenmiş olabilir")
-        bekle(plaka_korundu > 0, "'baskı plakası' (pressure plate) korunmadı — aşırı-temizleme")
-        bekle(buton_korundu > 0, "'basma butonu/basmalı düğme' (push button) korunmadı — aşırı-temizleme")
-        BILGI.append("kart marka-lint: %d kart tarandı, baskı-jargonu=%d · korundu: 3D-Tarama %d / "
-                     "baskı-plakası %d / basma-butonu %d"
-                     % (kart_sayisi, toplam_jargon, tarama_korundu, plaka_korundu, buton_korundu))
+              "kartlarda printing-jargonu %d (temizleyici baypas?): %s" % (toplam_jargon, jargon_ornek))
+        # (2a) BİRİM-DÜZEY MANGLE KİLİDİ (kesin, false-positive'siz): temizleyici basınç/mekanik
+        # "baskı" kolokasyonlarını DEĞİŞTİRMEMELİ (çürütücünün bulduğu 16 mangle sınıfı). Sabotaj
+        # (bare-baskı çevirisi geri eklenirse) bu ifadeler değişir -> KIRMIZI.
+        basinc_ifade = [
+            "debriyaj diski ve baskıyı hizalamak", "baskı plakasına tam merkezli",
+            "cama baskı uygulanmaması önerilir", "baskı balatayı kusursuz şekilde hizalama",
+            "baskı ve balatanın kusursuz", "rulmana baskı yaparak", "baskı altında zayıf",
+            "volan/baskı merkezine", "baskıyla oturtularak", "rulman baskısı için",
+            "kontrollü baskı uygulanmasına", "basmalı düğmenin", "basma butonunun",
+        ]
+        for ifade in basinc_ifade:
+            bekle(mm._kart_temizle(ifade) == ifade,
+                  "PRESSURE/BUTTON mangle: %r -> %r" % (ifade, mm._kart_temizle(ifade)))
+        # (2b) ÇIKTI HEURİSTİĞİ (dar): basınç-baskı mangle imzası çıktıda 0.
+        bekle(mangle_toplam == 0,
+              "MANGLE %d: basınç-baskı 'üretim'e mangle edilmiş (over-clean): %s"
+              % (mangle_toplam, mangle_ornek))
+        # (3) KORUMA yapısal: basınç/mekanik kolokasyonlar çıktıda KORUNMUŞ olmalı (>0)
+        for k in ("3D-Tarama", "baskı-plakası", "baskı-balata", "baskı-uygula", "basma-buton/düğme"):
+            bekle(koru_say[k] > 0, "'%s' hiçbir kartta korunmadı — aşırı-temizleme şüphesi" % k)
+        BILGI.append("kart marka-lint: %d kart · printing-jargon=%d · MANGLE=%d · korundu: %s"
+                     % (kart_sayisi, toplam_jargon, mangle_toplam,
+                        " ".join("%s=%d" % (k, koru_say[k]) for k in koru)))
 
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

@@ -409,61 +409,62 @@ def _ld(obj):
 
 # ---- KART-ÖZEL marka-kuralı temizleyicisi (CLAUDE.md "3D BASKI DENMEZ") ----
 # YALNIZ kartta (baslik+aciklama) çağrılır -> Merchant feed + /urun/ sayfası BYTE aynı kalır
-# (build.py marka_temiz / render_merchant_feed / render_product DEĞİŞMEZ). Baskı-JARGONUNU temizler;
-# "baskı"nın MEKANİK anlamlarını (baskı plakası=debriyaj, baskı altında=basınç, rulman baskısı=press,
-# basma butonu/basmalı düğme=buton, baskıyla oturt=press-fit) KORUR (over-clean YOK). "3D Tarama",
-# "3D model", "Sprinter"/"sprint" (print alt-dizesi) DOKUNULMAZ (root eşleşmez).
-_KART_KORU = [re.compile(p, re.I) for p in (
-    r"bask[ıi]\w*\s+plaka\w*",       # baskı plakası (debriyaj — pressure plate)
-    r"bask[ıi]\w*\s+merkez\w*",      # (volan/)baskı merkezi (pressure center)
-    r"bask[ıi]\w*\s+alt[ıi]\w*",     # baskı altında (basınç altında)
-    r"rulman\w*\s+bask[ıi]\w*",      # rulman baskısı (bearing press aleti)
-    r"bask[ıi]yla\s+otur\w*",        # baskıyla oturtularak (press-fit montaj)
-    r"basmal[ıi]\s+düğme\w*",        # basmalı düğme (push button)
-    r"basma\s+buton\w*",             # basma butonu (push button)
-    r"basma\s+hiss\w*",              # (sağlam) basma hissi (buton hissi)
-)]
-# 3D bileşik + desteksiz/destekli/masaüstü baskı -> okunur karşılık (marka_temiz mantığı).
-_KART_BILESIK = [
-    (re.compile(r"3\s*[dD]\s*[-\s]?bask[ıi]\w*", re.I), "özel tasarım üretim"),
+# (build.py marka_temiz / render_merchant_feed / render_product DEĞİŞMEZ).
+#
+# 🔴 FAIL-SAFE (çürütücü over-clean bulgusu, 27 Tem): Türkçe "baskı" hem PRINTING hem BASINÇ/press
+# demektir (baskı plakası=debriyaj, baskı balata, baskı uygula/altında=basınç, rulman baskısı=press,
+# baskıyı hizala=debriyaj). "basıl" hem "üretilir/printed" hem "düğmeye basılır/button-press".
+# İLKE: bir basınç/buton anlamını mangle etmektense belirsizi KORU. Bu yüzden BARE "baskı" (tüm
+# çekimleri) ve tüm "basma/basmak" ASLA çevrilmez; "basıl" YALNIZ printing bağlamında (buton
+# yakınında/önle-engelle-karşı DEĞİL) çevrilir. Çevrilenler = kesin/açık printing:
+_KART_BILESIK = [   # bileşik/çok-kelime — açık printing, basınç ambiguity YOK
+    (re.compile(r"3\s*[dD]\s*[-\s]?bask[ıi]\w*", re.I), "özel tasarım üretim"),   # 3D baskı/baskılı
     (re.compile(r"3\s*boyutlu\s+bask[ıi]\w*", re.I), "özel tasarım üretim"),
     (re.compile(r"3\s*[dD]\s*print\w*", re.I), "özel tasarım üretim"),
-    (re.compile(r"3\s*[dD]\s*yaz[ıi]c[ıi]\w*", re.I), "özel üretim"),
-    (re.compile(r"(desteksiz|destekli)\s+bask[ıi]\w*", re.I), r"\1 üretim"),
-    (re.compile(r"masa\s*[üu]st[üu]\s+bask[ıi]\w*", re.I), "özel üretim"),
+    (re.compile(r"3\s*[dD]\s*yaz[ıi]c[ıi]\w*", re.I), "özel üretim"),             # 3D yazıcı
+    (re.compile(r"(desteksiz|destekli)\s+bask[ıi]\w*", re.I), r"\1 üretim"),      # desteksiz/destekli baskı
+    (re.compile(r"masa\s*[üu]st[üu]\s+bask[ıi]\w*", re.I), "özel üretim"),        # masaüstü baskı
+    (re.compile(r"bask[ıi]\s+(tabla\w*)", re.I), r"üretim \1"),                   # baskı tablası (print-bed)
 ]
-# Tekil kelime formları (mekanik maskelendi -> kalan baskı/basıl/basma PRINTING). Türkçe ek uyumu
-# için ENUMERE edilmiş doğal karşılık; şemada yoksa kök-bazlı yedek (0-jargon garanti).
+# BUTON/basınç-BASIL koruması: bu bağlamlardaki "basıl" ÇEVRİLMEZ (maskelenir). Cümle içi (nokta
+# geçmez); "basılması önerilir" (printing) MASKELENMEZ ('öner' != 'önle'). Sanitize + lint AYNI maskeyi kullanır.
+_KART_KORU = [re.compile(p, re.I) for p in (
+    r"(?:düğme|buton|korna)\w*[^.]{0,32}?bas[ıi]l\w*",     # düğmeye/butona basılması (button-press)
+    r"bas[ıi]l\w*[^.]{0,26}?(?:önle|engelle|karşı)\w*",    # basılmasını önler / basılmaya karşı (button)
+)]
+# Tekil printing kelime formları (basınç/buton maskelendi/yok). Türkçe ek uyumlu ENUMERE karşılık;
+# yoksa kök-bazlı yedek. NOT: bare "baskı"/"basma" YOK (fail-safe koru).
 _KART_KELIME = {
-    "baskı": "üretim", "baskıya": "üretime", "baskıyla": "üretimle", "baskıdan": "üretimden",
-    "baskıda": "üretimde", "baskısı": "üretimi", "baskıyı": "üretimi", "baski": "üretim",
     "baskılı": "özel üretim",
     "basılması": "üretilmesi", "basılıp": "üretilip", "basılır": "üretilir",
     "basıldığında": "üretildiğinde", "basılabilir": "üretilebilir", "basılmasını": "üretilmesini",
     "basılan": "üretilen", "basılmaya": "üretilmeye", "basılarak": "üretilerek",
     "basılmış": "üretilmiş", "basılabilen": "üretilebilen", "basıldıktan": "üretildikten",
-    "basılmasına": "üretilmesine",
-    "basma": "üretme", "basmayı": "üretmeyi", "basmasına": "üretilmesine",
-    "basmak": "üretmek", "basmalarına": "üretilmelerine", "basmalı": "özel üretim",
+    "basılmasına": "üretilmesine", "basılmalı": "üretilmeli", "basılmalıdır": "üretilmelidir",
+    "basılırsa": "üretilirse", "basılabilmesi": "üretilebilmesi", "basılabilecek": "üretilebilecek",
     "filament": "malzeme", "filamentle": "malzemeyle", "filamentte": "malzemede",
     "filamentlerle": "malzemelerle", "filamentlerde": "malzemelerde",
     "yazıcı": "özel üretim", "yazıcılarda": "özel üretimlerde", "yazıcıların": "özel üretimlerin",
-    "yazıcıya": "özel üretime", "yazıcıda": "özel üretimde",
+    "yazıcıya": "özel üretime", "yazıcıda": "özel üretimde", "yazıcının": "özel üretimin",
     "yazdırmaya": "üretime", "yazdırma": "üretim", "yazdırılan": "üretilen",
 }
+# Kök seti: yalnız ÇEVRİLECEKLER — filament, yazıcı, yazdır, baskılı, basıl (production). Bare
+# "baskı" ve "basma" KAPSAM DIŞI (fail-safe koru). 'baskılı' 'basıl'dan ÖNCE (baskılı ≠ basıl).
 _KART_ROOT_RE = re.compile(
-    r"\b(?:bask[ıi]|bas[ıi]l|basma|basmak|filament|yaz[ıi]c[ıi]|yazd[ıi]r)\w*", re.I)
-# LINT (test tüketir): mekanik maskelendikten SONRA kalan PRINTING kökü. 'print' YALNIZ '3d print'
-# (bare print YOK -> Sprinter/sprint güvenli). 3D Tarama/model kök taşımaz -> yakalanmaz.
+    r"\b(?:filament|yaz[ıi]c[ıi]|yazd[ıi]r|bask[ıi]l[ıi]|bas[ıi]l)\w*", re.I)
+# LINT (test tüketir): buton-basıl maskelendikten SONRA kalan KESİN printing token.
+# Bare "baskı"/"basma" YOK (koruma — false-positive olmasın); 3D Tarama/model/Sprinter kök taşımaz.
 _KART_LINT_RE = re.compile(
-    r"\b(?:bask[ıi]|bas[ıi]l|basma|basmak|filament|yaz[ıi]c[ıi]|yazd[ıi]r)\w*", re.I)
+    r"\b(?:filament|yaz[ıi]c[ıi]|yazd[ıi]r|bask[ıi]l[ıi]|bas[ıi]l)\w*"
+    r"|3\s*[dD]\s*bask\w*|3\s*boyutlu\s+bask\w*|3\s*[dD]\s*print\w*"
+    r"|3\s*[dD]\s*yaz[ıi]c\w*|(?:desteksiz|destekli)\s+bask[ıi]\w*"
+    r"|masa\s*[üu]st[üu]\s+bask[ıi]\w*|bask[ıi]\s+tabla\w*", re.I)
 
 
 def _kart_root_rep(m):
     w = m.group(0)
     dl = _kart_kelime_yardim(w.lower())
-    # kapitalizasyonu koru (cümle başı 'Baskı' -> 'Üretim')
-    if w[:1].isupper():
+    if w[:1].isupper():                              # kapitalizasyonu koru
         dl = dl[:1].upper() + dl[1:]
     return dl
 
@@ -473,12 +474,10 @@ def _kart_kelime_yardim(w):
         return _KART_KELIME[w]
     if w.startswith("filament"):
         return "malzeme"
-    if w.startswith("bask"):
-        return "üretim"
+    if w.startswith("baskıl") or w.startswith("baskil"):   # baskılı (printed)
+        return "özel üretim"
     if w.startswith("bas") and ("basıl" in w or "basil" in w):
         return "üretilen"
-    if w.startswith("basma") or w == "basmak":
-        return "üretme"
     if w.startswith("yazıc") or w.startswith("yazic"):
         return "özel üretim"
     if w.startswith("yazdır") or w.startswith("yazdir"):
@@ -487,31 +486,34 @@ def _kart_kelime_yardim(w):
 
 
 def _kart_temizle(txt):
-    """Kart başlık/açıklamasındaki baskı-jargonunu temizle (mekanik anlamları KORUYARAK)."""
+    """Kart başlık/açıklamasındaki AÇIK printing jargonunu temizle. Bare 'baskı' (basınç dahil) +
+    'basma' + buton-'basıl' KORUNUR (fail-safe, over-clean YOK)."""
     if not txt:
         return txt
-    if not (_KART_ROOT_RE.search(txt) or re.search(r"3\s*[dD]\s*(?:bask|print|yaz)", txt)):
-        return txt                                   # hızlı yol: jargon yok
+    # hızlı yol: hiçbir tetikleyici alt-dize yoksa dokunma. Tetikleyiciler ÇEVRİLECEK kökleri kapsar:
+    # filament · yazıcı · yazdır · "bask" (3D/desteksiz/masaüstü/tabla baskı + baskılı) · print · basıl.
+    if not re.search(r"filament|yaz[ıi]c[ıi]|yazd[ıi]r|bask|print|bas[ıi]l", txt, re.I):
+        return txt
     masks = []
 
     def _mask(m):
         masks.append(m.group(0))
         return "\x00%dM\x00" % (len(masks) - 1)
 
-    for pat in _KART_KORU:                           # 1) mekanik kolokasyonları maskele
+    for pat in _KART_KORU:                           # 1) buton-basıl maskele (koru)
         txt = pat.sub(_mask, txt)
-    for pat, rep in _KART_BILESIK:                   # 2) 3D bileşik + desteksiz/masaüstü
+    for pat, rep in _KART_BILESIK:                   # 2) 3D/desteksiz/masaüstü/tabla bileşik
         txt = pat.sub(rep, txt)
-    txt = _KART_ROOT_RE.sub(_kart_root_rep, txt)     # 3) tekil kelime formları
+    txt = _KART_ROOT_RE.sub(_kart_root_rep, txt)     # 3) filament/yazıcı/yazdır/baskılı/basıl
     for i, o in enumerate(masks):                    # 4) maskeleri geri koy
         txt = txt.replace("\x00%dM\x00" % i, o)
     return txt
 
 
 def kart_lint_ihlaller(txt):
-    """Kart metninde (temizleme SONRASI) kalan baskı-jargonu kökleri — mekanik anlamlar maskeli
-    (over-clean değil). Boş liste = temiz. Test bunu üretilen kart-metnine uygular (bağımsız
-    doğrulama; temizleyici baypaslanırsa kökler görünür -> KIRMIZI)."""
+    """Kart metninde (temizleme SONRASI) kalan KESİN printing token — buton-basıl maskeli, bare
+    'baskı'/'basma' kapsam dışı (fail-safe). Boş liste = temiz. Test üretilen kart-metnine uygular
+    (bağımsız doğrulama; temizleyici baypaslanırsa token görünür -> KIRMIZI)."""
     s = txt or ""
     for pat in _KART_KORU:
         s = pat.sub(" ", s)
