@@ -38,9 +38,22 @@ def bolum_uret():
     for f in ref["filamentler"]:
         if f.get("site"):
             continue
+        # 🔴 TEKRAR ETMEYEN KUYRUK (27 Tem): "standart siparis akisinda YOK, WhatsApp ozel
+        # talebiyle degerlendirilir — uretim kararidir, kosulu netlestir" kuyrugu ESKIDEN
+        # HER kalemde tekrar ediliyordu. Kuyruk ARTIK bir kez, asagidaki GRUP BASLIGINDA
+        # duruyor. OLCULDU (UTF-16 birimi): tam kuyruk 110 x 2 dongu kalemi (ABS, Karbon)
+        # + kisa varyanti 37 x 1 (asagidaki Naylon satiri) = 257 kalkti, grup basligi 88
+        # buyudu -> NET 169. Tekrarlar ESIT DEGILDI: Naylon satiri kuyrugun yalnizca son
+        # cumlesini tasiyordu — "3 esit tekrar" diye okuma.
+        # NEDEN onemli: ege-bilgi.md Ege'nin HER mesajinda prompta enjekte edilir ve
+        # pruvo-bot/worker/src/index.js icinde .slice(0, 6000) ile UTF-16 birimi uzerinden
+        # KESILIR (sessizce, log yok) -> tekrar hem her mesajin butcesini hem tavan payini
+        # yiyor. Olculdu: bu tekillestirme dosyayi 5761 -> 5592 u16'ya indirdi, tavan payi
+        # 239 -> 408 (nobetci tools/ege-bilgi-tavan-test.py, GUVENLIK_MARJI=400 esigi asildi).
+        # ⚠️ "+ [DEVRET]" HER KALEMDE KALIR (grup basligina TASINMADI): jeton sayisi
+        # bilerek 7'de sabit tutuldu ve devret refleksi kalem duzeyinde gorunur kaldi.
         ozel_satirlar.append(
-            "- **%s** (%s) — ısı %s — standart sipariş akışında YOK, WhatsApp özel "
-            "talebiyle değerlendirilir — üretim kararıdır, koşulu netleştir + [DEVRET]"
+            "- **%s** (%s) — ısı %s — [DEVRET]"
             % (f.get("uzunAd") or f["ad"], f["kisaEtiket"], f["isiDayanimi"]))
 
     # Kategori -> varsayilan tavsiye ozeti (ayni listeyi paylasanlar gruplanir)
@@ -68,10 +81,15 @@ def bolum_uret():
         "aralık; abartma, taahhüt sayılır):",
     ] + satirlar + [
         "",
-        "Mühendislik malzemeleri (standart ailenin dışında, üretim kararı gerektirir):",
+        # GRUP BASLIGI = kalemlerden HOISTLANMIS ortak kuyruk (yukaridaki nota bak).
+        # "hepsi" kelimesi KASITLI: kuralin asagidaki HER kaleme uygulandigini modele
+        # acikca soyler (kuyruk kalemlerden kalktigi icin kapsam ortuk BIRAKILMAZ).
+        "Mühendislik malzemeleri — standart ailenin dışında; hepsi standart sipariş "
+        "akışında YOK, WhatsApp özel talebiyle değerlendirilir, üretim kararıdır, "
+        "koşulu netleştir:",
     ] + ozel_satirlar + [
-        "- **Daha yüksek ısı / mukavemet:** Naylon (PA) ve elyaf katkılı türler tedarik edilebilir "
-        "— üretim kararıdır, koşulu netleştir + [DEVRET]",
+        "- **Daha yüksek ısı / mukavemet:** Naylon (PA) ve elyaf katkılı türler tedarik "
+        "edilebilir — [DEVRET]",
         "",
         "Kategoriye göre varsayılan tavsiyemiz: " + " · ".join(oneriler) + ".",
         "ÖNEMLİ: karbon katkı ISI dayanımını ARTIRMAZ (taşıyıcının değerini korur; PETG-CF ~70°C) — "
