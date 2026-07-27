@@ -6686,6 +6686,21 @@
     "parametrik": true
   },
   {
+    "id": "olcuye-ozel-cerceve",
+    "kategori": "Jeneratör",
+    "marka": [],
+    "baslik": "Ölçüye Özel Çerçeve (Resim · Sanat · Pano)",
+    "aciklama": "Resminizin, tablonuzun ya da panonuzun ölçüsüne göre çerçeve üretiyoruz — fotoğraf, poster, sertifika, tuval/kanvas, ayna ve pano için iç mekan çerçeveleri.\n\nNeyi ayarlıyoruz? (5 parametre)\n• İç ölçü — çerçeveye girecek resmin/panonun eni ve boyu (mm)\n• Profil genişliği — çerçeve kenar payı / çıta kalınlığı\n• Çerçeve derinliği — ön yüzden arkaya toplam kalınlık\n• Arka yuva — cam/pleksi ve arka pano için oturma payı (rebate)\n• Askı & köşe — duvar askısı ya da masaüstü ayak; köşe stili ve renk seçenekleri\n\nKullanım: fotoğraf ve poster çerçevesi, sertifika/diploma, tuval ve sanat baskısı, pano ve tabela, ayna çerçevesi, kırılan/eksik çerçevenin yenisi. Yalnız iç mekan kullanımı için.\n\nNasıl sipariş edilir?\nÇerçevelenecek resmin en × boy ölçüsünü (ve isterseniz profil genişliğini) WhatsApp'tan gönderin; ölçüye özel üretip adresinize gönderelim.",
+    "fiyat": "",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p2.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p3.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p4.jpg"
+    ],
+    "parametrik": true
+  },
+  {
     "id": "renault-gps-anten-montaj-contasi",
     "kategori": "Otomobil",
     "marka": [
