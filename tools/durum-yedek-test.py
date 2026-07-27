@@ -681,6 +681,42 @@ def main():
         kontrol("(e3) gelecek tarihli dogrulama GUNCEL SAYILMIYOR",
                 durum.yedek_durumu(e3, "var")["hal"] == "bayat",
                 durum.yedek_durumu(e3, "var")["hal"])
+        # (e4) 🔴 KARISIK SURUM DELIGI: damgaya EN SON dokunan kosum dogrulamayi
+        # YAZMAMISSA yesil verilmez. Fikstur, BAYAT bir kardes worktree'nin ESKI
+        # yedekle.py surumuyle kosmasinin BIREBIR izidir: `baslangic` ilerlemis
+        # (o kosum damgaya dokundu) ama `dogrulandi` GERIDE kalmis (imza eksenini
+        # bilmedigi icin dogrulama yazmadi, eski cifti dict(onceki) ile TASIDI).
+        # Olculdu (scratchpad/karisik-surum.py): sart olmadan pano "✅ GUNCEL" diyordu
+        # ve mtime KORUNARAK degismis dosya yedekte YOKTU.
+        e4 = damga_kur(os.path.join(td, "e4"), 3 * 86400, kaynak_imzasi=dict(imza),
+                       dogrulandi=simdi - 3600, dogrulama_imzasi=dict(imza),
+                       baslangic=simdi - 300)          # damgaya SONRADAN dokunuldu
+        d_e4 = durum.yedek_durumu(e4, "var")
+        sat_e4 = durum.yedek_satirlari(d_e4)
+        kontrol("(e4) dogrulamadan SONRA damgaya dokunulmussa GUNCEL DEMIYOR",
+                d_e4["hal"] == "bayat" and "GÜNCEL" not in sat_e4[0],
+                "%s | %s" % (d_e4["hal"], sat_e4[0][:60]))
+        # ayni fikstur, `dogrulandi` == `baslangic` (YENI surumun uretecegi hal) -> GUNCEL
+        e5 = damga_kur(os.path.join(td, "e5"), 3 * 86400, kaynak_imzasi=dict(imza),
+                       dogrulandi=simdi - 300, dogrulama_imzasi=dict(imza),
+                       baslangic=simdi - 300)
+        kontrol("(e5) dogrulandi == baslangic ise GUNCEL (kontrol asiri-daralmadi)",
+                durum.yedek_durumu(e5, "var")["hal"] == "guncel",
+                durum.yedek_durumu(e5, "var")["hal"])
+        # KIRMIZI-MUTASYON: sart kaldirilirsa (e4) sessizce GUNCEL olur
+        mut_e4 = mutant_yaz(td,
+                            "    if isinstance(ref, (int, float)) and not "
+                            "isinstance(ref, bool) and dogrulandi < ref:\n"
+                            "        return None                                   "
+                            "# damgaya sonradan BASKASI dokundu",
+                            "    if False:\n        return None  # MUTANT: sart yok",
+                            ad="durum_mutant_karisik.py")
+        mmod_e4 = modul_yukle(mut_e4, "durum_mutant_karisik")
+        kontrol("MUTANTTA (karisik surum sarti yok) (e4) GUNCEL gorunuyor "
+                "(kontrol KIRMIZI yanardi)",
+                mmod_e4.yedek_durumu(e4, "var")["hal"] == "guncel",
+                mmod_e4.yedek_durumu(e4, "var")["hal"])
+
         # (f) esik altinda dogrulama VARSA yine 'taze' (yeni hal eskiyi EZMESIN)
         f = damga_kur(os.path.join(td, "f"), 3600, kaynak_imzasi=dict(imza),
                       dogrulandi=simdi - 60, dogrulama_imzasi=dict(imza))

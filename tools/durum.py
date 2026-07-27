@@ -551,14 +551,26 @@ def _dogrulama_hali(damga, simdi, esik):
     """K3 — esik asilmis bir damganin DOGRULAMA kaydini yorumlar (saf fonksiyon).
     Doner: 'guncel' | 'olculemedi' | None (dogrulama iddiasi HIC yok).
 
-    'guncel' demek icin UC sart birden (biri tutmazsa yesil VERILMEZ):
+    'guncel' demek icin DORT sart birden (biri tutmazsa yesil VERILMEZ):
       1. `dogrulandi` sayi VE kendisi TAZE (esigi asmamis) — yoksa dogrulama da bayat,
-      2. `dogrulama_imzasi` ile damganin `kaynak_imzasi` KARSILASTIRILABILIR (ikisi de
+      2. `dogrulandi` >= damganin `baslangic`i — yani dogrulama, damgaya EN SON dokunan
+         kosuma ait (bkz. asagidaki KARISIK SURUM gerekcesi),
+      3. `dogrulama_imzasi` ile damganin `kaynak_imzasi` KARSILASTIRILABILIR (ikisi de
          adet/bayt/mtime tasiyan sozluk),
-      3. iki imza ESIT — yani o kosum "kopyadaki kaynak kumesi HALA aynidir" OLCTU.
-    Sart 2 tutmazsa 'olculemedi' (GORUNUR) doner: iddia var ama dogrulanamiyor.
+      4. iki imza ESIT — yani o kosum "kopyadaki kaynak kumesi HALA aynidir" OLCTU.
+    Sart 3 tutmazsa 'olculemedi' (GORUNUR) doner: iddia var ama dogrulanamiyor.
     🔴 NEDEN PANO KENDI DOGRULUYOR: yazicinin "degisiklik yok" iddiasina GUVENMEK,
-    K1'de kapatilan sessiz-yesil deligini baska kapidan acmak olurdu."""
+    K1'de kapatilan sessiz-yesil deligini baska kapidan acmak olurdu.
+
+    🔴 SART 2 — KARISIK SURUM DELIGI (27 Tem, izole kum havuzunda GERCEK ICRAYLA olculdu):
+    bu depoda paralel worktree'lerin HER BIRININ kendi tools/yedekle.py'si var ama Drive'daki
+    damga TEKTIR. Olculen sira: (a) YENI surum tam kopya (kaynak_imzasi yazildi), (b) YENI
+    surum dogrulama (imzalar esit), (c) bir dosya mtime KORUNARAK degistirildi, (d) BAYAT bir
+    kardes worktree ESKI surumle `--gerekliyse` kosdu. ESKI surumun imza ekseni olmadigi icin
+    ATLADI ve `damga_tazele`si `dict(onceki)` yaptigi icin BAYAT `dogrulandi`/`dogrulama_imzasi`
+    ciftini AYNEN korudu -> pano "✅ GUNCEL" dedi, degisiklik ise yedekte YOK. Sart 2 bunu
+    kapatir: ESKI surum `baslangic`i ilerletir ama `dogrulandi`ya DOKUNMAZ -> `dogrulandi`
+    geride kalir -> yesil verilmez. YENI surumde ikisi ayni cagride ayni degere yazilir."""
     dogrulandi = damga.get("dogrulandi")
     imza = damga.get("dogrulama_imzasi")
     kopya = damga.get("kaynak_imzasi")
@@ -566,6 +578,9 @@ def _dogrulama_hali(damga, simdi, esik):
         return None                                   # dogrulama iddiasi YOK -> bayat
     if dogrulandi > simdi or (simdi - dogrulandi) >= esik:
         return None                                   # dogrulamanin KENDISI bayat
+    ref = damga.get("baslangic")
+    if isinstance(ref, (int, float)) and not isinstance(ref, bool) and dogrulandi < ref:
+        return None                                   # damgaya sonradan BASKASI dokundu
     if not _imza_kullanilir(imza) or not _imza_kullanilir(kopya):
         return "olculemedi"
     for alan in ("adet", "bayt", "mtime"):
