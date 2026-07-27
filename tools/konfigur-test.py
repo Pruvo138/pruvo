@@ -53,7 +53,12 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
       "Malzeme Rehberi linki KALIR" iddiası TÜM sayfada arandığı sürece footer nav'ın
       KENDİSİYLE karşılanıyordu, yani gövdedeki link silinse bile YEŞİL yanardı (ÖLÜ İDDİA;
       merge-base'de de ölüydü). Aynı tuzak WhatsApp notunda da vardı (wa.me sayfada ikon
-      butonda da geçer) — o da artık kendi bloğunda (<p class="malzeme-not">) aranır.
+      butonda da geçer) — o da kendi bloğunda aranır.
+      ÇİVİ YASAĞI: taşıyıcılığı ÖLÇÜLMEMİŞ dizge çivisi (sınıf adı / öznitelik sırası /
+      görünen metin / etiket adı) KULLANILMAZ. Rehber linki <main> içinde TEK kez geçtiği
+      için tek başına BÖLGE yeterli (çivinin katkısı ölçüldü = 0, bedeli 4 yanlış-pozitif);
+      wa.me <main> içinde İKİ kez geçtiği için orada blok GEREKLİ ama sınıf-adı temelli.
+      Nöbetçinin kendi kör noktaları her koşumda ne_olculmedi() ile İLAN EDİLİR.
 
 Offline (ağ yok), gerçek urunler.json OKUNMAZ (sentetik fikstürler), repo dosyasına YAZMAZ.
 node ZORUNLU (deploy.yml setup-node kurar); yoksa FAIL-CLOSED kırmızı.
@@ -777,14 +782,26 @@ def test_konfigur_malzeme_sayfasi(seri):
     # ⚠️ BÖLGE KURALI (ölü iddia onarımı): bu iki iddia TÜM sayfada aranırsa ÖLÜDÜR.
     # FOOT_NAV_HTML her sayfaya '<a href="/malzeme-rehberi/">Malzeme Rehberi</a>' basar ve
     # wa.me numarası sayfadaki WhatsApp İKON butonunda da geçer -> gövdedeki malzeme bloğu
-    # tamamen silinse bile eski iddialar YEŞİL yanardı. Bu yüzden ANA GÖVDEDE, kendi
-    # bloklarında aranır: rehber linki .malzeme-link sınıfıyla (footer nav'da o sınıf YOK),
-    # WhatsApp notu <p class="malzeme-not"> bloğunun İÇİNDE.
+    # tamamen silinse bile eski iddialar YEŞİL yanardı. Onarım = BÖLGE daraltması.
+    #
+    # 🔴 ÇİVİ YASAĞI (bu depoda ölçülmüş kural — emsal [[kapi-kapsam-eksen-secimi]]):
+    # bir çivinin (CSS sınıf adı / öznitelik sırası / görünen metin / etiket adı) YAKALAMA
+    # KATKISI ölçülmeden eklenmesi YASAKTIR; katkısı 0 + yanlış-pozitifi > 0 olan çivi
+    # ÇIKARILIR. Bağımsız çürütücünün bölge haritası (konfigür+malzeme sayfası):
+    #     href="/malzeme-rehberi/"   -> <main> içi 1 · <main> DIŞI 1 (footer nav)
+    #     wa.me/<numara>             -> <main> içi 2 (biri #orderAlt İKON butonu) · dışı 2
+    # -> REHBER LİNKİ: <main> içinde TEK geçiş var, yani bölge daraltması TEK BAŞINA ölü
+    #    iddiayı öldürür. Ek sınıf/metin çivisinin yakalama katkısı ÖLÇÜLDÜ = SIFIR,
+    #    bedeli 4 yanlış-pozitif (sınıf adı değişimi · ikinci CSS sınıfı · öznitelik
+    #    sırası · link metninin yeniden yazımı) -> ÇİVİ ÇIKARILDI, yalnız href aranır.
+    # -> WA NOTU: <main> İÇİNDE İKİ wa.me geçiyor (biri ikon buton) -> orada blok çivisi
+    #    GERÇEKTEN taşıyıcı, kaldırılırsa iddia ölür. Ama <p> ETİKETİNE + TAM sınıf
+    #    dizgesine çivilenmesi gereksizdi: blok artık SINIF-ADI temelli, etiket (p/div)
+    #    ve ek sınıflar serbest.
     g = govde(html)
-    kontrol('<a class="malzeme-link" href="/malzeme-rehberi/">' in g
-            and "Malzeme Rehberi" in g,
+    kontrol('href="/malzeme-rehberi/"' in g,
             "'Malzeme Rehberi' linki ANA GÖVDEDE kalır (footer nav kopyası SAYILMAZ)")
-    wa_blok = blok(g, r'<p class="malzeme-not">.*?</p>')
+    wa_blok = blok(g, r'<(p|div)\b[^>]*class="[^"]*malzeme-not[^"]*"[^>]*>.*?</\1>')
     kontrol(("wa.me/" + build.WHATSAPP) in wa_blok,
             "mühendislik malzemesi (Karbon/ABS) WhatsApp notu KENDİ BLOĞUNDA kalır "
             "(bulunan blok: %s)" % (("%d karakter" % len(wa_blok)) if wa_blok else "YOK"))
@@ -799,6 +816,41 @@ def test_konfigur_malzeme_sayfasi(seri):
         beklenen_metin = build.taban_fiyat_metni(beklenen_kurus / 100.0)
         kontrol(('id="opsiyonFiyat">%s<' % beklenen_metin) in html,
                 "JS öncesi fiyat = varsayılan boy × VARSAYILAN malzeme (PLA): %s" % beklenen_metin)
+
+
+# ------------------------------------------------------------------ kör nokta beyanı
+def ne_olculmedi():
+    """SESSİZ YEŞİL YASAĞININ İKİNCİ YARISI: bir kapı, YEŞİL çıktısında ne ölçmediğini
+    ve hangi meşru düzenlemede kendi kendine kırmızı yanacağını İLAN ETMEK zorundadır
+    (repo sözleşmesi; emsal tools/ege-kabiliyet-kapisi.py ne_olculmedi()).
+
+    Buradaki iki kalem BEYAN EDİLMİŞ BORÇtur — kusur değil, ölçülmüş ve mimar onaylı
+    bedel. Fikstürleri tools/konfigur-nobet-mutasyon.py bölüm C'de 🟠 olarak KOŞAR:
+    yani borç kaybolursa ya da sessizce büyürse harness bunu görür.
+    ⚠️ Bu metinde ✅/❌/⚪ İŞARETİ KULLANILMAZ (harness çıktıyı bu işaretlerle sayar)."""
+    print("""
+NE ÖLÇÜLMEDİ / BEYAN EDİLMİŞ BORÇ (yeşil çıktı bunları kapsamaz):
+  · 🟠 KATEGORİ YENİDEN ADLANDIRMA — KATEGORI_FIKSTURLERI listesi ELLE yazılıdır
+    (build.FONKSIYONEL_KATEGORILER'den TÜRETİLMEZ; türetilse iddia kendi kendini
+    doğrular = totoloji, üyelik kaybını göremez). BEDELİ: bir kategori yeniden
+    adlandırılırsa (or. Bahçe -> Bahce) bu nöbetçi eski adla fikstür render edip
+    KIRMIZI yanar ve yayını KİLİTLER; doğrusu listeyi de güncellemektir. Kategori
+    artık BEŞ yerde elle güncellenir: CATEGORIES · FONKSIYONEL_KATEGORILER ·
+    secenekler.js · index.html · bu liste. (Aynı sözleşme: test-skan-art.py B3.)
+    YENİ kategori EKLEMEK bloklamaz -> kapsama yoklamasında gürültülü raporlanır.
+  · 🟠 <main> KAYBI = FAIL-CLOSED — bölge haritası (govde()) `<main>` etiketine
+    dayanır. Şablon `<main>`'i bırakıp `<div id="main">`e geçerse gövde BOŞ döner ve
+    (e) bölümünün POZİTİF iddiaları KIRMIZI yanar. Yön BİLEREK böyle: gövde kaybolduğunda
+    sessizce geçmek en kötü sonuçtur. Kusur yalnız TEŞHİS metnindedir — kırmızı satır
+    "link gövdede kalmadı" der, oysa kaybolan `<main>`dir.
+  · 🔴 BU BÖLÜM ÜRÜN VERİSİNİ ÖLÇMEZ — nöbetçi urunler.json'u OKUMAZ (sentetik fikstür).
+    Katalogda bir kategorinin tamamen boşalması, ürün silinmesi/eklenmesi bu kapıyı
+    ETKİLEMEZ; o eksen kategori-kapisi.py'de. Buradaki yeşil "katalog sağlam" DEMEZ.
+  · 🔴 c2'nin YAPISAL ÇEKİRDEK dizgeleri (KART_SECIM = true / class="cart-btn") HÂLÂ
+    biçim çivisidir: gömülü bayrağın config objesine taşınması, JS minify'ı ya da
+    footer'a .cart-btn sınıflı buton eklenmesi bu kapıyı YANLIŞ-POZİTİF kırmızıya
+    düşürür (merge-base'den MİRAS, ölçüldü, ayrı iş olarak AÇIK). Yeşil = "bu üç
+    refaktör yapılmadı" demektir, "yapılsa güvenli" DEMEZ.""")
 
 
 # ------------------------------------------------------------------ ana akış
@@ -824,6 +876,7 @@ def main(argv=None):
     test_geri_uyumluluk()
     test_konfigur_sayfasi(seri)
     test_konfigur_malzeme_sayfasi(seri)
+    ne_olculmedi()
     print("-" * 70)
     if UYARILAR:
         print("UYARI (bloklamaz): %d bulgu" % len(UYARILAR))
