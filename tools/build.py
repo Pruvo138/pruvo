@@ -1518,16 +1518,21 @@ def render_product(p, all_products):
         # uretiyordu (GSC WNC-10030322, 24 Tem). product_url/link TAM pid ile kalir
         # (sadece feed/JSON-LD kimligi kisalir). Test: tools/test-jsonld-sku.py
         "sku": feed_id(pid),
+        # mpn: brand+mpn = GEÇERLİ tanımlayıcı çifti (gtin/barkod YOK -> UYDURULMAZ).
+        # GSC Merchant listings "genel tanımlayıcı (gtin, marka) verilmemiş" uyarısını
+        # kapatır. Değer feed g:mpn ile TEK KAYNAK (feed_id -> sku == mpn, <=50 karakter);
+        # test-jsonld-sku.py sku özdeşliğini + feed g:mpn çapraz-kontrolünü zaten kilitliyor.
+        "mpn": feed_id(pid),
         "category": kategori,
     }
     if ld_fiyat:
         product_ld["offers"] = offer
-    if markalar:
-        # GSC Merchant listings "brand"i TEK değer bekler; birden çok Brand objesi
-        # taşıyan dizi «"brand" alanı yineleniyor» KRİTİK hatası üretir (22 Tem).
-        # marka[0] = asıl üretici markası (sonrakiler model kodu/ikincil etiket)
-        # → tek Brand objesi. Test: tools/test-jsonld-brand.py
-        product_ld["brand"] = {"@type": "Brand", "name": markalar[0]}
+    # brand TEK değer (GSC Merchant listings "brand"i tek bekler; DİZİ/iki-kez basmak
+    # «brand yineleniyor» KRİTİK hatası — 22 Tem, ÇÖZÜLDÜ, geri getirme). Araç markası VARSA
+    # marka[0] (asıl üretici; sonrakiler model kodu); YOKSA (bespoke "ölçüye özel", Skan Art,
+    # dağınık) kendi markamız PRUVO -> "genel tanımlayıcı verilmemiş" uyarısı dürüst kapanır.
+    # Test: tools/test-jsonld-brand.py (tek brand + dizi-değil).
+    product_ld["brand"] = {"@type": "Brand", "name": markalar[0] if markalar else FEED_BRAND}
 
     breadcrumb_ld = {
         "@context": "https://schema.org",

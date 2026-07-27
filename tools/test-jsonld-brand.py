@@ -98,6 +98,19 @@ def main():
                     hatalar.append((goreli, "Product.brand DİZİ (%d eleman) — build asla dizi "
                                             "basmaz; Merchant listings tek değer bekler" % len(brand)))
                     sayfa_coklu = True
+                # ONARIM KİLİDİ (27 Tem): her Product'ta brand VAR + tek + non-empty ad (araç
+                # markası ya da PRUVO fallback). Yoksa GSC "genel tanımlayıcı (marka) verilmemiş"
+                # gerilemesi -> KIRMIZI. build.py render_product bunu DAİMA basar (fallback dahil).
+                elif isinstance(brand, dict):
+                    ad = brand.get("name")
+                    if not (isinstance(ad, str) and ad.strip()):
+                        hatalar.append((goreli, "Product.brand.name boş/eksik (PRUVO fallback gerilemesi)"))
+                elif isinstance(brand, str):
+                    if not brand.strip():
+                        hatalar.append((goreli, "Product.brand boş string"))
+                else:
+                    hatalar.append((goreli, "Product.brand YOK — araç markası ya da PRUVO fallback "
+                                            "bekleniyor (genel tanımlayıcı gerilemesi)"))
         if sayfa_coklu:
             coklu_brand_sayfa += 1
 
