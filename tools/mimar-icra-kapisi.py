@@ -82,6 +82,28 @@ kacan sinif HAFIF OLCUMLER). Mimar kimliginde (agent_id BOS) EK REDLER:
   Bu tur bir DARALTMA turudur: yakalama gucu OLCULDU, 15 bypass/kalkan fikstürünün hepsi
   DENY kaldi (memory/kapi-kapsam-genisletme-tuzagi.md).
 
+🟢 27 TEM IKINCI TUR (BaBa doktrin hukmu: sart 6 EVE tasinir) — bagimsiz curutucunun
+  ccb4482e sonrasi olctugu IKI kusur KAPATILDI (ikisi de "bayrak DEGERI" ekseninde):
+  1. ESITLIKLI BICIMDE '-' ONEKI DENETIMI YOKTU: 'codex exec --output-last-message=-o "x"'
+     ALLOW aliyordu — '=' sonrasi bos degil diye DEGERLI sayiliyor, oysa deger baska bir
+     BAYRAK. Artik esitlikli bicimde de deger '-' ile basliyorsa DEGER SAYILMAZ (ayrik
+     bicimdeki kural neydi ise o: 'codex exec -o -v "x"' zaten DENY idi, simdi iki bicim
+     SIMETRIK — tek kaynak _codex_deger_gecerli()).
+  2. SARMALAYICI BAYRAK-DEGERI SIZINTISI: 'nice -n 10 codex exec "x"' ALLOW aliyordu.
+     sarmalayici_soy 'nice'i ve '-n'i soyuyor, ama '10' (bayragin DEGERI) argv0 sanildigi
+     icin _codex_programi('10') False donuyor ve kural HIC calismiyordu. Ayni sizinti
+     'env -u FOO codex ...', 'stdbuf -o 0 codex ...', 'time -o /tmp/t codex ...'.
+     COZUM parser taklidi DEGIL, dis_yol'un zaten kullandigi IKI OKUMA idiomu
+     (_sarmalayici_ikinci_okuma): ikinci okumada her atlanan bayragin ardindan bir token
+     daha atlanabilir sayilir; iki okumadan BIRINDE argv0 'codex' ise kural o okumaya
+     uygulanir (fail-closed). Hangi sarmalayicinin hangi bayragi deger alir TABLOSU
+     TUTULMAZ ve YENI PROGRAM ADI EKLENMEZ (launcher/whitelist listesi YASAK — mimar
+     hukmu; xargs/sudo/npx sinifi BILINEN BYPASS #1'de kayitli, kapatilmaz).
+  KABUL EDILEN BEDEL (olculdu, tek sinif): 'wrapper + bayrak + PROGRAM + basename'i
+  codex olan bir ARGUMAN' bicimi (or. 'time -p ls /Applications/.../codex') ikinci
+  okumada yanlis-pozitif DENY alir. Sarmalayici + bayrak + tam o konum sarti gerektigi
+  icin gercekte gorulmez; sarmalayicisiz hicbir cagri etkilenmez (nobetci: vaka 282).
+
 SERBEST (mimar eliyle — yanlislikla kapatma, kapatirsan is durur):
   * codex: 'codex exec ... -o <dosya> "<spec>"' (ALT-KOMUT yalniz 'exec'; bayrak bir
     DEGERLE gelmeli) + gozlem: 'codex --version / -V / -v / --help / -h'
@@ -221,6 +243,10 @@ CODEX_GOZLEM_BAYRAKLARI = SURUM_BAYRAKLARI
 # delege degil. Beyaz liste TEK elemanli ve KAPALI: gelecekte cikacak her yeni alt-komut
 # VARSAYILAN RED alir (bilinmeyeni gecirmek = kapiyi zamanla bosaltmak).
 CODEX_IZINLI_ALTKOMUT = "exec"
+# 27 TEM (2. tur) SURUM DAMGASI — tools/mimar-kapi-kur.py --codex-kurali bu dizeyi
+# arayarak "bu evde SIKILASTIRILMIS codex kurali var mi" sorusunu MAKINE olarak yanitlar
+# (idempotans + 6 ev dogrulamasi). Kurali degistirirsen damgayi da yukselt.
+CODEX_KURAL_SURUMU = "27tem-2"
 
 # '-m X' (python modul) DENETIMI KALDIRILDI (22 Tem). Neden: PY_NODE ALLOWLIST'i python'i
 # yalnizca iki tam komuta indirdi — '-m pip'/'-m timeit'/'-m http.server' vs. artik
@@ -384,6 +410,24 @@ def _codex_programi(argv0):
     return os.path.basename(argv0) == "codex"
 
 
+def _codex_deger_gecerli(deger):
+    """27 TEM (2. tur) — cikti bayraginin DEGERI gecerli mi? IKI BICIMIN TEK KAYNAGI.
+
+    Kural (kaba, iki soru): (a) bos olmasin, (b) '-' ile BASLAMASIN — '-' ile baslayan
+    sey bir DEGER degil BASKA BIR BAYRAKtir, yani kabul kapisi bos kalir.
+
+    NEDEN TEK FONKSIYON: bu repoda ayni eksende IKI KEZ ASIMETRI olctuk — once gozlem
+    bayraklari ('-V' geciyor, '-v' gecmiyordu; ccb4482e'de SURUM_BAYRAKLARI'na
+    birlestirildi), sonra cikti bayragi bicimleri (ayrik bicimde '-' denetimi VAR,
+    esitlikli bicimde YOKTU → 'codex exec --output-last-message=-o "x"' ALLOW).
+    Iki liste/iki gövde tutmak bu asimetriyi tekrar uretir; tek kaynak uretemez."""
+    if not deger:
+        return False
+    if deger.startswith("-"):
+        return False
+    return True
+
+
 def _codex_cikti_degerli(tokenlar):
     """27 TEM — cikti bayragi bir DOSYA DEGERIYLE mi geliyor? (eskiden VARLIGI yetiyordu)
 
@@ -394,7 +438,8 @@ def _codex_cikti_degerli(tokenlar):
     KABA KURAL, PARSER TAKLIDI YOK (memory/mimar-kapi-parser-taklidi.md):
       * ayrik bicim ('-o X'): bayragin HEMEN ARDINDAN bos-olmayan ve '-' ile BASLAMAYAN
         bir token gelmeli.
-      * esitlikli bicim ('--output-last-message=X'): '=' sonrasi bos olmamali.
+      * esitlikli bicim ('--output-last-message=X'): '=' sonrasi AYNI SART (27 Tem 2. tur:
+        eskiden yalniz "bos degil" bakiliyordu → '--output-last-message=-o' ALLOW aliyordu).
     Clap'in "hangi bayrak deger alir" tablosu taklit EDILMEZ, yol dogrulanmaz, dosya
     varligi sorulmaz — tek soru: "bayraktan sonra bir sey var mi".
 
@@ -406,13 +451,52 @@ def _codex_cikti_degerli(tokenlar):
         if t in CODEX_CIKTI_BAYRAKLARI:
             if i + 1 >= len(tokenlar):
                 return False
-            deger = tokenlar[i + 1]
-            if not deger or deger.startswith("-"):
-                return False
-            return True
+            return _codex_deger_gecerli(tokenlar[i + 1])
         if t.startswith(CODEX_CIKTI_ONEKI):
-            return bool(t[len(CODEX_CIKTI_ONEKI):])
+            return _codex_deger_gecerli(t[len(CODEX_CIKTI_ONEKI):])
     return False
+
+
+def _sarmalayici_ikinci_okuma(tokenlar):
+    """27 TEM (2. tur) — SARMALAYICI bayrak-DEGERI sizintisinin IKINCI OKUMASI.
+
+    OLCULEN KUSUR: 'nice -n 10 codex exec "x"' ALLOW aliyordu. sarmalayici_soy 'nice'i
+    soyar, ardindan bayraklari ('-n') atlar, ama '10' — yani bayragin DEGERI — komut
+    adayi sanilir; argv0 '10' oldugu icin _codex_programi False doner ve codex kurali
+    HIC calismaz. Ayni sizinti: 'env -u FOO codex ...', 'stdbuf -o 0 codex ...',
+    'time -o /tmp/t codex ...'.
+
+    IKI OKUMA IDIOMU (dis_yol'da zaten kullanilan desen; parser taklidi YASAK):
+    "hangi sarmalayicinin hangi bayragi deger alir" TABLOSU tutulmaz. Bunun yerine
+    belirsizlik IKI OKUMAYA bolunur — bu okumada her atlanan bayragin ARDINDAN gelen
+    tiresiz token de o bayragin DEGERI olabilir sayilip atlanir. Cagiran (
+    _codex_segment_karari) iki okumadan BIRINDE argv0 'codex' gorurse kurali o okumaya
+    uygular: belirsizlik ICERI degil DISARI sayilir (fail-closed).
+
+    LAUNCHER/WHITELIST LISTESI DEGIL (mimar hukmu): bu fonksiyon programlar kumesine
+    TEK BIR AD EKLEMEZ; yalnizca ZATEN var olan SARMALAYICI kumesinin ayristirmasindaki
+    belirsizligi cozer. xargs/sudo/npx/make/watch sinifi BILINEN BYPASS #1'de kayitlidir
+    ve KAPATILMAZ.
+
+    KABUL EDILEN BEDEL: 'sarmalayici + bayrak + PROGRAM + basename'i codex olan ARGUMAN'
+    (or. 'time -p ls /Applications/.../codex') bu okumada yanlis-pozitif DENY alir.
+    Sarmalayicisiz hicbir cagri etkilenmez (nobetci: vaka 282)."""
+    okuma = list(tokenlar)
+    while okuma:
+        if re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=", okuma[0]):
+            okuma = okuma[1:]
+            continue
+        if os.path.basename(okuma[0]) in SARMALAYICI:
+            okuma = okuma[1:]
+            while okuma and okuma[0].startswith("-"):
+                okuma = okuma[1:]
+                # BAYRAK DEGERI: bayraktan sonraki tiresiz token o bayraga AIT OLABILIR
+                # → bu okumada atlanir (ilk okuma onu argv0 sayar; iki okuma da sinanir).
+                if okuma and not okuma[0].startswith("-"):
+                    okuma = okuma[1:]
+            continue
+        break
+    return okuma
 
 
 def _codex_karari(tokenlar):
@@ -456,6 +540,21 @@ def _codex_karari(tokenlar):
             "raporsuz delege değil — kabul kapısı kurulmadan çağırma."
         )
     return "gecer"
+
+
+def _codex_segment_karari(segment, tokenlar):
+    """27 TEM (2. tur) — segmentin codex KARARI, IKI OKUMA ile (bkz.
+    _sarmalayici_ikinci_okuma). Doner: _codex_karari ile ayni uc deger.
+
+    Sira: (1) normal okuma (sarmalayici_soy sonucu) — daraltilmis argv0 kurali;
+    (2) yalnizca (1) 'kural uygulanmaz' derse IKINCI OKUMA denenir. Boylece POZITIF
+    kararlar (ozellikle 'gecer') degismez, yalnizca sizinti kapanir."""
+    karar = _codex_karari(tokenlar)
+    if karar is None:
+        ikinci = _sarmalayici_ikinci_okuma(parcala(segment))
+        if ikinci != tokenlar:
+            karar = _codex_karari(ikinci)
+    return karar
 
 
 def _py_izinli(ad, argumanlar, cwd):
@@ -558,7 +657,9 @@ def main():
         # DIKKAT — 'gecer' halinde CONTINUE YOK: segmentin kalan denetimleri (repo-disi
         # betik, satir-ici kod, yol taramasi) calismaya devam eder. Aksi halde token
         # dizisine 'codex' + '-o' serpistirmek TUM kapiyi atlatan bir anahtar olurdu.
-        codex_karari = _codex_karari(tokenlar)
+        # 27 TEM (2. tur): karar IKI OKUMA ile alinir — 'nice -n 10 codex exec' gibi
+        # sarmalayici bayrak-degeri sizintisi kapanir (_codex_segment_karari).
+        codex_karari = _codex_segment_karari(segment, tokenlar)
         if codex_karari is not None and codex_karari != "gecer":
             reddet(codex_karari, sonu=CODEX_GEREKCE_SONU)
 

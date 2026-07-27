@@ -287,6 +287,12 @@ ISCI_VAKALARI = [
      "22Tem ikizi (216): pipe olcum serbest"),
     (307, "allow", "Bash", "node --check tools/x.js", ISCI_ID,
      "22Tem ikizi (138): node serbest"),
+    # 27 TEM 2. TUR IKIZLERI: iki kusur kapatildi — bedeli YALNIZ mimara ait olmali.
+    # ISCI (agent_id dolu) yeni redlerin HICBIRINE takilmaz.
+    (308, "allow", "Bash", "nice -n 10 codex exec \"x\"", ISCI_ID,
+     "27Tem-2 ikizi (280): sarmalanmis codex ISCI'de serbest"),
+    (309, "allow", "Bash", "codex exec --output-last-message=-o \"x\"", ISCI_ID,
+     "27Tem-2 ikizi (279): bozuk '=' degeri ISCI'de serbest"),
 ]
 
 # MIMAR TARAFI YENI VAKALAR (agent_id YOK) — onek/kayit duzeltmesi + test modulleri.
@@ -499,6 +505,22 @@ MIMAR_22TEM_VAKALARI = [
     (274, "allow", "Bash",
      "codex exec --output-last-message=" + SCRATCH + "/son-mesaj.txt \"spec\"", None,
      "27Tem: esitlikli bicim (DEGERLI) = GECER"),
+    # --- 27 TEM IKINCI TUR (BaBa: sart 6 EVE tasinir) — kapatilan IKI kusur ---
+    # (3f) KUSUR-1: esitlikli bicimde '-' oneki denetimi YOKTU. Sentinel: ME13 / ME14.
+    (279, "deny", "Bash", "codex exec --output-last-message=-o \"x\"", None,
+     "27Tem-2: '=' sonrasi deger BASKA BIR BAYRAK ('-o') -> DEGER SAYILMAZ, RED"),
+    (285, "deny", "Bash", "codex exec -o -v \"x\"", None,
+     "27Tem-2: AYRIK bicimde de deger bayrak ('-v') -> RED (bicim SIMETRISI)"),
+    # (3g) KUSUR-2: sarmalayici bayrak-DEGERI komut adayi sanilıyordu. Sentinel: ME15.
+    (280, "deny", "Bash", "nice -n 10 codex exec \"x\"", None,
+     "27Tem-2: 'nice -n 10' -> '10' argv0 sanilip kural atlaniyordu; ikinci okuma RED"),
+    (283, "deny", "Bash", "env -u FOO codex exec \"x\"", None,
+     "27Tem-2: ayni sizintinin env varyanti ('-u FOO') -> ikinci okuma RED"),
+    (281, "allow", "Bash",
+     "nice -n 10 codex exec -o " + SCRATCH + "/son-mesaj.txt \"spec\"", None,
+     "27Tem-2 POZITIF: ikinci okuma MESRU sarmalanmis cagriyi KAPATMAZ"),
+    (282, "allow", "Bash", "time grep -rn codex " + REPO + "/tools/", None,
+     "27Tem-2 FP NOBETCISI: sarmalayici + 'codex' KELIMESI -> kural TETIKLENMEZ"),
     # (4) python/node ALLOWLIST
     (240, "deny", "Bash", "python3 " + REPO + "/tools/build.py", None,
      "python repo-ici arac (allowlist disi) = RED"),
