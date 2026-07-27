@@ -1,5 +1,841 @@
 [
   {
+    "id": "peugeot-307-cam-suyu-deposu-vidali-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "307",
+      "Citroën"
+    ],
+    "baslik": "Peugeot 307 Cam Suyu Deposu Vidalı Kapağı",
+    "aciklama": "Peugeot 307 cam suyu (silecek suyu) deposunun vidalı kapağı. 106, 206 ve 207 ile Citroën C2, Xsara ve Picasso gibi benzer depolarda da kullanılabilir. Zamanla kırılan ya da kaybolan orijinal kapağın yerine geçer.\nVidalı tasarım sayesinde çıkarırken kopmadan rahatça sökülüp takılır.\nYaklaşık dış ölçüler: 65 × 65 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3776334-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3776334-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3776334-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3776334-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "magum23",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:3776334"
+    }
+  },
+  {
+    "id": "peugeot-partner-206-anahtar-acma-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Partner"
+    ],
+    "baslik": "Peugeot Anahtar Açma Düğmesi (Partner / 206)",
+    "aciklama": "Peugeot uzaktan kumandalı anahtarların üzerindeki açma (aç) düğmesi. Partner ve 206 gibi modellerin anahtarlarında aşınan ya da kopan orijinal düğmenin yerine geçer.\nEski düğmeyi çıkarıp yerine oturmalı olarak takılır; anahtarın tuş hissini yeniler.\nYaklaşık dış ölçüler: 16 × 16 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1235734-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1235734-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1235734-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1235734-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "besalel",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:1235734"
+    }
+  },
+  {
+    "id": "peugeot-205-kalorifer-havalandirma-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "205"
+    ],
+    "baslik": "Peugeot 205 Kalorifer Kontrol Düğmesi",
+    "aciklama": "Peugeot 205 kalorifer ve havalandırma kontrol paneline ait düğme. Hava yönü, fan hızı ve sıcaklık ayar düğmelerinin kırılan ya da eskiyen orijinallerinin yerine geçer.\nDüz yüzlü mil ucuna oturmalı olarak takılır. Sürekli elle kullanıldığı için dayanıklı bir filament önerilir.\nYaklaşık dış ölçüler: 50 × 30 × 18 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th669494-1.jpg",
+      "https://media.pruvo3d.com/urunler/th669494-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "burt777",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:669494"
+    }
+  },
+  {
+    "id": "peugeot-arka-silecek-kolu-tabani",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Arka Silecek Kolu Tabanı",
+    "aciklama": "Peugeot arka cam sileceğinin kolunu mile bağlayan taban parçası. Kırılan orijinal tabana göre birebir uyacak şekilde tasarlanmıştır ve sileceğin yeniden sıkı oturmasını sağlar.\nMil üzerine geçmeli olarak monte edilir.\nYaklaşık dış ölçüler: 60 × 24 × 23 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2568547-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2568547-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2568547-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2568547-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cadshef",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:2568547"
+    }
+  },
+  {
+    "id": "peugeot-sinyal-kolu-sabitleme-stoperi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot"
+    ],
+    "baslik": "Peugeot Sinyal Kolu Sabitleme Stoperi",
+    "aciklama": "Peugeot direksiyon sinyal (dönüş) kolunun konumunu sabitleyen stoper parçası. Bu parça aşındığında kol boşta kalır ve düzgün konumda durmaz; yenisi kolun yeniden sıkı ve doğru konumda çalışmasını sağlar.\nKol mekanizmasının içine yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 20 × 6 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th653386-1.jpg",
+      "https://media.pruvo3d.com/urunler/th653386-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sat26",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:653386"
+    }
+  },
+  {
+    "id": "peugeot-308-on-camurluk-ses-onleyici-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "308"
+    ],
+    "baslik": "Peugeot 308 Ön Çamurluk Ses Önleyici Klipsi",
+    "aciklama": "Peugeot 308 ön çamurluk davlumbazını gövdeye sabitleyen ses önleyici klips. Kaybolduğunda parça titreşir ve tıkırtı sesi yapar; yenisi bu boşluğu kapatarak sessiz sürüş sağlar.\nYerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 24 × 24 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th843929-1.jpg",
+      "https://media.pruvo3d.com/urunler/th843929-2.jpg",
+      "https://media.pruvo3d.com/urunler/th843929-3.jpg",
+      "https://media.pruvo3d.com/urunler/th843929-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tsohr",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:843929"
+    }
+  },
+  {
+    "id": "peugeot-306-cabriolet-far-yikama-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "306"
+    ],
+    "baslik": "Peugeot 306 Cabriolet Far Yıkama Fıskiye Kapağı",
+    "aciklama": "Peugeot 306 Cabriolet far yıkama fıskiyesinin kapağı. Orijinali artık yedek olarak bulunamayan bu parça, kaybolan ya da kırılan kapağın yerine orijinal örnek alınarak tasarlanmıştır.\nFıskiye yuvasına yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 96 × 43 × 33 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1845502-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1845502-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1845502-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1845502-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gyebi",
+      "tur": "GPL",
+      "link": "https://www.thingiverse.com/thing:1845502"
+    }
+  },
+  {
+    "id": "peugeot-508-sw-bagaj-perde-rayi-baglantisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "508"
+    ],
+    "baslik": "Peugeot 508 SW Bagaj Perde Rayı Bağlantısı",
+    "aciklama": "Peugeot 508 SW bagaj rolo perdesini araca bağlayan ray parçası. Kırılan orijinal bağlantının yerine geçerek perdenin yeniden sağlam şekilde takılmasını sağlar.\nYerine geçmeli olarak monte edilir.\nYaklaşık dış ölçüler: 78 × 28 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2207886-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2207886-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2207886-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lukilukeskywalker",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:2207886"
+    }
+  },
+  {
+    "id": "peugeot-405-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "405"
+    ],
+    "baslik": "Peugeot 405 Vites Topuzu",
+    "aciklama": "Peugeot 405 için vites topuzu. Yıllar içinde yıpranan ya da dağılan orijinal topuzun yerine geçer.\nVites koluna oturmalı olarak takılır. Sürekli elle tutulduğu için dayanıklı bir filament önerilir.\nYaklaşık dış ölçüler: 50 × 48 × 48 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th621857-1.jpg",
+      "https://media.pruvo3d.com/urunler/th621857-2.jpg",
+      "https://media.pruvo3d.com/urunler/th621857-3.jpg",
+      "https://media.pruvo3d.com/urunler/th621857-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "blex",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:621857"
+    }
+  },
+  {
+    "id": "peugeot-2008-saklama-gozu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "2008"
+    ],
+    "baslik": "Peugeot 2008 Saklama Gözü Kapağı",
+    "aciklama": "Peugeot 2008 iç saklama gözünün kapağı. Kaybolan ya da kırılan orijinal kapağın yerine geçerek gözü kapatır ve düzenli bir görünüm sağlar.\nYerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 197 × 99 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4009064-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4009064-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4009064-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4009064-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JasperLuitjes",
+      "tur": "BSD",
+      "link": "https://www.thingiverse.com/thing:4009064"
+    }
+  },
+  {
+    "id": "peugeot-206-cc-mikro-anahtar-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "206"
+    ],
+    "baslik": "Peugeot 206 CC Mikro Anahtar Braketi",
+    "aciklama": "Peugeot 206 CC açılır tavan (coupé cabriolet) mekanizmasında kullanılan mikro anahtarın braketi. Orijinal braket yerine geçen bu parça, mikro anahtarı doğru konumda sabit tutar.\nMekanizmadaki yuvasına yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 18 × 12 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3646359-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3646359-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bobbik",
+      "tur": "GPL",
+      "link": "https://www.thingiverse.com/thing:3646359"
+    }
+  },
+  {
+    "id": "peugeot-205-ic-dikiz-aynasi-destegi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "205"
+    ],
+    "baslik": "Peugeot 205 İç Dikiz Aynası Desteği",
+    "aciklama": "Peugeot 205 iç dikiz aynasını cama bağlayan destek parçası. Yaşlanan araçlarda kırılan bu plastik parçanın yerine geçerek aynanın yeniden sağlam durmasını sağlar.\nCam üzerindeki yuvaya yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 28 × 24 × 16 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th141834-1.jpg",
+      "https://media.pruvo3d.com/urunler/th141834-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sylefeb",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:141834"
+    }
+  },
+  {
+    "id": "peugeot-citroen-2-pinli-elektrik-konnektoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Citroën"
+    ],
+    "baslik": "Peugeot / Citroën 2 Pinli Elektrik Konnektörü",
+    "aciklama": "Peugeot ve Citroën araçlarda kullanılan 2 pinli elektrik konnektörü (fiş) parçası. Kırılan orijinalinin yerine geçer; bıçak tipi kablo ucu ön parçadan geçirilip arka parçayla sabitlenir.\nOrijinal soketle eşleşecek şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 19 × 18 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2242901-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2242901-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2242901-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2242901-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TheMeerkat",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:2242901"
+    }
+  },
+  {
+    "id": "peugeot-307-kolcak-baglanti-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "307"
+    ],
+    "baslik": "Peugeot 307 Kolçak Bağlantı Parçası",
+    "aciklama": "Peugeot 307 orta kolçağını sabitleyen bağlantı parçası. Kırılan orijinalinin yerine geçerek kolçağın yeniden düzgün açılıp kapanmasını sağlar.\nYerine geçmeli olarak monte edilir.\nYaklaşık dış ölçüler: 81 × 60 × 31 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6142750-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6142750-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6142750-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6142750-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mladoss",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:6142750"
+    }
+  },
+  {
+    "id": "peugeot-3008-silecek-su-hortumu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "3008"
+    ],
+    "baslik": "Peugeot 3008 Silecek Su Hortumu Klipsi",
+    "aciklama": "Peugeot 3008 ön silecek kolundaki su hortumunu tutan klips. Sık kırılan orijinal parçanın profili birebir taranarak tasarlanmıştır ve hortumu yerinde sabit tutar.\nSilecek koluna yerine geçmeli olarak takılır. Dayanıklılık için ABS veya PETG önerilir.\nYaklaşık dış ölçüler: 18 × 17 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6691744-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6691744-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6691744-3.jpg"
+    ],
+    "tavsiyeFilament": "PETG",
+    "lisans": {
+      "tasarimci": "blackbird31",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6691744"
+    }
+  },
+  {
+    "id": "peugeot-406-radyo-teyp-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "406"
+    ],
+    "baslik": "Peugeot 406 Radyo / Teyp Çerçevesi",
+    "aciklama": "Peugeot 406 orta konsoluna sonradan takılan radyo/teyp ünitesi için çerçeve. Standart üniteyi orijinal yuvaya boşluksuz oturtur ve konsolda düzgün bir görünüm sağlar.\nYuvaya yerine geçmeli olarak monte edilir.\nYaklaşık dış ölçüler: 226 × 99 × 55 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6441959-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6441959-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6441959-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6441959-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kaisermax",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6441959"
+    }
+  },
+  {
+    "id": "peugeot-307-far-ic-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "307"
+    ],
+    "baslik": "Peugeot 307 Far İç Kapağı",
+    "aciklama": "Peugeot 307 far grubunun iç kapağı (Peugeot parça no 40840509). Kaybolan ya da kırılan orijinal kapağın yerine geçerek far içini toz ve nemden korur.\nFar yuvasına yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 121 × 121 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6717323-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6717323-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6717323-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6717323-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Chichackles",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6717323"
+    }
+  },
+  {
+    "id": "peugeot-307-paspas-sabitleme-pimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "307"
+    ],
+    "baslik": "Peugeot 307 Paspas Sabitleme Pimi",
+    "aciklama": "Peugeot 307 sürücü tarafı paspasını yerinde tutan sabitleme pimi. Orijinaline göre biraz güçlendirilmiş dişi ve daha rahat kavranan başı sayesinde daha uzun ömürlü ve kolay takılır.\nPaspas yuvasına vidalanarak sabitlenir.\nYaklaşık dış ölçüler: 40 × 40 × 25 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4600460-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4600460-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4600460-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "alfa1",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4600460"
+    }
+  },
+  {
+    "id": "peugeot-307-cc-cam-tasiyici-destek",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "307"
+    ],
+    "baslik": "Peugeot 307 CC Cam Taşıyıcı İç Destek Parçası",
+    "aciklama": "Peugeot 307 CC yolcu tarafı camını taşıyan iç uç destek parçası. Orijinal parça elde ve kumpasla ölçülerek birebir tasarlanmıştır ve camın mekanizmaya sağlam bağlanmasını sağlar.\nYerine geçmeli olarak monte edilir.\nYaklaşık dış ölçüler: 45 × 39 × 29 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2441331-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2441331-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fear02",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:2441331"
+    }
+  },
+  {
+    "id": "peugeot-308-bagaj-rafi-kilit-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "308"
+    ],
+    "baslik": "Peugeot 308 Bagaj Rafı Kilit Mandalı",
+    "aciklama": "Peugeot 308 (1. nesil) bagaj rafının kilit mandalı. Kırılan orijinal mandalın yerine geçer ve rafın yeniden yerine kilitlenmesini sağlar; orijinaline göre daha kalın tasarlanarak dayanıklılığı artırılmıştır.\nRaf üzerindeki yuvaya yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 150 × 30 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3009797-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3009797-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3009797-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fear02",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:3009797"
+    }
+  },
+  {
+    "id": "peugeot-205-cam-krikosu-dugme-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "205"
+    ],
+    "baslik": "Peugeot 205 Cam Krikosu Düğme Kapağı",
+    "aciklama": "Peugeot 205 ön kapıdaki elektrikli cam krikosu düğmelerini tutan kapak parçası. Güneşten yıllarca aşınan orijinallerin yerine geçer.\nEk destek gerektirmeden basılıp yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 97 × 70 × 68 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6219578-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6219578-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6219578-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6219578-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "techdada",
+      "tur": "BSD",
+      "link": "https://www.thingiverse.com/thing:6219578"
+    }
+  },
+  {
+    "id": "peugeot-3008-bagaj-poset-kancasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "3008"
+    ],
+    "baslik": "Peugeot 3008 Bagaj Poşet Kancası",
+    "aciklama": "Peugeot 3008 bagajında poşet ve alışveriş çantalarını sabit tutan kanca. Çantaların bagajda oynamasını önleyerek düzenli durmasını sağlar.\nBagajdaki bağlantı noktasına yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 88 × 30 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7231048-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7231048-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BlackDragon76",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7231048"
+    }
+  },
+  {
+    "id": "peugeot-408-yan-ayna-panel-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "408"
+    ],
+    "baslik": "Peugeot 408 Yan Ayna Panel Kapağı",
+    "aciklama": "Peugeot 408 (2012) sağ yan dikiz aynasının panel kapağı (parça no 9670916977). Kırılan ya da eksik orijinal panelin yerine geçer. Sol taraf için dilimleme sırasında aynalanabilir.\nDoğrudan güneşe maruz kaldığı için ASA gibi dayanıklı bir filament önerilir.\nYaklaşık dış ölçüler: 179 × 54 × 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7054465-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7054465-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7054465-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7054465-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Xavi5820",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7054465"
+    }
+  },
+  {
+    "id": "peugeot-106-radyo-yeri-kor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "106"
+    ],
+    "baslik": "Peugeot 106 Radyo Yeri Kör Kapağı",
+    "aciklama": "Peugeot 106 konsolunda radyo takılmayan araçlar için radyo yuvasını kapatan kör kapak. Artık zor bulunan orijinalin yerine geçerek boş yuvaya düzenli bir görünüm verir.\nYuvaya yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 210 × 83 × 63 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6542328-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6542328-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6542328-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6542328-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Camone",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6542328"
+    }
+  },
+  {
+    "id": "peugeot-208-radyo-acma-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "208"
+    ],
+    "baslik": "Peugeot 208 Radyo Açma Düğmesi",
+    "aciklama": "Peugeot 208 (2021) multimedya/radyo açma düğmesi. Aşınan ya da kopan orijinal düğmenin yerine geçer.\nYerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 18 × 18 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6717980-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6717980-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6717980-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AdamKnight",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6717980"
+    }
+  },
+  {
+    "id": "peugeot-206-yakit-deposu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "206"
+    ],
+    "baslik": "Peugeot 206+ Yakıt Deposu Kapağı",
+    "aciklama": "Peugeot 206+ yakıt deposu kapağı. Düşüp kaybolan orijinalinin yerine geçer.\nDik konumda ve destekli basılması önerilir; yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 113 × 110 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7224725-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7224725-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7224725-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FeuerFranz",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7224725"
+    }
+  },
+  {
+    "id": "peugeot-207-paspas-tutucu-somun-vida",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "207"
+    ],
+    "baslik": "Peugeot 207 Paspas Tutucu Somun ve Vida",
+    "aciklama": "Peugeot 207 paspasını yerinde tutan somun ve vida takımı. Kırılan orijinallerinin yerine geçerek paspasın kaymadan sabit durmasını sağlar.\nPaspas yuvasına takılır. İç mekanda ısınabildiği için ABS önerilir.\nYaklaşık dış ölçüler: 33 × 33 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6670057-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6670057-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6670057-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6670057-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Thingsmadebytherat",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6670057"
+    }
+  },
+  {
+    "id": "peugeot-3008-bagaj-esigi-koruma-klapesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "3008"
+    ],
+    "baslik": "Peugeot 3008 Bagaj Eşiği Koruma Klapesi",
+    "aciklama": "Peugeot 3008 (2. nesil) bagaj alt eşiğini koruyan klape (parça no 9812573677). Bu parça birçok Peugeot'ta kırılır ve tek başına satılmaz; yenisi orijinaline göre daha dayanıklı tasarlanmıştır.\nGüneşe maruz kaldığı için ASA gibi bir filament önerilir; yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 198 × 40 × 9 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6817800-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6817800-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6817800-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "blackbird31",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6817800"
+    }
+  },
+  {
+    "id": "peugeot-3008-el-freni-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "3008"
+    ],
+    "baslik": "Peugeot 3008 El Freni Düğmesi",
+    "aciklama": "Peugeot 3008 (2016 öncesi) el freni düğmesi. Aşınan ya da kırılan orijinalinin yerine geçer.\nYerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 60 × 37 × 29 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6241174-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6241174-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6241174-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6241174-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "walrerzabala",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6241174"
+    }
+  },
+  {
+    "id": "peugeot-405-hortum-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "405"
+    ],
+    "baslik": "Peugeot 405 Hortum Tutucu",
+    "aciklama": "Peugeot 405 için hortum tutucu parça. Orijinalinin birebir kopyası olup biraz daha güçlendirilmiştir; hortumu yerinde sabit tutar.\nYerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 53 × 26 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6993776-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6993776-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6993776-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6993776-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "protamiya57",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6993776"
+    }
+  },
+  {
+    "id": "peugeot-406-on-tampon-ceki-demiri-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "406"
+    ],
+    "baslik": "Peugeot 406 Ön Tampon Çeki Demiri Kapağı",
+    "aciklama": "Peugeot 406 ön tampondaki çeki demiri (çekme kancası) yuvasının kapağı. Kaybolan ya da kırılan orijinalinin yerine geçerek yuvayı kapatır ve tampona düzgün bir görünüm verir.\nYuvaya yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 50 × 39 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7280780-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7280780-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7280780-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7280780-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tarzansarka",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7280780"
+    }
+  },
+  {
+    "id": "peugeot-3008-sibop-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "3008"
+    ],
+    "baslik": "Peugeot 3008 Sibop Kapağı",
+    "aciklama": "Peugeot 3008 lastik sibop (supap) kapağı. Kaybolan orijinalinin yerine geçerek sibobu toz ve nemden korur.\nSibop üzerine vidalanarak takılır.\nYaklaşık dış ölçüler: 16 × 10 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6988697-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6988697-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6988697-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BUROZERO1",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6988697"
+    }
+  },
+  {
+    "id": "peugeot-308-tavan-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "308"
+    ],
+    "baslik": "Peugeot 308 Tavan Tapası",
+    "aciklama": "Peugeot 308 iç tavan döşemesindeki yuvayı kapatan tapa. Kaybolan ya da kırılan orijinalinin yerine geçerek tavana düzgün bir görünüm verir.\nYuvaya yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 63 × 44 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6943217-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6943217-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6943217-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6943217-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Agiro",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6943217"
+    }
+  },
+  {
+    "id": "peugeot-407-arka-perde-tutucu-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "407"
+    ],
+    "baslik": "Peugeot 407 Arka Perde Tutucu Mandalı",
+    "aciklama": "Peugeot 407 arka cam perdesinin ya da güneşliğinin üst bağlantısını tutan mandal (Ref. 7466.Z9). Kırılan orijinalinin yerine geçer ve her iki tarafta da kullanılabilir.\nYerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 42 × 33 × 22 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6972994-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6972994-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6972994-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6972994-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "toz666",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6972994"
+    }
+  },
+  {
+    "id": "peugeot-307-fan-menfez-silentblok-lastigi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "307"
+    ],
+    "baslik": "Peugeot 307 Fan Menfez Silentblok Lastiği",
+    "aciklama": "Peugeot 307 ön fan/menfez bağlantısındaki silentblok (titreşim yastığı) lastiği. Kaybolan orijinalinin yerine geçerek titreşimi ve sesi keser.\nEsnek ve gerçekçi bir his için 75 shore TPU ile tam dolu basım önerilir.\nYaklaşık dış ölçüler: 6 × 6 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7064310-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7064310-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7064310-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7064310-4.jpg"
+    ],
+    "tavsiyeFilament": "TPU",
+    "lisans": {
+      "tasarimci": "TheClapiClaps",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7064310"
+    }
+  },
+  {
+    "id": "peugeot-307-207-vites-konsolu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "307"
+    ],
+    "baslik": "Peugeot 307 / 207 Otomatik Vites Konsolu Kapağı",
+    "aciklama": "Peugeot 307 ve 207 otomatik vites konsolunun kapağı. Orijinal krom yüzey güneşi yansıtıp sürücüyü rahatsız edebiliyor; bu kapak yansımayı önleyerek daha konforlu bir görünüm sağlar.\nKonsol üzerine yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 118 × 100 × 11 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7368998-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7368998-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zeubest",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7368998"
+    }
+  },
+  {
+    "id": "peugeot-5008-park-lambasi-ic-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "5008"
+    ],
+    "baslik": "Peugeot 5008 Park Lambası İç Kapağı",
+    "aciklama": "Peugeot 5008 (2014) park/gündüz farı ampulüne erişim açıklığını kapatan iç kapak (orijinal parça Valeo 89072961). Kaybolan ya da kırılan orijinalinin yerine geçer.\nYuvaya yerine geçmeli olarak takılır.\nYaklaşık dış ölçüler: 103 × 91 × 15 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6890958-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6890958-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6890958-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bit90",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6890958"
+    }
+  },
+  {
+    "id": "peugeot-308-radyator-ust-takozu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "308"
+    ],
+    "baslik": "Peugeot 308 Radyatör Üst Takozu",
+    "aciklama": "Peugeot 308 (T7, 2011) radyatörünü üstten sabitleyen takoz/bağlantı parçası. Kırılan orijinalinin yerine geçerek radyatörü yerinde titreşimsiz tutar; her iki tarafa da uyar.\nYerine geçmeli olarak takılır. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 56 × 39 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7028578-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7028578-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7028578-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7028578-4.jpg"
+    ],
+    "tavsiyeFilament": "PETG",
+    "lisans": {
+      "tasarimci": "Mirneshoso",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7028578"
+    }
+  },
+  {
+    "id": "peugeot-citroen-arka-koltuk-alti-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Peugeot",
+      "Citroën"
+    ],
+    "baslik": "Peugeot / Citroën Arka Koltuk Altı Braketi",
+    "aciklama": "Peugeot ve Citroën araçlarda arka koltuk altını sabitleyen braket. Kırılan orijinalinin yerine geçer ve güncel modellere göre denenerek tasarlanmıştır.\nYerine geçmeli olarak monte edilir.\nYaklaşık dış ölçüler: 105 × 62 × 57 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6650317-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6650317-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6650317-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rhan1",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6650317"
+    }
+  },
+  {
     "id": "peugeot-308-sw-bardaklik-adaptoru",
     "kategori": "Otomobil",
     "marka": [
