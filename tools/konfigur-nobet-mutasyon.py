@@ -449,14 +449,16 @@ def rutin_fiksturler():
          {BUILD: [(link_anchor,
                    '<a href="/malzeme-rehberi/" class="malzeme-link">')]},
          None, YESIL, ""),
+        # R06/R07: eski MIRAS yanlis-pozitifleri KAPANDI — c2 ekseni JS-bayrak metninden
+        # #opsiyonlar YAPISINA tasindi (konfigur-test.py). Artik ilgisiz refaktor: YESIL.
         ("R06", "gomulu JS bayragi config objesine tasindi (script-harici refaktoru)",
          {BUILD: [("  var KART_SECIM = {kart_secim};",
                    "  var PRUVO_CFG = {{ kartSecim: {kart_secim} }};\n"
                    "  var KART_SECIM = PRUVO_CFG.kartSecim;")]},
-         None, MIRAS, "KART_SECIM"),
+         None, YESIL, ""),
         ("R07", "JS MINIFY: bayraktaki bosluk kaldirildi (KART_SECIM={x})",
          {BUILD: [("var KART_SECIM = {kart_secim};", "var KART_SECIM={kart_secim};")]},
-         None, MIRAS, "KART_SECIM"),
+         None, YESIL, ""),
         ("R08", "HTML MINIFY: <main> ile <nav> arasi bosluk kaldirildi",
          {BUILD: [(main_ac, '<main><nav class="crumbs" aria-label="breadcrumb">')]},
          None, YESIL, ""),
@@ -466,11 +468,14 @@ def rutin_fiksturler():
          {SAYFALAR: [('<a href="/malzeme-rehberi/">Malzeme Rehberi</a> &middot; ',
                       '<a href="/malzeme-kilavuzu/">Malzeme Kılavuzu</a> &middot; ')]},
          None, YESIL, ""),
+        # R11: eski MIRAS KAPANDI — c2 olmamali civisi ciplak 'class="cart-btn"' yerine
+        # buyuk-buton ACILIS etiketi '<button class="cart-btn"'; footer <a class="cart-btn">
+        # bunu KARSILAMAZ -> ilgisiz refaktor: YESIL.
         ("R11", "FOOTER nav'a .cart-btn sinifli yeni buton eklendi",
          {SAYFALAR: [('    \'<a href="/hakkimizda/">Hakkımızda</a> &middot; \'',
                       '    \'<a class="cart-btn" href="/sepet/">Sepet</a> &middot; \'\n'
                       '    \'<a href="/hakkimizda/">Hakkımızda</a> &middot; \'')]},
-         None, MIRAS, "cart-btn"),
+         None, YESIL, ""),
         ("R12", "KATALOGDA yeni urun (sentetik urunler.json'un BASINA)",
          None, {"urunler.json": _sentetik_katalog(yeni_urun=True, marin_bos=False)},
          YESIL, ""),

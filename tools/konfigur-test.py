@@ -21,9 +21,11 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
            sızmaz (URUN_KONFIGUR / konfigur.js / PRUVO_KONFIGUR / kaydırıcı / data-gorsel
            + malzeme EKSENİ kancaları #malzemeButonlar / .malzeme-btn / data-katsayi).
         c2 YAPISAL ÇEKİRDEK (referanssız, SAYFA BAZLI): her sayfa sınıfı kendi kimlik
-           kancalarını KORUR (#filCipler, KART_SECIM bayrağı, #opsiyonlar / büyük buton,
-           #boySec, .attribution, jenerator modülleri). SAYI ÇAPASI YOK: "en az 1" / "hiç
-           yok" aranır; metin/CSS/kategori düzenlemesi bunları oynatmaz.
+           kancalarını KORUR (#filCipler, #opsiyonlar = kart-seçim paneli, büyük-buton
+           açılış etiketi <button class="cart-btn", #boySec, .attribution, jenerator
+           modülleri). Bayrak METNİ (KART_SECIM=..) ÇİVİSİ ÇIKARILDI (minify/config
+           refaktörü yakıyordu; eksen #opsiyonlar'a taşındı). SAYI ÇAPASI YOK: "en az 1" /
+           "hiç yok" aranır; metin/CSS/kategori/JS-biçim düzenlemesi bunları oynatmaz.
         c3 MALZEME ARAYÜZÜ XOR (referanssız, TÜM sayfalarda): her ürün sayfasında malzeme
            arayüzü TAM OLARAK BİR biçimdedir — konfigur+malzemeli sayfa #malzemeButonlar
            (kart bölümü YOK), diğer HER sayfa #filCipler (seçici YOK). Hem "çift-UI"yı
@@ -431,31 +433,40 @@ KONFIGUR_IZLERI = ["URUN_KONFIGUR", "konfigur.js", "konfigurBoy", "konfigurKaydi
                    'id="malzemeButonlar"', "malzeme-btn", "data-katsayi"]
 
 # c2 YAPISAL ÇEKİRDEK (POZİTİF, SAYFA BAZLI — [[kapi-kapsam-genisletme-tuzagi]]):
-# her konfigur'suz sayfa sınıfının KİMLİK kancaları. Yalnız YAPI aranır (element id'si, JS
-# bayrağı, modül yolu) — görünen metin, CSS sınıf stili, kategori adı, fiyat DEĞİL; böylece
-# ilgisiz rutin düzenleme (metin/CSS/yeni kategori/yorum) bu nöbeti YAKMAZ.
+# her konfigur'suz sayfa sınıfının KİMLİK kancaları. Yalnız KALICI YAPI aranır: element
+# id'si (#opsiyonlar = kart-seçim paneli VAR mı), büyük-buton AÇILIŞ ETİKETİ
+# (<button class="cart-btn" = panelsiz düzen) ve modül yolu — görünen metin, CSS sınıf
+# stili, kategori adı, fiyat, JS BAYRAK METNİ DEĞİL; böylece ilgisiz rutin düzenleme
+# (metin/CSS/yeni kategori/yorum) bu nöbeti YAKMAZ.
+# 🔴 EKSEN DÜZELTMESİ (biçim çivisi çıkarıldı — [[kapi-kapsam-eksen-secimi]]): eskiden
+# "KART_SECIM = true/false" JS-SÖZDİZİM dizgesi ve ÇIPLAK 'class="cart-btn"' aranıyordu.
+# İkisinin de KATKISI ÖLÇÜLDÜ = SIFIR (fonksiyonel/panelsiz ayrımını #opsiyonlar zaten
+# taşır; kategori-ekseni mutantı #opsiyonlar EKSİK + <button class="cart-btn" FAZLA ile
+# çift kanıtla KIRMIZI); BEDELİ 3 yanlış-pozitif: JS minify + KART_SECIM'in config
+# objesine taşınması bayrak metnini kırıyordu, footer'a .cart-btn sınıflı <a> eklenmesi
+# çıplak class dizgesini SIZDIRIYORDU. ÇÖZÜM: bayrak metni çivisi KALDIRILDI (eksen
+# #opsiyonlar'a taşındı), 'class="cart-btn"' -> '<button class="cart-btn"' (büyük-buton
+# AÇILIŞ etiketi; footer <a class="cart-btn"> bunu KARŞILAMAZ). Değer testi (d)/(e)'de.
 # ÇAPA YOK: "en az bir kez geçmeli" (olmali) / "hiç geçmemeli" (olmamali); SAYI karşılaştırması
 # yapılmaz -> filament sayısı, ilgili ürün sayısı vb. değişince kırmızı yanmaz.
 YAPISAL_CEKIRDEK = {
-    # panelsiz dal: opsiyon paneli YOK, sayfa altında BÜYÜK butonlar var, KART_SECIM kapalı
-    "test-panelsiz": (['id="filCipler"', "KART_SECIM = false", 'class="cart-btn"'],
-                      ['id="opsiyonlar"', "KART_SECIM = true"]),
+    # panelsiz dal: opsiyon paneli YOK (#opsiyonlar yok), sayfa altında BÜYÜK buton var
+    "test-panelsiz": (['id="filCipler"', '<button class="cart-btn"'],
+                      ['id="opsiyonlar"']),
     # kart-seçim dalı: opsiyon paneli + ikon düzeni (sayfa altı büyük buton YOK)
-    "test-oto-parca": (['id="filCipler"', "KART_SECIM = true", 'id="opsiyonlar"',
-                        'id="cartBtn"'],
-                       ['class="cart-btn"', "KART_SECIM = false"]),
+    "test-oto-parca": (['id="filCipler"', 'id="opsiyonlar"', 'id="cartBtn"'],
+                       ['<button class="cart-btn"']),
     # boy seçenekli: boy açılır kutusu (#boySec) kart-seçim düzeninin İÇİNDE
-    "test-boylu": (['id="filCipler"', "KART_SECIM = true", 'id="opsiyonlar"',
-                    'id="boySec"'],
-                   ['class="cart-btn"']),
+    "test-boylu": (['id="filCipler"', 'id="opsiyonlar"', 'id="boySec"'],
+                   ['<button class="cart-btn"']),
     # lisanslı: CC atıf bloğu KALIR (lisans kuralı — silinmesi ticari/hukuki risk)
-    "test-lisansli": (['id="filCipler"', "KART_SECIM = true", 'class="attribution"',
+    "test-lisansli": (['id="filCipler"', 'id="opsiyonlar"', 'class="attribution"',
                        'rel="license'],
-                      ['class="cart-btn"']),
+                      ['<button class="cart-btn"']),
     # parametrik sarı: jeneratör konfigüratör modülleri sayfaya bağlanır
-    "olcuye-ozel-huni": (['id="filCipler"', "KART_SECIM = true",
+    "olcuye-ozel-huni": (['id="filCipler"', 'id="opsiyonlar"',
                           "jenerator/konfigurator.js", "jenerator/hacim.js"],
-                         ['class="cart-btn"']),
+                         ['<button class="cart-btn"']),
 }
 
 # ---------------------------------------------------- KATEGORİ EKSENİ (c1/c2/c3 kapsaması)
@@ -476,9 +487,8 @@ YAPISAL_CEKIRDEK = {
 # aynısı olurdu. Bedeli: Okan bir kategoriyi bilerek panelsize çevirirse bu liste de
 # güncellenir (test-skan-art.py B3 ile aynı sözleşme).
 # ÇAPA YOK: kategori SAYISI, ürün sayısı, SHA, tarih hiçbir yerde karşılaştırılmaz.
-KART_SECIM_CEKIRDEK = (['id="filCipler"', "KART_SECIM = true", 'id="opsiyonlar"',
-                        'id="cartBtn"'],
-                       ['class="cart-btn"', "KART_SECIM = false"])
+KART_SECIM_CEKIRDEK = (['id="filCipler"', 'id="opsiyonlar"', 'id="cartBtn"'],
+                       ['<button class="cart-btn"'])
 
 # Sayfa-sınıfı fikstürlerinin ZATEN render ettiği kategoriler burada TEKRAR EDİLMEZ
 # (Otomobil = test-oto-parca, Ev = test-boylu, Kamera = test-lisansli, Jeneratör =
@@ -718,8 +728,14 @@ def test_konfigur_sayfasi(seri):
             "renk seçilmeden sepete ekleme kilidi bağlı")
     kontrol(" && !URUN_KONFIGUR" in html,
             "varsayılan fiyat yazıcısı konfigur sayfasında devre dışı (çakışma yok)")
-    kontrol("KART_SECIM = false" in html,
-            "KART_SECIM kapalı (malzeme-kartı kilidi konfigur'da tetiklenmez)")
+    # DEĞER TESTİ (biçim çivisi DEĞİL): konfigur sayfası kart-seçim malzeme kilidini
+    # AÇMAMALI. Eskiden "KART_SECIM = false" DİZGESİ aranıyordu -> JS minify (KART_SECIM=false)
+    # ve bayrağın config objesine taşınması (var KART_SECIM = CFG.kartSecim) bu iddiayı
+    # sahte-KIRMIZI yapıyordu. Biçimden bağımsız NEGATİF iddia: bayrak DOĞRUDAN true'ya
+    # kurulmuyor (regresyon konfigur'u kart-seçime çevirirse 'KART_SECIM = true' basılır).
+    kontrol(not re.search(r"KART_SECIM\s*=\s*true\b", html),
+            "konfigur sayfasında kart-seçim malzeme kilidi AÇILMAZ (KART_SECIM true'ya "
+            "kurulmuyor; biçimden bağımsız — minify/config-obje refaktörü YAKMAZ)")
 
     kontrol('id="malzemeButonlar"' not in html and "malzeme-btn" not in html,
             "MALZEMESİZ konfigur: malzeme seçici YOK (geri uyumluluk — renk+boy)")
@@ -807,8 +823,10 @@ def test_konfigur_malzeme_sayfasi(seri):
             "(bulunan blok: %s)" % (("%d karakter" % len(wa_blok)) if wa_blok else "YOK"))
     kontrol('src="/konfigur.js' in html and 'id="cartBtn"' in html,
             "/konfigur.js + Sepete Ekle ikonu (malzeme sayfada da) bağlı")
-    kontrol("KART_SECIM = false" in html,
-            "malzeme ekseninde de KART_SECIM kapalı (malzeme-kartı kilidi tetiklenmez)")
+    # DEĞER TESTİ (biçim çivisi DEĞİL — (d) ile aynı gerekçe): malzeme ekseninde de konfigur
+    # kart-seçim kilidini AÇMAMALI; biçimden bağımsız NEGATİF iddia (minify/config refaktörü YAKMAZ).
+    kontrol(not re.search(r"KART_SECIM\s*=\s*true\b", html),
+            "malzeme ekseninde de kart-seçim kilidi AÇILMAZ (KART_SECIM true'ya kurulmuyor)")
 
     if seri:
         varsayilan = KURT_KONFIGUR["boyutMm"]["varsayilan"]
@@ -846,11 +864,14 @@ NE ÖLÇÜLMEDİ / BEYAN EDİLMİŞ BORÇ (yeşil çıktı bunları kapsamaz):
   · 🔴 BU BÖLÜM ÜRÜN VERİSİNİ ÖLÇMEZ — nöbetçi urunler.json'u OKUMAZ (sentetik fikstür).
     Katalogda bir kategorinin tamamen boşalması, ürün silinmesi/eklenmesi bu kapıyı
     ETKİLEMEZ; o eksen kategori-kapisi.py'de. Buradaki yeşil "katalog sağlam" DEMEZ.
-  · 🔴 c2'nin YAPISAL ÇEKİRDEK dizgeleri (KART_SECIM = true / class="cart-btn") HÂLÂ
-    biçim çivisidir: gömülü bayrağın config objesine taşınması, JS minify'ı ya da
-    footer'a .cart-btn sınıflı buton eklenmesi bu kapıyı YANLIŞ-POZİTİF kırmızıya
-    düşürür (merge-base'den MİRAS, ölçüldü, ayrı iş olarak AÇIK). Yeşil = "bu üç
-    refaktör yapılmadı" demektir, "yapılsa güvenli" DEMEZ.""")
+  · ✔ KAPANDI (eski MİRAS borcu): c2'nin biçim çivileri "KART_SECIM = true/false"
+    (JS sözdizimi) ve ÇIPLAK 'class="cart-btn"' KALDIRILDI. Fonksiyonel/panelsiz ayrımı
+    artık KALICI YAPIYLA ölçülür: #opsiyonlar (kart-seçim paneli VAR/YOK) + büyük-buton
+    AÇILIŞ etiketi (<button class="cart-btn"). Üç rutin refaktör (bayrağın config objesine
+    taşınması · JS minify · footer'a .cart-btn sınıflı <a>) artık kapıyı YAKMAZ; katkısı
+    ÖLÇÜLDÜ = 0 (kategori matrisi 14/14 KIRMIZI, nöbetsiz mutant sayısı ARTMADI). Fikstür
+    KALICI: konfigur-nobet-mutasyon.py C bölümü R06/R07/R11 artık ✅ YEŞİL beklentisiyle
+    koşar — bu borç sessizce geri gelirse harness KIRMIZI yanar.""")
 
 
 # ------------------------------------------------------------------ ana akış
