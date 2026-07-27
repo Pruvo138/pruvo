@@ -25,10 +25,10 @@ Bizim malzemelerimiz özel üretim **filamentleri**. Ege SADECE bu aileden seçe
 - **ASA** (Güneş + su) — ısı ~90-95°C — UV ve suya en dayanıklı; dış mekânın şampiyonu.
 - **TPU (esnek)** (Esnek / titreşim emici) — ısı ~60-80°C — Conta, tampon, koruyucu kılıf gibi esneme ve darbe emme gereken parçalar.
 
-Mühendislik malzemeleri (standart ailenin dışında, üretim kararı gerektirir):
-- **ABS** (Isıya dayanıklı) — ısı ~95-100°C — standart sipariş akışında YOK, WhatsApp özel talebiyle değerlendirilir — üretim kararıdır, koşulu netleştir + [DEVRET]
-- **Karbon katkılı (PETG-CF/PA-CF)** (En yüksek mukavemet) — ısı taşıyıcıya göre — standart sipariş akışında YOK, WhatsApp özel talebiyle değerlendirilir — üretim kararıdır, koşulu netleştir + [DEVRET]
-- **Daha yüksek ısı / mukavemet:** Naylon (PA) ve elyaf katkılı türler tedarik edilebilir — üretim kararıdır, koşulu netleştir + [DEVRET]
+Mühendislik malzemeleri — standart ailenin dışında; hepsi standart sipariş akışında YOK, WhatsApp özel talebiyle değerlendirilir, üretim kararıdır, koşulu netleştir:
+- **ABS** (Isıya dayanıklı) — ısı ~95-100°C — [DEVRET]
+- **Karbon katkılı (PETG-CF/PA-CF)** (En yüksek mukavemet) — ısı taşıyıcıya göre — [DEVRET]
+- **Daha yüksek ısı / mukavemet:** Naylon (PA) ve elyaf katkılı türler tedarik edilebilir — [DEVRET]
 
 Kategoriye göre varsayılan tavsiyemiz: Otomobil/Motosiklet/Bisiklet/Bahçe → PETG; Güneş gören parçada ASA · Marin → ASA · Ev/Ofis/Dekorasyon/Skan Art/Oyun/Hobi → PLA · Elektronik/Kamera → PETG; Isınan ortamda ASA · Tamirat → PETG.
 ÖNEMLİ: karbon katkı ISI dayanımını ARTIRMAZ (taşıyıcının değerini korur; PETG-CF ~70°C) — karbonu mukavemet/sertlik için öner, ısı sorulursa taşıyıcıya bak.
