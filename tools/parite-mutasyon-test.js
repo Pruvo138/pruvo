@@ -88,6 +88,46 @@ const MUTANTLAR = [
     yaz: "  if (olc.length) {\n    for (const n of olc) console.log(\"   ⚪ \" + n);\n" +
       "    return CIKIS_OLCULEMEDI;\n  }\n  if (kirmiziLar.length) {",
   },
+  // ── 8. YUTMA (27 Tem) savunmalari: her biri TEK TEK nobetli mi? ────────────────────
+  {
+    ad: "M9 UZUNLUK KAPISI kaldirildi (kurban kuyrukta + telafi yine ACIKLANAN sayilir)",
+    dosya: "parite-ortak.js",
+    ara: "  if (suzulmus.length < yerelBeklenen) {",
+    yaz: "  if (false) {",
+  },
+  {
+    ad: "M10 UZUNLUK KAPISI telafi BUTCESINI saymiyor (onek kontrolunu uzunluk sanan surum)",
+    dosya: "parite-ortak.js",
+    ara: "  const yerelBeklenen = alinan.length - butce;",
+    yaz: "  const yerelBeklenen = Math.min(bekIds.length, limit);",
+  },
+  {
+    ad: "M11 TELAFI mantigi gevsetildi: butce = tum pencere (kapi hicbir zaman atesmez)",
+    dosya: "parite-ortak.js",
+    ara: "  const butce = Math.max(0, toplam - bekIds.length);",
+    yaz: "  const butce = alinan.length;",
+  },
+  {
+    ad: "M12 DURUSTLUK: olculemeyen pencerede yine KESIN HUKUM basiliyor",
+    dosya: "parite-ortak.js",
+    ara: "    if (olculemeyenPencere) {",
+    yaz: "    if (false) {",
+  },
+  {
+    ad: "M13 'kesin' bayragi DAIMA true (olculemeyen pencere gorunmez olur)",
+    dosya: "parite-ortak.js",
+    ara: "  const kesin = !gecikmeModu || alinan.length >= toplam;",
+    yaz: "  const kesin = true;",
+  },
+  {
+    // 🔴 ASILMA NOBETI (curutucu notu, 27 Tem): bu mutant eskiden TEMIZ KIRMIZI vermiyor,
+    // harness'i ASIYORDU (uc susuyor + zaman asimi yok = sonsuz bekleme). Artik fikstur'un
+    // cocuk-sure-siniri devreye girer, senaryo GORUNUR sekilde kirmizi yanar (kod 124).
+    ad: "M14 ISTEK ZAMAN ASIMI kaldirildi (susan uc kosumu ASAR)",
+    dosya: "parite-ortak.js",
+    ara: "        signal: AbortSignal.timeout(ZAMAN_ASIMI_MS),",
+    yaz: "        // signal KALDIRILDI (mutant): sonsuz bekleme",
+  },
 ];
 
 function kopyaKur() {
@@ -96,15 +136,34 @@ function kopyaKur() {
   return dizin;
 }
 
+// 🔴 BACKSTOP SURE SINIRI: fikstur'un KENDI cocuk-sinir'i (COCUK_SURE_SINIRI_MS) birincil
+// savunmadir; bu, o savunmayi da bozan bir mutanta karsi ikinci kattir. Olculen normal
+// fikstur suresi ~6,5 sn -> 600 sn ~90x pay. Asilirsa mutant "yakalandi" SAYILMAZ:
+// asilma temiz kirmizi degildir, CI job'ini kilitler.
+const FIKSTUR_SURE_SINIRI_MS = (() => {
+  const n = parseInt(process.env.PARITE_MUTASYON_SURE_MS || "", 10);
+  return Number.isFinite(n) && n >= 5000 ? n : 600000;
+})();
+
 function fiksturKos(dizin) {
   return new Promise((cozul) => {
     const c = spawn(process.execPath, [path.join(dizin, "parite-fikstur-test.js")], {
       env: process.env, cwd: os.tmpdir(),
     });
     let cikti = "";
+    let bitti = false;
+    const zamanlayici = setTimeout(() => {
+      if (bitti) return;
+      cikti += "\n🔴 BACKSTOP SURE SINIRI ASILDI (" + FIKSTUR_SURE_SINIRI_MS + " ms)\n";
+      try { c.kill("SIGKILL"); } catch (e) { /* yok */ }
+    }, FIKSTUR_SURE_SINIRI_MS);
     c.stdout.on("data", (d) => { cikti += d; });
     c.stderr.on("data", (d) => { cikti += d; });
-    c.on("close", (kod) => cozul({ kod, cikti }));
+    c.on("close", (kod) => {
+      bitti = true;
+      clearTimeout(zamanlayici);
+      cozul({ kod: kod === null ? 124 : kod, cikti });
+    });
   });
 }
 
@@ -159,6 +218,10 @@ async function main() {
         console.log("\n✅ %s\n   -> fikstur KIRMIZI (exit 1). Yakalayan senaryo(lar):", m.ad);
         for (const s of yak.slice(0, 4)) console.log("      • " + s);
         if (yak.length > 4) console.log("      • (+%d senaryo daha)", yak.length - 4);
+      } else if (r.kod === 124) {
+        console.log("\n❌ %s\n   -> fikstur ASILDI (backstop sure siniri): mutant TEMIZ " +
+          "KIRMIZI vermedi. Asilma yakalama SAYILMAZ — CI job'ini kilitler.", m.ad);
+        hatalar.push(m.ad + " — fikstur ASILDI (sure siniri)");
       } else if (r.kod === 2) {
         console.log("\n❌ %s\n   -> fikstur COKTU (exit 2): mutant sozdizimi bozdu, " +
           "nobet KANITLANMADI", m.ad);

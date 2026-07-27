@@ -73,6 +73,20 @@ function urunUret(n, onek) {
   return liste;
 }
 
+/**
+ * KLON — kurbanin ARANABILIR metnini AYNEN tasiyan, id'si kurbanin id'sini ONEK olarak
+ * iceren yeni "D1'e sonradan giren" urun. Site tarafinda haystack(klon) =
+ * haystack(kurban) + " klonN", Ege tarafinda vocab UST KUMESI -> klon, kurbanin eslestigi
+ * HER sorguda eslesir. Boylece "kaybedilen 1 yerel, kazanilan 1 yeniyle TELAFI EDILIYOR"
+ * hali birebir uretilir: sayi kapisi susar, kurban kuyrukta oldugu icin onek kapisi da
+ * susar (8. yutma senaryosu).
+ */
+function klonla(kurban, n) {
+  const out = [];
+  for (let i = 0; i < n; i++) out.push(Object.assign({}, kurban, { id: kurban.id + "-klon" + i }));
+  return out;
+}
+
 // ── Sahte "D1" ucu + ARIZA ENJEKSIYONU ───────────────────────────────────────
 /**
  * mod403        : her istek 403 (WAF duvari — on-kosuldan itibaren)
@@ -85,10 +99,13 @@ function urunUret(n, onek) {
  * gizliAra      : Set<id> — /ara sonuclarindan (ve toplam'dan) DUSURULUR; /katalog'da DURUR
  *                 ("D1'in arama metni/indeksi farkli" = D1 EKSIK eslesme uretici)
  * sayiSapma     : /katalog toplam'ina eklenen sapma (bayat KV sayaci / yetim satir taklidi)
+ * araToplamSapma: /ara'nin ILAN ETTIGI toplam'a eklenen sapma — donen SATIR sayisi degismez.
+ *                 Boylece pencere, ucun ilan ettigi toplami KAPSAMAZ: pencere disi
+ *                 OLCULMEMISTIR -> cikti kesin hukum BASMAMALIDIR (durustluk kapisi).
  */
 function sunucuKur(secenek) {
   const { canli, EGE, mod403, wafSonraAra, r429SonraAra, r429IlkKere, susSonraAra,
-    idsHata, sayimHata, gizliAra, sayiSapma } = secenek;
+    idsHata, sayimHata, gizliAra, sayiSapma, araToplamSapma } = secenek;
   const idx = EGE ? EGE.katalogIndeksle(canli) : null;
   const canliIdHarita = new Map(canli.map((p) => [p.id, p]));
   const gizli = gizliAra || new Set();
@@ -136,10 +153,11 @@ function sunucuKur(secenek) {
       const q = u.searchParams.get("q") || "";
       const mod = u.searchParams.get("mod") || "";
       const suz = (liste) => (gizli.size ? liste.filter((p) => !gizli.has(p.id)) : liste);
+      const sap = (n) => n + (araToplamSapma || 0);
       if (mod === "ege") {
         if (!q.trim()) return gonder({ hata: "q gerekli", toplam: 0, urunler: [] }, 400);
         const hepsi = suz(EGE.urunAra(idx, q, Infinity));
-        return gonder({ toplam: hepsi.length, urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
+        return gonder({ toplam: sap(hepsi.length), urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
       }
       const kat = u.searchParams.get("kategori") || "";
       const marka = u.searchParams.get("marka") || "";
@@ -147,7 +165,7 @@ function sunucuKur(secenek) {
         return gonder({ hata: "q, kategori veya marka gerekli", toplam: 0, urunler: [] }, 400);
       }
       const hepsi = suz(REF.filtered(canli, q, kat || TUMU, marka || TUMU));
-      return gonder({ toplam: hepsi.length, urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
+      return gonder({ toplam: sap(hepsi.length), urunler: hepsi.slice(0, limit).map((p) => ({ id: p.id })) });
     }
     return gonder({ hata: "bilinmeyen yol" }, 404);
   });
@@ -166,6 +184,18 @@ function sunucuKur(secenek) {
 }
 
 // ── Cocuk kosum ──────────────────────────────────────────────────────────────
+// 🔴 SURE SINIRI (27 Tem, curutucu notu): olculen kosum suresi 29 senaryo icin ~6,5 sn
+// (senaryo basi ~0,25 sn). Ama uc SUSTURULAN senaryolarda (susSonraAra) kosum yalnizca
+// parite-ortak.js'in AbortSignal.timeout'u sayesinde bitiyor. O savunma bozulursa (M14
+// mutanti) cocuk surec SONSUZA KADAR bekler ve harness'i ASAR -> CI'da timeout'suz bir
+// job ASILIR: "asilan kapi OLU kapidir" ilkesine aykiri, ustelik mutant TEMIZ KIRMIZI
+// yerine ASILMA ile "yakalanmis" sayilirdi. Sinir 240x pay birakir; asilirsa cocuk
+// OLDURULUR ve senaryo GORUNUR sekilde kirmizi yanar (kod 124).
+const COCUK_SURE_SINIRI_MS = (() => {
+  const n = parseInt(process.env.PARITE_FIKSTUR_SURE_MS || "", 10);
+  return Number.isFinite(n) && n >= 1000 ? n : 60000;
+})();
+
 function kostur(dosya, { araUc, urunlerYolu, argv, ekEnv }) {
   return new Promise((cozul) => {
     const c = spawn(process.execPath, [dosya].concat(argv || []), {
@@ -175,9 +205,23 @@ function kostur(dosya, { araUc, urunlerYolu, argv, ekEnv }) {
     });
     let cikti = "";
     let hataAkisi = "";
+    let bitti = false;
+    const zamanlayici = setTimeout(() => {
+      if (bitti) return;
+      const not = "\n🔴 SURE SINIRI ASILDI (" + COCUK_SURE_SINIRI_MS + " ms): cocuk surec " +
+        "OLDURULDU. Kosum ASILDI -> ariza yolu zaman asimiyla KAPANMIYOR.\n";
+      cikti += not;
+      hataAkisi += not;
+      try { c.kill("SIGKILL"); } catch (e) { /* yok */ }
+    }, COCUK_SURE_SINIRI_MS);
     c.stdout.on("data", (d) => { cikti += d; });
     c.stderr.on("data", (d) => { cikti += d; hataAkisi += d; });
-    c.on("close", (kod) => cozul({ kod, cikti, hataAkisi }));
+    c.on("close", (kod, sinyal) => {
+      bitti = true;
+      clearTimeout(zamanlayici);
+      // SIGKILL ile oldurulduyse cikis kodu null gelir -> 124 (kabuk gelenegi: zaman asimi)
+      cozul({ kod: kod === null ? 124 : kod, cikti, hataAkisi });
+    });
   });
 }
 
@@ -206,6 +250,95 @@ function fiksturYesil(r) {
     sayiOku(r.cikti, "ACIKLANAN(senkron)") === 0 && /FIKSTUR: BIREBIR ESLESTI/.test(r.cikti);
 }
 
+// ── BIRIM OLCUMU: siniflandir() DOGRUDAN cagrilir (surec/ag YOK) ─────────────
+// NEDEN AYRI: cocuk-surec senaryolari LIMIT=1000 ile kosar ve sentetik katalog 140
+// urundur -> PENCERE HIC DOLMAZ. Oysa gercek kosumda pencere DOLUYOR (olculdu 27 Tem:
+// site sorgu havuzundaki 1199 sorgunun 74'u LIMIT'e dayaniyor). Pencere DOLUYKEN
+// yeni urunler yerel satirlari pencereden ITER — bu MESRU'dur. Uzunluk kapisi bu iki hali
+// AYIRMAK ZORUNDA; "suzulmus.length < min(bekIds.length, limit)" gibi butceyi saymayan
+// bir kapi burada MESRU gecikmeyi KIRMIZI yakardi (yanlis-pozitif).
+const ORTAK = require("./parite-ortak.js");
+function birimOlc() {
+  aktifSenaryo = "BIRIM siniflandir() — pencere DOLU/DOLMAMIS + telafi";
+  console.log("\n▶ " + aktifSenaryo);
+  const L = (n, onek) => Array.from({ length: n }, (_, i) => (onek || "L") + i);
+  const kume = (a) => new Set(a);
+  const cagir = (o) => ORTAK.siniflandir(o);
+
+  // B1 PENCERE DOLU + MESRU yer degistirme: 2 yeni urun 2 yereli pencereden itiyor.
+  //    (butceyi saymayan bir kapi burayi KIRMIZI yakar -> yanlis-pozitif)
+  const yerel12 = L(12);
+  const b1 = cagir({
+    bekIds: yerel12, alinan: ["N0", "N1"].concat(yerel12.slice(0, 8)), toplam: 14, limit: 10,
+    yerelIdKume: kume(yerel12), gecikmeModu: true,
+  });
+  ONA(b1.sinif === ORTAK.SINIF_ACIKLANAN,
+    "B1 pencere DOLU + mesru itilme -> ACIKLANAN (yanlis-pozitif YOK)", JSON.stringify(b1));
+  ONA(b1.kesin === false, "B1 pencere toplami KAPSAMIYOR -> kesin=false (hukum verilemez)");
+
+  // B2 PENCERE DOLU + KURBAN: 3 yeni gorunuyor ama butce yalniz 2 -> en az 1 yerel YOK.
+  const b2 = cagir({
+    bekIds: yerel12, alinan: ["N0", "N1", "N2"].concat(yerel12.slice(0, 7)), toplam: 14,
+    limit: 10, yerelIdKume: kume(yerel12), gecikmeModu: true,
+  });
+  ONA(b2.sinif === ORTAK.SINIF_ACIKLANAMAYAN,
+    "B2 pencere DOLU + butce ASILDI -> ACIKLANAMAYAN (kurban yakalandi)", JSON.stringify(b2));
+  ONA(/en az 1 urun/.test(b2.sebep), "B2 kayip sayisi ALT SINIR olarak yazili");
+
+  // B3 8. YUTMA'nin birimi: kurban KUYRUKTA + 1 telafi, pencere DOLMADI.
+  const yerel10 = L(10);
+  const b3 = cagir({
+    bekIds: yerel10, alinan: ["N0"].concat(yerel10.slice(0, 9)), toplam: 10, limit: 1000,
+    yerelIdKume: kume(yerel10), gecikmeModu: true,
+  });
+  ONA(b3.sinif === ORTAK.SINIF_ACIKLANAMAYAN,
+    "B3 kurban KUYRUKTA + telafi -> ACIKLANAMAYAN (8. yutma kapali)", JSON.stringify(b3));
+  ONA(b3.sebep.indexOf("L9") !== -1, "B3 KAYIP id ADIYLA yazili (L9)");
+  ONA(b3.kesin === true, "B3 pencere toplami kapsiyor -> kesin=true");
+
+  // B4 KONTROL: ayni desen, kurban YOK -> ACIKLANAN.
+  const b4 = cagir({
+    bekIds: yerel10, alinan: ["N0"].concat(yerel10), toplam: 11, limit: 1000,
+    yerelIdKume: kume(yerel10), gecikmeModu: true,
+  });
+  ONA(b4.sinif === ORTAK.SINIF_ACIKLANAN, "B4 KONTROL: kurban YOK -> ACIKLANAN",
+    JSON.stringify(b4));
+
+  // B5 gecikme modu KAPALI: her ayrisim ACIKLANAMAYAN, kesin DAIMA true (eski katilik).
+  const b5 = cagir({
+    bekIds: yerel10, alinan: yerel10.slice(0, 9), toplam: 9, limit: 1000,
+    yerelIdKume: kume(yerel10), gecikmeModu: false,
+  });
+  ONA(b5.sinif === ORTAK.SINIF_ACIKLANAMAYAN && b5.kesin === true,
+    "B5 gecikme modu KAPALI -> ACIKLANAMAYAN + kesin=true");
+
+  // B6 TAM PARITE (gecikme modunda bile) -> GECTI, kesin=true.
+  const b6 = cagir({
+    bekIds: yerel10, alinan: yerel10, toplam: 10, limit: 1000,
+    yerelIdKume: kume(yerel10), gecikmeModu: true,
+  });
+  ONA(b6.sinif === ORTAK.SINIF_GECTI && b6.kesin === true, "B6 tam parite -> GECTI + kesin");
+
+  // ── B7 BEYAN EDILEN KOR NOKTA (kapatilmadi — GIZLENMEDI de) ──────────────────────
+  // Pencere DOLU + kurban VAR, ama pencereye giren yeni urun sayisi butcenin ALTINDA
+  // (yeniler pencerenin disinda kalmis). Uzunluk kapisi burayi YAKALAMAZ: disaridan
+  // olculebilen hicbir sayi "yerel satir pencereden mi dusdu yoksa D1'de mi yok"
+  // sorusunu ayirmaz. TEK dogru davranis KESIN HUKUM BASMAMAK'tir -> kesin=false
+  // uretilir ve nihai cikti "hicbir ayrisim tehlikeli yonde DEGIL" DEMEZ.
+  // Bu iddia CIFT YONLU nobettir: (a) kor noktayi kayit altina alir, (b) birisi kapiyi
+  // "her fazlaligi kirmizi say" diye gevsetirse (yanlis-pozitif) burasi KIRMIZI yanar.
+  const yerel20 = L(20);
+  const b7 = cagir({
+    bekIds: yerel20, alinan: ["N0"].concat(yerel20.slice(0, 9)), toplam: 24, limit: 10,
+    yerelIdKume: kume(yerel20), gecikmeModu: true,
+  });
+  ONA(b7.sinif === ORTAK.SINIF_ACIKLANAN,
+    "B7 KOR NOKTA: pencere DOLU + yeniler pencere disinda -> kapi YAKALAMAZ (beyan edildi)",
+    JSON.stringify(b7));
+  ONA(b7.kesin === false,
+    "B7 KOR NOKTA GIZLENMIYOR: kesin=false -> cikti KESIN HUKUM BASMAZ");
+}
+
 // ── Senaryo kosucu ───────────────────────────────────────────────────────────
 async function senaryoKos(s) {
   const sunucu = await sunucuKur(s);
@@ -222,6 +355,8 @@ async function senaryoKos(s) {
       " -> cikis " + r.kod + ")");
     ONA(!cokmusMu(r.cikti), "surec COKMEDI (cikis kodu gercek hukum)",
       cokmusMu(r.cikti) ? r.cikti.slice(-700) : "");
+    ONA(r.kod !== 124, "surec SURE SINIRINA TAKILMADI (asilan kapi olu kapidir)",
+      r.kod === 124 ? r.cikti.slice(-700) : "");
     // A15 nobeti: fikstur modu uyarisi HER kosumda hem stdout hem STDERR'e dusmeli.
     ONA(/FIKSTUR MODU/.test(r.hataAkisi), "fikstur uyarisi STDERR'e de dustu (yutulamaz)");
     ONA(r.kod !== 0, "cikis 0 DEGIL (PARITE_URUNLER ile parite BELGELENEMEZ)");
@@ -243,6 +378,11 @@ async function main() {
   // KIRMIZI URETICI: yerel katalogda VAR olan urunlerin yarisini D1'in ARAMASINDAN gizle
   // (/katalog'da DURURLAR) -> her ilgili sorgu "D1 EKSIK eslesme"/ayrisma verir.
   const GIZLI = new Set(TABAN.filter((p, i) => i % 2 === 0).map((p) => p.id));
+  // 8. YUTMA URETICISI: kurban = katalogun SON urunu -> eslestigi HER sorguda yerel
+  // listenin KUYRUGUNDA yer alir (site: dizi sirasi · Ege: skor esitliginde katalog sirasi).
+  // /katalog'da DURUR (supurme "yerel ⊆ D1" kanitini uretir), yalniz /ara'dan gizlenir.
+  const KURBAN = TABAN[TABAN.length - 1];
+  const KURBAN_GIZLI = new Set([KURBAN.id]);
   // Zaman asimi senaryolari: kisa esik + tek deneme (yoksa fikstur dakikalarca surer).
   const HIZLI_ZA = { PARITE_ZAMAN_ASIMI_MS: "400", PARITE_DENEME: "1", PARITE_BEKLEME_MS: "1" };
   const HIZLI_429 = { PARITE_DENEME: "2", PARITE_BEKLEME_MS: "1" };
@@ -503,10 +643,100 @@ async function main() {
     console.log("\n⚪ Ege senaryolari ATLANDI: bot kaynagi yok (" + EGE_MOD.BOT + ")");
   }
 
+  // ══ 🔴 8. YUTMA (27 Tem, bagimsiz curutme C6/C7/C12) — KALICI NOBET ══════════════
+  // Kurban yerel listenin KUYRUGUNDA + D1'e giren yeni urun(ler) SAYIYI TELAFI ediyor.
+  // Onek kapisi (kurban kuyrukta) ve sayi kapisi (telafi) BIRLIKTE susuyordu ->
+  // "yerelde VAR / D1 aramasinda YOK" (Ege GOREMEZ) ayrisimi ACIKLANAN damgasi yiyip
+  // cikis 3 uretiyor, cikti "hicbir ayrisim tehlikeli yonde DEGIL" diye OLGUSAL YANLIS
+  // basiyordu. Taban 45753c1f ayni girdide 1 veriyordu -> REGRESYONDU.
+  senaryolar.push({
+    ad: "S22 (8. YUTMA) kurban KUYRUKTA + 1 yeni urun TELAFI -> cikis 1 KIRMIZI",
+    dosya: PARITE_SITE, yerel: TABAN, canli: klonla(KURBAN, 1).concat(TABAN),
+    gizliAra: KURBAN_GIZLI,
+    dogrula: (r) => {
+      ONA(r.kod === 1, "cikis 1 KIRMIZI (telafi edilmis sayi ayrisimi GIZLEYEMEZ)",
+        r.cikti.slice(-1100));
+      ONA(/YERELDE VAR \/ D1 ARAMASINDA YOK/.test(r.cikti), "sebep: yerelde var / D1'de yok");
+      ONA(/Ege GOREMEZ/.test(r.cikti), "sonucun bedeli yazili (Ege goremez)");
+      ONA(new RegExp(KURBAN.id + "(\\D|$)").test(r.cikti), "KURBAN id'si ADIYLA yazili");
+      ONA(!/PARITE KIRIK DEGIL/.test(r.cikti), "'PARITE KIRIK DEGIL' kesin hukmu BASILMIYOR");
+      ONA(sayiOku(r.cikti, "ACIKLANAMAYAN") > 0, "aciklanamayan > 0 (ACIKLANAN'a yuvarlanmadi)");
+    },
+  });
+  senaryolar.push({
+    ad: "S23 (8. YUTMA) kurban KUYRUKTA + 3 yeni urun TELAFI -> cikis 1 KIRMIZI",
+    dosya: PARITE_SITE, yerel: TABAN, canli: klonla(KURBAN, 3).concat(TABAN),
+    gizliAra: KURBAN_GIZLI,
+    dogrula: (r) => {
+      ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-1100));
+      ONA(/YERELDE VAR \/ D1 ARAMASINDA YOK/.test(r.cikti), "sebep dogru");
+      ONA(/katalog farki butcesi=\d+/.test(r.cikti), "butce SAYIYLA yazili (olculen kanit)");
+      ONA(!/SENKRON GECİKMESİ \/ KATALOG FARKI/.test(r.cikti),
+        "senkron gecikmesine YUVARLANMADI");
+    },
+  });
+  // KONTROL (K5): AYNI telafi deseni, ama kurban YOK -> mesru gecikme, KIRMIZI DEGIL.
+  // Bu kontrol olmadan yeni kapi "her fazlaligi kirmizi say" diye gevsetilebilirdi.
+  senaryolar.push({
+    ad: "S24 KONTROL(K5) ayni telafi deseni ama KURBAN YOK -> cikis 3 SENKRON GECIKMESI",
+    dosya: PARITE_SITE, yerel: TABAN, canli: klonla(KURBAN, 3).concat(TABAN),
+    dogrula: (r) => {
+      ONA(r.kod === 3, "cikis 3 (yanlis-pozitif YOK)", r.cikti.slice(-900));
+      ONA(sayiOku(r.cikti, "ACIKLANAMAYAN") === 0, "aciklanamayan = 0");
+      ONA(/SENKRON GEC/.test(r.cikti), "'SENKRON GECİKMESİ' imzasi");
+      ONA(!/YERELDE VAR \/ D1 ARAMASINDA YOK/.test(r.cikti), "yeni kapi BOS YERE atesmiyor");
+    },
+  });
+  // DURUSTLUK KAPISI: pencere, ucun ilan ettigi toplami KAPSAMIYOR -> pencere disi
+  // OLCULMEDI -> "hicbir ayrisim tehlikeli yonde DEGIL" KESIN HUKMU basilamaz.
+  senaryolar.push({
+    ad: "S25 (DURUSTLUK) /ara toplami pencereyi ASIYOR -> 3 ama KESIN HUKUM BASMAZ",
+    dosya: PARITE_SITE, yerel: TABAN, canli: EK.concat(TABAN), araToplamSapma: 2,
+    dogrula: (r) => {
+      ONA(r.kod === 3, "cikis 3", r.cikti.slice(-900));
+      ONA(sayiOku(r.cikti, "ACIKLANAMAYAN") === 0, "aciklanamayan = 0 (kirmizi degil)");
+      ONA(/KESIN HUKUM VERILEMEZ/.test(r.cikti), "olculemeyen pencere ACIKCA ilan ediliyor");
+      ONA(/OLCULMEDI/.test(r.cikti), "neyin olculmedigi yazili");
+      ONA(!/Hicbir ayrisim 'yerelde var\/D1'de yok'/.test(r.cikti),
+        "OLGUSAL HUKUM cumlesi ('hicbir ayrisim ... DEGIL') BASILMIYOR");
+    },
+  });
+  if (EGE) {
+    senaryolar.push({
+      ad: "S26 (8. YUTMA/ege) kurban KUYRUKTA + 3 telafi -> cikis 1 KIRMIZI",
+      dosya: PARITE_EGE, yerel: TABAN, canli: klonla(KURBAN, 3).concat(TABAN),
+      gizliAra: KURBAN_GIZLI,
+      dogrula: (r) => {
+        ONA(r.kod === 1, "cikis 1 KIRMIZI (Ege yolu da kapali)", r.cikti.slice(-1100));
+        ONA(/YERELDE VAR \/ D1 ARAMASINDA YOK/.test(r.cikti), "sebep dogru");
+        ONA(!/PARITE KIRIK DEGIL/.test(r.cikti), "kesin hukum BASILMIYOR");
+      },
+    });
+    senaryolar.push({
+      ad: "S27 (8. YUTMA/ege) kurban KUYRUKTA + 1 telafi -> cikis 1 KIRMIZI",
+      dosya: PARITE_EGE, yerel: TABAN, canli: klonla(KURBAN, 1).concat(TABAN),
+      gizliAra: KURBAN_GIZLI,
+      dogrula: (r) => {
+        ONA(r.kod === 1, "cikis 1 KIRMIZI", r.cikti.slice(-1100));
+        ONA(/YERELDE VAR \/ D1 ARAMASINDA YOK/.test(r.cikti), "sebep dogru");
+      },
+    });
+    senaryolar.push({
+      ad: "S28 KONTROL(K5/ege) ayni telafi ama KURBAN YOK -> cikis 3",
+      dosya: PARITE_EGE, yerel: TABAN, canli: klonla(KURBAN, 3).concat(TABAN),
+      dogrula: (r) => {
+        ONA(r.kod === 3, "cikis 3 (yanlis-pozitif YOK)", r.cikti.slice(-900));
+        ONA(sayiOku(r.cikti, "ACIKLANAMAYAN") === 0, "aciklanamayan = 0");
+      },
+    });
+  }
+
   console.log("═".repeat(78));
   console.log("PARITE KARAR-CEKIRDEGI FIKSTURU — %d senaryo (ag YOK, canliya 0 istek)",
     senaryolar.length);
   console.log("═".repeat(78));
+
+  if (!Number.isFinite(yalniz)) birimOlc();
 
   for (let i = 0; i < senaryolar.length; i++) {
     if (Number.isFinite(yalniz) && yalniz !== i) continue;

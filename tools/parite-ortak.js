@@ -365,14 +365,21 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
 
 /**
  * TEK SORGU siniflandirmasi. SAF fonksiyon (ag yok) — fikstur bunu dogrudan olcer.
- * Doner: { sinif, sebep, fazla[] }
+ * Doner: { sinif, sebep, fazla[], kesin }
+ *
+ * `kesin`: bu sorguda hukum TAM MI olculdu? Gecikme modunda /ara'nin dondurdugu pencere
+ * kendi ilan ettigi `toplam`i KAPSAMIYORSA (limit'e dayanildi ya da uc daha az satir
+ * dondurdu) pencere DISINDA kalan yerel id'ler HIC GORULMEDI -> o sorgu icin "tehlikeli
+ * yon YOK" denemez. sonucYaz bunu sayar ve KESIN HUKUM cumlesini basmaz.
  */
 function siniflandir({ bekIds, alinan, toplam, limit, yerelIdKume, gecikmeModu }) {
   const bekKirpik = bekIds.slice(0, limit);
   const ayniSayi = toplam === bekIds.length;
   const ayniListe = alinan.length === bekKirpik.length &&
     alinan.every((id, i) => id === bekKirpik[i]);
-  if (ayniSayi && ayniListe) return { sinif: SINIF_GECTI, sebep: "", fazla: [] };
+  // Pencere, ucun ilan ettigi toplami kapsiyor mu (yani D1'in TUM eslesme kumesi gorildu mu)?
+  const kesin = !gecikmeModu || alinan.length >= toplam;
+  if (ayniSayi && ayniListe) return { sinif: SINIF_GECTI, sebep: "", fazla: [], kesin };
 
   // Ham (siniflandirmasiz) sebep — eski ciktinin aynisi, teshis icin korunuyor.
   let hamSebep;
@@ -385,7 +392,7 @@ function siniflandir({ bekIds, alinan, toplam, limit, yerelIdKume, gecikmeModu }
       : "uzunluk: /ara=" + alinan.length + " yerel=" + bekKirpik.length;
   }
 
-  if (!gecikmeModu) return { sinif: SINIF_ACIKLANAMAYAN, sebep: hamSebep, fazla: [] };
+  if (!gecikmeModu) return { sinif: SINIF_ACIKLANAMAYAN, sebep: hamSebep, fazla: [], kesin };
 
   // ── Katalog farki modu: YONE bak ────────────────────────────────────────────
   const fazla = alinan.filter((id) => !yerelIdKume.has(id));
@@ -399,7 +406,7 @@ function siniflandir({ bekIds, alinan, toplam, limit, yerelIdKume, gecikmeModu }
         sinif: SINIF_ACIKLANAMAYAN,
         sebep: "SIRA farki (katalog farkiyla aciklanamaz) " + i + ". sirada: /ara=" +
           suzulmus[i] + " yerel=" + bekIds[i] + " | " + hamSebep,
-        fazla,
+        fazla, kesin,
       };
     }
   }
@@ -409,13 +416,49 @@ function siniflandir({ bekIds, alinan, toplam, limit, yerelIdKume, gecikmeModu }
       sinif: SINIF_ACIKLANAMAYAN,
       sebep: "D1 EKSIK eslesme: /ara toplam=" + toplam + " < yerel=" + bekIds.length +
         " (yerel ⊆ D1 kanitina AYKIRI -> arama metni/indeks farki)",
-      fazla,
+      fazla, kesin,
     };
   }
-  if (!fazla.length) {
-    return { sinif: SINIF_ACIKLANAN, sebep: hamSebep + " (D1 fazlaligi pencere disinda)", fazla };
+
+  // ── 🔴 UZUNLUK KAPISI — 8. YUTMA (olculdu 27 Tem: C6/C7/C12, site VE Ege) ──────────
+  // YUKARIDAKI IKI KAPI DA SUSABILIYOR:
+  //   (a) ONEK kontrolu UZUNLUK OLCMEZ. Kurban (yerelde VAR / D1 aramasinda YOK) yerel
+  //       listenin KUYRUGUNDA ise onek bozulmaz — dongu kurbandan ONCE biter.
+  //   (b) Sayi kapisi (toplam < bekIds.length), D1'e yeni giren urunler sayiyi TELAFI
+  //       ettiginde tetiklenmez (kaybedilen 1 yerel, kazanilan 1 yeniyle kapanir).
+  // Ikisi birlikte susunca "Ege GOREMEZ" ayrisimi ACIKLANAN damgasi yiyip cikis 3
+  // uretiyordu ve cikti "hicbir ayrisim tehlikeli yonde DEGIL" diye OLGUSAL YANLIS
+  // basiyordu (taban 45753c1f ayni girdide 1 veriyordu -> REGRESYON).
+  //
+  // OLCU: pencerede gorunmesi GEREKEN yerel id sayisi = pencereye giren satir sayisi
+  // eksi katalog farkinin ACIKLAYABILECEGI yeni urun BUTCESI (toplam - yerel). Pencerede
+  // gorulen yerel id sayisi bunun ALTINA duserse aradaki fark, D1 aramasinda GORUNMEYEN
+  // yerel urun sayisinin ALT SINIRIDIR — telafi bunu GIZLEYEMEZ.
+  // Yanlis-pozitif YOK: saglikli gecikmede pencereye giren fazlalik butceyi ASAMAZ
+  // (fazla ⊆ yeni eslesmeler), pencere DOLU olsa bile (olculdu: C18/C19 + birim B3/B4).
+  const butce = Math.max(0, toplam - bekIds.length);
+  const yerelBeklenen = alinan.length - butce;
+  if (suzulmus.length < yerelBeklenen) {
+    const gorulen = new Set(alinan);
+    const kayip = bekIds.filter((id) => !gorulen.has(id));
+    const enAz = yerelBeklenen - suzulmus.length;
+    return {
+      sinif: SINIF_ACIKLANAMAYAN,
+      sebep: "YERELDE VAR / D1 ARAMASINDA YOK: en az " + enAz + " urun (Ege GOREMEZ = " +
+        "sessiz satis kaybi). Pencerede yerel id " + suzulmus.length + " ama beklenen " +
+        yerelBeklenen + " (/ara satir=" + alinan.length + " - katalog farki butcesi=" +
+        butce + "); D1 fazlaligi SAYIYI TELAFI ETTIGI icin sayi kapisi susmustu | aday: " +
+        (kayip.slice(0, 5).join(", ") || "(pencere disi)") + " | " + hamSebep,
+      fazla, kesin,
+    };
   }
-  return { sinif: SINIF_ACIKLANAN, sebep: hamSebep + " | D1 fazlasi: " + fazla.length, fazla };
+
+  if (!fazla.length) {
+    return { sinif: SINIF_ACIKLANAN, sebep: hamSebep + " (D1 fazlaligi pencere disinda)",
+      fazla, kesin };
+  }
+  return { sinif: SINIF_ACIKLANAN, sebep: hamSebep + " | D1 fazlasi: " + fazla.length,
+    fazla, kesin };
 }
 
 /**
@@ -428,7 +471,8 @@ function siniflandir({ bekIds, alinan, toplam, limit, yerelIdKume, gecikmeModu }
  * kosum ortasinda gelen 429/403, BULUNMUS gercek kirmizilari silip 3 yaziyordu
  * (olculdu: B1 118 kirmiziyken, A13/A14 11 kirmiziyken -> yeni kod 3, eski kod 1).
  */
-function sonucYaz({ etiket, gecti, atlandi, hatalar, onKosul, sayac, sn, fazlaKume, olculemedi }) {
+function sonucYaz({ etiket, gecti, atlandi, hatalar, onKosul, sayac, sn, fazlaKume, olculemedi,
+  olculemeyenPencere }) {
   const olc = []
     .concat((onKosul && onKosul.olculemedi) || [])
     .concat(olculemedi || []);
@@ -454,9 +498,21 @@ function sonucYaz({ etiket, gecti, atlandi, hatalar, onKosul, sayac, sn, fazlaKu
       console.log("  D1'de gorulen, yerelde olmayan AYRI id: %d (sayi acigi: %d)",
         fazlaKume.size, (onKosul && onKosul.acik) || 0);
     }
-    console.log("⚪ SENKRON GECİKMESİ / KATALOG FARKI (%d ayrisim) — PARITE KIRIK DEGIL. " +
-      "KIRMIZI DEGIL. [%s]", aciklananLar.length, etiket);
-    console.log("   Hicbir ayrisim 'yerelde var/D1'de yok' ya da SIRA yonunde DEGIL.");
+    // 🔴 DURUSTLUK KAPISI (27 Tem): "hicbir ayrisim tehlikeli yonde DEGIL" bir OLCUM
+    // IDDIASIDIR — yalnizca gercekten olculduyse basilir. /ara'nin dondurdugu pencere,
+    // ucun ilan ettigi toplami kapsamayan sorgularda pencere DISINDAKI yerel id'ler HIC
+    // GORULMEDI; orada kesin hukum kurmak (eski metin) olgusal yanlis riski tasir.
+    if (olculemeyenPencere) {
+      console.log("⚪ KATALOG FARKI (%d ayrisim) — olculen ayrisimlar katalog farkiyla " +
+        "UYUMLU. [%s]", aciklananLar.length, etiket);
+      console.log("   ⚠️ AMA KESIN HUKUM VERILEMEZ: %d sorguda /ara'nin dondurdugu pencere " +
+        "kendi ilan ettigi toplami KAPSAMADI -> pencere DISINDAKI yerel id'ler OLCULMEDI. " +
+        "'Hicbir ayrisim yerelde-var/D1'de-yok yonunde DEGIL' DENEMEZ.", olculemeyenPencere);
+    } else {
+      console.log("⚪ SENKRON GECİKMESİ / KATALOG FARKI (%d ayrisim) — PARITE KIRIK DEGIL. " +
+        "KIRMIZI DEGIL. [%s]", aciklananLar.length, etiket);
+      console.log("   Hicbir ayrisim 'yerelde var/D1'de yok' ya da SIRA yonunde DEGIL.");
+    }
     console.log("   Kontrol sirasi: (a) dali guncel main'e merge/rebase et; " +
       "(b) duzelmezse D1'de YETIM satir olabilir -> python3 tools/d1-sync.py --durum");
   };

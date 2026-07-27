@@ -223,6 +223,9 @@ async function main() {
   const fazlaKume = new Set();
   let sirada = 0;
   let olcumArizasi = null;
+  // Pencere ucun ilan ettigi toplami KAPSAMAYAN sorgu sayisi (durustluk kapisi —
+  // parite-test.js ile AYNI kural; aciklamasi tools/parite-ortak.js siniflandir()'da).
+  let olculemeyenPencere = 0;
 
   async function isci() {
     while (sirada < sorgular.length && !olcumArizasi) {
@@ -249,6 +252,7 @@ async function main() {
         gecikmeModu: onKosul.gecikmeModu,
       });
       for (const id of k.fazla) fazlaKume.add(id);
+      if (!k.kesin) olculemeyenPencere++;
       if (k.sinif === ortak.SINIF_GECTI) { gecti++; continue; }
       hatalar.push({ q, sinif: k.sinif, sebep: k.sebep });
     }
@@ -271,7 +275,7 @@ async function main() {
 
   const kod = ortak.sonucYaz({
     etiket: "ege", gecti, atlandi: 0, hatalar, onKosul, sayac: SAYAC, sn, fazlaKume,
-    olculemedi: OLCULEMEDI,
+    olculemedi: OLCULEMEDI, olculemeyenPencere,
   });
   if (kod === ortak.CIKIS_GECTI) {
     console.log("\nSONUC: BIREBIR PARITE ✅ (%d sorgu, Ege kodu ile ayni)", gecti);

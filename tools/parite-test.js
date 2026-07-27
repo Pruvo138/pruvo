@@ -234,6 +234,9 @@ if (require.main === module) (async () => {
   const fazlaKume = new Set();
   let sirada = 0;
   let olcumArizasi = null;
+  // Pencere ucun ilan ettigi toplami KAPSAMAYAN sorgu sayisi: o sorgularda pencere
+  // disindaki yerel id'ler OLCULMEDI -> nihai metin kesin hukum BASMAZ (durustluk kapisi).
+  let olculemeyenPencere = 0;
 
   async function isci() {
     while (sirada < sorgular.length && !olcumArizasi) {
@@ -263,6 +266,7 @@ if (require.main === module) (async () => {
         gecikmeModu: onKosul.gecikmeModu,
       });
       for (const id of k.fazla) fazlaKume.add(id);
+      if (!k.kesin) olculemeyenPencere++;
       if (k.sinif === ortak.SINIF_GECTI) { gecti++; continue; }
       hatalar.push({ ...s, sinif: k.sinif, sebep: k.sebep });
     }
@@ -288,7 +292,7 @@ if (require.main === module) (async () => {
 
   const kod = ortak.sonucYaz({
     etiket: "site", gecti, atlandi, hatalar, onKosul, sayac: SAYAC, sn, fazlaKume,
-    olculemedi: OLCULEMEDI,
+    olculemedi: OLCULEMEDI, olculemeyenPencere,
   });
   if (kod === ortak.CIKIS_GECTI) {
     console.log("\nSONUC: BIREBIR PARITE ✅ (%d sorgu, site ile ayni)", gecti);
