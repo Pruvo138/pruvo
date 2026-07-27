@@ -1,5 +1,399 @@
 [
   {
+    "id": "volvo-v60-s60-torpido-ustu-telefon-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "V60",
+      "S60"
+    ],
+    "baslik": "Volvo V60 S60 Torpido Üstü Telefon Tutucu",
+    "aciklama": "Volvo V60 ve S60 torpido kapağına takılan bilyalı telefon tutucudur.\nTelefonu sürüş sırasında sabit tutar; geniş tutuşlu bir sürümü de bulunur.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "165 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1107185-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1107185-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tantarian",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-xc60-recharge-ceki-demiri-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "XC60"
+    ],
+    "baslik": "Volvo XC60 Recharge Arka Çeki Demiri Kapağı",
+    "aciklama": "Volvo XC60 Recharge arka tamponundaki çeki demiri yuvasını kapatan kapaktır.\nSık kaybolan orijinal kapağın yerine geçer; yuvayı toz ve kirden korur.\nDayanıklı malzemeyle üretilmesi önerilir ve tampon yuvasına oturarak sabitlenir.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw769796-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw769796-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Anil Singh",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-xc70-izgara-kanca-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "XC70"
+    ],
+    "baslik": "Volvo XC70 Izgara Kanca Aparatı",
+    "aciklama": "Volvo XC70 ön ızgarasına takılan kanca/tutucu aparattır.\nIzgara bölgesine sabitlenerek küçük parçaların tutulmasına yardımcı olur.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw725517-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw725517-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Andreas",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-devir-saati-gosterge-halkasi",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Devir Saati Gösterge Halkası",
+    "aciklama": "Volvo Penta deniz motoru devir göstergesinin çevresine geçen halkadır.\nGöstergeyi düzgün ve tam oturur şekilde çerçeveler; eksik veya hasarlı halkanın yerine geçer.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw937921-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw937921-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Toxvaerd",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-b230-egzoz-portu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "B230"
+    ],
+    "baslik": "Volvo B230 Egzoz Portu Kapağı",
+    "aciklama": "Volvo B230 motorunun egzoz portunu kapatan tapa/kapaktır.\nPort açıkken toz ve yabancı maddelerin içeri girmesini engeller; bakım ve saklama sırasında kullanışlıdır.\nIsıya dayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1059770-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1059770-2.jpg"
+    ]
+  },
+  {
+    "id": "volvo-v70-ek-isik-dugmesi-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "V70"
+    ],
+    "baslik": "Volvo V70 Ek Işık Düğmesi Tutucu",
+    "aciklama": "Volvo V70 için ek ışık/sis farı düğmesini tutan aparattır.\nPaneller arasına sıkışarak iç döşemeye delik açmadan düğmeyi sabitler.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw725506-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw725506-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Andreas",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-740-940-panel-vida-deligi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "740"
+    ],
+    "baslik": "Volvo 740 940 Panel Vida Deliği Kapağı",
+    "aciklama": "Volvo 740 ve 940 iç panellerindeki vida deliklerini kapatan kapaktır.\nSık kaybolan orijinal kapakların yerine geçer; düz ve yuvarlak sırtlı iki sürümü bulunur.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw985982-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RikiMoto",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-v40-radyo-ses-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "V40"
+    ],
+    "baslik": "Volvo V40 Radyo Ses Düğmesi",
+    "aciklama": "Volvo V40 radyosunun ses ayar düğmesidir.\nKaybolan veya aşınan orijinal düğmenin yerine geçer; radyo miline oturur.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1623494-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1623494-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Millossty",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "volvo-vnl-perde-kaydirma-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "VNL"
+    ],
+    "baslik": "Volvo VNL Perde Kaydırma Klipsi",
+    "aciklama": "Volvo VNL kabin perdesini rayında kaydıran klipstir.\nKılavuz rayın içine oturur; perdenin klipse dikilebilmesi için delikler içerir.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw507194-1.jpg"
+    ]
+  },
+  {
+    "id": "volvo-240-52mm-gosterge-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "240"
+    ],
+    "baslik": "Volvo 240 52mm Gösterge Tutucu",
+    "aciklama": "Volvo 240 için standart 52'lik ek göstergelere uygun tutucudur.\nEk göstergeleri düzgün biçimde konumlandırır ve ön panele oturur.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2345579-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2345579-2.jpg"
+    ]
+  },
+  {
+    "id": "volvo-850-kalorifer-klapesi-aktuator-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "850"
+    ],
+    "baslik": "Volvo 850 Kalorifer Klapesi Aktüatör Kolu",
+    "aciklama": "Volvo 850 klima ve kalorifer sistemindeki karışım klapesini hareket ettiren bağlantı koludur.\nZamanla kırılan orijinal plastik parçanın yerine geçerek üfleme yönü kontrolünü eski haline getirir.\nDayanıklı malzemeyle üretilmesi önerilir ve mevcut mekanizmaya takılır.",
+    "fiyat": "165 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1677510-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nahumdass4",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-v70-bagaj-gunesluk-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "V70"
+    ],
+    "baslik": "Volvo V70 Bagaj Güneşlik Klipsi",
+    "aciklama": "Volvo V70 arka bagaj camı güneşliğini sabitleyen klips setidir.\nKaybolan orijinal klipslerin yerine geçer ve güneşliği yerinde tutar.\nDayanıklı malzemeyle üretilmesi önerilir; mevcut yuvalara oturur.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1405990-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1405990-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Felix Mann",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-960-havalandirma-gosterge-montaj-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "960"
+    ],
+    "baslik": "Volvo 960 Havalandırma Gösterge Montaj Aparatı",
+    "aciklama": "Volvo 960 havalandırma ızgarasına oturan gösterge ve ekran montaj aparatıdır.\nEk gösterge veya küçük ekranı sürücünün rahat görebileceği konumda tutar.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw985977-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw985977-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RikiMoto",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-940-740-240-bagaj-rulo-perde-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "940"
+    ],
+    "baslik": "Volvo 940 740 240 Bagaj Rulo Perde Tutucu",
+    "aciklama": "Volvo 940, 740 ve 240 klasik serilerde arka bagaj rulo perdesini tutan aparattır.\nPerdeyi bagaj bölümünde sağlam biçimde konumlandırır; orijinal tutucunun yerine geçer.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1357959-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fpv lars",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-v70-1-6-hava-filtresi-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "V70"
+    ],
+    "baslik": "Volvo V70 1.6 Hava Filtresi Geçiş Adaptörü",
+    "aciklama": "Volvo V70 1.6 motor için hava filtresi geçiş adaptörüdür.\nOrijinal emme yerine spor/konik filtre bağlanmasını sağlar; hava akış sensörü ve bağlantı için yuvalar içerir.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1284428-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Gomlebug",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-740-on-camurluk-sabitleme-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "740"
+    ],
+    "baslik": "Volvo 740 Ön Çamurluk Sabitleme Aparatı",
+    "aciklama": "Volvo 740 ön çamurluğunu sabitleyen destek aparatıdır.\nÇamurluk paçalıkları söküldüğünde oluşan boşlukta çamurluğun oynamasını engeller; orijinal parçanın yerine geçer.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2784553-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2784553-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WeisLights",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-c30-orta-konsol-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "C30"
+    ],
+    "baslik": "Volvo C30 Orta Konsol Bardaklık",
+    "aciklama": "Volvo C30 birinci nesil orta konsoluna oturan bardaklıktır.\nİki içeceği yan yana tutar; aradaki boşlukta küçük eşyalara yer bırakır.\nMevcut konsol boşluğuna oturacak şekilde hazırlanmıştır.",
+    "fiyat": "165 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw3065037-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Edmund 3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-s80-orta-konsol-bardaklik-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "S80"
+    ],
+    "baslik": "Volvo S80 Orta Konsol Bardaklık Adaptörü",
+    "aciklama": "Volvo S80 orta konsol önündeki küçük gözün kapağına oturan bardaklıktır.\nMevcut boşluğu ek bir içecek tutucusuna dönüştürür.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2127103-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2127103-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Irridescent",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-b230-b200-karburator-ara-plakasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "B230"
+    ],
+    "baslik": "Volvo B230 B200 Karbüratör Ara Plakası",
+    "aciklama": "Volvo B200 ve B230 redblock motorlarında karbüratör ile manifold arasına giren ara plakadır.\nOrijinal contanın yerine kullanılabilir ve conta şablonu olarak da işe yarar.\nIsıya dayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw986078-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw986078-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RikiMoto",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-740-940-tablet-tutucu-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "940"
+    ],
+    "baslik": "Volvo 740 940 Tablet Tutucu Aparatı",
+    "aciklama": "Volvo 740 ve 940 için gösterge ve tablet tutucu aparatıdır.\nEkranı ön panelde sağlam biçimde tutar, gerektiğinde kolayca çıkarılmasına izin verir.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "170 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw3057262-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw3057262-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lindgren",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-740-usa-far-ayar-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "740"
+    ],
+    "baslik": "Volvo 740 Far Ayar Düğmesi",
+    "aciklama": "Volvo 740 farlarının yükseklik ayarını yapan düğmedir.\nKaybolan veya kırılan orijinal düğmenin yerine geçer; ayar vidasının ucuna oturur.\nDayanıklı malzemeyle üretilmesi önerilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2224444-1.jpg"
+    ]
+  },
+  {
+    "id": "volvo-c30-el-freni-korugu-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo",
+      "C30"
+    ],
+    "baslik": "Volvo C30 El Freni Körüğü Çerçevesi",
+    "aciklama": "Volvo C30 el freni körüğünü yerinde tutan çerçevedir.\nZamanla kırılan orijinal çerçevenin yerine geçer; körüğü gergin ve düzgün tutar.\nDayanıklı malzemeyle üretilmesi önerilir ve mevcut yuvaya oturur.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw3064987-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Edmund 3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "peugeot-206-hava-emme-borusu-adaptoru",
     "kategori": "Otomobil",
     "marka": [
