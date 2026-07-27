@@ -21,12 +21,34 @@ girer. Kanca kurulumuyla ayni desen: DAR + IDEMPOTENT + TEK YONLU (silmez).
 
     python3 /Users/okan/dev/pruvo/tools/mimar-kapi-kur.py --izinler
     python3 /Users/okan/dev/pruvo/tools/mimar-kapi-kur.py --izinler --uygula
+
+27 TEM EKI — '--codex-kurali' (BaBa doktrin hukmu): "codex exec CIKTI DOSYASI sarti" 6
+EVDE de gecerli. Kural ARTIK BU BETIGE GOMULU (CODEX_SABLON) — makine/hesap gocunde
+kapi-kuruluşuyla TEK HAMLEDE iner, kardes evlerin scratchpad'inde kalan bir sablona
+bagli DEGIL. KraL evi 'kaynak' modundadir (kural commit'li tools/mimar-icra-kapisi.py'de
+yasar; bu arac orayi YAZMAZ, yalnizca DOGRULAR); diger 5 ev 'enjekte' modundadir.
+
+    python3 /Users/okan/dev/pruvo/tools/mimar-kapi-kur.py --codex-kurali
+    python3 /Users/okan/dev/pruvo/tools/mimar-kapi-kur.py --codex-kurali --uygula
+
+Desen (mevcut modlarla AYNI): DAR + IDEMPOTENT + YEDEKLI + FAIL-CLOSED.
+  * her ev icin once <dosya>.yedek-<zaman> alinir (ev ICINDE, /tmp'de DEGIL),
+  * enjeksiyon sonrasi dosya DERLENIR (compile) + IKI CANLI FIKSTUR kosturulur
+    ('codex exec "x"' DENY olmali, 'ls' ALLOW kalmali); biri tutmazsa O EV DERHAL
+    YEDEKTEN GERI ALINIR (yanlis-pozitif bir evin TUM delegasyonunu durdurur),
+  * PER-MAKINE SIFIR-COMMIT: kardes repolara commit YOK; yedekler .git/info/exclude'a,
+    izlenen dosyalar 'update-index --skip-worktree' ile git'in gozunden korunur,
+  * mevcut kural blogu ESKI damgaliysa marker'lar arasi blok SOKULUP yenisi konur
+    (kural yukseltmesi de tek hamle).
 """
 import io
 import json
 import os
+import re
 import shutil
+import subprocess
 import sys
+import time
 
 AYAR = "/Users/okan/dev/pruvo/.claude/settings.json"
 KOMUT = 'python3 "${CLAUDE_PROJECT_DIR:-.}/tools/mimar-icra-kapisi.py"'
@@ -142,6 +164,456 @@ def durum():
     sys.exit(0 if (bash_var and yazma_var and precommit_var) else 1)
 
 
+# ===================== 27 TEM: CODEX KURALI 6 EVE (BaBa hukmu) =====================
+# Kural METNI burada YASAR. Sebep (BaBa): 5 kardes evin kapi sablonu scratchpad'de
+# kalmisti (kalici degil) — makine/hesap gocunde kural kaybolur. Artik commit'li bir
+# betige gomulu: 'git pull + --codex-kurali --uygula' = kural 6 evde.
+#
+# NE ENJEKTE EDILMEZ: launcher/whitelist LISTESI (xargs/sudo/npx sinifi). Mimar hukmu
+# (kayitli): sonsuz liste = yorumlayicinin argüman ayristiricisini taklit etmek; bu kapi
+# bir DISIPLIN cihazidir, guvenlik siniri degil. Bu blok programlar kumesine TEK BIR AD
+# EKLEMEZ; yalnizca zaten var olan SARMALAYICI kumesinin belirsizligini iki okumaya bolar.
+
+CODEX_DAMGA = 'CODEX_KURAL_SURUMU = "27tem-2"'
+CODEX_TANIM_BAS = "# === PRUVO CODEX KURALI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
+CODEX_TANIM_SON = "# === PRUVO CODEX KURALI BITIS ==="
+CODEX_CAGRI_BAS = "        # === PRUVO CODEX CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
+CODEX_CAGRI_SON = "        # === PRUVO CODEX CAGRI BITIS ==="
+
+# Enjeksiyon ANKRAJLARI + ev kapisinda BULUNMASI ZORUNLU semboller (fail-closed:
+# biri eksikse O EVE DOKUNULMAZ — yarim enjeksiyon kapiyi coker, kapi cokerse
+# PreToolUse fail-open davranir ve koruma SESSIZCE yok olur).
+CODEX_ANKRAJ_TANIM = "\ndef main():\n"
+CODEX_ANKRAJ_CAGRI = "        ad = os.path.basename(argv0)\n"
+CODEX_ZORUNLU_SEMBOL = (
+    "SARMALAYICI = ", "SURUM_BAYRAKLARI = ", "def parcala(", "def reddet(",
+    "import os", "import re", CODEX_ANKRAJ_TANIM, CODEX_ANKRAJ_CAGRI,
+)
+
+CODEX_TANIM_SABLON = '''
+
+''' + CODEX_TANIM_BAS + '''
+# 26 TEM (BaBa hukmu): "codex exec cagirmak KENDI ELIYLE IS YAPMAK DEGIL, ISCI
+# DAGITMAKTIR" — codex mimara SERBEST. KALAN TEK SART = KALITE KAPISI: sonuc bir
+# DOSYAYA yazilsin ('-o' / '--output-last-message'), yani delegenin KABUL KAPISI
+# kurulu olsun (skill: codex-isci). 27 TEM'de iki turda sikilastirildi:
+#   argv0 DARALTMASI (yanlis-pozitif) · ALT-KOMUT fail-closed · BAYRAK DEGER sarti ·
+#   gozlem simetrisi · esitlikli bicimde '-' oneki · SARMALAYICI ikinci okuma.
+# PARSER TAKLIDI YASAK (memory/mimar-kapi-parser-taklidi.md): supheli form = RED.
+CODEX_CIKTI_BAYRAKLARI = {"-o", "--output-last-message"}
+CODEX_CIKTI_ONEKI = "--output-last-message="
+# Gozlem bayraklari SURUM_BAYRAKLARI ile AYNI SINIF (tek kaynak — ayri liste tutmak
+# '-V geciyor, -v gecmiyor' asimetrisini uretmisti).
+CODEX_GOZLEM_BAYRAKLARI = SURUM_BAYRAKLARI
+CODEX_IZINLI_ALTKOMUT = "exec"
+''' + CODEX_DAMGA + '''
+CODEX_GEREKCE_SONU = (
+    " DOGRUSU: codex exec -C <bu ev> -s workspace-write "
+    "-o /<scratchpad>/son-mesaj.txt \\"<spec>\\" — sonra dosyayi oku, sayiyla kapat. "
+    "(skill: codex-isci)"
+)
+
+
+def _codex_isci_mi(girdi):
+    """KIMLIK EKSENI (delegasyon muafiyetinin temeli): agent_id DOLU ise cagri ISCI'den
+    gelir ve HICBIR kural uygulanmaz. Blok bunu KENDI ICINDE tasir — cunku ev kapilarinin
+    bir kismi (BaBa evi) main() basinda kimlik muafiyeti TASIMIYOR; tasiyanlar icin bu
+    kontrol zararsiz tekrardir, tasimayanlar icin ISCI'yi felc olmaktan kurtarir."""
+    try:
+        aid = girdi.get("agent_id")
+    except Exception:
+        return False
+    return isinstance(aid, str) and bool(aid.strip())
+
+
+def _codex_reddet(neden):
+    """Ev kapisinin reddet() fonksiyonunu kullanir. Iki imza var: KraL'da
+    reddet(neden, sonu=None), yol-bagimsiz sablonda reddet(neden). Arity OLCULUR
+    (try/except TypeError degil — o, reddet ICINDEKI bir TypeError'i maskeleyip
+    cift cikti basabilirdi)."""
+    try:
+        arity = reddet.__code__.co_argcount
+    except Exception:
+        arity = 1
+    if arity >= 2:
+        reddet(neden, sonu=CODEX_GEREKCE_SONU)
+    reddet(neden + CODEX_GEREKCE_SONU)
+
+
+def _codex_programi(argv0):
+    """Segmentin CALISTIRILAN programi codex mi? YALNIZ argv0 (tam yol ise SON BILESENI).
+    Genis token taramasi BILEREK yapilmaz: 'grep -rn codex', 'git commit -m codex',
+    'git log --grep codex', 'ls .../Resources/codex' yanlis-pozitif uretiyordu."""
+    return os.path.basename(argv0) == "codex"
+
+
+def _codex_deger_gecerli(deger):
+    """Cikti bayraginin DEGERI gecerli mi? IKI BICIMIN (ayrik / esitlikli) TEK KAYNAGI:
+    (a) bos olmasin, (b) '-' ile BASLAMASIN ('-' ile baslayan sey deger degil, BASKA BIR
+    BAYRAKtir → kabul kapisi bos kalir). Iki gövde tutmak bu asimetriyi tekrar uretir."""
+    if not deger:
+        return False
+    if deger.startswith("-"):
+        return False
+    return True
+
+
+def _codex_cikti_degerli(tokenlar):
+    """Cikti bayragi bir DOSYA DEGERIYLE mi geliyor? (bayragin VARLIGI YETMEZ)
+    ILK ESLESME KARARI VERIR: "bozuksa aramaya devam et" demek
+    'codex exec --output-last-message -o /tmp/a.txt' dizisini ACIYORDU."""
+    for i, t in enumerate(tokenlar):
+        if t in CODEX_CIKTI_BAYRAKLARI:
+            if i + 1 >= len(tokenlar):
+                return False
+            return _codex_deger_gecerli(tokenlar[i + 1])
+        if t.startswith(CODEX_CIKTI_ONEKI):
+            return _codex_deger_gecerli(t[len(CODEX_CIKTI_ONEKI):])
+    return False
+
+
+def _codex_karari(tokenlar):
+    """None = kural uygulanmaz · "gecer" = izinli · str = red gerekcesi.
+    Sira: (0) argv0 codex degil -> None · (1) ciplak 'codex' = TUI -> RED ·
+    (2) kalan TUM tokenlar gozlem bayragi -> gecer · (3) alt-komut 'exec' DEGILSE RED
+    (fail-closed: yeni alt-komut kendiliginden ACILMAZ) · (4) cikti bayragi + DEGER."""
+    if not tokenlar or not _codex_programi(tokenlar[0]):
+        return None
+    kalan = tokenlar[1:]
+    if not kalan:
+        return (
+            "çıplak 'codex' çağrısı (argümansız = etkileşimli TUI): kabul kapısı "
+            "kurulamaz. Delege 'codex exec ... -o <dosya>' iledir."
+        )
+    if all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):
+        return "gecer"
+    if kalan[0] != CODEX_IZINLI_ALTKOMUT:
+        return (
+            "codex alt-komutu 'exec' DEĞİL (" + kalan[0][:24] + "). Doktrin 'codex EXEC' "
+            "der: 'resume' etkileşimli oturumu sürdürür — bu DELEGASYON değil, mimarın "
+            "KENDİ ELİYLE iş yapmasıdır; 'mcp'/'login' vb. de delege değildir. Bilinmeyen "
+            "alt-komut VARSAYILAN RED (fail-closed)."
+        )
+    if not _codex_cikti_degerli(kalan[1:]):
+        return (
+            "Codex çağrısı 'codex-isci' STANDARDINA uymuyor: sonucu dosyaya yazan bayrak "
+            "bir DEĞERLE gelmiyor ('-o <dosya>' ya da '--output-last-message <dosya>', "
+            "boşlukla ayrılmış ve ardından bir YOL; '--output-last-message=<yol>' de "
+            "geçerli). Codex'e iş DEVRETMEK serbest (26 Tem: işçi dağıtmak mimarlıktır), "
+            "raporsuz delege değil — kabul kapısı kurulmadan çağırma."
+        )
+    return "gecer"
+
+
+def _sarmalayici_ikinci_okuma(tokenlar):
+    """SARMALAYICI bayrak-DEGERI sizintisinin IKINCI OKUMASI.
+    Olculen kusur: 'nice -n 10 codex exec "x"' ALLOW aliyordu — '10' (bayragin DEGERI)
+    argv0 sanildigi icin kural HIC calismiyordu ('env -u FOO codex', 'stdbuf -o 0 codex'
+    ayni sinif). Cozum PARSER TABLOSU DEGIL, dis_yol'un IKI OKUMA idiomu: bu okumada her
+    atlanan bayragin ardindaki tiresiz token de o bayragin degeri olabilir sayilip
+    atlanir; iki okumadan BIRINDE argv0 'codex' ise kural o okumaya uygulanir."""
+    okuma = list(tokenlar)
+    while okuma:
+        if re.match(r"^([A-Za-z_][A-Za-z0-9_]*)=", okuma[0]):
+            okuma = okuma[1:]
+            continue
+        if os.path.basename(okuma[0]) in SARMALAYICI:
+            okuma = okuma[1:]
+            while okuma and okuma[0].startswith("-"):
+                okuma = okuma[1:]
+                if okuma and not okuma[0].startswith("-"):
+                    okuma = okuma[1:]
+            continue
+        break
+    return okuma
+
+
+def _codex_segment_karari(segment, tokenlar):
+    """Segmentin codex KARARI, IKI OKUMA ile. Once normal okuma; YALNIZ o "kural
+    uygulanmaz" derse ikinci okuma denenir → POZITIF kararlar degismez, sizinti kapanir."""
+    karar = _codex_karari(tokenlar)
+    if karar is None:
+        ikinci = _sarmalayici_ikinci_okuma(parcala(segment))
+        if ikinci != tokenlar:
+            karar = _codex_karari(ikinci)
+    return karar
+''' + CODEX_TANIM_SON + '''
+'''
+
+CODEX_CAGRI_SABLON = (
+    CODEX_CAGRI_BAS + "\n"
+    "        codex_karari = _codex_segment_karari(segment, tokenlar)\n"
+    '        if (codex_karari is not None and codex_karari != "gecer"\n'
+    "                and not _codex_isci_mi(girdi)):\n"
+    "            _codex_reddet(codex_karari)\n"
+    + CODEX_CAGRI_SON + "\n"
+)
+
+# (mimar, ev koku, kapi dosyasi (ev-goreli), mod)
+# 'kaynak' = kural commit'li dosyada yasar; bu arac YAZMAZ, yalnizca DOGRULAR.
+# 'enjekte' = per-makine kopyaya marker'li blok enjekte edilir (commit YOK).
+# KraL koku YOL-BAGIMSIZ turetilir (bu betigin bir ust dizini): boylece MUHENDIS DALINDA
+# kosarken dalin kendi tools/ kopyasini, canli makinede canli tools/'u dogrular.
+CODEX_KRAL_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+CODEX_EVLER = (
+    ("KraL", CODEX_KRAL_KOK, "tools/mimar-icra-kapisi.py", "kaynak"),
+    ("MaCiT", "/Users/okan/dev/pruvo-hasat", ".claude/mimar-icra-kapisi.py", "enjekte"),
+    ("KaaN", "/Users/okan/dev/pruvo-jenerator", ".claude/mimar-icra-kapisi.py", "enjekte"),
+    ("ArTisT", "/Users/okan/dev/pruvo-pazarlama", ".claude/mimar-icra-kapisi.py", "enjekte"),
+    ("HocA", "/Users/okan/dev/pruvo-bot", ".claude/mimar-icra-kapisi.py", "enjekte"),
+    ("BaBa", "/Users/okan/dev/pruvo-advisor", ".claude/mimar-icra-kapisi.py", "enjekte"),
+)
+
+# Ev kabul testi (yol-bagimsiz sablon) fikstürleri: 26/27 Tem doktrini "codex serbest"
+# degil "codex ciktisiz RED" der → o evdeki 'allow' beklentisi BAYAT kalir ve kurulumdan
+# sonra evin kendi testi KIRMIZI yanar. Fikstürler de kural ile BIRLIKTE tasinir.
+CODEX_TEST_ESKI = (
+    '    (6, "allow", "ICRA", {"command": "codex exec \'x\'"}, None,\n'
+    '     "codex = delegasyon araci, serbest"),\n'
+)
+CODEX_TEST_YENI = (
+    "    # === PRUVO CODEX FIKSTURLERI BASLANGIC (mimar-kapi-kur.py) ===\n"
+    '    (6, "deny", "ICRA", {"command": "codex exec \'x\'"}, None,\n'
+    '     "26Tem: codex DELEGE serbest ama cikti dosyasi bayraksiz cagri RED"),\n'
+    '    (8, "allow", "ICRA", {"command": "codex exec -o /tmp/son-mesaj.txt \'x\'"}, None,\n'
+    '     "27Tem: \'-o <dosya>\' = codex-isci standardi -> GECER"),\n'
+    '    (9, "deny", "ICRA", {"command": "codex exec --output-last-message=-o \'x\'"}, None,\n'
+    '     "27Tem-2: \'=\' sonrasi deger BASKA BIR BAYRAK -> RED"),\n'
+    '    (10, "deny", "ICRA", {"command": "nice -n 10 codex exec \'x\'"}, None,\n'
+    '     "27Tem-2: sarmalayici bayrak-degeri sizintisi -> ikinci okuma RED"),\n'
+    '    (11, "allow", "ICRA", {"command": "codex exec \'x\'"}, ISCI_ID,\n'
+    '     "ISCI muaf: kalite kapisi YALNIZ mimara ait"),\n'
+    '    (12, "allow", "ICRA", {"command": "codex --version"}, None,\n'
+    '     "zararsiz gozlem cagrisi -> GECER"),\n'
+    "    # === PRUVO CODEX FIKSTURLERI BITIS ===\n"
+)
+
+CODEX_YEDEK_DESEN = ".claude/*.yedek-*"
+
+
+def _oku(yol):
+    return io.open(yol, encoding="utf-8").read()
+
+
+def _yaz(yol, metin):
+    io.open(yol, "w", encoding="utf-8").write(metin)
+
+
+def _blogu_sok(metin, bas, son):
+    """Marker'lar arasindaki blogu (marker'lar dahil) SOKER. Yoksa metni aynen doner."""
+    while True:
+        i = metin.find(bas)
+        if i < 0:
+            return metin
+        j = metin.find(son, i)
+        if j < 0:
+            return metin
+        metin = metin[:i] + metin[j + len(son):]
+
+
+def _git(kok, *args):
+    try:
+        return subprocess.run(["git", "-C", kok] + list(args),
+                              capture_output=True, text=True)
+    except Exception:
+        return None
+
+
+def _yedeklerimi_gizle(kok):
+    """Yedek dosyalari kardes reponun 'git status'unu KIRLETMESIN → .git/info/exclude
+    (per-makine, commit EDILMEZ). Doner: "eklendi" / "zaten" / "yok"."""
+    yol = os.path.join(kok, ".git", "info", "exclude")
+    if not os.path.isdir(os.path.dirname(yol)):
+        return "yok"
+    try:
+        mevcut = _oku(yol) if os.path.exists(yol) else ""
+    except Exception:
+        return "yok"
+    if CODEX_YEDEK_DESEN in mevcut:
+        return "zaten"
+    ek = mevcut
+    if ek and not ek.endswith("\n"):
+        ek += "\n"
+    ek += "# mimar-kapi yedekleri (per-makine; commit YOK)\n" + CODEX_YEDEK_DESEN + "\n"
+    try:
+        _yaz(yol, ek)
+    except Exception:
+        return "yok"
+    return "eklendi"
+
+
+def _skip_worktree(kok, goreli):
+    """Izlenen (H) kapi dosyasinin YEREL degisikligi git'e gorunmesin: index bayragi
+    'skip-worktree'. Commit DEGILDIR, per-makine index durumudur; geri alma:
+    git -C <ev> update-index --no-skip-worktree -- <dosya>.
+    Doner: "kuruldu" / "zaten" / "izlenmiyor" / "hata"."""
+    liste = _git(kok, "ls-files", "-v", "--", goreli)
+    if liste is None or liste.returncode != 0:
+        return "hata"
+    satir = (liste.stdout or "").strip()
+    if not satir:
+        return "izlenmiyor"
+    if satir[0] in ("S", "s"):
+        return "zaten"
+    sonuc = _git(kok, "update-index", "--skip-worktree", "--", goreli)
+    if sonuc is None or sonuc.returncode != 0:
+        return "hata"
+    return "kuruldu"
+
+
+def _kapi_fikstur(kapi_yolu, kok, komut, agent_id=None):
+    """Kurulan kapiyi GERCEK PreToolUse payload'u ile kosturur (gercek 'codex' CAGRILMAZ —
+    yalnizca kapi betigi kosar). Doner: allow/deny/COKTU/PARSE-HATASI."""
+    payload = {
+        "session_id": "kur-fikstur",
+        "cwd": kok,
+        "permission_mode": "bypassPermissions",
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Bash",
+        "tool_input": {"command": komut},
+    }
+    if agent_id is not None:
+        payload["agent_id"] = agent_id
+    ortam = dict(os.environ)
+    ortam["CLAUDE_PROJECT_DIR"] = kok
+    try:
+        sonuc = subprocess.run([sys.executable, kapi_yolu], input=json.dumps(payload),
+                               capture_output=True, text=True, env=ortam)
+    except Exception:
+        return "COKTU"
+    if sonuc.returncode != 0:
+        return "COKTU"
+    cikti = (sonuc.stdout or "").strip()
+    if not cikti:
+        return "allow"
+    try:
+        veri = json.loads(cikti)
+    except Exception:
+        return "PARSE-HATASI"
+    return ((veri.get("hookSpecificOutput") or {}).get("permissionDecision") or "allow")
+
+
+def _test_dosyasi_guncelle(kok, uygula):
+    """Evin kendi kabul testindeki BAYAT 'codex serbest' beklentisini doktrine hizalar.
+    Doner: durum metni."""
+    yol = os.path.join(kok, ".claude", "mimar-kapi-test.py")
+    if not os.path.exists(yol):
+        return "test-yok"
+    try:
+        metin = _oku(yol)
+    except Exception:
+        return "okunamadi"
+    if "PRUVO CODEX FIKSTURLERI BASLANGIC" in metin:
+        return "zaten"
+    if CODEX_TEST_ESKI not in metin:
+        return "ankraj-yok"
+    if not uygula:
+        return "GUNCELLENECEK"
+    yeni = metin.replace(CODEX_TEST_ESKI, CODEX_TEST_YENI, 1)
+    try:
+        compile(yeni, yol, "exec")
+    except SyntaxError:
+        return "derlenmedi"
+    shutil.copyfile(yol, yol + ".yedek-" + time.strftime("%Y%m%d-%H%M%S"))
+    _yaz(yol, yeni)
+    return "guncellendi"
+
+
+def _eve_enjekte(ad, kok, goreli, uygula, rapor):
+    """Tek eve kurali enjekte eder. Doner: (durum, yedek_yolu ya da None)."""
+    yol = os.path.join(kok, goreli)
+    if not os.path.exists(yol):
+        return "KAPI-DOSYASI-YOK", None
+    metin = _oku(yol)
+    if CODEX_DAMGA in metin:
+        return "ZATEN TAM", None
+
+    eksik = [s for s in CODEX_ZORUNLU_SEMBOL if s not in metin]
+    if eksik:
+        rapor.append("      zorunlu sembol EKSIK: " + repr(eksik[0]))
+        return "UYUMSUZ-KAPI (dokunulmadi)", None
+
+    if not uygula:
+        return "ENJEKTE EDILECEK", None
+
+    yedek = yol + ".yedek-" + time.strftime("%Y%m%d-%H%M%S")
+    shutil.copyfile(yol, yedek)
+
+    # Eski damgali blok varsa SOK (kural yukseltmesi de tek hamle).
+    temiz = _blogu_sok(metin, CODEX_TANIM_BAS, CODEX_TANIM_SON)
+    temiz = _blogu_sok(temiz, CODEX_CAGRI_BAS, CODEX_CAGRI_SON)
+    yeni = temiz.replace(CODEX_ANKRAJ_TANIM, CODEX_TANIM_SABLON + CODEX_ANKRAJ_TANIM, 1)
+    yeni = yeni.replace(CODEX_ANKRAJ_CAGRI, CODEX_ANKRAJ_CAGRI + CODEX_CAGRI_SABLON, 1)
+    _yaz(yol, yeni)
+
+    def geri_al(neden):
+        shutil.copyfile(yedek, yol)
+        rapor.append("      GERI ALINDI (" + neden + ") — yedek: " + yedek)
+
+    try:
+        compile(yeni, yol, "exec")
+    except SyntaxError as hata:
+        geri_al("SyntaxError: " + str(hata)[:60])
+        return "GERI ALINDI (derlenmedi)", yedek
+
+    # CANLI FIKSTURLER — biri tutmazsa ev DERHAL geri alinir.
+    olcumler = [
+        ("codex exec \"x\"", None, "deny"),
+        ("codex exec -o /tmp/son-mesaj.txt \"x\"", None, "allow"),
+        ("nice -n 10 codex exec \"x\"", None, "deny"),
+        ("codex exec --output-last-message=-o \"x\"", None, "deny"),
+        ("ls", None, "allow"),
+        ("git status", None, "allow"),
+        ("codex exec \"x\"", "a4482c781a922b6a1", "allow"),
+    ]
+    for komut, aid, beklenen in olcumler:
+        olculen = _kapi_fikstur(yol, kok, komut, aid)
+        if olculen != beklenen:
+            geri_al("fikstur '" + komut + "' beklenen=" + beklenen +
+                    " olculen=" + str(olculen))
+            return "GERI ALINDI (fikstur)", yedek
+
+    rapor.append("      yedek: " + yedek)
+    rapor.append("      info/exclude: " + _yedeklerimi_gizle(kok) +
+                 " | skip-worktree: " + _skip_worktree(kok, goreli) +
+                 " | ev testi: " + _test_dosyasi_guncelle(kok, uygula))
+    return "KURULDU", yedek
+
+
+def codex_kurali(uygula):
+    """6 EVE codex kalite kapisini kurar/dogrular. Cikis 0 = 6 evin hepsi TAM."""
+    print("CODEX KURALI DAMGASI: " + CODEX_DAMGA)
+    print("MOD: " + ("UYGULA" if uygula else "KURU KOSUM (degisiklik yok)"))
+    print("")
+    eksik = 0
+    for ad, kok, goreli, mod in CODEX_EVLER:
+        rapor = []
+        yol = os.path.join(kok, goreli)
+        if not os.path.isdir(kok):
+            durum_metni = "EV YOK"
+        elif mod == "kaynak":
+            # KraL: kural COMMIT'LI kaynakta yasar; bu arac commit'li kaynagi YAZMAZ.
+            try:
+                durum_metni = "ZATEN TAM" if CODEX_DAMGA in _oku(yol) else \
+                    "EKSIK (kaynak dosya — elle/dal ile guncellenir, arac YAZMAZ)"
+            except Exception:
+                durum_metni = "KAPI-DOSYASI-YOK"
+        else:
+            durum_metni, _ = _eve_enjekte(ad, kok, goreli, uygula, rapor)
+        if durum_metni != "ZATEN TAM" and not (uygula and durum_metni == "KURULDU"):
+            eksik += 1
+        print("{:<7} {:<34} {:<9} {}".format(ad, goreli, mod, durum_metni))
+        for satir in rapor:
+            print(satir)
+    print("")
+    print("TAM OLMAYAN EV: " + str(eksik))
+    if not uygula:
+        print("Kuru kosum. Uygulamak icin ayni komuta --uygula ekle.")
+    print("Dogrula: python3 /Users/okan/dev/pruvo/tools/mimar-kapi-6ev-test.py")
+    sys.exit(0 if eksik == 0 else 1)
+
+
 def main():
     global AYAR, PRECOMMIT
     argv = sys.argv[1:]
@@ -156,6 +628,9 @@ def main():
 
     if "--izinler" in argv:  # 26 Tem: codex belgeleyici izin satirlari
         izinler(uygula)
+
+    if "--codex-kurali" in argv:  # 27 Tem (BaBa hukmu): kural 6 EVE
+        codex_kurali(uygula)
 
     if not os.path.exists(AYAR):
         print("BULUNAMADI: " + AYAR)

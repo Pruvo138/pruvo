@@ -233,7 +233,8 @@ MUTASYONLAR = [
         '        if codex_karari is not None and codex_karari != "gecer":\n',
         '        if False and codex_karari is not None and codex_karari != "gecer":\n'),
      "26Tem: codex KALITE KAPISI komple kapatilir (bayraksiz codex exec acilir)",
-     {25, 230, 231, 235, 264, 265, 266, 267, 268, 269, 270, 275, 277, 278}, False, 14),
+     {25, 230, 231, 235, 264, 265, 266, 267, 268, 269, 270, 275, 277, 278,
+      279, 280, 283, 285}, False, 18),
     # ME6 (26 Tem, 27 Tem REPOINT): POZITIF yonun nobetcisi — cikti-bayragi muafiyeti
     # silinirse delege KOMPLE kapanir (22 Tem'e geri donus) ve mesru cagrilar kizarir.
     ("ME6", lambda d: yama(
@@ -241,7 +242,7 @@ MUTASYONLAR = [
         "    if not _codex_cikti_degerli(kalan[1:]):\n",
         "    if True:\n"),
      "26/27Tem: cikti-bayragi muafiyeti silinir (codex yeniden KOSULSUZ RED)",
-     {232, 233, 273, 274}, True, 4),
+     {232, 233, 273, 274, 281}, True, 5),
     ("ME7", lambda d: yama(
         d, ICRA,
         "    if all(t in CODEX_GOZLEM_BAYRAKLARI for t in kalan):\n"
@@ -269,8 +270,10 @@ MUTASYONLAR = [
         '    if not any(os.path.basename(t) == "codex" or "ChatGPT.app" in t\n'
         "               for t in tokenlar):\n"
         "        return None\n"),
-     "27Tem: DARALTMA geri alinir (argv0 yerine TUM token taramasi) -> 4 yanlis-pozitif doner",
-     {260, 261, 262, 263}, True, 4),
+     "27Tem: DARALTMA geri alinir (argv0 yerine TUM token taramasi) -> 6 yanlis-pozitif "
+     "doner (27Tem-2 OLCUMU: 282 sarmalayici+kelime, 281 MESRU sarmalanmis '-o' cagrisi "
+     "— genis tarama tokenlar[0]='10' oldugu icin alt-komutu 'codex' sanip reddediyor)",
+     {260, 261, 262, 263, 281, 282}, True, 6),
     ("ME10", lambda d: yama(
         d, ICRA,
         "    if kalan[0] != CODEX_IZINLI_ALTKOMUT:\n",
@@ -279,15 +282,14 @@ MUTASYONLAR = [
      {264, 265, 266, 275}, True, 4),
     ("ME11", lambda d: yama(
         d, ICRA,
+        "        if t in CODEX_CIKTI_BAYRAKLARI:\n"
         "            if i + 1 >= len(tokenlar):\n"
         "                return False\n"
-        "            deger = tokenlar[i + 1]\n"
-        '            if not deger or deger.startswith("-"):\n'
-        "                return False\n"
-        "            return True\n",
+        "            return _codex_deger_gecerli(tokenlar[i + 1])\n",
+        "        if t in CODEX_CIKTI_BAYRAKLARI:\n"
         "            return True\n"),
      "27Tem: AYRIK bayragin DEGER sarti silinir ('codex exec -o' bos bayrakla gecer)",
-     {267, 268, 269, 277}, True, 4),
+     {267, 268, 269, 277, 285}, True, 5),
     ("ME12", lambda d: yama(
         d, ICRA,
         "CODEX_GOZLEM_BAYRAKLARI = SURUM_BAYRAKLARI\n",
@@ -297,11 +299,38 @@ MUTASYONLAR = [
     ("ME13", lambda d: yama(
         d, ICRA,
         "        if t.startswith(CODEX_CIKTI_ONEKI):\n"
-        "            return bool(t[len(CODEX_CIKTI_ONEKI):])\n",
+        "            return _codex_deger_gecerli(t[len(CODEX_CIKTI_ONEKI):])\n",
         "        if t.startswith(CODEX_CIKTI_ONEKI):\n"
         "            return True\n"),
-     "27Tem: ESITLIKLI bicimde BOS deger toleransi ('--output-last-message=' gecer)",
-     {270}, True, 1),
+     "27Tem: ESITLIKLI bicimde deger DENETIMI komple silinir "
+     "('--output-last-message=' ve '=-o' gecer)",
+     {270, 279}, True, 2),
+    # --- 27 TEM 2. TUR NOBETCILERI (kapatilan iki kusur) ---
+    # ME14: KUSUR-1'in TAM nobetcisi — DEGERIN '-' oneki denetimi silinir (bos deger
+    # denetimi KALIR). Boylece "deger baska bir bayrak" sinifi acilir; iki bicim birden
+    # kizarir (tek kaynak _codex_deger_gecerli oldugunun kaniti).
+    ("ME14", lambda d: yama(
+        d, ICRA,
+        '    if deger.startswith("-"):\n'
+        "        return False\n",
+        "    if False:\n"
+        "        return False\n"),
+     "27Tem-2: DEGERIN '-' oneki denetimi silinir (deger BASKA BIR BAYRAK olabilir)",
+     {269, 277, 279, 285}, True, 4),
+    # ME15: KUSUR-2'nin nobetcisi — IKINCI OKUMA silinir (yalniz ilk okuma kalir);
+    # sarmalayici bayrak-degeri sizintisi geri doner. POZITIF vakalar (281/282) YESIL
+    # kalmali: mutasyon yalniz sizintiyi acar, mesru cagriyi kapatmaz.
+    ("ME15", lambda d: yama(
+        d, ICRA,
+        "    karar = _codex_karari(tokenlar)\n"
+        "    if karar is None:\n"
+        "        ikinci = _sarmalayici_ikinci_okuma(parcala(segment))\n"
+        "        if ikinci != tokenlar:\n"
+        "            karar = _codex_karari(ikinci)\n"
+        "    return karar\n",
+        "    return _codex_karari(tokenlar)\n"),
+     "27Tem-2: SARMALAYICI ikinci okumasi silinir ('nice -n 10 codex exec' acilir)",
+     {280, 283}, True, 2),
     ("ME3", lambda d: yama(d, ICRA,
                            '        if ad in ("curl", "wget"):\n',
                            '        if False and ad in ("curl", "wget"):\n'),
