@@ -1,5 +1,535 @@
 [
   {
+    "id": "opel-astra-h-kapi-tutucu-stop-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Astra H"
+    ],
+    "baslik": "Opel Astra H Kapı Tutucu Stop Tapası",
+    "aciklama": "Opel Astra H kapı açma sınırlayıcısının (kapı tutucu) plastik stop tapası. Kapının belirli açıda durmasını sağlayan mekanizmadaki kırılan orijinal parçanın yerine geçer.\nYerine geçmeli yedek parça; kapının düzgün tutunmasını yeniden sağlar.\nYaklaşık dış ölçüler: 22 × 17 × 17 mm.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2634879-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2634879-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "alexvav",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-astra-h-anten-contasi-yalitimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Astra H"
+    ],
+    "baslik": "Opel Astra H Anten Contası",
+    "aciklama": "Opel/Vauxhall Astra H tavan anteninin taban contası. Anten çubuğunu sökmeden değiştirilebilecek şekilde tasarlanmıştır; tavan ile anten tabanı arasındaki sızdırmazlığı yeniden sağlar ve yağmur suyunun içeri girmesini önler.\nYerine geçmeli montaj; kırılan veya sertleşmiş orijinal conta yerine kullanılır.\nYaklaşık dış ölçüler: 53 × 43 × 5 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3167155-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3167155-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Krux66",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-astra-h-bagaj-kapak-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Astra H"
+    ],
+    "baslik": "Opel Astra H Bagaj Kapak Tapası",
+    "aciklama": "Opel Astra H bagajındaki servis kapağı için tapa. Kapaktaki boşluğu kapatarak düzgün bir görünüm ve tutuş sağlar.\nKaybolan veya kırılan orijinal tapa yerine geçer.\nYaklaşık dış ölçüler: 34 × 14 × 14 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2618844-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2618844-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2618844-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2618844-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PacGyver",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-tigra-a-corsa-b-kalorifer-hava-yonlendirme-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Tigra A"
+    ],
+    "baslik": "Opel Tigra A / Corsa B Kalorifer Hava Yönlendirme Kapağı",
+    "aciklama": "Opel Tigra A ve Corsa B kalorifer çıkış ızgarasına takılan hava yönlendirme kapağı. Sıcak havayı yan cama yönlendirerek buğu ve buzun hızlı çözülmesini sağlar.\nKırılan veya kaybolan orijinal parçanın yerine geçer.\nYaklaşık dış ölçüler: 93 × 66 × 66 mm.",
+    "fiyat": "195 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th656254-1.jpg",
+      "https://media.pruvo3d.com/urunler/th656254-2.jpg",
+      "https://media.pruvo3d.com/urunler/th656254-3.jpg",
+      "https://media.pruvo3d.com/urunler/th656254-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "icehardy",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-tigra-a-arka-koltuk-arkasi-delik-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Tigra A"
+    ],
+    "baslik": "Opel Tigra A Arka Koltuk Arkası Delik Kapağı",
+    "aciklama": "Opel Tigra A (1994-2000) arka koltuk arkasındaki açıklığı kapatan örgülü kapak. İç mekân görünümünü tamamlar ve boşluğu örter.\nKaybolan orijinal parçanın yerine geçen fonksiyonel kapaktır.\nYaklaşık dış ölçüler: 206 × 161 × 23 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th690663-1.jpg",
+      "https://media.pruvo3d.com/urunler/th690663-2.jpg",
+      "https://media.pruvo3d.com/urunler/th690663-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "icehardy",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-corsa-d-torpido-gozu-duzenleyici",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Corsa D"
+    ],
+    "baslik": "Opel Corsa D Torpido Gözü Düzenleyici",
+    "aciklama": "Opel/Vauxhall Corsa D torpido gözüne oturan düzenleyici bölme. İçerideki küçük eşyaların dağılmasını önler ve kullanışlı bir yerleşim sağlar.\nAraç içine özel üretim, doğrudan takılabilir aksesuar.\nYaklaşık dış ölçüler: 182 × 149 × 75 mm.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6659341-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6659341-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6659341-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bassie_Ams",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-kadett-koltuk-arkaligi-ayar-mekanizmasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Kadett"
+    ],
+    "baslik": "Opel Kadett Koltuk Arkalığı Ayar Mekanizması",
+    "aciklama": "Opel Kadett ön koltuk arkalığının açı ayar mekanizması parçası. Arkalığın istenen konumda sabitlenmesini yeniden sağlar.\nKırılan orijinal parça yerine geçen fonksiyonel yedek.\nYaklaşık dış ölçüler: 85 × 85 × 25 mm.",
+    "fiyat": "210 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3908843-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3908843-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RuMataStav",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-agila-arka-silecek-reduktor-dislisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Agila"
+    ],
+    "baslik": "Opel Agila Arka Silecek Redüktör Dişlisi",
+    "aciklama": "Opel Agila arka silecek motorundaki redüktör dişlisi. Aşınan veya dişleri sıyrılan orijinal dişli yerine geçerek sileceğin yeniden düzgün çalışmasını sağlar.\nYerine geçmeli yedek parça; dayanıklılık için sert malzeme önerilir.\nYaklaşık dış ölçüler: 62 × 62 × 19 mm.",
+    "fiyat": "185 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4763152-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4763152-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4763152-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Memka",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-weber-32-36-karburator-servis-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Weber 32/36"
+    ],
+    "baslik": "Weber 32/36 Karbüratör Servis Kapağı",
+    "aciklama": "Klasik Opel motorlarında kullanılan Weber 32/36 karbüratörü için servis kapağı. Karbüratör bakımı ve ayarı sırasında üst kısmı koruyarak toz ve kir girişini engeller.\nKlasik araç restorasyonu için pratik bir parçadır.\nYaklaşık dış ölçüler: 130 × 82 × 32 mm.",
+    "fiyat": "230 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4859758-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4859758-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4859758-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4859758-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LCSteve",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-insignia-orta-konsol-bardaklik-kaplamasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Insignia"
+    ],
+    "baslik": "Opel Insignia Orta Konsol Bardaklık Kaplaması",
+    "aciklama": "Opel Insignia (2016) orta konsol bardaklığına oturan kaplama/iç parça. Bardaklığı düzenler, altında gözlük veya küçük eşya için ek yer bırakır.\nAraç içine özel üretim, doğrudan yerleştirilebilir parça.\nYaklaşık dış ölçüler: 191 × 87 × 23 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6241327-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6241327-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6241327-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "franktrebin",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-vectra-c-debriyaj-geri-donus-yay-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Vectra C"
+    ],
+    "baslik": "Opel Vectra C Debriyaj Geri Dönüş Yay Klipsi",
+    "aciklama": "Opel/Vauxhall Vectra C debriyaj pedalı geri dönüş yayını tutan klips. Kırılan orijinal parça yerine geçerek pedalın düzgün geri dönmesini sağlar.\nYerine geçmeli yedek parça; dayanıklı malzeme önerilir.\nYaklaşık dış ölçüler: 20 × 19 × 12 mm.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3581164-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3581164-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3581164-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3581164-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "imyz",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "opel-astra-j-marspiyel-klips-montaj-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Astra J"
+    ],
+    "baslik": "Opel Astra J Marşpiyel Klips Montaj Parçası",
+    "aciklama": "Opel/Vauxhall Astra J yan marşpiyel (eşik) klips montaj parçası. Kırılan orijinal montaj klipsi yerine geçerek marşpiyelin gövdeye düzgün oturmasını sağlar.\nYerine geçmeli yedek parça.\nYaklaşık dış ölçüler: 32 × 30 × 24 mm.",
+    "fiyat": "165 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4192338-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4192338-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4192338-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4192338-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Th3oRy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-vectra-c-caravan-arka-perde-kanca-onarim-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Vectra C"
+    ],
+    "baslik": "Opel Vectra C Caravan Arka Perde Kanca Onarım Seti",
+    "aciklama": "Opel/Vauxhall Vectra C Caravan (station) arka bagaj perdesinin kanca onarım seti. Kırılan orijinal kancaların yerine geçerek perdenin yeniden düzgün asılmasını sağlar.\nYerine geçmeli onarım parçası.\nYaklaşık dış ölçüler: 56 × 25 × 8 mm.",
+    "fiyat": "195 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4289542-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4289542-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BorewiczPL",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-corsa-yan-sasi-civata-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Corsa"
+    ],
+    "baslik": "Opel Corsa Yan Şasi Cıvata Kapağı",
+    "aciklama": "Opel/Vauxhall Corsa yan şasi cıvatasını örten kapak. Cıvata başını dış etkilerden koruyarak paslanmayı geciktirir ve düzgün bir görünüm sağlar.\nKaybolan orijinal kapak yerine geçer; esnek malzeme ile en iyi sonuç alınır.\nYaklaşık dış ölçüler: 37 × 37 × 10 mm.",
+    "fiyat": "155 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4611809-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4611809-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4611809-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ollie7802",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-astra-h-arka-silecek-onarim-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Astra H"
+    ],
+    "baslik": "Opel Astra H Arka Silecek Onarım Parçası",
+    "aciklama": "Opel Astra H arka silecek mekanizması için onarım parçası (OEM 93183150 / 1273397 muadili). Aşınan orijinal parça yerine geçerek arka sileceğin yeniden düzgün süpürmesini sağlar.\nYerine geçmeli yedek parça.\nYaklaşık dış ölçüler: 61 × 31 × 28 mm.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7257519-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7257519-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7257519-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7257519-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dmawzx",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-tigra-a-bagaj-su-tahliye-izgarasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Tigra A"
+    ],
+    "baslik": "Opel Tigra A Bagaj Su Tahliye Izgarası",
+    "aciklama": "Opel Tigra A (1994-2000) bagaj bölümündeki su tahliye ızgarası. Suyun düzgün akmasını sağlarken yabancı cisimlerin tahliye kanalını tıkamasını önler.\nKaybolan orijinal ızgara yerine geçer.\nYaklaşık dış ölçüler: 27 × 24 × 3 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th646052-1.jpg",
+      "https://media.pruvo3d.com/urunler/th646052-2.jpg",
+      "https://media.pruvo3d.com/urunler/th646052-3.jpg",
+      "https://media.pruvo3d.com/urunler/th646052-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "icehardy",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-frontera-b-bagaj-ic-kapi-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Frontera B"
+    ],
+    "baslik": "Opel Frontera B Bagaj İç Kapı Topuzu",
+    "aciklama": "Opel Frontera B bagaj iç kapağının açma topuzu. Kolay kırılan orijinal parçaya göre daha sağlam tasarlanmıştır; bagaj kapağının içeriden açılmasını yeniden sağlar.\nYerine geçmeli yedek parça.\nYaklaşık dış ölçüler: 27 × 27 × 22 mm.",
+    "fiyat": "165 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4199214-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4199214-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4199214-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4199214-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "4copter",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-corsa-c-on-sis-fari-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Corsa C"
+    ],
+    "baslik": "Opel Corsa C Ön Sis Farı Düğmesi",
+    "aciklama": "Opel Corsa C ön sis farı düğmesi. Far merkezindeki boş kapak çıkarılarak yerine takılır; iç aydınlatma pedi ile birlikte kullanılabilir.\nKaybolan veya kırılan orijinal düğme yerine geçen fonksiyonel parça.\nYaklaşık dış ölçüler: 40 × 35 × 19 mm.",
+    "fiyat": "165 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6013975-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6013975-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6013975-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6013975-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ahidir",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opel-zafira-b-ucuncu-sira-koltuk-kolu-inserti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Zafira B"
+    ],
+    "baslik": "Opel Zafira B Üçüncü Sıra Koltuk Kolu İnserti",
+    "aciklama": "Opel Zafira B üçüncü sıra koltuk açma kolunun iç parçası (OEM 13178813). Kırılan orijinal insert yerine geçerek kolun mekanizmaya oturmasını yeniden sağlar.\nYerine geçmeli yedek parça.\nYaklaşık dış ölçüler: 21 × 18 × 12 mm.",
+    "fiyat": "160 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6583161-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6583161-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6583161-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "shkerin",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-astra-gtc-kaput-destek-mesnedi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Astra GTC"
+    ],
+    "baslik": "Opel Astra GTC Kaput Destek Mesnedi",
+    "aciklama": "Opel Astra GTC kaput destek çubuğunun mesnet parçası (sağ taraf; sol için aynalanabilir). Eski parçanın üzerine oturarak orijinal klipslerin yeniden kullanılmasını sağlar.\nYerine geçmeli yedek parça.\nYaklaşık dış ölçüler: 68 × 30 × 29 mm.",
+    "fiyat": "175 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6638337-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6638337-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6638337-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6638337-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nikitae57",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-vectra-b-corsa-c-arka-cam-krikosu-onarim-kiti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Vectra B"
+    ],
+    "baslik": "Opel Vectra B / Corsa C Arka Cam Krikosu Onarım Kiti",
+    "aciklama": "Opel/Vauxhall Vectra B (ve Corsa C) arka cam krikosu için güçlendirilmiş onarım kiti. Kırılan orijinal parçaya göre daha dayanıklı tasarlanmıştır; kızağa oturarak bir insert ile kilitlenir.\nYerine geçmeli onarım parçası.\nYaklaşık dış ölçüler: 45 × 40 × 17 mm.",
+    "fiyat": "195 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7323427-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7323427-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7323427-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7323427-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EuReKaLoS",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-f35-sanziman-onarim-kiti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "F35"
+    ],
+    "baslik": "Opel F35 Şanzıman Onarım Kiti",
+    "aciklama": "Opel F35 manuel şanzımanı için onarım kiti. Şanzıman içindeki aşınan/kırılan plastik parçaların yerine geçerek vites geçişlerinin yeniden düzgün olmasını sağlar.\nYerine geçmeli onarım parçası; dayanıklı malzeme önerilir.\nYaklaşık dış ölçüler: 50 × 50 × 30 mm.",
+    "fiyat": "260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7165700-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7165700-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7165700-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7165700-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dreamvin",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-vectra-c-signum-afl-sinyal-arka-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Vectra C"
+    ],
+    "baslik": "Opel Vectra C / Signum AFL Sinyal Arka Kapağı",
+    "aciklama": "Opel/Vauxhall Vectra C ve Signum (makyaj öncesi, AFL farlı) modellerde ayna sinyal ünitesinin arka kapağı. Kırılan orijinal parça yerine geçerek sinyal modülünü koruma altına alır.\nYerine geçmeli yedek parça.\nYaklaşık dış ölçüler: 47 × 43 × 43 mm.",
+    "fiyat": "175 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4128251-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4128251-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4128251-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ConstantinS",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-omega-b-cam-krikosu-kizagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Omega B"
+    ],
+    "baslik": "Opel Omega B Cam Krikosu Kızağı",
+    "aciklama": "Opel Omega B cam krikosu (cam açma mekanizması) kızak parçası. Camın düzgün inip kalkmasını sağlayan mekanizmadaki kırılan orijinal kızağın yerine geçer.\nYerine geçmeli yedek parça.\nYaklaşık dış ölçüler: 36 × 16 × 9 mm.",
+    "fiyat": "165 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6978107-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6978107-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6978107-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DANIL_SUKHANOV",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-corsa-d-su-pompasi-konnektoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Corsa D"
+    ],
+    "baslik": "Opel Corsa D Su Pompası Konnektörü",
+    "aciklama": "Opel/Vauxhall Corsa D su pompası konnektörü. M8 dişi ile doğrudan oturur; kırılan orijinal parça yerine geçerek soğutma devresindeki bağlantıyı yeniden sağlar.\nYerine geçmeli yedek parça; motor sıcaklığına dayanıklı malzeme önerilir.\nYaklaşık dış ölçüler: 50 × 15 × 13 mm.",
+    "fiyat": "175 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7256563-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7256563-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7256563-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7256563-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "monsoon1978",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "opel-grandland-x-sigorta-kutusu-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel",
+      "Grandland X"
+    ],
+    "baslik": "Opel Grandland X Sigorta Kutusu Mandalı",
+    "aciklama": "Opel Grandland X sigorta kutusu kapağını sabitleyen mandal. Kolay kaybolan veya kırılan orijinal mandalın yerine geçerek kapağın düzgün kapanmasını sağlar.\nYerine geçmeli yedek parça.\nYaklaşık dış ölçüler: 29 × 18 × 15 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7264655-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7264655-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7264655-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7264655-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kull_Damned",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "opel-insignia-a-bardaklik-ara-parcasi",
     "kategori": "Otomobil",
     "marka": [
