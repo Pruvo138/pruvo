@@ -202,6 +202,14 @@ IZIN_LISTESI = {
     "tools/mimar-kilit-test.py": R_YOL,
     "tools/mimar-commit-kapisi-test.py": R_YOL,
     "tools/mimar-kapi-mutasyon-test.py": R_YOL,
+    # MAKINEYE BAGIMLI: kardes mimar evi dizinleri (~/dev/pruvo-hasat, -jenerator, -pazarlama,
+    # -bot, -advisor) CI runner'inda YOK -> fail-closed test orada yapisal KIRMIZI yanar ve
+    # bloklayici adim olarak TUM yayini durdurur (yedekle-test.py / yedek-hook-test.py emsali).
+    "tools/mimar-kapi-6ev-test.py": (
+        R_YOL + " Somut olarak: olcum girdisi 5 KARDES MIMAR EVININ dizini (~/dev/pruvo-hasat, "
+        "-jenerator, -pazarlama, -bot, -advisor) ve o evlerin commit EDILMEYEN "
+        ".claude/mimar-icra-kapisi.py kapilari. CI fresh checkout'unda bu evlerin hicbiri "
+        "YOKTUR -> 6 evin 5'i olculemez, fail-closed test KIRMIZI yanar."),
     "tools/kapi-envanteri-test.py": R_YOL,
     "tools/kod-kilidi-test.py": R_YOL,  # E paketi YESILLEDI; mutlak /Users/okan/dev/pruvo yoluna bagli -> fresh checkout'ta yapisal KIRMIZI
     # --- tools/ NOBETCILER (*-kapisi.py) — kesif 21 Tem genisletildi, CI'da kosmayanlar ---
