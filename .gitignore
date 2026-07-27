@@ -26,6 +26,9 @@ gorseller/
 # build.py çıktıları — artık GitHub Actions (CI) üretip yayınlıyor,
 # git'te/lokalde tutulmuyor (repo minimum kalsın diye).
 /urun/
+# marka->model hiyerarşik gezinme pilotu (tools/marka_model_build.py) — /marka/<marka>/<model>/
+# ağacı build.py'de üretilir, deploy _yayin-icerik-dizinleri.txt'ten kopyalar; git'e GİRMEZ.
+/marka/
 /filament-veri.js
 /taban-fiyatlar.js
 /index.built.html
