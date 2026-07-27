@@ -14,7 +14,8 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
       ≈140,72 TL) ve build.py'deki Python aynası (JS öncesi fiyat metni) node sonuçlarıyla
       kuruşu kuruşuna aynıdır (drift nöbeti). 6/10/15/20/25/30 cm tablosu rapor için basılır.
   (c) GERİ UYUMLULUK — konfigur'suz ürün sayfaları (panelsiz şemasız-Jeneratör, kart-seçim
-      fonksiyonel, boy_secenekli, lisanslı, parametrik sarı). DÖRT AYRI İDDİA; ilk üçü
+      fonksiyonel, boy_secenekli, lisanslı, parametrik sarı + BEYAN EDİLMİŞ HER KATEGORİ
+      için sade bir fonksiyonel fikstür). DÖRT AYRI İDDİA; ilk üçü
       REFERANSSIZ ve KALICI (CI'da kırmızı yakabilir), dördüncüsü referansa bağlı:
         c1 İZ YOKLUĞU (referanssız): konfigur'a ÖZGÜ hiçbir kanca konfigur'suz sayfaya
            sızmaz (URUN_KONFIGUR / konfigur.js / PRUVO_KONFIGUR / kaydırıcı / data-gorsel
@@ -27,6 +28,14 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
            arayüzü TAM OLARAK BİR biçimdedir — konfigur+malzemeli sayfa #malzemeButonlar
            (kart bölümü YOK), diğer HER sayfa #filCipler (seçici YOK). Hem "çift-UI"yı
            hem de "konfigur'un kart gizlemesi tüm katalogda tetiklendi" sızıntısını yakar.
+        KATEGORİ EKSENİ (c1/c2/c3'ün kapsaması): kategori sayfa sınıfına TEK yerden
+           girer — `fonksiyonel = kategori in FONKSIYONEL_KATEGORILER`. Bir kategori bu
+           listeden sessizce düşerse (yeniden adlandırma, yanlış birleştirme) O KATEGORİNİN
+           BÜTÜN ürün sayfaları malzeme/renk seçicisini + sepet ikonunu kaybeder ve sayfa
+           altı büyük butonlara döner; kimse ölçmüyorsa bu SESSİZ satış kaybıdır. Bu yüzden
+           fikstür kümesi beyan edilmiş kategori evrenini (CATEGORIES + NAV_GIZLI) kapsar;
+           fikstürsüz kalan kategori SESSİZ YEŞİL değil ⚪ ÖLÇÜLEMEDİ olarak raporlanır
+           (yeni kategori eklemek yayını KİLİTLEMEZ, ama körlük de gizlenmez).
         c4 BAYT-EŞİTLİK (REFERANSA BAĞLI — DAL-İÇİ, BLOKLAMAZ): konfigur'suz sayfalar
            merge-base'deki ESKİ build.py çıktısıyla bayt-eşit mi? Bu bir DEĞİŞİM
            dedektörüdür, konfigur EKSENİNİ ölçmez: ana hatta (merge-base == HEAD ->
@@ -38,6 +47,18 @@ Kapsam (tools/build.py "konfigur" alanı + /konfigur.js + secenekler.js konfigur
       feed aynı fiyatla basılır; sayfada URUN_KONFIGUR + /konfigur.js?v= + renk butonları
       (data-gorsel) + kaydırıcı + kancalar vardır; 'Diğer'/renkOzel ve büyük butonlar YOKTUR;
       JS öncesi fiyat metni varsayılan boyun kuruşlu fiyatıdır.
+  (e) MALZEME EKSENLİ KONFIGUR SAYFASI + JSON-LD minimum. ⚠️ BÖLGE KURALI: gövde iddiaları
+      TÜM sayfada değil ANA GÖVDEDE (`<main>`, script/style çıkarılmış) aranır. Ölçüldü:
+      FOOT_NAV_HTML her sayfaya '<a href="/malzeme-rehberi/">Malzeme Rehberi</a>' basıyor —
+      "Malzeme Rehberi linki KALIR" iddiası TÜM sayfada arandığı sürece footer nav'ın
+      KENDİSİYLE karşılanıyordu, yani gövdedeki link silinse bile YEŞİL yanardı (ÖLÜ İDDİA;
+      merge-base'de de ölüydü). Aynı tuzak WhatsApp notunda da vardı (wa.me sayfada ikon
+      butonda da geçer) — o da kendi bloğunda aranır.
+      ÇİVİ YASAĞI: taşıyıcılığı ÖLÇÜLMEMİŞ dizge çivisi (sınıf adı / öznitelik sırası /
+      görünen metin / etiket adı) KULLANILMAZ. Rehber linki <main> içinde TEK kez geçtiği
+      için tek başına BÖLGE yeterli (çivinin katkısı ölçüldü = 0, bedeli 4 yanlış-pozitif);
+      wa.me <main> içinde İKİ kez geçtiği için orada blok GEREKLİ ama sınıf-adı temelli.
+      Nöbetçinin kendi kör noktaları her koşumda ne_olculmedi() ile İLAN EDİLİR.
 
 Offline (ağ yok), gerçek urunler.json OKUNMAZ (sentetik fikstürler), repo dosyasına YAZMAZ.
 node ZORUNLU (deploy.yml setup-node kurar); yoksa FAIL-CLOSED kırmızı.
@@ -92,6 +113,31 @@ def olculemedi(mesaj):
     """SESSİZ YEŞİL YASAK: ölçüm yapılamadıysa 'geçti' deme, ÖLÇÜLEMEDİ de."""
     print("  ⚪ ÖLÇÜLEMEDİ — " + mesaj)
     OLCULEMEDI.append(mesaj)
+
+
+# ------------------------------------------------------------------ SAYFA BÖLGESİ
+# ÖLÜ İDDİA KAPISI: bir gövde iddiasını TÜM sayfada aramak, aynı metin footer/nav/head'de
+# de geçiyorsa TOTOLOJİdir — iddia hiçbir şey ölçmez ama YEŞİL yanar. Bu yüzden gövdeye
+# ait iddialar ANA GÖVDEDE aranır. Bölge daraltması NEGATİF iddialara uygulanmaz (onlar
+# küresel kalır: bir kanca sayfanın HİÇBİR yerinde sızmamalı).
+_BOLGE_DISI = re.compile(r"<script\b.*?</script>|<style\b.*?</style>", re.S | re.I)
+
+
+def govde(html):
+    """Sayfanın ANA GÖVDESİ: <main> bloğu, inline script/style çıkarılmış.
+
+    <main> bulunamazsa BOŞ döner -> bu bölgede arayan her POZİTİF iddia KIRMIZI yanar
+    (fail-closed: şablon bozulup gövde kaybolduğunda sessizce geçmek en kötü sonuç)."""
+    m = re.search(r"<main\b[^>]*>(.*?)</main>", html, re.S | re.I)
+    if not m:
+        return ""
+    return _BOLGE_DISI.sub("", m.group(1))
+
+
+def blok(html, desen):
+    """Tek bir HTML bloğunu (iç içe aynı etiket YOK) ayıklar; bulunamazsa boş metin."""
+    m = re.search(desen, html, re.S | re.I)
+    return m.group(0) if m else ""
 
 
 # ------------------------------------------------------------------ fikstürler
@@ -412,6 +458,89 @@ YAPISAL_CEKIRDEK = {
                          ['class="cart-btn"']),
 }
 
+# ---------------------------------------------------- KATEGORİ EKSENİ (c1/c2/c3 kapsaması)
+# Yukarıdaki beş fikstür SAYFA SINIFI seçer (panelsiz / kart-seçim / boy_secenekli /
+# lisanslı / parametrik) ve yanında yalnızca dört kategori render edilir; beyan edilmiş
+# geri kalan kategoriler için c1/c2/c3 HİÇ sayfa üretmiyordu -> o kategorilerde nöbetçi
+# sessizce YEŞİL yanıyordu (ölçüldü: katalogun onda birinden fazlası).
+#
+# Kategori sayfa sınıfına TEK yerden girer: `fonksiyonel = kategori in
+# FONKSIYONEL_KATEGORILER`. Bir kategori o listeden sessizce düşerse (yeniden adlandırma,
+# yanlış birleştirme, kopya listelerin ayrışması) O KATEGORİDEKİ BÜTÜN ürün sayfaları
+# malzeme/renk seçicisini + sepet ikonunu kaybeder ve eski sayfa-altı büyük buton düzenine
+# döner = SESSİZ satış kaybı. Bugüne dek bunu yalnız "Skan Art" için test-skan-art.py (B3)
+# ölçüyordu; diğer kategoriler için ölçen kimse yoktu.
+#
+# BEKLENTİ ELLE YAZILIR, build.FONKSIYONEL_KATEGORILER'DEN TÜRETİLMEZ: türetilse iddia
+# kendi kendini doğrular (totoloji) ve üyelik kaybını göremez — c4'te düzeltilen hatanın
+# aynısı olurdu. Bedeli: Okan bir kategoriyi bilerek panelsize çevirirse bu liste de
+# güncellenir (test-skan-art.py B3 ile aynı sözleşme).
+# ÇAPA YOK: kategori SAYISI, ürün sayısı, SHA, tarih hiçbir yerde karşılaştırılmaz.
+KART_SECIM_CEKIRDEK = (['id="filCipler"', "KART_SECIM = true", 'id="opsiyonlar"',
+                        'id="cartBtn"'],
+                       ['class="cart-btn"', "KART_SECIM = false"])
+
+# Sayfa-sınıfı fikstürlerinin ZATEN render ettiği kategoriler burada TEKRAR EDİLMEZ
+# (Otomobil = test-oto-parca, Ev = test-boylu, Kamera = test-lisansli, Jeneratör =
+# test-panelsiz + olcuye-ozel-huni). Kalan her fonksiyonel kategori için sade fikstür:
+KATEGORI_FIKSTURLERI = ["Marin", "Motosiklet", "Bisiklet", "Tamirat", "Ofis", "Elektronik",
+                        "Bahçe", "Dekorasyon", "Oyun/Hobi", "Skan Art"]
+
+_SLUG_HARF = {"ç": "c", "ğ": "g", "ı": "i", "ö": "o", "ş": "s", "ü": "u", "â": "a"}
+
+
+def _slug(ad):
+    duz = "".join(_SLUG_HARF.get(ch, ch) for ch in (ad or "").lower())
+    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", duz)).strip("-")
+
+
+def kategori_fiksturleri():
+    """Her kategori için SADE (konfigur'suz / şemasız / lisanssız / boy'suz) fonksiyonel
+    ürün fikstürü — [(ad, urun), ...]. Kategori dışında hiçbir alan sayfa sınıfını
+    değiştirmez, yani bu fikstürlerde ölçülen TEK değişken kategoridir."""
+    liste = []
+    for kat in KATEGORI_FIKSTURLERI:
+        pid = "test-kat-" + _slug(kat)
+        liste.append(("kategori ekseni: %s" % kat,
+                      urun(None, id=pid, kategori=kat,
+                           baslik="Test %s Parçası" % kat, fiyat="500 TL")))
+    return liste
+
+
+for _kat in KATEGORI_FIKSTURLERI:
+    YAPISAL_CEKIRDEK["test-kat-" + _slug(_kat)] = KART_SECIM_CEKIRDEK
+
+
+def kategori_yoklamasi(fikstuler):
+    """KAPSAMA YOKLAMASI — sessiz yeşil yasak: beyan edilmiş her kategori en az bir
+    fikstürle GERÇEKTEN render edildi mi?
+
+    Evren build.py'nin KENDİ beyanıdır (CATEGORIES + NAV_GIZLI) — sabit sayı/SHA çapası
+    YOK. Fikstürsüz kategori KIRMIZI değil ⚪ ÖLÇÜLEMEDİ olur: yeni bir kategori açmak
+    gürültülü raporlanır ama ilgisiz bir eklemede TÜM yayını durdurmaz."""
+    beyan = list(build.CATEGORIES) + list(build.NAV_GIZLI)
+    olculen = {}
+    for _, p in fikstuler:
+        olculen.setdefault(p.get("kategori") or "", []).append(p["id"])
+    print("  --- KATEGORİ KAPSAMASI (evren: build.CATEGORIES + build.NAV_GIZLI) ---")
+    eksik = []
+    for kat in beyan:
+        ids = olculen.get(kat) or []
+        print("    %-12s %s" % (kat, ", ".join(ids) if ids else "⚪ FİKSTÜR YOK"))
+        if not ids:
+            eksik.append(kat)
+    disi = sorted(set(olculen) - set(beyan))
+    if disi:
+        print("    (beyan dışı fikstür kategorisi: %s)" % ", ".join(disi))
+    if eksik:
+        olculemedi("kategori kapsaması: beyan edilmiş %d kategori fikstürsüz (%s) -> o "
+                   "kategorilerin sayfa sınıfı c1/c2/c3'te HİÇ render edilmedi."
+                   % (len(eksik), ", ".join(eksik)))
+    else:
+        print("  ✅ kategori kapsaması: beyan edilmiş %d kategorinin HEPSİ fikstürle "
+              "render edildi" % len(beyan))
+
+
 # c4 referans durumları
 REF_OLCULDU = "OLCULDU"      # referans build.py alındı ve ÇALIŞANDAN FARKLI -> gerçek ölçüm
 REF_TOTOLOJI = "TOTOLOJI"    # referans build.py çalışanla BAYT AYNI -> karşılaştırma boş
@@ -481,7 +610,7 @@ def test_geri_uyumluluk():
         ("parametrik sarı (gerçek şema: huni)", urun(
             None, id="olcuye-ozel-huni", kategori="Jeneratör",
             baslik="Ölçüye Özel Huni", fiyat="", parametrik=True)),
-    ]
+    ] + kategori_fiksturleri()
     tumu = [p for _, p in fikstuler]
     yeni_ciktilar = {}
     for ad, p in fikstuler:
@@ -511,6 +640,9 @@ def test_geri_uyumluluk():
         kontrol((kart, secici) == beklenen,
                 "c3 malzeme arayüzü XOR: %s (#filCipler=%s #malzemeButonlar=%s, beklenen %s/%s)"
                 % (ad, kart, secici, beklenen[0], beklenen[1]))
+
+    # --- kapsama yoklaması: hangi beyan edilmiş kategori GERÇEKTEN render edildi? ---
+    kategori_yoklamasi(fikstuler)
 
     # --- c4: bayt-eşitlik (referansa bağlı; BLOKLAMAZ — gerekçe modül docstring'inde) ---
     eski, durum, taban = eski_build_modulu()
@@ -647,10 +779,32 @@ def test_konfigur_malzeme_sayfasi(seri):
     # yalnız faydalı mühendislik-malzeme WhatsApp notu + Malzeme Rehberi linki KALIR.
     kontrol('id="filCipler"' not in html,
             "AYRI standart filament KART bölümü YOK (çift-UI kalktı — malzeme tek yerde seçilir)")
-    kontrol("Malzeme Rehberi" in html and 'href="/malzeme-rehberi/"' in html,
-            "'Malzeme Rehberi' linki KALIR (faydalı bilgi silinmedi)")
-    kontrol("wa.me/905451386526" in html and 'class="malzeme-not"' in html,
-            "mühendislik malzemesi (Karbon/ABS) WhatsApp notu KALIR")
+    # ⚠️ BÖLGE KURALI (ölü iddia onarımı): bu iki iddia TÜM sayfada aranırsa ÖLÜDÜR.
+    # FOOT_NAV_HTML her sayfaya '<a href="/malzeme-rehberi/">Malzeme Rehberi</a>' basar ve
+    # wa.me numarası sayfadaki WhatsApp İKON butonunda da geçer -> gövdedeki malzeme bloğu
+    # tamamen silinse bile eski iddialar YEŞİL yanardı. Onarım = BÖLGE daraltması.
+    #
+    # 🔴 ÇİVİ YASAĞI (bu depoda ölçülmüş kural — emsal [[kapi-kapsam-eksen-secimi]]):
+    # bir çivinin (CSS sınıf adı / öznitelik sırası / görünen metin / etiket adı) YAKALAMA
+    # KATKISI ölçülmeden eklenmesi YASAKTIR; katkısı 0 + yanlış-pozitifi > 0 olan çivi
+    # ÇIKARILIR. Bağımsız çürütücünün bölge haritası (konfigür+malzeme sayfası):
+    #     href="/malzeme-rehberi/"   -> <main> içi 1 · <main> DIŞI 1 (footer nav)
+    #     wa.me/<numara>             -> <main> içi 2 (biri #orderAlt İKON butonu) · dışı 2
+    # -> REHBER LİNKİ: <main> içinde TEK geçiş var, yani bölge daraltması TEK BAŞINA ölü
+    #    iddiayı öldürür. Ek sınıf/metin çivisinin yakalama katkısı ÖLÇÜLDÜ = SIFIR,
+    #    bedeli 4 yanlış-pozitif (sınıf adı değişimi · ikinci CSS sınıfı · öznitelik
+    #    sırası · link metninin yeniden yazımı) -> ÇİVİ ÇIKARILDI, yalnız href aranır.
+    # -> WA NOTU: <main> İÇİNDE İKİ wa.me geçiyor (biri ikon buton) -> orada blok çivisi
+    #    GERÇEKTEN taşıyıcı, kaldırılırsa iddia ölür. Ama <p> ETİKETİNE + TAM sınıf
+    #    dizgesine çivilenmesi gereksizdi: blok artık SINIF-ADI temelli, etiket (p/div)
+    #    ve ek sınıflar serbest.
+    g = govde(html)
+    kontrol('href="/malzeme-rehberi/"' in g,
+            "'Malzeme Rehberi' linki ANA GÖVDEDE kalır (footer nav kopyası SAYILMAZ)")
+    wa_blok = blok(g, r'<(p|div)\b[^>]*class="[^"]*malzeme-not[^"]*"[^>]*>.*?</\1>')
+    kontrol(("wa.me/" + build.WHATSAPP) in wa_blok,
+            "mühendislik malzemesi (Karbon/ABS) WhatsApp notu KENDİ BLOĞUNDA kalır "
+            "(bulunan blok: %s)" % (("%d karakter" % len(wa_blok)) if wa_blok else "YOK"))
     kontrol('src="/konfigur.js' in html and 'id="cartBtn"' in html,
             "/konfigur.js + Sepete Ekle ikonu (malzeme sayfada da) bağlı")
     kontrol("KART_SECIM = false" in html,
@@ -662,6 +816,41 @@ def test_konfigur_malzeme_sayfasi(seri):
         beklenen_metin = build.taban_fiyat_metni(beklenen_kurus / 100.0)
         kontrol(('id="opsiyonFiyat">%s<' % beklenen_metin) in html,
                 "JS öncesi fiyat = varsayılan boy × VARSAYILAN malzeme (PLA): %s" % beklenen_metin)
+
+
+# ------------------------------------------------------------------ kör nokta beyanı
+def ne_olculmedi():
+    """SESSİZ YEŞİL YASAĞININ İKİNCİ YARISI: bir kapı, YEŞİL çıktısında ne ölçmediğini
+    ve hangi meşru düzenlemede kendi kendine kırmızı yanacağını İLAN ETMEK zorundadır
+    (repo sözleşmesi; emsal tools/ege-kabiliyet-kapisi.py ne_olculmedi()).
+
+    Buradaki iki kalem BEYAN EDİLMİŞ BORÇtur — kusur değil, ölçülmüş ve mimar onaylı
+    bedel. Fikstürleri tools/konfigur-nobet-mutasyon.py bölüm C'de 🟠 olarak KOŞAR:
+    yani borç kaybolursa ya da sessizce büyürse harness bunu görür.
+    ⚠️ Bu metinde ✅/❌/⚪ İŞARETİ KULLANILMAZ (harness çıktıyı bu işaretlerle sayar)."""
+    print("""
+NE ÖLÇÜLMEDİ / BEYAN EDİLMİŞ BORÇ (yeşil çıktı bunları kapsamaz):
+  · 🟠 KATEGORİ YENİDEN ADLANDIRMA — KATEGORI_FIKSTURLERI listesi ELLE yazılıdır
+    (build.FONKSIYONEL_KATEGORILER'den TÜRETİLMEZ; türetilse iddia kendi kendini
+    doğrular = totoloji, üyelik kaybını göremez). BEDELİ: bir kategori yeniden
+    adlandırılırsa (or. Bahçe -> Bahce) bu nöbetçi eski adla fikstür render edip
+    KIRMIZI yanar ve yayını KİLİTLER; doğrusu listeyi de güncellemektir. Kategori
+    artık BEŞ yerde elle güncellenir: CATEGORIES · FONKSIYONEL_KATEGORILER ·
+    secenekler.js · index.html · bu liste. (Aynı sözleşme: test-skan-art.py B3.)
+    YENİ kategori EKLEMEK bloklamaz -> kapsama yoklamasında gürültülü raporlanır.
+  · 🟠 <main> KAYBI = FAIL-CLOSED — bölge haritası (govde()) `<main>` etiketine
+    dayanır. Şablon `<main>`'i bırakıp `<div id="main">`e geçerse gövde BOŞ döner ve
+    (e) bölümünün POZİTİF iddiaları KIRMIZI yanar. Yön BİLEREK böyle: gövde kaybolduğunda
+    sessizce geçmek en kötü sonuçtur. Kusur yalnız TEŞHİS metnindedir — kırmızı satır
+    "link gövdede kalmadı" der, oysa kaybolan `<main>`dir.
+  · 🔴 BU BÖLÜM ÜRÜN VERİSİNİ ÖLÇMEZ — nöbetçi urunler.json'u OKUMAZ (sentetik fikstür).
+    Katalogda bir kategorinin tamamen boşalması, ürün silinmesi/eklenmesi bu kapıyı
+    ETKİLEMEZ; o eksen kategori-kapisi.py'de. Buradaki yeşil "katalog sağlam" DEMEZ.
+  · 🔴 c2'nin YAPISAL ÇEKİRDEK dizgeleri (KART_SECIM = true / class="cart-btn") HÂLÂ
+    biçim çivisidir: gömülü bayrağın config objesine taşınması, JS minify'ı ya da
+    footer'a .cart-btn sınıflı buton eklenmesi bu kapıyı YANLIŞ-POZİTİF kırmızıya
+    düşürür (merge-base'den MİRAS, ölçüldü, ayrı iş olarak AÇIK). Yeşil = "bu üç
+    refaktör yapılmadı" demektir, "yapılsa güvenli" DEMEZ.""")
 
 
 # ------------------------------------------------------------------ ana akış
@@ -687,6 +876,7 @@ def main(argv=None):
     test_geri_uyumluluk()
     test_konfigur_sayfasi(seri)
     test_konfigur_malzeme_sayfasi(seri)
+    ne_olculmedi()
     print("-" * 70)
     if UYARILAR:
         print("UYARI (bloklamaz): %d bulgu" % len(UYARILAR))
