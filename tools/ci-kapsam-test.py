@@ -33,9 +33,15 @@ KIRMIZI-MUTASYON: deploy.yml'den bir "python3 tools/<x>-test.py" satiri silinirs
 kapsamsiz kalir -> kapi KIRMIZI (exit 1). (--deploy <yol> ile alternatif/mutasyonlu bir kopyaya
 isaret ederek GERCEK deploy.yml'e dokunmadan kanitlanabilir.)
 
+KENDI NOBETCILERI (kontroller=True iken BLOKLAYICI, yani CI'da fiilen kosar):
+  * bulgu1_mutasyon_kontrol() — yalniz-yorum mensiyonu 'kosuluyor' sayilmasin.
+  * muaf_sayaci_kontrol()     — rapordaki "Muaf (izin listesi)" sayisi GERCEKTEN izin
+    listesini saysin (kapsamsiz dosya o sayiya sizmasin, muafiyet eklenince sayi artsin).
+
 Kullanim:
     python3 tools/ci-kapsam-test.py
     python3 tools/ci-kapsam-test.py --deploy /gecici/mutant-deploy.yml
+    python3 tools/ci-kapsam-test.py --kendini-test
 """
 import argparse
 import os
@@ -327,54 +333,173 @@ def bulgu1_mutasyon_kontrol():
     return (not hata), hata
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--deploy", default=DEPLOY_VARSAYILAN,
-                    help="deploy.yml yolu (kirmizi-mutasyon icin alternatif kopya verilebilir)")
-    ap.add_argument("--kendini-test", action="store_true",
-                    help="YALNIZ BULGU 1 mutasyon nobetcisini kosar (gercek deploy.yml uzerinden)")
-    args = ap.parse_args()
+# Yalniz BELLEKTE kesif listesine enjekte edilen sentetik yol. Repoda BOYLE BIR DOSYA YOK
+# (ve olmamali): gercek bir kapsamsiz test dosyasi yaratmak kapinin kendi 1. kuralini
+# tetikler ve kapiyi kalici kirmiziya cakardi.
+SENTETIK_KAPSAMSIZ = "tools/zzz-sentetik-kapsamsiz-test.py"
 
-    if args.kendini_test:
-        ok, hata = bulgu1_mutasyon_kontrol()
-        print("BULGU 1 MUTASYON NOBETCISI")
-        if ok:
-            print("  ✅ gercek deploy sayiyor; yalniz-yorum mutanti saymiyor")
-            print("SONUC: YESIL ✅")
-            return 0
-        for h in hata:
-            print("  ❌ " + h)
-        print("SONUC: KIRMIZI ❌")
-        return 1
+# Iddia RAPOR SATIRININ KENDISINE capalanir (etiketi degistiren biri nobetciyi de
+# guncellemek zorunda kalsin diye) — degeri gövde degiskeninden degil, basilan metinden oku.
+# CAPA SATIR SONUNA DEGIL SAYIYA (3. tur curutucu olcumu): eski `\s*$` capasi asiri
+# kirilgandi — rapor satirinin SONUNA kozmetik bir ek yapilsa ('kosulan' satirindaki gibi
+# parantezli detay listesi) SAYI DOGRU basildigi halde regex eslesmiyor -> n is None ->
+# kapi SAHTE-KIRMIZI, ustelik teshis "etiket degistiyse guncelle" diyor ama etiket
+# DEGISMEMIS oluyor. Bu kapi deploy.yml'de continue-on-error'suz kosar; yanlis-pozitif TUM
+# yayini durdurur ([[kapi-kapsam-eksen-secimi]]). `\b` ile etiket GERCEKTEN degisirse hala
+# eslesmez ve dogru teshisi verir — istenen davranis odur, o KALIR.
+MUAF_SATIR_RE = re.compile(r"^\s*Muaf \(izin listesi\)\s*:\s*(\d+)\b")
 
-    if not os.path.exists(args.deploy):
-        sys.exit("deploy.yml bulunamadi: " + args.deploy)
-    with open(args.deploy, encoding="utf-8") as f:
-        deploy_metin = f.read()
 
+def _muaf_sayisi(satirlar):
+    """Rapor satirlarindan "Muaf (izin listesi)" degerini oku; yoksa None."""
+    for s in satirlar:
+        m = MUAF_SATIR_RE.match(s)
+        if m:
+            return int(m.group(1))
+    return None
+
+
+def muaf_sayaci_kontrol():
+    """MUAF SAYACI KALICI NOBETCISI (27 Tem olcumu).
+
+    OLCULEN HATA: rapor satiri `muaf = [y for y in kesif if y not in kos]` ile
+    uretiliyordu -> "Muaf (izin listesi)" etiketiyle basilan sayi, IZIN_LISTESI'nde
+    OLMAYAN (yani KAPSAMSIZ) dosyalari da iceriyordu. Somut: bir merge sirasinda
+    tools/mimar-kapi-6ev-test.py kapsamsizken satir "Muaf: 71" yazdi; gercek muafiyet
+    eklendikten SONRA (IZIN_LISTESI 70 -> 71) satir YINE "71" yazdi. Yani basilan sayi
+    muafiyet eklemesine KOR ve kapsamsiz dosya sessizce "muaf" etiketleniyordu.
+
+    NEDEN BLOKLAYICI: merge prosedürü (~/.claude/skills/merge-kapisi/SKILL.md) bu sayiyi
+    dalin ONCE/SONRA olcumu olarak rapor ettirir. Sayi etiketine uymayinca "kac muafiyet
+    eklendi" sorusu bu ciktidan cevaplanamaz hale gelir ve IZIN_LISTESI'ni elle AST okumak
+    gerekir (27 Tem'de aynen bu yasandi). Yani bu bir kozmetik degil, OLCUM kanali hatasi.
+
+    YONTEM: GERCEK deploy.yml + GERCEK kesif uzerine yalniz bellekte SENTETIK bir kapsamsiz
+    yol enjekte edilir ve denetle(..., kontroller=False) cagrilir -> CI'da kosan kodun TA
+    KENDISI olculur, kopya mantik yazilmaz. (kontroller=False sart: ozyineleme korumasi.)
+      TEMEL: sentetiksiz kosum; basilan Muaf sayisi = N, exit kodu = TEMEL_KOD.
+      MUTLAK: TEMEL_KOD == 0 iken N == len(IZIN_LISTESI) OLMAK ZORUNDA (asagida gerekcesi).
+      (a) kesif + SENTETIK, izin = IZIN_LISTESI
+          -> exit 1 + SENTETIK icin KAPSAMSIZ satiri + Muaf sayisi HALA N (sizmamali).
+      (b) kesif + SENTETIK, izin = IZIN_LISTESI + {SENTETIK: gerekce}
+          -> exit TEMEL_KOD (muafiyet kapiyi temelin verdigi hale geri dondurur)
+             + Muaf sayisi TAM OLARAK N+1 (muafiyete kor olmamali).
+    (a)/(b) DELTA iddialaridir; tek baslarina sabit bir kaydirmayi (or. satiri `len(muaf)-1`
+    basmak) YAKALAYAMAZ — merge prosedürü MUTLAK sayiyi okudugu icin MUTLAK capa sarttir.
+
+    TEMEL KIRMIZI OLSA DA CALISIR (duzeltme, 27 Tem): iddialar MUTLAK degil TEMELE GORELI
+    DELTA'dir -> "temel kirmizi, olcum anlamsiz" diye erken donmez. Eski hali tam da bu
+    bug'in gorundugu senaryoda (repoda GERCEK bir kapsamsiz test dosyasi varken) kapiya
+    IKINCI bir ❌ satiri ekliyordu: kapi zaten KAPSAMSIZ ile kirmiziyken "SONUC: KIRMIZI
+    (2 sorun)" cikiyordu. merge prosedürü bu SORUN SAYISINI okur -> olcum kanalini duzeltmek
+    icin yazilan nobetci, kirmizi halde olcum kanalini yeniden kirletiyordu; ustelik nobetci
+    en cok ise yarayacagi anda (kapsamsiz VARKEN) kendini kapatiyordu. Tek istisna n is None:
+    etiket/regex kaymasinda gercekten olculecek sey yoktur, orada erken donus KALIR."""
+    if not os.path.exists(DEPLOY_VARSAYILAN):
+        return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
+    with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+        gercek = f.read()
     kesif = kesfet()
+    if SENTETIK_KAPSAMSIZ in kesif:
+        return False, ["sentetik yol repoda GERCEKTEN var: %s -> nobetci anlamsizlasti "
+                       "(dosyayi sil ya da sentetik adi degistir)" % SENTETIK_KAPSAMSIZ]
+
+    temel_kod, temel_satirlar = denetle(gercek, kesif, IZIN_LISTESI, kontroller=False)
+    n = _muaf_sayisi(temel_satirlar)
+    if n is None:
+        # TEK mesru erken donus: etiket/regex kaymissa olculecek sayi YOKTUR.
+        return False, ["temel raporda 'Muaf (izin listesi)' satiri bulunamadi "
+                       "(etiket degistiyse MUAF_SATIR_RE'yi guncelle)"]
+    # NOT: temel_kod KIRMIZI olabilir (repoda gercek bir kapsamsiz dosya varken normaldir).
+    # Erken DONULMEZ; asagidaki iddialar temel_kod'a GORELI kurulur -> nobetci o halde de
+    # olcer ve kapinin sorun sayisini SISIRMEZ.
+
+    kesif_sentetik = sorted(list(kesif) + [SENTETIK_KAPSAMSIZ])
+    hata = []
+
+    # MUTLAK CAPA (3. tur curutucu olcumu): asagidaki (a)/(b) iddialari DELTA'dir ve n, n_a,
+    # n_b UCU DE AYNI rapor satirindan okunur -> sabit bir KAYDIRMA (olculdu: satiri
+    # `len(muaf) - 1` basacak sekilde degistirmek) delta'lari BOZMAZ, nobetci HIC KONUSMAZ,
+    # ama basilan mutlak sayi (70) yalan olur. merge prosedürü tam da bu MUTLAK sayiyi olcum
+    # olarak okudugu icin delta korunumu YETMEZ.
+    # NEDEN GECERLI: kapi YESIL iken kural 3 (bayat izin: artik kesfedilmiyor) ve kural 4
+    # (bayat izin: artik kosuluyor) ZATEN sifirdir -> izin ⊆ kesif ve izin ∩ kos = bos ->
+    # tanim geregi muaf == IZIN_LISTESI. Yani yesil kosumda basilan sayi len(IZIN_LISTESI)'ne
+    # ESIT OLMAK ZORUNDA. temel_kod != 0 iken bu esitlik GECERLI DEGILDIR (bayat girisler
+    # sapma yaratir) -> capa YALNIZ yesil temelde uygulanir; (a)/(b) delta iddialari her iki
+    # halde de aynen kalir.
+    if temel_kod == 0 and n != len(IZIN_LISTESI):
+        hata.append("MUTLAK SAYI YALAN: basilan %r, gercek izin listesi %d -> delta korunmus "
+                    "olsa da rapor sayisi merge olcumunu yaniltir"
+                    % (n, len(IZIN_LISTESI)))
+
+    # (a) sentetik yol KAPSAMSIZ: red semantigi korunmali VE muaf sayisina SIZMAMALI
+    kod_a, satir_a = denetle(gercek, kesif_sentetik, IZIN_LISTESI, kontroller=False)
+    n_a = _muaf_sayisi(satir_a)
+    if kod_a != 1:
+        hata.append("(a) KAPSAMSIZ TESPITI BOZUK: sentetik kapsamsiz yol eklenince exit 1 "
+                    "bekleniyordu, exit %r geldi" % kod_a)
+    if not any(("KAPSAMSIZ" in s and SENTETIK_KAPSAMSIZ in s) for s in satir_a):
+        hata.append("(a) KAPSAMSIZ SATIRI YOK: %s icin 'KAPSAMSIZ' hatasi beklenmisti"
+                    % SENTETIK_KAPSAMSIZ)
+    if n_a != n:
+        hata.append("(a) MUAF SAYACI SIZDIRIYOR: kapsamsiz dosya 'Muaf (izin listesi)' "
+                    "sayisina girdi (beklenen %d, basilan %r) -> sayi etiketine uymuyor "
+                    "(27 Tem hatasinin ta kendisi)" % (n, n_a))
+
+    # (b) sentetik yol GEREKCELI MUAF: kabul semantigi korunmali VE sayi TAM 1 artmali.
+    #     Iddia TEMELE GORELI: gerekceli muafiyet kapiyi TEMELIN verdigi hale geri dondurur
+    #     (temel yesilse 0, temel kirmiziysa 1 kalir) -> temel kirmizi iken de kirilgan degil.
+    izin_b = dict(IZIN_LISTESI)
+    izin_b[SENTETIK_KAPSAMSIZ] = ("SENTETIK NOBETCI GIRISI — yalniz bellekte, repoda "
+                                  "karsilik gelen dosya yok.")
+    kod_b, satir_b = denetle(gercek, kesif_sentetik, izin_b, kontroller=False)
+    n_b = _muaf_sayisi(satir_b)
+    if kod_b != temel_kod:
+        hata.append("(b) MUAFIYET KABULU BOZUK: sentetik yol gerekceyle izin listesine "
+                    "eklenince kapi temel verdigi exit %r'e donmeliydi, exit %r geldi (%s)"
+                    % (temel_kod, kod_b,
+                       "; ".join(s.strip() for s in satir_b if s.strip().startswith("❌"))))
+    if n_b != n + 1:
+        hata.append("(b) MUAF SAYACI KOR: muafiyet eklenince sayi %d -> %d olmaliydi, "
+                    "basilan %r (27 Tem'de olculen 71 -> 71 kor sayaci)" % (n, n + 1, n_b))
+    return (not hata), hata
+
+
+# ---- SAF DENETIM GOVDESI ---------------------------------------------------
+# main() eskiden hem karar veriyor hem BASIYORDU -> govdeyi disaridan (nobetciden)
+# olcmek imkansizdi ve "CI'da kosan kod" ile "test edilen kod" ayrisiyordu.
+# denetle() saftir: girdisini parametreden alir, hicbir sey basmaz, (kod, satirlar) dondurur.
+# Boylece muaf_sayaci_kontrol() TA KENDISINI olcer (kopya mantik yazmaz).
+def denetle(deploy_metin, kesif, izin_listesi, kontroller=True):
+    """(exit_kodu, rapor_satirlari) dondurur. Hicbir sey BASMAZ.
+
+    kontroller=True iken kendi mutasyon nobetcilerini (bulgu1 + muaf sayaci) BLOKLAYICI
+    olarak kosar. muaf_sayaci_kontrol() bu fonksiyonu tekrar cagirdigi icin oradan
+    DAIMA kontroller=False ile girilir (OZYINELEME KORUMASI)."""
+    satirlar = []
     kos = kosulan(deploy_metin, kesif)
     kesif_kume = set(kesif)
 
     # T8: bloklamayan gelecek-robustluk uyarisi (hatalar listesine GIRMEZ, exit degismez).
     for satir in sayilamayan_python3(deploy_metin):
-        print("UYARI: python3 iceren ama sayilamayan icra satiri "
-              "(bare 'python3 tools/x.py' formu kullan): %s" % satir)
+        satirlar.append("UYARI: python3 iceren ama sayilamayan icra satiri "
+                        "(bare 'python3 tools/x.py' formu kullan): %s" % satir)
 
     hatalar = []
 
     # 2) gerekcesiz izin girisi
-    for yol, gerekce in IZIN_LISTESI.items():
+    for yol, gerekce in izin_listesi.items():
         if not (gerekce and gerekce.strip()):
             hatalar.append("GEREKCESIZ izin girisi (bos gerekce): %s" % yol)
 
     # 3) bayat izin: kesfedilmeyen (silinmis/yeniden adlandirilmis) yol
-    for yol in IZIN_LISTESI:
+    for yol in izin_listesi:
         if yol not in kesif_kume:
             hatalar.append("BAYAT izin (artik kesfedilmiyor — sil ya da yolu duzelt): %s" % yol)
 
     # 4) bayat izin: hem izinde hem kosuluyor
-    for yol in IZIN_LISTESI:
+    for yol in izin_listesi:
         if yol in kos:
             hatalar.append("BAYAT izin (test ARTIK KOSULUYOR — izinden cikar): %s" % yol)
 
@@ -383,36 +508,89 @@ def main():
     for yol in kesif:
         if yol in kos:
             continue
-        if yol in IZIN_LISTESI:
+        if yol in izin_listesi:
             continue
         kapsamsiz.append(yol)
     for yol in kapsamsiz:
         hatalar.append("KAPSAMSIZ (ne kosuluyor ne izin listesinde): %s" % yol)
 
-    # 5) BULGU 1 mutasyon nobetcisi — yalniz GERCEK deploy.yml'e karsi (mutant --deploy
-    #    verildiginde pozitif kontrol anlamsiz olur, o yuzden atla).
-    mutasyon_hata = []
-    if os.path.abspath(args.deploy) == os.path.abspath(DEPLOY_VARSAYILAN):
-        ok, mutasyon_hata = bulgu1_mutasyon_kontrol()
+    # 5) kendi mutasyon nobetcileri — yalniz GERCEK deploy.yml'e karsi (mutant --deploy
+    #    verildiginde pozitif kontrol anlamsiz olur, o yuzden atlanir) ve nobetcinin
+    #    kendi ic cagrilarinda (ozyineleme) atlanir.
+    if kontroller:
+        _, mutasyon_hata = bulgu1_mutasyon_kontrol()
         for h in mutasyon_hata:
             hatalar.append("BULGU1-MUTASYON: " + h)
+        _, muaf_hata = muaf_sayaci_kontrol()
+        for h in muaf_hata:
+            hatalar.append("MUAF-SAYACI: " + h)
 
     # ---- rapor ----
-    muaf = [y for y in kesif if y not in kos]
-    print("CI KAPSAM KAPISI")
-    print("  Kesfedilen kabul testi : %d" % len(kesif))
-    print("  deploy.yml'de kosulan  : %d  (%s)" % (
+    # FIX (27 Tem, olculdu): eski hal `[y for y in kesif if y not in kos]` idi -> etiket
+    # "Muaf (izin listesi)" derken KAPSAMSIZ dosyalari da sayiyordu. Somut olcum:
+    # tools/mimar-kapi-6ev-test.py kapsamsizken satir "Muaf: 71" yazdi; gercek muafiyet
+    # eklenince (IZIN_LISTESI 70 -> 71) satir YINE "71" yazdi -> sayi muafiyet eklemesine
+    # KOR, kapsamsiz dosya sessizce "muaf" etiketleniyordu. merge prosedürü bu sayiyi
+    # ONCE/SONRA olcumu olarak rapor ettirdigi icin yanlis etiket olcumu bozuyordu.
+    # (Kabul/ret semantigi DEGISMEDI: kapsamsiz tespiti yukarida, ayri ve aynen duruyor.)
+    muaf = [y for y in kesif if y not in kos and y in izin_listesi]
+    satirlar.append("CI KAPSAM KAPISI")
+    satirlar.append("  Kesfedilen kabul testi : %d" % len(kesif))
+    satirlar.append("  deploy.yml'de kosulan  : %d  (%s)" % (
         len(kos), ", ".join(sorted(kos)) or "-"))
-    print("  Muaf (izin listesi)    : %d" % len(muaf))
-    print("-" * 70)
+    satirlar.append("  Muaf (izin listesi)    : %d" % len(muaf))
+    satirlar.append("-" * 70)
     if hatalar:
         for h in hatalar:
-            print("  ❌ " + h)
-        print("-" * 70)
-        print("SONUC: KIRMIZI ❌  (%d sorun)" % len(hatalar))
+            satirlar.append("  ❌ " + h)
+        satirlar.append("-" * 70)
+        satirlar.append("SONUC: KIRMIZI ❌  (%d sorun)" % len(hatalar))
+        return 1, satirlar
+    satirlar.append("SONUC: YESIL ✅  — her kabul testi ya kosuluyor ya gerekceli muaf.")
+    return 0, satirlar
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--deploy", default=DEPLOY_VARSAYILAN,
+                    help="deploy.yml yolu (kirmizi-mutasyon icin alternatif kopya verilebilir)")
+    ap.add_argument("--kendini-test", action="store_true",
+                    help="YALNIZ kendi mutasyon nobetcilerini kosar: bulgu1 + muaf sayaci "
+                         "(gercek deploy.yml uzerinden)")
+    args = ap.parse_args()
+
+    if args.kendini_test:
+        ok1, hata1 = bulgu1_mutasyon_kontrol()
+        print("BULGU 1 MUTASYON NOBETCISI")
+        if ok1:
+            print("  ✅ gercek deploy sayiyor; yalniz-yorum mutanti saymiyor")
+        else:
+            for h in hata1:
+                print("  ❌ " + h)
+        ok2, hata2 = muaf_sayaci_kontrol()
+        print("MUAF SAYACI NOBETCISI")
+        if ok2:
+            print("  ✅ kapsamsiz dosya 'Muaf' sayilmiyor; muafiyet eklenince sayi 1 artiyor")
+        else:
+            for h in hata2:
+                print("  ❌ " + h)
+        if ok1 and ok2:
+            print("SONUC: YESIL ✅")
+            return 0
+        print("SONUC: KIRMIZI ❌")
         return 1
-    print("SONUC: YESIL ✅  — her kabul testi ya kosuluyor ya gerekceli muaf.")
-    return 0
+
+    if not os.path.exists(args.deploy):
+        sys.exit("deploy.yml bulunamadi: " + args.deploy)
+    with open(args.deploy, encoding="utf-8") as f:
+        deploy_metin = f.read()
+
+    kod, satirlar = denetle(
+        deploy_metin, kesfet(), IZIN_LISTESI,
+        kontroller=os.path.abspath(args.deploy) == os.path.abspath(DEPLOY_VARSAYILAN))
+    for satir in satirlar:
+        print(satir)
+    return kod
 
 
 if __name__ == "__main__":
