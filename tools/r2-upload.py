@@ -15,12 +15,14 @@ Birden fazla dosya için çift çift ver:
 
 DOĞRULAMA (sessiz-yükleme kalkanı — put_object çağrısı REFAKTÖR EDİLMEDİ, etrafına sarıldı):
   R1 Ön-doğrulama (fail-closed): gövde bilinen görsel sihirli-baytıyla başlamalı + asgari boyutu geçmeli
-     → 0-bayt / kesik / Cloudflare-403 HTML gövdesi yükleme ÖNCESİ ölür (yükleme YAPILMAZ, RAISE).
+     → 0-bayt / MIN_BOYUT altında / görsel-magic-yok / Cloudflare-403 HTML gövdesi yükleme ÖNCESİ ölür
+       (yükleme YAPILMAZ, RAISE).
   R2 ContentType gövdeden türetilir (sabit "image/jpeg" DEĞİL) → feed/og:image/sosyal kazıcı kırılmaz.
   R3 Uzantı↔gövde uyuşmazlığı (.jpg ad ama PNG gövde) → stderr LOUD uyarı + content-type GERÇEK formata göre.
      Varsayılan hard-reject ETMEZ (MaCiT/KaaN partisini ortada kırmasın).
   R4 Upload SONRASI head_object readback (fail-closed): R2'deki ContentLength == yerel boyut değilse RAISE
-     → kısmi / başarısız PUT yakalanır.
+     → kısmi / başarısız PUT (R2 boyutu != yerel boyut) yakalanır.
+  Piksel-decode DOĞRULANMAZ; yerelde önceden kesilmiş ama magic-geçerli dosya yakalanmaz.
 """
 import sys, os, json, boto3
 
