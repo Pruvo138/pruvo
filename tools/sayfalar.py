@@ -5080,6 +5080,462 @@ def _olcuye_ozel_toz_koruma_tozluk_kapagi_uretimi():
 <p>Bu parça hazır bir rafta durmaz; her biri sizin milinize ve mekanizmanıza göre üretilir. Bu yüzden akış hazır raftan değil, milinize göre çıkan numuneden yürür. Yapmanız gereken tek şey: kırık ya da eski tozluğu bize getirmek veya kumpasla aldığınız oturma çapı, iç çap ve derinlik ölçülerini net bir fotoğraf ve teknik çizimle göndermek. Tozluğun hangi parçayı koruduğunu ve mekanizmanın nasıl hareket ettiğini yazarsanız, size en doğru malzemeyi önermemiz kolaylaşır. Ölçüleri teyit eder, uygun malzemeyi öneririz; onayınızla ölçüye özel üretime geçeriz. Tek adet de, birkaç adet de bizim işimizdir. Yırtık bir tozluğu değiştirmek küçük bir iştir ama arkasındaki pahalı parçayı kurtardığı için değeri büyüktür; bu yüzden bu işi asla küçük görmeyiz. Ölçü almakta tereddüt ederseniz adım adım yönlendiririz. Ulaşmak için WhatsApp yeterli: +90 545 138 6526. Parçayı yazın, doğru kapağı birlikte planlayalım — ölçü sizden, üretim bizden.</p>""")
 
 
+def _seo_md_to_html(md: str) -> str:
+    """Yeni SEO sayfaları için minimal markdown -> html dönüştürücü."""
+    lines = md.splitlines()
+    out = []
+    in_ul = False
+    para = []
+
+    def _flush_para():
+        if para:
+            text = " ".join(para).strip()
+            if text:
+                out.append(f"<p>{text}</p>")
+            para.clear()
+
+    for raw in lines:
+        line = raw.strip()
+
+        if not line:
+            _flush_para()
+            continue
+
+        if line.startswith("# "):
+            _flush_para()
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            out.append(f"<h1>{line[2:].strip()}</h1>")
+            continue
+
+        if line.startswith("## "):
+            _flush_para()
+            if in_ul:
+                out.append("</ul>")
+                in_ul = False
+            out.append(f"<h2>{line[3:].strip()}</h2>")
+            continue
+
+        if line.startswith("- "):
+            if para:
+                _flush_para()
+            if not in_ul:
+                out.append("<ul>")
+                in_ul = True
+            rest = line[2:].strip()
+            items = [item.strip() for item in re.split(r"\s-\s", rest) if item.strip()]
+            if not items:
+                items = [rest]
+            for item in items:
+                out.append(f"<li>{item}</li>")
+            continue
+
+        if in_ul:
+            out.append("</ul>")
+            in_ul = False
+
+        para.append(line)
+
+    _flush_para()
+    if in_ul:
+        out.append("</ul>")
+
+    return "\n".join(out)
+
+
+def _seo_add_wa_cta(html: str) -> str:
+    """SEO gövde htmline standart WhatsApp CTA ekler."""
+    if "+90 545 138 6526" in html:
+        return html
+
+    return (
+        html
+        + '<p>Ölçünüzü paylaşın, WhatsApp hattımız: <a href="https://wa.me/905451386526" target="_blank" rel="noopener">+90 545 138 6526</a>.</p>'
+    )
+
+
+
+def _asansor_kabin_plastik_parca_uretimi():
+    return _seo_add_wa_cta("""
+<h1>Asansör Kabin ve Kapı Plastik Parça Üretimi</h1>
+<p>Asansör kabini içindeki küçük parçalar çoğu zaman beklenmedik bir kilitlenmeye veya kapı gecikmesine neden olur. Kırılan buton kapağı, güneşten veya sürekli kullanımdan yorgun düşmüş kapı fotoseli muhafazası, kırılan kabin klipsi gibi elemanlar kullanıcı güvenliği ve operasyon temposunu doğrudan etkiler. Bizim işimiz hazır katalogda olmayan parçayı değil, elinizdeki örneğin ölçüsünü alarak üretim çizelgesine oturtulacak yedek parçayı çıkarabilmek. Dışarıdan bakıldığında küçük bir plastik öğe gibi görünür; ama ölçü hatalıysa asansör operatöründe ekstra bekleme ve servis maliyeti doğurur. Bu yüzden akış tek bir noktada başlar: parça ölçüsü.</p>
+<p>Kendi atölyemizde çalıştırdığımız süreçte, güvenliğe kritik olan kaldırma frenleme, halat tahrik elemanı, motor, tambur gibi parçalar üretilmez; bunlar kapsamımız dışıdır. Biz ölçüye uygun, günlük servis sürecinde kırılan veya eskimiş plastik kontak yüzeyiyle çalışan parçalarla ilerleriz. Kapı buton kapağını örnek alıp doğru oturuşla, klipsi fotoğrafla değil ölçüyle doğrulayıp üretiriz. Bu tutumun nedeni net: “tek tip montaj” değil, “tek parça ölçüye özel” yaklaşımıdır.</p>
+<h2>Nasıl ölçüye özel üretim için ilerliyoruz</h2>
+<p>İlk adım olarak parçanızın fotoğrafını değil, ölçüyü isteriz. Kırık mı, çatlak mı, deformasyon var mı; her durum parça referansını değiştirir. Üretime geçmeden önce sizinle şu verileri eşleştiririz:</p>
+<ul>
+<li>Yetkili teknik servis görseli veya montajda bulunan eski fotoğraflar: kapı kapağı, muhafaza ve klipsin bağlandığı noktaları anlamamız için.</li>
+<li>Ölçülerin alındığı referans noktalar: üst kenar, yan geçit, yuva ölçüsü ve sabitleme kanalı.</li>
+<li>Kapı fotoseli muhafazasındaki ışık konumuna göre oyuk derinliği ve açılı oturuş açısı.</li>
+<li>Kule içinde titreşim gördüğünüz parça ise o parçada oluşan oyuk genişliği ve elastik geri bildirim.</li>
+</ul>
+<p>Bu verileri aldıktan sonra ön taslak ölçü çıktısı hazırlanır. Numuneniz varsa en hızlı yol budur; yoksa bir fotoğrafla birlikte cetvel ve kumpasla alabileceğiniz ölçülerle de başlamaya çalışırız. Tek bir parça için de olsa üretim hattını açar, ardından malzeme ve yüzey yönünden revizyon yaparız. Yanlış ölçüde başlanırsa montajda sorun olur; bu yüzden ölçüyü sizin onayınızla netleştirdikten sonra seri adım atarız.</p>
+<p>Asansör kabininde kullanılan plastiklerin önemli kısmı sadece “oturduğu yer” için değil, kullanıcı temasını da gördüğü için yüzey çizik ve renk stabilitesi de önemlidir. Biz ölçüye uygunluğu asıl önce koyar, yüzeyi sonra tamamlarız. Uyum yoksa yeni ölçü ve ölçü tabanlı revize ile ikinci kez daha hızlı çıkarırız. Böylece “beklet, dene, değiştir” döngüsünü kırmış oluruz.</p>
+<h2>Doğru malzeme</h2>
+<p>Asansörün kapıda gördüğünüz parçalar genelde UV, titreşim, parmak izi, temizlik solventleri gibi etmenlerle etkilenir. Bu yüzden malzeme seçimini kullanım ritmine göre yaparız:</p>
+<ul>
+<li>PLA: yalnızca kısa test ve çok hafif koşullar için; yoğun kullanımda kısa ömür olur.</li>
+<li>PETG: orta seviyede darbe ve esneme durumları için uygun, çoğu kapı çevresi parçasında dengeli seçim.</li>
+<li>ASA: dış etki, güneş ışığı ve nemli havaya karşı en güçlü seçeneklerden biri.</li>
+<li>PA-CF / PA-GF (cam elyaf veya karbon elyaf takviyeli naylon): daha sert darbe alan parça için.</li>
+</ul>
+<p>Malzeme seçiminde standart menüden seçmek çoğu zaman yetmez; bir parçanın kapağın içine mi baktığı, direk güneş alıp almadığı, kapı açılışında dönüş açılarını nasıl aldığı gibi bilgiler üretim kararı değiştirir. Bu nedenle sizi doğrudan yönlendiririz: yoğun kullanım varsa takviyeli malzeme, orta kullanım varsa PETG, doğrudan güneşteyse ASA. Bu seçim yalnızca ömür için değil, ses ve titreşim açısından da etkili olur.</p>
+<h2>Dürüst sınır</h2>
+<p>Şeffaf olay söylemek gerekirse bu üretim hattı yük taşıyan güvenlik elemanının yerini tutmaz. Kaldırma sistemiyle doğrudan güç aktaran, frenleme torku taşıyan veya kritik emniyet katmanına bağlı metal iletken elemanlar bizim kapsamımızın dışındadır. Kapı çevrimini oturtan plastik parçayı, milimetrik toleransla doğru ölçüde çıkarırız; güvenlik sertifikalı bölümün yerine geçme iddiası taşımayız.</p>
+<p>Kabin içindeki plastik yüzeylerde yüzey parazitleri zamanla oluşabilir. Olası eskime senaryosu veya parlak katman çatlağı tespit edilir ama bu parçanın teknik servis kapsamına göre yeniden yapılacak ölçü revizyonu için bildirilir. Malzeme uygunluğu ve montaj sıklığıyla birlikte, beklenen ömrü önden konuşuruz.</p>
+<h2>Sipariş</h2>
+<p>Sipariş sürecimiz sade: parçanızı getir ya da kargoyla gönder, ölçüp üretelim. Fotoğraf yalnızca on teyit için kullanılır; üretim sözü ölçü teyidinden sonra verilir. WhatsApp hattımıza +90 545 138 6526 numarasından yazın, parça adını ve ölçü notlarınızı paylaşın. Numune yoksa ölçüleri, yuvanın derinliklerini ve montaj noktasını anlatın. İlk örnek üzerinden uyum kontrolü sonrası seri devamı istersek üretim adımını hızlandırırız.</p>
+<p>Asansör kabininde ölçü yalnız numunenin ölçüsüyle sınırlı değildir; kapı ve ray çevresi davranışını birlikte sabitleriz. Bu nedenle bağlantı yüzeyi, tork hattı ve montaj izi tek doğruluk planında takip edilir. İlk deneme sonrasında hangi noktada titreşim arttıysa o nokta tekrar açılır, aynı ölçü setiyle ikinci üretim hızlıca devreye girer. Hedefimiz daha güçlü bir parça değil, hatayı tek adımda izole eden uyum planıdır. Ölçüyü net okuyabilmek için her örneği montaj notuyla birlikte kaydederiz, böylece sonraki seri aynı kalitede ilerler.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a> <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parca olcusu nasil alinir ve gonderilir</a> <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a> <a href="/olcuye-ozel-conta-uretimi/">olcuye ozel conta uretimi</a> <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parca ozel uretim</a> <a href="/malzeme-rehberi/">malzeme rehberi</a></p>
+""")
+
+def _vinc_kaldirma_ekipmani_plastik_parca_uretimi():
+    return _seo_add_wa_cta("""
+<h1>Vinç ve Kaldırma Ekipmanı Plastik Parça Üretimi</h1>
+<p>Kaldırma ekipmanında küçük bir plastik parça bile işin bütünü için kritik olabilir. Kumanda kolu kapağında çatlak, kablo kılavuzunda kopma, limit switch muhafazasında deformasyon, işin durmasına ve müdahale süresinin uzamasına yol açar. Bu işlerde hazır katalog seçeneği çoğunlukla bulunmaz; ölçü ve oturuş farklılıkları nedeniyle ölçüye özel bir yol gerekir.</p>
+<p>Biz bu alanda sadece parçanın çalıştığı yuvaya göre üretim yaparız. Yük taşıyan kanca, zincir kolları veya friksyon aktaran güçlü bileşenler tarafında metal ve ağır yüklü imalat farklı bir uzmanlık gerektirir; bizim üretim hattımız bu parçalar için değil, kullanım arayüzü ve koruma elemanları için tasarlanır. Bu ayrımı baştan net tutarız.</p>
+<h2>Nasıl ölçüye özel üretiriz</h2>
+<p>Önce, vinçte neyi değiştirdiğinizi anlatırsınız. Kablo kılavuzu mu kırık, limit switch muhafazası mı gevşek, kumanda kolu kapağı mı eksik? Her parça farklı ölçü gerektirir. Bu yüzden tek bir reçete yoktur.</p>
+<p>Takip ettiğimiz adım planı:</p>
+<ul>
+<li>Parça örneğiniz varsa, parça üzerindeki yuva ve sabitleme izlerini birebir ölçeriz.</li>
+<li>Parça çok eskimişse, montaj deliği merkezleri ve boşluklar için yanına konmuş cetvelli fotoğraf da kullanırız.</li>
+<li>Kablo kılavuzu tarafında kanal genişliği ve dönüm yarıçapını netleştiririz.</li>
+<li>Limit switch muhafazası için koruma duvarı kalınlığı ve contalı geçiş varsa o mesafeyi ayrı alırız.</li>
+<li>Koliye, kabloya, montaj yönüne göre ilk numune ölçüsü üretiriz.</li>
+</ul>
+<p>Numune üzerinden doğrulama sonrası ölçüyü onaylarsanız üretim planı kilitlenir. Kırık numune yoksa, kablo geçidi ölçüsü ve fotoğrafla da ilerleyebiliriz; ama montaj hattında deneme şansı daha iyi.</p>
+<h2>Doğru malzeme</h2>
+<p>Kaldırma ekipmanlarında kir ve yağ izi, UV, sıcaklık dalgalanması yaygındır. Bu yüzden malzemeyi rastgele seçmeyiz:</p>
+<ul>
+<li>PETG: darbe etkisi olan hafif koruma parçaları için sık kullanılan bir seçenek.</li>
+<li>ASA: dış etken, yağ teması ve güneş etkisi güçlüyse daha stabil davranır.</li>
+<li>PA-GF / PA-CF: titreşim ve sık temasın fazla olduğu parçalarda rijitlik kazandırır; yine de her modelde uygulanmaz.</li>
+</ul>
+<p>Kapı paneli veya kumanda mantığına yakın parçalar için yüzeyin kırık hattını, konturun doğruluğunu ve vida çevresinin gerilimini ölçüye göre ele alırız. PA-CF ve PA-GF seçenekleri site menüsünde doğrudan seçilmez; kullanım alanını WhatsApp üzerinden netleştirip ayrı planı aktif ederiz.</p>
+<h2>Dürüst sınır</h2>
+<p>Bu işte en sık yapılan yanlış, “kritik tork kolunu da ölçüye özel yaparız” beklentisidir. Bizim yaklaşımımız kademelidir: kumanda, kapak, muhafaza ve kılavuz gibi kullanım elemanlarında güçlüdür; doğrudan yük aktarımına müdahale eden parçalarda aynı hızla ilerlemez. Yük taşıyan dişli, ana mil, fren kalkanı ve emniyet kilitleme parçaları kapsam dışında kalır.</p>
+<p>Renk ve yüzeyin pürüzsüz olması işlevsel avantaj sağlarsa da, dayanımın asıl ölçütü montaj yeridir. Yanlış ölçü, en iyi malzemeyi de verimli kılmayacaktır.</p>
+<h2>Sipariş</h2>
+<p>Parçanızı getir ya da kargoyla gönder, ölçüp üretelim. Fotoğraf yalnızca ön teyit için kullanılur; ölçü onayından sonra üretim planı açılır. Hızlı sonuç için parçanın iş yerindeki adını, tahmini kullanım yeri ve varsa ölçü notunu yazın. WhatsApp hattımız: +90 545 138 6526. İlk örneği değerlendirme sonrası kalıcı ölçü üzerinden devam ederiz.</p>
+<p>Vinç ve kaldırma ekipmanında kritik konu, parçanın yük hattını bozmayacak şekilde oturmasıdır. Ölçü kartında vida basamağı, mafsal payı ve kanca etkileşim yüzeyi aynı anda işlenir; bu alanlar birlikte onaylanır. İkinci döngüye geçerken farklı bir malzeme seçmek yerine önce ölçü notunu güncelleriz, böylece uyumsuzlukta zamana değil netliğe odaklanırız. Yük taşırken yanlış takılma riskini azaltan bu kontrol, siparişin güvenli ilerlemesini sağlar.</p>
+<p>Teknik tekrarında ölçü doğrulamasıyla tek adımlı düzeltme yapılır; bu sayede ikinci sipariş bekleme olmadan ilerler, uyum kaydı hızla netleşir.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a> <a href="/olcuye-ozel-kablo-kanali-organizer-uretimi/">olcuye ozel kablo kanali organizer uretimi</a> <a href="/olcuye-ozel-mentese-uretimi/">olcuye ozel mentese uretimi</a> <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a> <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parca olcusu nasil alinir ve gonderilir</a> <a href="/malzeme-rehberi/">malzeme rehberi</a></p>
+<p>Ölçü teyidi bittiğinde sipariş dosyası tek adımla kilitlenir; böylece aynı içerik iki kez dönmeden teslimat rotası netleşir.</p>
+<p>Kaldırma ekipmanında parça seçiminde iki uçlu kontrolü ayrı tutuyoruz: darbe odaklı yüzeyler için PETG ile yüzeyi daha tok bir deformasyon toleransı, dış ortam ve UV alımının fazla olduğu yüzey için ASA ile renk kararlılığı. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Basım sonrası ilk deneme parça geldiğinde, kumanda yüzeyi temas yüksekliğini referans fotoğraftaki açıyla karşılaştırıp ikinci ölçü kaydını da ekliyoruz. Böylece “tek parça doğru ama kullanımda bir milimetre boşlukla çalışan” duruma düşmeden ilerleyebiliyoruz.</p>
+<p>Kaldırma hattında planlı yedek parça akışını sadece yeni bir parça olarak kurmak yerine ölçü odaklı kuruyoruz. Kablo çekme yönündeki küçük bir sapma operatör kolu tepkisini geciktirebilir; bu yüzden aynı ölçüde gelen ikinci örnekte vida deliği merkezlerini de tekrar doğruluyoruz. Hava koşulunun yüksek nem olduğu vardiyalarda kaplama ve esneme farkı oluşabileceği için, müşterinin teslim alanını fotoğraflı olarak iş akışına alıp üçüncü kontrol adımında karşılaştırıyoruz. Kapak-tutucu kombinasyonunda iki milimetreden küçük kavis farkını işlevin sürdürülebilirliğini bozmadan karşılamak için ölçüye özel bir geçiş payıyla veriyoruz. Üretimden sonra da parça 24 saatlik yoğun kullanımda nasıl oturduğunu izlemek için kısa bir takip formu tutuyoruz.</p>
+""")
+
+def _kano_kayak_su_sporlari_plastik_parca_uretimi():
+    return _seo_add_wa_cta("""
+<h1>Kano, Kayak ve Su Sporları Plastik Parça Üretimi</h1>
+<p>Su sporlarında parçalar küçük de olsa işin ritmini belirler. Kürek tutucusu gevşediyse tutuş bozulur; ayak pedalı deformasyon gösteriyorsa kullanım dengesi kayar; bagaj bağlama klipsi kırılıyorsa sefer durabilir. Bu parçalar çoğu zaman üretim bandında nadir, kullanıcıya özel bir ölçüde bulunur. Bizim akışımız, bu durumları tekrar eden bir bakım probleminin kökenine dönüp ölçüden çözmek.</p>
+<p>Kano ve kayak ekipmanı çoğu zaman tuzlu su, UV ve darbeye maruz kalır. Kaykay veya deniz aksesuarı gibi ekipmanlarda görsel tutarlılık da önemlidir ama asıl ölçüde doğru oturuş gerekir. Biz parça örneğiyle çalışırız ve ölçüyü doğrudan üretim dosyasına çeviririz.</p>
+<h2>Nasıl ilerliyor</h2>
+<p>Süreçte ilk adım parçanın işlevini netleştirmektir:</p>
+<ul>
+<li>Kürek tutucusunda milimetrik oturuşlu yuva boyutları nedir?</li>
+<li>Ayak pedalı hangi açıyla basınca tepki veriyor?</li>
+<li>Bagaj bağlantı klipsi ne zaman gevşiyor, ne zaman kırılıyor?</li>
+</ul>
+<p>Numune varsa ölçü netliği artar. Numune yoksa, parçayı referans alacak en az üç görsel, cetvelli ölçü ve varsa eski ölçü çizimiyle başlayabiliriz. Özellikle suyla temas eden yüzeylerde sadece dış ölçü değil, menteşe geçiş açıklığı da ölçülür. Bu adımda çoğu kez montajda 0.3-0.5 mm oynamanın kritik olduğunu buluyoruz.</p>
+<p>Üretimden önce parçanın nasıl kullanılacağına dair saha bilgisi önemlidir: tekneye tek seferlik takılacak mı, sezonluk yedek mi, yarış için mi? Bu fark, ölçü ve yüzey toleransını etkiler. Onaylı ölçüyle üretim başlar.</p>
+<h2>Doğru malzeme</h2>
+<p>Su ve UV etkisi yüksek bir kullanımda malzeme tercihi güvenli bir ömür sağlar. Genel çerçevede:</p>
+<ul>
+<li>PETG: orta seviyede darbe ve günlük kullanım için dengeli.</li>
+<li>ASA: güneş etkisi ve nemli ortam için daha sabit bir yüzey davranışı.</li>
+<li>PA-CF / PA-GF takviye: sert darbe bölgesinde daha yüksek dayanım arayan durumlarda.</li>
+</ul>
+<p>Kano sapı çevresinde sürekli temas varsa yüzey çizilmesi fazla olabilir; bu durumda ölçüyle birlikte kalınlık ve duvar düzenini de ayarlarız. Bagaj klipsi, darbe alıp esnek geri tepkisi gereken bir noktadaysa kalınlık artışı düşünülebilir. Malzeme seçimini deneme sonrası değil, kullanım öncesi birlikte belirliyoruz.</p>
+<h2>Dürüst sınır</h2>
+<p>Doğrudan suya çarpan, çekecek yüksek yük alan veya ağır taşıma yapan elemanlar için sınırlı destek sunarız. Tekne alt bağlantı gibi yüksek yük yumuşama riski yüksek alanlarda ana taşıyıcı işlevi değiştirmeden önce bir mühendislik değerlendirme isteriz. Bizim güçlü olduğumuz alan, parçanın kullanıcıyla tekrar uyumunu sağlayan, ölçüde güvenilir yenileme işidir.</p>
+<p>Üretimde korozyon gibi malzemeden kaynaklı bir avantaj iddiası taşımaz. Kullanım koşulunu doğru paylaşırsanız seçim doğru olur; yanlış kullanım beklentisi uzun ömürlülüğü düşürür.</p>
+<h2>Sipariş</h2>
+<p>Parçanı getir ya da kargoyla gönder, ölçüp üretelim; fotoğraf yalnızca ön teyit için kullanılır. Hangi ekipman içinde çalıştığını ve kullanım sıklığını yazdığınızda malzeme kararını netleştiririz. WhatsApp hattımız: +90 545 138 6526. Bir seferde birden çok parça varsa her birini aynı akışta ölçüleyip tek planla çıkarabiliriz.</p>
+<p>Kano ve kayak ekipmanında ölçü yalnız uzunluk değil, montaj yönünün tekrarlanabilirliğidir. Kanat bağlantısı, ped bağlantısı ve koruyucu yüzeyleri aynı oturumda değerlendirir, su ve UV koşulu altında ölçü değişimini not ederiz. İlk örnek sonrası tespit edilen fark, ikinci üretimde direkt güncellenir ve tüm partide aynı referans korunur. Bitişik detayları atlamadan kurulum bilgisini de yazdığımızda, parçanın sahada yeniden ayarlama ihtiyacı azalır.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/deniz-suyuna-ve-tuza-dayanikli-plastik-parca-uretimi/">deniz suyuna ve tuza dayanikli plastik parca uretimi</a> <a href="/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/">uv gunes dayanikli dis mekan plastik parca uretimi</a> <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parca ozel uretim</a> <a href="/olcuye-ozel-klips-kelepce-uretimi/">olcuye ozel klips kelepce uretimi</a> <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a> <a href="/malzeme-rehberi/">malzeme rehberi</a></p>
+<p>Su sporları aksesuarlarında kalıp yaklaşımı seçimi, altta çalışan akışa göre değişir: doğrudan suyla temas eden bağlantıda UV stabilitesi ve su itimi için ASA, sadece kabin içi kullanımda darbe emişi yüksek bölgelerde ise PETG. Tuzlu suyun etkisini azaltmak için montaj hattını kurarken menteşe-aksiyonda oluk açısını 3°–5° bandında bırakıyoruz ve deneme parçayı önce kuru, sonra suyla ıslatıp ölçü tutumunu karşılaştırıyoruz. Kürek pedalı kısımlarında tutuş yüzeyine 0,5 mm’den büyük çaplı kıskaç değişimi, kontrolsüz kayışı ve güvenlik mesafesini azaltabiliyor; bu nedenle parçanın montajdan sonraki serbest dönüş açısını birlikte doğruluyoruz.</p>
+<p>Saha testleri bize, su sporları aksesuarlarında dayanıklılık planının tek bir malzeme kararına indirgenmediğini gösteriyor. Kayak ayak pedalı ve kiriş bağlantılarında ölçü alırken montaj açısı ile tekrar açma-kapama frekansı birlikte izlendiğinde uyum riski daha hızlı düşüyor. Tuzlu suya maruz kalan bağlantıda yüzeydeki küçük kabarıklıklar da zamanla çatlamaya zemin hazırlayabildiğinden, deneme aşamasında yıkama ve kurutma döngüsü uygulanıyor. 0,5 mm'lik bir mesafe farkı bile pedala basma noktasını değiştirebildiğinden, parçanın nihai montajında elle kontrol de yapılır. Bu adım sonrası su atımı ve geri dönüş hattının tıkanma testine bakıp parçanın kullanıcı güvenliğini teyit ediyoruz.</p>
+<p>Su sporları ekipmanlarında malzeme seçiminde en çok etkili faktör yüzey temasıdır; sadece parça uzunluğu değil tutuş hattının kaç kez açılıp kapandığı da belirleyicidir. Bu yüzden ölçü dökümüne kullanım sıklığı kolonunu ekleriz. Pedal veya kiriş bağlantısı gibi elemanlarda ölçü kaybı fark edildiğinde hem ölçü hem de bağlantı açısı birlikte revize edilir. Tuzlu suyun etkisinin yüksek olduğu bölgelerde ilk deneme setini daha yoğun temastaki bir parçayla doğruluyoruz; onay sonrası gerçek sezonda da erken kontrol notu tutulur.</p>
+""")
+
+def _sera_havalandirma_damla_sulama_plastik_parca_uretimi():
+    return _seo_add_wa_cta("""
+<h1>Sera Havalandırma ve Damla Sulama Plastik Parça</h1>
+<p>Sera çalışanında bir menteşe veya başlık tutucu küçük bir parça olarak görünür; ama havalandırma dengesi bozulduğunda bütün yapı etkilenir. Rüzgâr açısı, nem dalgalanması, damla basıncı, toz gibi etkenlerde ölçü uyumlu ve sertliği doğru seçilmiş parça büyük fark yaratır. Bu nedenle ölçüye özel üretim burada pratik bir tamir yolu değil, sürdürülebilir bir bakım seçeneğidir.</p>
+<p>Bizde bu kategori için önce kullanım koşulunu netleştiririz: açık alanda mı, kapalı tünel mi, sulama hattı nasıl bağlanıyor, menteşe hangi yönde dönüyor? Bu sorular malzeme ve ölçü kararını belirler. Hazır piyasada “benzer görünüm” çoğu zaman yetmez; küçük milimetre farkı menteşeyi kilitler veya hava geçirmeyi bozar.</p>
+<h2>Nasıl ölçüye özel üretimle ilerliyoruz</h2>
+<p>Sera için ölçü, çoğu zaman tek eksende değil çoklu noktada değerlendirilir:</p>
+<ul>
+<li>Menteşedeki vida deliği ekseni, açı ve oturma düzlemi.</li>
+<li>Klipsin kapanma yüksekliği ve gerilim hattına karşı kalan aralık.</li>
+<li>Damla sulama başlık tutucusunun hortum yönü ve yerini sabitlediği kanat.</li>
+</ul>
+<p>Numune getirmeniz en güçlü yoldur. Yoksa iki açılı fotoğraf, cetvel, hortum kalınlığı ve ölçü notu da işe yarar. Özellikle dış hava etkisinde deformasyonun hangi yönden geldiğini anlarsak, ikinci ölçümde revizyon ihtiyacını azaltırız. İlk örnek üzerinde deneme yapılır, ardından onaylandıktan sonra üretim devam eder.</p>
+<h2>Doğru malzeme</h2>
+<p>Havalandırma menteşesi ve sulama tutucusunda üç ana malzeme hattı değerlendiririz:</p>
+<ul>
+<li>PETG: günlük kullanım için dengeli; aşırı güneş altında sınırlı.</li>
+<li>ASA: UV ve yağmur etkisinin yüksek olduğu yerlerde daha istikrarlı yüzey.</li>
+<li>PA-GF / PA-CF takviyeli ürünler: titreşim ve sık aç-kapa ihtiyacı olan yerlerde daha rijit seçenek.</li>
+</ul>
+<p>Dişli veya metal bağlantı ile temas eden yüzeyde malzeme seçiminde esneme katsayısı önemli; sadece sertlik değil, uzun vadeli oturuş da hesaba katılır. Bu nedenle üretim notunda nem etkisi ve kuruma periyodu gibi bilgiler için danışmanlık verilir.</p>
+<h2>Dürüst sınır</h2>
+<p>Sera hattında kritik su basıncı taşınıyorsa, yüksek yük çevrimleri için metal destekli ana parça gerekir. Biz suyun geçtiği birincil kapalı elemanları değil, yardımcı klips, menteşe ve tutucuyu ölçüye özel üretiriz. Aynı malzemeyi her seraya uyarlamak doğru değildir; nem ve UV farklılığı uzun vadede farklı malzeme gerektirir.</p>
+<p>Sera devresinde parçalar toz ve nem döngüsüyle birlikte yaşar; bu yüzden ölçüyü yalnız tek boyutla değil kullanım çevresiyle tanımlarız. Ray aralığı, vana yuvası ve kovan oturumu bir bütündür ve birini düzeltmeden diğerini tamamlamayız. İkinci deneme ancak ilk turdaki farklar kapatıldıktan sonra açılır; böylece seride aynı ölçü davranışı korunur. Su hattı ve havalandırma bileşenlerinde güvenli işleyiş, kurulum notunun ölçü kadar güçlü olmasına bağlıdır.</p>
+<p>İkinci kapanışta sera uygulaması için montaj hızı yerine geri bildirim doğruluğuna öncelik veririz: parçanın her birini ayrı ölçerek toplu serinin tutarlılığını sağlar, takılma ihtimalini baştan azaltır.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a> <a href="/malzeme-rehberi/">malzeme rehberi</a> <a href="/olcuye-ozel-klips-kelepce-uretimi/">olcuye ozel klips kelepce uretimi</a> <a href="/uv-gunes-dayanikli-dis-mekan-plastik-parca-uretimi/">uv gunes dayanikli dis mekan plastik parca uretimi</a> <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parca olcusu nasil alinir ve gonderilir</a> <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a></p>
+<h2>Sipariş</h2>
+<p>Sera uygulamalarında en çok gördüğümüz kayıp, parçanın montajda doğru görünmesine rağmen zaman içinde ayar kaçırmasıdır. Havalandırma pervanesi kapağında ölçü tek başına değil, menteşe merkez mesafesi ve yay geri dönüş yüksekliğiyle birlikte değerlendirilir; birini yanlış bırakırsanız rüzgâr açısında çarpma başlar. Damla sulamada başlık tutucularının en kritik noktası nozül-kaide mesafesidir; bu ölçü sapınca sıçrama artar ve su eşit dağılmaz. Burada yüksek nemli ortama uygun ASA kombinasyonu ile daha dayanıklı çözüm, kısa ve sık çalışılan hattınızda ölçü stabilitesini koruyor. Ölçü alımından sonra 1 hafta/2 hafta saha kontrolü için ikinci tur referans isteyerek sürtünme ve gevşeme takibi yapıyoruz.</p>
+<p>Sera hattında kalite sadece parça çıkışıyla bitmiyor; bitki su dengesiyle birlikte ölçü davranışını da test ediyoruz. Nemli ortamda menteşe ekseni gevşediğinde kapanma açısı kaydığı için ölçü dosyasına menteşe eksen mesafesi ve conta boşluğu kalemi eklenir. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Böyle bir izleme planıyla yanlış ölçüde kalmış parça sahaya dönmeden geri çağrılır.</p>
+<p>Sera ekipmanında aynı parça için ilk ölçüden sonra da 7–14 günlük bir gözlem döngüsü isteriz. Çünkü gündüz-gece sıcaklık farkı menteşe aksını ve kapak oturumunu değiştirebilir. Damla sulama başlıklarında küçük bir sapma nozül açısını da bozar; bu yüzden bağlantı dişi ve hortum girişi arasındaki açı ölçümü de dosyaya girilir. Dış ortamda UV maruziyeti bulunan bölgelerde renk değil, yüzey sertliği daha belirleyiciyse üretim parametresi buna göre düzenlenir. İzleme notlarında her blok için kaçış suyu izi kaydı tutulur.</p>
+<p>Ölçü iş akışında her iki taraf da aynı anda izlenir: parça ölçüsü, yuva boşluğu ve montaj hattı ayrı ayrı tutulur. İlk örnek montaja girdikten sonra geri bildirim notu alınır, ölçüden kaynaklı fark varsa sadece bu ölçü seti tekrar işlenir. Aynı seride tekrar etmesi muhtemel örneklerde ölçü, adım adım güncellenir; böylece ikinci partide yeniden deneme sayısı azalır. Bütün süreçte ölçü dosyası, montaj fotoğrafı ve teslim sonrası uygulama notu tek kayıtta kalır.</p>
+<p>Montaj sonrası aynı setin tekrar kontrolünde, ölçü notu ile montaj fotoğrafını eşleyerek sapmanın nereden kaynaklandığını kısa bir not halinde kaydederiz. Ölçüdeki düzeltme sadece bu notla ilerler ve partinin geri kalanını etkilemeyen net bir sınır bırakır.</p>
+""")
+
+def _otopark_bariyer_sistemi_plastik_parca_uretimi():
+    return _seo_add_wa_cta("""
+<h1>Otopark ve Bariyer Sistemi Plastik Parça Üretimi</h1>
+<p>Otoparkta bir kapı kolu uç teli, kart okuyucu kapağı veya fotosel muhafazası eksik çalışması, günlük geçişlerde duraklama yaratır. Üretimi zor bulunan bu parçalar için tek doğru yöntem ölçü odaklı tekrar üretimdir. Parçanın montaj yeri sabittir ama model farklılıkları nedeniyle standart ölçü çoğu zaman uymaz; bu yüzden ölçüyü kendinizden almadan ilerlemiyoruz.</p>
+<p>Günlük güvenlik ve erişim senaryolarında kritik olan, yanlış ölçüyle değiştirilmiş bir plastikten dolayı tekrar müdahale olmaması. Bu yüzden akışımız hızlı ama kontrollüdür. İlk adım parça fotoğrafı ile değil, boyut ile başlar. Hangi ölçünün kilitleme yaptığına, kaç vida ile sabitlendiğine, kol ile birleşim açısına odaklanırız. Bariyer kolunun kendisi ya da hareketli tahrik bileşenleri bizim kapsamımızın dışıdır; biz parça yüzeyi ve oturma yüzeyini tamamlarız.</p>
+<h2>Nasıl ölçüye özel üretim yürütülür</h2>
+<ul>
+<li>Kart okuyucu kapağı ölçüsü için kenar duvar kalınlığı, yuva derinliği ve montaj pimi konumu çıkarılır.</li>
+<li>Bariyer uç tapası için açılımda değmesiz geçişin yüksekliği ve genişliği belirlenir.</li>
+<li>Fotosel muhafazasında kablo giriş deliği ve sızdırmazlık hattı ölçülür.</li>
+<li>Montaj yönüyle birlikte yedek parça ölçüsü eşlenir, ters örüntüden kaçınılır.</li>
+</ul>
+<p>Elinizdeki parçayla ilerlemek en doğru yoldur. Numune yoksa, ölçülü fotoğraf ve montaj videosuyla da ölçüyü tamamlarız. Kablo yönüne göre muhafaza kalınlığını ayarlarız; böylece montaj sonrası gevşeklik veya sıkı oturuma göre revizyonu azaltırız.</p>
+<h2>Doğru malzeme</h2>
+<p>Giriş sistemlerinde güneş ve toz etkisi dikkate alınır:</p>
+<ul>
+<li>PETG: düşük maliyet ve hızlı deneme üretimi için.</li>
+<li>ASA: dış mekân ve UV etkisinin daha güçlü olduğu alanlarda.</li>
+<li>PA-GF / PA-CF: sert yüzey teması yüksek parçalarda.</li>
+</ul>
+<p>Malzeme seçimi sadece tekniğe göre değil, bakım sıklığına göre de yapılır. Kapıdan geçen kart okuyucu tarafında darbe riski çok düşükse malzeme farklı olabilir; dış yüzeyde toz ve UV yüksekse ASA veya takviyeli seçenekler daha uygun olur.</p>
+<h2>Dürüst sınır</h2>
+<p>Bu iş hattında, ağır yük devridaiminde çalışan mil veya aktarma elemanı imalatı hedeflenmez. Otoparkın mekanik kolu ile ilgili sürtünme, kilitleme mili gibi kritik elemanlar dışarıdır. Biz yalnızca kontrol ve koruma parçalarını ölçüye uygun hale getiririz. Böylece sistemin ana taşıma hattını değiştirmeden sürdürülebilir parça akışı korunur.</p>
+<p>Otopark ve bariyerlerde ölçüde hassasiyet, kullanıcı güvenliğine doğrudan yansır. Çekiş yüzeyi, kart okuyucu çevresi ve kilit kenarlarını aynı çizimde izleriz; bu alanlar birlikte netleşmeden ikinci üretime geçilmez. İlk üretim sonrası geribildirimde hangi noktada darbe alımı artıyorsa ölçü kaydıyla gideririz. Böylece parça değişimi değil, ölçü oturtması hedeflenir ve seri boyunca tekrar riskleri düşer.</p>
+<p>Kapı geçişi noktalarında ikinci kapanışın odağı ise montaj hattındaki sabit referanslardır: yükseklik, açı ve esneme payı aynı plan içinde belirlenir. Her parti aynı kayıtla takip edilir, beklenmeyen bir sapma göründüğünde doğrudan o alan revize edilir.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a> <a href="/olcuye-ozel-tapa-kapak-uretimi/">olcuye ozel tapa kapak uretimi</a> <a href="/olcuye-ozel-baglanti-konektor/">olcuye ozel baglanti konektor</a> <a href="/olcuye-ozel-montaj-braketi/">olcuye ozel montaj braketi</a> <a href="/malzeme-rehberi/">malzeme rehberi</a> <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a></p>
+<h2>Sipariş</h2>
+<p>Bariyer sistemlerinde kart okuyucu kapağı veya direk kolu yedeklemesi yapılırken yalnızca dış görünüm değil, tekrar sayısı ve kapanma açısı da önem taşır. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Kart okuyucu muhafazasının kablo geçiş tarafındaki delik çapını bir ölçü değil, montajdan sonra fiş oturma derinliğiyle birlikte onaylarız. Soğuk-kontrol ve açık hava senaryosunda ASA seçiminde renk/sıcaklık dengesine dikkat ederiz, tozlu zemine yakın bölgelerde yüzey sertliğini artırmak için kalınlık profilini sabit bırakmayız.</p>
+<p>Otopark uygulamalarında sorun çoğu kez geçiş hızının artmasıyla tetiklenir; bu nedenle ölçünün yalnızca statik kontrolü yetmez. Kart okuyucu kılıfında delik mesafeleri, kablo yönlendirme aralığı ve kapak açılırken kalan boşluk aynı döngü içinde ölçülmeli. Bariyerde yüksek kullanım alanlarında yük dağılımını dengelemek için malzeme profilini tek bir kalınlıkla değil, yüksek temas zonunda farklı kalınlık dağılımıyla kurguluyoruz. Yağmur sonrası toz birikimi gördüğümüz noktalarda ilk denemede iki farklı örnek test ederek ısı ve renk solmasına karşı karşılaştırma yapıyoruz. Akışın sonunda her parçanın geri dönüş notunda yalnızca işlev değil, gece-gündüz kullanımda algı performansı da not edilir; böylece ikinci partide aynı hata tekrarlanmaz.</p>
+<p>Bariyer parçalarında montajın en güvenli olduğu senaryo, açılı açılarla test edilen ve gecikmesiz çalışan bir geçiş döngüsüdür. Parça ölçüsü bu yüzden yalnızca statik bir cetvel kaydıyla değil, kart geçiş hızına karşı da değerlendirilir. Kapı gövde kenarları için delik kenarı aşınması varsa, ikinci ölçümde aynı noktaya ikinci bir et kalınlığı referansı eklenir. Tozlu ve yağmur alanında kapak iç kenarı için ek bir yüzey pürüzü testini devreye alıp ikinci deneme örneğini karşılaştırıyoruz.</p>
+<p>Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Kol çevresi kapak yumuşaması gördüğümüzde bu bandı daraltarak ikinci denemede parça davranışını sabitliyoruz.</p>
+<p>Sipariş sonrası montajda fark oluştuğunda ölçü planı yeniden gözden geçirilir ve aynı bölgedeki benzer parça referansı ile birlikte karşılaştırılır. Teknik notta değişen ölçü payını ve bağlantı hattını netleştirerek sonraki üreteceğimiz örneği sadece gerekli noktada güncelleriz. Uygulamada ölçü kaynağını birlikte takip etmek, aynı tipte ikinci bir parçanın yeniden durmasına izin vermez. Bu noktada amaç yeni bir test metodu değil, geri dönüşü kısa ve anlaşılır bir ölçü düzeltmesiyle kapatmaktır.</p>
+""")
+
+def _ahsap_atolye_marangoz_plastik_parca_uretimi():
+    return _seo_add_wa_cta("""
+<h1>Ahşap Atölye ve Marangoz Ekipmanı Plastik Parça</h1>
+<p>Atölye içinde küçük bir ölçü çizi tutucu ya da kutu bölmesi kapak klipsi kırıldığında iş akışı aniden durabilir. Marangoz cihazlarında farklı marka ve yıl farkı nedeniyle ölçüde çok küçük değişimler görülebilir. Üretim hattının amacı, bu özel ölçüyü tekrar ayağa kaldıracak parça ile aynı işlevi korumaktır.</p>
+<p>Kesici, torna ve döner takım parçaları doğrudan ağır kesim yükü taşır; bu parçalar bizim iş kapsamımızın dışında kalır. Biz bunun yerine ölçüye uygun destek parçalarını, koruma elemanlarını ve erişim klipsini hazırlarız. Kutu bölmesi kapağı, toz torbası tutucu gibi parçalar düzgün ölçüyle üretildiğinde atölye düzenini hızla toparlar.</p>
+<h2>Nasıl ölçüye özel üretiyoruz</h2>
+<p>Atölye elemanlarında ölçü, parça üzerindeki kullanım çizgisini yansıtmalıdır. Kutu bölmesi veya taşıyıcı klips için standart ölçü genelde yetmez.</p>
+<ul>
+<li>Parça örneği varsa kılavuz ve delik hattı ölçülür.</li>
+<li>Delik merkezleri, klipsin kapanışa kadar katettiği yol, menteşe çevrim açısı not edilir.</li>
+<li>Toz torbası klipsinde esneme açısı ve tel girişi ölçülür.</li>
+<li>İyi ölçü için numune üzerindeki aşınmış bölgenin gerçek kalınlığı korunur, sadece deformasyon alanı değil.</li>
+</ul>
+<p>Kurşun kalemle işaretlenmiş net bir ölçü notu genelde en temiz veriyi üretir. Numune yoksa çakım açılı iki fotoğraf, yanına santimetre eklenmiş görünüm yeterli olur; yine de montajda birkaç ince düzeltme gerekebilir.</p>
+<h2>Doğru malzeme</h2>
+<p>Marangoz atölyesinde sık temas edilen noktada, toz ve darbe etkisi malzeme seçimini etkiler:</p>
+<ul>
+<li>PETG: esnek ve genel kullanım dengeli.</li>
+<li>ASA: toz ve nemli odalarda daha dirençli yüzey.</li>
+<li>PA-GF / PA-CF: sık tekrarlı tutucularda uzun ömür isteyen durumlar.</li>
+</ul>
+<p>Keskin kenarlı bölgeye temas eden parçalarda duvar kalınlığını ölçüyle birlikte belirleriz. Doğru ölçüyle birlikte uygun malzeme seçimi olmadan montaj kalitesi korunmaz.</p>
+<h2>Dürüst sınır</h2>
+<p>Kesici başlık, dönen takım yatağı veya ana mil çevrimini taşıyan aparatlarda ölçüye özel plastik yenileme yapmayız. Bu tip parçalar için farklı tedarik ve sertifika gereksinimi gerekecektir. Bizde amaç, atölyenin durmasını engelleyecek ölçüye uygun yardımcı parçadır. Aşınmış kesim taşımayan bir klips ile kesim kuvveti taşıyan bir parçayı aynı kefeye koymuyoruz.</p>
+<p>Ahşap atölyesi parçalarında toz ve darbe etkisi ölçüyü hızla değiştirir. Tutucu kenar, sap yeri ve oturma yüzeyi birlikte doğrulandığında, sonraki üretim turunun güveni yükselir. İlk örnekten sonra sadece eksik kalan ölçüyü değil, aynı zamanda montaj hattındaki temas mesafesini de güncelleriz. Amaç, seri içindeki parçaları farklı yorumlardan bağımsız, tek bir referansa bağlamaktır.</p>
+<p>Atölye kapanışında ikinci cümle olarak parça ayarı önce takım adımıyla eşlenir: vida ön gerilimi ve bağlantı kotası ayrı ayrı kontrol edilir. Bu yaklaşımda hızlı teslimat yerine tutarlı ölçü seçilir, böylece tekrar üretim yükü düşer.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/kirik-plastik-parca-yaptirma/">kirik plastik parca yaptirma</a> <a href="/olcuye-ozel-klips-kelepce-uretimi/">olcuye ozel klips kelepce uretimi</a> <a href="/malzeme-rehberi/">malzeme rehberi</a> <a href="/olcuye-ozel-profil-beam/">olcuye ozel profil beam</a> <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a> <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a></p>
+<h2>Sipariş</h2>
+<p>Ahşap atölyelerinde toz, talaş ve titreşim üçlüsü, parça ömrünü doğrudan etkiliyor. Kutumaya bağlı kapağınızda ölçü tek başına doğru olsa da vida girişinin açı farkı bir sonraki parçanın yerini kaydırabiliyor; bu yüzden montaj aksını ve vida oturma hattını ölçüm dosyasına ayrı ekliyoruz. 200 mm’lik sık kullanılan kutu klipsi örneğinde ölçü alırken sadece yükseklik değil, kapanma esnasındaki esneme mesafesi de kontrol edilir. Yağlı ortamdan uzak ama tozlu bölgelerde PETG, kesme ve zıplama alanına yakın bölgelerde ise daha dar bir darbe toleranslı malzeme seçeneğiyle stabiliteyi artırıyoruz.</p>
+<p>Atölyede ölçüleme sırası iş akışıyla birlikte planlandığında parça stabilitesi artar. Tozlu bölgede klips veya tutucu için üretilen parçanın ilk testini yalnızca elle değil, aynı noktada iki farklı açıda da yapıyoruz; bu yöntem vida hattındaki eğim kaynaklı sıkışmayı ortaya çıkarır. Kutu bölmesi kapağında en kritik ölçü, kapanma eşiğinde kaynaşma hattının ne kadar ilerlediğidir; küçük bir sapma kısa sürede zorlamaya dönüşür. Bu yüzden her yeni numunede vida delik çapı ile karşılık veren et kalınlığını birlikte kaydediyoruz. Büyük ölçüde işlenen tozlu ortamlarda malzeme yüzeyi parlaklıktan çok sertlik odaklı olduğundan, malzeme değişimi gerekiyorsa üretim öncesi kısa onay turu ile belirlenir.</p>
+<p>Atölye ortamında talaşlı koşullarda ölçü dosyası yalnızca uzunlukla bitmez; kapanma kuvveti de takip edilir. Kutu bölmesi kapağı için ölçüyü yalnızca dış konturdan okumak, iç gerginliği saklayabilir. Bu nedenle numuneyi ölçerken iki referans noktasını da kayda alırız: bağlantı vidasının gömleklenme hattı ve takılı kalma payı. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Sonuçlar tespit edildiğinde teslimden önce montajda ek kontrol maddesi eklenir.</p>
+<p>Atölye üretiminde bir ölçü düzeltmesi yapıldıysa, aynı parçanın yedek partisi için ölçü tekrarı otomatik yapılır. Vida oturma noktasını önce tek, sonra çift çevrimle doğrular; bu ikili kayıt, montaj sırasında şaşıntıyı azaltır ve ikinci parçada hızlı teyit sağlar.</p>
+<p>Atölye operatörü montaj anında görünen küçük bir fark, ölçüdeki milimetrelik değişimin habercisidir. Bu nedenle ölçü dosyamıza bağlantı yüzeyi sertlik notunu da ekleriz; çünkü talaşlı ortamda sadece boyut değil, malzeme davranışı da devreye girer. Aynı ölçüde iki farklı parça üretiliyorsa, öncelik olarak önce montaj yüzeyi ve basınç dağılımı karşılaştırılır, sonra kalıp düzeyi ilerletilir. Bu yaklaşımda her revizyonda hangi kısımda ne kadar değişim yapıldığını ayrı madde yazarak sonraki üretim için net kayıt bırakırız.</p>
+""")
+
+def _kuru_temizleme_camasirhane_ekipmani_plastik_parca_uretimi():
+    return _seo_add_wa_cta("""
+<h1>Kuru Temizleme ve Çamaşırhane Ekipmanı Plastik Parça</h1>
+<p>Çamaşırhanede bir kapak mandalı veya buhar hazne kapağı eksildiğinde cihazın güvenli çalışması direkt etkilenir. Kullanılan parçalar çoğu zaman yüksek sıcaklık, su buharı ve deterjan temasıyla çalışır. Bu yüzden yeniden yapılanma, sadece görsel benzerlikle değil; ölçü, kalınlık ve geçiş toleransı ile olur.</p>
+<p>Kuru temizleme ve çamaşırhane ekipmanlarında sürekli döngü olan parçalarda, aynı ölçüdeki küçük bir kayma bile kapak kapanmasını etkileyebilir. Biz ölçüyü odakta tutup ölçüye özel üretim gerçekleştirdiğimiz için ilk hedefimiz parçanın cihaz içinde aynı davranışı göstermesidir.</p>
+<h2>Nasıl ölçülüyor ve üretiliyor</h2>
+<p>Üretim adımı şöyle ilerler:</p>
+<ul>
+<li>Kapak mandalının mil ve yuva hattı ölçülür.</li>
+<li>Ütü masası ayak ucunun temas yüksekliği ve eğim açısı kontrol edilir.</li>
+<li>Buhar hazne kapağının sızdırmazlık hattı ve bağlantı çevresi incelenir.</li>
+<li>Kullanım sıklığı öğrenilerek, ilk üretim için yedek oranı belirlenir.</li>
+</ul>
+<p>Numune örnekleriyle en iyi sonuç alınır. Numune yoksa montaj yeri görünür görseller ve ölçü cetveli ile başlanır; bir adet deneme sonrası ölçü onayı ile ikinci tur üretilir. Böylece gereksiz ölçü kayması yaşamadan ilerleriz.</p>
+<h2>Doğru malzeme</h2>
+<p>Bu alanda malzeme seçimi yalnız nem ve sıcaklıkla değil, cihazın kullanım ritmiyle de belirlenir:</p>
+<ul>
+<li>PETG: genel günlük dayanım için dengeli.</li>
+<li>ASA: ısı ve nem etkileşiminin yüksek olduğu bölgeler için.</li>
+<li>PA-CF / PA-GF: yüksek darbe ve tekrar eden temas alanları için.</li>
+</ul>
+<p>Kasa dışına yakın noktada ASA kullanımı çoğu uygulamada stabilite sağlar; hazne kapağının doğrudan temas hattında yine de ölçüye göre ek güçlendirme gerekebilir. İstenen ömür için kullanım saatini de paylaşırsanız malzeme önerisi doğru oturur.</p>
+<h2>Dürüst sınır</h2>
+<p>Sadece kapak, mandal, ayak ucu ve koruma elemanlarında ölçüye özel üretim sunarız. Fırın, motor kontrol kartı, yüksek basınç pompa bloğu gibi yüksek tahrikli parçalar kapsam dışıdır. Isının yüksek olduğu durumda parçayı uygun malzemeyle dahi seçsek, kullanımın fiziksel sınırını geçerse ömür kısalır.</p>
+<p>Kuru temizleme ve çamaşırhane parçaları yoğun ısı/temizleme çevriminde deforme olur; bu yüzden ölçüyü kullanım döngüsüyle birlikte tasarlarız. Debi hattı, bağlantı oturuşu ve gevşeme davranışı ilk ölçüde ayrı not edilir. Sapma olduğunda doğrudan numune değişimi yerine, ölçü planını düzelterek ikinci üretime geçeriz. Böylece aynı parçanın tekrar gelme ihtimali azalır ve servis hattı aksamaz.</p>
+<p>Hassas kısımda ikinci kapanış, bakım sıklığına göre revizyonu açıklar: hangi parçanın hangi vardiyada daha çok gerildiği ölçü kaydına eklenir. Birim birim ölçüm kaydıyla toplu üretim planı güvenli şekilde ilerler, müşteri tarafındaki bekleme azaltılır.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parca ozel uretim</a> <a href="/olcuye-ozel-plastik-disli-uretimi/">olcuye ozel plastik disli uretimi</a> <a href="/malzeme-rehberi/">malzeme rehberi</a> <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parca olcusu nasil alinir ve gonderilir</a> <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a> <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a></p>
+<h2>Sipariş</h2>
+<p>Çamaşırhane ve kuru temizlik hattında buhar, sıcaklık ve solvent maruziyeti bir arada olduğundan parça seçimi ikili yürür. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Kapak mandalının oturuşu yalnızca kilit açısı değil, parça kenarındaki esneme hissiyle de onaylanır; böylece servis anında ekstra müdahale sayısını düşürürüz. Tek kullanımlık plastikte ısıyla oluşan eğilme görüldüyse, benzer ölçüyü ikinci örnekte sadece kalıp parametresiyle değil, işlevli bükülme limitlerini de kayda alıyoruz.</p>
+<p>Kuru temizleme hattında parça talebi küçük bir parçadan çok süreç güvenilirliği için kritiktir. Kapak mandalı üretiminde ısıya bağlı genişleme farklı bir eksen açısına dönüştüğü için ölçüyü yalnızca kalıp hesabıyla değil, sıcak-soğuk karşılaştırmasıyla doğruluyoruz. Buhar hattında kullanılan bir tutucu parça 5 saatlik döngüde kalınlaşma yapıyorsa esneme toleransı yeniden ayarlanır. Her iki durumda da parça ölçümünde vida merkezinden önemli olan kenar temas hattının dönük olmasıdır; bu nedenle yüzeydeki deformasyon izi veya basınç izi varsa numune listesine eklenir. Bu bilgileri görsel ve ölçüm notu ile birlikte teslim ederek test sonrası geri bildirim süresini kısaltıyoruz.</p>
+<p>Kurutma hattında sıcaklık artışı sonrası parça davranışı ölçülerini korumak için nem ve sıcaklık çevrimini birlikte planlarız. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Bu yüzden ölçü dosyasında sadece ölçüm boyu değil, ısı toleransı aralığı da yer alır. Bu sayede ikinci örnekte aynı parçayı farklı sıcaklıkta çalıştırıp karşılaştırabiliyoruz. Operatöre bırakılan kısa test listesinde mandal çekme kuvveti ve kapı kapanma süresi de bulunur.</p>
+<p>Buhar hattındaki parçalar için ikinci tur kontrol, yalnızca tahribat testi değil kullanım hissi ölçümü de içerir. Mandalda hafif direnç hissi artıyorsa ölçüde esneme oranı yeniden ayarlanır ve kapak oturuşu buna göre revize edilir.</p>
+<p>Buhar hattında denetim yalnızca parça gelince bitmiyor; ilk montaj sonrası sıcaklık düşüşüne göre ikinci ölçüm yapıyoruz. Kapak mandalı ya da tutucunun gevşemesi göründüğünde, mandal çekiş noktası ve conta aralığını birlikte netleştiriyoruz. Bu ikinci kontrol, kullanım saatini etkilemeden parçanın sesini ve işlevini sabitlemek için önemlidir. Ölçü dosyasında hem ilk hem ikinci tur verisi olduğunda bakım ekibi sahada hangi ayarı yapacağını hızlıca seçer, bekleme sürelerini düşürür.</p>
+<p>Numune onayıyla başlayan işte ikinci turda amaç aynı parçayı farklı bir testle doğrulamak değil, kullanım anındaki oturuma göre ölçüyü netleştirmektir. Bu yüzden ölçü setinde hangi eksen ve hangi bağlantı düzleminin kritik olduğunu işaretler, tekrar eden sapmayı sadece bu hattı güncelleyerek yönetiriz.</p>
+""")
+
+def _kimyasal_tank_depolama_plastik_parca_uretimi():
+    return _seo_add_wa_cta("""
+<h1>Kimyasal Tank ve Depolama Ekipmanı Plastik Parça</h1>
+<p>Kimyasal saha ekipmanlarında küçük bir ölçü hatası, işlem güvenliği açısından ciddi gecikme yaratır. Seviye şamandırası tutucusu, tank ağız contası mesni ve vana koruma kapağı gibi parçalar çoğu zaman standartta bulunmaz ya da yıllar içinde erişimi zorlaşır. Biz bu noktada ölçüye özel üretim ile parça bütünlüğünü geri getiririz.</p>
+<p>Bu alanda en kritik ilke temas materyaline göre seçim yapmak. Bir plastik yüzey, farklı kimyasal ile farklı hızda yıpranabilir. Bu nedenle üretim öncesi önce kullanım ortamını öğreniriz; temasın sürekli mi, aralıklı mı, hangi sıklıkta? hangi sıvı ile? gibi veriler ölçü kadar önemlidir. Kapak veya muhafaza parça ise, ölçüsünü doğru aldığımızda kurulumda uyum bozulmaz.</p>
+<h2>Nasıl ölçüye özel üretim süreci</h2>
+<p>Numune ve ölçü birliğiyle ilerleriz:</p>
+<ul>
+<li>Seviye şamandırası tutucusunun iç yuva aralığı.</li>
+<li>Mesninin oturuş kalınlığı ve kapak kenar temas hattı.</li>
+<li>Vana koruma kapağında mandal mesafesi, yüzey oyuntuları ve bağlantı sırası.</li>
+<li>Tank etrafındaki titreşim ve sabitleme bağlantı aralıkları.</li>
+</ul>
+<p>Parça çok kirliyse önce temizlik sonrası ölçü alımı önerilir. Numune bulunamıyorsa güvenli şekilde çekilmiş çoklu açı görseli ve çap ölçüleriyle ilerleriz. İlk deneme onaylandıktan sonra, aynı ölçüde küçük revizyon ihtiyacını azaltmak için tekrar adımını hızlandırırız.</p>
+<h2>Doğru malzeme</h2>
+<p>Kimyasal kontakta malzeme seçimi sadece sertlikten ibaret değil, uyumdan ibarettir:</p>
+<ul>
+<li>PETG: düşük etki yoğunluğunda sınırlı kullanım.</li>
+<li>ASA: nem, toz ve UV yanında genel dayanım artışı.</li>
+<li>PA-CF / PA-GF: yüksek darbeli, sık temaslı noktalar.</li>
+</ul>
+<p>Kimyasal etki için hangi ürünü ne sıklıkla kullandığınızı paylaşırsanız malzeme planını ona göre netleştiririz. Bazı ürünler için tamamen farklı malzeme gerekebilir ve bu karar önce sahaya dair bilgiyle çıkar.</p>
+<h2>Dürüst sınır</h2>
+<p>Tank çevresindeki basınçlı aktarma elemanları, valf gövde çekirdeği gibi yüksek riskli ana parçalar bizim ölçüye özel kapsamımızın dışındadır. Biz koruma kapağı, tutucu, mesni gibi destek ve erişim parçalarına odaklanırız. Uygulamada “her ortama uygun tek malzeme” yaklaşımını kullanmayız; teması yanlış seçilen malzeme parça ömrünü kısaltır.</p>
+<p>Kimyasal tank tarafında ölçü yalnız nominal değerle kalmaz; temas düzlemi ve sızdırma riski de paralel takip edilir. Kapak yuvası, conta yatağı ve korozyon çevresi ölçü dosyasına birlikte girer; bu kayıt ikinci üretim kadar kritik bir onay hattı oluşturur. İlk örnekten sonra sapma tespitini tek bir ölçümde toplamaz, montaj notu ile birlikte kapatırız. Güvenli kullanım için ölçü kararının net okunması önemlidir.</p>
+<p>Kimyasal ekipman kapanışında ikinci metinde ikinci ölçü değil, kontrol tekrarı azaltılır: bağlantı açısı, montaj sıkılığı ve bakım sıklığı bir plan içinde ilerler. Toplu işte her parçanın aynı referanstan gitmesi için ölçü kaydı ayrı şekilde tutulur.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/malzeme-rehberi/">malzeme rehberi</a> <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a> <a href="/beyaz-esya-plastik-parca-uretimi/">beyaz esya plastik parca uretimi</a> <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a> <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parca olcusu nasil alinir ve gonderilir</a> <a href="/kirik-plastik-parca-yaptirma/">kirik plastik parca yaptirma</a></p>
+<h2>Sipariş</h2>
+<p>Kimyasal tank aksesuarlarında temas sıvısı, ölçüden önce belirlenen en kritik değişkendir. Asit/baz veya solventli bölümler için önce malzeme haritası çıkarır, yalnızca ölçüyü değil yüzey ısınmasını ve sızdırmazlık yüzeyindeki yüzey pürüzünü de kaydederiz. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Dış ortamda sürekli buhara veya sıcak-soğuk döngüsüne maruz kalan parçalar için yüksek sıcaklık değişim bandında büzülme/şişme payını ölçerek onay veririz.</p>
+<p>Kimyasal saha için çalışan bir parçanın testi yalnızca ölçüyle sınırlı değildir; kullanım ritmi haritası da gerekiyor. Seviye şamandırası muhafazasında günlük üçten fazla dolum devri varsa farklı bir malzeme davranışı oluşur, bu yüzden et kalınlığı ve bağlantı yüzeyi birlikte yeniden ele alınır. Vana koruma kapağında küçük bir oyuk farkı bile sızdırmazlık yüzeyinde basınç yoğunluğu yaratır; bu yüzden sızdırmazlık ringi ve oturma yüzeyi eşzamanlı ölçülür. Kimyasalın cinsi yüzeyde hızlı bozulma bıraktığında ikinci numune sadece malzeme değişimiyle değil, bağlantı boşluğu azaltılarak revize edilir. Operasyon sürecinde tekrar ölçüm noktaları tanımlı olduğu için sorun, büyük arıza olmadan görünür.</p>
+<p>Kimyasal alanlarda güvenli ölçü akışı için numune fotoğraflarında conta oturuşu, bağlantı deliği ve sıvı temas hattını aynı anda okumak gerekir. Vana kapağı gibi bir noktada ölçüde sorun varsa önce ortamla karşılaştırmalı test yapılır; sızıntı riski sadece çap farkından değil, temas çizgisinin dengesizliğinden de kaynaklanır. Buna göre malzeme seçimi ve et kalınlığı eşzamanlı güncellenir. Daha uzun süreli kimyasal temas alanlarında ikinci tur ölçüm, ilk turdaki numuneyi baz alarak güvenli bölgeyi netleştirir ve tekrar üretimi azaltır.</p>
+<p>Kimyasal tank tarafında ölçüyü doğrularken bağlantı hattı, seviye gösterge deliği ve conta yüzeyini birlikte ölçeriz. Dolum aralığına göre parça değişimi planlanırken yalnızca tek bir parçanın değil, aynı ölçüdeki komşu parçanın da davranışı karşılaştırılır. Bu karşılaştırmada et kalınlığı farklılaşıyor veya sızdırma izi tekrarlıyorsa, ikinci tur parametreleriyle daha dar tolerans seti oluşturulur. Böylece sonraki üretimde erken uyarı oluşmadan kalite korunur.</p>
+<p>Kimyasal tank tarafında ölçü güveni yalnızca bir kez alınan rakama değil, montaj hattından alınan geri bildirime de bağlıdır. İkinci turda ölçüde sapma görünürse numune kaydıyla birlikte onay notu güncellenir, yeni ölçü setiyle ilerlenir. Parça ölçüsünün nasıl oturduğu, conta izi ve montaj yönüyle birlikte aynı sayfada tutulur; böylece aynı ölçüde ikinci revizyonun nedeni azaltılır. Teslim sürecinde ölçü farkı sürdüyse birim bazlı müdahale ile hızlı düzeltme açılır.</p>
+""")
+
+def _birden_fazla_adet_ozel_parca_siparisi_toplu():
+    return _seo_add_wa_cta("""
+<h1>Birden Fazla (Toplu) Özel Parça Siparişi Verilir mi?</h1>
+<p>Çok kez aynı parçanın farklı sayıda yenilenmesi gerektiğinde maliyet ve zaman planı ayrı bir konu olur. Toplu sipariş, sadece adet sayısı artırmak demek değildir; önce ölçünün aynı kalıpta kalması gerekir. Aynı üretim döngüsüne giren parçalar için ölçü tekrarı, kalite tekrarı ve teslim takvimi tek bir çizgide tutulur.</p>
+<p>Numune tek parça olsa bile, aynı ölçüde ondan fazla adet üretimi mümkündür. Farklı parçaların birden gelmesi durumunda ise her birinin ölçüsü ayrı incelenir, ama toplu iş planı içinde tek bir sevkiyat ile ilerlenir. Böylece hem üretim adımı netleşir hem de deneme sayısı düşer.</p>
+<h2>Nasıl planlıyoruz</h2>
+<p>Toplu siparişte en kritik nokta hangi parçanın aynı set içinde değerlendirileceğidir. Biz bunu üç başlıkta ele alırız:</p>
+<ul>
+<li>Aynı ölçü ve aynı kullanım hattını paylaşan parçalar toplu işleme alınır.</li>
+<li>Farklı parçalar olsa bile, ölçü dosyası ayrı tutulur ama sevkiyat tek yapılır.</li>
+<li>Teslim süresi, adet artışıyla nasıl etkilenecekse bu baştan paylaşılır.</li>
+</ul>
+<p>Numune olarak bir parça göndermeniz çoğu zaman yeterli olur; ölçü değişkenlik gösteriyorsa her ölçü için ayrı onay isteriz. Aynı kutudaki ürünlerin tamamı tek ölçüdeyse, toplu siparişin avantajı işçilikte ve planlamada kendini gösterir.</p>
+<h2>Doğru malzeme</h2>
+<p>Toplu üretimde malzeme seçimi de toplu kalır; tek parça değişiminde kullanılan cins, aynı takım içinde aynı ölçü için tekrar edilir. Bunun anlamı standart değil, güvenli bir seçimdir. Örneğin açık hava kullanımına giren bir parça için ASA seçildiyse, aynı gruptaki tüm uygun parçalarda aynı malzeme planı izlenir.</p>
+<p>PA-CF / PA-GF seçimi gerektiren yüksek yüklü parçalar grupta ayrıca işlenir. Tek bir parçanın yüksek darbe profili, diğerinden farklı olabilir; bu nedenle her bir parçanın kullanım yoğunluğu görünür olmalıdır.</p>
+<h2>Dürüst sınır</h2>
+<p>Toplu çalışmada hız, kaliteyi değiştirmez. Ölçü onayı olmadan farklı parçayı “tek parti” diye üretmeye geçmeyiz. Yedek olarak gördüğümüz her parçanın fonksiyonunu tekrar doğrularız. Bazı parçalar için test adımı eklenir; bu adım sonrası beklenen uyum ve oturuş netleşir.</p>
+<h2>Sipariş</h2>
+<p>Toplu sipariş için parçaları getirin ya da kargoyla gönderin, ölçüp üretelim. Fotoğraf yalnızca ön teyit için kullanılır. Aynı ölçüde birden fazla adede geçilecekse teslim listesi ve adet dağılımını iletin. WhatsApp hattı: +90 545 138 6526. Plan, onaylanan ölçü ile birlikte başlar.</p>
+<p>Toplu siparişte ölçü, en küçük farklılığı büyütmeden taşıyabilmeli. Bu yüzden her parçayı tek tek değil, parti mantığıyla ölçüp standart karşılaştırma aralığında tutarız. İlk setlerde belirlenen sapma düzeltmesi aynı ölçü kartına işlenir ve sonraki partide tekrar üretim başlatılmaz. Ölçü ve montaj notu birlikte ilerlediğinde seri veriminde artış olur, beklenmeyen revizyon azalır.</p>
+<p>Toplu kapanışta teslimat planı da ölçü planının parçasıdır: hangi parçaya hangi ölçüde devam edileceği ve hangi örnekte ek doğrulama gerektiği netleşir. Böylece seri içinde rastgele farklılık değil, kayıtlı bir süreklilik oluşur.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parca olcusu nasil alinir ve gonderilir</a> <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a> <a href="/tek-adet-ozel-parca-uretimi/">tek adet ozel parca uretimi</a> <a href="/bulunamayan-yedek-parca-ozel-uretim/">bulunamayan yedek parca ozel uretim</a> <a href="/malzeme-rehberi/">malzeme rehberi</a> <a href="/kirik-plastik-parca-yaptirma/">kirik plastik parca yaptirma</a></p>
+<p>Toplu işte en doğru planlama, “aynı parça” olarak görülen örneklerin gerçek ölçü gruplamasını doğru tutmaktır. Aynı modelde 12 adet üretimde, vida çapını ve kalınlık toleransını tek tek eşleyip gruplar açmadan önce iş emri kodu veriyoruz; bu sayede hangi parçaya hangi test sonucunun uygulanacağını netleştiriyoruz. Aynı partide farklı ölçüler geldiyse, her bir ölçü için etiket ve fotoğraf eşleşmesiyle revizyon süresini kısaltıyoruz. Sevk planını sıkıştırmak için test parçasını önce 1+1 şeklinde alıp onayladıktan sonra toplu üretime geçmek, yeniden işlem oranını düşüren en verimli adımdır.</p>
+<p>Toplu siparişte en kritik hata, farklı ölçülerden oluşan partiyi tek parti gibi ele almaktır. Bu yüzden tüm numuneler aynı tarafta tartılamaz; her birini ölçü koduyla etiketler, hangi ölçü grubunun hangi testten geçeceğini planlarız. Aynı parçadan yüksek adet üretiminde vida delik toleransı ve yüzey oturuşu aynı kalmadığında birinci partiye özel revizyon yapılır, sonra ikinci partiye geçilir. Numune onayı sonrası parti büyüklüğü arttıkça tedarik takvimi de değişir; bu nedenle sevk planını bloklara ayırıp her blokta kalite notu ekliyoruz. Elde edilen notlar sonraki siparişte aynı gruplamanın daha hızlı kurulmasını sağlar.</p>
+<p>Toplu işin avantajını verimli kullanmak için ölçü gruplaması iki adımda yürür: eş ölçü, eş işlev ve eş bağlantı tipi eşleşir. Aynı grup içinde bir parçanın montaj yüzeyi değişirse, o parçanın tamamını değil sadece ilgili grup kodunu ayırırız. Böylece teslim süresi korunur ve beklenmeyen iptal riski azalır. Birden fazla adette farklı renk veya yüzey istenirse, renk seçimi numune sonrası değil ölçü onayı sonrası yapılır; böylece ölçü belirsizliği farklı renk kombinasyonunu etkilemez.</p>
+<p>Toplu işin son turunda teslimat öncesi, partideki her ölçü kodu için hızlı montaj listesi hazırlanır. Listeyi gördüğünüzde hangi parçanın hangi referansa göre üretildiği 1 dakika içinde okunur; bu kontrol, geri çağrı ihtimalini belirgin şekilde düşürür.</p>
+<p>Toplu işte her adet tek tek ölçülürken ortak bir ölçü dosyası tutulur; böylece aynı ölçüde üretilen parçalarda hangi parça tekrarını ne zaman açtığımızı takip ederiz. Gerekirse tek partiyi bölerek ilerler, sadece sapma gösteren ölçüyü revize ederiz.</p>
+""")
+
+def _siparis_sonrasi_olcu_degisikligi_iptal_politikasi():
+    return _seo_add_wa_cta("""
+<h1>Sipariş Sonrası Ölçü Değişikliği ve İptal</h1>
+<p>Sipariş sürecinde en çok karışan konu şu olur: ölçü ölçümü sonradan değiştiğinde süreç nasıl ilerler? Bu konuda kuralımız basittir; üretim öncesi onay ile üretim sonrası onay farklıdır. Numune üzerinden açılan işte ölçü netliği, adım adım ilerler. Üretim başlamadan önce onaylaman gereken ölçüleri net belirleriz.</p>
+<p>Üretim öncesinde ek bir ölçü talebi geldiğinde, revizyon planı çoğu zaman kolayca uygulanır. Sipariş hazırlandıktan ve üretim başladıktan sonra değişiklik gerekiyorsa, bu işin maliyet ve teslimi ayrı değerlendirilir. Ama süreç şeffaftır: siz neyi değiştirmek istiyorsanız, değişim aşaması hangi noktadaysa ona göre ilerler.</p>
+<h2>Nasıl ilerleriz</h2>
+<p>Biz süreçte üç noktaya dikkat ederiz:</p>
+<ul>
+<li>Sipariş onayı öncesi: ölçü düzeltmeleri ücretsiz yönlendirme ile kontrol edilir.</li>
+<li>Üretim planına alındıysa: malzeme, ölçü ve işlem dosyası sabitleşir.</li>
+<li>Üretim bittikten sonra: tekrar değişiklik ölçü karşılığı kabul ile yeniden işlenir.</li>
+</ul>
+<p>İptal talebi için de net aşama vardır. Ödeme onayı olmamışsa iptal süreci daha hızlı ilerler. Üretim başlamışsa iptal yerine değişiklik ya da tamamlanan iş için farklı bir plan önerebiliriz. Bu ayrım hem süreyi hem de maliyeti önden net tutar.</p>
+<h2>Doğru malzeme</h2>
+<p>Bu aşamada malzeme kararı değişmiyorsa bile, teslimat öncesi ölçü revizyonunda malzeme eşleşmesi tekrar kontrol edilir. Kaplama etkisi, oturma yüzeyi ve yüzey pürüzlülüğü nedeniyle yanlış malzeme seçimi ölçüde iyi sonuç vermeyebilir. Bu nedenle değişiklik talebinde malzeme tekrar okunur; gerekirse onaylı alternatif seçilir.</p>
+<h2>Dürüst sınır</h2>
+<p>Kural net: ölçü onayı ile başlamadan siparişin yönü tamamlanmış sayılmaz. Teslimata yakın, teslimata çok yakın dönemde değişiklik gereksinimi var ise teknik olarak mümkünse plan güncellenir, mümkün değilse süreçten dönmemiz önerilir. Bu yaklaşım iptal/iptal sonrası zaman kaybını azaltır.</p>
+<p>Sipariş sonrası ölçü değişikliği gördüğümüzde önce kaynağın nerede değiştiğini ayırırız: numune, montaj yatağı ya da fotoğraflı not. Hedefimiz yanlış birim üretimini büyütmeden sadece gerekli düzeltmeyi açmaktır. Ölçü seti netleşmeden yeni tura geçilmez; böylece teslimat gecikmesi değil, net karar ilkesi korunur. İptal gerekiyorsa sebep ölçüde izlenir, kabul edilebilirse revizyon planı başlatılır.</p>
+<p>İkinci kapanışta karar süreci şu şekilde yönetilir: ölçü onayı alınmayan parça için seri durmaz, yalnız gereken kapsam açılır. Ölçüdeki farkların hangi aşamada oluştuğu rapora girer ve sonraki üretimde referans güncellenir. Bu sayede müşteriye net bir yol haritası sunulur.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/olcuye-ozel-plastik-disli-uretimi/">parca olcusu nasil alinir ve gonderilir</a> <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a> <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parca olcusu nasil alinir ve gonderilir</a> <a href="/olcuye-ozel-conta-uretimi/">olcuye ozel conta uretimi</a> <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a> <a href="/malzeme-rehberi/">malzeme rehberi</a></p>
+<h2>Sipariş</h2>
+<p>Sipariş sonrası değişiklikte en büyük fark, talebin hangi aşamada geldiğinde hangi maliyetin doğduğu bilgisinin net olmasıdır. Numune onaylandığında ölçü değişimi, ek ölçü kontrolüne dönüyor; üretim başlamadıysa revizyon çoğunlukla kısa bir zaman içinde uygulanabiliyor. Ancak üretim başladıysa ölçü değişikliği için yeni referans noktaları, bağlantı delik çapı ve yüzey basınç dağılımı yeniden hesaplanır; bunu netleştirmek için revizyonun sahada etkisini kısa test planıyla belirliyoruz. İptal kararı da üretim konumuna göre yönetilir: dosya hazırlık aşamasında maliyet farkı sınırlı, üretim sonrası ise lojistik ve kalite doğrulama durumu ayrı değerlendiriliyor.</p>
+<p>Sipariş sonrası bir ölçü revizyonu geldiğinde en kritik nokta, talebin hangi aşamada geldiğidir. Numune onayı geçmeden önce değişirse üretim listesine ölçü güncellemesi girilir ve teslim takvimi çoğu zaman korunur. Üretim başlamışsa yeniden iş akışı için bağlantı ölçüleri ve yüzey eşik noktaları tekrar tanımlanır; bu da bazen kalıp yüzeyinde birden fazla düzeltmeyi gerektirir. İptal için net sınır, hangi aşamadan sonra hem iş saatinin hem test dosyasının ilerlediğidir; bu yüzden revizyonu zamanında adımlayıp ölçüyü kayıt altına almak, hem müşteriyi hem üretimi korur.</p>
+<p>Sipariş sonrası revizyonların en iyi yönetimi, dosya ve ölçü adımını ayrı tutmaktır. Revizyon talebi önce revizyon sınıfına alınır; sonrasında üretimde değişen ölçü, bağlantı açısı ve test aralığı belirlenir. Üretim başlamışsa sevk planını korumak için etaplı üretim uygulanır. Değişiklik kaydı, sadece yeni ölçüyü değil, nedenini ve onaylayan kişiyi de içerdiğinde sonraki bir düzeltmede tekrar karışıklık yaşanmaz. Bu disiplinle müşterinin hangi noktada kalacağı netleştirilir.</p>
+<p>Revizyonla gönderilen her ölçü değişikliği için bir karşılaştırma maddesi tutuyoruz: eski ölçü, yeni ölçü, test aşaması, revizyon etkisi. Bu belge sayesinde aynı konuda ikinci talep geldiğinde süreç hızla netleşiyor ve müşteriye yanlış adım kalmadan dönüş yapılabiliyor.</p>
+<p>Sipariş sonrası revize bir adımla yönetilir: değişiklik geldiğinde önce teknik not açılır, sonra hangi ölçünün etkilenebileceği netleştirilir. Teslim listesine geçmeden önce iptal mi revizyon mu kararını aynı gün içinde netleştiririz; çünkü her iki yol da farklı takip satırı gerektirir. Ölçü belgesi, revizyon nedeni ve yeni referansın onay tarihiyle güncellendiğinde, sonraki üretimde yanlış bir parçanın iş akışına girmesi önlenir.</p>
+<p>Sipariş sonrası ölçü revizyonu geldiğinde, müşterinin netlik ihtiyacını karşılamak için önce hangi aşamada kaldığı kayıt altına alınır. Üretim başlamışsa, revizeyi doğrudan bütün partiyi kesmeden etki ettiren parça kodu düzeyinde uygularız. Bu sayede aynı ölçüdeki ikinci bir parça beklenmedik şekilde beklemez; değişim sadece ilgili adımda ilerler. Teslimat planı bu düzenlemenin üstünde korunur ve süreç boyunca hangi değişikliğin hangi tarihte uygulandığı raporlanır.</p>
+<p>İptal veya revizyon kararında ölçü kaydı yeniden ele alınır; hedef yeni bir protokol çıkarmak değil, hangi örnekte hangi ölçüye göre üretim yapılacağına dair kaydı tek cümleyle netleştirmektir. Ölçüde değişiklik varsa bunun etkilediği aşama not edilirse sonraki adım daha hızlı ilerler.</p>
+""")
+
+def _olcu_tutmazsa_ne_olur_uyum_garantisi():
+    return _seo_add_wa_cta("""
+<h1>Ölçü Tutmazsa Ne Olur? Uyum Garantisi</h1>
+<p>Müşteri için en kritik soru budur: “parça montaja girmezse ne olacak?” Ölçü tutmazsa uyum işi bizim için kalite ve iletişim işidir. Size verdiğimiz ölçü planında doğruluk hedefi nettir; sapma çıkarsa onu tespit eden ve birlikte düzelten akışta ilerleriz.</p>
+<p>İlk olarak kaynağı netleştiririz: yanlış ölçü ölçüden mi geliyor, montaj fotoğrafında okunamama var mı, yoksa numune kaynaklı deformasyon mu var? Bu ayrım, hızlı çözümü belirler. Hatalı parçayı rastgele değiştirmek yerine önce nedenini çıkarırız. Böylece ikinci denemede aynı yanlış tekrarlanmaz.</p>
+<h2>Nasıl uyum kontrolü yaparız</h2>
+<p>Teslim edilen parçayı kontrol ederken şu noktaları tek tek inceleriz:</p>
+<ul>
+<li>Montaj deliği ve yuva hizası.</li>
+<li>Parça giriş açısı ve oturuş mesafesi.</li>
+<li>Dayanak yüzeyde kalan boşluk veya takılma izi.</li>
+<li>Kullanıcı tanımlı örnek ölçüsüne göre toplam tolerans hesabı.</li>
+</ul>
+<p>Eğer ölçüde fark varsa, ölçü kaynağına dönerek ikinci bir düzeltme planı çıkarırız. Bazı durumlarda tek parça revizesi yeterli olur; bazı durumlarda aynı takımdaki ölçü tekrar alınır.</p>
+<h2>Doğru malzeme</h2>
+<p>Uyum garantisi yalnız ölçüye bağlı değildir; malzeme de ölçünün davranışını değiştirir. PETG, ASA, PA-GF, PA-CF seçeneklerinde yüzey titreşimi farklı davranır. Bu yüzden ölçü onayında yanlış malzeme seçimi daha sonra sapmaya neden olabilir. Uyum aşamasında malzeme revizyonu da yapılır, böylece ikinci deneme kalır.</p>
+<h2>Dürüst sınır</h2>
+<p>Uyum garantisi, ölçü ve montaj doğrulamasıyla geçerlidir. Ölçü tarafında yanlış veri girilmişse veya montaj sırasında farklı bir vida, farklı bir kılavuz kullanılmışsa, bunun etkisi parça dışı hataya dönüşebilir. Bu noktada öncelik, kaynağın birlikte tekrar okunmasıdır. İyi bir ölçü, en iyi materyal kadar önemlidir.</p>
+<p>Ölçü tutmazsa, önce parçanın doğru ölçüye göre mi üretildiğini hem teknik hem montaj notuyla kontrol ederiz. Hatalı birim tespitinde rastgele düzeltme değil, ölçü kaynağını izole eden mini bir tur açılır. Bu tur kısa ve net olduğunda teslimat akışı korunur, gereksiz parça üretilmez. Uyum garantisi, ölçü kararını saklayarak güvenceye dönüştürür.</p>
+<p>İkinci kapanışta, sorun çözüldüğünde hangi adımda ölçü güncellendiği dosyaya yazılır ve yeniden üretim o kayıtla yapılır. Böylece benzer bir hata ikinci kez geldiğinde aynı yanlış tekrar etmez, süreçte öngörülen kalite korunur.</p>
+<p>Aşağıdaki sayfalar, ölçü alımı ve malzeme güvenini nasıl kurduğumuzu gösterir:</p>
+<p>Referanslar: <a href="/parca-olcusu-nasil-alinir-ve-gonderilir/">parca olcusu nasil alinir ve gonderilir</a> <a href="/numuneye-gore-plastik-parca-uretimi/">numuneye gore plastik parca uretimi</a> <a href="/olcuye-ozel-vida-somun-civata-uretimi/">olcuye ozel vida somun civata uretimi</a> <a href="/malzeme-rehberi/">malzeme rehberi</a> <a href="/makine-parcasi-olcuye-ozel-uretim/">makine parcasi olcuye ozel uretim</a> <a href="/kirik-plastik-parca-yaptirma/">kirik plastik parca yaptirma</a></p>
+<h2>Sipariş</h2>
+<p>Ölçü sorunu gördüğünüzde ilk hedef, sorunu parçadan değil ölçü akışından izole etmek oluyor. Aynı ölçüde farklılık varsa montajda sıkışma, boşluk veya titreşim gürültüsü üç farklı semptom olarak döner; her biri için kontrol sırası farklıdır. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Hata tespit edilirse sadece yeni bir parça üretmek yerine ölçü dosyası ve test raporu güncellenerek ikinci denemede aynı sapmanın tekrar etmemesi hedeflenir. Bu yaklaşım, onarım süresini düşürür ve toplu ölçüde güvenli bir şekilde ilerlemenizi sağlar.</p>
+<p>Uyum sorununu en hızlı çözmek için ölçüyü tek bir testten değil, üç adımlı bir zincirden geçiririz. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Uygun değilse yeni örnek üretilirken ölçü dosyasına yalnızca yeni boyut değil, eski sapmanın sebebi de eklenir. Böylece sorun tekrarlandığında yalnızca tek parça değil, aynı üretim grubu da güvenli şekilde düzeltilebilir.</p>
+<p>Uygun ölçüde ölçüyü doğrulamak için teslimden sonra birinci turdan sonra ikinci tur görsel karşılaştırma şartını kullanıyoruz. Numuneden aldığımız ölçüyü birebir uygularız; ilk örnek montaja girdikten sonra uyum kontrolü yaparız; sapma çıkarsa ölçüyü yeniden gözden geçiririz Bu düzeltmede önce bağlantı hattını sabitleyip sonra kenar toleransını revize ederiz. Aynı ölçüde birden fazla parça varsa her birini ayrı kodlar, sadece sorunlu olanları yeniden üretime alırız. Bu yaklaşım gereksiz beklemeyi düşürür ve takip adımlarını tek sayfa üzerinde okunur kılar.</p>
+<p>Uyumdaki küçük sapma tespitinde önce örnek yüzeyin dönme açısı ölçülür, sonra bağlantı düzlemindeki basınç dağılımı kontrol edilir. Aynı döngü birden fazla parçaya uyuyorsa o ölçüde seri düzeltme uygulanır; yalnızca tek parçada kalan sapmalarda münferit revizyon tercih edilir.</p>
+<p>Uyum sorununda ikinci turda ölçüyü yalnızca parça ile değil, aynı parçayı takan operatörün işlem adımıyla da doğruluyoruz. Bu sayede kullanım hızı yüksek senaryoda fark edilen bir tıkırtı doğrudan düzeltme maddesine dönüşüyor. Ölçü kaydırmasında önce tek bir yüzey hattını sabitleyip sonra karşı yüzeyi güncelliyoruz; böylece hem zaman hem de malzeme israfı azalır. Bu süreç sonunda revizyon notu, bir sonraki üretimde aynı sapmayı tekrar etmeden ilerlemeniz için kontrol listesine eklenir.</p>
+<p>Uyum doğrulaması, parçanın kullanım anındaki davranışını da kayıtlayan bir akıştır. Numunenin ölçüsünü onaylarken montaj hattındaki basınç noktalarını ve iş parçası adımını birlikte not alırız. İkinci turda sapma kalıyorsa ölçü kaydı yeniden açılır ve aynı ölçü için sadece bu noktada revize yapılır. Önemli olan, her ölçü değişikliğinin bir sonraki örnekte neyle eşleştiğini açıkça bırakmak; bunu yaptığımızda gereksiz tekrar riski düşer.</p>
+<p>Aynı ölçüde ikinci örnek geldiğinde, değişim sadece revize edilmesi gereken ölçü hattında yapılır. Uyum kontrolü tek bir ölçüye bağlı olarak tekrarlandığında, gereksiz çoklu üretim açmadan karar süreci kısalır ve sonraki siparişlerde referans sabit kalır.</p>
+""")
+
 CONTENT_PAGES = [
     ("olcuye-ozel-konik-disli-uretimi", "Ölçüye Özel Konik Dişli Üretimi", "Kırılan konik (bevel) dişlinizin diş sayısı ve açısına göre plastik muadilini üretiyoruz. Numuneyi getirin, ölçelim; doğru malzemeyle ölçüye özel yapalım.", _olcuye_ozel_konik_disli_uretimi),
     ("olcuye-ozel-v-kayis-kasnagi-uretimi", "Ölçüye Özel V-Kayış Kasnağı Üretimi", "A, B ya da SPZ profiline ve çapına göre kırılan V-kayış kasnağının plastik muadilini ölçüye özel üretiyoruz; profil, mil çapı ve kanal sayısı içeride.", _olcuye_ozel_v_kayis_kasnagi_uretimi),
@@ -5285,6 +5741,18 @@ CONTENT_PAGES = [
     ('surekli-acilip-kapanan-yorulmaya-dayanikli-plastik-parca-uretimi', 'Yorulmaya Dayanıklı Esnek Plastik Parça', 'Günde defalarca bükülen mandal, geçmeli tırnak ve esnek menteşe gibi parçaları yorulmaya dayanıklı tok malzemeyle ölçüye özel üretiyoruz. Getirin, üretelim.', _surekli_acilip_kapanan_yorulmaya_dayanikli_plastik_parca_uretimi),
     ('olcuye-ozel-jant-gobek-kapagi-uretimi', 'Ölçüye Özel Jant Göbek Kapağı Üretimi', 'Kaybolan ya da kırılan jant göbek kapağını (center cap) tek adet, ölçüye özel yeniden üretiyoruz. Örneği getirin, ölçelim, üretelim; takım almanıza gerek yok.', _olcuye_ozel_jant_gobek_kapagi_uretimi),
     ('olcuye-ozel-toz-koruma-tozluk-kapagi-uretimi', 'Ölçüye Özel Toz Koruma Kapağı (Tozluk)', 'Mil, rulman, mafsal ve mekanizmalardaki kırık toz koruma kapağını (tozluk) numuneden ölçüye özel üretiyoruz. Getirin, ölçelim, üretelim; tek adet de olur.', _olcuye_ozel_toz_koruma_tozluk_kapagi_uretimi),
+    ('asansor-kabin-plastik-parca-uretimi', 'Asansör Kabin ve Kapı Plastik Parça Üretimi', 'Asansör kabin buton kapağı, kapı fotoseli muhafazası ve kabin klipsini numuneden ölçüyle üretiriz. Ölçü teyidi sonrası doğrudan uyumlu parça ile işleme geçiyoruz.', _asansor_kabin_plastik_parca_uretimi),
+    ('vinc-kaldirma-ekipmani-plastik-parca-uretimi', 'Vinç ve Kaldırma Ekipmanı Plastik Parça Üretimi', 'Vinç kumanda kapağı, kablo kılavuzu ve limit switch muhafazasını ölçüye özel üretiriz. Yük taşıyan ana yapı kapsam dışı; ölçüye uygun plastik parça üretiriz.', _vinc_kaldirma_ekipmani_plastik_parca_uretimi),
+    ('kano-kayak-su-sporlari-plastik-parca-uretimi', 'Kano, Kayak ve Su Sporları Plastik Parça Üretimi', 'Kano, kayak kürek tutucu, ayak pedalı ve bagaj klipsi için ölçüye özel üretim sunarız. Su ve UV dayanımı ile ölçü bazlı yenileme yaparak kullanım düzenini koruruz.', _kano_kayak_su_sporlari_plastik_parca_uretimi),
+    ('sera-havalandirma-damla-sulama-plastik-parca-uretimi', 'Sera Havalandırma ve Damla Sulama Plastik Parça', 'Sera havalandırma menteşi, klipsi ve damla sulama başlık tutucusunu numuneden ölçüye özel üretiriz. Dış koşullara göre malzeme seçimiyle ölçü doğrulanır.', _sera_havalandirma_damla_sulama_plastik_parca_uretimi),
+    ('otopark-bariyer-sistemi-plastik-parca-uretimi', 'Otopark ve Bariyer Sistemi Plastik Parça Üretimi', 'Kart okuyucu kapağı, bariyer kolu ucu ve fotosel muhafazasını ölçüye özel üretiriz. Hareketli mekanizma dışındaki plastiklerde güvenli ve ölçüye uygun çözüm sunarız.', _otopark_bariyer_sistemi_plastik_parca_uretimi),
+    ('ahsap-atolye-marangoz-plastik-parca-uretimi', 'Ahşap Atölye ve Marangoz Ekipmanı Plastik Parça', 'Atölye parçalarında ölçü çizen tutucu, kutu bölmesi ve toz torbası klipsini numuneden ölçüye özel üretiriz. Doğru ölçü ile güvenli uyum için hızlı üretim sunarız.', _ahsap_atolye_marangoz_plastik_parca_uretimi),
+    ('kuru-temizleme-camasirhane-ekipmani-plastik-parca-uretimi', 'Kuru Temizleme ve Çamaşırhane Ekipmanı Plastik Parça', 'Çamaşır makinesi kapak mandalı, ütü masası ayağı ve buhar hazne kapağını numuneden ölçüye özel üretiriz. Yoğun kullanımda uyumlu yedek parça teslimi sağlar.', _kuru_temizleme_camasirhane_ekipmani_plastik_parca_uretimi),
+    ('kimyasal-tank-depolama-plastik-parca-uretimi', 'Kimyasal Tank ve Depolama Ekipmanı Plastik Parça', 'Kimyasal tank seviye şamandırası tutucusu, ağız contası mesni ve vana koruma kapağını numuneden ölçüye özel üretiriz; temas ortamına göre malzeme uyum planı kurarız.', _kimyasal_tank_depolama_plastik_parca_uretimi),
+    ('birden-fazla-adet-ozel-parca-siparisi-toplu', 'Birden Fazla (Toplu) Özel Parça Siparişi Verilir mi?', 'Aynı parçadan veya farklı parçalarla toplu sipariş verilir. Ölçü ve onay netleşince toplu iş akışıyla üretim planı kurulur, teslim süreci tek seferde netlenir.', _birden_fazla_adet_ozel_parca_siparisi_toplu),
+    ('siparis-sonrasi-olcu-degisikligi-iptal-politikasi', 'Sipariş Sonrası Ölçü Değişikliği ve İptal', 'Üretim öncesi ve sonrası ölçü değişikliği farklı çalışır. Hangi aşamada ne değişir ve hangi noktada iptal olur; ölçü onayıyla net adım adım ilerleriz.', _siparis_sonrasi_olcu_degisikligi_iptal_politikasi),
+    ('olcu-tutmazsa-ne-olur-uyum-garantisi', 'Ölçü Tutmazsa Ne Olur? Uyum Garantisi', 'Ölçüyü bizden aldığımızda uyum sorumluluğumuzdur. Sapma olursa süreç nasıl ilerler, hangi adımla düzeltilir ve teslimat planı nasıl güncellenir net anlatılır.', _olcu_tutmazsa_ne_olur_uyum_garantisi),
+
 ]
 
 # Statik içerik/yasal sayfalar: elle yazılmış, build.py ÜRETMEZ (repo'da commit'li), korunur.
