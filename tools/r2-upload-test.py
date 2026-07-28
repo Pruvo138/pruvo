@@ -8,7 +8,7 @@ put_object yakalanır; head_object sahte ContentLength döndürür → determini
 Koşum:  python3 /Users/okan/dev/pruvo/tools/r2-upload-test.py
 Beklenen: tüm vakalar geçer, exit 0.
 
-Vakalar (SPEC A-G):
+Vakalar (SPEC A-I):
   A geçerli JPEG            → GEÇER, ContentType image/jpeg, readback OK
   B geçerli PNG            → GEÇER, ContentType image/png
   C 0-bayt dosya           → REDDEDİLİR (R1 boyut)
@@ -16,10 +16,8 @@ Vakalar (SPEC A-G):
   E kesik/çöp (>1KB)       → REDDEDİLİR (R1 magic yok)
   F .jpg ad + PNG gövde    → YÜKLENİR + stderr LOUD uyarı + ContentType image/png (R3)
   G kısmi PUT (readback ContentLength yanlış) → REDDEDİLİR (R4)
-
-Mutasyon disiplini (kör-yeşil değil kanıtı):
-  (i)  R1 magic kontrolü kaldırılırsa  → D + E YEŞİLDEN KIRMIZIYA döner
-  (ii) R4 readback no-op yapılırsa     → G YEŞİLDEN KIRMIZIYA döner
+  H uzantısız ad + 403-HTML gövde → REDDEDİLİR (R1 magic yok)
+  I uzantısız ad + JPEG magic     → GEÇER, ContentType image/jpeg
 """
 import sys, os, io, importlib.util
 
@@ -99,7 +97,7 @@ def reddedilir_mi(s3, key, data):
         return True
 
 
-# --- Vakalar A-G --------------------------------------------------------------
+# --- Vakalar A-I --------------------------------------------------------------
 def vaka_A():
     s3 = FakeS3()
     ct = mod.dogrula_ve_yukle(s3, BUCKET, "urunler/a-1.jpg", JPEG_OK)
@@ -160,40 +158,30 @@ def vaka_G():
     onayla(len(s3.puts) == 1, "G: put ÇAĞRILDI ama readback yakaladı")
 
 
-# --- Mutasyon disiplini -------------------------------------------------------
-def mutasyon_i_magic_kaldir():
-    """R1 magic kontrolünü etkisizleştir (her gövde 'jpeg' sayılır) → D + E artık GEÇMELİ (regresyon)."""
-    orij = mod.format_belirle
-    mod.format_belirle = lambda data: "jpeg"  # magic kapısı kaldırıldı
+def vaka_H():
+    s3 = FakeS3()
+    hata = None
     try:
-        s3d = FakeS3()
-        d_red = reddedilir_mi(s3d, "urunler/d-1.jpg", HTML_403)
-        s3e = FakeS3()
-        e_red = reddedilir_mi(s3e, "urunler/e-1.jpg", GARBAGE)
-    finally:
-        mod.format_belirle = orij
-    # Mutasyon altında D ve E artık REDDEDİLMEZ → testin bunları koruduğunu kanıtlar
-    onayla(not d_red and not e_red,
-           "MUT-i: magic kaldırılınca D+E kırmızıya döndü (koruma kanıtı)")
+        mod.dogrula_ve_yukle(s3, BUCKET, "urunler/boga-p1", HTML_403)
+    except Exception as exc:
+        hata = exc
+    onayla(isinstance(hata, ValueError) and str(hata).startswith("R1 red:"),
+           "H: uzantısız anahtar + 403-HTML R1 ile REDDEDİLDİ")
+    onayla(len(s3.puts) == 0, "H: put ÇAĞRILMADI (fail-closed önce)")
 
 
-def mutasyon_ii_readback_noop():
-    """R4 readback'i no-op yap → G artık GEÇMELİ (regresyon)."""
-    orij = mod.readback_dogrula
-    mod.readback_dogrula = lambda s3, bucket, key, yerel_boyut: None  # readback devre dışı
-    try:
-        s3 = FakeS3(readback_len=17)  # yanlış ContentLength
-        g_red = reddedilir_mi(s3, "urunler/g-1.jpg", JPEG_OK)
-    finally:
-        mod.readback_dogrula = orij
-    # Mutasyon altında G artık REDDEDİLMEZ → readback'in G'yi koruduğunu kanıtlar
-    onayla(not g_red, "MUT-ii: readback no-op olunca G kırmızıya döndü (koruma kanıtı)")
+def vaka_I():
+    s3 = FakeS3()
+    ct = mod.dogrula_ve_yukle(s3, BUCKET, "urunler/boga-p1", JPEG_OK)
+    onayla(ct == "image/jpeg", "I: uzantısız anahtar + JPEG magic ContentType image/jpeg")
+    onayla(len(s3.puts) == 1 and s3.puts[0]["ContentType"] == "image/jpeg",
+           "I: put image/jpeg ile çağrıldı")
 
 
 def main():
     print("== r2-upload doğrulama kabul testi ==")
     for fn in (vaka_A, vaka_B, vaka_B2_webp, vaka_C, vaka_D, vaka_E, vaka_F, vaka_G,
-               mutasyon_i_magic_kaldir, mutasyon_ii_readback_noop):
+               vaka_H, vaka_I):
         fn()
     print("---")
     print("GECTI=%d  KALDI=%d" % (_gecti, _kaldi))

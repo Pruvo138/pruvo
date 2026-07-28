@@ -27,6 +27,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import arama
@@ -64,35 +65,66 @@ DB_AD = "pruvo-katalog"  # execute yolunda KULLANILAN tanimlayici (surumden bagi
 PARCA = 400
 
 
+def wrangler_hata_tanisi(ham):
+    """Wrangler hata metnini siniflandir: auth, gecici veya bilinmeyen.
+
+    code 10000 Wrangler/Cloudflare ciktisindan gelir; d1-sync bu kodu uretmez. Ancak
+    tek bir 10000 cevabi gecici olabildigi icin wrangler() auth sonucunu da yeniden
+    dener. Yalniz tum denemeler ayni sinifta basarisizsa kalici auth tanisi konur.
+    """
+    kucuk = ham.lower()
+    gecici_isaretler = (
+        "timed out", "timeout", "etimedout", "econnreset", "econnrefused",
+        "enotfound", "getaddrinfo", "socket hang up", "network error",
+        "network connectivity", "fetch failed", "service unavailable",
+        "bad gateway", "gateway timeout", "too many requests", "rate limit",
+        "code: 429", "status: 429", "code: 500", "status: 500",
+        "code: 502", "status: 502", "code: 503", "status: 503",
+        "code: 504", "status: 504",
+    )
+    if any(isaret in kucuk for isaret in gecici_isaretler):
+        return "gecici"
+    if re.search(r"\bcode\s*:\s*10000\b", kucuk) or "authentication error" in kucuk:
+        return "auth"
+    return None
+
+
 def wrangler(args, girdi_dosya=None):
     """wrangler d1 execute calistir, JSON sonucu dondur."""
     komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB_AD, "--remote", "--json"] + args
-    p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True)
-    ham = (p.stdout or "") + (p.stderr or "")
-
-    # Sandbox'li oturumlarda (Claude/CI) ~/.npm/_cacache yazilamayabilir (EPERM) ve
-    # npx daha baslamadan duser (denetim 2026-07-15). Gecici bir npm cache ile TEK
-    # SEFER yeniden dene — pre-push senkronunun sessizce kacmasini onler.
-    if p.returncode != 0 and "EPERM" in ham and "_cacache" in ham:
-        ort = dict(os.environ, npm_config_cache=tempfile.mkdtemp(prefix="pruvo-npm-"))
-        p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True, env=ort)
+    p = None
+    ham = ""
+    tani = None
+    for deneme in range(3):
+        p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True)
         ham = (p.stdout or "") + (p.stderr or "")
 
-    # En sik hata: token'in D1 yetkisi yok. Ham wrangler ciktisi bunu anlatmiyor
-    # ("cozulemedi" deyip gecmek, sonraki oturuma sebebi kaybettiriyor) — acikca soyle.
-    if "code: 10000" in ham or "Authentication error" in ham:
+        # Sandbox'li oturumlarda (Claude/CI) ~/.npm/_cacache yazilamayabilir (EPERM) ve
+        # npx daha baslamadan duser (denetim 2026-07-15). Gecici bir npm cache ile TEK
+        # SEFER yeniden dene — pre-push senkronunun sessizce kacmasini onler.
+        if p.returncode != 0 and "EPERM" in ham and "_cacache" in ham:
+            ort = dict(os.environ, npm_config_cache=tempfile.mkdtemp(prefix="pruvo-npm-"))
+            p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True, env=ort)
+            ham = (p.stdout or "") + (p.stderr or "")
+
+        tani = wrangler_hata_tanisi(ham)
+        if p.returncode == 0 or tani not in ("auth", "gecici") or deneme == 2:
+            break
+        time.sleep(0.25)
+
+    if tani == "gecici":
         sys.exit(
-            "D1 KIMLIK HATASI (code 10000) — token D1'e erisemiyor.\n"
-            "  Cloudflare panel > My Profile > API Tokens > CLOUDFLARE_API_TOKEN >\n"
-            "  Permissions'a **Account > D1 > Edit** ekle. (Mevcut token cache-purge\n"
-            "  icin uretilmis, yalnizca zone yetkisi var.)\n"
-            "\n"
-            "  !! FAZ 2'DEN SONRA BU ARTIK ZARARSIZ DEGIL: Ege (WhatsApp botu) urunleri\n"
-            "  artik urunler.json'dan DEGIL D1'den okuyor. D1 senkronu basarisiz olursa\n"
-            "  SITE yeni urunu gosterir ama EGE GORMEZ — musteriye 'boyle bir sey yok'\n"
-            "  demez (oyle egitildi) ama urunu de oneremez. Sessiz satis kaybi.\n"
-            "  GECICI COZUM: her urun push'undan sonra YERELDE 'python3 tools/d1-sync.py'\n"
-            "  calistir (yerelde wrangler'in kendi oturumu kullanilir, token gerekmez)."
+            "D1 GECICI HATA, yeniden dene — ag/rate-limit/Cloudflare 5xx.\n"
+            + ham[-2000:]
+        )
+
+    # 10000 tek basina kalici yetki kaniti degildir; iki retry da basarisiz olduktan
+    # sonra auth olarak raporlanir. Token/oturum/config otomatik degistirilmez.
+    if tani == "auth":
+        sys.exit(
+            "D1 GERCEK 10000 - auth — uc denemede de kimlik dogrulama basarisiz.\n"
+            "  Token/oturum/config otomatik degistirilmedi.\n"
+            + ham[-2000:]
         )
 
     i = p.stdout.find("[")
