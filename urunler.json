@@ -1,5 +1,543 @@
 [
   {
+    "id": "honda-nc700-nc750-radyator-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda NC700 / NC750 Radyatör Kapağı",
+    "aciklama": "Honda NC700 ve NC750 motosiklet radyatör kapak/koruma parçası. Kırılan veya kaybolan orijinalin yerine geçer, radyatörü örtüp korur. Orijinali lazer tarama ile modellenmiştir.\n- Honda NC700 ve NC750 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dnc-700-nc-750-radiator-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dnc-700-nc-750-radiator-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dnc-700-nc-750-radiator-cover-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dnc-700-nc-750-radiator-cover-4.jpg"
+    ]
+  },
+  {
+    "id": "kia-ceed-sis-fari-cercevesi-86564-1h500",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia"
+    ],
+    "baslik": "Kia Ceed Sis Farı Çerçevesi (86564-1H500)",
+    "aciklama": "Kia Ceed ön tampon sis farı çerçeve/kapak parçası (OEM 86564-1H500). Kırılan veya kaybolan orijinalin yerine geçer, sis farını temizce çerçeveler. Orijinali lazer tarama ile ölçeklenmiştir.\n- Kia Ceed ile uyumludur.\n- OEM 86564-1H500 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dkia-ceed-fog-lamp-frame-86564-1h500-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dkia-ceed-fog-lamp-frame-86564-1h500-2.jpg"
+    ]
+  },
+  {
+    "id": "nissan-tampon-bandi-kapagi-62086eb300",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan Tampon Bandı Kapağı (62086EB300)",
+    "aciklama": "Nissan tampon bandı (moulding) kapak parçası (OEM 62086EB300). Kırılan veya kaybolan orijinalin yerine geçer, tampon bandını temizce tamamlar. Orijinali lazer tarama ile ölçeklenmiştir.\n- Nissan ile uyumludur.\n- OEM 62086EB300 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dnissan-moulding-bumper-cover-62086eb300-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dnissan-moulding-bumper-cover-62086eb300-2.jpg"
+    ]
+  },
+  {
+    "id": "renault-megane-3-port-bagaj-arka-kapagi-738876878r",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Megane 3 Port Bagaj Arka Kapağı (738876878R)",
+    "aciklama": "Renault Megane 3 tavan port bagaj (roof bar) arka kapak parçası (OEM 738876878R). Kırılan veya kaybolan orijinalin yerine geçer, port bagaj ucunu temizce kapatır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Renault Megane 3 ile uyumludur.\n- OEM 738876878R referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3drenault-megane-mk3-roofbar-rear-cover-738876878r-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3drenault-megane-mk3-roofbar-rear-cover-738876878r-2.jpg"
+    ]
+  },
+  {
+    "id": "volkswagen-lt-ayna-ucgen-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "Volkswagen LT Ayna Üçgen Kapağı",
+    "aciklama": "Volkswagen LT ayna üçgeni (A-direk ayna köşesi) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, ayna üçgen boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Volkswagen LT ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-lt-volt-mirror-triangle-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-lt-volt-mirror-triangle-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-lt-volt-mirror-triangle-cover-3.jpg"
+    ]
+  },
+  {
+    "id": "renault-laguna-2-debriyaj-baglanti-kolu-7700425408",
+    "kategori": "Otomobil",
+    "marka": [
+      "Renault"
+    ],
+    "baslik": "Renault Laguna 2 Debriyaj Bağlantı Kolu (7700425408)",
+    "aciklama": "Renault Laguna 2 debriyaj bağlantı (linkage) kol parçası (OEM 7700425408). Kırılan veya aşınan orijinalin yerine geçer, debriyaj bağlantısını düzgün aktarır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Renault Laguna 2 ile uyumludur.\n- OEM 7700425408 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3drenault-laguna-mk2-clutch-linkage-lever-7700425408-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3drenault-laguna-mk2-clutch-linkage-lever-7700425408-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3drenault-laguna-mk2-clutch-linkage-lever-7700425408-3.jpg"
+    ]
+  },
+  {
+    "id": "scania-silecek-dislisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Scania"
+    ],
+    "baslik": "Scania Silecek Dişlisi",
+    "aciklama": "Scania kamyon ön cam silecek mekanizması dişli parçası. Kırılan veya aşınan orijinalin yerine geçer, silecek motorunu düzgün döndürür. Orijinali lazer tarama ile modellenmiştir.\n- Scania ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dscania-wiper-gear-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dscania-wiper-gear-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dscania-wiper-gear-3.jpg"
+    ]
+  },
+  {
+    "id": "volvo-s60-arka-reflektor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo S60 Arka Reflektör Kapağı",
+    "aciklama": "Volvo S60 arka tampon reflektör kapak/yuva parçası. Kırılan veya kaybolan orijinalin yerine geçer, reflektörü yerinde tutup boşluğu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Volvo S60 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-rear-reflector-button-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-rear-reflector-button-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-rear-reflector-button-3.jpg"
+    ]
+  },
+  {
+    "id": "volvo-s60-radyator-yan-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo S60 Radyatör Yan Kapağı",
+    "aciklama": "Volvo S60 radyatör yan (hava yönlendirme) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, radyatör yanını temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Volvo S60 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "680 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-radiator-side-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-radiator-side-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "ssangyong-on-cam-kose-izgara-kapagi-79440-32030",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ssangyong"
+    ],
+    "baslik": "Ssangyong Ön Cam Köşe Izgara Kapağı (79440-32030)",
+    "aciklama": "Ssangyong ön cam köşe havalandırma ızgara kapak parçası (OEM 79440-32030). Kırılan veya kaybolan orijinalin yerine geçer, cam köşe ızgarasını temizce kapatır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Ssangyong ile uyumludur.\n- OEM 79440-32030 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2910 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dssangyong-window-front-corner-grille-cover-79440-32030-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dssangyong-window-front-corner-grille-cover-79440-32030-2.jpg"
+    ]
+  },
+  {
+    "id": "audi-a4-rs4-sis-fari-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi A4 / RS4 Sis Farı Çerçevesi",
+    "aciklama": "Audi A4 ve RS4 ön tampon sis farı çerçeve/kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, sis farını temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Audi A4 ve RS4 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2910 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3daudi-a4-rs4-foglight-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3daudi-a4-rs4-foglight-frame-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3daudi-a4-rs4-foglight-frame-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3daudi-a4-rs4-foglight-frame-4.jpg",
+      "https://media.pruvo3d.com/urunler/c3daudi-a4-rs4-foglight-frame-5.jpg",
+      "https://media.pruvo3d.com/urunler/c3daudi-a4-rs4-foglight-frame-6.jpg",
+      "https://media.pruvo3d.com/urunler/c3daudi-a4-rs4-foglight-frame-7.jpg"
+    ]
+  },
+  {
+    "id": "bmw-r-1200-gs-aku-kapagi-4663-8523156",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW"
+    ],
+    "baslik": "BMW R 1200 GS Akü Kapağı (4663 8523156)",
+    "aciklama": "BMW R 1200 GS motosiklet akü (batarya) kapak parçası (OEM 4663 8523156). Kırılan veya kaybolan orijinalin yerine geçer, aküyü örtüp korur. Orijinali lazer tarama ile ölçeklenmiştir.\n- BMW R 1200 GS ile uyumludur.\n- OEM 4663 8523156 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbmw-r-gs-1200-battery-cover-4663-8523156-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbmw-r-gs-1200-battery-cover-4663-8523156-2.jpg"
+    ]
+  },
+  {
+    "id": "honda-cr-v-el-freni-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CR-V El Freni Düğmesi",
+    "aciklama": "Honda CR-V el freni (handbrake) düğme/buton parçası. Kırılan veya kaybolan orijinalin yerine geçer, el freni düğmesini tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Honda CR-V ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcr-v-handbrake-button-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcr-v-handbrake-button-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcr-v-handbrake-button-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcr-v-handbrake-button-4.jpg"
+    ]
+  },
+  {
+    "id": "honda-cr-v-klima-kontrol-dugme-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CR-V Klima Kontrol Düğme Çerçevesi",
+    "aciklama": "Honda CR-V klima (kalorifer) kontrol düğme çerçeve parçası. Kırılan veya kaybolan orijinalin yerine geçer, kontrol düğmelerini temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Honda CR-V ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcr-v-air-conditioning-control-button-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcr-v-air-conditioning-control-button-frame-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcr-v-air-conditioning-control-button-frame-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcr-v-air-conditioning-control-button-frame-4.jpg"
+    ]
+  },
+  {
+    "id": "honda-civic-fb7-f1-vites-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic FB7 F1 Vites Kolu",
+    "aciklama": "Honda Civic FB7 (2012-2015) F1 tipi vites kolu parçası. Kırılan veya kaybolan orijinalin yerine geçer, vites kolunu tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Honda Civic FB7 2012-2015 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "770 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcivic-fb7-f1-gear-level-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcivic-fb7-f1-gear-level-2.jpg"
+    ]
+  },
+  {
+    "id": "volvo-s60-v70-emniyet-kemeri-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo S60 / V70 Emniyet Kemeri Kapağı",
+    "aciklama": "Volvo S60 ve V70 emniyet kemeri (kilit/yönlendirici) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, kemer kapağını temizce tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Volvo S60 ve V70 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "190 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-v70-seatbelt-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-v70-seatbelt-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "volvo-s60-v70-kapi-cekme-kolu-30634900-30634896",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo S60 / V70 Kapı Çekme Kolu (30634900 / 30634896)",
+    "aciklama": "Volvo S60 ve V70 iç kapı çekme (pull) kol parçası (OEM 30634900 / 30634896). Kırılan veya kaybolan orijinalin yerine geçer, kapı çekme kolunu tamamlar. Orijinali lazer tarama ile ölçeklenmiştir.\n- Volvo S60 ve V70 ile uyumludur.\n- OEM 30634900 / 30634896 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-v70-door-pull-handle-30634900-30634896-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-v70-door-pull-handle-30634900-30634896-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-v70-door-pull-handle-30634900-30634896-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolvo-s60-v70-door-pull-handle-30634900-30634896-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-mt-07-sinyal-cercevesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha MT-07 Sinyal Çerçevesi",
+    "aciklama": "Yamaha MT-07 motosiklet sinyal (dönüş lambası) çerçeve parçası. Kırılan veya kaybolan orijinalin yerine geçer, sinyali temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Yamaha MT-07 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dyamaha-mt7-indicator-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dyamaha-mt7-indicator-frame-2.jpg"
+    ]
+  },
+  {
+    "id": "fiat-egea-cross-arka-silecek-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Fiat"
+    ],
+    "baslik": "Fiat Egea Cross Arka Silecek Kapağı",
+    "aciklama": "Fiat Egea Cross arka silecek kolu kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, arka silecek mil boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Fiat Egea Cross ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "770 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dfiat-egea-cross-rear-wiper-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-egea-cross-rear-wiper-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-egea-cross-rear-wiper-cover-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-egea-cross-rear-wiper-cover-4.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-egea-cross-rear-wiper-cover-5.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-egea-cross-rear-wiper-cover-6.jpg"
+    ]
+  },
+  {
+    "id": "infiniti-qx56-multimedya-arka-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Infiniti"
+    ],
+    "baslik": "Infiniti QX56 Multimedya Arka Kapağı",
+    "aciklama": "Infiniti QX56 multimedya (ekran) ünitesi arka kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, ünitenin arkasını temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Infiniti QX56 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dinfiniti-qx56-multimedia-rear-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dinfiniti-qx56-multimedia-rear-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dinfiniti-qx56-multimedia-rear-cover-3.jpg"
+    ]
+  },
+  {
+    "id": "citroen-c3-kapi-cekme-kolu-2009-2013-96835321zd",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen"
+    ],
+    "baslik": "Citroen C3 Kapı Çekme Kolu (2009-2013, 96835321ZD)",
+    "aciklama": "Citroen C3 (2009-2013) iç kapı çekme (pull) kol parçası (OEM 1013869 / 41817X / 96835321ZD). Kırılan veya kaybolan orijinalin yerine geçer, kapı çekme kolunu tamamlar. Orijinali lazer tarama ile ölçeklenmiştir.\n- Citroen C3 2009-2013 ile uyumludur.\n- OEM 1013869 / 41817X / 96835321ZD referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-2009-2013-door-pull-handle-1013869-41817x-96835321zd-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-2009-2013-door-pull-handle-1013869-41817x-96835321zd-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-2009-2013-door-pull-handle-1013869-41817x-96835321zd-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-2009-2013-door-pull-handle-1013869-41817x-96835321zd-4.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-2009-2013-door-pull-handle-1013869-41817x-96835321zd-5.jpg"
+    ]
+  },
+  {
+    "id": "volkswagen-passat-b8-on-direk-havalandirma-izgarasi-106582-0000",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "Volkswagen Passat B8 Ön Direk Havalandırma Izgarası (106582-0000)",
+    "aciklama": "Volkswagen Passat B8 ön direk (A-direk) havalandırma ızgara parçası (OEM 106582-0000). Kırılan veya kaybolan orijinalin yerine geçer, hava üfleme ızgarasını temizce tamamlar. Orijinali lazer tarama ile ölçeklenmiştir.\n- Volkswagen Passat B8 ile uyumludur.\n- OEM 106582-0000 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-passat-b8-front-pillar-ventilation-grille-106582-0000-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-passat-b8-front-pillar-ventilation-grille-106582-0000-2.jpg"
+    ]
+  },
+  {
+    "id": "honda-cr-v-vites-kolu-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda CR-V Vites Kolu Çerçevesi",
+    "aciklama": "Honda CR-V vites kolu (şanzıman) çerçeve parçası. Kırılan veya kaybolan orijinalin yerine geçer, vites kolunu temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Honda CR-V ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcr-v-gear-lever-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcr-v-gear-lever-frame-2.jpg"
+    ]
+  },
+  {
+    "id": "chery-tiggo-3-klima-kontrol-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chery"
+    ],
+    "baslik": "Chery Tiggo 3 Klima Kontrol Düğmesi",
+    "aciklama": "Chery Tiggo 3 klima (kalorifer) kontrol düğme/buton parçası. Kırılan veya kaybolan orijinalin yerine geçer, klima kontrol düğmesini tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Chery Tiggo 3 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dchery-tiggo-3-clima-control-button-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dchery-tiggo-3-clima-control-button-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dchery-tiggo-3-clima-control-button-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dchery-tiggo-3-clima-control-button-4.jpg",
+      "https://media.pruvo3d.com/urunler/c3dchery-tiggo-3-clima-control-button-5.jpg"
+    ]
+  },
+  {
+    "id": "opel-corsa-c-sigorta-kutusu-kapagi-9115986",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel"
+    ],
+    "baslik": "Opel Corsa C Sigorta Kutusu Kapağı (9115986)",
+    "aciklama": "Opel Corsa C sigorta kutusu kapak parçası (OEM 9115986). Kırılan veya kaybolan orijinalin yerine geçer, sigorta kutusunu temizce kapatır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Opel Corsa C ile uyumludur.\n- OEM 9115986 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dopel-corsa-c-fuse-box-cover-9115986-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dopel-corsa-c-fuse-box-cover-9115986-2.jpg"
+    ]
+  },
+  {
+    "id": "hyundai-i20-havalandirma-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Hyundai"
+    ],
+    "baslik": "Hyundai i20 Havalandırma Çerçevesi",
+    "aciklama": "Hyundai i20 iç havalandırma ızgara çerçeve parçası. Kırılan veya kaybolan orijinalin yerine geçer, hava üfleme ızgarasını temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Hyundai i20 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dhyundai-i20-air-ventilation-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhyundai-i20-air-ventilation-frame-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dhyundai-i20-air-ventilation-frame-3.jpg"
+    ]
+  },
+  {
+    "id": "dacia-sandero-2-port-bagaj-kapagi-2013-2020-738833018r",
+    "kategori": "Otomobil",
+    "marka": [
+      "Dacia"
+    ],
+    "baslik": "Dacia Sandero 2 Port Bagaj Kapağı (2013-2020, 738833018R)",
+    "aciklama": "Dacia Sandero 2 (2013-2020) tavan port bagaj (roof bar) kapak parçaları (OEM 738833018R / 738834851R / 738830144R). Aynı OEM referanslarıyla Dacia Logan 2 tavan çıtasına da uyar. Kırılan veya kaybolan orijinalin yerine geçer, port bagaj uçlarını temizce kapatır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Dacia Sandero 2 ve Logan 2 (2013-2020) ile uyumludur.\n- OEM 738833018R / 738834851R / 738830144R referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddacia-sandero-mk2-2013-2020-roof-bar-cover-738833018r-738834851r-738830144r-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddacia-sandero-mk2-2013-2020-roof-bar-cover-738833018r-738834851r-738830144r-2.jpg"
+    ]
+  },
+  {
+    "id": "fiat-punto-direksiyon-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Fiat"
+    ],
+    "baslik": "Fiat Punto Direksiyon Düğmesi",
+    "aciklama": "Fiat Punto direksiyon simidi kontrol düğme/buton parçası. Kırılan veya kaybolan orijinalin yerine geçer, direksiyon düğmesini tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Fiat Punto ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dfiat-punto-steering-wheel-button-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-punto-steering-wheel-button-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-punto-steering-wheel-button-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-punto-steering-wheel-button-4.jpg"
+    ]
+  },
+  {
+    "id": "mercedes-w205-arka-kalorifer-izgara-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes W205 Arka Kalorifer Izgara Kapağı",
+    "aciklama": "Mercedes W205 (C-Serisi) arka konsol kalorifer (ısıtıcı) ızgara kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, arka hava üfleme ızgarasını temizce tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Mercedes W205 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "680 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmercedes-w205-rear-heater-grille-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmercedes-w205-rear-heater-grille-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmercedes-w205-rear-heater-grille-cover-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmercedes-w205-rear-heater-grille-cover-4.jpg"
+    ]
+  },
+  {
+    "id": "suzuki-grand-vitara-orta-konsol",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki"
+    ],
+    "baslik": "Suzuki Grand Vitara Orta Konsol",
+    "aciklama": "Suzuki Grand Vitara orta konsol parçası. Kırılan veya kaybolan orijinalin yerine geçer, orta konsolu tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Suzuki Grand Vitara ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsuzuki-grand-vitara-center-console-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsuzuki-grand-vitara-center-console-2.jpg"
+    ]
+  },
+  {
+    "id": "suzuki-grand-vitara-jant-gobegi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki"
+    ],
+    "baslik": "Suzuki Grand Vitara Jant Göbeği Kapağı",
+    "aciklama": "Suzuki Grand Vitara jant göbeği (orta/bijon) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, jant göbeğini kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Suzuki Grand Vitara ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsuzuki-grand-vitara-wheel-hub-rim-hub-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsuzuki-grand-vitara-wheel-hub-rim-hub-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsuzuki-grand-vitara-wheel-hub-rim-hub-3.jpg"
+    ]
+  },
+  {
+    "id": "toyota-corolla-sol-silecek-kapagi-2002-2007",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Corolla Sol Silecek Kapağı (2002-2007)",
+    "aciklama": "Toyota Corolla (2002-2007) ön silecek kolu kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, silecek mil boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Toyota Corolla 2002-2007 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "290 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtoyota-corolla-sol-2002-2007-wiper-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-corolla-sol-2002-2007-wiper-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "honda-civic-vites-kolu-cercevesi-1995-2001-77293-st3-g000",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic Vites Kolu Çerçevesi (1995-2001, 77293-ST3-G000)",
+    "aciklama": "Honda Civic (1995-2001) vites kolu (şanzıman) çerçeve parçası (OEM 77293-ST3-G000). Aynı OEM referansıyla Rover 400 vites çerçevesine de uyar. Kırılan veya kaybolan orijinalin yerine geçer, vites kolunu temizce çerçeveler. Orijinali lazer tarama ile ölçeklenmiştir.\n- Honda Civic 1995-2001 ve Rover 400 ile uyumludur.\n- OEM 77293-ST3-G000 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3deurocivic-civic-1995-2001-gear-lever-frame-77293st3g000-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3deurocivic-civic-1995-2001-gear-lever-frame-77293st3g000-2.jpg"
+    ]
+  },
+  {
+    "id": "opel-corsa-b-ayna-ic-kapagi-90438366",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel"
+    ],
+    "baslik": "Opel Corsa B Ayna İç Kapağı (90438366)",
+    "aciklama": "Opel Corsa B dış ayna iç kapak/taban parçası (OEM 90438366). Kırılan veya kaybolan orijinalin yerine geçer, ayna iç boşluğunu temizce kapatır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Opel Corsa B ile uyumludur.\n- OEM 90438366 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dopel-corsa-b-mirror-inner-cover-90438366-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dopel-corsa-b-mirror-inner-cover-90438366-2.jpg"
+    ]
+  },
+  {
+    "id": "bmw-r-1300-gs-el-koruma-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "BMW"
+    ],
+    "baslik": "BMW R 1300 GS El Koruma Kapağı",
+    "aciklama": "BMW R 1300 GS motosiklet el koruma (handguard) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, el korumasını tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- BMW R 1300 GS ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbmw-gs-1300-hand-protection-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbmw-gs-1300-hand-protection-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "toyota-yaris-sol-ayna-ucgen-kapagi-75752",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Yaris Sol Ayna Üçgen Kapağı (75752)",
+    "aciklama": "Toyota Yaris sol dış ayna üçgeni (A-direk ayna köşesi) kapak parçası (OEM 75752). Kırılan veya kaybolan orijinalin yerine geçer, ayna üçgen boşluğunu temizce kapatır. Orijinali lazer tarama ile ölçeklenmiştir.\n- Toyota Yaris (sol) ile uyumludur.\n- OEM 75752 referansına sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtoyota-yaris-mirror-triangle-cover-75752lh-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-yaris-mirror-triangle-cover-75752lh-2.jpg"
+    ]
+  },
+  {
     "id": "bmw-e39-elektrikli-koltuk-dugmesi-54669104",
     "kategori": "Otomobil",
     "marka": [
