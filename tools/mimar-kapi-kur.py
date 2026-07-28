@@ -59,6 +59,33 @@ KAYIT = {
     "statusMessage": "mimar icra kapisi",
 }
 
+# 28 TEM AGENT-KAPISI: AYNI kapi betigi (mimar-icra-kapisi.py) Agent/Task matcher'ina da
+# baglanir. Mimar ANA oturumu bir Claude iscisi (Agent/Task) acarken 'codex-muafiyet'
+# beyanini denetler; kapi karari betikte, bu KAYIT yalniz KABLODUR. Ayri matcher blogu:
+# Bash-ozel nobetciler (komut-stili/urunler-guard) Agent/Task'a KOSMASIN.
+AGENT_MATCHER = "Agent|Task"
+AGENT_KAYIT = {
+    "type": "command",
+    "command": KOMUT,
+    "timeout": 30,
+    "statusMessage": "mimar agent kapisi",
+}
+
+
+def _matcher_blogu(kancalar, matcher):
+    """PreToolUse listesinde matcher'i TAM esit olan blok (yoksa None)."""
+    for blok in kancalar:
+        if blok.get("matcher") == matcher:
+            return blok
+    return None
+
+
+def _blokta_hook_var(blok, dosya_adi):
+    """Blok icinde komutu dosya_adi geciren bir hook var mi?"""
+    if blok is None:
+        return False
+    return any(dosya_adi in (k.get("command") or "") for k in (blok.get("hooks") or []))
+
 
 PRECOMMIT = "/Users/okan/dev/pruvo/.git/hooks/pre-commit"
 
@@ -614,6 +641,271 @@ def codex_kurali(uygula):
     sys.exit(0 if eksik == 0 else 1)
 
 
+# ===================== 28 TEM: AGENT-KAPISI 6 EVE (BaBa/Senyor Advisor hukmu) =====================
+# Kural METNI burada da YASAR (codex kuralindaki desenin AYNISI): mimar ANA oturumu bir
+# Claude iscisi (Agent/Task) acarken prompt'ta 'codex-muafiyet: <is> — <sinif>' beyani sart.
+# KraL 'kaynak' modundadir (kural commit'li tools/mimar-icra-kapisi.py'de; bu arac orayi
+# YAZMAZ, yalnizca DOGRULAR); diger 5 ev 'enjekte' modundadir (per-makine kopyaya blok
+# enjekte + settings Agent|Task kablosu, commit YOK). Desen: DAR + IDEMPOTENT + YEDEKLI +
+# FAIL-CLOSED (zorunlu sembol/anksraj eksikse O EVE DOKUNULMAZ; enjeksiyon sonrasi compile +
+# CANLI FIKSTUR, biri tutmazsa ev DERHAL YEDEKTEN geri alinir — tek-ev FP tum evi durdurmaz).
+AGENT_DAMGA = 'AGENT_KURAL_SURUMU = "28tem-1"'
+AGENT_TANIM_BAS = "# === PRUVO AGENT-KAPISI BASLANGIC (mimar-kapi-kur.py enjekte etti) ==="
+AGENT_TANIM_SON = "# === PRUVO AGENT-KAPISI BITIS ==="
+AGENT_CAGRI_BAS = "    # === PRUVO AGENT-KAPISI CAGRI BASLANGIC (mimar-kapi-kur.py) ==="
+AGENT_CAGRI_SON = "    # === PRUVO AGENT-KAPISI CAGRI BITIS ==="
+# Enjeksiyon ANKRAJLARI (6 evde de var oldugu OLCULDU — tools/inspect ile) + bulunmasi
+# ZORUNLU semboller (fail-closed: biri eksikse ev ATLANIR, yarim enjeksiyon kapiyi cokertir).
+AGENT_ANKRAJ_TANIM = "\ndef main():\n"
+AGENT_ANKRAJ_CAGRI = '    komut = (girdi.get("tool_input") or {}).get("command") or ""\n'
+AGENT_ZORUNLU_SEMBOL = (
+    "def reddet(", "import os", "import re",
+    AGENT_ANKRAJ_TANIM, AGENT_ANKRAJ_CAGRI,
+)
+
+AGENT_TANIM_SABLON = '''
+
+''' + AGENT_TANIM_BAS + '''
+# 28 TEM (BaBa/Senyor Advisor hukmu): mimar bir Claude iscisi (Agent/Task) acmak da
+# dogrudan 'codex exec' kadar TEK SATIR surtunme tasimali. Mimar ANA oturumu (agent_id
+# BOS) Agent/Task acarken prompt'ta 'codex-muafiyet: <is> — <sinif>' beyani YOKSA RED.
+# ISCI (agent_id dolu) TAM muaf. Agent/Task DISINDA hicbir arac etkilenmez. PARSER TAKLIDI
+# YASAK: tek makine-aranabilir regex (AGENT_MUAFIYET_RE); supheli form = RED (fail-closed).
+AGENT_ARACLARI = {"Agent", "Task"}
+AGENT_SINIFLARI = ("görsel", "sessiz-hata", "muhakeme", "ölçüm", "güvenlik", "şema")
+AGENT_MUAFIYET_RE = re.compile(
+    r"codex-muafiyet:[^\\S\\n]*\\S[^\\n]*?[—–-][^\\S\\n]*(?:" +
+    "|".join(re.escape(_s) for _s in AGENT_SINIFLARI) + r")",
+    re.IGNORECASE,
+)
+''' + AGENT_DAMGA + '''
+AGENT_GEREKCE = (
+    "AGENT-KAPISI (28 Tem): mimar ANA oturumu bir Claude iscisi (Agent/Task) aciyor ama "
+    "prompt/spec icinde 'codex-muafiyet:' BEYAN SATIRI YOK. IKI CIKIS: (a) ISI CODEX'E VER "
+    "-> codex-isci sablonu (codex exec -C <ev> -s workspace-write -o <scratchpad>/son-mesaj.txt "
+    "\\"<spec>\\"); VEYA (b) prompt'a su satiri EKLE: 'codex-muafiyet: <is tanimi> — <sinif>' "
+    "(<sinif> = gorsel / sessiz-hata / muhakeme / olcum / guvenlik / sema — codex-isci yasak listesi)."
+)
+
+
+def _agent_isci_mi(girdi):
+    try:
+        aid = girdi.get("agent_id")
+    except Exception:
+        return False
+    return isinstance(aid, str) and bool(aid.strip())
+
+
+def _agent_reddet(neden):
+    try:
+        arity = reddet.__code__.co_argcount
+    except Exception:
+        arity = 1
+    if arity >= 2:
+        reddet(neden, sonu="")
+    reddet(neden)
+
+
+def _agent_karari(girdi):
+    ti = girdi.get("tool_input") or {}
+    prompt = ti.get("prompt")
+    if not isinstance(prompt, str):
+        prompt = ""
+    if AGENT_MUAFIYET_RE.search(prompt):
+        return "gecer"
+    return AGENT_GEREKCE
+''' + AGENT_TANIM_SON + '''
+'''
+
+AGENT_CAGRI_SABLON = (
+    AGENT_CAGRI_BAS + "\n"
+    '    _agent_tool = girdi.get("tool_name") or ""\n'
+    "    if _agent_tool in AGENT_ARACLARI and not _agent_isci_mi(girdi):\n"
+    "        _ag_karar = _agent_karari(girdi)\n"
+    '        if _ag_karar != "gecer":\n'
+    "            _agent_reddet(_ag_karar)\n"
+    + AGENT_CAGRI_SON + "\n"
+)
+
+AGENT_ISCI_ID = "a4482c781a922b6a1"  # canli olculmus bir alt-ajan agent_id bicimi
+
+
+def _agent_fikstur(kapi_yolu, kok, tool_name, tool_input, agent_id=None):
+    """Kurulan kapiyi GERCEK PreToolUse payload'u ile kosturur (gercek arac CAGRILMAZ —
+    yalnizca kapi betigi kosar). Doner: allow/deny/COKTU/PARSE-HATASI."""
+    payload = {
+        "session_id": "agent-kur-fikstur",
+        "cwd": kok,
+        "permission_mode": "bypassPermissions",
+        "hook_event_name": "PreToolUse",
+        "tool_name": tool_name,
+        "tool_input": tool_input,
+    }
+    if agent_id is not None:
+        payload["agent_id"] = agent_id
+    ortam = dict(os.environ)
+    ortam["CLAUDE_PROJECT_DIR"] = kok
+    try:
+        sonuc = subprocess.run([sys.executable, kapi_yolu], input=json.dumps(payload),
+                               capture_output=True, text=True, env=ortam)
+    except Exception:
+        return "COKTU"
+    if sonuc.returncode != 0:
+        return "COKTU"
+    cikti = (sonuc.stdout or "").strip()
+    if not cikti:
+        return "allow"
+    try:
+        veri = json.loads(cikti)
+    except Exception:
+        return "PARSE-HATASI"
+    return ((veri.get("hookSpecificOutput") or {}).get("permissionDecision") or "allow")
+
+
+def _agent_ev_settings(kok, uygula):
+    """Evin .claude/settings.json'una Agent|Task matcher blogunu ekler. Komutu BASH
+    blogundaki mimar-icra-kapisi.py hook'undan KOPYALAR (yol per-ev dogru olur). Additive +
+    idempotent + yedekli. Doner: durum metni (settings-yok/PreToolUse-yok/bash-icra-yok/
+    zaten/EKLENECEK/kuruldu/yazim-bozuk)."""
+    yol = os.path.join(kok, ".claude", "settings.json")
+    if not os.path.exists(yol):
+        return "settings-yok"
+    try:
+        veri = json.loads(_oku(yol))
+    except Exception:
+        return "settings-bozuk"
+    kancalar = (veri.get("hooks") or {}).get("PreToolUse")
+    if not isinstance(kancalar, list):
+        return "PreToolUse-yok"
+    komut = None
+    for blok in kancalar:
+        if blok.get("matcher") == "Bash":
+            for k in (blok.get("hooks") or []):
+                if "mimar-icra-kapisi.py" in (k.get("command") or ""):
+                    komut = k.get("command")
+                    break
+    if not komut:
+        return "bash-icra-yok"
+    agent_blok = None
+    for blok in kancalar:
+        if blok.get("matcher") == AGENT_MATCHER:
+            agent_blok = blok
+            break
+    if agent_blok is not None and any(
+            "mimar-icra-kapisi.py" in (k.get("command") or "")
+            for k in (agent_blok.get("hooks") or [])):
+        return "zaten"
+    if not uygula:
+        return "EKLENECEK"
+    shutil.copyfile(yol, yol + ".yedek-" + time.strftime("%Y%m%d-%H%M%S"))
+    if agent_blok is None:
+        agent_blok = {"matcher": AGENT_MATCHER, "hooks": []}
+        kancalar.append(agent_blok)
+    agent_blok.setdefault("hooks", []).append(
+        {"type": "command", "command": komut, "timeout": 30,
+         "statusMessage": "mimar agent kapisi"})
+    _yaz(yol, json.dumps(veri, ensure_ascii=False, indent=2) + "\n")
+    try:
+        json.loads(_oku(yol))
+    except Exception:
+        return "yazim-bozuk"
+    return "kuruldu"
+
+
+def _eve_agent_enjekte(ad, kok, goreli, uygula, rapor):
+    """Tek eve AGENT-KAPISI kuralini enjekte eder (+ settings Agent|Task kablosu).
+    Codex enjeksiyonuyla AYNI desen. Doner: (durum, yedek_yolu ya da None)."""
+    yol = os.path.join(kok, goreli)
+    if not os.path.exists(yol):
+        return "KAPI-DOSYASI-YOK", None
+    metin = _oku(yol)
+    if AGENT_DAMGA in metin:
+        return "ZATEN TAM", None
+
+    eksik = [s for s in AGENT_ZORUNLU_SEMBOL if s not in metin]
+    if eksik:
+        rapor.append("      zorunlu sembol EKSIK: " + repr(eksik[0]))
+        return "UYUMSUZ-KAPI (dokunulmadi)", None
+
+    if not uygula:
+        return "ENJEKTE EDILECEK", None
+
+    yedek = yol + ".yedek-" + time.strftime("%Y%m%d-%H%M%S")
+    shutil.copyfile(yol, yedek)
+
+    # Eski damgali blok varsa SOK (kural yukseltmesi de tek hamle).
+    temiz = _blogu_sok(metin, AGENT_TANIM_BAS, AGENT_TANIM_SON)
+    temiz = _blogu_sok(temiz, AGENT_CAGRI_BAS, AGENT_CAGRI_SON)
+    yeni = temiz.replace(AGENT_ANKRAJ_TANIM, AGENT_TANIM_SABLON + AGENT_ANKRAJ_TANIM, 1)
+    yeni = yeni.replace(AGENT_ANKRAJ_CAGRI, AGENT_CAGRI_SABLON + AGENT_ANKRAJ_CAGRI, 1)
+    _yaz(yol, yeni)
+
+    def geri_al(neden):
+        shutil.copyfile(yedek, yol)
+        rapor.append("      GERI ALINDI (" + neden + ") — yedek: " + yedek)
+
+    try:
+        compile(yeni, yol, "exec")
+    except SyntaxError as hata:
+        geri_al("SyntaxError: " + str(hata)[:60])
+        return "GERI ALINDI (derlenmedi)", yedek
+
+    # CANLI FIKSTURLER — AGENT gate + regresyon (rutin/codex) birlikte; biri tutmazsa geri al.
+    olcumler = [
+        ("Agent", {"prompt": "beyansiz mimar spec"}, None, "deny"),
+        ("Agent", {"prompt": "is X\ncodex-muafiyet: kapi kodu — sessiz-hata"}, None, "allow"),
+        ("Task", {"prompt": "beyansiz"}, None, "deny"),
+        ("Agent", {"prompt": "beyansiz"}, AGENT_ISCI_ID, "allow"),
+        ("Bash", {"command": "ls"}, None, "allow"),
+        ("Bash", {"command": 'codex exec "x"'}, None, "deny"),
+    ]
+    for tn, ti, aid, beklenen in olcumler:
+        olculen = _agent_fikstur(yol, kok, tn, ti, aid)
+        if olculen != beklenen:
+            geri_al("fikstur tn=" + tn + " beklenen=" + beklenen + " olculen=" + str(olculen))
+            return "GERI ALINDI (fikstur)", yedek
+
+    rapor.append("      yedek: " + yedek)
+    rapor.append("      info/exclude: " + _yedeklerimi_gizle(kok) +
+                 " | skip-worktree: " + _skip_worktree(kok, goreli) +
+                 " | settings Agent|Task: " + _agent_ev_settings(kok, uygula))
+    return "KURULDU", yedek
+
+
+def agent_kapisi(uygula):
+    """6 EVE AGENT-KAPISI kurar/dogrular. Cikis 0 = 6 evin hepsi TAM. KraL 'kaynak' modda
+    yalnizca DOGRULANIR (kural commit'li kaynakta; arac YAZMAZ). KraL settings Agent|Task
+    kablosu ANA AKISTA (python3 mimar-kapi-kur.py --uygula) kurulur, burada DEGIL."""
+    print("AGENT-KAPISI DAMGASI: " + AGENT_DAMGA)
+    print("MOD: " + ("UYGULA" if uygula else "KURU KOSUM (degisiklik yok)"))
+    print("")
+    eksik = 0
+    for ad, kok, goreli, mod in CODEX_EVLER:
+        rapor = []
+        yol = os.path.join(kok, goreli)
+        if not os.path.isdir(kok):
+            durum_metni = "EV YOK"
+        elif mod == "kaynak":
+            try:
+                durum_metni = "ZATEN TAM" if AGENT_DAMGA in _oku(yol) else \
+                    "EKSIK (kaynak dosya — elle/dal ile guncellenir, arac YAZMAZ)"
+            except Exception:
+                durum_metni = "KAPI-DOSYASI-YOK"
+        else:
+            durum_metni, _ = _eve_agent_enjekte(ad, kok, goreli, uygula, rapor)
+        if durum_metni != "ZATEN TAM" and not (uygula and durum_metni == "KURULDU"):
+            eksik += 1
+        print("{:<7} {:<34} {:<9} {}".format(ad, goreli, mod, durum_metni))
+        for satir in rapor:
+            print(satir)
+    print("")
+    print("TAM OLMAYAN EV: " + str(eksik))
+    if not uygula:
+        print("Kuru kosum. Uygulamak icin ayni komuta --uygula ekle.")
+    print("Dogrula: python3 /Users/okan/dev/pruvo/tools/agent-kapisi-test.py")
+    sys.exit(0 if eksik == 0 else 1)
+
+
 def main():
     global AYAR, PRECOMMIT
     argv = sys.argv[1:]
@@ -632,6 +924,9 @@ def main():
     if "--codex-kurali" in argv:  # 27 Tem (BaBa hukmu): kural 6 EVE
         codex_kurali(uygula)
 
+    if "--agent-kapisi" in argv:  # 28 Tem (BaBa hukmu): AGENT-KAPISI 6 EVE
+        agent_kapisi(uygula)
+
     if not os.path.exists(AYAR):
         print("BULUNAMADI: " + AYAR)
         sys.exit(1)
@@ -639,25 +934,25 @@ def main():
     ham = io.open(AYAR, encoding="utf-8").read()
     veri = json.loads(ham)
 
+    # 28 TEM: kanca IKI matcher'a baglanir — Bash (mevcut) + Agent|Task (AGENT-KAPISI).
+    # Ikisi de mimar-icra-kapisi.py'ye gider; AYRI blok cunku Bash-ozel nobetciler
+    # (komut-stili/urunler-guard) Agent/Task'a KOSMAMALI. Additive + idempotent: her iki
+    # blok da BAGIMSIZ denetlenir; hangisi eksikse yalniz o eklenir (early-exit yalnizca
+    # IKISI DE varsa).
     kancalar = veri.setdefault("hooks", {}).setdefault("PreToolUse", [])
-    bash_blogu = None
-    for blok in kancalar:
-        if blok.get("matcher") == "Bash":
-            bash_blogu = blok
-            break
-    if bash_blogu is None:
-        bash_blogu = {"matcher": "Bash", "hooks": []}
-        kancalar.append(bash_blogu)
+    bash_blogu = _matcher_blogu(kancalar, "Bash")
+    agent_blogu = _matcher_blogu(kancalar, AGENT_MATCHER)
+    bash_var = _blokta_hook_var(bash_blogu, "mimar-icra-kapisi.py")
+    agent_var = _blokta_hook_var(agent_blogu, "mimar-icra-kapisi.py")
 
-    liste = bash_blogu.setdefault("hooks", [])
-    if any("mimar-icra-kapisi.py" in (k.get("command") or "") for k in liste):
-        print("ZATEN KURULU — degisiklik yok. Dogrula: python3 tools/mimar-kilit-test.py")
+    if bash_var and agent_var:
+        print("ZATEN KURULU (Bash + Agent/Task) — degisiklik yok. "
+              "Dogrula: python3 tools/mimar-kilit-test.py")
         sys.exit(0)
 
-    mevcut = [os.path.basename((k.get("command") or "").split('/')[-1]).strip('"')
-              for k in liste]
-    print("PreToolUse/Bash zincirinde SU AN: " + (", ".join(mevcut) or "(bos)"))
-    print("EKLENECEK               : mimar-icra-kapisi.py")
+    print("PreToolUse/Bash        mimar-icra-kapisi.py: " + ("var" if bash_var else "EKLENECEK"))
+    print("PreToolUse/" + AGENT_MATCHER + "  mimar-icra-kapisi.py: " +
+          ("var" if agent_var else "EKLENECEK"))
     print("SILINEN/DEGISEN         : YOK (arac yalnizca ekler)")
 
     if not uygula:
@@ -665,7 +960,17 @@ def main():
         print("Kuru kosum. Uygulamak icin: python3 " + os.path.abspath(__file__) + " --uygula")
         sys.exit(0)
 
-    liste.append(KAYIT)
+    if not bash_var:
+        if bash_blogu is None:
+            bash_blogu = {"matcher": "Bash", "hooks": []}
+            kancalar.append(bash_blogu)
+        bash_blogu.setdefault("hooks", []).append(KAYIT)
+    if not agent_var:
+        if agent_blogu is None:
+            agent_blogu = {"matcher": AGENT_MATCHER, "hooks": []}
+            kancalar.append(agent_blogu)
+        agent_blogu.setdefault("hooks", []).append(AGENT_KAYIT)
+
     yedek = AYAR + ".yedek"
     shutil.copyfile(AYAR, yedek)
     io.open(AYAR, "w", encoding="utf-8").write(
@@ -678,9 +983,10 @@ def main():
         print("BOZUK JSON URETILDI — yedek geri konuldu. Hata: " + str(hata))
         sys.exit(1)
     print("")
-    print("KURULDU. Yedek: " + yedek)
+    print("KURULDU (Bash + Agent/Task). Yedek: " + yedek)
     print("Dogrula: python3 /Users/okan/dev/pruvo/tools/mimar-kilit-test.py")
     print("NOT: kanca yeni oturumda etkin olur.")
 
 
-main()
+if __name__ == "__main__":
+    main()

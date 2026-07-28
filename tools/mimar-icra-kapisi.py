@@ -248,6 +248,54 @@ CODEX_IZINLI_ALTKOMUT = "exec"
 # (idempotans + 6 ev dogrulamasi). Kurali degistirirsen damgayi da yukselt.
 CODEX_KURAL_SURUMU = "27tem-2"
 
+# ===================== 28 TEM: AGENT-KAPISI (BaBa/Senyor Advisor hukmu) =====================
+# ASIMETRI TESHISI: mimar bir Claude iscisi (Agent/Task araci) acmak SIFIR surtunmeliyken,
+# dogrudan 'codex exec' cagrisi cikti-dosyasi sarti (_codex_karari) tasimak ZORUNDA. Sonuc:
+# MAKINE pahali yolu (Claude isci) tesvik edip ucuz yolu (Codex) cezalandiriyor. Bu kapi
+# asimetriyi kapatir: mimar ANA oturumu (agent_id BOS) bir Claude iscisi acarken verdigi
+# prompt/spec icinde su BEYAN SATIRI YOKSA cagri REDDEDILIR:
+#     codex-muafiyet: <is tanimi> — <sinif>
+# <sinif> = isin neden Codex'e VERILEMEDIGINI beyan eden yasak-sinif (codex-isci yasak
+# listesi). Boylece Claude iscisi acmaya da Codex kadar TEK SATIR surtunme konur.
+#
+# MUAFIYETLER (kapi bunlara DOKUNMAZ):
+#   1. agent_id DOLU (ISCI) her cagri TAM muaf — main() basinda zaten cikilir; kural
+#      yalniz mimar ANA oturumuna (agent_id bos).
+#   2. Agent/Task DISINDAKI hicbir arac etkilenmez (tool_name kapisi; Bash/Write/... eskisi gibi).
+#   3. Mevcut '-o' codex kurali + tum kilit/icra kurallari AYNEN korunur (regresyon 0).
+AGENT_ARACLARI = {"Agent", "Task"}
+# Yasak-sinif token'lari (codex-isci yasak listesi). Bunlardan BIRI ayractan HEMEN sonra gelmeli.
+AGENT_SINIFLARI = ("görsel", "sessiz-hata", "muhakeme", "ölçüm", "güvenlik", "şema")
+# TEK makine-aranabilir regex (parser taklidi YOK — tek kaba tarama, fail-closed):
+#   'codex-muafiyet:'  (etikette buyuk/kucuk DUYARSIZ — re.IGNORECASE)
+#   + [^\S\n]*         (bosluk/tab esnek; NEWLINE degil -> kural TEK SATIRDA)
+#   + \S               (is tanimi BOS OLAMAZ: en az bir bosluk-disi karakter)
+#   + [^\n]*?          (is metninin kalani, LAZY, tek satir — '.' DOTALL degil)
+#   + [—–-]            (ayrac: em-tire '—' / en-tire '–' / tire '-'; ucune tolerans)
+#   + [^\S\n]*         (ayrac ile sinif arasi yalniz bosluk)
+#   + (SINIF)          (yasak-sinif token'i ayractan HEMEN sonra)
+# re.IGNORECASE: hem etiket hem sinif buyuk/kucuk duyarsiz. DOTALL YOK -> beyan tek satir.
+AGENT_MUAFIYET_RE = re.compile(
+    r"codex-muafiyet:[^\S\n]*\S[^\n]*?[—–-][^\S\n]*(?:" +
+    "|".join(re.escape(s) for s in AGENT_SINIFLARI) + r")",
+    re.IGNORECASE,
+)
+# SURUM DAMGASI — tools/mimar-kapi-kur.py --agent-kapisi bu dizeyi arayarak "bu evde
+# AGENT-KAPISI kurali var mi" sorusunu MAKINE olarak yanitlar (idempotans + 6 ev). Kurali
+# degistirirsen damgayi da yukselt.
+AGENT_KURAL_SURUMU = "28tem-1"
+# Codex reddindeki gibi: AGENT reddinde GEREKCE_SONU KULLANILMAZ ("bu isi isciye delege et"
+# der — oysa AGENT cagrisi ZATEN isci acma girisimi). Yerine IKI CIKISI net soyleyen kuyruk.
+AGENT_GEREKCE = (
+    "AGENT-KAPISI (28 Tem): mimar ANA oturumu bir Claude iscisi (Agent/Task) açıyor ama "
+    "prompt/spec içinde 'codex-muafiyet:' BEYAN SATIRI YOK. Doktrin: Claude işçisi açmak da "
+    "doğrudan 'codex exec' kadar TEK SATIR sürtünme taşır (asimetri kapatıldı). İKİ ÇIKIŞ: "
+    "(a) İŞİ CODEX'E VER → codex-isci şablonu (codex exec -C <ev> -s workspace-write "
+    "-o <scratchpad>/son-mesaj.txt \"<spec>\"); VEYA (b) prompt'a şu satırı EKLE: "
+    "'codex-muafiyet: <iş tanımı> — <sınıf>' (<sınıf> = neden Codex'e VERİLEMEDİĞİNİ beyan "
+    "eder: görsel / sessiz-hata / muhakeme / ölçüm / güvenlik / şema — codex-isci yasak listesi)."
+)
+
 # '-m X' (python modul) DENETIMI KALDIRILDI (22 Tem). Neden: PY_NODE ALLOWLIST'i python'i
 # yalnizca iki tam komuta indirdi — '-m pip'/'-m timeit'/'-m http.server' vs. artik
 # allowlist tarafindan reddedilir (durum.py/d1-sync.py degil). Ayri bir -m ayristirmasi
@@ -557,6 +605,24 @@ def _codex_segment_karari(segment, tokenlar):
     return karar
 
 
+def _agent_karari(girdi):
+    """28 TEM — AGENT-KAPISI karari (mimar ANA oturumu bir Claude iscisi acarken). Doner:
+        "gecer" → prompt'ta gecerli 'codex-muafiyet: <is> — <sinif>' beyan satiri VAR
+        str     → red gerekcesi (beyan satiri yok / gecersiz sinif)
+
+    ISCI muafiyeti main() basinda (kimlik==ISCI) verilir; bu fonksiyon yalniz MIMAR icin
+    cagrilir. tool_input.prompt taranir (Agent/Task araclarinin spec alani). Prompt yoksa
+    ya da str degilse BOS sayilir → beyan yok → RED (fail-closed: eksik/bozuk girdi acmaz).
+    KABA + TEK REGEX (parser taklidi yok): AGENT_MUAFIYET_RE tek makine-aranabilir desendir."""
+    ti = girdi.get("tool_input") or {}
+    prompt = ti.get("prompt")
+    if not isinstance(prompt, str):
+        prompt = ""
+    if AGENT_MUAFIYET_RE.search(prompt):
+        return "gecer"
+    return AGENT_GEREKCE
+
+
 def _py_izinli(ad, argumanlar, cwd):
     """22 Tem — mimar tarafinda python/node ALLOWLIST'i. YALNIZ iki tam komut serbest:
         python3 tools/durum.py            (baska argüman YOK)
@@ -615,6 +681,18 @@ def main():
     # isi engelledi, bir isci sed'e kacti (denetlenemez yol) = kapi guvenligi AZALTTI.
     if kimlik(girdi) == "ISCI":
         iz_bas("ISCI")
+        sys.exit(0)
+
+    # === 28 TEM AGENT-KAPISI: mimar ANA oturumu Claude iscisi (Agent/Task) acarken
+    # 'codex-muafiyet: <is> — <sinif>' beyan sarti. ISCI (agent_id dolu) YUKARIDA zaten
+    # muaf cikti; Agent/Task DISINDAKI hicbir arac bu koldan gecmez (tool_name kapisi) —
+    # Bash/Write/... asagidaki mevcut mantikla eskisi gibi islenir (regresyon 0).
+    tool_name = girdi.get("tool_name") or ""
+    if tool_name in AGENT_ARACLARI:
+        agent_karari = _agent_karari(girdi)
+        if agent_karari != "gecer":
+            reddet(agent_karari, sonu="")
+        iz_bas("MIMAR-agent-muafiyet")
         sys.exit(0)
 
     komut = (girdi.get("tool_input") or {}).get("command") or ""
