@@ -814,7 +814,10 @@ def uret(products, ctx):
     /marka/<marka>/ (+ >=3-ürünlü model sayfaları) üretir. ctx['ROOT']/index.html'den marka
     listesini AYIKLAR (çip↔sayfa slug birebir). urunler.json DEĞİŞMEZ.
     Dönüş: {"sitemap":[...], "dizinler":["marka"], "chip_links":"<a..>", "slug_map":{marka:slug},
-            "sayim":{...}, "chip_markalar":[...], "sayfasiz_cipler":[...]}."""
+            "product_chip_map":{urun_id: "/marka/<marka>/[<model>/]"}, "sayim":{...},
+            "chip_markalar":[...], "sayfasiz_cipler":[...]}.
+    product_chip_map: render_product ürün sayfasındaki marka çipini crawlable /marka hedefine
+    bağlamak için kullanır (sayfası olmayan marka haritada YOK -> /?marka= fallback)."""
     ROOT = ctx["ROOT"]
     SITE = ctx["SITE"]
     with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
@@ -839,6 +842,11 @@ def uret(products, ctx):
     slug_gorulen = {}   # (marka_slug, model_slug) -> canon (model collision nöbeti)
     marka_slug_gorulen = {}   # marka_slug -> marka (marka slug collision nöbeti)
     slug_map = {}       # kanonik marka -> slug (JS çip linki için; yalnız sayfası olan markalar)
+    # product_chip_map: urun-id -> ürün sayfasındaki marka çipinin GİDECEĞİ crawlable /marka hedefi
+    # (discovery kök-fix: /urun -> /marka geri-linki). Ürün >=ESIK bir modeldeyse model sayfasına,
+    # değilse marka sayfasına düşer. SAYFASI OLMAYAN marka HARİÇ (render_product o zaman /?marka=
+    # fallback'inde kalır). Sayfa üretimiyle BİREBİR aynı slug/eşik mantığı — reinvent YOK.
+    product_chip_map = {}
     sayim = {}
     index_ozet = []
 
@@ -872,10 +880,24 @@ def uret(products, ctx):
         yaz(murl, mhtml)
         sitemap.append((murl, "0.7", "weekly"))
 
+        marka_yolu = "/marka/" + marka_slug + "/"          # göreli (aynı köken; render_product /?marka= gibi göreli basar)
         for g in buyuk:
             url, html = _model_sayfasi(ctx, marka, g)
             yaz(url, html)
             sitemap.append((url, "0.7", "weekly"))
+            model_yolu = marka_yolu + g["slug"] + "/"
+            for p in g["urunler"]:                          # >=ESIK model -> ürünleri model sayfasına
+                pid = p.get("id")
+                if pid:
+                    product_chip_map[pid] = model_yolu
+        for p in kucuk_urunler:                             # <ESIK model ürünleri -> marka sayfası
+            pid = p.get("id")
+            if pid:
+                product_chip_map[pid] = marka_yolu
+        for p in d["marka_only"]:                           # yalnız-marka ürünler -> marka sayfası
+            pid = p.get("id")
+            if pid:
+                product_chip_map[pid] = marka_yolu
 
         sayim[marka] = {"marka_sayfasi": 1, "model_sayfasi": len(buyuk),
                         "toplam_parca": marka_toplam[marka]}
@@ -900,6 +922,7 @@ def uret(products, ctx):
         "dizinler": ["marka"],
         "chip_links": chip_links,
         "slug_map": slug_map,
+        "product_chip_map": product_chip_map,
         "chip_markalar": chip_markalar,
         "sayfasiz_cipler": sayfasiz_cipler,
         "sayim": sayim,
