@@ -288,7 +288,30 @@ IZIN_LISTESI = {
     "onizleme/test/eslem-olcum.py": R_AYRI,
     "onizleme/test/kabul.js": R_AYRI,
     "onizleme/test/kapi1.js": R_AYRI,
-    "onizleme/test/duman_toka_kabul.py": R_AYRI,  # onizleme ayri deploy hedefi (onizleme-imaj.yml + wrangler); duman adimi statik kabul testi (toka govdesi), ana site deploy.yml'e ait degil — KaaN, Okan onayli 27 Tem
+    # 28 Tem (G2): duman_toka_kabul.py -> duman_kabul.py olarak GENELLESTI (tek-aile
+    # jeton pini yerine drift+kapsam kapisinin ayirt ediciligi/no-op/CI-kablo olcumu).
+    # 🔴 30 Tem (O6 onarimi): bu iki girisin gerekcesi ARTIK MAKINE-DOGRULANIR. Eskiden
+    # gerekce metni "onizleme-imaj.yml'de bloklayici kosar" DIYORDU ama bunu olcen
+    # HICBIR makine yoktu (bu kapi YALNIZ deploy.yml'e bakar) -> curutme turunda
+    # 8 etkisizlestirme mutasyonundan 7'si SESSIZ gecti. Simdi iddia
+    # tools/is-akisi-kapisi.py BOLUM B'de bir IDDIA SATIRI olarak durur (dosya bazli
+    # POZITIF nobetci: cagri var mi + zorunlu alt-komut var mi + `|| true`/`|| :`/
+    # `continue-on-error`/`if: false`/`set +e`/`--help` ile etkisizlestirilmis mi) VE
+    # ayni dosyadaki B-CAPRAZ kurali bu iki muafiyet girisinin B iddiasiyla BIRLIKTE
+    # var olmasini zorlar (birini silmek digerini KIRMIZI yakar).
+    "onizleme/test/duman_kabul.py": (
+        R_AYRI + " Somut: onizleme-imaj.yml'de (Pages deploy'unda DEGIL) bloklayici adim "
+        "olarak kosar; ana site yayinini alakasiz bir imaj isi durdurmasin diye "
+        "deploy.yml'e BAGLANMAZ (jeton ekseni, [[kapi-kapsam-eksen-secimi]]). "
+        "MAKINE DAYANAGI: tools/is-akisi-kapisi.py BOLUM B iddiasi 'duman_kabul' "
+        "(+ B-CAPRAZ kurali)."),
+    "tools/onizleme-kapisi.py": (
+        R_AYRI + " Somut: kapinin KENDISI (kosulabilir kabul testi degil, olculen arac). "
+        "Iki komutu da (parmakizi-dogrula / duman) onizleme-imaj.yml'de kosar ve GERCEK "
+        "bir derleyici servisi ister (docker + gizli paket) -> Pages build job'unda "
+        "girdisi YOK. Ayirt ediciligi onizleme/test/duman_kabul.py ile olculur. "
+        "MAKINE DAYANAGI: tools/is-akisi-kapisi.py BOLUM B iddialari "
+        "'parmakizi-dizin' / 'parmakizi-url' / 'duman-url' (+ B-CAPRAZ kurali)."),
     "onizleme/test/iki-govde-olcum.py": (
         "2-renk MESH olcumu OPENSCAD ister (ucgen/bbox/hacim); ana site deploy.yml'de "
         "openscad YOK ve yerel Mac'te SIGABRT veriyor -> onizleme-imaj.yml'de imaj "

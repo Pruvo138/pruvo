@@ -27,9 +27,18 @@ SURUMLU ANAHTAR (Okan/mimar karari 29 Tem 2026 — UZERINE YAZMA TERK EDILDI):
   (.github/workflows/onizleme-imaj.yml -> inputs.paket_anahtar).
   NOBETCI: tools/paket-tazelik-kapisi.py surumlu_anahtar_nobeti (bloklayici, deploy.yml).
 
+PARMAKIZI KAYDI (G2 drift kapisi, 28 Tem): paket yuklenirken repo HEAD'deki
+onizleme/derleyici/paket-parmakizi.json da TAZELENIR (tek yazar burasidir). Kayit
+yalniz dosya adi + sha256 tasir; KAYNAK KOD ICERMEZ. CI imaj derlerken
+tools/onizleme-kapisi.py parmakizi-dogrula ile imajin tasidigi anlik goruntuyu bu
+kayitla karsilastirir -> paket guncellenip imaj yenilenmemisse KIRMIZI yanar.
+⚠️ Kayit dosyasi paket yuklemesiyle AYNI commit'te repoya girmelidir; yoksa CI
+fail-closed KIRMIZI kalir (bilincli: bayat imaji sessizce gecirmemek icin).
+
 Kullanim:
   python3 tools/onizleme-paket-yukle.py --yerel <dizin>   # sadece topla (test/kabul icin)
-  python3 tools/onizleme-paket-yukle.py                   # topla + R2'ye yukle
+  python3 tools/onizleme-paket-yukle.py                   # topla + R2'ye yukle + kayit tazele
+  python3 tools/onizleme-paket-yukle.py --yerel <dizin> --parmakizi-yaz  # kaydi da tazele
 Yukleme yerel wrangler oturumuyla yapilir (token gerekmez):
   npx wrangler r2 object put pruvo-ozel/onizleme/paket-v<N>.tar.gz --file ...
 """
@@ -361,10 +370,31 @@ def yukle_ve_dogrula(anahtar, arsiv, tmp):
           % (BUCKET, anahtar, os.path.getsize(arsiv), son_sha[:16], deneme, beklendi))
 
 
+def parmakizi_tazele(paket_dizin, surum):
+    """Repo HEAD parmakizi kaydini paketin TA KENDISINDEN tazele (G2 drift kapisi).
+    Ayni mantigin ikinci kopyasi yazilmaz: olcum fonksiyonlari onizleme-kapisi.py'de."""
+    sys.path.insert(0, os.path.join(REPO, "tools"))
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "onizleme_kapisi", os.path.join(REPO, "tools", "onizleme-kapisi.py"))
+    kapi = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(kapi)
+    pk = kapi.scad_parmakizlari(paket_dizin)
+    if not pk:
+        sys.exit("parmakizi tazelenemedi: %s altinda hic .scad yok (fail-closed)"
+                 % paket_dizin)
+    kapi.manifest_yaz(kapi.VARSAYILAN_MANIFEST, pk, "paket eslem surumu v%d" % surum)
+    print("parmakizi kaydi tazelendi: %s (%d .scad) — AYNI commit'te repoya girmeli."
+          % (kapi.VARSAYILAN_MANIFEST, len(pk)))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--yerel", metavar="DIZIN",
                     help="paketi bu dizine topla, YUKLEME (kabul testleri kullanir)")
+    ap.add_argument("--parmakizi-yaz", action="store_true",
+                    help="--yerel ile: repo HEAD parmakizi kaydini da tazele "
+                         "(yuklemeli kosumda HER ZAMAN yapilir)")
     ap.add_argument("--uyelik-dir",
                     default=os.environ.get("PRUVO_UYELIK_DIR",
                                            "/Users/okan/dev/pruvo/.uyelik-kodlar"))
@@ -377,11 +407,17 @@ def main():
     if args.yerel:
         surum = topla(args.yerel, args.uyelik_dir, args.jenerator_dir)
         print("paket toplandi (v%d): %s" % (surum, args.yerel))
+        if args.parmakizi_yaz:
+            parmakizi_tazele(args.yerel, surum)
         return
 
     with tempfile.TemporaryDirectory() as tmp:
         paket_dizin = os.path.join(tmp, "paket")
         surum = topla(paket_dizin, args.uyelik_dir, args.jenerator_dir)
+        # Kayit YUKLEMEDEN once tazelenir: yukleme yarida kalsa bile repo kaydi ile
+        # R2'deki paket AYRISMASIN diye degil — tersine, kayit "yuklenmek UZERE olan"
+        # icerigi tanimlar; yukleme basarisiz olursa commit EDILMEZ (git status gorunur).
+        parmakizi_tazele(paket_dizin, surum)
         arsiv = os.path.join(tmp, "paket.tar.gz")
         # BELIRLENIMCI ARSIV: ayni icerik -> ayni bayt. mtime/uid/gid sifirlanir ve gzip
         # basligina zaman damgasi YAZILMAZ (mtime=0). Gerekce: yukleme dogrulamasi

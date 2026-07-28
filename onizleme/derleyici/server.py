@@ -28,12 +28,21 @@ Uclar:
                500 derleme hatasi / 504 zaman asimi
   GET  /saglik -> {"durum": "hazir", "aileler": [...], "mock": bool}
   GET  /sayac  -> {"derleme": N}   (kabul testi 4c: onbellek isabetinde artmamali)
+  GET  /parmakizi -> {"algoritma": "sha256", "scad": {"<ad>": "<ozet>"}}
+       KOSAN IMAJIN tasidigi .scad anlik goruntusunun icerik ozetleri. Sir DEGIL:
+       yalniz ozet + dosya adi doner, KAYNAK KOD DONMEZ (adlarin sir olmadigi
+       .github/workflows/onizleme-imaj.yml'de zaten beyan edilmis). CI drift kapisi
+       (tools/onizleme-kapisi.py parmakizi-dogrula --url ...) bunu repo HEAD'deki
+       onizleme/derleyici/paket-parmakizi.json ile karsilastirir; imaj bayat kalirsa
+       KIRMIZI yanar. Worker adaptoru (onizleme/src/derleyici.js) bu ucu PROXY'LEMEZ —
+       yalniz container agindan gorunur.
 
 Cloudflare Container'da: Dockerfile bu dosyayi ve gizli paketi imaja koyar,
 CMD server.py --paket /srv/paket --port 8080. Worker'daki adaptor
 (onizleme/src/derleyici.js) ayni HTTP sozlesmesiyle konusur.
 """
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -89,6 +98,47 @@ def openscad_yolu():
         if yol and os.path.exists(yol):
             return yol
     return None
+
+
+def paket_parmakizlari(paket_dizin):
+    """Paket dizinindeki her *.scad'in sha256'si — DIZIN TARAMASI (sabit liste YOK).
+
+    Kosan imajin GERCEKTEN tasidigi anlik goruntuyu olcen tek yer burasidir: Dockerfile
+    `COPY paket-ozel/ /srv/paket/` ile gomer, calisma aninda R2 OKUNMAZ. Yalniz ad+ozet
+    doner; icerik hicbir kosulda donmez/loglanmaz."""
+    out = {}
+    if not paket_dizin:
+        return out
+    for ad in sorted(os.listdir(paket_dizin)):
+        if not ad.endswith(".scad"):
+            continue
+        yol = os.path.join(paket_dizin, ad)
+        if not os.path.isfile(yol):
+            continue
+        h = hashlib.sha256()
+        with open(yol, "rb") as f:
+            for blok in iter(lambda: f.read(65536), b""):
+                h.update(blok)
+        out[ad] = h.hexdigest()
+    return out
+
+
+def kapsam_ozeti(eslem):
+    """Aile -> {"scad": <varsayilan uretec>, "secici": <param|None>,
+               "varyantlar": {<deger>: <uretec>}}  (duman kapsam kapisi icin).
+
+    Yalniz DOSYA ADLARI ve secici PARAM ADI doner; eslem kurallari (katsayilar,
+    tablolar, sabitler) DONMEZ. Cift-uretecli aileler (yay: spiral/dalga, vida:
+    civata/somun...) burada gorunur -> duman testi ikinci .scad'i denemeden gecemez."""
+    out = {}
+    for aile, tanim in (eslem or {}).items():
+        varyantlar = {}
+        for deger, blok in (tanim.get("varyantlar") or {}).items():
+            varyantlar[deger] = (blok or {}).get("scad") or tanim.get("scad")
+        out[aile] = {"scad": tanim.get("scad"),
+                     "secici": tanim.get("secici"),
+                     "varyantlar": varyantlar}
+    return out
 
 
 def eslem_yukle(paket_dizin):
@@ -313,6 +363,19 @@ class Istekci(BaseHTTPRequestHandler):
                              "aileler": sorted(self.ayarlar["eslem"].keys())})
         elif self.path == "/sayac":
             self._json(200, {"derleme": SAYAC["derleme"]})
+        elif self.path == "/kapsam":
+            # Duman kapsam kapisinin (tools/onizleme-kapisi.py duman) DIZIN TARAMASI
+            # ayagi: her ailenin HANGI .scad dosya(lar)ini surdugu + secici param adi.
+            # Sir DEGIL: .scad ADLARI (onizleme-imaj.yml'de zaten "adlar sir degil")
+            # + secici param adi (musteriye acik jenerator/urunler semasinda gecer).
+            # Eslem KURALLARI (katsayi/tablo/sabit) DONMEZ. Bu uc sayesinde duman testi
+            # cift-uretecli ailelerin IKINCI .scad'ini kor deneme yapmadan hedefler ve
+            # "pakette olup HIC denenmemis .scad" durumunu yakalar.
+            self._json(200, {"aileler": kapsam_ozeti(self.ayarlar["eslem"])})
+        elif self.path == "/parmakizi":
+            # Drift kapisinin (tools/onizleme-kapisi.py) olctugu uc. Ad + ozet; kod YOK.
+            self._json(200, {"algoritma": "sha256",
+                             "scad": paket_parmakizlari(self.ayarlar["paket"])})
         else:
             self._json(404, {"hata": "bulunamadi"})
 

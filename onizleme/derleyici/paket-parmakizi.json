@@ -1,0 +1,33 @@
+{
+  "surum": 1,
+  "algoritma": "sha256",
+  "aciklama": "Onizleme derleyici imajina gomulen .scad anlik goruntusunun icerik ozetleri. TEK YAZAR: tools/onizleme-paket-yukle.py. Elle duzenlenmez; paket yeniden yuklenince bu dosya da tazelenir ve AYNI commit'te gider. Icerik/kaynak kod BURAYA YAZILMAZ — yalniz ozet.",
+  "not": "paket eslem surumu v5",
+  "scad": {
+    "adaptor.scad": "bc4766bad22047aacbdbceaa389763393e90bcc65ec8c07942fbf18920df535e",
+    "beamgenerator.scad": "cc87daebb6ea15776ef6e3b7d624989e117e730432b0484334642170865d9377",
+    "bearinggenerator.scad": "1b4468e664b6f31c984e3e1fc69c6cfdb7314861698aa7cbf0433b9767944d9b",
+    "beltgenerator.scad": "f119f8e22c6a59b844297f06ea232b750842832fcb8e7de4b3d62c01712824c9",
+    "braket.scad": "825f46f0d971e2ac56b9cf2622a512b0429c115be8939b1e2728cd32504af5eb",
+    "cerceve.scad": "8a24814693e5eee72288e2118ec09b680f1aff1773027d3a8f222b8cf1bb8ad3",
+    "chipmaker.scad": "94e2fbd1672eb04eeeef63d626f429d6b82ea2b5d2f422e2d5ae10e809e2674a",
+    "disli.scad": "3d9cfbaf6e2c20cb322c70397de8e077f84d9304c196b2f3d7c620849767d4a9",
+    "funnelgenerator.scad": "4bed227d71e9a73ef6bb4cc29333616452b4211e6510c9b6ccac925cb43416a5",
+    "gridgenerator.scad": "34205b77949219ff1e6069222c208c862e81b717dbdb05f2d2dfa1c3b4da6e65",
+    "grillegenerator.scad": "cfdbb56ffa80ba151c8f0a074ae980197bfd743c5a181e835cd5a78691ce55b9",
+    "kavanoz.scad": "9aacf075c7b7521fdf321f6414751b17eed836fab7387b7d6e7752d5f1026b80",
+    "konektor.scad": "4f6d6a569a06e01f6a076056eb3b7d7d85a0c2b566d008152080fa5211c00405",
+    "kutu.scad": "f7f8d8a03c90789812f76e13f9f28af004a7172da6d47027a4819f79105b1a1a",
+    "oringgenerator.scad": "f66380b13abe47121d63051c53981cc2825aa87e450f21ac6568084be2791143",
+    "propellergenerator.scad": "f52aad5af85d1ef28534ef255cbccdeba4119d8ef405f6fa8758616b6cf51fe8",
+    "pulleygenerator.scad": "9fc5ea57e679ca1273dad75f80dd0d058a07669c8fdc51ba84cf57c8f1240c48",
+    "rampgenerator.scad": "30f86523fbd0551950b2c34c6f4c525355bc060d4daf26e70d469b006960f397",
+    "rulermaker.scad": "b61e7442155edbc648748a28c7508623c7aa1625ff62fe52a764795be5ecf1a6",
+    "screwgenerator.scad": "756cddaee7c4f85c24e2e69ecd6b468c76a4f66e7c184c727567bfff785daa53",
+    "springgenerator.scad": "e1ab3e9caf45e6cdbf800cfaa25c4e64c09d40aca564da9b75a9cdcb027da6ed",
+    "stampmaker.scad": "b43379b32c139b239ec23d8ac72ce341b4f5e844162f13860e27375f45259a51",
+    "threadgenerator.scad": "63c05ad59b99ab94c3d3d5e9819ec1b3d0b2bd06e2e1b0248741371dfd9b3732",
+    "toka.scad": "65501edd7705be9058b28242ec68d13a09c9ee831b033ad56c3a0fc7a2d40685",
+    "wavegenerator.scad": "fa76954bebfeda868296392764cf2fbb515c4b0c4fe6bdc0d4daaeb24db40ab5"
+  }
+}

@@ -51,6 +51,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # G2 KABUL TESTI — imaj/paket/Docker GEREKTIRMEZ (sentetik fikstur + server.py --mock).
+      # EN BASTA kosar: drift+kapsam kapisinin kendisi bozulduysa ya da asagidaki cagri
+      # satirlari silindiyse pahali imaj derlemesinden ONCE kirmizi yansin.
+      - name: Duman+drift kapisi kabul testi (offline)
+        run: python3 onizleme/test/duman_kabul.py
+
       - name: Gizli paketi cek (R2, olmazsa secret)
         env:
           R2_ERISIM_ID: ${{ secrets.R2_ERISIM_ID }}
@@ -115,18 +121,37 @@ jobs:
       - name: Paket tazelik kapisi (R2 paketi main'in eslemini tasiyor mu)
         run: python3 tools/paket-tazelik-kapisi.py --paket onizleme/derleyici/paket-ozel
 
+      # DRIFT KAPISI (1/2) — imaja GOMULECEK anlik goruntu, repo HEAD'deki parmakizi
+      # kaydiyla ayni mi? Burada (build'den ONCE) bakmak ucuzdur: paket bayatsa ya da
+      # kayit tazelenmemisse pahali derlemeye hic girilmez. Kayit yoksa FAIL-CLOSED.
+      # Ustteki iki kapiyla AYNI EKSENDE DEGIL: metin-eslem eslem METNINI, paket-tazelik
+      # eslemin main'le AYNI olup olmadigini olcer; bu adim .scad ICERIKLERININ sha256
+      # anlik goruntusunu olcer (eslem-ozel.json dahil — O2 onarimi).
+      - name: Paket parmakizi (repo HEAD kaydi vs cekilen paket)
+        run: python3 tools/onizleme-kapisi.py parmakizi-dogrula --dizin onizleme/derleyici/paket-ozel
+
       - name: Imaji derle
         run: |
           docker build -t pruvo-onizleme-derleyici:ci onizleme/derleyici
           docker image ls pruvo-onizleme-derleyici:ci
 
-      - name: Imaj duman testi (mock degil — gercek openscad + paket, ON aile)
+      - name: Imaj duman testi (mock degil — gercek openscad + paket, DIZIN TARAMASI)
         # TUM ailelerin derlenmesi SART: 16 Tem'de tek-aile duman yesilken canli
         # profil ailesi derlenemedi (Debian openscad 2021.01 cok eskiydi) — bu adim
-        # o sinifi artik CI'da yakalar. Faz D: konektor/braket/disli eklendi
-        # (disli BOSL2 ister — imajdaki sabit surumle derlenebilirligi burada kanitlanir).
-        # 27 Tem: toka (olcuye-ozel-toka) EKLENDI — imaj toka'siz cikinca canli kanadi
-        # (server 404 aile-yok, musteri "Onizleme olusturulamadi"); duman artik toka'yi da derletir.
+        # o sinifi CI'da yakalar. 27 Tem: imaj toka'siz cikinca canli kanadi (server 404
+        # aile-yok, musteri "Onizleme olusturulamadi").
+        #
+        # 28 Tem (G2) — ELLE YAZILMIS 12 CURL KALDIRILDI. Sebep: sabit liste, listeye
+        # girmeyen HER aileyi sessiz birakiyordu (toka'yi elle eklemek sinifi kapatmadi;
+        # 10 acik aile hic denenmiyordu). Yerine DIZIN TARAMASI:
+        #   * aile listesi jenerator/urunler/*.json taramasi + secenekler.js
+        #     ONIZLEME_AILELER'den uretilir -> yeni aile eklenince duman onu KENDILIGINDEN
+        #     dener, bu dosyaya ELLE curl eklemek GEREKMEZ,
+        #   * parametreler sema varsayilanlarindan (ONIZLEME_KISITLAR uygulanir),
+        #   * cift-uretecli aileler (yay/vida) /kapsam ucundan hedeflenir -> ikinci .scad
+        #     denenmemis kalmaz; pakette olup HIC derletilmeyen .scad KIRMIZI verir.
+        # Olcum (sentetik/mock): 12 elle curl -> 25 istek, 25/25 ayri .scad kapsandi.
+        # Kabul testi: onizleme/test/duman_kabul.py (isin EN BASINDA kosar).
         run: |
           docker run -d --rm -p 18080:8080 --name onizleme-duman pruvo-onizleme-derleyici:ci
           for i in $(seq 1 30); do
@@ -135,6 +160,10 @@ jobs:
           done
           curl -sf http://127.0.0.1:18080/saglik
           echo
+          # DRIFT KAPISI (2/2) — bu sefer KOSAN IMAJIN kendisine sorulur (/parmakizi):
+          # "COPY paket-ozel/" ile gomulen anlik goruntu repo HEAD kaydiyla ayni mi?
+          # UCUZ + FAIL-FAST: pahali openscad derlemelerinden ONCE kosar (bash -e).
+          python3 tools/onizleme-kapisi.py parmakizi-dogrula --url http://127.0.0.1:18080
           curl -sf -X POST http://127.0.0.1:18080/derle \
             -H 'Content-Type: application/json' \
             -d '{"aile":"olcuye-ozel-oring-conta","parametreler":{"ic_cap":30,"kesit_cap":3.6,"profil":"yuvarlak"}}' \
@@ -238,6 +267,13 @@ jobs:
           # geometrik olarak esdeger mi. Imaj parca ailelerini tasimiyorsa server
           # 404 aile-yok doner -> betik patlar -> CI KIRMIZI.
           python3 onizleme/test/iki-govde-olcum.py --url http://127.0.0.1:18080
+          # KAPSAM KAPISI — DIZIN TARAMASI (G2). Ustteki elle yazilmis curl'ler KALDI
+          # (birebir metin farklilasma iddialarini `cmp -s` ile onlar tasiyor) ama artik
+          # KAPSAM iddiasini tasimiyorlar: bu komut aile listesini jenerator/urunler/*.json
+          # taramasi + secenekler.js ONIZLEME_AILELER'den kurar, yani yeni bir aile
+          # eklenince bu dosyaya ELLE curl eklemek GEREKMEZ. EN SONA konuldu: en pahali
+          # adim (25 gercek openscad derlemesi) ve ucuz kapilar onunde fail-fast eder.
+          python3 tools/onizleme-kapisi.py duman --url http://127.0.0.1:18080
           docker stop onizleme-duman
 
       - name: Registry'ye it (PLAN KAPISI)
