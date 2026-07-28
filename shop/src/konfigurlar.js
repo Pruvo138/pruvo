@@ -166,9 +166,24 @@ const atFiguru = {
 // gozu-bagli-baykus-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
 const gozuBagliBaykus = {
   renkler: ["Siyah", "Beyaz", "Gri"],
-  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  renkGorselIndeks: { Gri: 1, Siyah: 0, Beyaz: 2 },
   boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
   hacim: { refYukseklikMm: 150, refHacimCm3: 346.49 },
+  fiyatCapalari: [[60, 500], [300, 2500]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
+// boga-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const bogaSeritFigur = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 77.27 },
   fiyatCapalari: [[60, 500], [300, 2500]],
   malzemeler: [
     { ad: "PLA", katsayi: 1.0 },
@@ -192,6 +207,7 @@ export const KONFIGURLAR = new Map([
   ["geyik-serit-dekoratif-figur", geyik],
   ["at-figuru-serit-dekoratif-figur", atFiguru],
   ["gozu-bagli-baykus-serit-dekoratif-figur", gozuBagliBaykus],
+  ["boga-serit-dekoratif-figur", bogaSeritFigur],
 ]);
 
 export default KONFIGURLAR;
