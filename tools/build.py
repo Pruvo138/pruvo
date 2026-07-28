@@ -34,6 +34,7 @@ from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
                       STATIK_SAYFALAR, PV_SCRIPT_HTML)
 import filament_ortak
 import marka_model_build
+import landing_hub_build
 
 # ------------------------------------------------------------------ ayarlar
 SITE = "https://pruvo3d.com"
@@ -1445,7 +1446,7 @@ def filament_html(p, wa_not=False, kartlar_gizli=False):
 
 
 # ------------------------------------------------------------------ ürün sayfası
-def render_product(p, all_products):
+def render_product(p, all_products, chip_map=None):
     pid = p["id"]
     url = product_url(pid)
     baslik = p.get("baslik") or ""
@@ -1562,13 +1563,22 @@ def render_product(p, all_products):
                 % (cls, esc(src), esc(baslik), i + 1, esc(src)))
         thumbs_html = '<div class="thumbs">' + "".join(parts) + "</div>"
 
-    # --- marka çipleri (ana sayfada o markayı filtreler)
+    # --- marka çipleri. markalar[0] (asıl marka) çipi, ürünün crawlable /marka sayfasına
+    # (varsa >=ESIK model sayfası, yoksa marka sayfası) GERİ-LİNK verir — Google discovery
+    # kök-fix'i ([[seo-olcum-geri-besleme]]): /urun sayfaları yukarı /marka'ya bağlanmıyordu.
+    # Hedef marka_model_build.uret'in ürettiği product_chip_map[pid]'dendir (aynı slug/eşik/
+    # collision mantığı — reinvent YOK). Sayfası olmayan markada (harita dışı) ya da chip_map
+    # verilmediğinde (kabul testleri) bugünkü /?marka= JS-filtre görünümü AYNEN korunur.
+    # DEĞİŞEN TEK ŞEY çip HREF'i; çip metni/JSON-LD/fiyat/görsel/feed dokunulmaz. Sonraki
+    # çipler (model kodları) da değişmez.
     brand_html = ""
     if markalar:
-        chips = "".join(
-            '<a class="brand-chip" href="/?marka=%s">%s</a>' % (esc(b), esc(b))
-            for b in markalar)
-        brand_html = '<div class="brands">' + chips + "</div>"
+        mm_hedef = (chip_map or {}).get(pid)
+        parcalar = []
+        for i, b in enumerate(markalar):
+            href = esc(mm_hedef) if (i == 0 and mm_hedef) else ("/?marka=" + esc(b))
+            parcalar.append('<a class="brand-chip" href="%s">%s</a>' % (href, esc(b)))
+        brand_html = '<div class="brands">' + "".join(parcalar) + "</div>"
 
     # --- parametrik ("ölçüye özel") rozeti (bayrak yukarıda, JSON-LD'den önce hesaplandı)
     badge_html = '<span class="ozel-badge">Ölçüye Özel</span>' if parametrik else ''
@@ -2570,11 +2580,21 @@ def main():
         shutil.rmtree(URUN_DIR)
     os.makedirs(URUN_DIR, exist_ok=True)
 
+    # marka -> model hiyerarşik gezinme (anasayfa çip-marka evreni) — additive ek modül.
+    # urunler.json'a DOKUNMAZ; /marka/... sayfalarını yazar; sitemap kayıtları + kopyalanacak
+    # üst dizin(ler) + anasayfa SSR çip linkleri + çip slug haritası + ürün-çip geri-link
+    # haritasını döner. ÜRÜN DÖNGÜSÜNDEN ÖNCE çağrılır: render_product marka çipini crawlable
+    # /marka sayfasına bağlamak için product_chip_map'e muhtaç (Google discovery kök-fix'i;
+    # /urun sayfaları bugüne dek yukarı /marka'ya link vermiyordu). /marka yazımı ürün/ çıktısına
+    # bağımlı değildir; sıranın öne alınması yalnız haritayı erken hazır eder.
+    marka_sonuc = marka_model_build.uret(products, marka_model_ctx())
+    urun_cip_haritasi = marka_sonuc["product_chip_map"]
+
     for p in products:
         pdir = os.path.join(URUN_DIR, p["id"])
         os.makedirs(pdir, exist_ok=True)
         with open(os.path.join(pdir, "index.html"), "w", encoding="utf-8") as f:
-            f.write(render_product(p, products))
+            f.write(render_product(p, products, urun_cip_haritasi))
 
     # içerik/yasal sayfalar (/<slug>/index.html)
     for slug, title, meta, fn in CONTENT_PAGES:
@@ -2583,21 +2603,23 @@ def main():
         with open(os.path.join(cdir, "index.html"), "w", encoding="utf-8") as f:
             f.write(render_content_page(slug, title, meta, fn()))
 
-    # marka -> model hiyerarşik gezinme (anasayfa çip-marka evreni) — additive ek modül.
-    # urunler.json'a DOKUNMAZ; /marka/... sayfalarını yazar; sitemap kayıtları + kopyalanacak
-    # üst dizin(ler) + anasayfa SSR çip linkleri + çip slug haritasını döner.
-    marka_sonuc = marka_model_build.uret(products, marka_model_ctx())
+    # LANDING HUB — additive ek modül (tools/landing_hub_build.py). 166+ uzun-kuyruk landing'i
+    # (CONTENT_PAGES) TEK crawlable dizin sayfasında listeler; landing'ler bugüne dek yalnız
+    # birbirlerinden inbound alıyordu (güçlü-sayfa geri-linki yok). Hub sitemap kaydı + kopyalanacak
+    # üst dizin(ini) döner; sayfalar.py CONTENT_PAGES'e DOKUNMAZ (kaynağı oradan OKUR).
+    hub_sonuc = landing_hub_build.uret(marka_model_ctx())
 
     # deploy.yml beyaz-listesi için TEK KAYNAK manifesti: içerik/yasal sayfa dizinleri
     # (statik hakkimizda/iletisim/sss/gizlilik + üretilen CONTENT_PAGES) = SITEMAP_SLUGS +
-    # marka->model üst dizini ("marka"). CI bu dosyayı okuyup her slug'ı _site'a kopyalar;
-    # böylece yeni CONTENT_PAGES/marka eklenince deploy.yml elle güncellenmese de SESSİZCE 404 olmaz.
+    # marka->model üst dizini ("marka") + landing hub dizini. CI bu dosyayı okuyup her slug'ı
+    # _site'a kopyalar; böylece yeni CONTENT_PAGES/marka/hub eklenince deploy.yml elle
+    # güncellenmese de SESSİZCE 404 olmaz.
     with open(os.path.join(ROOT, "_yayin-icerik-dizinleri.txt"), "w", encoding="utf-8") as f:
-        f.write("\n".join(SITEMAP_SLUGS + marka_sonuc["dizinler"]) + "\n")
+        f.write("\n".join(SITEMAP_SLUGS + marka_sonuc["dizinler"] + hub_sonuc["dizinler"]) + "\n")
 
-    # sitemap.xml (marka->model URL'leri lastmod'lu eklenir)
+    # sitemap.xml (marka->model + landing hub URL'leri lastmod'lu eklenir)
     with open(os.path.join(ROOT, "sitemap.xml"), "w", encoding="utf-8") as f:
-        f.write(render_sitemap(products, extra_urls=marka_sonuc["sitemap"]))
+        f.write(render_sitemap(products, extra_urls=marka_sonuc["sitemap"] + hub_sonuc["sitemap"]))
 
     # merchant-feed.xml  (Google Merchant Center — sadece sabit fiyatli urunler)
     feed_xml, feed_n = render_merchant_feed(products)
