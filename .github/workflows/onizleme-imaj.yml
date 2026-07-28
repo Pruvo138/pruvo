@@ -137,14 +137,22 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{"aile":"olcuye-ozel-toka","parametreler":{"kemer_genisligi":25,"kalinlik":10.8,"kayis_baglanti":"dikis"}}' \
             -o duman-toka.stl
+          # cerceve = Okan'in ozgun parametrik cerceve uretecimiz (2026-07-28). Imaj cerceve'siz
+          # cikarsa server 404 aile-yok doner -> curl -sf duser (bash -e) -> CI KIRMIZI (toka emsali,
+          # 27 Tem canli kanamasi). Onizleme tek renk frame kabugu (Caption_Text="" sabit; 2-renk
+          # yazi siparis yolunda). SITE param adlari (server eslemi scad'a cevirir).
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-cerceve","parametreler":{"acilik_eni":100,"acilik_boyu":150,"kenar_genisligi":12,"derinlik":5.2,"kenar_stili":"chamfer"}}' \
+            -o duman-cerceve.stl
           wc -c duman-oring.stl duman-beam.stl duman-konektor.stl duman-braket.stl \
             duman-disli.stl duman-yay-spiral.stl duman-yay-dalga.stl \
-            duman-adaptor.stl duman-kutu.stl duman-kavanoz.stl duman-toka.stl
+            duman-adaptor.stl duman-kutu.stl duman-kavanoz.stl duman-toka.stl duman-cerceve.stl
           test -s duman-oring.stl && test -s duman-beam.stl && test -s duman-konektor.stl \
             && test -s duman-braket.stl && test -s duman-disli.stl \
             && test -s duman-yay-spiral.stl && test -s duman-yay-dalga.stl \
             && test -s duman-adaptor.stl && test -s duman-kutu.stl && test -s duman-kavanoz.stl \
-            && test -s duman-toka.stl
+            && test -s duman-toka.stl && test -s duman-cerceve.stl
           docker stop onizleme-duman
 
       - name: Registry'ye it (PLAN KAPISI)
