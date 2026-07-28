@@ -48,6 +48,13 @@ ACIK_AILELER = {
     "olcuye-ozel-vidali-kavanoz-tapa": "kavanoz",
     # Olcuye ozel toka (2026-07-26) — bizim uretecimiz (jeneratorler/toka.scad)
     "olcuye-ozel-toka": "toka",
+    # Olcuye ozel cerceve (2026-07-28) — bizim uretecimiz (jeneratorler/cerceve.scad).
+    # Eslem public jenerator/test/esleme/cerceve.json'dan turer: 5 geometri parametresi
+    # (acilik_eni/boyu, kenar_genisligi, derinlik, kenar_stili) + SABIT Caption_Text=""
+    # + Output="frame". ONIZLEME TEK RENK cerceve kabugunu render eder; yazi/2-renk caption
+    # onizleme kapsaminda DEGIL (Caption_Text="" -> uretim frame govdesiyle birebir). 2-renk
+    # yazi + min-kenar-10 kisiti sepet/siparis yolunda (konfigurator.js IKI_RENK_MIN_KENAR).
+    "olcuye-ozel-cerceve": "cerceve",
 }
 
 

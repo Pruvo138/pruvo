@@ -140,10 +140,16 @@
     "olcuye-ozel-pervane-fan-cark", "olcuye-ozel-izgara-menfez-kapak",
     "olcuye-ozel-hortum-adaptoru", "olcuye-ozel-kutu-organizer",
     "olcuye-ozel-vidali-kavanoz-tapa",
-    "olcuye-ozel-toka"];
-  // v1.1 NOTU: "olcuye-ozel-cerceve" v1'de listeden CIKARILDI — onizleme paketi
-  // (eslem-ozel + R2 + container) HENUZ YOK, buton cerceve sayfasinda render'i patlatirdi;
-  // paket hazir olunca geri eklenir.
+    "olcuye-ozel-toka", "olcuye-ozel-cerceve"];
+  // v1.2 NOTU (2026-07-28): "olcuye-ozel-cerceve" onizlemeye GERI ALINDI. Aile bizim
+  // uretecimizdir (pruvo-jenerator/jeneratorler/cerceve.scad) -> pakete ACIK_AILELER
+  // (tools/onizleme-paket-yukle.py) uzerinden girer; onizleme eslemi public
+  // jenerator/test/esleme/cerceve.json'dan turer (5 geometri parametresi + Caption_Text=""
+  // + Output="frame"). Onizleme TEK RENK cerceve kabugunu render eder; yazi/2-renk caption
+  // onizleme kapsaminda DEGIL (uretim frame govdesiyle birebir; 2-renk + min-kenar-10
+  // kisiti sepet/siparis yolunda, konfigurator.js). YAYIN KAPISI: buton ancak cerceve.scad'li
+  // yeni derleyici imaji (R2 paket + container rebuild) deploy edilince gercek render verir;
+  // main'e merge MIMAR onayi ister (bu liste = butonun musteride gorunmesi).
 
   /* Onizleme model RENGI (aile bazli; viewer.js taban rengi). Liste DISI aileler
      sari-seri kimlik rengini (viewer.js varsayilani, parlak sari) alir. Toka
