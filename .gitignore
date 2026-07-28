@@ -29,6 +29,10 @@ gorseller/
 # marka->model hiyerarşik gezinme pilotu (tools/marka_model_build.py) — /marka/<marka>/<model>/
 # ağacı build.py'de üretilir, deploy _yayin-icerik-dizinleri.txt'ten kopyalar; git'e GİRMEZ.
 /marka/
+# landing HUB (tools/landing_hub_build.py) — uzun-kuyruk landing dizini; build.py üretir,
+# deploy _yayin-icerik-dizinleri.txt'ten kopyalar; git'e GİRMEZ. (CONTENT_PAGES'te değil ->
+# gitignore-kapisi bloğu DIŞINDA, elle tutulur — /marka/ + /urun/ gibi.)
+/ozel-uretim-rehberi/
 /filament-veri.js
 /taban-fiyatlar.js
 /index.built.html
