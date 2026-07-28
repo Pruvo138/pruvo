@@ -12,10 +12,98 @@ Kullanım:
 
 Birden fazla dosya için çift çift ver:
     python3 tools/r2-upload.py a.jpg urunler/a.jpg b.jpg urunler/b.jpg
+
+DOĞRULAMA (sessiz-yükleme kalkanı — put_object çağrısı REFAKTÖR EDİLMEDİ, etrafına sarıldı):
+  R1 Ön-doğrulama (fail-closed): gövde bilinen görsel sihirli-baytıyla başlamalı + asgari boyutu geçmeli
+     → 0-bayt / kesik / Cloudflare-403 HTML gövdesi yükleme ÖNCESİ ölür (yükleme YAPILMAZ, RAISE).
+  R2 ContentType gövdeden türetilir (sabit "image/jpeg" DEĞİL) → feed/og:image/sosyal kazıcı kırılmaz.
+  R3 Uzantı↔gövde uyuşmazlığı (.jpg ad ama PNG gövde) → stderr LOUD uyarı + content-type GERÇEK formata göre.
+     Varsayılan hard-reject ETMEZ (MaCiT/KaaN partisini ortada kırmasın).
+  R4 Upload SONRASI head_object readback (fail-closed): R2'deki ContentLength == yerel boyut değilse RAISE
+     → kısmi / başarısız PUT yakalanır.
 """
 import sys, os, json, boto3
 
 CFG_PATH = os.path.join(os.path.dirname(__file__), "..", ".r2-credentials.json")
+
+# R1 asgari boyut: 1024 bayt. Gerçek ürün görselleri (JPEG/PNG/WebP) daima kByte'larca olur;
+# 0-bayt, kesik yazma ve Cloudflare-403 HTML gövdeleri bu eşiğin altında ya da geçerli-magic'siz kalır.
+# Meşru görsel bu eşikten kolayca geçer → false-reject yok.
+MIN_BOYUT = 1024
+
+# Format anahtarı → HTTP content-type
+CONTENT_TYPE = {"jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}
+
+
+def format_belirle(data):
+    """Gövdenin sihirli baytından görsel formatını döndür ('jpeg'/'png'/'webp') ya da None (bilinmeyen/çöp)."""
+    if data[:3] == b"\xff\xd8\xff":                      # JPEG: FF D8 FF
+        return "jpeg"
+    if data[:8] == b"\x89PNG\r\n\x1a\n":                 # PNG: 89 50 4E 47 0D 0A 1A 0A
+        return "png"
+    if len(data) >= 12 and data[:4] == b"RIFF" and data[8:12] == b"WEBP":  # WebP: RIFF....WEBP
+        return "webp"
+    return None
+
+
+def uzanti_format(key):
+    """R2 anahtar/ad uzantısından beklenen format ('jpeg'/'png'/'webp') ya da None."""
+    k = key.lower()
+    if k.endswith(".jpg") or k.endswith(".jpeg"):
+        return "jpeg"
+    if k.endswith(".png"):
+        return "png"
+    if k.endswith(".webp"):
+        return "webp"
+    return None
+
+
+def on_dogrula(data, key):
+    """R1 + R2 + R3: gövdeyi doğrula, ContentType döndür. Geçmezse RAISE (yükleme ÖNCESİ)."""
+    # R1a boyut
+    if len(data) < MIN_BOYUT:
+        raise ValueError(
+            "R1 red: %s boyut %dB < %dB asgari (0-bayt / kesik yazma / 403-HTML govdesi) — yukleme yapilmadi"
+            % (key, len(data), MIN_BOYUT)
+        )
+    # R1b sihirli-bayt
+    fmt = format_belirle(data)
+    if fmt is None:
+        raise ValueError(
+            "R1 red: %s bilinen gorsel sihirli-bayti yok (JPEG/PNG/WebP degil — muhtemelen HTML/coplu govde) — yukleme yapilmadi"
+            % key
+        )
+    # R2 ContentType gövdeden
+    content_type = CONTENT_TYPE[fmt]
+    # R3 uzantı↔gövde uyuşmazlığı → LOUD uyarı (hard-reject DEĞİL)
+    uf = uzanti_format(key)
+    if uf is not None and uf != fmt:
+        print(
+            "UYARI: %s uzantisi .%s ama govde %s — feed reddedebilir, content-type %s olarak yukleniyor, dosyayi %s'e cevir"
+            % (key, uf, fmt.upper(), content_type, uf),
+            file=sys.stderr,
+        )
+    return content_type
+
+
+def readback_dogrula(s3, bucket, key, yerel_boyut):
+    """R4: put_object SONRASI head_object ile boyut teyidi (fail-closed). Uyuşmazsa RAISE."""
+    head = s3.head_object(Bucket=bucket, Key=key)
+    r2_len = head.get("ContentLength")
+    if r2_len != yerel_boyut:
+        raise ValueError(
+            "R4 red: readback boyut uyusmuyor: yerel %s, R2 %s — yukleme eksik/kismi PUT"
+            % (yerel_boyut, r2_len)
+        )
+
+
+def dogrula_ve_yukle(s3, bucket, key, data):
+    """Tek dosyayı doğrula → yükle → readback ile teyit et. content_type döndürür."""
+    content_type = on_dogrula(data, key)          # R1 + R2 + R3 (fail-closed önce)
+    s3.put_object(Bucket=bucket, Key=key, Body=data, ContentType=content_type)  # yazma yolu (refaktör YOK)
+    readback_dogrula(s3, bucket, key, len(data))  # R4 (fail-closed sonra)
+    return content_type
+
 
 def main():
     args = sys.argv[1:]
@@ -33,8 +121,10 @@ def main():
     for i in range(0, len(args), 2):
         local, key = args[i], args[i + 1]
         with open(local, "rb") as f:
-            s3.put_object(Bucket=cfg["bucket"], Key=key, Body=f.read(), ContentType="image/jpeg")
+            data = f.read()
+        dogrula_ve_yukle(s3, cfg["bucket"], key, data)
         print(cfg["public_base"] + "/" + key)
+
 
 if __name__ == "__main__":
     main()
