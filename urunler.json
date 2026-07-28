@@ -1,5 +1,599 @@
 [
   {
+    "id": "ford-fiesta-silecek-dislisi-2002-2012",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Fiesta Silecek Dişlisi (2002-2012)",
+    "aciklama": "Ford Fiesta (2002-2012) ön silecek mekanizması tahrik dişli parçası. Dişleri aşınan veya kırılan orijinalin yerine geçer, silecek mekanizmasını yeniden düzgün çalıştırır. Orijinali lazer tarama ile modellenmiştir.\n- Ford Fiesta 2002-2012 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dford-fiesta-2002-2012-wiper-gear-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-fiesta-2002-2012-wiper-gear-2.jpg"
+    ]
+  },
+  {
+    "id": "opel-meriva-stop-lambasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel"
+    ],
+    "baslik": "Opel Meriva Stop Lambası Kapağı",
+    "aciklama": "Opel Meriva arka stop lambası kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, stop lambası boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Opel Meriva ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2820 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dopel-meriva-taillight-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dopel-meriva-taillight-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dopel-meriva-taillight-cover-3.jpg"
+    ]
+  },
+  {
+    "id": "jaguar-f-pace-sis-fari-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Jaguar"
+    ],
+    "baslik": "Jaguar F-Pace Sis Farı Çerçevesi",
+    "aciklama": "Jaguar F-Pace ön tampon sis farı çerçeve parçası. Kırılan veya kaybolan orijinalin yerine geçer, sis farını temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Jaguar F-Pace ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2910 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3djaguar-f-pace-fog-light-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3djaguar-f-pace-fog-light-frame-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3djaguar-f-pace-fog-light-frame-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3djaguar-f-pace-fog-light-frame-4.jpg"
+    ]
+  },
+  {
+    "id": "volkswagen-polo-gti-tampon-kose-bakaliti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "Volkswagen Polo GTI Tampon Köşe Bakaliti",
+    "aciklama": "Volkswagen Polo GTI tampon köşe destek (bakalit) parçası. Kırılan veya kaybolan orijinalin yerine geçer, tampon köşe bağlantısını yeniden sağlamlaştırır. Orijinali lazer tarama ile modellenmiştir.\n- Volkswagen Polo GTI ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-polo-gti-bumper-corner-bakelite-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-polo-gti-bumper-corner-bakelite-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-polo-gti-bumper-corner-bakelite-3.jpg"
+    ]
+  },
+  {
+    "id": "kia-sorento-hyundai-tucson-sunroof-rayi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Kia",
+      "Hyundai"
+    ],
+    "baslik": "Kia Sorento / Hyundai Tucson Sunroof Rayı",
+    "aciklama": "Kia Sorento ve Hyundai Tucson sunroof (açılır tavan) kızak ray parçası. Kırılan veya aşınan orijinalin yerine geçer, sunroof camının kayma rayını yeniden işlevine kavuşturur. Orijinali lazer tarama ile modellenmiştir.\n- Kia Sorento ve Hyundai Tucson ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dkia-sorento-hyundai-tuscon-sunroof-rail-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dkia-sorento-hyundai-tuscon-sunroof-rail-2.jpg"
+    ]
+  },
+  {
+    "id": "volkswagen-passat-golf-polo-sunroof-rayi-2",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "Volkswagen Passat / Golf / Polo Sunroof Rayı (2)",
+    "aciklama": "Volkswagen Passat, Golf ve Polo (1990-2000) sunroof (açılır tavan) kızak ray parçası (ikinci ray). Kırılan veya aşınan orijinalin yerine geçer, sunroof camının kayma rayını yeniden işlevine kavuşturur. Orijinali lazer tarama ile modellenmiştir.\n- Volkswagen Passat, Golf ve Polo 1990-2000 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-passat-golf-polo-1990-2000-sunroof-rail-2-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-passat-golf-polo-1990-2000-sunroof-rail-2-2.jpg"
+    ]
+  },
+  {
+    "id": "volkswagen-passat-golf-polo-sunroof-rayi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volkswagen"
+    ],
+    "baslik": "Volkswagen Passat / Golf / Polo Sunroof Rayı",
+    "aciklama": "Volkswagen Passat, Golf ve Polo (1990-2000) sunroof (açılır tavan) kızak ray parçası. Kırılan veya aşınan orijinalin yerine geçer, sunroof camının kayma rayını yeniden işlevine kavuşturur. Orijinali lazer tarama ile modellenmiştir.\n- Volkswagen Passat, Golf ve Polo 1990-2000 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-passat-golf-1990-2004-sunroof-rail-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dvolkswagen-passat-golf-1990-2004-sunroof-rail-2.jpg"
+    ]
+  },
+  {
+    "id": "ford-kuga-on-tampon-citasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Kuga Ön Tampon Çıtası",
+    "aciklama": "Ford Kuga ön tampon çıta (strip) parçası. Kırılan veya kaybolan orijinalin yerine geçer, tampon çıta hattını temizce tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Ford Kuga ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-front-bumper-strip-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-front-bumper-strip-2.jpg"
+    ]
+  },
+  {
+    "id": "dacia-duster-tavan-citasi-arka-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Dacia"
+    ],
+    "baslik": "Dacia Duster Tavan Çıtası Arka Kapağı",
+    "aciklama": "Dacia Duster tavan çıtası (roof bar) arka uç kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, tavan çıtası bağlantısını temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Dacia Duster ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3ddacia-duster-roof-bar-rear-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3ddacia-duster-roof-bar-rear-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "ford-kuga-gunduz-fari-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Kuga Gündüz Farı Çerçevesi",
+    "aciklama": "Ford Kuga gündüz farı (daytime running light) çerçeve parçası. Kırılan veya kaybolan orijinalin yerine geçer, gündüz farını temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Ford Kuga ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-daytime-running-light-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-daytime-running-light-frame-2.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-xvs-950-a-heybe-kilidi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha XVS 950 A Heybe Kilidi",
+    "aciklama": "Yamaha XVS 950 A yan heybe (bag) kilit parçası. Kırılan veya kaybolan orijinalin yerine geçer, heybe kilit mekanizmasını yeniden işlevine kavuşturur. Orijinali lazer tarama ile modellenmiştir.\n- Yamaha XVS 950 A ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dyamaha-xvs-950-a-bag-lock-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dyamaha-xvs-950-a-bag-lock-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dyamaha-xvs-950-a-bag-lock-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dyamaha-xvs-950-a-bag-lock-4.jpg"
+    ]
+  },
+  {
+    "id": "mercedes-w140-torpido-hoparlor-kapak-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mercedes"
+    ],
+    "baslik": "Mercedes W140 Torpido Hoparlör Kapak Çerçevesi",
+    "aciklama": "Mercedes W140 gösterge paneli (torpido) hoparlör kapak çerçeve parçası. Kırılan veya kaybolan orijinalin yerine geçer, hoparlör ızgarasını temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Mercedes W140 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmercedes-w-140-dashboard-speaker-cover-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmercedes-w-140-dashboard-speaker-cover-frame-2.jpg"
+    ]
+  },
+  {
+    "id": "toyota-auris-bardaklik-ayraci",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Auris Bardaklık Ayracı",
+    "aciklama": "Toyota Auris orta konsol bardaklık (cup holder) ayraç parçası. Kırılan veya kaybolan orijinalin yerine geçer, bardaklık bölmesini yeniden ayırır. Orijinali lazer tarama ile modellenmiştir.\n- Toyota Auris ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtoyota-auris-cup-holder-divider-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-auris-cup-holder-divider-2.jpg"
+    ]
+  },
+  {
+    "id": "cfmoto-650tk-diz-koruma-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "baslik": "CFMoto 650TK Diz Koruma Kapağı",
+    "aciklama": "CFMoto 650TK diz koruma (knee protection) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, diz koruma yüzeyini temizce tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- CFMoto 650TK ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcf-moto-650-tk-knee-protection-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcf-moto-650-tk-knee-protection-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "cfmoto-650tk-ayna-cercevesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "CFMoto"
+    ],
+    "baslik": "CFMoto 650TK Ayna Çerçevesi",
+    "aciklama": "CFMoto 650TK ayna (mirror) çerçeve parçası. Kırılan veya kaybolan orijinalin yerine geçer, aynayı temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- CFMoto 650TK ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1850 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcf-moto-650-tk-mirror-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcf-moto-650-tk-mirror-frame-2.jpg"
+    ]
+  },
+  {
+    "id": "bmw-e65-7-serisi-sis-fari-izgarasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "BMW"
+    ],
+    "baslik": "BMW E65 7 Serisi Sis Farı Izgarası",
+    "aciklama": "BMW E65 (7 Serisi) ön tampon sis farı ızgara parçası. Kırılan veya kaybolan orijinalin yerine geçer, sis farı açıklığını temizce ızgaralar. Orijinali lazer tarama ile modellenmiştir.\n- BMW E65 7 Serisi ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbmw-e-65-bmw-7-30-fog-light-grille-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dbmw-e-65-bmw-7-30-fog-light-grille-2.jpg"
+    ]
+  },
+  {
+    "id": "ssangyong-kyron-koltuk-yukseklik-ayar-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "SsangYong"
+    ],
+    "baslik": "SsangYong Kyron Koltuk Yükseklik Ayar Düğmesi",
+    "aciklama": "SsangYong Kyron koltuk yükseklik ayar (seat height adjustment) düğme parçası. Kırılan veya kaybolan orijinalin yerine geçer, koltuk ayar düğmesini yeniden işlevine kavuşturur. Orijinali lazer tarama ile modellenmiştir.\n- SsangYong Kyron ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dssangyong-kyron-seat-button-seat-height-adjustment-button-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dssangyong-kyron-seat-button-seat-height-adjustment-button-2.jpg"
+    ]
+  },
+  {
+    "id": "honda-civic-fk3-arka-tampon-baglanti-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic FK3 Arka Tampon Bağlantı Yuvası",
+    "aciklama": "Honda Civic FK3 arka tampon bağlantı (fixing slot) yuva parçası. Kırılan veya kaybolan orijinalin yerine geçer, tampon bağlantı klips yuvasını yeniden sağlamlaştırır. Orijinali lazer tarama ile modellenmiştir.\n- Honda Civic FK3 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcivic-fk3-rear-bumper-fixing-slot-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcivic-fk3-rear-bumper-fixing-slot-2.jpg"
+    ]
+  },
+  {
+    "id": "toyota-verso-tavan-citasi-arka-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Verso Tavan Çıtası Arka Kapağı",
+    "aciklama": "Toyota Verso tavan çıtası (roof bar) arka uç kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, tavan çıtası bağlantısını temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Toyota Verso ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtoyota-verso-roof-bar-rear-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-verso-roof-bar-rear-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-verso-roof-bar-rear-cover-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-verso-roof-bar-rear-cover-4.jpg"
+    ]
+  },
+  {
+    "id": "citroen-c4-sis-fari-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen"
+    ],
+    "baslik": "Citroen C4 Sis Farı Kapağı",
+    "aciklama": "Citroen C4 ön tampon sis farı kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, sis farı boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Citroen C4 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c4-fog-light-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c4-fog-light-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-ttr-600-arka-grenaj",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha TTR 600 Arka Grenaj",
+    "aciklama": "Yamaha TTR 600 arka grenaj (rear fairing) kaplama parçası. Kırılan veya kaybolan orijinalin yerine geçer, arka gövde kaplamasını temizce tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Yamaha TTR 600 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "3800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dyamaha-ttr-600-rear-fairing-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dyamaha-ttr-600-rear-fairing-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dyamaha-ttr-600-rear-fairing-3.jpg"
+    ]
+  },
+  {
+    "id": "ford-fiesta-pandizot-tutucusu-2009-2012",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Fiesta Pandizot Tutucusu (2009-2012)",
+    "aciklama": "Ford Fiesta (2009-2012) bagaj pandizot (luggage cover) tutucu parçası. Kırılan veya kaybolan orijinalin yerine geçer, pandizot bağlantısını yeniden işlevine kavuşturur. Orijinali lazer tarama ile modellenmiştir.\n- Ford Fiesta 2009-2012 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2910 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dford-fiesta-2009-2012-luggage-pandizot-holder-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-fiesta-2009-2012-luggage-pandizot-holder-2.jpg"
+    ]
+  },
+  {
+    "id": "citroen-c3-arka-kapi-diregi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen"
+    ],
+    "baslik": "Citroen C3 Arka Kapı Direği Kapağı",
+    "aciklama": "Citroen C3 arka kapı direği (rear door pillar) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, kapı direği boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Citroen C3 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "680 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-rear-door-pillar-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-rear-door-pillar-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "citroen-c3-orta-direk-kapi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen"
+    ],
+    "baslik": "Citroen C3 Orta Direk Kapı Kapağı",
+    "aciklama": "Citroen C3 orta direk (central pillar) kapı kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, orta direk boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Citroen C3 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "680 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-central-pillar-door-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-central-pillar-door-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "mazda-rx-8-sunroof-sineklik-kose-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Mazda"
+    ],
+    "baslik": "Mazda RX-8 Sunroof Sineklik Köşe Kapağı",
+    "aciklama": "Mazda RX-8 sunroof (açılır tavan) sineklik/perde köşe kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, sunroof köşe boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Mazda RX-8 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmazda-rx-8-sanruf-fly-screen-corner-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmazda-rx-8-sanruf-fly-screen-corner-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmazda-rx-8-sanruf-fly-screen-corner-cover-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmazda-rx-8-sanruf-fly-screen-corner-cover-4.jpg"
+    ]
+  },
+  {
+    "id": "nissan-patrol-basamak-kose-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan Patrol Basamak Köşe Kapağı",
+    "aciklama": "Nissan Patrol yan basamak (step) köşe kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, basamak köşe boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Nissan Patrol ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dnissan-patrol-step-corner-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dnissan-patrol-step-corner-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "fiat-uno-kalorifer-izgarasi-sabitleme-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Fiat"
+    ],
+    "baslik": "Fiat Uno Kalorifer Izgarası Sabitleme Parçası",
+    "aciklama": "Fiat Uno kalorifer (ısıtıcı) ızgara sabitleme (fixing) parçası. Kırılan veya kaybolan orijinalin yerine geçer, kalorifer ızgarasını yerine sabitler. Orijinali lazer tarama ile modellenmiştir.\n- Fiat Uno ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "480 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dfiat-uno-heater-grill-fixing-device-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-uno-heater-grill-fixing-device-2.jpg"
+    ]
+  },
+  {
+    "id": "fiat-punto-koltuk-ayar-kolu-2004-2005",
+    "kategori": "Otomobil",
+    "marka": [
+      "Fiat"
+    ],
+    "baslik": "Fiat Punto Koltuk Ayar Kolu (2004-2005)",
+    "aciklama": "Fiat Punto (2004-2005) koltuk kaydırma/ayar (seat adjustment) kol parçası. Kırılan veya kaybolan orijinalin yerine geçer, koltuk ayar kolunu yeniden işlevine kavuşturur. Orijinali lazer tarama ile modellenmiştir.\n- Fiat Punto 2004-2005 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dfiat-punto-2004-2005-seat-change-adjustment-lever-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-punto-2004-2005-seat-change-adjustment-lever-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfiat-punto-2004-2005-seat-change-adjustment-lever-3.jpg"
+    ]
+  },
+  {
+    "id": "chrysler-lhs-far-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Chrysler"
+    ],
+    "baslik": "Chrysler LHS Far Çerçevesi",
+    "aciklama": "Chrysler LHS far (headlight) çerçeve parçası. Kırılan veya kaybolan orijinalin yerine geçer, farı temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Chrysler LHS ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dchrysler-lhs-headlight-frame-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dchrysler-lhs-headlight-frame-2.jpg"
+    ]
+  },
+  {
+    "id": "ford-fiesta-bagaj-ic-kapagi-2009-2012",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Fiesta Bagaj İç Kapağı (2009-2012)",
+    "aciklama": "Ford Fiesta (2009-2012) arka bagaj iç kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, bagaj iç boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Ford Fiesta 2009-2012 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2820 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dford-fiesta-2009-2012-rear-trunk-inner-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-fiesta-2009-2012-rear-trunk-inner-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "citroen-c3-picasso-arka-kapi-cebi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Citroen"
+    ],
+    "baslik": "Citroen C3 Picasso Arka Kapı Cebi Kapağı",
+    "aciklama": "Citroen C3 Picasso arka kapı cebi (door pocket) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, kapı cebi boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Citroen C3 Picasso ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-picasso-back-door-pocket-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcitroen-c3-picasso-back-door-pocket-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "honda-civic-fc5-sis-fari-cercevesi-arka-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Civic FC5 Sis Farı Çerçevesi Arka Kapağı",
+    "aciklama": "Honda Civic FC5 sis farı çerçevesi arka kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, sis farı çerçeve arkasını temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Honda Civic FC5 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dcivic-fc5-fog-light-frame-rear-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dcivic-fc5-fog-light-frame-rear-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "opel-astra-h-havalandirma-cercevesi-62-mm",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel"
+    ],
+    "baslik": "Opel Astra H Havalandırma Çerçevesi (62 mm)",
+    "aciklama": "Opel Astra H iç havalandırma (kalorifer) çerçeve parçası; 62 mm gösterge yuvasına uygun. Kırılan veya kaybolan orijinalin yerine geçer, havalandırma açıklığını temizce çerçeveler. Orijinali lazer tarama ile modellenmiştir.\n- Opel Astra H ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "480 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dopel-astra-h-ventilation-frame-display-model-for-62-mm-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dopel-astra-h-ventilation-frame-display-model-for-62-mm-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dopel-astra-h-ventilation-frame-display-model-for-62-mm-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dopel-astra-h-ventilation-frame-display-model-for-62-mm-4.jpg"
+    ]
+  },
+  {
+    "id": "isuzu-d-max-camurluk-citasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Isuzu"
+    ],
+    "baslik": "Isuzu D-Max Çamurluk Çıtası",
+    "aciklama": "Isuzu D-Max çamurluk (fender) çıta/trim parçası. Kırılan veya kaybolan orijinalin yerine geçer, çamurluk çıta hattını temizce tamamlar. Orijinali lazer tarama ile modellenmiştir.\n- Isuzu D-Max ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2910 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3disuzu-dmax-fender-trim-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3disuzu-dmax-fender-trim-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3disuzu-dmax-fender-trim-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3disuzu-dmax-fender-trim-4.jpg"
+    ]
+  },
+  {
+    "id": "toyota-avensis-arka-bagaj-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Avensis Arka Bagaj Kapağı",
+    "aciklama": "Toyota Avensis arka bagaj kapak / trim parçası. Kırılan veya kaybolan orijinalin yerine geçer, bagaj boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Toyota Avensis ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "2430 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtoyota-avensis-rear-trunk-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-avensis-rear-trunk-cover-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtoyota-avensis-rear-trunk-cover-3.jpg"
+    ]
+  },
+  {
+    "id": "audi-q7-kose-marspiyel-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Audi"
+    ],
+    "baslik": "Audi Q7 Köşe Marşpiyel Kapağı",
+    "aciklama": "Audi Q7 marşpiyel (eşik) köşe kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, marşpiyel köşe boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Audi Q7 ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3daudi-q7-corner-skirting-board-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3daudi-q7-corner-skirting-board-2.jpg"
+    ]
+  },
+  {
+    "id": "opel-vectra-c-yan-cam-havalandirma-izgarasi-sol",
+    "kategori": "Otomobil",
+    "marka": [
+      "Opel"
+    ],
+    "baslik": "Opel Vectra C Yan Cam Havalandırma Izgarası (Sol)",
+    "aciklama": "Opel Vectra C sol yan cam havalandırma ızgara (ventilation grille) parçası. Kırılan veya kaybolan orijinalin yerine geçer, havalandırma açıklığını temizce ızgaralar. Orijinali lazer tarama ile modellenmiştir.\n- Opel Vectra C ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dopel-vectra-c-side-window-ventilation-grille-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dopel-vectra-c-side-window-ventilation-grille-2.jpg"
+    ]
+  },
+  {
+    "id": "ford-kuga-arka-perde-tutamagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Kuga Arka Perde Tutamağı",
+    "aciklama": "Ford Kuga arka bagaj perde (curtain) tutamak parçası. Kırılan veya kaybolan orijinalin yerine geçer, perde tutamağını yeniden işlevine kavuşturur. Orijinali lazer tarama ile modellenmiştir.\n- Ford Kuga ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1260 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-rear-curtain-handle-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-rear-curtain-handle-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-rear-curtain-handle-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-rear-curtain-handle-4.jpg"
+    ]
+  },
+  {
+    "id": "ford-kuga-arka-tampon-camurluk-izgara-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Kuga Arka Tampon Çamurluk Izgara Kapağı",
+    "aciklama": "Ford Kuga arka tampon çamurluk ızgara (slat) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, tampon ızgara boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Ford Kuga ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1940 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-rear-bumper-fender-slat-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-rear-bumper-fender-slat-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "ford-kuga-bagaj-yan-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford"
+    ],
+    "baslik": "Ford Kuga Bagaj Yan Kapağı",
+    "aciklama": "Ford Kuga arka bagaj yan kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, bagaj yan boşluğunu temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Ford Kuga ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "970 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-rear-trunk-side-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dford-kuga-rear-trunk-side-cover-2.jpg"
+    ]
+  },
+  {
+    "id": "nissan-x-trail-on-cam-alti-su-olugu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Nissan"
+    ],
+    "baslik": "Nissan X-Trail Ön Cam Altı Su Oluğu Kapağı",
+    "aciklama": "Nissan X-Trail ön cam altı su oluğu (cowl / water drain) kapak parçası. Kırılan veya kaybolan orijinalin yerine geçer, su tahliye kanalını temizce kapatır. Orijinali lazer tarama ile modellenmiştir.\n- Nissan X-Trail ile uyumludur.\n- Orijinal ölçülere birebir sadıktır.\n- Dayanıklı malzemeyle özel üretilir.",
+    "fiyat": "1450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dnissan-x-trail-under-windshield-water-drain-cover-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dnissan-x-trail-under-windshield-water-drain-cover-2.jpg"
+    ]
+  },
+  {
     "id": "opel-grandland-dugme-cercevesi",
     "kategori": "Otomobil",
     "marka": [
