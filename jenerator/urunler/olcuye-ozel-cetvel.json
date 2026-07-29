@@ -93,14 +93,6 @@
       ],
       "varsayilan": "oyma",
       "aciklama": "Taksimat çizgileri ve sayıların yüzeyde uygulanma biçimi"
-    },
-    {
-      "ad": "yazi",
-      "etiket": "Üzerine yazı / isim",
-      "tip": "metin",
-      "varsayilan": "",
-      "maksUzunluk": 30,
-      "aciklama": "İsteğe bağlı: cetvel üzerine işlenecek isim/firma yazısı"
     }
   ],
   "tabanHacimMm3": 14265.224351646924,

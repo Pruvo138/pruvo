@@ -9,15 +9,22 @@ NE KANITLAR (dar, dogru etiket):
   Olcum GERCEK kodla yapilir: eslem uretimi tools/onizleme-paket-yukle.py
   (acik_eslem_uret) + bayrak uretimi onizleme/derleyici/server.py (d_bayraklari).
   Kopya mantik yazilmaz.
+  AYRICA (TAVAN KAPISI, 29 Tem): her metin alaninin sema `maksUzunluk` degeri sunucunun
+  `METIN_SERT_TAVAN` degerinden BUYUK OLAMAZ (ve tanimsiz kalamaz) — buyukse musteri
+  girebildigi metnin bir kismi sunucuda SESSIZCE kirpilir.
 
 NE KANITLAMAZ (iddia edilmez):
   * Metnin DOGRU yere, dogru boyutta, okunur bicimde basildigini KANITLAMAZ
     (bunun icin gercek OpenSCAD render'i gerekir -> .github/workflows/onizleme-imaj.yml
     "metin farklilasma" duman adimi iki farkli metinle GERCEK STL uretip cmp'ler).
   * Ciktinin GEOMETRIK olarak gecerli oldugunu kanitlamaz.
-  * Uzunluk tavani (server METIN_SERT_TAVAN=24) asildiginda musteriye ne soylendigini
-    kanitlamaz (metin sessizce KIRPILIR; sema maksUzunluk degerleriyle celiskisi
-    RAPOR-MIMARA.md'de tarif edildi, davranis bu turda DEGISTIRILMEDI).
+  * Tavan kapisi yalniz SAYI hizalamasini kanitlar; musteriye tavan asilinca NE
+    SOYLENDIGINI kanitlamaz (sinir konfigurator input.maxLength ile fiziksel olarak
+    uygulanir; mesaj metni bu kapinin kapsaminda degil).
+  * BEYAZ LISTE disi karakterlerin (or. & / ( ) :) sunucuda sessizce DUSMESINI
+    kanitlamaz/engellemez. Konfiguratorde bu uyari BUGUN yalniz cerceve alanina
+    bagli (jenerator/konfigurator.js `yaziKirli`); tum `metin` alanlarina
+    genellestirilmesi ayri is (RAPOR-MIMARA.md, kuyruk).
 
 NEDEN VAR (olculmus sessiz hata, 29 Tem 2026):
   Canli onizleme ucundan (POST /api/onizleme/olustur, tarayici UA, cache-bust yok)
@@ -92,20 +99,45 @@ PAKET = _modul("pruvo_onizleme_paket",
 
 
 # ---- IZIN LISTESI (aile -> GEREKCE). Bos gerekce = KIRMIZI. -----------------
-IZIN_LISTESI = {
-    "olcuye-ozel-cetvel": (
-        "KABILIYET BOSLUGU (eslem hatasi DEGIL, 29 Tem olcumu): bu ailenin onizleme/uretim "
-        "eslemi gizli uyelik uretecine baglidir ve O URETECTE SERBEST METIN DEGISKENI YOKTUR "
-        "(ustdüzey degiskenleri okundu: yalniz olcu/taksimat/font/hizalama + bir SVG 'Graphic' "
-        "bayragi; musteri yazisi icin bir Text/Caption degiskeni yok). Yani sema `yazi` "
-        "parametresini vaat ediyor ama bagli motor onu FIZIKSEL OLARAK basamiyor; hicbir eslem "
-        "duzeltmesi bunu cozmez. KARAR MIMARDA (iki yol RAPOR-MIMARA.md'de): (A) aileyi bizim "
-        "kendi uretecimize tasi (public test eslemi ZATEN yazi->yazi_logo esliyor; gizli "
-        "eslemden aile blogu silinmeli — ACIK_AILELER cakisma kapisi bunu zorunlu kilar), "
-        "(B) semadan `yazi` parametresini kaldir (musteriye teslim edilemeyen alan sorulmasin). "
-        "Karar uygulanip aile GECER hale gelince bu giris SILINMELIDIR: gecen bir aile izin "
-        "listesinde kalirsa kapi 'bayat muafiyet' diye KIRMIZI yanar."),
-}
+# BOS OLMASI DOGRU HAL: bugun `tip:metin` parametresi olan HER aile GERCEKTEN gecmektedir.
+# (29 Tem: `olcuye-ozel-cetvel` burada gerekceli muaftı — bagli uretecte serbest metin
+# degiskeni olmadigi icin. Mimar karari (B) uygulandi: sema `yazi` parametresi KALDIRILDI,
+# yani musteriye basamayacagimiz alan artik SORULMUYOR. Aile kesiften dogal olarak dustu ->
+# muafiyet gereksizlesti ve OLU MUAFIYET birakmamak icin SILINDI.)
+# Yeni giris ancak GERCEK bir kabiliyet boslugunda ve GEREKCEYLE yazilir; muaf bir aile
+# gecer hale gelirse kapi "BAYAT MUAFIYET" diye KIRMIZI yanar.
+IZIN_LISTESI = {}
+
+
+def tavan_denetle(sema, metin_adlari):
+    """TAVAN HIZALAMA KAPISI (mimar karari 29 Tem) — sema `maksUzunluk` <= sunucu
+    `METIN_SERT_TAVAN`. Sorun listesi doner (bos = temiz).
+
+    OLCULEN SESSIZ HATA: kase alaninda sema tavani 40, sunucu tavani 24 idi. Musteri
+    33 karakter yazabiliyor (worker kabul ediyor), sunucu 24'e KIRPIYOR ve bunu HICBIR
+    yerde soylemiyor -> musteri yanlis urun aliyor. Olculdu:
+      girdi  'PRUVO ENDUSTRIYEL PARCA URETIM AS' (33)
+      cikan  'PRUVO ENDUSTRIYEL PARCA ' (24)   KAYIP: 'URETIM AS'
+    Ayrica 24'u asan IKI FARKLI metin kirpma sonrasi AYNI -D'yi uretebiliyor.
+    SUNUCU TAVANI GEVSETILMEZ (guvenlik siniri) — hizalama SEMA tarafinda yapilir;
+    boylece sinir GIRISTE gorunur (konfigurator input.maxLength = maksUzunluk).
+
+    `maksUzunluk` YOKSA da KIRMIZI (fail-closed): tavansiz alan girdiyi sinirlamaz ->
+    sessiz kirpma sinifi geri doner."""
+    sorunlar = []
+    tavan = SERVER.METIN_SERT_TAVAN
+    tanimlar = dict((p["ad"], p) for p in sema.get("parametreler", []))
+    for ad in metin_adlari:
+        mu = tanimlar[ad].get("maksUzunluk")
+        if mu is None:
+            sorunlar.append("%r: sema `maksUzunluk` YOK -> girdi sinirlanmaz, sunucu "
+                            "%d karakterde SESSIZCE kirpar" % (ad, tavan))
+        elif mu > tavan:
+            sorunlar.append("%r: sema maksUzunluk=%s > sunucu METIN_SERT_TAVAN=%d -> "
+                            "musteri %d karakteri asan metin yazabilir ve SESSIZCE "
+                            "kirpilir (semayi %d'e indir; sunucu tavanini GEVSETME)"
+                            % (ad, mu, tavan, tavan, tavan))
+    return sorunlar
 
 
 def semalari_tara():
@@ -222,9 +254,14 @@ def denetle(paket_dizin=None, izin=None, yaz=True):
         yz("Gizli eslem: YOK -> gizli-eslem aileleri ⚪ OLCULEMEDI "
            "(tam kapsam: --paket <gizli paket dizini>)")
 
-    gecen, kalan, olculemeyen, muaf_gecti = [], [], [], []
+    gecen, kalan, olculemeyen, muaf_gecti, tavan_kalan = [], [], [], [], []
     for aile in sorted(aileler):
         sema, metin_adlari = aileler[aile]
+        # TAVAN KAPISI eslemden BAGIMSIZ: sema PUBLIC, gizli eslem olmadan da olculur
+        # (Pages CI'da da tam kapsam). Muafiyet listesi bu kapiyi KAPSAMAZ.
+        for s in tavan_denetle(sema, metin_adlari):
+            tavan_kalan.append(aile)
+            yz("  ❌ %s — TAVAN: %s" % (aile, s))
         acik_ad = PAKET.ACIK_AILELER.get(aile)
         eslem, kaynak, hata = eslem_coz(aile, acik_ad, gizli)
         etiket = "%s [%s]" % (aile, kaynak)
@@ -264,10 +301,14 @@ def denetle(paket_dizin=None, izin=None, yaz=True):
                        % aile)
     for aile in kalan:
         hatalar.append("METIN DUSUYOR: %s" % aile)
+    for aile in sorted(set(tavan_kalan)):
+        hatalar.append("TAVAN HIZALAMASI BOZUK (sessiz kirpma): %s" % aile)
 
     yz("")
-    yz("Gecen: %d | Kalan: %d | Muaf (izin listesi): %d | Olculemedi: %d"
-       % (len(gecen), len(kalan), len(izin), len(olculemeyen)))
+    yz("Gecen: %d | Kalan: %d | Muaf (izin listesi): %d | Olculemedi: %d | "
+       "Tavani bozuk: %d"
+       % (len(gecen), len(kalan), len(izin), len(olculemeyen),
+          len(set(tavan_kalan))))
     if hatalar:
         yz("SONUC: KIRMIZI (%d sorun)" % len(hatalar))
         for h in hatalar:
@@ -332,6 +373,22 @@ def oz_nobetci():
     if not semalari_tara():
         hata.append("(4) KESIF BOS: jenerator/urunler taramasi `tip:metin` olan hicbir "
                     "aile bulmadi -> predikat/dizin bozulmus, kapi anlamsiz yesil yanardi")
+
+    # 5) TAVAN KAPISI inert mi? Sunucu tavanini ASAN sentetik sema KIRMIZI, tavana
+    #    ESIT olan TEMIZ olmali; `maksUzunluk` yoksa da KIRMIZI (fail-closed).
+    tavan = SERVER.METIN_SERT_TAVAN
+    asan = {"parametreler": [{"ad": "yazi", "tip": "metin",
+                              "maksUzunluk": tavan + 1}]}
+    esit = {"parametreler": [{"ad": "yazi", "tip": "metin", "maksUzunluk": tavan}]}
+    yok = {"parametreler": [{"ad": "yazi", "tip": "metin"}]}
+    if not tavan_denetle(asan, ["yazi"]):
+        hata.append("(5) TAVAN KAPISI INERT: maksUzunluk=%d (sunucu tavani %d) sorun "
+                    "uretmedi" % (tavan + 1, tavan))
+    if tavan_denetle(esit, ["yazi"]):
+        hata.append("(5) TAVAN KAPISI YANLIS-POZITIF: maksUzunluk=%d (tavana ESIT) "
+                    "sorun uretti" % tavan)
+    if not tavan_denetle(yok, ["yazi"]):
+        hata.append("(5) TAVAN KAPISI FAIL-OPEN: `maksUzunluk` YOKKEN sorun uretmedi")
     return (not hata), hata
 
 

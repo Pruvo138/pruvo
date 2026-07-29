@@ -81,11 +81,11 @@
     },
     {
       "ad": "yazi",
-      "etiket": "Yüz yazısı",
+      "etiket": "Yüz yazısı (harf, rakam ve . , - _)",
       "tip": "metin",
       "varsayilan": "100",
       "maksUzunluk": 20,
-      "aciklama": "Yüze işlenecek değer, isim veya kısa tarih"
+      "aciklama": "Yüze işlenecek değer, isim veya kısa tarih. Yalnızca harf, rakam, boşluk ve . , - _ işlenebilir; en çok 20 karakter."
     }
   ],
   "tabanHacimMm3": 3822.5345436210114,

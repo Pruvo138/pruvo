@@ -4,11 +4,11 @@
   "parametreler": [
     {
       "ad": "metin",
-      "etiket": "Kaşe metni",
+      "etiket": "Kaşe metni (harf, rakam ve . , - _)",
       "tip": "metin",
       "varsayilan": "PRUVO",
-      "maksUzunluk": 40,
-      "aciklama": "Kabartma olarak işlenecek yazı"
+      "maksUzunluk": 24,
+      "aciklama": "Kabartma olarak işlenecek yazı. Yalnızca harf, rakam, boşluk ve . , - _ işlenebilir; en çok 24 karakter."
     },
     {
       "ad": "yazi_boyutu",

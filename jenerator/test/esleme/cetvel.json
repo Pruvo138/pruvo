@@ -8,8 +8,7 @@
     "uzunluk": "uzunluk",
     "genislik": "genislik",
     "kalinlik": "kalinlik",
-    "isaret_stili": "isaret_stili",
-    "yazi": "yazi_logo"
+    "isaret_stili": "isaret_stili"
   },
   "deger_esleme": {
     "tip": {
@@ -28,6 +27,7 @@
     }
   },
   "sabit": {
+    "yazi_logo": "",
     "kose": 3,
     "yuz": "single",
     "isaret_z": 0.6,
