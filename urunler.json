@@ -136035,7 +136035,11 @@
     ],
     "tavsiyeFilament": [
       "PLA"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "chrifun",
+      "tur": "BSD"
+    }
   },
   {
     "id": "dacia-dokker-bagaj-kapa-tutucu",
@@ -151221,7 +151225,11 @@
       "https://media.pruvo3d.com/urunler/honda-motosiklet-bar-end-spacer-1.jpg",
       "https://media.pruvo3d.com/urunler/honda-motosiklet-bar-end-spacer-2.jpg",
       "https://media.pruvo3d.com/urunler/honda-motosiklet-bar-end-spacer-3.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Kamil",
+      "tur": "BSD"
+    }
   },
   {
     "id": "honda-shadow-alternat-r-kapa",
@@ -151817,7 +151825,11 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/honda-motosiklet-gidon-bar-endi-1.jpg",
       "https://media.pruvo3d.com/urunler/honda-motosiklet-gidon-bar-endi-2.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Kamil",
+      "tur": "BSD"
+    }
   },
   {
     "id": "honda-prelude-hava-emi-borusu",
@@ -152792,7 +152804,11 @@
       "https://media.pruvo3d.com/urunler/honda-civic-hatchback-orta-konsol-bardakl-k-1.jpg",
       "https://media.pruvo3d.com/urunler/honda-civic-hatchback-orta-konsol-bardakl-k-2.jpg",
       "https://media.pruvo3d.com/urunler/honda-civic-hatchback-orta-konsol-bardakl-k-3.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "FredduX",
+      "tur": "BSD"
+    }
   },
   {
     "id": "honda-gx-mar-ekme-kolu",
@@ -154603,7 +154619,11 @@
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/nissan-300zx-z32-arka-hatch-kilit-kapa-1.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Unsalted38",
+      "tur": "BSD"
+    }
   },
   {
     "id": "nissan-navara-saas-g-sterge-s-tun-yuvas",
@@ -155411,7 +155431,11 @@
       "https://media.pruvo3d.com/urunler/nissan-300zx-z32-t-top-tutama-1.jpg",
       "https://media.pruvo3d.com/urunler/nissan-300zx-z32-t-top-tutama-2.jpg",
       "https://media.pruvo3d.com/urunler/nissan-300zx-z32-t-top-tutama-3.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Unsalted38",
+      "tur": "BSD"
+    }
   },
   {
     "id": "nissan-titan-vites-kapa",
@@ -156918,7 +156942,11 @@
       "https://media.pruvo3d.com/urunler/alfa-romeo-916-silecek-ray-klipsi-1.jpg",
       "https://media.pruvo3d.com/urunler/alfa-romeo-916-silecek-ray-klipsi-2.jpg",
       "https://media.pruvo3d.com/urunler/alfa-romeo-916-silecek-ray-klipsi-3.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "nLamer",
+      "tur": "BSD"
+    }
   },
   {
     "id": "alfa-romeo-4c-spider-tavan-kilidi-yede-i",
@@ -157712,7 +157740,11 @@
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/land-rover-sill-trim-lockup-nut-rtc3746-1.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Robert Sedláček",
+      "tur": "BSD"
+    }
   },
   {
     "id": "land-rover-discovery-3-jant-g-be-i-kapa",
@@ -159744,7 +159776,11 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/dacia-renault-keycard-tutucu-1.jpg",
       "https://media.pruvo3d.com/urunler/dacia-renault-keycard-tutucu-2.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "alufers",
+      "tur": "BSD"
+    }
   },
   {
     "id": "renault-twingo-3-arka-bagaj-perdesi-klipsi",
@@ -164586,7 +164622,11 @@
       "https://media.pruvo3d.com/urunler/toyota-tundra-multimedya-ses-kontrol-d-mesi-2.jpg",
       "https://media.pruvo3d.com/urunler/toyota-tundra-multimedya-ses-kontrol-d-mesi-3.jpg",
       "https://media.pruvo3d.com/urunler/toyota-tundra-multimedya-ses-kontrol-d-mesi-4.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Victor Vitishko",
+      "tur": "BSD"
+    }
   },
   {
     "id": "toyota-tundra-arka-ara-kameras-montaj-aparat",
@@ -168901,7 +168941,11 @@
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/toyota-mr2-kontak-kilidi-silindiri-de-i-im-aparat-1.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "DockGuy",
+      "tur": "BSD"
+    }
   },
   {
     "id": "toyota-raize-torpido-g-z-ask-s",
@@ -172456,7 +172500,11 @@
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/porsche-m96-m97-termostat-s-kme-aparat-1.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Luberry",
+      "tur": "BSD"
+    }
   },
   {
     "id": "porsche-944-vites-kolu-amortis-r-burcu",
@@ -173793,7 +173841,11 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/opel-corsa-b-telefon-ve-navigasyon-tutucu-aparat-1.jpg",
       "https://media.pruvo3d.com/urunler/opel-corsa-b-telefon-ve-navigasyon-tutucu-aparat-2.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "ab",
+      "tur": "BSD"
+    }
   },
   {
     "id": "opel-vectra-eki-demiri-kapa",
@@ -178356,7 +178408,11 @@
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mitsubishi-pajero-bagaj-kilidi-par-as-1.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "MaksTsar",
+      "tur": "BSD"
+    }
   },
   {
     "id": "mitsubishi-delica-l400-klima-panel-d-mesi",
@@ -181338,7 +181394,11 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/volvo-emniyet-kemeri-bloklay-c-1.jpg",
       "https://media.pruvo3d.com/urunler/volvo-emniyet-kemeri-bloklay-c-2.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Michal Kumhera",
+      "tur": "BSD"
+    }
   },
   {
     "id": "volvo-240-arka-stop-lambas-cam-1982",
@@ -183114,7 +183174,11 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/skoda-fabia-havaland-rma-izgaras-tamir-par-as-1.jpg",
       "https://media.pruvo3d.com/urunler/skoda-fabia-havaland-rma-izgaras-tamir-par-as-2.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Marchello",
+      "tur": "BSD"
+    }
   },
   {
     "id": "skoda-octavia-kablo-tutucu-klips-seti",
@@ -194903,7 +194967,11 @@
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/bmw-getrag-vites-kolu-ta-y-c-bur-seti-1.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Aazon",
+      "tur": "BSD"
+    }
   },
   {
     "id": "bmw-r1200-gs-rt-gsa-rs-aft-hizalama-aparat",
@@ -198014,7 +198082,11 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/bmw-i3-safedrive-ekran-tutucu-aparat-1.jpg",
       "https://media.pruvo3d.com/urunler/bmw-i3-safedrive-ekran-tutucu-aparat-2.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "nLamer",
+      "tur": "BSD"
+    }
   },
   {
     "id": "bmw-f-serisi-f32-bardakl-k-uyumlu-kablosuz-arj-stand",
@@ -200030,7 +200102,11 @@
       "https://media.pruvo3d.com/urunler/bmw-e92-emniyet-kemeri-adapt-r-2.jpg",
       "https://media.pruvo3d.com/urunler/bmw-e92-emniyet-kemeri-adapt-r-3.jpg",
       "https://media.pruvo3d.com/urunler/bmw-e92-emniyet-kemeri-adapt-r-4.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "LosVanos_3d",
+      "tur": "BSD"
+    }
   },
   {
     "id": "bmw-motosiklet-i-kili-kablo-klipsi-34527664098",
@@ -200446,7 +200522,11 @@
     "fiyat": "450 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/bmw-jant-g-bek-kapa-60-mm-1.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Matic Pignar Pingo",
+      "tur": "BSD"
+    }
   },
   {
     "id": "bmw-n54-n55-n52-ya-filtresi-s-kme-aparat",
@@ -200775,7 +200855,11 @@
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/bmw-m2-ve-uyumlu-modeller-i-in-debriyaj-pedal-stoperi-1.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "Micke",
+      "tur": "BSD"
+    }
   },
   {
     "id": "bmw-ya-kapa-s-kme-aparat",
@@ -202184,7 +202268,11 @@
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mercedes-eis-kontak-s-kme-ve-takma-aparat-1.jpg",
       "https://media.pruvo3d.com/urunler/mercedes-eis-kontak-s-kme-ve-takma-aparat-2.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "DockGuy",
+      "tur": "BSD"
+    }
   },
   {
     "id": "mercedes-benz-slk-r170-telefon-tutucu",
@@ -207128,7 +207216,11 @@
       "https://media.pruvo3d.com/urunler/peugeot-205-elektrikli-cam-d-mesi-er-evesi-2.jpg",
       "https://media.pruvo3d.com/urunler/peugeot-205-elektrikli-cam-d-mesi-er-evesi-3.jpg",
       "https://media.pruvo3d.com/urunler/peugeot-205-elektrikli-cam-d-mesi-er-evesi-4.jpg"
-    ]
+    ],
+    "lisans": {
+      "tasarimci": "ab",
+      "tur": "BSD"
+    }
   },
   {
     "id": "peugeot-rifter-citro-n-berlingo-opel-combo-bagaj-filesi-tutu",
