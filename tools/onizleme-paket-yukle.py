@@ -50,10 +50,16 @@ ACIK_AILELER = {
     "olcuye-ozel-toka": "toka",
     # Olcuye ozel cerceve (2026-07-28) — bizim uretecimiz (jeneratorler/cerceve.scad).
     # Eslem public jenerator/test/esleme/cerceve.json'dan turer: 5 geometri parametresi
-    # (acilik_eni/boyu, kenar_genisligi, derinlik, kenar_stili) + SABIT Caption_Text=""
-    # + Output="frame". ONIZLEME TEK RENK cerceve kabugunu render eder; yazi/2-renk caption
-    # onizleme kapsaminda DEGIL (Caption_Text="" -> uretim frame govdesiyle birebir). 2-renk
-    # yazi + min-kenar-10 kisiti sepet/siparis yolunda (konfigurator.js IKI_RENK_MIN_KENAR).
+    # (acilik_eni/boyu, kenar_genisligi, derinlik, kenar_stili) + MUSTERI YAZISI
+    # (yazi -> Caption_Text, `metin` blogu) + Output="frame".
+    # 🔴 GUNCELLEME 2026-07-29 (Okan karari — ONCEKI NOT BAYATTI): eski not "yazi
+    # onizleme kapsaminda DEGIL, Caption_Text='' sabit" diyordu. O kapsam-disi karari
+    # KALDIRILDI: onizleme musterinin girdigi metni GOSTERIR ve ayni eslem uretimi de
+    # besler (onizleme ile /ic-derle AYNI derleyiciyi kullanir, onizleme/src/index.js).
+    # HALA KAPSAM DISI olan TEK sey: 2-RENK caption akisi (ayri `frame_no_caption` +
+    # `caption` govdeleri; `Output` sozlesmesi degismeden yapilamaz). Onizleme TEK RENK
+    # govdeyi yazisiyla birlikte render eder. 2-renk ucreti/min-kenar kisiti siparis
+    # yolunda (konfigurator.js IKI_RENK_MIN_KENAR).
     "olcuye-ozel-cerceve": "cerceve",
 }
 
@@ -61,7 +67,21 @@ ACIK_AILELER = {
 def acik_eslem_uret(ad):
     """jenerator/test/esleme/<ad>.json -> server.py eslem blogu.
     Sayi parametreleri katsayi-1 dogrusal terim, secim parametreleri
-    deger_esleme tablosu (yoksa kimlik tablosu), sabitler aynen."""
+    deger_esleme tablosu (yoksa kimlik tablosu), METIN parametreleri
+    server.py'nin `metin` blogu, sabitler aynen.
+
+    METIN DALI (2026-07-29, kalici onarim): eskiden yalniz `sayi`/`secim`
+    biliniyordu ve `metin` tipi sys.exit ile REDDEDILIYORDU. Bu YAPISAL ENGEL
+    yuzunden cerceve ailesinde musteri yazisi eslemeye konamamis, `sabit`e
+    Caption_Text="" yazilarak bypass edilmisti -> musteri ne yazarsa yazsin
+    uretilen STL AYNI cikiyordu (canli olcum 29 Tem: '' / 'OKAN' / 'ZZZZZZZZ'
+    ucu de 65284 bayt, 1304 ucgen, ayni SHA-256). Sunucu tarafi `metin` blogunu
+    ZATEN destekliyordu (onizleme/derleyici/server.py blok_uygula): SIKI beyaz
+    liste + METIN_SERT_TAVAN(24) + d_deger tirnak savunmasi. Burada YENI bir
+    guvenlik yuzeyi ACILMAZ — yalnizca {"param": <sema_param>} baglantisi
+    uretilir, temizlik/tavan/kacis tamamen sunucuda kalir.
+    NOBETCI: tools/metin-eslem-test.py (metin parametresi olan her aile icin
+    iki farkli metin -> iki farkli -D bayrak kumesi)."""
     with open(os.path.join(REPO, "jenerator", "test", "esleme",
                            ad + ".json"), encoding="utf-8") as f:
         test_eslem = json.load(f)
@@ -69,7 +89,7 @@ def acik_eslem_uret(ad):
                            test_eslem["urunId"] + ".json"), encoding="utf-8") as f:
         sema = json.load(f)
     tipler = dict((p["ad"], p) for p in sema["parametreler"])
-    sayisal, secim = {}, {}
+    sayisal, secim, metin = {}, {}, {}
     deger_esleme = test_eslem.get("deger_esleme") or {}
     for param, scad_ad in (test_eslem.get("esleme") or {}).items():
         tanim = tipler.get(param)
@@ -84,14 +104,29 @@ def acik_eslem_uret(ad):
                               s["deger"] if isinstance(s, dict) else s)
                              for s in tanim["secenekler"])
             secim[scad_ad] = {"param": param, "tablo": tablo}
+        elif tanim["tip"] == "metin":
+            metin[scad_ad] = {"param": param}
         else:
             sys.exit("%s: '%s' tipi (%s) onizlemeye eslenemez" %
                      (ad, param, tanim["tip"]))
+    sabit = dict(test_eslem.get("sabit") or {})
+    # FAIL-CLOSED: `sabit` blok_uygula'da EN SON uygulanir -> ayni scad degiskeni
+    # hem `metin`de hem `sabit`te olursa sabit musteri metnini SESSIZCE EZER
+    # (cerceve'de tam bu yasandi: Caption_Text sabit "" idi). Sessiz ezme yerine
+    # paket uretimi durur.
+    cakisan = sorted(set(metin) & set(sabit))
+    if cakisan:
+        sys.exit("%s: %s hem `metin` eslemesinde hem `sabit`te -> sabit musteri "
+                 "metnini ezer; `sabit`ten CIKARIN" % (ad, ", ".join(cakisan)))
+    ortak = {"sayisal": sayisal, "secim": secim, "sabit": sabit}
+    if metin:
+        # Metinsiz ailelerde anahtar HIC eklenmez -> uretilen paket eslemi bu
+        # degisiklikten ONCEKIYLE BIREBIR AYNI kalir (yanlis-pozitif kapisi).
+        ortak["metin"] = metin
     return test_eslem["urunId"], {
         "scad": test_eslem["scad"],
         "secici": None,
-        "ortak": {"sayisal": sayisal, "secim": secim,
-                  "sabit": test_eslem.get("sabit") or {}},
+        "ortak": ortak,
         "varyantlar": None,
     }, test_eslem["scad"]
 

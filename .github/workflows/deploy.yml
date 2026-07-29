@@ -452,6 +452,18 @@ jobs:
       - name: WhatsApp numara/prefill kabul testi (urun + ana sayfa + yasal sayfalar)
         run: python3 tools/test-wa-prefill-organik.py
 
+      # METIN ESLEM KAPISI (sessiz teslimat hatasi, 29 Tem): parametrik ailelerde musteri
+      # yazisi ("kasenin uzerinde ne yazsin", "cerceveye isim") derleyiciye ULASMIYORDU —
+      # canli olcum: cerceve/cetvel/kase'de '' vs 'OKAN' vs 'ZZZZZZZZ' AYNI SHA-256'li STL
+      # uretiyordu (kase her musteriye "PRUVO" yaziyordu). Bu adim `tip: "metin"` parametresi
+      # olan HER aileyi (jenerator/urunler dizin taramasi; elle liste YOK) alir ve iki farkli
+      # metnin derleyiciye giden -D bayrak kumesini FARKLI uretmesini sart kosar. Gizli-eslem
+      # aileleri Pages CI'da (sir yok) ⚪ OLCULEMEDI sayilir ve raporlanir; TAM kapsam gizli
+      # paketi ceken onizleme-imaj.yml'de --paket ile kosar. Offline, <1 s. Oz-nobetcileri
+      # (govde inertlik) HER kosumda bloklayici isler.
+      - name: Metin eslem kapisi (musteri yazisi derleyiciye ulasiyor mu)
+        run: python3 tools/metin-eslem-test.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.

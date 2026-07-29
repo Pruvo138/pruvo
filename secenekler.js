@@ -144,12 +144,18 @@
   // v1.2 NOTU (2026-07-28): "olcuye-ozel-cerceve" onizlemeye GERI ALINDI. Aile bizim
   // uretecimizdir (pruvo-jenerator/jeneratorler/cerceve.scad) -> pakete ACIK_AILELER
   // (tools/onizleme-paket-yukle.py) uzerinden girer; onizleme eslemi public
-  // jenerator/test/esleme/cerceve.json'dan turer (5 geometri parametresi + Caption_Text=""
-  // + Output="frame"). Onizleme TEK RENK cerceve kabugunu render eder; yazi/2-renk caption
-  // onizleme kapsaminda DEGIL (uretim frame govdesiyle birebir; 2-renk + min-kenar-10
-  // kisiti sepet/siparis yolunda, konfigurator.js). YAYIN KAPISI: buton ancak cerceve.scad'li
-  // yeni derleyici imaji (R2 paket + container rebuild) deploy edilince gercek render verir;
-  // main'e merge MIMAR onayi ister (bu liste = butonun musteride gorunmesi).
+  // jenerator/test/esleme/cerceve.json'dan turer (5 geometri parametresi + MUSTERI YAZISI
+  // yazi->Caption_Text + Output="frame").
+  // 🔴 v1.3 (2026-07-29, Okan karari — ONCEKI CUMLE BAYATTI): eski not "yazi/2-renk caption
+  // onizleme kapsaminda DEGIL, Caption_Text='' sabit" diyordu; o kapsam-disi karari
+  // KALDIRILDI. Onizleme artik musterinin GIRDIGI METNI gosterir (onizleme ile uretim
+  // /ic-derle AYNI derleyiciyi kullanir -> onizlemede gorunen govde teslim edilen govdedir).
+  // KAPSAM DISI kalan TEK sey: 2-RENK caption akisi (ayri frame_no_caption + caption
+  // govdeleri; `Output` sozlesmesi degismeden yapilamaz) — onizleme TEK RENK govdeyi
+  // yazisiyla render eder, 2-renk ucreti + min-kenar-10 kisiti siparis yolunda kalir.
+  // NOBETCI: tools/metin-eslem-test.py + onizleme-imaj.yml "metin farklilasma" dumani.
+  // YAYIN KAPISI: buton ancak cerceve.scad'li yeni derleyici imaji (R2 paket + container
+  // rebuild) deploy edilince gercek render verir; main'e merge MIMAR onayi ister.
 
   /* Onizleme model RENGI (aile bazli; viewer.js taban rengi). Liste DISI aileler
      sari-seri kimlik rengini (viewer.js varsayilani, parlak sari) alir. Toka

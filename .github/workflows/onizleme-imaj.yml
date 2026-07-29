@@ -66,6 +66,14 @@ jobs:
           echo "paket kaynagi: $CEKILDI — dosyalar (adlar sir degil, icerik loglanmaz):"
           ls onizleme/derleyici/paket-ozel
 
+      # METIN ESLEM KAPISI — TAM KAPSAM (gizli eslem burada CEKILMIS durumda).
+      # Pages CI'da (deploy.yml) ayni kapi sirsiz kosar ve gizli-eslem ailelerini
+      # ⚪ OLCULEMEDI sayar; TEK yer burasi oldugu icin bu adim SILINIRSE cetvel/kase/
+      # jeton sinifi bir daha hicbir yerde olculmez. Imaj derlenmeden ONCE kosar:
+      # eslem metni dusuruyorsa imaj hic uretilmesin.
+      - name: Metin eslem kapisi (gizli eslem dahil TAM kapsam)
+        run: python3 tools/metin-eslem-test.py --paket onizleme/derleyici/paket-ozel
+
       - name: Imaji derle
         run: |
           docker build -t pruvo-onizleme-derleyici:ci onizleme/derleyici
@@ -139,12 +147,41 @@ jobs:
             -o duman-toka.stl
           # cerceve = Okan'in ozgun parametrik cerceve uretecimiz (2026-07-28). Imaj cerceve'siz
           # cikarsa server 404 aile-yok doner -> curl -sf duser (bash -e) -> CI KIRMIZI (toka emsali,
-          # 27 Tem canli kanamasi). Onizleme tek renk frame kabugu (Caption_Text="" sabit; 2-renk
-          # yazi siparis yolunda). SITE param adlari (server eslemi scad'a cevirir).
+          # 27 Tem canli kanamasi). Onizleme TEK RENK frame govdesini MUSTERI YAZISIYLA render eder
+          # (29 Tem: eski "Caption_Text='' sabit" kapsam-disi karari KALDIRILDI). SITE param adlari
+          # (server eslemi scad'a cevirir).
           curl -sf -X POST http://127.0.0.1:18080/derle \
             -H 'Content-Type: application/json' \
-            -d '{"aile":"olcuye-ozel-cerceve","parametreler":{"acilik_eni":100,"acilik_boyu":150,"kenar_genisligi":12,"derinlik":5.2,"kenar_stili":"chamfer"}}' \
+            -d '{"aile":"olcuye-ozel-cerceve","parametreler":{"acilik_eni":100,"acilik_boyu":150,"kenar_genisligi":12,"derinlik":5.2,"kenar_stili":"chamfer","yazi":""}}' \
             -o duman-cerceve.stl
+          # METIN FARKLILASMA DUMANI (29 Tem, sessiz teslimat hatasinin GERCEK-RENDER nobetcisi):
+          # tools/metin-eslem-test.py yalniz -D bayraklarinin farklilastigini kanitlar; ASIL
+          # sorunun bicimi "musteri ne yazarsa yazsin AYNI STL" idi. Burada OpenSCAD gercekten
+          # kosuyor -> ayni geometriyle iki farkli metin BIREBIR AYNI dosya uretirse cmp -s
+          # basarili doner ve adim KIRMIZI yanar. Kase: her musteriye "PRUVO" yazan sabit
+          # (29 Tem'e kadar boyleydi) burada yakalanir.
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-cerceve","parametreler":{"acilik_eni":100,"acilik_boyu":150,"kenar_genisligi":12,"derinlik":5.2,"kenar_stili":"chamfer","yazi":"OKAN"}}' \
+            -o duman-cerceve-yazi.stl
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-damga-kase","parametreler":{"metin":"PRUVO","yazi_boyutu":8,"dolgu":5,"bicim":"dikdortgen","kabartma_derinligi":1.4,"sap":"sapsiz"}}' \
+            -o duman-kase-a.stl
+          curl -sf -X POST http://127.0.0.1:18080/derle \
+            -H 'Content-Type: application/json' \
+            -d '{"aile":"olcuye-ozel-damga-kase","parametreler":{"metin":"OKAN","yazi_boyutu":8,"dolgu":5,"bicim":"dikdortgen","kabartma_derinligi":1.4,"sap":"sapsiz"}}' \
+            -o duman-kase-b.stl
+          if cmp -s duman-cerceve.stl duman-cerceve-yazi.stl; then
+            echo "::error::CERCEVE: yazisiz ve 'OKAN' yazili STL BIREBIR AYNI -> musteri metni dusuyor."
+            exit 1
+          fi
+          if cmp -s duman-kase-a.stl duman-kase-b.stl; then
+            echo "::error::KASE: 'PRUVO' ve 'OKAN' metinli STL BIREBIR AYNI -> musteri metni dusuyor."
+            exit 1
+          fi
+          echo "metin farklilasma dumani: cerceve OK, kase OK"
+          wc -c duman-cerceve-yazi.stl duman-kase-a.stl duman-kase-b.stl
           wc -c duman-oring.stl duman-beam.stl duman-konektor.stl duman-braket.stl \
             duman-disli.stl duman-yay-spiral.stl duman-yay-dalga.stl \
             duman-adaptor.stl duman-kutu.stl duman-kavanoz.stl duman-toka.stl duman-cerceve.stl
