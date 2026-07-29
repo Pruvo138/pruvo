@@ -539,6 +539,34 @@ MIMAR_22TEM_VAKALARI = [
      "sh: tiresiz repo-disi yol argumani -> dis_yol (M20 nobetcisi)"),
 ]
 
+# === 28 TEM AGENT-KAPISI VAKALARI ===
+# Mimar ANA oturumu (agent_id YOK) bir Claude iscisi (Agent/Task) acarken prompt'ta
+# 'codex-muafiyet: <is> — <sinif>' beyan satiri SART. ISCI (agent_id DOLU) TAM muaf.
+# MA1/MA2/MA3 mutasyonlari bu vakalari kirmizi yakar (mimar-kapi-mutasyon-test.py).
+AGENT_DECL = "codex-muafiyet: kapi kodu insasi — sessiz-hata"
+AGENT_VAKALARI = [
+    (400, "deny", "Agent", "Bir seyler yap, spec burada.", None,
+     "MIMAR Agent + beyan YOK -> RED"),
+    (401, "allow", "Agent", "Is: X yap.\n" + AGENT_DECL + "\nDevam et.", None,
+     "MIMAR Agent + gecerli beyan -> GECER"),
+    (402, "deny", "Task", "Task prompt, beyansiz.", None,
+     "MIMAR Task + beyan YOK -> RED"),
+    (403, "allow", "Task", AGENT_DECL, None,
+     "MIMAR Task + beyan -> GECER"),
+    (404, "allow", "Agent", "Beyansiz isci prompt'u.", ISCI_ID,
+     "ISCI Agent + beyan YOK -> GECER (kural yalniz ANA oturuma)"),
+    (405, "allow", "Task", "Beyansiz isci prompt'u.", ISCI_ID,
+     "ISCI Task + beyan YOK -> GECER (kimlik ekseni muafiyeti)"),
+    (406, "allow", "Agent", "codex-muafiyet: gorsel okuma isi - görsel", None,
+     "tire '-' ayrac + sinif -> GECER (ayrac toleransi)"),
+    (407, "allow", "Agent", "CODEX-MUAFIYET: olcum isi — ölçüm", None,
+     "etikette BUYUK/kucuk DUYARSIZ -> GECER"),
+    (408, "deny", "Agent", "codex-muafiyet: is — foobar", None,
+     "GECERSIZ sinif (yasak listede degil) -> RED"),
+    (409, "deny", "Agent", "Bu is bir ölçüm ve güvenlik isi.", None,
+     "sinif KELIMELERI var ama ETIKET yok -> RED"),
+]
+
 # COMMIT KAPISI — kanca degil, dogrudan betik cagrisi.
 # (no, beklenen_exit, stdin, ek_env, gitdir_hazirlik, aciklama)
 COMMIT_VAKALARI = [
@@ -591,6 +619,11 @@ def kancayi_kostur(arac, hedef, cwd=REPO, agent_id=None):
     if arac == "Bash":
         kanca = ICRA
         tool_input = {"command": hedef}
+    elif arac in ("Agent", "Task"):
+        # 28 TEM AGENT-KAPISI: Agent/Task araci da Bash icra kapisina (ICRA) baglanir;
+        # spec alani 'prompt' (hedef = prompt metni).
+        kanca = ICRA
+        tool_input = {"prompt": hedef}
     else:  # Write | Edit | MultiEdit
         kanca = KILIT
         tool_input = {"file_path": hedef, "content": "x"}
@@ -909,6 +942,7 @@ def main():
         ("MIMAR TARAFI YENI VAKALAR (onek/kayit/test-modulu/Edit)", MIMAR_YENI_VAKALARI, REPO),
         ("CWD REPO DISINDA (F adiminin kalan isi) — MIMAR kimligi", DIS_CWD_VAKALARI, DIS_CWD),
         ("22 TEM SERTLESTIRME (olcum/curl/codex/python-allowlist/sh-nobetci)", MIMAR_22TEM_VAKALARI, REPO),
+        ("28 TEM AGENT-KAPISI (Agent/Task beyan sarti) — MIMAR + ISCI ekseni", AGENT_VAKALARI, REPO),
     ]
 
     toplam = sum(len(v) for _, v, _ in kumeler) + len(COMMIT_VAKALARI) + 3

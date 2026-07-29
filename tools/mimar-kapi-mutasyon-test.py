@@ -353,6 +353,30 @@ MUTASYONLAR = [
         "        return True\n"),
      "22Tem: durum.py EKSTRA argüman toleransi (allowlist tam-esitlik gevser)",
      {129, 241}, False, 2),
+    # --- 28 TEM AGENT-KAPISI NOBETCILERI (BaBa'nin '-o' turundaki 3-mutant standardi) ---
+    # MA1 (a): REGEX KONTROLU silinir — _agent_karari daima "gecer" doner (beyan aranmaz).
+    # Boylece beyansiz MIMAR Agent/Task cagrilari (400/402/408/409) acilir.
+    ("MA1", lambda d: yama(
+        d, ICRA,
+        "    if AGENT_MUAFIYET_RE.search(prompt):\n"
+        '        return "gecer"\n',
+        "    if True:\n"
+        '        return "gecer"\n'),
+     "28Tem AGENT: beyan REGEX kontrolu silinir (_agent_karari daima 'gecer')",
+     {400, 402, 408, 409}, True, 4),
+    # MA2 (b): DAIMA-IZIN-VER — main() AGENT kolu reddi hicbir zaman tetiklemez.
+    ("MA2", lambda d: yama(
+        d, ICRA,
+        '        if agent_karari != "gecer":\n',
+        "        if False:\n"),
+     "28Tem AGENT: main() AGENT kolu daima izin verir (reddet hic tetiklenmez)",
+     {400, 402, 408, 409}, True, 4),
+    # MA3 (c): agent_id MUAFIYETI TERSINE — ICRA kimlik daima MIMAR (isci muafiyeti duser).
+    # Boylece beyansiz ISCI Agent/Task cagrilari (404/405) reddedilir. Tekil dosya (ICRA)
+    # patch'i M2'den (KILIT+ICRA birlikte) ayrisir; beklenen AGENT worker vakalaridir.
+    ("MA3", lambda d: yama(d, ICRA, KIMLIK_GOVDE, '    return "MIMAR"\n'),
+     "28Tem AGENT: agent_id muafiyeti tersine (ICRA kimlik MIMAR) — isci Agent/Task RED",
+     {404, 405}, False, 2),
 ]
 
 # CEVRE-ARIZA ENJEKSIYONU (B6-yan): bu iki vaka mutasyonu KOPYALANMIS kabul testine

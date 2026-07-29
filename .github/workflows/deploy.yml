@@ -22,6 +22,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin)
+        run: pip install boto3
       # Node: piksel<->katalog parite testinin JS-uc nobeti (index.html pruvoFeedId + olcum.js
       # feedId/metaGovdesi/ga4Govdesi) node ile kosar. FAIL-CLOSED: node yoksa test CI'da exit 1
       # verir (yalanci-yesil olamaz), o yuzden setup-node BLOKLAYICI bir on-kosuldur.
@@ -69,6 +71,11 @@ jobs:
       # basliga kayarsa iki urun ayni R2 nesnesini EZER (sessiz gorsel kaybi). Offline, yazma yok.
       - name: R2 anahtar turetme kabul testi
         run: python3 tools/r2-anahtar-test.py
+
+      # R2 YUKLEME DOGRULAMA: gorsel govdesi/turu ile yukleme-sonrasi boyut okumasini
+      # sahte S3 istemcisiyle kanitlar. Offline/mock; gercek R2'ye gitmez, kimlik okumaz.
+      - name: R2 yukleme dogrulama kabul testi
+        run: python3 tools/r2-upload-test.py
 
       # DUZELT --toplu: mesru toplu duzeltme yolu (guard'in tek kapisi). Bloklayici: toplu kip
       # kilit/atomiklik kaybederse paralel yazicilar urun kaydi EZER. Test gercek urunler.json'a
@@ -330,6 +337,11 @@ jobs:
       # build.py'den ONCE kosar, ~40 ms.
       - name: Edge flip hazirlik kapisi kabul testi (saf karar mantigi)
         run: python3 tools/edge-flip-hazirlik-test.py
+
+      # D1-SYNC HATA TANISI: gecici ag ve gercek kimlik hatalarinin retry/teshis ayrimini
+      # sahte subprocess sonuclariyla kanitlar. Offline/mock; D1'e ve aga dokunmaz.
+      - name: D1-sync hata tanisi kabul testi
+        run: python3 tools/d1-sync-tani-test.py
 
       # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
       # (Bu blok ile alttaki YEDEK TAZELIK blogu BAGIMSIZ iki hunk'tir; merge cakismasinda

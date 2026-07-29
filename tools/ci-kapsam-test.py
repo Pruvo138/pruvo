@@ -312,6 +312,17 @@ IZIN_LISTESI = {
         "YOKTUR -> 6 evin 5'i olculemez, fail-closed test KIRMIZI yanar."),
     "tools/kapi-envanteri-test.py": R_YOL,
     "tools/kod-kilidi-test.py": R_YOL,  # E paketi YESILLEDI; mutlak /Users/okan/dev/pruvo yoluna bagli -> fresh checkout'ta yapisal KIRMIZI
+    "tools/agent-kapisi-test.py": (
+        R_SONRA + " Somut: AGENT-KAPISI kabul testi (28 Tem) — mimar-icra-kapisi.py'nin "
+        "Agent/Task kolu + mimar-kapi-kur.py kablosu; mimar-kilit/6ev/mutasyon/kod-kilidi ile "
+        "AYNI aile. Bolum A (gate davranisi; cwd STRING olarak verilir, gercek repo yoluna bagli "
+        "DEGIL) + Bolum B (kur.py gecici settings KOPYALARI) offline-YESIL. Bolum C (6-EV "
+        "enjeksiyon) girdisi kardes mimar evi gate'leri (/Users/okan/dev/pruvo-hasat, -advisor "
+        ".claude/mimar-icra-kapisi.py); CI fresh checkout'ta bu evler YOK -> C guarded-CEVRE-ATLANAN "
+        "(mimar-kapi-6ev-test.py R_YOL girdisiyle AYNI kaynak, ama orasi fail-closed KIRMIZI, "
+        "burasi skip=exit 0). Yani CI'da yalniz A+B kapsanabilirdi; deploy.yml'e 0-hunk merge "
+        "turunda kor-eklenmedi (kod-kilidi'nin kanitladigi yerel-yesil/CI-kirmizi tuzagi) -> A+B "
+        "sonraki turda CI'ya alinacak ilk adaylardan."),
     # --- tools/ NOBETCILER (*-kapisi.py) — kesif 21 Tem genisletildi, CI'da kosmayanlar ---
     "tools/komut-stili-kapisi.py": R_HOOK,
     "tools/mimar-icra-kapisi.py": R_HOOK,
