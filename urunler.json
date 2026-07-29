@@ -1,5 +1,118 @@
 [
   {
+    "id": "toyota-sienna-konsol-kapagi-mandal-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Sienna Konsol Kapağı Mandal Parçası",
+    "aciklama": "Sienna'nın orta konsol kapağını kapalı tutan mandal parçasıdır. Kilit sistemi tek ve ince bir dile dayanır; bu dil kırıldığında kapak sürekli açık kalır, konsolun üstü ve içi kullanılamaz hâle gelir. Orijinal tarafta parça tek başına satılmadığı için konsolun tamamının değişmesi gerekir. Bu parça kapağın kendi yuvasına oturarak kilit dilini yeniden oluşturur. Kabin sıcaklığında yumuşamayan, tekrarlı açma kapamaya dayanıklı sert malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 28 × 17 × 7 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6636130-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6636130-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6636130-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dnnyboy_11",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6636130"
+    }
+  },
+  {
+    "id": "toyota-avalon-on-menfez-kanat-ayar-dili",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Avalon Ön Menfez Kanat Ayar Dili (2013-2018)",
+    "aciklama": "2013-2018 Avalon'un ön dış havalandırma menfezlerindeki kanat ayar dilidir; sağ ve sol menfez için aynalı olarak ayrı ayrı üretilir. Kırılan orijinal yüzünden hava yönü ayarlanamaz, kanatları hareket ettirecek bir tutamak kalmaz. Bu parça menfezin içindeki yatay kanadın dişlisine oturur ve dikey kanatları da birlikte çevirir. Menfez sökülmeden, yerine bastırılarak takılır. Kabin sıcaklığında biçimini koruyan sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 40 × 32 × 17 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6740183-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6740183-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6740183-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "arpruss",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:6740183"
+    }
+  },
+  {
+    "id": "toyota-auris-alt-panel-plastik-somunu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Auris Alt Panel Plastik Somunu (2008)",
+    "aciklama": "Auris'in alt takım kaplama panellerini gövdeye tutturan plastik somundur. Dağılan ya da kaybolan orijinal yüzünden panel bir köşesinden sarkar, sürüşte titrer ve sonunda kopar. Bu parça panelin kendi deliğinden geçer; kademeli gövdesi sacın içinde kilitlenir, geniş tabanı paneli aşağıdan destekler. Ek parça, delme ya da yapıştırma gerektirmez. Yol koşullarına, neme ve tuza dayanıklı sert malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 20 × 18 × 18 mm.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3163643-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hugo_ribeiro",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:3163643"
+    }
+  },
+  {
+    "id": "toyota-mr2-w3-anten-silme-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota MR2 W3 / MR-S Anten Silme Tapası",
+    "aciklama": "MR2 W3 (MR-S) gövdesinde anten söküldüğünde arka çeyrek panelde kalan oval deliği kapatan tapadır. Açık kalan delikten kabine su sızar, sacın kesim kenarı zamanla paslanır. Bu parça deliğin kendi oval hattına oturur; alttan geçen iki tırnağıyla sacı içeriden kavrar ve dışarıda düz bir yüzey bırakır. Sacta kesme, dolgu ya da boya işlemi gerektirmez. Güneşe ve dış ortam koşullarına dayanıklı esnek malzemeyle üretilir.\nYaklaşık dış ölçüler: 39 × 29 × 4 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6230330-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MR2_Guru",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6230330"
+    }
+  },
+  {
+    "id": "toyota-yaris-cam-suyu-pompasi-carki",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Yaris / Vitz Cam Suyu Pompası Çarkı",
+    "aciklama": "Yaris ve Vitz'in cam suyu pompasının içindeki çarktır. Depoda donan su ya da kuru çalışma çarkın kanatlarını kırar; pompa çalışır, ses verir ama cama su basmaz. Bu parça pompa milinin kendi düz kesitli ucuna oturur, kanat sayısı ve dizilimi orijinaliyle aynı hazırlanmıştır. Pompa gövdesi açılıp kırık çark çıkarıldıktan sonra takılır. Suya ve cam suyu katkısına dayanıklı sert malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 20 × 20 × 3 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4691649-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4691649-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Maxxl",
+      "tur": "GPL",
+      "link": "https://www.thingiverse.com/thing:4691649"
+    }
+  },
+  {
+    "id": "toyota-86-brz-frs-sanziman-cikis-mili-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota 86 / Subaru BRZ / Scion FR-S Şanzıman Çıkış Mili Tapası",
+    "aciklama": "Şanzıman sökülürken şaftın çekildiği çıkış mili ağzını kapatan servis tapasıdır; 86, BRZ ve FR-S'in şanzımanında ortak kullanılır. Şaft çıkarıldığında kuyruk milindeki keçe açıkta kalır ve şanzıman yağı zemine akar. Bu tapa mil ağzına geçirilerek yağı içeride tutar, keçeyi darbeden ve tozdan korur. Flanşlı ucu oturma derinliğini sınırlar, tapanın içeri kaçmasını önler. Yağa ve sürtünmeye dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 75 × 50 × 50 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6376125-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Davidss",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6376125"
+    }
+  },
+  {
     "id": "toyota-camry-kaput-istinat-cubugu-mandali",
     "kategori": "Otomobil",
     "marka": [
