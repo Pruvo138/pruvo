@@ -218,6 +218,13 @@ jobs:
             && test -s duman-yay-spiral.stl && test -s duman-yay-dalga.stl \
             && test -s duman-adaptor.stl && test -s duman-kutu.stl && test -s duman-kavanoz.stl \
             && test -s duman-toka.stl && test -s duman-cerceve.stl
+          # 2-RENK (IKI GOVDE) GEOMETRI OLCUMU — 29 Tem. Bu adim OPENSCAD GEREKTIRDIGI
+          # icin ana deploy.yml'de kosamaz (yerel Mac'te de openscad SIGABRT veriyor).
+          # Olctugu sey: govde (frame_no_caption) ve yazi (caption) GERCEKTEN ayri,
+          # AYNI koordinat sisteminde (kaydirma 0) ve birlesimleri tek govdeyle
+          # geometrik olarak esdeger mi. Imaj parca ailelerini tasimiyorsa server
+          # 404 aile-yok doner -> betik patlar -> CI KIRMIZI.
+          python3 onizleme/test/iki-govde-olcum.py --url http://127.0.0.1:18080
           docker stop onizleme-duman
 
       - name: Registry'ye it (PLAN KAPISI)

@@ -570,6 +570,29 @@ jobs:
       - name: Onizleme gorunurluk kapisi (secilen renk + kabartma yazi ekranda mi)
         run: node onizleme/test/renk-yazi-gorunurluk.mjs
 
+      # IKI GOVDE (2-RENK YAZI) SOZLESMESI — Okan canli sikayeti, 29 Tem:
+      # /urun/olcuye-ozel-cerceve/ "Yazı rengi (2. renk)" seciyor ama uretim TEK GOVDE
+      # donduruyordu (Output="frame") -> yazi cerceveyle AYNI filamandan basiliyordu.
+      # (a) ESLEM/-D ekseni: iki parca ailesi (<aile>#govde / <aile>#yazi) ayni .scad'i
+      #     ayni bayraklarla, YALNIZ `Output` farkiyla surer (hizalama yapisal garanti);
+      #     taban aile BIREBIR AYNI kalir (geriye donuk uyum). Fail-closed uretim.
+      # (b) WORKER/VIEWER/SAYFA ekseni: parcasiz onbellek anahtari BIT-AYNI (donmus capa),
+      #     parcali anahtar ayri ad uzayinda, gecersiz parca 400, viewer iki govdeyi iki
+      #     renkte ve KAYDIRMADAN cizer, sayfa 2-renk secilince IKI istek atar.
+      # KIRMIZI-MUTASYON: kapilarin kendi --kendini-test turlarinda olculur
+      # (5/5 + 1/1 yakalandi; ham cikti dal raporunda).
+      # OFFLINE: ag YOK, openscad YOK, R2/wrangler YOK, urunler.json OKUNMAZ. ~2 s.
+      # MESH ekseni (ucgen/bbox/hacim) openscad ister -> onizleme-imaj.yml
+      # (onizleme/test/iki-govde-olcum.py); burada BILEREK kosmaz.
+      - name: Iki govde eslem kapisi (2-renk: -D farki yalniz Output)
+        run: python3 tools/iki-govde-kapisi.py
+      - name: Iki govde eslem kapisi oz-nobetcisi
+        run: python3 tools/iki-govde-kapisi.py --kendini-test
+      - name: Iki govde kabul kapisi (worker parca ucu + viewer iki renk + sayfa)
+        run: node onizleme/test/iki-govde-kabul.mjs
+      - name: Iki govde kabul kapisi kirmizi-mutasyon turu
+        run: node onizleme/test/iki-govde-kabul.mjs --kendini-test
+
       # PAKET TAZELIK KAPISI — OFFLINE kip. Bloklayici PAKET olcumu BILEREK burada DEGIL,
       # onizleme-imaj.yml'de kosar (bayat paket TUM SITE yayinini durdurmasin). Burada
       # kosan sey UC nobetci: (a) kapinin govdesi inert mi (5 sentetik fikstur),

@@ -443,13 +443,23 @@ async function stlIndir(env, url) {
   // kotasini yemez, gzip'siz ham STL). Onizleme worker'i ayni zone'dan cagrilir.
   if (satir.parametreler && SEMALAR.has(urunId)) {
     const taban = (env.ONIZLEME_TABAN || env.SITE_URL || "https://pruvo3d.com").replace(/\/$/, "");
+    // 2-RENK (COK GOVDELI) SIPARIS: satirda `yazi_renk` varsa urun IKI govde olarak
+    // basilir (AMS 2 filaman). Her govde AYRI indirilir:
+    //   ...&parca=govde  -> yazisiz cerceve kabugu
+    //   ...&parca=yazi   -> yalniz kabartma yazi
+    // `parca` VERILMEZSE bugunku TEK STL (birlesik govde) aynen doner — var olan
+    // yonetim baglantilari kirilmaz. Degerin GECERLILIGINI onizleme worker'i
+    // fail-closed dogrular (liste disi deger 400 `gecersiz-parca`).
+    const parcaParam = url.searchParams.get("parca");
+    const istekGovdesi = { aile: urunId, parametreler: satir.parametreler };
+    if (parcaParam) { istekGovdesi.parca = parcaParam; }
     let c;
     try {
       c = await fetch(taban + "/api/onizleme/ic-derle", {
         method: "POST",
         headers: { "Content-Type": "application/json",
                    "X-Ic-Anahtar": env.IC_DERLE_ANAHTAR || "" },
-        body: JSON.stringify({ aile: urunId, parametreler: satir.parametreler }),
+        body: JSON.stringify(istekGovdesi),
       });
     } catch (e) {
       return yjson({ hata: "derleyici-ulasilamiyor" }, 502);
@@ -464,7 +474,8 @@ async function stlIndir(env, url) {
       headers: {
         "Content-Type": "application/octet-stream",
         "Content-Disposition": "attachment; filename=\"" +
-          tirnaksiz(siparisNo + "-" + urunId) + ".stl\"",
+          tirnaksiz(siparisNo + "-" + urunId + (parcaParam ? "-" + parcaParam : "")) +
+          ".stl\"",
         "Cache-Control": "no-store",
       },
     });

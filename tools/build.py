@@ -422,9 +422,17 @@ ONIZLEME_JS = """
      bu, tek govdeli gorunumle GORSEL OLARAK AYNIDIR, yeniden indirme gerekmez.
      TERSI yon (tek govde ekranda iken 2-renk secilmesi) boyamayla ifade
      EDILEMEZ (ayri yazi govdesi indirilmemistir) -> onizleme yeniden kosar. */
+  /* Yazi renginin GUNCEL degeri DAIMA seciciden okunur; son cizimdeki deger yalnizca
+     secici henuz yoksa yedektir. (Ilk turda burada `sonYaziRenk` kullaniliyordu:
+     musteri 2. rengi degistirince ekran DEGISMIYORDU — Okan'in sikayetinin ta kendisi;
+     kapi S5b bunu yakaladi.) */
+  function guncelYaziRenk(){
+    var el=yaziRenkEl();
+    return el ? el.value : sonYaziRenk;
+  }
   function renkTazele(){
     if(!gosterge){ return; }
-    var ik=ikiRenkDurumu(sonYaziRenk);
+    var ik=ikiRenkDurumu(guncelYaziRenk());
     if(ekrandaIkiGovde){
       if(gosterge.renklerAyarla){
         var g=ik?ik.govdeRenk:onizlemeRenk();
@@ -491,8 +499,19 @@ ONIZLEME_JS = """
     }}}
     var ik=ikiRenkDurumu(s.yazi_renk);
     mesgul=true; btn.disabled=true; kutu.hidden=false; de("Model hazırlanıyor…");
+    /* YAYIN SIRASI YEDEGI: parca aileleri derleyici imajina girmeden site kodu
+       yayina cikarsa (imaj/paket sirasi) parcali istek "aile-yok" alir. O halde
+       onizleme BOS KALMAZ: TEK GOVDE yoluna duser (bugunku davranis). Yalniz
+       "parca yolu henuz yok" anlamina gelen hatalarda; gecersiz-geometri gibi
+       GERCEK musteri hatalari aynen yukari cikar (maskeleme yok). */
+    var YEDEGE_DUS = ["aile-yok", "gecersiz-parca", "bulunamadi"];
     var istek = ik
       ? Promise.all([govdeGetir(s.parametreler,"govde"), govdeGetir(s.parametreler,"yazi")])
+          .catch(function(e){
+            if(YEDEGE_DUS.indexOf(e.message)<0){ throw e; }
+            ik=null;
+            return govdeGetir(s.parametreler,null).then(function(b){ return [b]; });
+          })
       : govdeGetir(s.parametreler,null).then(function(b){ return [b]; });
     istek.then(function(buflar){
       if(ik && buflar.length===2){
