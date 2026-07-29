@@ -10,7 +10,7 @@
  * iyzico yerine bellek-ici sahteleri konur. Fiyat, worker'in D1'e YAZDIGI satirdan okunur —
  * yani gercek para yolundan. Hicbir dis servise istek gitmez, hicbir siparis olusmaz.
  *
- * KOSTUGU 4 SET:
+ * KOSTUGU 5 SET:
  *   (a) REGRESYON — 13 konfigur urununun hepsi, KONFIGURLAR'da VARKEN: fiyat DEGISMEDI
  *       (yeni index == eski index (git HEAD) == front /konfigur.js orakili, birebir kurus).
  *   (b) PARA KANITI — urun D1'de var, KONFIGURLAR'da YOK: 400 "konfigur-urun", sabit fiyat
@@ -19,10 +19,15 @@
  *       yemez (+ konfigurBeklenirMi tahmini TUM katalogda 13/13 birebir).
  *   (d) VAKUM (mutasyon) — index.js'ten kapi SILINIRSE (a)+(c) yesil kalmali ama (b) KIRMIZI
  *       yanmali. Mutant yesil kalirsa bu test OLU nobetcidir -> suite KIRMIZI.
+ *   (e) MUSTERI METNI — worker'in DONDURDUGU hata kodu index.html HATA_METNI'nde karsiligini
+ *       bulmali (jenerik "Odeme baslatilamadi" metnine DUSMEMELI), metin WhatsApp'a yonlendirmeli
+ *       ve marka kurallarina uymali (baski/basim/3D ailesi + sehir adi YOK). Girdi silinirse
+ *       (vakum) jenerik metne duser -> iddia KIRMIZI. Hata kodu UYDURULMAZ, worker'dan alinir.
  */
 
 import fs from "node:fs";
 import path from "node:path";
+import vm from "node:vm";
 import module from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
@@ -251,7 +256,8 @@ async function suite(mod, etiket, ham) {
 const ham = [];
 let kirmizi = 0;
 
-function baslik(s) { ham.push(s); }
+let setSayisi = 0;
+function baslik(s) { setSayisi += 1; ham.push(s); }
 
 // 1) GERCEK kaynak — hepsi yesil olmali.
 baslik("== 1) GERCEK shop/src/index.js ==");
@@ -345,7 +351,74 @@ if (!DESEN.test(KAYNAK)) {
   }
 }
 
+// 5) MUSTERI METNI: worker'in DONDURDUGU hata kodu, front'ta jenerik olmayan DOGRU metne
+//    dusuyor mu? Kod adi iki taraftan birinde degisirse burasi kirmizi yanar (uctan uca capa).
+baslik("== 5) MUSTERI METNI — index.html HATA_METNI (D-1 borcu) ==");
+const HTML = fs.readFileSync(path.join(KOK, "index.html"), "utf8");
+// Marka kurallari (CLAUDE.md): pazarlama/musteri metninde "3D baski" ailesi ve SEHIR ADI GECMEZ.
+const YASAK_MARKA = /bask[ıi]|bas[ıi]m|bas[ıi]lan|bas[ıi]l|3\s*-?\s*[dD]\b|üç boyut|uc boyut/;
+const YASAK_SEHIR = /[Ff]ethiye|[GgĞğ]öcek|[Gg]ocek|[Mm]uğla|[Mm]ugla/;
+
+/** index.html'deki GERCEK HATA_METNI sozlugunu (kopya degil, dosyanin kendisi) cozer. */
+function hataSozlugu(html) {
+  const m = html.match(/var HATA_METNI = \{[\s\S]*?\n  \};/);
+  return m ? vm.runInNewContext(m[0] + "\nHATA_METNI;") : null;
+}
+/** index.html'deki GERCEK jenerik yedek metni (odemeHata cagrisindaki `||` sagi). */
+function jenerikMetin(html) {
+  const m = html.match(/odemeHata\(HATA_METNI\[veri\.hata\] \|\| "([^"]+)"\)/);
+  return m ? m[1] : null;
+}
+
+const sozluk = hataSozlugu(HTML);
+const jenerik = jenerikMetin(HTML);
+if (!sozluk || !jenerik) {
+  kirmizi += 1;
+  ham.push("    ❌ index.html'de HATA_METNI sozlugu / jenerik yedek ayiklanamadi " +
+           "(sozluk=" + Boolean(sozluk) + " jenerik=" + Boolean(jenerik) + ")");
+} else {
+  // Hata kodu UYDURULMAZ: gercek worker kodundan (b) senaryosuyla alinir.
+  const wr = await baslat(gercekMod, [YENI_KONFIGUR],
+    { id: YENI_KONFIGUR.id, malzeme: "PLA", renk: "Siyah", adet: 1,
+      parametreler: { boy_mm: 300 } });
+  const kod = wr.govde.hata;
+  const gosterilen = sozluk[kod] || jenerik;
+  ham.push("    worker kodu: " + kod + " (HTTP " + wr.kod + ")");
+  ham.push("    jenerik yedek: \"" + jenerik + "\"");
+  ham.push("    musteriye gosterilen: \"" + gosterilen + "\"");
+  const m5 = [];
+  if (!Object.prototype.hasOwnProperty.call(sozluk, kod)) {
+    m5.push("HATA_METNI'nde '" + kod + "' anahtari YOK");
+  }
+  if (gosterilen === jenerik) { m5.push("jenerik metne dusuyor (yanlis: 'odeme basarisiz' izlenimi)"); }
+  if (!/WhatsApp/.test(gosterilen)) { m5.push("metin musteriye ne yapacagini soylemiyor (WhatsApp yok)"); }
+  if (YASAK_MARKA.test(gosterilen)) { m5.push("MARKA IHLALI: baski/basim/3D ailesinden kelime var"); }
+  if (YASAK_SEHIR.test(gosterilen)) { m5.push("MARKA IHLALI: sehir adi geciyor"); }
+  ham.push("    marka taramasi: baski/basim/3D=" + (YASAK_MARKA.test(gosterilen) ? "VAR" : "YOK") +
+           ", sehir=" + (YASAK_SEHIR.test(gosterilen) ? "VAR" : "YOK") +
+           ", WhatsApp yonlendirmesi=" + (/WhatsApp/.test(gosterilen) ? "VAR" : "YOK"));
+
+  // VAKUM: girdiyi index.html kaynagindan SIL -> jenerik metne dusmeli (iddia KIRMIZI).
+  const mutantHtml = HTML.replace(/\n\s*"konfigur-urun": "[^"]*",/, "");
+  const mutantSozluk = hataSozlugu(mutantHtml);
+  const mutantGosterilen = (mutantSozluk && mutantSozluk[kod]) || jenerik;
+  const mutasyonOldu = mutantHtml !== HTML && mutantSozluk &&
+                       !Object.prototype.hasOwnProperty.call(mutantSozluk, kod);
+  ham.push("    VAKUM (girdi silindi): \"" + mutantGosterilen + "\"");
+  if (!mutasyonOldu) { m5.push("VAKUM uygulanamadi (girdi deseni tutmadi)"); }
+  else if (mutantGosterilen !== jenerik) { m5.push("VAKUM: girdi silindi ama metin degismedi (OLU IDDIA)"); }
+
+  if (m5.length) {
+    kirmizi += 1;
+    m5.forEach((h) => ham.push("    ❌ " + h));
+    ham.push("  ❌ KALDI — musteri metni");
+  } else {
+    ham.push("  ✅ GECTI — musteri metni dogru + marka-temiz; girdi silinince VAKUM kirmizi yaniyor");
+  }
+}
+
 console.log(ham.join("\n"));
 console.log("");
-console.log(kirmizi === 0 ? "✅ HEPSI GECTI (4/4 set)" : "❌ " + kirmizi + " set KALDI");
+console.log(kirmizi === 0 ? "✅ HEPSI GECTI (" + setSayisi + "/" + setSayisi + " set)"
+                          : "❌ " + kirmizi + "/" + setSayisi + " set KALDI");
 process.exit(kirmizi === 0 ? 0 : 1);
