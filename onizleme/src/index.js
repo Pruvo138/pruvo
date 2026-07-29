@@ -4,7 +4,10 @@
  * odeme yolu ile derleme yuku ayni izolasyona konmaz.
  *
  * Uclar (site route'u: pruvo3d.com/api/onizleme/*):
- *   POST /api/onizleme/olustur {aile, parametreler}
+ *   POST /api/onizleme/olustur {aile, parametreler, parca?}
+ *        `parca` OPSIYONEL (cok govdeli 2-renk urun; izinli degerler
+ *        /secenekler.js ONIZLEME_PARCALAR): "govde" | "yazi". VERILMEZSE bugunku
+ *        TEK GOVDE davranisi BIT-AYNI korunur (ayni onbellek anahtari, ayni STL).
  *        -> 200 binary govde (gzip'li STL; istemci DecompressionStream ile acar,
  *           basliklar: X-Sikistirma: gzip, X-Kaynak: onbellek|derleyici, X-Ham-Boyut)
  *        -> 400 sema disi / 404 aile yok / 413 cikti tavani / 422 gecersiz geometri
@@ -36,6 +39,12 @@ if (!SECENEK || !Array.isArray(SECENEK.ONIZLEME_AILELER)) {
   throw new Error("secenekler.js yuklenemedi — onizleme aile listesi tek kaynagi yok");
 }
 const AILELER = new Set(SECENEK.ONIZLEME_AILELER);
+// COK GOVDELI (2-renk) aileler — TEK KAYNAK /secenekler.js ONIZLEME_PARCALAR.
+// {aile: ["govde","yazi"]}. Ikinci kopya tutulmaz: liste burada da, sayfa
+// scriptinde de ayni dosyadan okunur.
+const PARCALAR = SECENEK.ONIZLEME_PARCALAR || {};
+// Derleyici eslem ailesi ayiraci — tools/onizleme-paket-yukle.py PARCA_AYIRAC ile AYNI.
+const PARCA_AYIRAC = "#";
 
 const GZIP_TAVANI = 2 * 1024 * 1024;   // pakete gore cikti tavani 2 MB
 const HAM_TAVAN = 16 * 1024 * 1024;    // sisme korumasi (gzip oncesi)
@@ -97,13 +106,28 @@ function normalizeEt(sema, parametreler) {
   return n;
 }
 
-async function anahtarUret(aile, normal, sema) {
+async function anahtarUret(aile, normal, sema, parca) {
   // Kanonik metin: sema sirasiyla [ad, deger] ciftleri (anahtar sirasi oynamaz).
   const ciftler = sema.parametreler.map((p) => [p.ad, normal[p.ad]]);
   const metin = JSON.stringify(ciftler);
   const ozet = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(metin));
   const hex = [...new Uint8Array(ozet)].map((b) => b.toString(16).padStart(2, "0")).join("");
-  return "onizleme/" + ONBELLEK_SURUM + "/" + aile + "/" + hex + ".stl.gz";
+  // PARCA (cok govdeli 2-renk urun) anahtara AYRI BIR YOL BILESENI olarak girer:
+  //   tek govde : onizleme/<SURUM>/<aile>/<sha>.stl.gz          (DEGISMEDI, bit-ayni)
+  //   parcali   : onizleme/<SURUM>/<aile>/<parca>/<sha>.stl.gz  (YENI ad uzayi)
+  // Neden boyle (iki risk birden kapanir):
+  //  1) CAKISMA: parcali yol bugune dek HIC yazilmadi; son bilesen daima 64 haneli
+  //     hex oldugu icin "govde"/"yazi" segmenti eski bir anahtarla eslesemez.
+  //  2) BAYAT GOVDE: parcasiz cagrinin anahtari HARF HARF eskisiyle ayni kalir ->
+  //     var olan onbellek gecerliligini korur, ONBELLEK_SURUM bump'i GEREKMEZ
+  //     (bump gereksiz yere tum ailelerin onbellegini erisilemez kilardi).
+  const ek = parca ? (parca + "/") : "";
+  return "onizleme/" + ONBELLEK_SURUM + "/" + aile + "/" + ek + hex + ".stl.gz";
+}
+
+/** Parcali istekte derleyicinin eslem ailesi adi; parcasizda ailenin kendisi. */
+function derleyiciAilesi(aile, parca) {
+  return parca ? (aile + PARCA_AYIRAC + parca) : aile;
 }
 
 async function gzipLe(buf) {
@@ -178,6 +202,21 @@ function semaKapisi(aile, p, env) {
   return { sema, normal: normalizeEt(sema, p) };
 }
 
+/** PARCA KAPISI — cok govdeli (2-renk) urunde hangi govde istendi.
+ *  Alan YOKSA: {parca: null} = bugunku TEK GOVDE yolu (Output="frame"), bit-ayni.
+ *  Alan VARSA : ONIZLEME_PARCALAR[aile] listesinde OLMALI; degilse 400.
+ *  FAIL-CLOSED: null/sayi/bos metin/liste disi deger hepsi REDDEDILIR — "tanimadigim
+ *  parcayi yok say" davranisi olsaydi istemci `parca:"yazi"` yazip SESSIZCE tek
+ *  govde alir, iki renk istedigini sanip tek renk basilmis urun teslim edilirdi. */
+function parcaKapisi(aile, ham, env) {
+  if (ham === undefined) { return { parca: null }; }
+  const izinli = PARCALAR[aile] || [];
+  if (typeof ham !== "string" || izinli.indexOf(ham) < 0) {
+    return { hataYanit: json({ hata: "gecersiz-parca", alan: "parca" }, 400, env) };
+  }
+  return { parca: ham };
+}
+
 // ---------------------------------------------------------------- /olustur
 
 async function olustur(request, env) {
@@ -190,8 +229,10 @@ async function olustur(request, env) {
   const p = govde.parametreler;
   const kapi = semaKapisi(aile, p, env);
   if (kapi.hataYanit) { return kapi.hataYanit; }
+  const pk = parcaKapisi(aile, govde.parca, env);
+  if (pk.hataYanit) { return pk.hataYanit; }
   const { sema, normal } = kapi;
-  const anahtar = await anahtarUret(aile, normal, sema);
+  const anahtar = await anahtarUret(aile, normal, sema, pk.parca);
 
   // ONBELLEK: isabet varsa derleyiciye gidilmez, hiz sinirina sayilmaz.
   if (env.ONBELLEK) {
@@ -214,7 +255,7 @@ async function olustur(request, env) {
                   " yeni onizleme uretilebilir; az sonra tekrar deneyin." }, 429, env);
   }
 
-  const d = await derleyiciCagir(env, aile, normal);
+  const d = await derleyiciCagir(env, derleyiciAilesi(aile, pk.parca), normal);
   if (d.kod !== 200) { return json({ hata: d.hata }, d.kod, env); }
   if (d.govde.byteLength > HAM_TAVAN) { return json({ hata: "cikti-cok-buyuk" }, 413, env); }
 
@@ -224,7 +265,8 @@ async function olustur(request, env) {
   if (env.ONBELLEK) {
     await env.ONBELLEK.put(anahtar, sikisik, {
       httpMetadata: { contentType: "application/octet-stream" },
-      customMetadata: { aile: aile, hamBoyut: String(d.govde.byteLength) },
+      customMetadata: { aile: derleyiciAilesi(aile, pk.parca),
+                        hamBoyut: String(d.govde.byteLength) },
     });
   }
 
@@ -256,8 +298,13 @@ async function icDerle(request, env) {
   if (!govde || typeof govde !== "object") { return json({ hata: "gecersiz-istek" }, 400, env); }
   const kapi = semaKapisi(govde.aile, govde.parametreler, env);
   if (kapi.hataYanit) { return kapi.hataYanit; }
+  const pk = parcaKapisi(govde.aile, govde.parca, env);
+  if (pk.hataYanit) { return pk.hataYanit; }
   const normal = normalizeEt(kapi.sema, govde.parametreler);
-  const d = await derleyiciCagir(env, govde.aile, normal);
+  // 2-RENK URETIM: yonetim "STL indir" akisi iki govdeyi AYRI AYRI ceker
+  //   {aile, parametreler, parca:"govde"} + {..., parca:"yazi"} -> 2 STL, AMS 2 filaman.
+  // parca verilmezse bugunku TEK STL (Output="frame") aynen doner.
+  const d = await derleyiciCagir(env, derleyiciAilesi(govde.aile, pk.parca), normal);
   if (d.kod !== 200) { return json({ hata: d.hata }, d.kod, env); }
   if (d.govde.byteLength > HAM_TAVAN) { return json({ hata: "cikti-cok-buyuk" }, 413, env); }
   return new Response(d.govde, {

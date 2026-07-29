@@ -7,6 +7,17 @@
      var g = PRUVO_VIEWER.goster(canvasEl, stlArrayBuffer);  // tekrar cagrilabilir
      g.sifirla();  g.yokEt();
 
+   COK GOVDELI (2-RENK) GOSTERIM — 29 Tem 2026:
+     var g = PRUVO_VIEWER.goster(canvasEl, [
+       { buf: govdeStl, renk: [r,g,b] },     // 0. govde: cerceve kabugu
+       { buf: yaziStl,  renk: [r,g,b] }      // 1. govde: kabartma yazi (2. filaman)
+     ]);
+     g.renkAyarla(rgb)      -> 0. govdenin rengi (eski cagrilar aynen calisir)
+     g.renklerAyarla([...])  -> govde basina renk
+   Govdeler AYNI koordinat sisteminde gelir (derleyici ayni .scad'i yalniz `Output`
+   farkiyla surer) -> kamera/merkez TUM govdelerin ORTAK kutusundan hesaplanir;
+   viewer hicbir govdeyi kaydirmaz/olceklemez (kaydirma = uretimde oturmayan parca).
+
    Not: STL zaten yuzey-basina tekrarli kose tasir -> flat shading dogal olarak
    dogru; normal STL'den okunur, sifirsa ucgenden yeniden hesaplanir. */
 (function (root) {
@@ -210,7 +221,23 @@
 
   var kayitlar = new WeakMap(); // canvas -> durum (ayni canvas'a tekrar yukleme)
 
-  function goster(canvas, stlBuf, secenek) {
+  /* Girdiyi TEK BICIME indirger: [{buf, renk}]. Iki cagri bicimi de desteklenir —
+     goster(canvas, arrayBuffer, {renk})           (eski, TEK govde)
+     goster(canvas, [{buf,renk},{buf,renk}])       (yeni, COK govde / 2 renk)
+     Eski bicimin davranisi HARFI HARFINE korunur (renk verilmezse sari seri). */
+  function govdeleriCoz(girdi, secenek) {
+    if (Array.isArray(girdi)) {
+      if (!girdi.length) { throw new Error("govde-yok"); }
+      return girdi.map(function (g) {
+        var r = g && g.renk;
+        return { buf: g.buf, renk: (r && r.length === 3) ? r : VARSAYILAN_RENK };
+      });
+    }
+    var renk = secenek && secenek.renk;
+    return [{ buf: girdi, renk: (renk && renk.length === 3) ? renk : VARSAYILAN_RENK }];
+  }
+
+  function goster(canvas, girdi, secenek) {
     var durum = kayitlar.get(canvas);
     if (!durum) {
       var gl = canvas.getContext("webgl", { antialias: true }) ||
@@ -219,14 +246,15 @@
       durum = kur(canvas, gl);
       kayitlar.set(canvas, durum);
     }
-    // Taban rengi (opsiyonel): {renk:[r,g,b]}. Verilmezse sari seri rengi kalir.
-    var renk = secenek && secenek.renk;
-    durum.renkAyarla(renk && renk.length === 3 ? renk : VARSAYILAN_RENK);
-    durum.yukle(stlCoz(stlBuf));
+    var govdeler = govdeleriCoz(girdi, secenek);
+    durum.yukle(govdeler.map(function (g) { return stlCoz(g.buf); }));
+    durum.renklerAyarla(govdeler.map(function (g) { return g.renk; }));
     // renkAyarla disari VERILIR: musteri Renk secimini degistirince sayfa modeli
     // YENIDEN INDIRMEDEN boyayabilsin (yeniden indirme derleyici kotasini yerdi
-    // ve secim degisimi sessizce etkisiz kalirdi).
-    return { sifirla: durum.sifirla, yokEt: durum.yokEt, renkAyarla: durum.renkAyarla };
+    // ve secim degisimi sessizce etkisiz kalirdi). renklerAyarla ayni isi cok
+    // govdede yapar (govde rengi + yazi rengi ayri ayri).
+    return { sifirla: durum.sifirla, yokEt: durum.yokEt,
+             renkAyarla: durum.renkAyarla, renklerAyarla: durum.renklerAyarla };
   }
 
   function kur(canvas, gl) {
@@ -239,11 +267,11 @@
     var uRenk = gl.getUniformLocation(prog, "uRenk");
     var aPoz = gl.getAttribLocation(prog, "aPoz");
     var aNor = gl.getAttribLocation(prog, "aNor");
-    var pozTampon = gl.createBuffer();
-    var norTampon = gl.createBuffer();
-
-    var model = null;         // {adet, merkez, yaricap}
-    var renk = VARSAYILAN_RENK; // taban rengi (secime gore; varsayilan sari)
+    // GOVDE BASINA tampon cifti: cok govdeli (2-renk) urunde her govde kendi
+    // VBO'suna yuklenir ve kendi uRenk'i ile cizilir.
+    var govdeler = [];        // [{poz, nor, adet}]
+    var model = null;         // {merkez, yaricap} — TUM govdelerin ORTAK kutusu
+    var renkler = [VARSAYILAN_RENK];  // govde basina taban renk
     var yaw = BASLANGIC.yaw, pitch = BASLANGIC.pitch, zoom = BASLANGIC.zoom;
     var cizimIste = null;
 
@@ -267,8 +295,18 @@
       gl.uniformMatrix4fv(uProj, false, g.proj);
       gl.uniformMatrix4fv(uGoruntu, false, g.goruntu);
       gl.uniformMatrix4fv(uDonus, false, g.donus);
-      gl.uniform3fv(uRenk, renk);
-      gl.drawArrays(gl.TRIANGLES, 0, model.adet * 3);
+      for (var i = 0; i < govdeler.length; i++) {
+        var t = govdeler[i];
+        gl.bindBuffer(gl.ARRAY_BUFFER, t.poz);
+        gl.enableVertexAttribArray(aPoz);
+        gl.vertexAttribPointer(aPoz, 3, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, t.nor);
+        gl.enableVertexAttribArray(aNor);
+        gl.vertexAttribPointer(aNor, 3, gl.FLOAT, false, 0, 0);
+        // Rengi olmayan govde 0. govdenin rengine DUSMEZ: kendi varsayilanini alir.
+        gl.uniform3fv(uRenk, renkler[i] || VARSAYILAN_RENK);
+        gl.drawArrays(gl.TRIANGLES, 0, t.adet * 3);
+      }
     }
 
     function cizPlanla() {
@@ -333,24 +371,41 @@
     root.addEventListener("resize", cizPlanla);
 
     return {
-      renkAyarla: function (r) { renk = r; cizPlanla(); },
-      yukle: function (veri) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, pozTampon);
-        gl.bufferData(gl.ARRAY_BUFFER, veri.poz, gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(aPoz);
-        gl.vertexAttribPointer(aPoz, 3, gl.FLOAT, false, 0, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, norTampon);
-        gl.bufferData(gl.ARRAY_BUFFER, veri.nor, gl.STATIC_DRAW);
-        gl.enableVertexAttribArray(aNor);
-        gl.vertexAttribPointer(aNor, 3, gl.FLOAT, false, 0, 0);
-        var merkez = [(veri.enKucuk[0] + veri.enBuyuk[0]) / 2,
-                      (veri.enKucuk[1] + veri.enBuyuk[1]) / 2,
-                      (veri.enKucuk[2] + veri.enBuyuk[2]) / 2];
-        var yaricap = Math.max(0.001, Math.hypot(
-          veri.enBuyuk[0] - veri.enKucuk[0],
-          veri.enBuyuk[1] - veri.enKucuk[1],
-          veri.enBuyuk[2] - veri.enKucuk[2]) / 2);
-        model = { adet: veri.adet, merkez: merkez, yaricap: yaricap };
+      // Eski sozlesme: TEK renk = 0. govdenin (cerceve kabugu) rengi.
+      renkAyarla: function (r) { renkler[0] = r; cizPlanla(); },
+      renklerAyarla: function (dizi) {
+        renkler = (dizi && dizi.length) ? dizi.slice() : [VARSAYILAN_RENK];
+        cizPlanla();
+      },
+      /** veriler: stlCoz ciktisi ya da bunlarin DIZISI (cok govdeli 2-renk urun). */
+      yukle: function (veriler) {
+        var liste = Array.isArray(veriler) ? veriler : [veriler];
+        for (var e = 0; e < govdeler.length; e++) {
+          gl.deleteBuffer(govdeler[e].poz);
+          gl.deleteBuffer(govdeler[e].nor);
+        }
+        govdeler = [];
+        // ORTAK kutu: govdeler AYNI koordinat sisteminde oldugu icin kamera tum
+        // parcalari birlikte cerceveler; hicbir govde tek basina merkezlenmez
+        // (merkezleme yapilsaydi yazi cerceveden KAYARDI = uretimde oturmayan parca).
+        var az = [Infinity, Infinity, Infinity], cok = [-Infinity, -Infinity, -Infinity];
+        for (var i = 0; i < liste.length; i++) {
+          var veri = liste[i];
+          var poz = gl.createBuffer(), nor = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, poz);
+          gl.bufferData(gl.ARRAY_BUFFER, veri.poz, gl.STATIC_DRAW);
+          gl.bindBuffer(gl.ARRAY_BUFFER, nor);
+          gl.bufferData(gl.ARRAY_BUFFER, veri.nor, gl.STATIC_DRAW);
+          govdeler.push({ poz: poz, nor: nor, adet: veri.adet });
+          for (var k = 0; k < 3; k++) {
+            if (veri.enKucuk[k] < az[k]) { az[k] = veri.enKucuk[k]; }
+            if (veri.enBuyuk[k] > cok[k]) { cok[k] = veri.enBuyuk[k]; }
+          }
+        }
+        var merkez = [(az[0] + cok[0]) / 2, (az[1] + cok[1]) / 2, (az[2] + cok[2]) / 2];
+        var yaricap = Math.max(0.001, Math.hypot(cok[0] - az[0], cok[1] - az[1],
+                                                 cok[2] - az[2]) / 2);
+        model = { merkez: merkez, yaricap: yaricap };
         zoom = BASLANGIC.zoom;
         cizPlanla();
       },
@@ -365,6 +420,11 @@
         canvas.removeEventListener("pointercancel", pointerUp);
         canvas.removeEventListener("wheel", tekerlek);
         root.removeEventListener("resize", cizPlanla);
+        for (var e = 0; e < govdeler.length; e++) {
+          gl.deleteBuffer(govdeler[e].poz);
+          gl.deleteBuffer(govdeler[e].nor);
+        }
+        govdeler = [];
         kayitlar.delete(canvas);
       },
     };
@@ -384,6 +444,7 @@
     _FS: FS,
     _BASLANGIC: BASLANGIC,
     _VARSAYILAN_RENK: VARSAYILAN_RENK,
+    _govdeleriCoz: govdeleriCoz,
   };
   root.PRUVO_VIEWER = API;
   if (typeof module === "object" && module.exports) { module.exports = API; }
