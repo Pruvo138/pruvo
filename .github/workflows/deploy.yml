@@ -481,6 +481,26 @@ jobs:
       - name: Metin eslem kapisi (musteri yazisi derleyiciye ulasiyor mu)
         run: python3 tools/metin-eslem-test.py
 
+      # METIN BEYAZ LISTE KAPISI (sessiz kusur, 29 Tem): sunucu derleyicisi
+      # (onizleme/derleyici/server.py metin_temizle) beyaz liste DISI karakteri
+      # (& / ( ) : ...) SESSIZCE DUSURUR; konfiguratorde uyari yalniz cerceve `yazi`
+      # alanina (cerceveDurumu) bagliydi, dogrula()nin generic `metin` dalina DEGIL —
+      # olculdu: kaseye "AHMET & OGULLARI", jetona "A/B (1)" HIC uyari cikmadan geciyor,
+      # musteri istediginden FARKLI urun aliyordu. Kontrol dogrula() yoluna tasindi ->
+      # ayni kapiyi Worker da (shop/src/parametrik.js KONF.dogrula) kullanir; sunucu
+      # tavani/beyaz listesi GEVSEMEDI, sizdirdigi sinif kapandi. Bu adim `tip: "metin"`
+      # parametresi olan HER aileyi jenerator/urunler DIZIN TARAMASIYLA bulur (elle liste
+      # YOK) ve dort ekseni olcer: (A) kesif bos degil + taban degerler gecerli,
+      # (B) 7 kirli vaka × her alan GORUNUR hata uretir, (C) 8 temiz vaka × her alan
+      # gecerli kalir (yanlis-pozitif = 0 — bu eksen olmadan "her metni reddet" mutanti
+      # yesil kalirdi), (D) Worker kirliyi "parametre-araligi" ile REDDEDER.
+      # KIRMIZI-MUTASYON (olculdu): kontrol satiri silinir / no-op yapilir -> 24 iddia
+      # kirmizi; tersine cevrilir -> 31 iddia kirmizi. OFFLINE: ag/wrangler/openscad YOK,
+      # urunler.json OKUNMAZ, dosya yazmaz, <1 s. node gerekir (setup-node yukarida
+      # bloklayici on-kosul).
+      - name: Metin beyaz liste kapisi (musteri metni sessizce budanmiyor mu)
+        run: node jenerator/test/metin-beyaz-liste.mjs
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
