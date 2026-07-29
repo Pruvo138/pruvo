@@ -30,7 +30,15 @@
       ? S.ikiRenkDetayEki(yaziRenk)
       : (" · Yazı rengi: " + yaziRenk + " (2 renk)");
   }
+  // TUM `metin` parametreleri icin gecerli (cerceve `yazi`, kase `metin`, jeton `yazi` ...):
+  // sunucu (onizleme/derleyici/server.py metin_temizle) beyaz liste DISI her karakteri
+  // SESSIZCE DUSURUR — musteri "AHMET & OGULLARI" yazip "AHMET  OGULLARI" basilmis urun
+  // alirdi, hicbir uyari cikmadan. Kural bu yuzden dogrula() yolunda (parametreHatasi ->
+  // `metin` dali): hem sayfa (ciz/gecerliMi/satiraYaz) hem WORKER (shop/src/parametrik.js
+  // KONF.dogrula) ayni kapiyi kullanir. Sunucu tavani/beyaz listesi GEVSEMEZ — bu istemci
+  // uyarisi onun YERINE gecmez, sadece kusuru GORUNUR kilar (sunucu hala fail-closed).
   var YAZI_BEYAZ_LISTE = /^[A-Za-z0-9ğüşıöçĞÜŞİÖÇ .,\-_]*$/;
+  var YAZI_KIRLI_MESAJ = "Yalnızca harf, rakam ve  . , - _  kullanın";
 
   // ---- saf yardımcılar (node testlerinde de kullanılır) ----
 
@@ -78,9 +86,13 @@
       return "Geçersiz seçim";
     }
     if (tip === "metin") {
-      if (p.maksUzunluk && String(deger || "").length > p.maksUzunluk) {
+      var metin = String(deger == null ? "" : deger);
+      if (p.maksUzunluk && metin.length > p.maksUzunluk) {
         return "En çok " + p.maksUzunluk + " karakter";
       }
+      // Beyaz liste DISI karakter (& / ( ) : ...) sunucuda SESSIZCE dusuyor -> burada
+      // gorunur hata. Bos metin gecerli (regex `*`), Turkce harfler gecerli.
+      if (!YAZI_BEYAZ_LISTE.test(metin)) { return YAZI_KIRLI_MESAJ; }
       return null;
     }
     return "Bilinmeyen parametre tipi";
@@ -334,7 +346,7 @@
     var cer = cerceveDurumu(sema, d, frameRengi());
     var cerHata = false;
     if (cer && cer.yaziKirli && durum.alanlar.yazi) {
-      durum.alanlar.yazi.hataEl.textContent = "Yalnızca harf, rakam ve  . , - _  kullanın";
+      durum.alanlar.yazi.hataEl.textContent = YAZI_KIRLI_MESAJ;
       durum.alanlar.yazi.girdi.classList.add("hatali");
       cerHata = true;
     }
