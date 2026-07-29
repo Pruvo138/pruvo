@@ -9,6 +9,10 @@
  *                              {havale:true, no, iban, unvan, tutar, kdv dokumu}
  *   POST /api/shop/donus    -> iyzico callback (token) -> retrieve DOGRULAMA -> siparis 'odendi'
  *                              + Telegram bildirimi + musteriyi siteye yonlendir (KDV dokumuyla)
+ *   POST /api/shop/fiyat    -> PROVA (yan etkisiz fiyat sorgusu): AYNI sunucu hesabini kosar,
+ *                              tutari doner. D1'e YAZMAZ, iyzico'ya GITMEZ, Telegram/e-posta
+ *                              GONDERMEZ, siparis OLUSTURMAZ. Fiyat regresyonu canlida
+ *                              gercek siparis acmadan olculebilsin diye var.
  *
  * KIRMIZI CIZGILER (tools/paket-shop-odeme.md):
  *  - Fiyat SUNUCUDA hesaplanir: sepetteki id'lerin fiyati D1 `urunler`den okunur, katsayi
@@ -169,7 +173,17 @@ function istekCoz(govde) {
   if (!sehir) return { hata: "musteri-sehir" };
   if (tckn && tckn.length !== 11) return { hata: "musteri-tckn" };
 
-  const sepet = govde.sepet;
+  const kc = kalemleriCoz(govde.sepet);
+  if (kc.hata) return kc;
+  return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler: kc.kalemler, odeme,
+           atif: atifTemizle(govde) };
+}
+
+/** SEPET KALEMLERI — dogrulama TEK KAYNAK: /baslat (istekCoz) ve /fiyat (prova) AYNI
+ *  fonksiyonu cagirir. Boylece prova yolu ASLA daha gevsek dogrulama yapamaz (bir kalem
+ *  odeme yolunda reddediliyorsa provada da reddedilir; tersi de gecerli).
+ *  Istemciden gelen tutar/fiyat/hacim alanlari BILEREK okunmaz. */
+function kalemleriCoz(sepet) {
   if (!Array.isArray(sepet) || sepet.length < 1 || sepet.length > AYAR.sepet_en_cok_kalem) {
     return { hata: "gecersiz-sepet" };
   }
@@ -207,8 +221,110 @@ function istekCoz(govde) {
     kalemler.push({ id, malzeme, renk, renk_ozel: renk_ozel || "", boy_etiket: null, adet,
                     parametreler, yazi_renk });
   }
-  return { musteri: { ad, tel, eposta, adres, sehir, tckn }, kalemler, odeme,
-           atif: atifTemizle(govde) };
+  return { kalemler };
+}
+
+// ---------------------------------------------------------------- fiyat (tek kaynak)
+
+/**
+ * SEPET FIYATI — SUNUCU hesabi. /baslat (tahsilat) ve /fiyat (prova) BU fonksiyonu cagirir;
+ * ikinci bir hesap kopyasi YOKTUR -> prova ile tahsilat AYRISAMAZ (fiyat regresyonu provada
+ * gorunur). Kollarin sirasi ve fail-closed davranisi DEGISMEDI:
+ *   1) KONFIGURLAR haritasinda VAR   -> konfigur (olcuye ozel dekor) sunucu hesabi
+ *   2) konfigur BEKLENIYOR ama harita bos (konfigur-beklenen.js) -> FAIL-CLOSED 400
+ *      (D1'de var, bundle'da yok penceresi; sabit fiyat HESAPLANMAZ — sessiz eksik tahsilat)
+ *   3) urun parametrik                -> parametrik (sari) sunucu hesabi
+ *   4) aksi                           -> sabit katalog fiyati (secenekler.js satirOzeti)
+ * @returns {{hata: object, kod: number}} veya {{satirlar, toplamKurus}}
+ */
+async function sepetiFiyatla(env, kalemler) {
+  // FIYAT SUNUCUDA: sepetteki id'lerin guncel kaydi D1 katalogundan (SALT OKUMA).
+  const idler = [...new Set(kalemler.map((k) => k.id))];
+  const yertut = idler.map(() => "?").join(",");
+  const sonuc = await env.KATALOG.prepare(
+    "SELECT id, baslik, kategori, fiyat, parametrik, gorsel FROM urunler WHERE id IN (" + yertut + ")"
+  ).bind(...idler).all();
+  const katalog = new Map((sonuc.results || []).map((u) => [u.id, u]));
+
+  const satirlar = [];
+  let toplamKurus = 0;
+  for (const k of kalemler) {
+    const u = katalog.get(k.id);
+    if (!u) return { hata: { hata: "bilinmeyen-urun", id: k.id }, kod: 400 };
+
+    let birimKurus, ekAlanlar = {};
+    if (KONFIGURLAR.has(k.id)) {
+      // Konfigur (dekor konfiguratoru, /konfigur.js). Bu urun D1'de parametrik=0 + sabit fiyatli
+      // (kart-secim urunu gibi) gorunur -> u.parametrik kolu YAKALAMAZ; konfigur oldugunu SADECE
+      // bundled KONFIGURLAR haritasindan biliriz (D1'de konfigur alani YOK; harita urunler.json'dan
+      // TURETILIR — tools/konfigur-bundle-kapisi.py). Bu yuzden kontrol parametrik/sabit
+      // kollarindan AYRI ve ONCE. Kanal SECENEK.KONFIGUR_ODEME_ACIK ile ACIK; fiyat SUNUCUDA
+      // boy+malzeme'den yeniden hesaplanir (konfigur.js: /konfigur.js cekirdegi; istemcinin boy'u
+      // KIRPILIR, katsayi LISTEDEN, hacim/fiyat alanlari OKUNMAZ). Kapaliyken kalem WhatsApp'a.
+      if (!SECENEK.KONFIGUR_ODEME_ACIK) {
+        return { hata: { hata: "konfigur-urun", id: k.id,
+                         mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, kod: 400 };
+      }
+      const konfigur = KONFIGURLAR.get(k.id);
+      const kh = konfigurHesapla(k, SECENEK, konfigur);
+      if (kh.hata) { return { hata: { hata: kh.hata, id: k.id }, kod: 400 }; }
+      birimKurus = kh.birimKurus;
+      ekAlanlar = { parametreler: kh.parametreler, parametre_detay: kh.detay,
+                    hacim_mm3: kh.hacimMm3 };
+    } else if (konfigurBeklenirMi(u)) {
+      // FAIL-CLOSED KAPI (sessiz eksik tahsilat penceresi — konfigur-beklenen.js'te gerekce):
+      // urun D1'de konfigurator serisinden gorunuyor (gizli kategori / seri id soneki) ama
+      // bundle'daki KONFIGURLAR haritasinda YOK. Bu, urunun D1'e girip Worker'in HENUZ deploy
+      // edilmedigi (deploy ELLE yapilir) penceresidir. Eskiden bu kalem asagidaki SABIT fiyat
+      // koluna duserdi: konfiguratorde 1.500,00 TL olan 30 cm/PLA urun 500,00 TL'ye satilir,
+      // 1.000,00 TL SESSIZCE eksik tahsil edilirdi (musteri gercek bedelin ~%33'unu oder).
+      // Artik sabit fiyat HESAPLANMAZ; kalem konfigur kolunun kendi 400'uyle (yukaridaki
+      // KONFIGUR_ODEME_ACIK kapisiyla AYNI cevap) WhatsApp kanalina duser.
+      return { hata: { hata: "konfigur-urun", id: k.id,
+                       mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, kod: 400 };
+    } else if (u.parametrik) {
+      // Olcuye ozel (sari seri). Kanal SECENEK.PARAMETRIK_ODEME_ACIK ile ACIK (17 Tem);
+      // fiyat SUNUCUDA yeniden hesaplanir (parametrik.js: sema + hacim.js + taban fiyat;
+      // istemcinin hacim/fiyat alanlari OKUNMAZ). Anahtar kapatilirsa asagidaki kol
+      // kalemi WhatsApp'a yonlendirir (kabul testi 5).
+      if (!SECENEK.PARAMETRIK_ODEME_ACIK) {
+        return { hata: { hata: "parametrik-urun", id: k.id,
+                         mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, kod: 400 };
+      }
+      const sema = SEMALAR.get(k.id);
+      if (!sema) {
+        // Semasiz parametrik urun (konfiguratoru yok) -> her zaman WhatsApp kanali.
+        return { hata: { hata: "parametrik-urun", id: k.id,
+                         mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, kod: 400 };
+      }
+      const ph = parametrikHesapla(k, SECENEK, sema);
+      if (ph.hata) { return { hata: { hata: ph.hata, id: k.id, alan: ph.alan }, kod: 400 }; }
+      birimKurus = ph.birimKurus;
+      ekAlanlar = { parametreler: ph.parametreler, parametre_detay: ph.detay,
+                    hacim_mm3: ph.hacimMm3 };
+    } else {
+      // HESAP TEK KAYNAK: front'un gosterdigi fiyati ureten fonksiyonun AYNISI (secenekler.js).
+      // D1'de boy_secenekleri yok; boy'lu kalem zaten yukarida reddedildi (bkz. istekCoz).
+      const ozet = SECENEK.satirOzeti(
+        { kategori: u.kategori, fiyat: u.fiyat, parametrik: false, boy_secenekleri: [] },
+        { id: k.id, malzeme: k.malzeme, renk: k.renk, renk_ozel: k.renk_ozel,
+          boy_etiket: null, adet: 1 });
+      if (!ozet.odenebilir || !(ozet.birimKurus > 0)) {
+        return { hata: { hata: "fiyatsiz-urun", id: k.id }, kod: 400 };
+      }
+      birimKurus = ozet.birimKurus;
+    }
+
+    // Ara yuvarlama YOK: birim kurus x adet, kalem tutari kurusuyla toplanir.
+    const tutar = birimKurus * k.adet;
+    toplamKurus += tutar;
+    satirlar.push({
+      id: k.id, baslik: u.baslik, kategori: u.kategori, gorsel: u.gorsel || "",
+      malzeme: k.malzeme, renk: k.renk, renk_ozel: k.renk_ozel, adet: k.adet,
+      birim_kurus: birimKurus, tutar_kurus: tutar, ...ekAlanlar,
+    });
+  }
+  return { satirlar, toplamKurus };
 }
 
 // ---------------------------------------------------------------- /baslat
@@ -227,92 +343,12 @@ async function baslat(request, env, url, ctx) {
   // (donus'ta, iyzico OK aninda) bunlari kullanir. Redirect'te URL param/cerez duser.
   const atifJson = JSON.stringify(atif || {});
 
-  // FIYAT SUNUCUDA: sepetteki id'lerin guncel kaydi D1 katalogundan.
-  const idler = [...new Set(kalemler.map((k) => k.id))];
-  const yertut = idler.map(() => "?").join(",");
-  const sonuc = await env.KATALOG.prepare(
-    "SELECT id, baslik, kategori, fiyat, parametrik, gorsel FROM urunler WHERE id IN (" + yertut + ")"
-  ).bind(...idler).all();
-  const katalog = new Map((sonuc.results || []).map((u) => [u.id, u]));
-
-  const satirlar = [];
-  let toplamKurus = 0;
-  for (const k of kalemler) {
-    const u = katalog.get(k.id);
-    if (!u) return json({ hata: "bilinmeyen-urun", id: k.id }, 400, env);
-
-    let birimKurus, ekAlanlar = {};
-    if (KONFIGURLAR.has(k.id)) {
-      // Konfigur (dekor konfiguratoru, /konfigur.js). Bu urun D1'de parametrik=0 + sabit fiyatli
-      // (kart-secim urunu gibi) gorunur -> u.parametrik kolu YAKALAMAZ; konfigur oldugunu SADECE
-      // bundled KONFIGURLAR haritasindan biliriz (D1'de konfigur alani YOK). Bu yuzden kontrol
-      // parametrik/sabit kollarindan AYRI ve ONCE. Kanal SECENEK.KONFIGUR_ODEME_ACIK ile ACIK;
-      // fiyat SUNUCUDA boy+malzeme'den yeniden hesaplanir (konfigur.js: /konfigur.js cekirdegi;
-      // istemcinin boy'u KIRPILIR, katsayi LISTEDEN, hacim/fiyat alanlari OKUNMAZ). Kapaliyken
-      // kalem WhatsApp'a yonlendirilir.
-      if (!SECENEK.KONFIGUR_ODEME_ACIK) {
-        return json({ hata: "konfigur-urun", id: k.id,
-                      mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, 400, env);
-      }
-      const konfigur = KONFIGURLAR.get(k.id);
-      const kh = konfigurHesapla(k, SECENEK, konfigur);
-      if (kh.hata) { return json({ hata: kh.hata, id: k.id }, 400, env); }
-      birimKurus = kh.birimKurus;
-      ekAlanlar = { parametreler: kh.parametreler, parametre_detay: kh.detay,
-                    hacim_mm3: kh.hacimMm3 };
-    } else if (konfigurBeklenirMi(u)) {
-      // FAIL-CLOSED KAPI (sessiz eksik tahsilat penceresi — konfigur-beklenen.js'te gerekce):
-      // urun D1'de konfigurator serisinden gorunuyor (gizli kategori / seri id soneki) ama
-      // bundle'daki KONFIGURLAR haritasinda YOK. Bu, urunun D1'e girip Worker'in HENUZ deploy
-      // edilmedigi (deploy ELLE yapilir) penceresidir. Eskiden bu kalem asagidaki SABIT fiyat
-      // koluna duserdi: konfiguratorde 1.500,00 TL olan 30 cm/PLA urun 500,00 TL'ye satilir,
-      // 1.000,00 TL SESSIZCE eksik tahsil edilirdi (musteri gercek bedelin ~%33'unu oder).
-      // Artik sabit fiyat HESAPLANMAZ; kalem konfigur kolunun kendi 400'uyle (yukaridaki
-      // KONFIGUR_ODEME_ACIK kapisiyla AYNI cevap) WhatsApp kanalina duser.
-      return json({ hata: "konfigur-urun", id: k.id,
-                    mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, 400, env);
-    } else if (u.parametrik) {
-      // Olcuye ozel (sari seri). Kanal SECENEK.PARAMETRIK_ODEME_ACIK ile ACIK (17 Tem);
-      // fiyat SUNUCUDA yeniden hesaplanir (parametrik.js: sema + hacim.js + taban fiyat;
-      // istemcinin hacim/fiyat alanlari OKUNMAZ). Anahtar kapatilirsa asagidaki kol
-      // kalemi WhatsApp'a yonlendirir (kabul testi 5).
-      if (!SECENEK.PARAMETRIK_ODEME_ACIK) {
-        return json({ hata: "parametrik-urun", id: k.id,
-                      mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, 400, env);
-      }
-      const sema = SEMALAR.get(k.id);
-      if (!sema) {
-        // Semasiz parametrik urun (konfiguratoru yok) -> her zaman WhatsApp kanali.
-        return json({ hata: "parametrik-urun", id: k.id,
-                      mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, 400, env);
-      }
-      const ph = parametrikHesapla(k, SECENEK, sema);
-      if (ph.hata) { return json({ hata: ph.hata, id: k.id, alan: ph.alan }, 400, env); }
-      birimKurus = ph.birimKurus;
-      ekAlanlar = { parametreler: ph.parametreler, parametre_detay: ph.detay,
-                    hacim_mm3: ph.hacimMm3 };
-    } else {
-      // HESAP TEK KAYNAK: front'un gosterdigi fiyati ureten fonksiyonun AYNISI (secenekler.js).
-      // D1'de boy_secenekleri yok; boy'lu kalem zaten yukarida reddedildi (bkz. istekCoz).
-      const ozet = SECENEK.satirOzeti(
-        { kategori: u.kategori, fiyat: u.fiyat, parametrik: false, boy_secenekleri: [] },
-        { id: k.id, malzeme: k.malzeme, renk: k.renk, renk_ozel: k.renk_ozel,
-          boy_etiket: null, adet: 1 });
-      if (!ozet.odenebilir || !(ozet.birimKurus > 0)) {
-        return json({ hata: "fiyatsiz-urun", id: k.id }, 400, env);
-      }
-      birimKurus = ozet.birimKurus;
-    }
-
-    // Ara yuvarlama YOK: birim kurus x adet, kalem tutari kurusuyla toplanir.
-    const tutar = birimKurus * k.adet;
-    toplamKurus += tutar;
-    satirlar.push({
-      id: k.id, baslik: u.baslik, kategori: u.kategori, gorsel: u.gorsel || "",
-      malzeme: k.malzeme, renk: k.renk, renk_ozel: k.renk_ozel, adet: k.adet,
-      birim_kurus: birimKurus, tutar_kurus: tutar, ...ekAlanlar,
-    });
-  }
+  // FIYAT SUNUCUDA (TEK KAYNAK): hesap sepetiFiyatla()'da — /fiyat (prova) ucu AYNI
+  // fonksiyonu cagirir, ikinci bir hesap kopyasi YOKTUR. Kollar + fail-closed davranisi
+  // o fonksiyonda; buradan istemcinin gonderdigi hicbir tutar alani gecmez.
+  const f = await sepetiFiyatla(env, kalemler);
+  if (f.hata) return json(f.hata, f.kod, env);
+  const { satirlar, toplamKurus } = f;
   if (!(toplamKurus > 0)) return json({ hata: "gecersiz-tutar" }, 400, env);
 
   // KARGO (Okan, 16 Tem — KESIN; tools/paket-shop-kargo.md): urun toplami < 2.500,00 TL ->
@@ -463,6 +499,104 @@ async function baslat(request, env, url, ctx) {
   ).run();
 
   return json({ url: init.paymentPageUrl, no: siparisNo }, 200, env);
+}
+
+// ---------------------------------------------------------------- /fiyat (PROVA)
+
+/**
+ * PROVA HIZ SINIRI — isolate-ici, YAZMASIZ pencere sayaci.
+ *
+ * NE DEGIL: kalici/dagitik bir hiz siniri DEGIL (Worker isolate'i yenilenince sifirlanir,
+ * her kolokasyonda ayri sayar) -> GUVENLIK SINIRI SAYILMAZ, ucuz bir kotu-kullanim frenidir.
+ * Kalici sayac D1/KV YAZMASI gerektirirdi; prova ucunun KIRMIZI CIZGISI "hicbir yan etki
+ * yok" oldugu icin yazan bir sayac BILEREK tercih EDILMEDI (yan etkisizlik > hassas limit).
+ * Asil frenler: (1) uc yalniz KATALOGDAKI urun/olcu/malzeme kombinasyonlari icin, sitenin
+ * zaten public olan /secenekler.js + /konfigur.js cekirdegiyle AYNI sayiyi doner — yeni bir
+ * bilgi sizmaz; (2) istek basina en cok AYAR.sepet_en_cok_kalem kalem ve TEK D1 SELECT
+ * (salt okuma); (3) Cloudflare route/WAF katmani.
+ */
+const PROVA_PENCERE_MS = 60000;   // 1 dakikalik pencere
+const PROVA_EN_COK = 30;          // pencere basina IP basina istek
+const PROVA_IP_TAVANI = 5000;     // bellek tavani (asilirsa sayac tablosu sifirlanir)
+const provaSayac = new Map();
+
+function provaHizSiniriAsildi(ip) {
+  const pencere = Math.floor(Date.now() / PROVA_PENCERE_MS);
+  const kayit = provaSayac.get(ip);
+  if (!kayit || kayit.pencere !== pencere) {
+    if (provaSayac.size >= PROVA_IP_TAVANI) { provaSayac.clear(); }
+    provaSayac.set(ip, { pencere: pencere, adet: 1 });
+    return false;
+  }
+  kayit.adet += 1;
+  return kayit.adet > PROVA_EN_COK;
+}
+
+/**
+ * POST /api/shop/fiyat — YAN ETKISIZ fiyat sorgusu (prova).
+ *
+ * NEDEN VAR: canli tahsilat tutari bugune dek ancak GERCEK siparis acilarak olculebiliyordu
+ * (D1 satiri + Telegram + e-posta). Fiyat regresyonu bu yuzden canlida dogrulanamiyordu.
+ * Bu uc, /baslat ile AYNI dogrulama (kalemleriCoz) ve AYNI hesap (sepetiFiyatla) cekirdegini
+ * kosar, yalnizca TUTARI doner.
+ *
+ * 🔴 KIRMIZI CIZGI — YAN ETKI YOK: D1'e YAZMAZ (yalniz sepetiFiyatla'nin SELECT'i), siparis
+ * numarasi URETMEZ, iyzico'ya GITMEZ, Telegram/e-posta GONDERMEZ, olcum olayi (Purchase)
+ * GONDERMEZ. Yapisal kanit: shop/test/fiyat-prova.mjs D1 run() ve global fetch cagrilarini
+ * SAYAR; prova cagrisinda ikisi de 0 olmali.
+ *
+ * 🔒 SIZINTI YUZEYI: cevap BEYAZ LISTE ile kurulur (yeni bir ic alan eklense bile kendiliginden
+ * SIZMAZ): id + adet + kurus tutarlari + musteriye zaten gosterilen parametre_detay. Katalog
+ * ic alanlari (baslik/kategori/gorsel), uretim verisi (hacim_mm3), IBAN/unvan, siparis no,
+ * tedarikci/lisans bilgisi ve secret DONMEZ. Musteri (PII) alani HIC OKUNMAZ.
+ */
+async function fiyatProva(request, env) {
+  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
+  if (provaHizSiniriAsildi(ip)) { return json({ hata: "cok-istek" }, 429, env); }
+
+  let govde;
+  try {
+    govde = await request.json();
+  } catch (e) {
+    return json({ hata: "gecersiz-json" }, 400, env);
+  }
+  if (!govde || typeof govde !== "object") return json({ hata: "gecersiz-istek" }, 400, env);
+
+  // Dogrulama TEK KAYNAK: /baslat ile AYNI fonksiyon (gevsek prova yolu YOK). Musteri /
+  // sozlesme_onay / odeme alanlari burada BILEREK istenmez ve OKUNMAZ (siparis olusmuyor).
+  const kc = kalemleriCoz(govde.sepet);
+  if (kc.hata) return json(kc, 400, env);
+
+  // Hesap TEK KAYNAK: tahsilatta kosan fonksiyonun AYNISI. Konfigur/parametrik fail-closed
+  // kollari da burada -> bundle'da olmayan konfigur urunu provada da 400 alir (provanin
+  // "odenebilir" demesi ile /baslat'in tahsil etmesi AYRISAMAZ).
+  const f = await sepetiFiyatla(env, kc.kalemler);
+  if (f.hata) return json(f.hata, f.kod, env);
+  const { satirlar, toplamKurus } = f;
+  if (!(toplamKurus > 0)) return json({ hata: "gecersiz-tutar" }, 400, env);
+
+  const kargoKurus = SECENEK.kargoKurus(toplamKurus);
+  const tahsilatKurus = toplamKurus + kargoKurus;
+  const kdv = SECENEK.kdvAyristir(tahsilatKurus);
+
+  return json({
+    prova: true,
+    // BEYAZ LISTE (bkz. yukarida): sepetiFiyatla satirindaki baslik/kategori/gorsel/hacim_mm3
+    // gibi alanlar BILEREK disarida.
+    satirlar: satirlar.map((s) => {
+      const c = { id: s.id, adet: s.adet, birim_kurus: s.birim_kurus,
+                  tutar_kurus: s.tutar_kurus };
+      if (s.parametre_detay) { c.parametre_detay = s.parametre_detay; }
+      return c;
+    }),
+    urun_kurus: toplamKurus,
+    kargo_kurus: kargoKurus,
+    tahsilat_kurus: tahsilatKurus,
+    tutar: kurusTL(tahsilatKurus),
+    net_kurus: kdv.netKurus,
+    kdv_kurus: kdv.kdvKurus,
+    kdv_yuzde: SECENEK.KDV_YUZDE,
+  }, 200, env);
 }
 
 // ---------------------------------------------------------------- /donus
@@ -704,6 +838,9 @@ export default {
       // NOT: /ayarlar ucu KALDIRILDI — front katsayi/renk listesini /secenekler.js'ten alir
       // (tek kaynak). Worker'in ayni listeyi ikinci bir ucdan yayinlamasi drift kapisi acardi.
       if (yol === "/baslat" && request.method === "POST") return await baslat(request, env, url, ctx);
+      // PROVA (yan etkisiz fiyat sorgusu): /baslat ile AYNI dogrulama + AYNI hesap, TUTAR doner;
+      // D1'e yazmaz, iyzico/Telegram/e-posta yok. Yalniz POST (govde sepet tasir).
+      if (yol === "/fiyat" && request.method === "POST") return await fiyatProva(request, env);
       if (yol === "/donus") return await donus(request, env, ctx);
       // wa.me lead attribution (OCI #1): landing beacon'i REF->click-id'yi D1'e kalici kilar.
       // Handler yalniz POST'u yazar, digerini 204 gecer; her durumda 204 (bilgi sizmaz).
