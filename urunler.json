@@ -1,5 +1,474 @@
 [
   {
+    "id": "mercruiser-alpha-one-trim-pin-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercruiser Alpha One Trim Pin Uç Kapağı",
+    "aciklama": "Mercruiser Alpha One dış motor sisteminin trim ram pinlerine takılan uç kapağı. Sürtünmeyle pinlerin ucuna oturur.\n- Mercruiser Alpha One trim ram pinlerine özeldir.\n- Sürtünmeyle takılır, ek bağlantı gerekmez.\n- Kırılan orijinal kapağın yerine geçer.\nYaklaşık dış ölçüler: 38 × 38 × 15 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3807730-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3807730-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3807730-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3807730-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "superbenk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-kilifi-destek-kubbesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kılıfı Destek Kubbesi (Prop Dome)",
+    "aciklama": "Tekne kılıfını gerdiren tüpün ucuna takılan kubbe başlık. Kılıfın tek noktada aşırı baskı almasını önler.\n- Kılıf destek tüpünün ucuna oturur.\n- Baskıyı geniş bir alana dağıtır.\n- Kılıfın delinmesini/aşınmasını önler.\nYaklaşık dış ölçüler: 129 × 129 × 43 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th122269-1.jpg",
+      "https://media.pruvo3d.com/urunler/th122269-2.jpg",
+      "https://media.pruvo3d.com/urunler/th122269-3.jpg",
+      "https://media.pruvo3d.com/urunler/th122269-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "T311",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pontoon-tekne-korkuluk-bardakligi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pontoon Tekne Korkuluk Bardaklığı",
+    "aciklama": "Pontoon tekne korkuluğuna (34x32 mm ölçülerinde) takılan sürücü koltuğu yanı bardaklık.\n- 34 mm genişlik, 32 mm yükseklikte korkuluğa özeldir.\n- Klips ve destek parçalarıyla üç parça halinde gelir.\n- Sürücü koltuğu yanına monte için tasarlandı.\nYaklaşık dış ölçüler: 143 × 133 × 68 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4536529-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4536529-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4536529-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4536529-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stevenminnick",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dinghy-tahliye-tapasi-yarim-tur",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dinghy Tahliye Tapası (Yarım Tur Kilit)",
+    "aciklama": "Dinghy tekneleri için yarım tur çevirerek kilitlenen tahliye tapası.\n- Yarım tur çevirerek kilitlenir.\n- Kaybolan orijinal tapanın yerine geçer.\n- Dinghy park yerlerinde sık kaybolan bir parçadır.\nYaklaşık dış ölçüler: 51 × 30 × 18 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1026369-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1026369-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1026369-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1026369-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nickolastd21",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dock-cleat-kelepceli-olta-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dock Cleat Kelepçeli Olta Tutucu",
+    "aciklama": "İskele veya teknedeki cleat'e kelepçeyle takılan, iki vidayla sıkılan olta tutucu. 12-34,8 mm ray yüksekliğine uyarlanabilir.\n- Dock/tekne cleat'ine kelepçeyle takılır.\n- 12-34,8 mm arası ray yüksekliğine uyarlanabilir.\n- İki vidayla sıkıca sabitlenir.\nYaklaşık dış ölçüler: 152 × 98 × 63 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5871339-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5871339-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5871339-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5871339-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DeltaNachos",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "point65-kayak-tahliye-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Point65 Kayak Tahliye Tapası",
+    "aciklama": "Point65 marka kayaklara özel tasarlanmış tahliye (drenaj) tapası.\n- Point65 kayak modeline özel ölçülendirilmiştir.\n- Tahliye deliğini su geçirmez şekilde kapatır.\n- Kolayca takılıp çıkarılır.\nYaklaşık dış ölçüler: 48 × 24 × 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3012438-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3012438-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Yopsolo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dis-motor-impeller-pompasi-rotoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dış Takma Motor İmpeller Pompası Rotoru",
+    "aciklama": "Eski bir dış takma motorun impeller pompasına ait, piyasada bulunamayan yedek rotor parçası. Üç farklı kalınlıkta seçenek sunar.\n- Eski dış takma motor impeller pompasına uyar.\n- Üç farklı kalınlık seçeneğiyle gelir.\n- Piyasada bulunamayan yedek parçanın yerine geçer.\nYaklaşık dış ölçüler: 43 × 41 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1687801-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3driven",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "humminbird-helix5-tekne-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Humminbird Helix5 Tekne Montaj Adaptörü",
+    "aciklama": "Humminbird Helix5 balık bulucu için, orijinal bağlantısı uymayan teknelere özel montaj adaptörü.\n- Humminbird Helix5 ile uyumludur.\n- Orijinal bağlantının uymadığı teknelerde kullanılır.\n- Standart katman yüksekliğiyle basılabilir.\nYaklaşık dış ölçüler: 60 × 55 × 51 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3853877-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hunter228",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "garmin-striker-4-plus-top-mafsal-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin Striker 4 Plus Top Mafsal Montajı",
+    "aciklama": "Garmin Striker 4 Plus (CV/DV) sonar cihazı için top mafsallı hızlı montaj. McMaster döner/eğilir kol sistemine uyumludur.\n- Garmin Striker 4 Plus (CV/DV) ile uyumludur.\n- McMaster top-mafsal koluna oturur.\n- Standart RAM mount tabanlarına uymaz, ayrı sistemdir.\nYaklaşık dış ölçüler: 78 × 78 × 53 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4441219-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "armedgeek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sup-kurek-damla-halkasi-irocker-uyumlu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "SUP Kürek Damla Halkası (iRocker Uyumlu)",
+    "aciklama": "SUP kürek şaftına takılan, suyun ele akmasını önleyen damla halkası seti. 30 mm (1,125 inç) üstü şaftlara uyar.\n- 30 mm üstü kürek şaftlarına uyar.\n- Suyun kürekten ele akmasını engeller.\n- İki adet halka olarak basılır.\nYaklaşık dış ölçüler: 61 × 61 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4701825-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4701825-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "brycelowe",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "old-town-kayak-garmin-transducer-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Old Town Kayak Garmin Transducer Montajı",
+    "aciklama": "Old Town Sportsman 120 PDL kayağına transom-tipi Garmin transducer monte etmek için tek parça montaj.\n- Old Town Sportsman 120 PDL kayağına özeldir.\n- Transom-tipi Garmin transducer ile uyumludur.\n- Tek parça basılan pratik bir tasarımdır.\nYaklaşık dış ölçüler: 102 × 52 × 47 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4936022-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lowrizzle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "garmin-montana-kayak-gunluk-canta-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin Montana Kayak Günlük Çanta Montajı",
+    "aciklama": "Garmin Montana GPS cihazını kayak günlük çanta kapağına bağlayan montaj kolu seti.\n- Garmin Montana GPS ile uyumludur.\n- Kayak günlük çanta kapağına bağlanır.\n- Farklı boy seçenekleriyle (kısa/uzun) gelir.\nYaklaşık dış ölçüler: 132 × 91 × 12 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1879377-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1879377-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1879377-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1879377-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nenadr",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelken-vinc-kilavuz-kolu-harken-uyumlu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Vinç Kılavuz Kolu (HARKEN Uyumlu)",
+    "aciklama": "HARKEN 16 ST / 32,2 ST / 40,2 ST vinçlerde ortak kullanılan kılavuz kol yedek parçası (orijinal parça no 26915).\n- HARKEN 16/32,2/40,2 ST vinçlerle uyumludur.\n- Kırılan orijinal kılavuz kolun yerine geçer.\n- Yelkenli donanımında vinç bakımı için kullanılır.\nYaklaşık dış ölçüler: 53 × 30 × 25 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3082830-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3082830-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Charlie_Poppins",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pontoon-tekne-bayrak-diregi-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pontoon Tekne Bayrak Direği Tutucu",
+    "aciklama": "Pontoon tekne korkuluğuna delik açmadan takılan bayrak direği tutucu. 7/8 inç korkuluk ve 3/4 inç bayrak direğine uyar.\n- 7/8 inç çaplı korkuluğa delik açmadan takılır.\n- 3/4 inç çaplı bayrak direğine uyar.\n- İki parça halinde vidayla sıkılır.\nYaklaşık dış ölçüler: 76 × 46 × 43 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4462320-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4462320-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4462320-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4462320-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FreiGuy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-tasima-sapi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Taşıma Sapı",
+    "aciklama": "Kayak gövdesine monte edilen, sabit ve dayanıklı taşıma sapı.\n- Gömme vidalarla kayak gövdesine sabitlenir.\n- Well-nut veya tercih edilen başka yöntemle monte edilebilir.\n- Güneşe dayanıklı PETG ile basılması önerilir.\nYaklaşık dış ölçüler: 175 × 175 × 40 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5770230-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5770230-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "HarderDIY",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mighty-mount-sut-kasasi-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mighty Mount Süt Kasası Adaptörü",
+    "aciklama": "YakAttack Mighty Mount aksesuar sistemini standart süt kasasına bağlayan adaptör - kayak balıkçılığında yaygın kullanılan bir donatım.\n- YakAttack Mighty Mount sistemiyle uyumludur.\n- Standart süt kasasına monte edilir.\n- Kasa iç ölçülerine göre remiks edilebilir.\nYaklaşık dış ölçüler: 62 × 51 × 38 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6596545-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6596545-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6596545-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6596545-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "matts2bad",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "sup-kano-kurek-tutamaci-delikli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "SUP / Kano Kürek Tutamacı (Delikli)",
+    "aciklama": "SUP veya kano küreklerinin T-tutamacının yerine geçen delikli yedek tutamaç.\n- SUP ve kano kürekleriyle uyumludur.\n- Orijinal tutamacın yerine geçer.\n- Delikli yapısı kordon bağlamaya izin verir.\nYaklaşık dış ölçüler: 148 × 84 × 38 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4385184-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GrAl",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sup-kayak-kurek-gopro-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "SUP / Kayak Kürek GoPro Kamera Montajı",
+    "aciklama": "SUP veya kayak küreğine takılan, kamerayı hızlıca çıkarıp takmayı sağlayan GoPro montajı.\n- Kürek şaftına halka şeklinde oturur.\n- GoPro kamerayı hızlıca takıp çıkarmayı sağlar.\n- Standart montajlara göre biraz daha yüksek profillidir.\nYaklaşık dış ölçüler: 126 × 126 × 33 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5455290-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5455290-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5455290-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mr_Gor",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "scotty-tasma-klipsi-yedek",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Scotty Taşma Klipsi (Yedek Parça)",
+    "aciklama": "Scotty marka tasma sistemi için yedek klips parçası.\n- Scotty tasma sistemiyle uyumludur.\n- Kırılan orijinal klipsin yerine geçer.\n- Detent (kilitleme çentiği) versiyonuyla birlikte gelir.\nYaklaşık dış ölçüler: 67 × 29 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2075291-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2075291-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2075291-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rytz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "olcum-tahtasi-el-korkuluk-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ölçüm Tahtası El Korkuluğu Klipsi",
+    "aciklama": "Balık ölçüm tahtasını kayak el korkuluğuna takıp çıkarmayı kolaylaştıran klips. Standart ve H-tipi korkuluklarla uyumludur.\n- Standart ve H-tipi kayak korkuluklarıyla uyumludur.\n- Ölçüm tahtasının hızlı takılıp çıkarılmasını sağlar.\n- PETG ile basılması önerilir.\nYaklaşık dış ölçüler: 125 × 117 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2245894-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2245894-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2245894-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FloridaFishHunter",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "kablosuz-balik-bulucu-yem-teknesi-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kablosuz Balık Bulucu Yem Teknesi Tutucu",
+    "aciklama": "Kablosuz balık bulucu sensörünü yem teknesine (bait boat) bağlayan kelepçeli tutucu.\n- Kablosuz balık bulucu sensörüne uyar.\n- Yem teknesine kelepçeyle sabitlenir.\n- Döner mafsallı kol ile açı ayarlanabilir.\nYaklaşık dış ölçüler: 61 × 40 × 11 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4628458-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4628458-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rampetampertje",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelken-cam-cleat-kilitli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Cam Cleat (Kilitli Halat Tutucu)",
+    "aciklama": "Yüksek kaliteli cam/clam tipi cleat. Tek metal parça (yay) gerektirir, deniz uygulamaları için ASA malzeme önerilir.\n- Cam-cleat mekanizmasıyla halatı otomatik kilitler.\n- Tek metal yay dışında tüm parçalar basılabilir.\n- Deniz kullanımı için ASA malzeme önerilir.\nYaklaşık dış ölçüler: 62 × 29 × 21 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7246074-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7246074-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7246074-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7246074-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stensino",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "top-mafsalli-acili-olta-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Top Mafsallı Açılı Olta Tutucu",
+    "aciklama": "Tekne, kano ve iskelelerde kullanılan, 25 mm top mafsal ile geniş açı aralığında ayarlanabilen olta tutucu.\n- 25 mm top mafsal ile geniş açı ayarı sağlar.\n- Yatay veya 45 derece açılı taban seçenekleri vardır.\n- Güçlendirilmiş gövdesiyle dayanıklıdır.\nYaklaşık dış ölçüler: 210 × 123 × 41 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th998784-1.jpg",
+      "https://media.pruvo3d.com/urunler/th998784-2.jpg",
+      "https://media.pruvo3d.com/urunler/th998784-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "moose4621",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-ray-kelepcesi-diy-transducer-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Ray Kelepçesi (DIY Transducer Montajı)",
+    "aciklama": "Kayak aksesuar rayına takılan, 1/2 inç elektrik borusunu tutarak DIY balık bulucu transducer montajı yapmayı sağlayan kelepçe.\n- Kayak aksesuar rayına oturur.\n- 1/2 inç elektrik borusunu sabitler.\n- DIY transducer montaj kollarıyla uyumludur.\nYaklaşık dış ölçüler: 76 × 62 × 32 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2746571-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2746571-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2746571-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2746571-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lgeekdws",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "garmin-4dv-transducer-kolu-scotty-tabanli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin 4DV Transducer Kolu (Scotty Tabanlı)",
+    "aciklama": "Garmin 4DV transducer'ı kayağa bağlamak için Scotty tabanına uyumlu montaj kolu.\n- Garmin 4DV transducer ile uyumludur.\n- Scotty tipi tabanlara oturur.\n- Kayaklarda kullanım için tasarlandı.\nYaklaşık dış ölçüler: 100 × 42 × 26 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2813613-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2813613-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2813613-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "akhenatn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "scotty-transducer-90-derece-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Scotty Transducer 90 Derece Adaptörü",
+    "aciklama": "Scotty transducer montajı için kırılan orijinal 90 derece adaptörün yerine geçen yedek parça.\n- Scotty transducer montajıyla uyumludur.\n- Kırılan orijinal 90 derece adaptörün yerine geçer.\n- Küçük boyutu sayesinde yedek olarak taşınabilir.\nYaklaşık dış ölçüler: 66 × 20 × 17 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4119674-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4119674-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mattdenney07",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "garmin-striker-plus-4cv-transducer-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin Striker Plus 4CV Transducer Tutucu",
+    "aciklama": "Garmin Striker Plus 4CV sonar transducer'ı için alüminyum profile montajlı tutucu.\n- Garmin Striker Plus 4CV ile uyumludur.\n- 20x20 mm alüminyum profile vidayla sabitlenir.\n- Üst ve alt parça olarak iki adet basılır.\nYaklaşık dış ölçüler: 111 × 75 × 40 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4461420-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4461420-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4461420-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zoha",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "minn-kota-endura-c2-kilitleme-braketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Minn Kota Endura C2 Kilitleme Braketi",
+    "aciklama": "Minn Kota Endura C2 30lb trolling motoru için kilitleme/açma braketi, kayaklarda DIY montaj için remikslenmiştir.\n- Minn Kota Endura C2 30lb motoruyla uyumludur.\n- Kilitleme/açma mekanizmasını kolaylaştırır.\n- Kayaklara DIY montaj için tasarlandı.\nYaklaşık dış ölçüler: 83 × 35 × 6 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4943884-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4943884-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "YAKoholic",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "kayak-capa-troleyi-zigzag-cleat",
     "kategori": "Marin",
     "marka": [],
