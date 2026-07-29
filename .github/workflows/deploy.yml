@@ -327,6 +327,21 @@ jobs:
       - name: Konfigur (dekor konfigurator) kabul testi
         run: python3 tools/konfigur-test.py --anahat
 
+      # KONFIGUR FAIL-CLOSED (shop odeme yolu — SESSIZ EKSIK TAHSILAT kapisi). Konfigurlu urun
+      # D1'e senkronlanip Worker ELLE deploy edilmediginde kalem eskiden sessizce SABIT katalog
+      # fiyatiyla satiliyordu (olculdu: 30 cm/PLA 1.500 TL yerine 500 TL -> 1.000 TL eksik
+      # tahsilat, hicbir uyari yok). Bu adim shop/src/index.js'in KENDISINI node'a yukleyip
+      # (setup-node yukarida BLOKLAYICI on-kosul; node yoksa FAIL-CLOSED kirmizi) sahte D1 +
+      # sahte iyzico ile kosar: (a) 39/39 konfigur kaleminde fiyat DEGISMEDI, (b) bundle'da
+      # olmayan konfigur urunu 400 aliyor ve sabit fiyat HESAPLANMIYOR, (c) 250 siradan urun +
+      # 13.717 urunluk katalog taramasinda 0 yanlis-pozitif, (d) kapi silinince YALNIZ (b)
+      # kirmizi yaniyor (olu-nobetci korumasi), (e) musteriye gosterilen metin jenerik degil.
+      # OFFLINE: wrangler YOK, ag YOK, gercek/sahte SIPARIS YOK, dosya yazmaz. ~6 s.
+      # NOT: shop/test'in diger dosyalari (kabul.js vb.) wrangler dev istedigi icin ci-kapsam
+      # izin listesinde muaf; BU dosya wrangler istemedigi icin muaf DEGIL, fiilen kosar.
+      - name: Konfigur fail-closed kabul testi (shop sessiz eksik-tahsilat kapisi)
+        run: node shop/test/konfigur-fail-closed.mjs
+
       # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
       # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,
       # genel GO/NO-GO, worker 403->BLOKLU(HocA), d1 kimlik-hatasi->BLOKLU(Okan), origin turetme,

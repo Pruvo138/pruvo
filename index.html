@@ -1667,6 +1667,10 @@
   // Worker hata kodları -> müşterinin anlayacağı Türkçe. Bilinmeyen kod sessizce yutulmaz.
   var HATA_METNI = {
     "parametrik-urun": "Sepetinizde ölçüye özel bir ürün var; bunlar için WhatsApp'tan teklif alın.",
+    // Worker konfigür kolunun 400'ü (shop/src/index.js): ürün ölçü seçimiyle özel üretiliyor
+    // ama şu an kartla alınamıyor. Bu kod olmadan müşteri jenerik "Ödeme başlatılamadı"
+    // metnini görüp ödemesi başarısız sanıyordu — oysa doğru yol WhatsApp'tan sipariş.
+    "konfigur-urun": "Sepetinizde ölçüye özel üretilen bir ürün var; bunun siparişini WhatsApp'tan alıyoruz.",
     "fiyatsiz-urun": "Sepetinizdeki bir ürünün fiyatı güncellenmiş. Sayfayı yenileyip tekrar deneyin.",
     "bilinmeyen-urun": "Sepetinizdeki bir ürün artık yayında değil. Sepeti güncelleyip tekrar deneyin.",
     "gecersiz-adet": "Adet 1-99 arasında olmalı.",

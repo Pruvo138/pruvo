@@ -115,13 +115,33 @@ def _icra_komutlari(deploy_metin):
     return komutlar
 
 
+# Kesif predikati .py YANINDA .js/.mjs/.cjs dosyalarini da buluyor (DIR_PAT); bunlar
+# python3 ile DEGIL node ile kosulur. Yorumlayici DOSYA UZANTISINDAN turetilir — capa yine
+# TEK ve dar kalir (serbest komut kabul edilmez).
+YORUMLAYICI = {".py": "python3", ".js": "node", ".mjs": "node", ".cjs": "node"}
+
+
+def _yorumlayici(yol):
+    """<yol> hangi yorumlayiciyla kosulur? Bilinmeyen uzanti -> python3 (fail-closed:
+    eslesme DARALIR, yani dosya 'kosulmuyor' sayilir ve kapsam kapisi konusur)."""
+    return YORUMLAYICI.get(os.path.splitext(yol)[1], "python3")
+
+
 def _onek_re(yol):
     """TEK KAYNAK — 'bu komut govdesi <yol>'u kosuyor' capasi.
 
-    Komut govdesi 'python3 <yol>' ile BASLAMALI; negatif ileri-bakis (?![\\w./-])
-    uzun bir baska yolun on-eki olarak yanlis eslesmeyi engeller (ve '<yol> --bayrak'
-    biciminde BAYRAKLI cagriyi DOGRU sekilde ESLESTIRIR — bkz. bulgu1 docstring'i)."""
-    return re.compile(r"^python3\s+" + re.escape(yol) + r"(?![\w./-])")
+    Komut govdesi '<yorumlayici> <yol>' ile BASLAMALI (yorumlayici uzantidan: .py ->
+    python3, .js/.mjs/.cjs -> node); negatif ileri-bakis (?![\\w./-]) uzun bir baska yolun
+    on-eki olarak yanlis eslesmeyi engeller (ve '<yol> --bayrak' biciminde BAYRAKLI cagriyi
+    DOGRU sekilde ESLESTIRIR — bkz. bulgu1 docstring'i).
+
+    NODE EKSENI (28 Tem): eski capa SABIT 'python3' idi -> deploy.yml'e node ile kosulan bir
+    kabul testi eklense bile kapi onu 'kosulmuyor' sayardi; tek cikis yolu GERCEKTE KOSAN bir
+    testi 'muaf' diye izin listesine yazmakti (yalan kayit) ya da testi hic baglamamakti
+    (cagrisiz nobetci). Olculdu: 'run: node shop/test/konfigur-fail-closed.mjs' adimi
+    eklendigi halde kapi KAPSAMSIZ diyordu. Kapsam KURALI degismedi, yalnizca capanin
+    yorumlayicisi dosya uzantisindan turetilir hale geldi."""
+    return re.compile(r"^" + _yorumlayici(yol) + r"\s+" + re.escape(yol) + r"(?![\w./-])")
 
 
 def _icra_satir_indeksleri(deploy_metin, yol):
