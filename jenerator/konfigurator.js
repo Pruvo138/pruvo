@@ -8,12 +8,28 @@
 (function (root) {
   "use strict";
 
-  // Cerceve 2-renk yazi ek ucreti (kurus) + basilabilirlik esigi + beyaz liste.
-  // TEK KAYNAK degerleri: +75 TL = shop/src/parametrik.js ile AYNI; min kenar 10 mm
+  // Cerceve 2-renk yazi basilabilirlik esigi + beyaz liste. Min kenar 10 mm
   // (KaaN render: production floor; 9mm stem 0.69mm<nozul kirilgan, 10mm 0.89mm robust);
   // beyaz liste = onizleme/derleyici/server.py METIN_BEYAZ_LISTE kumesiyle AYNI (harf/rakam + . , - _).
-  var IKI_RENK_EK_KURUS = 7500;
+  //
+  // 2-RENK EK UCRETI BURADA SABIT DEGIL: TEK KAYNAK /secenekler.js IKI_RENK_EK_KURUS —
+  // Worker (shop/src/parametrik.js) AYNI degeri okur, ikinci kopya YOK. Ayri sabit tutulursa
+  // biri degisip digeri kalir ve musteriye gosterilen fiyat ile tahsil edilen fiyat ayrisir.
   var IKI_RENK_MIN_KENAR = 10;
+
+  // Ek ucret + satir detay eki: DAIMA tek kaynaktan. secenekler.js yuklenmemisse 0/ucretsiz
+  // metin — Worker'in fail-closed dali ile AYNI yon (asimetri = sessiz yanlis tahsilat).
+  function ikiRenkEkKurus() {
+    var S = root.PRUVO_SECENEK;
+    var v = S ? S.IKI_RENK_EK_KURUS : null;
+    return (typeof v === "number" && isFinite(v) && v > 0) ? v : 0;
+  }
+  function ikiRenkDetayEki(yaziRenk) {
+    var S = root.PRUVO_SECENEK;
+    return (S && typeof S.ikiRenkDetayEki === "function")
+      ? S.ikiRenkDetayEki(yaziRenk)
+      : (" · Yazı rengi: " + yaziRenk + " (2 renk)");
+  }
   var YAZI_BEYAZ_LISTE = /^[A-Za-z0-9ğüşıöçĞÜŞİÖÇ .,\-_]*$/;
 
   // ---- saf yardımcılar (node testlerinde de kullanılır) ----
@@ -347,8 +363,9 @@
         : root.PRUVO_SECENEK.parametrikFiyatKurus(
             sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
       // 2-renk yazi ek ucreti: front gosterimi Worker (parametrik.js) ile AYNI olmali,
-      // yoksa musteri 600 gorup 675 tahsil edilirdi (clamp DISI +75 TL).
-      if (kurus != null && cer && cer.ikiRenk) { kurus += IKI_RENK_EK_KURUS; }
+      // yoksa musteri 600 gorup 675 tahsil edilirdi (clamp DISI ek ucret). Tutar tek
+      // kaynaktan (secenekler.js); bugun 0 -> gosterilen fiyat degismez.
+      if (kurus != null && cer && cer.ikiRenk) { kurus += ikiRenkEkKurus(); }
       // Sari kural (Okan): taban fiyat girilmemis ailede (vida) "Olcuye ozel fiyat"
       // ("—" degil — musteriye fiyatin sonradan teklif edilecegini soyler). Taban
       // fiyati DOLU ailede kart-secim kalibi (normal sayfayla ayni, F kalemi):
@@ -416,12 +433,13 @@
       var kurus = (h == null) ? null
         : root.PRUVO_SECENEK.parametrikFiyatKurus(
             durum.sema.tabanFiyatTL, durum.sema.tabanHacimMm3, h, satir.malzeme, satir.renk);
-      // 2-renk yazi: yazi_renk satira yazilir (ayri-satir anahtari + Worker teyidi) + +75 TL
-      // (clamp DISI, Worker parametrik.js ile AYNI). Tek-renkte alan hic yazilmaz.
+      // 2-renk yazi: yazi_renk satira yazilir (ayri-satir anahtari + Worker teyidi) + ek ucret
+      // (clamp DISI, tutar+metin secenekler.js'ten — Worker parametrik.js ile AYNI kaynak).
+      // Tek-renkte alan hic yazilmaz.
       if (cer && cer.ikiRenk && kurus != null) {
         satir.yazi_renk = cer.yaziRenk;
-        kurus += IKI_RENK_EK_KURUS;
-        satir.parametre_detay += " · Yazı rengi: " + cer.yaziRenk + " (2 renk, +75 TL)";
+        kurus += ikiRenkEkKurus();
+        satir.parametre_detay += ikiRenkDetayEki(cer.yaziRenk);
       }
       satir.parametrik_fiyat_kurus = kurus;
       return satir;

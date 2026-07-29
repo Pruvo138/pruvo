@@ -215,6 +215,29 @@
     return Math.round(kurus);
   }
 
+  /* ÇERÇEVE 2-RENK YAZI EK ÜCRETİ (kuruş) — TEK KAYNAK. Hem ön yüz (jenerator/konfigurator.js)
+     hem Worker (shop/src/parametrik.js) BU değeri okur; iki tarafta ayrı sabit TUTULMAZ
+     (ayrışırsa müşteriye gösterilen fiyat ile tahsil edilen fiyat farklı olur — bu depoda
+     yaşandı). Satır detayındaki metin de aynı sayıdan türetilir, yani metin fiyatla YALAN
+     SÖYLEYEMEZ.
+
+     🔴 BUGÜN 0 = TAHSİL EDİLMEZ (2026-07-29, Okan onayı "para aktığı deliği kapat"):
+     ölçüm, canlı derleyiciye aynı geometriyle yazı='' / 'OKAN' / 'WWWWWWWWWWWW' gönderdi;
+     üç çıktı da 65284 bayt / 1304 üçgen / SHA-256 BİREBİR AYNI çıktı — yazı üretilen STL'e
+     hiç girmiyor, yani ayrı gövde/AMS 2. filaman maliyeti OLUŞMUYOR. Karşılığı olmayan
+     +75 TL tahsilatı durduruldu. Ücret 0 iken 2-renk seçimi ve kenar≥10 mm basılabilirlik
+     kapısı OLDUĞU GİBİ kalır (ürün satıştan çekilmedi), yalnız para eklenmez.
+     GERİ AÇMAK: burayı 7500 yap + Worker'ı yeniden deploy et (değer bundle'a gömülüdür;
+     tek başına site push'u Worker'ı DEĞİŞTİRMEZ — PARAMETRIK_ODEME_ACIK ile aynı kural). */
+  var IKI_RENK_EK_KURUS = 0;
+
+  /* 2-renk satır detayı eki — ücret metni AYNI sabitten türer (0 iken "+... TL" ibaresi
+     hiç yazılmaz). Ön yüz ve Worker aynı fonksiyonu çağırır: iki farklı metin üretilemez. */
+  function ikiRenkDetayEki(yaziRenk) {
+    return " · Yazı rengi: " + yaziRenk + " (2 renk" +
+      (IKI_RENK_EK_KURUS > 0 ? ", +" + (IKI_RENK_EK_KURUS / 100) + " TL" : "") + ")";
+  }
+
   /* Kuruşu ekran metnine çevirir: 43290 -> "432,90 TL", 129870 -> "1.298,70 TL".
      TEK formatter (site + konfigüratör + sepet): spec gereği DAİMA 2 ondalık ve virgüllü —
      tam TL'de de "300,00 TL" yazar. Küsurat korunuyorsa gösterimi de tutarlı olmalı; ayrıca
@@ -394,6 +417,8 @@
     boyFarki: boyFarki,
     hesaplaFiyatKurus: hesaplaFiyatKurus,
     parametrikFiyatKurus: parametrikFiyatKurus,
+    IKI_RENK_EK_KURUS: IKI_RENK_EK_KURUS,
+    ikiRenkDetayEki: ikiRenkDetayEki,
     adetDuzelt: adetDuzelt,
     kurusMetni: kurusMetni,
     tlMetni: tlMetni,

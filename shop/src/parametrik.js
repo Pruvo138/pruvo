@@ -49,9 +49,14 @@ export function parametrikHesapla(kalem, secenek, sema) {
   if (birimKurus == null || !(birimKurus > 0)) { return { hata: "taban-fiyat-yok" }; }
 
   // 2-RENK YAZI EK UCRETI (cerceve): yazi dolu VE yazi_renk cerceve renginden farkli ise
-  // ayri govde uretimi (AMS 2 filaman) -> +75 TL. Boyut/3x tavanin DISINDA: hacme girmez,
+  // ayri govde uretimi (AMS 2 filaman) icin ek ucret. Boyut/3x tavanin DISINDA: hacme girmez,
   // clamp'ten SONRA eklenir (tavan yaziyi icermez). yazi param olmayan urunlerde (p.yazi
   // undefined) veya yazi_renk yoksa/esitse tetiklenmez -> diger sari aileleri etkilemez.
+  //
+  // TUTAR BURADA YAZILI DEGIL: secenekler.js IKI_RENK_EK_KURUS (TEK KAYNAK) — front
+  // (jenerator/konfigurator.js) AYNI degeri okur. 2026-07-29 itibariyle 0 = TAHSIL EDILMEZ
+  // (olcum: yazi uretilen STL'e girmiyor, uc render SHA-256 birebir ayni -> karsiligi yok).
+  // Ikinci bir sabit BIRAKMA: iki taraf ayrisirsa gosterilen != tahsil edilen olur.
   const ikiRenk = p.yazi && kalem.yazi_renk && kalem.yazi_renk !== kalem.renk;
   let detay = KONF.detayMetni(sema, p);
   if (ikiRenk) {
@@ -62,8 +67,14 @@ export function parametrikHesapla(kalem, secenek, sema) {
     if (!(kalem.parametreler.kenar_genisligi >= IKI_RENK_MIN_KENAR)) {
       return { hata: "iki-renk-kenar-dar", enAz: IKI_RENK_MIN_KENAR };
     }
-    birimKurus += 7500;
-    detay += " · Yazı rengi: " + kalem.yazi_renk + " (2 renk, +75 TL)";
+    // FAIL-CLOSED: sabit bundle'a gelmemisse (bozuk/eski secenekler.js) NaN fiyat tahsil
+    // etmektense kalemi reddet — sessiz yanlis tutar, acik hatadan daha pahalidir.
+    const ekKurus = secenek.IKI_RENK_EK_KURUS;
+    if (typeof ekKurus !== "number" || !isFinite(ekKurus) || ekKurus < 0) {
+      return { hata: "iki-renk-ucret-tanimsiz" };
+    }
+    birimKurus += ekKurus;
+    detay += secenek.ikiRenkDetayEki(kalem.yazi_renk);
   }
 
   return {

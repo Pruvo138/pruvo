@@ -94,8 +94,9 @@ var TABAN_FIYATLAR = {
   // (varsayilan 25mm/PLA/dikis). Drift kilidi: sema sayisi 21 -> 22 lockstep.
   "olcuye-ozel-toka": 150,
   // Olcuye ozel cerceve (yeni parametrik aile, 2026-07-27 — Okan karari): 200 TL taban/zemin
-  // (varsayilan 100x150/k12/d5.2/chamfer). 3x tavan -> max 600 TL. 2-renk yazi +75 TL
-  // (clamp DISI, parametrik.js). Drift kilidi: sema sayisi 22 -> 23 lockstep.
+  // (varsayilan 100x150/k12/d5.2/chamfer). 3x tavan -> max 600 TL. 2-renk yazi ek ucreti
+  // secenekler.js IKI_RENK_EK_KURUS'tan gelir (clamp DISI) ve 2026-07-29'dan beri 0 =
+  // TAHSIL EDILMEZ. Drift kilidi: sema sayisi 22 -> 23 lockstep.
   "olcuye-ozel-cerceve": 200
 };
 var URUN_DIR = path.join(KOK, "jenerator", "urunler");
