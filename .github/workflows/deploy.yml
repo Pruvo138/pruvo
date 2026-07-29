@@ -334,7 +334,7 @@ jobs:
       # (setup-node yukarida BLOKLAYICI on-kosul; node yoksa FAIL-CLOSED kirmizi) sahte D1 +
       # sahte iyzico ile kosar: (a) 39/39 konfigur kaleminde fiyat DEGISMEDI, (b) bundle'da
       # olmayan konfigur urunu 400 aliyor ve sabit fiyat HESAPLANMIYOR, (c) 250 siradan urun +
-      # 13.717 urunluk katalog taramasinda 0 yanlis-pozitif, (d) kapi silinince YALNIZ (b)
+      # TUM katalog taramasinda 0 yanlis-pozitif, (d) kapi silinince YALNIZ (b)
       # kirmizi yaniyor (olu-nobetci korumasi), (e) musteriye gosterilen metin jenerik degil.
       # OFFLINE: wrangler YOK, ag YOK, gercek/sahte SIPARIS YOK, dosya yazmaz. ~6 s.
       # NOT: shop/test'in diger dosyalari (kabul.js vb.) wrangler dev istedigi icin ci-kapsam

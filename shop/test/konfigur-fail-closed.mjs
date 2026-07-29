@@ -6,9 +6,19 @@
  *   node shop/test/konfigur-fail-closed.mjs
  *
  * NASIL (OFFLINE — wrangler/ag/gercek odeme YOK): shop/src/index.js'in KENDISI Node'a
- * yuklenir (JSON import'lari yukleme kancasiyla "with { type: json }"a cevrilir), D1 ve
- * iyzico yerine bellek-ici sahteleri konur. Fiyat, worker'in D1'e YAZDIGI satirdan okunur —
- * yani gercek para yolundan. Hicbir dis servise istek gitmez, hicbir siparis olusmaz.
+ * yuklenir, D1 ve iyzico yerine bellek-ici sahteleri konur. Fiyat, worker'in D1'e YAZDIGI
+ * satirdan okunur — yani gercek para yolundan. Hicbir dis servise istek gitmez, hicbir
+ * siparis olusmaz, hicbir kalici dosya degismez.
+ *
+ * NODE 20 UYUMU (CI arizasi, 28 Tem — deploy.yml node-version 20): bu test once ESM yukleme
+ * kancasi (module.registerHooks, Node 22.15+) kullaniyordu; yerelde Node 25'te YESIL, CI'da
+ * "TypeError: module.registerHooks is not a function" ile KIRMIZI yandi ve TUM site yayinini
+ * durdurdu. Kanca KALDIRILDI: Worker kaynaklari (bare JSON import'lari gomulu sabitlere
+ * cevrilerek) shop/ ALTINDA AYNI DERINLIKTE gecici bir dizine (shop/src-test-tmp-<pid>/)
+ * yazilir ve oradan import edilir — goreli yollar (../../secenekler.js, ../../jenerator/...)
+ * aynen cozulur. Kullanilan API'lerin hepsi Node 20 tabaninda: fs/path/url/vm/child_process +
+ * global fetch/Request/Response (18+). Dizin calisma sonunda (finally + process 'exit')
+ * silinir; bayat kopyalar her kosumun BASINDA da supurulur.
  *
  * KOSTUGU 5 SET:
  *   (a) REGRESYON — 13 konfigur urununun hepsi, KONFIGURLAR'da VARKEN: fiyat DEGISMEDI
@@ -28,7 +38,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
-import module from "node:module";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
@@ -36,50 +45,67 @@ import { createRequire } from "node:module";
 const BURASI = path.dirname(fileURLToPath(import.meta.url));
 const SHOP = path.dirname(BURASI);
 const KOK = path.dirname(SHOP);
+const SRC = path.join(SHOP, "src");
 const require = createRequire(import.meta.url);
 
-// ---------------------------------------------------------------- yukleme kancasi
-// 1) Worker kaynagi bare JSON import kullanir (esbuild bunu bundle'lar); Node ise import
-//    niteligi ister -> kaynak metninde "with { type: json }" eklenir. DOSYA DEGISMEZ.
-// 2) Sanal URL'ler (index.js'in eski/mutant kopyalari) bellekten servis edilir; goreli
-//    import'lari shop/src'e gore cozulsun diye URL yine shop/src altindadir.
-const SANAL = new Map();
+// ------------------------------------------------- Node 20 uyumlu yukleyici (kanca YOK)
+// Worker kaynagi bare JSON import kullanir (esbuild bundle'lar; Node import NITELIGI ister ve
+// nitelik sozdiziminin surum tabani Node surumune gore oynar). Surum-bagimsiz cozum: JSON
+// import satiri, dosyanin ICERIGI gomulu bir `const` ile DEGISTIRILIR -> geriye hicbir ozel
+// sozdizimi kalmaz, her Node'da ayni sekilde ayristirilir.
+//
+// Kopyalar shop/src ILE AYNI DERINLIKTE (shop/src-test-tmp-<pid>/) durur: dizin-ici goreli
+// import'lar (./semalar.js) kopyalara, depo koku import'lari (../../secenekler.js,
+// ../../jenerator/...) GERCEK dosyalara cozulur. Depo dosyalari DEGISMEZ; gecici dizin
+// finally + process 'exit' ile silinir, bayat kopyalar kosum basinda supurulur.
+const TEMP_ONEK = "src-test-tmp-";
+const TEMP_DIZIN = path.join(SHOP, TEMP_ONEK + process.pid);
 
-function jsonNiteligiEkle(kaynak) {
-  return kaynak.replace(
-    /(\bfrom\s+"[^"]*\.json")(\s*;)/g,
-    (t, a, b) => (/\bwith\b/.test(t) ? t : a + ' with { type: "json" }' + b));
+function tempSupur() {
+  for (const ad of fs.readdirSync(SHOP)) {
+    if (ad.startsWith(TEMP_ONEK)) {
+      fs.rmSync(path.join(SHOP, ad), { recursive: true, force: true });
+    }
+  }
 }
 
-module.registerHooks({
-  resolve(belirtec, baglam, sonraki) {
-    if (SANAL.has(belirtec)) { return { url: belirtec, format: "module", shortCircuit: true }; }
-    return sonraki(belirtec, baglam);
-  },
-  load(url, baglam, sonraki) {
-    if (SANAL.has(url)) {
-      return { format: "module", source: SANAL.get(url), shortCircuit: true };
-    }
-    // YALNIZ shop/src altindaki Worker moduleri (hepsi ESM). Depo kokundeki UMD dosyalari
-    // (secenekler.js/konfigur.js) DOKUNULMADAN, Node'un kendi CJS/ESM kararina birakilir.
-    if (url.startsWith("file://") && url.endsWith(".js")) {
-      const yol = fileURLToPath(url);
-      if (yol.startsWith(path.join(SHOP, "src") + path.sep)) {
-        return { format: "module", shortCircuit: true,
-                 source: jsonNiteligiEkle(fs.readFileSync(yol, "utf8")) };
-      }
-    }
-    return sonraki(url, baglam);
-  },
-});
+/** `import X from "...json";` -> `const X = <json icerigi>;` (fail-closed: bozuk JSON patlar). */
+function jsonGom(kaynak, kaynakDizin, etiket) {
+  const cikti = kaynak.replace(
+    /^import\s+([A-Za-z_$][\w$]*)\s+from\s+"([^"]+\.json)";[ \t]*$/gm,
+    (tam, ad, rel) => {
+      const ham = fs.readFileSync(path.resolve(kaynakDizin, rel), "utf8").trim();
+      JSON.parse(ham);                       // bozuk JSON sessizce sizmasin
+      return "const " + ad + " = " + ham + ";";
+    });
+  // NOBETCI: gomulemeyen bir JSON import kalirsa Node'da anlasilmaz bir sozdizimi/nitelik
+  // hatasi verirdi -> burada acikca patla (yeni import bicimi eklenmisse desen guncellensin).
+  if (/\bfrom\s+"[^"]*\.json"/.test(cikti)) {
+    throw new Error("JSON import gomulemedi (" + etiket + ") — desen guncellenmeli");
+  }
+  return cikti;
+}
+
+function tempKur() {
+  tempSupur();
+  fs.mkdirSync(TEMP_DIZIN, { recursive: true });
+  for (const ad of fs.readdirSync(SRC)) {
+    if (!ad.endsWith(".js")) { continue; }
+    fs.writeFileSync(path.join(TEMP_DIZIN, ad),
+                     jsonGom(fs.readFileSync(path.join(SRC, ad), "utf8"), SRC, ad));
+  }
+}
+
+tempKur();
+process.on("exit", () => { fs.rmSync(TEMP_DIZIN, { recursive: true, force: true }); });
 
 let sanalSayac = 0;
-/** Verilen index.js kaynagini SANAL bir modul olarak yukler (shop/src altinda gorunur). */
+/** Verilen index.js kaynagini (gercek/eski/mutant) gecici dizinden modul olarak yukler. */
 async function indexYukle(kaynak) {
   sanalSayac += 1;
-  const url = pathToFileURL(path.join(SHOP, "src", "__sanal-index-" + sanalSayac + ".js")).href;
-  SANAL.set(url, jsonNiteligiEkle(kaynak));
-  return await import(url);
+  const yol = path.join(TEMP_DIZIN, "index-surum-" + sanalSayac + ".js");
+  fs.writeFileSync(yol, jsonGom(kaynak, SRC, "index-surum-" + sanalSayac));
+  return await import(pathToFileURL(yol).href);
 }
 
 // ---------------------------------------------------------------- sahte cevre (D1 + iyzico)
@@ -259,6 +285,10 @@ let kirmizi = 0;
 let setSayisi = 0;
 function baslik(s) { setSayisi += 1; ham.push(s); }
 
+// Kosum ortami CIKTIYA yazilir: CI (deploy.yml node-version 20) ile yerel Node farki bu
+// testte bir kez CI'yi kirmiziya cakti (module.registerHooks) — surum log'dan gorunsun.
+ham.push("Node: " + process.version + " (CI tabani: 20.x — daha yeni API KULLANMA)");
+
 // 1) GERCEK kaynak — hepsi yesil olmali.
 baslik("== 1) GERCEK shop/src/index.js ==");
 const gercekMod = await indexYukle(KAYNAK);
@@ -272,7 +302,8 @@ if (gercek.hata.length) {
 }
 
 // 2) TAHMIN KAPSAMI: konfigurBeklenirMi TUM katalogda konfigur urunleriyle birebir mi?
-baslik("== 2) konfigurBeklenirMi kapsami (13717 urunluk katalog taramasi) ==");
+// Baslikta katalog boyutu CANLI okunur — sabit sayi yazilirsa katalog buyudukce bayatlar.
+baslik("== 2) konfigurBeklenirMi kapsami (" + URUNLER.length + " urunluk katalog taramasi) ==");
 const KB = await import(pathToFileURL(path.join(SHOP, "src", "konfigur-beklenen.js")).href);
 const tahminEvet = URUNLER.filter((u) => KB.konfigurBeklenirMi(u));
 const konfigurluIdler = new Set(KONFIGUR_URUNLER.map((u) => u.id));
