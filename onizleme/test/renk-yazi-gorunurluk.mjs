@@ -280,33 +280,86 @@ function kupStl() {
   return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
 }
 
-async function sayfaKos(script) {
-  const dinleyici = new Map();     // oge -> {tur: fn}
+/* ---- GERCEK SECICI ESLEMESI (taklit DOM'un maskeleme deligi kapatildi) ----
+   ÖLÇÜLDÜ (bagimsiz curutme, 29 Tem): DOM'un onceki hali querySelector'a gelen
+   seciciyi HIC ayristirmiyordu (".secili" alt-dizesini gorunce dogru butonu
+   donduruyordu). Sonuc: seciciyi "#YOKBOYLEBIRKAP .renk-btn.secili" yapan
+   mutasyon — ki canlida Okan'in sikayetini AYNEN geri getirir — kapidan
+   SESSIZCE gecti. Artik secici gercekten ayristirilip agacta eslestiriliyor
+   ve DOM, build.py'nin KENDI URETTIGI markup'tan (kap id'si, buton sinifi,
+   secili sinif adi) turetiliyor: markup ile secici ayrisirsa kapi kirmizi yanar. */
+function ayrastirSecici(s) {
+  return String(s).trim().split(/\s+/).map((p) => ({
+    id: (p.match(/#([A-Za-z0-9_-]+)/) || [])[1] || null,
+    sinif: (p.match(/\.[A-Za-z0-9_-]+/g) || []).map((x) => x.slice(1))
+  }));
+}
+function ogeUyar(el, p) {
+  if (p.id && el.id !== p.id) { return false; }
+  return p.sinif.every((c) => el.sinif.includes(c));
+}
+function zincirUyar(atalar, parcalar) {
+  let i = 0;
+  for (const a of atalar) { if (i < parcalar.length && ogeUyar(a, parcalar[i])) { i++; } }
+  return i === parcalar.length;
+}
+function sorgu(kok, secici, hepsi) {
+  const parc = ayrastirSecici(secici);
+  const son = parc[parc.length - 1], onceki = parc.slice(0, -1);
+  const bulunan = [];
+  (function gez(el, atalar) {
+    for (const c of el.cocuk || []) {
+      if (ogeUyar(c, son) && zincirUyar(atalar, onceki)) { bulunan.push(c); }
+      gez(c, atalar.concat([c]));
+    }
+  })(kok, []);
+  return hepsi ? bulunan : (bulunan[0] || null);
+}
+
+async function sayfaKos(script, markup) {
+  const dinleyici = new Map();     // oge -> {tur: [fn]}
   function oge(ek) {
     const o = Object.assign({
+      id: "", sinif: [], cocuk: [],
       hidden: true, disabled: false, textContent: "", value: "",
-      _sinif: new Set(), _oz: {},
+      _oz: {},
       getAttribute(a) { return this._oz[a] === undefined ? null : this._oz[a]; },
       addEventListener(tur, fn) {
         if (!dinleyici.has(this)) { dinleyici.set(this, {}); }
-        dinleyici.get(this)[tur] = fn;
+        const d = dinleyici.get(this);
+        (d[tur] = d[tur] || []).push(fn);
       },
       atesle(tur) {
         const d = dinleyici.get(this);
-        if (d && d[tur]) { d[tur].call(this); }
+        if (d && d[tur]) { for (const fn of d[tur]) { fn.call(this); } }
       }
     }, ek);
     return o;
   }
-  const btnSiyah = oge({ _oz: { "data-renk": "Siyah" } });
-  const btnBeyaz = oge({ _oz: { "data-renk": "Beyaz" } });
-  const btnGri = oge({ _oz: { "data-renk": "Gri" } });
+  // Kap id'si / buton sinifi / "secili" sinif adi build.py'nin KENDI markup'indan.
+  const btnYap = (ad) => oge({ sinif: [markup.btnSinif], _oz: { "data-renk": ad } });
+  const btnSiyah = btnYap("Siyah"), btnBeyaz = btnYap("Beyaz"), btnGri = btnYap("Gri");
   const renkBtnlar = [btnSiyah, btnBeyaz, btnGri];
+  const kap = oge({ id: markup.kapId, sinif: ["renk-butonlar"], cocuk: renkBtnlar });
+  // TUZAK: malzeme cipleri de canli sayfada ayni "secili" sinifini tasir —
+  // kapsamini kaybeden bir secici (or. ".secili") yanlis ogeyi yakalar.
+  const tuzakCip = oge({ sinif: ["fil-cip", markup.seciliSinif], _oz: { "data-renk": "TUZAK" } });
+  const cipKap = oge({ id: "filCipler", cocuk: [tuzakCip] });
   let secili = btnBeyaz;           // musteri Beyaz sectti
+  function seciliYap(b) {
+    for (const x of renkBtnlar) {
+      x.sinif = x.sinif.filter((c) => c !== markup.seciliSinif);
+    }
+    b.sinif = b.sinif.concat([markup.seciliSinif]);
+    secili = b;
+  }
   const ogeler = {
-    onizleBtn: oge({}), onizlemeKutu: oge({}),
-    onizlemeDurum: oge({}), onizlemeTuval: oge({})
+    onizleBtn: oge({ id: "onizleBtn" }), onizlemeKutu: oge({ id: "onizlemeKutu" }),
+    onizlemeDurum: oge({ id: "onizlemeDurum" }), onizlemeTuval: oge({ id: "onizlemeTuval" })
   };
+  seciliYap(btnBeyaz);
+  // Belge koku: renk butonlari kabi + malzeme cipi tuzagi + tekil ogeler.
+  const kokOge = oge({ id: "belge", cocuk: [kap, cipKap].concat(Object.values(ogeler)) });
   const uRenkKayit = [];           // GPU'ya giden uRenk uniform degerleri (sirayla)
   const gl = sahteGl(uRenkKayit);
   ogeler.onizlemeTuval = Object.assign(ogeler.onizlemeTuval, {
@@ -325,8 +378,8 @@ async function sayfaKos(script) {
     addEventListener: () => {}, removeEventListener: () => {},
     document: {
       getElementById: (id) => ogeler[id] || null,
-      querySelector: (s) => (s.indexOf(".secili") >= 0 ? secili : null),
-      querySelectorAll: (s) => (s.indexOf("renk-btn") >= 0 ? renkBtnlar : []),
+      querySelector: (s) => sorgu(kokOge, s, false),
+      querySelectorAll: (s) => sorgu(kokOge, s, true),
       addEventListener: () => {}
     },
     URUN: { id: AILE },
@@ -352,9 +405,10 @@ async function sayfaKos(script) {
   ogeler.onizleBtn.atesle("click");
   for (let i = 0; i < 12; i++) { await Promise.resolve(); }   // fetch zincirini bosalt
   const ilkSayi = uRenkKayit.length;
-  // Musteri rengi Gri'ye cevirir: buton tiklamasi (sayfanin kendi kodu 'secili'
-  // sinifini tasir; burada secimi elle tasiyip AYNI olayi atesliyoruz).
-  secili = btnGri;
+  // Musteri rengi Gri'ye cevirir. SIRA CANLIDAKIYLE AYNI: build.py'nin kart
+  // dinleyicisi sayfada ONCE kayitli oldugundan tiklamada once "secili" sinifi
+  // tasinir, SONRA onizlemenin renkTazele'si okur. Burada da once tasinir.
+  seciliYap(btnGri);
   btnGri.atesle("click");
   for (let i = 0; i < 6; i++) { await Promise.resolve(); }
   return {
@@ -436,8 +490,19 @@ iddia("A3 her renk cifti RENDER'da ayrisir (>=1000 piksel, >=" + TON_ESIGI + " t
 const buildPy = fs.readFileSync(path.join(KOK, "tools", "build.py"), "utf8");
 const m = buildPy.match(/\nONIZLEME_JS = """\n([\s\S]*?)\n"""\n/);
 iddia("A4a build.py ONIZLEME_JS blogu okundu", !!m);
-if (m) {
-  const s = await sayfaKos(m[1]);
+/* SAHTE DOM'un capasi build.py'nin KENDI markup'i: kap id'si, buton sinifi ve
+   "secili" sinif adi buradan okunur. Markup ile secici ayrisirsa (or. kap adi
+   degisir, secici eski adda kalir) A4b/A4c kirmizi yanar — taklit artik
+   "her seciciyi kabul eden" bir yastik DEGILDIR. */
+const mKap = buildPy.match(/<div class="renk-butonlar" id="([A-Za-z0-9_-]+)">/);
+const mBtn = buildPy.match(/<button type="button" class="([A-Za-z0-9_-]+)" data-renk=/);
+const mSec = buildPy.match(/rbtnlar\[n\]\.classList\.toggle\("([A-Za-z0-9_-]+)"/);
+iddia("A4a2 build.py renk markup capalari okundu (kap id / buton sinifi / secili sinifi)",
+      !!(mKap && mBtn && mSec),
+      JSON.stringify([mKap && mKap[1], mBtn && mBtn[1], mSec && mSec[1]]));
+if (m && mKap && mBtn && mSec) {
+  const s = await sayfaKos(m[1],
+    { kapId: mKap[1], btnSinif: mBtn[1], seciliSinif: mSec[1] });
   iddia("A4b sayfa scripti onizlemeyi SECILEN renkle boyar",
         s.ilkRenk && JSON.stringify(s.ilkRenk) === JSON.stringify(rgb.Beyaz),
         "viewer'a giden: " + JSON.stringify(s.ilkRenk) +
@@ -449,6 +514,33 @@ if (m) {
         " (secim 'Gri' -> " + JSON.stringify(rgb.Gri) + ")" +
         " · derleyici istegi: " + s.istekAdedi + " (1 olmali)");
 }
+
+// --- C) EKRAN ile OLCUM AYNI ISIK MODELI Mi --------------------------------
+/* ÖLÇÜLDÜ (bagimsiz curutme, 29 Tem): B eksenindeki tum sayilar viewer'in JS
+   ikizinden (_golge/_carpan) geliyor; EKRANI boyayan sey ise GLSL parca
+   golgelendiricisidir. GLSL'den parlaklik terimini silen mutasyon — canlida
+   Okan'in "yazi gorunmuyor" sikayetini AYNEN geri getirir — kapidan SESSIZCE
+   geciyordu: olcum parlak, ekran mat. Bu eksen GLSL METNINDEKI sayilarin
+   ISIK tablosundan turedigini dogrular; ikisi ayrisirsa kirmizi yanar. */
+console.log("\n-- C) GLSL (ekran) ile JS ikizi (olcum) ayni ISIK sayilarindan mi --");
+const FS = VIEWER._FS, ISIK = VIEWER._ISIK;
+function glSayi(re, ad, beklenen) {
+  const mm = FS.match(re);
+  const v = mm ? parseFloat(mm[1]) : null;
+  iddia("C " + ad + " GLSL'de ISIK ile ayni", v !== null && Math.abs(v - beklenen) < 1e-9,
+        "GLSL=" + v + " · ISIK=" + beklenen);
+}
+glSayi(/uRenk \* \(\s*([0-9.eE+-]+)/, "taban", ISIK.taban);
+glSayi(/\+\s*([0-9.eE+-]+)\s*\* i1/, "k1", ISIK.k1);
+glSayi(/\+\s*([0-9.eE+-]+)\s*\* i2/, "k2", ISIK.k2);
+glSayi(/\+\s*([0-9.eE+-]+)\s*\* pow\(ip,/, "kParlak", ISIK.kParlak);
+glSayi(/pow\(ip,\s*([0-9.eE+-]+)\)/, "us", ISIK.us);
+const yonler = [...FS.matchAll(/normalize\(vec3\(([^)]*)\)\)/g)]
+  .map((x) => x[1].split(",").map((t) => parseFloat(t)));
+iddia("C GLSL'deki 3 isik yonu ISIK tablosuyla ayni",
+      yonler.length === 3 &&
+      JSON.stringify(yonler) === JSON.stringify([ISIK.yon1, ISIK.yon2, ISIK.yonParlak]),
+      JSON.stringify(yonler));
 
 // --- B) YAZI ---------------------------------------------------------------
 console.log("\n-- B) YAZI: kabartma yazi EKRANDA gorunuyor mu --");
