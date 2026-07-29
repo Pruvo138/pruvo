@@ -208,6 +208,21 @@ const soyutBogaSeritFigur = {
   varsayilanMalzeme: "PLA",
 };
 
+// yelkenli-serit-dekoratif-figur (urunler.json 'konfigur' alaninin BIREBIR kopyasi).
+const yelkenliSeritFigur = {
+  renkler: ["Siyah", "Beyaz", "Gri"],
+  renkGorselIndeks: { Gri: 0, Siyah: 1, Beyaz: 2 },
+  boyutMm: { min: 60, max: 300, adim: 10, varsayilan: 150, etiket: "Yükseklik" },
+  hacim: { refYukseklikMm: 150, refHacimCm3: 51.58 },
+  fiyatCapalari: [[60, 500], [300, 2500]],
+  malzemeler: [
+    { ad: "PLA", katsayi: 1.0 },
+    { ad: "PETG", katsayi: 1.3 },
+    { ad: "ASA", katsayi: 1.6 },
+  ],
+  varsayilanMalzeme: "PLA",
+};
+
 // Anahtar urunler.json'daki kebab-id ile eslesir; eslesmezse index.js konfigur kolu bu urunu
 // GORMEZ (KONFIGURLAR.has=false) ve urun sabit-fiyat koluna duser -> guard bunu yakalar.
 export const KONFIGURLAR = new Map([
@@ -224,6 +239,7 @@ export const KONFIGURLAR = new Map([
   ["gozu-bagli-baykus-serit-dekoratif-figur", gozuBagliBaykus],
   ["boga-serit-dekoratif-figur", bogaSeritFigur],
   ["soyut-boga-serit-dekoratif-figur", soyutBogaSeritFigur],
+  ["yelkenli-serit-dekoratif-figur", yelkenliSeritFigur],
 ]);
 
 export default KONFIGURLAR;
