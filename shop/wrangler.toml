@@ -47,7 +47,9 @@ database_id = "3d99d15e-2342-4c23-9c2d-cb266f19c1ee"
 
 # IP basina rate-limit (POST /api/shop/ref beacon kota korumasi — src/ref.js kotaAsildi).
 # Native Cloudflare rate limiting binding: EK D1 YAZMASI YAPMAZ (kota sorununu kota harcamaz).
-# Cap = IP basina 20 istek / 60 sn (period yalniz 10 veya 60 kabul eder). SIR YOK, secret YOK.
+# Hedef 20 istek / 60 sn — EN IYI CABA, garantili tavan DEGIL: 29 Tem'de ayni binding turunde
+# olculdu, sayac kolo/baglanti basina bolunuyor -> efektif tavan bu degerin birkac kati olabilir
+# (detay: asagidaki FIYAT_RATE_LIMIT blogu). period yalniz 10 veya 60 kabul eder. SIR YOK.
 # Kod fail-open: binding gelene kadar (bu satirlar deploy edilene kadar) beacon eski gibi calisir;
 # canlanmasi icin Okan `npx wrangler deploy` (shop dizininden / -c ile) calistirmali — DEPLOY = OKAN.
 [[unsafe.bindings]]
@@ -56,18 +58,24 @@ type = "ratelimit"
 namespace_id = "1001"
 simple = { limit = 20, period = 60 }
 
-# IP basina SERT TAVAN (POST /api/shop/fiyat — yan etkisiz fiyat sorgusu / prova ucu).
-# 🔴 NEDEN VAR (29 Tem canli olcum): ucun eski hiz siniri ISOLATE-ICI bir Map sayaciydi ->
-# kalici baglantiyla 31. istek 429 veriyordu ama HER ISTEKTE YENI BAGLANTI acan istemciyle
-# 40/40 HTTP 200 dondu (istekler farkli isolate'lere dagilir, her Map bos baslar). Native
-# binding hesap duzeyinde sayar -> tavan GERCEKTEN sert. EK D1 YAZMASI YOK (ucun "yan etki
-# yok" kirmizi cizgisi korunur).
+# EN IYI CABA hiz siniri (POST /api/shop/fiyat — yan etkisiz fiyat sorgusu / prova ucu).
+# 🔴 NE OLDUGU (29 Tem canli olcum, worker version 60f56ffb-…): asagidaki `limit` degeri
+# GARANTILI bir ust sinir DEGILDIR. Cloudflare'in native ratelimit sayaci IP basina TEK sayac
+# tutmaz, baglanti uc-noktasi/kolo basina BOLUNUR. Olculen (curl, canli uc, ayni cikis IP'si):
+#   - kalici TEK baglanti  : 61 istek 200, ilk 429 = 62. istek (limiter `limit`+1 gecirir);
+#   - her istekte YENI baglanti: 300 istek / 11,2 sn -> ilk 429 = 265. istek.
+#     -> efektif tavan ~4,4 x yapilandirilan deger; carpani ISTEMCININ baglanti davranisi
+#        belirler, biz belirlemeyiz. Dort alternatif aciklama (pencere kaymasi, deploy
+#        yansimamasi, binding yok/bozuk, cikis IP degisimi) ayni turda olcumle elendi.
+# AMAC: kacak/kotu-niyet MALIYETINI (D1 SELECT + hesap) sonlu tutmak. Bu bir GUVENLIK SINIRI
+# DEGIL — gercek bir yetkilendirme/abuse sinirina dayanak YAPILAMAZ.
 # 🔒 AYRI KOTA: REF_RATE_LIMIT'ten AYRI ad + AYRI namespace_id -> beacon trafigi fiyat ucunu,
 # fiyat trafigi beacon'i KAPATAMAZ (paylasilan namespace tam bunu yapardi).
 # LIMIT 60/60 sn: olculen en yogun MESRU davranis 40 istek/dk (konfiguratorde ayar deneyen tek
-# musteri) ve NAT arkasindaki 2 musteri 50 istek/dk -> 60 ustlerinde kalir; ust tarafta tek
-# IP'nin maliyeti dakikada 60 D1 SELECT ile SONLU (comert ama sonlu). period YALNIZ 10 ya da
-# 60 kabul eder. SIR YOK, secret YOK.
+# musteri) ve NAT arkasindaki 2 musteri 50 istek/dk -> 60 bunlarin USTUNDE kalir. Deger
+# DUSURULMEDI (bkz. mimar karari 29 Tem): bolunme yukari yonlu oldugu icin degeri kismak
+# kacagi degil, once KALICI BAGLANTI kullanan GERCEK musteriyi vurur (yanlis-pozitif = satis
+# kaybi). period YALNIZ 10 ya da 60 kabul eder. SIR YOK, secret YOK.
 # ⚠️ KOD FAIL-CLOSED: bu blok silinirse uc SESSIZCE sinirsiza donmez, 429 doner (uc olur).
 # Kazayla silinmeyi CI yakalar: shop/test/fiyat-prova.mjs set 9.1 + mutant M6.
 [[unsafe.bindings]]

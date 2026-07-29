@@ -504,27 +504,38 @@ async function baslat(request, env, url, ctx) {
 // ---------------------------------------------------------------- /fiyat (PROVA)
 
 /**
- * PROVA HIZ SINIRI — IP basina SERT TAVAN (native Cloudflare rate limiting binding).
+ * PROVA HIZ SINIRI — EN IYI CABA maliyet freni (native Cloudflare rate limiting binding).
  *
- * 🔴 NEDEN DEGISTI (29 Tem, canlida OLCULDU): burada eskiden isolate-ici bir Map sayac vardi
- * (30 istek/dk). KALICI bir baglantiyla olculdugunde dogru gorunuyordu (30x200 + 31. istek 429),
- * AMA her istekte YENI baglantı acan bir istemciyle 40/40 HTTP 200 dondu: istekler farkli
- * isolate'lere dagiliyor, her isolate'in Map'i BOS basliyor -> ortada SERT TAVAN YOKTU.
- * Sayac ne kadar dogru yazilmis olursa olsun, isolate-yerel bir sayac dagitik bir uc icin
- * yapisal olarak tavan URETEMEZ.
+ * 🔴 NE OLDUGU / NE OLMADIGI — 29 Tem canli olcum (worker version 60f56ffb-…; curl ile canli
+ * uca, ayni cikis IP'si). BU UC BIR GUVENLIK SINIRI DEGILDIR:
+ *   - wrangler.toml'daki `limit` degeri GARANTILI ust sinir DEGIL. Native ratelimit sayaci IP
+ *     basina TEK sayac tutmuyor; baglanti uc-noktasi / kolo basina BOLUNUYOR.
+ *   - Olculen: kalici TEK baglantida 61 istek 200 + ilk 429 = 62. istek (limiter yapilandirilan
+ *     degerden BIR FAZLASINI gecirir). Her istekte YENI baglanti acan istemcide ise 300 istek /
+ *     11,2 sn kosuldu ve ilk 429 ancak 265. istekte geldi -> 60 yapilandirmasinda EFEKTIF tavan
+ *     ~4,4 x 60. Carpani istemcinin baglanti davranisi belirler; bizim kontrolumuzde DEGIL.
+ *   - Dort alternatif aciklama (pencere kaymasi, deploy yansimamasi, binding yok/bozuk, cikis
+ *     IP degisimi) ayni turda olcumle elendi -> bolunme gercek, olcum artefakti degil.
+ * AMAC: tek bir istemcinin uretebilecegi MALIYETI (D1 SELECT + hesap) buyuklukce sinirlamak.
+ * Bir yetkilendirme/abuse sinirina, kota garantisine ya da "IP basina en fazla N" iddiasina
+ * DAYANAK YAPILAMAZ. Boyle bir garanti gerekiyorsa mekanizma degismelidir (or. imzali jeton).
  *
- * COZUM: /ref ucunun (src/ref.js kotaAsildi) kullandigi native rate limiting binding'in
- * AYNISI — hesap duzeyinde sayar, EK D1 YAZMASI YAPMAZ (prova ucunun "yan etki yok" kirmizi
- * cizgisi korunur; kalici sayac icin D1/KV YAZMASI gerekirdi ve o cizgiyi delerdi).
+ * NEDEN YINE DE VAR: onceki hal isolate-ici bir Map sayacti (30 istek/dk) ve HICBIR fren
+ * uygulamiyordu — her istekte yeni baglanti acan istemciye 40/40 HTTP 200 dondu (her isolate'in
+ * Map'i BOS basliyordu). Native binding en azindan kolo basina sayiyor: sinirsizdan ~4-5x
+ * limite gecis olculdu. EK D1 YAZMASI YAPMAZ (prova ucunun "yan etki yok" kirmizi cizgisi
+ * korunur; kalici sayac icin D1/KV YAZMASI gerekirdi ve o cizgiyi delerdi).
  *
  * 🔒 AYRI KOTA: binding /ref ile PAYLASILMAZ (ayri ad FIYAT_RATE_LIMIT + ayri namespace_id).
  * Paylasilsaydi beacon trafigi fiyat sorgusunu, fiyat trafigi de beacon'i kapatabilirdi.
  *
- * LIMIT SECIMI (wrangler.toml simple.limit = 60 / period = 60 sn): mesru kullanimin en yogun
- * makul hali konfiguratorde ayar deneyen tek musteridir — olculdu (kabul testi set 9.5):
- * en yogun yanlis-pozitif senaryosu 40 istek/dk, NAT arkasindaki 2 musteri 50 istek/dk; 60
- * bunlarin USTUNDE kalir. Ust tarafta ise tek IP'nin uretebilecegi maliyet dakikada 60 D1
- * SELECT + 60 hesapla SONLU kilinir (eskiden: sinirsiz). Comert ama SONLU.
+ * LIMIT SECIMI (wrangler.toml simple.limit = 60 / period = 60 sn) ve NEDEN DUSURULMEDI:
+ * mesru kullanimin en yogun makul hali konfiguratorde ayar deneyen tek musteridir — olculdu
+ * (kabul testi set 9.5): en yogun yanlis-pozitif senaryosu 40 istek/dk, NAT arkasindaki 2
+ * musteri 50 istek/dk; 60 bunlarin USTUNDE kalir. Bolunme YUKARI yonludur (efektif tavan
+ * yapilandirilandan BUYUK), dolayisiyla degeri kismak kacagi kismaz ama KALICI BAGLANTI
+ * kullanan gercek musteriyi dogrudan vurur -> yanlis-pozitif = satis kaybi. Mimar karari
+ * (29 Tem): deger 60'ta KALIR.
  *
  * 🔴 FAIL-CLOSED (bilincli secim; /ref FAIL-OPEN'dan AYRILIR): binding yoksa, bozuksa ya da
  * limiter patlarsa uc 429 doner — sessizce SINIRSIZA DONMEZ. Gerekce: /ref bir attribution

@@ -80,12 +80,21 @@ gondermez; kayip varsa cikis kodu 1). Ham SQL yedegini kullandiysan bunu kostur.
   (`sepetiFiyatla`) kosar, yalniz tutari doner. D1'e YAZMAZ, iyzico'ya GITMEZ, Telegram/e-posta
   GONDERMEZ, siparis OLUSTURMAZ. Amac: fiyat regresyonunu gercek siparis acmadan olcebilmek.
   Cevap BEYAZ LISTE (id/adet/kurus/parametre_detay + kargo/KDV dokumu); baslik/kategori/gorsel/
-  hacim/IBAN/token DONMEZ. **Hiz siniri: IP basina 60 istek/dakika, native Cloudflare rate
-  limiting binding'i ile (`FIYAT_RATE_LIMIT`, wrangler.toml `[[unsafe.bindings]]`).** Eski
-  isolate-ici Map sayaci 29 Tem'de canlida CURUTULDU: kalici baglantiyla 31. istek 429
-  veriyordu ama her istekte YENI baglanti acan istemciyle 40/40 HTTP 200 dondu (istekler
-  farkli isolate'lere dagilir) -> sert tavan YOKTU. Native binding hesap duzeyinde sayar ve
-  EK D1 YAZMASI YAPMAZ. **FAIL-CLOSED:** binding yok/bozuksa uc 429 doner (sessizce sinirsiza
+  hacim/IBAN/token DONMEZ. **Hiz siniri: EN IYI CABA maliyet freni** — native Cloudflare rate
+  limiting binding'i (`FIYAT_RATE_LIMIT`, wrangler.toml `[[unsafe.bindings]]`), yapilandirma
+  60 istek / 60 sn. ⚠️ **Bu GARANTILI bir ust sinir DEGIL, guvenlik siniri hic degil.** 29 Tem
+  canli olcumu (curl, worker version `60f56ffb-…`, ayni cikis IP'si): sayac IP basina TEK degil,
+  baglanti uc-noktasi/kolo basina BOLUNUYOR — kalici tek baglantida 61 istek 200 + ilk 429
+  **62.** istekte (limiter yapilandirilan degerden bir fazlasini gecirir), her istekte yeni
+  baglanti acan istemcide 300 istek / 11,2 sn kosuldu ve ilk 429 **265.** istekte geldi
+  (efektif tavan ~4,4 x yapilandirilan deger). Dort alternatif aciklama (pencere kaymasi,
+  deploy yansimamasi, binding yok/bozuk, cikis IP degisimi) olcumle elendi. Amac tek istemcinin
+  uretebilecegi maliyeti (D1 SELECT + hesap) buyuklukce sinirlamak; "IP basina en fazla N"
+  iddiasina dayanak YAPILAMAZ. Onceki isolate-ici Map sayaci ise HICBIR fren uygulamiyordu
+  (her istekte yeni baglantiyla 40/40 HTTP 200) — binding EK D1 YAZMASI YAPMAZ.
+  **Limit neden dusurulmuyor:** bolunme yukari yonlu; degeri kismak kacagi degil, once kalici
+  baglanti kullanan gercek musteriyi vurur (yanlis-pozitif = satis kaybi).
+  **FAIL-CLOSED:** binding yok/bozuksa uc 429 doner (sessizce sinirsiza
   DONMEZ) — yani wrangler.toml'daki blok silinirse uc gurultuyle olur; CI bunu bloklayici
   olarak yakalar (`shop/test/fiyat-prova.mjs` set 9.1 + M6). Binding /ref ile PAYLASILMAZ
   (ayri ad + ayri namespace_id).
