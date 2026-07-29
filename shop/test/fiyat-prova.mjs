@@ -773,36 +773,80 @@ const TAVAN_SEPET = [{ id: TAVAN_URUN.id, malzeme: "PLA", renk: "Siyah", adet: 1
  * "sert tavan / kesin sinir / IP basina garanti" gibi CURUTULMUS guvencelerin GERI KONMASINI
  * bloklar. Bu depoda "kapi var sanip korumasiz kalma" sinifi defalarca olculdu.
  *
- * KURAL (basit ve yazili): yasak kaliplardan biri gecen CUMLEDE acik bir OLUMSUZLAMA sozcugu
- * de bulunmalidir (or. "GARANTILI ust sinir DEGILDIR"). Yoksa bulgudur.
- * ⚠️ SINIR: bu bir DISIPLIN cihazidir, guvenlik siniri degil — kotu niyetli biri cumleye
- * "degil" yazip gecebilir. Amaci kazara/iyi niyetli yanlis guvencenin geri sizmasini durdurmak.
+ * KURAL (basit ve yazili): yasak kaliplardan biri gectiginde, IDDIANIN KENDISINE YAKIN bir
+ * yerde acik OLUMSUZLAMA sozcugu bulunmalidir (or. "GARANTILI ust sinir DEGILDIR"). Yoksa
+ * bulgudur. "Yakin" = asagidaki MUAF_* penceresi (iddianin onunde 1 satir/120 karakter,
+ * ardinda 2 satir/200 karakter) — 29 Tem curutmesinde olculdu ki CUMLE geneli ("." ayraci)
+ * wrangler.toml'da 1059 karakterlik bloklar uretiyor ve blogun HERHANGI bir yerindeki tek bir
+ * "DEGIL" tum blogu muaf kiliyordu (dosya SONUNA eklenen "IP basina SERT TAVAN" sessiz gecti).
+ *
+ * ⚠️ SINIR — DURUSTCE: bu ORUNTU TABANLI bir DISIPLIN cihazidir, guvenlik siniri DEGIL ve TAM
+ * KAPSAMA GARANTI ETMEZ. Yasak anlami listede olmayan bir esanlamla yazan, ya da iddianin
+ * yanina "degil" iliştiren metin gecer. Amaci: kazara/iyi niyetli yanlis guvencenin geri
+ * sizmasini durdurmak. Recall sonsuza kadar kovalanmaz — olculen kacaklar kapatilir, kalani
+ * bu notta ve 9.6 ciktisinda YAZILI kalir.
  */
 const YASAK_GUVENCE = [
-  { ad: "sert tavan iddiasi", re: /sert[^.\n]{0,14}tavan|tavan[^.\n]{0,14}sert/i },
+  // \bsert: "INSERT" alt-dizesi yanlis-pozitif uretmesin (INSERT ... tavan).
+  { ad: "sert tavan iddiasi", re: /\bsert[^.\n]{0,14}tavan|\btavan[^.\n]{0,14}\bsert/i },
   { ad: "kesin/garantili tavan-sinir iddiasi",
     re: /(kesin|garanti\w*)[^.\n]{0,20}(tavan|sinir)|(tavan|sinir)[^.\n]{0,20}garanti\w*/i },
   { ad: "hesap duzeyinde TEK sayac iddiasi (29 Tem'de CURUTULDU)",
     re: /hesap\s+duzeyinde\s+say/i },
   { ad: "IP basina tek sayac / en fazla N iddiasi",
-    re: /IP\s+basina\s+(TEK|en\s+fazla|kesin|sert|garanti)/i },
+    re: /\bIP\s+basina\s+(TEK|en\s+fazla|kesin|sert|garanti)/i },
+  // --- asagidakiler 29 Tem curutmesinde OLCULEN kacaklardir (bagimsiz curutucu buldu) ---
+  { ad: "IP -> ust sinir / en fazla / tavan iddiasi (\"Her IP icin ust sinir N\")",
+    re: /\bIP\b[^.\n]{0,20}(ust\s+sinir|en\s+fazla|tavan)/i },
+  { ad: "TEK/global sayac iddiasi (olculen gercek: sayac BOLUNUYOR)",
+    re: /\b(tek|global)\s+sayac|global\s+olarak\s+say/i },
+  { ad: "kota/limit GARANTI ALTINA ALMA iddiasi",
+    re: /garanti\s+altina\s+al/i },
 ];
 const OLUMSUZ = /\b(DEGIL|DEGILDIR|DEGILDI|YOK|YOKTU|YAPILAMAZ|EDILMEZ|EDILEMEZ|TUTMAZ|TUTMUYOR|OLMAZ)\b/i;
 
-/** dosyalar: [{ad, metin}] — M8 mutanti AYNI fonksiyonu mutant metinle cagirir. */
+// Muafiyet penceresi: olumsuzlama IDDIAYA YAKIN olmali. Hem karakter hem SATIR tavani var —
+// karakter tavani tek basina dosya icerigine bagli kazalar uretir (dosya sonundaki alakasiz
+// bir "DEGIL" iddiayi muaf kilabilir), satir tavani onu sinirlar.
+const MUAF_GERI_KARAKTER = 120, MUAF_GERI_SATIR = 1;
+const MUAF_ILERI_KARAKTER = 200, MUAF_ILERI_SATIR = 2;
+
+/** Iddianin cevresindeki muafiyet penceresini dondurur (karakter VE satir tavaniyla kirpilmis). */
+function muafPencere(metin, bas, son) {
+  let i = bas, geriSatir = 0;
+  const dip = Math.max(0, bas - MUAF_GERI_KARAKTER);
+  while (i > dip) {
+    if (metin[i - 1] === "\n") {
+      if (geriSatir >= MUAF_GERI_SATIR) { break; }
+      geriSatir += 1;
+    }
+    i -= 1;
+  }
+  let j = son, ileriSatir = 0;
+  const tepe = Math.min(metin.length, son + MUAF_ILERI_KARAKTER);
+  while (j < tepe) {
+    if (metin[j] === "\n") {
+      if (ileriSatir >= MUAF_ILERI_SATIR) { break; }
+      ileriSatir += 1;
+    }
+    j += 1;
+  }
+  return metin.slice(i, j);
+}
+
+/** dosyalar: [{ad, metin}] — M8 mutanti AYNI fonksiyonu mutant metinle cagirir.
+ *  Metin BUTUN halde taranir (cumleye bolunmez); muafiyet yalnizca muafPencere kadar genistir. */
 function yanlisGuvenceTara(dosyalar) {
   const bulgu = [];
   for (const d of dosyalar) {
-    // Cumle = nokta+bosluk/satirsonu. Cok satirli cumleler BUTUN kalir (olumsuzlama
-    // sonraki satirda olabiliyor).
-    for (const cumle of d.metin.split(/\.(?=\s|$)/)) {
-      if (OLUMSUZ.test(cumle)) { continue; }
-      for (const p of YASAK_GUVENCE) {
-        const m = cumle.match(p.re);
-        if (m) {
-          bulgu.push(d.ad + " — " + p.ad + ': "' +
-                     m[0].replace(/\s+/g, " ").trim().slice(0, 60) + '"');
-        }
+    for (const p of YASAK_GUVENCE) {
+      const re = new RegExp(p.re.source, "gi");
+      let m;
+      while ((m = re.exec(d.metin)) !== null) {
+        if (m[0].length === 0) { re.lastIndex += 1; continue; }
+        if (OLUMSUZ.test(muafPencere(d.metin, m.index, m.index + m[0].length))) { continue; }
+        bulgu.push(d.ad + " — " + p.ad + ': "' +
+                   m[0].replace(/\s+/g, " ").trim().slice(0, 60) + '"');
       }
     }
   }
@@ -1003,7 +1047,11 @@ baslik("== 9) HIZ SINIRI — native rate-limit binding DOGRU KULLANILIYOR (EN IY
   // ---- 9.6 YANLIS-GUVENCE NOBETCISI (metin) ----
   const yg = yanlisGuvenceTara(GUVENCE_DOSYALARI);
   not("9.6 YANLIS-GUVENCE TARAMASI: " + yg.taranan + " dosya, " + YASAK_GUVENCE.length +
-      " desen -> bulunan " + yg.bulgu.length);
+      " desen -> bulunan " + yg.bulgu.length + ". ⚠️ Bu kontrol ORUNTU TABANLIDIR ve TAM " +
+      "KAPSAMA GARANTI ETMEZ: listede olmayan bir esanlamla yazilan yanlis guvence gecer; " +
+      "muafiyet penceresi iddianin " + MUAF_GERI_SATIR + " satir/" + MUAF_GERI_KARAKTER +
+      " karakter oncesi + " + MUAF_ILERI_SATIR + " satir/" + MUAF_ILERI_KARAKTER +
+      " karakter sonrasidir (cumle geneli DEGIL). Disiplin cihazi, guvenlik siniri degil.");
   yg.bulgu.slice(0, 8).forEach((b) => hatalar.push("9.6 " + b));
 
   if (hatalar.length) {
@@ -1228,26 +1276,38 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
     } else { ham.push("    ✅ M7: " + yakalanan7.length + " sayac KIRMIZI yandi"); }
   }
 
-  // ---- M8: DOKUMAN BLOGUNA "SERT TAVAN" GUVENCESI GERI KONDU ----
+  // ---- M8: "SERT TAVAN" GUVENCESI GERI KONDU (CAPASIZ — BAS/ORTA/SON konumlarina enjekte) ----
   // (29 Tem'de olculerek curutulen iddianin sessizce geri sizmasi — set 9.6 yakalamali.)
-  ham.push("  -- M8: src/index.js dokuman bloguna yanlis guvence geri kondu --");
+  //
+  // 🔴 NEDEN CAPA YOK: onceki surum mutanti "/**\n * PROVA HIZ SINIRI" METIN CAPASIYLA uretiyordu
+  // ve capa tutmayinca `m8Uygulandi=false` -> KIRMIZI verirdi. Yani o JSDoc basligina masum bir
+  // satir eklemek / basligi yeniden bicimlendirmek / tasimak TUM EKIBIN yayinini durdururdu.
+  // Bu nobetci bir DISIPLIN cihazi, guvenlik siniri DEGIL: yanlis-pozitifin bedeli (herkesin
+  // deploy'u kirmizi) yanlis-negatifin bedelinden (yanlis yorum metni bir sure kalir) AGIR basar
+  // -> supheli durumda GEVSET. Mutant artik gercek kaynagin BASINA / ORTASINA / SONUNA enjekte
+  // edilerek uretilir: hicbir metin bicimine bagli degil, her zaman uygulanabilir.
+  ham.push("  -- M8: yanlis guvence gercek kaynaga 3 konumdan (BAS/ORTA/SON) enjekte edildi --");
   const M8_IDDIA =
     " * PROVA HIZ SINIRI — IP basina SERT TAVAN; native binding hesap duzeyinde sayar,\n" +
     " * bu yuzden IP basina en fazla 60 istek/dk kesin sinirdir.\n";
-  const m8Metin = KAYNAKLAR["index.js"].replace("/**\n * PROVA HIZ SINIRI",
-                                                "/**\n" + M8_IDDIA + " * PROVA HIZ SINIRI");
-  const m8Uygulandi = m8Metin !== KAYNAKLAR["index.js"];
-  const m8Temiz = yanlisGuvenceTara([{ ad: "index.js (mutantsiz)", metin: KAYNAKLAR["index.js"] }]);
-  const m8Bulgu = yanlisGuvenceTara([{ ad: "index.js (M8)", metin: m8Metin }]);
-  not("M8: mutasyon uygulandi=" + m8Uygulandi + "; mutantsiz bulgu=" + m8Temiz.bulgu.length +
-      " (0 olmali), mutantli bulgu=" + m8Bulgu.bulgu.length + " (>=2 olmali) -> " +
-      m8Bulgu.bulgu.slice(0, 3).join(" | "));
-  if (!m8Uygulandi || m8Temiz.bulgu.length !== 0 || m8Bulgu.bulgu.length < 2) {
+  const m8Kaynak = KAYNAKLAR["index.js"];
+  const m8Satirlar = m8Kaynak.split("\n");
+  const m8Orta = m8Satirlar.slice(0, Math.floor(m8Satirlar.length / 2)).join("\n").length + 1;
+  const m8Konumlar = [["BAS", 0], ["ORTA", m8Orta], ["SON", m8Kaynak.length]];
+  const m8Temiz = yanlisGuvenceTara([{ ad: "index.js (mutantsiz)", metin: m8Kaynak }]);
+  const m8Sonuc = m8Konumlar.map(([etiket, konum]) => {
+    const metin = m8Kaynak.slice(0, konum) + M8_IDDIA + m8Kaynak.slice(konum);
+    return { etiket, sayi: yanlisGuvenceTara([{ ad: "index.js (M8/" + etiket + ")", metin }])
+                             .bulgu.length };
+  });
+  const m8Zayif = m8Sonuc.filter((s) => s.sayi < 2);
+  not("M8: mutantsiz bulgu=" + m8Temiz.bulgu.length + " (0 olmali); enjeksiyon konumlari -> " +
+      m8Sonuc.map((s) => s.etiket + ":" + s.sayi).join(", ") + " (her biri >=2 olmali)");
+  if (m8Temiz.bulgu.length !== 0 || m8Zayif.length) {
     kirmizi += 1;
     ham.push("    ❌ M8 KALDI — yanlis-guvence nobetcisi OLU (curutulmus iddia sessizce geri konabilir)");
   } else {
-    ham.push("    ✅ M8: geri konan " + m8Bulgu.bulgu.length +
-             " yanlis guvence set 9.6'da KIRMIZI yanar");
+    ham.push("    ✅ M8: 3/3 konumda geri konan yanlis guvence set 9.6'da KIRMIZI yanar");
   }
 
   // ---- M9: LIMITER ESKI (YANLIS) SEMANTIGE DONDURULDU: tam `limit` kadar gecirir ----
