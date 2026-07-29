@@ -22,9 +22,10 @@ NE KANITLAMAZ (iddia edilmez):
     SOYLENDIGINI kanitlamaz (sinir konfigurator input.maxLength ile fiziksel olarak
     uygulanir; mesaj metni bu kapinin kapsaminda degil).
   * BEYAZ LISTE disi karakterlerin (or. & / ( ) :) sunucuda sessizce DUSMESINI
-    kanitlamaz/engellemez. Konfiguratorde bu uyari BUGUN yalniz cerceve alanina
-    bagli (jenerator/konfigurator.js `yaziKirli`); tum `metin` alanlarina
-    genellestirilmesi ayri is (RAPOR-MIMARA.md, kuyruk).
+    kanitlamaz/engellemez — BU KAPININ KAPSAMI DEGIL. O eksen 29 Tem'de ayri bir
+    kapiya baglandi: uyari artik yalniz cerceve alanina degil dogrula()nin generic
+    `metin` daline bagli (jenerator/konfigurator.js) ve TUM `metin` alanlarini
+    (Worker yolu dahil) kapsiyor -> nobetci: jenerator/test/metin-beyaz-liste.mjs.
 
 NEDEN VAR (olculmus sessiz hata, 29 Tem 2026):
   Canli onizleme ucundan (POST /api/onizleme/olustur, tarayici UA, cache-bust yok)
