@@ -29,6 +29,7 @@ import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
 import { konfigurHesapla } from "./konfigur.js";
 import { KONFIGURLAR } from "./konfigurlar.js";
+import { konfigurBeklenirMi } from "./konfigur-beklenen.js";
 import { yonet, gecmiseEkle } from "./yonet.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
@@ -259,6 +260,17 @@ async function baslat(request, env, url, ctx) {
       birimKurus = kh.birimKurus;
       ekAlanlar = { parametreler: kh.parametreler, parametre_detay: kh.detay,
                     hacim_mm3: kh.hacimMm3 };
+    } else if (konfigurBeklenirMi(u)) {
+      // FAIL-CLOSED KAPI (sessiz eksik tahsilat penceresi — konfigur-beklenen.js'te gerekce):
+      // urun D1'de konfigurator serisinden gorunuyor (gizli kategori / seri id soneki) ama
+      // bundle'daki KONFIGURLAR haritasinda YOK. Bu, urunun D1'e girip Worker'in HENUZ deploy
+      // edilmedigi (deploy ELLE yapilir) penceresidir. Eskiden bu kalem asagidaki SABIT fiyat
+      // koluna duserdi: konfiguratorde 1.500,00 TL olan 30 cm/PLA urun 500,00 TL'ye satilir,
+      // 1.000,00 TL SESSIZCE eksik tahsil edilirdi (musteri gercek bedelin ~%33'unu oder).
+      // Artik sabit fiyat HESAPLANMAZ; kalem konfigur kolunun kendi 400'uyle (yukaridaki
+      // KONFIGUR_ODEME_ACIK kapisiyla AYNI cevap) WhatsApp kanalina duser.
+      return json({ hata: "konfigur-urun", id: k.id,
+                    mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, 400, env);
     } else if (u.parametrik) {
       // Olcuye ozel (sari seri). Kanal SECENEK.PARAMETRIK_ODEME_ACIK ile ACIK (17 Tem);
       // fiyat SUNUCUDA yeniden hesaplanir (parametrik.js: sema + hacim.js + taban fiyat;
