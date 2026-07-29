@@ -1838,7 +1838,8 @@
     "id": "toyota-86-brz-jant-gobek-kapagi-2016",
     "kategori": "Otomobil",
     "marka": [
-      "Toyota"
+      "Toyota",
+      "Subaru"
     ],
     "baslik": "Toyota 86 / Subaru BRZ Jant Göbek Kapağı (2016, Yazısız)",
     "aciklama": "2016 Toyota 86 ve kardeş modellerinin jant göbeğini kapatan yazısız kapaktır. Kapak koptuğunda poyra ucu ve aks somunu açıkta kalır; yola atılan çamur, tuz ve su göbek yatağına dolar, aks ucu içeriden paslanır. Bu parça jantın göbek yuvasına içeriden esnek tırnaklarıyla kenetlenir, dışarıda amblemsiz ve düz bir kapanış bırakır. Uzun aks mili takılan araçlarda milin kapağa dayanmaması için orijinaline göre daha derin bir iç boşlukla tasarlanmıştır. Fren ısısına, yol tuzuna ve neme dayanıklı sert malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 49 × 49 × 19 mm.",
@@ -2213,7 +2214,8 @@
     "id": "toyota-86-brz-frs-sanziman-cikis-mili-tapasi",
     "kategori": "Otomobil",
     "marka": [
-      "Toyota"
+      "Toyota",
+      "Subaru"
     ],
     "baslik": "Toyota 86 / Subaru BRZ / Scion FR-S Şanzıman Çıkış Mili Tapası",
     "aciklama": "Şanzıman sökülürken şaftın çekildiği çıkış mili ağzını kapatan servis tapasıdır; 86, BRZ ve FR-S'in şanzımanında ortak kullanılır. Şaft çıkarıldığında kuyruk milindeki keçe açıkta kalır ve şanzıman yağı zemine akar. Bu tapa mil ağzına geçirilerek yağı içeride tutar, keçeyi darbeden ve tozdan korur. Flanşlı ucu oturma derinliğini sınırlar, tapanın içeri kaçmasını önler. Yağa ve sürtünmeye dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 75 × 50 × 50 mm.",
@@ -3261,7 +3263,8 @@
     "id": "toyota-gt86-brz-frs-ses-borusu-kor-tapasi",
     "kategori": "Otomobil",
     "marka": [
-      "Toyota"
+      "Toyota",
+      "Subaru"
     ],
     "baslik": "Toyota GT86 / Subaru BRZ / Scion FR-S Ses Borusu Kör Tapası",
     "aciklama": "GT86, BRZ ve FR-S'te emme sesini kabine taşıyan borunun ağzını kapatan tapadır. Takıldığında kabine gelen emme uğultusu kesilir; boru yerinde kalır, sistemde kalıcı bir değişiklik olmaz. Dış yüzeyi dokulu üretilir; el yordamıyla bulunup çıkarılabilsin diye kavrama izleri vardır. Motor bölümü sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 44 × 22 × 17 mm.",
@@ -4572,7 +4575,8 @@
     "id": "toyota-soarer-lexus-sc-menfez-burcu",
     "kategori": "Otomobil",
     "marka": [
-      "Toyota"
+      "Toyota",
+      "Lexus"
     ],
     "baslik": "Toyota Soarer / Lexus SC Menfez Burcu",
     "aciklama": "Soarer ile Lexus SC300 ve SC400'ün havalandırma menfezinde kanadın açısını tutan burcun yedeği. Yıllar içinde kırılganlaşan orijinal çatladığında menfez aşağı düşer ve yönlendirilemez; bu burç mili yeniden kavrayarak eski sıkılığı geri getirir. Mil sağlamsa düz gövde, kırık kısım varsa onarım gövdesi kullanılır; iki biçim birlikte üretilir.\nYaklaşık dış ölçüler: 9 × 9 × 6 mm.",
@@ -4631,7 +4635,8 @@
     "id": "toyota-gt86-subaru-brz-tekli-bardaklik",
     "kategori": "Otomobil",
     "marka": [
-      "Toyota"
+      "Toyota",
+      "Subaru"
     ],
     "baslik": "Toyota GT86 / Subaru BRZ Tekli Bardaklık",
     "aciklama": "GT86 ve BRZ'nin orta konsolundaki ikili bardaklık yuvasına oturan tek gözlü hazne. Orijinal bağlantı noktalarına kilitlendiği için sürüşte oynamaz; kalan alan cüzdan, telefon ya da anahtar için boşta kalır. Üst yüzeyindeki sığ göz bozuk para ve benzeri küçük eşyalar içindir. Yüksek sıcaklığa dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 131 × 126 × 80 mm.",
@@ -23739,6 +23744,7 @@
     "kategori": "Otomobil",
     "marka": [
       "Opel",
+      "Vauxhall",
       "Astra H"
     ],
     "baslik": "Opel / Vauxhall Astra H Yolcu Yan Ayna Kapağı",
@@ -26084,7 +26090,8 @@
     "id": "renault-opel-debriyaj-merkez-silindiri-klipsi",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Opel"
     ],
     "baslik": "Renault ve Opel Debriyaj Merkez Silindiri Klipsi",
     "aciklama": "Renault ve Opel modellerinde debriyaj merkez silindirinin bağlantısını tutan klips parçası. Kırılan orijinalin yerine takılarak debriyaj hattının sağlam kalmasını sağlar.\nYaklaşık dış ölçüler: 22 × 20 × 4 mm.",
@@ -26284,7 +26291,8 @@
     "id": "renault-trafic-opel-vivaro-usb-kutusu",
     "kategori": "Otomobil",
     "marka": [
-      "Renault"
+      "Renault",
+      "Opel"
     ],
     "baslik": "Renault Trafic / Opel Vivaro USB Kutusu",
     "aciklama": "Renault Trafic ve Opel Vivaro araçlarda USB modülü/kablosu için muhafaza kutusu. Modülü toz ve darbeden korur, konsol bölgesinde düzenli durmasını sağlar.\nYaklaşık dış ölçüler: 58 × 37 × 33 mm.",
@@ -48965,7 +48973,8 @@
     "id": "ford-galaxy-vw-sharan-sinyal-lambasi-sokme-aleti",
     "kategori": "Otomobil",
     "marka": [
-      "Ford"
+      "Ford",
+      "Volkswagen"
     ],
     "baslik": "Ford Galaxy & VW Sharan Sinyal Lambası Söküm Aleti",
     "aciklama": "Ford Galaxy ve VW Sharan (Mk2) modellerinde çamurluktaki küçük erişim kapağından ulaşılan sinyal lambası duyunu sökmeye yarayan özel aparattır.\nDar boşluğa elle ulaşmanın zor olduğu noktalarda ampul değişimini saniyeler içinde tamamlar.\nMevcut çamurluk erişim kapağından kullanılır.\nYaklaşık dış ölçüler: 60 × 42 × 38 mm.",
@@ -67811,7 +67820,8 @@
     "id": "nissan-l24-icin-ford-tetikleme-carki-montaj-jigi",
     "kategori": "Otomobil",
     "marka": [
-      "Ford"
+      "Ford",
+      "Nissan"
     ],
     "baslik": "Nissan L24 İçin Ford Tetikleme Çarkı Montaj Aparatı",
     "aciklama": "Nissan L24 motoruna Ford Duratec tetikleme çarkının (crank trigger wheel) montajı için kullanılan hizalama jigidir.\nMotor uyarlama/değişim işlemlerinde çark ile sensör arasındaki konumu doğru ayarlamaya yardımcı olur.\nAtölyede tekrarlanabilir, hassas bir montaj referansı sağlar.\nYaklaşık dış ölçüler: 111 × 81 × 21 mm.",
@@ -75482,7 +75492,8 @@
     "id": "vw-toyota-volkswagen-jant-kilidi-tutucu",
     "kategori": "Otomobil",
     "marka": [
-      "Volkswagen"
+      "Volkswagen",
+      "Toyota"
     ],
     "baslik": "Toyota / Volkswagen Jant Kilidi Tutucu",
     "aciklama": "Volkanized tipte jant kilidi anahtarı/yuvası entegrasyonu için kullanılan bir tutucudur.\nBaşlıkta 14 delikli yapının belirtilmesiyle jant kilidi sistemlerine uyum sağlar.\nTaslakta, Volkswagen jant kilitleriyle de kullanılabileceği hedeflenmiştir.\nYaklaşık dış ölçüler: 211 × 211 × 30 mm.",
@@ -77561,6 +77572,7 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
+      "Porsche",
       "Touareg"
     ],
     "baslik": "VW Touareg / Porsche Cayenne Klima Kanadı Pimi",
@@ -78314,6 +78326,7 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
+      "Porsche",
       "Touareg"
     ],
     "baslik": "VW Touareg / Porsche Cayenne Emisyon Kutusu Pimi",
@@ -79469,7 +79482,8 @@
     "id": "vag-on-cam-otopark-bileti-klipsi",
     "kategori": "Otomobil",
     "marka": [
-      "Volkswagen"
+      "Volkswagen",
+      "Audi"
     ],
     "baslik": "VW/Audi Ön Cam Otopark Bileti Klipsi",
     "aciklama": "Audi Octavia ve Volkswagen ortak platformunda kullanılabilen ön cam otopark bileti klipsi.\nOrijinalde kolay kırılan zayıf noktayı gidermek için güçlendirilmiş tasarıma sahiptir.\nŞeffaf malzemeyle baskı desteği gerektirmeden üretilebilir.\nYaklaşık dış ölçüler: 68 × 40 × 20 mm.",
@@ -79933,6 +79947,7 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
+      "Audi",
       "Golf"
     ],
     "baslik": "VW/Audi Enjektör Temizlik Adaptörü",
@@ -80072,6 +80087,7 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
+      "Seat",
       "Polo"
     ],
     "baslik": "VW Polo ve Seat Ibiza Parcel Shelf Buffer",
@@ -80527,6 +80543,8 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
+      "Seat",
+      "Skoda",
       "Up"
     ],
     "baslik": "VW Up / Skoda Citigo / Seat Mii Navigasyon Baz Plakası",
@@ -81365,7 +81383,8 @@
     "id": "vw-vag-yag-kaynagi-huni",
     "kategori": "Otomobil",
     "marka": [
-      "Volkswagen"
+      "Volkswagen",
+      "Audi"
     ],
     "baslik": "Audi/VW Yağ Huni Repro",
     "aciklama": "Audi ve VW araçlarda yağ doldurma/ boşaltma hunisi işlevini karşılayan modifiye bir huni.\nYanına yağ şişesinin konumlanması için destek noktası eklenmiştir.\nBasit baskı geometriyle minimum destek hedeflenmiştir.\nYaklaşık dış ölçüler: 140 × 130 × 86 mm.",
@@ -81587,6 +81606,7 @@
     "kategori": "Otomobil",
     "marka": [
       "Volkswagen",
+      "Seat",
       "Up"
     ],
     "baslik": "Seat Mii / VW Up Telefon Destek Dokası",
@@ -81842,7 +81862,9 @@
     "id": "vw-audi-skoda-6pin-blindplug",
     "kategori": "Otomobil",
     "marka": [
-      "Volkswagen"
+      "Volkswagen",
+      "Audi",
+      "Skoda"
     ],
     "baslik": "VW/Audi/Skoda 6 Pin Blindplug",
     "aciklama": "VAG platformundaki 6 pin kablo sonu için blindplug (sonlandırma) kapağıdır.\nKabloyu açıkta bırakmadan geçici bir kapama parçası olarak kullanılır.\nEGR ve elektrik bağlantılarında koruma odaklıdır.\nYaklaşık dış ölçüler: 24 × 23 × 18 mm.",
@@ -84205,7 +84227,8 @@
     "id": "vw-seat-vw-anahtar-kolu",
     "kategori": "Otomobil",
     "marka": [
-      "Volkswagen"
+      "Volkswagen",
+      "Seat"
     ],
     "baslik": "Kırık Katlanır Anahtar için VW/Seat Tutamağı",
     "aciklama": "Kırık flip key (katlanan anahtar) için anahtar tutacağıdır.\nOrijinal RFID kılıfı korunarak daha kolay çevirme için ek kol sağlar.\nKilitlenmiş kapatma işlevi için iki parça epoksiyle birleştirilebilir.\nYaklaşık dış ölçüler: 40 × 30 × 6 mm.",
@@ -85399,7 +85422,10 @@
     "id": "vw-audi-seat-skoda-yikama-funeli",
     "kategori": "Otomobil",
     "marka": [
-      "Volkswagen"
+      "Volkswagen",
+      "Audi",
+      "Seat",
+      "Skoda"
     ],
     "baslik": "Cam Yıkama Sıvısı Huni (VW/Audi/Seat/Škoda)",
     "aciklama": "Ön cam yıkama sıvısı doldururken taşma kaybını azaltmaya yönelik hunidir.\nTanka hızlı ve kontrollü doldurma için dar bir kanal yapısı hedeflenir.\nVW, Audi, Seat ve Škoda araçlarda paylaşılan kullanım notu eklenebilir.\nYaklaşık dış ölçüler: 148 × 135 × 126 mm.",
@@ -88184,7 +88210,9 @@
     "id": "vw-up-seat-mii-skoda-citigo-sogutma-hava-adaptoru",
     "kategori": "Otomobil",
     "marka": [
-      "Volkswagen"
+      "Volkswagen",
+      "Seat",
+      "Skoda"
     ],
     "baslik": "VW UP/Seat MII/Skoda Citigo Soğutma Hava Adaptörü",
     "aciklama": "Fabrika hava filtresi girişini dış hortumlarla bağlamak için soğuk hava adaptörü.\nVAG platform model gruplarında ortak kullanımda iş görür.\nPerformans odaklı emiş hattı için düzenleyicilik sağlar.",
@@ -88508,7 +88536,9 @@
     "id": "volkswagen-seat-skoda-diffusor-lens-6q0947125d",
     "kategori": "Otomobil",
     "marka": [
-      "Volkswagen"
+      "Volkswagen",
+      "Seat",
+      "Skoda"
     ],
     "baslik": "Volkswagen/Seat/Škoda Diffusör Lens (6Q0947125D)",
     "aciklama": "Difüzör lens bölgesinde 6Q0947125D kodlu orijinal referansa sahip parça.\nVAG platformunda Audi/Seat/Škoda ile paylaşımlı kullanılabilir.\nÖn ışık grubunda lens değişimi odaklı çalışır.",
@@ -91500,7 +91530,8 @@
     "id": "mercedes-vw-hub-centrik-halka-uyum-kit",
     "kategori": "Otomobil",
     "marka": [
-      "Mercedes"
+      "Mercedes",
+      "Volkswagen"
     ],
     "baslik": "Mercedes/VW Jant Merkez Boşluk Halkası",
     "aciklama": "66.6 mm iç çapa sahip genelde Mercedes jantlar ile 57.1 mm merkez borulu VW tipini eşleştirmeye yarayan adaptör halkasıdır.\nUygulamaya göre halka iç yüzeyi ayarlanarak aralık dolgu uyumu yapılabilir.\nÖlçüm sonrası final düzeltme gerektirebilir.",
@@ -137517,6 +137548,7 @@
     "kategori": "Otomobil",
     "marka": [
       "Dacia",
+      "Renault",
       "Duster"
     ],
     "baslik": "Renault Duster havalandırma ızgarası bağlantı aparatı",
@@ -146438,6 +146470,7 @@
     "id": "tenere-700-titre-im-nleyici-braket",
     "kategori": "Motosiklet",
     "marka": [
+      "Yamaha",
       "Tenere 700"
     ],
     "baslik": "Yamaha Tenere 700 Motosiklet Titreşim Önleyici Braket",
@@ -230107,7 +230140,8 @@
     "id": "mercedes-opel-jant-merkezleme-halkasi",
     "kategori": "Otomobil",
     "marka": [
-      "Mercedes"
+      "Mercedes",
+      "Opel"
     ],
     "baslik": "Mercedes-Opel Jant Merkezleme Halkası (66.6-65.1mm)",
     "aciklama": "Mercedes-Opel Jant Merkezleme Halkası (66.6-65.1mm) özel üretim yedeği. Mercedes için jant göbek kapağı veya merkezleme halkası yedeğidir. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 67 × 67 × 10 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
@@ -238679,7 +238713,8 @@
     "id": "bmw-mini-cooper-gosterge-yuvasi",
     "kategori": "Otomobil",
     "marka": [
-      "BMW"
+      "BMW",
+      "Mini"
     ],
     "baslik": "BMW Mini Cooper Gösterge Yuvası (Ultragauge)",
     "aciklama": "BMW Mini Cooper Gösterge Yuvası (Ultragauge) özel üretim yedeği. BMW için ek gösterge (volt/yağ/basınç vb.) takmak için menfez/konsol bölgesine oturan gösterge yuvasıdır. Kırılan/eskiyen orijinalin yerine geçer.\n\nDayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 159 × 20 × 19 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
