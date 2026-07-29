@@ -166,9 +166,43 @@
   var ONIZLEME_RENKLER = {
     "olcuye-ozel-toka": [0.12, 0.12, 0.13],
     // Cerceve: gercekci koyu ton (foto-pano cercevesi) — sari-seri kimlik
-    // rengine dusmesin diye acikca koyu taban verilir (onizleme TEK renk).
+    // rengine dusmesin diye acikca koyu taban verilir.
     "olcuye-ozel-cerceve": [0.15, 0.15, 0.16]
   };
+
+  /* MUSTERININ SECTIGI RENGIN onizlemedeki karsiligi (viewer.js taban rengi).
+     Deger = golgelendirici TABAN rengi [r,g,b] (0..1); viewer isik carpaniyla
+     olcekler, bu yuzden "siyah" saf 0 DEGILDIR (saf 0 tum yuzu duz siyaha
+     yutar, form detayi kaybolur — kabartma yazi da dahil).
+     "Diger" (serbest metin ozel renk) BILEREK YOK: hangi renk oldugunu
+     bilmedigimiz icin onizlemede TEMSIL EDILEMEZ -> aile varsayilanina duser. */
+  var ONIZLEME_RENK_RGB = {
+    "Siyah": [0.13, 0.13, 0.14],
+    "Beyaz": [0.90, 0.91, 0.92],
+    "Gri": [0.52, 0.55, 0.58]
+  };
+
+  /* Renk seciminin onizlemeye UYGULANDIGI aileler. Liste DISI ailede onizleme
+     bugunku gibi aile/seri rengini gosterir (canlida sifir gorunur fark).
+     🔴 NEDEN LISTE, NEDEN "hepsi" DEGIL: sari, parametrik serinin MARKA kimlik
+     rengidir (Okan) — 21 ailenin onizleme rengini tek hamlede degistirmek marka
+     karari, muhendislik karari degil. Cerceve 29 Tem'de acildi: Okan'in canli
+     sikayeti tam olarak "renk secimi onizlemeyi degistirmiyor" idi.
+     GENISLETME: aile id'sini listeye ekle (baska dokunus gerekmez). */
+  var ONIZLEME_RENK_SECIMI = ["olcuye-ozel-cerceve"];
+
+  /* Onizlemede kullanilacak taban renk. TEK KAYNAK: hem urun sayfasi scripti
+     (tools/build.py ONIZLEME_JS) hem testler bunu cagirir.
+       secilenRenk tanimli + aile listede -> musterinin rengi
+       aksi halde                         -> aile rengi (yoksa null = viewer sarisi)
+     null donmesi "renk verme" demektir; viewer varsayilanini korur. */
+  function onizlemeRengi(urunId, secilenRenk) {
+    if (ONIZLEME_RENK_SECIMI.indexOf(urunId) !== -1 &&
+        Object.prototype.hasOwnProperty.call(ONIZLEME_RENK_RGB, secilenRenk)) {
+      return ONIZLEME_RENK_RGB[secilenRenk];
+    }
+    return ONIZLEME_RENKLER[urunId] || null;
+  }
 
   /* Onizleme secenek kisitlari: uretim motorunda 3D karsiligi olmayan secim
      degerleri (mimar tablosunda; siparis/fiyat AKISINA DOKUNMAZ, yalniz 3D
@@ -412,6 +446,9 @@
     ONIZLEME_AILELER: ONIZLEME_AILELER,
     ONIZLEME_KISITLAR: ONIZLEME_KISITLAR,
     ONIZLEME_RENKLER: ONIZLEME_RENKLER,
+    ONIZLEME_RENK_RGB: ONIZLEME_RENK_RGB,
+    ONIZLEME_RENK_SECIMI: ONIZLEME_RENK_SECIMI,
+    onizlemeRengi: onizlemeRengi,
     fiyatSayisi: fiyatSayisi,
     fonksiyonelMi: fonksiyonelMi,
     boyFarki: boyFarki,

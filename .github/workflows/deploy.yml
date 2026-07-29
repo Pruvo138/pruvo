@@ -550,6 +550,26 @@ jobs:
       - name: Onizleme onbellek surum kapisi (bayat mesh servis edilmesin)
         run: node onizleme/test/onbellek-surum.mjs
 
+      # ONIZLEME GORUNURLUK KAPISI (Okan canli sikayeti, 29 Tem — olcuye-ozel-cerceve):
+      # (1) "renk secimi onizlemeyi degistirmiyor": sayfa scripti rengi YALNIZ aile
+      # sabit tablosundan okuyordu, musteri secimi viewer'a HIC gitmiyordu. (2) "yazi
+      # gorunmuyor": kabartma geometri mesh'te VARDI (canli: 1304 -> 2666 ucgen, 1,2 mm
+      # kabartma) ama yazinin ust yuzu cerceve on yuzuyle AYNI normale sahip oldugundan
+      # koyu renkte yalniz ~15/255 tonluk bir fark uretiyordu = gorunmuyordu.
+      # Bu adim GERCEK kodu olcer: build.py'nin sayfaya BASTIGI ONIZLEME_JS metni sahte
+      # DOM'da (canli sayfanin renk-BUTONU duzeni) kosar, altinda GERCEK jenerator/viewer.js
+      # + WebGL cagrilarini kaydeden sahte baglam vardir -> GPU'ya giden uRenk uniform'u
+      # olculur. Yazi ekseni CPU rasterlestiricisiyle piksel farki olcer (kamera + golgeleme
+      # viewer'in KENDI fonksiyonlarindan; kopya matematik yok).
+      # KIRMIZI-MUTASYON (olculdu, 5/5 yakalandi): kParlak 0 (eski isik) -> B2 kirmizi;
+      # ONIZLEME_RENK_SECIMI bosaltilir -> A2/A3 kirmizi; sayfa scripti eski satira
+      # dondurulur -> A4b kirmizi; renk dinleyicisi silinir -> A4c kirmizi; viewer kolu
+      # renkAyarla dondurmez -> A4c kirmizi.
+      # OFFLINE: ag YOK, openscad YOK, R2/wrangler YOK, urunler.json OKUNMAZ, dosya yazmaz.
+      # Node 20'de olculdu (Node 22+ API'si kullanilmaz). ~1 s.
+      - name: Onizleme gorunurluk kapisi (secilen renk + kabartma yazi ekranda mi)
+        run: node onizleme/test/renk-yazi-gorunurluk.mjs
+
       # PAKET TAZELIK KAPISI — OFFLINE kip. Bloklayici PAKET olcumu BILEREK burada DEGIL,
       # onizleme-imaj.yml'de kosar (bayat paket TUM SITE yayinini durdurmasin). Burada
       # kosan sey UC nobetci: (a) kapinin govdesi inert mi (5 sentetik fikstur),

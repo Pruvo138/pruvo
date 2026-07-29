@@ -96,18 +96,72 @@
     " gl_Position = uProj * uGoruntu * uDonus * vec4(aPoz, 1.0); }";
 
   // Taban rengi UNIFORM (uRenk): varsayilan parlak sari (sari seri kimligi, Okan
-  // 16 Tem — sitedeki sari rozetle #f7b500 uyumlu). Aile bazli override edilebilir
-  // (goster(canvas, buf, {renk:[r,g,b]}) — or. toka SIYAH, Okan 26 Tem). Uniform'suz
-  // eski cikti ile ozdes: renk gecilmezse VARSAYILAN_RENK yine 0.97/0.71/0.03.
+  // 16 Tem — sitedeki sari rozetle #f7b500 uyumlu). Renk disaridan verilebilir
+  // (goster(canvas, buf, {renk:[r,g,b]}) — or. musterinin sectigi cerceve rengi).
   var VARSAYILAN_RENK = [0.97, 0.71, 0.03];
+
+  /* ISIK MODELI — TEK KAYNAK. Hem asagidaki GLSL parca golgelendiricisi hem
+     JS ikizi golge() BU sayilardan turer; ikinci kopya YOKTUR (iki yerde ayri
+     sabit tutulursa biri degisip digeri kalir ve OLCUM gercek ekrandan sapar —
+     yazi gorunurlugu tam da bu sayilarla olculuyor).
+       taban : ambient — golgeli yuzleri sifira dusurmez (form korunur)
+       k1/yon1: ana isik (yumusak lambert)
+       k2/yon2: dolgu isigi (ters yondeki yuzler tamamen olmesin)
+       kParlak/us: KUCUK GEOMETRIYI GORUNUR KILAN kat (Blinn-Phong benzeri):
+         kabartma yazinin 1,2 mm yan duvarlari on yuzle AYNI normale sahip
+         DEGILDIR, ama sadece lambert'te ikisi de koyu renkte 15/255 seviyede
+         ayrisiyordu = musteri yaziyi goremiyordu (29 Tem olcumu). Parlaklik
+         terimi acisal farki cok daha genis bir araliga yayar. Renk DEGISTIRMEZ
+         (uretilecek urun tek renk kalir) — yalniz isik. */
+  var ISIK = {
+    taban: 0.32,
+    yon1: [0.5, 0.7, 0.6], k1: 0.60,
+    yon2: [-0.6, -0.3, 0.4], k2: 0.175,
+    yonParlak: [0.35, 0.45, 0.82], kParlak: 0.55, us: 14
+  };
+
+  function birim(v) {
+    var b = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]) || 1;
+    return [v[0] / b, v[1] / b, v[2] / b];
+  }
+
+  function glsayi(x) {
+    var s = String(x);
+    return (s.indexOf(".") < 0 && s.indexOf("e") < 0) ? (s + ".0") : s;
+  }
+
+  function glvec(v) {
+    return "vec3(" + glsayi(v[0]) + ", " + glsayi(v[1]) + ", " + glsayi(v[2]) + ")";
+  }
+
+  // Isik carpani (0..~1.6): JS ikizi. GLSL ile AYNI ISIK sayilarindan hesaplar.
+  function carpan(n) {
+    var b = birim(n);
+    var l1 = birim(ISIK.yon1), l2 = birim(ISIK.yon2), lp = birim(ISIK.yonParlak);
+    var i1 = Math.max(b[0] * l1[0] + b[1] * l1[1] + b[2] * l1[2], 0);
+    var i2 = Math.max(b[0] * l2[0] + b[1] * l2[1] + b[2] * l2[2], 0);
+    var ip = Math.max(b[0] * lp[0] + b[1] * lp[1] + b[2] * lp[2], 0);
+    return ISIK.taban + ISIK.k1 * i1 + ISIK.k2 * i2 +
+           ISIK.kParlak * Math.pow(ip, ISIK.us);
+  }
+
+  // Ekranda gorunecek 0..1 RGB (ekran kirpmasi dahil) — testler bunu olcer.
+  function golge(n, renk) {
+    var c = carpan(n), r = renk || VARSAYILAN_RENK;
+    return [Math.min(1, r[0] * c), Math.min(1, r[1] * c), Math.min(1, r[2] * c)];
+  }
+
   var FS = "precision mediump float; varying vec3 vNor; uniform vec3 uRenk;" +
     "void main(){ vec3 n = normalize(vNor);" +
-    " float i1 = max(dot(n, normalize(vec3(0.5, 0.7, 0.6))), 0.0);" +
-    " float i2 = max(dot(n, normalize(vec3(-0.6, -0.3, 0.4))), 0.0) * 0.35;" +
-    // Carpan araligi 0.32..~1.06 tutulur: tavan 1'i ancak en dik acida asar, kanal
-    // doygunlasip yuzey detayini yutmaz; 0.32 taban golgeli yuzleri koyu birakir
-    // (acik gri zeminle cakismaz). Taban rengi uRenk ile disaridan verilir.
-    " vec3 renk = uRenk * (0.32 + 0.60 * i1 + 0.5 * i2);" +
+    " float i1 = max(dot(n, normalize(" + glvec(ISIK.yon1) + ")), 0.0);" +
+    " float i2 = max(dot(n, normalize(" + glvec(ISIK.yon2) + ")), 0.0);" +
+    " float ip = max(dot(n, normalize(" + glvec(ISIK.yonParlak) + ")), 0.0);" +
+    // Taban golgeli yuzleri koyu ama sifir-olmayan birakir (acik gri zeminle
+    // cakismaz); parlaklik terimi kabartma kenarlarini one cikarir.
+    " vec3 renk = uRenk * (" + glsayi(ISIK.taban) +
+    " + " + glsayi(ISIK.k1) + " * i1" +
+    " + " + glsayi(ISIK.k2) + " * i2" +
+    " + " + glsayi(ISIK.kParlak) + " * pow(ip, " + glsayi(ISIK.us) + "));" +
     " gl_FragColor = vec4(renk, 1.0); }";
 
   function derleProgram(gl) {
@@ -130,6 +184,28 @@
     return prog;
   }
 
+  // ---------------------------------------------------------------- kamera (saf)
+
+  var BASLANGIC = { yaw: 0.6, pitch: -0.5, zoom: 1 };
+  var FOV = 0.7;
+  var UZAKLIK_KAT = 2.6;
+
+  /* Cizim matrisleri — SAF. ciz() bunu cagirir, olcum testi de AYNI fonksiyonu
+     cagirir (kamera matematiginin ikinci kopyasi YOK: kopya olsaydi "yazi
+     goruluyor" olcumu gercek ekrandan sessizce ayrisirdi). */
+  function gorunum(model, oran, yaw, pitch, zoom) {
+    var uzaklik = model.yaricap * UZAKLIK_KAT / zoom;
+    var proj = perspektif(FOV, oran, model.yaricap * 0.01,
+                          uzaklik + model.yaricap * 4);
+    var goruntu = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
+                                    0, 0, -uzaklik, 1]);
+    // once merkeze otele (donus matrisine sagdan carpilan oteleme)
+    var otele = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
+                                  -model.merkez[0], -model.merkez[1], -model.merkez[2], 1]);
+    var donus = mat4Carp(mat4Carp(donusX(pitch), donusY(yaw)), otele);
+    return { proj: proj, goruntu: goruntu, donus: donus, uzaklik: uzaklik };
+  }
+
   // ---------------------------------------------------------------- gosterici
 
   var kayitlar = new WeakMap(); // canvas -> durum (ayni canvas'a tekrar yukleme)
@@ -143,11 +219,14 @@
       durum = kur(canvas, gl);
       kayitlar.set(canvas, durum);
     }
-    // Aile bazli taban rengi (opsiyonel): {renk:[r,g,b]}. Verilmezse sari kalir.
+    // Taban rengi (opsiyonel): {renk:[r,g,b]}. Verilmezse sari seri rengi kalir.
     var renk = secenek && secenek.renk;
     durum.renkAyarla(renk && renk.length === 3 ? renk : VARSAYILAN_RENK);
     durum.yukle(stlCoz(stlBuf));
-    return { sifirla: durum.sifirla, yokEt: durum.yokEt };
+    // renkAyarla disari VERILIR: musteri Renk secimini degistirince sayfa modeli
+    // YENIDEN INDIRMEDEN boyayabilsin (yeniden indirme derleyici kotasini yerdi
+    // ve secim degisimi sessizce etkisiz kalirdi).
+    return { sifirla: durum.sifirla, yokEt: durum.yokEt, renkAyarla: durum.renkAyarla };
   }
 
   function kur(canvas, gl) {
@@ -164,8 +243,8 @@
     var norTampon = gl.createBuffer();
 
     var model = null;         // {adet, merkez, yaricap}
-    var renk = VARSAYILAN_RENK; // taban rengi (aile bazli; varsayilan sari)
-    var yaw = 0.6, pitch = -0.5, zoom = 1;
+    var renk = VARSAYILAN_RENK; // taban rengi (secime gore; varsayilan sari)
+    var yaw = BASLANGIC.yaw, pitch = BASLANGIC.pitch, zoom = BASLANGIC.zoom;
     var cizimIste = null;
 
     function boyutla() {
@@ -184,18 +263,10 @@
       gl.clearColor(0.956, 0.965, 0.973, 1); // sayfanin acik gri zemini (#f4f6f8)
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       var oran = canvas.width / canvas.height;
-      var uzaklik = model.yaricap * 2.6 / zoom;
-      gl.uniformMatrix4fv(uProj, false,
-        perspektif(0.7, oran, model.yaricap * 0.01, uzaklik + model.yaricap * 4));
-      // goruntu: modeli merkeze tasi + kameradan geri cek
-      var goruntu = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
-                                      0, 0, -uzaklik, 1]);
-      gl.uniformMatrix4fv(uGoruntu, false, goruntu);
-      // donus: once merkeze otele (donus matrisine sagdan carpilan oteleme)
-      var otele = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
-                                    -model.merkez[0], -model.merkez[1], -model.merkez[2], 1]);
-      var donus = mat4Carp(mat4Carp(donusX(pitch), donusY(yaw)), otele);
-      gl.uniformMatrix4fv(uDonus, false, donus);
+      var g = gorunum(model, oran, yaw, pitch, zoom);
+      gl.uniformMatrix4fv(uProj, false, g.proj);
+      gl.uniformMatrix4fv(uGoruntu, false, g.goruntu);
+      gl.uniformMatrix4fv(uDonus, false, g.donus);
       gl.uniform3fv(uRenk, renk);
       gl.drawArrays(gl.TRIANGLES, 0, model.adet * 3);
     }
@@ -280,10 +351,13 @@
           veri.enBuyuk[1] - veri.enKucuk[1],
           veri.enBuyuk[2] - veri.enKucuk[2]) / 2);
         model = { adet: veri.adet, merkez: merkez, yaricap: yaricap };
-        zoom = 1;
+        zoom = BASLANGIC.zoom;
         cizPlanla();
       },
-      sifirla: function () { yaw = 0.6; pitch = -0.5; zoom = 1; cizPlanla(); },
+      sifirla: function () {
+        yaw = BASLANGIC.yaw; pitch = BASLANGIC.pitch; zoom = BASLANGIC.zoom;
+        cizPlanla();
+      },
       yokEt: function () {
         canvas.removeEventListener("pointerdown", pointerDown);
         canvas.removeEventListener("pointermove", pointerMove);
@@ -298,9 +372,19 @@
 
   // ---------------------------------------------------------------- disari
 
-  root.PRUVO_VIEWER = {
+  var API = {
     goster: goster,
-    // testler icin saf cekirdek
+    // testler icin saf cekirdek — ekranda gorunen sonucun AYNI matematigi
+    // (kopya yok): olcum bunlari cagirir.
     _stlCoz: stlCoz,
+    _gorunum: gorunum,
+    _golge: golge,
+    _carpan: carpan,
+    _ISIK: ISIK,
+    _FS: FS,
+    _BASLANGIC: BASLANGIC,
+    _VARSAYILAN_RENK: VARSAYILAN_RENK,
   };
+  root.PRUVO_VIEWER = API;
+  if (typeof module === "object" && module.exports) { module.exports = API; }
 })(typeof window !== "undefined" ? window : globalThis);

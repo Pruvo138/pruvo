@@ -386,7 +386,32 @@ ONIZLEME_JS = """
   var durum=document.getElementById("onizlemeDurum");
   var tuval=document.getElementById("onizlemeTuval");
   var mesgul=false;
+  var gosterge=null;   /* PRUVO_VIEWER.goster kolu — renk secimi degisince yeniden boyar */
   function de(t){ if(durum){ durum.textContent=t||""; } }
+  /* SECILI RENK ADI — sayfa iki duzende de calisir: kart-secim urununde renk
+     BUTONLARI (#renkButonlar .renk-btn.secili), klasik duzende #renkSec.
+     Hicbiri secili degilse "" -> aile varsayilan rengi kullanilir. */
+  function seciliRenkAdi(){
+    var b=document.querySelector("#renkButonlar .renk-btn.secili");
+    if(b){ return b.getAttribute("data-renk")||""; }
+    var s=document.getElementById("renkSec");
+    return s?s.value:"";
+  }
+  function onizlemeRenk(){
+    return (window.PRUVO_SECENEK&&PRUVO_SECENEK.onizlemeRengi)
+      ? PRUVO_SECENEK.onizlemeRengi(URUN.id, seciliRenkAdi()) : null;
+  }
+  /* Renk secimi degisince modeli YENIDEN INDIRMEDEN boya (derleyici kotasi
+     yenmez); onizleme henuz acilmadiysa hicbir sey yapma. */
+  function renkTazele(){
+    if(!gosterge||!gosterge.renkAyarla){ return; }
+    var r=onizlemeRenk();
+    if(r){ gosterge.renkAyarla(r); }
+  }
+  var rbtn=document.querySelectorAll("#renkButonlar .renk-btn");
+  for(var ri=0;ri<rbtn.length;ri++){ rbtn[ri].addEventListener("click", renkTazele); }
+  var rsec=document.getElementById("renkSec");
+  if(rsec){ rsec.addEventListener("change", renkTazele); }
   btn.addEventListener("click", function(){
     if(mesgul){ return; }
     if(!(window.PRUVO_KONF && PRUVO_KONF.hazir() && PRUVO_KONF.gecerliMi())){
@@ -420,11 +445,11 @@ ONIZLEME_JS = """
       return c.arrayBuffer();
     })
     .then(function(buf){
-      /* Aile bazli onizleme rengi (tek kaynak /secenekler.js ONIZLEME_RENKLER);
-         listede yoksa viewer sari-seri varsayilan sari rengini kullanir. Toka
-         SIYAH (Okan 26 Tem). */
-      var onzRenk=(window.PRUVO_SECENEK&&PRUVO_SECENEK.ONIZLEME_RENKLER||{})[URUN.id];
-      PRUVO_VIEWER.goster(tuval, buf, onzRenk?{ renk:onzRenk }:undefined);
+      /* Onizleme rengi TEK KAYNAK /secenekler.js onizlemeRengi(): renk secimi
+         acik ailede MUSTERININ sectigi renk, aksi halde aile rengi, o da yoksa
+         viewer'in sari-seri varsayilani. */
+      var onzRenk=onizlemeRenk();
+      gosterge=PRUVO_VIEWER.goster(tuval, buf, onzRenk?{ renk:onzRenk }:undefined);
       de("Sürükleyerek döndürün · tekerlek/iki parmakla yakınlaştırın");
     })
     .catch(function(e){
