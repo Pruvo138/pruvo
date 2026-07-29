@@ -12,5 +12,9 @@
   },
   "sabit": {
     "Output": "frame"
+  },
+  "parcalar": {
+    "govde": { "Output": "frame_no_caption" },
+    "yazi": { "Output": "caption" }
   }
 }

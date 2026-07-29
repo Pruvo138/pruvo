@@ -204,6 +204,39 @@
     return ONIZLEME_RENKLER[urunId] || null;
   }
 
+  /* ---- COK GOVDELI (2-RENK) URUN SOZLESMESI — TEK KAYNAK ------------------
+     Bir ailenin AYRI BASILABILIR GOVDELERI. Derleyicide her govde ayri bir eslem
+     ailesidir ("<aile>#<parca>", tools/onizleme-paket-yukle.py parca_bloklari):
+     ayni .scad, ayni -D bayraklari, YALNIZ `Output` farkli.
+       govde -> Output="frame_no_caption"  (yazisiz cerceve kabugu)
+       yazi  -> Output="caption"           (yalniz kabartma yazi govdesi)
+     Worker (onizleme/src/index.js) istegin `parca` alanini BU listeye karsi
+     dogrular; liste disi deger 400 alir (fail-closed). Alan HIC verilmezse
+     bugunku TEK GOVDE yolu (Output="frame") aynen calisir — geriye donuk uyum.
+     Uretim ve onizleme AYNI ucu kullanir; boylece ekranda iki renkte gorunen
+     sey, uretimde iki filamanla basilacak olan seyin ta kendisidir.
+     GENISLETME: yeni cok-govdeli aile = burada bir satir + esleme json'una
+     `parcalar` blogu (baska dokunus gerekmez). */
+  var ONIZLEME_PARCALAR = {
+    "olcuye-ozel-cerceve": ["govde", "yazi"]
+  };
+
+  /* 2-renk onizleme YAPILABILIR MI (tek kaynak — sayfa scripti ve testler bunu
+     cagirir). Kosullar (hepsi saglanmali, aksi halde TEK GOVDE yoluna dusulur):
+       1. aile cok govdeli listede,
+       2. musteri yazi rengi secmis ve o renk GOVDE renginden FARKLI
+          (ayni renk = tek filaman = tek govde; konfigurator de oyle sayar),
+       3. HER IKI rengin de onizlemede sayisal karsiligi VAR.
+          "Diger" (serbest metin ozel renk) BILEREK temsil edilemez -> tek govde.
+     Doner: null (2-renk degil) | {govdeRenk:[r,g,b], yaziRenk:[r,g,b]} */
+  function onizlemeIkiRenk(urunId, secilenRenk, yaziRengi) {
+    if (!Object.prototype.hasOwnProperty.call(ONIZLEME_PARCALAR, urunId)) { return null; }
+    if (!yaziRengi || yaziRengi === secilenRenk) { return null; }
+    var g = ONIZLEME_RENK_RGB[secilenRenk], y = ONIZLEME_RENK_RGB[yaziRengi];
+    if (!g || !y) { return null; }
+    return { govdeRenk: g, yaziRenk: y };
+  }
+
   /* Onizleme secenek kisitlari: uretim motorunda 3D karsiligi olmayan secim
      degerleri (mimar tablosunda; siparis/fiyat AKISINA DOKUNMAZ, yalniz 3D
      onizleme bu degerlerle sunulamaz). Worker sema kapisinda reddeder
@@ -448,7 +481,9 @@
     ONIZLEME_RENKLER: ONIZLEME_RENKLER,
     ONIZLEME_RENK_RGB: ONIZLEME_RENK_RGB,
     ONIZLEME_RENK_SECIMI: ONIZLEME_RENK_SECIMI,
+    ONIZLEME_PARCALAR: ONIZLEME_PARCALAR,
     onizlemeRengi: onizlemeRengi,
+    onizlemeIkiRenk: onizlemeIkiRenk,
     fiyatSayisi: fiyatSayisi,
     fonksiyonelMi: fonksiyonelMi,
     boyFarki: boyFarki,

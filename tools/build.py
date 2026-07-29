@@ -379,6 +379,12 @@ ONIZLEME_AILELER = set(_js_sabiti(_SEC_JS, "ONIZLEME_AILELER"))
 # gonderir, donen gzip'li binary STL'i acip /jenerator/viewer.js ile cizer.
 # .format() SONRASI yerlestirilir (placeholder degeri yeniden islenmez) -> tek suslu
 # parantezler guvenlidir. Fiyat/sepet koduna dokunmaz; salt gorsel katman.
+#
+# 2-RENK (COK GOVDELI) YOL — 29 Tem 2026: musteri "Yazı rengi (2. renk)" secince
+# onizleme IKI govde ceker (parca="govde" + parca="yazi", ayni parametrelerle) ve
+# ikisini AYRI renklerde cizer. Uretim de AYNI ucu ayni parca adlariyla kullanir
+# (/ic-derle) -> ekranda gorulen ayrim, basilacak filaman ayriminin ta kendisi.
+# Tek renkte (ya da renk temsil edilemiyorsa) BUGUNKU tek-govde yolu aynen kosar.
 ONIZLEME_JS = """
 (function(){
   var btn=document.getElementById("onizleBtn"); if(!btn){ return; }
@@ -387,6 +393,8 @@ ONIZLEME_JS = """
   var tuval=document.getElementById("onizlemeTuval");
   var mesgul=false;
   var gosterge=null;   /* PRUVO_VIEWER.goster kolu — renk secimi degisince yeniden boyar */
+  var ekrandaIkiGovde=false;   /* su an ekranda ayri yazi govdesi var mi */
+  var sonYaziRenk=null;        /* son cizimde kullanilan yazi rengi ADI */
   function de(t){ if(durum){ durum.textContent=t||""; } }
   /* SECILI RENK ADI — sayfa iki duzende de calisir: kart-secim urununde renk
      BUTONLARI (#renkButonlar .renk-btn.secili), klasik duzende #renkSec.
@@ -401,25 +409,82 @@ ONIZLEME_JS = """
     return (window.PRUVO_SECENEK&&PRUVO_SECENEK.onizlemeRengi)
       ? PRUVO_SECENEK.onizlemeRengi(URUN.id, seciliRenkAdi()) : null;
   }
+  /* 2-renk karari TEK KAYNAK /secenekler.js onizlemeIkiRenk(): aile cok govdeli mi,
+     yazi rengi govdeden farkli mi, iki renk de temsil edilebiliyor mu. */
+  function ikiRenkDurumu(yaziRenkAdi){
+    return (window.PRUVO_SECENEK&&PRUVO_SECENEK.onizlemeIkiRenk)
+      ? PRUVO_SECENEK.onizlemeIkiRenk(URUN.id, seciliRenkAdi(), yaziRenkAdi) : null;
+  }
   /* Renk secimi degisince modeli YENIDEN INDIRMEDEN boya (derleyici kotasi
-     yenmez); onizleme henuz acilmadiysa hicbir sey yapma. */
+     yenmez); onizleme henuz acilmadiysa hicbir sey yapma.
+     EKRANDA IKI GOVDE varsa iki rengi birden tazeler; iki renk esitlenirse
+     (ya da temsil edilemez hale gelirse) iki govde de govde rengine boyanir —
+     bu, tek govdeli gorunumle GORSEL OLARAK AYNIDIR, yeniden indirme gerekmez.
+     TERSI yon (tek govde ekranda iken 2-renk secilmesi) boyamayla ifade
+     EDILEMEZ (ayri yazi govdesi indirilmemistir) -> onizleme yeniden kosar. */
+  /* Yazi renginin GUNCEL degeri DAIMA seciciden okunur; son cizimdeki deger yalnizca
+     secici henuz yoksa yedektir. (Ilk turda burada `sonYaziRenk` kullaniliyordu:
+     musteri 2. rengi degistirince ekran DEGISMIYORDU — Okan'in sikayetinin ta kendisi;
+     kapi S5b bunu yakaladi.) */
+  function guncelYaziRenk(){
+    var el=yaziRenkEl();
+    return el ? el.value : sonYaziRenk;
+  }
   function renkTazele(){
-    if(!gosterge||!gosterge.renkAyarla){ return; }
+    if(!gosterge){ return; }
+    var ik=ikiRenkDurumu(guncelYaziRenk());
+    if(ekrandaIkiGovde){
+      if(gosterge.renklerAyarla){
+        var g=ik?ik.govdeRenk:onizlemeRenk();
+        gosterge.renklerAyarla([g, ik?ik.yaziRenk:g]);
+      }
+      return;
+    }
+    if(ik){ onizlemeCalistir(); return; }
     var r=onizlemeRenk();
-    if(r){ gosterge.renkAyarla(r); }
+    if(r&&gosterge.renkAyarla){ gosterge.renkAyarla(r); }
   }
   var rbtn=document.querySelectorAll("#renkButonlar .renk-btn");
   for(var ri=0;ri<rbtn.length;ri++){ rbtn[ri].addEventListener("click", renkTazele); }
   var rsec=document.getElementById("renkSec");
   if(rsec){ rsec.addEventListener("change", renkTazele); }
-  btn.addEventListener("click", function(){
+  /* Yazi rengi (2. renk) secicisi konfigurator tarafindan DINAMIK olusturulur;
+     bu script ondan once kosabilir -> baglanti tembel yapilir (her denemede
+     tekrar aranir, bir kez baglanir). Baglanmazsa 2. renk secimi onizlemeye
+     ULASMAZDI (Okan'in sikayetinin tam ikizi). */
+  function yaziRenkEl(){ return document.getElementById("konf_yazi_renk"); }
+  function yaziRenkBagla(){
+    var el=yaziRenkEl();
+    if(el&&!el.onzBagli){ el.onzBagli=true; el.addEventListener("change", renkTazele); }
+  }
+  yaziRenkBagla();
+  function cevapCoz(c){
+    if(!c.ok){ return c.json().then(function(h){ throw new Error(h.hata||("hata-"+c.status)); }); }
+    if(c.headers.get("X-Sikistirma")==="gzip"){
+      if(!window.DecompressionStream){ throw new Error("tarayici-eski"); }
+      return new Response(c.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+    }
+    return c.arrayBuffer();
+  }
+  function govdeGetir(parametreler, parca){
+    var g={ aile: URUN.id, parametreler: parametreler };
+    if(parca){ g.parca=parca; }
+    return fetch("/api/onizleme/olustur", { method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(g) }).then(cevapCoz);
+  }
+  function onizlemeCalistir(){
     if(mesgul){ return; }
+    yaziRenkBagla();
     if(!(window.PRUVO_KONF && PRUVO_KONF.hazir() && PRUVO_KONF.gecerliMi())){
       kutu.hidden=false; de("Önce ölçüleri geçerli aralıkta doldurun."); return;
     }
     /* satiraYaz: konfiguratorun dogrulanmis parametre setini verir (fiyat alanlari
-       burada KULLANILMAZ; onizleme fiyattan bagimsiz). */
-    var s = PRUVO_KONF.satiraYaz({ malzeme:"PLA", renk:"Siyah" });
+       burada KULLANILMAZ; onizleme fiyattan bagimsiz). Govde rengi olarak SAYFADA
+       SECILI rengi veririz: konfigurator 2-renk kararini (yazi_renk alani) govde
+       rengiyle karsilastirarak verir — sabit "Siyah" verilseydi musteri siyah
+       cerceve + siyah yazi secince onizleme 2 renk sanirdi. */
+    var s = PRUVO_KONF.satiraYaz({ malzeme:"PLA", renk: seciliRenkAdi()||"Siyah" });
     if(!s.parametreler){ kutu.hidden=false; de("Önce ölçüleri geçerli aralıkta doldurun."); return; }
     /* Onizleme secenek kisitlari (tek kaynak /secenekler.js): motorda 3D
        karsiligi olmayan secimlerde istek atmadan dostca uyar. */
@@ -432,30 +497,46 @@ ONIZLEME_JS = """
         return;
       }
     }}}
+    var ik=ikiRenkDurumu(s.yazi_renk);
     mesgul=true; btn.disabled=true; kutu.hidden=false; de("Model hazırlanıyor…");
-    fetch("/api/onizleme/olustur", { method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ aile: URUN.id, parametreler: s.parametreler }) })
-    .then(function(c){
-      if(!c.ok){ return c.json().then(function(h){ throw new Error(h.hata||("hata-"+c.status)); }); }
-      if(c.headers.get("X-Sikistirma")==="gzip"){
-        if(!window.DecompressionStream){ throw new Error("tarayici-eski"); }
-        return new Response(c.body.pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+    /* YAYIN SIRASI YEDEGI: parca aileleri derleyici imajina girmeden site kodu
+       yayina cikarsa (imaj/paket sirasi) parcali istek "aile-yok" alir. O halde
+       onizleme BOS KALMAZ: TEK GOVDE yoluna duser (bugunku davranis). Yalniz
+       "parca yolu henuz yok" anlamina gelen hatalarda; gecersiz-geometri gibi
+       GERCEK musteri hatalari aynen yukari cikar (maskeleme yok). */
+    var YEDEGE_DUS = ["aile-yok", "gecersiz-parca", "bulunamadi"];
+    var istek = ik
+      ? Promise.all([govdeGetir(s.parametreler,"govde"), govdeGetir(s.parametreler,"yazi")])
+          .catch(function(e){
+            if(YEDEGE_DUS.indexOf(e.message)<0){ throw e; }
+            ik=null;
+            return govdeGetir(s.parametreler,null).then(function(b){ return [b]; });
+          })
+      : govdeGetir(s.parametreler,null).then(function(b){ return [b]; });
+    istek.then(function(buflar){
+      if(ik && buflar.length===2){
+        /* IKI GOVDE, IKI RENK: govde + yazi ayni koordinat sisteminde gelir
+           (derleyici ayni .scad'i yalniz Output farkiyla surer) -> viewer hicbirini
+           kaydirmaz, ust uste tam oturur. */
+        gosterge=PRUVO_VIEWER.goster(tuval,
+          [{ buf:buflar[0], renk:ik.govdeRenk }, { buf:buflar[1], renk:ik.yaziRenk }]);
+        ekrandaIkiGovde=true; sonYaziRenk=s.yazi_renk;
+        de("Yazı 2. renkte üretilir · Sürükleyerek döndürün · tekerlek/iki parmakla yakınlaştırın");
+      } else {
+        /* Onizleme rengi TEK KAYNAK /secenekler.js onizlemeRengi(): renk secimi
+           acik ailede MUSTERININ sectigi renk, aksi halde aile rengi, o da yoksa
+           viewer'in sari-seri varsayilani. */
+        var onzRenk=onizlemeRenk();
+        gosterge=PRUVO_VIEWER.goster(tuval, buflar[0], onzRenk?{ renk:onzRenk }:undefined);
+        ekrandaIkiGovde=false; sonYaziRenk=s.yazi_renk||null;
+        de("Sürükleyerek döndürün · tekerlek/iki parmakla yakınlaştırın");
       }
-      return c.arrayBuffer();
-    })
-    .then(function(buf){
-      /* Onizleme rengi TEK KAYNAK /secenekler.js onizlemeRengi(): renk secimi
-         acik ailede MUSTERININ sectigi renk, aksi halde aile rengi, o da yoksa
-         viewer'in sari-seri varsayilani. */
-      var onzRenk=onizlemeRenk();
-      gosterge=PRUVO_VIEWER.goster(tuval, buf, onzRenk?{ renk:onzRenk }:undefined);
-      de("Sürükleyerek döndürün · tekerlek/iki parmakla yakınlaştırın");
     })
     .catch(function(e){
       var m={
         "gecersiz-geometri":"Bu ölçü kombinasyonu üretilemiyor; ölçüleri değiştirip tekrar deneyin.",
         "onizleme-secenek-kisiti":"Bu seçenekle 3D önizleme şimdilik sunulamıyor; sipariş verebilirsiniz, üretim etkilenmez.",
+        "gecersiz-parca":"Önizleme bu üründe 2 renk gösteremiyor; sipariş verebilirsiniz, üretim etkilenmez.",
         "hiz-siniri":"Kısa sürede çok fazla önizleme istendi; bir dakika sonra tekrar deneyin.",
         "derleyici-yok":"Önizleme servisi şu an hazır değil; lütfen daha sonra deneyin.",
         "tarayici-eski":"Tarayıcınız 3D önizlemeyi desteklemiyor."
@@ -463,7 +544,8 @@ ONIZLEME_JS = """
       de(m[e.message] || "Önizleme oluşturulamadı; lütfen tekrar deneyin.");
     })
     .then(function(){ mesgul=false; btn.disabled=false; });
-  });
+  }
+  btn.addEventListener("click", onizlemeCalistir);
 })();
 """
 

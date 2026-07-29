@@ -47,6 +47,15 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ESLEM_YOL = os.path.join(REPO, "onizleme", "derleyici", "eslem-ozel.json")
 BUCKET = "pruvo-ozel"
 
+# PARCA (COK GOVDELI URUN) AYIRACI — 2-renk yazi sozlesmesi, 29 Tem 2026.
+# Bir aile birden fazla BASILABILIR GOVDE dondurebilir (or. cerceve: gövde + yazı,
+# AMS 2 filaman). Her govde derleyicide AYRI bir eslem ailesi olarak durur:
+#   "<urunId>#<parca>"  ->  ayni .scad, ayni -D bayraklari, YALNIZ `Output` farkli.
+# TABAN AILE (parcasiz "<urunId>") BIREBIR AYNI KALIR: eski tek-govde cagrilari
+# bit-ayni cikti verir (geriye donuk uyumluluk yapisal, kosula bagli degil).
+# Ayirac urun id'lerinde KULLANILMAYAN bir karakter olmalidir (id'ler kebab-case).
+PARCA_AYIRAC = "#"
+
 # BIZIM ureteclerimiz (pruvo-jenerator v2): aile-id -> public test eslem adi.
 # Eslem tek kaynagi jenerator/test/esleme/<ad>.json (dogrula.py ile ayni dosya).
 ACIK_AILELER = {
@@ -67,10 +76,11 @@ ACIK_AILELER = {
     # onizleme kapsaminda DEGIL, Caption_Text='' sabit" diyordu. O kapsam-disi karari
     # KALDIRILDI: onizleme musterinin girdigi metni GOSTERIR ve ayni eslem uretimi de
     # besler (onizleme ile /ic-derle AYNI derleyiciyi kullanir, onizleme/src/index.js).
-    # HALA KAPSAM DISI olan TEK sey: 2-RENK caption akisi (ayri `frame_no_caption` +
-    # `caption` govdeleri; `Output` sozlesmesi degismeden yapilamaz). Onizleme TEK RENK
-    # govdeyi yazisiyla birlikte render eder. 2-renk ucreti/min-kenar kisiti siparis
-    # yolunda (konfigurator.js IKI_RENK_MIN_KENAR).
+    # 🔴 GUNCELLEME 2026-07-29 (2. tur): 2-RENK caption akisi ARTIK KAPSAM ICINDE.
+    # `parcalar` blogu (jenerator/test/esleme/cerceve.json) iki EK eslem ailesi uretir:
+    #   olcuye-ozel-cerceve#govde -> Output="frame_no_caption" (yazisiz cerceve kabugu)
+    #   olcuye-ozel-cerceve#yazi  -> Output="caption"          (yalniz kabartma yazi)
+    # Taban aile (Output="frame", tek govde) AYNEN durur. Bkz. parca_bloklari().
     "olcuye-ozel-cerceve": "cerceve",
 }
 
@@ -142,6 +152,48 @@ def acik_eslem_uret(ad):
     }, test_eslem["scad"]
 
 
+def parca_bloklari(ad, taban_blok):
+    """jenerator/test/esleme/<ad>.json `parcalar` -> {"<urunId>#<parca>": blok}.
+
+    NE YAPAR: taban ailenin blogunu KOPYALAYIP yalnizca `ortak.sabit` icindeki
+    belirtilen anahtarlari degistirir (cerceve: Output frame -> frame_no_caption /
+    caption). Boylece iki govde AYNI .scad'ten, AYNI -D bayraklariyla, TEK farkla
+    uretilir -> HIZALAMA yapisal olarak garanti (ayni koordinat sistemi; ayrica
+    cerceve.scad Caption_Fit="existing" oldugu icin dis olcu yazidan bagimsiz).
+
+    FAIL-CLOSED kurallari (sessiz sapma yerine paket uretimi DURUR):
+      * parca adi yalniz [a-z0-9-] olabilir (ayirac/yol karakteri anahtara sizmasin),
+      * ezilen her SCAD degiskeni taban `sabit`te ZATEN VAR olmali (yazim hatasi
+        yeni bir degisken ihdas edemez),
+      * `metin`/`sayisal`/`secim` bloklari DEGISTIRILEMEZ (musteri metni ve olculer
+        iki govdede AYRI olamaz — ayrisirsa yazi govdesi baska bir yaziyi basardi).
+    `parcalar` yoksa BOS sozluk doner -> uretilen paket eslemi bu degisiklikten
+    ONCEKIYLE BIREBIR AYNI kalir (yanlis-pozitif kapisi)."""
+    with open(os.path.join(REPO, "jenerator", "test", "esleme",
+                           ad + ".json"), encoding="utf-8") as f:
+        test_eslem = json.load(f)
+    parcalar = test_eslem.get("parcalar") or {}
+    if not parcalar:
+        return {}
+    urun_id = test_eslem["urunId"]
+    taban_sabit = (taban_blok.get("ortak") or {}).get("sabit") or {}
+    cikti = {}
+    for parca, ezme in sorted(parcalar.items()):
+        if not parca or not all(c.islower() or c.isdigit() or c == "-" for c in parca):
+            sys.exit("%s: gecersiz parca adi %r (yalniz kucuk harf/rakam/-)" % (ad, parca))
+        if not isinstance(ezme, dict) or not ezme:
+            sys.exit("%s: parca '%s' bos/gecersiz ezme" % (ad, parca))
+        eksik = sorted(set(ezme) - set(taban_sabit))
+        if eksik:
+            sys.exit("%s: parca '%s' taban `sabit`te olmayan degisken(ler) eziyor: %s"
+                     % (ad, parca, ", ".join(eksik)))
+        blok = json.loads(json.dumps(taban_blok))     # derin kopya
+        blok["ortak"]["sabit"] = dict(taban_sabit)
+        blok["ortak"]["sabit"].update(ezme)
+        cikti[urun_id + PARCA_AYIRAC + parca] = blok
+    return cikti
+
+
 def topla(hedef, uyelik_dir, jenerator_dir):
     if not os.path.exists(ESLEM_YOL):
         sys.exit("eslem-ozel.json yok: %s (gitignore'lu — R2'deki paketten geri alin: "
@@ -172,6 +224,12 @@ def topla(hedef, uyelik_dir, jenerator_dir):
         if aile_id in eslem["aileler"]:
             sys.exit("%s hem eslem-ozel.json'da hem ACIK_AILELER'de" % aile_id)
         eslem["aileler"][aile_id] = blok
+        # COK GOVDELI aile (2-renk): "<aile>#<parca>" ek eslem girdileri. Taban aile
+        # yukarida OLDUGU GIBI yazildi -> tek-govde yolu degismez.
+        for parca_id, parca_blok in parca_bloklari(ad, blok).items():
+            if parca_id in eslem["aileler"]:
+                sys.exit("parca ailesi cakisti: %s" % parca_id)
+            eslem["aileler"][parca_id] = parca_blok
         kaynak = os.path.join(jenerator_dir, scad)
         if not os.path.exists(kaynak):
             sys.exit("bizim .scad yok: %s (PRUVO_JENERATOR_DIR dogru mu?)" % kaynak)
