@@ -342,6 +342,42 @@ jobs:
       - name: Konfigur fail-closed kabul testi (shop sessiz eksik-tahsilat kapisi)
         run: node shop/test/konfigur-fail-closed.mjs
 
+      # KONFIGUR BUNDLE KAPISI (drift): shop/src/konfigurlar.js artik ELLE BAKIMLI AYNA DEGIL,
+      # urunler.json'daki "konfigur" alanlarindan URETILEN bir artefakt. Bu adim artefakti
+      # yeniden turetip BIREBIR karsilastirir; yeni konfigurlu urun eklenip artefakt
+      # uretilmemisse (ya da artefakt elle kurcalanmissa) CI KIRMIZI yanar. Cozum tek komut:
+      # python3 tools/konfigur-bundle-kapisi.py --yaz
+      # KAPSAM DAR (jeton ekseni): yalniz konfigur alanlarindan TURETILEN icerik karsilastirilir
+      # -> konfigursuz urun ekleme/silme, fiyat/aciklama/gorsel/CSS degisikligi, katalog sirasi
+      # ve konfigur objesi ICI anahtar sirasi kapiyi YAKMAZ (olculdu: --kendini-test'te 9
+      # yanlis-pozitif senaryosunun 9'u yesil). Saf Python, offline, dosya YAZMAZ, ~1 s.
+      - name: Konfigur bundle kapisi (urunler.json -> shop/src/konfigurlar.js drift)
+        run: python3 tools/konfigur-bundle-kapisi.py
+
+      # ... ve kapinin KENDI kabulu (nobetci olu kalmasin): 9 yanlis-pozitif senaryosu YESIL
+      # kalmali, 4 gercek drift mutanti KIRMIZI yanmali, CLI cikis kodlari (esit=0 / drift=1 /
+      # dosya-yok=1) dogru olmali, bozuk konfigur semasi artefakt URETIMINI reddetmeli
+      # (fail-closed: yarim/bozuk artefakt ship edilmez). Gecici dizinde calisir, repo dosyasi
+      # DEGISMEZ. ~2 s.
+      - name: Konfigur bundle kapisi — kendini test (yanlis-pozitif + kirmizi-mutasyon)
+        run: python3 tools/konfigur-bundle-kapisi.py --kendini-test
+
+      # FIYAT ESDEGERLIGI + PROVA UCU (shop/test/fiyat-prova.mjs). Iki seyi birden kilitler:
+      # (1) ESDEGERLIK — konfigur aynasinin uretilmis artefakta cevrilmesi ve fiyat hesabinin
+      #     sepetiFiyatla()'ya cikarilmasi fiyati DEGISTIRMEDI: ESKI kod (git HEAD: elle ayna)
+      #     ile YENI kod 14 urun x 6 kombinasyonda AYNI kurusu uretmeli (fark 0) + 3x tavan
+      #     (150000 kurus) hala uygulanmali.
+      # (2) PROVA — POST /api/shop/fiyat yan etkisiz olmali: D1 YAZMA sayaci 0, ag (iyzico/
+      #     Telegram/e-posta) cagri sayaci 0, siparis_no sorgusu 0; AYNI kosumda /baslat ikisini
+      #     de artirmali (sayaclarin olu olmadigi kaniti). Ayrica prova tutari tahsilat tutariyla
+      #     BIREBIR, cevap BEYAZ LISTE (baslik/kategori/gorsel/hacim/PII/token sizmaz), dogrulama
+      #     /baslat ile ayni, hiz siniri calisiyor, artefaktta olmayan konfigur urunu provada da
+      #     400 (fail-closed). 4 KIRMIZI-MUTASYON: bayat artefakt / fail-closed kol silinmis /
+      #     kapinin CI cagrisi silinmis / prova yan etki uretiyor.
+      # OFFLINE: wrangler YOK, ag YOK, gercek/sahte SIPARIS YOK, repo dosyasi YAZILMAZ. ~40 s.
+      - name: Fiyat esdegerligi + prova ucu kabul testi (yan etkisiz fiyat sorgusu)
+        run: node shop/test/fiyat-prova.mjs
+
       # 2-RENK YAZI EK UCRETI (shop odeme yolu — KARSILIGI OLMAYAN TAHSILAT kapisi). Cerceve
       # ailesinde yazi rengi farkli secilince fiyata +75 TL ekleniyordu; olcum bunu curuttu
       # (ayni geometriyle yazi='' / 'OKAN' / 'WWWWWWWWWWWW' -> uc STL de 65284 bayt / 1304
