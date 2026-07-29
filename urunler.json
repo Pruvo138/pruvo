@@ -1,5 +1,271 @@
 [
   {
+    "id": "toyota-tundra-arka-cam-anten-montaj-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Tundra Arka Cam Anten Montaj Aparatı",
+    "aciklama": "Toyota Tundra'nın arka cam üst kenarına oturan harici anten montaj aparatıdır. Kabin içine konan antenler sac ve cam yüzeyinden dolayı zayıf çeker; kasaya delik açmak ise boya bütünlüğünü bozar ve geri dönüşü olmayan bir işlemdir. Bu aparat cam kenarına aracın kendi açısında yaslanır, delme ya da kesme gerektirmez ve araç yıkamadan önce tek hareketle çıkarılır. İki parçadan oluşur: cam kenarına oturan gövde ve gövdeye kırlangıç kuyruğuyla geçen anten yuvası. Yuva, yaygın vidalı anten bağlantısına göre çıkarılmıştır; anten sökülmeden aparatla birlikte kabin içine sarkıtılabilir. Kablo geçişi gövdenin alt kanalından yönlendirilir. Güneşe, sıcağa ve dış ortam koşullarına dayanıklı sert malzemeyle, yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 49 × 30 × 30 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7089082-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7089082-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7089082-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "triggermeister",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7089082"
+    }
+  },
+  {
+    "id": "toyota-rav4-xa50-arka-tavan-cita-kapagi-sol",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota RAV4 XA50 Arka Tavan Çıtası Kapağı (Sol)",
+    "aciklama": "Toyota RAV4 XA50 kasasının sol arka tavan çıtasının uç kapağıdır; ilgili orijinal parça numaraları ilanda beyan edilmiştir. Yıllar içinde güneşte kırılganlaşan orijinal kapak kopup düştüğünde çıtanın içindeki bağlantı cıvatası ve boşluk açıkta kalır; yağmur suyu doğrudan bağlantı noktasına dolar, cıvata paslanır ve seyir hâlinde açık ağızdan ıslık sesi gelir. Bu parça çıtanın ucundaki kendi yuvasına oturur, alt yüzündeki iki tırnak çıtanın kenarına kenetlenir ve elle bastırılarak kilitlenir. Dış yüzü orijinaldeki gibi tamamen düz ve kavislidir, tavan hattını bozmaz. Vida, delme ya da yapıştırıcı gerektirmez. Sağ taraf için ayrıca üretilir. Güneşe ve dış ortam koşullarına dayanıklı sert malzemeyle, yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 155 × 28 × 12 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7111929-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jfkjfb",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7111929"
+    }
+  },
+  {
+    "id": "toyota-tacoma-far-dolgu-paneli-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Tacoma Far Dolgu Paneli Klipsi (1. Nesil, Sağ + Sol)",
+    "aciklama": "Birinci nesil Toyota Tacoma'da far ile çamurluk arasındaki dolgu panelini yerinde tutan klipsin sağ ve sol takımıdır. Yedek çamurluk takıldığında bu klips çoğu zaman gelmez; dolgu paneli üst kenarından tutunamaz, far ile çamurluk arasında boşluk açılır ve panel bozuk yolda titreyerek boyayı çizer. Bu parça panelin arka yüzüne oturur, gövdesindeki kanal panel kenarını kavrar ve çamurluğun iç yüzüne kuvvetli bir çift taraflı bantla sabitlenir; montaj yöntemi tasarımında baştan bu şekilde çözülmüştür, delme ya da vida gerektirmez. Sağ ve sol parçalar birbirinin aynası olarak ayrı ayrı üretilir. Motor bölmesi kenarındaki sıcaklığa ve güneşe dayanıklı, esneyip kırılmayan sert malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 27 × 23 × 13 mm.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7136534-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7136534-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7136534-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "QB89Dragon",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7136534"
+    }
+  },
+  {
+    "id": "toyota-land-cruiser-70-hilux-arazi-vitesi-kol-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Land Cruiser 70 / Hilux Arazi Vitesi Kol Topuzu",
+    "aciklama": "Toyota Land Cruiser 70 serisi ve Hilux modellerinde arazi (transfer) vitesi kolunun topuzudur. Orijinal topuzun kaplaması yıllar içinde dökülür, gövdesi çatlar ve sonunda milden çıkar; kol çıplak metal olarak kalır, kademe seçerken elde kayar ve hangi kademede olunduğu görülmez. Bu topuz kolun kendi diş ölçüsüne göre çıkarılmıştır; bastırılarak çevrildiğinde dişini kendisi açar ve mile sıkıca oturur, ek somun ya da yapıştırıcı gerektirmez. Üst yüzünde arazi kademelerinin şeması kabartma olarak bulunur; şema aracın kendi kademe düzenine göre iki farklı yerleşimde sunulur, sipariş sırasında hangisinin gerektiği belirtilir. Avuç içine oturan yuvarlak gövdesi eldivenle de kavranır. Sürekli elle zorlanan bir parça olduğu için darbeye dayanıklı sert malzemeyle, tam dolguda üretilir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7182520-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7182520-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JNS222",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7182520"
+    }
+  },
+  {
+    "id": "toyota-corolla-kaput-istinat-cubugu-klipsi-2006",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Corolla Kaput İstinat Çubuğu Klipsi (2006)",
+    "aciklama": "2006 model Toyota Corolla'nın kaput istinat çubuğunu kapalı konumda tutan klipstir. Motor bölmesi sıcağında yıllarca kalan orijinal klips sertleşip koptuğunda çubuk yuvasında durmaz; sürüşte serbest kalıp kaputun altına vurur, boyalı yüzeye sürter ve kaput açıldığında çubuk elle aranmak zorunda kalır. Bu parça çamurluk üstündeki fabrika deliğine geçer, iki yanaklı ağzı çubuğun kendi kalınlığına göre çıkarılmıştır ve çubuk bastırılarak içeri kilitlenir, elle çekilerek serbest bırakılır. Tabanı orijinalinden kalın tutulmuş, duvar sayısı artırılmıştır; bu sayede tekrarlı açma kapama zorlanmasına daha uzun dayanır. Ek parça, delme ya da yapıştırıcı gerektirmez. Motor bölmesi sıcaklığına ve güneşe dayanıklı sert malzemeyle, yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 21 × 17 × 12 mm.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7221094-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7221094-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "galiel",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7221094"
+    }
+  },
+  {
+    "id": "toyota-paseo-hoparlor-adaptoru-yazisiz",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Paseo Hoparlör Adaptörü (Yazısız)",
+    "aciklama": "Toyota Paseo'nun fabrika hoparlör yuvasını yaygın yuvarlak hoparlörlere çeviren adaptör halkasıdır. Aracın kendi yuvası üçgen bağlantı düzenine sahiptir; bu yüzden hazır hoparlör hiçbir deliğe denk gelmez, sürücü ya kapıyı keser ya da hoparlörü bantla tutturmaya çalışır. Bu halka fabrika üçgen deliklerine oturur ve üzerindeki dairesel delik düzeni standart bağlantıya karşılık gelir; böylece kapı sacına hiçbir kalıcı değişiklik yapılmaz ve istendiğinde her şey geri alınabilir. Halkanın kalınlığı hoparlörü cam mekanizmasına değmeyecek kadar öne alır. Yüzü tamamen yazısız, düz üretilir. Kapı içindeki neme ve titreşime dayanıklı sert malzemeyle, yüksek dolguda üretilir; tek taraf için tek halka gerekir.\nYaklaşık dış ölçüler: 142 × 141 × 5 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7242780-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "salvo_XSM",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7242780"
+    }
+  },
+  {
+    "id": "toyota-mr2-sw20-spoiler-ayak-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota MR2 SW20 Spoiler Ayak Contası",
+    "aciklama": "Toyota MR2 SW20'nin arka spoiler ayaklarının bagaj kapağına oturduğu yüzeye giren koruyucu contadır. Orijinal conta bandıyla birlikte zamanla ezilir ve dağılır; ayak doğrudan boyaya biner, bastırdığı yerde boya kabarır ve altına giren su bagaj sacında pas başlatır. Ayrıca conta olmayınca ayak tam sıkılana kadar yerinde durmaz. Bu parça ayak tabanının kendi hattına göre çıkarılmıştır; cıvata delikleri ve kablo geçişi açıktır, bagaj kapağının üzerine yerleştirilip ayak üstüne oturtulur. Simetrik olduğu için ters çevrildiğinde diğer taraf için kullanılır. İki farklı kalınlıkta üretilebilir; sipariş sırasında mevcut boşluğa göre seçilir. Esnek malzemeyle üretildiğinde yüzeye tam oturur ve sıkma sırasında kaymayı keser.\nYaklaşık dış ölçüler: 331 × 89 × 2 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7280495-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bradbedell",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7280495"
+    }
+  },
+  {
+    "id": "toyota-land-cruiser-120-tus-boslugu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Land Cruiser 120 Tuş Boşluğu Kapağı",
+    "aciklama": "Toyota Land Cruiser 120'nin göğüs panelindeki boş tuş yuvasını kapatan kapaktır. Fabrikada donanıma göre boş bırakılan bu yuvanın orijinal kapağı kaybolduğunda panelde açık bir delik kalır; içine toz ve küçük eşya dolar, arkasındaki kablo demeti görünür ve konsol bakımsız durur. Parça iki biçimde üretilir: ortasında yaygın yuvarlak anahtarlar için delik bulunan sürüm ve tamamen dolu düz sürüm. Delikli sürüm sonradan takılan bir aydınlatma ya da aksesuar anahtarına fabrika görünümünde yer açar; anahtar arkadan geçirilip kendi tırnaklarıyla kilitlenir. Kapak panele yanlardaki iki tırnakla oturur, vida ya da yapıştırıcı gerektirmez ve elle sökülüp takılabilir. Yüzeyi tamamen düz bırakılmıştır. Kabin sıcaklığına ve güneşe dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 44 × 44 × 12 mm.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7301030-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7301030-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7301030-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dgyurii",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7301030"
+    }
+  },
+  {
+    "id": "toyota-highlander-orta-konsol-saklama-kutusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Highlander Orta Konsol Saklama Kutusu (2014)",
+    "aciklama": "2014 model Toyota Highlander'ın orta konsolundaki derin saklama gözüne tam oturan dört bölmeli kutudur. Fabrika gözü tek parça ve derin bırakıldığı için içine konan gözlük, cüzdan, kart, anahtar ve iş eldiveni dibe yığılır; sürüşte birbirine sürter, aranan eşya en altta kalır ve kapak her açıldığında içerik karışır. Bu kutu gözün tabanına iner ve içeriyi dört ayrı bölmeye ayırır; iki yanındaki tutamaklar kutuyu tek hareketle çıkarmayı sağlar, böylece kutunun tamamı araçtan alınıp taşınabilir. Bölme duvarları gövdeyle birlikte tek parça olarak üretildiği için yük altında ayrılmaz. Vida, delme ya da yapıştırıcı gerektirmez. Yaz sıcağında kabin içi yüksek sıcaklığa dayanıklı, biçimini koruyan sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 188 × 183 × 121 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7306491-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bpcampbell",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7306491"
+    }
+  },
+  {
+    "id": "toyota-corolla-sigorta-kutusu-kapagi-ve-yukseltici-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Corolla Sigorta Kutusu Kapağı ve Yükseltici Seti (2009)",
+    "aciklama": "2009 model Toyota Corolla'nın kabin içi sigorta kutusunu kapatan kapak ile kapağı yükselten çerçevenin üçlü setidir. Sigorta yuvasına ek besleme aparatı takıldığında fabrika kapağı artık kapanmaz; açık kalan kutuya ayak boşluğundan gelen su sıçrar, sigortalar toza açılır ve kapak sürüşte takırdar. Sette fabrika ölçüsünde yedek kapak, mevcut kapağın altına giren yükseltici çerçeve ve ikisinin tek parça hâli bulunur; hangisinin kullanılacağı ihtiyaca göre seçilir. Yükseltilmiş sürüm ek aparatlara ve kablolara yer bırakır, yan duvarındaki kanal kabloyu dışarı yönlendirir. Kutu ağzına kendi tırnaklarıyla oturur, vida gerektirmez. Sigorta şemasını taşıyan orijinal etiket yerinde kalır. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 115 × 53 × 25 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6513791-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6513791-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6513791-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Valder",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6513791"
+    }
+  },
+  {
+    "id": "toyota-sera-torpido-gozu-kilit-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Sera Torpido Gözü Kilit Düğmesi (EXY10)",
+    "aciklama": "Toyota Sera'nın torpido gözü kilidini açan bastırmalı düğmedir. Yıllar içinde kırılganlaşan orijinal düğme koptuğunda kapak açılmaz; kilit dili yerinde takılı kalır ve göze ancak kapağın kenarından zorlanarak ulaşılır, bu da çevresindeki kaplamayı çatlatır. Bu parça kilit gövdesindeki kendi yuvasına önden geçer, arkasındaki dil kilit mandalını iter ve düğme yayın üzerine oturur. Yay kendi ölçüsünde temin edilerek gövdenin içine yerleştirilir; ek parça ya da yapıştırıcı gerektirmez. Ön yüzü orijinaldeki gibi hafif kavisli ve tamamen düz bırakılmıştır, kaplamayla aynı hizada durur. Torpido kapağı söküldükten sonra elle takılır. Güneş gören kabin plastiği olduğu için ısıya ve kırılmaya dayanıklı sert malzemeyle, yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 37 × 27 × 15 mm.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3438053-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3438053-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "digitalmy",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:3438053"
+    }
+  },
+  {
+    "id": "toyota-corolla-e110-arka-koltuk-yatirma-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Corolla E110 Arka Koltuk Yatırma Düğmesi",
+    "aciklama": "Toyota Corolla E110 kasasında arka koltuk sırtlığını serbest bırakan yatırma düğmesidir; ilgili orijinal parça numarası ilanda beyan edilmiştir. Kaplaması dökülen ya da gövdesi çatlayan orijinal düğme mile oturmaz; her çekişte yuvasından çıkar, sırtlık serbest kalmaz ve bagajdan kabine geçiş kullanılamaz. Bu parça mekanizmanın kendi miline geçer, iç yüzeyindeki kanallar mili kavrayarak dönme boşluğunu alır. Silindirik gövdesi orijinal çapa göre çıkarıldığı için döşeme kesiğinde serbest kalmaz. Koltuk sırtlığı sökülmeden elle takılır, ek parça ya da yapıştırıcı gerektirmez. Yüzeyi tamamen düz bırakılmıştır. Sürekli elle zorlanan bir parça olduğu için darbeye dayanıklı sert malzemeyle, yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 31 × 22 × 22 mm.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4234344-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4234344-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vi6enca",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4234344"
+    }
+  },
+  {
+    "id": "toyota-hilux-hava-filtresi-kutusu-kor-kapak-seti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Hilux Hava Filtresi Kutusu Kör Kapak Seti (1980'ler)",
+    "aciklama": "Seksenli yılların Toyota Hilux modellerinde fabrika hava filtresi kutusunun üzerindeki kullanılmayan bağlantı ağızlarını kapatan ikili kör kapak setidir. Karbüratör değiştirildiğinde ya da sıcak hava kanalı, emisyon hortumu gibi parçalar söküldüğünde kutunun yan yüzünde açık ağızlar kalır; filtrelenmemiş toz doğrudan emme yoluna girer ve kutu içindeki hava akışı bozulur. Set iki farklı çaptaki ağzı kapatan iki kapaktan oluşur. Her kapağın ortasındaki yükselti ağzın içine oturarak parçayı merkezler, iki kulağındaki delikler ise fabrika vidalarına denk gelir; delme ya da kesme gerektirmez. Yüzeyleri iki tarafta da tamamen düz bırakılmıştır. Motor bölmesi sıcaklığına ve yakıt buharına dayanıklı sert malzemeyle, tam dolguda üretilir.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4926819-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4926819-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Marksworld",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4926819"
+    }
+  },
+  {
+    "id": "toyota-harrier-lexus-rx300-far-havalandirma-valfi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota",
+      "Lexus"
+    ],
+    "baslik": "Toyota Harrier / Lexus RX300 Far Havalandırma Valfi",
+    "aciklama": "Toyota Harrier ve Lexus RX300 kasalarında far gövdesinin arkasındaki havalandırma valfidir. Far içindeki hava ısındıkça genleşir ve soğurken nem çeker; bu valf o nefes alma yolunu kapatmadan suyu ve tozu dışarıda tutar. Orijinali kuruyup çatladığında ya da kaybolduğunda far camının içi buğulanır, su birikir, ampul yuvası paslanır ve far erken kararır. Bu parça far gövdesindeki kendi ağzına geçer; kubbe biçimli gövdesi yağmuru saptırır, alt kenarındaki boşluk havanın serbestçe geçmesini sağlar. İçine ince gözenekli bir filtre parçası yerleştirilebilir. Far sökülmeden, motor bölmesi tarafından elle takılır; ek parça ya da yapıştırıcı gerektirmez. Motor bölmesi sıcaklığına ve dış ortam koşullarına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 27 × 24 × 18 mm.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4974271-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kimana",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4974271"
+    }
+  },
+  {
     "id": "toyota-sequoia-far-yikama-fiskiye-ara-parcasi",
     "kategori": "Otomobil",
     "marka": [
