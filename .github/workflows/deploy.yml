@@ -584,7 +584,11 @@ jobs:
       # OFFLINE: ag YOK, openscad YOK, R2/wrangler YOK, urunler.json OKUNMAZ. ~2 s.
       # MESH ekseni (ucgen/bbox/hacim) openscad ister -> onizleme-imaj.yml
       # (onizleme/test/iki-govde-olcum.py); burada BILEREK kosmaz.
-      - name: Iki govde eslem kapisi (2-renk: -D farki yalniz Output)
+      # ⚠️ TIRNAK ZORUNLU: YAML plain scalar'da ": " (iki nokta + bosluk) AYRISTIRMA
+      # HATASIDIR -> is HIC baslamaz (startup_failure) ve TUM EKIBIN yayini durur.
+      # 29 Tem'de bu satir tirnaksiz gitti, deploy.yml 0 sn'de "workflow file issue"
+      # verdi (hicbir is baslamadi; ci-kapsam-test.py metin arar, YAML AYRISTIRMAZ).
+      - name: "Iki govde eslem kapisi (2-renk: -D farki yalniz Output)"
         run: python3 tools/iki-govde-kapisi.py
       - name: Iki govde eslem kapisi oz-nobetcisi
         run: python3 tools/iki-govde-kapisi.py --kendini-test
