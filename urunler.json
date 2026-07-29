@@ -1,5 +1,382 @@
 [
   {
+    "id": "kayak-sup-fin-motor-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak / SUP Fin-Motor Montajı",
+    "aciklama": "Kayak veya SUP tahtasının fin yuvasına oturan küçük elektrikli itki motoru montajı. Motor gövdesini fin yuvasına sabitler, kablo geçişi için kanal içerir.\n- Standart fin yuvasına oturur.\n- Küçük elektrikli itki motorunu sabitler.\n- Kablo geçişi için kanal içerir.\nYaklaşık dış ölçüler: 190 × 158 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6085665-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6085665-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6085665-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6085665-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6085665-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AbramovK",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "feelfree-kayak-unitrack-aparati",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Feelfree Kayak Uni-Track Aparatı",
+    "aciklama": "Feelfree marka kayakların uni-track rayına sökmeden takılan aparat. Raya yerleştirilip döndürülerek sıkılır, aksesuar bağlamak için kullanılır.\n- Feelfree uni-track rayına oturur.\n- Rayı sökmeden takılıp çıkarılır.\n- Aksesuar bağlamak için standart nokta sağlar.\nYaklaşık dış ölçüler: 39 × 26 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5173495-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tookz246",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-usturmaca-halati-kancasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Usturmaça Halatı Kancası (Ray Tipi)",
+    "aciklama": "Teknenin küpeşte rayına takılan usturmaça (fender) halatı kancası. 7/8 inç raylara ve 3/8 inç halatlara uygun ölçülendirilmiştir.\n- 7/8 inç küpeşte rayına oturur.\n- 3/8 inç usturmaça halatına uygundur.\n- Halatı hızlıca takıp çıkarmayı sağlar.\nYaklaşık dış ölçüler: 102 × 51 × 38 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3727970-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3727970-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3727970-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3727970-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "northeastern",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "deniz-kayagi-guverte-baglanti-noktasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Deniz Kayağı Güverte Bağlantı Noktası",
+    "aciklama": "Deniz kayağının güvertesine sabitlenen aksesuar bağlantı noktası. Lens pompası, harita gibi ekipmanları 5 mm halat ve M4 vidayla tutturmak için kullanılır.\n- 5 mm halat ile aksesuar bağlamayı sağlar.\n- M4 vidayla güverteye sabitlenir.\n- Deniz suyuna ve güneşe dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 30 × 30 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2934179-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2934179-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "max414",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-ray-zigzag-capa-cleat",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Ray Zigzag Çapa Cleat'i",
+    "aciklama": "Kayak aksesuar rayına oturan zigzag dişli çapa halatı cleat'i. Yaygın ray kesitine uyar, farklı ray genişliklerinde de kullanılabilir.\n- Kayak aksesuar rayına oturur.\n- Çapa halatını zigzag dişlerle kilitler.\n- Farklı ray genişlikleriyle de uyumludur.\nYaklaşık dış ölçüler: 76 × 51 × 35 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3731506-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Churst17",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-kablo-gecis-rakoru-splashwell",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kablo Geçiş Rakoru (Splashwell Tipi)",
+    "aciklama": "Teknenin splashwell (sıçrama tahliye) bölmesindeki geniş delikten kablo geçirmek için sızdırmazlık sağlayan rakor takımı. Somun ve conta ile sıkılır.\n- Geniş delikten kablo geçişini sızdırmaz hale getirir.\n- Somun ve conta parçaları birlikte gelir.\n- Su hattı üzerindeki bölmelerde kullanıma uygundur.\nYaklaşık dış ölçüler: 32 × 28 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th671726-1.jpg",
+      "https://media.pruvo3d.com/urunler/th671726-2.jpg",
+      "https://media.pruvo3d.com/urunler/th671726-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "big_boxtruck",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "scotty-tipi-gomme-montaj-soketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Scotty Tipi Gömme Montaj Soketi",
+    "aciklama": "Scotty tipi olta tutucuların takıldığı gömme montaj soketi. Güverteye veya küpeşteye sabitlenir, olta tutucu bu sokete oturarak hızlıca takılıp çıkarılır.\n- Scotty tipi olta tutucularla uyumludur.\n- Güverteye gömme olarak sabitlenir.\n- Olta tutucunun hızlı takılıp çıkarılmasını sağlar.\nYaklaşık dış ölçüler: 99 × 56 × 51 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2742649-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jeffrm20",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-capa-troleyi-kilavuzu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Çapa Troleyi Kılavuzu (Fairlead)",
+    "aciklama": "Kayak çapa troleyi halatını yönlendiren tek civatalı kılavuz (fairlead). Halatın güverte kenarında sürtünmeden kaymasını sağlar.\n- Tek civatayla kayak gövdesine sabitlenir.\n- Çapa troleyi halatını sürtünmeden yönlendirir.\n- Deniz suyuna ve güneşe dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 36 × 25 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3017543-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3017543-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3017543-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jonnyg30",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-tahliye-tapasi-30mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tahliye Tapası (30 mm Delik)",
+    "aciklama": "30 mm delikli yelkenli tahliye ağzı için yedek tapa. 20-21 mm iç çaplı ayrı bir contayla birlikte kullanılır, kaybolan orijinal tapanın yerine geçer.\n- 30 mm delikli tahliye ağzına uyar.\n- 20-21 mm iç çaplı contayla birlikte kullanılır.\n- Kaybolan orijinal tapanın yerine geçer.\nYaklaşık dış ölçüler: 48 × 38 × 38 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3896507-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3896507-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3896507-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3896507-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Maffenberger",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "scotty-tabanina-oturan-bardaklik",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Scotty Tabanına Oturan Bardaklık",
+    "aciklama": "Scotty tipi olta tutucu tabanlarına oturan bardaklık. Mevcut Scotty tabanı varsa olta tutucu yerine takılarak bardaklığa dönüştürülür.\n- Scotty tipi tabanlara oturur.\n- Kutu ve bardak içecekleri dik tutar.\n- Tabana takılıp çıkarılması kolaydır.\nYaklaşık dış ölçüler: 142 × 108 × 105 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2748001-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2748001-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2748001-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jeffrm20",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "feelfree-scotty-kayak-bardakligi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Feelfree / Scotty Uyumlu Kayak Bardaklığı",
+    "aciklama": "Feelfree uni-track ve Scotty taban sistemlerine uyumlu kayak bardaklığı. Her iki montaj standardı için ayrı taban adaptörüyle gelir.\n- Feelfree uni-track ve Scotty tabanlarıyla uyumludur.\n- Kutu ve bardak içecekleri dik tutar.\n- İki farklı montaj adaptörü birlikte gelir.\nYaklaşık dış ölçüler: 110 × 108 × 94 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4583865-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4583865-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4583865-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4583865-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kogle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kano-kayak-zigzag-halat-cleat",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kano / Kayak Zigzag Halat Cleat'i",
+    "aciklama": "Kano ve kayaklarda kullanılan zigzag dişli halat cleat'i. İki yarı parça yapıştırılarak katman çizgilerine dik yük taşıma gücü artırılır.\n- Zigzag dişleriyle halatı güvenle kilitler.\n- İki parça yapıştırılarak mukavemeti artırılır.\n- Kano ve kayaklarda kullanılır.\nYaklaşık dış ölçüler: 89 × 44 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4594464-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4594464-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "outdoorsman20x6",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-aksesuar-rayi-geartrac-tipi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Aksesuar Rayı (GearTrac Tipi)",
+    "aciklama": "Balıkçı kayaklarına aksesuar bağlamak için kullanılan GearTrac tipi montaj rayı. Farklı boylarda parçalar birleştirilerek istenen uzunlukta kurulur.\n- GearTrac uyumlu aksesuarlarla çalışır.\n- Farklı boy parçalar birleştirilebilir.\n- Kayak güvertesine vidayla sabitlenir.\nYaklaşık dış ölçüler: 170 × 52 × 13 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4962254-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4962254-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4962254-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "C0d3Man87",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-govde-kablo-gecis-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Gövde Kablo Geçiş Kapağı",
+    "aciklama": "Balık bulucu sensör kablosunun fiberglas tekne gövdesinden geçtiği delik üzerine kapanan koruma kapağı. Kablonun sürtünüp aşınmasını önler.\n- Gövde deliğinden geçen kabloyu korur.\n- Kablonun sürtünüp aşınmasını önler.\n- Fiberglas tekne gövdelerine uygundur.\nYaklaşık dış ölçüler: 63 × 31 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th755767-1.jpg",
+      "https://media.pruvo3d.com/urunler/th755767-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BJHStech",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "balik-bulucu-egilir-donen-transom-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Balık Bulucu Eğilir/Dönen Transom Montajı",
+    "aciklama": "Balık bulucu transducer'ını teknenin transomuna (kıç aynası) sabitleyen eğilir/dönen montaj. Sığ suda darbe alınca geriye yatarak sensörü korur.\n- Transom (kıç aynası) üzerine vidayla sabitlenir.\n- Darbe alınca geriye yatarak sensörü korur.\n- Açı ayarlanabilir mafsallı yapıdadır.\nYaklaşık dış ölçüler: 45 × 23 × 20 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2873058-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2873058-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2873058-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2873058-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ANRLIC",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kurek-tutucu-capa-yayicili",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Kürek Tutucu (Çapa Yayıcılı)",
+    "aciklama": "Kayak gövdesine sabitlenen kürek tutucu. Alt ucundaki yayıcı taban yükü geniş bir alana dağıtarak gövdeyi tek noktada zorlamaz.\n- Küreği güvertede sabit tutar.\n- Alt taban yayıcı yükü geniş alana dağıtır.\n- Vidayla kayak gövdesine sabitlenir.\nYaklaşık dış ölçüler: 64 × 63 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2973424-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2973424-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jessefilson94",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yakit-su-deposu-kapagi-anahtari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yakıt / Su Deposu Kapağı Anahtarı (Nable)",
+    "aciklama": "Teknenin yakıt veya su deposu kapağını kolayca açıp kapatmak için kullanılan anahtar. Kapak yuvasına oturacak şekilde tasarlanmıştır.\n- Depo kapağı yuvasına oturur.\n- Elle sıkışan kapakları kolayca açar.\n- Tek parça, kolay kavranan sap yapısı.\nYaklaşık dış ölçüler: 94 × 30 × 26 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3732234-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fisherdad",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-korkuluk-alet-yem-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Korkuluğu Alet ve Yem Tutucu",
+    "aciklama": "25 mm çaplı tekne korkuluğuna vidayla sabitlenen tutucu. Bıçak, pense ve yapay yemleri el altında ve düzenli tutar.\n- 25 mm çaplı korkuluğa vidayla sabitlenir.\n- Bıçak, pense ve yapay yem için ayrı gözler sunar.\n- Paslanmaz vida ve somunla monte edilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6433418-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6433418-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FireFishingLures",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-kancasi-saklama-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kancası Saklama Klipsi",
+    "aciklama": "Tekne kancasını (boathook) kullanılmadığı zaman elin altında tutan saklama klipsi. Tek vidayla teknenin istenilen yerine sabitlenir.\n- Tekne kancasını güvenle yerinde tutar.\n- Tek vidayla istenilen yere sabitlenir.\n- Alüminyum ve ahşap kancalarla uyumludur.\nYaklaşık dış ölçüler: 34 × 34 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4972135-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4972135-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Iron_Scorpion",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelken-halat-kelepcesi-4-10mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Halat Kelepçesi (4-10 mm)",
+    "aciklama": "4-10 mm çap aralığındaki halatları sabitleyen kelepçe. Halat kelepçenin yarığına bastırılarak kilitlenir.\n- 4-10 mm halat çaplarıyla çalışır.\n- Halatı yarığa bastırarak kilitler.\n- Yelkenli donanımında genel amaçlı kullanılır.\nYaklaşık dış ölçüler: 73 × 26 × 19 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4089789-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "HuTscH",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "olta-tutucu-aci-adaptoru-30-derece",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Olta Tutucu Açı Adaptörü (30 Derece, 41,5 mm)",
+    "aciklama": "Mevcut 41,5 mm çaplı olta tutucu yuvasına oturan 30 derece açılı adaptör tapası. Kamışın açısını değiştirmek için tutucuya takılır.\n- 41,5 mm çaplı standart yuvaya oturur.\n- Kamışın açısını 30 derece değiştirir.\n- Mevcut olta tutucuyla birlikte kullanılır.\nYaklaşık dış ölçüler: 66 × 66 × 32 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1795818-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1795818-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Celly",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sorf-olta-tutucu-termos-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sörf Olta Tutucusu için Termos/Kutu Tutucu",
+    "aciklama": "Standart sörf tipi olta tutucusuna takılan termos veya yalıtımlı kutu tutucu. İçeceği kumsalda ya da teknede el altında ve dik tutar.\n- Standart sörf olta tutucusuna takılır.\n- Yalıtımlı termos/kutu içecekleri dik tutar.\n- Tek parça, kolay takıp çıkarma.\nYaklaşık dış ölçüler: 171 × 90 × 70 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2907779-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bayers1337",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-halka-baglanti-noktasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Halka Bağlantı Noktası (1/4-20 Cıvatalı)",
+    "aciklama": "Kayak gövdesine 1/4-20 cıvatayla sabitlenen halka biçimli bağlantı noktası. Halat, kancal ip veya emniyet ekipmanı bağlamak için kullanılır.\n- 1/4-20 cıvatayla kayak gövdesine sabitlenir.\n- Halat ve kancalı ekipman bağlamak için halka sunar.\n- Deniz suyuna ve güneşe dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 47 × 17 × 15 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4484532-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4484532-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mouth_Breather",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "cok-amacli-cinch-baglama-toplu",
     "kategori": "Marin",
     "marka": [],
