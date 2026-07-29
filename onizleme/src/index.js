@@ -41,7 +41,7 @@ const GZIP_TAVANI = 2 * 1024 * 1024;   // pakete gore cikti tavani 2 MB
 const HAM_TAVAN = 16 * 1024 * 1024;    // sisme korumasi (gzip oncesi)
 const SINIR_ADET = 10;                 // IP basina dakikada derleme
 const SINIR_PENCERE_MS = 60 * 1000;
-const ONBELLEK_SURUM = "v6";           // cozunurluk/eslem degisirse artir (eski anahtar carpismasin)
+const ONBELLEK_SURUM = "v7";           // cozunurluk/eslem degisirse artir (eski anahtar carpismasin)
                                        // v2: Faz E — eslem duzeltmeleri (yay Phase, kase gövde,
                                        // petek/cetvel kisitlari) + textmetrics bayragi
                                        // v3: eslem v5 onizleme hiz dugmeleri (17 Tem 502 turu:
@@ -54,7 +54,18 @@ const ONBELLEK_SURUM = "v6";           // cozunurluk/eslem degisirse artir (eski
                                        // YAZISIZ mesh var: kase her musteriye "PRUVO" basiyordu
                                        // -> bump olmadan onbellek isabeti o govdeyi servis
                                        // etmeye DEVAM ederdi (v4 bump'i jeton icin ayni sebeple
-                                       // yapilmisti). NOBETCI: onizleme/test/onbellek-surum.mjs
+                                       // yapilmisti).
+                                       // v7: v6 ROLLOUT PENCERESI zehirlenmesi (29 Tem
+                                       // 12:16:43Z -> ~12:27Z). Yeni imaj deploy'u SUCCESS
+                                       // dondu ama `wrangler containers` STATE=provisioning
+                                       // iken ESKI imajin instance'lari trafigi karsilamaya
+                                       // devam etti: o pencerede derlenen istekler METINSIZ
+                                       // eski govdeyi uretip musterinin GERCEK metninden
+                                       // tureyen v6 anahtarina yazdi -> o anahtarlar KALICI
+                                       // yanlis. Kac nesne zehirlendi OLCULEMEDI (wrangler'da
+                                       // kova listeleme komutu yok) + bu kovada R2 delete
+                                       // sessizce basarisiz oluyor (RC=0 der, nesne durur) ->
+                                       // silme degil bump. NOBETCI: onizleme/test/onbellek-surum.mjs
 
 // ---------------------------------------------------------------- yardimcilar
 

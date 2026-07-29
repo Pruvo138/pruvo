@@ -18,8 +18,10 @@
  *      (aile + parametre ozeti) AYNI kalir -> fark GERCEKTEN surumden gelir.
  *      Olcum kaynagin GECICI kopyasinda yapilir; kopya mantik yazilmaz, hash elle
  *      hesaplanmaz.
- *   3) Cari surum "v5" DEGILDIR (yazisiz mesh'lerin yazildigi surum). Bump geri
- *      alinirsa bu iddia KIRMIZI yanar.
+ *   3) Cari surum `v<N>` bicimindedir ve N, ZEHIRLI SURUM TABANI'nin ALTINA
+ *      DUSMEZ. Taban surume CIVILI DEGIL, sayisal: ileri bump (v8, v9...) bu
+ *      testi ELLE duzeltmeden yesil kalir; geri alma (v7 -> v6/v5) KIRMIZI yanar.
+ *      Taban yalnizca YENI bir zehirlenme olculdugunde yukseltilir.
  *   4) Ayni surum + ayni parametre -> AYNI anahtar (2. iddia totoloji olmasin).
  *   5) YALNIZ musteri metni degisince de anahtar DEGISIR (onbellek iki farkli
  *      yaziyi ayni kovaya dusurmez — sessiz teslimat hatasinin onbellek kanadi).
@@ -34,7 +36,8 @@
  *   JSON import'lari gomulu `const`a cevrilip gecici bir dizine yazilir; geriye
  *   surume duyarli hicbir sozdizimi kalmaz.
  *
- * KIRMIZI-MUTASYON: index.js'te ONBELLEK_SURUM "v6" -> "v5" -> iddia 3 KIRMIZI.
+ * KIRMIZI-MUTASYON: index.js'te ONBELLEK_SURUM bir onceki surume geri alinir
+ * (v7 -> v6) -> iddia (3b) KIRMIZI.
  * Kosum: node onizleme/test/onbellek-surum.mjs      (CI: Node 20)
  */
 import fs from "node:fs";
@@ -101,8 +104,15 @@ const AILE = "olcuye-ozel-cerceve";
 const PARAM = { acilik_eni: 100, acilik_boyu: 150, kenar_genisligi: 12,
                 derinlik: 5.2, kenar_stili: "chamfer", yazi: "OKAN" };
 const PARAM_B = { ...PARAM, yazi: "ZZZZZZZZ" };   // geometri AYNI, yalniz metin farkli
-// v5 = yazisiz/"PRUVO"lu mesh'lerin yazildigi surum; anahtar bu surume DONEMEZ.
-const YASAK_SURUM = "v5";
+
+// ZEHIRLI SURUM TABANI — anahtar bu sayinin ALTINA inemez. Surume civili DEGIL:
+// ileri bump elle duzeltme istemez, geri alma KIRMIZI yanar.
+//   v5 : yazisiz / her musteriye sabit "PRUVO" basan mesh'ler yazildi.
+//   v6 : 29 Tem rollout penceresinde (12:16:43Z -> ~12:27Z) STATE=provisioning iken
+//        ESKI imaj trafigi karsiladi; metinsiz govdeler musterinin GERCEK metninden
+//        tureyen v6 anahtarlarina yazildi. Kac nesne zehirlendi OLCULEMEDI.
+// YENI zehirlenme olculurse: tabani o surumun BIR USTUNE cek (ve sebebini yaz).
+const EN_DUSUK_GUVENLI_SURUM = 7;
 
 const hatalar = [];
 function dg(ad, kosul, ek) {
@@ -114,6 +124,12 @@ function dg(ad, kosul, ek) {
 function kaynakSurumu(kaynak) {
   const m = kaynak.match(/ONBELLEK_SURUM\s*=\s*"([^"]+)"/);
   return m ? m[1] : null;
+}
+
+/** "v7" -> 7 (fail-closed: bicim `v<N>` degilse NaN -> KIRMIZI). */
+function surumSayisi(surum) {
+  const m = /^v(\d+)$/.exec(String(surum));
+  return m ? Number(m[1]) : NaN;
 }
 
 let sayac = 0;
@@ -157,12 +173,15 @@ async function main() {
   dg("(1) anahtarin surum bolumu kaynak sabitiyle AYNI", parca[1] === surum,
      "anahtar=" + parca[1] + " kaynak=" + surum);
 
-  // (3) Yasak surum kapisi — bump geri alinirsa KIRMIZI.
-  dg("(3) cari surum yazisiz-mesh surumu (" + YASAK_SURUM + ") DEGIL",
-     surum !== YASAK_SURUM,
-     "cari=" + surum + (surum === YASAK_SURUM
-       ? " -> onceden onizlenmis parametrelerde musteri YAZISIZ govde gorur"
-       : ""));
+  // (3) Zehirli surum tabani — bump geri alinirsa KIRMIZI, ileri bump elle duzeltme istemez.
+  const n = surumSayisi(surum);
+  dg("(3a) surum bicimi `v<N>`", Number.isInteger(n), "cari=" + surum);
+  dg("(3b) surum sayisi zehirli tabanin (>=" + EN_DUSUK_GUVENLI_SURUM + ") ALTINDA DEGIL",
+     Number.isInteger(n) && n >= EN_DUSUK_GUVENLI_SURUM,
+     "cari=" + surum + " (N=" + n + ") taban=v" + EN_DUSUK_GUVENLI_SURUM
+       + (Number.isInteger(n) && n < EN_DUSUK_GUVENLI_SURUM
+          ? " -> onceden onizlenmis parametrelerde musteri ZEHIRLI (metinsiz/yanlis) govde gorur"
+          : ""));
 
   // (4) Kontrol grubu: ayni surum + ayni parametre -> AYNI anahtar.
   const a2 = await anahtarYakala(kaynak, PARAM);
