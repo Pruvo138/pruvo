@@ -1,5 +1,591 @@
 [
   {
+    "id": "volvo-ex30-arka-arac-kamerasi-montaj-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo EX30 Arka Araç Kamerası Montaj Aparatı",
+    "aciklama": "EX30'un arka camının üst kenarındaki lastik fitilin altına geçirilerek takılan kamera aparatıdır. Fitil hafifçe çekilip aparat tavan döşemesine kancalanır, sonra fitil yerine basılır; araçta delik açılmaz, vida kullanılmaz. Kamera sürtünmeyle tutan yuvasına kaydırılarak yerleştirilir, istendiğinde çıkarılabilir. Yüzeyi dokulu üretilir. Kabin sıcaklığına dayanıklı malzemeyle, kalın cidar ve yüksek dolguyla üretilir. Kamera ürüne dahil değildir.\nYaklaşık dış ölçüler: 52 × 48 × 41 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7368295-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7368295-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7368295-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7368295-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bedw12345",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7368295"
+    }
+  },
+  {
+    "id": "volvo-360-plaka-lambasi-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo 360 Plaka Lambası Tutucusu",
+    "aciklama": "Volvo 360'ın arka plaka lambasını bagaj kapağına sabitleyen tutucudur. Yedek parçası bulunamayan bu tutucu kırıldığında lamba yerinde durmaz ve plaka aydınlatması çalışmaz. Parça lambanın kendi gövdesini kavrar ve mevcut deliklere oturur, ek bağlantı gerektirmez. Dış ortam koşullarına ve ampul sıcaklığına dayanıklı malzemeyle üretilir. Lamba ürüne dahil değildir.\nYaklaşık dış ölçüler: 36 × 20 × 16 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4693025-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Visseb",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4693025"
+    }
+  },
+  {
+    "id": "volvo-s40-v50-tavan-citasi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo S40 / V50 Tavan Çıtası Klipsi",
+    "aciklama": "S40 ve V50'nin tavanındaki dış çıtayı gövdeye sabitleyen klipstir. Yaşlanan araçlarda bu klipsler kırılır, çıta gevşer ve yüksek hızda ıslık sesi yapar. Klips çıtanın kendi kanalına geçer, tavanda delik ya da yapıştırıcı gerektirmez. Güneşe ve sıcaklık değişimine dayanıklı, kırılgan olmayan malzemeyle üretilir.\nYaklaşık dış ölçüler: 35 × 19 × 6 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4734920-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Cools",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4734920"
+    }
+  },
+  {
+    "id": "volvo-v70-kalorifer-fan-hizi-surgu-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo V70 Kalorifer Fan Hızı Sürgü Düğmesi (1998)",
+    "aciklama": "V70'in kalorifer panelindeki fan hızını ayarlayan sürgü düğmesidir. Kırılan ya da kaybolan orijinalin yerine geçer; düğmesiz kalan sürgü kolu yeniden rahatça kavranır hale gelir. Paneldeki sürgü miline sıkı geçer, ek parça gerektirmez. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 36 × 10 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5019438-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mast3rBlast3r",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5019438"
+    }
+  },
+  {
+    "id": "volvo-s60-far-yikama-kapagi-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo S60 Far Yıkama Kapağı Tutucusu (1. Nesil)",
+    "aciklama": "Birinci nesil S60'ta far yıkama fıskiyesinin tampon rengindeki kapağını yerinde tutan parçadır; orijinal yıkama ünitesinin bir parçasıdır. Kırılan orijinal yüzünden kapak düşer ya da yamuk durur. Bu parça kapağı yeniden sıkı tutar, tamponda kesme veya delme gerektirmez. Yazın sıcak, kışın soğuk koşullara dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 40 × 40 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5359011-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "captaincacao",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5359011"
+    }
+  },
+  {
+    "id": "volvo-silecek-mili-burcu-1056933",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo Silecek Mili Burcu (1056933)",
+    "aciklama": "Klasik Volvo modellerinde silecek milinin yatağındaki burçtur; orijinal karşılığı 1056933'tür ve bu parça artık tedarik edilemiyor. Aşınan burç yüzünden mil boşluk yapar, silecek kolu titrer ve süpürme açısı kayar. Parça mile geçirilerek yatağa oturtulur, ek işlem gerektirmez. Sürtünmeye dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 14 × 12 × 12 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5413491-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "frankrause",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5413491"
+    }
+  },
+  {
+    "id": "volvo-xc90-ceki-demiri-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo XC90 Çeki Demiri Kapağı",
+    "aciklama": "XC90'ın arka tamponundaki çeki demiri ağzını kapatan kapaktır. Kaybolan ya da kırılan orijinalin yerine geçer; tampon içine su, çamur ve taş girmesini engeller, boşluğun görüntüsünü kapatır. Kendi kılavuzuna kenetlenerek oturur; alttan kancaya bastırılınca kolayca çıkar. En ince bölgesi yüksek dolguyla, dış ortam koşullarına dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 230 × 106 × 101 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5552321-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "roundhousekick05",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5552321"
+    }
+  },
+  {
+    "id": "volvo-p1800-silecek-motoru-baglanti-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo P1800 Silecek Motoru Bağlantı Kapağı",
+    "aciklama": "P1800'ün silecek motorunun üzerindeki elektrik bağlantı kapağıdır. Dönemin orijinal plastik kapakları zamanla kırılıp dağılır ve bağlantı uçları açıkta kalır. Bu parça uçların üzerini yeniden kapatır; motorun kendi vida kulaklarına oturur, motorda değişiklik gerektirmez. Motor bölümü sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 66 × 53 × 11 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5622705-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "drteeth956",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5622705"
+    }
+  },
+  {
+    "id": "volvo-c30-bagaj-ortusu-tutma-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo C30 Bagaj Örtüsü Tutma Kolu (1281946)",
+    "aciklama": "C30'un bagaj bölmesi örtüsünü çekmeye yarayan tutma koludur; orijinal karşılığı 1281946'dır. Ön kol, iç geçme parçası ve arka kapak birlikte üretilir; üçü örtünün kenarını sandviç gibi kavrayarak kolu yeniden oluşturur. Kırılan orijinalin yerine geçer, örtüde kesme gerektirmez. Kabin sıcaklığına dayanıklı, kırılgan olmayan malzemeyle üretilir.\nYaklaşık dış ölçüler: 249 × 104 × 9 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6054688-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6054688-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "estudio83",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:6054688"
+    }
+  },
+  {
+    "id": "volvo-1800es-kollu-anahtar-parcalari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo 1800ES Kollu Anahtar Parçaları (1973)",
+    "aciklama": "Yalnızca 1973 model yılında kullanılan ve bugün bulunması çok güç olan kollu anahtarların yedek parçalarıdır. Anahtar gövdesi, kör kapak, sürgü ve fan sürgüsü birlikte üretilir; kırılan parçalar tek tek değiştirilebilir, anahtarın tamamını aramaya gerek kalmaz. Orijinal mekanizmaya oturur, panelde değişiklik gerektirmez. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 34 × 29 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6166801-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6166801-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6166801-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6166801-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "frankrause",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:6166801"
+    }
+  },
+  {
+    "id": "volvo-amazon-debriyaj-kolu-korugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo Amazon Debriyaj Kolu Körüğü (663994)",
+    "aciklama": "Amazon'un debriyaj kolunu toz ve kirden koruyan esnek körüktür; orijinal karşılığı 663994'tür. Yırtılan ya da sertleşip dağılan orijinalin yerine geçer, kolun oynak noktasını kapalı tutar. Esnek malzemeden üretilir, bu sayede kolun hareketiyle birlikte katlanır. Tasarımcı aynı parçayı kendi aracında binlerce kilometre sorunsuz kullandığını belirtmiştir. Kola geçirilerek takılır, ek parça gerektirmez.\nYaklaşık dış ölçüler: 104 × 65 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6323975-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6323975-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nglasson",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6323975"
+    }
+  },
+  {
+    "id": "volvo-xc90-manuel-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo XC90 Manuel Vites Topuzu (1. Nesil)",
+    "aciklama": "Birinci nesil XC90'ın manuel şanzımanlı sürümü için vites topuzudur. Yıpranan ya da yüzeyi dökülen orijinalin yerine geçer. Vites koluna geçirildikten sonra bir adet M3 vidayla eksenel olarak sabitlenir, dönmez ve çıkmaz. Kavrama yüzeyi düz ve sadedir. Kabin sıcaklığına dayanıklı, elde soğuk hissettirmeyen sert malzemeyle üretilir. Vida ürüne dahil değildir.\nYaklaşık dış ölçüler: 125 × 54 × 54 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6501890-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6501890-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "skankhunt_42",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6501890"
+    }
+  },
+  {
+    "id": "volvo-hu-603-teyp-buyuk-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo HU-603 Teyp Büyük Düğmesi",
+    "aciklama": "Volvo HU-603 teybinin kaynak seçici büyük düğmesidir; aynı düğme disk seçici konumunda da kullanılır. Kırılan orijinal yüzünden düğme milde durmaz ve kaynak değiştirilemez. Parça metal milin D biçimli kesitine doğrudan geçer, ara parça gerektirmez. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 22 × 22 × 11 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6688616-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mringwal",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6688616"
+    }
+  },
+  {
+    "id": "volvo-v70-bagaj-guneslik-klipsleri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo V70 Bagaj Güneşlik Klipsleri",
+    "aciklama": "V70'in bagaj bölmesindeki güneşlik perdelerini yerinde tutan klipslerdir. Orijinalleri güneşte deforme olur ve gevşer; perde yolda düşer. Takım hem bagaj kapağı için büyük hem yan camlar için küçük ölçüde, ayrıca daha geniş ve daha kısa varyantlarıyla birlikte üretilir; aracınızdaki boşluğa en iyi oturanı seçilebilir. Sıcaklığa dayanıklı, güneşte yumuşamayan malzemeyle üretilir.\nYaklaşık dış ölçüler: 20 × 16 × 9 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7034934-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7034934-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7034934-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7034934-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "djflix",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7034934"
+    }
+  },
+  {
+    "id": "volvo-s80-bagaj-acma-dugmesi-onarim-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo S80 II Bagaj Açma Düğmesi Onarım Kapağı",
+    "aciklama": "İkinci nesil S80'de bagaj kapağı açma düğmesinin bulunduğu, zamanla aşınıp işlevini yitiren bölgeyi kapatan onarım parçasıdır. Hasarlı yüzeyi tamamen örter ve düzgün bir görünüm bırakır. Ortasındaki yuva standart 25 mm dişli bir butona göre açılmıştır; buton takıldığında bagaj açma işlevi geri gelir. Ölçüler orijinal kapak üzerinden alınmıştır. Dış ortam koşullarına dayanıklı malzemeyle üretilir. Buton ürüne dahil değildir.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7146814-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7146814-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7146814-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7146814-4.jpg"
+    ]
+  },
+  {
+    "id": "volvo-cr-905-906-kaset-dislisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo CR-905 / CR-906 Kaset Dişlisi",
+    "aciklama": "Volvo'nun CR-905, CR-906 ve CR-603 kaset çalarlarında neredeyse her zaman kırılan tahrik dişlisidir. Bu dişli kırıldığında kaset mekanizması dönmez ve cihaz sessiz kalır. Küçük ölçekli bir parça olduğu için takmadan önce hafif bir raspalama gerekebilir. Kabin sıcaklığına ve sürekli aşınmaya dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 14 × 14 × 4 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7157735-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7157735-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7157735-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Fietsaapje",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7157735"
+    }
+  },
+  {
+    "id": "volvo-v40-s40-orta-konsol-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo V40 / S40 MK1 Orta Konsol Düğmesi",
+    "aciklama": "Birinci nesil V40 ve S40'ın orta konsolundaki boş düğme yuvasına oturan düğmedir. İki sürüm birlikte üretilir: yüzeyi kapalı kör sürüm istenirse delinip kişiselleştirilebilir, anahtar yuvalı sürüm ise standart bir anahtar takılarak sis lambası, ek aydınlatma ya da benzeri bir aksesuarı kumanda etmek için kullanılır. Konsoldaki mevcut yuvaya oturur, kesme gerektirmez. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir. Anahtar ürüne dahil değildir.\nYaklaşık dış ölçüler: 40 × 34 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7347687-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7347687-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7347687-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7347687-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Volvo_things",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7347687"
+    }
+  },
+  {
+    "id": "volvo-destek-akusu-ara-parcasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo Destek Aküsü Ara Parçası",
+    "aciklama": "Destek aküsü daha kısa gövdeli bir modelle değiştirildiğinde, orijinal kelepçenin akünün üstüne yeniden temas etmesini sağlayan ara parçadır. Kelepçe boşta kaldığında akü yuvasında oynar ve bağlantı uçları zorlanır. Bu parça aradaki yükseklik farkını kapatır; akünün üstüne oturur, araçta değişiklik gerektirmez. Yaklaşık 105 mm yüksekliğindeki aküler için ölçülendirilmiştir. Bagaj sıcaklığına ve titreşime dayanıklı sert malzemeyle üretilir.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7368367-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7368367-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7368367-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mikkop22",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:7368367"
+    }
+  },
+  {
+    "id": "toyota-4runner-koltuk-sirtlik-egim-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota 4Runner Koltuk Sırtlık Eğim Kolu (2. Nesil)",
+    "aciklama": "İkinci nesil 4Runner'ın ön koltuğunda sırtlık eğimini ayarlayan kolun yedeğidir. Yıllar içinde kırılan ya da dişleri sıyrılan orijinalin yerine geçer; koltuk sırtlığı yeniden kademeli olarak ayarlanabilir hale gelir. Koltuk mekanizmasındaki mevcut mile oturur, ek parça gerektirmez. Sol ve sağ koltuk için ayrı ayrı üretilebilir. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 65 × 30 × 30 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6543994-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6543994-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "aleph34",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:6543994"
+    }
+  },
+  {
+    "id": "toyota-mr2-spyder-bagaj-kilit-acma-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota MR2 Spyder / MR-S Bagaj Kilit Açma Kolu",
+    "aciklama": "MR2 Spyder ve MR-S'te kaputun altındaki bagaj kapağını kapalı tutan kilidin açma koludur; orijinal karşılığı 64606-17030 ve 64606-17031'dir. Kırılan orijinal yüzünden kapak kilitte durmaz ya da açılmaz. Kilit gövdesindeki kendi yuvasına oturur, kalıcı değişiklik gerektirmez. Yük taşıyan yönde katman gücü kazanması için dik konumda ve yüksek dolgulu üretilir.\nYaklaşık dış ölçüler: 55 × 45 × 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4744327-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Houhry",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4744327"
+    }
+  },
+  {
+    "id": "toyota-gt86-brz-frs-ses-borusu-kor-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota GT86 / Subaru BRZ / Scion FR-S Ses Borusu Kör Tapası",
+    "aciklama": "GT86, BRZ ve FR-S'te emme sesini kabine taşıyan borunun ağzını kapatan tapadır. Takıldığında kabine gelen emme uğultusu kesilir; boru yerinde kalır, sistemde kalıcı bir değişiklik olmaz. Dış yüzeyi dokulu üretilir; el yordamıyla bulunup çıkarılabilsin diye kavrama izleri vardır. Motor bölümü sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 44 × 22 × 17 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4891732-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Virtual_Boi",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4891732"
+    }
+  },
+  {
+    "id": "toyota-mr2-spyder-bagaj-klipsi-ve-mentesesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota MR2 Spyder Bagaj Klipsi ve Menteşe Parçası",
+    "aciklama": "MR2 Spyder'ın ön bagaj bölmesindeki klips ile menteşe parçası birlikte üretilir. İkisi de yaşlanan araçlarda sık kırılan küçük parçalardır; kırıldıklarında kapak yerinde oturmaz ve sürüşte takırdar. Klipsin delikleri orijinaline göre biraz genişletilmiştir, yerine takarken zorlamaz. Menteşe parçası düz tabanlıdır, ek destek gerektirmez. Aşınmaya dirençli sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 56 × 49 × 21 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4910245-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4910245-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "engraulis",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4910245"
+    }
+  },
+  {
+    "id": "toyota-c-hr-kolcak-alti-duzenleyici-tepsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota C-HR Kolçak Altı Düzenleyici Tepsi",
+    "aciklama": "C-HR'ın kolçağının altındaki derin boşluğa oturan düzenleyici tepsidir. Boşlukta serbest kalan cüzdan, anahtar ve kablo gibi eşyaları ayrı gözlerde tutar; sürüşte kayıp takırdamalarını önler. Bölmenin kendi duvarlarına oturarak sabitlenir, araçta hiçbir değişiklik gerektirmez. Tepsinin altında kalan boşluk kullanılabilir durumda kalır. Kabin sıcaklığına dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 148 × 140 × 40 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5427122-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bormil66",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5427122"
+    }
+  },
+  {
+    "id": "toyota-tacoma-vites-kolu-kablo-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Tacoma Vites Kolu Kablo Burcu (1998-2004)",
+    "aciklama": "Birinci nesil Tacoma'da otomatik vites kolunu kumanda kablosuna bağlayan burçtur. Zamanla dağılan orijinal burç yüzünden kolda boşluk oluşur, vites kademeleri arasında salınım hissedilir. Bu parça boşluğu tamamen alır ve kolun kesin çalışmasını geri getirir. Mevcut pime geçer, ek parça gerektirmez. Sürtünmeye dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 18 × 18 × 16 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6247006-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "firefighter1868",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6247006"
+    }
+  },
+  {
+    "id": "toyota-sienna-yakit-kapagi-ust-mentesesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Sienna Yakıt Kapağı Üst Menteşesi (2012)",
+    "aciklama": "Sienna'nın yakıt kapağını gövdeye bağlayan üst menteşenin yedeğidir; aynı parça numarasını paylaşan diğer Toyota modellerinde de kullanılır. Orijinal menteşe zamanla sıkışıp kapaktan ayrılır ve kapak sallanmaya başlar. Bu parça menteşe tarafını yeniden oluşturur; karşı taraf gövde pimiyle sabitlenir. Kapağın kendi hareketi geri gelir, boyasız yüzeye monte edilebilir. Dış ortam sıcaklığına ve güneşe dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 50 × 13 × 7 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3010546-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3010546-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tricci007",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:3010546"
+    }
+  },
+  {
+    "id": "toyota-celica-vites-korugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Celica Vites Körüğü (2000-2005)",
+    "aciklama": "Yedinci nesil Celica'nın manuel vites kolunu saran esnek körüktür. Yırtılan ya da sertleşip çatlayan orijinalin yerine geçer; konsol ile kol arasındaki açıklığı kapatarak toz ve kir girişini engeller. Esnek malzemeden düşük dolguyla üretilir, bu sayede orijinali gibi katlanır. Orijinal vites kolu kullanılıyorsa üst uca ince bir bilezik eklemek gerekebilir. Kabin sıcaklığına dayanıklıdır.\nYaklaşık dış ölçüler: 164 × 129 × 113 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3763682-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kfc77454",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:3763682"
+    }
+  },
+  {
+    "id": "toyota-mr2-aw11-vites-kolu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota MR2 AW11 Vites Kolu Burcu",
+    "aciklama": "Birinci nesil MR2'de (AW11) vites kolunun oynak noktasındaki burçtur. Dağılan orijinal burç yüzünden kolda büyük boşluk oluşur ve vites kademeleri belirsizleşir. Bu parça boşluğu alarak kolun kesin ve sıkı çalışmasını geri getirir. Kol mekanizmasındaki kendi yuvasına oturur, ek parça gerektirmez. Sürtünmeye ve sıcaklığa dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 16 × 16 × 8 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3865462-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pahls_racing",
+      "tur": "BSD",
+      "link": "https://www.thingiverse.com/thing:3865462"
+    }
+  },
+  {
+    "id": "toyota-rav4-gosterge-ekrani-muhafazasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota RAV4 Gösterge Ekranı Muhafazası (2000-2005)",
+    "aciklama": "RAV4'ün orijinal teybinden sökülen yol bilgisayarı ekranını barındıran iki parçalı muhafazadır. Ön çerçeve ile arka kapak birlikte üretilir; ikisi birleşince ekran, saat ve dış sıcaklık göstergesi teypten bağımsız olarak torpidoda kullanılabilir hale gelir. Teyp değiştirilse bile orijinal ekran kaybedilmez. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir. Ekran ve kablo ürüne dahil değildir.\nYaklaşık dış ölçüler: 91 × 62 × 44 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4333738-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4333738-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4333738-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4333738-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SidoyNvkz",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4333738"
+    }
+  },
+  {
+    "id": "toyota-corolla-e12-geri-vites-kamerasi-duy-braketi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Corolla E12 Geri Vites Kamerası Duy Braketi",
+    "aciklama": "Corolla E12'nin plaka lambası gövdesine geri görüş kamerası takıldığında bosta kalan ampul duyunu yerinde tutan brakettir. Orijinal T10 duya çevirmeli olarak oturur; lamba ile kamera aynı gövdede birlikte çalışmaya devam eder. Gövdede kesme ya da delme gerektirmez. Dış ortam koşullarına ve ampul sıcaklığına dayanıklı malzemeyle üretilir. Kamera ve ampul ürüne dahil değildir.\nYaklaşık dış ölçüler: 20 × 20 × 11 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4871357-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4871357-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4871357-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tidek",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4871357"
+    }
+  },
+  {
+    "id": "toyota-hilux-bozuk-para-gozu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Hilux Bozuk Para Gözü",
+    "aciklama": "Hilux'un kabinindeki boş göze oturan bozuk para haznesidir. Madeni paraları dik sıralar halinde tutar; sürüşte dağılmaz ve takırdamaz. Yuvanın kendi duvarlarına oturarak sabitlenir, araçta hiçbir değişiklik gerektirmez. Yaz sıcağında yumuşamayan, güneşe dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 68 × 60 × 58 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5874909-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5874909-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ikrsul",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5874909"
+    }
+  },
+  {
+    "id": "toyota-tacoma-bagaj-kapagi-baton-tutucu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Tacoma Bagaj Kapağı Baton Tutucu (3. Nesil)",
+    "aciklama": "Üçüncü nesil Tacoma'nın bagaj kapağının iç yüzüne, kapaktaki mevcut döşeme vidalarıyla takılan baton tutucudur. Taban parçası kapağa gömülü oturur, vida başı içeride kalır. İki farklı aralıktaki kelepçe birlikte üretilir; kelepçe tabana sıkı geçer ama kullanılmadığında çıkarılabilir. Dış ortam koşullarına dayanıklı, kırılgan olmayan malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 55 × 27 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5916512-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5916512-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5916512-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PrefectPitch",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5916512"
+    }
+  },
+  {
     "id": "volvo-240-gosterge-saat-deligi-tapasi",
     "kategori": "Otomobil",
     "marka": [
