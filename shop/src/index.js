@@ -504,32 +504,71 @@ async function baslat(request, env, url, ctx) {
 // ---------------------------------------------------------------- /fiyat (PROVA)
 
 /**
- * PROVA HIZ SINIRI — isolate-ici, YAZMASIZ pencere sayaci.
+ * PROVA HIZ SINIRI — IP basina SERT TAVAN (native Cloudflare rate limiting binding).
  *
- * NE DEGIL: kalici/dagitik bir hiz siniri DEGIL (Worker isolate'i yenilenince sifirlanir,
- * her kolokasyonda ayri sayar) -> GUVENLIK SINIRI SAYILMAZ, ucuz bir kotu-kullanim frenidir.
- * Kalici sayac D1/KV YAZMASI gerektirirdi; prova ucunun KIRMIZI CIZGISI "hicbir yan etki
- * yok" oldugu icin yazan bir sayac BILEREK tercih EDILMEDI (yan etkisizlik > hassas limit).
- * Asil frenler: (1) uc yalniz KATALOGDAKI urun/olcu/malzeme kombinasyonlari icin, sitenin
- * zaten public olan /secenekler.js + /konfigur.js cekirdegiyle AYNI sayiyi doner — yeni bir
- * bilgi sizmaz; (2) istek basina en cok AYAR.sepet_en_cok_kalem kalem ve TEK D1 SELECT
- * (salt okuma); (3) Cloudflare route/WAF katmani.
+ * 🔴 NEDEN DEGISTI (29 Tem, canlida OLCULDU): burada eskiden isolate-ici bir Map sayac vardi
+ * (30 istek/dk). KALICI bir baglantiyla olculdugunde dogru gorunuyordu (30x200 + 31. istek 429),
+ * AMA her istekte YENI baglantı acan bir istemciyle 40/40 HTTP 200 dondu: istekler farkli
+ * isolate'lere dagiliyor, her isolate'in Map'i BOS basliyor -> ortada SERT TAVAN YOKTU.
+ * Sayac ne kadar dogru yazilmis olursa olsun, isolate-yerel bir sayac dagitik bir uc icin
+ * yapisal olarak tavan URETEMEZ.
+ *
+ * COZUM: /ref ucunun (src/ref.js kotaAsildi) kullandigi native rate limiting binding'in
+ * AYNISI — hesap duzeyinde sayar, EK D1 YAZMASI YAPMAZ (prova ucunun "yan etki yok" kirmizi
+ * cizgisi korunur; kalici sayac icin D1/KV YAZMASI gerekirdi ve o cizgiyi delerdi).
+ *
+ * 🔒 AYRI KOTA: binding /ref ile PAYLASILMAZ (ayri ad FIYAT_RATE_LIMIT + ayri namespace_id).
+ * Paylasilsaydi beacon trafigi fiyat sorgusunu, fiyat trafigi de beacon'i kapatabilirdi.
+ *
+ * LIMIT SECIMI (wrangler.toml simple.limit = 60 / period = 60 sn): mesru kullanimin en yogun
+ * makul hali konfiguratorde ayar deneyen tek musteridir — olculdu (kabul testi set 9.5):
+ * en yogun yanlis-pozitif senaryosu 40 istek/dk, NAT arkasindaki 2 musteri 50 istek/dk; 60
+ * bunlarin USTUNDE kalir. Ust tarafta ise tek IP'nin uretebilecegi maliyet dakikada 60 D1
+ * SELECT + 60 hesapla SONLU kilinir (eskiden: sinirsiz). Comert ama SONLU.
+ *
+ * 🔴 FAIL-CLOSED (bilincli secim; /ref FAIL-OPEN'dan AYRILIR): binding yoksa, bozuksa ya da
+ * limiter patlarsa uc 429 doner — sessizce SINIRSIZA DONMEZ. Gerekce: /ref bir attribution
+ * beacon'idir, kaybi olculemeyen veri kaybidir -> orada fail-open dogru; /fiyat ise YAN
+ * ETKISIZ bir dogrulama/konfigurator ucudur, kaybi GORULUR ve GERI DONULEBILIR. Yanlis
+ * konfigurasyonun bedeli "ucun gurultuyle olmesi" olmalidir, "tavanin sessizce kalkmasi"
+ * degil. Yanlislikla silinmeyi CI yakalar: shop/test/fiyat-prova.mjs set 9.1 wrangler.toml'da
+ * binding beyanini BLOKLAYICI olarak arar (mutant M6).
  */
-const PROVA_PENCERE_MS = 60000;   // 1 dakikalik pencere
-const PROVA_EN_COK = 30;          // pencere basina IP basina istek
-const PROVA_IP_TAVANI = 5000;     // bellek tavani (asilirsa sayac tablosu sifirlanir)
-const provaSayac = new Map();
+const PROVA_PENCERE_SN = 60;   // wrangler.toml FIYAT_RATE_LIMIT simple.period ile AYNI olmali
+                               // (drift kapisi: fiyat-prova.mjs set 9.1)
 
-function provaHizSiniriAsildi(ip) {
-  const pencere = Math.floor(Date.now() / PROVA_PENCERE_MS);
-  const kayit = provaSayac.get(ip);
-  if (!kayit || kayit.pencere !== pencere) {
-    if (provaSayac.size >= PROVA_IP_TAVANI) { provaSayac.clear(); }
-    provaSayac.set(ip, { pencere: pencere, adet: 1 });
-    return false;
+/** 429 cevabi — TEK yer. Govde/basliklar sabit; D1'e, aga ya da katalog verisine DOKUNMAZ. */
+function cokIstek(env) {
+  return new Response(JSON.stringify({ hata: "cok-istek" }), {
+    status: 429,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "Retry-After": String(PROVA_PENCERE_SN),
+      ...cors(env),
+    },
+  });
+}
+
+/** true -> cap asildi (ya da tavan UYGULANAMIYOR) -> cagiran 429 doner ve govdeyi bile
+ *  ayristirmaz. Native binding EK D1 YAZMASI YAPMAZ. Fail-closed: binding yok/bozuk/patladi
+ *  hallerinin HEPSI true (yuksek sesli log ile). */
+async function provaHizSiniriAsildi(request, env) {
+  const rl = env && env.FIYAT_RATE_LIMIT;
+  if (!rl || typeof rl.limit !== "function") {
+    console.error("FIYAT_RATE_LIMIT binding YOK/BOZUK -> /fiyat fail-closed 429 " +
+                  "(wrangler.toml [[unsafe.bindings]] beyanini kontrol et)");
+    return true;
   }
-  kayit.adet += 1;
-  return kayit.adet > PROVA_EN_COK;
+  const ip = (request.headers && typeof request.headers.get === "function"
+    ? request.headers.get("CF-Connecting-IP") : "") || "yok";
+  try {
+    const sonuc = await rl.limit({ key: ip });
+    return !(sonuc && sonuc.success);           // success !== true -> cap asildi
+  } catch (e) {
+    console.error("fiyat rate-limit hatasi (fail-closed):", (e && e.stack) || e);
+    return true;                                // limiter patladi -> tavan yok sayilmaz
+  }
 }
 
 /**
@@ -551,8 +590,8 @@ function provaHizSiniriAsildi(ip) {
  * tedarikci/lisans bilgisi ve secret DONMEZ. Musteri (PII) alani HIC OKUNMAZ.
  */
 async function fiyatProva(request, env) {
-  const ip = request.headers.get("CF-Connecting-IP") || "0.0.0.0";
-  if (provaHizSiniriAsildi(ip)) { return json({ hata: "cok-istek" }, 429, env); }
+  // TAVAN EN ONDE: cap asilinca govde ayristirilmaz, D1'e HIC gidilmez, hicbir hesap kosmaz.
+  if (await provaHizSiniriAsildi(request, env)) { return cokIstek(env); }
 
   let govde;
   try {

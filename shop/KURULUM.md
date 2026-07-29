@@ -80,8 +80,15 @@ gondermez; kayip varsa cikis kodu 1). Ham SQL yedegini kullandiysan bunu kostur.
   (`sepetiFiyatla`) kosar, yalniz tutari doner. D1'e YAZMAZ, iyzico'ya GITMEZ, Telegram/e-posta
   GONDERMEZ, siparis OLUSTURMAZ. Amac: fiyat regresyonunu gercek siparis acmadan olcebilmek.
   Cevap BEYAZ LISTE (id/adet/kurus/parametre_detay + kargo/KDV dokumu); baslik/kategori/gorsel/
-  hacim/IBAN/token DONMEZ. Isolate-ici hiz siniri: IP basina 30 istek/dakika (kalici degil —
-  guvenlik siniri degil, kotu-kullanim freni; kalici sayac D1 YAZMASI gerektirirdi).
+  hacim/IBAN/token DONMEZ. **Hiz siniri: IP basina 60 istek/dakika, native Cloudflare rate
+  limiting binding'i ile (`FIYAT_RATE_LIMIT`, wrangler.toml `[[unsafe.bindings]]`).** Eski
+  isolate-ici Map sayaci 29 Tem'de canlida CURUTULDU: kalici baglantiyla 31. istek 429
+  veriyordu ama her istekte YENI baglanti acan istemciyle 40/40 HTTP 200 dondu (istekler
+  farkli isolate'lere dagilir) -> sert tavan YOKTU. Native binding hesap duzeyinde sayar ve
+  EK D1 YAZMASI YAPMAZ. **FAIL-CLOSED:** binding yok/bozuksa uc 429 doner (sessizce sinirsiza
+  DONMEZ) — yani wrangler.toml'daki blok silinirse uc gurultuyle olur; CI bunu bloklayici
+  olarak yakalar (`shop/test/fiyat-prova.mjs` set 9.1 + M6). Binding /ref ile PAYLASILMAZ
+  (ayri ad + ayri namespace_id).
   Ornek: `curl -sS -X POST https://pruvo3d.com/api/shop/fiyat -H "Content-Type: application/json"
   -d '{"sepet":[{"id":"kurt-heykeli-serit-dekoratif-figur","malzeme":"PLA","renk":"Siyah",
   "adet":1,"parametreler":{"boy_mm":300}}]}'`
