@@ -1294,7 +1294,7 @@
       "Toyota"
     ],
     "baslik": "Toyota Celica (7. Nesil) İkili Gösterge Yuvası",
-    "aciklama": "Yedinci nesil Celica'nın orta konsolundaki güneş gözlüğü gözüne oturan, iki adet 52 mm ölçü saatini yan yana taşıyan çerçeve. Gözün kapağı takılıyken de kapanır; araçta kalıcı değişiklik gerektirmez. Göstergelerin kabloları için arka duvarda geçiş boşluğu bırakılmıştır. Yüksek sıcaklığa dayanıklı malzemeyle üretilir; göstergeler ürüne dahil değildir.",
+    "aciklama": "Yedinci nesil Celica'nın orta konsolundaki güneş gözlüğü gözüne oturan, iki adet 52 mm ölçü saatini yan yana taşıyan çerçeve. Gözün kapağı takılıyken de kapanır; araçta kalıcı değişiklik gerektirmez. Göstergelerin kabloları için arka duvarda geçiş boşluğu bırakılmıştır. Yüksek sıcaklığa dayanıklı malzemeyle üretilir; göstergeler ürüne dahil değildir.\nYaklaşık dış ölçüler: 185 × 60 × 12 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5770300-1.jpg",
@@ -1332,7 +1332,7 @@
       "Toyota"
     ],
     "baslik": "Toyota Corolla Menfez 17 mm Bilya Adaptörü",
-    "aciklama": "Corolla'nın havalandırma menfezine üstten ve alttan kenetlenen, ucunda 17 mm bilya taşıyan adaptör. Bu ölçüdeki standart telefon tutucu kolları doğrudan takılır. Menfez kanatları takılı haldeyken de yönlendirilebilir. Yüksek sıcaklığa dayanıklı malzeme önerilir. 2023 model üzerinde ölçülmüştür, yakın yılların aynı menfez tasarımına da uyar; telefon tutucu ürüne dahil değildir.",
+    "aciklama": "Corolla'nın havalandırma menfezine üstten ve alttan kenetlenen, ucunda 17 mm bilya taşıyan adaptör. Bu ölçüdeki standart telefon tutucu kolları doğrudan takılır. Menfez kanatları takılı haldeyken de yönlendirilebilir. Yüksek sıcaklığa dayanıklı malzeme önerilir. 2023 model üzerinde ölçülmüştür, yakın yılların aynı menfez tasarımına da uyar; telefon tutucu ürüne dahil değildir.\nYaklaşık dış ölçüler: 71 × 51 × 35 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7134763-1.jpg"
@@ -14227,6 +14227,21 @@
     ]
   },
   {
+    "id": "olcuye-ozel-cerceve",
+    "kategori": "Jeneratör",
+    "marka": [],
+    "baslik": "Ölçüye Özel Çerçeve (Resim · Sanat · Pano)",
+    "aciklama": "Resminizin, tablonuzun ya da panonuzun ölçüsüne göre çerçeve üretiyoruz — fotoğraf, poster, sertifika, tuval/kanvas, ayna ve pano için iç mekan çerçeveleri.\n\nNeyi ayarlıyoruz? (5 parametre)\n• İç ölçü — çerçeveye girecek resmin/panonun eni ve boyu (mm)\n• Profil genişliği — çerçeve kenar payı / çıta kalınlığı\n• Çerçeve derinliği — ön yüzden arkaya toplam kalınlık\n• Arka yuva — cam/pleksi ve arka pano için oturma payı (rebate)\n• Askı & köşe — duvar askısı ya da masaüstü ayak; köşe stili ve renk seçenekleri\n\nKullanım: fotoğraf ve poster çerçevesi, sertifika/diploma, tuval ve sanat baskısı, pano ve tabela, ayna çerçevesi, kırılan/eksik çerçevenin yenisi. Yalnız iç mekan kullanımı için.\n\nNasıl sipariş edilir?\nÇerçevelenecek resmin en × boy ölçüsünü (ve isterseniz profil genişliğini) WhatsApp'tan gönderin; ölçüye özel üretip adresinize gönderelim.",
+    "fiyat": "",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p1.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p2.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p3.jpg",
+      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p4.jpg"
+    ],
+    "parametrik": true
+  },
+  {
     "id": "ford-kuga-focus-polen-filtre-kutusu-lx619600ea",
     "kategori": "Otomobil",
     "marka": [
@@ -23072,21 +23087,6 @@
       "https://media.pruvo3d.com/urunler/olcuye-ozel-toka-p2.jpg",
       "https://media.pruvo3d.com/urunler/olcuye-ozel-toka-p3.jpg",
       "https://media.pruvo3d.com/urunler/olcuye-ozel-toka-p4.jpg"
-    ],
-    "parametrik": true
-  },
-  {
-    "id": "olcuye-ozel-cerceve",
-    "kategori": "Jeneratör",
-    "marka": [],
-    "baslik": "Ölçüye Özel Çerçeve (Resim · Sanat · Pano)",
-    "aciklama": "Resminizin, tablonuzun ya da panonuzun ölçüsüne göre çerçeve üretiyoruz — fotoğraf, poster, sertifika, tuval/kanvas, ayna ve pano için iç mekan çerçeveleri.\n\nNeyi ayarlıyoruz? (5 parametre)\n• İç ölçü — çerçeveye girecek resmin/panonun eni ve boyu (mm)\n• Profil genişliği — çerçeve kenar payı / çıta kalınlığı\n• Çerçeve derinliği — ön yüzden arkaya toplam kalınlık\n• Arka yuva — cam/pleksi ve arka pano için oturma payı (rebate)\n• Askı & köşe — duvar askısı ya da masaüstü ayak; köşe stili ve renk seçenekleri\n\nKullanım: fotoğraf ve poster çerçevesi, sertifika/diploma, tuval ve sanat baskısı, pano ve tabela, ayna çerçevesi, kırılan/eksik çerçevenin yenisi. Yalnız iç mekan kullanımı için.\n\nNasıl sipariş edilir?\nÇerçevelenecek resmin en × boy ölçüsünü (ve isterseniz profil genişliğini) WhatsApp'tan gönderin; ölçüye özel üretip adresinize gönderelim.",
-    "fiyat": "",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p1.jpg",
-      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p2.jpg",
-      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p3.jpg",
-      "https://media.pruvo3d.com/urunler/olcuye-ozel-cerceve-p4.jpg"
     ],
     "parametrik": true
   },
