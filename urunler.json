@@ -1,5 +1,329 @@
 [
   {
+    "id": "cok-amacli-cinch-baglama-toplu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Çok Amaçlı Cinch (Bağlama Topu)",
+    "aciklama": "Halat veya kordonun ucuna geçen delikli top; olta, çanta ve kayak küreği gibi eşyaları bağlamak için hızlı ve sökülebilir bir tutunma noktası oluşturur.\n- Kordon ucuna geçirilip düğümlenir.\n- Olta, çanta ve kürek gibi eşyaları bağlamakta kullanılır.\n- Küçük ve hafif, takım çantasında yer kaplamaz.\nYaklaşık dış ölçüler: 25 × 25 × 23 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3088071-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3088071-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3088071-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3088071-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sebitalugano",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kendinden-tahliyeli-scupper-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Kendinden Tahliyeli Scupper Tapası",
+    "aciklama": "Kayağın tahliye deliğinden (scupper) rüzgârlı/dalgalı havada su girmesini önleyen tapa. İçindeki yüzer top valf görevi görür; su dışarı akar ama içeri girmez.\n- Yüzer top valfi suyu tek yönlü akıtır.\n- Standart scupper deliklerine oturacak ölçüdedir.\n- Deniz suyuna ve güneşe dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 42 × 42 × 36 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2280462-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2280462-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2280462-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "erenner",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelken-cam-cleat-3mm-ip",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Cam Cleat (İnce İp — 3 mm)",
+    "aciklama": "İnce çaplı (3 mm) halatlar için dişli cam cleat. Baskı katmanları halatı dişlere doğru yönlendirecek şekilde konumlandırılmıştır; ip kilitlenmesi daha sağlamdır.\n- 3 mm çaplı ip için optimize edilmiştir.\n- Baskı yönü halatın dişlere girişini kolaylaştırır.\n- Yelkenli ve şişme botlarda kullanılır.\nYaklaşık dış ölçüler: 44 × 26 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2934729-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BotLawson",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tutamakli-ruzgar-gostergesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tutamaklı Rüzgâr Göstergesi (El Tipi)",
+    "aciklama": "Yelken yarışlarında şamandıra dizen ekiplerin rüzgâr yönünü hızlıca görmesi için tutamaklı rüzgâr göstergesi. Rüzgârla serbestçe döner, sapından tutularak taşınır.\n- Rüzgâr yönünü anında gösterir.\n- Sapından tutularak taşınır, sabit bir yere gerek yoktur.\n- Yarış öncesi şamandıra yerleştirmede kullanılır.\nYaklaşık dış ölçüler: 167 × 64 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6679140-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6679140-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6679140-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6679140-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Yotter",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "railblaza-starport-ram-topu-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "RailBlaza StarPort — RAM Topu Adaptörü",
+    "aciklama": "RailBlaza StarPort rayına oturan, standart 1 inç RAM topu sunan adaptör. Kayak ve teknelerde yaygın RailBlaza montaj sistemini RAM aksesuarlarına açar.\n- RailBlaza StarPort rayına oturur.\n- 1 inç standart RAM topu sunar.\n- Kayak ve tekne aksesuarlarını RailBlaza sistemine bağlar.\nYaklaşık dış ölçüler: 36 × 32 × 32 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3909784-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3909784-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3909784-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "iClint",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kurek-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Kürek Tutucu",
+    "aciklama": "Kayak gövdesine sabitlenen kürek tutucu. Kürek yuvaya yerleştirilip düğmelerle sabitlenir; kullanılmadığı sürece küreğin güvertede sabit durmasını sağlar.\n- Küreği güvertede sabit ve erişilebilir tutar.\n- Vidayla kayak gövdesine sabitlenir.\n- Basit düğme mekanizmasıyla kürek takılıp çıkarılır.\nYaklaşık dış ölçüler: 85 × 52 × 27 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1282707-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1282707-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "zgooch",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-tahliye-tapasi-petcock",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Tahliye Tapası (Petcock Tip)",
+    "aciklama": "Oturarak kürek çekilen (sit-on-top) balıkçı kayaklarının tahliye deliğine oturan vidalı tapa. Kaybolan ya da kırılan orijinal tapanın yerine geçer.\n- Standart tahliye deliğine vidalanarak takılır.\n- Kaybolan orijinal tapanın yerine geçer.\n- Deniz suyuna dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 29 × 29 × 23 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th132884-1.jpg",
+      "https://media.pruvo3d.com/urunler/th132884-2.jpg",
+      "https://media.pruvo3d.com/urunler/th132884-3.jpg",
+      "https://media.pruvo3d.com/urunler/th132884-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hxtasy",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-tahliye-tapasi-genel",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Tahliye Tapası (Genel Tip)",
+    "aciklama": "Kano ve kayaklarda tahliye deliğini kapatan körüklü tapa. Körük yapısı farklı delik derinliklerine uyum sağlar, elle bastırılarak takılır.\n- Körüklü yapısı farklı delik derinliklerine uyar.\n- Elle bastırılarak takılır, alet gerekmez.\n- Kano ve kayaklarda kullanılır.\nYaklaşık dış ölçüler: 46 × 26 × 26 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3004861-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Yopsolo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "olta-sap-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Olta Sap Klipsi (Kelepçeli)",
+    "aciklama": "Olta sapına takılan, kelepçe ile sıkılan klips. Aksesuar ya da ikinci bir ekipmanı olta sapı üzerinde sabit tutmak için kullanılır.\n- Olta sapına kelepçelenerek sabitlenir.\n- İkinci bir aksesuarı sap üzerinde sabit tutar.\n- Vidayla istenilen sıkılıkta ayarlanır.\nYaklaşık dış ölçüler: 49 × 45 × 14 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3352801-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3352801-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ricin48",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-koltuk-yukseltici-lifetime-tamarack",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Koltuk Yükseltici (Lifetime Tamarack Pro)",
+    "aciklama": "Lifetime Tamarack Pro oturarak kürek çekilen balıkçı kayağının koltuğunu yükselten takoz seti. Arka tarafı 75 mm, ön tarafı 30 mm yükseltir.\n- Arka tarafı 75 mm, ön tarafı 30 mm yükseltir.\n- Lifetime Tamarack Pro modeliyle uyumludur.\n- Mevcut koltuk vidalarıyla monte edilir.\nYaklaşık dış ölçüler: 100 × 50 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4893453-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4893453-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4893453-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4893453-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "markvaughan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "arac-tekne-radyo-muhafazasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Araç / Tekne Radyo Muhafazası",
+    "aciklama": "Çeşitli boyutlardaki radyo modüllerini barındıran fonksiyonel muhafaza kutusu. Hoparlör için 4 mm konnektör, güç için XT60 girişi ve arka kapakta bağlantı haznesi bulunur.\n- Çeşitli radyo modülü boyutlarına uyum sağlar.\n- 4 mm hoparlör ve XT60 güç konnektörlerine uygundur.\n- Araç ve tekne kullanımına uygun sağlam kapalı kutu yapısıdır.\nYaklaşık dış ölçüler: 214 × 206 × 73 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3853999-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3853999-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3853999-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3853999-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dr_frost_dk",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "buyuk-govde-kayak-transducer-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Büyük Gövdeli Kayak İçin Transducer Montajı",
+    "aciklama": "Büyük gövdeli balıkçı kayaklarında balık bulucu sensörünü (transducer) güverteye sabitleyen montaj takımı. Taban plakası ve tutucu kol birlikte gelir.\n- Transducer sensörünü güverteye sabitler.\n- Taban plakası ve tutucu kol birlikte gelir.\n- Büyük gövdeli balıkçı kayaklarına uygundur.\nYaklaşık dış ölçüler: 97 × 34 × 22 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th432607-1.jpg",
+      "https://media.pruvo3d.com/urunler/th432607-2.jpg",
+      "https://media.pruvo3d.com/urunler/th432607-3.jpg",
+      "https://media.pruvo3d.com/urunler/th432607-4.jpg",
+      "https://media.pruvo3d.com/urunler/th432607-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "agepbiz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "perception-kayak-solo-mount-adaptor-seti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Perception Kayak Solo Mount Adaptör Seti",
+    "aciklama": "Perception marka kayakların gövdesindeki 'solo mount' vidalı yuvalarına takılan adaptör seti. Olta tutucu, pense kutusu ve elektronik aksesuar bağlamak için kullanılır.\n- Perception kayakların solo mount yuvasına oturur.\n- RAM topu adaptörleri ve pense kutusu seçenekleri içerir.\n- Vidayla değil, mevcut yuvaya oturarak takılır.\nYaklaşık dış ölçüler: 79 × 44 × 44 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4501864-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4501864-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4501864-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4501864-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3DResearchBryce",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "scotty-uyumlu-tekne-olta-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Scotty Uyumlu Tekne Olta Tutucu",
+    "aciklama": "Scotty mount standardını kullanan tekne bağlantı tabanlarına oturan olta tutucu. Yaygın bu montaj standardı sayesinde çoğu tekne rayına uyum sağlar.\n- Scotty mount standardındaki tabanlara oturur.\n- Kamışı sabit ve erişilebilir açıda tutar.\n- Taban, yuva ve halka parçaları birlikte gelir.\nYaklaşık dış ölçüler: 200 × 68 × 50 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5090346-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5090346-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5090346-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5090346-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rebelzero",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "balikci-kayagi-olta-tutucu-ozel-uyum",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Balıkçı Kayağı Olta Tutucu (Özel Uyum)",
+    "aciklama": "Küçük balıkçı kayağı/ponton modellerinin arka güvertesine sabitlenen olta tutucu. Kamışı kayağın kıç tarafında sabit ve erişilebilir tutar.\n- Kayağın arka güvertesine vidayla sabitlenir.\n- Kamışı kıç taraftan sabit ve erişilebilir tutar.\n- Küçük balıkçı kayağı ve ponton modelleriyle uyumludur.\nYaklaşık dış ölçüler: 235 × 231 × 103 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7031129-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7031129-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7031129-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7031129-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MV21",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "donel-kayak-kurek-tutucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dönel Kayak Kürek Tutucu (45° Adaptörlü)",
+    "aciklama": "Kayağa 45 derecelik adaptörle bağlanan dönel kürek tutucu. Kürek gövdeye oturur, dönel çark sayesinde açı kolayca ayarlanır.\n- Kürek gövdeye güvenle oturur.\n- Dönel çark ile açı kolayca ayarlanır.\n- 45 derece adaptörüyle birlikte kullanılır.\nYaklaşık dış ölçüler: 67 × 36 × 32 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5334646-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5334646-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5334646-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "C0d3Man87",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "humminbird-helix5-ram-topu-tabani",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Humminbird Helix 5 RAM Topu Tabanı",
+    "aciklama": "Humminbird Helix 5 balık bulucu için 1 inç RAM topu standardında montaj tabanı. Tekne veya kayağa sabitlenen tabana RAM kelepçesiyle bağlanır.\n- 1 inç standart RAM topu sunar.\n- Humminbird Helix 5 balık bulucu ile uyumludur.\n- Dört vida deliğiyle düz yüzeye sabitlenir.\nYaklaşık dış ölçüler: 76 × 44 × 34 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th945564-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "anon_maker",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-kancasi-basi-25mm-sopa",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kancası Başı (25 mm Sopa İçin)",
+    "aciklama": "25 mm çaplı sopaya geçen tekne kancası başlığı. Halat yakalama ve iskeleye yanaşma gibi işlerde kullanılır.\n- 25 mm çaplı sopaya geçer.\n- Halat yakalama ve iskeleye yanaşmada kullanılır.\n- Deniz suyuna ve güneşe dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 190 × 98 × 31 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1569326-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1569326-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pedromsmota",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-sup-bardaklik-bungee",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak / SUP Bardaklığı (Bungee Kordonlu)",
+    "aciklama": "Kayak ya da SUP tahtasındaki bungee kordonlara bağlanan bardaklık. Kutu ve bardak içecekleri güvertede dik tutar.\n- Bungee kordonlara bağlanarak sabitlenir.\n- Kutu ve bardak içecekleri dik tutar.\n- Kayak ve SUP tahtalarında kullanılır.\nYaklaşık dış ölçüler: 100 × 100 × 100 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6689636-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6689636-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6689636-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jwdavis2",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "kayak-pad-eye-baglanti-gozu",
     "kategori": "Marin",
     "marka": [],
