@@ -1,5 +1,598 @@
 [
   {
+    "id": "volvo-s60-bagaj-anahtar-deligi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo S60 Bagaj Anahtar Deliği Kapağı",
+    "aciklama": "S60'ın bagaj kapağındaki anahtar silindirini örten kapağın yedeği. Kaybolan orijinalin yerine geçerek kilit göbeğine su ve toz girmesini önler, bagaj kapağının yüzeyini düzgün gösterir. Arkasındaki tırnaklar mevcut yuvaya baskıyla tutunur, vida gerektirmez.\nYaklaşık dış ölçüler: 41 × 36 × 6 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6296285-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "terakorp",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6296285"
+    }
+  },
+  {
+    "id": "volvo-240-yag-filtresi-damlama-haznesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo 240 Yağ Filtresi Damlama Haznesi",
+    "aciklama": "240'ta yağ değişiminde filtre sökülürken akan yağı toplayan hazne. Filtre gövdesini esnekçe kavrayarak altına oturur; yağın motor takozuna ve şasiye damlamasını önler, dolan hazne filtreyle birlikte çıkarılır. Esnek malzemeyle üretildiği için defalarca kullanılır. Standart 76 mm gövde çapındaki filtrelere uyar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6926680-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6926680-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dandeluca",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6926680"
+    }
+  },
+  {
+    "id": "volvo-740-m47-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo 740 M47 Vites Topuzu",
+    "aciklama": "740'ın M47 şanzımanlı modellerinde vites kolunun topuzu. Kaplaması dökülen ya da çatlayan orijinalin yerine geçer; kolun ucundaki mile geçip sıkıştırıldığında oynamaz. Avuç içine oturan konik gövdesi kışın soğuk metal hissi vermez. Aynı şanzımanı taşıyan diğer modellere de uyar.\nYaklaşık dış ölçüler: 85 × 44 × 44 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7019074-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KristoffermedK",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7019074"
+    }
+  },
+  {
+    "id": "volvo-v40-konsol-kablo-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo V40 Konsol Kablo Tutucusu",
+    "aciklama": "2012 ve sonrası V40'ın orta konsol gözünde şarj kablosunu yerinde tutan aparat. Kablonun ucunu gözün kenarında yukarıda tutar; telefonu takarken kabloyu gözün dibinden çıkarmaya gerek kalmaz. Konsolun mevcut kilit mekanizması korunur, araçta değişiklik yapılmaz. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 52 × 38 × 35 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4677168-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Racoon2020",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4677168"
+    }
+  },
+  {
+    "id": "volvo-cr-906-radyo-montaj-takimi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo CR-906 Radyo Montaj Takımı",
+    "aciklama": "940'ın göğsünde CR-906 radyoyu yerine kilitleyen montaj parçalarının takımı. Eksik ya da kırık parçalar yüzünden radyo yuvada oynar ve tam oturmaz; bu takım radyoyu gövdeye yeniden sabitler. İki kilit dili ile iki kılavuz takozdan oluşur; takozlardan biri ayna görüntüsüdür. Yüksek dayanımlı malzemeyle üretilir.\nYaklaşık dış ölçüler: 35 × 28 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4738994-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4738994-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JeroenVolvo",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4738994"
+    }
+  },
+  {
+    "id": "volvo-p2-tavan-mikrofon-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo P2 Tavan Mikrofon Adaptörü",
+    "aciklama": "P2 gövdeli Volvo'larda tavan konsolunda fabrika telefon sistemi için ayrılmış boşluğa mikrofon oturtan adaptör. Sonradan takılan multimedya sisteminin mikrofonunu orijinal yerine, göz hizasının dışında ve düzgün görünecek biçimde yerleştirir. Yaygın mikrofon gövdelerine uyacak ölçüdedir; mikrofon ürüne dahil değildir.\nYaklaşık dış ölçüler: 32 × 32 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5276482-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5276482-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5276482-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "katiebug324",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5276482"
+    }
+  },
+  {
+    "id": "volvo-s40-v40-kapi-cebi-vida-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo S40 / V40 Kapı Cebi Vida Kapağı",
+    "aciklama": "S40 ve V40'ın kapı cebindeki vidayı örten küçük kapağın yedeği. Kaybolan orijinalin yerine geçerek vida başını gizler ve cebin kenarını düzgün gösterir. İki tırnağıyla mevcut yuvaya baskıyla oturur. Kabin sıcaklığına dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 27 × 12 × 10 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6982067-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6982067-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Veld2turbo",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6982067"
+    }
+  },
+  {
+    "id": "volvo-l3314-on-cam-bugu-giderme-agzi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo L3314 Ön Cam Buğu Giderme Ağzı",
+    "aciklama": "Klasik Volvo L3314 arazi aracında kalorifer havasını ön cama yönlendiren üfleme ağzı. Isıyla deforme olan ya da kırılan orijinalin yerine geçer; orijinal parçadan ölçü alınarak yeniden çizilmiştir. Tek girişten iki yana ayrılan gövdesi havayı camın tamamına yayar. Yüksek sıcaklığa dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 140 × 95 × 52 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4651165-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pd0cyr",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4651165"
+    }
+  },
+  {
+    "id": "volvo-850-yag-doldurma-kapagi-contasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo 850 Yağ Doldurma Kapağı Contası",
+    "aciklama": "850'in motor yağı doldurma kapağının altındaki sızdırmazlık contasının yedeği. Sertleşen orijinal conta yüzünden kapak tam kapanmaz ve kapağın çevresinde yağ izi oluşur; bu conta yüzeyi yeniden sızdırmaz hale getirir. Yağa ve sıcaklığa dayanıklı esnek malzemeyle, dolu gövdeli üretilir.\nYaklaşık dış ölçüler: 58 × 58 × 4 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5347824-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "alemietner",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5347824"
+    }
+  },
+  {
+    "id": "volvo-xc90-bagaj-havalandirma-aski-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo XC90 Bagaj Havalandırma Askı Aparatı",
+    "aciklama": "XC90'ın bagajındaki yan havalandırma ızgarasına geçen askı aparatı. Izgaraya bastırılarak takılır ve önünde şeritli aksesuar askılarının geçebileceği bir kayış boşluğu bırakır; böylece bagaj duvarına çanta, kanca ya da düzenleyici asılabilir. Arka koltuklar yatırıldığında da erişilebilen konumdadır. Yüksek dayanımlı malzemeyle üretilir.\nYaklaşık dış ölçüler: 42 × 26 × 17 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6287828-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6287828-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6287828-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mrfrd",
+      "tur": "BSD",
+      "link": "https://www.thingiverse.com/thing:6287828"
+    }
+  },
+  {
+    "id": "volvo-v70-cam-suyu-t-baglantisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo V70 Cam Suyu T Bağlantısı",
+    "aciklama": "V70'in kaput altındaki cam yıkama hattını ikiye ayıran T bağlantısının gövdesi. Donan su yüzünden çatlayan orijinalin yerine geçer; içindeki yay ve küçük parçalar eski gövdeden alınıp bu gövdeye takılır. Cam suyu katkısına ve soğuğa dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 32 × 19 × 14 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6491844-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "eban88",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6491844"
+    }
+  },
+  {
+    "id": "volvo-xc90-bagaj-ortusu-mandali-sag",
+    "kategori": "Otomobil",
+    "marka": [
+      "Volvo"
+    ],
+    "baslik": "Volvo XC90 Bagaj Örtüsü Mandalı (Sağ)",
+    "aciklama": "2003-2014 XC90'ın bagaj örtüsünü yan panele kilitleyen sağ mandalın yedeği; orijinal karşılığı 39984225'tir. Kopan mandal yüzünden örtü yerinde durmaz; bu parça örtünün ucuna geçerek yuvaya kilitlenir. Ayna görüntüsü alındığında sol taraf mandalı olarak da kullanılır. Yüksek dayanımlı malzemeyle üretilir.\nYaklaşık dış ölçüler: 52 × 45 × 23 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6520159-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mattbocchi",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6520159"
+    }
+  },
+  {
+    "id": "toyota-corolla-cross-orta-konsol-rafi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Corolla Cross Orta Konsol Rafı",
+    "aciklama": "Corolla Cross'un orta konsolundaki derin gözü iki kata bölen raf. Üst tabla telefonu ya da cüzdanı el altında tutar; alttaki boşluk kablosuz şarj yüzeyine ve sokete erişimi kapatmaz. Gözün yan duvarlarına oturarak sabitlenir, araçta kalıcı değişiklik gerektirmez. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 145 × 133 × 86 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5597414-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5597414-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kckfen",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5597414"
+    }
+  },
+  {
+    "id": "toyota-rav4-xa10-anahtar-yuvasi-cercevesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota RAV4 Anahtar Yuvası Çerçevesi (1994-2000)",
+    "aciklama": "Birinci nesil RAV4'ün (XA10) göğsündeki kör düğme yuvasına oturan, standart 19,5 × 12,5 mm ölçüsündeki yaylı anahtarı taşıyan çerçeve. Orijinal kapağı kesmeye ya da delmeye gerek kalmaz; çerçeve istendiğinde sökülüp orijinal kapak geri takılabilir. Tekli ve ikili olmak üzere iki gövde birlikte üretilir. Anahtar ürüne dahil değildir; aynı yılların diğer modellerine de uyar.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6423677-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6423677-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6423677-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CalebRAV4",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6423677"
+    }
+  },
+  {
+    "id": "toyota-camry-sigorta-kutusu-kapagi-yukselticisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Camry Sigorta Kutusu Kapağı Yükselticisi (2016)",
+    "aciklama": "Camry'nin göğüs altındaki sigorta kutusu kapağını birkaç milimetre yükselten ara çerçeve. Sigorta yuvasına ek besleme aparatı takıldığında orijinal kapak kapanmaz; bu parça kapağın altına girerek gereken boşluğu açar ve kablonun dışarı çıkması için kanal bırakır. Sigorta şemasını taşıyan orijinal kapak yerinde kalır. 2016 model (ASV50) üzerinde ölçülmüştür.\nYaklaşık dış ölçüler: 101 × 48 × 26 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6499375-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6499375-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6499375-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fifonik",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6499375"
+    }
+  },
+  {
+    "id": "toyota-pickup-4runner-aksesuar-anahtar-paneli",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Pickup / 4Runner Aksesuar Anahtar Paneli (1984-1989)",
+    "aciklama": "1984-1988 Pickup ve 1984-1989 4Runner'da sürücü tarafındaki havalandırmanın altında bulunan arka cam rezistansı ve ayna düğmesi panelinin yerine geçen gövde. Orijinalden yaklaşık 19 mm daha ileri çıktığı için standart ölçüdeki yaylı anahtarların soket gövdesine yer açar; iki ilave anahtar ile orijinal düğmeyi yan yana taşır. Anahtarlar ürüne dahil değildir. Kabin sıcaklığına dayanıklı malzemeyle üretilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6999236-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6999236-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SloppyCopy",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6999236"
+    }
+  },
+  {
+    "id": "toyota-yaris-verso-koltuk-deligi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Yaris Verso Koltuk Deliği Kapağı",
+    "aciklama": "Yaris Verso'da arka koltuklar söküldüğünde tabanda açıkta kalan bağlantı deliklerini kapatan kapak. Yükleme zeminini düzleştirir, delikten toz ve nem girmesini önler. Kenarındaki tırnaklar delik ağzına baskıyla tutunur, vida gerektirmez. İki farklı gövde biçimi üretilir; hangi delik için olduğu sipariş sırasında belirtilir.\nYaklaşık dış ölçüler: 105 × 75 × 29 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1836796-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1836796-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1836796-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "zahorsky",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:1836796"
+    }
+  },
+  {
+    "id": "toyota-corolla-e11-kolcak-ayagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Corolla E11 Kolçak Ayağı",
+    "aciklama": "Corolla E11'in orta kolçağını gövdeye bağlayan taşıyıcı ayağın yedeği. Kırılan orijinal yüzünden kolçak öne devrilir ya da tamamen boşta kalır; bu parça mevcut vida noktalarına oturarak eski sıkılığı geri getirir. Sağ ve sol olmak üzere iki parça birlikte üretilir. Yüksek dayanımlı malzemeyle üretilir; 2000 model üzerinde ölçülmüştür.\nYaklaşık dış ölçüler: 78 × 17 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2269426-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2269426-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2269426-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kuhanzzi",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:2269426"
+    }
+  },
+  {
+    "id": "toyota-mr2-aw11-silecek-ve-far-kumanda-dugmeleri",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota MR2 AW11 Silecek ve Far Kumanda Düğmeleri",
+    "aciklama": "Birinci nesil MR2'nin (AW11) göğsündeki silecek ve far kumanda düğmelerinin yedek takımı. Yıpranan orijinallerin yerine geçer; mile geçip sıkıştırıldığında kumanda kolunu eski netliğinde çevirir. Üzerlerindeki işlev sembolleri kabartma olarak işlendiği için boya dökülmesiyle silinmez. İki düğme birlikte üretilir; yüksek sıcaklığa dayanıklı malzeme önerilir.\nYaklaşık dış ölçüler: 70 × 34 × 24 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4780675-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4780675-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4780675-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tydreon",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4780675"
+    }
+  },
+  {
+    "id": "toyota-yaris-arka-silecek-kolu-uc-baglantisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Yaris Arka Silecek Kolu Uç Bağlantısı (2005-2011)",
+    "aciklama": "Yaris'in arka silecek kolunun ucundaki, süpürgeyi kola kenetleyen bağlantı parçasının yedeği. Kırılan uç yüzünden komple kol değiştirmek gerekmez; mevcut kolun ucu kesilerek bu parça dört ila altı M3 vidayla kola sabitlenir. Yüksek dayanımlı malzemeyle üretilir; vidalar ürüne dahil değildir.\nYaklaşık dış ölçüler: 55 × 26 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5193763-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5193763-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "noah_makes_things",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5193763"
+    }
+  },
+  {
+    "id": "toyota-yaris-guneslik-uzatma-kanadi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Yaris Güneşlik Uzatma Kanadı",
+    "aciklama": "Üçüncü ve dördüncü nesil Yaris'in güneşliğine geçirilen uzatma kanadı. Yandan gelen alçak güneşi kesmek için güneşliğin boyunu uzatır, kullanılmadığında geri itilir. Güneşliğin kenarına baskıyla oturur; delik açmak ya da yapıştırmak gerekmez. Her iki nesil için ayrı ölçüde üretilir. Yüksek sıcaklığa dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 184 × 158 × 25 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6772268-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6772268-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6772268-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Idechix",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6772268"
+    }
+  },
+  {
+    "id": "toyota-pickup-kapi-kolu-cercevesi-1986",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Pickup Kapı Kolu Çerçevesi (1986)",
+    "aciklama": "Seksenlerin Toyota Pickup'ında iç kapı açma kolunu çevreleyen döşeme çerçevesinin yedeği. Kırılan ya da kaybolan orijinalin yerine geçerek kapı panelindeki boşluğu kapatır ve kolun çevresini düzgün gösterir. Panel üzerindeki mevcut yuvalara tırnaklarla oturur, ek vida gerektirmez.\nYaklaşık dış ölçüler: 102 × 64 × 26 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6996419-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Carnage_the_Creator",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6996419"
+    }
+  },
+  {
+    "id": "toyota-corolla-konsol-ayiricisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Corolla Konsol Ayırıcısı",
+    "aciklama": "Corolla'nın orta konsol gözünü ikiye bölen ayırıcının yedeği. Kaybolan orijinalin yerine geçerek küçük eşyaların gözün dibine kaymasını önler. Göz duvarlarına oturan kanalları sayesinde yapıştırma gerektirmez, tek hareketle çıkarılıp temizlenir. 2004 model üzerinde ölçülmüştür, yakın yılların konsollarına da uyar.\nYaklaşık dış ölçüler: 74 × 54 × 11 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4850554-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4850554-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4850554-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bigseel",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4850554"
+    }
+  },
+  {
+    "id": "toyota-mark-ii-jzx90-ikili-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Mark II JZX90 İkili Bardaklık",
+    "aciklama": "Mark II'nin (JZX90) orta konsol gözüne oturan iki kaplı bardaklık. Orijinalinden esinlenmiştir; bozuk para bölmesi yerine daha derin kap yuvaları vardır. Tabana konan esnek altlık bardağın tıkırdamasını keser ve kabın dipte kaymasını önler. Gövde kabin sıcaklığına dayanıklı sert malzemeyle, altlık esnek malzemeyle üretilir.\nYaklaşık dış ölçüler: 137 × 90 × 73 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6433511-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6433511-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6433511-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "alex_trask",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6433511"
+    }
+  },
+  {
+    "id": "toyota-rav4-cop-poseti-aski-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota RAV4 Çöp Poşeti Askı Klipsi",
+    "aciklama": "RAV4'ün yolcu tarafındaki bozuk para gözünün kenarına geçen poşet askısı. Poşetin kulpunu iki tırnak arasına sıkıştırır; araç sallandığında poşet devrilmez ve gözün kapağı yine kapanır. Göze baskıyla takılır, iz bırakmadan çıkarılır. Kabin sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 80 × 50 × 28 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4029722-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4029722-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4029722-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rol3D",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4029722"
+    }
+  },
+  {
+    "id": "toyota-starlet-ep82-menfez-kanat-cubugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Starlet EP82 Menfez Kanat Çubuğu",
+    "aciklama": "Starlet GT'nin (EP82) havalandırma menfezinde kanatları birbirine bağlayan çubuğun yedek takımı. Kırılan orijinal yüzünden kanatlar boşta sallanır ve hava yönlendirilemez; bu takım kanatları yeniden tek elden hareket ettirir. Orta menfez için yedi kanatlı, yan menfez için üç kanatlı çubuk ve kanadın oynamasını önleyen yatak birlikte üretilir. İnce kesitli olduğu için yüksek dayanımlı malzemeyle üretilir.\nYaklaşık dış ölçüler: 80 × 5 × 2 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th979009-1.jpg",
+      "https://media.pruvo3d.com/urunler/th979009-2.jpg",
+      "https://media.pruvo3d.com/urunler/th979009-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "caizonghe",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:979009"
+    }
+  },
+  {
+    "id": "toyota-supra-mk4-tavan-dosemesi-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Supra MK4 Tavan Döşemesi Klipsi",
+    "aciklama": "Dördüncü nesil Supra'da sarkan tavan döşemesini yerinde tutan klipsin yedeği. Orijinal tutucular yaşlandığında döşeme öne düşer; bu parça tavan sacındaki yuvaya oturarak döşemeyi yukarıda tutar. Cırt bant şeridiyle birlikte kullanılır; bant ürüne dahil değildir. Kabin sıcaklığına dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 48 × 29 × 6 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1537835-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "killsec",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:1537835"
+    }
+  },
+  {
+    "id": "toyota-soarer-lexus-sc-menfez-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Soarer / Lexus SC Menfez Burcu",
+    "aciklama": "Soarer ile Lexus SC300 ve SC400'ün havalandırma menfezinde kanadın açısını tutan burcun yedeği. Yıllar içinde kırılganlaşan orijinal çatladığında menfez aşağı düşer ve yönlendirilemez; bu burç mili yeniden kavrayarak eski sıkılığı geri getirir. Mil sağlamsa düz gövde, kırık kısım varsa onarım gövdesi kullanılır; iki biçim birlikte üretilir.\nYaklaşık dış ölçüler: 9 × 9 × 6 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4571110-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4571110-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4571110-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "schamberlain",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4571110"
+    }
+  },
+  {
+    "id": "toyota-celica-supra-ma61-sis-fari-somunu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Celica Supra MA61 Sis Farı Somunu",
+    "aciklama": "İkinci nesil Celica Supra'da (MA61) sis farını braketine bağlayan M5 kendinden kilitli somunun yedeği; orijinal karşılığı 90189-05015'tir. Kaybolan ya da kelepçesi açılan orijinalin yerine geçer, iç yapısı sayesinde titreşimde kendiliğinden gevşemez. Dolu gövdeli, yüksek dayanımlı malzemeyle üretilir.\nYaklaşık dış ölçüler: 12 × 12 × 12 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4948599-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4948599-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Artisarium",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4948599"
+    }
+  },
+  {
+    "id": "toyota-prado-vites-kablosu-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Prado Vites Kablosu Burcu (2003)",
+    "aciklama": "120 serisi Land Cruiser Prado'da otomatik vites kolunu şanzıman kablosuna bağlayan burcun yedeği. Dağılan orijinal yüzünden kol boşa gider ve vites geçmez; bu burç kablo ucundaki deliğe geçerek bağlantı milini yeniden kavrar. Aşınmaya dirençli, yüksek dayanımlı malzemeyle üretilir. 2003 model üzerinde ölçülmüştür.\nYaklaşık dış ölçüler: 15 × 15 × 9 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6550064-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6550064-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6550064-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jelbuilder",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:6550064"
+    }
+  },
+  {
+    "id": "toyota-gt86-subaru-brz-tekli-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota GT86 / Subaru BRZ Tekli Bardaklık",
+    "aciklama": "GT86 ve BRZ'nin orta konsolundaki ikili bardaklık yuvasına oturan tek gözlü hazne. Orijinal bağlantı noktalarına kilitlendiği için sürüşte oynamaz; kalan alan cüzdan, telefon ya da anahtar için boşta kalır. Üst yüzeyindeki sığ göz bozuk para ve benzeri küçük eşyalar içindir. Yüksek sıcaklığa dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 131 × 126 × 80 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6705933-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "the_crack_fox",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:6705933"
+    }
+  },
+  {
     "id": "soyut-boga-serit-dekoratif-figur",
     "kategori": "Skan Art",
     "marka": [],
