@@ -55,6 +55,7 @@ import glob
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 import tarfile
@@ -65,7 +66,6 @@ ROOT = os.path.dirname(TOOLS)
 SEMA_DIZIN = os.path.join(ROOT, "jenerator", "urunler")
 IMAJ_YML = os.path.join(ROOT, ".github", "workflows", "onizleme-imaj.yml")
 BUCKET = "pruvo-ozel"
-R2_ANAHTAR = "onizleme/paket-guncel.tar.gz"
 
 # GERCEK CAGRI SATIRI CAPASI — bu metin onizleme-imaj.yml'de GECMEZSE kapi olmustur.
 # Duz alt-dize aramasi (jetonlama/YAML ayristirmasi YOK): bu depoda "akilli" capa
@@ -73,6 +73,18 @@ R2_ANAHTAR = "onizleme/paket-guncel.tar.gz"
 # KABUL EDILEN BEDEL: yorum icindeki bir mensiyon da "duruyor" sayilir — kapi disiplin
 # cihazidir, hapishane degil ([[kapi-disiplin-ilkesi]]).
 CAGRI_CAPASI = "tools/paket-tazelik-kapisi.py --paket"
+
+# SURUMLU ANAHTAR NOBETI capalari (Okan/mimar karari 29 Tem 2026).
+# Sabit "guncel" takma adina yazma TERK EDILDI: R2'de VAR OLAN anahtarin uzerine yazma
+# "Upload complete." + RC=0 basip nesneyi DEGISTIRMIYOR (4 deneme, sha256 birebir ayni).
+# Takma ad geri gelirse CI onarilmis main'e ragmen BAYAT eslemle imaj derler (sessiz hata).
+# (a) is akisi ekseni — METIN capasi (YAML'da davranis calistirilamaz). Capa DAR secildi:
+#     yasak olan sey "s3 nesne yolunun SABIT yazilmasi"; yorum icinde gecen anahtar ADI
+#     tetiklemez ([[mimar-kapi-parser-taklidi]]: parser taklidi yapma, dar alt-dize kullan).
+SABIT_NESNE_YOLU = "s3://" + BUCKET + "/onizleme/"
+GIRDI_CAPASI = "PAKET_ANAHTAR"
+# (b) yukleyici ekseni — METIN DEGIL DAVRANIS: yuklenecek_anahtarlar() dogrudan cagrilir.
+SURUM_ORNEKLERI = (6, 7, 41)
 
 
 def _modul(ad, yol):
@@ -275,6 +287,87 @@ def cagri_satiri_nobeti(yml_metin=None):
     return True, []
 
 
+def yml_varsayilan_anahtar(yml_metin=None):
+    """onizleme-imaj.yml'deki paket_anahtar girdisinin VARSAYILANI (fail-closed: yoksa None).
+    `--r2` kipi bunu kullanir -> yerel elle olcum CI'nin GERCEKTEN cektigi anahtari olcer."""
+    if yml_metin is None:
+        if not os.path.exists(IMAJ_YML):
+            return None
+        with open(IMAJ_YML, encoding="utf-8") as f:
+            yml_metin = f.read()
+    blok = re.search(r"\n\s*paket_anahtar:\s*\n((?:\s+\S.*\n|\s*\n)+?)(?=\s*\w+:\s*\n)",
+                     yml_metin)
+    if not blok:
+        return None
+    m = re.search(r'^\s*default:\s*"?([^"\n]+?)"?\s*$', blok.group(1), re.M)
+    return m.group(1) if m else None
+
+
+def surumlu_anahtar_nobeti(yml_metin=None, anahtar_uretici=None):
+    """SURUMLU ANAHTAR NOBETI — "uzerine yazma" deseni geri sizdi mi (iki eksen).
+
+    (a) IS AKISI: onizleme-imaj.yml paketi SABIT bir s3 nesne yolundan cekmemeli;
+        anahtar workflow_dispatch girdisinden gelmeli (PAKET_ANAHTAR).
+    (b) YUKLEYICI: tools/onizleme-paket-yukle.py YALNIZ surumlu anahtara yazmali.
+        Bu eksen METIN ARAMAZ — yuklenecek_anahtarlar() FIILEN cagrilir (fault-injection
+        ile test edilebilir, yorum/dizim degisikliginden etkilenmez)."""
+    hata = []
+    if yml_metin is None:
+        if not os.path.exists(IMAJ_YML):
+            return False, ["onizleme-imaj.yml bulunamadi: %s" % IMAJ_YML]
+        with open(IMAJ_YML, encoding="utf-8") as f:
+            yml_metin = f.read()
+    if SABIT_NESNE_YOLU in yml_metin:
+        hata.append("SABIT NESNE YOLU GERI GELDI: onizleme-imaj.yml icinde %r geciyor -> "
+                    "CI surumlu girdi yerine sabit anahtardan cekiyor; o anahtarin uzerine "
+                    "yazma SESSIZCE basarisiz oldugu icin BAYAT paketle imaj derlenir. "
+                    "Anahtari inputs.paket_anahtar'dan alin." % SABIT_NESNE_YOLU)
+    if GIRDI_CAPASI not in yml_metin:
+        hata.append("GIRDI CAPASI YOK: onizleme-imaj.yml'de %r gecmiyor -> paket anahtari "
+                    "workflow_dispatch girdisinden GELMIYOR (fail-closed kontrol de yok)."
+                    % GIRDI_CAPASI)
+    uretici = anahtar_uretici or PAKET.yuklenecek_anahtarlar
+    for surum in SURUM_ORNEKLERI:
+        gelen = list(uretici(surum))
+        beklenen = ["onizleme/paket-v%d.tar.gz" % surum]
+        if gelen != beklenen:
+            fazla = [a for a in gelen if a not in beklenen]
+            hata.append("YUKLEYICI SURUMSUZ ANAHTARA YAZIYOR (v%d): beklenen %s, uretilen %s"
+                        "%s -> var olan anahtarin uzerine yazma bu bucket'ta sessizce "
+                        "basarisiz; CI bayat paket ceker."
+                        % (surum, beklenen, gelen,
+                           (" [fazladan: %s]" % fazla) if fazla else ""))
+            break
+    return (not hata), hata
+
+
+def surumlu_anahtar_kendini_test():
+    """Nobetcinin KENDISI inert mi — POZITIF ve NEGATIF yon ayri ayri, capadan BAGIMSIZ
+    fault-injection ile (yukleyici ekseni gercek fonksiyon yerine sahte uretici alir)."""
+    hata = []
+    iyi_yml = ('        env:\n          PAKET_ANAHTAR: ${{ inputs.paket_anahtar }}\n'
+               '        run: aws s3 cp "s3://' + BUCKET + '/$PAKET_ANAHTAR" paket.tar.gz\n')
+    kotu_yml = ('        run: aws s3 cp "s3://' + BUCKET +
+                '/onizleme/paket-guncel.tar.gz" paket.tar.gz\n')
+    iyi_uretici = lambda s: ["onizleme/paket-v%d.tar.gz" % s]
+    kotu_uretici = lambda s: ["onizleme/paket-v%d.tar.gz" % s,
+                              "onizleme/paket-guncel.tar.gz"]
+
+    ok, tani = surumlu_anahtar_nobeti(iyi_yml, iyi_uretici)
+    if not ok:
+        hata.append("YANLIS-POZITIF: dogru kurulumda KIRMIZI dedi (%s)" % tani)
+    ok, _ = surumlu_anahtar_nobeti(kotu_yml, iyi_uretici)
+    if ok:
+        hata.append("INERT (is akisi ekseni): sabit s3 nesne yolundan ceken YAML'da YESIL dedi")
+    ok, _ = surumlu_anahtar_nobeti(iyi_yml.replace("PAKET_ANAHTAR", "SABIT"), iyi_uretici)
+    if ok:
+        hata.append("INERT (girdi ekseni): PAKET_ANAHTAR gecmeyen YAML'da YESIL dedi")
+    ok, _ = surumlu_anahtar_nobeti(iyi_yml, kotu_uretici)
+    if ok:
+        hata.append("INERT (yukleyici ekseni): sabit takma ada da yazan yukleyicide YESIL dedi")
+    return (not hata), hata
+
+
 def cagri_nobeti_kendini_test():
     """Cagri nobetinin KENDISI inert mi: capasiz metinde KIRMIZI, capali metinde YESIL."""
     hata = []
@@ -294,21 +387,30 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--paket", metavar="DIZIN", help="olculecek paket dizini (bloklayici)")
     ap.add_argument("--r2", action="store_true", help="paketi R2'den cekip olc (ag gerekir)")
-    ap.add_argument("--anahtar", default=R2_ANAHTAR, help="R2 nesne anahtari (--r2 ile)")
+    ap.add_argument("--anahtar", default=None,
+                    help="R2 nesne anahtari (--r2 ile; varsayilan onizleme-imaj.yml'deki "
+                         "paket_anahtar girdisinin varsayilani)")
     ap.add_argument("--kendini-test", action="store_true", help="yalniz oz-nobetciler")
     args = ap.parse_args()
 
     ok1, h1 = oz_nobetci()
     ok2, h2 = cagri_nobeti_kendini_test()
-    print("OZ-NOBETCI: %s" % ("YESIL" if (ok1 and ok2) else "KIRMIZI"))
-    for h in h1 + h2:
+    ok4, h4 = surumlu_anahtar_kendini_test()
+    print("OZ-NOBETCI: %s" % ("YESIL" if (ok1 and ok2 and ok4) else "KIRMIZI"))
+    for h in h1 + h2 + h4:
         print("  ❌ %s" % h)
     if args.kendini_test:
-        sys.exit(0 if (ok1 and ok2) else 1)
+        sys.exit(0 if (ok1 and ok2 and ok4) else 1)
 
     ok3, h3 = cagri_satiri_nobeti()
     print("CAGRI SATIRI (onizleme-imaj.yml): %s" % ("VAR" if ok3 else "YOK"))
     for h in h3:
+        print("  ❌ %s" % h)
+
+    ok5, h5 = surumlu_anahtar_nobeti()
+    print("SURUMLU ANAHTAR (uzerine yazma terk edildi): %s"
+          % ("TAMAM" if ok5 else "IHLAL"))
+    for h in h5:
         print("  ❌ %s" % h)
 
     sorunlar = []
@@ -316,9 +418,14 @@ def main():
         gecici = None
         try:
             if args.r2:
+                anahtar = args.anahtar or yml_varsayilan_anahtar()
+                if not anahtar:
+                    sys.exit("R2 anahtari BELIRLENEMEDI: onizleme-imaj.yml'de paket_anahtar "
+                             "varsayilani okunamadi -> --anahtar ile ACIKCA verin "
+                             "(fail-closed: tahmin edilmez).")
                 gecici = tempfile.mkdtemp(prefix="paket-tazelik-")
-                dizin = r2_cek(gecici, args.anahtar)
-                print("PAKET KAYNAGI: r2://%s/%s" % (BUCKET, args.anahtar))
+                dizin = r2_cek(gecici, anahtar)
+                print("PAKET KAYNAGI: r2://%s/%s" % (BUCKET, anahtar))
             else:
                 dizin = args.paket
                 print("PAKET KAYNAGI: %s" % dizin)
@@ -339,7 +446,7 @@ def main():
 
     for s in sorunlar:
         print("  ❌ %s" % s)
-    kirmizi = bool(sorunlar) or not (ok1 and ok2 and ok3)
+    kirmizi = bool(sorunlar) or not (ok1 and ok2 and ok3 and ok4 and ok5)
     print("SONUC: %s" % ("KIRMIZI" if kirmizi else "YESIL"))
     sys.exit(1 if kirmizi else 0)
 

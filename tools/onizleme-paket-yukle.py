@@ -17,6 +17,16 @@ Kaynaklar (SALT OKUNUR — ana repoya hicbir sey yazilmaz):
   - .scad: PRUVO_UYELIK_DIR (varsayilan /Users/okan/dev/pruvo/.uyelik-kodlar)
   - bizim .scad: PRUVO_JENERATOR_DIR (vars. ~/dev/pruvo-jenerator/jeneratorler)
 
+SURUMLU ANAHTAR (Okan/mimar karari 29 Tem 2026 — UZERINE YAZMA TERK EDILDI):
+  Bu betik YALNIZ surumlu anahtara yazar: onizleme/paket-v<N>.tar.gz. Sabit "guncel"
+  takma adina yazma KALDIRILDI. Sebep olculdu: R2'de ONCEDEN VAR OLAN bir anahtarin
+  uzerine `wrangler r2 object put` "Upload complete." + RC=0 basiyor ama nesne
+  DEGISMIYOR (4 ayri deneme, sha256 birebir ayni); YENI anahtar aninda yaziliyor.
+  Depo kurali zaten ayni yone isaret ediyordu ("ayni R2 anahtarinin uzerine YAZMA ->
+  yeni dosya adi"). CI cektigi anahtari artik workflow_dispatch girdisiyle alir
+  (.github/workflows/onizleme-imaj.yml -> inputs.paket_anahtar).
+  NOBETCI: tools/paket-tazelik-kapisi.py surumlu_anahtar_nobeti (bloklayici, deploy.yml).
+
 Kullanim:
   python3 tools/onizleme-paket-yukle.py --yerel <dizin>   # sadece topla (test/kabul icin)
   python3 tools/onizleme-paket-yukle.py                   # topla + R2'ye yukle
@@ -176,6 +186,16 @@ def _ozet(yol):
         return hashlib.sha256(f.read()).hexdigest()
 
 
+def yuklenecek_anahtarlar(surum):
+    """Bu surum icin R2'ye yazilacak anahtarlarin TAM listesi.
+
+    SAF FONKSIYON — nobetci (tools/paket-tazelik-kapisi.py) bunu METIN ARAMADAN,
+    dogrudan cagirip olcer: liste yalniz surumlu anahtar icermeli. Sabit bir takma
+    ad ("guncel" gibi) geri eklenirse nobetci KIRMIZI yanar, cunku uzerine yazma
+    bu bucket'ta SESSIZCE basarisiz oluyor (docstring'e bak)."""
+    return ["onizleme/paket-v%d.tar.gz" % int(surum)]
+
+
 def yukle_ve_dogrula(anahtar, arsiv, tmp):
     """R2'ye yaz + GERI OKUYUP dogrula. Basari damgasi wrangler'in cikis koduna DEGIL
     nesnenin GERCEK icerigine baglidir.
@@ -205,8 +225,10 @@ def yukle_ve_dogrula(anahtar, arsiv, tmp):
         sys.exit(
             "🔴 SESSIZ YUKLEME HATASI: %s — wrangler basarili dedi ama R2'deki nesne "
             "DEGISMEDI (beklenen sha256 %s, R2'de %s). CI bu anahtari cektigi icin BAYAT "
-            "paketle imaj derlenir. Cozum: nesneyi silip yeniden yazin ya da CI'yi surumlu "
-            "anahtara baglayin (mimar/Okan karari — bu betik silme YAPMAZ)."
+            "paketle imaj derlenir. SEBEP: bu anahtar R2'de ZATEN VARDI (uzerine yazma bu "
+            "bucket'ta sessizce basarisiz oluyor). COZUM: eslem-ozel.json 'surum' alanini "
+            "artirin -> yeni anahtar yazilir; CI girdisini (paket_anahtar) yeni anahtara "
+            "cevirin. Bu betik silme YAPMAZ."
             % (anahtar, bekleniyor[:16], gelen[:16]))
     print("yuklendi + GERI OKUNDU: r2://%s/%s (%d bayt, sha256 %s)"
           % (BUCKET, anahtar, os.path.getsize(arsiv), gelen[:16]))
@@ -256,9 +278,16 @@ def main():
             f.write(b"\x00\x00\x00\x00")
         # Yerel wrangler oturumu (token'siz). shell degiskeni yok — komut listesi.
         # Her yukleme GERI OKUNARAK dogrulanir (bkz. yukle_ve_dogrula docstring'i).
-        yukle_ve_dogrula("onizleme/paket-v%d.tar.gz" % surum, arsiv, tmp)
-        # 'guncel' takma adi: CI hep bunu ceker, surumlu kopya gecmis icin durur.
-        yukle_ve_dogrula("onizleme/paket-guncel.tar.gz", arsiv, tmp)
+        # SABIT TAKMA ADA YAZILMAZ (bkz. modul docstring'i "SURUMLU ANAHTAR").
+        anahtarlar = yuklenecek_anahtarlar(surum)
+        for anahtar in anahtarlar:
+            yukle_ve_dogrula(anahtar, arsiv, tmp)
+        print("")
+        print("PAKET SURUMU : v%d" % surum)
+        print("R2 ANAHTARI  : %s" % ", ".join(anahtarlar))
+        print("CI'YE VERILECEK GIRDI: onizleme-imaj.yml -> paket_anahtar = %s"
+              % anahtarlar[0])
+        print("  (workflow_dispatch girdisi; sabit 'guncel' takma adi KULLANILMIYOR)")
         # NOT (2026-07-16): ONIZLEME_PAKET_B64 yedegi KALDIRILDI (Okan karari). CI artik
         # paketi dogrudan R2'den ceker: R2_ERISIM_ID/R2_GIZLI_ANAHTAR secret'lari
         # pruvo-ozel'e SALT-OKUMA yetkili 'pruvo-ozel-okuma-ci' token'idir.
