@@ -1,5 +1,137 @@
 [
   {
+    "id": "toyota-pickup-4runner-cam-suyu-deposu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Pickup / 4Runner Cam Suyu Deposu Kapağı (1990)",
+    "aciklama": "1990 Toyota Pickup ve 4Runner'ın cam suyu deposunun dolum ağzını kapatan kapaktır. Kapak kaybolduğunda depoya yol tozu, yaprak ve böcek dolar; süzgeç tıkanır, fıskiyeler cama su yerine hava püskürtür. Bu parça dolum ağzının kendi boğazına geçmeli olarak oturur; geniş üst yüzeyi elle kavramaya izin verir, yan kulağı kapağı depo ağzında merkezler. Vida ya da ek bağlantı gerektirmez. Motor bölmesi sıcaklığına, güneşe ve cam suyu katkısına dayanıklı sert malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 72 × 63 × 9 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7094151-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7094151-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ctgriffi",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7094151"
+    }
+  },
+  {
+    "id": "toyota-pickup-4runner-guneslik-montaj-tabani",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Pickup / 4Runner Güneşlik Montaj Tabanı (1984-1989)",
+    "aciklama": "1984-1989 Toyota Pickup ve 4Runner'ın güneşliğini tavana bağlayan oval taban parçasıdır. Yıllar içinde çatlayan orijinal taban yüzünden güneşlik önce sarkar, sürüşte titrer ve sonunda tavandan kopar. Bu parça güneşlik milini ortadaki boğazında taşır, iki vida deliğiyle tavan sacına sabitlenir; mil arkadan somunla sıkılarak kilitlenir. Aracın sağ ve sol tarafında aynı parça kullanılır; güneşliği orijinaline göre bir miktar daha aşağıda tutar. Kabin sıcaklığında ve güneş altında biçimini koruyan sert malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 57 × 30 × 17 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7316119-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7316119-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7316119-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stuntman225",
+      "tur": "CC BY-SA 4.0",
+      "link": "https://www.thingiverse.com/thing:7316119"
+    }
+  },
+  {
+    "id": "toyota-fj40-tavan-harita-lambasi-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Land Cruiser FJ40 Tavan Harita Lambası Kapağı (1973)",
+    "aciklama": "1973 Land Cruiser FJ40'ın fabrika brandalı tavanındaki harita lambasının üstünü örten kubbe kapaktır. Kırılan ya da kaybolan orijinal yüzünden duy ve ampul açıkta kalır; lamba gece sürüşünde doğrudan göze vurur, kabloya temas riski doğar. Bu parça lambanın gövdesine geçerek ışığı öne yönlendirir, arkaya kaçan parlamayı keser. Delme, vida ya da yapıştırma gerektirmez. Ampul ısısına ve kabin sıcaklığına dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 48 × 39 × 39 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4709594-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4709594-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rudngo",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4709594"
+    }
+  },
+  {
+    "id": "toyota-pickup-sasi-profil-tapasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Pickup Şasi Profil Tapası",
+    "aciklama": "Toyota Pickup'ın kutu profil şasisindeki dikdörtgen açıklıkları kapatan tapadır. Açık kalan delikten profilin içine çamur, kum ve su dolar; şasi içeriden, görünmeyen yüzeyinden paslanmaya başlar. Bu parça deliğin kendi dikdörtgen hattına oturur; gövdesindeki iki tırnak sacı içeriden kavrar, geniş çerçevesi dışarıda düz bir yüzey bırakır. Vida, yapıştırıcı ya da ek parça gerektirmez. Yol koşullarına, neme ve tuza dayanıklı esnek malzemeyle üretilir.\nYaklaşık dış ölçüler: 36 × 27 × 9 mm.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4907241-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kenmand",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:4907241"
+    }
+  },
+  {
+    "id": "toyota-aygo-bagaj-rafi-ip-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Aygo Bagaj Rafı İp Klipsi",
+    "aciklama": "Aygo'nun bagaj rafını bagaj kapağına bağlayan ipin ucundaki klipstir. Çok küçük olduğu için temizlik sırasında kolayca kaybolur; klips yoksa kapak açılırken raf yukarı kalkmaz, bagaja her erişimde rafı elle kaldırmak gerekir. Bu parça ipin ucuna geçer, karşılıklı iki çenesiyle rafın kendi pimine baskıyla oturur ve sürüş titreşiminde yerinden çıkmaz. Delme ya da ek parça gerektirmez. Tekrarlı açma kapamaya dayanıklı sert malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 22 × 17 × 14 mm.",
+    "fiyat": "100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5250674-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5250674-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Janitawa",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5250674"
+    }
+  },
+  {
+    "id": "toyota-yaris-bardaklik-ic-astari",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Yaris Bardaklık İç Astarı (2013)",
+    "aciklama": "2013 Yaris'in orta konsolundaki ikili bardaklığın içine oturan astardır. Bardaklık gözleri kaptan geniş olduğu için bardak ve şişe sürüşte yanlara kayar, virajda devrilip içindekini konsola döker. Bu parça iki gözün iç yüzeyini birlikte sararak çapı daraltır, kabın tabanını ortalar ve gövdesini yanlardan destekler. Bardaklığa serbestçe yerleştirilir, temizlik için tek hareketle çıkarılır. Kabin sıcaklığında yumuşamayan, güneşe dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 183 × 60 × 32 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5641777-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5641777-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tukbuk23",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5641777"
+    }
+  },
+  {
+    "id": "toyota-celica-st185-vites-kolu-ust-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Toyota"
+    ],
+    "baslik": "Toyota Celica ST185 Vites Kolu Üst Burcu (1989-1991)",
+    "aciklama": "1989-1991 Celica ST185'in vites kolu üst yatağındaki burçtur. Orijinalinde bu yatak segman, pul ve naylon burçtan oluşan üç parçalıdır; naylon aşındığında kol boşluk yapar, elde sallanır ve vites hissi belirsizleşir. Bu parça üç parçanın işini tek gövdede toplar, kolun küresel yatağını sıkıştırır ve boşluğu kapatır. Vites konsolu sökülüp kol yatağı açıldıktan sonra takılır. Sürtünmeye ve şanzıman yağına dayanıklı sert malzemeyle yüksek dolguda üretilir.\nYaklaşık dış ölçüler: 43 × 43 × 6 mm.",
+    "fiyat": "150 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5994911-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ctennapel",
+      "tur": "CC BY 4.0",
+      "link": "https://www.thingiverse.com/thing:5994911"
+    }
+  },
+  {
     "id": "toyota-sienna-konsol-kapagi-mandal-parcasi",
     "kategori": "Otomobil",
     "marka": [
