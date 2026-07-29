@@ -250,14 +250,77 @@ ham.push("Node: " + process.version + " (CI tabani: 20.x — daha yeni API KULLA
 const YENI_DIZIN = dizinKur("yeni", guncelKaynaklar());
 const YENI = await modulYukle(YENI_DIZIN);
 
-// =================================================================== 1) ESDEGERLIK
-baslik("== 1) FIYAT ESDEGERLIGI — ESKI (git HEAD: elle ayna) vs YENI (uretilmis artefakt) ==");
+// =================================================================== 1a) SPEC (referanssiz)
+baslik("== 1a) FIYAT SPEC'i — SABIT beklenen kuruslar + bagimsiz orakil (/konfigur.js) ==");
+{
+  // KALICI ve REFERANSSIZ iddia: [[60,500],[300,2500]] capali urunlerde 6 kombinasyonun kurusu
+  // SPEC'ten SABIT yazilir (kaydirma yakalansin) + AYRICA front cekirdegi (/konfigur.js)
+  // bagimsiz orakil olarak dogrular. Boylece bu set HEAD'e (kendi commit'ime) BAGIMLI DEGIL:
+  // hem worker hem front cekirdegi birlikte kaysa bile SABIT sayilar KIRMIZI yanar.
+  const SPEC = { "60/PLA": 50000, "150/PLA": 73600, "150/PETG": 95700, "220/PETG": 150000,
+                 "300/PLA": 150000, "300/ASA": 150000 };
+  const hatalar = [];
+  let specOlcum = 0, orakilOlcum = 0;
+  for (const u of KONFIGUR_URUNLER) {
+    const kf = u.konfigur;
+    const standartCapa = JSON.stringify(kf.fiyatCapalari) === JSON.stringify([[60, 500], [300, 2500]]);
+    for (const [boy, malzeme] of KOMBIN) {
+      const kat = (kf.malzemeler.find((m) => m.ad === malzeme) || {}).katsayi;
+      const r = await baslat(YENI, [d1Satiri(u)],
+        [{ id: u.id, malzeme, renk: "Siyah", adet: 1, parametreler: { boy_mm: boy } }]);
+      const orakil = FRONT.fiyatKurus(kf, FRONT.boyDuzelt(kf, boy), kat);
+      orakilOlcum += 1;
+      if (r.birimKurus !== orakil) {
+        hatalar.push("orakil " + u.id + " " + boy + "/" + malzeme + ": worker=" + r.birimKurus +
+                     " front=" + orakil);
+      }
+      if (standartCapa) {
+        specOlcum += 1;
+        if (r.birimKurus !== SPEC[boy + "/" + malzeme]) {
+          hatalar.push("SPEC " + u.id + " " + boy + "/" + malzeme + ": " + r.birimKurus +
+                       " != " + SPEC[boy + "/" + malzeme]);
+        }
+      }
+    }
+  }
+  not("SPEC iddiasi: " + specOlcum + " kombinasyon (standart capali urunler); bagimsiz orakil " +
+      "(/konfigur.js) iddiasi: " + orakilOlcum + "; uyusmazlik: " + hatalar.length);
+  if (hatalar.length) {
+    kirmizi += 1;
+    hatalar.slice(0, 6).forEach((h) => ham.push("    ❌ " + h));
+    ham.push("  ❌ KALDI — fiyat spec'i");
+  } else { ham.push("  ✅ GECTI — kuruslar SPEC ve bagimsiz orakille birebir"); }
+}
+
+// =================================================================== 1b) ESDEGERLIK
+baslik("== 1b) FIYAT ESDEGERLIGI — git HEAD kodu vs CALISMA AGACI kodu ==");
 let eskiMod = null;
-try {
-  eskiMod = await modulYukle(dizinKur("eski", headKaynaklari()));
-} catch (e) {
-  kirmizi += 1;
-  not("❌ ÖLÇÜLEMEDİ: HEAD kaynaklari yuklenemedi — " + e.message);
+const headIndex = (() => {
+  try {
+    return execFileSync("git", ["-C", KOK, "show", "HEAD:shop/src/index.js"], { encoding: "utf8" });
+  } catch (e) { return null; }
+})();
+const calismaIndex = fs.readFileSync(path.join(SRC, "index.js"), "utf8");
+const headKonf = (() => {
+  try {
+    return execFileSync("git", ["-C", KOK, "show", "HEAD:shop/src/konfigurlar.js"],
+                        { encoding: "utf8" });
+  } catch (e) { return null; }
+})();
+const calismaKonf = fs.readFileSync(path.join(SRC, "konfigurlar.js"), "utf8");
+// DURUST ETIKET (bayat-kabul-testi dersi): HEAD ile calisma agaci AYNIYSA bu set totolojidir —
+// "yesil" demek yerine ÖLÇÜLEMEDİ denir. Dalda (kod degismisken) GERCEK karsilastirma yapar.
+const ayniMi = headIndex === calismaIndex && headKonf === calismaKonf;
+if (ayniMi) {
+  not("ÖLÇÜLEMEDİ ⚪: HEAD:shop/src/index.js + konfigurlar.js calisma agaciyla BIREBIR " +
+      "(degisiklik commit'lenmis) -> karsilastirma totolojiye doner. Kalici koruma 1a'dadir.");
+} else {
+  try {
+    eskiMod = await modulYukle(dizinKur("eski", headKaynaklari()));
+  } catch (e) {
+    kirmizi += 1;
+    not("❌ ÖLÇÜLEMEDİ: HEAD kaynaklari yuklenemedi — " + e.message);
+  }
 }
 if (eskiMod) {
   const basliklar = KOMBIN.map(([b, m]) => b + "/" + m);

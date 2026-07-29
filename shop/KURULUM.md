@@ -75,7 +75,22 @@ gondermez; kayip varsa cikis kodu 1). Ham SQL yedegini kullandiysan bunu kostur.
 - `wrangler.toml`     — worker tanimi + route (`pruvo3d.com/api/shop/*`) + D1 binding
 - `config.json`       — SADECE sepet kalem siniri + taksit. **Katsayi/renk/adet BURADA DEGIL**,
   `/secenekler.js`'te (tek kaynak — asagidaki "Mimari notlar").
-- `src/index.js`      — uclar: /baslat, /donus (fiyat hesabi + iyzico + D1 + Telegram)
+- `src/index.js`      — uclar: /baslat, /donus (fiyat hesabi + iyzico + D1 + Telegram) +
+  **/fiyat (PROVA)**: yan etkisiz fiyat sorgusu — AYNI dogrulama (`kalemleriCoz`) ve AYNI hesap
+  (`sepetiFiyatla`) kosar, yalniz tutari doner. D1'e YAZMAZ, iyzico'ya GITMEZ, Telegram/e-posta
+  GONDERMEZ, siparis OLUSTURMAZ. Amac: fiyat regresyonunu gercek siparis acmadan olcebilmek.
+  Cevap BEYAZ LISTE (id/adet/kurus/parametre_detay + kargo/KDV dokumu); baslik/kategori/gorsel/
+  hacim/IBAN/token DONMEZ. Isolate-ici hiz siniri: IP basina 30 istek/dakika (kalici degil —
+  guvenlik siniri degil, kotu-kullanim freni; kalici sayac D1 YAZMASI gerektirirdi).
+  Ornek: `curl -sS -X POST https://pruvo3d.com/api/shop/fiyat -H "Content-Type: application/json"
+  -d '{"sepet":[{"id":"kurt-heykeli-serit-dekoratif-figur","malzeme":"PLA","renk":"Siyah",
+  "adet":1,"parametreler":{"boy_mm":300}}]}'`
+- `src/konfigurlar.js` — **URETILMIS ARTEFAKT, ELLE DUZENLENMEZ.** Konfigur ("olcuye ozel dekor")
+  objeleri `urunler.json`'dan turetilir: `python3 tools/konfigur-bundle-kapisi.py --yaz`.
+  Drift kapisi CI'da bloklayicidir (`python3 tools/konfigur-bundle-kapisi.py`): yeni konfigurlu
+  urun eklenip artefakt uretilmemisse CI KIRMIZI yanar. **Yeni konfigurlu urunun kartla
+  satilabilmesi icin artefakt uretilip Worker yeniden yayinlanmalidir** (`wrangler deploy`);
+  yayinlanana kadar kalem fail-closed 400 ile WhatsApp kanalina duser (sessiz eksik tahsilat YOK).
 - `src/iyzico.js`     — IYZWSv2 (HMACSHA256) istemcisi: CF initialize + retrieve
 - `src/parametrik.js` — sari seri sunucu-tarafi yeniden hesabi (kanal kapali; asagida)
 - `src/semalar.js`    — parametrik sema haritasi (jenerator/urunler/*.json statik import)
@@ -87,6 +102,9 @@ gondermez; kayip varsa cikis kodu 1). Ham SQL yedegini kullandiysan bunu kostur.
 
 ## Kabul testleri
 
+    node shop/test/fiyat-prova.mjs       # fiyat esdegerligi + prova ucu (wrangler GEREKMEZ)
+    python3 tools/konfigur-bundle-kapisi.py               # artefakt drift kapisi
+    python3 tools/konfigur-bundle-kapisi.py --kendini-test # kapinin kendi olcumu
     node shop/test/kabul.js              # 15 test — mock iyzico + yerel D1
     node shop/test/kabul.js --paritesiz  # 7'siz hizli tur
     node shop/test/kabul.js --sandbox    # 4: GERCEK sandbox uctan uca (anahtar + elle test karti)
