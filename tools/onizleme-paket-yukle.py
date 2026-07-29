@@ -24,6 +24,7 @@ Yukleme yerel wrangler oturumuyla yapilir (token gerekmez):
   npx wrangler r2 object put pruvo-ozel/onizleme/paket-v<N>.tar.gz --file ...
 """
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -170,6 +171,47 @@ def topla(hedef, uyelik_dir, jenerator_dir):
     return eslem.get("surum", 1)
 
 
+def _ozet(yol):
+    with open(yol, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
+
+def yukle_ve_dogrula(anahtar, arsiv, tmp):
+    """R2'ye yaz + GERI OKUYUP dogrula. Basari damgasi wrangler'in cikis koduna DEGIL
+    nesnenin GERCEK icerigine baglidir.
+
+    NEDEN (olculdu 29 Tem 2026): `wrangler r2 object put` VAR OLAN bir anahtarin
+    uzerine yazarken "Upload complete." basip 0 donduyu halde nesne DEGISMIYORDU.
+    Somut: paket-v6.tar.gz (YENI anahtar) yazildi; ayni kosumdaki paket-guncel.tar.gz
+    (VAR OLAN anahtar) 4 ayri denemede de v5 icerigiyle kaldi (SHA-256 birebir ayni).
+    Kontrol: yeni anahtarlarda hem olusturma hem uzerine yazma ANINDA gorunuyor.
+    Bu betik eskiden yalniz returncode'a bakiyordu -> "yuklendi" der, CI BAYAT paketi
+    ceker, imaj eski eslemle derlenir ve hata CANLIDA ortaya cikardi (sessiz hata)."""
+    komut = ["npx", "wrangler", "r2", "object", "put",
+             BUCKET + "/" + anahtar, "--file", arsiv, "--remote"]
+    proc = subprocess.run(komut, cwd=REPO, capture_output=True)
+    if proc.returncode != 0:
+        sys.stderr.write(proc.stdout.decode("utf-8", "replace"))
+        sys.stderr.write(proc.stderr.decode("utf-8", "replace"))
+        sys.exit("R2 yuklemesi basarisiz: %s (wrangler oturumu acik mi?)" % anahtar)
+    geri = os.path.join(tmp, "geri-" + anahtar.replace("/", "_"))
+    kontrol = subprocess.run(
+        ["npx", "wrangler", "r2", "object", "get", BUCKET + "/" + anahtar,
+         "--file", geri, "--remote"], cwd=REPO, capture_output=True)
+    if kontrol.returncode != 0 or not os.path.exists(geri):
+        sys.exit("GERI OKUMA YAPILAMADI: %s -> yukleme DOGRULANMADI (yesil sayma)" % anahtar)
+    bekleniyor, gelen = _ozet(arsiv), _ozet(geri)
+    if bekleniyor != gelen:
+        sys.exit(
+            "🔴 SESSIZ YUKLEME HATASI: %s — wrangler basarili dedi ama R2'deki nesne "
+            "DEGISMEDI (beklenen sha256 %s, R2'de %s). CI bu anahtari cektigi icin BAYAT "
+            "paketle imaj derlenir. Cozum: nesneyi silip yeniden yazin ya da CI'yi surumlu "
+            "anahtara baglayin (mimar/Okan karari — bu betik silme YAPMAZ)."
+            % (anahtar, bekleniyor[:16], gelen[:16]))
+    print("yuklendi + GERI OKUNDU: r2://%s/%s (%d bayt, sha256 %s)"
+          % (BUCKET, anahtar, os.path.getsize(arsiv), gelen[:16]))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--yerel", metavar="DIZIN",
@@ -192,27 +234,31 @@ def main():
         paket_dizin = os.path.join(tmp, "paket")
         surum = topla(paket_dizin, args.uyelik_dir, args.jenerator_dir)
         arsiv = os.path.join(tmp, "paket.tar.gz")
-        with tarfile.open(arsiv, "w:gz") as tar:
+        # BELIRLENIMCI ARSIV: ayni icerik -> ayni bayt. mtime/uid/gid sifirlanir ve gzip
+        # basligina zaman damgasi YAZILMAZ (mtime=0). Gerekce: yukleme dogrulamasi
+        # (yukle_ve_dogrula) R2'deki nesnenin baytini bizim baytimizla karsilastirir;
+        # arsiv her kosumda farkli baytlar uretirse "icerik ayni ama bayt farkli" hali
+        # SAHTE-KIRMIZI yakardi. Belirlenimci arsivde iddia nettir: R2'deki nesne TAM
+        # OLARAK yuklemek istedigimiz icerik mi.
+        def _duzle(bilgi):
+            bilgi.mtime = 0
+            bilgi.uid = bilgi.gid = 0
+            bilgi.uname = bilgi.gname = ""
+            return bilgi
+        with tarfile.open(arsiv, "w:gz", compresslevel=9,
+                          format=tarfile.GNU_FORMAT) as tar:
             for ad in sorted(os.listdir(paket_dizin)):
-                tar.add(os.path.join(paket_dizin, ad), arcname=ad)
-        anahtar = "onizleme/paket-v%d.tar.gz" % surum
+                tar.add(os.path.join(paket_dizin, ad), arcname=ad, filter=_duzle)
+        # gzip basligindaki MTIME alanini (bayt 4..7) sifirla: tarfile onu acmaya izin
+        # vermez, ama alan bastaki sabit basliktadir ve icerigi etkilemez.
+        with open(arsiv, "r+b") as f:
+            f.seek(4)
+            f.write(b"\x00\x00\x00\x00")
         # Yerel wrangler oturumu (token'siz). shell degiskeni yok — komut listesi.
-        komut = ["npx", "wrangler", "r2", "object", "put",
-                 BUCKET + "/" + anahtar, "--file", arsiv, "--remote"]
-        proc = subprocess.run(komut, cwd=REPO, capture_output=True)
-        if proc.returncode != 0:
-            sys.stderr.write(proc.stdout.decode("utf-8", "replace"))
-            sys.stderr.write(proc.stderr.decode("utf-8", "replace"))
-            sys.exit("R2 yuklemesi basarisiz (wrangler oturumu acik mi?)")
-        print("yuklendi: r2://%s/%s (%d bayt)" %
-              (BUCKET, anahtar, os.path.getsize(arsiv)))
+        # Her yukleme GERI OKUNARAK dogrulanir (bkz. yukle_ve_dogrula docstring'i).
+        yukle_ve_dogrula("onizleme/paket-v%d.tar.gz" % surum, arsiv, tmp)
         # 'guncel' takma adi: CI hep bunu ceker, surumlu kopya gecmis icin durur.
-        komut2 = ["npx", "wrangler", "r2", "object", "put",
-                  BUCKET + "/onizleme/paket-guncel.tar.gz", "--file", arsiv, "--remote"]
-        proc2 = subprocess.run(komut2, cwd=REPO, capture_output=True)
-        if proc2.returncode != 0:
-            sys.exit("paket-guncel.tar.gz yuklemesi basarisiz")
-        print("yuklendi: r2://%s/onizleme/paket-guncel.tar.gz" % BUCKET)
+        yukle_ve_dogrula("onizleme/paket-guncel.tar.gz", arsiv, tmp)
         # NOT (2026-07-16): ONIZLEME_PAKET_B64 yedegi KALDIRILDI (Okan karari). CI artik
         # paketi dogrudan R2'den ceker: R2_ERISIM_ID/R2_GIZLI_ANAHTAR secret'lari
         # pruvo-ozel'e SALT-OKUMA yetkili 'pruvo-ozel-okuma-ci' token'idir.

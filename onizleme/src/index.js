@@ -41,13 +41,20 @@ const GZIP_TAVANI = 2 * 1024 * 1024;   // pakete gore cikti tavani 2 MB
 const HAM_TAVAN = 16 * 1024 * 1024;    // sisme korumasi (gzip oncesi)
 const SINIR_ADET = 10;                 // IP basina dakikada derleme
 const SINIR_PENCERE_MS = 60 * 1000;
-const ONBELLEK_SURUM = "v5";           // cozunurluk/eslem degisirse artir (eski anahtar carpismasin)
+const ONBELLEK_SURUM = "v6";           // cozunurluk/eslem degisirse artir (eski anahtar carpismasin)
                                        // v2: Faz E — eslem duzeltmeleri (yay Phase, kase gövde,
                                        // petek/cetvel kisitlari) + textmetrics bayragi
                                        // v3: eslem v5 onizleme hiz dugmeleri (17 Tem 502 turu:
                                        // cetvel/jeton/pervane/petek/izgara/ramp mesh'i degisti)
                                        // v4: jeton yuz yazisi artik istemci metnini render eder
                                        // (metin blogu; eski "100" gomulu mesh'leri servis etme)
+                                       // v5: (eslem paketi v5 donemi)
+                                       // v6: cerceve + damga-kase MUSTERI METNI derleyiciye
+                                       // ulasiyor (eslem paketi v6, 29 Tem). v5 anahtarlarinda
+                                       // YAZISIZ mesh var: kase her musteriye "PRUVO" basiyordu
+                                       // -> bump olmadan onbellek isabeti o govdeyi servis
+                                       // etmeye DEVAM ederdi (v4 bump'i jeton icin ayni sebeple
+                                       // yapilmisti). NOBETCI: onizleme/test/onbellek-surum.mjs
 
 // ---------------------------------------------------------------- yardimcilar
 

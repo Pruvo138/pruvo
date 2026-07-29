@@ -481,6 +481,27 @@ jobs:
       - name: Metin eslem kapisi (musteri yazisi derleyiciye ulasiyor mu)
         run: python3 tools/metin-eslem-test.py
 
+      # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
+      # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden
+      # onizlenmis her parametre seti YAZISIZ mesh'i (kase: herkese "PRUVO") servis etmeye
+      # DEVAM eder. Bu adim GERCEK worker'i (onizleme/src/index.js) node'a yukleyip sahte R2
+      # ile anahtari yakalar: surum bump'i anahtari degistiriyor mu + surum "v5"e geri
+      # donmus mu + yalniz `yazi` degisince anahtar ayrisiyor mu. Node 20'de olculdu
+      # (module.registerHooks gibi Node 22+ API'si YOK; JSON import'lari gomulur).
+      # OFFLINE: ag yok, R2 yok, wrangler yok, repo dosyasi YAZILMAZ (gecici dizin). ~0,5 s.
+      - name: Onizleme onbellek surum kapisi (bayat mesh servis edilmesin)
+        run: node onizleme/test/onbellek-surum.mjs
+
+      # PAKET TAZELIK KAPISI — OFFLINE kip. Bloklayici PAKET olcumu BILEREK burada DEGIL,
+      # onizleme-imaj.yml'de kosar (bayat paket TUM SITE yayinini durdurmasin). Burada
+      # kosan sey iki nobetci: (a) kapinin govdesi inert mi (5 sentetik fikstur),
+      # (b) GERCEK cagri satiri onizleme-imaj.yml'de DURUYOR mu — ci-kapsam-test.py yalniz
+      # deploy.yml'e baktigi icin o satirin silinmesini baska hicbir nobetci gormez.
+      # Bu kip yalnizca kendi fiksturlerini ve onizleme-imaj.yml METNINI okur; urunler.json /
+      # index.html / sema dosyalari OKUNMAZ -> rutin degisiklikte yanlis-pozitif uretemez.
+      - name: Paket tazelik kapisi oz-nobetcileri (cagri satiri + govde inertligi)
+        run: python3 tools/paket-tazelik-kapisi.py
+
       # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
       # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
       # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.

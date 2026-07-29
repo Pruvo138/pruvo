@@ -74,6 +74,16 @@ jobs:
       - name: Metin eslem kapisi (gizli eslem dahil TAM kapsam)
         run: python3 tools/metin-eslem-test.py --paket onizleme/derleyici/paket-ozel
 
+      # PAKET TAZELIK KAPISI (29 Tem — "main yesil / canli bozuk" deligi): ustteki kapi
+      # ACIK aileleri (cerceve) HER KOSUMDA main kaynagindan YENIDEN URETIR, yani R2'deki
+      # paket BAYAT olsa bile YESIL yanar. Olculdu: R2'deki paket v5'te donmustu
+      # (cerceve metin_eslem=0, kase sabit Text="PRUVO") ve main onarilmisken CI ayni bozuk
+      # imaji yeniden derleyecekti. Bu adim CEKILEN paketin eslemini main'in urettigiyle
+      # karsilastirir (K1) ve metin invaryantini gizli ailelerde de olcer (K2).
+      # Imaj derlenmeden ONCE kosar: bayat paketle imaj HIC uretilmesin.
+      - name: Paket tazelik kapisi (R2 paketi main'in eslemini tasiyor mu)
+        run: python3 tools/paket-tazelik-kapisi.py --paket onizleme/derleyici/paket-ozel
+
       - name: Imaji derle
         run: |
           docker build -t pruvo-onizleme-derleyici:ci onizleme/derleyici
