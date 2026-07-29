@@ -505,8 +505,10 @@ jobs:
       # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden
       # onizlenmis her parametre seti YAZISIZ mesh'i (kase: herkese "PRUVO") servis etmeye
       # DEVAM eder. Bu adim GERCEK worker'i (onizleme/src/index.js) node'a yukleyip sahte R2
-      # ile anahtari yakalar: surum bump'i anahtari degistiriyor mu + surum "v5"e geri
-      # donmus mu + yalniz `yazi` degisince anahtar ayrisiyor mu. Node 20'de olculdu
+      # ile anahtari yakalar: surum bump'i anahtari degistiriyor mu + surum ZEHIRLI SURUM
+      # TABANI'nin (bugun v7; v5 yazisiz mesh, v6 rollout penceresi zehirlenmesi) altina
+      # dusmus mu + yalniz `yazi` degisince anahtar ayrisiyor mu. Taban SAYISAL: ileri
+      # bump testi elle duzeltmeden yesil kalir, geri alma KIRMIZI. Node 20'de olculdu
       # (module.registerHooks gibi Node 22+ API'si YOK; JSON import'lari gomulur).
       # OFFLINE: ag yok, R2 yok, wrangler yok, repo dosyasi YAZILMAZ (gecici dizin). ~0,5 s.
       - name: Onizleme onbellek surum kapisi (bayat mesh servis edilmesin)
