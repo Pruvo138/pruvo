@@ -545,6 +545,54 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "soyut-yarasa-serit-dekoratif-figur": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 300,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        500
+      ],
+      [
+        300,
+        2500
+      ]
+    ],
+    "hacim": {
+      "refHacimCm3": 669.09,
+      "refYukseklikMm": 150
+    },
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 2,
+      "Gri": 0,
+      "Siyah": 1
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "yaprak-serit-dekoratif-figur": {
     "boyutMm": {
       "adim": 10,
@@ -565,6 +613,54 @@ const VERI = {
     ],
     "hacim": {
       "refHacimCm3": 33.57,
+      "refYukseklikMm": 150
+    },
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 2,
+      "Gri": 0,
+      "Siyah": 1
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
+  "yarasa-serit-dekoratif-figur": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 300,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        500
+      ],
+      [
+        300,
+        2500
+      ]
+    ],
+    "hacim": {
+      "refHacimCm3": 171.99,
       "refYukseklikMm": 150
     },
     "malzemeler": [
