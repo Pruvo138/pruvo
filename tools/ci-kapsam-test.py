@@ -283,7 +283,18 @@ IZIN_LISTESI = {
     "onizleme/test/kabul.js": R_AYRI,
     "onizleme/test/kapi1.js": R_AYRI,
     "onizleme/test/duman_toka_kabul.py": R_AYRI,  # onizleme ayri deploy hedefi (onizleme-imaj.yml + wrangler); duman adimi statik kabul testi (toka govdesi), ana site deploy.yml'e ait degil — KaaN, Okan onayli 27 Tem
-    "onizleme/test/iki-govde-olcum.py": "2-renk MESH olcumu OPENSCAD ister (ucgen/bbox/hacim); ana site deploy.yml'de openscad YOK ve yerel Mac'te SIGABRT veriyor -> onizleme-imaj.yml'de imaj konteyneri ayaktayken kosar (duman adiminin icinde). Cagri satiri paket-tazelik-kapisi.py'nin imaj-akisi nobetiyle ayni dosyada durur.",
+    "onizleme/test/iki-govde-olcum.py": (
+        "2-renk MESH olcumu OPENSCAD ister (ucgen/bbox/hacim); ana site deploy.yml'de "
+        "openscad YOK ve yerel Mac'te SIGABRT veriyor -> onizleme-imaj.yml'de imaj "
+        "konteyneri ayaktayken kosar (duman adiminin icinde). "
+        "🔴 DUZELTME (30 Tem, OLCULDU): bu gerekcenin eski son cumlesi 'cagri satiri "
+        "paket-tazelik-kapisi.py'nin imaj-akisi nobetiyle ayni dosyada durur' diyordu — "
+        "YANLISTI. paket-tazelik-kapisi.py'nin CAGRI_CAPASI sabiti YALNIZ KENDI cagri "
+        "satirini ('tools/paket-tazelik-kapisi.py --paket') izliyor; iki-govde cagrisi "
+        "NOBETSIZDI (cagriyi sil / yoruma al / `|| true` ekle -> dort denetci de rc=0). "
+        "Cagri satiri ARTIK tools/is-akisi-kapisi.py BOLUM B tarafindan izleniyor "
+        "(deploy.yml'de bloklayici adim; silme/yorum/`|| true`/`|| :`/"
+        "`continue-on-error: true`/`if: false` -> KIRMIZI)."),
     "onizleme/test/fiyat-taban-olcum.mjs": "Kabul KAPISI DEGIL — fiyat regresyonu icin dokum/karsilastirma ARACI (--yaz / --karsilastir). Sabit bir taban dosyasi repoda tutulmadigi icin CI'da tek basina anlamli bir iddiasi yoktur; fiyat kapilari ayri ve bloklayicidir (tools/konfigur-test.py, shop/test/fiyat-prova.mjs, shop/test/iki-renk-ucret.mjs).",
     "jenerator/test/birlestir.py": R_AYRI,
     "jenerator/test/dogrula.py": R_AYRI,

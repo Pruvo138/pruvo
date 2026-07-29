@@ -22,8 +22,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Python bagimliliklari (boto3 - R2 testleri icin)
-        run: pip install boto3
+      # pyyaml: is akisi BICIM kapisi (tools/is-akisi-kapisi.py) GERCEK bir YAML
+      # ayristiricisi ister. Ayristirici YOKSA o kapi YESIL SAYMAZ (exit 2 = OLCULEMEDI)
+      # -> bu satirdan pyyaml dusurulurse yayin durur, sessizce korumasiz KALMAZ.
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        run: pip install boto3 pyyaml
       # Node: piksel<->katalog parite testinin JS-uc nobeti (index.html pruvoFeedId + olcum.js
       # feedId/metaGovdesi/ga4Govdesi) node ile kosar. FAIL-CLOSED: node yoksa test CI'da exit 1
       # verir (yalanci-yesil olamaz), o yuzden setup-node BLOKLAYICI bir on-kosuldur.
@@ -34,6 +37,20 @@ jobs:
       # mukerrer-hook felsefesi): bu test kirmiziysa kisisel veri ham HTML'e siziyor
       # demektir, yayini erken durdurmak ucuz, sessiz sizinti pahali. JSON-LD
       # istisnasi testin icinde tanimli.
+      # IS AKISI BICIM KAPISI — 29/30 Tem olayinin nobetcisi. deploy.yml'e TIRNAKSIZ, icinde
+      # ": " tasiyan bir adim ADI eklendi -> YAML plain-scalar ayristirma hatasi -> GitHub
+      # isi HIC baslatmadi (0 sn, startup_failure, is sayisi 0): urun/ uretimi, sitemap, TUM
+      # kapilar ve Pages yayini kosmadi, ~7 dk tum ekibin yayini durdu. Hicbir kapi
+      # yakalamadi cunku mevcut kapilar is akisi dosyalarinda METIN arar, YAML AYRISTIRMAZ.
+      # Bu adim .github/workflows/*.yml dosyalarini GERCEK ayristiriciyla (pyyaml) ayristirir
+      # + tekrarlanan anahtar / bos run: / gecersiz on:-jobs: iskeletini olcer + onizleme
+      # 2-renk olcumunun CAGRI SATIRINI korur. Offline, dosya YAZMAZ, ~0,2 s.
+      # ⚠️ SINIR: deploy.yml'in KENDISI bozulursa bu adim da kosmaz (hicbir adim kosmaz) ->
+      # gercek koruma PUSH ONCESIDIR: `python3 tools/is-akisi-kapisi.py` (bkz. dosya basligi).
+      # Adim adi BILEREK TIRNAKLI (bugunku hatanin ta kendisi).
+      - name: "Is akisi bicim kapisi (YAML ayristirma: startup_failure nobetcisi)"
+        run: python3 tools/is-akisi-kapisi.py
+
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
 
