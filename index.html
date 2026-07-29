@@ -1724,8 +1724,9 @@
         var kalem = { id: L.satir.id, malzeme: L.satir.malzeme, renk: L.satir.renk,
                       renk_ozel: L.satir.renk_ozel || "", adet: PRUVO_SECENEK.adetDuzelt(L.satir.adet) };
         if(L.satir.parametreler){ kalem.parametreler = L.satir.parametreler; }
-        // Cerceve 2-renk yazi: yazi_renk gonderilir (Worker RENK_SECENEKLERI'ne gore
-        // dogrular + +75 TL uygular; gonderilmezse Worker 2. rengi goremez -> eksik tahsilat).
+        // Cerceve 2-renk yazi: yazi_renk gonderilir (Worker RENK_SECENEKLERI'ne gore dogrular
+        // + secenekler.js IKI_RENK_EK_KURUS ek ucretini uygular — bugun 0; gonderilmezse
+        // Worker 2. rengi goremez -> ucret geri acilirsa eksik tahsilat).
         if(L.satir.yazi_renk){ kalem.yazi_renk = L.satir.yazi_renk; }
         return kalem;
       });

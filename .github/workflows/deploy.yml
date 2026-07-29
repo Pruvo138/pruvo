@@ -342,6 +342,23 @@ jobs:
       - name: Konfigur fail-closed kabul testi (shop sessiz eksik-tahsilat kapisi)
         run: node shop/test/konfigur-fail-closed.mjs
 
+      # 2-RENK YAZI EK UCRETI (shop odeme yolu — KARSILIGI OLMAYAN TAHSILAT kapisi). Cerceve
+      # ailesinde yazi rengi farkli secilince fiyata +75 TL ekleniyordu; olcum bunu curuttu
+      # (ayni geometriyle yazi='' / 'OKAN' / 'WWWWWWWWWWWW' -> uc STL de 65284 bayt / 1304
+      # ucgen / SHA-256 BIREBIR AYNI: yazi uretilen govdeye HIC girmiyor). Ucret secenekler.js
+      # IKI_RENK_EK_KURUS TEK KAYNAGINDAN 0'a cekildi. Bu adim shop/src/index.js'in KENDISINI
+      # node'a yukleyip (setup-node yukarida BLOKLAYICI on-kosul) sahte D1 + sahte iyzico ile
+      # kosar ve fiyati Worker'in D1'e YAZDIGI satirdan okur: (1) 2-renk kalem tam 7500 kurus
+      # UCUZLADI, yazisiz/ayni-renk kalem DEGISMEDI, 3x tavan ve dar-kenar reddi DEGISMEDI,
+      # (2) ON YUZ (jenerator/konfigurator.js, sahte DOM ile gercek satiraYaz) ile Worker
+      # kurusu kurusuna ESIT — ayrisirsa gosterilen != tahsil edilen olurdu, (3) 23 parametrik
+      # ailede varsayilan olcu fiyatlari BIREBIR ayni, (4) VAKUM: sabit 7500'e geri alinirsa
+      # iddia KIRMIZI yanar (olu-nobetci korumasi), (5) front/Worker kaynaginda IKINCI bir
+      # 7500 sabiti kalmadi. "ESKI" fiyatlar git HEAD kaynaklarindan AYNI yolla olculur.
+      # OFFLINE: wrangler YOK, ag YOK, gercek/sahte SIPARIS YOK, repo dosyasi YAZILMAZ. ~2 s.
+      - name: 2-renk yazi ek ucreti kabul testi (karsiliksiz tahsilat kapisi)
+        run: node shop/test/iki-renk-ucret.mjs
+
       # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
       # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,
       # genel GO/NO-GO, worker 403->BLOKLU(HocA), d1 kimlik-hatasi->BLOKLU(Okan), origin turetme,
