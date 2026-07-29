@@ -18,7 +18,12 @@
  *      uretim verisi (hacim_mm3), siparis no / IBAN / token DONMEZ.
  *   6) PROVA FAIL-CLOSED — artefaktta olmayan konfigur urunu provada da 400 (sabit fiyata
  *      DUSMEZ); /baslat ile AYNI davranis.
- *   7) 4 KIRMIZI-MUTASYON (M1..M4) — bkz. asagidaki set 7.
+ *   7) SERT TAVAN (set 9) — /fiyat'in hiz siniri artik ISOLATE-YEREL bir Map DEGIL, native
+ *      Cloudflare rate limiting binding'i (FIYAT_RATE_LIMIT). Kanit COK-ISOLATE senaryosuyla
+ *      kurulur: her istek AYRI bir modul ornegine (taze isolate) gider, binding PAYLASILIR —
+ *      canlida 29 Tem'de olculen "40/40 HTTP 200" kirmizisinin birebir yeniden kurulumu.
+ *      Ayrica beyan/kod drift kapisi, 429 yolunun ucuzlugu, FAIL-CLOSED ve yanlis-pozitif seti.
+ *   8) 7 KIRMIZI-MUTASYON (M1..M7) — bkz. asagidaki set 8.
  *
  * OFFLINE: ag YOK (fetch sahtelenir; beklenmeyen adres HATA), D1 sahte, hicbir siparis
  * olusmaz, depo dosyasi DEGISMEZ (gecici dizinler kosum sonunda silinir).
@@ -165,6 +170,83 @@ const ENV_TABAN = {
   TELEGRAM_API: "https://telegram.test",
 };
 
+// ------------------------------------------- native rate-limit binding (beyan + sahte)
+/**
+ * wrangler.toml'daki `[[unsafe.bindings]]` bloklarini ayristir (harici TOML kutuphanesi YOK —
+ * repo kurali: bagimlilik eklenmez). Her blok icin {name, type, namespace_id, limit, period}.
+ * Blok govdesi bir sonraki satir-basi `[` tablosuna kadar surer; yorum satirlari `^anahtar =`
+ * desenine uymadigi icin kendiliginden elenir.
+ */
+function unsafeBindingler(metin) {
+  const parcalar = metin.split("[[unsafe.bindings]]").slice(1);
+  return parcalar.map((p) => {
+    const kes = p.search(/^\[/m);
+    const govde = kes === -1 ? p : p.slice(0, kes);
+    const al = (a) => {
+      const m = govde.match(new RegExp("^" + a + "\\s*=\\s*(.+)$", "m"));
+      return m ? m[1].trim().replace(/"/g, "") : null;
+    };
+    const simple = al("simple") || "";
+    const sayi = (a) => {
+      const m = simple.match(new RegExp("\\b" + a + "\\s*=\\s*(\\d+)"));
+      return m ? Number(m[1]) : null;
+    };
+    return { name: al("name"), type: al("type"), namespace_id: al("namespace_id"),
+             limit: sayi("limit"), period: sayi("period") };
+  });
+}
+
+/** <ad> isimli [[unsafe.bindings]] blogunu metinden CIKAR (M6 mutanti). */
+function bindingBlogunuSil(metin, ad) {
+  const parcalar = metin.split("[[unsafe.bindings]]");
+  let cikti = parcalar[0];
+  for (const p of parcalar.slice(1)) {
+    const kes = p.search(/^\[/m);
+    const govde = kes === -1 ? p : p.slice(0, kes);
+    if (new RegExp('name\\s*=\\s*"' + ad + '"').test(govde)) {
+      cikti += (kes === -1 ? "" : p.slice(kes));      // blogu at, kuyrugu (sonraki tablo) koru
+    } else {
+      cikti += "[[unsafe.bindings]]" + p;
+    }
+  }
+  return cikti;
+}
+
+const WRANGLER_YOL = path.join(SHOP, "wrangler.toml");
+const WRANGLER = fs.readFileSync(WRANGLER_YOL, "utf8");
+const FIYAT_BEYAN = unsafeBindingler(WRANGLER).find((b) => b.name === "FIYAT_RATE_LIMIT") || {};
+// CAP = wrangler.toml'da BEYAN EDILEN limit. Testin hicbir yerinde sabit sayi capasi YOK:
+// limit degistiginde iddialar kendiliginden kayar (beyanin KENDISI set 9.1'de denetlenir).
+// Beyan yoksa 60'a duser — o hal ZATEN set 9.1'i kirmizi yakar, diger setler anlamli kalsin.
+const CAP = FIYAT_BEYAN.limit > 0 ? FIYAT_BEYAN.limit : 60;
+
+/**
+ * Cloudflare `ratelimit` binding'inin sahtesi: ANAHTAR (IP) BASINA sayar, periyot ici.
+ * 🔴 KRITIK: bu nesne TEK ve PAYLASILIR. Worker kodunun kac ayri modul ornegi (isolate)
+ * olursa olsun hepsi AYNI sayaci gorur — native binding hesap duzeyinde saydigi icin dogru
+ * benzetim budur. Isolate-yerel Map ile arasindaki fark set 9.2'de tam olarak bu yuzden gorunur.
+ * Zaman penceresi YOK (kosum saniyeler surer) -> deterministik, CI'da kararsiz kirmizi uretmez.
+ */
+function limiterKur(cap) {
+  const sayac = new Map();
+  return {
+    cap: cap,
+    cagri: 0,
+    patlat: false,
+    sifirla() { sayac.clear(); this.cagri = 0; this.patlat = false; },
+    async limit(arg) {
+      this.cagri += 1;
+      if (this.patlat) { throw new Error("limiter down (sahte)"); }
+      const k = (arg && arg.key) || "yok";
+      const n = (sayac.get(k) || 0) + 1;
+      sayac.set(k, n);
+      return { success: n <= cap };
+    },
+  };
+}
+const LIMITER = limiterKur(CAP);
+ENV_TABAN.FIYAT_RATE_LIMIT = LIMITER;
+
 function yeniSayac() { return { select: 0, first: 0, run: 0, yazilan: [] }; }
 
 const MUSTERI = { ad: "Test Musteri", tel: "05321112233", eposta: "test@pruvo3d.com",
@@ -194,11 +276,16 @@ async function baslat(mod, d1Satirlari, sepet) {
 }
 
 let ipSayaci = 0;
-/** /fiyat (prova) — GERCEK worker kodundan; cevabi + sayaclari dondurur. */
-async function prova(mod, d1Satirlari, sepet, sabitIp) {
+/** /fiyat (prova) — GERCEK worker kodundan; cevabi + sayaclari dondurur.
+ *  limiter: undefined -> paylasilan LIMITER (varsayilan, canli konfigurasyon)
+ *           null      -> binding HIC YOK (fail-closed olcumu)
+ *           nesne     -> verilen sahte binding (bozuk obje / patlayan limiter) */
+async function prova(mod, d1Satirlari, sepet, sabitIp, limiter) {
   const sayaclar = yeniSayac();
   const agOnce = ag.toplam;
   const env = Object.assign({}, ENV_TABAN, { KATALOG: d1Sahte(d1Satirlari, sayaclar) });
+  if (limiter === null) { delete env.FIYAT_RATE_LIMIT; }
+  else if (limiter !== undefined) { env.FIYAT_RATE_LIMIT = limiter; }
   ipSayaci += 1;
   const ip = sabitIp || ("10." + Math.floor(ipSayaci / 65536) % 256 + "." +
                          Math.floor(ipSayaci / 256) % 256 + "." + (ipSayaci % 256));
@@ -580,24 +667,26 @@ baslik("== 6) PROVA DOGRULAMASI /baslat ILE AYNI + hiz siniri ==");
   not("dogrulama paritesi: " + vaka.length + " vaka + bos sepet(" + bosSepet.kod +
       ") + 31 kalem(" + cokKalem.govde.hata + ") -> uyusmazlik " + hatalar.length);
 
-  // HIZ SINIRI: ayni IP'den 31 istek -> sonuncusu 429; farkli IP etkilenmez; yazma YOK.
+  // HIZ SINIRI (native binding): ayni IP'den CAP+1 istek -> sonuncusu 429; farkli IP
+  // etkilenmez; yazma YOK. Sahte binding wrangler.toml'da BEYAN EDILEN limiti uygular ->
+  // iddia sabit sayiya degil beyana capalidir (limit degisirse test kendiliginden kayar).
+  // Pencere/zaman yok -> tur tekrarina gerek kalmadi (deterministik).
   const sepet = [{ id: urun.id, malzeme: "PLA", renk: "Siyah", adet: 1,
                    parametreler: { boy_mm: 150 } }];
+  LIMITER.sifirla();
   let ilk429 = 0, yazma = 0;
-  // Pencere sinirinda (dakika basi) sayac sifirlanabilir -> patlama BIR KEZ taze IP ile
-  // tekrarlanir (kararsiz CI kirmizisi olmasin; iddia degismez).
-  for (let tur = 0; tur < 2 && ilk429 === 0; tur++) {
-    const ip = "203.0.113." + (7 + tur * 10);
-    for (let i = 1; i <= 31; i++) {
-      const r = await prova(YENI, satirlar, sepet, ip);
-      yazma += r.d1Yazma;
-      if (r.kod === 429 && !ilk429) { ilk429 = i; }
-    }
+  for (let i = 1; i <= CAP + 1; i++) {
+    const r = await prova(YENI, satirlar, sepet, "203.0.113.7");
+    yazma += r.d1Yazma;
+    if (r.kod === 429 && !ilk429) { ilk429 = i; }
   }
   const baskaIp = await prova(YENI, satirlar, sepet, "203.0.113.8");
-  not("hiz siniri: ayni IP'de ilk 429 = " + ilk429 + ". istek (31. beklenir); baska IP -> " +
-      baskaIp.kod + "; sinir sirasinda D1 yazma=" + yazma);
-  if (ilk429 !== 31) { hatalar.push("hiz siniri 31. istekte devreye girmedi (ilk429=" + ilk429 + ")"); }
+  not("hiz siniri: beyan edilen cap=" + CAP + "/dk; ayni IP'de ilk 429 = " + ilk429 +
+      ". istek (" + (CAP + 1) + ". beklenir); baska IP -> " + baskaIp.kod +
+      "; sinir sirasinda D1 yazma=" + yazma);
+  if (ilk429 !== CAP + 1) {
+    hatalar.push("hiz siniri " + (CAP + 1) + ". istekte devreye girmedi (ilk429=" + ilk429 + ")");
+  }
   if (baskaIp.kod !== 200) { hatalar.push("baska IP de kisitlandi: " + baskaIp.kod); }
   if (yazma !== 0) { hatalar.push("hiz siniri yolunda D1 yazma: " + yazma); }
 
@@ -645,8 +734,188 @@ baslik("== 7) FAIL-CLOSED — artefaktta olmayan konfigur urunu (baslat + prova)
   else { ham.push("  ✅ GECTI — 28/28 iddia; sabit fiyat HESAPLANMIYOR, prova da 400 doner"); }
 }
 
+// ============================================================ 9) SERT TAVAN (yardimcilar)
+const TAVAN_URUN = KONFIGUR_URUNLER[0];
+const TAVAN_SATIR = [d1Satiri(TAVAN_URUN)];
+const TAVAN_SEPET = [{ id: TAVAN_URUN.id, malzeme: "PLA", renk: "Siyah", adet: 1,
+                       parametreler: { boy_mm: 150 } }];
+
+/** wrangler.toml beyan iddialari (M6 mutanti AYNI fonksiyonu mutant metinle cagirir). */
+function beyanIddialari(tomlMetin, kodPencere) {
+  const liste = unsafeBindingler(tomlMetin);
+  const f = liste.find((b) => b.name === "FIYAT_RATE_LIMIT");
+  const r = liste.find((b) => b.name === "REF_RATE_LIMIT");
+  return [
+    { ad: "wrangler.toml'da FIYAT_RATE_LIMIT BEYAN EDILMIS", ok: !!f,
+      olculen: f ? "var" : "YOK" },
+    { ad: "type = ratelimit (native binding)", ok: !!f && f.type === "ratelimit",
+      olculen: f && f.type },
+    { ad: "limit POZITIF ve SONLU", ok: !!f && f.limit > 0 && f.limit <= 10000,
+      olculen: f && f.limit },
+    { ad: "period 10 ya da 60 (CF baska deger kabul etmez)",
+      ok: !!f && (f.period === 10 || f.period === 60), olculen: f && f.period },
+    { ad: "/ref ile AYNI namespace_id DEGIL (kota paylasilmiyor)",
+      ok: !!f && !!r && f.namespace_id !== r.namespace_id,
+      olculen: (f && f.namespace_id) + " vs ref " + (r && r.namespace_id) },
+    { ad: "/ref ile AYNI binding adi DEGIL", ok: !!f && !!r && f.name !== r.name,
+      olculen: (f && f.name) + " vs " + (r && r.name) },
+    { ad: "koddaki Retry-After (PROVA_PENCERE_SN) beyan edilen period ile AYNI",
+      ok: !!f && Number.isFinite(kodPencere) && kodPencere === f.period,
+      olculen: kodPencere + " vs beyan " + (f && f.period) },
+  ];
+}
+
+/**
+ * 🔴 COK-ISOLATE SENARYOSU — 29 Tem canli kirmizisinin birebir yeniden kurulumu.
+ * HER istek AYRI bir modul ornegine gider (import cache-buster -> modul-duzeyi state SIFIR =
+ * taze isolate); rate-limit binding'i ise TEK ve PAYLASILIR. Isolate-yerel Map sayaci bu
+ * senaryoda HICBIR ZAMAN tetiklenmez (canlida olculen 40/40 HTTP 200); native binding tetikler.
+ */
+async function cokIsolate(dizin, adet, ip, limiter) {
+  const kodlar = [];
+  let yazma = 0, okuma = 0, agCagri = 0;
+  for (let i = 0; i < adet; i++) {
+    const mod = await modulYukle(dizin);           // TAZE ISOLATE
+    const r = await prova(mod, TAVAN_SATIR, TAVAN_SEPET, ip, limiter);
+    kodlar.push(r.kod);
+    yazma += r.d1Yazma; okuma += r.d1Okuma; agCagri += r.agCagri;
+  }
+  return { kodlar, yazma, okuma, agCagri,
+           ikiyuz: kodlar.filter((k) => k === 200).length,
+           redd: kodlar.filter((k) => k === 429).length };
+}
+
+/** 429 YOLUNUN UCUZLUGU: cap tuketilir, sonraki 5 istegin sayaclari olculur (M7 ayni fonksiyon). */
+async function ucuzlukOlcumu(mod, ip) {
+  LIMITER.sifirla();
+  for (let i = 0; i < CAP; i++) { await prova(mod, TAVAN_SATIR, TAVAN_SEPET, ip); }
+  const kodlar = [];
+  let yazma = 0, okuma = 0, agCagri = 0, first = 0;
+  for (let i = 0; i < 5; i++) {
+    const r = await prova(mod, TAVAN_SATIR, TAVAN_SEPET, ip);
+    kodlar.push(r.kod);
+    yazma += r.d1Yazma; okuma += r.d1Okuma; agCagri += r.agCagri; first += r.d1First;
+  }
+  return { kodlar, yazma, okuma, agCagri, first };
+}
+
+// M5/M7 mutant kaynaklari — capa TEK YERDE (kod satiri degisirse mutasyon UYGULANAMADI der).
+const TAVAN_CAPA =
+  "  if (await provaHizSiniriAsildi(request, env)) { return cokIstek(env); }";
+const TAVAN_M7 =
+  "  if (await provaHizSiniriAsildi(request, env)) {\n" +
+  "    await env.KATALOG.prepare(\"INSERT INTO siparisler (siparis_no) VALUES (?)\")" +
+  ".bind(\"PR-M7\").run();\n" +
+  "    await env.KATALOG.prepare(\"SELECT id FROM urunler WHERE id IN (?)\").bind(\"x\").all();\n" +
+  "    await telegram(env, \"mutant 429 bildirimi\");\n" +
+  "    return cokIstek(env);\n" +
+  "  }";
+
+const KOD_PENCERE = Number((calismaIndex.match(/const PROVA_PENCERE_SN = (\d+);/) || [])[1]);
+
+baslik("== 9) SERT TAVAN — native rate-limit binding (ISOLATE-BAGIMSIZ) ==");
+{
+  const hatalar = [];
+
+  // ---- 9.1 BEYAN + KOD/BEYAN DRIFT ----
+  const beyan = beyanIddialari(WRANGLER, KOD_PENCERE);
+  const beyanKalan = beyan.filter((i) => !i.ok);
+  not("9.1 BEYAN: " + beyan.length + " iddia — kalan " + beyanKalan.length +
+      " | olculen: ad=FIYAT_RATE_LIMIT tur=" + FIYAT_BEYAN.type + " ns=" +
+      FIYAT_BEYAN.namespace_id + " limit=" + FIYAT_BEYAN.limit + "/" +
+      FIYAT_BEYAN.period + " sn, koddaki Retry-After=" + KOD_PENCERE);
+  beyanKalan.forEach((i) => hatalar.push("9.1 " + i.ad + " (olculen: " + i.olculen + ")"));
+
+  // ---- 9.2 COK-ISOLATE (asil kusur) ----
+  LIMITER.sifirla();
+  const ci = await cokIsolate(YENI_DIZIN, CAP + 1, "198.51.100.2");
+  const ilk40 = ci.kodlar.slice(0, 40);
+  not("9.2 COK-ISOLATE (her istek TAZE isolate, ayni IP, PAYLASILAN binding): " +
+      (CAP + 1) + " istek -> 200:" + ci.ikiyuz + " / 429:" + ci.redd +
+      " | ilk 429 = " + (ci.kodlar.indexOf(429) + 1) + ". istek (" + (CAP + 1) + " beklenir)" +
+      " | canlidaki 40-istek dilimi: 200=" + ilk40.filter((k) => k === 200).length +
+      " 429=" + ilk40.filter((k) => k === 429).length);
+  if (ci.ikiyuz !== CAP) { hatalar.push("9.2 200 sayisi " + ci.ikiyuz + " != cap " + CAP); }
+  if (ci.redd !== 1) { hatalar.push("9.2 429 sayisi " + ci.redd + " != 1"); }
+  if (ci.kodlar.indexOf(429) !== CAP) {
+    hatalar.push("9.2 ilk 429 " + (ci.kodlar.indexOf(429) + 1) + ". istekte (beklenen " +
+                 (CAP + 1) + ")");
+  }
+
+  // ---- 9.3 429 YOLU UCUZ ----
+  const uc = await ucuzlukOlcumu(YENI, "198.51.100.3");
+  not("9.3 429 YOLU: cap tuketildikten sonra 5 istek -> kodlar " + uc.kodlar.join(",") +
+      "; D1 YAZMA=" + uc.yazma + " D1 OKUMA=" + uc.okuma + " AG=" + uc.agCagri +
+      " siparis_no sorgusu=" + uc.first + " (hepsi 0 olmali)");
+  if (uc.kodlar.some((k) => k !== 429)) { hatalar.push("9.3 429 disi kod: " + uc.kodlar.join(",")); }
+  if (uc.yazma !== 0) { hatalar.push("9.3 429 yolunda D1 YAZMA=" + uc.yazma); }
+  if (uc.okuma !== 0) { hatalar.push("9.3 429 yolunda D1 OKUMA=" + uc.okuma); }
+  if (uc.agCagri !== 0) { hatalar.push("9.3 429 yolunda AG cagrisi=" + uc.agCagri); }
+  if (uc.first !== 0) { hatalar.push("9.3 429 yolunda siparis_no sorgusu=" + uc.first); }
+
+  // ---- 9.4 FAIL-CLOSED (binding yok / bozuk / patliyor) ----
+  const patlayan = limiterKur(CAP); patlayan.patlat = true;
+  const fc = [
+    ["binding HIC YOK", null],
+    ["binding BOZUK (limit fonksiyon degil)", {}],
+    ["limiter PATLIYOR (exception)", patlayan],
+  ];
+  const fcSatir = [];
+  for (const [ad, lim] of fc) {
+    const r = await prova(YENI, TAVAN_SATIR, TAVAN_SEPET, "198.51.100.4", lim);
+    fcSatir.push(ad + " -> " + r.kod + " (D1 okuma " + r.d1Okuma + ", ag " + r.agCagri + ")");
+    if (r.kod !== 429) { hatalar.push("9.4 FAIL-OPEN: " + ad + " -> " + r.kod + " (429 olmali)"); }
+    if (r.d1Okuma !== 0 || r.d1Yazma !== 0 || r.agCagri !== 0) {
+      hatalar.push("9.4 " + ad + ": fail-closed yolu D1/ag'a dokundu");
+    }
+  }
+  not("9.4 FAIL-CLOSED: " + fcSatir.join(" | "));
+
+  // ---- 9.5 YANLIS-POZITIF (normal musteri davranisi 429 YEMEZ) ----
+  // Her senaryo TAZE pencerede kosar (LIMITER.sifirla) — gercek hayatta da her dakika
+  // yeni pencere baslar. Senaryolar mesru kullanimin EN YOGUN makul hallerini kapsar.
+  const senaryolar = [
+    ["konfiguratorde 10-15 sn'de 8 olcu denemesi (tek musteri)", 8, 1],
+    ["malzeme gezme: 6 malzeme ust uste (tek musteri)", 6, 1],
+    ["3 kalemlik sepet, 6 kez yeniden hesap", 6, 1],
+    ["slider debounce patlamasi: 3 sn'de 12 istek", 12, 1],
+    ["kararsiz musteri: dakika boyunca 40 istek", 40, 1],
+    ["5 ayri musteri (FARKLI IP) x 20 istek", 20, 5],
+    ["ofis NAT'i: AYNI IP arkasinda 2 musteri x 25 istek", 50, 1],
+  ];
+  let yanlisPozitif = 0, ypIstek = 0;
+  const ypSatir = [];
+  for (const [ad, adet, ipAdet] of senaryolar) {
+    LIMITER.sifirla();
+    let redd = 0;
+    for (let m = 0; m < ipAdet; m++) {
+      const ip = "192.0.2." + (10 + m);
+      for (let i = 0; i < adet; i++) {
+        const r = await prova(YENI, TAVAN_SATIR, TAVAN_SEPET, ip);
+        ypIstek += 1;
+        if (r.kod === 429) { redd += 1; }
+      }
+    }
+    yanlisPozitif += redd;
+    ypSatir.push(ad + " -> 429:" + redd);
+  }
+  not("9.5 YANLIS-POZITIF (" + senaryolar.length + " senaryo, " + ypIstek + " istek): " +
+      ypSatir.join(" | "));
+  not("9.5 TOPLAM 429 = " + yanlisPozitif + " (0 olmali; cap " + CAP + "/dk)");
+  if (yanlisPozitif !== 0) { hatalar.push("9.5 mesru davranis " + yanlisPozitif + " kez 429 yedi"); }
+
+  if (hatalar.length) {
+    kirmizi += 1;
+    hatalar.slice(0, 12).forEach((h) => ham.push("    ❌ " + h));
+    ham.push("  ❌ KALDI — sert tavan");
+  } else {
+    ham.push("  ✅ GECTI — tavan isolate-bagimsiz sert; 429 yolu bedava; fail-closed; " +
+             "0 yanlis-pozitif");
+  }
+}
+
 // =================================================================== 8) MUTANTLAR
-baslik("== 8) KIRMIZI-MUTASYON (M1..M4) ==");
+baslik("== 8) KIRMIZI-MUTASYON (M1..M7) ==");
 {
   const KAYNAKLAR = guncelKaynaklar();
 
@@ -784,6 +1053,77 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M4) ==");
       kirmizi += 1;
       ham.push("    ❌ M4 KALDI — yan etki sayaclari OLU (mutant sessiz gecti)");
     } else { ham.push("    ✅ M4: " + yakalanan.length + " sayac KIRMIZI yandi"); }
+  }
+
+  // ---- M5: HIZ SINIRI KONTROLU SILINDI (29 Tem canli kirmizisinin ta kendisi) ----
+  ham.push("  -- M5: /fiyat hiz siniri kontrolu SILINDI --");
+  const m5Kaynak = KAYNAKLAR["index.js"].replace(TAVAN_CAPA + "\n", "");
+  const m5Uygulandi = KAYNAKLAR["index.js"].includes(TAVAN_CAPA) &&
+                      !m5Kaynak.includes(TAVAN_CAPA);
+  if (!m5Uygulandi) {
+    kirmizi += 1;
+    ham.push("    ❌ M5 mutasyonu UYGULANAMADI (capa metni degismis — TAVAN_CAPA'yi guncelle)");
+  } else {
+    const m5Dizin = dizinKur("m5src", Object.assign({}, KAYNAKLAR, { "index.js": m5Kaynak }));
+    LIMITER.sifirla();
+    const m5ci = await cokIsolate(m5Dizin, CAP + 1, "198.51.100.9");
+    const ilk40 = m5ci.kodlar.slice(0, 40);
+    not("M5 COK-ISOLATE: " + (CAP + 1) + " istek -> 200:" + m5ci.ikiyuz + " / 429:" + m5ci.redd +
+        " | 40-istek dilimi 200=" + ilk40.filter((k) => k === 200).length + "/40 " +
+        "(29 Tem canlida olculen: 40/40 200)");
+    const m5Yakalandi = (m5ci.ikiyuz !== CAP) || (m5ci.redd !== 1);
+    if (!(m5Yakalandi && m5ci.ikiyuz === CAP + 1 && m5ci.redd === 0)) {
+      kirmizi += 1;
+      ham.push("    ❌ M5 KALDI — tavan silindi ama set 9.2 sessiz kaldi (OLU NOBETCI)");
+    } else {
+      ham.push("    ✅ M5: tavansiz kodda " + m5ci.ikiyuz + "/" + (CAP + 1) +
+               " istek 200 (429=0) -> set 9.2 KIRMIZI yanar");
+    }
+  }
+
+  // ---- M6: wrangler.toml'dan BINDING BEYANI SILINDI (sessiz fail-open avi) ----
+  ham.push("  -- M6: wrangler.toml'dan FIYAT_RATE_LIMIT beyani silindi --");
+  const m6Toml = bindingBlogunuSil(WRANGLER, "FIYAT_RATE_LIMIT");
+  const m6Var = unsafeBindingler(m6Toml).some((b) => b.name === "FIYAT_RATE_LIMIT");
+  const m6Ref = unsafeBindingler(m6Toml).some((b) => b.name === "REF_RATE_LIMIT");
+  const m6Uygulandi = FIYAT_BEYAN.name === "FIYAT_RATE_LIMIT" && !m6Var;
+  const m6Beyan = beyanIddialari(m6Toml, KOD_PENCERE).filter((i) => !i.ok);
+  // Calisma zamani yarisi: binding gelmeyince uc SESSIZCE sinirsiza DONMEMELI -> 429.
+  const m6r = await prova(YENI, TAVAN_SATIR, TAVAN_SEPET, "198.51.100.11", null);
+  not("M6: mutant toml'da FIYAT_RATE_LIMIT=" + (m6Var ? "VAR" : "YOK") + " (YOK olmali), " +
+      "REF_RATE_LIMIT korundu=" + m6Ref + "; set 9.1 iddialarindan KIRMIZI yanan=" +
+      m6Beyan.length + " (>=1 olmali); binding'siz calisma zamani -> " + m6r.kod +
+      " (429 = fail-closed; D1 okuma " + m6r.d1Okuma + ", ag " + m6r.agCagri + ")");
+  const m6Ok = m6Uygulandi && m6Ref && m6Beyan.length >= 1 && m6r.kod === 429 &&
+               m6r.d1Okuma === 0 && m6r.d1Yazma === 0 && m6r.agCagri === 0;
+  if (!m6Ok) {
+    kirmizi += 1;
+    ham.push("    ❌ M6 KALDI — beyan silinince ya kapi susuyor ya uc sessizce sinirsiza donuyor");
+  } else {
+    ham.push("    ✅ M6: beyan silinince " + m6Beyan.length +
+             " iddia KIRMIZI + uc fail-closed 429 (sessiz fail-open YOK)");
+  }
+
+  // ---- M7: 429 YOLUNA D1 + AG ENJEKTE EDILDI ----
+  ham.push("  -- M7: 429 yoluna D1 yazma/okuma + Telegram enjekte edildi --");
+  const m7Kaynak = KAYNAKLAR["index.js"].replace(TAVAN_CAPA, TAVAN_M7);
+  if (m7Kaynak === KAYNAKLAR["index.js"]) {
+    kirmizi += 1;
+    ham.push("    ❌ M7 mutasyonu UYGULANAMADI (capa metni degismis)");
+  } else {
+    const m7Mod = await modulYukle(dizinKur("m7src",
+      Object.assign({}, KAYNAKLAR, { "index.js": m7Kaynak })));
+    const m7 = await ucuzlukOlcumu(m7Mod, "198.51.100.12");
+    const yakalanan7 = [];
+    if (m7.yazma !== 0) { yakalanan7.push("D1 yazma=" + m7.yazma); }
+    if (m7.okuma !== 0) { yakalanan7.push("D1 okuma=" + m7.okuma); }
+    if (m7.agCagri !== 0) { yakalanan7.push("ag cagri=" + m7.agCagri); }
+    not("M7: 429 yolunda yakalanan yan etki -> " + (yakalanan7.join(", ") || "HICBIRI") +
+        " (kodlar " + m7.kodlar.join(",") + ")");
+    if (yakalanan7.length < 3) {
+      kirmizi += 1;
+      ham.push("    ❌ M7 KALDI — 429 yolu sayaclari OLU (mutant sessiz gecti)");
+    } else { ham.push("    ✅ M7: " + yakalanan7.length + " sayac KIRMIZI yandi"); }
   }
 }
 

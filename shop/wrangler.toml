@@ -56,6 +56,26 @@ type = "ratelimit"
 namespace_id = "1001"
 simple = { limit = 20, period = 60 }
 
+# IP basina SERT TAVAN (POST /api/shop/fiyat — yan etkisiz fiyat sorgusu / prova ucu).
+# 🔴 NEDEN VAR (29 Tem canli olcum): ucun eski hiz siniri ISOLATE-ICI bir Map sayaciydi ->
+# kalici baglantiyla 31. istek 429 veriyordu ama HER ISTEKTE YENI BAGLANTI acan istemciyle
+# 40/40 HTTP 200 dondu (istekler farkli isolate'lere dagilir, her Map bos baslar). Native
+# binding hesap duzeyinde sayar -> tavan GERCEKTEN sert. EK D1 YAZMASI YOK (ucun "yan etki
+# yok" kirmizi cizgisi korunur).
+# 🔒 AYRI KOTA: REF_RATE_LIMIT'ten AYRI ad + AYRI namespace_id -> beacon trafigi fiyat ucunu,
+# fiyat trafigi beacon'i KAPATAMAZ (paylasilan namespace tam bunu yapardi).
+# LIMIT 60/60 sn: olculen en yogun MESRU davranis 40 istek/dk (konfiguratorde ayar deneyen tek
+# musteri) ve NAT arkasindaki 2 musteri 50 istek/dk -> 60 ustlerinde kalir; ust tarafta tek
+# IP'nin maliyeti dakikada 60 D1 SELECT ile SONLU (comert ama sonlu). period YALNIZ 10 ya da
+# 60 kabul eder. SIR YOK, secret YOK.
+# ⚠️ KOD FAIL-CLOSED: bu blok silinirse uc SESSIZCE sinirsiza donmez, 429 doner (uc olur).
+# Kazayla silinmeyi CI yakalar: shop/test/fiyat-prova.mjs set 9.1 + mutant M6.
+[[unsafe.bindings]]
+name = "FIYAT_RATE_LIMIT"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 60, period = 60 }
+
 # Uretim dosyalari (STL/3MF) OZEL R2 kovasinda (pruvo-media DEGIL — ticari dosya public'e
 # sizmaz). Yonetim /stl ucu SALT-OKUMA ile stream eder; toplu yukleme tools/stl-r2-yukle.py.
 [[r2_buckets]]
