@@ -5,36 +5,48 @@
  *   node shop/test/iki-renk-ucret.mjs
  *
  * NEDEN VAR (para duzlemi, 2026-07-29): cerceve ailesinde yazi rengi cerceve renginden farkli
- * secilince fiyata +7500 kurus ekleniyordu (gerekce: ayri govde / AMS 2. filaman). OLCUM bunu
- * curuttu: canli derleyiciye AYNI geometriyle yazi='' / 'OKAN' / 'WWWWWWWWWWWW' gonderildi,
- * ucunun ciktisi da 65284 bayt / 1304 ucgen / SHA-256 BIREBIR AYNI (uctu de taze derleme).
- * Yazi uretilen STL'e HIC girmiyor -> ek maliyet yok -> ucretin karsiligi yok. Ucret
+ * secilince fiyata +7500 kurus ekleniyordu (gerekce: ayri govde / 2. filaman). OLCUM bunu
+ * curuttu: derleyiciye AYNI geometriyle yazi='' / 'OKAN' / 'WWWWWWWWWWWW' gonderildi, ucunun
+ * ciktisi da 65284 bayt / 1304 ucgen / SHA-256 BIREBIR AYNI (ucu de taze derleme). Yazi
+ * uretilen govdeye HIC girmiyor -> ek maliyet yok -> ucretin karsiligi yok. Ucret
  * secenekler.js IKI_RENK_EK_KURUS tek kaynagindan 0'a cekildi.
  *
  * NASIL (OFFLINE — wrangler/ag/gercek odeme YOK; shop/test/konfigur-fail-closed.mjs deseni):
  * shop/src/index.js'in KENDISI Node'a yuklenir, D1 ve iyzico yerine bellek-ici sahteleri
  * konur. Fiyat, Worker'in D1'e YAZDIGI siparis satirindan okunur — yani GERCEK para yolundan.
  * Hicbir dis servise istek gitmez, hicbir siparis olusmaz, hicbir kalici dosya degismez.
- * "ESKI" fiyatlar git HEAD kaynaklarindan AYNI yolla olculur (tahmin/sabit sayi YOK).
  *
- * AYNA (mirror) DUZENI: her surum (ESKI/YENI/MUTANT) icin gecici dizine kendi kaynak agaci
- * yazilir — <tmp>/secenekler.js, <tmp>/konfigur.js, <tmp>/jenerator/{konfigurator,hacim}.js,
- * <tmp>/shop/src/*.js — boylece goreli import'lar (../../secenekler.js) O SURUMUN dosyalarina
- * coozulur ve ayni kosumda eski ile yeni yan yana yuklenebilir. JSON import'lari (Node surum
- * farki yaratan import nitelikleri) icerige gomulur; package.json YAZILMAZ (gercek repoda da
- * yok — .js dosyalari Node'un sozdizimi tespitiyle ESM/CJS ayrilir, konfigurator.js CJS kalir).
+ * ⚠️ TABAN SECIMI (bilerek git-GECMISI DEGIL): iddialar "git HEAD ile karsilastir" uzerine
+ * kurulsaydi bu dal main'e girdigi anda HEAD == calisan kod olur, karsilastirma TOTOLOJIYE
+ * doner ve nobetci SESSIZCE olurdu. Bu yuzden taban, AYNI calisma agacinin iki VARYANTIDIR:
+ *   UCRETSIZ = kaynak oldugu gibi (IKI_RENK_EK_KURUS = 0)
+ *   UCRETLI  = yalniz o sabit 7500 yapilmis hali (= degisiklik geri alinmis hali)
+ * Ikisi de gecici bir kaynak aynasina yazilip ayni kosumda yan yana yuklenir. Boylece iddia
+ * "bugun ucret alinmiyor + geri alinirsa 7500 alinirdi" seklinde KALICI olarak olculur.
+ * (Tarihsel git HEAD karsilastirmasi en altta, YALNIZ BILGI olarak, HEAD hala ucretliyken.)
+ *
+ * AYNA (mirror) DUZENI: her varyant icin gecici dizine kendi kaynak agaci yazilir —
+ * <tmp>/secenekler.js, <tmp>/konfigur.js, <tmp>/jenerator/{konfigurator,hacim}.js,
+ * <tmp>/shop/src/*.js — boylece goreli import'lar (../../secenekler.js) O VARYANTIN
+ * dosyalarina cozulur. JSON import'lari (Node surum farki yaratan import nitelikleri)
+ * icerige gomulur; package.json YAZILMAZ (gercek repoda da yok — .js dosyalari Node'un
+ * sozdizimi tespitiyle ESM/CJS ayrilir, konfigurator.js CJS kalir).
  *
  * KOSTUGU 5 SET (hepsi bloklayici):
- *   (1) PARA KANITI  — (a) 2-renk kalem: YENI fiyat == ESKI fiyat - 7500 (tam), (b) yazisiz
- *       kalem DEGISMEDI, (c) yazi var ama yazi_renk == renk: DEGISMEDI (zaten ucret yoktu),
- *       (d) 3x tavan davranisi DEGISMEDI, (e) dar kenar (kenar<10mm) 2-renk REDDI DEGISMEDI.
+ *   (1) PARA KANITI  — (a) 2-renk kalemin fiyati AYNI geometrinin tek-renk fiyatiyla ESIT
+ *       (yani ek ucret 0) ve UCRETLI varyantta tam 7500 fazla; (b) yazisiz kalem bagimsiz
+ *       fiyat orakiliyla birebir; (c) yazi var ama yazi_renk == renk -> yazisizla ayni;
+ *       (d) 3x tavan davranisi korunuyor (2-renk artik tavani ASMIYOR, UCRETLI'de asiyordu);
+ *       (e) dar kenar (kenar<10mm) 2-renk REDDI iki varyantta da AYNI (urun satista kalir).
  *   (2) PARITE      — ayni senaryolarda ON YUZ (jenerator/konfigurator.js, sahte DOM ile
- *       GERCEK satiraYaz) ile WORKER kurusu kurusuna esit. Esit degilse suite KIRMIZI.
- *   (3) REGRESYON   — 23 parametrik ailenin varsayilan olculerinde (2-renk YOK) YENI == ESKI.
- *   (4) VAKUM       — degisiklik geri alinirsa (IKI_RENK_EK_KURUS=7500) (1a) ESKI fiyata doner
- *       ve iddia KIRMIZI yanar; donmezse bu test OLU nobetcidir -> suite KIRMIZI.
- *   (5) TEK KAYNAK  — ne front ne Worker kaynaginda ikinci bir 7500 sabiti kalmamis olmali
- *       (iki taraf ayrisirsa gosterilen fiyat != tahsil edilen fiyat).
+ *       GERCEK satiraYaz) ile WORKER kurusu kurusuna esit; 2-renk detay metni de birebir.
+ *       Esit degilse suite KIRMIZI (gosterilen != tahsil edilen olurdu).
+ *   (3) REGRESYON   — 23 parametrik ailenin varsayilan olcusunde Worker fiyati BAGIMSIZ
+ *       orakille (secenekler.js parametrikFiyatKurus + hacim.js) birebir; 13 konfigur
+ *       urununun 39 kaleminde UCRETSIZ == UCRETLI (2-renk kolu o urunlere DOKUNMUYOR).
+ *   (4) VAKUM       — "2-renk fiyati tek-renk fiyatina esit" iddiasi UCRETLI varyantta
+ *       KIRMIZI yanmali; yanmiyorsa bu test OLU nobetcidir -> suite KIRMIZI.
+ *   (5) TEK KAYNAK  — ne front ne Worker kaynaginda ikinci bir 7500 sabiti kalmamis olmali.
  */
 
 import fs from "node:fs";
@@ -50,8 +62,10 @@ const KOK = path.dirname(SHOP);
 const SRC = path.join(SHOP, "src");
 const URUN_SEMA_DIZIN = path.join(KOK, "jenerator", "urunler");
 
-const ESKI_EK_KURUS = 7500;          // kaldirilan ucret (kanit icin; kaynaktan DEGIL, iddiadan)
+const EK_KURUS = 7500;               // kaldirilan ucret (UCRETLI varyantin degeri)
 const CERCEVE = "olcuye-ozel-cerceve";
+const SABIT_KAPALI = "var IKI_RENK_EK_KURUS = 0;";
+const SABIT_ACIK = "var IKI_RENK_EK_KURUS = " + EK_KURUS + ";";
 
 // ---------------------------------------------------------------- kaynak okuyucular
 
@@ -84,25 +98,27 @@ const GECICI_KOK = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-iki-renk-"));
 process.on("exit", () => { fs.rmSync(GECICI_KOK, { recursive: true, force: true }); });
 
 /**
- * Bir surumun kaynak aynasini kurar.
- * @param {string} ad        ayna adi (dizin)
- * @param {(rel:string)=>string} oku   kaynak okuyucu (diskten / headden)
- * @param {(kaynak:string,rel:string)=>string} [yama]  istege bagli mutasyon
+ * Bir varyantin kaynak aynasini kurar.
+ * @param {string} ad   ayna dizini
+ * @param {(rel:string)=>string} oku  kaynak okuyucu (diskten / headden)
+ * @param {(kaynak:string,rel:string)=>string} [yama]  istege bagli sabit degisimi
  */
 function aynaKur(ad, oku, yama) {
   const taban = path.join(GECICI_KOK, ad);
   fs.mkdirSync(path.join(taban, "jenerator"), { recursive: true });
   fs.mkdirSync(path.join(taban, "shop", "src"), { recursive: true });
-  const yaz = (rel, ham) => {
-    const metin = yama ? yama(ham, rel) : ham;
-    fs.writeFileSync(path.join(taban, rel), metin);
-  };
+  const yaz = (rel, ham) => fs.writeFileSync(path.join(taban, rel),
+                                             yama ? yama(ham, rel) : ham);
   for (const rel of KOK_DOSYALAR) { yaz(rel, oku(rel)); }
   for (const dosya of SRC_DOSYALAR) {
-    const rel = "shop/src/" + dosya;
-    yaz(rel, jsonGom(oku(rel), ad + ":" + dosya));
+    yaz("shop/src/" + dosya, jsonGom(oku("shop/src/" + dosya), ad + ":" + dosya));
   }
   return taban;
+}
+
+/** UCRETLI varyant yamasi: tek kaynaktaki sabiti 7500 yapar (= degisikligi geri alir). */
+function ucretiAc(kaynak, rel) {
+  return (rel === "secenekler.js") ? kaynak.replace(SABIT_KAPALI, SABIT_ACIK) : kaynak;
 }
 
 // ---------------------------------------------------------------- sahte cevre (D1 + iyzico)
@@ -173,7 +189,7 @@ async function baslat(mod, d1Satirlari, kalem) {
 
 // ---------------------------------------------------------------- minimal DOM taklidi
 // (jenerator/test/vitrin-kabul.js + shop/test/sepet-panel.js deseninin konfiguratore
-//  uyarlanmis, kucultulmus hali — gercek konfigurator.js kodu kosar, kopya hesap YOK.)
+//  uyarlanmis, kucultulmus hali — GERCEK konfigurator.js kodu kosar, kopya hesap YOK.)
 
 function eleman(tag) {
   const el = {
@@ -252,6 +268,14 @@ function frontSatir(ctx, sema, degerler, secim) {
   return ctx.PRUVO_KONF.satiraYaz(satir);
 }
 
+/** BAGIMSIZ fiyat orakili: secenekler.js formulu + hacim.js (2-renk kolundan TAMAMEN ayri). */
+function orakil(ctx, sema, degerler, malzeme, renk) {
+  const h = ctx.PRUVO_KONF.hacimMm3(sema, degerler, ctx.PRUVO_HACIM);
+  if (h == null) { return null; }
+  return ctx.PRUVO_SECENEK.parametrikFiyatKurus(
+    sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
+}
+
 // ---------------------------------------------------------------- veri / senaryolar
 
 const SEMALAR = {};
@@ -264,8 +288,7 @@ if (!CERCEVE_SEMA) { throw new Error("cerceve semasi bulunamadi"); }
 
 /** D1 katalog satiri (d1-sync.py'nin yazdigi alanlar) — parametrik urun. */
 function d1Satiri(id) {
-  return { id, baslik: "Test " + id, kategori: "Jeneratör", fiyat: "", parametrik: 1,
-           gorsel: "" };
+  return { id, baslik: "Test " + id, kategori: "Jeneratör", fiyat: "", parametrik: 1, gorsel: "" };
 }
 
 const NORMAL = { acilik_eni: 100, acilik_boyu: 150, kenar_genisligi: 12, derinlik: 5.2,
@@ -275,24 +298,26 @@ const BUYUK = { acilik_eni: 250, acilik_boyu: 300, kenar_genisligi: 30, derinlik
 const DAR = { acilik_eni: 100, acilik_boyu: 150, kenar_genisligi: 9, derinlik: 5.2,
               kenar_stili: "chamfer" };
 
+// Her senaryonun "esi" (es), 2-renk kolunun DISINDAKI her seyi ayni tutan tek-renk kalemdir:
+// ucretin sifir oldugu iddiasi = "2-renk fiyati esinin fiyatina ESIT".
 const SENARYOLAR = [
   { ad: "a) 2-RENK yazi (yazi=OKAN, yazi_renk=Beyaz != renk=Siyah)",
-    kod: "a", parametreler: Object.assign({}, NORMAL, { yazi: "OKAN" }),
+    parametreler: Object.assign({}, NORMAL, { yazi: "OKAN" }),
     malzeme: "PLA", renk: "Siyah", yazi_renk: "Beyaz", ikiRenk: true },
   { ad: "b) yazisiz (yazi='')",
-    kod: "b", parametreler: Object.assign({}, NORMAL, { yazi: "" }),
+    parametreler: Object.assign({}, NORMAL, { yazi: "" }),
     malzeme: "PLA", renk: "Siyah", yazi_renk: null, ikiRenk: false },
   { ad: "c) yazi var ama yazi_renk == renk (Siyah/Siyah)",
-    kod: "c", parametreler: Object.assign({}, NORMAL, { yazi: "OKAN" }),
+    parametreler: Object.assign({}, NORMAL, { yazi: "OKAN" }),
     malzeme: "PLA", renk: "Siyah", yazi_renk: "Siyah", ikiRenk: false },
   { ad: "d1) 3x TAVAN + 2-renk (buyuk cerceve, PLA/Siyah)",
-    kod: "d", parametreler: Object.assign({}, BUYUK, { yazi: "OKAN" }),
+    parametreler: Object.assign({}, BUYUK, { yazi: "OKAN" }),
     malzeme: "PLA", renk: "Siyah", yazi_renk: "Beyaz", ikiRenk: true },
   { ad: "d2) 3x TAVAN tek renk (buyuk cerceve, PLA/Siyah)",
-    kod: "d", parametreler: Object.assign({}, BUYUK, { yazi: "" }),
+    parametreler: Object.assign({}, BUYUK, { yazi: "" }),
     malzeme: "PLA", renk: "Siyah", yazi_renk: null, ikiRenk: false },
   { ad: "d3) 3x TAVAN + 2-renk, ASA/Diger (tavan malzeme+renk DAHIL)",
-    kod: "d", parametreler: Object.assign({}, BUYUK, { yazi: "OKAN" }),
+    parametreler: Object.assign({}, BUYUK, { yazi: "OKAN" }),
     malzeme: "ASA", renk: "Diğer", renk_ozel: "mor", yazi_renk: "Beyaz", ikiRenk: true },
 ];
 
@@ -300,155 +325,161 @@ const RED_SENARYO = { ad: "e) 2-renk DAR kenar (9 mm < 10 mm) -> RED",
                       parametreler: Object.assign({}, DAR, { yazi: "OKAN" }),
                       malzeme: "PLA", renk: "Siyah", yazi_renk: "Beyaz" };
 
-function kalemYap(s) {
+function kalemYap(s, yaziRenkiDusur) {
   const k = { id: CERCEVE, malzeme: s.malzeme, renk: s.renk, adet: 1,
               parametreler: s.parametreler };
   if (s.renk_ozel) { k.renk_ozel = s.renk_ozel; }
-  if (s.yazi_renk) { k.yazi_renk = s.yazi_renk; }
+  if (s.yazi_renk && !yaziRenkiDusur) { k.yazi_renk = s.yazi_renk; }
   return k;
 }
 
-// ---------------------------------------------------------------- kosum
+// ---------------------------------------------------------------- kurulum
 
 const ham = [];
 const hatalar = [];
 const not = (s) => ham.push(s);
 
 not("Node: " + process.version + " (CI tabani: 20.x — daha yeni API KULLANMA)");
-let kapsam = "";
-try {
-  kapsam = execFileSync("git", ["-C", KOK, "diff", "--name-only", "HEAD"],
-                        { encoding: "utf8" }).trim();
-} catch (e) { kapsam = "(git diff okunamadi)"; }
-not("Calisma agaci farki (HEAD'e gore): " + (kapsam ? kapsam.split("\n").join(", ") : "(yok)"));
+not("Taban: git gecmisi DEGIL — ayni calisma agacinin iki varyanti (UCRETSIZ=0 / UCRETLI=7500).");
 not("");
 
-const ESKI_AYNA = aynaKur("eski", headden);
-const YENI_AYNA = aynaKur("yeni", diskten);
-const MUTANT_AYNA = aynaKur("mutant", diskten, (kaynak, rel) =>
-  (rel === "secenekler.js"
-    ? kaynak.replace("var IKI_RENK_EK_KURUS = 0;", "var IKI_RENK_EK_KURUS = " + ESKI_EK_KURUS + ";")
-    : kaynak));
-
-// Mutasyonun GERCEKTEN uygulandigini dogrula (sessiz no-op mutant = sahte VAKUM kaniti).
-const mutantMetin = fs.readFileSync(path.join(MUTANT_AYNA, "secenekler.js"), "utf8");
-if (!/var IKI_RENK_EK_KURUS = 7500;/.test(mutantMetin)) {
-  hatalar.push("VAKUM mutanti uygulanamadi (secenekler.js deseni degismis) — test OLU olurdu");
+const KAYNAK_SEC = diskten("secenekler.js");
+if (!KAYNAK_SEC.includes(SABIT_KAPALI)) {
+  hatalar.push("KURULUM: secenekler.js'te '" + SABIT_KAPALI + "' bulunamadi — ucret geri " +
+               "acilmis ya da sabit adi degismis olabilir (test bunu SESSIZ gecemez)");
 }
 
-const eskiMod = await import(pathToFileURL(path.join(ESKI_AYNA, "shop/src/index.js")).href);
-const yeniMod = await import(pathToFileURL(path.join(YENI_AYNA, "shop/src/index.js")).href);
-const mutantMod = await import(pathToFileURL(path.join(MUTANT_AYNA, "shop/src/index.js")).href);
+const UCRETSIZ_AYNA = aynaKur("ucretsiz", diskten);
+const UCRETLI_AYNA = aynaKur("ucretli", diskten, ucretiAc);
 
-const eskiFront = frontKur(ESKI_AYNA);
-const yeniFront = frontKur(YENI_AYNA);
+// UCRETLI varyantin GERCEKTEN yamandigini dogrula (no-op mutant = sahte vakum kaniti).
+if (!fs.readFileSync(path.join(UCRETLI_AYNA, "secenekler.js"), "utf8").includes(SABIT_ACIK)) {
+  hatalar.push("KURULUM: UCRETLI varyant yamasi uygulanamadi — (4) VAKUM kaniti gecersiz olurdu");
+}
 
-// ---- SET 1 + 2: para kaniti + parite
+const ucretsizMod = await import(
+  pathToFileURL(path.join(UCRETSIZ_AYNA, "shop/src/index.js")).href);
+const ucretliMod = await import(
+  pathToFileURL(path.join(UCRETLI_AYNA, "shop/src/index.js")).href);
+const front = frontKur(UCRETSIZ_AYNA);
+
+// ---------------------------------------------------------------- SET 1 + 2
 not("== SET 1) PARA KANITI (Worker /baslat -> D1'e yazilan birim_kurus) + SET 2) PARITE ==");
-not("  senaryo                                              | ESKI worker | YENI worker |  fark | YENI front | parite");
-const kat = SEMALAR[CERCEVE];
+not("  senaryo                                                   |  UCRETSIZ |   UCRETLI |  fark | tek-renk esi | front | parite");
 for (const s of SENARYOLAR) {
   const kalem = kalemYap(s);
-  const eski = await baslat(eskiMod, [d1Satiri(CERCEVE)], kalem);
-  const yeni = await baslat(yeniMod, [d1Satiri(CERCEVE)], kalem);
-  const front = frontSatir(yeniFront, kat, s.parametreler,
-                           { malzeme: s.malzeme, renk: s.renk, yazi_renk: s.yazi_renk });
-  const frontKurus = front.parametrik_fiyat_kurus;
-  const fark = (eski.birimKurus == null || yeni.birimKurus == null)
-    ? null : yeni.birimKurus - eski.birimKurus;
-  const pariteOk = frontKurus === yeni.birimKurus;
-  not("  " + s.ad.padEnd(52) + " | " + String(eski.birimKurus).padStart(11) + " | " +
-      String(yeni.birimKurus).padStart(11) + " | " + String(fark).padStart(5) + " | " +
-      String(frontKurus).padStart(10) + " | " + (pariteOk ? "ESIT" : "AYRIK"));
+  const ucretsiz = await baslat(ucretsizMod, [d1Satiri(CERCEVE)], kalem);
+  const ucretli = await baslat(ucretliMod, [d1Satiri(CERCEVE)], kalem);
+  // "Esi": ayni kalem ama 2. renk YOK -> 2-renk kolunun disindaki her sey birebir ayni.
+  const es = await baslat(ucretsizMod, [d1Satiri(CERCEVE)], kalemYap(s, true));
+  const f = frontSatir(front, CERCEVE_SEMA, s.parametreler,
+                       { malzeme: s.malzeme, renk: s.renk, yazi_renk: s.yazi_renk });
+  const frontKurus = f.parametrik_fiyat_kurus;
+  const fark = (ucretsiz.birimKurus == null || ucretli.birimKurus == null)
+    ? null : ucretli.birimKurus - ucretsiz.birimKurus;
+  const pariteOk = frontKurus === ucretsiz.birimKurus;
+  not("  " + s.ad.padEnd(57) + " | " + String(ucretsiz.birimKurus).padStart(9) + " | " +
+      String(ucretli.birimKurus).padStart(9) + " | " + String(fark).padStart(5) + " | " +
+      String(es.birimKurus).padStart(12) + " | " + String(frontKurus).padStart(5) + " | " +
+      (pariteOk ? "ESIT" : "AYRIK"));
 
-  if (eski.kod !== 200 || yeni.kod !== 200) {
-    hatalar.push("(1" + s.kod + ") 200 bekleniyordu: eski=" + eski.kod + "/" + eski.hata +
-                 " yeni=" + yeni.kod + "/" + yeni.hata + " [" + s.ad + "]");
+  if (ucretsiz.kod !== 200 || ucretli.kod !== 200 || es.kod !== 200) {
+    hatalar.push("(1) 200 bekleniyordu: ucretsiz=" + ucretsiz.kod + "/" + ucretsiz.hata +
+                 " ucretli=" + ucretli.kod + " es=" + es.kod + " [" + s.ad + "]");
     continue;
   }
-  const beklenenFark = s.ikiRenk ? -ESKI_EK_KURUS : 0;
-  if (fark !== beklenenFark) {
-    hatalar.push("(1" + s.kod + ") fark " + fark + ", beklenen " + beklenenFark + " [" + s.ad + "]");
+  // ASIL IDDIA: 2-renk kalemin fiyati, tek-renk esinin fiyatiyla BIREBIR ayni (ucret 0).
+  if (ucretsiz.birimKurus !== es.birimKurus) {
+    hatalar.push("(1) 2-renk kalemi hala ek ucret aliyor: " + ucretsiz.birimKurus +
+                 " != tek-renk esi " + es.birimKurus + " [" + s.ad + "]");
   }
-  if (!pariteOk) {
-    hatalar.push("(2) PARITE KIRIK: front " + frontKurus + " != worker " + yeni.birimKurus +
+  // KALDIRILAN TUTAR: UCRETLI varyantta 2-renk kalemi tam 7500 fazla olmali (yoksa iddia bos).
+  const beklenenFark = s.ikiRenk ? EK_KURUS : 0;
+  if (fark !== beklenenFark) {
+    hatalar.push("(1) UCRETLI-UCRETSIZ farki " + fark + ", beklenen " + beklenenFark +
                  " [" + s.ad + "]");
   }
-  // ESKI tarafta da parite vardi (kaymayi biz yaratmadik) — bilgi + capa.
-  const eskiFrontKurus = frontSatir(eskiFront, kat, s.parametreler,
-    { malzeme: s.malzeme, renk: s.renk, yazi_renk: s.yazi_renk }).parametrik_fiyat_kurus;
-  if (eskiFrontKurus !== eski.birimKurus) {
-    hatalar.push("(2) ESKI tarafta parite zaten kirikmis: front " + eskiFrontKurus +
-                 " != worker " + eski.birimKurus + " [" + s.ad + "]");
+  if (!pariteOk) {
+    hatalar.push("(2) PARITE KIRIK: front " + frontKurus + " != worker " + ucretsiz.birimKurus +
+                 " [" + s.ad + "]");
   }
-  // 2-renk kaleminde satir detayi ucret YALANI soylememeli.
   if (s.ikiRenk) {
-    if (!/2 renk/.test(yeni.detay || "")) {
-      hatalar.push("(1" + s.kod + ") 2-renk detayi kayboldu: " + yeni.detay);
+    if (!/2 renk/.test(ucretsiz.detay || "")) {
+      hatalar.push("(1) 2-renk detayi kayboldu: " + ucretsiz.detay);
     }
-    if (/\+75 TL/.test(yeni.detay || "")) {
-      hatalar.push("(1" + s.kod + ") detay hala '+75 TL' diyor: " + yeni.detay);
+    if (/\+75 TL/.test(ucretsiz.detay || "")) {
+      hatalar.push("(1) detay hala '+75 TL' diyor: " + ucretsiz.detay);
     }
-    if (front.parametre_detay !== yeni.detay) {
-      hatalar.push("(2) detay metni ayristi: front '" + front.parametre_detay +
-                   "' != worker '" + yeni.detay + "'");
+    if (f.parametre_detay !== ucretsiz.detay) {
+      hatalar.push("(2) detay metni ayristi: front '" + f.parametre_detay +
+                   "' != worker '" + ucretsiz.detay + "'");
     }
   }
 }
 
 // 3x TAVAN degerinin GERCEKTEN tavan oldugunu kanitla (yoksa (d) bos yere yesil yanar).
 const tavanKurus = Math.round(CERCEVE_SEMA.tabanFiyatTL * 100 * 3);
-const dTek = await baslat(yeniMod, [d1Satiri(CERCEVE)],
+const dTek = await baslat(ucretsizMod, [d1Satiri(CERCEVE)],
   kalemYap(SENARYOLAR.find((x) => x.ad.startsWith("d2"))));
-not("  3x tavan kontrolu: taban " + CERCEVE_SEMA.tabanFiyatTL + " TL -> tavan " + tavanKurus +
-    " kurus; d2 olculen " + dTek.birimKurus + (dTek.birimKurus === tavanKurus ? " (TAVANDA)" : " (TAVANDA DEGIL)"));
+const dCift = await baslat(ucretsizMod, [d1Satiri(CERCEVE)],
+  kalemYap(SENARYOLAR.find((x) => x.ad.startsWith("d1"))));
+const dCiftUcretli = await baslat(ucretliMod, [d1Satiri(CERCEVE)],
+  kalemYap(SENARYOLAR.find((x) => x.ad.startsWith("d1"))));
+not("  3x tavan: taban " + CERCEVE_SEMA.tabanFiyatTL + " TL -> tavan " + tavanKurus +
+    " kurus; tek-renk " + dTek.birimKurus + (dTek.birimKurus === tavanKurus ? " (TAVANDA)" : " (TAVANDA DEGIL)") +
+    "; 2-renk " + dCift.birimKurus + " (UCRETLI'de " + dCiftUcretli.birimKurus + " = tavan ASILIYORDU)");
 if (dTek.birimKurus !== tavanKurus) {
   hatalar.push("(1d) buyuk cerceve tavana carpmiyor (" + dTek.birimKurus + " != " + tavanKurus +
                ") — tavan iddiasi bos olurdu");
 }
+if (dCift.birimKurus !== tavanKurus) {
+  hatalar.push("(1d) 2-renk kalem tavani asiyor: " + dCift.birimKurus + " != " + tavanKurus);
+}
+if (dCiftUcretli.birimKurus !== tavanKurus + EK_KURUS) {
+  hatalar.push("(1d) UCRETLI varyantta tavan-disi ek beklenmiyordu: " + dCiftUcretli.birimKurus);
+}
 
-// (e) dar kenar reddi degismedi mi
-const eskiRed = await baslat(eskiMod, [d1Satiri(CERCEVE)], kalemYap(RED_SENARYO));
-const yeniRed = await baslat(yeniMod, [d1Satiri(CERCEVE)], kalemYap(RED_SENARYO));
-not("  " + RED_SENARYO.ad.padEnd(52) + " | eski " + eskiRed.kod + "/" + eskiRed.hata +
-    " | yeni " + yeniRed.kod + "/" + yeniRed.hata);
-if (eskiRed.kod !== 400 || eskiRed.hata !== "iki-renk-kenar-dar" ||
-    yeniRed.kod !== yeniRed.kod || yeniRed.kod !== 400 || yeniRed.hata !== "iki-renk-kenar-dar") {
-  hatalar.push("(1e) dar kenar reddi degisti: eski " + eskiRed.kod + "/" + eskiRed.hata +
-               " yeni " + yeniRed.kod + "/" + yeniRed.hata);
+// (e) dar kenar reddi iki varyantta da AYNI (urun satista, kapi yerinde)
+const redUcretsiz = await baslat(ucretsizMod, [d1Satiri(CERCEVE)], kalemYap(RED_SENARYO));
+const redUcretli = await baslat(ucretliMod, [d1Satiri(CERCEVE)], kalemYap(RED_SENARYO));
+not("  " + RED_SENARYO.ad.padEnd(57) + " | ucretsiz " + redUcretsiz.kod + "/" + redUcretsiz.hata +
+    " | ucretli " + redUcretli.kod + "/" + redUcretli.hata);
+if (redUcretsiz.kod !== 400 || redUcretsiz.hata !== "iki-renk-kenar-dar" ||
+    redUcretli.kod !== 400 || redUcretli.hata !== "iki-renk-kenar-dar") {
+  hatalar.push("(1e) dar kenar reddi degisti: ucretsiz " + redUcretsiz.kod + "/" +
+               redUcretsiz.hata + " ucretli " + redUcretli.kod + "/" + redUcretli.hata);
 }
 not("");
 
-// ---- SET 3: regresyon (tum parametrik aileler, 2-renk YOK)
-not("== SET 3) REGRESYON — 23 parametrik ailenin varsayilan olcusu (2-renk YOK) ==");
+// ---------------------------------------------------------------- SET 3
+not("== SET 3) REGRESYON ==");
 const aileler = Object.keys(SEMALAR).sort();
-let regOk = 0, regFark = 0;
+let regOk = 0;
 const regSatir = [];
 for (const id of aileler) {
   const sema = SEMALAR[id];
-  const degerler = yeniFront.PRUVO_KONF.varsayilanDegerler(sema);
+  const degerler = front.PRUVO_KONF.varsayilanDegerler(sema);
   const kalem = { id, malzeme: "PETG", renk: "Siyah", adet: 1, parametreler: degerler };
-  const eski = await baslat(eskiMod, [d1Satiri(id)], kalem);
-  const yeni = await baslat(yeniMod, [d1Satiri(id)], kalem);
-  if (eski.kod === yeni.kod && eski.birimKurus === yeni.birimKurus) {
+  const r = await baslat(ucretsizMod, [d1Satiri(id)], kalem);
+  const beklenen = orakil(front, sema, degerler, "PETG", "Siyah");
+  if (r.kod === 200 && r.birimKurus === beklenen) {
     regOk += 1;
   } else {
-    regFark += 1;
-    hatalar.push("(3) " + id + ": eski " + eski.kod + "/" + eski.birimKurus +
-                 " -> yeni " + yeni.kod + "/" + yeni.birimKurus);
+    hatalar.push("(3) " + id + ": worker " + r.kod + "/" + r.birimKurus +
+                 " != bagimsiz orakil " + beklenen);
   }
-  regSatir.push(id + "=" + yeni.birimKurus);
+  regSatir.push(id + "=" + r.birimKurus);
 }
-not("  " + regOk + "/" + aileler.length + " aile BIREBIR ayni (fark: " + regFark + ")");
-not("  fiyatlar (PETG/Siyah, varsayilan olcu, kurus): " + regSatir.join(" · "));
+not("  " + regOk + "/" + aileler.length + " parametrik aile (varsayilan olcu, PETG/Siyah) " +
+    "BAGIMSIZ orakille BIREBIR");
+not("  fiyatlar (kurus): " + regSatir.join(" · "));
 
-// 13 KONFIGURLU (dekor konfiguratoru) urun — 2-renk yolu bu kolda HIC yok; degismedigi
-// SAYIYLA gosterilir (mimar kabul maddesi 3).
+// 13 KONFIGURLU (dekor konfiguratoru) urun — 2-renk kolu bu urunlere HIC dokunmamali.
 const { KONFIGURLAR } = await import(
-  pathToFileURL(path.join(YENI_AYNA, "shop/src/konfigurlar.js")).href);
+  pathToFileURL(path.join(UCRETSIZ_AYNA, "shop/src/konfigurlar.js")).href);
 const konfigurIdler = [...KONFIGURLAR.keys()].sort();
 const konfigurDenemeler = [[150, "PLA"], [300, "ASA"], [60, "PLA"]];
-let kOk = 0, kFark = 0;
+let kOk = 0;
 const kSatir = [];
 for (const id of konfigurIdler) {
   const fiyatlar = [];
@@ -456,68 +487,89 @@ for (const id of konfigurIdler) {
     const d1 = { id, baslik: "Test " + id, kategori: "Skan Art", fiyat: "500 TL",
                  parametrik: 0, gorsel: "" };
     const kalem = { id, malzeme, renk: "Siyah", adet: 1, parametreler: { boy_mm: boy } };
-    const eski = await baslat(eskiMod, [d1], kalem);
-    const yeni = await baslat(yeniMod, [d1], kalem);
-    if (eski.kod === yeni.kod && eski.birimKurus === yeni.birimKurus && yeni.kod === 200) {
+    const a = await baslat(ucretsizMod, [d1], kalem);
+    const b = await baslat(ucretliMod, [d1], kalem);
+    if (a.kod === 200 && a.kod === b.kod && a.birimKurus === b.birimKurus) {
       kOk += 1;
     } else {
-      kFark += 1;
-      hatalar.push("(3-konfigur) " + id + " " + boy + "mm/" + malzeme + ": eski " + eski.kod +
-                   "/" + eski.birimKurus + " -> yeni " + yeni.kod + "/" + yeni.birimKurus);
+      hatalar.push("(3-konfigur) " + id + " " + boy + "mm/" + malzeme + ": ucretsiz " + a.kod +
+                   "/" + a.birimKurus + " != ucretli " + b.kod + "/" + b.birimKurus);
     }
-    fiyatlar.push(yeni.birimKurus);
+    fiyatlar.push(a.birimKurus);
   }
   kSatir.push(id.replace("-serit-dekoratif-figur", "") + "=" + fiyatlar.join("/"));
 }
-not("  " + kOk + "/" + (konfigurIdler.length * konfigurDenemeler.length) +
-    " konfigur kalemi (" + konfigurIdler.length + " urun x 150/PLA,300/ASA,60/PLA) BIREBIR ayni (fark: " +
-    kFark + ")");
+not("  " + kOk + "/" + (konfigurIdler.length * konfigurDenemeler.length) + " konfigur kalemi (" +
+    konfigurIdler.length + " urun x 150/PLA,300/ASA,60/PLA) iki varyantta BIREBIR ayni");
 not("  konfigur fiyatlari (150PLA/300ASA/60PLA, kurus): " + kSatir.join(" · "));
 not("");
 
-// ---- SET 4: VAKUM (degisikligi geri al -> (1a) KIRMIZI yanmali)
-not("== SET 4) VAKUM — IKI_RENK_EK_KURUS 7500'e geri alinirsa ==");
-const aKalem = kalemYap(SENARYOLAR[0]);
-const mutantSonuc = await baslat(mutantMod, [d1Satiri(CERCEVE)], aKalem);
-const eskiA = await baslat(eskiMod, [d1Satiri(CERCEVE)], aKalem);
-const yeniA = await baslat(yeniMod, [d1Satiri(CERCEVE)], aKalem);
-const vakumFark = mutantSonuc.birimKurus - eskiA.birimKurus;
-not("  mutant birim=" + mutantSonuc.birimKurus + " · eski birim=" + eskiA.birimKurus +
-    " · yeni birim=" + yeniA.birimKurus);
-not("  mutant-eski farki=" + vakumFark + " (0 olmali: geri alinca ESKI fiyata doner)");
-const vakumIddiaKirmizi = (mutantSonuc.birimKurus - eskiA.birimKurus) !== -ESKI_EK_KURUS;
-not("  (1a) iddiasi mutantta " + (vakumIddiaKirmizi ? "KIRMIZI yanar ✅ (nobetci CANLI)"
-                                                    : "YESIL kalir ❌ (nobetci OLU)"));
-if (vakumFark !== 0) {
-  hatalar.push("(4) mutant ESKI fiyata donmedi (fark " + vakumFark + ") — vakum kaniti gecersiz");
+// ---------------------------------------------------------------- SET 4 (VAKUM)
+not("== SET 4) VAKUM — degisiklik geri alinirsa (IKI_RENK_EK_KURUS = 7500) ==");
+const vaKalem = kalemYap(SENARYOLAR[0]);
+const vaEs = kalemYap(SENARYOLAR[0], true);
+const vUcretsiz = await baslat(ucretsizMod, [d1Satiri(CERCEVE)], vaKalem);
+const vUcretsizEs = await baslat(ucretsizMod, [d1Satiri(CERCEVE)], vaEs);
+const vUcretli = await baslat(ucretliMod, [d1Satiri(CERCEVE)], vaKalem);
+const vUcretliEs = await baslat(ucretliMod, [d1Satiri(CERCEVE)], vaEs);
+not("  UCRETSIZ: 2-renk=" + vUcretsiz.birimKurus + " tek-renk=" + vUcretsizEs.birimKurus +
+    " -> fark " + (vUcretsiz.birimKurus - vUcretsizEs.birimKurus));
+not("  UCRETLI : 2-renk=" + vUcretli.birimKurus + " tek-renk=" + vUcretliEs.birimKurus +
+    " -> fark " + (vUcretli.birimKurus - vUcretliEs.birimKurus));
+const vakumKirmizi = vUcretli.birimKurus !== vUcretliEs.birimKurus;
+not("  (1) iddiasi ('2-renk == tek-renk') UCRETLI varyantta " +
+    (vakumKirmizi ? "KIRMIZI yanar ✅ (nobetci CANLI)" : "YESIL kalir ❌ (nobetci OLU)"));
+if (!vakumKirmizi) {
+  hatalar.push("(4) OLU NOBETCI: ucret geri acildiginda (1) iddiasi yine de yesil kaliyor");
 }
-if (!vakumIddiaKirmizi) {
-  hatalar.push("(4) OLU NOBETCI: degisiklik geri alindiginda (1a) iddiasi yine de yesil kaliyor");
+if (vUcretli.birimKurus - vUcretliEs.birimKurus !== EK_KURUS) {
+  hatalar.push("(4) geri alinan tutar " + (vUcretli.birimKurus - vUcretliEs.birimKurus) +
+               ", beklenen " + EK_KURUS);
 }
-if (!/\+75 TL/.test(mutantSonuc.detay || "")) {
-  hatalar.push("(4) mutant detayinda '+75 TL' yok — metin sabitten turemiyor olabilir: " +
-               mutantSonuc.detay);
+if (!/\+75 TL/.test(vUcretli.detay || "")) {
+  hatalar.push("(4) UCRETLI detayda '+75 TL' yok — metin sabitten turemiyor olabilir: " +
+               vUcretli.detay);
 }
-not("  mutant detay metni: " + mutantSonuc.detay);
-not("  yeni  detay metni: " + yeniA.detay);
+not("  UCRETLI detay: " + vUcretli.detay);
+not("  UCRETSIZ detay: " + vUcretsiz.detay);
 not("");
 
-// ---- SET 5: tek kaynak (ikinci sabit kalmadi mi)
+// ---------------------------------------------------------------- SET 5 (tek kaynak)
 not("== SET 5) TEK KAYNAK — front/Worker kaynaginda ikinci 7500 sabiti ==");
-const tekKaynakDosya = ["jenerator/konfigurator.js", "shop/src/parametrik.js"];
-for (const rel of tekKaynakDosya) {
-  const metin = diskten(rel);
-  const kacak = metin.split("\n")
+for (const rel of ["jenerator/konfigurator.js", "shop/src/parametrik.js"]) {
+  const kacak = diskten(rel).split("\n")
     .map((satir, i) => ({ satir, no: i + 1 }))
     .filter((x) => /7500/.test(x.satir) && !/^\s*(\/\/|\*|\/\*)/.test(x.satir));
   not("  " + rel + ": kod satirinda '7500' gecisi = " + kacak.length);
-  for (const k of kacak) { hatalar.push("(5) " + rel + ":" + k.no + " ikinci sabit: " + k.satir.trim()); }
+  for (const k of kacak) {
+    hatalar.push("(5) " + rel + ":" + k.no + " ikinci sabit: " + k.satir.trim());
+  }
 }
-const sec = diskten("secenekler.js");
-const tekTanim = (sec.match(/var IKI_RENK_EK_KURUS\s*=/g) || []).length;
+const tekTanim = (KAYNAK_SEC.match(/var IKI_RENK_EK_KURUS\s*=/g) || []).length;
 not("  secenekler.js: IKI_RENK_EK_KURUS tanimi = " + tekTanim + " (1 olmali)");
 if (tekTanim !== 1) { hatalar.push("(5) secenekler.js'te IKI_RENK_EK_KURUS tanimi " + tekTanim); }
 not("");
+
+// ---------------------------------------------------------------- BILGI: tarihsel karsilastirma
+// git HEAD hala UCRETLI iken (yani bu degisiklik daha commit/merge edilmemisken) eski-yeni
+// farkini SAYIYLA gosterir. HEAD ucretsizlestikten sonra karsilastirma totolojiye donecegi
+// icin ATLANIR — iddia degil, BILGIDIR (bloklayici iddialar yukarida, tabani git'ten bagimsiz).
+not("== BILGI) git HEAD ile tarihsel karsilastirma ==");
+try {
+  const headSec = headden("secenekler.js");
+  if (headSec.includes(SABIT_ACIK) || /var IKI_RENK_EK_KURUS = 7500;/.test(headSec)) {
+    const headAyna = aynaKur("head", headden);
+    const headMod = await import(pathToFileURL(path.join(headAyna, "shop/src/index.js")).href);
+    const h = await baslat(headMod, [d1Satiri(CERCEVE)], vaKalem);
+    not("  HEAD hala ucretli: 2-renk kalem HEAD=" + h.birimKurus + " -> bugun=" +
+        vUcretsiz.birimKurus + " (fark " + (vUcretsiz.birimKurus - h.birimKurus) + ")");
+  } else {
+    not("  ATLANDI — HEAD zaten ucretsiz (degisiklik commit/merge edilmis). Bloklayici " +
+        "iddialar git gecmisine BAGLI DEGIL, iki-varyant tabaniyla olculur.");
+  }
+} catch (e) {
+  not("  OLCULEMEDI: " + e.message);
+}
 
 // ---------------------------------------------------------------- rapor
 console.log(ham.join("\n"));
