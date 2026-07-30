@@ -841,14 +841,23 @@ IZIN_LISTESI = {
     "jenerator/test/birlestir.py": (
         R_URETEC + " Somut: aile .js dosyalarini jenerator/hacim.js'e BIRLESTIREN arac "
         "(kaynagin UZERINE yazar) — CI'da kosmasi calisma agacini degistirirdi."),
-    "jenerator/test/dogrula.py": R_AYRI,
+    # "jenerator/test/dogrula.py" MUAFIYETI KALDIRILDI (31 Tem, madde 34b) — R_AYRI blanket
+    # gerekcesi bu dosyanin `--kendini-test` kolu icin GECERSIZDI: kol OpenSCAD YASAK
+    # nobetcisini sentetik PATH/symlink fiksturleriyle sinar (18 iddia), openscad/ag/build.py
+    # GEREKTIRMEZ ve deterministiktir. Muafiyet yuzunden nobetcinin KENDISI hic olculmuyordu.
+    # Bayraksiz tam kosum HALA CI disi (openscad ister) — susturulmadi, yalnizca baglanmadi.
     "jenerator/test/fiyat-tablosu-uret.py": (
         R_URETEC + " Somut: Okan'a .md fiyat sablonu ureten dokum araci."),
     "jenerator/test/fiyat-test.js": R_AYRI,
     "jenerator/test/hacim-eval.js": (
         R_URETEC + " Somut: stdin'den JSON alip hacim hesaplayan CLI yardimcisi "
         "(argumansiz 'gecersiz JSON' der); kabul testi degil, olcum borusu."),
-    "jenerator/test/kabul.py": R_AYRI,
+    # "jenerator/test/kabul.py" MUAFIYETI KALDIRILDI (31 Tem, madde 34b) — ayni gerekce:
+    # `--kendini-test` kolu TARAMA KUMESI nobetcisini sinar (5 iddia: gitignore'lu artefakt
+    # sahte KIRMIZI yakmiyor · izlenen kaynak taraniyor · izlenmeyen-ama-yoksayilmayan yeni
+    # kaynak yakalaniyor · beyanli uretilen kok taraniyor · kume olculemezse OLCULEMEDI).
+    # argparse'ta sys.exit(kendini_test()) ile ERKEN DONER: TEST 1'in OpenSCAD render'ina ve
+    # build.py cagrisina HIC girmez. 8 testlik TAM suite CI'ya BAGLANMADI (openscad ister).
     "jenerator/test/kalibrasyon-referans-uret.py": (
         R_URETEC + " Somut: kalibrasyon-referans.json fiksturunu YAZAR — CI'da kosarsa "
         "kabul testlerinin karsilastirdigi referansi EZER (test kendi kendini onaylardi)."),

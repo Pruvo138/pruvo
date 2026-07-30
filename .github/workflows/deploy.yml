@@ -827,6 +827,23 @@ jobs:
       - name: "Vitrin kabul kapisi (gizli Jeneratör kategorisi + sari kart fiyati + banner + edge sozlesmesi)"
         run: node jenerator/test/vitrin-kabul.js
 
+      # JENERATOR NOBETCILERININ KENDI KABULU (madde 34b, 31 Tem). Bu iki nobetci 30 Tem'de
+      # yazildi ama `jenerator/test/*` R_AYRI blanket muafiyeti yuzunden CI'da HIC kosmuyordu
+      # -> nobetcinin kendisi curuse kimse gormezdi (olculmus sinif: "yesil yanan olu nobetci").
+      # 🔴 YALNIZ `--kendini-test` KOLLARI BAGLANDI. Bu kollar sentetik fikstur uzerinde
+      # calisir: ag YOK, OpenSCAD YOK, build.py YOK, wrangler YOK. Ikisi de argparse'ta
+      # sys.exit(kendini_test()) ile ERKEN DONER — bayraksiz tam suite'e (TEST 1 OpenSCAD
+      # render + build.py cagrisi) HIC girmez. Bayraksiz tam kosum CI'ya BAGLANMADI ve
+      # susturulmadi; yerelde/merge kapisinda kosulmaya devam ediyor.
+      # Artefakt birakmaz: her iki kol da yazdigi gecici dosyayi (jenerator/*-gecici.js,
+      # urun/_pruvo-kendini-test, __pycache__ .pyc) kendi temizler — olculdu, kosum sonrasi
+      # `git status --porcelain` degismedi. Toplam ~0,5 s.
+      - name: "OpenSCAD yasak nobetcisi — kendini test (18 iddia; PATH/symlink/maskeli shim)"
+        run: python3 jenerator/test/dogrula.py --kendini-test
+
+      - name: "Jeneratör tarama kumesi nobetcisi — kendini test (5 iddia; sahte KIRMIZI + OLCULEMEDI)"
+        run: python3 jenerator/test/kabul.py --kendini-test
+
       # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
       # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden
       # onizlenmis her parametre seti YAZISIZ mesh'i (kase: herkese "PRUVO") servis etmeye
