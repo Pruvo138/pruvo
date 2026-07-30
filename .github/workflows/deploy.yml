@@ -433,6 +433,33 @@ jobs:
       - name: Konfigur bundle kapisi — kendini test (yanlis-pozitif + kirmizi-mutasyon)
         run: python3 tools/konfigur-bundle-kapisi.py --kendini-test
 
+      # KONFIGUR SEMASI -> D1 (FAZ 1+2). Konfigur semasi artik SADECE Worker bundle'inda degil,
+      # D1 'konfigur' kolonunda da yasar (urun eklenince pre-push hook zaten senkronlar).
+      # Bu adimin ASIL kaniti: arama.urun_hash() konfigur'u KAPSAMIYOR -> konfigur icerik-upsert
+      # yoluna konsaydi degisim SESSIZCE eskirdi. Test bunu dogrudan olcer (alan degistir ->
+      # hash birebir ayni -> diff_plan 0 UPDATE) ve hedefli konfigur_plan'in AYNI degisimi
+      # yakaladigini gosterir; ayrica 17/17 JSON birebir, idempotens, temizleme, fail-closed
+      # bozuk-sema ve 3 no-op mutasyon guardi.
+      # OFFLINE: canli D1/wrangler/AG YOK — gercek d1-sema.sql bellek-ici sqlite3'e yuklenir.
+      # fts5-trigram CI'da YOK; test bunu OLCER ve yalniz "FTS thrash" iddiasini ACIKCA
+      # ATLANDI der (kalan 33 iddia kosar) -> kardesi taban-fiyat-d1-test.py gibi MUAF olmasi
+      # gerekmez, burada BLOKLAYICI kosar. ~2 s.
+      - name: Konfigur D1 semasi kabul testi (hash-kor alan + hedefli UPDATE)
+        run: python3 tools/konfigur-d1-test.py
+
+      # KONFIGUR GOLGE MODU (FAZ 3). Worker D1'den `konfigur`u OKUR ama fiyati HALA bundle'dan
+      # hesaplar; bu adim iki seyi birden kilitler:
+      # (1) MUSTERI DAVRANISI DEGISMEDI — capa 150/PLA=73600, 300/ASA=150000, anka-kusu
+      #     150/PLA tutar '986,00 TL' (kargo dahil), konfigursuz urun aynen; hepsi konfigur
+      #     kolonu VARKEN ve YOKKEN birebir ayni (17 urun x 3 nokta = 51 kalem dahil).
+      # (2) FARK OLCULEBILIR — bundle==D1 iken fark 0 ve HIC log yok; kasten farklilastirilmis
+      #     fiksturde ayrisan ALAN YOLU + KURUS farki gorunur, ama tahsilat DEGISMEZ.
+      # Ayrica: d1-eksik/bundle-eksik/d1-bozuk siniflari, kolon yokken fail-safe odeme,
+      # /yonet/konfigur-golge rapor ucu (anahtarsiz 404, YAZMA 0) ve 4 no-op mutasyonu.
+      # OFFLINE: wrangler YOK, ag YOK, siparis YOK, dosya yazmaz. ~10 s.
+      - name: Konfigur golge modu kabul testi (davranis degismedi + fark olculebilir)
+        run: node shop/test/konfigur-golge.mjs
+
       # FIYAT ESDEGERLIGI + PROVA UCU (shop/test/fiyat-prova.mjs). Iki seyi birden kilitler:
       # (1) ESDEGERLIK — konfigur aynasinin uretilmis artefakta cevrilmesi ve fiyat hesabinin
       #     sepetiFiyatla()'ya cikarilmasi fiyati DEGISTIRMEDI: ESKI kod (git HEAD: elle ayna)

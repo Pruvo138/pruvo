@@ -34,6 +34,7 @@ import { SEMALAR } from "./semalar.js";
 import { konfigurHesapla } from "./konfigur.js";
 import { KONFIGURLAR } from "./konfigurlar.js";
 import { konfigurBeklenirMi } from "./konfigur-beklenen.js";
+import { golgeKalem, golgeLogSatiri } from "./konfigur-golge.js";
 import { yonet, gecmiseEkle } from "./yonet.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
@@ -261,10 +262,39 @@ async function sepetiFiyatla(env, kalemler) {
   // FIYAT SUNUCUDA: sepetteki id'lerin guncel kaydi D1 katalogundan (SALT OKUMA).
   const idler = [...new Set(kalemler.map((k) => k.id))];
   const yertut = idler.map(() => "?").join(",");
-  const sonuc = await env.KATALOG.prepare(
-    "SELECT id, baslik, kategori, fiyat, parametrik, gorsel FROM urunler WHERE id IN (" + yertut + ")"
-  ).bind(...idler).all();
+  const ALANLAR = "id, baslik, kategori, fiyat, parametrik, gorsel";
+  // FAZ 3 GOLGE MODU: `konfigur` (D1'deki sema) AYNI SELECT'e kolon olarak eklendi —
+  // EK SORGU ve EK ROUND-TRIP YOK, satirla birlikte gelir (maliyet O(sepet kalemi),
+  // katalog buyuklugunden BAGIMSIZ). Deger fiyata KARISMAZ; yalnizca bundle ile kiyaslanip
+  // olculur (bkz. konfigur-golge.js).
+  //
+  // 🔴 FAIL-SAFE (deploy sirasi tuzagi): `konfigur` kolonu canli D1'e ancak
+  // `python3 tools/d1-sync.py --sema` kosunca girer. Worker o ALTER'dan ONCE deploy edilirse
+  // kolonlu SELECT "no such column" ile PATLAR ve TUM ODEME YOLU DUSERDI. Bu yuzden hata
+  // halinde ESKI (kolonsuz) SELECT'e dusulur: golge olcumu kapanir, tahsilat AYNEN calisir.
+  let sonuc;
+  try {
+    sonuc = await env.KATALOG.prepare(
+      "SELECT " + ALANLAR + ", konfigur FROM urunler WHERE id IN (" + yertut + ")"
+    ).bind(...idler).all();
+  } catch (e) {
+    console.log("konfigur-golge SELECT dustu, kolonsuz yola dusuldu: " + (e && e.message || e));
+    sonuc = await env.KATALOG.prepare(
+      "SELECT " + ALANLAR + " FROM urunler WHERE id IN (" + yertut + ")"
+    ).bind(...idler).all();
+  }
   const katalog = new Map((sonuc.results || []).map((u) => [u.id, u]));
+
+  // GOLGE KAYDI — para yolunun DISINDA. Hicbir dondugu deger fiyata/tutara/siparise girmez;
+  // atarsa yutulur (golge olcumu tahsilati ASLA dusuremez).
+  const golgeYaz = (k, u, birimKurus) => {
+    try {
+      const g = golgeKalem(k, SECENEK, KONFIGURLAR.get(k.id) || null,
+                           (u && u.konfigur) || "", birimKurus);
+      const satir = golgeLogSatiri(k.id, g);
+      if (satir) { console.log(satir); }
+    } catch (e) { /* golge sessizdir: olcum hatasi parayi etkilemez */ }
+  };
 
   const satirlar = [];
   let toplamKurus = 0;
@@ -300,6 +330,9 @@ async function sepetiFiyatla(env, kalemler) {
       // 1.000,00 TL SESSIZCE eksik tahsil edilirdi (musteri gercek bedelin ~%33'unu oder).
       // Artik sabit fiyat HESAPLANMAZ; kalem konfigur kolunun kendi 400'uyle (yukaridaki
       // KONFIGUR_ODEME_ACIK kapisiyla AYNI cevap) WhatsApp kanalina duser.
+      // GOLGE: bu tam da "D1'de VAR, bundle'da YOK" penceresi — FAZ 4'un kapatacagi hal.
+      // Kaydi ATILIR ki pencere sayilabilsin (davranis DEGISMEZ, yine 400 doner).
+      golgeYaz(k, u, undefined);
       return { hata: { hata: "konfigur-urun", id: k.id,
                        mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, kod: 400 };
     } else if (u.parametrik) {
@@ -334,6 +367,11 @@ async function sepetiFiyatla(env, kalemler) {
       }
       birimKurus = ozet.birimKurus;
     }
+
+    // GOLGE OLCUMU (FAZ 3) — fiyat YUKARIDA bundle'dan hesaplandi ve DEGISMEZ. Burada yalnizca
+    // "ayni kalemi D1'deki semayla fiyatlasaydik kac kurus fark ederdi?" sorusu kaydedilir.
+    // Konfigursuz urunlerde (katalogun ~%99,9'u) durum "yok" -> HIC log yazilmaz.
+    golgeYaz(k, u, birimKurus);
 
     // Ara yuvarlama YOK: birim kurus x adet, kalem tutari kurusuyla toplanir.
     const tutar = birimKurus * k.adet;
