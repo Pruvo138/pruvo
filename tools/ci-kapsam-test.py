@@ -1656,11 +1656,63 @@ KATLAMA_FIKSTURLERI = (
      "tire dahil)"),
 )
 
+# ---- ICRA GOVDESI FIKSTURLERI (_icra_govdesi onek soyma nobetcisi) ---------
+# 🔴 NEDEN AYRI TABLO: `- run:` onekinin soyulmasi PARSER-FIRST'ten sonra IKINCI
+# savunma hattidir (iki kol da artik BARE komut uretir) -> sabotaj enjeksiyonu onu
+# tek basina oldurdugunde HICBIR kapi kirmizi yanmiyordu (olculdu: KACTI). Ikinci
+# hat da NOBETLI olmali: yarin `run:` cozumu degisir de ham satir yeniden gelirse,
+# onek soyma sessizce kayipsa cagri kapiya TUMUYLE gorunmez olur (Y05'in kok nedeni).
+ICRA_GOVDESI_FIKSTURLERI = (
+    # (ham_satir, beklenen_govde, etiket)
+    ("        run: python3 tools/zzz-sentetik-test.py",
+     "python3 tools/zzz-sentetik-test.py", "CIPLAK `run:` oneki soyulmali"),
+    ("      - run: python3 tools/zzz-sentetik-test.py",
+     "python3 tools/zzz-sentetik-test.py",
+     "🔴 DIZI TIRESI `- run:` oneki de soyulmali (ADSIZ adim, mesru GHA yazimi)"),
+    ("      -   run: python3 tools/zzz-sentetik-test.py",
+     "python3 tools/zzz-sentetik-test.py", "tire ile `run:` arasi COK BOSLUK"),
+    ("      - name: python3 tools/zzz-sentetik-test.py", None,
+     "adim ADI icra DEGIL (T7 mensiyon sinifi)"),
+    ("        name: python3 tools/zzz-sentetik-test.py", None,
+     "tiresiz adim ADI da icra DEGIL"),
+    ("        # python3 tools/zzz-sentetik-test.py", None, "YAML yorumu icra DEGIL"),
+    ("           ", None, "bos satir icra DEGIL"),
+    ("        run: |", "|", "blok gostergesinin kendisi govde olarak gecer"),
+)
+
+
+# ---- ICRA SATIR INDEKSI FIKSTURLERI (mutant capasi / provenans nobetcisi) ---
+# 🔴 NEDEN: mutant ureticileri (_silme_mutanti / _yorum_mutanti) BU listeye gore satir
+# siler. Katlanan blokta bolunmus bir cagrinin YALNIZ ILK ham satirini dondurmek
+# mutasyonu YARIM birakir: cagri hayatta kalir, bulgu1_mutasyon_kontrol "BULGU 1 GERI
+# GELDI" diye YANLIS SINIFLA sahte-KIRMIZI yanar. Olculdu: bu sabotaj (provenansta
+# `idx.update(hamlar)` -> `idx.add(hamlar[0])`) hicbir kapiyi kirmizi yakmadan KACIYORDU.
+# TERS YON de olculur: provenansi gereksiz genisletmek (tum blogu dondurmek) ALAKASIZ
+# komutlari da siler -> literal blok fiksturu bunu yakalar.
+_FI_HEDEF = "tools/zzz-sentetik-test.py"
+ICRA_INDEKS_FIKSTURLERI = (
+    # (metin, beklenen_indeksler, etiket)
+    (_FK_ADIM + "        run: python3 tools/zzz-sentetik-test.py\n" + _FK_SON,
+     [1], "inline cagri -> yalniz kendi satiri"),
+    (_FK_ADIM + "        run: >-\n          python3\n"
+     "          tools/zzz-sentetik-test.py\n          --kendini-test\n" + _FK_SON,
+     [1, 2, 3, 4],
+     "🔴 katlanan blokta UC ham satira bolunmus cagri -> DORT satir da (blok basi dahil)"),
+    ("      - run: >-\n          python3 tools/zzz-sentetik-test.py\n"
+     "          --kendini-test\n" + _FK_SON,
+     [0, 1, 2], "🔴 ADSIZ adim (`- run: >-`) -> blok basi + iki govde satiri"),
+    (_FK_ADIM + "        run: |\n          echo hazir\n"
+     "          python3 tools/zzz-sentetik-test.py --kendini-test\n" + _FK_SON,
+     [3], "🔴 LITERAL blokta YALNIZ cagri satiri (alakasiz `echo` satiri SILINMEZ)"),
+)
+
 # Tablo BOSALTILIRSA/KUCULURSE kapi KIRMIZI yanar (curutme turu Z6: fikstur sayisi
 # hicbir yerde IDDIA EDILMIYORDU -> tabloyu bosaltmak tamamen sessizdi).
 KATLAMA_FIKSTUR_ASGARI = 18
 SUZGEC_FIKSTUR_ASGARI = 9
 BICIM_FIKSTUR_ASGARI = 6
+ICRA_GOVDESI_FIKSTUR_ASGARI = 8
+ICRA_INDEKS_FIKSTUR_ASGARI = 4
 
 
 # ---- BICIM TESHISI FIKSTURLERI (T3) ----------------------------------------
@@ -1726,12 +1778,47 @@ def _fikstur_sayisi_kontrol():
                               ("SUZGEC_FIKSTURLERI", SUZGEC_FIKSTURLERI,
                                SUZGEC_FIKSTUR_ASGARI),
                               ("BICIM_FIKSTURLERI", BICIM_FIKSTURLERI,
-                               BICIM_FIKSTUR_ASGARI)):
+                               BICIM_FIKSTUR_ASGARI),
+                              ("ICRA_GOVDESI_FIKSTURLERI", ICRA_GOVDESI_FIKSTURLERI,
+                               ICRA_GOVDESI_FIKSTUR_ASGARI),
+                              ("ICRA_INDEKS_FIKSTURLERI", ICRA_INDEKS_FIKSTURLERI,
+                               ICRA_INDEKS_FIKSTUR_ASGARI)):
         if len(tablo) < asgari:
             hata.append("FIKSTUR TABLOSU KUCULMUS: %s'de %d girdi var, EN AZ %d "
                         "olmali -> fikstur nobetcisi sessizce etkisizlestirilebilir "
                         "(once tabloyu bosalt, sonra govdeyi no-op yap). GERI KOY ya da "
                         "asgari sayiyi BILEREK dusur." % (ad, len(tablo), asgari))
+    return hata
+
+
+def icra_govdesi_fikstur_kontrol_govdesi():
+    """ICRA_GOVDESI_FIKSTURLERI'ni olcer; (hata_satirlari) dondurur."""
+    hata = []
+    for ham, beklenen, etiket in ICRA_GOVDESI_FIKSTURLERI:
+        gelen = _icra_govdesi(ham)
+        if gelen != beklenen:
+            hata.append("ICRA GOVDESI FIKSTURU BOZUK (%s): %r icin %r bekleniyordu, "
+                        "%r geldi -> _icra_govdesi() onek soyma/eleme mantigi "
+                        "degismis. `- run:` oneki soyulmazsa ADSIZ adimdaki cagri "
+                        "kapiya TUMUYLE GORUNMEZ olur (Y05 kok nedeni)."
+                        % (etiket, ham, beklenen, gelen))
+    return hata
+
+
+def icra_indeks_fikstur_kontrol_govdesi():
+    """ICRA_INDEKS_FIKSTURLERI'ni olcer; (hata_satirlari) dondurur.
+    Mutant ureticilerinin capasi = bu fonksiyon; provenans bozulursa mutasyon YARIM
+    kalir ve nobetci YANLIS SINIFLA sahte-KIRMIZI yanar."""
+    hata = []
+    for metin, beklenen, etiket in ICRA_INDEKS_FIKSTURLERI:
+        gelen = _icra_satir_indeksleri(metin, _FI_HEDEF)
+        if gelen != beklenen:
+            hata.append("ICRA INDEKS FIKSTURU BOZUK (%s): beklenen %r, gelen %r\n"
+                        "     -> _icra_satir_indeksleri()/_blok_provenans() provenansi "
+                        "bozulmus. DAR olursa silme/yorum mutasyonu cagriyi OLDUREMEZ "
+                        "(bulgu1 nobetcisi yanlis sinifla sahte-KIRMIZI yanar); GENIS "
+                        "olursa mutasyon ALAKASIZ komutlari da siler."
+                        % (etiket, beklenen, gelen))
     return hata
 
 
@@ -1747,6 +1834,8 @@ def katlama_fikstur_kontrol_govdesi():
     suzgec_fikstur_kontrol() icinden cagrilir (ayni sinif: 'ortak donusum govdesi
     no-op yapildi')."""
     hata = _fikstur_sayisi_kontrol()
+    hata.extend(icra_govdesi_fikstur_kontrol_govdesi())
+    hata.extend(icra_indeks_fikstur_kontrol_govdesi())
     # psych kolunda her ayristirma bir ruby SURECI acar -> fiksturleri TOPLU isit.
     YAML_OKU.onbellegi_isit([g for g, _s, _p, _e in KATLAMA_FIKSTURLERI])
     ayristirici = YAML_OKU.ayristirici_adi()
@@ -1865,6 +1954,10 @@ KATLAMA_KABLOLARI = (
     ("katlama_fikstur_kontrol_govdesi", ("_taklit_mantiksal_satirlari",)),
     ("katlama_fikstur_kontrol_govdesi", ("_ayristirici_mantiksal_satirlari",)),
     ("katlama_fikstur_kontrol_govdesi", ("_fikstur_sayisi_kontrol",)),
+    ("katlama_fikstur_kontrol_govdesi", ("icra_govdesi_fikstur_kontrol_govdesi",)),
+    ("katlama_fikstur_kontrol_govdesi", ("icra_indeks_fikstur_kontrol_govdesi",)),
+    ("icra_govdesi_fikstur_kontrol_govdesi", ("_icra_govdesi",)),
+    ("icra_indeks_fikstur_kontrol_govdesi", ("_icra_satir_indeksleri",)),
 )
 
 # AYRISTIRICI KABLOLARI: `YAML_OKU.<uye>(...)` cagrilari (SUZGEC deseninin aynisi).
@@ -2191,13 +2284,16 @@ def main():
             for h in hata4:
                 print("  ❌ " + h)
         ok5, hata5 = suzgec_fikstur_kontrol()
-        print("ORTAK ICRA SUZGECI + YAML KATLAMA — GOVDE (ariza enjeksiyonu, %d sentetik "
+        print("ORTAK ICRA SUZGECI + `run:` COZUMU — GOVDE (ariza enjeksiyonu, %d sentetik "
               "fikstur)" % (len(SUZGEC_FIKSTURLERI) + 3 + len(KATLAMA_FIKSTURLERI)
-                            + len(BICIM_FIKSTURLERI)))
+                            + len(BICIM_FIKSTURLERI) + len(ICRA_GOVDESI_FIKSTURLERI)
+                            + len(ICRA_INDEKS_FIKSTURLERI)))
         if ok5:
             print("  ✅ ANLAMLI bicimler EVET, ANLAMSIZ bicimler (`--help`/`echo`) HAYIR; "
                   "KATLANAN `>`/`>-`/`>+` blok birlesiyor, LITERAL `|` blok DEGISMIYOR; "
-                  "BICIM TESHISI adim/bicim/gorulen komutu SOYLUYOR")
+                  "TAKLIT kolu ile GERCEK AYRISTIRICI kolu AYNI hukmu veriyor; mutant "
+                  "capasi (provenans) yerinde; BICIM TESHISI adim/bicim/gorulen komutu "
+                  "SOYLUYOR")
         else:
             for h in hata5:
                 print("  ❌ " + h)
