@@ -49,6 +49,71 @@ if (!SCRIPT) {
   throw new Error("index.html inline scripti bulunamadi (yapi degisti mi?)");
 }
 
+// ---- FAZ 3 / EDGE MODU BAGIMLILIGI (30 Tem — kalici kirmizi onarimi) --------------
+// index.html'de `var EDGE_KATALOG = true` (FAZ 3 bayragi ACIK). Bayrak acikken acilis
+// `acilisEdge()` yolundan gider ve IKI seyi ister:
+//   1) uretilmis `ozet.json` artefakti      (fetch("ozet.json"), r.ok kapili)
+//   2) Worker `/katalog` + `/ara` cevabi    (EDGE_UC, r.ok kapili)
+// Bu test bayrak KAPALIYKEN yazilmisti: sahte fetch yalniz `{ json }` donduruyordu,
+// `ok`/`status` yoktu -> sayfa "HTTP undefined" basip console.error'a dusuyor, test
+// ALTYAPI HATASI ile oluyordu (7 testten 6'si HIC kosmuyordu, aylardir kirmizi).
+//
+// COZUM (bagimliligi test KENDI KURAR — ag/sunucu YOK):
+//   - ozet.json'u `tools/build.py --sadece-ozet` URETIR (sekil TEK KAYNAK: render_ozet;
+//     test kendi kopyasini hesaplamaz). Bkz. test 8: uretilen kart sekli ile testin
+//     edge kart projeksiyonu BIREBIR karsilastirilir -> build.py degisirse KIRMIZI.
+//   - /katalog + /ara icin TASIMA (transport) taklidi: urunler.json'dan mekanik filtre.
+//     ⚠️ ARAMA SEMANTIGI BURADA SINANMAZ (o `tools/parite-test.js` + `tools/parite-ege.js`
+//     isi). Buradaki iddia: vitrin DOGRU UCA DOGRU PARAMETREYLE gidiyor ve donen karti
+//     dogru ciziyor mu. Taklit gercekten daha musamahali degil: yanlis kategori
+//     istenirse yanlis kumeyi doner ve test KIRMIZI yanar (test 3/9).
+//   - Tanimsiz her URL 404 -> sayfa console.error basar -> test patlar (SESSIZ YESIL YOK).
+const EDGE_UC = (INDEX.match(/var\s+EDGE_UC\s*=\s*"([^"]+)"/) || [])[1];
+if (!EDGE_UC) { throw new Error("index.html'de EDGE_UC bulunamadi (yapi degisti mi?)"); }
+const PAGE_SIZE = Number((INDEX.match(/var\s+PAGE_SIZE\s*=\s*(\d+)/) || [])[1]);
+if (!PAGE_SIZE) { throw new Error("index.html'de PAGE_SIZE bulunamadi (yapi degisti mi?)"); }
+const EDGE_KATALOG = /var\s+EDGE_KATALOG\s*=\s*true\s*;/.test(INDEX);
+
+// ozet.json'u SIMDI uret (deploy'un yayina koydugu artefaktin aynisi). Fail-closed:
+// uretilemezse test "atlamaz", burada patlar.
+const OZET_YOL = path.join(KOK, "ozet.json");
+const BUILD_YOL = path.join(KOK, "tools", "build.py");
+// (1) BAYRAK VARLIK KAPISI — cagirmadan ONCE. Iki sebep:
+//   a) bayrak yoksa build.py TAM BUILD'e duser: 14k urun sayfasi + sitemap + feed yazar VE
+//      elle korunan dort yasal sayfayi yeniden damgalar. Bir kabul testinin yan etkisi bu
+//      olamaz (30 Tem'de mutasyon turunda BASIMIZA GELDI, dort yasal sayfa kirlendi).
+//   b) sessiz yesil onlemi: bayrak dusunce testin "eski ozet.json'la devam etmesi" yasak.
+// ⚠️ ALT DIZE DEGIL TAM JETON: ilk yazimda `indexOf("--sadece-ozet")` vardi ve V5
+// mutasyonu ("--sadece-ozet-YOK") bu kontrolu ALT DIZE olarak GECIYORDU.
+if (fs.readFileSync(BUILD_YOL, "utf8").indexOf('"--sadece-ozet"') === -1) {
+  throw new Error("build.py'de \"--sadece-ozet\" bayragi YOK — ozet.json uretilemez " +
+    "(tam build TETIKLENMEDI: 14k sayfa + yasal sayfa damgasi yan etkisi olurdu)");
+}
+// (2) BAYAT ARTEFAKT SILINIR — yeniden uretilmediyse asagidaki kapilar patlar.
+//     (V5 mutasyonu: diskte kalan bayat ozet.json'la test YESIL yaniyordu.)
+try { fs.unlinkSync(OZET_YOL); } catch (e) { if (e.code !== "ENOENT") { throw e; } }
+let ozetCikti = "";
+try {
+  ozetCikti = String(execFileSync("python3", [BUILD_YOL, "--sadece-ozet"],
+    { cwd: KOK, timeout: 120000 }));
+} catch (e) {
+  throw new Error("ozet.json uretilemedi (build.py --sadece-ozet): " + ((e && e.message) || e));
+}
+// (3) DAMGA KAPISI — ASIL fail-closed nobetci. `--sadece-ozet` kolu bu satiri basar; bayrak
+//     cozulmezse build.py TAM BUILD'e duser, o kol bu damgayi BASMAZ (baska metin basar) ve
+//     ozet.json'u yan urun olarak yine yazar. Sadece "dosya var mi" baksaydik test, istemedigi
+//     14k-sayfalik tam build'i kosmus olur ve YESIL yanardi (V5 mutasyonu bunu kanitladi).
+if (!/^OK: ozet\.json uretildi/m.test(ozetCikti)) {
+  throw new Error("build.py --sadece-ozet beklenen damgayi BASMADI (tam build'e dusmus " +
+    "olabilir) — bagimlilik dogrulanamadi, test OLCUM YAPAMAZ. Cikti: " +
+    JSON.stringify(ozetCikti.slice(0, 300)));
+}
+if (!fs.existsSync(OZET_YOL)) {
+  throw new Error("build.py --sadece-ozet kosdu ama ozet.json ORTAYA CIKMADI — " +
+    "bagimlilik kurulamadi, test OLCUM YAPAMAZ (sessizce yesil SAYILMAZ)");
+}
+const OZET = JSON.parse(fs.readFileSync(OZET_YOL, "utf8"));
+
 // ---- TEK KAYNAK: jenerator/urunler/*.json semalarindan taban fiyat haritasi ----
 const URUNLER = JSON.parse(fs.readFileSync(path.join(KOK, "urunler.json"), "utf8"));
 const PARAMETRIK = URUNLER.filter((u) => u.parametrik);
@@ -133,6 +198,73 @@ function belgeKur() {
 
 function bekle(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
+// --------------------------------------------------- edge tasima taklidi (sunucusuz)
+
+// 🔴 BAGIMSIZ CAPA — bu sayi build.py'DEN OKUNMAZ, BILEREK ELLE SABIT.
+// Ilk yazimda `OZET_ACIKLAMA_KES` build.py kaynagindan regex'le okunuyordu. Mutasyon
+// olcumu (V3, 30 Tem) bunun nobetciyi OLDURDUGUNU kanitladi: build.py'de 160 -> 120
+// yapildiginda hem uretilen ozet.json hem testin beklentisi AYNI ANDA kayiyor, iki taraf
+// da ayni yonde hareket ettigi icin test 9/0 YESIL yaniyordu (anchor-coupling tuzagi).
+// Sinir bir IKI TARAFLI SOZLESME: build.py kart_ozeti ile Worker'in KART_ALANLARI
+// substr(aciklama,1,160)'i BIREBIR ayni olmali (build.py'deki kendi notu). O yuzden
+// degisiklik SESSIZ olmamali — burayi kirmizi yakip elle onay istemeli.
+const ACIKLAMA_KES = 160;
+
+/** urunler.json objesi -> Worker/ozet kart sekli (build.py kart_ozeti'nin aynisi).
+ *  Bu projeksiyonun build.py ile BIREBIR oldugu test 8'de OLCULUR (drift = kirmizi). */
+function edgeKart(p) {
+  return {
+    id: p.id,
+    baslik: p.baslik || "",
+    kategori: p.kategori || "",
+    marka: p.marka || [],
+    fiyat: p.fiyat || "",
+    gorsel: (p.gorseller || [null])[0],
+    parametrik: !!p.parametrik,
+    aciklama: (p.aciklama || "").slice(0, ACIKLAMA_KES),
+  };
+}
+
+function cevap(veri, kod) {
+  kod = kod || 200;
+  return {
+    ok: kod >= 200 && kod < 300,
+    status: kod,
+    json: () => Promise.resolve(JSON.parse(JSON.stringify(veri))),
+  };
+}
+
+/** /katalog: kategori/marka filtresi + sayfa/boy dilimi; sira = urunler.json DIZI sirasi
+ *  (D1 "ORDER BY seq DESC" varsayimi — tools/faz3-sayfalama.js o varsayimi ayrica olcer). */
+function ucKatalog(p) {
+  const ids = p.get("ids");
+  if (ids) {
+    const kume = new Set(ids.split(","));
+    return { urunler: URUNLER.filter((u) => kume.has(u.id)).map(edgeKart) };
+  }
+  const kat = p.get("kategori");
+  const mar = p.get("marka");
+  const sayfa = Math.max(1, Number(p.get("sayfa") || 1));
+  const boy = Math.max(1, Number(p.get("boy") || PAGE_SIZE));
+  let liste = URUNLER;
+  if (kat) { liste = liste.filter((u) => u.kategori === kat); }
+  if (mar) { liste = liste.filter((u) => (u.marka || []).indexOf(mar) !== -1); }
+  return {
+    toplam: liste.length,
+    urunler: liste.slice((sayfa - 1) * boy, sayfa * boy).map(edgeKart),
+  };
+}
+
+/** /ara: TASIMA taklidi — basit baslik icerme. Arama SEMANTIGI burada iddia EDILMEZ
+ *  (tek kaynak: tools/parite-test.js + tools/parite-ege.js). */
+function ucAra(p) {
+  const q = (p.get("q") || "").toLocaleLowerCase("tr");
+  const limit = Math.max(1, Number(p.get("limit") || PAGE_SIZE));
+  const liste = URUNLER.filter((u) =>
+    (u.baslik || "").toLocaleLowerCase("tr").indexOf(q) !== -1);
+  return { toplam: liste.length, urunler: liste.slice(0, limit).map(edgeKart) };
+}
+
 /**
  * index.html scriptini verilen URL/haritayla calistirir.
  *   ayar.search       location.search (or. "?kategori=Jeneratör")
@@ -141,6 +273,7 @@ function bekle(ms) { return new Promise((r) => setTimeout(r, ms)); }
 async function sayfaKur(ayar) {
   const { belge } = belgeKur();
   const konsolHatalari = [];
+  const istekler = [];              // sahte fetch'e dusen TUM URL'ler (sirayla)
   const ctx = {
     document: belge,
     location: { hash: "", search: ayar.search || "", pathname: "/", href: "", replace() {} },
@@ -148,10 +281,23 @@ async function sayfaKur(ayar) {
     localStorage: {
       getItem: () => null, setItem: () => {}, removeItem: () => {},
     },
+    /* URL-DUYARLI sahte fetch. `ok`/`status` TASIR (index.html iki fetch'te de
+       `if(!r.ok) throw new Error("HTTP " + r.status)` kapisi kullaniyor — eski taklit
+       bu alanlari tasimadigi icin sayfa "HTTP undefined" basiyordu).
+       Her istek `istekler`e yazilir; testler HANGI UCA HANGI PARAMETREYLE gidildigini
+       iddia eder (test 9). Tanimsiz URL 404 -> sayfa console.error basar -> test patlar. */
     fetch(url) {
-      return Promise.resolve({
-        json: () => Promise.resolve(JSON.parse(JSON.stringify(URUNLER))),
-      });
+      const ham = String(url);
+      istekler.push(ham);
+      if (ham === "ozet.json" || ham.indexOf("ozet.json") === 0) { return Promise.resolve(cevap(OZET)); }
+      // bayrak KAPALI yolu (acilisYerel) da calisabilsin — geri donus yolu test edilebilir kalsin
+      if (ham.indexOf("urunler.json") === 0) { return Promise.resolve(cevap(URUNLER)); }
+      if (ham.indexOf(EDGE_UC) === 0) {
+        const u = new URL(ham);
+        if (u.pathname === "/katalog") { return Promise.resolve(cevap(ucKatalog(u.searchParams))); }
+        if (u.pathname === "/ara") { return Promise.resolve(cevap(ucAra(u.searchParams))); }
+      }
+      return Promise.resolve(cevap({ hata: "taklit edilmemis istek: " + ham }, 404));
     },
     console: { log() {}, error(...a) { konsolHatalari.push(a.map(String).join(" ")); } },
     alert() {},
@@ -177,6 +323,7 @@ async function sayfaKur(ayar) {
   return {
     el: (id) => belge.getElementById(id),
     kartlar: () => belge.getElementById("grid").children,
+    istekler: () => istekler.slice(),
   };
 }
 
@@ -246,8 +393,16 @@ async function test3JeneratorGorunumu() {
     hatalar.push("baslik '" + s.el("sectionTitle").textContent + "' (beklenen 'Jeneratör Ürünleri')");
   }
   const kartlar = s.kartlar();
-  if (kartlar.length !== PARAMETRIK.length) {
-    hatalar.push("gridde " + kartlar.length + " kart (beklenen " + PARAMETRIK.length + ")");
+  // Ilk sayfa IKI modda da PAGE_SIZE ile sinirli (edge: /katalog boy=PAGE_SIZE; yerel:
+  // slice(0, shown) ve shown=PAGE_SIZE). Sari seri PAGE_SIZE'i asarsa bu sayi kirpilir —
+  // o yuzden beklenti min() ile yazilir, TOPLAM ise resultCount'tan ayrica dogrulanir.
+  const beklenenKart = Math.min(PARAMETRIK.length, PAGE_SIZE);
+  if (kartlar.length !== beklenenKart) {
+    hatalar.push("gridde " + kartlar.length + " kart (beklenen " + beklenenKart + ")");
+  }
+  if (s.el("resultCount").textContent !== PARAMETRIK.length + " ürün") {
+    hatalar.push("toplam sayaci '" + s.el("resultCount").textContent +
+      "' (beklenen '" + PARAMETRIK.length + " ürün')");
   }
   for (const c of kartlar) {
     const k = kartBilgi(c);
@@ -304,8 +459,27 @@ async function test5Banner() {
   if (!href || decodeURIComponent(href[1]).indexOf("kategori=Jeneratör") === -1) {
     hatalar.push("banner linki ?kategori=Jeneratör'e gitmiyor: " + (href ? href[1] : "yok"));
   }
-  if (INDEX.indexOf("PRUVO Jeneratör ile sana özel parça tasarla") === -1) {
-    hatalar.push("banner metni (HTML overlay) yok");
+  // OVERLAY METNI: iddia YAPISAL, pazarlama CUMLESI DEGIL.
+  // 30 Tem olcumu: eskiden buraya sabit cumle ("PRUVO Jeneratör ile sana özel parça
+  // tasarla") gomulmustu. Metin o zamandan beri "Ölçüne özel parça tasarla"ya donmus
+  // (pazarlama kopyasi + gizli seri dili degisti) -> iddia BAYAT. Kopyayi test etmek iki
+  // yonden yanlis: (1) her kopya guncellemesi yalanci kirmizi uretir, (2) kopya ArTisT'in
+  // duzlemi, bu testin degil. Korunan gercek degismez: banner ANCHOR'unun ICINDE gorunur
+  // bir metin overlay'i var — BOS OLMAYAN baslik + tiklama cagrisi. Overlay blogu silinir
+  // ya da baslik bosalirsa test KIRMIZI yanar.
+  const anchorBas = INDEX.indexOf('id="jenBanner"');
+  const anchorSon = anchorBas === -1 ? -1 : INDEX.indexOf("</a>", anchorBas);
+  const anchor = anchorBas === -1 ? "" : INDEX.slice(anchorBas, anchorSon);
+  if (anchor.indexOf("jen-banner-text") === -1) {
+    hatalar.push("banner overlay blogu (jen-banner-text) anchor icinde yok");
+  }
+  const bTitle = anchor.match(/class="jen-banner-title"[^>]*>([^<]*)</);
+  if (!bTitle || bTitle[1].trim() === "") {
+    hatalar.push("banner overlay basligi (jen-banner-title) yok/bos: " +
+      (bTitle ? JSON.stringify(bTitle[1]) : "hic yok"));
+  }
+  if (anchor.indexOf("jen-banner-btn") === -1) {
+    hatalar.push("banner tiklama cagrisi (jen-banner-btn) yok");
   }
   const ana = await sayfaKur({});
   if (ana.el("jenBanner").style.display === "none") {
@@ -370,6 +544,77 @@ function test7Uretim() {
     Object.keys(TABAN).length + " id, degerler birebir");
 }
 
+/** 8 — KART SEKLI SOZLESMESI: testin edge kart projeksiyonu build.py kart_ozeti ile BIREBIR.
+ *  NEDEN: /katalog + /ara taklidi kartlari edgeKart() ile uretiyor. O projeksiyon build.py'den
+ *  ayrisirsa taklit, GERCEKTE olmayan bir kart sekliyle test yapmis olur (sahte nobetci).
+ *  Burada uretilen ozet.json'un GERCEK kartlariyla karsilastirilarak baglaniyor: build.py
+ *  kart_ozeti degisir de bu dosya degismezse test KIRMIZI yanar. */
+function test8KartSekli() {
+  const hatalar = [];
+  const idye = {};
+  for (const u of URUNLER) { idye[u.id] = u; }
+  const ornekler = (OZET.yeni || []).concat(OZET.parametrik || []);
+  if (ornekler.length === 0) { hatalar.push("ozet.json'da karsilastirilacak kart YOK"); }
+  let karsilastirilan = 0;
+  for (const gercek of ornekler) {
+    const p = idye[gercek.id];
+    if (!p) { hatalar.push("ozet karti urunler.json'da yok: " + gercek.id); continue; }
+    const benim = edgeKart(p);
+    if (JSON.stringify(benim) !== JSON.stringify(gercek)) {
+      hatalar.push(gercek.id + " kart sekli ayristi: test=" + JSON.stringify(benim) +
+        " build.py=" + JSON.stringify(gercek));
+      break;    // ilk ayrisma yeter (cikti sismesin)
+    }
+    karsilastirilan++;
+  }
+  rapor("8 edge kart sekli build.py kart_ozeti ile birebir", hatalar,
+    karsilastirilan + " kart birebir (aciklama kesme " + ACIKLAMA_KES + ")");
+}
+
+/** 9 — EDGE SOZLESMESI: hangi uca hangi parametreyle gidiliyor + ana sayfada AGA CIKMAMA.
+ *  Bu, taklit fetch'in "her seye yesil der" olmadiginin kaniti: vitrin yanlis uca ya da
+ *  yanlis parametreyle giderse burasi KIRMIZI yanar. */
+async function test9EdgeSozlesmesi() {
+  const hatalar = [];
+  if (!EDGE_KATALOG) {
+    // Bayrak KAPALIYSA edge yolu hic kosmaz; bunu SESSIZ gecmiyoruz, acikca yaziyoruz.
+    rapor("9 edge uc sozlesmesi", ["EDGE_KATALOG=false — OLCULEMEDI (edge yolu kosmuyor); " +
+      "bayrak acilinca bu iddia otomatik geri gelir"]);
+    return;
+  }
+  // (a) ANA SAYFA: ozet.json yeter, Worker'a istek YOK (index.html:2360 iddiasi).
+  const ana = await sayfaKur({ tabanHarita: TABAN });
+  const anaIstek = ana.istekler();
+  if (anaIstek.length !== 1 || anaIstek[0].indexOf("ozet.json") !== 0) {
+    hatalar.push("ana sayfa istekleri beklenen ['ozet.json'] degil: " + JSON.stringify(anaIstek));
+  }
+  // (b) KATEGORI GORUNUMU: /katalog + kategori=Jeneratör + boy=PAGE_SIZE
+  const kat = await sayfaKur({ search: "?kategori=Jenerat%C3%B6r", tabanHarita: TABAN });
+  const katalogIstek = kat.istekler().filter((u) => u.indexOf(EDGE_UC + "/katalog") === 0);
+  if (katalogIstek.length !== 1) {
+    hatalar.push("/katalog istegi " + katalogIstek.length + " (beklenen 1): " +
+      JSON.stringify(kat.istekler()));
+  } else {
+    const p = new URL(katalogIstek[0]).searchParams;
+    if (p.get("kategori") !== "Jeneratör") { hatalar.push("kategori param '" + p.get("kategori") + "'"); }
+    if (p.get("sayfa") !== "1") { hatalar.push("sayfa param '" + p.get("sayfa") + "'"); }
+    if (p.get("boy") !== String(PAGE_SIZE)) { hatalar.push("boy param '" + p.get("boy") + "'"); }
+    if (p.get("q")) { hatalar.push("kategori gorunumunde q param VAR: " + p.get("q")); }
+  }
+  // (c) ARAMA GORUNUMU: /ara + q + limit (sayfa DEGIL — parite ucunun imzasi)
+  const ara = await sayfaKur({ search: "?ara=vida", tabanHarita: TABAN });
+  const araIstek = ara.istekler().filter((u) => u.indexOf(EDGE_UC + "/ara") === 0);
+  if (araIstek.length !== 1) {
+    hatalar.push("/ara istegi " + araIstek.length + " (beklenen 1): " + JSON.stringify(ara.istekler()));
+  } else {
+    const p = new URL(araIstek[0]).searchParams;
+    if (p.get("q") !== "vida") { hatalar.push("q param '" + p.get("q") + "'"); }
+    if (p.get("limit") !== String(PAGE_SIZE)) { hatalar.push("limit param '" + p.get("limit") + "'"); }
+  }
+  rapor("9 edge uc/parametre sozlesmesi + ana sayfa aga CIKMIYOR", hatalar,
+    "ana sayfa 1 istek (ozet.json), kategori /katalog, arama /ara");
+}
+
 // -------------------------------------------------------------------------- akis
 
 async function main() {
@@ -381,6 +626,8 @@ async function main() {
   await test5Banner();
   await test6Vitrin();
   test7Uretim();
+  test8KartSekli();
+  await test9EdgeSozlesmesi();
   if (TABANSIZ.length) {
     console.log("\n  ⚠️ YARGI LISTESI (fiyat karari Okan'in — FIYAT UYDURULMADI):");
     for (const t of TABANSIZ) { console.log("     - " + t); }

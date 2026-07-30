@@ -472,21 +472,52 @@ async function test17() {
 }
 
 // ---- 18-19) ACIK 3 — HAVALE AKISI: yonet.js /durum 'odendi' -> Purchase + IDEMPOTENS ----
-// yonet.js semalari JSON olarak STATIK import eder (worker/esbuild deseni). Node ESM'de
-// JSON import'u "with { type: 'json' }" ister -> resolve hook'u ile ekleniyor (agdan
-// bagimsiz, wrangler gerektirmez). registerHooks Node >= 22.15'te var.
+// yonet.js/index.js semalari JSON olarak STATIK import eder (worker/esbuild deseni:
+// shop/src/index.js -> ../config.json, shop/src/semalar.js -> 20 sema dosyasi). Node
+// ESM'de JSON import'u `with { type: "json" }` ister; kaynak dosyalar bunu TASIMAZ
+// (esbuild'in ihtiyaci yok) -> attribute'u resolve hook'u ENJEKTE eder. Agdan bagimsiz,
+// wrangler gerektirmez.
+//
+// ⚠️ SURUM DERSI (30 Tem, olculdu): burada eskiden `module.registerHooks` (senkron,
+// in-thread) vardi ve YOKSA 6 test (18/19/22/24/25/26) "Node >= 22.15 gerekli" diye
+// KIRMIZI raporlaniyordu. registerHooks v22.15+ API'si; **CI runner'i Node 20**
+// (deploy.yml setup-node node-version: "20") -> bu 6 iddia CI'da yapisal olarak
+// olculemezdi (yerelde 188/0, Node 20.20.2'de 129/6). Kalici kirmizi gercek regresyonu
+// gizler, o yuzden ASLI cozuldu: `module.register` (async/off-thread loader hook) Node
+// **v20.6+**'ta VAR ve ayni attribute enjeksiyonunu yapar.
+//
+// TEK KOD YOLU — surum dali BILEREK YOK: ayni satirlar Node 20.20.2'de de 25.x'te de
+// kosar (ikisinde de olculdu). Surum dali olsaydi "yerelde yesil / CI'da kirmizi"
+// ayrismasi geri gelebilirdi; simdi yapisal olarak imkansiz.
+//
+// FAIL-CLOSED: hook kurulamaz ya da modul yuklenemezse SUSMAYIZ — MODUL_HATA doldurulur,
+// 18/19/22/24/25/26 gercek hata metniyle KIRMIZI yanar ve process rc=1 doner. "Yuklenemedi"
+// hicbir kosulda "atlandi/yesil" SAYILMAZ (bu dosyada atlama mekanizmasi YOKTUR).
+const JSON_IMPORT_HOOK =
+  "export async function resolve(s, c, n) {" +
+  "  const r = await n(s, c);" +
+  "  return r.url.endsWith('.json')" +
+  "    ? { ...r, format: 'json', importAttributes: { type: 'json' } }" +
+  "    : r;" +
+  "}";
+
 let yonetModulu = null;
-if (typeof nodeModule.registerHooks === "function") {
-  nodeModule.registerHooks({
-    resolve(specifier, context, next) {
-      const r = next(specifier, context);
-      if (r.url.endsWith(".json")) {
-        return { ...r, format: "json", importAttributes: { type: "json" } };
-      }
-      return r;
-    },
-  });
-  yonetModulu = await import("../src/yonet.js");
+let MODUL_HATA = null;
+if (typeof nodeModule.register !== "function") {
+  // Node < 20.6: iki hook API'sinin ikisi de yok. Bu bir ORTAM hatasidir, atlama degil.
+  MODUL_HATA = "node:module.register YOK (Node >= 20.6 gerekir) — node " + process.version;
+} else {
+  try {
+    nodeModule.register("data:text/javascript," + encodeURIComponent(JSON_IMPORT_HOOK));
+    yonetModulu = await import("../src/yonet.js");
+  } catch (e) {
+    MODUL_HATA = "yonet.js import: " + ((e && e.message) || e);
+  }
+}
+/** Modul yuklenemedigi icin olculemeyen kapiyi KIRMIZI raporla (asla yesil/atlanmis degil). */
+function modulYok(ad) {
+  ol(ad + " — MODUL YUKLENEMEDI, KAPI OLCUM YAPAMADI", false,
+    "node " + process.version + " | " + (MODUL_HATA || "sebep bilinmiyor"));
 }
 
 const ANAHTAR = "test-yonet-anahtari";
@@ -552,8 +583,7 @@ async function durumCagir(env, siparisNo, hedefDurum, ctx) {
 
 async function test18() {
   if (!yonetModulu) {
-    ol("18 HAVALE AKISI (yonet.js yuklenemedi — Node >= 22.15 gerekli)", false,
-      "node " + process.version);
+    modulYok("18 HAVALE AKISI (yonet.js)");
     return;
   }
   const satir = havaleSatiri();
@@ -608,8 +638,7 @@ async function test18() {
 
 async function test19() {
   if (!yonetModulu) {
-    ol("19 IDEMPOTENS (yonet.js yuklenemedi — Node >= 22.15 gerekli)", false,
-      "node " + process.version);
+    modulYok("19 IDEMPOTENS (yonet.js)");
     return;
   }
   // --- 19.1: ayni siparis IKI KEZ 'odendi' -> Purchase yalniz BIR KEZ ---
@@ -771,7 +800,15 @@ async function test21() {
 // index.js'in donus() akisi UCTAN UCA kosturulur (sahte D1 + sahte iyzico + sahte Meta).
 // Mutasyon duyarli: index.js'teki `istemci` kablolamasi koparilirsa bu blok KIRMIZI yanar.
 let indexModulu = null;
-if (yonetModulu) { indexModulu = await import("../src/index.js"); }
+if (yonetModulu) {
+  // FAIL-CLOSED: import patlarsa TUM dosya cokup 129 iddiayi da goturmesin — sebep
+  // MODUL_HATA'ya yazilir, 22/25/26 gercek metinle KIRMIZI yanar (rc=1 korunur).
+  try {
+    indexModulu = await import("../src/index.js");
+  } catch (e) {
+    MODUL_HATA = "index.js import: " + ((e && e.message) || e);
+  }
+}
 
 const KART_IP = "203.0.113.44";
 const KART_UA = "Mozilla/5.0 (Linux; Android 14) MusteriTarayici/9";
@@ -897,8 +934,7 @@ async function kartAkisiKostur(secenek) {
 
 async function test22() {
   if (!indexModulu) {
-    ol("22 KART AKISI KABLOLAMASI (index.js yuklenemedi — Node >= 22.15 gerekli)", false,
-      "node " + process.version);
+    modulYok("22 KART AKISI KABLOLAMASI (index.js)");
     return;
   }
   const MUSTERI_IP = KART_IP;
@@ -954,8 +990,7 @@ async function test23() {
 // Koruyan sey CAS'tir (UPDATE ... WHERE durum = <okunan>); bu blok onu kilitler.
 async function test24() {
   if (!yonetModulu) {
-    ol("24 ESZAMANLILIK (yonet.js yuklenemedi — Node >= 22.15 gerekli)", false,
-      "node " + process.version);
+    modulYok("24 ESZAMANLILIK (yonet.js)");
     return;
   }
   const satir = havaleSatiri({ siparis_no: "PR-260720-031600-YRS" });
@@ -1067,8 +1102,7 @@ async function test24() {
 // kapi gevserse paket yesil kalirdi. Artik kalmiyor.
 async function test25() {
   if (!indexModulu) {
-    ol("25 BASARISIZ ODEME NEGATIF TESTLERI (index.js yuklenemedi — Node >= 22.15)", false,
-      "node " + process.version);
+    modulYok("25 BASARISIZ ODEME NEGATIF TESTLERI (index.js)");
     return;
   }
 
@@ -1141,8 +1175,7 @@ function izler(gecmisJson) {
 
 async function test26() {
   if (!indexModulu) {
-    ol("26 KART OLCUM IZI (index.js yuklenemedi — Node >= 22.15 gerekli)", false,
-      "node " + process.version);
+    modulYok("26 KART OLCUM IZI (index.js)");
     return;
   }
   // (a) BASARILI kart odemesi -> iz yazildi

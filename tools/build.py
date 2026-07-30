@@ -2655,6 +2655,21 @@ def main():
         print("OK: taban-fiyatlar.js uretildi (%d urun)." % len(harita))
         return
 
+    # --sadece-ozet: yalnız ozet.json'u üret. NEDEN VAR: index.html EDGE_KATALOG=true
+    # iken ana sayfanın ilk boyaması bu artefakta BAĞIMLI; jenerator/test/vitrin-kabul.js
+    # onu üretip sahte fetch'e servis ediyor. Özetin ŞEKLİ tek kaynakta (render_ozet)
+    # kalsın diye test kendi kopyasını hesaplamıyor, bu bayrağı çağırıyor. Bütçe kapısı
+    # burada KOŞMAZ (tam build'in işi) — bu bayrak sadece artefaktı yazar.
+    if "--sadece-ozet" in sys.argv[1:]:
+        with open(JSON_PATH, encoding="utf-8") as f:
+            _urunler = json.load(f)
+        _ozet = render_ozet(_urunler)
+        with open(os.path.join(ROOT, OZET_JSON), "w", encoding="utf-8") as f:
+            f.write(_ozet)
+        print("OK: ozet.json uretildi (%d urun, %d bayt)."
+              % (len(_urunler), len(_ozet.encode("utf-8"))))
+        return
+
     with open(JSON_PATH, encoding="utf-8") as f:
         products = json.load(f)
 
