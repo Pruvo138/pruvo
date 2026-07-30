@@ -110,37 +110,192 @@ def hacim_fonksiyonlari():
     return set(p.stdout.strip().split(",")) if p.returncode == 0 else set()
 
 
-def dosya_tara(kokler, desenler, atla=()):
-    """Verilen kok dosya/dizinlerde desen arar; eslesen (dosya, desen_adi) listesi."""
-    bulunan = []
+# ---- TARAMA KUMESI: GITIGNORE'LU ARTEFAKT DISARI, GERCEK POZITIF ICERI ------
+# SAHTE KIRMIZI (madde 34, YENIDEN URETILDI): dosya_tara() JEN_DIR'i os.walk ile
+# geziyordu ve gitignore'lu `__pycache__/` de kumeye giriyordu. Python'un sabit
+# katlamasi bu dosyadaki `YASAK_GIZLI = "ko" + "olm"` ifadesini derlerken TEK
+# DIZEYE cevirir -> `__pycache__/kabul.cpython-3xx.pyc` yasak dizeyi HARFIYEN
+# tasir ve TEST 5 KIRMIZI yanar. Kimsenin degistirmedigi, yayina hic girmeyen,
+# git'in gormedigi bir ARTEFAKT yuzunden. Surekli/kaprisli kirmizi = korelmis
+# nobetci: gercek bir sizinti da ayni gurultunun icinde kaybolur.
+#
+# 🔴 KAPSAMI DARALTIRKEN GERCEK POZITIFI OLDURME ([[kapi-kapsam-genisletme-tuzagi]]
+# tersi): "yalniz IZLENEN dosyalari tara" demek KOLAY ama YANLIS olurdu —
+#   (a) `urun/` gitignore'ludur (build.py uretir, CI yayinlar) ve sari seri
+#       kurallarinin (yasak ifade / rozet / fiyatsiz duzen) TEK gorunur oldugu
+#       yer orasidir; disarida biraksaydik TEST 6 gercek pozitifi kaybederdi.
+#   (b) Henuz `git add` edilmemis YENI bir kaynak dosya izlenmez ama gitignore'lu
+#       da DEGILDIR; taramadan duserse sizinti bir tur gorunmez kalirdi.
+# BUGUNKU KURAL: bir dosya taramadan YALNIZCA git'in onu YOKSAYDIGI durumda
+# duser (`git check-ignore` — IZLENEN dosyayi yoksayilan saymaz), BEYAN EDILMIS
+# uretilen kokler (URETILEN_TARAMA_KOKLERI) ise HER ZAMAN taranir.
+# FAIL-CLOSED: git calismazsa/hata verirse kume OLCULEMEZ -> TaramaKumesiYok ->
+# cagiran testi KIRMIZI yakar ("olculemedi" burada sessiz-yesille aynidir).
+URETILEN_TARAMA_KOKLERI = (os.path.join(ROOT, "urun"),)
+
+
+class TaramaKumesiYok(Exception):
+    """Tarama kumesi (gitignore durumu) OLCULEMEDI — yesil sayilmaz."""
+
+
+def _beyanli_uretilen(mutlak):
+    for kok in URETILEN_TARAMA_KOKLERI:
+        if mutlak == kok or mutlak.startswith(kok + os.sep):
+            return True
+    return False
+
+
+def _yoksayilanlar(yollar, git_kok):
+    """git check-ignore ile YOKSAYILAN yollarin kumesi (tek cagri).
+
+    `git check-ignore` index'e BAKAR: IZLENEN bir dosya, deseni tutsa bile
+    'yoksayilan' RAPOR EDILMEZ -> izlenen kaynak taramadan asla dusmez."""
+    if not yollar:
+        return set()
+    try:
+        p = subprocess.run(["git", "-C", git_kok, "check-ignore", "--stdin", "-z"],
+                           input="\0".join(yollar) + "\0",
+                           capture_output=True, text=True)
+    except OSError as e:
+        raise TaramaKumesiYok("git calistirilamadi: %s" % e)
+    if p.returncode not in (0, 1):   # 0 = en az biri yoksayilan, 1 = hicbiri
+        raise TaramaKumesiYok("git check-ignore rc=%d (%s)" %
+                              (p.returncode, (p.stderr or "").strip()[:200]))
+    return set(x for x in p.stdout.split("\0") if x)
+
+
+def dosya_tara(kokler, desenler, atla=(), git_kok=None):
+    """Verilen kok dosya/dizinlerde desen arar; eslesen (dosya, desen_adi) listesi.
+
+    Tarama kumesi olculemezse TaramaKumesiYok firlatir (bkz. guvenli_tara)."""
+    git_kok = git_kok or ROOT
+    adaylar = []
     for kok in kokler:
         if not os.path.exists(kok):
             continue
-        yollar = []
-        if os.path.isfile(kok):
-            yollar = [kok]
-        else:
+        yollar = [kok] if os.path.isfile(kok) else []
+        if not yollar:
             for dizin, _, dosyalar in os.walk(kok):
                 yollar += [os.path.join(dizin, x) for x in dosyalar]
         for yol in yollar:
-            if os.path.abspath(yol) in atla or yol.endswith((".stl", ".png", ".jpg")):
+            mutlak = os.path.abspath(yol)
+            if mutlak in atla or yol.endswith((".stl", ".png", ".jpg")):
                 continue
-            try:
-                with io.open(yol, "r", encoding="utf-8", errors="ignore") as f:
-                    icerik = f.read()
-            except (IOError, OSError):
-                continue
-            for ad, desen in desenler:
-                if (desen.search(icerik) if hasattr(desen, "search")
-                        else desen in icerik.lower()):
-                    bulunan.append((os.path.relpath(yol, ROOT), ad))
+            adaylar.append(mutlak)
+    sorulacak = [y for y in adaylar if not _beyanli_uretilen(y)]
+    yoksayilan = _yoksayilanlar(sorulacak, git_kok)
+    bulunan = []
+    for yol in adaylar:
+        if yol in yoksayilan:
+            continue          # gitignore'lu ARTEFAKT (ör. __pycache__) — yayina girmez
+        try:
+            with io.open(yol, "r", encoding="utf-8", errors="ignore") as f:
+                icerik = f.read()
+        except (IOError, OSError):
+            continue
+        for ad, desen in desenler:
+            if (desen.search(icerik) if hasattr(desen, "search")
+                    else desen in icerik.lower()):
+                bulunan.append((os.path.relpath(yol, ROOT), ad))
     return bulunan
+
+
+def guvenli_tara(kokler, desenler, atla=(), git_kok=None):
+    """(bulunan, olculemedi_tani) — kume olculemezse tani DOLU doner ve cagiran
+    testi KIRMIZI yakar (fail-closed)."""
+    try:
+        return dosya_tara(kokler, desenler, atla=atla, git_kok=git_kok), ""
+    except TaramaKumesiYok as e:
+        return [], ("OLCULEMEDI (fail-closed KIRMIZI): tarama kumesi olculemedi — %s" % e)
+
+
+# ---- TARAMA KUMESI NOBETCISI (kabul suite'ini kosturmadan olculur) ----------
+def kendini_test():
+    """m34 NOBETCISI — POZITIF ve NEGATIF yon AYRI vakalar (tek yon = olu nobetci).
+
+    Kapsam daraltmasi gercek pozitifi OLDURMESIN diye: gitignore'lu artefaktin
+    DUSTUGU kadar, izlenen kaynagin / beyanli uretilen kokun / henuz eklenmemis
+    yeni dosyanin taramada KALDIGI da ayri ayri olculur."""
+    vakalar = []
+
+    def bekle(ad, kosul, detay=""):
+        vakalar.append((ad, bool(kosul), detay))
+
+    desen = [("gizli-marka", YASAK_GIZLI)]
+    gecici = []
+    try:
+        # (1) POZITIF-DISI: gitignore'lu __pycache__ artefakti taranmamali
+        pycache = os.path.join(TEST_DIR, "__pycache__")
+        if not os.path.isdir(pycache):
+            os.makedirs(pycache)
+        artefakt = os.path.join(pycache, "pruvo-kendini-test.pyc")
+        gecici.append(artefakt)
+        with io.open(artefakt, "w", encoding="utf-8") as f:
+            f.write("baytkod artefakti " + YASAK_GIZLI + "\n")
+        b, t = guvenli_tara([TEST_DIR], desen, atla={os.path.abspath(__file__)})
+        bekle("V1 gitignore'lu __pycache__ artefakti taranmiyor (sahte KIRMIZI yok)",
+              not t and not b, "tani=%s bulgu=%s" % (t, b))
+
+        # (2) POZITIF: IZLENEN kaynak hala taraniyor (kapsam daralmadi)
+        b, t = guvenli_tara([os.path.join(JEN_DIR, "hacim.js")],
+                            [("izlenen-kaynak", re.compile(r"function\s+oring\s*\("))])
+        bekle("V2 IZLENEN kaynak taraniyor (jenerator/hacim.js)",
+              not t and len(b) == 1, "tani=%s bulgu=%s" % (t, b))
+
+        # (3) POZITIF: izlenmeyen AMA gitignore'lu OLMAYAN yeni dosya taraniyor
+        yeni = os.path.join(JEN_DIR, "pruvo-kendini-test-gecici.js")
+        gecici.append(yeni)
+        with io.open(yeni, "w", encoding="utf-8") as f:
+            f.write("// henuz git add edilmemis kaynak: " + YASAK_GIZLI + "\n")
+        b, t = guvenli_tara([JEN_DIR], desen, atla={os.path.abspath(__file__)})
+        bekle("V3 izlenmeyen ama YOKSAYILMAYAN yeni kaynak yakalaniyor",
+              not t and any(x[0].endswith("pruvo-kendini-test-gecici.js") for x in b),
+              "tani=%s bulgu=%s" % (t, b))
+
+        # (4) POZITIF: BEYANLI uretilen kok (urun/) gitignore'lu OLDUGU HALDE taraniyor
+        uretilen = os.path.join(ROOT, "urun", "_pruvo-kendini-test")
+        if not os.path.isdir(uretilen):
+            os.makedirs(uretilen)
+        sayfa = os.path.join(uretilen, "index.html")
+        gecici.append(sayfa)
+        with io.open(sayfa, "w", encoding="utf-8") as f:
+            f.write("<p>uretilen sayfa " + YASAK_GIZLI + "</p>\n")
+        b, t = guvenli_tara([os.path.join(ROOT, "urun")], desen)
+        bekle("V4 gitignore'lu AMA beyanli uretilen kok (urun/) taraniyor",
+              not t and any("_pruvo-kendini-test" in x[0] for x in b),
+              "tani=%s bulgu=%s" % (t, b))
+
+        # (5) OLCULEMEDI: kume olculemezse YESIL DEGIL
+        with tempfile.TemporaryDirectory() as depo_disi:
+            b, t = guvenli_tara([os.path.join(JEN_DIR, "hacim.js")], desen,
+                                git_kok=depo_disi)
+            bekle("V5 tarama kumesi olculemezse OLCULEMEDI (yesil sayilmaz)",
+                  bool(t) and not b, "tani=%s" % t)
+    finally:
+        for yol in gecici:
+            if os.path.exists(yol):
+                os.remove(yol)
+        artefakt_dizin = os.path.join(ROOT, "urun", "_pruvo-kendini-test")
+        if os.path.isdir(artefakt_dizin):
+            os.rmdir(artefakt_dizin)
+
+    kirmizi = [v for v in vakalar if not v[1]]
+    print("TARAMA KUMESI NOBETCISI — %d/%d YESIL" % (len(vakalar) - len(kirmizi),
+                                                     len(vakalar)))
+    for ad, yesil, detay in vakalar:
+        print("  %s %-62s %s" % ("+" if yesil else "-", ad, detay if not yesil else ""))
+    return 1 if kirmizi else 0
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--hizli", action="store_true")
+    ap.add_argument("--kendini-test", action="store_true",
+                    help="tarama kumesi nobetcisi (kabul suite'ini kosturmaz)")
     args = ap.parse_args()
+
+    if args.kendini_test:
+        sys.exit(kendini_test())
 
     urunler = parametrik_urunler()
 
@@ -148,8 +303,12 @@ def main():
     set_sayisi = "1" if args.hizli else "3"
     p = subprocess.run([sys.executable, os.path.join(TEST_DIR, "dogrula.py"),
                         "--hepsi", "--set", set_sayisi], text=True)
+    # dogrula.py cikis 3 = OPENSCAD YASAK (PRUVO_OPENSCAD_YASAK) -> bu bir "yesil"
+    # DEGIL, OLCULEMEDI'dir; kirmizi kalir ama tanisi ayirt edilir.
     kayit(1, "hacim dogrulugu (>=%s rastgele set + varsayilan, <=%%3)" % set_sayisi,
-          p.returncode == 0)
+          p.returncode == 0,
+          ("OLCULEMEDI: openscad yasagi aktif (PRUVO_OPENSCAD_YASAK) — hicbir "
+           "render kosulmadi; bu bir YESIL degildir" if p.returncode == 3 else ""))
 
     # ---------- site build (3b/5/6 icin gerekli) ----------
     urun_dir = os.path.join(ROOT, "urun")
@@ -197,11 +356,13 @@ def main():
                  encoding="utf-8") as f:
         deploy = f.read()
     beyaz, beyaz_tani = deploy_kopyaliyor_mu(deploy, "jenerator/hacim.js")
-    kopya = dosya_tara(
+    kopya, kopya_tani = guvenli_tara(
         [os.path.join(ROOT, "secenekler.js"), os.path.join(ROOT, "index.html"),
          urun_dir, os.path.join(ROOT, "tools")],
         [("hacim fn kopyasi", re.compile(r"function\s+(oring|huni|disli)\s*\("))])
     ayrinti = []
+    if kopya_tani:
+        ayrinti.append(kopya_tani)
     if not deterministik:
         ayrinti.append("hacim.js birlestir.py sonrasi DEGISTI (deterministik degil)")
     if not ayni:
@@ -211,25 +372,28 @@ def main():
     if kopya:
         ayrinti.append("hacim fn kopyasi: %s" % (kopya,))
     kayit(4, "tek kaynak: hacim.js deterministik + deploy kopyasi bayt-ozdes + kopya yok",
-          deterministik and ayni and beyaz and not kopya,
+          deterministik and ayni and beyaz and not kopya and not kopya_tani,
           "\n".join(ayrinti))
 
     # ---------- TEST 5: gizlilik ----------
-    bulunan = dosya_tara(
+    bulunan, tani5 = guvenli_tara(
         [JEN_DIR, urun_dir, os.path.join(ROOT, "index.html"),
          os.path.join(ROOT, "secenekler.js")],
         [("gizli-marka", YASAK_GIZLI)],
         atla={os.path.abspath(__file__)})
     kayit(5, "gizlilik: public dosyalarda '%s' yok" % ("k*" + "olm"),
-          not bulunan, "\n".join("%s -> %s" % b for b in bulunan))
+          not bulunan and not tani5,
+          "\n".join(["%s -> %s" % b for b in bulunan] + ([tani5] if tani5 else [])))
 
     # ---------- TEST 6: sarı seri kuralları ----------
-    bulunan = dosya_tara(
+    bulunan, tani6 = guvenli_tara(
         [JEN_DIR, urun_dir, os.path.join(ROOT, "index.html"),
          os.path.join(ROOT, "secenekler.js")],
         [("3D-baski-ifadesi", YASAK_BASKI), ("her-renk", YASAK_RENK)],
         atla={os.path.abspath(__file__)})
     duzen = []
+    if tani6:
+        duzen.append(tani6)
     for u in urunler:
         sema_yolu = os.path.join(JEN_DIR, "urunler", u["id"] + ".json")
         sayfa = os.path.join(urun_dir, u["id"], "index.html")
