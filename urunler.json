@@ -1,5 +1,428 @@
 [
   {
+    "id": "kayak-kurek-klipsi-c3d",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Kuregi Tutma Klipsi",
+    "aciklama": "Kayak kuregini tasima sirasinda sabit tutan basit klips.\n- Kayak kuregi saftina takilir.\n- Kolayca takilip cikarilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dkayak-paddle-clip-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "WalterHsiao",
+      "tur": "cc_by_sa"
+    }
+  },
+  {
+    "id": "moken-kayak-transduser-mount",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Moken Kayak Icin Transduser Montaj Parcasi",
+    "aciklama": "Moken 12.5 kayaginin tahliye deligine (scupper) transduser monte etmek icin kullanilan parca.\n- Moken 12.5 kayak modeliyle uyumludur.\n- 5/16 civata ile monte edilir.\n- Diger kayak modellerine uyarlanabilir.\nYaklasik dis olculer: 76 x 47 x 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr159476-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr159476-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr159476-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LilMikey",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ucgen-cekme-tutamagi-tekne",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ucgen Tekne/Bot Cekme Tutamagi",
+    "aciklama": "Sisme bot veya kucuk teknenin on tarafina monte edilen saglam ucgen tutamak.\n- Ip ile sabit noktaya baglanir.\n- Dayanikli govde yapisina sahiptir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 143 x 130 x 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr546115-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr546115-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TeknikFrik",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "seadoo-tahliye-tapasi-t-model",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sea-Doo Icin T Modeli Tahliye Tapasi",
+    "aciklama": "Sea-Doo jet-ski tahliye tapasini kolayca cevirmek icin T seklinde tutamakli tapa.\n- Sea-Doo jet-ski ile uyumludur.\n- T sekli sayesinde elle kolay cevrilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2595000-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2595000-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2595000-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "seadoo-fishpro-sintine-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sea-Doo FishPro Icin Sintine Kapagi",
+    "aciklama": "Sea-Doo FishPro modeli icin 3/4 inc sintine (bilge) kapagi.\n- Sea-Doo FishPro ile uyumludur.\n- 3/4 inc olcusune gore tasarlanmistir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2347710-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2347710-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2347710-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-guverte-tahliye-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Guverte Tahliye Deligi Kapagi",
+    "aciklama": "Aluminyum tekne guvertesindeki tahliye deligi icin basit kapak.\n- Aluminyum guverte tahliye delikleriyle uyumludur.\n- Farkli boyutlara olceklenebilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw161188-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw161188-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "jet-sled-buz-baligi-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Jet Sled Icin Buz Balikciligi Olta Tutucusu",
+    "aciklama": "Jet Sled kenarina delik acmadan takilan olta kamisi tutucusu.\n- Jet Sled kenarina klips ile takilir.\n- Vida ile sabitlenir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 55 x 44 x 41 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1554716-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1554716-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KNBTech",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yakit-deposu-havalandirma-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yakit Deposu Havalandirma Kapagi",
+    "aciklama": "Tekne yakit deposu havalandirmasini kabin disina yonlendiren, su ve yagmura dayanikli kapak.\n- Su sicramasina ve yagmura dayanikli tasarima sahiptir.\n- Farkli toleranslarda iki somun icerir.\n- Cok parcadan olusur.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1259195-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1259195-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-ayak-kestosu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Icin Ayak Kestosu",
+    "aciklama": "Yelkenli kokpitinde tekne yan yattiginda ayakla dayanmayi saglayan basit ayak kestosu.\n- 10/24 makine vidasi ile monte edilir.\n- Delik acma sablonu ile kullanilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 220 x 35 x 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr450664-1.jpg"
+    ]
+  },
+  {
+    "id": "tekne-yem-takim-kutusu-modular",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Icin Moduler Yem ve Takim Kutusu",
+    "aciklama": "Olta yemlerinin kancalara takilmasini onleyen kenarli, moduler tekne yem/takim kutusu.\n- Harici tutucu/aksesuar eklemek icin gecmeli baglanti sistemi vardir.\n- Kancalarin disari takilmasini onleyen kenar tasarimi bulunur.\n- Cok parcadan olusur.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1344272-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1344272-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1344272-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "garmin-livescope-lvs34-sikma-duymesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin LiveScope LVS34 Icin Yedek Sikma Duymesi",
+    "aciklama": "Garmin LiveScope LVS34 transduserinin orijinal 13mm civatasina uyan yedek sikma duymesi.\n- Orijinal 13mm civata ile uyumludur.\n- 60mm ve 20mm civata boylariyla kullanilabilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 51 x 48 x 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr723529-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr723529-2.jpg"
+    ]
+  },
+  {
+    "id": "kano-kurek-duvar-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kano Kuregi Icin Duvar Montaj Aparati",
+    "aciklama": "Kano kuregini tutma sapindan duvara asarak saklayan montaj aparati.\n- Cift-tarafli bant veya duvar yapistiricisiyla kullanilir.\n- Farkli kurek sap tiplerine uyumludur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 95 x 64 x 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr301561-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr301561-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "B.Stacey",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "oru-kayak-kurek-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Oru Kayak Icin Kurek Tutucusu",
+    "aciklama": "Oru Kayak Beach LT modeline ozel olculendirilmis kurek tutucusu.\n- Oru Kayak Beach LT modeliyle uyumludur.\n- Tasma yapmadan tam oturur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 122 x 60 x 55 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr279017-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr279017-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tealtail",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "yelken-kesto-botu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Kestosu Icin Koruyucu Bot",
+    "aciklama": "200mm boyundaki tekne kestolarina takilan, halatin takilmasini onleyen koruyucu bot (cift).\n- 200mm kesto olcusune gore tasarlanmistir.\n- 6mm bungee kordonla sabitlenir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 89 x 42 x 38 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1218887-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1218887-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "McSail",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-pruva-fishfinder-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Pruvasi Icin Fishfinder Tutucusu",
+    "aciklama": "Tekne pruvasina monte edilen sonar/fishfinder tutucusu.\n- M5 vida ile sabitlenir.\n- M4 somun yuvasi icerir.\n- Cok parcadan olusur.\nYaklasik dis olculer: 240 x 238 x 48 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1205178-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1205178-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kristian",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "lowrance-hook-reveal-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance Hook Reveal Icin Montaj Tutucusu",
+    "aciklama": "Lowrance Hook Reveal fishfinder cihazini tekne konsoluna monte etmek icin kullanilan tutucu.\n- Lowrance Hook Reveal serisiyle uyumludur.\n- Farkli montaj yuzeylerine uyarlanabilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw546296-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw546296-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "goiot-tradition-kapak-tutamagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Goiot Tradition Ambar Kapagi Icin Yedek Tutamak",
+    "aciklama": "Goiot Tradition serisi tekne ambar kapaklarinin zamanla kirilan tutamaklarinin yerine gecen yedek parca.\n- Goiot Tradition serisi kapaklarla uyumludur.\n- Sag ve sol taraf icin iki tip saglar.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw710641-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw710641-2.jpg"
+    ]
+  },
+  {
+    "id": "yelkenli-korkuluk-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Korkuluguna Takilan Olta Tutucusu",
+    "aciklama": "25mm capli dikey korkuluklara takilan, kamisi hafif egimle tutan olta tutucusu.\n- 25mm capli korkuluklarla uyumludur.\n- Trolling (surukleme) avciligi icin de kullanilabilir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 130 x 130 x 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1010343-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1010343-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1010343-3.jpg"
+    ]
+  },
+  {
+    "id": "kayak-guverte-baglanti-elemani-gomme",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Gomme Tip Kayak Guverte Baglanti Elemani",
+    "aciklama": "Deniz kayagi guvertesine duz/gomme sekilde monte edilen halat/ip baglanti noktasi.\n- Iki adet 1/2 inc delik gerektirir.\n- Epoksi ile sizdirmaz sekilde monte edilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 33 x 32 x 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr621666-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr621666-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Guillemot",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "seadoo-transduser-kablo-ara-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sea-Doo Icin Transduser Kablosu Ara Parcasi",
+    "aciklama": "Sea-Doo govdesinden transduser kablosu gecirmek icin kullanilan ara parca (spacer).\n- Garmin GT56 transduser kablosuna gore tasarlanmistir.\n- Govde butunlugunu korumak icin sikica oturur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 79 x 50 x 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr647825-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr647825-2.jpg"
+    ]
+  },
+  {
+    "id": "ryobi-pompa-sup-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ryobi Pompaya Takilan SUP/Bot Sisirme Adaptoru",
+    "aciklama": "Ryobi marka pompayi SUP, sisme bot veya kurek tahtasi supabina baglamak icin kullanilan adaptor.\n- Ryobi yuksek hacimli pompayla uyumludur.\n- Sisme bot/SUP supaplarina dogrudan takilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 51 x 30 x 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1342309-1.jpg"
+    ]
+  },
+  {
+    "id": "mercury-dis-motor-yikama-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury Dis Motor Icin Su Yikama Adaptoru",
+    "aciklama": "Mercury dis motora hizli-baglanti su yikama seti takmak icin kullanilan disli adaptor ve kapak.\n- Mercury 200HP dis motor ile uyumludur.\n- Orijinal disli yerine takilir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 45 x 42 x 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr840485-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr840485-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr840485-3.jpg"
+    ]
+  },
+  {
+    "id": "stealth-kayak-hizli-acilir-kapak-mekanizmasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Stealth Kayaklar Icin Hizli Acilir Balik Kapagi Mekanizmasi",
+    "aciklama": "Stealth kayaklarin balik ambari kapagini hizlica acip kapatmayi saglayan mekanizma.\n- Stealth kayak serisiyle uyumludur.\n- M3 civata/somun ve bungee kordon gerektirir.\n- Cok parcadan olusur.\nYaklasik dis olculer: 30 x 30 x 13 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr651903-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr651903-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Will Sides",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "scupper-transduser-montaji-parametrik",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Parametrik Scupper Transduser Montaj Parcasi",
+    "aciklama": "Kayak tahliye deligine (scupper) transduser monte etmek icin olculeri ozellestirilebilen parametrik parca.\n- Farkli kayak/scupper olculerine gore ozellestirilebilir.\n- Iki parcadan olusur.\n- OpenSCAD ile parametrik tasarlanmistir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2820313-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2820313-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2820313-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "scotty-lock-yuzen-kamera-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Scotty Lock Uyumlu Yuzen Aksiyon Kamera Tutucusu",
+    "aciklama": "Scotty Lock tabanina takilan, suya dusmesi durumunda batmasini onleyen yuzdurucu aksiyon kamera tutucusu.\n- Scotty Lock baglanti sistemiyle uyumludur.\n- Ic kismindaki yuzdurucu sunger batmayi onler.\n- Iki parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2178211-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2178211-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-dumen-braketi-ara-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Dumen Braketi Icin Ara Parca",
+    "aciklama": "Duz olmayan kayak kic kismina dumen braketini duz oturtmak icin kullanilan ara parca (shim).\n- 1/4-20 paslanmaz civata ile monte edilir.\n- Govde icine yerlesen kilitli somunlarla kullanilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 44 x 30 x 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4887833-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4887833-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4887833-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JaybobWarthog",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "buz-baligi-cadiri-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Buz Balikciligi Cadiri Icin Olta Tutucusu",
+    "aciklama": "Buz balikciligi cadirina veya kizagina monte edilen olta kamisi tutucusu.\n- Buz balikciligi cadiri/kizagiyla kullanilir.\n- Kamisi dik konumda tutar.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dice-fishing-shelter-rod-holder-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "fhalabi1074",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "tekne-pervane-anahtari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Pervanesi Sokme Anahtari",
+    "aciklama": "Tekne dis motor pervanesini sokup takmak icin kullanilan anahtar.\n- 30 ft-lb tork kapasitesine kadar dayaniklidir.\n- Farkli pervane somunu olculerine gore uretilebilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 240 x 62 x 51 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr748327-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Armour3d",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "olta-tutucusu-civatali-sablonlu",
     "kategori": "Marin",
     "marka": [],
