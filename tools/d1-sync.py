@@ -5,7 +5,26 @@
   python3 tools/d1-sync.py --sema     # semayi kur (bir kez / degisince)
   python3 tools/d1-sync.py            # DIFF-UPSERT: sadece degisen/yeni/silinen
   python3 tools/d1-sync.py --kuru     # hicbir sey yazma, ne yapacagini soyle
-  python3 tools/d1-sync.py --durum    # D1'deki urun sayisi + son senkron
+  python3 tools/d1-sync.py --durum    # SAYI ekseni + ICERIK ekseni (urun_hash) teyidi
+  python3 tools/d1-sync.py --durum --hizli   # yalniz SAYI ekseni (icerik ekseni ATLANIR)
+  python3 tools/d1-sync.py --kendini-test    # OFFLINE kabul testi (sqlite; D1'e dokunmaz)
+
+*** NEDEN GERI-OKUMA (write-verify) VAR — 31 Tem, OLCULMUS OLAY ***
+Tek alan degisimi (bir urunun kategori'si) push edildi; pre-push hook d1-sync'i kosturdu,
+arac "degisen: 1 / 5 satir yazildi" BASTI ve exit 0 dondu — ama canli D1'deki deger ESKI
+KALDI. Hemen ardindan --kuru yine "degisen: 1" diyordu: arac kendi yazmadigini goruyor ama
+BASARI raporlamisti. Ayni komut elle tekrarlaninca yazma tuttu (ARALIKLI ariza).
+  🔴 Hatanin sinifi SESSIZ: site urunu dogru gosterir (urunler.json'dan okur), Ege (WhatsApp
+  botu) D1'den okudugu icin BAYAT veri gorur -> musteri urun varken kaybedilir, hicbir yerde
+  alarm calmaz.
+  🔴 --durum'un SAYI ekseni bunu GOREMEZ: toplam satir sayisi silme/eklemede degisir, ALAN
+  GUNCELLEMESINDE DEGISMEZ. merge-kapisi'nin zorunlu "D1 teyidi" adimi bu vakada YESIL yaniyordu.
+Bu yuzden iki eksen eklendi:
+  (1) YAZMA SONRASI GERI-OKUMA — yazilan her satir KENDI anahtariyla geri okunur ve YAZILAN
+      ALAN DEGERLERI karsilastirilir; tutmazsa BIR KEZ yeniden denenir, yine tutmazsa arac
+      SIFIR-DISI cikar ve NE'nin yazilmadigini (id + alan + beklenen/bulunan) basar.
+      Wrangler'in "N satir yazildi" ciktisi artik IDDIA'dir, dogrulanmadan basari sayilmaz.
+  (2) --durum ICERIK EKSENI — sayi degil, urun_hash duzeyinde D1 ↔ urunler.json karsilastirmasi.
 
 *** NEDEN DIFF-UPSERT SART ***
 D1 ucretsiz katmanda GUNDE 100.000 SATIR YAZMA siniri var (okuma 100M, depolama 5 GB
@@ -351,7 +370,19 @@ def taban_senkron_sql(uid, taban):
     return "UPDATE urunler SET taban_fiyat=%d WHERE id=%s;" % (int(taban), q(uid))
 
 
-def taban_plan(urunler, tabanlar, mevcut_taban):
+def izle(izleme, uid, sql, alanlar):
+    """GERI-OKUMA IZI: bir SQL ifadesinin HANGI satirin HANGI alanlarini hangi degere
+    getirmesi gerektigini kaydeder. `izleme` None ise (eski cagri yerleri / birim testler)
+    NO-OP -> plan fonksiyonlarinin donus imzasi ve davranisi DEGISMEZ.
+
+    🔴 NEDEN AYRI BIR AYNA DEGIL: beklenen deger, SQL'in URETILDIGI YERDE kaydedilir.
+    Beklentiyi ikinci bir fonksiyonda yeniden turetmek [[ayna-kapi-kesif-ekseni]] sinifi
+    bir drift acardi (plan degisir, ayna eskir, geri-okuma yanlis seyi dogrular)."""
+    if izleme is not None:
+        izleme.append({"id": uid, "sql": sql, "alanlar": alanlar})
+
+
+def taban_plan(urunler, tabanlar, mevcut_taban, izleme=None):
     """SAF plan (canli D1'e DOKUNMAZ -> birim testi burayi cagirir). Doner: hedefli
     taban_fiyat UPDATE'leri listesi.
     - tabanlar   = {id: int}  jenerator semasindaki tabanFiyatTL (istenen deger)
@@ -373,7 +404,9 @@ def taban_plan(urunler, tabanlar, mevcut_taban):
         if hedef is None:
             continue  # taban yok (normal urun / tabanFiyatTL null) -> taban_fiyat 0 kalir
         if int(hedef) != int(mevcut_taban.get(uid, 0)):
-            out.append(taban_senkron_sql(uid, hedef))
+            sql = taban_senkron_sql(uid, hedef)
+            out.append(sql)
+            izle(izleme, uid, sql, {"taban_fiyat": int(hedef)})
     return out
 
 
@@ -463,7 +496,7 @@ def sema_senkron_sql(kolon, uid, deger):
     return "UPDATE urunler SET %s=%s WHERE id=%s;" % (kolon, q(deger), q(uid))
 
 
-def sema_plan(kolon, urunler, hedefler, mevcut):
+def sema_plan(kolon, urunler, hedefler, mevcut, izleme=None):
     """SAF plan (canli D1'e DOKUNMAZ -> birim testi burayi cagirir). Doner: hedefli UPDATE'ler.
     - hedefler = {id: kanonik JSON}  urunler.json'dan turetilen ISTENEN deger
     - mevcut   = {id: metin}         D1'deki mevcut deger (yeni urun icin yok -> '')
@@ -487,7 +520,9 @@ def sema_plan(kolon, urunler, hedefler, mevcut):
         gorulen.add(uid)
         hedef = hedefler.get(uid, "")
         if hedef != (mevcut.get(uid, "") or ""):
-            out.append(sema_senkron_sql(kolon, uid, hedef))
+            sql = sema_senkron_sql(kolon, uid, hedef)
+            out.append(sql)
+            izle(izleme, uid, sql, {kolon: hedef})
     return out
 
 
@@ -496,12 +531,12 @@ def konfigur_senkron_sql(uid, konfigur):
     return sema_senkron_sql("konfigur", uid, konfigur)
 
 
-def konfigur_plan(urunler, konfigurlar, mevcut_konfigur):
+def konfigur_plan(urunler, konfigurlar, mevcut_konfigur, izleme=None):
     """konfigur kolonu icin sema_plan (ince sarmalayici). Kurallar sema_plan docstring'inde."""
-    return sema_plan("konfigur", urunler, konfigurlar, mevcut_konfigur)
+    return sema_plan("konfigur", urunler, konfigurlar, mevcut_konfigur, izleme)
 
 
-def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None):
+def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izleme=None):
     """SAF diff (canli D1'e DOKUNMAZ -> birim testi burayi cagirir).
     mevcut = {id: (hash, baski)}. mevcut_seq = {id: seq} (OPSIYONEL; verilmezse legacy
     davranis birebir korunur -> eski birim testleri IMZA DEGISMEDEN gecer).
@@ -580,10 +615,20 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None):
                 if atanan <= taban:  # asiri-bolunmus (pratikte olmaz) -> guvenli dusme
                     atanan = ust - 1e-6
             taban = atanan
-            yeni.append(satir_sql(u, atanan, arama.haystack(u), h, baski))  # INSERT baski'yi da yazar
+            sql = satir_sql(u, atanan, arama.haystack(u), h, baski)  # INSERT baski'yi da yazar
+            yeni.append(sql)
+            # YENI satir: INSERT VALUES baski'yi DA yazar -> beklentiye baski GIRER.
+            izle(izleme, uid, sql, {"hash": h, "baslik": u.get("baslik") or "",
+                                    "kategori": u.get("kategori") or "", "baski": baski})
         else:
             if eski_h != h:
-                degisen.append(satir_sql(u, 0, arama.haystack(u), h, baski))  # seq ON CONFLICT'te korunur
+                sql = satir_sql(u, 0, arama.haystack(u), h, baski)  # seq ON CONFLICT'te korunur
+                degisen.append(sql)
+                # DEGISEN satir: ON CONFLICT yolu KOLONLAR'i gunceller, baski BILEREK DISARIDA
+                # (bkz. KOLONLAR yorumu) -> beklentiye baski GIRMEZ, yoksa CI'da her degisen
+                # urun sahte "baski uyusmazligi" verirdi (YANLIS-POZITIF = herkesin push'u kirilir).
+                izle(izleme, uid, sql, {"hash": h, "baslik": u.get("baslik") or "",
+                                        "kategori": u.get("kategori") or ""})
             # ICERIK degismis de degismemis de olsa: bu id D1'de zaten VAR, seq'i korunuyor
             # -> bir SONRAKI (daha HEAD tarafindaki) mid-array yeni id icin dogru ALT sinir.
             if uid in mevcut_seq:
@@ -591,7 +636,9 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None):
         # baski senkronu: YALNIZ yetki varsa (CI atlar -> baski'yi silmez/ezmez),
         # MEVCUT satir icin (yeni urun baski'yi INSERT'te aldi), ve FIILEN degistiyse.
         if baski_yetki and eski_h is not None and baski != eski_baski:
-            baski_guncelle.append(baski_senkron_sql(uid, baski))
+            sql = baski_senkron_sql(uid, baski)
+            baski_guncelle.append(sql)
+            izle(izleme, uid, sql, {"baski": baski})
     silinen = [i for i in mevcut if i not in gorulen]
     return yeni, degisen, baski_guncelle, silinen, gorulen
 
@@ -633,6 +680,172 @@ def satir_sql(u, seq, hs, h, baski=""):
     )
 
 
+# ─── YAZMA SONRASI GERI-OKUMA (write-verify) ─────────────────────────────────
+# Tasarim kararlari (31 Tem, olculdu):
+#  * NE OKUNUR: yalnizca YAZILAN satirlar, KENDI anahtarlariyla (id). Tam tablo taramasi
+#    her yazmada pahali olurdu.
+#  * NE KARSILASTIRILIR: satirin VARLIGI DEGIL, YAZILAN ALAN DEGERLERI. Varlik kontrolu
+#    31 Tem vakasini YAKALAMAZDI: satir zaten VARDI, sadece kategori'si eskiydi.
+#  * hash NEDEN YETERLI (content upsert icin): satir_sql hash'i icerikle AYNI ifadede yazar
+#    ve hash = arama.urun_hash(u) (id/baslik/kategori/marka/fiyat/gorsel/parametrik/haystack/
+#    aciklama/ege). Yani hash D1'de dogruysa o upsert FIILEN uygulanmistir. baslik+kategori
+#    AYRICA okunur: hata mesaji insan tarafindan okunabilir olsun (31 Tem vakasi bir kategori
+#    vakasiydi ve mesaj "beklenen Tamirat · bulunan Oyun/Hobi" demeli).
+#  * HASH'E KARISMAYAN kolonlar (baski / taban_fiyat / konfigur) hedefli UPDATE ile yazilir;
+#    onlar KENDI adlariyla dogrulanir (hash onlari GORMEZ — bu tam da sema kolonlarinin
+#    var olma sebebi).
+#  * ORNEKLEME YOK: yazilan id kumesinin TAMAMI dogrulanir. Sinir asagida BEYAN edilir.
+GERI_OKUMA_KOLONLARI = ["hash", "baslik", "kategori", "baski", "taban_fiyat"]
+
+# BEYAN EDILEN OLCEK SINIRI: yazilan id sayisi bu esigi asarsa hedefli `IN (...)` parcalari
+# yerine TEK tam-tablo SELECT'i kullanilir. 🔴 ORNEKLEME DEGIL — iki yol da yazilan id'lerin
+# TAMAMINI dogrular, yalnizca sorgu BICIMI degisir (sessiz ornekleme YASAK; --kendini-test
+# V34/V35 tam bunu olcer: 30 urunun 1'i kacinca KIRMIZI yanmali).
+# OLCUM (31 Tem, canli D1, 15.163 satir; 7 kolon geri-okuma):
+#     1 id -> 1 sorgu 2,6 s · 30 id -> 1 sorgu 2,8 s · 400 id -> 1 sorgu 2,9 s
+#   1.200 id -> 3 sorgu 9,0 s · 2.500 id -> tam-tablo 1 sorgu 3,8 s · 15.188 id -> 4,0 s
+# Yani: tam-tablo ~3,9 s SABIT; hedefli ~2,9 s/parca (PARCA=400). Kesisim ~2 parca (800 id).
+TAM_OKUMA_ESIGI = 800
+
+
+def geri_okuma_norm(kolon, deger):
+    """Karsilastirma normalizasyonu. D1 (JSON) tarafi ile plan tarafi ayni TIPTE olmali,
+    yoksa '700' != 700 gibi SAHTE uyusmazlik cikar = yanlis-pozitif = herkesin push'u kirilir."""
+    if kolon == "taban_fiyat":
+        try:
+            return int(deger or 0)
+        except (TypeError, ValueError):
+            return -1
+    return "" if deger is None else str(deger)
+
+
+def beklenti_kur(izleme, silinen):
+    """izleme kayitlari + silinen id'lerden {id: {"alanlar": {...}|None, "sql": [...]}}.
+    alanlar None = satir D1'de HIC OLMAMALI (silme dogrulamasi).
+    sql listesi YENIDEN DENEME icin saklanir (ayni ifadeler tekrar uygulanir)."""
+    beklenti = {}
+    for kayit in izleme:
+        g = beklenti.setdefault(kayit["id"], {"alanlar": {}, "sql": []})
+        g["alanlar"].update(kayit["alanlar"])
+        g["sql"].append(kayit["sql"])
+    for uid in silinen:
+        beklenti[uid] = {"alanlar": None,
+                         "sql": ["DELETE FROM urunler WHERE id=%s;" % q(uid)]}
+    return beklenti
+
+
+def beklenti_karsilastir(beklenti, bulunan):
+    """SAF (D1'e/dosyaya DOKUNMAZ -> birim testi burayi cagirir).
+    Doner: [(id, kolon, beklenen, bulunan)] — BOS liste = yazma DOGRULANDI."""
+    fark = []
+    for uid in sorted(beklenti):
+        alanlar = beklenti[uid]["alanlar"]
+        satir = bulunan.get(uid)
+        if alanlar is None:                       # silinmis OLMALI
+            if satir is not None:
+                fark.append((uid, "<satir>", "SILINMIS", "HALA VAR"))
+            continue
+        if satir is None:                         # yazilmis OLMALI ama satir YOK
+            fark.append((uid, "<satir>", "VAR", "SATIR YOK"))
+            continue
+        for kolon in sorted(alanlar):
+            b = geri_okuma_norm(kolon, alanlar[kolon])
+            v = geri_okuma_norm(kolon, satir.get(kolon))
+            if b != v:
+                fark.append((uid, kolon, b, v))
+    return fark
+
+
+def geri_oku(idler, konfigur_kolonu):
+    """Yazilan id'leri D1'den geri oku. Doner: ({id: satir}, olcum)."""
+    kolonlar = ["id"] + GERI_OKUMA_KOLONLARI + (["konfigur"] if konfigur_kolonu else [])
+    sec = ", ".join(kolonlar)
+    idler = sorted(idler)
+    t0 = time.time()
+    bulunan, okunan, sorgu_sayisi = {}, 0, 0
+    if len(idler) > TAM_OKUMA_ESIGI:
+        r = sorgu("SELECT %s FROM urunler" % sec)
+        sorgu_sayisi = 1
+        okunan += ((r[0].get("meta") or {}).get("rows_read") or 0) if r else 0
+        istenen = set(idler)
+        for s in ((r[0].get("results") or []) if r else []):
+            if s["id"] in istenen:
+                bulunan[s["id"]] = s
+        yol = "tam-tablo"
+    else:
+        for i in range(0, len(idler), PARCA):
+            parca = idler[i:i + PARCA]
+            r = sorgu("SELECT %s FROM urunler WHERE id IN (%s)"
+                      % (sec, ",".join(q(x) for x in parca)))
+            sorgu_sayisi += 1
+            okunan += ((r[0].get("meta") or {}).get("rows_read") or 0) if r else 0
+            for s in ((r[0].get("results") or []) if r else []):
+                bulunan[s["id"]] = s
+        yol = "hedefli"
+    return bulunan, {"id": len(idler), "sorgu": sorgu_sayisi, "okunan": okunan,
+                     "sure": time.time() - t0, "yol": yol}
+
+
+def geri_okuma_dogrula(beklenti, konfigur_kolonu):
+    """Yazilan satirlari geri okur, ALAN DEGERLERINI karsilastirir; uyusmazlikta ayni
+    ifadeleri BIR KEZ yeniden uygular ve TEKRAR okur. Doner: kalan fark listesi (bos = OK).
+    SONSUZ DONGU YOK — tam 2 tur, ucuncu deneme yapilmaz."""
+    if not beklenti:
+        print("geri-okuma: yazilan satir yok — dogrulanacak sey yok")
+        return []
+    bulunan, olcum = geri_oku(list(beklenti), konfigur_kolonu)
+    print("geri-okuma [%s]: %d id | %d sorgu | okunan satir: %d | %.2f s"
+          % (olcum["yol"], olcum["id"], olcum["sorgu"], olcum["okunan"], olcum["sure"]))
+    fark = beklenti_karsilastir(beklenti, bulunan)
+    if not fark:
+        print("GERI-OKUMA DOGRULANDI: %d satirin yazilan alan degerleri / silinmesi D1'de "
+              "teyit edildi ✅" % len(beklenti))
+        return []
+    kotu = sorted({f[0] for f in fark})
+    print("!! GERI-OKUMA UYUSMAZLIGI (1. tur): %d satir / %d alan — YENIDEN DENENIYOR"
+          % (len(kotu), len(fark)))
+    for uid, kolon, b, v in fark[:10]:
+        print("   - %s . %s : beklenen %r · bulunan %r" % (uid, kolon, b, v))
+    onarim = []
+    for uid in kotu:
+        onarim += beklenti[uid]["sql"]
+    yaz, _ = dosya_calistir("\n".join(onarim))
+    print("   yeniden deneme: %d ifade uygulandi (wrangler IDDIASI: %d satir yazildi)"
+          % (len(onarim), yaz))
+    bulunan2, olcum2 = geri_oku(kotu, konfigur_kolonu)
+    print("   2. geri-okuma [%s]: %d id | %d sorgu | okunan satir: %d | %.2f s"
+          % (olcum2["yol"], olcum2["id"], olcum2["sorgu"], olcum2["okunan"], olcum2["sure"]))
+    fark2 = beklenti_karsilastir({u: beklenti[u] for u in kotu}, bulunan2)
+    if not fark2:
+        print("GERI-OKUMA DOGRULANDI (2. turda): 1. tur yazmasi KACMISTI, onarildi ✅")
+        return []
+    return fark2
+
+
+def icerik_ekseni(urunler, d1_hash):
+    """SAF (D1'e/dosyaya DOKUNMAZ -> birim testi burayi cagirir). --durum ICERIK EKSENI:
+    urun_hash duzeyinde D1 ↔ urunler.json karsilastirmasi.
+    Doner: (uyusmaz, eksik, fazla); uyusmaz = [(id, beklenen_hash, d1_hash)].
+
+    🔴 NEDEN SAYI YETMEZ: bir urunun ALANI degisip D1'e yazilamazsa satir SAYISI AYNI kalir
+    -> eski --durum YESIL yanardi. Bu eksen tam o vakayi kirmizi yakar."""
+    gorulen = set()
+    uyusmaz, eksik = [], []
+    for u in urunler:
+        uid = u.get("id")
+        if not uid or uid in gorulen:
+            continue
+        gorulen.add(uid)
+        b = arama.urun_hash(u)
+        v = d1_hash.get(uid)
+        if v is None:
+            eksik.append(uid)
+        elif v != b:
+            uyusmaz.append((uid, b, v))
+    fazla = sorted(i for i in d1_hash if i not in gorulen)
+    return uyusmaz, eksik, fazla
+
+
 def durum_uyumlu(d1_sayisi, urunler_benzersiz):
     """--durum FAIL-LOUD teyidi: D1 satir sayisi urunler.json'daki BENZERSIZ id sayisina
     ESIT mi? SAF fonksiyon (D1'e/dosyaya DOKUNMAZ) -> birim testi burayi cagirir, wrangler
@@ -647,12 +860,345 @@ def durum_uyumlu(d1_sayisi, urunler_benzersiz):
         return False
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# KENDINI TEST — OFFLINE kabul testi (canli D1'e / aga / urunler.json'a DOKUNMAZ)
+# ═══════════════════════════════════════════════════════════════════════════════
+# TASARIM: sahte bir "wrangler" YAZMAK YERINE gercek bir SQLite (bellek ici) kullanilir —
+# d1-sync'in urettigi SQL zaten SQLite lehcesidir, boylece test EDILEN sey aracin GERCEK
+# ifadeleridir (metin eslemesi degil). Iki uc degistirilir:
+#   sorgu()          -> sqlite SELECT/PRAGMA (wrangler bicimli sonuc dondurur)
+#   dosya_calistir() -> sqlite executescript  ... VEYA `dusur` fikstruyle: ifadeleri
+#                       UYGULAMADAN "5 satir yazildi" RAPORLAR = 31 Tem'in SESSIZ ARIZASI.
+# Her yeni iddia icin POZITIF ve NEGATIF vaka AYRI AYRI kosar; yanlis-pozitif nobeti
+# (degisiklik yok / normal parti) ayri iki vakadir — bu arac pre-push hook'unda kosuyor,
+# yanlis-pozitif TUM mimarlarin push'unu kirar.
+_KT_SEMA = """
+CREATE TABLE urunler (
+  rid INTEGER PRIMARY KEY,
+  id TEXT NOT NULL UNIQUE,
+  hash TEXT NOT NULL,
+  seq NUMERIC NOT NULL,
+  baslik TEXT NOT NULL DEFAULT '',
+  kategori TEXT NOT NULL DEFAULT '',
+  marka TEXT NOT NULL DEFAULT '[]',
+  fiyat TEXT NOT NULL DEFAULT '',
+  gorsel TEXT,
+  parametrik INTEGER NOT NULL DEFAULT 0,
+  hs TEXT NOT NULL DEFAULT '',
+  aciklama TEXT NOT NULL DEFAULT '',
+  ege TEXT NOT NULL DEFAULT '',
+  hs_baslik TEXT NOT NULL DEFAULT '',
+  hs_baslik_kok TEXT NOT NULL DEFAULT '',
+  hs_govde TEXT NOT NULL DEFAULT '',
+  hs_govde_kok TEXT NOT NULL DEFAULT '',
+  baski TEXT NOT NULL DEFAULT '',
+  taban_fiyat INTEGER NOT NULL DEFAULT 0,
+  konfigur TEXT NOT NULL DEFAULT ''
+);
+CREATE TABLE senkron (anahtar TEXT PRIMARY KEY, deger TEXT NOT NULL);
+"""
+
+
+def _kt_urun(uid, kategori="Oyun/Hobi", baslik=None):
+    return {"id": uid, "baslik": baslik or ("Urun %s" % uid), "kategori": kategori,
+            "marka": [], "fiyat": "100 TL",
+            "gorseller": ["https://media.example/%s-1.jpg" % uid],
+            "aciklama": "aciklama %s" % uid}
+
+
+def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None):
+    """d1-sync'i OFFLINE kosar. Doner: (cikis_kodu, cikti_metni, sayac).
+    dusur(sql, sayac) -> True ise o yazma UYGULANMAZ ama BASARI raporlanir (sessiz ariza).
+    oku_patlat -> geri-okuma sorgusu istisna atar (OLCULEMEDI yolu)."""
+    import contextlib
+    import io
+    import sqlite3
+
+    sayac = {"yazma": 0, "okuma": 0, "dusurulen": 0, "geri_okuma": 0}
+
+    def _sorgu(sql):
+        sayac["okuma"] += 1
+        if "WHERE id IN (" in sql:
+            sayac["geri_okuma"] += 1
+            if oku_patlat:
+                raise RuntimeError("sentetik geri-okuma arizasi (ag/wrangler)")
+        satirlar = [dict(r) for r in conn.execute(sql).fetchall()]
+        return [{"results": satirlar,
+                 "meta": {"rows_read": len(satirlar), "rows_written": 0}}]
+
+    def _dosya_calistir(sql_metin):
+        # IFADE IFADE uygulanir (d1-sync ifadeleri '\n' ile birlestirir) -> fikstur TEK BIR
+        # URUNUN yazmasini dusurebilir. Bu, "geri-okuma orneklem aliyor mu" iddiasini
+        # olculebilir kilar (bkz. V34): 30 urunluk partide yalniz 1'i kaybolur.
+        sayac["yazma"] += 1
+        yaz = 0
+        for satir in [x for x in sql_metin.split("\n") if x.strip()]:
+            if dusur and dusur(satir, sayac):
+                sayac["dusurulen"] += 1
+                yaz += 5           # SAHTE BASARI: yazmadi ama "5 satir yazdim" dedi
+                continue
+            once = conn.total_changes
+            conn.executescript(satir)
+            yaz += conn.total_changes - once
+        return yaz, 0
+
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False,
+                                     encoding="utf-8") as f:
+        json.dump(urunler, f)
+        yol = f.name
+    g = globals()
+    eski = {k: g[k] for k in ("sorgu", "dosya_calistir", "URUNLER", "KAYNAKLAR",
+                              "JEN_URUN_DIR", "taban_fiyat_haritasi")}
+    eski_argv = sys.argv
+    tampon = io.StringIO()
+    try:
+        g["sorgu"] = _sorgu
+        g["dosya_calistir"] = _dosya_calistir
+        g["URUNLER"] = yol
+        g["KAYNAKLAR"] = os.path.join(tempfile.gettempdir(), "pruvo-kt-yok.json")
+        g["JEN_URUN_DIR"] = os.path.join(tempfile.gettempdir(), "pruvo-kt-yok-dizin")
+        if tabanlar is not None:
+            g["taban_fiyat_haritasi"] = lambda: dict(tabanlar)
+        sys.argv = ["d1-sync.py"] + argv
+        kod = 0
+        with contextlib.redirect_stdout(tampon):
+            try:
+                main()
+            except SystemExit as e:
+                c = e.code
+                if c is None or c == 0:
+                    kod = 0
+                elif isinstance(c, int):
+                    kod = c
+                else:
+                    kod = 1
+                    print(c)      # sys.exit(mesaj) -> mesaj ciktiya girsin (stderr yerine)
+    finally:
+        for k, v in eski.items():
+            g[k] = v
+        sys.argv = eski_argv
+        os.unlink(yol)
+    return kod, tampon.getvalue(), sayac
+
+
+def _kt_baglan():
+    import sqlite3
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.executescript(_KT_SEMA)
+    return conn
+
+
+def _kt_deger(conn, uid, kolon):
+    r = conn.execute("SELECT %s AS v FROM urunler WHERE id=?" % kolon, (uid,)).fetchone()
+    return None if r is None else r["v"]
+
+
+def kendini_test():
+    """Doner: 0 (tum vakalar gecti) / 1 (en az bir vaka kaldi)."""
+    gecen, kalan = [0], [0]
+
+    def dogrula(ad, kosul, detay=""):
+        if kosul:
+            gecen[0] += 1
+            print("  GECTI  " + ad)
+        else:
+            kalan[0] += 1
+            print("  KALDI  " + ad + ((" — " + str(detay)[:400]) if detay else ""))
+
+    print("d1-sync KENDINI TEST (offline sqlite fikstur; canli D1'e DOKUNULMAZ)")
+
+    # ── SAF BIRIM: karsilastirma cekirdegi ────────────────────────────────────────
+    b = {"x": {"alanlar": {"hash": "H1", "kategori": "Tamirat"}, "sql": []}}
+    dogrula("V1 SAF: alanlar birebir -> fark YOK",
+            beklenti_karsilastir(b, {"x": {"hash": "H1", "kategori": "Tamirat"}}) == [])
+    f = beklenti_karsilastir(b, {"x": {"hash": "H0", "kategori": "Oyun/Hobi"}})
+    dogrula("V2 SAF: iki alan bayat -> 2 fark (kolon adlariyla)",
+            [x[1] for x in f] == ["hash", "kategori"], f)
+    dogrula("V3 SAF: satir HIC YOK -> '<satir>' farki",
+            beklenti_karsilastir(b, {}) == [("x", "<satir>", "VAR", "SATIR YOK")])
+    bs = {"x": {"alanlar": None, "sql": []}}
+    dogrula("V4 SAF: silinmesi gereken satir HALA VAR -> fark",
+            beklenti_karsilastir(bs, {"x": {"hash": "H"}}) ==
+            [("x", "<satir>", "SILINMIS", "HALA VAR")])
+    dogrula("V5 SAF: silinen satir gercekten yok -> fark YOK",
+            beklenti_karsilastir(bs, {}) == [])
+    bt = {"x": {"alanlar": {"taban_fiyat": 700}, "sql": []}}
+    dogrula("V6 SAF (YANLIS-POZITIF NOBETI): taban_fiyat '700' (metin) == 700 (int)",
+            beklenti_karsilastir(bt, {"x": {"taban_fiyat": "700"}}) == [])
+
+    # ── SAF BIRIM: izleme kaydi (beklenti SQL'in URETILDIGI yerde dogar) ──────────
+    iz = []
+    u = _kt_urun("a", "Tamirat")
+    diff_plan([u], {}, {"a": "PLA 0.2mm"}, True, 0, {}, iz)
+    dogrula("V7 IZ: yeni urun -> hash+baslik+kategori+baski beklentisi kaydedilir",
+            len(iz) == 1 and set(iz[0]["alanlar"]) == {"hash", "baslik", "kategori", "baski"}
+            and iz[0]["alanlar"]["kategori"] == "Tamirat", iz)
+    iz2 = []
+    diff_plan([u], {"a": ("ESKIHASH", "")}, {}, False, 1, {"a": 1}, iz2)
+    dogrula("V8 IZ: DEGISEN satirda baski beklentiye GIRMEZ (ON CONFLICT baski'ya dokunmaz)",
+            len(iz2) == 1 and "baski" not in iz2[0]["alanlar"], iz2)
+    iz3 = []
+    taban_plan([u], {"a": 700}, {}, iz3)
+    sema_plan("konfigur", [u], {"a": '{"x":1}'}, {}, iz3)
+    dogrula("V9 IZ: taban_plan + sema_plan hedefli UPDATE'leri de kaydeder",
+            [sorted(k["alanlar"]) for k in iz3] == [["taban_fiyat"], ["konfigur"]], iz3)
+
+    # ── DAVRANIS: POZITIF yol ─────────────────────────────────────────────────────
+    conn = _kt_baglan()
+    urunler = [_kt_urun("a"), _kt_urun("b"), _kt_urun("c")]
+    kod, cikti, sayac = _kt_kos(conn, urunler, [])
+    dogrula("V10 POZITIF: 3 yeni urun yazildi -> exit 0 + GERI-OKUMA DOGRULANDI",
+            kod == 0 and "GERI-OKUMA DOGRULANDI" in cikti, cikti[-300:])
+    dogrula("V11 POZITIF: geri-okuma FIILEN kosuldu (sorgu sayisi > 0)",
+            sayac["geri_okuma"] >= 1, sayac)
+
+    # YANLIS-POZITIF NOBETI 1/2 — degisiklik yok
+    kod, cikti, sayac = _kt_kos(conn, urunler, [])
+    dogrula("V12 YANLIS-POZITIF NOBETI: degisiklik yok -> exit 0, HIC yazma, HIC geri-okuma",
+            kod == 0 and sayac["yazma"] == 0 and sayac["geri_okuma"] == 0
+            and "degisiklik yok" in cikti, (kod, sayac))
+
+    # YANLIS-POZITIF NOBETI 2/2 — normal parti (30 yeni + 1 alan degisimi)
+    parti = [_kt_urun("p%02d" % i) for i in range(30)] + urunler
+    parti[-3] = _kt_urun("a", "Tamirat")
+    kod, cikti, sayac = _kt_kos(conn, parti, [])
+    dogrula("V13 YANLIS-POZITIF NOBETI: normal parti (30 yeni + 1 alan degisimi) -> exit 0",
+            kod == 0 and "GERI-OKUMA DOGRULANDI" in cikti, cikti[-300:])
+    dogrula("V14 POZITIF: alan degisimi D1'e FIILEN islendi (kategori=Tamirat)",
+            _kt_deger(conn, "a", "kategori") == "Tamirat", _kt_deger(conn, "a", "kategori"))
+
+    # ── DAVRANIS: NEGATIF yol — sahte "yazildi" ───────────────────────────────────
+    conn2 = _kt_baglan()
+    dus_hep = lambda sql, s: "INSERT INTO urunler" in sql or "UPDATE urunler" in sql
+    kod, cikti, sayac = _kt_kos(conn2, urunler, [], dusur=dus_hep)
+    dogrula("V15 NEGATIF: yazma SESSIZCE dustu ama 'yazildi' denildi -> sifir-disi",
+            kod != 0 and "DOGRULANAMADI" in cikti, (kod, cikti[-300:]))
+    dogrula("V16 NEGATIF: mesaj SATIR YOK'u id ile gosteriyor",
+            "SATIR YOK" in cikti and " a . <satir>" in cikti.replace("- a .", " a ."),
+            cikti[-500:])
+
+    # 🔴 31 TEM VAKASININ BIREBIR FIKSTURU: satir VAR, ALAN eski kaldi.
+    conn3 = _kt_baglan()
+    kod, _, _ = _kt_kos(conn3, urunler, [])                       # once saglikli senkron
+    bozuk = [_kt_urun("a", "Tamirat"), urunler[1], urunler[2]]    # kategori degisti
+    kod, cikti, sayac = _kt_kos(conn3, bozuk, [], dusur=dus_hep)
+    dogrula("V17 NEGATIF (31 TEM FIKSTURU): satir VAR + alan ESKI -> sifir-disi",
+            kod != 0 and "DOGRULANAMADI" in cikti, (kod, cikti[-400:]))
+    dogrula("V18 NEGATIF (31 TEM FIKSTURU): mesajda kolon + beklenen/bulunan var",
+            "kategori" in cikti and "'Tamirat'" in cikti and "'Oyun/Hobi'" in cikti,
+            cikti[-400:])
+    dogrula("V19 NEGATIF: satir VARLIGI korunuyor (varlik kontrolu TEK BASINA yakalamazdi)",
+            _kt_deger(conn3, "a", "kategori") == "Oyun/Hobi",
+            _kt_deger(conn3, "a", "kategori"))
+
+    # ── YENIDEN DENEME (aralikli ariza) ───────────────────────────────────────────
+    conn4 = _kt_baglan()
+
+    def dus_ilk(sql, s):
+        return s["yazma"] == 1 and "INSERT INTO urunler" in sql
+
+    kod, cikti, sayac = _kt_kos(conn4, urunler, [], dusur=dus_ilk)
+    dogrula("V20 RETRY POZITIF: 1. yazma kacti, 2. deneme tuttu -> exit 0",
+            kod == 0 and "2. turda" in cikti, (kod, cikti[-400:]))
+    dogrula("V21 RETRY POZITIF: yeniden deneme ciktida BASILIYOR (sessiz degil)",
+            "yeniden deneme:" in cikti, cikti[-400:])
+    dogrula("V22 RETRY POZITIF: satirlar gercekten D1'e girdi",
+            _kt_deger(conn4, "a", "hash") is not None)
+
+    conn5 = _kt_baglan()
+    kod, cikti, sayac = _kt_kos(conn5, urunler, [], dusur=dus_hep)
+    dogrula("V23 RETRY TUKENIR: iki deneme de kacti -> sifir-disi, SONSUZ DONGU YOK",
+            kod != 0 and sayac["yazma"] <= 4, (kod, sayac))
+
+    # ── SILME ekseni ──────────────────────────────────────────────────────────────
+    conn6 = _kt_baglan()
+    _kt_kos(conn6, urunler, [])
+    kod, cikti, _ = _kt_kos(conn6, urunler[:2], [])
+    dogrula("V24 SILME POZITIF: silinen satir gercekten gitti -> exit 0",
+            kod == 0 and _kt_deger(conn6, "c", "hash") is None, (kod, cikti[-300:]))
+    conn7 = _kt_baglan()
+    _kt_kos(conn7, urunler, [])
+    kod, cikti, _ = _kt_kos(conn7, urunler[:2], [],
+                            dusur=lambda sql, s: "DELETE FROM urunler" in sql)
+    dogrula("V25 SILME NEGATIF: DELETE kacti (satir duruyor) -> sifir-disi + 'HALA VAR'",
+            kod != 0 and "HALA VAR" in cikti, (kod, cikti[-400:]))
+
+    # ── HASH'E KARISMAYAN KOLON (taban_fiyat) ─────────────────────────────────────
+    conn8 = _kt_baglan()
+    _kt_kos(conn8, urunler, [])
+    kod, cikti, _ = _kt_kos(conn8, urunler, [], tabanlar={"a": 700})
+    dogrula("V26 TABAN POZITIF: hedefli taban_fiyat UPDATE'i yazildi + dogrulandi",
+            kod == 0 and _kt_deger(conn8, "a", "taban_fiyat") == 700,
+            (kod, _kt_deger(conn8, "a", "taban_fiyat")))
+    conn9 = _kt_baglan()
+    _kt_kos(conn9, urunler, [])
+    kod, cikti, _ = _kt_kos(conn9, urunler, [], tabanlar={"a": 700},
+                            dusur=lambda sql, s: "SET taban_fiyat" in sql)
+    dogrula("V27 TABAN NEGATIF: taban_fiyat yazmasi kacti -> sifir-disi + kolon adi mesajda",
+            kod != 0 and "taban_fiyat" in cikti, (kod, cikti[-400:]))
+
+    # ── --kuru: yazma da geri-okuma da YOK ────────────────────────────────────────
+    conn10 = _kt_baglan()
+    _kt_kos(conn10, urunler, [])
+    kod, cikti, sayac = _kt_kos(conn10, bozuk, ["--kuru"])
+    dogrula("V28 KURU: exit 0 + HIC yazma + HIC geri-okuma",
+            kod == 0 and sayac["yazma"] == 0 and sayac["geri_okuma"] == 0
+            and "geri-okuma da yapilmadi" in cikti, (kod, sayac))
+    dogrula("V29 KURU: D1 degeri DEGISMEDI (kuru kosum yazmaz)",
+            _kt_deger(conn10, "a", "kategori") == "Oyun/Hobi")
+
+    # ── GERI-OKUMA SORGUSU PATLARSA -> OLCULEMEDI (yesil DEGIL) ───────────────────
+    conn11 = _kt_baglan()
+    kod, cikti, _ = _kt_kos(conn11, urunler, [], oku_patlat=True)
+    dogrula("V30 OLCULEMEDI: geri-okuma sorgusu patladi -> sifir-disi + 'OLCULEMEDI'",
+            kod != 0 and "OLCULEMEDI" in cikti, (kod, cikti[-400:]))
+
+    # ── --durum ICERIK EKSENI ─────────────────────────────────────────────────────
+    conn12 = _kt_baglan()
+    _kt_kos(conn12, urunler, [])
+    kod, cikti, _ = _kt_kos(conn12, urunler, ["--durum"])
+    dogrula("V31 DURUM POZITIF: sayi + icerik ekseni uyumlu -> exit 0",
+            kod == 0 and "teyit (ICERIK ekseni)" in cikti, (kod, cikti[-400:]))
+    conn12.execute("UPDATE urunler SET hash='BAYATHASH' WHERE id='a'")
+    kod, cikti, _ = _kt_kos(conn12, urunler, ["--durum"])
+    dogrula("V32 DURUM NEGATIF (31 TEM SINIFI): SAYI TUTUYOR ama hash bayat -> sifir-disi",
+            kod != 0 and "ICERIK EKSENI DRIFT" in cikti and "teyit (SAYI ekseni)" in cikti,
+            (kod, cikti[-500:]))
+    kod, cikti, _ = _kt_kos(conn12, urunler, ["--durum", "--hizli"])
+    dogrula("V33 DURUM --hizli: icerik ekseni BEYAN EDILEREK atlanir -> exit 0 + uyari",
+            kod == 0 and "ICERIK EKSENI ATLANDI" in cikti, (kod, cikti[-400:]))
+
+    # ── ORNEKLEME YASAGI: 30 urunluk partide YALNIZ 1 urunun yazmasi kaybolur ────
+    # Geri-okuma yazilan id kumesinin TAMAMINI dogrulamazsa (ornekleme/kisaltma) bu vaka
+    # YESIL yanar ve tek urun sessizce bayat kalir.
+    conn13 = _kt_baglan()
+    buyuk = [_kt_urun("p%02d" % i) for i in range(30)]
+    kod, cikti, sayac = _kt_kos(conn13, buyuk, [],
+                                dusur=lambda sql, s: "'p07'" in sql)
+    dogrula("V34 ORNEKLEME YASAGI: 30 urunun 1'i (p07) kacti -> sifir-disi + id mesajda",
+            kod != 0 and "p07" in cikti, (kod, cikti[-400:]))
+    dogrula("V35 ORNEKLEME YASAGI: diger 29 urun gercekten yazildi (yanlis-pozitif degil)",
+            _kt_deger(conn13, "p08", "hash") is not None
+            and _kt_deger(conn13, "p07", "hash") is None)
+
+    print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
+    return 0 if kalan[0] == 0 else 1
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sema", action="store_true", help="semayi kur")
     ap.add_argument("--kuru", action="store_true", help="yazmadan ne yapacagini soyle")
-    ap.add_argument("--durum", action="store_true", help="D1 durumu")
+    ap.add_argument("--durum", action="store_true", help="D1 durumu (sayi + icerik ekseni)")
+    ap.add_argument("--hizli", action="store_true",
+                    help="--durum ile: ICERIK eksenini ATLA (yalniz sayi; ~5 s ucuz)")
+    ap.add_argument("--kendini-test", action="store_true", dest="kendini",
+                    help="OFFLINE kabul testi (sqlite fikstur; canli D1'e DOKUNMAZ)")
     a = ap.parse_args()
+
+    if a.kendini:
+        sys.exit(kendini_test())
 
     if a.sema:
         with open(SEMA, encoding="utf-8") as f:
@@ -676,14 +1222,56 @@ def main():
         urunler = urunleri_oku()
         benzersiz = len({u.get("id") for u in urunler if u.get("id")})
         print("urunler.json benzersiz id:", benzersiz)
-        if not durum_uyumlu(n, benzersiz):
-            sys.exit(
-                "!! D1 SENKRON DRIFT: D1=%s != urunler.json benzersiz=%d.\n"
-                "   Senkron kacmis olabilir; Ege bayat katalog goruyor (yeni urunu ONEREMEZ).\n"
-                "   Coz: python3 tools/d1-sync.py   (yerelde wrangler oturumu; token gerekmez)"
-                % (n, benzersiz)
-            )
-        print("teyit: D1 == urunler.json benzersiz (%d) ✅" % benzersiz)
+        sorunlar = []
+        if durum_uyumlu(n, benzersiz):
+            print("teyit (SAYI ekseni): D1 == urunler.json benzersiz (%d) ✅" % benzersiz)
+        else:
+            sorunlar.append(
+                "SAYI EKSENI DRIFT: D1=%s != urunler.json benzersiz=%d — senkron kacmis "
+                "olabilir; Ege bayat katalog goruyor (yeni urunu ONEREMEZ)." % (n, benzersiz))
+
+        # ── ICERIK EKSENI (urun_hash) — VARSAYILAN ACIK ────────────────────────────
+        # NEDEN VARSAYILAN: merge-kapisi'nin zorunlu D1 teyidi `d1-sync.py --durum` cagirir.
+        # Eksen ayri bir bayrakta olsaydi (or. --derin) o kapi 31 Tem vakasina KOR kalmaya
+        # devam ederdi (sayi tutuyor, icerik bayat). Maliyeti olculdu ve KABUL EDILEBILIR:
+        # 15.163 satirin id+hash'i = tek SELECT, 5,2 s, rows_read 15.163, ~1,6 MB (hesap
+        # Workers Paid; gunluk okuma kotasinin binde biri bile degil). Aceleci kullanim icin
+        # --hizli BEYAN EDILEREK atlar ve neyin olculmedigini BASAR (sessiz atlama YOK).
+        if a.hizli:
+            print("!! ICERIK EKSENI ATLANDI (--hizli): ALAN guncellemesi satir SAYISINI "
+                  "DEGISTIRMEZ -> sayi tutarken D1 icerigi BAYAT olabilir. Tam teyit: "
+                  "--hizli'siz kos.")
+        else:
+            t0 = time.time()
+            r = sorgu("SELECT id, hash FROM urunler")
+            satirlar = (r[0].get("results") or []) if r else []
+            okunan = ((r[0].get("meta") or {}).get("rows_read") or 0) if r else 0
+            sure = time.time() - t0
+            d1_hash = {s["id"]: s["hash"] for s in satirlar}
+            uyusmaz, eksik, fazla = icerik_ekseni(urunler, d1_hash)
+            print("icerik ekseni (urun_hash): %d D1 satiri | okunan satir: %d | %.2f s"
+                  % (len(d1_hash), okunan, sure))
+            print("  hash UYUSMAZ: %d | D1'de EKSIK: %d | D1'de FAZLA: %d"
+                  % (len(uyusmaz), len(eksik), len(fazla)))
+            for uid, b, v in uyusmaz[:10]:
+                print("   - %s : urunler.json %s · D1 %s (D1 BAYAT)" % (uid, b, v))
+            for uid in eksik[:10]:
+                print("   - %s : D1'de YOK (Ege bu urunu ONEREMEZ)" % uid)
+            for uid in fazla[:10]:
+                print("   - %s : D1'de FAZLA (urunler.json'da yok)" % uid)
+            if uyusmaz or eksik or fazla:
+                sorunlar.append(
+                    "ICERIK EKSENI DRIFT: %d bayat hash + %d eksik + %d fazla — SAYI tutsa "
+                    "bile D1 icerigi urunler.json ile AYNI DEGIL (Ege bayat veri goruyor)."
+                    % (len(uyusmaz), len(eksik), len(fazla)))
+            else:
+                print("teyit (ICERIK ekseni): %d urunun urun_hash'i D1 ile birebir ✅"
+                      % len(d1_hash))
+
+        if sorunlar:
+            sys.exit("!! D1 SENKRON DRIFT:\n" + "\n".join("   " + s for s in sorunlar)
+                     + "\n   Coz: python3 tools/d1-sync.py   (yerelde wrangler oturumu; "
+                       "token gerekmez)")
         return
 
     urunler = urunleri_oku()
@@ -713,15 +1301,19 @@ def main():
             print("   - %s: %s" % (uid, sebep))
         print("   Coz: python3 tools/konfigur-bundle-kapisi.py   (ayni veriyi dogrular)")
 
+    # GERI-OKUMA IZI: plan fonksiyonlari SQL'i uretirken "hangi satirin hangi alani hangi
+    # degere gelmeli" kaydini buraya birakir; yazmadan SONRA bu kayit D1'den geri okunup
+    # dogrulanir (bkz. GERI_OKUMA_KOLONLARI bloku).
+    izleme = []
     yeni, degisen, baski_guncelle, silinen, gorulen = diff_plan(
-        urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq)
+        urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq, izleme)
     # TABAN FIYAT senkronu: baski'dan BAGIMSIZ + HASH'ten bagimsiz (git'te oldugu icin
     # yetki kapisi da yok — CI da yerel de ayni degeri gorur). Yeni urun taban_fiyat'i
     # INSERT DEFAULT 0 alir, bu UPDATE (ifade sirasinda INSERT'ten SONRA) fiyatini yazar.
-    taban_guncelle = taban_plan(urunler, tabanlar, mevcut_taban)
+    taban_guncelle = taban_plan(urunler, tabanlar, mevcut_taban, izleme)
     # KONFIGUR senkronu: taban_fiyat ile AYNI desen (hash'ten bagimsiz + hedefli UPDATE).
     # Kolon yoksa BOS liste (yukarida gurultulu basildi).
-    konfigur_guncelle = (konfigur_plan(urunler, konfigurlar, mevcut_konfigur)
+    konfigur_guncelle = (konfigur_plan(urunler, konfigurlar, mevcut_konfigur, izleme)
                          if konfigur_kolonu else [])
     print("yeni: %d | degisen: %d | baski-guncelle: %d | taban-guncelle: %d | konfigur-guncelle: %d | silinen: %d | dokunulmayan: %d"
           % (len(yeni), len(degisen), len(baski_guncelle), len(taban_guncelle),
@@ -729,7 +1321,8 @@ def main():
              len(gorulen) - len(yeni) - len(degisen)))
 
     if a.kuru:
-        print("(--kuru: hicbir sey yazilmadi)")
+        # KURU KOSUM: yazma da geri-okuma da YAPILMAZ (ikisi de D1'e cagri demektir).
+        print("(--kuru: hicbir sey yazilmadi, geri-okuma da yapilmadi)")
         return
     if (not yeni and not degisen and not baski_guncelle and not taban_guncelle
             and not konfigur_guncelle and not silinen):
@@ -756,9 +1349,37 @@ def main():
     )
     top_yaz += yaz
 
-    print("TOPLAM yazilan satir: %d (D1 gunluk sinir: 100.000)" % top_yaz)
+    print("TOPLAM yazilan satir (wrangler IDDIASI, asagida DOGRULANIR): %d" % top_yaz)
     if top_yaz > 100000:
-        print("!! UYARI: bu tek calisma gunluk yazma limitini asti.")
+        print("!! UYARI: bu tek calisma 100.000 satir yazma esigini asti.")
+
+    # ── GERI-OKUMA DOGRULAMASI — "yazildi" IDDIASI burada KANITA cevrilir ────────────
+    # Wrangler exit 0 + "N satir yazildi" TEK BASINA BASARI DEGILDIR (31 Tem: iddia dogru,
+    # canli deger eski). Hata sinifi SESSIZ: site dogru gosterir, Ege bayat okur.
+    beklenti = beklenti_kur(izleme, silinen)
+    try:
+        fark = geri_okuma_dogrula(beklenti, konfigur_kolonu)
+    except SystemExit as e:
+        # sorgu()/dosya_calistir() kendi icinde sys.exit ediyor olabilir. YUTMA: bu bir
+        # "yesil" degil OLCULEMEDI'dir -> sifir-disi cikilir.
+        sys.exit("!! GERI-OKUMA OLCULEMEDI (D1 sorgusu basarisiz) — yazma DOGRULANMADI, "
+                 "'yazildi' iddiasi KANITSIZ.\n   %s" % (e.code,))
+    except Exception as e:                                        # noqa: BLE001
+        sys.exit("!! GERI-OKUMA OLCULEMEDI (%s) — yazma DOGRULANMADI, 'yazildi' iddiasi "
+                 "KANITSIZ.\n   %s" % (type(e).__name__, e))
+    if fark:
+        satirlar = [
+            "!! D1 YAZMA DOGRULANAMADI — iddia edilen yazma IKI DENEMEDE de D1'e islemedi.",
+            "   Site urunu dogru gosterir ama Ege (WhatsApp botu) BAYAT veri gorur = sessiz",
+            "   satis kaybi. Uyusmayan alan sayisi: %d" % len(fark)]
+        for uid, kolon, b, v in fark[:20]:
+            satirlar.append("   - %s . %s : beklenen %r · bulunan %r" % (uid, kolon, b, v))
+        if len(fark) > 20:
+            satirlar.append("   ... +%d alan daha" % (len(fark) - 20))
+        satirlar.append("   Coz: python3 tools/d1-sync.py   (tekrar kos) — surerse ES ZAMANLI "
+                        "ikinci bir senkron (CI adimi / baska oturumun pre-push hook'u) BAYAT "
+                        "bir urunler.json ile ustune yaziyor olabilir.")
+        sys.exit("\n".join(satirlar))
 
 
 if __name__ == "__main__":

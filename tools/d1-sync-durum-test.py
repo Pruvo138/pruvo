@@ -37,28 +37,40 @@ def dogrula(ad, kosul, detay=""):
         print("  KALDI " + ad + (" — " + detay if detay else ""))
 
 
-def fake_sorgu_uret(d1_sayisi):
-    """sorgu() yerine gecen sahte: COUNT sorgusuna d1_sayisi, senkron sorgusuna tek satir."""
+def fake_sorgu_uret(d1_sayisi, d1_hash):
+    """sorgu() yerine gecen sahte: COUNT -> d1_sayisi · senkron -> tek satir ·
+    ICERIK EKSENI (SELECT id, hash) -> d1_hash haritasi."""
     def _f(sql):
         if "COUNT(*)" in sql:
             return [{"results": [{"n": d1_sayisi}]}]
         if "senkron" in sql:
             return [{"results": [{"anahtar": "urun_sayisi", "deger": str(d1_sayisi)}]}]
+        if "SELECT id, hash FROM urunler" in sql:
+            return [{"results": [{"id": i, "hash": h} for i, h in sorted(d1_hash.items())],
+                     "meta": {"rows_read": len(d1_hash)}}]
         return [{"results": []}]
     return _f
 
 
-def durum_cikis(d1, urunler_listesi, d1_sayisi):
+def durum_cikis(d1, urunler_listesi, d1_sayisi, bayat=None, hizli=False):
     """--durum'u OFFLINE kosar (sorgu + URUNLER monkeypatch), cikis kodunu dondur.
-    Donen: 0 = temiz donus (uyumlu) · 1 = sys.exit ile fail-loud (uyumsuz)."""
+    Donen: 0 = temiz donus (uyumlu) · 1 = sys.exit ile fail-loud (uyumsuz).
+    bayat = D1'de hash'i BOZULACAK id (sayi AYNI kalir -> yalniz ICERIK EKSENI gorur).
+    hizli = --hizli bayragi (icerik ekseni ATLANIR)."""
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
         json.dump(urunler_listesi, f)
         yol = f.name
+    d1_hash = {}
+    for u in urunler_listesi:
+        if u.get("id") and u["id"] not in d1_hash:
+            d1_hash[u["id"]] = d1.arama.urun_hash(u)
+    if bayat:
+        d1_hash[bayat] = "BAYATHASH"
     eski_sorgu, eski_urunler, eski_argv = d1.sorgu, d1.URUNLER, sys.argv
     try:
-        d1.sorgu = fake_sorgu_uret(d1_sayisi)
+        d1.sorgu = fake_sorgu_uret(d1_sayisi, d1_hash)
         d1.URUNLER = yol
-        sys.argv = ["d1-sync.py", "--durum"]
+        sys.argv = ["d1-sync.py", "--durum"] + (["--hizli"] if hizli else [])
         try:
             d1.main()
             return 0                       # sys.exit CAGRILMADI -> uyumlu
@@ -104,6 +116,17 @@ def main():
             durum_cikis(d1, urunler, 4) == 1)
     dogrula("--durum D1 okunamadi (COUNT None) -> exit 1",
             durum_cikis(d1, urunler, None) == 1)
+
+    # ── (3) ICERIK EKSENI (31 Tem) — SAYI TUTARKEN icerik bayat olabilir ───────
+    # OLCULEN OLAY: tek alan degisimi (kategori) D1'e islemedi; satir SAYISI degismedigi
+    # icin --durum YESIL yandi ve merge-kapisi'nin zorunlu D1 teyidi bu vakaya KOR kaldi.
+    dogrula("--durum ICERIK: sayi TUTUYOR + hash'ler uyumlu -> exit 0",
+            durum_cikis(d1, urunler, 3) == 0)
+    dogrula("🔴 --durum ICERIK: sayi TUTUYOR ama bir urunun D1 hash'i BAYAT -> exit 1",
+            durum_cikis(d1, urunler, 3, bayat="b") == 1)
+    dogrula("--durum --hizli: icerik ekseni ATLANIR -> bayat hash'e ragmen exit 0 "
+            "(bayrak BEYAN ediyor, sessizce atlamiyor)",
+            durum_cikis(d1, urunler, 3, bayat="b", hizli=True) == 0)
 
     print("\nSONUC: %d gecti, %d kaldi%s" %
           (gecen[0], kalan[0], "" if kalan[0] else " — HEPSI YESIL"))

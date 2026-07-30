@@ -631,6 +631,22 @@ jobs:
       - name: D1-sync hata tanisi kabul testi
         run: python3 tools/d1-sync-tani-test.py
 
+      # D1 YAZMA GERI-OKUMA (write-verify) KABUL TESTI — BLOKLAYICI (continue-on-error YOK).
+      # OLCULEN OLAY (31 Tem): d1-sync tek alan degisimini "degisen: 1 / 5 satir yazildi" diye
+      # BASIP exit 0 dondu, canli D1'deki deger ESKI KALDI. Hata sinifi SESSIZ: site urunu
+      # dogru gosterir (urunler.json'dan), Ege (WhatsApp botu) D1'den okudugu icin BAYAT veri
+      # gorur -> musteri urun varken kaybedilir, hicbir yerde alarm calmaz. --durum'un SAYI
+      # ekseni bunu GOREMEYECEKTI: alan guncellemesi satir sayisini DEGISTIRMEZ.
+      # NE KANITLAR: yazma sonrasi geri-okumanin POZITIF ve NEGATIF vakalari (sahte "yazildi",
+      # satir VAR ama alan ESKI = olayin birebir fikstruru, silme kacmasi, hedefli sema kolonu,
+      # ornekleme yasagi, yeniden deneme, --kuru'nun yazmamasi, geri-okuma patlayinca
+      # OLCULEMEDI) + --durum icerik ekseni + YANLIS-POZITIF nobeti (degisiklik yok / normal
+      # urun partisi YESIL kalmali — bu arac pre-push hook'unda kosuyor, yanlis-pozitif TUM
+      # mimarlarin push'unu kirar). OFFLINE: sqlite bellek-ici fikstur, ag/wrangler/D1 YOK,
+      # urunler.json OKUNMAZ (gecici dosya), ~1 s.
+      - name: D1 yazma geri-okuma kabul testi (write-verify + icerik ekseni)
+        run: python3 tools/d1-sync.py --kendini-test
+
       # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
       # (Bu blok ile alttaki YEDEK TAZELIK blogu BAGIMSIZ iki hunk'tir; merge cakismasinda
       # ikisi de KORUNUR — biri digerinin yerine gecmez.)
