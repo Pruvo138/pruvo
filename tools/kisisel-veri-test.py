@@ -14,9 +14,13 @@ Neyi doğrular:
      birleştirilince beklenen değerler birebir geri çıkar (sayfa müşteriye
      doğru bilgiyi göstermeye devam ediyor) ve her sayfada beklenen sayıda
      korumalı değer var.
-  3) İÇ RAPOR SIZINTI NÖBETÇİSİ (27 Tem) — KÜRESEL NEGATİF kural: repoda
-     İZLENEN (git ls-files) hiçbir dosya işçi→mimar iç rapor ADLANDIRMA
-     ailesine uymayacak. Ayrıntı ve gerekçe için aşağıdaki bölüm başlığına bak.
+  3) İÇ RAPOR SIZINTI NÖBETÇİSİ (27 Tem) — İKİ KURAL, TEK git taraması:
+     KURAL A (küresel negatif, ad ekseni): İZLENEN (git ls-files) hiçbir dosya
+       işçi→mimar iç rapor ADLANDIRMA ailesine uymayacak (dizinden bağımsız).
+     KURAL B (kök belge kapısı, ad-BAĞIMSIZ): repo KÖKÜNDE izlenen her
+       .md/.markdown/.txt, ADI NE OLURSA OLSUN, küçük bir İZİN LİSTESİNDE
+       değilse kırmızı. Kural A'nın ad-ailesi deliğini kapatır (TESLIM-NOTU.md).
+     Ayrıntı ve gerekçe için aşağıdaki bölüm başlıklarına bak.
 
   4) GEÇMİŞ EKSENİ (30 Tem) — (3)'ün aynı kuralı COMMIT GEÇMİŞİNE uygulanır:
      bir dosya eklenip aynı gün silinirse çalışma ağacı temizdir ama commit
@@ -319,6 +323,39 @@ def ic_rapor_fikstur_hatalari():
         hatalar.append("BOS KAPSAM SESSIZ YESIL: git ls-files rc=0 + BOS cikti "
                        "verdiginde nobetci hata uretmiyor (taranan=%d) — tarama "
                        "hicbir dosya gormezse kapi 'temiz' diyor" % _t2)
+    # (0c-2) CANLILIK NOBETI (TUR 2 / D3) — KAPSAM AYRIMI (birlesim karari, 30 Tem):
+    # BOS liste vakasinin SAHIBI yukaridaki (0c) kisa devresidir (_izlenen_dosyalar
+    # bos listede hata dondurur, nobetci "OLCULEMEDI" deyip ERKEN DONER; o dal zaten
+    # fail-loud). Bu yuzden canlilik capasi BOS listeye DEGIL, bugun hicbir nobetcinin
+    # KORUMADIGI vakaya nisan alir: KISMI (sparse) liste — git rc=0, liste DOLU ama
+    # beklenenden DAR (sparse/partial checkout, yanlis ROOT, PATH'te git shim, bozuk
+    # index). O halde tarama sessizce DARALIR ve kapi "temiz" der. Iki dal olculur:
+    # (a) kapinin kendi yolunu icermeyen KISMI liste -> CANLILIK hatasi ZORUNLU,
+    # (b) normal liste -> canlilik hatasi YOK (yanlis-pozitif nobeti).
+    # Fikstur BILEREK Kural A'nin (her zaman kosan) fikstur fonksiyonunda durur:
+    # Kural B'nin fikstur cagrisi silinse bile canlilik nobeti nobetsiz kalmasin.
+    _kismi = "\0".join(["index.html", "README.md", "urunler.json"])
+    _h, _ = ic_rapor_nobeti(kosucu=lambda: (0, _kismi, ""), fikstur=False)
+    if not any("CANLILIK" in x for x in _h):
+        hatalar.append("CANLILIK NOBETI OLDU: kapinin KENDI yolunu icermeyen KISMI "
+                       "liste (sparse/partial checkout) sessiz YESIL'e donmus")
+    _tam = "\0".join(["index.html", "README.md", "urunler.json", KAPI_YOLU])
+    _h, _ = ic_rapor_nobeti(kosucu=lambda: (0, _tam, ""), fikstur=False)
+    if any("CANLILIK" in x for x in _h):
+        hatalar.append("CANLILIK NOBETI YANLIS-POZITIF: normal listede canlilik "
+                       "hatasi uretti -> %r" % _h)
+    # (0d) CAPRAZ CANLILIK — KURAL B'nin YARGISI canli mi?
+    # BILEREK Kural A'nin (HER ZAMAN kosan) fikstur fonksiyonunda durur. OLCULDU
+    # (mutasyon D3, TUZAK): Kural B'nin fikstur cagrisini
+    # `hatalar.extend(kok_belge_fikstur_hatalari())` ile YARGISINI birlikte oldurmek
+    # Kural B'yi TAMAMEN sessizlestiriyordu — kendi fiksturleri de susturuldugu icin
+    # kimse fark etmiyordu ve kokteki gercek bir sizinti YESIL geciyordu.
+    # Bu iki satirlik capraz prob o tuzagi kapatir: Kural B'nin fikstur katmani
+    # susturulsa bile yargisinin oldugu buradan gorulur.
+    if not kok_belge_ihlali_mi("TESLIM-NOTU.md") or kok_belge_ihlali_mi("README.md"):
+        hatalar.append("KURAL B YARGISI OLU/BOZUK: kok belge kapisi temel vakalari "
+                       "ayirt edemiyor (TESLIM-NOTU.md YAKALANMALI, README.md "
+                       "yakalanMAMALI) — Kural B sessizce devre disi kalmis olabilir")
     for yol, gerekce in _IC_RAPOR_KIRMIZI:
         if not ic_rapor_mu(yol):
             hatalar.append("FIKSTUR(kirmizi) KACTI — kural zayifladi: %s  [%s]"
@@ -328,6 +365,279 @@ def ic_rapor_fikstur_hatalari():
             hatalar.append("FIKSTUR(yesil) YANLIS-POZITIF — kural DARALTILMALI: %s  [%s]"
                            % (yol, gerekce))
     return hatalar
+
+
+# ==================================================================================
+# KOK BELGE KAPISI — AD-BAGIMSIZ IZIN LISTESI ("KURAL B", 27 Tem)
+# ==================================================================================
+# KURAL A'NIN ACIK KALAN DELIGI: A hala AD ekseninde calisir, sadece ailesi genis.
+# Aile DISINDA bir ad secen rapor yine kacar. OLCULDU: ic_rapor_mu("TESLIM-NOTU.md")
+# False dondurur (kok yok, sonek yok) -> Kural A ile YESIL gecerdi. Ayni sinif:
+# NOTLAR.md, BULGULAR.md, OZET.md, HANDOFF.txt, worker-notu.md, devir.txt.
+#
+# KARAR (mimar): kok seviyede AD-BAGIMSIZ, fail-closed IZIN LISTESI. Kural B kokte
+# ekseni ADdan KONUM+IZIN'e tasir; Kural A alt dizinlerde ad ailesiyle calismaya
+# devam eder. Ikisi birlikte: kok -> ad ne olursa olsun yakalanir; alt dizin -> ad
+# ailesiyle yakalanir. (Kanonik `.raporlar/` dizini SECILMEDI: dizini kullanmayi
+# unutmak tam olarak uc kez olan hatanin kendisidir -> zorlayici degil.)
+#
+# NEDEN KOK GURULTUSUZ (mimar olcumu, git ls-files + git log --diff-filter=A):
+#   * Bugun izlenen KOK belge dosyasi yalnizca README.md ve ege-bilgi.md
+#     (kokte izlenen .txt/.markdown yok; kokte izlenen dosyalarin geri kalani
+#     .gitignore/.driveignore/CNAME/index.html/urunler.json ve uc .js).
+#   * Depo tarihinde kok .md EKLEME olaylarinin mesru olani yalniz bu iki dosya;
+#     geri kalanlarin HEPSI ic rapor sizintisi (ONARIM-RAPORU.md, CURUTME-RAPORU.md,
+#     CURUTME-RAPORU-TUR4.md, RAPOR-MIMARA.md).
+#   * 3/3 gercek sizinti vakasi worktree KOKUNDE yazildi (worktree koku = repo koku).
+#   Yani kokte yeni izlenen belge = tarihsel olarak COGUNLUKLA sizinti; mesru olay
+#   cok seyrek -> TAM IZIN LISTESI gurultusuz kalir.
+#
+# KAPSAM SINIRI (BEYAN EDILEN KOR NOKTA): Kural B YALNIZ kokle sinirlidir. Alt
+# dizindeki aile-disi bir ad (or. tools/TESLIM-NOTU.md) Kural A'ya da uymaz ->
+# BILINCLI olarak yesil kalir. Alt dizine genisletmek tools/*.md mimar paketlerini
+# (paket-*.md, taban-fiyat-tablosu.md, edge-katalog-tetik.md, ...) izin listesine
+# doldurur; liste sisip bakimsiz kalir ve kapi OLUR. Yesil fiksturlerde isaretlidir.
+#
+# UZANTI SECIMI (TUR 2'de GENISLETILDI — her aday TEK TEK olculdu):
+#   * Ilk surumde yalnizca .md/.markdown/.txt vardi; bagimsiz curutucu OLCTU ki
+#     NOT.rst · NOT.org · TESLIM-NOTU.mdown · TESLIM-NOTU.text · TESLIM-NOTU.adoc
+#     KACIYORDU. "Uzanti genisletmek yanlis-pozitif uretir" gerekcesi .html/.json/
+#     uzantisiz icin DOGRU ama BELGE uzantilari icin GECERSIZDI.
+#   * Asagidaki BELGE uzantilarinin her biri icin depo GENELINDE izlenen dosya
+#     sayisi olculdu ve HEPSI SIFIR cikti -> hicbiri yanlis-pozitif uretemez.
+#     (Olcum: git ls-files -z | uzantiya gore say. Yeni bir uzanti eklenmeden ONCE
+#     ayni olcum TEKRARLANIR; sifir degilse EKLENMEZ.)
+#
+# 🔴 BEYAN EDILEN KAPSAM DISI (GERCEK yanlis-pozitif — bilincli birakildi):
+#   KOD/VARLIK uzantilari kapsam DISIDIR: .html .json .js .css .xml .svg .ico
+#   .jpg .png .webp. Sebep olculdu: kokte index.html + urunler.json + uc .js
+#   IZLENIYOR (depo genelinde .json=48, .js=59, .html=5). Bunlari kapsama almak
+#   kapiyi bloklayici bir yanlis-pozitife cevirir ve tum pruvo3d.com yayinini
+#   durdurur. Dolayisiyla TESLIM-NOTU.html / TESLIM-NOTU.json KACAR — bilinen sinir.
+# 🔴 IKINCI KAPSAM DISI: listede olmayan RASTGELE bir uzanti (TESLIM-NOTU.bak,
+#   .note, .yaml) da kacar; kural uzanti IZIN listesiyle degil BELGE listesiyle
+#   calisiyor (mimar karari). Kapatmak isteniyorsa eksen tersine cevrilmeli
+#   (kod/varlik uzantilari DISINDA her sey ihlal) — ayri karar, ayri olcum.
+#
+# UZANTISIZ KOK DOSYALARI (TUR 2, D2): "TESLIM-NOTU" (uzantisiz) ve "NOT.md."
+# (sondaki nokta) de kaciyordu. Artik kokte UZANTISIZ ya da NOKTAYLA BITEN her
+# izlenen dosya ihlaldir; bugun izlenen uzantisiz kok dosyalarinin UCU DE
+# (CNAME, .gitignore, .driveignore) izin listesine GEREKCEYLE alindi. Yeni bir
+# uzantisiz kok dosyasinin (Makefile, LICENSE) kirmizi yakmasi DOGRU davranistir —
+# gozden gecirilip gerekceyle listeye alinsin diye.
+#
+# VERI CAPASI YOK: kodda sabit dosya SAYISI / SHA / tarih iddiasi yoktur. Izin
+# listesi ADlardan olusur. BAYAT giris BILEREK kirmizi DEGIL: listedeki bir dosya
+# bir gun silinirse kapi kirmizi yanmamali (README.md silinirse yayin durmasin).
+# Yalniz GEREKCESIZ giris kirmizidir — liste "neden" alani bos birakilarak curumesin.
+KOK_BELGE_UZANTILARI = (
+    ".md", ".markdown", ".txt",          # ilk surum
+    ".mdown", ".mkd", ".text",           # markdown/metin lehceleri
+    ".rst", ".org", ".adoc",             # reStructuredText / org-mode / asciidoc
+    ".rtf", ".doc", ".docx", ".odt", ".pdf",   # ofis + tasinabilir belge
+)
+
+# IZIN LISTESI: yol -> GEREKCE. TAM AD ve HARF-DUYARLI esleme (liste kucuk ve kesin).
+# ⚠️ CLAUDE.md / AGENTS.md / DEVAM.md BILEREK BURADA DEGIL: gitignore'dadirlar ve
+# IZLENIR hale gelirlerse kirmizi yanmasi DOGRU davranistir (tedarikci adlari,
+# uyelik bilgisi, WhatsApp numarasi, ticari mahremiyet kurali tasirlar).
+KOK_BELGE_IZIN = {
+    "README.md": "depo tanitim dosyasi — GitHub'da GORUNMESI amac, ic bilgi tasimaz",
+    "ege-bilgi.md": "WhatsApp botu Ege'nin YAYINLANAN bilgi dosyasi (musteriye donen icerik)",
+    "CNAME": "GitHub Pages ozel alan adi kaydi — uzantisiz, SILINIRSE yayin adresi duser",
+    ".gitignore": "git yoksayma kurallari — uzantisiz (nokta-dosyasi), depo isleyisi icin sart",
+    ".driveignore": "Drive yedekleme yoksayma kurallari — uzantisiz (nokta-dosyasi)",
+}
+
+
+def _kok_uzanti(ad):
+    """Katlanmis KOK dosya adindan uzantiyi cikarir. Bastaki noktalar ATILIR ki
+    '.gitignore' UZANTILI degil UZANTISIZ sayilsin (bastaki nokta gizli-dosya
+    isaretidir, uzanti degil). Doner:
+      None -> govdede hic nokta YOK      (CNAME · Makefile · LICENSE · TESLIM-NOTU)
+      "."  -> ad NOKTAYLA BITIYOR        (NOT.md. — olculmus kacis denemesi)
+      ".x" -> normal uzanti              (.md · .rst · .html · .json)
+    """
+    govde = ad.lstrip(".")
+    if "." not in govde:
+        return None
+    return "." + govde.rsplit(".", 1)[-1]
+
+
+def kok_belge_ihlali_mi(yol):
+    """repo-gorece yol KOK seviyede IZINSIZ bir belge mi (AD-BAGIMSIZ yargi).
+
+    Ihlal = (yolda '/' YOK) VE (izin listesinde DEGIL) VE
+            (BELGE uzantisi  YA DA  uzantisiz  YA DA  noktayla biten ad).
+    Uzanti tespiti Kural A'nin _ad_katla'siyla katlanir -> '.MD'/'.Md'/'.RST'
+    kacamaz. Izin karsilastirmasi HAM yol uzerinde ve HARF-DUYARLI: 'readme.md'
+    README.md'nin izninden yararlanamaz (fail-closed; supheli hal kirmizi).
+      KIRMIZI: TESLIM-NOTU.md · NOT.rst · TESLIM-NOTU (uzantisiz) · NOT.md. · OZET.md
+      YESIL  : README.md · CNAME · .gitignore · index.html · tools/paket-x.md
+    """
+    if "/" in yol:
+        return False
+    if yol in KOK_BELGE_IZIN:
+        return False
+    uzanti = _kok_uzanti(_ad_katla(yol))
+    if uzanti is None:
+        return True   # UZANTISIZ kok dosyasi -> gozden gecirilsin (fail-closed)
+    if uzanti == ".":
+        return True   # ad noktayla bitiyor -> uzanti kacisi denemesi
+    return uzanti in KOK_BELGE_UZANTILARI
+
+
+def kok_belge_isabetleri(yollar):
+    """Yol listesi -> kokte IZINSIZ belge yollari, sirali.
+    GERCEK tarama ve fikstur oz-kontrolu AYNI fonksiyonu kullanir: biri oldurulurse
+    (or. 'return []') fikstur oz-kontrolu de kirmizi yanar (olu tarayici korumasi)."""
+    return sorted(y for y in yollar if kok_belge_ihlali_mi(y))
+
+
+# --- KIRMIZI FIKSTURLER: Kural B zayiflatilirsa bunlar KACAR -> kapi kirmizi.
+_KOK_BELGE_KIRMIZI = [
+    ("TESLIM-NOTU.md", "MIMAR SARTI: Kural A'nin KACIRDIGI ad (kok yok, sonek yok)"),
+    ("TESLIM-NOTU.markdown", "ayni ad, uzanti degistirerek kacis"),
+    ("TESLIM-NOTU.MD", "BUYUK HARF uzanti — _ad_katla katlamasi olmazsa kacar"),
+    ("NOTLAR.md", "aile-disi genel ad"),
+    ("BULGULAR.md", "aile-disi genel ad"),
+    ("OZET.md", "aile-disi genel ad"),
+    ("HANDOFF.txt", "aile-disi ad + .txt uzantisi"),
+    ("worker-notu.md", "isci kimligi tasiyan kucuk-harf ad"),
+    ("devir.txt", "aile-disi ad + .txt uzantisi"),
+    ("readme.md", "HARF-DUYARLI izin: kucuk harf hali README.md izninden yararlanamaz"),
+    ("ONARIM-RAPORU.md", "27 Tem gercek kacak — B de yakalamali (A'ya bagimli kalmasin)"),
+    ("CURUTME-RAPORU.md", "27 Tem gercek kacak — B de yakalamali"),
+    ("RAPOR-MIMARA.md", "protokol adi; gitignore'da ama IZLENIRSE B de yakalamali"),
+    # --- TUR 2 / D1: bagimsiz curutucunun GERCEK dosya + gercek 'git add' ile
+    # KACTIGINI olctugu uzantilar. Her birinin depo genelinde izlenen sayisi 0.
+    ("NOT.rst", "D1 olculmus kacak: reStructuredText"),
+    ("NOT.org", "D1 olculmus kacak: org-mode"),
+    ("TESLIM-NOTU.mdown", "D1 olculmus kacak: markdown lehcesi"),
+    ("TESLIM-NOTU.text", "D1 olculmus kacak: .text"),
+    ("TESLIM-NOTU.adoc", "D1 olculmus kacak: asciidoc"),
+    ("TESLIM-NOTU.pdf", "D1: disa aktarilmis rapor (PDF ic olcum tasir)"),
+    ("TESLIM-NOTU.docx", "D1: ofis belgesi"),
+    ("NOT.mkd", "D1: markdown lehcesi"),
+    ("NOT.rtf", "D1: zengin metin"),
+    ("NOT.doc", "D1: eski ofis belgesi"),
+    ("NOT.odt", "D1: acik ofis belgesi"),
+    ("TESLIM-NOTU.RST", "D1 + BUYUK HARF uzanti (katlama olmazsa kacar)"),
+    # --- TUR 2 / D2: uzantisiz ve noktayla biten kok adlari.
+    ("TESLIM-NOTU", "D2 olculmus kacak: UZANTISIZ kok dosyasi"),
+    ("NOT.md.", "D2 olculmus kacak: ad NOKTAYLA bitiyor (uzanti kacisi)"),
+    ("HANDOFF", "D2: uzantisiz ikinci vaka"),
+]
+
+# --- YESIL FIKSTURLER: "ILGISIZ RUTIN DUZENLEME YESIL KALIR". Bu kapi BLOKLAYICI —
+# bir yanlis-pozitif TUM pruvo3d.com yayinini durdurur. Ilk grup KOKTE GERCEKTEN
+# IZLENEN dosyalardir (uzanti genisletilirse yanarlar), ikinci grup ALT DIZIN.
+_KOK_BELGE_YESIL = [
+    ("README.md", "IZIN LISTESI: depo tanitimi"),
+    ("ege-bilgi.md", "IZIN LISTESI: yayinlanan bot bilgi dosyasi"),
+    ("index.html", "OLCULDU: kokte izlenen — uzanti genisletilirse yanar"),
+    ("urunler.json", "OLCULDU: kokte izlenen — TUM katalog"),
+    ("CNAME", "IZIN LISTESI: kokte izlenen UZANTISIZ dosya (D2 sonrasi izin sart)"),
+    ("konfigur.js", "OLCULDU: kokte izlenen"),
+    ("secenekler.js", "OLCULDU: kokte izlenen"),
+    ("attribution-ref.js", "OLCULDU: kokte izlenen"),
+    (".gitignore", "IZIN LISTESI: kokte izlenen UZANTISIZ nokta-dosyasi"),
+    (".driveignore", "IZIN LISTESI: kokte izlenen UZANTISIZ nokta-dosyasi"),
+    ("filamentler.json", "RUTIN: filament envanteri guncellemesi"),
+    # 🔴 BEYAN EDILEN KAPSAM DISI (GERCEK yanlis-pozitif riski yuzunden birakildi —
+    # yukaridaki "KAPSAM DISI" notuna bak). Bunlar KACAR ve bu BILINCLIDIR:
+    # kokte index.html + urunler.json + uc .js IZLENIYOR; kod/varlik uzantilarini
+    # kapsama almak kapiyi bloklayici yanlis-pozitife cevirir.
+    ("TESLIM-NOTU.html", "KOR NOKTA: kod/varlik uzantisi — BILINCLI yesil"),
+    ("TESLIM-NOTU.json", "KOR NOKTA: kod/varlik uzantisi — BILINCLI yesil"),
+    ("TESLIM-NOTU.bak", "KOR NOKTA: listede olmayan RASTGELE uzanti — BILINCLI yesil"),
+    ("tools/paket-shop-odeme.md", "ALT DIZIN — Kural B kapsami degil (mimar paketi)"),
+    ("jenerator/KURULUM.md", "ALT DIZIN — mesru kurulum belgesi"),
+    ("shop/KURULUM.md", "ALT DIZIN — mesru kurulum belgesi"),
+    ("tools/arsiv/README.md", "ALT DIZIN — derin yol"),
+    ("tools/sayfalar.py", "ALT DIZIN + belge olmayan uzanti"),
+    # 🔴 BEYAN EDILEN KOR NOKTA (bilincli kapsam siniri — mimar karari, yukaridaki
+    # "KAPSAM SINIRI" notuna bak): alt dizindeki aile-disi ad ne Kural A'ya ne
+    # Kural B'ye takilir, YESIL gecer. Genisletme yapilmadi cunku tools/*.md mimar
+    # paketleri izin listesini sisirir -> liste bakimsiz kalir, kapi OLUR.
+    # 3/3 gercek sizinti vakasi KOKTE yazildi; koru kapatmak vakalarin %100'unu kapatir.
+    ("tools/TESLIM-NOTU.md", "KOR NOKTA: alt dizinde aile-disi ad — BILINCLI yesil"),
+]
+
+
+def _ihlal_yolu(mesaj):
+    """Nobetci hata mesajindan ihlal edilen YOLU cikarir (E2E fiksturu icin).
+    ⚠️ Naif 'yol in mesaj' testi YASAK: her iki hata mesaji da COZUM metninde
+    'RAPOR-MIMARA.md' gecirir -> substring testi HER mesaji RAPOR-MIMARA ihlali
+    sanar (olculdu: 4 ihlal 'TAM 1 mesaj' testinden sahte gecerdi)."""
+    for onek in ("IZLENEN IC RAPOR: ", "KOK BELGE IZINSIZ: "):
+        if mesaj.startswith(onek):
+            return mesaj[len(onek):].split(" ", 1)[0]
+    return None
+
+
+def kok_belge_fikstur_hatalari():
+    """Kural B'nin KENDI hukmunu + git ciktisindan hata mesajina kadar ZINCIRI olcer
+    (olu nobetci + asiri-genisleme korumasi). Bellekte calisir, diske/aga DOKUNMAZ."""
+    hatalar = []
+    # (0) TARAYICI OZ-KONTROLU: yol listesi -> isabet eslemesi CANLI mi.
+    _sentetik = ["index.html", "README.md", "tools/paket-x.md",
+                 "TESLIM-NOTU.md", "NOTLAR.txt", "alt/dizin/OZET.md"]
+    _beklenen = ["NOTLAR.txt", "TESLIM-NOTU.md"]
+    _bulunan = kok_belge_isabetleri(_sentetik)
+    if _bulunan != _beklenen:
+        hatalar.append("KOK TARAYICI OLU/BOZUK: sentetik yol listesinde beklenen %r "
+                       "yerine %r bulundu" % (_beklenen, _bulunan))
+    # (1) UCTAN UCA ENJEKSIYON: sahte 'git ls-files -z' ciktisi verilir; git
+    #     ciktisindan HATA MESAJINA kadar zincir olculur (saf fonksiyon degil).
+    #     Ozyineleme kapisi: fikstur=False. Sayilar SENTETIK listenin kendisinden
+    #     gelir — depo verisine capa DEGIL (katalog buyuse de degismez).
+    # KAPI_YOLU listede SART: canlilik nobeti (D3) aksi halde hakli olarak durdurur;
+    # bu ayni zamanda canlilik nobetinin normal listede yanlis-pozitif URETMEDIGINI
+    # de uctan uca gosterir.
+    _sahte_yollar = ["README.md", "ege-bilgi.md", "tools/paket-x.md", "index.html",
+                     KAPI_YOLU, "TESLIM-NOTU.md", "ONARIM-RAPORU.md",
+                     "CURUTME-RAPORU.md", "RAPOR-MIMARA.md"]
+    _bekle_ihlal = sorted(["TESLIM-NOTU.md", "ONARIM-RAPORU.md",
+                           "CURUTME-RAPORU.md", "RAPOR-MIMARA.md"])
+    _h, _n = ic_rapor_nobeti(kosucu=lambda: (0, "\0".join(_sahte_yollar), ""),
+                             fikstur=False)
+    if _n != len(_sahte_yollar):
+        hatalar.append("E2E: taranan dosya sayisi %d yerine %r (git ciktisi "
+                       "ayristirilamiyor)" % (len(_sahte_yollar), _n))
+    _bulunan_ihlal = sorted(y for y in (_ihlal_yolu(m) for m in _h) if y)
+    if _bulunan_ihlal != _bekle_ihlal:
+        hatalar.append("E2E: ihlal yollari %r beklenirken %r bildirildi "
+                       "(kural zayifladi ya da yanlis-pozitif uretti)"
+                       % (_bekle_ihlal, _bulunan_ihlal))
+    if len(_h) != len(_bekle_ihlal):
+        hatalar.append("E2E: TAM %d ihlal mesaji beklenirken %d mesaj uretildi -> %r"
+                       % (len(_bekle_ihlal), len(_h), _h))
+    # (2) FIKSTUR HUKUMLERI
+    for yol, gerekce in _KOK_BELGE_KIRMIZI:
+        if not kok_belge_ihlali_mi(yol):
+            hatalar.append("KOK FIKSTUR(kirmizi) KACTI — kural zayifladi: %s  [%s]"
+                           % (yol, gerekce))
+    for yol, gerekce in _KOK_BELGE_YESIL:
+        if kok_belge_ihlali_mi(yol):
+            hatalar.append("KOK FIKSTUR(yesil) YANLIS-POZITIF — kural DARALTILMALI: "
+                           "%s  [%s]" % (yol, gerekce))
+    return hatalar
+
+
+# ---------------------------------------------------------------- CANLILIK CAPASI (TUR 2 / D3)
+# OLCULDU (bagimsiz curutucu): `git ls-files` rc=0 dondugu halde BOS ya da KISMI
+# liste verdiginde kapi "YESIL — 0 izlenen dosya tarandi" basip exit 0 veriyordu.
+# Yani TARAMA HIC YAPILMAMISKEN kapi gecmis sayiliyordu (sizinti kapisi icin en
+# tehlikeli hal: sessiz yesil). Gercek tetikleyiciler: sparse/partial checkout,
+# yanlis ROOT cozumu, PATH'te bir `git` shim'i, bozuk index.
+# NOBET: liste KAPININ KENDI YOLUNU icermiyorsa tarama YAPILMAMIS sayilir ->
+# OLCULEMEDI sinifi hata + exit 1. Kural A ve Kural B'yi BIRLIKTE korur (ortak
+# tarama noktasinda durur).
+# ⚠️ BU VERI CAPASI DEGILDIR: sabit dosya SAYISI / SHA / tarih iddiasi yok, esik
+# yok. Yalnizca "kapinin kendi dosyasi izleniyor mu" sorulur; katalog buyudukce
+# ya da kuculdukce degismez. (Dosya sayisi esigi KOYULMADI — o veri capasi olurdu.)
+KAPI_YOLU = "tools/kisisel-veri-test.py"
 
 
 def _git_ls_files():
@@ -364,8 +674,14 @@ def _izlenen_dosyalar(kosucu=None):
 
 def ic_rapor_nobeti(kosucu=None, fikstur=True):
     """(hatalar, taranan_dosya_sayisi) dondurur.
-    fikstur=False YALNIZ ic fail-loud fiksturunun kendini cagirmasi icindir (ozyineleme kapisi)."""
+
+    KURAL A (ad ailesi, dizinden bagimsiz) ve KURAL B (kok seviye izin listesi)
+    AYNI `git ls-files -z` ciktisi uzerinde kosar — IKINCI git cagrisi ACILMAZ, boylece
+    fail-loud (OLCULEMEDI) davranisi Kural B'ye bedavaya miras kalir.
+    fikstur=False YALNIZ ic fiksturlerin kendini cagirmasi icindir (ozyineleme kapisi)."""
     hatalar = ic_rapor_fikstur_hatalari() if fikstur else []
+    if fikstur:
+        hatalar.extend(kok_belge_fikstur_hatalari())
 
     for yol, gerekce in IC_RAPOR_ISTISNA.items():
         if not (gerekce and gerekce.strip()):
@@ -373,17 +689,43 @@ def ic_rapor_nobeti(kosucu=None, fikstur=True):
         elif not ic_rapor_mu(yol):
             hatalar.append("BAYAT istisna (artik aileye uymuyor — listeden sil): %s" % yol)
 
+    # Kural B izin listesi: gerekce ZORUNLU. BAYAT giris (dosya artik yok) BILEREK
+    # kirmizi DEGIL — veri capasi yasagi (README.md silinirse yayin durmamali).
+    for yol, gerekce in KOK_BELGE_IZIN.items():
+        if not (gerekce and gerekce.strip()):
+            hatalar.append("GEREKCESIZ kok belge izni: %s" % yol)
+
     yollar, hata = _izlenen_dosyalar(kosucu)
     if hata:
         # FAIL-LOUD: olculecek sey yoksa sessiz yesil VERILMEZ (sizinti kapisi).
         hatalar.append("OLCULEMEDI — %s" % hata)
         return hatalar, 0
+    if KAPI_YOLU not in yollar:
+        # CANLILIK: git rc=0 dedi ama liste BOS/KISMI -> tarama yapilmadi sayilir.
+        hatalar.append(
+            "OLCULEMEDI (CANLILIK) — izlenen dosya listesi kapinin KENDI yolunu (%s) "
+            "icermiyor: git basarili dondu ama liste BOS ya da KISMI (sparse/partial "
+            "checkout, yanlis ROOT, PATH'te git shim, bozuk index). rc=0 geldi diye "
+            "SESSIZ YESIL verilmez." % KAPI_YOLU)
+        return hatalar, len(yollar)
 
-    for yol in ic_rapor_isabetleri(yollar):
+    a_isabet = ic_rapor_isabetleri(yollar)
+    for yol in a_isabet:
         hatalar.append(
             "IZLENEN IC RAPOR: %s — PUBLIC repoya girer (kapi bypass yollari / dal-ajan "
             "kimlikleri / ic olcum). Cozum: git rm --cached '%s' + adi RAPOR-MIMARA.md yap."
             % (yol, yol))
+    # Kural B: ayni dosya iki kez BILDIRILMEZ (tek ihlal = tek mesaj); A zaten
+    # yakaladiysa onun cozum metni gecerlidir.
+    a_kume = set(a_isabet)
+    for yol in kok_belge_isabetleri(yollar):
+        if yol in a_kume:
+            continue
+        hatalar.append(
+            "KOK BELGE IZINSIZ: %s — PUBLIC repo koku izin listesiyle korunuyor. "
+            "Cozum: (a) ic rapor ise 'git rm --cached %s' + adi RAPOR-MIMARA.md yap "
+            "(gitignore'da, izlenmez); (b) gercekten yayinlanacak bir belge ise "
+            "KOK_BELGE_IZIN'e GEREKCEYLE ekle." % (yol, yol))
     return hatalar, len(yollar)
 
 
@@ -1140,6 +1482,16 @@ def main():
 
     # 3) IC RAPOR SIZINTI NOBETCISI (kuresel negatif kural + kendi fiksturleri)
     rapor_hatalari, taranan = ic_rapor_nobeti()
+    # NOBETCININ GERCEKTEN KOSTUGUNUN KANITI (TUR 2 / D4 kor noktasi):
+    # basarili bir tarama en az kapinin KENDI dosyasini gorur (KAPI_YOLU canlilik
+    # capasi) -> taranan SIFIR olamaz. Cagri silinip yerine sabit sonuc konursa
+    # (olculdu: `rapor_hatalari, taranan = [], 0`) burasi KIRMIZI yanar.
+    # ⚠️ VERI CAPASI DEGIL: sabit sayi/SHA/tarih iddiasi yok, esik yok — yalnizca
+    # "tarama HIC yapildi mi" sorulur; katalog buyudukce/kuculdukce degismez.
+    if not rapor_hatalari and not taranan:
+        rapor_hatalari = ["NOBETCI KOSMADI — tarama 0 izlenen dosya bildirdi ve hicbir "
+                          "hata da uretmedi; ic rapor nobetcisinin cagrisi kopmus olmali "
+                          "(sessiz yesil). Kapi bu haliyle HICBIR SEY olcmuyor."]
 
     # 4) TEDARIKCI/URUN ADI SIZINTI NOBETCISI (kuresel negatif ICERIK kurali)
     tedarikci_hatalari, ted_taranan = tedarikci_nobeti()
@@ -1171,10 +1523,12 @@ def main():
     print("YEŞİL — kişisel veri testi geçti (%d sayfa, %d kalıp, "
           "%d sayfada pozitif kontrol)."
           % (len(dosyalar), len(KALIPLAR), len(BEKLENEN)))
-    print("YEŞİL — iç rapor sızıntı nöbetçisi geçti (%d izlenen dosya tarandı, "
-          "%d kırmızı + %d yeşil fikstür, %d istisna)."
+    print("YEŞİL — iç rapor sızıntı nöbetçisi geçti (%d izlenen dosya tarandı; "
+          "KURAL A: %d kırmızı + %d yeşil fikstür / %d istisna; "
+          "KURAL B kök belge: %d kırmızı + %d yeşil fikstür / %d izin)."
           % (taranan, len(_IC_RAPOR_KIRMIZI), len(_IC_RAPOR_YESIL),
-             len(IC_RAPOR_ISTISNA)))
+             len(IC_RAPOR_ISTISNA), len(_KOK_BELGE_KIRMIZI),
+             len(_KOK_BELGE_YESIL), len(KOK_BELGE_IZIN)))
     print("YEŞİL — tedarikçi/ürün adı sızıntı nöbetçisi geçti "
           "(%d izlenen dosya içeriği tarandı, %d dar literal)."
           % (ted_taranan, len(_TED_KALIPLAR)))

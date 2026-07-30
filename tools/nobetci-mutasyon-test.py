@@ -33,6 +33,17 @@ NE OLCULUR:
   C) GORSEL BOYUT KAPISI KABLOLAMASI — ekleme betigindeki `gbk.secili_ele(...)` cagrisi
      uc ayri bicimde bozulur (donen deger atilir / olu koda alinir / govde no-op yapilir) ve
      tools/gorsel-boyut-test.py --tools <mutant-ayna> ile her birinin KIRMIZI yandigi olculur.
+  D) IC RAPOR SIZINTI NOBETCISI (kisisel-veri-test.py: Kural A ad ailesi + Kural B kok
+     belge izin listesi + CANLILIK capasi). GERCEK git indeksi olan GENIS aynada olculur
+     (genis_ayna_kur; ayna_kur'a DOKUNULMADI — A/B/C onun bugunku sekline bagli).
+     🔴 Bu bolum iki BEYAN EDILMIS KOR NOKTAYI kapatir ve kapali tutar:
+        * D2: nobetci CAGRISININ main()'den silinmesi (eskiden sessiz yesil'di) —
+          artik `taranan` sifirsa main() kirmizi yanar.
+        * D3 TUZAK: Kural B'nin fikstur cagrisi ile YARGISINI BIRLIKTE oldurmek
+          (her biri tek basina yakalaniyordu, IKISI BIRDEN Kural B'yi sessizlestiriyordu) —
+          artik Kural A'nin fikstur fonksiyonundaki CAPRAZ prob yakalar.
+     D6/D7: `git ls-files` rc=0 dondugu halde BOS liste vermesi (sparse/partial checkout,
+     git shim) — canlilik capasi olmadan kapi "0 dosya tarandi" deyip YESIL yaniyordu.
 
 Ag'a cikmaz. urunler.json / .urun-kaynaklari.json OKUNMAZ ve YAZILMAZ (sentetik katalog).
 Cikis: 0 = yesil, 1 = kirmizi.   Calistir: python3 tools/nobetci-mutasyon-test.py
@@ -378,12 +389,175 @@ def bolum_c(tmp):
               "cikis=%d (YESIL kalirsa kablolama kopmasi SESSIZ)" % r.returncode)
 
 
+# ---------------------------------------------------------------- D) ic rapor sizinti nobetcisi
+# NEDEN AYRI (GENIS) AYNA: mevcut ayna_kur yalniz tools/ + kok DOSYALARINI aynalar ve
+# hedef kok BIR GIT DEPOSU DEGILDIR. kisisel-veri-test.py ise (a) `git ls-files`
+# calistirir, (b) hakkimizda/ iletisim/ sss/ gizlilik/ DIZINLERINDEN statik sayfa okur.
+# 🔴 ayna_kur'a DOKUNULMADI: A/B/C bolumleri onun bugunku sekline bagli, degistirmek
+# onlari SESSIZCE bozardi. Bu yuzden ayri bir genis-ayna yardimcisi eklendi.
+# Gate SALT-OKUNURDUR (yalnizca git ls-files + dosya acma) -> urun verisini de
+# aynalamak guvenlidir; ayna_kur'un veri dislama gerekcesi (YAZAN ekleme betikleri)
+# burada gecerli degil.
+#
+# NE OLCULUR (hepsi GERCEK dosya + GERCEK git index uzerinde):
+#   D0 mutasyonsuz TEMIZ ayna -> YESIL (harness "hep kirmizi" degil; yanlis-pozitif nobeti)
+#   D1 SIZINTILI ayna (kokte IZLENEN TESLIM-NOTU.md) -> KIRMIZI (kapi gercekten yakaliyor)
+#   D2..D7 MUTANTLAR: her biri gercek bir bozulmadir ve KIRMIZI yakmalidir.
+#   🔴 D2/D3 daha once BEYAN EDILEN KOR NOKTALARDI (cagrinin ve fikstur katmaninin
+#      silinmesi sessiz yesil veriyordu) — bu bolum onlari KAPATIR.
+#   🔴 D3 TUZAK: fikstur extend'i ile Kural B yargisini AYRI AYRI oldurmek yakalanir,
+#      ama IKISINI BIRLIKTE oldurmek Kural B'yi tamamen SESSIZLESTIRIR; bu yuzden
+#      o mutant SIZINTILI aynada olculur (fikstur degil, GERCEK sizinti yakalar).
+KVT = "kisisel-veri-test.py"
+D_SIZINTI_ADI = "TESLIM-NOTU.md"   # ad-ailesi DISI: yalniz Kural B yakalar
+
+D_NOBET_CAGRI = "    rapor_hatalari, taranan = ic_rapor_nobeti()"
+D_EXTEND = "        hatalar.extend(kok_belge_fikstur_hatalari())"
+D_B_YARGI = '    if "/" in yol:\n        return False\n'
+D_CANLILIK = "    if KAPI_YOLU not in yollar:"
+# ⚠️ `try:` SATIRI DA DEGISIME DAHIL: sadece govdeyi degistirmek sarkan bir `try:`
+# birakir -> mutant SyntaxError verir, python cikis 1 doner ve kontrol "KIRMIZI"
+# sanip YANLIS YERDEN gecerdi (olculdu: D6/D7 once tam olarak bu sekilde sahte
+# PASS veriyordu). Bu yuzden asagida ayrica "Traceback stderr'de OLMAYACAK" sarti var.
+D_GIT_GOVDE = ('    try:\n'
+               '        r = subprocess.run(["git", "-C", ROOT, "ls-files", "-z"],\n'
+               '                           capture_output=True, text=True)\n'
+               '    except OSError as e:\n'
+               '        return 127, "", "git calistirilamadi: %s" % e\n'
+               '    return r.returncode, r.stdout, r.stderr\n')
+
+D_MUTANTLARI = [
+    ("D2 main()'deki nobetci CAGRISI silindi (kapi hic kosmuyor)",
+     [(D_NOBET_CAGRI, "    rapor_hatalari, taranan = [], 0")], True),
+    ("D3 TUZAK: fikstur extend'i + Kural B yargisi BIRLIKTE olduruldu",
+     [(D_EXTEND, "        pass"),
+      (D_B_YARGI, '    if True:\n        return False\n')], True),
+    ("D4 Kural B yargisi TEK BASINA olduruldu (fikstur katmani yakalamali)",
+     [(D_B_YARGI, '    if True:\n        return False\n')], False),
+    ("D5 fikstur extend'i TEK BASINA silindi (sizinti hala yakalanmali)",
+     [(D_EXTEND, "        pass")], True),
+    ("D6 git rc=0 + BOS liste (sparse/partial checkout taklidi)",
+     [(D_GIT_GOVDE, '    return 0, "", ""\n')], False),
+    ("D7 BIRLESIK: bos git + CANLILIK nobeti de silinmis (gercek sessiz-yesil hali)",
+     [(D_GIT_GOVDE, '    return 0, "", ""\n'), (D_CANLILIK, "    if False:")], False),
+]
+
+
+def genis_ayna_kur(hedef_kok, mutasyonlar=None, sizintili=False):
+    """GERCEK git indeksi olan genis ayna. Doner: (tools_dizini, hata_metni|None).
+
+    mutasyonlar: {dosya_adi: [(eski, yeni), ...]} -> o dosya GERCEK KOPYA olarak yazilir
+    (canli tools/ dizinine HICBIR YAZMA yapilmaz). Mutasyon metni GERCEKTEN
+    degistirmiyorsa harness BAYATTIR -> SystemExit ile gurultulu olur.
+    sizintili=True: koke IZLENEN bir ic rapor dosyasi konur (kapinin yakalamasi gereken).
+
+    IZLENEN liste `git add -A` ile DEGIL, gercek deponun ls-files ciktisindan turetilen
+    ACIK yol listesiyle kurulur: -A kullanilsaydi gitignore'daki ic dosyalar
+    (CLAUDE.md/AGENTS.md/DEVAM.md) izlenen olur ve D0 kontrolu HAKSIZ yere kirmizi yanardi."""
+    mutasyonlar = mutasyonlar or {}
+    tools_h = os.path.join(hedef_kok, "tools")
+    os.makedirs(tools_h, exist_ok=True)
+    for ad in os.listdir(HERE):
+        kaynak = os.path.join(HERE, ad)
+        if not os.path.isfile(kaynak):
+            continue
+        hedef = os.path.join(tools_h, ad)
+        if ad in mutasyonlar:
+            with open(kaynak, encoding="utf-8") as f:
+                metin = f.read()
+            for eski, yeni in mutasyonlar[ad]:
+                if eski not in metin:
+                    raise SystemExit(
+                        "HARNESS BAYAT (bolum D): %s icinde mutasyon dayanagi "
+                        "bulunamadi: %r\n(kod degismis olabilir — mutasyonu guncelle, "
+                        "YOKSA bu bolum hicbir sey olcmuyor demektir)" % (ad, eski[:90]))
+                metin = metin.replace(eski, yeni)
+            with open(hedef, "w", encoding="utf-8") as f:
+                f.write(metin)
+        else:
+            os.symlink(kaynak, hedef)
+    # kok: TUM girdiler (DIZINLER dahil — statik sayfalar oradan okunur), .git ve
+    # zaten kurulmus tools/ haric.
+    for ad in os.listdir(ROOT):
+        if ad in (".git", "tools"):
+            continue
+        os.symlink(os.path.join(ROOT, ad), os.path.join(hedef_kok, ad))
+
+    r = git("init", hedef_kok)
+    if r.returncode != 0:
+        return tools_h, "git init basarisiz: %s" % (r.stderr or "").strip()[:160]
+    r = git("-C", ROOT, "ls-files")
+    if r.returncode != 0:
+        return tools_h, "kaynak depo ls-files basarisiz: %s" % (r.stderr or "").strip()[:160]
+    izlenen = [y for y in (r.stdout or "").splitlines() if y]
+    # Yalniz KOK dosyalari + tools/ DOGRUDAN cocuklari eklenebilir: alt dizinler
+    # ayna kokunde SYMLINK'tir ve git symlink'in OTESINDEKI yolu indeksleyemez.
+    eklenecek = [y for y in izlenen
+                 if ("/" not in y or (y.startswith("tools/") and "/" not in y[6:]))
+                 and os.path.lexists(os.path.join(hedef_kok, y))]
+    if not eklenecek:
+        return tools_h, "aynaya eklenecek izlenen dosya bulunamadi"
+    r = git("-C", hedef_kok, "add", "-f", "--", *eklenecek)
+    if r.returncode != 0:
+        return tools_h, "ayna git add basarisiz: %s" % (r.stderr or "").strip()[:160]
+    if sizintili:
+        with open(os.path.join(hedef_kok, D_SIZINTI_ADI), "w", encoding="utf-8") as f:
+            f.write("# fikstur: kokte IZLENEN ic rapor — kapi bunu YAKALAMALI\n")
+        r = git("-C", hedef_kok, "add", "-f", "--", D_SIZINTI_ADI)
+        if r.returncode != 0:
+            return tools_h, "sizinti fiksturu eklenemedi: %s" % (r.stderr or "").strip()[:160]
+    return tools_h, None
+
+
+def _kvt_kos(tools_dizin):
+    return subprocess.run([PY, os.path.join(tools_dizin, KVT)],
+                          capture_output=True, text=True)
+
+
+def bolum_d(tmp):
+    print("D) IC RAPOR SIZINTI NOBETCISI — mutant GENIS AYNADA olculur (canli dizine dokunulmaz)")
+    tools_d, hata = genis_ayna_kur(os.path.join(tmp, "d-temiz"))
+    if hata:
+        check("D0 genis ayna kuruldu", False, hata)
+        return
+    r = _kvt_kos(tools_d)
+    check("D0 mutasyonsuz TEMIZ ayna -> YESIL (harness 'hep kirmizi' degil)",
+          r.returncode == 0,
+          "cikis=%d %s" % (r.returncode, ((r.stdout or "") + (r.stderr or "")).strip().splitlines()[-1:]))
+
+    tools_s, hata = genis_ayna_kur(os.path.join(tmp, "d-sizinti"), sizintili=True)
+    if hata:
+        check("D1 sizintili ayna kuruldu", False, hata)
+        return
+    r = _kvt_kos(tools_s)
+    check("D1 SIZINTILI ayna (kokte IZLENEN %s) -> KIRMIZI" % D_SIZINTI_ADI,
+          r.returncode == 1 and "KOK BELGE IZINSIZ" in (r.stdout or ""),
+          "cikis=%d (yesil kalirsa kapi gercek sizintiyi GORMUYOR)" % r.returncode)
+
+    for etiket, degisimler, sizintili in D_MUTANTLARI:
+        tools_m, hata = genis_ayna_kur(os.path.join(tmp, "d-mut-" + etiket.split()[0]),
+                                       {KVT: degisimler}, sizintili=sizintili)
+        if hata:
+            check(etiket + " -> KIRMIZI", False, hata)
+            continue
+        r = _kvt_kos(tools_m)
+        # 🔴 "Traceback YOK" sarti: mutant SyntaxError/istisna ile colduyse python
+        # yine cikis 1 verir ve kontrol SAHTE PASS olurdu (olculdu — D6/D7 tam
+        # olarak boyle sahte gecti). Kirmizi DAVRANISTAN gelmeli, colmekten degil.
+        coldu = "Traceback" in (r.stderr or "")
+        check(etiket + " -> KIRMIZI", r.returncode == 1 and not coldu,
+              "cikis=%d ayna=%s%s (YESIL kalirsa bu bozulma CI'dan SESSIZCE gecer)"
+              % (r.returncode, "sizintili" if sizintili else "temiz",
+                 " ⚠️COKME: " + (r.stderr or "").strip().splitlines()[-1:][0][:80] if coldu else ""))
+
+
 def main():
     tmp = tempfile.mkdtemp(prefix="pruvo-nobetci-mutasyon-")
     try:
         bolum_a(tmp)
         bolum_b(tmp)
         bolum_c(tmp)
+        bolum_d(tmp)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     print("-" * 74)
