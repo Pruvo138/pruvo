@@ -347,15 +347,34 @@
     .skan-banner-text{padding:14px 18px 14px 22px}
   }
 
-  /* ---------- MARIN ÖZEL ÜRETİM BANNER (iki küçük banner'ın altında, tam genişlik) ----------
-     Aynı .jen-banner iskeleti; grid-column:1/-1 ile #bannerRow'un üçüncü satırına tam genişlik
-     yayılır (grid-template-columns:1fr 1fr korunur, satır otomatik akar). */
-  .marin-banner{
+  /* ---------- MARIN SLIDER (iki küçük banner'ın altında, tam genişlik, 4 slayt) ----------
+     Aynı .jen-banner iskeleti her slaytta yeniden kullanılır (görsel+degrade+metin overlay);
+     grid-column:1/-1 ile #bannerRow'un üçüncü satırına tam genişlik yayılır. Slaytlar üst üste
+     absolute konumlanır, tek seferde biri .active (opacity:1) olur — JS ile otomatik döner. */
+  .marin-slider{
     grid-column:1 / -1;
+    position:relative;
     min-height:180px;
+    border-radius:14px;
+    overflow:hidden;
   }
+  .marin-slider .marin-slide{
+    position:absolute; inset:0;
+    opacity:0; pointer-events:none;
+    transition:opacity .6s ease;
+  }
+  .marin-slider .marin-slide.active{ opacity:1; pointer-events:auto; z-index:1; }
+  .marin-slider-dots{
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+    display:flex; gap:7px; z-index:2;
+  }
+  .marin-slider-dot{
+    width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.45);
+    border:none; cursor:pointer; padding:0; transition:.15s;
+  }
+  .marin-slider-dot.active{ background:#fff; width:20px; border-radius:5px; }
   @media(max-width:640px){
-    .marin-banner{min-height:140px}
+    .marin-slider{min-height:140px}
   }
 
   .brand-row{
@@ -899,17 +918,78 @@
       <span class="jen-banner-btn">Keşfet &rarr;</span>
     </div>
   </a>
-  <a id="marinBanner" class="jen-banner marin-banner"
-     href="https://wa.me/905451386526?text=Merhaba%2C%20teknemde%20k%C4%B1r%C4%B1lan%20bir%20par%C3%A7a%20var.%20%C3%96l%C3%A7%C3%BCp%20taray%C4%B1p%20%C3%BCretebilir%20misiniz%3F">
-    <img class="jen-banner-img" alt=""
-         src="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1.jpg">
-    <div class="jen-banner-text">
-      <span class="skan-banner-ust">Özel Üretim</span>
-      <h2 class="jen-banner-title">Kırık parçanı getir, ölçüp tarayıp üretelim</h2>
-      <p class="jen-banner-sub">Tekne ve yelken parçalarında endüstriyel tarama ile ölçüye özel üretim</p>
-      <span class="jen-banner-btn">WhatsApp'tan Yaz &rarr;</span>
-    </div>
-  </a>
+  <div id="marinSlider" class="marin-slider">
+    <a class="jen-banner marin-slide active" href="/?kategori=Marin">
+      <img class="jen-banner-img" alt=""
+           src="https://media.pruvo3d.com/banner/marin-slide-1.jpg">
+      <div class="jen-banner-text">
+        <span class="skan-banner-ust">Marin</span>
+        <h2 class="jen-banner-title">Dış motor yedek parçaların burada</h2>
+        <p class="jen-banner-sub">Yamaha, Mercury, Evinrude ve daha fazlası</p>
+        <span class="jen-banner-btn">Keşfet &rarr;</span>
+      </div>
+    </a>
+    <a class="jen-banner marin-slide" href="/?kategori=Marin">
+      <img class="jen-banner-img" alt=""
+           src="https://media.pruvo3d.com/banner/marin-slide-2.jpg">
+      <div class="jen-banner-text">
+        <span class="skan-banner-ust">Marin</span>
+        <h2 class="jen-banner-title">Yelken donanımı ve tekne aksesuarları</h2>
+        <p class="jen-banner-sub">Cleat, blok, kilit ve daha fazlası</p>
+        <span class="jen-banner-btn">Keşfet &rarr;</span>
+      </div>
+    </a>
+    <a class="jen-banner marin-slide" href="/?kategori=Marin">
+      <img class="jen-banner-img" alt=""
+           src="https://media.pruvo3d.com/banner/marin-slide-3.jpg">
+      <div class="jen-banner-text">
+        <span class="skan-banner-ust">Marin</span>
+        <h2 class="jen-banner-title">Elektronik montaj ve aksesuar parçaları</h2>
+        <p class="jen-banner-sub">GPS ve balık bulucu montaj aparatları</p>
+        <span class="jen-banner-btn">Keşfet &rarr;</span>
+      </div>
+    </a>
+    <a id="marinBanner" class="jen-banner marin-slide"
+       href="https://wa.me/905451386526?text=Merhaba%2C%20teknemde%20k%C4%B1r%C4%B1lan%20bir%20par%C3%A7a%20var.%20%C3%96l%C3%A7%C3%BCp%20taray%C4%B1p%20%C3%BCretebilir%20misiniz%3F">
+      <img class="jen-banner-img" alt=""
+           src="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1.jpg">
+      <div class="jen-banner-text">
+        <span class="skan-banner-ust">Özel Üretim</span>
+        <h2 class="jen-banner-title">Kırık parçanı getir, ölçüp tarayıp üretelim</h2>
+        <p class="jen-banner-sub">Tekne ve yelken parçalarında endüstriyel tarama ile ölçüye özel üretim</p>
+        <span class="jen-banner-btn">WhatsApp'tan Yaz &rarr;</span>
+      </div>
+    </a>
+    <div class="marin-slider-dots" id="marinSliderDots"></div>
+  </div>
+  <script>
+  (function(){
+    var wrap = document.getElementById("marinSlider");
+    if(!wrap){ return; }
+    var slides = wrap.querySelectorAll(".marin-slide");
+    var dotsWrap = document.getElementById("marinSliderDots");
+    if(!slides.length || !dotsWrap){ return; }
+    var idx = 0, timer;
+    slides.forEach(function(s, i){
+      var d = document.createElement("button");
+      d.className = "marin-slider-dot" + (i === 0 ? " active" : "");
+      d.setAttribute("aria-label", "Slayt " + (i + 1));
+      d.onclick = function(){ goTo(i); resetTimer(); };
+      dotsWrap.appendChild(d);
+    });
+    var dots = dotsWrap.querySelectorAll(".marin-slider-dot");
+    function goTo(i){
+      slides[idx].classList.remove("active");
+      dots[idx].classList.remove("active");
+      idx = i;
+      slides[idx].classList.add("active");
+      dots[idx].classList.add("active");
+    }
+    function next(){ goTo((idx + 1) % slides.length); }
+    function resetTimer(){ clearInterval(timer); timer = setInterval(next, 5000); }
+    resetTimer();
+  })();
+  </script>
   </div>
   <div class="brand-row" id="brandRow">
     <span class="brand-label">Marka:</span>
