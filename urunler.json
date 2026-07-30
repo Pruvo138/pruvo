@@ -1,5 +1,241 @@
 [
   {
+    "id": "tekne-tavan-kule-hoparlor-kutusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Tavan Kulesi Hoparlör Kutusu (6.5 İnç)",
+    "aciklama": "Tekne tavan kulesine (roll bar) monte edilen 6.5-6.75 inç hoparlörler için hoparlör kutusu.\n- 6.5 ve 6.75 inç hoparlörlere uyar.\n- Farklı boru çaplarına (1.75-2.25 inç) uygun montaj tabanı seçenekleri içerir.\n- Kutu ve montaj tabanı ayrı parçalardan oluşur.\nYaklaşık dış ölçüler: 189 × 179 × 173 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2449411-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-5.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-6.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-7.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-8.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-9.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-10.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-11.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-12.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-13.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-14.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-15.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-16.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-17.jpg",
+      "https://media.pruvo3d.com/urunler/th2449411-18.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Teasleyprint",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektrikli-dis-motor-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Elektrikli Dış Motor Pervanesi Yedeği",
+    "aciklama": "Elektrikli dış motorlar için pervane yedeği, çoğu markaya benzer ölçülerde uyum sağlar.\n- Elektrikli dış motorların çoğu modeliyle benzer ölçülerde uyumludur.\n- Orijinal pervanenin aşınması durumunda yedek olarak kullanılabilir.\n- Tarama (scan) verisi ve CAD tasarımı birleştirilerek üretildi.\nYaklaşık dış ölçüler: 248 × 109 × 39 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th620329-1.jpg",
+      "https://media.pruvo3d.com/urunler/th620329-2.jpg",
+      "https://media.pruvo3d.com/urunler/th620329-3.jpg",
+      "https://media.pruvo3d.com/urunler/th620329-4.jpg",
+      "https://media.pruvo3d.com/urunler/th620329-5.jpg",
+      "https://media.pruvo3d.com/urunler/th620329-6.jpg",
+      "https://media.pruvo3d.com/urunler/th620329-7.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "scobo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kano-sup-matkap-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kano/SUP İçin Matkap Tahrikli Pervane",
+    "aciklama": "Yavaş devirli akülü matkaplarla kullanılan, kano ve SUP (duran-kürek tahtası) için tahrik pervanesi.\n- Kano ve SUP boyutlu tekneler için tasarlanmıştır.\n- M10 mil ile akülü matkaba takılır.\n- Yönlendirme için ahşap karşı-yatak bloğu eklenmesi önerilir.\nYaklaşık dış ölçüler: 147 × 144 × 66 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3033140-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3033140-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3033140-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3033140-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "markthemaker",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "akulu-matkap-tekne-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Akülü Matkap ile Çalışan Küçük Tekne Pervanesi",
+    "aciklama": "Akülü matkapla küçük tekneyi hareket ettirmek için 160mm çaplı pervane.\n- 160mm çap, 5/16 inç mil deliğine sahiptir.\n- Akülü matkapla doğrudan kullanılabilir.\n- Küçük teknelerde iyi sonuç verdiği teyit edilmiştir.\nYaklaşık dış ölçüler: 162 × 162 × 22 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th496436-1.jpg",
+      "https://media.pruvo3d.com/urunler/th496436-2.jpg",
+      "https://media.pruvo3d.com/urunler/th496436-3.jpg",
+      "https://media.pruvo3d.com/urunler/th496436-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jerid",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-yuzgeci-skeg",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Yüzgeci (Skeg)",
+    "aciklama": "Kayağın düz gitmesine (tracking) yardımcı olan, kayağın altına yapıştırılan yüzgeç.\n- Kayağın alt kısmına silikon yapıştırıcı ile monte edilir.\n- PLA ile basılabilir.\n- Kayağın izleme kararlılığını artırır.\nYaklaşık dış ölçüler: 170 × 55 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th712971-1.jpg",
+      "https://media.pruvo3d.com/urunler/th712971-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mwboring",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-tasima-arabasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Taşıma Arabası (3 Boy Seçenekli)",
+    "aciklama": "Kayağı taşımak için 3 farklı boy seçeneğiyle basılabilen taşıma arabası.\n- Küçük, orta ve büyük baskı yatağı boyutlarına göre 3 seçenek içerir.\n- 1.5 inç kayışlar için kesikli destekler bulunur.\n- Havuz noodle'ı kesilerek ek yastıklama için uç kısımlara takılabilir.\nYaklaşık dış ölçüler: 146 × 127 × 51 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4865241-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4865241-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4865241-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4865241-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PSomeone",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yuksek-hiz-dis-motor-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yüksek Hızlı Dış Motor Pervanesi (2-6HP)",
+    "aciklama": "2-6HP güçteki hafif teknelerin dış motorları için yüksek hızlı pervane, ev yapımı elektrikli hidrofoil teknelerde test edilmiştir.\n- 2-6HP dış motorlarla uyumludur.\n- 200mm çap ve 317mm hatve (pitch) ölçülerine sahiptir.\n- Daha az sürtünmeli teknelerde daha yüksek hız sağlar.\nYaklaşık dış ölçüler: 174 × 170 × 50 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2988600-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2988600-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2988600-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2988600-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2988600-5.jpg",
+      "https://media.pruvo3d.com/urunler/th2988600-6.jpg",
+      "https://media.pruvo3d.com/urunler/th2988600-7.jpg",
+      "https://media.pruvo3d.com/urunler/th2988600-8.jpg",
+      "https://media.pruvo3d.com/urunler/th2988600-9.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ecoprinter",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-jet-tahrik-turbin-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Jet Tahrik Sistemi İçin Turbin Pervane",
+    "aciklama": "120mm çaplı boru için tasarlanmış jet tahrik turbin pervanesi.\n- 120mm iç çaplı boruya uygundur.\n- 22.25mm (7/8 inç) mil çapına göre tasarlandı.\n- 40 derece hatve açısıyla destek gerektirmeden basılabilir.\nYaklaşık dış ölçüler: 119 × 119 × 70 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3932301-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3932301-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3D_Printing_cafe",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "sup-kano-naca-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "SUP/Kano İçin NACA Profilli Matkap Pervanesi",
+    "aciklama": "Fırçasız tornavida/matkapla kullanılan, NACA airfoil profilli SUP ve kano tahrik pervanesi.\n- 160mm çap, 200mm hatve (pitch) ölçülerine sahiptir.\n- M8 mil ile fırçasız matkaba/tornavidaya takılır.\n- Yaklaşık 49 gram ağırlığındadır.\nYaklaşık dış ölçüler: 156 × 156 × 21 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7070037-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7070037-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7070037-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kf1965",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelken-ruzgar-gostergesi-windex",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne Rüzgar Yönü Göstergesi (Windex)",
+    "aciklama": "Yelken direği tepesine takılan, rüzgar yönünü gösteren gösterge (windex).\n- Yelkenli tekne direği tepesine montaj için tasarlanmıştır.\n- Hafif ve dengeli tasarımı ile hassas yön gösterir.\n- Tek parça olarak basılabilir.\nYaklaşık dış ölçüler: 190 × 120 × 34 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th626628-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "boeingdude1",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-guvenlik-bayragi-isik-seti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Güvenlik Bayrağı ve Işık Seti",
+    "aciklama": "Kayak üzerine takılan, görünürlüğü artıran güvenlik bayrağı direği ve LED ışık montaj parçaları.\n- Standart Scotty montaj sistemiyle uyumludur.\n- Fiberglas direk (driveway marker) ile kullanılır.\n- Araç yedek LED lambası ile ışıklandırma sağlar.\nYaklaşık dış ölçüler: 50 × 49 × 22 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1993269-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1993269-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1993269-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1993269-4.jpg",
+      "https://media.pruvo3d.com/urunler/th1993269-5.jpg",
+      "https://media.pruvo3d.com/urunler/th1993269-6.jpg",
+      "https://media.pruvo3d.com/urunler/th1993269-7.jpg",
+      "https://media.pruvo3d.com/urunler/th1993269-8.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hotbrass",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "fonksiyonel-sekstant-deniz-navigasyon",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Fonksiyonel Sekstant (Deniz Navigasyon Aleti)",
+    "aciklama": "Güneş veya yıldız ile ufuk arasındaki açıyı ölçerek enlem hesaplamasında kullanılan sekstantın basılabilir versiyonu (2. versiyon).\n- M3 vidalarla monte edilen tutamak ve işaretçi içerir.\n- Sabit bir derece skalası bulunur, kalibrasyon rehberiyle birlikte kullanılabilir.\n- Denizcilik/navigasyon eğitimi ve gerçek kullanım için uygundur.\nYaklaşık dış ölçüler: 246 × 205 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3094968-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3094968-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3094968-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3094968-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3094968-5.jpg",
+      "https://media.pruvo3d.com/urunler/th3094968-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Maxfaktor",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "tasinabilir-balik-bulucu-koruma-kutusu",
     "kategori": "Marin",
     "marka": [],
