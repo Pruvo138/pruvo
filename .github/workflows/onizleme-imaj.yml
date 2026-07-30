@@ -5,7 +5,9 @@
 # SIR AKISI: uyelik ureteci .scad'lari ve eslem PUBLIC repoda YOKTUR. CI, paketi
 # GIZLI R2 bucket'indan (pruvo-ozel) S3 API'siyle ceker. Gerekli secret'lar:
 #   R2_ERISIM_ID / R2_GIZLI_ANAHTAR  — R2 S3 token (pruvo-ozel okuma yetkili)
-#   CLOUDFLARE_API_TOKEN             — (mevcut) containers push icin de yetki gerekir
+#   CLOUDFLARE_API_TOKEN             — containers push icin Containers yetkisi de tasir
+#                                      (yetki 30 Tem 2026'da eklendi, kosum 30544817485
+#                                      ile dogrulandi -> registry push'un TEK yolu budur)
 # Secret yoksa adimlar aciklamali sekilde durur; hicbir sir loglanmaz.
 #
 # PLAN KAPISI: registry push'u Workers PAID plani ister. Plan aktif degilken
@@ -291,24 +293,16 @@ jobs:
           # Token hesap listeleme iznine sahip degil -> hesap kimligi acikca verilir
           # (deploy.yml d1-sync adimiyla ayni desen; kimlik sir degil).
           CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
-          CF_REGISTRY_GECICI: ${{ secrets.CF_REGISTRY_GECICI }}
         run: |
-          HEDEF="registry.cloudflare.com/dbbe2a8620c3c3a57c586b8a98142fb9/pruvo-onizleme-derleyici:ci"
-          # YOL 1 — gecici registry kimligi (yerel `wrangler containers registries
-          # credentials` cikartir, ~15 dk gecerli, tools/onizleme-paket-yukle.py
-          # tetiklemeden hemen once secret'a koyar). Neden: CI'daki CLOUDFLARE_API_TOKEN
-          # Containers yetkisi tasimiyor (16 Tem'de "Forbidden" olculdu); token yetki
-          # duzenlemesi panel/Okan isi olana kadar bu yol calisir.
-          if [ -n "$CF_REGISTRY_GECICI" ]; then
-            if printf '%s' "$CF_REGISTRY_GECICI" | docker login registry.cloudflare.com -u v1 --password-stdin \
-              && docker tag pruvo-onizleme-derleyici:ci "$HEDEF" \
-              && docker push "$HEDEF"; then
-              echo "imaj itildi (gecici kimlik): $HEDEF"
-              exit 0
-            fi
-            echo "::warning::gecici kimlikle push olmadi (login/tag/push adimlarindan biri, JWT suresi dolmus olabilir) — wrangler yoluna dusuluyor."
-          fi
-          # YOL 2 — wrangler (CLOUDFLARE_API_TOKEN'a Containers yetkisi eklenince kalici yol).
+          # TEK YOL — `wrangler containers push`, CLOUDFLARE_API_TOKEN ile.
+          # 30 Tem 2026: token'a Containers yetkisi EKLENDI ve kosum 30544817485'te
+          # fiilen dogrulandi (Login Succeeded · 6 katman itildi · "Pushed image:
+          # .../pruvo-onizleme-derleyici:ci"). Eskiden burada ONCELIKLI ikinci bir yol
+          # vardi: yerelde uretilen ~15 dk omurlu gecici registry JWT'si bir secret'a
+          # konur, `docker login` ile itilirdi. AYNI kosumda 401 Unauthorized verdi
+          # (JWT suresi dolmustu) ve her tetikten ONCE ELLE secret tazelemeyi zorunlu
+          # kiliyordu -> olu kod + gereksiz sir yuzeyi olarak KALDIRILDI (30 Tem 2026).
+          # Is akisi o secret'i ARTIK HIC OKUMAZ; GitHub'dan silinmesi Okan kapisidir.
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "::warning::CLOUDFLARE_API_TOKEN yok — push atlandi."
             exit 0
