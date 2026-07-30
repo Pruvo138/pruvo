@@ -173,19 +173,24 @@ def urunleri_oku():
 
 
 def d1_mevcut():
-    """D1'deki {id: (hash, baski)} + {id: taban_fiyat} + en buyuk seq.
+    """D1'deki {id: (hash, baski)} + {id: taban_fiyat} + {id: seq} + en buyuk seq.
     baski da OKUNUR: baski senkronu (main) onu D1'dekiyle KIYASLAR — degismemisse yazmaz
     (yoksa her yerel kosum tum baski'lari yeniden yazardi).
     taban_fiyat da OKUNUR: taban senkronu (main) onu semadakiyle KIYASLAR — ayni mantik.
+    seq de OKUNUR (mevcut_seq): diff_plan'in SEQ SANDVIC mantigi (asagida) icin GEREKLI —
+    bkz. diff_plan docstring'i, "yeni" id dizide GERCEKTEN tepede mi yoksa mid-array mi
+    ayirt edebilsin diye D1'deki HER satirin KENDI seq'i lazim (eskiden yalniz MAX(seq)
+    okunuyordu, tek-tek satir seq'leri KAYIPTI).
     NOT: taban_fiyat kolonu --sema (GOC_KOLON ALTER) ile eklenir; bu SELECT'ten ONCE
     --sema kosmus olmali (canli uygulama sirasi RAPOR-MIMARA.md'de)."""
-    r = sorgu("SELECT id, hash, baski, taban_fiyat FROM urunler")
+    r = sorgu("SELECT id, hash, baski, taban_fiyat, seq FROM urunler")
     satirlar = (r[0].get("results") or []) if r else []
     mevcut = {s["id"]: (s["hash"], s.get("baski") or "") for s in satirlar}
     mevcut_taban = {s["id"]: int(s.get("taban_fiyat") or 0) for s in satirlar}
+    mevcut_seq = {s["id"]: s["seq"] for s in satirlar if s.get("seq") is not None}
     r2 = sorgu("SELECT COALESCE(MAX(seq), 0) AS m FROM urunler")
     mseq = ((r2[0].get("results") or [{}])[0] or {}).get("m") or 0
-    return mevcut, mevcut_taban, int(mseq)
+    return mevcut, mevcut_taban, mevcut_seq, int(mseq)
 
 
 # Sonradan eklenen kolonlar. Mevcut D1 tablosunda CREATE TABLE IF NOT EXISTS bunlari
@@ -339,15 +344,61 @@ def taban_plan(urunler, tabanlar, mevcut_taban):
     return out
 
 
-def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq):
+def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None):
     """SAF diff (canli D1'e DOKUNMAZ -> birim testi burayi cagirir).
-    mevcut = {id: (hash, baski)}. Doner: (yeni, degisen, baski_guncelle, silinen, gorulen).
+    mevcut = {id: (hash, baski)}. mevcut_seq = {id: seq} (OPSIYONEL; verilmezse legacy
+    davranis birebir korunur -> eski birim testleri IMZA DEGISMEDEN gecer).
+    Doner: (yeni, degisen, baski_guncelle, silinen, gorulen).
     - yeni/degisen: content upsert SQL'leri (baski INSERT VALUES'ta, CONFLICT'te DEGIL).
-    - baski_guncelle: SADECE baski FIILEN degistiginde 1 UPDATE (yalniz baski_yetki=EVET)."""
+    - baski_guncelle: SADECE baski FIILEN degistiginde 1 UPDATE (yalniz baski_yetki=EVET).
+
+    🔴 SEQ SANDVIC ONARIMI (30 Tem, olculdu — parite-test.js/parite-ege.js SIRA farki,
+    26/1199 + 13/845 sorgu, anka-kusu-serit-dekoratif-figur / yarasa-serit-dekoratif-figur):
+    Eski kod "yeni" (D1'de id'si bulunamayan) urunun dizide HER ZAMAN BASTA (gercekten en
+    yeni) oldugunu VARSAYIYORDU -> sonraki=mseq+1 (katalogun TEPESI) verirdi. Bu varsayim
+    NORMAL akista (yeni urun hep dizinin BASINA eklenir) dogrudur, ama bir urunun id'si
+    AYNI dizi pozisyonunda DEGISTIRILDIGINDE (Okan'in "X = Y yeniden markalandi" gibi
+    rename commit'leri: ayni urun, yeni id/baslik/gorsel) kirilir — eski id SILINIR, yeni
+    id BRAND-NEW sanilir ve dizideki GERCEK (mid-array) konumu yok sayilarak katalogun
+    TEPESINE atanir. KANIT (canli D1, olculdu): anka-kusu-serit-dekoratif-figur (dizi
+    indeks 582, hemen ONCESI yarasa-serit-dekoratif-figur indeks 581) seq=14853 aldi —
+    yarasa'nin seq'i olan 14852'den BUYUK -> ORDER BY seq DESC yarasa'yi anka-kusu'nun
+    ONUNE koymasi gerekirken TERSINE cevirdi.
+    COZUM: mevcut_seq verilmisse, her "yeni" id icin dizide ondan ONCE (HEAD tarafinda)
+    duran, D1'de HALA BILINEN (mevcut_seq'te olan) bir komsu var mi diye PASS A ile
+    bakilir. Yoksa (gercekten tepede) eski davranis (sonraki=mseq+1, ...) AYNEN kalir.
+    Varsa, bu "yeni" id GERCEKTE mid-array'dir -> katalogun tepesine DEGIL, en yakin
+    HEAD-tarafi komsusunun seq'i ile en yakin TAIL-tarafi komsusunun seq'i ARASINDA bir
+    FLOAT ara-deger alir (seq INTEGER sutunu REAL degeri de tasir — SQLite dinamik
+    tipleme). Boylece HICBIR BASKA SATIRA DOKUNULMAZ / RENUMBERING GEREKMEZ, tek satirlik
+    hedefli bir deger yeter (D1 gunluk yazma butcesini asmaz)."""
+    mevcut_seq = mevcut_seq or {}
     yeni, degisen, baski_guncelle = [], [], []
     gorulen = set()
     sonraki = mseq
-    # TERS gez: dizinin BASI en yeni -> en yuksek seq alsin (ORDER BY seq DESC = katalog sirasi).
+
+    # PASS A (dizi BASI -> SONU, tek gecis, mevcut_seq bossa NO-OP): her "olasi yeni" id
+    # icin en yakin HEAD-tarafi (dizide ONCESINDE duran) D1'de HALA BILINEN komsunun seq'i.
+    # None = bu id ile dizinin BASI arasinda D1'de bilinen hicbir komsu yok -> GERCEKTEN
+    # tepede -> asagida legacy/sinirsiz havuz (sonraki) GECERLI kalir.
+    ust_sinir = {}
+    if mevcut_seq:
+        son_bilinen = None
+        gorulen_a = set()
+        for u in urunler:
+            uid = u.get("id")
+            if not uid or uid in gorulen_a:
+                continue
+            gorulen_a.add(uid)
+            if uid in mevcut_seq:
+                son_bilinen = mevcut_seq[uid]
+            else:
+                ust_sinir[uid] = son_bilinen
+
+    # ANA GECIS — TERS: dizinin BASI en yeni -> en yuksek seq alsin (eski davranisla
+    # AYNI sira/anlam). `taban` = su ana dek (TAIL'den buraya) gezilen en yakin BILINEN
+    # (D1'de mevcut) komsunun seq'i — mid-array "yeni" id'ler icin ALT sinir.
+    taban = 0.0
     for u in reversed(urunler):
         uid = u.get("id")
         if not uid or uid in gorulen:
@@ -359,10 +410,27 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq):
         eski_baski = kayit[1] if kayit else ""
         baski = baskilar.get(uid, "")
         if eski_h is None:
-            sonraki += 1
-            yeni.append(satir_sql(u, sonraki, arama.haystack(u), h, baski))  # INSERT baski'yi da yazar
-        elif eski_h != h:
-            degisen.append(satir_sql(u, 0, arama.haystack(u), h, baski))     # seq ON CONFLICT'te korunur
+            ust = ust_sinir.get(uid)
+            if ust is None:
+                # Gercekten tepede (D1'de bilinen hicbir HEAD-tarafi komsu yok) -> eski
+                # davranis: katalogun ustune bas (sonraki=mseq+1, +2, ...).
+                sonraki += 1
+                atanan = sonraki
+            else:
+                # MID-ARRAY yeni id (rename / araya sikisma) -> gercek komsulari arasinda
+                # FLOAT ara-deger. Hicbir baska satira DOKUNMAZ, renumbering YOK.
+                atanan = (taban + ust) / 2.0
+                if atanan <= taban:  # asiri-bolunmus (pratikte olmaz) -> guvenli dusme
+                    atanan = ust - 1e-6
+            taban = atanan
+            yeni.append(satir_sql(u, atanan, arama.haystack(u), h, baski))  # INSERT baski'yi da yazar
+        else:
+            if eski_h != h:
+                degisen.append(satir_sql(u, 0, arama.haystack(u), h, baski))  # seq ON CONFLICT'te korunur
+            # ICERIK degismis de degismemis de olsa: bu id D1'de zaten VAR, seq'i korunuyor
+            # -> bir SONRAKI (daha HEAD tarafindaki) mid-array yeni id icin dogru ALT sinir.
+            if uid in mevcut_seq:
+                taban = mevcut_seq[uid]
         # baski senkronu: YALNIZ yetki varsa (CI atlar -> baski'yi silmez/ezmez),
         # MEVCUT satir icin (yeni urun baski'yi INSERT'te aldi), ve FIILEN degistiyse.
         if baski_yetki and eski_h is not None and baski != eski_baski:
@@ -462,7 +530,7 @@ def main():
         return
 
     urunler = urunleri_oku()
-    mevcut, mevcut_taban, mseq = d1_mevcut()
+    mevcut, mevcut_taban, mevcut_seq, mseq = d1_mevcut()
     baskilar = baski_haritasi()
     tabanlar = taban_fiyat_haritasi()
     # baski YETKISI = gizli kayit dosyasi bu ortamda VAR mi? YOKSA (CI) baski'ya HIC dokunma
@@ -473,7 +541,7 @@ def main():
              "EVET" if baski_yetki else "HAYIR (baski atlanir)", len(tabanlar)))
 
     yeni, degisen, baski_guncelle, silinen, gorulen = diff_plan(
-        urunler, mevcut, baskilar, baski_yetki, mseq)
+        urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq)
     # TABAN FIYAT senkronu: baski'dan BAGIMSIZ + HASH'ten bagimsiz (git'te oldugu icin
     # yetki kapisi da yok — CI da yerel de ayni degeri gorur). Yeni urun taban_fiyat'i
     # INSERT DEFAULT 0 alir, bu UPDATE (ifade sirasinda INSERT'ten SONRA) fiyatini yazar.

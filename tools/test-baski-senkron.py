@@ -123,6 +123,66 @@ def main():
     y6, d6, bg6, s6, _ = d1.diff_plan([u1], mevcut, baskilar, True, 2)  # 'b' artik yok
     dogrula("silinen urun tespit edilir", s6 == ["b"], str(s6))
 
+    # ═══ SEQ SANDVIC ONARIMI (30 Tem, olculdu canli D1'de: anka-kusu-serit-dekoratif-
+    #     figur / yarasa-serit-dekoratif-figur, parite-test.js SIRA farki 26/1199 +
+    #     parite-ege.js 13/845) ═══════════════════════════════════════════════════════
+    # ESKI HATA: bir urunun id'si AYNI dizi pozisyonunda degistirilince (rename; "X = Y
+    # yeniden markalandi") eski id SILINIR, yeni id BRAND-NEW sanilip katalogun TEPESINE
+    # (mseq+1) atanirdi — dizideki GERCEK (mid-array) konumu ne olursa olsun. Bu, ORDER BY
+    # seq DESC'i dizi sirasiyla CELISTIRIR (siralama iddiasi kirilir).
+    import re
+
+    def seq_haritasi(satirlar):
+        harita = {}
+        for sql in satirlar:
+            m = re.search(r"VALUES\s*\('([^']*)','[0-9a-f]+',([0-9.eE+-]+),", sql)
+            if m:
+                harita[m.group(1)] = float(m.group(2))
+        return harita
+
+    u_tail = {"id": "tail-old", "baslik": "Tail", "kategori": "Ev", "marka": [], "fiyat": "1 TL"}
+    u_yarasa = {"id": "yarasa", "baslik": "Yarasa", "kategori": "Ev", "marka": [], "fiyat": "1 TL"}
+    u_soyut_kaynagi = {"id": "soyut-yarasa", "baslik": "Soyut", "kategori": "Ev", "marka": [], "fiyat": "1 TL"}
+    u_anka = {"id": "anka-kusu", "baslik": "Anka", "kategori": "Ev", "marka": [], "fiyat": "1 TL"}
+    u_head_new = {"id": "head-new", "baslik": "Head", "kategori": "Ev", "marka": [], "fiyat": "1 TL"}
+
+    mevcut_r = {
+        "yarasa": (arama.urun_hash(u_yarasa), ""),
+        "soyut-yarasa": (arama.urun_hash(u_soyut_kaynagi), ""),
+        "tail-old": (arama.urun_hash(u_tail), ""),
+    }
+    mevcut_seq_r = {"yarasa": 100, "soyut-yarasa": 99, "tail-old": 90}
+    # dizi (head->tail): head-new(GERCEK yeni, TEPEDE), yarasa(degismedi), anka-kusu
+    # (RENAME: 'soyut-yarasa' -> 'anka-kusu', AYNI dizi pozisyonu), tail-old(degismedi).
+    urunler_r = [u_head_new, u_yarasa, u_anka, u_tail]
+
+    yr, dr, bgr, sr, gr = d1.diff_plan(urunler_r, mevcut_r, {}, False, 100, mevcut_seq_r)
+    dogrula("RENAME: eski id (soyut-yarasa) silinen'e duser", sr == ["soyut-yarasa"], str(sr))
+    dogrula("RENAME: 2 yeni satir (head-new GERCEK tepede + anka-kusu mid-array rename)",
+            len(yr) == 2, "yeni=%d" % len(yr))
+    seqler = seq_haritasi(yr)
+    dogrula("RENAME: gercekten tepedeki urun (head-new) seq eski davranisla AYNI (mseq+1=101)",
+            seqler.get("head-new") == 101, str(seqler))
+    dogrula("RENAME: mid-array (anka-kusu) seq katalogun TEPESINE SICRAMAZ — gercek "
+            "komsulari (tail-old=90, yarasa=100) ARASINDA kalir",
+            90 < seqler.get("anka-kusu", -1) < 100, str(seqler))
+    dogrula("RENAME: anka-kusu seq'i yarasa'dan (100) KUCUK -> ORDER BY seq DESC dizi "
+            "sirasiyla TUTARLI (eski hata: 102 gibi BUYUK bir deger alip yarasa'yi GECERDI)",
+            seqler.get("anka-kusu", 1e18) < seqler.get("yarasa", mevcut_seq_r["yarasa"]),
+            str(seqler))
+    dogrula("RENAME: hicbir mevcut satira DOKUNULMADI (degisen bos — yarasa/tail-old "
+            "icerigi aynen kaldi, sadece rename islendi)", dr == [], str(dr))
+
+    # GERIYE DONUK UYUMLULUK: mevcut_seq VERILMEZSE (eski cagri imzasi / eski testler)
+    # davranis AYNEN eski kalir — bu satir REGRESYONUN KENDISINI de kanitlar (mevcut_seq
+    # olmadan mid-array rename YINE katalogun tepesine sicrar; onarim mevcut_seq'e BAGLI).
+    yr_legacy, _, _, _, _ = d1.diff_plan(urunler_r, mevcut_r, {}, False, 100)  # mevcut_seq YOK
+    seqler_legacy = seq_haritasi(yr_legacy)
+    dogrula("mevcut_seq verilmezse eski (hatali) davranis KORUNUR (geriye-donuk uyum + "
+            "regresyon kaniti: anka-kusu=101 yarasa'nin=100 USTUNE cikar -> TAM olculen hata)",
+            seqler_legacy.get("anka-kusu") == 101 and seqler_legacy.get("head-new") == 102,
+            str(seqler_legacy))
+
     # --- satir_sql: baski INSERT VALUES'ta AMA ON CONFLICT SET'te DEGIL (CI ezemesin) ---
     sql = d1.satir_sql(u1, 5, arama.haystack(u1), arama.urun_hash(u1), "6-8 duvar")
     dogrula("satir_sql INSERT'te baski kolonu var", ",baski)VALUES" in sql.replace(" ", ""), sql[:120])
