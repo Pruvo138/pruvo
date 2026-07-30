@@ -153549,27 +153549,6 @@
     }
   },
   {
-    "id": "toyota-cup-nord-aio-stand",
-    "kategori": "Oyun/Hobi",
-    "marka": [
-      "Toyota",
-      "Nord AIO"
-    ],
-    "baslik": "Toyota Bardak Tipi Masaüstü Cihaz Standı",
-    "aciklama": "Taşınabilir cihazlar için tasarlanmış bir masa üstü standıdır. Cihazı dik ve düzenli şekilde tutmaya yardımcı olur.\n- Masada sabit duracak şekilde kullanılır.\n- Cihazı koymak ve erişimi kolaylaştırmak için uygundur.\n- Tak-çıkar kullanım için pratik bir çözümdür.",
-    "fiyat": "300 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw1457607-1.jpg"
-    ],
-    "tavsiyeFilament": [
-      "PLA"
-    ],
-    "lisans": {
-      "tasarimci": "TvJab",
-      "tur": "CC BY-SA 4.0"
-    }
-  },
-  {
     "id": "toyota-koltuk-s-tma-anahtar-yuvas",
     "kategori": "Otomobil",
     "marka": [
