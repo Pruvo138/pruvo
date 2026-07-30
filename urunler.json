@@ -1,5 +1,423 @@
 [
   {
+    "id": "basit-tekli-olta-tutucusu-mini",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Basit Tekli Olta Kamisi Tutucusu",
+    "aciklama": "Tek bir olta kamisini dikey konumda tutan kompakt ve basit tutucu.\n- Kompakt boyutuyla farkli yuzeylere kolayca monte edilir.\n- Olta kamisini guvenli sekilde dikey tutar.\n- Ihtiyaca gore boyutlandirilabilir basit bir tasarima sahiptir.\nYaklasik dis olculer: 120 x 30 x 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1216970-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1216970-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jesse's prints",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "olta-direk-donel-kilit-braketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Olta Direk (Outrigger) Donel Kilit Braketi",
+    "aciklama": "Tekne kenarina monte edilen olta direklerini istenilen acida kilitlemeyi saglayan donel braket.\n- Outrigger direğini istenilen acida sabitler.\n- Donel kilit mekanizmasi ile hizli aci ayari saglar.\n- Kanolarda flama direği montaji icin de kullanilabilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3doutrigger-swivel-bracket-lock-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3doutrigger-swivel-bracket-lock-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3doutrigger-swivel-bracket-lock-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nicholsonlee",
+      "tur": "cc_by_sa"
+    }
+  },
+  {
+    "id": "lowrance-sonar-5pin-baglanti-kutusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance Sonar 5 Pin Baglanti Kutusu",
+    "aciklama": "Lowrance sonar cihazinin 5 pinli kablo baglantisini korumak icin kullanilan kapali kutu.\n- Lowrance 5 pinli sonar baglantilarina uyumludur.\n- Kablo uclarini nem ve tozdan korur.\n- Kapatildiktan sonra sizdirmazlik icin ek sabitleme yapilabilir.\nYaklasik dis olculer: 18 x 18 x 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1332772-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1332772-2.jpg"
+    ]
+  },
+  {
+    "id": "tekne-4inc-havalandirma-izgarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Icin 4 Inc Havalandirma Izgarasi",
+    "aciklama": "Cogu teknede standart olan 4 inc capindaki havalandirma deliklerine uyan degisim izgarasi.\n- 4 inc (yaklasik 10 cm) standart tekne havalandirma deligine uyumludur.\n- Kirilan veya eksik orijinal izgaranin yerine kolay degisim saglar.\n- Derin versiyonu kablo gizlemek icin ekstra ic hacim sunar.\nYaklasik dis olculer: 121 x 121 x 79 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr584573-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brad Ideas",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelken-bagi-bungee-cleati",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Bagi Icin Esnek Kordon Cleati",
+    "aciklama": "Yelkeni bumaya baglamak icin kullanilan esnek kordon cleati.\n- Esnek kordonu hizlica takip cikarmayi saglar.\n- Yelkeni bumaya toplu/sarili halde tutar.\n- Kompakt ve hafif bir tasarima sahiptir.\nYaklasik dis olculer: 45 x 21 x 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1492623-1.jpg"
+    ]
+  },
+  {
+    "id": "tpu-esnek-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Esnek Malzemeli Kucuk Olta Kamisi Tutucusu",
+    "aciklama": "Esnek malzemeyle uretilen kompakt olta kamisi tutucusu.\n- Esnek yapisi sayesinde farkli kamis kalinliklarina uyum saglar.\n- Kompakt boyutuyla dar alanlarda kullanima uygundur.\n- Basit tek-parca bir tasarima sahiptir.\nYaklasik dis olculer: 36 x 36 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1762780-1.jpg"
+    ]
+  },
+  {
+    "id": "yelkenli-dis-dus-basligi-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Kic Dusu Icin Dus Basligi Tutucusu",
+    "aciklama": "Yelkenlilerin kic kismindaki dis dus basligini asmak icin kullanilan tutucu.\n- Yelkenli kic dus sistemleriyle uyumludur.\n- Dus basligini kullanim disinda duzenli sekilde asili tutar.\n- Civatalarla tekne govdesine sabitlenir.\nYaklasik dis olculer: 95 x 95 x 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr817986-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr817986-2.jpg"
+    ]
+  },
+  {
+    "id": "toplu-mafsalli-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Toplu Mafsalli (Ball Mount) Olta Kamisi Tutucusu",
+    "aciklama": "1 inc veya 1.5 inc toplu mafsal sistemleriyle uyumlu, acisi ayarlanabilen olta kamisi tutucusu.\n- 1 inc ve 1.5 inc top-mafsal secenekleriyle uyumludur.\n- Civata-somun baglantisiyla iki parca guclendirilerek birlestirilir.\n- Farkli montaj sistemlerine gore acisi ayarlanabilir.\nYaklasik dis olculer: 197 x 73 x 54 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1512711-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1512711-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1512711-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1512711-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Meuon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "scotty-uyumlu-seyir-isigi-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Scotty Uyumlu Tekne Seyir Isigi Montaj Bloğu",
+    "aciklama": "Pilli seyir isiklarini Scotty montaj sistemine sahip teknelere baglamak icin kullanilan montaj bloğu.\n- Scotty montaj sistemiyle uyumludur.\n- Ustunde kordon baglamak icin kucuk bir halka bulunur.\n- Genel amacli montaj bloğu olarak da kullanilabilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1161861-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1161861-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1161861-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cwaters",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dalis-bayragi-samandira-borusu-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dalis Bayragi Icin Samandira Boru Montaj Seti",
+    "aciklama": "Yuzen dalis bayragini bir ic-lastik uzerine monte etmek icin kullanilan boru tutucu seti.\n- Standart ic-lastik/samandiraya uyumlu boru tutucusu icerir.\n- Bayrak direğini dik ve sabit tutar.\n- Uc parcadan olusan komple bir montaj setidir.\nYaklasik dis olculer: 235 x 59 x 55 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6760425-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6760425-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "timmyjane",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "contali-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Contali Olta Kamisi Tutucusu",
+    "aciklama": "Kamisi tutan halka ve govde arasinda sizdirmazlik saglayan contali olta tutucusu.\n- Kamis tutma noktasinda sizdirmazlik icin conta yuvasi bulunur.\n- Tekne veya iskele kenarina monte edilebilir.\n- Basit iki-parca bir tasarima sahiptir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3drod-holder-with-seal-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FLWZ",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "old-town-kayak-garmin-transduser-montaji-c3doldtownkayakgarminstriketransducermount",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Old Town Kayak Icin Garmin Strike Transduser Montaji",
+    "aciklama": "Old Town model kayaklara Garmin Strike balik bulucu transduserini monte etmek icin kullanilan parca.\n- Old Town model kayaklarla uyumludur.\n- Garmin Strike serisi transduserleri sabit acida tutar.\n- Kayak govdesine civatalarla monte edilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dold-town-kayak-garmin-strike-transducer-mount-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lowrizzle",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "lowrance-transduser-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance Balik Bulucu Icin Transduser Kolu",
+    "aciklama": "Lowrance balik bulucu transduserini tekne veya sandalyeye monte etmek icin kullanilan ayarlanabilir kol.\n- Lowrance transduser serisiyle uyumludur.\n- Farkli montaj yuzeylerine sabitlenebilir.\n- Transduseri suya uygun acida konumlandirir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dlowrance-transducer-arm-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlowrance-transducer-arm-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dlowrance-transducer-arm-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "holmgren",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "garmin-transduser-hobie-lowrance-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin Transduseri Hobie Lowrance Yuvasina Adapte Eden Braket",
+    "aciklama": "Garmin cift-isinli transduseri, Hobie kayaklarin Lowrance-hazir yuvasina takmayi saglayan adaptor braketi.\n- Hobie kayaklarin Lowrance-hazir yuvasiyla uyumludur.\n- Garmin cift-isinli transduserleri dogrudan takmayi saglar.\n- Ek parca almadan mevcut yuvayi kullanmaya devam etmenizi saglar.\nYaklasik dis olculer: 62 x 44 x 29 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1235039-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1235039-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Anthony Jones",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "itiwit-kayak-skeg-kilit-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Itiwit Sisme Kayak Icin Genisletilmis Skeg ve Kilit Klipsi",
+    "aciklama": "Itiwit sisme kayaklarin standart skeginden daha genis yuzey alanina sahip, yon tutmayi iyilestiren yedek skeg ve kilitleme klipsi seti.\n- Itiwit sisme kayak modelleriyle uyumludur.\n- Orijinaline gore daha genis yuzey alaniyla yon tutmayi iyilestirir.\n- Kilit klipsi ile skegi yerinde sabit tutar.\nYaklasik dis olculer: 175 x 132 x 32 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1738643-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JTR",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "kayak-tahliye-tapasi-genel-pr1726644",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Genel Amacli Kayak Tahliye Tapasi",
+    "aciklama": "Kayaklarda veya benzeri tahliye deliklerinde kullanilabilecek genel amacli tapa.\n- Standart tahliye deliklerine uyumludur.\n- Farkli kayak modellerinde kullanilabilecek genel bir tasarima sahiptir.\n- Kolay takip cikarilabilir.\nYaklasik dis olculer: 20 x 20 x 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1726644-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1726644-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Keina3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercruiser-treyler-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "MerCruiser Icin Treyler Tasima Klipsi",
+    "aciklama": "MerCruiser Alpha 1 Gen 2 disi-icli motor silindirini treylerle tasima sirasinda yukarida sabit tutan klips.\n- MerCruiser Alpha 1 Gen 2 20mm silindir ile uyumludur.\n- Motoru tasima sirasinda yukarida ve sabit tutar.\n- Kolay takip cikarilabilir bir klips tasarima sahiptir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1626254-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1626254-2.jpg"
+    ]
+  },
+  {
+    "id": "cankurtaran-samandirasi-bayrak-standi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Cankurtaran Samandirasi Icin Bayrak/Direk Standi",
+    "aciklama": "Cankurtaran tipi yuzen samandiralara dalis/uyari bayragi direği monte etmek icin kullanilan stand.\n- Cankurtaran tipi yuzen samandiralarla uyumludur.\n- Dalis veya uyari bayragi direğini dik tutar.\n- Samandira govdesine kablo baglarla sabitlenir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dflag-stand-for-baywatch-buoy-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflag-stand-for-baywatch-buoy-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflag-stand-for-baywatch-buoy-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dflag-stand-for-baywatch-buoy-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "raboumas",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "tekne-treyleri-kilavuz-direk-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Treyleri Kilavuz Direği Icin Ust Kapak",
+    "aciklama": "Tekne treylerindeki kilavuz direklerin ucuna takilan, kaybolmasini onleyen ust kapak.\n- 60mm capindaki kilavuz direklere siki oturum icin tasarlandi.\n- Direk ucunun asinmasini ve kaybolmasini onler.\n- Silikon yapistiriciyla ek sabitleme yapilabilir.\nYaklasik dis olculer: 66 x 66 x 33 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr326528-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr326528-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vatbrain",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-orta-brandasi-destek-mesnedi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Orta Brandasi Icin Destek Mesnedi",
+    "aciklama": "Tekne ortu brandasini yukselterek uzerinde su birikmesini onleyen destek mesnedi.\n- Cogu tekne modeliyle uyumlu genel bir tasarima sahiptir.\n- Brandayi yukselterek uzerinde su birikmesini engeller.\n- Destek cubugunun tekne govdesine kaymadan oturmasini saglar.\nYaklasik dis olculer: 109 x 98 x 37 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr681349-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr681349-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "noah p 88",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "evinrude-gaz-kolu-tutamagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Evinrude Dis Motor Icin Gaz Kolu Tutamagi",
+    "aciklama": "Evinrude 9.9 dis takma motorun gaz kontrol kolu mekanizmasinin tutamak parcasi.\n- Evinrude 9.9 dis takma motor modeliyle uyumludur.\n- Radyal kuvveti dogrusal harekete cevirerek gaz kontrolu saglar.\n- Orijinal parcaya alternatif uygun maliyetli bir cozum sunar.\nYaklasik dis olculer: 101 x 60 x 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr387543-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Korbyn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pontoon-tekne-olta-tutucusu-38mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pontoon Tekne Icin Olta Kamisi Tutucusu (38mm)",
+    "aciklama": "Pontoon tipi teknelerde 38mm montaj yuzeyine sahip, 15 cm kamis yuvali olta tutucusu.\n- 38mm (1.5 inc) montaj yuzeyine uyumludur.\n- Yaklasik 15 cm derinliginde kamis yuvasina sahiptir.\n- Pontoon tekne korkuluklarina kolay montaj saglar.\nYaklasik dis olculer: 152 x 105 x 82 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1539049-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1539049-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1539049-3.jpg"
+    ]
+  },
+  {
+    "id": "tekne-govde-gecis-rakoru-19mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Govde Gecis Rakoru (19mm Hortum, M24)",
+    "aciklama": "Tekne sintine pompasi hortumunun govdeden gecisini saglayan 19mm capinda, M24 disli rakor.\n- 19mm ic capindaki hortumlarla uyumludur.\n- M24 disli baglanti sistemine sahiptir.\n- Sintine pompasi tesisati icin govde-gecisi saglar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw130251-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw130251-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "oliver_heidrich",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-havalandirma-kutusu-dusuk-profil",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Icin Dusuk Profilli Havalandirma Kutusu",
+    "aciklama": "Tekne icine su girisini engelleyen labirent su tuzagi mekanizmasina sahip, dusuk profilli havalandirma kutusu.\n- Labirent su-tuzagi tasarimi ile su girisini engeller.\n- Ucuz piyasa tipi havalandirma başlıklarıyla uyumludur.\n- Kotu havada kapatmak icin ic mekandan kumanda edilen bir kapak icerir.\nYaklasik dis olculer: 360 x 200 x 63 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1211920-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1211920-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1211920-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1211920-4.jpg"
+    ]
+  },
+  {
+    "id": "mariner-30hp-vites-mili-kelepcesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mariner 30HP Dis Motor Icin Vites Mili Kelepcesi",
+    "aciklama": "Mariner 30HP dis takma motorun ust vites milini/cubugunu birlestiren kelepce parcasi.\n- Mariner 30HP dis takma motor modeliyle uyumludur.\n- Vites mili/cubugu baglantisini saglar.\n- Orijinal parcaya uygun maliyetli bir alternatif sunar.\nYaklasik dis olculer: 141 x 51 x 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1236239-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1236239-2.jpg"
+    ]
+  },
+  {
+    "id": "dalis-samandirasi-makara-tutamagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dalis Yuzey Samandirasi (SMB) Icin Makara Tutamagi",
+    "aciklama": "Kalin dalis eldivenleriyle kullanimi kolaylastiran, yuzey samandirasi ipini saran makara tutamagi.\n- Standart parmak-makarasi yerine kalin eldivenle kullanima uygundur.\n- Iki paslanmaz civatayla monte edilir.\n- Samandira ipinin ortasina gomulerek saklanabilir.\nYaklasik dis olculer: 68 x 50 x 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1087836-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1087836-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stevetfidalgo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bimini-tipi-conduit-baglanti-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bimini Tipi Conduit Baglanti Parcasi (Cift Eksenli)",
+    "aciklama": "Metal boru (conduit) ile 180 derece donebilen bimini-tipi baglanti parcasi.\n- 1/2 inc conduit borularla uyumludur.\n- 180 derece donebilen cift-eksenli menteşe yapisina sahiptir.\n- Tekne uzerine ozel yapilar kurmak icin genel amacli kullanilabilir.\nYaklasik dis olculer: 65 x 30 x 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1444264-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JJT",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bass-tekne-canli-balik-tanki-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bass Tekne Canli Balik Tanki (Livewell) Tapasi",
+    "aciklama": "Bass tipi teknelerin canli balik tanki tahliye deligi icin kullanilan tapa.\n- Bass tekne livewell tahliye delikleriyle uyumludur.\n- Paslanmaz vida ile sabitlenir.\n- Sizdirmazlik icin ince silikon tabakasi ile birlikte kullanilabilir.\nYaklasik dis olculer: 25 x 25 x 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1156011-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1156011-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JohnRingo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "kayak-skeg-cleati",
     "kategori": "Marin",
     "marka": [],
