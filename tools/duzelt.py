@@ -19,6 +19,17 @@ Deger cozumleme: '[' veya '{' ile baslayan degerler JSON olarak (liste/sozluk)
 ayristirilir; digerleri duz metin kabul edilir (fiyat "500 TL" gibi).
 'id' alani degistirilemez.
 
+--alan aciklama ICIN OZEL KORUMA (hem tek-urun hem --toplu kipte):
+Otomatik uretilen "Yaklaşık dış ölçüler: A × B × C mm." satiri STL'den TURETILMIS
+veridir; reword onu sessizce dusuremez.
+  * yeni metinde olcu satiri YOKSA -> eskideki satir yeni metnin SONUNA eklenir.
+  * yeni metin KENDI olcu satirini tasiyorsa -> yenisi kazanir, ciftleme YOK.
+  * sayisal olcu tasimayan placeholder ("… : yok.") geri yazilmaz.
+Ne korunduysa/ne dustuyse "ACIKLAMA KORUMA (id=…)" blogunda ACIKCA basilir
+(KORUNDU / DEGISTI / DUSTU / BILGI) — kayip artik sessiz degil. Satis/CTA
+bosluk-doldurucu satirlari BILEREK kapsam disidir (uretilebilir prose): korunmaz,
+yalnizca raporlanir. Kabul testi: tools/duzelt-toplu-test.py bolum (f).
+
 URUNU TAMAMEN SILMEK icin (or. yanlislikla eklenmis logo/telif riskli urun):
   python3 tools/duzelt.py <id> --sil "kisa gerekce"
 Bu, urunu urunler.json'dan kaldirir VE id'yi .urunler-sil-izin.json'a yazar ki
@@ -54,6 +65,7 @@ import datetime
 import fcntl
 import json
 import os
+import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,6 +77,143 @@ LOG = os.path.join(ROOT, ".urunler-guard.log")
 
 DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "gorseller",
                     "lisans", "konfigur"}
+
+# --- ACIKLAMA KORUMA: otomatik uretilen OLCU SATIRI ---------------------------
+# MaCiT dilim-30 (olculmus kayip): denetim kapisi yanlis-pozitifi yuzunden bir urunun
+# aciklamasi `--alan aciklama` ile yeniden yazildi; STL bbox'indan TURETILMIS
+# "Yaklaşık dış ölçüler: A × B × C mm." satiri sessizce dustu ve ikinci bir duzelt.py
+# cagrisiyla ELLE geri konmak zorunda kalindi. Kayip SESSIZ: urun canliya olcusuz cikar,
+# kimse fark etmez, musteri eksik bilgiyle siparis verir.
+#
+# Neden bu satir OZEL (ve neden yalniz bu otomatik korunur):
+#   * Uretilmis VERI'dir — reword'u yazan (insan ya da model) bu sayilari yeniden
+#     turetemez; kaynagi STL'dir. Kaybi geri alinamaz bilgi kaybidir.
+#   * Katalogta 14794 urunun 12262'si tasiyor (olculdu, 30 Tem) -> reword yolunun
+#     ana carpisma yuzeyi.
+# KAPSAM DISI (bilincli, asagida _KAPSAM_DISI_KALIPLAR): "Sipariş için …",
+#   "- Dayanıklı malzemeyle özel üretilir.", "- Siparişe göre özel tasarım üretimle
+#   hazırlanır." gibi satis/CTA bosluk-doldurucu satirlar. Bunlar VERI degil, uretilebilir
+#   PROSE; her reword'de otomatik geri yapistirmak mesru duzeltmeyi (or. bayat CTA'yi
+#   kaldirmayi) IMKANSIZ kilardi. Otomatik korunmaz ama SESSIZ de dusmez: raporlanir.
+#   `lisans` alani aciklamada DEGIL ayri bir alandir; --alan aciklama onu zaten etkilemez.
+#
+# Desen: denetim-kapisi.py `_OLCU_RE` ile AYNI kural (capa + AYNI SATIRDA <sayi>…mm).
+# Bilincli KOPYA, import DEGIL: duzelt.py urun verisinin tek mesru yazma yolu; denetim
+# kapisinin adaptor zincirine (printables/makerworld/cults/mmf) bagimli olmasi, bir
+# adaptor bozuldugunda duzeltme yolunu da kilitlerdi. Kayma riskini duzelt-toplu-test.py
+# (f8) iki deseni ayni fikstur uzerinde karsilastirarak yakalar.
+_OLCU_PREFIX = r"Yakla[şs][ıi]k\s+d[ıi][şs]\s+[öo]l[çc][üu]ler"
+_OLCU_RE = re.compile(_OLCU_PREFIX + r"[^\n]*?\d[\d\s.,×xX*+-]*mm\b", re.UNICODE)
+_OLCU_CAPA_RE = re.compile(_OLCU_PREFIX, re.UNICODE)
+_LISTE_ISARETI_RE = re.compile(r"^\s*[-•*]\s*")
+_KAPSAM_DISI_KALIPLAR = (
+    re.compile(r"^\s*[-•*]?\s*Sipari[şs] i[çc]in\b", re.UNICODE),
+    re.compile(r"^\s*[-•*]?\s*Sipari[şs]e g[öo]re\b", re.UNICODE),
+    re.compile(r"^\s*[-•*]?\s*Dayan[ıi]kl[ıi] malzemeyle\b", re.UNICODE),
+)
+
+
+def _satirlar(metin):
+    return [s for s in metin.split("\n") if s.strip()] if isinstance(metin, str) else []
+
+
+def _gercek_olcu_satirlari(metin):
+    """Capa + AYNI SATIRDA sayi/mm tasiyan (yani GERCEK olcu bildiren) satirlar."""
+    return [s for s in _satirlar(metin) if _OLCU_RE.search(s)]
+
+
+def _capali_olcu_satirlari(metin):
+    return [s for s in _satirlar(metin) if _OLCU_CAPA_RE.search(s)]
+
+
+def _norm(s):
+    return " ".join(s.split())
+
+
+def aciklama_koru(eski, yeni):
+    """(korunmus_yeni_metin, rapor) — reword'de otomatik olcu satirini KORU.
+
+    Kurallar:
+      * yeni metinde GERCEK olcu satiri VARSA  -> yeni kazanir, ek YOK (ciftleme yok).
+      * yoksa ve eskide VARSA                  -> eski satir(lar) yeni metnin SONUNA eklenir
+                                                  (liste isareti temizlenir).
+      * capasi olup sayisiz placeholder ("… : yok.") -> geri yazilmaz (veri tasimiyor),
+                                                  ama rapora DUSTU olarak girer.
+    Rapor: (DURUM, SINIF, DETAY) uclusu listesi; cagiran basar. Bir satir sessizce
+    dusmez — korunduysa KORUNDU, dusuruldu ise DUSTU/DEGISTI olarak gorunur.
+    """
+    rapor = []
+    if not isinstance(yeni, str) or not isinstance(eski, str) or eski == yeni:
+        return yeni, rapor
+
+    sonuc = yeni
+    eski_gercek = _gercek_olcu_satirlari(eski)
+    yeni_gercek = _gercek_olcu_satirlari(yeni)
+    yeni_norm = {_norm(s) for s in yeni_gercek}
+
+    if yeni_gercek:
+        for s in eski_gercek:
+            if _norm(s) not in yeni_norm:
+                rapor.append(("DEGISTI", "olcu satiri",
+                              "eski \"%s\" -> yeni metnin KENDI olcu satiri kazandi "
+                              "(\"%s\"); ciftleme yapilmadi"
+                              % (_norm(s), _norm(yeni_gercek[0]))))
+    elif eski_gercek:
+        eklenecek = []
+        for s in eski_gercek:
+            t = _LISTE_ISARETI_RE.sub("", s).strip()
+            if t not in eklenecek:
+                eklenecek.append(t)
+        sonuc = yeni.rstrip("\n") + "\n" + "\n".join(eklenecek)
+        for t in eklenecek:
+            rapor.append(("KORUNDU", "olcu satiri",
+                          "\"%s\" yeni metinde YOKTU -> sona eklendi" % t))
+
+    # capasi olup sayisiz (placeholder) olcu satirlari: geri yazilmaz, ama raporlanir.
+    yeni_capali = {_norm(s) for s in _capali_olcu_satirlari(yeni)}
+    for s in _capali_olcu_satirlari(eski):
+        if _OLCU_RE.search(s):
+            continue
+        if _norm(s) not in yeni_capali:
+            rapor.append(("DUSTU", "olcu placeholder",
+                          "\"%s\" sayisal olcu TASIMIYOR -> geri yazilmadi" % _norm(s)))
+
+    # kapsam disi (satis/CTA) satirlari: otomatik korunmaz, ama SESSIZ de dusmez.
+    yeni_tum = {_norm(s) for s in _satirlar(yeni)}
+    for s in _satirlar(eski):
+        if _norm(s) in yeni_tum or _OLCU_CAPA_RE.search(s):
+            continue
+        if any(k.search(s) for k in _KAPSAM_DISI_KALIPLAR):
+            rapor.append(("DUSTU", "satis/CTA satiri",
+                          "\"%s\" (kapsam disi: otomatik korunmaz)" % _norm(s)))
+
+    kayip = sum(1 for s in _satirlar(eski)
+                if _norm(s) not in yeni_tum and not _OLCU_CAPA_RE.search(s)
+                and not any(k.search(s) for k in _KAPSAM_DISI_KALIPLAR))
+    if kayip:
+        rapor.append(("BILGI", "serbest metin",
+                      "eski aciklamanin %d satiri yeni metinde YOK (reword — korunmaz)"
+                      % kayip))
+    return sonuc, rapor
+
+
+def _rapor_bas(uid, rapor):
+    if not rapor:
+        return
+    print("ACIKLAMA KORUMA (id=%s):" % uid)
+    for durum, sinif, detay in rapor:
+        print("  %-8s %-18s %s" % (durum, sinif, detay))
+        if durum in ("KORUNDU", "DEGISTI"):
+            _log("aciklama-koruma: %s -> %s %s | %s" % (uid, durum, sinif, detay))
+
+
+def _aciklama_koru_uygula(urun, alanlar):
+    """alanlar['aciklama'] varsa korumayi uygula (yerinde); rapor dondur."""
+    if "aciklama" not in alanlar:
+        return []
+    yeni, rapor = aciklama_koru(urun.get("aciklama"), alanlar["aciklama"])
+    alanlar["aciklama"] = yeni
+    return rapor
 
 
 def _log(msg):
@@ -263,6 +412,13 @@ def _toplu(yol):
             return 1
 
         # --- BURADAN SONRASI YAZIM: tum dogrulamalar gecti. ---
+        # Tek-urun kipiyle AYNI aciklama korumasi (ayni delik, ayni yama); yazimdan
+        # ONCE, boylece manifest de korunmus degeri tasir.
+        aciklama_raporlari = {}
+        for uid, alanlar in setler.items():
+            r = _aciklama_koru_uygula(urunler[idx_by_id[uid]], alanlar)
+            if r:
+                aciklama_raporlari[uid] = r
         for uid, alanlar in setler.items():
             for alan, deger in alanlar.items():
                 urunler[idx_by_id[uid]][alan] = deger
@@ -298,6 +454,8 @@ def _toplu(yol):
 
     n_alan = sum(len(v) for v in setler.values()) + sum(len(v) for v in alan_silmeler.values())
     n_urun = len(set(list(setler) + list(alan_silmeler)) | set(urun_silmeler))
+    for uid in sorted(aciklama_raporlari):
+        _rapor_bas(uid, aciklama_raporlari[uid])
     for uid in sorted(set(list(setler) + list(alan_silmeler))):
         ozet = ", ".join("%s=%s" % (a, json.dumps(v, ensure_ascii=False))
                          for a, v in sorted(setler.get(uid, {}).items()))
@@ -397,6 +555,11 @@ def main():
             print("HATA: '%s' id'li urun urunler.json'da yok." % args.id, file=sys.stderr)
             return 1
 
+        # aciklama reword'unde otomatik uretilen olcu satirini KORU (sessiz kayip yok).
+        # Koruma YAZIMDAN ONCE calisir; boylece hem urunler.json'a hem guard izin
+        # manifestine AYNI (korunmus) deger gider -> guard degisikligi geri almaz.
+        aciklama_raporu = _aciklama_koru_uygula(urunler[idx], degisiklikler)
+
         # SADECE beyan edilen alanlari degistir; beyan disina dokunma.
         for alan, deger in degisiklikler.items():
             urunler[idx][alan] = deger
@@ -424,6 +587,7 @@ def main():
         fcntl.flock(lockf, fcntl.LOCK_UN)
         lockf.close()
 
+    _rapor_bas(args.id, aciklama_raporu)
     ozet = ", ".join("%s=%s" % (a, json.dumps(v, ensure_ascii=False))
                      for a, v in degisiklikler.items())
     if silinecek_alanlar:

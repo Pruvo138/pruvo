@@ -14,6 +14,10 @@ Kontroller:
   (c) mevcut tek-urun kipi REGRESYONSUZ (--alan/--deger, --alan-sil, --sil).
   (d) flock: kilit baskasi tarafindan tutulurken ikinci toplu cagri BEKLER
       (serilesme); kilit birakilinca tamamlanir.
+  (f) --alan aciklama REWORD'unde OTOMATIK EKLENEN OLCU SATIRI korunur
+      (MaCiT dilim-30 kaybi): korunma, ciftleme yok, gomulu satir, placeholder,
+      toplu kip, guard manifest gercekligi, alan regresyonu, desen kaymasi,
+      KIRMIZI-MUTASYON.
 """
 import hashlib
 import importlib.util
@@ -54,13 +58,13 @@ def kontrol(kosul, mesaj):
         hatalar.append(mesaj)
 
 
-def sahte_repo():
+def sahte_repo(katalog=None):
     d = tempfile.mkdtemp(prefix="duzelt-toplu-testi-")
     os.makedirs(os.path.join(d, "tools"))
     shutil.copy(KAYNAK_DUZELT, os.path.join(d, "tools", "duzelt.py"))
     shutil.copy(KAYNAK_GUARD, os.path.join(d, "tools", "urunler-guard.py"))
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
-        json.dump(KATALOG, f, ensure_ascii=False, indent=2)
+        json.dump(KATALOG if katalog is None else katalog, f, ensure_ascii=False, indent=2)
     return d
 
 
@@ -317,6 +321,239 @@ def test_konfigur():
     shutil.rmtree(repo2, ignore_errors=True)
 
 
+# ------------------------------------------------- (f) aciklama olcu satiri korumasi
+# MaCiT dilim-30 (olculmus kayip): denetim kapisi yanlis-pozitifi yuzunden bir sekstant
+# urununun aciklamasi `--alan aciklama` ile yeniden yazildi; STL'den turetilmis
+# "Yaklaşık dış ölçüler: A × B × C mm." satiri SESSIZCE dustu. Kayip sessiz: urun canliya
+# olcusuz cikar, musteri eksik bilgiyle siparis verir. Bu bolum kaybi kirmizi yakar.
+OLCU_ESKI = "Yaklaşık dış ölçüler: 149 × 149 × 80 mm."
+OLCU_YENI = "Yaklaşık dış ölçüler: 200 × 100 × 50 mm."
+OLCU_GOMULU = "- Yaklaşık dış ölçüler: 42 × 30 × 8 mm."
+YENI_METIN = ("Sekstant için yedek gölge filtresi tutucusu.\n"
+              "- Paslanmaz vidalarla monte edilir.")
+
+KATALOG_OLCU = [
+    {"id": "olcu-son", "kategori": "Marin", "marka": [], "baslik": "Olcu Son",
+     "aciklama": "Kayak taşıma arabası.\n- Kayışla bağlanır.\n" + OLCU_ESKI,
+     "fiyat": "100 TL", "gorseller": ["https://media.pruvo3d.com/urunler/o1-1.jpg"]},
+    {"id": "olcu-gomulu", "kategori": "Otomobil", "marka": ["Ford"], "baslik": "Olcu Gomulu",
+     "aciklama": "Braket.\n" + OLCU_GOMULU + "\n- Dayanıklı malzemeyle özel üretilir.",
+     "fiyat": "200 TL", "gorseller": ["https://media.pruvo3d.com/urunler/o2-1.jpg"]},
+    {"id": "olcu-yok", "kategori": "Ev", "marka": [], "baslik": "Olcu Yok",
+     "aciklama": "Basit conta.\nSipariş için \"Sipariş Ver\" butonundan bize ulaşın.",
+     "fiyat": "300 TL", "gorseller": ["https://media.pruvo3d.com/urunler/o3-1.jpg"]},
+    {"id": "olcu-placeholder", "kategori": "Ofis", "marka": [], "baslik": "Olcu Placeholder",
+     "aciklama": "Ölçüsü verilmemiş ürün.\nYaklaşık dış ölçüler: yok.",
+     "fiyat": "400 TL", "gorseller": ["https://media.pruvo3d.com/urunler/o4-1.jpg"]},
+]
+
+CAPA = "Yaklaşık dış ölçüler"
+
+
+def _oku(repo):
+    with open(os.path.join(repo, "urunler.json"), encoding="utf-8") as f:
+        return {p["id"]: p for p in json.load(f)}
+
+
+def test_f_koruma():
+    print("\n(f1) reword: olcu satiri KORUNUR (ONCE-KIRMIZI kanit)")
+    repo = sahte_repo(KATALOG_OLCU)
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_f1")
+    rc, out, err = cagir(mod, ["olcu-son", "--alan", "aciklama", "--deger", YENI_METIN])
+    kontrol(rc == 0, "exit 0 (%s)" % err.strip())
+    yeni = _oku(repo)["olcu-son"]["aciklama"]
+    print("  --- yazilan aciklama ---")
+    for satir in yeni.split("\n"):
+        print("      | %s" % satir)
+    print("  --- duzelt.py ciktisi ---")
+    for satir in (out + err).strip().split("\n"):
+        print("      > %s" % satir[:160])
+    kontrol(OLCU_ESKI in yeni, "olcu satiri KORUNDU (yeni metinde yoktu)")
+    kontrol(yeni.count(CAPA) == 1, "olcu satiri TEK kez (ciftleme yok)")
+    kontrol(yeni.startswith(YENI_METIN), "yeni metin AYNEN ve BASTA duruyor")
+    kontrol("KORUNDU" in (out + err), "cikti korumayi ACIKCA soyluyor ('KORUNDU')")
+    kontrol(OLCU_ESKI in (out + err), "cikti korunan SATIRIN kendisini yaziyor")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_f_ciftleme():
+    print("\n(f2) yeni metin KENDI olcu satirini tasiyorsa YENISI kazanir, ciftleme YOK")
+    repo = sahte_repo(KATALOG_OLCU)
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_f2")
+    metin = YENI_METIN + "\n" + OLCU_YENI
+    rc, out, err = cagir(mod, ["olcu-son", "--alan", "aciklama", "--deger", metin])
+    kontrol(rc == 0, "exit 0 (%s)" % err.strip())
+    yeni = _oku(repo)["olcu-son"]["aciklama"]
+    print("  --- yazilan aciklama ---")
+    for satir in yeni.split("\n"):
+        print("      | %s" % satir)
+    kontrol(yeni == metin, "yeni metin AYNEN yazildi (araca ek yapmadi)")
+    kontrol(yeni.count(CAPA) == 1, "olcu satiri TEK kez (ciftleme yok)")
+    kontrol(OLCU_YENI in yeni and OLCU_ESKI not in yeni, "YENI olcu kazandi, eski dusuruldu")
+    kontrol("DEGISTI" in (out + err) or "değişti" in (out + err).lower(),
+            "cikti eski olcunun degistigini soyluyor")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_f_gomulu():
+    print("\n(f3) olcu satiri aciklamanin ORTASINDA (liste isaretli) ise de korunur")
+    repo = sahte_repo(KATALOG_OLCU)
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_f3")
+    rc, out, err = cagir(mod, ["olcu-gomulu", "--alan", "aciklama", "--deger", YENI_METIN])
+    kontrol(rc == 0, "exit 0 (%s)" % err.strip())
+    yeni = _oku(repo)["olcu-gomulu"]["aciklama"]
+    print("  --- yazilan aciklama ---")
+    for satir in yeni.split("\n"):
+        print("      | %s" % satir)
+    kontrol("Yaklaşık dış ölçüler: 42 × 30 × 8 mm." in yeni, "gomulu olcu satiri KORUNDU")
+    kontrol(yeni.count(CAPA) == 1, "TEK kez")
+    kontrol(yeni.strip().split("\n")[-1].startswith("Yaklaşık"),
+            "sona eklenirken liste isareti ('- ') temizlendi")
+    # kapsam disi birakilan satis satiri: korunmaz AMA raporlanir
+    kontrol("Dayanıklı malzemeyle" not in yeni, "satis/CTA satiri korunmadi (kapsam disi)")
+    kontrol("DUSTU" in (out + err), "dusen satir ciktida 'DUSTU' olarak raporlandi")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_f_placeholder():
+    print("\n(f4) placeholder olcu satiri ('… : yok.') korunmaz ama SESSIZ de dusmez")
+    repo = sahte_repo(KATALOG_OLCU)
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_f4")
+    rc, out, err = cagir(mod, ["olcu-placeholder", "--alan", "aciklama", "--deger", YENI_METIN])
+    kontrol(rc == 0, "exit 0 (%s)" % err.strip())
+    yeni = _oku(repo)["olcu-placeholder"]["aciklama"]
+    kontrol(yeni == YENI_METIN, "sayisiz placeholder geri yazilmadi")
+    kontrol("DUSTU" in (out + err) and "yok." in (out + err),
+            "placeholder dususu ciktida ACIKCA raporlandi")
+    print("  --- duzelt.py ciktisi ---")
+    for satir in (out + err).strip().split("\n"):
+        print("      > %s" % satir[:160])
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_f_toplu():
+    print("\n(f5) --toplu kipinde de AYNI koruma (ayni delik, ayni yama)")
+    repo = sahte_repo(KATALOG_OLCU)
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_f5")
+    yol = islem_yaz(repo, [
+        {"id": "olcu-son", "alan": "aciklama", "deger": YENI_METIN},
+        {"id": "olcu-gomulu", "alan": "fiyat", "deger": "999 TL"},
+    ])
+    rc, out, err = cagir(mod, ["--toplu", yol])
+    kontrol(rc == 0, "exit 0 (%s)" % err.strip())
+    d = _oku(repo)
+    print("  --- yazilan aciklama ---")
+    for satir in d["olcu-son"]["aciklama"].split("\n"):
+        print("      | %s" % satir)
+    kontrol(OLCU_ESKI in d["olcu-son"]["aciklama"], "toplu kipte olcu satiri KORUNDU")
+    kontrol(d["olcu-son"]["aciklama"].count(CAPA) == 1, "TEK kez")
+    kontrol(d["olcu-gomulu"]["fiyat"] == "999 TL", "ayni partideki diger alan etkilenmedi")
+    kontrol("KORUNDU" in (out + err), "toplu ciktida koruma raporlandi")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_f_guard():
+    print("\n(f6) guard manifesti GERCEGI tasir (korunmus metin) — yoksa guard geri alir")
+    repo = sahte_repo(KATALOG_OLCU)
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_f6")
+    guard = modul_yukle(repo, "urunler-guard.py", "guard_f6")
+    rc, out, err = cagir(mod, ["olcu-son", "--alan", "aciklama", "--deger", YENI_METIN])
+    kontrol(rc == 0, "exit 0")
+    urun = _oku(repo)["olcu-son"]
+    with open(os.path.join(repo, ".urunler-duzelt-izin.json"), encoding="utf-8") as f:
+        manifest = json.load(f)
+    kontrol(manifest["olcu-son"]["aciklama"] == urun["aciklama"],
+            "manifest = urunler.json'daki GERCEK deger (korunmus metin)")
+    kontrol(guard._authorized("olcu-son", "aciklama", urun, manifest),
+            "guard._authorized: yazilan deger MESRU (guard geri almaz)")
+    kontrol(not guard._authorized("olcu-son", "aciklama",
+                                 dict(urun, aciklama=YENI_METIN), manifest),
+            "guard._authorized: olcusuz ham metin MESRU DEGIL (deger-bagli izin korunuyor)")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_f_alan_regresyonu():
+    print("\n(f7) REGRESYON: diger alanlar (baslik/fiyat/kategori/marka/gorseller) etkilenmedi")
+    for alan, deger, beklenen in (
+        ("baslik", "Yeni Baslik", "Yeni Baslik"),
+        ("fiyat", "1234 TL", "1234 TL"),
+        ("kategori", "Elektronik", "Elektronik"),
+        ("marka", '["Audi","BMW"]', ["Audi", "BMW"]),
+        ("gorseller", '["https://media.pruvo3d.com/urunler/yeni-1.jpg"]',
+         ["https://media.pruvo3d.com/urunler/yeni-1.jpg"]),
+    ):
+        repo = sahte_repo(KATALOG_OLCU)
+        mod = modul_yukle(repo, "duzelt.py", "duzelt_f7_" + alan)
+        onceki_aciklama = _oku(repo)["olcu-son"]["aciklama"]
+        rc, out, err = cagir(mod, ["olcu-son", "--alan", alan, "--deger", deger])
+        d = _oku(repo)["olcu-son"]
+        kontrol(rc == 0, "[%s] exit 0 (%s)" % (alan, err.strip()))
+        kontrol(d[alan] == beklenen, "[%s] deger yazildi (%r)" % (alan, d[alan]))
+        kontrol(d["aciklama"] == onceki_aciklama,
+                "[%s] aciklama HIC DEGISMEDI (koruma yolu tetiklenmedi)" % alan)
+        kontrol("ACIKLAMA KORUMA" not in (out + err),
+                "[%s] aciklama raporu basilmadi (gurultu yok)" % alan)
+        shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_f_desen_kaymasi():
+    print("\n(f8) DESEN KAYMASI: duzelt.py olcu deseni denetim-kapisi.py ile AYNI karari verir")
+    repo = sahte_repo(KATALOG_OLCU)
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_f8")
+    dk_yol = os.path.join(KOK, "tools", "denetim-kapisi.py")
+    spec = importlib.util.spec_from_file_location("denetim_kapisi_f8", dk_yol)
+    dk = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(dk)      # FAIL-CLOSED: import kirilirsa kapi susmaz, KIRMIZI yanar
+    except Exception as e:               # noqa: BLE001 — kasitli genis yakalama, gerekce yukarida
+        kontrol(False, "denetim-kapisi.py import edilemedi -> desen kaymasi DENETLENEMEDI (%r)" % e)
+        shutil.rmtree(repo, ignore_errors=True)
+        return
+    fikstur = [
+        "Yaklaşık dış ölçüler: 149 × 149 × 80 mm.",
+        "Yaklaşık dış ölçüler: 40 x 20 x 10 mm.",
+        "- Yaklaşık dış ölçüler: 42 × 30 × 8 mm.",
+        "Yaklaşık dış ölçüler (15 cm boyda): 113 × 117 × 150 mm.",
+        "Yaklaşık dış ölçüler: taban 137 × 135 × 70 mm.",
+        "Yaklasik dis olculer: 64 × 64 × 30 mm.",
+        "Yaklaşık dış ölçüler: Ø30 × 12 mm.",
+        "Yaklaşık dış ölçüler: yok.",
+        "Yaklaşık dış ölçüler: Belirtilmemiş.",
+        "Yaklaşık dış ölçüler: - × - × - mm.",
+        "M32×3.5 vida dişi, ~31 mm dış çap",
+        "Sıradan bir açıklama satırı.",
+    ]
+    olcu_re = getattr(mod, "_OLCU_RE", None)
+    if olcu_re is None:
+        kontrol(False, "duzelt.py'de _OLCU_RE yok (koruma uygulanmamis)")
+        shutil.rmtree(repo, ignore_errors=True)
+        return
+    ayrisan = [s for s in fikstur
+               if bool(olcu_re.search(s)) != bool(dk._OLCU_RE.search(s))]
+    for s in fikstur:
+        print("      %s  %s" % ("OLCU " if olcu_re.search(s) else "     ", s))
+    kontrol(not ayrisan, "12 fiksturun HEPSINDE ayni karar (ayrisan: %s)" % ayrisan)
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_f_mutasyon():
+    print("\n(f9) KIRMIZI-MUTASYON: koruma devre disi birakilinca satir GERCEKTEN dusuyor")
+    repo = sahte_repo(KATALOG_OLCU)
+    mod = modul_yukle(repo, "duzelt.py", "duzelt_f9")
+    if not hasattr(mod, "aciklama_koru"):
+        kontrol(False, "duzelt.py'de aciklama_koru yok (koruma uygulanmamis)")
+        shutil.rmtree(repo, ignore_errors=True)
+        return
+    mod.aciklama_koru = lambda eski, yeni: (yeni, [])   # mutasyon: koruma yok
+    rc, out, err = cagir(mod, ["olcu-son", "--alan", "aciklama", "--deger", YENI_METIN])
+    yeni = _oku(repo)["olcu-son"]["aciklama"]
+    kontrol(rc == 0, "mutasyonlu kosum yine de exit 0")
+    kontrol(CAPA not in yeni,
+            "MUTASYON: koruma kapaliyken olcu satiri DUSTU (nobetci canli, testi kandirmiyor)")
+    kontrol("KORUNDU" not in (out + err), "MUTASYON: koruma raporu da basilmadi")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
 def main():
     print("duzelt.py --toplu kabul testi (SAHTE katalog; gercek urunler.json'a dokunulmaz)")
     test_a()
@@ -324,6 +561,15 @@ def main():
     test_c()
     test_d()
     test_konfigur()
+    test_f_koruma()
+    test_f_ciftleme()
+    test_f_gomulu()
+    test_f_placeholder()
+    test_f_toplu()
+    test_f_guard()
+    test_f_alan_regresyonu()
+    test_f_desen_kaymasi()
+    test_f_mutasyon()
     print("\n%s" % ("TUM KONTROLLER GECTI." if not hatalar
                     else "BASARISIZ (%d): \n  - %s" % (len(hatalar), "\n  - ".join(hatalar))))
     return 0 if not hatalar else 1
