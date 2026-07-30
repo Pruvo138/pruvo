@@ -151711,25 +151711,6 @@
     }
   },
   {
-    "id": "toyota-sandladder",
-    "kategori": "Oyun/Hobi",
-    "marka": [
-      "Toyota"
-    ],
-    "baslik": "Toyota Sandladder",
-    "aciklama": "Toyota temalı model araç için çekiş aparatı. Zeminde daha iyi tutunma ve görünüm tamamlayıcısı olarak kullanılır.\n- Model araç arkasına/üstüne takılabilecek aksesuar formundadır.\n- Araç sergilemesinde ve detaylandırmada kullanılır.\n- Montajı mevcut yuvasına göre yapılır.\nYaklaşık dış ölçüler: Belirtilmemiş × Belirtilmemiş × Belirtilmemiş mm.",
-    "fiyat": "450 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw1274822-1.jpg",
-      "https://media.pruvo3d.com/urunler/mw1274822-2.jpg",
-      "https://media.pruvo3d.com/urunler/mw1274822-3.jpg"
-    ],
-    "lisans": {
-      "tasarimci": "Davey Brandt",
-      "tur": "CC BY-ND 4.0"
-    }
-  },
-  {
     "id": "ara-i-i-p-kutusu",
     "kategori": "Otomobil",
     "marka": [
