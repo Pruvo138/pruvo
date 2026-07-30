@@ -1,5 +1,348 @@
 [
   {
+    "id": "bimini-pencere-koruyucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bimini Tenteliği İçin Pencere Koruyucusu",
+    "aciklama": "Bimini tenteliği direğinin, tenteliğin şeffaf penceresine (isinglass) temas eden kısmını aşınmadan koruyan aparat.\n- 1 inç çapındaki direklerle uyumludur.\n- Direğin pencereye temas ettiği noktaya takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 32 × 32 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4924571-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gkrize",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-oz-tahliye-supabi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne Kokpiti İçin Öz-Tahliye Supabı",
+    "aciklama": "Yelkenli tekne kokpitinde biriken suyu dışarı tahliye eden öz-tahliye (self-bailer) supabı.\n- 18x4mm iç çaplı O-ring ve 20mm içi boş hassas top ile birlikte kullanılır (ayrıca temin edilir).\n- Birden fazla parçadan oluşan bir sistemdir.\n- Standart yelkenli kokpit tahliye delikleriyle uyumludur.\nYaklaşık dış ölçüler: 100 × 60 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4977055-1.jpg"
+    ]
+  },
+  {
+    "id": "mercury-500-revers-kilit-kami",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "1970'ler Mercury 500 Dış Motor İçin Revers Kilit Kamı",
+    "aciklama": "1970'ler model Kiekhaefer Mercury 500 dış motorunun, geri vitese alındığında motorun devrilmesini engelleyen kilit kamı.\n- 1970'ler Mercury 500 dış motor modeliyle uyumludur.\n- Orijinaline benzer şekilde metal bir kelepçe ile birlikte kullanılır.\n- Yalnız revers konumunda kilitlenen ve hem nötr hem revers'te kilitlenen olmak üzere iki tasarım seçeneği içerir.\nYaklaşık dış ölçüler: 32 × 32 × 27 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5873656-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "frankd200",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-2003-hizalama-pimi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Volvo Penta 2003 Dizel Motor İçin Hizalama Pimi",
+    "aciklama": "Volvo Penta 2003 dizel motorunda silindir kapağını cıvatalamadan önce hizalamak için kullanılan pim.\n- Volvo Penta 2003 dizel motor modeliyle uyumludur.\n- Soğutma kanallarının doğru hizalanmasını sağlar.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 146 × 10 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6182483-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6182483-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SailingStuff3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "rocket-yelkenli-tasima-kose-tamponu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Rocket Yelkenli İçin Araba Tavanında Taşıma Köşe Tamponu",
+    "aciklama": "Rocket yelkenli teknesini araç tavanında kayışlarla bağlarken kullanılan köşe koruma tamponu.\n- Rocket yelkenli tekne modeliyle uyumludur.\n- Taşıma kayışlarının teknenin köşesine zarar vermesini önler.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 108 × 70 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6187902-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jaubin",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-direk-basamagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "DIY Yelkenli Kayak İçin Direk Basamağı",
+    "aciklama": "Direk donanımlı (stayed mast) DIY yelkenli kayaklar için direk basamağı.\n- 20mm iç çapındadır.\n- Tahliye deliği ve montaj delikleri içerir.\n- Kayak gövdesine tam oturması için ek bir fiberglas adaptör gerekebilir.\nYaklaşık dış ölçüler: 98 × 98 × 35 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6248928-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "porkcheeks",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "atlanta-koralle-direk-basi-ip-tasiyicisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Atlanta Koralle Yelkenli İçin Direk Başı İp Taşıyıcısı",
+    "aciklama": "Atlanta Koralle yelkenli teknenin eskiyen direk başı ip taşıyıcı parçasının yerine geçer.\n- Atlanta Koralle yelkenli tekne modeliyle uyumludur.\n- Orijinal parçanın yerine geçer.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 81 × 62 × 46 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6458163-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6458163-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6458163-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "r621",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "fishfinder-baglanti-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Fish Finder Probu İçin Bağlantı Parçası",
+    "aciklama": "Garmin Striker Vivid 7sv gibi fish finder cihazlarının probunu tutucuya bağlayan ara parça.\n- Garmin Striker Vivid 7sv fish finder modeliyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 65 × 35 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6554922-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bamasck",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "snark-sunflower-salma-tahtasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Snark Sunflower 3.3 Yelkenli İçin Salma Tahtası (Daggerboard)",
+    "aciklama": "Snark Sunflower 3.3 küçük yelkenli teknesi için yedek salma tahtası (daggerboard).\n- Snark Sunflower 3.3 yelkenli tekne modeliyle uyumludur.\n- Yaklaşık 22x76x1,3 cm ölçülerindedir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 30 × 9 × 2 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6663655-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6663655-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rolanyang",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercury-mariner-cift-kablo-kupasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Eski Mercury/Mariner Dış Motorlar İçin Çift Kablo Kupası",
+    "aciklama": "Eski Mercury/Mariner dış motorlarında uzaktan kumanda kablolarını tutan kupa.\n- Eski Mercury/Mariner dış motor modelleriyle uyumludur.\n- İki kablo yuvası içerir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 37 × 19 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6696988-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Aksu72",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sisme-kano-denge-yuzgeci",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Şişme Kanolar İçin Denge Yüzgeci",
+    "aciklama": "Şişme kanolara ip ile bağlanan, kanonun yanal dengesini artıran yüzgeç (fin).\n- Şişme kano modelleriyle uyumludur, ölçüsü kullanıcı ihtiyacına göre ayarlanabilir.\n- İplerle kano tabanına bağlanır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 240 × 80 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6767580-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6767580-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6767580-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6767580-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6767580-5.jpg",
+      "https://media.pruvo3d.com/urunler/th6767580-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "and_who",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-30ae-emulsion-tupu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha/Mariner 30AE/30AM Dış Motor İçin Karbüratör Emulsion Tüpü",
+    "aciklama": "Üretimi durdurulmuş Yamaha/Mariner 30AE/30AM (2 silindirli modeller) dış motorunun karbüratör emulsion tüpü.\n- Yamaha/Mariner 30AE/30AM 2 silindirli dış motor modelleriyle uyumludur.\n- Karbüratör boğazına tam oturacak şekilde ayarlanması gerekebilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 40 × 7 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6910669-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6910669-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dies",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dis-motor-kill-cord-ucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dış Motor Kill Cord'u İçin Yedek Uç Parça",
+    "aciklama": "Dış motor kill cord'unun (acil durdurma ipi) yedek uç/klips parçası.\n- Standart dış motor kill switch sistemleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 29 × 23 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7049932-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ragsandsticks",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "raymarine-ruzgar-transduseri-kaseleri",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Raymarine ST50-60 Rüzgar Transduseri İçin Kaseler",
+    "aciklama": "Raymarine ST50-60 rüzgar yönü/hızı transduserinin (rüzgar gülü) dönen kase takımı.\n- Raymarine ST50-60 rüzgar transduseri modeliyle uyumludur.\n- Koni ve 3 kase parçası olmak üzere ayrı parçalardan oluşur, yapıştırılarak birleştirilir.\nYaklaşık dış ölçüler: 32 × 31 × 25 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7080316-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7080316-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SALIDA999",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelken-hatti-asinma-koruyucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Life-Line'ı İçin Hat Aşınma Koruyucusu",
+    "aciklama": "Yelkenli teknenin life-line'ına (güvenlik halatı) takılan, yelken hattının aşınmasını önleyen koruyucu.\n- 90mm dış çap, 7mm iç delik ölçüsündedir.\n- Açma gerektirmeden mevcut tel üzerine takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 90 × 90 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7197416-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7197416-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7197416-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Marekkn",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-waverunner-switch-paneli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha WaveRunner Jet-Ski İçin Ana Switch Kutusu ve Panel",
+    "aciklama": "Yamaha WaveRunner (200 model) jet-ski için ana switch kutusu ve switch paneli.\n- Yamaha WaveRunner 200 model jet-ski ile uyumludur.\n- Kutu ve panel olmak üzere iki parçadan oluşur.\n- Standart switch bileşenleriyle kullanılır.\nYaklaşık dış ölçüler: 116 × 115 × 55 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7289064-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7289064-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7289064-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7289064-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nathanvandermaal",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "british-seagull-vida-sokme-aleti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "British Seagull Dış Motor İçin Vida Sökme Aleti",
+    "aciklama": "British Seagull dış motorunun alt ünitesindeki sıkışan tahliye vidasını sökmeye yarayan özel alet.\n- British Seagull dış motor modeliyle uyumludur.\n- Tahliye vidasının başına tam oturacak şekilde tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 60 × 29 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7338187-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "linuxid10t",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-throttle-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Gaz Kolu (Throttle) Parçası",
+    "aciklama": "Tekne motoru gaz kolu mekanizmasına uyumlu parça.\n- Standart tekne throttle sistemleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 30 × 28 × 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7352383-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bov1963",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tiller-hiking-stick-baglantisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Küçük Tekne Tilleri İçin Hiking Stick Bağlantısı",
+    "aciklama": "Standart bir hokey sopasını tiller (dümen kolu) uzatması olarak kullanmayı sağlayan top-mafsallı bağlantı.\n- Standart hokey sopası ile kullanılır.\n- Top-mafsal bağlantı sistemi içerir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 129 × 125 × 34 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7360390-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "peterdguru",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "trac-14-traveller-makarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Trac 14 Yelkenli Traveller Arabası İçin Makara (Sheave)",
+    "aciklama": "Trac 14 yelkenli traveller arabasının yedek makarası (sheave).\n- Trac 14 yelkenli traveller arabası modeliyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 29 × 29 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7379071-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rolanyang",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ds16-yelkenli-direk-kolu-terminali",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "DS-16 Yelkenli İçin Direk Kolu (Spreader) Terminali",
+    "aciklama": "DS-16 yelkenli teknenin alüminyum direk kolu (spreader) ucundaki terminalin yerine geçer.\n- DS-16 yelkenli tekne modeliyle uyumludur.\n- Paslanmaz vida ve kilit somunla sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 40 × 19 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7380089-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "aozumi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "evinrude-70hp-kivilcim-baglanti-soketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "1984 Model Evinrude 70HP Dış Motor İçin Kıvılcım Bağlantı Soketi",
+    "aciklama": "1984 model Evinrude 70HP dış motorunun kıvılcım (spark) bağlantı soketi.\n- 1984 Evinrude 70HP dış motor modeliyle uyumludur (orijinal parça no 0395448).\n- Top ve tutucu halka olmak üzere iki parçadan oluşur.\nYaklaşık dış ölçüler: 18 × 12 × 10 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7384189-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7384189-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "IAMBELLBOY",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "capa-serit-dekoratif-figur",
     "kategori": "Skan Art",
     "marka": [],
