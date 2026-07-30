@@ -28,8 +28,9 @@ Uclar:
                500 derleme hatasi / 504 zaman asimi
   GET  /saglik -> {"durum": "hazir", "aileler": [...], "mock": bool}
   GET  /sayac  -> {"derleme": N}   (kabul testi 4c: onbellek isabetinde artmamali)
-  GET  /parmakizi -> {"algoritma": "sha256", "scad": {"<ad>": "<ozet>"}}
-       KOSAN IMAJIN tasidigi .scad anlik goruntusunun icerik ozetleri. Sir DEGIL:
+  GET  /parmakizi -> {"algoritma": "sha256", "dosyalar": {"<ad>": "<ozet>"}}
+       KOSAN IMAJIN tasidigi PAKETIN TUM dosyalarinin icerik ozetleri (*.scad +
+       eslem-ozel.json + pakete giren her sey; uzanti suzgeci YOK — O2). Sir DEGIL:
        yalniz ozet + dosya adi doner, KAYNAK KOD DONMEZ (adlarin sir olmadigi
        .github/workflows/onizleme-imaj.yml'de zaten beyan edilmis). CI drift kapisi
        (tools/onizleme-kapisi.py parmakizi-dogrula --url ...) bunu repo HEAD'deki
@@ -101,17 +102,21 @@ def openscad_yolu():
 
 
 def paket_parmakizlari(paket_dizin):
-    """Paket dizinindeki her *.scad'in sha256'si — DIZIN TARAMASI (sabit liste YOK).
+    """Paket dizinindeki HER DUZ DOSYANIN sha256'si — DIZIN TARAMASI (sabit liste YOK).
 
     Kosan imajin GERCEKTEN tasidigi anlik goruntuyu olcen tek yer burasidir: Dockerfile
     `COPY paket-ozel/ /srv/paket/` ile gomer, calisma aninda R2 OKUNMAZ. Yalniz ad+ozet
-    doner; icerik hicbir kosulda donmez/loglanmaz."""
+    doner; icerik hicbir kosulda donmez/loglanmaz.
+
+    🔴 UZANTI SUZGECI YOK (O2 onarimi): eskiden yalniz `*.scad` hash'leniyordu ve
+    `eslem-ozel.json` drift kapsaminin DISINDA kaliyordu — o dosya aile->uretec
+    eslemesini, katsayilari ve `varyantlar`i tasir, yani geometriyi belirleyen yaridir.
+    Olculdu: katsayi 1 -> 1000 degistirildiginde uc kapi da YESIL kaldi.
+    TEK KAYNAK ESI: tools/onizleme-kapisi.py::paket_parmakizlari (ayni kural)."""
     out = {}
     if not paket_dizin:
         return out
     for ad in sorted(os.listdir(paket_dizin)):
-        if not ad.endswith(".scad"):
-            continue
         yol = os.path.join(paket_dizin, ad)
         if not os.path.isfile(yol):
             continue
@@ -374,8 +379,12 @@ class Istekci(BaseHTTPRequestHandler):
             self._json(200, {"aileler": kapsam_ozeti(self.ayarlar["eslem"])})
         elif self.path == "/parmakizi":
             # Drift kapisinin (tools/onizleme-kapisi.py) olctugu uc. Ad + ozet; kod YOK.
+            # 'dosyalar' = paketin TUM dosyalari (O2 onarimi): eskiden yalniz *.scad
+            # donuyordu ve `eslem-ozel.json` — aile->uretec eslemesi, katsayilar,
+            # varyantlar, yani GEOMETRIYI BELIRLEYEN yari — drift kapsaminin DISINDA
+            # kaliyordu (olculdu: katsayi 1->1000 degisti, uc kapi da YESIL kaldi).
             self._json(200, {"algoritma": "sha256",
-                             "scad": paket_parmakizlari(self.ayarlar["paket"])})
+                             "dosyalar": paket_parmakizlari(self.ayarlar["paket"])})
         else:
             self._json(404, {"hata": "bulunamadi"})
 

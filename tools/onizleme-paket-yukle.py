@@ -379,13 +379,16 @@ def parmakizi_tazele(paket_dizin, surum):
         "onizleme_kapisi", os.path.join(REPO, "tools", "onizleme-kapisi.py"))
     kapi = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(kapi)
-    pk = kapi.scad_parmakizlari(paket_dizin)
-    if not pk:
-        sys.exit("parmakizi tazelenemedi: %s altinda hic .scad yok (fail-closed)"
-                 % paket_dizin)
+    # O2: kayit paketin TUM dosyalarini tasir (eslem-ozel.json dahil) — uzanti
+    # beyaz listesi YOK. Bos-nobeti IKI eksende: hic dosya YOK ve hic uretec YOK.
+    pk = kapi.paket_parmakizlari(paket_dizin)
+    scadlar = kapi.scad_alt_kumesi(pk)
+    if not pk or not scadlar:
+        sys.exit("parmakizi tazelenemedi: %s altinda %d dosya / %d .scad var — bos "
+                 "kayit YAZILMAZ (fail-closed)" % (paket_dizin, len(pk), len(scadlar)))
     kapi.manifest_yaz(kapi.VARSAYILAN_MANIFEST, pk, "paket eslem surumu v%d" % surum)
-    print("parmakizi kaydi tazelendi: %s (%d .scad) — AYNI commit'te repoya girmeli."
-          % (kapi.VARSAYILAN_MANIFEST, len(pk)))
+    print("parmakizi kaydi tazelendi: %s (%d dosya, %d .scad) — AYNI commit'te repoya "
+          "girmeli." % (kapi.VARSAYILAN_MANIFEST, len(pk), len(scadlar)))
 
 
 def main():

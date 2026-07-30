@@ -494,16 +494,101 @@ def bolum_a(dizin):
 
 
 # ---------------------------------------------------------------------------
-# BOLUM B — iki-govde CAGRI NOBETI
+# BOLUM B — POZITIF CAGRI NOBETI (dosya bazli: "su cagri GERCEKTEN kosuyor mu")
 # ---------------------------------------------------------------------------
-B_HEDEF = "onizleme/test/iki-govde-olcum.py"
+# 30 Tem (O1 onarimi) — TEK HEDEFTEN IDDIA TABLOSUNA. Bolum D "kesfedilmis bir kapi
+# cagrisi etkisizlestirilmis mi" diye NEGATIF/KURESEL sorar; cagri hic YOKSA D susar
+# (yok olan bir cagri "etkisizlestirilmis" degildir). Curutme turunda bunun bedeli
+# olculdu: onizleme-imaj.yml'deki uc kapi adimina uygulanan 8 mutasyonun 7'si SESSIZCE
+# YESIL gecti — `|| true` · `continue-on-error: true` · `echo ` ile mensiyona cevirme ·
+# `--help` · `if: false` · tetikleyici degisimi · ve en agiri KABUL TESTININ KENDI
+# CAGRI SATIRININ SILINMESI ([[nobetci-cagri-satiri-nobetsiz]] sinifi).
+#
+# KAPSAM GENISLETME TUZAGINDAN KACINMA ([[kapi-kapsam-genisletme-tuzagi]]): tablo
+# `ci-kapsam-test.py`'nin KURESEL `kosulan()` kapsamina HICBIR SEY EKLEMEZ (o kapinin
+# "kosulan"/"muaf" SAYILARI degismez). Her satir tek is akisi + tek komut hakkinda
+# DOSYA BAZLI POZITIF bir iddiadir — depoda olculmus kural: negatif kapsam kuresel,
+# pozitif kapsam dosya bazli olmali.
 B_IS_AKISI = "onizleme-imaj.yml"
 
-# Cagri capasi: komut satiri `python3 <hedef>` ile BASLAR. Negatif ileri-bakis
-# (?![\w./-]) uzun bir baska yolun on-eki olarak yanlis eslesmeyi engeller, ama
-# `<hedef> --url ...` biciminde BAYRAKLI cagriyi DOGRU eslestirir
-# (ci-kapsam-test.py `_onek_re` ile ayni desen).
-B_ONEK = re.compile(r"^python3\s+" + re.escape(B_HEDEF) + r"(?![\w./-])")
+# Cikis kodunu ANLAMSIZLASTIRAN bayraklar: surec is YAPMADAN 0 ile doner.
+# KAPALI LISTE (bilincli): GitHub ifade dili gibi burada da "bilinmeyen = etkisiz DEGIL"
+# varsayilir. `--help` curutme turunda fiilen olculmus mutasyondur.
+B_YARDIM_BAYRAK = frozenset(("--help", "-h", "--version", "-V"))
+
+
+class BIddia(object):
+    """Tek bir POZITIF cagri iddiasi.
+
+    kimlik   : rapor/capraz-kontrol anahtari (ci-kapsam gerekce metni buna atif yapar)
+    hedef    : `python3 <hedef>` ile baslamasi gereken betik yolu (repoda VAR OLMALI)
+    jetonlar : komut satirinda GECMESI ZORUNLU ek jetonlar (alt-komut/bayrak). Bos ise
+               yalniz betigin kosmasi yeterli. `--help`e cevirme mutasyonu tam olarak
+               burada yakalanir: alt-komut jetonu kalsa bile yardim bayragi etkisizdir.
+    tetik    : is akisi dosyasinin `on:` bloğunda BULUNMASI gereken tetikleyicilerden
+               EN AZ BIRI. `workflow_dispatch` -> `workflow_call` mutasyonu isi elle
+               tetiklenemez hale getirir ve tum adimlari sessizce olduren tek satirdir.
+    neden    : tani metnine giren "bu neden bloklayici" cumlesi.
+    """
+
+    def __init__(self, kimlik, hedef, jetonlar, tetik, neden):
+        self.kimlik = kimlik
+        self.hedef = hedef
+        self.jetonlar = tuple(jetonlar)
+        self.tetik = tuple(tetik)
+        self.neden = neden
+        # Negatif ileri-bakis (?![\w./-]) uzun bir baska yolun on-eki olarak yanlis
+        # eslesmeyi engeller ama `<hedef> --url ...` bayrakli cagriyi DOGRU eslestirir
+        # (ci-kapsam-test.py `_onek_re` ile ayni desen).
+        self.onek = re.compile(r"^python3\s+" + re.escape(hedef) + r"(?![\w./-])")
+
+
+B_IDDIALAR = (
+    BIddia("iki-govde", "onizleme/test/iki-govde-olcum.py", (), ("workflow_dispatch",),
+           "bu olcum 2-renk (iki govde) GEOMETRISINI openscad ile GERCEKTEN olcen tek "
+           "nobetci. Cagri etkisizlesirse musteri yazisi STL'e islenmeden teslim "
+           "edilebilir ve HICBIR kapi konusmaz (30 Tem olcumu: 4 denetci de rc=0)."),
+    BIddia("duman_kabul", "onizleme/test/duman_kabul.py", (), ("workflow_dispatch",),
+           "drift+kapsam kapisinin (tools/onizleme-kapisi.py) AYIRT EDICILIGINI olcen "
+           "tek kabul testi. Curutme turunda olculdu: zincirin tamami bu adima asiliydi "
+           "ama adimin KENDI cagri satirini koruyan hicbir nobetci YOKTU -> satir "
+           "silinince her sey sessizce yesil kaliyordu."),
+    BIddia("parmakizi-dizin", "tools/onizleme-kapisi.py",
+           ("parmakizi-dogrula", "--dizin"), ("workflow_dispatch",),
+           "imaja GOMULECEK paket anlik goruntusunu repo HEAD kaydiyla karsilastiran "
+           "UCUZ fail-fast kapi (docker build'den ONCE). Etkisizlesirse bayat/elle "
+           "duzenlenmis bir paketle pahali imaj derlenir."),
+    BIddia("parmakizi-url", "tools/onizleme-kapisi.py",
+           ("parmakizi-dogrula", "--url"), ("workflow_dispatch",),
+           "KOSAN IMAJIN kendisine sorulan drift kapisi (/parmakizi). Etkisizlesirse "
+           "`COPY paket-ozel/` ile gomulen anlik goruntunun repo kaydindan sapmasi "
+           "olculmez (27 Tem toka kanamasinin drift ayagi)."),
+    BIddia("duman-url", "tools/onizleme-kapisi.py", ("duman", "--url"),
+           ("workflow_dispatch",),
+           "musteriye ACIK her ailenin bu imajda GERCEKTEN derlendigini olcen kapsam "
+           "kapisi. Etkisizlesirse aile listesine yeni giren uretecler sessizce "
+           "denenmemis kalir (sabit 12-curl devrindeki sinif geri doner)."),
+)
+
+# ---- B-CAPRAZ (O6): MUAFIYET GEREKCESI ile IDDIA birbirine KILITLI ----------
+# Curutme turu bulgusu: yeni yazilan `tools/onizleme-kapisi.py` dogrudan
+# `ci-kapsam-test.py` IZIN_LISTESI'ne alinmisti ve gerekce metni "onizleme-imaj.yml'de
+# bloklayici kosar" DIYORDU — ama bunu dogrulayan HICBIR MAKINE yoktu (o kapi yalniz
+# deploy.yml'e bakar). [[kapi-kapsam-genisletme-tuzagi]] sinifi.
+# COZUM: muafiyet ile B iddiasi CIFT YONLU baglanir.
+#   B5a  anahtar IZIN_LISTESI'nde YOKSA -> KIRMIZI (muafiyet sessizce dusmus; dosya
+#        artik "kosuluyor" sayiliyorsa bu tablo satiri da bayattir)
+#   B5b  anahtarin B iddiasi YOKSA      -> KIRMIZI (gerekce metni makinesiz kalmis)
+# Boylece "muafiyeti birak, iddiayi sil" ya da tersi TEK ADIMDA yapilamaz.
+B_MUAFIYET_DAYANAGI = {
+    "onizleme/test/duman_kabul.py": ("duman_kabul",),
+    "tools/onizleme-kapisi.py": ("parmakizi-dizin", "parmakizi-url", "duman-url"),
+}
+
+# Geriye donuk ad (fikstur/mutant uretimi ve tanilar bunu kullanir).
+B_HEDEF = B_IDDIALAR[0].hedef
+
+B_ONEK = B_IDDIALAR[0].onek
 # Etkisizlestirme: kabuk duzeyinde cikis kodunu yutan formlar.
 # ⚠️ SON EK `\b` DEGIL (olculdu, bu kapinin KENDI ariza kaydi): `\b` bir KELIME karakteri
 # komsulugu ister -> satir sonundaki `|| :` HIC eslesmiyordu ve `|| :` mutasyonu kapidan
@@ -553,18 +638,41 @@ def _yanlis_mu(deger):
     return s.lower() in DAIMA_YANLIS_IFADELER
 
 
-def etkili_cagrilar(metin):
-    """<metin> (bir is akisi dosyasinin TAM metni) icinde B_HEDEF'i FIILEN kosan
-    (etkili) cagrilari dondur: [(job_id, adim_no, komut_satiri), ...].
+def _tetik_adlari(govde):
+    """Is akisi dosyasinin `on:` blogundaki tetikleyici adlari (kume).
+    YAML 1.1'de ciplak `on:` BOOLEAN true'ya cozulur -> her iki anahtar da denenir."""
+    ham = None
+    for anahtar in ("on", True, "true"):
+        if isinstance(govde, dict) and anahtar in govde:
+            ham = govde[anahtar]
+            break
+    if isinstance(ham, str):
+        return {ham}
+    if isinstance(ham, list):
+        return set(str(x) for x in ham)
+    if isinstance(ham, dict):
+        return set(str(k) for k in ham)
+    return set()
 
-    ETKILI DEGIL sayilan haller (mimarin istedigi 3 mutasyon + iki komsu):
-      * cagri satiri SILINDI                     -> hic eslesme yok
-      * cagri satiri YORUMA alindi (`# python3 ...`) -> satir suzulur
-      * satirda `|| true` / `|| :` var            -> cikis kodu yutulur
+
+def etkili_cagrilar(metin, iddia=None):
+    """<metin> (bir is akisi dosyasinin TAM metni) icinde <iddia>'yi FIILEN kosan
+    (etkili) cagrilari dondur: [(job_id, adim_no, komut_satiri), ...].
+    `iddia` verilmezse tablonun ILK satiri (iki-govde) olculur.
+
+    ETKILI DEGIL sayilan haller (curutme turunda fiilen olculmus 8 mutasyonun tamami):
+      * cagri satiri SILINDI                          -> hic eslesme yok
+      * cagri satiri YORUMA alindi (`# python3 ...`)  -> satir suzulur
+      * `echo ` ile MENSIYONA cevrildi                 -> satir `python3` ile BASLAMIYOR
+      * zorunlu alt-komut/bayrak DUSURULDU             -> jeton sarti tutmuyor
+      * `--help` / `-h` / `--version` eklendi          -> surec is YAPMADAN 0 doner
+      * satirda `|| true` / `|| :` / `|| exit 0` var   -> cikis kodu yutulur
+      * ayni `run:` blogunda ONCE `set +e` var          -> errexit kapali
       * adimda (ya da job'da) `continue-on-error: true`
-      * adimda (ya da job'da) `if:` HARFI HARFINE `false`
+      * adimda (ya da job'da) DAIMA-YANLIS `if:` (`false`, `${{ false }}`, `0`, ...)
     Ayristirma GERCEK YAML uzerinden yapilir (adim/job sinirlari TAHMIN EDILMEZ);
     `run: |` blogunun ICINDEKI kabuk yorumlari satir bazinda suzulur."""
+    iddia = iddia or B_IDDIALAR[0]
     govde, hata = ayristir(metin)
     if hata or not isinstance(govde, dict):
         return []
@@ -588,28 +696,97 @@ def etkili_cagrilar(metin):
             run = step.get("run")
             if not isinstance(run, str):
                 continue
+            errexit_kapali = False
             for ham in run.splitlines():
                 s = ham.strip()
                 if not s or s.startswith("#"):
                     continue  # kabuk yorumu -> ICRA DEGIL
-                if not B_ONEK.match(s):
+                etki = _set_e_etkisi(s)
+                if etki is not None:
+                    errexit_kapali = etki
+                    continue
+                if not iddia.onek.match(s):
                     continue
                 if B_ETKISIZ.search(s):
                     continue  # `|| true` cikis kodunu yutar -> nobetci OLU
+                if errexit_kapali:
+                    continue  # `set +e` sonrasi cikis kodu bloklamaz
+                jeton = s.split()
+                if any(y in jeton for y in B_YARDIM_BAYRAK):
+                    continue  # `--help` -> surec is yapmadan 0 doner
+                if not all(z in jeton for z in iddia.jetonlar):
+                    continue  # zorunlu alt-komut/bayrak dusurulmus
                 bulunan.append((job_id, i, s))
     return bulunan
 
 
-B_TANI = (
-    "CAGRI NOBETI KIRMIZI: %s dosyasinda `python3 %s` ETKILI olarak kosmuyor.\n"
-    "   Etkisiz sayilan haller: satir SILINMIS · YORUMA alinmis (`# python3 ...`) ·\n"
-    "   `|| true` / `|| :` eklenmis · adim/job'da `continue-on-error: true` ya da\n"
-    "   `if: false` var.\n"
-    "   NEDEN BLOKLAYICI: bu olcum 2-renk (iki govde) GEOMETRISINI openscad ile GERCEKTEN\n"
-    "   olcen tek nobetci. Cagri etkisizlesirse musteri yazisi STL'e islenmeden teslim\n"
-    "   edilebilir ve HICBIR kapi konusmaz (30 Tem olcumu: 4 denetci de rc=0).\n"
-    "   GERI KOY: `%s` adiminin `run:` blogunda `python3 %s --url http://127.0.0.1:18080`."
-) % (B_IS_AKISI, B_HEDEF, "Imaj duman testi", B_HEDEF)
+B_TANI_KALIP = (
+    "CAGRI NOBETI KIRMIZI [%s]: %s dosyasinda `python3 %s%s` ETKILI olarak kosmuyor.\n"
+    "   Etkisiz sayilan haller: satir SILINMIS · YORUMA alinmis · `echo ` ile mensiyona\n"
+    "   cevrilmis · zorunlu alt-komut dusurulmus · `--help`/`-h` eklenmis ·\n"
+    "   `|| true` / `|| :` / `|| exit 0` eklenmis · ayni blokta once `set +e` ·\n"
+    "   adim/job'da `continue-on-error: true` ya da DAIMA-YANLIS `if:`.\n"
+    "   NEDEN BLOKLAYICI: %s\n"
+    "   GERI KOY: `%s` is akisinda bloklayici bir `run:` satiri olarak.")
+
+B_TETIK_TANI = (
+    "TETIKLEYICI NOBETI KIRMIZI [%s]: %s dosyasinin `on:` blogunda %s tetikleyicilerinden\n"
+    "   HICBIRI yok (bulunan: %s) -> is ELLE TETIKLENEMEZ, yani icindeki TUM kapi\n"
+    "   adimlari tek satirlik bir degisiklikle sessizce olur. Curutme turunda olculdu:\n"
+    "   `workflow_dispatch` -> `workflow_call` mutasyonu 8 mutasyonun en sessizidir.")
+
+
+def b_iddia_hatalari(metin, iddia):
+    """Tek bir B iddiasini olc -> (hatalar, etkili_cagri_sayisi)."""
+    hatalar = []
+    govde, ayr_hata = ayristir(metin)
+    if not ayr_hata and isinstance(govde, dict):
+        tetikler = _tetik_adlari(govde)
+        if iddia.tetik and not (tetikler & set(iddia.tetik)):
+            hatalar.append(B_TETIK_TANI % (
+                iddia.kimlik, B_IS_AKISI, " / ".join(iddia.tetik),
+                ", ".join(sorted(tetikler)) or "(hicbiri)"))
+    cagrilar = etkili_cagrilar(metin, iddia)
+    if not cagrilar:
+        hatalar.append(B_TANI_KALIP % (
+            iddia.kimlik, B_IS_AKISI, iddia.hedef,
+            (" " + " ".join(iddia.jetonlar)) if iddia.jetonlar else "",
+            iddia.neden, B_IS_AKISI))
+    return hatalar, len(cagrilar)
+
+
+def b_capraz_hatalari():
+    """B-CAPRAZ (O6) — ci-kapsam muafiyeti ile B iddiasi CIFT YONLU kilitli mi.
+
+    Gerekce metnini AYRISTIRMAZ (metin capasi bayatlar): dogrudan
+    `ci-kapsam-test.py::IZIN_LISTESI` sozlugunun ANAHTARLARINA ve bu dosyadaki
+    `B_IDDIALAR` kimliklerine bakar. Ikisinden biri dusürse KIRMIZI."""
+    hatalar = []
+    kimlikler = set(i.kimlik for i in B_IDDIALAR)
+    mod = _ci_kapsam_modulu()
+    if mod is None:
+        return ["B-CAPRAZ OLCULEMEDI (fail-closed KIRMIZI): %s" % _CI_KAPSAM_HATA]
+    izin = getattr(mod, "IZIN_LISTESI", None)
+    if not isinstance(izin, dict):
+        return ["B-CAPRAZ OLCULEMEDI (fail-closed KIRMIZI): ci-kapsam-test.py'de "
+                "IZIN_LISTESI sozlugu YOK -> sozlesme degismis, B_MUAFIYET_DAYANAGI'ni "
+                "guncelle"]
+    for yol, gerekli in sorted(B_MUAFIYET_DAYANAGI.items()):
+        if yol not in izin:                                     # B5a
+            hatalar.append(
+                "B-CAPRAZ: '%s' artik ci-kapsam-test.py IZIN_LISTESI'nde DEGIL, ama bu "
+                "dosyada hala onun adina B iddiasi tutuluyor (%s). Muafiyet kalktiysa "
+                "dosya deploy.yml'de kosuyor demektir -> B_MUAFIYET_DAYANAGI girisini "
+                "SIL; kosmuyorsa muafiyeti geri koy." % (yol, ", ".join(gerekli)))
+        eksik = [k for k in gerekli if k not in kimlikler]
+        if eksik:                                               # B5b
+            hatalar.append(
+                "B-CAPRAZ: '%s' ci-kapsam-test.py'de GEREKCELI MUAF ve gerekce metni "
+                "'%s' B iddialarina dayaniyor, ama bu iddialar B_IDDIALAR tablosunda YOK "
+                "-> muafiyetin MAKINE DAYANAGI dusmus, gerekce sessizce bayatlar "
+                "([[kapi-kapsam-genisletme-tuzagi]] sinifi). Iddiayi geri koy ya da "
+                "muafiyeti kaldir." % (yol, ", ".join(eksik)))
+    return hatalar
 
 
 OZ_CAGRI_TANI = (
@@ -661,25 +838,30 @@ def oz_cagri_kontrol():
 
 
 def bolum_b(dizin):
-    """(hatalar, etkili_cagri_sayisi).
+    """(hatalar, etkili_cagri_sayisi, iddia_sayisi).
 
     Bolum B'nin semantigi "BIR CAGRI GERCEKTEN KOSUYOR MU" oldugu icin kapinin KENDI ic
     self-test cagrisi da BURADA olculur (oz_cagri_kontrol) — ayni sinif, ayni bolum."""
     yol = os.path.join(dizin, B_IS_AKISI)
     if not os.path.exists(yol):
-        return ["CAGRI NOBETI: %s bulunamadi (%s) -> hedefin kostugu is akisi kalkmis, "
-                "olcum yapilamadi (fail-closed KIRMIZI)" % (B_IS_AKISI, yol)], 0
-    hedef_yol = os.path.join(ROOT, B_HEDEF)
+        return ["CAGRI NOBETI: %s bulunamadi (%s) -> hedeflerin kostugu is akisi kalkmis, "
+                "olcum yapilamadi (fail-closed KIRMIZI)" % (B_IS_AKISI, yol)], 0, 0
     hatalar = list(oz_cagri_kontrol())
-    if not os.path.exists(hedef_yol):
-        hatalar.append("CAGRI NOBETI: hedef betik YOK (%s) -> nobetci bayat, hedef "
-                       "yeniden adlandirildiysa B_HEDEF sabitini guncelle" % B_HEDEF)
+    hatalar.extend(b_capraz_hatalari())
     with open(yol, encoding="utf-8") as f:
         metin = f.read()
-    cagrilar = etkili_cagrilar(metin)
-    if not cagrilar:
-        hatalar.append(B_TANI)
-    return hatalar, len(cagrilar)
+    toplam = 0
+    for iddia in B_IDDIALAR:
+        hedef_yol = os.path.join(ROOT, iddia.hedef)
+        if not os.path.exists(hedef_yol):
+            hatalar.append("CAGRI NOBETI [%s]: hedef betik YOK (%s) -> nobetci bayat; "
+                           "hedef yeniden adlandirildiysa B_IDDIALAR tablosunu guncelle"
+                           % (iddia.kimlik, iddia.hedef))
+            continue
+        i_hata, n = b_iddia_hatalari(metin, iddia)
+        hatalar.extend(i_hata)
+        toplam += n
+    return hatalar, toplam, len(B_IDDIALAR)
 
 
 # ---------------------------------------------------------------------------
@@ -1034,6 +1216,53 @@ B_MUTANTLAR = (
     ("adima `continue-on-error: true`",
      B_FIKSTUR.replace("      - name: Imaj duman testi",
                        "      - name: Imaj duman testi\n        continue-on-error: true")),
+    # --- 30 Tem (O1): curutme turunda SESSIZ gecen bicimler nobetci olarak PINLENDI.
+    ("`echo ` ile MENSIYONA cevrildi",
+     B_FIKSTUR.replace("          %s" % B_ORNEK_CAGRI,
+                       "          echo %s" % B_ORNEK_CAGRI)),
+    ("cagriya `|| exit 0` eklendi",
+     B_FIKSTUR.replace("          %s" % B_ORNEK_CAGRI,
+                       "          %s || exit 0" % B_ORNEK_CAGRI)),
+    ("ayni blokta ONCE `set +e`",
+     B_FIKSTUR.replace("          echo hazir", "          echo hazir\n          set +e")),
+    ("adima DAIMA-YANLIS `if: ${{ false }}`",
+     B_FIKSTUR.replace("      - name: Imaj duman testi",
+                       "      - name: Imaj duman testi\n        if: ${{ false }}")),
+)
+
+# B-JETON/YARDIM ekseni: iddia JETON istedigi zaman `--help` ve eksik alt-komut
+# mutasyonlari OLU sayilmali. Sentetik iddia gercek bir betige capalanir (repoda VAR)
+# ama fikstur METNI sentetiktir.
+B_JETON_IDDIA = BIddia("sentetik-jeton", "tools/onizleme-kapisi.py",
+                       ("duman", "--url"), ("workflow_dispatch",), "sentetik olcum")
+B_JETON_TABAN = ("python3 tools/onizleme-kapisi.py duman "
+                 "--url http://127.0.0.1:18080")
+B_JETON_FIKSTUR = """\
+name: "Sentetik jeton fiksturu"
+on: workflow_dispatch
+jobs:
+  imaj:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Imaj duman testi
+        run: |
+          %s
+"""
+B_JETON_MUTANTLAR = (
+    ("`--help` eklendi", B_JETON_TABAN + " --help"),
+    ("`-h` eklendi", B_JETON_TABAN.replace(" --url", " -h --url")),
+    ("zorunlu alt-komut (`duman`) dusuruldu",
+     B_JETON_TABAN.replace(" duman ", " ")),
+    ("zorunlu bayrak (`--url`) dusuruldu",
+     "python3 tools/onizleme-kapisi.py duman"),
+)
+
+# B-TETIK ekseni: `on:` tetikleyicisi degisince is ELLE tetiklenemez -> tum adimlar oto.
+B_TETIK_MUTANTLAR = (
+    ("workflow_dispatch -> workflow_call",
+     B_FIKSTUR.replace("on: workflow_dispatch", "on: workflow_call")),
+    ("`on:` yalniz push",
+     B_FIKSTUR.replace("on: workflow_dispatch", "on:\n  push:\n    branches: [main]")),
 )
 
 # ---- D ekseni ariza enjeksiyonu fiksturleri --------------------------------
@@ -1209,13 +1438,63 @@ def kendini_test():
                        "%d bulundu -> capa (B_ONEK) bozulmus"
                        % len(etkili_cagrilar(B_FIKSTUR)))
 
-    # B-NEGATIF: 4 etkisizlestirme biciminin HEPSI 0 etkili cagri vermeli.
+    # B-NEGATIF: etkisizlestirme bicimlerinin HEPSI 0 etkili cagri vermeli.
     for ad, metin in B_MUTANTLAR:
         iddia += 1
         n = len(etkili_cagrilar(metin))
         if n != 0:
             hatalar.append("B-NEGATIF SESSIZ: %r mutasyonundan sonra cagri HALA etkili "
                            "sayildi (%d) -> nobetci bu bicimde OLU" % (ad, n))
+
+    # B-JETON-POZITIF: zorunlu jetonlar tamken cagri ETKILI sayilmali.
+    iddia += 1
+    if len(etkili_cagrilar(B_JETON_FIKSTUR % B_JETON_TABAN, B_JETON_IDDIA)) != 1:
+        hatalar.append("B-JETON-POZITIF BOZUK: tam jetonlu sentetik cagri ETKILI "
+                       "sayilmadi -> jeton sarti asiri dar (yanlis-pozitif riski)")
+
+    # B-JETON-NEGATIF: `--help` / eksik alt-komut / eksik bayrak -> 0 etkili cagri.
+    for ad, satir in B_JETON_MUTANTLAR:
+        iddia += 1
+        n = len(etkili_cagrilar(B_JETON_FIKSTUR % satir, B_JETON_IDDIA))
+        if n != 0:
+            hatalar.append("B-JETON-NEGATIF SESSIZ: %r mutasyonundan sonra cagri HALA "
+                           "etkili sayildi (%d) -> `--help`/eksik alt-komut bu bicimde "
+                           "kaciyor (curutme turunda olculmus delik)" % (ad, n))
+
+    # B-TETIK-POZITIF/NEGATIF: `on:` tetikleyicisi nobeti canli mi.
+    iddia += 1
+    t_hata, _ = b_iddia_hatalari(B_FIKSTUR, B_IDDIALAR[0])
+    if any("TETIKLEYICI NOBETI" in h for h in t_hata):
+        hatalar.append("B-TETIK-POZITIF YANDI: workflow_dispatch tasiyan gecerli fikstur "
+                       "tetikleyici nobetini KIRMIZI yakti (yanlis-pozitif)")
+    for ad, metin in B_TETIK_MUTANTLAR:
+        iddia += 1
+        m_hata, _ = b_iddia_hatalari(metin, B_IDDIALAR[0])
+        if not any("TETIKLEYICI NOBETI" in h for h in m_hata):
+            hatalar.append("B-TETIK-NEGATIF SESSIZ: %r mutasyonu tetikleyici nobetini "
+                           "KIRMIZI yakmadi -> is elle tetiklenemez hale getirilebilir "
+                           "ve tum kapi adimlari sessizce olur" % ad)
+
+    # B-CAPRAZ MEKANIZMASI (O6): muafiyet <-> iddia kilidi GERCEKTEN olcuyor mu.
+    # Bu iddia gercek dosyalara DOKUNMAZ; b_capraz_hatalari()'nin GOVDESINI sentetik
+    # girdilerle surer (ayni fonksiyon, ikinci kopya YOK).
+    iddia += 2
+    _yedek = dict(B_MUAFIYET_DAYANAGI)
+    try:
+        B_MUAFIYET_DAYANAGI.clear()
+        B_MUAFIYET_DAYANAGI["tools/kesinlikle-muaf-olmayan-dosya.py"] = ("iki-govde",)
+        if not any("artik ci-kapsam-test.py IZIN_LISTESI'nde DEGIL" in h
+                   for h in b_capraz_hatalari()):
+            hatalar.append("B-CAPRAZ B5a OLU: IZIN_LISTESI'nde OLMAYAN bir yol icin "
+                           "iddia tutulmasi KIRMIZI yakmadi")
+        B_MUAFIYET_DAYANAGI.clear()
+        B_MUAFIYET_DAYANAGI["tools/onizleme-kapisi.py"] = ("hic-olmayan-iddia-kimligi",)
+        if not any("MAKINE DAYANAGI dusmus" in h for h in b_capraz_hatalari()):
+            hatalar.append("B-CAPRAZ B5b OLU: muafiyetin dayandigi B iddiasi SILINDIGI "
+                           "halde KIRMIZI yanmadi -> gerekce sessizce bayatlayabilir")
+    finally:
+        B_MUAFIYET_DAYANAGI.clear()
+        B_MUAFIYET_DAYANAGI.update(_yedek)
 
     # ---- A-UCTAN-UCA: bolum_a() GERCEK bir dizinden okuyup HATALARI TOPLUYOR mu.
     # OLCULEN KACAK (30 Tem): bolum_a() icindeki `hatalar.extend(bicim_hatalari(...))`
@@ -1411,9 +1690,11 @@ def main():
         print("  ✅ A-POZITIF: gecerli/alisilmadik YAML yanmiyor (anchor/alias, matrix, "
               "`if:`, `run: |`, `>-`, uzun env, Turkce, emoji)")
         print("  ✅ A-NEGATIF: %d bozuk fikstur KIRMIZI + tani dogru" % len(BOZUK_ORNEKLER))
-        print("  ✅ B-POZITIF: sentetik cagri etkili sayiliyor")
-        print("  ✅ B-NEGATIF: %d etkisizlestirme biciminde cagri OLU sayiliyor"
-              % len(B_MUTANTLAR))
+        print("  ✅ B-POZITIF: sentetik cagri etkili sayiliyor (+ jeton tam olunca da)")
+        print("  ✅ B-NEGATIF: %d etkisizlestirme + %d jeton/yardim + %d tetikleyici "
+              "biciminde cagri OLU sayiliyor"
+              % (len(B_MUTANTLAR), len(B_JETON_MUTANTLAR), len(B_TETIK_MUTANTLAR)))
+        print("  ✅ B-CAPRAZ (O6): muafiyet<->iddia kilidi iki yonde de KIRMIZI yakiyor")
         print("  ✅ A-UCTAN-UCA: bolum_a() gecici dizinden okuyup hatalari TOPLUYOR "
               "(+ gecerli dosyada susuyor)")
         print("  ✅ MAIN CIKIS KODU: AST'te `return 1` var + alt surec hatali dizinde "
@@ -1432,7 +1713,7 @@ def main():
     hatalar = []
     a_hata, dosya_sayisi = bolum_a(args.dizin)
     hatalar.extend(a_hata)
-    b_hata, cagri_sayisi = bolum_b(args.dizin)
+    b_hata, cagri_sayisi, b_iddia_sayisi = bolum_b(args.dizin)
     hatalar.extend(b_hata)
     d_hata, d_toplam, d_etkisiz, d_izinli = bolum_d(args.dizin)
     hatalar.extend(d_hata)
@@ -1447,7 +1728,11 @@ def main():
     print("  Ayristirilan is akisi    : %d  (%s)" % (
         dosya_sayisi,
         ", ".join(os.path.basename(y) for y in is_akisi_dosyalari(args.dizin)) or "-"))
-    print("  Etkili iki-govde cagrisi : %d  (%s)" % (cagri_sayisi, B_IS_AKISI))
+    print("  B iddiasi (pozitif cagri): %d  (%s)" % (
+        b_iddia_sayisi, ", ".join(i.kimlik for i in B_IDDIALAR)))
+    print("  Etkili B cagrisi         : %d  (%s)" % (cagri_sayisi, B_IS_AKISI))
+    print("  B-CAPRAZ muafiyet kilidi : %d  (%s)" % (
+        len(B_MUAFIYET_DAYANAGI), ", ".join(sorted(B_MUAFIYET_DAYANAGI)) or "-"))
     print("  Olculen kapi cagrisi     : %d  (is akisi dosyalarindaki kabul-testi cagrilari)"
           % d_toplam)
     print("  Etkisizlestirilmis       : %d  (fail-open: continue-on-error / `|| true` / "
@@ -1462,8 +1747,9 @@ def main():
         print("-" * 70)
         print("SONUC: KIRMIZI ❌  (%d sorun)" % len(hatalar))
         return 1
-    print("SONUC: YESIL ✅  — is akislari ayristirilabilir · iki-govde cagrisi etkili · "
-          "hicbir kapi cagrisi beyansiz fail-open degil.")
+    print("SONUC: YESIL ✅  — is akislari ayristirilabilir · %d POZITIF cagri iddiasinin "
+          "hepsi etkili · muafiyet kilidi saglam · hicbir kapi cagrisi beyansiz fail-open "
+          "degil." % b_iddia_sayisi)
     return 0
 
 

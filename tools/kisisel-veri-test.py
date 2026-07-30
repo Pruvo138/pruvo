@@ -20,6 +20,7 @@ Neyi doğrular:
 
 Çalıştırma:  python3 tools/kisisel-veri-test.py   (çıkış kodu 0 = geçti)
 """
+import json
 import os
 import re
 import subprocess
@@ -385,6 +386,157 @@ def tedarikci_nobeti():
     return hatalar, len(yollar)
 
 
+# ---------------------------------------------------------------------------
+# PARMAKIZI KAYIT ADI NOBETCISI (O7 — mimar hukmu 30 Tem)
+# ---------------------------------------------------------------------------
+# MIMAR HUKMU: onizleme/derleyici/paket-parmakizi.json'daki 25 .scad ADI kayitta
+# KALIR. Gerekce: adlar JENERIK parca adlaridir (tedarikci/uyelik markasi degil) ve
+# teshis degeri yuksektir — drift mesaji dosyayi ADIYLA soyler, aksi halde uyelik
+# ureteclerinde hata mesaji "bir dosya degisti" demekle kalirdi.
+# AMA hukum SARTLIDIR: adlarin JENERIK KALMASI zorunludur. Bu nobetci o sarti makineye
+# baglar — kayit bir marka/tedarikci adi, e-posta, URL, kisi adi ya da DOSYA YOLU
+# tasirsa KIRMIZI yanar (depo PUBLIC; para odenen kaynagin adi hicbir public yerde
+# gecmez).
+#
+# 🔴 KURAL BICIM EKSENINDE (isim listesi DEGIL) — bilincli: bu PUBLIC bir depodur,
+# bir "yasakli marka adlari" listesi nobetcinin KENDISINDE o adlari sizdirirdi.
+# Bicim kurallari (kucuk harf + dar karakter kumesi + yol/@/:// yasagi + uzunluk)
+# markali/kisisel/yol iceren adlari yapisal olarak eler, hicbir gizli ad yazmadan.
+_PK_KAYIT = os.path.join("onizleme", "derleyici", "paket-parmakizi.json")
+_PK_AD_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,39}$")
+_PK_UZANTILAR = (".scad", ".json", ".txt", ".md")
+_PK_OZET_RE = re.compile(r"^[0-9a-f]{64}$")
+_PK_METIN_ALANLARI = ("not", "aciklama")
+
+
+def _pk_yol_jetonu(metin):
+    """Metinde MUTLAK yol gorunumlu bir jeton var mi (gizli calisma dizinini sizdirir)."""
+    for jeton in re.split(r"\s+", metin or ""):
+        if jeton.startswith("/") or jeton.startswith("~/") or "\\" in jeton:
+            return jeton
+    return None
+
+
+def parmakizi_ad_kusurlari(veri):
+    """KAPI GOVDESI — parmakizi kaydinin ADLARI jenerik mi (GERCEK tarama ve fikstur
+    oz-kontrolu AYNI fonksiyonu kullanir; govdesi no-op yapilirsa fikstur de kirmizi)."""
+    kusurlar = []
+    if not isinstance(veri, dict):
+        return ["parmakizi kaydi sozluk DEGIL -> okunamadi (fail-closed)"]
+    # Kayit surum 1'de 'scad', surum 2'de 'dosyalar' anahtarini kullanir; nobetci
+    # HANGISI VARSA onu tarar (surum gecisinde sessizce bosa dusmesin).
+    adlar = None
+    for anahtar in ("dosyalar", "scad"):
+        if isinstance(veri.get(anahtar), dict):
+            adlar = veri[anahtar]
+            break
+    if adlar is None:
+        return ["parmakizi kaydinda 'dosyalar'/'scad' sozlugu YOK -> ad nobeti hicbir "
+                "sey olcemedi (fail-closed)"]
+    for ad in sorted(adlar):
+        if not isinstance(ad, str) or not _PK_AD_RE.match(ad):
+            kusurlar.append(
+                "PARMAKIZI KAYIT ADI JENERIK DEGIL: %r -> yalniz kucuk harf/rakam/"
+                "'.', '_', '-' iceren, en fazla 40 karakterlik DUZ dosya adi kabul "
+                "edilir. Yol ayraci, bosluk, '@', buyuk harf ya da uzun ad; marka/"
+                "tedarikci/kisi adi ya da calisma dizini sizintisi isaretidir." % (ad,))
+            continue
+        if not ad.endswith(_PK_UZANTILAR):
+            kusurlar.append(
+                "PARMAKIZI KAYIT ADI BEKLENMEDIK UZANTI: %r (beklenen: %s) -> pakete "
+                "ait olmayan bir sey kayda girmis olabilir."
+                % (ad, ", ".join(_PK_UZANTILAR)))
+        ozet = adlar[ad]
+        if not isinstance(ozet, str) or not _PK_OZET_RE.match(ozet):
+            kusurlar.append(
+                "PARMAKIZI KAYIT DEGERI OZET DEGIL: %r -> %r. Kayitta yalniz 64 haneli "
+                "sha256 durur; serbest metin (yol/aciklama/kaynak) DURMAZ." % (ad, ozet))
+    for alan in _PK_METIN_ALANLARI:
+        metin = veri.get(alan)
+        if not isinstance(metin, str):
+            continue
+        if "@" in metin or "://" in metin:
+            kusurlar.append(
+                "PARMAKIZI KAYIT METNI ILETISIM/URL TASIYOR: '%s' alaninda '@' ya da "
+                "'://' gecti -> e-posta/adres PUBLIC repoya girmez." % alan)
+        jeton = _pk_yol_jetonu(metin)
+        if jeton:
+            kusurlar.append(
+                "PARMAKIZI KAYIT METNI MUTLAK YOL TASIYOR: '%s' alaninda %r -> yerel "
+                "calisma dizini (gizli uretec kaynaklarinin yeri) sizar." % (alan, jeton))
+    return kusurlar
+
+
+# --- FIKSTURLER: kural oldurulurse/gevsetilirse bunlar KACAR -> kapi kirmizi.
+_PK_KIRMIZI = (
+    ("marka/tedarikci gorunumlu ad (buyuk harf + bosluk)",
+     {"dosyalar": {"AcmeCorp Widget.scad": "a" * 64}}),
+    ("dosya YOLU kayda girdi",
+     {"dosyalar": {"/Users/okan/.uyelik-kodlar/x.scad": "b" * 64}}),
+    ("e-posta gorunumlu ad",
+     {"dosyalar": {"tasarimci@ornek.com.scad": "c" * 64}}),
+    ("URL gorunumlu ad",
+     {"dosyalar": {"https://ornek.com/x.scad": "d" * 64}}),
+    ("deger ozet DEGIL, serbest metin",
+     {"dosyalar": {"kutu.scad": "/Users/okan/gizli/kutu.scad"}}),
+    ("'not' alaninda mutlak yol",
+     {"dosyalar": {"kutu.scad": "e" * 64},
+      "not": "kaynak /Users/okan/.uyelik-kodlar dizininden alindi"}),
+    ("'not' alaninda e-posta",
+     {"dosyalar": {"kutu.scad": "f" * 64}, "not": "soran: biri@ornek.com"}),
+    ("kayitta 'dosyalar'/'scad' sozlugu YOK (fail-closed)", {"surum": 2}),
+)
+# --- YESIL FIKSTURLER: bugunku gercek kaydin BICIMI + rutin jenerik adlar YANMAZ.
+_PK_YESIL = (
+    ("bugunku bicim: jenerik uretec adlari + eslem",
+     {"dosyalar": {"kutu.scad": "0" * 64, "oringgenerator.scad": "1" * 64,
+                   "eslem-ozel.json": "2" * 64},
+      "not": "paket eslem surumu v5",
+      "aciklama": "TEK YAZAR: tools/onizleme-paket-yukle.py — gorece yol SERBEST"}),
+    ("surum 1 kaydi ('scad' anahtari) hala taranir",
+     {"scad": {"toka.scad": "3" * 64, "damga-kase.scad": "4" * 64}}),
+)
+
+
+def parmakizi_ad_fikstur_hatalari():
+    """Nobetcinin KENDI hukmunu olcer (olu nobetci + asiri-genisleme korumasi).
+    Bellekte calisir, diske/aga DOKUNMAZ."""
+    hatalar = []
+    for ad, veri in _PK_KIRMIZI:
+        if not parmakizi_ad_kusurlari(veri):
+            hatalar.append("PARMAKIZI AD NOBETI OLU: %r fiksturu KIRMIZI yakmadi "
+                           "(kural gevsetilmis ya da govde no-op)" % ad)
+    for ad, veri in _PK_YESIL:
+        bulgu = parmakizi_ad_kusurlari(veri)
+        if bulgu:
+            hatalar.append("PARMAKIZI AD NOBETI YANLIS-POZITIF: %r fiksturu KIRMIZI "
+                           "yandi -> %s" % (ad, " ; ".join(bulgu)))
+    return hatalar
+
+
+def parmakizi_ad_nobeti():
+    """(hatalar, taranan_ad_sayisi). Fail-loud: kayit varsa OKUNAMAMASI sessiz yesil DEGIL.
+    Kayit dosyasi YOKSA nobetci sessizdir (dosya opsiyonel: paket hic yuklenmemis olabilir);
+    fikstur oz-kontrolu yine de kosar, yani nobetci hicbir kosulda 'olu' olamaz."""
+    hatalar = parmakizi_ad_fikstur_hatalari()
+    yol = os.path.join(ROOT, _PK_KAYIT)
+    if not os.path.exists(yol):
+        return hatalar, 0
+    try:
+        with open(yol, encoding="utf-8") as f:
+            veri = json.load(f)
+    except (OSError, ValueError) as e:
+        hatalar.append("OLCULEMEDI (parmakizi ad nobeti) — %s okunamadi: %s"
+                       % (_PK_KAYIT, e))
+        return hatalar, 0
+    bulgu = parmakizi_ad_kusurlari(veri)
+    for b in bulgu:
+        hatalar.append("%s: %s" % (_PK_KAYIT, b))
+    adlar = veri.get("dosyalar") if isinstance(veri.get("dosyalar"), dict) \
+        else veri.get("scad")
+    return hatalar, len(adlar) if isinstance(adlar, dict) else 0
+
+
 def normalize(metin):
     metin = metin.lower()
     for c in (" ", "\t", "\n", " ", "-", "(", ")"):
@@ -442,7 +594,15 @@ def main():
     # 4) TEDARIKCI/URUN ADI SIZINTI NOBETCISI (kuresel negatif ICERIK kurali)
     tedarikci_hatalari, ted_taranan = tedarikci_nobeti()
 
-    if hatalar or rapor_hatalari or tedarikci_hatalari:
+    # 5) PARMAKIZI KAYIT ADI NOBETCISI (O7 — adlar JENERIK kalmali)
+    pk_hatalari, pk_taranan = parmakizi_ad_nobeti()
+
+    if pk_hatalari:
+        print("KIRMIZI — parmakızı kayıt adı nöbetçisi %d hata:" % len(pk_hatalari))
+        for h in pk_hatalari:
+            print("  - " + h)
+
+    if hatalar or rapor_hatalari or tedarikci_hatalari or pk_hatalari:
         if hatalar:
             print("KIRMIZI — kişisel veri testi %d hata:" % len(hatalar))
             for h in hatalar:
@@ -467,6 +627,8 @@ def main():
     print("YEŞİL — tedarikçi/ürün adı sızıntı nöbetçisi geçti "
           "(%d izlenen dosya içeriği tarandı, %d dar literal)."
           % (ted_taranan, len(_TED_KALIPLAR)))
+    print("YEŞİL — parmakızı kayıt adı nöbetçisi geçti (%d ad tarandı, %d kırmızı + "
+          "%d yeşil fikstür)." % (pk_taranan, len(_PK_KIRMIZI), len(_PK_YESIL)))
 
 
 if __name__ == "__main__":
