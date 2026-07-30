@@ -818,21 +818,72 @@ def bolum_f():
 DEPLOY_YML = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
 
 
-def _deploy_bloklayici_mi():
-    """deploy.yml'de nobetciyi kosan ADIM bloklayici mi? (SALT OKUMA — dosyaya dokunulmaz)"""
+KONFIGUR_KAPI = "tools/konfigur-test.py"
+
+
+def _is_akisi_modulu():
+    """tools/is-akisi-kapisi.py'yi MODUL olarak yukle. (modul, hata_metni).
+
+    ORTAK SUZGEC — KOPYA MANTIK YAZILMAZ. Bu dosyanin eski olcumu duz metindi
+    (`"konfigur-test.py" in adim and "run:" in adim`, `"continue-on-error" in adim`)
+    ve 30 Tem'de OLCULDU ki iki mutantta YANLIS cevap veriyordu:
+      (a) `run: echo python3 tools/konfigur-test.py --anahat`  -> "BLOKLAYICI" dedi
+      (b) cagri yoruma alindi, adimda `echo atlandi` kaldi     -> "BLOKLAYICI" dedi
+    Ikisinde de ana hatta O NOBETCI HIC KOSMUYOR. Bu bolum FAIL uretmez (BULGU), ama
+    yanlis BULGU mimarin "bu refaktor yayini durdurur mu" kararini TERS yonde besler."""
+    import importlib.util
+    yol = os.path.join(ROOT, "tools", "is-akisi-kapisi.py")
+    if not os.path.exists(yol):
+        return None, "tools/is-akisi-kapisi.py YOK"
+    if "pruvo_is_akisi_kapisi" in sys.modules:
+        return sys.modules["pruvo_is_akisi_kapisi"], None
     try:
-        with open(DEPLOY_YML, encoding="utf-8") as f:
-            metin = f.read()
-    except OSError as e:
-        return None, "deploy.yml okunamadi: %s" % e
-    adimlar = re.split(r"\n(?=      - name: )", metin)
-    for adim in adimlar:
-        if "konfigur-test.py" in adim and "run:" in adim:
-            ad = re.search(r"- name: (.+)", adim)
-            coe = "continue-on-error" in adim
-            return (not coe), ("adim=%r continue-on-error=%s"
-                               % (ad.group(1).strip() if ad else "?", coe))
-    return None, "deploy.yml'de konfigur-test.py kosan adim BULUNAMADI"
+        spec = importlib.util.spec_from_file_location("pruvo_is_akisi_kapisi", yol)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["pruvo_is_akisi_kapisi"] = mod
+        spec.loader.exec_module(mod)
+    except Exception as e:  # noqa: BLE001
+        return None, "tools/is-akisi-kapisi.py yuklenemedi (%s: %s)" % (type(e).__name__, e)
+    if not hasattr(mod, "etkili_kapi_cagrilari"):
+        return None, ("tools/is-akisi-kapisi.py'de etkili_kapi_cagrilari() YOK "
+                      "(sozlesme degismis)")
+    return mod, None
+
+
+def _deploy_bloklayici_mi(deploy_metin=None):
+    """deploy.yml'de nobetciyi kosan ADIM GERCEKTEN bloklayici mi?
+    (SALT OKUMA — dosyaya dokunulmaz)
+
+    (True, ayrinti)  -> cagri VAR ve etkisizlestirilmemis (yayini BLOKLAR)
+    (False, ayrinti) -> cagri VAR ama etkisiz (`--help`/`echo`/`|| true`/
+                        `continue-on-error`/`if: false`/`set +e`)
+    (None, ayrinti)  -> cagri BULUNAMADI ya da olculemedi
+
+    Olcum tools/is-akisi-kapisi.py'nin GERCEK YAML ayristiricisi + ortak kabuk
+    suzgecinden gelir (yukaridaki gerekce)."""
+    if deploy_metin is None:
+        try:
+            with open(DEPLOY_YML, encoding="utf-8") as f:
+                deploy_metin = f.read()
+        except OSError as e:
+            return None, "deploy.yml okunamadi: %s" % e
+    mod, hata = _is_akisi_modulu()
+    if mod is None:
+        return None, "OLCULEMEDI: %s" % hata
+    if not mod.ayristirici_var():
+        return None, ("OLCULEMEDI: hicbir YAML ayristiricisi yok "
+                      "(pip install pyyaml ya da ruby kur)")
+    cagrilar = mod.etkili_kapi_cagrilari(deploy_metin, KONFIGUR_KAPI)
+    if not cagrilar:
+        return None, ("deploy.yml'de %s'yi ANLAMLI olarak kosan adim BULUNAMADI "
+                      "(silinmis / yoruma alinmis / `echo` mensiyonuna cevrilmis)"
+                      % KONFIGUR_KAPI)
+    etkili = [c for c in cagrilar if not c[4]]
+    if etkili:
+        _j, _i, ad, komut, _s = etkili[0]
+        return True, "adim=%r komut=%r sebep=YOK" % (ad, komut)
+    _j, _i, ad, komut, sebep = cagrilar[0]
+    return False, "adim=%r komut=%r ETKISIZ: %s" % (ad, komut, " + ".join(sebep))
 
 
 def bolum_g():

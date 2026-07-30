@@ -32,6 +32,56 @@ YASAK_RENK = re.compile(r"her\s+renk", re.I)
 SEMA_FIXTURE = {"ornek-plaka"}
 
 
+# ---- ORTAK "GERCEK ICRA MI" SUZGECI (TEK KAYNAK) ---------------------------
+# TEST 4'un "deploy kopyasi" iddiasi 30 Tem'e kadar DUZ ALT-DIZE aramasiydi:
+#     beyaz = "jenerator/hacim.js" in deploy_metni
+# OLCULDU (gecici kopyada): deploy.yml'deki `cp jenerator/hacim.js ... _site/jenerator/`
+# satiri (a) `echo cp ...`'a cevrilse, (b) `# cp ...` diye yoruma alinsa metin HALA
+# dosyada geciyor -> iddia True kaliyor. Yani jenerator varliklarinin yayina
+# KOPYALANMAMASI SESSIZ kaliyordu (site parametrik urun sayfalarinda hacim.js'i 404
+# alir; konfigurator fiyat hesaplamaz). Artik olcum tools/is-akisi-kapisi.py'nin
+# GERCEK YAML + kabuk suzgecinden gelir; KOPYA MANTIK YAZILMAZ.
+def _is_akisi_modulu():
+    """tools/is-akisi-kapisi.py'yi MODUL olarak yukle. (modul, hata_metni)."""
+    import importlib.util
+    yol = os.path.join(ROOT, "tools", "is-akisi-kapisi.py")
+    if not os.path.exists(yol):
+        return None, "tools/is-akisi-kapisi.py YOK"
+    if "pruvo_is_akisi_kapisi" in sys.modules:
+        return sys.modules["pruvo_is_akisi_kapisi"], None
+    try:
+        spec = importlib.util.spec_from_file_location("pruvo_is_akisi_kapisi", yol)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["pruvo_is_akisi_kapisi"] = mod
+        spec.loader.exec_module(mod)
+    except Exception as e:  # noqa: BLE001 — her tur import arizasi ayni hukmu verir
+        return None, "tools/is-akisi-kapisi.py yuklenemedi (%s: %s)" % (type(e).__name__, e)
+    if not hasattr(mod, "etkili_mensiyon"):
+        return None, "tools/is-akisi-kapisi.py'de etkili_mensiyon() YOK (sozlesme degismis)"
+    return mod, None
+
+
+def deploy_kopyaliyor_mu(deploy_metin, varlik):
+    """(ok, tani) — deploy.yml <varlik>'i ETKILI bir komutun argumani olarak tasiyor mu?
+
+    FAIL-CLOSED: suzgec yuklenemezse ya da is akisi ayristirilamazsa YESIL SAYILMAZ —
+    'olculemedi' bu iddiada sessiz-yesille aynidir."""
+    mod, hata = _is_akisi_modulu()
+    if mod is None:
+        return False, "OLCULEMEDI (fail-closed KIRMIZI): %s" % hata
+    if not mod.ayristirici_var():
+        return False, ("OLCULEMEDI (fail-closed KIRMIZI): hicbir YAML ayristiricisi yok "
+                       "(pip install pyyaml ya da ruby kur)")
+    bulunan = mod.etkili_mensiyon(deploy_metin, varlik)
+    if bulunan:
+        return True, ""
+    return False, ("deploy.yml %r varligini ETKILI bir komutun argumani olarak "
+                   "TASIMIYOR (satir silinmis / yoruma alinmis / `echo`'ya cevrilmis / "
+                   "`|| true`-`continue-on-error`-`if: false` ile etkisizlestirilmis). "
+                   "GERI KOY: 'Icerik dizinleri' adiminda "
+                   "`cp jenerator/hacim.js ... _site/jenerator/`." % varlik)
+
+
 def kayit(no, ad, yesil, detay=""):
     SONUC.append((no, ad, yesil))
     print("[%s] TEST %d — %s%s" % ("YESIL" if yesil else "KIRMIZI", no, ad,
@@ -146,14 +196,23 @@ def main():
     with io.open(os.path.join(ROOT, ".github", "workflows", "deploy.yml"),
                  encoding="utf-8") as f:
         deploy = f.read()
-    beyaz = "jenerator/hacim.js" in deploy
+    beyaz, beyaz_tani = deploy_kopyaliyor_mu(deploy, "jenerator/hacim.js")
     kopya = dosya_tara(
         [os.path.join(ROOT, "secenekler.js"), os.path.join(ROOT, "index.html"),
          urun_dir, os.path.join(ROOT, "tools")],
         [("hacim fn kopyasi", re.compile(r"function\s+(oring|huni|disli)\s*\("))])
+    ayrinti = []
+    if not deterministik:
+        ayrinti.append("hacim.js birlestir.py sonrasi DEGISTI (deterministik degil)")
+    if not ayni:
+        ayrinti.append("deploy kopyasi bayt-ozdes DEGIL")
+    if not beyaz:
+        ayrinti.append(beyaz_tani)
+    if kopya:
+        ayrinti.append("hacim fn kopyasi: %s" % (kopya,))
     kayit(4, "tek kaynak: hacim.js deterministik + deploy kopyasi bayt-ozdes + kopya yok",
           deterministik and ayni and beyaz and not kopya,
-          "" if not kopya else str(kopya))
+          "\n".join(ayrinti))
 
     # ---------- TEST 5: gizlilik ----------
     bulunan = dosya_tara(
