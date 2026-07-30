@@ -1,5 +1,362 @@
 [
   {
+    "id": "olta-tutucusu-petg",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "PETG Basit Olta Tutucusu",
+    "aciklama": "Sabit yuzeye monte edilen basit olta kamisi tutucusu.\n- Sabit yuzeye monte edilir.\n- Farkli kamis caplarina uyumludur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 187 x 147 x 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr993219-1.jpg"
+    ]
+  },
+  {
+    "id": "kayak-dumen-montaj-pelican",
+    "kategori": "Marin",
+    "marka": [
+      "Pelican"
+    ],
+    "baslik": "Pelican Argo 100X Kayak Icin Dumen Montaj Aparati",
+    "aciklama": "Pelican Argo 100X ve benzeri oturma tipi kayaklara dumen eklemek icin kullanilan montaj aparati.\n- Pelican Argo 100X ve benzeri kayaklarla uyumludur.\n- 1/4-20 civata ile monte edilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 66 x 64 x 48 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3798572-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3798572-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3798572-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jzxquik",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "kayak-tasima-destegi-pvc",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Tasima Destegi (3 Inc PVC Boru Icin)",
+    "aciklama": "Arac tavanindaki 3 inc PVC borulu tasima duzenegine kayagi oturtmak icin kullanilan destek parcasi.\n- 3 inc (schedule 40) PVC boruyla uyumludur.\n- 3/8 inc civata deligi bulunur.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1281123-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1281123-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1281123-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "olta-tutucusu-bel-modeli-2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bel Tipi Olta Tutucusu",
+    "aciklama": "Balik avi sirasinda kamisi belde tasimak icin kullanilan tutucu.\n- Kemer veya bel cantasina takilir.\n- Tek elle kamisi yerlestirmeyi kolaylastirir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 70 x 39 x 36 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr993360-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr993360-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr993360-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nik Rezantsev",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-korkuluk-olta-rafi-25mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Korkuluguna Takilan Olta Rafi (25mm)",
+    "aciklama": "Tekne korkuluguna (grab rail) takilarak 3 adet olta kamisini tutan raf.\n- 25mm capli korkuluklarla uyumludur.\n- 3 kamis kapasitesine sahiptir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw933239-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw933239-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw933239-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-kestosu-kum-kalibi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kestosu Icin Kum Dokum Kalibi",
+    "aciklama": "Aluminyum veya bronz tekne kestosu (cleat) dokumu icin kullanilan kum kalibi sablonu.\n- Kum dokum yontemiyle metal dokum icin tasarlanmistir.\n- 5/16 inc civata deligine gore olculendirilmistir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 180 x 35 x 12 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr145329-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr145329-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Armored Carbon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "olta-tutucusu-donel-makarali",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Donel Makarali Olta Tutucusu",
+    "aciklama": "Rulmanli makaralar sayesinde donen, olta kamisini kolayca yerlestirmeyi saglayan tutucu.\n- 606ZZ rulman ile calisir.\n- M6 civata/somun gerektirir.\n- Cok parcadan olusur.\nYaklasik dis olculer: 60 x 60 x 49 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr927927-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr927927-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr927927-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Maestro",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-ici-olta-rafi-parametrik",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Ici Yatay Olta Rafi",
+    "aciklama": "Tekne ici yatay olta kamisi depolamasi icin, kamis araligi olculendirilebilir esnek tutucu.\n- Kamis araligi ozellestirilebilir tasarima sahiptir.\n- Sert govde + esnek klips kombinasyonu kullanir.\n- Cok parcadan olusur.\nYaklasik dis olculer: 200 x 65 x 20 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr722924-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "idiogenic",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kano-kayak-bardak-telefon-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kano/Kayak Icin Bardak ve Telefon Tutucusu",
+    "aciklama": "Kano, kayak veya sisme bot uzerine takilan, icecek kutusu ve telefonu bir arada tutan tutucu.\n- 85mm capa kadar icecek kutusuyla uyumludur.\n- Telefon bolmesi bulunur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 106 x 100 x 89 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1368468-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1368468-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1368468-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jacob",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kurek-t-sap",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Kuregi Icin T Sap",
+    "aciklama": "Iki parcali ayarlanabilir kayak kureklerinin ucuna takilan T seklinde sap.\n- Iki parcali ayarlanabilir kureklerle uyumludur.\n- Erkek ve disi versiyonu vardir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 114 x 102 x 38 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr537365-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr537365-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Will",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-halat-duzenleyici-kanca",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Icin Halat Duzenleyici Kanca",
+    "aciklama": "Yelkenli kokpitinde halat halkalarini duzenli ve gorunur sekilde tutan kanca.\n- 3mm kalinliginda bungee kordon ile kullanilir.\n- Yapistirma icin maskeleme halkasi icerir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 45 x 45 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr552270-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr552270-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr552270-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "printableconcrete",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-kestosu-parametrik-openscad",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Parametrik Tekne Baglama Kestosu",
+    "aciklama": "OpenSCAD ile parametrik olarak tasarlanmis, farkli boy secenekleriyle uretilebilen tekne baglama kestosu (cleat).\n- Parametrik tasarimi farkli olculerde uretilebilir.\n- Halat baglamak icin iki kollu yapidadir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dprintable-cleat-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dprintable-cleat-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ernestwallon3D",
+      "tur": "cc_by_sa"
+    }
+  },
+  {
+    "id": "tekne-kestosu-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kestosu Icin Koruyucu Kapak",
+    "aciklama": "Tekne kestosunun (cleat) kullanilmadigi zamanlarda halatlara takilmasini onlemek icin takilan koruyucu kapak.\n- Standart tekne kestolarina takilir.\n- TPU gibi esnek malzemeyle uyumludur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 56 x 55 x 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr491547-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr491547-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kate Leipold",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sup-kurek-klips-tutucusu-v3",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "SUP Kuregi Icin Klips Tutucu",
+    "aciklama": "Sisme kurek tahtasinin (SUP) tasima kayisi sistemine takilarak kuregi guvenle sabitleyen klips.\n- Multi-mount tasima kayisi sistemleriyle uyumludur.\n- Tek hareketle takilir/cikarilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw3057573-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw3057573-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-motor-direksiyon-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Motoru Icin Direksiyon Kolu",
+    "aciklama": "Kayak uzerine takilan elektrikli/kucuk motorlarin yonlendirilmesini saglayan direksiyon kolu.\n- Bilyali rulman ile iki parcayi birlestirir.\n- PETG veya PETG-CF ile uretilmesi onerilir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 138 x 111 x 104 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr846717-1.jpg"
+    ]
+  },
+  {
+    "id": "tekne-sabunlugu-drenajli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Drenajli Tekne Sabunlugu",
+    "aciklama": "Tekne banyosunda suyun birikmemesi icin drenaj kanallari bulunan sabunluk.\n- Su birikintisini onleyen dalgali drenaj yuzeyi vardir.\n- Tekne banyolarina uygun kompakt boyuttadir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 104 x 84 x 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr354004-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr354004-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr354004-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MalteBY",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-tahliye-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Icin Tahliye Tapasi",
+    "aciklama": "Perception Swifty ve benzeri kayaklarin tahliye deligine uyan yedek tapa.\n- Perception Swifty kayak ile uyumludur.\n- TPU ve sert plastik parcalardan olusur.\n- Cok parcadan olusur.\nYaklasik dis olculer: 26 x 25 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr987254-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr987254-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr987254-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr987254-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TechRoomFun",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelken-dugum-pratik-kestosu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Dugumu Pratik Kestosu",
+    "aciklama": "Yelkencilikte kullanilan temel dugumleri pratik yapmak icin tasarlanmis egitim amacli kesto.\n- Halka ve kol parcalariyla farkli dugum tipleri denenebilir.\n- Anahtarlik olarak da tasinabilir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 75 x 75 x 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr588348-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr588348-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr588348-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr588348-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Peter Fields",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "garmin-lvs34-montaj-duymesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin LVS34 Icin Yedek Montaj Duymesi",
+    "aciklama": "Garmin LVS34 transduser montaj sisteminin kirilan veya catlayan duymesinin yerine gecen yedek parca.\n- Orijinal civatalarla uyumludur.\n- Su ve hava kosullarina dayanikli yapidadir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw513669-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw513669-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw513669-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "old-town-kayak-bayrak-montaj-plakasi",
+    "kategori": "Marin",
+    "marka": [
+      "Old Town"
+    ],
+    "baslik": "Old Town Kayaklar Icin Bayrak Montaj Plakasi",
+    "aciklama": "Old Town kayaklarin arkasindaki guc direk (power pole) adaptor yuvasina bayrak direği monte etmek icin kullanilan plaka.\n- Old Town kayaklarin 1/4-20 disli yuvasiyla uyumludur.\n- Delik acmadan montaj saglar.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw439368-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw439368-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw439368-3.jpg"
+    ]
+  },
+  {
+    "id": "lifetime-youth-wave-kayak-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [
+      "Lifetime"
+    ],
+    "baslik": "Lifetime Youth Wave Kayak Icin Olta Tutucusu",
+    "aciklama": "Lifetime Youth Wave kayaklara ozel olculendirilmis olta kamisi tutucusu.\n- Lifetime Youth Wave kayak modeliyle uyumludur.\n- Simetrik montaj icin ayna (mirror) versiyonu vardir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 154 x 90 x 90 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr563472-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dylanmo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "garmin-inreach-mini-kayak-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin inReach Mini Icin Kayak Tutucusu",
+    "aciklama": "Garmin inReach Mini uydu haberlesme cihazini kayak uzerinde erisilebilir sekilde tutan tutucu.\n- Garmin inReach Mini cihaziyla uyumludur.\n- Kayak govdesine kordonla sabitlenir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 60 x 57 x 49 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr52366-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr52366-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr52366-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tobias",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "fishing-rod-holder-duvar-4lu",
     "kategori": "Marin",
     "marka": [],
