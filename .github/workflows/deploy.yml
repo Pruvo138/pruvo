@@ -18,7 +18,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # 🔴 fetch-depth: 0 ZORUNLU — tools/diriltme-kapisi.py "gecmiste SILINMIS urun id'si"
+      # kumesini `git log -p --first-parent -- urunler.json` ile TURETIR (elle liste
+      # TUTULMAZ; olculdu 30 Tem: 801 commit, ~68 MB diff, 4,2 s, 990 silinmis id).
+      # actions/checkout VARSAYILANI `fetch-depth: 1` (SIG/shallow) ve o halde gecmis YOKTUR.
+      # Bu satir dusurulurse kapi SESSIZCE yesile donmez: SIG depoyu tanir ve
+      # OLCULEMEDI (rc 2) ile YAYINI DURDURUR (fail-closed).
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -53,6 +61,25 @@ jobs:
 
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
+
+      # DIRILTME KAPISI — "silinmis urun sessizce geri geldi mi". BLOKLAYICI
+      # (continue-on-error YOK): yerel + deterministik, ag ISTEMEZ.
+      # OLCULEN OLAY (30 Tem): bir dal main'e alinirken urunler.json'un SATIR-DUZEYI
+      # 3-yollu merge'i main'in BILEREK sildigi 2 kaydi GERI DIRILTTI (biri YASAK TUR
+      # olcekli maket) ve urunler-guard yapisi geregi elle duzeltme IKI KEZ ezildi
+      # (15068 -> 15070). Push'tan hemen once ELLE yakalandi — nobetcisi YOKTU.
+      # Mevcut kapilar bu sinifi GORMEZ: guard ekseni ters yone calisir, mukerrer-kontrol
+      # tek kayda bakar, d1-sync --durum sayi tuttugu icin YESIL yanar.
+      # Iki adim: (1) gercek olcum — HEAD^1 -> HEAD; (2) kapinin KENDI kabul testi
+      # (POZITIF + NEGATIF vakalar + gercek katalogla yanlis-pozitif kanaryasi).
+      # YANLIS-POZITIF NOBETI: YENI id eklemek SERBESTTIR; MaCiT'in normal ekleme
+      # partisi bu kapiyi TETIKLEMEZ (kabul testi V9/V15 bunu ayri ayri olcer).
+      # SALT-OKUNUR: urunler.json'a ASLA yazmaz (V14/V17 sha256 + porcelain ile olcer).
+      - name: Diriltme kapisi (silinmis urun geri gelmis mi)
+        run: python3 tools/diriltme-kapisi.py
+
+      - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
+        run: python3 tools/diriltme-kapisi.py --kendini-test
 
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
