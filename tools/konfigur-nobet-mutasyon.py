@@ -55,6 +55,7 @@ katmani birbirinin testini maskeler) — gelistirici/curutucu araci.
 Kullanim:  python3 tools/konfigur-nobet-mutasyon.py     (0 = hepsi gecti, 1 = en az bir kusur)
 """
 import hashlib
+import importlib.util
 import inspect
 import json
 import os
@@ -818,20 +819,27 @@ def bolum_f():
 DEPLOY_YML = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
 
 
-def _deploy_bloklayici_mi():
+def _is_akisi_modulu():
+    """Ortak gerçek-icra süzgecini tek kaynağından yükle."""
+    yol = os.path.join(ROOT, "tools", "is-akisi-kapisi.py")
+    spec = importlib.util.spec_from_file_location("pruvo_is_akisi_kapisi", yol)
+    modul = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modul)
+    return modul
+
+
+def _deploy_bloklayici_mi(deploy_metin=None):
     """deploy.yml'de nobetciyi kosan ADIM bloklayici mi? (SALT OKUMA — dosyaya dokunulmaz)"""
-    try:
-        with open(DEPLOY_YML, encoding="utf-8") as f:
-            metin = f.read()
-    except OSError as e:
-        return None, "deploy.yml okunamadi: %s" % e
-    adimlar = re.split(r"\n(?=      - name: )", metin)
-    for adim in adimlar:
-        if "konfigur-test.py" in adim and "run:" in adim:
-            ad = re.search(r"- name: (.+)", adim)
-            coe = "continue-on-error" in adim
-            return (not coe), ("adim=%r continue-on-error=%s"
-                               % (ad.group(1).strip() if ad else "?", coe))
+    if deploy_metin is None:
+        try:
+            with open(DEPLOY_YML, encoding="utf-8") as f:
+                deploy_metin = f.read()
+        except OSError as e:
+            return None, "deploy.yml okunamadi: %s" % e
+    komutlar = _is_akisi_modulu().gercek_icra_komutlari(deploy_metin)
+    for komut in komutlar:
+        if re.match(r"^python3\s+tools/konfigur-test\.py(?![\\w./-])", komut):
+            return True, "ortak YAML/icra suzgecinde etkili cagri=%r" % komut
     return None, "deploy.yml'de konfigur-test.py kosan adim BULUNAMADI"
 
 

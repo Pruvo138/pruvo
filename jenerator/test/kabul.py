@@ -8,6 +8,7 @@ Kullanım: python3 jenerator/test/kabul.py [--hizli]
 Çıkış kodu 0 = 8/8 YEŞİL.
 """
 import argparse
+import importlib.util
 import io
 import json
 import os
@@ -21,6 +22,21 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 JEN_DIR = os.path.dirname(TEST_DIR)
 ROOT = os.path.dirname(JEN_DIR)
 SONUC = []
+
+
+def _is_akisi_modulu():
+    """Ortak gerçek-icra süzgecini tek kaynağından yükle."""
+    yol = os.path.join(ROOT, "tools", "is-akisi-kapisi.py")
+    spec = importlib.util.spec_from_file_location("pruvo_is_akisi_kapisi", yol)
+    modul = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modul)
+    return modul
+
+
+def _hacim_yayin_adimi_var(deploy_metin):
+    """hacim.js yalnız etkili bir run gövdesinde yayınlanıyorsa doğru."""
+    return any("jenerator/hacim.js" in komut
+               for komut in _is_akisi_modulu().gercek_icra_komutlari(deploy_metin))
 
 # Yasaklı ifadeler parçalı kurulur ki bu dosya kendi taramasına takılmasın.
 YASAK_GIZLI = "ko" + "olm"
@@ -146,7 +162,7 @@ def main():
     with io.open(os.path.join(ROOT, ".github", "workflows", "deploy.yml"),
                  encoding="utf-8") as f:
         deploy = f.read()
-    beyaz = "jenerator/hacim.js" in deploy
+    beyaz = _hacim_yayin_adimi_var(deploy)
     kopya = dosya_tara(
         [os.path.join(ROOT, "secenekler.js"), os.path.join(ROOT, "index.html"),
          urun_dir, os.path.join(ROOT, "tools")],

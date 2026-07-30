@@ -49,14 +49,30 @@ Kullanim:
     python3 tools/ci-kapsam-test.py --kendini-test
 """
 import argparse
+import ast
+import importlib.util
 import os
 import re
+import shlex
 import subprocess
 import sys
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
 DEPLOY_VARSAYILAN = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
+_IS_AKISI = None
+
+
+def _is_akisi_modulu():
+    """Ortak YAML/icra süzgecini is-akisi-kapisi.py'den yükle; kopya mantık tutma."""
+    global _IS_AKISI
+    if _IS_AKISI is None:
+        yol = os.path.join(TOOLS, "is-akisi-kapisi.py")
+        spec = importlib.util.spec_from_file_location("pruvo_is_akisi_kapisi", yol)
+        modul = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(modul)
+        _IS_AKISI = modul
+    return _IS_AKISI
 
 # ---- KESIF PREDIKATLARI ----------------------------------------------------
 TOOLS_PAT = re.compile(
@@ -104,15 +120,8 @@ def _icra_govdesi(ham_satir):
 
 
 def _icra_komutlari(deploy_metin):
-    """deploy.yml'de FIILEN kosan komut govdelerini (satir satir) dondur.
-    Bir 'python3 <yol>' mensiyonu YORUM icinde ya da echo-string icinde geciyorsa
-    bu listede komutun BASINDA yer almaz -> kosulan() onu 'kosuluyor' saymaz."""
-    komutlar = []
-    for ham in deploy_metin.splitlines():
-        g = _icra_govdesi(ham)
-        if g:
-            komutlar.append(g)
-    return komutlar
+    """TEK KAYNAK: ayrıştırılmış YAML'daki etkili komutları ortak süzgeçten al."""
+    return _is_akisi_modulu().gercek_icra_komutlari(deploy_metin)
 
 
 # Kesif predikati .py YANINDA .js/.mjs/.cjs dosyalarini da buluyor (DIR_PAT); bunlar
@@ -142,6 +151,23 @@ def _onek_re(yol):
     eklendigi halde kapi KAPSAMSIZ diyordu. Kapsam KURALI degismedi, yalnizca capanin
     yorumlayicisi dosya uzantisindan turetilir hale geldi."""
     return re.compile(r"^" + _yorumlayici(yol) + r"\s+" + re.escape(yol) + r"(?![\w./-])")
+
+
+# Yardım/sürüm kipleri programı çalıştırıyor görünür ama kabul ölçümünü YAPMAZ.
+# Kara liste bilinçli ve sonludur; bilinmeyen bayrak anlamlı icra sayılır.
+ANLAMSIZ_ICRA_BAYRAKLARI = frozenset(("--help", "-h", "--version", "-V"))
+
+
+def _anlamli_cagri_mi(komut, yol):
+    """Komut hedefi gerçekten ölçüyor mu; yalnız yardım/sürüm kipleri icra değildir."""
+    eslesme = _onek_re(yol).match(komut)
+    if not eslesme:
+        return False
+    try:
+        bayraklar = shlex.split(komut[eslesme.end():].strip())
+    except ValueError:
+        return True  # kabuk taklidi yapma; bilinmeyen/karmaşık yazım fail-open
+    return not any(b in ANLAMSIZ_ICRA_BAYRAKLARI for b in bayraklar)
 
 
 def _icra_satir_indeksleri(deploy_metin, yol):
@@ -201,8 +227,7 @@ def kosulan(deploy_metin, kesif):
     kos = set()
     komutlar = _icra_komutlari(deploy_metin)
     for yol in kesif:
-        onek = _onek_re(yol)
-        if any(onek.match(k) for k in komutlar):
+        if any(_anlamli_cagri_mi(k, yol) for k in komutlar):
             kos.add(yol)
     return kos
 
@@ -673,97 +698,80 @@ KENDINI_TEST_SABIT_TANI = (
     "(`--kendini-test`).")
 
 
-def kendini_test_adimi_kontrol():
-    """OZ-NOBETCI ADIMI KALICI NOBETCISI (3. tur curutucu olcumu, 27 Tem).
-
-    OLCULEN DELIK: 791b0366 deploy.yml'e `python3 tools/ci-kapsam-test.py --kendini-test`
-    adimini ekledi ve CI'da yesil kostu — AMA EKLENEN ADIMIN KENDISI NOBETCISIZDI.
-    Iki mutant sinifi repoda TEK BIR KIRMIZI bile yakmiyordu (olculdu: ikisinde de
-    bayraksiz kosum 0, --kendini-test kosumu 0):
-      (1) `--kendini-test` adimi deploy.yml'den SILINDI,
-      (2) adim duruyor ama `--kendini-test` BAYRAGI dusuruldu (adim ikinci kez duz
-          `python3 tools/ci-kapsam-test.py` kosuyor).
-    Yani biri oz-nobetci adimini kaldirsa zincir SESSIZCE kopuyordu: bulgu1 +
-    muaf sayaci nobetcileri hala denetle(kontroller=True) yolundan cagriliyor gorunse
-    de, o adimin korudugu IKI mutant sinifi (nobetci CAGRILARININ silinmesi ve
-    denetle()'nin kirmizi cikis yolunun sakatlanmasi) yeniden ORTULU hale geliyordu.
-
-    NEDEN BAYRAKSIZ (BLOKLAYICI) KOLDA YASAR: bu nobetci `--kendini-test` kolunda
-    OLURDU — adim silindiginde o kol CI'da ZATEN kosmaz, yani kendi olumunu haber
-    veremezdi. Kanit hala kosan DUZ adimdan gelmek ZORUNDA; bu yuzden
-    denetle(..., kontroller=True) icinden cagrilir. (--kendini-test kolunda AYRICA
-    raporlanir, ama tek GERCEK kapi bayraksiz kosumdur.)
-
-    IDDIA (TEK — mimar hukmu TUR 4): `--kendini-test` ALT-DIZESI, _icra_govdesi()
-    suzgecinden gecen (YORUM DEGIL, `name:` DEGIL) govdelerin metninde GECIYOR MU.
-    Duz `in` aramasi. Jetonlama YOK, tirnak mantigi YOK, startswith YOK, satir
-    birlestirme YOK, regex YOK. Bu fonksiyonun BAGIMSIZ eslestiricisi YOKTUR — capa
-    tamamen _icra_komutlari()/_icra_govdesi() ortak suzgecidir.
-
-    🔴 NEDEN BU KADAR DUZ (bu depoda UCUNCU kez ayni delik — [[mimar-kapi-parser-taklidi]]):
-    Iki tur boyunca "daha akilli" capalar denendi ve HER IKISI de MESRU yazimlari
-    KIRMIZI yakti. Olculen sahte-kirmizilar:
-      TUR 2 (`^python3 <yol>` on-eki):  `run: >-` katlanan blok · `run: |` + kabuk
-        satir devami (`\\`) · `python3 -u tools/...`
-      TUR 3 (elle yazilmis tirnak/jeton ayristiricisi): `run: "..."` cift-tirnakli YAML
-        skalari · `run: '...'` tek-tirnakli skalar · `bash -c "..."` · `run: |` blogunda
-        satir sonunda `;`  (kapanis tirnagi/noktalama jetonu bozuyordu)
-    Bu kapi deploy.yml'de continue-on-error'SUZ kosar -> tek bir sahte-kirmizi TUM
-    ekibin yayinini durdurur ([[kapi-kapsam-eksen-secimi]]). Kabuk/YAML yazimini TAHMIN
-    eden her capa bu kapida tasinamaz risktir; ayristirici taklidi YAPILMAZ.
-
-    🔴 KABUL EDILEN BEDEL (bilincli daraltma, [[kapi-disiplin-ilkesi]] — kapi disiplin
-    cihazidir, hapishane degil): duz alt-dize aramasi MENSIYONU da "duruyor" sayar.
-    Somut olarak su hal(ler) artik YESIL gecer ve bu BEKLENEN davranistir:
-      * tirnaksiz `echo` mensiyonu:  `run: echo python3 tools/x.py --kendini-test`
-      * bayragin BASKA bir betige verilmesi: `run: python3 tools/baska.py --kendini-test`
-      * bayragin herhangi bir icra govdesinde serbest metin olarak gecmesi
-
-    MENSIYON ELEMESININ GERCEK SINIRI (olculdu TUR 5; onceki surumde bu cumle FAZLA
-    IDDIALIYDI): suzgec yalnizca SATIR BASINI eler — strip() sonrasi `#`, `- name:` ya da
-    `name:` ile BASLAYAN satirlar. Dolayisiyla YAKALANAN sey "kanonik yazilmis yorum /
-    step adi" mensiyonudur; su UC MESRU YAML biciminde mensiyon SUZGECTEN GECER ve kapi
-    YESIL kalir (olculdu, kapi yanlis davranmiyor — iddia zaten "METIN DURUYOR"):
-      * `-  name:`   (tireden sonra IKI bosluk)
-      * `- "name":`  (tirnakli anahtar)
-      * SATIR SONU yorumu:  `run: echo ok   # ... --kendini-test`
-    ⚠️ Suzgec bu yuzden GENISLETILMEZ: her genisletme yeni bir bicim-tahmini, yani yeni
-    bir sahte-kirmizi yuzeyidir (TUR 2/3 dersi).
-
-    BEYAN — argparse KISALTMALARI: `--kendini` / `--kend` gibi kisaltmalar argparse'ta
-    CALISAN komutlardir, ama bayrak metni harfiyen gecmedigi icin bu nobetci onlari
-    KIRMIZI yakar. Tani zaten dogru seyi soyler ("adim kalkmis ya da bayragi dusmus" ->
-    tam metni yaz). Bilincli tercih: kisaltma yazmak ucuzdur, bicim tahmin eden bir
-    esneklik ise pahalidir.
-
-    NE KANITLAR / NE KANITLAMAZ: bu nobetci "adim KOSUYOR ve BLOKLUYOR" demez —
-    yalnizca "METIN DURUYOR" der. Kapsam disi kalan SESSIZ-YESIL komsu siniflar
-    (BILEREK kapatilmadi): nobetci GOVDESI `return True, []` (ust-harness sorusu,
-    nobetci-mutasyon-test.py sinifi) · adima `if: false` · adima
-    `continue-on-error: true` · komuta `|| true`. Son ucu deponun 30+ adiminin HEPSI
-    icin gecerlidir -> bu nobetcinin gerilemesi DEGIL, ayri ve daha buyuk bir is.
-
-    OLCULDU (28 Tem TUR 4, gecici worktree'de; canli dosyaya mutasyon UYGULANMADI):
-      YESIL 11/11 mesru bicim: cift-tirnakli skalar · tek-tirnakli skalar · `bash -c "..."`
-        · `run: |` + satir sonunda `;` · `run: >-` katlanan · backslash devami ·
-        `python3 -u` · fazla bosluk/TAB · `run: |` blok · `if:`/`env:` bloklu adim ·
-        baska job'a tasima.
-      KIRMIZI 4/4: adim silindi · bayrak dustu · `name:` icinde tam komut · yalniz
-        YAML YORUMU mensiyonu.
-    (ok, hata_satirlari) dondurur."""
-    # FAIL-CLOSED SABIT DAYANAGI (TUR 5, duz-`in`'in getirdigi yeni yuzey): bos bir sabit
-    # HER govdede gecer -> adim silinse bile nobetci YESIL kalirdi. Sahte-kirmizi riski
-    # YOK (sabit hep `--kendini-test`), sessiz-yesil riski buyuktu.
+def kendini_test_adimi_kontrol(deploy_metin=None):
+    """Öz-nöbetçinin etkili ve doğru hedefe bağlı gerçek çağrısını ölç."""
     if not KENDINI_TEST_BAYRAGI or not KENDINI_TEST_BAYRAGI.startswith("--"):
         return False, [KENDINI_TEST_SABIT_TANI % (KENDINI_TEST_BAYRAGI,)]
-    if not os.path.exists(DEPLOY_VARSAYILAN):
-        return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
-    with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
-        gercek = f.read()
-    for govde in _icra_komutlari(gercek):
-        if KENDINI_TEST_BAYRAGI in govde:
+    if deploy_metin is None:
+        if not os.path.exists(DEPLOY_VARSAYILAN):
+            return False, ["gercek deploy.yml bulunamadi: %s" % DEPLOY_VARSAYILAN]
+        with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+            deploy_metin = f.read()
+    for govde in _icra_komutlari(deploy_metin):
+        if (_anlamli_cagri_mi(govde, "tools/ci-kapsam-test.py")
+                and KENDINI_TEST_BAYRAGI in govde):
             return True, []
     return False, [KENDINI_TEST_TANI]
+
+
+def bayraksiz_ci_kapsam_adimi_kontrol(deploy_metin):
+    """Bayraksız ana kapsam kolu yardım/sürüm kipi olmadan etkili koşuyor mu."""
+    for komut in _icra_komutlari(deploy_metin):
+        if (_anlamli_cagri_mi(komut, "tools/ci-kapsam-test.py")
+                and KENDINI_TEST_BAYRAGI not in komut):
+            return True, []
+    return False, [
+        "bayraksiz ve anlamli `python3 tools/ci-kapsam-test.py` cagrisi yok "
+        "(--help/-h/--version/-V yalniz tanitim kipidir, kabul olcumu yapmaz)"]
+
+
+def push_tetikleyici_kontrol(deploy_metin):
+    """`push`, ayrıştırılmış YAML ağacında doğrudan `on` düğümünün altında mı."""
+    if _is_akisi_modulu().on_tetikleyicisi_var(deploy_metin, "push"):
+        return True, []
+    return False, ["ayristirilmis YAML agacinda `on.push` tetikleyicisi yok"]
+
+
+def ortak_suzgec_ast_kontrol():
+    """Ortak süzgeç gövdesi ve bu tüketicinin çağrısı AST ile canlı mı."""
+    hatalar = []
+    is_akisi_yolu = os.path.join(TOOLS, "is-akisi-kapisi.py")
+    try:
+        with open(is_akisi_yolu, encoding="utf-8") as f:
+            is_agaci = ast.parse(f.read())
+        with open(__file__, encoding="utf-8") as f:
+            ci_agaci = ast.parse(f.read())
+    except (OSError, SyntaxError) as e:
+        return False, ["AST olcumu yapilamadi: %s" % e]
+
+    ortak = next((n for n in is_agaci.body
+                  if isinstance(n, ast.FunctionDef)
+                  and n.name == "gercek_icra_komutlari"), None)
+    if ortak is None:
+        hatalar.append("gercek_icra_komutlari() ortak suzgeci yok")
+    else:
+        cagri_adlari = {
+            n.func.id for n in ast.walk(ortak)
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+        if not {"ayristir", "_set_e_etkisi", "_yalniz_mensiyon_mu"} <= cagri_adlari:
+            hatalar.append("ortak suzgec govdesi no-op/eksik: parser+etki+mensiyon "
+                           "cagrilarinin ucu de AST'de bulunmuyor")
+        if not any(isinstance(n, ast.For) for n in ast.walk(ortak)):
+            hatalar.append("ortak suzgec govdesi no-op: AST'de hic dongu yok")
+
+    tuketici = next((n for n in ci_agaci.body
+                     if isinstance(n, ast.FunctionDef)
+                     and n.name == "_icra_komutlari"), None)
+    ortak_cagrisi = False
+    if tuketici is not None:
+        for n in ast.walk(tuketici):
+            if (isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+                    and n.func.attr == "gercek_icra_komutlari"):
+                ortak_cagrisi = True
+                break
+    if not ortak_cagrisi:
+        hatalar.append("_icra_komutlari() ortak suzgeci AST'de cagirmiyor")
+    return not hatalar, hatalar
 
 
 # ---- SAF DENETIM GOVDESI ---------------------------------------------------
@@ -824,12 +832,21 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True):
         _, muaf_hata = muaf_sayaci_kontrol()
         for h in muaf_hata:
             hatalar.append("MUAF-SAYACI: " + h)
-        # ZINCIRIN SON HALKASI: oz-nobetci ADIMI deploy.yml'de duruyor mu. BURADA
-        # (bayraksiz/bloklayici kolda) yasamak ZORUNDA — --kendini-test kolunda olsa,
-        # adim silindiginde o kol kosmayacagi icin nobetci OLU olurdu.
-        _, adim_hata = kendini_test_adimi_kontrol()
-        for h in adim_hata:
-            hatalar.append("KENDINI-TEST-ADIMI: " + h)
+
+    # Zincir/trigger nöbetleri alternatif --deploy kopyasında da çalışır; mutasyon
+    # kanıtı canlı workflow'u değiştirmeden bu yol üzerinden alınır.
+    _, adim_hata = kendini_test_adimi_kontrol(deploy_metin)
+    for h in adim_hata:
+        hatalar.append("KENDINI-TEST-ADIMI: " + h)
+    _, bayraksiz_hata = bayraksiz_ci_kapsam_adimi_kontrol(deploy_metin)
+    for h in bayraksiz_hata:
+        hatalar.append("BAYRAKSIZ-CI-KAPSAM-ADIMI: " + h)
+    _, push_hata = push_tetikleyici_kontrol(deploy_metin)
+    for h in push_hata:
+        hatalar.append("PUSH-TETIKLEYICI: " + h)
+    _, ast_hata = ortak_suzgec_ast_kontrol()
+    for h in ast_hata:
+        hatalar.append("ORTAK-SUZGEC-AST: " + h)
 
     # ---- rapor ----
     # FIX (27 Tem, olculdu): eski hal `[y for y in kesif if y not in kos]` idi -> etiket
@@ -891,7 +908,30 @@ def main():
         else:
             for h in hata3:
                 print("  ❌ " + h)
-        if ok1 and ok2 and ok3:
+        with open(DEPLOY_VARSAYILAN, encoding="utf-8") as f:
+            gercek = f.read()
+        ok4, hata4 = bayraksiz_ci_kapsam_adimi_kontrol(gercek)
+        print("BAYRAKSIZ ANLAMLI CI KAPSAM CAGRISI")
+        if ok4:
+            print("  ✅ bayraksiz cagri yardim/surum kipi olmadan etkili")
+        else:
+            for h in hata4:
+                print("  ❌ " + h)
+        ok5, hata5 = push_tetikleyici_kontrol(gercek)
+        print("PUSH TETIKLEYICISI")
+        if ok5:
+            print("  ✅ push, ayristirilmis YAML agacinda dogrudan on altinda")
+        else:
+            for h in hata5:
+                print("  ❌ " + h)
+        ok6, hata6 = ortak_suzgec_ast_kontrol()
+        print("ORTAK SUZGEC AST NOBETI")
+        if ok6:
+            print("  ✅ ortak govde ve ci-kapsam tuketici cagrisi AST'de canli")
+        else:
+            for h in hata6:
+                print("  ❌ " + h)
+        if ok1 and ok2 and ok3 and ok4 and ok5 and ok6:
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")

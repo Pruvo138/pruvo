@@ -553,6 +553,83 @@ def _yanlis_mu(deger):
     return s.lower() in DAIMA_YANLIS_IFADELER
 
 
+SADECE_MENSIYON_KOMUTLARI = frozenset(("echo", "printf", ":", "true"))
+
+
+def _yalniz_mensiyon_mu(satir):
+    """Komut, argumanlarini yalnizca yazan/no-op bir kabuk komutu mu.
+
+    Kapali liste bilincli olarak dardir: echo/printf yalniz yazi basar; `:` ve `true`
+    argumanlarini yok sayan no-op'lardir. Kabuk dili yorumlanmaz. Bilinmeyen komut
+    GERCEK icra kabul edilir; boylece yeni/mesru araclar sahte-kirmizi yakmaz."""
+    ilk = satir.split(None, 1)[0] if satir.split() else ""
+    return ilk in SADECE_MENSIYON_KOMUTLARI
+
+
+def gercek_icra_komutlari(metin):
+    """YAML is akisindaki etkili, gercek `run:` komutlarini tek kaynaktan dondur.
+
+    GERCEK YAML agaci kullanilir; job/step sinirlari metinden tahmin edilmez. Yorum,
+    echo/printf/no-op mensiyonu, daima-yanlis `if`, `continue-on-error: true`,
+    `|| true`/`|| :`/`|| exit 0` ve `set +e` sonrasindaki komutlar elenir.
+    Bilinmeyen `if:` ifadeleri ve komutlar fail-open kabul edilir: GitHub ifade/kabuk
+    yorumlayicisi yazmak bu bloklayici kapida yanlis-pozitif yuzeyini buyutur."""
+    govde, hata = ayristir(metin)
+    if hata or not isinstance(govde, dict):
+        return []
+    jobs = govde.get("jobs")
+    if not isinstance(jobs, dict):
+        return []
+    bulunan = []
+    for job in jobs.values():
+        if not isinstance(job, dict):
+            continue
+        if _dogru_mu(job.get("continue-on-error")) or _yanlis_mu(job.get("if")):
+            continue
+        steps = job.get("steps")
+        if not isinstance(steps, list):
+            continue
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            if _dogru_mu(step.get("continue-on-error")) or _yanlis_mu(step.get("if")):
+                continue
+            run = step.get("run")
+            if not isinstance(run, str):
+                continue
+            errexit_kapali = False
+            for ham in run.splitlines():
+                s = ham.strip()
+                if not s or s.startswith("#"):
+                    continue
+                etki = _set_e_etkisi(s)
+                if etki is not None:
+                    errexit_kapali = etki
+                    continue
+                if (errexit_kapali or B_ETKISIZ.search(s)
+                        or _yalniz_mensiyon_mu(s)):
+                    continue
+                bulunan.append(s)
+    return bulunan
+
+
+def on_tetikleyicisi_var(metin, tetikleyici):
+    """Tetikleyici, ayrıştırılmış YAML ağacında doğrudan `on` altında mı."""
+    govde, hata = ayristir(metin)
+    if hata or not isinstance(govde, dict):
+        return False
+    on_degeri = None
+    for anahtar in ON_ANAHTARLARI:
+        if anahtar in govde:
+            on_degeri = govde[anahtar]
+            break
+    if isinstance(on_degeri, str):
+        return on_degeri == tetikleyici
+    if isinstance(on_degeri, list):
+        return tetikleyici in on_degeri
+    return isinstance(on_degeri, dict) and tetikleyici in on_degeri
+
+
 def etkili_cagrilar(metin):
     """<metin> (bir is akisi dosyasinin TAM metni) icinde B_HEDEF'i FIILEN kosan
     (etkili) cagrilari dondur: [(job_id, adim_no, komut_satiri), ...].
