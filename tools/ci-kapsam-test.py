@@ -750,7 +750,22 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 IZIN_LISTESI = {
     # --- Ayri dagitim hedefleri (shop / onizleme / jenerator) ---
     "shop/test/eposta.mjs": R_AYRI,
-    "shop/test/kabul.js": R_AYRI,
+    # "shop/test/kabul.js" MUAFIYETI KALDIRILDI (31 Tem) — gerekce KISMEN dogruydu ve tam da
+    # bu yuzden tehlikeliydi: suite'in BIR YARISI gercekten CI-disi (test 1..25 `wrangler dev
+    # --local` + `npx wrangler@4` indirmesi; test 7 CANLI /ara ucuna vurup YEREL urunler.json
+    # ile karsilastirir -> KARARSIZ, olculdu: sorgu sayisi kosumdan kosuma 841 <-> 843 kayiyor,
+    # cunku sorgular katalogtan turuyor ve baska oturumlar urun ekliyor). Ama AYNI dosyadaki
+    # test 9(a) — "semalar.js import listesi <-> jenerator/urunler/ BIREBIR mi" — agsiz,
+    # wranglersiz ve TAMAMEN deterministik bir PARA nobetiydi ve blanket muafiyet yuzunden
+    # HIC KOSMUYORDU: sari seri semasi listeye eklenmezse urun kartla tahsil edilemez.
+    # COZUM (susturma DEGIL, AYIRMA): dosyaya `--sema-paritesi` kolu eklendi (9a + 9b + 26
+    # sari fail-closed; ag/wrangler/D1 YOK, 12 ard arda kosumda cikti sha256 birebir ayni,
+    # ~0,06 s) ve deploy.yml'de `continue-on-error`SUZ BLOKLAYICI kosuyor. Non-deterministik
+    # yari (bayraksiz tam kosum + test 7) CI'ya BAGLANMADI — silinmedi/susturulmadi, yerelde
+    # ve merge kapisinda kosulmaya devam ediyor.
+    # 🔴 IKINCI KATMAN: liste ekseninin KENDISI artik elle bakimli degil —
+    # tools/sema-bundle-kapisi.py semalar.js'i jenerator/urunler/'den TURETIR ve drift'i ayrica
+    # bloklar (mukerrer/eksik sema id'si dahil, ki 9a onu GORMUYORDU).
     # "shop/test/olcum-kapisi.cjs" MUAFIYETI KALDIRILDI (30 Tem) — iki kat yanlisti.
     # (1) Gerekce R_AYRI ("bu suite o projenin CI hattinda kosulur") idi; oyle bir hat YOK.
     # (2) Daha kotusu dosya SAF MODULDU: `module.exports` var, `require.main` kolu YOK ->
