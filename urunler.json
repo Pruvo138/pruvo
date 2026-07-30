@@ -1,5 +1,453 @@
 [
   {
+    "id": "fishing-rod-holder-duvar-4lu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "4'lu Duvara Monte Olta Tutucusu",
+    "aciklama": "Duvara monte edilerek 4 adet olta kamisini duzenli sekilde tutan tutucu.\n- 4 adet olta kamisi kapasitesine sahiptir.\n- Duvara vida ile sabitlenir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 220 x 65 x 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr929779-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr929779-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bait",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sup-pompa-supap-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "SUP Pompa Supap Adaptoru (Schrader)",
+    "aciklama": "Sisme kurek tahtasi (SUP) supabini bisiklet/oto tipi Schrader pompa ucuyla sisirmeye yarayan adaptor.\n- Schrader tipi pompa ucuyla uyumludur.\n- Sisme kurek tahtasi (SUP) supabina takilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw23347-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw23347-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw23347-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "trolling-motor-boru-baglantisi",
+    "kategori": "Marin",
+    "marka": [
+      "Minn Kota"
+    ],
+    "baslik": "Trolling Motor Icin Boru Baglantisi (33mm)",
+    "aciklama": "Pruva-montajli (bow mount) trolling motorlarin 33mm borusuna uyan top-eklem bagli montaj parcasi. 22/25/28mm adaptorleri icerir.\n- 33mm boru capina sahip trolling motorlarla uyumludur.\n- 22/25/28mm adaptor parcalarini icerir.\n- Cok parcadan olusur.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw933225-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw933225-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw933225-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "buz-baligi-kova-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Buz Balikciligi Icin Kovaya Takilan Olta Tutucusu",
+    "aciklama": "Standart 5 galonluk kovanin kenarina takilarak buz balikciliginda kamisi sabit tutan tutucu.\n- Standart 5 galon kovaya takilir.\n- Kamisi kova kenarinda sabit tutar.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw68612-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw68612-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw68612-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw68612-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "capa-sekilli-anahtar-samandirasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Capa Sekilli Yuzen Anahtarlik (Samandira)",
+    "aciklama": "Tekne anahtarlarinin suya dusmesi durumunda yuzmesini saglayan, capa formunda ici bos anahtarlik.\n- Ici bos yapisi sayesinde su uzerinde yuzer.\n- Anahtar halkasi baglantisi bulunur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 93 x 88 x 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3514000-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3514000-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3514000-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Petclaud",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "kayak-kurek-tutucusu-klips",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Kuregi Tutucu Klips",
+    "aciklama": "Kayak uzerinde kuregi sabitlemek icin kullanilan tutucu klips.\n- Yaygin kurek profilleriyle uyumludur.\n- Kayak govdesine vida ile sabitlenir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1156935-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "tekne-kayik-olta-tutucusu-kutu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne/Kayik Saklama Kutusu Icin Olta Tutucusu",
+    "aciklama": "Tekne veya kayik uzerindeki saklama kutusuna monte edilerek olta kamisini dik tutan tutucu.\n- Tekne veya kayik saklama kutusuna montajlanir.\n- Kamisi dik konumda tutar.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw595269-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw595269-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw595269-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "otomatik-buz-baligi-tetik-mekanizmasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Otomatik Tetikli Buz Balikciligi Kamis Tutucusu",
+    "aciklama": "Buz balikciliginda kamisi sabitleyen ve balik oltaya vurdugunda tetiklenen otomatik mekanizmali tutucu.\n- Balik vurdugunda otomatik tetiklenir.\n- Kizak veya sabit yuzeye monte edilebilir.\n- Cok parcadan olusur.\nYaklasik dis olculer: 194 x 154 x 74 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr49401-1.jpg"
+    ]
+  },
+  {
+    "id": "sup-kayak-kano-bardak-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "SUP/Kayak/Kano Icin Bardak Tutucusu",
+    "aciklama": "Sisme kurek tahtasi (SUP), kayak veya kano uzerine baglanarak icecek kutusu/bardagi sabit tutan tutucu.\n- SUP, kayak ve kano ile uyumludur.\n- Standart icecek kutusu olcusune gore tasarlanmistir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 75 x 74 x 74 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr955371-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr955371-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr955371-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Marcus Makes",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-olta-tutucusu-m10",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Icin Olta Tutucusu",
+    "aciklama": "Tekne guvertesine M10 civata ile monte edilen olta kamisi tutucusu.\n- Tekne guvertesine vida ile monte edilir.\n- M10x50 civata ve somun gerektirir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1523774-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "itiwit-kayak-kurek-klipsi",
+    "kategori": "Marin",
+    "marka": [
+      "Itiwit"
+    ],
+    "baslik": "Sisme Kayak Kurekleri Icin Tasima Klipsi",
+    "aciklama": "Sisme kayak kureklerinin iki setini bir arada tutarak tasimayi kolaylastiran klips.\n- Itiwit sisme kayak kurekleriyle uyumludur.\n- Tasima kayisi baglanti deligi bulunur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 94 x 94 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr552900-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr552900-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr552900-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "buzz89",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "tekne-korkuluk-olta-tutucusu-pr938866",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Korkuluk Icin Olta Tutucusu",
+    "aciklama": "Tekne korkuluguna takilarak olta kamisi ve makarayi guvenli sekilde tutan tutucu.\n- Tekne korkuluguna takilir.\n- Makarali kamislari guvenli tutar.\n- Tek parcadan olusur.\nYaklasik dis olculer: 176 x 112 x 41 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr938866-1.jpg"
+    ]
+  },
+  {
+    "id": "bel-tipi-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bel Tipi Tasinabilir Olta Tutucusu",
+    "aciklama": "Balik avi sirasinda kamis ve makarayi belde tasimak icin kullanilan tutucu.\n- Kemer veya bel cantasina takilir.\n- Makarali kamislarla uyumludur.\n- Cok parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1399395-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1399395-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1399395-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-baglama-kestosu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Halati Icin Baglama Kestosu (Cleat)",
+    "aciklama": "Halati guvenli sekilde baglamak icin kullanilan, tekne ve iskelelerde yaygin bir baglama kestosu (cleat).\n- Halat baglamak icin iki kollu tasarima sahiptir.\n- Duvar veya guverteye vida ile sabitlenir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 134 x 25 x 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr467729-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr467729-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr467729-3.jpg"
+    ]
+  },
+  {
+    "id": "kano-olta-tutucusu-civatali",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kano Icin Civatali Olta Tutucusu",
+    "aciklama": "Kano govdesine civata ile monte edilen olta kamisi tutucusu.\n- Kano govdesine civata ile monte edilir.\n- M10 ve M6 civata/somun gerektirir.\n- Cok parcadan olusur.\nYaklasik dis olculer: 118 x 85 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr535521-1.jpg"
+    ]
+  },
+  {
+    "id": "pvc-bot-olta-yemi-telefon-duzenleyici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "PVC Bot Icin Yem ve Telefon Duzenleyicisi",
+    "aciklama": "Sisme (PVC) bot uzerine monte edilerek olta yemlerini, telefonu ve gozlugu duzenli tutan duzenleyici.\n- Sisme (PVC) botlarla uyumludur.\n- Olta yemi, telefon ve gozluk bolmeleri bulunur.\n- Tek parcadan olusur.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2855689-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2855689-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2855689-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2855689-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kurek-tutucusu-donel",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Doner Kavramali Kayak Kuregi Tutucusu",
+    "aciklama": "Kayak uzerine monte edilen, kuregi doner mekanizma ile sabitleyen tutucu.\n- 45 derecelik adaptorle uyumludur.\n- Kayak govdesine monte edilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 29 x 29 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr507573-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "C0D3Man",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "buz-baligi-olta-tutucusu-buyuk",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Buz Balikciligi Icin Sabit Olta Tutucusu",
+    "aciklama": "Buz uzerinde beklemeye birakilan kamisi sabit tutan buyuk boy tutucu.\n- Buz balikciligi icin tasarlanmistir.\n- Kamisi sabit ve dengeli tutar.\n- Tek parcadan olusur.\nYaklasik dis olculer: 300 x 170 x 120 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr659935-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr659935-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "reponinja33",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "olta-tutucusu-m10-civatali",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "M10 Civatali Olta Tutucusu",
+    "aciklama": "M10 civata ile sabit yuzeye monte edilen, tekne, iskele veya kiyi balikciliginda kullanilan olta tutucusu.\n- M10 civata ile monte edilir.\n- Tekne, iskele veya kiyida kullanilabilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw471000-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw471000-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw471000-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "olta-tutucusu-ucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Olta Kamisi Ucu Tutucusu",
+    "aciklama": "Olta kamisinin ucunu sabitlemek icin kullanilan basit tutucu parca.\n- 5.5mm capinda delik ile uretilir.\n- Farkli kamis caplarina gore uyarlanabilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 80 x 58 x 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr254606-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Frenkson",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "balikci-sandalyesi-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Balikci Sandalyesi Icin Olta Tutucusu (25mm)",
+    "aciklama": "25mm capli balikci sandalyesi borusuna takilan, kamisi sabit tutan tutucu.\n- 25mm capli sandalye borusuna uyumludur.\n- M5 ve M4 vida ile monte edilir.\n- Cok parcadan olusur.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1947363-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1947363-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1947363-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-salma-yuzgeci-braketli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Braketli Kayak Salma Yuzgeci (Skeg)",
+    "aciklama": "Kayagin duz rotada seyretmesine yardimci olan, takilip cikarilabilir braketli salma yuzgeci (skeg).\n- Takilip cikarilabilir braket ile gelir.\n- Tasima ve depolama kolayligi saglar.\n- Cok parcadan olusur.\nYaklasik dis olculer: 170 x 118 x 25 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr30658-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Mfann72",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "olta-tutucusu-klipsli-g",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "G Formunda Klipsli Olta Tutucusu",
+    "aciklama": "Makarali olta kamisini sabitlemek icin kullanilan, tasima amacli G formunda klipsli tutucu.\n- Kamisi lastik bant veya sac lastigiyle sabitler.\n- Tekne veya arac icinde kullanilabilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 65 x 55 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr662300-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr662300-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ned",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "olta-kamisi-tasima-klipsi-2li",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "2 Parcali Olta Kamisi Tasima Klipsi",
+    "aciklama": "Iki parcaya ayrilabilen olta kamislarinin parcalarini tasima veya depolama sirasinda bir arada tutan klips.\n- 2 parcali kamislar icin tasarlanmistir.\n- Tasima ve depolama sirasinda kullanilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 42 x 34 x 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr695932-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr695932-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr695932-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jcox10",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dinghy-baglama-kestosu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dinghy (Kucuk Tekne) Icin Baglama Kestosu",
+    "aciklama": "6-14mm halat kalinligina kadar kullanilabilen, kucuk tekne (dinghy) ve yelkenlilerde kullanilan baglama kestosu (cleat).\n- 6-14mm halat kalinligiyla uyumludur.\n- Iki adet 6mm baglanti elemani gerektirir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 120 x 35 x 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr119641-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr119641-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr119641-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "printornaut",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "plaj-arabasi-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Plaj Arabasi Icin Olta Tutucusu",
+    "aciklama": "Kiyi balikciliginda kullanilan plaj arabalarina monte edilen olta kamisi tutucusu.\n- Plaj arabalarina monte edilir.\n- Kiyi balikciligi icin uygundur.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw141293-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw141293-2.jpg"
+    ]
+  },
+  {
+    "id": "kayak-kurek-tutucusu-klips-2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "U Formunda Basit Kayak Kuregi Tutucusu",
+    "aciklama": "Kayak govdesine takilarak kuregi sabit tutan klips tutucu.\n- Kayak govdesine takilir.\n- Kuregi sabit ve duzenli tutar.\n- Tek parcadan olusur.\nYaklasik dis olculer: 60 x 40 x 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr269007-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr269007-2.jpg"
+    ]
+  },
+  {
+    "id": "basit-olta-tutucusu-kazikli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kazikli Basit Olta Tutucusu",
+    "aciklama": "Zemine saplanan bir cubuk uzerine takilarak kiyi veya bank balikciliginda kamisi sabit tutan basit tutucu.\n- Zemine saplanan cubuga takilir.\n- Kiyi veya bank balikciligi icin uygundur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 67 x 45 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr958938-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr958938-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr958938-3.jpg"
+    ]
+  },
+  {
+    "id": "kayak-kurek-duvar-askisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Duvara Monte Kayak Kuregi Askisi",
+    "aciklama": "Kayak kureginin dort kanadini duvara asarak duzenli sekilde saklamayi saglayan aski.\n- 4 kurek kanadi kapasitesine sahiptir.\n- Duvara vida ile monte edilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 150 x 142 x 140 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr135263-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MrPorcine",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "bimini-pencere-koruyucusu",
     "kategori": "Marin",
     "marka": [],
