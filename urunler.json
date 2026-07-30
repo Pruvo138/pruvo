@@ -1,5 +1,26 @@
 [
   {
+    "id": "yan-birakmali-kayis-tokasi",
+    "kategori": "Tamirat",
+    "marka": [],
+    "baslik": "Yan Bırakmalı Kayış Tokası (Çanta · Sırt Çantası · Kemer)",
+    "aciklama": "Kayış, kemer ve bantları hızlıca birleştirip tek hareketle ayıran yan bırakmalı (side-release) toka. Erkek ve dişi olmak üzere iki parçadan oluşur.\n- İki yandan bastırılınca açılır, yerine oturunca kilitlenir.\n- Çanta, sırt çantası, kamp ekipmanı ve dış giyim kayışlarında kullanılır.\n- Her iki parçada çift çubuklu kayış geçişi vardır; kayış boyu ayarlanabilir.\n- Kırılan orijinal tokanın yerine yedek olarak takılabilir.\n- Tasarım aynen üretilir, üzerinde değişiklik yapılmaz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1170825-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1170825-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1170825-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1170825-4.jpg"
+    ],
+    "tavsiyeFilament": [
+      "PETG"
+    ],
+    "lisans": {
+      "tasarimci": "Lu_Pi_314",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
     "id": "basit-tekli-olta-tutucusu-mini",
     "kategori": "Marin",
     "marka": [],
