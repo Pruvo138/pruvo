@@ -1296,9 +1296,151 @@ function test27() {
     JSON.stringify(g4.events[0].params.items[0]));
 }
 
+// ---- 28) REF HALKASI: landing REF'i SIPARIS kaydina (D1 siparisler.atif) tasiniyor mu? ----
+//
+// 🔗 NE KORUR (30 Tem, S3): landing modulu her oturumda REF uretir; wa.me lead beacon'i
+// REF -> click-id eslemesini D1 `reklam_ref_gclid`e yazar (shop/src/ref.js). O tabloda
+// REF -> gclid/gbraid/wbraid VARDI ama SIPARIS -> REF baglantisi YOKTU: `ref`, /baslat'in
+// atif beyaz-listesinde olmadigi icin SESSIZCE dusuyordu (olculdu: gonderilen
+// {ref, utm_source, fbp} -> D1'e yalniz {fbp, utm_source} yazildi). Yani hangi siparisin
+// hangi tiklamadan/organik oturumdan geldigi JOIN'lenemiyordu. Bu set halkanin kapali
+// kaldigini kilitler + REF'in disari (Meta/GA4) SIZMADIGINI dogrular.
+const REF_GECERLI = "REF:OG-MRN-A7K2";
+const REF_D1_SATIRI = { id: "audi-yakit-kapagi", baslik: "Audi Yakıt Kapağı",
+                        kategori: "Otomobil", fiyat: "850 TL", parametrik: 0, gorsel: "" };
+const REF_ENV = { SITE_URL: "https://pruvo3d.com", IYZICO_BASE_URL: "https://iyzico.test",
+                  IYZICO_API_KEY: "test-k", IYZICO_SECRET_KEY: "test-s" };
+
+/** /baslat'i verilen index modulunden cagirir; D1'e yazilan `atif` JSON'unu cozer. */
+async function refBaslat(mod, atif) {
+  const kayitlar = [];
+  const env = { ...REF_ENV, KATALOG: { prepare(sql) { return { bind(...arg) { return {
+    async all() {
+      return { results: arg.filter((x) => x === REF_D1_SATIRI.id).map(() => REF_D1_SATIRI) };
+    },
+    async first() { return null; },                       // siparis no carpismasi yok
+    async run() { kayitlar.push({ sql, arg }); return { meta: { changes: 1 } }; },
+  }; } }; } } };
+  const eskiFetch = globalThis.fetch;
+  globalThis.fetch = async (hedef) => {
+    const u = String(hedef && hedef.url ? hedef.url : hedef);
+    if (u.includes("iyzico.test")) {
+      return new Response(JSON.stringify({ status: "success", token: "tok",
+        paymentPageUrl: "https://odeme.test/s" }),
+        { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    throw new Error("TESTTE BEKLENMEYEN AG ISTEGI: " + u);
+  };
+  let kod = 0;
+  try {
+    const istek = new Request("https://pruvo3d.com/api/shop/baslat", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sozlesme_onay: true, odeme: "kart",
+        musteri: { ad: "Test Musteri", tel: "05321112233", eposta: "test@pruvo3d.com",
+                   adres: "Test mahallesi test sokak no 1", sehir: "Mugla" },
+        sepet: [{ id: REF_D1_SATIRI.id, malzeme: "PLA", renk: "Siyah", adet: 1 }],
+        atif,
+      }),
+    });
+    kod = (await mod.default.fetch(istek, env, { waitUntil() {} })).status;
+  } finally {
+    globalThis.fetch = eskiFetch;
+  }
+  const insert = kayitlar.find((k) => /INSERT INTO siparisler/.test(k.sql));
+  const ham = insert ? insert.arg[insert.arg.length - 1] : null;   // atif SON bind parametresi
+  let cozulen = null;
+  try { cozulen = JSON.parse(ham); } catch (e) { cozulen = null; }
+  return { kod, ham, atif: cozulen };
+}
+
+/** index.js'in KAYNAK METNI mutasyonlanip AYRI modul ornegi olarak yuklenir (M-mutasyonu).
+ *  Gecici dizin shop/ ALTINDA ayni derinlikte durur; ../config.json + ../../secenekler.js
+ *  gercek dosyalara cozulur. Depo dosyasi DEGISMEZ. */
+async function refMutantYukle(capa, yerine) {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const { pathToFileURL, fileURLToPath } = await import("node:url");
+  const SHOP_D = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+  const SRC_D = path.join(SHOP_D, "src");
+  const kaynak = fs.readFileSync(path.join(SRC_D, "index.js"), "utf8");
+  if (kaynak.split(capa).length !== 2) { return { capaYok: true }; }
+  const temp = path.join(SHOP_D, "src-ref-mut-" + process.pid);
+  fs.rmSync(temp, { recursive: true, force: true });
+  fs.mkdirSync(temp, { recursive: true });
+  for (const ad of fs.readdirSync(SRC_D)) {
+    if (!ad.endsWith(".js")) { continue; }
+    fs.writeFileSync(path.join(temp, ad),
+      ad === "index.js" ? kaynak.replace(capa, yerine)
+                        : fs.readFileSync(path.join(SRC_D, ad), "utf8"));
+  }
+  process.on("exit", () => { fs.rmSync(temp, { recursive: true, force: true }); });
+  return { mod: await import(pathToFileURL(path.join(temp, "index.js")).href) };
+}
+
+async function test28() {
+  if (!indexModulu) { modulYok("28 REF HALKASI (index.js)"); return; }
+
+  const r = await refBaslat(indexModulu,
+    { ref: REF_GECERLI, utm_source: "google", fbp: "fb.1.1.1" });
+  ol("28a /baslat 200 (REF akisi odeme yolunu bozmuyor)", r.kod === 200, "kod=" + r.kod);
+  ol("28b REF siparis kaydina (D1 siparisler.atif) YAZILDI — halka kapali",
+    r.atif && r.atif.ref === REF_GECERLI, r.ham);
+  ol("28c diger atif alanlari AYNEN korundu (regresyon yok)",
+    r.atif && r.atif.fbp === "fb.1.1.1" && r.atif.utm_source === "google", r.ham);
+
+  // Bicim disi / cop REF: SESSIZCE atilir (yanlis atif uretmesin), istek yine 200.
+  const kotuler = [["kucuk harfli grup", "REF:xx-1-2"], ["kuyruk enjeksiyonu",
+    REF_GECERLI + " <script>"], ["cok uzun", "R".repeat(400)], ["bos", ""],
+    ["sayi", 42], ["null", null], ["satir sonu ekli", REF_GECERLI + "\nekstra"]];
+  let kotuTemiz = 0;
+  for (const [ad, deger] of kotuler) {
+    const rr = await refBaslat(indexModulu, { ref: deger });
+    if (rr.kod === 200 && rr.atif && !Object.prototype.hasOwnProperty.call(rr.atif, "ref")) {
+      kotuTemiz += 1;
+    } else { ol("28d bicim disi REF sizdi — " + ad, false, rr.ham); }
+  }
+  ol("28d bicim disi REF'lerin HEPSI atildi (" + kotuTemiz + "/" + kotuler.length + ")",
+    kotuTemiz === kotuler.length);
+
+  // KIRPMA YOK: uzun deger kirpilip "gecerli gibi" bir REF'e DONMEZ (kirpik REF = yanlis atif).
+  const uzun = await refBaslat(indexModulu, { ref: REF_GECERLI + "XXXXXXXXXXXXXXXXXXXX" });
+  ol("28e uzun REF KIRPILMADI (kirpik deger gecerli REF gibi kaydedilmiyor)",
+    uzun.atif && !Object.prototype.hasOwnProperty.call(uzun.atif, "ref"), uzun.ham);
+
+  // GIZLILIK: REF bizim IC atif anahtarimiz — Meta/GA4 govdelerine GIRMEZ.
+  const siparis = { siparis_no: "PR-260730-0001-REF", tutar_kurus: 85000, kargo_kurus: 25000,
+    urunler: JSON.stringify([{ id: "audi-yakit-kapagi", baslik: "Audi Yakıt Kapağı",
+                               kategori: "Otomobil", adet: 1, birim_kurus: 85000 }]),
+    atif: JSON.stringify({ ref: REF_GECERLI, fbp: "fb.1.1.1", ga_client_id: "1.2" }) };
+  const olay = satinAlmaOlayi(siparis);
+  const atifKaydi = { ref: REF_GECERLI, fbp: "fb.1.1.1", ga_client_id: "1.2" };
+  const metaMetin = JSON.stringify(metaGovdesi({ META_PIXEL_ID: "1" }, olay, atifKaydi, {}));
+  const ga4Metin = JSON.stringify(ga4Govdesi({ GA4_MEASUREMENT_ID: "G-1" }, olay, atifKaydi));
+  ol("28f REF Meta CAPI govdesine SIZMIYOR", metaMetin.indexOf("REF:") === -1);
+  ol("28g REF GA4 MP govdesine SIZMIYOR", ga4Metin.indexOf("REF:") === -1);
+  ol("28h fbp yine gonderiliyor (28f/28g tautoloji degil — govdeler dolu)",
+    metaMetin.indexOf("fb.1.1.1") >= 0 && ga4Metin.indexOf("1.2") >= 0);
+
+  // ---- MUTASYON: beyaz-liste satiri NO-OP yapilinca 28b KIRMIZI yanmali mi? ----
+  const CAPA = 'ref: REF_KALIBI.test(al(a.ref, 64)) ? al(a.ref, 64) : "",';
+  const mut = await refMutantYukle(CAPA, 'ref: "",');
+  if (mut.capaYok) {
+    ol("28i MUTASYON OLCULEMEDI — beyaz-liste capasi kaynakta yok/coklu (kaldirilmis ya da " +
+       "yeniden yazilmis)", false, CAPA);
+  } else {
+    const rm = await refBaslat(mut.mod, { ref: REF_GECERLI, utm_source: "google" });
+    ol("28i no-op mutasyonu: `ref` beyaz-listeden cikarilinca REF D1'e YAZILMIYOR " +
+       "(28b yuk tasiyor)",
+      rm.kod === 200 && rm.atif && !Object.prototype.hasOwnProperty.call(rm.atif, "ref"), rm.ham);
+    ol("28j mutantta diger alanlar HALA yaziliyor (mutant butunuyle bozuk degil)",
+      rm.atif && rm.atif.utm_source === "google", rm.ham);
+  }
+}
+
 const testler = [test9, test10, test11, test12, test13,
                  test14, test15, test16, test17, test18, test19, test20,
-                 test21, test22, test23, test24, test25, test26, test27];
+                 test21, test22, test23, test24, test25, test26, test27, test28];
 for (const t of testler) { await t(); }
 
 console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" + (kalan ? "" : " — HEPSI YESIL ✅"));
