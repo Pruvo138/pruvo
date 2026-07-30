@@ -161,6 +161,151 @@ _KIRLI_MARKA = {
 DEDUP_ESIK = 0.75
 _STOP = set("ve ile için icin bir bu da de ki mm için icin".split())
 
+# =============================================================================
+# KAPI 7: FIYAT TABANI (Okan kurali, 30 Tem) — hicbir urunun fiyati 500 TL'nin
+# ALTINDA olamaz; formul dusuk verirse TABANA yuvarlanir.
+# MAKINE-KESIN + FAIL-CLOSED: karar tek bir SAYI karsilastirmasidir, belirsizlik YOK.
+# Ihlal SILME degil DUZELTME ister (tabana yuvarla) -> auto_sil'e DEGIL 'ihlal'e gider.
+# MUAF: parametrik/SARI seri — onlarin fiyati BOS ("") olmali (taban fiyat build.py
+#   tarafindan taban-fiyatlar.js'ten gelir). OLCULDU (30 Tem, 14794 urun): fiyati BOS
+#   olan 23 kaydin 23'u de parametrik; parametrik olup fiyati DOLU olan 0 kayit.
+# OZEL-FORMAT NITELEYICI KORUNUR (OLCULDU: 2 kayit) — "500 TL/adel", "500 TL (30 cm)":
+#   desen bastaki sayiya capalanir, niteleyici kuyruguna DOKUNMAZ -> ikisi de 500 = GECER.
+# =============================================================================
+FIYAT_TABANI = 500.0
+_FIYAT_RE = re.compile(r"^\s*(\d[\d.,]*)\s*(?:tl|₺)", re.UNICODE)
+
+
+def _fiyat_sayi(ham):
+    """'850 TL'->850.0 · '1.250 TL'->1250.0 · '500 TL/adel'->500.0 · '500 TL (30 cm)'->500.0.
+    Turkce bicim: '.' binlik ayirici, ',' ondalik. Ayristirilamayan -> None (cagiran
+    FAIL-CLOSED davranir: None = ihlal, "belki yuksektir" varsayimi YOK)."""
+    if not isinstance(ham, str):
+        return None
+    m = _FIYAT_RE.match(tr_lower(ham).strip())
+    if not m:
+        return None
+    s = m.group(1)
+    s = s.replace(".", "").replace(",", ".") if "," in s else s.replace(".", "")
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
+# =============================================================================
+# KAPI 8: URETIM-SURECI IFSASI (Okan kurali, 30 Tem) — baslik/aciklamada baski ya da
+# uretim SURECINE dair dil GECMEZ. ISLEV ve UYUM bilgisi KORUNUR.
+#
+# 🔴 NEDEN IKI KADEME (SERT vs UYARI): yanlis-pozitifin bedeli URUN AKISINI DURDURUR.
+# Turkce cok-anlamlilik OLCULDU (30 Tem, canli katalog) — duz kelime taramasi MESRU
+# kaydi yakalar:
+#   * "destek" = hem DILIMLEYICI destegi hem KURULUM destegi hem FIZIKSEL destek parcasi
+#     ("profesyonel destek gerektirmez" = usta destegi — 17 canli Otomobil kaydi;
+#      "kaput destek cubugu" = fiziksel parca; "desteksiz direklerde" = YELKEN donanimi
+#      terimi/istralsiz direk — 1 canli Marin kaydi).
+#   * "basil-" = hem BASKI (print) hem BASMA (press) — "dugmeye basilmasini onler",
+#     "tusa kazara basilmasi", "fitil yerine basilir" (OLCULDU: 8 canli kayit press).
+#   * "baski" = hem PRINT hem BASINC ("yay baski olusturur").
+#   * "dilimleme" = hem SLICER hem GIDA DILIMLEME MAKINESI (1 canli Elektronik kaydi).
+#   * "3D yazici" = urunun HEDEF CIHAZI olabilir (yazici parcasi satiyoruz) — PRUVO'nun
+#     kendi uretim sureci DEGIL (OLCULDU: 6 canli Elektronik/Kamera kaydi).
+# Bu yuzden: iddia DAR tutulur. Kesin olan BLOKLAR (sert), supheli olan yalnizca
+# ISARETLENIR (uyari) ve insan/isci karar verir. Supheli ifade OTOMATIK REDDEDILMEZ.
+# =============================================================================
+
+# --- cumle sinirlari: "0.10-0.20mm" gibi ondalik nokta cumle SONU sayilmaz -------------
+_CUMLE_SON_RE = re.compile(r"[.!?](?=\s|$)|[\n;]", re.UNICODE)
+
+
+def _cumle(metin, i, j):
+    """[i,j) eslesmesini iceren CUMLEyi dondurur. Konjonksiyon kurallari 'ayni cumle'
+    ister — pencere/karakter mesafesi degil (olculdu: 90-karakter penceresi komsu
+    cumledeki alakasiz 'uretilir'i yanlis baglayip mesru kaydi SERT yakiyordu)."""
+    bas, son = 0, len(metin)
+    for m in _CUMLE_SON_RE.finditer(metin):
+        if m.end() <= i:
+            bas = m.end()
+        elif m.start() >= j:
+            son = m.start()
+            break
+    return metin[bas:son]
+
+
+# --- MUAF-1 (KAYIT DUZEYI): urunun HEDEF CIHAZI bir 3D yazici -------------------------
+# Yazici parcasi satarken "3D yazici" demek ZORUNLU ve MESRU — bu PRUVO'nun kendi uretim
+# sureci DEGIL, urunun UYUM bilgisidir. Ama muafiyet KOSULLU: ayni metinde "yazici ILE/DA
+# URETILIR/BASILIR" gecerse o BIZIM surecimizdir -> muafiyet DUSER (kacak deligi kapali).
+_YAZICI_HEDEF_RE = re.compile(r"(3\s*[db]|3\s*boyutlu)\s*yaz[ıi]c[ıi]", re.UNICODE)
+_YAZICI_BIZIM_RE = re.compile(r"yaz[ıi]c[ıi]\w*[^\n.]{0,40}?(bas[ıi]l|[üu]retil|imal\s*edil)",
+                              re.UNICODE)
+
+
+def _yazici_hedef_urun(metin):
+    """Urunun hedefi bir 3D yazici mi (-> ifsa kapisi bu kayitta CALISMAZ)?"""
+    if not _YAZICI_HEDEF_RE.search(metin):
+        return False
+    return _YAZICI_BIZIM_RE.search(metin) is None
+
+
+# --- MUAF-2 (ESLESME DUZEYI): olculmus MESRU es-dizimler ------------------------------
+# Her giris CANLI katalogda sayilmis bir yanlis-pozitif sinifidir; gerekce zorunlu.
+_IFSA_MUAF = (
+    (r"profesyonel\s+destek", "kurulumda USTA/servis destegi — dilimleyici destegi DEGIL"),
+    (r"desteksiz\s+direk", "yelken donanimi terimi (istralsiz direk)"),
+    (r"destek\s+(çubu|cubu|klips|braket|parça|parca|ayağ|ayag|kolu|pimi|halka|burc|burç|"
+     r"eleman|mili|teli|sacı|saci|plaka)", "FIZIKSEL destek PARCASI (urunun kendisi)"),
+    (r"dilimleme\s+makine", "GIDA dilimleme makinesi — slicer DEGIL"),
+)
+_IFSA_MUAF_RE = tuple((re.compile(d, re.UNICODE), g) for d, g in _IFSA_MUAF)
+
+# press-anlami: "dugme/tus/butona basilir" = BASMA, baski DEGIL (ayni cumlede aranir)
+_PRESS_RE = re.compile(r"d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*day", re.UNICODE)
+
+# --- SERT (KESIN-YASAK -> ihlal, BLOKLAR) ---------------------------------------------
+# Her biri TEK BASINA kesin: Turkce'de baska mesru okumasi OLCULMEDI.
+_IFSA_SERT = (
+    ("dolgu-orani",
+     r"(dolgu|doluluk)\s*oran|%\s*\d+\s*(dolgu|doluluk)|y[üu]ksek\s*(dolgu|doluluk)",
+     "dolgu/doluluk orani = dilimleyici parametresi"),
+    ("katman-yuksekligi",
+     r"katman\s*y[üu]ksekli|bask[ıi]\s*katman",
+     "katman yuksekligi = dilimleyici parametresi"),
+    ("baski-yonu",
+     r"bask[ıi]\s*y[öo]n|stl\s*y[öo]nlendirme|dilimleme\s*(s[ıi]ras[ıi]nda|[öo]neril|yap)",
+     "baski yonu / dilimleme = uretim sureci"),
+    ("baskiya-uygunluk",
+     r"bask[ıi]ya\s*uygun|kolay\s*bask[ıi]|bask[ıi]\s*kolayl|bask[ıi]\s*alan",
+     "baskiya uygunluk/baski alani = uretim sureci"),
+    # ⚠️ 'nozzle/nozul' ve 'SLS' BILEREK BU LISTEDE DEGIL — OLCULDU (30 Tem, canli katalog):
+    #   'nozul' OTOMOTIV parcasidir (far yikama nozulu BMW E46/Z4, sprey nozzle Audi e-tron,
+    #   sanziman yagi degisim nozulu Toyota/Subaru, supurge nozulu Mercedes, silecek nozul
+    #   hortumu VW) — 9 mesru canli kayit; 'SLS' Mercedes W126 SELF-LEVELLING SUSPENSION.
+    #   Duz kelime olarak yasaklanirsa bu kayitlar SESSIZCE bloklanir. Dilimleyici anlamini
+    #   yalniz OLCU ile birlikte gecen 'nozul capi' tasir -> asagida DAR desen.
+    ("surec-teknolojisi",
+     r"\bfdm\b|\bsla\b|\binfill\b|3\s*[db]\s*bas[ıi]l|3\s*boyutlu\s*bas[ıi]l"
+     r"|\d+[.,]?\d*\s*mm\s*noz[uüz]l|noz[uüz]l\s*[çc]ap",
+     "uretim teknolojisi adi (FDM/SLA/'3D basilabilir'/nozul CAPI)"),
+)
+_IFSA_SERT_RE = tuple((ad, re.compile(d, re.UNICODE), g) for ad, d, g in _IFSA_SERT)
+
+# --- KONJONKSIYON (tek basina BELIRSIZ, birlikte KESIN — ayni cumlede) ----------------
+_BASMA_RE = re.compile(
+    r"bas[ıi]l(ab[ıi]l[ıi]r|ab[ıi]lece|[ıi]r|mas[ıi]|m[ıi][şs]|[ıi]p|mal[ıi]|an|"
+    r"d[ıi][ğg][ıi]nda|d[ıi]ktan|acak|[ıi]nca)|\bbas[ıi]m\b", re.UNICODE)
+# baski anlamini KESINLESTIREN surec jetonlari (malzeme / dilimleyici / yerlesim)
+_SUREC_TOKEN_RE = re.compile(
+    r"\bpla\b|\bpetg\b|\babs\b|\btpu\b|\basa\b|\btpe\b|filaman|filament"
+    r"|dolgu|doluluk|destek|katman|yaz[ıi]c[ıi]|tabla|[çc][öo]z[üu]n[üu]rl[üu]k"
+    r"|par[çc]a\s*halinde|par[çc]ada|par[çc]a\s*bas|ters\s*bas|yan\s*yat[ıi]r"
+    r"|k[öo]pr[üu]|saatte|dakikada|solid|a[çc][ıi]yla|a[şs]a[ğg][ıi]\s*bakacak"
+    r"|yatay\s*bas|dikey\s*bas|b[öo]l[üu]nerek", re.UNICODE)
+_DESTEK_RE = re.compile(
+    r"desteksiz|destek\s*gerektir|destek\s*olmadan|destek\s*malzeme|ek\s*destek"
+    r"|destek\s*gereksinim", re.UNICODE)
+_URETIM_FIILI_RE = re.compile(r"bas[ıi]l|bask[ıi]|[üu]retil|imal\s*edil", re.UNICODE)
+
 
 # =============================================================================
 # yardimcilar
@@ -403,6 +548,81 @@ def kapi_marka_kirli(urun):
             "onerilen_marka": [m for m in marka if m not in kirli]}
 
 
+def kapi_fiyat(urun):
+    """(ihlal_kapi|None, gerekce) — KAPI 7 fiyat tabani. MAKINE-KESIN + FAIL-CLOSED.
+    MUAF: parametrik/sari seri (fiyat BOS olmali). Ihlal SILME degil DUZELTME ister."""
+    ham = urun.get("fiyat")
+    if not isinstance(ham, str) or not ham.strip():
+        if bool(urun.get("parametrik")):
+            return None, ""                       # sari seri: fiyat BOS olmasi DOGRU
+        return "fiyat", "fiyat BOS ama urun parametrik degil (fail-closed)"
+    n = _fiyat_sayi(ham)
+    if n is None:
+        return "fiyat", "fiyat ayristirilamadi: %r (fail-closed)" % ham
+    if n < FIYAT_TABANI:
+        return "fiyat", ("fiyat %s = %g TL < taban %g TL -> tabana yuvarlanmali"
+                         % (ham, n, FIYAT_TABANI))
+    return None, ""
+
+
+def _ifsa_muaf_eslesme(cumle):
+    """Bu cumlede eslesmeyi MESRU kilan olculmus bir es-dizim var mi? -> gerekce|None."""
+    for rx, gerekce in _IFSA_MUAF_RE:
+        if rx.search(cumle):
+            return gerekce
+    return None
+
+
+def kapi_ifsa(urun):
+    """KAPI 8 — uretim-sureci ifsasi. ({sert:[...], uyari:[...]}) dondurur.
+      sert  = KESIN-YASAK -> ihlal (BLOKLAR); duzeltilmeden parti gecmez.
+      uyari = SUPHELI ama BELIRSIZ -> yalnizca isaretlenir, insan/isci karar verir.
+    Kayit duzeyinde MUAF: urunun hedef cihazi bir 3D yazici (bkz _yazici_hedef_urun)."""
+    metin = _metin(urun)
+    if _yazici_hedef_urun(metin):
+        return {"sert": [], "uyari": [],
+                "muaf": "urunun HEDEF CIHAZI 3D yazici — baski sozlugu UYUM bilgisi"}
+    sert, uyari = [], []
+
+    def _kayit(hedef, ad, m, gerekce):
+        c = _cumle(metin, m.start(), m.end())
+        muaf = _ifsa_muaf_eslesme(c)
+        if muaf:
+            return
+        hedef.append({"kural": ad, "ifade": m.group(0).strip(),
+                      "cumle": c.strip()[:160], "gerekce": gerekce})
+
+    # 1) tek basina KESIN olan desenler
+    for ad, rx, gerekce in _IFSA_SERT_RE:
+        for m in rx.finditer(metin):
+            _kayit(sert, ad, m, gerekce)
+
+    # 2) KONJONKSIYON: 'destek' + ayni cumlede URETIM FIILI -> KESIN (dilimleyici destegi)
+    #    'destek' tek basina -> BELIRSIZ (fiziksel destek / kurulum destegi olabilir) -> uyari
+    for m in _DESTEK_RE.finditer(metin):
+        c = _cumle(metin, m.start(), m.end())
+        if _ifsa_muaf_eslesme(c):
+            continue
+        if _URETIM_FIILI_RE.search(c):
+            _kayit(sert, "destek-baski", m, "destek + uretim fiili ayni cumlede = dilimleyici destegi")
+        else:
+            _kayit(uyari, "destek-belirsiz", m,
+                   "'destek' uretim fiili OLMADAN — fiziksel/kurulum destegi olabilir; INSAN karari")
+
+    # 3) KONJONKSIYON: 'basil-' + ayni cumlede SUREC JETONU -> KESIN baski
+    #    jetonsuz 'basil-' -> BELIRSIZ (press/basma anlami olabilir) -> uyari
+    for m in _BASMA_RE.finditer(metin):
+        c = _cumle(metin, m.start(), m.end())
+        if _ifsa_muaf_eslesme(c) or _PRESS_RE.search(c):
+            continue                              # "dugmeye basilmasi" = BASMA, baski DEGIL
+        if _SUREC_TOKEN_RE.search(c):
+            _kayit(sert, "baski-fiili", m, "baski fiili + surec jetonu ayni cumlede")
+        else:
+            _kayit(uyari, "basma-belirsiz", m,
+                   "'basil-' surec jetonu OLMADAN — press/basma anlami olabilir; INSAN karari")
+    return {"sert": sert, "uyari": uyari, "muaf": None}
+
+
 def kapi_gorsel_cakisma(yeni, tum):
     """Yeni urunlerden gorseller[0] dosya adini (yeni ya da mevcut) baska urunle paylasan
     her biri icin eskalasyon kaydi. Silme."""
@@ -475,12 +695,25 @@ def denetle(urunler, yeni_ids, head_ids, kaynaklar):
     """Tum kapilari calistirip yapilandirilmis rapor sozlugu dondurur (saf; dosya yazmaz)."""
     yeni = [u for u in urunler if isinstance(u, dict) and u.get("id") in yeni_ids]
     auto_sil, eskalasyon, marka_kirli = [], [], []
+    ihlal = []                                    # KAPI 7/8: BLOKLAR ama SILMEZ (duzeltilir)
     haric = set()
     gerekce_map = {}
 
     for u in yeni:
         uid = u.get("id")
         kayit = kaynaklar.get(uid)
+        # 7 FIYAT TABANI (ihlal — silme DEGIL, tabana yuvarlama ister)
+        kapi, g = kapi_fiyat(u)
+        if kapi:
+            ihlal.append({"id": uid, "kapi": "fiyat", "gerekce": g})
+        # 8 URETIM-SURECI IFSASI: sert -> ihlal (bloklar), uyari -> eskalasyon (bloklamaz)
+        ifsa = kapi_ifsa(u)
+        for s in ifsa["sert"]:
+            ihlal.append({"id": uid, "kapi": "ifsa/" + s["kural"],
+                          "gerekce": "%s: %r — %s" % (s["gerekce"], s["ifade"], s["cumle"])})
+        for w in ifsa["uyari"]:
+            eskalasyon.append({"id": uid, "kapi": "ifsa-uyari/" + w["kural"],
+                               "neden": "%s: %r — %s" % (w["gerekce"], w["ifade"], w["cumle"])})
         # 1 lisans
         kapi, g = kapi_lisans(u, kayit)
         if kapi:
@@ -524,6 +757,7 @@ def denetle(urunler, yeni_ids, head_ids, kaynaklar):
         "dedup": dedup,
         "eskalasyon": eskalasyon,
         "marka_kirli": marka_kirli,
+        "ihlal": ihlal,
         "_sil_ids": sil_ids,
         "_gerekce": gerekce_map,
     }
@@ -584,6 +818,8 @@ def main():
     ap.add_argument("--uygula", action="store_true",
                     help="auto_sil + dedup.sil'i duzelt.py --sil ile UYGULA (varsayilan: report-only)")
     ap.add_argument("--rapor", default=RAPOR, help="rapor JSON cikti yolu")
+    ap.add_argument("--tum-katalog", action="store_true",
+                    help="KAPI 7/8'i TUM katalogda kostur (denetim/olcum; parti farki yerine)")
     args = ap.parse_args()
 
     urunler = _oku_json(URUNLER, None)
@@ -598,7 +834,10 @@ def main():
     if head_ids is None:
         head_ids = set()
 
-    if args.idler is not None:
+    if args.tum_katalog:
+        yeni_ids = {u.get("id") for u in urunler
+                    if isinstance(u, dict) and u.get("id") is not None}
+    elif args.idler is not None:
         yeni_ids = set(args.idler)
     else:
         working_ids = {u.get("id") for u in urunler if isinstance(u, dict) and u.get("id") is not None}
@@ -621,7 +860,14 @@ def main():
           % (len(rapor["dedup"]), sum(len(d["sil"]) for d in rapor["dedup"])))
     print("  eskalasyon   : %d" % len(rapor["eskalasyon"]))
     print("  marka_kirli  : %d" % len(rapor["marka_kirli"]))
+    print("  IHLAL        : %d (fiyat tabani / uretim-sureci ifsasi — BLOKLAR)"
+          % len(rapor["ihlal"]))
     print("  rapor -> %s" % args.rapor)
+
+    if rapor["ihlal"]:
+        print("\n=== IHLAL (duzeltilmeden parti GECMEZ) ===", file=sys.stderr)
+        for it in rapor["ihlal"]:
+            print("  %-46s [%s] %s" % (it["id"], it["kapi"], it["gerekce"]), file=sys.stderr)
 
     if args.uygula:
         sil_ids = rapor["_sil_ids"]
@@ -631,10 +877,10 @@ def main():
         print("--uygula: %d urun duzelt.py --sil ile kaldiriliyor..." % len(sil_ids))
         ok, hata = _uygula(sil_ids, rapor["_gerekce"])
         print("uygulandi: %d silindi, %d hata" % (len(ok), len(hata)))
-        return 1 if hata else 0
+        return 1 if (hata or rapor["ihlal"]) else 0
 
     print("(report-only — silmek icin --uygula)")
-    return 0
+    return 1 if rapor["ihlal"] else 0
 
 
 if __name__ == "__main__":
