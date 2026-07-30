@@ -1,0 +1,530 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""KABUL TESTI — MARKA × KATEGORİ KAPSAMI (çip hedefi + marka/model sayfası kapsamı).
+
+NEDEN VAR (Okan, 30 Tem — SESSİZ hata sınıfı): çok-dikeyli markalar (ölçüldü: Yamaha 6
+dikey, Suzuki 5, BMW 4, Volvo 2 — "Volvo Penta"nın 21 Marin ürünü kanonik "Volvo"ya
+katlanıyor) tek marka kovasında birleşiyordu. Marin'de "Yamaha" çipine basan müşteriye
+motosiklet/elektronik parçası çıkıyordu; hata EKRANDA hata gibi görünmüyor, kimse
+bildirmiyor, satış sessizce kayboluyordu.
+
+KARAR (KraL): yeni marka adı UYDURULMAZ ("Yamaha Marine" aramayı böler + Ege eşleşmesini
+kırar). Ayırt edici zaten var: marka + kategori ÇİFTİ. Çip hedefi hangi kategoriden
+tıklandıysa o kapsamı taşır; marka/model sayfası kapsamı UYGULAR; kanonik URL değişmez.
+
+NE KİLİTLER (her madde POZİTİF + NEGATİF vakayla):
+  1. Marin'de Yamaha çipine basıldığında dönen küme YALNIZ Marin (Motosiklet/Elektronik = 0).
+  2. Kategori seçili DEĞİLKEN (kanonik, parametresiz) sayfaya HİÇ dokunulmaz — eski davranış.
+  3. Geçersiz/bilinmeyen kapsam -> FAIL-CLOSED (0 ürün + görünür uyarı). Sessizce tüm
+     kataloğu göstermek KIRMIZI'dır.
+  4. data-kat'ı OKUNAMAYAN kart kapsam altında GİZLENİR (kaçak yok).
+  5. Kapsam GÖRÜNÜR ve KALDIRILABİLİR (kapsam şeridi + parametresiz adrese dönüş linki).
+  6. SEO: kanonik URL parametresiz kalır, sitemap'e parametreli/yeni girdi girmez.
+
+NASIL ÖLÇER (kopya mantık YOK — canlı kod koşar):
+  A) /marka/... sayfalarını GERÇEK jeneratörle (marka_model_build.uret) geçici bir ROOT'a
+     ürettirir; kart/model-buton eksenini üretilen HTML'den okur.
+  B) Kapsam kararını veren JS'i marka_model_build'in MARKER'ları arasından ayıklar ve
+     node'da GERÇEKTEN koşturur (minimal DOM shim + gerçek katalog fikstürü).
+  C) index.html'deki markaKapsamSorgusu()'nu KAYNAKTAN ayıklayıp node'da koşturur ve
+     çipe gerçekten kablolu olduğunu doğrular.
+
+Veri okunamazsa "yeşil" DEMEZ: "OLCULEMEDI" basar ve exit 2 verir.
+Node yoksa CI'da (GITHUB_ACTIONS) DAİMA exit 1 (yalancı-yeşil olamaz); yerelde
+MARKA_KAPSAM_NODE_ATLA=1 ile AÇIK uyarıyla atlanır. Offline, ağ yok, urunler.json'a YAZMAZ.
+
+Çalıştır:  python3 tools/marka-kapsam-test.py   (0 = geçti, 1 = kaldı, 2 = ölçülemedi)
+"""
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS)
+sys.path.insert(0, TOOLS)
+
+FAILS = []
+
+# Kapsam davranışının sınanacağı ÇOK-DİKEYLİ markalar (ölçüldü, 30 Tem).
+# (marka, kapsam_kategorisi, kapsam_dışı_olması_gereken_örnek_kategoriler)
+VAKALAR = [
+    ("Yamaha", "Marin", ["Motosiklet", "Elektronik", "Bisiklet", "Oyun/Hobi", "Bahçe"]),
+    ("Yamaha", "Motosiklet", ["Marin", "Elektronik"]),
+    ("Suzuki", "Marin", ["Otomobil", "Motosiklet", "Kamera"]),
+    ("Suzuki", "Otomobil", ["Motosiklet", "Marin"]),
+    ("Honda", "Motosiklet", ["Otomobil", "Bahçe"]),
+    ("BMW", "Motosiklet", ["Otomobil", "Bisiklet", "Kamera"]),
+    ("BMW", "Otomobil", ["Motosiklet", "Bisiklet"]),
+    ("Volvo", "Marin", ["Otomobil"]),          # Volvo Penta -> kanonik Volvo (ayrı ad UYDURULMADI)
+    ("Volvo", "Otomobil", ["Marin"]),
+]
+
+
+def kontrol(ad, kosul):
+    if kosul:
+        print("  PASS  " + ad)
+    else:
+        FAILS.append(ad)
+        print("  FAIL  " + ad)
+
+
+def olculemedi(sebep):
+    print("\nSONUC: OLCULEMEDI ❓  " + sebep)
+    sys.exit(2)
+
+
+def bitir():
+    if FAILS:
+        print("\nSONUC: KIRMIZI ❌  (%d kontrol kaldı)" % len(FAILS))
+        sys.exit(1)
+    print("\nSONUC: YESIL ✅")
+    sys.exit(0)
+
+
+# ---------------------------------------------------------------- A) canlı kaynak + üretim
+try:
+    import build
+    import marka_model_build as mm
+except Exception as e:                                    # noqa: BLE001
+    olculemedi("marka_model_build/build import edilemedi: %r" % (e,))
+
+try:
+    with open(build.JSON_PATH, encoding="utf-8") as f:
+        PRODUCTS = json.load(f)
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
+        INDEX_HTML = f.read()
+except Exception as e:                                    # noqa: BLE001
+    olculemedi("katalog/index.html okunamadı: %r" % (e,))
+
+if not PRODUCTS:
+    olculemedi("urunler.json BOŞ (kapsam ölçülemez)")
+
+URUN_KAT = {}
+for _p in PRODUCTS:
+    if _p.get("id"):
+        URUN_KAT[_p["id"]] = (_p.get("kategori") or "").strip()
+
+try:
+    KATEGORILER = mm.kategori_evreni(INDEX_HTML)
+except SystemExit as e:                                   # noqa: BLE001
+    olculemedi("kategori evreni index.html'den ayıklanamadı: %r" % (e,))
+
+kontrol("kategori evreni index.html'den ayıklandı (%d kategori)" % len(KATEGORILER),
+        len(KATEGORILER) >= 12 and "Marin" in KATEGORILER and "Motosiklet" in KATEGORILER)
+
+# ---- index.html: çip hedefi kapsamı TAŞIYOR mu (kaynak kuplajı) ----
+kontrol("index.html'de MARKA KAPSAMI blok marker'ları var",
+        "// --- MARKA KAPSAMI BAŞ ---" in INDEX_HTML
+        and "// --- MARKA KAPSAMI SON ---" in INDEX_HTML)
+kontrol("marka çipi hedefi kapsamı taşıyor (markaKapsamSorgusu(activeCat) kablolu)",
+        '"/marka/" + slug + "/" + markaKapsamSorgusu(activeCat)' in INDEX_HTML)
+
+# ---- GERÇEK jeneratörle /marka/... üret (geçici ROOT; depoya YAZMAZ) ----
+TMP = tempfile.mkdtemp(prefix="marka-kapsam-")
+try:
+    ctx = build.marka_model_ctx()
+    ctx["ROOT"] = TMP
+    with open(os.path.join(TMP, "index.html"), "w", encoding="utf-8") as f:
+        f.write(INDEX_HTML)
+    try:
+        sonuc = mm.uret(PRODUCTS, ctx)
+    except Exception as e:                                # noqa: BLE001
+        shutil.rmtree(TMP, ignore_errors=True)
+        olculemedi("marka_model_build.uret çöktü: %r" % (e,))
+
+    # ---- SEO: sitemap kaydı parametreli/yeni URL ailesi AÇMAZ ----
+    sitemap = sonuc["sitemap"]
+    parametreli = [loc for loc, _pri, _cf in sitemap if "?" in loc]
+    kontrol("sitemap'te parametreli (?) marka kaydı YOK (bulunan: %d)" % len(parametreli),
+            not parametreli)
+    beklenen_kayit = (sonuc["marka_sayfasi_sayisi"] + sonuc["model_sayfasi_sayisi"] + 1)
+    kontrol("sitemap kayıt sayısı = marka(%d) + model(%d) + /marka/ dizini(1) = %d"
+            % (sonuc["marka_sayfasi_sayisi"], sonuc["model_sayfasi_sayisi"], beklenen_kayit),
+            len(sitemap) == beklenen_kayit)
+
+    KART_RE = re.compile(r'<div class="card" data-kat="([^"]*)"><a class="card-main" '
+                         r'href="([^"]+)"')
+    BTN_RE = re.compile(r'<a class="mm-model-btn" href="([^"]+)" data-katsay="([^"]*)">'
+                        r'.*?<span class="adet">([^<]*)</span>')
+    KART_HERHANGI_RE = re.compile(r'<div class="card(?: [^"]*)?"[^>]*>')
+    ID_RE = re.compile(r"/urun/([^/]+)/")
+
+    def sayfa_oku(rel):
+        yol = os.path.join(TMP, *rel.strip("/").split("/"), "index.html")
+        if not os.path.isfile(yol):
+            return None
+        with open(yol, encoding="utf-8") as fh:
+            return fh.read()
+
+    def sayfa_fikstur(html, ad):
+        """Üretilen GERÇEK sayfadan kapsam eksenini çıkar (kart data-kat + buton data-katsay)."""
+        kartlar = []
+        for kat, href in KART_RE.findall(html):
+            m = ID_RE.search(href)
+            kartlar.append({"id": m.group(1) if m else href,
+                            "kat": kat.replace("&amp;", "&")})
+        butonlar = [{"href": h, "katsay": ks.replace("&quot;", '"').replace("&amp;", "&"),
+                     "adet": ad_}
+                    for h, ks, ad_ in BTN_RE.findall(html)]
+        return {"ad": ad, "kartlar": kartlar, "butonlar": butonlar,
+                "pathname": "/" + ad.strip("/") + "/"}
+
+    fiksturler = {}
+    markalar = sorted({m for m, _k, _d in VAKALAR})
+    for marka in markalar:
+        slug = mm._slug(marka)
+        html = sayfa_oku("marka/" + slug)
+        if html is None:
+            kontrol("/marka/%s/ üretildi" % slug, False)
+            continue
+        # kanonik URL parametresiz mi (SEO regresyonu yok)
+        kan = re.findall(r'<link rel="canonical" href="([^"]+)">', html)
+        kontrol("/marka/%s/ kanonik URL parametresiz (%s)" % (slug, kan[0] if kan else "-"),
+                len(kan) == 1 and kan[0].endswith("/marka/" + slug + "/") and "?" not in kan[0])
+        # her kart data-kat taşıyor mu (fail-closed ekseni eksiksiz mi)
+        toplam_kart = len(KART_HERHANGI_RE.findall(html))
+        f = sayfa_fikstur(html, "marka/" + slug)
+        kontrol("/marka/%s/ her kart data-kat taşıyor (%d/%d)"
+                % (slug, len(f["kartlar"]), toplam_kart),
+                toplam_kart > 0 and len(f["kartlar"]) == toplam_kart)
+        # data-kat GERÇEK ürün kategorisi mi (uydurma eksen değil)
+        yanlis = [k["id"] for k in f["kartlar"]
+                  if k["id"] in URUN_KAT and URUN_KAT[k["id"]] != k["kat"]]
+        kontrol("/marka/%s/ data-kat = ürünün gerçek kategorisi (sapma: %d)"
+                % (slug, len(yanlis)), not yanlis)
+        # model butonlarının kategori kırılımı var mı
+        kontrol("/marka/%s/ model butonları data-katsay taşıyor (%d buton)"
+                % (slug, len(f["butonlar"])),
+                all(b["katsay"].startswith("{") for b in f["butonlar"]))
+        # kapsam şeridi + kaldırma yolu SSR'de var ve GİZLİ (crawler görmez)
+        kontrol("/marka/%s/ kapsam şeridi gizli SSR'de var (kapsamNot + sıfırlama linki)"
+                % slug,
+                'id="kapsamNot" style="display:none"' in html
+                and 'id="kapsamNotSifirla"' in html and 'id="kapsamBos"' in html)
+        kontrol("/marka/%s/ kapsam scripti gömülü" % slug,
+                mm._KAPSAM_JS_BAS in html and mm._KAPSAM_JS_SON in html)
+        fiksturler[marka] = f
+
+    # model sayfası da kapsam uygular mı (örnek: en çok ürünlü marka modeli)
+    model_ornek = None
+    for marka in markalar:
+        f = fiksturler.get(marka)
+        if not f or not f["butonlar"]:
+            continue
+        rel = f["butonlar"][0]["href"]
+        html = sayfa_oku(rel)
+        if html is None:
+            continue
+        mf = sayfa_fikstur(html, rel)
+        kontrol("model sayfası %s kapsam scripti + şeridi taşıyor" % rel,
+                mm._KAPSAM_JS_BAS in html and 'id="kapsamNot"' in html
+                and 'data-kapsam-tasi' in html)
+        kontrol("model sayfası %s kartları data-kat taşıyor" % rel,
+                len(mf["kartlar"]) == len(KART_HERHANGI_RE.findall(html))
+                and len(mf["kartlar"]) > 0)
+        model_ornek = mf
+        break
+    kontrol("model sayfası fikstürü çıkarıldı", model_ornek is not None)
+
+    kapsam_js = mm._KAPSAM_JS_GOVDE.replace(
+        "__KATEGORILER__", json.dumps(KATEGORILER, ensure_ascii=False,
+                                      separators=(",", ":")))
+finally:
+    shutil.rmtree(TMP, ignore_errors=True)
+
+# ---- index.html markaKapsamSorgusu()'nu KAYNAKTAN ayıkla ----
+m = re.search(r"function markaKapsamSorgusu\(kat\)\{[\s\S]*?\n  \}", INDEX_HTML)
+kontrol("index.html markaKapsamSorgusu() ayıklanabildi", bool(m))
+cip_js = m.group(0) if m else ""
+
+if FAILS:
+    bitir()
+
+# ---------------------------------------------------------------- B) node davranış bölümü
+try:
+    subprocess.run(["node", "--version"], capture_output=True, check=True)
+    node_var = True
+except (OSError, subprocess.CalledProcessError):
+    node_var = False
+
+if not node_var:
+    if os.environ.get("GITHUB_ACTIONS"):
+        kontrol("CI'da node var (FAIL-CLOSED: setup-node eksik/bozuk)", False)
+        bitir()
+    if os.environ.get("MARKA_KAPSAM_NODE_ATLA") == "1":
+        print("UYARI: node yok + MARKA_KAPSAM_NODE_ATLA=1 → davranış bölümü AÇIK uyarıyla "
+              "atlandı (yalnız üretim/kaynak-kuplaj kontrolleri koştu).")
+        bitir()
+    olculemedi("node yok (yerelde kur ya da MARKA_KAPSAM_NODE_ATLA=1 ile açık uyarıyla atla)")
+
+VERI = {
+    "kapsamJs": kapsam_js,
+    "cipJs": cip_js,
+    "kategoriler": KATEGORILER,
+    "vakalar": [{"marka": mk, "kapsam": kp, "disari": ds} for mk, kp, ds in VAKALAR],
+    "sayfalar": {mk: fiksturler[mk] for mk in fiksturler},
+    "modelSayfasi": model_ornek,
+}
+
+HARNESS = r"""
+"use strict";
+const VERI = require(VERI_JSON);
+
+// --- Kapsam kararını veren CANLI kod (marka_model_build MARKER'ları arasından ayıklandı) ---
+(0, eval)(VERI.kapsamJs);
+const K = globalThis.PRUVO_KAPSAM;
+// --- index.html'deki CANLI çip hedefi fonksiyonu ---
+(0, eval)("globalThis.markaKapsamSorgusu = " + VERI.cipJs.replace(/^function markaKapsamSorgusu/, "function"));
+
+let pass = 0, fail = 0;
+function ok(cond, msg){
+  if(cond){ pass++; console.log("  PASS  " + msg); }
+  else    { fail++; console.log("  FAIL  " + msg); }
+}
+
+// ---- minimal DOM shim: glue'nun GERÇEKTEN kullandığı yüzey kadar ----
+function shim(sayfa, ekKartlar){
+  const kartlar = (sayfa.kartlar.concat(ekKartlar || [])).map(function(k){
+    const attrs = {"data-kat": k.kat};
+    return { id: k.id, kat: k.kat, style: {display: ""},
+             getAttribute: (n) => (attrs[n] === undefined ? null : attrs[n]) };
+  });
+  const butonlar = sayfa.butonlar.map(function(b){
+    const adet = {textContent: b.adet};
+    const attrs = {"data-katsay": b.katsay, "href": b.href};
+    return { style: {display: ""}, adetEl: adet, attrs: attrs,
+             getAttribute: (n) => (attrs[n] === undefined ? null : attrs[n]),
+             setAttribute: (n, v) => { attrs[n] = v; },
+             querySelector: (s) => (s === ".adet" ? adet : null) };
+  });
+  const tasi = [{ attrs: {href: "/marka/x/"},
+                  getAttribute: function(n){ return this.attrs[n] === undefined ? null : this.attrs[n]; },
+                  setAttribute: function(n, v){ this.attrs[n] = v; } }];
+  const sayimKart = {textContent: String(sayfa.kartlar.length)};
+  const sayimModel = {textContent: String(sayfa.butonlar.length)};
+  const kutu = {
+    kapsamNot:        {style: {display: "none"}},
+    kapsamNotMetin:   {textContent: ""},
+    kapsamNotSifirla: {attrs: {href: "./"},
+                       getAttribute: function(n){ return this.attrs[n]; },
+                       setAttribute: function(n, v){ this.attrs[n] = v; }},
+    kapsamBos:        {style: {display: "none"}}
+  };
+  const harita = {
+    ".card[data-kat]": kartlar,
+    ".mm-model-btn[data-katsay]": butonlar,
+    "a[data-kapsam-tasi]": tasi,
+    ".mm-sayim-kart": [sayimKart],
+    ".mm-sayim-model": [sayimModel]
+  };
+  const dok = {
+    querySelectorAll: (sel) => (harita[sel] || []),
+    getElementById: (id) => (kutu[id] || null)
+  };
+  return {dok, kartlar, butonlar, tasi, sayimKart, sayimModel, kutu};
+}
+const gorunenKartlar = (s) => s.kartlar.filter((k) => k.style.display !== "none");
+const gorunenBtnlar  = (s) => s.butonlar.filter((b) => b.style.display !== "none");
+
+// ============================ 1) ÇİP HEDEFİ (index.html canlı kodu) ============================
+ok(markaKapsamSorgusu("Tümü") === "", "kategori seçili DEĞİLKEN çip hedefi eski davranışta (sorgu boş)");
+ok(markaKapsamSorgusu("") === "" && markaKapsamSorgusu(null) === "" && markaKapsamSorgusu(undefined) === "",
+   "boş/None kategori -> sorgu boş (regresyon yok)");
+ok(markaKapsamSorgusu("Marin") === "?kategori=Marin", "Marin'de çip hedefi kapsam taşıyor");
+ok(markaKapsamSorgusu("Oyun/Hobi") === "?kategori=Oyun%2FHobi", "eğik çizgili kategori URL-kodlanıyor");
+ok(markaKapsamSorgusu("Bahçe") === "?kategori=Bah%C3%A7e", "Türkçe karakterli kategori URL-kodlanıyor");
+for(const kat of VERI.kategoriler){
+  const q = markaKapsamSorgusu(kat);
+  const cozum = K.coz(new URLSearchParams(q.replace(/^\?/, "")).get("kategori"), VERI.kategoriler);
+  if(!(cozum.aktif && cozum.gecerli && cozum.kategori === kat)){
+    ok(false, "çip sorgusu -> kapsam gidiş-dönüş bozuk: " + kat);
+  }
+}
+ok(true, "tüm kategoriler için çip sorgusu <-> kapsam gidiş-dönüşü tutarlı (" + VERI.kategoriler.length + ")");
+
+// ============================ 2) MARKA SAYFASI KAPSAMI ============================
+let pozitifVaka = 0;
+for(const v of VERI.vakalar){
+  const sayfa = VERI.sayfalar[v.marka];
+  if(!sayfa){ ok(false, v.marka + " fikstürü yok"); continue; }
+  const etiket = v.marka + " + " + v.kapsam;
+  const beklenen = sayfa.kartlar.filter((k) => k.kat === v.kapsam).map((k) => k.id).sort();
+
+  // --- POZİTİF: kapsam uygulanır, dönen küme YALNIZ o kategori ---
+  const s = shim(sayfa);
+  const c = K.uygula(s.dok, {search: "?kategori=" + encodeURIComponent(v.kapsam),
+                             pathname: "/" + sayfa.ad + "/"});
+  const gor = gorunenKartlar(s);
+  const gorIds = gor.map((k) => k.id).sort();
+  ok(c.aktif === true && c.gecerli === true, etiket + ": kapsam AKTİF ve geçerli");
+  if(beklenen.length > 0){
+    pozitifVaka++;
+    ok(gorIds.length === beklenen.length && gorIds.every((x, i) => x === beklenen[i]),
+       etiket + ": dönen küme = yalnız " + v.kapsam + " (" + gorIds.length + "/" + sayfa.kartlar.length + ")");
+  }else{
+    // ÖLÇÜLDÜ (30 Tem): bu marka×kategori çiftinin ürünleri /marka/ sayfasına HİÇ girmiyor —
+    // gruplandir() markayı HAM marka[0] ile tanıyor, katlanmış adla değil (ör. "Volvo Penta"
+    // -> kanonik "Volvo"; 21 Marin ürünü sayfada YOK). AYRI EKSEN, bu işin kapsamı DEĞİL
+    // (düzeltmesi sitemap'e girdi ekliyor -> KraL'a raporlandı). Pozitif vaka burada
+    // kurulamaz; fail-closed boş davranış + SIFIR sızıntı iddiaları yine de koşar.
+    console.log("  BILGI " + etiket + ": sayfada kapsam içi ürün 0 (ayrı eksen — rapora bak)");
+    ok(gorIds.length === 0, etiket + ": kapsam içi ürün yokken 0 kart gösterilir");
+  }
+  ok(gor.every((k) => k.kat === v.kapsam),
+     etiket + ": görünen kartların hepsi " + v.kapsam);
+
+  // --- NEGATİF: diğer dikeylerden SIFIR ürün ---
+  for(const d of v.disari){
+    const sizan = gor.filter((k) => k.kat === d).length;
+    const vardi = sayfa.kartlar.filter((k) => k.kat === d).length;
+    if(vardi === 0){ continue; }   // o dikey bu sayfada zaten yok -> negatif vaka kurulmaz
+    ok(sizan === 0, etiket + ": " + d + " sızıntısı 0 (kapsamsız sayfada " + vardi + " vardı)");
+  }
+
+  // --- Model butonları: kapsam dışı model butonu GİZLİ, sayı kapsama düşer ---
+  for(const b of s.butonlar){
+    const tablo = JSON.parse(b.attrs["data-katsay"]);
+    const n = tablo[v.kapsam] || 0;
+    if(n > 0){
+      ok(b.style.display !== "none" && b.adetEl.textContent === (n + " parça"),
+         etiket + ": model butonu kapsam sayısını gösteriyor (" + b.attrs.href + " -> " + n + ")");
+      ok(b.attrs.href.indexOf("?kategori=") !== -1,
+         etiket + ": model butonu kapsamı taşıyor (" + b.attrs.href + ")");
+    }else{
+      ok(b.style.display === "none",
+         etiket + ": kapsam dışı model butonu GİZLİ (" + b.attrs.href + ")");
+    }
+  }
+  ok(s.sayimKart.textContent === String(gor.length),
+     etiket + ": görünür sayım rozeti güncellendi (" + s.sayimKart.textContent + ")");
+  ok(s.sayimModel.textContent === String(gorenBtnSay(s)),
+     etiket + ": model sayım rozeti güncellendi (" + s.sayimModel.textContent + ")");
+  ok(s.kutu.kapsamNot.style.display === "" &&
+     s.kutu.kapsamNotMetin.textContent.indexOf(v.kapsam) !== -1,
+     etiket + ": kapsam GÖRÜNÜR (şerit açık, kategori adı yazıyor)");
+  ok(s.kutu.kapsamNotSifirla.attrs.href === "/" + sayfa.ad + "/",
+     etiket + ": kapsamı KALDIRMA yolu var (parametresiz kanonik adres)");
+  ok(s.tasi[0].attrs.href.indexOf("?kategori=") !== -1,
+     etiket + ": breadcrumb geri-linki kapsamı taşıyor");
+}
+function gorenBtnSay(s){ return gorunenBtnlar(s).length; }
+// Kapı YÜK TAŞISIN: gerçek katalogda en az 7 GERÇEK pozitif vaka (ürünlü marka×kategori)
+// koşmuş olmalı; hepsi boşa düşerse "yeşil" anlamsızlaşır.
+ok(pozitifVaka >= 7, "gerçek katalogda ürünlü pozitif vaka sayısı >= 7 (koşan: " + pozitifVaka + ")");
+
+// ============================ 3) KANONİK (parametresiz) — REGRESYON YOK ============================
+for(const marka of Object.keys(VERI.sayfalar)){
+  const sayfa = VERI.sayfalar[marka];
+  for(const arama of ["", "?", "?ara=klips", "?kategori="]){
+    const s = shim(sayfa);
+    const c = K.uygula(s.dok, {search: arama, pathname: "/" + sayfa.ad + "/"});
+    ok(c.aktif === false, marka + " kanonik(" + JSON.stringify(arama) + "): kapsam PASİF");
+    ok(gorunenKartlar(s).length === sayfa.kartlar.length,
+       marka + " kanonik(" + JSON.stringify(arama) + "): tüm kartlar görünür (" + sayfa.kartlar.length + ")");
+    ok(gorunenBtnlar(s).length === sayfa.butonlar.length,
+       marka + " kanonik(" + JSON.stringify(arama) + "): tüm model butonları görünür");
+    ok(s.kutu.kapsamNot.style.display === "none" && s.kutu.kapsamNotMetin.textContent === "",
+       marka + " kanonik(" + JSON.stringify(arama) + "): kapsam şeridi KAPALI (crawler tam koleksiyon görür)");
+    ok(s.sayimKart.textContent === String(sayfa.kartlar.length),
+       marka + " kanonik(" + JSON.stringify(arama) + "): sayım rozeti DEĞİŞMEDİ");
+  }
+}
+
+// ============================ 4) FAIL-CLOSED: geçersiz/bilinmeyen kapsam ============================
+const kotuKapsamlar = ["Uydurma", "marin", "MARİN", "Marin ", "Otomobil;DROP", "../Marin", "%20", "null"];
+for(const marka of Object.keys(VERI.sayfalar)){
+  const sayfa = VERI.sayfalar[marka];
+  for(const kotu of kotuKapsamlar){
+    const s = shim(sayfa);
+    const c = K.uygula(s.dok, {search: "?kategori=" + encodeURIComponent(kotu),
+                               pathname: "/" + sayfa.ad + "/"});
+    ok(c.aktif === true && c.gecerli === false,
+       marka + " geçersiz kapsam " + JSON.stringify(kotu) + ": tanınmadı");
+    ok(gorunenKartlar(s).length === 0,
+       marka + " geçersiz kapsam " + JSON.stringify(kotu) + ": 0 ürün (sessizce tüm katalog GÖSTERİLMEZ)");
+    ok(gorunenBtnlar(s).length === 0,
+       marka + " geçersiz kapsam " + JSON.stringify(kotu) + ": 0 model butonu");
+    ok(s.kutu.kapsamBos.style.display === "" &&
+       s.kutu.kapsamNotMetin.textContent.indexOf("Geçersiz") === 0,
+       marka + " geçersiz kapsam " + JSON.stringify(kotu) + ": görünür uyarı (sessiz değil)");
+    ok(K.sorgu(c) === "", marka + " geçersiz kapsam TAŞINMAZ (sorgu boş)");
+  }
+  // GEÇERLİ ama bu markada ürünü olmayan kategori -> 0 ürün + geçerli kapsam
+  const bosKat = VERI.kategoriler.find((k) => !sayfa.kartlar.some((x) => x.kat === k) &&
+                                              !sayfa.butonlar.some((b) => (JSON.parse(b.katsay)[k] || 0) > 0));
+  if(bosKat){
+    const s = shim(sayfa);
+    const c = K.uygula(s.dok, {search: "?kategori=" + encodeURIComponent(bosKat), pathname: "/" + sayfa.ad + "/"});
+    ok(c.gecerli === true && gorunenKartlar(s).length === 0 && s.kutu.kapsamBos.style.display === "",
+       marka + " + " + bosKat + " (geçerli ama ürünsüz): 0 ürün + boş uyarısı");
+  }
+}
+
+// ============================ 5) FAIL-CLOSED: eksen OKUNAMAZSA gizle ============================
+(function(){
+  const marka = Object.keys(VERI.sayfalar)[0];
+  const sayfa = VERI.sayfalar[marka];
+  const ek = [{id: "__data-kat-yok__", kat: ""}, {id: "__data-kat-null__", kat: null}];
+  const s = shim(sayfa, ek);
+  K.uygula(s.dok, {search: "?kategori=Marin", pathname: "/" + sayfa.ad + "/"});
+  const kacak = gorunenKartlar(s).filter((k) => !k.kat);
+  ok(kacak.length === 0, "kategorisi OKUNAMAYAN kart kapsam altında GİZLENİR (kaçak: " + kacak.length + ")");
+  const s2 = shim(sayfa, ek);
+  K.uygula(s2.dok, {search: "", pathname: "/" + sayfa.ad + "/"});
+  ok(gorunenKartlar(s2).length === sayfa.kartlar.length + ek.length,
+     "kapsamsızken data-kat'sız kart GİZLENMEZ (kanonik davranış korunur)");
+})();
+
+// bozuk data-katsay -> buton gizlenir (yanlış sayı GÖSTERİLMEZ)
+ok(K.sayimla("{bozuk-json", {aktif: true, gecerli: true, kategori: "Marin"}) === 0,
+   "bozuk data-katsay -> 0 (fail-closed)");
+ok(K.sayimla(null, {aktif: true, gecerli: true, kategori: "Marin"}) === 0,
+   "eksik data-katsay -> 0 (fail-closed)");
+ok(K.sayimla('{"Marin":3,"Motosiklet":5}', {aktif: false, gecerli: true, kategori: null}) === 8,
+   "kapsamsızken data-katsay toplamı korunur (3+5=8)");
+
+// ============================ 6) MODEL SAYFASI KAPSAMI ============================
+(function(){
+  const mf = VERI.modelSayfasi;
+  if(!mf){ ok(false, "model sayfası fikstürü yok"); return; }
+  const katlar = [...new Set(mf.kartlar.map((k) => k.kat))];
+  const hedef = katlar[0];
+  const s = shim(mf);
+  K.uygula(s.dok, {search: "?kategori=" + encodeURIComponent(hedef), pathname: mf.pathname});
+  ok(gorunenKartlar(s).every((k) => k.kat === hedef),
+     "model sayfası kapsamı uyguluyor (" + mf.ad + " -> " + hedef + ")");
+  const s2 = shim(mf);
+  K.uygula(s2.dok, {search: "?kategori=Uydurma", pathname: mf.pathname});
+  ok(gorunenKartlar(s2).length === 0, "model sayfası geçersiz kapsamda 0 ürün (fail-closed)");
+  const s3 = shim(mf);
+  K.uygula(s3.dok, {search: "", pathname: mf.pathname});
+  ok(gorunenKartlar(s3).length === mf.kartlar.length, "model sayfası kanonikte DEĞİŞMEZ");
+})();
+
+console.log("SONUC " + pass + " gecti " + fail + " kaldi");
+process.exit(fail === 0 ? 0 : 1);
+"""
+
+with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False, encoding="utf-8") as f:
+    json.dump(VERI, f, ensure_ascii=False)
+    veri_yolu = f.name
+with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8") as f:
+    f.write(HARNESS.replace("VERI_JSON", json.dumps(veri_yolu)))
+    js_yolu = f.name
+try:
+    r = subprocess.run(["node", js_yolu], capture_output=True, text=True)
+finally:
+    os.unlink(veri_yolu)
+    os.unlink(js_yolu)
+
+sys.stdout.write(r.stdout)
+if r.returncode != 0:
+    kontrol("node davranış bölümü yeşil (stderr: %s)" % (r.stderr.strip()[:400] or "-"), False)
+else:
+    kontrol("node davranış bölümü yeşil", True)
+
+bitir()
