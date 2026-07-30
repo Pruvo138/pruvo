@@ -1,5 +1,375 @@
 [
   {
+    "id": "lowrance-simrad-dummy-transducer",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance/Simrad Livesight İçin Dummy (Test) Transducer",
+    "aciklama": "Lowrance/Simrad Livesight transducer montaj yerini test etmek için kullanılan, gerçek cihazla aynı ölçülerde dummy (sahte) transducer.\n- Lowrance/Simrad Livesight transducer modeliyle aynı ölçülerdedir.\n- Montaj/muhafaza denemesi için gerçek cihaz yerine kullanılabilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 144 × 95 × 90 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6451956-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FireFishingLures",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kawasaki-jet-ski-lanyard-stop-butonu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kawasaki Jet Ski İçin Lanyard Bağlı Acil Durdurma Butonu",
+    "aciklama": "Lanyard (bilek kordonu) bağlantısı olmayan eski Kawasaki jet-ski modellerinin OEM durdurma butonunun yerine geçen, lanyard bağlantılı yedek buton.\n- Kawasaki jet-ski modelleriyle uyumludur.\n- Kapak ve gövde olmak üzere iki parçadan oluşur.\n- Üç yıldır güvenilir şekilde kullanıldığı bildirilmiştir.\nYaklaşık dış ölçüler: 18 × 18 × 17 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6455817-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Miura67",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercury-30hp-throttle-limitleyici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury 30HP 2 Zamanlı Dış Motor İçin Gaz Kolu Limitleyici",
+    "aciklama": "Mercury 30HP 2 zamanlı dış motorun gaz kolu limitini düşürerek güvenli kullanım sağlayan aparat.\n- Mercury 30HP 2 zamanlı dış motor modeliyle uyumludur.\n- Standart somun-cıvata üzerine geçirilerek takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 18 × 16 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6491231-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6491231-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6491231-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "thetunebot",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercury-su-hizli-baglanti-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury 200HP Dış Motor İçin Su Hızlı Bağlantı Adaptörü",
+    "aciklama": "Mercury 200HP dış motora, piyasada satılan hızlı-bağlantı (quick disconnect) su temizleme kitini takmak için kullanılan dişli adaptör ve kapak.\n- Mercury 200HP dış motor modeliyle uyumludur.\n- Adaptör ve kapak olmak üzere iki parçadan oluşur.\n- Standart hızlı-bağlantı su temizleme kitleriyle uyumludur.\nYaklaşık dış ölçüler: 45 × 42 × 17 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6574802-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6574802-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6574802-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6574802-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6574802-5.jpg",
+      "https://media.pruvo3d.com/urunler/th6574802-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jefflundstrom",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "2-3hp-dis-motor-tilt-blogu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "2-3HP Dış Motorlar İçin Tilt Bloğu",
+    "aciklama": "Tilt pini olmayan 2-3HP dış motorlarda kullanılan, motoru yukarıda sabit tutan tilt bloğu.\n- Tilt pini olmayan 2-3HP dış motorlarla uyumludur.\n- Motor kelepçesine kayış ile sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 47 × 35 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6704331-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6704331-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6704331-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6704331-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dukemeister63",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "minn-kota-terrova-tup-kaldirma-bilezigi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Minn Kota Terrova Trolling Motor İçin Tüp Kaldırma Bileziği",
+    "aciklama": "Minn Kota Terrova (manuel konuşlandırmalı) trolling motorunun sık kırılan tüp kaldırma bileziği.\n- Minn Kota Terrova T2/ST/T2 modelleriyle uyumludur (orijinal parça no 2321530).\n- Dayanıklı malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 50 × 50 × 41 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6719597-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "venoom2001",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "evinrude-johnson-1979-6hp-su-impelleri",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Evinrude/Johnson 1979 6HP Dış Motor İçin Su İmpelleri",
+    "aciklama": "Evinrude/Johnson 1979 model 6HP dış motorun su pompası impelleri.\n- Evinrude/Johnson 1979 6HP dış motor modeliyle uyumludur.\n- 33mm çapında tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 33 × 31 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6797490-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6797490-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jrlucas13",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "victoria-18-yelkenli-gudgeon",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Victoria 18 Yelkenli İçin Dümen Mafsalı (Gudgeon)",
+    "aciklama": "Victoria 18 yelkenli tekne için dümeni omurgaya bağlayan mafsal (gudgeon).\n- Victoria 18 yelkenli tekne modeliyle uyumludur.\n- Paslanmaz çelik bağlantılarla omurgaya sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 70 × 50 × 35 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6828098-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "zpinkerton69",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-traveler-stopu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli İçin Traveler Stopu",
+    "aciklama": "Maxi 999 ve benzeri yaygın ölçülerdeki yelkenli travellerlerine uyumlu stop parçası.\n- Maxi 999 yelkenli tekne modeliyle uyumludur, benzer ölçülerdeki diğer travellerlerde de kullanılabilir.\n- UV-dayanıklı malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 45 × 36 × 36 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6835412-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rolfpro",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dinge-yelkenli-direk-taban-kupasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dinge Yelkenliler İçin Direk Taban Kupası",
+    "aciklama": "Dinge (Dingue) yelkenli teknelerde direk tabanının zemine temas etmesini ve kum/kir birikmesini önleyen kupa.\n- Dinge yelkenli tekne modelleriyle uyumludur.\n- Kupa ve tab olmak üzere iki parçadan oluşur, birleştirilerek kullanılır.\nYaklaşık dış ölçüler: 79 × 76 × 55 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6853720-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "andrebstv",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "johnson-evinrude-throttle-kablo-baglantisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Johnson/Evinrude/OMC Dış Motor İçin Throttle Kablo Bağlantısı",
+    "aciklama": "Eski Johnson/Evinrude/OMC dış motorlarda zamanla dağılan throttle (gaz) kablosu bağlantı parçasının yerine geçer.\n- Johnson/Evinrude/OMC dış motor modelleriyle uyumludur.\n- Orijinal parçanın yerine geçer.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 124 × 14 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6929854-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "equinoxe",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "lofrans-x1-vinc-parmagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lofrans X1 Çapa Vinci İçin Yedek Parmak (Finger)",
+    "aciklama": "Lofrans X1 çapa vincinin orijinal parmak (finger) parçasının yerine geçen yedek parça.\n- Lofrans X1 çapa vinci modeliyle uyumludur.\n- Zincir/halat sürtünmesine dayanıklı malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 85 × 38 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6970367-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6970367-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jcgodart",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-guverte-topu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Güverte İpi İçin Tutuş Topu",
+    "aciklama": "Kayak güverte ipine (shock cord) takılan, kürek tutuşunu kolaylaştıran ara top.\n- 5mm çapındaki güverte ipleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 30 × 20 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7114948-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7114948-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "YGMS",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-5bs-karburator-kasesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "1976 Yamaha 5BS Dış Motor İçin Karbüratör Kasesi",
+    "aciklama": "1976 model Yamaha 5BS dış motorun karbüratör kasesi, döküm kalıbı veya doğrudan yedek parça olarak kullanılabilir.\n- 1976 Yamaha 5BS dış motor modeliyle uyumludur.\n- Yakıta dayanıklı malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 56 × 46 × 35 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7188796-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7188796-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7188796-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7188796-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7188796-5.jpg",
+      "https://media.pruvo3d.com/urunler/th7188796-6.jpg",
+      "https://media.pruvo3d.com/urunler/th7188796-7.jpg",
+      "https://media.pruvo3d.com/urunler/th7188796-8.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Bonadei",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "vibe-shearwater-kayak-koltuk-yukseltici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Vibe Shearwater Kayak İçin Koltuk Yükseltici",
+    "aciklama": "Vibe Shearwater 125 kayak koltuğunu yaklaşık 4cm yükselten aparat.\n- Vibe Shearwater 125 kayak modeliyle uyumludur.\n- 1/4-20 ölçüsünde T-bijon ile ray sistemine bağlanır.\n- Dayanıklı malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 204 × 195 × 43 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7205621-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "docoperator",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "minnkota-derinlik-bilezigi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "MinnKota Trolling Motor İçin Cam-Lock Derinlik Bileziği (P/N 2991521)",
+    "aciklama": "MinnKota trolling motorunun kırılan derinlik ayar bileziği (cam lock depth collar) yerine geçen yedek parça.\n- MinnKota trolling motor modeliyle uyumludur (orijinal parça no 2991521).\n- Mevcut cıvata ve kol yeniden kullanılır.\n- Dayanıklı malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 50 × 36 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7311197-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7311197-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RedJersey13",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-hat-saptirici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Güverte Kapağı İçin Hat Saptırıcı",
+    "aciklama": "Yelkenli güverte kapaklarının köşesine yapıştırılan, halatların takılmasını önleyen saptırıcı.\n- Standart güverte kapağı köşeleriyle uyumludur.\n- Yapıştırıcı ile sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 124 × 124 × 39 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7322650-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jonkan",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "hyperlite-paddle-board-skeg",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Hyperlite Elevation Paddle Board İçin Yedek Skeg",
+    "aciklama": "Hyperlite Elevation paddle board için kaybolan orijinal skeg'in (omurga yüzgeci) yerine geçen yedek parça.\n- Hyperlite Elevation paddle board modeliyle uyumludur.\n- 225mm ve 250mm olmak üzere iki boy seçeneği içerir.\n- Kilit mekanizması hassas toleranslıdır, gerekirse hafifçe zımparalanabilir.\nYaklaşık dış ölçüler: 250 × 194 × 16 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7369852-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7369852-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7369852-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7369852-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "okie_bot",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-tekne-motoru-ipi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha Tekne Motoru İçin İp (Cord)",
+    "aciklama": "Yamaha tekne motoruna uyumlu ip (cord) parçası.\n- Yamaha tekne motoru modelleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 35 × 26 × 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th868722-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BeCom3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "barient-yelkenli-vinc-hat-soyucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Barient Yelkenli Vinci İçin Hat Sıkışmasını Önleyen Halka",
+    "aciklama": "Barient marka yelkenli vincinin içine yerleşen, halatın vinç içinde sıkışmasını önleyen halka.\n- Barient yelkenli vinci modelleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 106 × 84 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2468731-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jodybrown",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "jenerik-tekne-kill-switch",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne İçin Acil Durdurma (Kill) Switch",
+    "aciklama": "Tekne motorları için jenerik acil-durdurma (Not-Aus) switch'i.\n- Standart tekne motoru kill switch sistemleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 29 × 22 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4460375-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "3Dprintered",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "supercat-17-baten-cebi-koruyucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Supercat 17 Katamaran İçin Baten Cebi Koruyucusu",
+    "aciklama": "Supercat 17 katamaran yelkenlisinin yelken baten ceplerini koruyan, paslanmaz vida ile sabitlenen koruyucu.\n- Supercat 17 katamaran yelkenli modeliyle uyumludur.\n- Numara 6 paslanmaz vida ve somunla (82 derece başlı) kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 70 × 37 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4718368-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4718368-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Aerowerk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-treyleri-aks-yatagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Treyleri İçin Aks Yatağı",
+    "aciklama": "Tekne treylerinin tekerlek aks yatağı (wheel bearing) replikası.\n- Standart tekne treyleri aks yataklarıyla uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 63 × 63 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4809038-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "m_is_for_michael",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "johnson-evinrude-hava-susturucusu",
     "kategori": "Marin",
     "marka": [],
