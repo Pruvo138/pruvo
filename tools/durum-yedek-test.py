@@ -37,6 +37,7 @@ kendisi basar ve "EKSENSIZ OLCULEMEDI" ilan edilmemis her ⚪'yi yakalar.
 
 Kosum:  python3 tools/durum-yedek-test.py
 """
+import fcntl
 import importlib.util
 import json
 import os
@@ -49,6 +50,7 @@ import time
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 DURUM = os.path.join(TOOLS, "durum.py")
 DRIVE_YOLU = os.path.join(TOOLS, "drive_yolu.py")
+YEDEKLE = os.path.join(TOOLS, "yedekle.py")
 
 # Alt kosum bayragi (K4 nobetcisi kendini `ps`siz PATH ile yeniden cagirir).
 ALT_KOSUM = "--ps-yok-alt-kosum"
@@ -378,6 +380,173 @@ def damga_kur(backup, yas_saniye, **ekstra):
     with open(os.path.join(backup, ".son-yedek.json"), "w") as f:
         json.dump(veri, f)
     return backup
+
+
+# ============================================================================
+# YEDEKLE.PY 3 GUVENCE — CI-KOSULABILIR DAVRANISSAL NOBET (bkz. bolum 10 / main)
+# ----------------------------------------------------------------------------
+# yedekle.py'nin sessiz-yedek-kaybini onleyen UC guvencesi vardi ki YALNIZ
+# tools/yedekle-test.py'de olculuyordu; o test ise CI-MUAF (taze runner'da bos
+# HOME + gitignore'lu dosyalar olmadigi icin env-bagimli kirmizi yanar). Sonuc:
+# bu ucunden HERHANGI biri gelecekte bir regresyonla kalkarsa GERCEK CI'da hicbir
+# nobetci kirmizi yanmaz. Bu bolum o bosluğu, bu dosya (deploy.yml'de zaten
+# BLOKLAYICI kosan durum-yedek-test.py) icinde DAVRANISSAL + ENV-BAGIMSIZ olarak
+# kapatir. Guvenceler:
+#   (a) flock          -> kilit_al'daki fcntl.flock(LOCK_EX|LOCK_NB) paralel
+#                         yedekleri serilestirir.
+#   (b) damga-finally  -> `bitti=` basari izi YALNIZ basari yolunda; istisnada
+#                         `hata=` (finally sahte-yesil vermez → [[damga-finally-tuzagi]]).
+#   (c) cikis-damgasi  -> .son-yedek.json en sonda, YALNIZ kosum tamamlaninca.
+#
+# 🔴 NEDEN DAVRANISSAL (yapisal/regex DEGIL — [[mimar-kapi-parser-taklidi]]): her
+# guvence yedekle.py'nin ILGILI KOD YOLUNU tam-izole bir kum havuzunda (sahte HOME
+# + sahte git deposu + drive_yolu STUB'u) GERCEKTEN kosarak olculur. Base kontrol
+# yalnizca GOZLENEN DAVRANISA (atladi mi / iz `bitti=` mi / damga tazelendi mi)
+# bakar; degisken adi/yorum/satir tasima gibi MESRU refaktorler davranisi
+# degistirmez -> yanlis-pozitif YOK (negatif fiksturler bunu kanitlar). Vakum
+# olmadigini POZITIF MUTANT ispatlar: guvenceyi KOPYADAN kaldirinca base kontrolun
+# gozledigi davranis TERSINE doner.
+#
+# 🔴 CI-BAGIMSIZLIK: kum havuzu her seyi tempdir'de kurar (ortam["HOME"]=sahte ev);
+# gercek runner'in bos HOME'u / gitignore'lu dosyalarin yoklugu SONUCU ETKILEMEZ.
+# git YOKSA bile yedekle.ana_calisma_agaci taban=kok'a duser (OSError -> fallback),
+# yani kum havuzu git'siz runner'da da kosar.
+
+# COKME injeksiyonu (yedekle-test 13g deseni): memory kopyalandiktan SONRA, skills
+# kopyalanmadan ONCE gercek bir istisna at -> kosum ORTADA yarim kalir. Anchor
+# _yedekle icinde TEKIL (skills_yaz'daki yazilan=0'dan `if os.path.isdir(SKILLS):`
+# ile ayrilir). Base + mutant + refaktor AYNI cokme ile kosar; tek fark guvence.
+_COKME_CAPA = "    yazilan = 0\n    if os.path.isdir(SKILLS):"
+_COKME = ('    raise RuntimeError("TEST: kosum ortasinda cokme")\n'
+          "    yazilan = 0\n    if os.path.isdir(SKILLS):")
+
+
+def _yedekle_izole_ortam(td, yb, memory_adet=8, skills_adet=4):
+    """yedekle.py icin TAM IZOLE kosum ortami (gercek HOME/Drive'a DOKUNMAZ).
+    Doner: {kok, betik, ev, hedef, kilit, ortam}."""
+    kok = os.path.join(td, "repo")
+    os.makedirs(os.path.join(kok, "tools"))
+    shutil.copy2(YEDEKLE, os.path.join(kok, "tools", "yedekle.py"))
+    pruvo = os.path.join(td, "drive", "Pruvo")
+    os.makedirs(pruvo)
+    with open(os.path.join(kok, "tools", "drive_yolu.py"), "w") as f:
+        f.write('DESEN = "/olmayan-mount/*/STL"\nCFG = "/olmayan/.stl-backup-dir"\n'
+                'def stl_dizini(sessiz=False):\n    return %r\n'
+                'def pruvo_dizini(sessiz=False):\n    return %r\n'
+                % (os.path.join(pruvo, "STL"), pruvo))
+    try:                                    # git YOKSA fallback taban=kok yeter (env-bagimsiz)
+        subprocess.run(["git", "-C", kok, "init", "-q"], capture_output=True)
+    except OSError:
+        pass
+    for ad in yb.REPO_BEKLENEN:
+        with open(os.path.join(kok, ad), "w") as f:
+            f.write("izole test icerigi: %s\n" % ad)
+    ev = os.path.join(td, "ev")
+    mem = os.path.join(ev, ".claude", "projects", "-Users-okan-dev-pruvo", "memory")
+    sk = os.path.join(ev, ".claude", "skills", "ornek-skill")
+    os.makedirs(mem)
+    os.makedirs(sk)
+    for i in range(memory_adet):
+        with open(os.path.join(mem, "not-%03d.md" % i), "w") as f:
+            f.write("hafiza %d\n" % i)
+    for i in range(skills_adet):
+        with open(os.path.join(sk, "adim-%03d.md" % i), "w") as f:
+            f.write("skill %d\n" % i)
+    ortam = dict(os.environ)
+    ortam["HOME"] = ev
+    return {"kok": kok, "betik": os.path.join(kok, "tools", "yedekle.py"),
+            "ev": ev, "hedef": os.path.join(pruvo, "backup"),
+            "kilit": os.path.join(kok, yb.KILIT_ADI), "ortam": ortam}
+
+
+def _yedekle_kos(o, *bayraklar):
+    return subprocess.run([sys.executable, o["betik"]] + list(bayraklar),
+                          capture_output=True, text=True, env=o["ortam"], cwd=o["kok"])
+
+
+def _betik_uygula(o, degisimler):
+    """o["betik"] (kopya yedekle.py) kaynagina anchor-tabanli degisim uygular.
+    degisimler: (eski, yeni) ya da (eski, yeni, adet) — adet None -> HEPSI (rename).
+    Capa yoksa RuntimeError (bayat capa sessizce gecmesin; yedekle-test.py deseni)."""
+    with open(o["betik"], encoding="utf-8") as f:
+        gov = f.read()
+    for d in degisimler:
+        eski, yeni = d[0], d[1]
+        adet = d[2] if len(d) > 2 else 1
+        if eski not in gov:
+            raise RuntimeError(
+                "MUTASYON/REFAKTOR CAPASI BULUNAMADI (yedekle.py degismis): %r" % eski)
+        gov = gov.replace(eski, yeni) if adet is None else gov.replace(eski, yeni, adet)
+    with open(o["betik"], "w", encoding="utf-8") as f:
+        f.write(gov)
+
+
+def _damga_zaman(hedef, damga_adi):
+    try:
+        with open(os.path.join(hedef, damga_adi), encoding="utf-8") as f:
+            return json.load(f).get("zaman")
+    except (OSError, ValueError):
+        return None
+
+
+def _kilit_izi(kilit_yolu):
+    try:
+        with open(kilit_yolu, encoding="utf-8", errors="replace") as f:
+            return f.read(256).strip()
+    except OSError:
+        return ""
+
+
+def _senaryo_flock(yb, degisimler):
+    """Kilit BASKASINDAYKEN `--gerekliyse` kosumu ATLAMALI (serilestirme).
+    degisimler betik'e uygulanir (mutant/refaktor). Doner: (atladi, bitti_yazdi)."""
+    with tempfile.TemporaryDirectory() as td:
+        o = _yedekle_izole_ortam(td, yb)
+        if degisimler:
+            _betik_uygula(o, degisimler)
+        kilitci = open(o["kilit"], "a+")                 # "kosan yedek" taklidi
+        fcntl.flock(kilitci, fcntl.LOCK_EX)              # kilit GERCEKTEN tutuluyor
+        kilitci.write(yb._sahip_imzasi(time.time(), pid=999999))
+        kilitci.flush()
+        try:
+            r = _yedekle_kos(o, "--gerekliyse")
+        finally:
+            fcntl.flock(kilitci, fcntl.LOCK_UN)
+            kilitci.close()
+        atladi = (r.returncode == 0 and "yedek ATLANDI" in r.stdout
+                  and "bitti ->" not in r.stdout)
+        return atladi, ("bitti ->" in r.stdout)
+
+
+def _senaryo_cokme(yb, ekstra_degisimler):
+    """Ilk kosum basarili (damga T0), sonra kosum ORTADA coker. ekstra_degisimler
+    COKME'ye EK uygulanir. Doner: dict(r0_ok, T0, damga_degisti, iz_bitti, iz_hata, cokdu)."""
+    with tempfile.TemporaryDirectory() as td:
+        o = _yedekle_izole_ortam(td, yb)
+        r0 = _yedekle_kos(o)                             # saglam kosum -> damga T0 + iz `bitti=`
+        T0 = _damga_zaman(o["hedef"], yb.DAMGA_ADI)
+        time.sleep(0.02)                                 # T1 != T0 ayirt edilebilsin
+        _betik_uygula(o, [(_COKME_CAPA, _COKME)] + list(ekstra_degisimler))
+        r1 = _yedekle_kos(o)                             # kosum ORTADA coker
+        T1 = _damga_zaman(o["hedef"], yb.DAMGA_ADI)
+        iz = _kilit_izi(o["kilit"])
+        return {"r0_ok": "bitti ->" in r0.stdout, "T0": T0,
+                "damga_degisti": (T0 is not None and T1 != T0),
+                "iz_bitti": "bitti=" in iz, "iz_hata": "hata=" in iz,
+                "cokdu": r1.returncode != 0}
+
+
+def _capa(ad, fn):
+    """Bolum 10 anchor-miss KALKANI (ekip-bloklayici kapi FAIL-OPEN): senaryo fn()'in
+    anchor'i MESRU refaktorle kayarsa ('CAPASI BULUNAMADI') o kontrol ⚪+None olur, suite
+    ABORT ETMEZ. DAR: base davranissal KIRMIZI (ok=False) korunur; disi istisna re-raise."""
+    try:
+        return fn()
+    except RuntimeError as e:
+        if "CAPASI BULUNAMADI" not in str(e):
+            raise
+        olculemedi(ad, "yedekle.py yapisi degisti — capa guncellenmeli", "fikstur")
+        return None
 
 
 def main():
@@ -1858,6 +2027,108 @@ def main():
             kontrol("launchd_ortami() gercek ortami ILAN ETTIGI gibi goruyor (tekrarlanabilir)",
                     launchd_ortami() == LAUNCHD_ORTAMI[0],
                     "%s == %s" % (launchd_ortami(), LAUNCHD_ORTAMI[0]))
+
+    # ---------------- 10) YEDEKLE 3 GUVENCE — CI-KOSULABILIR DAVRANISSAL NOBET ----------------
+    # AXIS-3 KAPATMA: flock / damga-finally-degil / cikis-damgasi-basari-yolunda
+    # guvenceleri SIMDIYE DEK yalniz CI-MUAF yedekle-test.py'de olculuyordu. Burada
+    # tam-izole (sahte HOME + sahte git deposu + drive_yolu STUB'u) DAVRANISSAL
+    # nobetlerle olculur -> taze ubuntu-latest runner'da (bos HOME, gitignore'lu dosya
+    # yok) da KOSAR. Alt kosumda (ps-siz PATH taklidi) KOSTURULMAZ: bu nobetler kendi
+    # sahte ortamini kurar, ps/git eksenleriyle ilgisi yoktur (gereksiz maliyet + delikat
+    # alt-kosum muhasebesini bozma riski). Env-bagimsizligin kendi kaniti asagidaki
+    # bos-HOME alt kosumundadir (RAPOR-MIMARA kabul).
+    if ALT_KOSUM not in sys.argv:
+        print("\n10) YEDEKLE 3 GUVENCE (flock / damga-finally-degil / cikis-damgasi) "
+              "— tam-izole DAVRANISSAL, env-bagimsiz")
+        yb = modul_yukle(YEDEKLE, "yedekle_guvence")   # yalniz sabitler + _sahip_imzasi
+
+        # --- POZITIF MUTANTLAR: her biri TEK guvenceyi yedekle.py KOPYASINDAN kaldirir ---
+        MUT_FLOCK = ("        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)",
+                     "        pass  # MUTANT: flock cagrisi silindi (serilestirme yok)")
+        MUT_FINALLY = ("    basardi = False",
+                       "    basardi = True  # MUTANT: basari izi finally'de kosulsuz "
+                       "(istisna yolu sahte-yesil)")
+        MUT_CIKIS = (
+            "    bas_imza = kaynak_imzasi(sirlar)",
+            "    bas_imza = kaynak_imzasi(sirlar)\n"
+            "    damga_yaz(backup, {'memory': 0, 'skills': 0, 'repo': 0}, "
+            "eksik=repo_eksikleri(), baslangic=baslangic, kilitsiz=kilitsiz, imza=bas_imza)"
+            "  # MUTANT: cikis damgasi basari-yolundan alindi (basta yaziliyor)")
+
+        # --- NEGATIF (MESRU) REFAKTORLER: guvence KORUNUR -> davranis DEGISMEZ ---
+        REF_YORUM = ("        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)",
+                     "        # refaktor yorumu: non-blocking exclusive kilit denemesi\n"
+                     "        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)")
+        REF_RENAME = ("bas_imza", "baslangic_imzasi", None)   # None -> HEPSI (yeniden adlandirma)
+        REF_YORUM2 = ("    basardi = False",
+                      "    # refaktor: fail-closed basari bayragi varsayilani\n"
+                      "    basardi = False")
+
+        # ---- GUVENCE (a): flock paralel yedekleri serilestirir ----
+        a_base_atladi, a_base_bitti = _senaryo_flock(yb, [])
+        kontrol("(a) flock BASE: kilit baskasindayken kosum ATLADI (serilestirme calisiyor)",
+                a_base_atladi and not a_base_bitti,
+                "atladi=%s bitti=%s" % (a_base_atladi, a_base_bitti))
+        a_mut = _capa("(a) flock POZITIF MUTANT [capa]", lambda: _senaryo_flock(yb, [MUT_FLOCK]))
+        a_mut_atladi, a_mut_bitti = a_mut or (None, None)
+        a_mut is None or kontrol("(a) flock POZITIF MUTANT (flock cagrisi silindi) -> kosum ATLAMADI, "
+                "kilitli hedefe YAZDI (base kontrol KIRMIZI yanardi)",
+                a_mut_bitti and not a_mut_atladi,
+                "atladi=%s bitti=%s" % (a_mut_atladi, a_mut_bitti))
+
+        # ---- GUVENCE (b): `bitti=` basari izi YALNIZ basari yolunda ----
+        b_base = _capa("(b) base cokme senaryosu [capa]", lambda: _senaryo_cokme(yb, []))
+        b_base is None or kontrol("(b) hazirlik: ilk yedek tamamlandi + coken kosum GERCEKTEN cokuyor",
+                b_base["r0_ok"] and b_base["cokdu"] and b_base["T0"] is not None,
+                "r0_ok=%s cokdu=%s" % (b_base["r0_ok"], b_base["cokdu"]))
+        b_base is None or kontrol("(b) damga-finally BASE: kosum coktugunde iz `bitti=` TASIMIYOR, `hata=` "
+                "tasiyor (basari izi yalniz basari yolunda)",
+                (not b_base["iz_bitti"]) and b_base["iz_hata"],
+                "bitti=%s hata=%s" % (b_base["iz_bitti"], b_base["iz_hata"]))
+        b_mut = _capa("(b) mutant cokme senaryosu [capa]", lambda: _senaryo_cokme(yb, [MUT_FINALLY]))
+        b_mut is None or kontrol("(b) damga-finally POZITIF MUTANT (basardi=True finally) -> coken kosumun "
+                "izi `bitti=` TASIYOR = sahte-yesil (base kontrol KIRMIZI yanardi)",
+                b_mut["iz_bitti"], "bitti=%s hata=%s" % (b_mut["iz_bitti"], b_mut["iz_hata"]))
+
+        # ---- GUVENCE (c): cikis damgasi (.son-yedek.json) YALNIZ basari yolunda ----
+        c_base = _capa("(c) base cokme senaryosu [capa]", lambda: _senaryo_cokme(yb, []))
+        c_base is None or kontrol("(c) cikis-damgasi BASE: kosum coktugunde .son-yedek.json TAZELENMEDI "
+                "(damga en sonda, yalniz tamamlaninca)",
+                not c_base["damga_degisti"], "damga_degisti=%s" % c_base["damga_degisti"])
+        c_mut = _capa("(c) mutant cokme senaryosu [capa]", lambda: _senaryo_cokme(yb, [MUT_CIKIS]))
+        c_mut is None or kontrol("(c) cikis-damgasi POZITIF MUTANT (damga basa tasindi) -> coken kosum TAZE "
+                "damga yazdi = sahte-yesil (base kontrol KIRMIZI yanardi)",
+                c_mut["damga_degisti"], "damga_degisti=%s" % c_mut["damga_degisti"])
+
+        # ---- NEGATIF FIKSTUR (yanlis-pozitif YOK): mesru refaktor base kontrolu YESIL birakir ----
+        n1 = _capa("(neg-1) flock refaktor senaryosu [capa]", lambda: _senaryo_flock(yb, [REF_YORUM]))
+        n1_atladi, n1_bitti = n1 or (None, None)
+        n1 is None or kontrol("(neg-1) mesru refaktor (flock'a yorum satiri) -> (a) BASE davranisi AYNEN "
+                "YESIL (FP yok)", n1_atladi and not n1_bitti,
+                "atladi=%s bitti=%s" % (n1_atladi, n1_bitti))
+        n2 = _capa("(neg-2) cokme refaktor senaryosu [capa]", lambda: _senaryo_cokme(yb, [REF_RENAME]))
+        n2 is None or kontrol("(neg-2) mesru refaktor (bas_imza -> baslangic_imzasi yeniden adlandirma) -> "
+                "(b)+(c) BASE davranisi AYNEN YESIL (FP yok)",
+                (not n2["iz_bitti"]) and n2["iz_hata"] and (not n2["damga_degisti"])
+                and n2["cokdu"],
+                "bitti=%s hata=%s damga_degisti=%s" % (n2["iz_bitti"], n2["iz_hata"],
+                                                       n2["damga_degisti"]))
+        n3 = _capa("(neg-3) cokme refaktor senaryosu [capa]", lambda: _senaryo_cokme(yb, [REF_YORUM2]))
+        n3 is None or kontrol("(neg-3) mesru refaktor (basardi'ya yorum satiri) -> (b)+(c) BASE davranisi "
+                "AYNEN YESIL (FP yok)",
+                (not n3["iz_bitti"]) and n3["iz_hata"] and (not n3["damga_degisti"]),
+                "bitti=%s hata=%s damga_degisti=%s" % (n3["iz_bitti"], n3["iz_hata"],
+                                                       n3["damga_degisti"]))
+
+        # KALICI FIKSTUR (anchor-kirilgan DEGIL): '__CAPA_FIKSTUR_ASLA_YOK__' hicbir yedekle.py'de
+        # yok = anchor-KIRAN mesru refaktor; _capa onu tam 1 ⚪+None yapmali, suite ABORT etmemeli.
+        _ol0 = len(OLCULEMEDI)
+        _fx = _capa("(fikstur) kasitli anchor-KIRAN refaktor",
+                    lambda: _senaryo_flock(yb, [("__CAPA_FIKSTUR_ASLA_YOK__", "x")]))
+        kontrol("(fikstur) anchor-KIRAN refaktor GRACEFUL: _capa None dondu + tam 1 ⚪ "
+                "uretti + suite ABORT ETMEDI (FP mayini kapali kalir)",
+                _fx is None and len(OLCULEMEDI) == _ol0 + 1,
+                "None=%s yeni_olculemedi=%d" % (_fx is None, len(OLCULEMEDI) - _ol0))
 
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok in SONUC if not ok]
