@@ -133,6 +133,42 @@ WORKFLOW_DIZIN = os.path.join(ROOT, ".github", "workflows")
 
 OLCULEMEDI = 2
 
+
+# ---------------------------------------------------------------------------
+# ORTAK "GERCEK ICRA MI" SUZGECI (KABUK EKSENI) — tools/icra-suzgeci.py
+# ---------------------------------------------------------------------------
+# KATMANLAMA (DONGU YOK):
+#   tools/icra-suzgeci.py            (katman 0 — saf kabuk; YAML BILMEZ)
+#     ^-- tools/ci-kapsam-test.py    (katman 1 — kesif + kapsam)
+#           ^-- BU DOSYA             (katman 2 — YAML ekseni + etkisizlestirme)
+#                 ^-- jenerator/test/kabul.py · tools/konfigur-nobet-mutasyon.py
+# Suzgec YAML'a BAGIMLI DEGIL, o yuzden import dongusu olusmaz. YAML ekseni
+# (ayristir / _dogru_mu / _yanlis_mu / B_ETKISIZ / _set_e_etkisi) BU dosyada kalir
+# ve tuketiciler onu BURADAN alir -> ikinci bir "etkisiz mi" mantigi TUTULMAZ.
+def _suzgec_yukle():
+    """tools/icra-suzgeci.py'yi MODUL olarak yukle (FAIL-CLOSED: yoksa RuntimeError)."""
+    import importlib.util
+    yol = os.path.join(TOOLS, "icra-suzgeci.py")
+    if not os.path.exists(yol):
+        raise RuntimeError(
+            "tools/icra-suzgeci.py YOK -> ortak 'gercek icra mi' suzgeci yuklenemedi; "
+            "bu kapi `--help`/`echo` sinifi anlamsiz cagrilari GORMEZ (fail-closed).")
+    if "pruvo_icra_suzgeci" in sys.modules:
+        return sys.modules["pruvo_icra_suzgeci"]
+    spec = importlib.util.spec_from_file_location("pruvo_icra_suzgeci", yol)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["pruvo_icra_suzgeci"] = mod
+    spec.loader.exec_module(mod)
+    for ad in ("anlamli_cagri", "cagri_sayilir", "etkili_arguman", "birlestir_devam",
+               "onek_re", "EVET", "HAYIR", "OLCULEMEDI"):
+        if not hasattr(mod, ad):
+            raise RuntimeError("tools/icra-suzgeci.py'de %s YOK -> suzgec sozlesmesi "
+                               "degismis (fail-closed)" % ad)
+    return mod
+
+
+SUZGEC = _suzgec_yukle()
+
 # ---------------------------------------------------------------------------
 # AYRISTIRICI — GERCEK YAML, taklit YOK ([[mimar-kapi-parser-taklidi]]).
 # ---------------------------------------------------------------------------
@@ -658,6 +694,127 @@ def _tetik_adlari(govde):
     return set()
 
 
+def _run_satirlari(metin):
+    """TEK KAYNAK — YAML EKSENI: [(job_id, adim_no, adim_adi, adim_sebep, satir), ...]
+
+    Bir is akisi dosyasinin TUM `run:` bloklarindaki ICRA satirlarini dondurur:
+      * job/adim sinirlari AYRISTIRICIDAN gelir (TAHMIN EDILMEZ)
+      * kabuk yorumlari (strip sonrasi `#`) ELENIR
+      * `\\` SATIR DEVAMLARI BIRLESTIRILIR (SUZGEC.birlestir_devam) -> mesru
+        `python3 tools/x.py \\` + `--bayrak` yazimi YARIM gorunmez
+      * `set +e` / `set -e` satirlari ELENIR ve errexit durumu adim_sebep'e islenir
+      * adim_sebep: job/adim duzeyindeki ETKISIZLESTIRME sebepleri (continue-on-error,
+        DAIMA-YANLIS `if:`) + ayni blokta ONCE gelen `set +e`. BOS ise adim BLOKLAR.
+      * SATIR duzeyindeki `|| true` sebebi CAGIRAN ekler (o bir SATIR ozelligidir;
+        mesru ornek: onizleme-imaj.yml'de `npx wrangler ... || true` AYNI adimdaki
+        baska satirlari etkisizlestirmez).
+
+    Bolum B, Bolum D, Bolum E ve DIS tuketiciler (jenerator/test/kabul.py,
+    tools/konfigur-nobet-mutasyon.py) BU fonksiyondan beslenir -> "adim/satir gercekten
+    kosuyor mu" mantiginin ikinci kopyasi TUTULMAZ ([[ayna-kapi-kesif-ekseni]])."""
+    govde, hata = ayristir(metin)
+    if hata or not isinstance(govde, dict):
+        return []  # bicim hatasi Bolum A'nin isi; burada IKINCI kez raporlanmaz
+    jobs = govde.get("jobs")
+    if not isinstance(jobs, dict):
+        return []
+    kayitlar = []
+    for job_id, job in jobs.items():
+        if not isinstance(job, dict):
+            continue
+        job_sebep = []
+        if _dogru_mu(job.get("continue-on-error")):
+            job_sebep.append("job'da `continue-on-error: true`")
+        if _yanlis_mu(job.get("if")):
+            job_sebep.append("job'da DAIMA-YANLIS `if: %r`" % (job.get("if"),))
+        steps = job.get("steps")
+        if not isinstance(steps, list):
+            continue
+        for i, step in enumerate(steps, 1):
+            if not isinstance(step, dict):
+                continue
+            adim_sebep = list(job_sebep)
+            if _dogru_mu(step.get("continue-on-error")):
+                adim_sebep.append("adimda `continue-on-error: true`")
+            if _yanlis_mu(step.get("if")):
+                adim_sebep.append("adimda DAIMA-YANLIS `if: %r`" % (step.get("if"),))
+            run = step.get("run")
+            if not isinstance(run, str):
+                continue
+            adim_adi = step.get("name") if isinstance(step.get("name"), str) else ""
+            errexit_kapali = False
+            for ham in SUZGEC.birlestir_devam(run):
+                s = ham.strip()
+                if not s or s.startswith("#"):
+                    continue  # kabuk yorumu -> ICRA DEGIL
+                etki = _set_e_etkisi(s)
+                if etki is not None:
+                    errexit_kapali = etki
+                    continue
+                sebep = list(adim_sebep)
+                if errexit_kapali:
+                    sebep.append("ayni `run:` blogunda ONCE `set +e` var "
+                                 "(errexit kapali -> cikis kodu bloklamaz)")
+                kayitlar.append((job_id, i, adim_adi, sebep, s))
+    return kayitlar
+
+
+def etkili_mensiyon(metin, aranan):
+    """DIS TUKETICI SOZLESMESI (jenerator/test/kabul.py TEST 4).
+
+    [(job_id, adim_no, adim_adi, satir), ...] — <aranan> metnini GERCEK bir komutun
+    ARGUMANI olarak tasiyan ve ETKISIZLESTIRILMEMIS icra satirlari.
+
+    OLCULEN DELIK (30 Tem, DUZ-MENSIYON 1): kabul.py TEST 4
+    `"jenerator/hacim.js" in deploy_metni` diyordu. `cp jenerator/hacim.js ...`
+    satiri yoruma alinsa (`# cp ...`) ya da `echo cp ...`'a cevrilse metin HALA
+    dosyada geciyor -> iddia True kaliyor ve "deploy kopyasi bayt-ozdes" testi
+    SESSIZCE anlamini yitiriyordu (olculdu: iki mutantta da beyaz=True)."""
+    bulunan = []
+    for job_id, adim_no, adim_adi, adim_sebep, s in _run_satirlari(metin):
+        if adim_sebep:
+            continue
+        if B_ETKISIZ.search(s):
+            continue
+        hukum, _sebep = SUZGEC.etkili_arguman(s, aranan)
+        if hukum in (SUZGEC.EVET, SUZGEC.OLCULEMEDI):
+            bulunan.append((job_id, adim_no, adim_adi, s))
+    return bulunan
+
+
+def etkili_kapi_cagrilari(metin, yol):
+    """DIS TUKETICI SOZLESMESI (tools/konfigur-nobet-mutasyon.py bolum_g).
+
+    [(job_id, adim_no, adim_adi, satir, sebep_listesi), ...] — <yol>'u kosan cagrilar
+    ve etkisizlestirme SEBEPLERI. sebep BOS ise cagri GERCEKTEN BLOKLAYICIDIR.
+
+    OLCULEN DELIK (30 Tem, DUZ-MENSIYON 2): konfigur-nobet-mutasyon.py
+    `"konfigur-test.py" in adim and "run:" in adim` ile adim ariyor, `continue-on-error`
+    metnine bakiyordu. `echo python3 tools/konfigur-test.py --anahat` ve yoruma alinmis
+    cagri mutantlarinda rapor HALA "BLOKLAYICI" yaziyordu (olculdu).
+
+    🔴 ADAY SUZGECI OLARAK `onek_re` KULLANILMAZ (olculdu: yanlis-pozitif F10):
+    `run: bash -c "python3 tools/ci-kapsam-test.py"` MESRU bir yazimdir ama kaba
+    `^python3 <yol>` capasina UYMAZ -> aday hic bulunmaz ve "cagri YOK" hukmu SAHTE
+    KIRMIZI uretirdi. Burada aday+hukum TEK ADIMDA SUZGEC.anlamli_cagri()'dan gelir
+    (`bash -c`, tek-jetonluk tirnakli skalar, `python3 -u`, `env VAR=1` hepsi cozulur).
+    Bolum D'nin `kapi_cagrilari()` fonksiyonu 121 kesif yolunu gezdigi icin BILINCLI
+    olarak kaba capada kalir (beyan: D_MUTANTLAR ustundeki "BEYAN EDILMIS SINIR")."""
+    bulunan = []
+    for job_id, adim_no, adim_adi, adim_sebep, s in _run_satirlari(metin):
+        hukum0, _s0, _a0 = SUZGEC.anlamli_cagri(s, yol)
+        if hukum0 is None:
+            continue  # satir bu yolla ILGISIZ
+        sebep = list(adim_sebep)
+        if B_ETKISIZ.search(s):
+            sebep.append("komutta `|| true` / `|| :` / `|| exit 0` (cikis kodu yutulur)")
+        hukum, suz_sebep, _arg = SUZGEC.anlamli_cagri(s, yol)
+        if hukum == SUZGEC.HAYIR:
+            sebep.append("cagri ANLAMSIZ: %s" % suz_sebep)
+        bulunan.append((job_id, adim_no, adim_adi, s, sebep))
+    return bulunan
+
+
 def etkili_cagrilar(metin, iddia=None):
     """<metin> (bir is akisi dosyasinin TAM metni) icinde <iddia>'yi FIILEN kosan
     (etkili) cagrilari dondur: [(job_id, adim_no, komut_satiri), ...].
@@ -674,52 +831,31 @@ def etkili_cagrilar(metin, iddia=None):
       * adimda (ya da job'da) `continue-on-error: true`
       * adimda (ya da job'da) DAIMA-YANLIS `if:` (`false`, `${{ false }}`, `0`, ...)
     Ayristirma GERCEK YAML uzerinden yapilir (adim/job sinirlari TAHMIN EDILMEZ);
-    `run: |` blogunun ICINDEKI kabuk yorumlari satir bazinda suzulur."""
+    `run: |` blogunun ICINDEKI kabuk yorumlari satir bazinda suzulur.
+
+    🔴 30 TEM EKI (dal): job/adim sinirlari + `\\` satir devami + `set +e` ARTIK
+    ORTAK SUZGECTEN gelir (_run_satirlari) — "adim gercekten kosuyor mu" mantiginin
+    ikinci kopyasi TUTULMAZ ([[ayna-kapi-kesif-ekseni]]). Ayrica cagrinin ANLAMLI
+    olmasi da sart (SUZGEC.cagri_sayilir): `--help` ile cagrilan ya da `echo`
+    mensiyonuna cevrilmis bir satir ETKILI SAYILMAZ. main'in KAPALI-LISTE yardim
+    bayragi ve zorunlu-jeton sartlari AYNEN KORUNUR (iki savunma birden)."""
     iddia = iddia or B_IDDIALAR[0]
-    govde, hata = ayristir(metin)
-    if hata or not isinstance(govde, dict):
-        return []
-    jobs = govde.get("jobs")
-    if not isinstance(jobs, dict):
-        return []
     bulunan = []
-    for job_id, job in jobs.items():
-        if not isinstance(job, dict):
-            continue
-        if _dogru_mu(job.get("continue-on-error")) or _yanlis_mu(job.get("if")):
-            continue
-        steps = job.get("steps")
-        if not isinstance(steps, list):
-            continue
-        for i, step in enumerate(steps, 1):
-            if not isinstance(step, dict):
-                continue
-            if _dogru_mu(step.get("continue-on-error")) or _yanlis_mu(step.get("if")):
-                continue
-            run = step.get("run")
-            if not isinstance(run, str):
-                continue
-            errexit_kapali = False
-            for ham in run.splitlines():
-                s = ham.strip()
-                if not s or s.startswith("#"):
-                    continue  # kabuk yorumu -> ICRA DEGIL
-                etki = _set_e_etkisi(s)
-                if etki is not None:
-                    errexit_kapali = etki
-                    continue
-                if not iddia.onek.match(s):
-                    continue
-                if B_ETKISIZ.search(s):
-                    continue  # `|| true` cikis kodunu yutar -> nobetci OLU
-                if errexit_kapali:
-                    continue  # `set +e` sonrasi cikis kodu bloklamaz
-                jeton = s.split()
-                if any(y in jeton for y in B_YARDIM_BAYRAK):
-                    continue  # `--help` -> surec is yapmadan 0 doner
-                if not all(z in jeton for z in iddia.jetonlar):
-                    continue  # zorunlu alt-komut/bayrak dusurulmus
-                bulunan.append((job_id, i, s))
+    for job_id, adim_no, _adim_adi, adim_sebep, s in _run_satirlari(metin):
+        if adim_sebep:
+            continue  # continue-on-error / daima-yanlis if: / `set +e`
+        if not iddia.onek.match(s):
+            continue  # per-IDDIA capa (main'in cok-iddiali tablosu)
+        if B_ETKISIZ.search(s):
+            continue  # `|| true` / `|| :` / `|| exit 0` cikis kodunu yutar
+        jeton = s.split()
+        if any(y in jeton for y in B_YARDIM_BAYRAK):
+            continue  # `--help` -> surec is yapmadan 0 doner (main kapali listesi)
+        if not all(z in jeton for z in iddia.jetonlar):
+            continue  # zorunlu alt-komut/bayrak dusurulmus
+        if not SUZGEC.cagri_sayilir(s, iddia.hedef):
+            continue  # MENSIYON komutu (`echo ...`) / anlamsiz bayrak -> govde kosmaz
+        bulunan.append((job_id, adim_no, s))
     return bulunan
 
 
@@ -803,6 +939,39 @@ OZ_CAGRI_TANI = (
     "atilan cikplak cagri sayilmaz).")
 
 
+# main() govdesinde cagrilmasi ZORUNLU bolum fonksiyonlari (AST ile aranir).
+# NEDEN: `bolum_e(args.dizin)` satiri silinirse tetikleyici + zorunlu-adim iddialari
+# CI'da HIC kosmaz; Bolum C (kendini_test) bolum_e()'yi SENTETIK fiksturlerle olcmeye
+# devam ettigi icin "govde saglam" der ve delik SESSIZCE geri gelir. Aynisi bolum_a/b/d
+# icin de gecerli. Duz isim cagrisi araniyor (or. `bolum_e(...)`).
+MAIN_ZORUNLU_BOLUMLER = ("bolum_a", "bolum_b", "bolum_d", "bolum_e")
+
+MAIN_BOLUM_TANI = (
+    "BOLUM KABLOSU KOPMUS: main() govdesinde %s cagrisi YOK -> o bolumun iddialari "
+    "CI'da HIC kosmuyor.\n"
+    "   🔴 Bu SESSIZ bir kacistir: Bolum C (kendini_test) o bolumun GOVDESINI sentetik "
+    "fiksturlerle olcmeye devam eder ve 'saglam' der; oysa GERCEK is akisi dosyalari "
+    "hic denetlenmez.\n"
+    "   GERI KOY: main() icinde `%s(args.dizin)` (ve sonucunu `hatalar`'a ekle).")
+
+
+def bolum_kablosu_kontrol():
+    """main() govdesinde bolum_a/b/d/e cagrilari duruyor mu (AST, metin capasi DEGIL)."""
+    try:
+        with open(os.path.abspath(__file__), encoding="utf-8") as f:
+            agac = ast.parse(f.read())
+    except (OSError, SyntaxError) as e:
+        return ["BOLUM KABLOSU OLCULEMEDI: kendi kaynagi ayristirilamadi (%s)" % e]
+    for dugum in ast.walk(agac):
+        if not (isinstance(dugum, ast.FunctionDef) and dugum.name == "main"):
+            continue
+        cagrilar = {alt.func.id for alt in ast.walk(dugum)
+                    if isinstance(alt, ast.Call) and isinstance(alt.func, ast.Name)}
+        return [MAIN_BOLUM_TANI % (b, b) for b in MAIN_ZORUNLU_BOLUMLER
+                if b not in cagrilar]
+    return ["BOLUM KABLOSU OLCULEMEDI: main() fonksiyonu bulunamadi"]
+
+
 def oz_cagri_kontrol():
     """OZ-CAGRI NOBETI — main() BLOKLAYICI kolunda kendini_test() GERCEKTEN cagriliyor mu.
 
@@ -849,7 +1018,7 @@ def bolum_b(dizin):
     if not os.path.exists(yol):
         return ["CAGRI NOBETI: %s bulunamadi (%s) -> hedeflerin kostugu is akisi kalkmis, "
                 "olcum yapilamadi (fail-closed KIRMIZI)" % (B_IS_AKISI, yol)], 0, 0
-    hatalar = list(oz_cagri_kontrol())
+    hatalar = list(oz_cagri_kontrol()) + list(bolum_kablosu_kontrol())
     hatalar.extend(b_capraz_hatalari())
     with open(yol, encoding="utf-8") as f:
         metin = f.read()
@@ -961,58 +1130,27 @@ def kapi_cagrilari(metin, capalar):
     Ayristirma GERCEK YAML (adim/job sinirlari TAHMIN EDILMEZ); `run:` blogu SATIR
     BAZINDA gezilir cunku `|| true` bir ADIM ozelligi degil SATIR ozelligidir — mesru
     ornek: onizleme-imaj.yml'de `npx wrangler ... || true` satiri, AYNI adimda bulunan
-    baska satirlari etkisizlestirmez ve hicbir kapi cagrisi tasimaz."""
-    govde, hata = ayristir(metin)
-    if hata or not isinstance(govde, dict):
-        return []  # bicim hatasi Bolum A'nin isi; burada IKINCI kez raporlanmaz
-    jobs = govde.get("jobs")
-    if not isinstance(jobs, dict):
-        return []
+    baska satirlari etkisizlestirmez ve hicbir kapi cagrisi tasimaz.
+
+    🔴 30 TEM EKI — ICRA-DISI BAYRAK (DELIK 1) ETKISIZLESTIRME SAYILIR: adim CI'da
+    GORUNUR, exit 0 verir ve "kapi var" sanilir, ama olcum govdesi HIC kosmaz. Bu
+    Bolum D'nin ta kendisidir ("CI'da VAR" != "CI'da BLOKLAR") -> `--help`/`-h`/
+    `--version` ile cagrilan bir kapi artik SEBEPLI (fail-open) raporlanir ve
+    D_IZIN beyan mekanizmasi ona da uygulanir."""
     bulunan = []
-    for job_id, job in jobs.items():
-        if not isinstance(job, dict):
-            continue
-        job_sebep = []
-        if _dogru_mu(job.get("continue-on-error")):
-            job_sebep.append("job'da `continue-on-error: true`")
-        if _yanlis_mu(job.get("if")):
-            job_sebep.append("job'da DAIMA-YANLIS `if: %r`" % (job.get("if"),))
-        steps = job.get("steps")
-        if not isinstance(steps, list):
-            continue
-        for i, step in enumerate(steps, 1):
-            if not isinstance(step, dict):
+    for job_id, adim_no, adim_adi, adim_sebep, s in _run_satirlari(metin):
+        for yol, onek in capalar:
+            if not onek.match(s):
                 continue
-            adim_sebep = list(job_sebep)
-            if _dogru_mu(step.get("continue-on-error")):
-                adim_sebep.append("adimda `continue-on-error: true`")
-            if _yanlis_mu(step.get("if")):
-                adim_sebep.append("adimda DAIMA-YANLIS `if: %r`" % (step.get("if"),))
-            run = step.get("run")
-            if not isinstance(run, str):
-                continue
-            adim_adi = step.get("name") if isinstance(step.get("name"), str) else ""
-            errexit_kapali = False
-            for ham in run.splitlines():
-                s = ham.strip()
-                if not s or s.startswith("#"):
-                    continue  # kabuk yorumu -> ICRA DEGIL (Bolum A/B ile ayni suzgec)
-                etki = _set_e_etkisi(s)
-                if etki is not None:
-                    errexit_kapali = etki
-                    continue
-                for yol, onek in capalar:
-                    if not onek.match(s):
-                        continue
-                    sebep = list(adim_sebep)
-                    if B_ETKISIZ.search(s):
-                        sebep.append("komutta `|| true` / `|| :` / `|| exit 0` "
-                                     "(cikis kodu yutulur)")
-                    if errexit_kapali:
-                        sebep.append("ayni `run:` blogunda ONCE `set +e` var "
-                                     "(errexit kapali -> cikis kodu bloklamaz)")
-                    bulunan.append((job_id, i, adim_adi, yol, s, sebep))
-                    break
+            sebep = list(adim_sebep)
+            if B_ETKISIZ.search(s):
+                sebep.append("komutta `|| true` / `|| :` / `|| exit 0` "
+                             "(cikis kodu yutulur)")
+            hukum, suz_sebep, _arg = SUZGEC.anlamli_cagri(s, yol)
+            if hukum == SUZGEC.HAYIR:
+                sebep.append("cagri ANLAMSIZ (olcum govdesi kosmaz): %s" % suz_sebep)
+            bulunan.append((job_id, adim_no, adim_adi, yol, s, sebep))
+            break
     return bulunan
 
 
@@ -1095,6 +1233,175 @@ def bolum_d(dizin):
             hatalar.append("D_IZIN BAYAT giris (artik etkisizlestirilmis bir kapi "
                            "cagrisina karsilik gelmiyor — SIL): %s" % etiket)
     return hatalar, toplam, len(etkisiz_anahtarlar), len(D_IZIN)
+
+
+# ---------------------------------------------------------------------------
+# BOLUM E — TETIKLEYICI + ZORUNLU KAPI ADIMI NOBETI (deploy.yml, DOSYA BAZLI POZITIF)
+# ---------------------------------------------------------------------------
+# NEDEN VAR (30 Tem yargi turu, OLCULEN DELIK 2 ve 4):
+#
+#   D2) deploy.yml'in GERCEK `on.push` blogu SILINDI ve yerine
+#         on:
+#           workflow_dispatch:
+#             inputs:
+#               push: {...}
+#       yazildi. `on:` anahtari DURUYOR ve `push` metni dosyada GECIYOR -> Bolum A3'un
+#       "`on:` var mi" iddiasi tatmin oluyor, METIN arayan hicbir kapi da fark etmiyor.
+#       SONUC: main'e push edilince is akisi HIC TETIKLENMEZ — urun sayfalari, sitemap,
+#       TUM kapilar ve Pages yayini kosmaz; kimse KIRMIZI gormez cunku KOSUM YOKTUR.
+#       Olculdu: dort denetci de rc=0.
+#       🔴 IDDIA AYRISTIRILMIS AGACTA KURULUR: `on` DUGUMUNUN DOGRUDAN ALTINDA `push`
+#       aranir. METIN ARAMASI YASAK (metin `inputs.push`'u da bulur -> tam bu delik).
+#
+#   D1/D4) `tools/ci-kapsam-test.py`'nin BAYRAKSIZ (kapsam kolu) adimi `--help`'e
+#       cevrildi ya da butunuyle silindi. O betigin KENDI nobetcisi bunu yakalar, AMA
+#       ayni surecte yasar; iki ADIM birden silinirse o surec HIC kosmaz. Buradaki
+#       iddia BAGIMSIZ BIR SURECTEN (bu kapinin kendi CI adimindan) ayni seyi olcer.
+#
+# KAPSAM DOSYA BAZLI POZITIF (depoda olculmus kural, [[kapi-kapsam-genisletme-tuzagi]]):
+# "her is akisinda push olsun" DEMEZ — onizleme-imaj.yml BILINCLI olarak yalniz
+# `workflow_dispatch` ile tetiklenir (imaj sik degismez) ve kor bir kural onu KIRMIZI
+# yakip tum yayini durdururdu. Iddia TEK DOSYAYA (deploy.yml) capalanir.
+E_DOSYA = "deploy.yml"
+E_TETIKLEYICILER = ("push",)
+# (kapi_yolu, zorunlu_bayrak_ya_da_None, adim_etiketi)
+#   bayrak None -> o bayragi TASIMAYAN (yani ana/bayraksiz kolu kosan) bir cagri sart
+E_ZORUNLU_CAGRILAR = (
+    ("tools/ci-kapsam-test.py", None,
+     "CI kapsam kapisi — KAPSAM kolu (her kabul testi kosuluyor mu / gerekceli muaf mi)"),
+    ("tools/ci-kapsam-test.py", "--kendini-test",
+     "CI kapsam kapisi OZ-NOBETCILERI (bulgu1 + muaf sayaci + adim nobetcileri)"),
+)
+
+E_TETIKLEYICI_TANI = (
+    "TETIKLEYICI NOBETI KIRMIZI: %s dosyasinda AYRISTIRILMIS `on` dugumunun DOGRUDAN\n"
+    "   altinda `%s` tetikleyicisi YOK.\n"
+    "   `on` dugumunun dogrudan alt anahtarlari: %s\n"
+    "   OLCULEN DELIK (30 Tem): gercek `on.push` blogu silinip `push` bir\n"
+    "   `workflow_dispatch.inputs` GIRDISI olarak yazilinca `on:` anahtari duruyor,\n"
+    "   `push` metni dosyada geciyor ve DORT denetci de rc=0 veriyordu. Ama main'e\n"
+    "   push edilince is akisi HIC TETIKLENMEZ: urun sayfalari, sitemap, TUM kapilar\n"
+    "   ve Pages yayini kosmaz — kimse kirmizi gormez cunku KOSUM YOKTUR.\n"
+    "   GERI KOY:\n"
+    "     on:\n"
+    "       push:\n"
+    "         branches: [main]\n"
+    "       workflow_dispatch:")
+
+E_ZORUNLU_TANI = (
+    "ZORUNLU KAPI ADIMI NOBETI KIRMIZI: %s dosyasinda `%s`%s ETKILI olarak kosan\n"
+    "   hicbir adim YOK.  (adim: %s)\n"
+    "   Etkisiz sayilan haller: satir SILINMIS · YORUMA alinmis · `--help`/`-h`/\n"
+    "   `--version` ile cagrilmis · `echo` MENSIYONUNA cevrilmis · `|| true` /\n"
+    "   `continue-on-error: true` / `if: false` / `set +e` ile etkisizlestirilmis.\n"
+    "   NEDEN BAGIMSIZ SURECTEN OLCULUR: bu iddianin sahibi ci-kapsam-test.py'dir ve\n"
+    "   kendi nobetcisi KENDI surecinde yasar; iki adimi birden silen bir mutasyonda o\n"
+    "   surec HIC kosmaz. Bu kapi AYRI bir CI adimidir -> o halde de konusur.%s")
+
+
+def _on_dugumu(govde):
+    """(on_dugumu, kullanilan_anahtar) — YAML 1.1'de ciplak `on:` BOOLEAN True'ya
+    cozulur; `"on"` tirnakli yazim dizedir. Ikisi de gecerlidir."""
+    for a in ON_ANAHTARLARI:
+        if a in govde:
+            return govde[a], a
+    return None, None
+
+
+def tetikleyici_var(govde, ad):
+    """<ad> tetikleyicisi `on` dugumunun DOGRUDAN ALTINDA var mi (AYRISTIRILMIS AGAC).
+
+    🔴 METIN ARAMASI DEGIL AGAC SORGUSU: delik 2 tam olarak "metin geciyor ama agacta
+    baska yerde" haliydi (`on.workflow_dispatch.inputs.push`). Desteklenen GitHub
+    yazimlari:
+        on: push                 -> dize
+        on: [push, workflow_dispatch]  -> liste
+        on: {push: {...}, ...}   -> mapping (en yaygin)
+    Bilinmeyen bir govde tipinde FAIL-CLOSED (False) doner: "olculemedi" YESIL sayilmaz.
+    """
+    dugum, _anahtar = _on_dugumu(govde)
+    if dugum is None:
+        return False
+    if isinstance(dugum, dict):
+        return ad in dugum
+    if isinstance(dugum, (list, tuple)):
+        return ad in dugum
+    if isinstance(dugum, str):
+        return dugum.strip() == ad
+    return False
+
+
+def _on_alt_anahtarlari(govde):
+    dugum, _ = _on_dugumu(govde)
+    if isinstance(dugum, dict):
+        return ", ".join(repr(a) for a in dugum) or "(bos mapping)"
+    if isinstance(dugum, (list, tuple)):
+        return ", ".join(repr(a) for a in dugum) or "(bos liste)"
+    if dugum is None:
+        return "(`on` anahtari YOK)"
+    return repr(dugum)
+
+
+def bolum_e(dizin):
+    """(hatalar, olculen_iddia_sayisi) — deploy.yml tetikleyicisi + zorunlu kapi adimlari."""
+    yol = os.path.join(dizin, E_DOSYA)
+    if not os.path.exists(yol):
+        return ["TETIKLEYICI/ZORUNLU ADIM NOBETI: %s bulunamadi (%s) -> ana yayin is "
+                "akisi kalkmis, olcum yapilamadi (fail-closed KIRMIZI)"
+                % (E_DOSYA, yol)], 0
+    with open(yol, encoding="utf-8") as f:
+        metin = f.read()
+    govde, hata = ayristir(metin)
+    if hata or not isinstance(govde, dict):
+        # Bicim hatasi BOLUM A'nin isi; burada IKINCI kez raporlanmaz (0 iddia olculdu).
+        return [], 0
+    hatalar = []
+    iddia = 0
+    for ad in E_TETIKLEYICILER:
+        iddia += 1
+        if not tetikleyici_var(govde, ad):
+            hatalar.append(E_TETIKLEYICI_TANI
+                           % (E_DOSYA, ad, _on_alt_anahtarlari(govde)))
+    for kapi, bayrak, etiket in E_ZORUNLU_CAGRILAR:
+        iddia += 1
+        etkili = []
+        reddedilen = []
+        for _j, _i, _ad, satir, sebep in etkili_kapi_cagrilari(metin, kapi):
+            hukum, _s, argumanlar = SUZGEC.anlamli_cagri(satir, kapi)
+            if sebep or hukum == SUZGEC.HAYIR:
+                reddedilen.append((satir, "; ".join(sebep) or "anlamsiz cagri"))
+                continue
+            # argumanlar None (OLCULEMEDI) -> bayrak sorgulanamaz, KABUL (fail-open)
+            if argumanlar is None:
+                etkili.append(satir)
+                continue
+            if bayrak is None and bayrak_disi(argumanlar):
+                etkili.append(satir)
+            elif bayrak is not None and bayrak in argumanlar:
+                etkili.append(satir)
+            else:
+                reddedilen.append((satir, "bayrak beklentisi tutmadi (aranan %r, "
+                                          "bulunan %r)" % (bayrak, argumanlar)))
+        if not etkili:
+            ek = ""
+            if reddedilen:
+                ek = "\n   REDDEDILEN ADAY(LAR): " + " | ".join(
+                    "%r -> %s" % (k[:80], s) for k, s in reddedilen[:3])
+            hatalar.append(E_ZORUNLU_TANI % (
+                E_DOSYA, kapi, (" %s" % bayrak) if bayrak else " (BAYRAKSIZ)",
+                etiket, ek))
+    return hatalar, iddia
+
+
+# E_ZORUNLU_CAGRILAR'daki "bayrak None" hali: cagri, LISTEDEKI DIGER zorunlu
+# bayraklarin HICBIRINI tasimamali (yani ana/bayraksiz kolu kosuyor olmali).
+# `--deploy <yol>` gibi girdi seçen bayraklar kolu DEGISTIRMEZ -> gecerli sayilir.
+E_KOL_BAYRAKLARI = frozenset(b for _y, b, _e in E_ZORUNLU_CAGRILAR if b)
+
+
+def bayrak_disi(argumanlar):
+    """<argumanlar> hicbir KOL bayragi tasimiyor mu (yani ana kol kosuluyor mu)."""
+    return not (set(argumanlar) & E_KOL_BAYRAKLARI)
 
 
 # ---------------------------------------------------------------------------
@@ -1269,6 +1576,23 @@ B_TETIK_MUTANTLAR = (
 )
 
 # ---- D ekseni ariza enjeksiyonu fiksturleri --------------------------------
+#
+# 🔴 BEYAN EDILMIS SINIR — `python3 -u <yol>` / `env X=1 python3 <yol>` FORMLARI
+# BOLUM D'DE GORUNMEZ (bu turda OLCULDU, bu fikstur listesinin kendi bulgusu):
+# Bolum D'nin ADAY capasi ci-kapsam-test.py'nin `_onek_re`'sidir ve `^python3\\s+<yol>`
+# ister. `run: python3 -u tools/kisisel-veri-test.py` bu capaya UYMAZ -> Bolum D o
+# satirda 0 cagri gorur ve (fail-OPEN) SUSAR. Capa BILEREK genisletilmedi:
+#   (a) Kapsam ekseni ZATEN konusuyor: ayni daralik `kosulan()` icinde de vardir ->
+#       o yol "kosulmuyor" sayilir, KAPSAMSIZ olur ve ci-kapsam-test.py KIRMIZI yanar.
+#       Yani depo bu formda korumasiz DEGIL; yalniz teshis Bolum D'den degil kapsam
+#       kapisindan gelir. (Ayrica ci-kapsam-test.py'nin T8 `sayilamayan_python3`
+#       UYARISI bu formlari zaten "bare forma cevir" diye isaretler.)
+#   (b) Capayi genisletmek POZITIF ekseni de genisletirdi ([[kapi-kapsam-eksen-secimi]]):
+#       `kosulan()` sayisi degisir, muafiyetler bayatlar ve tek bir yanlis-pozitif
+#       TUM ekibin yayinini durdurur. Bu turun sinirinda o risk alinmadi.
+# Ortak suzgecin KENDISI bu formu DOGRU cozer (ci-kapsam-test.py SUZGEC_FIKSTURLERI:
+# `python3 -u tools/zzz-sentetik-test.py` -> EVET), yani eksik CAPADA, hukumde degil.
+#
 # Hedef kapi yolu SENTETIK degil GERCEK olmali (capa ci-kapsam-test.py kesfinden gelir),
 # ama fikstur METNI sentetiktir -> gercek dosyalarin icerigi degistikce bayatlamaz.
 D_HEDEF = "tools/kisisel-veri-test.py"
@@ -1343,6 +1667,101 @@ D_MUTANTLAR = (
                        "          %s\n" % D_CAGRI), False),
     ("continue-on-error BASKA adimda (kapi adimi temiz)",
      D_FIKSTUR, False),
+    # --- ICRA-DISI BAYRAK (30 Tem, DELIK 1): adim GORUNUR, exit 0, olcum KOSMAZ ---
+    ("cagri `--help`'e cevrildi (DELIK 1)",
+     D_FIKSTUR.replace("        run: %s\n" % D_CAGRI,
+                       "        run: %s --help\n" % D_CAGRI), True),
+    ("cagri `-h`'ye cevrildi",
+     D_FIKSTUR.replace("        run: %s\n" % D_CAGRI,
+                       "        run: %s -h\n" % D_CAGRI), True),
+    ("cagri `--version`'a cevrildi",
+     D_FIKSTUR.replace("        run: %s\n" % D_CAGRI,
+                       "        run: %s --version\n" % D_CAGRI), True),
+    # --- YANLIS-POZITIF KANARYALARI: MESRU bayrak/yazim etkisiz SAYILMAMALI ---
+    ("`--kendini-test` (MESRU: olcumun ta kendisi)",
+     D_FIKSTUR.replace("        run: %s\n" % D_CAGRI,
+                       "        run: %s --kendini-test\n" % D_CAGRI), False),
+    ("`--deploy <yol>` (MESRU: girdi seçer, olcum kosar)",
+     D_FIKSTUR.replace("        run: %s\n" % D_CAGRI,
+                       "        run: %s --deploy /tmp/x.yml\n" % D_CAGRI), False),
+    ("`\\` satir devami (MESRU coksatir yazim)",
+     D_FIKSTUR.replace("        run: %s\n" % D_CAGRI,
+                       "        run: |\n          %s \\\n            --kendini-test\n"
+                       % D_CAGRI), False),
+)
+
+# ---- E ekseni ariza enjeksiyonu fiksturleri --------------------------------
+# `on` dugumu SENTETIK bir is akisi uzerinde sinanir -> gercek deploy.yml degistikce
+# bayatlamaz. E_HEDEF gercek bir kapi yolu olmak ZORUNDA (E_ZORUNLU_CAGRILAR'dan gelir).
+E_FIKSTUR_TEMIZ = """\
+name: "Sentetik E fiksturu"
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "CI kapsam kapisi"
+        run: python3 tools/ci-kapsam-test.py
+      - name: "CI kapsam kapisi oz-nobetcileri"
+        run: python3 tools/ci-kapsam-test.py --kendini-test
+"""
+
+# (ad, metin, KIRMIZI_olmali_mi)
+E_MUTANTLAR = (
+    ("gercek `on.push` silindi, `workflow_dispatch.inputs.push` SAHTE (DELIK 2)",
+     E_FIKSTUR_TEMIZ.replace(
+         "on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n",
+         "on:\n  workflow_dispatch:\n    inputs:\n      push:\n"
+         '        description: "sahte push girdisi"\n        required: false\n'), True),
+    ("`on` govdesi bos mapping",
+     E_FIKSTUR_TEMIZ.replace(
+         "on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n",
+         "on:\n  workflow_dispatch:\n"), True),
+    ("bayraksiz kapsam adimi `--help`'e cevrildi (DELIK 1)",
+     E_FIKSTUR_TEMIZ.replace("        run: python3 tools/ci-kapsam-test.py\n",
+                             "        run: python3 tools/ci-kapsam-test.py --help\n"),
+     True),
+    ("bayraksiz kapsam ADIMI butunuyle silindi (DELIK 4)",
+     E_FIKSTUR_TEMIZ.replace('      - name: "CI kapsam kapisi"\n'
+                             "        run: python3 tools/ci-kapsam-test.py\n", ""), True),
+    ("oz-nobetci cagrisi `echo` MENSIYONUNA cevrildi (DELIK 3)",
+     E_FIKSTUR_TEMIZ.replace(
+         "        run: python3 tools/ci-kapsam-test.py --kendini-test\n",
+         "        run: echo python3 tools/ci-kapsam-test.py --kendini-test\n"), True),
+    ("oz-nobetci adimina `continue-on-error: true`",
+     E_FIKSTUR_TEMIZ.replace('      - name: "CI kapsam kapisi oz-nobetcileri"\n',
+                             '      - name: "CI kapsam kapisi oz-nobetcileri"\n'
+                             "        continue-on-error: true\n"), True),
+    # --- YANLIS-POZITIF KANARYALARI: MESRU yazim KIRMIZI YANMAMALI ---
+    ("`on: [push, workflow_dispatch]` liste yazimi (MESRU)",
+     E_FIKSTUR_TEMIZ.replace("on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n",
+                             "on: [push, workflow_dispatch]\n"), False),
+    ('`"on":` tirnakli anahtar (MESRU)',
+     E_FIKSTUR_TEMIZ.replace("on:\n  push:", '"on":\n  push:'), False),
+    ("`on.push` EK anahtarlarla (paths-ignore) (MESRU)",
+     E_FIKSTUR_TEMIZ.replace("    branches: [main]\n",
+                             "    branches: [main]\n    paths-ignore: ['**.md']\n"), False),
+    ("bayraksiz adima MESRU `if:` ifadesi (MESRU)",
+     E_FIKSTUR_TEMIZ.replace('      - name: "CI kapsam kapisi"\n',
+                             '      - name: "CI kapsam kapisi"\n'
+                             "        if: ${{ github.ref == 'refs/heads/main' }}\n"),
+     False),
+    ("bayraksiz adima `continue-on-error: false` (MESRU: acik bloklayici beyan)",
+     E_FIKSTUR_TEMIZ.replace('      - name: "CI kapsam kapisi"\n',
+                             '      - name: "CI kapsam kapisi"\n'
+                             "        continue-on-error: false\n"), False),
+    ("iki adim AYRI job'lara tasindi (MESRU)",
+     E_FIKSTUR_TEMIZ.replace(
+         '      - name: "CI kapsam kapisi oz-nobetcileri"\n'
+         "        run: python3 tools/ci-kapsam-test.py --kendini-test\n",
+         "  ikinci:\n    runs-on: ubuntu-latest\n    steps:\n"
+         '      - name: "CI kapsam kapisi oz-nobetcileri"\n'
+         "        run: python3 tools/ci-kapsam-test.py --kendini-test\n"), False),
 )
 
 # Bolum A ucdan-uca fiksturu: bolum_a() GERCEK bir dizinden okuyup hatalari
@@ -1604,6 +2023,87 @@ def kendini_test():
             # D_IZIN bugun BOS oldugu icin mekanizma SENTETIK girislerle sinanir.
             iddia += 4
             hatalar.extend(_d_izin_mekanizma_kontrol())
+
+    # ---- E EKSENI: tetikleyici + zorunlu kapi adimi olcumu --------------------
+    # bolum_e() TA KENDISI gecici bir dizinde kosulur (kopya mantik yazilmaz):
+    # govdesi no-op yapilirsa (or. `return [], 0`) asagidaki 6 KIRMIZI iddiasi birden
+    # duser; asiri agresif yapilirsa 6 YANLIS-POZITIF kanaryasi duser -> iki yonlu.
+    gecici3 = tempfile.mkdtemp(prefix="pruvo-isakisi-e-")
+    try:
+        iddia += 1
+        e_yol = os.path.join(gecici3, E_DOSYA)
+        with open(e_yol, "w", encoding="utf-8") as f:
+            f.write(E_FIKSTUR_TEMIZ)
+        temiz_e, temiz_iddia = bolum_e(gecici3)
+        if temiz_e:
+            hatalar.append("E-POZITIF BOZUK: temiz sentetik fikstur icin bolum_e() %d "
+                           "hata uretti -> %s" % (len(temiz_e), " ; ".join(temiz_e)))
+        if temiz_iddia != 1 + len(E_ZORUNLU_CAGRILAR):
+            hatalar.append("E-IDDIA SAYACI BOZUK: %d bekleniyordu, %d olculdu -> govde "
+                           "iddia atlamis olabilir"
+                           % (1 + len(E_ZORUNLU_CAGRILAR), temiz_iddia))
+        for ad, metin, kirmizi_olmali in E_MUTANTLAR:
+            iddia += 1
+            with open(e_yol, "w", encoding="utf-8") as f:
+                f.write(metin)
+            e_bulgu, _ = bolum_e(gecici3)
+            if kirmizi_olmali and not e_bulgu:
+                hatalar.append("E-NEGATIF SESSIZ: %r mutasyonundan sonra bolum_e() "
+                               "HICBIR hata uretmedi -> nobetci bu bicimde OLU" % ad)
+            if not kirmizi_olmali and e_bulgu:
+                hatalar.append("E-YANLIS-POZITIF: %r MESRU yazimi KIRMIZI yandi -> %s"
+                               % (ad, e_bulgu[0].splitlines()[0]))
+    finally:
+        shutil.rmtree(gecici3, ignore_errors=True)
+
+    # ---- F EKSENI: DIS TUKETICI SOZLESMESI + SATIR DEVAMI ---------------------
+    # NEDEN AYRI (olculdu, bu turun oz-koruma mutasyon listesi S15/S16): asagidaki iki
+    # mutasyon dort denetciden HICBIRINI kirmizi yakmiyordu ->
+    #   S16) `etkili_mensiyon()` govdesi sabit non-bos liste dondurur yapilirsa
+    #        jenerator/test/kabul.py TEST 4'un `beyaz` iddiasi DAIMA True olur. Tek
+    #        tuketici kabul.py'dir ve o openscad'a bagli oldugu icin CI'da MUAF ->
+    #        hicbir kapi konusmaz. Sozlesme BURADA (CI'da kosan kapida) olculur.
+    #   S15) `_run_satirlari()` SUZGEC.birlestir_devam yerine duz splitlines() kullanirsa
+    #        `\` ile bolunmus MESRU bir kapi cagrisi YARIM gorunur; bugun deploy.yml'de
+    #        oyle bir satir olmadigi icin degisiklik SESSIZ kalir ve bir sonraki mesru
+    #        coksatir yazimda SAHTE KIRMIZI olarak geri doner.
+    F_MENSIYON_FIKSTUR = """\
+name: "Sentetik F fiksturu"
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Varlik kopyasi"
+        run: |
+          cp jenerator/zzz-sentetik.js _site/jenerator/
+          echo cp jenerator/zzz-mensiyon.js _site/jenerator/
+          # cp jenerator/zzz-yorum.js _site/jenerator/
+      - name: "Satir devamli kapi cagrisi"
+        run: |
+          python3 tools/kisisel-veri-test.py \\
+            --kendini-test
+"""
+    for varlik, bulunmali, etiket in (
+            ("jenerator/zzz-sentetik.js", True, "GERCEK `cp` argumani ETKILI"),
+            ("jenerator/zzz-mensiyon.js", False, "`echo` icindeki mensiyon ETKILI DEGIL"),
+            ("jenerator/zzz-yorum.js", False, "kabuk YORUMU ETKILI DEGIL")):
+        iddia += 1
+        bulundu = bool(etkili_mensiyon(F_MENSIYON_FIKSTUR, varlik))
+        if bulundu != bulunmali:
+            hatalar.append("F-MENSIYON SOZLESMESI BOZUK (%s): %s icin bulundu=%r, "
+                           "beklenen %r -> etkili_mensiyon() govdesi no-op/ters yapilmis "
+                           "olabilir (tuketici: jenerator/test/kabul.py TEST 4)"
+                           % (etiket, varlik, bulundu, bulunmali))
+    # SATIR DEVAMI: `\` ile bolunmus cagri TEK satir olarak gorulmeli.
+    iddia += 1
+    devam_satirlari = [s for _j, _i, _ad, _sb, s in _run_satirlari(F_MENSIYON_FIKSTUR)
+                       if "kisisel-veri-test.py" in s]
+    if not (len(devam_satirlari) == 1 and "--kendini-test" in devam_satirlari[0]):
+        hatalar.append("F-SATIR-DEVAMI BOZUK: `\\` ile bolunmus cagri BIRLESTIRILMEDI "
+                       "(bulunan: %r) -> _run_satirlari() SUZGEC.birlestir_devam yerine "
+                       "duz splitlines() kullaniyor olabilir; mesru coksatir yazim "
+                       "SAHTE KIRMIZI yakar" % (devam_satirlari,))
     return hatalar, iddia
 
 
@@ -1710,6 +2210,16 @@ def main():
                  sum(1 for m in D_MUTANTLAR if not m[2])))
         print("  ✅ D_IZIN MEKANIZMASI: gerekcesiz giris KIRMIZI · var olmayan dayanak "
               "yolu KIRMIZI · gerekceli+dayanakli giris kabul")
+        print("  ✅ E-POZITIF: temiz sentetik fiksturde `on.push` + %d zorunlu kapi adimi "
+              "ETKILI sayiliyor (iddia sayaci da olculdu)" % len(E_ZORUNLU_CAGRILAR))
+        print("  ✅ E-NEGATIF/E-YANLIS-POZITIF: %d fikstur (%d sessiz-kacis + %d mesru "
+              "yazim) dogru siniflandi"
+              % (len(E_MUTANTLAR), sum(1 for m in E_MUTANTLAR if m[2]),
+                 sum(1 for m in E_MUTANTLAR if not m[2])))
+        print("  ✅ F-MENSIYON SOZLESMESI: etkili_mensiyon() `cp` argumanini bulur, "
+              "`echo`/yorum mensiyonunu BULMAZ (tuketici jenerator/test/kabul.py CI'da "
+              "muaf oldugu icin sozlesme BURADA olculur)")
+        print("  ✅ F-SATIR-DEVAMI: `\\` ile bolunmus cagri TEK satir olarak goruluyor")
         print("SONUC: YESIL ✅")
         return 0
 
@@ -1720,6 +2230,8 @@ def main():
     hatalar.extend(b_hata)
     d_hata, d_toplam, d_etkisiz, d_izinli = bolum_d(args.dizin)
     hatalar.extend(d_hata)
+    e_hata, e_iddia = bolum_e(args.dizin)
+    hatalar.extend(e_hata)
 
     # BOLUM C bayraksiz (bloklayici) kolda da BLOKLAR — `--kendini-test` adimi silinse
     # bile nobetci yasar (ci-kapsam-test.py'nin 27 Tem'de olctugu delik).
@@ -1742,6 +2254,8 @@ def main():
           "`if: false` / `set +e`)" % d_etkisiz)
     print("  D_IZIN beyan edilmis     : %d  (%s)" % (
         d_izinli, ", ".join("%s::%s" % a for a in sorted(D_IZIN)) or "-"))
+    print("  Tetikleyici/zorunlu adim : %d iddia  (%s: `on.push` + %d zorunlu kapi adimi)"
+          % (e_iddia, E_DOSYA, len(E_ZORUNLU_CAGRILAR)))
     print("  Kendini-test iddiasi     : %d" % c_iddia)
     print("-" * 70)
     if hatalar:
@@ -1752,7 +2266,8 @@ def main():
         return 1
     print("SONUC: YESIL ✅  — is akislari ayristirilabilir · %d POZITIF cagri iddiasinin "
           "hepsi etkili · muafiyet kilidi saglam · hicbir kapi cagrisi beyansiz fail-open "
-          "degil." % b_iddia_sayisi)
+          "degil · deploy.yml `on.push` ile tetiklenir + zorunlu kapi adimlari etkili."
+          % b_iddia_sayisi)
     return 0
 
 
