@@ -1,9 +1,10 @@
 {
-  "surum": 1,
+  "surum": 2,
   "algoritma": "sha256",
-  "aciklama": "Onizleme derleyici imajina gomulen .scad anlik goruntusunun icerik ozetleri. TEK YAZAR: tools/onizleme-paket-yukle.py. Elle duzenlenmez; paket yeniden yuklenince bu dosya da tazelenir ve AYNI commit'te gider. Icerik/kaynak kod BURAYA YAZILMAZ — yalniz ozet.",
-  "not": "paket eslem surumu v5",
-  "scad": {
+  "paket_anahtar": "onizleme/paket-v7.tar.gz",
+  "aciklama": "Onizleme derleyici imajina gomulen paket anlik goruntusunun icerik ozetleri — paket dizinindeki TUM dosyalar (*.scad + eslem-ozel.json + pakete giren her sey). TEK YAZAR: tools/onizleme-paket-yukle.py. Elle duzenlenmez; paket yeniden yuklenince bu dosya da tazelenir ve AYNI commit'te gider. Icerik/kaynak kod BURAYA YAZILMAZ — yalniz dosya adi + ozet.",
+  "not": "paket eslem surumu v7",
+  "dosyalar": {
     "adaptor.scad": "bc4766bad22047aacbdbceaa389763393e90bcc65ec8c07942fbf18920df535e",
     "beamgenerator.scad": "cc87daebb6ea15776ef6e3b7d624989e117e730432b0484334642170865d9377",
     "bearinggenerator.scad": "1b4468e664b6f31c984e3e1fc69c6cfdb7314861698aa7cbf0433b9767944d9b",
@@ -12,6 +13,7 @@
     "cerceve.scad": "8a24814693e5eee72288e2118ec09b680f1aff1773027d3a8f222b8cf1bb8ad3",
     "chipmaker.scad": "94e2fbd1672eb04eeeef63d626f429d6b82ea2b5d2f422e2d5ae10e809e2674a",
     "disli.scad": "3d9cfbaf6e2c20cb322c70397de8e077f84d9304c196b2f3d7c620849767d4a9",
+    "eslem-ozel.json": "cb438c6cbc605d57df5f6130f1611319f4d5b1134a87fe334bcd824e0322c221",
     "funnelgenerator.scad": "4bed227d71e9a73ef6bb4cc29333616452b4211e6510c9b6ccac925cb43416a5",
     "gridgenerator.scad": "34205b77949219ff1e6069222c208c862e81b717dbdb05f2d2dfa1c3b4da6e65",
     "grillegenerator.scad": "cfdbb56ffa80ba151c8f0a074ae980197bfd743c5a181e835cd5a78691ce55b9",
