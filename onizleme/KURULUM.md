@@ -36,10 +36,12 @@ yesil. KALAN TEK ADIM: `secenekler.js` `ONIZLEME_3D_ACIK=true` (MIMAR karari) �
 
 1. Gerekirse paket degisti ise: `python3 tools/onizleme-paket-yukle.py`
    (R2 + ONIZLEME_PAKET_B64 secret'ini birlikte tazeler).
-2. Gecici registry kimligi + tetik (CI token'inda Containers yetkisi yok):
-   `npx wrangler containers registries credentials registry.cloudflare.com --push`
-   ciktisini `gh secret set CF_REGISTRY_GECICI` ile koy (JWT ~15 dk gecerli), hemen
-   `gh workflow run onizleme-imaj.yml -f push_et=true`.
+2. Tetikle — ONCESINDE ELLE IS YOK:
+   `gh workflow run onizleme-imaj.yml -f paket_anahtar=<R2 ANAHTARI> -f push_et=true`.
+   Registry push'u CI'daki `CLOUDFLARE_API_TOKEN` yapar (Containers yetkisi 30 Tem
+   2026'da eklendi, kosum 30544817485 ile dogrulandi). Eski "gecici registry
+   kimligini elle secret'a koy" adimi KALDIRILDI: JWT ~15 dk'da doluyor ve her
+   tetikten once elle tazeleme gerektiriyordu.
 3. CI logundaki YENI digest'i `onizleme/wrangler.toml` `image = ...@sha256:...`
    satirina yaz (`:ci` tag'i MUTABLE — ayni tag'e push rollout tetiklemez, 16 Tem'de
    olculdu) → `npx wrangler deploy` → eski instance'i dusurmek icin
