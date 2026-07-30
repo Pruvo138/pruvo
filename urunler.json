@@ -1,5 +1,242 @@
 [
   {
+    "id": "40mm-2-kanatli-tekne-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "40mm 2 Kanatlı Küçük Tekne Pervanesi",
+    "aciklama": "5mm merkez delikli, 3mm kalınlığında 2 kanatlı küçük tekne/model motor pervanesi.\n- 40mm çapında, 2 kanatlı tasarım.\n- 5mm merkez delik çapı.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 40 × 34 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4107322-1.jpg"
+    ]
+  },
+  {
+    "id": "trolling-motor-impelleri",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Trolling Motor İçin Yedek İmpeller",
+    "aciklama": "MotorGuide Machete 2 trolling motorlara uyumlu yedek impeller (pervane göbeği).\n- MotorGuide Machete 2 trolling motor modeliyle uyumludur.\n- Motor milinin ucuna takılan pervane göbeği parçasıdır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 202 × 196 × 46 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4378114-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4378114-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4378114-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rdl77494",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "aqua-marina-kayak-skegi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Aqua Marina Kayak İçin Skeg (Omurga)",
+    "aciklama": "Aqua Marina Steam serisi şişme kayaklara uyumlu basit skeg (omurga) parçası.\n- Aqua Marina Steam serisi şişme kayaklarla uyumludur.\n- Kayağın düz rotada gitmesine yardımcı olur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 185 × 79 × 35 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5197249-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5197249-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vd_max",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "intex-kayak-skegi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Intex Kayak İçin Özel Skeg (Omurga)",
+    "aciklama": "Intex Challenger K1 ve K2 şişme kayaklara özel uyarlanmış skeg (omurga) parçası.\n- Intex Challenger K1 ve K2 kayak modelleriyle uyumludur.\n- Kayağın düz rotada gitmesine yardımcı olur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 153 × 151 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4592375-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tomdotsmith",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hafif-kayak-kano-capasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Hafif Kayak/Kano/Küçük Tekne İçin Çapa Gövdesi",
+    "aciklama": "2.5-3lb ağırlıkla kullanılabilen, hafif kayak, kano veya küçük teknelere uygun çapa gövdesi.\n- 2.5lb veya 3lb standart ağırlıklarla kullanılabilir.\n- Kayak, kano veya küçük tekneler için hafif çapa çözümüdür.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 204 × 177 × 75 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4822725-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4822725-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sandman2749",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "3-kanatli-tekne-pervanesi-80mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "3 Kanatlı Tekne Pervanesi (80mm)",
+    "aciklama": "80mm çapında, 8mm şafta uyumlu 3 kanatlı genel amaçlı tekne pervanesi.\n- 80mm çapında, 8mm şaft uyumludur.\n- 3 kanatlı simetrik tasarım.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 78 × 76 × 48 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5922660-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5922660-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5922660-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "baocuongtranphan776",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "cok-markali-dis-motor-kill-cord-kiti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Çok Markalı Dış Motor Kill-Cord Kiti",
+    "aciklama": "Honda, Yamaha, Mercury, Suzuki, Tohatsu, Selva ve Evinrude dış motorlarla uyumlu güvenlik kill-cord (motor durdurma ipi) kiti.\n- Honda/Yamaha/Mercury/Suzuki/Tohatsu/Selva/Evinrude dış motorlarla uyumludur.\n- Tek bir kordonla kullanılabilecek şekilde tasarlandı.\n- İki parçadan oluşur (klips + bağlantı halkası).\nYaklaşık dış ölçüler: 121 × 71 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5778616-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5778616-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5778616-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5778616-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Antorut",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pontoon-tekne-kapi-durdurucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pontoon Tekne Kapı Durdurucusu",
+    "aciklama": "Crest Pontoon tekne kabin kapıları için tasarlanmış basit kapı durdurucu parça.\n- Crest Pontoon tekne kabin kapılarıyla uyumludur.\n- Kapının istenmeden kapanmasını/açılmasını engeller.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 45 × 38 × 31 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3718816-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3718816-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3718816-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "austin3dprinting",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-led-aydinlatma-montaj-sistemi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Direk Halatı İçin LED Aydınlatma Montaj Sistemi",
+    "aciklama": "Yelkenli tekne direk halatına (istralya) monte edilen, adreslenebilir LED şerit için braket ve elektronik muhafaza kutusu sistemi.\n- 4-5 metre adreslenebilir LED şerit için tasarlandı.\n- Braketler halata kablo bağı ile sabitlenir, güç kablosu ayrı kanaldan geçer.\n- Kontrolör, sigorta ve DC-DC dönüştürücüyü barındıran ayrı bir elektronik kutusu içerir.\nYaklaşık dış ölçüler: 156 × 116 × 78 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th937472-1.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-2.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-3.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-4.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-5.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-6.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-7.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-8.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-9.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-10.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-11.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-12.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-13.jpg",
+      "https://media.pruvo3d.com/urunler/th937472-14.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "8bitlogic",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercury-kill-switch-anahtar-serbest-birakma",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury Dış Motor Kill Switch Anahtar Serbest Bırakma Parçası",
+    "aciklama": "Mercury dış motor ileri kumandalarındaki toggle kill switch için anahtar serbest bırakma parçası.\n- Mercury dış motor ileri kumanda kill switch sistemiyle uyumludur.\n- Kayıp veya kırık orijinal parçanın yerine geçer.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 38 × 16 × 3 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4814180-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "The_Mariner",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-pervanesi-v2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak İçin Pervane (V2)",
+    "aciklama": "Pedal veya motorlu tahrikli kayaklarda kullanılabilen pervane.\n- Kayak tahrik sistemleriyle kullanılabilir.\n- V2 revizyonu, geliştirilmiş kanat tasarımı.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 149 × 145 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5444837-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DEFCOMSEC",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "feelfree-kayak-cam-lock-mandal",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Feelfree Kayak İçin Cam-Lock/Mandal Yedek Parçası",
+    "aciklama": "Feelfree kayak sonar kapağı cam-lock (mandal) mekanizması için doğrudan uyumlu yedek parça.\n- Feelfree kayak sonar/ekipman kapağı cam-lock mekanizmasıyla uyumludur.\n- Kırılan orijinal mandalın yerine doğrudan takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 43 × 33 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3728148-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3728148-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3728148-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jonnyg30",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-kill-switch-yedek-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne İçin Kill Switch Yedek Parçası",
+    "aciklama": "26 fit yelkenli teknelerde kırılan kill switch'in yerine geçen yedek parça, gerçek boyutu yaklaşık 114x56x42mm'dir.\n- 26 fit yelkenli tekne motor kill switch sistemiyle uyumludur.\n- Motoru durduran kabloyu sabitleyen bir bağlantı parçasıdır.\n- Gerçek boyut yaklaşık 114x56x42mm'dir.\nYaklaşık dış ölçüler: 11 × 6 × 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4708544-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4708544-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Anders_Toft",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "elektrikli-dis-motor-pervane-kanatlari-seti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Elektrikli Dış Motor İçin Pervane Kanatları Seti",
+    "aciklama": "12V elektrikli dış motorlar için değiştirilebilir pervane kanatları ve yedek somun koleksiyonu.\n- 12V elektrikli dış motorlarla uyumludur.\n- 2 kanatlı ve 4 kanatlı seçenekler dahil, değiştirilebilir kanat tasarımı.\n- 36mm yedek somun dahildir.\nYaklaşık dış ölçüler: 189 × 189 × 35 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5395349-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5395349-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5395349-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5395349-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5395349-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MarkAskew1971",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "yelken-makara-tekeri-75x40mm",
     "kategori": "Marin",
     "marka": [],
