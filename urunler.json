@@ -1,5 +1,524 @@
 [
   {
+    "id": "tekne-korkuluk-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Korkuluğu Olta Tutucusu",
+    "aciklama": "Tekne veya kayak korkuluğuna (railing) klipslenen olta tutucusu.\n- Standart boru/korkuluk çaplarına uyacak şekilde tasarlanmıştır.\n- Klips mekanizmasıyla hızlı takıp çıkarma sağlar.\n- PETG veya ABS ile basılması dayanıklılık için önerilir.\nYaklaşık dış ölçüler: 80 × 58 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7154765-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7154765-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sammy_kitten2804",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "trolling-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Trolling Olta Tutucusu",
+    "aciklama": "Sürükleme (trolling) balıkçılığında teknede kullanılan olta tutucusu.\n- Tekne korkuluğuna veya güverteye monte edilebilir.\n- Açılı tasarımı olta hareketini kolaylaştırır.\n- Dayanıklı filamentle basılması önerilir.\nYaklaşık dış ölçüler: 160 × 108 × 35 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7345525-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jesse_joostie",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "coleman-kayak-kuregi-tutamagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Coleman Kayak Küreği Tutamağı",
+    "aciklama": "Coleman kayak küreği için yedek tutamak parçası.\n- Coleman kayak kürek modeline özeldir.\n- Kırılan orijinal tutamağın yerine geçer.\n- Basit ve dayanıklı yedek parça.\nYaklaşık dış ölçüler: 178 × 38 × 38 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2563162-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Marchogwyn",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ahsap-omurga-sintine-hortumu-ayirici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ahşap Omurgalı Teknelerde Sintine Hortumu Ayırıcı",
+    "aciklama": "Ahşap omurgalı eski teknelerde sintine (bilge) hortumunu ayırmak için splitter parçası.\n- Eski/ahşap omurgalı teknelere özel geometri.\n- İki ayrı hortum hattına dağıtım sağlar.\n- Sert filamentle basılması önerilir.\nYaklaşık dış ölçüler: 132 × 126 × 100 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2634351-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2634351-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2634351-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2634351-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2634351-5.jpg",
+      "https://media.pruvo3d.com/urunler/th2634351-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ShuttleSpace",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bayliner-tekne-kapak-dugmesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bayliner Tekne Kapak/Lombar Düğmesi",
+    "aciklama": "Bayliner tekne kapak veya lombar kapağı için yedek düğme.\n- Bayliner tekne modellerine özeldir.\n- Kırılan orijinal düğmenin yerine geçer.\n- Sağlam ve dayanıklı yedek parça.\nYaklaşık dış ölçüler: 28 × 28 × 21 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4593711-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4593711-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MPThings",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pygmy-boats-kayak-insa-aletleri",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pygmy Boats Kayak İnşa Kiti Aletleri",
+    "aciklama": "Pygmy Boats dikiş-yapıştırma (stitch-and-glue) kayak inşa kitleri için yardımcı alet seti.\n- Delme rehberi ve ölçüm aletlerini içerir.\n- Kayak gövdesi imalatında hizalama sağlar.\n- Amatör tekne yapımcıları için pratik yardımcı takım.\nYaklaşık dış ölçüler: 102 × 64 × 64 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1461534-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1461534-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1461534-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1461534-4.jpg",
+      "https://media.pruvo3d.com/urunler/th1461534-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LJClark",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kucuk-cleat-olta-ipi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Küçük Cleat (Olta İpi Bağı)",
+    "aciklama": "Olta ipini asmak için kullanılan küçük cleat (bağı).\n- Kompakt boyutu tekne veya kayakta yer kaplamaz.\n- İki vida deliğiyle sabit montaj sağlar.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 100 × 34 × 22 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2928257-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rasanta99",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-cleati-2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Cleat'i",
+    "aciklama": "Tekneye halat bağlamak için kullanılan cleat (bağı).\n- Standart montaj delikleriyle kolay sabitleme.\n- Halat/ip bağlamak için düz üst yüzey.\n- PETG ile basılması dayanıklılık için önerilir.\nYaklaşık dış ölçüler: 118 × 21 × 21 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3500892-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Wvanzyl",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "johnson-dis-motor-vites-anahtari-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Johnson Dış Motor Vites Anahtarı Kolu",
+    "aciklama": "Johnson dış motorlarda vites değiştirme mekanizması için yedek kol parçası.\n- Johnson dış motor modelleriyle uyumludur.\n- Kırılan orijinal kolun yerine geçer.\n- Dayanıklı filamentle basılması önerilir.\nYaklaşık dış ölçüler: 47 × 34 × 21 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3672341-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3672341-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3672341-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chipen83",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "basit-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Basit Olta Tutucusu",
+    "aciklama": "Tekne veya kayakta kullanılan basit yapıda olta tutucusu.\n- Kolay montaj için düz taban tasarımı.\n- Farklı olta kalınlıklarına uyum sağlar.\n- Hızlı ve ekonomik baskı.\nYaklaşık dış ölçüler: 100 × 73 × 60 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3718141-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3718141-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3718141-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "T-H",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "intex-k1-challenger-kurek-dugmesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Intex K1 Challenger Kayak Küreği Düğmesi",
+    "aciklama": "Intex K1 Challenger şişme kayak küreği için yedek düğme parçası.\n- Intex K1 Challenger kayak modeline özeldir.\n- Kürek parçalarını birbirine sabitler.\n- Basit tak-çıkar kullanım.\nYaklaşık dış ölçüler: 17 × 12 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3802645-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dprkr",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-scupper-tapasi-genel",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Scupper (Tahliye) Tapası",
+    "aciklama": "Oturma tipi kayaklarda scupper deliklerinden su girişini önleyen tapa.\n- Standart scupper deliklerine uyacak şekilde tasarlanmıştır.\n- Esnek filamentle basılması sızdırmazlık için önerilir.\n- Kolay tak-çıkar kullanım.\nYaklaşık dış ölçüler: 40 × 40 × 27 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3856266-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3856266-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3856266-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3856266-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mitchellmwb",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-jib-sarma-silindiri-klips",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Jib Sarma Silindiri ve Klips",
+    "aciklama": "Yelkenli teknelerde jib yelkenini sarmak için kullanılan silindir ve klips yedek parçası.\n- Jib sarma sistemine (furler) uyumludur.\n- Aşınan orijinal parçanın yerine geçer.\n- Dayanıklı malzeme ile basılması önerilir.\nYaklaşık dış ölçüler: 76 × 76 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3948197-1.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-pervane-mili-anahtari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha Superjet/Waveblaster/VXR Pervane Mili Anahtarı",
+    "aciklama": "Yamaha Superjet, Waveblaster ve VXR jet-ski modellerinde pervane (impeller) milini sökmek için özel anahtar.\n- Yamaha Superjet/Waveblaster/VXR modelleriyle uyumludur.\n- Spline yapılı mil ucuna oturacak şekilde tasarlanmıştır.\n- Bakım/onarım işlerini kolaylaştırır.\nYaklaşık dış ölçüler: 35 × 32 × 27 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4338076-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "StuffNThingsMake",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kuregi-vida-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Küreği Vida Kapağı",
+    "aciklama": "Kayak küreği bağlantı vidasını kapatan yedek kapak parçası.\n- Standart kayak kürek bağlantılarına uyar.\n- Kaymaz tutuş için tırtıklı yüzey.\n- Basit ve dayanıklı yedek parça.\nYaklaşık dış ölçüler: 50 × 50 × 40 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4541921-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4541921-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dangermouse77",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "asili-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kapağında Asılı Duran Olta Tutucusu",
+    "aciklama": "Tekne kapağı içine asılı şekilde monte edilen olta tutucusu.\n- Kapak (hatch) içine kolayca asılır.\n- İki adet delik ile montaj sağlar.\n- Basit ve pratik saklama çözümü.\nYaklaşık dış ölçüler: 182 × 93 × 6 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4564072-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4564072-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Timmysdad",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-yuvarlak-guverte-baglantisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Yuvarlak Güverte Bağlantı Aparatı",
+    "aciklama": "Kayak güvertesine monte edilen yuvarlak bağlantı (deck fitting) aparatı.\n- Standart güverte deliklerine uyacak şekilde tasarlanmıştır.\n- İp/halat geçirmek için ortası deliklidir.\n- Basit vida ile montaj.\nYaklaşık dış ölçüler: 30 × 30 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4766917-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4766917-2.jpg"
+    ]
+  },
+  {
+    "id": "pyranha-kayak-tapasi-pet-kapak-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pyranha Kayak Tapası - Pet Şişe Kapağı Adaptörü",
+    "aciklama": "Pyranha kayak tapasını (bung) standart pet şişe kapağına uyarlayan adaptör.\n- Pyranha kayak modelleriyle uyumludur.\n- Standart pet şişe kapaklarını tapa olarak kullanılabilir hale getirir.\n- İki farklı çeper kalınlığı seçeneği vardır.\nYaklaşık dış ölçüler: 32 × 30 × 30 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4848652-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ledfliegen23",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "autohelm-st2000-yedek-parcalari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Autohelm/Raymarine ST2000 Otopilot Yedek Parçaları",
+    "aciklama": "Autohelm (Raymarine) ST2000 tiller pilot otopilot için yedek uç kapağı ve düğme seti.\n- Autohelm/Raymarine ST2000 model otopilotlara özeldir.\n- Kırılan orijinal parçaların yerine geçer.\n- Set halinde uç kapağı ve düğme içerir.\nYaklaşık dış ölçüler: 42 × 27 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4874383-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4874383-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4874383-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4874383-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sjpeters",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "flipper-717-kapak-kilit-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Flipper 717 Tekne Kapağı Kilitleme Kolu",
+    "aciklama": "Flipper 717 tekne modeli için kapak (hatch) kilitleme kolu yedek parçası.\n- Flipper 717 tekne modeline özeldir.\n- Kırılan orijinal kilit kolunun yerine geçer.\n- Dayanıklı filamentle basılması önerilir.\nYaklaşık dış ölçüler: 123 × 42 × 42 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4906166-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4906166-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bm234",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evinrude-1986-guvenlik-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "1986 Evinrude Dış Motor Güvenlik Klipsi",
+    "aciklama": "1986 model Evinrude dış motor için yedek güvenlik klipsi.\n- 1986 Evinrude dış motor modeline özeldir.\n- Kayıp/kırık orijinal klipsin yerine geçer.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 38 × 25 × 15 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4923269-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "james_shoemaker",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kuregi-tutucusu-2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Küreği Tutucusu",
+    "aciklama": "Kayak üzerine monte edilen kürek tutucusu.\n- Kayak güvertesine vida ile sabitlenir.\n- Küreği güvenli şekilde yerinde tutar.\n- Basit ve kompakt tasarım.\nYaklaşık dış ölçüler: 72 × 72 × 31 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5189696-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dracomenda",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "balikci-kayagi-karabina-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Balıkçı Kayığı Karabina Klipsi",
+    "aciklama": "Balıkçı kayığında ekipman bağlamak için kullanılan karabina/kopça klipsi.\n- Halat veya kayış ile birlikte kullanılır.\n- Ekipmanı hızlıca takıp çıkarmayı sağlar.\n- Dayanıklı filamentle basılması önerilir.\nYaklaşık dış ölçüler: 45 × 18 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5248153-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "qoda",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-cift-pervane-sokme-aleti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Volvo Penta Çift Pervane Sökme Aleti",
+    "aciklama": "Volvo Penta dış motorlarda çift pervane (duoprop) sistemini sökmek için özel alet.\n- Volvo Penta duoprop sistemleriyle uyumludur.\n- Pervane milini sabitleyerek sökme işlemini kolaylaştırır.\n- Bakım/servis işlerinde kullanılır.\nYaklaşık dış ölçüler: 216 × 63 × 63 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5391335-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5391335-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5391335-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5391335-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "patooyee",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "seadoo-challenger-tahliye-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sea-Doo Challenger 2000 Tekne Tahliye Tapası",
+    "aciklama": "Sea-Doo Challenger 2000 tekne modeli için tahliye (drain) tapası.\n- Sea-Doo Challenger 2000 model tekneye özeldir.\n- Kırılan orijinal tapanın yerine geçer.\n- Sağlam ve dayanıklı yedek parça.\nYaklaşık dış ölçüler: 55 × 26 × 26 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5921750-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stibenamm",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pelican-catch-mode-transducer-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pelican Catch Mode Kayak Scupper Transducer Montajı (2 Parça)",
+    "aciklama": "Pelican Catch Mode kayaklarda balık bulucu transduceri scupper deliğine monte etmek için 2 parçalı montaj sistemi.\n- Pelican Catch Mode kayak modeline özeldir.\n- İki parçalı yapı farklı transducer boyutlarına uyum sağlar.\n- Kayak gövdesine delik açmadan montaj imkanı sunar.\nYaklaşık dış ölçüler: 149 × 108 × 64 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6006378-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hollywood703",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pelican-maxim-100x-kurek-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pelican Maxim 100X Angler Kayak Küreği Tutucusu",
+    "aciklama": "Pelican Maxim 100X Angler kayak kokpitine ip ile bağlanan kürek tutucusu.\n- Pelican Maxim 100X Angler kayak modeline uyarlanmıştır.\n- İp ile kokpite bağlanarak küreğin düşmesini önler.\n- Basit ve hafif tasarım.\nYaklaşık dış ölçüler: 83 × 52 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6097311-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6097311-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6097311-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6097311-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6097311-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Rogersthat7803",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "deeper-balik-bulucu-tekne-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Deeper Balık Bulucu Tekne Montajı",
+    "aciklama": "Deeper marka taşınabilir balık bulucuyu (fishfinder) tekne veya kayağa monte etmek için tutucu.\n- Deeper marka balık bulucu modelleriyle uyumludur.\n- Tekne veya kayak kenarına vida ile sabitlenir.\n- İki farklı versiyon (V1/V2) seçeneği içerir.\nYaklaşık dış ölçüler: 40 × 24 × 20 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6131217-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6131217-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6131217-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6131217-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6131217-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "schubse",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "olta-tutucusu-genel",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Olta Tutucusu",
+    "aciklama": "Tekne veya kayakta kullanılan genel amaçlı olta tutucusu.\n- İki parçalı (üst/alt) yapı ile montaj kolaylığı sağlar.\n- Farklı olta kalınlıklarına uyum sağlar.\n- Basit ve ekonomik baskı.\nYaklaşık dış ölçüler: 76 × 76 × 50 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6144342-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rtd1993",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "omega-36-lewmar-kapak-blok",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Omega 36 Yelkenli Lewmar Tip Kapak Blok",
+    "aciklama": "Omega 36 yelkenli tekne için Lewmar tip halat kapak bloğu yedek parçası.\n- Omega 36 yelkenli tekne modeline özeldir.\n- Lewmar tip blok mekanizmasını taklit eder.\n- Halatın güvenli şekilde tutulmasını sağlar.\nYaklaşık dış ölçüler: 55 × 18 × 14 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6299844-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6299844-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Halsa51",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-superjet-fx1-jigle-dugmesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha Superjet/FX-1 Jigle Düğmesi",
+    "aciklama": "Yamaha Superjet ve FX-1 jet-ski modelleri için jigle (choke) düğmesi yedek parçası.\n- Yamaha Superjet/FX-1 modelleriyle uyumludur.\n- Kırılan orijinal düğmenin yerine geçer.\n- Konum göstergesi ile kolay kullanım.\nYaklaşık dış ölçüler: 32 × 32 × 15 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6416474-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6416474-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "codybell",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bimini-gunes-paneli-montaj-sistemi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bimini Üzeri Güneş Paneli Montaj Sistemi",
+    "aciklama": "Yelkenli veya motor teknelerde bimini tentesi üzerinden geçen raya güneş paneli monte etmek için destek sistemi.\n- Standart bimini direği/rayına uyarlanabilir.\n- Güneş panelini sabit ve dengeli tutar.\n- Paslanmaz vida ile montaj önerilir.\nYaklaşık dış ölçüler: 75 × 42 × 38 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6470331-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6470331-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6470331-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6470331-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6470331-5.jpg",
+      "https://media.pruvo3d.com/urunler/th6470331-6.jpg",
+      "https://media.pruvo3d.com/urunler/th6470331-7.jpg",
+      "https://media.pruvo3d.com/urunler/th6470331-8.jpg",
+      "https://media.pruvo3d.com/urunler/th6470331-9.jpg",
+      "https://media.pruvo3d.com/urunler/th6470331-10.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zoglar",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "yelkenli-tarp-ortu-kancasi-pvc-boru",
     "kategori": "Marin",
     "marka": [],
