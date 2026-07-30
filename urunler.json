@@ -1,5 +1,295 @@
 [
   {
+    "id": "kayak-pervanesi-genel",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Pervanesi",
+    "aciklama": "Pedal veya motorlu tahrikli kayaklarda kullanılabilen genel amaçlı pervane.\n- Kayak tahrik sistemleriyle kullanılabilir.\n- Tek parçadan oluşur.\n- Kompakt boyutludur.\nYaklaşık dış ölçüler: 149 × 145 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5444834-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DEFCOMSEC",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "flipsky-65161-elektrikli-dis-motor-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Flipsky 65161 Elektrikli Dış Motor İçin Pervane",
+    "aciklama": "Flipsky 65161 elektrikli dış motor dönüştürme projeleri için 200mm çapında pervane.\n- Flipsky 65161 motor miliyle uyumludur.\n- 200mm çapında, yaklaşık 2.5-3.5 inç pitch.\n- Pervane ve kapak olmak üzere iki parçadan oluşur.\nYaklaşık dış ölçüler: 174 × 170 × 53 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6848315-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6848315-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6848315-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6848315-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6848315-5.jpg",
+      "https://media.pruvo3d.com/urunler/th6848315-6.jpg",
+      "https://media.pruvo3d.com/urunler/th6848315-7.jpg",
+      "https://media.pruvo3d.com/urunler/th6848315-8.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "iluse-hamburg",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "seyir-isigi-basma-onleyici-blok",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Seyir Işığı İçin Basma Önleyici Uyarı Bloğu (Hella Marine Uyumlu)",
+    "aciklama": "Hella Marine tipi kıç seyir ışıklarının üzerine yapıştırılan, üzerine basılmasını önleyen uyarı bloğu.\n- Hella Marine tipi seyir ışığı gövdelerine yapıştırılarak monte edilir.\n- Üzerinde 'no step' uyarı yazısı bulunur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 76 × 74 × 31 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th970757-1.jpg",
+      "https://media.pruvo3d.com/urunler/th970757-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "slartibartfast68",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelken-direk-seyir-isigi-mercek-muhafazasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Direği Seyir Işığı Mercek ve Muhafaza Seti",
+    "aciklama": "Yelkenli tekne direğinin üçte iki yüksekliğine monte edilen seyir ışığı (steaming light) için mercek ve muhafaza parçaları.\n- Direğe monte edilecek şekilde tasarlandı.\n- Şeffaf bir mercek veya mercek dökümü için kalıp içerir.\n- LED montajı için küçük devre kartı yuvası bulunur.\nYaklaşık dış ölçüler: 105 × 101 × 49 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2224088-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2224088-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2224088-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2224088-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2224088-5.jpg",
+      "https://media.pruvo3d.com/urunler/th2224088-6.jpg",
+      "https://media.pruvo3d.com/urunler/th2224088-7.jpg",
+      "https://media.pruvo3d.com/urunler/th2224088-8.jpg"
+    ]
+  },
+  {
+    "id": "yelken-halyard-rigging-topu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Halyard İpi İçin Rigging Topu",
+    "aciklama": "Yelkenli tekne halyard ipleri için 25.5mm çapında rigging topu (küre).\n- Küre çapı 25.5mm, halat geçiş deliği çapı 7mm'dir.\n- Halyard hatlarında durdurucu/işaretleyici olarak kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 26 × 26 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6485550-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6485550-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6485550-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EggsBenadryl",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "sea-doo-tam-menzil-gaz-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sea-Doo Jet-Ski İçin Tam Menzil Gaz Kolu",
+    "aciklama": "Sea-Doo Spark ve GTR modellerinde orijinal cruise control gaz kolunun yerine geçen, tam gaz menzilini destekleyen gaz kolu.\n- Sea-Doo Spark ve GTR el tutamaklarıyla uyumludur.\n- Düşük uyandırma bölgesi hızlarına kadar tüm gaz menzilini destekler.\n- Emniyet kordonu (lanyard) bağlantısı için delik içerir.\nYaklaşık dış ölçüler: 87 × 68 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6744844-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ccarmody5",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "aluminyum-kurek-sabitleme-somunu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Alüminyum Uzatılabilir Kürek İçin Sabitleme Somunu",
+    "aciklama": "Alüminyum uzatılabilir kürek şaftını sabitlemek için kullanılan somun.\n- Standart alüminyum uzatılabilir kürek şaftlarıyla uyumludur.\n- Şaft uzunluğunu sabitlemek için sıkıştırılarak kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 48 × 48 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1566056-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1566056-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tribalmind",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelken-mast-rayi-slug",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Mast Rayı İçin Slug (Sail Slug)",
+    "aciklama": "Yelken direğindeki mast rayına takılan, yelkeni raya bağlayan slug (kızak) parçası.\n- Standart mast ray sistemleriyle uyumludur.\n- Yelkeni direğe sabitlemek için kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 25 × 24 × 9 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1917441-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jdmaher476",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-treyleri-makarasi-180mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Treyleri Makarası (180mm)",
+    "aciklama": "Şişme/Zodiac tarzı teknelerin treylerlerinde kullanılan 180mm uzunluğunda makara.\n- 180mm uzunluğunda, 65mm dış çaplıdır.\n- M12 galvanizli cıvata için 13.5mm delik içerir.\n- 3.8m şişme Zodiac tarzı tekne treylerlerinde kullanılabilir.\nYaklaşık dış ölçüler: 180 × 64 × 64 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3157772-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Buellman75",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-guverte-makarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Güverte Makarası",
+    "aciklama": "Kayak güvertesindeki elastik bantların altına küreğin kolayca kaydırılmasını sağlayan makara.\n- 5mm elastik bantlarla kullanılır.\n- Kayak güvertesine monte edilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 25 × 20 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4877662-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4877662-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "perhakon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-4hp-dis-motor-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Suzuki 4HP Dış Motor Pervanesi",
+    "aciklama": "Suzuki 4HP dış motor modeline uyumlu pervane.\n- Suzuki 4HP dış motor modeliyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 168 × 152 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4905231-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "naturfagslaereren",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "johnson-evinrude-su-kontrol-memesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Johnson/Evinrude Dış Motor Su Kontrol Memesi",
+    "aciklama": "Johnson ve Evinrude dış motorlarda soğutma suyu çıkışını gösteren kontrol memesi (tell-tale nipple).\n- Çoğu eski model Johnson/Evinrude dış motorla uyumludur.\n- Basılı geçirme (snap-in) yöntemiyle takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 23 × 23 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4920131-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nullsports",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-gp800r-durulama-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha GP800R Jet-Ski İçin Durulama Adaptörü",
+    "aciklama": "Yamaha GP800R jet-ski motorunu bahçe hortumuna bağlayarak durulamak için kullanılan adaptör.\n- Yamaha GP800R motoruyla uyumludur.\n- Standart bahçe hortumu bağlantısına uyar.\n- İki O-ring conta ile birlikte kullanılması önerilir.\nYaklaşık dış ölçüler: 53 × 20 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3668263-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3668263-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3668263-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3668263-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nicolas28",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-capasi-basit",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Çapası (Basit)",
+    "aciklama": "Kayak, kano veya küçük tekneler için basit çapa.\n- Küçük tekne, kayak veya kano ile kullanılabilir.\n- Halat bağlama noktası içerir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 39 × 32 × 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3941292-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "volkanserezli",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "aqua-marina-esnek-skeg",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Aqua Marina Kayak İçin Esnek Skeg",
+    "aciklama": "Aqua Marina kayaklara uyumlu, esnek kanatlı skeg (omurga) parçası.\n- Aqua Marina kayak fin kutusuyla uyumludur.\n- Kanat kısmı PVC veya PP plastik ile birlikte kullanılır, taban parçası sert yapıdadır.\n- İki parçadan oluşur (taban + esnek kanat).\nYaklaşık dış ölçüler: 185 × 36 × 28 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5414509-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vd_max",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "130mm-tekne-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "130mm Tekne Pervanesi",
+    "aciklama": "130mm çapında, 10mm şafta uyumlu tekne pervanesi.\n- 130mm çapında, 2 kanatlı tasarım.\n- 10mm şaft çapına uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 128 × 61 × 58 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5913281-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5913281-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5913281-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "baocuongtranphan776",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "honda-dis-motor-kill-cord-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Honda Dış Motor Kill-Cord Klipsi",
+    "aciklama": "Honda dış motorlar için kill-cord (motor durdurma ipi) yapmakta kullanılan plastik klips.\n- Honda dış motor gaz kolu gövdesine takılır.\n- Bacağa bağlanan bir kordonla birlikte kullanılır.\n- Denize düşme durumunda motoru güvenle durdurur.\nYaklaşık dış ölçüler: 30 × 20 × 4 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th27200-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "davidmpye",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "moduler-dis-motor-hidrofoyl-kiti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Modüler Dış Motor Hidrofoyl Kiti",
+    "aciklama": "70-120 HP Evinrude/Johnson dış motorlar için delik açmadan takılan modüler hidrofoyl kiti.\n- 70-120 HP Evinrude/Johnson dış motorlarla uyumludur, diğer markalarda da denenebilir.\n- Kapak ve kanatlar kavitasyon plakasına kaydırılarak takılır.\n- Bağlantı plakası ile vidalanarak sabitlenir.\nYaklaşık dış ölçüler: 234 × 229 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5764000-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "grabowij",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "humminbird-helix-7-m18-shuttle",
     "kategori": "Marin",
     "marka": [],
