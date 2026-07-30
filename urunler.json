@@ -1,5 +1,382 @@
 [
   {
+    "id": "kayak-olta-tutucusu-45-derece-braket",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "45 Derece Donebilen Kayak Olta Tutucusu Braketi",
+    "aciklama": "Kayaklardaki standart olta tutucu yuvasina takilan, kamis ucunu kayaga paralel yonlendiren donebilir braket.\n- Standart kayak olta tutucu yuvalarina uyumludur.\n- Kamis ucunu kayaga paralel tutarak dal/engellere takilmayi azaltir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 198 x 103 x 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr699113-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "zaashf",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-scupper-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Scupper Deligi Tapasi",
+    "aciklama": "Oturarak kullanilan (sit-on-top) kayaklarin scupper deliklerinden su almasini onlemek icin tasarlanmis tapa.\n- Sit-on-top kayaklarin scupper deliklerine siki oturum icin tasarlandi.\n- Esnek filaman ile sizdirmaz kapama saglar.\n- Iki parcadan olusur (tapa govdesi + izgara).\nYaklasik dis olculer: 20 x 20 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr146800-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr146800-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr146800-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Badger",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "teknealti-itici-skeg-kanadi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Alti Itici Icin Enkaz Yonlendirici Skeg Kanadi",
+    "aciklama": "Duz tabanli tekne govdelerine monte edilen su alti itici sistemlerinin onune enkaz ve yosun birikmesini engelleyen ince skeg kanadi.\n- Duz tabanli tekne govdelerine monte edilen itici sistemler icin tasarlandi.\n- Itici pervanenin onune dal, yosun ve enkaz birikmesini azaltir.\n- Paslanmaz civatalarla govdeye sabitlenir.\nYaklasik dis olculer: 120 x 34 x 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr33536-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr33536-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr33536-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr33536-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Piercet",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "nmea-2000-hava-koruma-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "NMEA 2000 Port Hava Koruma Kapagi",
+    "aciklama": "Balik bulucu cihazlarindaki kullanilmayan NMEA 2000 portlarini hava kosullarindan korumak icin kendinden kordonlu koruma kapagi.\n- Standart NMEA 2000 portlarina uyumlu boyutta tasarlandi.\n- Kullanilmadigi zamanlarda porta toz ve nem girmesini engeller.\n- Esnek malzemeyle kopmaya dayanikli kordonlu tasarima sahiptir.\nYaklasik dis olculer: 48 x 14 x 6 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr866080-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr866080-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dan Rogers",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pontoon-bimini-isik-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pontoon Bimini Tenteligi Icin Isik Tutucusu",
+    "aciklama": "Pontoon tipi teknelerin bimini tentesi cercevesine tasinabilir isik/fener takmak icin basit tutucu.\n- Bimini tenteligi cercevesine dogrudan monte edilir.\n- Standart civata/somun veya isitmali civi bagi ile sabitlenebilen iki versiyonu vardir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 86 x 30 x 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr509840-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr509840-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr509840-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr509840-4.jpg"
+    ]
+  },
+  {
+    "id": "tekne-guverte-doldurma-kapagi-38mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "38mm Disli Tekne Guverte Doldurma Kapagi",
+    "aciklama": "Yakit, su veya atik su tanki doldurma agizlarinda kullanilan 38mm disli guverte kapaginin degisim parcasi.\n- 38mm disli standart guverte doldurma agizlarina uyumludur.\n- Yakit, su veya atik su tanki dolum noktalarinda kullanilabilir.\n- Kayip veya kirik orijinal kapaklarin yerine kolay degisim saglar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2855640-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2855640-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2855640-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2855640-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Andrei",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hizli-cikarilir-sonar-montaj-braketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Hizli Cikarilir Balik Bulucu Sonar Montaj Braketi",
+    "aciklama": "Balik bulucu (sonar) cihazlarini hizli-cikarilir klips sistemiyle kayak veya tekneye monte etmeyi saglayan braket seti.\n- Hizli-cikarilir klips tabanina uyumludur.\n- Sonar cihazini kayak veya tekne uzerine guvenli sekilde sabitler.\n- Cihazi hizlica takip cikarmaya olanak tanir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw938949-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw938949-2.jpg"
+    ]
+  },
+  {
+    "id": "cift-kutuklu-tekne-sirik-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Icin Cift Kutuklu Kurek/Sirik Saklama Adaptoru",
+    "aciklama": "Teknelerde kurek ve capa siriginin ayni tarafta birlikte saklanmasini saglayan cift-yuvali adaptor.\n- 30mm capinda kurek ve 22mm capinda sirik/capa diregi icin ayri yuvalar icerir.\n- Tekne tarafi paylasimini ortadan kaldirir.\n- Benzer capli farkli sirik/kurek modelleriyle de uyumlu olabilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1161859-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1161859-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1161859-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1161859-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cwaters",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-otomatik-dumen-carki-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Otomatik Dumen Sistemi Icin Carki Adaptoru",
+    "aciklama": "Ruzgar dumeni (windvane) otomatik yon tutma sistemlerini yelkenli dumen carkina baglamak icin adaptor halkasi.\n- Dumen carkina kelepceyle sabitlenir, ipler dis halkadaki deliklere baglanir.\n- Pimle dis halkayi ana govdeye kilitleyerek dumeni devreye alir.\n- Surtunmeyle donen ic-dis halka mekanizmasina sahiptir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1520958-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1520958-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1520958-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1520958-4.jpg"
+    ]
+  },
+  {
+    "id": "zipkinla-avlanma-samandira-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Zipkinla Avlanma Icin Samandira Baglanti Klipsi",
+    "aciklama": "Zipkinla avlanma sirasinda samandirayi agirlik kemerine guvenle baglayan, iki yayla calisan kilitli klips sistemi.\n- Iki yay ile klips parcalarini birbirine bastirarak guvenli kilitleme saglar.\n- Suda kendiliginden acilmaz, sadece elle sert cekilerek ayrilir.\n- Paslanmaz civatalarla monte edilen coklu parcadan olusur.\nYaklasik dis olculer: 62 x 30 x 8 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5429660-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5429660-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5429660-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5429660-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "T-H",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "tekne-burnu-balik-bulucu-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Burnuna Monte Balik Bulucu (Sonar) Tutucusu",
+    "aciklama": "Teknenin bas (burun) kismina monte edilen, balik bulucu sensorunu suya sabit acida indiren genis tabanli tutucu.\n- Tekne burnuna civatalarla sabitlenen genis tabanli montaj yapisina sahiptir.\n- Sonar sensorunu su altinda sabit ve dogru acida konumlandirir.\n- Onceki versiyonla birlikte de kullanilabilecek sekilde gelistirildi.\nYaklasik dis olculer: 351 x 181 x 48 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1279242-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1279242-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1279242-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1279242-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kristian",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-iskele-baglama-babasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Basit Tekne/Iskele Baglama Babasi (Cleat)",
+    "aciklama": "Kucuk teknelerin veya iskelenin halat baglama noktasi olarak kullanilabilecek basit cleat.\n- Halat baglamak icin standart T-cleat gecidi bulunur.\n- Iki civata deligiyle iskele veya tekne yuzeyine sabitlenir.\n- Kucuk-orta boy tekneler icin uygun boyuttadir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw499861-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw499861-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw499861-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw499861-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jely3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kazikli-olta-tutucusu-balik-askili",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kazikli Olta Tutucusu ve Balik Askisi",
+    "aciklama": "Sahilde kazikla sabitlenen, hem olta kamisini tutan hem yakalanan baligi asmak icin yan kancalari olan cift fonksiyonlu duzenek.\n- Alt kismindaki kazikla toprak veya kum zeminde sabitlenir.\n- Ust kisimda olta kamisini tutan yuva bulunur.\n- Yan taraftaki kancalarla yakalanan balik tasinabilir.\nYaklasik dis olculer: 160 x 105 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr960303-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr960303-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr960303-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr960303-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Julebrus",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "kucuk-yelkenli-baglama-babasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kucuk Yelkenli Tekneler Icin Baglama Babasi",
+    "aciklama": "Kucuk yelkenli teknelerde ip baglamak icin kullanilan kompakt cleat parcasi.\n- Kucuk yelkenli teknelerin ip baglama noktalarina uygun boyuttadir.\n- Iki civata deligiyle govdeye sabitlenir.\n- Farkli olculere uyarlanabilir parametrik tasarima sahiptir.\nYaklasik dis olculer: 90 x 22 x 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr948447-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr948447-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rkayakr",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "gopro-tipi-seyir-feneri-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Hizli-Klips Uyumlu Seyir Feneri Tutucusu",
+    "aciklama": "Su alti seyir/balikcilik fenerlerini hizli-klips sistemiyle tekne veya kayaga sabitlemek icin huni seklinde tutucu.\n- Standart hizli-klips tabanina uyumludur.\n- Silindirik seyir/balikcilik fenerlerini sikica kavrar.\n- Farkli fener capları icin ayri model secenekleri mevcuttur.\nYaklasik dis olculer: 51 x 47 x 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1065688-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1065688-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1065688-3.jpg"
+    ]
+  },
+  {
+    "id": "tekne-treyler-kilavuz-basligi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Treyleri Icin Kilavuz Direk Basligi",
+    "aciklama": "Tekne treylerindeki plastik kilavuz direklerin ucuna takilan, tekneyi treylere yonlendirmeye yardimci baslik.\n- Yaklasik 5 cm ic capindaki kilavuz direklere uyumludur.\n- Farkli direk caplari icin olceklendirilebilir tasarima sahiptir.\n- Gorunurlugu artirmak icin parlak renkte tercih edilebilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw94635-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw94635-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TJSlayer",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-dumen-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Dumeni Icin Sabitleme Tutucusu",
+    "aciklama": "Kayak dumeninin kullanilmadigi zamanlarda sallanmasini onleyen basit sabitleme parcasi.\n- Kayak dumenini yukarida sabit tutarak sallanmasini engeller.\n- Kayaga civatalarla monte edilir.\n- Benzer olculerdeki genel kayak/dumen modelleriyle de uyumlu olabilir.\nYaklasik dis olculer: 76 x 49 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4592707-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Trendkiller",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "otomatik-pilot-dugmesi-yedek-parca",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Otomatik Pilot Sistemi Icin Yedek Dugme",
+    "aciklama": "Tekne otomatik pilot kumanda unitesindeki kirilan veya kaybolan dugmenin yerine gecen yedek parca.\n- Otomatik pilot kumanda unitesindeki standart disli yuvaya uyumludur.\n- Kirilan veya kaybolan orijinal dugmenin yerine kolay degisim saglar.\n- Dayanikli govde ile uzun sureli kullanima uygundur.\nYaklasik dis olculer: 28 x 27 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4609648-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "paicca",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "kayak-tasima-arabasi-govde-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Tasima Arabasi Icin Govde Baglanti Parcasi",
+    "aciklama": "Sahilde veya araziler arasinda kayak tasimak icin kullanilan iki tekerlekli tasima arabasinin ana govde/baglanti parcasi.\n- Standart boru profillerini birbirine baglayarak tasima arabasi govdesini olusturur.\n- Iki tekerlekli tasima sistemine uygun tasarlandi.\n- Kayak, kano gibi tekneleri sahilden suya tasimayi kolaylastirir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsoporte-kayak-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsoporte-kayak-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsoporte-kayak-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ginesor",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "universal-olta-kamisi-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Universal Olta Kamisi Tutucusu / Askisi",
+    "aciklama": "Farkli kalinlikta olta kamislarini duvar, korkuluk veya direk uzerinde tutmak icin genel amacli tutucu/aski.\n- Farkli cap ve kalinlikta olta kamislarina uyumlu genel tasarima sahiptir.\n- Duvar, korkuluk veya dikey direk uzerine monte edilebilir.\n- Tek civata ile hizli montaj saglar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2553295-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2553295-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2553295-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2553295-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jirka108",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "capa-sirigi-tekne-baglama-klipsleri",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Capa Siriginin Tekneye Baglanmasi Icin Klips Seti",
+    "aciklama": "Capa sirigini (pole anchor) tekne govdesine sabitlemek icin kullanilan klips cifti.\n- Capa sirigini tekne govdesine guvenli sekilde sabitler.\n- Esnek malzemeyle darbeye dayanikli uretim icin tasarlandi.\n- Iki adet klipsten olusan komple settir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw752537-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw752537-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw752537-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw752537-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AstroLife",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "canli-balik-tanki-zamanlayici-anahtar-plakasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Canli Balik Tanki (Livewell) Zamanlayici Anahtar Plakasi",
+    "aciklama": "Tekne uzerindeki canli balik tanki pompasini zamanlayici ve acik-kapali sekilde kontrol etmek icin anahtar montaj plakasi.\n- Zamanlayici ve 3 konumlu anahtar icin kesim yerleri icerir.\n- Tekne panelinde duzenli ve saglam bir montaj yuzeyi saglar.\n- Surekli veya araliksiz pompa calismasi icin kontrol imkani sunar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw609620-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw609620-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw609620-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw609620-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Chris_Peters",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-hatch-saklama-kovasi-120mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "120mm Kayak Kapagi (Hatch) Icin Saklama Kovasi",
+    "aciklama": "Kayaklarin 120mm capindaki hatch/kapaklarina tam oturan, esya saklamak icin kullanilan kova ekleme parcasi.\n- 120mm capindaki kayak hatch acikliklarina uyumlu tasarlandi.\n- Kucuk esyalari kayak icinde duzenli ve kuru tutar.\n- Farkli hatch olculerine gore ozellestirilebilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2236030-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2236030-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2236030-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jeasy88",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "kayak-kurek-klipsi-c3d",
     "kategori": "Marin",
     "marka": [],
