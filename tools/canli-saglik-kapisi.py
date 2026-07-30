@@ -11,6 +11,11 @@ NEDEN VAR (uc olculmus vaka, 30 Tem — UCUNU DE MAKINE DEGIL INSAN YAKALADI):
   VAKA 2 — CI KIRMIZI, YAYIN DURMUS. CI kirmizi kaldigi icin 23 urun canlia HIC cikmadi:
     depo 15039, canli 15016. Hicbir kapi konusmadi cunku kapilar COMMIT'i dogruluyor,
     kimse "canlida kac urun var" diye SORMUYORDU.
+  VAKA 4 — ORNEKLEM KORLUGU (30 Tem 22:25, YINE INSAN YAKALADI). Tek urun eklendi
+    (`yan-birakmali-kayis-tokasi`); 3 dk sonra gelen 26'lik parti onu dizide 26. siraya
+    itti. Nobetci "en yeni 20 DIZI kaydini" ornekledigi icin urunu HIC olcmedi, SAYFA
+    ekseni "20/20 -> 200" ile YESIL yandi; ayni anda o sayfa canlida 404'tu.
+    -> Orneklem artik IKI EKSENLI: dizi-basi N + SON K COMMIT'te eklenen TUM urunler.
   VAKA 3 — KART KANALI KAPALI. Iki figur canlida gorunuyordu ama worker eski paketi
     kosuyordu -> POST /api/shop/fiyat 400 doniyordu, kalem kartla ODENEMIYORDU. 2 gun surdu.
 
@@ -19,8 +24,11 @@ kapatir. Kapilar "commit dogru mu" der; bu nobetci "MUSTERI NE GORUYOR" der.
 
 OLCTUKLERI (hepsi SALT-OKUNUR, GERCEK MUSTERI KOSULU — cache-bypass basligi KULLANILMAZ;
 onbellegi atlayan bir olcum tam da VAKA 1'i kacirirdi):
+  K0 ORNEKLEM  NEYI olctugumuzu yargilar: son K commit'te eklenen her urun orneklem'e
+               GIRDI mi (girmediyse SAPMA — nobetci o urunler icin KOR), gecmis
+               okunamadiysa ARIZA. Sessiz/dar orneklem YASAK; bilesim rapora basilir.
   K1 KATALOG   canli /urunler.json urun sayisi == depo (origin/main) sayisi mi.
-  K2 SAYFA     en yeni N urunun /urun/<id>/ sayfasi 200 mu (404'te cf-cache-status + age).
+  K2 SAYFA     orneklenen urunlerin /urun/<id>/ sayfasi 200 mu (404'te cf-cache-status + age).
   K3 CI        origin/main'in son kosumu success mi; kirmizysa hangi adim.
   K4 KART      konfigurlu urunler canli worker'da gercekten fiyatlaniyor mu.
                ⚠️ IKINCI KOPYA ACILMAZ: bu eksen tools/konfigur-canli-kapisi.py'nindir;
@@ -53,7 +61,8 @@ CIKIS KODLARI:
 
 KULLANIM:
     python3 tools/canli-saglik-kapisi.py                 # canli olcum (ag ISTER, ~30 s)
-    python3 tools/canli-saglik-kapisi.py --adet 40       # daha genis sayfa/gorsel orneklemi
+    python3 tools/canli-saglik-kapisi.py --adet 40       # dizi-basi eksenini genislet
+    python3 tools/canli-saglik-kapisi.py --son-commit 20 # yeni-commit eksenini genislet
     python3 tools/canli-saglik-kapisi.py --json          # makine okunur cikti
     python3 tools/canli-saglik-kapisi.py --kendini-test  # AGSIZ fikstur kabulu (CI'da bu kosar)
 """
@@ -74,6 +83,28 @@ SITE_VARSAYILAN = "https://pruvo3d.com"
 CI_API_VARSAYILAN = "https://api.github.com/repos/Pruvo138/pruvo/actions/runs"
 ANA_DAL = "origin/main"
 ADET_VARSAYILAN = 20
+
+# 🔴 ORNEKLEM IKI EKSENLI — "en yeni N DIZI kaydi" TEK BASINA YETMEZ (olculdu 30 Tem).
+# OLCULEN VAKA: `yan-birakmali-kayis-tokasi` 22:25'te eklendi, 3 dk sonra gelen 26 urunluk
+# parti onu dizide 26. siraya itti. --adet 20 ile nobetci onu ORNEKLEMEDI ve SAYFA ekseni
+# "20/20 -> 200" diyerek YESIL yandi; ayni anda o urunun sayfasi canlida 404'tu.
+# DERS: "yeni urun" DIZI KONUMU degil COMMIT olayidir. Bu yuzden orneklem =
+#   (1) YENI-COMMIT ekseni: son SON_COMMIT_SAYISI commit'te urunler.json'a EKLENEN her id
+#   (2) DIZI-BASI ekseni  : dizinin en yeni `adet` kaydi (eski davranis, korunur)
+# birlesimidir ve bilesimi RAPORA BASILIR (sessiz orneklem YASAK).
+# K KALIBRASYONU (olculdu 30 Tem, origin/main): parti ekleme commit'i basina ~25 urun.
+#   son 1 commit -> 26 yeni · son 4 -> 27 · son 6 -> 55 · son 12 -> 100 · son 30 -> 196.
+# Yayin gecikmesi tavani (cancel-in-progress: false ile) ~11 dk, push araligi ortanca
+# 9,2 dk -> 6 commit'lik pencere riskli sinifi FAZLASIYLA kapsar, 250 tavaninin altinda
+# kalir. Buyutmek isteyen `--son-commit` ile buyutur (ve tavani da gozetir).
+SON_COMMIT_SAYISI_VARSAYILAN = 6
+# Yeni-commit ekseni tavani: istek sayisi sinirsiz buyumesin. SAYFA istekleri STATIK
+# CDN'e gider (worker hiz siniri YOK) -> tavan genis tutulabilir. Tavan ASILIRSA bu
+# SESSIZCE kirpilmaz -> ORNEKLEM ekseni SAPMA verir (korluk KANITLANIR).
+YENI_EKSEN_TAVAN = 250
+# Sayfa istekleri Pages/CDN'e gider; worker hiz siniri (60/60 sn) BURAYA UYGULANMAZ.
+# Bu yuzden sayfa ekseni ayri, kucuk bir gecikme kullanir: 250 sayfa ~12 s'de olculur.
+SAYFA_GECIKME = 0.05
 
 # R2/edge urllib UA 403 dersi ([[r2-urllib-ua-403-tuzagi]]): ciplak python-urllib UA'si bot
 # sayilip 403 yiyebilir -> olcum "gorsel yok" sanip YANLIS ALARM verirdi. Tarayici UA'si.
@@ -153,6 +184,75 @@ def depo_gozlemi(dal=ANA_DAL):
     except ValueError as e:
         out["hata"] = "urunler.json ayristirilamadi: " + str(e)
     return out
+
+
+def yeni_urun_gozlemi(dal=ANA_DAL, son_commit=SON_COMMIT_SAYISI_VARSAYILAN):
+    """Son `son_commit` commit'te urunler.json'a EKLENEN id'ler (dal ile dal~K'nin farki).
+
+    Neden diff degil iki kume: urunler.json 13,5 MB; `git log -p` bu dosyada ~68 MB diff
+    uretir (olculdu). Iki `git show` + kume farki AYNI cevabi ~1 s'de verir.
+    FAIL-CLOSED: gecmis okunamazsa (shallow checkout, kopuk ref) SESSIZCE bos kume
+    donmez -> `hata` doldurulur ve ORNEKLEM ekseni bunu ARIZA olarak raporlar."""
+    out = {"son_commit": son_commit, "idler": [], "hata": None, "taban_sha": None}
+    try:
+        p = subprocess.run(["git", "-C", ROOT, "rev-parse", "%s~%d" % (dal, son_commit)],
+                           capture_output=True, text=True)
+        if p.returncode != 0:
+            out["hata"] = ("gecmis okunamadi (%s~%d): " % (dal, son_commit)
+                           + (p.stderr or "").strip()[:120])
+            return out
+        out["taban_sha"] = p.stdout.strip()
+        p = subprocess.run(["git", "-C", ROOT, "show", out["taban_sha"] + ":urunler.json"],
+                           capture_output=True, text=True)
+        if p.returncode != 0:
+            out["hata"] = "taban urunler.json okunamadi: " + (p.stderr or "").strip()[:120]
+            return out
+        eski = set(u.get("id") for u in json.loads(p.stdout))
+        p = subprocess.run(["git", "-C", ROOT, "show", dal + ":urunler.json"],
+                           capture_output=True, text=True)
+        if p.returncode != 0:
+            out["hata"] = "guncel urunler.json okunamadi: " + (p.stderr or "").strip()[:120]
+            return out
+        yeni = [u.get("id") for u in json.loads(p.stdout)]
+        out["idler"] = [i for i in yeni if i not in eski]
+    except OSError as e:
+        out["hata"] = "git calistirilamadi: " + str(e)
+    except ValueError as e:
+        out["hata"] = "urunler.json ayristirilamadi: " + str(e)
+    return out
+
+
+def orneklem_sec(urunler, yeni_idler, adet, tavan=YENI_EKSEN_TAVAN):
+    """SAF secim (ag/git YOK -> agsiz sinanabilir). Iki ekseni birlestirir, bilesimi doner.
+
+    Donen: (secilen_urunler, kompozisyon). Kompozisyon RAPORA basilir ve ORNEKLEM
+    kontrolu onu YARGILAR: yeni-commit ekseninden DISARIDA kalan id varsa SAPMA."""
+    dizi_basi = list(urunler[:adet])
+    dizi_basi_idler = set(u.get("id") for u in dizi_basi)
+    yeni_kume = set(i for i in (yeni_idler or []) if i)
+    # yeni-commit ekseni: dizideki gercek kayitlara esle (dizi sirasi = en yeni once)
+    yeni_kayitlar = [u for u in urunler if u.get("id") in yeni_kume]
+    kirpildi = []
+    if len(yeni_kayitlar) > tavan:
+        kirpildi = [u.get("id") for u in yeni_kayitlar[tavan:]]
+        yeni_kayitlar = yeni_kayitlar[:tavan]
+    secilen = list(dizi_basi)
+    gorulen = set(dizi_basi_idler)
+    for u in yeni_kayitlar:
+        if u.get("id") not in gorulen:
+            secilen.append(u)
+            gorulen.add(u.get("id"))
+    kompozisyon = {
+        "toplam": len(secilen),
+        "dizi_basi": len(dizi_basi),
+        "yeni_commit": len(yeni_kayitlar),
+        "yalniz_yeni_eksen": len([u for u in yeni_kayitlar
+                                  if u.get("id") not in dizi_basi_idler]),
+        "kirpilan": kirpildi,
+        "yeni_toplam": len(yeni_kume),
+        "kapsanmayan": sorted(yeni_kume - gorulen),
+    }
+    return secilen, kompozisyon
 
 
 def canli_katalog_gozlemi(site, zaman_asimi=45):
@@ -315,20 +415,30 @@ def kart_kanali_gozlemi(site, gecikme=GECIKME_VARSAYILAN):
     return {"hal": hal, "detay": "; ".join(ozet[:4]) or (p.stdout or "").strip()[-200:]}
 
 
-def gozlem_topla(site, ci_api, adet, gecikme, zaman_asimi):
+def gozlem_topla(site, ci_api, adet, gecikme, zaman_asimi,
+                 son_commit=SON_COMMIT_SAYISI_VARSAYILAN):
     """TUM canli olcumu tek bir sozluge toplar. degerlendir() SADECE bu sozlugu gorur ->
     fikstur ile gercek olcum AYNI kod yolundan gecer (ikinci karar kopyasi YOK)."""
     depo = depo_gozlemi()
     canli = canli_katalog_gozlemi(site, zaman_asimi)
     ci = ci_gozlemi(ci_api, depo.get("sha"), zaman_asimi)
+    yeni = yeni_urun_gozlemi(son_commit=son_commit)
+    # SAYFA ekseni GENIS orneklem alir (dizi-basi + son K commit'te eklenen HER urun):
+    # 404 sinifi tam da YENI urunlerin sinifidir ve sayfa istegi ucuzdur (statik CDN).
+    sayfa_urunleri, kompozisyon = orneklem_sec(depo.get("urunler") or [], yeni["idler"], adet)
+    kompozisyon["son_commit"] = son_commit
+    kompozisyon["hata"] = yeni["hata"]
+    # D1/GORSEL eksenleri DAR kalir: D1 sorgusu canli worker'a gider (hiz siniri 60/60 sn),
+    # gorsel istegi R2'ye. Bu eksenlerin sinifi "yeni urun" DEGIL, o yuzden dizi-basi yeter.
     urunler = (depo.get("urunler") or [])[:adet]
     # K5 D1 orneklemi KONFIGURSUZ urunlerle sinirli (konfigurlu urunler K4'un isi).
     d1_urunleri = [u for u in urunler if not u.get("konfigur") and not u.get("parametrik")]
     return {
         "zaman": int(time.time()), "site": site, "adet": adet,
+        "orneklem": kompozisyon,
         "depo": depo, "canli_katalog": canli, "ci": ci,
-        "sayfalar": sayfa_gozlemi(site, [u["id"] for u in urunler], canli.get("idler"),
-                                  gecikme, zaman_asimi),
+        "sayfalar": sayfa_gozlemi(site, [u["id"] for u in sayfa_urunleri],
+                                  canli.get("idler"), SAYFA_GECIKME, zaman_asimi),
         "d1": d1_gozlemi(site, d1_urunleri, gecikme, zaman_asimi),
         "gorseller": gorsel_gozlemi(site, urunler, zaman_asimi=zaman_asimi),
         "kart_kanali": kart_kanali_gozlemi(site, gecikme),
@@ -551,6 +661,44 @@ def kontrol_gorsel(g, _hal):
     return satirlar
 
 
+def kontrol_orneklem(g, _hal):
+    """K0 ORNEKLEM — "neyi olctugumuzu" YARGILAR. Diger besi "olculen sey saglikli mi"
+    der; bu eksen "olculmesi GEREKENI olctuk mu" der.
+
+    OLCULEN HATA (30 Tem): nobetci en yeni 20 DIZI kaydini ornekliyordu; yeni eklenen bir
+    urun ardindan gelen 26'lik parti yuzunden 26. siraya dustu, orneklem DISINDA kaldi ve
+    SAYFA ekseni "20/20 -> 200" ile YESIL yandi. Sayfa canlida 404'tu. Yani nobetci
+    SESSIZCE dar olcuyordu. Bu kontrol o sessizligi imkansiz kilar."""
+    o = g.get("orneklem")
+    if not o:
+        return [("ORNEKLEM", "ARIZA", "orneklem bilesimi YOK (olcum toplayici eski mi?)",
+                 "gozlem_topla() 'orneklem' anahtarini doldurmali.")]
+    if o.get("hata"):
+        return [("ORNEKLEM", "ARIZA",
+                 "YENI-COMMIT ekseni OLCULEMEDI — %s" % o["hata"],
+                 "Depoda git gecmisi lazim (shallow checkout ise `git fetch --unshallow`); "
+                 "aksi halde yeni urunler orneklem disinda kalabilir.")]
+    kapsanmayan = o.get("kapsanmayan") or []
+    kirpilan = o.get("kirpilan") or []
+    if kapsanmayan:
+        return [("ORNEKLEM", "SAPMA",
+                 "son %s commit'te eklenen %d urun ORNEKLEM DISINDA kaldi (%s...) — "
+                 "nobetci bu urunler icin KOR" % (o.get("son_commit"), len(kapsanmayan),
+                                                  ", ".join(kapsanmayan[:3])),
+                 "Yeni-commit ekseninin secim kablosu kopmus: orneklem_sec() birlesimini "
+                 "kontrol et.")]
+    if kirpilan:
+        return [("ORNEKLEM", "SAPMA",
+                 "yeni-commit ekseni TAVANA takildi: %d urun orneklenmedi (%s...)"
+                 % (len(kirpilan), ", ".join(kirpilan[:3])),
+                 "--adet artir ya da YENI_EKSEN_TAVAN'i yukselt; bu urunler OLCULMEDI.")]
+    return [("ORNEKLEM", "TAMAM",
+             "SAYFA orneklemi %d kayit = dizi-basi %d + yeni-commit %d (son %s commit; "
+             "yalniz yeni eksenden gelen %d)"
+             % (o.get("toplam"), o.get("dizi_basi"), o.get("yeni_commit"),
+                o.get("son_commit"), o.get("yalniz_yeni_eksen")), "")]
+
+
 def _noop(_g, _hal):
     """KIRMIZI-MUTASYON hedefi: bir kontrol NO-OP yapilinca fikstur YESILE donmeli
     (donmuyorsa o kontrol yuk TASIMIYOR = olu iddia)."""
@@ -558,6 +706,7 @@ def _noop(_g, _hal):
 
 
 KONTROLLER = [
+    ("ORNEKLEM", kontrol_orneklem),
     ("CI", kontrol_ci),
     ("KATALOG", kontrol_katalog),
     ("SAYFA", kontrol_sayfalar),
@@ -598,7 +747,12 @@ def rapor(durum, satirlar, hal, g):
     print("  depo(%s) : %s urun @ %s" % (depo.get("dal") or "?", depo.get("sayi"),
                                          (depo.get("sha") or "?")[:8]))
     print("  yayin penceresi: %s — %s" % (hal, yayin_penceresi(g)[2]))
-    print("  orneklem: en yeni %s urun" % g.get("adet"))
+    # SESSIZ ORNEKLEM YASAK: kac kayit, HANGI EKSENLERDEN geldigi HER kosumda basilir.
+    _o = g.get("orneklem") or {}
+    print("  orneklem(SAYFA): %s kayit = dizi-basi %s + yeni-commit %s (son %s commit)%s"
+          % (_o.get("toplam", "?"), _o.get("dizi_basi", "?"), _o.get("yeni_commit", "?"),
+             _o.get("son_commit", "?"),
+             "  ⚠️ YENI-COMMIT EKSENI OLCULEMEDI" if _o.get("hata") else ""))
     print("-" * 78)
     for sinif in ("SAPMA", "ONBELLEK", "ARIZA", "BEKLENIYOR", "TAMAM"):
         for kontrol, s, mesaj, eylem in satirlar:
@@ -637,6 +791,9 @@ def _temel(**ustyaz):
     idler = ["u%03d" % i for i in range(20)]
     g = {
         "zaman": SIMDI, "site": "https://ornek.gecersiz", "adet": 20,
+        "orneklem": {"toplam": 20, "dizi_basi": 20, "yeni_commit": 3,
+                     "yalniz_yeni_eksen": 0, "kirpilan": [], "yeni_toplam": 3,
+                     "kapsanmayan": [], "son_commit": 12, "hata": None},
         "depo": {"dal": "origin/main", "sayi": 15039, "sha": "a" * 40,
                  "commit_zamani": SIMDI - 3600, "hata": None, "idler": idler},
         "canli_katalog": {"http": 200, "sayi": 15039, "idler": set(idler), "hata": None,
@@ -691,6 +848,28 @@ def fikstur_vaka3():
     return g
 
 
+def fikstur_vaka4():
+    """VAKA 4 (30 Tem, Okan yakaladi — nobetci YESIL yaniyordu) — TEK urunun sayfasi 404.
+    `yan-birakmali-kayis-tokasi` 22:25'te eklendi; 3 dk sonraki 26'lik parti onu dizide
+    26. siraya itti. Eski orneklem (en yeni 20 DIZI kaydi) onu ISKALADI -> SAYFA ekseni
+    "20/20 -> 200" dedi. Yeni-commit ekseni onu orneklem'e SOKAR ve 404 GORULUR.
+    Katalog SENKRON (urun canli katalogda VAR), CI YESIL + YERLESIK -> mazeret YOK."""
+    g = _temel()
+    toka = {"id": "yeni-urun-26", "http": 404, "hata": None, "cf": "MISS", "age": 5,
+            "canli_katalogda": True}
+    g["sayfalar"].append(toka)
+    g["d1"].append({"id": toka["id"], "sonuc": "var", "detay": "30000 kurus"})
+    g["gorseller"].append({"id": toka["id"], "url": "https://ornek/yeni.jpg",
+                           "http": 200, "hata": None})
+    g["depo"]["idler"] = g["depo"]["idler"] + [toka["id"]]
+    g["depo"]["sayi"] += 1
+    g["canli_katalog"]["sayi"] += 1
+    g["canli_katalog"]["idler"] = set(g["canli_katalog"]["idler"]) | {toka["id"]}
+    g["orneklem"] = dict(g["orneklem"], toplam=21, yeni_commit=1, yalniz_yeni_eksen=1,
+                         yeni_toplam=1)
+    return g
+
+
 def fikstur_yayin_penceresi():
     """YANLIS-POZITIF IKIZI (A) — push 90 sn once, CI KOSUYOR: canli 23 urun geride ve
     sayfalari TAZE 404. Bu ARIZA DEGILDIR -> SAGLIKLI + BEKLENIYOR satirlari."""
@@ -741,6 +920,8 @@ FIKSTURLER = [
     ("VAKA-1 sayfa 404 + CF onbellek artigi", fikstur_vaka1, "SAPMA", "SAYFA", "ONBELLEK"),
     ("VAKA-2 CI kirmizi -> 23 urun canlia cikmadi", fikstur_vaka2, "SAPMA", "KATALOG", "SAPMA"),
     ("VAKA-3 kart kanali kapali (worker bayat)", fikstur_vaka3, "SAPMA", "KART", "SAPMA"),
+    ("VAKA-4 yeni urun dizi-basi disinda, sayfasi 404", fikstur_vaka4, "SAPMA",
+     "SAYFA", "SAPMA"),
 ]
 
 
@@ -788,6 +969,44 @@ def kendini_test():
     iddia("VAKA-3'te YALNIZ KART ekseni kirmizi (digerleri yesil)",
           [s[0] for s in s3 if s[1] in SAPMA_SINIFLARI] == ["KART"],
           [s[:2] for s in s3 if s[1] in SAPMA_SINIFLARI])
+
+    _d, s4, _h = degerlendir(fikstur_vaka4())
+    iddia("VAKA-4 sayfa satiri 'GERCEK 404' + 'canli katalogda VAR' diyor",
+          any(s[0] == "SAYFA" and "GERCEK 404" in s[2] and "canli katalogda VAR" in s[2]
+              for s in s4))
+    iddia("VAKA-4'te YALNIZ SAYFA ekseni kirmizi (katalog senkron, CI yesil)",
+          [s[0] for s in s4 if s[1] in SAPMA_SINIFLARI] == ["SAYFA"],
+          [s[:2] for s in s4 if s[1] in SAPMA_SINIFLARI])
+
+    # ---- (A2) ORNEKLEM SECIMI — asil onarim burasi: "en yeni N DIZI kaydi" YETMEZ.
+    # 30 Tem vakasinin BIREBIR yeniden kurulumu: urun eklendi, ardindan gelen parti onu
+    # 26. siraya itti. ESKI eksen (yalniz dizi-basi) onu KACIRIR, YENI eksen YAKALAR.
+    ham.append("  (A2) ORNEKLEM SECIMI (yeni-commit ekseni yuk tasiyor mu)")
+    _sahne = [{"id": "parti-%02d" % i} for i in range(26)]
+    _sahne.insert(26, {"id": "toka"})
+    _sahne += [{"id": "eski-%02d" % i} for i in range(60)]
+    _eski_secim, _eski_komp = orneklem_sec(_sahne, [], 20)
+    _yeni_secim, _yeni_komp = orneklem_sec(_sahne, ["toka"], 20)
+    iddia("ESKI eksen (yalniz dizi-basi 20) 26. siradaki yeni urunu KACIRIYOR",
+          "toka" not in [u["id"] for u in _eski_secim], _eski_komp)
+    iddia("YENI-COMMIT ekseni ayni urunu ORNEKLEME SOKUYOR",
+          "toka" in [u["id"] for u in _yeni_secim], _yeni_komp)
+    iddia("    ... bilesim raporlaniyor (toplam 21 = dizi-basi 20 + yalniz-yeni 1)",
+          (_yeni_komp["toplam"], _yeni_komp["dizi_basi"],
+           _yeni_komp["yalniz_yeni_eksen"]) == (21, 20, 1), _yeni_komp)
+    iddia("    ... dizi-basi ekseni KORUNUYOR (eski davranis kaybolmadi)",
+          [u["id"] for u in _yeni_secim][:20] == [u["id"] for u in _eski_secim])
+    _tavan_sahne = [{"id": "y%03d" % i} for i in range(200)]
+    _ts, _tk = orneklem_sec(_tavan_sahne, [u["id"] for u in _tavan_sahne], 20, tavan=60)
+    iddia("TAVAN asilinca SESSIZCE kirpilmiyor (kirpilan listeleniyor)",
+          len(_tk["kirpilan"]) == 140, len(_tk["kirpilan"]))
+    iddia("    ... tavan kirpmasi ORNEKLEM ekseninde SAPMA uretiyor",
+          any(s[1] == "SAPMA" for s in kontrol_orneklem(
+              {"orneklem": dict(_tk, son_commit=12, hata=None)}, "YERLESIK")))
+    iddia("git gecmisi okunamazsa SESSIZ YESIL yok (ORNEKLEM -> ARIZA)",
+          any(s[1] == "ARIZA" for s in kontrol_orneklem(
+              {"orneklem": dict(_yeni_komp, son_commit=12,
+                                hata="gecmis okunamadi: shallow")}, "YERLESIK")))
 
     # ---- (B) YANLIS-POZITIF: yayin penceresi vs yayin kirik
     ham.append("  (B) YANLIS-POZITIF — 'henuz yayinlanmadi' vs 'yayin kirik'")
@@ -862,6 +1081,9 @@ def kendini_test():
     def _tek_ci():
         return _temel(ci=dict(_temel()["ci"], sonuc="failure", adim="build / x"))
 
+    def _tek_orneklem():            # yalniz ORNEKLEM: yeni urun orneklem DISINDA kalmis
+        return _temel(orneklem=dict(_temel()["orneklem"], kapsanmayan=["yeni-urun-26"]))
+
     # ⚠️ CAPA METINLERI PARCALI: duz literal yazilsaydi bu tablonun KENDISI kaynakta ikinci
     # bir eslesme uretir ve "capa yok/cok" dalina duserdi ([[nobetci-cagri-satiri-nobetsiz]]).
     mutasyonlar = [
@@ -877,6 +1099,8 @@ def kendini_test():
          '    ("GORSEL", ' + "_noop),", _tek_gorsel),
         ("MU6 CI kontrolu no-op", '    ("CI", ' + "kontrol_ci),",
          '    ("CI", ' + "_noop),", _tek_ci),
+        ("MU9 ORNEKLEM kontrolu no-op", '    ("ORNEKLEM", ' + "kontrol_orneklem),",
+         '    ("ORNEKLEM", ' + "_noop),", _tek_orneklem),
     ]
     for ad, capa, yerine, kur in mutasyonlar:
         if oz.count(capa) != 1:
@@ -926,16 +1150,35 @@ def kendini_test():
         iddia(ad + " -> ONBELLEK teshisi KAYBOLUYOR (sinyal yuk tasiyor)",
               not any(x[1] == "ONBELLEK" for x in s_m), [x[:2] for x in s_m])
 
+    # MU10 — ORNEKLEM SECIM KABLOSU: yeni-commit ekseninin birlesimi sokulurse 30 Tem
+    # vakasi GERI GELIR. Kaynak mutasyonu ile kanitlanir (fiksturler secimi ATLAR, bu
+    # yuzden secim ancak DOGRUDAN cagrilarak sinanabilir).
+    _capa_orn = ("            secilen.append" + "(u)\n"
+                 + "            gorulen.add" + '(u.get("id"))')
+    if oz.count(_capa_orn) != 1:
+        kirmizi += 1
+        ham.append("    ❌ MUTASYON CAPASI YOK/COK: MU10 orneklem birlesimi")
+    else:
+        ns = {"__name__": "csk_mutant_orn", "__file__": os.path.abspath(__file__)}
+        exec(compile(oz.replace(_capa_orn, "            pass"), "<csk-mutant>", "exec"), ns)
+        m_secim, m_komp = ns["orneklem_sec"](_sahne, ["toka"], 20)
+        iddia("MU10 yeni-commit birlesimi sokulunca urun ORNEKLEM DISINDA kaliyor",
+              "toka" not in [u["id"] for u in m_secim], m_komp)
+        iddia("    ... ve ORNEKLEM ekseni bu korlugu SAPMA olarak yakaliyor",
+              any(s[1] == "SAPMA" for s in ns["kontrol_orneklem"](
+                  {"orneklem": dict(m_komp, son_commit=12, hata=None)}, "YERLESIK")),
+              m_komp)
+
     # ---- (E) API SOZLESMESI: gozlem toplayicinin urettigi anahtarlar karar tarafiyla ayni mi
     ham.append("  (E) SOZLESME")
     taban_anahtar = set(_temel().keys())
     kaynak_anahtar = set(re.findall(r'^\s{8}"(\w+)":', oz, re.M))
     eksik = {"depo", "canli_katalog", "ci", "sayfalar", "d1", "gorseller",
-             "kart_kanali"} - taban_anahtar
+             "kart_kanali", "orneklem"} - taban_anahtar
     iddia("fikstur semasi degerlendir()'in bekledigi TUM eksenleri iceriyor", not eksik, eksik)
     iddia("gozlem_topla() ile fikstur AYNI anahtar kumesini kullaniyor",
           taban_anahtar <= (kaynak_anahtar | taban_anahtar))
-    iddia("KONTROLLER listesi 6 ekseni de kabloluyor", len(KONTROLLER) == 6, len(KONTROLLER))
+    iddia("KONTROLLER listesi 7 ekseni de kabloluyor", len(KONTROLLER) == 7, len(KONTROLLER))
 
     print("\n".join(ham))
     print("-" * 78)
@@ -951,7 +1194,11 @@ def main(argv=None):
     ap.add_argument("--site", default=SITE_VARSAYILAN)
     ap.add_argument("--ci-api", default=CI_API_VARSAYILAN, dest="ci_api")
     ap.add_argument("--adet", type=int, default=ADET_VARSAYILAN,
-                    help="sayfa/D1/gorsel orneklemi: en yeni N urun")
+                    help="DIZI-BASI ekseni: dizinin en yeni N kaydi")
+    ap.add_argument("--son-commit", type=int, default=SON_COMMIT_SAYISI_VARSAYILAN,
+                    dest="son_commit",
+                    help="YENI-COMMIT ekseni: son K commit'te eklenen TUM urunler "
+                         "orneklem'e girer (dizi konumundan BAGIMSIZ)")
     ap.add_argument("--gecikme", type=float, default=GECIKME_VARSAYILAN,
                     help="istekler arasi bekleme (worker hiz siniri 60/60 sn)")
     ap.add_argument("--zaman-asimi", type=float, default=25, dest="zaman_asimi")
@@ -960,7 +1207,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     if a.kendini:
         return kendini_test()
-    g = gozlem_topla(a.site, a.ci_api, a.adet, a.gecikme, a.zaman_asimi)
+    g = gozlem_topla(a.site, a.ci_api, a.adet, a.gecikme, a.zaman_asimi, a.son_commit)
     durum, satirlar, hal = degerlendir(g)
     if a.jsonla:
         print(json.dumps({"durum": durum, "hal": hal, "cikis": DURUM_KOD[durum],

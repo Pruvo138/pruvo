@@ -10,9 +10,29 @@ permissions:
   pages: write
   id-token: write
 
+# 🔴 cancel-in-progress: FALSE — BILEREK. Eskiden `true` idi ve OLCULEN sonucu su oldu:
+# yeni eklenen urunun /urun/<id>/ sayfasi canlida 404 kaliyordu (Okan'in tekrarlayan
+# sikayeti; ornek 30 Tem 22:25 `yan-birakmali-kayis-tokasi`).
+# MEKANIZMA (olculdu 30 Tem, son 120 kosum / ~28 s): basarili kosum ORTANCA 5,3 dk surer;
+# push araligi ortanca 9,2 dk AMA parti ekleme sirasinda 3-5 dk'ya duser. Kosum bitmeden
+# yeni push gelince `cancel-in-progress: true` KOSUMU OLDURUR -> o push'un icerigi HIC
+# yayinlanmaz. Ard arda gelen push'larda bu ACLIGA (starvation) donusur:
+#   * 120 kosumun 25'i (%21) IPTAL; iptal edilenlerin 6'si URUN EKLEME commit'i.
+#   * en uzun zincir 7 ARDISIK IPTAL (18:24:05 -> 18:30:45) = o pencerede HIC yayin yok.
+#   * iki BASARILI yayin arasindaki en uzun bosluk 37,7 dk -> o bosluga dusen her yeni
+#     urun 37,7 dk boyunca canlida 404; katalogda VAR, karti GORUNUYOR, sayfasi YOK.
+# `false` ile: calisan kosum HER ZAMAN bitip yayinlar. GitHub ayni grupta EN FAZLA 1
+# BEKLEYEN kosum tutar (yeni bekleyen gelince ONCEKI BEKLEYEN iptal edilir) -> KUYRUK
+# SISMEZ: tavan 1 calisan + 1 bekleyen. Yayin gecikmesi boylece SINIRLI olur (en kotu
+# ~2 x 5,3 = ~11 dk) ve SINIRSIZ acliktan cikar.
+# EN GUNCEL MAIN GARANTISI: grup serilestirdigi icin kosumlar SIRAYLA biter; zincirin
+# SONUNCUSU daima o an main'in TEPESIDIR (main dogrusaldir, bekleyen kosum en yeni SHA'ya
+# tazelenir) -> son yayin daima en guncel main'dir.
+# BEDEL (durust beyan): iptal edilirken bosa giden kosumlar artik tamamlanir; kabaca
+# gunde ~25 kosum x ~5 dk = ~2 saat ek runner suresi. Yayin butunlugu bu bedele deger.
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
