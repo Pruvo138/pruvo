@@ -1,5 +1,431 @@
 [
   {
+    "id": "johnson-evinrude-hava-susturucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Johnson/Evinrude 20-35 2T Dış Motorlar İçin Hava Susturucusu",
+    "aciklama": "Johnson/Evinrude 20-35 2 zamanlı (1989-1999 yılları) dış motorlar için hava emme susturucusu kapağı.\n- Johnson/Evinrude 20-35 2T (1989-1999) dış motor modelleriyle uyumludur.\n- Üst ve alt olmak üzere iki parçadan oluşur.\n- M3 vidalarla monte edilir.\nYaklaşık dış ölçüler: 196 × 113 × 72 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6593987-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6593987-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lastik_Lastikov",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tohatsu-gaz-kami",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tohatsu Dış Motor İçin Gaz Kamı (Throttle Cam)",
+    "aciklama": "Tohatsu dış motor gaz kolu mekanizmasına uyumlu gaz kamı.\n- Tohatsu dış motor modelleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 119 × 73 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6981235-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lapka_Kun",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "cfj-yelkenli-pruva-tamponu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "CFJ Yelkenli Sınıfı İçin Pruva Tamponu",
+    "aciklama": "CFJ yelkenli tekne sınıfı için pruva (bow) tamponu, eğitim amaçlı kullanımda yıllarca test edilmiştir.\n- CFJ yelkenli tekne sınıfıyla uyumludur.\n- Esnek malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 325 × 70 × 66 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6994366-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "timz3818",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercury-throttle-aktuator-kami",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury 50-70HP Dış Motorlar İçin Throttle Aktuatör Kamı",
+    "aciklama": "Mercury 50/60/70HP (1976-1990, 3 silindirli) dış motorlar için throttle aktuatör kamı.\n- Mercury 50/60/70HP 3 silindirli (1976-1990) dış motor modelleriyle uyumludur.\n- Orijinal parça numaraları 73334/77025'e karşılık gelir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 95 × 49 × 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7081758-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mikesar",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-f6-hidrofoyl",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha F6 6HP Dış Motor İçin Hidrofoyl",
+    "aciklama": "Yamaha F6 6HP dış motorda kavitasyonu azaltan, delik açmadan takılan hidrofoyl (cavitation plate).\n- Yamaha F6 6HP dış motor modeliyle uyumludur.\n- Motorun ön kısmına sıkı geçmeli takılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 210 × 177 × 177 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7115515-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tiemanbr",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kucuk-dis-motor-pervanesi-eska",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Küçük Dış Motorlar İçin Pervane (1973 Eska 3HP Uyumlu)",
+    "aciklama": "1973 model Eska 3HP gibi küçük dış motorlara uyumlu, orijinal pervaneden kopyalanarak tasarlanmış yedek pervane.\n- 1973 Eska 3HP ve benzeri küçük dış motor modelleriyle uyumludur.\n- Dayanıklı malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 156 × 154 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7117914-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RAD444",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "intex-trolling-motor-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Intex 68631 Elektrikli Trolling Motor İçin Pervane",
+    "aciklama": "Intex 68631 12V elektrikli trolling motor şaftına uyumlu pervane.\n- Intex 68631 12V elektrikli trolling motor modeliyle uyumludur.\n- Göbek kısmı motor şaftına özel tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 151 × 144 × 73 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7321635-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7321635-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7321635-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7321635-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "giacomo_m",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "lowrance-eagle-5-gunes-siperligi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance Eagle 5 Fish Finder İçin Güneş Siperliği",
+    "aciklama": "Lowrance Eagle 5 fish finder ekranındaki güneş yansımasını azaltan, görünürlüğü artıran siperlik.\n- Lowrance Eagle 5 fish finder modeliyle uyumludur.\n- PETG veya ASA malzeme önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 186 × 102 × 91 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7326164-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pta1988",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "teton-yukon-skeg-tekeri-yukseltme-kiti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Teton Pro/Yukon Kayak Arabası İçin Skeg Tekeri Yükseltme Kiti",
+    "aciklama": "Teton Pro/Yukon kayak arabasının skeg tekerini taş ve darbelerden koruyan, yanal denge sağlayan yükseltme kiti.\n- Teton Pro/Yukon kayak arabası modelleriyle uyumludur.\n- Tekerlek, ara parça ve yumuşatma kaburgaları olmak üzere üç parçadan oluşur.\n- Dayanıklı malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 58 × 58 × 20 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7371424-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7371424-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7371424-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Beefyfish",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "teton-yukon-koltuk-yan-kutulari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Teton Pro/Yukon Kayak Arabası Koltuğu İçin Yan Depolama Kutuları",
+    "aciklama": "Teton Pro/Yukon kayak arabası koltuğunun yanına hızlı erişim için takılan, tahliye delikli depolama kutuları.\n- Teton Pro/Yukon kayak arabası koltuğuyla uyumludur.\n- Koltuk çerçevesine temas etmeyecek şekilde tasarlanmıştır.\n- Çift taraflı bant ile sabitlenir.\nYaklaşık dış ölçüler: 232 × 56 × 53 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7371425-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7371425-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Beefyfish",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "torqeedo-uzaktan-direksiyon-aparati",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Torqeedo Cruise 2/4 İçin Uzaktan Direksiyon Aparatı",
+    "aciklama": "Torqeedo Cruise 2/4 elektrikli dış motoru için uzaktan direksiyon aparatı.\n- Torqeedo Cruise 2/4 elektrikli dış motor modeliyle uyumludur.\n- ABS veya naylon gibi dayanıklı malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 168 × 110 × 90 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6663808-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6663808-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zolkick",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "su-gecirmez-kabin-ic-aydinlatma-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Su Geçirmez Yelkenli Kabin veya RV İçi İçin LED Aydınlatma Tutucusu",
+    "aciklama": "Endüstriyel IP67 LED şerit ışık parçasını tutan, paslanmaz bijon ile gövdeye sabitlenen dokunmatik anahtarlı aydınlatma tutucusu.\n- IP67 su geçirmez LED ışık şeritleriyle uyumludur.\n- Paslanmaz bijon dokunmatik anahtar görevi görür.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 92 × 21 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3440645-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sdf4tse",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-kill-switch-somunu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha Kill Switch İçin Somun",
+    "aciklama": "Yamaha kill switch mekanizmasına uyumlu yedek somun.\n- Yamaha kill switch modelleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 25 × 22 × 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4064033-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4064033-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4064033-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kjgreen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evinrude-scout-yon-halkasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Evinrude Scout Trolling Motor İçin Yön Göstergesi Halkası",
+    "aciklama": "Evinrude Scout trolling motorun solan/kırılan yön göstergesi kelepçe kapağı yerine geçen yedek halka.\n- Evinrude Scout trolling motor modeliyle uyumludur.\n- İnce ve düz bir halka şeklindedir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 82 × 82 × 2 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4362316-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rodell98",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "esnek-tiller-uzatmasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne İçin Esnek (Elastik) Tiller Uzatması",
+    "aciklama": "Standart teleskopik mop sapıyla kullanılan, esnek bağlantılı tiller (dümen kolu) uzatması.\n- Standart teleskopik mop sapı dişleriyle uyumludur (konik diş, 18mm taban çapı).\n- Uzatma gövdesi, somun ve sap adaptörü olmak üzere üç parçadan oluşur.\n- Esnek bağlantı için lastik sıcak-tutkal çubuğu kullanılır.\nYaklaşık dış ölçüler: 180 × 38 × 30 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4495417-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4495417-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4495417-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4495417-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KrwawyHegemon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "nirvana-yelkenli-vinc-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Nirvana Yelkenli İçin Yedek Vinç (Crane) Parçası",
+    "aciklama": "Nirvana yelkenli tekne modelinin yedek vinç (crane) parçası.\n- Nirvana yelkenli tekne modeliyle uyumludur.\n- Orijinal parçanın yerine geçer.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 91 × 32 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4560008-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kanook",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "optimist-yelkenli-direk-yakasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Optimist Yelkenli İçin Direk Yakası (Mast Collar)",
+    "aciklama": "Optimist yelkenli tekne sınıfı için direk yakası (mast collar).\n- Optimist yelkenli tekne sınıfıyla uyumludur.\n- Vida delikleri kullanıcının ihtiyacına göre açılabilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 84 × 84 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4569999-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "newuser_416",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercury-4hp-gnat-tiller-somunu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury/Mariner 4HP 'Gnat' Dış Motor İçin Tiller Somunu",
+    "aciklama": "Mercury/Mariner 4HP 'Gnat' dış motorun tiller (dümen kolu) somunu, orijinal plastik parçanın yerine geçer.\n- Mercury/Mariner 4HP 'Gnat' dış motor modeliyle uyumludur.\n- İki farklı versiyon (v1/v2) içerir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 34 × 31 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4635103-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4635103-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Joens",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "selva-dis-motor-gaz-disliisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Selva Dış Motor İçin Gaz Kolu Dişlisi",
+    "aciklama": "Selva marka dış motorun gaz kolu mekanizmasına uyumlu dişli.\n- Selva dış motor modelleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 27 × 27 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4856464-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bwegink",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-kuregi-ray-askisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Küreği İçin 25mm Ray Askısı",
+    "aciklama": "Tekne rayına (25mm çapında) takılan kürek askısı.\n- 25mm çapındaki tekne raylarıyla uyumludur.\n- İki adet askıdan oluşan bir set halinde kullanılır.\n- Her parça tek parçadan oluşur.\nYaklaşık dış ölçüler: 204 × 88 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4967079-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jonikot",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dis-motor-guvenlik-pimi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dış Motor İçin Kalınlaştırılmış Güvenlik Pimi",
+    "aciklama": "Bazı dış motorlarda motor durdurma kablosundaki ince güvenlik piminin yerine geçen, daha kalın ve dayanıklı alternatif.\n- İnce orijinal güvenlik pimi yerine kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 30 × 25 × 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5475754-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ekatarios",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "snark-yelkenli-yedek-parca-seti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Snark Yelkenli İçin Sık Değişen Yedek Parça Seti",
+    "aciklama": "Küçük Snark yelkenli teknelerde sık değişen, direk ve bum uçlarına takılan koruyucu kapak/burç seti.\n- Snark yelkenli tekne modelleriyle uyumludur.\n- Direk üst kapağı, spar kapağı, direk taban kapağı, direk basamak kovanı ve gövde kovanı olmak üzere 5 parçadan oluşur.\n- Sıcak tutkal ile kalıcı montaj yapılabilir.\nYaklaşık dış ölçüler: 72 × 72 × 23 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5528611-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5528611-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5528611-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5528611-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5528611-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jrclocks",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelken-hatti-pvc-boru-burcu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Hattı PVC Koruma Borusu İçin Burç",
+    "aciklama": "Yelkenli teknede genoa yelkeninin hatlarını korumak için kullanılan PVC borusunu tel etrafında sabit tutan burç.\n- Standart PVC koruyucu borularla uyumludur.\n- Her tel için 2 adet, koruma borusu başına 4 adet gerekir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 30 × 27 × 13 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5533552-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stanichm",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercury-500-throttle-baglantisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "1970 Model Mercury 500 Dış Motor İçin Throttle Bağlantısı",
+    "aciklama": "1970 model Kiekhaefer Mercury 500 dış motorun kırılan throttle (gaz) bağlantı çubuğunun yerine geçen yedek parça.\n- 1970 model Mercury 500 dış motor modeliyle uyumludur.\n- PETG gibi yakıt-dayanıklı malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 77 × 25 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5873651-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "frankd200",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-sart-ucu-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli İçin Sart Ucu Kapağı (Shroudend)",
+    "aciklama": "Yelkenli tekne sartlarının (shroud) uç kısmına takılan koruyucu kapak.\n- Standart yelkenli sart telleriyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 34 × 34 × 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6159155-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6159155-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nipo80",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-direk-basi-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Yelken Donanımı İçin Direk Başı Parçası",
+    "aciklama": "Kayak yelken donanımındaki direk başına takılan, sart ve yelken başı bağlantılarını düzenleyen özel parça.\n- Kayak yelken direk sistemleriyle uyumludur.\n- Üst kısmında göz vidası için delik bulunur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 40 × 16 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6248932-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "porkcheeks",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "johnson-evinrude-notr-sensoru-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Johnson/Evinrude 2T Dış Motor İçin Nötr Sensörü Tutucusu",
+    "aciklama": "Johnson/Evinrude 20-35 2 zamanlı (1989-1999) dış motorlarda nötr sensörü mikro anahtarını tutan montaj parçası.\n- Johnson/Evinrude 20-35 2T (1989-1999) dış motor modelleriyle uyumludur.\n- V-155-1C25 tipi mikro anahtarla birlikte kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 59 × 49 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6309617-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6309617-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6309617-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lastik_Lastikov",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "bavaria-yelken-sarti-gerginlik-ayarlayicisi",
     "kategori": "Marin",
     "marka": [],
