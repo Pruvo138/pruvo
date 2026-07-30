@@ -215,21 +215,43 @@ def olc(ayrintili=True):
              % (len(yerel_fark), ", ".join(yerel_fark) or "-"))
 
     # --- AGAC NOTRLUGU (olculur)
+    # KAPSAM: kapinin sorumlu oldugu sey IZLENEN dosyalardir. build.py ayrica IZLENMEYEN
+    # uretim ciktisi yazar (urun/, sitemap.xml, yeni bir landing dizini...). Bunlarin
+    # gitignore'a girmesi AYRI bir kapinin ekseni (tools/gitignore-kapisi.py --yaz);
+    # olculdu (30 Tem): CONTENT_PAGES'e yeni landing ekleyip .gitignore'i tazelememis bir
+    # dalda build.py `?? yp-deneme-landing/` uretiyor -> porcelain'in TAMAMINI karsilastiran
+    # bir notrluk iddiasi bu MESRU durumda kapiyi KIRMIZI yakar ve TUM yayini kilitler
+    # (yanlis-pozitif). O yuzden hukum yalniz IZLENEN degisikliklere bakar; yeni izlenmeyen
+    # girdiler BILGI olarak basilir.
+    def _izlenen(p):
+        return sorted(s for s in (p or "").splitlines() if s.strip() and s[:2] != "??")
+
+    def _izlenmeyen(p):
+        return sorted(s for s in (p or "").splitlines() if s.strip() and s[:2] == "??")
+
     porc_sonra = porcelain()
-    esit_porc = (porc_sonra == porc_once)
+    esit_porc = (_izlenen(porc_sonra) == _izlenen(porc_once))
+    yeni_izlenmeyen = [s for s in _izlenmeyen(porc_sonra) if s not in _izlenmeyen(porc_once)]
     sha_farki = []
     for s, rel in yollar.items():
         with open(os.path.join(ROOT, rel), "rb") as f:
             if sha(f.read()) != sha(once[s]):
                 sha_farki.append(rel)
     esit_sha = not sha_farki
-    R.append("AGAC NOTRLUGU: porcelain esit=%s  sayfa sha256 esit=%s%s"
+    R.append("AGAC NOTRLUGU: izlenen porcelain esit=%s  sayfa sha256 esit=%s%s"
              % (esit_porc, esit_sha, ("  farkli=%s" % sha_farki) if sha_farki else ""))
+    if yeni_izlenmeyen:
+        R.append("BILGI  build.py'nin YENI izlenmeyen ciktisi : %d  (hukum DEGIL; gitignore "
+                 "kapsami disindaysa: python3 tools/gitignore-kapisi.py --yaz)"
+                 % len(yeni_izlenmeyen))
+        for s in yeni_izlenmeyen[:10]:
+            R.append("    %s" % s)
     if not (esit_porc and esit_sha):
         kirmizi = True
-        R.append("KIRMIZI: kapi calisma agacini KIRLETTI (kapinin kendisi hatali).")
-        R.append("    porcelain ONCE : %r" % porc_once)
-        R.append("    porcelain SONRA: %r" % porc_sonra)
+        R.append("KIRMIZI: kapi IZLENEN dosyalari degistirdi -> calisma agacini KIRLETTI "
+                 "(kapinin kendisi hatali).")
+        R.append("    izlenen ONCE : %r" % _izlenen(porc_once))
+        R.append("    izlenen SONRA: %r" % _izlenen(porc_sonra))
     return kirmizi, R
 
 
@@ -361,6 +383,34 @@ def kendini_test():
         subprocess.run(["git", "-C", depo, "-c", "user.email=t@t", "-c", "user.name=t",
                         "commit", "-q", "-m", "geri"], capture_output=True)
 
+        # --- N6 NEGATIF (yanlis-pozitif, OLCULDU 30 Tem): CONTENT_PAGES'e yeni landing
+        # eklenmis ama .gitignore tazelenmemisse build.py IZLENMEYEN yeni bir dizin uretir.
+        # Notrluk iddiasi porcelain'in TAMAMINA baksa kapi bu MESRU durumda KIRMIZI yanar ve
+        # tum yayini kilitler. Hukum yalniz IZLENEN degisikliklere bakmali; yeni izlenmeyen
+        # cikti BILGI olarak basilmali.
+        sy2 = os.path.join(depo, "tools", "sayfalar.py")
+        with open(sy2, encoding="utf-8") as f:
+            sy2_orij = f.read()
+        with open(sy2, "w", encoding="utf-8") as f:
+            f.write(sy2_orij +
+                    '\n\ndef _nbt_landing():\n    return "<h2>nobetci landing</h2>"\n\n'
+                    'CONTENT_PAGES = CONTENT_PAGES + [("nobetci-deneme-landing", "Nobetci",'
+                    ' "nobetci meta", _nbt_landing)]\n'
+                    'SITEMAP_SLUGS = STATIK_SAYFALAR + [s for s, _b, _m, _f in CONTENT_PAGES]\n')
+        subprocess.run(["git", "-C", depo, "add", "-A"], capture_output=True)
+        subprocess.run(["git", "-C", depo, "-c", "user.email=t@t", "-c", "user.name=t",
+                        "commit", "-q", "-m", "yeni landing"], capture_output=True)
+        c, rk = kos()
+        kayit("N6 gitignore DISI yeni build ciktisi KIRMIZI yakmiyor (BILGI olarak basiyor)",
+              rk == 0 and "YENI izlenmeyen ciktisi" in c
+              and "nobetci-deneme-landing" in c, "exit=%d" % rk)
+        with open(sy2, "w", encoding="utf-8") as f:
+            f.write(sy2_orij)
+        shutil.rmtree(os.path.join(depo, "nobetci-deneme-landing"), ignore_errors=True)
+        subprocess.run(["git", "-C", depo, "add", "-A"], capture_output=True)
+        subprocess.run(["git", "-C", depo, "-c", "user.email=t@t", "-c", "user.name=t",
+                        "commit", "-q", "-m", "geri"], capture_output=True)
+
         # --- KIRMIZI-MUTASYON: kapinin GOVDESI bozulunca yakalaniyor mu
         with open(kapi, encoding="utf-8") as f:
             kaynak = f.read()
@@ -404,6 +454,24 @@ def kendini_test():
             kayit(ad, rk == 0,
                   "mutant exit=%d (0 = mutasyon sapmayi kaciriyor, satir yuk tasiyor)" % rk)
             os.remove(hedef)
+
+        # --- M5: AGAC NOTRLUGU iddiasinin kendisi yuk tasiyor mu? Geri koyma bozulursa
+        # (izlenen sayfa degismis birakilirsa) kapi kendini KIRLETTI diye yakmali.
+        # Bu mutant sapmayi da gorur (exit 1) -> hukum CIKIS KODUYLA degil METINLE olculur.
+        m5_eski = "                f.write(once[s])"
+        if m5_eski not in kaynak:
+            kayit("M5 geri koyma bozuldu -> 'KIRLETTI' yakiyor", False,
+                  "MUTASYON UYGULANAMADI: capa satiri yok")
+        else:
+            hedef = os.path.join(depo, "tools", "_mutant-kapi.py")
+            with open(hedef, "w", encoding="utf-8") as f:
+                f.write(kaynak.replace(m5_eski, '                f.write(once[s] + b"X")', 1))
+            c, rk = kos(hedef)
+            kayit("M5 geri koyma bozuldu -> 'KIRLETTI' yakiyor",
+                  "KIRLETTI" in c and rk == 1,
+                  "exit=%d  KIRLETTI basildi=%s" % (rk, "KIRLETTI" in c))
+            os.remove(hedef)
+
         with open(tam0, "wb") as f:
             f.write(orij0)
     finally:
