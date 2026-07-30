@@ -1,5 +1,333 @@
 [
   {
+    "id": "kayak-skeg-cleati",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Skeg Kilidi Cleati",
+    "aciklama": "Geri cekilebilir skeg (salma) sistemine sahip kayaklarda skeg ipini istenilen konumda sabitlemek icin kullanilan kucuk cleat.\n- Kayak govdesine vida ile sabitlenir.\n- Skeg ipini istenilen konumda kilitler.\n- Kucuk ve hafif tasarima sahiptir.\nYaklasik dis olculer: 68 x 15 x 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr89263-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr89263-2.jpg"
+    ]
+  },
+  {
+    "id": "eski-tip-dis-motor-zamanlama-aparati",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Eski Tip Dis Motor Icin Ates Alma Zamanlama Aparati",
+    "aciklama": "Eski tip kucuk hacimli dis takma motorlarda ates alma zamanlamasini nokta araligindan daha hassas sekilde ayarlamak icin kullanilan aparat.\n- Eski tip 5, 5.5 ve 6 HP dis takma motor modelleriyle uyumludur.\n- Ates alma zamanlamasini goz kararina degil olculu sekilde ayarlamaya yardimci olur.\n- Motor uzerine gecirilerek kullanilan tekrar kullanilabilir tasarimdir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw933249-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw933249-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw933249-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jonsja",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "h-formunda-duvar-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "H Formunda Duvara Monte Olta Tutucusu",
+    "aciklama": "Olta kamisini dikey konumda duvara asarak saklamak icin kullanilan H seklinde basit tutucu.\n- Yatay uclarindan iki vida ile duvara sabitlenir.\n- Olta kamisini dikey ve guvenli sekilde tutar.\n- Hafif ve sade tasarima sahiptir.\nYaklasik dis olculer: 60 x 31 x 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1359919-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1359919-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Eric Garparra",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "donel-tekerlekli-kayak-kurek-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Donel Tekerlekli Kayak Kurek Tutucusu",
+    "aciklama": "Kayak kenarina dogrudan monte edilen, donen tekerlek mekanizmasiyla kuregi kolayca takip cikarmayi saglayan tutucu.\n- Kayak yan tarafina iki vida ile dogrudan monte edilir.\n- Donen tekerlekli yapisi sayesinde kuregi kolayca takip cikarir.\n- Tasima sirasinda kuregi guvenli sekilde sabit tutar.\nYaklasik dis olculer: 29 x 29 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr957207-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GooseCreekMaker",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kapak-mandali-yedek",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Kapagi (Hatch) Icin Yedek Mandal",
+    "aciklama": "Kayak hatch kapaginin kirilan orijinal mandalinin yerine gecen yedek parca.\n- M6 paslanmaz civata ve somunla monte edilir.\n- Kirilan orijinal mandalin yerine kolay degisim saglar.\n- Farkli kayak hatch modelleriyle uyumlu olabilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2243247-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2243247-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2243247-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2243247-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nottingham82",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "banka-cubugu-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Banka Cubugu (Bank Stick) Icin Olta Tutucusu",
+    "aciklama": "Sahil/kiyi balikciliginda kullanilan ince banka cubuklarina takilan, farkli kalinliktaki olta kamislarini tutan aparat.\n- 5, 6 ve 7mm capindaki banka cubuklarina uyumludur.\n- Olta kamisini guvenli sekilde tutan catal/yuva yapisina sahiptir.\n- Sahil balikciliginda hizli takip cikarma imkani sunar.\nYaklasik dis olculer: 50 x 45 x 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1708397-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1708397-2.jpg"
+    ]
+  },
+  {
+    "id": "tripod-uyumlu-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Fotograf Tripoduna Takilan Olta Tutucusu",
+    "aciklama": "Standart fotograf/video tripodlarina takilarak birden fazla olta kamisini ayarlanabilir yukseklikte tutmayi saglayan baglanti parcasi.\n- Standart tripod baglanti vidasina uyumludur.\n- Birden fazla olta kamisini ayni anda tutabilir.\n- Tripodun ayarlanabilir yapisi sayesinde farkli aci ve yukseklikte kullanilabilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dfishing-rod-holder-with-tripod-manfrotto-5001b-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfishing-rod-holder-with-tripod-manfrotto-5001b-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfishing-rod-holder-with-tripod-manfrotto-5001b-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dfishing-rod-holder-with-tripod-manfrotto-5001b-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JCMaking",
+      "tur": "cc_by_sa"
+    }
+  },
+  {
+    "id": "elektrik-anahtari-ara-plakasi-8mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Elektrik Panosu Anahtari Icin 8mm Ara Plaka",
+    "aciklama": "Tekne DC elektrik panosundaki anahtar/busbar sistemini hizalamak icin kullanilan 8mm kalinliginda ara plaka.\n- 75x75mm olcusunde, 8mm kalinliginda duz plakadir.\n- Anahtar ve busbar sistemini ayni seviyeye getirir.\n- Tekne elektrik panosu montajlarinda kullanilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1624114-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1624114-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1624114-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "user_536701894",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "gridloc-sistemi-panel-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak GridLoc Ray Sistemi Icin Panel Tutucusu",
+    "aciklama": "GridLoc rayli montaj sistemine sahip kayaklarda olcum/skor panosunu tutmak icin kullanilan basit montaj parcasi.\n- GridLoc ray sistemiyle uyumludur.\n- Panoyu vidalayip kaydirarak hizlica takip cikarmayi saglar.\n- Balik olcumu/yarisma panolari icin pratik cozum sunar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2591163-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2591163-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2591163-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2591163-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mikewitters",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-usku-baglama-babasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Usku (Fender) Baglama Babasi",
+    "aciklama": "Tekne uskusunu (fender) halatla baglamak icin kullanilan kucuk cleat.\n- Usku halatini hizlica baglayip cozmeyi saglar.\n- Kompakt boyutta, tekne kenarina kolay montaj saglar.\n- Dik konumda kullanima uygun bir tasarima sahiptir.\nYaklasik dis olculer: 85 x 32 x 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1501894-1.jpg"
+    ]
+  },
+  {
+    "id": "olta-kamisi-tutucusu-uzun-kamis",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Olta Kamisi Tutucusu (Uzun Kamislar Icin)",
+    "aciklama": "Uzun olta kamislarini tutmak icin tasarlanmis basit tutucu.\n- Uzun olta kamislarina uygun genisletilmis yuva icerir.\n- Basit ve hizli montaj saglar.\n- Kompakt ve dayanikli tasarima sahiptir.\nYaklasik dis olculer: 160 x 23 x 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1390060-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1390060-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1390060-3.jpg"
+    ]
+  },
+  {
+    "id": "standart-olta-tutucusu-yuksek-ayakli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Standart Olta Kamisi Tutucusu (Yuksek Ayakli)",
+    "aciklama": "Klasik (konvansiyonel) makinelere sahip olta kamislarini yuksek ayak uzerinde tutan tutucu.\n- Klasik makineli olta kamislariyla uyumludur.\n- Yuksek ayak sayesinde makine govdeye carpmadan yerlesir.\n- Tekne veya iskele kenarina monte edilebilir.\nYaklasik dis olculer: 140 x 74 x 48 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1490195-1.jpg"
+    ]
+  },
+  {
+    "id": "yuvarlak-tekne-bimini-ara-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yuvarlak Gunwale'li Tekneler Icin Bimini Ara Parcasi",
+    "aciklama": "Bimini tente destegini, yuvarlak kenarli tekne govdelerine duzgun oturacak sekilde adapte eden ara parca.\n- Yuvarlak kenarli tekne govdelerine uyumludur.\n- Bimini destek braketinin duzgun oturmasini saglar.\n- Esnek malzemeyle uretilebilir bir tasarima sahiptir.\nYaklasik dis olculer: 60 x 20 x 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1548246-1.jpg"
+    ]
+  },
+  {
+    "id": "y-formunda-hafif-olta-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Y Formunda Hafif Olta Kamisi Tutucusu",
+    "aciklama": "Olta kamisini Y seklindeki catal yuvasinda tutan basit ve hafif tutucu.\n- Y seklindeki catal yuvasi kamisi guvenle tutar.\n- Hafif ve tasinabilir tasarima sahiptir.\n- Farkli zeminlere veya yuzeylere yerlestirilebilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw163807-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw163807-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sejk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dalis-yelegi-yuzen-vana-tutamagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dalis Yelegi (BCD) Icin Yuzen Vana Cekme Tutamagi",
+    "aciklama": "Dalis yeleginin havalandirma vanasini kuru elbise giyerken kolayca bulmak icin tasarlanmis, suda yuzen tutamak.\n- Standart BCD vana ipine takilir.\n- Icine hafif dolgu malzemesi konularak suda hafifce yuzmesi saglanir.\n- Kuru elbise ile dalarken vanayi bulmayi kolaylastirir.\nYaklasik dis olculer: 20 x 19 x 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6497908-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6497908-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6497908-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SuperLaro",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "railblaza-balik-bulucu-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Railblaza Uyumlu Balik Bulucu Montaj Parcasi",
+    "aciklama": "Balik bulucu cihazini Railblaza baglanti sistemiyle kayak veya tekneye monte etmek icin kullanilan parca.\n- Railblaza baglanti sistemiyle uyumludur.\n- M5 civata ve somunla balik bulucu govdesine sabitlenir.\n- Farkli balik bulucu modelleri icin olceklendirilebilir.\nYaklasik dis olculer: 80 x 80 x 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1375508-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1375508-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Covertmonkey",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "moken-kayak-transduser-scupper-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Moken Kayak Icin Transduser Scupper Montaji",
+    "aciklama": "Moken model kayaklarin tahliye deligine (scupper) balik bulucu transduserini monte etmek icin kullanilan parca.\n- Moken model kayaklarin scupper deligine uyumludur.\n- Transduseri su altinda sabit acida konumlandirir.\n- Kolay takip cikarilabilir bir tasarima sahiptir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmoken-kayak-transducer-scupper-mount-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmoken-kayak-transducer-scupper-mount-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmoken-kayak-transducer-scupper-mount-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmoken-kayak-transducer-scupper-mount-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LilMikey",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "kucuk-tekneler-icin-baglama-babasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kucuk Tekneler Icin Baglama Babasi (Cleat)",
+    "aciklama": "Kucuk teknelerin iskeleye veya baska bir tekneye kisa sureli baglanmasi icin kullanilan cleat.\n- M6 paslanmaz civatayla govdeye sabitlenir.\n- Kisa sureli baglama/yanasma icin uygundur (kaldirma amacli degildir).\n- Kompakt ve dayanikli bir tasarima sahiptir.\nYaklasik dis olculer: 88 x 18 x 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr766645-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tony White",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kurek-baski-pimi-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak/Kano Kuregi Icin Baski Pimi Klipsi (6-8mm)",
+    "aciklama": "Kayak veya kano kuregi sapinda iki boruyu birbirine sabitlemek icin kullanilan yayli baski-pimi klipsi.\n- 6mm ve 8mm capinda iki farkli versiyon icerir.\n- Yumusak ve sert versiyonlariyla farkli delik caplarina uyum saglar.\n- Kurek sapi disinda benzer boru-birlestirme uygulamalarinda da kullanilabilir.\nYaklasik dis olculer: 175 x 50 x 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1485367-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FleeeinIan3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-treyleri-yan-isik-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Treyleri Arka Isik Grubu Icin Yan Isik Kapagi",
+    "aciklama": "Tekne treylerindeki arka isik grubunun kirilan yan isik (sinyal) kapaginin yerine gecen yedek parca.\n- Tekne treyleri arka isik grubuyla uyumludur.\n- Kirilan orijinal kapagin yerine kolay degisim saglar.\n- Seffaf kirmizi filamanla uretilmesi onerilir.\nYaklasik dis olculer: 72 x 53 x 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr596010-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr596010-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr596010-3.jpg"
+    ]
+  },
+  {
+    "id": "transom-saver-boyunduruk-tamir-seti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Treyleri Transom Saver Boyunduruk Tamir Seti",
+    "aciklama": "Tekne treylerinde dis motoru tasima sirasinda destekleyen duzenegin kirilan boyunduruk kismini onaran iki parcali tamir seti.\n- Motoru tutan ana boyunduruk parcasi ve darbe emici ek parcadan olusur.\n- Kirilan orijinal boyundurugun yerine gecer.\n- Tekne treyleriyle tasima sirasinda motora destek saglar.\nYaklasik dis olculer: 236 x 149 x 27 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr586184-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr586184-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr586184-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr586184-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dan Rogers",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-korkulugu-gunes-paneli-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Korkuluguna Gunes Paneli Montaj Kelepcesi",
+    "aciklama": "1 inc capindaki yelkenli korkuluguna gunes panelini sabitlemek icin kullanilan kelepce.\n- 1 inc (yaklasik 25mm) capindaki korkuluklara uyumludur.\n- 6mm civata ile gunes paneli govdesine baglanir.\n- Yelkenlilerde tasinabilir enerji kurulumlari icin pratik cozum sunar.\nYaklasik dis olculer: 80 x 30 x 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1373241-1.jpg"
+    ]
+  },
+  {
     "id": "kayak-olta-tutucusu-45-derece-braket",
     "kategori": "Marin",
     "marka": [],
