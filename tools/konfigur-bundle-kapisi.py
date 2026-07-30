@@ -241,10 +241,16 @@ def kapi(urunler_yolu, artefakt_yolu, sessiz=False):
         else:
             beklenen_idler = set(konfigur_haritasi(_urunleri_oku(urunler_yolu)).keys())
             mevcut_idler = set()
+            # 🔴 SADECE UST DUZEY anahtarlar (girinti TAM 2 boşluk) urun id'sidir. Eski kod
+            # girintiye bakmadigi icin konfigur objesinin ICINDEKI anahtarlari (boyutMm,
+            # hacim, renkGorselIndeks ...) "artefaktta FAZLA id" diye raporluyordu — kapi
+            # tam da en cok konusmasi gereken anda YANILTICI konusuyordu (olculdu 30 Tem:
+            # tek urun eksikken teshis 3 sahte "fazla id" basiyordu).
             for s in mev:
-                s2 = s.strip()
-                if s2.startswith('"') and s2.endswith("{"):
-                    mevcut_idler.add(s2.split('"')[1])
+                if not s.startswith('  "') or s.startswith('   '):
+                    continue
+                if s.rstrip().endswith("{"):
+                    mevcut_idler.add(s.split('"')[1])
             eksik = sorted(beklenen_idler - mevcut_idler)
             fazla = sorted(mevcut_idler - beklenen_idler)
             print("     artefaktta EKSIK id: " + (", ".join(eksik) if eksik else "-"))

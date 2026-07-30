@@ -460,6 +460,28 @@ jobs:
       - name: Konfigur golge modu kabul testi (davranis degismedi + fark olculebilir)
         run: node shop/test/konfigur-golge.mjs
 
+      # KONFIGUR CANLI KAPISI — kendini test (OFFLINE, BLOKLAYICI, continue-on-error YOK).
+      # Ustteki bundle kapisi "repo icindeki iki dosya tutarli mi" der; canli kapi "CANLI
+      # worker musteriden NE TAHSIL EDER" der. Ikisi AYRI eksendir ve 30 Tem'de yasanan
+      # vakayi (artefakt guncel + worker deploy EDILMEMIS -> kart kanali 2 gun kapali)
+      # YALNIZ canli kapi gorebilir; o vaka boyunca butun repo-ici kapilar YESILDI.
+      # Bu adim kapinin SAF karar mantigini olcer (ag YOK, sahte HTTP katmani): 12 senaryo +
+      # 3 HTTP kod eslemesi + 3 KIRMIZI-MUTASYON (fiyat karsilastirmasi / 400 kolu / "ariza"
+      # sinifi oldurulunce ilgili senaryo YESILE donmeli = iddia yuk tasiyor) + gercek
+      # katalogla yanlis-pozitif nobeti. Offline, dosya YAZMAZ, ~2 s.
+      #
+      # 🔴 CANLI OLCUMUN KENDISI BURADA KOSMAZ — BILEREK. Canli SONUC olcumu bir DEPLOY
+      # KAPISI DEGIL, IZLEME (nobet) isidir: deploy ONCESI hicbir sey kanitlamaz, aga
+      # bagimlidir ve yanlis-pozitifi TUM EKIBIN yayinini durdurur. `continue-on-error: true`
+      # ile "bagiran ama bloklamayan" bir adim koymak da yanlis cozumdu: is-akisi-kapisi
+      # Bolum D onu BEYANSIZ FAIL-OPEN sayar ve kapi KIRMIZI yanar; muafiyet beyani ise
+      # D3b'nin DAIRESEL DAYANAK kuralina takilir (bir kapi kendi adimini dayanak gosteremez).
+      # Canli olcumun sahibi tools/canli-saglik-kapisi.py'nin K4 (KART) eksenidir: o arac bu
+      # dosyayi bulup CAGIRIR, bulamazsa ARAC-YOK -> ARIZA -> OLCULEMEDI verir.
+      # Elle/nobette kosum:  python3 tools/konfigur-canli-kapisi.py --gecikme 0.4
+      - name: Konfigur canli kapisi — kendini test (offline karar mantigi + mutasyon)
+        run: python3 tools/konfigur-canli-kapisi.py --kendini-test
+
       # FIYAT ESDEGERLIGI + PROVA UCU (shop/test/fiyat-prova.mjs). Iki seyi birden kilitler:
       # (1) ESDEGERLIK — konfigur aynasinin uretilmis artefakta cevrilmesi ve fiyat hesabinin
       #     sepetiFiyatla()'ya cikarilmasi fiyati DEGISTIRMEDI: ESKI kod (git HEAD: elle ayna)
