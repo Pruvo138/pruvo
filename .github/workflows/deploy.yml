@@ -811,6 +811,19 @@ jobs:
       - name: "Yasal sayfa drift kapisi ic nobetcisi (bayatlatma + kirmizi-mutasyon)"
         run: python3 tools/yasal-sayfa-drift-kapisi.py --kendini-test
 
+      # CANLI SAGLIK NOBETCISI — YALNIZ KENDINI TEST (AGSIZ). Nobetcinin kendisi CANLIYA
+      # bakar (canli katalog sayisi / urun sayfasi 200 / CI hali / kart kanali / D1+gorsel)
+      # ve BILEREK CI'da KOSMAZ: ag ve canli durum oynaktir, tek gecici DNS hatasi tum
+      # ekibin yayinini durdururdu ([[kapi-kapsam-eksen-secimi]]). CI'da kosan sey yalniz
+      # KARAR MANTIGININ fiksturlu kabulu: bugunku uc gercek vaka (18 urun sayfasi CF
+      # onbellekli 404 / CI kirmizi -> 23 urun canlia cikmadi / worker bayat -> kart kanali
+      # kapali) 3/3 YAKALANMALI; yayin-penceresi ikizi (AYNI sayilar, tek fark CI'nin hali)
+      # BEKLENIYOR ile SAPMA'yi AYIRT ETMELI; ag koptugunda SESSIZ YESIL verilmemeli; ve
+      # 8 KIRMIZI-MUTASYON (6 kontrol no-op + `age` esigi + cf HIT listesi) mutantin
+      # sapmayi KACIRDIGINI kanitlamali. Offline, stdlib, git/ag GEREKTIRMEZ, <1 s.
+      - name: "Canli saglik nobetcisi — kendini test (3 vaka + yanlis-pozitif + mutasyon)"
+        run: python3 tools/canli-saglik-kapisi.py --kendini-test
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
