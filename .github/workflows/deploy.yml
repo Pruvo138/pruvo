@@ -431,6 +431,24 @@ jobs:
       - name: "Olcum kablolama kabul testi (Meta CAPI + GA4 Purchase, havale/kart + gizlilik)"
         run: node shop/test/olcum.mjs
 
+      # SEPET PANELI + KONFIGUR ODENEBILIRLIK PROVASI (shop/test/sepet-panel.js). index.html'in
+      # inline sepet scriptini node:vm'de GERCEKTEN kosar (kod kopyalanmaz): kayip satir,
+      # bos sepet, firsat tazelemesi, bozuk unicode, savunma kacisi, odeme payload'i VE
+      # (30 Tem) konfigur kart-yolu provasi -> bundle'da olmayan konfigur urunu sepette
+      # KAPALI gorunur, musteri odeme formunu doldurmadan WhatsApp'a yonlendirilir; ag
+      # hatasi/zaman asimi/cop govde/celiskili 400 hallerinde de KAPALI (fail-closed);
+      # konfigursuz sepette /fiyat ucuna KOR ISTEK ATILMAZ (hiz siniri).
+      # 🔴 MUAFIYET KALDIRILDI (30 Tem): bu dosya ci-kapsam izin listesinde R_AYRI ("shop ayri
+      # Worker hedefi") gerekcesiyle muaf duruyordu; gerekce OLCULEREK YANLIS bulundu — test
+      # wrangler/ag/D1 ISTEMEZ (kardesleri konfigur-fail-closed.mjs, fiyat-prova.mjs, olcum.mjs
+      # zaten burada kosuyor). Muaf oldugu icin hic kosulmadi ve EDGE_KATALOG acildiginda
+      # SESSIZCE OLDU: 9 nobetcinin 9'u "TEST ALTYAPI HATASI" verip hicbir iddiayi
+      # kosturmuyordu (sahte fetch edge uclarini tanimiyordu). Sahte fetch edge'e uyarlandi,
+      # 14/14 yesil; artik CI'da BLOKLAYICI kosar.
+      # OFFLINE: ag YOK (fetch stub), wrangler YOK, GERCEK SIPARIS YOK, dosya YAZMAZ. ~1 s.
+      - name: Sepet paneli + konfigur odenebilirlik provasi kabul testi
+        run: node shop/test/sepet-panel.js
+
       # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
       # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,
       # genel GO/NO-GO, worker 403->BLOKLU(HocA), d1 kimlik-hatasi->BLOKLU(Okan), origin turetme,

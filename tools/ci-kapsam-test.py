@@ -284,7 +284,14 @@ IZIN_LISTESI = {
     # Node 20 -> 6 iddia her kosuda kirmizi (129/6). Hook `module.register` (v20.6+)'a
     # cevrildi, Node 20.20.2'de 188/0 -> test artik deploy.yml'de KOSUYOR.
     "shop/test/ref-route.mjs": R_AYRI,
-    "shop/test/sepet-panel.js": R_AYRI,  # B paketi YESILLEDI; shop ayri Worker hedefi (kardesleri gibi)
+    # "shop/test/sepet-panel.js" MUAFIYETI KALDIRILDI (30 Tem) — olcum.mjs ile AYNI SINIF hata:
+    # gerekce R_AYRI ("shop ayri Worker hedefi") idi, oysa bu test wrangler/ag/D1 ISTEMEZ;
+    # index.html'in inline scriptini node:vm'de kosar ve kardesleri (konfigur-fail-closed.mjs,
+    # fiyat-prova.mjs, olcum.mjs) deploy.yml'de ZATEN kosuyor. Muafiyetin bedeli olculdu:
+    # EDGE_KATALOG bayragi acildiginda sahte fetch edge uclarini tanimadigi icin dosya
+    # "TEST ALTYAPI HATASI" ile duruyordu -> 9 nobetcinin 9'u hicbir iddia kosturmadan
+    # OLDU ve kimse gormedi (CI onu hic calistirmiyordu). Sahte fetch edge'e uyarlandi
+    # (14/14 yesil) ve test deploy.yml'de BLOKLAYICI adim olarak kosuyor.
     "onizleme/test/eslem-olcum.py": R_AYRI,
     "onizleme/test/kabul.js": R_AYRI,
     "onizleme/test/kapi1.js": R_AYRI,
