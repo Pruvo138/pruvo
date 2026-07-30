@@ -30,6 +30,13 @@ Ne korunduysa/ne dustuyse "ACIKLAMA KORUMA (id=…)" blogunda ACIKCA basilir
 bosluk-doldurucu satirlari BILEREK kapsam disidir (uretilebilir prose): korunmaz,
 yalnizca raporlanir. Kabul testi: tools/duzelt-toplu-test.py bolum (f).
 
+GORSEL-KOKEN KAPISI (hem tek-urun hem --toplu kipte, YAZIMDAN HEMEN ONCE):
+Kategori "Skan Art" (figur/ozgun urun) + gorselli bir urunun `gorseller`i degisiyorsa
+YA DA urun bu yazimla Skan Art'a cevriliyorsa, gorsellerin GERCEK STL'den turedigine
+dair koken manifesti ARANIR; yoksa/supheliyse HICBIR SEY yazilmaz (exit 4).
+Kural + manifest semasi + beyan edilen sinirlar: tools/gorsel_koken.py.
+Platform kategorileri (Otomobil/Marin/...) HIC degerlendirilmez.
+
 URUNU TAMAMEN SILMEK icin (or. yanlislikla eklenmis logo/telif riskli urun):
   python3 tools/duzelt.py <id> --sil "kisa gerekce"
 Bu, urunu urunler.json'dan kaldirir VE id'yi .urunler-sil-izin.json'a yazar ki
@@ -63,12 +70,23 @@ yani toplu kip de tek-urun kipiyle AYNI guard/koruma yolundan gecer.
 import argparse
 import datetime
 import fcntl
+import importlib.util
 import json
 import os
 import re
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# GORSEL-KOKEN DOGRULAMASI (bkz tools/gorsel_koken.py): figur/ozgun urunun (kategori
+# "Skan Art") sayfa gorselleri gercek STL'den turemis olmali. duzelt.py `gorseller` ve
+# `kategori` alanlarini degistirebildigi icin cipasiz gorsel yayinlamanin GERCEK
+# yoludur. Import KOSULSUZ: modul kaybolursa betik ACILISTA coker (sessiz fail-open
+# yok — bir nobetci "dosyasi yoksa gecer" olamaz).
+_gkspec = importlib.util.spec_from_file_location(
+    "gorsel_koken", os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                 "gorsel_koken.py"))
+gk = importlib.util.module_from_spec(_gkspec)
+_gkspec.loader.exec_module(gk)
 URUNLER = os.path.join(ROOT, "urunler.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
@@ -398,6 +416,7 @@ def _toplu(yol):
     try:
         with open(URUNLER, encoding="utf-8") as f:
             urunler = json.load(f)
+        eski_harita = gk.harita(urunler)   # koken kapisi icin YAZIM ONCESI durum
         idx_by_id = {}
         for i, p in enumerate(urunler):
             if isinstance(p, dict) and "id" in p:
@@ -428,6 +447,14 @@ def _toplu(yol):
         if urun_silmeler:
             urunler = [p for p in urunler
                        if not (isinstance(p, dict) and p.get("id") in urun_silmeler)]
+        # GORSEL-KOKEN KAPISI — TEK yazimdan HEMEN ONCE, ayni kilit altinda.
+        # Ihlal -> hicbir sey yazilmaz (urunler.json byte-esit kalir, izin manifesti
+        # de olusmaz); toplu kipin "ya hep ya hic" sozlesmesi korunur.
+        koken = gk.denetle(eski_harita, gk.harita(urunler), ROOT)
+        if koken:
+            print("HATA: toplu islem REDDEDILDI — hicbir sey yazilmadi.", file=sys.stderr)
+            print(gk.rapor_metni(koken, "duzelt.py --toplu"), file=sys.stderr)
+            return 4
         _atomic_write(URUNLER, urunler)  # TEK yazim
 
         if setler or alan_silmeler:
@@ -549,6 +576,7 @@ def main():
     try:
         with open(URUNLER, encoding="utf-8") as f:
             urunler = json.load(f)
+        eski_harita = gk.harita(urunler)   # koken kapisi icin YAZIM ONCESI durum
         idx = next((i for i, p in enumerate(urunler)
                     if isinstance(p, dict) and p.get("id") == args.id), None)
         if idx is None:
@@ -565,6 +593,13 @@ def main():
             urunler[idx][alan] = deger
         for alan in silinecek_alanlar:
             urunler[idx].pop(alan, None)
+        # GORSEL-KOKEN KAPISI — yazimdan HEMEN ONCE, ayni kilit altinda. Ihlal ->
+        # ne urunler.json ne guard izin manifesti yazilir (degisiklik yalniz bellekte
+        # kalir ve atilir).
+        koken = gk.denetle(eski_harita, gk.harita(urunler), ROOT)
+        if koken:
+            print(gk.rapor_metni(koken, "duzelt.py"), file=sys.stderr)
+            return 4
         _atomic_write(URUNLER, urunler)
 
         # Guard icin deger-bagli izin manifesti (birikimli).
