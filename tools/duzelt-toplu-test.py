@@ -18,6 +18,12 @@ Kontroller:
       (MaCiT dilim-30 kaybi): korunma, ciftleme yok, gomulu satir, placeholder,
       toplu kip, guard manifest gercekligi, alan regresyonu, desen kaymasi,
       KIRMIZI-MUTASYON.
+  (g) GORSEL-KOKEN KAPISI GERCEK YAYIM YOLUNDA (U2 — DEVAM.md madde 10):
+      koken kaniti olmadan figur (kategori "Skan Art") sayfa gorseli yayinlanamaz.
+      Kapsanan: gorsel degisimi, kategori CEVIRME deligi, gecerli manifest GECER,
+      1-baytlik sahte render, sahte STL, sha256 uyusmazligi, YANLIS-POZITIF
+      kontrolu (platform kategorileri + dokunulmayan Skan Art), toplu kip,
+      urun-ekle.py merge_safe kablolamasi, KIRMIZI-MUTASYON.
 """
 import hashlib
 import importlib.util
@@ -34,6 +40,8 @@ import fcntl
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KAYNAK_DUZELT = os.path.join(KOK, "tools", "duzelt.py")
 KAYNAK_GUARD = os.path.join(KOK, "tools", "urunler-guard.py")
+KAYNAK_KOKEN = os.path.join(KOK, "tools", "gorsel_koken.py")
+KAYNAK_URUN_EKLE = os.path.join(KOK, "tools", "urun-ekle.py")
 
 KATALOG = [
     {"id": "test-urun-1", "kategori": "Marin", "marka": ["Volvo"],
@@ -63,6 +71,9 @@ def sahte_repo(katalog=None):
     os.makedirs(os.path.join(d, "tools"))
     shutil.copy(KAYNAK_DUZELT, os.path.join(d, "tools", "duzelt.py"))
     shutil.copy(KAYNAK_GUARD, os.path.join(d, "tools", "urunler-guard.py"))
+    # duzelt.py gorsel_koken.py'yi KOSULSUZ import eder (nobetci "dosyasi yoksa gecer"
+    # olamaz) -> sahte repoya da kopyalanmali.
+    shutil.copy(KAYNAK_KOKEN, os.path.join(d, "tools", "gorsel_koken.py"))
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(KATALOG if katalog is None else katalog, f, ensure_ascii=False, indent=2)
     return d
@@ -554,6 +565,234 @@ def test_f_mutasyon():
     shutil.rmtree(repo, ignore_errors=True)
 
 
+# ================================================= (g) GORSEL-KOKEN KAPISI ===
+# U2 (DEVAM.md madde 10). ONCEKI DURUM (olculdu, bu bolum yazilmadan once):
+# koken dogrulamasi YALNIZ pruvo-jenerator/.claude/gorsel-koken-kapisi.py'de, bir
+# Claude Code PreToolUse hook'unda (matcher Edit|Write|MultiEdit) yasiyordu ->
+# urunler.json'a PYTHON ile yazan gercek yayim yollarinin (duzelt.py, urun-ekle.py
+# merge_safe) HICBIRINDE ateslemiyordu. 3 yoldan 3'unde cipasiz gorsel yayinlandi.
+# Bu bolum o yollari kirmizi yakar.
+FIGUR = {"id": "sahte-figur", "kategori": "Skan Art", "marka": [],
+         "baslik": "Sahte Figur", "aciklama": "figur", "fiyat": "900 TL",
+         "gorseller": ["https://media.pruvo3d.com/urunler/sahte-figur-p1.jpg"]}
+KATALOG_KOKEN = [dict(FIGUR)] + [dict(p) for p in KATALOG]
+YENI_GORSELLER = ["https://media.pruvo3d.com/urunler/metinden-uretilmis-p1.jpg",
+                  "https://media.pruvo3d.com/urunler/metinden-uretilmis-p2.jpg"]
+
+
+@contextlib.contextmanager
+def koken_dizini(repo, kur=True):
+    """Koken dizinini DETERMINISTIK yap: makinedeki gercek manifest deposu (KaaN)
+    testin sonucunu etkilemesin."""
+    d = os.path.join(repo, "urun-gorsel-koken")
+    if kur:
+        os.makedirs(d, exist_ok=True)
+    eski = os.environ.get("GORSEL_KOKEN_DIR")
+    os.environ["GORSEL_KOKEN_DIR"] = d
+    try:
+        yield d
+    finally:
+        if eski is None:
+            os.environ.pop("GORSEL_KOKEN_DIR", None)
+        else:
+            os.environ["GORSEL_KOKEN_DIR"] = eski
+
+
+def _stl_yaz(yol, ucgen=3):
+    """Sayaci boyutla TUTAN gercek bir binary STL (kapi bicimi dogruluyor)."""
+    with open(yol, "wb") as f:
+        f.write(b"\x00" * 80)
+        f.write(ucgen.to_bytes(4, "little"))
+        f.write(b"\x00" * (50 * ucgen))
+    return yol
+
+
+def _png_yaz(yol, bayt=4096):
+    with open(yol, "wb") as f:
+        f.write(b"\x89PNG\r\n\x1a\n")
+        f.write(b"\x00" * max(0, bayt - 8))
+    return yol
+
+
+def _manifest_yaz(dizin, pid, gorseller, stl, sha_stl=None, sha_gorsel=None):
+    man = {"kaynak_stl": stl,
+           "gorseller": [{"dosya": os.path.basename(u),
+                          "taban_render": tr} for u, tr in gorseller]}
+    if sha_stl is not None:
+        man["kaynak_stl_sha256"] = sha_stl
+    if sha_gorsel is not None:
+        for g in man["gorseller"]:
+            g["sha256"] = sha_gorsel
+    yol = os.path.join(dizin, pid + ".json")
+    with open(yol, "w", encoding="utf-8") as f:
+        json.dump(man, f, ensure_ascii=False, indent=2)
+    return yol
+
+
+def _tam_manifest(repo, dizin, pid="sahte-figur", gorseller=None,
+                  render_bayt=4096, ucgen=3, sha_stl=None, sha_gorsel=None):
+    """Gecerli bir koken kaydi kurar (STL + her gorsel icin taban render)."""
+    varlik = os.path.join(repo, "varlik")
+    os.makedirs(varlik, exist_ok=True)
+    stl = _stl_yaz(os.path.join(varlik, pid + ".stl"), ucgen=ucgen)
+    ciftler = []
+    for i, url in enumerate(gorseller if gorseller is not None else YENI_GORSELLER, 1):
+        ciftler.append((url, _png_yaz(os.path.join(varlik, "%s-r%d.png" % (pid, i)),
+                                      bayt=render_bayt)))
+    return _manifest_yaz(dizin, pid, ciftler, stl, sha_stl=sha_stl, sha_gorsel=sha_gorsel)
+
+
+def _g_senaryo(ad, kur, beklenen_blok, arg=None):
+    """Tek senaryo: repo kur -> duzelt.py cagir -> yazildi mi / byte-esit mi."""
+    repo = sahte_repo(KATALOG_KOKEN)
+    urunler_yol = os.path.join(repo, "urunler.json")
+    once = sha(urunler_yol)
+    with koken_dizini(repo) as dizin:
+        if kur:
+            kur(repo, dizin)
+        mod = modul_yukle(repo, "duzelt.py", "duzelt_g_" + ad.replace(" ", "_")[:20])
+        rc, out, err = cagir(mod, arg or ["sahte-figur", "--alan", "gorseller",
+                                          "--deger", json.dumps(YENI_GORSELLER)])
+    sonra = sha(urunler_yol)
+    if beklenen_blok:
+        kontrol(rc != 0, "%s: exit != 0 (olculen %s)" % (ad, rc))
+        kontrol(once == sonra, "%s: urunler.json BYTE-ESIT (yazim YOK)" % ad)
+        kontrol(not os.path.exists(os.path.join(repo, ".urunler-duzelt-izin.json")),
+                "%s: guard izin manifesti de OLUSMADI" % ad)
+        kontrol("GORSEL-KOKEN" in (out + err), "%s: gerekce ciktida gecti" % ad)
+    else:
+        kontrol(rc == 0, "%s: exit 0 (olculen %s | %s)" % (ad, rc, (err or out).strip()[:160]))
+        kontrol(once != sonra, "%s: yazim GERCEKLESTI (yanlis-pozitif YOK)" % ad)
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_g_manifestsiz():
+    print("\n(g1) manifest YOK -> figur gorseli yayinlanamaz")
+    _g_senaryo("manifestsiz", None, True)
+
+
+def test_g_gecerli():
+    print("\n(g2) GECERLI manifest -> yayin GECER (kapi kilitlemiyor)")
+    _g_senaryo("gecerli manifest", lambda r, d: _tam_manifest(r, d), False)
+
+
+def test_g_kategori_cevirme():
+    print("\n(g3) KATEGORI CEVIRME deligi: gorsellere dokunmadan Skan Art'a cevirme")
+    _g_senaryo("kategori cevirme", None, True,
+               arg=["test-urun-1", "--alan", "kategori", "--deger", "Skan Art"])
+
+
+def test_g_sahte_render():
+    print("\n(g4) 1 BAYTLIK sahte taban_render -> BLOCK (eski kapi bunu geciriyordu)")
+    _g_senaryo("1 baytlik render", lambda r, d: _tam_manifest(r, d, render_bayt=1), True)
+
+
+def test_g_sahte_stl():
+    print("\n(g5) kaynak_stl gercek STL DEGIL -> BLOCK")
+
+    def kur(repo, dizin):
+        _tam_manifest(repo, dizin)
+        with open(os.path.join(repo, "varlik", "sahte-figur.stl"), "wb") as f:
+            f.write(b"BU BIR STL DEGIL" * 20)   # boyut yeterli, bicim degil
+    _g_senaryo("sahte STL", kur, True)
+
+
+def test_g_sha_uyusmazligi():
+    print("\n(g6) beyan edilen sha256 diskle TUTMUYOR -> BLOCK (icerik baglama)")
+    _g_senaryo("sha256 uyusmazligi",
+               lambda r, d: _tam_manifest(r, d, sha_gorsel="0" * 64), True)
+
+
+def test_g_yanlis_pozitif():
+    print("\n(g7) YANLIS-POZITIF KONTROLU: platform kategorisi + dokunulmayan figur")
+    _g_senaryo("platform urununde gorsel degisimi", None, False,
+               arg=["test-urun-2", "--alan", "gorseller",
+                    "--deger", json.dumps(YENI_GORSELLER)])
+    _g_senaryo("figurun BASKA alani (gorseller sabit)", None, False,
+               arg=["sahte-figur", "--alan", "fiyat", "--deger", "1234 TL"])
+    _g_senaryo("figur SILME (yayin degil)", None, False,
+               arg=["sahte-figur", "--sil", "test"])
+
+
+def test_g_toplu():
+    print("\n(g8) TOPLU kip: koken ihlali -> hicbir islem uygulanmaz (ya hep ya hic)")
+    repo = sahte_repo(KATALOG_KOKEN)
+    urunler_yol = os.path.join(repo, "urunler.json")
+    once = sha(urunler_yol)
+    with koken_dizini(repo):
+        mod = modul_yukle(repo, "duzelt.py", "duzelt_g8")
+        yol = islem_yaz(repo, [
+            {"id": "test-urun-1", "alan": "fiyat", "deger": "555 TL"},
+            {"id": "sahte-figur", "alan": "gorseller", "deger": YENI_GORSELLER},
+        ])
+        rc, out, err = cagir(mod, ["--toplu", yol])
+    kontrol(rc != 0, "toplu: exit != 0 (olculen %s)" % rc)
+    kontrol(once == sha(urunler_yol), "toplu: urunler.json BYTE-ESIT (masum islem de yazilmadi)")
+    kontrol("GORSEL-KOKEN" in (out + err), "toplu: gerekce ciktida gecti")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_g_urun_ekle():
+    print("\n(g9) urun-ekle.py merge_safe: koken kaniti olmadan figur KATALOGA GIREMEZ")
+    repo = sahte_repo(KATALOG_KOKEN)
+    with open(os.path.join(repo, ".urun-kaynaklari.json"), "w", encoding="utf-8") as f:
+        json.dump({}, f)
+    hata = io.StringIO()
+    with contextlib.redirect_stderr(hata):       # veri_kok worktree uyarisi
+        spec = importlib.util.spec_from_file_location("urun_ekle_g9", KAYNAK_URUN_EKLE)
+        ue = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ue)
+    kontrol(hasattr(ue, "gk") and hasattr(ue.gk, "zorla"),
+            "urun-ekle.py gorsel_koken modulunu KOSULSUZ import ediyor")
+    ue.URUNLER = os.path.join(repo, "urunler.json")
+    ue.KAYNAK = os.path.join(repo, ".urun-kaynaklari.json")
+    ue.LOCK = os.path.join(repo, ".urunler.lock")
+    ue.ROOT = repo
+    once = sha(ue.URUNLER)
+    staged = [{"id": "777", "urun": dict(FIGUR, id="yeni-figur",
+                                         gorseller=list(YENI_GORSELLER)),
+               "src": {"kaynak": "Thingiverse"}}]
+    with koken_dizini(repo):
+        try:
+            ue.merge_safe(staged)
+            engellendi = False
+        except ue.gk.KokenIhlali:
+            engellendi = True
+    kontrol(engellendi, "merge_safe KokenIhlali firlatti (yazim yok)")
+    kontrol(once == sha(ue.URUNLER), "merge_safe: urunler.json BYTE-ESIT")
+    with open(os.path.join(repo, ".urun-kaynaklari.json"), encoding="utf-8") as f:
+        kontrol(json.load(f) == {}, "merge_safe: gizli kaynak kaydi da yazilmadi")
+
+    # POZITIF KOL: gecerli koken kaydiyla AYNI cagri gecmeli (kapi kilitlemiyor).
+    with koken_dizini(repo) as dizin:
+        _tam_manifest(repo, dizin, pid="yeni-figur")
+        n, _toplam = ue.merge_safe(staged)
+    kontrol(n == 1, "gecerli manifestle AYNI ekleme GECTI (olculen %s)" % n)
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_g_mutasyon():
+    print("\n(g10) KIRMIZI-MUTASYON: kapi no-op yapilinca cipasiz gorsel GERCEKTEN yayinlaniyor")
+    repo = sahte_repo(KATALOG_KOKEN)
+    with koken_dizini(repo):
+        mod = modul_yukle(repo, "duzelt.py", "duzelt_g10")
+        if not (hasattr(mod, "gk") and hasattr(mod.gk, "denetle")):
+            kontrol(False, "duzelt.py'de gorsel_koken kablolamasi YOK")
+            shutil.rmtree(repo, ignore_errors=True)
+            return
+        mod.gk.denetle = lambda eski, yeni, kok: []      # MUTASYON: kapi no-op
+        rc, out, err = cagir(mod, ["sahte-figur", "--alan", "gorseller",
+                                   "--deger", json.dumps(YENI_GORSELLER)])
+    with open(os.path.join(repo, "urunler.json"), encoding="utf-8") as f:
+        yeni = {p["id"]: p for p in json.load(f)}
+    kontrol(rc == 0, "mutasyonlu kosum exit 0")
+    kontrol(yeni["sahte-figur"]["gorseller"] == YENI_GORSELLER,
+            "MUTASYON: kapi kapaliyken CIPASIZ gorsel yayinlandi "
+            "(nobetci canli, testi kandirmiyor)")
+    kontrol("GORSEL-KOKEN" not in (out + err), "MUTASYON: gerekce de basilmadi")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
 def main():
     print("duzelt.py --toplu kabul testi (SAHTE katalog; gercek urunler.json'a dokunulmaz)")
     test_a()
@@ -570,6 +809,16 @@ def main():
     test_f_alan_regresyonu()
     test_f_desen_kaymasi()
     test_f_mutasyon()
+    test_g_manifestsiz()
+    test_g_gecerli()
+    test_g_kategori_cevirme()
+    test_g_sahte_render()
+    test_g_sahte_stl()
+    test_g_sha_uyusmazligi()
+    test_g_yanlis_pozitif()
+    test_g_toplu()
+    test_g_urun_ekle()
+    test_g_mutasyon()
     print("\n%s" % ("TUM KONTROLLER GECTI." if not hatalar
                     else "BASARISIZ (%d): \n  - %s" % (len(hatalar), "\n  - ".join(hatalar))))
     return 0 if not hatalar else 1

@@ -28,6 +28,11 @@ _gspec = importlib.util.spec_from_file_location("gorsel_mukerrer_kapisi", os.pat
 gmk = importlib.util.module_from_spec(_gspec); _gspec.loader.exec_module(gmk)
 _gbspec = importlib.util.spec_from_file_location("gorsel_boyut_kapisi", os.path.join(TOOLS, "gorsel_boyut_kapisi.py"))
 gbk = importlib.util.module_from_spec(_gbspec); _gbspec.loader.exec_module(gbk)
+# GORSEL-KOKEN DOGRULAMASI (bkz tools/gorsel_koken.py) — figur/ozgun urunun (kategori
+# "Skan Art") sayfa gorselleri gercek STL'den turemis olmali. Import KOSULSUZ: modul
+# kaybolursa betik ACILISTA coker (sessiz fail-open yok; nobetci "yoksa gecer" olamaz).
+_gkspec = importlib.util.spec_from_file_location("gorsel_koken", os.path.join(TOOLS, "gorsel_koken.py"))
+gk = importlib.util.module_from_spec(_gkspec); _gkspec.loader.exec_module(gk)
 # R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py)
 _r2spec = importlib.util.spec_from_file_location(
     "r2_anahtar", os.path.join(os.path.dirname(os.path.abspath(__file__)), "r2_anahtar.py"))
@@ -147,6 +152,7 @@ def merge_safe(staged):
     lockf = open(LOCK, "w"); fcntl.flock(lockf, fcntl.LOCK_EX)
     try:
         urunler = json.load(open(URUNLER)); kaynak = json.load(open(KAYNAK))
+        eski_harita = gk.harita(urunler)   # koken kapisi icin YAZIM ONCESI durum
         mevcut = {p["id"] for p in urunler}; yeni = []
         for s in staged:
             urun = s["urun"]; uid = urun["id"]
@@ -155,6 +161,11 @@ def merge_safe(staged):
             mevcut.add(uid); yeni.append(urun); kaynak[uid] = s["src"]
         for u in reversed(yeni):
             urunler.insert(0, u)
+        # GORSEL-KOKEN KAPISI — GERCEK YAYIM NOKTASI: kilit altinda, _atomic_write'tan
+        # HEMEN ONCE. Ihlal -> istisna -> hicbir dosya yazilmaz (urunler.json da,
+        # .urun-kaynaklari.json da). Tetik yalniz kategori "Skan Art" + gorselli urunde;
+        # platform partileri (Otomobil/Marin/...) HIC degerlendirilmez.
+        gk.zorla(eski_harita, gk.harita(urunler), ROOT, kaynak="urun-ekle.py merge_safe")
         _atomic_write(URUNLER, urunler, ensure_ascii=False, indent=2)
         _atomic_write(KAYNAK, kaynak, ensure_ascii=False, indent=1)
         return len(yeni), len(urunler)
@@ -173,7 +184,12 @@ def main(ids):
             print("  (%d/%d) %s %s" % (done, len(ids), r.get("durum"),
                   r["urun"]["id"] if r.get("durum") == "STAGED" else r.get("id", "")), flush=True)
     staged = [s for s in sonuc if s.get("durum") == "STAGED"]
-    n, toplam = merge_safe(staged) if staged else (0, "?")
+    try:
+        n, toplam = merge_safe(staged) if staged else (0, "?")
+    except gk.KokenIhlali as e:
+        # Koken kaniti eksik -> HICBIR SEY yazilmadi. Traceback yerine actionable rapor.
+        print("\n" + str(e), file=sys.stderr)
+        sys.exit(3)
     print("\n" + "=" * 70)
     print("STAGED (commit ETMEDIM — gozden gecir, fiyatlari kesinlestir):")
     for s in sorted(sonuc, key=lambda x: x.get("durum") != "STAGED"):
