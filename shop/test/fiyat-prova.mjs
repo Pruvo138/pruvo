@@ -803,7 +803,46 @@ const YASAK_GUVENCE = [
   { ad: "kota/limit GARANTI ALTINA ALMA iddiasi",
     re: /garanti\s+altina\s+al/i },
 ];
-const OLUMSUZ = /\b(DEGIL|DEGILDIR|DEGILDI|YOK|YOKTU|YAPILAMAZ|EDILMEZ|EDILEMEZ|TUTMAZ|TUTMUYOR|OLMAZ)\b/i;
+
+/**
+ * IKINCI AILE — IKI FAKTORLU YAKINLIK (30 Tem, S2).
+ *
+ * OLCULEN KUSUR: yukaridaki liste TEK FAKTORLU (tek bir kalip). 20 gercekci esanlam
+ * cumlesi denendi -> RECALL 0/20. Kacan ornekler: "Dakikada 60 istekle sinirlidir,
+ * asilamaz." · "Istek sayisi 60'i gecemez." · "Hicbir istemci 60 istegi asamaz." ·
+ * "Rate limit hesap genelinde tek BIR sayac kullanir." (araya giren "bir" kelimesi
+ * `tek\s+sayac` kalibini kiriyor) · "IP basina dakikada 60 istek GARANTI edilir."
+ * Liste uzatarak kapatmak PARSER TAKLIDI olurdu (bkz. [[kapi-disiplin-ilkesi]]:
+ * sonsuz liste tutulmaz).
+ *
+ * COZUM: kalip EZBERLEMEK yerine IKI FAKTOR ARANIR:
+ *   (1) MUTLAKLIK sozcugu  ("asilamaz", "gecemez", "kesin", "garanti", "mutlak",
+ *       "en cok", "ust sinir", "tavan", "tek sayac", "bolunmez", ...)
+ *   (2) HIZ SINIRI KONUSU  (IP / istek / sayac / rate limit / limiter / kota / dk)
+ * IKISI DE AYNI SATIRDA ve birbirine YAKIN (<=IKILI_YAKINLIK karakter) olacak.
+ * Tek basina "en cok 4 gorsel" ya da "fiyat tavani 150000 kurus" YANMAZ (konu yok);
+ * tek basina "istek sayisi" da yanmaz (mutlaklik yok). Muafiyet (olumsuzlama) penceresi
+ * BIRINCI aile ile AYNI — "garantili ust sinir DEGILDIR" gecmeye devam eder.
+ *
+ * ⚠️ SINIR — DURUSTCE: bu da TAM KAPSAMA DEGIL. Iki faktorden birini de kullanmayan bir
+ * yazim (or. yalnizca sayi vererek "60/dk" demek) gecer. Amac degismedi: kazara/iyi niyetli
+ * yanlis guvencenin geri sizmasini durdurmak.
+ */
+const MUTLAKLIK = [
+  { ad: "asilamaz/gecemez sinifi", re: /\b(asilamaz|asilmaz|asamaz|asamazsiniz|gecemez|gecilemez|asilmasi\s+mumkun\s+olmayan|imkansiz)\b/i },
+  { ad: "mutlak/kesin/kati sinifi", re: /\b(mutlak|mutlaka|kesin|kesindir|kesinlikle|kati)\b/i },
+  { ad: "garanti sinifi", re: /\bgaranti\w*/i },
+  { ad: "sert/ust-sinir/tavan sinifi", re: /\b(sert|ust\s+sinir|tavan|en\s+cok|en\s+fazla)\b/i },
+  { ad: "tek/ortak/bolunmez sayac sinifi", re: /\b(tek\s+\w+\s+sayac|tek\s+sayac|ortak\w*|global|bolunmez|paylasir|tek\s+merkez\w*)\b/i },
+  { ad: "her kosulda sinifi", re: /\b(her\s+kosulda|hicbir\s+kosulda|her\s+zaman|degismez)\b/i },
+];
+/** Konu = HIZ SINIRI. Bu terimlerden biri yoksa mutlaklik sozcugu MASUMDUR (sepet kalemi,
+ *  gorsel sayisi, fiyat tavani, metin uzunlugu...). */
+const HIZ_KONUSU = /(\bIP\b|iste[gkl]\w*|sayac\w*|limit\w*|kota\w*|\/\s*dk\b|dakikada|dakika\s+basina)/i;
+const IKILI_YAKINLIK = 60;
+// YOKTUR: 30 Tem'de OLCULEN yanlis-pozitif — "sert tavan YOKTUR" (dogru ifade!) bulgu
+// sayiliyordu, cunku listede yalniz YOK ve YOKTU vardi.
+const OLUMSUZ = /\b(DEGIL|DEGILDIR|DEGILDI|YOK|YOKTU|YOKTUR|YAPILAMAZ|EDILMEZ|EDILEMEZ|TUTMAZ|TUTMUYOR|OLMAZ)\b/i;
 
 // Muafiyet penceresi: olumsuzlama IDDIAYA YAKIN olmali. Hem karakter hem SATIR tavani var —
 // karakter tavani tek basina dosya icerigine bagli kazalar uretir (dosya sonundaki alakasiz
@@ -834,11 +873,38 @@ function muafPencere(metin, bas, son) {
   return metin.slice(i, j);
 }
 
+/** Eslesmenin cevresindeki AYNI SATIR penceresi (+-cap karakter, satir sinirinda durur).
+ *  Iki faktorlu kural bunu kullanir: mutlaklik sozcugu ile hiz-sinir konusu AYNI satirda
+ *  ve yakin olmali; satir atlayan tesadufi eslesme bulgu sayilmaz. */
+function ayniSatirPencere(metin, bas, son, cap) {
+  let i = bas;
+  const dip = Math.max(0, bas - cap);
+  while (i > dip && metin[i - 1] !== "\n") { i -= 1; }
+  let j = son;
+  const tepe = Math.min(metin.length, son + cap);
+  while (j < tepe && metin[j] !== "\n") { j += 1; }
+  return metin.slice(i, j);
+}
+
 /** dosyalar: [{ad, metin}] — M8 mutanti AYNI fonksiyonu mutant metinle cagirir.
  *  Metin BUTUN halde taranir (cumleye bolunmez); muafiyet yalnizca muafPencere kadar genistir. */
 function yanlisGuvenceTara(dosyalar) {
   const bulgu = [];
   for (const d of dosyalar) {
+    // --- IKINCI AILE: MUTLAKLIK x HIZ KONUSU yakinligi (tek faktorlu liste kacaklari) ---
+    for (const p of MUTLAKLIK) {
+      const re = new RegExp(p.re.source, "gi");
+      let m;
+      while ((m = re.exec(d.metin)) !== null) {
+        if (m[0].length === 0) { re.lastIndex += 1; continue; }
+        const son = m.index + m[0].length;
+        if (!HIZ_KONUSU.test(ayniSatirPencere(d.metin, m.index, son, IKILI_YAKINLIK))) { continue; }
+        if (OLUMSUZ.test(muafPencere(d.metin, m.index, son))) { continue; }
+        bulgu.push(d.ad + " — iki-faktorlu (" + p.ad + " + hiz sinir konusu): \"" +
+                   ayniSatirPencere(d.metin, m.index, son, 30)
+                     .replace(/\s+/g, " ").trim().slice(0, 80) + "\"");
+      }
+    }
     for (const p of YASAK_GUVENCE) {
       const re = new RegExp(p.re.source, "gi");
       let m;
@@ -869,6 +935,51 @@ function guvenceDosyalari() {
   return liste;
 }
 const GUVENCE_DOSYALARI = guvenceDosyalari();
+
+// ---- KAPSAM KORPUSU (set 9.7 + mutant M10 AYNI diziyi kullanir; ikinci kopya YOK) --------
+// NEDEN: 9.6 uzun sure "oruntu tabanli, esanlam gecer" diye YAZILI bir acik tasidi ama
+// ACIGIN BUYUKLUGU HIC OLCULMEDI. 30 Tem'de olculdu: tek-faktorlu (eski) haliyle asagidaki
+// 20 gercekci esanlam cumlesinin 20'si de GECIYORDU -> recall 0/20. Iki faktorlu aile
+// eklendikten sonra 17/20. Bu korpus o sayiyi CI'da SABITLER: recall duserse KIRMIZI.
+const YANLIS_KORPUS = [
+  "Her IP dakikada en cok 60 istek yapabilir.",
+  "Dakikada 60 istekle sinirlidir, asilamaz.",
+  "Bu ayar 60 istegi asmayi imkansiz kilar.",
+  "Sayac tum kolo'larda ORTAKTIR.",
+  "60/dk kesin olarak uygulanir.",
+  "IP basina dakikada 60 istek GARANTI edilir.",
+  "Rate limit hesap genelinde tek bir sayac kullanir.",
+  "Istek sayisi 60'i gecemez.",
+  "Kati bir ust sinir uygular.",                          // KACIYOR (hiz-sinir konusu yok)
+  "Native limiter mutlak tavani zorlar.",
+  "Ust sinir asilmaz.",                                   // KACIYOR (hiz-sinir konusu yok)
+  "60 istek/dk kotasi kesindir.",
+  "Sayac bolunmez, tek merkezde tutulur.",
+  "Hicbir istemci 60 istegi asamaz.",
+  "Limiter her IP icin ayni sayaci paylasir.",
+  "Bu deger asilmasi mumkun olmayan bir siniridir.",      // KACIYOR (hiz-sinir konusu yok)
+  "60 istek/dk her kosulda uygulanir.",
+  "Istekler IP bazinda kesin sekilde sayilir.",
+  "Dakika basina 60 istek tavani DEGISMEZ.",
+  "Cloudflare bu limiti global olarak uygular.",
+];
+// MASUM: bu depoda GERCEKTEN gecen, dogru ve alakasiz ifadeler. Biri bile yanarsa kapi
+// sahte kirmizi verir ve TUM EKIBIN yayini durur -> 0 olmak ZORUNDA.
+const MASUM_KORPUS = [
+  "Sepette en fazla 30 kalem olabilir (AYAR.sepet_en_cok_kalem).",
+  "click-id en cok 512 karakter olabilir; daha uzunu reddedilir.",
+  "Fiyat tavani 150000 kurus; kapaksiz formul asarsa sonuc kirpilir.",
+  "Adet 1-99 araliginda; aralik disi istek REDDEDILIR.",
+  "Bu uc bir guvenlik siniri DEGILDIR; yapilandirilan deger GARANTILI ust sinir DEGIL.",
+  "Limiter sayaci baglanti uc-noktasi basina BOLUNUYOR; sert tavan YOKTUR.",
+  "Metin en fazla 24 karakter olabilir (yazi alani siniri).",
+  "Kargo 250,00 TL; 2.500,00 TL ustu bedava.",
+  "INSERT OR IGNORE ayni ref'i tekillestirir; tavan iddiasi burada YOK.",
+  "En cok 4 gorsel gosterilir.",
+  "Bu bir en iyi caba maliyet frenidir, garantili tavan DEGIL.",
+  "Boy 60-300 mm araligina kirpilir; ust sinir disina cikilamaz.",
+];
+const RECALL_EN_AZ = 17;   // olculen deger; DUSURULMEZ (dusurmek = nobetciyi gevsetmek)
 
 /** wrangler.toml beyan iddialari (M6 mutanti AYNI fonksiyonu mutant metinle cagirir). */
 function beyanIddialari(tomlMetin, kodPencere) {
@@ -1047,12 +1158,30 @@ baslik("== 9) HIZ SINIRI — native rate-limit binding DOGRU KULLANILIYOR (EN IY
   // ---- 9.6 YANLIS-GUVENCE NOBETCISI (metin) ----
   const yg = yanlisGuvenceTara(GUVENCE_DOSYALARI);
   not("9.6 YANLIS-GUVENCE TARAMASI: " + yg.taranan + " dosya, " + YASAK_GUVENCE.length +
-      " desen -> bulunan " + yg.bulgu.length + ". ⚠️ Bu kontrol ORUNTU TABANLIDIR ve TAM " +
-      "KAPSAMA GARANTI ETMEZ: listede olmayan bir esanlamla yazilan yanlis guvence gecer; " +
-      "muafiyet penceresi iddianin " + MUAF_GERI_SATIR + " satir/" + MUAF_GERI_KARAKTER +
-      " karakter oncesi + " + MUAF_ILERI_SATIR + " satir/" + MUAF_ILERI_KARAKTER +
-      " karakter sonrasidir (cumle geneli DEGIL). Disiplin cihazi, guvenlik siniri degil.");
+      " desen + " + MUTLAKLIK.length + " iki-faktorlu sinif -> bulunan " + yg.bulgu.length +
+      ". ⚠️ Bu kontrol ORUNTU TABANLIDIR ve TAM KAPSAMA GARANTI ETMEZ (olculen kapsam icin " +
+      "9.7'ye bak); muafiyet penceresi iddianin " + MUAF_GERI_SATIR + " satir/" +
+      MUAF_GERI_KARAKTER + " karakter oncesi + " + MUAF_ILERI_SATIR + " satir/" +
+      MUAF_ILERI_KARAKTER + " karakter sonrasidir (cumle geneli DEGIL). Disiplin cihazi, " +
+      "guvenlik siniri degil.");
   yg.bulgu.slice(0, 8).forEach((b) => hatalar.push("9.6 " + b));
+
+  // ---- 9.7 KAPSAM OLCUMU (30 Tem, S2): nobetcinin RECALL'u SAYIYLA beyan edilir ----
+  const yakalanan = YANLIS_KORPUS.filter(
+    (c, i) => yanlisGuvenceTara([{ ad: "korpus-" + i, metin: c }]).bulgu.length > 0).length;
+  const yanan = MASUM_KORPUS.filter(
+    (c, i) => yanlisGuvenceTara([{ ad: "masum-" + i, metin: c }]).bulgu.length > 0);
+  not("9.7 KAPSAM OLCUMU: yanlis-guvence korpusu " + yakalanan + "/" + YANLIS_KORPUS.length +
+      " yakalandi (esik " + RECALL_EN_AZ + "; tek-faktorlu eski hal 0/20 idi) · masum korpus " +
+      yanan.length + "/" + MASUM_KORPUS.length + " yandi (0 olmali). BEYAN EDILEN KACAK: hiz " +
+      "siniri KONUSU (IP/istek/sayac/limit/kota/dk) hic gecmeyen cumleler — or. \"Ust sinir " +
+      "asilmaz.\" Konuyu da kapsama almak Y12 tipi mesru ifadeleri yakardi; recall sonsuza " +
+      "kadar kovalanmaz.");
+  if (yakalanan < RECALL_EN_AZ) {
+    hatalar.push("9.7 RECALL DUSTU: " + yakalanan + "/" + YANLIS_KORPUS.length +
+                 " (esik " + RECALL_EN_AZ + ") — nobetci gevsetilmis");
+  }
+  yanan.forEach((c) => hatalar.push("9.7 YANLIS-POZITIF (masum ifade yandi): " + c));
 
   if (hatalar.length) {
     kirmizi += 1;
@@ -1308,6 +1437,43 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
     ham.push("    ❌ M8 KALDI — yanlis-guvence nobetcisi OLU (curutulmus iddia sessizce geri konabilir)");
   } else {
     ham.push("    ✅ M8: 3/3 konumda geri konan yanlis guvence set 9.6'da KIRMIZI yanar");
+  }
+
+  // ---- M10: IKI FAKTORLU AILE NO-OP YAPILDI (S2 nobeti yuk tasiyor mu?) ----
+  // 9.7'nin olctugu recall'un GERCEKTEN yeni aileden geldigini kanitlar. Mutant, BU DOSYANIN
+  // KENDI KAYNAK METNINDEN uretilir (ikinci kopya olculmez): `MUTLAKLIK` listesi bosaltilir ve
+  // nobetci blogu ayri bir kapsamda calistirilir. Beklenen: recall COKER (tek-faktorlu hal).
+  ham.push("  -- M10: MUTLAKLIK listesi bosaltildi (iki-faktorlu aile no-op) --");
+  const M10_KAYNAK = fs.readFileSync(path.join(BURASI, "fiyat-prova.mjs"), "utf8");
+  const M10_BAS = "const YASAK_GUVENCE = [";
+  const M10_SON = "/** Taranan dosyalar:";
+  const M10_CAPA = "const MUTLAKLIK = [";
+  // NOT: capa/sinir dizeleri BU BLOKTA da metin olarak geciyor; bu yuzden arama nobetci
+  // blogunun ICINDE yapilir (indexOf ilk = gercek tanim, blok M10'dan ONCE gelir).
+  const i10 = M10_KAYNAK.indexOf(M10_BAS), j10 = M10_KAYNAK.indexOf(M10_SON);
+  const m10Blok = (i10 >= 0 && j10 > i10) ? M10_KAYNAK.slice(i10, j10) : "";
+  if (!m10Blok || m10Blok.split(M10_CAPA).length !== 2) {
+    kirmizi += 1;
+    ham.push("    ❌ M10 OLCULEMEDI — nobetci blogu/capasi bulunamadi (kaldirilmis ya da " +
+             "yeniden yazilmis): " + M10_BAS + " / " + M10_CAPA);
+  } else {
+    const m10Mutant = m10Blok.replace(M10_CAPA, "const MUTLAKLIK_OLU = [];\nconst MUTLAKLIK = [];\nconst MUTLAKLIK_YEDEK = [");
+    /* eslint-disable no-new-func */
+    const m10Tara = new Function(m10Mutant + "\nreturn yanlisGuvenceTara;")();
+    const m10Yakalanan = YANLIS_KORPUS.filter(
+      (c, i) => m10Tara([{ ad: "m10-" + i, metin: c }]).bulgu.length > 0).length;
+    const RECALL_OLCULEN = YANLIS_KORPUS.filter(
+      (c, i) => yanlisGuvenceTara([{ ad: "m10-ger-" + i, metin: c }]).bulgu.length > 0).length;
+    not("M10: MUTLAKLIK bosken korpus recall = " + m10Yakalanan + "/" + YANLIS_KORPUS.length +
+        " (gercek kodda " + RECALL_OLCULEN + "; mutantta ANLAMLI OLCUDE dusmeli)");
+    if (m10Yakalanan >= RECALL_OLCULEN) {
+      kirmizi += 1;
+      ham.push("    ❌ M10 KALDI — iki faktorlu aile OLU: bosaltilinca bile ayni recall, " +
+               "9.7 sayisi bu koddan gelmiyor");
+    } else {
+      ham.push("    ✅ M10: aile bosaltilinca recall " + RECALL_OLCULEN + " -> " +
+               m10Yakalanan + " (nobet YUK TASIYOR)");
+    }
   }
 
   // ---- M9: LIMITER ESKI (YANLIS) SEMANTIGE DONDURULDU: tam `limit` kadar gecirir ----
