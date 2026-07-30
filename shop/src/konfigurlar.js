@@ -305,6 +305,54 @@ const VERI = {
     ],
     "varsayilanMalzeme": "PLA"
   },
+  "capa-serit-dekoratif-figur": {
+    "boyutMm": {
+      "adim": 10,
+      "etiket": "Yükseklik",
+      "max": 300,
+      "min": 60,
+      "varsayilan": 150
+    },
+    "fiyatCapalari": [
+      [
+        60,
+        500
+      ],
+      [
+        300,
+        2500
+      ]
+    ],
+    "hacim": {
+      "refHacimCm3": 319.18,
+      "refYukseklikMm": 150
+    },
+    "malzemeler": [
+      {
+        "ad": "PLA",
+        "katsayi": 1
+      },
+      {
+        "ad": "PETG",
+        "katsayi": 1.3
+      },
+      {
+        "ad": "ASA",
+        "katsayi": 1.6
+      }
+    ],
+    "renkGorselIndeks": {
+      "Beyaz": 2,
+      "Gri": 0,
+      "Siyah": 1
+    },
+    "renkler": [
+      "Siyah",
+      "Beyaz",
+      "Gri"
+    ],
+    "varsayilanMalzeme": "PLA"
+  },
   "geyik-serit-dekoratif-figur": {
     "boyutMm": {
       "adim": 10,
