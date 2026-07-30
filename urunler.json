@@ -1,5 +1,455 @@
 [
   {
+    "id": "yelkenli-egimli-puspit-dis-motor-montaji-v2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Eğimli Puşpit Dış Motor Montajı V2",
+    "aciklama": "Egimli yelkenli puşpit rayına küçük dış motor montajının 2. versiyonu, önceki tasarımın güncellemesi.\n- Suzuki DF2.5 gibi küçük dış motorlarla 4 yıl tuzlu suda test edilmiştir.\n- Önceki V1 tasarımın çatlama sorununu gidermek için güçlendirilmiştir.\n- Eğimli puşpit ray kesitine özel tasarlandı.\nYaklaşık dış ölçüler: 200 × 180 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7368511-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7368511-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7368511-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7368511-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zoglar",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "xp9-gps-pusula-montaji-sisme-tekne",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "XP-9 GPS Pusula Montajı (Şişme PVC Tekne Lik Hattı)",
+    "aciklama": "XP-9 GPS pusulasını şişme PVC teknenin lik hattına monte eden, açı ayarlı sistem.\n- XP-9 GPS pusulasıyla uyumludur.\n- Dişli mekanizma ile dönüş açısı ayarlanabilir.\n- 4 parçadan oluşur, süper yapıştırıcı ile monte edilir.\nYaklaşık dış ölçüler: 150 × 56 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7373132-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7373132-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7373132-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7373132-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7373132-5.jpg",
+      "https://media.pruvo3d.com/urunler/th7373132-6.jpg",
+      "https://media.pruvo3d.com/urunler/th7373132-7.jpg",
+      "https://media.pruvo3d.com/urunler/th7373132-8.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kvadkl",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-kurek-t-track-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Kürek T-Track Montajı",
+    "aciklama": "SeaStream Angler 120PD gibi T-track ray sistemine iki adet kürek tutucusu monte etmeyi sağlayan aparat.\n- T-track ray sistemine sahip balıkçı kayaklarıyla uyumludur.\n- Küreği elin altında ama yoldan uzak tutar.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 157 × 118 × 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7374898-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7374898-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7374898-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7374898-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RStucki",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bayliner-alt-bimini-bracketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bayliner Alt Bimini Bracketi",
+    "aciklama": "2005 model Bayliner Ciera teknesi için alt bimini bracketi, diğer tekne modellerinde de kullanılabilir.\n- 2005 Bayliner Ciera tekne modeline özeldir.\n- Diğer bazı tekne modelleriyle de uyumlu olabilir.\n- Piyasada bulunamadığı için tasarlandı.\nYaklaşık dış ölçüler: 55 × 39 × 38 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7376300-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gintle",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "honda-23hp-dis-motor-kayis-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Honda 2.3HP Dış Motor Kayış Kapağı",
+    "aciklama": "Honda 2.3HP dış motor için kayış kapağı.\n- Honda 2.3HP dış motor modeline özeldir.\n- TPU ile %100 dolgu ile basılması önerilir.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 120 × 30 × 6 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7377427-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7377427-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7377427-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kootzzz",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-katlanir-kurek-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Katlanır Kürek Tutucusu",
+    "aciklama": "Ascend 12T kayağında bulunan kürek tutucusunun yerine geçen, baskı-içinde-menteşeli katlanır tutucu.\n- Ascend 12T kayak modeline özeldir.\n- Baskı-içinde-menteşe (print-in-place) tekniğiyle üretilir.\n- Dış kullanım için PCTG önerilir.\nYaklaşık dış ölçüler: 58 × 36 × 21 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7385305-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7385305-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "james361",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pelican-catch-110-trolling-motor-on-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pelican Catch 110 Kayağı Trolling Motoru Ön Montajı",
+    "aciklama": "Pelican Catch 110 kayağının önüne trolling motoru monte etmek için destek parçaları.\n- Pelican Catch 110 kayak modeline özeldir.\n- TPU ara parçalar plastik-plastik temasını önler.\n- Hızlı bağlantı bracketi ile kullanılır.\nYaklaşık dış ölçüler: 160 × 43 × 30 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7386232-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7386232-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jlatrei",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "johnson-deniz-tuvaleti-sifon-dugmesi-kasasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Johnson Deniz Tipi Tuvalet Sifon Düğmesi Kasası",
+    "aciklama": "Johnson elektrikli deniz tuvaletlerinin düğme panelini duvara gömmeden, üzerine monte etmeyi sağlayan kasa.\n- Johnson elektrikli deniz tuvaleti düğme paneliyle uyumludur (45x83mm delik aralığı).\n- Duvara delik açmadan montaj sağlar.\n- 21mm derinliğindedir.\nYaklaşık dış ölçüler: 126 × 84 × 21 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th859487-1.jpg",
+      "https://media.pruvo3d.com/urunler/th859487-2.jpg",
+      "https://media.pruvo3d.com/urunler/th859487-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "wd73_",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "port-a-dock-kano-rafi-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Port-A-Dock Kano Rafı Uç Kapağı",
+    "aciklama": "Port-A-Dock marka alüminyum kano raflarının eksik uç kapaklarının yerine geçen parça.\n- Port-A-Dock marka ekstrüzyon alüminyum kano raflarıyla uyumludur.\n- Kano yüklenirken/indirilirken çizilmeyi önler.\n- Basit ve pratik tasarım.\nYaklaşık dış ölçüler: 64 × 57 × 51 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1903373-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1903373-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1903373-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pefozzy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "shoreline-marine-sintine-pompa-anahtari-kutusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Shoreline Marine Sintine Pompası Anahtarı Kutusu",
+    "aciklama": "Shoreline Marine sintine pompası 3 yollu anahtar paneli için tutucu kutu.\n- Shoreline Marine 3 yollu sintine pompası anahtar paneliyle uyumludur.\n- Havalandırma delikleri içerir.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 124 × 94 × 58 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3450102-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DavidKing",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-transom-tutucusu-yedegi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Transom (Ayna) Tutucusu Yedeği",
+    "aciklama": "Eski model bir kayağın transom (ayna) bölmesi için yedek tutucu parça.\n- Eski model kayaklarla uyumlu olabilir, tekil tasarımdır.\n- İnce/tarak şeklinde basit bir parça.\n- Kırılan orijinal parçanın yerine geçer.\nYaklaşık dış ölçüler: 23 × 4 × 0 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3570954-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3570954-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3570954-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3570954-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nerddave",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-transom-capraz-cubuk-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Transomuna Çapraz Çubuk Tutucu Sistemi",
+    "aciklama": "Yelkenli teknenin transomuna ip, güneş gözlüğü, bozuk para gibi eşyaları asmak için modüler tutucu sistemi.\n- Yelkenli tekne transomuna montaj için tasarlandı.\n- Üst parça sabit, alt parça farklı fonksiyonlara göre değişir.\n- PLA ile basılmıştır.\nYaklaşık dış ölçüler: 60 × 28 × 17 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4093193-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4093193-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "currito16",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yat-capa-vinci-elektrik-soketi-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yat Çapa Vinci (Windlass) Elektrik Soketi Kapağı",
+    "aciklama": "Yat çapa vinci kumanda bağlantısında kullanılan elektrik soketi için kapak.\n- Yat çapa vinci kontrol soketi bağlantısıyla uyumludur.\n- Boyutuna uygun bir O-ring gerektirir.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 36 × 36 × 29 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4274405-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4274405-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "posticeage",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercury-mercruiser-vites-kolu-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury Mercruiser Tekne Vites Kolu Kapağı",
+    "aciklama": "Mercury Mercruiser tekne vites kolu için kapak (orijinal parça no 14389A2 alternatifi).\n- Mercury Mercruiser tekne vites sistemine özeldir (parça no 14389A2).\n- İki farklı tasarım seçeneği içerir.\n- Sabit taban ve el dayama parçalarından oluşur.\nYaklaşık dış ölçüler: 156 × 107 × 78 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4685788-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4685788-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "aapocketz",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercury-big-tiller-trim-anahtari-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury Big Tiller Trim/Tilt Anahtarı Kapağı",
+    "aciklama": "Mercury Big Tiller dış motor kolu için trim/tilt anahtarı kapağı, jenerik yedek anahtara uyacak şekilde tasarlandı.\n- Mercury Big Tiller dış motor koluna özeldir.\n- Piyasada bulunan jenerik yedek trim anahtarına uyacak şekilde tasarlandı.\n- Kablolar için kapak içinde boşluk bırakılmıştır.\nYaklaşık dış ölçüler: 46 × 46 × 36 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4843049-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4843049-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4843049-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MarcoPi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "x35-yelkenlisi-ana-yelken-durdurucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "X-35 Yelkenlisi Ana Yelken Kayar-Durdurucu Parçası",
+    "aciklama": "X-35 yelkenlisi için ana yelken (mainsail) kayar durdurucu parçası.\n- X-35 yelkenli tekne modeline özeldir.\n- Ana yelkenin istenmeyen kaymasını önler.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 68 × 30 × 11 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4849312-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KjoniX",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercury-force-dis-motor-trim-anahtari-bracketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury/Force Dış Motor Trim Anahtarı Bracketi",
+    "aciklama": "Mercury/Force dış motor gövdesi içine harici trim anahtarı eklemek için bracket.\n- Mercury/Force dış motor gövdesine özeldir.\n- Piyasada satılan jenerik trim anahtarlarıyla uyumludur.\n- Montaj öncesi hafif ısıtma önerilir.\nYaklaşık dış ölçüler: 44 × 31 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4921537-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SlvrSky1984",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-romorku-kilavuz-direk-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Römorku Kılavuz Direk Kapağı",
+    "aciklama": "Tekne römorku kılavuz direklerinin ucuna takılan kapak.\n- 60mm çaplı direklere sıkı geçme uyar.\n- PETG ile basılması ve silikon dolgu ile sabitlenmesi önerilir.\n- Depoda kaybolmayı önler.\nYaklaşık dış ölçüler: 66 × 66 × 33 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4982461-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4982461-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4982461-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vatbrain",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "taylor-made-lombar-tutamak-yedegi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Taylor Made Lombar Tutamak Yedeği (Tip A)",
+    "aciklama": "Taylor Made marka tekne lombarları için yedek tutamak (1990'dan günümüze modeller).\n- Taylor Made marka tekne lombarlarıyla uyumludur (1990 ve sonrası modeller).\n- Ara parça (spacer) ve tutamak olmak üzere iki parçadan oluşur.\n- Kırılan orijinal tutamağın yerine geçer.\nYaklaşık dış ölçüler: 151 × 34 × 18 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5325587-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5325587-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "orlovkem",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "honda-dis-motor-kontak-anahtari-adaptoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Honda Dış Motor Kontak Anahtarı Adaptörü",
+    "aciklama": "Eski Honda dış motordan yeni fly-by-wire kontak anahtarına geçişte konsol deliğini gizleyen adaptör halkası.\n- Honda dış motor kontak anahtarı sistemleriyle uyumludur.\n- Yeni fly-by-wire anahtarın ~20mm dişli gövdesine uyar.\n- Eski konsol deliğini görünmez şekilde kapatır.\nYaklaşık dış ölçüler: 30 × 30 × 5 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5342029-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gazzarose",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dis-motor-kill-switch-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dış Motor Kill Switch (Can Kurtaran Anahtar) Montajı",
+    "aciklama": "Kill switch'i olmayan eski dış motorlara standart bir kill switch monte etmek için braket.\n- Standart eBay tipi kill switch ile uyumludur.\n- 2 adet M3 başlı vida ile motor bracketine sabitlenir.\n- Sıkı sürtünmeli geçme, gerekirse hafif zımparalama gerekebilir.\nYaklaşık dış ölçüler: 42 × 34 × 30 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5349545-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dynamite9585",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tanzer-yelkenlisi-tavan-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tanzer Yelkenlisi Tavan Tapası",
+    "aciklama": "Tanzer yelkenlisi iç tavan tapalarının yerine geçen yedek parça.\n- Tanzer 7.5 üzerinde test edilmiştir, Tanzer 26/27 gibi diğer modellerle de uyumlu olabilir.\n- Eski/kırık tavan tapalarının yerine geçer.\n- Basit ve pratik yedek parça.\nYaklaşık dış ölçüler: 25 × 25 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5397510-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "peterdrinnan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercury-mariner-quicksilver-gaz-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury Mariner Quicksilver Gaz Kolu (Parça No 67749)",
+    "aciklama": "Artık üretilmeyen eski Mercury motoru için güçlendirilmiş reprodüksiyon gaz kolu.\n- Mercury Mariner Quicksilver eski motor modeline özeldir (parça no 67749).\n- ASA ile basıldığında orijinal kadar güçlü olacak şekilde güçlendirilmiştir.\n- Artık üretilmeyen orijinal parçanın yerine geçer.\nYaklaşık dış ölçüler: 61 × 37 × 14 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5426349-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pippolino79",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-drenaj-tapasi-2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Drenaj Tapası",
+    "aciklama": "Tekne için genel amaçlı drenaj tapası, ihtiyaca göre ölçeklendirilebilir.\n- Farklı tekne modellerine göre ölçeklendirilebilir.\n- Basit ve pratik tasarım.\n- Standart tahliye deliklerine uyarlanabilir.\nYaklaşık dış ölçüler: 150 × 49 × 49 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5474886-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Majakanvartija",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-bardaklik-tepsisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Bardaklık Tepsisi",
+    "aciklama": "Tekne için bardaklık tepsisi.\n- Tekne bardaklık alanlarına uyar.\n- Birden fazla bardak/eşya için yer sağlar.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 117 × 102 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5515211-1.jpg"
+    ]
+  },
+  {
+    "id": "tekne-romorku-vinc-kolu-yedegi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Römorku Vinç Kolu Yedeği",
+    "aciklama": "Plastik kılıfı zamanla bozulup kırılan tekne römorku vinç kolunun yerine geçen, iç ve dış gövdeli tasarım.\n- Standart kaynaklı çelik mil ve topuzlu vinçlerle uyumludur.\n- İç parçalar birleştirilip dış kovan vidalanarak neredeyse kalıcı montaj sağlar.\n- Monte etmeden önce gres ile yağlanması ve prova edilmesi önerilir.\nYaklaşık dış ölçüler: 87 × 38 × 38 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5825572-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5825572-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5825572-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Spockman",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "standard-horizon-gx2400-montaj-plakasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Standard Horizon GX2400 Montaj Plakası (Lowrance Link-8 Kesimine Uygun)",
+    "aciklama": "Standard Horizon GX2400 AIS ünitesini, mevcut Lowrance Link-8 konsol kesimine sağlam şekilde monte eden çerçeve.\n- Standard Horizon GX2400 ünitesiyle uyumludur.\n- Mevcut Lowrance Link-8 konsol kesimine (üstten/alttan 2mm taşma ile) oturur.\n- Seyir sırasında oynamayı önleyecek sağlam montaj sağlar.\nYaklaşık dış ölçüler: 180 × 80 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5852487-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dhy4buva",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "siren-17-yelkenlisi-jib-ray-arabasi-ara-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Siren 17 Yelkenlisi Jib Ray Arabası Ara Parçası",
+    "aciklama": "Siren 17 yelkenlisi jib (flok) ray arabası için ara parça (spacer).\n- Siren 17 yelkenli tekne modeline özeldir.\n- Jib ray arabası sisteminde kullanılır.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 85 × 45 × 13 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5874488-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Marcoovando",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "baywatt-busbar-m8-vida-kapagi",
     "kategori": "Marin",
     "marka": [],
