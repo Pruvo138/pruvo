@@ -1,5 +1,566 @@
 [
   {
+    "id": "tekne-kancasi-boat-hook",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kancası (Boat Hook)",
+    "aciklama": "Tekne için basit ve dayanıklı kanca.\n- Tekne kancası olarak kullanılır.\n- Basit ve sağlam tasarım.\n- Kolay basılabilir geometri.\nYaklaşık dış ölçüler: 164 × 94 × 34 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6748423-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lerum2022",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "sea-doo-switch-fender-kancasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sea-Doo Switch Fender Kancası",
+    "aciklama": "Sea-Doo Switch pontoon tekne için güçlendirilmiş fender kancası, üst halka eklentili.\n- Sea-Doo Switch pontoon tekne çerçevesine özeldir.\n- Çerçeve rayının eğimine uyacak şekilde güçlendirilmiştir.\n- Üst halka fender ipini bağlamak için kullanılabilir.\nYaklaşık dış ölçüler: 80 × 65 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6940657-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "duoderf",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yakima-kayak-stacker-kayis-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yakima Kayak Stacker Kayış Klipsi",
+    "aciklama": "Yakima Kayak Stacker tavan rayı sistemi kullanılırken kayışı yerinde tutan klips.\n- Yakima Kayak Stacker tavan rayı sistemine özeldir.\n- Kayışın kaymasını önler.\n- Basit ve kompakt tasarım.\nYaklaşık dış ölçüler: 39 × 39 × 26 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th121142-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CopabX",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-genoa-sarma-silindiri-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Genoa Sarma Silindiri Kapağı",
+    "aciklama": "Yelkenli genoa yelken sarma silindiri için sağ ve sol kapak seti.\n- Genoa sarma silindiri sistemine özeldir.\n- Sağ ve sol kapak olmak üzere iki parçadan oluşur.\n- Silindiri dış etkenlerden korur.\nYaklaşık dış ölçüler: 150 × 79 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2429101-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2429101-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2429101-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "J_Seppala",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "glastron-tekne-merdiven-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Glastron Tekne Merdiven Klipsi",
+    "aciklama": "Glastron tekne merdiveni için kırılan orijinal klipsin yerine geçen yedek parça.\n- Glastron tekne merdivenine özeldir.\n- Ölçüleri orijinaline göre alınmıştır.\n- Basit ve dayanıklı yedek parça çözümüdür.\nYaklaşık dış ölçüler: 37 × 32 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th26930-1.jpg",
+      "https://media.pruvo3d.com/urunler/th26930-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "etrohn",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "balikci-teknesi-gaz-vites-tutamagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Balıkçı Teknesi Gaz/Vites Tutamağı",
+    "aciklama": "Balıkçı teknesi gaz ve vites kolları için değiştirilebilir lastik tutamak seti (sağ ve sol).\n- Farklı tekne gaz/vites kollarıyla uyumlu olabilir.\n- Sağ ve sol taraf için ayrı tutamaklar içerir.\n- Konforlu ve kaymaz tutuş sağlar.\nYaklaşık dış ölçüler: 102 × 48 × 40 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3027701-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3027701-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3027701-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "yenbadnosyt",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-scupper-transducer-montaji-th4411567",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Scupper Düşük Profilli Transducer Montajı",
+    "aciklama": "Kayak scupper (tahliye) deliğinden geçen, düşük profilli transducer montajı.\n- Kayak scupper deliklerine özeldir.\n- Kablo için yan tarafta çentik bulunur.\n- M6 cıvata ile üst plakaya bağlanır.\nYaklaşık dış ölçüler: 50 × 50 × 43 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4411567-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4411567-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Varloqy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-tavan-tasima-rayi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Tavan Taşıma Rayı",
+    "aciklama": "Kayak için araç tavanına monte edilen taşıma rayı sistemi.\n- Standart araç tavan taşıyıcılarıyla uyumludur.\n- Kayağı güvenle taşımaya yardımcı olur.\n- Sağlam ve basit tasarım.\nYaklaşık dış ölçüler: 118 × 98 × 51 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4536089-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ezekeel",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-autolube-dis-motor-yag-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha Autolube Dış Motor Yağ Kapağı",
+    "aciklama": "Yamaha Autolube dış motoru için yedek yağ kapağı.\n- Yamaha Autolube dış motorlarına özeldir.\n- Vida veya yapıştırıcıyla birleştirilir.\n- Kauçuk kaplama ile ek dayanıklılık sağlanabilir.\nYaklaşık dış ölçüler: 205 × 102 × 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4752074-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4752074-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4752074-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4752074-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4752074-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zacke",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-tahliye-tapasi-arka-plaka",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tahliye Tapası Arka Plakası",
+    "aciklama": "Yelkenli tekne tahliye tapası için ek sızdırmazlık sağlayan arka plaka.\n- Yaygın yelkenli tahliye tapası tasarımıyla uyumludur.\n- Diğer taraftan ek sızdırmazlık sağlar.\n- Orijinal tahliye tapasıyla birlikte kullanılır.\nYaklaşık dış ölçüler: 70 × 40 × 3 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4789391-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4789391-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4789391-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4789391-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4789391-5.jpg",
+      "https://media.pruvo3d.com/urunler/th4789391-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "_sOnGoKu_",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evinrude-johnson-pervane-mili-anahtari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Evinrude/Johnson Pervane Mili Anahtarı",
+    "aciklama": "Evinrude/Johnson/OMC küçük dış motorlar için pervane mili anahtarı (impeller key).\n- Evinrude/Johnson 2-6 HP civarı dış motorlarla uyumludur.\n- Parça no 0335956 ve 0331130 ile eşdeğerdir.\n- Küçük ama kritik bir yedek parçadır.\nYaklaşık dış ölçüler: 10 × 8 × 3 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4905777-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4905777-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4905777-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Joens",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "minn-kota-trolling-motor-egim-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Minn Kota Trolling Motor Eğim Kolu",
+    "aciklama": "Minn Kota trolling motoru için yedek eğim (tilt) kolu.\n- Minn Kota trolling motorlarıyla uyumludur.\n- %70 dolgu oranıyla basılması önerilir.\n- Kırılan orijinal kolun yerine geçer.\nYaklaşık dış ölçüler: 70 × 31 × 29 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4915257-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4915257-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4915257-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dakotah335",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-flare-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Flare (Acil Sinyal) Montajı",
+    "aciklama": "Tekne rayına monte edilen, Orion el flaresi/duman sinyalini hızlı erişim için tutan özelleştirilebilir montaj.\n- Orion el tipi flare/duman sinyaliyle uyumludur.\n- OpenSCAD kaynak koduyla farklı ölçülere uyarlanabilir.\n- Tekne can/güvenlik rayına hızlı-çıkar montaj sağlar.\nYaklaşık dış ölçüler: 64 × 38 × 15 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4958277-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4958277-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4958277-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dan104",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kano-kayak-tasima-sapi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kano/Kayak Taşıma Sapı",
+    "aciklama": "Kano veya kayağın pruva ve/veya kıç kısmına bağlanan taşıma sapı.\n- 1/4 inç ip ile kullanılmak üzere delikli tasarlanmıştır.\n- Yuvarlatılmış ve konforlu tutuş sağlar.\n- Sürükleme kullanımına dayanıklıdır.\nYaklaşık dış ölçüler: 100 × 20 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4975982-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DaniDee",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "humminbird-helix7-korkuluk-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Humminbird Helix 7 Korkuluk Montajı",
+    "aciklama": "Humminbird Helix 7 balık bulucuyu standart 25mm tekne korkuluğuna bağlayan montaj.\n- Humminbird Helix 7 balık bulucuya özeldir.\n- Standart 25mm tekne korkuluğuna uyar.\n- Farklı amaçlar için de (örn. olta tutucu) kullanılabilir.\nYaklaşık dış ölçüler: 120 × 54 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5206738-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5206738-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5206738-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5206738-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5206738-5.jpg",
+      "https://media.pruvo3d.com/urunler/th5206738-6.jpg",
+      "https://media.pruvo3d.com/urunler/th5206738-7.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Herr-voragend",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "balik-bulucu-transducer-kutup-braketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Balık Bulucu Transducer Kutup Braketi",
+    "aciklama": "28mm (1 1/8 inç) kutuplara transducer montajı için basit braket.\n- Humminbird 360 kutbu ve Minn Kota elektrikli motor kutuplarına uyar.\n- Humminbird transducerlarına özel tasarlanmış, diğer markalarla da uyumlu olabilir.\n- M4 veya M5 civata-somun gerektirir.\nYaklaşık dış ölçüler: 60 × 60 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5332238-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5332238-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5332238-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5332238-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ni3w4zn3",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "humminbird-helix7-olta-tutucu-aksesuari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Humminbird Helix 7 Olta Tutucu Aksesuarı",
+    "aciklama": "Humminbird Helix 7 için yedek olta tutucu aksesuarı.\n- Humminbird Helix 7 balık bulucuya özeldir.\n- Orijinal aksesuarın yerine geçer.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 60 × 58 × 47 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5799604-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5799604-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5799604-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Briandenning",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-tahriki-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Tahriki Pervanesi",
+    "aciklama": "Tekne tahrik sistemi için hızlı yapım pervane.\n- Tekne tahrik sistemleriyle uyumludur.\n- Pervane ve tutucu olmak üzere iki parçadan oluşur.\n- Basit ve hızlı üretilebilir tasarım.\nYaklaşık dış ölçüler: 30 × 29 × 11 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6069516-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6069516-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "konstrux",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "lifetime-kayak-stadyum-koltugu-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lifetime Kayak Stadyum Koltuğu Tutucusu",
+    "aciklama": "Lifetime kayak için stadyum koltuğu tutucusu.\n- Lifetime kayak modelleriyle uyumludur.\n- Bungee kord ile ek stabilite sağlanabilir.\n- Basit ve etkili tasarım.\nYaklaşık dış ölçüler: 140 × 110 × 41 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6560241-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ripper97",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-yagmura-dayanikli-havalandirma-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Yağmura Dayanıklı Havalandırma Kapağı",
+    "aciklama": "Yelkenli kabini için pasif veya fanlı kullanılabilen yağmura dayanıklı havalandırma kapağı.\n- Yelkenli kabin havalandırması için tasarlanmıştır.\n- 104,9 mm merkezden merkeze delik düzenine sahip fanlarla uyumludur.\n- PETG filament ile açık hava kullanımı için basılması önerilir.\nYaklaşık dış ölçüler: 214 × 214 × 41 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6636628-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6636628-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6636628-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6636628-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6636628-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stickinthemud57",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dis-motor-deadman-switch-lanyard-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dış Motor Deadman's Switch Lanyard Klipsi",
+    "aciklama": "Dış motor acil durdurma (deadman's switch) lanyard klipsinin yerine geçen yedek parça.\n- Çeşitli dış motor acil durdurma sistemleriyle uyumlu olabilir.\n- Güvenlik kritik parça — Okan kararıyla ek kısıtlama yok.\n- Hızlı ve ekonomik yedek parça çözümüdür.\nYaklaşık dış ölçüler: 20 × 20 × 15 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th144302-1.jpg",
+      "https://media.pruvo3d.com/urunler/th144302-2.jpg",
+      "https://media.pruvo3d.com/urunler/th144302-3.jpg",
+      "https://media.pruvo3d.com/urunler/th144302-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Printed_Solid",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dis-motor-alt-unite-rulman-destegi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dış Motor Alt Ünite Rulman Desteği",
+    "aciklama": "Dış motor alt ünitesi için 4mm rulman desteği.\n- 4mm rulman ve 4mm çelik mil ile kullanılmak üzere tasarlanmıştır.\n- PETG ile 2mm et kalınlığında basılması önerilir.\n- Sağ ve sol parça olmak üzere iki parçadan oluşur.\nYaklaşık dış ölçüler: 107 × 95 × 30 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5445617-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5445617-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5445617-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chipper",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-tasima-sapi-yedek-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Taşıma Sapı Yedek Parçası",
+    "aciklama": "Kayağın ön ve/veya arka taşıma saplarının yerine geçen yedek parça.\n- Kayağın ön/arka taşıma sapı yuvasına uyar.\n- İp veya kayış geçirilerek düğümlenir.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 120 × 77 × 30 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2392796-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Camco",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-tahliye-tapasi-anahtari-yarim-inch",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Tahliye Tapası Anahtarı (Yarım İnç)",
+    "aciklama": "1/2 inç kare tahliye tapalarını kolayca takıp çıkarmak için anahtar.\n- 1/2 inç kare tahliye tapalarına özeldir.\n- Teknelerde yaygın olarak kullanılan tapa tipine uyar.\n- Basit ve kullanışlı el aleti.\nYaklaşık dış ölçüler: 34 × 28 × 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2431526-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "seawitch4",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "bavaria-yelkenli-selden-kapama-plakasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bavaria Yelkenli Selden Kapama Plakası",
+    "aciklama": "Bavaria yelkenli teknenin Selden sarma-direğindeki delik için küçük kapama plakası.\n- Bavaria yelkenli Selden sarma-direğine özeldir (Parça No 540-026).\n- L120 x D50 x 3mm ölçülü direk deliğine uyar.\n- PLA ile basılması önerilir (kaybolursa doğada çözünür).\nYaklaşık dış ölçüler: 129 × 60 × 8 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3045010-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3045010-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "deesse",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-sprayhood-kancasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Sprayhood Kancası",
+    "aciklama": "Yelkenli tekne sprayhood'u (sıçramalık) için kanca.\n- Yelkenli tekne sprayhood sistemine özeldir.\n- Basit ve dayanıklı tasarım.\n- Kolay tak-çıkar kullanım.\nYaklaşık dış ölçüler: 50 × 35 × 18 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3048189-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Vetleaghusby",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-guverte-fisi-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Güverte Fişi Kapağı",
+    "aciklama": "Tekne güverte fişi için kapak.\n- Standart tekne güverte fişi yuvasına uyar.\n- Fiş ve kablo için iki farklı kapak tipi içerir.\n- Su ve toza karşı koruma sağlar.\nYaklaşık dış ölçüler: 28 × 27 × 18 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3082278-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3082278-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3082278-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jet_",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "pactrade-outrigger-denge-kolu-yedek-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pactrade Outrigger Denge Kolu Yedek Parçası",
+    "aciklama": "Pactrade Marine outrigger denge sistemi için yedek bağlantı parçası.\n- Pactrade Marine outrigger sistemine özeldir.\n- Kano veya kayak outrigger kurulumlarında kullanılır.\n- Orijinal ölçüde basılır, ölçek ayarı gerekmez.\nYaklaşık dış ölçüler: 101 × 35 × 35 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3719223-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3719223-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3719223-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3719223-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3719223-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "1stDegreeRobotBuilder",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "beneteau-oceanis-halat-duzenleyicisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Beneteau Oceanis Halat Düzenleyicisi",
+    "aciklama": "Beneteau Oceanis yelkenlisi için halat (sheet) düzenleyicisi.\n- Beneteau Oceanis yelkenli modeline özeldir.\n- Halatları düzenli tutar.\n- Basit ve kompakt tasarım.\nYaklaşık dış ölçüler: 30 × 29 × 14 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3736665-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "larsli68",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercury-dis-motor-vites-mili-burcu-sokme-aleti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury Dış Motor Vites Mili Burcu Sökme Aleti",
+    "aciklama": "Mercury 70hp dış motor alt ünitesinden vites mili burcunu sökmek için özel alet.\n- Mercury 70hp dış motor alt ünitesine özeldir.\n- 18mm anahtarla kullanılmak üzere tasarlanmıştır.\n- Orijinal ticari alete uygun maliyetli alternatiftir.\nYaklaşık dış ölçüler: 33 × 33 × 32 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3748102-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3748102-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3748102-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3748102-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3748102-5.jpg",
+      "https://media.pruvo3d.com/urunler/th3748102-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pyraph",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "torqeedo-elektrikli-dis-motor-yedek-parcalari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Torqeedo Elektrikli Dış Motor Yedek Parçaları",
+    "aciklama": "Torqeedo 1103c elektrikli dış motor için anahtar ve deadman key yedek parça seti.\n- Torqeedo 1103c elektrikli dış motora özeldir.\n- OpenSCAD kaynak koduyla farklı buton mıknatıs boyutlarına uyarlanabilir.\n- Deadman key ve motor anahtarını içerir.\nYaklaşık dış ölçüler: 50 × 30 × 3 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3751890-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3751890-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3751890-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3751890-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3751890-5.jpg",
+      "https://media.pruvo3d.com/urunler/th3751890-6.jpg",
+      "https://media.pruvo3d.com/urunler/th3751890-7.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dan104",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "lowrance-transducer-ara-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance Transducer Ara Parçası",
+    "aciklama": "Lowrance balık bulucu transducerini Bonafide kayak kuru bölmesinin altına bağlarken kullanılan ara parça (spacer).\n- Lowrance transducer ile uyumludur.\n- Bonafide kayak kuru bölmesine özeldir.\n- İki adet kullanılarak transduceri tam destekler.\nYaklaşık dış ölçüler: 140 × 59 × 54 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3763392-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3763392-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3763392-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ArkadyKun",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "feelfree-kayak-unibar-kilit-brakedi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "FeelFree Kayak Unibar Kilit Braketi",
+    "aciklama": "FeelFree kayak unibar sistemi için yedek kol kilidi/montaj braketi.\n- FeelFree kayak unibar sistemine özeldir.\n- Menteşe noktasında esneme gerektirdiği için ABS/PETG önerilir.\n- Sağ taraf (R/H) braketi; sol taraf için ayna simetrik basılabilir.\nYaklaşık dış ölçüler: 117 × 38 × 22 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4096707-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4096707-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4096707-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4096707-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4096707-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jonnyg30",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "marin-guverte-kablo-gecis-rakoru",
     "kategori": "Marin",
     "marka": [],
