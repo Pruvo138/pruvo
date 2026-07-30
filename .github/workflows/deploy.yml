@@ -700,6 +700,29 @@ jobs:
       - name: Marka->model pilot kabul testi (Ford + BMW)
         run: python3 tools/marka-model-test.py
 
+      # YASAL SAYFA DRIFT KAPISI: build.py IZLENEN 4 elle yazilmis sayfayi (gizlilik /
+      # hakkimizda / iletisim / sss) YERINDE yeniden yazar. Fault injection ile olculdu
+      # (30 Tem): gizlilik/index.html bayatlatildiginda depodaki 6 kapinin 6'si YESIL
+      # kaldi (sapmayi yakalayan kapi YOKTU) ve build.py kosunca sayfa kanonige geri
+      # yazilip agac temizlendi -> elle/bayat icerik SESSIZCE ezildi. Bu kapi
+      # "build.py'nin URETTIGI icerik == HEAD'deki icerik" iddiasini olcer; taban HEAD
+      # oldugu icin adimin build'den once ya da sonra gelmesi hukmu DEGISTIRMEZ
+      # (sira-bagimli disk karsilastirmasi fail-open olurdu). Kapi kendi kosumunda
+      # sayfalari AYNEN geri koyar ve porcelain + sha256 esitligini kendi olcer.
+      # Offline, stdlib, ~12 s (suresi build.py'nin kendisidir).
+      - name: "Yasal sayfa drift kapisi (build.py uretimi == commit'li icerik)"
+        run: python3 tools/yasal-sayfa-drift-kapisi.py
+
+      # KAPININ KENDI NOBETCISI — ayri adim olmak ZORUNDA: yukaridaki kosum kapinin
+      # KIRMIZI yolunu hic denemez (agac temizse daima yesil). Bu adim hermetik bir depo
+      # kopyasinda 4 sayfayi tek tek bayatlatir (4/4 KIRMIZI bekler), kapsam daraltmayi
+      # (TABAN slug fail-closed) ve blok-DISI mesru duzenlemeyi (yanlis-pozitif yok)
+      # sinar, sonra kapinin karsilastirma/hukum/build-cagrisi/cikis-kodu satirlarini
+      # KOPYA uzerinde mutasyona ugratip her mutantin sapmayi KACIRDIGINI dogrular.
+      # Ana checkout'a DOKUNMAZ (git archive kopyasi + kirpik katalog), ~3 s.
+      - name: "Yasal sayfa drift kapisi ic nobetcisi (bayatlatma + kirmizi-mutasyon)"
+        run: python3 tools/yasal-sayfa-drift-kapisi.py --kendini-test
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
