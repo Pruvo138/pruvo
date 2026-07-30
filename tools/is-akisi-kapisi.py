@@ -554,10 +554,13 @@ B_IDDIALAR = (
            "ama adimin KENDI cagri satirini koruyan hicbir nobetci YOKTU -> satir "
            "silinince her sey sessizce yesil kaliyordu."),
     BIddia("parmakizi-dizin", "tools/onizleme-kapisi.py",
-           ("parmakizi-dogrula", "--dizin"), ("workflow_dispatch",),
+           ("parmakizi-dogrula", "--dizin", "--paket-anahtar"), ("workflow_dispatch",),
            "imaja GOMULECEK paket anlik goruntusunu repo HEAD kaydiyla karsilastiran "
            "UCUZ fail-fast kapi (docker build'den ONCE). Etkisizlesirse bayat/elle "
-           "duzenlenmis bir paketle pahali imaj derlenir."),
+           "duzenlenmis bir paketle pahali imaj derlenir. `--paket-anahtar` jetonu "
+           "ZORUNLU (O9/tur 5): o bayrak dusurulurse kayit ile CI'nin FIILEN cektigi "
+           "R2 paketi arasindaki capraz sessizce olur ve R2'de duran eski bir anahtarla "
+           "is tetiklemek yeniden gorunmez hale gelir (tur 4/D8-2)."),
     BIddia("parmakizi-url", "tools/onizleme-kapisi.py",
            ("parmakizi-dogrula", "--url"), ("workflow_dispatch",),
            "KOSAN IMAJIN kendisine sorulan drift kapisi (/parmakizi). Etkisizlesirse "

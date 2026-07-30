@@ -372,7 +372,12 @@ def yukle_ve_dogrula(anahtar, arsiv, tmp):
 
 def parmakizi_tazele(paket_dizin, surum):
     """Repo HEAD parmakizi kaydini paketin TA KENDISINDEN tazele (G2 drift kapisi).
-    Ayni mantigin ikinci kopyasi yazilmaz: olcum fonksiyonlari onizleme-kapisi.py'de."""
+    Ayni mantigin ikinci kopyasi yazilmaz: olcum fonksiyonlari onizleme-kapisi.py'de.
+
+    O9 (tur 5): kayda, bu koşumun yazacagi R2 ANAHTARI da islenir. Boylece CI
+    (`parmakizi-dogrula --paket-anahtar`) "bu kayit gercekten cektigim paket icin mi
+    uretildi" sorusunu MAKINEYLE yanitlar; R2'de duran eski bir anahtarla is tetiklemek
+    artik sessiz kalmaz (tur 4/D8-2)."""
     sys.path.insert(0, os.path.join(REPO, "tools"))
     import importlib.util
     spec = importlib.util.spec_from_file_location(
@@ -386,9 +391,13 @@ def parmakizi_tazele(paket_dizin, surum):
     if not pk or not scadlar:
         sys.exit("parmakizi tazelenemedi: %s altinda %d dosya / %d .scad var — bos "
                  "kayit YAZILMAZ (fail-closed)" % (paket_dizin, len(pk), len(scadlar)))
-    kapi.manifest_yaz(kapi.VARSAYILAN_MANIFEST, pk, "paket eslem surumu v%d" % surum)
-    print("parmakizi kaydi tazelendi: %s (%d dosya, %d .scad) — AYNI commit'te repoya "
-          "girmeli." % (kapi.VARSAYILAN_MANIFEST, len(pk), len(scadlar)))
+    anahtar = yuklenecek_anahtarlar(surum)[0]
+    kapi.manifest_yaz(kapi.VARSAYILAN_MANIFEST, pk, "paket eslem surumu v%d" % surum,
+                      anahtar)
+    print("parmakizi kaydi tazelendi: %s (%d dosya, %d .scad, paket_anahtar=%s)"
+          % (kapi.VARSAYILAN_MANIFEST, len(pk), len(scadlar), anahtar))
+    print("🔴 KAYDI COMMIT + PUSH EDIN — is akisi repo HEAD'ini checkout eder ve "
+          "yukleyiciyi CAGIRMAZ; commit'lenmemis kayit CI'da GORUNMEZ.")
 
 
 def main():

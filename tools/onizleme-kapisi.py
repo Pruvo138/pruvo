@@ -43,13 +43,40 @@ BU DOSYANIN IKI KOMUTU:
                 beyani repo HEAD KAYDIYLA caprazlanir (ayrisirsa KAYIT KAZANIR),
                 `/kapsam` beyani repo SEMASIYLA caprazlanir, ve eslemin PAKETTE OLMAYAN
                 bir .scad'i surmesi (ters yon) yakalanir.
-  O5 KISIT    : ONIZLEME_KISITLAR ile BILINCLI kapatilan varyantin .scad'i "olu uretec"
-                SAYILMAZ ("kisitla kapali: N" satiri) — kapi kendi ATLADIGI dosyayi olu
-                diye yakiyordu. GERCEK olu uretec KIRMIZI'si AYNEN durur.
+  O5 KISIT    : 🔴 GERI ALINDI — bkz. O8 (asagida). "Kisitla kapali" SINIFI ARTIK YOK.
   O1/O6       : CI cagri satiri nobeti tools/is-akisi-kapisi.py BOLUM B'ye baglandi
                 (bu dosyanin ci-kapsam muafiyeti oradaki iddiaya KILITLI — B-CAPRAZ).
   O7          : kayittaki adlarin JENERIK kalmasi tools/kisisel-veri-test.py'de
                 bloklayici nobetle zorlanir (marka/yol/e-posta/URL -> KIRMIZI).
+
+30 TEM DAR ONARIM TURU (tur 5) — dogrulama turunun (tur 4) actigi iki delik:
+  O8 KISIT    : 🔴 O5'IN ACTIGI MASKELEME KANALI KAPATILDI (D4). O5, ONIZLEME_KISITLAR
+                ile kapatilan bir varyantin .scad'ini olu-uretec olcumunun DISINA
+                cikariyordu. Olculdu (tur 4/M2-M3): pakete gercek bir olu .scad koyup
+                (a) eslem-ozel.json'da onu SEMADA YASAL bir secici degerinin ureteci
+                diye bildirmek, (b) secenekler.js'te o degeri kisitlamak — iki dosyada
+                birer satir — dosyayi "kisitla kapali" saydirip kapiyi YESIL geciriyordu.
+                Ustelik kisit sonradan GEVSETILDIGINDE hic derlenmemis o ureteci
+                musteriye acan bloklayici kapi YOK (duman yalniz workflow_dispatch'te).
+                ONARIM — KAVRAM DUZELTMESI: **kisit MUSTERI EVRENINI daraltir, IMAJ
+                KABILIYETINI daraltmaz.** Duman testi imajin kabiliyetini olcer; bu
+                yuzden `istek_setleri` artik AYRI bir .scad suren HER secici degerini
+                ONIZLEME_KISITLAR'a BAKMADAN derletir. Sonuc: (i) Ç8/FP5 sahte-kirmizisi
+                kaynagindan kalkti (dosya artik atlanmiyor, DERLENIYOR), (ii) "kisitla
+                kapali" hukmu — dolayisiyla maskeleme kanali — TAMAMEN YOK OLDU,
+                (iii) kisit gevsetmesi kapsami DEGISTIREMEZ. Invaryant makineye baglandi:
+                `kisit_kapsam_kusurlari()` her ailede "kisitli plan == kisitsiz plan"
+                oldugunu olcer; biri kisit-itaatini geri koyarsa KIRMIZI yanar.
+  O9 KAYIT    : parmakizi kaydi ARTIK uretildigi R2 paket anahtarini tasir
+                (`paket_anahtar`) ve `parmakizi-dogrula --paket-anahtar` bunu CI'nin
+                tetiklendigi anahtarla CAPRAZLAR. Tur 4/D8 olcumu: is akisi yukleyiciyi
+                HIC cagirmiyor ve `paket_anahtar` serbest metindi -> R2'de duran ESKI
+                bir anahtarla is tetiklenip kayit-paket uyumsuzlugu sessiz kalabiliyordu.
+  D2 YAPI     : paket dizini DUZ olmali — alt dizin bulunursa FAIL-CLOSED
+                (`paket_yapi_kusurlari`). Olculdu: alt dizindeki dosyalar ne kayda ne
+                servisin /parmakizi beyanina giriyordu (iki taraf da `os.listdir` +
+                `isfile` kullanir) -> `include <alt/x.scad>` ile geometriyi belirleyen
+                bir dosya parmakizi kapsaminin DISINDA kalabilirdi.
 
 "REPO HEAD'DEKI PAKET KAYDI" NE DEMEK (kapsam durustlugu):
   .scad KAYNAKLARI BU PUBLIC REPODA DEGILDIR (uyelik ureteclerinin kodu gizli;
@@ -145,6 +172,53 @@ def paket_parmakizlari(dizin):
     return out
 
 
+def paket_yapi_kusurlari(dizin):
+    """D2 (tur 5) — PAKET DIZINI DUZ MU? Alt dizin varsa FAIL-CLOSED kusur dondurur.
+
+    OLCULDU (tur 5): `paket_parmakizlari` ve server.py::paket_parmakizlari AYNI kurali
+    kullanir — `os.listdir` + `os.path.isfile`, alt dizinlere INILMEZ. Yani bir alt
+    dizindeki dosya NE kayda NE servisin /parmakizi beyanina girer: iki taraf da ayni
+    korlukte oldugu icin `parmakizi_farklari` de sessiz kalir (kor nokta simetrik).
+    OpenSCAD `include <alt/ortak.scad>` yazabildigi icin bu, GEOMETRIYI BELIRLEYEN bir
+    dosyanin parmakizi kapsaminin tamamen DISINDA kalmasi demektir.
+    Cozum kapsami GENISLETMEK degil (o, kaydin anahtar bicimini ve server.py'yi birlikte
+    degistirir); paketin ZATEN BEYAN EDILMIS "duz dizin" sozlesmesini MAKINEYE baglamak:
+    alt dizin gorulurse kapi KIRMIZI yanar ve dosya paketten cikarilir.
+
+    KAPSAM SINIRI (beyan): bu kontrol yalniz `--dizin` yolunda (CI'da docker build'den
+    ONCE, cekilen paket uzerinde) kosar. `--url` yolunda kosan imaja "alt dizinin var mi"
+    diye sorulamaz (server.py boyle bir uc sunmuyor); o eksende olcum YOK.
+
+    Ayrica DIGER kapsam siniflari OLCULDU ve BEYAN edilir (tur 5/D2):
+      * sembolik bag  -> `os.path.isfile` bagi IZLER; hedef duz dosyaysa KAPSANIR
+                         (icerik hash'lenir). Kirik bag `isfile` False doner -> sessizce
+                         atlanir; asagida ayri kusur olarak yakalanir.
+      * bos dosya     -> KAPSANIR (bos icerigin sha256'si).
+      * yalniz IZIN BITI degisen dosya -> KAPSANMAZ. Kayit ICERIK eksenindedir; izin biti
+                         tar arsivinden imaja gecer ama geometriye etki etmez. BEYAN.
+      * BOM'lu / CRLF'li dosya -> KAPSANIR (bayt duzeyi hash; BOM ya da satir sonu
+                         degisimi ICERIK degisimidir ve DRIFT/ICERIK olarak konusur)."""
+    kusurlar = []
+    for ad in sorted(os.listdir(dizin)):
+        yol = os.path.join(dizin, ad)
+        if os.path.isdir(yol):
+            icerik = sorted(os.listdir(yol))[:5]
+            kusurlar.append(
+                "PAKET DUZ DEGIL: '%s' bir ALT DIZIN (%d giris%s) -> alt dizindeki "
+                "dosyalar ne parmakizi kaydina ne imajin /parmakizi beyanina girer "
+                "(iki taraf da yalniz duz dosyalari tarar), yani `include <%s/...>` ile "
+                "GEOMETRIYI BELIRLEYEN bir dosya olcum disinda kalir (fail-closed). "
+                "COZUM: paketi duzlestirin — tools/onizleme-paket-yukle.py::topla() duz "
+                "yazar; alt dizin elle sizmis demektir."
+                % (ad, len(icerik), (": " + ", ".join(icerik)) if icerik else "", ad))
+        elif not os.path.isfile(yol):
+            kusurlar.append(
+                "PAKET GIRISI DOSYA DEGIL: '%s' duz dosya da dizin de degil (kirik "
+                "sembolik bag / soket / fifo?) -> hash'lenemez ve SESSIZCE atlanirdi "
+                "(fail-closed)." % ad)
+    return kusurlar
+
+
 def scad_alt_kumesi(parmakizlari):
     """Parmakizi sozlugunun yalniz *.scad kismi (olu-uretec olcumu bunu kullanir).
     TUREV bir gorunumdur — ikinci bir tarama/kayit DEGIL (tek kaynak: paket kaydi)."""
@@ -169,9 +243,14 @@ def manifest_oku(yol):
         raise ValueError(
             "parmakizi kaydi ESKI SURUM (%r; beklenen %d) -> bu kayit paketin yalniz "
             "*.scad yarisini tasiyor, `eslem-ozel.json` gibi GEOMETRIYI BELIRLEYEN "
-            "dosyalar olculmemis olur (fail-closed). COZUM (paketi toplayan makinede): "
-            "python3 tools/onizleme-paket-yukle.py  -> paketi yukler VE bu kaydi surum "
-            "%d olarak tazeler; kayit AYNI commit'te repoya girer."
+            "dosyalar olculmemis olur (fail-closed). "
+            "COZUM (TEK SATIR, paketi toplayan makinede): python3 "
+            "tools/onizleme-paket-yukle.py  -> paketi R2'ye yukler, bu kaydi surum %d "
+            "olarak paketin TA KENDISINDEN uretir ve R2 anahtarini kayda yazar. "
+            "🔴 SONRA: kaydi COMMIT + PUSH edin, ancak ondan sonra onizleme-imaj.yml'yi "
+            "o ciktidaki 'R2 ANAHTARI' degeriyle tetikleyin — is akisi yukleyiciyi "
+            "CAGIRMAZ ve repo HEAD'ini checkout eder, yani commit'lenmemis kayit CI'da "
+            "GORUNMEZ (kilit KENDILIGINDEN COZULMEZ; tur 4/D8 olcumu)."
             % (surum, MANIFEST_SURUM, MANIFEST_SURUM))
     dosyalar = veri.get("dosyalar")
     if not isinstance(dosyalar, dict):
@@ -179,10 +258,56 @@ def manifest_oku(yol):
     return dosyalar
 
 
-def manifest_yaz(yol, parmakizlari, not_metni=""):
+def manifest_paket_anahtari(yol):
+    """O9 (tur 5) — kaydin URETILDIGI R2 paket anahtari; yoksa None.
+
+    Kayit, paketi toplayan tek yazar tarafindan paketin TA KENDISINDEN uretilir; o
+    yazar hangi R2 anahtarina yukledigini de bilir. Anahtari kayda YAZMAK, "bu kayit
+    HANGI paket icin gecerli" sorusunu MAKINEYE baglar. Tur 4/D8 olcumu: is akisi
+    girdisi (`paket_anahtar`) SERBEST METINDI ve R2'de duran ESKI bir anahtar girilerek
+    is tetiklenebiliyordu -> kayit taze gorunurken imaj bambaska bir paketten derlenirdi.
+    (Bu, kaydin GECERLILIK ETIKETIDIR; kaydi UYDURMAZ. Kaydi hala yalniz gercek paket
+    uretir.)"""
+    with open(yol, "r", encoding="utf-8") as f:
+        veri = json.load(f)
+    anahtar = veri.get("paket_anahtar")
+    return anahtar if isinstance(anahtar, str) and anahtar else None
+
+
+def paket_anahtar_kusurlari(manifest_yol, ci_anahtar):
+    """KAPI GOVDESI (O9) — kayit HANGI R2 paketi icin uretildi, CI HANGISINI cekti.
+
+    `ci_anahtar` bos ise (yerel kosum) olcum YAPILMAZ — bos liste doner. CI'da is akisi
+    girdisi ZORUNLU oldugu icin orada daima dolu gelir; bayragin dusurulmesi ise
+    tools/is-akisi-kapisi.py B_IDDIALAR['parmakizi-dizin'] jetonuyla KIRMIZI'ya bagli."""
+    if not ci_anahtar:
+        return []
+    kayit_anahtar = manifest_paket_anahtari(manifest_yol)
+    if not kayit_anahtar:
+        return [
+            "parmakizi kaydinda `paket_anahtar` YOK (%s) -> bu kaydin HANGI R2 paketi "
+            "icin uretildigi bilinmiyor; is akisi '%s' anahtarini cekti (fail-closed). "
+            "COZUM (paketi toplayan makinede, TEK SATIR): python3 "
+            "tools/onizleme-paket-yukle.py  -> paketi yukler, kaydi anahtarla birlikte "
+            "tazeler; ARDINDAN kaydi COMMIT + PUSH edip is akisini o ciktidaki 'R2 "
+            "ANAHTARI' degeriyle tetikleyin." % (manifest_yol, ci_anahtar)]
+    if kayit_anahtar != ci_anahtar:
+        return [
+            "KAYIT/PAKET ANAHTARI AYRISMASI: repo HEAD kaydi '%s' paketi icin uretilmis, "
+            "is akisi ise '%s' anahtarini cekti -> kayit bu pakete AIT DEGIL "
+            "(fail-closed; tur 4/D8-2: girdi serbest metin oldugu icin R2'de duran ESKI "
+            "bir anahtarla is tetiklenebiliyordu). COZUM (TEK SATIR): is akisini "
+            "paket_anahtar='%s' ile tetikleyin; yeni paket yayinlanacaksa once python3 "
+            "tools/onizleme-paket-yukle.py kosun ve tazelenen kaydi AYNI commit'te "
+            "push edin." % (kayit_anahtar, ci_anahtar, kayit_anahtar)]
+    return []
+
+
+def manifest_yaz(yol, parmakizlari, not_metni="", paket_anahtar=""):
     veri = {
         "surum": MANIFEST_SURUM,
         "algoritma": ALGORITMA,
+        "paket_anahtar": paket_anahtar or "",
         "aciklama": ("Onizleme derleyici imajina gomulen paket anlik goruntusunun icerik "
                      "ozetleri — paket dizinindeki TUM dosyalar (*.scad + eslem-ozel.json "
                      "+ pakete giren her sey). TEK YAZAR: tools/onizleme-paket-yukle.py. "
@@ -420,6 +545,26 @@ def istek_setleri(sema, kisit, kapsam=None, secim_tara=0):
     surdugunu soyler -> varsayilan set + AYRI BIR .scad'e giden her secici degeri.
     Boylece 23 aile ~25 istekle kapanir (kor `secim_tara=1` taramasi 101 istek olcmustu).
 
+    🔴 O8 (tur 5) — KISIT ARTIK VARYANT SUPURMESINI DARALTMAZ: asagidaki varyant
+    dongusu ONIZLEME_KISITLAR'a BAKMAZ. Gerekce olculmus bir kavram hatasidir:
+    ONIZLEME_KISITLAR MUSTERI EVRENINI daraltir (siteden hangi secenek secilebilir),
+    IMAJ KABILIYETINI degil (imaj o ureteci derleyebiliyor mu). Duman testi ikincisini
+    olcer. Eski hal (kisita uy + atlanani "kisitla kapali" say) iki zarar uretiyordu:
+      (a) SAHTE-KIRMIZI (Ç8/FP5): atlanan .scad "olu uretec" diye yakiliyordu;
+      (b) 🔴 MASKELEME (tur 4/D4): eslem-ozel.json + secenekler.js'te birer satirla
+          GERCEK bir olu uretec kapsam disina cikarilip kapi YESIL gecirilebiliyordu,
+          ve kisit gevsetildigi gun hic derlenmemis uretec musteriye aciliyordu.
+    Ikisinin de kaynagi ayni satirdi (`if izinli and deger not in izinli: continue`).
+    Kaldirilinca (a) kendiliginden duzeldi — dosya artik atlanmiyor, DERLENIYOR — ve
+    (b)'nin kanali TAMAMEN yok oldu: kisit ne sikilastirilsin ne gevsetilsin, denenen
+    .scad kumesi DEGISMEZ. Invaryant `kisit_kapsam_kusurlari()` ile makineye baglidir.
+    MALIYET: kisitli bir secici degeri AYRI bir .scad suruyorsa istek sayisi +1 olur
+    (bugunku canli kisit listesinde — cetvel/damga-kase/petek — cift-uretecli aile YOK,
+    yani bugun +0). Yararli maliyettir: kisit kalkinca derlenmedigi CANLIDA anlasilan
+    uretec, artik CI'da anlasiliyor.
+    Taban (varsayilan) istek kisiti UYGULAMAYA DEVAM EDER: o istek "musterinin gordugu
+    varsayilan" senaryosudur ve kisitli bir varsayilani zorlamak anlamsiz olurdu.
+
     secim_tara>0: ek olarak ilk N `secim` parametresinin izinli TUM degerleri (derin
     supurme; CI varsayilani 0)."""
     taban = varsayilan_parametreler(sema, kisit)
@@ -434,10 +579,9 @@ def istek_setleri(sema, kisit, kapsam=None, secim_tara=0):
 
     if secici:
         # AYRI .scad'e giden secici degerleri (yay: dalga; vida: somun/pul ...).
-        izinli = (kisit or {}).get(secici)
+        # 🔴 KISIT SUZGECI YOK (O8) — bkz. docstring. Bu dongude ONIZLEME_KISITLAR'a
+        # BAKILMAZ; imajin tasidigi HER uretec, musteriye kapali olsa da derletilir.
         for deger, scad in sorted(varyantlar.items()):
-            if izinli and deger not in izinli:
-                continue
             if scad in goruldu:
                 continue
             yeni = dict(taban)
@@ -464,44 +608,47 @@ def istek_setleri(sema, kisit, kapsam=None, secim_tara=0):
     return setler
 
 
-def kisitla_kapali_scadler(sema, kisit, kapsam=None):
-    """O5 onarimi (curutme turu Ç8/FP5) — ONIZLEME_KISITLAR yuzunden ERISILEMEYEN .scad'ler.
+def kisit_kapsam_kusurlari(semalar, kapsam, kisitlar, hedefler):
+    """O8 NOBETCISI (tur 5) — DUMAN KAPSAMI ONIZLEME_KISITLAR'DAN BAGIMSIZ OLMALI.
 
-    OLCULEN YANLIS-POZITIF: `istek_setleri()` ONIZLEME_KISITLAR'a UYUP yasakli secici
-    degerini ATLIYOR (satir: `if izinli and deger not in izinli: continue`), sonra
-    `duman_kusurlari()` tam da ATLADIGI .scad'i "OLU URETEC" diye KIRMIZI yakiyordu.
-    Yani "bir varyanti musteriye kapat" gibi RUTIN TICARI bir karar, imaj isini
-    yaniltici bir "olu dosya" mesajiyla kirmiziya dusuruyordu. Bugun canlida
-    patlamiyor (kisit listesinde cetvel/damga-kase/petek var, cift-uretecli yay/vida
-    YOK) — LATENT: kisit listesine yay ya da vida girdigi gun patlar.
+    Bu, O5'in actigi maskeleme kanalinin (tur 4/D4) yeniden acilmasini engelleyen
+    INVARYANTTIR. Olctugu sey tek cumle: "ayni fikstur, kisitli ve KISITSIZ planlandiginda
+    AYNI .scad kumesini derletir mi?" Hayirsa, ONIZLEME_KISITLAR imajin kabiliyet
+    olcumunu daraltiyor demektir ve tam o daralma icine gercek bir olu uretec
+    saklanabilir (iki dosyada birer satir yeter).
 
-    AYRIM (gevsetme DEGIL): "kisitla kapali" != "olu". Kisitla kapali bir .scad
-    BILINCLI bir kararla erisilemezdir ve bu ciktida AYRICA gorunur; olu bir .scad'in
-    (hicbir ailenin/varyantin surmedigi dosya) KIRMIZI'si AYNEN durur."""
-    kapsam = kapsam or {}
-    secici = kapsam.get("secici")
-    varyantlar = kapsam.get("varyantlar") or {}
-    if not secici or not varyantlar:
-        return set()
-    izinli = (kisit or {}).get(secici)
-    if not izinli:
-        return set()
-    taban = varsayilan_parametreler(sema, kisit)
-    # Varsayilan setin surdugu .scad DAIMA erisilebilir -> kapali sayilmaz.
-    erisilebilir = set()
-    varsayilan_scad = kapsam.get("scad")
-    if taban.get(secici) in varyantlar:
-        varsayilan_scad = varyantlar[taban[secici]]
-    if varsayilan_scad:
-        erisilebilir.add(varsayilan_scad)
-    for deger, scad in varyantlar.items():
-        if deger in izinli and scad:
-            erisilebilir.add(scad)
-    kapali = set()
-    for deger, scad in varyantlar.items():
-        if deger not in izinli and scad and scad not in erisilebilir:
-            kapali.add(scad)
-    return kapali
+    NEDEN BLOKLAYICI BIR INVARYANT: `istek_setleri` bugun kisit suzgeci UYGULAMIYOR
+    (O8). Ama bu, bir gun birinin "kisitli varyanti neden derliyoruz" deyip o satiri
+    geri koymasini engellemez — ve o degisiklik, kapiyi SESSIZCE eski (maskelenebilir)
+    haline dondururdu. Invaryant o tek satiri KIRMIZI'ya bagliyor.
+
+    AYRICA GEVSETME EKSENI: kisit listesi degistiginde (sikilasma ya da GEVSEME) bu
+    olcum kapsamin degismedigini soyler; yani "kisit gevsetildi, hic derlenmemis bir
+    uretec musteriye acildi" senaryosu YAPISAL OLARAK imkansizdir — kisitliyken de
+    derleniyordu.
+
+    Kisit yalniz TABAN (varsayilan) istegin parametrelerini kaydirabilir; bu kaydirma
+    denenen .scad KUMESINI degistirmemelidir."""
+    kusurlar = []
+    for aile in sorted(hedefler):
+        sema = semalar.get(aile)
+        if sema is None:
+            continue
+        aile_kapsam = (kapsam or {}).get(aile)
+        kisitli = set(s for _, _, s in istek_setleri(
+            sema, (kisitlar or {}).get(aile), aile_kapsam) if s)
+        kisitsiz = set(s for _, _, s in istek_setleri(sema, None, aile_kapsam) if s)
+        eksik = kisitsiz - kisitli
+        if eksik:
+            kusurlar.append(
+                "KISIT KAPSAMI DARALTTI: '%s' ailesinde ONIZLEME_KISITLAR yuzunden %s "
+                "duman planinin DISINDA kaldi (kisitsiz planda VAR). Kisit MUSTERI "
+                "EVRENINI daraltir, IMAJ KABILIYETINI degil -> bu daralma bir olu "
+                "ureteci maskeleyebilir ve kisit gevsetildigi gun hic derlenmemis bir "
+                "uretec musteriye acilir (tur 4/D4). Duzeltme: istek_setleri varyant "
+                "dongusunde kisit suzgeci KULLANMAMALI."
+                % (aile, ", ".join(sorted(eksik))))
+    return kusurlar
 
 
 def kapsam_beyani_kusurlari(semalar, kapsam, kisitlar):
@@ -594,6 +741,7 @@ def duman_kusurlari(taban_url, acik_aileler, semalar, kisitlar,
       7. KAYIT vs SERVIS BEYANI ayrisiyor                 (O4, KAYIT kazanir)
       8. /kapsam beyani sema ile ortusmuyor               (O4, bagimsiz capraz)
       9. eslem PAKETTE OLMAYAN bir .scad'i surdu          (O4, ters yon)
+     10. ONIZLEME_KISITLAR duman kapsamini DARALTTI      (O8, maskeleme kanali)
 
     `manifest`: repo HEAD parmakizi kaydinin yolu. Verilirse servisin `/parmakizi`
     beyani KAYITLA caprazlanir; ayrisirsa KAYIT KAZANIR (O4)."""
@@ -681,13 +829,15 @@ def duman_kusurlari(taban_url, acik_aileler, semalar, kisitlar,
             % ", ".join(semasiz_servis))
     yaz("  derletilecek aile (%d): %s" % (len(hedefler), ", ".join(hedefler)))
 
+    # --- (10) KISIT-BAGIMSIZLIK INVARYANTI — O8. Duman kapsami ONIZLEME_KISITLAR'dan
+    # ETKILENMEMELI; etkilenirse o daralmanin icine olu uretec saklanabilir (tur 4/D4).
+    kusurlar.extend(kisit_kapsam_kusurlari(semalar, kapsam, kisitlar, hedefler))
+
     toplam_set = 0
     denenen_scad = set()
-    kisitla_kapali = set()
     for aile in hedefler:
         aile_kisit = kisitlar.get(aile)
         aile_kapsam = kapsam.get(aile)
-        kisitla_kapali |= kisitla_kapali_scadler(semalar[aile], aile_kisit, aile_kapsam)
         for etiket, parametreler, scad in istek_setleri(
                 semalar[aile], aile_kisit, aile_kapsam, secim_tara):
             toplam_set += 1
@@ -702,12 +852,25 @@ def duman_kusurlari(taban_url, acik_aileler, semalar, kisitlar,
                 % (aile, etiket, kod, boyut, (" — " + hata) if hata else ""))
     yaz("  toplam derleme istegi: %d · basariyla derlenen ayri .scad: %d/%d"
         % (toplam_set, len(denenen_scad & paket_scad), len(paket_scad)))
-    if kisitla_kapali:
-        yaz("  kisitla kapali: %d (%s) — ONIZLEME_KISITLAR bilincli olarak erisimi "
-            "kapatti; OLU SAYILMAZ"
-            % (len(kisitla_kapali), ", ".join(sorted(kisitla_kapali))))
+    # O8: "kisitla kapali" SINIFI YOK. Bunun yerine kisitin kapsama ETKISI raporlanir —
+    # beklenen deger DAIMA 0'dir (invaryant yukarida bloklayici olarak olculdu).
+    musteriye_kapali = []
+    for aile in sorted(hedefler):
+        aile_kisit = (kisitlar or {}).get(aile) or {}
+        aile_kapsam = kapsam.get(aile) or {}
+        secici = aile_kapsam.get("secici")
+        izinli = aile_kisit.get(secici) if secici else None
+        if not izinli:
+            continue
+        for deger, scad in sorted((aile_kapsam.get("varyantlar") or {}).items()):
+            if deger not in izinli and scad:
+                musteriye_kapali.append("%s[%s=%s]->%s" % (aile, secici, deger, scad))
+    if musteriye_kapali:
+        yaz("  musteriye kapali varyant: %d (%s) — HEPSI YINE DE DERLETILDI "
+            "(kisit musteri evrenini daraltir, imaj kabiliyetini DEGIL; O8)"
+            % (len(musteriye_kapali), ", ".join(musteriye_kapali)))
     else:
-        yaz("  kisitla kapali: 0")
+        yaz("  musteriye kapali varyant: 0")
 
     # (9) TERS YON — O4. Eslem, PAKETTE OLMAYAN bir .scad'i surdugunu soyluyorsa
     # kapsama kredisi HAYALI bir dosyaya yaziliyor demektir. Curutme turunda (Ç7/M1)
@@ -721,11 +884,10 @@ def duman_kusurlari(taban_url, acik_aileler, semalar, kisitlar,
     # (5) Paketteki her .scad EN AZ BIR KEZ derlenmis olmali. Denenmemis bir uretec,
     # sabit-liste devrindeki tam sessizligin kalintisidir: dosya imaja giriyor ama
     # hicbir duman istegi ona ulasmiyor -> bozuk oldugu CANLIDA anlasilir.
-    # 🟡 O5 AYRIMI: ONIZLEME_KISITLAR ile BILINCLI olarak kapatilmis bir varyantin
-    # .scad'i "olu" DEGILDIR — kapi kendi atladigi dosyayi olu diye yakiyordu (Ç8/FP5).
+    # 🔴 O8: BURADA ISTISNA YOK. Eski "kisitla kapali -> atla" istisnasi (O5) tur 4/D4'te
+    # maskeleme kanali olarak olculdu ve KALDIRILDI; kisitli varyantlar artik zaten
+    # derletiliyor, dolayisiyla mesru bir "atla" sebebi de kalmadi.
     for ad in sorted(paket_scad - denenen_scad):
-        if ad in kisitla_kapali:
-            continue
         kusurlar.append(
             "DENENMEMIS URETEC: '%s' imajin paketinde VAR ama hicbir duman istegi onu "
             "derletmedi -> ya bagli oldugu aile ONIZLEME_AILELER/servis disinda, ya da "
@@ -753,11 +915,18 @@ def main(argv=None):
     a.add_argument("--dizin", required=True)
     a.add_argument("--manifest", default=VARSAYILAN_MANIFEST)
     a.add_argument("--not", dest="not_metni", default="")
+    a.add_argument("--paket-anahtar", dest="paket_anahtar", default="",
+                   help="kaydin uretildigi R2 nesne anahtari (O9): CI tetiklendigi "
+                        "anahtarla caprazlanir")
 
     b = alt.add_parser("parmakizi-dogrula", help="kayit vs imaj/paket — drift varsa exit 1")
     b.add_argument("--dizin")
     b.add_argument("--url")
     b.add_argument("--manifest", default=VARSAYILAN_MANIFEST)
+    b.add_argument("--paket-anahtar", dest="paket_anahtar", default="",
+                   help="CI'nin cektigi R2 paket anahtari (O9). Verilirse kaydin "
+                        "`paket_anahtar` alaniyla CAPRAZLANIR; uyusmazsa/eksikse "
+                        "FAIL-CLOSED")
 
     c = alt.add_parser("duman", help="dizin taramasiyla aile listesini servise derlet")
     c.add_argument("--url", required=True)
@@ -775,12 +944,15 @@ def main(argv=None):
     args = ap.parse_args(argv)
 
     if args.komut == "parmakizi-yaz":
+        yapi = paket_yapi_kusurlari(args.dizin)
+        if yapi:
+            return _kapat(yapi, "")
         pk = paket_parmakizlari(args.dizin)
         if not pk or not scad_alt_kumesi(pk):
             print("KIRMIZI: %s altinda dosya/uretec yok (%d dosya, %d .scad) — bos kayit "
                   "YAZILMAZ (fail-closed)." % (args.dizin, len(pk), len(scad_alt_kumesi(pk))))
             return 1
-        manifest_yaz(args.manifest, pk, args.not_metni)
+        manifest_yaz(args.manifest, pk, args.not_metni, args.paket_anahtar)
         print("parmakizi kaydi yazildi: %s (%d dosya, %d .scad)"
               % (args.manifest, len(pk), len(scad_alt_kumesi(pk))))
         return 0
@@ -792,17 +964,30 @@ def main(argv=None):
         if not os.path.exists(args.manifest):
             print("KIRMIZI: parmakizi kaydi YOK: %s" % args.manifest)
             print("KIRMIZI: FAIL-CLOSED — kayit olmadan imajin bayat olup olmadigi "
-                  "OLCULEMEZ. Cozum (paketi toplayan makinede): "
-                  "python3 tools/onizleme-paket-yukle.py  (paketi yukler VE bu kaydi "
-                  "tazeler; kayit AYNI commit'te repoya girer).")
+                  "OLCULEMEZ. COZUM (TEK SATIR, paketi toplayan makinede): "
+                  "python3 tools/onizleme-paket-yukle.py  -> paketi yukler VE bu kaydi "
+                  "paketin ta kendisinden uretir; ARDINDAN kaydi COMMIT + PUSH edip is "
+                  "akisini ciktidaki 'R2 ANAHTARI' degeriyle tetikleyin (is akisi "
+                  "yukleyiciyi CAGIRMAZ, repo HEAD'ini checkout eder).")
             return 1
         try:
             kayit = manifest_oku(args.manifest)
         except Exception as e:                               # noqa: BLE001
             print("KIRMIZI: parmakizi kaydi okunamadi (%s): %s" % (args.manifest, e))
             return 1
+        # O9 — KAYIT <-> R2 PAKET ANAHTARI CAPRAZI (tur 4/D8). CI hangi anahtari
+        # cektiyse kayit da O anahtar icin uretilmis olmali. FAIL-CLOSED: alan yoksa
+        # kayit bu kapidan ESKIdir (anahtarsiz kayit, "hangi paket" sorusunu yanitlamaz).
+        anahtar_kusurlari = paket_anahtar_kusurlari(args.manifest, args.paket_anahtar)
+        if anahtar_kusurlari:
+            return _kapat(anahtar_kusurlari, "")
+        if args.paket_anahtar:
+            print("kayit/paket anahtari: %s (eslesti)" % args.paket_anahtar)
         try:
             if args.dizin:
+                yapi = paket_yapi_kusurlari(args.dizin)
+                if yapi:
+                    return _kapat(yapi, "")
                 taze = paket_parmakizlari(args.dizin)
                 kaynak = "paket dizini %s" % args.dizin
             else:

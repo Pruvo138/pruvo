@@ -49,9 +49,20 @@ BOLUMLER:
   (O4) KAPSAMA CAPRAZI — "N/N kapsandi" servisin kendi beyani DEGIL: comert yalan ·
                          eksik beyan · /parmakizi yalani (KAYIT kazanir) · eslemin
                          PAKETTE OLMAYAN bir .scad'i surmesi -> dordu de KIRMIZI.
-  (O5) KISIT/OLU AYRIMI— ONIZLEME_KISITLAR ile BILINCLI kapatilan varyant "olu uretec"
-                         SAYILMAZ (YESIL + "kisitla kapali: N"), ama GERCEK olu uretec
-                         HALA KIRMIZI (bu onarim Ç5'i gevsetmemeli).
+  (O5) 🔴 GERI ALINDI  — yerine (O8). "Kisitla kapali" sinifi tur 4/D4'te MASKELEME
+                         KANALI olarak olculdu ve KALDIRILDI.
+
+  --- 30 Tem DAR ONARIM TURU (tur 5) — dogrulama turunun actigi delikler ---
+  (O8) KISIT KAPSAMI   — ONIZLEME_KISITLAR duman kapsamini DARALTAMAZ: kisitli varyant
+                         DERLETILIR (Ç8/FP5 sahte-kirmizisi kaynagindan kalkti), tur 4'un
+                         D4 saldirisinin TAM METNI artik maskelemez, eski kisit-itaatli
+                         supurme geri konursa invaryant KIRMIZI yanar, GERCEK olu uretec
+                         HALA KIRMIZI.
+  (O9) KAYIT/PAKET     — `parmakizi-dogrula --paket-anahtar` caprazi: kayit surum 1 ·
+                         kayitta anahtar YOK · anahtar UYUSMUYOR hallerinde KIRMIZI ve
+                         cikti TEK SATIRDA ne yapilacagini soyluyor; eslesme YESIL.
+  (D2) PAKET YAPISI    — alt dizin iceren paket FAIL-CLOSED (alt dizindeki dosya ne
+                         kayda ne /parmakizi beyanina girer; simetrik kor nokta).
   (D2) YENI GOVDE NO-OP— yukaridaki her yeni nobet govdesi AYRI AYRI oldurulunce ilgili
                          KIRMIZI KAYBOLMALI (KACAN = 0).
   (E)  CI CAGRI SATIRI — UC kapi adimi (kabul testinin KENDISI dahil) CI'da FIILEN
@@ -762,9 +773,18 @@ def main():
             ok("(O4) KAPSAMA CAPRAZLANDI: comert yalan · eksik beyan · /parmakizi yalani "
                "(kayit kazandi) · hayali uretec — DORDU DE KIRMIZI")
 
-        # ---------------- (O5) KISITLA KAPALI != OLU
-        # Curutme turu Ç8/FP5: kisit yuzunden ATLANAN .scad'i kapi "olu uretec" diye
-        # KIRMIZI yakiyordu. LATENT: kisit listesine yay/vida girdigi gun patlar.
+        # ---------------- (O8) KISIT DUMAN KAPSAMINI DARALTAMAZ  [tur 5, D4 onarimi]
+        # Tur 4/D4 olcumu: O5'in "kisitla kapali" sinifi bir MASKELEME KANALIYDI —
+        # eslem-ozel.json'da olu bir .scad'i SEMADA YASAL bir secici degerine baglayip
+        # secenekler.js'te o degeri kisitlamak (iki dosya, birer satir) dosyayi olu-uretec
+        # olcumunun disina cikariyor ve kapiyi YESIL geciriyordu.
+        # ONARIM: kisit MUSTERI EVRENINI daraltir, IMAJ KABILIYETINI degil -> varyant
+        # supurmesi artik ONIZLEME_KISITLAR'a BAKMAZ. Burada UC sey olculur:
+        #   (1) kisitli fikstur YESIL ve kisitli varyantin .scad'i GERCEKTEN derletiliyor
+        #       (Ç8/FP5 sahte-kirmizisi kaynagindan kalkti — "beyan edilmis sinir" degil),
+        #   (2) TUR 4'UN D4 SALDIRISININ TAM METNI artik maskelemiyor: olu.scad kapsam
+        #       DISINA CIKMIYOR (kisitli/kisitsiz denenen .scad kumesi AYNI),
+        #   (3) GERCEK olu uretec (hicbir varyantin surmedigi dosya) HALA KIRMIZI.
         o5_hata = []
         paket_o5, sema_o5, secenekler_o5 = fikstur_kur(os.path.join(kok, "o5"))
         # beta CIFT URETECLI (duz->beta.scad, egri->beta2.scad); 'egri' KISITLANIR.
@@ -784,14 +804,114 @@ def main():
                                  yaz=o5_satir.append, manifest=kayit_o5)
             o5_metin = "\n".join(o5_satir)
             if any("DENENMEMIS URETEC" in k and "beta2.scad" in k for k in o5_kusur):
-                o5_hata.append("SAHTE-KIRMIZI SURUYOR: kisitla kapatilan 'beta2.scad' "
-                               "hala 'olu uretec' diye yakiliyor")
+                o5_hata.append("SAHTE-KIRMIZI SURUYOR: kisitli varyantin 'beta2.scad'i "
+                               "'olu uretec' diye yakiliyor (kisit suzgeci geri gelmis)")
             if o5_kusur:
                 o5_hata.append("kisit fiksturu KIRMIZI oldu (olmamaliydi): %s" % o5_kusur)
-            if "kisitla kapali: 1" not in o5_metin:
-                o5_hata.append("cikti 'kisitla kapali: N' satirini basmadi -> ayrim "
-                               "gorunmuyor: %s" % o5_metin)
-            # O5 GEVSETME KONTROLU: GERCEK olu uretec HALA KIRMIZI olmali.
+            if "beta2.scad" in o5_metin and "kisitla kapali" in o5_metin:
+                o5_hata.append("'kisitla kapali' sinifi GERI GELMIS -> maskeleme kanali "
+                               "yeniden acik: %s" % o5_metin)
+            if "musteriye kapali varyant: 1" not in o5_metin:
+                o5_hata.append("cikti 'musteriye kapali varyant: N' satirini basmadi -> "
+                               "kisitin etkisi gorunmuyor: %s" % o5_metin)
+            # (1) kisitli varyantin .scad'i GERCEKTEN derletildi mi (3/3 kapsandi:
+            # alfa.scad + beta.scad + KISITLI beta2.scad)?
+            if "ayri .scad: 3/3" not in o5_metin:
+                o5_hata.append("kisitli varyantin ureteci DERLETILMEDI -> kapsama "
+                               "3/3 degil: %s" % o5_metin)
+            if "tip=egri" not in o5_metin:
+                o5_hata.append("kisitli 'tip=egri' istegi HIC kurulmadi: %s" % o5_metin)
+
+            # (2) TUR 4'UN D4 SALDIRISI — TAM METIN. beta semasina UCUNCU yasal deger
+            # ('kapali') + eslemde o degerin ureteci 'olu.scad' + secenekler.js'te o
+            # degerin kisitlanmasi. Tur 4'te bu kombinasyon YESIL + "kisitla kapali: 1"
+            # uretiyordu ve olu.scad HICBIR duman istegi gormuyordu.
+            maske_kok = os.path.join(kok, "d4")
+            paket_d4, sema_d4, secenekler_d4 = fikstur_kur(maske_kok)
+            with open(os.path.join(paket_d4, "olu.scad"), "w", encoding="utf-8") as f:
+                f.write("// D4: maskelenmek istenen uretec\ncube(1);\n")
+            sema_d4_yol = os.path.join(sema_d4, "sentetik-aile-beta.json")
+            with open(sema_d4_yol, "r", encoding="utf-8") as f:
+                sema_d4_veri = json.load(f)
+            for tanim in sema_d4_veri["parametreler"]:
+                if tanim["ad"] == "tip":
+                    tanim["secenekler"].append({"deger": "kapali"})
+            with open(sema_d4_yol, "w", encoding="utf-8") as f:
+                json.dump(sema_d4_veri, f, ensure_ascii=False)
+            eslem_d4_yol = os.path.join(paket_d4, "eslem-ozel.json")
+            with open(eslem_d4_yol, "r", encoding="utf-8") as f:
+                eslem_d4 = json.load(f)
+            eslem_d4["aileler"]["sentetik-aile-beta"]["varyantlar"]["kapali"] = {
+                "scad": "olu.scad"}
+            with open(eslem_d4_yol, "w", encoding="utf-8") as f:
+                json.dump(eslem_d4, f, ensure_ascii=False)
+            with open(secenekler_d4, "w", encoding="utf-8") as f:
+                f.write('var ONIZLEME_AILELER = ["sentetik-aile-alfa", '
+                        '"sentetik-aile-beta"];\n')
+                f.write('var ONIZLEME_KISITLAR = {\n'
+                        '  "sentetik-aile-beta": { tip: ["duz", "egri"] }\n};\n')
+            kayit_d4 = kayit_yaz(kapi, kok, paket_d4, "parmakizi-d4.json")
+            servis.kapat()
+            servis = Servis(paket_d4)
+            if not servis.hazir():
+                o5_hata.append("(D4) servis ayaga kalkmadi")
+            else:
+                d4_satir = []
+                d4_kusur = duman_kos(kapi, servis.url, sema_d4, secenekler_d4,
+                                     yaz=d4_satir.append, manifest=kayit_d4)
+                d4_metin = "\n".join(d4_satir)
+                # MASKELEME OLCUSU: olu.scad kapsam DISINDA kaldi mi? Kaldiysa ya
+                # "denenmemis" KIRMIZI'si bastirilmis ya da payda erimis demektir.
+                if "ayri .scad: 4/4" not in d4_metin:
+                    o5_hata.append("🔴 D4 MASKELEME SURUYOR: kisitlanan varyantin "
+                                   "ureteci ('olu.scad') duman kapsamina GIRMEDI "
+                                   "(kapsama 4/4 degil): %s" % d4_metin)
+                if "kisitla kapali" in d4_metin:
+                    o5_hata.append("🔴 D4: 'kisitla kapali' sinifi geri gelmis -> tur 4 "
+                                   "saldirisinin kanali yeniden acik")
+                if d4_kusur:
+                    o5_hata.append("(D4) fikstur KIRMIZI oldu (olmamaliydi): %s"
+                                   % d4_kusur)
+                # ARIZA ENJEKSIYONU: eski (kisit-itaatli) supurme geri konursa
+                # invaryant KIRMIZI yakmali. `istek_setleri` modul duzeyinde
+                # sarmalanir — GERCEK dosyaya dokunulmaz.
+                n_eski = kapi_yukle(ad="k_eski_kisit_suzgeci")
+                _gercek_is = n_eski.istek_setleri
+
+                def _kisit_itaatli(sema, kisit, kapsam=None, secim_tara=0,
+                                   _ic=_gercek_is):
+                    izinli = ((kisit or {}).get((kapsam or {}).get("secici")) or [])
+                    setler = _ic(sema, kisit, kapsam, secim_tara)
+                    if not izinli:
+                        return setler
+                    yasak = set()
+                    for deger, scad in ((kapsam or {}).get("varyantlar") or {}).items():
+                        if deger not in izinli:
+                            yasak.add(scad)
+                    taban_scad = setler[0][2] if setler else None
+                    return [s for s in setler if s[2] == taban_scad
+                            or s[2] not in yasak]
+
+                n_eski.istek_setleri = _kisit_itaatli
+                acik_e, semalar_e, kisit_e = n_eski.duman_plani(sema_d4, secenekler_d4)
+                e_kusur = n_eski.duman_kusurlari(servis.url, acik_e, semalar_e, kisit_e,
+                                                 zaman_asimi=20, manifest=kayit_d4)
+                if not any("KISIT KAPSAMI DARALTTI" in k for k in e_kusur):
+                    o5_hata.append("🔴 INVARYANT OLU: kisit-itaatli (ESKI) supurme geri "
+                                   "konuldugu halde 'KISIT KAPSAMI DARALTTI' KIRMIZI'si "
+                                   "YOK -> O8 nobetcisi hicbir sey olcmuyor: %s" % e_kusur)
+                # NO-OP: invaryant govdesi oldurulunce o KIRMIZI KAYBOLMALI (K-I).
+                n_noop = kapi_yukle(noop_kaynak({"kisit_kapsam_kusurlari"}),
+                                    ad="k_noop_kisit")
+                n_noop.istek_setleri = _kisit_itaatli
+                acik_n, semalar_n, kisit_n = n_noop.duman_plani(sema_d4, secenekler_d4)
+                nn_kusur = n_noop.duman_kusurlari(servis.url, acik_n, semalar_n, kisit_n,
+                                                  zaman_asimi=20, manifest=kayit_d4)
+                if any("KISIT KAPSAMI DARALTTI" in k for k in nn_kusur):
+                    o5_hata.append("kisit_kapsam_kusurlari NO-OP yapildigi halde "
+                                   "KIRMIZI surdu -> iddia baska bir seye bakiyor")
+
+            # (3) GEVSETME KONTROLU: GERCEK olu uretec HALA KIRMIZI olmali.
             with open(os.path.join(paket_o5, "olu.scad"), "w", encoding="utf-8") as f:
                 f.write("// hicbir ailenin surmedigi dosya\ncube(1);\n")
             kayit_o5b = kayit_yaz(kapi, kok, paket_o5, "parmakizi-o5b.json")
@@ -804,14 +924,113 @@ def main():
                                     manifest=kayit_o5b)
                 if not any("DENENMEMIS URETEC" in k and "olu.scad" in k
                            for k in g_kusur):
-                    o5_hata.append("🔴 GEVSEME: O5 onarimi Ç5'i OLDURDU — GERCEK olu "
+                    o5_hata.append("🔴 GEVSEME: O8 onarimi Ç5'i OLDURDU — GERCEK olu "
                                    "uretec 'olu.scad' artik KIRMIZI vermiyor: %s"
                                    % g_kusur)
         for h in o5_hata:
-            kirmizi("(O5) KISIT/OLU AYRIMI: " + h)
+            kirmizi("(O8) KISIT KAPSAMI DARALTAMAZ: " + h)
         if not o5_hata:
-            ok("(O5) KISITLA KAPALI != OLU: kisitlanmis varyant YESIL + 'kisitla kapali: 1' "
-               "satiri; GERCEK olu uretec HALA KIRMIZI (Ç5 gevsemedi)")
+            ok("(O8) KISIT KAPSAMI DARALTAMAZ: kisitli varyant DERLETILDI (3/3) · tur 4"
+               "D4 saldirisinin tam metni maskeleyemedi (4/4) · eski kisit-itaatli "
+               "supurme geri konunca invaryant KIRMIZI · GERCEK olu uretec HALA KIRMIZI")
+
+        # ---------------- (O9) KAYIT <-> R2 PAKET ANAHTARI CAPRAZI  [tur 5, D8 onarimi]
+        # Tur 4/D8: "kilitlenme kendiliginden cozulur" iddiasi KODDA YANLISTI — is akisi
+        # yukleyiciyi HIC cagirmiyor, `paket_anahtar` serbest metin, kayit ayrica
+        # commit'lenmeli. Burada olculen sey TESHIS KALITESI: her kirilma halinde cikti
+        # operatore TEK SATIRDA ne yapacagini soylemeli. Gercek CLI kosturulur.
+        o9_hata = []
+        paket_o9, _sema_o9, _sec_o9 = fikstur_kur(os.path.join(kok, "o9"))
+
+        def _cli(*ek):
+            p = subprocess.run(
+                [sys.executable, KAPI_YOL, "parmakizi-dogrula",
+                 "--dizin", paket_o9] + list(ek),
+                capture_output=True, text=True)
+            return p.returncode, p.stdout + p.stderr
+
+        # (a) KAYIT SURUM 1 (bugun repoda duran hal) -> KIRMIZI + tek satirlik cozum.
+        kayit_v1 = os.path.join(kok, "parmakizi-v1.json")
+        with open(kayit_v1, "w", encoding="utf-8") as f:
+            json.dump({"surum": 1, "algoritma": "sha256",
+                       "scad": kapi.scad_alt_kumesi(kapi.paket_parmakizlari(paket_o9))},
+                      f, ensure_ascii=False)
+        rc, cikti = _cli("--manifest", kayit_v1)
+        if rc == 0:
+            o9_hata.append("surum 1 kaydi KABUL EDILDI (fail-open)")
+        for beklenen in ("COZUM (TEK SATIR", "onizleme-paket-yukle.py", "COMMIT + PUSH"):
+            if beklenen not in cikti:
+                o9_hata.append("surum 1 teshisi %r icermiyor -> operatore ne yapacagini "
+                               "soylemiyor: %s" % (beklenen, cikti.strip()[:300]))
+        # (b) KAYITTA `paket_anahtar` YOK ama CI anahtar veriyor -> KIRMIZI + cozum.
+        kayit_anahtarsiz = os.path.join(kok, "parmakizi-anahtarsiz.json")
+        kapi.manifest_yaz(kayit_anahtarsiz, kapi.paket_parmakizlari(paket_o9), "sentetik")
+        rc, cikti = _cli("--manifest", kayit_anahtarsiz,
+                         "--paket-anahtar", "onizleme/paket-v9.tar.gz")
+        if rc == 0:
+            o9_hata.append("anahtarsiz kayit + CI anahtari KABUL EDILDI (fail-open)")
+        if "COZUM (paketi toplayan makinede, TEK SATIR)" not in cikti:
+            o9_hata.append("anahtarsiz kayit teshisi tek satirlik cozum vermiyor: %s"
+                           % cikti.strip()[:300])
+        # (c) ANAHTAR UYUSMUYOR (R2'de duran ESKI anahtarla tetikleme) -> KIRMIZI.
+        kayit_v9 = os.path.join(kok, "parmakizi-v9.json")
+        kapi.manifest_yaz(kayit_v9, kapi.paket_parmakizlari(paket_o9), "sentetik",
+                          "onizleme/paket-v9.tar.gz")
+        rc, cikti = _cli("--manifest", kayit_v9,
+                         "--paket-anahtar", "onizleme/paket-v6.tar.gz")
+        if rc == 0:
+            o9_hata.append("🔴 ESKI ANAHTARLA TETIKLEME KACTI: kayit v9 icin uretilmis, "
+                           "is v6 cekti, kapi YESIL yandi")
+        if "KAYIT/PAKET ANAHTARI AYRISMASI" not in cikti:
+            o9_hata.append("anahtar ayrismasi teshisi yok: %s" % cikti.strip()[:300])
+        # (d) ESLESME -> YESIL (yanlis-pozitif yok).
+        rc, cikti = _cli("--manifest", kayit_v9,
+                         "--paket-anahtar", "onizleme/paket-v9.tar.gz")
+        if rc != 0:
+            o9_hata.append("ESLESEN anahtar KIRMIZI yandi (yanlis-pozitif): %s"
+                           % cikti.strip()[:300])
+        # (e) ANAHTARSIZ CAGRI (yerel kullanim) -> capraz istenmez, YESIL kalir.
+        rc, cikti = _cli("--manifest", kayit_anahtarsiz)
+        if rc != 0:
+            o9_hata.append("anahtar VERILMEDEN kosum KIRMIZI yandi: %s"
+                           % cikti.strip()[:300])
+        # (e2) NO-OP (K-I): capraz govdesi oldurulunce (c)'nin KIRMIZI'si KAYBOLMALI.
+        n_anahtar = kapi_yukle(noop_kaynak({"paket_anahtar_kusurlari"}),
+                               ad="k_noop_anahtar")
+        if n_anahtar.paket_anahtar_kusurlari(kayit_v9, "onizleme/paket-v6.tar.gz"):
+            o9_hata.append("paket_anahtar_kusurlari OLDURULDUGU halde KIRMIZI surdu -> "
+                           "iddia baska bir seye bakiyor")
+        if not kapi.paket_anahtar_kusurlari(kayit_v9, "onizleme/paket-v6.tar.gz"):
+            o9_hata.append("GERCEK paket_anahtar_kusurlari ayni girdide KIRMIZI vermedi "
+                           "-> negatif kontrol yok, iddia anlamsiz")
+        # (f) CAGRI SATIRI NOBETI: yml'de `--paket-anahtar` bayragi B iddiasina bagli mi
+        # (bayrak dusurulurse capraz sessizce olur -> is-akisi-kapisi KIRMIZI vermeli).
+        _isa = is_akisi_kapisi_yukle()
+        if _isa is None:
+            o9_hata.append("is-akisi-kapisi.py yuklenemedi -> bayrak nobeti OLCULEMEDI")
+        else:
+            _pd = [i for i in _isa.B_IDDIALAR if i.kimlik == "parmakizi-dizin"]
+            if not _pd or "--paket-anahtar" not in _pd[0].jetonlar:
+                o9_hata.append("B_IDDIALAR['parmakizi-dizin'] `--paket-anahtar` jetonunu "
+                               "ZORUNLU kilmiyor -> bayrak sessizce dusurulebilir")
+            elif os.path.isfile(YML):
+                with open(YML, "r", encoding="utf-8") as f:
+                    _yml = f.read()
+                _bayraksiz = _yml.replace(
+                    "--dizin onizleme/derleyici/paket-ozel --paket-anahtar "
+                    '"$PAKET_ANAHTAR"', "--dizin onizleme/derleyici/paket-ozel")
+                if _bayraksiz == _yml:
+                    o9_hata.append("MUTASYON BAYAT: yml'de `--paket-anahtar` cagrisi "
+                                   "beklenen bicimde gecmiyor")
+                elif not _isa.b_iddia_hatalari(_bayraksiz, _pd[0])[0]:
+                    o9_hata.append("`--paket-anahtar` yml'den SILINDIGI halde BOLUM B "
+                                   "KIRMIZI vermedi -> bayrak nobetsiz")
+        for h in o9_hata:
+            kirmizi("(O9) KAYIT/PAKET ANAHTARI: " + h)
+        if not o9_hata:
+            ok("(O9) KAYIT/PAKET ANAHTARI: surum 1 · anahtarsiz kayit · ESKI anahtarla "
+               "tetikleme UCU DE KIRMIZI ve teshis tek satirlik cozum veriyor; eslesme "
+               "ve anahtarsiz yerel kosum YESIL; bayrak B iddiasina KILITLI")
 
         # ---------------- (D2) YENI NOBET GOVDELERI LOAD-BEARING MI (K-C)
         # Yukaridaki O2/O3/O4/O5 KIRMIZI'lari GERCEKTEN yeni govdelerden mi geliyor?
@@ -838,22 +1057,31 @@ def main():
                                               sahte_kapsam, {}):
             d2_hata.append("GERCEK kapsam_beyani_kusurlari ayni girdide KIRMIZI vermedi "
                            "-> negatif kontrol yok, iddia anlamsiz")
-        # (iii) kisitla_kapali_scadler GEVSETME yonu: HER SEYI 'kisitla kapali' saymak
-        # olu-uretec kontrolunu oldurur. Bu mutasyon O5'in gercek riskidir (O5 onarimi
-        # Ç5'i gevsetirse tam boyle gorunur) -> KIRMIZI'nin KAYBOLDUGU gosterilir.
-        n_kis = kapi_yukle(ad="k_gevsek_kisit")
-        _tum = set(n_kis.scad_alt_kumesi(n_kis.paket_parmakizlari(paket_o5)))
-        n_kis.kisitla_kapali_scadler = lambda *a, **k: set(_tum)
-        if servis and servis.proc.poll() is None:
-            acik_g, semalar_g, kisit_g = n_kis.duman_plani(sema_o5, secenekler_o5)
-            g2 = n_kis.duman_kusurlari(servis.url, acik_g, semalar_g, kisit_g,
-                                       zaman_asimi=20, manifest=kayit_o5b)
-            if any("DENENMEMIS URETEC" in k and "olu.scad" in k for k in g2):
-                d2_hata.append("kisitla_kapali_scadler HER SEYI kapali saydigi halde "
-                               "'olu.scad' kirmizisi surdu -> O5'in Ç5'i koruma iddiasi "
-                               "bu govdeye bagli DEGIL (olcum yanlis yere bakiyor)")
-        else:
-            d2_hata.append("(iii) OLCULEMEDI (servis ayakta degil)")
+        # (iii) paket_yapi_kusurlari (D2/tur 5) — PAKET DUZ MU. Alt dizindeki dosyalar
+        # NE kayda NE servisin /parmakizi beyanina girer (iki taraf da yalniz duz
+        # dosyalari tarar) -> simetrik kor nokta, `parmakizi_farklari` sessiz kalir.
+        # Once POZITIF (alt dizin -> KIRMIZI + iki bagimsiz sayimin AYRISMASI),
+        # sonra NO-OP (govde oldurulunce KIRMIZI KAYBOLMALI).
+        yapi_kok = os.path.join(kok, "yapi", "paket")
+        os.makedirs(os.path.join(yapi_kok, "alt"), exist_ok=True)
+        with open(os.path.join(yapi_kok, "kutu.scad"), "w", encoding="utf-8") as f:
+            f.write("cube(1);\n")
+        with open(os.path.join(yapi_kok, "alt", "ortak.scad"), "w",
+                  encoding="utf-8") as f:
+            f.write("// include ile cekilir; parmakizi kapsaminin DISINDA\n")
+        duz_sayim = len(kapi.paket_parmakizlari(yapi_kok))
+        derin_sayim = sum(len(d) for _, _, d in os.walk(yapi_kok))
+        if not kapi.paket_yapi_kusurlari(yapi_kok):
+            d2_hata.append("paket_yapi_kusurlari ALT DIZIN'i KIRMIZI yakmadi -> D2 "
+                           "kapsam deligi acik (duz sayim %d / derin sayim %d)"
+                           % (duz_sayim, derin_sayim))
+        if duz_sayim == derin_sayim:
+            d2_hata.append("(iii) OLCUM BAYAT: duz ve derin dosya sayimi ayni (%d) -> "
+                           "fikstur alt dizin dosyasi icermiyor" % duz_sayim)
+        n_yapi = kapi_yukle(noop_kaynak({"paket_yapi_kusurlari"}), ad="k_noop_yapi")
+        if n_yapi.paket_yapi_kusurlari(yapi_kok):
+            d2_hata.append("paket_yapi_kusurlari OLDURULDUGU halde alt-dizin kirmizisi "
+                           "surdu -> iddia baska bir seye bakiyor")
         # (iv) paket_parmakizlari uzanti suzgeci geri konursa (O2 gevsetmesi) eslem
         # drifti yeniden KACMALI -> O2 iddiasinin bu govdeye bagli oldugu kanitlanir.
         n_pk = kapi_yukle(ad="k_gevsek_kapsam")
@@ -873,8 +1101,8 @@ def main():
             kirmizi("(D2) YENI GOVDE NO-OP: " + h)
         if not d2_hata:
             ok("(D2) YENI GOVDELER LOAD-BEARING: alt_sinir · kapsam_beyani · "
-               "kisitla_kapali · paket kapsami AYRI AYRI oldurulunce ilgili KIRMIZI "
-               "KAYBOLDU (KACAN = 0)")
+               "paket_yapi (alt dizin) · paket kapsami AYRI AYRI oldurulunce ilgili "
+               "KIRMIZI KAYBOLDU (KACAN = 0)")
 
         # ---------------- (E) CI CAGRI SATIRI — GERCEK NOBETCIYE DELEGE
         # 🔴 IKINCI KOPYA ACILMADI: bu bolum kendi YAML/kabuk mantigini KURMAZ; kabloyu
@@ -991,7 +1219,8 @@ def main():
             f8_kirmizi = any(isa.b_iddia_hatalari(yorumlu, i)[0]
                              for i in isa.B_IDDIALAR if i.kimlik != "iki-govde")
             fp("F8 ilgisiz YAML yorumu eklendi", f8_kirmizi)
-        # F5: ONIZLEME_KISITLAR'a kisit eklendi -> (O5) bolumunde YESIL olculdu.
+        # F5: ONIZLEME_KISITLAR'a kisit eklendi -> (O8) bolumunde YESIL olculdu
+        # (artik kisitli varyant DERLETILIYOR; "beyan edilmis sahte-kirmizi" YOK).
         fp("F5 ONIZLEME_KISITLAR'a cift-uretecli aile kisiti eklendi", bool(o5_hata))
         # F6: paket dosyalari TERS SIRAYLA yazildi (ayni icerik) -> hash sira bagimsiz.
         paket_f6 = os.path.join(kok, "f6", "paket")

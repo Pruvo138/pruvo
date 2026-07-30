@@ -127,8 +127,16 @@ jobs:
       # Ustteki iki kapiyla AYNI EKSENDE DEGIL: metin-eslem eslem METNINI, paket-tazelik
       # eslemin main'le AYNI olup olmadigini olcer; bu adim .scad ICERIKLERININ sha256
       # anlik goruntusunu olcer (eslem-ozel.json dahil — O2 onarimi).
+      # O9 (30 Tem, tur 5): `--paket-anahtar` CAPRAZI. Kayit, uretildigi R2 nesne
+      # anahtarini tasir; burada is akisinin FIILEN cektigi anahtarla karsilastirilir.
+      # Olculdu (tur 4/D8): girdi serbest metindi -> R2'de duran ESKI bir anahtar
+      # girilerek is tetiklenebiliyor, kayit taze gorunurken imaj baska bir paketten
+      # derleniyordu. Ayrica bu adim paketin DUZ dizin oldugunu da dogrular (alt dizin
+      # dosyalari ne kayda ne /parmakizi beyanina girer -> simetrik kor nokta).
       - name: Paket parmakizi (repo HEAD kaydi vs cekilen paket)
-        run: python3 tools/onizleme-kapisi.py parmakizi-dogrula --dizin onizleme/derleyici/paket-ozel
+        env:
+          PAKET_ANAHTAR: ${{ inputs.paket_anahtar }}
+        run: python3 tools/onizleme-kapisi.py parmakizi-dogrula --dizin onizleme/derleyici/paket-ozel --paket-anahtar "$PAKET_ANAHTAR"
 
       - name: Imaji derle
         run: |

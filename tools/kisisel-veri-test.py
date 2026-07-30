@@ -406,7 +406,11 @@ _PK_KAYIT = os.path.join("onizleme", "derleyici", "paket-parmakizi.json")
 _PK_AD_RE = re.compile(r"^[a-z0-9][a-z0-9._-]{0,39}$")
 _PK_UZANTILAR = (".scad", ".json", ".txt", ".md")
 _PK_OZET_RE = re.compile(r"^[0-9a-f]{64}$")
-_PK_METIN_ALANLARI = ("not", "aciklama")
+# `paket_anahtar` 30 Tem (tur 5/O9) eklendi: kaydin uretildigi R2 nesne anahtari.
+# Serbest metin oldugu icin ayni gizlilik nobetine BAGLANIR — mutlak yol / e-posta /
+# URL tasiyamaz (anahtar `onizleme/paket-v7.tar.gz` gibi GORECE bir yoldur; gorece yol
+# SERBESTTIR, mutlak yol degildir).
+_PK_METIN_ALANLARI = ("not", "aciklama", "paket_anahtar")
 
 
 def _pk_yol_jetonu(metin):
@@ -485,6 +489,12 @@ _PK_KIRMIZI = (
     ("'not' alaninda e-posta",
      {"dosyalar": {"kutu.scad": "f" * 64}, "not": "soran: biri@ornek.com"}),
     ("kayitta 'dosyalar'/'scad' sozlugu YOK (fail-closed)", {"surum": 2}),
+    ("'paket_anahtar' alaninda mutlak yol (tur 5/O9)",
+     {"dosyalar": {"kutu.scad": "a" * 64},
+      "paket_anahtar": "/Users/okan/dev/pruvo/.uyelik-kodlar/paket-v7.tar.gz"}),
+    ("'paket_anahtar' alaninda URL (tur 5/O9)",
+     {"dosyalar": {"kutu.scad": "b" * 64},
+      "paket_anahtar": "https://ornek.com/pruvo-ozel/paket-v7.tar.gz"}),
 )
 # --- YESIL FIKSTURLER: bugunku gercek kaydin BICIMI + rutin jenerik adlar YANMAZ.
 _PK_YESIL = (
@@ -495,6 +505,9 @@ _PK_YESIL = (
       "aciklama": "TEK YAZAR: tools/onizleme-paket-yukle.py — gorece yol SERBEST"}),
     ("surum 1 kaydi ('scad' anahtari) hala taranir",
      {"scad": {"toka.scad": "3" * 64, "damga-kase.scad": "4" * 64}}),
+    ("surum 2 kaydi + GORECE R2 anahtari (tur 5/O9) — mesru, yanmamali",
+     {"dosyalar": {"kutu.scad": "5" * 64},
+      "paket_anahtar": "onizleme/paket-v7.tar.gz"}),
 )
 
 
