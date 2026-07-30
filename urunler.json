@@ -1,5 +1,353 @@
 [
   {
+    "id": "lowrance-3in1-pvc-tekne-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance 3'ü-1-Arada Transducer İçin PVC Tekne Montajı",
+    "aciklama": "Lowrance 3'ü-1-arada transducer'ı tekneye monte etmek için kullanılan PVC braket.\n- Lowrance 3'ü-1-arada transducer modelleriyle uyumludur.\n- Tekne gövdesine doğrudan monte edilecek şekilde tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 229 × 59 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7004038-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "IgorGross",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-vinci-matkap-donusturucu-kiti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Vinci İçin Elektrikli Matkap Dönüştürücü Kiti",
+    "aciklama": "Lewmar tipi yelkenli tekne vinçlerini elektrikli matkapla çalıştırmaya yarayan dönüştürücü kiti.\n- Lewmar tipi tekne vinçleriyle uyumludur.\n- M6 cıvata ve somunlarla birlikte kullanılır (ayrıca temin edilir).\n- Paslanmaz çelik takviyeli iç yapı içerir.\nYaklaşık dış ölçüler: 29 × 29 × 27 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7345994-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7345994-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7345994-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7345994-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7345994-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "thelowcostsailor",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercury-dis-motor-emme-suzgeci",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury 40HP Dış Motor İçin Su Emme Süzgeci",
+    "aciklama": "Mercury 40HP dış motorlarda orijinal parça numarası 72849A1'in yerine geçen su emme süzgeci.\n- Mercury 40HP ve benzeri model dış motorlarla uyumludur.\n- Orijinal parça numarası 72849A1'e karşılık gelir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 82 × 71 × 6 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2698383-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dell_Hallock",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "viking-kayak-tackle-pod-transducer-kiti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Viking Kayak Tackle Pod İçin Transducer Montaj Kiti",
+    "aciklama": "Viking Kayak'ın Tackle Pod aksesuar sistemine transducer ve fish-finder monte etmek için kullanılan kit.\n- Viking Kayak Tackle Pod sistemiyle uyumludur.\n- Transducer kapağı, üst/alt montaj parçaları ve kablo kapağından oluşur.\n- Transducer kablosunun geçmesi için gövdeye delik açılması gerekir.\nYaklaşık dış ölçüler: 64 × 64 × 42 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2845134-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2845134-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2845134-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2845134-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2845134-5.jpg",
+      "https://media.pruvo3d.com/urunler/th2845134-6.jpg",
+      "https://media.pruvo3d.com/urunler/th2845134-7.jpg",
+      "https://media.pruvo3d.com/urunler/th2845134-8.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sbursik",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "great-white-trolling-motor-gaz-kolu-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Great White Trolling Motor İçin Gaz Kolu Klipsi",
+    "aciklama": "Great White GWB67 trolling motorun döner gaz kolunu sıkıştıran klips parçası.\n- Great White GWB67 trolling motor modeliyle uyumludur.\n- Orijinal parçanın ölçülerinden birebir uyarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 40 × 14 × 13 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2951737-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dectoo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "cc-yelkenli-kokpit-suzgeci",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "C&C Yelkenli Kokpit Lombarı İçin 34mm Süzgeç",
+    "aciklama": "C&C 38-2 yelkenli teknenin kokpit tahliye deliklerine (drain) takılan süzgeç, eşya kaybını önler.\n- C&C 38-2 yelkenli tekne kokpit tahliye delikleriyle uyumludur.\n- 34mm çapındaki deliğe gevşek oturacak şekilde tasarlanmıştır.\n- Su baskını durumunda serbest kalıp yüzebilecek şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 43 × 34 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4742798-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4742798-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "hellork",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evinrude-johnson-omc-top-mafsali",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Evinrude/Johnson/OMC İçin Top Mafsalı (#379926)",
+    "aciklama": "Evinrude, Johnson ve OMC dış motorlarda orijinal parça numarası 379926'nın yerine geçen top mafsalı.\n- Evinrude/Johnson/OMC dış motor modelleriyle uyumludur.\n- Orijinal parça numarası 379926'ya karşılık gelir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 22 × 11 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5353917-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KLUCK2022",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hummingbird-fish-finder-gunes-siperligi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Hummingbird PiranhaMax 4 Fish Finder İçin Güneş Siperliği",
+    "aciklama": "Hummingbird PiranhaMax 4 fish finder ekranındaki güneş yansımasını azaltan siperlik.\n- Hummingbird PiranhaMax 4 fish finder modeliyle uyumludur.\n- Çift taraflı bant ile ekran çevresine sabitlenir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 152 × 108 × 74 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5485594-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sandman2749",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "aqua-marina-kayak-sisirme-supabi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Aqua Marina Laxo Kayak İçin Söndürme Supabı",
+    "aciklama": "Aqua Marina Laxo şişme kayaklarda söndürme moduna izin veren, orijinal Boston supabının yerine geçen parça.\n- Aqua Marina Laxo şişme kayak modeliyle uyumludur.\n- 20-22mm iç çaplı, 3mm kalınlıklı bir O-ring ile birlikte kullanılır.\n- Orijinal supap gövdesinden lastik valf kısmı çıkarılarak uyarlanmıştır.\nYaklaşık dış ölçüler: 44 × 44 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6183203-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6183203-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6183203-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "johnda",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelken-rigging-dogbone-baglantisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Donanımı İçin Çok Amaçlı Rigging Bağlantısı (Dogbone)",
+    "aciklama": "Yelkenli teknelerde halyard düğümü, yumuşak göz halkası ve pim bağlantısı gibi çok amaçlı kullanılan hafif rigging parçası.\n- Spinnaker, outhaul ve reefing hatlarında kullanılabilir.\n- Halyard düğümü, yumuşak göz halkası/stopper ve pim bağlantı noktaları içerir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 26 × 25 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6462076-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kingnat",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dinghy-tiller-esnek-universal-mafsali",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dinghy Tiller Uzatması İçin Esnek Universal Mafsal",
+    "aciklama": "Harken parça #7102 referans alınarak tasarlanmış, dinghy tiller uzatmaları için esnek universal mafsal.\n- 13mm çaplı tiller uzatma borularıyla uyumludur.\n- RS Quest ve RS Feva gibi dinghy modelleriyle uyumludur, gerekirse ölçeklendirilebilir.\n- TPU gibi esnek malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 66 × 22 × 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6483760-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6483760-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "EggsBenadryl",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yamaha-dis-motor-quickstop-mekanizmasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha Dış Motor İçin Quickstop Mekanizması",
+    "aciklama": "Yamaha 15D 684 15HP 2 zamanlı dış motor için quickstop (acil durdurma yardımcısı) mekanizması.\n- Yamaha 15D 684 15HP 2 zamanlı dış motor modeliyle uyumludur, benzer modellerde de kullanılabilir.\n- Orijinal FreeCAD tasarım dosyası da mevcuttur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 34 × 28 × 3 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6610947-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6610947-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6610947-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "5olari",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "laser-ilca-yelkenli-dumen-mafsali",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Laser/ILCA Yelkenli İçin Dümen Mafsalı (Gudgeon)",
+    "aciklama": "Laser/ILCA yelkenli teknelerin dümenini gövdeye bağlayan mafsal (gudgeon) parçası.\n- Laser/ILCA yelkenli tekne modelleriyle uyumludur.\n- Kırık bir orijinal parça referans alınarak tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 131 × 47 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6948617-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Agent02",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "treyler-tekerlek-yatagi-gres-doldurucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Treyleri Tekerlek Yatağı İçin Gres Doldurucu",
+    "aciklama": "Tekne treyleri tekerlek göbeği (bearing) içine gres doldurmak için kullanılan iki parçalı alet.\n- 1 1/16 inç mil çapına uyumludur.\n- Alt ve üst olmak üzere iki parçadan oluşur.\n- Sert malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 57 × 57 × 36 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7019507-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7019507-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "moopooglepoogle",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "mercury-tohatsu-kucuk-dis-motor-pervaneleri",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury/Tohatsu Küçük Dış Motorlar İçin Pervane Seti",
+    "aciklama": "Mercury, Tohatsu ve Parsun marka küçük dış motorlar için farklı beygir gücü seçenekleriyle uyumlu pervane seti.\n- 2.2, 2.5, 3, 3.3, 3.5, 4, 5 ve 6HP 2 ve 4 zamanlı küçük dış motorlarla uyumludur.\n- 1/2 inç pervane miline sahip modeller için tasarlanmıştır.\n- Farklı beygir gücü ve spline sayısına göre 5 farklı varyant içerir.\nYaklaşık dış ölçüler: 231 × 231 × 108 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7043809-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7043809-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7043809-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7043809-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7043809-5.jpg",
+      "https://media.pruvo3d.com/urunler/th7043809-6.jpg",
+      "https://media.pruvo3d.com/urunler/th7043809-7.jpg",
+      "https://media.pruvo3d.com/urunler/th7043809-8.jpg",
+      "https://media.pruvo3d.com/urunler/th7043809-9.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Dukemeister63",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bimini-ust-mentese-baglanti-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bimini Tenteliği İçin Üst Menteşe Bağlantı Parçası",
+    "aciklama": "Paslanmaz çelik bimini tenteliği çatısını güverteye bağlayan üst menteşe bağlantı parçası.\n- Standart bimini tenteliği çatı sistemleriyle uyumludur.\n- Paslanmaz çelik menteşe donanımıyla birlikte kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 62 × 34 × 26 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7064893-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "girobass",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "chrysler-75hp-dis-motor-distributor-baglantisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Chrysler 75HP Dış Motor İçin Distributor Ayar Bağlantısı",
+    "aciklama": "Chrysler 75HP dış motorun distributor ayar mekanizmasında kullanılan bağlantı parçası.\n- Chrysler 75HP dış motor modeliyle uyumludur.\n- Naylon malzeme ve 2mm et kalınlığı ile üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 21 × 14 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1656275-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1656275-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "iowacattails",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-kuregi-pet-sise-sisme-yuzdurucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Küreği İçin PET Şişe İle Şişme Yüzdürücü",
+    "aciklama": "Kayaktan suya düşme durumunda tekrar binişi (re-entry) kolaylaştıran, standart PET içecek şişesiyle kullanılan şişme yüzdürücü.\n- Standart PET içecek şişeleriyle uyumludur.\n- Kayak küreği sapına takılan iki parçadan oluşur.\n- Suya düşme sonrası tekrar kayağa binmeyi kolaylaştırır.\nYaklaşık dış ölçüler: 199 × 135 × 30 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2885673-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2885673-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2885673-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2885673-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tobiasterstad",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-scupper-lombar-suzgeci",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Scupper (Lombar) Deliği İçin Süzgeç",
+    "aciklama": "Teknenin gövdesindeki scupper (lombar) deliklerine takılan, yaprak ve kirlerin tıkanıklık yapmasını önleyen süzgeç.\n- Standart tekne scupper deliklerine uyacak şekilde tasarlanmıştır.\n- Mevcut scupper deliğinin içine oturacak şekilde monte edilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 60 × 60 × 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th313096-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dexa187",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dinghy-ayak-baglama-kayisi-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dinghy İçin Ayak Bağlama (Toe Strap) Kayışı Tutucusu",
+    "aciklama": "Dinghy yelkenli teknelerde kullanılan ayak bağlama (toe strap/hiking strap) kayışının geçtiği, parametrik tasarlanmış tutucu.\n- Standart dinghy ayak bağlama kayışlarıyla uyumludur.\n- Kayış geçebilir ama sıkışmaz, gömme vida delikleri içerir.\n- Parametrik OpenSCAD dosyasıyla farklı genişliklerde üretilebilir.\nYaklaşık dış ölçüler: 100 × 20 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3964038-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "thelargeostrich",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelken-tiller-uzatmasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne İçin Dümen Kolu (Tiller) Uzatması",
+    "aciklama": "Yelkenli teknelerde dümen kolunun uzatılması için vida gerektirmeden takılıp çıkarılabilen uzatma parçası.\n- 12mm iç çaplı, 10mm dış çaplı alüminyum profille kullanılır.\n- Uzatma gövdesi ve tutma sapı olmak üzere iki parçadan oluşur.\n- TPU gibi esnek malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 200 × 66 × 40 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4518873-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4518873-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4518873-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4518873-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RubenMts",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "folbe-fender-hanger-ray-can-halati-donusturucu",
     "kategori": "Marin",
     "marka": [],
