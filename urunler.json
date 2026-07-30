@@ -1,5 +1,273 @@
 [
   {
+    "id": "yuksek-hatveli-trolling-motor-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yüksek Hatveli Trolling Motor Pervanesi",
+    "aciklama": "Küçük trolling motorlar için daha yüksek hatveli (pitch), daha fazla hız sağlayan pervane.\n- Küçük trolling motorlarla uyumludur.\n- Standart pervanelere göre daha fazla hatveye sahiptir.\n- Yelkenli teknelerde ek itki motoru olarak da kullanılabilir.\nYaklaşık dış ölçüler: 220 × 87 × 35 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4574660-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4574660-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4574660-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Superpilsen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "newport-vessels-trolling-motor-yuksek-performans-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Newport Vessels Trolling Motor Yüksek Performans Pervanesi",
+    "aciklama": "Newport Vessels 62lb trolling motoruna uyacak şekilde uyarlanmış, daha fazla hatve ve yüzey alanına sahip performans pervanesi.\n- Newport Vessels 62lb trolling motoruyla uyumludur.\n- Standart pervaneye göre artırılmış hatve ve yüzey alanına sahiptir.\n- Küçük teknelerde daha yüksek hız sağlamak için tasarlanmıştır.\nYaklaşık dış ölçüler: 220 × 220 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6292282-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MicroFactory3D",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "akulu-tornavida-kayak-pervanesi-2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Akülü Tornavida ile Çalışan Kayak Pervanesi (2. Model)",
+    "aciklama": "2 kişilik kayak için akülü tornavida ile çalıştırılan, 5 kanatlı ikinci pervane tasarımı.\n- 5 kanatlı tasarıma sahiptir.\n- M10 dişli mil ve 3 adet M10 somun gerektirir.\n- 2000 RPM'de yüksek performans gösterir.\nYaklaşık dış ölçüler: 174 × 172 × 67 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3743020-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3743020-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3743020-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3743020-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Alex0090",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-dumen-kolu-uzatma-sopasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Dümen Kolu Uzatma Sopası (Hiking Stick)",
+    "aciklama": "Yelkenli teknelerde dümen kolunu uzatmak için kullanılan sopa bağlantı seti.\n- 18mm çaplı boru veya tahta çubukla kullanılır.\n- Top-mafsal bağlantısı sayesinde her yöne hareket eder.\n- Yelkenli tekne dümen koluna monte edilir.\nYaklaşık dış ölçüler: 100 × 30 × 30 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4124314-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4124314-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4124314-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4124314-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4124314-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "whatsacc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-capa-makarasi-goz-halkasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Capa Makarası (Anchor Trolley) Göz Halkası",
+    "aciklama": "İç erişimi olmayan kayaklar için özel demir/capa makarası sistemi göz halkası, iki adet 8mm demirleme germe noktası içerir.\n- 8mm'lik iki germe noktasına sahiptir.\n- İç erişimi olmayan kayaklar için tasarlanmıştır.\n- Naylon malzeme ile dayanıklılığı artırılmıştır.\nYaklaşık dış ölçüler: 40 × 40 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2973415-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2973415-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jessefilson94",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "intex-challenger-kayak-yuzgeci",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Intex Challenger K1/K2 Kayak Yüzgeci (Skeg)",
+    "aciklama": "Intex Challenger K1/K2 şişme kayaklarına uyan yedek yüzgeç (skeg), Intex 12181 orijinal parçasına benzer.\n- Intex Challenger K1 (68305EP), K2 (68306EP), Explorer K2 (68307EP), Excursion Pro (68309EP) modelleriyle uyumludur.\n- Tutturma klipsi yüzgecin ön ucundadır.\n- Orijinal Intex 12181 yedek parçasına benzer tasarıma sahiptir.\nYaklaşık dış ölçüler: 271 × 204 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4948303-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4948303-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4948303-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "famlanger",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "cocuk-boy-mini-kayak-kuregi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Çocuk Boy Mini Kayak Küreği",
+    "aciklama": "Küçük kayaklar için tasarlanmış, yaklaşık 300-310 cm² bıçak alanına sahip çocuk boy kürek.\n- 23mm iç çap, 25mm dış çaplı alüminyum boru sap gerektirir.\n- Yaklaşık 300-310 cm² bıçak alanına sahiptir.\n- Büyükler için gerekirse %130-150 oranında büyütülebilir.\nYaklaşık dış ölçüler: 315 × 141 × 25 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2160535-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2160535-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2160535-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2160535-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2160535-5.jpg",
+      "https://media.pruvo3d.com/urunler/th2160535-6.jpg",
+      "https://media.pruvo3d.com/urunler/th2160535-7.jpg",
+      "https://media.pruvo3d.com/urunler/th2160535-8.jpg",
+      "https://media.pruvo3d.com/urunler/th2160535-9.jpg",
+      "https://media.pruvo3d.com/urunler/th2160535-10.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DarthCorvus",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "opti-yelkenli-ruzgar-gostergesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Opti Yelkenli Sınıfı Rüzgar Yönü Göstergesi",
+    "aciklama": "Opti yelkenli tekne sınıfı için kırılan rüzgar göstergesinin yedek parçası.\n- Opti yelkenli tekne sınıfına özeldir.\n- TPU, PETG veya PLA seçenekleriyle sunulur.\n- Kolayca kırılan orijinal göstergenin ekonomik yedeğidir.\nYaklaşık dış ölçüler: 192 × 63 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2229441-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2229441-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2229441-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2229441-4.jpg",
+      "https://media.pruvo3d.com/urunler/th2229441-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "duwke",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kano-tasima-arabasi-guclendirilmis",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak/Kano Taşıma Arabası (Güçlendirilmiş 2x4 Dingil)",
+    "aciklama": "Kayak ve kanolar için güçlendirilmiş 2x4 dingilli taşıma arabası.\n- 2x4 dingil kullanır, kano ve kayaklar için güçlendirilmiştir.\n- Orijinal tasarımın güçlendirilmiş versiyonudur.\n- Karadan taşımayı kolaylaştırır.\nYaklaşık dış ölçüler: 144 × 121 × 64 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5411047-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5411047-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5411047-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PSomeone",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "40mm-4-kanat-kucuk-tekne-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "40mm 4 Kanatlı Küçük Tekne Pervanesi",
+    "aciklama": "40mm çapında, 5mm merkez delikli 4 kanatlı küçük tekne pervanesi.\n- 40mm çap ölçüsündedir.\n- 5mm merkez mil deliğine sahiptir.\n- Küçük tekne ve model projelerinde kullanılabilir.\nYaklaşık dış ölçüler: 40 × 40 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4105841-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4105841-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4105841-3.jpg"
+    ]
+  },
+  {
+    "id": "katamaran-trapez-makara-sistemi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Katamaran Trapez Sistemi Makara (Pulley) Bloğu",
+    "aciklama": "Katamaran trapez sisteminde 3/16 inç (4.7mm) şok kordonu yönlendirmek için kullanılan yumuşak bağlantılı makara.\n- 3/16 inç (4.7mm) şok kordonuyla uyumludur.\n- Katamaran trapez sistemlerinde kullanılır.\n- Kenarları yuvarlatılmış, aşınmayı azaltan tasarım.\nYaklaşık dış ölçüler: 52 × 28 × 19 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3693708-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-5.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-6.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-7.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-8.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-9.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-10.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-11.jpg",
+      "https://media.pruvo3d.com/urunler/th3693708-12.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "monstacotyscott",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-capa-makarasi-sistemi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Capa Makarası (Anchor Trolley) Sistemi",
+    "aciklama": "Demiri kayağın ön ve arka ucu arasında taşımayı sağlayan capa makarası (anchor trolley) sistemi.\n- İki makara, çok sayıda kılavuz ve bir halka içerir (kılavuz sayısı kayak boyuna göre değişir).\n- Paslanmaz çelik vida ve plastik epoksi ile kayağa sabitlenir.\n- Demirin pruvadan kıça taşınmasını sağlar.\nYaklaşık dış ölçüler: 158 × 100 × 8 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1870987-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1870987-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1870987-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "rytz",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "rov-sintine-pompasi-itici-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "ROV Sintine Pompası İtici Pervanesi (3 Kanat)",
+    "aciklama": "ROV sintine pompası itici sistemleri için 3 kanatlı pervane, Master Air Screw MA3200 ile kullanılır.\n- Master Air Screw MA3200 ve 10-24 x 1 inç cıvata ile mile bağlanır.\n- Kanatlar simetriktir, ileri ve geri eşit itki sağlar.\n- ROV itici mekanizmalarında kullanılabilir.\nYaklaşık dış ölçüler: 24 × 24 × 10 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th639240-1.jpg",
+      "https://media.pruvo3d.com/urunler/th639240-2.jpg",
+      "https://media.pruvo3d.com/urunler/th639240-3.jpg",
+      "https://media.pruvo3d.com/urunler/th639240-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DollarBaySOAR",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "3-15mm-delikli-tekne-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "3.15mm Delikli Genel Amaçlı Tekne Pervanesi",
+    "aciklama": "75mm çapında, 3.15mm mil deliğine sahip genel amaçlı küçük tekne pervanesi.\n- 75mm çap ölçüsündedir.\n- 3.15mm mil deliğine sahiptir.\n- Küçük tekne ve model motor projelerinde kullanılabilir.\nYaklaşık dış ölçüler: 66 × 60 × 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1392414-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1392414-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "andrethomas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-ruzgar-gostergesi-3d",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne Rüzgar Göstergesi",
+    "aciklama": "Yelkenli teknelerde rüzgar yönünü gösteren gösterge (windicator).\n- Yelken direği tepesine montaj için tasarlanmıştır.\n- Hafif ve dengeli tasarımı ile hassas yön gösterir.\n- Rüzgarlı koşullarda dayanıklı yapıya sahiptir.\nYaklaşık dış ölçüler: 156 × 62 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5149290-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5149290-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chenaou",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "kayak-tasima-arabasi-c-tug-remiksi",
     "kategori": "Marin",
     "marka": [],
