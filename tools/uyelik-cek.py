@@ -21,12 +21,22 @@ Kaldırdıktan sonra: git add urunler.json && commit && push (CI sayfaları yeni
 NOT: Ücretsiz gear generator üyelik biterse CC BY'a döner — istersen onu kaldırmak yerine
 `lisans` alanını geri koyup (atıflı) tutabilirsin.
 """
-import os, sys, json, subprocess
+import os, sys, json, subprocess, importlib.util
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 JSON_PATH = os.path.join(ROOT, "urunler.json")
 KAYNAK_PATH = os.path.join(ROOT, ".urun-kaynaklari.json")
 DUZELT = os.path.join(ROOT, "tools", "duzelt.py")
+R2_MOD_PATH = os.path.join(ROOT, "tools", "r2-upload.py")
+
+
+def _r2_modul():
+    """tools/r2-upload.py'yi yükle (ad tirelidir, düz import edilemez).
+    R5 silme kapısının TEK kopyası orada; burada ikinci kopya AÇILMAZ."""
+    spec = importlib.util.spec_from_file_location("r2_upload_mod", R2_MOD_PATH)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def main():
@@ -64,12 +74,18 @@ def main():
                           aws_access_key_id=cfg["access_key"],
                           aws_secret_access_key=cfg["secret"], region_name="auto")
         base = cfg["public_base"] + "/"
+        # R5 (30 Tem 2026): silme çağrısının kendi başarısı KANIT DEĞİL — silme sonrası
+        # BAĞIMSIZ varlık kontrolü yapılır, nesne hâlâ görünüyorsa RAISE (fail-closed).
+        # Eskiden burada koşulsuz "R2 silindi:" basılıyordu = sessiz-hata sınıfı.
+        r2mod = _r2_modul()
+        var_mi = r2mod.s3_var_mi(s3, cfg["bucket"])
+        sil = lambda k: s3.delete_object(Bucket=cfg["bucket"], Key=k)
         for o in hedef:
             for url in o.get("gorseller", []):
                 if url.startswith(base):
                     key = url[len(base):]
-                    s3.delete_object(Bucket=cfg["bucket"], Key=key)
-                    print("  R2 silindi:", key)
+                    sonuc = r2mod.sil_ve_dogrula(key, var_mi, sil)
+                    print("  R2 %s: %s" % (sonuc, key))
 
     # duzelt.py --sil = guard'in mesru silme yolu (dogrudan json.dump guard'ca geri alinir)
     for o in hedef:

@@ -18,6 +18,15 @@ Vakalar (SPEC A-I):
   G kısmi PUT (readback ContentLength yanlış) → REDDEDİLİR (R4)
   H uzantısız ad + 403-HTML gövde → REDDEDİLİR (R1 magic yok)
   I uzantısız ad + JPEG magic     → GEÇER, ContentType image/jpeg
+
+R5 SİLME KAPISI (sil_ve_dogrula) — SESSİZ SİLME sınıfı, 30 Tem 2026'da canlıda üretildi:
+  J silme gerçekten uyguladı            → "silindi-dogrulandi", doğrulama silmeden SONRA koştu
+  K silme SESSİZCE etkisiz (nesne durur)→ RAISE (KIRMIZI)  ← kalemin ta kendisi
+  L nesne zaten yoktu                   → "zaten-yoktu" ve sil() HİÇ ÇAĞRILMAZ (sahte "silindi" yok)
+  M yayılma: 1. kontrolde var, 2.'de yok→ "silindi-dogrulandi" (yeniden deneme fail-open DEĞİL)
+  N ÇÜRÜTME (fault injection): doğrulama silmeden ÖNCEYE alınırsa K vakası YEŞİL yanar mı?
+    → çağrı SIRASI ölçülür; sıra bozulursa test KALIR (nöbetçinin nöbetçisi)
+  O varlık sondası YETKİ hatası yutmuyor → hata yukarı fırlar (404 ile karıştırılmaz)
 """
 import sys, os, io, importlib.util
 
@@ -178,10 +187,132 @@ def vaka_I():
            "I: put image/jpeg ile çağrıldı")
 
 
+# --- R5 SİLME KAPISI: J-O ------------------------------------------------------
+class SahteKova:
+    """Ağsız R2 taklidi. `sessiz` = silme çağrısı BAŞARILI görünür ama nesneyi
+    KALDIRMAZ (30 Tem'de canlıda ölçülen sessiz-silme davranışı).
+    `gecikme` = nesne ancak N. varlık kontrolünde kaybolur (yayılma/önbellek).
+    Her çağrı `izler` listesine yazılır → çağrı SIRASI ölçülebilir (vaka N)."""
+
+    def __init__(self, anahtarlar=(), sessiz=False, gecikme=0, var_mi_hata=None):
+        self.nesneler = set(anahtarlar)
+        self.sessiz = sessiz
+        self.gecikme = gecikme
+        self.var_mi_hata = var_mi_hata
+        self.izler = []
+        self.silindi_sayisi = 0
+        self._silme_sonrasi_kontrol = 0
+
+    def var_mi(self, key):
+        self.izler.append(("var_mi", key))
+        if self.var_mi_hata is not None:
+            raise self.var_mi_hata
+        if self.silindi_sayisi and not self.sessiz:
+            self._silme_sonrasi_kontrol += 1
+            if self._silme_sonrasi_kontrol <= self.gecikme:
+                return True          # henüz görünmüyor (bayat okuma)
+            return False
+        return key in self.nesneler
+
+    def sil(self, key):
+        self.izler.append(("sil", key))
+        self.silindi_sayisi += 1
+        if not self.sessiz:
+            self.nesneler.discard(key)
+        # sessiz=True: çağrı hata VERMEZ ama nesne DURUR (sessiz başarı)
+
+
+def _bekleme_yok(_saniye):
+    return None
+
+
+def vaka_J():
+    kova = SahteKova(["urunler/j-1.jpg"])
+    sonuc = mod.sil_ve_dogrula("urunler/j-1.jpg", kova.var_mi, kova.sil, bekle=_bekleme_yok)
+    onayla(sonuc == "silindi-dogrulandi", "J: gerçek silme 'silindi-dogrulandi' döndü")
+    onayla(("sil", "urunler/j-1.jpg") in kova.izler, "J: sil() çağrıldı")
+
+
+def vaka_K():
+    kova = SahteKova(["urunler/k-1.jpg"], sessiz=True)
+    hata = None
+    try:
+        mod.sil_ve_dogrula("urunler/k-1.jpg", kova.var_mi, kova.sil, bekle=_bekleme_yok)
+    except Exception as exc:
+        hata = exc
+    onayla(isinstance(hata, ValueError) and str(hata).startswith("R5 red:"),
+           "K: SESSİZ silme (nesne duruyor) KIRMIZI yandı — RAISE")
+    onayla("urunler/k-1.jpg" in kova.nesneler, "K: nesne gerçekten duruyordu (senaryo doğru)")
+
+
+def vaka_L():
+    kova = SahteKova([])                       # anahtar yok
+    sonuc = mod.sil_ve_dogrula("urunler/l-1.jpg", kova.var_mi, kova.sil, bekle=_bekleme_yok)
+    onayla(sonuc == "zaten-yoktu", "L: olmayan anahtar 'zaten-yoktu' (sahte 'silindi' YOK)")
+    onayla(all(iz[0] != "sil" for iz in kova.izler), "L: sil() HİÇ çağrılmadı")
+
+
+def vaka_M():
+    kova = SahteKova(["urunler/m-1.jpg"], gecikme=1)   # ilk kontrolde hâlâ görünüyor
+    sonuc = mod.sil_ve_dogrula("urunler/m-1.jpg", kova.var_mi, kova.sil, bekle=_bekleme_yok)
+    onayla(sonuc == "silindi-dogrulandi", "M: yayılma gecikmesi yeniden denemeyle geçildi")
+    kontroller = [i for i, iz in enumerate(kova.izler) if iz[0] == "var_mi"]
+    sil_i = [i for i, iz in enumerate(kova.izler) if iz[0] == "sil"][0]
+    onayla(len([i for i in kontroller if i > sil_i]) >= 2,
+           "M: silmeden SONRA en az 2 bağımsız kontrol yapıldı")
+
+
+def vaka_N_curutme():
+    """Nöbetçinin nöbetçisi: doğrulama silmeden SONRA koşmazsa K vakası sahte-yeşil yanar.
+    Burada çağrı SIRASI ölçülür — 'sil'den sonra en az bir 'var_mi' ŞART."""
+    kova = SahteKova(["urunler/n-1.jpg"])
+    mod.sil_ve_dogrula("urunler/n-1.jpg", kova.var_mi, kova.sil, bekle=_bekleme_yok)
+    turler = [iz[0] for iz in kova.izler]
+    sil_i = turler.index("sil")
+    onayla("var_mi" in turler[sil_i + 1:],
+           "N: doğrulama SİLMEDEN SONRA koştu (sıra bozulursa bu KALIR)")
+    onayla(turler[:sil_i] == ["var_mi"],
+           "N: silmeden ÖNCE de tek bir varlık ölçümü var (L vakasının dayanağı)")
+
+
+def vaka_O_yetki():
+    """Varlık sondası 403/yetki hatasını 'nesne yok' sanmamalı (fail-open olurdu)."""
+    class SahteYetkiHatasi(Exception):
+        pass
+    hata_ornegi = SahteYetkiHatasi("AccessDenied")
+    hata_ornegi.response = {"Error": {"Code": "AccessDenied"},
+                            "ResponseMetadata": {"HTTPStatusCode": 403}}
+
+    class SahteS3:
+        def head_object(self, Bucket, Key):
+            raise hata_ornegi
+
+    var_mi = mod.s3_var_mi(SahteS3(), "kova")
+    yakalandi = None
+    try:
+        var_mi("urunler/o-1.jpg")
+    except Exception as exc:
+        yakalandi = exc
+    onayla(yakalandi is hata_ornegi, "O: yetki hatası YUTULMADI, yukarı fırladı")
+
+    # 404 ise düzgünce False dönmeli (yanlış-kırmızı üretmesin)
+    yok = SahteYetkiHatasi("NoSuchKey")
+    yok.response = {"Error": {"Code": "NoSuchKey"},
+                    "ResponseMetadata": {"HTTPStatusCode": 404}}
+
+    class Sahte404:
+        def head_object(self, Bucket, Key):
+            raise yok
+
+    onayla(mod.s3_var_mi(Sahte404(), "kova")("x") is False,
+           "O: gerçek 404 False döndü (yanlış-kırmızı yok)")
+
+
 def main():
     print("== r2-upload doğrulama kabul testi ==")
     for fn in (vaka_A, vaka_B, vaka_B2_webp, vaka_C, vaka_D, vaka_E, vaka_F, vaka_G,
-               vaka_H, vaka_I):
+               vaka_H, vaka_I,
+               vaka_J, vaka_K, vaka_L, vaka_M, vaka_N_curutme, vaka_O_yetki):
         fn()
     print("---")
     print("GECTI=%d  KALDI=%d" % (_gecti, _kaldi))
