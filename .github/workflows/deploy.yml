@@ -54,6 +54,29 @@ jobs:
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
 
+      # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
+      # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
+      # actions/setup-node@v4 (node 20) BLOKLAYICI on-kosuldur ve bu is akisinda zaten
+      # bes node testi kosuyor. Yani gizlilik ekseninin nobetcisi yalan bir gerekceyle
+      # kapi disinda birakilmisti. NE KORUR: alti yayin yuzeyinde (ana sayfa + ic sayfalar)
+      # rıza banner'inin GERCEK davranisi — reddedilince olcum kancalari SUSAR, kabul
+      # edilince gclid/lead SUNUCUYA gider, "Kabul sonra Reddet" gclid'i SILER, silinemeyen
+      # cerez ADIYLA uyarilir. Sessiz hata sinifi: rıza reddedilmisken tek satirlik bir
+      # kablolama hatasi kisisel veriyi ucuncu tarafa gonderir ve EKRANDA GORUNMEZ.
+      # Offline: ag YOK (fetch/kancalar sahte), commit'li index.html + attribution-ref.js +
+      # gizlilik/ + build.py okunur, dosya YAZILMAZ. node ile kosar (setup-node yukarida
+      # bloklayici); node yoksa adim FAIL eder (fail-closed). ~0,2 s.
+      - name: Riza tik-kimligi kabul testi (gizlilik — 6 yuzeyde banner davranisi)
+        run: node tools/riza-tikkimligi-test.js
+
+      # ATIF (LISANS) REFERANS MODULU — ayni R_NODE muafiyet sinifindaydi, ayni yanlis
+      # gerekceyle. NE KORUR: attribution-ref.js, CC lisansli urunlerde tasarimci adi +
+      # lisans linkinin sayfada DOGRU uretilmesini saglar; bozulursa atif SESSIZCE duser.
+      # Bu HUKUKI bir yukumluluktur (CC BY: atif + link VERILIR ve KALIR) ve hatasi
+      # gorunmezdir — tam da CI'da kosmasi gereken sinif. Offline, salt-okuma, ~0,1 s.
+      - name: Atif (CC lisans) referans modulu kabul testi
+        run: node tools/attribution-ref-test.js
+
       # CATEGORIES / gizli-kategori / WHATSAPP sipariş no'su index.html ile build.py arasında
       # elle senkron tutulur; drift = ana sayfa/ürün sayfası tutarsızlığı ya da siparişin YANLIŞ
       # numaraya gitmesi (kayıp satış). Bloklayıcı (kisisel-veri deseni): drift'te yayını erken durdur.
@@ -252,6 +275,19 @@ jobs:
       - name: STL R2 anahtar/multipart kabul testi
         run: python3 tools/stl-r2-anahtar-test.py
 
+      # 3MF SINIR KUTUSU (bbox_3mf) — 30 Tem'e kadar OLU idi: ankraj fiksturleri GERCEK urun
+      # dosyalariydi (stl/pr1173083.3mf, stl/pr912419.3mf) ve stl/ gitignore'da; test her
+      # ortamda 0,1 s'de FileNotFoundError ile PATLIYOR, HICBIR iddia kosmuyordu. Muafiyet
+      # gerekcesi de yanlisti (R_YAVAS ">30 s" diyordu; olculen 0,1 s'lik cokustu).
+      # Ankraj artik DEPODA (tools/fikstur/3mf/, ~3 KB, uretici tools/fikstur/3mf-fikstur-uret.py):
+      # cok-.model + transform zinciri, tek-.model duz olcum, inch->mm birim donusumu.
+      # NE KORUR: urun aciklamasindaki "Yaklasik dis olculer" satiri bu fonksiyondan gelir;
+      # transform zinciri ya da birim carpani dusserse musteriye YANLIS OLCU yayinlanir ve
+      # hata tamamen sessizdir. stl/ yoksa regresyon taramasi ACIKCA "ATLANDI" raporlanir
+      # (sessiz atlama YOK), ankraj bolumu her ortamda kosar. Offline, ~0,1 s.
+      - name: 3MF sinir kutusu (bbox_3mf) kabul testi — cok-model + transform + birim
+        run: python3 tools/test-bbox-3mf.py
+
       # PIKSEL <-> KATALOG PARITE: Meta/Google katalog feed g:id ile tarayici/CAPI pikselinin
       # content_ids'i AYNI KURALDAN (build.feed_id) turer mi. Yasanmis hata: feed uzun urun id'sini
       # <=50 karaktere kisaltirken piksel TAM pid gonderiyordu -> 610/7769 urunde katalog eslesmiyor
@@ -323,6 +359,24 @@ jobs:
       # tanınmış marka (DeWalt...) 🔴 to-do. Saf Python, sentetik fikstür, OFFLINE, ~1 s.
       - name: Marka durum paneli kabul testi (kanonik satır + katlama)
         run: python3 tools/marka-panel-test.py
+
+      # MARKA CIP TAVANI (index.html MARKA_LIMIT) — R_NODE muafiyet sinifindan cikarildi
+      # (30 Tem): gerekce "CI build job'u Python-only (setup-node yok)" diyordu, oysa
+      # setup-node BLOKLAYICI on-kosul olarak VAR. NE KORUR: ana sayfadaki marka cipi
+      # tavani ve `brands.slice(0, MARKA_LIMIT)` uygulamasi + emekli edilmis eski
+      # mekanizmalarin (BRAND_COLLAPSED / brandsExpanded / "daha fazla goster") GERI
+      # GELMEMESI. Tavan kalkarsa ana sayfa yuzlerce cip basar (mobil duzen coker); hata
+      # sessizdir cunku sayfa "calisiyor" gorunur. Offline, index.html'i okur, ~0,1 s.
+      - name: Marka cip tavani kabul testi (MARKA_LIMIT + slice)
+        run: node tools/marka-limit-test.js
+
+      # ARAMA/FILTRE URL SENKRONU (index.html) — ayni sinif, ayni yanlis gerekce.
+      # NE KORUR: arama/kategori/marka secimlerinin URL'ye yazilmasi (syncUrl), derin
+      # linkin geri okunmasi, aramayi temizleyince URL'nin temizlenmesi ve "yukari cik"
+      # okunun sepet FAB'i ile cakismamasi. Bozulursa paylasilan/reklamla gelen derin
+      # link YANLIS ekrani acar — kayip satis, ekranda gorunmez. Offline, ~0,1 s.
+      - name: Arama/filtre URL senkron kabul testi (derin link + temizleme)
+        run: node tools/url-senkron-test.js
 
       # KONFIGUR KABUL TESTI: konfigure edilebilir dekor urunu (renk + boy kaydirici)
       # altyapisi. (a) konfigur sema dogrulamasi fail-closed (bozuk sema/capa build'i
@@ -430,6 +484,22 @@ jobs:
       # repo dosyasi YAZILMAZ. Secret degeri basilmaz. ~1 s.
       - name: "Olcum kablolama kabul testi (Meta CAPI + GA4 Purchase, havale/kart + gizlilik)"
         run: node shop/test/olcum.mjs
+
+      # OLCUM TEST KAPISI (shop/test/olcum-kapisi.cjs) — 30 Tem'e kadar OLU idi. Dosya SAF
+      # MODULDU (`module.exports` var, `require.main` kolu YOK): `node shop/test/olcum-kapisi.cjs`
+      # rc=0 verip SIFIR IDDIA kosuyordu; shop/.dev.vars'a SAHTE bir META_CAPI_TOKEN konsa
+      # bile rc=0 kaliyordu. Tek tuketicisi shop/test/kabul.js, o da wrangler dev istedigi
+      # icin hicbir hatta kosmuyor -> "yerel test GERCEK Meta pikseline sahte Purchase
+      # basmasin" fail-closed kapisi FIILEN YOKTU (izin listesindeki R_AYRI gerekcesi de
+      # olcumle yanlis cikti: oyle bir CI hatti yok). Artik ciplak kosulabilir:
+      #   A) OZ-NOBET — kapinin karar mantigi sentetik girdiyle olculur (izlenen anahtarlar,
+      #      taranan dosyalar, yanlis-pozitif kenarlari, override akil saglami).
+      #   B) GERCEK DURUM — bu ortamdaki env + shop/{.dev.vars,.env,.env.local} + wrangler.toml
+      #      okunur; gercek bir CAPI token'i / GA4 api_secret'i gorurse KIRMIZI.
+      # Sebep metinleri anahtarin ADINI tasir, DEGERINI TASIMAZ -> loga sir basilmaz.
+      # Offline: ag YOK, wrangler YOK, dosya YAZMAZ, gercek Meta/GA4 ucuna ISTEK ATMAZ. ~0,1 s.
+      - name: Olcum test kapisi (yerel test gercek piksele basmasin — fail-closed)
+        run: node shop/test/olcum-kapisi.cjs
 
       # SEPET PANELI + KONFIGUR ODENEBILIRLIK PROVASI (shop/test/sepet-panel.js). index.html'in
       # inline sepet scriptini node:vm'de GERCEKTEN kosar (kod kopyalanmaz): kayip satir,

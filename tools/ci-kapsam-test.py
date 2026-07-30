@@ -693,8 +693,15 @@ def sayilamayan_python3(deploy_metin):
 R_AYRI = ("Ayri alt-proje/dagitim hedefi (shop=Cloudflare Worker, onizleme, jenerator kendi "
           "harness'i). Bu is akisi YALNIZ GitHub Pages site build'i; bu suite o projenin CI "
           "hattinda kosulur, Pages job'una girmez.")
-R_NODE = ("CI build job'u Python-only (setup-node yok) -> JS/Node suite'i kosamaz. Ayri bir "
-          "node job'u gerekir (RAPOR onerisi).")
+# 🔴 R_NODE SABITI KALDIRILDI (30 Tem) — GEREKCE FIILEN YANLISTI, GERI EKLEME.
+# Metni soyleydi: "CI build job'u Python-only (setup-node yok) -> JS/Node suite'i kosamaz."
+# OLCULDU: .github/workflows/deploy.yml'de `actions/setup-node@v4` (node 20) BLOKLAYICI bir
+# ON-KOSULDUR ve o is akisinda ZATEN bes node testi kosuyor (shop/test/*.mjs, sepet-panel.js,
+# jenerator/test/*.js|mjs, onizleme/test/*.mjs). Yani bu gerekce dogru olsaydi o adimlarin
+# hepsi kirmizi yanardi. Gerekceye dayanan dort giris (riza-tikkimligi-test.js — GIZLILIK,
+# attribution-ref-test.js — LISANS ATIFI, url-senkron-test.js, marka-limit-test.js)
+# muafiyetten CIKARILDI ve deploy.yml'de bloklayici adim olarak kosuyor.
+# "CI'da node yok" gerekcesiyle YENI bir muafiyet yazmak isteyen once bu satiri okusun.
 R_AG = ("Ag/uzak platform erisimi gerektirir (parite CDN'e vurur) -> CI'da deterministik degil; "
         "ag-izinli ayri adim gerekir (RAPOR onerisi).")
 R_YOL = ("Mimar-disiplin kapisi: mutlak /Users/okan/dev/pruvo yoluna VE commit EDILMEYEN "
@@ -721,6 +728,18 @@ R_YEREL_HIJYEN = ("Yerel calisma-agaci hijyeni: .gitignore blogunun CONTENT_PAGE
                   "denetler. Drift CI'da GORUNMEZ (uretilen dizinler fresh checkout'ta yok) ve "
                   "canli siteyi bozmaz — yalniz gelistiricinin `git status`ini kirletir/kazara "
                   "commit riski dogurur. Yayini bloklamasi orantisiz; commit oncesi yerel kapi.")
+# 🔴 30 TEM — DURUST GEREKCE: kesif predikati jenerator/test/ altindaki HER .py/.js'i
+# "kabul testi" sayar, ama bu dizindeki bir kismi TEST DEGIL: fikstur/cikti URETECI ya da
+# CLI yardimcisi. Denetimde olculdu (IDDIA sutunu "IDDIA-YOK"): konularini tamamen bozsan
+# bile rc=0 veriyorlar, cunku iddialari YOK. Bunlar CI'ya BAGLANMAMALI — kosarlarsa
+# uzerine yazdiklari fiksturu/kaynagi EZERLER (birlestir.py dogrudan hacim.js'i yeniden
+# yazar; *-uret.py referans dosyalarini uretir). Muafiyetleri MESRU; eskiden R_AYRI
+# ("o projenin CI hattinda kosulur") deniyordu — o hat YOK ve zaten kosmamalilar.
+R_URETEC = ("KABUL TESTI DEGIL — fikstur/cikti URETECI ya da CLI yardimcisi (olculdu: "
+            "konusu tamamen bozulunca bile rc=0, yani hicbir iddiasi yok). CI'da KOSMAMALI: "
+            "kosarsa uzerine yazdigi fiksturu/kaynagi EZER. Elle, gelistirme akisinda "
+            "cagrilir; uretimin dogrulugunu tuketen KABUL testleri ayrica olcer.")
+
 R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VIRTUAL TABLE ... "
           "USING fts5(tokenize='trigram')). CI ubuntu stok sqlite3'unde fts5-trigram tokenizer'i "
           "yok -> test daha sema yuklerken patlar (yerel-yesil / CI-kirmizi). R_YAVAS/R_YOL ile "
@@ -732,7 +751,16 @@ IZIN_LISTESI = {
     # --- Ayri dagitim hedefleri (shop / onizleme / jenerator) ---
     "shop/test/eposta.mjs": R_AYRI,
     "shop/test/kabul.js": R_AYRI,
-    "shop/test/olcum-kapisi.cjs": R_AYRI,
+    # "shop/test/olcum-kapisi.cjs" MUAFIYETI KALDIRILDI (30 Tem) — iki kat yanlisti.
+    # (1) Gerekce R_AYRI ("bu suite o projenin CI hattinda kosulur") idi; oyle bir hat YOK.
+    # (2) Daha kotusu dosya SAF MODULDU: `module.exports` var, `require.main` kolu YOK ->
+    #     `node shop/test/olcum-kapisi.cjs` rc=0 verip SIFIR IDDIA kosuyordu. Olculdu:
+    #     shop/.dev.vars'a SAHTE bir META_CAPI_TOKEN + GA4_API_SECRET konsa BILE rc=0.
+    #     Tek tuketicisi shop/test/kabul.js, o da wrangler dev istedigi icin hicbir yerde
+    #     kosmuyor -> "yerel test GERCEK Meta pikseline sahte Purchase basmasin" fail-closed
+    #     kapisi FIILEN YOKTU. Dosyaya ciplak kosum kolu eklendi (A: karar mantigi sentetik
+    #     girdiyle, B: bu ortamdaki gercek env/dosya/wrangler.toml taramasi) -> 26 iddia,
+    #     agsiz, ~0,1 s; artik deploy.yml'de BLOKLAYICI kosuyor.
     # "shop/test/olcum.mjs" MUAFIYETI KALDIRILDI (30 Tem) — gerekce OLCULEREK YANLIS bulundu.
     # R_AYRI "bu suite o projenin CI hattinda kosulur, Pages job'una girmez" diyordu; oysa
     # kardes shop testleri (konfigur-fail-closed.mjs, fiyat-prova.mjs, iki-renk-ucret.mjs)
@@ -795,16 +823,26 @@ IZIN_LISTESI = {
         "BOLUM B'nin 'etkili iki-govde cagrisi' SAYACI kayar); mimar karariyla sonraki "
         "turda eklenebilir. MESH olcumu (ucgen/bbox/hacim) yine yalniz imaj is akisinda."),
     "onizleme/test/fiyat-taban-olcum.mjs": "Kabul KAPISI DEGIL — fiyat regresyonu icin dokum/karsilastirma ARACI (--yaz / --karsilastir). Sabit bir taban dosyasi repoda tutulmadigi icin CI'da tek basina anlamli bir iddiasi yoktur; fiyat kapilari ayri ve bloklayicidir (tools/konfigur-test.py, shop/test/fiyat-prova.mjs, shop/test/iki-renk-ucret.mjs).",
-    "jenerator/test/birlestir.py": R_AYRI,
+    "jenerator/test/birlestir.py": (
+        R_URETEC + " Somut: aile .js dosyalarini jenerator/hacim.js'e BIRLESTIREN arac "
+        "(kaynagin UZERINE yazar) — CI'da kosmasi calisma agacini degistirirdi."),
     "jenerator/test/dogrula.py": R_AYRI,
-    "jenerator/test/fiyat-tablosu-uret.py": R_AYRI,
+    "jenerator/test/fiyat-tablosu-uret.py": (
+        R_URETEC + " Somut: Okan'a .md fiyat sablonu ureten dokum araci."),
     "jenerator/test/fiyat-test.js": R_AYRI,
-    "jenerator/test/hacim-eval.js": R_AYRI,
+    "jenerator/test/hacim-eval.js": (
+        R_URETEC + " Somut: stdin'den JSON alip hacim hesaplayan CLI yardimcisi "
+        "(argumansiz 'gecersiz JSON' der); kabul testi degil, olcum borusu."),
     "jenerator/test/kabul.py": R_AYRI,
-    "jenerator/test/kalibrasyon-referans-uret.py": R_AYRI,
+    "jenerator/test/kalibrasyon-referans-uret.py": (
+        R_URETEC + " Somut: kalibrasyon-referans.json fiksturunu YAZAR — CI'da kosarsa "
+        "kabul testlerinin karsilastirdigi referansi EZER (test kendi kendini onaylardi)."),
     "jenerator/test/kalibrasyon-senkron.js": R_AYRI,
-    "jenerator/test/stl_hacim.py": R_AYRI,
-    "jenerator/test/vida-referans-uret.py": R_AYRI,
+    "jenerator/test/stl_hacim.py": (
+        R_URETEC + " Somut: 'kullanim: stl_hacim.py <dosya.stl>' — tek dosya olcen CLI."),
+    "jenerator/test/vida-referans-uret.py": (
+        R_URETEC + " Somut: vida referans fiksturunu ureten arac; ayrica OPENSCAD ister "
+        "(CI'da yok, yerel Mac'te SIGABRT)."),
     # "jenerator/test/vitrin-kabul.js" MUAFIYETI KALDIRILDI (30 Tem) — gerekce OLCULEREK
     # YANLIS bulundu. R_AYRI'nin "jenerator kendi harness'i" dali bu dosya icin gecersiz:
     # test jenerator'u DEGIL ANA SAYFAYI (index.html inline scripti) sinar — gizli kategori,
@@ -814,10 +852,13 @@ IZIN_LISTESI = {
     # ile taklit etmiyordu -> "HTTP undefined" ile ALTYAPI HATASI (7 testten 6'si hic
     # kosmuyordu). Bagimlilik testin ICINDE kurulur oldu (build.py --sadece-ozet + sunucusuz
     # tasima taklidi); Node 20.20.2 ve 25.x'te 9/0 -> test artik deploy.yml'de KOSUYOR.
-    # --- tools/ JS (CI'da node yok) ---
-    "tools/attribution-ref-test.js": R_NODE,
-    "tools/marka-limit-test.js": R_NODE,
-    "tools/riza-tikkimligi-test.js": R_NODE,
+    # --- tools/ JS ---
+    # 🔴 DORT R_NODE MUAFIYETI KALDIRILDI (30 Tem): attribution-ref-test.js (LISANS ATIFI),
+    # marka-limit-test.js, riza-tikkimligi-test.js (GIZLILIK/riza), url-senkron-test.js.
+    # Gerekce "CI'da setup-node yok" idi; deploy.yml:33 actions/setup-node@v4 BLOKLAYICI
+    # on-kosul olarak duruyor ve o dosyada zaten bes node testi kosuyor. Dorduyle de
+    # mutasyon olcumu yapildi (hedef kaynagi bozunca rc=1) -> hazir ve calisir olduklari
+    # icin deploy.yml'e bloklayici adim olarak baglandilar. Bkz. yukarida R_NODE notu.
     "tools/parite-test.js": R_AG,
     # --- parite karar-cekirdegi harness'leri (27 Tem): AGSIZ + yerelde YESIL ---
     # ⚠️ NOT (durust gerekce): CI'da setup-node VAR, yani bu ucu TEKNIK olarak deploy.yml'e
@@ -837,7 +878,6 @@ IZIN_LISTESI = {
         R_SONRA + " Somut: 4 tuketicinin cikis-kodu eslemesini olcer (47 iddia, 0,2 s, "
         "agsiz). deploy.yml'e 0-hunk sarti nedeniyle bu turda eklenmedi — CI'ya alinacak "
         "ILK aday budur (en ucuz, en yuksek getirili)."),
-    "tools/url-senkron-test.js": R_NODE,  # E paketi YESILLEDI; JS suite, CI'da node yok
     # --- tools/ python: mimar-disiplin (mutlak yol + commit'siz kablolama) ---
     "tools/mimar-kilit-test.py": R_YOL,
     "tools/mimar-commit-kapisi-test.py": R_YOL,
@@ -873,9 +913,12 @@ IZIN_LISTESI = {
     "tools/kategori-kapisi.py": R_TASARIM,
     "tools/gitignore-kapisi.py": R_YEREL_HIJYEN,
     "tools/regresyon-kapisi.py": (
-        R_YOL + " Ek olarak varsayilan suite'i node tools/parite-test.js + parite-ege.js icerir "
-        "(CI'da node YOK + ag gerekir, R_NODE/R_AG) ve kapsadigi testler zaten tek tek bu "
-        "listede muhasebeli -> CI'da kosmasi cift-sayim olurdu."),
+        R_YOL + " Ek olarak varsayilan suite'i node tools/parite-test.js + parite-ege.js icerir; "
+        "bunlar CANLI CDN/D1'e 1200 istek atar -> CI'da deterministik degil (R_AG). "
+        "🔴 DUZELTME (30 Tem): bu gerekce eskiden 'CI'da node YOK' da diyordu — OLCUMLE "
+        "YANLIS (deploy.yml'de setup-node bloklayici on-kosul); engel AG ekseni ve mutlak "
+        "yol, node DEGIL. Ayrica kapsadigi testler zaten tek tek bu listede muhasebeli -> "
+        "CI'da kosmasi cift-sayim olurdu."),
     # --- tools/ python: yavas/harici (>30s) ---
     "tools/feed-cache-bust-test.py": (
         R_YAVAS + " OLCULDU (F2 raporu): test build.py'yi 2 KEZ kosuyor -> tek build 108,0 s, "
@@ -886,7 +929,14 @@ IZIN_LISTESI = {
         "bloklayici adim olarak eklenebilir."),
     "tools/filament-test.py": R_YAVAS,
     "tools/kaynak-akis-test.py": R_YAVAS,
-    "tools/test-bbox-3mf.py": R_YAVAS,
+    # "tools/test-bbox-3mf.py" MUAFIYETI KALDIRILDI (30 Tem) — gerekce R_YAVAS (">30 s")
+    # idi; OLCULEN 0,1 s'lik bir COKUSTU. Test ankraj olarak GERCEK urun dosyalarini
+    # (stl/pr1173083.3mf, stl/pr912419.3mf) aciyordu, ama stl/ gitignore'da: dosyalar ne
+    # bu makinede ne CI'da var -> FileNotFoundError, HICBIR iddia kosmuyordu. Ankraj
+    # depoya alindi (tools/fikstur/3mf/, ~3 KB; uretici tools/fikstur/3mf-fikstur-uret.py
+    # ALT DIZINDE, yani kesif predikatina girmez ve CI'da kosup fiksturu EZEMEZ), mutlak
+    # /Users/okan/... yolu betigin kendi konumundan turetilir oldu, stl/ yoksa regresyon
+    # bolumu ACIKCA "ATLANDI" der. 0,06 s, agsiz -> deploy.yml'de BLOKLAYICI kosuyor.
     # --- tools/ python: fts5-trigram sqlite gerektiren (CI ubuntu'da yok) ---
     "tools/taban-fiyat-d1-test.py": R_FTS5,
     # --- tools/ python: offline-yesil, sonraki turda alinabilir ---

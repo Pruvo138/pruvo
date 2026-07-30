@@ -130,3 +130,131 @@ function olcumKapisi(girdi) {
 
 module.exports = { olcumKapisi, TEST_PIKSEL, TEST_GA4_MULK, TARANAN_DOSYALAR,
                    tomlDegeri, devVarsDegeri };
+
+// ---------------------------------------------------------------------------
+// CIPLAK KOSUM KOLU — `node shop/test/olcum-kapisi.cjs`
+// ---------------------------------------------------------------------------
+// 🔴 30 TEM — NEDEN EKLENDI (olculdu): bu dosya SAF MODULDU (`module.exports` var,
+// `require.main` kolu YOK). `node shop/test/olcum-kapisi.cjs` rc=0 veriyordu ve SIFIR
+// IDDIA kosuyordu — shop/.dev.vars'a SAHTE bir META_CAPI_TOKEN konsa bile rc=0. Tek
+// tuketicisi shop/test/kabul.js, o da wrangler dev istedigi icin hicbir yerde kosmuyor.
+// Yani "yerel test GERCEK Meta pikseline sahte Purchase basmasin" fail-closed kapisi
+// FIILEN yoktu; ci-kapsam izin listesindeki gerekcesi de (R_AYRI, "o projenin CI
+// hattinda kosulur") OLCULEREK YANLIS bulundu — boyle bir hat yok.
+//
+// IKI BOLUM (ikisi de agsiz, dosya YAZMAZ, wrangler/docker/secret ISTEMEZ):
+//   A) OZ-NOBET — kapinin KARAR MANTIGI sentetik girdilerle olculur. Bu, kapi
+//      etkisizlestirildiginde (or. TEHLIKELI_ANAHTARLAR bosaltilinca, bir dosya
+//      TARANAN_DOSYALAR'dan dusurulunce, override gercek kimlige esitlenince) KIRMIZI
+//      yanar. shop/test/olcum.mjs T21 ayni mantigi ayri bir surecten olcer; burada
+//      SURECTEN BAGIMSIZ ikinci bir olcum kalir (iki adim birden olmeden koruma dusmez).
+//   B) GERCEK DURUM — bu makinedeki gercek process.env + shop/{.dev.vars,.env,.env.local}
+//      + shop/wrangler.toml okunur. Gercek bir CAPI token'i / GA4 api_secret'i gorurse
+//      KIRMIZI (fail-closed): kabul testi kosmadan once yayin durur. CI fresh checkout'ta
+//      bu dosyalar YOKTUR -> B bolumunun anlamli iddiasi wrangler.toml AKIL SAGLAMIDIR
+//      (override degerleri GERCEK piksel/mulk kimliklerinden farkli olmak ZORUNDA);
+//      o dosya IZLENIYOR, yani CI'da da GERCEKTEN olculur.
+if (require.main === module) {
+  const fs = require("fs");
+  const path = require("path");
+  const SHOP = path.join(__dirname, "..");
+
+  let gecti = 0;
+  const hatalar = [];
+  function iddia(ad, ok, ayrinti) {
+    if (ok) { gecti += 1; console.log("  ok   " + ad); return; }
+    hatalar.push(ad + (ayrinti ? "  — " + ayrinti : ""));
+    console.log("  FAIL " + ad + (ayrinti ? "  — " + ayrinti : ""));
+  }
+
+  const TOML = 'META_PIXEL_ID = "111111111"\nGA4_MEASUREMENT_ID = "G-GERCEK"\n';
+
+  console.log("── A) OZ-NOBET: kapinin karar mantigi (sentetik girdi) ──");
+  // A1 sozlesme: kapi hangi anahtarlari/dosyalari izliyor (etkisizlestirme kanaryasi)
+  iddia("A1 TEHLIKELI_ANAHTARLAR bos DEGIL", TEHLIKELI_ANAHTARLAR.length > 0);
+  for (const ad of ["META_CAPI_TOKEN", "GA4_API_SECRET"]) {
+    iddia("A1 izlenen anahtar: " + ad, TEHLIKELI_ANAHTARLAR.indexOf(ad) !== -1);
+  }
+  for (const d of [".dev.vars", ".env", ".env.local"]) {
+    iddia("A1 taranan dosya: " + d, TARANAN_DOSYALAR.indexOf(d) !== -1);
+  }
+
+  // A2 temiz girdi -> GECER (kapi "hep kirmizi" degil)
+  const temiz = olcumKapisi({ wranglerToml: TOML, dosyalar: {}, ortam: {} });
+  iddia("A2 temiz girdi ok=true", temiz.ok === true, temiz.sebepler.join(" | "));
+  iddia("A2 override piksel gercek kimlik DEGIL",
+        temiz.degiskenler.META_PIXEL_ID === TEST_PIKSEL &&
+        temiz.degiskenler.META_PIXEL_ID !== "111111111");
+  iddia("A2 override GA4 mulku gercek mulk DEGIL",
+        temiz.degiskenler.GA4_MEASUREMENT_ID === TEST_GA4_MULK &&
+        temiz.degiskenler.GA4_MEASUREMENT_ID !== "G-GERCEK");
+
+  // A3 her anahtar x her kaynak -> REDDEDER (2 x 4 = 8 iddia)
+  for (const ad of TEHLIKELI_ANAHTARLAR) {
+    const o = olcumKapisi({ wranglerToml: TOML, dosyalar: {},
+                            ortam: { [ad]: "sahte-jeton-degeri" } });
+    iddia("A3 ortam degiskeni " + ad + " -> RED", o.ok === false);
+    for (const dosyaAdi of TARANAN_DOSYALAR) {
+      const r = olcumKapisi({ wranglerToml: TOML, ortam: {},
+                              dosyalar: { [dosyaAdi]: ad + "=sahte-jeton-degeri\n" } });
+      iddia("A3 shop/" + dosyaAdi + " icinde " + ad + " -> RED", r.ok === false);
+    }
+  }
+
+  // A4 yanlis-pozitif kenarlari: yorumlu / bos deger olay GONDEREMEZ -> GECER
+  const yorumlu = olcumKapisi({ wranglerToml: TOML, ortam: {},
+                                dosyalar: { ".dev.vars": "# META_CAPI_TOKEN=x\n" } });
+  iddia("A4 YORUMLU satir RED DEGIL (sahte-kirmizi yok)", yorumlu.ok === true,
+        yorumlu.sebepler.join(" | "));
+  const bos = olcumKapisi({ wranglerToml: TOML, ortam: {},
+                            dosyalar: { ".dev.vars": "META_CAPI_TOKEN=\n" } });
+  iddia("A4 BOS deger RED DEGIL", bos.ok === true, bos.sebepler.join(" | "));
+  const baskaAd = olcumKapisi({ wranglerToml: TOML, ortam: {},
+                                dosyalar: { ".dev.vars": "META_CAPI_TOKEN_YEDEK=x\n" } });
+  iddia("A4 BENZER ADLI baska anahtar RED DEGIL", baskaAd.ok === true,
+        baskaAd.sebepler.join(" | "));
+
+  // A5 akil saglami: override GERCEK kimlige esitse kapi islevsizdir -> RED
+  const cakisan = olcumKapisi({
+    wranglerToml: 'META_PIXEL_ID = "' + TEST_PIKSEL + '"\n', dosyalar: {}, ortam: {} });
+  iddia("A5 override == gercek piksel -> RED", cakisan.ok === false);
+  const cakisanMulk = olcumKapisi({
+    wranglerToml: 'GA4_MEASUREMENT_ID = "' + TEST_GA4_MULK + '"\n', dosyalar: {}, ortam: {} });
+  iddia("A5 override == gercek GA4 mulku -> RED", cakisanMulk.ok === false);
+
+  // A6 eski cagri bicimi (devVars) hala .dev.vars anlamina geliyor (geriye donuk uyum)
+  const eskiBicim = olcumKapisi({ wranglerToml: TOML, ortam: {},
+                                  devVars: "META_CAPI_TOKEN=x\n" });
+  iddia("A6 eski `devVars` cagri bicimi -> RED", eskiBicim.ok === false);
+
+  console.log("\n── B) GERCEK DURUM: bu makinedeki env + shop/ dosyalari + wrangler.toml ──");
+  function oku(p) { try { return fs.readFileSync(p, "utf8"); } catch (e) { return null; } }
+  const gercekDosyalar = {};
+  const gorulen = [];
+  for (const dosyaAdi of TARANAN_DOSYALAR) {
+    const icerik = oku(path.join(SHOP, dosyaAdi));
+    gercekDosyalar[dosyaAdi] = icerik;
+    if (icerik !== null) { gorulen.push(dosyaAdi); }
+  }
+  console.log("  taranan dosyalar : " + TARANAN_DOSYALAR.join(", ") +
+              "   (bulunan: " + (gorulen.join(", ") || "yok") + ")");
+  const gercekToml = oku(path.join(SHOP, "wrangler.toml"));
+  iddia("B1 shop/wrangler.toml okunabildi (kapinin akil saglami olculebilsin)",
+        gercekToml !== null);
+  const canli = olcumKapisi({ wranglerToml: gercekToml || "", dosyalar: gercekDosyalar,
+                              ortam: process.env });
+  // Sebep metinleri ANAHTAR ADINI icerir, DEGERINI ICERMEZ -> loga sir basilmaz.
+  iddia("B2 gercek CAPI token'i / GA4 api_secret'i GORUNMUYOR", canli.ok === true,
+        canli.sebepler.join(" | "));
+  iddia("B3 wrangler.toml'daki GERCEK piksel ID'si override ile CAKISMIYOR",
+        !canli.gercekPiksel || canli.gercekPiksel !== canli.degiskenler.META_PIXEL_ID,
+        "gercek=" + (canli.gercekPiksel || "-"));
+
+  console.log("\n" + "=".repeat(66));
+  if (hatalar.length) {
+    console.log("SONUC: KIRMIZI ❌  — " + gecti + " gecti, " + hatalar.length + " kirmizi");
+    for (const h of hatalar) { console.log("  - " + h); }
+    process.exit(1);
+  }
+  console.log("SONUC: YESIL ✅  — " + gecti + " iddia gecti");
+}

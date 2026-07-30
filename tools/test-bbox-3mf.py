@@ -4,24 +4,34 @@
 `python3 tools/test-bbox-3mf.py` (argumansiz). Basarisizlikta sifir-olmayan cikis kodu.
 
 Neyi dogruluyor:
-  1. ANKRAJ: iki Chrysler urunu (kok 3D/3dmodel.model bos, gercek geometri 3D/Objects/*.model).
-     Eski fonksiyon names[0]'i (bos kok modeli) okudugu icin None donuyordu; yeni fonksiyon
-     transform zincirini cozerek olcmeli, elle olcume ±%5 / ±2 mm toleransla ortusmeli.
-  2. REGRESYON: stl/ altindaki TUM .3mf dosyalari eski (names[0]+regex) ve yeni mantikla
-     olculur. Eski fonksiyonun olcebildigi (tek-.model) dosyalarda sonuc DEGISMEMELI; eski
-     None donup yeni olcen dosyalar "onarilan" sayilir. Eski deger verip yeni None donmek
-     = HARD FAIL (regresyon). Transform kaynakli kucuk sapmalar raporlanir, fail sayilmaz.
+  1. ANKRAJ (fikstur): tools/fikstur/3mf/ altindaki UC sentetik arsiv. Her biri ayri bir
+     olcum riskini capalar — cok-.model + transform zinciri, tek-.model duz olcum, ve
+     birim (inch) donusumu. Beklenen degerler ELLE HESAPLANABILIR (kutu koseleri +
+     matris carpimi), dosyalar ~1 KB ve DEPODA.
+  2. AYIRT EDICILIK: cok-model fiksturunde ESKI mantik (ilk .model + regex) None donmek,
+     YENI mantik dogru olcuyu vermek ZORUNDA. Onarilan hata sinifi tam olarak budur;
+     bu iddia olmadan test "iki mantik da ayni" diyen bir totolojiye duserdi.
+  3. REGRESYON (kosullu): stl/ altindaki TUM .3mf dosyalari eski ve yeni mantikla olculur.
+     Eski fonksiyonun olcebildigi dosyalarda sonuc DEGISMEMELI; eski None donup yeni olcen
+     dosyalar "onarilan" sayilir. Eski deger verip yeni None donmek = HARD FAIL.
+     stl/ DEPOYA GIRMEZ (gitignore) -> yoksa bolum ACIKCA "ATLANDI" raporlanir (sessiz
+     atlama YOK); ankraj bolumu her ortamda kosar.
 
-ELLE OLCUM NOTU: verilen 47x40x31 ve 172x171x22 degerleri "manuel zip+regex" ile, yani
-transform'suz HAM vertex birlesimiyle olculmustu. Bu iki dosyada transform'lu dogru hesap
-ile ham hesap AYNI cikiyor (biri identity+oteleme, digeri 90° X/Z takasi — ikisi de eksen
-hizali sinir kutusunun SIRALI boyutlarini degistirmez), o yuzden beklenen degerler elle
-olcume esit sabitlendi. Sapma cikan urun OLMADI, urunler.json olcu satiri duzeltmesi gerekmez.
+🔴 30 TEM — NEDEN DEGISTI (olculdu): ankrajlar GERCEK urun dosyalariydi
+(stl/pr1173083.3mf, stl/pr912419.3mf) ve `stl/` gitignore'da. Bu makinede de, CI'da da
+YOKLAR -> test 0,1 s'de FileNotFoundError ile PATLIYOR, HICBIR iddia kosmuyordu. Ustelik
+ci-kapsam izin listesindeki gerekcesi R_YAVAS (">30 s") diyordu; olculen 0,1 s'lik
+cokustu, yani muafiyet YALAN bir gerekceyle ayakta duruyordu. Ankraj artik depoda
+(uretici: tools/fikstur/3mf-fikstur-uret.py) ve test CI'da BLOKLAYICI kosar.
 """
 import importlib.util, os, re, struct, sys, zipfile, glob
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-STL_DIR = "/Users/okan/dev/pruvo/stl"
+ROOT = os.path.dirname(HERE)
+# MUTLAK YOL YOK: eskiden "/Users/okan/dev/pruvo/stl" sabitti -> worktree'de de CI'da da
+# yanlis yeri gosteriyordu. Artik betigin KENDI konumundan turetilir.
+STL_DIR = os.path.join(ROOT, "stl")
+FIKSTUR_DIR = os.path.join(HERE, "fikstur", "3mf")
 
 # --- test edilen modulu yukle (dosya adinda '-' var, normal import olmaz) ---
 _spec = importlib.util.spec_from_file_location("printables_api",
@@ -29,10 +39,19 @@ _spec = importlib.util.spec_from_file_location("printables_api",
 pa = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(pa)
 
-# --- ANKRAJ: elle olculmus degerler (buyukten kucuge, mm) ---
+# --- ANKRAJ: elle hesaplanmis degerler (buyukten kucuge, mm) ---
+# Her giris: dosya -> (beklenen_olcu, eski_mantik_None_mu, aciklama)
 ANKRAJ = {
-    os.path.join(STL_DIR, "pr1173083.3mf"): [47, 40, 31],   # chrysler-dodge guneslik klipsi
-    os.path.join(STL_DIR, "pr912419.3mf"): [172, 171, 22],  # Pacifica jant gobek kapagi
+    "cok-model-transform.3mf": (
+        [60, 30, 20], True,
+        "kok .model montaj (vertex YOK) + 3D/Objects/*.model geometri; "
+        "component olcek 2x (X) o item olcek 3x (Y) -> 10x20x30 kutu 20x60x30 olur"),
+    "tek-model-duz.3mf": (
+        [47, 40, 31], False,
+        "tek .model, transform yok -> eski ve yeni mantik AYNI sonucu vermeli"),
+    "birim-inch.3mf": (
+        [101.6, 50.8, 25.4], False,
+        "unit=inch -> 4x2x1 inc kutu mm'ye cevrilmeli (carpan dusserse 25,4 kat sapar)"),
 }
 
 
@@ -97,23 +116,49 @@ def sapma_yuzde(a, b):
 def main():
     hatalar = []
 
-    # 1) ANKRAJ
-    print("=== ANKRAJ (elle olcumle karsilastirma) ===")
-    for path, beklenen in ANKRAJ.items():
+    # 1) ANKRAJ — depodaki sentetik fiksturler (her ortamda kosar, FAIL-CLOSED)
+    print("=== ANKRAJ (tools/fikstur/3mf — elle hesaplanmis olcu) ===")
+    for ad, (beklenen, eski_none_mu, aciklama) in sorted(ANKRAJ.items()):
+        path = os.path.join(FIKSTUR_DIR, ad)
+        if not os.path.exists(path):
+            # FAIL-CLOSED: fikstur yoksa test SESSIZCE atlanmaz, KIRMIZI yanar.
+            # (Tam bu sinif hata testi aylarca olu tuttu: ankraj dosyasi yoktu.)
+            print("  %s\n    FIKSTUR YOK -> %s" % (ad, path))
+            hatalar.append("ANKRAJ FIKSTURU YOK: %s (uret: python3 "
+                           "tools/fikstur/3mf-fikstur-uret.py)" % path)
+            continue
         olculen = pa.bbox_3mf(path)
         eski = eski_bbox_3mf(path)
         ok = tolere(beklenen, olculen)
-        print("  %s" % os.path.basename(path))
-        print("    elle    : %s" % fmt([float(x) for x in beklenen]))
+        print("  %s  — %s" % (ad, aciklama))
+        print("    beklenen: %s" % fmt([float(x) for x in beklenen]))
         print("    YENI    : %s  %s" % (fmt(olculen), "OK" if ok else "FAIL"))
         print("    eski    : %s" % fmt(eski))
         if not ok:
-            hatalar.append("ANKRAJ %s: beklenen %s, olculen %s" %
-                           (os.path.basename(path), beklenen, fmt(olculen)))
+            hatalar.append("ANKRAJ %s: beklenen %s, olculen %s" % (ad, beklenen, fmt(olculen)))
+        # AYIRT EDICILIK: eski mantigin bu fiksturde ne yapmasi gerektigi de IDDIADIR.
+        # Olmazsa test "iki mantik da ayni" totolojisine duser ve onarilan hata sinifini
+        # (cok-.model arsivinde None) hic olcmez.
+        if eski_none_mu and eski is not None:
+            hatalar.append("AYIRT EDICILIK %s: ESKI mantik None DONMELIYDI, %s dondu -> "
+                           "fikstur artik cok-.model sinifini temsil etmiyor" % (ad, fmt(eski)))
+        if (not eski_none_mu) and eski is None:
+            hatalar.append("AYIRT EDICILIK %s: ESKI mantik olcebilmeliydi, None dondu -> "
+                           "fikstur bozulmus" % ad)
+        if (not eski_none_mu) and eski is not None and not tolere(beklenen, eski):
+            hatalar.append("AYIRT EDICILIK %s: eski mantik %s dedi, beklenen %s "
+                           "(bu fiksturde iki mantik AYNI olmali)" % (ad, fmt(eski), beklenen))
 
-    # 2) REGRESYON: tum .3mf'ler
+    # 2) REGRESYON: tum .3mf'ler — stl/ DEPOYA GIRMEZ (gitignore), yoksa ACIKCA atlanir
     print("\n=== REGRESYON (stl/ altindaki tum .3mf) ===")
-    dosyalar = sorted(glob.glob(os.path.join(STL_DIR, "*.3mf")))
+    if not os.path.isdir(STL_DIR):
+        print("  ⚪ ATLANDI: %s yok (stl/ gitignore'da — CI fresh checkout'ta beklenen hal)."
+              % STL_DIR)
+        print("     Ankraj bolumu bu ortamda da KOSTU; regresyon taramasi yerel/STL "
+              "yedegi olan makinede anlamlidir.")
+        dosyalar = []
+    else:
+        dosyalar = sorted(glob.glob(os.path.join(STL_DIR, "*.3mf")))
     n_onarilan = n_ayni = n_sapan = n_iki_none = n_regresyon = 0
     sapanlar = []
     for path in dosyalar:
