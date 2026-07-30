@@ -2348,6 +2348,11 @@
       if(bEl){ bEl.style.display = anaGorunum ? "" : "none"; }
     });
 
+    // Marka çipleri (#brandRow) SADECE bir kategori seçiliyken görünür (Okan, 30 Tem):
+    // ana sayfada (Tümü) ve salt aramada/marka filtresinde GİZLİ, kategoriye girilince görünür.
+    var brandRowEl = document.getElementById("brandRow");
+    if(brandRowEl){ brandRowEl.style.display = (activeCat !== "Tümü") ? "" : "none"; }
+
     if(query.trim() !== ""){
       title.textContent = '"' + query.trim() + '" araması';
     }else{
