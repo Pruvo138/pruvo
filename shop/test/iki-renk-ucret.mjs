@@ -484,8 +484,11 @@ const kSatir = [];
 for (const id of konfigurIdler) {
   const fiyatlar = [];
   for (const [boy, malzeme] of konfigurDenemeler) {
+    // `konfigur` KOLONU sart: FAZ 4'ten beri konfigur fiyati D1'in bu kolonundan hesaplanir
+    // (bundle'dan degil); kolonsuz satirda kalem fail-closed 400 alirdi.
     const d1 = { id, baslik: "Test " + id, kategori: "Skan Art", fiyat: "500 TL",
-                 parametrik: 0, gorsel: "" };
+                 parametrik: 0, gorsel: "",
+                 konfigur: JSON.stringify(KONFIGURLAR.get(id)) };
     const kalem = { id, malzeme, renk: "Siyah", adet: 1, parametreler: { boy_mm: boy } };
     const a = await baslat(ucretsizMod, [d1], kalem);
     const b = await baslat(ucretliMod, [d1], kalem);

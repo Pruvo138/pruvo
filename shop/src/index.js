@@ -31,7 +31,7 @@ import "../../secenekler.js";
 import { cfBaslat, cfDetay } from "./iyzico.js";
 import { parametrikHesapla } from "./parametrik.js";
 import { SEMALAR } from "./semalar.js";
-import { konfigurHesapla } from "./konfigur.js";
+import { konfigurHesapla, d1Coz } from "./konfigur.js";
 import { KONFIGURLAR } from "./konfigurlar.js";
 import { konfigurBeklenirMi } from "./konfigur-beklenen.js";
 import { golgeKalem, golgeLogSatiri } from "./konfigur-golge.js";
@@ -251,9 +251,10 @@ function kalemleriCoz(sepet) {
  * SEPET FIYATI — SUNUCU hesabi. /baslat (tahsilat) ve /fiyat (prova) BU fonksiyonu cagirir;
  * ikinci bir hesap kopyasi YOKTUR -> prova ile tahsilat AYRISAMAZ (fiyat regresyonu provada
  * gorunur). Kollarin sirasi ve fail-closed davranisi DEGISMEDI:
- *   1) KONFIGURLAR haritasinda VAR   -> konfigur (olcuye ozel dekor) sunucu hesabi
- *   2) konfigur BEKLENIYOR ama harita bos (konfigur-beklenen.js) -> FAIL-CLOSED 400
- *      (D1'de var, bundle'da yok penceresi; sabit fiyat HESAPLANMAZ — sessiz eksik tahsilat)
+ *   1) kalem KONFIGURATORLU (D1 kolonu dolu | bundle taniyor | konfigur-beklenen.js) ->
+ *      konfigur (olcuye ozel dekor) sunucu hesabi, sema D1 `konfigur` KOLONUNDAN (FAZ 4)
+ *   2) konfiguratorlu ama D1 kaydi YOK/BOZUK -> FAIL-CLOSED 400 (bundle'a ya da sabit
+ *      katalog fiyatina DUSULMEZ; sessiz varsayilan = yanlis tahsilat)
  *   3) urun parametrik                -> parametrik (sari) sunucu hesabi
  *   4) aksi                           -> sabit katalog fiyati (secenekler.js satirOzeti)
  * @returns {{hata: object, kod: number}} veya {{satirlar, toplamKurus}}
@@ -263,15 +264,15 @@ async function sepetiFiyatla(env, kalemler) {
   const idler = [...new Set(kalemler.map((k) => k.id))];
   const yertut = idler.map(() => "?").join(",");
   const ALANLAR = "id, baslik, kategori, fiyat, parametrik, gorsel";
-  // FAZ 3 GOLGE MODU: `konfigur` (D1'deki sema) AYNI SELECT'e kolon olarak eklendi —
-  // EK SORGU ve EK ROUND-TRIP YOK, satirla birlikte gelir (maliyet O(sepet kalemi),
-  // katalog buyuklugunden BAGIMSIZ). Deger fiyata KARISMAZ; yalnizca bundle ile kiyaslanip
-  // olculur (bkz. konfigur-golge.js).
+  // `konfigur` (D1'deki sema) AYNI SELECT'e kolon olarak eklendi — EK SORGU ve EK ROUND-TRIP
+  // YOK, satirla birlikte gelir (maliyet O(sepet kalemi), katalog buyuklugunden BAGIMSIZ).
+  // FAZ 4'ten beri bu kolon PARA YOLUDUR: konfigur kaleminin fiyati BUNDAN hesaplanir.
   //
-  // 🔴 FAIL-SAFE (deploy sirasi tuzagi): `konfigur` kolonu canli D1'e ancak
-  // `python3 tools/d1-sync.py --sema` kosunca girer. Worker o ALTER'dan ONCE deploy edilirse
-  // kolonlu SELECT "no such column" ile PATLAR ve TUM ODEME YOLU DUSERDI. Bu yuzden hata
-  // halinde ESKI (kolonsuz) SELECT'e dusulur: golge olcumu kapanir, tahsilat AYNEN calisir.
+  // 🔴 KOLONSUZ YEDEK YOL (kolon canli D1'de ancak `python3 tools/d1-sync.py --sema` ile
+  // olusur; kolonlu SELECT o ALTER'dan once "no such column" ile PATLAR ve TUM odeme yolunu
+  // dusururdu). Yedek yolda `u.konfigur` undefined kalir -> konfigur kalemleri FAIL-CLOSED
+  // 400 alir (WhatsApp kanali), katalogun geri kalani SATILMAYA DEVAM EDER. Yani yedek yol
+  // yalnizca konfigursuz urunler icin fail-open, konfigurlu urunler icin fail-CLOSED'dur.
   let sonuc;
   try {
     sonuc = await env.KATALOG.prepare(
@@ -285,8 +286,9 @@ async function sepetiFiyatla(env, kalemler) {
   }
   const katalog = new Map((sonuc.results || []).map((u) => [u.id, u]));
 
-  // GOLGE KAYDI — para yolunun DISINDA. Hicbir dondugu deger fiyata/tutara/siparise girmez;
-  // atarsa yutulur (golge olcumu tahsilati ASLA dusuremez).
+  // GOLGE KAYDI — para yolunun DISINDA. FAZ 4'ten beri YONU TERS: fiyat D1'den geldigi icin
+  // bu kayit "bundle artefakti (konfigurlar.js) BAYAT mi?" sorusunu olcer. Hicbir dondugu
+  // deger fiyata/tutara/siparise girmez; atarsa yutulur (olcum tahsilati ASLA dusuremez).
   const golgeYaz = (k, u, birimKurus) => {
     try {
       const g = golgeKalem(k, SECENEK, KONFIGURLAR.get(k.id) || null,
@@ -303,38 +305,45 @@ async function sepetiFiyatla(env, kalemler) {
     if (!u) return { hata: { hata: "bilinmeyen-urun", id: k.id }, kod: 400 };
 
     let birimKurus, ekAlanlar = {};
-    if (KONFIGURLAR.has(k.id)) {
-      // Konfigur (dekor konfiguratoru, /konfigur.js). Bu urun D1'de parametrik=0 + sabit fiyatli
-      // (kart-secim urunu gibi) gorunur -> u.parametrik kolu YAKALAMAZ; konfigur oldugunu SADECE
-      // bundled KONFIGURLAR haritasindan biliriz (D1'de konfigur alani YOK; harita urunler.json'dan
-      // TURETILIR — tools/konfigur-bundle-kapisi.py). Bu yuzden kontrol parametrik/sabit
-      // kollarindan AYRI ve ONCE. Kanal SECENEK.KONFIGUR_ODEME_ACIK ile ACIK; fiyat SUNUCUDA
-      // boy+malzeme'den yeniden hesaplanir (konfigur.js: /konfigur.js cekirdegi; istemcinin boy'u
-      // KIRPILIR, katsayi LISTEDEN, hacim/fiyat alanlari OKUNMAZ). Kapaliyken kalem WhatsApp'a.
+    // 🔴 KONFIGUR FIYAT KAYNAGI = D1 (FAZ 4, 31 Tem). Eskiden fiyat Worker bundle'indaki
+    // KONFIGURLAR haritasindan (shop/src/konfigurlar.js) hesaplanirdi; o harita ELLE uretilen
+    // + ELLE deploy edilen bir artefakt oldugu icin "D1'de VAR, bundle'da YOK/BAYAT" penceresi
+    // YAPISAL olarak acikti. Artik sema, katalogla AYNI otomatik yoldan (tools/d1-sync.py,
+    // pre-push hook) gelen `urunler.konfigur` KOLONUNDAN okunur -> vitrinin gosterdigi fiyat
+    // ile tahsil edilen fiyatin kaynagi TEKTIR. Cevirmenin sarti canlida olculdu: FAZ 3 golge
+    // raporu 17/17 urunde `ayni`, fark_kurus_toplam = 0 (bkz. konfigur-golge.js).
+    const d1Konfigur = d1Coz(u.konfigur);   // obje | null (bos/kolonsuz) | undefined (bozuk)
+
+    // "Bu kalem konfiguratorlu MU?" — UC BAGIMSIZ SINYAL, herhangi biri yeterli. Amac: hicbir
+    // konfigur kalemi asagidaki SABIT FIYAT koluna DUSMESIN (dusseydi 30 cm'lik 1.500 TL'lik
+    // urun 500 TL'ye satilirdi = sessiz eksik tahsilat). Sinyaller birbirini yedekler:
+    //   (1) D1 kolonu dolu (normal hal), (2) bundle haritasi taniyor (D1 senkronu kacmis olsa
+    //   bile), (3) konfigur-beklenen.js (gizli kategori / seri id soneki — ikisi de kacsa bile).
+    const konfigurluMu = Boolean(d1Konfigur) || KONFIGURLAR.has(k.id) || konfigurBeklenirMi(u);
+    if (konfigurluMu) {
+      // Kanal SECENEK.KONFIGUR_ODEME_ACIK ile ACIK; kapaliyken kalem WhatsApp'a duser.
       if (!SECENEK.KONFIGUR_ODEME_ACIK) {
         return { hata: { hata: "konfigur-urun", id: k.id,
                          mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, kod: 400 };
       }
-      const konfigur = KONFIGURLAR.get(k.id);
-      const kh = konfigurHesapla(k, SECENEK, konfigur);
+      // FAIL-CLOSED: kalem konfiguratorlu ama D1 kaydi YOK ya da BOZUK. Bundle'a ya da sabit
+      // katalog fiyatina DUSULMEZ — "sessiz varsayilan" tam olarak budur ve bedeli yanlis
+      // tahsilattir. Kalem gorunur 400 ile WhatsApp kanalina duser (Okan kurali: siparis
+      // kaybetmek yanlis tahsilattan iyidir). Kayit ATILIR ki pencere sayilabilsin.
+      if (!d1Konfigur) {
+        golgeYaz(k, u, undefined);
+        return { hata: { hata: "konfigur-urun", id: k.id,
+                         mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, kod: 400 };
+      }
+      // Fiyat SUNUCUDA yeniden hesaplanir (konfigur.js: /konfigur.js cekirdegi; istemcinin
+      // boy'u [min,max]+adim'a KIRPILIR, katsayi LISTEDEN okunur, istemcinin yolladigi
+      // hacim/fiyat alanlari OKUNMAZ). Sema artik D1'den geldigi icin bozuk/eksik alanli bir
+      // kayit da konfigurHesapla'nin kendi hata kollarina takilir -> yine 400, asla 0 TL.
+      const kh = konfigurHesapla(k, SECENEK, d1Konfigur);
       if (kh.hata) { return { hata: { hata: kh.hata, id: k.id }, kod: 400 }; }
       birimKurus = kh.birimKurus;
       ekAlanlar = { parametreler: kh.parametreler, parametre_detay: kh.detay,
                     hacim_mm3: kh.hacimMm3 };
-    } else if (konfigurBeklenirMi(u)) {
-      // FAIL-CLOSED KAPI (sessiz eksik tahsilat penceresi — konfigur-beklenen.js'te gerekce):
-      // urun D1'de konfigurator serisinden gorunuyor (gizli kategori / seri id soneki) ama
-      // bundle'daki KONFIGURLAR haritasinda YOK. Bu, urunun D1'e girip Worker'in HENUZ deploy
-      // edilmedigi (deploy ELLE yapilir) penceresidir. Eskiden bu kalem asagidaki SABIT fiyat
-      // koluna duserdi: konfiguratorde 1.500,00 TL olan 30 cm/PLA urun 500,00 TL'ye satilir,
-      // 1.000,00 TL SESSIZCE eksik tahsil edilirdi (musteri gercek bedelin ~%33'unu oder).
-      // Artik sabit fiyat HESAPLANMAZ; kalem konfigur kolunun kendi 400'uyle (yukaridaki
-      // KONFIGUR_ODEME_ACIK kapisiyla AYNI cevap) WhatsApp kanalina duser.
-      // GOLGE: bu tam da "D1'de VAR, bundle'da YOK" penceresi — FAZ 4'un kapatacagi hal.
-      // Kaydi ATILIR ki pencere sayilabilsin (davranis DEGISMEZ, yine 400 doner).
-      golgeYaz(k, u, undefined);
-      return { hata: { hata: "konfigur-urun", id: k.id,
-                       mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." }, kod: 400 };
     } else if (u.parametrik) {
       // Olcuye ozel (sari seri). Kanal SECENEK.PARAMETRIK_ODEME_ACIK ile ACIK (17 Tem);
       // fiyat SUNUCUDA yeniden hesaplanir (parametrik.js: sema + hacim.js + taban fiyat;
@@ -368,9 +377,9 @@ async function sepetiFiyatla(env, kalemler) {
       birimKurus = ozet.birimKurus;
     }
 
-    // GOLGE OLCUMU (FAZ 3) — fiyat YUKARIDA bundle'dan hesaplandi ve DEGISMEZ. Burada yalnizca
-    // "ayni kalemi D1'deki semayla fiyatlasaydik kac kurus fark ederdi?" sorusu kaydedilir.
-    // Konfigursuz urunlerde (katalogun ~%99,9'u) durum "yok" -> HIC log yazilmaz.
+    // ARTEFAKT DRIFT OLCUMU — fiyat YUKARIDA D1'den hesaplandi ve BURASI onu DEGISTIRMEZ.
+    // Kaydedilen soru: "bundle artefakti D1 ile hala ayni mi?" (ayrisim = konfigurlar.js
+    // bayat, deploy bekliyor). Konfigursuz urunlerde durum "yok" -> HIC log yazilmaz.
     golgeYaz(k, u, birimKurus);
 
     // Ara yuvarlama YOK: birim kurus x adet, kalem tutari kurusuyla toplanir.

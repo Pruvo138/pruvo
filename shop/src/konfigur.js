@@ -20,6 +20,24 @@
 import KONF from "../../konfigur.js";
 
 /**
+ * D1 `konfigur` KOLONUNUN metnini konfigur objesine cevirir — FAZ 4'ten beri PARA YOLUNDA
+ * (fiyatin okundugu kaynak budur; eskiden yalnizca golge olcumu kullaniyordu).
+ *
+ * UC AYRI SONUC, UCU DE ANLAMLI — cagiran ikisini de fail-closed sayar:
+ *   obje     -> gecerli sema (fiyat BUNDAN hesaplanir)
+ *   null     -> kolon BOS / satirda alan YOK (senkron kacmis ya da kolonsuz SELECT'e dusuldu)
+ *   undefined-> metin VAR ama JSON olarak cozulemedi / obje degil (bozuk kayit)
+ * ATMAZ: bozuk kayit istisnaya degil bir DEGERE cevrilir; karar cagiranda, tek yerde verilir.
+ */
+export function d1Coz(metin) {
+  if (typeof metin !== "string" || metin === "") { return null; }
+  try {
+    const o = JSON.parse(metin);
+    return (o && typeof o === "object" && !Array.isArray(o)) ? o : undefined;
+  } catch (e) { return undefined; }
+}
+
+/**
  * Konfigur kalemini sunucuda yeniden hesaplar. Konfigur objesi DISARIDAN verilir.
  * @returns {{hata: string}} veya {{birimKurus, parametreler, detay, hacimMm3}}
  */

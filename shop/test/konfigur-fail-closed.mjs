@@ -189,11 +189,23 @@ const FRONT = require(path.join(KOK, "konfigur.js"));   // bagimsiz fiyat orakil
 const URUNLER = JSON.parse(fs.readFileSync(path.join(KOK, "urunler.json"), "utf8"));
 const KONFIGUR_URUNLER = URUNLER.filter((u) => u.konfigur);
 
-/** urunler.json kaydindan D1 satiri (d1-sync.py'nin yazdigi alanlar). */
-function d1Satiri(u) {
+/** Anahtar sirasindan bagimsiz kanonik JSON (d1-sync.py konfigur_kanonik aynasi). */
+function kanonik(o) {
+  if (o === null || typeof o !== "object") { return JSON.stringify(o); }
+  if (Array.isArray(o)) { return "[" + o.map(kanonik).join(",") + "]"; }
+  return "{" + Object.keys(o).sort().map((k) => JSON.stringify(k) + ":" + kanonik(o[k]))
+    .join(",") + "}";
+}
+
+/** urunler.json kaydindan D1 satiri (d1-sync.py'nin yazdigi alanlar + `konfigur` kolonu).
+ *  FAZ 4'ten beri fiyat BU KOLONDAN hesaplanir -> satir onsuz kurulursa kalem fail-closed
+ *  400 alir; `konfigurUstuneYaz` ile o hal (bos/bozuk metin) bilerek kurulabilir. */
+function d1Satiri(u, konfigurUstuneYaz) {
   return { id: u.id, baslik: u.baslik || "", kategori: u.kategori || "",
            fiyat: u.fiyat || "", parametrik: u.parametrik ? 1 : 0,
-           gorsel: (u.gorseller && u.gorseller[0]) || "" };
+           gorsel: (u.gorseller && u.gorseller[0]) || "",
+           konfigur: konfigurUstuneYaz !== undefined ? konfigurUstuneYaz
+             : (u.konfigur ? kanonik(u.konfigur) : "") };
 }
 
 // (b) senaryosunun urunu: D1'e YENI girmis konfigur urunu, Worker HENUZ deploy edilmemis
@@ -274,7 +286,55 @@ async function suite(mod, etiket, ham) {
   not("(c) yanlis-pozitif: " + ornek.length + " konfigursuz urun denendi -> " + cYanlis +
       " tanesi 'konfigur-urun' yedi (" + c200 + " tanesi 200 ile odenebilir kaldi)");
 
-  return { hata, aSayac, ornekSayisi: ornek.length, cYanlis, cOk };
+  // ---- (d) FAZ 4 KAZANIMI: D1'de konfigur VAR, bundle'da YOK -> ARTIK DOGRU FIYATLANIR.
+  // (b)'deki pencerenin kapandigi hal: urun urunler.json'a girdi, d1-sync onu D1'e yazdi,
+  // Worker artefakti HENUZ deploy edilmedi. FAZ 3'e kadar bu kalem 400 aliyordu (satis
+  // kaybi); artik sema D1'den okundugu icin dogru kuruslu 200 doner.
+  const kaynakKonf = KONFIGUR_URUNLER[0].konfigur;
+  const dSatir = Object.assign({}, YENI_KONFIGUR, { konfigur: kanonik(kaynakKonf) });
+  let dSayac = 0;
+  for (const [boy, malzeme] of denemeler) {
+    const r = await baslat(mod, [dSatir], { id: YENI_KONFIGUR.id, malzeme, renk: "Siyah",
+                                            adet: 1, parametreler: { boy_mm: boy } });
+    const kat = (kaynakKonf.malzemeler.find((m) => m.ad === malzeme) || {}).katsayi;
+    const beklenen = FRONT.fiyatKurus(kaynakKonf, FRONT.boyDuzelt(kaynakKonf, boy), kat);
+    if (r.kod !== 200 || r.birimKurus !== beklenen) {
+      hata.push("(d) bundle'da OLMAYAN konfigur urunu " + boy + "mm/" + malzeme +
+                ": kod=" + r.kod + " birim=" + r.birimKurus + " (beklenen 200/" + beklenen + ")");
+    } else { dSayac += 1; }
+  }
+  not("(d) D1'de VAR / bundle'da YOK: " + dSayac + "/" + denemeler.length +
+      " kalem D1 semasiyla DOGRU fiyatlandi (deploy penceresi kapandi)");
+
+  // ---- (e) FAIL-CLOSED (F4'un asil riski): D1 kaydi YOK/BOS/BOZUK iken bundle'a ya da SABIT
+  // katalog fiyatina DUSULMEMELI. Uc negatif vaka da 400 + tahsilat YOK olmali; 0 TL / bedava
+  // siparis ASLA. Bundle bu urunleri BILIYOR -> "sessiz varsayilan" tam burada olurdu.
+  const eVakalar = [["D1 konfigur BOS", ""], ["D1 metni BOZUK JSON", "{bozuk"],
+                    ["D1 metni JSON ama DIZI", "[1,2]"]];
+  const eKaynak = KONFIGUR_URUNLER[0];
+  const eSabit = SECENEK.satirOzeti(
+    { kategori: eKaynak.kategori, fiyat: eKaynak.fiyat, parametrik: false,
+      boy_secenekleri: [] },
+    { id: eKaynak.id, malzeme: "PLA", renk: "Siyah", renk_ozel: "", boy_etiket: null,
+      adet: 1 }).birimKurus;
+  for (const [ad, metin] of eVakalar) {
+    const r = await baslat(mod, [d1Satiri(eKaynak, metin)],
+                           { id: eKaynak.id, malzeme: "PLA", renk: "Siyah", adet: 1,
+                             parametreler: { boy_mm: 300 } });
+    not("(e) " + ad + " -> kod=" + r.kod + " hata=" + (r.govde.hata || "-") +
+        " tahsilat=" + (r.birimKurus == null ? "YOK" : r.birimKurus) +
+        " (sabit kol olsaydi " + eSabit + ", D1 semasi 150000)");
+    if (r.kod !== 400 || r.govde.hata !== "konfigur-urun") {
+      hata.push("(e) " + ad + ": " + r.kod + "/" + (r.govde.hata || "-") +
+                " (400 konfigur-urun olmali)");
+    }
+    if (r.birimKurus !== null) { hata.push("(e) " + ad + ": TAHSILAT HESAPLANDI " + r.birimKurus); }
+    if (r.d1Yazildi) { hata.push("(e) " + ad + ": D1'e siparis satiri YAZILDI"); }
+    if (r.iyzicoAcildi) { hata.push("(e) " + ad + ": iyzico oturumu ACILDI"); }
+  }
+
+  return { hata, aSayac, ornekSayisi: ornek.length, cYanlis, cOk, dSayac,
+           eVaka: eVakalar.length };
 }
 
 // ---------------------------------------------------------------- kosum
@@ -351,13 +411,16 @@ if (eskiKaynak && !/konfigurBeklenirMi/.test(eskiKaynak)) {
 
 // 4) VAKUM (mutasyon): kapi SILINIRSE (b) KIRMIZI yanmali.
 baslik("== 4) VAKUM TESTI — kapi silindiginde test KIRMIZI yanmali ==");
-const DESEN = /\n\s*\} else if \(konfigurBeklenirMi\(u\)\) \{[\s\S]*?\n(\s*)\} else if \(u\.parametrik\) \{/;
+// FAZ 4'ten beri kapi bir `else if` DALI degil, `konfigurluMu` sinyalinin BIR TERIMI:
+// terim silinirse D1'de konfiguru olmayan + bundle'in tanimadigi seri urunu SABIT FIYAT
+// koluna duser (tam olarak (b)'nin olctugu sessiz eksik tahsilat).
+const DESEN = / \|\| konfigurBeklenirMi\(u\)/;
 if (!DESEN.test(KAYNAK)) {
   kirmizi += 1;
   ham.push("    ❌ MUTASYON UYGULANAMADI — kapi deseni index.js'te bulunamadi.");
   ham.push("       (Kapi yeniden yazildiysa bu desen guncellenmeli; mutasyon testi OLU kalamaz.)");
 } else {
-  const mutant = KAYNAK.replace(DESEN, "\n$1} else if (u.parametrik) {");
+  const mutant = KAYNAK.replace(DESEN, "");
   if (/konfigurBeklenirMi\(u\)/.test(mutant)) {
     kirmizi += 1;
     ham.push("    ❌ mutant hala kapiyi iceriyor (desen eksik kesti)");

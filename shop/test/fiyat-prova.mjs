@@ -337,10 +337,21 @@ const FRONT = require(path.join(KOK, "konfigur.js"));
 const URUNLER = JSON.parse(fs.readFileSync(path.join(KOK, "urunler.json"), "utf8"));
 const KONFIGUR_URUNLER = URUNLER.filter((u) => u.konfigur);
 
+/** Anahtar sirasindan bagimsiz kanonik JSON (d1-sync.py konfigur_kanonik aynasi). */
+function kanonik(o) {
+  if (o === null || typeof o !== "object") { return JSON.stringify(o); }
+  if (Array.isArray(o)) { return "[" + o.map(kanonik).join(",") + "]"; }
+  return "{" + Object.keys(o).sort().map((k) => JSON.stringify(k) + ":" + kanonik(o[k]))
+    .join(",") + "}";
+}
+
+/** D1 satiri — `konfigur` KOLONU dahil: FAZ 4'ten beri konfigur fiyati BU KOLONDAN
+ *  hesaplanir (bundle'dan degil), kolonsuz satir kurulursa kalem fail-closed 400 alir. */
 function d1Satiri(u) {
   return { id: u.id, baslik: u.baslik || "", kategori: u.kategori || "",
            fiyat: u.fiyat || "", parametrik: u.parametrik ? 1 : 0,
-           gorsel: (u.gorseller && u.gorseller[0]) || "" };
+           gorsel: (u.gorseller && u.gorseller[0]) || "",
+           konfigur: u.konfigur ? kanonik(u.konfigur) : "" };
 }
 
 // Artefaktta OLMAYAN konfigur urunu (D1'e girmis, Worker deploy edilmemis penceresi).
@@ -1227,7 +1238,10 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
   const rcBayat = kapiKos(miniArtiYol);
   not("M1 kapi: guncel katalog rc=" + rcGuncel + " (0 olmali) | +1 konfigurlu urun rc=" +
       rcBayat + " (1 olmali)");
-  // Calisma zamani sonucu: GERCEK artefakttan bir urun dusurulurse -> 400 (sabit fiyata dusmez).
+  // Calisma zamani sonucu — FAZ 4'te YON DEGISTI: artefakttan bir urun dusurulurse fiyat
+  // artik D1 `konfigur` kolonundan hesaplandigi icin kalem DOGRU kurusla 200 doner
+  // (bayat artefakt penceresi KAPANDI; eskiden burasi 400 = satis kaybiydi). Fail-closed
+  // iddiasi ayni mutantta ikinci vakayla korunur: artefakt DA bos, D1 DA bos -> 400.
   // Artefakt id'ye gore SIRALI: ilk kaydi secmek blok deseninin (virgulle biten) tutmasini
   // garanti eder (son kayitta kapanis virgulsuzdur).
   let eksikKaynak = KAYNAKLAR["konfigurlar.js"];
@@ -1241,19 +1255,34 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
     [{ id: dusen.id, malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: { boy_mm: 300 } }]);
   const m1p = await prova(m1Mod, [d1Satiri(dusen)],
     [{ id: dusen.id, malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: { boy_mm: 300 } }]);
+  const m1Beklenen = FRONT.fiyatKurus(dusen.konfigur,
+    FRONT.boyDuzelt(dusen.konfigur, 300),
+    (dusen.konfigur.malzemeler.find((m) => m.ad === "PLA") || {}).katsayi);
+  // IKINCI VAKA: artefakt DA bos, D1 kolonu DA bos -> tek kaynak da kalmadi -> FAIL-CLOSED.
+  const m1bos = await baslat(m1Mod, [Object.assign(d1Satiri(dusen), { konfigur: "" })],
+    [{ id: dusen.id, malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: { boy_mm: 300 } }]);
   not("M1 calisma zamani (" + dusen.id + " artefakttan silindi, kesildi=" + kesildi + "): " +
       "baslat=" + m1r.kod + "/" + m1r.govde.hata + " fiyat=" + m1r.birimKurus +
-      " | prova=" + m1p.kod + "/" + m1p.govde.hata);
-  const m1Ok = rcGuncel === 0 && rcBayat === 1 && kesildi && m1r.kod === 400 &&
-               m1r.govde.hata === "konfigur-urun" && m1r.birimKurus === null &&
-               m1p.kod === 400 && m1p.govde.hata === "konfigur-urun";
+      " (D1 semasindan beklenen " + m1Beklenen + ") | prova=" + m1p.kod + "/" + m1p.govde.hata);
+  not("M1 fail-closed vakasi (artefakt DA bos, D1 kolonu DA bos): baslat=" + m1bos.kod + "/" +
+      m1bos.govde.hata + " tahsilat=" + (m1bos.birimKurus == null ? "YOK" : m1bos.birimKurus));
+  const m1Ok = rcGuncel === 0 && rcBayat === 1 && kesildi &&
+               m1r.kod === 200 && m1r.birimKurus === m1Beklenen && m1p.kod === 200 &&
+               m1bos.kod === 400 && m1bos.govde.hata === "konfigur-urun" &&
+               m1bos.birimKurus === null;
   if (!m1Ok) { kirmizi += 1; ham.push("    ❌ M1 KALDI"); }
-  else { ham.push("    ✅ M1: bayat artefakt CI'da rc=1; calisma zamani fail-closed 400"); }
+  else {
+    ham.push("    ✅ M1: bayat artefakt CI'da rc=1; calisma zamani D1'den DOGRU fiyatliyor " +
+             "(" + m1Beklenen + "), iki kaynak da bosken fail-closed 400");
+  }
 
   // ---- M2: FAIL-CLOSED KOLU SILINDI (sabit fiyata dusurulmus) ----
   ham.push("  -- M2: fail-closed kol silindi (kalem sabit fiyata duser) --");
-  const DESEN = /\n\s*\} else if \(konfigurBeklenirMi\(u\)\) \{[\s\S]*?\n(\s*)\} else if \(u\.parametrik\) \{/;
-  const mutantKaynak = KAYNAKLAR["index.js"].replace(DESEN, "\n$1} else if (u.parametrik) {");
+  // FAZ 4: kapi artik ayri bir `else if` dali degil, `konfigurluMu` sinyalinin BIR TERIMI.
+  // Terim silinince D1'de konfiguru olmayan + artefaktin tanimadigi seri urunu SABIT FIYAT
+  // koluna duser -> tam olarak olculmek istenen sessiz eksik tahsilat.
+  const DESEN = / \|\| konfigurBeklenirMi\(u\)/;
+  const mutantKaynak = KAYNAKLAR["index.js"].replace(DESEN, "");
   const m2Uygulandi = DESEN.test(KAYNAKLAR["index.js"]) &&
                       !/konfigurBeklenirMi\(u\)/.test(mutantKaynak);
   let m2Kalan = [];

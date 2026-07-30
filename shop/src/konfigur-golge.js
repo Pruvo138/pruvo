@@ -1,10 +1,12 @@
 /**
  * KONFIGUR GOLGE MODU — "D1'deki konfigur semasi, Worker bundle'indakiyle AYNI mi?"
  *
- * 🔴 GOLGE = MUSTERI DAVRANISI DEGISMEZ. Fiyat HALA bundle'dan (shop/src/konfigurlar.js)
- * hesaplanir ve tahsilat ondan yapilir. Bu modul D1'den gelen semayi YALNIZCA OLCER; dondugu
- * hicbir deger fiyata, tutara, siparise ya da cevaba KARISMAZ. Amac tek soruyu olculebilir
- * kilmak: "sema D1'e tasinsa BUGUN ayni parayi mi tahsil ederdik?"
+ * 🔴 YON DEGISTI (FAZ 4, 31 Tem): fiyat artik D1 `konfigur` KOLONUNDAN hesaplanir
+ * (index.js sepetiFiyatla). Bu modul ARTIK "D1 semasi para yolunu degistirir mi?" sorusunu
+ * degil, TERSINI olcer: "bundle artefakti (shop/src/konfigurlar.js) BAYAT mi?". Ayrisim artik
+ * SESSIZ EKSIK TAHSILAT DEGIL, yalnizca 'deploy edilmemis artefakt' sinyalidir — dondugu
+ * hicbir deger yine fiyata/tutara/siparise/cevaba KARISMAZ (yalnizca log + rapor ucu).
+ * `d1Coz` istisnadir: FAZ 4'te para yoluna gecti, TEK KAYNAK konfigur.js (asagida re-export).
  *
  * NEDEN (iki kaynak sorunu): urun eklendiginde katalog D1'e OTOMATIK gider (pre-push hook),
  * ama konfigur semasi Worker bundle'inda yasadigi icin ELLE artefakt uretimi + ELLE deploy
@@ -16,7 +18,7 @@
  * ("d1-bozuk"), istisnaya degil — golge olcumu para yolunu ASLA dusuremez.
  */
 
-import { konfigurHesapla } from "./konfigur.js";
+import { konfigurHesapla, d1Coz } from "./konfigur.js";
 
 /** Golge durumlari (rapor + log sayaclarinin sabit anahtarlari). */
 export const DURUM = {
@@ -54,14 +56,12 @@ export function alanFarklari(a, b, yol = "", cikti = []) {
   return cikti;
 }
 
-/** D1'in konfigur metnini objeye cevirir. Bos -> null; bozuk -> undefined (ATMAZ). */
-export function d1Coz(metin) {
-  if (typeof metin !== "string" || metin === "") { return null; }
-  try {
-    const o = JSON.parse(metin);
-    return (o && typeof o === "object" && !Array.isArray(o)) ? o : undefined;
-  } catch (e) { return undefined; }
-}
+/**
+ * D1 metnini objeye cevirir. FAZ 4'te bu ayristirici PARA YOLUNA gectigi icin TEK KAYNAK
+ * konfigur.js oldu; burada yalnizca YENIDEN DISA VURULUR (ikinci kopya YOK — iki yol farkli
+ * ayristirsaydi "olculen" ile "tahsil edilen" sessizce ayrisirdi).
+ */
+export { d1Coz };
 
 /**
  * SEMA karsilastirmasi (fiyattan bagimsiz).

@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /**
- * KONFIGUR GOLGE MODU KABUL TESTI (FAZ 3) — "D1'den OKU, bundle'dan HESAPLA, FARKI OLC".
+ * KONFIGUR FIYAT KAYNAGI KABUL TESTI (FAZ 4) — "FIYAT D1'DEN OKUNUR, EKSIKSE FAIL-CLOSED".
  *
  *   node shop/test/konfigur-golge.mjs
  *
- * FAZ 3'un sozu tek cumle: MUSTERIYE GIDEN DAVRANIS HIC DEGISMEZ, yalniz "D1 verisi bundle
- * ile ayni mi" sorusu olculebilir hale gelir. Bu test o sozun IKI YARISINI da kanitlar:
- *   (1) fiyatlar BIREBIR ayni (konfigur kolonu OLAN ve OLMAYAN D1'de bile ayni),
- *   (2) fark 0 iken 0 olarak, kasten farklilastirilmis fiksturde GORUNUR + SAYILABILIR cikar.
+ * FAZ 3 (golge) fiyati bundle'dan hesaplayip D1 ile YALNIZCA kiyasliyordu; canlida fark
+ * 0 olculunce (17/17 'ayni', fark_kurus_toplam=0) FAZ 4'te kaynak CEVRILDI. Bu test yeni
+ * sozun IKI YARISINI da kanitlar:
+ *   (1) tahsil edilen kurus D1 semasini IZLER ve bagimsiz orakille (/konfigur.js) birebir,
+ *   (2) D1 kaydi YOK/BOS/BOZUK ise fiyat HESAPLANMAZ — 400, tahsilat YOK; bundle'a ya da
+ *       sabit katalog fiyatina DUSULMEZ (0 TL / sessiz varsayilan hicbir yolda yok).
  *
  * NASIL (OFFLINE — wrangler/ag/gercek odeme YOK): shop/src/index.js'in KENDISI Node'a
  * yuklenir, D1 ve iyzico yerine bellek-ici sahteleri konur. Fiyat, worker'in D1'e YAZDIGI
@@ -15,17 +17,18 @@
  * (bkz. konfigur-fail-closed.mjs'teki ayni desen: JSON import'lari gomulur, ESM kancasi YOK).
  *
  * KOSTUGU SETLER:
- *   1) MUSTERI DAVRANISI — 4 capa fiyat + konfigursuz urun; konfigur kolonu VARKEN ve YOKKEN
- *      birebir AYNI (mimarin verdigi kabul sayilari).
- *   2) GOLGE PARITE — 17 urunun hepsinde bundle == D1 -> durum "ayni", fark 0, LOG YOK.
- *   3) KASTEN FARK — D1 semasi bozulur: fark GORUNUR (alan yolu) + SAYILABILIR (kurus),
- *      ama TAHSILAT DEGISMEZ (hala bundle fiyati).
- *   4) PENCERE SINIFLARI — d1-eksik / bundle-eksik / d1-bozuk ayrik ve dogru siniflanir.
- *   5) FAIL-SAFE — D1'de konfigur kolonu YOKKEN (SELECT patlar) odeme AYNEN calisir.
+ *   1) MUSTERI DAVRANISI — 4 capa fiyat + konfigursuz urun; kolon VARKEN kurus orakille
+ *      birebir, kolon YOKKEN 51/51 kalem FAIL-CLOSED 400.
+ *   2) ARTEFAKT PARITESI — 17 urunun hepsinde bundle == D1 -> durum "ayni", fark 0, LOG YOK.
+ *   3) KASTEN FARK — D1 semasi degistirilir: TAHSILAT D1'i IZLER (bundle capasini DEGIL),
+ *      artefakt driftu ayrica GORUNUR (alan yolu) + rapor ucunda SAYILABILIR.
+ *   4) PENCERE SINIFLARI — d1-eksik/d1-bozuk FAIL-CLOSED; bundle-eksik penceresi KAPANDI
+ *      (deploy beklemeden dogru kurusla 200).
+ *   5) KOLONSUZ YEDEK YOL — konfigur kalemi fail-closed, KONFIGURSUZ katalog satmaya devam.
  *   6) RAPOR KIPI — /yonet/konfigur-golge: anahtarsiz 404, anahtarli 200 + sayilar; YAZMA YOK.
  *   7) YANLIS-POZITIF — 20+ konfigursuz normal urun: log YOK, fiyat degismedi.
- *   8) MUTASYON — golge nobetleri no-op yapilinca 2/3 KIRMIZI yanmali; ayni mutantta set 1
- *      (fiyat) YESIL kalmali (golge para yolundan gercekten AYRIK).
+ *   8) MUTASYON — olcum nobetleri no-op yapilinca KIRMIZI yanmali; ayni mutantta FIYAT
+ *      D1 semasindan kalmali (olcum modulu para yolunda DEGIL).
  */
 
 import fs from "node:fs";
@@ -252,7 +255,7 @@ async function prova(mod, d1Satirlari, kalem, ayar) {
 async function rapor(mod, d1Satirlari, anahtar, ayar) {
   const kayitlar = [];
   const env = Object.assign({}, ENV, { KATALOG: d1Sahte(d1Satirlari, kayitlar, ayar),
-                                       YONET_ANAHTAR: "gizli-test-anahtari" });
+                                       YONET_ANAHTAR: "test-yonet-anahtari" });
   const url = "https://pruvo3d.com/api/shop/yonet/konfigur-golge" +
               (anahtar ? "?anahtar=" + encodeURIComponent(anahtar) : "");
   const cevap = await mod.default.fetch(new Request(url), env, { waitUntil() {} });
@@ -266,6 +269,9 @@ async function rapor(mod, d1Satirlari, anahtar, ayar) {
 require(path.join(KOK, "secenekler.js"));
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi"); }
+// BAGIMSIZ FIYAT ORAKILI: sitenin yukledigi /konfigur.js cekirdegi. Worker'in kurusu buna
+// gore dogrulanir (worker'in kendi hesabini kendine tekrarlatmak olcum degildir).
+const FRONT = require(path.join(KOK, "konfigur.js"));
 
 const URUNLER = JSON.parse(fs.readFileSync(path.join(KOK, "urunler.json"), "utf8"));
 const KONFIGUR_URUNLER = URUNLER.filter((u) => u.konfigur);
@@ -301,7 +307,8 @@ function iddia(ad, kosul, detay) {
 const MOD = await indexYukle(fs.readFileSync(path.join(SRC, "index.js"), "utf8"));
 
 // === 1) MUSTERI DAVRANISI DEGISMEDI (mimarin verdigi 4 capa) ======================
-ham.push("== 1) MUSTERI DAVRANISI — 4 capa fiyat, konfigur kolonu VARKEN ve YOKKEN ==");
+ham.push("== 1) MUSTERI DAVRANISI — 4 capa fiyat; kolon VARKEN dogru kurus, YOKKEN " +
+         "FAIL-CLOSED ==");
 const CAPA = URUNLER.find((u) => u.id === "capa-serit-dekoratif-figur");
 const ANKA = URUNLER.find((u) => u.id === "anka-kusu-serit-dekoratif-figur");
 const NORMAL = NORMAL_URUNLER[0];
@@ -318,15 +325,20 @@ const k1 = await ikiYol(CAPA, { id: CAPA.id, malzeme: "PLA", renk: "Siyah", adet
                                 parametreler: { boy_mm: 150 } });
 iddia("capa 150mm/PLA birim = 73600 kurus (kolon VAR)", k1.a.birimKurus === 73600,
       "olculen=" + k1.a.birimKurus);
-iddia("capa 150mm/PLA birim = 73600 kurus (kolon YOK — fail-safe yol)",
-      k1.b.birimKurus === 73600, "olculen=" + k1.b.birimKurus);
+// FAZ 4: fiyat kaynagi D1 kolonu -> kolon YOKSA konfigur kalemi FAIL-CLOSED 400 alir
+// (bundle'a ya da sabit katalog fiyatina DUSULMEZ). Bedeli o kalemin WhatsApp'a dusmesidir;
+// alternatifi sessiz yanlis tahsilattir.
+iddia("capa 150mm/PLA kolon YOK -> FAIL-CLOSED 400 + tahsilat YOK",
+      k1.b.kod === 400 && k1.b.govde.hata === "konfigur-urun" && k1.b.birimKurus === null,
+      k1.b.kod + "/" + k1.b.govde.hata + " birim=" + k1.b.birimKurus);
 
 const k2 = await ikiYol(CAPA, { id: CAPA.id, malzeme: "ASA", renk: "Siyah", adet: 1,
                                 parametreler: { boy_mm: 300 } });
 iddia("capa 300mm/ASA birim = 150000 kurus (kolon VAR)", k2.a.birimKurus === 150000,
       "olculen=" + k2.a.birimKurus);
-iddia("capa 300mm/ASA birim = 150000 kurus (kolon YOK)", k2.b.birimKurus === 150000,
-      "olculen=" + k2.b.birimKurus);
+iddia("capa 300mm/ASA kolon YOK -> FAIL-CLOSED 400 + tahsilat YOK",
+      k2.b.kod === 400 && k2.b.govde.hata === "konfigur-urun" && k2.b.birimKurus === null,
+      k2.b.kod + "/" + k2.b.govde.hata + " birim=" + k2.b.birimKurus);
 
 // ANKA capasi mimarin verdigi bicimde: TUTAR (kargo dahil) = 986,00 TL. Bu, /fiyat provasinin
 // DONDURDUGU alanlardan okunur (INSERT arg'lari degil) -> "POST /api/shop/fiyat bugunkü
@@ -340,9 +352,9 @@ iddia("anka-kusu 150mm/PLA /fiyat tutar = '986,00 TL' (kargo dahil)",
 iddia("anka-kusu tahsilat_kurus = 98600 (73600 urun + 25000 kargo)",
       p3.govde.tahsilat_kurus === 98600 && p3.govde.urun_kurus === 73600 &&
       p3.govde.kargo_kurus === 25000, JSON.stringify(p3.govde));
-iddia("anka-kusu tutari kolon YOKKEN de AYNI ('986,00 TL')",
-      p3b.govde.tutar === "986,00 TL" && p3b.govde.tahsilat_kurus === 98600,
-      "olculen=" + p3b.govde.tutar);
+iddia("anka-kusu kolon YOKKEN provada da FAIL-CLOSED 400 (prova ile tahsilat AYRISMAZ)",
+      p3b.kod === 400 && p3b.govde.hata === "konfigur-urun" && !p3b.govde.tutar,
+      p3b.kod + "/" + p3b.govde.hata + " tutar=" + p3b.govde.tutar);
 iddia("🔴 /fiyat provasi D1'e YAZMAZ (golge eklendikten sonra da yan etkisiz)",
       p3.yazma === 0, "yazma=" + p3.yazma);
 // capa capalari da /fiyat ucundan teyit (iki uc AYNI cekirdegi kosuyor)
@@ -369,20 +381,26 @@ iddia("KONFIGURSUZ urun (" + NORMAL.id + ") fiyati DEGISMEDI (" + nBeklenen + ")
 iddia("konfigursuz urun GOLGE LOGU URETMEZ (gurultu yok)", kn.a.loglar.length === 0,
       JSON.stringify(kn.a.loglar));
 
-// TUM 17 urun x 3 nokta: kolon VAR/YOK fiyatlari BIREBIR ayni mi?
-let ayniSayac = 0, toplamDeneme = 0;
+// TUM 17 urun x 3 nokta: (a) kolon VARKEN kurus bagimsiz orakille (/konfigur.js) BIREBIR,
+// (b) kolon YOKKEN kalem FAIL-CLOSED 400 ve tahsilat YOK.
+let orakilSayac = 0, kapaliSayac = 0, toplamDeneme = 0;
 for (const u of KONFIGUR_URUNLER) {
   for (const [boy, malzeme] of [[60, "PLA"], [150, "PETG"], [300, "ASA"]]) {
     toplamDeneme += 1;
     const kalem = { id: u.id, malzeme, renk: "Siyah", adet: 1, parametreler: { boy_mm: boy } };
     const r = await ikiYol(u, kalem);
-    if (r.a.kod === 200 && r.a.birimKurus === r.b.birimKurus && r.a.birimKurus > 0) {
-      ayniSayac += 1;
+    const kat = (u.konfigur.malzemeler.find((m) => m.ad === malzeme) || {}).katsayi;
+    const beklenen = FRONT.fiyatKurus(u.konfigur, FRONT.boyDuzelt(u.konfigur, boy), kat);
+    if (r.a.kod === 200 && r.a.birimKurus === beklenen) { orakilSayac += 1; }
+    if (r.b.kod === 400 && r.b.govde.hata === "konfigur-urun" && r.b.birimKurus === null) {
+      kapaliSayac += 1;
     }
   }
 }
-iddia("17 urun x 3 nokta = " + toplamDeneme + " kalem: kolon VAR/YOK fiyati BIREBIR ayni",
-      ayniSayac === toplamDeneme, ayniSayac + "/" + toplamDeneme);
+iddia("17 urun x 3 nokta = " + toplamDeneme + " kalem: kolon VARKEN kurus orakille BIREBIR",
+      orakilSayac === toplamDeneme, orakilSayac + "/" + toplamDeneme);
+iddia(toplamDeneme + " kalem: kolon YOKKEN hepsi FAIL-CLOSED 400 (tahsilat YOK)",
+      kapaliSayac === toplamDeneme, kapaliSayac + "/" + toplamDeneme);
 
 // === 2) GOLGE PARITE — bundle == D1 -> fark 0, LOG YOK ===========================
 ham.push("== 2) GOLGE PARITE — bundle == D1 ==");
@@ -395,7 +413,7 @@ for (const u of KONFIGUR_URUNLER) {
 }
 iddia("17/17 urunde bundle == D1 -> HIC golge logu yok (fark 0)", logSayaci === 0,
       "log=" + logSayaci);
-const rp = await rapor(MOD, KONFIGUR_URUNLER.map((u) => d1Satiri(u)), "gizli-test-anahtari");
+const rp = await rapor(MOD, KONFIGUR_URUNLER.map((u) => d1Satiri(u)), "test-yonet-anahtari");
 iddia("rapor: durum='parite'", rp.govde.durum === "parite", JSON.stringify(rp.govde.ozet));
 iddia("rapor: fark_kurus_toplam === 0", rp.govde.fark_kurus_toplam === 0,
       String(rp.govde.fark_kurus_toplam));
@@ -404,28 +422,30 @@ iddia("rapor: ozet.ayni === 17", rp.govde.ozet && rp.govde.ozet.ayni === 17,
 iddia("rapor: ayrisim kaydi YOK", (rp.govde.kayitlar || []).length === 0,
       JSON.stringify(rp.govde.kayitlar));
 
-// === 3) KASTEN FARK — gorunur + sayilabilir, TAHSILAT DEGISMEZ ====================
+// === 3) KASTEN FARK — TAHSILAT D1'i IZLER, ayrisim GORUNUR =======================
 ham.push("== 3) KASTEN FARKLILASTIRILMIS FIKSTUR ==");
 // D1'deki semanin fiyat capasi yukseltilir (500 -> 700 TL taban). Bundle DEGISMEZ.
+// 🔴 FAZ 4 CEVIRMESININ ASIL KANITI: tahsilat bundle'i DEGIL D1'i izlemeli. Bagimsiz
+// orakil (/konfigur.js) D1 semasiyla ne diyorsa worker onu tahsil etmeli.
 const bozukKonf = JSON.parse(JSON.stringify(CAPA.konfigur));
 bozukKonf.fiyatCapalari = [[60, 700], [300, 3300]];
 const farkliSatir = d1Satiri(CAPA, kanonik(bozukKonf));
+const D1_BEKLENEN = FRONT.fiyatKurus(bozukKonf, FRONT.boyDuzelt(bozukKonf, 150),
+  (bozukKonf.malzemeler.find((m) => m.ad === "PLA") || {}).katsayi);
 const rf = await baslat(MOD, [farkliSatir],
                         { id: CAPA.id, malzeme: "PLA", renk: "Siyah", adet: 1,
                           parametreler: { boy_mm: 150 } });
-iddia("TAHSILAT HALA BUNDLE FIYATI (73600) — golge parayi ETKILEMEZ",
-      rf.birimKurus === 73600, "olculen=" + rf.birimKurus);
-iddia("fark GORUNUR: tam 1 golge logu yazildi", rf.loglar.length === 1,
+iddia("TAHSILAT D1 SEMASINI IZLIYOR (" + D1_BEKLENEN + " kurus, bundle capasi 73600 DEGIL)",
+      rf.birimKurus === D1_BEKLENEN && rf.birimKurus !== 73600, "olculen=" + rf.birimKurus);
+iddia("artefakt driftu GORUNUR: tam 1 log yazildi", rf.loglar.length === 1,
       JSON.stringify(rf.loglar));
 const kayit = rf.loglar.length ? JSON.parse(rf.loglar[0].replace("konfigur-golge ", "")) : {};
 iddia("log durum='farkli'", kayit.durum === "farkli", JSON.stringify(kayit));
-iddia("fark SAYILABILIR: fark_kurus sayi ve 0 DEGIL (" + kayit.fark_kurus + ")",
-      typeof kayit.fark_kurus === "number" && kayit.fark_kurus !== 0, JSON.stringify(kayit));
 iddia("ayrisan ALAN YOLU raporlandi (fiyatCapalari...)",
       Array.isArray(kayit.alanlar) && kayit.alanlar.some((a) => a.startsWith("fiyatCapalari")),
       JSON.stringify(kayit.alanlar));
 const rf2 = await rapor(MOD, [farkliSatir, ...KONFIGUR_URUNLER.filter((u) => u.id !== CAPA.id)
-  .map((u) => d1Satiri(u))], "gizli-test-anahtari");
+  .map((u) => d1Satiri(u))], "test-yonet-anahtari");
 iddia("rapor: durum='ayrisim'", rf2.govde.durum === "ayrisim", JSON.stringify(rf2.govde.ozet));
 iddia("rapor: ozet.farkli === 1", rf2.govde.ozet.farkli === 1, JSON.stringify(rf2.govde.ozet));
 iddia("rapor: fark_kurus_toplam > 0 (" + rf2.govde.fark_kurus_toplam + ")",
@@ -441,9 +461,10 @@ const rEksik = await baslat(MOD, [d1Satiri(CAPA, "")],
                             { id: CAPA.id, malzeme: "PLA", renk: "Siyah", adet: 1,
                               parametreler: { boy_mm: 150 } });
 const kEksik = rEksik.loglar.length ? JSON.parse(rEksik.loglar[0].replace("konfigur-golge ", "")) : {};
-iddia("D1'de konfigur BOS -> durum 'd1-eksik' (senkron kacmis) + fiyat 73600 AYNI",
-      kEksik.durum === "d1-eksik" && rEksik.birimKurus === 73600,
-      JSON.stringify(kEksik) + " birim=" + rEksik.birimKurus);
+iddia("D1'de konfigur BOS -> durum 'd1-eksik' + FAIL-CLOSED 400 (bundle'a DUSULMEZ)",
+      kEksik.durum === "d1-eksik" && rEksik.kod === 400 &&
+      rEksik.govde.hata === "konfigur-urun" && rEksik.birimKurus === null,
+      JSON.stringify(kEksik) + " " + rEksik.kod + " birim=" + rEksik.birimKurus);
 
 // bundle-eksik: D1'de konfigur VAR, bundle'da id YOK (= BUGUNKU acik pencere)
 const YENI_ID = "ejderha-serit-dekoratif-figur";
@@ -456,25 +477,31 @@ const kBE = rBundleEksik.loglar.length
   ? JSON.parse(rBundleEksik.loglar[0].replace("konfigur-golge ", "")) : {};
 iddia("D1'de VAR / bundle'da YOK -> durum 'bundle-eksik' KAYDEDILDI (pencere sayilabilir)",
       kBE.durum === "bundle-eksik", JSON.stringify(kBE));
-iddia("... ve DAVRANIS DEGISMEDI: hala fail-closed 400 'konfigur-urun' (WhatsApp)",
-      rBundleEksik.kod === 400 && rBundleEksik.govde.hata === "konfigur-urun",
-      rBundleEksik.kod + "/" + rBundleEksik.govde.hata);
-iddia("... ve D1 GOLGE FIYATI hesaplandi (pencerenin PARA bedeli olculebilir: " +
-      kBE.d1_kurus + " kurus)", kBE.d1_kurus === 73600, String(kBE.d1_kurus));
+// 🔴 FAZ 4 KAZANIMI: bu pencere KAPANDI. Eskiden bu kalem 400 aliyordu (satis kaybi);
+// artik sema D1'den okundugu icin DOGRU kurusla 200 doner — deploy beklemeden.
+iddia("... ve PENCERE KAPANDI: 200 + D1 semasindan DOGRU kurus (73600)",
+      rBundleEksik.kod === 200 && rBundleEksik.birimKurus === 73600,
+      rBundleEksik.kod + " birim=" + rBundleEksik.birimKurus);
+iddia("... ve artefaktin bayat oldugu YINE DE kayda gecti (deploy hatirlaticisi)",
+      kBE.d1_kurus === 73600, String(kBE.d1_kurus));
 
 const rBozuk = await baslat(MOD, [d1Satiri(CAPA, "{bozuk-json")],
                             { id: CAPA.id, malzeme: "PLA", renk: "Siyah", adet: 1,
                               parametreler: { boy_mm: 150 } });
 const kBozuk = rBozuk.loglar.length ? JSON.parse(rBozuk.loglar[0].replace("konfigur-golge ", "")) : {};
-iddia("D1 metni BOZUK -> durum 'd1-bozuk' (istisna DEGIL) + fiyat 73600 AYNI",
-      kBozuk.durum === "d1-bozuk" && rBozuk.birimKurus === 73600,
-      JSON.stringify(kBozuk) + " birim=" + rBozuk.birimKurus);
+iddia("D1 metni BOZUK -> durum 'd1-bozuk' (istisna DEGIL) + FAIL-CLOSED 400, 0 TL YOK",
+      kBozuk.durum === "d1-bozuk" && rBozuk.kod === 400 &&
+      rBozuk.govde.hata === "konfigur-urun" && rBozuk.birimKurus === null,
+      JSON.stringify(kBozuk) + " " + rBozuk.kod + " birim=" + rBozuk.birimKurus);
 
-// === 5) FAIL-SAFE — kolon yokken odeme yolu AYNEN calisir ========================
-ham.push("== 5) FAIL-SAFE — D1'de konfigur kolonu YOK ==");
-iddia("kolon YOKKEN /baslat 200 doner (odeme yolu DUSMEZ)", k1.b.kod === 200,
+// === 5) KOLON YOKKEN: konfigur kalemi fail-closed, KATALOG SATMAYA DEVAM =========
+ham.push("== 5) KOLONSUZ YEDEK YOL — konfigur fail-closed, katalog acik ==");
+iddia("kolon YOKKEN konfigur kalemi 400 (fail-closed)", k1.b.kod === 400,
       String(k1.b.kod));
-const rpYok = await rapor(MOD, KONFIGUR_URUNLER.map((u) => d1Satiri(u)), "gizli-test-anahtari",
+iddia("kolon YOKKEN KONFIGURSUZ urun 200 ile SATILMAYA DEVAM EDER (odeme yolu DUSMEZ)",
+      kn.b.kod === 200 && kn.b.birimKurus === nBeklenen,
+      kn.b.kod + " birim=" + kn.b.birimKurus);
+const rpYok = await rapor(MOD, KONFIGUR_URUNLER.map((u) => d1Satiri(u)), "test-yonet-anahtari",
                           { konfigurKolonu: false });
 iddia("rapor ucu kolon yokken 200 + durum='kolon-yok' (500 DEGIL)",
       rpYok.kod === 200 && rpYok.govde.durum === "kolon-yok", JSON.stringify(rpYok.govde));
@@ -517,7 +544,7 @@ async function mutantOlcum(mod) {
   const rr = await baslat(mod, [farkliSatir],
                           { id: CAPA.id, malzeme: "PLA", renk: "Siyah", adet: 1,
                             parametreler: { boy_mm: 150 } });
-  const rp3 = await rapor(mod, [farkliSatir], "gizli-test-anahtari");
+  const rp3 = await rapor(mod, [farkliSatir], "test-yonet-anahtari");
   return { log: rr.loglar.length, birim: rr.birimKurus,
            farkToplam: rp3.govde.fark_kurus_toplam, farkli: (rp3.govde.ozet || {}).farkli };
 }
@@ -529,8 +556,10 @@ const M1 = await modulMutasyonu("konfigur-golge.js",
 const m1 = await mutantOlcum(M1);
 iddia("M1 (alanFarklari no-op): set 3'un 'farkli' iddiasi KIRMIZI yanar",
       m1.log === 0 && m1.farkli !== 1, JSON.stringify(m1));
-iddia("M1'de FIYAT hala 73600 — golge para yolundan GERCEKTEN ayrik",
-      m1.birim === 73600, String(m1.birim));
+// FAZ 4: fiyat capasi artik D1 semasi (100700). Mutasyonlar OLCUM modulunu bozar; FIYAT
+// degismezse "olcum modulu para yolunda DEGIL" kaniti korunur.
+iddia("M1'de FIYAT hala D1 semasindan (" + D1_BEKLENEN + ") — olcum modulu para yolunda DEGIL",
+      m1.birim === D1_BEKLENEN, String(m1.birim));
 
 // M2: golgeLogSatiri daima null -> ayrisim log'a HIC dusmez.
 const M2 = await modulMutasyonu("konfigur-golge.js",
@@ -540,8 +569,8 @@ const M2 = await modulMutasyonu("konfigur-golge.js",
 const m2 = await mutantOlcum(M2);
 iddia("M2 (golgeLogSatiri no-op): 'fark GORUNUR' iddiasi KIRMIZI yanar", m2.log === 0,
       JSON.stringify(m2));
-iddia("M2'de FIYAT hala 73600 (fiyat seti mutantta da YESIL — ayriklik kaniti)",
-      m2.birim === 73600, String(m2.birim));
+iddia("M2'de FIYAT hala D1 semasindan (" + D1_BEKLENEN + ") — ayriklik kaniti",
+      m2.birim === D1_BEKLENEN, String(m2.birim));
 
 // M3: golgeKalem fiyat karsilastirmasini yapmasin -> fark_kurus olculemez.
 const M3 = await modulMutasyonu("konfigur-golge.js",
@@ -560,8 +589,8 @@ const M4 = await indexYukle(indexHam.replace(capaM4, "    /* M4: golge cagrisi s
 const m4 = await mutantOlcum(M4);
 iddia("M4 (index.js golge cagrisi silindi): olcum KIRMIZI yanar", m4.log === 0,
       JSON.stringify(m4));
-iddia("M4'te FIYAT hala 73600 — golge SILINSE BILE musteri davranisi ayni",
-      m4.birim === 73600, String(m4.birim));
+iddia("M4'te FIYAT hala D1 semasindan (" + D1_BEKLENEN + ") — olcum SILINSE BILE tahsilat ayni",
+      m4.birim === D1_BEKLENEN, String(m4.birim));
 
 // ---------------------------------------------------------------- rapor
 gercekLog(ham.join("\n"));

@@ -316,10 +316,18 @@ function d1Kur() {
     // SEMALAR.get(id) ile bulur, fiyati kendisi hesaplar (taban fiyat semadan, 100 TL o-ring).
     "('olcuye-ozel-oring-conta','h13',13,'Test Oring (semali sari)','Jeneratör','[]','',1,''), " +
     // test konfigur (dekor konfiguratoru): kurt heykeli D1'de parametrik=0 + sabit '150 TL'
-    // gorunur; konfigur oldugunu Worker SADECE bundled KONFIGURLAR'dan bilir. Gercek id
-    // KONFIGURLAR ile eslesir -> sunucu boy+malzeme'den fiyati yeniden hesaplar.
+    // gorunur; konfigur SEMASI asagida `konfigur` KOLONUNA yazilir (FAZ 4: fiyat kaynagi
+    // artik bu kolon; kolon bos kalirsa kalem fail-closed 400 alir, sabit 150 TL'ye DUSMEZ).
     "('kurt-heykeli-serit-dekoratif-figur','h14',14,'Test Kurt (konfigur)','Skan Art','[]','150 TL',0,'');"
   );
+  // konfigur semasi GERCEK katalogdan (urunler.json) — d1-sync.py'nin canliya yazdiginin ayni.
+  const kurtKayit = JSON.parse(fs.readFileSync(path.join(KOK, "urunler.json"), "utf8"))
+    .find((u) => u.id === "kurt-heykeli-serit-dekoratif-figur");
+  if (!kurtKayit || !kurtKayit.konfigur) {
+    throw new Error("kurt-heykeli konfiguru urunler.json'da bulunamadi (fikstur bayat)");
+  }
+  wranglerD1("UPDATE urunler SET konfigur = '" + JSON.stringify(kurtKayit.konfigur) +
+             "' WHERE id = 'kurt-heykeli-serit-dekoratif-figur';");
   // test 24 (e-posta link + kapak resmi): gorsel kolonu DOLU / BOS(NULL) / enjekte-baslik.
   // Ayri INSERT (gorsel kolonu ile) — ustteki buyuk INSERT'e dokunmadan. XSS urununde baslikta
   // <script> + tirnak var: e-postada KACISLI cikmali. XSS urunun gorseli YOK (img sayisi 1 kalsin).
