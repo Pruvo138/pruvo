@@ -7,6 +7,13 @@
 CLAUDE.md
 AGENTS.md
 .r2-credentials.json
+# 30 Tem 2026: ".eski"/".yedek"/".bak" turevleri de IPTAL EDILMIS jeton tasir ve tek
+# kural .git/info/exclude'daydi (MAKINEYE OZEL) -> baska klonda `git add -A` ile PUBLIC
+# repoya sizabilirdi. Joker artik izlenen .gitignore'da.
+.r2-credentials.json*
+# uyelik-cek.py silme kuyrugu: Bucket Lock (409) yuzunden silinemeyen R2 anahtarlari;
+# retention dolunca `--kuyruk-supur --uygula` ile temizlenir (yerel durum, commit'lenmez).
+.r2-silme-kuyrugu.json
 urun-kaynaklari.json
 .urun-kaynaklari.json
 # stl-r2-yukle.py idempotens manifesti (anahtar -> sha1/boyut; yerel durum, commit'lenmez)
