@@ -129,11 +129,34 @@ function belgeKur() {
 function bekle(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
 /**
+ * Edge kart ozeti — tools/build.py kart_ozeti() ile AYNI alan kumesi. Canliya SADIK olmasi
+ * onemli: edge modunda tarayiciya urunler.json INMEZ, sepet paneli YALNIZ bu daraltilmis
+ * karti gorur (or. "konfigur" alani kartta YOKTUR -> konfigur satirini bilmenin tek canli
+ * ekseni localStorage'daki satir bayragidir; test 10-13 bu gercegi kosar).
+ */
+function kartOzeti(p) {
+  return {
+    id: p.id, baslik: p.baslik || "", kategori: p.kategori || "", marka: p.marka || [],
+    fiyat: p.fiyat || "", gorsel: (p.gorseller || [null])[0],
+    parametrik: !!p.parametrik, aciklama: (p.aciklama || "").slice(0, 200),
+  };
+}
+
+/**
  * index.html scriptini verilen sepet/katalogla calistirir; sayfa "/?sepet=1" ile acilmis
  * gibi davranir (fetch -> render -> openCart). Dondurdukleri: eleman erisimi + fetch izi.
+ *
+ * 🔴 EDGE MODU (index.html EDGE_KATALOG = true — CANLI hal): acilis ozet.json'u ceker,
+ * urunler.json INMEZ; sepetteki eksik urunler /katalog?ids= ile TAMAMLANIR. Sahte fetch bu
+ * yuzden URL'e gore YONLENDIRIR (eskiden her istege urunler.json govdesi donuyordu; edge
+ * bayragi acildiktan sonra ".ok" kontrolu yuzunden acilis "HTTP undefined" ile patliyor,
+ * dosyadaki 9 nobetci de ALTYAPI HATASI verip HIC kosmuyordu — olu nobetci, 30 Tem).
  *   ayar.sepet        localStorage'a yazilacak sepet dizisi
- *   ayar.katalog      ilk fetch("urunler.json") cevabi
- *   ayar.tazeKatalog  (istege bagli) IKINCI ve sonraki fetch cevabi (tazeleme senaryosu)
+ *   ayar.katalog      katalogda YAYINDA olan urunler (ozet.json "yeni" + /katalog cevabi)
+ *   ayar.tazeKatalog  (istege bagli) /katalog?ids= tazeleme cevabinin havuzu
+ *   ayar.fetchHata    "reddet" | "parse" -> TUM katalog uclari (ozet + /katalog + /ara) duser
+ *   ayar.prova        (istege bagli) POST /api/shop/fiyat sahtesi:
+ *                       fonksiyon(kalem) -> {ok, govde} | {ag:true} | {cop:true} | {sessiz:true}
  */
 async function sayfaKur(ayar) {
   const { belge } = belgeKur();
@@ -151,23 +174,73 @@ async function sayfaKur(ayar) {
       removeItem: (k) => { delete depo[k]; },
     },
     fetch(url, opts) {
-      fetchIzi.push({ url: String(url), opts: opts || {} });
-      // ayar.fetchHata: ANA katalog fetch'i (1.) DUSER — musteride ag/onbellek aksamasi.
+      const u = String(url);
+      fetchIzi.push({ url: u, opts: opts || {} });
+      const katalog = ayar.katalog || [];
+      const cevap = (govde, ok = true, durum = 200) => Promise.resolve({
+        ok, status: durum,
+        json: () => Promise.resolve(JSON.parse(JSON.stringify(govde))),
+      });
+      const katalogUcu = u.indexOf("ozet.json") !== -1 || u.indexOf("urunler.json") !== -1 ||
+        u.indexOf("/katalog") !== -1 || u.indexOf("/ara") !== -1;
+
+      // ayar.fetchHata: KATALOG uclari duser — musteride ag/onbellek aksamasi.
       //   "reddet" -> fetch promise reject; "parse" -> yanit gelir ama json() cozulmez (404 govde).
-      if (ayar.fetchHata && fetchIzi.length === 1) {
+      if (ayar.fetchHata && katalogUcu) {
         if (ayar.fetchHata === "parse") {
-          return Promise.resolve({ json: () => Promise.reject(new SyntaxError("Unexpected token < in JSON")) });
+          return Promise.resolve({
+            ok: true, status: 200,
+            json: () => Promise.reject(new SyntaxError("Unexpected token < in JSON")),
+          });
         }
         return Promise.reject(new TypeError("Failed to fetch"));
       }
-      const veri = (fetchIzi.length >= 2 && ayar.tazeKatalog) ? ayar.tazeKatalog : ayar.katalog;
-      return Promise.resolve({ json: () => Promise.resolve(JSON.parse(JSON.stringify(veri))) });
+
+      // POST /api/shop/fiyat — konfigur odenebilirlik provasi (ayar.prova ile sekillenir).
+      if (u.indexOf("/fiyat") !== -1) {
+        const kalem = (JSON.parse((opts && opts.body) || "{}").sepet || [])[0] || {};
+        const p = typeof ayar.prova === "function" ? ayar.prova(kalem) : { ok: false };
+        if (p.ag) { return Promise.reject(new TypeError("Failed to fetch")); }
+        if (p.sessiz) { return new Promise(() => {}); }          // hic cevap gelmez (zaman asimi)
+        if (p.cop) {
+          return Promise.resolve({
+            ok: true, status: 200,
+            json: () => Promise.reject(new SyntaxError("Unexpected token < in JSON")),
+          });
+        }
+        return cevap(p.govde || {}, p.ok !== false, p.durum || (p.ok === false ? 400 : 200));
+      }
+      // POST /api/shop/baslat — test 9 yalniz ISTEGI inceler; cevap notr 400.
+      if (u.indexOf("/baslat") !== -1) { return cevap({ hata: "test-baslat" }, false, 400); }
+
+      // Firsat tazelemesi: sepetteki eksik id'ler (/katalog?ids=a,b) — havuz tazeKatalog.
+      if (u.indexOf("ids=") !== -1) {
+        const istenen = decodeURIComponent(u.split("ids=")[1] || "").split(",");
+        const havuz = ayar.tazeKatalog || [];
+        return cevap({ urunler: havuz.filter((p) => istenen.indexOf(p.id) !== -1).map(kartOzeti) });
+      }
+      if (u.indexOf("ozet.json") !== -1) {
+        return cevap({
+          surum: 1, toplam: katalog.length, kategoriler: {}, markalar: {},
+          parametrik: katalog.filter((p) => p.parametrik).map(kartOzeti),
+          yeni: katalog.map(kartOzeti),
+        });
+      }
+      if (u.indexOf("/katalog") !== -1 || u.indexOf("/ara") !== -1) {
+        return cevap({ urunler: katalog.map(kartOzeti), toplam: katalog.length });
+      }
+      if (u.indexOf("urunler.json") !== -1) { return cevap(katalog); }
+      return cevap({});
     },
     console: { log() {}, error(...a) { konsolHatalari.push(a.map(String).join(" ")); } },
     alert() {},
     navigator: {},
     URLSearchParams,
-    setTimeout, clearTimeout,
+    /* ayar.hizliZamanAsimi: uzun (>=1 sn) zamanlayicilar HEMEN kosar — provanin 8 sn'lik
+       zaman asimi kolunu testte 8 sn beklemeden kanitlamak icin. Kisa timer'lar (debounce,
+       isitHaystack) DOKUNULMAZ; bayrak kapaliyken davranis birebir gercek setTimeout. */
+    setTimeout: (fn, ms, ...a) => setTimeout(fn, (ayar.hizliZamanAsimi && ms >= 1000) ? 0 : ms, ...a),
+    clearTimeout,
     /* URL-senkron paketi (yukari-cik oku) window.addEventListener("scroll") +
        scrollTo cagiriyor — sahte pencerede no-op karsiliklari olsun. */
     addEventListener() {}, removeEventListener() {},
@@ -306,9 +379,14 @@ async function test3Tazeleme() {
     katalog: KATALOG,                    // bayat kopya: yeni-urun YOK
     tazeKatalog: KATALOG.concat([YENI]), // tazeleme cevabi: geldi
   });
-  const jsonFetchleri = s.fetchIzi.filter((f) => f.url.indexOf("urunler.json") !== -1);
-  if (jsonFetchleri.length !== 2) {
-    hatalar.push("urunler.json " + jsonFetchleri.length + " kez cekildi (2 olmali: acilis + tazeleme)");
+  // EDGE: tazeleme 5-15 MB katalogu DEGIL yalniz eksik id'leri ceker (/katalog?ids=).
+  const acilis = s.fetchIzi.filter((f) => f.url.indexOf("ozet.json") !== -1);
+  const tazeleme = s.fetchIzi.filter((f) => f.url.indexOf("ids=") !== -1);
+  if (acilis.length !== 1) {
+    hatalar.push("ozet.json " + acilis.length + " kez cekildi (1 olmali)");
+  }
+  if (tazeleme.length !== 1) {
+    hatalar.push("firsat tazelemesi " + tazeleme.length + " kez atildi (1 olmali)");
   }
   const panelMetni = s.metin("cartItems");
   if (panelMetni.indexOf("Yeni Eklenen Urun") === -1) {
@@ -382,9 +460,14 @@ async function test5NormalAkis() {
     hatalar.push("normal sepette kayip aciklamasi gorunuyor");
   }
   if (!s.el("cartOrder").href) { hatalar.push("WhatsApp href'i yok"); }
-  const jsonFetchleri = s.fetchIzi.filter((f) => f.url.indexOf("urunler.json") !== -1);
-  if (jsonFetchleri.length !== 1) {
-    hatalar.push("normal sepette gereksiz katalog tazelemesi (" + jsonFetchleri.length + " fetch)");
+  const tazeleme = s.fetchIzi.filter((f) => f.url.indexOf("ids=") !== -1);
+  if (tazeleme.length !== 0) {
+    hatalar.push("normal sepette gereksiz katalog tazelemesi (" + tazeleme.length + " fetch)");
+  }
+  // Normal (konfigursuz) urunde ODENEBILIRLIK PROVASI da ATILMAZ — /fiyat ucuna kor istek yok.
+  const prova = s.fetchIzi.filter((f) => f.url.indexOf("/fiyat") !== -1);
+  if (prova.length !== 0) {
+    hatalar.push("konfigursuz sepette " + prova.length + " adet /fiyat provasi atildi (0 olmali)");
   }
   rapor("5 normal akis regresyonu", hatalar,
     "satir + toplam (" + genel + ") + aktif odeme aynen; gereksiz fetch yok");
@@ -505,22 +588,27 @@ async function test8KatalogDustu() {
   if (panel.indexOf("Sepetiniz boş") !== -1) {
     hatalar.push("panel 'Sepetiniz boş' diyor (satir varken)");
   }
-  // Gorunur musteri uyarisi (tek satir): katalog yuklenemedi -> sayfayi yenile
-  const uyari = s.metin("emptyState");
-  if (uyari.indexOf("yüklenemedi") === -1 || uyari.indexOf("yenileyin") === -1) {
-    hatalar.push("gorunur musteri uyarisi yok (emptyState: '" + uyari.trim() + "')");
+  // Gorunur musteri uyarisi: EDGE modunda katalog ucu dusunce durum satiri (edgeDurum)
+  // "Katalog baglantisi kurulamadi …" der (EDGE_YEDEK_MESAJ) — sayfa bos/beyaz kalmaz.
+  const uyari = s.metin("edgeDurum");
+  if (uyari.indexOf("Katalog bağlantısı kurulamadı") === -1) {
+    hatalar.push("gorunur musteri uyarisi yok (edgeDurum: '" + uyari.trim() + "')");
   }
-  if (s.el("emptyState").style.display !== "block") {
-    hatalar.push("uyari elemani gizli (emptyState display '" + s.el("emptyState").style.display + "')");
+  if (s.el("edgeDurum").style.display !== "flex") {
+    hatalar.push("uyari elemani gizli (edgeDurum display '" + s.el("edgeDurum").style.display + "')");
   }
   // Katalog yok -> gecerli satir yok -> odeme + WhatsApp kilitli, gereksiz 2. fetch atilmadi
   if (s.el("cartPay").disabled !== true) { hatalar.push("katalog yokken odeme acik"); }
   if (s.el("cartOrder").className.indexOf("disabled") === -1) {
     hatalar.push("katalog yokken WhatsApp butonu aktif");
   }
-  const jsonFetchleri = s.fetchIzi.filter((f) => f.url.indexOf("urunler.json") !== -1);
-  if (jsonFetchleri.length !== 1) {
-    hatalar.push("acilista " + jsonFetchleri.length + " fetch (1 olmali: ana fetch dustu, firsat tazelemesi atesLENMEMELI)");
+  const acilis = s.fetchIzi.filter((f) => f.url.indexOf("ozet.json") !== -1);
+  const tazeleme = s.fetchIzi.filter((f) => f.url.indexOf("ids=") !== -1);
+  if (acilis.length !== 1) {
+    hatalar.push("acilista ozet.json " + acilis.length + " kez cekildi (1 olmali)");
+  }
+  if (tazeleme.length !== 0) {
+    hatalar.push("ana fetch dustugu halde firsat tazelemesi atesLENDI (" + tazeleme.length + ")");
   }
   rapor("8 katalog fetch dustu (sepet bagimsiz yuklenir)", hatalar,
     "FAB gorunur + rozet=2, panel 2 kayip satir, uyari gosterildi, odeme kilitli, tek fetch");
@@ -574,6 +662,291 @@ async function test9OdemePayloadParametreler() {
     "sari kalem parametrelerle gitti; fiyat/hacim istemciden gonderilmiyor");
 }
 
+// ================================================================ KONFIGUR ODENEBILIRLIK
+/* 10-14 — "bundle'da yok" penceresi (canli olcum, 30 Tem).
+   SORUN: urunler.json'a konfigur alanli urun eklenince site onu ODENEBILIR sayiyordu; Worker
+   ise konfigur haritasini kendi BUNDLE'indan okuyor (deploy ELLE) -> deploy'a kadar musteri
+   sepete atiyor, ODEME FORMUNU DOLDURUYOR ve en sonda /baslat'in 400'une carpiyordu.
+   COZUM: sepet gorunumu kurulurken kart yolu CANLI Worker'a sorulur (POST /api/shop/fiyat —
+   yan etkisiz prova). 200 -> acik; 4xx/5xx/ag/zaman asimi/cop govde -> KAPALI (fail-closed).
+   Bu bes nobetci fix'siz index.html'de KIRMIZI yanar (olculdu: 10/12/13 kirmizi). */
+
+const KONFIGUR_URUN = {
+  id: "yarasa-serit-dekoratif-figur", kategori: "Skan Art", marka: [],
+  baslik: "Yarasa Heykeli Serit Dekoratif Figur", aciklama: "test", fiyat: "500 TL",
+  gorseller: [],
+};
+/** Konfiguratorun (konfigur.js satiraYaz) yazdigi sepet satiri — konfigur:true + boy. */
+function konfigurSatiri(boyMm, kurus) {
+  return {
+    id: KONFIGUR_URUN.id, malzeme: "PLA", renk: "Siyah", renk_ozel: "", adet: 1,
+    konfigur: true, parametreler: { boy_mm: boyMm },
+    parametre_detay: "Boy: " + (boyMm / 10) + " cm",
+    hacim_mm3: 90000, parametrik_fiyat_kurus: kurus,
+  };
+}
+/** Worker 200 cevabi (prova) — /fiyat'in gercek beyaz-liste govdesi. */
+function provaAcik(kalem) {
+  return { ok: true, govde: {
+    prova: true,
+    satirlar: [{ id: kalem.id, adet: kalem.adet, birim_kurus: 150000, tutar_kurus: 150000 }],
+    urun_kurus: 150000, kargo_kurus: 25000, tahsilat_kurus: 175000, tutar: "1.750,00 TL",
+    net_kurus: 145833, kdv_kurus: 29167, kdv_yuzde: 20,
+  } };
+}
+/** Worker 400 cevabi — urun bundle'da YOK (ya da konfigur kanali kapali). */
+function provaKapali(kalem) {
+  return { ok: false, durum: 400,
+           govde: { hata: "konfigur-urun", id: kalem.id,
+                    mesaj: "Ölçüye özel ürünler için WhatsApp'tan teklif alın." } };
+}
+
+/** 10 — KAPALI URUN: bundle'da olmayan konfigur urunu -> kart yolu KAPALI, WhatsApp gorunur,
+ *  musteri odeme formunu ACAMAZ (form doldurma duvarina hic gitmez). */
+async function test10KonfigurKapali() {
+  const hatalar = [];
+  const s = await sayfaKur({
+    sepet: [konfigurSatiri(300, 150000)],
+    katalog: [KONFIGUR_URUN],
+    prova: provaKapali,
+  });
+
+  const pay = s.el("cartPay");
+  if (pay.disabled !== true) { hatalar.push("kart yolu ACIK (buton disabled degil)"); }
+  if (pay.className.indexOf("disabled") === -1) { hatalar.push("odeme butonunda .disabled sinifi yok"); }
+  if (String(pay.textContent).indexOf("WhatsApp") === -1) {
+    hatalar.push("buton metni WhatsApp'a yonlendirmiyor: '" + pay.textContent + "'");
+  }
+  // Musteri ODEME FORMUNU ACAMAZ — asil kayip buydu (form dolduruluyor, en sonda 400).
+  pay.onclick();
+  if (s.el("odemeForm").style.display === "block") {
+    hatalar.push("kart yolu kapaliyken odeme formu ACILDI (musteri formu dolduruyor)");
+  }
+  // WhatsApp kanali yasiyor + hangi urun oldugu ADIYLA sepette yaziyor
+  if (s.el("cartOrder").className.indexOf("disabled") !== -1) {
+    hatalar.push("WhatsApp butonu pasif (tek kanal kapandi)");
+  }
+  const not = s.el("cartKonfigurNot");
+  if (not.style.display !== "block") { hatalar.push("sepette konfigur uyarisi gorunmuyor"); }
+  if (String(not.textContent).indexOf(KONFIGUR_URUN.baslik) === -1) {
+    hatalar.push("uyari urunu ADIYLA soylemiyor: '" + not.textContent + "'");
+  }
+  // Satirin kendi altinda uyari + o urune ozel WhatsApp linki
+  const satirMetni = s.metin("cartItems");
+  if (satirMetni.indexOf("kartla ödenemiyor") === -1) {
+    hatalar.push("satir altinda 'kartla ödenemiyor' uyarisi yok");
+  }
+  if (satirMetni.indexOf("WhatsApp'tan sor") === -1) {
+    hatalar.push("satira ozel WhatsApp linki yok");
+  }
+  // TEK prova istegi, dogru uc + dogru govde (fiyat/hacim SIZMAZ)
+  const prova = s.fetchIzi.filter((f) => f.url.indexOf("/fiyat") !== -1);
+  if (prova.length !== 1) { hatalar.push(prova.length + " prova istegi (1 olmali)"); }
+  else {
+    if (prova[0].url.indexOf("/api/shop/fiyat") === -1) {
+      hatalar.push("prova yanlis uca gitti: " + prova[0].url);
+    }
+    if ((prova[0].opts.method || "").toUpperCase() !== "POST") { hatalar.push("prova POST degil"); }
+    const kalem = (JSON.parse(prova[0].opts.body).sepet || [])[0] || {};
+    if (!kalem.parametreler || kalem.parametreler.boy_mm !== 300) {
+      hatalar.push("prova kaleminde boy_mm yok: " + JSON.stringify(kalem));
+    }
+    if (kalem.parametrik_fiyat_kurus != null || kalem.hacim_mm3 != null) {
+      hatalar.push("prova istemci fiyat/hacim GONDERIYOR (sunucu hesabi ilkesi)");
+    }
+  }
+  rapor("10 kapali konfigur urunu (bundle'da yok) -> kart yolu KAPALI", hatalar,
+    "buton kilitli + form acilmadi + urun adiyla uyari + satir WhatsApp linki; 1 prova istegi");
+}
+
+/** 11 — ACIK URUN: bundle'da OLAN konfigur urunu -> kart yolu ACIK, davranis bugunkuyle ayni. */
+async function test11KonfigurAcik() {
+  const hatalar = [];
+  const s = await sayfaKur({
+    sepet: [konfigurSatiri(300, 150000)],
+    katalog: [KONFIGUR_URUN],
+    prova: provaAcik,
+  });
+  const pay = s.el("cartPay");
+  if (pay.disabled !== false) { hatalar.push("prova 200 dondu ama kart yolu KAPALI"); }
+  if (pay.className !== "cart-pay-btn") { hatalar.push("buton sinifi '" + pay.className + "'"); }
+  if (pay.textContent !== "Kartla Güvenli Öde") {
+    hatalar.push("buton metni '" + pay.textContent + "'");
+  }
+  if (s.el("cartKonfigurNot").style.display === "block") {
+    hatalar.push("acik urunde 'kartla odenemiyor' uyarisi gorunuyor");
+  }
+  if (s.metin("cartItems").indexOf("kartla ödenemiyor") !== -1) {
+    hatalar.push("acik urunde satir uyarisi cikti");
+  }
+  // Odeme formu ACILABILIR (musteri normal akista)
+  pay.onclick();
+  if (s.el("odemeForm").style.display !== "block") {
+    hatalar.push("acik urunde odeme formu acilmadi");
+  }
+  const prova = s.fetchIzi.filter((f) => f.url.indexOf("/fiyat") !== -1);
+  if (prova.length !== 1) { hatalar.push(prova.length + " prova istegi (1 olmali)"); }
+  rapor("11 acik konfigur urunu -> kart yolu ACIK (bugunku davranis)", hatalar,
+    "buton aktif + uyari yok + odeme formu acildi; 1 prova istegi");
+}
+
+/** 12 — FAIL-CLOSED FIKSTURLERI: ag hatasi / zaman asimi / cop govde -> kart yolu KAPALI.
+ *  Belirsizlik "odenebilir" SAYILMAZ (sunucu kapisi son soz, ama musteri erken bilgilenir). */
+async function test12FailClosed() {
+  const hatalar = [];
+  const fiksturler = [
+    ["ag hatasi", { ag: true }, {}],
+    ["zaman asimi", { sessiz: true }, { hizliZamanAsimi: true }],
+    ["cop govde", { cop: true }, {}],
+    ["200 ama beklenmedik govde", { ok: true, govde: { merhaba: "dunya" } }, {}],
+    ["429 hiz siniri", { ok: false, durum: 429, govde: { hata: "cok-istek" } }, {}],
+    // HTTP durumu ile govde CELISIRSE durum kazanir (araya giren vekil/onbellek eski bir
+    // basarili govdeyi 4xx ile dondurebilir; mutasyon M8 bu iddiayi olduruyordu).
+    ["400 ama gecerli gorunen govde",
+     { ok: false, durum: 400, govde: { prova: true, tahsilat_kurus: 175000 } }, {}],
+  ];
+  for (const [ad, cevap, ek] of fiksturler) {
+    const s = await sayfaKur(Object.assign({
+      sepet: [konfigurSatiri(300, 150000)],
+      katalog: [KONFIGUR_URUN],
+      prova: () => cevap,
+    }, ek));
+    const pay = s.el("cartPay");
+    if (pay.disabled !== true) { hatalar.push(ad + ": kart yolu ACIK kaldi (fail-OPEN!)"); }
+    pay.onclick();
+    if (s.el("odemeForm").style.display === "block") {
+      hatalar.push(ad + ": odeme formu acildi");
+    }
+    if (s.el("cartOrder").className.indexOf("disabled") !== -1) {
+      hatalar.push(ad + ": WhatsApp kanali da kapandi (musterinin cikisi yok)");
+    }
+  }
+  /* CEVAP GELMEDEN (bekliyor) — en sinsi hal: prova ucusta iken varsayilan "odenebilir"
+     olsaydi musteri o ilk saniyelerde forma girer, doldurur ve sunucu 400'une carpardi.
+     Bu yuzden BASLANGIC durumu da KAPALI ve buton "kontrol ediliyor" der.
+     (Mutasyon M2: provaSonucu varsayilanini "acik" yapmak -> BU iddia kirmizi yanar.) */
+  const b = await sayfaKur({
+    sepet: [konfigurSatiri(300, 150000)],
+    katalog: [KONFIGUR_URUN],
+    prova: () => ({ sessiz: true }),        // cevap HIC gelmez, zaman asimi da dolmaz
+  });
+  const bPay = b.el("cartPay");
+  if (bPay.disabled !== true) { hatalar.push("cevap gelmeden kart yolu ACIK (fail-open baslangic)"); }
+  if (String(bPay.textContent).indexOf("kontrol ediliyor") === -1) {
+    hatalar.push("bekleme metni yok: '" + bPay.textContent + "'");
+  }
+  bPay.onclick();
+  if (b.el("odemeForm").style.display === "block") {
+    hatalar.push("cevap gelmeden odeme formu acildi");
+  }
+  if (b.metin("cartItems").indexOf("kontrol ediliyor") === -1) {
+    hatalar.push("satirda 'kontrol ediliyor' bilgisi yok");
+  }
+  rapor("12 fail-closed (bekliyor/ag/zaman asimi/cop govde/beklenmedik 200/429/celiskili 400)", hatalar,
+    (fiksturler.length + 1) + " fikstur: hepsinde kart yolu KAPALI, WhatsApp acik");
+}
+
+/** 13 — KARISIK SEPET: odenebilir normal urun + kapali konfigur urunu.
+ *  Sunucu sepeti ATOMIK reddediyor (sepetiFiyatla ilk hatali kalemde doner) ve o kapi
+ *  gevsetilmiyor -> kismi tahsilat YOK. Bunun yerine musteri SEPETTE, ODEME FORMUNA
+ *  GIRMEDEN once hangi satirin kartla alinamadigini ADIYLA gorur, cikis yolu yazilir ve
+ *  satiri carpiyla cikarinca kalan urunler KARTLA odenebilir hale gelir. */
+async function test13KarisikSepet() {
+  const hatalar = [];
+  const s = await sayfaKur({
+    sepet: [{ id: "gercek-urun", malzeme: "PETG", renk: "Siyah", adet: 1 },
+            konfigurSatiri(300, 150000)],
+    katalog: [GERCEK, KONFIGUR_URUN],
+    prova: provaKapali,
+  });
+  if (s.satirlar().length !== 2) { hatalar.push("panelde " + s.satirlar().length + " satir (2 olmali)"); }
+  if (s.el("cartPay").disabled !== true) { hatalar.push("kapali kalem varken kart yolu ACIK"); }
+  const not = String(s.el("cartKonfigurNot").textContent);
+  if (not.indexOf(KONFIGUR_URUN.baslik) === -1) {
+    hatalar.push("uyari kapali urunu adiyla soylemiyor: '" + not + "'");
+  }
+  if (not.indexOf("çıkarabilir") === -1) {
+    hatalar.push("karisik sepette cikis yolu anlatilmiyor: '" + not + "'");
+  }
+  if (not.indexOf(GERCEK.baslik) !== -1) {
+    hatalar.push("odenebilir urun de kapali gibi gosterilmis");
+  }
+  // Yalniz KONFIGUR satirinda uyari var (normal satirda yok)
+  const uyariliSatir = Array.from(s.satirlar()).filter(
+    (r) => govdeMetni(r).indexOf("kartla ödenemiyor") !== -1);
+  if (uyariliSatir.length !== 1) {
+    hatalar.push(uyariliSatir.length + " satirda 'kartla ödenemiyor' uyarisi (1 olmali)");
+  }
+  // Kapali satiri carpiyla cikar -> kalan urun KARTLA odenebilir
+  const carpi = (uyariliSatir[0] && uyariliSatir[0].children || [])
+    .filter((c) => c.tagName === "BUTTON").pop();
+  if (!carpi) { hatalar.push("kapali satirda kaldirma carpisi yok"); }
+  else {
+    carpi.onclick();
+    if (s.el("cartPay").disabled !== false) {
+      hatalar.push("kapali satir cikarilinca kalan urun HALA odenemiyor");
+    }
+    if (s.el("cartKonfigurNot").style.display === "block") {
+      hatalar.push("satir cikinca uyari duruyor");
+    }
+  }
+  rapor("13 karisik sepet: kapali kalem adiyla ayrilir, cikarinca kalan odenir", hatalar,
+    "uyari yalniz konfigur satirinda; carpi sonrasi kart yolu acildi");
+}
+
+/** 14 — ISTEK SAYISI OLCUMU (hiz siniri: /fiyat ucunda native binding, 60/dk). Kor istek YOK:
+ *  yalniz konfigur satirlari, satir basina EN FAZLA BIR istek; yeniden render 0 istek. */
+async function test14IstekSayisi() {
+  const hatalar = [];
+  // 5 kalemlik sepet: 3 normal (konfigursuz) + 2 FARKLI konfigur satiri (ayni urun, ayri boy).
+  const NORMAL2 = Object.assign({}, GERCEK, { id: "gercek-2", baslik: "Test Gercek 2" });
+  const NORMAL3 = Object.assign({}, GERCEK, { id: "gercek-3", baslik: "Test Gercek 3" });
+  const s = await sayfaKur({
+    sepet: [
+      { id: "gercek-urun", malzeme: "PLA", renk: "Siyah", adet: 1 },
+      { id: "gercek-2", malzeme: "PLA", renk: "Siyah", adet: 1 },
+      { id: "gercek-3", malzeme: "PLA", renk: "Siyah", adet: 2 },
+      konfigurSatiri(300, 150000),
+      konfigurSatiri(200, 90000),
+    ],
+    katalog: [GERCEK, NORMAL2, NORMAL3, KONFIGUR_URUN],
+    prova: provaAcik,
+  });
+  const sayi = () => s.fetchIzi.filter((f) => f.url.indexOf("/fiyat") !== -1).length;
+  const ilk = sayi();
+  if (ilk !== 2) {
+    hatalar.push("N=5 kalemlik sepette " + ilk + " prova istegi (2 olmali: FARKLI konfigur satiri sayisi)");
+  }
+  // Panel yeniden cizilince (adet degisimi + panel yeniden acilis) ONBELLEK devrede: 0 yeni istek.
+  const adetArti = Array.from(s.satirlar())
+    .map((r) => (r.children[1] && r.children[1].children || []))
+    .map((kids) => kids.filter((c) => c.className === "cart-adet")[0])
+    .filter(Boolean)[0];
+  const arti = adetArti && adetArti.children.filter((c) => c.textContent === "+")[0];
+  if (!arti || typeof arti.onclick !== "function") {
+    // Yeniden render GERCEKTEN olmazsa "0 ek istek" iddiasi bos yere yesil yanar.
+    hatalar.push("adet '+' butonu bulunamadi -> yeniden render tetiklenemedi (iddia bos)");
+  } else {
+    arti.onclick();                         // adetDegistir -> renderCartPanel (tam yeniden cizim)
+  }
+  s.el("cartFab").onclick && s.el("cartFab").onclick();
+  await bekle(20);
+  if (s.satirlar().length !== 5) {
+    hatalar.push("yeniden render sonrasi " + s.satirlar().length + " satir (5 olmali)");
+  }
+  if (sayi() !== ilk) {
+    hatalar.push("yeniden render " + (sayi() - ilk) + " EK istek attirdi (onbellek calismiyor)");
+  }
+  // Ayni id'nin FARKLI boyu ayri satirdir -> ayri prova (fiyat/gecerlilik boya bagli).
+  const idler = s.fetchIzi.filter((f) => f.url.indexOf("/fiyat") !== -1)
+    .map((f) => (JSON.parse(f.opts.body).sepet[0].parametreler || {}).boy_mm).sort();
+  if (JSON.stringify(idler) !== JSON.stringify([200, 300])) {
+    hatalar.push("provalar boy basina ayrismamis: " + JSON.stringify(idler));
+  }
+  rapor("14 istek sayisi olcumu (hiz siniri)", hatalar,
+    "N=5 sepet / K=2 farkli konfigur satiri -> 2 istek; yeniden render -> 0 ek istek");
+}
+
 // ---------------------------------------------------------------- akis
 
 async function main() {
@@ -587,6 +960,11 @@ async function main() {
   await test7SavunmaKacis();
   await test8KatalogDustu();
   await test9OdemePayloadParametreler();
+  await test10KonfigurKapali();
+  await test11KonfigurAcik();
+  await test12FailClosed();
+  await test13KarisikSepet();
+  await test14IstekSayisi();
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
     (kalan ? "" : " — HEPSI YESIL ✅"));
   process.exit(kalan ? 1 : 0);
