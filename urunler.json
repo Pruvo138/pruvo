@@ -1,5 +1,510 @@
 [
   {
+    "id": "dagger-kayak-drenaj-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dagger Kayak Drenaj Tapası (Bung)",
+    "aciklama": "Dagger Mamba beyaz-su kayağının orijinal drenaj tapasından (bung) modellenmiş yedek tapa.\n- Dagger Mamba kayak modelinden ölçülerek tasarlandı.\n- Dış çap yaklaşık 25mm, iç çap yaklaşık 16mm, kalınlık yaklaşık 2mm.\n- Kayağın lastik contalı tapa yuvasına uyar.\nYaklaşık dış ölçüler: 29 × 28 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7086918-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Booff",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "minn-kota-gps-uzaktan-kumanda-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Minn Kota GPS Uzaktan Kumanda Tutucusu",
+    "aciklama": "Minn Kota trolling motoru GPS uzaktan kumandası için tutucu.\n- Minn Kota GPS uzaktan kumandasıyla uyumludur.\n- RAM bağlantılı ve bağlantısız versiyon seçenekleri içerir.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 73 × 72 × 58 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7118804-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7118804-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7118804-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7118804-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7118804-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "freddyfred",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "vidali-guverte-lombari-servo-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Vidalı Güverte Lombarı Servo Montajı",
+    "aciklama": "Vidalı güverte lombarının alt kısmına epoksilenen servo montaj parçası.\n- Ters basılıp kavisli yüzey baskı tablasına gelecek şekilde basılmalıdır.\n- Bloklar epoksi ile sabitlenir, M2 Allen başlı cıvata kullanılır.\n- Somun yuvaları alt kısımda yer alır.\nYaklaşık dış ölçüler: 101 × 33 × 32 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7164531-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7164531-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7164531-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "onepaperkid",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "lewmar-lombar-mentese-yedek-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lewmar Lombar Menteşe Yedek Parçası",
+    "aciklama": "Çeşitli Lewmar lombar menteşeleri için çoğunlukla çalışan yedek parça seti.\n- Orijinal metal 'kama' parçası montaj için gereklidir.\n- %100 dolgu ile basılması önerilir.\n- Birkaç farklı Lewmar lombar modeliyle uyumludur.\nYaklaşık dış ölçüler: 23 × 10 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7169568-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7169568-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Aidan_Kliethermes",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "minn-kota-trolling-motoru-servo-montaji-guclendirilmis",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Minn Kota Trolling Motoru Servo Montajı (Güçlendirilmiş)",
+    "aciklama": "Minn Kota trolling motoru için servo açıklığını yeniden konumlandıran ve servo bölgesini güçlendiren montaj.\n- Minn Kota trolling motoru servo bölgesine özeldir.\n- Servo açıklığı yeniden konumlandırılmıştır.\n- Servo bölgesi güçlendirilmiş tasarım.\nYaklaşık dış ölçüler: 180 × 72 × 54 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7194232-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Clynchp",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "lewmar-standart-lombar-penceresi-cercevesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lewmar Standart Lombar Penceresi Çerçevesi",
+    "aciklama": "Lewmar standart boy lombar pencereleri (portlight) için dekoratif/yalıtım çerçevesi.\n- 2000'ler ve sonrası Lewmar standart boy lombar pencereleriyle uyumludur.\n- Arkasına 19mm çift taraflı bant ile yapıştırılır.\n- Herhangi bir lombar boyutuna göre kesilebilir.\nYaklaşık dış ölçüler: 241 × 204 × 14 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7271390-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MaggyRyffi",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "lowrance-active-target-sonar-kilifi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance Active Target Sonar Koruma Kılıfı",
+    "aciklama": "Lowrance Active Target sonar ünitesi için koruyucu kılıf.\n- Lowrance Active Target sonar ünitesine özeldir.\n- 2cm cırt bant veya tercih edilen başka bir yöntemle sabitlenir.\n- Taşıma ve depolama sırasında korur.\nYaklaşık dış ölçüler: 155 × 87 × 63 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7290960-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "small_icehole",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-siperlik-aski-klipsi-korkuluk",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Siperliği (Fender) Askı Klipsi",
+    "aciklama": "Tekne fenderini korkuluğa (25mm/1 inç boru) asmak için klips.\n- 25mm veya 1 inç çaplı korkuluk borusuna uyar.\n- İpi delikten geçirdikten sonra düğüm atılması önerilir.\n- Deniz ortamı için ASA filament önerilir.\nYaklaşık dış ölçüler: 108 × 55 × 20 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7294329-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7294329-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stensino",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "lowrance-point1-pvc-tekne-pusula-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance Point-1 PVC Tekne Pusula Tutucusu",
+    "aciklama": "Lowrance Point-1 pusulasını PVC (şişme) teknenin lik-tros hattına monte eden tutucu.\n- Lowrance Point-1 pusulasıyla uyumludur.\n- PVC şişme teknelerin lik-tros (lik-halat) hattına özeldir.\n- Standart vidalarla montaj yapılır.\nYaklaşık dış ölçüler: 131 × 96 × 73 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7295462-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "AlexanderKRR",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ponton-siperlik-cleati",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ponton Siperlik (Fender) Cleat'i",
+    "aciklama": "Ponton tekneler için siperlik (fender) bağlama cleat'i.\n- Ponton tekne korkuluklarına uyar.\n- Basit ve dayanıklı tasarım.\n- Fenderi hızlıca bağlamaya/çözmeye yarar.\nYaklaşık dış ölçüler: 76 × 60 × 30 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7295678-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7295678-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7295678-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PandaSolutions",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "balikci-kayagi-kurek-tutucusu-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Balıkçı Kayağı Kürek Tutucusu Klipsi",
+    "aciklama": "30mm çaplı küreği balıkçı kayağı rayına sabitleyen klips.\n- 30mm çaplı kürek saplarına uyar.\n- DIN 912 M6x25 cıvata ile ray sistemine sabitlenir.\n- Kürek açısını serbestçe ayarlamaya izin verir.\nYaklaşık dış ölçüler: 50 × 45 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7312544-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7312544-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7312544-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7312544-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Paul1705",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ayak-pedalli-motorlu-ffs-sonar-direk-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ayak Pedallı Motorlu İleri-Görüşlü Sonar Direk Montaj Kiti",
+    "aciklama": "İleri görüşlü (forward facing) sonar direğini ayak pedalıyla elektrikli çeviren tam montaj kiti.\n- 1-1/4 inç alüminyum direk ve 12V 5rpm elektrik motoruyla çalışır.\n- Ayak pedalı anahtarları ve ileri/geri rölesi gerektirir.\n- 10 parçadan oluşan tam kit, dişli mekanizması içerir.\nYaklaşık dış ölçüler: 145 × 120 × 55 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7316568-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7316568-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7316568-3.jpg",
+      "https://media.pruvo3d.com/urunler/th7316568-4.jpg",
+      "https://media.pruvo3d.com/urunler/th7316568-5.jpg",
+      "https://media.pruvo3d.com/urunler/th7316568-6.jpg",
+      "https://media.pruvo3d.com/urunler/th7316568-7.jpg",
+      "https://media.pruvo3d.com/urunler/th7316568-8.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Callmekool",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-kurek-birlestirme-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Kürek Birleştirme Klipsi",
+    "aciklama": "İki parçalı küreği saklama/taşıma için birbirine bağlayan klips.\n- 30mm çaplı kürek saplarına uygundur, biraz zorlanarak takılır.\n- Daha dayanıklı ve esnek malzeme (PLA yerine) önerilir.\n- Basit ve pratik tasarım.\nYaklaşık dış ölçüler: 90 × 80 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7319369-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7319369-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7319369-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ctom181818",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "railblaza-kayak-ray-tabani-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Railblaza Kayak Ray Tabanı Montajı",
+    "aciklama": "Kayak fişekliği (rig) düzenlemek için Railblaza uyumlu ray tabanı montajı ve aksesuarları.\n- Railblaza aksesuar sistemiyle uyumludur.\n- Açık atıflı bir remiks projesidir (orijinal tasarımcılara atıf yapılmıştır).\n- Kayak balıkçılığı ekipmanını düzenlemeye yardımcı olur.\nYaklaşık dış ölçüler: 33 × 26 × 26 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7356786-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7356786-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7356786-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "diane159",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "pvc-tekne-olta-tutucusu-2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "PVC Tekne Olta Tutucusu",
+    "aciklama": "PVC (şişme) tekneler için olta tutucusu.\n- PVC/şişme tekne modelleriyle uyumludur.\n- Basit ve dayanıklı tasarım.\n- Standart oltalara uyar.\nYaklaşık dış ölçüler: 70 × 59 × 44 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7359780-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7359780-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sergey23445",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "humminbird-explore-transom-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Humminbird Explore Transduser Transom Tapası",
+    "aciklama": "Humminbird Explore yandan-görüntüleme transduserinin aynadan (transom) geçişi için delik tapası.\n- Humminbird Explore yandan-görüntüleme transduseriyle uyumludur.\n- Büyük konnektör deliğini kapatarak yapıştırıcı sızdırmazlık malzemesinden tasarruf sağlar.\n- ASA + %10 cam elyaf ile basılması önerilir.\nYaklaşık dış ölçüler: 34 × 30 × 17 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6989449-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6989449-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "portaaa",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-vinc-kilifi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Vinç (Winch) Kılıfı",
+    "aciklama": "150x180 ölçülerindeki yelkenli vinçleri için koruyucu kılıf.\n- 150x180 ölçülerindeki vinçlerle uyumludur.\n- Vinci tozdan ve güneşten korur.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 187 × 152 × 152 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7275613-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7275613-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dakk",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ruk-kano-drenaj-tapasi-contasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ruk Kano Drenaj Tapası Contası",
+    "aciklama": "\"Ruk\" marka kano drenaj tapası ile kano gövdesi arasına giren conta.\n- Ruk marka kano drenaj tapasıyla uyumludur.\n- Tapa ile gövde arasında sızdırmazlık sağlar.\n- Basit ve ekonomik yedek parça.\nYaklaşık dış ölçüler: 56 × 34 × 3 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1762434-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "digimatic",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "glide-junior-kayak-drenaj-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Glide Junior Kayak Drenaj Tapası (Tadpole)",
+    "aciklama": "Avustralya'da satılan \"Glide\" junior kayak (Tadpole modeli) için drenaj tapası.\n- Glide Tadpole junior serisi drenaj tapası dişine tam uyar.\n- Diğer Glide kayak modelleriyle de uyumlu olabilir.\n- Contayı yerinde tutan bilezik içerir.\nYaklaşık dış ölçüler: 39 × 39 × 36 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2765535-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Planar_Dragon",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kano-guvertesi-ip-gecis-contasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kano Güvertesi İp Geçiş Contası (Grommet)",
+    "aciklama": "Kano alüminyum güvertesinden ip geçirmek için keskin kenarlardan koruyan conta.\n- Alüminyum kano güvertesindeki deliğe oturacak şekilde tasarlandı.\n- İpin keskin kenarda kesilmesini önler.\n- Standart matkap ile açılan deliğe uyar.\nYaklaşık dış ölçüler: 100 × 100 × 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2987827-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "commtechva",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "nissan-98-dis-motor-motor-mount-lastigi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Nissan 9.8 Dış Motor Motor Mount Lastiği İç Parçası",
+    "aciklama": "Nissan 9.8 dış motorun patlayan motor mount lastiklerinin yerine geçen iç parça.\n- Nissan 9.8 dış motor modeline özeldir.\n- Eski lastik temizlendikten sonra basılarak takılır.\n- Kolay değiştirilebilir, dayanıklı tasarım.\nYaklaşık dış ölçüler: 26 × 26 × 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3681528-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chevysource",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-guverte-lombari-perde-kancasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Güverte Lombarı Perde Kancası",
+    "aciklama": "Yelkenli teknenin güverte lombarı için perde kancası.\n- Yelkenli tekne güverte lombarına özeldir.\n- Perde/tül asmak için kullanılır.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 20 × 15 × 12 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3685089-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3685089-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ojje",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ahsap-kayak-guverte-ipi-baglanti-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ahşap Kayak Güverte İpi Bağlantı Parçası (Maroske Fitting)",
+    "aciklama": "Ahşap kayaklarda güverte iplerinin güverte altına gömülü şekilde bağlanmasını sağlayan parça.\n- 75mm ve 100mm delik aralığı olmak üzere iki versiyon içerir.\n- Destek gereksinimini azaltmak için yan yatırılarak basılması önerilir.\n- Güverte üstüne çapa takmadan gömülü bağlantı sağlar.\nYaklaşık dış ölçüler: 150 × 41 × 23 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3694951-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3694951-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3694951-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jcrossett",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "autohelm-3000-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Autohelm 3000 Dümen Otopilotu Tutucusu",
+    "aciklama": "Autohelm 3000 dümen otopilotu için yedek tutucu.\n- Autohelm 3000 dümen otopilotu modeline özeldir.\n- Kırılan orijinal tutucunun yerine geçer.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 76 × 60 × 7 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4050697-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Michar11",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sonar-transduser-tutma-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sonar/Transduser Tutma Kolu",
+    "aciklama": "Sonar/transduser cihazını yan bağlantı cıvatasına tutturmak için geliştirilmiş kol.\n- Yan bağlantı cıvatalı sonar/transduser üniteleriyle uyumludur.\n- Tutuşu iyileştirmek için tasarlandı.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 178 × 160 × 10 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4113920-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ricolopez83",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "evinrude-sportsman-1949-karburator-dugmesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "1949 Evinrude Sportsman Karbüratör Ayar Düğmesi",
+    "aciklama": "1949 model Evinrude Sportsman (model 4425) dış motoru için kırılan karbüratör ayar düğmesinin yerine geçen parça.\n- 1949 Evinrude Sportsman model 4425 dış motoruna özeldir.\n- Karışım (choke/mixture) ayarını aynı anda kontrol eder.\n- Set vidası deliği amaçlı olarak bırakılmıştır.\nYaklaşık dış ölçüler: 37 × 36 × 14 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4547373-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4547373-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4547373-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4547373-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4547373-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pjmcardle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-kanopisi-kayar-parcalari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kanopisi Kayar (Slider) Parçaları",
+    "aciklama": "Birçok tekne kanopi kayar sistemiyle uyumlu yedek parça.\n- Çoğu tekne kanopi kayar sistemiyle çalışır.\n- İki parçadan oluşur.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 61 × 45 × 22 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4622632-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4622632-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Cr8tivething",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "shipman-28-dumen-bracketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Shipman 28 Yelkenlisi Dümen Bracketi",
+    "aciklama": "Shipman 28 yelkenlisinin dümeninin (rudder) üst kısmı için bracket.\n- Shipman 28 yelkenli tekne modeline özeldir.\n- Yüzeye iki cıvata ile monte edilir.\n- İki farklı versiyon seçeneği içerir.\nYaklaşık dış ölçüler: 127 × 60 × 26 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4835159-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4835159-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "matisok",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "deniz-kayagi-yedek-kurek-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Deniz Kayağı (Sea Kayak) Yedek Kürek Tutucusu",
+    "aciklama": "İki parçalı yedek küreği güverte ipi boyunca herhangi bir noktaya sabitleyen tutucu.\n- Deniz kayağı güverte ipi sistemine uyar.\n- Her iki tarafa birer tutucu takılıp paracord/bungee ile bağlanması önerilir.\n- Kayakta oturarak kürek değiştirmeyi kolaylaştırır.\nYaklaşık dış ölçüler: 100 × 73 × 46 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4883281-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4883281-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4883281-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Reidarse",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "garmin-echomap-bardaklik-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin EchoMap Bardaklık Montajı",
+    "aciklama": "Teknedeki bardaklık boşluğuna oturan Garmin EchoMap balık bulucu montajı.\n- Garmin EchoMap UHD 73sv için tasarlandı, diğer modellerle de uyumlu olabilir.\n- Sıkı diş toleransı sayesinde titreşimle gevşemez.\n- Standart tekne bardaklık boşluklarına uyar.\nYaklaşık dış ölçüler: 137 × 74 × 72 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4902484-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4902484-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4902484-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ATTICU5",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "lewmar-66-st-vinc-stripper-ring",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lewmar 66 ST Vinç Stripper Ring Yedek Parçası",
+    "aciklama": "Artık sipariş edilemeyen Lewmar 66 ST vinç (winch) stripper ring parçasının yerine geçen yedek.\n- Lewmar 66 ST vinç (parça no 15065641) ile uyumludur.\n- Orijinali artık temin edilemediği için tasarlandı.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 126 × 126 × 6 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4979245-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Firebal",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "mercury-40hp-pervane-nakliye-kapagi",
     "kategori": "Marin",
     "marka": [],
