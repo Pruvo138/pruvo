@@ -64,6 +64,30 @@ BASLIK = """/**
 
 ZORUNLU_ALANLAR = ("boyutMm", "hacim", "fiyatCapalari", "malzemeler")
 
+# Bos/null konfigur halinde basilan COZUM metni + FAIL-CLOSED gerekcesi.
+#
+# NEDEN FAIL-CLOSED (bu kapi CI'da BLOKLAYICI; sahte kirmizi TUM EKIBIN yayinini durdurur —
+# karar bilerek bu bedele gore verildi):
+#   1. YANLIS-POZITIF BEDELI OLCULDU = 0. Gercek katalogda (14.966 urun, 30 Tem) "konfigur"
+#      anahtari tasiyan 16 urunun 16'si DOLU; bos/null olan 0 kayit var. Yani bugun bu kural
+#      hicbir mesru katalog halini kirmizi yakmaz — kapiyi ancak BIRISI urunler.json'a
+#      `"konfigur": {}` / `"konfigur": null` YAZARSA tetiklenir.
+#   2. O YAZIM HICBIR ZAMAN MESRU DEGIL. Urun konfigurlu degilse anahtar HIC KONMAZ (katalogun
+#      geri kalani boyle); konfigurlu ise obje dolu olmak zorunda. Bos deger "konfigurlu ama
+#      verisiz" demektir — sitede konfigurator karti gorunur, Worker fiyatlayamaz.
+#   3. TUTARLILIK: `{"boyutMm": ...}` diye YARIM yazilmis konfigur zaten fail-closed
+#      (`_sema_dogrula` -> "eksik alan"). `{}` = TUM alanlari eksik olan hal; onun daha
+#      GEVSEK (sessiz) bir yoldan gecmesi tasarim degil, kusurdu.
+#   4. FAIL-OPEN'IN BEDELI SESSIZ VE PARALI: urun canlida kalir, musteri konfiguratoru kullanir,
+#      odeme aninda 400 alir, kalem WhatsApp'a duser. Kimse bakmadikca gorunmez.
+#   Kirmizi yandiginda cozum TEK SATIRLIK ve mesajda yazili -> ekibi dakikalarca degil
+#   saniyelerce durdurur.
+_BOS_KONFIGUR_COZUM = (
+    "  COZUM (bos/null konfigur icin): urun KONFIGURLU ise `konfigur` objesini doldur\n"
+    "  (boyutMm/hacim/fiyatCapalari/malzemeler); konfigurlu DEGILSE `konfigur` anahtarini\n"
+    "  urunden TAMAMEN kaldir. Bos birakma — bos deger urunu sessizce odenemez yapar."
+)
+
 
 def _sema_dogrula(urun_id, konf):
     """Konfigur objesinin Worker'in fiyat cekirdeginin BEKLEDIGI alanlari tasidigini dogrular.
@@ -104,7 +128,26 @@ def konfigur_haritasi(urunler):
     harita = {}
     hatalar = []
     for u in urunler:
-        if not isinstance(u, dict) or not u.get("konfigur"):
+        if not isinstance(u, dict):
+            continue
+        # 🔴 ANAHTAR YOK vs ANAHTAR BOS — AYRI SINIFLAR (30 Tem, S1):
+        #   * "konfigur" anahtari YOK  -> urun konfigurlu DEGIL. Katalogun ~%99,9'u boyle;
+        #     SESSIZ atlanir (normal hal, gurultu uretmez).
+        #   * anahtar VAR ama deger BOS/NULL ({} / null / [] / "" / 0 / false) -> yazan kisi
+        #     KONFIGURLU urun kastetmis ama veri bos. Eski kod bunu `not u.get("konfigur")`
+        #     ile ANAHTARSIZ urunle AYNI kefeye koyup SESSIZCE dusuruyordu: urun sitede
+        #     konfigurator kartiyla gorunur, Worker bundle'inda YOKTUR -> odeme aninda
+        #     fail-closed 400 -> kalem WhatsApp'a duser = SESSIZ GELIR KAYBI, tek uyari yok.
+        #     Artik bu hal `_sema_dogrula`nin "eksik alan" haliyle AYNI kefeye girer:
+        #     GURULTULU + FAIL-CLOSED (gerekce icin asagidaki _BOS_KONFIGUR_ACIKLAMA).
+        if "konfigur" not in u:
+            continue
+        if not u["konfigur"]:
+            uid_bos = u.get("id")
+            hatalar.append((uid_bos if isinstance(uid_bos, str) and uid_bos else "<id YOK>") +
+                           ": konfigur alani VAR ama BOS/NULL (" +
+                           json.dumps(u["konfigur"], ensure_ascii=False) + ") — " +
+                           "urun bundle'a GIRMEZ, odeme aninda 400 yerdi")
             continue
         uid = u.get("id")
         if not isinstance(uid, str) or not uid:
@@ -119,8 +162,9 @@ def konfigur_haritasi(urunler):
             continue
         harita[uid] = u["konfigur"]
     if hatalar:
-        sys.exit("KONFIGUR BUNDLE: bozuk konfigur verisi — artefakt URETILMEDI (fail-closed)\n  "
-                 + "\n  ".join(hatalar))
+        sys.exit("KONFIGUR BUNDLE: bozuk konfigur verisi — artefakt URETILMEDI (fail-closed)\n"
+                 "  bozuk kayit: " + str(len(hatalar)) + "\n  "
+                 + "\n  ".join(hatalar) + "\n" + _BOS_KONFIGUR_COZUM)
     return dict(sorted(harita.items()))
 
 
@@ -171,11 +215,18 @@ def kapi(urunler_yolu, artefakt_yolu, sessiz=False):
             mevcut = f.read()
     if mevcut == beklenen:
         if not sessiz:
-            adet = len(konfigur_haritasi(_urunleri_oku(urunler_yolu)))
+            ham = _urunleri_oku(urunler_yolu)
+            adet = len(konfigur_haritasi(ham))
+            # GURULTU (S1): "anahtari olan" ile "bundle'a giren" sayilari EKRANDA yan yana.
+            # Ikisi esit degilse bir kayit sessizce dusmus demektir; fail-closed sayesinde o
+            # hale hic gelinmez ama sayi yine de BASILIR — sessiz dusme bir daha gorunmez olmasin.
+            anahtarli = len([u for u in ham if isinstance(u, dict) and "konfigur" in u])
             print("KONFIGUR BUNDLE KAPISI")
             print("  kaynak    : " + os.path.relpath(urunler_yolu, ROOT))
             print("  artefakt  : " + os.path.relpath(artefakt_yolu, ROOT))
-            print("  konfigurlu urun: " + str(adet))
+            print("  konfigurlu urun: " + str(adet) +
+                  "   (konfigur anahtarli kayit: " + str(anahtarli) +
+                  ", dusen: " + str(anahtarli - adet) + ")")
             print("----------------------------------------------------------------------")
             print("SONUC: YESIL ✅  — artefakt urunler.json'dan turetilenle BIREBIR.")
         return 0
@@ -422,6 +473,87 @@ def kendini_test():
             ham.append("    ✅ bozuk sema REDDEDILDI — " + ad)
     ham.append("  (D) bozuk-sema: " + str(len(bozuk_vaka)) + " denendi, " +
                str(reddedilmeyen) + " tanesi uretildi (0 olmali)")
+
+    # ---- (E) BOS/NULL KONFIGUR (S1): anahtar VAR ama deger BOS -> GURULTULU + FAIL-CLOSED.
+    # Eski kod bunu ANAHTARSIZ urunle ayni kefeye koyup SESSIZCE dusuruyordu (urun canlida
+    # konfigurator kartiyla kalir, odeme aninda 400 yer = sessiz gelir kaybi).
+    bos_vaka = [("bos obje {}", {}), ("null", None), ("bos dizi []", []),
+                ("bos metin \"\"", ""), ("sifir 0", 0), ("false", False)]
+    bos_kacan = 0
+    for ad, deger in bos_vaka:
+        s = kopya()
+        s.insert(0, {"id": "bos-konfigur-vakasi", "kategori": "Skan Art", "baslik": "Bos",
+                     "fiyat": "500 TL", "gorseller": [], "konfigur": deger})
+        try:
+            turet(s)
+            bos_kacan += 1
+            kirmizi += 1
+            ham.append("    ❌ SESSIZ DUSTU: konfigur=" + ad + " -> urun bundle'a girmedi, "
+                       "kapi hic konusmadi")
+        except SystemExit as e:
+            metin = str(e)
+            # GURULTU SARTI: mesaj hem SAYIYI hem ID'yi soylemeli (yoksa "bir yerde bir sey
+            # bozuk" der, kimse bulamaz).
+            if "bos-konfigur-vakasi" in metin and "bozuk kayit: 1" in metin:
+                ham.append("    ✅ konfigur=" + ad + " -> REDDEDILDI + id/sayi RAPORLANDI")
+            else:
+                bos_kacan += 1
+                kirmizi += 1
+                ham.append("    ❌ reddedildi ama GURULTU EKSIK (id/sayi yok) — konfigur=" + ad)
+    # E-yanlis-pozitif: konfigur ANAHTARI OLMAYAN urun sessizce atlanmali (katalogun ~%99,9'u).
+    s = kopya()
+    s.insert(0, {"id": "anahtarsiz-normal-urun", "kategori": "Otomobil", "baslik": "Normal",
+                 "fiyat": "850 TL", "gorseller": []})
+    try:
+        anahtarsiz_ok = turet(s) == taban
+    except SystemExit:
+        anahtarsiz_ok = False
+    if not anahtarsiz_ok:
+        kirmizi += 1
+        ham.append("    ❌ YANLIS-POZITIF: konfigur ANAHTARI OLMAYAN urun kapiyi yakti")
+    else:
+        ham.append("    ✅ konfigur anahtari OLMAYAN urun sessizce atlandi (yanlis-pozitif yok)")
+    ham.append("  (E) bos/null konfigur: " + str(len(bos_vaka)) + " denendi, " +
+               str(bos_kacan) + " tanesi sessizce dustu (0 olmali)")
+
+    # ---- (E-MUT) MUTASYON: (E) nobeti NO-OP yapilinca KIRMIZI yanmali mi?
+    # Kaynak metni uzerinde iki gercek mutant uretilir ve AYRI bir modul ornegi olarak
+    # yuklenir. Capa = nobetin KENDI tasiyici satirlari; capa bulunamazsa nobet zaten
+    # kaldirilmis demektir -> KIRMIZI (fail-closed, ama capa dar: yorum/bosluk duzenlemesi
+    # bu satirlari degistirmez).
+    with open(os.path.abspath(__file__), "r", encoding="utf-8") as f:
+        oz_kaynak = f.read()
+    mutasyonlar = [
+        ("MU1 tarihi kod geri konuldu (falsy kisa devre, dogrulamadan ONCE)",
+         '        if "konfigur" not in u:\n            continue\n        if not u["konfigur"]:',
+         '        if not u.get("konfigur"):\n            continue\n        if False:'),
+        ("MU2 bos kayit RAPORLANMADAN atlaniyor (gurultu sokuldu)",
+         '        if not u["konfigur"]:\n            uid_bos = u.get("id")',
+         '        if not u["konfigur"]:\n            continue\n            uid_bos = u.get("id")'),
+    ]
+    mut_kacan = 0
+    for ad, capa, yerine in mutasyonlar:
+        if oz_kaynak.count(capa) != 1:
+            kirmizi += 1
+            mut_kacan += 1
+            ham.append("    ❌ MUTASYON CAPASI YOK/COK — nobet kaldirilmis ya da yeniden "
+                       "yazilmis: " + ad)
+            continue
+        ns = {"__name__": "kbk_mutant", "__file__": os.path.abspath(__file__)}
+        exec(compile(oz_kaynak.replace(capa, yerine), "<kbk-mutant>", "exec"), ns)
+        s = kopya()
+        s.insert(0, {"id": "bos-konfigur-vakasi", "kategori": "Skan Art", "baslik": "Bos",
+                     "fiyat": "500 TL", "gorseller": [], "konfigur": {}})
+        try:
+            ns["turet"](s)
+            ham.append("    ✅ " + ad + " -> mutant SESSIZ gecti = nobet YUK TASIYOR")
+        except SystemExit:
+            mut_kacan += 1
+            kirmizi += 1
+            ham.append("    ❌ OLU MUTASYON: " + ad + " -> mutant da reddetti, (E) bu satirlari "
+                       "olcmuyor")
+    ham.append("  (E-MUT) no-op mutasyonu: " + str(len(mutasyonlar)) + " denendi, " +
+               str(mut_kacan) + " tanesi olcumsuz kaldi (0 olmali)")
 
     print("\n".join(ham))
     print("----------------------------------------------------------------------")

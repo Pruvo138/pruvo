@@ -37,7 +37,7 @@ import { konfigurBeklenirMi } from "./konfigur-beklenen.js";
 import { yonet, gecmiseEkle } from "./yonet.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
-import { refKaydet } from "./ref.js";
+import { refKaydet, REF_KALIBI } from "./ref.js";
 
 const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK) { throw new Error("secenekler.js yuklenemedi — fiyat kurali tek kaynagi yok"); }
@@ -123,9 +123,27 @@ function metin(v, enAz, enCok) {
 }
 
 /** REKLAM ATIF KIMLIKLERI (reklam-roi-sistemi.md Faz 0): tarayicidan gelen GA _ga client_id +
- *  Meta _fbp/_fbc + utm_source/medium/campaign/id. Odeme ONCESI order kaydina yazilir (redirect'te
- *  UTM/cerez duser); purchase event (donus'ta) bunlarla atif yapar. Yalniz beyaz-liste alanlar,
- *  string'e zorlanip kirpilir; PII (email/telefon) BURADAN GECMEZ. Bos ise {} doner. */
+ *  Meta _fbp/_fbc + utm_source/medium/campaign/id + landing REF. Odeme ONCESI order kaydina
+ *  yazilir (redirect'te UTM/cerez duser); purchase event (donus'ta) bunlarla atif yapar.
+ *  Yalniz beyaz-liste alanlar, string'e zorlanip kirpilir; PII (email/telefon) BURADAN GECMEZ.
+ *  Bos ise {} doner.
+ *
+ *  🔗 REF HALKASI (30 Tem): landing modulu (attribution-ref.js) her oturumda REF uretir ve
+ *  wa.me lead beacon'i ile REF -> click-id eslemesini D1 `reklam_ref_gclid` tablosuna yazar
+ *  (shop/src/ref.js). O tabloda REF -> gclid/gbraid/wbraid VARDI ama SIPARIS -> REF baglantisi
+ *  YOKTU: `ref` beyaz-listede olmadigi icin SESSIZCE dusuyordu. Sonuc: hangi siparisin hangi
+ *  tiklamadan/organik oturumdan geldigi JOIN'lenemiyordu (paid tarafta offline conversion
+ *  import IMKANSIZ, organik tarafta ROI olculemez). `ref` artik kaydediliyor -> halka kapali:
+ *      siparisler.atif.ref  ==  reklam_ref_gclid.ref  ->  click-id / grup / src
+ *
+ *  KIRMIZI CIZGILER:
+ *   - KIRPILMAZ. Digerleri slice ile kirpilir (uzun cerez degeri kirpik de olsa isini gorur);
+ *     KIRPIK BIR REF ise BASKA BIR REF'e benzeyen, hicbir kayda eslesmeyen COPTUR ve yanlis
+ *     atif uretme riski tasir. Kalibina TAM uymayan deger ATILIR (fail-closed).
+ *   - Kalip ref.js'ten (REF_KALIBI) gelir; landing + beacon + siparis TEK kaynaktan dogrular.
+ *   - REF PII DEGILDIR (src + grup + rastgele 4 karakter; click-id tasimaz) ve olcum.js'in
+ *     Meta/GA4 govdelerine GIRMEZ (o govdeler kendi beyaz-listelerini kullanir) — bizim ic
+ *     atif anahtarimizdir. Negatif test: shop/test/olcum.mjs set 28. */
 function atifTemizle(govde) {
   const a = (govde && govde.atif && typeof govde.atif === "object" && !Array.isArray(govde.atif))
     ? govde.atif : {};
@@ -138,6 +156,8 @@ function atifTemizle(govde) {
     utm_medium: al(a.utm_medium, 120),
     utm_campaign: al(a.utm_campaign, 200),
     utm_id: al(a.utm_id, 120),
+    // TAM eslesme; kirpma YOK (yukaridaki kirmizi cizgi).
+    ref: REF_KALIBI.test(al(a.ref, 64)) ? al(a.ref, 64) : "",
   };
   const dolu = {};
   for (const k in alanlar) { if (alanlar[k]) { dolu[k] = alanlar[k]; } }

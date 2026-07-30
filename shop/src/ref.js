@@ -34,7 +34,11 @@
  */
 
 // Landing kanonigiyle BIREBIR (attribution-ref.js REF_RE). Uymazsa yazilmaz.
-const REF_RE = /^REF:[A-Z]{2}-[A-Z0-9]{2,4}-[A-Z0-9]{4}$/;
+// EXPORT (30 Tem): siparis kaydindaki `atif.ref` de AYNI kalibi kullanir (index.js
+// atifTemizle). Iki yerde iki kopya kalip tutulursa biri gunceendi digeri kalir ve
+// REF beacon'a girip siparise girmez (ya da tersi) -> halka yine kopar. TEK KAYNAK.
+export const REF_KALIBI = /^REF:[A-Z]{2}-[A-Z0-9]{2,4}-[A-Z0-9]{4}$/;
+const REF_RE = REF_KALIBI;
 const GRUP_RE = /^[A-Z0-9]{2,4}$/;
 const SRC_RE = /^[A-Z]{2}$/;
 const CLICK_ID_ENCOK = 512;
