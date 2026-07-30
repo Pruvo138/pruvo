@@ -152,19 +152,165 @@ def _icra_govdesi(ham_satir):
     return s or None
 
 
+# ---- YAML KATLANAN BLOK SKALARI (`>` / `>-` / `>+`) ------------------------
+# `run: >-` blogunda YAML, AYNI GIRINTIDEKI ardisik satirlari TEK BOSLUKLA birlestirir.
+# Metin duzleminde satir satir gezen suzgec bunu iki YARIM satir gorur -> bayrak ayri
+# satirda kalir, argüman sayilmaz ve bayrak sorgulayan nobetciler SAHTE-KIRMIZI yanar.
+# OLCULDU (30 Tem, gecici kopyada): `run: >-` + `python3 tools/ci-kapsam-test.py` +
+# `--kendini-test` mutantinda CI'da BIREBIR ayni komut kosuyor (ruby-psych ile bayt-ozdes
+# dogrulandi) ama uc denetci KIRMIZI yaniyordu — ve kapinin KENDI onarim mesaji `>-`'yi
+# "gecerli bicim" diye ONERIYORDU. Bu kapi continue-on-error'SUZ kosar: tek sahte-kirmizi
+# TUM ekibin yayinini durdurur ([[kapi-kapsam-eksen-secimi]]).
+#
+# 🔴 NEDEN AYRISTIRILMIS YAML KOLUNDAN ICE AKTARILMADI ([[mimar-kapi-parser-taklidi]]):
+# tools/is-akisi-kapisi.py'nin gercek ayristiricisi (PyYAML | ruby-psych) KATMAN 2'dir ve
+# kesfi (kesfet/_onek_re) BU DOSYADAN alir. Buradan onu ice aktarmak karsilikli bagimlilik
+# (katman 1 <-> katman 2) yaratir. Ayrica bu betik CI'da `pip install pyyaml` adiminin
+# yaninda YEREL pre-push kancasindan da kosar; bu Mac'te sistem python3'te PyYAML YOKTUR
+# -> ayristiriciya bagimli hale gelirse her yerel push KIRMIZI yanar (kapatilan sahte-kirmizi
+# sinifinin ta kendisi). O yuzden donusum METIN duzleminde ve DAR tutuldu:
+#   * YALNIZ `run:` anahtari (baska anahtar/blok TARANMAZ),
+#   * YALNIZ KATLANAN gosterge (`>`), LITERAL (`|`) blok govdesi AYNEN BIRAKILIR,
+#   * bos satir paragraf ayirir, DAHA GIRINTILI satir KATLANMAZ (YAML kurali),
+#   * fiksturler gercek bir ayristiriciyla (ruby-psych) dogrulanmis beklentilere kilitli
+#     (KATLAMA_FIKSTURLERI -> suzgec_fikstur_kontrol).
+#
+# 🟡 BEYAN EDILEN SINIRLAR (kapsam disi, BILINCLI):
+#   (a) Y13b — `env:`ten gelen yol (`run: python3 "$KAPI"` + `env: KAPI: tools/x.py`)
+#       STATIK olarak cozulemez; hicbir metin/YAML donusumu kabuk degisken genislemesini
+#       yapmaz. Bu formda kapi cagriyi GORMEZ ve `sayilamayan_python3()` T8 uyarisini basar
+#       ("bare 'python3 tools/x.py' formu kullan"). ONARILMADI: cozumu kabuk taklidi olurdu.
+#   (b) COK SATIRLI DUZ (plain) skalar — `run: python3 tools/x.py` + sonraki satirda daha
+#       girintili `--bayrak` da YAML'da katlanir; burada YALNIZ blok gostergeli (`>`) yazim
+#       kapsanir. Bu form deploy.yml'de KULLANILMIYOR (olculdu: 0) ve kapsama alinmasi
+#       `run:` degeri ile onu izleyen `env:`/`if:`/yorum satirlarini ayirt etmeyi gerektirir
+#       -> yeni sahte-kirmizi yuzeyi. Kullanilirsa ayni sinif sahte-kirmizi doner.
+_BLOK_BASI_RE = re.compile(
+    r"^(?P<girinti>[ ]*)(?P<tire>-[ ]+)?run:[ \t]*"
+    r"(?P<stil>[|>])(?P<gosterge>[0-9+\-]{0,2})[ \t]*(?:#.*)?$")
+
+
+def _mantiksal_yaml_satirlari(metin):
+    """YAML KATLANAN blok skalarlarini (`run: >` / `>-` / `>+`) MANTIKSAL satirlara indir.
+
+    Girdi: deploy.yml metni. Cikti: [(mantiksal_satir, [ham_satir_indeksi, ...]), ...].
+    Her katlanan `run:` blogunun ayni girintideki ardisik satirlari TEK BOSLUKLA
+    birlestirilir ve ilk mantiksal satir `<girinti>run: <komut>` biciminde yazilir
+    (boylece _icra_govdesi() onek soyma yolundan gecer). LITERAL (`|`/`|-`/`|+`) bloklar
+    AYNEN GECER -> `run: |` davranisi DEGISMEZ (orada her satir gercekten AYRI bir kabuk
+    komutudur). Katlanmayan satirlarda ham indeks listesi tek elemanlidir.
+
+    🔴 HAM INDEKS NEDEN DONUYOR (TUR 7 ikinci olcum): mutant ureticileri
+    (_silme_mutanti / _yorum_mutanti) HAM satirlar uzerinde calisir. Katlanan blokta bir
+    cagri UC ham satira bolunebilir (`python3` / `tools/x.py` / `--bayrak`); hicbir HAM
+    satir tek basina `^python3 <yol>` capasina uymaz. Olculdu: o mutantta silme/yorum
+    mutasyonu cagriyi HIC dokunmadan birakiyor, cagri hayatta kaliyor ve
+    bulgu1_mutasyon_kontrol "BULGU 1 GERI GELDI" diye YANLIS SINIFLA sahte-KIRMIZI
+    yaniyordu. Provenans donunce mutasyon blogun TUM katkili ham satirlarini hedefler.
+
+    YAML KATLAMA KURALI (uygulanan):
+      * blok girintisi = ilk bos-olmayan govde satirinin girintisi (acik girinti
+        gostergesi varsa anahtar girintisi + gosterge),
+      * blok girintisinde ardisik bos-olmayan satirlar TEK BOSLUKLA birlesir,
+      * BOS SATIR paragraf ayirir (birlestirme kesilir),
+      * DAHA GIRINTILI satir "more-indented"dir -> KATLANMAZ, kendi satiri olarak kalir.
+    Chomping gostergesi (`-`/`+`/yok) blok ICI katlamayi ETKILEMEZ; yalnizca sondaki satir
+    sonlarini belirler -> `>`, `>-`, `>+` AYNI hukmu alir (fiksturlerle kilitli)."""
+    satirlar = metin.splitlines()
+    cikti = []
+    i = 0
+    n = len(satirlar)
+    while i < n:
+        m = _BLOK_BASI_RE.match(satirlar[i])
+        if not m:
+            cikti.append((satirlar[i], [i]))
+            i += 1
+            continue
+        girinti = m.group("girinti")
+        tire = m.group("tire") or ""
+        anahtar_girinti = len(girinti) + len(tire)
+        # --- blok govdesini topla: girintisi BAS satirdan FAZLA olan (+ bos) satirlar
+        j = i + 1
+        govde = []  # [(girinti_uzunlugu | None, strip'lenmis icerik, ham_indeks)]
+        while j < n:
+            s = satirlar[j]
+            if not s.strip():
+                govde.append((None, "", j))
+                j += 1
+                continue
+            g = len(s) - len(s.lstrip(" "))
+            if g <= len(girinti):
+                break
+            govde.append((g, s.strip(), j))
+            j += 1
+        # sondaki BOS satirlar icerik uretmez -> bloga dahil ETME, aynen bassinlar
+        while govde and govde[-1][0] is None:
+            govde.pop()
+            j -= 1
+        dolu = [x for x in govde if x[0] is not None]
+        if m.group("stil") == "|" or not dolu:
+            # LITERAL blok ya da BOS katlanan blok -> hicbir satir birlestirilmez
+            for k in range(i, j):
+                cikti.append((satirlar[k], [k]))
+            i = j
+            continue
+        rakam = "".join(c for c in m.group("gosterge") if c.isdigit())
+        blok_girinti = (anahtar_girinti + int(rakam)) if rakam else dolu[0][0]
+        mantiksal = []  # [(metin, [ham_indeks, ...])]
+        akan = []
+        akan_idx = []
+
+        def _bosalt():
+            if akan:
+                mantiksal.append((" ".join(akan), list(akan_idx)))
+                del akan[:]
+                del akan_idx[:]
+
+        for g, icerik, ham_i in govde:
+            if g is None:  # BOS SATIR -> paragraf ayirir
+                _bosalt()
+                continue
+            if g == blok_girinti:
+                akan.append(icerik)
+                akan_idx.append(ham_i)
+                continue
+            # DAHA GIRINTILI (ya da tutarsiz girintili) satir KATLANMAZ
+            _bosalt()
+            mantiksal.append((icerik, [ham_i]))
+        _bosalt()
+        # ILK mantiksal satir BLOK BASI satirini da kapsar: `run: >-` oneki soyulur ki
+        # _icra_govdesi() komut govdesine insin; mutasyon o HAM satiri da hedeflemeli.
+        cikti.append(("%s%srun: %s" % (girinti, tire, mantiksal[0][0]),
+                      [i] + mantiksal[0][1]))
+        for metin, hamlar in mantiksal[1:]:
+            cikti.append((" " * blok_girinti + metin, list(hamlar)))
+        i = j
+    return cikti
+
+
+def _katlanan_bloklari_birlestir(metin):
+    """_mantiksal_yaml_satirlari()'nin METIN kolu — katlanan bloklar birlestirilmis
+    deploy.yml metnini dondurur (tuketiciler: _icra_komutlari, _hedef_cagrilari)."""
+    return "\n".join(t for t, _ in _mantiksal_yaml_satirlari(metin))
+
+
 def _icra_komutlari(deploy_metin):
     """deploy.yml'de FIILEN kosan komut govdelerini (satir satir) dondur.
     Bir 'python3 <yol>' mensiyonu YORUM icinde ya da echo-string icinde geciyorsa
     bu listede komutun BASINDA yer almaz -> kosulan() onu 'kosuluyor' saymaz.
 
-    SATIR DEVAMI BIRLESTIRILIR (SUZGEC.birlestir_devam): `run: |` blogunda mesru bir
-    cagri `python3 tools/x-test.py \\` + sonraki satirda `--bayrak` biciminde
-    yazilabilir. Birlestirilmezse jetonlayici YARIM satiri gorur, bayrak listesi eksik
-    cikar ve bayrak sorgulayan nobetciler SAHTE-KIRMIZI yanar.
+    IKI BIRLESTIRME KATMANI (sirasi ONEMLI — once YAML, sonra KABUK):
+      1. YAML KATLAMASI (_katlanan_bloklari_birlestir): `run: >-` blogunun ayni
+         girintideki satirlari TEK komut olur. LITERAL `run: |` DOKUNULMAZ.
+      2. KABUK SATIR DEVAMI (SUZGEC.birlestir_devam): `\\` ile biten satir sonrakiyle
+         birlesir. `run: |` blogunda mesru bir cagri `python3 tools/x-test.py \\` +
+         sonraki satirda `--bayrak` biciminde yazilabilir.
+    Ikisi de yapilmazsa jetonlayici YARIM satiri gorur, bayrak listesi eksik cikar ve
+    bayrak sorgulayan nobetciler SAHTE-KIRMIZI yanar (olculdu: `>-` icin 3 denetci).
     ⚠️ _icra_satir_indeksleri() BILINCLI olarak HAM satirlarda kalir (mutant ureticileri
     SATIR SILER/YORUMA CEVIRIR; birlestirilmis metinde satir indeksi kaymis olur)."""
     komutlar = []
-    for ham in SUZGEC.birlestir_devam(deploy_metin):
+    for ham in SUZGEC.birlestir_devam(_katlanan_bloklari_birlestir(deploy_metin)):
         g = _icra_govdesi(ham)
         if g:
             komutlar.append(g)
@@ -207,14 +353,22 @@ def _icra_satir_indeksleri(deploy_metin, yol):
 
     kosulan() ile AYNI semantik (_icra_govdesi + _onek_re) — mutant ureticileri
     bunu kullanir, boylece 'kapinin saydigi satir' ile 'mutasyonun sildigi satir'
-    ayrisamaz. Ayni yol BIRDEN COK adimda kosuluyorsa HEPSI dondurulur."""
+    ayrisamaz. Ayni yol BIRDEN COK adimda kosuluyorsa HEPSI dondurulur.
+
+    KATLANAN BLOK (TUR 7): hukum MANTIKSAL satirda verilir, dondurulen indeksler HAM
+    satirlardir — bir cagri katlanan blokta birden cok ham satira bolunmusse HEPSI
+    dondurulur (_mantiksal_yaml_satirlari provenansi). Boylece silme/yorum mutasyonu
+    cagriyi GERCEKTEN oldurur; eskiden mutasyon cagriyi hic dokunmadan birakip
+    "BULGU 1 GERI GELDI" diye yanlis sinifla sahte-KIRMIZI yakiyordu.
+    ⚠️ KABUK `\\` satir devami BILINCLI olarak BIRLESTIRILMEZ (bugunku davranis): orada
+    ilk ham satir zaten capaya uyar ve tek basina silinmesi cagriyi oldurur."""
     onek = _onek_re(yol)
-    idx = []
-    for i, ham in enumerate(deploy_metin.splitlines()):
-        g = _icra_govdesi(ham)
+    idx = set()
+    for metin, hamlar in _mantiksal_yaml_satirlari(deploy_metin):
+        g = _icra_govdesi(metin)
         if g and onek.match(g):
-            idx.append(i)
-    return idx
+            idx.update(hamlar)
+    return sorted(idx)
 
 
 def _silme_mutanti(deploy_metin, yol):
@@ -771,10 +925,19 @@ KENDINI_TEST_TANI = (
     "deploy.yml'de bu betigi `--kendini-test` ile ANLAMLI olarak kosan hicbir adim YOK "
     "-> oz-nobetci adimi kalkmis, bayragi dusmus ya da cagri MENSIYONA cevrilmis. "
     "GERI KOY: 'CI kapsam kapisi oz-nobetcileri' adimi, "
-    "`run: python3 tools/ci-kapsam-test.py --kendini-test` "
-    "(BICIM SERBEST: inline / tirnakli skalar / `run: |` / `>-` / `bash -c` / `python3 -u` / "
-    "`\\` satir devami hepsi gecerli). Bayrak adi bilerek degistiyse KENDINI_TEST_BAYRAGI "
-    "sabitini guncelle.")
+    "`run: python3 tools/ci-kapsam-test.py --kendini-test`.\n"
+    "   KABUL EDILEN BICIMLER (olculdu; bu liste kapinin FIILEN kabul ettikleridir):\n"
+    "     * inline `run: <komut>` · cift/tek TIRNAKLI skalar · `bash -c \"<komut>\"`\n"
+    "     * `python3 -u` / `-X utf8` / `env VAR=1 python3 ...` / `python3 ./tools/...`\n"
+    "     * KATLANAN blok: `run: >-` / `>` / `>+` — komut BIRDEN COK satira bolunebilir,\n"
+    "       yeter ki satirlar AYNI GIRINTIDE olsun (YAML onlari boslukla birlestirir).\n"
+    "     * LITERAL blok `run: |` / `|-` — burada her satir AYRI bir kabuk komutudur:\n"
+    "       bayrak komutla AYNI satirda olmali ya da satir `\\` ile devam etmeli.\n"
+    "   KABUL EDILMEYEN (bilerek): katlanan blokta BOS SATIRLA ya da DAHA GIRINTILI\n"
+    "     satirla ayrilmis bayrak (YAML onlari birlestirmez -> CI'da da bayrak GITMEZ) ·\n"
+    "     `echo`/`printf`/`grep` mensiyonu · `--help`/`-h`/`--version` · `env:`ten gelen\n"
+    "     yol (`python3 \"$KAPI\"`) statik cozulemez -> bare `python3 tools/x.py` yaz.\n"
+    "   Bayrak adi bilerek degistiyse KENDINI_TEST_BAYRAGI sabitini guncelle.")
 
 BAYRAKSIZ_TANI = (
     "deploy.yml'de bu betigi BAYRAKSIZ (kapsam kolu) ANLAMLI olarak kosan hicbir adim YOK.\n"
@@ -804,10 +967,15 @@ def _hedef_cagrilari(deploy_metin, hedef):
                  mimar "neden kirmizi" sorusunu ciktidan cevaplayabilsin.
 
     TEK KAYNAK: hem kendini_test_adimi_kontrol() hem bayraksiz_adim_kontrol() BURADAN
-    beslenir -> "cagri var mi" mantiginin ikinci kopyasi TUTULMAZ."""
+    beslenir -> "cagri var mi" mantiginin ikinci kopyasi TUTULMAZ.
+
+    _icra_komutlari() ile AYNI iki birlestirme katmani uygulanir (once YAML katlamasi,
+    sonra kabuk satir devami). Katlama BURADA da SART: bu fonksiyon BAYRAK listesi
+    dondurur ve `run: >-` blogunda bayrak ayri HAM satirda kalirsa argüman sayilmaz ->
+    oz-nobetci adimi duruyor olsa bile "YOK" hukmu verilir (olculdu: Y05)."""
     anlamli = []
     reddedilen = []
-    for ham in SUZGEC.birlestir_devam(deploy_metin):
+    for ham in SUZGEC.birlestir_devam(_katlanan_bloklari_birlestir(deploy_metin)):
         govde = _icra_govdesi(ham)
         if not govde:
             continue
@@ -826,6 +994,133 @@ def _reddedilen_ozeti(reddedilen):
         return ""
     return "\n   REDDEDILEN ADAY(LAR): " + " | ".join(
         "%r -> %s" % (k[:90], s) for k, s in reddedilen[:3])
+
+
+# ---- BICIM TESHISI (Y05 / T3) ----------------------------------------------
+# 🔴 NEDEN: "cagri YOK" tanisi, cagriyi MESRU bir bicimde YAZMIS olan kisiye hicbir sey
+# soylemez ("ama ben yazdim") ve o kisi kapiyi gevsetmeye yonelir — Y05'te tam bu oldu:
+# `run: >-` ile COK SATIRA yayilmis mesru cagri "YOK" gorundu, ustelik tani metni `>-`'yi
+# gecerli bicim diye ONERIYORDU. Bu tani, kapinin O ADIMDA hangi YAML BICIMINI ve
+# FIILEN hangi komut(lar)i gordugunu + her birine verdigi HUKMU basar.
+# Nobetcisi: BICIM_FIKSTURLERI (govde) + TANI_KABLOLARI (AST cagri).
+_RUN_BASI_TANI_RE = re.compile(r"^(?P<girinti>[ ]*)(?P<tire>-[ ]+)?run:[ \t]*(?P<deger>.*)$")
+_ADIM_ADI_RE = re.compile(r"^[ ]*(?:-[ ]+)?name:[ \t]*(?P<ad>.+?)[ \t]*$")
+
+
+def _bicim_etiketi(deger):
+    """`run:` degerinin YAML SKALAR BICIMINI insan diliyle etiketle."""
+    d = deger.split("#")[0].strip() if deger.strip()[:1] in "|>" else deger.strip()
+    if not d:
+        return "BOS `run:` degeri"
+    if d[0] == ">":
+        return ("KATLANAN blok skalari (`run: %s`) — ayni girintideki satirlar YAML "
+                "tarafindan TEK BOSLUKLA birlestirilir" % d)
+    if d[0] == "|":
+        return ("LITERAL blok skalari (`run: %s`) — satirlar BIRLESMEZ, her satir AYRI "
+                "bir kabuk komutudur" % d)
+    if d[0] == '"':
+        return "CIFT-TIRNAKLI inline skalar"
+    if d[0] == "'":
+        return "TEK-TIRNAKLI inline skalar"
+    return "DUZ (inline) skalar"
+
+
+def _run_bloklari(satirlar):
+    """[(run_i, son_i, deger), ...] — her `run:` satiri ve govdesinin HAM satir araligi
+    ([run_i, son_i)). Govde = `run:` satirindan DAHA GIRINTILI (ya da bos) satirlar."""
+    bloklar = []
+    n = len(satirlar)
+    for i, s in enumerate(satirlar):
+        m = _RUN_BASI_TANI_RE.match(s)
+        if not m:
+            continue
+        girinti = len(m.group("girinti"))
+        j = i + 1
+        while j < n:
+            t = satirlar[j]
+            if t.strip() and (len(t) - len(t.lstrip(" "))) <= girinti:
+                break
+            j += 1
+        bloklar.append((i, j, m.group("deger")))
+    return bloklar
+
+
+def bicim_teshisi(deploy_metin, hedef):
+    """[(adim_adi, bicim, [(komut, hukum_metni), ...]), ...] — <hedef>'i ANAN her `run:`
+    blogu icin: hangi ADIMDA, hangi YAML BICIMINDE ve kapinin O BLOKTA FIILEN gordugu
+    MANTIKSAL komut satirlari + her birine verdigi hukum.
+
+    Mantiksal satirlar _mantiksal_yaml_satirlari()'ndan gelir (kapinin kendi gozu) —
+    tani ile hukum AYRISAMAZ. Katlanan blokta bayrak AYRI mantiksal satirda kaldiysa
+    (bos satir / daha girintili satir ayirdi) bu ACIKCA yazilir: CI'da da AYRI komut
+    olurlar, yani KIRMIZI GERCEKTIR."""
+    satirlar = deploy_metin.splitlines()
+    bloklar = _run_bloklari(satirlar)
+    kova = {}
+    for metin, hamlar in _mantiksal_yaml_satirlari(deploy_metin):
+        bas = hamlar[0] if hamlar else 0
+        for run_i, son_i, _deger in bloklar:
+            if run_i <= bas < son_i:
+                kova.setdefault(run_i, []).append(metin)
+                break
+    kayit = []
+    for run_i, son_i, deger in bloklar:
+        gorulen = kova.get(run_i, [])
+        if not any(hedef in m for m in gorulen):
+            continue
+        adim = ""
+        for k in range(run_i, max(run_i - 60, -1), -1):
+            m = _ADIM_ADI_RE.match(satirlar[k])
+            if m:
+                adim = m.group("ad").strip().strip("\"'")
+                break
+        satir_hukmu = []
+        for metin in gorulen:
+            govde = _icra_govdesi(metin)
+            # BOS satir ve blok GOSTERGESININ kendisi (`run: |` -> "|") tani URETMEZ:
+            # bunlar komut degildir, listede gorunurse "kac AYRI komut oldu" sayisini
+            # sisirir ve okuyani yaniltir.
+            if not (govde or metin).strip().strip("|>+-0123456789"):
+                continue
+            if not govde:
+                satir_hukmu.append((metin.strip(),
+                                    "ICRA SATIRI DEGIL (yorum / YAML anahtari gorundu)"))
+                continue
+            hukum, sebep, argumanlar = SUZGEC.anlamli_cagri(govde, hedef)
+            if hukum == SUZGEC.EVET:
+                h = "ANLAMLI CAGRI — gorulen argumanlar: %r" % (list(argumanlar or []),)
+            elif hukum == SUZGEC.HAYIR:
+                h = "ANLAMSIZ (cagri SAYILMAZ): %s" % sebep
+            elif hukum == SUZGEC.OLCULEMEDI:
+                h = "OLCULEMEDI (jetonlanamadi, BUGUNKU davranis korunur): %s" % sebep
+            else:
+                h = "bu yolla ILGISIZ gorundu"
+            satir_hukmu.append((govde, h))
+        kayit.append((adim, _bicim_etiketi(deger), satir_hukmu))
+    return kayit
+
+
+def _teshis_ozeti(deploy_metin, hedef):
+    """bicim_teshisi()'ni tani metnine cevir (kapi KIRMIZI yandiginda basilir)."""
+    kayit = bicim_teshisi(deploy_metin, hedef)
+    if not kayit:
+        return ("\n   GORULEN: deploy.yml'de `%s` yolunu ANAN hicbir `run:` blogu YOK "
+                "-> adim butunuyle silinmis ya da yol degismis olabilir." % hedef)
+    parcalar = []
+    for adim, bicim, satir_hukmu in kayit:
+        p = "\n   GORULEN ADIM: %r\n     BICIM: %s" % (adim or "(adsiz)", bicim)
+        for komut, hukum in satir_hukmu[:4]:
+            p += "\n     KAPININ GORDUGU KOMUT: %r\n       -> %s" % (komut[:150], hukum)
+        if bicim.startswith("KATLANAN") and len(satir_hukmu) > 1:
+            p += ("\n     ⚠️ Bu KATLANAN blok %d AYRI mantiksal satir uretti: BOS SATIR ya da "
+                  "DAHA GIRINTILI satir onlari ayirmis. YAML bunlari BIRLESTIRMEZ -> CI'da da "
+                  "AYRI kabuk komutu olurlar (bayrak komuta GITMEZ). Satirlari AYNI GIRINTIDE "
+                  "ve ARALIKSIZ yaz." % len(satir_hukmu))
+        if bicim.startswith("LITERAL") and len(satir_hukmu) > 1:
+            p += ("\n     ⚠️ LITERAL blokta her satir AYRI komuttur: bayragi komutla AYNI "
+                  "satira koy ya da satiri `\\` ile devam ettir.")
+        parcalar.append(p)
+    return "".join(parcalar)
 KENDINI_TEST_SABIT_TANI = (
     "KENDINI_TEST_BAYRAGI sabiti BOZULMUS (deger: %r). Bos ya da `--` ile baslamayan bir "
     "sabit duz alt-dize aramasini ANLAMSIZ kilar: bos dize HER govdede gecer -> adim "
@@ -887,6 +1182,15 @@ def kendini_test_adimi_kontrol():
         tirnakli skalar · `run: |` · `run: >-` katlanan · `\\` satir devami ·
         `if:`/`env:` bloklu adim · baska job'a tasima.
 
+    🔴 TUR 7 (30 Tem) — Y05 SAHTE-KIRMIZI ONARIMI: TUR 4/6'nin "`run: >-` katlanan YESIL"
+    kaydi YANILTICIYDI — o fikstur TEK SATIRLIK `>-` kullaniyordu, yani KATLAMAYI HIC
+    egzersiz etmiyordu. Olculdu (gecici kopyada, ruby-psych ile `run` degeri BAYT-OZDES
+    dogrulanarak): COK SATIRLI `>-` / `>` / `>+` blogunda 6 mesru yazim SAHTE-KIRMIZI
+    yaniyordu — ustelik YUKARIDAKI onarim mesaji `>-`'yi "gecerli bicim" diye ONERIYORDU.
+    FIX: _katlanan_bloklari_birlestir() (YAML katlama kurali, LITERAL `|` bloklara
+    DOKUNMAZ) _hedef_cagrilari() + _icra_komutlari() girdisine uygulanir; nobetcisi
+    KATLAMA_FIKSTURLERI (govde) + KATLAMA_KABLOLARI (AST cagri).
+
     NE KANITLAR / NE KANITLAMAZ: bu nobetci "adim CI'da KOSUYOR ve BLOKLUYOR"
     demez — "deploy.yml'de bu betigi bu bayrakla ICRA EDEN bir komut YAZILI" der.
     Adim `if: false` / `continue-on-error: true` / `|| true` ile etkisizlestirilirse
@@ -908,7 +1212,8 @@ def kendini_test_adimi_kontrol():
         # None = jetonlanamadi -> bayraklar sorgulanamaz, BUGUNKU davranis korunur.
         if argumanlar is None or KENDINI_TEST_BAYRAGI in argumanlar:
             return True, []
-    return False, [KENDINI_TEST_TANI + _reddedilen_ozeti(reddedilen)]
+    return False, [KENDINI_TEST_TANI + _teshis_ozeti(gercek, HEDEF_BETIK)
+                   + _reddedilen_ozeti(reddedilen)]
 
 
 def bayraksiz_adim_kontrol():
@@ -949,7 +1254,8 @@ def bayraksiz_adim_kontrol():
     for argumanlar in anlamli:
         if argumanlar is None or KENDINI_TEST_BAYRAGI not in argumanlar:
             return True, []
-    return False, [BAYRAKSIZ_TANI + _reddedilen_ozeti(reddedilen)]
+    return False, [BAYRAKSIZ_TANI + _teshis_ozeti(gercek, HEDEF_BETIK)
+                   + _reddedilen_ozeti(reddedilen)]
 
 
 # ---- SUZGECIN KENDI NOBETCILERI (ARIZA ENJEKSIYONU + AST KABLO) ------------
@@ -985,6 +1291,140 @@ SUZGEC_FIKSTURLERI = (
 )
 
 
+# ---- KATLAMA FIKSTURLERI (_katlanan_bloklari_birlestir govde nobetcisi) -----
+# IKI YONLU IDDIA: (a) KATLANAN blok GERCEKTEN birlesir, (b) LITERAL blok / paragraf
+# ayrimi / daha-girintili satir birlestirilMEZ. Tek yonlu olsa govde "daima birlestir"
+# ya da "hic birlestirme" (no-op, `return metin`) yapilip sessizce oldurulebilirdi —
+# ikisi de en az bir fiksturu bozar.
+# 🔴 BEKLENTILER GERCEK BIR AYRISTIRICIYLA DOGRULANDI (30 Tem): her fikstur, ayni YAML
+# parcasi ruby-psych'e verilip `run` degerinin BAYT dizisi okunarak turetildi -> bu tablo
+# "ayristirici taklidi" DEGIL, gercek ayristiriciya KILITLENMIS bir esdegerlik iddiasidir.
+_FK_ADIM = "      - name: sentetik adim\n"
+_FK_SON = "      - name: sonraki adim\n"
+_FK_KOMUT = "python3 tools/zzz-sentetik-test.py --kendini-test"
+KATLAMA_FIKSTURLERI = (
+    # (girdi_metni, beklenen_cikti_satirlari, etiket)
+    (_FK_ADIM + "        run: >-\n          " + _FK_KOMUT + "\n" + _FK_SON,
+     ["      - name: sentetik adim", "        run: " + _FK_KOMUT,
+      "      - name: sonraki adim"],
+     "`>-` TEK satir -> onek soyulur"),
+    (_FK_ADIM + "        run: >-\n          python3 tools/zzz-sentetik-test.py\n"
+     "          --kendini-test\n" + _FK_SON,
+     ["      - name: sentetik adim", "        run: " + _FK_KOMUT,
+      "      - name: sonraki adim"],
+     "`>-` IKI satir TEK BOSLUKLA birlesmeli (Y05)"),
+    (_FK_ADIM + "        run: >\n          python3 tools/zzz-sentetik-test.py\n"
+     "          --kendini-test\n" + _FK_SON,
+     ["      - name: sentetik adim", "        run: " + _FK_KOMUT,
+      "      - name: sonraki adim"],
+     "`>` (clip) da AYNI sekilde katlanmali"),
+    (_FK_ADIM + "        run: >+\n          python3 tools/zzz-sentetik-test.py\n"
+     "          --kendini-test\n" + _FK_SON,
+     ["      - name: sentetik adim", "        run: " + _FK_KOMUT,
+      "      - name: sonraki adim"],
+     "`>+` (keep) da AYNI sekilde katlanmali"),
+    (_FK_ADIM + "        run: >-2\n          python3 tools/zzz-sentetik-test.py\n"
+     "          --kendini-test\n" + _FK_SON,
+     ["      - name: sentetik adim", "        run: " + _FK_KOMUT,
+      "      - name: sonraki adim"],
+     "acik girinti gostergesi (`>-2`) katlamayi bozmamali"),
+    (_FK_ADIM + "        run: >-\n          python3 tools/zzz-sentetik-test.py\n\n"
+     "          --kendini-test\n" + _FK_SON,
+     ["      - name: sentetik adim",
+      "        run: python3 tools/zzz-sentetik-test.py",
+      "          --kendini-test", "      - name: sonraki adim"],
+     "BOS SATIR paragraf ayirir -> BIRLESTIRILMEMELI"),
+    (_FK_ADIM + "        run: >-\n          python3 tools/zzz-sentetik-test.py\n"
+     "            --kendini-test\n" + _FK_SON,
+     ["      - name: sentetik adim",
+      "        run: python3 tools/zzz-sentetik-test.py",
+      "          --kendini-test", "      - name: sonraki adim"],
+     "DAHA GIRINTILI satir KATLANMAZ (more-indented)"),
+    (_FK_ADIM + "        run: |\n          python3 tools/zzz-sentetik-test.py\n"
+     "          --kendini-test\n" + _FK_SON,
+     ["      - name: sentetik adim", "        run: |",
+      "          python3 tools/zzz-sentetik-test.py", "          --kendini-test",
+      "      - name: sonraki adim"],
+     "LITERAL `|` blok AYNEN kalmali (davranis DEGISMEZ)"),
+    (_FK_ADIM + "        run: |-\n          python3 tools/zzz-sentetik-test.py\n"
+     "          --kendini-test\n" + _FK_SON,
+     ["      - name: sentetik adim", "        run: |-",
+      "          python3 tools/zzz-sentetik-test.py", "          --kendini-test",
+      "      - name: sonraki adim"],
+     "LITERAL `|-` blok AYNEN kalmali (davranis DEGISMEZ)"),
+    (_FK_ADIM + "        run: " + _FK_KOMUT + "\n" + _FK_SON,
+     ["      - name: sentetik adim", "        run: " + _FK_KOMUT,
+      "      - name: sonraki adim"],
+     "blok gostergesi OLMAYAN satira DOKUNULMAZ"),
+)
+
+
+# ---- BICIM TESHISI FIKSTURLERI (T3) ----------------------------------------
+# IDDIA: tani, KIRMIZI yandiginda "ne gordugunu" SOYLER. Tek yonlu olmasin diye hem
+# ANLAMLI (dogru yazim) hem ANLAMSIZ (mensiyon / ayrilmis bayrak) durumu olculur.
+# Govde no-op yapilirsa (or. `return []`) fikstur bozulur; CAGRISI silinirse
+# TANI_KABLOLARI (AST) konusur.
+_BT_HEDEF = "tools/zzz-sentetik-test.py"
+_BT_ADIM = "      - name: sentetik oz-nobetci adimi\n"
+BICIM_FIKSTURLERI = (
+    # (yaml_parcasi, beklenen_alt_dizeler, beklenmeyen_alt_dizeler, etiket)
+    (_BT_ADIM + "        run: python3 tools/zzz-sentetik-test.py --kendini-test\n",
+     ("sentetik oz-nobetci adimi", "DUZ (inline) skalar", "ANLAMLI CAGRI",
+      "'--kendini-test'"), (),
+     "DUZ inline cagri -> adim adi + bicim + ANLAMLI hukum"),
+    (_BT_ADIM + "        run: >-\n          python3 tools/zzz-sentetik-test.py\n"
+     "          --kendini-test\n",
+     ("KATLANAN blok skalari", "ANLAMLI CAGRI", "'--kendini-test'"),
+     ("AYRI mantiksal satir",),
+     "KATLANAN blok BIRLESMIS -> tek satir, ANLAMLI"),
+    (_BT_ADIM + "        run: >-\n          python3 tools/zzz-sentetik-test.py\n\n"
+     "          --kendini-test\n",
+     ("KATLANAN blok skalari", "2 AYRI mantiksal satir", "BOS SATIR ya da"), (),
+     "KATLANAN blokta BOS SATIR -> bayrak AYRILDI, tani bunu SOYLER"),
+    (_BT_ADIM + "        run: |\n          python3 tools/zzz-sentetik-test.py\n"
+     "          --kendini-test\n",
+     ("LITERAL blok skalari", "her satir AYRI komuttur"), ("KATLANAN",),
+     "LITERAL blok -> 'her satir AYRI komut' uyarisi"),
+    (_BT_ADIM + "        run: echo python3 tools/zzz-sentetik-test.py --kendini-test\n",
+     ("ANLAMSIZ (cagri SAYILMAZ)", "echo"), ("ANLAMLI CAGRI",),
+     "MENSIYON (`echo`) -> ANLAMSIZ hukmu taniya YAZILIR"),
+    ("      - name: ilgisiz adim\n        run: python3 tools/baska-test.py\n",
+     ("hicbir `run:` blogu YOK",), ("GORULEN ADIM",),
+     "hedef HIC ANILMIYOR -> 'blok YOK' tanisi"),
+)
+
+
+def bicim_teshis_kontrol_govdesi():
+    """BICIM_FIKSTURLERI'ni olcer; (hata_satirlari) dondurur."""
+    hata = []
+    for girdi, beklenenler, beklenmeyenler, etiket in BICIM_FIKSTURLERI:
+        metin = _teshis_ozeti(girdi, _BT_HEDEF)
+        eksik = [b for b in beklenenler if b not in metin]
+        fazla = [b for b in beklenmeyenler if b in metin]
+        if eksik or fazla:
+            hata.append("BICIM TESHIS FIKSTURU BOZUK (%s): eksik=%r fazla=%r\n"
+                        "     uretilen tani: %r\n     -> _teshis_ozeti()/bicim_teshisi() "
+                        "govdesi no-op ya da ters yapilmis olabilir; kapi KIRMIZI yandiginda "
+                        "mesru yazan kisi NEDEN oldugunu goremez (T3/Y05)."
+                        % (etiket, eksik, fazla, metin[:400]))
+    return hata
+
+
+def katlama_fikstur_kontrol_govdesi():
+    """KATLAMA_FIKSTURLERI'ni olcer; (hata_satirlari) dondurur.
+    suzgec_fikstur_kontrol() icinden cagrilir (ayri nobetci acilmadi: ayni sinif =
+    'ortak donusum govdesi no-op yapildi')."""
+    hata = []
+    for girdi, beklenen, etiket in KATLAMA_FIKSTURLERI:
+        gelen = _katlanan_bloklari_birlestir(girdi).splitlines()
+        if gelen != beklenen:
+            hata.append("KATLAMA FIKSTURU BOZUK (%s):\n     beklenen: %r\n     gelen   : %r"
+                        "\n     -> _katlanan_bloklari_birlestir() govdesi no-op/ters "
+                        "yapilmis olabilir; `run: >-` yazan mesru adimlar SAHTE-KIRMIZI "
+                        "yanar (Y05)." % (etiket, beklenen, gelen))
+    return hata
+
+
 def suzgec_fikstur_kontrol():
     """ORTAK SUZGEC GOVDESI NOBETCISI — ariza enjeksiyonu, SENTETIK fiksturlerle.
 
@@ -1015,6 +1455,10 @@ def suzgec_fikstur_kontrol():
             hata.append("SUZGEC etkili_arguman FIKSTURU BOZUK (%s): %r icin %s "
                         "bekleniyordu, %s geldi (sebep: %s)"
                         % (etiket, satir, beklenen, gelen, sebep))
+    # YAML KATLAMA ekseni (Y05) — ayni sinif: ORTAK DONUSUM GOVDESI no-op yapildi.
+    hata.extend(katlama_fikstur_kontrol_govdesi())
+    # BICIM TESHISI ekseni (T3) — tani govdesi no-op/ters yapildi.
+    hata.extend(bicim_teshis_kontrol_govdesi())
     return (not hata), hata
 
 
@@ -1023,6 +1467,33 @@ SUZGEC_KABLOLARI = (
     ("kosulan", ("cagri_sayilir", "anlamli_cagri")),
     ("_hedef_cagrilari", ("anlamli_cagri",)),
     ("_icra_komutlari", ("birlestir_devam",)),
+)
+
+# KATLAMA KABLOLARI (Y05): YAML katlama donusumu, komut govdelerini uretcen IKI yolun
+# HER IKISINDE de cagrilmak ZORUNDA. Fikstur nobetcisi (KATLAMA_FIKSTURLERI) govdenin
+# no-op yapilmasini yakalar ama CAGRISININ silinmesini GORMEZ (fonksiyon dogru cevap
+# veriyor, ona kimse sormuyor) -> AST kablosu. Metin capasi DEGIL
+# ([[kapi-anchor-coupling-ikilemi]]): biçimlendirme/yorum degisikligi sahte-kirmizi yakmaz.
+KATLAMA_KABLOLARI = (
+    ("_icra_komutlari", ("_katlanan_bloklari_birlestir",)),
+    ("_hedef_cagrilari", ("_katlanan_bloklari_birlestir",)),
+    ("katlama_fikstur_kontrol_govdesi", ("_katlanan_bloklari_birlestir",)),
+    ("_katlanan_bloklari_birlestir", ("_mantiksal_yaml_satirlari",)),
+    # mutant ureticilerinin capasi da MANTIKSAL satirdan gelmek ZORUNDA (yoksa katlanan
+    # blokta bolunmus cagri mutasyondan SAG cikar ve nobetci yanlis sinifla kirmizi yanar)
+    ("_icra_satir_indeksleri", ("_mantiksal_yaml_satirlari",)),
+)
+
+# TANI KABLOLARI (T3): bicim teshisi, KIRMIZI yanan IKI nobetcinin de tani metnine
+# baglanmak ZORUNDA. Govde nobetcisi (BICIM_FIKSTURLERI) teshisin DOGRU calistigini
+# olcer ama CAGRILMADIGINI gormez -> "cagri YOK" tanisi sessizce eski (sagir) haline
+# doner ve bir sonraki mesru yazim yine korku salar (Y05'in ta kendisi).
+TANI_KABLOLARI = (
+    ("kendini_test_adimi_kontrol", ("_teshis_ozeti",)),
+    ("bayraksiz_adim_kontrol", ("_teshis_ozeti",)),
+    ("_teshis_ozeti", ("bicim_teshisi",)),
+    ("bicim_teshisi", ("_mantiksal_yaml_satirlari", "_run_bloklari", "_bicim_etiketi")),
+    ("bicim_teshis_kontrol_govdesi", ("_teshis_ozeti",)),
 )
 
 # NOBETCI KABLOLARI: hangi fonksiyonun govdesinde hangi NOBETCI cagrilmali.
@@ -1108,6 +1579,28 @@ def suzgec_kablosu_kontrol():
     for dugum in ast.walk(agac):
         if isinstance(dugum, ast.FunctionDef):
             duz[dugum.name] = _duz_cagrilar(dugum)
+    for ad, gerekli in TANI_KABLOLARI:
+        if ad not in duz:
+            hata.append("TANI KABLOSU BAYAT: %s() fonksiyonu bulunamadi -> dosya "
+                        "yeniden duzenlendiyse TANI_KABLOLARI'ni guncelle" % ad)
+            continue
+        eksik = [g for g in gerekli if g not in duz[ad]]
+        if eksik:
+            hata.append("TANI KABLOSU KOPMUS: %s() govdesinde %s cagrisi YOK -> kapi "
+                        "KIRMIZI yandiginda ARTIK 'hangi adimda hangi bicimde ne gordum' "
+                        "demiyor, yalniz 'cagri YOK' diyor (T3/Y05 gerilemesi). GERI KOY."
+                        % (ad, ", ".join(eksik)))
+    for ad, gerekli in KATLAMA_KABLOLARI:
+        if ad not in duz:
+            hata.append("KATLAMA KABLOSU BAYAT: %s() fonksiyonu bulunamadi -> dosya "
+                        "yeniden duzenlendiyse KATLAMA_KABLOLARI'ni guncelle" % ad)
+            continue
+        eksik = [g for g in gerekli if g not in duz[ad]]
+        if eksik:
+            hata.append("KATLAMA KABLOSU KOPMUS: %s() govdesinde %s cagrisi YOK -> YAML "
+                        "katlanan blok skalari (`run: >-`) yeniden HAM satir olarak gorulur "
+                        "ve mesru adimlar SAHTE-KIRMIZI yanar (Y05). GERI KOY."
+                        % (ad, ", ".join(eksik)))
     for ad, gerekli in NOBETCI_KABLOLARI:
         if ad not in duz:
             hata.append("NOBETCI KABLOSU BAYAT: %s() fonksiyonu bulunamadi -> dosya "
@@ -1273,18 +1766,24 @@ def main():
             for h in hata4:
                 print("  ❌ " + h)
         ok5, hata5 = suzgec_fikstur_kontrol()
-        print("ORTAK ICRA SUZGECI — GOVDE (ariza enjeksiyonu, %d sentetik fikstur)"
-              % (len(SUZGEC_FIKSTURLERI) + 3))
+        print("ORTAK ICRA SUZGECI + YAML KATLAMA — GOVDE (ariza enjeksiyonu, %d sentetik "
+              "fikstur)" % (len(SUZGEC_FIKSTURLERI) + 3 + len(KATLAMA_FIKSTURLERI)
+                            + len(BICIM_FIKSTURLERI)))
         if ok5:
-            print("  ✅ ANLAMLI bicimler EVET, ANLAMSIZ bicimler (`--help`/`echo`) HAYIR")
+            print("  ✅ ANLAMLI bicimler EVET, ANLAMSIZ bicimler (`--help`/`echo`) HAYIR; "
+                  "KATLANAN `>`/`>-`/`>+` blok birlesiyor, LITERAL `|` blok DEGISMIYOR; "
+                  "BICIM TESHISI adim/bicim/gorulen komutu SOYLUYOR")
         else:
             for h in hata5:
                 print("  ❌ " + h)
         ok6, hata6 = suzgec_kablosu_kontrol()
-        print("ORTAK ICRA SUZGECI — KABLO (AST)")
+        print("ORTAK ICRA SUZGECI + KATLAMA + BICIM TESHISI — KABLO (AST)")
         if ok6:
-            print("  ✅ %s govdelerinde SUZGEC cagrisi duruyor"
-                  % ", ".join("%s()" % a for a, _ in SUZGEC_KABLOLARI))
+            print("  ✅ %s govdelerinde SUZGEC cagrisi duruyor; %s govdelerinde YAML "
+                  "katlama cagrisi duruyor; %s govdelerinde bicim teshisi cagrisi duruyor"
+                  % (", ".join("%s()" % a for a, _ in SUZGEC_KABLOLARI),
+                     ", ".join("%s()" % a for a, _ in KATLAMA_KABLOLARI),
+                     ", ".join("%s()" % a for a, _ in TANI_KABLOLARI)))
         else:
             for h in hata6:
                 print("  ❌ " + h)
