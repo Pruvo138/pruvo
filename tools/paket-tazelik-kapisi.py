@@ -40,6 +40,19 @@ IDDIALAR (paket kipi)
      ayni scad degiskeni `sabit`te OLMAMALI (sabit en son uygulanir, musteri metnini EZER).
      Gizli-eslem ailesi (kase) main'den turetilemez; bu invaryant onu da kapsar.
 
+OZ-NOBETCILER (her kipte, `--kendini-test` dahil BLOKLAYICI kosar)
+  * oz_nobetci()                     paket_denetle govdesi inert mi (5 fikstur)
+  * cagri_nobeti_kendini_test()      gercek cagri satiri nobetcisi inert mi
+  * surumlu_anahtar_kendini_test()   surumlu anahtar nobetcisinin 4+3 ekseni
+      (a) sabit s3 nesne yolu · (b) yukleyici surumsuz anahtara yaziyor mu
+      (c) BAYAT VARSAYILAN (30 Tem): paket_anahtar girdisinde varsayilan OLMAMALI
+      (d) BOS GIRDI KAPISI (30 Tem): varsayilan olmadigi icin bos girdi gelebilir,
+          is akisi bos anahtarla DEVAM ETMEMELI
+  * geri_okuma_nobeti()              YUKLEYICI GERI OKUMA YARISI (30 Tem): yayilma
+      gecikmesinde (~18-24 s olculdu) yeniden deneniyor mu · butce dolunca SESSIZ
+      FAIL-OPEN yapmiyor mu · sha karsilastirmasi hala KIRMIZI mi · bayat dosya
+      "nesne var" sayilmiyor mu · butce olculen pencerenin 2 katinin altina inmemis mi
+
 NE KANITLAMAZ: metnin STL'e DOGRU basildigini (o, onizleme-imaj.yml "metin farklilasma"
   dumaninin isi — gercek openscad), paketteki .scad govdelerinin tazeligini (yalniz eslem
   karsilastirilir), imajin deploy edildigini.
@@ -85,6 +98,9 @@ SABIT_NESNE_YOLU = "s3://" + BUCKET + "/onizleme/"
 GIRDI_CAPASI = "PAKET_ANAHTAR"
 # (b) yukleyici ekseni — METIN DEGIL DAVRANIS: yuklenecek_anahtarlar() dogrudan cagrilir.
 SURUM_ORNEKLERI = (6, 7, 41)
+# (d) BOS GIRDI KAPISI capasi — is akisi bos anahtarla devam ETMEMELI. Dar alt-dize
+#     (parser taklidi YOK): kabuk kosulu ve cikis. Bkz. surumlu_anahtar_nobeti (d).
+BOS_GIRDI_CAPASI = '[ -z "$PAKET_ANAHTAR" ]'
 
 
 def _modul(ad, yol):
@@ -289,7 +305,14 @@ def cagri_satiri_nobeti(yml_metin=None):
 
 def yml_varsayilan_anahtar(yml_metin=None):
     """onizleme-imaj.yml'deki paket_anahtar girdisinin VARSAYILANI (fail-closed: yoksa None).
-    `--r2` kipi bunu kullanir -> yerel elle olcum CI'nin GERCEKTEN cektigi anahtari olcer."""
+
+    🔴 30 Tem 2026'DAN ITIBAREN BU DEGER `None` OLMALIDIR. Varsayilan BILEREK KALDIRILDI
+    (bkz. surumlu_anahtar_nobeti (c)): bayat bir varsayilan (v6 = 2-renk parca aileleri
+    OLMAYAN paket) ile tetiklenen is akisi yanlis imaji SESSIZCE derliyordu. Bu fonksiyon
+    artik iki ise yarar: (1) `--r2` kipinde anahtari OTOMATIK belirlemek MUMKUN DEGIL ->
+    `--anahtar` ACIKCA istenir (main icinde fail-closed sys.exit), (2) nobetci (c) ekseni
+    bu fonksiyonu FIILEN cagirip "varsayilan geri gelmis mi" diye olcer (metin arama
+    DEGIL, DAVRANIS)."""
     if yml_metin is None:
         if not os.path.exists(IMAJ_YML):
             return None
@@ -310,13 +333,40 @@ def surumlu_anahtar_nobeti(yml_metin=None, anahtar_uretici=None):
         anahtar workflow_dispatch girdisinden gelmeli (PAKET_ANAHTAR).
     (b) YUKLEYICI: tools/onizleme-paket-yukle.py YALNIZ surumlu anahtara yazmali.
         Bu eksen METIN ARAMAZ — yuklenecek_anahtarlar() FIILEN cagrilir (fault-injection
-        ile test edilebilir, yorum/dizim degisikliginden etkilenmez)."""
+        ile test edilebilir, yorum/dizim degisikliginden etkilenmez).
+    (c) BAYAT VARSAYILAN (30 Tem 2026): paket_anahtar girdisinin VARSAYILANI OLMAMALI.
+        OLCULEN TUZAK: varsayilan `onizleme/paket-v6.tar.gz` idi ve v6 paketi 2-renk
+        parca ailelerini (#govde / #yazi) TASIMIYOR. Is akisi varsayilanla tetiklenirse
+        parcasiz imaj derlenir ve HICBIR ADIM KIRMIZI VERMEZ (metin eslem + paket
+        tazelik kapilari ACIK aile eslemini main'den yeniden uretir; duman adimi taban
+        aileyi derler) -> yanlis imaj SESSIZCE yayinlanir. Bu eksen de DAVRANIS olcer:
+        yml_varsayilan_anahtar() FIILEN cagrilir.
+    (d) BOS GIRDI KAPISI: varsayilan kaldirildigi icin bos girdiyle tetiklenme MUMKUN;
+        is akisi bos anahtarla DEVAM ETMEMELI. `[ -z "$PAKET_ANAHTAR" ]` kapisi
+        durmali. Bu eksen METIN capasidir (kabuk davranisi YAML'dan calistirilamaz);
+        KABUL EDILEN BEDEL: yorum icindeki bir mensiyon da "duruyor" sayilir
+        ([[kapi-disiplin-ilkesi]] — kapi disiplin cihazidir, hapishane degil)."""
     hata = []
     if yml_metin is None:
         if not os.path.exists(IMAJ_YML):
             return False, ["onizleme-imaj.yml bulunamadi: %s" % IMAJ_YML]
         with open(IMAJ_YML, encoding="utf-8") as f:
             yml_metin = f.read()
+    varsayilan = yml_varsayilan_anahtar(yml_metin)
+    if varsayilan:
+        hata.append("BAYAT VARSAYILAN GERI GELDI: onizleme-imaj.yml paket_anahtar "
+                    "girdisinin varsayilani %r -> is akisi GIRDI VERILMEDEN "
+                    "tetiklenirse bu (bayatlayabilen) anahtardan imaj derler ve hicbir "
+                    "adim KIRMIZI vermez (2-renk parca aileleri olmayan paketle SESSIZ "
+                    "yanlis imaj). Varsayilani KALDIRIN (required: true yeter); anahtari "
+                    "her tetiklemede python3 tools/onizleme-paket-yukle.py ciktisindan "
+                    "girin." % varsayilan)
+    if BOS_GIRDI_CAPASI not in yml_metin:
+        hata.append("BOS GIRDI KAPISI YOK: onizleme-imaj.yml'de %r gecmiyor -> varsayilan "
+                    "olmadigi icin girdi BOS gelebilir ve is akisi bos anahtarla devam "
+                    "eder (s3 dizin yolu cekilir / paket bos kalir -> sessiz yanlis imaj). "
+                    "GERI KOY: paketi ceken adimin basina bos-anahtar kontrolu + exit 1."
+                    % BOS_GIRDI_CAPASI)
     if SABIT_NESNE_YOLU in yml_metin:
         hata.append("SABIT NESNE YOLU GERI GELDI: onizleme-imaj.yml icinde %r geciyor -> "
                     "CI surumlu girdi yerine sabit anahtardan cekiyor; o anahtarin uzerine "
@@ -343,11 +393,31 @@ def surumlu_anahtar_nobeti(yml_metin=None, anahtar_uretici=None):
 
 def surumlu_anahtar_kendini_test():
     """Nobetcinin KENDISI inert mi — POZITIF ve NEGATIF yon ayri ayri, capadan BAGIMSIZ
-    fault-injection ile (yukleyici ekseni gercek fonksiyon yerine sahte uretici alir)."""
+    fault-injection ile (yukleyici ekseni gercek fonksiyon yerine sahte uretici alir).
+
+    30 Tem: (c) BAYAT VARSAYILAN ve (d) BOS GIRDI KAPISI eksenleri eklendi. Fikstur
+    SENTETIKTIR (gercek dosya degismekle bayatlamaz) ama girdi blogu gercek YAML
+    girintisini taklit eder cunku (c) ekseni yml_varsayilan_anahtar() ayristiricisini
+    FIILEN kosar."""
     hata = []
-    iyi_yml = ('        env:\n          PAKET_ANAHTAR: ${{ inputs.paket_anahtar }}\n'
-               '        run: aws s3 cp "s3://' + BUCKET + '/$PAKET_ANAHTAR" paket.tar.gz\n')
-    kotu_yml = ('        run: aws s3 cp "s3://' + BUCKET +
+    girdi_bloksuz = (
+        "on:\n  workflow_dispatch:\n    inputs:\n      paket_anahtar:\n"
+        '        description: "R2 paket anahtari"\n'
+        "        type: string\n"
+        "        required: true\n"
+        "      push_et:\n"
+        "        type: boolean\n")
+    kapi = ('        run: |\n'
+            '          if ' + BOS_GIRDI_CAPASI + '; then\n'
+            '            echo "::error::anahtar BOS"\n'
+            '            exit 1\n'
+            '          fi\n'
+            '          aws s3 cp "s3://' + BUCKET + '/$PAKET_ANAHTAR" paket.tar.gz\n')
+    iyi_yml = (girdi_bloksuz
+               + '        env:\n          PAKET_ANAHTAR: ${{ inputs.paket_anahtar }}\n'
+               + kapi)
+    kotu_yml = (girdi_bloksuz
+                + '        run: aws s3 cp "s3://' + BUCKET +
                 '/onizleme/paket-guncel.tar.gz" paket.tar.gz\n')
     iyi_uretici = lambda s: ["onizleme/paket-v%d.tar.gz" % s]
     kotu_uretici = lambda s: ["onizleme/paket-v%d.tar.gz" % s,
@@ -365,6 +435,139 @@ def surumlu_anahtar_kendini_test():
     ok, _ = surumlu_anahtar_nobeti(iyi_yml, kotu_uretici)
     if ok:
         hata.append("INERT (yukleyici ekseni): sabit takma ada da yazan yukleyicide YESIL dedi")
+    # (c) BAYAT VARSAYILAN — girdiye varsayilan geri konursa KIRMIZI olmali.
+    varsayilanli = iyi_yml.replace(
+        "        required: true\n",
+        '        required: true\n        default: "onizleme/paket-v6.tar.gz"\n', 1)
+    ok, _ = surumlu_anahtar_nobeti(varsayilanli, iyi_uretici)
+    if ok:
+        hata.append("INERT (varsayilan ekseni): paket_anahtar girdisine varsayilan "
+                    "konmus YAML'da YESIL dedi -> bayat varsayilan sessizce geri gelebilir")
+    # POZITIF karsi-kontrol: ayristirici GERCEKTEN okuyor mu (aksi halde ustteki iddia
+    # "hep None doner" diye sahte-yesil olurdu).
+    if yml_varsayilan_anahtar(varsayilanli) != "onizleme/paket-v6.tar.gz":
+        hata.append("VARSAYILAN AYRISTIRICISI SAGIR: sentetik varsayilan okunamadi (%r) "
+                    "-> (c) ekseni hep None gorup sahte-yesil yanar"
+                    % yml_varsayilan_anahtar(varsayilanli))
+    if yml_varsayilan_anahtar(iyi_yml) is not None:
+        hata.append("VARSAYILAN AYRISTIRICISI HAYALET: varsayilansiz fiksturde deger "
+                    "buldu (%r)" % yml_varsayilan_anahtar(iyi_yml))
+    # (d) BOS GIRDI KAPISI — kapi silinirse KIRMIZI olmali.
+    ok, _ = surumlu_anahtar_nobeti(iyi_yml.replace(BOS_GIRDI_CAPASI, '[ -n "$BASKA" ]'),
+                                   iyi_uretici)
+    if ok:
+        hata.append("INERT (bos girdi ekseni): bos-anahtar kapisi olmayan YAML'da "
+                    "YESIL dedi -> varsayilansiz girdi bos gelirse is akisi devam eder")
+    return (not hata), hata
+
+
+def geri_okuma_nobeti():
+    """GERI OKUMA YENIDEN DENEME NOBETI (30 Tem 2026) — yukleyicinin R2 dogrulamasi
+    yayilma yarisini KAYBETMIYOR ama SESSIZ FAIL-OPEN de yapmiyor mu.
+
+    OLCULEN ARIZA: yeni R2 anahtarinin yayilmasi ~18-24 s surebiliyor; eski kod geri
+    okumayi ANINDA + TEK DENEME yapiyordu -> saglam yukleme SAHTE KIRMIZI olculuyordu.
+    Onarim yeniden deneme ekledi; bu nobetci onarimin ters yone (sessiz yesile)
+    kacmadigini da olcer.
+
+    YONTEM: ag/wrangler YOK — PAKET.geri_oku_dogrula()'ya sahte `get` ve `bekle`
+    ENJEKTE edilir (metin capasi degil DAVRANIS olcumu)."""
+    hata = []
+    gecici = tempfile.mkdtemp(prefix="geri-okuma-nobeti-")
+    try:
+        arsiv = os.path.join(gecici, "paket.tar.gz")
+        with open(arsiv, "wb") as f:
+            f.write(b"DOGRU-PAKET-ICERIGI")
+        dogru = open(arsiv, "rb").read()
+        geri = os.path.join(gecici, "geri.tar.gz")
+
+        def sahte(plan):
+            """plan: [(rc, yazilacak_bayt_ya_da_None), ...] — sirayla uygulanir; liste
+            biterse son giris tekrarlanir."""
+            durum = {"n": 0}
+
+            def get(_anahtar, hedef):
+                i = min(durum["n"], len(plan) - 1)
+                durum["n"] += 1
+                rc, icerik = plan[i]
+                if icerik is not None:
+                    with open(hedef, "wb") as f:
+                        f.write(icerik)
+                return rc
+            return get, durum
+
+        beklemeler = []
+        bekle = beklemeler.append
+
+        # (1) POZITIF: ilk denemede dogru icerik -> ok, deneme=1, HIC beklenmemis.
+        get, durum = sahte([(0, dogru)])
+        del beklemeler[:]
+        ok, gecmis, deneme, sn, sha = PAKET.geri_oku_dogrula(
+            "k", arsiv, geri, get=get, bekle=bekle)
+        if not (ok and deneme == 1 and sn == 0.0 and not beklemeler):
+            hata.append("(1) POZITIF BOZUK: ilk denemede dogru icerik -> ok=%s deneme=%s "
+                        "beklenen_sn=%s (1 deneme, 0 s olmali; gecmis=%r)"
+                        % (ok, deneme, sn, gecmis))
+
+        # (2) YAYILMA GECIKMESI (OLCULEN GERCEK SENARYO): ilk 3 `get` nesneyi
+        #     bulamiyor, 4. deneme dogru icerikle geliyor -> BASARIYLA tamamlanmali.
+        get, durum = sahte([(1, None), (1, None), (1, None), (0, dogru)])
+        del beklemeler[:]
+        ok, gecmis, deneme, sn, sha = PAKET.geri_oku_dogrula(
+            "k", arsiv, geri, get=get, bekle=bekle)
+        if not (ok and deneme == 4):
+            hata.append("(2) YAYILMA YARISI KAYBEDILDI: ilk 3 `get` bos donunce yukleme "
+                        "basarisiz sayildi (ok=%s deneme=%s) -> saglam yukleme SAHTE "
+                        "KIRMIZI olculur (gecmis=%r)" % (ok, deneme, gecmis))
+        if ok and sum(beklemeler) <= 0:
+            hata.append("(2) BEKLEME YOK: yeniden denemeler arasinda hic beklenmedi -> "
+                        "yayilma penceresi kapatilmiyor, sadece hizlica tekrar deniyor")
+
+        # (3) BUTCE ASIMI -> SESSIZ FAIL-OPEN OLMAZ: hic gorunmezse KIRMIZI.
+        get, durum = sahte([(1, None)])
+        del beklemeler[:]
+        ok, gecmis, deneme, sn, sha = PAKET.geri_oku_dogrula(
+            "k", arsiv, geri, get=get, bekle=bekle)
+        if ok or sha is not None:
+            hata.append("(3) SESSIZ FAIL-OPEN: nesne hic gorunmedigi halde dogrulama "
+                        "BASARILI sayildi (ok=%s sha=%r)" % (ok, sha))
+        if deneme != len(PAKET.GERI_OKUMA_ARALIKLARI) + 1:
+            hata.append("(3) DENEME SAYISI TUTMUYOR: %d deneme olculdu, %d bekleniyordu "
+                        "(1 + aralik sayisi)"
+                        % (deneme, len(PAKET.GERI_OKUMA_ARALIKLARI) + 1))
+
+        # (4) SHA UYUSMAZLIGI (asil sessiz-uzerine-yazma arizasi) HALA KIRMIZI mi.
+        get, durum = sahte([(0, b"BAYAT-V5-ICERIGI")])
+        del beklemeler[:]
+        ok, gecmis, deneme, sn, sha = PAKET.geri_oku_dogrula(
+            "k", arsiv, geri, get=get, bekle=bekle)
+        if ok:
+            hata.append("(4) SHA KARSILASTIRMASI OLU: R2'de BAYAT icerik varken dogrulama "
+                        "YESIL dedi -> sessiz uzerine-yazma arizasi geri gecer")
+        if sha is None:
+            hata.append("(4) TESHIS KAYBI: uyusmazlikta son sha rapor edilmedi -> teshis "
+                        "'nesne yok' ile karisir (yanlis cozum onerilir)")
+
+        # (5) BAYAT DOSYA SAVUNMASI: 1. deneme rc!=0 ama DOGRU baytlari birakti;
+        #     sonraki denemeler nesneyi bulamiyor (dosya yazmiyor). Denemeden once
+        #     hedef SILINMEZSE onceki turun dosyasi "nesne var" gibi okunur -> YESIL.
+        get, durum = sahte([(1, dogru), (0, None)])
+        del beklemeler[:]
+        ok, gecmis, deneme, sn, sha = PAKET.geri_oku_dogrula(
+            "k", arsiv, geri, get=get, bekle=bekle)
+        if ok:
+            hata.append("(5) BAYAT DOSYA KACAGI: onceki denemenin biraktigi dosya "
+                        "'R2'de nesne var' sayildi -> nesne olmadan YESIL yanar "
+                        "(geri_oku_dogrula her denemeden ONCE hedefi SILMELI)")
+
+        # (6) BUTCE TABANI: olculen yayilma penceresi ~24 s; butce en az 2 KATI olmali.
+        butce = sum(PAKET.GERI_OKUMA_ARALIKLARI)
+        if butce < 48.0:
+            hata.append("(6) BUTCE KUCULTULMUS: toplam yeniden deneme butcesi %.0f s -> "
+                        "olculen yayilma penceresinin (~24 s) iki katinin ALTINDA; sahte "
+                        "kirmizi geri gelir" % butce)
+    finally:
+        subprocess.run(["rm", "-rf", gecici])
     return (not hata), hata
 
 
@@ -396,11 +599,13 @@ def main():
     ok1, h1 = oz_nobetci()
     ok2, h2 = cagri_nobeti_kendini_test()
     ok4, h4 = surumlu_anahtar_kendini_test()
-    print("OZ-NOBETCI: %s" % ("YESIL" if (ok1 and ok2 and ok4) else "KIRMIZI"))
-    for h in h1 + h2 + h4:
+    ok6, h6 = geri_okuma_nobeti()
+    oz_yesil = ok1 and ok2 and ok4 and ok6
+    print("OZ-NOBETCI: %s" % ("YESIL" if oz_yesil else "KIRMIZI"))
+    for h in h1 + h2 + h4 + h6:
         print("  ❌ %s" % h)
     if args.kendini_test:
-        sys.exit(0 if (ok1 and ok2 and ok4) else 1)
+        sys.exit(0 if oz_yesil else 1)
 
     ok3, h3 = cagri_satiri_nobeti()
     print("CAGRI SATIRI (onizleme-imaj.yml): %s" % ("VAR" if ok3 else "YOK"))
@@ -446,7 +651,7 @@ def main():
 
     for s in sorunlar:
         print("  ❌ %s" % s)
-    kirmizi = bool(sorunlar) or not (ok1 and ok2 and ok3 and ok4 and ok5)
+    kirmizi = bool(sorunlar) or not (oz_yesil and ok3 and ok5)
     print("SONUC: %s" % ("KIRMIZI" if kirmizi else "YESIL"))
     sys.exit(1 if kirmizi else 0)
 
