@@ -121,7 +121,17 @@ SKILLS = os.path.expanduser("~/.claude/skills")
 
 # Repo kokunden BEKLENEN dosyalar. Biri eksikse yedek KISMIDIR -> tam guven
 # damgasi ATILMAZ (bkz. damga_yaz "tam" alani). Ilke: eksik yedek, eksik oldugunu SOYLER.
-REPO_BEKLENEN = (".urun-kaynaklari.json", "CLAUDE.md", "DEVAM.md", "DEVAM-ARSIV.md")
+#
+# 🔴 30 TEM — SESSIZ KAPSAM DARALMASI ONARILDI (yedekle-test.py'nin 179 kontrolunun 1'i
+# aylardir KIRMIZI idi: "_repo_dosyalari 4 dosya donduruyor -> 3"). Liste "CLAUDE.md"
+# diyordu; oysa tek kaynak AGENTS.md'ye gecildiginde CLAUDE.md bir SYMLINK oldu ve
+# _repo_dosyalari()'nin `not islink` suzgeci onu ELEDI. Sonuc: ajan baglam dosyasi
+# (AGENTS.md) HICBIR yedege girmiyordu — ustelik gitignore'da oldugu icin git'te de
+# kopyasi yok, yani disk kaybinda TAMAMEN gidiyordu. GERCEK Drive damgasi bunu
+# dogruluyor: "repo": 3. Liste artik GERCEK DOSYAYI (AGENTS.md) adlandirir.
+# Tekrari repo_eksikleri() engeller: BEKLENEN bir ad symlink'e donerse artik SESSIZCE
+# dusmez, "eksik" sayilir -> damga tam=False + pano uyarir.
+REPO_BEKLENEN = (".urun-kaynaklari.json", "AGENTS.md", "DEVAM.md", "DEVAM-ARSIV.md")
 REPO_SIR = (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir",
             ".onizleme-kapat-anahtar", ".mukerrer-istisna.json")
 
@@ -303,9 +313,21 @@ def _repo_dosyalari(sirlar):
 
 
 def repo_eksikleri():
-    """BEKLENEN ama repo kokunde OLMAYAN dosyalar. Bos degilse yedek KISMIDIR.
-    (Sir listesi burada sayilmaz: onlar zaten kosullu/istege bagli.)"""
-    return [a for a in REPO_BEKLENEN if not os.path.exists(os.path.join(ROOT, a))]
+    """BEKLENEN ama repo kokunde OLMAYAN (ya da SYMLINK'e donmus) dosyalar.
+    Bos degilse yedek KISMIDIR. (Sir listesi burada sayilmaz: onlar zaten kosullu.)
+
+    🔴 SYMLINK NEDEN 'EKSIK' SAYILIR (30 Tem, olculdu): _repo_dosyalari() symlink'leri
+    ELER. Eskiden repo_eksikleri() os.path.exists() ile bakiyordu ve exists() symlink'i
+    IZLER -> beklenen bir ad symlink'e dondugu anda dosya "var" gorunuyor ama yedege
+    GIRMIYORDU. Tam olarak bu oldu: CLAUDE.md AGENTS.md'ye symlink yapilinca ajan
+    baglam dosyasi sessizce yedek disi kaldi (damga "tam": true demeye devam etti).
+    Artik ayni durum GURULTULU: eksik listesine girer, damga tam=False olur."""
+    eksik = []
+    for a in REPO_BEKLENEN:
+        p = os.path.join(ROOT, a)
+        if not os.path.exists(p) or os.path.islink(p):
+            eksik.append(a)
+    return eksik
 
 
 def kilit_yolu():
@@ -943,7 +965,8 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
 
     # Sirsiz kaynak haritasi + ajan baglam dosyalari. HEPSI GITIGNORE'DA (repo public, icerik
     # ticari gizli) -> git'te KOPYASI YOK, yani bu makine olurse tamamen kaybolurlardi.
-    # (AGENTS.md kopyalanmaz: CLAUDE.md'ye symlink, ayri dosya degil.)
+    # (CLAUDE.md kopyalanmaz: AGENTS.md'ye SYMLINK, ayri dosya degil — yon 30 Tem'de
+    #  duzeltildi; eskiden burada tam TERSI yaziyordu ve gercek dosya yedeksiz kalmisti.)
     repo_adlari = _repo_dosyalari(sirlar=False)
     for ad in repo_adlari:
         shutil.copy2(os.path.join(ROOT, ad), os.path.join(backup, ad))

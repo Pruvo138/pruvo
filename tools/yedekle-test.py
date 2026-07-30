@@ -434,6 +434,41 @@ def main():
             "eksik: %s" % (eksik or "-"))
     kontrol("_repo_dosyalari 4 dosya donduruyor", len(yedekle._repo_dosyalari(False)) == 4,
             str(len(yedekle._repo_dosyalari(False))))
+    # 🔴 30 TEM — SESSIZ KAPSAM DARALMASININ KOK NEDENI (bu kontrol aylardir KIRMIZI idi):
+    # REPO_BEKLENEN "CLAUDE.md" diyordu, ama tek kaynak AGENTS.md'ye gecince CLAUDE.md
+    # SYMLINK oldu ve _repo_dosyalari()'nin `not islink` suzgeci onu sessizce eledi ->
+    # ajan baglam dosyasi HICBIR yedege girmedi (gitignore'da oldugu icin git'te de yok).
+    # Iki iddia bunu KALICI olarak kilitler; ad tekrar symlink'e cevrilirse KIRMIZI yanar.
+    repo_plan = yedekle._repo_dosyalari(False)
+    kontrol("ajan baglam dosyasi (AGENTS.md) yedek planinda", "AGENTS.md" in repo_plan,
+            ", ".join(repo_plan))
+    kontrol("BEKLENEN adlarin hicbiri symlink DEGIL (yoksa sessizce yedeksiz kalir)",
+            all(not os.path.islink(os.path.join(yedekle.ROOT, a))
+                for a in yedekle.REPO_BEKLENEN),
+            ", ".join(a for a in yedekle.REPO_BEKLENEN
+                      if os.path.islink(os.path.join(yedekle.ROOT, a))) or "-")
+    # SYMLINK NOBETI (davranissal, gercek repoya DOKUNMAZ): sahte bir kokte beklenen bir ad
+    # symlink olursa repo_eksikleri() onu "eksik" saymali -> damga tam=False. Eski surumde
+    # os.path.exists() symlink'i IZLEDIGI icin "var" diyordu = tam bu sessiz kayip.
+    with tempfile.TemporaryDirectory() as td:
+        for ad in yedekle.REPO_BEKLENEN:
+            with open(os.path.join(td, ad), "w", encoding="utf-8") as f:
+                f.write("x")
+        eski_kok = yedekle.ROOT
+        try:
+            yedekle.ROOT = td
+            kontrol("sahte kokte eksik YOK (taban)", yedekle.repo_eksikleri() == [],
+                    str(yedekle.repo_eksikleri()))
+            hedef = yedekle.REPO_BEKLENEN[1]
+            os.remove(os.path.join(td, hedef))
+            os.symlink(os.path.join(td, yedekle.REPO_BEKLENEN[2]), os.path.join(td, hedef))
+            kontrol("🔴 BEKLENEN ad SYMLINK'e donunce 'eksik' sayiliyor (sessiz kayip yok)",
+                    yedekle.repo_eksikleri() == [hedef], str(yedekle.repo_eksikleri()))
+            kontrol("symlink _repo_dosyalari'ndan da dusuyor (iki olcum tutarli)",
+                    hedef not in yedekle._repo_dosyalari(False),
+                    ", ".join(yedekle._repo_dosyalari(False)))
+        finally:
+            yedekle.ROOT = eski_kok
     with tempfile.TemporaryDirectory() as td:
         mut = mutant_yaz(td, [("        if p.returncode == 0 and ortak:",
                                "        if False:  # MUTANT: git cozumu devre disi")])
