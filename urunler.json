@@ -1,5 +1,322 @@
 [
   {
+    "id": "bavaria-yelken-sarti-gerginlik-ayarlayicisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bavaria 820 Yelkenli İçin Yelken Sartı Gerginlik Ayarlayıcısı",
+    "aciklama": "Bavaria 820 yelkenli tekne için yelken sartı gerginliğini ayarlamaya yarayan parça.\n- Bavaria 820 ve benzeri eski Dehler yatlarıyla uyumlu olabilir.\n- Kama ve kelepçe hareketli tek parça halinde tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 100 × 28 × 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4550445-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4550445-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4550445-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4550445-4.jpg",
+      "https://media.pruvo3d.com/urunler/th4550445-5.jpg",
+      "https://media.pruvo3d.com/urunler/th4550445-6.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "svebeh",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "barlow-yelkenli-vinc-kafasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Barlow Australia 25 Yelkenli Vinci İçin Yedek Kafa",
+    "aciklama": "Plastik kafası kırılan eski Barlow Australia 25 yelkenli vincinin yerine geçen yedek kafa parçası.\n- Barlow Australia 25 yelkenli tekne vinciyle uyumludur.\n- Yük taşıyan yapısal bir parçadır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 126 × 126 × 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4986728-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4986728-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "poiuuuu",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "jenerik-dis-motor-direksiyon-kilidi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dış Motor İçin Direksiyon Kilidi",
+    "aciklama": "Dış motorun istenmeyen şekilde dönmesini engelleyen jenerik direksiyon kilidi parçası.\n- Çeşitli dış motor modelleriyle uyumlu olacak şekilde tasarlanmıştır.\n- Kolay çıkarılabilmesi için tutamak içerir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 102 × 56 × 29 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5769986-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ThePlagueDoc",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dis-motor-kill-cord-seti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dış Motor İçin Kill Cord (Acil Kapatma İpi) Seti",
+    "aciklama": "Dış motor kullanırken tekne sürücülerinin üzerinde taşıdığı, motoru acil durumda durduran kill cord bağlantı parçaları seti.\n- Çeşitli dış motor kill switch modelleriyle uyumlu 9 farklı bağlantı parçası içerir.\n- Kordon veya ip ile birlikte kullanılır.\n- Her parça tek parçadan oluşur.\nYaklaşık dış ölçüler: 29 × 23 × 7 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5781806-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5781806-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5781806-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5781806-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5781806-5.jpg",
+      "https://media.pruvo3d.com/urunler/th5781806-6.jpg",
+      "https://media.pruvo3d.com/urunler/th5781806-7.jpg",
+      "https://media.pruvo3d.com/urunler/th5781806-8.jpg",
+      "https://media.pruvo3d.com/urunler/th5781806-9.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gentlemangoose",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "mercury-kill-switch",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury Dış Motorlar İçin Kill Switch",
+    "aciklama": "Mercury dış motorlara uyumlu kill switch (acil durdurma) parçası.\n- Mercury dış motor modelleriyle uyumludur.\n- Kill cord ipiyle birlikte kullanılır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 31 × 23 × 6 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5867472-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TranquilSoup3",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "raymarine-tiller-pilot-uzatmasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Raymarine Tiller Pilot İçin Uzatma Parçası (Tapalı)",
+    "aciklama": "Raymarine Tiller Pilot Thrust otopilotu için farklı uzunluklarda tapalı uzatma parçası seti.\n- Raymarine Tiller Pilot Thrust modeliyle uyumludur.\n- 3, 6, 9, 12 ve 15 santimetre uzunluklarında 5 seçenek içerir.\n- Her parça tek parçadan oluşur.\nYaklaşık dış ölçüler: 181 × 20 × 20 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6214410-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6214410-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6214410-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6214410-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6214410-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SALIDA999",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "raymarine-transducer-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Raymarine Transducer İçin Tapa",
+    "aciklama": "Raymarine transducer gövdesine uyumlu dişli tapa.\n- Raymarine transducer modeliyle uyumludur, diş çapı 56,32mm'dir.\n- İki parçadan oluşan bir settir.\n- Orijinal tapanın yerine geçer.\nYaklaşık dış ölçüler: 162 × 89 × 38 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6670994-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6670994-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6670994-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6670994-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SALIDA999",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "volvo-penta-md2020-motor-paneli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Volvo Penta MD2020 İçin Motor Paneli",
+    "aciklama": "Volvo Penta MD2020 motoruna uyumlu motor kontrol paneli.\n- Volvo Penta MD2020 dizel motor modeliyle uyumludur.\n- Bavaria yelkenli teknelerde kullanılan motor modeliyle uyumludur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 185 × 146 × 28 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6699289-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mctini",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "lucky-fishfinder-pil-bolmesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lucky FF918-C Fish Finder İçin Pil Bölmesi",
+    "aciklama": "Lucky FF918-C fish finder cihazı için 3 adet 18650 pil taşıyan pil bölmesi.\n- Lucky FF918-C fish finder modeliyle uyumludur.\n- 3 adet 18650 pil kapasitesine sahiptir.\n- Kendinden vidalı bağlantı için küçük delikler içerir.\nYaklaşık dış ölçüler: 127 × 122 × 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6958921-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6958921-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Marino966",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-pervanesi-weedwacker-uyarlamasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ev Yapımı Tekne İçin Pervane (Trimmer Motoruna Uyumlu)",
+    "aciklama": "Ev yapımı/pedallı bir teknenin trimmer (yabani ot biçme) motoruyla çalışacak şekilde tasarlanmış pervane.\n- Standart trimmer motoru şaftına uyumludur.\n- Ev yapımı tekne dönüşümleri için uygundur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 130 × 49 × 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th853817-1.jpg",
+      "https://media.pruvo3d.com/urunler/th853817-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "12ian3",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "harken-thru-hull-yagmur-oluklu-kapak",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Harken 29mm Thru-Hull İçin Yağmur Oluklu Kapak",
+    "aciklama": "Harken 29mm thru-hull bloklarının dikey yüzeylere monte edildiğinde yağmur suyunun içe kaçmasını azaltan yedek kapak plakası.\n- Harken 29mm Thru Hull Block modeliyle uyumludur.\n- Üst kısmında hafif bir yağmur oluğu içerir.\n- Orijinal kapak plakasının yerine geçer.\nYaklaşık dış ölçüler: 74 × 34 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3663933-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kb9vjq",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "livewell-tahliye-suzgeci",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Livewell Tahliyesi İçin Süzgeç",
+    "aciklama": "Alumicraft gibi teknelerin livewell (canlı yem tankı) yatay tahliye deliklerine takılan, büyük parçaların tıkanıklığa sebep olmasını engelleyen süzgeç.\n- Yatay livewell tahliye sistemleriyle uyumludur.\n- Tanke oturacak şekilde konik tasarlanmıştır.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 60 × 24 × 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3822029-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3822029-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3822029-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "noskills",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-sintina-su-emici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Sintinesi İçin Su Emici (Succhiarola)",
+    "aciklama": "Tekne sintinesindeki (bilge) suyu, pruva veya salma içindeki dar bölgelerden emmeye yardımcı olan parça.\n- Standart sintina pompası hortumlarıyla uyumludur.\n- Ağırlık eklenerek dibe çökme performansı artırılabilir.\n- Düz ve açılı olmak üzere farklı versiyonları içerir.\nYaklaşık dış ölçüler: 106 × 50 × 39 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3882037-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3882037-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3882037-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3882037-4.jpg",
+      "https://media.pruvo3d.com/urunler/th3882037-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "voce_del_mare",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "stowaway-trolling-motor-svic-terminali",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Airflo Stowaway Trolling Motor İçin İç Şalter Terminali",
+    "aciklama": "Airflo Stowaway 12V 55lb trolling motorun kırılan iç polarite şalterinin yerine geçen yedek terminal parçası.\n- Airflo Stowaway trolling motor modeliyle uyumludur.\n- Orijinal kırılan şalterin yerine geçer.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 31 × 21 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4065428-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4065428-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Officer_Scribble",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "omc-dis-motor-karburator-baglantisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Eski OMC Dış Motorlar İçin Karbüratör Karışım Bağlantısı",
+    "aciklama": "Eski OMC dış motorlarda zamanla kırılan, karbüratör zengin/fakir ayar düğmelerini karbüratöre bağlayan karışım vidası bağlantısını yeniler.\n- Eski model OMC dış motorlarla uyumludur.\n- Orijinal kırılgan bağlantının yerine geçer.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 28 × 14 × 14 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4750336-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4750336-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ecto1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yamaha-hidea-parsun-starter-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha/Hidea/Parsun Dış Motorlar İçin İp Çekmeli Starter Parçası",
+    "aciklama": "Yamaha, Hidea ve Parsun küçük dış motorların ip çekmeli (pull-start) mekanizmasına uyumlu yedek parça.\n- Yamaha/Hidea/Parsun küçük dış motor modelleriyle uyumludur.\n- İki parçadan oluşur.\n- Naylon veya ABS gibi dayanıklı malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 166 × 166 × 31 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5358436-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5358436-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5358436-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5358436-4.jpg",
+      "https://media.pruvo3d.com/urunler/th5358436-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Joens",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "british-seagull-starter-makarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "British Seagull Dış Motor İçin İp Çekmeli Starter Makarası",
+    "aciklama": "British Seagull dış motorunun üstüne monte edilen ip çekmeli starter makarası seti.\n- British Seagull dış motor modeliyle uyumludur.\n- Üst makara ve ip makarası olmak üzere iki parçadan oluşur.\n- Tahrik milinin uzun bırakılıp sonradan kesilmesini gerektirir.\nYaklaşık dış ölçüler: 12 × 12 × 4 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5374105-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5374105-2.jpg"
+    ]
+  },
+  {
+    "id": "british-seagull-su-pompasi-impelleri",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "British Seagull Dış Motor İçin Su Pompası İmpeller'i",
+    "aciklama": "Üretimi durdurulmuş British Seagull dış motorunun su pompası impeller'i, orijinali artık bulunamayan bir parçanın yerine geçer.\n- British Seagull dış motor modeliyle uyumludur (bazı bölgelerde 'century motor' olarak da bilinir).\n- Esnek malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 38 × 38 × 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5700655-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sadmanh",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "catalina-30-kabin-dolabi-mandali",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Catalina 30 Yelkenli İçin Kabin Dolabı Mandalı",
+    "aciklama": "Catalina 30 yelkenli teknenin iç kabin dolabı kapaklarını tutan, zamanla paslanan metal mandalların yerine geçen mandal.\n- Catalina 30 yelkenli tekne kabin dolaplarıyla uyumludur.\n- Orijinal metal mandaldan daha iyi tutunma sağlar.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 51 × 18 × 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5851792-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Jmill050",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "lowrance-3in1-pvc-tekne-montaji",
     "kategori": "Marin",
     "marka": [],
