@@ -32,7 +32,6 @@ KULLANIM (kutuphane):
     # bloklar = [(anahtar_satir, ilk_ham, son_ham, deger), ...] ya da hata varsa None
 """
 import json
-import os
 import subprocess
 
 try:
@@ -97,16 +96,43 @@ print JSON.generate(sonuc)
 
 _PSYCH_SURUM = None
 
+# 🔴 ORTAM DEGISKENI YOK (30 Tem, MIMAR HUKMU — bilincli tasarim karari):
+# Bu modul BIR ZAMANLAR `PRUVO_YAML_AYRISTIRICI_YOK` ortam degiskenini okuyordu
+# ("olcum kolaylassin" diye). O DUGME KALDIRILDI. Gerekce OLCULDU:
+#   * Degisken set edilince tools/ci-kapsam-test.py — BLOKLAYICI bir CI kapisi —
+#     SESSIZCE zayif (taklit) kola dusuyordu: rc DEGISMIYOR, kapi KIRMIZI YANMIYOR,
+#     yalniz bir bilgi satiri basiliyordu (fail-closed DEGIL, sessiz zayiflama).
+#   * deploy.yml'e IS ya da ADIM duzeyinde `env: PRUVO_YAML_AYRISTIRICI_YOK: "1"`
+#     eklendiginde DORT kapi da (ci-kapsam ±--kendini-test, is-akisi ±--kendini-test)
+#     YESIL kaliyordu — yani CI'ya konabilen, hicbir nobetcinin GORMEDIGI bir dugmeydi.
+#   * "Bugun zararsiz oldugu olculdu" bir savunma DEGILDIR: yarin fallback kolu
+#     ayristiriciyla ayrisirsa bu dugme sessiz bir KACIS YOLU olur.
+# TESTLENEBILIRLIK KAYBOLMADI: fallback kolu ayristiriciyi_kapat() ile ENJEKSIYON
+# olarak zorlanir (ortamdan DEGIL, cagiran kodun kendi elinden). Ortam degiskeni bir
+# saldirgana/aceleci bir gelistiriciye acik; fonksiyon cagrisi yalniz TESTIN icinde.
+_AYRISTIRICI_KAPALI = False
+
+
+def ayristiriciyi_kapat(kapali=True):
+    """YALNIZ TEST/FIKSTUR icin: GERCEK ayristirici kollarini devre disi birak.
+
+    Fallback (taklit) kolunun tek karar mercii oldugu ortami ENJEKSIYONLA kurar;
+    ORTAM DEGISKENI YOKTUR (yukaridaki gerekce). Geri almak: ayristiriciyi_kapat(False).
+    Onbellekler temizlenir; CAGIRAN tuketicinin kendi onbellegini de temizlemelidir
+    (ornegin ci-kapsam-test.py'nin `_MANTIKSAL_ONBELLEK`i)."""
+    global _AYRISTIRICI_KAPALI, _PSYCH_SURUM
+    _AYRISTIRICI_KAPALI = bool(kapali)
+    _PSYCH_SURUM = None
+    _ONBELLEK.clear()
+    return _AYRISTIRICI_KAPALI
+
 
 def _psych_surumu():
     """ruby/psych VAR MI (varsa Psych surumu, yoksa False). Bir kez sorulur."""
     global _PSYCH_SURUM
+    if _AYRISTIRICI_KAPALI:
+        return False
     if _PSYCH_SURUM is None:
-        if os.environ.get("PRUVO_YAML_AYRISTIRICI_YOK"):
-            # Yalniz OLCUM icin: "hicbir ayristirici yok" ortamini taklit et
-            # (fallback kolunun fail-closed davranisi olculebilsin diye).
-            _PSYCH_SURUM = False
-            return _PSYCH_SURUM
         try:
             r = subprocess.run(["ruby", "-ryaml", "-e", "print Psych::VERSION"],
                                capture_output=True, text=True, timeout=20)
@@ -117,7 +143,7 @@ def _psych_surumu():
 
 
 def _pyyaml_var():
-    if os.environ.get("PRUVO_YAML_AYRISTIRICI_YOK"):
+    if _AYRISTIRICI_KAPALI:
         return False
     return _yaml is not None
 
