@@ -276,7 +276,13 @@ IZIN_LISTESI = {
     "shop/test/eposta.mjs": R_AYRI,
     "shop/test/kabul.js": R_AYRI,
     "shop/test/olcum-kapisi.cjs": R_AYRI,
-    "shop/test/olcum.mjs": R_AYRI,
+    # "shop/test/olcum.mjs" MUAFIYETI KALDIRILDI (30 Tem) — gerekce OLCULEREK YANLIS bulundu.
+    # R_AYRI "bu suite o projenin CI hattinda kosulur, Pages job'una girmez" diyordu; oysa
+    # kardes shop testleri (konfigur-fail-closed.mjs, fiyat-prova.mjs, iki-renk-ucret.mjs)
+    # deploy.yml'de ZATEN kosuyor (setup-node bloklayici on-kosul). Gercek sebep dagitim
+    # hedefi degil, RUNTIME idi: test `module.registerHooks` (v22.15+) istiyordu, runner
+    # Node 20 -> 6 iddia her kosuda kirmizi (129/6). Hook `module.register` (v20.6+)'a
+    # cevrildi, Node 20.20.2'de 188/0 -> test artik deploy.yml'de KOSUYOR.
     "shop/test/ref-route.mjs": R_AYRI,
     "shop/test/sepet-panel.js": R_AYRI,  # B paketi YESILLEDI; shop ayri Worker hedefi (kardesleri gibi)
     "onizleme/test/eslem-olcum.py": R_AYRI,
@@ -312,7 +318,15 @@ IZIN_LISTESI = {
     "jenerator/test/kalibrasyon-senkron.js": R_AYRI,
     "jenerator/test/stl_hacim.py": R_AYRI,
     "jenerator/test/vida-referans-uret.py": R_AYRI,
-    "jenerator/test/vitrin-kabul.js": R_AYRI,
+    # "jenerator/test/vitrin-kabul.js" MUAFIYETI KALDIRILDI (30 Tem) — gerekce OLCULEREK
+    # YANLIS bulundu. R_AYRI'nin "jenerator kendi harness'i" dali bu dosya icin gecersiz:
+    # test jenerator'u DEGIL ANA SAYFAYI (index.html inline scripti) sinar — gizli kategori,
+    # sari kart fiyati, banner gorunum kurali, edge uc sozlesmesi. Kardesi
+    # jenerator/test/metin-beyaz-liste.mjs de deploy.yml'de zaten kosuyor. Gercek sebep:
+    # EDGE_KATALOG=true olunca testin sahte fetch'i ozet.json / Worker cevabini `ok`/`status`
+    # ile taklit etmiyordu -> "HTTP undefined" ile ALTYAPI HATASI (7 testten 6'si hic
+    # kosmuyordu). Bagimlilik testin ICINDE kurulur oldu (build.py --sadece-ozet + sunucusuz
+    # tasima taklidi); Node 20.20.2 ve 25.x'te 9/0 -> test artik deploy.yml'de KOSUYOR.
     # --- tools/ JS (CI'da node yok) ---
     "tools/attribution-ref-test.js": R_NODE,
     "tools/marka-limit-test.js": R_NODE,

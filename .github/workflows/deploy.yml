@@ -412,6 +412,25 @@ jobs:
       - name: 2-renk yazi ek ucreti kabul testi (karsiliksiz tahsilat kapisi)
         run: node shop/test/iki-renk-ucret.mjs
 
+      # OLCUM KABLOLAMA KAPISI (shop/test/olcum.mjs) — 30 Tem'e kadar CI'da HIC kosmuyordu.
+      # NE KORUR: Meta CAPI + GA4 Purchase kablolamasi (currency/value/event_id dedup), havale
+      # akisinda /durum 'odendi' -> Purchase, idempotens (ayni siparis iki kez -> TEK olay),
+      # eszamanlilik/CAS, basarisiz odemede olay GONDERILMEMESI, kart akisinin olcum izi ve
+      # GIZLILIK ekseni (Okan'in yonetim IP/UA'si Meta'ya GITMEZ + token loga yazilmaz).
+      # Hepsi SESSIZ hata sinifi: yanlis ciro/cift sayim reklam optimizasyonunu bozar, kimse
+      # ekranda gormez.
+      # NEDEN SIMDI KOSABILIYOR: test shop/src/{index,yonet}.js'i node'a yukluyor; o kaynaklar
+      # JSON'u STATIK import ediyor ve Node ESM `with { type: "json" }` istiyor. Attribute
+      # enjeksiyonu eskiden `module.registerHooks` (v22.15+) ile yapiliyordu -> Node 20 runner'da
+      # 6 iddia (18/19/22/24/25/26) HER kosuda kirmizi, 129/6. Hook `module.register` (v20.6+)
+      # API'sine cevrildi: TEK kod yolu, surum dali YOK -> Node 20.20.2'de de 25.x'te de
+      # 188/0 (ikisinde de olculdu). FAIL-CLOSED: modul yuklenemezse o 6 iddia GERCEK hata
+      # metniyle KIRMIZI yanar (mutasyonla kanitlandi), asla "atlandi/yesil" olmaz.
+      # OFFLINE: ag YOK (fetch stub'lanir), wrangler YOK, sahte D1, GERCEK SIPARIS YOK,
+      # repo dosyasi YAZILMAZ. Secret degeri basilmaz. ~1 s.
+      - name: "Olcum kablolama kabul testi (Meta CAPI + GA4 Purchase, havale/kart + gizlilik)"
+        run: node shop/test/olcum.mjs
+
       # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
       # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,
       # genel GO/NO-GO, worker 403->BLOKLU(HocA), d1 kimlik-hatasi->BLOKLU(Okan), origin turetme,
@@ -553,6 +572,27 @@ jobs:
       # bloklayici on-kosul).
       - name: Metin beyaz liste kapisi (musteri metni sessizce budanmiyor mu)
         run: node jenerator/test/metin-beyaz-liste.mjs
+
+      # VITRIN KABUL KAPISI (jenerator/test/vitrin-kabul.js) — 30 Tem'e kadar CI'da HIC
+      # kosmuyordu ve YERELDE DE kirmizi duruyordu (7 testten 6'si HIC calismiyordu).
+      # NE KORUR (ana sayfanin kendisi, jenerator degil): gizli "Jeneratör" kategorisi nav'da
+      # GORUNMEZ + 12 gorunur kategori tam · ?kategori=Jeneratör gorunumu yalniz sari urun
+      # cizer · sari kart fiyati sema tabanFiyatTL'siyle BIREBIR (+ harita yokken fallback) ·
+      # banner yalniz ana sayfada · ilk 4 kart sari · taban-fiyatlar.js semalarla birebir ·
+      # edge kart sekli build.py kart_ozeti ile birebir · edge uc/parametre sozlesmesi ve
+      # "ana sayfa AGA CIKMAZ" iddiasi. index.html'in GERCEK inline scripti node:vm'de kosar.
+      # NEDEN SIMDI YESIL: index.html'de EDGE_KATALOG=true oldugu icin acilis ozet.json +
+      # Worker /katalog|/ara isterken testin sahte fetch'i `ok`/`status` TASIMIYORDU ->
+      # sayfa "HTTP undefined" basip test ALTYAPI HATASI veriyordu. Artik test bagimliligi
+      # KENDI KURUYOR: ozet.json'u `build.py --sadece-ozet` uretir (sekil tek kaynak) ve
+      # /katalog|/ara icin sunucusuz TASIMA taklidi kullanilir. Ag/sunucu/openscad YOK.
+      # FAIL-CLOSED: bayrak/damga/artefakt dogrulanamazsa test PATLAR (mutasyonla kanitlandi) —
+      # bayat ozet.json'la ya da kazara TAM BUILD ile sessizce yesil yanamaz.
+      # Arama SEMANTIGI burada iddia EDILMEZ (o parite-test.js/parite-ege.js isi).
+      # Node 20.20.2 ve 25.x'te 9/0 olculdu. build.py'nin yalniz erken-donus kollari cagrilir
+      # (--sadece-ozet / --sadece-taban) -> 14k sayfa uretimi ve yasal sayfa damgasi TETIKLENMEZ.
+      - name: "Vitrin kabul kapisi (gizli Jeneratör kategorisi + sari kart fiyati + banner + edge sozlesmesi)"
+        run: node jenerator/test/vitrin-kabul.js
 
       # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
       # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden

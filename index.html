@@ -347,6 +347,17 @@
     .skan-banner-text{padding:14px 18px 14px 22px}
   }
 
+  /* ---------- MARIN ÖZEL ÜRETİM BANNER (iki küçük banner'ın altında, tam genişlik) ----------
+     Aynı .jen-banner iskeleti; grid-column:1/-1 ile #bannerRow'un üçüncü satırına tam genişlik
+     yayılır (grid-template-columns:1fr 1fr korunur, satır otomatik akar). */
+  .marin-banner{
+    grid-column:1 / -1;
+    min-height:180px;
+  }
+  @media(max-width:640px){
+    .marin-banner{min-height:140px}
+  }
+
   .brand-row{
     display:flex;
     align-items:center;
@@ -818,6 +829,17 @@
       <span class="skan-banner-ust">Skan Art</span>
       <h2 class="jen-banner-title">Sade çizgiler, sakin formlar</h2>
       <span class="jen-banner-btn">Keşfet &rarr;</span>
+    </div>
+  </a>
+  <a id="marinBanner" class="jen-banner marin-banner"
+     href="https://wa.me/905451386526?text=Merhaba%2C%20teknemde%20k%C4%B1r%C4%B1lan%20bir%20par%C3%A7a%20var.%20%C3%96l%C3%A7%C3%BCp%20taray%C4%B1p%20%C3%BCretebilir%20misiniz%3F">
+    <img class="jen-banner-img" alt=""
+         src="https://media.pruvo3d.com/banner/marin-ozel-uretim-b1.jpg">
+    <div class="jen-banner-text">
+      <span class="skan-banner-ust">Özel Üretim</span>
+      <h2 class="jen-banner-title">Kırık parçanı getir, ölçüp tarayıp üretelim</h2>
+      <p class="jen-banner-sub">Tekne ve yelken parçalarında endüstriyel tarama ile ölçüye özel üretim</p>
+      <span class="jen-banner-btn">WhatsApp'tan Yaz &rarr;</span>
     </div>
   </a>
   </div>
