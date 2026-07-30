@@ -1,5 +1,208 @@
 [
   {
+    "id": "yelken-makara-tekeri-75x40mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Halatı İçin Makara Tekeri (75x40mm)",
+    "aciklama": "Yelken donanımında halat yönlendirmek için kullanılan, 75mm dış çaplı iki parçalı makara tekeri (sheave roller).\n- 75x40mm ölçülerinde, iki parça halinde basılır (gövde + alt kapak).\n- Halat sürtünmesini azaltarak yönlendirme sağlar.\n- Tekne/yelken donanımında makara sistemlerine uyumludur.\nYaklaşık dış ölçüler: 75 × 75 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3286190-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3286190-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3286190-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3286190-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Karlostavitch",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "hobie-16-ruzgar-gostergesi-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Hobie 16 Rüzgar Göstergesi (Forestay Kolu)",
+    "aciklama": "Hobie 16 katamaranın forestay ayarına takılan rüzgar yönü göstergesi.\n- Forestay ayarına ters çevrilerek takılır.\n- Kol ve gösterge parçası olmak üzere iki parçadan oluşur.\n- Küçük bir vida-rondela ve iki cıvata-somun ile monte edilir.\nYaklaşık dış ölçüler: 192 × 44 × 16 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4461028-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4461028-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4461028-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "okolaris",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-dolabi-yedek-kilidi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Dolabı İçin Yedek Kilit Parçası",
+    "aciklama": "Teknelerde kullanılan, bulunması zor ve pahalı olan eski tip dolap kilitlerinin yerine geçen yedek parça.\n- Standart tekne dolabı kilitleme mekanizmasına uyumludur.\n- Orijinali zor bulunan/pahalı eski tip kilitlerin yerine geçer.\n- Tek parça olarak basılır.\nYaklaşık dış ölçüler: 41 × 16 × 13 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th33887-1.jpg",
+      "https://media.pruvo3d.com/urunler/th33887-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Brett",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-trolling-motor-direksiyon-tertibati",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Trolling Motor Direksiyon Tertibatı",
+    "aciklama": "Kayağa monte edilen trolling motorlar için direksiyon (yönlendirme) tertibatı, 29mm motor şaftına uyumludur.\n- 29mm çaplı trolling motor şaftına uyumludur.\n- 7 parçadan oluşan tam tertibat (ön/arka mont, ray kılavuzu, kapak, TPU kovan dahil).\n- Kayaktan sökmeden yön ayarı yapılmasını sağlar.\nYaklaşık dış ölçüler: 165 × 120 × 25 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6737300-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6737300-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6737300-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6737300-4.jpg",
+      "https://media.pruvo3d.com/urunler/th6737300-5.jpg",
+      "https://media.pruvo3d.com/urunler/th6737300-6.jpg",
+      "https://media.pruvo3d.com/urunler/th6737300-7.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Sandman2749",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ruzgar-sensoru-yedek-kanadi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Rüzgar Sensörü İçin Yedek Kanat Parçası",
+    "aciklama": "Tekne direğine monte edilen rüzgar hız/yön sensörlerinde kırılan kanadın yerine geçen yedek parça.\n- Standart rüzgar sensörü gövdesine uyumlu montaj yuvası.\n- Kırılan orijinal kanadın yerine doğrudan takılır.\n- Hafif ve dengeli tasarım, hassas ölçüm sağlar.\nYaklaşık dış ölçüler: 102 × 101 × 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2925148-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2925148-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2925148-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "petolone",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-genel-amacli-pervane",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne İçin Genel Amaçlı Pervane",
+    "aciklama": "Küçük tekne ve pompa sistemlerinde kullanılabilen genel amaçlı 3 kanatlı pervane.\n- Küçük tekne veya pompa milleri ile kullanılabilir.\n- 3 kanatlı simetrik tasarım.\n- Tek parça olarak basılır.\nYaklaşık dış ölçüler: 100 × 100 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3584750-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3584750-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3584750-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kreatifdanriset",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kucuk-dis-motor-4-kanatli-pervane",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Küçük Dış Motor İçin 4 Kanatlı Pervane",
+    "aciklama": "Küçük benzinli dış motor veya trolling motor için 4 kanatlı, ters yön (CCW) dönüşlü pervane.\n- Küçük benzinli dış motor veya trolling motor mili ile kullanılabilir.\n- 4 kanatlı, ters yönlü (CCW) dönüş için tasarlandı.\n- En az %25 dolgu oranında sağlam malzeme ile kullanılması önerilir.\nYaklaşık dış ölçüler: 86 × 86 × 46 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th387168-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ollieminator",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "ozel-jetboat-direksiyon-manseti-kalibi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Özel Jetboat İçin Direksiyon Manşeti Kalıbı",
+    "aciklama": "Özel yapım jetboat modellerinde direksiyon mili için manşet (boot) dökümünde kullanılan kalıp seti.\n- Kelepçe delikleri 3mm ölçüsündedir.\n- 3 parçalı kalıp seti (A, B, C) ile manşet dökümü yapılır.\n- Özel yapım jetboat direksiyon mili uygulamalarına uyarlanabilir.\nYaklaşık dış ölçüler: 34 × 22 × 17 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3516012-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3516012-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3516012-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3516012-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nicklindenmuth",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "minn-kota-trolling-motor-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Minn Kota Trolling Motor Pervanesi (80-112lbs)",
+    "aciklama": "Minn Kota 80-112lbs trolling motorlara direkt uyumlu 3 kanatlı yedek pervane.\n- Minn Kota 80-112lbs trolling motor serisine direkt uyumludur.\n- 3 kanatlı tasarım.\n- Tek parça olarak basılır.\nYaklaşık dış ölçüler: 237 × 226 × 50 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6721535-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "venoom2001",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-kurek-damla-durdurucu-halka",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Küreği İçin Damla Durdurucu Halka",
+    "aciklama": "Kayak küreği şaftına takılan, elin ıslanmasını önleyen damla durdurucu halka (drip ring).\n- 1.13 inç iç çaplıdır, ~1.14 inç kürek şaftlarına uyumludur.\n- Esnek filament (TPU) ile basılması önerilir.\n- Düşük dolgu oranında basılırsa esnekliği artar.\nYaklaşık dış ölçüler: 64 × 64 × 13 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4601473-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "eschmidt12",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "sevylor-kayak-skeg-omurga",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sevylor Kayak İçin Skeg (Omurga) Parçası",
+    "aciklama": "Sevylor şişme kayaklara uyumlu, düz rota tutmayı kolaylaştıran skeg (omurga) parçası.\n- Sevylor kayak modelleriyle uyumludur.\n- Standart ve daha küçük yazıcılara uygun küçültülmüş versiyon olmak üzere iki boy içerir.\n- Kayağın düz rotada gitmesine yardımcı olur.\nYaklaşık dış ölçüler: 494 × 220 × 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th757392-1.jpg",
+      "https://media.pruvo3d.com/urunler/th757392-2.jpg",
+      "https://media.pruvo3d.com/urunler/th757392-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Chico39",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-dumen-kolu-uzatma-sopasi-th3026699",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Dümen Kolu Uzatma Sopası (Fellowship 27)",
+    "aciklama": "Fellowship 27 gibi yuvarlak dümen koluna sahip yelkenli tekneler için çıkarılabilir dümen kolu uzatması.\n- Yuvarlak (düz olmayan) dümen kollarına uyumludur.\n- Paslanmaz çelik boru ile şekillendirilip elastik ip ile sabitlenir.\n- Dümen kolunun başına sabit bir mafsal gerektirmez, çıkarılabilir.\nYaklaşık dış ölçüler: 40 × 23 × 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3026699-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3026699-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3026699-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Stegmanno1",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "lowrance-elite-5-ti-gunes-siperi",
     "kategori": "Marin",
     "marka": [],
