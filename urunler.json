@@ -1,5 +1,324 @@
 [
   {
+    "id": "yat-kabini-perde-cubugu-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yat Kabini Perde Cubugu Icin Yedek Klips",
+    "aciklama": "Yat kabini ic mekanindaki kirilan perde cubugu mesnedinin yedek karsiligidir.\n- Yat/tekne kabini ic donanimindaki perde cubuklariyla uyumludur.\n- Hafif kullanim icin tasarlanmistir, yapisal yuk tasimaz.\n- Olcum ile birebir uyumlu olacak sekilde ozel tasarlandi.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2595443-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2595443-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2595443-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2595443-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "iatsan",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "johnson-gt737-motor-plakasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Johnson GT737 Dis Motor Icin Model Plakasi",
+    "aciklama": "Johnson GT737 (25 veya 40 beygir) dis takma motorun govdesindeki model plakasinin yedek karsiligidir.\n- Johnson GT737 25 veya 40 beygirlik motor modelleriyle uyumludur.\n- Kaybolan veya hasarli orijinal plakanin yerine kolay degisim saglar.\n- Motor govdesine yapistirilarak monte edilir.\nYaklasik dis olculer: 150 x 114 x 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1148381-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1148381-2.jpg"
+    ]
+  },
+  {
+    "id": "garmin-echo-balik-bulucu-donel-taban",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Garmin Echo Balik Bulucu Icin Donel Taban",
+    "aciklama": "Garmin Echo derinlik olcer balik bulucuyu donebilir sekilde sabitleyen taban.\n- Garmin Echo serisi derinlik olcer/balik bulucu modelleriyle uyumludur.\n- Cihazi istenilen aciya cevirmeyi saglar.\n- Tekne konsoluna civatalarla monte edilir.\nYaklasik dis olculer: 75 x 74 x 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1550121-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ian Scollo",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-dumen-mili-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Dumen Mili Icin Koruma Kapagi",
+    "aciklama": "Tekne dumen milinin ust kismini disaridan korumak icin kullanilan yuvarlak kapak.\n- Standart yuvarlak dumen mili gecislerine uyumludur.\n- Mili toz, nem ve darbeye karsi korur.\n- Kolay takip cikarilabilir bir tasarima sahiptir.\nYaklasik dis olculer: 101 x 101 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1303212-1.jpg"
+    ]
+  },
+  {
+    "id": "yelkenli-ac-elektrik-izolasyon-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli AC Elektrik Panosu Icin Izolasyon Kapagi",
+    "aciklama": "Birlesik AC/DC elektrik panosu acildiginda AC sigortalarinin acikta kalan kablolamasini izole eden guvenlik kapagi.\n- AC sigorta kablolamasi icin acilan yerlere sahiptir.\n- Ahsap panoya vida ile monte edilir.\n- Elektrik guvenligi standartlarina uygun izolasyon saglar.\nYaklasik dis olculer: 244 x 202 x 80 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1443452-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Carlos Simmerling",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-yakit-deposu-kapagi-el-carki",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Yakit Deposu Kapagi Icin 8mm Altigen El Carki",
+    "aciklama": "Tekne veya dis motor yakit deposu kapagini elle acip kapatmak icin kullanilan 8mm altigen uyumlu el carki.\n- 8mm altigen (Allen anahtari) profiline uyumludur.\n- Yakit deposu kapaginin elle acilip kapanmasini kolaylastirir.\n- Gosterge iceren kapak modelleriyle de uyumlu olabilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3d8mm-hex-allen-key-insex-lobed-hand-wheel-knob-for-boat-outboard-fuel-tank-cap-with-indicator-etc-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Palmiga",
+      "tur": "cc_by_sa"
+    }
+  },
+  {
+    "id": "istart-yaris-baslatici-govde-kizagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "iStart Otomatik Yelkenli Yaris Baslaticisi Icin Govde Kizagi",
+    "aciklama": "Balboa Racing iStart otomatik yaris baslatici biriminin ic bataryalarina erisimi kolaylastiran govde kizagi.\n- Balboa Racing iStart yaris baslatici uniteleriyle uyumludur.\n- Batarya degisimi icin sokme-takma islemini kolaylastirir.\n- Kucuk tekne yaris programlarinda kullanima uygundur.\nYaklasik dis olculer: 251 x 120 x 119 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1296701-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1296701-2.jpg"
+    ]
+  },
+  {
+    "id": "tekne-tahliye-deligi-izgarasi-bal-petegi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Tahliye Deligi Icin Bal Petegi Desenli Izgara",
+    "aciklama": "Tekne tahliye deliklerine yaprak ve yabanci madde girmesini engelleyen bal petegi desenli izgara.\n- Farkli tekne modellerine gore olceklendirilebilir bir tasarima sahiptir.\n- Yaprak ve yabanci maddelerin tahliye deligine girmesini engeller.\n- Bal petegi deseni su akisini engellemez.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1221403-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1221403-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1221403-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "user_2783837246",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-salon-masasi-sikistirma-kamasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Salon Masasi Icin Sikistirma Kamasi",
+    "aciklama": "Yelkenli salon masasindaki metal sikistirma kamasinin yedek karsiligidir.\n- Zwaardvis tipi katlanir salon masalariyla uyumludur.\n- Masanin sikica sabitlenmesini saglar.\n- Sikistirma kuvvetine dayanikli, saglam bir govde yapisina sahiptir.\nYaklasik dis olculer: 95 x 35 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1443438-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Carlos Simmerling",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "genel-amacli-olta-tutucusu-basit",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Genel Amacli Basit Olta Kamisi Tutucusu",
+    "aciklama": "Farkli amaclarla da kullanilabilecek, boyutlandirilabilir basit olta kamisi tutucusu.\n- Basit ve kolay uretilebilir bir tasarima sahiptir.\n- Ihtiyaca gore buyutulup kucultulebilir.\n- Olta disinda benzer silindirik esyalar icin de kullanilabilir.\nYaklasik dis olculer: 85 x 60 x 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1704972-1.jpg"
+    ]
+  },
+  {
+    "id": "minn-kota-endura-kilit-pimi-kolu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Minn Kota Endura C2 30lb Icin Kilit Pimi Kolu",
+    "aciklama": "Minn Kota Endura C2 30lb trolling motorun kilit pimi kolunun yedek karsiligidir.\n- Minn Kota Endura C2 30lb model trolling motorla uyumludur.\n- Motoru yukari-asagi konumda kilitleme kolu gorevi gorur.\n- Kirilan orijinal parcanin yerine kolay degisim saglar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2904011-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2904011-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2904011-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2904011-4.jpg"
+    ]
+  },
+  {
+    "id": "bayliner-552-on-cam-braketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bayliner 552 Tekne Icin On Cam Braketi",
+    "aciklama": "Bayliner 552 model teknelerin paslanan orijinal on cam braketlerinin yerine gecen yedek parca.\n- Bayliner 552 model tekneyle uyumludur (benzer modellere de uyarlanabilir).\n- M4 civata ve somunla monte edilir.\n- Paslanan orijinal metal braketlerin yerine kullanilabilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2934351-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2934351-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2934351-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2934351-4.jpg"
+    ]
+  },
+  {
+    "id": "yelkenli-capa-isigi-direk-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Capa Isigi Icin Direk Montaj Parcasi",
+    "aciklama": "Yelkenli direğine capa isigini monte etmek icin kullanilan parca.\n- Yelkenli direğine dogrudan monte edilir.\n- Standart capa isigi armaturleriyle uyumludur.\n- Gece demirleme guvenligini artirir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dsailboat-anchor-light-mast-mount-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dsailboat-anchor-light-mast-mount-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "toddinct",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "tekne-motoru-direksiyon-dislisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Motoru Icin Yedek Direksiyon Dislisi",
+    "aciklama": "Tekne direksiyon sisteminde kirilan dislinin yerine uretilen yedek parca.\n- Tekne direksiyon/dumen sistemi disli mekanizmasina uyumludur.\n- Farkli olculere gore ozellestirilebilir.\n- Dayanikli malzeme ile uretilmesi onerilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2771215-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2771215-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2771215-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2771215-4.jpg"
+    ]
+  },
+  {
+    "id": "pedalli-bot-direksiyon-kolu-dumen",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pedallı Bot Icin Direksiyon Kolu (Dumen)",
+    "aciklama": "Pedallı botlarin yon verme kolunun (dumen) yedek karsiligidir.\n- Pedallı bot direksiyon sistemleriyle uyumludur.\n- Kavisli formu kiyafetlerin takilmasini onleyen guvenlik islevi tasir.\n- Emniyetli ve emniyetsiz iki farkli versiyonu mevcuttur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2844048-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2844048-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2844048-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2844048-4.jpg"
+    ]
+  },
+  {
+    "id": "tekne-muayene-kapagi-anahtari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Muayene Kapagi Icin Acma Anahtari",
+    "aciklama": "Tekne muayene kapaklarini parmaklari yormadan acip kapatmak icin kullanilan anahtar.\n- Cogu muayene kapagi parmak-girintisine uyacak sekilde 4.5 inc genislige sahiptir.\n- Farkli kapak olculerine gore uyarlanabilir.\n- Tekne dolabinda gunes altinda dayaniklilik icin PETG onerilir.\nYaklasik dis olculer: 114 x 33 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1723807-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1723807-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DirtyKid",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "summit-fishing-transduser-direk-arasi-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Summit Fishing Transduser Direği Icin Ara Parca",
+    "aciklama": "Summit Fishing marka transduser direğinin serbestce donmesini saglayan, sallanmayi onleyen ara parca.\n- Summit Fishing transduser direği serisiyle uyumludur.\n- Milin serbestce donmesini saglarken sallanmayi onler.\n- Farkli uzunluklarda secenekleri mevcuttur.\nYaklasik dis olculer: 50 x 34 x 34 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1773976-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1773976-2.jpg"
+    ]
+  },
+  {
+    "id": "future-beach-mariner-kayak-bardak-tutucu-eklentisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Future Beach Mariner 10.4 Kayak Icin Bardak Tutucu Eklentisi",
+    "aciklama": "Future Beach Mariner 10.4 model kayagin bardak tutucu yuvasina takilan eklenti.\n- Future Beach Mariner 10.4 model kayakla uyumludur.\n- Standart bardak/termos capina uygun ic yapiya sahiptir.\n- Kayagin mevcut yuvasina dogrudan oturur.\nYaklasik dis olculer: 136 x 136 x 106 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1781746-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1781746-2.jpg"
+    ]
+  },
+  {
+    "id": "intex-sisme-bot-kurek-baglantisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Intex Sisme Bot Kuregi Icin Baglanti Parcasi",
+    "aciklama": "Intex sisme botlarin kurek baglanti parcasinin (joiner) daha saglam yedek karsiligidir.\n- Intex Challenger serisi sisme botlarla uyumludur.\n- M6 civata ve somunlarla monte edilir.\n- Orijinal parcaya gore daha dayanikli bir yapiya sahiptir.\nYaklasik dis olculer: 113 x 59 x 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6064449-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6064449-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "teutenburger",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "deniz-kayagi-ayak-pedali-braketi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Deniz Kayagi Dumen Kontrolu Icin Ayak Pedali Braketi Seti",
+    "aciklama": "Deniz kayaklarinin dumen kontrol ayak pedali braketi ve dugmesinin yedek seti.\n- Necky Arluk serisi deniz kayaklariyla uyumludur.\n- Braket ve dugmeden olusan komple bir set sunar.\n- Paslanmaz civata donanimiyla monte edilir.\nYaklasik dis olculer: 51 x 39 x 37 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6167465-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6167465-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6167465-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6167465-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mpesavento",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "bg-simrad-otomatik-pilot-kesim-sablonu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "B&G Triton2 / Simrad OP12 Otomatik Pilot Icin Kesim Sablonu",
+    "aciklama": "B&G Triton2 veya Simrad OP12 otomatik pilot kumandasinin montaji icin delme ve kesim sablonu.\n- B&G Triton2 ve Simrad OP12 otomatik pilot modelleriyle uyumludur.\n- Cihaz ve gunes kapaginin kapladigi alani gosterecek genislikte tasarlandi.\n- Montaj oncesi dogru kesim yerini belirlemeyi kolaylastirir.\nYaklasik dis olculer: 120 x 67 x 3 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6611907-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6611907-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6611907-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "l4r53n",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "simrad-gece-gorus-lens-kapagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Simrad Gece Gorus Cihazi Icin Lens Kapagi",
+    "aciklama": "Simrad gn1/gn2 gece gorus cihazinin lensini gun isigindan korumak icin kullanilan kapak.\n- Simrad gn1/gn2 gece gorus cihazlariyla uyumludur, 40mm lens capina uygundur.\n- Kapak kilitleme kolu icin kucuk bir vida gerektirir.\n- Gun isiginda lensin zarar gormesini onler.\nYaklasik dis olculer: 54 x 50 x 6 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7010957-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "susseralsdu",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
     "id": "johnson-tuvalet-butonu-kasasi",
     "kategori": "Marin",
     "marka": [],
