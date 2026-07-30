@@ -767,27 +767,26 @@
     .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
   }
 
-  /* ---------- SABİT SOL/SAĞ NAV (Okan, 30 Tem): kategoriler SOLA, tüm markalar SAĞA
-     sabitlenir; masaüstünde her zaman görünür, dar ekranda açılır/kapanır çekmece.
-     Kategori görünümündeki bağlama duyarlı marka çipleri (#brandChips, ortada) DEĞİŞMEDİ. */
+  /* ---------- SABİT SOL NAV (Okan, 30 Tem): kategoriler SOLA sabitlenir; masaüstünde her
+     zaman görünür, dar ekranda açılır/kapanır çekmece. (Sağdaki "tüm markalar" sidebar'ı
+     Okan'ın isteğiyle kaldırıldı — markalar yalnız #brandChips'te, ortada, bağlama duyarlı
+     kalıyor.) */
   .nav-overlay{
     position:fixed; inset:0; background:rgba(13,30,58,.55); z-index:65; display:none;
   }
   .nav-overlay.open{ display:block; }
 
-  .cat-sidebar, .brand-sidebar{
+  .cat-sidebar{
     position:fixed; top:0; bottom:0; width:220px; overflow-y:auto;
     transition:transform .22s ease; z-index:66;
+    left:0; background:var(--navy-dark); box-shadow:2px 0 18px rgba(0,0,0,.25);
   }
-  .cat-sidebar{ left:0; background:var(--navy-dark); box-shadow:2px 0 18px rgba(0,0,0,.25); }
-  .brand-sidebar{ right:0; background:#fff; box-shadow:-2px 0 18px rgba(0,0,0,.15); }
 
   .side-head{
     display:flex; align-items:center; justify-content:space-between;
     padding:18px 16px; position:sticky; top:0;
   }
   .cat-sidebar .side-head{ background:var(--navy-dark); color:#fff; }
-  .brand-sidebar .side-head{ background:#fff; color:var(--navy); border-bottom:1px solid var(--gray-line); }
   .side-title{ font-size:12.5px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; }
   .side-close{
     background:none; border:none; color:inherit; font-size:24px; line-height:1;
@@ -803,15 +802,6 @@
   .cat-sidebar .cat-btn:hover{ background:rgba(255,255,255,.08); }
   .cat-sidebar .cat-btn.active{ background:rgba(255,255,255,.08); border-bottom-color:transparent; border-left-color:var(--red); }
 
-  .side-brand-chips{ display:flex; flex-direction:column; gap:2px; padding:10px; }
-  .side-brand-chips a.side-brand-link, .side-brand-chips button.side-brand-link{
-    display:block; width:100%; text-align:left; text-decoration:none;
-    background:transparent; color:var(--navy); border:none; border-radius:6px;
-    padding:9px 12px; font-size:13.5px; font-weight:600; cursor:pointer; transition:.15s;
-  }
-  .side-brand-chips a.side-brand-link:hover, .side-brand-chips button.side-brand-link:hover{ background:var(--gray-bg); }
-  .side-brand-chips a.side-brand-link.active, .side-brand-chips button.side-brand-link.active{ background:var(--navy); color:#fff; }
-
   .mobile-nav-toggles{ display:flex; gap:10px; margin-top:18px; }
   .drawer-toggle{
     display:inline-flex; align-items:center; gap:7px;
@@ -822,35 +812,26 @@
 
   @media(max-width:1023px){
     .cat-sidebar{ transform:translateX(-100%); }
-    .brand-sidebar{ transform:translateX(100%); }
-    .cat-sidebar.drawer-open, .brand-sidebar.drawer-open{ transform:translateX(0); }
+    .cat-sidebar.drawer-open{ transform:translateX(0); }
   }
   @media(min-width:1024px){
     .mobile-nav-toggles{ display:none; }
     .side-close{ display:none; }
-    body{ margin-left:220px; margin-right:220px; }
-    .cart-fab, .top-btn{ right:calc(20px + 220px); }
+    body{ margin-left:220px; }
   }
 </style>
 </head>
 <body>
 
-<!-- SABİT SOL/SAĞ NAV: kategoriler solda, tüm markalar sağda — masaüstünde hep açık,
-     dar ekranda #mobileNavToggles ile açılıp kapanan çekmece (bkz. CSS .cat-sidebar/.brand-sidebar). -->
+<!-- SABİT SOL NAV: kategoriler solda — masaüstünde hep açık, dar ekranda #mobileNavToggles
+     ile açılıp kapanan çekmece (bkz. CSS .cat-sidebar). Sağdaki "tüm markalar" sidebar'ı
+     kaldırıldı; markalar yalnız ortadaki #brandChips'te, bağlama duyarlı kalıyor. -->
 <aside class="cat-sidebar" id="catSidebar">
   <div class="side-head">
     <span class="side-title">Kategoriler</span>
     <button class="side-close" id="catSidebarClose" aria-label="Kapat">&times;</button>
   </div>
   <nav class="cats" id="cats"><!-- kategoriler JS ile --></nav>
-</aside>
-
-<aside class="brand-sidebar" id="brandSidebar">
-  <div class="side-head">
-    <span class="side-title">Tüm Markalar</span>
-    <button class="side-close" id="brandSidebarClose" aria-label="Kapat">&times;</button>
-  </div>
-  <div class="side-brand-chips" id="brandSidebarChips"><!-- markalar JS ile --></div>
 </aside>
 
 <div class="nav-overlay" id="navOverlay"></div>
@@ -870,7 +851,6 @@
 
     <div class="mobile-nav-toggles" id="mobileNavToggles">
       <button class="drawer-toggle" id="catDrawerToggle" aria-label="Kategorileri aç">&#9776; Kategoriler</button>
-      <button class="drawer-toggle" id="brandDrawerToggle" aria-label="Markaları aç">Markalar</button>
     </div>
 
     <div class="search-wrap">
@@ -2184,71 +2164,6 @@
       visible = visible.concat([activeBrand]);
     }
     visible.forEach(function(m){ el.appendChild(chip(m)); });
-    renderBrandSidebar();
-  }
-
-  // GLOBAL marka sayımı — activeCat/query YOK SAYILIR (bkz #brandChips'in bağlama duyarlı
-  // brandCounts()'undan FARKLI, kasıtlı). Sağ sidebar'daki "Tüm Markalar" listesi bu yüzden
-  // hangi kategoride/aramada olursan ol HER ZAMAN aynı sırada durur.
-  function brandCountsGlobal(){
-    if(EDGE_KATALOG){
-      if(!OZET || !OZET.markalar){ return {}; }
-      var out = {};
-      Object.keys(OZET.markalar).forEach(function(k){
-        var kat = OZET.markalar[k];
-        Object.keys(kat).forEach(function(b){
-          var kk = markaKatla(b);
-          out[kk] = (out[kk] || 0) + kat[b];
-        });
-      });
-      return out;
-    }
-    var counts = {};
-    PRODUCTS.forEach(function(p){
-      var gorulen = {};
-      (p.marka || []).forEach(function(b){
-        var k = markaKatla(b);
-        if(gorulen[k]){ return; }
-        gorulen[k] = true;
-        counts[k] = (counts[k] || 0) + 1;
-      });
-    });
-    return counts;
-  }
-  function sortedBrandsGlobal(){
-    var counts = brandCountsGlobal();
-    return Object.keys(counts).filter(taninmisMarkaMi).sort(function(a, b){
-      if(counts[b] !== counts[a]){ return counts[b] - counts[a]; }
-      return a.localeCompare(b, "tr");
-    });
-  }
-  function renderBrandSidebar(){
-    var el = document.getElementById("brandSidebarChips");
-    if(!el){ return; }
-    el.innerHTML = "";
-    var brands = sortedBrandsGlobal().slice(0, MARKA_LIMIT);
-    brands.forEach(function(m){
-      var slug = (window.PRUVO_MARKA_SLUG || {})[m];
-      var aktif = (m === activeBrand);
-      if(slug){
-        var a = document.createElement("a");
-        a.className = "side-brand-link" + (aktif ? " active" : "");
-        a.textContent = m;
-        a.href = "/marka/" + slug + "/";
-        el.appendChild(a);
-        return;
-      }
-      var b = document.createElement("button");
-      b.className = "side-brand-link" + (aktif ? " active" : "");
-      b.textContent = m;
-      b.onclick = function(){
-        activeBrand = m; resetPaging(); syncUrl(); renderBrands();
-        closeDrawers();
-        if(EDGE_KATALOG){ edgeTazele(); return; }
-        renderGrid();
-      };
-      el.appendChild(b);
-    });
   }
 
   function renderCats(){
@@ -2666,22 +2581,16 @@
   }, {passive:true});
   topBtn.onclick = function(){ window.scrollTo({top:0, behavior:"smooth"}); };
 
-  // ---------- SABİT SOL/SAĞ NAV ÇEKMECESİ (dar ekran) ----------
+  // ---------- SABİT SOL NAV ÇEKMECESİ (dar ekran) ----------
   function closeDrawers(){
     document.getElementById("catSidebar").classList.remove("drawer-open");
-    document.getElementById("brandSidebar").classList.remove("drawer-open");
     document.getElementById("navOverlay").classList.remove("open");
   }
   document.getElementById("catDrawerToggle").onclick = function(){
     document.getElementById("catSidebar").classList.add("drawer-open");
     document.getElementById("navOverlay").classList.add("open");
   };
-  document.getElementById("brandDrawerToggle").onclick = function(){
-    document.getElementById("brandSidebar").classList.add("drawer-open");
-    document.getElementById("navOverlay").classList.add("open");
-  };
   document.getElementById("catSidebarClose").onclick = closeDrawers;
-  document.getElementById("brandSidebarClose").onclick = closeDrawers;
   document.getElementById("navOverlay").onclick = closeDrawers;
 
   // ---------- SEPET OLAYLARI ----------
