@@ -23,8 +23,27 @@ DOĞRULAMA (sessiz-yükleme kalkanı — put_object çağrısı REFAKTÖR EDİLM
   R4 Upload SONRASI head_object readback (fail-closed): R2'deki ContentLength == yerel boyut değilse RAISE
      → kısmi / başarısız PUT (R2 boyutu != yerel boyut) yakalanır.
   Piksel-decode DOĞRULANMAZ; yerelde önceden kesilmiş ama magic-geçerli dosya yakalanmaz.
+
+  R5 SİLME sonrası BAĞIMSIZ varlık doğrulaması (`sil_ve_dogrula`, fail-closed) →
+     aşağıdaki "SESSİZ SİLME" notuna bak. Silme aracının kendi "başarılı" beyanına ASLA güvenilmez.
+
+🔴 SESSİZ SİLME SINIFI (30 Tem 2026'da ÖLÇÜLDÜ, tahmin değil — `pruvo-ozel` kovasında üretildi):
+  R2 nesne okuma ucu Cloudflare kenar ÖNBELLEĞİ arkasındadır (ölçüm: aynı cevapta
+  `CF-Cache-Status: HIT`). Bir nesnenin gövdesi bir kez okunduktan sonra:
+    · `delete` çağrısı BAŞARILI döner ve nesne origin'de GERÇEKTEN silinir,
+    · ama sonraki okumalar ÖNBELLEKTEN eski gövdeyi 200 ile vermeye devam eder (7+ dakika ölçüldü),
+    · istemci tarafı `Cache-Control: no-cache` bunu DELMEZ; sorgu parametresi ile önbellek
+      kırma da imkânsızdır (uç, sorgu dizesini anahtarın parçası sayıp 404 verir).
+  ⇒ "Sildim ama duruyor" teşhisi YANLIŞTIR: silme değil DOĞRULAMA sessizce hatalıdır.
+  İki ayrı sessiz-başarı sinyali daha ölçüldü, ikisi de hiçbir bilgi taşımaz:
+    · `wrangler r2 object delete` HİÇ VAR OLMAMIŞ anahtar için de RC=0 + "Delete complete." basar.
+    · `wrangler r2 object get` anahtar YOKKEN bile `--file` hedefini 0 baytla OLUŞTURUR (RC=1) →
+      "dosya var mı" diye bakan doğrulama SAHTE POZİTİF verir. Varlık testi BOYUTA bakmalıdır.
+  Bu yüzden R5 varlığı BAĞIMSIZ bir sonda (`var_mi`) ile ölçer ve hâlâ varsa KIRMIZI yanar;
+  önbellekten gelen bayat "hâlâ var" cevabı da KIRMIZI üretir — yön bilinçli fail-closed'dır
+  (sahte YEŞİL "silindi" demektense sahte KIRMIZI ile durmak yeğlenir).
 """
-import sys, os, json, boto3
+import sys, os, json, time, boto3
 
 CFG_PATH = os.path.join(os.path.dirname(__file__), "..", ".r2-credentials.json")
 
@@ -97,6 +116,59 @@ def readback_dogrula(s3, bucket, key, yerel_boyut):
             "R4 red: readback boyut uyusmuyor: yerel %s, R2 %s — yukleme eksik/kismi PUT"
             % (yerel_boyut, r2_len)
         )
+
+
+def s3_var_mi(s3, bucket):
+    """boto3 istemcisinden R5 için varlık sondası üretir: var_mi(key) -> bool.
+
+    head_object 404/NoSuchKey/ClientError(404) → YOK; başarı → VAR. Başka hata TÜRLERİ
+    (yetki, ağ) YUTULMAZ, yukarı fırlar: "yetkim yok" ile "nesne yok" karıştırılırsa
+    silme doğrulaması sessizce fail-open olur."""
+    def var_mi(key):
+        try:
+            s3.head_object(Bucket=bucket, Key=key)
+            return True
+        except Exception as exc:
+            kod = getattr(exc, "response", {}).get("Error", {}).get("Code", "")
+            durum = (getattr(exc, "response", {})
+                     .get("ResponseMetadata", {}).get("HTTPStatusCode"))
+            if str(kod) in ("404", "NoSuchKey", "NotFound") or durum == 404:
+                return False
+            raise
+    return var_mi
+
+
+def sil_ve_dogrula(key, var_mi, sil, dene=3, bekle=None, aralik=(2.0, 5.0)):
+    """R5: SİL → sonra BAĞIMSIZ olarak yokluğunu DOĞRULA. Fail-closed.
+
+    Silme aracının çıkış kodu / "Delete complete." mesajı KABUL DELİLİ DEĞİLDİR
+    (modül docstring'indeki SESSİZ SİLME notu: olmayan anahtar için de başarı basılır).
+    Kabul yalnızca `var_mi(key)` silmeden SONRA False dönerse verilir.
+
+    Bağımlılıklar ENJEKTE edilir → nöbetçi/kabul testi AĞSIZ koşar ve gerçek silme
+    yolu (boto3 ya da wrangler) hangisi olursa olsun aynı kapı kullanılır:
+      var_mi(key) -> bool     bağımsız varlık sondası (bkz. s3_var_mi)
+      sil(key)    -> None     asıl silme çağrısı (delete_object / wrangler delete)
+
+    Dönüş: "zaten-yoktu" | "silindi-dogrulandi".
+    RAISE: silmeden sonra nesne HÂLÂ görünüyorsa (bütçe dolunca) → KIRMIZI.
+    """
+    bekle = bekle or time.sleep
+    if not var_mi(key):
+        # Silme ÇAĞRILMAZ: "silindi" demek yanlış olurdu (olmayan anahtarın silinmesi
+        # de başarı raporlar; sahte başarıyı kaynağında keseriz).
+        return "zaten-yoktu"
+    sil(key)
+    for i in range(dene):
+        if i:
+            bekle(aralik[min(i - 1, len(aralik) - 1)])
+        if not var_mi(key):
+            return "silindi-dogrulandi"
+    raise ValueError(
+        "R5 red: %s SILINDI DENDI ama %d bagimsiz kontrolde de HALA VAR — silme "
+        "uygulanmadi YA DA okuma bayat onbellekten geliyor (bkz. SESSIZ SILME notu). "
+        "Kaynak dogrulanmadan 'silindi' RAPORLANMAZ." % (key, dene)
+    )
 
 
 def dogrula_ve_yukle(s3, bucket, key, data):
