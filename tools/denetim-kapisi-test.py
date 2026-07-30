@@ -413,6 +413,252 @@ check("MW ama satin-alma -> lisans MUAF",
       lis({"kaynak": "MakerWorld", "link": "https://makerworld.com/x", "tur": "satin-alma"}) is None)
 
 
+# =============================================================================
+# KAPI 7 — MARIN FIYAT TABANI (kapsam KILITLI) + KAPI 8 — URETIM-SURECI IFSASI
+# TEK KAYNAK: /Users/okan/dev/pruvo-hasat/kalibrasyon/POLITIKA-KARARLARI.md (30 Tem DUZELTME)
+# =============================================================================
+def uf(kategori, fiyat, **over):
+    """fiyat kapisi fikstoru."""
+    u = {"id": "f-%s-%s" % (kategori, fiyat), "kategori": kategori, "baslik": "parca",
+         "aciklama": "parca. " + OLCU, "fiyat": fiyat, "marka": [], "gorseller": ["x.jpg"]}
+    u.update(over)
+    return u
+
+
+def fiyat_kirmizi(u):
+    return dk.kapi_fiyat(u)[0] is not None
+
+
+# --- ONCE-KIRMIZI: taban-alti MARIN fiyati kapidan sonra KIRMIZI -----------------------
+check("ONCE-KIRMIZI: Marin 100 TL -> ihlal", fiyat_kirmizi(uf("Marin", "100 TL")))
+check("ONCE-KIRMIZI: Marin 150 TL -> ihlal", fiyat_kirmizi(uf("Marin", "150 TL")))
+check("ONCE-KIRMIZI: Marin 199 TL -> ihlal", fiyat_kirmizi(uf("Marin", "199 TL")))
+# bucket kurali ONERISI ihlal mesajinda gorunur (170 -> [150,200) -> 300 TL)
+check("Marin 170 TL ihlal mesaji kademeli hedefi (300) onerir",
+      "300 TL olmali" in dk.kapi_fiyat(uf("Marin", "170 TL"))[1])
+check("Marin 100 TL ihlal mesaji kademeli hedefi (200) onerir",
+      "200 TL olmali" in dk.kapi_fiyat(uf("Marin", "100 TL"))[1])
+# taban ve uzeri GECER (canli Marin dagilimi: 300/350/500/600/650/900)
+for _f in ("200 TL", "300 TL", "350 TL", "500 TL", "650 TL", "1.250 TL"):
+    check("Marin %s -> gecer" % _f, not fiyat_kirmizi(uf("Marin", _f)))
+
+# --- 🔴 KAPSAM SIZMASI CURUTMESI: kural YALNIZ Marin'de. -------------------------------
+# OLCULDU (30 Tem, 14.809 urun): Marin DISINDA 200 TL alti 1.761 CANLI kayit var (100 TL'de
+# 65). Kapsam sizarsa hepsi sessizce kirmizi yanar = urun akisi durur (commit 68837f62 hatasi).
+for _kat in ("Otomobil", "Motosiklet", "Bisiklet", "Ev", "Elektronik", "Dekorasyon", "Tamirat"):
+    check("KAPSAM: %s 100 TL -> YESIL (kural bu kategoride YOK)" % _kat,
+          not fiyat_kirmizi(uf(_kat, "100 TL")))
+    check("KAPSAM: %s 150 TL -> YESIL" % _kat, not fiyat_kirmizi(uf(_kat, "150 TL")))
+# MUTASYON: kapsam Otomobil'e GENISLETILIRSE ayni fikstur KIRMIZI olmali -> fikstur
+# gercekten kapsam eksenini ayirt ediyor (bayat/yalanci yesil DEGIL).
+_eski_kapsam = dk.FIYAT_KAPSAM_KATEGORI
+dk.FIYAT_KAPSAM_KATEGORI = "Otomobil"
+check("MUT-KAPSAM: kapsam Otomobil'e genisleyince Otomobil 100 TL KIRMIZI (fikstur ayirt ediyor)",
+      fiyat_kirmizi(uf("Otomobil", "100 TL")))
+dk.FIYAT_KAPSAM_KATEGORI = _eski_kapsam
+check("MUT-KAPSAM geri alindi: Otomobil 100 TL yine YESIL",
+      not fiyat_kirmizi(uf("Otomobil", "100 TL")))
+
+# --- parametrik/SARI seri: fiyat BOS dogru; taban kurali onlari VURMAZ -----------------
+check("parametrik (Jenerator, fiyat BOS) -> YESIL",
+      not fiyat_kirmizi(uf("Jeneratör", "", parametrik=True)))
+check("parametrik (Marin kategorisinde, fiyat BOS) -> YESIL",
+      not fiyat_kirmizi(uf("Marin", "", parametrik=True)))
+check("Marin fiyat BOS ama parametrik DEGIL -> ihlal (fail-closed)",
+      fiyat_kirmizi(uf("Marin", "")))
+check("Marin fiyat ayristirilamaz -> ihlal (fail-closed)",
+      fiyat_kirmizi(uf("Marin", "sorunuz")))
+
+# --- OZEL-FORMAT NITELEYICILER KORUNUR (canli katalogda 2 kayit) -----------------------
+check("ozel format '500 TL/adel' -> 500 olarak ayristirilir", dk._fiyat_sayi("500 TL/adel") == 500)
+check("ozel format '500 TL (30 cm)' -> 500", dk._fiyat_sayi("500 TL (30 cm)") == 500)
+check("ozel format Marin'de de YESIL (niteleyici kuyrugu kapiyi bozmaz)",
+      not fiyat_kirmizi(uf("Marin", "500 TL/adel"))
+      and not fiyat_kirmizi(uf("Marin", "500 TL (30 cm)")))
+check("binlik ayirici '1.250 TL' -> 1250", dk._fiyat_sayi("1.250 TL") == 1250)
+
+# --- bucket kurali (POLITIKA-KARARLARI.md) --------------------------------------------
+for _n, _h in ((100, 200), (149, 200), (150, 300), (170, 300), (199, 300),
+               (200, 350), (249, 350), (250, 500), (450, 500), (499, 500)):
+    check("kademeli_hedef(%d) == %d" % (_n, _h), dk.kademeli_hedef(_n) == _h)
+check("kademeli_hedef(500) dokunulmaz", dk.kademeli_hedef(500) == 500)
+check("kademeli_hedef(900) dokunulmaz", dk.kademeli_hedef(900) == 900)
+
+
+# --- KAPI 8: URETIM-SURECI IFSASI -----------------------------------------------------
+def ifsa(metin, baslik="Parca"):
+    return dk.kapi_ifsa({"baslik": baslik, "aciklama": metin, "marka": []})
+
+
+def sert_mi(metin, baslik="Parca"):
+    return len(ifsa(metin, baslik)["sert"]) > 0
+
+
+def uyari_mi(metin, baslik="Parca"):
+    return len(ifsa(metin, baslik)["uyari"]) > 0
+
+
+# ONCE-KIRMIZI: uretim-sureci ifsali sahte urun -> KIRMIZI (kesin-yasak sinif)
+check("ONCE-KIRMIZI ifsa: '%100 dolgu orani onerilir'", sert_mi("- %100 dolgu oranı önerilir."))
+check("ONCE-KIRMIZI ifsa: 'PETG ile basilmasi onerilir'", sert_mi("- PETG ile basılması önerilir."))
+check("ONCE-KIRMIZI ifsa: '0.20mm katman yuksekligi'",
+      sert_mi("- 0.20 mm katman yüksekliğiyle basılabilir."))
+check("ONCE-KIRMIZI ifsa: 'destek gerektirmeden basilabilir'",
+      sert_mi("- Destek gerektirmeden basılabilir."))
+check("ONCE-KIRMIZI ifsa: 'desteksiz basilir'", sert_mi("- Tek parça halinde desteksiz basılır."))
+check("ONCE-KIRMIZI ifsa: 'baski yonu'", sert_mi("- Baskı yönü dayanıklılık için önemlidir."))
+check("ONCE-KIRMIZI ifsa: 'kolay baski geometri'", sert_mi("- Kolay baskı alacak geometri."))
+check("ONCE-KIRMIZI ifsa: 'FDM veya SLA ile basilabilir'",
+      sert_mi("- FDM veya SLA ile basılabilir."))
+check("ONCE-KIRMIZI ifsa: baslikta '3D Basilabilir'",
+      sert_mi("Rüzgar göstergesi.", baslik="Yelkenli 3D Basılabilir Rüzgar Göstergesi"))
+check("ONCE-KIRMIZI ifsa: 'baskiya uygun'", sert_mi("- Baskıya uygun biçimde hazırlanmıştır."))
+check("ONCE-KIRMIZI ifsa: 'dilimleme sirasinda'", sert_mi("- Sol taraf için dilimleme sırasında aynalanabilir."))
+check("ONCE-KIRMIZI ifsa: 'nozul CAPI' (0,4 mm nozul)", sert_mi("- PLA ile 0,4 mm nozul için tasarlanmıştır."))
+check("ONCE-KIRMIZI ifsa: '3 parcali basim'",
+      sert_mi("- Üç parça halinde basılıp yapıştırılır."))
+
+# ISLEV/UYUM bilgisi KORUNUR (ifsa DEGIL) -> hicbir kademe yanmaz
+for _t in ("Orijinal parçanın yerine geçer, montajı kolaydır.",
+           "Dayanıklı malzemeden özel tasarım üretimle hazırlanır.",
+           "Farklı renk seçenekleri mevcuttur.",
+           "M8 delikler 50 mm aralıklıdır (merkezden merkeze)."):
+    check("ISLEV korunur: %r" % _t[:38], not sert_mi(_t) and not uyari_mi(_t))
+
+# --- 🔴 YANLIS-POZITIF FIKSTURU (Turkce cok-anlamlilik) — HEPSI YESIL --------------
+# 1) "profesyonel destek" = KURULUMDA usta destegi (dilimleyici destegi DEGIL) — 17 canli kayit
+for _t in ("- Kolay montaj imkanı sunar, profesyonel destek gerektirmez.",
+           "- Kolay montaj imkanı sunarak profesyonel destek gerektirmeden yenileme sağlar.",
+           "Montajı son derece pratiktir, profesyonel destek gerektirmeden kolayca takılabilir."):
+    check("FP profesyonel-destek YESIL: %r" % _t[:40], not sert_mi(_t) and not uyari_mi(_t))
+# 2) "desteksiz direk" = YELKEN donanimi terimi (istralsiz direk) — 1 canli Marin kaydi
+check("FP desteksiz-direk YESIL",
+      not sert_mi("- 3 inç çaplı, desteksiz direklerde kullanılır.")
+      and not uyari_mi("- 3 inç çaplı, desteksiz direklerde kullanılır."))
+# 3) urunun HEDEF CIHAZI 3D yazici (yazici PARCASI satiyoruz) — 6 canli Elektronik/Kamera kaydi
+check("FP 3D-yazici-hedef YESIL (anakart fan tutucu)",
+      not sert_mi("Anet A6 3D yazıcının anakartını serin tutan özel üretim fan tutucu.",
+                  baslik="Anet A6 3D Yazıcı Anakart Soğutma Fanı Tutucusu"))
+check("FP 3D-yazici-hedef YESIL (baski kafasi kablo tutucu)",
+      not sert_mi("CTC 3D yazıcıların baskı kafası kablo demetini tutan üst destek.",
+                  baslik="CTC 3D Yazıcı Üst Kablo Tutucu"))
+check("FP 3D-yazici-hedef YESIL (OctoPrint baski takibi)",
+      not sert_mi("Anycubic Chiron 3D yazıcıya Raspberry Pi kamerayla baskı takibi "
+                  "(OctoPrint vb.) kurmak için özel üretim montaj seti."))
+# ... ama muafiyet KOSULLU: "yazici ILE URETILIR" = BIZIM surecimiz -> muafiyet DUSER
+check("3D-yazici muafiyeti KACAK DELIGI DEGIL: 'yazicilarla basilabilecek' -> KIRMIZI",
+      sert_mi("SLA ve FDM yazıcılarla farklı yönlerde basılabilecek şekilde tasarlanmıştır."))
+check("3D-yazici muafiyeti KACAK DELIGI DEGIL: '3D yazici ile uretilir' -> muafiyet duser",
+      dk._yazici_hedef_urun("ürün 3d yazıcı ile üretilir") is False)
+# 4) "nozul/nozzle" = OTOMOTIV parcasi (far yikama, sprey, supurge) — 9 canli kayit
+for _t in ("Far yıkama nozul kapağı; tampondaki nozul yuvasına klipslenir.",
+           "Şanzıman yağı değişim nozulu.",
+           "Sprey nozzle silecek koluna entegre olduğundan uyumludur."):
+    check("FP otomotiv-nozul YESIL: %r" % _t[:38], not sert_mi(_t))
+# 5) "SLS" = Mercedes Self-Levelling Suspension (uretim teknolojisi DEGIL)
+check("FP Mercedes-SLS YESIL", not sert_mi("Mercedes W126 SLS amortisör takoz halkası."))
+# 6) "ABS" = otomotiv fren sistemi; TEK BASINA yasak DEGIL (yalniz baski fiiliyle birlikte)
+check("FP otomotiv-ABS YESIL (tek basina)", not sert_mi("ABS fren sensörü kablo klipsi."))
+check("ABS PLASTIK + baski fiili -> KIRMIZI", sert_mi("- ABS ile basılması önerilir."))
+# 7) "dilimleme makinesi" = GIDA dilimleyici (slicer DEGIL)
+check("FP gida-dilimleme-makinesi YESIL",
+      not sert_mi("Elektrikli dilimleme makinelerinde motoru bıçağa bağlayan plastik dişli."))
+# 8) "basil-" = BASMA (press) anlami — dugme/tus baglaminda ifsa DEGIL
+for _t in ("Düğmelere yanlışlıkla basılmasını önleyen kapaktır.",
+           "Acil açma tuşuna kazara basılmasını engeller.",
+           "Korna düğmesine basılmasını önler.",
+           "Fitil yerine basılır; araçta delik açılmaz."):
+    check("FP press-anlami YESIL: %r" % _t[:38], not sert_mi(_t) and not uyari_mi(_t))
+# 9) fiziksel "destek" parcasi = urunun KENDISI
+for _t in ("Kaput destek çubuğunu yerinde tutan özel tasarım klips.",
+           "Bimini tente boru iç desteği; kırılan orijinal desteğin yerine geçer."):
+    check("FP fiziksel-destek YESIL: %r" % _t[:38], not sert_mi(_t))
+
+# --- SERT vs UYARI AYRIMI: supheli/belirsiz OTOMATIK REDDEDILMEZ ----------------------
+check("BELIRSIZ 'iki adet basilir' -> UYARI (sert DEGIL)",
+      uyari_mi("- İki adet basılır.") and not sert_mi("- İki adet basılır."))
+check("BELIRSIZ 'ek destek gerektirmez' (uretim fiili YOK) -> UYARI",
+      uyari_mi("Menteşe düz tabanlıdır, ek destek gerektirmez.")
+      and not sert_mi("Menteşe düz tabanlıdır, ek destek gerektirmez."))
+check("KESIN 'destek gerektirmeden uretilir' (uretim fiili VAR) -> SERT",
+      sert_mi("Destek gerektirmeden üretilir."))
+
+# --- MUTASYON: kapi kendini koruyor (kural listesi bosaltilirsa / no-op olursa KIRMIZI) --
+_M_DOLGU = "- %100 dolgu oranı önerilir."
+_M_BASKI = "- PETG ile basılması önerilir."
+check("mutasyon oncesi taban: dolgu SERT", sert_mi(_M_DOLGU))
+_eski_sert = dk._IFSA_SERT_RE
+dk._IFSA_SERT_RE = ()                                   # MUT: kesin-yasak listesi BOSALTILDI
+check("MUT-BOS-LISTE: kural listesi bosalinca dolgu ifsasi KACAR (liste yuk tasiyor)",
+      not sert_mi(_M_DOLGU))
+dk._IFSA_SERT_RE = _eski_sert
+check("MUT-BOS-LISTE geri alindi: dolgu yine SERT", sert_mi(_M_DOLGU))
+
+_eski_tok = dk._SUREC_TOKEN_RE
+dk._SUREC_TOKEN_RE = _re.compile(r"(?!x)x")             # MUT: konjonksiyon jetonu no-op
+check("MUT-NOOP-JETON: surec jetonu no-op olunca 'PETG ile basilmasi' SERT'ten duser",
+      not sert_mi(_M_BASKI))
+dk._SUREC_TOKEN_RE = _eski_tok
+check("MUT-NOOP-JETON geri alindi: yine SERT", sert_mi(_M_BASKI))
+
+_eski_muaf = dk._IFSA_MUAF_RE
+dk._IFSA_MUAF_RE = ()                                   # MUT: muaf listesi bosaltildi
+check("MUT-BOS-MUAF: muaf listesi bosalinca 'profesyonel destek' YANLIS yakalanir "
+      "(muaf listesi yuk tasiyor)",
+      uyari_mi("- Kolay montaj imkanı sunar, profesyonel destek gerektirmez."))
+dk._IFSA_MUAF_RE = _eski_muaf
+check("MUT-BOS-MUAF geri alindi: 'profesyonel destek' yine YESIL",
+      not uyari_mi("- Kolay montaj imkanı sunar, profesyonel destek gerektirmez."))
+
+
+# --- GERCEK-VERI NOBETCISI: canli katalogda kapsam/FP regresyonu ----------------------
+# (a) Marin DISI 200 TL alti CANLI kayitlarin HICBIRI kirmizi yanmamali (kapsam sizmasi).
+# (b) Olculmus 24 yanlis-pozitif kaydin hepsi YESIL kalmali (desen kaymasi nobetcisi).
+_FP_IDLER = [
+    "bmw-i3-safedrive-ekran-tutucu-aparat", "bmw-koltuk-klipsi-52-10-1-945-442",
+    "bmw-m2-ve-uyumlu-modeller-i-in-debriyaj-pedal-stoperi",
+    "fiat-ducato-i-far-anahtar-montaj-yuvas",
+    "fiat-ducato-peugeot-boxer-citroen-jumper-usb-montaj-aparat",
+    "opel-vivaro-d-rtl-fla-r-d-me-kapa", "peugeot-206-anahtar-tu-tak-m",
+    "peugeot-307sw-uyumlu-d-eme-ve-panel-klipsi", "skoda-octavia-kol-ak-kilidi",
+    "skoda-superb-orijinal-telefon-tutucu-d-n-t-r-c-aparat",
+    "toyota-4runner-3-nesil-arka-k-ll-k-i-ptal-ve-usb-panel-brake",
+    "toyota-koltuk-is-tma-d-mesi-er-evesi", "toyota-mr2-sw20-k-ll-k-kapa-ve-telefon-tutucu",
+    "toyota-switch-panel-adapt-r", "volkswagen-t4-tavan-d-emesi-klipsi",
+    "volvo-740-sinyal-kolu-uzat-c-aparat", "volvo-xc60-havaland-rma-izgaras-y-nlendirme-klipsi",
+    "yelkenli-yelken-baglama-halkasi",
+    "anet-a6-anakart-sogutma-fan-tutucu", "ctc-yazici-ust-kablo-tutucu",
+    "gt2-20-dis-tahrik-kasnagi-nema17", "porsche-turbo-logolu-step-motor-ve-qr-kod-kapa",
+    "raspberry-pi-kamera-mount-anet-a8", "raspberry-pi-kamera-mount-chiron",
+]
+if isinstance(_canli, list):
+    _idx = {u.get("id"): u for u in _canli if isinstance(u, dict)}
+    _kapsam_kacan = [u.get("id") for u in _canli
+                     if isinstance(u, dict) and u.get("kategori") != "Marin"
+                     and dk.kapi_fiyat(u)[0] is not None]
+    check("gercek-veri: Marin DISI hicbir canli kayit fiyat kapisina takilmiyor (kapsam kilidi)",
+          len(_kapsam_kacan) == 0)
+    if _kapsam_kacan:
+        print("KAPSAM SIZMASI (%d): %s" % (len(_kapsam_kacan), ", ".join(_kapsam_kacan[:20])),
+              file=sys.stderr)
+    _marin_kacan = [u.get("id") for u in _canli
+                    if isinstance(u, dict) and u.get("kategori") == "Marin"
+                    and dk.kapi_fiyat(u)[0] is not None]
+    check("gercek-veri: canli Marin kayitlarinin hicbiri taban-alti degil", len(_marin_kacan) == 0)
+    if _marin_kacan:
+        print("MARIN TABAN-ALTI (%d): %s" % (len(_marin_kacan), ", ".join(_marin_kacan[:20])),
+              file=sys.stderr)
+    _fp_bulunan = [i for i in _FP_IDLER if i in _idx]
+    check("gercek-veri: FP nobetci kumesi >=20 kayit bulundu", len(_fp_bulunan) >= 20)
+    _fp_kirmizi = [i for i in _fp_bulunan if dk.kapi_ifsa(_idx[i])["sert"]]
+    check("gercek-veri: olculmus 24 yanlis-pozitif kaydin hicbiri SERT yanmiyor",
+          len(_fp_kirmizi) == 0)
+    if _fp_kirmizi:
+        print("FP REGRESYONU (%d): %s" % (len(_fp_kirmizi), ", ".join(_fp_kirmizi)), file=sys.stderr)
+    print("KAPI 7/8 gercek-veri: %d urun, kapsam-sizmasi %d, marin-taban-alti %d, FP-regresyon %d"
+          % (len(_canli), len(_kapsam_kacan), len(_marin_kacan), len(_fp_kirmizi)))
+
+
 if FAILS:
     print("\n%d KONTROL KALDI" % len(FAILS), file=sys.stderr)
     sys.exit(1)
