@@ -6,6 +6,26 @@
  *   node shop/test/kabul.js             # 1,2,3,4m,5,6,7 — mock iyzico + YEREL D1 + gercek worker
  *   node shop/test/kabul.js --sandbox   # 4  — GERCEK iyzico sandbox'i (shop/.dev.vars anahtarlari)
  *   node shop/test/kabul.js --paritesiz # 7'yi (parite regresyonlari) atla — hizli gelistirme turu
+ *   node shop/test/kabul.js --sema-paritesi   # DETERMINISTIK ALT KUME (CI'da BLOKLAYICI)
+ *
+ * 🔴 TESTIN IKIYE AYRILMASI (2026-07-31, OLCULDU — bu suite CI'ya bu yuzden BU SEKILDE
+ * baglandi). Suite'in tamami CI'ya BLOKLAYICI baglanamaz, cunku iki bagimsiz
+ * NON-DETERMINIZM kaynagi tasir:
+ *   1) test 7 (parite regresyonlari) CANLI uca (`/ara`, Cloudflare Worker + D1) vurur ve
+ *      YEREL urunler.json ile karsilastirir. Katalog dakikalar icinde degisir (baska
+ *      oturumlar urun ekler), D1 senkronu push'a baglidir -> sorgu SAYISI bile kosumdan
+ *      kosuma kayar (olculdu: 841 vs onceki turda 843). Ayni kod, ayni an, farkli sonuc.
+ *   2) test 1..25 `wrangler dev --local` + `npx wrangler@4` indirmesi ister (ag + port +
+ *      workerd); CI build job'unda port/ag/ikili garantisi yoktur.
+ * Kararsiz bir suite'i bloklayici baglamak TUM mimarlarin yayinini RASTGELE kirar
+ * ([[kapi-kapsam-eksen-secimi]]). O yuzden:
+ *   * DETERMINISTIK ALT KUME (`--sema-paritesi`): sema kapsami (9a) + sunucu-tarafi sari
+ *     fiyat cekirdegi (9b) + sari seri fail-closed nobeti (26). AG YOK · WRANGLER YOK ·
+ *     D1 YOK · CANLI UC YOK -> ayni girdide daima ayni sonuc. deploy.yml'de
+ *     `continue-on-error`SUZ BLOKLAYICI kosar.
+ *   * NON-DETERMINISTIK KUME (bayraksiz tam kosum, test 7 dahil): CI'ya BAGLANMAZ; yerelde
+ *     ve merge kapisinda elle kosulur. "Bayat kirmizi" diye SUSTURULMADI — ayri kume
+ *     olarak DURUYOR ve tam kosumda hala kirmizi yanabilir.
  *
  * NASIL: worker'in KENDISI (shop/src) `wrangler dev --local`de kosturulur; iyzico ve Telegram
  * bu dosyanin icindeki mock HTTP sunucusuna yonlendirilir (IYZICO_BASE_URL/TELEGRAM_API
@@ -59,6 +79,9 @@ function specKdv(brutKurus) {
 
 const SANDBOX = process.argv.includes("--sandbox");
 const PARITESIZ = process.argv.includes("--paritesiz");
+// DETERMINISTIK ALT KUME (CI'da bloklayici) — gerekce dosya basindaki "TESTIN IKIYE
+// AYRILMASI" blogunda. Bu kolda worker/mock/D1/ag HIC baslatilmaz.
+const SEMA_PARITESI = process.argv.includes("--sema-paritesi");
 
 const AYAR = JSON.parse(fs.readFileSync(path.join(SHOP, "config.json"), "utf8"));
 // Test 1'in beklentisi TEK KAYNAKTAN (/secenekler.js) turetilir: worker'in fiyat kurali
@@ -638,8 +661,11 @@ async function test8KatsayiDogrulugu() {
  *      fiyatiyla birebir ayni cikar; aralik/bilinmeyen parametre reddedilir,
  *   c) worker bundle'i JSON semalar + hacim.js + konfigurator.js ile GERCEKTEN kurulabiliyor
  *      (dry-run deploy) — import zinciri ancak canliya cikarken patlamasin. */
-async function test9ParametrikAltyapi() {
+async function test9ParametrikAltyapi(secenekler) {
   const hatalar = [];
+  // (c) `npx wrangler@4 deploy --dry-run` AG + IKILI INDIRME ister -> deterministik alt
+  // kumede ATLANIR (bkz. dosya basi "TESTIN IKIYE AYRILMASI"). Tam kosumda hep koşar.
+  const bundleDeneme = !(secenekler && secenekler.bundlesiz);
 
   // (a) sema kapsami — semalar.js'teki import yollari ile dizin birebir mi?
   const semaKaynak = fs.readFileSync(path.join(SHOP, "src", "semalar.js"), "utf8");
@@ -703,19 +729,116 @@ async function test9ParametrikAltyapi() {
   if (r4.hata !== "parametre-yok") { hatalar.push("parametresiz: " + JSON.stringify(r4)); }
 
   // (c) bundle gercekten kuruluyor mu? (JSON import + konfigurator/hacim zinciri)
-  const dry = spawnSync("npx", ["--yes", "wrangler@4", "deploy", "--dry-run",
-    "--outdir", path.join(SHOP, ".wrangler", "dry")], { cwd: SHOP, encoding: "utf8" });
-  const dryOk = dry.status === 0;
-  if (!dryOk) {
-    hatalar.push("wrangler dry-run BASARISIZ: " + ((dry.stderr || "") + (dry.stdout || "")).slice(-400));
+  let dryOk = null;
+  if (bundleDeneme) {
+    const dry = spawnSync("npx", ["--yes", "wrangler@4", "deploy", "--dry-run",
+      "--outdir", path.join(SHOP, ".wrangler", "dry")], { cwd: SHOP, encoding: "utf8" });
+    dryOk = dry.status === 0;
+    if (!dryOk) {
+      hatalar.push("wrangler dry-run BASARISIZ: " + ((dry.stderr || "") + (dry.stdout || "")).slice(-400));
+    }
   }
 
   rapor("9 parametrik altyapi (kanal ACIK; hesap tek kaynak sunucuda)", hatalar.length === 0,
     "sema kapsami " + listelenen.size + "/" + dizin.size + "; sunucu yeniden hesap=" +
     (sonuc.hata ? "HATA" : kurusMetin(sonuc.birimKurus) + " (istemcinin sahte hacim=1/fiyat=1 " +
      "YOK SAYILDI, konfiguratorle birebir)") + "; red yollari: aralik/bilinmeyen/taban-yok/" +
-    "parametresiz OK; bundle dry-run=" + (dryOk ? "kuruldu" : "PATLADI") +
+    "parametresiz OK; bundle dry-run=" +
+    (dryOk === null ? "ATLANDI (ag/npx — non-deterministik kume)"
+                    : (dryOk ? "kuruldu" : "PATLADI")) +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 26 — SARI SERI FAIL-CLOSED NOBETI (para ekseni, DETERMINISTIK — ag/wrangler YOK).
+ *
+ *  IDDIA: sema ya da kaydi EKSIK/BOZUK olan bir sari (parametrik) urun ASLA sessiz
+ *  varsayilana ya da 0 TL'ye DUSMEZ — her yol acik bir `hata` kodu dondurur ve
+ *  shop/src/index.js o kodu 400 + "WhatsApp'tan teklif alin" kanalina cevirir.
+ *
+ *  NEDEN AYRI TEST: test 9 "gecerli sema dogru fiyati uretiyor mu" (POZITIF) sorusunu
+ *  olcer. Tek yon = olu nobetci: hepsini reddeden bir kod da, hicbir seyi reddetmeyen bir
+ *  kod da 9'u gecebilirdi. Bu test NEGATIF yonu ayri ayri olcer ve her vakada iki sey
+ *  birden iddia eder: (1) `hata` alani DOLU, (2) `birimKurus` YOK (0 dahil hicbir sayi).
+ *
+ *  OLCULEN MEVCUT DAVRANIS (2026-07-31): 1..6 zaten fail-closed'di; 7/8 ise TypeError
+ *  FIRLATIYORDU (Worker'da siniflandirilmamis 500; para riski yok ama musteri fail-closed
+ *  400/WhatsApp mesajini gormuyordu) -> parametrik.js'e `sema-bozuk` kolu eklendi. */
+async function test26SariFailClosed() {
+  const hatalar = [];
+  const PAR = await import("file://" + path.join(SHOP, "src", "parametrik.js"));
+  const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
+  const sema = JSON.parse(fs.readFileSync(
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
+  const vd = KONF.varsayilanDegerler(sema);
+  const kalem = () => ({ id: sema.id, malzeme: "PLA", renk: "Siyah",
+                         parametreler: JSON.parse(JSON.stringify(vd)), adet: 1 });
+
+  // Her vaka: [ad, sema, kalem-degisikligi, beklenen hata kodu]
+  const vakalar = [
+    ["N1 sema YOK (semalar.js listesi bayat/eksik)", undefined, null, "sema-yok"],
+    ["N2 sema null", null, null, "sema-yok"],
+    ["N3 tabanFiyatTL null (kayit eksik)", Object.assign({}, sema, { tabanFiyatTL: null }),
+     null, "taban-fiyat-yok"],
+    ["N4 tabanFiyatTL 0 (0 TL'ye DUSMEZ)", Object.assign({}, sema, { tabanFiyatTL: 0 }),
+     null, "taban-fiyat-yok"],
+    ["N5 tabanHacimMm3 yok", Object.assign({}, sema, { tabanHacimMm3: undefined }),
+     null, "taban-fiyat-yok"],
+    ["N6 tabanHacimMm3 0 (sifira bolme/NaN yok)", Object.assign({}, sema, { tabanHacimMm3: 0 }),
+     null, "taban-fiyat-yok"],
+    ["N7 sema.parametreler alani YOK (bozuk kayit)",
+     Object.assign({}, sema, { parametreler: undefined }), null, "sema-bozuk"],
+    ["N8 sema.parametreler dizi degil", Object.assign({}, sema, { parametreler: {} }),
+     null, "sema-bozuk"],
+    ["N9 sema tumuyle bos obje", {}, null, "sema-bozuk"],
+    ["N10 kalem.parametreler yok", sema, { parametreler: null }, "parametre-yok"],
+    ["N11 semada TANIMSIZ parametre gonderildi", sema,
+     { parametreler: Object.assign({ sinsi_alan: 5 }, vd) }, "bilinmeyen-parametre"],
+  ];
+  // Aralik disi vakasi ayri kurulur (ilk parametrenin adi semadan gelir).
+  const p1 = Object.keys(vd)[0];
+  const araliksiz = Object.assign({}, vd); araliksiz[p1] = 99999;
+  vakalar.push(["N12 aralik DISI olcu", sema, { parametreler: araliksiz }, "parametre-araligi"]);
+
+  for (const [ad, s, ek, beklenen] of vakalar) {
+    let r;
+    try { r = PAR.parametrikHesapla(Object.assign(kalem(), ek || {}), SECENEK, s); }
+    catch (e) { r = { FIRLATTI: String(e && e.message) }; }
+    if (!r || r.FIRLATTI) {
+      hatalar.push(ad + ": FIRLATTI (siniflandirilmamis cokme) " + (r && r.FIRLATTI));
+      continue;
+    }
+    if (r.hata !== beklenen) {
+      hatalar.push(ad + ": hata='" + r.hata + "' beklenen '" + beklenen + "'");
+    }
+    // 🔴 ASIL IDDIA: hicbir red yolundan FIYAT cikmamali (0 dahil).
+    if ("birimKurus" in r) {
+      hatalar.push(ad + ": red yolundan FIYAT dondu (birimKurus=" + r.birimKurus + ")");
+    }
+  }
+
+  // POZITIF KANARYA: nobetin "her seyi reddet" ile yesil yanmadigini kanitlar.
+  const pozitif = PAR.parametrikHesapla(kalem(), SECENEK,
+    Object.assign({}, sema, { tabanFiyatTL: 100 }));
+  if (pozitif.hata) { hatalar.push("POZITIF KANARYA reddedildi: " + pozitif.hata); }
+  else if (!(pozitif.birimKurus > 0)) {
+    hatalar.push("POZITIF KANARYA fiyat uretmedi: " + JSON.stringify(pozitif));
+  }
+
+  rapor("26 sari seri fail-closed (eksik/bozuk sema -> 0 TL YOK, sessiz varsayilan YOK)",
+    hatalar.length === 0,
+    vakalar.length + " negatif vaka + 1 pozitif kanarya (" +
+    (pozitif.hata ? "REDDEDILDI" : kurusMetin(pozitif.birimKurus)) + ")" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** DETERMINISTIK ALT KUME AKISI — `--sema-paritesi`. worker/mock/D1/ag baslatmaz. */
+async function semaParitesiAkisi() {
+  console.log("PRUVO shop — SEMA PARITESI (deterministik alt kume; ag/wrangler/D1 YOK)\n");
+  await test9ParametrikAltyapi({ bundlesiz: true });
+  await test26SariFailClosed();
+  console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
+    (kalan ? "" : " — HEPSI YESIL ✅"));
+  process.exit(kalan ? 1 : 0);
 }
 
 /** 25 — KONFIGUR KART ODEMESI (dekor konfiguratoru sunucu-tarafi yeniden hesabi).
@@ -1998,6 +2121,7 @@ async function testSandbox() {
 // ---------------------------------------------------------------- akis
 
 async function main() {
+  if (SEMA_PARITESI) { return semaParitesiAkisi(); }
   if (SANDBOX) { return testSandbox(); }
 
   console.log("PRUVO shop kabul testleri (mock iyzico + yerel D1)\n");
@@ -2041,6 +2165,7 @@ async function main() {
     await test15SozlesmeOnayi();
     await test5Parametrik();
     await test9ParametrikAltyapi();
+    await test26SariFailClosed();
     await test25KonfigurOdeme();
     await test16CallbackTutarUyusmazligi();
     await test17ParametrikSatirAyirt();

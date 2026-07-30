@@ -24,6 +24,15 @@ import HACIM from "../../jenerator/hacim.js";
 export function parametrikHesapla(kalem, secenek, sema) {
   if (!sema) { return { hata: "sema-yok" }; }
 
+  // SEMA BICIMI FAIL-CLOSED (2026-07-31, OLCULDU): `sema.parametreler` yok/dizi degilse
+  // eski kod `sema.parametreler.map` ile TypeError FIRLATIYORDU -> istisna Worker'in
+  // fetch kolundan disari cikip 500 uretiyor, `if (ph.hata)` dali HIC KOSMUYOR, yani
+  // musteri fail-closed 400 + "WhatsApp'tan teklif alin" mesajini GORMUYORDU. Para
+  // acisindan yine tahsilat YOKTU (hesap iyzico'dan ONCE patliyor) ama sinif belirsiz bir
+  // COKMEYDI. Artik ayni sinifa (acik hata kodu -> 400 -> WhatsApp) iner.
+  // DAR: yalnizca bugun ZATEN patlayan bicimleri yakalar, gecerli semayi etkilemez.
+  if (!Array.isArray(sema.parametreler)) { return { hata: "sema-bozuk" }; }
+
   const p = kalem.parametreler;
   if (!p || typeof p !== "object" || Array.isArray(p)) { return { hata: "parametre-yok" }; }
 
