@@ -1,5 +1,264 @@
 [
   {
+    "id": "olta-tutucusu-civatali-sablonlu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sablonlu Civatali Olta Tutucusu",
+    "aciklama": "Kayak veya tekne govdesine civatalarla monte edilen, delik sablonu dahil olta tutucusu.\n- M6 civata/somun ile monte edilir.\n- Delik acma sablonu dahildir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 146 x 146 x 72 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr226494-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr226494-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "SmilingImpact",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-ortusu-destek-basligi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Ortusu Destek Basligi",
+    "aciklama": "Tekne ortusunun (branda) su birikmesini onlemek icin boru veya cubuk uzerine takilan destek basligi.\n- Yaklasik 1 inc capinda boru/cubukla kullanilir.\n- Ip baglamak icin 4 delik bulunur.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2420271-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2420271-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2420271-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-kurek-tutucusu-percinli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Percinli Kayak Kuregi Tutucusu",
+    "aciklama": "Oturma tipi kayagin yan tarafina percin veya vida ile monte edilen kurek tutucusu.\n- 3/16 inc deniz tipi percinlerle uyumludur.\n- Vida ile de monte edilebilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 152 x 63 x 31 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1145968-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1145968-2.jpg"
+    ]
+  },
+  {
+    "id": "kayak-baglama-kestosu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Icin Baglama Kestosu",
+    "aciklama": "Kayak govdesine monte edilerek halat baglamaya yarayan kucuk baglama kestosu (cleat).\n- Kayak govdesine vida ile monte edilir.\n- Halat baglamak icin iki cikintili yapiya sahiptir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dbidibull14-2-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bidibull14",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "yelken-hatti-kestosu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelken Hatti Kilitleme Kestosu",
+    "aciklama": "Yelken hattini (leech line) istenen gerginlikte kilitlemeye yarayan kesto.\n- Iki V yuvasi ile hatti sikica tutar.\n- Percin veya dikisle sabitlenebilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 56 x 34 x 12 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr553116-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr553116-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr553116-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Torpi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "boru-montajli-kesto",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Boru Montajli Halat Kestosu",
+    "aciklama": "Yuvarlak boru uzerine kelepce ile sabitlenen, halat kilitlemeye yarayan kesto.\n- 1 inc capli paslanmaz boruyla uyumludur.\n- Hortum kelepcesi ile sabitlenir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1521147-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1521147-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1521147-3.jpg"
+    ]
+  },
+  {
+    "id": "tekne-yakit-kapagi-anahtari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Yakit Kapagi Acma Anahtari",
+    "aciklama": "Jeanneau Merry Fisher ve benzeri teknelerin yakit kapagini acmak icin kullanilan basit anahtar.\n- Jeanneau Merry Fisher ile uyumludur.\n- Diger bazi teknelerde de calisabilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 146 x 30 x 29 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr508588-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr508588-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "V4LVE_",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-gergi-somunu-anahtari",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Gergi Somunu Anahtari",
+    "aciklama": "Yelkenli donaniminda gergi somunlarini (turnbuckle) sikmak/gevsetmek icin kullanilan ozel anahtar.\n- Metal yuzeyi cizmeden sikma saglar.\n- Elle kavramaya uygun tasarima sahiptir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw233613-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw233613-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw233613-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "versatrack-trolling-motor-destegi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "VersaTrack Sistemi Icin Trolling Motor Destegi",
+    "aciklama": "VersaTrack ray sistemine sahip teknelerde pruva-montajli trolling motoru desteklemek icin kullanilan parca.\n- VersaTrack ray sistemiyle uyumludur.\n- 1/4-20 paslanmaz civata ile monte edilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1220430-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1220430-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "bardaklik-tahliye-tapasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Bardaklik Tahliye Tapasi",
+    "aciklama": "Tekne bardakliginda biriken suyu tahliye etmek icin kullanilan delikli tapa.\n- 3/8 inc tahliye hortumuyla kullanilir.\n- Sizdirmazlik icin macun ile monte edilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw24212-1.jpg"
+    ]
+  },
+  {
+    "id": "old-town-kayak-garmin-transduser-montaji",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Old Town Kayak Icin Garmin Transduser Montaj Parcasi",
+    "aciklama": "Old Town Sportsman kayaklara transom-tipi Garmin Strike transduserini monte etmek icin kullanilan tek parcali aparat.\n- Old Town Sportsman kayak serisiyle uyumludur.\n- Transom-tipi transduser ile kullanilir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 102 x 52 x 47 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr218648-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "lowrizzle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "olta-tutucusu-kazik-agir-hizmet",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Agir Hizmet Tipi Kazikli Olta Tutucusu",
+    "aciklama": "Kiyi veya bank balikciliginda zemine saplanarak kullanilan saglam yapili olta kamisi kaziği.\n- Zemine saplanarak kullanilir.\n- Dayanikli kalin govde yapisina sahiptir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 225 x 40 x 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr972889-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "KiLLiE",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-kapak-cekme-tutamagi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Ambar Kapagi Cekme Tutamagi",
+    "aciklama": "Bas tekne (bass boat) ambar kapaklarinda kullanilan, kapagi kolayca acmayi saglayan gomme tutamak.\n- 2 inc capli delige gore olculendirilmistir.\n- Farkli boyutlara gore olceklenebilir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw230396-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw230396-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "samandira-bayrak-direk-tabani",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Samandira Icin Bayrak Diregi Tabani",
+    "aciklama": "Dalis/isaret samandirasina bayrak diregi eklemek icin kullanilan taban parcasi.\n- 16.1mm capinda bayrak borusu deligi bulunur.\n- Vida ile sabitlenir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 72 x 30 x 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3701443-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3701443-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3701443-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TATTOOAZISTAS",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "tekne-tavan-destek-baglantisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Tavani Destek Borusu Baglanti Parcasi",
+    "aciklama": "Tekne tavanini destekleyen metal boru icin kullanilan baglanti parcasi.\n- Metal destek borusuyla kullanilir.\n- Ozel olcuye gore tasarlanmistir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw475845-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw475845-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw475845-3.jpg"
+    ]
+  },
+  {
+    "id": "buz-baligi-olta-tutucusu-kucuk",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kucuk Buz Balikciligi Olta Tutucusu",
+    "aciklama": "Buz uzerinde balik avlarken kamisi sabit tutan basit tutucu.\n- 3 cm uzunlugunda delik ile uretilir.\n- Dayanikli yapiya sahiptir.\n- Tek parcadan olusur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2444723-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2444723-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2444723-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-kurek-tutucusu-30mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "30mm Kayak Kuregi Tutucusu",
+    "aciklama": "Yaklasik 30mm capindaki kayak kureklerini sikica tutan montaj braketi.\n- 30.5mm capli kurek saftlariyla uyumludur.\n- Ters cevrilse bile kuregi dusurmez.\n- Tek parcadan olusur.\nYaklasik dis olculer: 57 x 56 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr861684-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr861684-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "OneLetterLon",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "olta-tutucusu-petg",
     "kategori": "Marin",
     "marka": [],
