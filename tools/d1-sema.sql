@@ -31,6 +31,24 @@ CREATE TABLE IF NOT EXISTS urunler (
   -- KARISMAZ: hedefli UPDATE (taban_senkron_sql) ile senkronlanir (baski_senkron_sql deseni),
   -- boylece taban degisimi content-rewrite/FTS-thrash uretmez, D1 yazma limitine yuklenmez.
   taban_fiyat INTEGER NOT NULL DEFAULT 0,
+  -- KONFIGUR SEMASI (JSON metin, kanonik: sort_keys + kompakt ayirac). "Olcuye ozel dekor"
+  -- (Skan Art / *-serit-dekoratif-figur) urununun boy araligi + fiyat capalari + malzeme
+  -- katsayilari. Bugune kadar bu veri YALNIZ Worker bundle'indaydi (shop/src/konfigurlar.js,
+  -- tools/konfigur-bundle-kapisi.py ureten artefakt) -> urun D1'e OTOMATIK (pre-push hook)
+  -- girerken sema ELLE uretilip Worker ELLE deploy edilmek zorundaydi. IKI KAYNAK = iki elle
+  -- adim; 30 Tem'de ikisi de atlandi (biri urunu karta kapali birakti, digeri CI'i durdurup
+  -- 23 urunun yayinini blokladi). Kolon o ikinci kaynagi D1'e tasir.
+  -- '' (bos) = urun konfigurlu DEGIL (katalogun ~%99,9'u) ya da konfigur verisi BOZUK
+  -- (bozukta bilerek BOSALTILIR: Worker fail-closed 400 -> WhatsApp; "siparis kaybetmek
+  -- yanlis tahsilattan iyidir" — bkz. shop/src/konfigur-beklenen.js).
+  -- KAYNAK: d1-sync.py konfigur_haritasi_d1(), urunler.json'daki "konfigur" alanindan;
+  -- dogrulama + sayi normalizasyonu konfigur-bundle-kapisi.py'nin AYNI fonksiyonlariyla
+  -- yapilir (bundle ile D1 insaatan ayrisamaz).
+  -- 🔴 HASH'e KARISMAZ (arama.urun_hash konfigur'u GORMEZ — olculdu): icerik-upsert yoluna
+  -- konsaydi konfigur degisen urunun hash'i AYNI kalir, satir yeniden yazilmaz ve D1 SESSIZCE
+  -- eskimis sema servis ederdi. Bu yuzden taban_fiyat deseni: HEDEFLI UPDATE
+  -- (konfigur_senkron_sql / konfigur_plan) — content-rewrite ve FTS thrash uretmez.
+  konfigur  TEXT NOT NULL DEFAULT '',
   hs        TEXT NOT NULL,                -- SITE aramasi (arama.py haystack — JS ile birebir)
   -- BASKI ONERISI (siparis yonetimi paketi): gizli .urun-kaynaklari.json'daki "baski"
   -- alanindan d1-sync.py DOLDURUR (public urunler.json'a YAZILMAZ — D1 ozeldir, sizinti degil).

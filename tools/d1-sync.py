@@ -21,6 +21,7 @@ SABIT bir seq verilir; ORDER BY seq DESC = katalog sirasi (en yeni ustte).
 """
 
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -31,6 +32,15 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import arama
+
+# KONFIGUR dogrulama + sayi normalizasyonu TEK KAYNAK: konfigur-bundle-kapisi.py. Ayni
+# fonksiyonlar hem Worker bundle artefaktini (shop/src/konfigurlar.js) hem D1 kolonunu
+# uretir -> iki ayna INSAATAN ayrisamaz. Modul adi tire icerdigi icin duz `import` ile
+# yuklenemez; importlib gerekir.
+_KBK_YOL = os.path.join(os.path.dirname(os.path.abspath(__file__)), "konfigur-bundle-kapisi.py")
+_kbk_spec = importlib.util.spec_from_file_location("konfigur_bundle_kapisi", _KBK_YOL)
+kbk = importlib.util.module_from_spec(_kbk_spec)
+_kbk_spec.loader.exec_module(kbk)
 
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 URUNLER = os.path.join(KOK, "urunler.json")
@@ -172,7 +182,19 @@ def urunleri_oku():
     return d
 
 
-def d1_mevcut():
+def kolon_var_mi(tablo, kolon):
+    """Canli tabloda kolon VAR mi? (PRAGMA — satir YAZMAZ, tek ucuz sorgu.)
+
+    NEDEN GEREKLI: yeni kolon canli D1'e ancak `--sema` (ALTER) kosuldugunda girer. Kolonu
+    kosulsuz SELECT'e koyarsak, --sema HENUZ kosmadan calisan bir senkron (or. pre-push
+    hook'u) "no such column" ile duser ve TUM katalog senkronu olur -> Ege bayat katalog
+    okur (sessiz satis kaybi). Kolon yoksa yalniz KONFIGUR senkronu atlanir, katalog akmaya
+    devam eder; atlama GURULTULU basilir (asagida)."""
+    r = sorgu("PRAGMA table_info(%s)" % tablo)
+    return kolon in {s["name"] for s in (r[0].get("results") or [])}
+
+
+def d1_mevcut(konfigur_kolonu=True):
     """D1'deki {id: (hash, baski)} + {id: taban_fiyat} + {id: seq} + en buyuk seq.
     baski da OKUNUR: baski senkronu (main) onu D1'dekiyle KIYASLAR — degismemisse yazmaz
     (yoksa her yerel kosum tum baski'lari yeniden yazardi).
@@ -181,16 +203,23 @@ def d1_mevcut():
     bkz. diff_plan docstring'i, "yeni" id dizide GERCEKTEN tepede mi yoksa mid-array mi
     ayirt edebilsin diye D1'deki HER satirin KENDI seq'i lazim (eskiden yalniz MAX(seq)
     okunuyordu, tek-tek satir seq'leri KAYIPTI).
+    konfigur da OKUNUR (konfigur_kolonu=True ise): konfigur senkronu (main) onu urunler.json'dan
+    turetilenle KIYASLAR — degismemisse yazmaz (taban_fiyat/baski ile AYNI desen).
     NOT: taban_fiyat kolonu --sema (GOC_KOLON ALTER) ile eklenir; bu SELECT'ten ONCE
-    --sema kosmus olmali (canli uygulama sirasi RAPOR-MIMARA.md'de)."""
-    r = sorgu("SELECT id, hash, baski, taban_fiyat, seq FROM urunler")
+    --sema kosmus olmali (canli uygulama sirasi RAPOR-MIMARA.md'de). konfigur kolonu icin bu
+    sart YUMUSATILDI: kolon yoksa cagiran konfigur_kolonu=False verir ve SELECT onu istemez
+    (bkz. kolon_var_mi) -> --sema unutulsa bile katalog senkronu AKMAYA DEVAM EDER."""
+    kolonlar = "id, hash, baski, taban_fiyat, seq" + (", konfigur" if konfigur_kolonu else "")
+    r = sorgu("SELECT %s FROM urunler" % kolonlar)
     satirlar = (r[0].get("results") or []) if r else []
     mevcut = {s["id"]: (s["hash"], s.get("baski") or "") for s in satirlar}
     mevcut_taban = {s["id"]: int(s.get("taban_fiyat") or 0) for s in satirlar}
     mevcut_seq = {s["id"]: s["seq"] for s in satirlar if s.get("seq") is not None}
+    mevcut_konfigur = ({s["id"]: (s.get("konfigur") or "") for s in satirlar}
+                       if konfigur_kolonu else {})
     r2 = sorgu("SELECT COALESCE(MAX(seq), 0) AS m FROM urunler")
     mseq = ((r2[0].get("results") or [{}])[0] or {}).get("m") or 0
-    return mevcut, mevcut_taban, mevcut_seq, int(mseq)
+    return mevcut, mevcut_taban, mevcut_seq, int(mseq), mevcut_konfigur
 
 
 # Sonradan eklenen kolonlar. Mevcut D1 tablosunda CREATE TABLE IF NOT EXISTS bunlari
@@ -208,6 +237,10 @@ GOC_KOLON = [
     # doldurulur. Mevcut canli tabloda CREATE atlanir -> --sema ALTER ile ekler. HASH'e
     # KARISMAZ; hedefli UPDATE (taban_senkron_sql) ile senkronlanir (baski deseni).
     ("taban_fiyat", "INTEGER NOT NULL DEFAULT 0"),
+    # KONFIGUR SEMASI (kanonik JSON metin) — urunler.json "konfigur" alanindan doldurulur.
+    # Worker bundle'inin (shop/src/konfigurlar.js) D1 ikizi; HASH'e KARISMAZ, hedefli UPDATE
+    # (konfigur_senkron_sql) ile senkronlanir. Gerekce -> d1-sema.sql konfigur kolonu yorumu.
+    ("konfigur", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 # siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
@@ -342,6 +375,130 @@ def taban_plan(urunler, tabanlar, mevcut_taban):
         if int(hedef) != int(mevcut_taban.get(uid, 0)):
             out.append(taban_senkron_sql(uid, hedef))
     return out
+
+
+# ─── KONFIGUR SEMASI (D1 feed'i — Worker bundle'inin ikizi) ──────────────────
+# NEDEN: "olcuye ozel dekor" urununun fiyat semasi (boy araligi + capalar + malzeme
+# katsayilari) IKI yerde yasiyordu: urun VERISI D1'de (otomatik, pre-push hook), SEMA
+# Worker bundle'inda (shop/src/konfigurlar.js — ELLE uretilen artefakt + ELLE deploy).
+# Iki kaynak = urun eklerken iki elle adim; 30 Tem'de ikisi de atlandi. Kolon o semayi
+# D1'e tasir; urun eklenince hook zaten senkronlar.
+#
+# 🔴 NEDEN ICERIK-UPSERT'E KONMAZ (bu paketin EN KRITIK bulgusu, olculdu):
+#   arama.urun_hash() konfigur alanini KAPSAMIYOR — yalnizca id/baslik/kategori/marka/
+#   fiyat/gorsel/parametrik/haystack/aciklama/ege alanlarini ozetler. Yani BIR URUNUN
+#   konfigur'u degisse (or. fiyat capasi 500 -> 700 TL) hash AYNI KALIR, diff_plan o urunu
+#   "degismemis" sayar ve satiri yeniden YAZMAZ. konfigur KOLONLAR listesine (ON CONFLICT
+#   UPDATE) konsaydi bu SESSIZ HATA uretirdi: D1'deki sema eskimis kalir, F4'te (Worker
+#   D1'den okumaya cevrildiginde) musteriye ESKI fiyat cikardi ve hicbir uyari olmazdi.
+#   Cozum taban_fiyat deseninin AYNISI: hash'e KARISMAZ + HEDEFLI UPDATE.
+def konfigur_haritasi_d1(urunler):
+    """urunler listesinden {id: kanonik-JSON-metin} + atlanan (bozuk) kayitlarin listesi.
+
+    Doner: (harita, atlanan)  — atlanan = [(id, sebep), ...]
+
+    DOGRULAMA TEK KAYNAK: konfigur-bundle-kapisi.py'nin _sema_dogrula + _sayi_normalize
+    fonksiyonlari. Worker bundle'i ile D1 kolonu AYNI dogrulamadan ve AYNI sayi
+    normalizasyonundan gecer -> ikisi insaatan ayrisamaz (1.0 vs 1 gibi yazim farki iki
+    tarafta da ayni sekilde silinir).
+
+    FAIL-CLOSED (bundle kapisiyla AYNI ilke, ama BLAST RADIUS'u dar): kapi (CI'da bloklayici)
+    bozuk konfigur gorunce TUM artefakti uretmeyi reddeder. Burada ayni davranis TUM katalog
+    senkronunu durdururdu — pre-push hook'u fail-open oldugu icin push yine gecer, ama D1
+    bayat kalir ve Ege urunleri goremez (sessiz satis kaybi). Bu yuzden burada fail-closed
+    SATIR DUZEYINDE uygulanir: bozuk kayit haritaya GIRMEZ -> konfigur_plan onu '' YAPAR ->
+    Worker fail-closed 400 uretir (kalem WhatsApp'a duser). Okan kurali: "siparis kaybetmek
+    yanlis tahsilattan iyidir". Atlanan kayitlar main'de GURULTULU basilir; CI'daki bundle
+    kapisi zaten ayni veriyi kirmizi yakar."""
+    harita = {}
+    atlanan = []
+    for u in urunler:
+        if not isinstance(u, dict) or "konfigur" not in u:
+            continue          # katalogun ~%99,9'u: konfigurlu DEGIL -> '' (sessiz, normal hal)
+        uid = u.get("id")
+        if not isinstance(uid, str) or not uid:
+            atlanan.append(("<id YOK>", "id'siz konfigurlu urun kaydi"))
+            continue
+        if not u["konfigur"]:
+            atlanan.append((uid, "konfigur alani VAR ama BOS/NULL"))
+            continue
+        sema_hata = kbk._sema_dogrula(uid, u["konfigur"])
+        if sema_hata:
+            atlanan.append((uid, sema_hata))
+            continue
+        harita[uid] = konfigur_kanonik(u["konfigur"])
+    return harita, atlanan
+
+
+def konfigur_kanonik(konf):
+    """Konfigur objesini KANONIK JSON metne cevirir (D1'de saklanan bicim).
+    sort_keys -> anahtar sirasi degisimi sahte UPDATE uretmez; kompakt ayirac -> D1'de
+    gereksiz bayt yok; _sayi_normalize -> 1.0/1 yazim farki sahte UPDATE uretmez."""
+    return json.dumps(kbk._sayi_normalize(konf), ensure_ascii=False, sort_keys=True,
+                      separators=(",", ":"))
+
+
+# ─── GENEL "METIN SEMA KOLONU" SENKRONU (konfigur bugun; sari seri YARIN) ────
+# 🟡 NEDEN GENEL: konfigur TEK ornek DEGIL — parametrik ("olcuye ozel", sari seri) urunlerin
+# semalari da AYNI ikiligi tasiyor: veri jenerator/urunler/<id>.json'da, Worker ise onlari
+# shop/src/semalar.js'teki ELLE YAZILMIS statik import listesinden gorur (23 import satiri;
+# konfigurlar.js'in aksine bir kapi tarafindan URETILMEZ bile). Bu yuzden "hash'e karismayan
+# JSON sema kolonunu hedefli UPDATE ile senkronla" MAKINESI kolon-adindan bagimsiz yazildi;
+# sari seri sirasi geldiginde yeni bir plan/SQL fonksiyonu DEGIL, yalnizca yeni bir kolon adi
+# + kendi haritasi gerekir.
+#
+# NEDEN TEK JSON "zarf" KOLONU DEGIL (or. sema='{"konfigur":...,"parametrik":...}'):
+#   1. ALTER TABLE ADD COLUMN bu semada O(1) ve deponun KANITLI deseni (GOC_KOLON ile bugune
+#      dek 8 kolon boyle eklendi) -> "genisletilebilirlik" icin zarf sarti YOK.
+#   2. AYRI kolon = AYRI sorgulanabilirlik: rapor/fail-closed kapisi `WHERE konfigur <> ''`
+#      diyebilir; zarfta her satirin JSON'unu acmak gerekirdi.
+#   3. IZOLASYON: sari seri semasindaki bir hata konfigur baytlarina DOKUNAMAZ (ayni satirin
+#      ayni hucresini paylasmazlar).
+#   4. Zarf, surum/goc alani (schemaVersion) ve zarf-ici birlestirme mantigi gerektirirdi =
+#      bugun bedeli olan, karsiligi olmayan genellestirme.
+def sema_senkron_sql(kolon, uid, deger):
+    """Tek urun icin SADECE verilen METIN SEMA kolonunu gunceller (content'e/hs'e DOKUNMAZ ->
+    hash ayni, FTS tetigi (WHEN old.hs<>new.hs) CALISMAZ, ek FTS satiri yazmaz).
+    `kolon` SABIT bir tanimlayicidir (cagiran kod verir, kullanici girdisi DEGIL)."""
+    return "UPDATE urunler SET %s=%s WHERE id=%s;" % (kolon, q(deger), q(uid))
+
+
+def sema_plan(kolon, urunler, hedefler, mevcut):
+    """SAF plan (canli D1'e DOKUNMAZ -> birim testi burayi cagirir). Doner: hedefli UPDATE'ler.
+    - hedefler = {id: kanonik JSON}  urunler.json'dan turetilen ISTENEN deger
+    - mevcut   = {id: metin}         D1'deki mevcut deger (yeni urun icin yok -> '')
+
+    KURAL: her urun icin HEDEF = hedefler.get(id, '') ; hedef D1'dekinden FARKLIYSA 1 UPDATE.
+    - Semali urun: kanonik JSON yazilir.
+    - Semasiz urun (~15.000): hedef '' = D1'deki varsayilan -> UPDATE URETILMEZ. (Bu sart
+      olmasa her senkron 15.000 gereksiz yazma uretirdi — olcek kapisi burasi.)
+    - Semasi KALDIRILAN / BOZULAN urun: hedef '' , D1'de dolu -> TEMIZLEYEN 1 UPDATE.
+      taban_fiyat plani bu dalda "dokunma" der (stale birakir); sema'da stale deger =
+      YANLIS FIYAT oldugu icin bilerek TEMIZLENIR (Worker fail-closed 400 -> WhatsApp).
+    - Yeni urunde mevcut '' doner -> INSERT'ten SONRA (main ifade sirasi) UPDATE eder."""
+    out = []
+    gorulen = set()
+    for u in urunler:
+        if not isinstance(u, dict):
+            continue
+        uid = u.get("id")
+        if not uid or uid in gorulen:
+            continue
+        gorulen.add(uid)
+        hedef = hedefler.get(uid, "")
+        if hedef != (mevcut.get(uid, "") or ""):
+            out.append(sema_senkron_sql(kolon, uid, hedef))
+    return out
+
+
+def konfigur_senkron_sql(uid, konfigur):
+    """konfigur kolonu icin sema_senkron_sql (ince sarmalayici — cagri yerleri okunur kalsin)."""
+    return sema_senkron_sql("konfigur", uid, konfigur)
+
+
+def konfigur_plan(urunler, konfigurlar, mevcut_konfigur):
+    """konfigur kolonu icin sema_plan (ince sarmalayici). Kurallar sema_plan docstring'inde."""
+    return sema_plan("konfigur", urunler, konfigurlar, mevcut_konfigur)
 
 
 def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None):
@@ -530,15 +687,31 @@ def main():
         return
 
     urunler = urunleri_oku()
-    mevcut, mevcut_taban, mevcut_seq, mseq = d1_mevcut()
+    # KONFIGUR kolonu canli tabloda VAR mi? Yoksa (--sema henuz kosmadi) SELECT'e KONMAZ ve
+    # konfigur senkronu ATLANIR — katalog senkronu (Ege'nin hayat damari) akmaya devam eder.
+    konfigur_kolonu = kolon_var_mi("urunler", "konfigur")
+    mevcut, mevcut_taban, mevcut_seq, mseq, mevcut_konfigur = d1_mevcut(konfigur_kolonu)
     baskilar = baski_haritasi()
     tabanlar = taban_fiyat_haritasi()
+    konfigurlar, konfigur_atlanan = konfigur_haritasi_d1(urunler)
     # baski YETKISI = gizli kayit dosyasi bu ortamda VAR mi? YOKSA (CI) baski'ya HIC dokunma
     # (yoksa CI baski'yi D1'den silerdi). VARSA (yerel) baski'yi ayrica senkronla.
     baski_yetki = os.path.exists(KAYNAKLAR)
-    print("urunler.json: %d urun | D1: %d urun | gizli baski kaydi: %d | baski yetki: %s | taban fiyat semasi: %d"
+    print("urunler.json: %d urun | D1: %d urun | gizli baski kaydi: %d | baski yetki: %s | taban fiyat semasi: %d | konfigur semasi: %d"
           % (len(urunler), len(mevcut), len(baskilar),
-             "EVET" if baski_yetki else "HAYIR (baski atlanir)", len(tabanlar)))
+             "EVET" if baski_yetki else "HAYIR (baski atlanir)", len(tabanlar),
+             len(konfigurlar)))
+    if not konfigur_kolonu:
+        print("!! KONFIGUR KOLONU YOK — konfigur senkronu ATLANDI (katalog senkronu devam eder).\n"
+              "   Coz: python3 tools/d1-sync.py --sema")
+    if konfigur_atlanan:
+        # GURULTU: bozuk konfigur SESSIZCE dusmesin. Kolon '' yapilir -> Worker fail-closed
+        # 400 (WhatsApp); CI'daki bundle kapisi ayni veriyi zaten kirmizi yakar.
+        print("!! BOZUK KONFIGUR (D1'de BOSALTILIR — urun kartla odenemez, WhatsApp'a duser): %d kayit"
+              % len(konfigur_atlanan))
+        for uid, sebep in konfigur_atlanan:
+            print("   - %s: %s" % (uid, sebep))
+        print("   Coz: python3 tools/konfigur-bundle-kapisi.py   (ayni veriyi dogrular)")
 
     yeni, degisen, baski_guncelle, silinen, gorulen = diff_plan(
         urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq)
@@ -546,23 +719,29 @@ def main():
     # yetki kapisi da yok — CI da yerel de ayni degeri gorur). Yeni urun taban_fiyat'i
     # INSERT DEFAULT 0 alir, bu UPDATE (ifade sirasinda INSERT'ten SONRA) fiyatini yazar.
     taban_guncelle = taban_plan(urunler, tabanlar, mevcut_taban)
-    print("yeni: %d | degisen: %d | baski-guncelle: %d | taban-guncelle: %d | silinen: %d | dokunulmayan: %d"
-          % (len(yeni), len(degisen), len(baski_guncelle), len(taban_guncelle), len(silinen),
+    # KONFIGUR senkronu: taban_fiyat ile AYNI desen (hash'ten bagimsiz + hedefli UPDATE).
+    # Kolon yoksa BOS liste (yukarida gurultulu basildi).
+    konfigur_guncelle = (konfigur_plan(urunler, konfigurlar, mevcut_konfigur)
+                         if konfigur_kolonu else [])
+    print("yeni: %d | degisen: %d | baski-guncelle: %d | taban-guncelle: %d | konfigur-guncelle: %d | silinen: %d | dokunulmayan: %d"
+          % (len(yeni), len(degisen), len(baski_guncelle), len(taban_guncelle),
+             len(konfigur_guncelle), len(silinen),
              len(gorulen) - len(yeni) - len(degisen)))
 
     if a.kuru:
         print("(--kuru: hicbir sey yazilmadi)")
         return
-    if not yeni and not degisen and not baski_guncelle and not taban_guncelle and not silinen:
+    if (not yeni and not degisen and not baski_guncelle and not taban_guncelle
+            and not konfigur_guncelle and not silinen):
         print("degisiklik yok — D1'e yazilmadi ✅")
         return
 
     ifadeler = []
     for parca in [silinen[i:i + PARCA] for i in range(0, len(silinen), PARCA)]:
         ifadeler.append("DELETE FROM urunler WHERE id IN (%s);" % ",".join(q(i) for i in parca))
-    # SIRA ONEMLI: yeni (INSERT) taban_guncelle'den (UPDATE) ONCE gelmeli -> yeni parametrik
-    # urun once eklenir, sonra taban_fiyat'i yazilir (ayni --file'da sirali calisir).
-    ifadeler += degisen + yeni + baski_guncelle + taban_guncelle
+    # SIRA ONEMLI: yeni (INSERT) taban_guncelle/konfigur_guncelle'den (UPDATE) ONCE gelmeli ->
+    # yeni urun once eklenir, sonra taban_fiyat'i ve konfigur'u yazilir (ayni --file'da sirali).
+    ifadeler += degisen + yeni + baski_guncelle + taban_guncelle + konfigur_guncelle
 
     top_yaz = 0
     for i in range(0, len(ifadeler), PARCA):

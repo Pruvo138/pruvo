@@ -21,6 +21,8 @@
  */
 
 import { SEMALAR } from "./semalar.js";
+import { KONFIGURLAR } from "./konfigurlar.js";
+import { golgeRaporu } from "./konfigur-golge.js";
 import {
   epostaAkisi, onayEpostasiHtml, kargoEpostasiHtml,
 } from "./eposta.js";
@@ -497,8 +499,59 @@ function sayfa() {
 
 // ---- giris (index.js buraya yonlendirir) --------------------------------------
 
+// ---- /konfigur-golge (FAZ 3 KONTROL KIPI) -------------------------------------
+
 /**
- * /yonet* yonlendirici. altYol = "/", "/liste", "/durum", "/kargo", "/stl".
+ * GET /yonet/konfigur-golge — "D1'deki konfigur semasi Worker bundle'iyla AYNI mi?"
+ *
+ * 🔴 SALT OKUMA: tek bir SELECT; D1'e YAZMAZ, siparis/olcum/e-posta/iyzico TETIKLEMEZ,
+ * musteriye giden hicbir davranisi degistirmez. Yalnizca FAZ 4 (cevirme) kararinin girdisi
+ * olan sayiyi gorunur kilar: `fark_kurus_toplam` 0 ise iki kaynak ayni parayi uretiyor.
+ *
+ * Anahtar korumasi /yonet* ile AYNI (anahtar yok/yanlis -> 404). Konfigur verisi zaten
+ * public (matematik + aralik + renk/malzeme; sir icermez) ama uc yine de gizli tutulur —
+ * ic teshis yuzeyi genisletilmez.
+ *
+ * KOLON YOKSA (--sema henuz kosmadi) SELECT duser -> 200 + durum "kolon-yok" doner
+ * (500 DEGIL: bu bir rapor ucu, kendisi kirmizi yanmamali; teshis metni acik yazilir).
+ */
+async function konfigurGolge(env, url) {
+  const SECENEK = globalThis.PRUVO_SECENEK;
+  if (!SECENEK) { return yjson({ hata: "secenekler-yok" }, 500); }
+  const bundleIdler = [...KONFIGURLAR.keys()];
+  const yertut = bundleIdler.map(() => "?").join(",") || "''";
+  let satirlar = [];
+  try {
+    // IKI YON: (a) D1'de konfigur DOLU olan her satir (bundle'da olmayanlar = acik pencere),
+    // (b) bundle'daki her id (D1'de bos/eksik olanlar = senkron kacmis). Tek sorgu.
+    const r = await env.KATALOG.prepare(
+      "SELECT id, kategori, konfigur FROM urunler WHERE konfigur <> '' OR id IN (" +
+      yertut + ")").bind(...bundleIdler).all();
+    satirlar = r.results || [];
+  } catch (e) {
+    return yjson({
+      durum: "kolon-yok",
+      teshis: "D1'de `konfigur` kolonu okunamadi: " + (e && e.message || String(e)),
+      coz: "python3 tools/d1-sync.py --sema   (additive ALTER; sonra python3 tools/d1-sync.py)",
+      bundle_urun: bundleIdler.length,
+    }, 200);
+  }
+  const ornekBoy = parseInt(url.searchParams.get("boy") || "0", 10);
+  const ornekler = ornekBoy > 0 ? [[ornekBoy, url.searchParams.get("malzeme") || "PLA"]] : null;
+  const rapor = golgeRaporu(KONFIGURLAR, satirlar, SECENEK, ornekler);
+  return yjson({
+    durum: rapor.fark_kurus_toplam === 0 && rapor.kayitlar.length === 0 ? "parite" : "ayrisim",
+    bundle_urun: bundleIdler.length,
+    d1_konfigurlu_satir: satirlar.filter((s) => s.konfigur).length,
+    ozet: rapor.ozet,
+    fark_kurus_toplam: rapor.fark_kurus_toplam,
+    kayitlar: rapor.kayitlar,
+    not: "GOLGE MODU: tahsilat HALA bundle'dan hesaplanir; bu uc yalniz olcer.",
+  }, 200);
+}
+
+/**
+ * /yonet* yonlendirici. altYol = "/", "/liste", "/durum", "/kargo", "/stl", "/konfigur-golge".
  * Anahtar YOK/YANLIS -> 404 (varlik sizmasin). telegram: index.js'in telegram fonksiyonu.
  */
 export async function yonet(request, env, url, ctx, altYol, telegram) {
@@ -510,6 +563,8 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/kargo" && m === "POST") { return kargo(request, env, ctx, telegram); }
   if (altYol === "/stl" && m === "GET") { return stlIndir(env, url); }
   if (altYol === "/stl-liste" && m === "GET") { return stlListe(env, url); }
+  // FAZ 3 kontrol kipi — SALT OKUMA (yazma/yan etki YOK).
+  if (altYol === "/konfigur-golge" && m === "GET") { return konfigurGolge(env, url); }
   return yon404();
 }
 
