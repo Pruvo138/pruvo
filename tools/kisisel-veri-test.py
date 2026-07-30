@@ -18,13 +18,23 @@ Neyi doğrular:
      İZLENEN (git ls-files) hiçbir dosya işçi→mimar iç rapor ADLANDIRMA
      ailesine uymayacak. Ayrıntı ve gerekçe için aşağıdaki bölüm başlığına bak.
 
-Çalıştırma:  python3 tools/kisisel-veri-test.py   (çıkış kodu 0 = geçti)
+  4) GEÇMİŞ EKSENİ (30 Tem) — (3)'ün aynı kuralı COMMIT GEÇMİŞİNE uygulanır:
+     bir dosya eklenip aynı gün silinirse çalışma ağacı temizdir ama commit
+     KALICIDIR ve PUBLIC repodan anonim çekilebilir. Ayrıntı: "GECMIS EKSENI".
+
+Çalıştırma:
+    python3 tools/kisisel-veri-test.py            # 5 nöbetçi + geçmiş fikstürleri
+    python3 tools/kisisel-veri-test.py --pre-push # pre-push kancası (aralık stdin'den)
+    python3 tools/kisisel-veri-test.py --aralik origin/main..HEAD   # BLOKLAYICI
+    python3 tools/kisisel-veri-test.py --gecmis   # TÜM geçmişi tara — RAPOR (bloklamaz)
+(çıkış kodu 0 = geçti)
 """
 import json
 import os
 import re
 import subprocess
 import sys
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -96,6 +106,22 @@ ATTR_RE = re.compile(r'data-([a-l])="([^"]*)"')
 #     tools/paket-*.md gibi mesru mimar belgelerini yakma riski tasir).
 # VERI CAPASI YOK: sabit dosya sayisi / SHA / tarih iddiasi yoktur; kural saf
 # adlandirmadir, katalog buyudukce/kuculdukce degismez.
+#
+# ⚠️ BILINEN + BEYAN EDILEN KAPSAM SINIRLARI (30 Tem olcumu — KASITLA ACIK BIRAKILDI):
+#   (K2) DIZIN ADI EKSENI KAPSANMIYOR. Kural yalniz TEKIL dosya adina bakar
+#        (`yol.rsplit("/", 1)[-1]`). Olculdu: `CURUTME-RAPORU/notlar.md`,
+#        `tools/raporlar/x.md`, `denetim-raporu/ek.txt` YESIL kalir. (Tesadufen
+#        `raporlar/olcum.md` KIRMIZIDIR — ama dizin adindan degil, dosya adi
+#        'olcum.md' oldugu icin.) NEDEN ACIK: dizin ekseni butun bir agaci tek
+#        adla kirmizi yakar; `raporlar/` gibi mesru bir dizin adi altindaki HER
+#        dosya (izlenen sablonlar dahil) bloklanirdi. Kapatilmasi istenirse ayri
+#        bir yanlis-pozitif butcesi olculmelidir.
+#   (K3) KALIP GENISLETME = PARSER TAKLIDI SINIFI. Bu kapi BLOKLAYICIDIR: bir
+#        yanlis-pozitif TUM ekibin push'unu (ve main'de tum sitenin yayinini)
+#        durdurur. Kok/sonek listesini "daha cok kelime" ile buyutmek (denetimi,
+#        olcumu, inceleme, tutanak...) mesru mimar belgelerini yakar. Bu yuzden
+#        kural SINIF bazinda genisletildi (bkz. SINIR KURALI) ama SOZLUK bazinda
+#        DONDURULDU. Yeni kok/sonek eklemek = yeni FP butcesi olcmek.
 _TR_KATLA = str.maketrans({
     "ç": "c", "Ç": "c", "ğ": "g", "Ğ": "g", "ı": "i", "I": "i", "İ": "i",
     "ö": "o", "Ö": "o", "ş": "s", "Ş": "s", "ü": "u", "Ü": "u",
@@ -103,7 +129,35 @@ _TR_KATLA = str.maketrans({
 IC_RAPOR_UZANTILARI = (".md", ".markdown", ".txt")
 IC_RAPOR_KOKLERI = ("rapor", "curutme", "onarim", "denetim", "olcum")
 IC_RAPOR_SONEKLERI = ("rapor", "raporu")
-_AYIRAC = "-_. "
+
+# ----------------------------------------------------------------- SINIR (ayirac) KURALI
+# 30 Tem OLCUMU — DAR EŞLEŞME KUSURU (kusur 1): ayirac kumesi sabit dort karakterlik
+# bir literal listesiydi ("-_. ") ve 8/8 su ad KACIYORDU:
+#   rapor(1).md · raporMimara.md · RAPOR–1.md (U+2013 en-dash) · curutme–turu.md ·
+#   yedekTopolojisiRaporu.md · olcum(2).md · tools/denetim(kopya).md · onarim—turu.md
+# Sebep: parantez, en-dash/em-dash ve camelCase birer AYIRACTIR ama listede yoklardi.
+# Bir "yasakli noktalama listesi" kovalamak da ayni bitmeyen oyundur -> kural
+# SINIFA cevrildi:
+#   (a) ALFANUMERIK OLMAYAN her karakter ayiractir (parantez, tire cesitleri, bosluk,
+#       alt cizgi, nokta, tilde... hepsi tek kuralla kapanir);
+#   (b) camelCase siniri: KUCUK harften sonra gelen BUYUK harf yeni parca baslatir.
+# 🔴 (b) KASITLA DAR: yalniz kucuk->BUYUK gecisi sayilir. "RAPORLAMA.md" gibi TAMAMI
+# BUYUK mesru bir adda 'L' onceki harf de buyuk oldugu icin sinir SAYILMAZ -> yesil
+# kalir. (Sart 'i>0 and orijinal[i-1].islower()' olmasaydi tum-buyuk mesru adlar yanardi.)
+# YANLIS-POZITIF BUTCESI: bu genisleme sonrasi 352 izlenen dosyanin tamami + 31 yesil
+# fikstur yeniden olculdu, YANAN 0 (bkz. _IC_RAPOR_YESIL).
+
+
+def _ayirac_karakter(c):
+    """Alfanumerik OLMAYAN her karakter ad sinirridir (dar literal liste YOK)."""
+    return not c.isalnum()
+
+
+def _camel_sinir(orijinal, i):
+    """orijinal[i] camelCase'de YENI parcanin ilk harfi mi (kucuk -> BUYUK gecisi)?
+    Katlanmamis ad uzerinde bakilir; _TR_KATLA tek karakteri tek karaktere esler,
+    bu yuzden indeksler katlanmis govdeyle BIREBIR hizalidir."""
+    return 0 < i < len(orijinal) and orijinal[i].isupper() and orijinal[i - 1].islower()
 
 # ISTISNA: aileye uyan ama MESRU olan izlenen dosya (yol -> GEREKCE). Bugun BOS.
 # Buraya bir giris eklemek SIZINTI RISKI ustlenmektir; gerekce zorunlu (bos gerekce
@@ -138,16 +192,19 @@ def ic_rapor_mu(yol):
     if uzanti is None:
         return False
     govde = ad[: -len(uzanti)]
+    orijinal = tekil[: -len(uzanti)]      # katlanmamis hali (camelCase icin)
     if not govde:
         return False
     for kok in IC_RAPOR_KOKLERI:
         if govde == kok:
             return True
-        if govde.startswith(kok) and govde[len(kok)] in _AYIRAC:
+        if govde.startswith(kok) and (_ayirac_karakter(govde[len(kok)])
+                                      or _camel_sinir(orijinal, len(kok))):
             return True
     for sonek in IC_RAPOR_SONEKLERI:
-        if (govde.endswith(sonek) and len(govde) > len(sonek)
-                and govde[-len(sonek) - 1] in _AYIRAC):
+        bas = len(govde) - len(sonek)
+        if (govde.endswith(sonek) and bas > 0
+                and (_ayirac_karakter(govde[bas - 1]) or _camel_sinir(orijinal, bas))):
             return True
     return False
 
@@ -172,6 +229,15 @@ _IC_RAPOR_KIRMIZI = [
     ("ÖLÇÜM-NOTLARI.md", "yalniz katlama yakalar (sonek yok)"),
     ("RAPOR-MIMARA.txt", "uzanti degistirerek kacis"),
     ("onarim-turu-3.markdown", "markdown uzantisi"),
+    # --- 30 Tem, KUSUR 1 (DAR ESLESME): olculdu, 8/8 KACIYORDU. Sinif kurali kapatti.
+    ("rapor(1).md", "kusur1: parantez ayirac (kopya adi)"),
+    ("olcum(2).md", "kusur1: parantez ayirac"),
+    ("tools/denetim(kopya).md", "kusur1: parantez + alt dizin"),
+    ("raporMimara.md", "kusur1: camelCase siniri (kucuk->BUYUK)"),
+    ("yedekTopolojisiRaporu.md", "kusur1: camelCase SONEK siniri"),
+    ("RAPOR–1.md", "kusur1: U+2013 en-dash"),
+    ("curutme–turu.md", "kusur1: U+2013 en-dash"),
+    ("onarim—turu.md", "kusur1: U+2014 em-dash"),
 ]
 
 # --- YESIL FIKSTURLER: "ILGISIZ RUTIN DUZENLEME YESIL KALIR". Bu kapi BLOKLAYICI —
@@ -210,6 +276,11 @@ _IC_RAPOR_YESIL = [
     ("onarimlar.md", "onek AYIRAC SARTLI olmali"),
     ("denetimsiz-liste.md", "onek AYIRAC SARTLI olmali"),
     ("tools/paket-olcumleme.md", "onek degil govde ici — yanmamali"),
+    # --- 30 Tem, kusur 1 genislemesinin YANLIS-POZITIF butcesi (camelCase DAR kalmali)
+    ("RAPORLAMA.md", "TUM BUYUK mesru ad: 'L' oncesi de BUYUK -> camel siniri DEGIL"),
+    ("ONARIMLAR.md", "TUM BUYUK mesru turev"),
+    ("DENETIMSIZ.md", "TUM BUYUK mesru turev"),
+    ("Raporlama.md", "bas harf buyuk mesru turev (kok sonrasi kucuk harf)"),
 ]
 
 
@@ -241,6 +312,13 @@ def ic_rapor_fikstur_hatalari():
     if not any("OLCULEMEDI" in x for x in _h):
         hatalar.append("FAIL-LOUD OLDU: git ls-files basarisiz oldugunda nobetci "
                        "hata uretmiyor (olculemeyen hal sessiz yesile donmus)")
+    # (0c) BOS KAPSAM nobeti (30 Tem, kusur 4): rc=0 + BOS cikti da OLCULEMEDI'dir.
+    # (Olculdu: bu satirlar silinince kapi 'taranan: 0' ile SESSIZCE yesil yaniyordu.)
+    _h2, _t2 = ic_rapor_nobeti(kosucu=lambda: (0, "", ""), fikstur=False)
+    if not any("OLCULEMEDI" in x for x in _h2):
+        hatalar.append("BOS KAPSAM SESSIZ YESIL: git ls-files rc=0 + BOS cikti "
+                       "verdiginde nobetci hata uretmiyor (taranan=%d) — tarama "
+                       "hicbir dosya gormezse kapi 'temiz' diyor" % _t2)
     for yol, gerekce in _IC_RAPOR_KIRMIZI:
         if not ic_rapor_mu(yol):
             hatalar.append("FIKSTUR(kirmizi) KACTI — kural zayifladi: %s  [%s]"
@@ -263,11 +341,25 @@ def _git_ls_files():
 
 
 def _izlenen_dosyalar(kosucu=None):
-    """(yollar, hata_metni). kosucu enjekte edilebilir -> fail-loud fiksturu icin."""
+    """(yollar, hata_metni). kosucu enjekte edilebilir -> fail-loud fiksturu icin.
+
+    🔴 BOS KAPSAM = OLCULEMEDI (30 Tem, kusur 4): git rc=0 dondurup BOS cikti
+    verdiginde (yanlis kok, bozuk indeks, ls-files'in sessizce hicbir sey gormedigi
+    her hal) eski surum 'taranan: 0' ile YESIL yaniyordu — yani tarama hicbir dosya
+    gormezse kapi 'temiz' diyordu. Bu, gecmis ekseni kusurunun tam kardesi:
+    KAPSAM BOSSA NOBETCI YOKMUS GIBI DAVRANIR. Bu depoda izlenen dosya sayisi hicbir
+    zaman 0 olamaz (kaynak kodun kendisi izlenir) -> bos cikti KIRMIZIDIR.
+    Not: bu bir VERI CAPASI DEGILDIR (sabit sayi/SHA iddiasi yok); yalniz 'kapsam
+    bos olamaz' kurali."""
     rc, cikti, hata = (kosucu or _git_ls_files)()
     if rc != 0:
         return None, "git ls-files basarisiz (rc=%s): %s" % (rc, (hata or "").strip() or "?")
-    return [y for y in cikti.split("\0") if y], None
+    yollar = [y for y in cikti.split("\0") if y]
+    if not yollar:
+        return None, ("git ls-files BOS liste dondurdu (rc=0) — taranacak izlenen dosya "
+                      "YOK. Bu depoda bu imkansizdir; kapsam kaybolmus demektir "
+                      "(yanlis kok / bozuk indeks). Bos kapsam SESSIZ YESIL SAYILMAZ.")
+    return yollar, None
 
 
 def ic_rapor_nobeti(kosucu=None, fikstur=True):
@@ -293,6 +385,340 @@ def ic_rapor_nobeti(kosucu=None, fikstur=True):
             "kimlikleri / ic olcum). Cozum: git rm --cached '%s' + adi RAPOR-MIMARA.md yap."
             % (yol, yol))
     return hatalar, len(yollar)
+
+
+# ==================================================================================
+# GECMIS EKSENI — COMMIT ARALIGINDA *EKLENEN* DOSYALAR (30 Tem, 4. KACAK)
+# ==================================================================================
+# 🔴 KOK NEDEN (olculdu 30 Tem): yukaridaki ic_rapor_mu() DOGRU calisiyordu — hem
+# RAPOR-MIMARA.md hem tools/yedek-topolojisi-raporu.md icin True donuyor. Sorun TANIMA
+# degil KAPSAM idi: nobetci yalniz `git ls-files` = MEVCUT CALISMA AGACINI tariyordu.
+# Bir dosya eklenip AYNI GUN silinirse calisma agaci tertemiz olur, nobetci hicbir sey
+# gormez — ama commit'ler KALICIDIR. Depo PUBLIC (Pruvo138/pruvo): silinmis dosyanin
+# blob'u raw.githubusercontent.com'dan anonim olarak HALA cekilebilir.
+#
+# OLCULMUS OLAY: tools/yedek-topolojisi-raporu.md 2b6373ec ile eklendi, d058a11c ile
+# cikarildi (ikisi de 21 Tem, ikisi de origin/main'in ATASI) -> bugun hala anonim
+# HTTP 200. Ayni sinif hata bundan once UC kez yasandi; bu 4.'su ve main'e girdi.
+# Ilk tarama origin/main gecmisinde UC kayit buldu (tek degil): 2b6373ec + iki
+# ONARIM-RAPORU.md commit'i (1138da5b, 3bc7a965). Bu tur o kayitlari TEMIZLEMEZ
+# (gecmis yeniden yazma = Okan kapisi); yalniz YENI kacagi durdurur ve raporlar.
+#
+# EKSEN: `git log --diff-filter=A` = "bu aralikta EKLENEN dosya yollari". Silinmis
+# olmasi umursanmaz — sizinti EKLENDIGI anda olusur.
+#
+# KURAL AYNI FONKSIYONDAN GECER: ic_rapor_mu() + IC_RAPOR_ISTISNA yeniden yazilmadi,
+# KULLANILDI. Boylece yanlis-pozitif yuzeyi calisma-agaci koluyla BIREBIR ayni kalir
+# (ayni yesil/kirmizi fikstur ailesi iki kolu da korur).
+#
+# NEREYE BAGLANDI: PRE-PUSH KANCASI (kurulum: tools/gecmis-nobeti-hook-kur.py).
+# CI'ya BAGLANMADI, iki OLCULMUS sebeple:
+#   1) deploy.yml `actions/checkout@v4`i fetch-depth VERMEDEN kullanir -> SIG (depth=1)
+#      klon: `origin/main..HEAD` gibi bir aralik CI'da COZULEMEZ, taranacak gecmis YOK.
+#   2) deploy.yml `on: push: branches: [main]` -> yalniz main'e, yalniz PUSH'TAN SONRA
+#      kosar. O anda commit ZATEN public remote'tadir; yayini durdurmak sizmis blob'u
+#      geri getirmez. 27 Tem'in iki kacagi da DAL push'unda olmustu — CI o dallari
+#      hic gormez. Bu eksenin tum degeri ONLEMEDIR -> kapi push'tan ONCE olmali.
+# Bunun bedeli: kanca .git/hooks altinda yasar ve GIT'E GIRMEZ -> her makinede
+# `python3 tools/gecmis-nobeti-hook-kur.py` ile kurulur; kurulu mu, asagidaki
+# varsayilan kosumun son satiri soyler.
+#
+# CI'DA NE KOSAR: gecmis_fikstur_hatalari() — GERCEK git ile GECICI bir depo kurup
+# "ekle + ayni aralikta sil" olayini yeniden oynatir (bicim capasi: kanned metin
+# gercek git ciktisindan kayarsa yakalanir) + 4 kirmizi/12 yesil kanned senaryo.
+# Yani parser/kural/gercek-git zinciri CI'da nobetsiz KALMAZ; nobetsiz kalan tek
+# halka kancanin KENDISIDIR (commit edilemez).
+
+_GECMIS_AYRAC = "\x02"        # commit basligi oneki (git log --format=%x02%H)
+
+
+def gecmis_ayristir(ham):
+    """`git log --format=%x02%H --name-only -z --diff-filter=A` ciktisi -> [(sha, yol)].
+
+    GERCEK BICIM (olculdu): '\\x02<sha>\\x00\\n<yol>\\x00<yol>\\x00\\x02<sha>\\x00\\n...'
+    Eklenen dosyasi OLMAYAN commit git tarafindan hic basilmaz. Bu ayristirici
+    kanned fiksturlerle DEGIL, gecici GERCEK depo fiksturuyle capalanir (asagida)."""
+    kayitlar = []
+    for blok in (ham or "").split(_GECMIS_AYRAC):
+        if not blok:
+            continue
+        parcalar = blok.split("\0")
+        sha = parcalar[0].strip()
+        if not sha:
+            continue
+        for yol in parcalar[1:]:
+            yol = yol.strip("\n")
+            if yol:
+                kayitlar.append((sha, yol))
+    return kayitlar
+
+
+def gecmis_isabetleri(ham):
+    """Ham git ciktisi -> ic rapor ailesine uyan (istisna DISI) (sha, yol) isabetleri.
+
+    GERCEK tarama ve fikstur oz-kontrolu AYNI fonksiyonu kullanir: govdesi no-op
+    yapilirsa (or. 'return []') fikstur oz-kontrolu de kirmizi yanar."""
+    return sorted(set((sha, yol) for sha, yol in gecmis_ayristir(ham)
+                      if ic_rapor_mu(yol) and yol not in IC_RAPOR_ISTISNA))
+
+
+def _git_log_eklenen(kapsam, kok=None):
+    """Gercek kosucu: (rc, stdout, stderr). Ag YOK, yalniz yerel git nesneleri.
+    kapsam = git rev-list argumanlari listesi (or. ['origin/main..HEAD'] ya da ['--all'])."""
+    try:
+        r = subprocess.run(
+            ["git", "-C", kok or ROOT, "log", "--no-renames", "--diff-filter=A",
+             "--name-only", "-z", "--format=%x02%H"] + list(kapsam),
+            capture_output=True, text=True)
+    except OSError as e:
+        return 127, "", "git calistirilamadi: %s" % e
+    return r.returncode, r.stdout, r.stderr
+
+
+def gecmis_tara(kapsam, kosucu=None, kok=None):
+    """(isabetler, hata_metni). Fail-loud: git patlarsa SESSIZ YESIL VERILMEZ."""
+    rc, cikti, hata = (kosucu or _git_log_eklenen)(kapsam, kok)
+    if rc != 0:
+        return None, ("git log --diff-filter=A basarisiz (rc=%s, kapsam=%s): %s"
+                      % (rc, " ".join(kapsam), (hata or "").strip() or "?"))
+    return gecmis_isabetleri(cikti), None
+
+
+# ---------------------------------------------------------------- kanned fiksturler
+def _gc(*commitler):
+    """(sha, [yollar]) ciftlerinden GERCEK git -z bicimini taklit eder (bkz. gecmis_ayristir)."""
+    parca = []
+    for sha, yollar in commitler:
+        if not yollar:
+            continue            # git eklenen dosyasi olmayan commit'i hic basmaz
+        parca.append(_GECMIS_AYRAC + sha + "\0\n" + "\0".join(yollar) + "\0")
+    return "".join(parca)
+
+
+# KIRMIZI: bu aralikleri kacirirsak sizinti PUBLIC repoya girer.
+_GECMIS_KIRMIZI = [
+    ("GERCEK OLAY (21 Tem): ekle -> AYNI GUN sil; calisma agaci kolu SESSIZ kalir",
+     _gc(("2b6373ec80fa232cea88a7db5166576ef9ed624c",
+          ["tools/yedek-topolojisi-raporu.md"]),
+         ("d058a11c00000000000000000000000000000000", [])),
+     [("2b6373ec80fa232cea88a7db5166576ef9ed624c",
+       "tools/yedek-topolojisi-raporu.md")]),
+    ("protokol adi RAPOR-MIMARA.md dal push'unda eklenmis",
+     _gc(("a" * 40, ["tools/build.py", "RAPOR-MIMARA.md"])),
+     [("a" * 40, "RAPOR-MIMARA.md")]),
+    ("27 Tem 1./2. kacak sinifi — alt dizinde + tiresiz kucuk harf",
+     _gc(("b" * 40, ["alt/dizin/CURUTME-RAPORU.md"]), ("c" * 40, ["curutme.md"])),
+     [("b" * 40, "alt/dizin/CURUTME-RAPORU.md"), ("c" * 40, "curutme.md")]),
+    ("iki commit: once eklendi, sonra silindi — sadece EKLEME kaydi kalir",
+     _gc(("d" * 40, ["ONARIM-RAPORU.md", "urunler.json"]),
+         ("e" * 40, ["tools/yeni.py"])),
+     [("d" * 40, "ONARIM-RAPORU.md")]),
+]
+
+# YESIL: 12 MESRU push senaryosu. Bu kol BLOKLAYICI — bir yanlis-pozitif TUM
+# ekibin push'unu durdurur, o yuzden yuzey olculerek genis tutuldu.
+_GECMIS_YESIL = [
+    ("MESRU 1: normal kod commit'i (site kodu + arac)",
+     _gc(("11" * 20, ["tools/build.py", "index.html", "konfigur.js"]))),
+    ("MESRU 2: urun partisi (MaCiT dilimi)",
+     _gc(("12" * 20, ["urunler.json"]), ("13" * 20, ["urunler.json"]))),
+    ("MESRU 3: .md belge guncellemesi (izlenen mimar paketleri)",
+     _gc(("14" * 20, ["tools/paket-shop-odeme.md", "tools/URUN-EKLEME-REHBERI.md",
+                      "README.md", "tools/arsiv/README.md"]))),
+    ("MESRU 4: gitignore'lu dosya (CLAUDE.md/DEVAM.md/RAPOR-MIMARA.md izlenmez) -> "
+     "git log'da HIC gorunmez, cikti bos",
+     _gc()),
+    ("MESRU 5: raporlar/ altindaki IZLENMEYEN dosya -> commit'e girmez, cikti bos",
+     _gc(("15" * 20, []))),
+    ("MESRU 6: yeni/duzenlenen yasal sayfa",
+     _gc(("16" * 20, ["mesafeli-satis/index.html", "tools/sayfalar.py"]))),
+    ("MESRU 7: tools/ icinde yeni .py kapisi + kabul testi",
+     _gc(("17" * 20, ["tools/yeni-kapisi.py", "tools/denetim-kapisi-test.py"]))),
+    ("MESRU 8: filament envanteri + fiyat tablosu",
+     _gc(("18" * 20, ["filamentler.json", "tools/taban-fiyat-tablosu.md"]))),
+    ("MESRU 9: 'olcum/denetim' ADLI mesru kod dosyalari (olculdu FP sinifi)",
+     _gc(("19" * 20, ["shop/src/olcum.js", "shop/test/olcum.mjs",
+                      "shop/test/olcum-kapisi.cjs", "tools/denetim-kapisi.py"]))),
+    ("MESRU 10: turev kelimeler (onek AYIRAC SARTLI olmali)",
+     _gc(("1a" * 20, ["raporlama.md", "onarimlar.md", "denetimsiz-liste.md",
+                      "tools/paket-olcumleme.md"]))),
+    ("MESRU 11: bos aralik (push edilecek yeni commit yok)",
+     ""),
+    ("MESRU 12: karisik buyuk parti (urun + kod + belge + jenerator)",
+     _gc(("1b" * 20, ["urunler.json", "tools/d1-sync.py", "jenerator/KURULUM.md",
+                      "jenerator/test/SOZLESME.md", "ege-bilgi.md",
+                      "olcuye-ozel-yeni-parca-uretimi/index.html"]))),
+]
+
+
+def _gecmis_gercek_depo_fiksturu():
+    """BICIM CAPASI: GERCEK git ile gecici bir depo kurup 21 Tem olayini yeniden oynatir.
+
+    Neden kanned metin YETMEZ: fikstur metni gercek `git log -z` bicimindan kayarsa
+    (git surumu / bayrak degisikligi) ayristirici kanned metni okumaya devam eder ve
+    kapi CANLI ARALIKTA sessizce bos doner. Bu fikstur ayristiriciyi GERCEK git
+    ciktisina capalar. Ag YOK, imza YOK, tempdir disina yazmaz, ~0,2 sn."""
+    hatalar = []
+    ortam = dict(os.environ)
+    ortam.update({"GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_SYSTEM": os.devnull,
+                  "GIT_TERMINAL_PROMPT": "0"})
+    # ⚠️ `-c` GIT SEVIYESI bir bayraktir: alt komuttan ONCE gelmeli. (Olculdu: alt
+    # komuttan sonra verilince `git init` sessizce kimliksiz kosuyor ve fikstur
+    # deposu HIC commit almiyordu -> fikstur "yesil" gorunurken hicbir sey olcmuyordu.)
+    kimlik = ["-c", "user.name=pruvo-fikstur", "-c", "user.email=fikstur@example.invalid",
+              "-c", "commit.gpgsign=false", "-c", "init.defaultBranch=main"]
+
+    def g(kok, *a):
+        return subprocess.run(["git"] + kimlik + ["-C", kok] + list(a),
+                              capture_output=True, text=True, env=ortam)
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="pruvo-gecmis-fikstur-") as d:
+            r = subprocess.run(["git"] + kimlik + ["init", "-q", d],
+                               capture_output=True, text=True, env=ortam)
+            if r.returncode != 0:
+                return ["OLCULEMEDI (gecmis bicim capasi) — git init: %s"
+                        % (r.stderr or "").strip()]
+            # taban commit (aralik disi)
+            with open(os.path.join(d, "index.html"), "w") as f:
+                f.write("<p>taban</p>\n")
+            g(d, "add", "-A")
+            g(d, "commit", "-q", "-m", "taban")
+            taban = g(d, "rev-parse", "HEAD").stdout.strip()
+            if len(taban) < 7:
+                return ["OLCULEMEDI (gecmis bicim capasi) — fikstur deposunda taban "
+                        "commit olusmadi (git kimligi/izin?): %r" % taban]
+            # (1) IC RAPOR + iki mesru dosya AYNI commit'te eklenir (cok dosyali bicim)
+            for ad, icerik in [("RAPOR-MIMARA.md", "ic rapor govdesi\n"),
+                               ("tools/yeni-kapisi.py", "# kapi\n"),
+                               ("urunler.json", "[]\n")]:
+                tam = os.path.join(d, ad)
+                os.makedirs(os.path.dirname(tam), exist_ok=True) if "/" in ad else None
+                with open(tam, "w") as f:
+                    f.write(icerik)
+            g(d, "add", "-A")
+            g(d, "commit", "-q", "-m", "ekle")
+            ekleyen = g(d, "rev-parse", "HEAD").stdout.strip()
+            # (2) AYNI ARALIKTA silinir -> calisma agaci TERTEMIZ olur
+            os.remove(os.path.join(d, "RAPOR-MIMARA.md"))
+            g(d, "add", "-A")
+            g(d, "commit", "-q", "-m", "izlemeden cikar")
+
+            # (a) ONCE-KIRMIZI KANITI: calisma agaci kolu (git ls-files) SESSIZ mi?
+            ls = g(d, "ls-files", "-z")
+            agac_yollar = [y for y in ls.stdout.split("\0") if y]
+            if ic_rapor_isabetleri(agac_yollar):
+                hatalar.append(
+                    "GECMIS FIKSTURU GECERSIZ: calisma agaci kolu bu senaryoda ZATEN "
+                    "kirmizi yaniyor -> fikstur 'gecmis eksenini' olcmuyor (yollar=%r)"
+                    % agac_yollar)
+            # (b) SONRA-KIRMIZI: gecmis kolu GERCEK git ile yakalamali
+            isabet, hata = gecmis_tara(["%s..HEAD" % taban], kok=d)
+            if hata:
+                hatalar.append("OLCULEMEDI (gecmis bicim capasi) — %s" % hata)
+            elif isabet != [(ekleyen, "RAPOR-MIMARA.md")]:
+                hatalar.append(
+                    "GECMIS KOLU OLU/BOZUK (GERCEK git): silinmis RAPOR-MIMARA.md "
+                    "aralikta yakalanmadi — beklenen %r, bulunan %r"
+                    % ([(ekleyen, "RAPOR-MIMARA.md")], isabet))
+            # (c) DARLIK: mesru dosyalar ayni ciktida YANMAMALI (yukarida zaten
+            #     tek isabet bekleniyor; burada ciktinin cok-dosyali oldugunu teyit et)
+            rc, ham, _ = _git_log_eklenen(["%s..HEAD" % taban], kok=d)
+            tum = [y for _s, y in gecmis_ayristir(ham)]
+            if rc == 0 and not {"tools/yeni-kapisi.py", "urunler.json"} <= set(tum):
+                hatalar.append(
+                    "AYRISTIRICI COK-DOSYALI COMMIT'I OKUYAMIYOR: gercek git ciktisinda "
+                    "beklenen mesru yollar yok (bulunan=%r)" % tum)
+    except OSError as e:
+        hatalar.append("OLCULEMEDI (gecmis bicim capasi) — %s" % e)
+    return hatalar
+
+
+def gecmis_fikstur_hatalari():
+    """Nobetcinin KENDI hukmunu olcer (olu nobetci + asiri-genisleme korumasi)."""
+    hatalar = []
+    for ad, ham, beklenen in _GECMIS_KIRMIZI:
+        bulunan = gecmis_isabetleri(ham)
+        if bulunan != sorted(beklenen):
+            hatalar.append("GECMIS FIKSTUR(kirmizi) KACTI — kol olu/zayif: %s "
+                           "[beklenen %r, bulunan %r]" % (ad, sorted(beklenen), bulunan))
+    for ad, ham in _GECMIS_YESIL:
+        bulunan = gecmis_isabetleri(ham)
+        if bulunan:
+            hatalar.append("GECMIS FIKSTUR(yesil) YANLIS-POZITIF — MESRU push "
+                           "bloklanirdi: %s -> %r" % (ad, bulunan))
+    # FAIL-LOUD: git patlayinca sessiz yesil VERILMEZ.
+    _i, _h = gecmis_tara(["x..y"],
+                         kosucu=lambda k, kok: (128, "", "fatal: bad revision"))
+    if not _h:
+        hatalar.append("FAIL-LOUD OLDU: git log basarisiz oldugunda gecmis kolu hata "
+                       "uretmiyor (olculemeyen hal sessiz yesile donmus)")
+    hatalar.extend(_gecmis_gercek_depo_fiksturu())
+    return hatalar
+
+
+def gecmis_nobeti(kapsam, kosucu=None, fikstur=True, kok=None):
+    """(hatalar, isabetler). BLOKLAYICI kullanim icin (--pre-push / --aralik)."""
+    hatalar = gecmis_fikstur_hatalari() if fikstur else []
+    isabet, hata = gecmis_tara(kapsam, kosucu=kosucu, kok=kok)
+    if hata:
+        hatalar.append("OLCULEMEDI (gecmis ekseni) — %s" % hata)
+        return hatalar, []
+    for sha, yol in isabet:
+        hatalar.append(
+            "GECMISTE IC RAPOR EKLENMIS: %s (commit %s) — dosya SONRADAN SILINSE BILE "
+            "commit kalicidir ve PUBLIC repodan anonim cekilebilir. Cozum: bu commit'i "
+            "daldan cikar (interaktif olmayan rebase/reset ile yeniden yaz) ve raporu "
+            "IZLENMEYEN birak; ad protokolu: RAPOR-MIMARA.md + .gitignore."
+            % (yol, sha[:12]))
+    return hatalar, isabet
+
+
+# ------------------------------------------------------- pre-push aralik hesabi
+_SIFIR = ("0" * 40, "0" * 64)
+
+
+def pre_push_araliklari(stdin_metni):
+    """git pre-push stdin ('<local_ref> <local_sha> <remote_ref> <remote_sha>' satirlari)
+    -> taranacak `git rev-list` kapsam listeleri. SAF fonksiyon (test edilebilir).
+
+    * local_sha sifir  -> dal SILINIYOR, taranacak yeni commit yok.
+    * remote_sha sifir -> uzakta YENI dal: uzakta zaten olan her seyi disla
+                          (`<sha> --not --remotes`), yoksa TUM gecmis taranir ve
+                          bugunku eski kayitlar her yeni dal push'unu bloklardi.
+    * aksi halde       -> `<remote_sha>..<local_sha>`
+    """
+    kapsamlar = []
+    for satir in (stdin_metni or "").splitlines():
+        alan = satir.split()
+        if len(alan) < 4:
+            continue
+        _yerel_ref, yerel_sha, _uzak_ref, uzak_sha = alan[0], alan[1], alan[2], alan[3]
+        if yerel_sha in _SIFIR:
+            continue
+        if uzak_sha in _SIFIR:
+            kapsamlar.append([yerel_sha, "--not", "--remotes"])
+        else:
+            kapsamlar.append(["%s..%s" % (uzak_sha, yerel_sha)])
+    return kapsamlar
+
+
+def _kanca_kurulu_mu():
+    """(kurulu_mu, yol) — pre-push kancasinda GECMIS NOBETI blogu var mi.
+    Yalniz GORUNURLUK icindir; kanca commit EDILEMEDIGI icin bloklayici DEGIL."""
+    p = subprocess.run(["git", "-C", ROOT, "rev-parse", "--path-format=absolute",
+                        "--git-common-dir"], capture_output=True, text=True)
+    if p.returncode != 0 or not p.stdout.strip():
+        return None, None
+    yol = os.path.join(p.stdout.strip(), "hooks", "pre-push")
+    if not os.path.isfile(yol):
+        return False, yol
+    try:
+        with open(yol, encoding="utf-8", errors="replace") as f:
+            metin = f.read()
+    except OSError:
+        return False, yol
+    return ("kisisel-veri-test.py" in metin and "--pre-push" in metin), yol
 
 
 # ==================================================================================
@@ -568,7 +994,118 @@ def pv_birlestir(html):
     return "".join(parca_metinler)
 
 
+def _yaz_hatalar(baslik, hatalar):
+    print("KIRMIZI — %s %d hata:" % (baslik, len(hatalar)))
+    for h in hatalar:
+        print("  - " + h)
+
+
+def aralik_kapisi(kapsamlar, etiket):
+    """BLOKLAYICI geçmiş kolu (--aralik / --pre-push). Çıkış kodu döner.
+
+    🔴 KAPSAM GORUNURLUGU (kusur 4 kardesi): her kapsam icin commit sayisi HER ZAMAN
+    basilir. Cozulemeyen kapsam = KIRMIZI (fail-closed). Commit sayisi 0 olan bir
+    kapsam KIRMIZI DEGILDIR ve bu bilincli bir yanlis-pozitif karari: geri saran
+    (force-push/rewind) ya da zaten guncel bir ref icin git pre-push'u BOS aralikla
+    cagirir; bunu bloklamak her mesru rewind'i durdururdu. Ama SESSIZ de degildir —
+    satir ekrana basilir."""
+    if not kapsamlar:
+        _yaz_hatalar("geçmiş ekseni",
+                     ["OLCULEMEDI — taranacak kapsam URETILEMEDI (%s). Bos kapsam "
+                      "SESSIZ YESIL sayilmaz; push durduruldu." % etiket])
+        return 1
+    hatalar = gecmis_fikstur_hatalari()
+    toplam_commit = 0
+    for kapsam in kapsamlar:
+        s = subprocess.run(["git", "-C", ROOT, "rev-list", "--count"] + list(kapsam),
+                           capture_output=True, text=True)
+        if s.returncode != 0:
+            hatalar.append("OLCULEMEDI — kapsam cozulemedi (%s): %s"
+                           % (" ".join(kapsam), (s.stderr or "").strip() or "?"))
+            continue
+        sayi = int((s.stdout.strip() or "0").split()[0])
+        toplam_commit += sayi
+        print("  kapsam: %-52s -> %d commit" % (" ".join(kapsam), sayi))
+        h, _isabet = gecmis_nobeti(kapsam, fikstur=False)
+        hatalar.extend(h)
+    if hatalar:
+        _yaz_hatalar("geçmiş ekseni (iç rapor / commit geçmişi)", hatalar)
+        print("  (bu kapı PUSH'U DURDURUR: sızıntı ancak push'tan ÖNCE önlenebilir; "
+              "commit uzak depoya gittikten sonra geri alınamaz.)")
+        return 1
+    print("YEŞİL — geçmiş ekseni geçti (%s: %d commit, %d kırmızı + %d yeşil fikstür + "
+          "gerçek-git biçim çapası)."
+          % (etiket, toplam_commit, len(_GECMIS_KIRMIZI), len(_GECMIS_YESIL)))
+    return 0
+
+
+def pre_push_ana():
+    """git pre-push kancası: stdin'den ref satırlarını okur, aralıkları tarar."""
+    ham = sys.stdin.read()
+    satirlar = [s for s in (ham or "").splitlines() if s.strip()]
+    kapsamlar = pre_push_araliklari(ham)
+    if not satirlar:
+        print("YEŞİL — geçmiş ekseni: push edilecek ref yok (stdin boş).")
+        return 0
+    if not kapsamlar:
+        # Tum satirlar dal SILME ise mesru; degilse kapsam uretimi bozulmus demektir.
+        silme = all(len(s.split()) >= 4 and s.split()[1] in _SIFIR for s in satirlar)
+        if silme:
+            print("YEŞİL — geçmiş ekseni: yalnız dal silme (%d ref), yeni commit yok."
+                  % len(satirlar))
+            return 0
+        _yaz_hatalar("geçmiş ekseni",
+                     ["OLCULEMEDI — %d ref satiri geldi ama HIC kapsam uretilemedi "
+                      "(pre-push girdisi bicimi degismis olabilir). Bos kapsam SESSIZ "
+                      "YESIL sayilmaz; push durduruldu." % len(satirlar)])
+        return 1
+    return aralik_kapisi(kapsamlar, "pre-push")
+
+
+def gecmis_raporu():
+    """--gecmis: TÜM yerel geçmişi tarar ve RAPOR eder. BLOKLAMAZ (çıkış 0).
+
+    🔴 NEDEN BLOKLAMAZ: main'in geçmişinde BUGÜN zaten kayıt var (aşağıda listelenir);
+    bloklayıcı olsaydı her push kırılırdı. Bu kip envanter/karar aracıdır — sızmış
+    içeriğin temizliği geçmiş yeniden yazma demektir ve OKAN KAPISIDIR.
+    Ölçülemezse çıkış 2 (rapor üretilemedi ≠ temiz)."""
+    hepsi, hata = gecmis_tara(["--all"])
+    if hata:
+        _yaz_hatalar("geçmiş raporu", ["OLCULEMEDI — %s" % hata])
+        return 2
+    uzak, hata2 = gecmis_tara(["--remotes"])
+    if hata2:
+        uzak = None
+    uzak_kume = set(uzak or [])
+    print("GEÇMİŞ RAPORU — tüm yerel referanslardan erişilebilen commit'lerde EKLENMİŞ "
+          "iç rapor dosyaları")
+    print("  (bu kip BLOKLAMAZ; temizlik = geçmiş yeniden yazma = Okan kapısı)")
+    if not hepsi:
+        print("  kayıt YOK.")
+        return 0
+    for sha, yol in hepsi:
+        nerede = "PUBLIC (uzak referanstan erişilebilir)" if (sha, yol) in uzak_kume \
+            else "yerel (henüz uzağa gitmemiş)"
+        print("  - %s  %s  [%s]" % (sha[:12], yol, nerede))
+    print("  TOPLAM: %d kayıt (%d'i PUBLIC)." % (len(hepsi), len(uzak_kume & set(hepsi))))
+    return 0
+
+
 def main():
+    argv = sys.argv[1:]
+    if "--gecmis" in argv:
+        sys.exit(gecmis_raporu())
+    if "--pre-push" in argv:
+        sys.exit(pre_push_ana())
+    if "--aralik" in argv:
+        i = argv.index("--aralik")
+        aralik = argv[i + 1:]
+        if not aralik:
+            print("KULLANIM: --aralik <git rev-list kapsami>  (or. origin/main..HEAD)",
+                  file=sys.stderr)
+            sys.exit(2)
+        sys.exit(aralik_kapisi([aralik], " ".join(aralik)))
+
     hatalar = []
     dosyalar = {}
 
@@ -610,25 +1147,26 @@ def main():
     # 5) PARMAKIZI KAYIT ADI NOBETCISI (O7 — adlar JENERIK kalmali)
     pk_hatalari, pk_taranan = parmakizi_ad_nobeti()
 
+    # 6) GECMIS EKSENI — CI'da FIKSTURLER kosar (gercek-git bicim capasi dahil).
+    #    CANLI ARALIK TARANMAZ: deploy.yml `actions/checkout@v4`i fetch-depth vermeden
+    #    kullanir -> SIG klon, `origin/main..HEAD` CI'da COZULEMEZ. Canli tarama
+    #    pre-push kancasindadir (bkz. GECMIS EKSENI bolumu).
+    gecmis_hatalari = gecmis_fikstur_hatalari()
+
     if pk_hatalari:
         print("KIRMIZI — parmakızı kayıt adı nöbetçisi %d hata:" % len(pk_hatalari))
         for h in pk_hatalari:
             print("  - " + h)
 
-    if hatalar or rapor_hatalari or tedarikci_hatalari or pk_hatalari:
+    if hatalar or rapor_hatalari or tedarikci_hatalari or pk_hatalari or gecmis_hatalari:
         if hatalar:
-            print("KIRMIZI — kişisel veri testi %d hata:" % len(hatalar))
-            for h in hatalar:
-                print("  - " + h)
+            _yaz_hatalar("kişisel veri testi", hatalar)
         if rapor_hatalari:
-            print("KIRMIZI — iç rapor sızıntı nöbetçisi %d hata:" % len(rapor_hatalari))
-            for h in rapor_hatalari:
-                print("  - " + h)
+            _yaz_hatalar("iç rapor sızıntı nöbetçisi", rapor_hatalari)
         if tedarikci_hatalari:
-            print("KIRMIZI — tedarikçi/ürün adı sızıntı nöbetçisi %d hata:"
-                  % len(tedarikci_hatalari))
-            for h in tedarikci_hatalari:
-                print("  - " + h)
+            _yaz_hatalar("tedarikçi/ürün adı sızıntı nöbetçisi", tedarikci_hatalari)
+        if gecmis_hatalari:
+            _yaz_hatalar("geçmiş ekseni fikstürleri", gecmis_hatalari)
         sys.exit(1)
     print("YEŞİL — kişisel veri testi geçti (%d sayfa, %d kalıp, "
           "%d sayfada pozitif kontrol)."
@@ -640,6 +1178,16 @@ def main():
     print("YEŞİL — tedarikçi/ürün adı sızıntı nöbetçisi geçti "
           "(%d izlenen dosya içeriği tarandı, %d dar literal)."
           % (ted_taranan, len(_TED_KALIPLAR)))
+    kurulu, kanca_yolu = _kanca_kurulu_mu()
+    print("YEŞİL — geçmiş ekseni fikstürleri geçti (%d kırmızı + %d yeşil senaryo + "
+          "gerçek-git biçim çapası). Canlı aralık taraması pre-push kancasında: %s"
+          % (len(_GECMIS_KIRMIZI), len(_GECMIS_YESIL),
+             "KURULU" if kurulu else
+             ("KURULU DEĞİL → python3 tools/gecmis-nobeti-hook-kur.py"
+              if kurulu is False else "ölçülemedi (git yok?)")))
+    if kanca_yolu and not kurulu:
+        print("        (kanca yolu: %s — .git/hooks git'e GİRMEZ, her makinede kurulur)"
+              % kanca_yolu)
     print("YEŞİL — parmakızı kayıt adı nöbetçisi geçti (%d ad tarandı, %d kırmızı + "
           "%d yeşil fikstür)." % (pk_taranan, len(_PK_KIRMIZI), len(_PK_YESIL)))
 
