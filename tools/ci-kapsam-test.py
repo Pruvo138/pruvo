@@ -294,7 +294,13 @@ IZIN_LISTESI = {
         "NOBETSIZDI (cagriyi sil / yoruma al / `|| true` ekle -> dort denetci de rc=0). "
         "Cagri satiri ARTIK tools/is-akisi-kapisi.py BOLUM B tarafindan izleniyor "
         "(deploy.yml'de bloklayici adim; silme/yorum/`|| true`/`|| :`/"
-        "`continue-on-error: true`/`if: false` -> KIRMIZI)."),
+        "`continue-on-error: true`/`if: false` -> KIRMIZI). "
+        "🟡 EK (30 Tem): dosyanin ARTIK openscad'siz bir kolu var — `--kendini-test` "
+        "iddia MANTIGINI fikstur sayilarla olcer (agsiz, ~0,05 s) ve --url kolunun "
+        "ICINDEN de BLOKLAYICI cagrilir, yani su an nobetsiz DEGIL. deploy.yml'e ayri "
+        "bir `--kendini-test` adimi EKLENMEDI (bu turda deploy.yml'e 0 hunk sarti var + "
+        "BOLUM B'nin 'etkili iki-govde cagrisi' SAYACI kayar); mimar karariyla sonraki "
+        "turda eklenebilir. MESH olcumu (ucgen/bbox/hacim) yine yalniz imaj is akisinda."),
     "onizleme/test/fiyat-taban-olcum.mjs": "Kabul KAPISI DEGIL — fiyat regresyonu icin dokum/karsilastirma ARACI (--yaz / --karsilastir). Sabit bir taban dosyasi repoda tutulmadigi icin CI'da tek basina anlamli bir iddiasi yoktur; fiyat kapilari ayri ve bloklayicidir (tools/konfigur-test.py, shop/test/fiyat-prova.mjs, shop/test/iki-renk-ucret.mjs).",
     "jenerator/test/birlestir.py": R_AYRI,
     "jenerator/test/dogrula.py": R_AYRI,

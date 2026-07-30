@@ -42,6 +42,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ESLEM_YOL = os.path.join(REPO, "onizleme", "derleyici", "eslem-ozel.json")
@@ -254,6 +255,67 @@ def yuklenecek_anahtarlar(surum):
     return ["onizleme/paket-v%d.tar.gz" % int(surum)]
 
 
+# GERI OKUMA YENIDEN DENEME BUTCESI (30 Tem 2026 — YAYILMA YARISI OLCULDU).
+# OLCUM: YENI bir R2 anahtarinin `put`'undan sonra ilk UC `get` "key does not exist"
+# dedi, DORDUNCU deneme dogru sha256 ile geldi; yayilma penceresi ~18-24 saniye.
+# Eski kod geri okumayi ANINDA + TEK DENEME yapiyordu -> SAGLAM bir yukleme
+# "🔴 SESSIZ YUKLEME HATASI" ile SAHTE KIRMIZI olculuyordu (ve o teshis insani yanlis
+# yere, "surum artir"a yonlendiriyordu).
+# BUTCE NEDEN ~60 s: olculen en kotu pencerenin (24 s) ~2,5 KATI. Bu betik ELLE kosan
+# yerel bir aractir (CI adimi degil), yani bir dakikalik bekleme tolere edilebilir;
+# buna karsilik GERCEK bir sessiz-uzerine-yazma arizasi da en fazla ~1 dakikada
+# KIRMIZI ile sonlanir. 🔴 SESSIZ FAIL-OPEN YOK: butce dolarsa DURUR.
+GERI_OKUMA_ARALIKLARI = (2.0, 3.0, 5.0, 5.0, 5.0, 8.0, 8.0, 8.0, 8.0, 8.0)  # toplam 60 s
+
+
+def _r2_get(anahtar, hedef):
+    """R2'den nesneyi <hedef>'e indir; wrangler cikis kodunu dondur (sifir = tamam).
+    Ayri fonksiyon: geri_oku_dogrula() bunu ENJEKSIYONLA degistirilebilir tutar
+    (yayilma gecikmesi taklidi -> nobetci agsiz olculebilir)."""
+    proc = subprocess.run(
+        ["npx", "wrangler", "r2", "object", "get", BUCKET + "/" + anahtar,
+         "--file", hedef, "--remote"], cwd=REPO, capture_output=True)
+    return proc.returncode
+
+
+def geri_oku_dogrula(anahtar, arsiv, geri, get=None, bekle=None):
+    """R2'deki nesneyi ARALIKLI YENIDEN DENEMEYLE geri okuyup sha256 karsilastir.
+
+    (ok, gecmis_metni, deneme_sayisi, beklenen_saniye, son_sha) dondurur.
+    ok=True yalnizca R2'den okunan baytlarin sha256'si arsivle BIREBIR AYNI oldugunda.
+
+    * Nesne bulunamamasi da sha UYUSMAMASI da yeniden denenir: yayilma penceresinde
+      ikisi de gecici olabilir. Butce dolunca ok=False -> cagiran DURUR.
+    * BAYAT DOSYA SAVUNMASI: her denemeden ONCE hedef dosya SILINIR. Aksi halde bir
+      onceki denemenin biraktigi kismi/eski dosya bir sonraki turda "nesne var" gibi
+      okunur ve nesne R2'de OLMADIGI halde YESIL yanabilir (olculdu: bu satir
+      kaldirilinca 'rc!=0 ama dosya birakan' senaryo sahte-yesil oluyor)."""
+    get = get or _r2_get
+    bekle = bekle or time.sleep
+    bekleniyor = _ozet(arsiv)
+    gecmis = []
+    toplam_bekleme = 0.0
+    son_sha = None
+    for i, aralik in enumerate((0.0,) + tuple(GERI_OKUMA_ARALIKLARI)):
+        if aralik:
+            bekle(aralik)
+            toplam_bekleme += aralik
+        if os.path.exists(geri):
+            os.remove(geri)
+        rc = get(anahtar, geri)
+        if rc == 0 and os.path.exists(geri):
+            son_sha = _ozet(geri)
+            if son_sha == bekleniyor:
+                return True, "; ".join(gecmis), i + 1, toplam_bekleme, son_sha
+            gecmis.append("d%d: sha %s (beklenen %s)"
+                          % (i + 1, son_sha[:16], bekleniyor[:16]))
+        else:
+            son_sha = None
+            gecmis.append("d%d: nesne GORUNMEDI (rc=%s)" % (i + 1, rc))
+    return (False, "; ".join(gecmis), len(GERI_OKUMA_ARALIKLARI) + 1,
+            toplam_bekleme, son_sha)
+
+
 def yukle_ve_dogrula(anahtar, arsiv, tmp):
     """R2'ye yaz + GERI OKUYUP dogrula. Basari damgasi wrangler'in cikis koduna DEGIL
     nesnenin GERCEK icerigine baglidir.
@@ -264,7 +326,11 @@ def yukle_ve_dogrula(anahtar, arsiv, tmp):
     (VAR OLAN anahtar) 4 ayri denemede de v5 icerigiyle kaldi (SHA-256 birebir ayni).
     Kontrol: yeni anahtarlarda hem olusturma hem uzerine yazma ANINDA gorunuyor.
     Bu betik eskiden yalniz returncode'a bakiyordu -> "yuklendi" der, CI BAYAT paketi
-    ceker, imaj eski eslemle derlenir ve hata CANLIDA ortaya cikardi (sessiz hata)."""
+    ceker, imaj eski eslemle derlenir ve hata CANLIDA ortaya cikardi (sessiz hata).
+
+    30 Tem 2026 EKI: geri okuma ARTIK YARIS KAYBETMEZ. Yeni anahtarin yayilmasi
+    ~18-24 s surebiliyor (olculdu: ilk 3 `get` "key does not exist", 4. deneme dogru
+    sha) -> aralikli yeniden deneme eklendi (bkz. GERI_OKUMA_ARALIKLARI)."""
     komut = ["npx", "wrangler", "r2", "object", "put",
              BUCKET + "/" + anahtar, "--file", arsiv, "--remote"]
     proc = subprocess.run(komut, cwd=REPO, capture_output=True)
@@ -273,23 +339,26 @@ def yukle_ve_dogrula(anahtar, arsiv, tmp):
         sys.stderr.write(proc.stderr.decode("utf-8", "replace"))
         sys.exit("R2 yuklemesi basarisiz: %s (wrangler oturumu acik mi?)" % anahtar)
     geri = os.path.join(tmp, "geri-" + anahtar.replace("/", "_"))
-    kontrol = subprocess.run(
-        ["npx", "wrangler", "r2", "object", "get", BUCKET + "/" + anahtar,
-         "--file", geri, "--remote"], cwd=REPO, capture_output=True)
-    if kontrol.returncode != 0 or not os.path.exists(geri):
-        sys.exit("GERI OKUMA YAPILAMADI: %s -> yukleme DOGRULANMADI (yesil sayma)" % anahtar)
-    bekleniyor, gelen = _ozet(arsiv), _ozet(geri)
-    if bekleniyor != gelen:
-        sys.exit(
-            "🔴 SESSIZ YUKLEME HATASI: %s — wrangler basarili dedi ama R2'deki nesne "
-            "DEGISMEDI (beklenen sha256 %s, R2'de %s). CI bu anahtari cektigi icin BAYAT "
-            "paketle imaj derlenir. SEBEP: bu anahtar R2'de ZATEN VARDI (uzerine yazma bu "
-            "bucket'ta sessizce basarisiz oluyor). COZUM: eslem-ozel.json 'surum' alanini "
-            "artirin -> yeni anahtar yazilir; CI girdisini (paket_anahtar) yeni anahtara "
-            "cevirin. Bu betik silme YAPMAZ."
-            % (anahtar, bekleniyor[:16], gelen[:16]))
-    print("yuklendi + GERI OKUNDU: r2://%s/%s (%d bayt, sha256 %s)"
-          % (BUCKET, anahtar, os.path.getsize(arsiv), gelen[:16]))
+    ok, gecmis, deneme, beklendi, son_sha = geri_oku_dogrula(anahtar, arsiv, geri)
+    if not ok:
+        if son_sha is None:
+            sebep = ("nesne %.0f saniye boyunca %d denemede R2'de GORUNMEDI. Yayilma "
+                     "gecikmesi bu butceyi (yaklasik 60 s) asmis ya da yukleme "
+                     "GERCEKTEN olmamis olabilir; wrangler oturumu/bucket adini ve "
+                     "anahtari kontrol edin." % (beklendi, deneme))
+        else:
+            sebep = ("wrangler basarili dedi ama R2'deki nesne %.0f saniye sonra da "
+                     "BEKLENEN ICERIKTE DEGIL (beklenen sha256 %s, R2'de %s). SEBEP: bu "
+                     "anahtar R2'de ZATEN VARDI (uzerine yazma bu bucket'ta sessizce "
+                     "basarisiz oluyor). COZUM: eslem-ozel.json 'surum' alanini artirin "
+                     "-> yeni anahtar yazilir; CI girdisini (paket_anahtar) yeni anahtara "
+                     "cevirin." % (beklendi, _ozet(arsiv)[:16], son_sha[:16]))
+        sys.exit("🔴 SESSIZ YUKLEME HATASI: %s — %s CI bu anahtari cektigi icin BAYAT/BOS "
+                 "paketle imaj derlenir. Bu betik silme YAPMAZ.\n   denemeler: %s"
+                 % (anahtar, sebep, gecmis))
+    print("yuklendi + GERI OKUNDU: r2://%s/%s (%d bayt, sha256 %s; %d. denemede, "
+          "%.0f s beklendi)"
+          % (BUCKET, anahtar, os.path.getsize(arsiv), son_sha[:16], deneme, beklendi))
 
 
 def main():

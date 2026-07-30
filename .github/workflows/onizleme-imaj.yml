@@ -23,10 +23,23 @@ on:
         # + RC=0 dondugu halde nesneyi DEGISTIRMIYOR -> takma ad bayat kaldi, CI onarilmis
         # main'e ragmen ESKI eslemle imaj derleyecekti (sessiz hata). Paketi tazeleyen
         # tools/onizleme-paket-yukle.py hangi anahtari yazdigini basar; o degeri buraya girin.
-        description: "R2 paket anahtari (onizleme-paket-yukle.py ciktisindaki degeri girin)"
+        # 🔴 VARSAYILAN YOK — FAIL-CLOSED (mimar karari 30 Tem 2026). Eskiden burada
+        # varsayilan bir anahtar alani vardi (deger: onizleme/paket-v6.tar.gz).
+        # (Bu satirlarda "varsayilan" YAML anahtarini harfi harfine YAZMAYIN: nobetci
+        # onu okuyan ayni ayristiriciyi kullanir, yorumdaki mensiyon karistirmasin.)
+        # OLCULEN TUZAK: v6 paketi
+        # 2-renk parca ailelerini (#govde/#yazi) TASIMIYOR (23 aile); is akisi
+        # VARSAYILANLA tetiklendiginde parcasiz imaj derlenir ve HICBIR ADIM KIRMIZI
+        # VERMEZ (metin eslem + paket tazelik kapilari ACIK ailelerin esleminden gecer,
+        # duman adimi taban aileyi derler) -> yanlis imaj SESSIZCE yayinlanir.
+        # Sabit bir surum yazmak (v7) ayni tuzagi yeniden kurar: bir sonraki surumde
+        # yine bayatlar. Cozum: girdi ZORUNLU ve varsayilansiz; asagidaki
+        # `[ -z "$PAKET_ANAHTAR" ]` kapisi bos girdiyle devam etmeyi DURDURUR.
+        # NOBETCI: tools/paket-tazelik-kapisi.py -> surumlu_anahtar_nobeti (c)/(d)
+        # (bloklayici; deploy.yml + bu is akisi).
+        description: "R2 paket anahtari (onizleme-paket-yukle.py ciktisindaki 'R2 ANAHTARI' degerini girin — VARSAYILAN YOK)"
         type: string
         required: true
-        default: "onizleme/paket-v6.tar.gz"
       push_et:
         description: "Imaji Cloudflare registry'ye it (Workers Paid gerekir)"
         type: boolean
