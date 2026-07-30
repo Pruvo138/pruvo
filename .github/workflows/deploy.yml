@@ -407,6 +407,18 @@ jobs:
       - name: Marka durum paneli kabul testi (kanonik satır + katlama)
         run: python3 tools/marka-panel-test.py
 
+      # MARKA x KATEGORI KAPSAMI (Okan, 30 Tem): cok-dikeyli markalar (olculdu: Yamaha 6
+      # dikey, Suzuki 5, BMW 4, Volvo 2) tek marka kovasinda birlesiyordu — Marin'de
+      # "Yamaha" cipine basan musteriye motosiklet/elektronik parcasi cikiyordu. Hata
+      # SESSIZ: ekranda hata gorunmez, kimse bildirmez, satis kaybolur. NE KORUR: cip
+      # hedefinin kapsami tasimasi, marka/model sayfasinin kapsami UYGULAMASI, gecersiz
+      # kapsamda FAIL-CLOSED (bos sonuc; sessizce tum katalog GOSTERILMEZ), kanonik
+      # URL'in parametresiz kalmasi ve sitemap'e parametreli girdi girmemesi (SEO).
+      # /marka/... sayfalarini GERCEK jeneratorle uretir, kapsam JS'ini node'da KOSAR
+      # (setup-node bloklayici on-kosul; node yoksa FAIL-CLOSED exit 1). Offline, ~1 s.
+      - name: Marka kapsam kabul testi (marka x kategori + fail-closed)
+        run: python3 tools/marka-kapsam-test.py
+
       # MARKA CIP TAVANI (index.html MARKA_LIMIT) — R_NODE muafiyet sinifindan cikarildi
       # (30 Tem): gerekce "CI build job'u Python-only (setup-node yok)" diyordu, oysa
       # setup-node BLOKLAYICI on-kosul olarak VAR. NE KORUR: ana sayfadaki marka cipi

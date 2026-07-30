@@ -98,6 +98,24 @@ def _marka_norm(s):
     return re.sub(r"\s+", " ", n).strip()
 
 
+def kategori_evreni(index_html):
+    """KAPSAM doğrulaması için GEÇERLİ kategori listesi — index.html'den AYIKLANIR
+    (CATEGORIES + GIZLI_KATEGORILER; build.py CATEGORIES+NAV_GIZLI ile birebir eş).
+    Kopya TUTULMAZ: kategori eklenince/çıkınca kapsam kapısı kendiliğinden izler.
+    Bulunamazsa HATA — fail-closed: sessizce boş listeye düşerse HER kapsam "geçersiz"
+    olurdu; jeneratör o durumda hiç sayfa yazmasın."""
+    out = []
+    for ad in ("CATEGORIES", "GIZLI_KATEGORILER"):
+        m = re.search(r"var " + ad + r" = \[(.*?)\];", index_html, re.S)
+        if not m:
+            raise SystemExit("HATA: index.html'de %s bulunamadı "
+                             "(marka kapsamı kategori evreni tek kaynağı bozuk)." % ad)
+        out.extend(re.findall(r'"([^"]+)"', m.group(1)))
+    if not out:
+        raise SystemExit("HATA: index.html kategori evreni BOŞ (kapsam doğrulaması yapılamaz).")
+    return out
+
+
 class MarkaEvreni:
     """index.html'den ayıklanmış marka küratörlüğü: TANINMIS liste + katlama + chip limiti."""
 
@@ -314,7 +332,155 @@ _MM_CSS = """
     font-weight:700;font-size:15px;text-decoration:none;border-radius:10px;padding:11px 20px}
   .mm-wa:hover{background:#1fb959}
   .mm-sec-h{font-size:16px;color:var(--navy);margin:26px 0 4px}
+  /* KAPSAM şeridi (?kategori=<Kategori> ile gelindiğinde JS açar; kanonik/parametresiz
+     sayfada display:none kalır → crawler tam koleksiyonu görür, SEO regresyonu yok). */
+  .mm-kapsam{margin:0 0 14px;padding:10px 14px;border:1px solid var(--gray-line);
+    border-radius:9px;background:var(--gray-card);font-size:14px;color:var(--navy)}
+  .mm-kapsam a{color:var(--navy-2);font-weight:600;margin-left:8px}
+  .mm-bos{margin:18px 0;color:var(--gray-text);font-size:15px}
 """
+
+
+# ---- KAPSAM (marka × kategori) — anasayfa çipinden gelen ?kategori= görünüm parametresi ----
+# NEDEN VAR (Okan, 30 Tem — SESSİZ hata): çok-dikeyli markalar (Yamaha 6 dikey, Suzuki 5,
+# BMW 4, Volvo 2) tek marka kovasında birleşiyordu; Marin'de Yamaha'ya basan müşteriye
+# motosiklet/elektronik parçası çıkıyor, kimse hatayı GÖRMÜYOR, satış sessizce kaybediliyordu.
+# KARAR: yeni marka adı UYDURULMAZ ("Yamaha Marine" aramayı böler + Ege eşleşmesini kırar);
+# ayırt edici zaten var → marka + kategori ÇİFTİ. Kapsam bir GÖRÜNÜM parametresidir:
+#   · kanonik URL /marka/<slug>/ AYNEN kalır (rel=canonical parametresizi gösterir),
+#   · sitemap'e YENİ girdi girmez (yeni URL ailesi açılmaz),
+#   · parametresiz gelindiğinde sayfaya HİÇ dokunulmaz (crawler tam koleksiyonu görür).
+# FAIL-CLOSED: kapsam varken kategorisi bilinmeyen öğe GİZLENİR; geçersiz/bilinmeyen kategori
+# HİÇBİR ürünü göstermez (sessizce tüm kataloğu göstermek = sessiz hata).
+# Test bu bloğu MARKER'lardan ayıklayıp node ile GERÇEKTEN koşar → tools/marka-kapsam-test.py.
+_KAPSAM_JS_BAS = "/* PRUVO MARKA KAPSAMI BAS */"
+_KAPSAM_JS_SON = "/* PRUVO MARKA KAPSAMI SON */"
+
+_KAPSAM_JS_GOVDE = r"""
+(function(g){
+  var KATEGORILER = __KATEGORILER__;
+  // ham parametre -> karar. {aktif:kapsam var mı, gecerli:tanınan kategori mi, kategori:ad}
+  function coz(ham, gecerliler){
+    if(ham === null || ham === undefined || ham === ""){
+      return {aktif:false, gecerli:true, kategori:null};
+    }
+    if(!gecerliler || gecerliler.indexOf(ham) === -1){
+      return {aktif:true, gecerli:false, kategori:ham};
+    }
+    return {aktif:true, gecerli:true, kategori:ham};
+  }
+  // Tek öğe görünür mü. FAIL-CLOSED: geçersiz kapsam -> hiçbir şey; kategorisi
+  // OKUNAMAYAN öğe (data-kat yok/boş) kapsam aktifken GİZLENİR (kaçak yok).
+  function gorunur(ogeKat, c){
+    if(!c || !c.aktif){ return true; }
+    if(!c.gecerli){ return false; }
+    if(!ogeKat){ return false; }
+    return ogeKat === c.kategori;
+  }
+  // Model butonunun kapsam içindeki parça sayısı (data-katsay = {"Marin":3,...}).
+  // Bozuk/eksik JSON -> 0 (fail-closed; buton gizlenir, yanlış sayı gösterilmez).
+  function sayimla(katSayimJson, c){
+    var tablo = {};
+    try{ tablo = JSON.parse(katSayimJson || "{}") || {}; }catch(e){ tablo = {}; }
+    var toplam = 0, k;
+    for(k in tablo){
+      if(Object.prototype.hasOwnProperty.call(tablo, k)){ toplam += tablo[k]; }
+    }
+    if(!c || !c.aktif){ return toplam; }
+    if(!c.gecerli){ return 0; }
+    return tablo[c.kategori] || 0;
+  }
+  // Kapsamı bir sonraki adıma taşıyan sorgu dizesi (geçersiz kapsam TAŞINMAZ).
+  function sorgu(c){
+    if(!c || !c.aktif || !c.gecerli){ return ""; }
+    return "?kategori=" + encodeURIComponent(c.kategori);
+  }
+  function yazSayim(dok, sec, deger){
+    var el = dok.querySelectorAll(sec), i;
+    for(i = 0; i < el.length; i++){ el[i].textContent = String(deger); }
+  }
+  function uygula(dok, loc){
+    var ham = null;
+    try{
+      ham = new URLSearchParams((loc && loc.search) || "").get("kategori");
+    }catch(e){ ham = null; }
+    var c = coz(ham, KATEGORILER);
+    if(!c.aktif){ return c; }   // KANONİK/parametresiz -> sayfaya DOKUNMA (SEO regresyonu yok)
+
+    var i, kartlar = dok.querySelectorAll(".card[data-kat]"), gorunenKart = 0;
+    for(i = 0; i < kartlar.length; i++){
+      var ac = gorunur(kartlar[i].getAttribute("data-kat"), c);
+      kartlar[i].style.display = ac ? "" : "none";
+      if(ac){ gorunenKart++; }
+    }
+    var btnlar = dok.querySelectorAll(".mm-model-btn[data-katsay]"), gorunenModel = 0;
+    for(i = 0; i < btnlar.length; i++){
+      var n = sayimla(btnlar[i].getAttribute("data-katsay"), c);
+      btnlar[i].style.display = n > 0 ? "" : "none";
+      if(n > 0){
+        gorunenModel++;
+        var ad = btnlar[i].querySelector(".adet");
+        if(ad){ ad.textContent = n + " parça"; }
+        var h = btnlar[i].getAttribute("href");
+        if(h && h.indexOf("?") === -1){ btnlar[i].setAttribute("href", h + sorgu(c)); }
+      }
+    }
+    // kapsam bir sonraki sayfada da sürsün (breadcrumb / marka geri-linki)
+    var tasi = dok.querySelectorAll("a[data-kapsam-tasi]");
+    for(i = 0; i < tasi.length; i++){
+      var ht = tasi[i].getAttribute("href");
+      if(ht && ht.indexOf("?") === -1){ tasi[i].setAttribute("href", ht + sorgu(c)); }
+    }
+    yazSayim(dok, ".mm-sayim-kart", gorunenKart);
+    yazSayim(dok, ".mm-sayim-model", gorunenModel);
+
+    // GÖRÜNÜR kapsam şeridi + kapsamı KALDIRMA yolu (kanonik, parametresiz adres).
+    // Metin textContent ile yazılır (innerHTML YOK) -> URL'den gelen değer kod olamaz.
+    var not = dok.getElementById("kapsamNot");
+    if(not){ not.style.display = ""; }
+    var metin = dok.getElementById("kapsamNotMetin");
+    if(metin){
+      metin.textContent = c.gecerli
+        ? ("Kapsam: yalnız " + c.kategori + " kategorisi — " + gorunenKart + " parça")
+        : ("Geçersiz kapsam: “" + c.kategori + "” bir kategori değil — " +
+           "sonuç gösterilmiyor.");
+    }
+    var sifirla = dok.getElementById("kapsamNotSifirla");
+    if(sifirla && loc && loc.pathname){ sifirla.setAttribute("href", loc.pathname); }
+    var bos = dok.getElementById("kapsamBos");
+    if(bos){ bos.style.display = (gorunenKart === 0 && gorunenModel === 0) ? "" : "none"; }
+    return c;
+  }
+  g.PRUVO_KAPSAM = {coz: coz, gorunur: gorunur, sayimla: sayimla, sorgu: sorgu,
+                    uygula: uygula, KATEGORILER: KATEGORILER};
+})(typeof window !== "undefined" ? window : globalThis);
+"""
+
+_KAPSAM_JS_CAGRI = """
+if(typeof window !== "undefined" && window.PRUVO_KAPSAM){
+  try{ window.PRUVO_KAPSAM.uygula(document, window.location); }
+  catch(e){ console.error("Kapsam uygulanamadi:", e); }
+}
+"""
+
+
+def kapsam_scripti(kategoriler):
+    """Sayfaya gömülecek KAPSAM scripti (marker'lı; test buradan ayıklayıp node'da koşar)."""
+    govde = _KAPSAM_JS_GOVDE.replace(
+        "__KATEGORILER__", json.dumps(kategoriler, ensure_ascii=False, separators=(",", ":")))
+    return ("<script>" + _KAPSAM_JS_BAS + govde + _KAPSAM_JS_SON
+            + _KAPSAM_JS_CAGRI + "</script>")
+
+
+def _kapsam_not_html(esc):
+    """Kapsam şeridi + boş-sonuç uyarısı (SSR'de GİZLİ; yalnız ?kategori= ile JS açar)."""
+    return ('<div class="mm-kapsam" id="kapsamNot" style="display:none">'
+            '<span id="kapsamNotMetin"></span>'
+            '<a id="kapsamNotSifirla" href="./">' + esc("Tüm kategoriler") + '</a>'
+            '</div>'
+            '<p class="mm-bos" id="kapsamBos" style="display:none">'
+            + esc("Bu kapsamda listelenen parça yok. Aradığınızı WhatsApp'tan yazın, "
+                  "ölçüye özel üretelim.") + '</p>')
 
 
 def _wa_href(esc, prefill):
@@ -334,7 +500,8 @@ def _huni_blok(esc, baslik, govde, prefill, cta):
     )
 
 
-def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld, body_html):
+def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld, body_html,
+           kapsam_js=""):
     esc = ctx["esc"]
     css = ctx["PAGE_CSS"] + _MM_CSS
     return ctx["surumle_scriptler"](u"""<!DOCTYPE html>
@@ -381,6 +548,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
 </footer>
 {pv_js}
 {ga_banner}
+{kapsam_js}
 </body>
 </html>
 """.format(
@@ -400,6 +568,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
         ga_banner=ctx["GA_BANNER_SNIPPET"],
         collection_ld=collection_ld,
         breadcrumb_ld=breadcrumb_ld,
+        kapsam_js=kapsam_js,
     ))
 
 
@@ -583,17 +752,28 @@ def _kart(ctx, p):
 
     badge = ('<span class="card-badge">Ölçüye Özel</span>'
              if p.get("parametrik") else "")
+    # data-kat = KAPSAM ekseni (marka × kategori). Kart zaten kategoriyi GÖSTERİYOR ama
+    # makine-okunur alan yoktu; ?kategori= kapsamı bu alandan süzülür. Boş/eksik data-kat
+    # kapsam aktifken kartı GİZLETİR (fail-closed) — bu yüzden hep basılır.
     return (
-        '<div class="card"><a class="card-main" href="%s">'
+        '<div class="card" data-kat="%s"><a class="card-main" href="%s">'
         '<img class="card-img" alt="%s" loading="lazy" src="%s">'
         '<div class="card-body">'
         '<span class="card-cat">%s</span>'
         '<div class="card-title">%s</div>'
         '<div class="card-price%s">%s</div>'
         '</div>%s</a></div>'
-        % (esc(ctx["product_url"](pid)), esc(baslik), esc(cover),
+        % (esc(kategori), esc(ctx["product_url"](pid)), esc(baslik), esc(cover),
            esc(kategori), esc(baslik),
            " empty" if bos else "", esc(fiyat_metni), badge))
+
+
+def _kat_sayim_json(urunler):
+    """Model grubunun KATEGORİ kırılımı -> data-katsay JSON'u ({"Marin":3,"Motosiklet":5}).
+    sort_keys: çıktı deterministik (aynı katalog -> bayt-aynı sayfa)."""
+    c = Counter((p.get("kategori") or "").strip() for p in urunler)
+    return json.dumps({k: v for k, v in c.items() if k},
+                      ensure_ascii=False, separators=(",", ":"), sort_keys=True)
 
 
 def _urun_grid(ctx, urunler):
@@ -620,7 +800,7 @@ def _itemlist(ctx, urunler, limit=None):
 
 
 # --------------------------------------------------------------------- sayfa üreticileri
-def _model_sayfasi(ctx, marka, g):
+def _model_sayfasi(ctx, marka, g, kategoriler):
     esc = ctx["esc"]
     SITE = ctx["SITE"]
     display = g["display"]
@@ -659,8 +839,9 @@ def _model_sayfasi(ctx, marka, g):
                "Fotoğrafını iletiyorum.")
 
     # breadcrumb (görünür)
+    # data-kapsam-tasi: kapsam varsa marka geri-linki de aynı kapsamda kalsın (JS ekler).
     bc = ('<nav class="mm-bc" aria-label="breadcrumb"><a href="/">Ana Sayfa</a> &rsaquo; '
-          '<a href="' + esc(marka_url) + '">' + esc(marka) + '</a> &rsaquo; '
+          '<a data-kapsam-tasi href="' + esc(marka_url) + '">' + esc(marka) + '</a> &rsaquo; '
           + esc(display) + '</nav>')
 
     huni = _huni_blok(esc, marka + " " + display + " parçanızı bulamadınız mı?",
@@ -669,7 +850,9 @@ def _model_sayfasi(ctx, marka, g):
     body = (bc
             + '<h1>' + esc(h1) + '</h1>'
             + '<p class="lead">' + esc(giris) + '</p>'
-            + '<h2 class="mm-sec-h">' + esc(display) + ' parçaları (' + str(n) + ')</h2>'
+            + _kapsam_not_html(esc)
+            + '<h2 class="mm-sec-h">' + esc(display) + ' parçaları ('
+            + '<span class="mm-sayim-kart">' + str(n) + '</span>)</h2>'
             + _urun_grid(ctx, g["urunler"])
             + huni)
 
@@ -687,11 +870,12 @@ def _model_sayfasi(ctx, marka, g):
         "mainEntity": {"@type": "ItemList", "numberOfItems": n,
                        "itemListElement": _itemlist(ctx, g["urunler"])},
     })
-    html = _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body)
+    html = _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body,
+                  kapsam_scripti(kategoriler))
     return url, html
 
 
-def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler):
+def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     esc = ctx["esc"]
     SITE = ctx["SITE"]
     marka_slug = _slug(marka)
@@ -711,12 +895,16 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler):
     bc = ('<nav class="mm-bc" aria-label="breadcrumb"><a href="/">Ana Sayfa</a> &rsaquo; '
           '<a href="/marka/">Markalar</a> &rsaquo; ' + esc(marka) + '</nav>')
 
-    # model butonları (>= ESIK)
+    # model butonları (>= ESIK). data-katsay = modelin KATEGORİ kırılımı ({"Marin":3,...});
+    # kapsam geldiğinde buton o kategorideki sayıya düşer, 0 ise BUTON GİZLENİR — yoksa
+    # Marin kapsamında motosiklet modeli butonu görünmeye devam ederdi (sessiz hata).
     btns = []
     for g in buyuk_gruplar:
         murl = "/marka/" + marka_slug + "/" + g["slug"] + "/"
-        btns.append('<a class="mm-model-btn" href="%s">%s<span class="adet">%d parça</span></a>'
-                    % (esc(murl), esc(g["display"]), len(g["urunler"])))
+        btns.append('<a class="mm-model-btn" href="%s" data-katsay="%s">'
+                    '%s<span class="adet">%d parça</span></a>'
+                    % (esc(murl), esc(_kat_sayim_json(g["urunler"])),
+                       esc(g["display"]), len(g["urunler"])))
     model_html = '<div class="mm-models">' + "".join(btns) + "</div>" if btns else ""
 
     # diğer parçalar: <ESIK modeller + yalnız-marka ürünler (hepsi crawlable link)
@@ -724,7 +912,8 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler):
     diger_html = ""
     if diger:
         diger_html = ('<h2 class="mm-sec-h">Diğer ' + esc(marka)
-                      + ' parçaları (' + str(len(diger)) + ')</h2>'
+                      + ' parçaları (<span class="mm-sayim-kart">'
+                      + str(len(diger)) + '</span>)</h2>'
                       + _urun_grid(ctx, diger))
 
     prefill = ("Merhaba, " + marka + " için bir parça arıyorum, sitede bulamadım. Elimdeki "
@@ -740,7 +929,9 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler):
     body = (bc
             + '<h1>' + esc(h1) + '</h1>'
             + '<p class="lead">' + esc(giris) + '</p>'
-            + ('<h2 class="mm-sec-h">Modele göre seçin</h2>' if btns else "")
+            + _kapsam_not_html(esc)
+            + ('<h2 class="mm-sec-h">Modele göre seçin (<span class="mm-sayim-model">'
+               + str(len(btns)) + '</span>)</h2>' if btns else "")
             + model_html
             + diger_html
             + huni)
@@ -764,7 +955,8 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler):
         "mainEntity": {"@type": "ItemList", "numberOfItems": len(model_items),
                        "itemListElement": model_items},
     })
-    html = _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body)
+    html = _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body,
+                  kapsam_scripti(kategoriler))
     return url, html
 
 
@@ -821,7 +1013,9 @@ def uret(products, ctx):
     ROOT = ctx["ROOT"]
     SITE = ctx["SITE"]
     with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
-        evren = MarkaEvreni(f.read())
+        _index_html = f.read()
+    evren = MarkaEvreni(_index_html)
+    kategoriler = kategori_evreni(_index_html)     # KAPSAM doğrulama evreni (fail-closed)
     veri = gruplandir(products, evren)
 
     def yaz(url, html):
@@ -876,13 +1070,13 @@ def uret(products, ctx):
             if len(g["urunler"]) < ESIK:
                 kucuk_urunler.extend(g["urunler"])
 
-        murl, mhtml = _marka_sayfasi(ctx, marka, d, buyuk, kucuk_urunler)
+        murl, mhtml = _marka_sayfasi(ctx, marka, d, buyuk, kucuk_urunler, kategoriler)
         yaz(murl, mhtml)
         sitemap.append((murl, "0.7", "weekly"))
 
         marka_yolu = "/marka/" + marka_slug + "/"          # göreli (aynı köken; render_product /?marka= gibi göreli basar)
         for g in buyuk:
-            url, html = _model_sayfasi(ctx, marka, g)
+            url, html = _model_sayfasi(ctx, marka, g, kategoriler)
             yaz(url, html)
             sitemap.append((url, "0.7", "weekly"))
             model_yolu = marka_yolu + g["slug"] + "/"

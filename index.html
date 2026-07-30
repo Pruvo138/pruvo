@@ -2391,6 +2391,22 @@
       return a.localeCompare(b, "tr");
     });
   }
+  // --- MARKA KAPSAMI BAŞ ---
+  // Okan (30 Tem, ölçülen sessiz hata): çok-dikeyli markalar (Yamaha 6 dikey, Suzuki 5,
+  // BMW 4, Volvo 2 — Volvo Penta 21 Marin ürünü "Volvo"ya katlanıyor) tek kovada birleşiyor.
+  // Marin'de "Yamaha" çipine basan müşteri motosiklet/elektronik parçası görüyordu; kimse
+  // hata GÖRMÜYOR, satış sessizce kayboluyordu. ÇÖZÜM: yeni marka adı UYDURULMAZ ("Yamaha
+  // Marine" aramayı böler + Ege eşleşmesini kırar) — ayırt edici zaten var: marka+kategori
+  // ÇİFTİ. Çip hedefi, hangi kategori içinde tıklandıysa o KAPSAMI taşır.
+  // "Tümü"/filtresiz durumda sorgu BOŞ → eski davranış BAYT-AYNI (regresyon yok) ve
+  // kanonik /marka/<slug>/ URL'i değişmez (SEO: kapsam bir GÖRÜNÜM parametresidir,
+  // yeni sayfa/URL ailesi DEĞİL — sitemap girdi sayısı artmaz).
+  function markaKapsamSorgusu(kat){
+    if(!kat || kat === "Tümü"){ return ""; }
+    return "?kategori=" + encodeURIComponent(kat);
+  }
+  // --- MARKA KAPSAMI SON ---
+
   function renderBrands(){
     var el = document.getElementById("brandChips");
     el.innerHTML = "";
@@ -2406,7 +2422,7 @@
         var a = document.createElement("a");
         a.className = "brand-btn brand-link" + (m === activeBrand ? " active" : "");
         a.textContent = m;
-        a.href = "/marka/" + slug + "/";
+        a.href = "/marka/" + slug + "/" + markaKapsamSorgusu(activeCat);
         return a;
       }
       var b = document.createElement("button");
