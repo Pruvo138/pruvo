@@ -2241,8 +2241,8 @@
        5. para birimi aynı (başka birim bu kalıbı hiç eşlemez -> gösterilmez)
        6. eski_fiyat > fiyat (eşit/küçük = indirim değil)
 
-     KALIP tools/build.py'deki (_ESKI_FIYAT_TAM_RE / _FIYAT_ARA_RE) ile AYNI; iki taraf
-     tools/eski-fiyat-test.py'de AYNI vaka tablosuyla kilitlenir (drift nöbeti).
+     KALIP derleyici tarafındaki (_ESKI_FIYAT_TAM_RE / _FIYAT_ARA_RE) ile AYNI; iki taraf
+     kabul testinde AYNI vaka tablosuyla kilitlenir (drift nöbeti).
      Lookbehind KULLANILMAZ (eski Safari); "1.2.3 TL" gibi bozuk dizede sondaki "3"ün
      3 TL diye okunmasını `(?:^|[^\d.,])` öneki engeller. */
   var ESKI_FIYAT_TAM_RE = /^\s*((?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?)\s*(?:TL|TRY|₺)\s*$/i;
