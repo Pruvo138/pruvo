@@ -98,24 +98,6 @@ jobs:
       - name: Diriltme kapisi (silinmis urun geri gelmis mi)
         run: python3 tools/diriltme-kapisi.py
 
-      # ARA MALIYET KAPISI — /ara D1 sorgusunun BIRLESIM SIRASI cevrilip tam taramaya
-      # dusuyor mu. BLOKLAYICI (continue-on-error YOK), agsiz, deterministik.
-      # NE KORUR (bu depodaki duzlem): `hs` kolonu tools/arama.py haystack()'ten uretilir
-      # ve katalog buyuklugu urunler.json'dan gelir — ikisi de SERIT A'da yayina giden
-      # girdilerdir. Bu ikisinden biri arama maliyetini patlatirsa canli /ara ucu
-      # `D1_ERROR: exceeded its CPU time limit` ile MUSTERIYE 500 doner; olculdu (31 Tem):
-      # 30 istekten 5'i dusuyordu, 3+ token'li sorgu sinifinda %45,8, 10 token'de %100.
-      # Regresyon SORGU METNINDE degil PLANDA yasadigi icin mevcut parite testleri
-      # (SONUC karsilastirir) bu sinifi GORMEZ — ayri bir eksendir.
-      # YANLIS-POZITIF ANALIZI (olculdu, merge kapisi turu): iki kosum BIREBIR ayni cikti
-      # (sha256 esit) -> deterministik; ag/altyapi importu YOK (yalniz stdlib + arama.py);
-      # adim butcesi KATALOG BOYUYLA olceklenir (250 x urun) ve saglikli en kotu hal urun
-      # basina ~41 adim -> pay ~6x SABIT kalir, katalog buyumesi kapiyi kirmiziya
-      # SURUKLEMEZ. Olculen sure 10,8 s (15.955 urun).
-      # Kapinin KENDI kirmizi yolu: `--kendini-test` kolu serit-b'de kosar.
-      - name: Ara maliyet kapisi (D1 arama plani cevrilmis mi + semantik parite)
-        run: python3 tools/ara-maliyet-kapisi.py
-
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
       # actions/setup-node@v4 (node 20) BLOKLAYICI on-kosuldur ve bu is akisinda zaten
@@ -1501,13 +1483,30 @@ jobs:
       - name: "Canli saglik nobetcisi — kendini test (3 vaka + yanlis-pozitif + mutasyon)"
         run: python3 tools/canli-saglik-kapisi.py --kendini-test
 
-      # ARA MALIYET KAPISI — YALNIZ `--kendini-test` kolu (GERCEK olcum serit A'da
-      # bloklayici kosuyor). NE OLCER: kapinin PLAN ekseni KIRMIZI YANABILIYOR mu.
-      # Mutasyon gercek olayin SEKLIDIR (`CROSS JOIN` -> `JOIN`) ve olaydaki 3+ token'li
-      # siniftan secilmis uc sorguda 3/3 YAKALANMALI. Bu kol olmadan kapinin yesili
-      # hicbir sey kanitlamaz: iz metnini (`SEARCH u USING INDEX urunler_yayin`) bozan tek
-      # satirlik bir mutasyon bayraksiz kolu SESSIZ YESIL birakir (merge kapisi turunde
-      # olculdu: mutant D bayraksiz kolda gorunmez, bu kolda rc=1). Offline, ~0,8 s.
+      # ARA MALIYET KAPISI — IKI KOL DA BURADA (yayini BLOKLAMAYAN job).
+      # NE OLCER: /ara D1 sorgusunun birlesim sirasi cevrilip tam taramaya dusuyor mu
+      # (plan ekseni) + eski/yeni seklin AYNI id listesini dondurup dondurmedigi
+      # (semantik eksen, 600 sorgu). Olay 31 Tem: 30 istekten 5'i D1 CPU tavanindan 500,
+      # 3+ token sinifinda %45,8, 10 token'de %100. Regresyon SORGU METNINDE degil
+      # PLANDA yasar; parite testleri (SONUC karsilastirir) bu sinifi GORMEZ.
+      # `--kendini-test` kolu mutasyonu (`CROSS JOIN` -> `JOIN`) 3/3 yakalamali; o kol
+      # olmadan bayraksiz kolun yesili hicbir sey kanitlamaz (iz metnini bozan mutant
+      # bayraksiz kolda SESSIZ, bu kolda rc=1).
+      #
+      # 🔴 NEDEN SERIT A DEGIL (OLCULDU, bu depoda gercek olay): bayraksiz kol once
+      # `build` isine bloklayici kondu ve ILK CI kosumunda YANLIS-POZITIF verip
+      # `deploy`i ATLATTI (kosum 30654284096, adim #9; deploy=skipped). Sebep: kapinin
+      # `eski_cevrilmis` kolu instr() kullaniyordu ve joker token'da ('%kapak' / 'kapak_'
+      # / '50%') LIKE ile ayrisiyordu. Kol onarildi (LIKE + ayni baglar) ve sahte sapma
+      # yerel olarak yeniden uretilip 3 -> 0'a dustu. AMA hangi sorgunun ESKI planinin
+      # cevrildigi SQLITE SURUMUNE bagli: yerelde girilmeyen bir kod kolu CI'da
+      # giriliyor -> bu kapinin CI davranisi yerelde TAM dogrulanamiyor. Korudugu
+      # KAYNAK (araD1) da bu depoda DEGIL; buradaki bir kirmizi bu depodan onarilamaz.
+      # Bu ikisi birlikte "yanlis-pozitifi TUM EKIBIN yayinini durdurur" bedelini
+      # kabul edilemez kilar. Serit A'ya tasima karari MIMARINDIR.
+      - name: Ara maliyet kapisi (D1 arama plani cevrilmis mi + semantik parite)
+        run: python3 tools/ara-maliyet-kapisi.py
+
       - name: "Ara maliyet kapisi ic nobetcisi (kirmizi-mutasyon: CROSS JOIN -> JOIN)"
         run: python3 tools/ara-maliyet-kapisi.py --kendini-test
 
