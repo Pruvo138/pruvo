@@ -730,6 +730,16 @@ jobs:
       - name: D1 yazma geri-okuma kabul testi (write-verify + icerik ekseni)
         run: python3 tools/d1-sync.py --kendini-test
 
+      # ATOMIK YAYIN KAPISI — KARAR MANTIGININ offline kabulu (EKSEN 1, 31 Tem).
+      # Kapinin KENDISI (aday secimi + canli 200 sarti + tek-yon UPDATE) burada AGSIZ
+      # sinanir; canliya vuran `--yayinla` kolu deploy'dan SONRA ayri `yayin` isinde kosar
+      # (bu ise BAGLI DEGIL: yayin gecikirse urun TASLAK kalir, yani gorunmez — 404 vermez).
+      # Fault injection ile olculdu: kapinin 7 mutanti (200 sarti gevsedi / canli JSON sarti
+      # dustu / WHERE yayinda=0 dustu / parcalama kirpti / tavan kalkti / olculmeyen id
+      # 'iyi' sayildi / bayat satir sarti dustu) 7/7 KIRMIZI. Offline, stdlib, <1 s.
+      - name: "Atomik yayin kapisi — kendini test (aday secimi + 200 sarti + tek yon)"
+        run: python3 tools/yayin-kapisi.py --kendini-test
+
       # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
       # (Bu blok ile alttaki YEDEK TAZELIK blogu BAGIMSIZ iki hunk'tir; merge cakismasinda
       # ikisi de KORUNUR — biri digerinin yerine gecmez.)
@@ -1175,6 +1185,21 @@ jobs:
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
+      # URETICI BUTUNLUK KAPISI (ATOMIK YAYIN — EKSEN 2, 31 Tem): yayinlanan
+      # urunler.json'daki HER benzersiz id icin urun/<id>/index.html VAR mi? Ters yon
+      # (oksuz sayfa), sitemap.xml + merchant-feed.xml'deki her urun URL'inin dosyasi ve
+      # id'lerin URL-guvenligi de olculur. NEDEN: site tarafinda JSON ile sayfalar AYNI
+      # `_site` artefaktinda gider (zaman penceresi YOK), geriye tek ayrisma yolu URETIM
+      # kalir — ve bugune dek hicbir kapi "JSON'da var, sayfasi yok" halini olcmuyordu.
+      # build.py'den SONRA kosmak ZORUNDA (urun/ ciktisina muhtac); urun/ yoksa OLCULEMEDI
+      # ile KIRMIZI yanar, sessiz YESIL imkansiz. continue-on-error YOK (fail-closed).
+      # Offline, stdlib, yazma yok. Gercek agacta olculdu (15.479/15.479 YESIL) + 4 mutant
+      # (sayfa silindi / sayfa 0 bayt / sitemap'te sayfasiz URL / oksuz sayfa) 4/4 KIRMIZI.
+      - name: "Uretici butunluk kapisi (yayinlanan her id'nin sayfasi var mi)"
+        run: |
+          python3 tools/uretim-butunluk-kapisi.py --kendini-test
+          python3 tools/uretim-butunluk-kapisi.py
+
       # JSON-LD BRAND KAPISI: uretilen TUM urun sayfalarinin JSON-LD bloklari taranir —
       # JSON gecerli + hicbir objede yinelenen anahtar yok + Product.brand TEK deger
       # (cok elemanli Brand dizisi GSC Merchant listings'te "brand alani yineleniyor"
@@ -1299,3 +1324,50 @@ jobs:
             -H "Authorization: Bearer $CF_TOKEN" \
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}'
+
+  # ═════════════════════════════════════════════════════════════════════════════
+  # ATOMIK YAYIN — "karti gorunen urun asla 404 vermez" (31 Tem)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN PENCERE (bu isin VAR OLMA SEBEBI): D1 (Ege'nin okudugu yer) push'tan ONCE
+  # yazilir (.git/hooks/pre-push), Pages deploy'u ise CI'nin SONUNDA biter. Son 8 basarili
+  # kosumda push -> canli MEDYAN 593 sn (9,9 dk), max 740 sn; CI kirmizi olursa pencere
+  # kirmizi kaldigi surece surer (run#1079..1082: 3.241 sn = 54 dk, 98 urun D1'de + 404).
+  # CANLI TEYIT 31 Tem 07:33Z: 8/8 yeni id D1'de, ornek 3 urun sayfasi 3/3 HTTP 404.
+  #
+  # BU IS: deploy BITTIKTEN sonra kosar; D1'deki TASLAK (yayinda=0) satirlar icin
+  # /urun/<id>/ CANLIDA 200 dondugu FIILEN dogrulanir ve ancak o zaman tek UPDATE ile
+  # yayinda=1 yazilir. Dogrulanamayan urun TASLAK KALIR = Ege gostermez = 404 uretilemez.
+  #
+  # NEDEN `needs: deploy` VE AYRI IS: yayin adimi deploy'dan ONCE kosarsa dogrulayacak
+  # sayfa henuz yayinda degildir (kapinin kendisi anlamsizlasir).
+  # NEDEN continue-on-error YOK: bu isin kirmizisi SITEYI etkilemez (deploy zaten bitti),
+  # yalnizca "yayina alinamadi" halini GORUNUR kilar. Fail-open yapilsaydi taslaklar
+  # sessizce birikir, Ege katalogun bir kismini SURESIZ goremezdi.
+  yayin:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # npx wrangler (d1-sync'in D1 istemcisi) icin.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: "Atomik yayin: canli 200 dogrulanan taslaklari yayina al"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "CLOUDFLARE_API_TOKEN secret yok — yayin adimi KOSAMADI (taslaklar taslak kalir)."
+            exit 1
+          fi
+          python3 tools/yayin-kapisi.py --yayinla
+      - name: "Atomik yayin durumu (taslak/yayinda sayilari)"
+        if: always()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: python3 tools/yayin-kapisi.py --durum

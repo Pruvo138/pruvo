@@ -260,6 +260,13 @@ GOC_KOLON = [
     # Worker bundle'inin (shop/src/konfigurlar.js) D1 ikizi; HASH'e KARISMAZ, hedefli UPDATE
     # (konfigur_senkron_sql) ile senkronlanir. Gerekce -> d1-sema.sql konfigur kolonu yorumu.
     ("konfigur", "TEXT NOT NULL DEFAULT ''"),
+    # ATOMIK YAYIN (31 Tem) — TASLAK/YAYINDA ayrimi. Yeni satir DAIMA yayinda=0 girer
+    # (satir_sql INSERT VALUES); yayina alma AYRI ve ATOMIK bir adimdir
+    # (tools/yayin-kapisi.py --yayinla: /urun/<id>/ CANLIDA 200 dondugu dogrulanmadan
+    # UPDATE yapilmaz). KOLONLAR'da BILEREK YOK -> icerik upsert'i mevcut satirin
+    # yayinda degerine DOKUNMAZ. Gerekce + olculen pencere -> d1-sema.sql yorumu.
+    ("yayinda", "INTEGER NOT NULL DEFAULT 0"),
+    ("release_id", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 # siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
@@ -643,6 +650,16 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
     return yeni, degisen, baski_guncelle, silinen, gorulen
 
 
+# ATOMIK YAYIN indeksleri — ALTER'lardan SONRA kosmak ZORUNDA (yoksa "no such column:
+# yayinda"; olculdu 31 Tem canli D1'de: d1-sema.sql icine konunca --sema TAMAMEN dustu,
+# cunku o dosya kolon gocunden ONCE uygulanir ve tablo zaten var oldugu icin CREATE TABLE
+# IF NOT EXISTS atlanir). IF NOT EXISTS -> idempotent.
+YAYIN_INDEKS = [
+    "CREATE INDEX IF NOT EXISTS urunler_yayin     ON urunler(yayinda, seq DESC);",
+    "CREATE INDEX IF NOT EXISTS urunler_yayin_kat ON urunler(yayinda, kategori, seq DESC);",
+]
+
+
 def kolon_goc():
     """Eksik kolonlari ekle. Idempotent: SQLite'ta 'ADD COLUMN IF NOT EXISTS' yok,
     o yuzden once table_info'ya bakilir (kor ALTER ikinci calismada patlardi)."""
@@ -656,6 +673,22 @@ def kolon_goc():
         dosya_calistir("\n".join(
             "ALTER TABLE %s ADD COLUMN %s %s;" % (tablo, ad, tip) for ad, tip in eksik))
         print("%s eklenen kolon: %s" % (tablo, ", ".join(ad for ad, _ in eksik)))
+        # 🔴 SIRA UYARISI (sessiz-hata nobeti): `yayinda` DEFAULT 0 ile eklenir -> ALTER
+        # anindan itibaren MEVCUT TUM satirlar TASLAK olur. Okuma tarafi (worker'daki
+        # `yayinda=1` sarti) bu andan sonra ve GERIYE DOLDURMADAN once yayina alinirsa
+        # TUM KATALOG bir anda gizlenir. Dogru sira: --sema -> --geriye-doldur -> (dogrula)
+        # -> worker deploy. Uyari GURULTULU basilir; kimse "gormedim" diyemesin.
+        if tablo == "urunler" and any(ad == "yayinda" for ad, _ in eksik):
+            print("!! ATOMIK YAYIN: `yayinda` kolonu DEFAULT 0 ile eklendi — MEVCUT TUM "
+                  "SATIRLAR TASLAK durumda.")
+            print("!! Worker'daki `yayinda=1` sartini YAYINA ALMADAN ONCE sunu kos:")
+            print("!!   python3 tools/yayin-kapisi.py --geriye-doldur")
+            print("!! Teyit: python3 tools/yayin-kapisi.py --durum  (taslak sayisi ~0 olmali)")
+    # Kolonlar TAMAMLANDIKTAN sonra atomik yayin indeksleri (kolon yokken CREATE INDEX
+    # tum --sema kosumunu dusururdu — olculdu, bkz. YAYIN_INDEKS yorumu).
+    if kolon_var_mi("urunler", "yayinda"):
+        dosya_calistir("\n".join(YAYIN_INDEKS))
+        print("atomik yayin indeksleri kuruldu (urunler_yayin, urunler_yayin_kat)")
 
 
 def satir_sql(u, seq, hs, h, baski=""):
@@ -671,10 +704,15 @@ def satir_sql(u, seq, hs, h, baski=""):
         q(e_bas), q(arama.koke_cevir(e_bas)), q(e_gov), q(arama.koke_cevir(e_gov)),
         q(baski),
     ]
+    # ATOMIK YAYIN: YENI satir DAIMA taslak (yayinda=0) girer. Kolon SQL'de ACIKCA
+    # yazilir (DEFAULT'a guvenilmez): DEFAULT sonradan degistirilirse ya da tablo baska
+    # bir yolla kurulursa yeni urun SESSIZCE yayinda dogar ve pencere geri gelirdi.
+    # ON CONFLICT/UPDATE yolunda yayinda YOKTUR (KOLONLAR listesi) -> mevcut yayinda=1
+    # satirin icerigi degisse de urun Ege'den KAYBOLMAZ.
     return (
         "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,gorsel,parametrik,hs,"
-        "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok,baski) VALUES ("
-        + ",".join(degerler)
+        "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok,baski,yayinda) VALUES ("
+        + ",".join(degerler) + ",0"
         + ") ON CONFLICT(id) DO UPDATE SET "
         + ", ".join("%s=excluded.%s" % (k, k) for k in KOLONLAR) + ";"
     )
@@ -893,7 +931,9 @@ CREATE TABLE urunler (
   hs_govde_kok TEXT NOT NULL DEFAULT '',
   baski TEXT NOT NULL DEFAULT '',
   taban_fiyat INTEGER NOT NULL DEFAULT 0,
-  konfigur TEXT NOT NULL DEFAULT ''
+  konfigur TEXT NOT NULL DEFAULT '',
+  yayinda INTEGER NOT NULL DEFAULT 0,
+  release_id TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE senkron (anahtar TEXT PRIMARY KEY, deger TEXT NOT NULL);
 """
@@ -981,11 +1021,15 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None):
     return kod, tampon.getvalue(), sayac
 
 
-def _kt_baglan():
+def _kt_baglan(yayinda_default=0):
+    """yayinda_default: TABLO SEMASINDAKI varsayilan. 1 vermek SEMA DRIFT'ini taklit eder
+    (biri DEFAULT'u degistirdi / tablo baska yoldan kuruldu). Yeni satirin taslak dogmasi
+    SEMANIN DEFAULT'una DEGIL, INSERT'in acikca yazdigi degere bagli olmali."""
     import sqlite3
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
-    conn.executescript(_KT_SEMA)
+    conn.executescript(_KT_SEMA.replace("yayinda INTEGER NOT NULL DEFAULT 0",
+                                        "yayinda INTEGER NOT NULL DEFAULT %d" % yayinda_default))
     return conn
 
 
@@ -1181,6 +1225,51 @@ def kendini_test():
     dogrula("V35 ORNEKLEME YASAGI: diger 29 urun gercekten yazildi (yanlis-pozitif degil)",
             _kt_deger(conn13, "p08", "hash") is not None
             and _kt_deger(conn13, "p07", "hash") is None)
+
+    # ── ATOMIK YAYIN: TASLAK/YAYINDA sozlesmesi (31 Tem) ─────────────────────────
+    # IDDIA 1 (pozitif eksen): senkronun YAZDIGI yeni satir TASLAK dogar. Bozulursa
+    #   (satir_sql'e yayinda=1 konursa / kolon INSERT'ten dusurulup DEFAULT degistirilirse)
+    #   urun sayfasi canlida YOKKEN Ege'ye gorunur = olculen 404 penceresi geri gelir.
+    # IDDIA 2 (negatif eksen): ZATEN YAYINDA olan bir urunun ICERIGI degisince satir
+    #   yeniden yazilir ama yayinda 1 KALIR. Bozulursa (KOLONLAR'a yayinda eklenirse)
+    #   her toplu duzeltme TUM katalogu deploy suresince Ege'den gizler.
+    conn14 = _kt_baglan()
+    _kt_kos(conn14, urunler, [])
+    dogrula("V36 YAYIN POZITIF: yeni satir TASLAK dogar (yayinda=0)",
+            _kt_deger(conn14, "a", "yayinda") == 0,
+            _kt_deger(conn14, "a", "yayinda"))
+    conn14.execute("UPDATE urunler SET yayinda=1, release_id='r1'")
+    urunler_degisik = [dict(u) for u in urunler]
+    urunler_degisik[0] = dict(urunler_degisik[0], baslik="Yeni Baslik", kategori="Tamirat")
+    kod, cikti, _ = _kt_kos(conn14, urunler_degisik, [])
+    dogrula("V37 YAYIN NEGATIF: icerik degisti, satir yeniden yazildi -> yayinda 1 KALDI",
+            kod == 0 and _kt_deger(conn14, "a", "kategori") == "Tamirat"
+            and _kt_deger(conn14, "a", "yayinda") == 1,
+            (kod, _kt_deger(conn14, "a", "yayinda"), _kt_deger(conn14, "a", "kategori")))
+    dogrula("V38 YAYIN: yayina alan release_id icerik upsert'inde SILINMEDI",
+            _kt_deger(conn14, "a", "release_id") == "r1",
+            _kt_deger(conn14, "a", "release_id"))
+    # Yeni urun MEVCUT yayindaki katalogun yanina eklenince: eskiler yayinda kalir,
+    # YENI olan taslak olur (karisik parti — gercek push deseni).
+    kod, _, _ = _kt_kos(conn14, [_kt_urun("zz")] + urunler_degisik, [])
+    dogrula("V39 YAYIN KARISIK PARTI: yeni=taslak, eskiler yayinda (tek partide ikisi)",
+            kod == 0 and _kt_deger(conn14, "zz", "yayinda") == 0
+            and _kt_deger(conn14, "a", "yayinda") == 1,
+            (kod, _kt_deger(conn14, "zz", "yayinda"), _kt_deger(conn14, "a", "yayinda")))
+
+    # V40/V41 — "DEFAULT'a GUVENME" iddiasi. Olculdu (fault injection, 31 Tem): `yayinda`
+    # kolonu INSERT listesinden dusurulup DEFAULT'a birakilinca V36-V39'un DORDU DE YESIL
+    # kaliyordu (SAG KALAN MUTANT). Yani "taslak dogar" iddiasi semanin DEFAULT'una
+    # bagliydi; DEFAULT bir gun 1 olsaydi her yeni urun SESSIZCE yayinda dogar ve olculen
+    # 404 penceresi geri gelirdi. Bu iki vaka o mutanti oldurur.
+    conn15 = _kt_baglan(yayinda_default=1)
+    _kt_kos(conn15, urunler, [])
+    dogrula("V40 DEFAULT DRIFT: sema DEFAULT'u 1 olsa BILE yeni satir TASLAK dogar",
+            _kt_deger(conn15, "a", "yayinda") == 0, _kt_deger(conn15, "a", "yayinda"))
+    _sql = satir_sql(_kt_urun("q1"), 1, "hs", "h")
+    dogrula("V41 SQL SOZLESMESI: INSERT kolon listesi `yayinda`yi ACIKCA tasir ve 0 verir",
+            ",yayinda) VALUES (" in _sql and _sql.split("VALUES (")[1].split(")")[0]
+            .rstrip().endswith(",0"), _sql[:160])
 
     print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
     return 0 if kalan[0] == 0 else 1
