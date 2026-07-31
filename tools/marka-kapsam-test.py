@@ -116,6 +116,48 @@ except SystemExit as e:                                   # noqa: BLE001
 kontrol("kategori evreni index.html'den ayıklandı (%d kategori)" % len(KATEGORILER),
         len(KATEGORILER) >= 12 and "Marin" in KATEGORILER and "Motosiklet" in KATEGORILER)
 
+# ------------------------------------------- KAPSAM ÇAPASI: YORUM DEĞİL İŞLEV (31 Tem)
+# 🔴 ESKİ ÇAPA: `mm._KAPSAM_JS_BAS in html` — yani `/* PRUVO MARKA KAPSAMI BAS */`, bir JS
+# YORUMU. Yayın kopyasından yorumları soyan bir adım kapsam scriptine HİÇ dokunmadan bu
+# iddiayı düşürüyordu (ölçüldü: aynı sayfada id="kapsamNot"/id="kapsamBos" 1=1, yani işlev
+# duruyor, çapa yok). Yorum-çapalı kapı ya sessizce ölür ya sahte alarm verir →
+# [[kapi-anchor-coupling-ikilemi]].
+#
+# YENİ ÇAPA — iki katmanlı, ikisi de YORUMDAN BAĞIMSIZ:
+#   (Z) ZEMİN (node'suz): sayfada TAM BİR öznitelisiz inline <script>, kapsam global'ini
+#       ATAR **ve** çağrı yerini taşır. Adlar tek kaynaktan (marka_model_build gövdesi +
+#       çağrısı) TÜRETİLİR — modülde meşru bir yeniden adlandırma kapıyı sahte-kırmızı
+#       yakmaz, çünkü çapa da onunla birlikte kayar.
+#   (T) TAVAN (node): sayfanın KENDİ gömülü scripti koşturulur; global tanımlanıyor mu,
+#       gömülü çağrı yeri ateşliyor mu (sayfaya dokunuyor mu), gerçek kategori evreniyle
+#       kablolu mu ve jeneratörün modülüyle KARAR PARİTESİ var mı ölçülür.
+# YAKALADIĞI SALDIRI (değişmedi): kapsam scriptinin marka/model sayfasından DÜŞMESİ →
+# "Marin'de Yamaha" çipine basan müşteriye motosiklet parçası çıkar; ekranda hata görünmez,
+# satış sessizce kaybolur. Boş/taklit gövde de artık geçemez.
+_m_ad = re.search(r"\bg\.([A-Za-z_$][\w$]*)\s*=(?!=)", mm._KAPSAM_JS_GOVDE)
+_m_cagri = re.search(r"\bwindow\.([A-Za-z_$][\w$]*)\.([A-Za-z_$][\w$]*)\s*\(",
+                     mm._KAPSAM_JS_CAGRI)
+kontrol("kapsam çapası TEK KAYNAKTAN türetildi (global adı + çağrılan metot)",
+        bool(_m_ad) and bool(_m_cagri) and _m_ad.group(1) == _m_cagri.group(1))
+if not (_m_ad and _m_cagri and _m_ad.group(1) == _m_cagri.group(1)):
+    olculemedi("marka_model_build kapsam gövdesi/çağrısı çözümlenemedi — çapa türetilemedi "
+               "(FAIL-CLOSED: sessizce 'çapa yok' sayılmaz)")
+KAPSAM_AD = _m_ad.group(1)
+KAPSAM_METOT = _m_cagri.group(2)
+
+# Öznitelisiz inline <script> gövdeleri (JSON-LD `type=` ve `src`li gtag bloğu YAPISAL
+# olarak dışarıda kalır — öznitelik ayrımı, yorum ayrımı DEĞİL).
+INLINE_SCRIPT_RE = re.compile(r"<script>(.*?)</script>", re.S)
+KAPSAM_TANIM_RE = re.compile(r"\.%s\s*=(?!=)" % re.escape(KAPSAM_AD))
+KAPSAM_CAGRI_RE = re.compile(r"\.%s\s*\.\s*%s\s*\(" % (re.escape(KAPSAM_AD),
+                                                       re.escape(KAPSAM_METOT)))
+
+
+def kapsam_bloklari(html):
+    """Kapsam global'ini ATAYAN **ve** çağrı yerini taşıyan inline script gövdeleri."""
+    return [s for s in INLINE_SCRIPT_RE.findall(html)
+            if KAPSAM_TANIM_RE.search(s) and KAPSAM_CAGRI_RE.search(s)]
+
 # ---- index.html: çip hedefi kapsamı TAŞIYOR mu (kaynak kuplajı) ----
 kontrol("index.html'de MARKA KAPSAMI blok marker'ları var",
         "// --- MARKA KAPSAMI BAŞ ---" in INDEX_HTML
@@ -174,6 +216,7 @@ try:
                 "pathname": "/" + ad.strip("/") + "/"}
 
     fiksturler = {}
+    sayfa_scriptleri = {}       # sayfa -> tüm inline script gövdeleri (node koşumu için)
     markalar = sorted({m for m, _k, _d in VAKALAR})
     for marka in markalar:
         slug = mm._slug(marka)
@@ -205,8 +248,13 @@ try:
                 % slug,
                 'id="kapsamNot" style="display:none"' in html
                 and 'id="kapsamNotSifirla"' in html and 'id="kapsamBos"' in html)
-        kontrol("/marka/%s/ kapsam scripti gömülü" % slug,
-                mm._KAPSAM_JS_BAS in html and mm._KAPSAM_JS_SON in html)
+        # ÇAPA = İŞLEV: kapsam global'ini ATAYAN + çağrı yerini taşıyan TAM BİR blok
+        # (eski çapa `/* PRUVO MARKA KAPSAMI BAS */` YORUMUYDU — soyulunca ölüyordu).
+        kb = kapsam_bloklari(html)
+        kontrol("/marka/%s/ kapsam scripti gömülü (%s ataması + çağrı yeri: %d blok)"
+                % (slug, KAPSAM_AD, len(kb)), len(kb) == 1)
+        if kb:
+            sayfa_scriptleri["marka/" + slug] = INLINE_SCRIPT_RE.findall(html)
         fiksturler[marka] = f
 
     # model sayfası da kapsam uygular mı (örnek: en çok ürünlü marka modeli)
@@ -220,9 +268,11 @@ try:
         if html is None:
             continue
         mf = sayfa_fikstur(html, rel)
-        kontrol("model sayfası %s kapsam scripti + şeridi taşıyor" % rel,
-                mm._KAPSAM_JS_BAS in html and 'id="kapsamNot"' in html
-                and 'data-kapsam-tasi' in html)
+        mkb = kapsam_bloklari(html)
+        kontrol("model sayfası %s kapsam scripti + şeridi taşıyor (%d blok)" % (rel, len(mkb)),
+                len(mkb) == 1 and 'id="kapsamNot"' in html and 'data-kapsam-tasi' in html)
+        if mkb:
+            sayfa_scriptleri[rel.strip("/")] = INLINE_SCRIPT_RE.findall(html)
         kontrol("model sayfası %s kartları data-kat taşıyor" % rel,
                 len(mf["kartlar"]) == len(KART_HERHANGI_RE.findall(html))
                 and len(mf["kartlar"]) > 0)
@@ -268,6 +318,11 @@ VERI = {
     "vakalar": [{"marka": mk, "kapsam": kp, "disari": ds} for mk, kp, ds in VAKALAR],
     "sayfalar": {mk: fiksturler[mk] for mk in fiksturler},
     "modelSayfasi": model_ornek,
+    # ÇAPA=İŞLEV ekseni: üretilen sayfaların KENDİ inline script'leri + tek kaynaktan
+    # türetilen global/metot adları (bölüm 0 bunları node'da GERÇEKTEN koşturur).
+    "sayfaScriptleri": sayfa_scriptleri,
+    "kapsamAd": KAPSAM_AD,
+    "kapsamMetot": KAPSAM_METOT,
 }
 
 HARNESS = r"""
@@ -329,6 +384,81 @@ function shim(sayfa, ekKartlar){
 }
 const gorunenKartlar = (s) => s.kartlar.filter((k) => k.style.display !== "none");
 const gorunenBtnlar  = (s) => s.butonlar.filter((b) => b.style.display !== "none");
+
+// ==================== 0) SAYFAYA GÖMÜLÜ KAPSAM MODÜLÜ — ÇAPA=İŞLEV ====================
+// Eski çapa `/* PRUVO MARKA KAPSAMI BAS */` (bir YORUM) idi. Burada sayfanın KENDİ inline
+// script'leri ayrı ayrı GERÇEKTEN koşturulur: hangisi kapsam global'ini tanımlıyor, gömülü
+// çağrı yeri ateşliyor mu, gerçek kategori evreniyle kablolu mu, jeneratörün modülüyle
+// karar paritesi var mı. Yorumların tamamı silinse de bu iddiaların HİÇBİRİ değişmez.
+const vm = require("vm");
+function sayfaCalistir(src, arama){
+  const dokunma = {qsa: 0, gebi: 0};
+  const dok = { querySelectorAll: function(){ dokunma.qsa++; return []; },
+                getElementById: function(){ dokunma.gebi++; return null; } };
+  const win = { location: {search: arama, pathname: "/marka/x/"} };
+  const ctx = { window: win, document: dok, URLSearchParams: URLSearchParams,
+                JSON: JSON, String: String, Object: Object,
+                console: {log: function(){}, warn: function(){}, error: function(){}} };
+  let hata = null;
+  try { vm.runInNewContext(src, ctx, {filename: "gomulu.js", timeout: 5000}); }
+  catch(e){ hata = String((e && e.message) || e).slice(0, 140); }
+  const K2 = win[VERI.kapsamAd];
+  if(!K2 || typeof K2[VERI.kapsamMetot] !== "function"){ return null; }
+  return {K: K2, dokunma: dokunma, hata: hata};
+}
+const sayfaAdlari = Object.keys(VERI.sayfaScriptleri);
+ok(sayfaAdlari.length >= 2,
+   "gömülü kapsam modülü ölçülecek sayfa sayısı >= 2 (" + sayfaAdlari.length + ")");
+let gomuluOrnek = null;
+for(const ad of sayfaAdlari){
+  const arama = "?kategori=" + encodeURIComponent(VERI.kategoriler[0]);
+  const bulunan = VERI.sayfaScriptleri[ad].map((s) => sayfaCalistir(s, arama)).filter(Boolean);
+  ok(bulunan.length === 1,
+     ad + ": koşunca " + VERI.kapsamAd + " TANIMLAYAN inline script tam 1 (" + bulunan.length + ")");
+  if(bulunan.length !== 1){ continue; }
+  const B = bulunan[0];
+  ok(B.hata === null, ad + ": gömülü kapsam script'i hatasız koştu (" + B.hata + ")");
+  ok(B.dokunma.qsa > 0 && B.dokunma.gebi > 0,
+     ad + ": gömülü ÇAĞRI YERİ ateşledi (uygula sayfaya dokundu: qsa=" + B.dokunma.qsa +
+     ", gebi=" + B.dokunma.gebi + ")");
+  ok(JSON.stringify(B.K.KATEGORILER) === JSON.stringify(VERI.kategoriler),
+     ad + ": gömülü modül GERÇEK kategori evreniyle kablolu (" +
+     ((B.K.KATEGORILER || []).length) + ")");
+  let sapma = 0;
+  const girdiler = VERI.kategoriler.concat(["Uydurma", "marin", "", null, "Marin ", "%20"]);
+  for(const gi of girdiler){
+    const a = B.K.coz(gi, VERI.kategoriler), b = K.coz(gi, VERI.kategoriler);
+    if(JSON.stringify(a) !== JSON.stringify(b)){ sapma++; continue; }
+    if(B.K.sorgu(a) !== K.sorgu(b)){ sapma++; continue; }
+    for(const ogeKat of ["Marin", "Otomobil", "", null]){
+      if(B.K.gorunur(ogeKat, a) !== K.gorunur(ogeKat, b)){ sapma++; }
+    }
+    if(B.K.sayimla('{"Marin":3,"Otomobil":5}', a) !== K.sayimla('{"Marin":3,"Otomobil":5}', b)){ sapma++; }
+    if(B.K.sayimla("{bozuk", a) !== K.sayimla("{bozuk", b)){ sapma++; }
+  }
+  ok(sapma === 0, ad + ": gömülü modül <-> jeneratör modülü KARAR PARİTESİ (sapma " + sapma +
+     " / " + girdiler.length + " girdi)");
+  if(!gomuluOrnek){ gomuluOrnek = {ad: ad, K: B.K}; }
+}
+// Gömülü modülün TAM uygula() denkliği (gerçek sayfa fikstürü üzerinde).
+(function(){
+  if(!gomuluOrnek){ ok(false, "gömülü kapsam modülü örneği yok (uygula denkliği ÖLÇÜLEMEDİ)"); return; }
+  const marka = Object.keys(VERI.sayfalar)[0];
+  const sayfa = VERI.sayfalar[marka];
+  for(const arama of ["", "?kategori=Marin", "?kategori=Uydurma"]){
+    const s1 = shim(sayfa), s2 = shim(sayfa);
+    const loc = {search: arama, pathname: "/" + sayfa.ad + "/"};
+    K.uygula(s1.dok, loc);
+    gomuluOrnek.K.uygula(s2.dok, loc);
+    const g1 = gorunenKartlar(s1).map((k) => k.id).sort().join("|");
+    const g2 = gorunenKartlar(s2).map((k) => k.id).sort().join("|");
+    ok(g1 === g2 &&
+       s1.kutu.kapsamNotMetin.textContent === s2.kutu.kapsamNotMetin.textContent &&
+       s1.kutu.kapsamBos.style.display === s2.kutu.kapsamBos.style.display,
+       "gömülü modül uygula() denkliği (" + JSON.stringify(arama) + ", " +
+       g1.split("|").filter(Boolean).length + " kart)");
+  }
+})();
 
 // ============================ 1) ÇİP HEDEFİ (index.html canlı kodu) ============================
 ok(markaKapsamSorgusu("Tümü") === "", "kategori seçili DEĞİLKEN çip hedefi eski davranışta (sorgu boş)");

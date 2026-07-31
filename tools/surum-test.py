@@ -13,8 +13,22 @@ Neyi dogrular (yayinlanan HTML'ler uzerinde — diskten degil, ureticiden taze):
      referanslarinin HICBIRI surumsuz (?v= olmadan) KALMAMALI.
        - Ana sayfa  -> build.yayin_index()  (index.html'in surumlenmis yayin kopyasi)
        - Urun sayfa -> build.render_product (bir normal + bir parametrik ornek)
-  2) Surum parametresi DOSYA ICERIGININ hash'iyle BIREBIR esit olmali (sabit/yanlis
-     degil): ?v=<x> == sha1(dosya)[:10]. Icerik degisirse surum de degisir.
+  2) Surum parametresi, MUSTERININ GERCEKTEN ALDIGI baytlarin hash'iyle BIREBIR esit
+     olmali (sabit/yanlis degil): ?v=<x> == sha1(YAYINLANAN dosya)[:10].
+
+CAPA: YAYINLANAN BAYT (31 Tem — eskiden KAYNAK baytiydi).
+  Bu kapinin isi "onbellek kirici, kullanicinin indirdigi icerikle senkron mu" sorusudur.
+  Referansi KAYNAK dosyaya baglamak, kaynak ile yayinlanan kopyanin ayristigi her
+  senaryoda (yayin oncesi bir donusum adimi — ornegin yorum soyma/minify) kapiyi
+  SAHTE-KIRMIZI yakar; oysa ?v= dogru, sadece kapinin baktigi yer yanlistir. Cozum
+  gevsetme DEGIL GUCLENDIRME: hash artik /<rel> adresinden GERCEKTEN inen baytlardan
+  hesaplanir.
+  YAYINLANAN YOL KURALI (bu dosyada BAGIMSIZ tanimlanir, build'den ODUNC ALINMAZ):
+    _yayin/<rel> dosyasi VARSA yayinlanan kopya odur, yoksa kaynak <rel>.
+  Bu kural deploy'un kopyalama sirasiyla ayni. Kural bir gun ayrisirsa (or. dizin adi
+  degisirse) kapi KAYNAGA duser ve hash TUTMAZ -> KIRMIZI. Yani ayrisma FAIL-CLOSED'dir,
+  sessizce yesil kalmaz. Cozumleyicinin kendisi de her kosumda birim olarak sinanir
+  (bkz. "cozumleyici oz-testi") -> main gibi _yayin'siz agaclarda kod olu kalmaz.
 
 Onceki (surumsuz) kodda KIRMIZI (surumsuz referanslari listeler); duzeltmeyle YESIL.
 Calistirma:  python3 tools/surum-test.py   (cikis kodu 0 = gecti)
@@ -23,7 +37,9 @@ import os
 import re
 import sys
 import json
+import shutil
 import hashlib
+import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
@@ -37,10 +53,53 @@ SURUMSUZ_RE = re.compile(r'<script\b[^>]*\ssrc="(/[^"?]+\.js)"')
 # Surumlu: src="/....js?v=<hash>"
 SURUMLU_RE = re.compile(r'<script\b[^>]*\ssrc="(/[^"?]+\.js)\?v=([0-9a-f]+)"')
 
+# Yayin kopyalarinin dizini (deploy _site'a BURADAN kopyalar). Yoksa kaynak yayinlanir.
+YAYIN_DIR = "_yayin"
+
+
+def yayin_yolu(kok, rel):
+    """/<rel> adresinden tarayiciya GERCEKTEN inen baytlarin diskteki yolu."""
+    parca = rel.lstrip("/").split("/")
+    y = os.path.join(kok, YAYIN_DIR, *parca)
+    return y if os.path.isfile(y) else os.path.join(kok, *parca)
+
 
 def beklenen_hash(yol):
-    with open(os.path.join(ROOT, yol.lstrip("/")), "rb") as f:
+    with open(yayin_yolu(ROOT, yol), "rb") as f:
         return hashlib.sha1(f.read()).hexdigest()[:10]
+
+
+def cozumleyici_oz_testi():
+    """Yayinlanan-yol cozumleyicisinin birim testi (agactan bagimsiz, HER kosumda koşar).
+    Boylece _yayin'siz agaclarda (or. main) bu kol OLU KOD olarak curumez."""
+    hatalar = []
+    kok = tempfile.mkdtemp(prefix="surum-coz-")
+    try:
+        os.makedirs(os.path.join(kok, "jenerator"))
+        with open(os.path.join(kok, "x.js"), "w", encoding="utf-8") as f:
+            f.write("KAYNAK")
+        with open(os.path.join(kok, "jenerator", "y.js"), "w", encoding="utf-8") as f:
+            f.write("KAYNAK-ALT")
+        if yayin_yolu(kok, "/x.js") != os.path.join(kok, "x.js"):
+            hatalar.append("COZUMLEYICI: yayin kopyasi YOKKEN kaynaga dusmedi")
+        if yayin_yolu(kok, "/jenerator/y.js") != os.path.join(kok, "jenerator", "y.js"):
+            hatalar.append("COZUMLEYICI: alt dizinde kaynaga dusmedi")
+        os.makedirs(os.path.join(kok, YAYIN_DIR, "jenerator"))
+        with open(os.path.join(kok, YAYIN_DIR, "x.js"), "w", encoding="utf-8") as f:
+            f.write("YAYIN")
+        with open(os.path.join(kok, YAYIN_DIR, "jenerator", "y.js"), "w", encoding="utf-8") as f:
+            f.write("YAYIN-ALT")
+        if yayin_yolu(kok, "/x.js") != os.path.join(kok, YAYIN_DIR, "x.js"):
+            hatalar.append("COZUMLEYICI: yayin kopyasi VARKEN kaynak kazandi "
+                           "(?v= musterinin almadigi bayttan turerdi)")
+        if yayin_yolu(kok, "/jenerator/y.js") != os.path.join(kok, YAYIN_DIR, "jenerator", "y.js"):
+            hatalar.append("COZUMLEYICI: alt dizinde yayin kopyasi kazanmadi")
+        with open(yayin_yolu(kok, "/x.js"), "rb") as f:
+            if f.read() != b"YAYIN":
+                hatalar.append("COZUMLEYICI: yayin kopyasi okunmadi")
+    finally:
+        shutil.rmtree(kok, ignore_errors=True)
+    return hatalar
 
 
 def main():
@@ -62,8 +121,9 @@ def main():
         sayfalar["urun/%s (parametrik)" % parametrik["id"]] = \
             build.render_product(parametrik, urunler)
 
-    hatalar = []
+    hatalar = cozumleyici_oz_testi()
     surumlu_toplam = 0
+    yayin_kopyali = 0     # ?v='si YAYIN kopyasindan turetilen referans sayisi
     kritik = set()  # gorulen kritik dosyalar (secenekler + taban)
     for ad, html in sayfalar.items():
         for m in SURUMSUZ_RE.finditer(html):
@@ -74,14 +134,18 @@ def main():
             yol, ver = m.group(1), m.group(2)
             if yol in ("/secenekler.js", "/taban-fiyatlar.js"):
                 kritik.add(yol)
-            dosya = os.path.join(ROOT, yol.lstrip("/"))
+            dosya = yayin_yolu(ROOT, yol)          # MUSTERIYE INEN baytlar
             if not os.path.isfile(dosya):
                 hatalar.append("%s: %s dosyasi yok (hash dogrulanamadi)" % (ad, yol))
                 continue
+            if os.path.normpath(dosya).startswith(
+                    os.path.normpath(os.path.join(ROOT, YAYIN_DIR)) + os.sep):
+                yayin_kopyali += 1
             bek = beklenen_hash(yol)
             if ver != bek:
-                hatalar.append("%s: %s surumu '%s' != icerik hash'i '%s'"
-                               % (ad, yol, ver, bek))
+                hatalar.append("%s: %s surumu '%s' != YAYINLANAN icerik hash'i '%s' "
+                               "(olculen bayt: %s)" % (ad, yol, ver, bek,
+                                                       os.path.relpath(dosya, ROOT)))
 
     # Kapsam yoklamasi: iki kritik dosya da EN AZ bir sayfada surumlu gorulmeli
     # (aksi halde regex/kapsam sessizce bosa dusmustur, test yanlislikla yesil yanar).
@@ -95,9 +159,10 @@ def main():
         for h in hatalar:
             print("  - " + h)
         sys.exit(1)
-    print("YESIL — surum testi gecti (%d sayfa, %d surumlu referans, hepsi "
-          "icerik-hash'iyle esit; kritik: secenekler.js + taban-fiyatlar.js)."
-          % (len(sayfalar), surumlu_toplam))
+    print("YESIL — surum testi gecti (%d sayfa, %d surumlu referans, hepsi YAYINLANAN "
+          "icerigin hash'iyle esit; %d referans _yayin/ kopyasindan olculdu, %d kaynaktan; "
+          "kritik: secenekler.js + taban-fiyatlar.js; cozumleyici oz-testi 6/6)."
+          % (len(sayfalar), surumlu_toplam, yayin_kopyali, surumlu_toplam - yayin_kopyali))
 
 
 if __name__ == "__main__":
