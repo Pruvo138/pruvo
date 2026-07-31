@@ -523,6 +523,22 @@ def _turetilmis_mi(ad):
     return any(fnmatch.fnmatch(ad, d) for d in EK_TURETILMIS_DESEN)
 
 
+def _kanca_kapsamda_mi(ad):
+    """`.git/hooks` altindaki bir dosya yedek KAPSAMINDA mi? (TEK tanim)
+
+    🔴 NEDEN AYRI FONKSIYON (31 Tem, CI'da KIRMIZI yakalandi): git HER klonda
+    `.git/hooks` icine 14 adet `*.sample` sablonu yazar. Bunlar git'in kendi
+    varsayilanidir, KALICI BILGI DEGILDIR ve kopya plani (ek_ev_plani) onlari
+    ATLAR. Ama kaynak_imzasi() ayni elemeyi YAPMIYORDU -> iki tanim ayristi ve
+    imza, yedege HIC girmeyen dosyalari sayar oldu. Sonucu SESSIZ-YESIL bir
+    fail-open'dir: taze checkout / bos HOME'da (yedeklenecek gercek kaynak SIFIR)
+    olcum None yerine {"adet": 14, ...} donuyordu -> pano "olculemedi" demek
+    yerine UYDURMA bir imza uzerinden karsilastirma yapiyordu. Kapi bunu
+    "K5: kaynak yoksa olcum None doner (uydurma imza YOK)" ile yakaladi.
+    Iki cagiran da BU fonksiyonu kullanir; bir daha ayrisamazlar."""
+    return not ad.endswith(".sample")
+
+
 def ek_ev_plani(ev, izlenenler=None):
     """Bir evin EK yedek plani.
 
@@ -587,7 +603,7 @@ def ek_ev_plani(ev, izlenenler=None):
     kancalar = os.path.join(ev, ".git", "hooks")
     if os.path.isdir(kancalar):
         for dosya in sorted(os.listdir(kancalar)):
-            if dosya.endswith(".sample"):
+            if not _kanca_kapsamda_mi(dosya):      # git'in kendi sablonlari
                 continue
             tam = os.path.join(kancalar, dosya)
             if not os.path.isfile(tam) or os.path.islink(tam):
@@ -1285,6 +1301,12 @@ def kaynak_imzasi(sirlar=False):
         ek_kokler.append(os.path.abspath(
             os.path.join(os.path.dirname(os.path.dirname(MEMORY)), "..", "settings.json")))
         for kok in ek_kokler:
+            # `.git/hooks` kokunde imza, KOPYA PLANIYLA AYNI kumeyi saymak
+            # zorundadir (bkz. _kanca_kapsamda_mi): aksi halde her klonda hazir
+            # duran `*.sample` sablonlari "kaynak varmis" gibi gorunur ve imza
+            # BOS kaynak kumesi uzerinde uydurma deger doner.
+            kanca_kokku = (os.path.basename(kok) == "hooks"
+                           and os.path.basename(os.path.dirname(kok)) == ".git")
             if os.path.isfile(kok):
                 try:
                     st = os.stat(kok)
@@ -1301,6 +1323,8 @@ def kaynak_imzasi(sirlar=False):
                 altlar[:] = [a for a in altlar
                              if a not in GURULTU_DIZIN and not _turetilmis_mi(a)]
                 for ad in dosyalar:
+                    if kanca_kokku and not _kanca_kapsamda_mi(ad):
+                        continue
                     try:
                         st = os.stat(os.path.join(dizin, ad))
                     except OSError:
