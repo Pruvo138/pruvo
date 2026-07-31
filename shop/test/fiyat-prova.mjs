@@ -142,16 +142,30 @@ globalThis.fetch = async function sahteFetch(hedef) {
   return new Response("{}", { status: 200, headers: { "Content-Type": "application/json" } });
 };
 
-function d1Sahte(satirlar, sayaclar) {
+/** @param {string[]} [yasakKolonlar] D1 semasinda OLMAYAN kolonlar: SELECT'te gecerlerse
+ *  gercek D1 gibi "no such column" ile PATLAR (index.js'teki kolon merdiveni olculebilsin). */
+function d1Sahte(satirlar, sayaclar, yasakKolonlar) {
   const harita = new Map(satirlar.map((u) => [u.id, u]));
   return {
     prepare(sql) {
+      // Gercek D1 gibi PROJEKSIYON: satir yalniz SECILEN kolonlari tasir. (Aksi halde SELECT'ten
+      // dusen bir kolon testte sessizce "hala var" gorunur -> kolon merdiveni OLCULEMEZ.)
+      const secilen = ((/SELECT ([^]*?) FROM /.exec(sql) || [])[1] || "")
+        .split(",").map((a) => a.trim()).filter(Boolean);
+      const yasak = (yasakKolonlar || []).find((c) => secilen.includes(c));
+      const izdusum = (u) => {
+        if (!u || !secilen.length || secilen.includes("*")) { return u; }
+        const o = {};
+        for (const c of secilen) { if (c in u) { o[c] = u[c]; } }
+        return o;
+      };
       return {
         bind(...arg) {
           return {
             async all() {
               sayaclar.select += 1;
-              return { results: arg.map((id) => harita.get(id)).filter(Boolean) };
+              if (yasak) { throw new Error("no such column: " + yasak); }
+              return { results: arg.map((id) => harita.get(id)).filter(Boolean).map(izdusum) };
             },
             async first() { sayaclar.first += 1; return null; },
             async run() {
@@ -277,11 +291,13 @@ function yeniSayac() { return { select: 0, first: 0, run: 0, yazilan: [] }; }
 const MUSTERI = { ad: "Test Musteri", tel: "05321112233", eposta: "test@pruvo3d.com",
                   adres: "Test mahallesi test sokak no 1", sehir: "Mugla" };
 
-/** /baslat — GERCEK worker kodundan; cevabi + D1'e yazilan satiri + sayaclari dondurur. */
-async function baslat(mod, d1Satirlari, sepet) {
+/** /baslat — GERCEK worker kodundan; cevabi + D1'e yazilan satiri + sayaclari dondurur.
+ *  yasakKolonlar: D1 semasinda olmayan kolonlar (bkz. d1Sahte). */
+async function baslat(mod, d1Satirlari, sepet, yasakKolonlar) {
   const sayaclar = yeniSayac();
   const agOnce = ag.toplam;
-  const env = Object.assign({}, ENV_TABAN, { KATALOG: d1Sahte(d1Satirlari, sayaclar) });
+  const env = Object.assign({}, ENV_TABAN,
+                            { KATALOG: d1Sahte(d1Satirlari, sayaclar, yasakKolonlar) });
   const istek = new Request("https://pruvo3d.com/api/shop/baslat", {
     method: "POST", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sozlesme_onay: true, odeme: "kart", musteri: MUSTERI, sepet }),
@@ -305,10 +321,11 @@ let ipSayaci = 0;
  *  limiter: undefined -> paylasilan LIMITER (varsayilan, canli konfigurasyon)
  *           null      -> binding HIC YOK (fail-closed olcumu)
  *           nesne     -> verilen sahte binding (bozuk obje / patlayan limiter) */
-async function prova(mod, d1Satirlari, sepet, sabitIp, limiter) {
+async function prova(mod, d1Satirlari, sepet, sabitIp, limiter, yasakKolonlar) {
   const sayaclar = yeniSayac();
   const agOnce = ag.toplam;
-  const env = Object.assign({}, ENV_TABAN, { KATALOG: d1Sahte(d1Satirlari, sayaclar) });
+  const env = Object.assign({}, ENV_TABAN,
+                            { KATALOG: d1Sahte(d1Satirlari, sayaclar, yasakKolonlar) });
   if (limiter === null) { delete env.FIYAT_RATE_LIMIT; }
   else if (limiter !== undefined) { env.FIYAT_RATE_LIMIT = limiter; }
   ipSayaci += 1;
@@ -351,7 +368,10 @@ function d1Satiri(u) {
   return { id: u.id, baslik: u.baslik || "", kategori: u.kategori || "",
            fiyat: u.fiyat || "", parametrik: u.parametrik ? 1 : 0,
            gorsel: (u.gorseller && u.gorseller[0]) || "",
-           konfigur: u.konfigur ? kanonik(u.konfigur) : "" };
+           konfigur: u.konfigur ? kanonik(u.konfigur) : "",
+           // `tur` kolonu (canli D1'de 2026-07-31'den beri TEXT NOT NULL DEFAULT ''):
+           // katalogdaki degeri AYNEN tasinir — "fiziksel" = hazir ticari mal.
+           tur: u.tur || "" };
 }
 
 // Artefaktta OLMAYAN konfigur urunu (D1'e girmis, Worker deploy edilmemis penceresi).
@@ -768,6 +788,140 @@ baslik("== 7) FAIL-CLOSED — artefaktta olmayan konfigur urunu (baslat + prova)
   kalan.slice(0, 10).forEach((i) => ham.push("    ❌ " + i.ad + " (olculen: " + i.olculen + ")"));
   if (kalan.length) { kirmizi += 1; ham.push("  ❌ KALDI — fail-closed"); }
   else { ham.push("  ✅ GECTI — 28/28 iddia; sabit fiyat HESAPLANMIYOR, prova da 400 doner"); }
+}
+
+// ====================================== 10) FIZIKSEL URUN — MALZEME/RENK CARPANI YOK
+/**
+ * NEDEN VAR (para yolu; canli /api/shop/fiyat prova ucuyla OLCULDU, 2026-08-01):
+ *   `tur == "fiziksel"` kayit HAZIR TICARI MALDIR (tekne boyasi, vernik...). 3D baski
+ *   malzemesi/rengi KARSILIKSIZDIR. 31 Tem'de secici UI'i urun SAYFASINDAN kaldirildi, ama
+ *   SUNUCU fiyatlama fonksiyonu `tur`-KORDU. 1.000 TL'lik fiziksel urunde OLCULEN (onarim
+ *   ONCESI): PLA/Siyah 100000 · PLA/"Diğer" 115000 (+%15) · ASA/"Diğer" 184000 (+%84).
+ *   Sepet localStorage'da YASADIGI icin onarim oncesi kaydedilmis BAYAT bir satir hala fazla
+ *   tahsil edilirdi -> istemcide secici gizlemek bu deligi KAPATMAZ.
+ *
+ * ONARIM (secenekler.js hesaplaFiyatKurus 5. parametre `tur` + satirOzeti; shop/src/index.js
+ *   SELECT'e `tur` kolonu + satirOzeti'ye aktarim): fiziksel uruntde malzeme ve renk carpani
+ *   1,00'e SABITLENIR -> tutar DAIMA liste fiyati. RED (400) DEGIL — cunku kalemleriCoz her
+ *   satirda malzeme+renk ZORUNLU tutar ve fiziksel sayfada bunlari DEGISTIRECEK bir UI YOKTUR:
+ *   red, musterinin ONARAMAYACAGI olu bir sepet birakirdi. Liste fiyati zaten sayfada,
+ *   feed'de ve JSON-LD'de BEYAN EDILEN tutardir; sessiz degil, DOGRU olandir.
+ *
+ * IDDIALAR — hepsi KURUS (HTML jetonu sayilmaz):
+ *   POZITIF  (yon="fiziksel")  : 3 secim x (baslat+prova) + gercek katalogdan 3 urun
+ *   NEGATIF  (yon="3d")        : `tur`suz 3D urunde ONARIM ONCESI OLCULEN sayilar BIREBIR
+ *   FAIL-CLOSED (yon="fail-closed"): `tur` YOK / bos / taninmayan deger -> 3D gibi davranir
+ */
+const FIZ_LISTE_KURUS = 100000;                       // "1.000 TL" liste fiyati
+const FIZ_TABAN = { baslik: "Sinama urunu", kategori: "Marin", fiyat: "1.000 TL",
+                    parametrik: 0, gorsel: "", konfigur: "" };
+const FIZ_URUN = Object.assign({ id: "sinama-fiziksel-boya" }, FIZ_TABAN, { tur: "fiziksel" });
+const UCB_URUN = Object.assign({ id: "sinama-3d-parca" }, FIZ_TABAN, { tur: "" });
+const FIZ_SECIMLER = [["PLA", "Siyah", ""], ["PLA", "Diğer", "turuncu"],
+                      ["ASA", "Diğer", "turuncu"]];
+// 🔴 ONARIM ONCESI OLCULEN sayilar (regresyon capasi — 3D fiyatlamasi DEGISMEMELI).
+const UCB_SPEC = { "PLA/Siyah": 100000, "PLA/Diğer": 115000, "ASA/Diğer": 184000 };
+// `tur` alaninin TAM dize esitligiyle okundugunu kanitlayan degerler (fail-closed ekseni).
+const FIZ_TANINMAYAN = ["", "Fiziksel", "FIZIKSEL", " fiziksel", "fiziksel ", "3d", "fiziksell",
+                        0, 1, null, []];
+const FIZ_GERCEK = URUNLER.filter((u) => u.tur === "fiziksel" && (u.fiyat || "").trim() &&
+                                         !u.parametrik && !u.konfigur).slice(0, 3);
+
+function fizKalem(id, malzeme, renk, ozel) {
+  return { id: id, malzeme: malzeme, renk: renk, renk_ozel: ozel || "", adet: 1 };
+}
+function provaBirim(p) {
+  return p.govde.satirlar && p.govde.satirlar[0] ? p.govde.satirlar[0].birim_kurus : null;
+}
+
+/** Fiziksel urun iddialari. Mutasyon altinda ILGILI yonun KIRMIZI yanmasi beklenir. */
+async function fizikselIddialari(mod) {
+  const s = [];
+  for (const [malzeme, renk, ozel] of FIZ_SECIMLER) {
+    const et = malzeme + "/" + renk;
+    const k = [fizKalem(FIZ_URUN.id, malzeme, renk, ozel)];
+    const b = await baslat(mod, [FIZ_URUN], k);
+    const p = await prova(mod, [FIZ_URUN], k);
+    s.push({ yon: "fiziksel", ad: "fiziksel " + et + " baslat = LISTE (" + FIZ_LISTE_KURUS + ")",
+             ok: b.kod === 200 && b.birimKurus === FIZ_LISTE_KURUS, olculen: b.birimKurus });
+    s.push({ yon: "fiziksel", ad: "fiziksel " + et + " prova = LISTE",
+             ok: p.kod === 200 && provaBirim(p) === FIZ_LISTE_KURUS, olculen: provaBirim(p) });
+  }
+  for (const u of FIZ_GERCEK) {
+    const liste = SECENEK.fiyatSayisi(u.fiyat) * 100;
+    const b = await baslat(mod, [d1Satiri(u)],
+                           [fizKalem(u.id, "ASA", "Diğer", "turuncu")]);
+    s.push({ yon: "fiziksel", ad: "GERCEK katalog " + u.id + " ASA/Diğer = " + liste,
+             ok: b.kod === 200 && b.birimKurus === liste, olculen: b.birimKurus });
+  }
+  for (const [malzeme, renk, ozel] of FIZ_SECIMLER) {
+    const et = malzeme + "/" + renk;
+    const k = [fizKalem(UCB_URUN.id, malzeme, renk, ozel)];
+    const b = await baslat(mod, [UCB_URUN], k);
+    const p = await prova(mod, [UCB_URUN], k);
+    s.push({ yon: "3d", ad: "3D " + et + " baslat = " + UCB_SPEC[et] + " (DEGISMEDI)",
+             ok: b.kod === 200 && b.birimKurus === UCB_SPEC[et], olculen: b.birimKurus });
+    s.push({ yon: "3d", ad: "3D " + et + " prova = " + UCB_SPEC[et],
+             ok: p.kod === 200 && provaBirim(p) === UCB_SPEC[et], olculen: provaBirim(p) });
+  }
+  // id kalibi /^[a-z0-9-]{1,120}$/ ile SINIRLI (kalemleriCoz) -> id'yi SIRA NUMARASINDAN uret;
+  // `tur` degerinin kendisini id'ye gomsek kalem "gecersiz-kalem" ile reddedilir ve iddia
+  // yanlis sebepten yesil/kirmizi olurdu.
+  for (let i = 0; i < FIZ_TANINMAYAN.length; i += 1) {
+    const t = FIZ_TANINMAYAN[i];
+    const satir = Object.assign({ id: "sinama-tur-" + i }, FIZ_TABAN, { tur: t });
+    const b = await baslat(mod, [satir], [fizKalem(satir.id, "ASA", "Diğer", "turuncu")]);
+    s.push({ yon: "fail-closed", ad: "tur=" + JSON.stringify(t) + " -> 3D gibi (" +
+                                     UCB_SPEC["ASA/Diğer"] + ")",
+             ok: b.kod === 200 && b.birimKurus === UCB_SPEC["ASA/Diğer"], olculen: b.birimKurus });
+  }
+  {   // `tur` ALANI HIC YOK (kolon eklenmeden onceki D1 satiri)
+    const satir = Object.assign({ id: "sinama-tursuz" }, FIZ_TABAN);
+    const b = await baslat(mod, [satir], [fizKalem(satir.id, "ASA", "Diğer", "turuncu")]);
+    s.push({ yon: "fail-closed", ad: "tur ALANI YOK -> 3D gibi",
+             ok: b.kod === 200 && b.birimKurus === UCB_SPEC["ASA/Diğer"], olculen: b.birimKurus });
+  }
+  {   // `tur` KOLONU D1 semasinda YOK -> SELECT patlar, merdiven daralir. IKI iddia:
+      //   (a) fiziksel urun BUGUNKU davranisa duser (regresyon 0, fail-closed),
+      //   (b) `konfigur` kolonu YAN HASAR GORMEZ (konfigur kalemi hala DOGRU fiyatlanir) —
+      //       tek listede olsalardi konfigur kalemleri de 400'e duserdi.
+    const b = await baslat(mod, [FIZ_URUN], [fizKalem(FIZ_URUN.id, "ASA", "Diğer", "turuncu")],
+                           ["tur"]);
+    s.push({ yon: "fail-closed", ad: "`tur` KOLONU YOK -> bugunku davranis (" +
+                                     UCB_SPEC["ASA/Diğer"] + ")",
+             ok: b.kod === 200 && b.birimKurus === UCB_SPEC["ASA/Diğer"], olculen: b.birimKurus });
+    const ku = KONFIGUR_URUNLER[0];
+    const kb = await baslat(mod, [d1Satiri(ku)],
+                            [{ id: ku.id, malzeme: "PLA", renk: "Siyah", adet: 1,
+                               parametreler: { boy_mm: 150 } }], ["tur"]);
+    const beklenen = FRONT.fiyatKurus(ku.konfigur, FRONT.boyDuzelt(ku.konfigur, 150),
+                                      (ku.konfigur.malzemeler.find((m) => m.ad === "PLA") || {}).katsayi);
+    s.push({ yon: "fail-closed", ad: "`tur` kolonu yokken KONFIGUR kalemi hala dogru (" +
+                                     beklenen + ")",
+             ok: kb.kod === 200 && kb.birimKurus === beklenen, olculen: kb.birimKurus });
+  }
+  return s;
+}
+
+baslik("== 10) FIZIKSEL URUN — malzeme/renk carpani UYGULANMAZ (tutar = LISTE fiyati) ==");
+{
+  if (FIZ_GERCEK.length === 0) {
+    kirmizi += 1;
+    ham.push("    ❌ ÖLÇÜLEMEDİ: katalogda `tur:\"fiziksel\"` urun YOK — iddia OLU kalir");
+  }
+  const iddia = await fizikselIddialari(YENI);
+  const kalan = iddia.filter((i) => !i.ok);
+  const say = (y) => iddia.filter((i) => i.yon === y).length;
+  not("katalogda fiziksel urun: " + URUNLER.filter((u) => u.tur === "fiziksel").length +
+      " (iddiada ornek: " + FIZ_GERCEK.length + ")");
+  not("iddia: " + iddia.length + " (POZITIF fiziksel " + say("fiziksel") + " · NEGATIF 3D " +
+      say("3d") + " · FAIL-CLOSED " + say("fail-closed") + ") — kalan: " + kalan.length);
+  kalan.slice(0, 12).forEach((i) => ham.push("    ❌ " + i.ad + " (olculen: " + i.olculen + ")"));
+  if (kalan.length) { kirmizi += 1; ham.push("  ❌ KALDI — fiziksel urun carpani"); }
+  else {
+    ham.push("  ✅ GECTI — fiziksel urun DAIMA " + FIZ_LISTE_KURUS + " krs; 3D fiyatlamasi " +
+             "onarim oncesiyle BIREBIR (100000/115000/184000)");
+  }
 }
 
 // ============================================================ 9) SERT TAVAN (yardimcilar)
@@ -1543,6 +1697,103 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
     } else {
       ham.push("    ✅ M10: aile bosaltilinca recall " + RECALL_OLCULEN + " -> " +
                m10Yakalanan + " (nobet YUK TASIYOR)");
+    }
+  }
+
+  // ---- M11/M12: FIZIKSEL URUN GARDI (secenekler.js fizikselMi) NO-OP EDILDI ----
+  /**
+   * Gard `secenekler.js`tedir (TEK KAYNAK) ve worker onu `../../secenekler.js` ile cagirir.
+   * Mutant kosturmak icin SAHTE bir depo koku kurulur:
+   *   <tmp>/secenekler.js          <- MUTANT (../../ buraya cikar)
+   *   <tmp>/konfigur.js, <tmp>/jenerator  <- gercege sembolik bag (degistirilmez)
+   *   <tmp>/shop/src/*.js          <- gercek worker kaynaklari (JSON gomulu)
+   * Depo dosyalarina DOKUNULMAZ; dizin kosum sonunda silinir.
+   */
+  async function mutantSecenekModulu(etiket, capa, yerine) {
+    const kokDizin = path.join(SHOP, TEMP_ONEK + etiket + "-" + process.pid);
+    fs.rmSync(kokDizin, { recursive: true, force: true });
+    fs.mkdirSync(path.join(kokDizin, "shop", "src"), { recursive: true });
+    dizinler.push(kokDizin);
+    const hamSecenek = fs.readFileSync(path.join(KOK, "secenekler.js"), "utf8");
+    if (hamSecenek.split(capa).length - 1 !== 1) {
+      return { hata: "capa kayip/coklu: " + capa };
+    }
+    fs.writeFileSync(path.join(kokDizin, "secenekler.js"), hamSecenek.replace(capa, yerine));
+    for (const ad of ["konfigur.js", "jenerator"]) {
+      fs.symlinkSync(path.join(KOK, ad), path.join(kokDizin, ad));
+    }
+    for (const [ad, kaynak] of Object.entries(KAYNAKLAR)) {
+      fs.writeFileSync(path.join(kokDizin, "shop", "src", ad),
+                       jsonGom(kaynak, SRC, etiket + "/" + ad));
+    }
+    sayac += 1;
+    const mod = await import(
+      pathToFileURL(path.join(kokDizin, "shop", "src", "index.js")).href + "?s=" + sayac);
+    return { mod };
+  }
+  const FIZ_CAPA = 'function fizikselMi(tur) { return tur === TUR_FIZIKSEL; }';
+
+  // M11: gard DAIMA YANLIS -> fiziksel urun yine +%15/+%84 alir (kusurun ta kendisi).
+  // DAR PROBE: yalniz "fiziksel" yonu KIRMIZI yanmali; 3D ve fail-closed yonleri YESIL
+  // kalmali (kalsalar bile iddia bos degil — kirmizi yanan sey tam olarak bu gardin isidir).
+  ham.push("  -- M11: fizikselMi() DAIMA false (gard no-op) --");
+  {
+    const m = await mutantSecenekModulu("m11", FIZ_CAPA,
+                                        'function fizikselMi(tur) { return false; }');
+    if (m.hata) {
+      kirmizi += 1;
+      ham.push("    ❌ M11 mutasyonu UYGULANAMADI — " + m.hata);
+    } else {
+      const iddia = await fizikselIddialari(m.mod);
+      const kalan = iddia.filter((i) => !i.ok);
+      const fizKirmizi = kalan.filter((i) => i.yon === "fiziksel").length;
+      const digerKirmizi = kalan.filter((i) => i.yon !== "fiziksel").length;
+      // ESIK 7, 9 DEGIL — DURUST SINIR: PLA/Siyah kombinasyonu (baslat+prova, 2 iddia) gard
+      // olsa da olmasa da LISTE fiyati verir (carpan zaten 1,00); o iki iddia bu mutantla
+      // AYIRT EDILEMEZ. Kalan 7 iddia ("Diğer" renk / ASA malzeme + 3 gercek katalog urunu)
+      // yalnizca gard sayesinde yesildir.
+      not("M11: gard no-op -> POZITIF(fiziksel) iddialardan " + fizKirmizi + " KIRMIZI " +
+          "(>=7 olmali; PLA/Siyah'in 2 iddiasi carpansiz oldugu icin ayirt edilemez), " +
+          "diger yonlerde " + digerKirmizi + " (0 olmali — probe DAR)");
+      kalan.filter((i) => i.yon === "fiziksel").slice(0, 4)
+        .forEach((i) => ham.push("    · yakalandi: " + i.ad + " (olculen: " + i.olculen + ")"));
+      if (fizKirmizi < 7 || digerKirmizi !== 0) {
+        kirmizi += 1;
+        ham.push("    ❌ M11 KALDI — gard no-op edildi ama iddia sessiz kaldi (OLU IDDIA) " +
+                 "ya da probe DAR degil");
+      } else {
+        ham.push("    ✅ M11: gard no-op -> " + fizKirmizi + " POZITIF iddia KIRMIZI, " +
+                 "3D/fail-closed yonleri etkilenmedi");
+      }
+    }
+  }
+
+  // M12: gard DAIMA DOGRU -> her urun "fiziksel" sayilir; 15.930 baski urununde carpan
+  // sessizce kaybolur (EKSIK tahsilat). 3D REGRESYON iddiasi KIRMIZI yanmali.
+  ham.push("  -- M12: fizikselMi() DAIMA true (gard her urunde acik) --");
+  {
+    const m = await mutantSecenekModulu("m12", FIZ_CAPA,
+                                        'function fizikselMi(tur) { return true; }');
+    if (m.hata) {
+      kirmizi += 1;
+      ham.push("    ❌ M12 mutasyonu UYGULANAMADI — " + m.hata);
+    } else {
+      const iddia = await fizikselIddialari(m.mod);
+      const kalan = iddia.filter((i) => !i.ok);
+      const ucbKirmizi = kalan.filter((i) => i.yon === "3d").length;
+      const fizKirmizi = kalan.filter((i) => i.yon === "fiziksel").length;
+      not("M12: gard her urunde acik -> NEGATIF(3D regresyon) iddialardan " + ucbKirmizi +
+          " KIRMIZI (>=4 olmali), POZITIF(fiziksel) " + fizKirmizi + " (0 olmali)");
+      kalan.filter((i) => i.yon === "3d").slice(0, 4)
+        .forEach((i) => ham.push("    · yakalandi: " + i.ad + " (olculen: " + i.olculen + ")"));
+      if (ucbKirmizi < 4 || fizKirmizi !== 0) {
+        kirmizi += 1;
+        ham.push("    ❌ M12 KALDI — 3D regresyon nobetcisi OLU (gard her urunde acikken bile " +
+                 "yesil kaliyor)");
+      } else {
+        ham.push("    ✅ M12: gard her urunde acikken " + ucbKirmizi +
+                 " 3D regresyon iddiasi KIRMIZI");
+      }
     }
   }
 

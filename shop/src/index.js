@@ -264,6 +264,11 @@ async function sepetiFiyatla(env, kalemler) {
   const idler = [...new Set(kalemler.map((k) => k.id))];
   const yertut = idler.map(() => "?").join(",");
   const ALANLAR = "id, baslik, kategori, fiyat, parametrik, gorsel";
+  // OPSIYONEL KOLONLAR — ZORUNLU ALANLARDAN AYRI (asagidaki merdiven): D1 semasi bunlardan
+  // birini tasimiyorsa SELECT "no such column" ile PATLAR. `tur` (hazir ticari mal isareti,
+  // 31 Tem) `konfigur`a BAGLANMAZ: tek listede olsalardi `tur`u olmayan bir sema (ornegin
+  // geri alinmis bir ALTER) konfigur kalemlerini de fail-closed 400'e dusururdu.
+  const EK_KOLONLAR = ["konfigur", "tur"];
   // `konfigur` (D1'deki sema) AYNI SELECT'e kolon olarak eklendi — EK SORGU ve EK ROUND-TRIP
   // YOK, satirla birlikte gelir (maliyet O(sepet kalemi), katalog buyuklugunden BAGIMSIZ).
   // FAZ 4'ten beri bu kolon PARA YOLUDUR: konfigur kaleminin fiyati BUNDAN hesaplanir.
@@ -273,16 +278,24 @@ async function sepetiFiyatla(env, kalemler) {
   // dusururdu). Yedek yolda `u.konfigur` undefined kalir -> konfigur kalemleri FAIL-CLOSED
   // 400 alir (WhatsApp kanali), katalogun geri kalani SATILMAYA DEVAM EDER. Yani yedek yol
   // yalnizca konfigursuz urunler icin fail-open, konfigurlu urunler icin fail-CLOSED'dur.
+  // KOLON MERDIVENI: once TUM opsiyonel kolonlarla dene, patlarsa sondan BIRER BIRER dus,
+  // en sonda ciplak ALANLAR (bugunku yedek yol). Her basamak bir onceki kadar veri getirir
+  // ARTI bir kolon; yani en fazla EK_KOLONLAR.length+1 deneme olur ve normal halde (canli
+  // sema, 24 kolon) ILK deneme tutar -> EK SORGU YOK.
   let sonuc;
-  try {
-    sonuc = await env.KATALOG.prepare(
-      "SELECT " + ALANLAR + ", konfigur FROM urunler WHERE id IN (" + yertut + ")"
-    ).bind(...idler).all();
-  } catch (e) {
-    console.log("konfigur-golge SELECT dustu, kolonsuz yola dusuldu: " + (e && e.message || e));
-    sonuc = await env.KATALOG.prepare(
-      "SELECT " + ALANLAR + " FROM urunler WHERE id IN (" + yertut + ")"
-    ).bind(...idler).all();
+  for (let n = EK_KOLONLAR.length; ; n -= 1) {
+    const ek = EK_KOLONLAR.slice(0, n);
+    try {
+      sonuc = await env.KATALOG.prepare(
+        "SELECT " + ALANLAR + ek.map((c) => ", " + c).join("") +
+        " FROM urunler WHERE id IN (" + yertut + ")"
+      ).bind(...idler).all();
+      break;
+    } catch (e) {
+      if (n === 0) { throw e; }
+      console.log("SELECT dustu (ek kolonlar: " + ek.join(",") + "), daralan yola dusuldu: " +
+                  (e && e.message || e));
+    }
   }
   const katalog = new Map((sonuc.results || []).map((u) => [u.id, u]));
 
@@ -367,8 +380,14 @@ async function sepetiFiyatla(env, kalemler) {
     } else {
       // HESAP TEK KAYNAK: front'un gosterdigi fiyati ureten fonksiyonun AYNISI (secenekler.js).
       // D1'de boy_secenekleri yok; boy'lu kalem zaten yukarida reddedildi (bkz. istekCoz).
+      // 🔴 `tur` D1'DEN GECER (para yolu): tam "fiziksel" ise hazir ticari mal demektir ve
+      // satirOzeti/hesaplaFiyatKurus malzeme+renk carpanini 1,00'e sabitler -> tutar = LISTE
+      // fiyati. Kural burada TEKRARLANMAZ, secenekler.js'te TEK yerdedir (front ile ayni
+      // fonksiyon). Kolon okunamazsa (yukaridaki merdivenin daralan basamagi) u.tur undefined
+      // kalir -> BUGUNKU davranis, yani `tur`suz 15.930 baski urununde regresyon 0.
       const ozet = SECENEK.satirOzeti(
-        { kategori: u.kategori, fiyat: u.fiyat, parametrik: false, boy_secenekleri: [] },
+        { kategori: u.kategori, fiyat: u.fiyat, parametrik: false, boy_secenekleri: [],
+          tur: u.tur },
         { id: k.id, malzeme: k.malzeme, renk: k.renk, renk_ozel: k.renk_ozel,
           boy_etiket: null, adet: 1 });
       if (!ozet.odenebilir || !(ozet.birimKurus > 0)) {

@@ -18,6 +18,33 @@
   var FILAMENT_SIRA = ["PLA", "PETG", "ASA", "TPU"];
   var RENK_SECENEKLERI = ["Siyah", "Beyaz", "Gri", "Diğer"];
   var RENK_DIGER_YUZDE = 15;
+
+  /* ---- HAZIR TICARI MAL (fiziksel urun) — MALZEME/RENK CARPANI YOK ----------------
+     `tur == "fiziksel"` olan kayit HAZIR TICARI MALDIR (tekne boyasi, vernik, tiner...):
+     biz URETMEYIZ, RAFTAN satariz. Dolayisiyla o urunde 3D BASKI malzemesi (PLA/PETG/ASA/TPU)
+     ve "Diğer" renk SECIMI KARSILIKSIZDIR -> fiyati SABITTIR, liste fiyatinin ta kendisi.
+
+     🔴 NEDEN BURADA (para yolu, 2026-08-01 — olculdu): 31 Tem'de fiziksel urun SAYFASINDAN
+     secici UI'i kaldirildi, ama SUNUCU fiyatlama fonksiyonu `tur`-KORDU. Canli /api/shop/fiyat
+     prova ucuyla olculdu, 1.000 TL'lik fiziksel urunde:
+         PLA + Siyah   -> 100000 krs (liste, dogru)
+         PLA + "Diğer" -> 115000 krs (+%15)
+         ASA + "Diğer" -> 184000 krs (+%84)
+     UI artik boyle bir satir URETEMEZ; ama sepet localStorage'da YASAR — onarim oncesi
+     kaydedilmis BAYAT bir satir hala fazla tahsil edilirdi ve hicbir dogrulamaya takilmazdi.
+     Istemcide secici gizlemek bu yolu KAPATMAZ, yalnizca zorlastirir.
+
+     🔴 FAIL-CLOSED YONU: kural "fiziksel ISE carpan YOK"tur, "3D ISE carpan VAR" DEGIL.
+     `tur` alani YOKSA, bossa ya da taninmayan bir deger tasiyorsa (" fiziksel", "Fiziksel",
+     0, [] ...) BUGUNKU davranis aynen korunur -> `tur`suz 15.930 baski urununde regresyon 0.
+     Karsilastirma TAM dize esitligidir (build.py render_product + tools/arama.py + D1
+     semasi ile AYNI kural; kirpma/kucultme YOK).
+
+     TEK KAYNAK: bu fonksiyonu hem site (index.html sepet paneli, urun sayfasi) hem shop
+     Worker'i (shop/src/index.js sepetiFiyatla) cagirir — kural ikinci bir yerde
+     TEKRARLANMAZ. Worker `tur`u D1 `urunler.tur` kolonundan okur ve satirOzeti'ye verir. */
+  var TUR_FIZIKSEL = "fiziksel";
+  function fizikselMi(tur) { return tur === TUR_FIZIKSEL; }
   // İşletme kararı 23 Tem: Dekorasyon + Oyun/Hobi de standart ürün kartını (Renk+Adet+kompakt ikon,
   // katsayılı fiyat) alır — Marin/Otomobil ile birebir. Sayfa üreteci ile BİRLİKTE güncellendi.
   // "Skan Art" (gizli dekor alt-serisi) da aynı düzeni alır: kategori Dekorasyon'dan
@@ -249,11 +276,19 @@
 
   /* Birim fiyat, tamsayı KURUŞ. Sıra (işletme kararı, 16 Tem): malzeme katsayısı -> SONRA "Diğer"
      renk +%15 -> sonra boy farkı (TL, sabit ek). Yuvarlama YOK; tek yuvarlama kuruşun ALTINA
-     inen artık içindir (yarım kuruş tahsil edilemez; ör. "Diğer" renkte 333 -> 497,835 TL). */
-  function hesaplaFiyatKurus(temelFiyatTL, malzeme, renk, boyFarkTL) {
+     inen artık içindir (yarım kuruş tahsil edilemez; ör. "Diğer" renkte 333 -> 497,835 TL).
+
+     `tur` (5. parametre, OPSİYONEL — bkz. TUR_FIZIKSEL bloğu): tam "fiziksel" ise HAZIR TİCARİ
+     MAL demektir; 3D baskı malzemesi/rengi karşılıksızdır -> her İKİ çarpan da 1,00'e sabitlenir
+     (tutar = liste fiyatı). Parametre VERİLMEZSE (eski çağrı yerleri) bugünkü davranış aynen
+     korunur — imza genişlemesi fail-closed'dur. Boy farkı BİLEREK dokunulmaz: o bir liste
+     varyantı farkıdır, baskı çarpanı değil (fiziksel üründe zaten boy_secenekleri yok ve
+     Worker boy_etiket taşıyan kalemi baştan reddeder). */
+  function hesaplaFiyatKurus(temelFiyatTL, malzeme, renk, boyFarkTL, tur) {
     if (temelFiyatTL == null) { return null; }
-    var yuzde = FILAMENT_FARK.hasOwnProperty(malzeme) ? FILAMENT_FARK[malzeme] : 0;
-    var renkCarpan = (renk === "Diğer") ? (100 + RENK_DIGER_YUZDE) : 100;
+    var fiziksel = fizikselMi(tur);
+    var yuzde = (!fiziksel && FILAMENT_FARK.hasOwnProperty(malzeme)) ? FILAMENT_FARK[malzeme] : 0;
+    var renkCarpan = (!fiziksel && renk === "Diğer") ? (100 + RENK_DIGER_YUZDE) : 100;
     // Bölmeler en sona: 333*100*130*115 = 497835000 (tamsayı, güvenli) -> /10000 -> 49783.5
     var kurus = Math.round(temelFiyatTL * 100 * (100 + yuzde) * renkCarpan / 10000);
     return kurus + Math.round((boyFarkTL || 0) * 100);
@@ -397,9 +432,15 @@
   // mevcut (öncesi) davranış korunur, mesaj kirlenmez.
   function satirOzeti(urun, satir) {
     if (satir && satir.parametreler) { return parametrikSatirOzeti(satir); }
+    // HAZIR TICARI MAL: malzeme/renk secimi karsiliksizdir -> ne fiyata ne METNE girer.
+    // Metin de susturulur, cunku "Malzeme: ASA (+%60)" yazip liste fiyatini tahsil eden bir
+    // satir musteriye YALAN SOYLER (fis/WhatsApp mesaji fiyatla celisemez).
+    var fiziksel = fizikselMi(urun && urun.tur);
     var fonksiyonel = fonksiyonelMi(urun && urun.kategori);
+    // Fiziksel üründe SEÇİM yoktur (fiyat da metin de); ADET vardır — o satır korunur.
+    var secimVar = fonksiyonel && !fiziksel;
     var parcalar = [];
-    if (fonksiyonel) {
+    if (secimVar) {
       // Kart-secim urununde malzeme secilmeden WhatsApp'tan sorulabilir -> bos malzeme satiri yazma.
       if (satir.malzeme) {
         var mYuzde = FILAMENT_FARK.hasOwnProperty(satir.malzeme) ? FILAMENT_FARK[satir.malzeme] : 0;
@@ -415,10 +456,12 @@
     var adet = adetDuzelt(satir.adet);
     if (fonksiyonel && adet > 1) { parcalar.push("Adet: " + adet); }
     var temel = fiyatSayisi(urun && urun.fiyat);
-    var bf = fonksiyonel ? boyFarki(urun, satir.boy_etiket) : 0;
+    var bf = secimVar ? boyFarki(urun, satir.boy_etiket) : 0;
     // Fonksiyonel olmayan kategoride seçici yok -> liste fiyatı aynen.
+    // Fiziksel üründe hesap YİNE hesaplaFiyatKurus'tan geçer (ikinci fiyat kolu AÇILMAZ):
+    // `tur` parametresi çarpanları 1,00'e sabitler -> tutar = liste fiyatı. Kural TEK yerde.
     var birim = fonksiyonel
-      ? hesaplaFiyatKurus(temel, satir.malzeme, satir.renk, bf)
+      ? hesaplaFiyatKurus(temel, satir.malzeme, satir.renk, bf, urun && urun.tur)
       : (temel == null ? null : temel * 100);
     // Satır tutarı = kuruşlu birim × adet (ara yuvarlama yok: 432,90 × 3 = 1.298,70)
     var hesap = (birim == null) ? null : birim * adet;
@@ -520,6 +563,8 @@
     FILAMENT_SIRA: FILAMENT_SIRA,
     RENK_SECENEKLERI: RENK_SECENEKLERI,
     RENK_DIGER_YUZDE: RENK_DIGER_YUZDE,
+    TUR_FIZIKSEL: TUR_FIZIKSEL,
+    fizikselMi: fizikselMi,
     FONKSIYONEL_KATEGORILER: FONKSIYONEL_KATEGORILER,
     ADET_EN_AZ: ADET_EN_AZ,
     ADET_EN_COK: ADET_EN_COK,

@@ -2136,9 +2136,16 @@ def render_product(p, all_products, chip_map=None):
     # fid = KATALOG kimligi (feed g:id ile TEK KAYNAK: feed_id). Piksel content_ids DAIMA bunu
     # gonderir -> Meta/Google katalogdaki id ile birebir eslesir. id (TAM pid) API/D1 anahtari
     # olarak KALIR (Worker fiyati pid'den okur); fid yalniz olcum/katalog eslemesi icindir.
+    # `tur`: YALNIZ fiziksel üründe basılır (hazır ticari mal). secenekler.js satirOzeti bunu
+    # okuyup malzeme/renk çarpanını 1,00'e sabitler — sayfa scripti ile Worker AYNI kuralı AYNI
+    # fonksiyondan alır, ikinci tanım yok. Alan `tur`süz 15.930 üründe HİÇ basılmaz -> o
+    # sayfalar bayt-bayt bugünküyle aynı kalır (regresyon 0).
+    _urun_veri = {"id": pid, "fid": feed_id(pid), "baslik": baslik, "kategori": kategori,
+                  "fiyat": fiyat, "parametrik": parametrik, "boy_secenekleri": boy_secenekleri}
+    if fiziksel:
+        _urun_veri["tur"] = "fiziksel"
     urun_json = json.dumps(
-        {"id": pid, "fid": feed_id(pid), "baslik": baslik, "kategori": kategori, "fiyat": fiyat,
-         "parametrik": parametrik, "boy_secenekleri": boy_secenekleri},
+        _urun_veri,
         ensure_ascii=False, separators=(",", ":")).replace("</script>", "<\\/script>")
 
     # --- Meta Pixel ViewContent (rıza-kapılı, YALNIZ ürün sayfası). content_ids = feed_id(pid)
