@@ -125,6 +125,56 @@ def ege_govde(u):
     ]))
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# TICARI HAL (tur / stokta) — D1'e giden KANONIK degerler.
+#
+# NEDEN BURADA (arama.py'de) VE NEDEN KANONIK: bu iki alan hem urun_hash'e girer hem
+# D1 kolonuna yazilir. Iki yerde AYRI turetilseydi (biri ham deger, digeri normalize)
+# hash "degismedi" derken kolon degisir ya da tersi olur -> satir yeniden yazilmaz ve D1
+# SESSIZCE eski hali servis eder. Tek fonksiyon = tek kaynak.
+#
+# 🔴 FAIL-CLOSED YONU — build.py render_product ile AYNI kural:
+#   `tur`: SADECE tam "fiziksel" dizesi HAZIR TICARI MAL demektir. Alan YOK ya da
+#   taninmayan bir deger ("3d", "Fiziksel", "", None, 0, dizi...) -> "" = OZEL URETIM
+#   (katalogun varsayilani, 15.930 baski urunu). Kural "fiziksel ISE isaretle"dir,
+#   "3D ISE isaretle" DEGIL -> `tur`suz urunde regresyon 0.
+#
+#   `stokta`: UC DEGERLI tam sayi. Ikili (0/1) yapilsaydi "alan hic yok" ile "acikca
+#   tukendi" AYNI hucreye duserdi ve iki taraflı zarar verirdi: 0'i "tukendi" okuyan uc
+#   15.930 ozel-uretim urununu "STOKTA DEGIL" ilan eder (kataloğun tamami olur),
+#   0'i "bilinmiyor" okuyan uc ise GERCEKTEN tukenmis fiziksel urunu satar.
+#     -1 STOK_BILINMIYOR  alan YOK. Ozel uretim urunlerin normal hali (stok kavrami
+#                         UYGULANMAZ; urun siparis uzerine uretilir). Fiziksel bir urunde
+#                         gorulurse VERI EKSIKTIR -> uc taraf STOK VAAT ETMEZ.
+#      0 STOK_YOK         alan VAR ama true DEGIL (false ya da TANINMAYAN deger).
+#                         "STOKTA DEGIL" olarak sunulur.
+#      1 STOK_VAR         alan tam olarak boolean true. Tek "stokta" diyebilen deger.
+#   Yani "STOKTA" iddiasi YALNIZ 1'den dogar; taninmayan/eksik hicbir sey 1 uretemez
+#   (Okan kurali: siparis kaybetmek yanlis vaatten iyidir).
+#
+# TIP TUZAGI (bilerek `is True` / `isinstance(bool)`): Python'da `True == 1` ve
+# `isinstance(True, int)` -> True. `u.get("stokta") == 1` yazsaydik JSON'daki sayi 1 de
+# stokta sayilirdi; asagidaki kimlik testi yalniz GERCEK boolean'i gecirir.
+_TUR_FIZIKSEL = "fiziksel"
+STOK_BILINMIYOR = -1
+STOK_YOK = 0
+STOK_VAR = 1
+# Uc tarafin "STOKTA" diyebilecegi TEK deger kumesi (kabul testi bunu capa alir).
+STOK_VAAT_EDILEBILIR = frozenset({STOK_VAR})
+
+
+def tur_kanonik(u):
+    """D1'e yazilan `tur` degeri: "fiziksel" ya da "" (ozel uretim). Fail-closed."""
+    return _TUR_FIZIKSEL if u.get("tur") == _TUR_FIZIKSEL else ""
+
+
+def stokta_kanonik(u):
+    """D1'e yazilan `stokta` degeri: -1 bilinmiyor / 0 stokta degil / 1 stokta."""
+    if "stokta" not in u:
+        return STOK_BILINMIYOR
+    return STOK_VAR if u.get("stokta") is True else STOK_YOK
+
+
 # D1'e yazilan alanlar — biri degisirse satir yeniden yazilir, degismezse yazilmaz.
 # (D1 gunluk 100.000 yazma limiti: tam rebuild yerine sadece degiseni yazmak sart.)
 def urun_hash(u):
@@ -143,5 +193,15 @@ def urun_hash(u):
         u.get("ege") or "",
         ege_baslik(u),
         ege_govde(u),
+        # TICARI HAL: `tur` + `stokta`. HASH'E GIRMESI SART — bu ikisi PUBLIC urunler.json'da
+        # yasar (baski'nin aksine CI de gorur) ve D1'e ICERIK UPSERT'i ile yazilir. Hash
+        # kapsamasaydi bir urun "tukendi" (stokta true -> false) olarak isaretlendiginde
+        # hash AYNI kalir, diff_plan satiri "degismemis" sayar ve D1'e HIC YAZMAZDI:
+        # Ege tukenmis urunu STOKTA diye satmaya devam ederdi (sessiz yanlis vaat).
+        # KANONIK degerler yazilir (ham degil): D1 kolonuna giden deger ile hash'in gordugu
+        # deger AYNI fonksiyondan gelir -> "hash degisti ama kolon degismedi" ayrismasi
+        # INSAATAN imkansiz.
+        tur_kanonik(u),
+        stokta_kanonik(u),
     ], ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(ozet.encode("utf-8")).hexdigest()[:16]

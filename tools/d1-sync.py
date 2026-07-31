@@ -470,6 +470,12 @@ def bayatlik_engel_metni(b, sayilar, silinen_ornek):
     return satirlar
 
 
+def kolonlari_oku(tablo):
+    """Canli tablonun KOLON ADLARI (kume). Tek PRAGMA — satir YAZMAZ."""
+    r = sorgu("PRAGMA table_info(%s)" % tablo)
+    return {s["name"] for s in ((r[0].get("results") or []) if r else [])}
+
+
 def kolon_var_mi(tablo, kolon):
     """Canli tabloda kolon VAR mi? (PRAGMA — satir YAZMAZ, tek ucuz sorgu.)
 
@@ -536,6 +542,16 @@ GOC_KOLON = [
     # yayinda degerine DOKUNMAZ. Gerekce + olculen pencere -> d1-sema.sql yorumu.
     ("yayinda", "INTEGER NOT NULL DEFAULT 0"),
     ("release_id", "TEXT NOT NULL DEFAULT ''"),
+    # TICARI HAL (31 Tem) — Ege fiziksel urunu ALGILASIN. Gerekce + uc-degerli `stokta`
+    # semantigi d1-sema.sql'in "TICARI HAL" blogunda; kanonik degerler arama.tur_kanonik /
+    # arama.stokta_kanonik. Bu ikisi taban_fiyat/konfigur'un AKSINE HASH'E GIRER ve icerik
+    # upsert'i ile yazilir (KOLONLAR + satir_sql) — alanlar PUBLIC urunler.json'da oldugu
+    # icin CI ve yerel AYNI degeri gorur, baski'daki "yetki" sorunu YOKTUR.
+    # 🔴 ALTER DEFAULT'u -1 (BILINMIYOR), 0 DEGIL: goc anindan senkron bitene kadarki
+    # pencerede mevcut 15.975 satir "stokta degil" DEGIL "bilinmiyor" olur (fail-closed
+    # ama katalogu topluca TUKENMIS ilan etmez).
+    ("tur", "TEXT NOT NULL DEFAULT ''"),
+    ("stokta", "INTEGER NOT NULL DEFAULT -1"),
 ]
 
 # siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
@@ -561,10 +577,31 @@ GOC_KOLON_SIPARIS = [
 # baski AYRI senkronla yonetilir (baski_senkron_sql + main) ve SADECE dosyasi olan
 # ortam (yerel) yazar. INSERT VALUES'ta baski VAR (yeni satir onu alir); sadece
 # CONFLICT/UPDATE yolu baski'ya dokunmaz.
+#
+# 🔴 KOLONLAR ile satir_sql'in INSERT listesi AYRISAMAZ: aradaki fark TAM OLARAK
+# KASITLI_DISARIDA olmalidir (invaryant; tools/stok-d1-kapisi.py C ekseni bunu olcer).
+# Yeni bir icerik kolonu INSERT'e eklenip KOLONLAR'a eklenmezse satir ILK yazimda dogru,
+# sonraki her guncellemede ESKI deger ile kalir — sessiz bayatlik. Kapi bunu kirmizi yakar.
 KOLONLAR = [
     "hash", "baslik", "kategori", "marka", "fiyat", "gorsel", "parametrik", "hs",
     "aciklama", "ege", "hs_baslik", "hs_baslik_kok", "hs_govde", "hs_govde_kok",
+    # TICARI HAL — hash'e girdikleri icin ON CONFLICT yolunda da GUNCELLENMELIDIR:
+    # "tukendi" isareti mevcut bir satirda degistiginde upsert calisir ve stokta'yi
+    # yazar. KOLONLAR'da olmasalardi hash yeni degerle yazilir ama stokta ESKI kalirdi
+    # (hash "senkron" der, veri bayat = en kotu tur sessiz hata).
+    "tur", "stokta",
 ]
+
+# satir_sql INSERT'inde YAZILAN ama ON CONFLICT/UPDATE yolunda BILEREK guncellenmeyen
+# kolonlar — her biri icin GEREKCE (kapi gerekcesiz giris kabul etmez):
+KASITLI_DISARIDA = {
+    "id": "catisma anahtari — zaten esit, UPDATE'i anlamsiz",
+    "seq": "katalog sirasi ILK eklemede sabitlenir; upsert'te korunur (rid/FTS rowid sabit)",
+    "baski": "gizli .urun-kaynaklari.json'dan gelir; CI o dosyayi GORMEZ -> upsert yazsaydi "
+             "her CI kosumu baski'yi '' yapip D1'den SILERDI (2026-07-18 olculdu)",
+    "yayinda": "atomik yayin: 0 -> 1 gecisini YALNIZ yayin-kapisi yazar; icerik degisimi "
+               "yayindaki urunu TASLAGA dusurmemeli",
+}
 
 
 def baski_haritasi():
@@ -895,7 +932,9 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
             yeni.append(sql)
             # YENI satir: INSERT VALUES baski'yi DA yazar -> beklentiye baski GIRER.
             izle(izleme, uid, sql, {"hash": h, "baslik": u.get("baslik") or "",
-                                    "kategori": u.get("kategori") or "", "baski": baski})
+                                    "kategori": u.get("kategori") or "", "baski": baski,
+                                    "tur": arama.tur_kanonik(u),
+                                    "stokta": arama.stokta_kanonik(u)})
         else:
             if eski_h != h:
                 sql = satir_sql(u, 0, arama.haystack(u), h, baski)  # seq ON CONFLICT'te korunur
@@ -904,7 +943,11 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
                 # (bkz. KOLONLAR yorumu) -> beklentiye baski GIRMEZ, yoksa CI'da her degisen
                 # urun sahte "baski uyusmazligi" verirdi (YANLIS-POZITIF = herkesin push'u kirilir).
                 izle(izleme, uid, sql, {"hash": h, "baslik": u.get("baslik") or "",
-                                        "kategori": u.get("kategori") or ""})
+                                        "kategori": u.get("kategori") or "",
+                                        # tur/stokta KOLONLAR'da -> ON CONFLICT yolu da yazar
+                                        # (baski'nin aksine; bkz. KOLONLAR yorumu).
+                                        "tur": arama.tur_kanonik(u),
+                                        "stokta": arama.stokta_kanonik(u)})
             # ICERIK degismis de degismemis de olsa: bu id D1'de zaten VAR, seq'i korunuyor
             # -> bir SONRAKI (daha HEAD tarafindaki) mid-array yeni id icin dogru ALT sinir.
             if uid in mevcut_seq:
@@ -972,6 +1015,10 @@ def satir_sql(u, seq, hs, h, baski=""):
         q(u.get("aciklama") or ""), q(u.get("ege") or ""),
         q(e_bas), q(arama.koke_cevir(e_bas)), q(e_gov), q(arama.koke_cevir(e_gov)),
         q(baski),
+        # TICARI HAL — KANONIK degerler (arama.py tek kaynak). stokta TIRNAKSIZ yazilir:
+        # q() ile yazilsaydi INTEGER kolona '0' METNI girer, uc taraftaki JS'te
+        # Boolean('0') === true olur ve TUKENMIS urun STOKTA gorunurdu.
+        q(arama.tur_kanonik(u)), str(arama.stokta_kanonik(u)),
     ]
     # ATOMIK YAYIN: YENI satir DAIMA taslak (yayinda=0) girer. Kolon SQL'de ACIKCA
     # yazilir (DEFAULT'a guvenilmez): DEFAULT sonradan degistirilirse ya da tablo baska
@@ -980,7 +1027,8 @@ def satir_sql(u, seq, hs, h, baski=""):
     # satirin icerigi degisse de urun Ege'den KAYBOLMAZ.
     return (
         "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,gorsel,parametrik,hs,"
-        "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok,baski,yayinda) VALUES ("
+        "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok,baski,tur,stokta,"
+        "yayinda) VALUES ("
         + ",".join(degerler) + ",0"
         + ") ON CONFLICT(id) DO UPDATE SET "
         + ", ".join("%s=excluded.%s" % (k, k) for k in KOLONLAR) + ";"
@@ -1002,7 +1050,17 @@ def satir_sql(u, seq, hs, h, baski=""):
 #    onlar KENDI adlariyla dogrulanir (hash onlari GORMEZ — bu tam da sema kolonlarinin
 #    var olma sebebi).
 #  * ORNEKLEME YOK: yazilan id kumesinin TAMAMI dogrulanir. Sinir asagida BEYAN edilir.
-GERI_OKUMA_KOLONLARI = ["hash", "baslik", "kategori", "baski", "taban_fiyat"]
+# tur/stokta AYRICA okunur (hash onlari GORDUGU halde): bu ikisi bir VAAT tasiyor
+# ("stokta var") ve tip hatasi sessiz — '0' METNI uc taraftaki JS'te true okunur. Ayni
+# SELECT'e iki kolon eklemek bedava; karsiligi, yanlis tipin/degerin canliya yerlesemedigi.
+GERI_OKUMA_KOLONLARI = ["hash", "baslik", "kategori", "baski", "taban_fiyat",
+                        "tur", "stokta"]
+
+# ICERIK UPSERT'inin CALISABILMESI icin canli tabloda BULUNMASI ZORUNLU kolonlar.
+# konfigur'un aksine bunlar atlanabilir DEGIL: satir_sql'in INSERT listesindedirler,
+# yoksa HER upsert "no such column" ile duser. Bu yuzden main() basinda GURULTULU
+# olculur — kriptik yarim yazma yerine tek satirlik "kos: --sema" tanisi.
+ZORUNLU_KOLONLAR = ["tur", "stokta"]
 
 # BEYAN EDILEN OLCEK SINIRI: yazilan id sayisi bu esigi asarsa hedefli `IN (...)` parcalari
 # yerine TEK tam-tablo SELECT'i kullanilir. 🔴 ORNEKLEME DEGIL — iki yol da yazilan id'lerin
@@ -1023,6 +1081,13 @@ def geri_okuma_norm(kolon, deger):
             return int(deger or 0)
         except (TypeError, ValueError):
             return -1
+    if kolon == "stokta":
+        # TIP EKSENI: D1'den '0' METNI donerse (kolon yanlislikla TEXT olarak kurulmus)
+        # int('0') == 0 ile SESSIZCE esitlenirdi. Bu yuzden tip GEVSETILMEZ: bool/int
+        # DISINDAKI her sey uyusmazlik olarak raporlanir (-9 hicbir mesru degerle esit degil).
+        if isinstance(deger, bool) or not isinstance(deger, int):
+            return -9
+        return int(deger)
     return "" if deger is None else str(deger)
 
 
@@ -1202,10 +1267,18 @@ CREATE TABLE urunler (
   taban_fiyat INTEGER NOT NULL DEFAULT 0,
   konfigur TEXT NOT NULL DEFAULT '',
   yayinda INTEGER NOT NULL DEFAULT 0,
-  release_id TEXT NOT NULL DEFAULT ''
+  release_id TEXT NOT NULL DEFAULT '',
+  tur TEXT NOT NULL DEFAULT '',
+  stokta INTEGER NOT NULL DEFAULT -1
 );
 CREATE TABLE senkron (anahtar TEXT PRIMARY KEY, deger TEXT NOT NULL);
 """
+# 🔴 IKIZ TANIM UYARISI: yukaridaki fikstur semasi tools/d1-sema.sql'in ELLE tutulan
+# kopyasidir (offline sqlite icin; gercek dosyada FTS5 trigram sanal tablosu ve tetikleyiciler
+# var, sqlite3 modulunde tokenize='trigram' her derlemede yok). Kopya ORIJINALDEN AYRISIRSA
+# bu kabul testi YESIL yanarken canli D1 baska bir semayla kosar. Ayrisma
+# tools/stok-d1-kapisi.py C EKSENI tarafindan olculur (urunler tablosunun kolon KUMESI
+# d1-sema.sql + GOC_KOLON ile birebir olmali).
 
 
 def _kt_urun(uid, kategori="Oyun/Hobi", baslik=None):
@@ -1404,9 +1477,15 @@ def kendini_test():
     iz = []
     u = _kt_urun("a", "Tamirat")
     diff_plan([u], {}, {"a": "PLA 0.2mm"}, True, 0, {}, iz)
-    dogrula("V7 IZ: yeni urun -> hash+baslik+kategori+baski beklentisi kaydedilir",
-            len(iz) == 1 and set(iz[0]["alanlar"]) == {"hash", "baslik", "kategori", "baski"}
+    dogrula("V7 IZ: yeni urun -> hash+baslik+kategori+baski+tur+stokta beklentisi kaydedilir",
+            len(iz) == 1
+            and set(iz[0]["alanlar"]) == {"hash", "baslik", "kategori", "baski",
+                                          "tur", "stokta"}
             and iz[0]["alanlar"]["kategori"] == "Tamirat", iz)
+    # TICARI HAL geri-okumasi: `stokta` alani OLMAYAN urun -1 (BILINMIYOR) beklentisi
+    # uretmeli — 0 (STOKTA DEGIL) DEGIL. Ikisi karisirsa katalogun tamami "tukendi" olur.
+    dogrula("V7b IZ: `stokta` alani YOK -> beklenti -1 (BILINMIYOR), tur '' (ozel uretim)",
+            iz[0]["alanlar"]["stokta"] == -1 and iz[0]["alanlar"]["tur"] == "", iz)
     iz2 = []
     diff_plan([u], {"a": ("ESKIHASH", "")}, {}, False, 1, {"a": 1}, iz2)
     dogrula("V8 IZ: DEGISEN satirda baski beklentiye GIRMEZ (ON CONFLICT baski'ya dokunmaz)",
@@ -2223,9 +2302,21 @@ def main():
         return
 
     urunler = urunleri_oku()
+    # Tablo kolonlari TEK PRAGMA ile okunur (her kolon icin ayri sorgu = ayri wrangler
+    # cagrisi = ~2,6 s bosuna).
+    tablo_kolonlari = kolonlari_oku("urunler")
+    # ZORUNLU kolonlar: yoksa satir_sql'in INSERT'i "no such column" ile duser ve parca
+    # parca YARIM yazma birakir. FAIL-LOUD ve ONCEDEN: tek satirlik tani, yarim yazma yok.
+    eksik_zorunlu = [k for k in ZORUNLU_KOLONLAR if k not in tablo_kolonlari]
+    if eksik_zorunlu:
+        sys.exit("!! D1 SEMASI ESKI — icerik upsert'i icin ZORUNLU kolon(lar) YOK: %s\n"
+                 "   Bu kolonlar satir_sql'in INSERT listesindedir; olmadan HER upsert\n"
+                 "   'no such column' ile duser (yarim yazma riski).\n"
+                 "   Coz: python3 tools/d1-sync.py --sema   (once semayi kur, sonra senkron)"
+                 % ", ".join(eksik_zorunlu))
     # KONFIGUR kolonu canli tabloda VAR mi? Yoksa (--sema henuz kosmadi) SELECT'e KONMAZ ve
     # konfigur senkronu ATLANIR — katalog senkronu (Ege'nin hayat damari) akmaya devam eder.
-    konfigur_kolonu = kolon_var_mi("urunler", "konfigur")
+    konfigur_kolonu = "konfigur" in tablo_kolonlari
     mevcut, mevcut_taban, mevcut_seq, mseq, mevcut_konfigur = d1_mevcut(konfigur_kolonu)
     baskilar = baski_haritasi()
     tabanlar = taban_fiyat_haritasi()

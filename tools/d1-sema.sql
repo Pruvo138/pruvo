@@ -85,7 +85,41 @@ CREATE TABLE IF NOT EXISTS urunler (
   --   her toplu duzeltme TUM katalogu ~10 dk boyunca Ege'den gizlerdi (sessiz satis kaybi)
   --   — ve 404 riski de YOKTUR: id degismedigi surece sayfa zaten canlidadir.
   yayinda    INTEGER NOT NULL DEFAULT 0,
-  release_id TEXT NOT NULL DEFAULT ''
+  release_id TEXT NOT NULL DEFAULT '',
+
+  -- ── TICARI HAL (31 Tem, HocA talebi) — Ege fiziksel urunu ALGILASIN ────────────────
+  -- Katalogda iki AYRI ticari hal var: (a) OZEL URETIM — siparis uzerine uretilir, stok
+  -- kavrami UYGULANMAZ (katalogun ~%99,7'si); (b) FIZIKSEL — hazir ticari mal (tekne
+  -- boyasi, vernik, maskeleme bandi...), 3D baskiyla URETILMEZ, fiyati SABIT ve TUKENIR.
+  -- Bu ayrim bugune dek YALNIZ urunler.json + build.py sayfa uretiminde vardi; D1'de HIC
+  -- YOKTU -> Ege (WhatsApp botu, katalogu D1'DEN okur) fiziksel urunu ozel uretim sanip
+  -- "size uretiriz" der ya da hicbir sey oneremez.
+  --
+  -- tur: '' = OZEL URETIM (varsayilan) · 'fiziksel' = hazir ticari mal.
+  --   FAIL-CLOSED: yalniz TAM 'fiziksel' dizesi bu hali acar (build.py render_product ile
+  --   AYNI kural; taninmayan deger '' olur). KAYNAK: arama.tur_kanonik().
+  --
+  -- stokta: UC DEGERLI (bilerek INTEGER, bilerek 3 hal).
+  --   -1 BILINMIYOR    urunler.json'da `stokta` alani YOK. Ozel uretim urununun normal
+  --                    hali. Fiziksel urunde gorulurse VERI EKSIK -> stok VAAT EDILMEZ.
+  --    0 STOKTA DEGIL  alan VAR ama true DEGIL (false ya da taninmayan deger).
+  --    1 STOKTA        alan tam olarak boolean true — "stokta" diyebilen TEK deger.
+  --   🔴 NEDEN INTEGER, NEDEN TEXT DEGIL: bu kolonu okuyan uc taraf (Ege/Worker) JS'tir ve
+  --   JS'te Boolean('0') === true. TEXT affinity'sinde SQLite tamsayi 0'i '0' METNINE
+  --   cevirir -> TUKENMIS urun uc tarafta STOKTA gorunur = musteriye yanlis vaat, sessiz.
+  --   INTEGER affinity'de deger 0 kalir ve yanlislik uretilemez. (Kabul testi:
+  --   tools/stok-d1-kapisi.py — PRAGMA tipi + geri-okuma tipi + JS dogruluk ekseni.)
+  --   🔴 NEDEN IKILI (0/1) DEGIL: ikilide "alan hic yok" ile "acikca tukendi" AYNI hucreye
+  --   duser. 0'i "tukendi" okuyan uc 15.930 ozel uretim urununu STOKTA DEGIL ilan eder;
+  --   0'i "bilinmiyor" okuyan uc GERCEKTEN tukenmis urunu satar. Iki hata da sessizdir.
+  --
+  -- 🔴 HASH'E GIRER (taban_fiyat/konfigur deseninin AKSINE — bilerek): bu iki alan PUBLIC
+  -- urunler.json'da yasar, yani CI de yerel de AYNI degeri gorur (baski'nin gizli kayittan
+  -- gelme sorunu YOK) ve icerik upsert'i (KOLONLAR + satir_sql) ile yazilir. Hash'e
+  -- girmeseydi "tukendi" isareti hash'i degistirmez, satir yeniden yazilmaz ve D1 eski
+  -- stok halini KALICILASTIRIRDI. KAYNAK: arama.urun_hash().
+  tur       TEXT NOT NULL DEFAULT '',
+  stokta    INTEGER NOT NULL DEFAULT -1
 );
 
 -- Kategori/marka filtresi + siralama icin.
