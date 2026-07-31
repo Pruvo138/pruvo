@@ -286,8 +286,11 @@ gorseller/
 .mmf-token
 .mmf-credentials.json
 .cults3d-credentials.json
-# Ic notlar — bu repo PUBLIC; DEVAM.md yayina girmesin (bugune dek de hic commit edilmedi).
-DEVAM.md
+# Ic notlar — bu repo PUBLIC.
+# DEVAM.md 31 Tem 2026'da (Okan karari) IZLENIR yapildi: devralan yarim isi gormeli.
+# SART: DEVAM.md'ye tedarikci adi/vitrin alan adi, iskonto-kur formulu, gizli dosya adi,
+# sir envanteri ayrintisi, guvenlik bulgusu/kapi bypass'i YAZILMAZ — bunlar DEVAM-ARSIV.md'ye.
+!DEVAM.md
 DEVAM-ARSIV.md
 # >>> IC RAPOR AILESI — isci->mimar raporlari, PUBLIC repoya ASLA girmez (elle tutulur blok).
 # NEDEN TEK BLOK: bu desen ailesi 27 Tem'de UC KEZ ayni sebeple kacti — mimar spec'lerinde
