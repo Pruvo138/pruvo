@@ -1250,6 +1250,14 @@ PAGE_CSS = """
   .brand-chip:hover{border-color:var(--navy-2)}
   .price{font-size:26px;font-weight:800;color:var(--navy);margin:4px 0 20px}
   .price.empty{font-size:15px;font-weight:600;color:var(--gray-text)}
+  /* Ustu cizili ESKI FIYAT (opsiyonel `eski_fiyat` alani) — yalniz gosterim.
+     [hidden]: secim birim fiyati eski fiyatin ustune cikarsa JS gizler (yaniltici
+     indirim yasak); bazi CSS sifirlayicilari UA'nin [hidden] kuralini ezdigi icin
+     kural BURADA da yazilir. */
+  .fiyat-satiri{display:flex;align-items:baseline;flex-wrap:wrap;gap:9px}
+  .eski-fiyat{font-size:17px;font-weight:700;color:var(--gray-text);
+    text-decoration:line-through;text-decoration-thickness:2px}
+  .eski-fiyat[hidden]{display:none}
   .opsiyonlar{margin:4px 0 20px;padding:14px 16px;background:var(--gray-card);
     border:1px solid var(--gray-line);border-radius:var(--radius)}
   .opsiyon-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
@@ -1484,6 +1492,98 @@ def feed_price(fiyat):
         return None
     raw = m.group(1).replace(".", "")          # Turkce binlik ayraci ('1.250' -> '1250')
     return raw if raw.isdigit() and int(raw) > 0 else None
+
+
+# ----------------------------------------------------- ESKI FIYAT (ustu cizili gosterim)
+# OPSIYONEL alan `eski_fiyat` ("1.200 TL") — YALNIZ GOSTERIMDIR.
+#
+# 🔴 PARA YOLUNA SIFIR ETKI: sepet/konfigur/iyzico/D1/feed/JSON-LD fiyat hesabi bu alani
+#    OKUMAZ. Tahsil edilen tutar `fiyat`tan (secenekler.js fiyatSayisi / konfigur capalari)
+#    turer; burada uretilen tek sey ekranda gorunen bir <s> etiketidir.
+#
+# FAIL-CLOSED (yanlis gosterim = musteriye YANILTICI indirim = sessiz ticari/hukuki hata):
+#   asagidaki KOSULLARIN HEPSI saglanmazsa HIC gosterilmez — "0 TL" YOK, ham dize YOK,
+#   NaN YOK. Sessiz yesil yerine sessiz YOKLUK secilir.
+#     1. urun parametrik DEGIL     (sari seri `fiyat` BOS — kiyaslanacak guncel fiyat yok)
+#     2. urun konfigur'lu DEGIL    (fiyat boya/malzemeye gore CANLI degisir; sabit bir eski
+#                                   fiyat orada yaniltici olur — /konfigur.js'e DOKUNULMAZ)
+#     3. `fiyat` ayristirilabilir  (TL/TRY/₺ tasiyan sayi)
+#     4. `eski_fiyat` TAM olarak "<sayi> <para birimi>" kalibina uyar (bastan sona; ek
+#        metin/isaret KABUL EDILMEZ -> gosterilen dize yapisal olarak zararsizdir)
+#     5. para birimi AYNI: her iki taraf da TL/TRY/₺. Baska bir birim (USD/EUR/$) bu
+#        kalibi hic eslemez -> ayristirilamaz sayilir -> gosterilmez.
+#     6. eski_fiyat > fiyat        (esit/kucuk = indirim DEGIL -> gosterilmez)
+#
+# SAYI KALIBI: Turkce binlik nokta + virgullu kurus. "1.250" = 1250 · "1.250,50" = 1250,50.
+# BELIRSIZ bicim ("1.25", "1.2.3") KABUL EDILMEZ (nokta ondalik mi binlik mi belli degil).
+# Arama kalibindaki `(?:^|[^\d.,])` oneki, "1.2.3 TL" gibi bozuk dizede sondaki "3"un
+# 3 TL diye okunmasini engeller (lookbehind YOK: index.html'deki ayni kalip eski
+# Safari'lerde de kosmali, oradan KOPYALANMAZ — ikisi tools/eski-fiyat-test.py'de AYNI
+# vaka tablosuyla kilitlenir).
+_PARA_BIRIMI_RE = r"(?:TL|TRY|₺)"
+_PARA_SAYI_RE = r"(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?"
+_ESKI_FIYAT_TAM_RE = re.compile(r"^\s*(" + _PARA_SAYI_RE + r")\s*" + _PARA_BIRIMI_RE + r"\s*$",
+                                re.I)
+_FIYAT_ARA_RE = re.compile(r"(?:^|[^\d.,])(" + _PARA_SAYI_RE + r")\s*" + _PARA_BIRIMI_RE, re.I)
+
+
+def para_kurus(sayi):
+    """'1.250' -> 125000 · '1.250,50' -> 125050 (kalibi ONCEDEN dogrulanmis sayi dizesi)."""
+    tam, _, kusurat = sayi.partition(",")
+    kusurat = (kusurat + "00")[:2] if kusurat else "00"
+    return int(tam.replace(".", "")) * 100 + int(kusurat)
+
+
+def fiyat_kurus_gevsek(metin):
+    """`fiyat` alanindan kurus. Alan ek metin tasiyabilir ('350 TL (12 cm)') -> ARAMA.
+    Sayi/para birimi bulunamazsa None (fail-closed)."""
+    m = _FIYAT_ARA_RE.search(metin or "")
+    return para_kurus(m.group(1)) if m else None
+
+
+def eski_fiyat_gosterim(p):
+    """Urun icin ustu cizili eski fiyat: (metin, kurus) ya da (None, None).
+
+    Donen metin, TAM kalibi (sayi + TL/TRY/₺) geceni oldugu icin yapisal olarak
+    zararsizdir; yine de basildigi yerde esc()/textContent ile kacisi UYGULANIR."""
+    if not isinstance(p, dict):
+        return (None, None)
+    if p.get("parametrik") or p.get("konfigur"):
+        return (None, None)
+    ham = p.get("eski_fiyat")
+    if not isinstance(ham, str):
+        return (None, None)
+    ham = ham.strip()
+    m = _ESKI_FIYAT_TAM_RE.match(ham)
+    if not m:
+        return (None, None)
+    guncel = p.get("fiyat")
+    if not isinstance(guncel, str) or not guncel.strip():
+        return (None, None)
+    guncel_kurus = fiyat_kurus_gevsek(guncel)
+    if guncel_kurus is None:
+        return (None, None)
+    eski_kurus = para_kurus(m.group(1))
+    if eski_kurus <= guncel_kurus:
+        return (None, None)
+    return (ham, eski_kurus)
+
+
+def eski_fiyat_html(p):
+    """Ustu cizili <s> etiketi (yoksa BOS dize -> sayfa bugunku gibi basilir)."""
+    metin, kurus = eski_fiyat_gosterim(p)
+    if not metin:
+        return ""
+    return ('<s class="eski-fiyat" id="eskiFiyat" data-kurus="%d">%s</s>'
+            % (kurus, esc(metin)))
+
+
+def fiyat_satiri(eski_html, ic_html):
+    """Eski fiyat VARSA guncel fiyatla yan yana tek satir; YOKSA fiyat blogu bugunku gibi
+    TEK BASINA basilir (eski_fiyat tasimayan sayfalar bayt-esit kalir)."""
+    if not eski_html:
+        return ic_html
+    return '<div class="fiyat-satiri">%s%s</div>' % (eski_html, ic_html)
 
 
 def feed_id(pid):
@@ -1773,6 +1873,12 @@ def render_product(p, all_products, chip_map=None):
     # --- parametrik ("ölçüye özel") rozeti (bayrak yukarıda, JSON-LD'den önce hesaplandı)
     badge_html = '<span class="ozel-badge">Ölçüye Özel</span>' if parametrik else ''
 
+    # --- üstü çizili ESKİ FİYAT (opsiyonel `eski_fiyat`; kural + gerekçe eski_fiyat_gosterim'de)
+    # Geçersiz/eski<=güncel/parametrik/konfigür durumlarında BOŞ dize döner -> sayfa bugünkü
+    # gibi basılır. Parametrik (sarı) ve konfigür sayfalarında BİLEREK basılmaz: oralarda
+    # görünen fiyat ölçüye/malzemeye göre CANLI değişir, sabit bir eski fiyat yanıltır.
+    eski_html = eski_fiyat_html(p)
+
     # --- fiyat metni (JS'siz/tarayıcı öncesi durum + fonksiyonel OLMAYAN ürünlerin tek gösterimi)
     if fiyat:
         price_text = fiyat
@@ -1898,13 +2004,15 @@ def render_product(p, all_products, chip_map=None):
       {renk}
       {boy}
       {adet}
-      <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
+      {fiyat_blok}
     </div>
     """).format(renk=_renk_butonlari_html(), boy=boy_html,
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
                     IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
-                fiyat_metni=baslangic_fiyat)
+                fiyat_blok=fiyat_satiri(
+                    eski_html,
+                    '<div class="opsiyon-fiyat" id="opsiyonFiyat">%s</div>' % baslangic_fiyat))
         price_html = ""
     elif fonksiyonel:
         # Parametrik ama şemasız (bugün böyle ürün YOK — 18/18 şemalı) fonksiyonel ürün için
@@ -1931,8 +2039,9 @@ def render_product(p, all_products, chip_map=None):
         price_html = ""
     else:
         opsiyonlar_html = ""
-        price_html = '<div class="price%s">%s</div>' % (
-            "" if fiyat else " empty", esc(price_text))
+        price_html = fiyat_satiri(
+            eski_html,
+            '<div class="price%s">%s</div>' % ("" if fiyat else " empty", esc(price_text)))
 
     # --- eylem butonları (madde 7): kart-seçim sayfasında İKONLAR Adet satırında (yukarıda
     # opsiyonlar_html'e basıldı) -> sayfa altına buton BASILMAZ; diğer sayfalarda (parametrik
@@ -2186,6 +2295,8 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
   var adetEksi=document.getElementById("adetEksi");
   var adetArti=document.getElementById("adetArti");
   var fiyatEl=document.getElementById("opsiyonFiyat");
+  /* Ustu cizili eski fiyat (opsiyonel `eski_fiyat`). Sayfada YOKSA null -> hicbir sey olmaz. */
+  var eskiEl=document.getElementById("eskiFiyat");
   /* Kart-secim modu (işletme kararı, 16 Tem): fonksiyonel ürünlerde malzeme dropdown YOK,
      malzeme KARTLARINDAN seçilir. Önden seçili malzeme YOK -> seciliMalzeme boş başlar. */
   var KART_SECIM = {kart_secim};
@@ -2247,6 +2358,16 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
     /* yukarı-çık oku FAB'la çakışmasın (CSS: body.fab-var .top-btn) */
     document.body.classList.toggle("fab-var", c.length > 0);
     var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
+    /* ESKI FIYAT NOBETI (yalniz GOSTERIM — sepet/odeme kurusuna DOKUNMAZ): ustu cizili
+       fiyat, secilen malzeme/renk BIRIM fiyatini eski fiyatin ustune cikardigi anda
+       GIZLENIR. Aksi halde 1.200 TL cizili dururken 1.275 TL tahsil edilir gorunurdu —
+       yaniltici indirim (sessiz ticari/hukuki hata). Kiyas BIRIM kurusla yapilir (adet
+       carpani iki tarafta da yok). ozet.birimKurus null ise (fiyatsiz urun) gizlenir. */
+    if(eskiEl){{
+      var _eskiKurus = parseInt(eskiEl.getAttribute("data-kurus") || "0", 10);
+      eskiEl.hidden = !(_eskiKurus > 0 && ozet.birimKurus != null
+                        && _eskiKurus > ozet.birimKurus);
+    }}
     /* Konfigüratörlü sayfada fiyat alanını konfigüratör yönetir (kuruşlu canlı hesap,
        taban fiyat yoksa "—"); geçersiz ölçüde sepete ekleme kilitlenir. */
     if(fiyatEl && !URUN_SEMA{konf_fiyat_kosul}){{
@@ -2638,7 +2759,7 @@ def kart_ozeti(p):
     `boy_secenekleri`, secenekler.js boyFarki) ileride eklenirse BURAYA DA girmeli:
     yoksa edge modunda sepet paneli boy farkını 0 sayar (sessiz fiyat sapması).
     Bugün ölçüldü: urunler.json'da boy_secenekleri taşıyan ürün 0 → risk uyuyor."""
-    return {
+    kart = {
         "id": p.get("id"),
         "baslik": p.get("baslik") or "",
         "kategori": p.get("kategori") or "",
@@ -2649,6 +2770,17 @@ def kart_ozeti(p):
         # Worker substr() ile kırpıyor (boşluk sadeleştirmiyor) — birebir aynısı.
         "aciklama": (p.get("aciklama") or "")[:OZET_ACIKLAMA_KES],
     }
+    # ESKİ FİYAT (üstü çizili) — SADECE gösterim kuralını GEÇEN üründe ve SADECE o zaman
+    # eklenir. NEDEN koşullu: (a) alan bugün hiçbir kayıtta yok -> ozet.json BAYT-EŞİT
+    # kalır; (b) doğrulamayı derleme anında yapıp karta yalnız GEÇERLİ değeri koyduğumuz
+    # için edge kartında olmayan `konfigur`/ham alanlara istemcinin ihtiyacı olmaz.
+    # ⚠️ Worker (/katalog, /ara) KART_ALANLARI'nda bu alan YOK -> edge modunda Worker'dan
+    # gelen kartta üstü çizili fiyat GÖRÜNMEZ (fail-closed: eksik alan = gösterme).
+    # Worker tarafı HocA'nın düzlemi; KraL'a raporlandı.
+    eski_metin, _ = eski_fiyat_gosterim(p)
+    if eski_metin:
+        kart["eski_fiyat"] = eski_metin
+    return kart
 
 
 # ------------------------------------------- ANA SAYFA VİTRİN SIRASI (Okan kuralı, 31 Tem)

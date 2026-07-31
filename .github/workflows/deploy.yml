@@ -475,6 +475,31 @@ jobs:
       - name: Vitrin siralama kabul testi (ilk 20 slot + derleme sirasi + 4 besleme yolu)
         run: node tools/vitrin-siralama-test.js
 
+      # ESKI FIYAT (ustu cizili indirim) KABUL TESTI — opsiyonel `eski_fiyat` alani.
+      # HATA SINIFI SESSIZ: yanlis gosterim musteriye YANILTICI indirim gosterir, sayfa
+      # duzgun gorunur, kimse hata mesaji gormez. Kural FAIL-CLOSED (supheli her durumda
+      # HIC gosterme) ve burada CALISTIRILARAK olculur: (a) Python kurali 29 vakalik tablo,
+      # (b) index.html'in GERCEK kart cizicisi node:vm'de AYNI tabloda AYNI hukmu verir
+      # (iki dilde iki kalip = drift; bu bolum o drifti yakar), (c) render_product ciktisi —
+      # gecersiz vakada cikti alan HIC YOKKEN uretilenle BAYT-ESIT (sifir iz), (d) uretilen
+      # sayfanin KENDI JS'i secim fiyati eski fiyati asinca ustu cizili fiyati GIZLER,
+      # (e) PARA EKSENI iki eksende: e1 YAPISAL/referanssiz (para ilkellerinin kaynaginda
+      # eski_fiyat gecmez + fiyat fonksiyonu urunu HIC almaz + sayfa A/B: gosterim blogu
+      # soyulunca cikti alansiz haliyle BAYT-ESIT), e2 TARIHSEL: 1275 konfigur kombinasyonu
+      # (17 urun x 25 boy x 3 malzeme, ORNEKLEME YOK) degisiklik ONCESI build.py ile kurusu
+      # kurusuna esit + JSON-LD/feed fiyati degismedi. 🔴 e2'nin referansi HEAD'e GORELI
+      # DEGILDIR (merge-base HEAD..origin/main referansi dal main'e girer girmez totolojiye
+      # dusup testi kalici OLCULEMEDI/exit 2 yapiyordu — olculdu 31 Tem): referans, capayi
+      # tasimayan EN YENI ATA BLOB'udur; totoloji nobeti duruyor,
+      # (f) kart_ozeti alani yalniz kurali gecen urunde tasir + ozet A/B (alan enjekte
+      # edilince ozet YALNIZ eski_fiyat anahtari kadar degisir),
+      # (g) duzelt.py/diriltme-kapisi.py alani mesru sayar. Offline, node + python3 gerekir
+      # (ikisi de bu job'da kurulu), depoya YAZMAZ, ~2 s. Mutasyon turu (13/13 kirmizi)
+      # elle: python3 tools/eski-fiyat-test.py --mutasyon (CI'da kosmaz — her mutant node
+      # kosuyor, sure yayin hattina yuk olur).
+      - name: Eski fiyat (ustu cizili indirim) kabul testi
+        run: python3 tools/eski-fiyat-test.py
+
       # KONFIGUR KABUL TESTI: konfigure edilebilir dekor urunu (renk + boy kaydirici)
       # altyapisi. (a) konfigur sema dogrulamasi fail-closed (bozuk sema/capa build'i
       # dusurur), (b) afin capa fiyat modeli — node ile GERCEK /konfigur.js kosulur
@@ -730,6 +755,16 @@ jobs:
       - name: D1 yazma geri-okuma kabul testi (write-verify + icerik ekseni)
         run: python3 tools/d1-sync.py --kendini-test
 
+      # ATOMIK YAYIN KAPISI — KARAR MANTIGININ offline kabulu (EKSEN 1, 31 Tem).
+      # Kapinin KENDISI (aday secimi + canli 200 sarti + tek-yon UPDATE) burada AGSIZ
+      # sinanir; canliya vuran `--yayinla` kolu deploy'dan SONRA ayri `yayin` isinde kosar
+      # (bu ise BAGLI DEGIL: yayin gecikirse urun TASLAK kalir, yani gorunmez — 404 vermez).
+      # Fault injection ile olculdu: kapinin 7 mutanti (200 sarti gevsedi / canli JSON sarti
+      # dustu / WHERE yayinda=0 dustu / parcalama kirpti / tavan kalkti / olculmeyen id
+      # 'iyi' sayildi / bayat satir sarti dustu) 7/7 KIRMIZI. Offline, stdlib, <1 s.
+      - name: "Atomik yayin kapisi — kendini test (aday secimi + 200 sarti + tek yon)"
+        run: python3 tools/yayin-kapisi.py --kendini-test
+
       # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
       # (Bu blok ile alttaki YEDEK TAZELIK blogu BAGIMSIZ iki hunk'tir; merge cakismasinda
       # ikisi de KORUNUR — biri digerinin yerine gecmez.)
@@ -939,6 +974,24 @@ jobs:
       # 'onceden' filtresi asiri-susturma -> N1 susar). Sentetik git deposu, ~10 s.
       - name: "Urun denetim kapisi — kendini test (pozitif + negatif + OLCULEMEDI + mutasyon)"
         run: python3 tools/denetim-kapisi.py --kendini-test
+
+      # GRAMER ARTIGI KAPISI (madde 46'nin eksik halkasi, 31 Tem): 332 kayitlik toplu
+      # yeniden yazimda kural tabanli degisim, tetikleyici kelime cumleden cikinca
+      # GRAMERSIZ ENKAZ birakiyordu ("En ince bolgesi yla olculur", "dik konumda ve
+      # uretilir"). O turda yazilan nobetci ISCININ SCRATCHPAD'INDE kaldi, repoya HIC
+      # girmedi -> bir sonraki toplu yazimda ayni enkaz sessizce canliya cikardi.
+      # YENI EKSEN: cumle-ICI yetim ek (eski nobetci ancak noktalamaya YAPISIK hali
+      # goruyordu). Yanlis-pozitif kurallari CANLI KATALOG uzerinde olculdu: ham 4257
+      # aday -> kesme isareti/tire ile bitisik olanlar (WhatsApp'tan = 1881), "de/da"
+      # baglaci (1197), "ya da" (599), tek harfli marka eki (e-tron/i-MiEV/U tipi, 28)
+      # elenerek 0'a indi. Bugunku canli katalogda (15.597 kayit) vurus 0 -> HAM
+      # bloklayici baglanabildi (denetim-kapisi gibi --commit-farki'na AYIRMAK
+      # GEREKMEDI). urunler.json DIZI degilse / taban kume altindaysa OLCULEMEDI (3).
+      # Saf Python, agsiz, ~1 s.
+      - name: "Gramer artigi kapisi (toplu yeniden yazim enkazi + cumle-ici yetim ek)"
+        run: |
+          python3 tools/gramer-artigi-kapisi.py --kendini-test
+          python3 tools/gramer-artigi-kapisi.py
 
       # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
       # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden
@@ -1165,6 +1218,21 @@ jobs:
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
+      # URETICI BUTUNLUK KAPISI (ATOMIK YAYIN — EKSEN 2, 31 Tem): yayinlanan
+      # urunler.json'daki HER benzersiz id icin urun/<id>/index.html VAR mi? Ters yon
+      # (oksuz sayfa), sitemap.xml + merchant-feed.xml'deki her urun URL'inin dosyasi ve
+      # id'lerin URL-guvenligi de olculur. NEDEN: site tarafinda JSON ile sayfalar AYNI
+      # `_site` artefaktinda gider (zaman penceresi YOK), geriye tek ayrisma yolu URETIM
+      # kalir — ve bugune dek hicbir kapi "JSON'da var, sayfasi yok" halini olcmuyordu.
+      # build.py'den SONRA kosmak ZORUNDA (urun/ ciktisina muhtac); urun/ yoksa OLCULEMEDI
+      # ile KIRMIZI yanar, sessiz YESIL imkansiz. continue-on-error YOK (fail-closed).
+      # Offline, stdlib, yazma yok. Gercek agacta olculdu (15.479/15.479 YESIL) + 4 mutant
+      # (sayfa silindi / sayfa 0 bayt / sitemap'te sayfasiz URL / oksuz sayfa) 4/4 KIRMIZI.
+      - name: "Uretici butunluk kapisi (yayinlanan her id'nin sayfasi var mi)"
+        run: |
+          python3 tools/uretim-butunluk-kapisi.py --kendini-test
+          python3 tools/uretim-butunluk-kapisi.py
+
       # YAYIN KOPYASI PARITE KAPISI: soyma PARAYI degistirdi mi. Kaynak JS ile _yayin/
       # (soyulmus) JS ayri ayri yuklenip TAM KUME fiyat karsilastirmasi yapilir
       # (23 sema x 25 olcu x 4 filament x 4 renk = 9200 kombinasyon, orneklem YOK) +
@@ -1304,3 +1372,50 @@ jobs:
             -H "Authorization: Bearer $CF_TOKEN" \
             -H "Content-Type: application/json" \
             --data '{"purge_everything":true}'
+
+  # ═════════════════════════════════════════════════════════════════════════════
+  # ATOMIK YAYIN — "karti gorunen urun asla 404 vermez" (31 Tem)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN PENCERE (bu isin VAR OLMA SEBEBI): D1 (Ege'nin okudugu yer) push'tan ONCE
+  # yazilir (.git/hooks/pre-push), Pages deploy'u ise CI'nin SONUNDA biter. Son 8 basarili
+  # kosumda push -> canli MEDYAN 593 sn (9,9 dk), max 740 sn; CI kirmizi olursa pencere
+  # kirmizi kaldigi surece surer (run#1079..1082: 3.241 sn = 54 dk, 98 urun D1'de + 404).
+  # CANLI TEYIT 31 Tem 07:33Z: 8/8 yeni id D1'de, ornek 3 urun sayfasi 3/3 HTTP 404.
+  #
+  # BU IS: deploy BITTIKTEN sonra kosar; D1'deki TASLAK (yayinda=0) satirlar icin
+  # /urun/<id>/ CANLIDA 200 dondugu FIILEN dogrulanir ve ancak o zaman tek UPDATE ile
+  # yayinda=1 yazilir. Dogrulanamayan urun TASLAK KALIR = Ege gostermez = 404 uretilemez.
+  #
+  # NEDEN `needs: deploy` VE AYRI IS: yayin adimi deploy'dan ONCE kosarsa dogrulayacak
+  # sayfa henuz yayinda degildir (kapinin kendisi anlamsizlasir).
+  # NEDEN continue-on-error YOK: bu isin kirmizisi SITEYI etkilemez (deploy zaten bitti),
+  # yalnizca "yayina alinamadi" halini GORUNUR kilar. Fail-open yapilsaydi taslaklar
+  # sessizce birikir, Ege katalogun bir kismini SURESIZ goremezdi.
+  yayin:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # npx wrangler (d1-sync'in D1 istemcisi) icin.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: "Atomik yayin: canli 200 dogrulanan taslaklari yayina al"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "CLOUDFLARE_API_TOKEN secret yok — yayin adimi KOSAMADI (taslaklar taslak kalir)."
+            exit 1
+          fi
+          python3 tools/yayin-kapisi.py --yayinla
+      - name: "Atomik yayin durumu (taslak/yayinda sayilari)"
+        if: always()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: python3 tools/yayin-kapisi.py --durum
