@@ -170,56 +170,107 @@ def hata_zarfi_metni(zarf):
     return "\n".join(satirlar)
 
 
-def wrangler_cikti_coz(stdout, ham=""):
-    """wrangler --json ciktisini coz.
+# ── PARSE KURALLARI — HEPSI FAIL-LOUD (supheliyi BASARI sayma) ───────────────────────
+# 🔴 CURUTME DERSI (31 Tem, ilk onarim MERGE EDILMEDI): "ilk cozulebilen JSON on-ekini al"
+# kurali eski `json.loads(stdout[i:])`nin BUTUNLUK sartini dusurmustu. Olculen sonuc:
+#   rc=1 + KESIK yuk `[{"results":[{"id":"a"}],"success":tr`  -> `[{'id':'a'}]` DONUYORDU
+#   rc=2 + `... d1_databases[0] field / npx: command failed`   -> `[0]` DONUYORDU
+#   rc=0 + uyari satiri + GERCEK yuk                           -> `[0]` DONUYOR, yuk GORULMUYOR
+# Asagi akista `dosya_calistir` bu ciktidan SESSIZCE "0 satir yazildi" uretir — wrangler
+# rc=1 ile dusmusken. Tam da bu degisikligin gerekcesi olan "D1 reset ortasinda yazma"
+# senaryosunda cikti KESIK gelmesi BEKLENIR: duzeltme arizayi gurultuluden SESSIZE cevirmis
+# olurdu. Bu yuzden uc ayri kural birlikte kosar (her biri TEK BASINA no-op edilebilir ki
+# kabul testi mutasyonla oldurulebilsin):
+#   (1) _rc_hatali      — rc != 0 ise cikti ASLA basari sayilmaz.
+#   (2) _basari_sekli_mi— cozulen deger wrangler BASARI SEKLI olmali: BOS OLMAYAN liste +
+#                         her elemani results/success/meta tasiyan SOZLUK. `[0]` REDDEDILIR.
+#   (3) _artik_gurultu_mu — cozulen yukten SONRA kalan artik yalniz bosluk/log satiri
+#                         olabilir; JSON'un DEVAMI gibi duruyorsa (`,"success":tr`) yuk
+#                         KESIKTIR -> FAIL-LOUD.
+# On-ek taramasi KALIR: wrangler gercekten JSON'dan ONCE `▲ [WARNING] ... d1_databases[0]`
+# gibi satirlar basar ve eski `find("[")` bunlari tolere ediyordu.
+_SONUC_ANAHTARLARI = frozenset({"results", "success", "meta"})
+# Artigin ILK anlamli karakteri bunlardan biriyse cozulen deger bir BUTUNUN PARCASIDIR
+# (kesik/ic ice yuk), bagimsiz bir cikti degil.
+_ARTIK_DEVAM_RE = re.compile(r'^[,:}\]"]')
+
+
+def _rc_hatali(returncode):
+    """wrangler SIFIR-DISI mi dondu? (rc != 0 -> cikti basari sayilamaz)"""
+    return returncode != 0
+
+
+def _basari_sekli_mi(deger):
+    """wrangler --json BASARI sekli mi: bos olmayan liste + SONUC sozlukleri."""
+    return (isinstance(deger, list) and len(deger) > 0
+            and all(isinstance(e, dict) and (_SONUC_ANAHTARLARI & set(e)) for e in deger))
+
+
+def _artik_gurultu_mu(artik):
+    """Cozulen yukten sonraki artik zararsiz mi (bosluk / log satiri)?"""
+    for satir in (artik or "").splitlines():
+        s = satir.strip()
+        if s and _ARTIK_DEVAM_RE.match(s):
+            return False
+    return True
+
+
+def _json_tara(metin):
+    """Metni soldan saga tara. Doner: (basari_yuku, hata_zarfi, json_adayi_var_mi)."""
+    coz = json.JSONDecoder()
+    metin = metin or ""
+    aday, zarf, i, n = False, None, 0, len(metin)
+    while i < n:
+        if metin[i] not in "[{":
+            i += 1
+            continue
+        aday = True
+        try:
+            deger, son = coz.raw_decode(metin, i)
+        except ValueError:
+            i += 1
+            continue
+        # 🔴 COZULEN DEGERIN ICINE GIRME: hata zarfinin ICINDEKI `"notes": [` dizisi de
+        # gecerli JSON'dur; oradan devam edilirse zarf "basarili cikti" sanilir.
+        i = max(son, i + 1)
+        if _basari_sekli_mi(deger) and _artik_gurultu_mu(metin[son:]):
+            return deger, None, True              # BASARILI cikti (sekil DEGISMEZ)
+        if isinstance(deger, dict) and isinstance(deger.get("error"), dict):
+            zarf = zarf or deger
+    return None, zarf, aday
+
+
+def wrangler_cikti_coz(stdout, ham="", returncode=0):
+    """wrangler --json ciktisini coz — SUPHELIYI BASARI SAYMA.
 
     Doner: BASARILI cikti = LISTE (sekil DEGISMEZ: cagiranlar `r[0]["results"]` bekler).
-    HATA zarfi ({"error": {...}}) gorulurse sys.exit ile ADIYLA raporlanir.
+    HATA zarfi ({"error": {...}}) gorulurse sys.exit ile ADIYLA raporlanir; her diger
+    supheli hal FAIL-LOUD (sys.exit) — hicbir yolda "sanki bos sonuc" donmez.
 
-    NEDEN (31 Tem, run 30646713630): eski kod `stdout.find("[")` ile ILK koseli paranteze
-    atliyordu. HATA yukunde bu, zarfin ICINDEKI `"notes": [` dizisidir -> json.loads
-    "Extra data" ile duser ve arac elindeki `7429 / CPU time limit` mesajini YUTUP
-    "wrangler ciktisi cozulemedi" der. Teshisi saatlerce geciktiren sey tam olarak budur.
-    Cozum: metni SOLDAN saga tarayip ILK COZULEBILEN JSON degerini al -> disdaki zarf
-    icteki `notes` dizisinden ONCE gelir, dolayisiyla hata zarf olarak taninir.
+    NEDEN ZARF ARANIYOR (31 Tem, run 30646713630): eski kod `stdout.find("[")` ile ILK
+    koseli paranteze atliyordu. HATA yukunde bu, zarfin ICINDEKI `"notes": [` dizisidir ->
+    json.loads "Extra data" ile duser ve arac elindeki `7429 / CPU time limit` mesajini
+    YUTUP "wrangler ciktisi cozulemedi" der. Teshisi saatlerce geciktiren sey budur.
     """
-    coz = json.JSONDecoder()
+    zarf = _json_tara(stdout)[1] or _json_tara(ham)[1]
 
-    def tara(metin):
-        metin = metin or ""
-        aday, zarf, i, n = False, None, 0, len(metin)
-        while i < n:
-            if metin[i] not in "[{":
-                i += 1
-                continue
-            aday = True
-            try:
-                deger, son = coz.raw_decode(metin, i)
-            except ValueError:
-                i += 1
-                continue
-            # 🔴 COZULEN DEGERIN ICINE GIRME: hata zarfinin ICINDEKI `"notes": [`
-            # dizisi de gecerli bir JSON listesidir; taramaya oradan devam edilirse
-            # zarf "basarili cikti" sanilir (KUSUR 2'nin ta kendisi). Bu yuzden
-            # cozulen degerin SONUNA atlanir.
-            i = max(son, i + 1)
-            if isinstance(deger, list):
-                return deger, None, True                  # BASARILI cikti (sekil aynen)
-            if isinstance(deger, dict) and isinstance(deger.get("error"), dict):
-                zarf = zarf or deger
-        return None, zarf, aday
+    # (1) SIFIR-DISI CIKIS: komut DUSTU. Cikti ne kadar "cozulebilir" gorunse de basari
+    # DEGILDIR (kesik yuk tam da burada beklenir). Zarf varsa ADIYLA bas, yoksa yuksek ses.
+    if _rc_hatali(returncode):
+        if zarf is not None:
+            sys.exit(hata_zarfi_metni(zarf) + "\n" + ham[-2000:])
+        sys.exit("wrangler SIFIR-DISI cikti (rc=%s) — cikti BASARI sayilmaz "
+                 "(kesik/bozuk yuk olabilir):\n%s" % (returncode, ham[-2000:]))
 
-    liste, zarf, aday = tara(stdout)
-    if liste is not None:
-        return liste
-    if zarf is None:                       # hata zarfi stderr'de olabilir
-        _, zarf, aday2 = tara(ham)
-        aday = aday or aday2
+    yuk, _, aday = _json_tara(stdout)
+    if yuk is not None:
+        return yuk
     if zarf is not None:
         sys.exit(hata_zarfi_metni(zarf) + "\n" + ham[-2000:])
     if not aday:
         sys.exit("wrangler cikti vermedi:\n" + ham[-2000:])
-    sys.exit("wrangler ciktisi cozulemedi:\n" + ham[-2000:])
+    sys.exit("wrangler ciktisi cozulemedi (BASARI sekli bulunamadi — liste-of-sonuc "
+             "bekleniyordu):\n" + ham[-2000:])
 
 
 def wrangler(args, girdi_dosya=None):
@@ -240,7 +291,11 @@ def wrangler(args, girdi_dosya=None):
             p = subprocess.run(komut, cwd=KOK, capture_output=True, text=True, env=ort)
             ham = (p.stdout or "") + (p.stderr or "")
 
-        tani = wrangler_hata_tanisi(ham)
+        # TANI YALNIZ SIFIR-DISI CIKISTA UYGULANIR. Kod tespiti artik tirnakli JSON'u da
+        # gordugu icin, BASARILI bir cevabin ICINDEKI veri ("code":503 tasiyan bir satir)
+        # yuzey olusturuyordu: rc=0 iken bile "D1 GECICI HATA" ile cikilabilirdi (fail-wrong).
+        # Basarili kosum hata olarak siniflandirilamaz.
+        tani = wrangler_hata_tanisi(ham) if p.returncode != 0 else None
         if p.returncode == 0 or tani not in ("auth", "gecici") or deneme == 2:
             break
         # ARTAN bekleme (bkz. GECICI_BEKLEME gerekcesi). time.sleep MODUL uzerinden
@@ -262,7 +317,7 @@ def wrangler(args, girdi_dosya=None):
             + ham[-2000:]
         )
 
-    return wrangler_cikti_coz(p.stdout or "", ham)
+    return wrangler_cikti_coz(p.stdout or "", ham, p.returncode)
 
 
 def sorgu(sql):
@@ -1884,6 +1939,104 @@ def kendini_test():
         _cop = str(e.code)
     dogrula("V72c PARSE NEGATIF: GERCEKTEN cozulemeyen cikti hala ciplak mesaj verir",
             "cikti vermedi" in _cop or "cozulemedi" in _cop, _cop[:200])
+
+    # ── FAIL-LOUD NOBETI: "cozulebilir ama YANLIS" JSON parcasi BASARI SAYILAMAZ ────
+    # 🔴 BAGIMSIZ CURUTUCUNUN OLCTUGU 4 VAKA (girdiler AYNEN). Ilk onarim bu vakalarda
+    # eski kodun FAIL-LOUD davranisini FAIL-OPEN'a cevirmisti: `raw_decode` ILK cozulebilen
+    # ON-EKI aliyordu, eski `json.loads(stdout[i:])` ise kalanin TAMAMININ gecerli olmasini
+    # zorluyordu. En yikici sonuc: KESIK yuk -> `dosya_calistir` SESSIZCE "0 satir yazildi"
+    # der, oysa wrangler rc=1 ile dusmustur. D1 reset ortasinda ciktinin kesik gelmesi
+    # BEKLENEN haldir; yani kusur tam da bu araci yazma sebebimiz olan senaryoda vururdu.
+    def _coz_sonucu(stdout, rc):
+        try:
+            return ("DONDU", wrangler_cikti_coz(stdout, stdout, rc))
+        except SystemExit as e:
+            return ("EXIT", str(e.code))
+
+    _KESIK = '[{"results":[{"id":"a"}],"success":tr'
+    _NPX = ("X [WARNING] Unexpected fields found in d1_databases[0] field\n"
+            "npx: command failed")
+    _UYARI_YUK = ('X [WARNING] Unexpected fields found in d1_databases[0] field\n'
+                  '[{"results":[{"id":"a","urun_hash":"H1"}],"success":true,'
+                  '"meta":{"rows_written":1761}}]')
+    _YARIM_ZARF = '{"error": {"text": "istek dustu", "notes": []'
+    _v = _coz_sonucu(_KESIK, 1)
+    dogrula("V75 FAIL-LOUD: rc=1 + KESIK JSON -> EXIT (eskiden [{'id':'a'}] DONUYORDU)",
+            _v[0] == "EXIT", _v)
+    _v = _coz_sonucu(_KESIK, 0)
+    dogrula("V75b FAIL-LOUD: KESIK JSON rc=0'da da EXIT (butunluk sarti rc'den BAGIMSIZ)",
+            _v[0] == "EXIT", _v)
+    _v = _coz_sonucu(_NPX, 2)
+    dogrula("V76 FAIL-LOUD: rc=2 + `d1_databases[0]` uyarisi -> EXIT ([0] DONMEZ)",
+            _v[0] == "EXIT", _v)
+    _v = _coz_sonucu(_UYARI_YUK, 0)
+    dogrula("V77 GERCEK YUK GORULUR: uyari satirindaki `[0]` DEGIL, ASIL sonuc doner",
+            _v[0] == "DONDU" and isinstance(_v[1], list) and len(_v[1]) == 1
+            and _v[1][0]["meta"]["rows_written"] == 1761
+            and _v[1][0]["results"][0]["urun_hash"] == "H1", _v)
+    _v = _coz_sonucu(_YARIM_ZARF, 0)
+    dogrula("V78 FAIL-LOUD: YARIM hata zarfi -> EXIT (eski kod da yeni kod da [] donerdi)",
+            _v[0] == "EXIT", _v)
+    _v = _coz_sonucu(_basari, 1)
+    dogrula("V79 RC KAPISI: rc=1 + TAM GECERLI JSON -> yine de EXIT (rc BASARIYI EZER)",
+            _v[0] == "EXIT" and "rc=1" in _v[1], _v)
+    # KUSUR-2: tani YALNIZ rc!=0'da uygulanir. Basarili bir cevabin ICINDEKI veri
+    # ("code":503 tasiyan bir satir) araci "GECICI HATA" ile dusuremez.
+    _kod_veri = ('[{"results":[{"id":"a","code":503}],"success":true,"meta":{}}]')
+
+    class _SahteP2:
+        def __init__(self, kod, cikti):
+            self.returncode, self.stdout, self.stderr = kod, cikti, ""
+
+    _eski_run2 = subprocess.run
+    subprocess.run = lambda *a, **k: _SahteP2(0, _kod_veri)
+    try:
+        try:
+            _rr = ("DONDU", wrangler(["--command", "SELECT 1"]))
+        except SystemExit as e:
+            _rr = ("EXIT", str(e.code))
+    finally:
+        subprocess.run = _eski_run2
+    dogrula("V80 TANI KAPSAMI: rc=0 + sonuc verisinde 'code':503 -> BASARI (gecici SAYILMAZ)",
+            _rr[0] == "DONDU" and _rr[1][0]["results"][0]["code"] == 503, _rr)
+
+    # ── 🔴 MUTASYON IDDIALARI (parse kolu) ───────────────────────────────────────
+    # PROBE SECIMI DAR: her probe YALNIZ oldurulen kuralin yakalayabilecegi vakadir.
+    #  · rc kapisi probe'u = V79 girdisi (TAM GECERLI JSON + rc=1). Yuk saglam oldugu
+    #    icin sekil/artik kurallari bu vakayi GECIRIR; onu durduran TEK sey rc kapisidir.
+    #  · sekil kurali probe'u = V77 girdisi (uyaridaki `[0]` + gercek yuk, rc=0). rc
+    #    kapisi burada devrede DEGIL; `[0]`i eleyen TEK sey liste-of-sonuc sartidir.
+    _eski_rc = _rc_hatali
+    globals()["_rc_hatali"] = lambda rc: False                 # MUT: rc kapisi NO-OP
+    _mut_rc = _coz_sonucu(_basari, 1)
+    globals()["_rc_hatali"] = _eski_rc
+    dogrula("V81 MUT-RC-NOOP: rc kapisi oldurulunce rc=1 cikti BASARI sanilir (iddia CANLI)",
+            _mut_rc[0] == "DONDU", _mut_rc)
+    dogrula("V81b MUT geri alindi: rc=1 yine EXIT", _coz_sonucu(_basari, 1)[0] == "EXIT")
+    _eski_sekil = _basari_sekli_mi
+    globals()["_basari_sekli_mi"] = lambda d: isinstance(d, list)   # MUT: sekil sarti gevser
+    _mut_sekil = _coz_sonucu(_UYARI_YUK, 0)
+    globals()["_basari_sekli_mi"] = _eski_sekil
+    dogrula("V82 MUT-SEKIL-NOOP: sekil sarti gevseyince uyaridaki `[0]` yuk sanilir",
+            _mut_sekil == ("DONDU", [0]), _mut_sekil)
+    dogrula("V82b MUT geri alindi: gercek yuk yine doner",
+            _coz_sonucu(_UYARI_YUK, 0)[1][0]["meta"]["rows_written"] == 1761)
+    #  · artik (butunluk) kurali probe'u AYRI bir girdi olmak ZORUNDA: V75'teki `_KESIK`
+    #    yuku artik kurali no-op edilse BILE sekil kurali tarafindan eleniyor (icteki
+    #    cozulebilen parca `[{"id":"a"}]` sonuc anahtari tasimaz) -> o vakayla kurulan
+    #    iddia OLU olurdu. Bu probe'ta cozulen ILK deger BASARI SEKLINDE (sekil kurali
+    #    GECIRIR); onu durduran TEK sey artiktaki `,` yani "bu bir BUTUNUN parcasi"dir.
+    _PARCA_YUK = '{"sarmal": [{"results":[],"success":true,"meta":{}}], "hata'
+    dogrula("V83 BUTUNLUK: sarmalanmis/kesik yukun ICINDEKI gecerli liste BASARI SAYILMAZ",
+            _coz_sonucu(_PARCA_YUK, 0)[0] == "EXIT", _coz_sonucu(_PARCA_YUK, 0))
+    _eski_artik = _artik_gurultu_mu
+    globals()["_artik_gurultu_mu"] = lambda a: True             # MUT: artik sarti NO-OP
+    _mut_artik = _coz_sonucu(_PARCA_YUK, 0)
+    globals()["_artik_gurultu_mu"] = _eski_artik
+    dogrula("V83b MUT-ARTIK-NOOP: butunluk sarti olunce parca BASARI sanilir (iddia CANLI)",
+            _mut_artik[0] == "DONDU", _mut_artik)
+    dogrula("V83c MUT geri alindi: parca yine EXIT",
+            _coz_sonucu(_PARCA_YUK, 0)[0] == "EXIT")
 
     # ── GERI CEKILME: gecici sinifta ARTAN bekleme, deneme 3, TAVAN sinirli ──────
     class _SahteP:
