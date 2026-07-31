@@ -1208,6 +1208,16 @@
   // CATEGORIES'i çizer). tools/build.py NAV_GIZLI ile BİRLİKTE güncelle.
   var GIZLI_KATEGORILER = ["Jeneratör","Skan Art"];
 
+  // ANA SAYFA VİTRİN SIRASI (Okan, 31 Tem): bu kategorilerdeki ürünler ana sayfanın
+  // İLK 20 SLOTUNDA GÖRÜNMEZ; 21. sıradan itibaren normal şekilde görünürler.
+  // Ürün ELENMEZ — yalnız geriye itilir (toplam kart/katalog sayısı DEĞİŞMEZ).
+  // ⚠️ TEK KAYNAK — bu üç ad kodun BAŞKA HİÇBİR YERİNDE tekrar yazılmaz (ikinci kopya
+  // açan değişikliği tools/vitrin-siralama-test.js KIRMIZI yakar); adlar CATEGORIES ile
+  // birebir tutulur. Kural YALNIZ ana sayfa vitrinine uygulanır: kategori görünümü
+  // (?kategori=Ev) ve arama sonuçları ETKİLENMEZ.
+  var VITRIN_GERI_KATEGORILER = ["Ev","Dekorasyon","Ofis"];
+  var VITRIN_ON_SLOT = 20;
+
   /* REKLAM ATIF YAKALAMA (reklam-roi-sistemi.md Faz 0): reklamdan gelen ziyaretin siparişe
      bağlanması için atıf kimlikleri toplanır. UTM landing URL'sinde gelir ama iyzico redirect'i
      onu DÜŞÜRÜR → localStorage'a kalıcı yazılır (son-dokunuş). _ga client_id + Meta _fbp/_fbc
@@ -2596,6 +2606,46 @@
     }
   }
 
+  // ---------- ANA SAYFA VİTRİN SIRALAYICISI (Okan kuralı, 31 Tem) ----------
+  // NEDEN BURADA (TEK NOKTA): ana sayfa kartları ziyaretçiye DÖRT ayrı besleme yolundan
+  // gelebiliyor — (1) ozet.json ilk boyaması (edgeYukle sayfa 1), (2) ozet.json inmezse
+  // Worker /katalog?sayfa=1 cevabı, (3) "Daha fazla göster" ile eklenen Worker sayfaları,
+  // (4) Worker düşerse edgeYedek havuzu — artı bayrak kapalıyken HOME_ORDER. Kural yollardan
+  // birine konsaydı vitrin bazı ziyaretçide doğru, bazısında yanlış görünürdü (SESSİZ hata).
+  // Hepsi renderGrid'den geçtiği için sıralama BURADA, tek yerde uygulanır.
+  //
+  // Sıralama KARARLI (stable) ve ETKİSİZ-TEKRARLI (idempotent): hedef-dışı ürünler kendi
+  // sıralarını koruyarak ilk VITRIN_ON_SLOT slotu doldurur, geri kalan her şey (hedef
+  // kategoriler + taşan hedef-dışılar) yine kendi sırasıyla arkaya dizilir. ELEME YOK:
+  // dönen liste girdinin permütasyonudur (uzunluk ve id kümesi aynı).
+  var VITRIN_SAPMA = { yetersiz: false, uygun: 0, slot: 0, liste: 0 };
+  function vitrinGeriMi(p){
+    return !!p && VITRIN_GERI_KATEGORILER.indexOf(p.kategori) !== -1;
+  }
+  function vitrinSirala(liste){
+    if(!liste || !liste.length){ return liste || []; }
+    var on = [], geri = [], i;
+    for(i = 0; i < liste.length; i++){
+      if(on.length < VITRIN_ON_SLOT && !vitrinGeriMi(liste[i])){ on.push(liste[i]); }
+      else { geri.push(liste[i]); }
+    }
+    // YETERSİZ STOK HÂLİ: yüklü listede ilk 20'yi dolduracak kadar hedef-dışı ürün yoksa
+    // BOŞLUK BIRAKILMAZ (kalan slotlar doğal sırayla dolar) ama sapma SESSİZ GEÇMEZ:
+    // konsola yazılır ve window.PRUVO_VITRIN_SAPMA'da ölçülebilir kalır (canlı doğrulama
+    // ve tools/vitrin-siralama-test.js bunu okur).
+    VITRIN_SAPMA = {
+      yetersiz: liste.length >= VITRIN_ON_SLOT && on.length < VITRIN_ON_SLOT,
+      uygun: on.length, slot: VITRIN_ON_SLOT, liste: liste.length
+    };
+    if(VITRIN_SAPMA.yetersiz && typeof console !== "undefined" && console.warn){
+      console.warn("vitrin-sapma: ilk " + VITRIN_ON_SLOT + " slot icin hedef-disi urun " +
+        "YETERSIZ (" + on.length + "/" + VITRIN_ON_SLOT + ", yuklu liste " + liste.length +
+        ") — kalan slotlar dogal sirayla doldu.");
+    }
+    if(typeof window !== "undefined"){ window.PRUVO_VITRIN_SAPMA = VITRIN_SAPMA; }
+    return on.concat(geri);
+  }
+
   function renderGrid(){
     var grid = document.getElementById("grid");
     var empty = document.getElementById("emptyState");
@@ -2610,7 +2660,9 @@
     if(EDGE_KATALOG){
       // Liste + toplam Worker'dan (ya da ilk sayfada ozet.json'dan) HAZIR gelir;
       // sayfalama sunucuda olduğu için burada slice YOK.
-      cizilecek = edgeListe;
+      // Ana sayfada vitrin kuralı uygulanır (permütasyon — eleme YOK, toplam değişmez);
+      // kategori/marka/arama görünümünde liste OLDUĞU GİBİ çizilir.
+      cizilecek = anaGorunum ? vitrinSirala(edgeListe) : edgeListe;
       toplam = edgeToplam;
       dahaVar = edgeListe.length < edgeToplam;
     }else{
@@ -2618,6 +2670,7 @@
       if(anaGorunum && HOME_ORDER.length){
         list = HOME_ORDER;
       }
+      if(anaGorunum){ list = vitrinSirala(list); }
       cizilecek = list.slice(0, shown);
       toplam = list.length;
       dahaVar = list.length > shown;

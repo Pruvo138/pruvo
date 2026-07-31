@@ -452,6 +452,22 @@ jobs:
       - name: Arama/filtre URL senkron kabul testi (derin link + temizleme)
         run: node tools/url-senkron-test.js
 
+      # ANA SAYFA VITRIN SIRALAMASI (Okan kurali, 31 Tem): Ev/Dekorasyon/Ofis urunleri
+      # ana sayfanin ILK 20 SLOTUNDA gorunmez, 21. siradan itibaren normal gorunur
+      # (urun ELENMEZ, geri itilir). Hata SESSIZ olurdu: ana sayfa kartlari ziyaretciye
+      # DORT ayri besleme yolundan gelir (ozet.json ilk boyamasi, ozet inmezse Worker
+      # /katalog, Worker duserse edgeYedek havuzu, bayrak kapaliyken HOME_ORDER); kural
+      # yollardan birine konsaydi vitrin bazi ziyaretcide dogru bazisinda yanlis gorunur
+      # ve kimse fark etmezdi. Test index.html'in inline scriptini node:vm'de SENTETIK
+      # fikstur + sahte DOM/fetch ile GERCEKTEN kosturur ve dort yolu AYRI AYRI olcer;
+      # ayrica kategori gorunumunun/aramanin ETKILENMEDIGINI, urunlerin ELENMEDIGINI
+      # (permutasyon), siranin KARARLI kaldigini ve "yeterli hedef-disi urun yok" halinin
+      # SESSIZ gecmedigini iddia eder. Canli katalogda hedef kategoriler ilk 28 kartta
+      # bugun HIC bulunmadigi icin iddialar fikstur uzerinde olculur (canli veriyle
+      # yazilsa VACUOUS olurdu). Offline, dosya YAZMAZ, ~1 s.
+      - name: Vitrin siralama kabul testi (ilk 20 slot + 4 besleme yolu)
+        run: node tools/vitrin-siralama-test.js
+
       # KONFIGUR KABUL TESTI: konfigure edilebilir dekor urunu (renk + boy kaydirici)
       # altyapisi. (a) konfigur sema dogrulamasi fail-closed (bozuk sema/capa build'i
       # dusurur), (b) afin capa fiyat modeli — node ile GERCEK /konfigur.js kosulur
