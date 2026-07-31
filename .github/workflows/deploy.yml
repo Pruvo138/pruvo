@@ -1010,6 +1010,46 @@ jobs:
           python-version: "3.12"
       - name: "Katalog envanteri: onceden var olan uretim-sureci ifsasi (RAPOR — yayini DURDURMAZ)"
         run: python3 tools/denetim-kapisi.py --tum-katalog --envanter
+  # ═════════════════════════════════════════════════════════════════════════════
+  # CRON NABZI — "zamanlanmis is HIC kosmadi" sessizligi (31 Tem)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN SESSIZLIK: d1-uzlastirici.yml `*/15 * * * *` cron'uyla 11:38:52Z'de main'e
+  # girdi; 16:14Z olcumunde `event=schedule` kosum sayisi 0 idi (beklenen ~18). Is akisi
+  # `active`, dosya main'de, depo hareketli — yani KIRILMIS bir sey YOK, sadece HICBIR SEY
+  # KOSMUYOR. Kirilan kapi CI'yi kirmiziya boyar; ATESLENMEYEN bir cron "yesil" bile
+  # uretmez, GORUNMEZ. Ayni gun D1'de 56 kayitta icerik ekseni bayat cikti ve ELLE
+  # senkronlandi — uzlastirici kossaydi sessiz kalmazdi.
+  #
+  # BU IS: her push'ta GitHub Actions API'sinden cron tasiyan is akislarinin NABZINI olcer
+  # (son event=schedule kosumu son N saat icinde mi; N cron araligindan turetilir, 15 dk ->
+  # 3 saat). FAIL-CLOSED: veri cekilemezse "yesil" degil OLCULEMEDI (rc 2 = KIRMIZI).
+  #
+  # 🔴 NEDEN AYRI IS ve NEDEN BLOKLAMAZ: `needs:` YOK ve hicbir is buna bagli DEGIL ->
+  # `deploy` ile PARALEL kosar, yayin yolunu tek saniye uzatmaz. Kirmizisi GORUNUR
+  # (bildirim duser) ama urun yayini CIKAR: cron'un sessizligi bir YAYIN kusuru degildir,
+  # yayini durdurmak bu kapinin ilk toplu iste devre disi birakilmasina yol acardi
+  # ([[kapi-birikimi-yayin-gecikmesi]]). `continue-on-error` KULLANILMADI (fail-open yazimi
+  # nobetci ihlalidir): rc dogrudan konusur.
+  cron-nabzi:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read          # Actions run gecmisini OKUMAK icin (nabiz olcumu)
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (pyyaml — is akisi cron alanini GERCEK ayristiriciyla okur)
+        run: pip install pyyaml
+      # Once nobetcinin KENDI kabulu (agsiz, 29 iddia; iki yonlu fikstur: "hic kosum yok"
+      # KIRMIZI, "yakin zamanda kosum var" YESIL) — sonra GERCEK olcum.
+      - name: "Cron nabiz kapisi: kendini test (agsiz fikstur, iki yonlu)"
+        run: python3 tools/cron-nabiz-kapisi.py --kendini-test
+      - name: "Cron nabzi: zamanlanmis isler FIILEN kosuyor mu (ALARM — yayini DURDURMAZ)"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/cron-nabiz-kapisi.py
   # ==========================================================================
   # SERIT B — YAYINI DURDURMAZ (olculmus karar, 31 Tem 2026)
   # ==========================================================================
