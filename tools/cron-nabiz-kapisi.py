@@ -450,8 +450,12 @@ _HAM_KOSUM = {
                     "tree_id": "3f2a1c9b4e5d6a7b8c9d0e1f2a3b4c5d6e7f8a9b",
                     "message": "yedekle.py: git hooks sablonlari",
                     "timestamp": "2026-07-31T15:44:41+03:00",
-                    "author": {"name": "Okan Gemalmaz", "email": "gemalmaz@me.com"},
-                    "committer": {"name": "Okan Gemalmaz", "email": "gemalmaz@me.com"}},
+                    # PUBLIC DEPO: fikstur SEKLI korunur, kisisel e-posta KONMAZ
+                    # (GitHub'in noreply formu gercek yanit sekliyle birebir uyumlu).
+                    "author": {"name": "Pruvo138",
+                               "email": "pruvo138@users.noreply.github.com"},
+                    "committer": {"name": "Pruvo138",
+                                  "email": "pruvo138@users.noreply.github.com"}},
     "repository": {"id": 1076952394, "name": "pruvo", "full_name": "Pruvo138/pruvo",
                    "private": False},
     "head_repository": {"id": 1076952394, "name": "pruvo", "full_name": "Pruvo138/pruvo",
