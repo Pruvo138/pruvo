@@ -37,9 +37,15 @@ da stderr de dahil. Tarayici hem stdout'u hem stderr'i tarar.
   8. `parametre_detay` (musteri SERBEST METNI, maskelenemez) TTY yokken ciktida
      HIC YOK (yer tutucu var) / TTY varken VAR (pozitif eksen).
   9. `wrangler_sorgu` HATA YOLLARI — KANAL AYRIMI: wrangler STDOUT'u (SELECT sonucu)
-     TTY yokken HICBIR PARCASIYLA (bas/orta/kuyruk — konum bagimsiz tarayici)
-     sizmiyor; wrangler STDERR'i (teshis metni) TTY yokken bile GORUNUYOR (3 gercek
-     hata senaryosu); TTY varken ham dokum basiliyor (pozitif eksen).
+     TTY yokken HICBIR LITERAL PARCASIYLA (bas/orta/kuyruk — konum bagimsiz tarayici)
+     sizmiyor VE mesaj BAYT BUTCESINI asmiyor (kodlanmis dokum ekseni); wrangler
+     STDERR'i (teshis metni) TTY yokken bile GORUNUYOR (3 gercek hata senaryosu);
+     TTY varken ham dokum basiliyor (pozitif eksen).
+
+🔴 IDDIA SINIRI (durustce): sizinti tarayicilari LITERAL esleyicidir — base64/hex/
+gzip/URL-encode ile kodlanmis bir dokumu METIN olarak gormezler. Bu yuzden TEST 9'da
+ayrica BAYT BUTCESI olculur (kodlanmis dokum mesaji sisirir). "Hicbir sey sizamaz"
+DEGIL, "hicbir LITERAL parca sizamaz + mesaj butceyi asamaz" denir.
 
 🔴 BEYAN SINIRI (curutucu olctu, kabul edildi): buradaki oz-nobetci CAGRI SILME
 fail-open'ini kapatir — bir testin cagrisi silinir ya da govdesi no-op edilirse
@@ -97,9 +103,14 @@ def kayit(no, ad, gecti, detay=""):
 
 
 # ------------------------------------------------------------------ fikstur
-# UYARI: fiksturdeki kisisel degerlerin KELIMELERI ciktinin baska bir yerinde
-# (urun basligi, siparis no, tutar) GECMEMELI — yoksa tarayici sahte-kirmizi yanar.
-# Urun basliklari bu yuzden bilerek "Test"/"Musteri"/"Ayse" icermez.
+# 🔴 UYARI (4. tur — curutucu bunu OLCTU): fiksturdeki kisisel degerlerin KELIMELERI
+# ciktinin baska bir yerinde (urun basligi, siparis no, tutar, ETIKET) GECMEMELI —
+# yoksa tarayici SAHTE-KIRMIZI yanar ve bu kapi deploy.yml'de BLOKLAYICI oldugu icin
+# tum yayini durdurur. Bu yuzden her kisisel deger YALNIZ BENZERSIZ kelimeler tasir:
+#   * etiket gorunumlu token YOK ("renk:", "Ozel", "yazi:" gibi) — kalem satirina
+#     mesru bir `renk:` etiketi eklemek kapiyi kirmizi yakiyordu;
+#   * jenerik token YOK ("Test", "Musteri") — bir urun basligi "Test ..." olabilir.
+# Urun basliklari da bilerek hicbir kisisel kelimeyi icermez.
 FIKSTUR = [
     {
         "siparis_no": "PR-260101-000001-AAA",
@@ -109,7 +120,7 @@ FIKSTUR = [
         "tutar_kurus": 12345,
         "kargo_kurus": 25000,
         "kdv_kurus": 6111,
-        "musteri_ad": "Test Musteri",
+        "musteri_ad": "Kerem Aslanoglu",
         "musteri_tel": "5551112233",
         "urunler": json.dumps([{
             "id": "braket-govdesi",
@@ -121,11 +132,11 @@ FIKSTUR = [
             # MUSTERI SERBEST METNI — icine bilerek ad+telefon konuldu.
             # 🔴 NUMARALAR HEP `555` BLOGUNDAN (kullanilamaz/routable DEGIL): repo
             # PUBLIC, fikstur gercek bir aboneye ait olmamali.
-            "parametre_detay": "Kaziyacak yazi: Kemal Ozturk 5554443322",
+            "parametre_detay": "Kaziyacak Kemal Ozturk 5554443322",
             # shop/src/index.js: renk "Diger" secilince musteri metni buraya yazilir
             # (metin(k.renk_ozel, 1, 60)). siparisler.py bugun BASMIYOR -> eksen yesil;
             # bir gun basilirsa tarayici KIRMIZI yakar (envanter kor kalmasin).
-            "renk_ozel": "Ozel renk: antrasit (Selin Aydin, 5550001122)",
+            "renk_ozel": "antrasit Selin Aydin 5550001122",
         }]),
     },
     {
@@ -449,7 +460,12 @@ def _pii_ilk(row):
     return yeni
 
 
-_DOLGU = "." * 200
+# 🔴 DOLGU TEKRARSIZ OLMALI (4. tur — olculdu): `"." * 200` gibi tekrarli bir dizi
+# `_ham_parca_sizdi`'yi asiri duyarli yapiyordu — hata mesajina masum bir noktali
+# ayirac (`"." * 66`) eklemek kapiyi KIRMIZI yakiyordu (sizinti YOK, sahte-kirmizi).
+# Artan sayacli token dizisi: hicbir kayan pencere mesru bir metinle cakisamaz.
+# Uzunluk korunur (~225) ki PII'nin bas/orta/kuyruk konumlari bozulmasin.
+_DOLGU = " ".join("dolgu%03d" % i for i in range(25))
 HAM_BASARISIZ = json.dumps([{
     "results": [_pii_ilk(r) for r in FIKSTUR],        # BAS: PII ilk 100 bayt icinde
     "meta": {"d1": _DOLGU, "orta1": _pii_ilk(FIKSTUR[0]),   # ORTA
@@ -468,8 +484,14 @@ def _ham_parca_sizdi(mesaj, ham, pencere=40, adim=20):
     """(bulgular) — `ham`in HERHANGI bir `pencere` uzunluktaki dilimi mesajda geciyor mu.
 
     KONUM BAGIMSIZ: bas / orta / kuyruk kirpmalarinin HEPSINI yakalar. Esik boylece
-    fiksturun bayt dizilimine DEGIL, "ham dokumun hicbir parcasi cikmaz" PRENSIBINE
-    baglanir. Yakalanabilir en kucuk sizinti ~ pencere+adim = 60 karakterdir."""
+    fiksturun bayt dizilimine DEGIL, "ham dokumun hicbir LITERAL parcasi cikmaz"
+    prensibine baglanir. Kotu-durum siniri ~ pencere+adim = 60 karakter.
+
+    🔴 SINIR (olculdu, durustce beyan): bu eksen de PII ekseni de LITERAL esleyicidir.
+    `base64.b64encode(cikti)` / hex / gzip+b64 / URL-encode ile basilan bir dokum
+    IKISINE DE TAKILMAZ (curutucu b64 mutantini 9/9 YESIL gecirdi ve cozdu). Bunun
+    icin AYRI bir BAYT BUTCESI ekseni vardir (bkz `_butce_asildi`): kodlanmis dokum
+    mesaji sismis olacagi icin oradan yakalanir."""
     bulgular = []
     for i in range(0, max(len(ham) - pencere, 0) + 1, adim):
         dilim = ham[i:i + pencere]
@@ -479,6 +501,22 @@ def _ham_parca_sizdi(mesaj, ham, pencere=40, adim=20):
             if len(bulgular) >= 3:
                 break
     return bulgular
+
+
+BUTCE_PAYI = 400   # tani satiri + basliklar + satir sonlari icin comert sabit pay
+
+
+def _butce_asildi(mesaj, stderr):
+    """(bulgu|None) — TTY DISI mesaj `tani + yer tutucu + stderr` toplamini asamaz.
+
+    KODLAMA-BAGIMSIZ eksen: literal esleyiciler base64/hex/gzip'e takilmaz ama
+    kodlanmis bir dokum mesaji KACINILMAZ olarak sisirir (b64 ham boyutun ~4/3'u).
+    Butce sizintiyi degil, MESAJIN BOYUTUNU olcer -> kodlamadan bagimsizdir."""
+    butce = len(siparisler.YER_TUTUCU_STDOUT) + len(stderr) + BUTCE_PAYI
+    if len(mesaj) > butce:
+        return ("BAYT BUTCESI asildi: mesaj %d bayt > butce %d "
+                "(kodlanmis/gizlenmis dokum?)" % (len(mesaj), butce))
+    return None
 
 
 def _hata_yolu_mesaji(stdout, tty, stderr=""):
@@ -518,6 +556,9 @@ def test_9_hata_yolu_kanali():
         parca = _ham_parca_sizdi(ttysiz, ham)
         if parca:
             hatalar.append("%s: TTY YOK iken HAM PARCA sizdi — %s" % (etiket, parca[0]))
+        butce = _butce_asildi(ttysiz, stderr)
+        if butce:
+            hatalar.append("%s: %s" % (etiket, butce))
         if "tani:" not in ttysiz or "exit=" not in ttysiz or "bayt" not in ttysiz:
             hatalar.append("%s: TTY YOK iken TESHIS kayboldu (hata sinifi/exit/bayt)"
                            % etiket)
@@ -539,9 +580,10 @@ def test_9_hata_yolu_kanali():
         if sizinti_tara(mesaj, FIKSTUR):
             hatalar.append("%s: teshis kolunda PII sizdi" % etiket)
 
-    kayit(9, "hata yollari: stdout TTY disina CIKMIYOR (bas/orta/kuyruk), stderr KALIYOR",
+    kayit(9, "hata yollari: stdout TTY disina CIKMIYOR (bas/orta/kuyruk/butce), "
+             "stderr KALIYOR",
           not hatalar, ("BULGU=%s" % hatalar) if hatalar
-          else "2 yol × 4 eksen + 3 teshis senaryosu")
+          else "2 yol × 5 eksen + 3 teshis senaryosu")
 
 
 def test_7_oz_nobetci(beklenen):
@@ -558,9 +600,9 @@ def test_7_oz_nobetci(beklenen):
          any("SUITE BEYAN DISI" in h
              for h in suite_butunlugu(tam + [("z9", "sentetik", True)], beklenen))),
         ("pozitif: tarayici SAHTE-TEMIZ degil (ham fikstur metni -> bulgu)",
-         bool(sizinti_tara("musteri: Test Musteri | 5551112233", FIKSTUR))),
+         bool(sizinti_tara("musteri: Kerem Aslanoglu | 5551112233", FIKSTUR))),
         ("negatif: maskeli metin -> tarayici TEMIZ",
-         sizinti_tara("musteri: T*** M*** | ******2233\nmusteri: A*** | *********8877",
+         sizinti_tara("musteri: K*** A*** | ******2233\nmusteri: A*** | *********8877",
                       FIKSTUR) == []),
     ]
     kotu = [ad for ad, iyi in vakalar if not iyi]
