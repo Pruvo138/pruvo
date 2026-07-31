@@ -1,5 +1,194 @@
 [
   {
+    "id": "basit-catal-olta-kamisi-tutucusu-v2",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Basit Catal Tip Olta Kamisi Tutucusu",
+    "aciklama": "Olta kamisini guvenle tutan basit catal tip tutucu.\n- Govdesinde 8 mm capinda, 20 mm derinliginde bir montaj deligi bulunur.\n- Tekne kupestesine, iskeleye veya sabit duz bir yuzeye monte edilebilir.\n- Yaklasik dis olculer: 50 x 78 x 12 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/3de270835-1.jpg",
+      "https://media.pruvo3d.com/urunler/3de270835-2.jpg",
+      "https://media.pruvo3d.com/urunler/3de270835-3.jpg",
+      "https://media.pruvo3d.com/urunler/3de270835-4.jpg"
+    ]
+  },
+  {
+    "id": "basit-catal-olta-kamisi-tutucusu-ilk-surum",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Basit Catal Tip Olta Kamisi Tutucusu (Ilk Surum)",
+    "aciklama": "Ayni ailenin ilk (basit) suruma ait catal tip olta kamisi tutucusu; ayni govde deligi olculeriyle (8 mm cap, 20 mm derinlik) uretilir.\n- Tekne kupestesine, iskeleye veya sabit duz bir yuzeye monte edilebilir.\n- Ailenin gelistirilmis (v2) surumune gore biraz daha sade bir catal geometrisine sahiptir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/3de271110-1.jpg",
+      "https://media.pruvo3d.com/urunler/3de271110-2.jpg"
+    ]
+  },
+  {
+    "id": "gercek-boy-tekne-kurek-palasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Gercek Boy Tekne Kurek Palasi",
+    "aciklama": "Kayik ve sandallar icin gercek boyutta tasarlanmis kurek (pala).\n- Yaklasik toplam uzunluk 2514 mm.\n- Sap capi kademeli olarak yaklasik 20 mm ile 76 mm arasinda degisir.\n- Hem gercek kullanim hem de dekoratif amacli tercih edilebilir.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/3de248274-1.jpg",
+      "https://media.pruvo3d.com/urunler/3de248274-2.jpg",
+      "https://media.pruvo3d.com/urunler/3de248274-3.jpg",
+      "https://media.pruvo3d.com/urunler/3de248274-4.jpg"
+    ]
+  },
+  {
+    "id": "hidrodinamik-dis-motor-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Hidrodinamik Dis Motor Pervanesi",
+    "aciklama": "Akis simulasyonu sonuclarina gore tasarlanmis, discaridan takilan (outboard) motorlar icin 3 kanatli yedek pervane.\n- Kanat geometrisi optimum hidrodinamik verim icin ayarlanmistir.\n- Farkli mil ve goze olculerine gore uyarlanabilir.\n- Kirilan veya asinan orijinal pervanenin yerine kullanilabilir.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/3de456651-1.jpg",
+      "https://media.pruvo3d.com/urunler/3de456651-2.jpg",
+      "https://media.pruvo3d.com/urunler/3de456651-3.jpg",
+      "https://media.pruvo3d.com/urunler/3de456651-4.jpg"
+    ]
+  },
+  {
+    "id": "jet-ski-yedek-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Jet Ski Icin Yedek Pervane",
+    "aciklama": "Deniz motosikleti (jet ski) tahrik sistemleri icin 3 kanatli yedek pervane.\n- Kompakt goze ve orta capli kanat yapisina sahiptir.\n- Farkli mil olculerine gore uyarlanabilir.\n- Kirilan veya asinan orijinal pervanenin yerine kullanilabilir.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/3de456911-1.jpg",
+      "https://media.pruvo3d.com/urunler/3de456911-2.jpg",
+      "https://media.pruvo3d.com/urunler/3de456911-3.jpg",
+      "https://media.pruvo3d.com/urunler/3de456911-4.jpg"
+    ]
+  },
+  {
+    "id": "deneysel-tekne-pervanesi-prototipi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Deneysel Tekne Pervanesi (Prototip Tasarim)",
+    "aciklama": "Kucuk tekne ve bot dis motorlarinda denenebilecek, prototip asamasinda gelistirilmis deneysel bir pervane tasarimi.\n- Kucuk tekne/bot dis motorlariyla uyumlu prototip bir pervanedir.\n- Farkli pervane geometrilerini denemek isteyenler icin uygundur.\n- Hafif ve kolay degistirilebilir yapidadir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt131939-1.jpg"
+    ]
+  },
+  {
+    "id": "yelkenli-tekne-halat-duzenleyici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne Icin Halat Duzenleyici",
+    "aciklama": "Yelkenli teknelerde halatlarin dolasmadan duzenli asili durmasini saglayan, govdeye monte edilen halat duzenleyici parcasi.\n- Yelkenli tekne ve yat govdelerine monte edilebilir.\n- Halatlarin dolasmadan duzenli asili durmasini saglar.\n- Farkli caplarda halatlarla kullanima uygundur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3192307-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3192307-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3192307-3.jpg"
+    ]
+  },
+  {
+    "id": "30cm-balikci-agi-samandirasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "30 cm Balikci Agi Samandirasi",
+    "aciklama": "Balik aglarinin yuzeyde isaretlenmesi icin kullanilan, yaklasik 30 cm boyunda samandira.\n- Balik aglarinin yuzeyde isaretlenmesinde kullanilabilir.\n- Suda kolayca yuzer yapidadir.\n- Elle tasinabilir kompakt boyuttadir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5292970-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5292970-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5292970-3.jpg"
+    ]
+  },
+  {
+    "id": "tekne-olta-kamisi-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Icin Olta Kamisi Tutucusu",
+    "aciklama": "Teknelerde olta kamisini sabit ve erisilebilir tutmak icin kullanilan tutucu aparat.\n- Tekne kenarina veya uygun bir yuzeye monte edilebilir.\n- Olta kamisini sabit ve erisilebilir tutar.\n- Kolay takip cikarma imkani sunar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6423108-1.jpg"
+    ]
+  },
+  {
+    "id": "disi-motor-yedek-kill-cord-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Disi Motor Icin Yedek Can Ipi (Kill-Cord) Klipsi",
+    "aciklama": "Disi takma motorlarin acil durdurma (kill-cord/can ipi) sistemi icin yedek baglanti klipsi.\n- Evinrude ve benzeri disi takma motor modelleriyle uyumludur.\n- Kaybolan veya kirilan orijinal klipsin yerine kullanilabilir.\n- Hizli takip cikarma saglayan basit bir tasarima sahiptir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt78235-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt78235-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt78235-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt78235-4.jpg"
+    ]
+  },
+  {
+    "id": "dp684062",
+    "kategori": "Bahçe",
+    "marka": [],
+    "baslik": "\"Stubble\" Kısa Saplı Modern Sulama Kabı",
+    "aciklama": "Kısa ve tok saplı sıra dışı formuyla klasik sulama kaplarından ayrılan, bahçenize ya da saksı bitkilerinize eğlenceli bir dokunuş katan modern bir sulama kabı.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dp684062-1.jpg",
+      "https://media.pruvo3d.com/urunler/dp684062-2.jpg",
+      "https://media.pruvo3d.com/urunler/dp684062-3.jpg",
+      "https://media.pruvo3d.com/urunler/dp684062-4.jpg",
+      "https://media.pruvo3d.com/urunler/dp684062-5.jpg"
+    ]
+  },
+  {
+    "id": "dp1059796",
+    "kategori": "Bahçe",
+    "marka": [],
+    "baslik": "Kuş Besleme İstasyonu",
+    "aciklama": "Geniş yemlik tepsisi ve kolayca takılıp çıkarılabilen iki parçalı tüneğiyle kışın yem arayan kuşlar için pratik bir besleme istasyonu. Çatısındaki deliklerden bir dala veya çıkıntıya sabitlenebilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dp1059796-1.jpg",
+      "https://media.pruvo3d.com/urunler/dp1059796-2.jpg",
+      "https://media.pruvo3d.com/urunler/dp1059796-3.jpg",
+      "https://media.pruvo3d.com/urunler/dp1059796-4.jpg"
+    ]
+  },
+  {
+    "id": "dp1221490",
+    "kategori": "Bahçe",
+    "marka": [],
+    "baslik": "Modern Kavisli Çatılı Kuş Yuvası",
+    "aciklama": "Kavisli çatılı gövdesi ve kuşların rahatça konabileceği tüneyli giriş paneliyle modern bir kuş yuvası. Duvara veya bir ağaç dalına monte edilebilir; alt kısmındaki delikler yuvanın kuru kalmasına yardımcı olur.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dp1221490-1.jpg",
+      "https://media.pruvo3d.com/urunler/dp1221490-2.jpg",
+      "https://media.pruvo3d.com/urunler/dp1221490-3.jpg",
+      "https://media.pruvo3d.com/urunler/dp1221490-4.jpg",
+      "https://media.pruvo3d.com/urunler/dp1221490-5.jpg"
+    ]
+  },
+  {
+    "id": "dp2839356",
+    "kategori": "Bahçe",
+    "marka": [],
+    "baslik": "Çıkarılabilir Bölmeli Kaburgalı Kuş Yemliği",
+    "aciklama": "Kaburgalı desenli, modern görünümlü bir kuş yemliği. Yem bölmesi çıkarılabilir olduğu için doldurmak ve temizlemek kolaydır. Bahçeye veya balkona asılabilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/dp2839356-1.jpg",
+      "https://media.pruvo3d.com/urunler/dp2839356-2.jpg",
+      "https://media.pruvo3d.com/urunler/dp2839356-3.jpg",
+      "https://media.pruvo3d.com/urunler/dp2839356-4.jpg",
+      "https://media.pruvo3d.com/urunler/dp2839356-5.jpg"
+    ]
+  },
+  {
     "id": "dp253314",
     "kategori": "Dekorasyon",
     "marka": [],

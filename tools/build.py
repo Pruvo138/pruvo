@@ -1167,6 +1167,14 @@ PAGE_CSS = """
   .brand-chip:hover{border-color:var(--navy-2)}
   .price{font-size:26px;font-weight:800;color:var(--navy);margin:4px 0 20px}
   .price.empty{font-size:15px;font-weight:600;color:var(--gray-text)}
+  /* Ustu cizili ESKI FIYAT (opsiyonel `eski_fiyat` alani) — yalniz gosterim.
+     [hidden]: secim birim fiyati eski fiyatin ustune cikarsa JS gizler (yaniltici
+     indirim yasak); bazi CSS sifirlayicilari UA'nin [hidden] kuralini ezdigi icin
+     kural BURADA da yazilir. */
+  .fiyat-satiri{display:flex;align-items:baseline;flex-wrap:wrap;gap:9px}
+  .eski-fiyat{font-size:17px;font-weight:700;color:var(--gray-text);
+    text-decoration:line-through;text-decoration-thickness:2px}
+  .eski-fiyat[hidden]{display:none}
   .opsiyonlar{margin:4px 0 20px;padding:14px 16px;background:var(--gray-card);
     border:1px solid var(--gray-line);border-radius:var(--radius)}
   .opsiyon-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
@@ -1401,6 +1409,98 @@ def feed_price(fiyat):
         return None
     raw = m.group(1).replace(".", "")          # Turkce binlik ayraci ('1.250' -> '1250')
     return raw if raw.isdigit() and int(raw) > 0 else None
+
+
+# ----------------------------------------------------- ESKI FIYAT (ustu cizili gosterim)
+# OPSIYONEL alan `eski_fiyat` ("1.200 TL") — YALNIZ GOSTERIMDIR.
+#
+# 🔴 PARA YOLUNA SIFIR ETKI: sepet/konfigur/iyzico/D1/feed/JSON-LD fiyat hesabi bu alani
+#    OKUMAZ. Tahsil edilen tutar `fiyat`tan (secenekler.js fiyatSayisi / konfigur capalari)
+#    turer; burada uretilen tek sey ekranda gorunen bir <s> etiketidir.
+#
+# FAIL-CLOSED (yanlis gosterim = musteriye YANILTICI indirim = sessiz ticari/hukuki hata):
+#   asagidaki KOSULLARIN HEPSI saglanmazsa HIC gosterilmez — "0 TL" YOK, ham dize YOK,
+#   NaN YOK. Sessiz yesil yerine sessiz YOKLUK secilir.
+#     1. urun parametrik DEGIL     (sari seri `fiyat` BOS — kiyaslanacak guncel fiyat yok)
+#     2. urun konfigur'lu DEGIL    (fiyat boya/malzemeye gore CANLI degisir; sabit bir eski
+#                                   fiyat orada yaniltici olur — /konfigur.js'e DOKUNULMAZ)
+#     3. `fiyat` ayristirilabilir  (TL/TRY/₺ tasiyan sayi)
+#     4. `eski_fiyat` TAM olarak "<sayi> <para birimi>" kalibina uyar (bastan sona; ek
+#        metin/isaret KABUL EDILMEZ -> gosterilen dize yapisal olarak zararsizdir)
+#     5. para birimi AYNI: her iki taraf da TL/TRY/₺. Baska bir birim (USD/EUR/$) bu
+#        kalibi hic eslemez -> ayristirilamaz sayilir -> gosterilmez.
+#     6. eski_fiyat > fiyat        (esit/kucuk = indirim DEGIL -> gosterilmez)
+#
+# SAYI KALIBI: Turkce binlik nokta + virgullu kurus. "1.250" = 1250 · "1.250,50" = 1250,50.
+# BELIRSIZ bicim ("1.25", "1.2.3") KABUL EDILMEZ (nokta ondalik mi binlik mi belli degil).
+# Arama kalibindaki `(?:^|[^\d.,])` oneki, "1.2.3 TL" gibi bozuk dizede sondaki "3"un
+# 3 TL diye okunmasini engeller (lookbehind YOK: index.html'deki ayni kalip eski
+# Safari'lerde de kosmali, oradan KOPYALANMAZ — ikisi tools/eski-fiyat-test.py'de AYNI
+# vaka tablosuyla kilitlenir).
+_PARA_BIRIMI_RE = r"(?:TL|TRY|₺)"
+_PARA_SAYI_RE = r"(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?"
+_ESKI_FIYAT_TAM_RE = re.compile(r"^\s*(" + _PARA_SAYI_RE + r")\s*" + _PARA_BIRIMI_RE + r"\s*$",
+                                re.I)
+_FIYAT_ARA_RE = re.compile(r"(?:^|[^\d.,])(" + _PARA_SAYI_RE + r")\s*" + _PARA_BIRIMI_RE, re.I)
+
+
+def para_kurus(sayi):
+    """'1.250' -> 125000 · '1.250,50' -> 125050 (kalibi ONCEDEN dogrulanmis sayi dizesi)."""
+    tam, _, kusurat = sayi.partition(",")
+    kusurat = (kusurat + "00")[:2] if kusurat else "00"
+    return int(tam.replace(".", "")) * 100 + int(kusurat)
+
+
+def fiyat_kurus_gevsek(metin):
+    """`fiyat` alanindan kurus. Alan ek metin tasiyabilir ('350 TL (12 cm)') -> ARAMA.
+    Sayi/para birimi bulunamazsa None (fail-closed)."""
+    m = _FIYAT_ARA_RE.search(metin or "")
+    return para_kurus(m.group(1)) if m else None
+
+
+def eski_fiyat_gosterim(p):
+    """Urun icin ustu cizili eski fiyat: (metin, kurus) ya da (None, None).
+
+    Donen metin, TAM kalibi (sayi + TL/TRY/₺) geceni oldugu icin yapisal olarak
+    zararsizdir; yine de basildigi yerde esc()/textContent ile kacisi UYGULANIR."""
+    if not isinstance(p, dict):
+        return (None, None)
+    if p.get("parametrik") or p.get("konfigur"):
+        return (None, None)
+    ham = p.get("eski_fiyat")
+    if not isinstance(ham, str):
+        return (None, None)
+    ham = ham.strip()
+    m = _ESKI_FIYAT_TAM_RE.match(ham)
+    if not m:
+        return (None, None)
+    guncel = p.get("fiyat")
+    if not isinstance(guncel, str) or not guncel.strip():
+        return (None, None)
+    guncel_kurus = fiyat_kurus_gevsek(guncel)
+    if guncel_kurus is None:
+        return (None, None)
+    eski_kurus = para_kurus(m.group(1))
+    if eski_kurus <= guncel_kurus:
+        return (None, None)
+    return (ham, eski_kurus)
+
+
+def eski_fiyat_html(p):
+    """Ustu cizili <s> etiketi (yoksa BOS dize -> sayfa bugunku gibi basilir)."""
+    metin, kurus = eski_fiyat_gosterim(p)
+    if not metin:
+        return ""
+    return ('<s class="eski-fiyat" id="eskiFiyat" data-kurus="%d">%s</s>'
+            % (kurus, esc(metin)))
+
+
+def fiyat_satiri(eski_html, ic_html):
+    """Eski fiyat VARSA guncel fiyatla yan yana tek satir; YOKSA fiyat blogu bugunku gibi
+    TEK BASINA basilir (eski_fiyat tasimayan sayfalar bayt-esit kalir)."""
+    if not eski_html:
+        return ic_html
+    return '<div class="fiyat-satiri">%s%s</div>' % (eski_html, ic_html)
 
 
 def feed_id(pid):
@@ -1690,6 +1790,12 @@ def render_product(p, all_products, chip_map=None):
     # --- parametrik ("ölçüye özel") rozeti (bayrak yukarıda, JSON-LD'den önce hesaplandı)
     badge_html = '<span class="ozel-badge">Ölçüye Özel</span>' if parametrik else ''
 
+    # --- üstü çizili ESKİ FİYAT (opsiyonel `eski_fiyat`; kural + gerekçe eski_fiyat_gosterim'de)
+    # Geçersiz/eski<=güncel/parametrik/konfigür durumlarında BOŞ dize döner -> sayfa bugünkü
+    # gibi basılır. Parametrik (sarı) ve konfigür sayfalarında BİLEREK basılmaz: oralarda
+    # görünen fiyat ölçüye/malzemeye göre CANLI değişir, sabit bir eski fiyat yanıltır.
+    eski_html = eski_fiyat_html(p)
+
     # --- fiyat metni (JS'siz/tarayıcı öncesi durum + fonksiyonel OLMAYAN ürünlerin tek gösterimi)
     if fiyat:
         price_text = fiyat
@@ -1815,13 +1921,15 @@ def render_product(p, all_products, chip_map=None):
       {renk}
       {boy}
       {adet}
-      <div class="opsiyon-fiyat" id="opsiyonFiyat">{fiyat_metni}</div>
+      {fiyat_blok}
     </div>
     """).format(renk=_renk_butonlari_html(), boy=boy_html,
                 adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
                     IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
-                fiyat_metni=baslangic_fiyat)
+                fiyat_blok=fiyat_satiri(
+                    eski_html,
+                    '<div class="opsiyon-fiyat" id="opsiyonFiyat">%s</div>' % baslangic_fiyat))
         price_html = ""
     elif fonksiyonel:
         # Parametrik ama şemasız (bugün böyle ürün YOK — 18/18 şemalı) fonksiyonel ürün için
@@ -1848,8 +1956,9 @@ def render_product(p, all_products, chip_map=None):
         price_html = ""
     else:
         opsiyonlar_html = ""
-        price_html = '<div class="price%s">%s</div>' % (
-            "" if fiyat else " empty", esc(price_text))
+        price_html = fiyat_satiri(
+            eski_html,
+            '<div class="price%s">%s</div>' % ("" if fiyat else " empty", esc(price_text)))
 
     # --- eylem butonları (madde 7): kart-seçim sayfasında İKONLAR Adet satırında (yukarıda
     # opsiyonlar_html'e basıldı) -> sayfa altına buton BASILMAZ; diğer sayfalarda (parametrik
@@ -2103,6 +2212,8 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
   var adetEksi=document.getElementById("adetEksi");
   var adetArti=document.getElementById("adetArti");
   var fiyatEl=document.getElementById("opsiyonFiyat");
+  /* Ustu cizili eski fiyat (opsiyonel `eski_fiyat`). Sayfada YOKSA null -> hicbir sey olmaz. */
+  var eskiEl=document.getElementById("eskiFiyat");
   /* Kart-secim modu (işletme kararı, 16 Tem): fonksiyonel ürünlerde malzeme dropdown YOK,
      malzeme KARTLARINDAN seçilir. Önden seçili malzeme YOK -> seciliMalzeme boş başlar. */
   var KART_SECIM = {kart_secim};
@@ -2164,6 +2275,16 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
     /* yukarı-çık oku FAB'la çakışmasın (CSS: body.fab-var .top-btn) */
     document.body.classList.toggle("fab-var", c.length > 0);
     var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
+    /* ESKI FIYAT NOBETI (yalniz GOSTERIM — sepet/odeme kurusuna DOKUNMAZ): ustu cizili
+       fiyat, secilen malzeme/renk BIRIM fiyatini eski fiyatin ustune cikardigi anda
+       GIZLENIR. Aksi halde 1.200 TL cizili dururken 1.275 TL tahsil edilir gorunurdu —
+       yaniltici indirim (sessiz ticari/hukuki hata). Kiyas BIRIM kurusla yapilir (adet
+       carpani iki tarafta da yok). ozet.birimKurus null ise (fiyatsiz urun) gizlenir. */
+    if(eskiEl){{
+      var _eskiKurus = parseInt(eskiEl.getAttribute("data-kurus") || "0", 10);
+      eskiEl.hidden = !(_eskiKurus > 0 && ozet.birimKurus != null
+                        && _eskiKurus > ozet.birimKurus);
+    }}
     /* Konfigüratörlü sayfada fiyat alanını konfigüratör yönetir (kuruşlu canlı hesap,
        taban fiyat yoksa "—"); geçersiz ölçüde sepete ekleme kilitlenir. */
     if(fiyatEl && !URUN_SEMA{konf_fiyat_kosul}){{
@@ -2555,7 +2676,7 @@ def kart_ozeti(p):
     `boy_secenekleri`, secenekler.js boyFarki) ileride eklenirse BURAYA DA girmeli:
     yoksa edge modunda sepet paneli boy farkını 0 sayar (sessiz fiyat sapması).
     Bugün ölçüldü: urunler.json'da boy_secenekleri taşıyan ürün 0 → risk uyuyor."""
-    return {
+    kart = {
         "id": p.get("id"),
         "baslik": p.get("baslik") or "",
         "kategori": p.get("kategori") or "",
@@ -2566,69 +2687,58 @@ def kart_ozeti(p):
         # Worker substr() ile kırpıyor (boşluk sadeleştirmiyor) — birebir aynısı.
         "aciklama": (p.get("aciklama") or "")[:OZET_ACIKLAMA_KES],
     }
+    # ESKİ FİYAT (üstü çizili) — SADECE gösterim kuralını GEÇEN üründe ve SADECE o zaman
+    # eklenir. NEDEN koşullu: (a) alan bugün hiçbir kayıtta yok -> ozet.json BAYT-EŞİT
+    # kalır; (b) doğrulamayı derleme anında yapıp karta yalnız GEÇERLİ değeri koyduğumuz
+    # için edge kartında olmayan `konfigur`/ham alanlara istemcinin ihtiyacı olmaz.
+    # ⚠️ Worker (/katalog, /ara) KART_ALANLARI'nda bu alan YOK -> edge modunda Worker'dan
+    # gelen kartta üstü çizili fiyat GÖRÜNMEZ (fail-closed: eksik alan = gösterme).
+    # Worker tarafı HocA'nın düzlemi; KraL'a raporlandı.
+    eski_metin, _ = eski_fiyat_gosterim(p)
+    if eski_metin:
+        kart["eski_fiyat"] = eski_metin
+    return kart
 
 
-# ------------------------------------------- ANA SAYFA VİTRİN SIRASI (Okan kuralı, 31 Tem)
-# KURAL: ana sayfanın ilk VITRIN_ON_SLOT (20) slotunda Ev/Dekorasyon/Ofis ürünü BULUNMAZ;
-# 21. sıradan itibaren normal görünürler. Ürün ELENMEZ, geri itilir.
+# ------------------------------------ ANA SAYFA VİTRİN HİYERARŞİSİ (Okan kuralı, 31 Tem)
+# KURAL: filtresiz ana vitrin SLOT DÜZENİYLE çizilir — 4 Jeneratör · 80 Marin · 80 Otomobil ·
+# gerisi karışık; her blok KENDİ İÇİNDE rastgele sıralanır.
 #
-# NEDEN DERLEME ANINDA (ölçüldü, 31 Tem): ana sayfanın ilk boyaması ozet.json'un "yeni"
-# listesinden gelir ve tarayıcı ondan yalnız ilk PAGE_SIZE (24) kartı çizer. Yeni ürün
-# urunler.json'un BAŞINA eklendiği için katalogun başında kesintisiz bir hedef-kategori
-# bloğu oluşabiliyor (98 ürünlük blok ölçüldü) — o pencerede ilk 20 slotu dolduracak
-# hedef-dışı ürün KALMIYOR. İstemci sıralayıcısı elindeki listeyi yeniden dizer ama
-# YOKTAN ürün üretemez; 20 hedef-dışı biriktirmek için pencere derinliği 118 gerekiyordu.
-# Çözüm: sırayı TÜM katalog üzerinde BURADA hesaplayıp ozet'e HAZIR yazmak. Tarayıcıya
-# daha fazla ürün indirtmek (pencereyi şişirmek) ve urunler.json'u yeniden dizmek YOK.
+# 🔴 SIRALAMA BURADA YAPILMAZ — build yalnız HAVUZ üretir. Neden: rastgelelik "her sayfa
+# yenilemesinde farklı" olacak. Derleme anında sıralanırsa sıra DEPLOY BAŞINA sabitlenir
+# (aynı ziyaretçi gün boyu aynı vitrini görür). Sıra istemcide, sayfa yüklemesi başına
+# üretilen tek seed ile kurulur (index.html vitrinSirala). Bu dosyanın işi: her blok için
+# `havuz` kadar aday kartı ozet.json'a koymak, ki tarayıcı 24 kartlık ilk boyamadan sonra
+# 164 slotluk ön bloğu AĞA ÇIKMADAN dizebilsin.
 #
-# İSTEMCİ SIRALAYICISI KALDIRILMADI: ana sayfa kartları DÖRT besleme yolundan gelebiliyor
-# (ozet ilk boyaması · Worker /katalog · edgeYedek havuzu · bayrak kapalıyken HOME_ORDER);
-# burada hesaplanan sıra yalnız BİRİNCİSİNİ besler. İki taraf birbirini bozmaz çünkü
-# permütasyon ETKİSİZ-TEKRARLI (idempotent): zaten bu sırada olan listeye uygulanınca
-# listeyi DEĞİŞTİRMEZ (vitrin-siralama-test.js bunu ayrı iddiayla kanıtlar).
+# ESKİ KURAL (Ev/Dekorasyon/Ofis ilk 20 slotta görünmez) KALDIRILDI: yeni düzende ilk 164
+# slot zaten Jeneratör/Marin/Otomobil olduğu için o üç kategori oraya giremez — kural
+# YUTULDU. (vitrin-siralama-test.js bunu ayrı iddiayla ölçer, sessizce kaybolmasın.)
 def _index_vitrin_kurali():
-    """Kuralı index.html'deki TEK KAYNAKTAN oku (VITRIN_GERI_KATEGORILER + VITRIN_ON_SLOT).
-    İkinci bir kopya, kuralın iki tarafta SESSİZCE ayrışması demekti: derleme bir sırayı
-    hesaplar, tarayıcı başka bir kuralı uygular, ekranda hata görünmezdi. Çapa
-    bulunamazsa FAIL-CLOSED (build kırmızı) — sessizce "kural yok" sayılmaz."""
+    """Blok kuralını index.html'deki TEK KAYNAKTAN oku (VITRIN_BLOKLAR).
+    İkinci bir kopya, kuralın iki tarafta SESSİZCE ayrışması demekti: derleme bir havuz
+    üretir, tarayıcı başka bir blok düzeni uygular, ekranda hata görünmezdi. Çapa
+    bulunamaz ya da şema bozuksa FAIL-CLOSED (build kırmızı) — sessizce "kural yok"
+    sayılmaz."""
     with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
         kaynak = f.read()
-    m = re.search(r"var\s+VITRIN_GERI_KATEGORILER\s*=\s*(\[[^\]]*\])\s*;", kaynak)
+    m = re.search(r"var\s+VITRIN_BLOKLAR\s*=\s*(\[[\s\S]*?\])\s*;", kaynak)
     if not m:
-        raise SystemExit("index.html'de VITRIN_GERI_KATEGORILER bulunamadi "
+        raise SystemExit("index.html'de VITRIN_BLOKLAR bulunamadi "
                          "(vitrin kurali tek kaynagi bozulmus).")
-    kategoriler = json.loads(m.group(1))
-    s = re.search(r"var\s+VITRIN_ON_SLOT\s*=\s*(\d+)\s*;", kaynak)
-    if not s:
-        raise SystemExit("index.html'de VITRIN_ON_SLOT bulunamadi "
-                         "(vitrin kurali tek kaynagi bozulmus).")
-    return kategoriler, int(s.group(1))
-
-
-def vitrin_sirala(urunler, geri_kategoriler, slot):
-    """index.html vitrinSirala() ile AYNI permütasyon, TÜM katalog üzerinde.
-
-    Hedef-dışı ürünler kendi göreli sıralarını koruyarak ilk `slot` slotu doldurur;
-    geri kalan her şey (hedef kategoriler + taşan hedef-dışılar) yine kendi sırasıyla
-    arkaya dizilir. ELEME YOK: dönen liste girdinin permütasyonudur.
-
-    YETERSİZ STOK: katalogda `slot` kadar hedef-dışı ürün yoksa BOŞLUK BIRAKILMAZ —
-    kalan slotlar doğal sırayla dolar — ama sapma SESSİZ GEÇMEZ (döndürülen sapma
-    ozet.json'a yazılır ve build günlüğüne UYARI basılır).
-
-    Döner: (sirali_liste, sapma)."""
-    kume = set(geri_kategoriler)
-    on, geri = [], []
-    for p in urunler:
-        if len(on) < slot and (p.get("kategori") or "") not in kume:
-            on.append(p)
-        else:
-            geri.append(p)
-    sapma = {
-        "yetersiz": len(urunler) >= slot and len(on) < slot,
-        "uygun": len(on), "slot": slot, "liste": len(urunler),
-    }
-    return on + geri, sapma
+    try:
+        bloklar = json.loads(m.group(1))
+    except ValueError as e:
+        raise SystemExit("index.html VITRIN_BLOKLAR JSON olarak okunamadi: %s" % e)
+    if not isinstance(bloklar, list) or not bloklar:
+        raise SystemExit("index.html VITRIN_BLOKLAR bos/gecersiz.")
+    for b in bloklar:
+        for alan in ("kategori", "adet", "havuz", "kaynak"):
+            if alan not in b:
+                raise SystemExit("VITRIN_BLOKLAR kaydinda '%s' alani yok: %r" % (alan, b))
+        if b["kaynak"] not in ("parametrik", "bloklar"):
+            raise SystemExit("VITRIN_BLOKLAR kaynak degeri gecersiz: %r" % (b,))
+    return bloklar
 
 
 def render_ozet(products):
@@ -2641,15 +2751,37 @@ def render_ozet(products):
         for m in (p.get("marka") or []):
             kat_markalari[m] = kat_markalari.get(m, 0) + 1
 
-    # Vitrin sırası TÜM katalog üzerinde burada hesaplanır; "yeni" listesi bu sıradan
-    # kesilir. OZET_YENI (48) >= ilk 20 slot + ilk ekranda gösterilen 24 kart olduğu için
-    # hedef kategoriler ilk boyamanın 21+ bölgesinde GÖRÜNMEYE devam eder (elenmezler).
-    vitrin_geri, vitrin_slot = _index_vitrin_kurali()
-    vitrin, vitrin_sapma = vitrin_sirala(products, vitrin_geri, vitrin_slot)
-    if vitrin_sapma["yetersiz"]:
-        print("UYARI: vitrin-sapma — ilk %d slot icin hedef-disi urun YETERSIZ (%d/%d, "
-              "katalog %d); kalan slotlar dogal sirayla doldu."
-              % (vitrin_slot, vitrin_sapma["uygun"], vitrin_slot, vitrin_sapma["liste"]))
+    # BLOK HAVUZLARI (sıralama YOK — yukarıdaki gerekçe). Her blok için katalogun o
+    # kategorideki ilk `havuz` ürünü (en yeni önce) ozet'e konur; tarayıcı seed'iyle
+    # karıştırıp ilk `adet` kadarını çizer. havuz > adet olduğu için her yenilemede
+    # farklı ürünler öne gelir.
+    vitrin_bloklar = _index_vitrin_kurali()
+    parametrik_kartlar = [kart_ozeti(p) for p in products if p.get("parametrik")]
+    bloklar = {}
+    blok_sapma = []
+    yetersiz = False
+    for kural in vitrin_bloklar:
+        kat = kural["kategori"]
+        adet = int(kural["adet"])
+        havuz_n = int(kural["havuz"] or 0)
+        if kural["kaynak"] == "parametrik":
+            # İKİNCİ KOPYA AÇILMAZ: sarı seri havuzu ozet.parametrik alanının kendisi.
+            havuz_kartlar = parametrik_kartlar
+            stok = len(parametrik_kartlar)
+        else:
+            aday = [p for p in products if (p.get("kategori") or "") == kat]
+            stok = len(aday)
+            havuz_kartlar = [kart_ozeti(p) for p in (aday[:havuz_n] if havuz_n else aday)]
+            bloklar[kat] = havuz_kartlar
+        if len(havuz_kartlar) < adet:
+            yetersiz = True
+        blok_sapma.append({"kategori": kat, "adet": adet,
+                           "havuz": len(havuz_kartlar), "stok": stok})
+    if yetersiz:
+        print("UYARI: vitrin-sapma — blok havuzu YETERSIZ (%s); ilgili blok kisalir, "
+              "bosluk birakilmaz."
+              % ", ".join("%s %d/%d" % (b["kategori"], b["havuz"], b["adet"])
+                          for b in blok_sapma))
 
     ozet = {
         "surum": 1,
@@ -2657,14 +2789,15 @@ def render_ozet(products):
         "toplam": len(products),
         "kategoriler": kategoriler,
         "markalar": markalar,
-        # Sarı vitrin havuzu: parametrik ürünlerin TAMAMI — site 4'ünü rastgele seçer.
-        "parametrik": [kart_ozeti(p) for p in products if p.get("parametrik")],
-        # DERLEME ANINDA hesaplanmış vitrin sırası (yukarıdaki blok). Eskiden burada
-        # katalogun ham başı (products[:OZET_YENI]) vardı; ham baş hedef kategoriyle
-        # dolunca ilk 20 slot kuralı SESSİZCE ihlal ediliyordu.
-        "yeni": [kart_ozeti(p) for p in vitrin[:OZET_YENI]],
+        # Sarı vitrin havuzu = Jeneratör bloğunun havuzu: parametrik ürünlerin TAMAMI.
+        "parametrik": parametrik_kartlar,
+        # Blok havuzları (Marin, Otomobil, ...). Sıra istemcide kurulur.
+        "bloklar": bloklar,
+        # KARIŞIK kuyruk + Worker'a ulaşılamazsa yedek arama havuzu: katalogun ham başı
+        # (en yeni ürünler). Vitrin sırası BURADA UYGULANMAZ (istemcinin işi).
+        "yeni": [kart_ozeti(p) for p in products[:OZET_YENI]],
         # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
-        "vitrin": vitrin_sapma,
+        "vitrin": {"yetersiz": yetersiz, "bloklar": blok_sapma, "liste": len(products)},
     }
     return json.dumps(ozet, ensure_ascii=False, separators=(",", ":"))
 
@@ -2881,12 +3014,13 @@ def main():
     if ozet_bayt > OZET_BUTCE:
         if _index_bayragi("EDGE_KATALOG"):
             print("HATA: ozet.json butceyi asti (%d > %d bayt) ve EDGE_KATALOG ACIK. "
-                  "OZET_YENI'yi dusur ya da marka haritasini esikle kirp."
-                  % (ozet_bayt, OZET_BUTCE))
+                  "index.html VITRIN_BLOKLAR havuzlarini kucult, OZET_YENI'yi dusur ya da "
+                  "marka haritasini esikle kirp." % (ozet_bayt, OZET_BUTCE))
             sys.exit(1)
         print("UYARI: ozet.json butceyi asti (%d > %d bayt). EDGE_KATALOG kapali oldugu "
-              "icin yayin KIRILMADI; bayragi acmadan once OZET_YENI'yi dusur ya da marka "
-              "haritasini esikle kirp." % (ozet_bayt, OZET_BUTCE))
+              "icin yayin KIRILMADI; bayragi acmadan once VITRIN_BLOKLAR havuzlarini "
+              "kucult, OZET_YENI'yi dusur ya da marka haritasini esikle kirp."
+              % (ozet_bayt, OZET_BUTCE))
 
 
 if __name__ == "__main__":

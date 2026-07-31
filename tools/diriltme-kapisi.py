@@ -57,7 +57,7 @@ ise -> KIRMIZI.
   * BASKA bir kaydin terk ettigi deger HUKUM URETMEZ (attribution kayda ozeldir).
 
 KAPSAM ALANLARI — SABIT LISTE (`KAPSAM_ALANLARI`), "tum alanlar" DEGIL:
-    gorseller · fiyat · baslik · aciklama · kategori · lisans · parametrik
+    gorseller · fiyat · eski_fiyat · baslik · aciklama · kategori · lisans · parametrik
   Gerekce: hepsi (a) MUSTERIYE GORUNUR ya da TICARI/HUKUKI (fiyat, lisans atfi),
   (b) ELLE ya da `duzelt.py` ile yazilan TEK-YAZARLI kararlardir — yani bir merge'in
   sessizce geri alabilecegi seylerdir.
@@ -181,7 +181,11 @@ BEKLENEN_GIRINTI = ("  ", "    ")
 
 # EKSEN 2 kapsami — SABIT liste; gerekce ve kapsam DISI alanlarin nedeni dosya
 # basligindadir. "Tum alanlar" YAPILMAZ (gurultu + maliyet + olu pozitif nobetci).
-KAPSAM_ALANLARI = ("gorseller", "fiyat", "baslik", "aciklama", "kategori",
+# `eski_fiyat` FIYAT EKSENIYLE AYNI SINIF: musteriye gorunur + TICARI (yaniltici
+# indirim), elle/`duzelt.py` ile yazilan TEK-YAZARLI karar, TURETILMIS artefakt DEGIL.
+# Bir merge onu eski degerine dondururse site bitmis bir kampanyayi gostermeye devam
+# eder ve hicbir yerde alarm calmaz -> kapsama girer.
+KAPSAM_ALANLARI = ("gorseller", "fiyat", "eski_fiyat", "baslik", "aciklama", "kategori",
                    "lisans", "parametrik")
 # Alan degerinin JSON serilestirmesinden atilan SAF YAPISAL satirlar.
 YAPISAL_SATIRLAR = frozenset(("{", "}", "[", "]"))
@@ -1235,8 +1239,11 @@ def kendini_test():
               and izin_eslesir("x", "fiyat", {"x#*"})
               and izin_eslesir("x", "fiyat", {"*#fiyat"})
               and not izin_eslesir("x", "fiyat", {"y#*", "*#gorseller", "x"}))
-        iddia("A17h kapsam SABIT liste (7 alan) — 'tum alanlar' DEGIL",
-              KAPSAM_ALANLARI == ("gorseller", "fiyat", "baslik", "aciklama",
+        # ⚠️ CIVI BILEREK: kapsam degisirse bu iddia KIRMIZI yanar ve ELLE ONAY ister
+        # (kapsam sessizce ne buyur ne kucultulur). 31 Tem: `eski_fiyat` eklendi —
+        # fiyat ekseniyle AYNI sinif (musteriye gorunur + ticari; yaniltici indirim).
+        iddia("A17h kapsam SABIT liste (8 alan) — 'tum alanlar' DEGIL",
+              KAPSAM_ALANLARI == ("gorseller", "fiyat", "eski_fiyat", "baslik", "aciklama",
                                   "kategori", "lisans", "parametrik"),
               KAPSAM_ALANLARI)
 
