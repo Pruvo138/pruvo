@@ -66,10 +66,16 @@ K3 (27 Tem) — "DEGISIKLIK YOK" != "YEDEK BAYAT": `--gerekliyse` GUNCEL yolu ar
   imza olculemezse dogrulama alani YAZILMAZ -> pano ⚪ OLCULEMEDI/BAYAT der. `kilitsiz`
   notu KOSUM-YEREL: dogrulama kosumu kilidi tuttuysa miras bayrak silinir.
 
+EK KAPSAM (31 Tem 2026, hesap tasima denetimi): artik YALNIZ KraL evi degil, BES+BIR
+evin tamami ve TUM hafiza uzaylari kapsanir -> `backup/ek/`. Ayrinti ve gerekce icin
+EK_EVLER sabitinin ustundeki blogu oku. Ozet kural: "git'te varsa yedekleme" (5 ev de
+uzak depoya itilmis), izlenmeyen + kirli + .git/hooks alinir, sir nobetinden gecer.
+
 Kullanim:
-    python3 tools/yedekle.py              # sirsiz (memory + skills + kaynak haritasi + .md)
+    python3 tools/yedekle.py              # sirsiz (memory + skills + kaynak haritasi + .md + ek)
     python3 tools/yedekle.py --kuru       # KURU KOSUM: ne kopyalanacagini listeler, YAZMAZ
     python3 tools/yedekle.py --gerekliyse # UCUZ MOD: son damgadan beri degisiklik yoksa CIKAR
+    python3 tools/yedekle.py --dogrula    # OLCUM: plandaki her dosya hedefte VAR MI (yazmaz)
     python3 tools/yedekle.py --sirlar     # + token + r2 creds (repo kokundeki sancakli liste)
     python3 tools/yedekle.py --sir-temizle  # hedefteki bayat sir kopyalarini SIL
 """
@@ -135,10 +141,127 @@ REPO_BEKLENEN = (".urun-kaynaklari.json", "AGENTS.md", "DEVAM.md", "DEVAM-ARSIV.
 REPO_SIR = (".thingiverse-token", ".r2-credentials.json", ".stl-backup-dir",
             ".onizleme-kapat-anahtar", ".mukerrer-istisna.json")
 
+# ============================ EK KAPSAM (31 Tem 2026) ========================
+# 🔴 NEDEN: hesap tasima denetiminde olculdu — bu betik 5 evin YALNIZ BIRINI
+# (KraL) ve o evin yalniz 4 kok dosyasini yedekliyordu. HICBIR DEPODA olmayan su
+# kalici bilgi TAMAMEN yedeksizdi:
+#   * 6 ayri hafiza uzayi (~/.claude/projects/*/memory) — advisor/bot/hasat/
+#     jenerator/pazarlama + eski Documents-pruvo. Yalnizca KraL'inki aliniyordu.
+#   * her evin .git/hooks'u (guard + pre-push; "commit EDILMEZ" kurali geregi
+#     git'te KOPYASI YOK) ve .claude/ kapi betikleri (mimar-icra-kapisi.py ...).
+#   * KraL'da raporlar/, .uyelik-kodlar/ (parametrik seri OpenSCAD kaynagi),
+#     .marka-kapsama.json, .stl-r2-manifest.json, tedarikci iskonto kurallari.
+#   * MaCiT'te 3 izlenmeyen DEVAM-*-MARIN.md, ArTisT'te gorseller/ (reklam
+#     kreatifleri), KaaN'da ciktilar/ + kalibrasyon (olculmus STL kuponlari).
+#
+# ILKE — "GIT'TE VARSA YEDEKLEME": her ev icin `git ls-files` bir kez okunur ve
+# IZLENEN dosyalar atlanir (5 evin hepsi uzak depoya ITILMIS: git zaten yedek).
+# Boylece 7,7 GB'lik `olcum/` icinden yalniz izlenmeyen betikler alinir, allowlist
+# dosya dosya sayilmak zorunda kalmaz ve yeni dosya kendiliginden kapsama girer.
+# DEGISTIRILMIS izlenen dosyalar AYRI klasore (KIRLI-IZLENEN) alinir: calisma
+# agacindaki o icerik henuz hicbir depoda yoktur.
+#
+# EVLER KOKE GORECE COZULUR (os.path.dirname(ROOT)), MUTLAK YAZILMAZ: yedekle-test
+# kum havuzu sahte bir ROOT kurar; mutlak yol yazsaydik test GERCEK evleri okur,
+# gercek veriyi kum havuzuna kopyalar ve dosya-sayisi kontrolleri kirilirdi.
+EK_KLASOR = "ek"                     # backup/ek/... — mevcut duzeni BOZMAZ
+
+# Ev -> yedeklenecek YOL LISTESI (dosya ya da dizin; dizin izlenmeyenleri icin gezilir).
+# Listede OLMAYAN her izlenmeyen giris "KAPSAM DISI" olarak RAPORLANIR (sessiz dusmez).
+EK_EVLER = {
+    "pruvo": (
+        ".claude/settings.json", ".claude/settings.local.json", ".claude/launch.json",
+        ".claude/commands", ".claude/skills", ".claude/R2-JETON-IPTAL-SPEC.md",
+        ".codex", "raporlar", "teslimler",
+        "tools/URUN-EKLEME-REHBERI.md", "tools/arastirma-sari-fiyat.md",
+        "tools/yedek-topolojisi-raporu.md", "taban-fiyatlar.js",
+        ".marka-kapsama.json", ".stl-r2-manifest.json", ".stl-eslesmeyen-manifest.json",
+        ".uyelik-kodlar", ".uyelik-parametreler.json", ".tedarikci-fiyat",
+        ".urunler-duzelt-izin.json", ".diriltme-izin.json", ".urunler-sil-izin.json",
+        "urun-kaynaklari.json", "_yayin-icerik-dizinleri.txt",
+        "worker-iyzico-webhook/worker.js", "worker-iyzico-webhook/wrangler.toml",
+        # Uyelik ureteci degisken adlari eslemi: TICARI VERI (sir degil, kimlik
+        # bilgisi degil). Kanonik kopyasi R2 `pruvo-ozel` kovasinda ama Drive'da
+        # yoktu -> R2 erisimi kesilirse parametrik onizleme derlemesi yeniden
+        # uretilemezdi. Ayni sinif: .uyelik-parametreler.json / .uyelik-kodlar/.
+        "onizleme/derleyici/eslem-ozel.json",
+    ),
+    "pruvo-pazarlama": (".claude", "gorseller"),
+    "pruvo-bot": (".claude",),
+    # 🔴 hasat/olcum GLOB ILE DARALTILDI: olcudu -> 13.838 izlenmeyen dosya / 6,06 GB.
+    # Bunlarin ezici cogunlugu platformlardan INDIRILMIS gorsel/STL (yeniden
+    # indirilebilir), kalici bilgi DEGIL. Kalici olan, elle yazilmis olcum/ayiklama
+    # betikleri ve tablolar: onlar uzantiyla alinir.
+    "pruvo-hasat": (".claude", "AGENTS.md",
+                    "olcum/*.py", "olcum/*.md", "olcum/*.json", "olcum/*.tsv",
+                    "kalibrasyon/*.tsv", "kalibrasyon/*.py", "kalibrasyon/*.md",
+                    "DEVAM-FAB365-3DEXPORT-MARIN.md", "DEVAM-GUMROAD-ETSY-MARIN.md",
+                    "DEVAM-PATREON-DIGER-MARIN.md"),
+    "pruvo-jenerator": (".claude", ".codex", "AGENTS.md", "ciktilar", "kalibrasyon",
+                        "referans", "dogrulama/hacim.js"),
+    "pruvo-advisor": (".claude", "AGENTS.md"),
+}
+
+# TURETILMIS/YENIDEN URETILEBILIR — kapsam disi raporunda GURULTU yapmasin diye
+# ADIYLA taninir. Bunlar "unutulmus" degil, BILEREK disarida: build.py ciktisi,
+# indirilmis onbellek, yerel wrangler durumu, log.
+EK_TURETILMIS = {
+    ".thing-cache", "urun", "sitemap.xml", "robots.txt", ".nojekyll", "stl",
+    ".wrangler", ".urunler-guard.log", ".DS_Store", "node_modules", "scratchpad",
+    "dist", "build", ".next", "__pycache__", ".venv",
+    # worktrees: git'ten yeniden uretilir, ICINDE tam bir repo kopyasi tasir.
+    "worktrees", "scratchpad_out",
+    # build.py / sayfalar.py ciktilari (gitignore'lu ama URETILMIS — kaynak degil):
+    "ozet.json", "filament-veri.js", "merchant-feed.xml", "index.built.html", "marka",
+}
+# Kilit/gecici dosyalar (icerigi yok, yedegi anlamsiz).
+EK_TURETILMIS_DESEN = ("*.lock", "*.tmp", "*.pyc", "*.log", ".dogrula-kilit",
+                       "*.yedek-oncesi", "*.pruvo-yedek-oncesi")
+
+# SIR KOKENI — yedeklenMEYEN kimlik bilgileri icin GERI KAZANIM haritasi.
+# 🔴 BURADA DEGER YOKTUR VE ASLA OLMAYACAK: yalniz "nereden yeniden alinir" ve
+# "saglanmazsa ne kirilir". Yeni hesapta yedekten donen bir sir DEGIL, kaynagindan
+# yeniden uretilen bir sir isteriz — yedege giren sir, yedegi paylasilamaz yapar
+# (hedef ORTAK Drive'dir; paylasim bir tiklamadir).
+SIR_KOKENI = {
+    ".r2-credentials.json": ("Cloudflare paneli > R2 > Manage API Tokens",
+                             "gorsel yukleme (r2-upload.py) durur; site gorselleri "
+                             "yayinlanamaz"),
+    ".thingiverse-token": ("Thingiverse geliştirici uygulama sayfasi",
+                           "Thingiverse metadata cekimi durur"),
+    ".cults3d-credentials.json": ("Cults3D hesap ayarlari",
+                                  "Cults3D kaynak cekimi durur"),
+    ".mmf-token": ("MyMiniFactory geliştirici anahtari",
+                   "MMF cekimi durur (platform zaten emekli)"),
+    ".gemini-key": ("Google AI Studio", "Gemini cagrilari durur (Gemini EMEKLI — "
+                    "yeni hesapta yeniden saglanmasi GEREKMEZ)"),
+    ".yonet-anahtar": ("shop worker yonetim anahtari — wrangler secret",
+                       "shop yonetim ucu kilitlenir"),
+    ".onizleme-kapat-anahtar": ("shop worker onizleme anahtari — wrangler secret",
+                                "onizleme kapatma ucu calismaz"),
+    ".stl-backup-dir": ("otomatik: drive_yolu.py mount'u tarayip kendi yazar",
+                        "hicbir sey — betik kendini duzeltir"),
+    ".dev.vars": ("wrangler yerel gizli degiskenleri (panelden yeniden girilir)",
+                  "shop worker'in yerel gelistirme kosumu calismaz"),
+    "secrets.local.txt": ("Cloudflare Workers secret'lari (wrangler secret put)",
+                          "Ege (bot) worker'i yerelde kosmaz"),
+    ".patreon-session-cookie": ("Patreon'a tarayicidan yeniden giris",
+                                "Patreon hasadi durur"),
+    "auth.json": ("ChatGPT/Codex girisi (codex login)", "Codex isci cagrilari durur"),
+}
+
+GIT_HOOK_KLASOR = "GIT-HOOKS"        # her evin .git/hooks'u (git'te ASLA yok)
+KIRLI_KLASOR = "KIRLI-IZLENEN"       # izlenen ama DEGISTIRILMIS dosyalarin kopyasi
+MEMORY_EVLER = "memory-evler"        # KraL disindaki hafiza uzaylari
+GENEL_AYAR_KLASOR = "claude-genel"   # ~/.claude/settings.json
+KAPSAM_DISI_ADI = "KAPSAM-DISI.txt"  # gorulen ama alinmayan girisler (gorunur bosluk)
+SIR_ENVANTER_ADI = "SIR-ENVANTERI.txt"  # sirlarin YOLU — DEGERI ASLA YAZILMAZ
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import drive_yolu
 
-BAYRAKLAR = {"--kuru", "--dry-run", "--gerekliyse", "--sirlar", "--sir-temizle", "-h", "--help"}
+BAYRAKLAR = {"--kuru", "--dry-run", "--gerekliyse", "--sirlar", "--sir-temizle",
+             "--dogrula", "-h", "--help"}
 
 # Tazelik damgasi — backup/ kokunde. durum.py panosu BU dosyayi okur (tek kaynak).
 DAMGA_ADI = ".son-yedek.json"
@@ -178,6 +301,10 @@ SIR_DESENLERI = (
     "*credential*", "*secret*", "*token*", "*passwd*", "*password*", "*apikey*",
     "*api-key*", "*api_key*", "*.pem", "*.key", "*.p12", "*.pfx", "*.jks",
     "*.keystore", "*.ppk", ".env.*", "*.env", "id_rsa*", "id_ed25519*", "*.asc",
+    # 31 Tem — EK KAPSAM ile birlikte: artik skills disindaki agaclar da bu nobetten
+    # geciyor (kardes evler, .claude/, .codex/). Oralardaki bilinen sir bicimleri:
+    "*.dev.vars", "*cookie*", "secrets.local*", "*auth.json", "*.credentials",
+    "*-key", "*_key", "*anahtar",
 )
 # Icerik imzalari: YUKSEK SINYAL olanlar (yanlis-pozitif ucuz degil ama fail-closed sectik).
 # (etiket, regex) -- rapora YALNIZ etiket girer, eslesen metin GIRMEZ.
@@ -200,10 +327,18 @@ def _gurultu_mu(ad):
 
 def _icerik_imzasi(yol):
     """Dosya icinde yuksek-sinyal kimlik imzasi varsa ETIKETINI dondurur, yoksa None.
-    Okunamayan dosya -> fail-closed: 'okunamadi' etiketi (yedege ALINMAZ)."""
+    Okunamayan dosya -> fail-closed: 'okunamadi' etiketi (yedege ALINMAZ).
+
+    🔴 IKI ASAMALI OKUMA (31 Tem): once 8 KiB bakilir; NUL varsa dosya IKILIDIR ve
+    GERISI OKUNMAZ. Eskiden 2 MiB'lik tam okuma NUL kontrolunden ONCE yapiliyordu;
+    ek kapsamla (yuzlerce JPG/PNG/STL) bu, plan hesabinda yuzlerce MB'lik bosuna
+    okuma demekti. Davranis AYNI: ikili dosya zaten None donuyordu."""
     try:
         with open(yol, "rb") as f:
-            ham = f.read(ICERIK_TARAMA_SINIRI)
+            bas = f.read(8192)
+            if b"\0" in bas:
+                return None    # ikili dosya: imza taramasi anlamsiz — GERISINI OKUMA
+            ham = bas + f.read(max(0, ICERIK_TARAMA_SINIRI - len(bas)))
     except Exception as e:
         return "okunamadi (%s)" % type(e).__name__
     if b"\0" in ham[:8192]:
@@ -328,6 +463,414 @@ def repo_eksikleri():
         if not os.path.exists(p) or os.path.islink(p):
             eksik.append(a)
     return eksik
+
+
+# ===================== EK KAPSAM: plan / kopyalama / dogrulama ===============
+
+def ev_yollari():
+    """Bilinen 5+1 evin TAM yolu — ROOT'un KARDESI olarak cozulur, mutlak YAZILMAZ.
+    Doner: [(ev_adi, tam_yol)] yalniz DIZIN OLARAK VAR OLANLAR.
+    Kum havuzunda (sahte ROOT) hicbiri bulunmaz -> ek kapsam kendini kapatir."""
+    taban = os.path.dirname(ROOT)
+    cikti = []
+    for ad in sorted(EK_EVLER):
+        yol = ROOT if os.path.basename(ROOT) == ad else os.path.join(taban, ad)
+        if os.path.isdir(os.path.join(yol, ".git")) or os.path.isfile(os.path.join(yol, ".git")):
+            cikti.append((ad, yol))
+    return cikti
+
+
+def ek_etkin_mi():
+    """Ek kapsam bu ortamda anlamli mi? (en az bir bilinen ev var mi)
+    GORUNUR karar: kapaliysa main() bunu BASAR, sessizce dusmez."""
+    return bool(ev_yollari())
+
+
+def _git_izlenenler(ev):
+    """Evin git'te IZLENEN dosyalari (gorece yol kumesi). Git yoksa bos kume."""
+    try:
+        p = subprocess.run(["git", "-C", ev, "ls-files", "-z"],
+                           capture_output=True, text=True)
+    except OSError:
+        return set()
+    if p.returncode != 0:
+        return set()
+    return set(x for x in p.stdout.split("\0") if x)
+
+
+def _git_kirliler(ev):
+    """Izlenen ama DEGISTIRILMIS/EKLENMIS dosyalar (gorece yol listesi).
+    Bu icerik henuz hicbir depoda YOK -> ayri klasore yedeklenir."""
+    try:
+        p = subprocess.run(["git", "-C", ev, "status", "--porcelain", "-uno", "-z"],
+                           capture_output=True, text=True)
+    except OSError:
+        return []
+    if p.returncode != 0:
+        return []
+    cikti = []
+    for kayit in p.stdout.split("\0"):
+        if len(kayit) > 3 and kayit[2] == " ":
+            yol = kayit[3:]
+            if os.path.isfile(os.path.join(ev, yol)):
+                cikti.append(yol)
+    return sorted(cikti)
+
+
+def _turetilmis_mi(ad):
+    if ad in EK_TURETILMIS:
+        return True
+    return any(fnmatch.fnmatch(ad, d) for d in EK_TURETILMIS_DESEN)
+
+
+def ek_ev_plani(ev, izlenenler=None):
+    """Bir evin EK yedek plani.
+
+    Doner: (dahil, haric, kapsam_disi)
+      dahil       : [(gorece kaynak yolu, gorece hedef yolu)]
+      haric       : [(gorece yol, sebep)]   -> SIR nobeti eledi (yedege GIRMEZ)
+      kapsam_disi : [gorece giris]          -> gorulen ama allowlist'te olmayan
+
+    KURAL: git'te IZLENEN dosya ALINMAZ (uzak depoda zaten var). Izlenen ama
+    KIRLI olan dosya KIRLI-IZLENEN/ altina alinir (calisma agacindaki o icerik
+    hicbir depoda yok). .git/hooks HER ZAMAN alinir (git'e giremez)."""
+    izlenenler = _git_izlenenler(ev) if izlenenler is None else izlenenler
+    ad = os.path.basename(ev)
+    izin = EK_EVLER.get(ad, ())
+    dahil, haric, kapsam_disi = [], [], []
+
+    def _dosya_ekle(gor, hedef_gor):
+        tam = os.path.join(ev, gor)
+        if os.path.islink(tam):
+            haric.append((gor, "symlink (hedefi agac disina cikabilir)"))
+            return
+        sebep = sir_sebebi(tam, os.path.basename(gor))
+        if sebep:
+            haric.append((gor, sebep))
+            return
+        dahil.append((gor, hedef_gor))
+
+    def _dizin_gez(taban, desen=None):
+        """taban altindaki IZLENMEYEN dosyalar; `desen` varsa gorece yola fnmatch."""
+        for dizin, altlar, dosyalar in os.walk(taban):
+            altlar[:] = sorted(a for a in altlar
+                               if a not in GURULTU_DIZIN and not _turetilmis_mi(a))
+            for dosya in sorted(dosyalar):
+                gor = os.path.relpath(os.path.join(dizin, dosya), ev)
+                if gor in izlenenler or _turetilmis_mi(dosya) or _gurultu_mu(dosya):
+                    continue
+                if desen and not fnmatch.fnmatch(gor, desen):
+                    continue
+                _dosya_ekle(gor, gor)
+
+    for giris in izin:
+        # GLOB DESTEGI: "olcum/*.py" gibi girisler agir dizinleri UZANTIYLA daraltir.
+        # Olculdu: hasat/olcum'da 13.838 izlenmeyen dosya / 6,06 GB var ve neredeyse
+        # tamami YENIDEN INDIRILEBILIR gorsel; kalici olan yalniz elle yazilmis betikler.
+        if "*" in giris or "?" in giris:
+            onek = giris.split("*")[0].split("?")[0].rstrip("/")
+            taban = os.path.join(ev, os.path.dirname(onek) if "/" in onek else onek)
+            if not os.path.isdir(taban):
+                taban = os.path.join(ev, os.path.dirname(giris))
+            if os.path.isdir(taban):
+                _dizin_gez(taban, desen=giris)
+            continue
+        tam = os.path.join(ev, giris)
+        if os.path.isfile(tam):
+            if giris in izlenenler:
+                continue                       # git'te var -> yedege gerek yok
+            _dosya_ekle(giris, giris)
+        elif os.path.isdir(tam):
+            _dizin_gez(tam)
+
+    # .git/hooks — "hook'lar commit EDILMEZ" kurali geregi git'te KOPYASI YOK.
+    kancalar = os.path.join(ev, ".git", "hooks")
+    if os.path.isdir(kancalar):
+        for dosya in sorted(os.listdir(kancalar)):
+            if dosya.endswith(".sample"):
+                continue
+            tam = os.path.join(kancalar, dosya)
+            if not os.path.isfile(tam) or os.path.islink(tam):
+                continue
+            sebep = sir_sebebi(tam, dosya)
+            if sebep:
+                haric.append((".git/hooks/" + dosya, sebep))
+                continue
+            dahil.append((os.path.join(".git", "hooks", dosya),
+                          os.path.join(GIT_HOOK_KLASOR, dosya)))
+
+    # KIRLI izlenen dosyalar — calisma agacindaki icerik henuz depoda yok.
+    for gor in _git_kirliler(ev):
+        tam = os.path.join(ev, gor)
+        if os.path.islink(tam):
+            continue
+        sebep = sir_sebebi(tam, os.path.basename(gor))
+        if sebep:
+            haric.append((gor + " (kirli)", sebep))
+            continue
+        dahil.append((gor, os.path.join(KIRLI_KLASOR, gor)))
+
+    # KAPSAM DISI KESFI — kok seviyesindeki izlenmeyen girisler allowlist'te mi?
+    # Amac: yeni bir kalici bilgi turu ortaya cikinca SESSIZ kalmasin. Bu yuzden
+    # gurultuyu (uretilmis sayfa, bos dizin, bilinen sir) ELEYIP kalanini basiyoruz;
+    # gurultulu liste okunmaz, okunmayan liste bosluk gizler.
+    izin_kok = set(g.split("/")[0] for g in izin)
+    try:
+        girisler = sorted(os.listdir(ev))
+    except OSError:
+        girisler = []
+    for giris in girisler:
+        if giris in izin_kok or giris == ".git" or _turetilmis_mi(giris):
+            continue
+        if giris in izlenenler or any(x.startswith(giris + "/") for x in izlenenler):
+            continue                            # git'te var -> bosluk DEGIL
+        if ev == ROOT and (giris in REPO_BEKLENEN or giris in REPO_SIR):
+            continue                            # ana yedek zaten aliyor
+        tam = os.path.join(ev, giris)
+        if os.path.islink(tam):
+            continue                            # symlink: hedefi zaten ayrica degerlendirilir
+        # BILINEN SIR: bosluk degil, ENVANTER kalemi (deger ASLA kopyalanmaz/yazilmaz).
+        sebep = sir_sebebi(tam, giris) if os.path.isfile(tam) else None
+        if sebep:
+            haric.append((giris, sebep))
+            continue
+        if os.path.isdir(tam):
+            try:
+                icerik = os.listdir(tam)
+            except OSError:
+                icerik = []
+            if not icerik:
+                continue                        # bos dizin: yedeklenecek bilgi yok
+            # build.py ciktisi: SEO acilis sayfasi dizini (yalniz index.html).
+            if set(icerik) <= {"index.html", ".DS_Store"}:
+                continue
+        kapsam_disi.append(giris)
+    return dahil, sorted(haric), kapsam_disi
+
+
+def ek_memory_kokleri():
+    """KraL disindaki hafiza uzaylari: [(namespace, memory yolu)].
+    MEMORY (KraL) haric tutulur — o zaten backup/memory'ye aliniyor."""
+    projeler = os.path.dirname(os.path.dirname(MEMORY))   # ~/.claude/projects
+    cikti = []
+    if not os.path.isdir(projeler):
+        return cikti
+    for ad in sorted(os.listdir(projeler)):
+        yol = os.path.join(projeler, ad, "memory")
+        if os.path.isdir(yol) and os.path.abspath(yol) != os.path.abspath(MEMORY):
+            cikti.append((ad, yol))
+    return cikti
+
+
+def _kopyala_gerekliyse(kaynak, varis):
+    """Idempotent kopya: hedef AYNI boyut ve >= mtime ise DOKUNMAZ.
+    Doner: True = kopyalandi, False = zaten guncel.
+    🔴 NEDEN: ek kapsam yuzlerce MB gorsel/STL tasiyor ve bu betik HER push'ta
+    kosuyor. Kosulsuz copy2 her push'u Drive'a yuzlerce MB yazmaya zorlardi."""
+    try:
+        k = os.stat(kaynak)
+        h = os.stat(varis)
+        if k.st_size == h.st_size and int(k.st_mtime) <= int(h.st_mtime):
+            return False
+    except OSError:
+        pass
+    os.makedirs(os.path.dirname(varis), exist_ok=True)
+    shutil.copy2(kaynak, varis)
+    return True
+
+
+def ek_yaz(backup):
+    """EK KAPSAMI hedefe yazar. Doner: sayilar dict'i.
+
+    Sir DEGERI hicbir yere yazilmaz: elenen dosyalarin YALNIZ yolu ve SEBEP SINIFI
+    envantere girer (sir_sebebi metni kural/imza sinifi tasir, icerik TASIMAZ)."""
+    kok = os.path.join(backup, EK_KLASOR)
+    sayilar = {"ek_dosya": 0, "ek_yeni": 0, "ek_haric": 0, "ek_memory": 0,
+               "ek_ev": 0, "ek_kapsam_disi": 0}
+    envanter = []
+    kapsam_disi_rapor = []
+
+    for ad, ev in ev_yollari():
+        dahil, haric, kapsam_disi = ek_ev_plani(ev)
+        hedef_ev = os.path.join(kok, "evler", ad)
+        for gor, hedef_gor in dahil:
+            try:
+                yazildi = _kopyala_gerekliyse(os.path.join(ev, gor),
+                                              os.path.join(hedef_ev, hedef_gor))
+            except (OSError, shutil.Error) as e:
+                print("  ⚠️ EK: kopyalanamadi %s/%s (%s)" % (ad, gor, type(e).__name__))
+                continue
+            sayilar["ek_dosya"] += 1
+            sayilar["ek_yeni"] += 1 if yazildi else 0
+        sayilar["ek_haric"] += len(haric)
+        sayilar["ek_ev"] += 1
+        for gor, sebep in haric:
+            envanter.append("%s/%s   -> SEBEP: %s" % (ad, gor, sebep))
+        for giris in kapsam_disi:
+            kapsam_disi_rapor.append("%s/%s" % (ad, giris))
+        sayilar["ek_kapsam_disi"] += len(kapsam_disi)
+        print("  EK ev: %-16s %4d dosya (%d yeni), %d sir-disi, %d kapsam-disi"
+              % (ad, len(dahil), sayilar["ek_yeni"], len(haric), len(kapsam_disi)))
+
+    # Diger hafiza uzaylari — 5 evin en kritik varligi, hicbir depoda YOK.
+    for ns, yol in ek_memory_kokleri():
+        for dizin, altlar, dosyalar in os.walk(yol):
+            altlar[:] = [a for a in altlar if a not in GURULTU_DIZIN]
+            for dosya in sorted(dosyalar):
+                if _gurultu_mu(dosya):
+                    continue
+                kaynak = os.path.join(dizin, dosya)
+                gor = os.path.relpath(kaynak, yol)
+                try:
+                    if _kopyala_gerekliyse(kaynak, os.path.join(kok, MEMORY_EVLER, ns, gor)):
+                        sayilar["ek_yeni"] += 1
+                    sayilar["ek_memory"] += 1
+                    sayilar["ek_dosya"] += 1
+                except (OSError, shutil.Error):
+                    pass
+    if sayilar["ek_memory"]:
+        print("  EK hafiza uzaylari: %d dosya, %d uzay"
+              % (sayilar["ek_memory"], len(ek_memory_kokleri())))
+
+    # ~/.claude/settings.json — makine geneli izin/hook ayari (sir nobetinden gecer)
+    genel = os.path.join(os.path.dirname(os.path.dirname(MEMORY)), "..", "settings.json")
+    genel = os.path.abspath(genel)
+    if os.path.isfile(genel):
+        sebep = sir_sebebi(genel, os.path.basename(genel))
+        if sebep:
+            envanter.append("%s   -> SEBEP: %s" % (genel, sebep))
+            sayilar["ek_haric"] += 1
+        else:
+            try:
+                if _kopyala_gerekliyse(genel, os.path.join(kok, GENEL_AYAR_KLASOR,
+                                                           "settings.json")):
+                    sayilar["ek_yeni"] += 1
+                sayilar["ek_dosya"] += 1
+            except (OSError, shutil.Error):
+                pass
+
+    # GORUNUR BOSLUK: alinmayanlar dosyaya yazilir. BOSSA DOSYA YAZILMAZ.
+    _ek_rapor_yaz(kok, KAPSAM_DISI_ADI, kapsam_disi_rapor,
+                  "EK KAPSAM DISI — gorulen ama yedege ALINMAYAN girisler.\n"
+                  "Turetilmis/yeniden uretilebilir olanlar zaten elenmistir; burada\n"
+                  "kalanlar GOZDEN GECIRILMELIDIR (deger tasiyorsa EK_EVLER'e ekle).\n")
+    _ek_rapor_yaz(kok, SIR_ENVANTER_ADI, envanter,
+                  "SIR ENVANTERI — bu dosyalar SIR TASIDIGI icin yedege ALINMADI.\n"
+                  "🔴 BURADA YALNIZ YOL VE SEBEP SINIFI VARDIR; SIRRIN DEGERI YOKTUR.\n"
+                  "Yeni hesapta bunlar KAYNAGINDAN yeniden saglanmalidir.\n"
+                  + _geri_kazanim_metni())
+    return sayilar
+
+
+def _geri_kazanim_metni():
+    """Envanterin basligina eklenen GERI KAZANIM tablosu + yol bagimliligi uyarisi.
+    Deger TASIMAZ; yalniz kaynak ve kirilma sonucu."""
+    satirlar = ["", "GERI KAZANIM — nereden yeniden alinir / saglanmazsa ne kirilir:"]
+    for ad in sorted(SIR_KOKENI):
+        kaynak, kirilan = SIR_KOKENI[ad]
+        satirlar.append("  %-28s kaynak: %s" % (ad, kaynak))
+        satirlar.append("  %-28s kirilir: %s" % ("", kirilan))
+    satirlar += [
+        "",
+        "⚠️ YOL BAGIMLILIGI (tasima riski): depolar ~/dev/pruvo… DISINA kurulursa",
+        "   hafiza namespace yolu (~/.claude/projects/-Users-okan-dev-<ev>), launchd",
+        "   plist'i ve izin satirlari KIRILIR; kurumsal bellek SESSIZCE gorunmez olur.",
+        "   Geri yuklerken evleri AYNI yola kur ya da namespace adlarini elle esle.",
+        "",
+        "🔧 HOOK'LAR KLONLAMAYLA GELMEZ: yeni makinede",
+        "   python3 tools/yedek-hook-kur.py --geri-yukle",
+        "   (kanit: --kendini-test  ->  bos klonda kurulum + kapinin atesledigi olculur)",
+        "",
+    ]
+    return "\n".join(satirlar) + "\n"
+
+
+def _ek_rapor_yaz(kok, ad, satirlar, basli):
+    """Rapor dosyasi — SATIR YOKSA DOSYA DA YOK (bos dosya sahte is izlenimi verir
+    ve izole test ortaminda beklenmedik dosya sayisi yaratir)."""
+    yol = os.path.join(kok, ad)
+    if not satirlar:
+        try:
+            os.remove(yol)
+        except OSError:
+            pass
+        return
+    try:
+        os.makedirs(kok, exist_ok=True)
+        with open(yol, "w", encoding="utf-8") as f:
+            f.write(basli)
+            f.write("olculdu: %s\n" % time.strftime("%Y-%m-%d %H:%M:%S"))
+            f.write("-" * 70 + "\n")
+            for s in satirlar:
+                f.write(s + "\n")
+    except OSError as e:
+        print("  NOT: %s yazilamadi (%s)" % (ad, e))
+
+
+def ek_dogrula(backup, ornek=8):
+    """--dogrula: PLANDAKI her dosya hedefte GERCEKTEN var mi, boyutu tutuyor mu?
+    Ayrica `ornek` kadar dosyada sha256 karsilastirir. Doner: (rapor dict, kirmizi).
+    IDDIA DEGIL OLCUM: 'yedeklendi' demek yerine hedefi okur."""
+    import hashlib
+    kok = os.path.join(backup, EK_KLASOR)
+    plan = []
+    for ad, ev in ev_yollari():
+        dahil, _h, _k = ek_ev_plani(ev)
+        for gor, hedef_gor in dahil:
+            plan.append((os.path.join(ev, gor),
+                         os.path.join(kok, "evler", ad, hedef_gor)))
+    for ns, yol in ek_memory_kokleri():
+        for dizin, altlar, dosyalar in os.walk(yol):
+            altlar[:] = [a for a in altlar if a not in GURULTU_DIZIN]
+            for dosya in sorted(dosyalar):
+                if _gurultu_mu(dosya):
+                    continue
+                kaynak = os.path.join(dizin, dosya)
+                plan.append((kaynak, os.path.join(kok, MEMORY_EVLER, ns,
+                                                  os.path.relpath(kaynak, yol))))
+    # ANA yedek (memory + skills + repo) de dogrulanir — ek degil, ASIL is.
+    if os.path.isdir(MEMORY):
+        for dizin, altlar, dosyalar in os.walk(MEMORY):
+            altlar[:] = [a for a in altlar if a not in GURULTU_DIZIN]
+            for dosya in dosyalar:
+                kaynak = os.path.join(dizin, dosya)
+                plan.append((kaynak, os.path.join(backup, "memory",
+                                                  os.path.relpath(kaynak, MEMORY))))
+    for gor in skills_plani()[0]:
+        plan.append((os.path.join(SKILLS, gor), os.path.join(backup, "skills", gor)))
+    for ad in _repo_dosyalari(sirlar=False):
+        plan.append((os.path.join(ROOT, ad), os.path.join(backup, ad)))
+
+    eksik, boyut_farki, sha_farki, tamam, bayt = [], [], [], 0, 0
+    for kaynak, varis in plan:
+        try:
+            k = os.stat(kaynak)
+        except OSError:
+            continue                     # kaynak kayboldu (yaris) -> sayma
+        try:
+            h = os.stat(varis)
+        except OSError:
+            eksik.append(varis)
+            continue
+        if k.st_size != h.st_size:
+            boyut_farki.append("%s  (kaynak %d B / yedek %d B)"
+                               % (varis, k.st_size, h.st_size))
+            continue
+        tamam += 1
+        bayt += h.st_size
+    adim = max(1, len(plan) // max(1, ornek))
+    for kaynak, varis in plan[::adim][:ornek]:
+        try:
+            with open(kaynak, "rb") as f:
+                a = hashlib.sha256(f.read()).hexdigest()
+            with open(varis, "rb") as f:
+                b = hashlib.sha256(f.read()).hexdigest()
+        except OSError:
+            continue
+        sha_farki.append((os.path.basename(varis), a[:16], a == b))
+    return ({"plan": len(plan), "tamam": tamam, "bayt": bayt, "eksik": eksik,
+             "boyut_farki": boyut_farki, "sha": sha_farki},
+            bool(eksik or boyut_farki or [x for x in sha_farki if not x[2]]))
 
 
 def kilit_yolu():
@@ -726,6 +1269,46 @@ def kaynak_imzasi(sirlar=False):
         bayt += st.st_size
         if enyeni is None or st.st_mtime > enyeni:
             enyeni = st.st_mtime
+    # 🔴 EK KAPSAM DA IMZAYA GIRER (31 Tem): girmezse `--gerekliyse` bir kardes evdeki
+    # degisikligi GORMEZ ve "guncel" deyip atlar -> ek kapsam SESSIZCE bayatlar; tam da
+    # bu betigin varlik sebebi olan sessiz-hata sinifi. Burada IZLENEN dosyalar da
+    # sayilir (git ls-files cagirmadan): imza yalnizca DEGISIKLIK SEZICISIDIR, kopya
+    # karari degil -> fazladan hassasiyet fail-open yonundedir (bosuna yedekler, atlamaz).
+    if ek_etkin_mi():
+        ek_kokler = []
+        for _ad, ev in ev_yollari():
+            for giris in EK_EVLER.get(os.path.basename(ev), ()):
+                ek_kokler.append(os.path.join(ev, giris))
+            ek_kokler.append(os.path.join(ev, ".git", "hooks"))
+        for _ns, yol in ek_memory_kokleri():
+            ek_kokler.append(yol)
+        ek_kokler.append(os.path.abspath(
+            os.path.join(os.path.dirname(os.path.dirname(MEMORY)), "..", "settings.json")))
+        for kok in ek_kokler:
+            if os.path.isfile(kok):
+                try:
+                    st = os.stat(kok)
+                except OSError:
+                    continue
+                adet += 1
+                bayt += st.st_size
+                if enyeni is None or st.st_mtime > enyeni:
+                    enyeni = st.st_mtime
+                continue
+            if not os.path.isdir(kok):
+                continue
+            for dizin, altlar, dosyalar in os.walk(kok):
+                altlar[:] = [a for a in altlar
+                             if a not in GURULTU_DIZIN and not _turetilmis_mi(a)]
+                for ad in dosyalar:
+                    try:
+                        st = os.stat(os.path.join(dizin, ad))
+                    except OSError:
+                        continue
+                    adet += 1
+                    bayt += st.st_size
+                    if enyeni is None or st.st_mtime > enyeni:
+                        enyeni = st.st_mtime
     if enyeni is None:
         return None                      # hicbir kaynak okunamadi -> OLCULEMEDI
     return {"adet": adet, "bayt": bayt, "mtime": enyeni}
@@ -799,6 +1382,28 @@ def main():
     sirlar = "--sirlar" in sys.argv
     sir_temizle = "--sir-temizle" in sys.argv
 
+    # ---- DOGRULAMA KOSUMU: hicbir sey yazmaz, hedefi OLCER -----------------
+    if "--dogrula" in sys.argv:
+        pruvo_drive = drive_yolu.pruvo_dizini()
+        if not pruvo_drive:
+            print("DOGRULANAMADI — Drive yolu cozulemedi.", file=sys.stderr)
+            return 1
+        backup = os.path.join(pruvo_drive, "backup")
+        rapor, kirmizi = ek_dogrula(backup)
+        print("DOGRULAMA — hedef: " + backup)
+        print("  planda %d dosya; hedefte BOYUTU TUTAN %d dosya, %d bayt"
+              % (rapor["plan"], rapor["tamam"], rapor["bayt"]))
+        print("  EKSIK: %d   BOYUT FARKI: %d" % (len(rapor["eksik"]), len(rapor["boyut_farki"])))
+        for y in rapor["eksik"][:20]:
+            print("    EKSIK: " + y)
+        for y in rapor["boyut_farki"][:20]:
+            print("    FARK : " + y)
+        for ad, sha, esit in rapor["sha"]:
+            print("    sha256 %s %s  %s" % ("ESIT " if esit else "FARKLI", sha, ad))
+        print("SONUC: " + ("🔴 KIRMIZI — yedek EKSIK/BOZUK" if kirmizi
+                           else "✅ YESIL — plandaki her dosya hedefte, boyutlar tutuyor"))
+        return 1 if kirmizi else 0
+
     dahil, haric, gurultu = skills_plani()
 
     # ---- KURU KOSUM: hicbir sey yazma, sadece plani bas -------------------
@@ -830,9 +1435,27 @@ def main():
         print("[repo-EKSIK (beklenen ama yok)] %d" % len(eksik))
         for a in eksik:
             print("    %s   -> KISMI YEDEK: damga 'tam: false' olur" % a)
+        # ---- EK KAPSAM (kardes evler + diger hafiza uzaylari) --------------
+        ek_toplam = 0
+        if not ek_etkin_mi():
+            print("[EK KAPSAM] KAPALI — bilinen kardes ev bulunamadi (kok: %s)" % ROOT)
+        else:
+            for ad, ev in ev_yollari():
+                e_dahil, e_haric, e_disi = ek_ev_plani(ev)
+                ek_toplam += len(e_dahil)
+                print("[ek/%s] %d dosya  <- %s" % (ad, len(e_dahil), ev))
+                for g, sebep in e_haric:
+                    print("    %s   -> SIR NOBETI ELEDI: %s" % (g, sebep))
+                for g in e_disi:
+                    print("    %s   -> KAPSAM DISI (gozden gecir)" % g)
+            for ns, yol in ek_memory_kokleri():
+                n = len(_agac_dosyalari(yol))
+                ek_toplam += n
+                print("[ek/memory-evler/%s] %d dosya" % (ns, n))
         print("-" * 70)
-        print("TOPLAM YEDEKLENECEK: %d dosya (memory %d + skills %d + repo %d)"
-              % (len(mem) + len(dahil) + len(repo), len(mem), len(dahil), len(repo)))
+        print("TOPLAM YEDEKLENECEK: %d dosya (memory %d + skills %d + repo %d + ek %d)"
+              % (len(mem) + len(dahil) + len(repo) + ek_toplam,
+                 len(mem), len(dahil), len(repo), ek_toplam))
         if haric:
             print("SIR NOBETI: %d dosya paket DISINDA birakilacak." % len(haric))
         damga = damga_oku(hedef) if hedef else None
@@ -981,6 +1604,18 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
                 print("yedek (SIR):", name)
         print("NOT: bu klasoru kimseyle PAYLASMA — sir icerir.")
 
+    # ---- EK KAPSAM: 5+1 evin izlenmeyen kalici bilgisi + diger hafiza uzaylari ----
+    # Kum havuzunda (sahte ROOT) kardes ev YOKTUR -> faz kendini kapatir ve bunu BASAR.
+    ek_sayilar = {}
+    if ek_etkin_mi():
+        print("EK KAPSAM:")
+        ek_sayilar = ek_yaz(backup)
+        print("  EK TOPLAM: %d dosya (%d yeni/degismis), %d sir-disi, %d kapsam-disi"
+              % (ek_sayilar["ek_dosya"], ek_sayilar["ek_yeni"],
+                 ek_sayilar["ek_haric"], ek_sayilar["ek_kapsam_disi"]))
+    else:
+        print("EK KAPSAM: KAPALI — bilinen kardes ev yok (kok: %s)" % ROOT)
+
     # TAZELIK DAMGASI — en sonda: yalniz kosum GERCEKTEN tamamlandiysa yazilir.
     # (Basta yazilsaydi yarida patlayan bir kosum "taze" gorunurdu = sahte guven.)
     eksik = repo_eksikleri()
@@ -988,9 +1623,11 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
         print("⚠️ KISMI YEDEK — repo kokunde BULUNAMAYAN beklenen dosya(lar): %s"
               % ", ".join(eksik))
         print("   kok: %s   (damga 'tam: false' isaretlenecek, pano TAZE SAYMAYACAK)" % ROOT)
-    damga_yaz(backup, {"memory": len(_agac_dosyalari(MEMORY)),
-                       "skills": yazilan, "skills_haric": len(haric),
-                       "repo": len(repo_adlari)}, eksik=eksik,
+    sayilar = {"memory": len(_agac_dosyalari(MEMORY)),
+               "skills": yazilan, "skills_haric": len(haric),
+               "repo": len(repo_adlari)}
+    sayilar.update(ek_sayilar)
+    damga_yaz(backup, sayilar, eksik=eksik,
               baslangic=baslangic, kilitsiz=kilitsiz, imza=bas_imza)
 
     print("bitti ->", backup)
