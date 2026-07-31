@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 /**
- * PRUVO — ANA SAYFA VITRIN SIRALAMA KABUL TESTI (Okan kurali, 31 Tem 2026)
+ * PRUVO — ANA SAYFA VITRIN HIYERARSISI KABUL TESTI (Okan kurali, 31 Tem 2026)
  *
  *   node tools/vitrin-siralama-test.js
  *
- * KURAL (Okan): "Ev, Dekorasyon, Ofis kategorilerine eklenen urunler ana sayfada ilk 20
- * siradan sonra gosterilsin." Yorum: ana sayfanin ILK 20 KARTINDA bu uc kategoriden urun
- * BULUNMAZ; 21. siradan itibaren normal sekilde gorunurler. Urun ELENMEZ, geri itilir.
+ * KURAL (Okan): "ana sayfanin ilk 4'lu sirasi jenerator urunlere, sonraki 20 4'lu sirasi
+ * marin urunlere, sonraki 20 4'lu sirasi otomobile, geri kalani tum kategorilere ayrilsin.
+ * tum ana sayfa urunleri her sayfa yenilenmesinde kendi hiyerarsisi icinde random
+ * siralansin." MIMAR YORUMU (karara baglandi): "4'lu sira" = SABIT KART SAYISI (DOM satiri
+ * degil; grid responsive) -> slot 0-3 Jenerator · 4-83 Marin · 84-163 Otomobil · 164+
+ * KARISIK tek havuz. Rastgelelik YALNIZ filtresiz ana vitrinde. Urun ELENMEZ.
  *
  * NEDEN BU TEST VAR (hatanin SESSIZLIGI): ana sayfa kartlari ziyaretciye DORT ayri
  * besleme yolundan gelebiliyor —
@@ -17,42 +20,38 @@
  * Kural yollardan yalnizca birine konsaydi vitrin bazi ziyaretcide dogru, bazisinda
  * yanlis gorunur ve KIMSE FARK ETMEZDI. Bu test dort yolu da AYRI AYRI olcer.
  *
- * IKI EKSEN (31 Tem, derleme-ani sira eklendikten sonra):
- *   ISTEMCI EKSENI (test 1..8) — index.html vitrinSirala(): elindeki listeyi yeniden
- *     dizer. Dort besleme yolunun HEPSINDE durur ve durmalidir.
- *   DERLEME EKSENI (test 10) — tools/build.py render_ozet(): vitrin sirasini TUM katalog
- *     uzerinde onceden hesaplayip ozet.json'a HAZIR yazar. Gerekcesi olculdu: ilk boyama
- *     ozet'ten yalnizca PAGE_SIZE kart aliyor; katalogun basinda kesintisiz hedef-kategori
- *     blogu olusunca (98 urunluk blok) o pencerede 20 hedef-disi urun KALMIYOR, istemci
- *     siralayicisi YOKTAN urun uretemiyordu. Derleme ekseni ozeti GERCEK build.py ile
- *     uretir (kural JS'e KOPYALANMAZ) ve iki eksenin BIRBIRINI BOZMADIGINI (permutasyon
- *     etkisiz-tekrarli) ayri iddialarla kanitlar.
+ * IKI EKSEN:
+ *   ISTEMCI EKSENI — index.html vitrinSirala(liste, seed): blok duzenini kurar, her blogu
+ *     KENDI ICINDE seed'li karistirir. Seed sayfa yuklemesinde BIR KEZ uretilir ve
+ *     sayfalama boyunca SABIT kalir.
+ *   DERLEME EKSENI — tools/build.py render_ozet(): SIRALAMAZ, yalnizca blok HAVUZLARINI
+ *     ozet.json'a yazar (sirayi derlemede sabitlemek "her yenilemede random"i oldururdu).
  *
  * NASIL: index.html'in inline scripti node:vm icinde minimal DOM + URL-duyarli sahte
  * fetch ile GERCEKTEN calistirilir (jenerator/test/vitrin-kabul.js ve
  * shop/test/sepet-panel.js deseni). Kod KOPYALANMAZ — canli dosyanin kendisi kosar.
+ * ozet.json da KOPYA kuralla degil GERCEK build.py ile uretilir.
  *
- * ⚠️ FIKSTUR, CANLI KATALOG DEGIL: bugunku urunler.json'da hedef kategorilerden
- * (Ev 59, Dekorasyon 7, Ofis 4 / 15.210) ilk 28 kartta HIC urun YOK — canli veriyle
- * yazilan bir iddia BOS (vacuous) olurdu ve kural bozulsa bile yesil yanardi. O yuzden
- * her iddia SENTETIK fikstur uzerinde olculur ve fiksturun BOS OLMADIGI ayrica
- * kanitlanir (test 1'in "ham sira" karsi-olcumu).
+ * ⚠️ FIKSTUR, CANLI KATALOG DEGIL: her iddia SENTETIK fikstur uzerinde olculur ve
+ * fiksturun BOS OLMADIGI ayrica kanitlanir (karsi-olcumler). Canli katalog yalnizca
+ * uctan uca iddiada (son test) kullanilir.
  *
- * ⚠️ BAGIMSIZ CAPA: hedef kategori adlari ve slot sayisi index.html'den OKUNMAZ, burada
- * ELLE sabittir. Iki taraf ayni kaynaktan okusaydi kural sessizce degistirilebilir ve
- * test yine yesil yanardi ([[kapi-anchor-coupling-ikilemi]]). Kural degisirse bu dosya
+ * ⚠️ BAGIMSIZ CAPA: blok duzeni (kategori + adet) index.html'den OKUNMAZ, burada ELLE
+ * sabittir (SLOT_DUZEN). Iki taraf ayni kaynaktan okusaydi kural sessizce degistirilebilir
+ * ve test yine yesil yanardi ([[kapi-anchor-coupling-ikilemi]]). Kural degisirse bu dosya
  * KIRMIZI yanar ve elle onay ister.
  *
  * NE IDDIA EDILMEZ: arama SEMANTIGI (tek kaynak tools/parite-test.js + parite-ege.js),
- * Worker/D1'in kendi sirasi (pruvo-bot duzlemi), SEO/sitemap.
+ * Worker/D1'in kendi sirasi (pruvo-bot duzlemi), SEO/sitemap, ozet.json BAYT BUTCESI
+ * (tools/faz3-yuk.js).
  *
  * MUTASYON KANITI:  node tools/vitrin-siralama-test.js --index /gecici/mutant-index.html
  *                   node tools/vitrin-siralama-test.js --build tools/mutant-build.py
  * Bayraklar YALNIZ hangi index.html / hangi build.py'nin OLCULDUGUNU degistirir
- * (varsayilan: gercek dosyalar); hicbir iddiayi gevsetmez. Boylece kural KOPYA uzerinde
- * bozulup iddialarin KIRMIZI yandigi, canli dosyalara DOKUNMADAN kanitlanir.
+ * (varsayilan: gercek dosyalar); hicbir iddiayi gevsetmez.
  * (--build ile verilen kopya tools/ icinde durmali: build.py kardes modullerini ve
- * ROOT'u kendi konumundan turetiyor.)
+ * ROOT'u kendi konumundan turetiyor. build.py kurali HER ZAMAN gercek index.html'den
+ * okur; --index yalnizca ISTEMCI kolunu mutasyonlar.)
  */
 
 "use strict";
@@ -68,8 +67,6 @@ function _bayrak(ad, varsayilan) {
   const i = process.argv.indexOf(ad);
   return i !== -1 && process.argv[i + 1] ? path.resolve(process.argv[i + 1]) : varsayilan;
 }
-// --index / --build: YALNIZ mutasyon kaniti icin (hangi dosya olculecek). Varsayilan
-// GERCEK dosyalar; bayraklar hicbir iddiayi gevsetmez.
 const INDEX_YOL = _bayrak("--index", path.join(KOK, "index.html"));
 const BUILD_YOL = _bayrak("--build", path.join(KOK, "tools", "build.py"));
 const INDEX = fs.readFileSync(INDEX_YOL, "utf8");
@@ -84,8 +81,16 @@ if (!SCRIPT) {
 }
 
 // 🔴 BAGIMSIZ CAPA — index.html'den okunmaz (yukaridaki gerekce).
-const HEDEF = ["Ev", "Dekorasyon", "Ofis"];
-const SLOT = 20;
+const SLOT_DUZEN = [
+  { kategori: "Jeneratör", adet: 4 },
+  { kategori: "Marin", adet: 80 },
+  { kategori: "Otomobil", adet: 80 },
+];
+const ON_TOPLAM = SLOT_DUZEN.reduce((t, b) => t + b.adet, 0);   // 164
+// Eski kuralin (31 Tem sabahi) korudugu deger: bu uc kategori vitrinin BASINDA olmaz.
+// Yeni kural onu YUTUYOR (ilk 164 slot zaten Jenerator/Marin/Otomobil) — ama deger
+// KAYBOLMASIN diye AYRI iddiayla olculur.
+const GERI_KATEGORILER = ["Ev", "Dekorasyon", "Ofis"];
 
 const EDGE_UC = (INDEX.match(/var\s+EDGE_UC\s*=\s*"([^"]+)"/) || [])[1];
 const PAGE_SIZE = Number((INDEX.match(/var\s+PAGE_SIZE\s*=\s*(\d+)/) || [])[1]);
@@ -93,7 +98,16 @@ if (!EDGE_UC || !PAGE_SIZE) {
   console.error("OLCULEMEDI: index.html'de EDGE_UC / PAGE_SIZE bulunamadi.");
   process.exit(2);
 }
-const hedefMi = (k) => HEDEF.indexOf(k) !== -1;
+/** slot indeksi -> beklenen blok kategorisi (164+ = null, karisik) */
+function slotKategorisi(i) {
+  let alt = 0;
+  for (const b of SLOT_DUZEN) {
+    if (i < alt + b.adet) { return b.kategori; }
+    alt += b.adet;
+  }
+  return null;
+}
+const geriMi = (k) => GERI_KATEGORILER.indexOf(k) !== -1;
 
 // ------------------------------------------------------------------ minimal DOM taklidi
 function eleman(tag) {
@@ -169,7 +183,9 @@ function kart(p) {
     parametrik: !!p.parametrik, aciklama: (p.aciklama || "").slice(0, 160),
   };
 }
-function urun(i, kategori, ek) {
+let _no = 0;
+function urun(kategori, ek) {
+  const i = _no++;
   return Object.assign({
     id: "fx-" + i + "-" + kategori.toLocaleLowerCase("tr").replace(/[^a-z]/g, ""),
     kategori, marka: [], baslik: "Fikstur urun " + i + " " + kategori,
@@ -177,77 +193,60 @@ function urun(i, kategori, ek) {
     gorseller: ["https://media.pruvo3d.com/urunler/fx-" + i + ".jpg"],
   }, ek || {});
 }
-/** KURALSIZ TABAN (istemci ekseni icin). Bilerek build.py'nin AYNISI DEGIL: burada vitrin
- *  sirasi UYGULANMAZ, ham katalog basi alinir. Boylece test 1..8 istemci siralayicisini
- *  KIRLI girdiyle olcer (kural derlemede uygulaniyor diye istemci kolu vacuous olmasin).
- *  Derleme ekseninin olctugu ozet BURADAN DEGIL, gercek build.py'den gelir (ozetBuild). */
-function ozetUret(urunler) {
-  const kategoriler = {}, markalar = {};
-  for (const p of urunler) {
-    kategoriler[p.kategori] = (kategoriler[p.kategori] || 0) + 1;
-    markalar[p.kategori] = markalar[p.kategori] || {};
-  }
-  return {
-    surum: 1, uretim: "2026-07-31", toplam: urunler.length,
-    kategoriler, markalar,
-    parametrik: urunler.filter((p) => p.parametrik).map(kart),
-    yeni: urunler.slice(0, 48).map(kart),
-  };
+function coklu(liste, kategori, adet, ek) {
+  for (let n = 0; n < adet; n++) { liste.push(urun(kategori, ek)); }
+  return liste;
 }
+const JEN = { parametrik: true, fiyat: "" };
 
-/** FIKSTUR A — "kirli vitrin": hedef kategoriler ham siranin ILK 20 SLOTUNDA, ama
- *  YETERSIZ STOK hali OLUSMADAN (o hal ayri fikstur B'de olculur).
- *
- *  ⚠️ PENCERE HESABI (olculdu): en DAR yuklu pencere Worker beslemeli yol —
- *  ozet.json inmezse /katalog?sayfa=1&boy=24 yalnizca 24 kart getirir (sari vitrinin
- *  4 karti YOK). Ilk 20 slotu hedef-disi doldurabilmek icin bu 24'luk pencerede en
- *  fazla 4 hedef urun olabilir. Fikstur 3 tane koyar (indeks 0,2,4 -> ham cizimde
- *  1.,3.,5. / ozet yolunda 5.,7.,9. slot) + pencere DISINDA 2 tane (30, 40) daha.
- */
+/** FIKSTUR A — ANA fikstur: her blok TAM dolabilecek stok + ham katalogun BASI "kirli"
+ *  (Ev/Dekorasyon/Ofis en yeni urunler; kural olmasaydi vitrinin basinda olurlardi). */
 function fiksturA() {
-  const doldur = ["Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat",
-    "Elektronik", "Kamera", "Bahçe", "Oyun/Hobi"];
-  const liste = [];
-  for (let i = 0; i < 48; i++) {
-    if (i < 6 && i % 2 === 0) { liste.push(urun(i, HEDEF[i % HEDEF.length])); }
-    else if (i === 30 || i === 40) { liste.push(urun(i, HEDEF[i % HEDEF.length])); }
-    else { liste.push(urun(i, doldur[i % doldur.length])); }
-  }
-  for (let i = 48; i < 52; i++) {
-    liste.push(urun(i, "Jeneratör", { parametrik: true, fiyat: "" }));
-  }
-  return liste;
+  const l = [];
+  coklu(l, "Ev", 20); coklu(l, "Dekorasyon", 15); coklu(l, "Ofis", 15);   // ham bas = kirli
+  coklu(l, "Marin", 105);
+  coklu(l, "Otomobil", 105);
+  coklu(l, "Tamirat", 10); coklu(l, "Elektronik", 10); coklu(l, "Kamera", 5);
+  coklu(l, "Jeneratör", 5, JEN);
+  return l;
 }
 
-/** FIKSTUR C — bayrak-kapali (HOME_ORDER) yolu icin. HOME_ORDER "her kategoriden birer
- *  sira (4 urun)" kurdugu icin hedef kategoriler ancak ONCEKI kategoriler AZ urunluyse
- *  ilk 20 slota girer (CATEGORIES sirasi: Marin, Otomobil, Motosiklet, Bisiklet, Tamirat,
- *  EV, OFIS, ...). Olculdu: fikstur A ile bu yol VACUOUS'tu — sirali dolgu zaten ilk 20'yi
- *  hedef-disi dolduruyordu ve kural kaldirilinca test yine YESIL yaniyordu (M2 sag kaldi).
- *  Burada ilk bes kategoriye 2'ser urun konur -> Ev satiri 15. slottan baslar. */
-function fiksturC() {
-  const liste = [];
-  let i = 0;
-  const ekle = (kategori, adet, ek) => {
-    for (let n = 0; n < adet; n++) { liste.push(urun(i++, kategori, ek)); }
-  };
-  ekle("Marin", 2); ekle("Otomobil", 2); ekle("Motosiklet", 2);
-  ekle("Bisiklet", 2); ekle("Tamirat", 2);
-  ekle("Ev", 4); ekle("Ofis", 3);
-  ekle("Elektronik", 4); ekle("Kamera", 4); ekle("Bahçe", 4);
-  ekle("Dekorasyon", 3); ekle("Oyun/Hobi", 4);
-  ekle("Jeneratör", 4, { parametrik: true, fiyat: "" });
-  return liste;
-}
-
-/** FIKSTUR B — YETERSIZ STOK: yuklu pencerede 20'den az hedef-disi urun. */
+/** FIKSTUR B — YETERSIZ STOK: Marin blogu (80 slot) icin katalogda 20 urun var.
+ *  Yuklu liste ON_TOPLAM'dan UZUN olmali ki "yanlis alarm" korumasi devreye girmesin. */
 function fiksturB() {
-  const liste = [];
-  for (let i = 0; i < 30; i++) {
-    liste.push(urun(i, i < 5 ? "Marin" : HEDEF[i % HEDEF.length]));
+  const l = [];
+  coklu(l, "Tamirat", 60);          // ham bas -> ozet.yeni bunlardan
+  coklu(l, "Marin", 20);            // 80 slot icin YETERSIZ
+  coklu(l, "Otomobil", 200);
+  coklu(l, "Jeneratör", 4, JEN);
+  return l;
+}
+
+/** FIKSTUR C — bayrak-kapali (HOME_ORDER) yolu: tum katalog istemcide, blok stogu tam. */
+function fiksturC() {
+  const l = [];
+  coklu(l, "Ev", 10); coklu(l, "Dekorasyon", 8); coklu(l, "Ofis", 8);
+  coklu(l, "Marin", 90);
+  coklu(l, "Otomobil", 90);
+  coklu(l, "Bisiklet", 10); coklu(l, "Bahçe", 10);
+  coklu(l, "Jeneratör", 6, JEN);
+  return l;
+}
+
+/** FIKSTUR D — SAYFA DEVAMLILIGI: ozet havuzu katalogun TAMAMINI kapsamaz (Worker
+ *  yuruyusu sart) ve blok kategorileri ham katalogun HER YERINE serpistirilmistir
+ *  (Worker sayfalari ozet havuzuyla CAKISIR -> tekillestirme kaybi GERCEKTEN olusur;
+ *  telafi olmazsa "her tiklamada +PAGE_SIZE" iddiasi KIRMIZI yanar). */
+function fiksturD() {
+  const l = [];
+  const dolgu = ["Tamirat", "Elektronik", "Kamera", "Bahçe"];
+  for (let i = 0; i < 120; i++) {
+    if (i % 6 === 0) { l.push(urun("Marin")); }
+    else if (i % 6 === 1) { l.push(urun("Otomobil")); }
+    else if (i === 5 || i === 41 || i === 77 || i === 113) { l.push(urun("Jeneratör", JEN)); }
+    else { l.push(urun(dolgu[i % dolgu.length])); }
   }
-  // hedef-disi 5 urun ilk 5 sirada; kalan 25 hepsi hedef kategoride
-  return liste;
+  return l;
 }
 
 // --------------------------------------------------- GERCEK build.py ile ozet uretimi
@@ -257,7 +256,7 @@ function fiksturB() {
 const GECICI = fs.mkdtempSync(path.join(os.tmpdir(), "pruvo-vitrin-"));
 let _ozetNo = 0;
 
-/** urunler dizisi (ya da hazir bir katalog dosyasi yolu) -> { ozet, cikti } */
+/** urunler dizisi (ya da hazir bir katalog dosyasi yolu) -> { ozet, cikti, bayt } */
 function ozetBuild(kaynak) {
   const no = ++_ozetNo;
   let katalogYol = kaynak;
@@ -281,6 +280,21 @@ function ozetBuild(kaynak) {
   }
   return { ozet: JSON.parse(fs.readFileSync(ciktiYol, "utf8")),
     cikti: String(r.stdout || ""), bayt: fs.statSync(ciktiYol).size };
+}
+
+/** index.html'in edgeHavuz() ile AYNI havuzu (kart dizisi) — beklenen degeri hesaplamak
+ *  icin. Sira BURADA onemli degil (id kumesi ve blok uyeligi olculur). */
+function havuzKartlari(ozet) {
+  const out = [];
+  for (const b of SLOT_DUZEN) {
+    const h = (b.kategori === "Jeneratör")
+      ? (ozet.parametrik || []) : ((ozet.bloklar || {})[b.kategori] || []);
+    out.push.apply(out, h);
+  }
+  out.push.apply(out, ozet.yeni || []);
+  const gorulen = new Set(), tekil = [];
+  for (const k of out) { if (!gorulen.has(k.id)) { gorulen.add(k.id); tekil.push(k); } }
+  return tekil;
 }
 
 // -------------------------------------------------------------------- sahte edge ucu
@@ -312,20 +326,18 @@ function ucAra(urunler, p) {
 
 /**
  * index.html scriptini fikstur veriyle calistirir.
- *   ayar.urunler    fikstur katalogu
- *   ayar.ozet       hazir ozet.json icerigi (verilmezse KURALSIZ taban hesaplanir)
+ *   ayar.urunler    fikstur katalogu (ozet GERCEK build.py ile uretilir)
+ *   ayar.ozet       hazir ozet.json icerigi (verilirse build cagrilmaz)
+ *   ayar.seed       VITRIN_SEED'i sabitle (deterministik olcum)
  *   ayar.search     location.search
  *   ayar.ozetDusur  true ise ozet.json 404 doner (Worker beslemeli yol)
  *   ayar.ucDusur    true ise /katalog + /ara 500 doner (edgeYedek yolu)
  *   ayar.bayrak     "kapali" ise EDGE_KATALOG=false kolunu kosar
- *
- * Donen nesne: kartlari OKUR (oku()), "Daha fazla goster"i TIKLAR (dahaFazla()) ve
- * Worker'i CALISIRKEN dusurur (ucDusur(true)) — edgeYedek yolu ancak boyle uyanir.
+ *   ayar.kuralsiz   true ise siralayici cagrilari BELLEKTEKI KOPYADA devre disi (karsi-olcum)
  */
 async function sayfaKur(ayar) {
-  // ayar.ozet: hazir ozet (derleme ekseninde GERCEK build.py ciktisi servis edilir).
   const urunler = ayar.urunler || [];
-  const OZET = ayar.ozet || ozetUret(urunler);
+  const OZET = ayar.ozet || ozetBuild(urunler).ozet;
   const belge = belgeKur();
   const hatalar = [], uyarilar = [], istekler = [];
   const durum = { ucDusur: !!ayar.ucDusur };
@@ -339,13 +351,14 @@ async function sayfaKur(ayar) {
     kaynak = yeni;
   }
   // KARSI-OLCUM ("kuralsiz"): siralayici cagrilari BELLEKTEKI KOPYADA devre disi birakilir —
-  // fiksturun BOS OLMADIGINI (kural olmasaydi ilk 20'de hedef VAR) kanitlamak icin.
-  // Canli dosyaya DOKUNULMAZ. Capalar bulunamazsa OLCULEMEDI (fail-closed): kural
-  // sokulmusse bu kol sessizce "kuralsizla ayni" diye yesil yanamaz.
+  // fiksturun BOS OLMADIGINI kanitlamak icin. Canli dosyaya DOKUNULMAZ. Capalar
+  // bulunamazsa OLCULEMEDI (fail-closed).
   if (ayar.kuralsiz) {
     const capalar = [
-      ["cizilecek = anaGorunum ? vitrinSirala(edgeListe) : edgeListe;", "cizilecek = edgeListe;"],
-      ["if(anaGorunum){ list = vitrinSirala(list); }", "if(false){ list = vitrinSirala(list); }"],
+      ["cizilecek = vitrinSirala(edgeListe, VITRIN_SEED).slice(0, edgeGoster);",
+        "cizilecek = edgeListe.slice(0, edgeGoster);"],
+      ["if(anaGorunum){ list = vitrinSirala(list, VITRIN_SEED); }",
+        "if(false){ list = vitrinSirala(list, VITRIN_SEED); }"],
     ];
     for (const [eski, yeni] of capalar) {
       if (kaynak.indexOf(eski) === -1) {
@@ -387,9 +400,15 @@ async function sayfaKur(ayar) {
   vm.createContext(ctx);
   vm.runInContext(SECENEK_SRC, ctx, { filename: "secenekler.js" });
   vm.runInContext(kaynak, ctx, { filename: "index-inline.js" });
-  // ZARIF BOZULMA senaryolarinda index.html BILEREK console.error basar (ozet.json 404 /
-  // Worker 500). O metinler BEKLENIR; BASKA her console.error olcumu GECERSIZ kilar
-  // (sessiz yesil olmasin) -> OLCULEMEDI ile patlar.
+  // SEED ENJEKSIYONU: script senkron kismi bitti, fetch .then'leri henuz KOSMADI
+  // (mikrogorev kuyrugu bu is parcasinin sonunda bosalir) -> ilk boyama enjekte edilen
+  // seed'le olur. Fail-closed: seed degiskeni yoksa olcum yapilmis SAYILMAZ.
+  if (!ctx.PRUVO_VITRIN || typeof ctx.PRUVO_VITRIN.sirala !== "function" ||
+      typeof ctx.PRUVO_VITRIN.seedKur !== "function") {
+    throw new Error("OLCULEMEDI: window.PRUVO_VITRIN tani yuzeyi YOK — seed enjekte " +
+      "edilemez, siralayici disaridan olculemez (index.html IIFE icinde).");
+  }
+  if (ayar.seed !== undefined) { ctx.PRUVO_VITRIN.seedKur(ayar.seed); }
   const BEKLENEN_HATA = [/ozet\.json yuklenemedi/, /katalog\/arama alinamadi/];
   function hatalariDenetle() {
     const beklenmeyen = hatalar.filter((h) => !BEKLENEN_HATA.some((r) => r.test(h)));
@@ -408,11 +427,15 @@ async function sayfaKur(ayar) {
     if (!kartlar.length) {
       throw new Error("OLCULEMEDI: gridde HIC kart yok (fikstur/besleme kurulamadi)");
     }
+    const btn = belge.getElementById("loadMoreWrap").children[0];
     return {
       kartlar,
       sapma: ctx.PRUVO_VITRIN_SAPMA || null,
+      seed: ctx.PRUVO_VITRIN.seedAl(),
       uyarilar: uyarilar.slice(),
       sayimMetni: belge.getElementById("resultCount").textContent,
+      butonMetni: btn ? btn.textContent : "",
+      dahaVar: !!btn,
       baslik: belge.getElementById("sectionTitle").textContent,
       istekler: istekler.slice(),
     };
@@ -423,6 +446,7 @@ async function sayfaKur(ayar) {
 
   const s = oku();
   s.oku = oku;
+  s.ctx = ctx;
   s.ucDusur = (v) => { durum.ucDusur = !!v; };
   /** "Daha fazla goster" butonunu GERCEKTEN tiklar (loadMoreWrap'taki tek buton). */
   s.dahaFazla = async () => {
@@ -431,31 +455,52 @@ async function sayfaKur(ayar) {
       throw new Error("OLCULEMEDI: 'Daha fazla goster' butonu YOK (dahaVar hesabi degismis?)");
     }
     btn.onclick();
-    for (let i = 0; i < 10; i++) { await bekle(15); }
+    for (let i = 0; i < 12; i++) { await bekle(15); }
     return oku();
   };
   return s;
+}
+
+/** "Daha fazla goster"i enAz kart cizilene (ya da buton kaybolana) kadar tiklar. */
+async function genislet(s, enAz, maxTik) {
+  let son = s.oku();
+  let tik = 0;
+  const limit = maxTik || 40;
+  while (son.kartlar.length < enAz && son.dahaVar && tik < limit) {
+    son = await s.dahaFazla();
+    tik++;
+  }
+  son.tik = tik;
+  return son;
 }
 
 // ------------------------------------------------------- IDDIA DENETCILERI (saf fonksiyon)
 // Her denetci hem GERCEK ciktiya (POZITIF vaka) hem SENTETIK BOZUK ciktiya (NEGATIF vaka)
 // uygulanir. Negatif vakada hata URETMEYEN denetci OLU IDDIA sayilir -> test KIRMIZI.
 
-/** A: ilk SLOT kartta hedef kategori 0 olmali. */
+/** A: BLOK UYELIGI — slot 0-3 Jenerator, 4-83 Marin, 84-163 Otomobil (stok yeterken). */
 function denetA(kartlar) {
   const h = [];
-  kartlar.slice(0, SLOT).forEach((k, i) => {
-    if (hedefMi(k.kategori)) { h.push("slot " + (i + 1) + " = " + k.kategori); }
-  });
+  const bakilan = Math.min(kartlar.length, ON_TOPLAM);
+  for (let i = 0; i < bakilan; i++) {
+    const bek = slotKategorisi(i);
+    if (bek && kartlar[i].kategori !== bek) {
+      h.push("slot " + i + " = " + kartlar[i].kategori + " (beklenen " + bek + ")");
+      if (h.length >= 4) { break; }
+    }
+  }
+  if (bakilan < ON_TOPLAM) {
+    h.push("yalniz " + bakilan + " kart cizildi (" + ON_TOPLAM + " slot olculemedi)");
+  }
   return h;
 }
-/** B: hedef kategoriler ELENMEMIS — ham listede varsa cizimde 21+ arasinda GORUNMELI. */
-function denetB(kartlar, hamKategoriler) {
-  const hamHedef = hamKategoriler.filter(hedefMi).length;
-  if (hamHedef === 0) { return ["kontrol edilemez: ham listede hic hedef kategori yok"]; }
-  const geride = kartlar.slice(SLOT).filter((k) => hedefMi(k.kategori)).length;
-  return geride === hamHedef ? []
-    : ["21+ arasinda hedef kategori " + geride + " (beklenen " + hamHedef + ") — urun ELENMIS"];
+/** H: ilk ON_TOPLAM slotta Ev/Dekorasyon/Ofis YOK (eski kuralin korudugu deger). */
+function denetH(kartlar) {
+  const h = [];
+  kartlar.slice(0, ON_TOPLAM).forEach((k, i) => {
+    if (geriMi(k.kategori)) { h.push("slot " + i + " = " + k.kategori); }
+  });
+  return h.slice(0, 4);
 }
 /** C: cizim ham listenin PERMUTASYONU (kart sayisi + id kumesi ayni). */
 function denetC(kartlar, hamIdler) {
@@ -466,50 +511,8 @@ function denetC(kartlar, hamIdler) {
   const a = kartlar.map((k) => k.id).slice().sort().join("|");
   const b = hamIdler.slice().sort().join("|");
   if (a !== b) { h.push("id kumesi ham listeden FARKLI (eleme/ekleme var)"); }
-  return h;
-}
-/** F: KARARLILIK — siralayici yalnizca hedefleri geri iter, BASKA HICBIR SEYI karistirmaz:
- *  hedef-disi urunlerin kendi arasindaki goreli sirasi ve hedeflerin kendi arasindaki
- *  goreli sirasi ham beslemeyle AYNI kalir. (Kural "urunler kaldirilmiyor, yalniz vitrin
- *  sirasi degisiyor" -> en yeni urun ilk sirada kalmali.) */
-function denetF(kartlar, ham) {
-  const h = [];
-  const hedefIdler = new Set(ham.filter((k) => hedefMi(k.kategori)).map((k) => k.id));
-  const hamKume = new Set(ham.map((k) => k.id));
-  const suz = (idler, hedefMiIstenen) =>
-    idler.filter((id) => hedefIdler.has(id) === hedefMiIstenen).join("|");
-  // Referansta OLMAYAN kartlar (sari vitrin: edgeVitrin havuzdan RASTGELE 4 secer)
-  // kararlilik olcumunun disinda tutulur — o rastgelelik bugunku KASITLI davranis.
-  const cizim = kartlar.map((k) => k.id).filter((id) => hamKume.has(id));
-  const hamIdler = ham.map((k) => k.id);
-  if (suz(cizim, false) !== suz(hamIdler, false)) {
-    h.push("hedef-DISI urunlerin goreli sirasi DEGISTI (kararsiz siralama)");
-  }
-  if (suz(cizim, true) !== suz(hamIdler, true)) {
-    h.push("hedef urunlerin goreli sirasi DEGISTI");
-  }
-  return h;
-}
-/** G: DERLEME ANI sira KARARLI + ELEMESIZ. `yeni` katalogun bir KESITI oldugu icin denetF'in
- *  tam-esitlik olcumu kullanilamaz; burada her grubun (hedef / hedef-disi) ham katalogdaki
- *  goreli sirasinin ALT DIZI olarak korundugu olculur. Ayrica uydurma/mukerrer kart avlanir
- *  (siralayici veri URETEMEZ, yalnizca yeniden dizer). */
-function denetG(liste, ham) {
-  const h = [];
-  const sira = new Map();
-  ham.forEach((k, i) => { if (!sira.has(k.id)) { sira.set(k.id, i); } });
-  const bilinmeyen = liste.filter((k) => !sira.has(k.id)).length;
-  if (bilinmeyen) { h.push("katalogda OLMAYAN " + bilinmeyen + " kart (uydurulmus)"); }
-  const idler = liste.map((k) => k.id);
+  const idler = kartlar.map((k) => k.id);
   if (new Set(idler).size !== idler.length) { h.push("MUKERRER kart var"); }
-  const artanMi = (hedefIstenen) => {
-    const ix = liste.filter((k) => hedefMi(k.kategori) === hedefIstenen && sira.has(k.id))
-      .map((k) => sira.get(k.id));
-    for (let i = 1; i < ix.length; i++) { if (ix[i] <= ix[i - 1]) { return false; } }
-    return true;
-  };
-  if (!artanMi(false)) { h.push("hedef-DISI urunlerin goreli sirasi DEGISTI (kararsiz)"); }
-  if (!artanMi(true)) { h.push("hedef urunlerin goreli sirasi DEGISTI"); }
   return h;
 }
 /** D: verilen cizim, beklenen sirayla BIREBIR ayni (kategori/arama gorunumu degismedi). */
@@ -533,6 +536,16 @@ function denetE(sapma, uyarilar, beklenenYetersiz) {
   }
   return h;
 }
+/** P: iki sira BIREBIR ayni mi (seed determinizmi icin). */
+function denetP(a, b) {
+  return a.join("|") === b.join("|") ? []
+    : ["ayni seed FARKLI sira uretti (deterministik degil)"];
+}
+/** R: iki sira FARKLI mi (rastgelelik CANLI mi). */
+function denetR(a, b) {
+  return a.join("|") !== b.join("|") ? []
+    : ["farkli seed AYNI sirayi uretti — rastgelelik OLU"];
+}
 
 // ------------------------------------------------------------------------------ raporlama
 let gecen = 0, kalan = 0;
@@ -553,306 +566,381 @@ function negatif(ad, hatalar) {
 
 // ---------------------------------------------------------------------------------- testler
 async function main() {
-  console.log("PRUVO ana sayfa vitrin siralama kabulu — hedef " + JSON.stringify(HEDEF) +
-    ", ilk " + SLOT + " slot");
+  console.log("PRUVO ana sayfa vitrin hiyerarsisi kabulu — slot duzeni " +
+    SLOT_DUZEN.map((b) => b.adet + " " + b.kategori).join(" · ") + " · gerisi karisik");
   console.log("olculen index.html: " + INDEX_YOL);
+  console.log("olculen build.py  : " + BUILD_YOL + "\n");
 
-  const A = fiksturA();
-  const ozetA = ozetUret(A);
-
-  // ---- 0: TEK KAYNAK + sabitler (kural koda tek yerde yazilmis mi)
+  // ---- 0: TEK KAYNAK + sabitler
   {
     const h = [];
-    const bildirim = INDEX.match(/var\s+VITRIN_GERI_KATEGORILER\s*=\s*(\[[^\]]*\])\s*;/g) || [];
+    const bildirim = INDEX.match(/var\s+VITRIN_BLOKLAR\s*=\s*(\[[\s\S]*?\])\s*;/g) || [];
     if (bildirim.length !== 1) {
-      h.push("VITRIN_GERI_KATEGORILER bildirimi " + bildirim.length + " kez (TEK olmali)");
+      h.push("VITRIN_BLOKLAR bildirimi " + bildirim.length + " kez (TEK olmali)");
     } else {
-      let adlar = null;
-      try { adlar = JSON.parse(bildirim[0].replace(/^[^[]*/, "").replace(/\s*;\s*$/, "")); }
-      catch (e) { h.push("VITRIN_GERI_KATEGORILER okunamadi: " + e.message); }
-      if (adlar) {
-        if (adlar.slice().sort().join("|") !== HEDEF.slice().sort().join("|")) {
-          h.push("kategori listesi " + JSON.stringify(adlar) + " != " + JSON.stringify(HEDEF));
-        }
+      let bloklar = null;
+      try {
+        bloklar = JSON.parse(bildirim[0].replace(/^[^[]*/, "").replace(/\s*;\s*$/, ""));
+      } catch (e) { h.push("VITRIN_BLOKLAR okunamadi: " + e.message); }
+      if (bloklar) {
+        const ozet = bloklar.map((b) => b.kategori + ":" + b.adet).join("|");
+        const bek = SLOT_DUZEN.map((b) => b.kategori + ":" + b.adet).join("|");
+        if (ozet !== bek) { h.push("blok duzeni '" + ozet + "' != capa '" + bek + "'"); }
         const kats = JSON.parse((INDEX.match(/var\s+CATEGORIES\s*=\s*(\[[^\]]*\])\s*;/) || [])[1]);
-        for (const a of adlar) {
-          if (kats.indexOf(a) === -1) { h.push("'" + a + "' CATEGORIES'te YOK"); }
+        const gizli = JSON.parse((INDEX.match(/var\s+GIZLI_KATEGORILER\s*=\s*(\[[^\]]*\])\s*;/) || [])[1]);
+        for (const b of bloklar) {
+          if (kats.indexOf(b.kategori) === -1 && gizli.indexOf(b.kategori) === -1) {
+            h.push("'" + b.kategori + "' ne CATEGORIES ne GIZLI_KATEGORILER'de");
+          }
+          if (b.kaynak !== "parametrik" && !(b.havuz > b.adet)) {
+            h.push(b.kategori + " havuzu (" + b.havuz + ") adetten (" + b.adet +
+              ") buyuk DEGIL — yenilemede hep ayni urunler gelir");
+          }
         }
       }
     }
-    const slot = Number((INDEX.match(/var\s+VITRIN_ON_SLOT\s*=\s*(\d+)\s*;/) || [])[1]);
-    if (slot !== SLOT) { h.push("VITRIN_ON_SLOT=" + slot + " (beklenen " + SLOT + ")"); }
-    // ikinci kopya avi: uc adin BIRLIKTE gectigi baska bir dizi literali olmasin
-    const kopya = (INDEX.match(/\[\s*"Ev"\s*,\s*"Dekorasyon"\s*,\s*"Ofis"\s*\]/g) || []).length;
-    if (kopya !== 1) { h.push("hedef kategori literali " + kopya + " kez (TEK kopya olmali)"); }
-    rapor("0 tek kaynak: VITRIN_GERI_KATEGORILER tek bildirim, CATEGORIES ile tutarli", h,
-      "slot=" + slot);
+    // Eski kural kalintisi kalmadi (yeni kural onu yuttu; iki kural yan yana durmasin)
+    if (/var\s+VITRIN_ON_SLOT\s*=/.test(INDEX)) { h.push("eski VITRIN_ON_SLOT hala tanimli"); }
+    if (/var\s+VITRIN_GERI_KATEGORILER\s*=/.test(INDEX)) {
+      h.push("eski VITRIN_GERI_KATEGORILER hala tanimli");
+    }
+    rapor("0 tek kaynak: VITRIN_BLOKLAR tek bildirim, capayla birebir, kategoriler tanimli",
+      h, "on blok " + ON_TOPLAM + " slot");
   }
 
-  // ---- 1: ozet.json yolu (ziyaretcinin GORDUGU ana yol) — ilk 20'de hedef 0
-  const hamA = [].concat(ozetA.parametrik.slice(0, 4), ozetA.yeni.slice(0, PAGE_SIZE));
-  const hamKatA = hamA.map((k) => k.kategori);
-  const hamIdA = hamA.map((k) => k.id);
-  const hamIlk20Hedef = hamKatA.slice(0, SLOT).filter(hedefMi).length;
-  {
-    const h = [];
-    if (hamIlk20Hedef === 0) {
-      h.push("FIKSTUR BOS: ham sirada ilk " + SLOT + " slotta zaten hedef yok — iddia vacuous");
-    }
-    rapor("1a fikstur bos degil: kuralsiz cizimde ilk 20'de hedef kategori VAR", h,
-      hamIlk20Hedef + " adet");
-  }
-  const s1 = await sayfaKur({ urunler: A });
-  rapor("1b ozet.json yolu: ilk " + SLOT + " slotta hedef kategori 0", denetA(s1.kartlar),
-    s1.kartlar.length + " kart cizildi");
-  rapor("1c ozet.json yolu: hedef urunler 21+ arasinda GORUNUYOR (elenmemis)",
-    denetB(s1.kartlar, hamKatA),
-    s1.kartlar.slice(SLOT).filter((k) => hedefMi(k.kategori)).length + " adet 21+ arasinda");
-  rapor("1d ozet.json yolu: cizim ham listenin permutasyonu (eleme yok)",
-    denetC(s1.kartlar, hamIdA), s1.kartlar.length + " kart");
-  // Kararlilik, ozet.json'un DETERMINISTIK bolumu (yeni listesi) uzerinde olculur.
-  rapor("1f ozet.json yolu: KARARLI — hedef-disi urunlerin goreli sirasi korundu",
-    denetF(s1.kartlar, ozetA.yeni.slice(0, PAGE_SIZE)));
+  const A = fiksturA();
+  const ozetA = ozetBuild(A).ozet;
+  const havuzA = havuzKartlari(ozetA);
+
+  // ---- 1: ozet.json yolu (ziyaretcinin GORDUGU ana yol)
+  const s1 = await sayfaKur({ urunler: A, ozet: ozetA, seed: 20260731 });
+  const g1 = await genislet(s1, ON_TOPLAM);
+  rapor("1a ozet.json yolu: BLOK UYELIGI (slot 0-3 Jeneratör · 4-83 Marin · 84-163 Otomobil)",
+    denetA(g1.kartlar), g1.kartlar.length + " kart / " + g1.tik + " tiklama");
+  rapor("1b ozet.json yolu: ilk " + ON_TOPLAM + " slotta Ev/Dekorasyon/Ofis YOK",
+    denetH(g1.kartlar), "eski kuralin korudugu deger");
   {
     const h = [];
     const beklenen = String(A.length) + " ürün";
     if (s1.sayimMetni !== beklenen) {
       h.push("resultCount '" + s1.sayimMetni + "' (beklenen '" + beklenen + "')");
     }
-    rapor("1e katalog toplami DEGISMEDI", h, s1.sayimMetni);
+    rapor("1c katalog toplami DEGISMEDI (resultCount)", h, s1.sayimMetni);
+  }
+  {
+    // PERMUTASYON saf fonksiyon uzerinde: vitrinSirala havuzu ELEMEZ / UYDURMAZ / TEKRARLAMAZ.
+    const cikti = s1.ctx.PRUVO_VITRIN.sirala(havuzA, 12345);
+    rapor("1d vitrinSirala PERMUTASYON: eleme/uydurma/mukerrer YOK",
+      denetC(cikti, havuzA.map((k) => k.id)), havuzA.length + " kart havuz");
+  }
+  {
+    // FIKSTUR BOS DEGIL: kural devre disi birakilinca ilk 164 slot blok duzenine UYMAZ.
+    const kuralsiz = await sayfaKur({ urunler: A, ozet: ozetA, kuralsiz: true, seed: 7 });
+    const gk = await genislet(kuralsiz, ON_TOPLAM);
+    const bozuk = denetA(gk.kartlar).length;
+    rapor("1e fikstur bos degil: KURALSIZ cizimde blok duzeni BOZUK",
+      bozuk === 0 ? ["FIKSTUR BOS: kuralsiz cizim de blok duzenine uyuyor — iddia vacuous"] : [],
+      bozuk + " sapma");
   }
 
   // ---- 2: NEGATIF vakalar — denetciler bozuk ciktida KIRMIZI yanmali
   {
-    const bozukA = hamA.map((k) => ({ kategori: k.kategori, id: k.id })); // kuralsiz ham sira
-    negatif("A denetcisi: kuralsiz ham sirada hedef ilk 20'de", denetA(bozukA));
-    const elenmis = s1.kartlar.filter((k) => !hedefMi(k.kategori));
-    negatif("B denetcisi: hedefler tamamen ELENMIS cikti", denetB(elenmis, hamKatA));
-    negatif("C denetcisi: kart sayisi degismis cikti", denetC(s1.kartlar.slice(1), hamIdA));
+    negatif("A denetcisi: blok duzeni TERS cevrilmis cizim",
+      denetA(g1.kartlar.slice().reverse()));
+    negatif("A denetcisi: tek slot kaymis cizim (Marin 80->79 mutantinin izi)",
+      denetA(g1.kartlar.slice(0, 3).concat(g1.kartlar.slice(4))));
+    negatif("H denetcisi: ilk 164'e Ev sizmis cizim",
+      denetH([{ kategori: "Ev", id: "x" }].concat(g1.kartlar)));
+    negatif("C denetcisi: kart sayisi degismis cikti",
+      denetC(g1.kartlar.slice(1), g1.kartlar.map((k) => k.id)));
+    negatif("C denetcisi: MUKERRER kart",
+      denetC(g1.kartlar.concat([g1.kartlar[0]]), g1.kartlar.map((k) => k.id).concat([g1.kartlar[0].id])));
     negatif("D denetcisi: sirasi bozulmus kategori gorunumu",
-      denetD(s1.kartlar.slice().reverse(), s1.kartlar.map((k) => k.id)));
+      denetD(g1.kartlar.slice().reverse(), g1.kartlar.map((k) => k.id)));
     negatif("E denetcisi: yetersiz stok olcumu YOKKEN", denetE(null, [], false));
-    negatif("E denetcisi: yetersiz stok SESSIZ gecmis",
-      denetE({ yetersiz: true }, [], true));
-    negatif("F denetcisi: goreli sirasi TERS cevrilmis cizim",
-      denetF(s1.kartlar.slice().reverse(), hamA));
-    negatif("G denetcisi: goreli sirasi TERS cevrilmis derleme ciktisi",
-      denetG(hamA.slice().reverse(), hamA));
-    negatif("G denetcisi: katalogda OLMAYAN kart uydurulmus derleme ciktisi",
-      denetG(hamA.concat([{ id: "uydurma-kart", kategori: "Marin" }]), hamA));
+    negatif("E denetcisi: yetersiz stok SESSIZ gecmis", denetE({ yetersiz: true }, [], true));
+    negatif("P denetcisi: farkli iki sira 'ayni' sayilmasin", denetP(["a", "b"], ["b", "a"]));
+    negatif("R denetcisi: ayni iki sira 'farkli' sayilmasin", denetR(["a", "b"], ["a", "b"]));
   }
 
-  // ---- 3: Worker beslemeli yol (ozet.json inmedi) — kural BURADA da gecerli
+  // ---- 3: SEED DETERMINIZMI — ayni seed AYNI sira (idempotent olcum)
   {
-    const s = await sayfaKur({ urunler: A, ozetDusur: true });
-    const ham = A.slice(0, PAGE_SIZE).map(kart);
-    const h = denetA(s.kartlar);
-    const geride = s.kartlar.slice(SLOT).filter((k) => hedefMi(k.kategori)).length;
-    if (geride === 0) { h.push("21+ arasinda hedef YOK (Worker yolunda elenmis olabilir)"); }
-    rapor("3a Worker /katalog yolu: ilk " + SLOT + " slotta hedef 0, 21+ dolu", h,
-      s.kartlar.length + " kart, 21+ hedef " + geride);
-    rapor("3b Worker /katalog yolu: permutasyon (eleme yok) + KARARLI",
-      denetC(s.kartlar, ham.map((k) => k.id)).concat(denetF(s.kartlar, ham)));
+    const c1 = s1.ctx.PRUVO_VITRIN.sirala(havuzA, 424242).map((k) => k.id);
+    const c2 = s1.ctx.PRUVO_VITRIN.sirala(havuzA, 424242).map((k) => k.id);
+    rapor("3a seed determinizmi: ayni seed -> ayni sira", denetP(c1, c2), c1.length + " kart");
+    // DOM uzerinde de: ayni seed'le iki AYRI sayfa yuklemesi ayni vitrini vermeli
+    const a = await sayfaKur({ urunler: A, ozet: ozetA, seed: 99 });
+    const b = await sayfaKur({ urunler: A, ozet: ozetA, seed: 99 });
+    rapor("3b seed determinizmi (DOM): ayni seed'li iki yukleme ayni vitrin",
+      denetP(a.kartlar.map((k) => k.id), b.kartlar.map((k) => k.id)),
+      a.kartlar.length + " kart");
   }
 
-  // ---- 4: edgeYedek yolu (ozet.json indi, sonra Worker dustu) — kural BURADA da gecerli.
-  // ANA SAYFADA edgeYedek ancak "Daha fazla goster" ile uyanir (ilk boyama aga cikmaz):
-  // buton GERCEKTEN tiklanir, Worker 500 doner, sayfa ozet havuzuna duser.
+  // ---- 4: RASTGELELIK CANLI — farkli seed FARKLI sira (bu eksen olmadan "hepsini sabit
+  //         birak" mutasyonu YESIL gecerdi)
   {
-    const s = await sayfaKur({ urunler: A });
+    const c1 = s1.ctx.PRUVO_VITRIN.sirala(havuzA, 1).map((k) => k.id);
+    const c2 = s1.ctx.PRUVO_VITRIN.sirala(havuzA, 2).map((k) => k.id);
+    rapor("4a rastgelelik CANLI: farkli seed -> farkli sira", denetR(c1, c2));
+    // Blok ICI karisiyor mu (yalniz kuyruk karisip on blok sabit kalmasin)
+    const on1 = c1.slice(0, ON_TOPLAM).join("|");
+    const on2 = c2.slice(0, ON_TOPLAM).join("|");
+    rapor("4b rastgelelik BLOK ICINDE: on blok da seed'e gore degisiyor",
+      on1 !== on2 ? [] : ["on blok (ilk " + ON_TOPLAM + " slot) iki seed'de AYNI — blok ici karisim OLU"]);
+    // Seed ENJEKTE EDILEBILIR: seed verilmezse VITRIN_SEED kullanilir ve o da degisir
+    const x = await sayfaKur({ urunler: A, ozet: ozetA });
+    const y = await sayfaKur({ urunler: A, ozet: ozetA });
+    rapor("4c seed sayfa yuklemesi basina URETILIYOR (iki yukleme farkli vitrin)",
+      denetR(x.kartlar.map((k) => k.id), y.kartlar.map((k) => k.id)),
+      "seed " + x.seed + " vs " + y.seed);
+  }
+
+  // ---- 5: SEED SABITLIGI — sayfalama boyunca seed DEGISMEZ, cizili sira YENIDEN DIZILMEZ
+  {
+    const s = await sayfaKur({ urunler: A, ozet: ozetA, seed: 555 });
+    const ilk = s.kartlar.map((k) => k.id);
+    const seedIlk = s.seed;
+    const h = [];
+    let son = s.oku();
+    for (let t = 0; t < 5 && son.dahaVar; t++) {
+      son = await s.dahaFazla();
+      const yeni = son.kartlar.map((k) => k.id);
+      if (yeni.slice(0, ilk.length).join("|") !== ilk.join("|")) {
+        h.push("tik " + (t + 1) + ": ekranda duran ilk " + ilk.length +
+          " kart YENIDEN DIZILDI (seed sayfalama boyunca sabit degil)");
+        break;
+      }
+    }
+    if (son.seed !== seedIlk) { h.push("VITRIN_SEED degisti: " + seedIlk + " -> " + son.seed); }
+    rapor("5 seed sabitligi: sayfalama boyunca sira ONEKI korunuyor + seed degismiyor", h,
+      son.kartlar.length + " karta kadar genisletildi");
+  }
+
+  // ---- 6: SAYFA DEVAMLILIGI (mevcut hatanin onarimi)
+  {
+    const D = fiksturD();
+    const s = await sayfaKur({ urunler: D, seed: 31 });
+    const h = [];
+    // (i) Worker yuruyusu sayfa 1'den baslar — hicbir sayfa ATLANMAZ
+    let son = s.oku();
+    const cizim = [son.kartlar.length];
+    let tik = 0;
+    while (son.dahaVar && tik < 40) {
+      const oncekiSayi = son.kartlar.length;
+      son = await s.dahaFazla();
+      tik++;
+      cizim.push(son.kartlar.length);
+      // (ii) her tiklama tam bir SAYFA kadar buyutmeli (tekillestirme kaybi TELAFI edilir)
+      const beklenen = Math.min(oncekiSayi + PAGE_SIZE, D.length);
+      if (son.kartlar.length !== beklenen) {
+        h.push("tik " + tik + ": " + oncekiSayi + " -> " + son.kartlar.length +
+          " (beklenen " + beklenen + ") — tekillestirme kaybi TELAFI EDILMEDI");
+        break;
+      }
+    }
+    const katalogSayfa1 = (son.istekler || []).filter((u) => u.indexOf(EDGE_UC + "/katalog") === 0);
+    if (katalogSayfa1.length === 0) {
+      h.push("Worker'a HIC gidilmedi — fikstur ozet havuzuyla tukenmis (iddia vacuous)");
+    } else {
+      const ilkSayfa = new URL(katalogSayfa1[0]).searchParams.get("sayfa");
+      if (ilkSayfa !== "1") {
+        h.push("Worker yuruyusu sayfa " + ilkSayfa + "'den basladi (beklenen 1) — " +
+          "sayfa 1'deki urunler zincirde HIC gosterilmez");
+      }
+    }
+    // (iii) zincir sonunda HICBIR urun atlanmamis, mukerrer yok
+    h.push.apply(h, denetC(son.kartlar, D.map((u) => u.id)));
+    // (iv) sayac GERCEK kalanla eslesiyor
+    if (son.dahaVar) { h.push("zincir " + tik + " tiklamada bitmedi (buton hala var)"); }
+    if (son.sayimMetni !== String(D.length) + " ürün") {
+      h.push("resultCount '" + son.sayimMetni + "'");
+    }
+    rapor("6a sayfa devamliligi: zincirde HICBIR urun atlanmiyor + Worker sayfa 1'den basliyor",
+      h, son.kartlar.length + "/" + D.length + " kart, " + tik + " tiklama, cizim " +
+      cizim.slice(0, 6).join("->") + "...");
+
+    // 6b — buton sayaci GERCEK kalani gosteriyor (ara adimda olculur)
+    {
+      const s2 = await sayfaKur({ urunler: D, seed: 31 });
+      const ilk = s2.oku();
+      const h2 = [];
+      const kalanSayi = D.length - ilk.kartlar.length;
+      if (ilk.butonMetni.indexOf(String(kalanSayi) + " ürün daha") === -1) {
+        h2.push("buton '" + ilk.butonMetni + "' (beklenen " + kalanSayi + " ürün daha)");
+      }
+      const ikinci = await s2.dahaFazla();
+      const kalan2 = D.length - ikinci.kartlar.length;
+      if (ikinci.dahaVar && ikinci.butonMetni.indexOf(String(kalan2) + " ürün daha") === -1) {
+        h2.push("2. tik butonu '" + ikinci.butonMetni + "' (beklenen " + kalan2 + " ürün daha)");
+      }
+      rapor("6b 'N ürün daha' sayaci GERCEK kalanla esit", h2, ilk.butonMetni);
+    }
+  }
+
+  // ---- 7: Worker beslemeli yol (ozet.json inmedi) — kural BURADA da gecerli.
+  // ⚠️ SINIR (bilincli): ozet.json inmezse blok HAVUZU YOKTUR; kartlar Worker'dan ham
+  // sirayla sayfa sayfa gelir. Blok ancak stogu YUKLENDIKCE dolar (eksik blok kisalir —
+  // kuralin kendisi). O yuzden bu yolda iddia "TUM katalog yuklendikten sonra blok duzeni
+  // dogru" seklinde olculur; ilk sayfalarda vitrinin eksik olmasi KURALA UYGUNDUR.
+  {
+    const s = await sayfaKur({ urunler: A, ozet: ozetA, ozetDusur: true, seed: 77 });
+    const g = await genislet(s, A.length, 60);
+    const h = denetA(g.kartlar);
+    if (g.kartlar.length < A.length) {
+      h.push("katalog tam yuklenmedi: " + g.kartlar.length + "/" + A.length);
+    }
+    const katalogIstek = (g.istekler || []).filter((u) => u.indexOf(EDGE_UC + "/katalog") === 0);
+    if (!katalogIstek.length) { h.push("Worker'a HIC gidilmedi (iddia vacuous)"); }
+    rapor("7 Worker /katalog yolu (ozet 404): katalog yuklendikce blok duzeni GECERLI", h,
+      g.kartlar.length + " kart / " + g.tik + " tiklama / " + katalogIstek.length + " /katalog istegi");
+  }
+
+  // ---- 8: edgeYedek yolu (ozet.json indi, sonra Worker dustu)
+  {
+    const s = await sayfaKur({ urunler: A, ozet: ozetA, seed: 88 });
     s.ucDusur(true);
-    const y = await s.dahaFazla();
-    const h = denetA(y.kartlar);
-    const geride = y.kartlar.slice(SLOT).filter((k) => hedefMi(k.kategori)).length;
-    if (geride === 0) { h.push("21+ arasinda hedef YOK (yedek havuzda elenmis olabilir)"); }
-    rapor("4 edgeYedek yolu (Worker 500): ilk " + SLOT + " slotta hedef 0, 21+ dolu", h,
-      y.kartlar.length + " kart, 21+ hedef " + geride);
+    let son = await s.dahaFazla();
+    for (let t = 0; t < 8 && son.kartlar.length < ON_TOPLAM && son.dahaVar; t++) {
+      son = await s.dahaFazla();
+    }
+    rapor("8 edgeYedek yolu (Worker 500): blok duzeni GECERLI", denetA(son.kartlar),
+      son.kartlar.length + " kart (yedek havuz)");
   }
 
-  // ---- 5: EDGE_KATALOG=false yolu (bayrak geri alinirsa) — kural BURADA da gecerli.
-  // HOME_ORDER kategori-siralari kurdugu icin hedef urunler dogal olarak 24. karttan
-  // SONRAYA dusebilir; "elenmedi" iddiasi sayfa BUYUTULEREK (daha fazla goster) olculur.
+  // ---- 9: EDGE_KATALOG=false yolu (bayrak geri alinirsa)
   {
     const C = fiksturC();
-    // 5a — FIKSTUR BOS DEGIL (karsi-olcum): kural DEVRE DISI birakilmis bir KOPYADA
-    // hedefler HOME_ORDER'in ilk 20'sine giriyor mu? Bu olcum olmadan M2 mutanti
-    // ("bayrak-kapali kolda siralayici cagrilmiyor") SAG KALIYORDU: fikstur A'da sirali
-    // kategori dolgusu ilk 20'yi zaten hedef-disi dolduruyor, iddia VACUOUS oluyordu.
-    const kuralsiz = await sayfaKur({ urunler: C, bayrak: "kapali", kuralsiz: true });
-    const kirli = kuralsiz.kartlar.slice(0, SLOT).filter((k) => hedefMi(k.kategori)).length;
-    rapor("5a fikstur bos degil: kuralsiz HOME_ORDER'da ilk 20'de hedef VAR",
-      kirli === 0 ? ["FIKSTUR BOS: kuralsiz cizimde de ilk 20'de hedef yok — iddia vacuous"] : [],
-      kirli + " adet");
+    const s = await sayfaKur({ urunler: C, bayrak: "kapali", seed: 909 });
+    const g = await genislet(s, ON_TOPLAM);
+    const h = denetA(g.kartlar);
+    h.push.apply(h, denetH(g.kartlar));
+    rapor("9a bayrak-kapali (HOME_ORDER) yolu: blok duzeni + ilk 164'te Ev/Dek/Ofis yok", h,
+      g.kartlar.length + " kart / " + g.tik + " tiklama");
 
-    const s = await sayfaKur({ urunler: C, bayrak: "kapali" });
-    const h = denetA(s.kartlar);
-    const g = await s.dahaFazla();
-    h.push.apply(h, denetA(g.kartlar));
-    const geride = g.kartlar.slice(SLOT).filter((k) => hedefMi(k.kategori)).length;
-    const hepsi = C.filter((u) => hedefMi(u.kategori)).length;
-    if (geride !== hepsi) {
-      h.push("21+ arasinda hedef " + geride + " (beklenen " + hepsi + ") — ELENMIS");
-    }
-    rapor("5b bayrak-kapali (HOME_ORDER) yolu: ilk " + SLOT + " slotta hedef 0, 21+ dolu", h,
-      g.kartlar.length + " kart, 21+ hedef " + geride + "/" + hepsi);
+    const kuralsiz = await sayfaKur({ urunler: C, bayrak: "kapali", kuralsiz: true, seed: 909 });
+    const gk = await genislet(kuralsiz, ON_TOPLAM);
+    const bozuk = denetA(gk.kartlar).length;
+    rapor("9b fikstur bos degil: kuralsiz HOME_ORDER blok duzenine UYMUYOR",
+      bozuk === 0 ? ["FIKSTUR BOS: kuralsiz cizim de uyuyor — iddia vacuous"] : [],
+      bozuk + " sapma");
   }
 
-  // ---- 6: KATEGORI GORUNUMU DEGISMEDI (?kategori=Ev)
+  // ---- 10: KATEGORI GORUNUMU DEGISMEDI (?kategori=Ev)
   {
     const beklenen = A.filter((u) => u.kategori === "Ev").slice(0, PAGE_SIZE).map((u) => u.id);
-    const s = await sayfaKur({ urunler: A, search: "?kategori=Ev" });
+    const s = await sayfaKur({ urunler: A, ozet: ozetA, search: "?kategori=Ev", seed: 4 });
     const h = denetD(s.kartlar, beklenen);
     if (s.baslik !== "Ev Ürünleri") { h.push("baslik '" + s.baslik + "'"); }
-    if (s.kartlar.some((k) => !hedefMi(k.kategori))) { h.push("Ev disi urun sizdi"); }
-    rapor("6 kategori gorunumu (?kategori=Ev) ETKILENMEDI", h, s.kartlar.length + " Ev karti");
+    if (s.kartlar.some((k) => k.kategori !== "Ev")) { h.push("Ev disi urun sizdi"); }
+    if (beklenen.length === 0) { h.push("fikstur bos: Ev urunu yok"); }
+    rapor("10a kategori gorunumu (?kategori=Ev) ETKILENMEDI (rastgelelik UYGULANMAZ)", h,
+      s.kartlar.length + " Ev karti");
+    // Karsi-olcum: farkli seed'le AYNI sira gelmeli (kategori gorunumu seed'e duyarsiz)
+    const s2 = await sayfaKur({ urunler: A, ozet: ozetA, search: "?kategori=Ev", seed: 999999 });
+    rapor("10b kategori gorunumu SEED'E DUYARSIZ",
+      denetP(s.kartlar.map((k) => k.id), s2.kartlar.map((k) => k.id)));
   }
 
-  // ---- 7: ARAMA SONUCLARI DEGISMEDI
+  // ---- 11: ARAMA SONUCLARI DEGISMEDI
   {
-    const q = "Fikstur urun 4";   // 4 (Dekorasyon) + 40..47 -> hedef kategori SONUCLARDA var
-    const beklenen = A.filter((u) => (u.baslik || "").toLocaleLowerCase("tr")
+    const q = "Fikstur urun 4";
+    const bek = A.filter((u) => (u.baslik || "").toLocaleLowerCase("tr")
       .indexOf(q.toLocaleLowerCase("tr")) !== -1).slice(0, PAGE_SIZE).map((u) => u.id);
-    const s = await sayfaKur({ urunler: A, search: "?ara=" + encodeURIComponent(q) });
-    const h = denetD(s.kartlar, beklenen);
-    if (beklenen.length === 0) { h.push("fikstur bos: arama hic sonuc dondurmuyor"); }
-    if (!beklenen.some((id) => hedefMi(A.find((u) => u.id === id).kategori))) {
-      h.push("fikstur zayif: arama sonucunda hic hedef kategori yok");
-    }
-    rapor("7 arama gorunumu ETKILENMEDI (hedef kategoriler sonuclarda, sirasi bozulmadan)", h,
-      s.kartlar.length + " sonuc");
+    const s = await sayfaKur({ urunler: A, ozet: ozetA, search: "?ara=" + encodeURIComponent(q), seed: 5 });
+    const h = denetD(s.kartlar, bek);
+    if (bek.length === 0) { h.push("fikstur bos: arama hic sonuc dondurmuyor"); }
+    rapor("11a arama gorunumu ETKILENMEDI (rastgelelik UYGULANMAZ)", h, s.kartlar.length + " sonuc");
+    const s2 = await sayfaKur({ urunler: A, ozet: ozetA, search: "?ara=" + encodeURIComponent(q), seed: 888888 });
+    rapor("11b arama gorunumu SEED'E DUYARSIZ",
+      denetP(s.kartlar.map((k) => k.id), s2.kartlar.map((k) => k.id)));
   }
 
-  // ---- 8: YETERSIZ STOK — bosluk YOK, sapma OLCULUP BASILDI
+  // ---- 12: YETERSIZ STOK — bosluk YOK, sapma OLCULUP BASILDI, yanlis alarm YOK
   {
     const B = fiksturB();
-    const s = await sayfaKur({ urunler: B });
+    const s = await sayfaKur({ urunler: B, seed: 12 });
     const h = denetE(s.sapma, s.uyarilar, true);
-    if (s.kartlar.length !== Math.min(B.length, PAGE_SIZE)) {
-      h.push("bosluk birakilmis: " + s.kartlar.length + " kart (beklenen " +
-        Math.min(B.length, PAGE_SIZE) + ")");
+    if (s.kartlar.length !== PAGE_SIZE) {
+      h.push("bosluk birakilmis: " + s.kartlar.length + " kart (beklenen " + PAGE_SIZE + ")");
     }
-    if (s.sapma && s.sapma.uygun !== 5) {
-      h.push("sapma.uygun=" + s.sapma.uygun + " (beklenen 5)");
+    const marin = (s.sapma && s.sapma.bloklar || []).filter((b) => b.kategori === "Marin")[0];
+    if (!marin) { h.push("sapma.bloklar'da Marin kaydi yok"); }
+    else if (marin.uygun !== 20) { h.push("Marin uygun=" + marin.uygun + " (beklenen 20)"); }
+    // Blok kisaldi ama SONRAKI blok BOSLUK BIRAKMADAN devam etti (liste sikisti)
+    const g = await genislet(s, ON_TOPLAM);
+    const bosluk = g.kartlar.filter((k) => !k.id).length;
+    if (bosluk) { h.push(bosluk + " bos/placeholder kart cizilmis"); }
+    const ilk4 = g.kartlar.slice(0, 4).every((k) => k.kategori === "Jeneratör");
+    const sonraki = g.kartlar.slice(4, 24).every((k) => k.kategori === "Marin");
+    if (!ilk4 || !sonraki) {
+      h.push("kisalan blokta duzen bozuldu (ilk4 Jeneratör=" + ilk4 + ", 4-23 Marin=" + sonraki + ")");
     }
-    rapor("8a yetersiz stok: bosluk YOK + sapma OLCULDU ve BASILDI", h,
-      s.sapma ? ("uygun " + s.sapma.uygun + "/" + s.sapma.slot + ", liste " + s.sapma.liste) : "-");
-    rapor("8b normal fiksturde YANLIS ALARM yok", denetE(s1.sapma, s1.uyarilar, false),
-      s1.sapma ? ("uygun " + s1.sapma.uygun + "/" + s1.sapma.slot) : "-");
+    rapor("12a yetersiz stok: blok KISALDI, bosluk YOK, sapma OLCULDU ve BASILDI", h,
+      s.sapma ? (s.sapma.bloklar || []).map((b) => b.kategori + " " + b.uygun + "/" + b.adet).join(", ") : "-");
+    rapor("12b normal fiksturde YANLIS ALARM yok", denetE(s1.sapma, s1.uyarilar, false),
+      s1.sapma ? "yetersiz=" + s1.sapma.yetersiz : "-");
   }
 
-  // ---- 10: DERLEME ANI EKSENI — tools/build.py render_ozet() vitrin sirasini kendisi
-  // hesaplayip ozet.json'a HAZIR yaziyor mu? Ozet KOPYA kuralla degil, GERCEK build.py
-  // ile uretilir; boylece kural build tarafinda sokulurse iddia KIRMIZI yanar.
+  // ---- 13: DERLEME EKSENI — build.py HAVUZ uretir, SIRALAMAZ
   {
-    const A2 = fiksturA();
-    const hamO = ozetUret(A2);          // KURALSIZ taban (karsi-olcum)
-    const b = ozetBuild(A2);            // GERCEK build.py
-    const yeni = b.ozet.yeni || [];
-    const hamKart = A2.map(kart);
-
-    const hamIlk20 = (hamO.yeni || []).slice(0, SLOT).filter((k) => hedefMi(k.kategori)).length;
-    rapor("10a fikstur bos degil: KURALSIZ ozet'in ilk " + SLOT + "'sinde hedef kategori VAR",
-      hamIlk20 === 0
-        ? ["FIKSTUR BOS: kuralsiz tabanda da hedef yok — derleme iddiasi vacuous"] : [],
-      hamIlk20 + " adet");
-
-    rapor("10b build.py ozet.yeni: ilk " + SLOT + " slotta hedef kategori 0",
-      denetA(yeni), yeni.length + " kayit");
-
-    rapor("10c build.py ozet.yeni: eleme/uydurma YOK + goreli sira KARARLI",
-      denetG(yeni, hamKart), yeni.length + " kayit / katalog " + A2.length);
-
-    {
-      const h = [];
-      const gerekli = SLOT + PAGE_SIZE;    // ilk 20 slot + ilk ekranda gosterilen kart
-      if (A2.length >= gerekli && yeni.length < gerekli) {
-        h.push("vitrin listesi KISA: " + yeni.length + " < " + gerekli +
-          " — ilk boyamanin 21+ bolgesi beslenemez");
+    const b = ozetBuild(A);
+    const h = [];
+    // (a) havuz sekli + boyu index.html kuralindan geliyor (TEK KAYNAK paritesi)
+    const kural = JSON.parse((INDEX.match(/var\s+VITRIN_BLOKLAR\s*=\s*(\[[\s\S]*?\])\s*;/) || [])[1]);
+    for (const k of kural) {
+      const stok = A.filter((u) => (u.kategori || "") === k.kategori).length;
+      const bek = k.havuz ? Math.min(k.havuz, stok) : stok;
+      const uretilen = (k.kaynak === "parametrik")
+        ? (b.ozet.parametrik || []) : ((b.ozet.bloklar || {})[k.kategori] || []);
+      if (uretilen.length !== bek) {
+        h.push(k.kategori + " havuzu " + uretilen.length + " kart (beklenen " + bek + ")");
       }
-      const hamHedef = A2.filter((u) => hedefMi(u.kategori)).length;
-      const arkada = yeni.slice(SLOT).filter((k) => hedefMi(k.kategori)).length;
-      if (hamHedef > 0 && arkada === 0) {
-        h.push("21+ bolgesinde hedef kategori YOK — urunler geri itilmemis, GORUNMEZ olmus");
+      if (uretilen.some((c) => c.kategori !== k.kategori)) {
+        h.push(k.kategori + " havuzuna baska kategori sizdi");
       }
-      rapor("10d build.py ozet.yeni: 21+ bolgesi hedef kategoriyle besleniyor", h,
-        arkada + " hedef 21+ arasinda, katalogda " + hamHedef);
     }
+    // (b) ozet.vitrin capasi bagimsiz capa ile ayni (kural sessizce degistirilemesin)
+    const sap = (b.ozet.vitrin && b.ozet.vitrin.bloklar) || [];
+    const sapOzet = sap.map((x) => x.kategori + ":" + x.adet).join("|");
+    const bekOzet = SLOT_DUZEN.map((x) => x.kategori + ":" + x.adet).join("|");
+    if (sapOzet !== bekOzet) { h.push("ozet.vitrin '" + sapOzet + "' != capa '" + bekOzet + "'"); }
+    rapor("13a build.py: blok havuzlari index.html kuralindan uretiliyor", h,
+      Object.keys(b.ozet.bloklar || {}).map((k) => k + " " + b.ozet.bloklar[k].length).join(", ") +
+      " | parametrik " + (b.ozet.parametrik || []).length + " | " + b.bayt + " bayt");
 
-    // 10e — IKI EKSEN BIRBIRINI BOZMUYOR: istemci siralayicisi zaten vitrin sirasinda olan
-    // listeye uygulaninca onu DEGISTIRMEZ (etkisiz-tekrarli). Sari vitrin havuzu ana sayfada
-    // listenin BASINA rastgele 4 kart ekledigi icin olcum parametrigi OLMAYAN katalogla
-    // yapilir: boylece renderGrid'e giren liste birebir ozet.yeni'nin ilk sayfasidir.
-    {
-      const A3 = fiksturA().filter((u) => !u.parametrik);
-      const b3 = ozetBuild(A3);
-      const beklenen = (b3.ozet.yeni || []).slice(0, PAGE_SIZE).map((k) => k.id);
-      const s = await sayfaKur({ ozet: b3.ozet });
-      rapor("10e ETKISIZ-TEKRARLI: istemci vitrinSirala derleme sirasini DEGISTIRMIYOR",
-        denetD(s.kartlar, beklenen), s.kartlar.length + " kart");
+    // (c) build.py SIRALAMIYOR: ozet.yeni katalogun HAM basi (derlemede sira sabitlenirse
+    //     "her yenilemede random" olur — bu iddia onu yakalar)
+    rapor("13b build.py SIRALAMIYOR: ozet.yeni ham katalog basi",
+      denetD(b.ozet.yeni || [], A.slice(0, (b.ozet.yeni || []).length).map((u) => u.id)),
+      (b.ozet.yeni || []).length + " kayit");
 
-      // Karsi-olcum: ayni yolda KURALSIZ ozet verilince cizim DEGISMELI. Bu olcum olmadan
-      // 10e "siralayici tamamen olu" halinde de YESIL yanardi (vacuous).
-      const hamO3 = ozetUret(A3);
-      const s2 = await sayfaKur({ ozet: hamO3 });
-      const esitMi = s2.kartlar.map((k) => k.id).join("|") ===
-        (hamO3.yeni || []).slice(0, PAGE_SIZE).map((k) => k.id).join("|");
-      rapor("10e-karsi: ayni yolda KURALSIZ besleme cizimde DEGISTIRILIYOR (siralayici canli)",
-        esitMi ? ["siralayici ETKISIZ: kuralsiz besleme oldugu gibi cizildi"] : []);
+    // (d) ETKISIZ-TEKRARLI: ayni katalog -> BAYT BAYT ayni ozet
+    const b2 = ozetBuild(A);
+    rapor("13c build.py ETKISIZ-TEKRARLI: ayni katalog ayni ozet",
+      JSON.stringify(b.ozet) === JSON.stringify(b2.ozet) ? []
+        : ["iki kosum FARKLI ozet uretti (derlemede rastgelelik var)"],
+      b.bayt + " vs " + b2.bayt + " bayt");
+
+    // (e) derleme tarafi yetersiz stogu SESSIZ GECMEZ
+    const bb = ozetBuild(fiksturB());
+    const h2 = [];
+    if (!bb.ozet.vitrin || bb.ozet.vitrin.yetersiz !== true) {
+      h2.push("ozet.vitrin.yetersiz=" + (bb.ozet.vitrin && bb.ozet.vitrin.yetersiz));
     }
-
-    // 10f — build tarafi da etkisiz-tekrarli: zaten vitrin sirasinda olan bir katalog
-    // ayni sirayi vermeli (iki taraf birbirini kovalamasin).
-    {
-      const idSira = yeni.map((k) => k.id);
-      const kume = new Set(idSira);
-      const sirali = idSira.map((id) => A2.find((u) => u.id === id))
-        .concat(A2.filter((u) => !kume.has(u.id)));
-      const b2 = ozetBuild(sirali);
-      rapor("10f build.py ETKISIZ-TEKRARLI: vitrin sirasindaki katalog AYNI sirayi veriyor",
-        denetD(b2.ozet.yeni || [], idSira), idSira.length + " kayit");
+    if (bb.cikti.indexOf("vitrin-sapma") === -1) {
+      h2.push("yetersiz stok SESSIZ gecti (build gunlugune vitrin-sapma yazilmadi)");
     }
-
-    // 10g — YETERSIZ STOK derleme tarafinda: bosluk YOK, sapma ozet'e YAZILIR ve build
-    // gunlugune BASILIR (sessiz gecmez).
-    {
-      const B = fiksturB();
-      const bb = ozetBuild(B);
-      const h = [];
-      const sp = bb.ozet.vitrin;
-      if (!sp) {
-        h.push("sapma olcumu YOK (ozet.vitrin yazilmamis)");
-      } else {
-        if (sp.yetersiz !== true) { h.push("ozet.vitrin.yetersiz=" + sp.yetersiz + " (beklenen true)"); }
-        if (sp.uygun !== 5) { h.push("ozet.vitrin.uygun=" + sp.uygun + " (beklenen 5)"); }
-      }
-      if (bb.cikti.indexOf("vitrin-sapma") === -1) {
-        h.push("yetersiz stok SESSIZ gecti (build gunlugune vitrin-sapma yazilmadi)");
-      }
-      const bek = Math.min(B.length, (b.ozet.yeni || []).length);
-      if ((bb.ozet.yeni || []).length !== bek) {
-        h.push("bosluk birakilmis: " + (bb.ozet.yeni || []).length + " kayit (beklenen " + bek + ")");
-      }
-      rapor("10g derleme yetersiz stok: bosluk YOK + sapma ozet'e yazildi ve BASILDI", h,
-        sp ? ("uygun " + sp.uygun + "/" + sp.slot + ", katalog " + sp.liste) : "-");
-
-      const h2 = [];
-      const sp0 = b.ozet.vitrin;
-      if (!sp0) { h2.push("sapma olcumu YOK"); }
-      else if (sp0.yetersiz !== false) { h2.push("yanlis alarm: ozet.vitrin.yetersiz=" + sp0.yetersiz); }
-      if (b.cikti.indexOf("vitrin-sapma") !== -1) {
-        h2.push("yanlis alarm: sapma yokken build gunlugune vitrin-sapma basildi");
-      }
-      rapor("10h normal fiksturde derleme YANLIS ALARM basmiyor", h2,
-        sp0 ? ("uygun " + sp0.uygun + "/" + sp0.slot) : "-");
+    if (b.cikti.indexOf("vitrin-sapma") !== -1) {
+      h2.push("yanlis alarm: normal fiksturde build gunlugune vitrin-sapma basildi");
     }
+    if (b.ozet.vitrin && b.ozet.vitrin.yetersiz !== false) {
+      h2.push("yanlis alarm: ozet.vitrin.yetersiz=" + b.ozet.vitrin.yetersiz);
+    }
+    rapor("13d derleme yetersiz stok: ozet'e yazildi ve BASILDI + yanlis alarm yok", h2);
   }
 
-  // ---- 9: CANLI KATALOG — UCTAN UCA (gercek urunler.json -> gercek build.py -> gercek
-  // index.html). 🔴 BU IDDIA VERI DURUMUNA BAKMAZ, URETILEN VITRIN SIRASINA BAKAR:
-  // "canli katalogda yeterli hedef-disi urun var mi" degil, "ziyaretcinin gordugu ilk 20
-  // kartta hedef kategori var mi". Eski hali veri durumunu olcuyordu ve her yeni urun
-  // partisi yayini durdurabiliyordu; kural artik derleme aninda uygulandigi icin dogru
-  // soru budur.
+  // ---- 14: CANLI KATALOG — UCTAN UCA (gercek urunler.json -> gercek build.py -> gercek
+  // index.html). Veri durumuna DEGIL, ziyaretcinin gordugu SIRAYA bakar.
   {
     const h = [];
     const yol = path.join(KOK, "urunler.json");
@@ -861,28 +949,23 @@ async function main() {
       h.push("OLCULEMEDI: urunler.json yok");
     } else {
       const b = ozetBuild(yol);
-      const s = await sayfaKur({ ozet: b.ozet });
-      const ilk20 = s.kartlar.slice(0, SLOT).filter((k) => hedefMi(k.kategori)).length;
-      const arkada = s.kartlar.slice(SLOT).filter((k) => hedefMi(k.kategori)).length;
-      const kats = b.ozet.kategoriler || {};
-      const hedefToplam = HEDEF.reduce((t, k) => t + (kats[k] || 0), 0);
-      if (ilk20 !== 0) {
-        h.push("CANLI VITRIN KIRIK: ilk " + SLOT + " kartta hedef kategori " + ilk20);
-      }
-      if (hedefToplam > 0 && arkada === 0) {
-        h.push("hedef kategoriler ilk boyamanin 21+ bolgesinde HIC yok — geri itilmek " +
-          "yerine gorunmez olmus olabilir");
-      }
+      const urunler = JSON.parse(fs.readFileSync(yol, "utf8"));
+      const s = await sayfaKur({ urunler, ozet: b.ozet, seed: 20260731 });
+      const g = await genislet(s, ON_TOPLAM);
+      h.push.apply(h, denetA(g.kartlar));
+      h.push.apply(h, denetH(g.kartlar));
       if (b.ozet.vitrin && b.ozet.vitrin.yetersiz && b.cikti.indexOf("vitrin-sapma") === -1) {
-        h.push("CANLI yetersiz stok SESSIZ gecti (build gunlugune vitrin-sapma yazilmadi)");
+        h.push("CANLI yetersiz stok SESSIZ gecti");
       }
-      bilgi = s.kartlar.length + " kart | ilk" + SLOT + " hedef " + ilk20 + ", 21+ hedef " +
-        arkada + " | katalogda hedef " + hedefToplam + "/" + b.ozet.toplam +
-        " | ozet " + b.bayt + " bayt" +
-        (b.ozet.vitrin ? (", sapma.yetersiz=" + b.ozet.vitrin.yetersiz) : "");
+      // rastgelelik CANLI veriyle de yasiyor mu
+      const c1 = s.ctx.PRUVO_VITRIN.sirala(havuzKartlari(b.ozet), 1).map((k) => k.id);
+      const c2 = s.ctx.PRUVO_VITRIN.sirala(havuzKartlari(b.ozet), 2).map((k) => k.id);
+      h.push.apply(h, denetR(c1, c2));
+      bilgi = g.kartlar.length + " kart / " + g.tik + " tiklama | katalog " + b.ozet.toplam +
+        " | ozet " + b.bayt + " bayt | sapma.yetersiz=" +
+        (b.ozet.vitrin ? b.ozet.vitrin.yetersiz : "?");
     }
-    rapor("9 CANLI uctan uca: uretilen vitrin sirasinin ilk " + SLOT +
-      " kartinda hedef kategori YOK", h, bilgi);
+    rapor("14 CANLI uctan uca: gercek katalogda blok duzeni + rastgelelik", h, bilgi);
   }
 
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi");
