@@ -317,8 +317,19 @@ _IFSA_MUAF = (
 )
 _IFSA_MUAF_RE = tuple((re.compile(d, re.UNICODE), g) for d, g in _IFSA_MUAF)
 
-# press-anlami: "dugme/tus/butona basilir" = BASMA, baski DEGIL (ayni cumlede aranir)
-_PRESS_RE = re.compile(r"d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*day", re.UNICODE)
+# press-anlami: "dugme/tus/butona basilir" = BASMA, baski DEGIL (ayni cumlede aranir).
+# 🔴 FAIL-OPEN KAPATILDI (31 Tem): desen SINIRSIZDI ve `tu[şs]` masum kelimelerin ICINDE
+#   eslesiyordu — "kuTUSu" (585), "tuTUŞ" (162), cacTUS/loTUS/karTUŞu/röTUŞ... Bu, o cumledeki
+#   GERCEK baski ifsasini SESSIZCE susturuyordu: susturucu kural, ihlali gorunmez yapiyordu.
+#   Yuzey olculdu (tam katalog, 15930 kayit): 664 kayitta kelime-ICI eslesme, 32 farkli sarma
+#   kelime — HICBIRI gercek press sozcugu degil.
+# ✅ SOL kelime siniri (`\b`) eklendi; SAG sinir BILEREK YOK: Turkce eklemeli — "tuşuna",
+#   "düğmesine", "butonuna", "pedalı" eslesmeye DEVAM etmeli.
+# OLCULDU (fix oncesi/sonrasi, tam katalog): SERT 0 -> 0, UYARI 17 -> 17, yanlis-pozitif 0;
+#   _BASMA_RE cumlelerinde GERCEK press susturmasi 8 -> 8 (kapsam DARALMADI), fail-open
+#   susturmasi 0 (bugun net kacak yok — sinif acik, yuzey 664).
+_PRESS_RE = re.compile(
+    r"\b(?:d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*day)", re.UNICODE)
 
 # --- SERT (KESIN-YASAK -> ihlal, BLOKLAR) ---------------------------------------------
 # Her biri TEK BASINA kesin: Turkce'de baska mesru okumasi OLCULMEDI.
@@ -1635,6 +1646,14 @@ def kendini_test():
                 r'|ayak\s*day")',
                 r'r"d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*day")'),
          "Servo kutusu ust ve alt yarim parca olarak basilir. " + _T, "sert", "basil-print"),
+        # K15'in IKIZI: ayni fail-open sinifi _PRESS_RE'de (konjonksiyon kolunun susturucusu)
+        # 31 Tem'e kadar ONARILMAMISTI. Probe BILEREK dar: yalniz 'basil- + surec jetonu'
+        # ('ters bas') kolunun yakalayabilecegi bir cumle — basil-print/malzeme-tavsiye
+        # kovalari kapsamaz, boylece iddia baska kovanin sirtina binip OLU kalmaz.
+        ("K16 _PRESS_RE kelime siniri kaldirildi ('kuTUSu' susturucu fail-open)",
+         _satir(r'r"\b(?:d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*day)", re.UNICODE)',
+                r'r"d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*day", re.UNICODE)'),
+         "Sigorta kutusu ters basilir. " + _T, "sert", "baski-fiili"),
     ]
 
     _saglam_mod = _yukle()

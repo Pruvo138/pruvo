@@ -569,6 +569,19 @@ for _t in ("Düğmelere yanlışlıkla basılmasını önleyen kapaktır.",
            "Korna düğmesine basılmasını önler.",
            "Fitil yerine basılır; araçta delik açılmaz."):
     check("FP press-anlami YESIL: %r" % _t[:38], not sert_mi(_t) and not uyari_mi(_t))
+# 8b) 🔴 PRESS SUSTURUCUSU FAIL-OPEN NOBETCISI (31 Tem)
+# _PRESS_RE bir SUSTURUCU. Sinirsiz oldugunda `tu[şs]` masum kelime ICINDE esliyordu
+# ("kuTUSu" 585 canli eslesme, "tuTUŞ" 162) ve AYNI CUMLEDEKI gercek baski ifsasini
+# sessizce yutuyordu. Probe BILEREK dar: malzeme adi / tavsiye fiili / dosya-tabla-katman
+# jetonu YOK -> yalniz 'basil- + surec jetonu' konjonksiyonu yakalayabilir; boylece iddia
+# baska bir kovanin sirtina binip OLU hale gelmez.
+_M_PRESS_KACAK = "- Sigorta kutusu ters basılır."
+check("PRESS FAIL-OPEN: masum 'kutusu' ihlali SUSTURAMAZ -> SERT", sert_mi(_M_PRESS_KACAK))
+# ... ve karsi yon: GERCEK press sozcugu ayni cumlede varsa susturma CALISMAYA DEVAM eder
+for _t in ("Sigorta kutusundaki düğmeye kazara basılmasını önler.",
+           "Torpido kutusu açma tuşuna basılmasını engelleyen kilit dili."):
+    check("PRESS susturmasi KORUNDU (kutusu + gercek press) YESIL: %r" % _t[:40],
+          not sert_mi(_t) and not uyari_mi(_t))
 # 9) fiziksel "destek" parcasi = urunun KENDISI
 for _t in ("Kaput destek çubuğunu yerinde tutan özel tasarım klips.",
            "Bimini tente boru iç desteği; kırılan orijinal desteğin yerine geçer."):
@@ -593,7 +606,11 @@ _M_DOLGU = "- %100 dolgu oranı önerilir."
 # 'basil- + surec jetonu' konjonksiyonunun yakalayabilecegi bir cumleye cekildi:
 # malzeme adi YOK, tavsiye fiili YOK, dosya/tabla/katman jetonu YOK; tasiyici jeton
 # yalnizca 'parca halinde'.
-_M_BASKI = "- İki parça halinde basılır."
+# ⚠️ 31 Tem (2. kez): PROBE YINE BAYATLADI. "- İki parça halinde basılır." bu kez
+# `basil-print` SERT kuralinin (`parça halinde basıl`) kapsamina girdi; jeton no-op
+# edilse bile cumle SERT kaliyor ve mutant SAG kaliyordu (iddia OLU, kabul testi
+# taban-KIRMIZI). Probe yeniden daraltildi: tasiyici jeton yalnizca 'ters bas'.
+_M_BASKI = "- Ters basılır."
 check("mutasyon oncesi taban: dolgu SERT", sert_mi(_M_DOLGU))
 _eski_sert = dk._IFSA_SERT_RE
 dk._IFSA_SERT_RE = ()                                   # MUT: kesin-yasak listesi BOSALTILDI
@@ -617,6 +634,15 @@ check("MUT-BOS-MUAF: muaf listesi bosalinca 'profesyonel destek' YANLIS yakalani
 dk._IFSA_MUAF_RE = _eski_muaf
 check("MUT-BOS-MUAF geri alindi: 'profesyonel destek' yine YESIL",
       not uyari_mi("- Kolay montaj imkanı sunar, profesyonel destek gerektirmez."))
+
+# MUT-PRESS-SINIRSIZ: kelime siniri geri alinirsa (fail-open geri gelirse) masum "kutusu"
+# gercek ifsayi susturur -> probe SERT'ten duser. Iddia: `\b` yuk tasiyor.
+_eski_press = dk._PRESS_RE
+dk._PRESS_RE = _re.compile(r"d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*day", _re.UNICODE)
+check("MUT-PRESS-SINIRSIZ: sinir kalkinca 'kutusu' ihlali SUSTURUR (fail-open geri doner)",
+      not sert_mi(_M_PRESS_KACAK))
+dk._PRESS_RE = _eski_press
+check("MUT-PRESS-SINIRSIZ geri alindi: probe yine SERT", sert_mi(_M_PRESS_KACAK))
 
 
 # --- GERCEK-VERI NOBETCISI: canli katalogda kapsam/FP regresyonu ----------------------
