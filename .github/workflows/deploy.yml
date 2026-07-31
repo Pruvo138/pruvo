@@ -1638,6 +1638,36 @@ jobs:
       - name: "Kutu arsivleyici cift yonlu mutasyon turu (SERIT B)"
         run: python3 tools/kutu-arsivle-test.py --mutasyon
 
+      # KANCA NOBETI (tools/kanca-nobeti.py) — git kancalarinin SESSIZCE devre disi
+      # kalmasina karsi nobetci. 1 Agu'ta ANA CHECKOUT'ta gercekten yasandi:
+      # `.git/config`'e `core.hooksPath = /dev/null` sizdi ve push'taki D1 senkronu +
+      # commit guard'i HIC kosmadi; hicbir yerde kirmizi yanmadi (tek belirti "posta
+      # kutusu budanmamis" gibi dolayli izlerdi).
+      #
+      # 🔴 NOBETCININ KENDISI CI'DA KOSMAZ, KOSAMAZ: yargiladigi sey ANA CHECKOUT'un
+      # `.git/config`'idir ve CI ayri bir klon yapar — o dosyayi GORMEZ (`.git/`
+      # commit'lenmez). Nobetci YEREL iki yoldan atesler: tools/durum.py bolum 8 ve
+      # tools/yedek-hook-kur.py (kurulum sonrasi dogrulama). CI'ya baglanan sey
+      # nobetcinin MANTIGIDIR: asagidaki kabul testi SENTETIK depolar kurar (gercek
+      # `git` ile) ve her arizali hali tek tek enjekte eder -> makineden bagimsiz.
+      # 15 vaka: /dev/null · bos · var olmayan yol · silinmis kanca · x-bitsiz kanca ·
+      # bos kanca · yoruma alinmis cagri · `echo` mensiyonu · basa konan kosulsuz
+      # `exit` · ANA checkout'ta `--worktree` (`.git/config` TEMIZ kaldigi halde olu) ·
+      # MESRU ozel hooksPath (yanlis-pozitif yok) · IZOLE worktree override'i
+      # (yanlis-pozitif yok) · kok neden yeniden uretimi · fail-closed (OLCULEMEDI).
+      # Tamamen offline, tempfile fiksturleri; GERCEK depoya DOKUNMAZ.
+      - name: "Kanca nobeti kabul testi (git kancalari sessizce olu mu)"
+        run: python3 tools/kanca-nobeti-test.py
+
+      # ... ve kabul testinin KENDI kabulu. Mutasyon KOPYAYA uygulanir, canli aracin
+      # sha256'si degismez. Oldurulen eksenler: (a) oldurucu-deger yargisi, (b) x-biti,
+      # (c) ortak icra suzgeci yerine duz `in` aramasi [[nobetci-cagri-satiri-nobetsiz]],
+      # (c) yorum korlugu, (a) etkin deger yerine `.git/config` grep'i, (e) kosulsuz
+      # `exit`, ve fail-closed'in devrilmesi (OLCULEMEDI -> YESIL). Ilgisiz degisiklik
+      # YESIL kalmali. Bu adim olmadan "kabul testi olu" hali GORUNMEZ kalirdi.
+      - name: "Kanca nobeti cift yonlu mutasyon turu"
+        run: python3 tools/kanca-nobeti-test.py --mutasyon
+
 
   deploy:
     needs: build

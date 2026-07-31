@@ -2164,6 +2164,22 @@ SERIT_B = {
         "Kabul testi + `--mutasyon` turu tempfile fiksturleriyle OFFLINE kosar ve "
         "GERCEK kutuya YAZMAZ. Bir A-kapisinin buraya kaydirilmasi DEGILDIR: kapinin "
         "A karsiligi hic olmadi, arac bu dalda dogdu.",
+    ("deploy.yml", "serit-b", "tools/kanca-nobeti-test.py"):
+        "YEREL GELISTIRME ORTAMI NOBETCISININ MANTIK TESTI, YAYIN KAPISI DEGIL: "
+        "tools/kanca-nobeti.py ANA CHECKOUT'un git kancalarinin sessizce devre disi "
+        "kalip kalmadigini olcer (1 Agu: `.git/config`'e `core.hooksPath = /dev/null` "
+        "sizdi, D1 senkronu + commit guard'i hic kosmadi ve hicbir yerde kirmizi "
+        "yanmadi). NOBETCININ KENDISI CI'DA KOSAMAZ: yargiladigi dosya "
+        "`<ana>/.git/config`'tir ve CI ayri bir klon yapar, `.git/` commit'lenmez. "
+        "Nobetci YEREL iki yoldan atesler (tools/durum.py bolum 8 + "
+        "tools/yedek-hook-kur.py kurulum-sonrasi dogrulamasi); CI'ya baglanan sey "
+        "yalnizca MANTIGIN kendisidir. Kabul testi + `--mutasyon` turu tempfile "
+        "icinde SENTETIK git depolari kurar, GERCEK depoya DOKUNMAZ ve urunler.json / "
+        "index.html / uretilen sayfa / D1 / R2 / odeme yuzeylerinin HICBIRINE "
+        "dokunmaz — yayinlanan tek bir bayt uretmez. Buradaki kirmizi 'nobetcinin "
+        "mantigi curudu' der, 'site bozuk' DEMEZ; yayini durdurmak yanlis olurdu "
+        "([[kapi-birikimi-yayin-gecikmesi]]). Bir A-kapisinin buraya kaydirilmasi "
+        "DEGILDIR: kapinin A karsiligi hic olmadi, arac bu dalda dogdu.",
     # --- onizleme (ayri dagitim hedefi) arayuz testleri ---------------------
     ("deploy.yml", "serit-b", "onizleme/test/onbellek-surum.mjs"):
         "ONIZLEME alt sisteminin (ayri imaj dagitimi) onbellek surumu; Pages ciktisini "
