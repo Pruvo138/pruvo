@@ -1,5 +1,166 @@
 [
   {
+    "id": "blueboat-pervane-koruyucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "BlueBoat Icin Pervane Koruyucu Kapak Seti",
+    "aciklama": "BlueRobotics BlueBoat modeli icin, tasima ve kullanim sirasinda pervane kanatlarini darbelere karsi koruyan sert kapak seti.\n- BlueRobotics BlueBoat modeliyle uyumludur.\n- Sag ve sol taraf icin 2'ser parca, toplam 4 parcadan olusur.\n- Pervane kanatlarini cizik, egilme ve catlaklara karsi korur.\nYaklasik dis olculer: 119 x 80 x 54 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1295164-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1295164-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1295164-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1295164-4.jpg"
+    ]
+  },
+  {
+    "id": "yamaha-tekne-kill-switch-somunu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yamaha Tekne Kill Switch Icin Somun",
+    "aciklama": "Yamaha tekne motorlarinin acil durdurma (kill switch) sisteminde kullanilan somun parcasi.\n- Yamaha tekne motor modelleriyle uyumludur.\n- Acil durdurma sistemine dogrudan takilir.\n- Kirilan orijinal somunun yerine kolay degisim saglar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dyamaha-kill-switch-nut-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dyamaha-kill-switch-nut-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "kjgreen",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "mercruiser-motor-paneli",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "MerCruiser Motor Icin Gosterge Paneli",
+    "aciklama": "MerCruiser ic-takintili tekne motorlarinin gosterge paneli cercevesi ve montaj plakasi.\n- MerCruiser ic-takintili motor modelleriyle uyumludur.\n- Gosterge ve svic montaji icin uygun kesimlere sahiptir.\n- Eskiyen orijinal panelin yerine kolay degisim saglar.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dmercruiser-engine-panel-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmercruiser-engine-panel-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmercruiser-engine-panel-3.jpg",
+      "https://media.pruvo3d.com/urunler/c3dmercruiser-engine-panel-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "cozytom",
+      "tur": "cc_by_sa"
+    }
+  },
+  {
+    "id": "kayak-navigasyon-isigi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Icin Navigasyon Isigi Govdesi",
+    "aciklama": "Kayak uzerine monte edilen, gece gorunurlugunu artiran navigasyon isigi govdesi.\n- Standart kayaklarla uyumludur.\n- Gece kullaniminda gorunurlugu artirir.\n- LED isik kaynagiyla kullanima uygundur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dkayak-navigation-light-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dkayak-navigation-light-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dkayak-navigation-light-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "backpaqer",
+      "tur": "cc_by_sa"
+    }
+  },
+  {
+    "id": "fellowship-27-yelkenli-dumen-kolu-uzatici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Fellowship 27 Yelkenli Icin Dumen Kolu Uzatici",
+    "aciklama": "Fellowship 27 sinifi yelkenli teknelerin dumen kolunu uzatan, kokpitin her noktasindan kontrol saglayan parca.\n- Fellowship 27 sinifi yelkenli teknelerle uyumludur.\n- Dumen kontrolunu kokpitin farkli noktalarindan yapmayi saglar.\n- Standart dumen koluna takilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dtiller-extension-fellowship-27-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtiller-extension-fellowship-27-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3dtiller-extension-fellowship-27-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "stegmanno1",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "kesme-pimli-motor-pervanesi-3-kanat",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kesme Pimli (Shear Pin) Motor Icin 3 Kanatli Yedek Pervane",
+    "aciklama": "Kesme pimi (shear pin) ile pervaneyi tahrik eden motorlar icin tasarlanmis 3 kanatli yedek pervane.\n- Kesme pimli tahrik sistemine sahip motorlarla uyumludur.\n- Farkli mil olculerine gore uyarlanabilir.\n- Kirilan orijinal pervanenin yerine kolay degisim saglar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw3064064-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw3064064-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw3064064-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw3064064-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-dus-montaj-cercevesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Dus Bagi Icin Montaj Cercevesi",
+    "aciklama": "Teknedeki mevcut bir deligi kullanarak tekne dusu (doccina) montaji yapmayi saglayan cerceve.\n- Standart tekne dus baglantilariyla uyumludur.\n- Mevcut montaj deligini kullanarak kolay kurulum saglar.\n- Vida delikleriyle sabit montaj sunar.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw631834-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw631834-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw631834-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw631834-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "privilege-465-ec-kapi-makarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Privilege 465 EC Katamaran Sürgülü Kapi Icin Makara",
+    "aciklama": "2003 model Privilege 465 EC katamaran yelkenlinin sürgülü kapi sisteminde kullanilan yedek makara.\n- Privilege 465 EC katamaran modeliyle uyumludur.\n- Sürgülü kapi sisteminin duzgun calismasini saglar.\n- Asinmis orijinal rulmanli tekerleklerin yerine kolay degisim saglar.\nYaklasik dis olculer: 21 x 21 x 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1554924-1.jpg"
+    ]
+  },
+  {
+    "id": "intex-mariner-4-olta-tutucusu-cift",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Intex Mariner 4 Tekne Icin Cift Olta Tutucusu",
+    "aciklama": "Intex Mariner 4 sisme tekne icin, iki olta kamisini birden tutabilen dayanikli olta tutucusu.\n- Intex Mariner 4 sisme tekne modeliyle uyumludur.\n- Iki olta kamisini ayni anda tutabilir.\n- Kalin govde yapisi sayesinde balik cekme kuvvetine dayaniklidir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2569471-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2569471-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2569471-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "powerboat-dumen-bosluk-eklentisi-29inc",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "29 Inc RC Powerboat Icin Dumen Bosluk Eklentisi",
+    "aciklama": "29 inc RC powerboat govdesinin arka kismina dumen icin ek bosluk saglayan eklenti parcasi.\n- 29 inc RC powerboat modelleriyle uyumludur.\n- Govdenin arka kismina dumen icin gerekli boslugu saglar.\n- Standart govdeye montaj icin tasarlanmistir.\nYaklasik dis olculer: 206 x 82 x 45 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4873842-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Boullie",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
     "id": "pedal-bot-pedali-guclendirilmis",
     "kategori": "Marin",
     "marka": [],
