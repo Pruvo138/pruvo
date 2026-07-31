@@ -218,7 +218,15 @@ def kabul(kok):
     # affinity kolona baglidir: sema bir gun (baska bir yoldan kurulan tablo, drift eden
     # goc) TEXT'e kayarsa tirnakli yazim o gun yanlis vaadi URETIR. Iki savunma bagimsiz
     # olmali; bu yuzden literal bicimi AYRICA capalanir.
-    lit = re.search(r"'fiziksel',([^,]+),0\) ON CONFLICT", ornek_sql)
+    # 🔴 CAPA VALUES KUYRUGUNA DEGIL, stokta'nin KENDI KOMSUSUNA baglanir (1 Agu):
+    # eski desen `'fiziksel',([^,]+),0\) ON CONFLICT` idi — yani stokta'dan SONRA yalniz
+    # yayinda'nin gelecegini VARSAYIYORDU. INSERT listesine yeni bir kolon eklenince
+    # (altkategori) capa TUTMADI ve iddia, stokta'da hicbir sey bozulmadigi halde KIRMIZI
+    # yandi (yanlis-pozitif: alakasiz bir kolon eklemek herkesin push'unu kirar).
+    # Yeni capa `tur` literalinden SONRAKI ilk alan = stokta yapisal gerceğine dayanir;
+    # kuyrugun ne oldugundan BAGIMSIZ. (Siralama kaymasinin kendisi AYRI olculur:
+    # A5/A6 geri-okuma tipi/degeri, C ekseni ikiz tanim.)
+    lit = re.search(r"'fiziksel',([^,]+),", ornek_sql)
     dogrula("A9 SQL LITERALI: stokta TIRNAKSIZ tamsayi olarak yaziliyor (q() ile DEGIL)",
             lit is not None and "'" not in lit.group(1)
             and re.fullmatch(r"-?\d+", lit.group(1).strip()) is not None,
@@ -405,7 +413,10 @@ MUTANTLAR = [
      "D: ham deger yazilir -> 'Fiziksel'/'3d' D1'e sizar (fail-closed kalkar)"),
     ("d1-sync.py", "str(arama.stokta_kanonik(u))", "q(arama.stokta_kanonik(u))", "KIRMIZI",
      "A: deger TIRNAKLI yazilir -> INTEGER kolona '0' METNI girer"),
-    ("d1-sync.py", "  stokta INTEGER NOT NULL DEFAULT -1\n", "", "KIRMIZI",
+    # CAPA TAZELENDI (1 Agu): _KT_SEMA'da stokta artik SON kolon degil (altkategori
+    # eklendi) -> satir sonu virgullu. Eski capa (virgulsuz) TUTMUYORDU ve mutant
+    # "BULUNAMADI" ile duşuyordu — yani C ekseni OLCULMUYORDU (sessiz kapsam kaybi).
+    ("d1-sync.py", "  stokta INTEGER NOT NULL DEFAULT -1,\n", "", "KIRMIZI",
      "C: offline fikstur semasi canli semadan AYRISIR (ikiz tanim drift'i)"),
     ("d1-sync.py", "TAM_OKUMA_ESIGI = 800", "TAM_OKUMA_ESIGI = 900", "YESIL",
      "ILGISIZ: geri-okuma olcek esigi — ticari hal iddialarina DOKUNMAZ"),

@@ -41,6 +41,7 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 KAYNAK_DUZELT = os.path.join(KOK, "tools", "duzelt.py")
 KAYNAK_GUARD = os.path.join(KOK, "tools", "urunler-guard.py")
 KAYNAK_KOKEN = os.path.join(KOK, "tools", "gorsel_koken.py")
+KAYNAK_ARAMA = os.path.join(KOK, "tools", "arama.py")
 KAYNAK_URUN_EKLE = os.path.join(KOK, "tools", "urun-ekle.py")
 
 KATALOG = [
@@ -74,6 +75,9 @@ def sahte_repo(katalog=None):
     # duzelt.py gorsel_koken.py'yi KOSULSUZ import eder (nobetci "dosyasi yoksa gecer"
     # olamaz) -> sahte repoya da kopyalanmali.
     shutil.copy(KAYNAK_KOKEN, os.path.join(d, "tools", "gorsel_koken.py"))
+    # duzelt.py arama.py'yi de KOSULSUZ import eder (alt kategori taksonomisi + imza
+    # nobeti orada TEK kaynak olarak yasar) -> sahte repoya kopyalanmali.
+    shutil.copy(KAYNAK_ARAMA, os.path.join(d, "tools", "arama.py"))
     with open(os.path.join(d, "urunler.json"), "w", encoding="utf-8") as f:
         json.dump(KATALOG if katalog is None else katalog, f, ensure_ascii=False, indent=2)
     return d

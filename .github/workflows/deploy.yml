@@ -533,6 +533,34 @@ jobs:
       - name: "Ticari hal D1 kapisi (tur/stokta: tip + hash kapsami + ikiz tanim + fail-closed)"
         run: python3 tools/stok-d1-kapisi.py
 
+      # ALT KATEGORI (`altkategori`) veri yolu — kategori ICINDEKI daraltma etiketi.
+      # OLCULEN BASLANGIC DURUMU (1 Agu): alan urunler.json'da 134 kayitta DOLUYDU ama
+      # hicbir yerde ISLENMIYORDU (index.html/build.py/d1-sync/arama/d1-sema/duzelt YOK)
+      # -> veri vardi, musteriye ULASMIYORDU. Yol acildi; bu kapi acik KALMASINI olcer:
+      #   A VERI   (kategori, altkategori) ikilisi izinli kumeye uymali. Izinli kume
+      #            arama.ALTKATEGORI_IZINLI'de DONDURULMUS bir listedir — urunler.json'dan
+      #            yeniden HESAPLANMAZ (hesaplansa kapi tautoloji olurdu: her yeni deger
+      #            kendini izinli yapardi). Bos/eksik deger GECERLI (alan opsiyonel).
+      #   B IMZA   Degerler bir TEDARIKCI VITRININDEN olculerek turuyor ve depo PUBLIC:
+      #            deger marka/firma adi, alan adi, urun kodu/SKU oneki tasiyamaz. Kural
+      #            BEYAZ LISTE (gorulmemis imza turu sessizce gecmesin) + katalogun marka
+      #            adlariyla carpisma taramasi.
+      #   C YOL    duzelt.py alani YAZABILIYOR (yoksa veri asla dolmaz) ama KOR KABUL
+      #            ETMIYOR: bilinmeyen/yanlis-kategorili deger rc=5 ile reddedilir ve
+      #            urunler.json BYTE-ESIT kalir (tek-urun + TOPLU kip; kategori cevirme
+      #            deligi dahil). GERCEK duzelt.py sentetik bir repoda kosturulur.
+      #   D IKIZ   Kolon BES yerde tanimli (d1-sema.sql · GOC_KOLON · _KT_SEMA · satir_sql
+      #     TANIM  INSERT · KOLONLAR) + urun_hash KAPSAMI. Hash kapsamasaydi altkategori
+      #            degisimi satiri yeniden yazdirmaz, D1 sessizce bayat alt-filtre servis
+      #            ederdi. Uretilen INSERT sqlite'ta FIILEN kosturulur (siralama kaymasi).
+      # FAIL-CLOSED: izinli kume disindaki deger D1'e '' gider (pre-push hook d1-sync'i
+      # bu kapidan ONCE kosar -> sizan deger Ege'ye/musteriye ULASAMAZ).
+      # OFFLINE: canli D1/wrangler/AG YOK. Cift yonlu mutasyon (14 oldurucu KIRMIZI +
+      # 2 ilgisiz YESIL + mutasyonsuz harness kontrolu) elle:
+      #   python3 tools/altkategori-kapisi.py --mutasyon
+      - name: "Alt kategori kapisi (izinli kume + tedarikci imzasi + duzelt yolu + ikiz tanim)"
+        run: python3 tools/altkategori-kapisi.py
+
       # KONFIGUR GOLGE MODU (FAZ 3). Worker D1'den `konfigur`u OKUR ama fiyati HALA bundle'dan
       # hesaplar; bu adim iki seyi birden kilitler:
       # (1) MUSTERI DAVRANISI DEGISMEDI — capa 150/PLA=73600, 300/ASA=150000, anka-kusu

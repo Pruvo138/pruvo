@@ -552,6 +552,11 @@ GOC_KOLON = [
     # ama katalogu topluca TUKENMIS ilan etmez).
     ("tur", "TEXT NOT NULL DEFAULT ''"),
     ("stokta", "INTEGER NOT NULL DEFAULT -1"),
+    # ALT KATEGORI (1 Agu) — kategori ICINDEKI daraltma etiketi. tur/stokta ile AYNI
+    # sinif: PUBLIC urunler.json alani, icerik upsert'i ile yazilir, HASH'E GIRER
+    # (KOLONLAR'da da VAR). Gerekce + fail-closed kural: d1-sema.sql altkategori yorumu
+    # ve arama.altkategori_kanonik.
+    ("altkategori", "TEXT NOT NULL DEFAULT ''"),
 ]
 
 # siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
@@ -590,6 +595,11 @@ KOLONLAR = [
     # yazar. KOLONLAR'da olmasalardi hash yeni degerle yazilir ama stokta ESKI kalirdi
     # (hash "senkron" der, veri bayat = en kotu tur sessiz hata).
     "tur", "stokta",
+    # ALT KATEGORI — hash'e girdigi icin ON CONFLICT yolunda da GUNCELLENMELIDIR:
+    # mevcut bir urunun altkategorisi degistiginde upsert calisir ve kolonu yazar.
+    # KOLONLAR'da olmasaydi hash yeni degerle yazilir ama altkategori ESKI kalirdi
+    # (hash "senkron" der, alt-filtre bayat = sessiz hata).
+    "altkategori",
 ]
 
 # satir_sql INSERT'inde YAZILAN ama ON CONFLICT/UPDATE yolunda BILEREK guncellenmeyen
@@ -1019,6 +1029,9 @@ def satir_sql(u, seq, hs, h, baski=""):
         # q() ile yazilsaydi INTEGER kolona '0' METNI girer, uc taraftaki JS'te
         # Boolean('0') === true olur ve TUKENMIS urun STOKTA gorunurdu.
         q(arama.tur_kanonik(u)), str(arama.stokta_kanonik(u)),
+        # ALT KATEGORI — KANONIK deger (arama.py tek kaynak; hash de AYNI fonksiyondan
+        # besleniyor -> "hash degisti ama kolon degismedi" ayrismasi imkansiz).
+        q(arama.altkategori_kanonik(u)),
     ]
     # ATOMIK YAYIN: YENI satir DAIMA taslak (yayinda=0) girer. Kolon SQL'de ACIKCA
     # yazilir (DEFAULT'a guvenilmez): DEFAULT sonradan degistirilirse ya da tablo baska
@@ -1028,7 +1041,7 @@ def satir_sql(u, seq, hs, h, baski=""):
     return (
         "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,gorsel,parametrik,hs,"
         "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok,baski,tur,stokta,"
-        "yayinda) VALUES ("
+        "altkategori,yayinda) VALUES ("
         + ",".join(degerler) + ",0"
         + ") ON CONFLICT(id) DO UPDATE SET "
         + ", ".join("%s=excluded.%s" % (k, k) for k in KOLONLAR) + ";"
@@ -1269,7 +1282,8 @@ CREATE TABLE urunler (
   yayinda INTEGER NOT NULL DEFAULT 0,
   release_id TEXT NOT NULL DEFAULT '',
   tur TEXT NOT NULL DEFAULT '',
-  stokta INTEGER NOT NULL DEFAULT -1
+  stokta INTEGER NOT NULL DEFAULT -1,
+  altkategori TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE senkron (anahtar TEXT PRIMARY KEY, deger TEXT NOT NULL);
 """

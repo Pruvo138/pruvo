@@ -87,6 +87,14 @@ _gkspec = importlib.util.spec_from_file_location(
                                  "gorsel_koken.py"))
 gk = importlib.util.module_from_spec(_gkspec)
 _gkspec.loader.exec_module(gk)
+# ALT KATEGORI TAKSONOMISI: izinli (kategori, altkategori) kumesi + tedarikci IMZA nobeti
+# tools/arama.py'de TEK kaynak olarak yasar (ayni fonksiyon urun_hash'i ve D1 kolonunu da
+# besler). Import gk ile AYNI sebeple KOSULSUZ: modul kaybolursa betik ACILISTA coker —
+# bir nobetci "dosyasi yoksa gecer" olamaz.
+_arspec = importlib.util.spec_from_file_location(
+    "arama", os.path.join(os.path.dirname(os.path.abspath(__file__)), "arama.py"))
+arama = importlib.util.module_from_spec(_arspec)
+_arspec.loader.exec_module(arama)
 URUNLER = os.path.join(ROOT, "urunler.json")
 LOCK = os.path.join(ROOT, ".urunler.lock")
 MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
@@ -97,8 +105,19 @@ LOG = os.path.join(ROOT, ".urunler-guard.log")
 # eski_fiyat_gosterim). Mesru bir urun alanidir -> guard onu "kirlilik" saymasin ve
 # kampanya bitince `--alan-sil eski_fiyat` ile temizlenebilsin. PARA YOLU DEGIL:
 # tahsil edilen tutar `fiyat`tan turer.
+#
+# `altkategori`: kategori ICINDEKI daraltma etiketi (opsiyonel). Alan katalogda 100 kayitta
+# DOLUYDU ama duzelt.py'nin izinli listesinde OLMADIGI icin mesru yoldan ne duzeltilebiliyor
+# ne doldurulabiliyordu. KOR KABUL YOK: deger BOS olabilir (alan opsiyonel), doluysa kaydin
+# `kategori` degeriyle TUTARLI olmak ve tedarikci IMZA nobetinden gecmek ZORUNDA —
+# dogrulama _altkategori_ihlalleri() (yazimdan HEMEN ONCE, gorsel-koken kapisi deseni).
 DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "eski_fiyat",
-                    "gorseller", "lisans", "konfigur"}
+                    "gorseller", "lisans", "konfigur", "altkategori"}
+
+# --alan altkategori (ya da --alan kategori) ihlalinde donen cikis kodu. gorsel-koken
+# kapisinin 4'unden AYRI: cagiran (insan ya da betik) hangi kapinin reddettigini cikis
+# kodundan ayirt edebilsin.
+RC_ALTKATEGORI = 5
 
 # --- ACIKLAMA KORUMA: otomatik uretilen OLCU SATIRI ---------------------------
 # MaCiT dilim-30 (olculmus kayip): denetim kapisi yanlis-pozitifi yuzunden bir urunun
@@ -236,6 +255,43 @@ def _aciklama_koru_uygula(urun, alanlar):
     yeni, rapor = aciklama_koru(urun.get("aciklama"), alanlar["aciklama"])
     alanlar["aciklama"] = yeni
     return rapor
+
+
+def _altkategori_ihlalleri(urunler, idler):
+    """YAZIM SONRASI durumda, BU CAGRININ dokundugu kayitlarin (kategori, altkategori)
+    tutarliligini olcer. Ihlal listesi dondurur (bos = temiz).
+
+    NEDEN "yazim sonrasi durum": ayni cagri hem `kategori`yi hem `altkategori`yi
+    degistirebilir (ya da yalniz kategoriyi degistirip mevcut altkategoriyi GECERSIZ
+    birakabilir). Alanlari tek tek, birbirinden bagimsiz dogrulamak o ikinci deligi
+    ACIK birakirdi; kayit UYGULANDIKTAN SONRAKI haliyle olculur.
+
+    NEDEN "yalniz dokunulan kayitlar": katalogun TAMAMINI dogrulamak, bu cagriyla
+    ILGISIZ eski bir ihlal yuzunden mesru bir duzeltmeyi bloklardi (kapi kapsam ekseni).
+    Tum katalog ekseni AYRI ve kalicidir: tools/altkategori-kapisi.py.
+    """
+    ihlaller = []
+    for u in urunler:
+        if not isinstance(u, dict) or u.get("id") not in idler:
+            continue
+        sebep = arama.altkategori_sebebi(u.get("kategori"), u.get("altkategori"))
+        if sebep:
+            ihlaller.append((u.get("id"), u.get("kategori"), u.get("altkategori"), sebep))
+    return ihlaller
+
+
+def _altkategori_rapor(ihlaller, kaynak):
+    satirlar = ["HATA: ALT KATEGORI KAPISI — %s REDDEDILDI (hicbir sey yazilmadi)." % kaynak]
+    for uid, kat, alt, sebep in ihlaller:
+        satirlar.append("  - id=%s: kategori=%r altkategori=%r -> %s" % (uid, kat, alt, sebep))
+    satirlar.append("  Izinli kume (tools/arama.py ALTKATEGORI_IZINLI — katalogta FIILEN "
+                    "kullanilan esleslerden dondurulmus):")
+    for k in sorted(arama.ALTKATEGORI_IZINLI):
+        satirlar.append("    %s -> %s" % (k, ", ".join(arama.ALTKATEGORI_IZINLI[k])))
+    satirlar.append("  Alan OPSIYONEL: bos deger ('') ya da --alan-sil altkategori GECERLIDIR.")
+    satirlar.append("  Kumeyi genisletmek MIMAR karari: arama.py ALTKATEGORI_IZINLI elle "
+                    "guncellenir (yeni deger imza nobetinden de gecmelidir).")
+    return "\n".join(satirlar)
 
 
 def _log(msg):
@@ -459,6 +515,14 @@ def _toplu(yol):
             print("HATA: toplu islem REDDEDILDI — hicbir sey yazilmadi.", file=sys.stderr)
             print(gk.rapor_metni(koken, "duzelt.py --toplu"), file=sys.stderr)
             return 4
+        # ALT KATEGORI KAPISI — koken kapisiyla AYNI yer: TEK yazimdan HEMEN ONCE, ayni
+        # kilit altinda. Ihlal -> urunler.json byte-esit kalir, izin manifesti OLUSMAZ
+        # (toplu kipin "ya hep ya hic" sozlesmesi korunur).
+        alt_ihlal = _altkategori_ihlalleri(
+            urunler, set(setler) | set(alan_silmeler))
+        if alt_ihlal:
+            print(_altkategori_rapor(alt_ihlal, "toplu islem"), file=sys.stderr)
+            return RC_ALTKATEGORI
         _atomic_write(URUNLER, urunler)  # TEK yazim
 
         if setler or alan_silmeler:
@@ -604,6 +668,12 @@ def main():
         if koken:
             print(gk.rapor_metni(koken, "duzelt.py"), file=sys.stderr)
             return 4
+        # ALT KATEGORI KAPISI — yazimdan HEMEN ONCE, ayni kilit altinda. Ihlal -> ne
+        # urunler.json ne izin manifesti yazilir (degisiklik yalniz bellekte kalir).
+        alt_ihlal = _altkategori_ihlalleri(urunler, {args.id})
+        if alt_ihlal:
+            print(_altkategori_rapor(alt_ihlal, "duzeltme"), file=sys.stderr)
+            return RC_ALTKATEGORI
         _atomic_write(URUNLER, urunler)
 
         # Guard icin deger-bagli izin manifesti (birikimli).

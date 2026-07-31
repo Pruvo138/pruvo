@@ -175,6 +175,127 @@ def stokta_kanonik(u):
     return STOK_VAR if u.get("stokta") is True else STOK_YOK
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ALT KATEGORI (`altkategori`) — kategori ICINDEKI daraltma etiketi.
+#
+# NEDEN BURADA (tur/stokta ile AYNI gerekce): bu alan hem urun_hash'e girer hem D1
+# kolonuna yazilir. Iki yerde AYRI turetilseydi hash "degismedi" derken kolon degisir
+# (ya da tersi) ve D1 SESSIZCE eski degeri servis ederdi. Tek fonksiyon = tek kaynak.
+#
+# 🔴 IZINLI KUME DONDURULMUS BIR LISTEDIR, urunler.json'dan HER KOSUMDA YENIDEN
+# HESAPLANMAZ. Hesaplansaydi kapi TAUTOLOJIYE duserdi: kataloga giren her yeni deger
+# kendini otomatik "izinli" yapardi ve kapi hicbir seyi olcmezdi. Liste ASAGIDAKI
+# olcumden dondu ve yalnizca bir mimar ELLE genisletir (genisletme de imza nobetinden
+# gecmek ZORUNDA — bkz. altkategori_imza_sebebi).
+#
+# OLCUM (2026-08-01, 16.067 kayitlik katalog): `altkategori` 134 kayitta dolu, hepsi
+# kategori "Marin"; 3 tekil deger; hicbir deger birden fazla kategoride gecmiyor;
+# hicbiri katalogun tekil marka adlariyla carpismiyor; ucu de imza nobetinden geciyor.
+#
+# ⚠️ GENISLETME YOLU (kardes mimar icin): duzelt.py bu kumenin DISINDAKI her degeri
+# FAIL-CLOSED reddeder — yani yeni bir altkategori once BURAYA eklenir, sonra kataloga
+# yazilir. Toplu ekleme yolu (urun-ekle.py) duzelt.py'den GECMEZ: oradan giren yeni bir
+# deger tools/altkategori-kapisi.py A ekseninde CI'yi KIRMIZI yakar (olculdu 1 Agu:
+# "Pervaneler" tam olarak boyle geldi, 34 kayit).
+ALTKATEGORI_IZINLI = {
+    "Marin": ("Boya - Bakım", "Pervaneler", "Sintine ve Ekipmanları"),
+}
+
+# ── IMZA NOBETI (depo PUBLIC) ────────────────────────────────────────────────
+# Bu degerler bir TEDARIKCI VITRININDEN OLCULEREK turetiliyor. Deger GENEL bir Turkce
+# kategori adi olmali ("astar", "yapistirici" gibi); bir satici katalogundan kopyalandigi
+# belli olan etiket — marka/firma adi, alan adi, vitrin adi, urun kodu/SKU oneki —
+# tedarikci iliskisini ELE VERIR ve public repoya/siteye/D1'e girmemelidir.
+#
+# KURAL BEYAZ LISTEDIR (kara liste DEGIL): "sunlar yasak" demek, gorulmemis bir imza
+# turunu SESSIZCE gecirirdi. Yalnizca su BICIM kabul edilir; disindaki HER SEY supheli:
+#   * yalnizca TURK ALFABESI harfleri + bosluk + '-' + '/'  (q/w/x DAHIL DEGIL: Turkce
+#     alfabede yok, yabanci marka adlarinin en ucuz sinyali)
+#   * RAKAM YOK (urun kodu / SKU / '2K' tipi satici etiketi)
+#   * '.' ':' '&' '@' '_' '®' '™' '©' tirnak/parantez YOK (alan adi, ticari isaret, referans)
+#   * en fazla 4 kelime, en fazla 40 karakter (vitrin nav etiketi kisadir; uzun dize
+#     kopyalanmis satici basligi sinyalidir)
+#   * 2+ harfli TAMAMI BUYUK jeton YOK (SKU oneki / kisaltilmis firma adi sinyali)
+# Katalog MARKA listesiyle carpisma ekseni burada DEGIL kapida olculur (bu modul
+# urunler.json okumaz) — tools/altkategori-kapisi.py B ekseni.
+_ALTKAT_HARF = set("abcçdefgğhıijklmnoöprsştuüvyzABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ")
+_ALTKAT_AYIRAC = set(" -/")
+ALTKATEGORI_AZAMI_UZUNLUK = 40
+ALTKATEGORI_AZAMI_KELIME = 4
+
+
+def altkategori_imza_sebebi(deger):
+    """Deger tedarikci kimligi ele verebilecek bir IMZA tasiyor mu?
+
+    Dondurur: sebep metni (SUPHELI) ya da None (jenerik/temiz). Fail-closed —
+    taninmayan her sey supheli sayilir.
+    """
+    if not isinstance(deger, str):
+        return "metin degil (%s)" % type(deger).__name__
+    d = deger.strip()
+    if not d:
+        return "bos"
+    if len(d) > ALTKATEGORI_AZAMI_UZUNLUK:
+        return "cok uzun (%d > %d karakter) — kopyalanmis satici basligi sinyali" % (
+            len(d), ALTKATEGORI_AZAMI_UZUNLUK)
+    kelimeler = d.split()
+    if len(kelimeler) > ALTKATEGORI_AZAMI_KELIME:
+        return "cok fazla kelime (%d > %d)" % (len(kelimeler), ALTKATEGORI_AZAMI_KELIME)
+    for c in d:
+        if c in _ALTKAT_HARF or c in _ALTKAT_AYIRAC:
+            continue
+        if c.isdigit():
+            return "rakam iceriyor (%r) — urun kodu/SKU sinyali" % c
+        return "izinsiz karakter (%r) — alan adi/ticari isaret/yabanci harf sinyali" % c
+    for k in kelimeler:
+        harfli = [c for c in k if c in _ALTKAT_HARF]
+        if len(harfli) >= 2 and all(c.isupper() for c in harfli):
+            return "TAMAMI BUYUK jeton (%r) — SKU oneki/kisaltilmis firma adi sinyali" % k
+    return None
+
+
+def altkategori_sebebi(kategori, deger):
+    """(kategori, altkategori) ikilisi gecerli mi? Sebep metni ya da None (gecerli).
+
+    BOS/eksik deger GECERLIDIR: alan opsiyoneldir (katalogun ~%99'unda yok).
+    """
+    if deger is None:
+        return None
+    if not isinstance(deger, str):
+        return "altkategori metin olmali, %s degil" % type(deger).__name__
+    d = deger.strip()
+    if not d:
+        return None
+    imza = altkategori_imza_sebebi(d)
+    if imza:
+        return "IMZA NOBETI: %r — %s" % (d, imza)
+    izinli = ALTKATEGORI_IZINLI.get(kategori)
+    if not izinli:
+        return ("kategori %r icin TANIMLI altkategori YOK — izinli kume: %s"
+                % (kategori, ", ".join(sorted(ALTKATEGORI_IZINLI)) or "(bos)"))
+    if d not in izinli:
+        return ("%r kategori %r icin izinli DEGIL — izinli: %s"
+                % (d, kategori, ", ".join(izinli)))
+    return None
+
+
+def altkategori_kanonik(u):
+    """D1'e yazilan `altkategori` degeri. FAIL-CLOSED: izinli kumede olmayan /
+    imza tasiyan / tipi yanlis her deger "" olur.
+
+    Neden fail-closed (tur_kanonik deseni): .git/hooks/pre-push d1-sync'i push'tan
+    ONCE kosar, CI kapisi ise push'tan SONRA. Yani bozuk/sizdiran bir deger kapi
+    kirmizi yanmadan ONCE D1'e — oradan da Ege'ye ve musteriye — ulasabilirdi.
+    "" yazmak urunu KAYBETTIRMEZ (urun kendi kategorisi altinda bulunur), yalnizca
+    alt-filtre etiketini dusurur. Sessiz KALMAZ: tools/altkategori-kapisi.py A/B
+    eksenleri ayni degeri KIRMIZI yakar.
+    """
+    deger = u.get("altkategori")
+    if altkategori_sebebi(u.get("kategori"), deger) is not None:
+        return ""
+    return (deger or "").strip()
+
+
 # D1'e yazilan alanlar — biri degisirse satir yeniden yazilir, degismezse yazilmaz.
 # (D1 gunluk 100.000 yazma limiti: tam rebuild yerine sadece degiseni yazmak sart.)
 def urun_hash(u):
@@ -203,5 +324,12 @@ def urun_hash(u):
         # INSAATAN imkansiz.
         tur_kanonik(u),
         stokta_kanonik(u),
+        # ALT KATEGORI: HASH'E GIRMESI SART — alan D1'de bir KESIF yuzeyini besler
+        # (kategori icinde daraltma). Hash kapsamasaydi bir urunun altkategorisi
+        # degistiginde hash AYNI kalir, diff_plan satiri "degismemis" sayar ve D1'e HIC
+        # YAZMAZDI: alt-filtre sessizce bayat kalir, musteri urune ULASAMAZ ve hicbir
+        # alarm calmaz. KANONIK deger yazilir (ham degil) -> hash'in gordugu deger ile
+        # kolona giden deger AYNI fonksiyondan gelir, ayrisma INSAATAN imkansiz.
+        altkategori_kanonik(u),
     ], ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(ozet.encode("utf-8")).hexdigest()[:16]

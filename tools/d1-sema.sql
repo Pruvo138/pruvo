@@ -16,6 +16,17 @@ CREATE TABLE IF NOT EXISTS urunler (
   seq       INTEGER NOT NULL,             -- sabit sira anahtari; DESC = en yeni ustte
   baslik    TEXT NOT NULL,
   kategori  TEXT NOT NULL,
+  -- ALT KATEGORI — kategori ICINDEKI daraltma etiketi ("Marin" > "Boya - Bakım").
+  -- '' (bos) = urunun altkategorisi YOK (katalogun ~%99'u; olculdu 2026-08-01: 16.033
+  -- kaydin 100'unde dolu). Veri urunler.json "altkategori" alaninda YASIYORDU ama HICBIR
+  -- yerde islenmiyordu -> musteriye ULASMIYORDU. Bu kolon o yolu acar.
+  -- KAYNAK + FAIL-CLOSED: arama.altkategori_kanonik(u) — izinli (kategori, altkategori)
+  -- kumesi disindaki / tedarikci imzasi tasiyan her deger '' olur (bkz. arama.py
+  -- ALTKATEGORI_IZINLI + altkategori_imza_sebebi). HASH'E GIRER (tur/stokta deseni,
+  -- taban_fiyat/konfigur'un TERSI): alan PUBLIC urunler.json'da yasar ve icerik alanidir;
+  -- hash kapsamasaydi altkategori degisimi satiri yeniden yazdirmaz, D1 sessizce bayat
+  -- alt-filtre servis ederdi.
+  altkategori TEXT NOT NULL DEFAULT '',
   marka     TEXT NOT NULL DEFAULT '[]',   -- JSON dizi
   fiyat     TEXT NOT NULL DEFAULT '',
   gorsel    TEXT,                         -- gorseller[0] (kart kapagi)
