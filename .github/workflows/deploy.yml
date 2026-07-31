@@ -514,6 +514,25 @@ jobs:
       - name: Konfigur D1 semasi kabul testi (hash-kor alan + hedefli UPDATE)
         run: python3 tools/konfigur-d1-test.py
 
+      # TICARI HAL (`tur` / `stokta`) D1 hatti — Ege fiziksel urunu ALGILASIN, TUKENMIS
+      # urunu STOKTA diye SUNMASIN. Dort sessiz-hata sinifi olculur:
+      #   A TIP        `stokta` INTEGER olmali; TEXT olsaydi SQLite 0'i '0' METNINE cevirir
+      #                ve uc taraftaki JS'te Boolean('0') === true -> yanlis vaat.
+      #   B HASH       tur/stokta urun_hash'e GIRER (taban_fiyat/konfigur'un TERSI karar):
+      #                girmeseydi "tukendi" isareti hash'i degistirmez, diff-upsert satiri
+      #                yeniden yazmaz ve eski stok hali D1'de KALICILASIRDI.
+      #   C IKIZ TANIM Ayni tablo bes yerde tanimli (d1-sema.sql · GOC_KOLON · _KT_SEMA ·
+      #                satir_sql INSERT · KOLONLAR). Invaryant besini birbirine kilitler;
+      #                INSERT − KOLONLAR farki TAM OLARAK gerekceli KASITLI_DISARIDA olmali.
+      #   D FAIL-CLOSED Alan yokken/bozukken uretilen deger "STOKTA" DIYEMEZ (uc degerli:
+      #                -1 bilinmiyor · 0 stokta degil · 1 stokta; 'STOKTA' diyen TEK deger 1).
+      #   E VERI       Gercek katalogta taninmayan yazim ya da stok bilgisiz fiziksel urun yok.
+      # OFFLINE: canli D1/wrangler/AG YOK (gercek d1-sema.sql bellek-ici sqlite3'e yuklenir).
+      # Cift yonlu mutasyon (11 oldurucu KIRMIZI + 2 ilgisiz YESIL) elle:
+      #   python3 tools/stok-d1-kapisi.py --mutasyon
+      - name: "Ticari hal D1 kapisi (tur/stokta: tip + hash kapsami + ikiz tanim + fail-closed)"
+        run: python3 tools/stok-d1-kapisi.py
+
       # KONFIGUR GOLGE MODU (FAZ 3). Worker D1'den `konfigur`u OKUR ama fiyati HALA bundle'dan
       # hesaplar; bu adim iki seyi birden kilitler:
       # (1) MUSTERI DAVRANISI DEGISMEDI — capa 150/PLA=73600, 300/ASA=150000, anka-kusu
