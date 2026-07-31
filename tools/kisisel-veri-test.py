@@ -438,15 +438,22 @@ KOK_BELGE_UZANTILARI = (
 )
 
 # IZIN LISTESI: yol -> GEREKCE. TAM AD ve HARF-DUYARLI esleme (liste kucuk ve kesin).
-# ⚠️ CLAUDE.md / AGENTS.md / DEVAM.md BILEREK BURADA DEGIL: gitignore'dadirlar ve
-# IZLENIR hale gelirlerse kirmizi yanmasi DOGRU davranistir (tedarikci adlari,
-# uyelik bilgisi, WhatsApp numarasi, ticari mahremiyet kurali tasirlar).
+# ⚠️ CLAUDE.md / AGENTS.md BILEREK BURADA DEGIL: gitignore'dadirlar ve IZLENIR hale
+# gelirlerse kirmizi yanmasi DOGRU davranistir (tedarikci adlari, uyelik bilgisi,
+# WhatsApp numarasi, ticari mahremiyet kurali tasirlar).
+# 🔴 DEVAM.md ISTISNASI (Okan karari, 31 Tem 2026): devralanin yarim isi gormesi icin
+# IZLENIR yapildi; hassas bloklar DEVAM-ARSIV.md'ye (gitignore'da KALIR) tasindi. Bu
+# giris SARTLIDIR — DEVAM.md'ye tedarikci adi/vitrin alan adi, iskonto-kur formulu,
+# gizli dosya adi, sir envanteri ayrintisi, guvenlik bulgusu/kapi bypass'i YAZILMAZ.
+# Kural B (ad ekseni) artik DEVAM.md'yi gecirir; ICERIK ekseni acik kalir (tedarikci
+# nobetcisi izlenen dosyalarin icini tarar, DEVAM.md dahil).
 KOK_BELGE_IZIN = {
     "README.md": "depo tanitim dosyasi — GitHub'da GORUNMESI amac, ic bilgi tasimaz",
     "ege-bilgi.md": "WhatsApp botu Ege'nin YAYINLANAN bilgi dosyasi (musteriye donen icerik)",
     "CNAME": "GitHub Pages ozel alan adi kaydi — uzantisiz, SILINIRSE yayin adresi duser",
     ".gitignore": "git yoksayma kurallari — uzantisiz (nokta-dosyasi), depo isleyisi icin sart",
     ".driveignore": "Drive yedekleme yoksayma kurallari — uzantisiz (nokta-dosyasi)",
+    "DEVAM.md": "devir defteri — Okan karari 31 Tem 2026 IZLENIR; hassas blok DEVAM-ARSIV.md'de",
 }
 
 
