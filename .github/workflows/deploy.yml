@@ -1152,10 +1152,27 @@ jobs:
       # Iki govde OLCUM MANTIGININ agsiz/openscad'siz kolu (MESH olcumu degil).
       - name: Iki govde olcum mantigi — kendini test (agsiz kol)
         run: python3 onizleme/test/iki-govde-olcum.py --kendini-test
+      # YORUM SOYUCU: build.py'nin _yayin/ kopyalarini uretirken kullandigi lexer.
+      # Kendini-testi (46 iddia) + BAGIMSIZ tuzak fiksturleri & kirmizi-mutasyon kapisi
+      # (17 fikstur / 10 mutant). build.py'den ONCE kosar: soyucu bozuksa yayin
+      # kopyasi hic uretilmesin. Offline, stdlib (node varsa `node --check` de kosar).
+      - name: Yorum soyucu kabul testi + kirmizi-mutasyon kapisi
+        run: |
+          python3 tools/yorum_soy.py --kendini-test
+          python3 tools/yorum-soy-test.py
       # ================= MUAFIYET DENETIMI BLOGU SONU =================================
 
       - name: Statik sayfalari uret
         run: python3 tools/build.py
+
+      # YAYIN KOPYASI PARITE KAPISI: soyma PARAYI degistirdi mi. Kaynak JS ile _yayin/
+      # (soyulmus) JS ayri ayri yuklenip TAM KUME fiyat karsilastirmasi yapilir
+      # (23 sema x 25 olcu x 4 filament x 4 renk = 9200 kombinasyon, orneklem YOK) +
+      # uretilen TUM sayfalarin `?v=` referanslari YAYINLANAN bayta baglaniyor mu.
+      # build.py'den SONRA kosmak ZORUNDA (_yayin/ + urun/ ciktisina muhtac; yoksa
+      # OLCULEMEDI ile exit 3 — sessiz YESIL imkansiz). Offline, ~60 s.
+      - name: Yayin kopyasi fiyat paritesi + `?v=` surum hatti (tam kume)
+        run: node jenerator/test/yayin-fiyat-parite.mjs
 
       # JSON-LD BRAND KAPISI: uretilen TUM urun sayfalarinin JSON-LD bloklari taranir —
       # JSON gecerli + hicbir objede yinelenen anahtar yok + Product.brand TEK deger
