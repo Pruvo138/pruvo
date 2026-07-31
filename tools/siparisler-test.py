@@ -33,6 +33,31 @@ import siparisler  # noqa: E402
 
 SONUC = []
 
+# BEYAN: hangi kolda hangi testlerin KAYIT ETMESI zorunlu. Bir testin cagrisi
+# silinir / govdesi no-op edilirse "kirmizi yok" diye YESIL yanmasin diye vardir.
+BEKLENEN_AGSIZ = (1, 2, 3, 4, 5, "5b", 7)
+BEKLENEN_CANLI = (1, 2, 3, 4, 5, "5b", 6, 7)
+
+
+def suite_butunlugu(sonuc, beklenen):
+    """(hatalar) — SAF fonksiyon; oz-nobetci (TEST 7) bunu POZITIF+NEGATIF surer."""
+    hatalar = []
+    gorulen = [s[0] for s in sonuc]
+    eksik = [n for n in beklenen if n not in gorulen]
+    mukerrer = sorted(set(str(n) for n in gorulen if gorulen.count(n) > 1))
+    fazla = sorted(set(str(n) for n in gorulen if n not in beklenen))
+    if eksik:
+        hatalar.append("SUITE EKSIK: %s numarali test(ler) hic KAYIT ETMEDI -> govdesi "
+                       "silinmis/atlanmis olabilir; 'kirmizi yok' YESIL DEMEK DEGILDIR"
+                       % ", ".join(str(n) for n in eksik))
+    if mukerrer:
+        hatalar.append("SUITE MUKERRER: %s numarasi birden fazla kayit etti"
+                       % ", ".join(mukerrer))
+    if fazla:
+        hatalar.append("SUITE BEYAN DISI: %s numarali test BEKLENEN demetinde yok "
+                       "(test eklendiyse demeti guncelle)" % ", ".join(fazla))
+    return hatalar
+
 
 def kayit(no, ad, gecti, detay=""):
     SONUC.append((no, ad, gecti))
@@ -164,9 +189,37 @@ def test_6_canli_kosum():
 AGSIZ = "--agsiz" in sys.argv
 
 
+# 🔴 31 TEM — BOSALTMA (hollowing) FAIL-OPEN'i KAPATILDI. OLCULDU: --agsiz kolunda
+# 4 mutasyonun 4'u de YESIL yaniyordu (rc=0, "SONUC: 5/5 GECTI"): test_4 (YAZMA
+# KAPISI) cagrisini silmek, govdesini no-op yapmak, test_3/test_1 cagrisini silmek.
+# Hukum yalniz SONUC ICINDEKI kirmizilara bakiyordu -> nobetciyi KALDIRMAK, onu
+# yesile cevirmenin en kolay yolu oluyordu (415a144e'nin jenerator/test/kabul.py'de
+# kapattigi sinifin bu dosyadaki kalintisi). Artik BEKLENEN demeti beyan edilir ve
+# suite_butunlugu() eksik/mukerrer/beyan-disi kaydi KIRMIZI yakar; hukum
+# fonksiyonunun kendisi de TEST 7'de pozitif+negatif eksende olculur.
+def test_7_oz_nobetci(beklenen):
+    tam = [(n, "sentetik", True) for n in beklenen]
+    eksikli = [v for v in tam if v[0] != 4]
+    vakalar = [
+        ("negatif: tam kume temiz -> hata YOK",
+         suite_butunlugu(tam, beklenen) == []),
+        ("pozitif: bir test hic kayit etmezse -> SUITE EKSIK",
+         any("SUITE EKSIK" in h for h in suite_butunlugu(eksikli, beklenen))),
+        ("pozitif: ayni numara iki kez kayit ederse -> SUITE MUKERRER",
+         any("SUITE MUKERRER" in h for h in suite_butunlugu(tam + [tam[0]], beklenen))),
+        ("pozitif: beyan disi numara -> SUITE BEYAN DISI",
+         any("SUITE BEYAN DISI" in h
+             for h in suite_butunlugu(tam + [("z9", "sentetik", True)], beklenen))),
+    ]
+    kotu = [ad for ad, iyi in vakalar if not iyi]
+    kayit(7, "oz-nobetci: suite_butunlugu pozitif+negatif eksende olcuyor",
+          not kotu, ("BOZUK=%s" % kotu) if kotu else "4/4 eksen")
+
+
 def main():
     print("SIPARISLER.PY KABUL TESTLERI%s" % (" (AGSIZ kol)" if AGSIZ else ""))
     print("=" * 66)
+    beklenen = BEKLENEN_AGSIZ if AGSIZ else BEKLENEN_CANLI
     test_1_hepsi_where_yok()
     test_2_durum_where()
     test_3_bilinmeyen_durum()
@@ -177,10 +230,15 @@ def main():
               "ister; --agsiz kolunda calistirilmaz)")
     else:
         test_6_canli_kosum()
+    test_7_oz_nobetci(beklenen)
     print("=" * 66)
+    hatalar = suite_butunlugu(SONUC, beklenen)
+    for h in hatalar:
+        print("  BULGU — %s" % h)
     basarisiz = [s for s in SONUC if not s[2]]
-    print("SONUC: %d/%d GECTI" % (len(SONUC) - len(basarisiz), len(SONUC)))
-    return 1 if basarisiz else 0
+    print("SONUC: %d/%d GECTI%s" % (len(SONUC) - len(basarisiz), len(SONUC),
+                                     " | SUITE BUTUNLUGU KIRMIZI" if hatalar else ""))
+    return 1 if (basarisiz or hatalar) else 0
 
 
 if __name__ == "__main__":
