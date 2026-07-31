@@ -519,6 +519,10 @@
   }
   .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-top:auto}
   .card-price.empty{color:var(--gray-text);font-weight:600;font-size:13px}
+  /* Üstü çizili ESKİ FİYAT (opsiyonel `eski_fiyat` alanı) — yalnız gösterim; sepet/ödeme
+     kuruşuna DOKUNMAZ. Kural + fail-closed gerekçesi: eskiFiyatMetni() (aşağıda). */
+  .card-price .eski-fiyat{font-size:13px;font-weight:600;color:var(--gray-text);
+    text-decoration:line-through;text-decoration-thickness:2px;margin-right:6px}
   /* NOT (işletme kararı, 16 Tem): kart "Sepete Ekle" butonu ve "Tavsiye" çipi KALDIRILDI —
      sepete ekleme yalnız ürün sayfasından (malzeme+renk seçimi zorunlu). */
 
@@ -2223,6 +2227,44 @@
   }
   function coverOf(p){ return imagesOf(p)[0]; }
 
+  /* ---------- ESKİ FİYAT (üstü çizili indirim gösterimi) ----------
+     Opsiyonel `eski_fiyat` alanı ("1.200 TL"). 🔴 YALNIZ GÖSTERİM: sepet/ödeme/konfigür
+     kuruşu bu alanı OKUMAZ (PRUVO_SECENEK.satirOzeti yalnız `fiyat`tan hesaplar).
+
+     FAIL-CLOSED — aşağıdakilerin HEPSİ sağlanmazsa HİÇ gösterilmez ("0 TL" yok, ham dize
+     yok, NaN yok). Yanlış gösterim müşteriye YANILTICI indirim demektir ve hata SESSİZDİR:
+       1. ürün parametrik DEĞİL (sarı seride `fiyat` boş)
+       2. ürün konfigür'lü DEĞİL (fiyat boya/malzemeye göre canlı değişir)
+       3. `fiyat` ayrıştırılabilir (TL/TRY/₺ taşıyan sayı)
+       4. `eski_fiyat` BAŞTAN SONA "<sayı> <para birimi>" (ek metin/işaret kabul edilmez ->
+          gösterilen dize yapısal olarak zararsız; ayrıca textContent ile basılır)
+       5. para birimi aynı (başka birim bu kalıbı hiç eşlemez -> gösterilmez)
+       6. eski_fiyat > fiyat (eşit/küçük = indirim değil)
+
+     KALIP tools/build.py'deki (_ESKI_FIYAT_TAM_RE / _FIYAT_ARA_RE) ile AYNI; iki taraf
+     tools/eski-fiyat-test.py'de AYNI vaka tablosuyla kilitlenir (drift nöbeti).
+     Lookbehind KULLANILMAZ (eski Safari); "1.2.3 TL" gibi bozuk dizede sondaki "3"ün
+     3 TL diye okunmasını `(?:^|[^\d.,])` öneki engeller. */
+  var ESKI_FIYAT_TAM_RE = /^\s*((?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?)\s*(?:TL|TRY|₺)\s*$/i;
+  var FIYAT_ARA_RE = /(?:^|[^\d.,])((?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?)\s*(?:TL|TRY|₺)/i;
+  function paraKurus(sayi){
+    var p = String(sayi).split(",");
+    var kus = p.length > 1 ? (p[1] + "00").slice(0, 2) : "00";
+    return parseInt(p[0].replace(/\./g, ""), 10) * 100 + parseInt(kus, 10);
+  }
+  /* Gösterilecek üstü çizili metin ya da null. */
+  function eskiFiyatMetni(p){
+    if(!p || p.parametrik || p.konfigur){ return null; }
+    if(typeof p.eski_fiyat !== "string" || typeof p.fiyat !== "string"){ return null; }
+    var ham = p.eski_fiyat.trim();
+    var me = ESKI_FIYAT_TAM_RE.exec(ham);
+    if(!me){ return null; }
+    var mg = FIYAT_ARA_RE.exec(p.fiyat.trim());
+    if(!mg){ return null; }
+    if(!(paraKurus(me[1]) > paraKurus(mg[1]))){ return null; }
+    return ham;
+  }
+
   // Türkçe duyarlı normalize: küçült + aksan/işaret sadeleştir
   function norm(s){
     return (s || "").toLocaleLowerCase("tr")
@@ -2567,7 +2609,23 @@
     // AYNI: taban-fiyatlar.js küçük ayrı dosya, katalogtan bağımsız iner.
     var taban = (p.parametrik && window.PRUVO_TABAN_FIYATLAR) ? window.PRUVO_TABAN_FIYATLAR[p.id] : null;
     if(p.fiyat && p.fiyat.trim() !== ""){
-      pr.className = "card-price"; pr.textContent = p.fiyat;
+      pr.className = "card-price";
+      /* Üstü çizili eski fiyat GEÇERLİYSE (eskiFiyatMetni) fiyatın SOLUNA konur; aksi
+         halde kart bugünkü gibi yalnız güncel fiyatı yazar. textContent -> HTML
+         yorumlanmaz (ham veri DOM'a enjekte edilemez). */
+      var eskiMetin = eskiFiyatMetni(p);
+      if(eskiMetin){
+        var eskiEl = document.createElement("s");
+        eskiEl.className = "eski-fiyat";
+        eskiEl.textContent = eskiMetin;
+        var yeniEl = document.createElement("span");
+        yeniEl.className = "yeni-fiyat";
+        yeniEl.textContent = p.fiyat;
+        pr.appendChild(eskiEl);
+        pr.appendChild(yeniEl);
+      }else{
+        pr.textContent = p.fiyat;
+      }
     }else if(taban != null){
       pr.className = "card-price";
       pr.textContent = PRUVO_SECENEK.kurusMetni(Math.round(taban * 100)) + "'den başlayan";
