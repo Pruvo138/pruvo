@@ -1116,6 +1116,25 @@ def kilit_satirlari(d):
             "gerekirse elle sonlandir. Kilit: %s" % d["yol"]]
 
 
+def _kanca_nobeti_satirlari():
+    """8) GIT KANCALARI — tools/kanca-nobeti.py'nin satirlari (pano ASLA patlamaz).
+
+    🔴 NEDEN PANODA: kancalarin sessizce devre disi kalmasi (`core.hooksPath =
+    /dev/null`) 1 Agu'ta ANA CHECKOUT'ta GERCEKTEN yasandi; push'taki D1 senkronu
+    ve commit guard'i hic kosmadi ve HICBIR YERDE kirmizi yanmadi. CI bu ekseni
+    goremez (ana checkout'un `.git/config`'i CI'ya gitmez) -> gorunurluk YEREL
+    olmak zorunda ve mimarlarin rutin olarak bakti|i yer bu panodur.
+    KOPYA YOK: hukum tek kaynaktan (tools/kanca-nobeti.py) gelir."""
+    yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kanca-nobeti.py")
+    if not os.path.exists(yol):
+        return ["  ⚪ ÖLÇÜLEMEDİ: tools/kanca-nobeti.py YOK -> kancalarin etkin olup "
+                "olmadigi olculMEDI ('sorun yok' demek DEGILDIR)."]
+    spec = importlib.util.spec_from_file_location("kanca_nobeti_pano", yol)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m.satirlar()
+
+
 def main():
     repo = repo_koku()
     kok = ana_repo(repo)
@@ -1226,6 +1245,16 @@ def main():
             print(satir)
     elif any("ÖLÇÜLEMEDİ" in s for s in satirlar):
         print("  (neyin olculMEDIGI icin: python3 tools/durum.py --ne-olculmedi)")
+
+    # 8) GIT KANCALARI — kancalar sessizce devre disi mi? (bkz. _kanca_nobeti_satirlari)
+    print("\n8) GIT KANCALARI (ANA CHECKOUT)")
+    try:
+        kanca_satirlari = _kanca_nobeti_satirlari()
+    except Exception as e:                    # pano bir KAPI degil: hicbir hal exit'i bozmaz
+        kanca_satirlari = ["  ⚪ ÖLÇÜLEMEDİ: kanca nobeti kosturulamadi (%s)"
+                           % type(e).__name__]
+    for satir in kanca_satirlari:
+        print(satir)
 
     print("")
     return 0

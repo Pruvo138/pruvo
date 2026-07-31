@@ -233,7 +233,14 @@ def kendini_test():
     betikler konur; sonra GERCEK `git commit` / `git push` kosulur ve izin olusup
     olusmadigi olculur. Iz yoksa test KIRMIZI yanar."""
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    kaynak_hooks = os.path.join(repo, ".git", "hooks")
+    # 🔴 ORTAK GIT DIZINI (1 Agu duzeltmesi): burada `repo/.git/hooks` SABIT YAZILIYDI.
+    # Bir WORKTREE'de `.git` bir DOSYADIR (gitdir isaretcisi), dizin degil -> yol HIC
+    # var olmuyor, kaynak hook'lar bulunamiyor ve 11 kontrolun 8'i "olcemedigi icin"
+    # kirmizi yaniyordu (ana checkout'tan 11/11 yesil, worktree'den 8 kirmizi: olculdu).
+    # Yani oz-test worktree'den kosuldugunda HICBIR SEY olcmuyordu. `hook_yolu()`
+    # zaten `--git-common-dir` ile dogru cozumu yapiyor — TEK KAYNAK ondan turetilir.
+    _pp = hook_yolu(repo)
+    kaynak_hooks = os.path.dirname(_pp) if _pp else os.path.join(repo, ".git", "hooks")
     kontroller = []
 
     def kontrol(ad, kosul, ayrinti=""):
@@ -316,6 +323,28 @@ def kendini_test():
     return 1 if kirmizi else 0
 
 
+def kanca_nobeti_dogrula(bloklayici=True):
+    """Kurulum/geri-yukleme SONRASI: kancalar GERCEKTEN etkin mi? (rc doner)
+
+    🔴 NEDEN BURADA (1 Agu olculen olay): bu betik kancalari YAZAR ama yazdiginin
+    KOSTUGUNU dogrulamazdi. Ana checkout'un config'ine `core.hooksPath = /dev/null`
+    sizdiginda dosyalar yerli yerinde, x-bitleri dogru duruyordu — yine de hicbir
+    kanca kosmadi ve bu SESSIZDI. "Kurdum" ile "kosuyor" ayri iki iddiadir; kurulum
+    araci ikincisini de olcmeden bitmemeli (kur -> DOGRULA halkasi).
+    FAIL-CLOSED: nobetci yoksa/patlarsa YESIL SAYILMAZ."""
+    yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kanca-nobeti.py")
+    print("\n--- KANCA NOBETI (kurulan kancalar FIILEN etkin mi) ---")
+    if not os.path.exists(yol):
+        print("⚪ OLCULEMEDI: tools/kanca-nobeti.py YOK -> kancalarin etkinligi "
+              "DOGRULANAMADI (fail-closed).")
+        return 1 if bloklayici else 0
+    p = subprocess.run([sys.executable, yol], capture_output=True, text=True)
+    sys.stdout.write(p.stdout)
+    if p.stderr.strip():
+        sys.stderr.write(p.stderr)
+    return p.returncode if bloklayici else 0
+
+
 def main():
     kuru = "--kuru" in sys.argv
     kaldir = "--kaldir" in sys.argv
@@ -339,7 +368,8 @@ def main():
               % (ev, yazilan, atlanan, "  (KURU KOSUM — yazilmadi)" if kuru else ""))
         if not ev:
             return 1
-        return 0
+        # Geri yukleme YAZDI ise kosanin fiilen etkin oldugunu DOGRULA.
+        return 0 if kuru else kanca_nobeti_dogrula()
 
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     yol = hook_yolu(repo)
@@ -357,7 +387,9 @@ def main():
     print("eylem: " + eylem)
     if yeni is None or yeni == mevcut:
         print("degisiklik YOK (idempotent).")
-        return 0
+        # Idempotent kosum da bir DOGRULAMA firsatidir: dosya ayni ama config
+        # araya girip kancalari oldurmus olabilir (olculen olay tam buydu).
+        return 0 if kaldir else kanca_nobeti_dogrula()
     if kuru:
         print("KURU KOSUM — yazilmadi.")
         return 0
@@ -372,7 +404,9 @@ def main():
         f.write(yeni)
     os.chmod(yol, os.stat(yol).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     print("yazildi + calistirilabilir yapildi.")
-    return 0
+    # `--kaldir` bilerek kanca govdesini eksiltir -> nobetci GOSTERILIR ama
+    # cikis kodunu BELIRLEMEZ (mesru islem kirmizi yanmasin).
+    return kanca_nobeti_dogrula(bloklayici=not kaldir)
 
 
 if __name__ == "__main__":
