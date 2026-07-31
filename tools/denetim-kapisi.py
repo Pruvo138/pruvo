@@ -162,24 +162,39 @@ DEDUP_ESIK = 0.75
 _STOP = set("ve ile için icin bir bu da de ki mm için icin".split())
 
 # =============================================================================
-# KAPI 7: MARIN FIYAT TABANI (Okan karari 30 Tem + AYNI GUN DUZELTME)
-# TEK KAYNAK: /Users/okan/dev/pruvo-hasat/kalibrasyon/POLITIKA-KARARLARI.md
-#             "2026-07-30 — DUZELTME: fiyat tabani karari YANLIS KAPSAMDA uygulanmisti"
+# KAPI 7: FIYAT TABANI — 200 TL, TUM KATALOG (Okan karari 31 Tem 2026)
+# TEK KAYNAK: Okan karari 31 Tem — "200 TL taban artik TUM urunlere uygulanir".
+# ONCEKI HAL: kural YALNIZ `kategori == "Marin"` kapsamindaydi
+#             (/Users/okan/dev/pruvo-hasat/kalibrasyon/POLITIKA-KARARLARI.md, 30 Tem).
 #
-# 🔴 KAPSAM YALNIZ `kategori == "Marin"`. BASKA KATEGORIYE DOKUNMAZ.
-#   Ilk uygulama (commit 68837f62) kurali TUM katalogda duz 500 TL taban sanip 12.458 kaydi
-#   yuvarladi; YANLISTI ve geri alindi (commit 1606e166: Otomobil 10.541 + Motosiklet 825 +
-#   diger ~207 = 11.573 kayit ORIJINAL fiyatina donduruldu). Okan'in talebi bastan beri
-#   YALNIZ Marin icindi ve duz taban degil KADEMELI ESLEME idi.
-#   ⚠️ KAPSAM SIZMASININ BEDELI OLCULDU (30 Tem, 14.809 urun): Marin DISINDA 200 TL altinda
-#   1.761 canli kayit var (100 TL'de 65 kayit dahil). Kapsam sizarsa bu kayitlar SESSIZCE
-#   kirmizi yanar = tum ekibin urun akisi durur. Bu yuzden kategori kontrolu kapinin ILK
-#   ifadesidir ve kapsam-sizmasi fikstoru (denetim-kapisi-test.py) bunu curutur.
+# 🔴 KAPSAM ARTIK TUM KATEGORILER. TEK ISTISNA = PARAMETRIK/SARI SERI:
+#     (a) `parametrik` alani true OLAN kayit, VE/VEYA
+#     (b) kategorisi Jeneratör (= sari seri kovasi) OLAN kayit,
+#     (c) ...ve fiyat alani BOS olan kayit (sari seride fiyat `taban-fiyatlar.js`'ten gelir,
+#         `urunler.json`'daki `fiyat` bilerek BOS birakilir).
+#   OLCULDU (31 Tem, canli katalog 15.930 urun): (a) 23 · (b) 23 · (c) 23 kayit ve UCU DE
+#   AYNI 23 kayda denk geliyor (parametrik-ama-fiyatli 0, bos-ama-parametrik-degil 0).
+#   Yani istisna kumesi bugun TEK ve tutarli; ucunu de yazmak fail-safe (biri kayarsa
+#   digeri tutar).
+#
+# ⚠️ KAPSAM GENISLETMESININ OLCULEN BEDELI (31 Tem): kapsam ici 15.907 kaydin 1.761'i
+#   taban ALTINDA (Otomobil 1.758 · Oyun/Hobi 2 · Ev 1; en yogun 150 TL'de 1.109, 180 TL'de
+#   392, 100 TL'de 65). Bu kayitlar DUZELTILMEDEN kapi tam katalogda kirmizidir. VERI
+#   DUZELTMESI AYRI DUZLEM (MaCiT/duzelt.py) — kapi yalniz OLCER ve bloklar.
+#   Kapi CI'ya `--commit-farki` ile baglidir: onceden VAR OLAN ihlal bloklamaz (bkz. main()
+#   'onceden' filtresi), YENI/DEGISEN taban-alti fiyat BLOKLAR.
+#
+# 🔵 MARIN EKSENI KAYBOLMADI (eski davranis korunur):
+#   - Kademeli esleme ONERISI (asagidaki kademeli_hedef) ihlal mesajinda DURUR.
+#   - Marin'de fiyati BOS ve parametrik OLMAYAN kayit HALA fail-closed ihlaldir
+#     (FIYAT_BOS_FAILCLOSED_KATEGORI). Okan'in "bos fiyat kapsam disi" istisnasi SARI
+#     SERI gerekcelidir; Marin'in olculmus fail-closed ekseni bilerek YERINDE BIRAKILDI —
+#     kapsam genislerken pozitif nobetci sessizce oldurulmez.
 #
 # KADEMELI ESLEME (orijinal fiyat -> hedef) + BUCKET kurali (POLITIKA-KARARLARI.md):
 #     <150 -> 200 · [150,200) -> 300 · [200,250) -> 350 · [250,500) -> 500 · 500+ dokunulmaz
 #   ("170 TL" tabloda yoktu; [150,200) sayilip 150 ile ayni hedefe = 300 TL eslendi.)
-#   Yani Marin'de FIILI ALT SINIR 200 TL'dir — 500 DEGIL.
+#   Yani FIILI ALT SINIR 200 TL'dir — 500 DEGIL.
 #
 # ⚠️ ESLEME ILERI-YONLU INVARYANT OLARAK KULLANILAMAZ (idempotent DEGIL): esleme 100->200
 #   ve 200->350 der; yani kendi CIKTISI yeniden eslenirse daha yukari kayar. Canli Marin
@@ -189,12 +204,20 @@ _STOP = set("ve ile için icin bir bu da de ki mm için icin".split())
 #   raporlanir (isciye "kac TL olmali" der), karar verici degildir.
 #
 # MAKINE-KESIN + FAIL-CLOSED: karar tek bir SAYI karsilastirmasi; belirsizlik YOK.
+#   Fiyat metninden sayi AYIKLANAMIYORSA (or. "sorunuz", "fiyat icin arayin") kayit
+#   "gecerli" SAYILMAZ -> ihlal. "Belki yuksektir" varsayimi YOK.
 # Ihlal SILME degil DUZELTME ister -> auto_sil'e DEGIL 'ihlal'e gider.
-# OZEL-FORMAT NITELEYICI KORUNUR (OLCULDU: 2 kayit) — "500 TL/adel", "500 TL (30 cm)":
-#   desen bastaki sayiya capalanir, niteleyici kuyruguna DOKUNMAZ -> ikisi de 500 = GECER.
+# OZEL-FORMAT NITELEYICI KORUNUR (OLCULDU: canli katalogda 2 kayit) — "400 TL/adel",
+#   "300 TL (30 cm)": desen bastaki sayiya capalanir, niteleyici kuyruguna DOKUNMAZ ->
+#   400/300 olarak okunur = taban ustu = GECER.
 # =============================================================================
-FIYAT_KAPSAM_KATEGORI = "Marin"      # kapsam KILIDI — genisletme = 1.761 kaydi kirmizi yakar
-MARIN_FIYAT_TABANI = 200.0           # kademeli eslemenin URETTIGI en dusuk hedef
+FIYAT_TABANI = 200.0                 # kademeli eslemenin URETTIGI en dusuk hedef = TABAN
+# (eski `MARIN_FIYAT_TABANI` adi KALDIRILDI: kapsam artik Marin degil — Marin'i ima eden
+#  bayat ad birakmak, kurali yeniden daraltan bir okuma davetiyesidir.)
+# SARI/parametrik seri kovasi — kategori adi hem Turkce hem ASCII yazimla karsilanir
+FIYAT_MUAF_KATEGORI = frozenset(("jeneratör", "jenerator"))
+# Marin'in OLCULMUS fail-closed bos-fiyat ekseni (kapsam genislemesinde KORUNDU)
+FIYAT_BOS_FAILCLOSED_KATEGORI = "Marin"
 _FIYAT_RE = re.compile(r"^\s*(\d[\d.,]*)\s*(?:tl|₺)", re.UNICODE)
 
 
@@ -817,25 +840,42 @@ def kademeli_hedef(n):
     return 500.0
 
 
+def fiyat_muaf(urun):
+    """SARI/PARAMETRIK SERI mi? -> fiyat taban kurali bu kayda UYGULANMAZ.
+    (a) `parametrik` true VE/VEYA (b) kategori Jeneratör. Sari seride fiyat
+    `taban-fiyatlar.js`'ten gelir, `urunler.json`'daki alan bilerek BOStur."""
+    if bool(urun.get("parametrik")):
+        return True
+    return tr_lower(str(urun.get("kategori") or "")).strip() in FIYAT_MUAF_KATEGORI
+
+
 def kapi_fiyat(urun):
     """(ihlal_kapi|None, gerekce) — KAPI 7. MAKINE-KESIN + FAIL-CLOSED sayi karsilastirmasi.
 
-    🔴 KAPSAM KILIDI: kural YALNIZ kategori == 'Marin' urunlerine uygulanir. Diger her
-    kategori KOSULSUZ gecer — Marin disinda fiyat kurali YOKTUR (POLITIKA-KARARLARI.md
-    30 Tem DUZELTME). Bu ilk kontroldur; genisletilirse 1.761 canli kayit kirmizi yanar."""
-    if urun.get("kategori") != FIYAT_KAPSAM_KATEGORI:
-        return None, ""                           # KAPSAM DISI — kural bu kategoride YOK
+    🔴 KAPSAM = TUM KATEGORILER (Okan karari 31 Tem). Tek istisna parametrik/sari seri
+    (fiyat_muaf) ve fiyat alani BOS olan kayit. Fiyat metninden sayi AYIKLANAMAZSA kayit
+    'gecerli' SAYILMAZ -> ihlal (fail-closed; sessizce gecmez).
+
+    🔵 Marin ekseni KORUNDU: Marin'de BOS fiyat + parametrik DEGIL hala fail-closed ihlal;
+    kademeli esleme ONERISI ihlal mesajinda durur."""
+    if fiyat_muaf(urun):
+        return None, ""                           # SARI SERI — taban kurali kapsam disi
     ham = urun.get("fiyat")
-    if not isinstance(ham, str) or not ham.strip():
-        if bool(urun.get("parametrik")):
-            return None, ""                       # sari seri: fiyat BOS olmasi DOGRU
-        return "fiyat", "Marin urununde fiyat BOS ve urun parametrik degil (fail-closed)"
+    if ham is None or (isinstance(ham, str) and not ham.strip()):
+        if urun.get("kategori") == FIYAT_BOS_FAILCLOSED_KATEGORI:
+            return "fiyat", ("%s urununde fiyat BOS ve urun parametrik degil (fail-closed)"
+                             % FIYAT_BOS_FAILCLOSED_KATEGORI)
+        return None, ""                           # Okan: BOS fiyat kapsam DISI
+    if not isinstance(ham, str):
+        # ⚠️ "BOS" DEGIL, OKUNAMAYAN: sayi/liste/sozluk gelirse alan bozuktur. Canli katalogda
+        #   bugun 15.930/15.930 kayit metin (OLCULDU) — yine de sessizce GECERLI sayilmaz.
+        return "fiyat", "fiyat alani metin DEGIL: %r (fail-closed)" % (ham,)
     n = _fiyat_sayi(ham)
     if n is None:
-        return "fiyat", "Marin urununde fiyat ayristirilamadi: %r (fail-closed)" % ham
-    if n < MARIN_FIYAT_TABANI:
-        return "fiyat", ("Marin fiyati %s = %g TL < taban %g TL -> kademeli eslemeye gore "
-                         "%g TL olmali" % (ham, n, MARIN_FIYAT_TABANI, kademeli_hedef(n)))
+        return "fiyat", "fiyat ayristirilamadi: %r (fail-closed — 'gecerli' SAYILMAZ)" % ham
+    if n < FIYAT_TABANI:
+        return "fiyat", ("fiyat %s = %g TL < taban %g TL -> kademeli eslemeye gore "
+                         "%g TL olmali" % (ham, n, FIYAT_TABANI, kademeli_hedef(n)))
     return None, ""
 
 
@@ -1312,6 +1352,34 @@ def kendini_test():
     commit("marin taban ustu fiyat")
     rc, out = kos()
     iddia("P4 Marin fiyati taban USTU -> rc 0", rc == 0, "rc=%d" % rc)
+
+    # --- N4b/N4c/P4b: KAPSAM GENISLEMESI (31 Tem) — taban artik TUM kategorilerde ---
+    #     Marin DISI bir kategoride taban-alti YENI urun de BLOKLAMALI; sari seri
+    #     (parametrik/Jeneratör, fiyat BOS) BLOKLAMAMALI. CI kolunun kapsam nobeti.
+    yaz(n3)
+    commit("geri alindi")
+    oto_ucuz = _kt_urun("o1", kategori="Otomobil", fiyat="150 TL")
+    yaz(n3 + [oto_ucuz])
+    commit("otomobil taban alti fiyat")
+    rc, out = kos()
+    iddia("N4b Otomobil (Marin DISI) taban ALTI -> rc 1", rc == 1 and "fiyat" in out, "rc=%d" % rc)
+
+    yaz(n3)
+    commit("geri alindi")
+    oto_okunmaz = _kt_urun("o2", kategori="Otomobil", fiyat="sorunuz")
+    yaz(n3 + [oto_okunmaz])
+    commit("ayristirilamayan fiyat")
+    rc, out = kos()
+    iddia("N4c fiyat AYIKLANAMIYOR -> rc 1 (fail-closed)", rc == 1 and "fiyat" in out, "rc=%d" % rc)
+
+    yaz(n3)
+    commit("geri alindi")
+    sari = _kt_urun("s1", kategori="Jeneratör", fiyat="", parametrik=True,
+                    baslik="Olcuye Ozel Ara Parca s1")
+    yaz(n3 + [sari])
+    commit("sari seri (parametrik, fiyat BOS)")
+    rc, out = kos()
+    iddia("P4b SARI seri (parametrik/Jeneratör, fiyat BOS) -> rc 0", rc == 0, "rc=%d" % rc)
 
     # --- P5: ONCEDEN VAR OLAN ihlale dokunan TOPLU islem -> rc 0 (metin DEGISMEDI) --
     #     (olculmus vaka: fiyat yuvarlama 12.458 kayda dokunup 417 eski ihlali kapsama sokar)
