@@ -419,6 +419,21 @@ jobs:
       - name: Marka kapsam kabul testi (marka x kategori + fail-closed)
         run: python3 tools/marka-kapsam-test.py
 
+      # MARKA SAYFASI UYELIGI (olculdu, 31 Tem): jenerator uyeligi HAM marka[0] ile
+      # taniyordu; "Volvo Penta" (21 Marin) ve "Mercedes-Benz" (20) ham halde taninmis
+      # listede olmadigi icin 41 urun HICBIR marka sayfasina girmiyordu. Hata SESSIZ:
+      # urun aramada cikar, ana sayfa cipi gosterir, /marka/volvo/ sayfasinda YOKTUR.
+      # Ikinci sessiz hata: model kirilimi marka[1]'i hep MODEL saniyordu; cok markali
+      # uyumluluk kayitlari ("Peugeot"+"Citroen") /marka/peugeot/citroen/ gibi ANLAMSIZ
+      # 33 sayfa doguruyor, urun ikinci markanin sayfasinda GORUNMUYORDU. NE KORUR:
+      # katlanmis uyelik, marka-adli model sayfasinin URETILMEMESI, gercek MODEL
+      # kirilimini (SEO ana ekseni) koruyan regresyon nobeti, index.html marka filtresi
+      # ile BIREBIR parite, cip haritasinin birincil markada kalmasi. Sayfalari GERCEK
+      # jeneratorle gecici ROOT'a uretir; katlama tablosu okunamazsa YESIL DEMEZ (exit 2).
+      # Saf Python, offline, urunler.json'a YAZMAZ.
+      - name: Marka uyelik kabul testi (katlanmis uyelik + anlamsiz URL nobeti)
+        run: python3 tools/marka-uyelik-test.py
+
       # MARKA CIP TAVANI (index.html MARKA_LIMIT) — R_NODE muafiyet sinifindan cikarildi
       # (30 Tem): gerekce "CI build job'u Python-only (setup-node yok)" diyordu, oysa
       # setup-node BLOKLAYICI on-kosul olarak VAR. NE KORUR: ana sayfadaki marka cipi

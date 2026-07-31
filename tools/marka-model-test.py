@@ -144,12 +144,13 @@ def main():
         bekle(len(marka_dizinleri) == sonuc["marka_sayfasi_sayisi"],
               "marka dizini sayısı raporla uyuşmuyor (%d != %d)"
               % (len(marka_dizinleri), sonuc["marka_sayfasi_sayisi"]))
+        # Sayım formülü KOPYALANMAZ: jeneratörün TEK KAYNAK sayacı çağrılır (mm.marka_urun_sayisi).
         for m, slug in sonuc["slug_map"].items():
-            tot = sum(len(g["urunler"]) for g in veri[m]["gruplar"].values()) + len(veri[m]["marka_only"])
+            tot = mm.marka_urun_sayisi(veri[m])
             bekle(tot >= mm.ESIK, "%s marka sayfası aldı ama <%d ürün" % (m, mm.ESIK))
         ince = None
         for m, d in veri.items():
-            tot = sum(len(g["urunler"]) for g in d["gruplar"].values()) + len(d["marka_only"])
+            tot = mm.marka_urun_sayisi(d)
             if tot < mm.ESIK:
                 ince = m
                 break

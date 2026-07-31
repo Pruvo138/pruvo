@@ -238,31 +238,83 @@ _MARKA_GIRIS = {
 
 
 # --------------------------------------------------------------------- veri gruplama
+def marka_uyelikleri(marka_dizisi, evren):
+    """Ürünün marka[] dizisinden ÜYE OLDUĞU kanonik marka sayfalarını çıkarır — index.html
+    marka FİLTRESİYLE birebir aynı yüklem: `(p.marka||[]).some(b => markaKatla(b) === hedef)`.
+    Yani HER eleman (yalnız marka[0] değil) katlanır, tanınmışsa üyelik doğar; sıra korunur,
+    tekrar tekilleşir. İkinci bir katlama tablosu YOK — kaynak evren.katla (index.html portu).
+
+    ÖLÇÜLEN SESSİZ HATA (31 Tem): eski kod üyeliği HAM marka[0] ile ölçüyordu
+    (taninmis_mi(ham0)); "Volvo Penta" (21 Marin) ve "Mercedes-Benz" (20) ham hâlde tanınmış
+    listede olmadığı için 41 ürün HİÇBİR marka sayfasına girmiyordu — katalogda var, marka
+    sayfasında yok, kimse görmüyordu."""
+    uyeler = []
+    for x in marka_dizisi:
+        kan = evren.katla((x or "").strip())
+        if kan and evren.taninmis_mi(kan) and kan not in uyeler:
+            uyeler.append(kan)
+    return uyeler
+
+
+def marka_mi(deger, evren):
+    """marka[1] MODEL mi yoksa (çok markalı uyumluluktan gelen) BAŞKA BİR MARKA mı?
+    KATI ölçüt: değerin KENDİSİ tanınmış marka listesinde olmalı ("Citroen", "Vauxhall",
+    "Lexus"). "Peugeot 206"/"Volvo 240" gibi marka ÖNEKLİ değerler MODEL kalır — katlanmış
+    hâline bakmak model kırılımını (SEO'nun ana ekseni) yok ederdi."""
+    return bool((deger or "").strip()) and evren.taninmis_mi(deger.strip())
+
+
+def marka_urun_sayisi(d):
+    """Bir marka kovasının SAYFASINDA görünecek ürün sayısı — TEK KAYNAK.
+    Eşik (ESIK), çip sıralaması, sayfa metni ve kabul testleri AYNI bu fonksiyonu çağırır;
+    ikinci bir toplama formülü YAZILMAZ (formül kopyası kaçınılmaz olarak ayrışır: 31 Tem'de
+    ölçüldü — ikincil ürünler eklenince jeneratör ile testin sayısı ayrıştı)."""
+    return (sum(len(g["urunler"]) for g in d["gruplar"].values())
+            + len(d["marka_only"]) + len(d.get("ikincil", [])))
+
+
 def gruplandir(products, evren):
-    """Katalogdaki TANINMIS markaları (marka[0], KATLANMIŞ kanonik) topla:
-    kanonik_marka -> {"marka_only":[p...], "gruplar":{canon:{...}}}.
+    """Katalogdaki TANINMIS markaları topla:
+    kanonik_marka -> {"marka_only":[p...], "ikincil":[p...], "gruplar":{canon:{...}}}.
     Grup: {"display":str, "slug":str, "canon":str, "urunler":[p...]}. urunler.json DEĞİŞMEZ.
-    Yalnız TANINMIS markalar (anasayfa çip evreni) dahil; model/motor kodu marka[0] atlanır."""
+
+    ÜYELİK  : marka_uyelikleri() — index.html filtresiyle birebir (KATLANMIŞ ad; her eleman).
+    BİRİNCİL: marka[0]'ın katlanmışı (tanınmıyorsa ilk tanınmış üye). Model kırılımı YALNIZ
+              birincil markada açılır; diğer üyeler ürünü "ikincil" olarak listeler.
+    MODEL   : yalnız marka[1], ve marka[1] KENDİSİ bir marka DEĞİLSE (marka_mi). Çok markalı
+              uyumluluk kaydı ("Peugeot"+"Citroen") anlamsız /marka/peugeot/citroen/ sayfası
+              DOĞURMAZ; ürün her iki marka sayfasında da görünür."""
     veri = {}
+
+    def kova(marka):
+        d = veri.get(marka)
+        if d is None:
+            d = {"marka_only": [], "ikincil": [], "gruplar": {}, "_spelling": {}}
+            veri[marka] = d
+        return d
+
     for p in products:
         m = p.get("marka") or []
         if not m:
             continue
-        ham0 = m[0]
-        if not evren.taninmis_mi(ham0):
+        uyeler = marka_uyelikleri(m, evren)
+        if not uyeler:
             continue
-        marka = evren.katla(ham0)               # kanonik marka (Mercedes-Benz->Mercedes, Vauxhall->Opel)
-        d = veri.get(marka)
-        if d is None:
-            d = {"marka_only": [], "gruplar": {}, "_spelling": {}}
-            veri[marka] = d
-        if len(m) < 2 or not (m[1] or "").strip():
-            d["marka_only"].append(p)
+        ham0_kan = evren.katla((m[0] or "").strip())
+        birincil = ham0_kan if evren.taninmis_mi(ham0_kan) else uyeler[0]
+        d = kova(birincil)
+        for kan in uyeler:                       # diğer üye markaların sayfasına da GİR
+            if kan != birincil:
+                kova(kan)["ikincil"].append(p)
+        m1 = (m[1] or "").strip() if len(m) > 1 else ""
+        if birincil != ham0_kan or not m1 or marka_mi(m1, evren):
+            d["marka_only"].append(p)            # model kırılımı YOK (marka-only / çok markalı)
             continue
-        model_ham = _strip_marka_oneki(marka, m[1].strip(), evren)
+        model_ham = _strip_marka_oneki(birincil, m1, evren)
         if not model_ham:                        # marka[1] tümüyle marka -> marka-only say
             d["marka_only"].append(p)
             continue
+        marka = birincil
         canon = _canon(model_ham)
         canon = _ALIAS.get((marka, canon), canon)
         g = d["gruplar"].get(canon)
@@ -882,7 +934,7 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     url = SITE + "/marka/" + marka_slug + "/"
 
     h1 = marka + " Yedek Parça — Ölçüye Özel Üretim"
-    toplam = sum(len(g["urunler"]) for g in buyuk_gruplar) + len(kucuk_urunler) + len(d["marka_only"])
+    toplam = marka_urun_sayisi(d)
     giris = _MARKA_GIRIS.get(marka, (
         marka + " için kırılan ya da artık bulunamayan plastik parçaları modele göre ölçüye "
         "özel üretiyoruz. Modelinizi seçin; klips, kapak, tutamak, dişli, braket ve bağlantı "
@@ -907,8 +959,10 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
                        esc(g["display"]), len(g["urunler"])))
     model_html = '<div class="mm-models">' + "".join(btns) + "</div>" if btns else ""
 
-    # diğer parçalar: <ESIK modeller + yalnız-marka ürünler (hepsi crawlable link)
-    diger = list(kucuk_urunler) + list(d["marka_only"])
+    # diğer parçalar: <ESIK modeller + yalnız-marka + İKİNCİL (çok markalı uyumluluk) ürünler.
+    # İkincil = marka[0]'ı başka marka olan ama marka[] dizisinde bu markayı da taşıyan ürün;
+    # index.html marka filtresi onu zaten bu markada gösteriyor -> sayfa da göstermeli.
+    diger = list(kucuk_urunler) + list(d["marka_only"]) + list(d.get("ikincil", []))
     diger_html = ""
     if diger:
         diger_html = ('<h2 class="mm-sec-h">Diğer ' + esc(marka)
@@ -1026,9 +1080,9 @@ def uret(products, ctx):
             f.write(html)
 
     # Marka sayfası eşiği: >= ESIK toplam ürünlü kanonik markalar (ince marka sayfası olmasın).
-    marka_toplam = {marka: (sum(len(g["urunler"]) for g in d["gruplar"].values())
-                            + len(d["marka_only"]))
-                    for marka, d in veri.items()}
+    # Marka toplamı = o markanın SAYFASINDA görünecek ürün sayısı (ikincil ürünler DAHİL) =
+    # index.html çip sayımıyla aynı yüklem. Eşik + çip sıralaması bu sayıdan türer.
+    marka_toplam = {marka: marka_urun_sayisi(d) for marka, d in veri.items()}
     sayfali_markalar = sorted([m for m, t in marka_toplam.items() if t >= ESIK],
                               key=lambda m: (-marka_toplam[m], m))
 
@@ -1092,6 +1146,9 @@ def uret(products, ctx):
             pid = p.get("id")
             if pid:
                 product_chip_map[pid] = marka_yolu
+        # d["ikincil"] BİLEREK atlanır: ürün sayfasındaki çip TEK hedefe gider; ikincil
+        # markadan yazsaydık hedef marka döngü sırasına göre değişir (kararsız çıktı) ve
+        # ürünün BİRİNCİL markasından uzaklaşırdı. İkincil ürün o marka sayfasında LİSTELENİR.
 
         sayim[marka] = {"marka_sayfasi": 1, "model_sayfasi": len(buyuk),
                         "toplam_parca": marka_toplam[marka]}
