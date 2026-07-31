@@ -323,7 +323,7 @@ def kendini_test():
     return 1 if kirmizi else 0
 
 
-def kanca_nobeti_dogrula(bloklayici=True):
+def kanca_nobeti_dogrula(bloklayici=True, kancalar=("pre-push",)):
     """Kurulum/geri-yukleme SONRASI: kancalar GERCEKTEN etkin mi? (rc doner)
 
     🔴 NEDEN BURADA (1 Agu olculen olay): bu betik kancalari YAZAR ama yazdiginin
@@ -331,18 +331,60 @@ def kanca_nobeti_dogrula(bloklayici=True):
     sizdiginda dosyalar yerli yerinde, x-bitleri dogru duruyordu — yine de hicbir
     kanca kosmadi ve bu SESSIZDI. "Kurdum" ile "kosuyor" ayri iki iddiadir; kurulum
     araci ikincisini de olcmeden bitmemeli (kur -> DOGRULA halkasi).
-    FAIL-CLOSED: nobetci yoksa/patlarsa YESIL SAYILMAZ."""
+    FAIL-CLOSED: nobetci yoksa/patlarsa YESIL SAYILMAZ.
+
+    🔴 CIKIS KODUNUN KAPSAMI = BU ARACIN SORUMLULUGU (1 Agu, olcularak daraltildi):
+    nobetcinin TUM eksenlerini bloklayici saymak YANLIS-POZITIF uretiyordu — bu arac
+    yalnizca kendi blogunu yazar, ama hukum <ana>/.git/hooks'taki BASKA kancalarin
+    (pre-commit guard'i, mukerrer kapisi, D1 senkronu) icerigini de kapsiyordu.
+    Sonuc olculdu: tools/yedek-hook-test.py'nin BILEREK bos tuttugu kum havuzunda
+    "kurulum rc=0" iddiasi kirildi (32 kontrol / 1 kirmizi) — kurulum BASARILIYKEN.
+    O yuzden TUM eksenler BASILIR (gorunurluk aynen durur) ama cikis kodunu yalniz
+    su iki sinif belirler:
+      * eksen (a) core.hooksPath — TUM kancalari config seviyesinde olduren, olculen
+        olayin ta kendisi; "kurdum ama kosmuyor" tam olarak budur;
+      * bu cagride yazilan kanca(lar)in kendi (b) ekseni — yazdigimiz dosyayi git
+        goruyor + calistirabiliyor mu.
+    Diger kancalarin (b)/(c) eksenleri KAYBOLMAZ: tools/durum.py bolum 8 ve
+    tools/kanca-nobeti.py dogrudan kosuldugunda tam hukum verir."""
     yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), "kanca-nobeti.py")
     print("\n--- KANCA NOBETI (kurulan kancalar FIILEN etkin mi) ---")
     if not os.path.exists(yol):
         print("⚪ OLCULEMEDI: tools/kanca-nobeti.py YOK -> kancalarin etkinligi "
               "DOGRULANAMADI (fail-closed).")
         return 1 if bloklayici else 0
-    p = subprocess.run([sys.executable, yol], capture_output=True, text=True)
-    sys.stdout.write(p.stdout)
-    if p.stderr.strip():
-        sys.stderr.write(p.stderr)
-    return p.returncode if bloklayici else 0
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("kanca_nobeti_kurulum", yol)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        kok, tani = mod.ana_checkout(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))))
+        if kok is None:
+            print("⚪ OLCULEMEDI: %s (fail-closed)" % tani)
+            return 1 if bloklayici else 0
+        bulgular = mod.denetle(kok)
+    except Exception as e:
+        print("⚪ OLCULEMEDI: kanca nobeti kosturulamadi (%s: %s) (fail-closed)"
+              % (type(e).__name__, e))
+        return 1 if bloklayici else 0
+
+    print("ana checkout: %s" % kok)
+    bloklayan = []
+    for eksen, hal, mesaj in bulgular:
+        kapsamda = eksen.startswith("suzgec") or eksen.startswith("a)") or any(
+            eksen == "b) %s" % k for k in kancalar)
+        print("  %s %-42s %s%s" % (mod.ISARET[hal], eksen, mesaj,
+                                   "" if kapsamda else "   [bu aracin cikis kodu "
+                                                       "disinda — bkz. durum.py 8]"))
+        if kapsamda and hal != mod.YESIL:
+            bloklayan.append(eksen)
+    if bloklayan:
+        print("🔴 KURULUM DOGRULANAMADI — bloklayan eksen(ler): %s"
+              % ", ".join(bloklayan))
+    else:
+        print("✅ kurulan kanca(lar) FIILEN etkin: %s" % ", ".join(kancalar))
+    return (1 if bloklayan else 0) if bloklayici else 0
 
 
 def main():
@@ -369,7 +411,9 @@ def main():
         if not ev:
             return 1
         # Geri yukleme YAZDI ise kosanin fiilen etkin oldugunu DOGRULA.
-        return 0 if kuru else kanca_nobeti_dogrula()
+        # Bu kol IKI kancayi da geri yazar -> ikisi de cikis kodu kapsaminda.
+        return 0 if kuru else kanca_nobeti_dogrula(
+            kancalar=("pre-commit", "pre-push"))
 
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     yol = hook_yolu(repo)
