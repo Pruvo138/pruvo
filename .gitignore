@@ -399,6 +399,9 @@ kanit/
 # pazar fiyat arastirmasi — ticari strateji, public repoya girmez (Drive backup/ta kopyasi var)
 tools/arastirma-sari-fiyat.md
 
+# yerel fiyat calisma dosyalari — izlenmez, repo PUBLIC: ASLA commit'lenmez
+.tedarikci-fiyat/
+
 .dev.vars*
 !.dev.vars.example
 .env*
