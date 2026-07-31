@@ -1920,7 +1920,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Muayene Kapagi Icin Acma Anahtari",
-    "aciklama": "Tekne muayene kapaklarini parmaklari yormadan acip kapatmak icin kullanilan anahtar.\n- Cogu muayene kapagi parmak-girintisine uyacak sekilde 4.5 inc genislige sahiptir.\n- Farkli kapak olculerine gore uyarlanabilir.\n- Tekne dolabinda gunes altinda dayaniklilik icin PETG onerilir.\nYaklasik dis olculer: 114 x 33 x 25 mm.",
+    "aciklama": "Tekne muayene kapaklarini parmaklari yormadan acip kapatmak icin kullanilan anahtar.\n- Cogu muayene kapagi parmak-girintisine uyacak sekilde 4.5 inc genislige sahiptir.\n- Farkli kapak olculerine gore uyarlanabilir.\n- Tekne dolabinda gunes altinda dayanikli malzemeyle uretilir.\nYaklasik dis olculer: 114 x 33 x 25 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1723807-1.jpg",
@@ -3539,7 +3539,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Treyleri Arka Isik Grubu Icin Yan Isik Kapagi",
-    "aciklama": "Tekne treylerindeki arka isik grubunun kirilan yan isik (sinyal) kapaginin yerine gecen yedek parca.\n- Tekne treyleri arka isik grubuyla uyumludur.\n- Kirilan orijinal kapagin yerine kolay degisim saglar.\n- Seffaf kirmizi filamanla uretilmesi onerilir.\nYaklasik dis olculer: 72 x 53 x 7 mm.",
+    "aciklama": "Tekne treylerindeki arka isik grubunun kirilan yan isik (sinyal) kapaginin yerine gecen yedek parca.\n- Tekne treyleri arka isik grubuyla uyumludur.\n- Kirilan orijinal kapagin yerine kolay degisim saglar.\n- Seffaf kirmizi malzemeyle uretilir.\nYaklasik dis olculer: 72 x 53 x 7 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr596010-1.jpg",
@@ -3596,7 +3596,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Kayak Scupper Deligi Tapasi",
-    "aciklama": "Oturarak kullanilan (sit-on-top) kayaklarin scupper deliklerinden su almasini onlemek icin tasarlanmis tapa.\n- Sit-on-top kayaklarin scupper deliklerine siki oturum icin tasarlandi.\n- Esnek filaman ile sizdirmaz kapama saglar.\n- Iki parcadan olusur (tapa govdesi + izgara).\nYaklasik dis olculer: 20 x 20 x 20 mm.",
+    "aciklama": "Oturarak kullanilan (sit-on-top) kayaklarin scupper deliklerinden su almasini onlemek icin tasarlanmis tapa.\n- Sit-on-top kayaklarin scupper deliklerine siki oturum icin tasarlandi.\n- Esnek malzeme ile sizdirmaz kapama saglar.\n- Iki parcadan olusur (tapa govdesi + izgara).\nYaklasik dis olculer: 20 x 20 x 20 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr146800-1.jpg",
@@ -4301,7 +4301,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Parametrik Scupper Transduser Montaj Parcasi",
-    "aciklama": "Kayak tahliye deligine (scupper) transduser monte etmek icin olculeri ozellestirilebilen parametrik parca.\n- Farkli kayak/scupper olculerine gore ozellestirilebilir.\n- Iki parcadan olusur.\n- OpenSCAD ile parametrik tasarlanmistir.",
+    "aciklama": "Kayak tahliye deligine (scupper) transduser monte etmek icin olculeri ozellestirilebilen parametrik parca.\n- Farkli kayak/scupper olculerine gore ozellestirilebilir.\n- Iki parcadan olusur.\n- Parametrik olarak tasarlanmistir.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mw2820313-1.jpg",
@@ -4819,7 +4819,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Parametrik Tekne Baglama Kestosu",
-    "aciklama": "OpenSCAD ile parametrik olarak tasarlanmis, farkli boy secenekleriyle uretilebilen tekne baglama kestosu (cleat).\n- Parametrik tasarimi farkli olculerde uretilebilir.\n- Halat baglamak icin iki kollu yapidadir.\n- Tek parcadan olusur.",
+    "aciklama": "Parametrik olarak tasarlanmis, farkli boy secenekleriyle uretilebilen tekne baglama kestosu (cleat).\n- Parametrik tasarimi farkli olculerde uretilebilir.\n- Halat baglamak icin iki kollu yapidadir.\n- Tek parcadan olusur.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dprintable-cleat-1.jpg",
@@ -4867,7 +4867,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Kayak Motoru Icin Direksiyon Kolu",
-    "aciklama": "Kayak uzerine takilan elektrikli/kucuk motorlarin yonlendirilmesini saglayan direksiyon kolu.\n- Bilyali rulman ile iki parcayi birlestirir.\n- PETG veya PETG-CF ile uretilmesi onerilir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 138 x 111 x 104 mm.",
+    "aciklama": "Kayak uzerine takilan elektrikli/kucuk motorlarin yonlendirilmesini saglayan direksiyon kolu.\n- Bilyali rulman ile iki parcayi birlestirir.\n- Dayanikli malzemeyle uretilir.\n- Iki parcadan olusur.\nYaklasik dis olculer: 138 x 111 x 104 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr846717-1.jpg"
@@ -6331,7 +6331,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Lowrance Eagle 5 Fish Finder İçin Güneş Siperliği",
-    "aciklama": "Lowrance Eagle 5 fish finder ekranındaki güneş yansımasını azaltan, görünürlüğü artıran siperlik.\n- Lowrance Eagle 5 fish finder modeliyle uyumludur.\n- PETG veya ASA malzeme önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 186 × 102 × 91 mm.",
+    "aciklama": "Lowrance Eagle 5 fish finder ekranındaki güneş yansımasını azaltan, görünürlüğü artıran siperlik.\n- Lowrance Eagle 5 fish finder modeliyle uyumludur.\n- Dayanıklı malzemeyle üretilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 186 × 102 × 91 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7326164-1.jpg"
@@ -6379,7 +6379,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Torqeedo Cruise 2/4 İçin Uzaktan Direksiyon Aparatı",
-    "aciklama": "Torqeedo Cruise 2/4 elektrikli dış motoru için uzaktan direksiyon aparatı.\n- Torqeedo Cruise 2/4 elektrikli dış motor modeliyle uyumludur.\n- ABS veya naylon gibi dayanıklı malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 168 × 110 × 90 mm.",
+    "aciklama": "Torqeedo Cruise 2/4 elektrikli dış motoru için uzaktan direksiyon aparatı.\n- Torqeedo Cruise 2/4 elektrikli dış motor modeliyle uyumludur.\n- Dayanıklı malzemeyle üretilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 168 × 110 × 90 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6663808-1.jpg",
@@ -6585,7 +6585,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "1970 Model Mercury 500 Dış Motor İçin Throttle Bağlantısı",
-    "aciklama": "1970 model Kiekhaefer Mercury 500 dış motorun kırılan throttle (gaz) bağlantı çubuğunun yerine geçen yedek parça.\n- 1970 model Mercury 500 dış motor modeliyle uyumludur.\n- PETG gibi yakıt-dayanıklı malzemeyle üretilmesi önerilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 77 × 25 × 22 mm.",
+    "aciklama": "1970 model Kiekhaefer Mercury 500 dış motorun kırılan throttle (gaz) bağlantı çubuğunun yerine geçen yedek parça.\n- 1970 model Mercury 500 dış motor modeliyle uyumludur.\n- Yakıta dayanıklı malzemeyle üretilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 77 × 25 × 22 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5873651-1.jpg"
@@ -6904,7 +6904,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yamaha/Hidea/Parsun Dış Motorlar İçin İp Çekmeli Starter Parçası",
-    "aciklama": "Yamaha, Hidea ve Parsun küçük dış motorların ip çekmeli (pull-start) mekanizmasına uyumlu yedek parça.\n- Yamaha/Hidea/Parsun küçük dış motor modelleriyle uyumludur.\n- İki parçadan oluşur.\n- Naylon veya ABS gibi dayanıklı malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 166 × 166 × 31 mm.",
+    "aciklama": "Yamaha, Hidea ve Parsun küçük dış motorların ip çekmeli (pull-start) mekanizmasına uyumlu yedek parça.\n- Yamaha/Hidea/Parsun küçük dış motor modelleriyle uyumludur.\n- İki parçadan oluşur.\n- Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 166 × 166 × 31 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5358436-1.jpg",
@@ -7129,7 +7129,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Dinghy Tiller Uzatması İçin Esnek Universal Mafsal",
-    "aciklama": "Harken parça #7102 referans alınarak tasarlanmış, dinghy tiller uzatmaları için esnek universal mafsal.\n- 13mm çaplı tiller uzatma borularıyla uyumludur.\n- RS Quest ve RS Feva gibi dinghy modelleriyle uyumludur, gerekirse ölçeklendirilebilir.\n- TPU gibi esnek malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 66 × 22 × 20 mm.",
+    "aciklama": "Harken parça #7102 referans alınarak tasarlanmış, dinghy tiller uzatmaları için esnek universal mafsal.\n- 13mm çaplı tiller uzatma borularıyla uyumludur.\n- RS Quest ve RS Feva gibi dinghy modelleriyle uyumludur, gerekirse ölçeklendirilebilir.\n- Esnek malzemeyle üretilir.\nYaklaşık dış ölçüler: 66 × 22 × 20 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6483760-1.jpg",
@@ -7145,7 +7145,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yamaha Dış Motor İçin Quickstop Mekanizması",
-    "aciklama": "Yamaha 15D 684 15HP 2 zamanlı dış motor için quickstop (acil durdurma yardımcısı) mekanizması.\n- Yamaha 15D 684 15HP 2 zamanlı dış motor modeliyle uyumludur, benzer modellerde de kullanılabilir.\n- Orijinal FreeCAD tasarım dosyası da mevcuttur.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 34 × 28 × 3 mm.",
+    "aciklama": "Yamaha 15D 684 15HP 2 zamanlı dış motor için quickstop (acil durdurma yardımcısı) mekanizması.\n- Yamaha 15D 684 15HP 2 zamanlı dış motor modeliyle uyumludur, benzer modellerde de kullanılabilir.\n- Tek parçadan oluşur.\nYaklaşık dış ölçüler: 34 × 28 × 3 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6610947-1.jpg",
@@ -7280,7 +7280,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Dinghy İçin Ayak Bağlama (Toe Strap) Kayışı Tutucusu",
-    "aciklama": "Dinghy yelkenli teknelerde kullanılan ayak bağlama (toe strap/hiking strap) kayışının geçtiği, parametrik tasarlanmış tutucu.\n- Standart dinghy ayak bağlama kayışlarıyla uyumludur.\n- Kayış geçebilir ama sıkışmaz, gömme vida delikleri içerir.\n- Parametrik OpenSCAD dosyasıyla farklı genişliklerde üretilebilir.\nYaklaşık dış ölçüler: 100 × 20 × 8 mm.",
+    "aciklama": "Dinghy yelkenli teknelerde kullanılan ayak bağlama (toe strap/hiking strap) kayışının geçtiği, parametrik tasarlanmış tutucu.\n- Standart dinghy ayak bağlama kayışlarıyla uyumludur.\n- Kayış geçebilir ama sıkışmaz, gömme vida delikleri içerir.\n- Farklı genişliklerde, ölçüye özel üretilebilir.\nYaklaşık dış ölçüler: 100 × 20 × 8 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3964038-1.jpg"
@@ -7295,7 +7295,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yelkenli Tekne İçin Dümen Kolu (Tiller) Uzatması",
-    "aciklama": "Yelkenli teknelerde dümen kolunun uzatılması için vida gerektirmeden takılıp çıkarılabilen uzatma parçası.\n- 12mm iç çaplı, 10mm dış çaplı alüminyum profille kullanılır.\n- Uzatma gövdesi ve tutma sapı olmak üzere iki parçadan oluşur.\n- TPU gibi esnek malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 200 × 66 × 40 mm.",
+    "aciklama": "Yelkenli teknelerde dümen kolunun uzatılması için vida gerektirmeden takılıp çıkarılabilen uzatma parçası.\n- 12mm iç çaplı, 10mm dış çaplı alüminyum profille kullanılır.\n- Uzatma gövdesi ve tutma sapı olmak üzere iki parçadan oluşur.\n- Esnek malzemeyle üretilir.\nYaklaşık dış ölçüler: 200 × 66 × 40 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4518873-1.jpg",
@@ -9289,7 +9289,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Hobie 16 Katamaran Trapez İp Kilidi",
-    "aciklama": "Hobie 16, Nacra ve benzeri katamaranlarda trapez yüksekliğini ayarlamak için kullanılan ip kilidi (orijinal parça no 61530000).\n- Hobie 16, Nacra ve benzeri katamaranlarla uyumludur (orijinal parça no 61530000).\n- Trapez ipinin yüksekliğini ayarlamayı sağlar.\n- PET malzeme ile kullanılması önerilir (PLA su/UV dayanıklı değildir).\nYaklaşık dış ölçüler: 50 × 17 × 9 mm.",
+    "aciklama": "Hobie 16, Nacra ve benzeri katamaranlarda trapez yüksekliğini ayarlamak için kullanılan ip kilidi (orijinal parça no 61530000).\n- Hobie 16, Nacra ve benzeri katamaranlarla uyumludur (orijinal parça no 61530000).\n- Trapez ipinin yüksekliğini ayarlamayı sağlar.\n- Suya ve UV'ye dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 50 × 17 × 9 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4444437-1.jpg",
@@ -9804,7 +9804,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "PETG Tekne Pervanesi",
-    "aciklama": "PETG malzemeden üretilen, yüksek dayanımlı tekne pervanesi; düzenlenebilir kaynak dosyasıyla birlikte gelir.\n- Yüksek dayanım için PETG malzeme kullanılır.\n- Düzenlemeye uygun 3B kaynak dosyası dahildir.\nYaklaşık dış ölçüler: 154 × 153 × 88 mm.",
+    "aciklama": "PETG malzemeden üretilen, yüksek dayanımlı tekne pervanesi.\n- Yüksek dayanım için PETG malzeme kullanılır.\nYaklaşık dış ölçüler: 154 × 153 × 88 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2722454-1.jpg",
@@ -10667,7 +10667,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yelkenli Turnbuckle (Gergi) Kılıf Kapağı",
-    "aciklama": "Yelkenli tekne yan tel (shroud) gergi kılıfları için uç kapağı, 1 inç Sch 40 PVC ile kullanılır.\n- 1 inç Sch 40 PVC borulu turnbuckle kılıflarıyla uyumludur.\n- İki parçalı tasarım, tekne donatıldıktan sonra takılabilir.\n- UV dayanımı için ABS önerilir.\nYaklaşık dış ölçüler: 50 × 34 × 20 mm.",
+    "aciklama": "Yelkenli tekne yan tel (shroud) gergi kılıfları için uç kapağı, 1 inç Sch 40 PVC ile kullanılır.\n- 1 inç Sch 40 PVC borulu turnbuckle kılıflarıyla uyumludur.\n- İki parçalı tasarım, tekne donatıldıktan sonra takılabilir.\n- UV'ye dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 50 × 34 × 20 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6492699-1.jpg",
@@ -11249,7 +11249,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Kayak Katlanır Kürek Tutucusu",
-    "aciklama": "Ascend 12T kayağında bulunan kürek tutucusunun yerine geçen, baskı-içinde-menteşeli katlanır tutucu.\n- Ascend 12T kayak modeline özeldir.\n- Baskı-içinde-menteşe (print-in-place) tekniğiyle üretilir.\n- Dış kullanım için PCTG önerilir.\nYaklaşık dış ölçüler: 58 × 36 × 21 mm.",
+    "aciklama": "Ascend 12T kayağında bulunan kürek tutucusunun yerine geçen, baskı-içinde-menteşeli katlanır tutucu.\n- Ascend 12T kayak modeline özeldir.\n- Baskı-içinde-menteşe (print-in-place) tekniğiyle üretilir.\n- Dış kullanıma dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 58 × 36 × 21 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7385305-1.jpg",
@@ -11904,7 +11904,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Seldén Direği Kayar Parça (Mast Track Slide)",
-    "aciklama": "Eski Seldén direğine uyan, CAD dosyasından özelleştirilebilen kayar parça.\n- Seldén marka yelkenli direkleriyle uyumludur.\n- Deniz ortamı için ASA filament önerilir.\nYaklaşık dış ölçüler: 30 × 28 × 14 mm.",
+    "aciklama": "Eski Seldén direğine uyan, ölçüye özel üretilebilen kayar parça.\n- Seldén marka yelkenli direkleriyle uyumludur.\n- Deniz ortamına dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 30 × 28 × 14 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7262238-1.jpg",
@@ -12702,7 +12702,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Siperliği (Fender) Askı Klipsi",
-    "aciklama": "Tekne fenderini korkuluğa (25mm/1 inç boru) asmak için klips.\n- 25mm veya 1 inç çaplı korkuluk borusuna uyar.\n- İpi delikten geçirdikten sonra düğüm atılması önerilir.\n- Deniz ortamı için ASA filament önerilir.\nYaklaşık dış ölçüler: 108 × 55 × 20 mm.",
+    "aciklama": "Tekne fenderini korkuluğa (25mm/1 inç boru) asmak için klips.\n- 25mm veya 1 inç çaplı korkuluk borusuna uyar.\n- İpi delikten geçirdikten sonra düğüm atılması önerilir.\n- Deniz ortamına dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 108 × 55 × 20 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7294329-1.jpg",
@@ -12790,7 +12790,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Kayak Kürek Birleştirme Klipsi",
-    "aciklama": "İki parçalı küreği saklama/taşıma için birbirine bağlayan klips.\n- 30mm çaplı kürek saplarına uygundur, biraz zorlanarak takılır.\n- Daha dayanıklı ve esnek malzeme (PLA yerine) önerilir.\n- Basit ve pratik tasarım.\nYaklaşık dış ölçüler: 90 × 80 × 10 mm.",
+    "aciklama": "İki parçalı küreği saklama/taşıma için birbirine bağlayan klips.\n- 30mm çaplı kürek saplarına uygundur, biraz zorlanarak takılır.\n- Dayanıklı ve esneyebilen malzemeyle üretilir.\n- Basit ve pratik tasarım.\nYaklaşık dış ölçüler: 90 × 80 × 10 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7319369-1.jpg",
@@ -13254,7 +13254,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Dış Motor Yakıt Tankı Havalandırma Vidası Düğmesi",
-    "aciklama": "Dış motor yakıt tankı kapağındaki havalandırma vidasını elle sıkıp gevşetmek için 8mm altıgen anahtar başlı düğme.\n- 8mm altıgen (Allen) anahtar başına uyar.\n- Gösterge (indicator) ile birlikte kullanılabilecek yakıt tankı kapaklarına uygundur.\n- STL/STEP/Fusion360 (.f3d) dosyaları dahildir.\nYaklaşık dış ölçüler: 30 × 30 × 21 mm.",
+    "aciklama": "Dış motor yakıt tankı kapağındaki havalandırma vidasını elle sıkıp gevşetmek için 8mm altıgen anahtar başlı düğme.\n- 8mm altıgen (Allen) anahtar başına uyar.\n- Gösterge (indicator) ile birlikte kullanılabilecek yakıt tankı kapaklarına uygundur.\nYaklaşık dış ölçüler: 30 × 30 × 21 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6135962-1.jpg",
@@ -13381,7 +13381,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Su Tankı Doldurma Adaptörü",
-    "aciklama": "Yelkenli tekne su tankını doldurmak için iki çıkıntılı, çeyrek dönüşle kapanan hortum adaptörü.\n- Standart olmayan doldurma ağızlarına uyum için tasarlandı.\n- Diş gerektirmez, çeyrek dönüşle kilitlenir.\n- PETG önerilir, esnek olmayan malzemeler kullanılabilir.\nYaklaşık dış ölçüler: 48 × 48 × 41 mm.",
+    "aciklama": "Yelkenli tekne su tankını doldurmak için iki çıkıntılı, çeyrek dönüşle kapanan hortum adaptörü.\n- Standart olmayan doldurma ağızlarına uyum için tasarlandı.\n- Diş gerektirmez, çeyrek dönüşle kilitlenir.\n- Sert, esnemeyen dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 48 × 48 × 41 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6574125-1.jpg"
@@ -13472,7 +13472,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Deniz Radyosu Adaptör Çerçevesi (Bezel)",
-    "aciklama": "Yuvarlak stil deniz radyolarını MA300 tipi kesime uyarlayan çerçeve (bezel).\n- MA300 stili kesim boyutuna uyar.\n- Yuvarlak stil deniz radyolarıyla genel uyumludur.\n- TPU conta seçeneği de mevcuttur (silikon alternatif önerilir).\nYaklaşık dış ölçüler: 178 × 108 × 25 mm.",
+    "aciklama": "Yuvarlak stil deniz radyolarını MA300 tipi kesime uyarlayan çerçeve (bezel).\n- MA300 stili kesim boyutuna uyar.\n- Yuvarlak stil deniz radyolarıyla genel uyumludur.\n- Esnek conta seçeneği de mevcuttur (silikon alternatifi de kullanılabilir).\nYaklaşık dış ölçüler: 178 × 108 × 25 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6674283-1.jpg",
@@ -13833,7 +13833,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Fenderi Askı Kancası (Cleat)",
-    "aciklama": "Fenderi can halatına (lifeline) asmak için kanca/cleat.\n- ASA gibi deniz ortamına dayanıklı filament önerilir.\n- Basit ve pratik tasarım.\nYaklaşık dış ölçüler: 85 × 32 × 26 mm.",
+    "aciklama": "Fenderi can halatına (lifeline) asmak için kanca/cleat.\n- Deniz ortamına dayanıklı malzemeyle üretilir.\n- Basit ve pratik tasarım.\nYaklaşık dış ölçüler: 85 × 32 × 26 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7220451-1.jpg",
@@ -13912,7 +13912,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Ayarlanabilir Trolling Olta Tutucusu",
-    "aciklama": "Teknenin ray sistemine bağlanan, dişli kilit mekanizmalı ayarlanabilir olta tutucusu.\n- Tekne ray sistemine monte edilir.\n- Dişli kilitleme ile istenilen açıda sabitlenir.\n- 3 parçadan oluşur, dayanıklı filament önerilir.\nYaklaşık dış ölçüler: 200 × 72 × 56 mm.",
+    "aciklama": "Teknenin ray sistemine bağlanan, dişli kilit mekanizmalı ayarlanabilir olta tutucusu.\n- Tekne ray sistemine monte edilir.\n- Dişli kilitleme ile istenilen açıda sabitlenir.\n- 3 parçadan oluşur, dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 200 × 72 × 56 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7371341-1.jpg",
@@ -13955,7 +13955,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tucktec Kayak Skeg Desteği",
-    "aciklama": "Katlanır Tucktec kayağın skeg (yüzgeç) kısmının yanal hareketini önleyen destek parçası.\n- Tucktec katlanır kayak modeline özeldir.\n- V2 versiyonu küçük baskı tablalarına uygundur.\n- Katlanan gövdenin üzerine oturacak şekilde tasarlandı.\nYaklaşık dış ölçüler: 199 × 190 × 190 mm.",
+    "aciklama": "Katlanır Tucktec kayağın skeg (yüzgeç) kısmının yanal hareketini önleyen destek parçası.\n- Tucktec katlanır kayak modeline özeldir.\n- Katlanan gövdenin üzerine oturacak şekilde tasarlandı.\nYaklaşık dış ölçüler: 199 × 190 × 190 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7381917-1.jpg",
@@ -13991,7 +13991,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Güçlendirilmiş Olta Tutucusu",
-    "aciklama": "Tinkercad'de tasarlanmış, önceki versiyona göre daha sağlam olta tutucusu.\n- Güçlendirilmiş gövde yapısı.\n- Standart oltalara uyar.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 102 × 64 × 52 mm.",
+    "aciklama": "Önceki versiyona göre daha sağlam olta tutucusu.\n- Güçlendirilmiş gövde yapısı.\n- Standart oltalara uyar.\n- Basit ve dayanıklı tasarım.\nYaklaşık dış ölçüler: 102 × 64 × 52 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5215737-1.jpg"
@@ -14994,7 +14994,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Taşınabilir Transducer Tutucusu",
-    "aciklama": "Tekneye hızlı ve kolay montaj için taşınabilir transducer tutucusu.\n- Garmin, Lowrance (TotalScan) ve Humminbird transducerlarıyla uyumludur.\n- Farklı marka delik düzenlerine uyarlanabilir CAD dosyası içerir.\n- Basit tak-çıkar montaj.\nYaklaşık dış ölçüler: 80 × 80 × 20 mm.",
+    "aciklama": "Tekneye hızlı ve kolay montaj için taşınabilir transducer tutucusu.\n- Garmin, Lowrance (TotalScan) ve Humminbird transducerlarıyla uyumludur.\n- Farklı marka delik düzenlerine uyarlanabilir.\n- Basit tak-çıkar montaj.\nYaklaşık dış ölçüler: 80 × 80 × 20 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5854189-1.jpg"
@@ -15238,7 +15238,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yelkenli Genoa Rayı Uç Durdurucusu (19x25mm)",
-    "aciklama": "Yelkenli teknenin ön yelken (genoa) rayı için uç durdurucu.\n- 19mm genişlik, 25mm yükseklikteki raylara uyar.\n- Farklı ray ölçülerine uyarlanabilir CAD dosyası içerir.\nYaklaşık dış ölçüler: 36 × 28 × 23 mm.",
+    "aciklama": "Yelkenli teknenin ön yelken (genoa) rayı için uç durdurucu.\n- 19mm genişlik, 25mm yükseklikteki raylara uyar.\n- Farklı ray ölçülerine uyarlanabilir.\nYaklaşık dış ölçüler: 36 × 28 × 23 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7049159-1.jpg",
@@ -15250,7 +15250,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Parametrik Kayak/Kano Kürek Tutucusu",
-    "aciklama": "Kayak veya kano için ölçülere göre uyarlanabilir parametrik kürek tutucusu.\n- OpenSCAD kaynak dosyasıyla farklı boyutlara uyarlanabilir.\n- Çeşitli kayak/kano markalarına uyarlanabilir.\nYaklaşık dış ölçüler: 63 × 60 × 50 mm.",
+    "aciklama": "Kayak veya kano için ölçülere göre uyarlanabilir parametrik kürek tutucusu.\n- Farklı boyutlara, ölçüye özel uyarlanabilir.\n- Çeşitli kayak/kano markalarına uyarlanabilir.\nYaklaşık dış ölçüler: 63 × 60 × 50 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7091203-1.jpg",
@@ -15309,7 +15309,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Kayak Olta Yemi/Malzeme Tepsisi",
-    "aciklama": "Kayak T-track sistemine takılan, olta yemlerini güvertede düzenli tutan tepsi.\n- Kayak T-track sistemine uyar.\n- PETG, ASA veya ABS gibi UV/ısı dayanıklı malzeme önerilir.\n- Tek adet 5mm somun-cıvata ile monte edilir.\nYaklaşık dış ölçüler: 204 × 150 × 45 mm.",
+    "aciklama": "Kayak T-track sistemine takılan, olta yemlerini güvertede düzenli tutan tepsi.\n- Kayak T-track sistemine uyar.\n- UV'ye ve ısıya dayanıklı malzemeyle üretilir.\n- Tek adet 5mm somun-cıvata ile monte edilir.\nYaklaşık dış ölçüler: 204 × 150 × 45 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7373418-1.jpg",
@@ -15794,7 +15794,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yelken Bağı Bungee İp Cleat'i",
-    "aciklama": "Yelkeni bum'a bağlamak için kullanılan bungee ip (yaklaşık 6mm) cleat'i.\n- 1/4 inç (6mm) bungee ip için tasarlanmıştır.\n- Deniz uygulamaları için ASA malzeme önerilir.\n- Farklı ip kalınlıklarına uyarlanabilir CAD dosyası içerir.\nYaklaşık dış ölçüler: 45 × 21 × 21 mm.",
+    "aciklama": "Yelkeni bum'a bağlamak için kullanılan bungee ip (yaklaşık 6mm) cleat'i.\n- 1/4 inç (6mm) bungee ip için tasarlanmıştır.\n- Deniz uygulamalarına dayanıklı malzemeyle üretilir.\n- Farklı ip kalınlıklarına uyarlanabilir.\nYaklaşık dış ölçüler: 45 × 21 × 21 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7125683-1.jpg",
@@ -15845,7 +15845,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Şişme Tekne Olta Tutucusu",
-    "aciklama": "Şişme teknenin koltuk montaj noktalarına oturan olta tutucusu.\n- Şişme tekne koltuk montaj noktalarına uyar.\n- ASA malzeme UV ve ısıya dayanıklılık için önerilir.\n- Kolay tak-çıkar kullanım.\nYaklaşık dış ölçüler: 83 × 74 × 62 mm.",
+    "aciklama": "Şişme teknenin koltuk montaj noktalarına oturan olta tutucusu.\n- Şişme tekne koltuk montaj noktalarına uyar.\n- UV'ye ve ısıya dayanıklı malzemeyle üretilir.\n- Kolay tak-çıkar kullanım.\nYaklaşık dış ölçüler: 83 × 74 × 62 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7365963-1.jpg",
@@ -17365,7 +17365,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "NuCanoe Frontier Transom Elektrikli Motor Desteği",
-    "aciklama": "NuCanoe Frontier 12 kayaklarda transom montajlı elektrikli motorlar için ek destek sistemi.\n- NuCanoe Frontier 12 kayak modeline özeldir (2012/2016 test edilmiş).\n- Minn Kota C2 Endura transom montajına göre boyutlandırılmıştır.\n- TPU tampon ve conta parçaları içerir, PETG ana gövde önerilir.\nYaklaşık dış ölçüler: 120 × 120 × 60 mm.",
+    "aciklama": "NuCanoe Frontier 12 kayaklarda transom montajlı elektrikli motorlar için ek destek sistemi.\n- NuCanoe Frontier 12 kayak modeline özeldir (2012/2016 test edilmiş).\n- Minn Kota C2 Endura transom montajına göre boyutlandırılmıştır.\n- Esnek tampon ve conta parçaları içerir; ana gövde sert ve dayanıklı malzemedendir.\nYaklaşık dış ölçüler: 120 × 120 × 60 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4662529-1.jpg",
@@ -17420,7 +17420,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Şişme Bot (Dinghy) Taşıma Tekerleği",
-    "aciklama": "Küçük şişme botları (dinghy) kolayca hareket ettirmek için tekerlek seti.\n- OpenSCAD kaynak koduyla özelleştirilebilir.\n- Şişme bot transomuna monte edilir.\n- Sağlam ve geniş taban plakası içerir.\nYaklaşık dış ölçüler: 160 × 155 × 50 mm.",
+    "aciklama": "Küçük şişme botları (dinghy) kolayca hareket ettirmek için tekerlek seti.\n- Ölçüye özel olarak özelleştirilebilir.\n- Şişme bot transomuna monte edilir.\n- Sağlam ve geniş taban plakası içerir.\nYaklaşık dış ölçüler: 160 × 155 × 50 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4884657-1.jpg",
@@ -17765,7 +17765,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Flare (Acil Sinyal) Montajı",
-    "aciklama": "Tekne rayına monte edilen, Orion el flaresi/duman sinyalini hızlı erişim için tutan özelleştirilebilir montaj.\n- Orion el tipi flare/duman sinyaliyle uyumludur.\n- OpenSCAD kaynak koduyla farklı ölçülere uyarlanabilir.\n- Tekne can/güvenlik rayına hızlı-çıkar montaj sağlar.\nYaklaşık dış ölçüler: 64 × 38 × 15 mm.",
+    "aciklama": "Tekne rayına monte edilen, Orion el flaresi/duman sinyalini hızlı erişim için tutan özelleştirilebilir montaj.\n- Orion el tipi flare/duman sinyaliyle uyumludur.\n- Farklı ölçülere uyarlanabilir.\n- Tekne can/güvenlik rayına hızlı-çıkar montaj sağlar.\nYaklaşık dış ölçüler: 64 × 38 × 15 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4958277-1.jpg",
@@ -18070,7 +18070,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Torqeedo Elektrikli Dış Motor Yedek Parçaları",
-    "aciklama": "Torqeedo 1103c elektrikli dış motor için anahtar ve deadman key yedek parça seti.\n- Torqeedo 1103c elektrikli dış motora özeldir.\n- OpenSCAD kaynak koduyla farklı buton mıknatıs boyutlarına uyarlanabilir.\n- Deadman key ve motor anahtarını içerir.\nYaklaşık dış ölçüler: 50 × 30 × 3 mm.",
+    "aciklama": "Torqeedo 1103c elektrikli dış motor için anahtar ve deadman key yedek parça seti.\n- Torqeedo 1103c elektrikli dış motora özeldir.\n- Farklı buton mıknatıs boyutlarına uyarlanabilir.\n- Deadman key ve motor anahtarını içerir.\nYaklaşık dış ölçüler: 50 × 30 × 3 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3751890-1.jpg",
@@ -18108,7 +18108,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "FeelFree Kayak Unibar Kilit Braketi",
-    "aciklama": "FeelFree kayak unibar sistemi için yedek kol kilidi/montaj braketi.\n- FeelFree kayak unibar sistemine özeldir.\n- Menteşe noktasında esneme gerektirdiği için ABS/PETG önerilir.\n- Sağ taraf (R/H) braketidir; sol taraf için ayna simetrik versiyonu mevcuttur.\nYaklaşık dış ölçüler: 117 × 38 × 22 mm.",
+    "aciklama": "FeelFree kayak unibar sistemi için yedek kol kilidi/montaj braketi.\n- FeelFree kayak unibar sistemine özeldir.\n- Menteşe noktasında esneme gerektirdiği için tok ve dayanıklı malzemeyle üretilir.\n- Sağ taraf (R/H) braketidir; sol taraf için ayna simetrik versiyonu mevcuttur.\nYaklaşık dış ölçüler: 117 × 38 × 22 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4096707-1.jpg",
@@ -18243,7 +18243,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Transom Tahliye Valfi (2,75 inç)",
-    "aciklama": "2,75 inç dış çaplı, çürüyen kauçuk valfin yerine geçen tekne transom tahliye valfi seti.\n- 2,75 inç dış çap, 2,5 inç vida deseni ile uyumludur.\n- Valf ve destek TPU, destek halkası PETG önerilir.\nYaklaşık dış ölçüler: 70 × 70 × 6 mm.",
+    "aciklama": "2,75 inç dış çaplı, çürüyen kauçuk valfin yerine geçen tekne transom tahliye valfi seti.\n- 2,75 inç dış çap, 2,5 inç vida deseni ile uyumludur.\n- Valf ve desteği esnek, destek halkası sert malzemedendir.\nYaklaşık dış ölçüler: 70 × 70 × 6 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4401851-1.jpg",
@@ -18770,7 +18770,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Garmin Echomap/GPSmap Montajı",
-    "aciklama": "Garmin Echomap/GPSmap balık bulucu için 15 mm boruya özel montaj, kendi mandalını yapma modeli dahil.\n- 15 mm boruya uyacak şekilde tasarlanmıştır.\n- Fusion 360 dosyasıyla farklı ölçülere uyarlanabilir.\n- Mandal (ratchet) modeli de dahildir.\nYaklaşık dış ölçüler: 247 × 110 × 65 mm.",
+    "aciklama": "Garmin Echomap/GPSmap balık bulucu için 15 mm boruya özel montaj, kendi mandalını yapma modeli dahil.\n- 15 mm boruya uyacak şekilde tasarlanmıştır.\n- Farklı ölçülere, siparişe göre uyarlanabilir.\n- Mandal (ratchet) modeli de dahildir.\nYaklaşık dış ölçüler: 247 × 110 × 65 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4860768-1.jpg",
@@ -18819,7 +18819,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yat Enstrümanı Güneş Kapağı",
-    "aciklama": "Yat kokpit enstrümanları için OpenSCAD ile boyutlandırılabilen genel amaçlı güneş/koruma kapağı.\n- Köşeleri yuvarlatılmış kare/dikdörtgen enstrümanlara uyarlanabilir.\n- OpenSCAD script'i ile ölçüler kolayca özelleştirilir.\n- Enstrümanı güneşten kaynaklanan çatlamaya karşı korur.\nYaklaşık dış ölçüler: 153 × 100 × 20 mm.",
+    "aciklama": "Yat kokpit enstrümanları için ölçüye göre boyutlandırılabilen genel amaçlı güneş/koruma kapağı.\n- Köşeleri yuvarlatılmış kare/dikdörtgen enstrümanlara uyarlanabilir.\n- Ölçüler kolayca özelleştirilir.\n- Enstrümanı güneşten kaynaklanan çatlamaya karşı korur.\nYaklaşık dış ölçüler: 153 × 100 × 20 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5601013-1.jpg",
@@ -19016,7 +19016,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Soğuk Kutu Bağı (Cleat)",
-    "aciklama": "Sea Ray 28 fit tekneye özel, soğuk kutuyu (cooler) yerinde tutan bağ (cleat).\n- Sea Ray 28 fit tekne modeline özeldir.\n- Soğuk kutuyu güvenle yerinde tutar.\n- STEP dosyası dahildir, kendi ölçünüze uyarlanabilir.\nYaklaşık dış ölçüler: 123 × 123 × 55 mm.",
+    "aciklama": "Sea Ray 28 fit tekneye özel, soğuk kutuyu (cooler) yerinde tutan bağ (cleat).\n- Sea Ray 28 fit tekne modeline özeldir.\n- Soğuk kutuyu güvenle yerinde tutar.\n- Kendi ölçünüze göre uyarlanabilir.\nYaklaşık dış ölçüler: 123 × 123 × 55 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4678541-1.jpg",
@@ -19659,7 +19659,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yelkenli Ana Yelken Kızağı (Mainsail Slide)",
-    "aciklama": "Yelkenli bumuna özel, Autodesk Fusion 360'ta özelleştirilebilir ana yelken kızağı.\n- Boom ölçüsüne göre özelleştirilebilir (Fusion 360 dosyası dahil).\n- Ana yelken kızağı olarak kullanılır.\n- Farklı bum genişliklerine uyarlanabilir.\nYaklaşık dış ölçüler: 30 × 29 × 9 mm.",
+    "aciklama": "Yelkenli bumuna özel, ölçüye göre özelleştirilebilir ana yelken kızağı.\n- Boom ölçüsüne göre özelleştirilebilir.\n- Ana yelken kızağı olarak kullanılır.\n- Farklı bum genişliklerine uyarlanabilir.\nYaklaşık dış ölçüler: 30 × 29 × 9 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5807172-1.jpg"
@@ -19817,7 +19817,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Garmin Striker 4 Kayak Transducer Montajı",
-    "aciklama": "Everest Sharky kayağına özel Garmin Striker 4 balık bulucu transducer montajı.\n- Garmin Striker 4 transduceriyle uyumludur.\n- SCAD dosyası dahildir, farklı ölçülere uyarlanabilir.\nYaklaşık dış ölçüler: 65 × 64 × 27 mm.",
+    "aciklama": "Everest Sharky kayağına özel Garmin Striker 4 balık bulucu transducer montajı.\n- Garmin Striker 4 transduceriyle uyumludur.\n- Farklı ölçülere uyarlanabilir.\nYaklaşık dış ölçüler: 65 × 64 × 27 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3120350-1.jpg"
@@ -19832,7 +19832,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Alüminyum Kano Gunwale Olta Tutucu Montajı",
-    "aciklama": "1973 model 19' kare kıç Grumman alüminyum kanoya özel, eski tip kürek kilidi (oarlock) olta tutucusunu tutan montaj.\n- Grumman alüminyum kano gunwale'ine (1,25 inç) özeldir.\n- 1/2 inç çaplı olta tutucu pimine uyar.\n- Fusion 360 dosyası dahildir, farklı raylara uyarlanabilir.\nYaklaşık dış ölçüler: 70 × 63 × 54 mm.",
+    "aciklama": "1973 model 19' kare kıç Grumman alüminyum kanoya özel, eski tip kürek kilidi (oarlock) olta tutucusunu tutan montaj.\n- Grumman alüminyum kano gunwale'ine (1,25 inç) özeldir.\n- 1/2 inç çaplı olta tutucu pimine uyar.\n- Farklı raylara uyarlanabilir.\nYaklaşık dış ölçüler: 70 × 63 × 54 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4835566-1.jpg",
@@ -20190,7 +20190,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Johnson Vintage Dış Motor Düğmesi",
-    "aciklama": "Johnson 9,9 HP vintage dış motor için yedek düğme.\n- Johnson 9,9 HP vintage dış motora özeldir.\n- Kırılan orijinal düğmenin yerine geçer.\n- 123dx dosyası dahildir, özelleştirmeye uygundur.\nYaklaşık dış ölçüler: 48 × 25 × 25 mm.",
+    "aciklama": "Johnson 9,9 HP vintage dış motor için yedek düğme.\n- Johnson 9,9 HP vintage dış motora özeldir.\n- Kırılan orijinal düğmenin yerine geçer.\n- Siparişe göre özelleştirilebilir.\nYaklaşık dış ölçüler: 48 × 25 × 25 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2336032-1.jpg"
@@ -20224,7 +20224,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Evinrude Yavaş Hız Ayar Düğmesi",
-    "aciklama": "Evinrude 9.9 HP 2 zamanlı dış motor için kırılan orijinal yavaş hız ayar düğmesinin yerine geçen parça.\n- Evinrude 9.9 HP 2 zamanlı dış motora özeldir.\n- Karbüratör parçasına oturması için alt delik genişletilmelidir.\n- Renkli filament parçasıyla gösterge çubuğu özelleştirilebilir.\nYaklaşık dış ölçüler: 54 × 29 × 25 mm.",
+    "aciklama": "Evinrude 9.9 HP 2 zamanlı dış motor için kırılan orijinal yavaş hız ayar düğmesinin yerine geçen parça.\n- Evinrude 9.9 HP 2 zamanlı dış motora özeldir.\n- Karbüratör parçasına oturması için alt delik genişletilmelidir.\n- Renkli malzemeyle gösterge çubuğu özelleştirilebilir.\nYaklaşık dış ölçüler: 54 × 29 × 25 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2537896-1.jpg",
@@ -20312,7 +20312,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Garmin Striker 4 Vivid Kano Toprail Montajı",
-    "aciklama": "Grumman 19 fit alüminyum kanonun üst rayına (toprail) özel Garmin Striker 4 Vivid balık bulucu montajı.\n- Grumman 19' kare kıç alüminyum kanoya özeldir.\n- Cotter pin (1,5 inç x 1/8 inç) ile sabitlenir.\n- Fusion 360 dosyası dahildir, farklı toprail'lere uyarlanabilir.\nYaklaşık dış ölçüler: 90 × 81 × 68 mm.",
+    "aciklama": "Grumman 19 fit alüminyum kanonun üst rayına (toprail) özel Garmin Striker 4 Vivid balık bulucu montajı.\n- Grumman 19' kare kıç alüminyum kanoya özeldir.\n- Cotter pin (1,5 inç x 1/8 inç) ile sabitlenir.\n- Farklı toprail ölçülerine uyarlanabilir.\nYaklaşık dış ölçüler: 90 × 81 × 68 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4851451-1.jpg",
@@ -20415,7 +20415,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yelkenli Pusula Braketi",
-    "aciklama": "Yelkenli tekneye pusula bağlamak için braket.\n- Yelkenli teknelere montaj için tasarlanmıştır.\n- 3dm dosyası dahildir, özelleştirmeye uygundur.\n- Standart pusula gövdelerine uyar.\nYaklaşık dış ölçüler: 176 × 176 × 37 mm.",
+    "aciklama": "Yelkenli tekneye pusula bağlamak için braket.\n- Yelkenli teknelere montaj için tasarlanmıştır.\n- Siparişe göre özelleştirilebilir.\n- Standart pusula gövdelerine uyar.\nYaklaşık dış ölçüler: 176 × 176 × 37 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2259888-1.jpg",
@@ -20491,7 +20491,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Hobie 16 Dümen Kolu Uzatma Tutucusu",
-    "aciklama": "Hobie 16 katamaranın dümen kolu çapraz barına dümen kolu uzatmasını klipsleyen küçük aparat.\n- Dümen kolu çapraz bar çapı: 29 mm.\n- Dümen kolu uzatma çapı: 22 mm.\n- UV ve suya dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 51 × 34 × 20 mm.",
+    "aciklama": "Hobie 16 katamaranın dümen kolu çapraz barına dümen kolu uzatmasını klipsleyen küçük aparat.\n- Dümen kolu çapraz bar çapı: 29 mm.\n- Dümen kolu uzatma çapı: 22 mm.\n- UV'ye ve suya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 51 × 34 × 20 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4461010-1.jpg",
@@ -20508,7 +20508,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Kenarı 4'lü Olta Raf Seti",
-    "aciklama": "Tekne kenarlarına monte edilen, dört oltayı sıralı olarak tutan raf çifti.\n- Tekne kenarlarına #8 vida ile monte edilir.\n- Taban parçaları PETG, esnek parmaklar 95A TPU önerilir.\n- Dört oltayı farklı yönlerde saklar.\nYaklaşık dış ölçüler: 229 × 51 × 25 mm.",
+    "aciklama": "Tekne kenarlarına monte edilen, dört oltayı sıralı olarak tutan raf çifti.\n- Tekne kenarlarına #8 vida ile monte edilir.\n- Taban parçaları sert, esnek parmaklar yumuşak (95A) malzemedendir.\n- Dört oltayı farklı yönlerde saklar.\nYaklaşık dış ölçüler: 229 × 51 × 25 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4858039-1.jpg",
@@ -20941,7 +20941,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Kenarı Olta Rafı / Fırça Tutucu",
-    "aciklama": "Tekne kenarına (gunnel) monte edilen, 2,75 inç olta tutucuların yerine kullanılan raf/destek halkası seti.\n- 2,75 inç (70 mm) olta tutucu yerine geçer.\n- Tutucu gövde TPU, destek halkası PETG önerilir.\n- Malzeme sertliğine göre Z ayarı gerekebilir.\nYaklaşık dış ölçüler: 70 × 70 × 6 mm.",
+    "aciklama": "Tekne kenarına (gunnel) monte edilen, 2,75 inç olta tutucuların yerine kullanılan raf/destek halkası seti.\n- 2,75 inç (70 mm) olta tutucu yerine geçer.\n- Tutucu gövde esnek, destek halkası sert malzemedendir.\n- Malzeme sertliğine göre Z ayarı gerekebilir.\nYaklaşık dış ölçüler: 70 × 70 × 6 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4401733-1.jpg",
@@ -21911,7 +21911,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Yelken Cam Cleat (Kilitli Halat Tutucu)",
-    "aciklama": "Yüksek kaliteli cam/clam tipi cleat. Tek metal parça (yay) gerektirir, deniz uygulamaları için ASA malzeme önerilir.\n- Cam-cleat mekanizmasıyla halatı otomatik kilitler.\n- Tek metal yay dışındaki tüm parçalar dahildir.\n- Deniz kullanımı için ASA malzeme önerilir.\nYaklaşık dış ölçüler: 62 × 29 × 21 mm.",
+    "aciklama": "Yüksek kaliteli cam/clam tipi cleat. Tek metal parça (yay) gerektirir; deniz uygulamalarına dayanıklı malzemeyle üretilir.\n- Cam-cleat mekanizmasıyla halatı otomatik kilitler.\n- Tek metal yay dışındaki tüm parçalar dahildir.\n- Deniz kullanımına dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 62 × 29 × 21 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7246074-1.jpg",
@@ -22138,7 +22138,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Somon Trolling Flasher (Balık Çekim Aparatı)",
-    "aciklama": "Somon trolling balıkçılığında kullanılan, balık sürüsü görünümü vererek dikkat çeken flasher/dodger aparatı.\n- Trolling hattına asılarak kullanılır.\n- Karanlıkta parlayan filaman malzemeden üretilir.\n- Ticari muadillerine göre çok daha ucuza mal edilir.\nYaklaşık dış ölçüler: 200 × 65 × 5 mm.",
+    "aciklama": "Somon trolling balıkçılığında kullanılan, balık sürüsü görünümü vererek dikkat çeken flasher/dodger aparatı.\n- Trolling hattına asılarak kullanılır.\n- Karanlıkta parlayan malzemeden üretilir.\n- Ticari muadillerine göre çok daha ucuza mal edilir.\nYaklaşık dış ölçüler: 200 × 65 × 5 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2480646-1.jpg",
@@ -22997,7 +22997,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Kano / Kayak Zigzag Halat Cleat'i",
-    "aciklama": "Kano ve kayaklarda kullanılan zigzag dişli halat cleat'i. İki yarı parça yapıştırılarak katman çizgilerine dik yük taşıma gücü artırılır.\n- Zigzag dişleriyle halatı güvenle kilitler.\n- İki parça yapıştırılarak mukavemeti artırılır.\n- Kano ve kayaklarda kullanılır.\nYaklaşık dış ölçüler: 89 × 44 × 20 mm.",
+    "aciklama": "Kano ve kayaklarda kullanılan zigzag dişli halat cleat'i. İki yarı parça yapıştırılarak dik yük taşıma gücü artırılır.\n- Zigzag dişleriyle halatı güvenle kilitler.\n- İki parça yapıştırılarak mukavemeti artırılır.\n- Kano ve kayaklarda kullanılır.\nYaklaşık dış ölçüler: 89 × 44 × 20 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4594464-1.jpg",
@@ -25318,7 +25318,7 @@
       "Toyota"
     ],
     "baslik": "Toyota Corolla Kaput İstinat Çubuğu Klipsi (2006)",
-    "aciklama": "2006 model Toyota Corolla'nın kaput istinat çubuğunu kapalı konumda tutan klipstir. Motor bölmesi sıcağında yıllarca kalan orijinal klips sertleşip koptuğunda çubuk yuvasında durmaz; sürüşte serbest kalıp kaputun altına vurur, boyalı yüzeye sürter ve kaput açıldığında çubuk elle aranmak zorunda kalır. Bu parça çamurluk üstündeki fabrika deliğine geçer, iki yanaklı ağzı çubuğun kendi kalınlığına göre çıkarılmıştır ve çubuk bastırılarak içeri kilitlenir, elle çekilerek serbest bırakılır. Tabanı orijinalinden kalın tutulmuş, duvar sayısı artırılmıştır; bu sayede tekrarlı açma kapama zorlanmasına daha uzun dayanır. Ek parça, delme ya da yapıştırıcı gerektirmez. Motor bölmesi sıcaklığına ve güneşe dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 21 × 17 × 12 mm.",
+    "aciklama": "2006 model Toyota Corolla'nın kaput istinat çubuğunu kapalı konumda tutan klipstir. Motor bölmesi sıcağında yıllarca kalan orijinal klips sertleşip koptuğunda çubuk yuvasında durmaz; sürüşte serbest kalıp kaputun altına vurur, boyalı yüzeye sürter ve kaput açıldığında çubuk elle aranmak zorunda kalır. Bu parça çamurluk üstündeki fabrika deliğine geçer, iki yanaklı ağzı çubuğun kendi kalınlığına göre çıkarılmıştır ve çubuk bastırılarak içeri kilitlenir, elle çekilerek serbest bırakılır. Tabanı orijinalinden kalın tutulmuş ve cidarı güçlendirilmiştir; bu sayede tekrarlı açma kapama zorlanmasına daha uzun dayanır. Ek parça, delme ya da yapıştırıcı gerektirmez. Motor bölmesi sıcaklığına ve güneşe dayanıklı sert malzemeyle üretilir.\nYaklaşık dış ölçüler: 21 × 17 × 12 mm.",
     "fiyat": "100 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7221094-1.jpg",
@@ -44668,7 +44668,7 @@
       "240"
     ],
     "baslik": "Volvo 240 Station Wagon Arka Koltuk Açma Kolu",
-    "aciklama": "Volvo 240 Station Wagon arka koltuğunu yatırmak için kullanılan açma/serbest bırakma kolu. İnce plastikten olan orijinali kolayca kırılır; bu parça daha sağlam bir alternatif sunar.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 58 × 41 × 36 mm.",
+    "aciklama": "Volvo 240 Station Wagon arka koltuğunu yatırmak için kullanılan açma/serbest bırakma kolu. İnce plastikten olan orijinali kolayca kırılır; bu parça daha sağlam bir alternatif sunar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 58 × 41 × 36 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th1959160-1.jpg",
@@ -44689,7 +44689,7 @@
       "740"
     ],
     "baslik": "Volvo 740/940 AMM Hava Ölçer Boru Gövdesi",
-    "aciklama": "Volvo 740/940 modellerinde daha küçük hava kütle ölçerin (AMM) elektroniğini, standart 3 inçlik hava borusuna aktarmak için boş boru gövdesi. Elektronik modülü bu gövdeye alarak daha uygun bir hava akış kesitiyle çalışmaya olanak tanır.\nIsıya ve titreşime dayanıklılık için PETG veya ABS önerilir.\nYaklaşık dış ölçüler: 130 × 82 × 82 mm.",
+    "aciklama": "Volvo 740/940 modellerinde daha küçük hava kütle ölçerin (AMM) elektroniğini, standart 3 inçlik hava borusuna aktarmak için boş boru gövdesi. Elektronik modülü bu gövdeye alarak daha uygun bir hava akış kesitiyle çalışmaya olanak tanır.\nIsıya ve titreşime dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 130 × 82 × 82 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5655477-1.jpg",
@@ -44710,7 +44710,7 @@
       "145"
     ],
     "baslik": "Volvo 145 Ek Gösterge Tutucu",
-    "aciklama": "Volvo 145 (klasik) modelde ek/aksesuar gösterge için tutucu. Bulunması güç olan orijinal tutucunun yerine geçerek göstergeyi düzgünce yerine oturtur.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 31 × 22 × 22 mm.",
+    "aciklama": "Volvo 145 (klasik) modelde ek/aksesuar gösterge için tutucu. Bulunması güç olan orijinal tutucunun yerine geçerek göstergeyi düzgünce yerine oturtur.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 31 × 22 × 22 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2280263-1.jpg",
@@ -44731,7 +44731,7 @@
       "850"
     ],
     "baslik": "Volvo 850 Far Silecek Motoru Dişlisi",
-    "aciklama": "Volvo 850 far silecek motorunun içindeki dişli. Zamanla aşınan veya kırılan orijinal dişlinin yerine geçerek far sileceğinin yeniden düzgün çalışmasını sağlar.\nDayanıklılık için PETG veya ABS önerilir.\nYaklaşık dış ölçüler: 34 × 34 × 20 mm.",
+    "aciklama": "Volvo 850 far silecek motorunun içindeki dişli. Zamanla aşınan veya kırılan orijinal dişlinin yerine geçerek far sileceğinin yeniden düzgün çalışmasını sağlar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 34 × 34 × 20 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th1965181-1.jpg",
@@ -44767,7 +44767,7 @@
       "V70"
     ],
     "baslik": "Volvo V70 Arka Silecek Kapatma Tapası",
-    "aciklama": "Volvo V70 arka silecek mekanizması söküldükten sonra kalan deliği kapatan iki parçalı tapa. İki parça kısa bir vidayla birleştirilir; araya silikon uygulanarak su geçişi önlenir.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 33 × 33 × 6 mm.",
+    "aciklama": "Volvo V70 arka silecek mekanizması söküldükten sonra kalan deliği kapatan iki parçalı tapa. İki parça kısa bir vidayla birleştirilir; araya silikon uygulanarak su geçişi önlenir.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 33 × 33 × 6 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4214225-1.jpg",
@@ -44787,7 +44787,7 @@
       "740"
     ],
     "baslik": "Volvo 740/940 Hava Kutusu Termostat İptal Parçası",
-    "aciklama": "Volvo 740 ve 940 (atmosferik redblock motorlu) modellerde hava kutusundaki termostatlı klape sisteminin yerine geçen kapatma parçası. Soğukken egzoz manifoldu üzerinden sıcak hava çeken bu düzenek zamanla bozulur; parça, artık işlevini yitiren klapeyi devre dışı bırakarak hava kutusunu düzgün kapatır.\nIsıya dayanıklılık için PETG veya ABS önerilir.\nYaklaşık dış ölçüler: 131 × 86 × 80 mm.",
+    "aciklama": "Volvo 740 ve 940 (atmosferik redblock motorlu) modellerde hava kutusundaki termostatlı klape sisteminin yerine geçen kapatma parçası. Soğukken egzoz manifoldu üzerinden sıcak hava çeken bu düzenek zamanla bozulur; parça, artık işlevini yitiren klapeyi devre dışı bırakarak hava kutusunu düzgün kapatır.\nIsıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 131 × 86 × 80 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6324301-1.jpg",
@@ -44808,7 +44808,7 @@
       "P2"
     ],
     "baslik": "Volvo Spaceball Vites Burcu",
-    "aciklama": "Volvo spaceball tipi vites kolu için burç. Boşluk yapan veya yıpranan orijinal burcun yerine geçerek vites kolunun oynamasını azaltır ve daha kesin vites hissi verir.\nDayanıklılık için PETG veya sert TPU önerilir.\nYaklaşık dış ölçüler: 18 × 18 × 7 mm.",
+    "aciklama": "Volvo spaceball tipi vites kolu için burç. Boşluk yapan veya yıpranan orijinal burcun yerine geçerek vites kolunun oynamasını azaltır ve daha kesin vites hissi verir.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 18 × 18 × 7 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3966556-1.jpg",
@@ -44828,7 +44828,7 @@
       "P2"
     ],
     "baslik": "Volvo P2 Ön Cam Yıkama Fıskiye Klipsi",
-    "aciklama": "Volvo P2 platformunda (S60, V70, XC70, S80, XC90) ön cam yıkama fıskiye memesini kaputun altında yerinde tutan yedek klips. Kırılan orijinal klipslerin yerine geçerek memenin üstten fırlamasını engeller ve fıskiyeyi sabit tutar.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 12 × 8 × 4 mm.",
+    "aciklama": "Volvo P2 platformunda (S60, V70, XC70, S80, XC90) ön cam yıkama fıskiye memesini kaputun altında yerinde tutan yedek klips. Kırılan orijinal klipslerin yerine geçerek memenin üstten fırlamasını engeller ve fıskiyeyi sabit tutar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 12 × 8 × 4 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3588006-1.jpg",
@@ -44868,7 +44868,7 @@
       "B230"
     ],
     "baslik": "Volvo B230 Gaz Kelebeği Konum Sensörü (TPS) Adaptörü",
-    "aciklama": "Volvo B230 gaz kelebeği gövdesine, 850/960 tipi gaz kelebeği konum sensörünü (TPS) takmak için adaptör. Bağımsız (standalone) ECU kullananlarda modern TPS'i eski gövdeye uyarlayarak doğru kelebek konumu okumasını sağlar.\nIsıya dayanıklılık için PETG veya ABS önerilir.\nYaklaşık dış ölçüler: 86 × 55 × 12 mm.",
+    "aciklama": "Volvo B230 gaz kelebeği gövdesine, 850/960 tipi gaz kelebeği konum sensörünü (TPS) takmak için adaptör. Bağımsız (standalone) ECU kullananlarda modern TPS'i eski gövdeye uyarlayarak doğru kelebek konumu okumasını sağlar.\nIsıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 86 × 55 × 12 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6226359-1.jpg",
@@ -44909,7 +44909,7 @@
       "940"
     ],
     "baslik": "Volvo 940 Flex Fuel Sensör Braketi",
-    "aciklama": "Volvo 940 ve benzeri araçlarda dönüşüm kitlerinde yaygın kullanılan flex fuel (yakıt içeriği) sensörünü sabitlemek için braket. Sensörü uygun bir noktaya (örneğin sol kule üzerine) düzgünce monte eder; kablo geçişi için de yer bırakır.\nIsıya dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 153 × 37 × 18 mm.",
+    "aciklama": "Volvo 940 ve benzeri araçlarda dönüşüm kitlerinde yaygın kullanılan flex fuel (yakıt içeriği) sensörünü sabitlemek için braket. Sensörü uygun bir noktaya (örneğin sol kule üzerine) düzgünce monte eder; kablo geçişi için de yer bırakır.\nIsıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 153 × 37 × 18 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4826850-1.jpg",
@@ -44951,7 +44951,7 @@
       "XC90"
     ],
     "baslik": "Volvo XC90 Açılır Tavan Drenaj Kanal Tapası",
-    "aciklama": "Volvo XC90 açılır tavan (sunroof) drenaj sistemine ait, kapının içinden geçip drenaj hortumuna bağlanan kanal tapası. Hasar gören orijinal parçanın yerine geçerek tavandan gelen suyun düzgün tahliyesini sağlar.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 57 × 34 × 27 mm.",
+    "aciklama": "Volvo XC90 açılır tavan (sunroof) drenaj sistemine ait, kapının içinden geçip drenaj hortumuna bağlanan kanal tapası. Hasar gören orijinal parçanın yerine geçerek tavandan gelen suyun düzgün tahliyesini sağlar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 57 × 34 × 27 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4619406-1.jpg",
@@ -44972,7 +44972,7 @@
       "XC70"
     ],
     "baslik": "Volvo XC70 Koltuk Ayar Düğmesi",
-    "aciklama": "Volvo XC70 (2006 ve benzeri) ön koltuk ayar düğmesi. Kırılan ya da yıpranan orijinal düğmenin yerine geçerek koltuk ayar mekanizmasının rahat kullanılmasını sağlar.\nDayanıklılık için PETG veya ABS önerilir.\nYaklaşık dış ölçüler: 40 × 18 × 12 mm.",
+    "aciklama": "Volvo XC70 (2006 ve benzeri) ön koltuk ayar düğmesi. Kırılan ya da yıpranan orijinal düğmenin yerine geçerek koltuk ayar mekanizmasının rahat kullanılmasını sağlar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 40 × 18 × 12 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th946176-1.jpg",
@@ -44991,7 +44991,7 @@
       "240"
     ],
     "baslik": "Volvo 240 El Freni Kapağı Burcu",
-    "aciklama": "Volvo 240 el freni kapağını gövdeye tutturan vidalar için burç. Kırılan ya da eksilen orijinal burcun yerine geçerek kapağın sağlam ve tıkırtısız oturmasını sağlar.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 18 × 18 × 4 mm.",
+    "aciklama": "Volvo 240 el freni kapağını gövdeye tutturan vidalar için burç. Kırılan ya da eksilen orijinal burcun yerine geçerek kapağın sağlam ve tıkırtısız oturmasını sağlar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 18 × 18 × 4 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4629961-1.jpg",
@@ -45012,7 +45012,7 @@
       "S60"
     ],
     "baslik": "Volvo S60 Direksiyon Uç Genişletici (2.4T)",
-    "aciklama": "Volvo S60 (2001, 2.4T) için direksiyon uç genişletici. Geniş ve büyük jant kullanımında tam kilitte lastiğin iç kısma sürtmesini önlemek amacıyla direksiyon dönüş sınırını ayarlar.\nDayanıklılık için PETG veya ABS önerilir.\nYaklaşık dış ölçüler: 100 × 19 × 11 mm.",
+    "aciklama": "Volvo S60 (2001, 2.4T) için direksiyon uç genişletici. Geniş ve büyük jant kullanımında tam kilitte lastiğin iç kısma sürtmesini önlemek amacıyla direksiyon dönüş sınırını ayarlar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 100 × 19 × 11 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2571623-1.jpg",
@@ -45029,7 +45029,7 @@
       "V70"
     ],
     "baslik": "Volvo V70/850 Bagaj Rulo Perde Yay Onarım Parçası",
-    "aciklama": "Volvo V70 ve 850 station wagon modellerinde bagaj rulo perdesinin (roll cover) yay mekanizmasını onaran parça. Pahalı komple onarım kiti almadan, kırılan bölümü yenileyerek perdenin sarma işlevini geri kazandırır.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 65 × 42 × 30 mm.",
+    "aciklama": "Volvo V70 ve 850 station wagon modellerinde bagaj rulo perdesinin (roll cover) yay mekanizmasını onaran parça. Pahalı komple onarım kiti almadan, kırılan bölümü yenileyerek perdenin sarma işlevini geri kazandırır.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 65 × 42 × 30 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4651144-1.jpg",
@@ -45050,7 +45050,7 @@
       "P1800"
     ],
     "baslik": "Volvo P1800 Emniyet Kemeri Klips Tutucusu",
-    "aciklama": "Volvo P1800 (erken model) için emniyet kemeri klips tutucusu. Sağlam kalan tek parça baz alınarak modellenmiştir; eksik ya da kırılan tutucunun yerine geçer.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 23 × 21 × 15 mm.",
+    "aciklama": "Volvo P1800 (erken model) için emniyet kemeri klips tutucusu. Sağlam kalan tek parça baz alınarak modellenmiştir; eksik ya da kırılan tutucunun yerine geçer.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 23 × 21 × 15 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4718856-1.jpg",
@@ -45071,7 +45071,7 @@
       "C70"
     ],
     "baslik": "Volvo C70 Cabrio Güneşlik Braketi (Sol)",
-    "aciklama": "Volvo C70 I cabrio modelinde sol taraf güneşlik braketi. Kırılan orijinalin yerine geçer; sağ taraf için aynalanarak üretilebilir.\nIsıya dayanıklılık için ASA veya PETG önerilir.\nYaklaşık dış ölçüler: 73 × 39 × 14 mm.",
+    "aciklama": "Volvo C70 I cabrio modelinde sol taraf güneşlik braketi. Kırılan orijinalin yerine geçer; sağ taraf için aynalanarak üretilebilir.\nIsıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 73 × 39 × 14 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4765708-1.jpg",
@@ -45111,7 +45111,7 @@
       "V50"
     ],
     "baslik": "Volvo V50 Tavan Çıtası Delik Kapakları (Roof Rail)",
-    "aciklama": "Volvo V50 (2006 ve benzeri) modellerde tavan çıtası (roof rail) sökülünce açıkta kalan delikleri kapatan kapak seti. Delikleri örterek düzgün bir görünüm sağlar ve içeri su/kir girişini engeller; geçmeli tasarımdır.\nDayanıklılık için ASA veya PETG önerilir.\nYaklaşık dış ölçüler: 106 × 22 × 6 mm.",
+    "aciklama": "Volvo V50 (2006 ve benzeri) modellerde tavan çıtası (roof rail) sökülünce açıkta kalan delikleri kapatan kapak seti. Delikleri örterek düzgün bir görünüm sağlar ve içeri su/kir girişini engeller; geçmeli tasarımdır.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 106 × 22 × 6 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2644361-1.jpg",
@@ -45130,7 +45130,7 @@
       "V70"
     ],
     "baslik": "Volvo P80 Ön Izgara Klipsleri (S70/V70/C70/850)",
-    "aciklama": "Volvo P80 serisinde (S70, V70, C70, 850, 855) ön ızgarayı sabitleyen klipsler. Kırılan orijinallerin yerine geçerek ızgaranın oynamasını ve tıkırtı yapmasını önler; iki farklı boy varyant içerir.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 31 × 9 × 6 mm.",
+    "aciklama": "Volvo P80 serisinde (S70, V70, C70, 850, 855) ön ızgarayı sabitleyen klipsler. Kırılan orijinallerin yerine geçerek ızgaranın oynamasını ve tıkırtı yapmasını önler; iki farklı boy varyant içerir.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 31 × 9 × 6 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6996983-1.jpg",
@@ -45151,7 +45151,7 @@
       "V50"
     ],
     "baslik": "Volvo S40/V50/C30/C70 Cam Suyu T-Bağlantı Tapası",
-    "aciklama": "Volvo S40, V50, C30 ve C70 modellerinde cam yıkama suyu hattındaki T-bağlantısı için tapa. Ek bir parça gerekmeden yerine geçer ve hattı sızdırmaz biçimde kapatır.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 13 × 13 × 5 mm.",
+    "aciklama": "Volvo S40, V50, C30 ve C70 modellerinde cam yıkama suyu hattındaki T-bağlantısı için tapa. Ek bir parça gerekmeden yerine geçer ve hattı sızdırmaz biçimde kapatır.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 13 × 13 × 5 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5684665-1.jpg",
@@ -45170,7 +45170,7 @@
       "V50"
     ],
     "baslik": "Volvo V50 Bagaj Kapağı İç Açma Kolu",
-    "aciklama": "Volvo V50 bagaj kapağının iç açma kolu. Kırılan orijinal kolun yerine geçer; pahalı OEM parçaya göre ekonomik bir çözüm sunarak bagaj kapağının rahat açılmasını sağlar.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 186 × 58 × 48 mm.",
+    "aciklama": "Volvo V50 bagaj kapağının iç açma kolu. Kırılan orijinal kolun yerine geçer; pahalı OEM parçaya göre ekonomik bir çözüm sunarak bagaj kapağının rahat açılmasını sağlar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 186 × 58 × 48 mm.",
     "fiyat": "450 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5019809-1.jpg",
@@ -45189,7 +45189,7 @@
       "V40"
     ],
     "baslik": "Volvo V40 Vites Topuzu Üst Klips Onarımı",
-    "aciklama": "Volvo V40 (2013 ve benzeri) manuel vites topuzunun yerinden çıkmasına neden olan üst klipsin onarım parçası. Kırılan klipsin yerine geçerek topuzun sağlam oturmasını sağlar.\nYan yatırılarak baskı ve dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 7 × 4 × 3 mm.",
+    "aciklama": "Volvo V40 (2013 ve benzeri) manuel vites topuzunun yerinden çıkmasına neden olan üst klipsin onarım parçası. Kırılan klipsin yerine geçerek topuzun sağlam oturmasını sağlar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 7 × 4 × 3 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6710440-1.jpg",
@@ -45210,7 +45210,7 @@
       "480"
     ],
     "baslik": "Volvo 480 Ön Izgara Bağlantı Onarım Eki",
-    "aciklama": "Volvo 480 ön ızgarasının üst bağlantı noktasını onaran ek parça. İnce plastikten olan orijinal montaj noktası kolayca kırılır; bu ek, kırılan yere yerleşerek ızgarayı yeniden sağlam biçimde sabitler.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 35 × 18 × 9 mm.",
+    "aciklama": "Volvo 480 ön ızgarasının üst bağlantı noktasını onaran ek parça. İnce plastikten olan orijinal montaj noktası kolayca kırılır; bu ek, kırılan yere yerleşerek ızgarayı yeniden sağlam biçimde sabitler.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 35 × 18 × 9 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4299095-1.jpg",
@@ -45230,7 +45230,7 @@
       "C70"
     ],
     "baslik": "Volvo C70 (P80) Direksiyon Uç Durdurucu",
-    "aciklama": "Volvo C70 (P80) direksiyon sistemi için uç durdurucu (endstop); orijinalin birebir kopyası olup delik çevresi daha kalın tasarlanmıştır, böylece çatlamaya karşı daha dayanıklıdır.\nBir miktar esneyebilen, sert ama tok bir malzeme (PETG veya sert TPU) önerilir.\nYaklaşık dış ölçüler: 71 × 43 × 14 mm.",
+    "aciklama": "Volvo C70 (P80) direksiyon sistemi için uç durdurucu (endstop); orijinalin birebir kopyası olup delik çevresi daha kalın tasarlanmıştır, böylece çatlamaya karşı daha dayanıklıdır.\nBir miktar esneyebilen, sert ama tok bir malzemeyle üretilir.\nYaklaşık dış ölçüler: 71 × 43 × 14 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5401117-1.jpg",
@@ -45250,7 +45250,7 @@
       "340"
     ],
     "baslik": "Volvo 340/360 Hız Göstergesi Kablo Tutucusu",
-    "aciklama": "Volvo 340/360 modellerinde hız göstergesi (kilometre saati) kablosunu sabitleyen tutucu. Kırılan orijinalin yerine geçer; ayrık tasarımı sayesinde kabloyu araçtan sökmeden takılabilir.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 40 × 32 × 20 mm.",
+    "aciklama": "Volvo 340/360 modellerinde hız göstergesi (kilometre saati) kablosunu sabitleyen tutucu. Kırılan orijinalin yerine geçer; ayrık tasarımı sayesinde kabloyu araçtan sökmeden takılabilir.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 40 × 32 × 20 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5941503-1.jpg",
@@ -45271,7 +45271,7 @@
       "V40"
     ],
     "baslik": "Volvo V40 Arka Silecek Kolu Bağlantısı",
-    "aciklama": "Volvo V40 (1995-2004) arka cam silecek kolunun bağlantı parçası. Konik mil ve M8 somunlu modellere uyar; kırılan orijinalin yerine geçer. Eski parçadaki pirinç konik göbek, ısıyla sökülüp bu parçaya aktarılarak kullanılır.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 68 × 45 × 24 mm.",
+    "aciklama": "Volvo V40 (1995-2004) arka cam silecek kolunun bağlantı parçası. Konik mil ve M8 somunlu modellere uyar; kırılan orijinalin yerine geçer. Eski parçadaki pirinç konik göbek, ısıyla sökülüp bu parçaya aktarılarak kullanılır.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 68 × 45 × 24 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4113670-1.jpg",
@@ -45292,7 +45292,7 @@
       "XC90"
     ],
     "baslik": "Volvo XC90 Arka Güneşlik Perde Tutma Klipsi",
-    "aciklama": "Volvo XC90 arka yan cam güneşlik perdelerini yerinde tutan klips. Piyasada bulması zor olan orijinal klipsin yerine geçerek perdenin oynamadan sabit durmasını sağlar.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 22 × 10 × 8 mm.",
+    "aciklama": "Volvo XC90 arka yan cam güneşlik perdelerini yerinde tutan klips. Piyasada bulması zor olan orijinal klipsin yerine geçerek perdenin oynamadan sabit durmasını sağlar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 22 × 10 × 8 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6182226-1.jpg",
@@ -45312,7 +45312,7 @@
       "Volvo"
     ],
     "baslik": "Volvo Bagaj Perdesi (Cargo Screen) Braketi",
-    "aciklama": "Volvo station wagon modellerinde bagaj bölme perdesini (cargo screen) tutan braket. Kırılan orijinal braketin yerine geçer; sadeleştirilmiş sol taraf tasarımıdır (sağ taraf için aynalanabilir).\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 43 × 36 × 14 mm.",
+    "aciklama": "Volvo station wagon modellerinde bagaj bölme perdesini (cargo screen) tutan braket. Kırılan orijinal braketin yerine geçer; sadeleştirilmiş sol taraf tasarımıdır (sağ taraf için aynalanabilir).\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 43 × 36 × 14 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5173001-1.jpg",
@@ -45331,7 +45331,7 @@
       "S80"
     ],
     "baslik": "Volvo S80 Bagaj Üçgen Reflektör Mandalı",
-    "aciklama": "Volvo S80 bagajında ikaz üçgenini (reflektör) tutan mandal. Kırılan orijinal mandalın yerine geçerek üçgeni yerinde sabit tutar.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 42 × 41 × 35 mm.",
+    "aciklama": "Volvo S80 bagajında ikaz üçgenini (reflektör) tutan mandal. Kırılan orijinal mandalın yerine geçerek üçgeni yerinde sabit tutar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 42 × 41 × 35 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5019528-1.jpg",
@@ -45394,7 +45394,7 @@
       "V40"
     ],
     "baslik": "Volvo V40 MK1 Tavan Çıtası Kapağı (30803561)",
-    "aciklama": "Volvo V40 MK1 tavan çıtası (roof rail) kapağının birebir üretimi (parça no 30803561). Tek başına bulunması çok zor olan bu parçanın yerine geçerek çıtanın uç kısmını düzgünce kapatır.\nIsıya dayanıklılık için ASA veya PETG önerilir.\nYaklaşık dış ölçüler: 33 × 22 × 16 mm.",
+    "aciklama": "Volvo V40 MK1 tavan çıtası (roof rail) kapağının birebir üretimi (parça no 30803561). Tek başına bulunması çok zor olan bu parçanın yerine geçerek çıtanın uç kısmını düzgünce kapatır.\nIsıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 33 × 22 × 16 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7033522-1.jpg",
@@ -45414,7 +45414,7 @@
       "S60"
     ],
     "baslik": "Volvo S60 Otomatik Vites Mandalı Düğmesi",
-    "aciklama": "Volvo S60 otomatik vites kolundaki mandal (kilit) düğmesi. Kırılan orijinal parçanın yerine geçerek vites kolunun kilit mekanizmasının düzgün çalışmasını sağlar.\nDayanıklılık için PETG veya ABS önerilir.\nYaklaşık dış ölçüler: 40 × 30 × 23 mm.",
+    "aciklama": "Volvo S60 otomatik vites kolundaki mandal (kilit) düğmesi. Kırılan orijinal parçanın yerine geçerek vites kolunun kilit mekanizmasının düzgün çalışmasını sağlar.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 40 × 30 × 23 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4358434-1.jpg",
@@ -45434,7 +45434,7 @@
       "850"
     ],
     "baslik": "Volvo Modular Motor Eksantrik Kapatma Plakası",
-    "aciklama": "Volvo modular (whiteblock) motorlarda distribütör söküldükten sonra eksantrik ucundaki açıklığı kapatan plaka. Bobin (coil pack) dönüşümü yapanlarda açık kalan bölümü örterek toz ve kir girişini önler.\nIsıya dayanıklılık için PETG veya ABS önerilir.\nYaklaşık dış ölçüler: 91 × 80 × 6 mm.",
+    "aciklama": "Volvo modular (whiteblock) motorlarda distribütör söküldükten sonra eksantrik ucundaki açıklığı kapatan plaka. Bobin (coil pack) dönüşümü yapanlarda açık kalan bölümü örterek toz ve kir girişini önler.\nIsıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 91 × 80 × 6 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4420340-1.jpg",
@@ -45453,7 +45453,7 @@
       "V50"
     ],
     "baslik": "Volvo V50/S40 Kül Tablası",
-    "aciklama": "Volvo V50 ve S40 modelleri için kül tablası. Menteşe için iki adet çubuk ve aralarına bir yay (örneğin bir kalem yayı) yerleştirilerek kurulur; kaybolan ya da kırılan orijinalin yerine geçer.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 85 × 82 × 79 mm.",
+    "aciklama": "Volvo V50 ve S40 modelleri için kül tablası. Menteşe için iki adet çubuk ve aralarına bir yay (örneğin bir kalem yayı) yerleştirilerek kurulur; kaybolan ya da kırılan orijinalin yerine geçer.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 85 × 82 × 79 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4640298-1.jpg",
@@ -45474,7 +45474,7 @@
       "P1800"
     ],
     "baslik": "Volvo P1800 Kalorifer Motoru Kablo Ayırıcı",
-    "aciklama": "Volvo P1800 kalorifer motorunun kablo ayırıcı parçası. Üç kabloyu (yüksek hız, düşük hız ve toprak) ayrı tutarak temas ve kısa devre sorunlarını önler; ufalanan orijinal parçanın yerine geçer.\nDayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 33 × 15 × 8 mm.",
+    "aciklama": "Volvo P1800 kalorifer motorunun kablo ayırıcı parçası. Üç kabloyu (yüksek hız, düşük hız ve toprak) ayrı tutarak temas ve kısa devre sorunlarını önler; ufalanan orijinal parçanın yerine geçer.\nDayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 33 × 15 × 8 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4718829-1.jpg",
@@ -45495,7 +45495,7 @@
       "P2"
     ],
     "baslik": "Volvo P2 Alt Motor Tork Takozu Burcu (V70/XC70/S60)",
-    "aciklama": "Volvo P2 platformundaki (V70, XC70, S60) şanzıman tarafındaki alt motor tork takozunun burcu. Yıpranan orijinal burcun yerine daha rijit bir alternatif sunarak motorun salınımını azaltır ve vites geçişlerindeki titreşimi düşürür.\nYerine geçmeli montaj. Dayanıklılık için sert TPU veya PETG önerilir.\nYaklaşık dış ölçüler: 30 × 26 × 24 mm.",
+    "aciklama": "Volvo P2 platformundaki (V70, XC70, S60) şanzıman tarafındaki alt motor tork takozunun burcu. Yıpranan orijinal burcun yerine daha rijit bir alternatif sunarak motorun salınımını azaltır ve vites geçişlerindeki titreşimi düşürür.\nYerine geçmeli montaj. Sert ve dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 30 × 26 × 24 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1742033-1.jpg",
@@ -45512,7 +45512,7 @@
       "P2"
     ],
     "baslik": "Volvo P2 Üst Motor Tork Takozu Burcu",
-    "aciklama": "Volvo P2 şasili modellerde üst motor tork takozu için daha rijit burç. Orijinal burcun boşluğunu doldurarak motorun öne-arkaya salınımını sınırlar; sert hızlanma ve vites geçişlerinde daha kararlı bir sürüş hissi verir.\nYerine geçmeli montaj. Dayanıklılık için sert TPU veya PETG önerilir.\nYaklaşık dış ölçüler: 64 × 64 × 19 mm.",
+    "aciklama": "Volvo P2 şasili modellerde üst motor tork takozu için daha rijit burç. Orijinal burcun boşluğunu doldurarak motorun öne-arkaya salınımını sınırlar; sert hızlanma ve vites geçişlerinde daha kararlı bir sürüş hissi verir.\nYerine geçmeli montaj. Sert ve dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 64 × 64 × 19 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1744005-1.jpg",
@@ -45529,7 +45529,7 @@
       "940"
     ],
     "baslik": "Volvo 940 Uzaktan Kumanda Onarım Çerçevesi",
-    "aciklama": "Volvo 940 merkezi kilit uzaktan kumandasının (anahtarlık) kırılan plastik onarım çerçevesi. Orijinal çerçevenin yerine geçerek kumandanın elektronik kartını ve kabuğunu bir arada sıkıca tutar; tuşların düzgün basmasını ve kapağın oturmasını sağlar.\nYerine geçmeli montaj. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 59 × 33 × 8 mm.",
+    "aciklama": "Volvo 940 merkezi kilit uzaktan kumandasının (anahtarlık) kırılan plastik onarım çerçevesi. Orijinal çerçevenin yerine geçerek kumandanın elektronik kartını ve kabuğunu bir arada sıkıca tutar; tuşların düzgün basmasını ve kapağın oturmasını sağlar.\nYerine geçmeli montaj. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 59 × 33 × 8 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1693673-1.jpg",
@@ -45550,7 +45550,7 @@
       "XC90"
     ],
     "baslik": "Volvo XC90 Bagaj Rulo Perde Kızak Düğmesi",
-    "aciklama": "Volvo XC90 bagaj bölümündeki sarılabilir rulo perdenin (cargo cover) kayar kilit düğmesi. Kırılan orijinal parçanın yerine geçerek perdenin yuvasına düzgün oturmasını ve rahat açılıp kapanmasını sağlar.\nYerine geçmeli montaj. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 45 × 21 × 20 mm.",
+    "aciklama": "Volvo XC90 bagaj bölümündeki sarılabilir rulo perdenin (cargo cover) kayar kilit düğmesi. Kırılan orijinal parçanın yerine geçerek perdenin yuvasına düzgün oturmasını ve rahat açılıp kapanmasını sağlar.\nYerine geçmeli montaj. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 45 × 21 × 20 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1747796-1.jpg",
@@ -45567,7 +45567,7 @@
       "V70"
     ],
     "baslik": "Volvo V70/S70 Karter Havalandırma (CCV) Valfi",
-    "aciklama": "Volvo V70/S70 (P80) 2.5 dizel motorlarda külbütör kapağının üzerinde yer alan karter havalandırma (CCV/PCV) valfi. Orijinali artık tedarik edilemeyen bu parçanın yerine geçer ve karter gazlarının düzgün tahliyesini sağlayarak yağ kaçağı ile basınç sorunlarını önlemeye yardımcı olur.\nYağ ve ısıya dayanıklılık için PETG veya ABS önerilir.\nYaklaşık dış ölçüler: 107 × 83 × 78 mm.",
+    "aciklama": "Volvo V70/S70 (P80) 2.5 dizel motorlarda külbütör kapağının üzerinde yer alan karter havalandırma (CCV/PCV) valfi. Orijinali artık tedarik edilemeyen bu parçanın yerine geçer ve karter gazlarının düzgün tahliyesini sağlayarak yağ kaçağı ile basınç sorunlarını önlemeye yardımcı olur.\nYağa ve ısıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 107 × 83 × 78 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1773754-1.jpg",
@@ -45587,7 +45587,7 @@
       "V60"
     ],
     "baslik": "Volvo Bagaj Şarj Kablosu Tutucusu (V60/S60/S90/V90)",
-    "aciklama": "Volvo V60, S60, S90 ve V90 modellerinde bagajın yan kancalarına takılan şarj kablosu tutucusu. Elektrikli ve hibrit araçların şarj kablosunu düzenli tutarak bagajda dağılmasını önler, kolay erişim sağlar.\nYan kancalara asılarak monte edilir. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 174 × 90 × 76 mm.",
+    "aciklama": "Volvo V60, S60, S90 ve V90 modellerinde bagajın yan kancalarına takılan şarj kablosu tutucusu. Elektrikli ve hibrit araçların şarj kablosunu düzenli tutarak bagajda dağılmasını önler, kolay erişim sağlar.\nYan kancalara asılarak monte edilir. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 174 × 90 × 76 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr984422-11.jpg",
@@ -45606,7 +45606,7 @@
       "V40"
     ],
     "baslik": "Volvo V40/S40 Marşpiyel (Eşik) Çift Klipsi",
-    "aciklama": "Volvo V40 ve S40 (1995–2004) modellerinde marşpiyel/yan eşik kaplamasını gövdeye sabitleyen çift klips. Kırılan ya da kaybolan orijinal klipsin yerine geçerek kaplamanın oynamasını ve tıkırtı yapmasını önler.\nYerine geçmeli montaj. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 24 × 20 × 15 mm.",
+    "aciklama": "Volvo V40 ve S40 (1995–2004) modellerinde marşpiyel/yan eşik kaplamasını gövdeye sabitleyen çift klips. Kırılan ya da kaybolan orijinal klipsin yerine geçerek kaplamanın oynamasını ve tıkırtı yapmasını önler.\nYerine geçmeli montaj. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 24 × 20 × 15 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1516073-11.jpg",
@@ -45627,7 +45627,7 @@
       "S40"
     ],
     "baslik": "Volvo S40 Tavan Döşeme Klipsi",
-    "aciklama": "Volvo S40 (2005 ve benzeri model yılları) tavan döşemesini (headliner) yerinde tutan klips. Zamanla gevşeyen veya kırılan orijinal klipsin yerine geçerek sarkan tavan döşemesini yeniden sabitler.\nYerine geçmeli montaj. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 41 × 32 × 22 mm.",
+    "aciklama": "Volvo S40 (2005 ve benzeri model yılları) tavan döşemesini (headliner) yerinde tutan klips. Zamanla gevşeyen veya kırılan orijinal klipsin yerine geçerek sarkan tavan döşemesini yeniden sabitler.\nYerine geçmeli montaj. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 41 × 32 × 22 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1698417-11.jpg",
@@ -45644,7 +45644,7 @@
       "P2"
     ],
     "baslik": "Volvo CEM-B Kapak Plakası (P2)",
-    "aciklama": "Volvo P2 platformlu erken model (2004 öncesi) araçlarda kullanılan CEM-B merkezi elektronik modülünün kapak plakası. Hasar gören ya da eksik orijinal kapağın yerine geçerek modülü toza ve fiziksel darbelere karşı korur.\nYerine geçmeli montaj. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 104 × 80 × 10 mm.",
+    "aciklama": "Volvo P2 platformlu erken model (2004 öncesi) araçlarda kullanılan CEM-B merkezi elektronik modülünün kapak plakası. Hasar gören ya da eksik orijinal kapağın yerine geçerek modülü toza ve fiziksel darbelere karşı korur.\nYerine geçmeli montaj. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 104 × 80 × 10 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1319208-11.jpg",
@@ -45665,7 +45665,7 @@
       "P2"
     ],
     "baslik": "Volvo CEM-B Soğutma Fanı Montaj Aparatı",
-    "aciklama": "Volvo P2 erken model araçlarda CEM-B merkezi elektronik modülüne küçük bir soğutma fanı takmak için montaj aparatı. Modülün ısınmasını azaltarak zamanından önce arızalanmasını önlemeye yardımcı olur.\nFanı modül üzerine sabitler. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 68 × 32 × 15 mm.",
+    "aciklama": "Volvo P2 erken model araçlarda CEM-B merkezi elektronik modülüne küçük bir soğutma fanı takmak için montaj aparatı. Modülün ısınmasını azaltarak zamanından önce arızalanmasını önlemeye yardımcı olur.\nFanı modül üzerine sabitler. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 68 × 32 × 15 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1323232-11.jpg",
@@ -45684,7 +45684,7 @@
       "V70"
     ],
     "baslik": "Volvo V70 (II) Yakıt Deposu Kilit Dişlisi",
-    "aciklama": "Volvo V70 II modelinde yakıt deposu kapağı kilit mekanizmasının güçlendirilmiş dişlisi ve karşı parçası. Kırılan orijinal dişlinin yerine geçerek yakıt kapağının düzgün kilitlenip açılmasını sağlar; karşı parçayla birlikte tam oturur.\nİki parçalı set, yerine geçmeli montaj. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 43 × 26 × 26 mm.",
+    "aciklama": "Volvo V70 II modelinde yakıt deposu kapağı kilit mekanizmasının güçlendirilmiş dişlisi ve karşı parçası. Kırılan orijinal dişlinin yerine geçerek yakıt kapağının düzgün kilitlenip açılmasını sağlar; karşı parçayla birlikte tam oturur.\nİki parçalı set, yerine geçmeli montaj. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 43 × 26 × 26 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1777380-1.jpg",
@@ -46001,7 +46001,7 @@
       "3008"
     ],
     "baslik": "Peugeot 3008 Silecek Su Hortumu Klipsi",
-    "aciklama": "Peugeot 3008 ön silecek kolundaki su hortumunu tutan klips. Sık kırılan orijinal parçanın profili birebir taranarak tasarlanmıştır ve hortumu yerinde sabit tutar.\nSilecek koluna yerine geçmeli olarak takılır. Dayanıklılık için ABS veya PETG önerilir.\nYaklaşık dış ölçüler: 18 × 17 × 10 mm.",
+    "aciklama": "Peugeot 3008 ön silecek kolundaki su hortumunu tutan klips. Sık kırılan orijinal parçanın profili birebir taranarak tasarlanmıştır ve hortumu yerinde sabit tutar.\nSilecek koluna yerine geçmeli olarak takılır. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 18 × 17 × 10 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6691744-1.jpg",
@@ -46257,7 +46257,7 @@
       "207"
     ],
     "baslik": "Peugeot 207 Paspas Tutucu Somun ve Vida",
-    "aciklama": "Peugeot 207 paspasını yerinde tutan somun ve vida takımı. Kırılan orijinallerinin yerine geçerek paspasın kaymadan sabit durmasını sağlar.\nPaspas yuvasına takılır. İç mekanda ısınabildiği için ABS önerilir.\nYaklaşık dış ölçüler: 33 × 33 × 11 mm.",
+    "aciklama": "Peugeot 207 paspasını yerinde tutan somun ve vida takımı. Kırılan orijinallerinin yerine geçerek paspasın kaymadan sabit durmasını sağlar.\nPaspas yuvasına takılır. İç mekânda ısınabildiği için ısıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 33 × 33 × 11 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6670057-1.jpg",
@@ -46495,7 +46495,7 @@
       "308"
     ],
     "baslik": "Peugeot 308 Radyatör Üst Takozu",
-    "aciklama": "Peugeot 308 (T7, 2011) radyatörünü üstten sabitleyen takoz/bağlantı parçası. Kırılan orijinalinin yerine geçerek radyatörü yerinde titreşimsiz tutar; her iki tarafa da uyar.\nYerine geçmeli olarak takılır. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 56 × 39 × 25 mm.",
+    "aciklama": "Peugeot 308 (T7, 2011) radyatörünü üstten sabitleyen takoz/bağlantı parçası. Kırılan orijinalinin yerine geçerek radyatörü yerinde titreşimsiz tutar; her iki tarafa da uyar.\nYerine geçmeli olarak takılır. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 56 × 39 × 25 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7028578-1.jpg",
@@ -46539,7 +46539,7 @@
       "308"
     ],
     "baslik": "Peugeot 308 SW Bardaklık Adaptörü",
-    "aciklama": "Peugeot 308 SW ve benzeri modellerdeki oldukça küçük fabrika bardaklığına takılan adaptör. Standart bardaklığın çapını genişleterek daha büyük bardak, termos veya kutu içeceklerin sabit durmasını sağlar.\nÇıkarılıp takılabilir; orijinal bardaklığa zarar vermez. Dayanıklı kullanım için PETG önerilir.\nYaklaşık dış ölçüler: 120 × 92 × 90 mm.",
+    "aciklama": "Peugeot 308 SW ve benzeri modellerdeki oldukça küçük fabrika bardaklığına takılan adaptör. Standart bardaklığın çapını genişleterek daha büyük bardak, termos veya kutu içeceklerin sabit durmasını sağlar.\nÇıkarılıp takılabilir; orijinal bardaklığa zarar vermez. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 120 × 92 × 90 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr395717-1.jpg",
@@ -46560,7 +46560,7 @@
       "106"
     ],
     "baslik": "Peugeot 106 Rallye Kısa Vites Konsol Tünel Bağlantı Parçası",
-    "aciklama": "Peugeot 106 Rallye modeline kısa vites takıldığında orta konsol plastik tünelini yerine sabitlemek için kullanılan bağlantı parçası. Kısa vites dönüşümünden sonra konsolun boşta kalmasını önler.\nYerine geçmeli montaj. Dayanıklılık için PETG önerilir.\nYaklaşık dış ölçüler: 90 × 40 × 18 mm.",
+    "aciklama": "Peugeot 106 Rallye modeline kısa vites takıldığında orta konsol plastik tünelini yerine sabitlemek için kullanılan bağlantı parçası. Kısa vites dönüşümünden sonra konsolun boşta kalmasını önler.\nYerine geçmeli montaj. Dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 90 × 40 × 18 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr944004-1.jpg",
@@ -46592,7 +46592,7 @@
       "Citroën"
     ],
     "baslik": "Peugeot / Citroën Vites Topuzu Geri Vites Halkası",
-    "aciklama": "Peugeot ve Citroën vites topuzlarında bulunan, geri vitese geçişi sağlayan halka. Bu halka kırıldığında geri vites girmez ve normalde tüm topuzun değişmesi gerekir; bu parça yalnızca halkayı yenileyerek sorunu giderir.\nTopuzun içine monte edilir. Sürekli baskı gördüğü için PETG önerilir.\nYaklaşık dış ölçüler: 39 × 36 × 15 mm.",
+    "aciklama": "Peugeot ve Citroën vites topuzlarında bulunan, geri vitese geçişi sağlayan halka. Bu halka kırıldığında geri vites girmez ve normalde tüm topuzun değişmesi gerekir; bu parça yalnızca halkayı yenileyerek sorunu giderir.\nTopuzun içine monte edilir. Sürekli yük gördüğü için dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 39 × 36 × 15 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr944336-1.jpg",
@@ -57021,7 +57021,7 @@
       "Falcon"
     ],
     "baslik": "Ford Falcon BA/BF Tekli Anahtar (Buton) Gövdesi",
-    "aciklama": "Ford Falcon BA/BF için anahtar/buton dış plastik gövdesidir (OEM PN M80671).\nYolcu ön cam, arka cam ve pedal ayar anahtarı gibi birçok butona uyar.\nEn yüksek tırnak dayanımı için üretilir; PETG/Nylon/ASA önerilir.\nYaklaşık dış ölçüler: 48 × 31 × 30 mm.",
+    "aciklama": "Ford Falcon BA/BF için anahtar/buton dış plastik gövdesidir (OEM PN M80671).\nYolcu ön cam, arka cam ve pedal ayar anahtarı gibi birçok butona uyar.\nEn yüksek tırnak dayanımı için dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 48 × 31 × 30 mm.",
     "fiyat": "180 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7350614-1.jpg",
@@ -59344,7 +59344,7 @@
       "F-150"
     ],
     "baslik": "Ford F-150 (2015-2020) Tablet Tutucusu (Sağ)",
-    "aciklama": "Ford F-150 4.3 inç ekranlı modeller için sağ taraf tablet tutucusudur.\n8-9 inç genişliğindeki tableti sabit tutar, oynamasını önler.\nÇift taraflı bantla düz şekilde monte edilir; PETG önerilir.\nYaklaşık dış ölçüler: 70 × 68 × 30 mm.",
+    "aciklama": "Ford F-150 4.3 inç ekranlı modeller için sağ taraf tablet tutucusudur.\n8-9 inç genişliğindeki tableti sabit tutar, oynamasını önler.\nÇift taraflı bantla düz şekilde monte edilir; dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 70 × 68 × 30 mm.",
     "fiyat": "180 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7160534-1.jpg",
@@ -59444,7 +59444,7 @@
       "Focus"
     ],
     "baslik": "Ford Focus MK1 Far Yıkama Fıskiyesi Kapağı (Sağ)",
-    "aciklama": "Ford Focus MK1 ksenon far yıkama fıskiyesi kapağıdır (sağ taraf).\nEksik veya kırık orijinal kapağın yerine geçer.\nSol taraf için aynalanmış sürümü de üretilebilir; PETG malzeme önerilir.\nYaklaşık dış ölçüler: 66 × 39 × 25 mm.",
+    "aciklama": "Ford Focus MK1 ksenon far yıkama fıskiyesi kapağıdır (sağ taraf).\nEksik veya kırık orijinal kapağın yerine geçer.\nSol taraf için aynalanmış sürümü de üretilebilir; dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 66 × 39 × 25 mm.",
     "fiyat": "150 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7216404-1.jpg",
@@ -59859,7 +59859,7 @@
       "Focus"
     ],
     "baslik": "Ford Focus ST150 Alt Marşpiyel (Etek) Klipsi",
-    "aciklama": "Ford Focus ST150 marşpiyel eteklerinin altındaki tek kullanımlık orijinal klipslerin yerine geçen tekrar kullanılabilir klipstir.\nEtek parçasını gövdeye sıkıca sabitler.\nEsneklik için PETG önerilir; altı çıkıntılı yapıya oturur, altı adetlik takım kısa sürede üretilir.\nYaklaşık dış ölçüler: 22 × 22 × 17 mm.",
+    "aciklama": "Ford Focus ST150 marşpiyel eteklerinin altındaki tek kullanımlık orijinal klipslerin yerine geçen tekrar kullanılabilir klipstir.\nEtek parçasını gövdeye sıkıca sabitler.\nEsneyebilen dayanıklı malzemedendir; altı çıkıntılı yapıya oturur, altı adetlik takım kısa sürede üretilir.\nYaklaşık dış ölçüler: 22 × 22 × 17 mm.",
     "fiyat": "150 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6711947-1.jpg",
@@ -60158,7 +60158,7 @@
       "Fiesta"
     ],
     "baslik": "Ford Fiesta (1996) Bagaj Örtüsü Askı Halkası",
-    "aciklama": "Ford Fiesta (1996) bagaj örtüsünü asan iplerin ucundaki plastik askı halkasıdır (iki parçalı).\nYaşlanıp kırılan orijinal halkanın yerine geçer.\nÖrtü ipinin ucuna takılır; yaz sıcağına dayanması için PETG veya daha güçlü malzeme önerilir.\nYaklaşık dış ölçüler: 25 × 14 × 8 mm.",
+    "aciklama": "Ford Fiesta (1996) bagaj örtüsünü asan iplerin ucundaki plastik askı halkasıdır (iki parçalı).\nYaşlanıp kırılan orijinal halkanın yerine geçer.\nÖrtü ipinin ucuna takılır; yaz sıcağına dayanacak biçimde ısıya dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 25 × 14 × 8 mm.",
     "fiyat": "150 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6409708-1.jpg",
@@ -60348,7 +60348,7 @@
       "Ford"
     ],
     "baslik": "Ford Sinyal (Dönüş) Lambası Soketi",
-    "aciklama": "Ford dönüş sinyali lambası için soket/bağlantı parçasıdır.\nAşınan veya kırılan orijinal soketin yerine geçer.\nAmpul yuvasına takılır; su geçirmezlik için oval kısmına O-ring ve terminal çevresine yalıtım önerilir, ASA ile üretilir.\nYaklaşık dış ölçüler: 35 × 22 × 19 mm.",
+    "aciklama": "Ford dönüş sinyali lambası için soket/bağlantı parçasıdır.\nAşınan veya kırılan orijinal soketin yerine geçer.\nAmpul yuvasına takılır; su geçirmezlik için oval kısmına O-ring ve terminal çevresine yalıtım önerilir; dış koşullara dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 35 × 22 × 19 mm.",
     "fiyat": "150 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5548653-1.jpg",
@@ -61045,7 +61045,7 @@
       "Focus"
     ],
     "baslik": "Ford Focus (2011) Far Arka Toz Kapağı",
-    "aciklama": "Ford Focus (2011) far ünitesinin arka toz/su kapağıdır.\nKaybolan veya çatlayan orijinal kapağın yerine geçer.\nFar arkasındaki yuvaya sıkıca oturur; esnek TPU ile üretilir, takarken bir miktar kuvvet gerekir.\nYaklaşık dış ölçüler: 84 × 84 × 20 mm.",
+    "aciklama": "Ford Focus (2011) far ünitesinin arka toz/su kapağıdır.\nKaybolan veya çatlayan orijinal kapağın yerine geçer.\nFar arkasındaki yuvaya sıkıca oturur; esnek malzemeyle üretilir, takarken bir miktar kuvvet gerekir.\nYaklaşık dış ölçüler: 84 × 84 × 20 mm.",
     "fiyat": "180 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5766185-1.jpg",
@@ -62335,7 +62335,7 @@
       "Ford"
     ],
     "baslik": "Ford Type 9 Şanzıman Vites Semer Burcu",
-    "aciklama": "Ford Type 9 şanzımanın vites semer (saddle) burcudur.\nAşınan orijinal burcun yerine geçer.\n0,2 mm ayarla iyi çalışır; molibden içerikli gres ile kullanımı önerilir, ABS baskı daha dayanıklıdır.\nYaklaşık dış ölçüler: 22 × 20 × 19 mm.",
+    "aciklama": "Ford Type 9 şanzımanın vites semer (saddle) burcudur.\nAşınan orijinal burcun yerine geçer.\n0,2 mm ayarla iyi çalışır; molibden içerikli gres ile kullanımı önerilir; ısıya dayanıklı malzemeyle üretildiğinde daha uzun ömürlüdür.\nYaklaşık dış ölçüler: 22 × 20 × 19 mm.",
     "fiyat": "150 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7044205-1.jpg",
@@ -70064,7 +70064,7 @@
       "Fiesta"
     ],
     "baslik": "Ford Fiesta Mk2 XR2 Hava Filtresi Ara Parçası",
-    "aciklama": "Ford Fiesta Mk2 XR2 hava filtresi bağlantısında sıkça kaybolan orijinal ara parçanın yerine geçer.\nDestek ile üretilmesi ve dayanıklı bir malzeme (ör. ABS) kullanılması önerilir.\nMevcut hava filtresi gövdesine doğrudan takılır.\nYaklaşık dış ölçüler: 20 × 19 × 19 mm.",
+    "aciklama": "Ford Fiesta Mk2 XR2 hava filtresi bağlantısında sıkça kaybolan orijinal ara parçanın yerine geçer.\nDayanıklı malzemeyle üretilir.\nMevcut hava filtresi gövdesine doğrudan takılır.\nYaklaşık dış ölçüler: 20 × 19 × 19 mm.",
     "fiyat": "150 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3653198-1.jpg",
@@ -72391,7 +72391,7 @@
       "Fiesta"
     ],
     "baslik": "Ford Fiesta Kinetic (2011) Fren Sıvısı Deposu Kapağı",
-    "aciklama": "Ford Fiesta Kinetic (2011) fren sıvısı deposu kapağıdır.\nKaybolan veya kırılan orijinal kapağın yerine kullanılabilir; PETG veya Naylon malzeme önerilir.\nMevcut depo ağzına doğrudan takılır.\nYaklaşık dış ölçüler: 55 × 55 × 12 mm.",
+    "aciklama": "Ford Fiesta Kinetic (2011) fren sıvısı deposu kapağıdır.\nKaybolan veya kırılan orijinal kapağın yerine kullanılabilir; dayanıklı malzemeyle üretilir.\nMevcut depo ağzına doğrudan takılır.\nYaklaşık dış ölçüler: 55 × 55 × 12 mm.",
     "fiyat": "150 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5340040-1.jpg",
@@ -81249,7 +81249,7 @@
       "C-Max"
     ],
     "baslik": "Ford C-Max (2007-2010) Vites Körüğü Çerçevesi",
-    "aciklama": "Ford C-Max (2007-2010) vites körüğü (manşet) çevresindeki çerçeve parçasıdır.\nZamanla parçalanan orijinal çerçevenin yerine kullanılabilir; esneklik için PETG malzeme önerilir.\nMevcut konsol boşluğuna doğrudan yerleştirilir.\nYaklaşık dış ölçüler: 130 × 107 × 18 mm.",
+    "aciklama": "Ford C-Max (2007-2010) vites körüğü (manşet) çevresindeki çerçeve parçasıdır.\nZamanla parçalanan orijinal çerçevenin yerine kullanılabilir; esneyebilen dayanıklı malzemeyle üretilir.\nMevcut konsol boşluğuna doğrudan yerleştirilir.\nYaklaşık dış ölçüler: 130 × 107 × 18 mm.",
     "fiyat": "200 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3965272-1.jpg",
@@ -84172,7 +84172,7 @@
       "F-150"
     ],
     "baslik": "Ford F-150/F-250/F-350 Tablet Montu",
-    "aciklama": "2017-2021 model Ford F-150 ile F-250/F-350 serisi için konsol ve klima kontrollerine erişimi kapatmayan tablet montudur.\nStandart top-mafsallı bağlantı donanımıyla kullanılır.\nKomple tek parça veya ayrı parçalar halinde basılabilen dosyalar içerir.\nYaklaşık dış ölçüler: 300 × 164 × 162 mm.",
+    "aciklama": "2017-2021 model Ford F-150 ile F-250/F-350 serisi için konsol ve klima kontrollerine erişimi kapatmayan tablet montudur.\nStandart top-mafsallı bağlantı donanımıyla kullanılır.\nKomple tek parça ya da ayrı parçalar hâlinde üretilebilir.\nYaklaşık dış ölçüler: 300 × 164 × 162 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5348941-1.jpg",
@@ -93264,7 +93264,7 @@
       "Focus"
     ],
     "baslik": "Ford Focus Mk2 Özel Yağ Huni Çıkıntısı",
-    "aciklama": "Focus Mk2 için motor bakımında kullanım düşünülmüş, standart huni geometrisinden farklı özel bir yağ doldurma yönlendirme parçası.\nMotor bölmesinde sızıntı ve taşma ihtimalini azaltacak şekilde şekillendirilmiştir.\nTermal kullanıma dayanıklılık için PETG benzeri yüksek stabilite önerileriyle uyumludur.\nYaklaşık dış ölçüler: 135 × 122 × 100 mm.",
+    "aciklama": "Focus Mk2 için motor bakımında kullanım düşünülmüş, standart huni geometrisinden farklı özel bir yağ doldurma yönlendirme parçası.\nMotor bölmesinde sızıntı ve taşma ihtimalini azaltacak şekilde şekillendirilmiştir.\nTermal kullanıma dayanıklı, yüksek boyutsal kararlılığa sahip malzemeyle üretilir.\nYaklaşık dış ölçüler: 135 × 122 × 100 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr824270-1.jpg",
@@ -97834,7 +97834,7 @@
       "Mustang"
     ],
     "baslik": "Ford S197 Mustang Fren Sıvısı Rezervuar Kapağı",
-    "aciklama": "2005-2009 Mustang S197 için fren sıvısı rezervuarına takılan koruyucu/dekoratif kapaktır.\nOrijinal yere tam oturacak şekilde tasarlanmıştır.\nASA malzeme ile üretilmesi önerilir, ısıya karşı dayanıklıdır.",
+    "aciklama": "2005-2009 Mustang S197 için fren sıvısı rezervuarına takılan koruyucu/dekoratif kapaktır.\nOrijinal yere tam oturacak şekilde tasarlanmıştır.\nIsıya karşı dayanıklı malzemeyle üretilir.",
     "fiyat": "380 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mw1882872-1.jpg",
@@ -99951,7 +99951,7 @@
       "Golf"
     ],
     "baslik": "VW Golf Tavan (Sunroof) Penceresi Kızak/Kayar Parçası",
-    "aciklama": "Golf tavan penceresi (sunroof) mekanizmasındaki kızak/kayar bileşenin ikame parçasıdır.\nASA, bu parça için önerilen dayanıklı malzeme seçeneğidir.\nMevcut mekanizmaya doğrudan oturacak şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 77 × 8 × 5 mm.",
+    "aciklama": "Golf tavan penceresi (sunroof) mekanizmasındaki kızak/kayar bileşenin ikame parçasıdır.\nBu parça dayanıklı malzemeyle üretilir.\nMevcut mekanizmaya doğrudan oturacak şekilde tasarlanmıştır.\nYaklaşık dış ölçüler: 77 × 8 × 5 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5812081-1.jpg",
@@ -101118,7 +101118,7 @@
       "Golf"
     ],
     "baslik": "VW Golf III Ön Tekerlek Somun Kapağı",
-    "aciklama": "Golf III ve benzer kasa/üretimlerde jant somun bölgesini toz ve nemden korumaya odaklı bir koruyucu kapaktır.\nÖn fren kalınlığının yüksek ısınmasında da ek koruma amaçlı kullanılabilir.\nABS kullanılmasının önerildiği belirtilen parçalardan biridir.\nUygun araçlarda doğrudan takılabilir, aksi durumda yuva testi ile kontrol edilmelidir.\nYaklaşık dış ölçüler: 52 × 52 × 12 mm.",
+    "aciklama": "Golf III ve benzer kasa/üretimlerde jant somun bölgesini toz ve nemden korumaya odaklı bir koruyucu kapaktır.\nÖn fren kalınlığının yüksek ısınmasında da ek koruma amaçlı kullanılabilir.\nIsıya dayanıklı malzemeyle üretilen parçalardan biridir.\nUygun araçlarda doğrudan takılabilir, aksi durumda yuva testi ile kontrol edilmelidir.\nYaklaşık dış ölçüler: 52 × 52 × 12 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6577162-1.jpg",
@@ -102361,7 +102361,7 @@
       "T5"
     ],
     "baslik": "VW T5 Ankur Noktası Kapağı",
-    "aciklama": "T5 tavan/arka bölümünde ankar noktasının görünür kısımlarını kapatan bir kalkan görevi görür.\nUzun süreli PETG kullanımı önerilen dayanım gerektiren bir alana yöneliktir.\nTakıldığında ankar hattını kirlenmeye karşı korur.\nSızdırmazlık noktasıyla birlikte oturuş testi yapılmalıdır.\nYaklaşık dış ölçüler: 112 × 102 × 10 mm.",
+    "aciklama": "T5 tavan/arka bölümünde ankar noktasının görünür kısımlarını kapatan bir kalkan görevi görür.\nUzun süreli dayanım gerektiren bir alana yöneliktir.\nTakıldığında ankar hattını kirlenmeye karşı korur.\nSızdırmazlık noktasıyla birlikte oturuş testi yapılmalıdır.\nYaklaşık dış ölçüler: 112 × 102 × 10 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5029129-1.jpg",
@@ -103788,7 +103788,7 @@
       "Karmann Ghia"
     ],
     "baslik": "Karmann Ghia Kaput Koruyucu Kapak",
-    "aciklama": "Motorhücre sızdırmazlığına eşlik eden kaput üstü koruyucu.\nOpenSCAD ile parametric revizyon yapılabilir.\nGhia ve benzer kasa tiplerinde kullanılabilir.\nYaklaşık dış ölçüler: 47 × 32 × 18 mm.",
+    "aciklama": "Motorhücre sızdırmazlığına eşlik eden kaput üstü koruyucu.\nParametrik revizyon yapılabilir.\nGhia ve benzer kasa tiplerinde kullanılabilir.\nYaklaşık dış ölçüler: 47 × 32 × 18 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4995678-1.jpg",
@@ -104574,7 +104574,7 @@
       "Polo"
     ],
     "baslik": "VW Polo 6N1 Tweeter Montaj Braketi",
-    "aciklama": "Polo 6N1 model için tak-çalıştır tipinde tweeter tutucudur.\nHoparlör açısını sahaya göre ayarlayabilmek için basit oynatma delikleri bırakılmıştır.\nTPU önerilen kullanımda titreşim kaynaklı gevşemeyi azaltır.\nYaklaşık dış ölçüler: 102 × 102 × 29 mm.",
+    "aciklama": "Polo 6N1 model için tak-çalıştır tipinde tweeter tutucudur.\nHoparlör açısını sahaya göre ayarlayabilmek için basit oynatma delikleri bırakılmıştır.\nEsnek malzemesi sayesinde titreşim kaynaklı gevşemeyi azaltır.\nYaklaşık dış ölçüler: 102 × 102 × 29 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3637635-1.jpg",
@@ -105012,7 +105012,7 @@
       "California"
     ],
     "baslik": "VW California T6 Gardırop Tepsisi Diş Fırçası Askısı",
-    "aciklama": "VW California T6 kıyafet/ortak tepsi içindeki diş fırçasının devrilmeden durması için çıkıntılı oturuş sunar.\nFreeCAD ile kişiselleştirilerek ölçü uyumu ayarlanabilir.\nKompakt bir kabin hijyen aksesuarıdır.\nYaklaşık dış ölçüler: 104 × 58 × 40 mm.",
+    "aciklama": "VW California T6 kıyafet/ortak tepsi içindeki diş fırçasının devrilmeden durması için çıkıntılı oturuş sunar.\nKişiselleştirilerek ölçü uyumu ayarlanabilir.\nKompakt bir kabin hijyen aksesuarıdır.\nYaklaşık dış ölçüler: 104 × 58 × 40 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5188269-1.jpg",
@@ -105175,7 +105175,7 @@
       "MK1"
     ],
     "baslik": "VW MK1 Kapı Kolu Conta Seti",
-    "aciklama": "MK1 VW grubunda kapı kolu çevresine uyumlu conta setidir.\nTPU veya PETG ile üretim düşünülmüş, su geçirmezlik için kaplama/sıkıştırma önerilir.\nKapı kolu gıcırtısını azaltarak daha sıkı bir oturuş sağlar.\nYaklaşık dış ölçüler: 73 × 32 × 4 mm.",
+    "aciklama": "MK1 VW grubunda kapı kolu çevresine uyumlu conta setidir.\nEsnek ya da sert malzeme seçenekleriyle üretilir; su geçirmezlik için kaplama/sıkıştırma önerilir.\nKapı kolu gıcırtısını azaltarak daha sıkı bir oturuş sağlar.\nYaklaşık dış ölçüler: 73 × 32 × 4 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6754160-1.jpg",
@@ -105808,7 +105808,7 @@
       "Up"
     ],
     "baslik": "Seat Mii / VW Up Telefon Destek Dokası",
-    "aciklama": "Seat Mii ve VW Up için iPhone 6/7 kullanılabilecek taban desteği.\nFarklı kalınlıklara göre yeniden ölçülüp Tinkercad ile uyarlanabilir.\nTelefonun aşağı yönde sabit durması için elastik kapanma yöntemini destekler.\nYaklaşık dış ölçüler: 97 × 85 × 79 mm.",
+    "aciklama": "Seat Mii ve VW Up için iPhone 6/7 kullanılabilecek taban desteği.\nFarklı kalınlıklara göre yeniden ölçülüp uyarlanabilir.\nTelefonun aşağı yönde sabit durması için elastik kapanma yöntemini destekler.\nYaklaşık dış ölçüler: 97 × 85 × 79 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2751701-1.jpg",
@@ -106004,7 +106004,7 @@
       "New Beetle"
     ],
     "baslik": "VW New Beetle Tente/Şaft Dönüş Top Menteşesi",
-    "aciklama": "New Beetle Convertible kaput açılırken üstten kapanış kontrolü yapan top-joint parçasıdır.\nPiyasada zor bulunan küçük bir bağlantı elemanı olup arıza riski yüksek bölgeler için yedek görevindedir.\nYüksek sıcaklık dayanımı için ASA veya polikarbonat tercih edilebilir.\nYaklaşık dış ölçüler: 24 × 10 × 10 mm.",
+    "aciklama": "New Beetle Convertible kaput açılırken üstten kapanış kontrolü yapan top-joint parçasıdır.\nPiyasada zor bulunan küçük bir bağlantı elemanı olup arıza riski yüksek bölgeler için yedek görevindedir.\nYüksek sıcaklığa dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 24 × 10 × 10 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6066792-1.jpg",
@@ -106931,7 +106931,7 @@
       "T4"
     ],
     "baslik": "VW T4 Başdayama Askı Kancası",
-    "aciklama": "T4 kamp kullanımlarında başdayama bölgesini gardırop görevine dönüştüren askı kancası.\nKoltuk arkasındaki boşluğu askı alanına çevirir.\nPetg gibi ısı dayanımı yüksek malzeme ile kullanım önerilir.\nYaklaşık dış ölçüler: 178 × 99 × 20 mm.",
+    "aciklama": "T4 kamp kullanımlarında başdayama bölgesini gardırop görevine dönüştüren askı kancası.\nKoltuk arkasındaki boşluğu askı alanına çevirir.\nIsı dayanımı yüksek malzemeyle üretilir.\nYaklaşık dış ölçüler: 178 × 99 × 20 mm.",
     "fiyat": "450 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7135501-1.jpg",
@@ -107401,7 +107401,7 @@
       "T3"
     ],
     "baslik": "VW T3 Dehler Profi Rollo Klipsi",
-    "aciklama": "T3 Dehler Profi güneş rulosu sisteminde kullanılmak üzere özel klips.\nTPU önerilir, yüksek sıcaklıkta PLA kullanımından kaçınılmalıdır.\nSistem gevşemesini engelleyecek şekilde esnek yapıdadır.\nYaklaşık dış ölçüler: 36 × 24 × 5 mm.",
+    "aciklama": "T3 Dehler Profi güneş rulosu sisteminde kullanılmak üzere özel klips.\nEsnek ve ısıya dayanıklı malzemeyle üretilir.\nSistem gevşemesini engelleyecek şekilde esnek yapıdadır.\nYaklaşık dış ölçüler: 36 × 24 × 5 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4492498-1.jpg",
@@ -107911,7 +107911,7 @@
       "Golf"
     ],
     "baslik": "VW Golf Tiqwan Tekerlek Parçası (Düzeltilmiş Dosya)",
-    "aciklama": "Orijinal STL dosyası bozulduğu için düzeltilmiş bir versiyonudur.\nParça, Golf platformu için tekerlek çevresinde kullanılabilir bir bileşendir.\nModelin kullanım öncesi uyum kontrolü yapılmalıdır.\nYaklaşık dış ölçüler: 66 × 66 × 16 mm.",
+    "aciklama": "Orijinal kaynağı bozuk olduğu için düzeltilmiş bir versiyonudur.\nParça, Golf platformu için tekerlek çevresinde kullanılabilir bir bileşendir.\nModelin kullanım öncesi uyum kontrolü yapılmalıdır.\nYaklaşık dış ölçüler: 66 × 66 × 16 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5976210-1.jpg",
@@ -108228,7 +108228,7 @@
       "Up"
     ],
     "baslik": "VW Up! Gösterge Üstü Telefon Tutucu (Nexus 5)",
-    "aciklama": "VW Up! için panoya monte edilen telefon tutucu modelidir.\nOrijinal Scifictus modelinden uyarlanmıştır.\nMaps & Mar Sat Nav ünitesi olmayan araçlarda uygun olduğu belirtilmiştir.\nYaklaşık dış ölçüler: 97 × 34 × 25 mm.",
+    "aciklama": "VW Up! için panoya monte edilen telefon tutucu modelidir.\nMaps & Mar Sat Nav ünitesi olmayan araçlarda uygun olduğu belirtilmiştir.\nYaklaşık dış ölçüler: 97 × 34 × 25 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th402156-1.jpg",
@@ -108406,7 +108406,7 @@
       "T5"
     ],
     "baslik": "VW T5 Van İç Kapı Tablosu",
-    "aciklama": "VW T5 için vanagonda kullanılan araç içi tablo/tepsi tasarımıdır.\nOrijinal kaynak STL bulunamadığı için forum görsellerinden ve ölçülerden yeniden modellenmiştir.\nT5zon eşiğinde orijinal benzerlerine uyumlu şekilde üretilmiştir.\nYaklaşık dış ölçüler: 112 × 72 × 35 mm.",
+    "aciklama": "VW T5 için vanagonda kullanılan araç içi tablo/tepsi tasarımıdır.\nOrijinal kaynak bulunamadığı için görsellerden ve ölçülerden yeniden modellenmiştir.\nT5zon eşiğinde orijinal benzerlerine uyumlu şekilde üretilmiştir.\nYaklaşık dış ölçüler: 112 × 72 × 35 mm.",
     "fiyat": "700 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4981881-1.jpg",
@@ -108754,7 +108754,7 @@
       "Golf"
     ],
     "baslik": "VW Golf 7 Vantilatör Telefon Tutucu (Parametrik)",
-    "aciklama": "VW Golf 7 için havalandırma çıkışında çalışan, parametreli telefon tutucu modelidir.\nSTL dosyası Nexus 5X ölçüsüne göre hazırlanmıştır.\nFarklı telefon/araçlarda ayar değişkenleri ile ölçekleme yapılabilir.\nYaklaşık dış ölçüler: 78 × 60 × 47 mm.",
+    "aciklama": "VW Golf 7 için havalandırma çıkışında çalışan, parametreli telefon tutucu modelidir.\nNexus 5X ölçüsüne göre hazırlanmıştır.\nFarklı telefon/araçlarda ayar değişkenleri ile ölçekleme yapılabilir.\nYaklaşık dış ölçüler: 78 × 60 × 47 mm.",
     "fiyat": "380 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2906445-1.jpg",
@@ -108773,7 +108773,7 @@
       "Fox"
     ],
     "baslik": "Volkswagen Kontak Anahtar Tamburu (Fox/Gol Ailesi)",
-    "aciklama": "Volkswagen Fox, Golf, Suran, Saveiro vb. modellerde kullanılmak üzere kontak tamburu parçasıdır.\nİplik yönleri boyuna gelecek biçimde üretildiğinde dayanımı artırır.\nDestek gerektirmeyen bir montaj yaklaşımıyla hazırlanmıştır.\nYaklaşık dış ölçüler: 15 × 14 × 14 mm.",
+    "aciklama": "Volkswagen Fox, Golf, Suran, Saveiro vb. modellerde kullanılmak üzere kontak tamburu parçasıdır.\nYük yönünde dayanımı artıracak biçimde üretilir.\nDestek gerektirmeyen bir montaj yaklaşımıyla hazırlanmıştır.\nYaklaşık dış ölçüler: 15 × 14 × 14 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3920627-1.jpg",
@@ -109248,7 +109248,7 @@
       "Baybus"
     ],
     "baslik": "VW Bay Bus Kül tablası İç Kapağı",
-    "aciklama": "1969 VW Bay Bus kül tablası için yedek iç kapak/parça modelidir.\n1968 ve sonrası modellere uyum şansı vardır ancak garanti verilemez.\nDeğişiklik ihtiyacında .stp dosyasıyla düzenleme yapılabilir.\nYaklaşık dış ölçüler: 5 × 4 × 2 mm.",
+    "aciklama": "1969 VW Bay Bus kül tablası için yedek iç kapak/parça modelidir.\n1968 ve sonrası modellere uyum şansı vardır ancak garanti verilemez.\nYaklaşık dış ölçüler: 5 × 4 × 2 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3426855-1.jpg",
@@ -110250,7 +110250,7 @@
       "Golf"
     ],
     "baslik": "VW MKIV Vent Pod (Revize)",
-    "aciklama": "Efoerg referanslı MKIV podun açıları iyileştirilmiş versiyonudur.\nPod çukuru ve fan yüzey temasları optimize edilmiştir.\nStl dosyası ile doğrudan montaj için hazırdır.\nYaklaşık dış ölçüler: 97 × 57 × 31 mm.",
+    "aciklama": "MKIV podun açıları iyileştirilmiş versiyonudur.\nPod çukuru ve fan yüzey temasları optimize edilmiştir.\nDoğrudan montaja hazırdır.\nYaklaşık dış ölçüler: 97 × 57 × 31 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th3144497-1.jpg",
@@ -110473,7 +110473,7 @@
       "Golf"
     ],
     "baslik": "VW Golf MK2 Kapı Kolu (Porsche Uyarlaması)",
-    "aciklama": "Golf MK1-MK2 kapı tutamağına uyumlu olarak S D Smith kaynağından uyarlanmıştır.\nEk destek ile farklı kapı kollarına entegrasyon hedeflenmiştir.\nÇok sayıda VW modelinde deneme ile kullanımı mümkündür.\nYaklaşık dış ölçüler: 157 × 14 × 12 mm.",
+    "aciklama": "Golf MK1-MK2 kapı tutamağıyla uyumlu olacak biçimde uyarlanmıştır.\nEk destek ile farklı kapı kollarına entegrasyon hedeflenmiştir.\nÇok sayıda VW modelinde deneme ile kullanımı mümkündür.\nYaklaşık dış ölçüler: 157 × 14 × 12 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6678206-1.jpg",
@@ -112473,7 +112473,7 @@
       "California"
     ],
     "baslik": "Volkswagen California T6/T6.1 Mutfak Ray Kancası",
-    "aciklama": "Kampın mutfak rayı üzerinde sabitlenebilir kanca stili aparat.\nTablaların/ek eşyaların ray hattına bağlanmasını destekler.\nFreeCAD kaynağı ve FEM bilgisiyle üçüncü parti uyarlamalara da uygun taslak sunar.",
+    "aciklama": "Kampın mutfak rayı üzerinde sabitlenebilir kanca stili aparat.\nTablaların/ek eşyaların ray hattına bağlanmasını destekler.\nÜçüncü parti uyarlamalara da uygun bir yapı sunar.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mw1522944-1.jpg",
@@ -112644,7 +112644,7 @@
       "Volkswagen"
     ],
     "baslik": "Volkswagen Klima Kanadı Arka Kol Yedeği",
-    "aciklama": "Volkswagen araçlarında klima arka kol/küçük yaprak parçaları için yenileme yaklaşımı.\nPLA yerine çoğu araçta daha uygun alternatif malzemeler önerilir.\nDemonte edilen sistemde eksik hava kanadı elemanını yerine koymak için idealdir.",
+    "aciklama": "Volkswagen araçlarında klima arka kol/küçük yaprak parçaları için yenileme yaklaşımı.\nAraç içi koşullara uygun, ısıya dayanıklı malzemeyle üretilir.\nDemonte edilen sistemde eksik hava kanadı elemanını yerine koymak için idealdir.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mw1687588-1.jpg",
@@ -112874,7 +112874,7 @@
       "Sharan"
     ],
     "baslik": "Volkswagen Sharan 2002 Telefon Tutucu Kapağı",
-    "aciklama": "Sharan 2002 kabininde telefon tutucu ek bir kapak/parça olarak çalışır.\nİnce duvarlarda PLA yerine PETG/ABS ile deformasyon azaltımı önerilir.\nKabin içi küçük aksesuar entegrasyonunu tamamlar.",
+    "aciklama": "Sharan 2002 kabininde telefon tutucu ek bir kapak/parça olarak çalışır.\nİnce bölgelerde biçim kaybını azaltan, dayanıklı malzemeyle üretilir.\nKabin içi küçük aksesuar entegrasyonunu tamamlar.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mw1990608-1.jpg"
@@ -113690,7 +113690,7 @@
       "W126"
     ],
     "baslik": "Mercedes W126 İkili Bardaklık (Kabin Kasa Altı)",
-    "aciklama": "W126 araçların cassette/şemsiye depolama altına oturan ve iki bardaklık kapasitesi sunan bir parça modelidir.\nArmrest kaldırıldığında ön bardaklık erişilebilir, arka bardaklık da kol dayama konumuna göre çalışır.\nGeniş kullanım için iki bardaklı fonksiyonel düzene sahiptir.\nSıcak ortamda PLA yerine daha yüksek dirençli malzeme önerilebilir.\nYaklaşık dış ölçüler: 163 × 121 × 76 mm.",
+    "aciklama": "W126 araçların cassette/şemsiye depolama altına oturan ve iki bardaklık kapasitesi sunan bir parça modelidir.\nArmrest kaldırıldığında ön bardaklık erişilebilir, arka bardaklık da kol dayama konumuna göre çalışır.\nGeniş kullanım için iki bardaklı fonksiyonel düzene sahiptir.\nSıcak ortamda yüksek dirençli malzemeyle üretilir.\nYaklaşık dış ölçüler: 163 × 121 × 76 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7369964-1.jpg",
@@ -114289,7 +114289,7 @@
       "T1"
     ],
     "baslik": "Mercedes T1 Arka Aks Fren Gomme Tıkaç",
-    "aciklama": "Mercedes T1 arka aks fren çevresinde su ve toz girişini sınırlayan bir conta/tıkaç parçasıdır.\nKaynakta TPU ile kullanılması verimliliği yüksek kılar.\nSürtünme ve sızdırmazlık hattını desteklemek için oturak açıları korunur.\nOrijinal oranda daralan kanal alanına uyacak şekilde hazırlanır.\nYaklaşık dış ölçüler: 34 × 17 × 9 mm.",
+    "aciklama": "Mercedes T1 arka aks fren çevresinde su ve toz girişini sınırlayan bir conta/tıkaç parçasıdır.\nEsnek malzemeyle üretildiğinde verimi yüksektir.\nSürtünme ve sızdırmazlık hattını desteklemek için oturak açıları korunur.\nOrijinal oranda daralan kanal alanına uyacak şekilde hazırlanır.\nYaklaşık dış ölçüler: 34 × 17 × 9 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7366214-1.jpg",
@@ -114392,7 +114392,7 @@
       "W202"
     ],
     "baslik": "Mercedes W202 Yüksek Montaj Ekran Çubuğu (Derin Ankraj)",
-    "aciklama": "Mercedes-Benz W202 C-Class için merkez konsol cebi içine sürtünmeli oturan, özelleştirilebilir bir ekran montajdır.\n17 mm kule topuna göre sabitlenebilir ve Android Auto / CarPlay ekran seçeneklerini destekler.\nOpenSCAD kaynaklı parametrik yapı, derin ankraj ayarını kullanıcıya bırakır.\nBoya, açılma açısı ve kutu depozunda saklama alanı gibi detaylar modele eklenmiştir.",
+    "aciklama": "Mercedes-Benz W202 C-Class için merkez konsol cebi içine sürtünmeli oturan, özelleştirilebilir bir ekran montajdır.\n17 mm kule topuna göre sabitlenebilir ve Android Auto / CarPlay ekran seçeneklerini destekler.\nParametrik yapı, derin ankraj ayarını kullanıcıya bırakır.\nBoya, açılma açısı ve kutu depozunda saklama alanı gibi detaylar modele eklenmiştir.",
     "fiyat": "650 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7211269-1.jpg",
@@ -114764,7 +114764,7 @@
       "Sprinter"
     ],
     "baslik": "Mercedes Sprinter Stanley Bardaklık Adaptörü",
-    "aciklama": "Mercedes Sprinter içindeki orijinal bardaklık geometrisine Stanley veya benzeri ölçüde kaplar uyumu için tasarlanmıştır.\nÜst bölümün daha elastik olması için TPU, taban için ABS veya ASA önerilir.\nKullanım anında bardaklığın sabitlenmesine ve daha güvenli oturmasına destek verir.\nYaklaşık dış ölçüler: 85 × 85 × 10 mm.",
+    "aciklama": "Mercedes Sprinter içindeki orijinal bardaklık geometrisine Stanley veya benzeri ölçüde kaplar uyumu için tasarlanmıştır.\nÜst bölüm esnek, taban ise sert ve dayanıklı malzemeyle üretilir.\nKullanım anında bardaklığın sabitlenmesine ve daha güvenli oturmasına destek verir.\nYaklaşık dış ölçüler: 85 × 85 × 10 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7109030-1.jpg",
@@ -114929,7 +114929,7 @@
       "W220"
     ],
     "baslik": "Mercedes W220 S500 Merkezi Konsol Telefon Tutucu",
-    "aciklama": "W220 S-Class merkez konsoluna uygun şekilde oturan telefon tutucu olarak tanımlanır.\nP20 Pro gibi orta boyutlu telefonlarla uyum gösterdiği belirtilmiştir.\nAnker Powercore benzeri büyük bataryalar için boşluk ve delik konumu desteklenmiştir.\nYüksek sıcaklıkta PLA önerilmeyip daha dayanıklı malzeme yönlendirilebilir.\nYaklaşık dış ölçüler: 170 × 95 × 45 mm.",
+    "aciklama": "W220 S-Class merkez konsoluna uygun şekilde oturan telefon tutucu olarak tanımlanır.\nP20 Pro gibi orta boyutlu telefonlarla uyum gösterdiği belirtilmiştir.\nAnker Powercore benzeri büyük bataryalar için boşluk ve delik konumu desteklenmiştir.\nYüksek sıcaklığa dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 170 × 95 × 45 mm.",
     "fiyat": "450 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4582304-1.jpg",
@@ -115138,7 +115138,7 @@
       "Mercedes"
     ],
     "baslik": "Mercedes Bagaj Zemin Kapak Koruma Klipsi",
-    "aciklama": "Bagaj altında yedek lastik taşıyan modeller için döşeme sabitleme klipsi olarak üretilmiştir.\nOrijinal parçanın kırılması durumunda zeminin güvenli açılmasını sağlayacak şekilde hazırlanır.\nTasarım, Tinkercad ortamında üretilmiş referanslı bir modelleme yaklaşımıyla oluşturulmuştur.\nYaklaşık dış ölçüler: 40 × 30 × 22 mm.",
+    "aciklama": "Bagaj altında yedek lastik taşıyan modeller için döşeme sabitleme klipsi olarak üretilmiştir.\nOrijinal parçanın kırılması durumunda zeminin güvenli açılmasını sağlayacak şekilde hazırlanır.\nTasarım, ölçü referanslı bir modelleme yaklaşımıyla oluşturulmuştur.\nYaklaşık dış ölçüler: 40 × 30 × 22 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4260409-1.jpg",
@@ -115627,7 +115627,7 @@
       "190E"
     ],
     "baslik": "Mercedes 190E Egzoz Uçı Kauçuk Tampon",
-    "aciklama": "Egzoz ucunda iki lastik halkası arasına oturan darbe önleyici tamponu taklit eden bir yedek parçadır.\nŞasiye temas sonucu sesi ve titreşimi azaltma amacı taşır.\nTPU gibi esnek malzeme önerileriyle kullanımda ısı davranışı kontrolü gerekir.\nYaklaşık dış ölçüler: 35 × 35 × 35 mm.",
+    "aciklama": "Egzoz ucunda iki lastik halkası arasına oturan darbe önleyici tamponu taklit eden bir yedek parçadır.\nŞasiye temas sonucu sesi ve titreşimi azaltma amacı taşır.\nEsnek malzemeyle üretilir; ısı altında biçimini korur.\nYaklaşık dış ölçüler: 35 × 35 × 35 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6416228-1.jpg",
@@ -115668,7 +115668,7 @@
       "W211"
     ],
     "baslik": "Mercedes W211 MP3 Buton Kapakları",
-    "aciklama": "W211 araçlarında MP3 butonları için kapak seti olarak hazırlanan küçük bir aksesuar parçasıdır.\nTinkercad ile modellenmiş ve çevrim içi paylaşımlı bir sürümdür.\nPanel üstündeki düğme hattında dağılma veya gevşeme durumunda uygulanabilir.\nYaklaşık dış ölçüler: 38 × 37 × 15 mm.",
+    "aciklama": "W211 araçlarında MP3 butonları için kapak seti olarak hazırlanan küçük bir aksesuar parçasıdır.\nPanel üstündeki düğme hattında dağılma veya gevşeme durumunda uygulanabilir.\nYaklaşık dış ölçüler: 38 × 37 × 15 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2162708-1.jpg",
@@ -116076,7 +116076,7 @@
       "Mercedes"
     ],
     "baslik": "Mercedes Xentry USB Kablo Destek Braketi",
-    "aciklama": "Xentry için USB VCI kablosunun sabitlenmesine yönelik destek elemanı.\nOrijinal çizime göre Solidworks ortamında orijinalden çıkarılmış referanslı bir modeldir.\nServis operasyonlarında kablo hareketini azaltmak için tasarlanır.\nYaklaşık dış ölçüler: 65 × 26 × 22 mm.",
+    "aciklama": "Xentry için USB VCI kablosunun sabitlenmesine yönelik destek elemanı.\nOrijinal çizime göre, orijinalinden ölçü alınarak çıkarılmış bir modeldir.\nServis operasyonlarında kablo hareketini azaltmak için tasarlanır.\nYaklaşık dış ölçüler: 65 × 26 × 22 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6798879-1.jpg",
@@ -116301,7 +116301,7 @@
       "W206"
     ],
     "baslik": "Mercedes W206 Helix Conductor Bardaklık Braketi",
-    "aciklama": "Helix Conductor aksesuarını doğrudan bardaklığa oturtan bir bracket modelidir.\nDirekt oturum için tasarlanmıştır.\nYüksek sıcaklığa dayanıklı ASA/ABS sınıfı malzemeler önerilir.\nYaklaşık dış ölçüler: 87 × 87 × 26 mm.",
+    "aciklama": "Helix Conductor aksesuarını doğrudan bardaklığa oturtan bir bracket modelidir.\nDirekt oturum için tasarlanmıştır.\nYüksek sıcaklığa dayanıklı malzemeyle üretilir.\nYaklaşık dış ölçüler: 87 × 87 × 26 mm.",
     "fiyat": "380 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6236266-1.jpg",
@@ -117084,7 +117084,7 @@
       "W123"
     ],
     "baslik": "W123 Manuel Sunroof Kılavuz Pimi",
-    "aciklama": "A1237820330 numaralı manuel arka tavan açma pimi/parçası değişimi için yedek parça.\nKılavuz piminin ıslak-kuru maruziyete dayanımı için ABS/ASA benzeri malzemeler önerilir.\nEski pimin aşınmış bölgelerinde değişime uygundur.\nYaklaşık dış ölçüler: 46 × 11 × 8 mm.",
+    "aciklama": "A1237820330 numaralı manuel arka tavan açma pimi/parçası değişimi için yedek parça.\nKılavuz pimi ıslak-kuru maruziyete dayanıklı malzemeyle üretilir.\nEski pimin aşınmış bölgelerinde değişime uygundur.\nYaklaşık dış ölçüler: 46 × 11 × 8 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5999191-1.jpg",
@@ -118282,7 +118282,7 @@
       "W123"
     ],
     "baslik": "Kapı Kilit Rehber Inserti (Mercedes W123)",
-    "aciklama": "W123 kapı kilitte kapanma sonrası kilitlenmeme sorununu gideren iç insert modelidir.\nKilit kolunun tam kilit pozisyonunda durmasını sağlayacak şekilde yönlendirme yüzeyi bırakır.\nUzun ömür için ABS-X veya yüksek dayanımlı plastik önerilir.\nSiparişe göre özel üretim ile hazırlanır.\nYaklaşık dış ölçüler: 35 × 22 × 11 mm.",
+    "aciklama": "W123 kapı kilitte kapanma sonrası kilitlenmeme sorununu gideren iç insert modelidir.\nKilit kolunun tam kilit pozisyonunda durmasını sağlayacak şekilde yönlendirme yüzeyi bırakır.\nUzun ömür için yüksek dayanımlı malzemeyle üretilir.\nSiparişe göre özel üretim ile hazırlanır.\nYaklaşık dış ölçüler: 35 × 22 × 11 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4811270-1.jpg",
@@ -119174,7 +119174,7 @@
       "ML"
     ],
     "baslik": "Radar Dedektör Braketi (Mercedes ML350)",
-    "aciklama": "ML350 için üst direklik benzeri ayna formunda, büyük bir universel tutucudan daha sade özel montaj braketidir.\nRadar cihazı için görünümü koruyan ama montajı sade bırakılmış bir form sağlar.\nABS ile ısıya dayanıklı baskı ve güçlü tutunma amaçlı önerilir.\nSiparişe göre özel üretim ile hazırlanır.\nYaklaşık dış ölçüler: 77 × 71 × 66 mm.",
+    "aciklama": "ML350 için üst direklik benzeri ayna formunda, büyük bir universel tutucudan daha sade özel montaj braketidir.\nRadar cihazı için görünümü koruyan ama montajı sade bırakılmış bir form sağlar.\nIsıya dayanıklı ve güçlü tutunma sağlayan malzemeyle üretilir.\nSiparişe göre özel üretim ile hazırlanır.\nYaklaşık dış ölçüler: 77 × 71 × 66 mm.",
     "fiyat": "450 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th2431297-1.jpg",
@@ -119276,7 +119276,7 @@
       "Sprinter"
     ],
     "baslik": "Termos İçin Becherholder (Mercedes Sprinter)",
-    "aciklama": "Sprinter içi için iç çapı 85 mm ve 100 mm yükseklikte geniş bardak/termos tutucu parçasıdır.\nPETG ile sıcaklığa daha dayanıklı biçimde üretimi önerilir.\nKabin oturma pozisyonuna entegre şekilde sabitlenir.\nSiparişe göre özel üretim ile hazırlanır.",
+    "aciklama": "Sprinter içi için iç çapı 85 mm ve 100 mm yükseklikte geniş bardak/termos tutucu parçasıdır.\nSıcaklığa dayanıklı malzemeyle üretilir.\nKabin oturma pozisyonuna entegre şekilde sabitlenir.\nSiparişe göre özel üretim ile hazırlanır.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6898738-1.jpg",
@@ -119625,7 +119625,7 @@
       "W209"
     ],
     "baslik": "iPhone 6/7/8 Konsol Tutucu (Mercedes CLK)",
-    "aciklama": "CLK merkez konsol ve klima paneli arasında, iPhone 6/7/8 ve şarj kablosu için alan bırakan tutucudur.\nAraba içi yüksek ısıda normal PLA ile deformasyon olabileceğinden sağlam malzeme seçimi önerilir.\nTelefonun kaymasını önlemek için klips geometrisi optimize edilmiştir.\nSiparişe göre özel üretim ile hazırlanır.\nYaklaşık dış ölçüler: 74 × 35 × 19 mm.",
+    "aciklama": "CLK merkez konsol ve klima paneli arasında, iPhone 6/7/8 ve şarj kablosu için alan bırakan tutucudur.\nAraç içi yüksek ısıda biçimini koruyan, ısıya dayanıklı malzemeyle üretilir.\nTelefonun kaymasını önlemek için klips geometrisi optimize edilmiştir.\nSiparişe göre özel üretim ile hazırlanır.\nYaklaşık dış ölçüler: 74 × 35 × 19 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4460199-1.jpg",
@@ -119850,7 +119850,7 @@
       "W176"
     ],
     "baslik": "A-Klasse Ses Konferans Halkası (Mercedes W176)",
-    "aciklama": "Mercedes A-Class W176 için arka hoparlöre uygun adaptör halkasıdır.\nABS ile çalıştırma önerilen modelde ısı nedeniyle şekil stabilitesi hedeflenir.\nTakıldığında hoparlör çerçevesi daha düzgün bir oturum sağlar.\nSiparişe göre özel üretim ile hazırlanır.\nYaklaşık dış ölçüler: 169 × 152 × 24 mm.",
+    "aciklama": "Mercedes A-Class W176 için arka hoparlöre uygun adaptör halkasıdır.\nIsı altında şekil kararlılığı koruyan malzemeyle üretilir.\nTakıldığında hoparlör çerçevesi daha düzgün bir oturum sağlar.\nSiparişe göre özel üretim ile hazırlanır.\nYaklaşık dış ölçüler: 169 × 152 × 24 mm.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th6610323-1.jpg",
@@ -121586,7 +121586,7 @@
       "Mercedes"
     ],
     "baslik": "Hymer Mobil (Mercedes 601 Tabanlı) Yan Pencere Kolu Yedek Parçası",
-    "aciklama": "Mercedes 601 şasi tabanlı Hymer karavan/kamp araçları için yan pencere kolu yedek parçası.\nKırılan veya kaybolan orijinal kolun yerini alır.\nFreeCAD ile tasarlanmış, mevcut pencere miline doğrudan oturur.\nYaklaşık dış ölçüler: 61 × 43 × 39 mm.",
+    "aciklama": "Mercedes 601 şasi tabanlı Hymer karavan/kamp araçları için yan pencere kolu yedek parçası.\nKırılan veya kaybolan orijinal kolun yerini alır.\nMevcut pencere miline doğrudan oturur.\nYaklaşık dış ölçüler: 61 × 43 × 39 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1342273-1.jpg",
@@ -122308,7 +122308,7 @@
       "Mercedes"
     ],
     "baslik": "Mercedes Sprinter Bardaklık (85mm)",
-    "aciklama": "Mercedes Sprinter araçlar için 85mm iç çaplı, 100mm yükseklikte bardaklık.\nTermos veya büyük bardakları güvenle sabitler.\nMevcut bardaklık yuvasına doğrudan oturur.\nDayanıklı malzemeyle üretim için PETG önerilir.",
+    "aciklama": "Mercedes Sprinter araçlar için 85mm iç çaplı, 100mm yükseklikte bardaklık.\nTermos veya büyük bardakları güvenle sabitler.\nMevcut bardaklık yuvasına doğrudan oturur.\nDayanıklı malzemeyle üretilir.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mw1013761-1.jpg",
@@ -123056,7 +123056,7 @@
       "B58"
     ],
     "baslik": "Dinan Açık Emme Kapağı (BMW B58 1. Nesil Uyumlu)",
-    "aciklama": "BMW B58 motorunda Dinan açık emme sistemi kullananlar için, motor bölmesinden gelen sıcak havayı kesen kapaktır.\n- Mevcut Dinan emme gövdesine doğrudan oturur.\n- Emilen havayı serinletmeye yardımcı olur.\n- Siparişe göre özel tasarım üretimle hazırlanır (TPU önerilir).\nYaklaşık dış ölçüler: 158 × 85 × 10 mm.",
+    "aciklama": "BMW B58 motorunda Dinan açık emme sistemi kullananlar için, motor bölmesinden gelen sıcak havayı kesen kapaktır.\n- Mevcut Dinan emme gövdesine doğrudan oturur.\n- Emilen havayı serinletmeye yardımcı olur.\n- Siparişe göre özel tasarım üretimle, esnek malzemeyle hazırlanır.\nYaklaşık dış ölçüler: 158 × 85 × 10 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7075189-1.jpg"
@@ -123603,7 +123603,7 @@
       "BMW"
     ],
     "baslik": "Vakum Hattı Tapası (BMW Manuel Şanzıman Uyumlu)",
-    "aciklama": "BMW manuel şanzımanlı araçlarda emme ve şarj borusu üzerindeki boş vakum bağlantı noktalarını kapatan tapadır.\n- Bağlantı noktasına esnek şekilde oturur.\n- Hava kaçağını önler.\n- Siparişe göre özel tasarım üretimle hazırlanır (TPU önerilir).\nYaklaşık dış ölçüler: 22 × 22 × 20 mm.",
+    "aciklama": "BMW manuel şanzımanlı araçlarda emme ve şarj borusu üzerindeki boş vakum bağlantı noktalarını kapatan tapadır.\n- Bağlantı noktasına esnek şekilde oturur.\n- Hava kaçağını önler.\n- Siparişe göre özel tasarım üretimle, esnek malzemeyle hazırlanır.\nYaklaşık dış ölçüler: 22 × 22 × 20 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th5413803-1.jpg",
@@ -123765,7 +123765,7 @@
       "E90"
     ],
     "baslik": "Kolçak Telefon Şarj Yüzeyi Esnek Matı (BMW E90 Uyumlu)",
-    "aciklama": "BMW E90 aracında kolçak içi telefon kablosuz şarj modifikasyonu için esnek kaymaz mattır.\n- Kolçak telefon bölmesine doğrudan oturur.\n- Şarj sinyalini engellemeyecek incelikte esnek malzemeden üretilir.\n- Siparişe göre özel tasarım üretimle hazırlanır (TPU önerilir).\nYaklaşık dış ölçüler: 132 × 62 × 2 mm.",
+    "aciklama": "BMW E90 aracında kolçak içi telefon kablosuz şarj modifikasyonu için esnek kaymaz mattır.\n- Kolçak telefon bölmesine doğrudan oturur.\n- Şarj sinyalini engellemeyecek incelikte esnek malzemeden üretilir.\n- Siparişe göre özel tasarım üretimle, esnek malzemeyle hazırlanır.\nYaklaşık dış ölçüler: 132 × 62 × 2 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th4560818-1.jpg",
@@ -124272,7 +124272,7 @@
       "2 Serisi"
     ],
     "baslik": "Arka Cam Önü Düğme (BMW 2 Serisi Uyumlu)",
-    "aciklama": "BMW 2 Serisi aracında bagaj kapağındaki düğmenin değişim parçasıdır.\n- Mevcut yuvaya doğrudan oturur.\n- Dayanıklılık için ASA malzeme önerilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 60 × 20 × 20 mm.",
+    "aciklama": "BMW 2 Serisi aracında bagaj kapağındaki düğmenin değişim parçasıdır.\n- Mevcut yuvaya doğrudan oturur.\n- Dayanıklı malzemeyle üretilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 60 × 20 × 20 mm.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/th7273221-1.jpg",
@@ -144057,7 +144057,7 @@
       "E30"
     ],
     "baslik": "Gösterge Halkaları (BMW E30 Uyumlu)",
-    "aciklama": "BMW E30 gösterge paneli kadranları için halka setidir.\n- Hız ve devir saatlerinin çevresine oturur.\n- Isıya dayanım için ABS/ASA ile üretilmesi önerilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 109 × 109 × 6 mm.",
+    "aciklama": "BMW E30 gösterge paneli kadranları için halka setidir.\n- Hız ve devir saatlerinin çevresine oturur.\n- Isıya dayanıklı malzemeyle üretilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 109 × 109 × 6 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1031366-1.jpg",
@@ -144192,7 +144192,7 @@
       "BMW"
     ],
     "baslik": "Kriko Lastik Pedi (BMW Uyumlu)",
-    "aciklama": "BMW kaldırma noktalarına oturan kriko ped adaptörüdür.\n- Krikonun şasiye zarar vermesini önler.\n- Esnek yapı için TPU ile üretilmesi önerilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 61 × 61 × 22 mm.",
+    "aciklama": "BMW kaldırma noktalarına oturan kriko ped adaptörüdür.\n- Krikonun şasiye zarar vermesini önler.\n- Esnek malzemeyle üretilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 61 × 61 × 22 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1253953-1.jpg",
@@ -144382,7 +144382,7 @@
       "F900R"
     ],
     "baslik": "Yan Sehpa Taban Genişletici (BMW F900R Uyumlu)",
-    "aciklama": "BMW F900R yan sehpasının zemine batmasını önleyen taban parçasıdır.\n- Yumuşak zeminlerde temas alanını büyütür.\n- Esneklik için TPU ile üretilmesi önerilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 94 × 33 × 28 mm.",
+    "aciklama": "BMW F900R yan sehpasının zemine batmasını önleyen taban parçasıdır.\n- Yumuşak zeminlerde temas alanını büyütür.\n- Esnek malzemeyle üretilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 94 × 33 × 28 mm.",
     "fiyat": "300 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1487898-1.jpg",
@@ -145274,7 +145274,7 @@
       "R1200RT"
     ],
     "baslik": "Carpuride W702 Montajı (BMW R1200RT Uyumlu, 12 mm)",
-    "aciklama": "Carpuride W702 ekranını BMW R1200RT 12 mm barına bağlayan montaj parçasıdır.\n- Ekranı sürüş görüşüne uygun konumlar.\n- Dayanım için ABS/ASA ile üretilmesi önerilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 55 × 45 × 31 mm.",
+    "aciklama": "Carpuride W702 ekranını BMW R1200RT 12 mm barına bağlayan montaj parçasıdır.\n- Ekranı sürüş görüşüne uygun konumlar.\n- Dayanıklı malzemeyle üretilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.\nYaklaşık dış ölçüler: 55 × 45 × 31 mm.",
     "fiyat": "400 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1040994-1.jpg",
@@ -148064,7 +148064,7 @@
       "E36"
     ],
     "baslik": "Yağ Filtresi Anahtarı 94,5 mm x14 (BMW E36 2.5 TDS Uyumlu)",
-    "aciklama": "BMW E36 2.5 dizel (M51) yağ filtresi kapağı için 94,5 mm 14 kenarlı anahtardır.\n- Filtre kapağına tam oturan profildedir.\n- Yüksek duvar sayısı ve dolgu ile üretilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.",
+    "aciklama": "BMW E36 2.5 dizel (M51) yağ filtresi kapağı için 94,5 mm 14 kenarlı anahtardır.\n- Filtre kapağına tam oturan profildedir.\n- Kalın cidarlı ve sağlam üretilir.\n- Siparişe göre özel tasarım üretimle hazırlanır.",
     "fiyat": "450 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mw2223204-1.jpg",
@@ -273354,7 +273354,7 @@
       "Smart"
     ],
     "baslik": "Audi A3 / Smart ForFour Far Toz Kapağı (1305239225)",
-    "aciklama": "Audi A3 (2004) ve Smart ForFour (2007) farının arka toz kapağının özel üretim yedeği. Orijinal parça numarası 1305239225. Kırık ya da eksik kapak, far içine nem ve toz girip buğulanmaya yol açar; bu parça far arkasını yeniden sızdırmaz şekilde kapatır.\n\nIsıya dayanıklı malzeme önerilir (PETG); farklı renk seçenekleriyle üretilebilir. Malzemeye göre çekme payı için ölçü küçük oranda ayarlanabilir.\n\nYaklaşık dış ölçüler: 119 × 105 × 44 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "aciklama": "Audi A3 (2004) ve Smart ForFour (2007) farının arka toz kapağının özel üretim yedeği. Orijinal parça numarası 1305239225. Kırık ya da eksik kapak, far içine nem ve toz girip buğulanmaya yol açar; bu parça far arkasını yeniden sızdırmaz şekilde kapatır.\n\nIsıya dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir. Malzemeye göre çekme payı için ölçü küçük oranda ayarlanabilir.\n\nYaklaşık dış ölçüler: 119 × 105 × 44 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
     "fiyat": "850 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/audi-a3-smart-forfour-far-toz-kapagi-1.jpg",
@@ -274848,7 +274848,7 @@
     "kategori": "Ofis",
     "marka": [],
     "baslik": "Ofis / Oyuncu Sandalyesi Tekerlek Stoperi (Fren)",
-    "aciklama": "Tekerlekli ofis/oyuncu sandalyesini yerinde sabitleyen basit ve pratik özel üretim stoper. Sandalye ayağının altına yerleştirilir; sandalyenin kaymasını engeller. Özellikle Assetto Corsa gibi yarış simülasyonu oynarken sandalyenin geri kaçmasını önlemek için idealdir.\n\nEsnek (flexible / TPU) malzemeyle üretilmesi gerekir — hem kaymaz hem zemini çizmez. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 75 × 71 × 62 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kaç adet gerektiğini belirtin.",
+    "aciklama": "Tekerlekli ofis/oyuncu sandalyesini yerinde sabitleyen basit ve pratik özel üretim stoper. Sandalye ayağının altına yerleştirilir; sandalyenin kaymasını engeller. Özellikle Assetto Corsa gibi yarış simülasyonu oynarken sandalyenin geri kaçmasını önlemek için idealdir.\n\nEsnek malzemeyle üretilir — hem kaymaz hem zemini çizmez. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 75 × 71 × 62 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; kaç adet gerektiğini belirtin.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/ofis-sandalyesi-tekerlek-stoper-frenl-1.jpg",
@@ -274900,7 +274900,7 @@
       "Audi"
     ],
     "baslik": "Audi A6 Çocuk Koltuğu (ISOFIX) Yuva Kapağı",
-    "aciklama": "Audi arka koltuğundaki ISOFIX çocuk koltuğu bağlantı yuvalarını kapatan kapağın özel üretim yedeği. Orijinal kapaklar iyi tasarlanmadığından yerinde durmaz, sürekli çıkar. Bu tasarım Fusion 360 ile daha sıkı bir klips ile modellenmiştir; yuvaya daha iyi oturur.\n\nTam oturması için yüzde bir-iki büyütüp küçültmek gerekebilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 57 × 32 × 25 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "aciklama": "Audi arka koltuğundaki ISOFIX çocuk koltuğu bağlantı yuvalarını kapatan kapağın özel üretim yedeği. Orijinal kapaklar iyi tasarlanmadığından yerinde durmaz, sürekli çıkar. Bu tasarım daha sıkı bir klipsle modellenmiştir; yuvaya daha iyi oturur.\n\nTam oturması için yüzde bir-iki büyütüp küçültmek gerekebilir. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 57 × 32 × 25 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
     "fiyat": "650 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/audi-a6-cocuk-koltugu-isofix-kapagi-1.jpg",
@@ -275020,7 +275020,7 @@
       "Lamborghini"
     ],
     "baslik": "Audi R8 / Lamborghini Gallardo Sis Farı Ampul Contası (420945703)",
-    "aciklama": "Mk1 Audi R8 ve Lamborghini Gallardo'da kullanılan 420945703 sis farı ünitesi için özel üretim ampul yuvası contası. Bu ünitede ampul yanmaktan çok kontak korozyonu nedeniyle arızalanır; ampul yuvası genelde yapıştırılmış olduğundan değişim zordur (R8'de tamponun sökülmesi gerekir). Bu conta, ampul yuvası ile sis farı ünitesi arasına takılarak sızdırmayı ve korozyonu önlemeye yardımcı olur.\n\nİki tasarım üretilebilir: birebir orijinal model ve tek yüzü düz (baskısı daha kolay, yine uyan) model. Dayanıklı, ısıya uygun malzemeyle üretilir.\n\nYaklaşık dış ölçüler: Ø34 × 4 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "aciklama": "Mk1 Audi R8 ve Lamborghini Gallardo'da kullanılan 420945703 sis farı ünitesi için özel üretim ampul yuvası contası. Bu ünitede ampul yanmaktan çok kontak korozyonu nedeniyle arızalanır; ampul yuvası genelde yapıştırılmış olduğundan değişim zordur (R8'de tamponun sökülmesi gerekir). Bu conta, ampul yuvası ile sis farı ünitesi arasına takılarak sızdırmayı ve korozyonu önlemeye yardımcı olur.\n\nİki tasarım üretilebilir: birebir orijinal model ve tek yüzü düz (yine uyan) model. Dayanıklı, ısıya uygun malzemeyle üretilir.\n\nYaklaşık dış ölçüler: Ø34 × 4 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
     "fiyat": "850 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/audi-r8-lamborghini-gallardo-sis-far-ampul-contasi-1.jpg",
@@ -275281,7 +275281,7 @@
       "Audi"
     ],
     "baslik": "Audi TT MK1 (8N) Tavan / Harita Lambası Tutucu Klipsleri",
-    "aciklama": "Audi TT MK1 (8N) tavan (harita) lambası ünitesinin ve lens kapağının zamanla kırılan plastik tutucularının özel üretim yedeği. 20 yıl sonra kırılganlaşıp kopan orijinal klipsler yüzünden lamba tavanda sallanır ya da lens düşer; komple lamba (Audi'de çok pahalı) yerine sadece bu küçük klipsleri yapıştırarak tamir edersiniz.\n\nÜç dosya birlikte gelir: lens için sağ ve sol klips + lamba ünitesi için basit tutucu. Lense ve lamba gövdesine yapıştırılır. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık ölçüler: her klips ~15 × 8-12 × 4 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
+    "aciklama": "Audi TT MK1 (8N) tavan (harita) lambası ünitesinin ve lens kapağının zamanla kırılan plastik tutucularının özel üretim yedeği. 20 yıl sonra kırılganlaşıp kopan orijinal klipsler yüzünden lamba tavanda sallanır ya da lens düşer; komple lamba (Audi'de çok pahalı) yerine sadece bu küçük klipsleri yapıştırarak tamir edersiniz.\n\nÜç parça birlikte gelir: lens için sağ ve sol klips + lamba ünitesi için basit tutucu. Lense ve lamba gövdesine yapıştırılır. Dayanıklı malzemeyle üretilir; farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık ölçüler: her klips ~15 × 8-12 × 4 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç modelinizi belirtin.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/audi-tt-mk1-tavan-harita-lambasi-klipsleri-1.jpg",
@@ -275390,7 +275390,7 @@
       "Audi"
     ],
     "baslik": "Audi A4 B6 Valeo Far Projektör (Mercek) Braketi",
-    "aciklama": "Audi A4 B6 Valeo bi-xenon farlarda orijinal projektörü (merceği) Koito Q5-r replika / D1S bi-xenon projektörlerle değiştirmek için özel üretim braket. Farın içindeki OEM mercek yuvasına geçer; yeni projektörü doğru konum ve açıda sabitler. D1S balast ve ampulünüzü kullanmaya devam edersiniz.\n\nIsıya dayanıklı malzemeyle (PETG/ABS) üretilir — far içi ısındığı için PLA önerilmez. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 105 × 96 × 3 mm (çerçeve).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve projektör modelinizi belirtin.",
+    "aciklama": "Audi A4 B6 Valeo bi-xenon farlarda orijinal projektörü (merceği) Koito Q5-r replika / D1S bi-xenon projektörlerle değiştirmek için özel üretim braket. Farın içindeki OEM mercek yuvasına geçer; yeni projektörü doğru konum ve açıda sabitler. D1S balast ve ampulünüzü kullanmaya devam edersiniz.\n\nIsıya dayanıklı malzemeyle üretilir — far içi ısındığı için ısıya dayanıksız malzeme kullanılmaz. Farklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 105 × 96 × 3 mm (çerçeve).\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; araç ve projektör modelinizi belirtin.",
     "fiyat": "650 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/audi-a4-b6-valeo-far-projektor-braketi-1.jpg",
@@ -277661,7 +277661,7 @@
     "kategori": "Ev",
     "marka": [],
     "baslik": "Kalorifer Vana Termostat Adaptörü (M30×1.5 · FAR FT 1941)",
-    "aciklama": "Kalorifer/petek termostatik vana başlığını farklı diş ölçüsündeki vanaya bağlamak için özel üretim adaptör. M30×1.5 dişe sahiptir; FAR FT 1941 tipi vana ile uyumludur. Termostat başlığını sökmeden uygun vanaya oturtursunuz.\n\nSıcağa dayanıklı malzemeyle (PLA değil, PETG/ABS önerilir) üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 30 × 30 × 21 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; vana ve termostat tipinizi belirtmeniz yeterli.",
+    "aciklama": "Kalorifer/petek termostatik vana başlığını farklı diş ölçüsündeki vanaya bağlamak için özel üretim adaptör. M30×1.5 dişe sahiptir; FAR FT 1941 tipi vana ile uyumludur. Termostat başlığını sökmeden uygun vanaya oturtursunuz.\n\nSıcağa dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 30 × 30 × 21 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; vana ve termostat tipinizi belirtmeniz yeterli.",
     "fiyat": "250 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/kalorifer-vana-adaptoru-m30-1.jpg",
@@ -277754,7 +277754,7 @@
       "Flashforge"
     ],
     "baslik": "Flashforge Adventurer 5M — LM2596S DC-DC Modül Montaj Braketi",
-    "aciklama": "Flashforge Adventurer 5M cihazına LED beslemesi için LM2596S DC-DC voltaj düşürücü modülünü sabitleyen özel üretim braket. Modülü ana kartın üzerine düzgün ve güvenli şekilde oturtur; kablolar dağılmaz.\n\nModülün eski, kalın 47 × 26 mm sürümüne göre tasarlanmıştır. Sıcağa dayanıklı malzeme (PETG) önerilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 70 × 47 × 8 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; modül ölçünüzü belirtmeniz yeterli.",
+    "aciklama": "Flashforge Adventurer 5M cihazına LED beslemesi için LM2596S DC-DC voltaj düşürücü modülünü sabitleyen özel üretim braket. Modülü ana kartın üzerine düzgün ve güvenli şekilde oturtur; kablolar dağılmaz.\n\nModülün eski, kalın 47 × 26 mm sürümüne göre tasarlanmıştır. Sıcağa dayanıklı malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 70 × 47 × 8 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; modül ölçünüzü belirtmeniz yeterli.",
     "fiyat": "500 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/flashforge-5m-lm2596s-modul-montaji-1.jpg",
@@ -277788,7 +277788,7 @@
     "kategori": "Motosiklet",
     "marka": [],
     "baslik": "ATV Kontak Anahtarı Gidon Tutucu (Universal)",
-    "aciklama": "Universal ATV kontak anahtarını gidona bağlamak için özel üretim tutucu. Gidona kelepçelenir; anahtarı sabit, kolay erişilir konumda tutar. Yenileme veya ekstra anahtar montajı için idealdir.\n\nTitreşime dayanıklı olması için sağlam malzeme (PETG önerilir) ile üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 60 × 40 × 34 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; gidon çapı ve anahtar ölçünüzü belirtmeniz yeterli.",
+    "aciklama": "Universal ATV kontak anahtarını gidona bağlamak için özel üretim tutucu. Gidona kelepçelenir; anahtarı sabit, kolay erişilir konumda tutar. Yenileme veya ekstra anahtar montajı için idealdir.\n\nTitreşime dayanıklı olması için sağlam malzemeyle üretilir.\n\nFarklı renk seçenekleriyle üretilebilir.\n\nYaklaşık dış ölçüler: 60 × 40 × 34 mm.\n\nSipariş için \"Sipariş Ver\" butonundan WhatsApp'tan bize ulaşın; gidon çapı ve anahtar ölçünüzü belirtmeniz yeterli.",
     "fiyat": "650 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/atv-kontak-anahtari-gidon-tutucu-1.jpg"
