@@ -414,11 +414,20 @@ check("MW ama satin-alma -> lisans MUAF",
 
 
 # =============================================================================
-# KAPI 7 — MARIN FIYAT TABANI (kapsam KILITLI) + KAPI 8 — URETIM-SURECI IFSASI
-# TEK KAYNAK: /Users/okan/dev/pruvo-hasat/kalibrasyon/POLITIKA-KARARLARI.md (30 Tem DUZELTME)
+# KAPI 7 — FIYAT TABANI 200 TL, TUM KATALOG + KAPI 8 — URETIM-SURECI IFSASI
+# TEK KAYNAK: Okan karari 31 Tem 2026 — "200 TL taban artik TUM urunlere uygulanir".
+# ONCEKI HAL (30 Tem, POLITIKA-KARARLARI.md): kural YALNIZ kategori == 'Marin' idi.
+#
+# 🔴 BU BOLUM KAPSAM GENISLEMESININ IKI YONLU NOBETCISIDIR:
+#   POZITIF — taban alti NORMAL urun HER kategoride KIRMIZI yanmali (yeni kural yasiyor).
+#   NEGATIF — parametrik/Jeneratör (sari seri) ve BOS fiyat YESIL kalmali (istisna yasiyor),
+#             taban ve ustu fiyat YESIL kalmali (kapi toptan kirmizi DEGIL).
+#   ESKI EKSEN — Marin'in olculmus davranisi (kademeli oneri, BOS fiyat fail-closed,
+#             ozel-format niteleyici) AYNEN duruyor; kapsam genislerken silinmedi.
 # =============================================================================
 def uf(kategori, fiyat, **over):
-    """fiyat kapisi fikstoru."""
+    """fiyat kapisi fikstoru — GERCEK kayit sekli (canli urunler.json alan kumesi:
+    id/kategori/marka/baslik/aciklama/fiyat/gorseller; olculdu 31 Tem)."""
     u = {"id": "f-%s-%s" % (kategori, fiyat), "kategori": kategori, "baslik": "parca",
          "aciklama": "parca. " + OLCU, "fiyat": fiyat, "marka": [], "gorseller": ["x.jpg"]}
     u.update(over)
@@ -429,52 +438,90 @@ def fiyat_kirmizi(u):
     return dk.kapi_fiyat(u)[0] is not None
 
 
-# --- ONCE-KIRMIZI: taban-alti MARIN fiyati kapidan sonra KIRMIZI -----------------------
-check("ONCE-KIRMIZI: Marin 100 TL -> ihlal", fiyat_kirmizi(uf("Marin", "100 TL")))
-check("ONCE-KIRMIZI: Marin 150 TL -> ihlal", fiyat_kirmizi(uf("Marin", "150 TL")))
-check("ONCE-KIRMIZI: Marin 199 TL -> ihlal", fiyat_kirmizi(uf("Marin", "199 TL")))
+# canli katalogdaki TUM kategoriler (olculdu 31 Tem: 15.930 urun, 14 kategori — nav'da gizli
+# 'Jeneratör' ve arsiv 'Skan Art' dahil). Kural artik hepsinde gecerli (Jeneratör HARIC).
+FIYAT_KATEGORILERI = ("Marin", "Otomobil", "Motosiklet", "Bisiklet", "Tamirat", "Ev", "Ofis",
+                      "Elektronik", "Kamera", "Bahçe", "Dekorasyon", "Oyun/Hobi", "Skan Art")
+
+# --- (a) POZITIF: taban alti NORMAL urun -> HER kategoride KIRMIZI ---------------------
+# Canli dagilimda gercekten gecen taban-alti degerler (olculdu): 150(1109), 180(392),
+# 170(67), 100(65), 190(37), 160(32), 165(22), 155(18), 175(12), 185(4).
+for _kat in FIYAT_KATEGORILERI:
+    for _f in ("100 TL", "150 TL", "180 TL", "190 TL", "199 TL"):
+        check("POZ: %s %s -> IHLAL (taban 200 TL)" % (_kat, _f), fiyat_kirmizi(uf(_kat, _f)))
+# ondalik/binlik biciMler de taban altinda yakalanir
+check("POZ: '99,50 TL' -> IHLAL", fiyat_kirmizi(uf("Otomobil", "99,50 TL")))
+check("POZ: '150 TL/adet' (niteleyici kuyruklu, taban ALTI) -> IHLAL",
+      fiyat_kirmizi(uf("Dekorasyon", "150 TL/adet")))
+
+# --- (b) NEGATIF-1: taban ve USTU her kategoride YESIL (kapi toptan kirmizi DEGIL) -----
+for _kat in FIYAT_KATEGORILERI:
+    for _f in ("200 TL", "300 TL", "350 TL", "850 TL", "1.250 TL"):
+        check("NEG: %s %s -> YESIL" % (_kat, _f), not fiyat_kirmizi(uf(_kat, _f)))
+
+# --- (b) NEGATIF-2: SARI SERI istisnasi (parametrik ve/veya Jeneratör) -----------------
+check("NEG sari: Jeneratör + parametrik + fiyat BOS -> YESIL",
+      not fiyat_kirmizi(uf("Jeneratör", "", parametrik=True)))
+check("NEG sari: Jeneratör kategorisi (parametrik alani YOK) + fiyat BOS -> YESIL",
+      not fiyat_kirmizi(uf("Jeneratör", "")))
+check("NEG sari: ASCII yazim 'Jenerator' + fiyat BOS -> YESIL",
+      not fiyat_kirmizi(uf("Jenerator", "")))
+# ...ve istisna FIYATLI sari kayitta da gecerli (kategori/parametrik ekseni tasiyor;
+# bu vaka mutasyon bolumunde M3 ile ISPATLANIR — bayrak gercekten yuk tasiyor)
+check("NEG sari: Jeneratör + '100 TL' -> YESIL (kategori istisnasi)",
+      not fiyat_kirmizi(uf("Jeneratör", "100 TL")))
+check("NEG sari: parametrik=True Otomobil'de + '100 TL' -> YESIL (parametrik istisnasi)",
+      not fiyat_kirmizi(uf("Otomobil", "100 TL", parametrik=True)))
+check("NEG sari: parametrik (Marin kategorisinde, fiyat BOS) -> YESIL",
+      not fiyat_kirmizi(uf("Marin", "", parametrik=True)))
+
+# --- (b) NEGATIF-3: BOS fiyat kapsam DISI (Okan karari) --------------------------------
+# Gerekce: sari seride fiyat taban-fiyatlar.js'ten gelir. OLCULDU (31 Tem): canli katalogda
+# BOS fiyatli 23 kayit var ve HEPSI parametrik+Jeneratör — yani bu dal bugun sari seriden
+# baska kimseyi gecirmiyor. Marin'de ise ESKI fail-closed davranis KORUNUR (asagida).
+check("NEG bos: Otomobil fiyat BOS -> YESIL (kapsam disi)", not fiyat_kirmizi(uf("Otomobil", "")))
+check("NEG bos: Dekorasyon fiyat BOS (bosluk) -> YESIL", not fiyat_kirmizi(uf("Dekorasyon", "   ")))
+
+# --- (c) POZITIF: AYIKLANAMAYAN fiyat metni -> KIRMIZI (fail-closed, sessizce gecmez) ---
+for _kat in ("Marin", "Otomobil", "Ev", "Oyun/Hobi"):
+    for _f in ("sorunuz", "fiyat icin arayiniz", "-", "TL 150", "yakinda"):
+        check("POZ fail-closed: %s %r ayristirilamaz -> IHLAL" % (_kat, _f),
+              fiyat_kirmizi(uf(_kat, _f)))
+check("POZ fail-closed: fiyat alani METIN DEGIL (sayi) -> IHLAL",
+      fiyat_kirmizi(uf("Otomobil", 150)))
+check("POZ fail-closed: fiyat alani METIN DEGIL (liste) -> IHLAL",
+      fiyat_kirmizi(uf("Otomobil", ["150 TL"])))
+
+# --- (d) ESKI MARIN EKSENI KAYBOLMADI --------------------------------------------------
+check("ESKI-MARIN: 100/150/199 TL hala IHLAL",
+      fiyat_kirmizi(uf("Marin", "100 TL")) and fiyat_kirmizi(uf("Marin", "150 TL"))
+      and fiyat_kirmizi(uf("Marin", "199 TL")))
 # bucket kurali ONERISI ihlal mesajinda gorunur (170 -> [150,200) -> 300 TL)
-check("Marin 170 TL ihlal mesaji kademeli hedefi (300) onerir",
+check("ESKI-MARIN: 170 TL ihlal mesaji kademeli hedefi (300) onerir",
       "300 TL olmali" in dk.kapi_fiyat(uf("Marin", "170 TL"))[1])
-check("Marin 100 TL ihlal mesaji kademeli hedefi (200) onerir",
+check("ESKI-MARIN: 100 TL ihlal mesaji kademeli hedefi (200) onerir",
       "200 TL olmali" in dk.kapi_fiyat(uf("Marin", "100 TL"))[1])
+# kademeli ONERI artik TUM kategorilerde ayni (kural genisledi, mesaj ayni dili konusuyor)
+check("kademeli oneri Otomobil'de de var (170 -> 300 TL)",
+      "300 TL olmali" in dk.kapi_fiyat(uf("Otomobil", "170 TL"))[1])
 # taban ve uzeri GECER (canli Marin dagilimi: 300/350/500/600/650/900)
 for _f in ("200 TL", "300 TL", "350 TL", "500 TL", "650 TL", "1.250 TL"):
-    check("Marin %s -> gecer" % _f, not fiyat_kirmizi(uf("Marin", _f)))
-
-# --- 🔴 KAPSAM SIZMASI CURUTMESI: kural YALNIZ Marin'de. -------------------------------
-# OLCULDU (30 Tem, 14.809 urun): Marin DISINDA 200 TL alti 1.761 CANLI kayit var (100 TL'de
-# 65). Kapsam sizarsa hepsi sessizce kirmizi yanar = urun akisi durur (commit 68837f62 hatasi).
-for _kat in ("Otomobil", "Motosiklet", "Bisiklet", "Ev", "Elektronik", "Dekorasyon", "Tamirat"):
-    check("KAPSAM: %s 100 TL -> YESIL (kural bu kategoride YOK)" % _kat,
-          not fiyat_kirmizi(uf(_kat, "100 TL")))
-    check("KAPSAM: %s 150 TL -> YESIL" % _kat, not fiyat_kirmizi(uf(_kat, "150 TL")))
-# MUTASYON: kapsam Otomobil'e GENISLETILIRSE ayni fikstur KIRMIZI olmali -> fikstur
-# gercekten kapsam eksenini ayirt ediyor (bayat/yalanci yesil DEGIL).
-_eski_kapsam = dk.FIYAT_KAPSAM_KATEGORI
-dk.FIYAT_KAPSAM_KATEGORI = "Otomobil"
-check("MUT-KAPSAM: kapsam Otomobil'e genisleyince Otomobil 100 TL KIRMIZI (fikstur ayirt ediyor)",
-      fiyat_kirmizi(uf("Otomobil", "100 TL")))
-dk.FIYAT_KAPSAM_KATEGORI = _eski_kapsam
-check("MUT-KAPSAM geri alindi: Otomobil 100 TL yine YESIL",
-      not fiyat_kirmizi(uf("Otomobil", "100 TL")))
-
-# --- parametrik/SARI seri: fiyat BOS dogru; taban kurali onlari VURMAZ -----------------
-check("parametrik (Jenerator, fiyat BOS) -> YESIL",
-      not fiyat_kirmizi(uf("Jeneratör", "", parametrik=True)))
-check("parametrik (Marin kategorisinde, fiyat BOS) -> YESIL",
-      not fiyat_kirmizi(uf("Marin", "", parametrik=True)))
-check("Marin fiyat BOS ama parametrik DEGIL -> ihlal (fail-closed)",
+    check("ESKI-MARIN: %s -> gecer" % _f, not fiyat_kirmizi(uf("Marin", _f)))
+check("ESKI-MARIN: fiyat BOS ama parametrik DEGIL -> ihlal (fail-closed EKSEN KORUNDU)",
       fiyat_kirmizi(uf("Marin", "")))
-check("Marin fiyat ayristirilamaz -> ihlal (fail-closed)",
+check("ESKI-MARIN: fiyat ayristirilamaz -> ihlal (fail-closed)",
       fiyat_kirmizi(uf("Marin", "sorunuz")))
 
-# --- OZEL-FORMAT NITELEYICILER KORUNUR (canli katalogda 2 kayit) -----------------------
+# --- OZEL-FORMAT NITELEYICILER KORUNUR (canli katalogda 2 kayit: '400 TL/adel',
+#     '300 TL (30 cm)' — olculdu 31 Tem; IKISI DE taban USTU) ---------------------------
 check("ozel format '500 TL/adel' -> 500 olarak ayristirilir", dk._fiyat_sayi("500 TL/adel") == 500)
 check("ozel format '500 TL (30 cm)' -> 500", dk._fiyat_sayi("500 TL (30 cm)") == 500)
 check("ozel format Marin'de de YESIL (niteleyici kuyrugu kapiyi bozmaz)",
       not fiyat_kirmizi(uf("Marin", "500 TL/adel"))
       and not fiyat_kirmizi(uf("Marin", "500 TL (30 cm)")))
+check("canli ozel-format kayitlari YESIL ('400 TL/adel', '300 TL (30 cm)')",
+      not fiyat_kirmizi(uf("Otomobil", "400 TL/adel"))
+      and not fiyat_kirmizi(uf("Dekorasyon", "300 TL (30 cm)")))
 check("binlik ayirici '1.250 TL' -> 1250", dk._fiyat_sayi("1.250 TL") == 1250)
 
 # --- bucket kurali (POLITIKA-KARARLARI.md) --------------------------------------------
@@ -483,6 +530,135 @@ for _n, _h in ((100, 200), (149, 200), (150, 300), (170, 300), (199, 300),
     check("kademeli_hedef(%d) == %d" % (_n, _h), dk.kademeli_hedef(_n) == _h)
 check("kademeli_hedef(500) dokunulmaz", dk.kademeli_hedef(500) == 500)
 check("kademeli_hedef(900) dokunulmaz", dk.kademeli_hedef(900) == 900)
+
+
+# =============================================================================
+# 🔬 KAPI 7 — CIFT YONLU KOD MUTASYONU (kaynak KOPYAYA uygulanir, DISKE YAZILMAZ)
+# -----------------------------------------------------------------------------
+# Iddia: yukaridaki pozitif/negatif vakalar OLU DEGIL — kuralin her tasiyici satiri
+# oldurulunce ilgili vaka TARAF DEGISTIRIYOR. Iki yon de olculur:
+#   KILL  : kurali GERI ALAN mutant, saglam kopyanin verdiginin TERSINI vermeli
+#           (yani vaka mutanti YAKALAR = "mutant KIRMIZI yanar").
+#   ILGISIZ: fiyat kuralini ilgilendirmeyen bir degisiklik HICBIR fiyat hukmunu
+#           degistirmemeli (yalanci-hassasiyet nobeti = "ilgisiz degisiklik YESIL").
+# Mutant kaynak BELLEKTE derlenir (ayri modul); canli dosya sha256 ile ONCE/SONRA
+# karsilastirilir — dalda mutant KALMADIGININ kaniti.
+# =============================================================================
+import hashlib as _hashlib  # noqa: E402
+import types as _types  # noqa: E402
+
+_DK_YOL = os.path.join(DIR, "denetim-kapisi.py")
+
+
+def _sha256(yol):
+    with open(yol, "rb") as f:
+        return _hashlib.sha256(f.read()).hexdigest()
+
+
+_SHA_ONCE = _sha256(_DK_YOL)
+
+
+def _mutant_yukle(capa, yeni_metin):
+    """Kaynagi okur, capayi BELLEKTE degistirir, ayri modul olarak exec eder.
+    capa TEK kez gecmiyorsa None doner (OLCULEMEDI — sessiz yesil YOK)."""
+    with open(_DK_YOL, encoding="utf-8") as f:
+        src = f.read()
+    if src.count(capa) != 1:
+        return None
+    mod = _types.ModuleType("dk_fiyat_mutant")
+    mod.__file__ = _DK_YOL
+    exec(compile(src.replace(capa, yeni_metin, 1), _DK_YOL + "#mutant", "exec"), mod.__dict__)
+    return mod
+
+
+# (ad, capa, mutant metin, probe urun, saglamda KIRMIZI mi)
+_FIYAT_KILL = [
+    ("M1 taban 200 -> 0 (kural etkisiz)",
+     "FIYAT_TABANI = 200.0", "FIYAT_TABANI = 0.0",
+     uf("Otomobil", "100 TL"), True),
+    ("M2 kapsam yeniden Marin'e kilitlendi",
+     '    if fiyat_muaf(urun):\n        return None, ""                           # SARI SERI',
+     '    if urun.get("kategori") != "Marin":\n        return None, ""\n'
+     '    if fiyat_muaf(urun):\n        return None, ""                           # SARI SERI',
+     uf("Otomobil", "150 TL"), True),
+    ("M3 sari-seri istisnasi olduruldu (parametrik)",
+     '    if bool(urun.get("parametrik")):\n        return True\n'
+     '    return tr_lower(str(urun.get("kategori") or "")).strip() in FIYAT_MUAF_KATEGORI',
+     "    return False",
+     uf("Otomobil", "100 TL", parametrik=True), False),
+    ("M3b sari-seri istisnasi olduruldu (Jeneratör kategorisi)",
+     '    if bool(urun.get("parametrik")):\n        return True\n'
+     '    return tr_lower(str(urun.get("kategori") or "")).strip() in FIYAT_MUAF_KATEGORI',
+     "    return False",
+     uf("Jeneratör", "100 TL"), False),
+    ("M4 BOS-fiyat kapsam-disi dali olduruldu",
+     '        return None, ""                           # Okan: BOS fiyat kapsam DISI',
+     '        return "fiyat", "MUT"',
+     uf("Otomobil", ""), False),
+    ("M5 ayiklanamayan fiyat fail-closed'u olduruldu (fail-OPEN)",
+     '        return "fiyat", "fiyat ayristirilamadi: %r (fail-closed — \'gecerli\' SAYILMAZ)" % ham',
+     '        return None, ""',
+     uf("Otomobil", "sorunuz"), True),
+    ("M6 ESKI MARIN ekseni olduruldu (BOS fiyat fail-closed)",
+     "        if urun.get(\"kategori\") == FIYAT_BOS_FAILCLOSED_KATEGORI:",
+     "        if False:",
+     uf("Marin", ""), True),
+    ("M7 metin-olmayan fiyat fail-closed'u olduruldu",
+     '        return "fiyat", "fiyat alani metin DEGIL: %r (fail-closed)" % (ham,)',
+     '        return None, ""',
+     uf("Otomobil", 150), True),
+]
+
+_capasiz, _saglam_ters, _sag_kalan = [], [], []
+for _ad, _capa, _yeni, _probe, _saglam_kirmizi in _FIYAT_KILL:
+    if fiyat_kirmizi(_probe) is not _saglam_kirmizi:
+        _saglam_ters.append(_ad)                       # saglam kopya iddiayi TASIMIYOR
+        continue
+    _mut = _mutant_yukle(_capa, _yeni)
+    if _mut is None:
+        _capasiz.append(_ad)                           # OLCULEMEDI
+        continue
+    if (_mut.kapi_fiyat(_probe)[0] is not None) is _saglam_kirmizi:
+        _sag_kalan.append(_ad)                         # mutant SAG KALDI = olu iddia
+check("MUT-SAGLAM: %d mutasyonun probu saglam kopyada BEKLENEN tarafta" % len(_FIYAT_KILL),
+      not _saglam_ters)
+check("MUT-CAPA: %d mutasyonun capasi TEK kez tuttu (OLCULEMEDI yok)" % len(_FIYAT_KILL),
+      not _capasiz)
+check("MUT-KILL: %d/%d mutant OLDU (kurali geri alan degisiklik vakayi taraf degistirir)"
+      % (len(_FIYAT_KILL) - len(_sag_kalan) - len(_capasiz) - len(_saglam_ters), len(_FIYAT_KILL)),
+      not _sag_kalan)
+if _saglam_ters or _capasiz or _sag_kalan:
+    print("MUT ayrinti: saglam-ters=%s capasiz=%s sag-kalan=%s"
+          % (_saglam_ters, _capasiz, _sag_kalan), file=sys.stderr)
+
+# --- ILGISIZ DEGISIKLIK: fiyat hukmu DEGISMEMELI (yalanci-hassasiyet nobeti) -----------
+_PROBE_KUMESI = [uf("Otomobil", "100 TL"), uf("Marin", "150 TL"), uf("Ev", "199 TL"),
+                 uf("Otomobil", "200 TL"), uf("Dekorasyon", "850 TL"),
+                 uf("Jeneratör", "", parametrik=True), uf("Jeneratör", "100 TL"),
+                 uf("Otomobil", ""), uf("Marin", ""), uf("Oyun/Hobi", "sorunuz")]
+_SAGLAM_HUKUM = [fiyat_kirmizi(u) for u in _PROBE_KUMESI]
+_ILGISIZ = [
+    ("I1 dedup esigi degisti (fiyat kurali DISI)", "DEDUP_ESIK = 0.75", "DEDUP_ESIK = 0.60"),
+    ("I2 yalnizca yorum satiri eklendi",
+     "# KAPI 7: FIYAT TABANI", "# (ilgisiz yorum — mutasyon nobeti)\n# KAPI 7: FIYAT TABANI"),
+]
+_ilgisiz_capasiz, _ilgisiz_bozdu = [], []
+for _ad, _capa, _yeni in _ILGISIZ:
+    _mut = _mutant_yukle(_capa, _yeni)
+    if _mut is None:
+        _ilgisiz_capasiz.append(_ad)
+        continue
+    if [(_mut.kapi_fiyat(u)[0] is not None) for u in _PROBE_KUMESI] != _SAGLAM_HUKUM:
+        _ilgisiz_bozdu.append(_ad)
+check("MUT-ILGISIZ capasi tuttu (%d degisiklik)" % len(_ILGISIZ), not _ilgisiz_capasiz)
+check("MUT-ILGISIZ: fiyat kurali DISI degisiklik %d probun HICBIRINDE hukmu degistirmedi"
+      % len(_PROBE_KUMESI), not _ilgisiz_bozdu)
+
+# --- canli dosya DEGISMEDI (mutant dalda BIRAKILMADI) ---------------------------------
+_SHA_SONRA = _sha256(_DK_YOL)
+check("MUT-DISK: denetim-kapisi.py sha256 ONCE == SONRA (diske mutant YAZILMADI)",
+      _SHA_ONCE == _SHA_SONRA)
+print("mutasyon sha256 denetim-kapisi.py: once=%s sonra=%s" % (_SHA_ONCE[:16], _SHA_SONRA[:16]))
 
 
 # --- KAPI 8: URETIM-SURECI IFSASI -----------------------------------------------------
@@ -645,9 +821,14 @@ dk._PRESS_RE = _eski_press
 check("MUT-PRESS-SINIRSIZ geri alindi: probe yine SERT", sert_mi(_M_PRESS_KACAK))
 
 
-# --- GERCEK-VERI NOBETCISI: canli katalogda kapsam/FP regresyonu ----------------------
-# (a) Marin DISI 200 TL alti CANLI kayitlarin HICBIRI kirmizi yanmamali (kapsam sizmasi).
-# (b) Olculmus 24 yanlis-pozitif kaydin hepsi YESIL kalmali (desen kaymasi nobetcisi).
+# --- GERCEK-VERI NOBETCISI: canli katalogda taban/FP durumu ---------------------------
+# (a) 🔴 MERGE SARTI: kapsam ici HICBIR canli kayit taban ALTINDA olmamali. Kapi fail-closed
+#     ve --commit-farki koluyla CI'da BLOKLAYICI kosuyor; taban-alti kayit varken dal main'e
+#     ALINMAZ. OLCULDU (31 Tem, 15.930 urun): 23 kayit kapsam disi (parametrik/Jeneratör/BOS
+#     fiyat — ucu de AYNI 23 kayit), 15.907 kayit kapsam ici, 1.761'i taban ALTI
+#     (Otomobil 1.758 · Oyun/Hobi 2 · Ev 1), ayristirilamayan 0. Bu nobetci VERI duzeltilene
+#     kadar KIRMIZIDIR ve kirmizi kalmasi DOGRUDUR — veri duzeltmesi ayri duzlem (MaCiT).
+# (b) Olculmus 24 yanlis-pozitif kaydin hepsi YESIL kalmali (ifsa desen kaymasi nobetcisi).
 _FP_IDLER = [
     "bmw-i3-safedrive-ekran-tutucu-aparat", "bmw-koltuk-klipsi-52-10-1-945-442",
     "bmw-m2-ve-uyumlu-modeller-i-in-debriyaj-pedal-stoperi",
@@ -667,21 +848,44 @@ _FP_IDLER = [
 ]
 if isinstance(_canli, list):
     _idx = {u.get("id"): u for u in _canli if isinstance(u, dict)}
-    _kapsam_kacan = [u.get("id") for u in _canli
-                     if isinstance(u, dict) and u.get("kategori") != "Marin"
-                     and dk.kapi_fiyat(u)[0] is not None]
-    check("gercek-veri: Marin DISI hicbir canli kayit fiyat kapisina takilmiyor (kapsam kilidi)",
-          len(_kapsam_kacan) == 0)
-    if _kapsam_kacan:
-        print("KAPSAM SIZMASI (%d): %s" % (len(_kapsam_kacan), ", ".join(_kapsam_kacan[:20])),
+    _muaf_kayit = [u for u in _canli if isinstance(u, dict) and dk.fiyat_muaf(u)]
+    _ihlalli = [u for u in _canli if isinstance(u, dict) and dk.kapi_fiyat(u)[0] is not None]
+    _ihlal_kat = {}
+    for _u in _ihlalli:
+        _k = _u.get("kategori")
+        _ihlal_kat[_k] = _ihlal_kat.get(_k, 0) + 1
+    check("gercek-veri: sari seri (parametrik/Jeneratör) kapsam DISI ve kirmizi yanmiyor",
+          not [u.get("id") for u in _muaf_kayit if dk.kapi_fiyat(u)[0] is not None])
+    check("🔴 MERGE SARTI — gercek-veri: canli katalogda taban-alti/ayiklanamaz kayit 0",
+          len(_ihlalli) == 0)
+    print("KAPI 7 gercek-veri: %d urun · kapsam DISI (sari seri) %d · IHLAL %d %s"
+          % (len(_canli), len(_muaf_kayit), len(_ihlalli),
+             sorted(_ihlal_kat.items(), key=lambda x: -x[1])))
+    if _ihlalli:
+        print("TABAN-ALTI (%d, merge sarti: 0): %s" %
+              (len(_ihlalli), ", ".join(str(u.get("id")) for u in _ihlalli[:20])),
               file=sys.stderr)
-    _marin_kacan = [u.get("id") for u in _canli
-                    if isinstance(u, dict) and u.get("kategori") == "Marin"
-                    and dk.kapi_fiyat(u)[0] is not None]
-    check("gercek-veri: canli Marin kayitlarinin hicbiri taban-alti degil", len(_marin_kacan) == 0)
-    if _marin_kacan:
-        print("MARIN TABAN-ALTI (%d): %s" % (len(_marin_kacan), ", ".join(_marin_kacan[:20])),
-              file=sys.stderr)
+    # --- GERCEK KAYIT SEKLIYLE pozitif/negatif (kisaltilmis sahte sekil DEGIL) ---------
+    # Canli katalogdan bir kayit KOPYALANIR, yalniz `fiyat` degistirilir: kapinin hukmu
+    # kaydin TAM sekliyle (lisans/gorseller/marka/aciklama alanlari dahil) olculur.
+    _gercek_oto = next((u for u in _canli if isinstance(u, dict)
+                        and u.get("kategori") == "Otomobil"), None)
+    _gercek_sari = next((u for u in _canli if isinstance(u, dict) and dk.fiyat_muaf(u)), None)
+    check("gercek-sekil fikstur: canli Otomobil ve sari-seri kaydi bulundu",
+          _gercek_oto is not None and _gercek_sari is not None)
+    if _gercek_oto is not None:
+        _g1 = dict(_gercek_oto); _g1["fiyat"] = "150 TL"
+        _g2 = dict(_gercek_oto); _g2["fiyat"] = "250 TL"
+        _g3 = dict(_gercek_oto); _g3["fiyat"] = "sorunuz"
+        check("gercek-sekil POZ: canli kayit '150 TL' -> IHLAL", fiyat_kirmizi(_g1))
+        check("gercek-sekil NEG: canli kayit '250 TL' -> YESIL", not fiyat_kirmizi(_g2))
+        check("gercek-sekil POZ: canli kayit 'sorunuz' -> IHLAL (fail-closed)", fiyat_kirmizi(_g3))
+    if _gercek_sari is not None:
+        _g4 = dict(_gercek_sari); _g4["fiyat"] = "100 TL"
+        check("gercek-sekil NEG: canli SARI kayit (fiyat BOS) -> YESIL",
+              not fiyat_kirmizi(_gercek_sari))
+        check("gercek-sekil NEG: canli SARI kayit '100 TL' olsa bile -> YESIL (istisna)",
+              not fiyat_kirmizi(_g4))
     _fp_bulunan = [i for i in _FP_IDLER if i in _idx]
     check("gercek-veri: FP nobetci kumesi >=20 kayit bulundu", len(_fp_bulunan) >= 20)
     _fp_kirmizi = [i for i in _fp_bulunan if dk.kapi_ifsa(_idx[i])["sert"]]
@@ -689,8 +893,8 @@ if isinstance(_canli, list):
           len(_fp_kirmizi) == 0)
     if _fp_kirmizi:
         print("FP REGRESYONU (%d): %s" % (len(_fp_kirmizi), ", ".join(_fp_kirmizi)), file=sys.stderr)
-    print("KAPI 7/8 gercek-veri: %d urun, kapsam-sizmasi %d, marin-taban-alti %d, FP-regresyon %d"
-          % (len(_canli), len(_kapsam_kacan), len(_marin_kacan), len(_fp_kirmizi)))
+    print("KAPI 7/8 gercek-veri: %d urun, taban-alti %d (merge sarti: 0), FP-regresyon %d"
+          % (len(_canli), len(_ihlalli), len(_fp_kirmizi)))
 
 
 if FAILS:

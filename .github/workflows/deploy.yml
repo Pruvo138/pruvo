@@ -705,8 +705,13 @@ jobs:
         run: node jenerator/test/vitrin-kabul.js
 
       # URUN DENETIM KAPISI (madde 32, 31 Tem). 31 Tem'e kadar urun kurallarinin —
-      # uretim-sureci ifsasi ("3D baski" demiyoruz) + Marin fiyat tabani — TEK korumasi bir
+      # uretim-sureci ifsasi ("3D baski" demiyoruz) + fiyat tabani — TEK korumasi bir
       # mimarin bunu ELLE kosturmasiydi. Artik her itmede bloklayici.
+      # 🔴 FIYAT TABANI KAPSAMI GENISLEDI (Okan karari 31 Tem): 200 TL taban artik TUM
+      # kategorilerde gecerli (eskiden yalniz Marin). Istisna: parametrik/Jeneratör sari
+      # seri ve fiyat alani BOS kayit. OLCULDU: canli katalogda 15.907 kapsam ici kaydin
+      # 1.761'i taban ALTI — bunlar ONCEDEN VAR OLAN ihlal sayildigi icin (asagidaki
+      # 'onceden' filtresi) itmeleri BLOKLAMAZ; YENI/DEGISEN taban-alti fiyat BLOKLAR.
       # 🔴 NEDEN BAYRAKSIZ KOL DEGIL: varsayilan PARTI tanimi "calisma agaci EKSI HEAD"tir;
       # CI fresh checkout'unda ikisi AYNIDIR -> parti DAIMA BOS. OLCULDU: git archive HEAD ile
       # kurulan temiz checkout'ta bayraksiz kol rc=0 / "yeni urun: 0" / tum sayaclar 0 basiyor.
@@ -726,7 +731,7 @@ jobs:
       # Gizli .urun-kaynaklari.json'a BAGLI DEGIL: cikis kodu yalniz `ihlal` kumesinden
       # turer, lisans ekseni (auto_sil) cikisi hic etkilemez -> gizli kayitli/kayitsiz
       # olcum BIREBIR ayni (332/332). Saf Python, agsiz, ~10 s.
-      - name: "Urun denetim kapisi (uretim-sureci ifsasi + Marin fiyat tabani — bu itmenin GETIRDIGI ihlal)"
+      - name: "Urun denetim kapisi (uretim-sureci ifsasi + 200 TL fiyat tabani/TUM katalog — bu itmenin GETIRDIGI ihlal)"
         run: python3 tools/denetim-kapisi.py --commit-farki
 
       # GRAMER ARTIGI KAPISI (madde 46'nin eksik halkasi, 31 Tem): 332 kayitlik toplu
