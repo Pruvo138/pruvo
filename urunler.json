@@ -1,5 +1,405 @@
 [
   {
+    "id": "3m-scotchblue-mavi-maskeleme-bandi-25mm",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M ScotchBlue Mavi Maskeleme Bandı 25 mm",
+    "aciklama": "Boya öncesi kenar/hat maskeleme için orta yapışkanlı, çok yüzeyli profesyonel bant.\n- Cam, ahşap, plastik, fayans ve metal gibi farklı yüzeylerde güvenle kullanılır.\n- Doğrudan güneş ışığına 14 güne kadar dayanır, iz/yapışkan kalıntısı bırakmadan temiz sökülür.\n- Tekne boyama, jelkot tamiri ve genel bakım işlerinde net ayrım hattı sağlar.\nGenişlik: 25 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp2090-25-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-scotchblue-mavi-maskeleme-bandi-50mm",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M ScotchBlue Mavi Maskeleme Bandı 50 mm",
+    "aciklama": "Boya öncesi kenar/hat maskeleme için orta yapışkanlı, çok yüzeyli profesyonel bant.\n- Cam, ahşap, plastik, fayans ve metal gibi farklı yüzeylerde güvenle kullanılır.\n- Doğrudan güneş ışığına 14 güne kadar dayanır, iz/yapışkan kalıntısı bırakmadan temiz sökülür.\n- Tekne boyama, jelkot tamiri ve genel bakım işlerinde net ayrım hattı sağlar.\nGenişlik: 50 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp2090-50-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-maskeleme-bandi-18mm",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Maskeleme Bandı 18 mm",
+    "aciklama": "Genel amaçlı, orta yapışkanlı profesyonel maskeleme bandı.\n- Boya öncesi kenar koruma ve ince hat maskelemede kullanılır.\n- Krepe kağıt yapısı sayesinde elle kolayca yırtılır, düzgün kenar bırakır.\n- Tekne bakım/boya işlerinde dar profil ve detay maskelemesi için idealdir.\nGenişlik: 18 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp30020213-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-maskeleme-bandi-24mm",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Maskeleme Bandı 24 mm",
+    "aciklama": "Genel amaçlı, orta yapışkanlı profesyonel maskeleme bandı.\n- Boya öncesi kenar koruma ve orta genişlikte hat maskelemede kullanılır.\n- Krepe kağıt yapısı sayesinde elle kolayca yırtılır, düzgün kenar bırakır.\n- Tekne bakım/boya işlerinde standart profil maskelemesi için idealdir.\nGenişlik: 24 mm.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp30020212-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-maskeleme-bandi-48mm",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Maskeleme Bandı 48 mm",
+    "aciklama": "Genel amaçlı, orta yapışkanlı profesyonel maskeleme bandı.\n- Geniş yüzey ve panel kenarlarının hızlı maskelemesinde kullanılır.\n- Krepe kağıt yapısı sayesinde elle kolayca yırtılır, düzgün kenar bırakır.\n- Tekne bakım/boya işlerinde büyük alanları hızlıca kapatmak için idealdir.\nGenişlik: 48 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp30020210-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-scotch-brite-temizleme-kecesi",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Scotch-Brite Temizleme Keçesi",
+    "aciklama": "Yüzey hazırlığı ve genel temizlikte kullanılan aşındırıcı olmayan sentetik elyaf keçe.\n- Gelcoat/tik yüzeylerde inatçı kir ve leke sökümünde elle kullanılır.\n- Yüzeyi çizmeden temizler, polisaj öncesi hazırlıkta tercih edilir.\n- Suyla veya temizlik solüsyonuyla birlikte kullanılabilir.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp8541-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-hookit-beyaz-yun-pasta-kecesi",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Hookit Beyaz Yün Pasta Keçesi",
+    "aciklama": "Polisaj makinesine cırt-bant (Hookit) sistemiyle takılan doğal yün pasta keçesi.\n- İnce/parlatma pasta uygulamalarında son kat parlaklık için kullanılır.\n- Düşük tüy dökme özelliğiyle daha az leke ve daha kolay temizlik sağlar.\n- Gelcoat ve boyalı yüzeylerde profesyonel parlatma sonucu verir.\nMakine tipi polisaj için (elle kullanılmaz).",
+    "fiyat": "2700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp5711-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-hookit-sari-yun-pasta-kecesi",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Hookit Sarı Yün Pasta Keçesi",
+    "aciklama": "Polisaj makinesine cırt-bant (Hookit) sistemiyle takılan orta sertlikte yün pasta keçesi.\n- Kesici pasta (compound) uygulamalarında ilk aşama aşındırma/parlatma için kullanılır.\n- Hafif-orta oksitlenme ve çizik gidermede etkilidir.\n- Gelcoat yenileme işlerinin ilk adımında tercih edilir.\nMakine tipi polisaj için (elle kullanılmaz).",
+    "fiyat": "3100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp5713-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-polisaj-ara-tabani",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Polisaj Ara Tabanı",
+    "aciklama": "Pasta keçesini polisaj makinesine sabitleyen cırt-bantlı (Hookit) ara taban.\n- Keçenin makineye dengeli ve sağlam tutunmasını sağlar, titreşimi azaltır.\n- Hızlı keçe değişimine imkan tanır.\n- Gelcoat/boya parlatma setlerinin standart aksesuarıdır.",
+    "fiyat": "1100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp5774-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-polisaj-makinesi-ara-tabani-7inc",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Polisaj Makinesi Ara Tabanı (7\")",
+    "aciklama": "7 inç pasta keçeleri için cırt-bantlı (Hookit) büyük çaplı ara taban.\n- Geniş yüzeylerde (tekne bordası, gövde) verimli çalışma için tasarlanmıştır.\n- Keçenin düzgün baskı dağılımı ile eşit parlatma sonucu sağlar.\n- 5/8\"-11 dişli polisaj makineleriyle uyumludur.",
+    "fiyat": "5300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp5717-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-hare-gidirici-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Hare Giderici Kesici Pasta 1 LT",
+    "aciklama": "Gelcoat yüzeylerde ağır oksitlenme, derin çizik ve hare gidermek için kalın kesici pasta.\n- Tekne, RV ve endüstriyel gelcoat yüzeylerde ilk aşama (Cut) ürünüdür.\n- Islak kalma süresi uzun, az malzemeyle daha kolay temizlik sağlar.\n- Polisaj makinesi + yün pasta keçesiyle kullanılır (elle uygulanmaz).\nHacim: 1 litre (946 ml).",
+    "fiyat": "4000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp36102-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-tekne-yikama-sivisi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Tekne Yıkama Sıvısı 1 LT",
+    "aciklama": "Kesici pasta/parlatma işlemi öncesi gelcoat yüzeyi hazırlayan özel tekne yıkama sıvısı.\n- Tuz, kir ve gevşek kirliliği yüzeyden uzaklaştırır, pasta uygulamasına hazır hale getirir.\n- Gelcoat, boyalı yüzey ve metal donanımlarla uyumludur.\n- Perfect-It bakım sisteminin ilk adımıdır (Prewash).\nHacim: 1 litre.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp9035-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-jelkot-cilasi-yarim-lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Jelkot Cilası 1/2 LT",
+    "aciklama": "Hafif çizik ve donuklaşmayı gideren, tek adımda parlaklık + koruma sağlayan gelcoat cilası.\n- P800 ve daha ince zımpara izlerini kesici pasta olmadan tek adımda giderir.\n- İçeriğindeki wax sayesinde uygulama sonrası ayrıca koruyucu sürmeye gerek bırakmaz.\n- Polisaj makinesiyle kullanılır.\nHacim: 473 ml (yarım litre).",
+    "fiyat": "2200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp36109-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-jelkot-cilasi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Jelkot Cilası 1 LT",
+    "aciklama": "Hafif çizik ve donuklaşmayı gideren, tek adımda parlaklık + koruma sağlayan gelcoat cilası.\n- P800 ve daha ince zımpara izlerini kesici pasta olmadan tek adımda giderir.\n- İçeriğindeki wax sayesinde uygulama sonrası ayrıca koruyucu sürmeye gerek bırakmaz.\n- Polisaj makinesiyle kullanılır.\nHacim: 946 ml (1 litre).",
+    "fiyat": "3700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp36110-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-gelcoat-kesici-pasta-wax-yarim-lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Gelcoat Kesici Pasta + Wax 1/2 LT",
+    "aciklama": "Orta seviye kesme gücünü kalıcı wax koruması ile birleştiren tek adımlı gelcoat pastası.\n- P800 ve daha ince zımpara izlerini keser, aynı anda parlak ve dayanıklı bir wax katmanı bırakır.\n- Tekne, RV ve endüstriyel gelcoat yüzeylerde kullanılır.\n- Islak kalma süresi uzun, az malzemeyle temiz sonuç verir.\nHacim: 473 ml (yarım litre).",
+    "fiyat": "2100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp36105-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-gelcoat-kesici-pasta-wax-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Gelcoat Kesici Pasta + Wax 1 LT",
+    "aciklama": "Orta seviye kesme gücünü kalıcı wax koruması ile birleştiren tek adımlı gelcoat pastası.\n- P800 ve daha ince zımpara izlerini keser, aynı anda parlak ve dayanıklı bir wax katmanı bırakır.\n- Tekne, RV ve endüstriyel gelcoat yüzeylerde kullanılır.\n- Islak kalma süresi uzun, az malzemeyle temiz sonuç verir.\nHacim: 946 ml (1 litre).",
+    "fiyat": "4000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp36106-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-tekne-waxi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Tekne Waxı 1 LT",
+    "aciklama": "Saf Brezilya karnauba mumu, silikon, polimer ve reçine karışımından oluşan son kat parlatma waxı.\n- Gelcoat, boya, fiberglas ve metal yüzeylerde olağanüstü parlaklık ve hava koşullarına karşı koruma sağlar.\n- Sıcak yüzeylerde bile kolay sürülüp kolay silinir.\n- Perfect-It bakım sisteminin son adımıdır (Wax).\nHacim: 946 ml (1 litre).",
+    "fiyat": "3100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp36113-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-iii-fast-cut-pasta-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It III Fast Cut Kalın Pasta 1 LT",
+    "aciklama": "Hızlı kesim gücüne sahip kaba taneli kesici pasta; taze ve eski boya/gelcoat yüzeylerinde kullanılır.\n- P1200-P1500 zımpara izlerini, hafif-orta oksitlenmeyi ve yıkama çiziklerini giderir.\n- Yüksek parlaklık bırakır, yüzeyden kolay temizlenir.\n- Polisaj makinesi + yün pasta keçesiyle (Perfect-It sistemi) kullanılır.\nHacim: 1 kg.",
+    "fiyat": "2400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp9374-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-sivi-pasta-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Sıvı Pasta 1 LT",
+    "aciklama": "Fast Cut pastadan sonra ikinci aşama olarak kullanılan, daha az aşındıran ince taneli sıvı pasta.\n- İnce zımpara izlerini ve donukluğu giderip yüksek parlaklık kazandırır.\n- Gelcoat ve iki bileşenli boya sistemlerinde kullanıma uygundur.\n- Polisaj makinesiyle kullanılır.\nHacim: 1 litre.",
+    "fiyat": "2400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp9375-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-makina-cilasi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Makina Cilası 1 LT",
+    "aciklama": "Pasta işleminden sonra kalan ince fır izlerini gideren son parlatma cilası.\n- Yüzeyde ayna parlaklığında, iz bırakmayan bir bitiş sağlar.\n- Perfect-It kesici pasta sisteminin son adımıdır.\n- Polisaj makinesiyle kullanılır.\nHacim: 1 litre.",
+    "fiyat": "2400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp9376-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-perfect-it-ultrafina-cila-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Perfect-It Ultrafina SE Cila 1 LT",
+    "aciklama": "Çok ince taneli, son rötuş kalitesinde bitiş sağlayan hassas parlatma cilası.\n- Mikro fır izlerini ve donuk lekeleri giderir, en yüksek parlaklık seviyesini verir.\n- Koyu renkli gelcoat ve boyalarda özellikle fark edilir sonuç sağlar.\n- Polisaj makinesiyle kullanılır.\nHacim: 1 litre.",
+    "fiyat": "5100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp50383-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "3m-maskeleme-naylonu",
+    "kategori": "Marin",
+    "marka": [
+      "3M"
+    ],
+    "baslik": "3M Maskeleme Naylonu (Koruyucu Örtü)",
+    "aciklama": "Boya ve bakım işlerinde geniş yüzeyleri boya sıçramasından koruyan hafif statik-tutunmalı naylon örtü.\n- Tek kişiyle kolayca serilip yüzeye yapışır, tekrar konumlandırılabilir.\n- Kolay kesilir, büyük/küçük her alanı hızlıca kapatmaya uygundur.\n- Tekne güvertesi, iç mekan ve donanımların boyama sırasında korunmasında kullanılır.",
+    "fiyat": "4400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp50676-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "teak-wonder-tik-parlatici-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "Teak Wonder"
+    ],
+    "baslik": "Teak Wonder Tik Parlatıcı 1 LT",
+    "aciklama": "Yaşlanmış/tonu solmuş tik (teak) yüzeylerin doğal rengini geri kazandıran parlatıcı.\n- Temizleme sonrası ıslak yüzeye uygulanır, tik tahtayı sanki yeni zımparalanmış gibi anında aydınlatır.\n- Kostik veya aşındırıcı değildir; boya, lastik conta ve metal donanımlara zarar vermez.\n- Yaklaşık 8-10 m²/litre kaplama alanı sunar.\nHacim: 1 litre.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp6603005-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "teak-wonder-tik-parlatici-4lt",
+    "kategori": "Marin",
+    "marka": [
+      "Teak Wonder"
+    ],
+    "baslik": "Teak Wonder Tik Parlatıcı 4 LT",
+    "aciklama": "Yaşlanmış/tonu solmuş tik (teak) yüzeylerin doğal rengini geri kazandıran parlatıcı.\n- Temizleme sonrası ıslak yüzeye uygulanır, tik tahtayı sanki yeni zımparalanmış gibi anında aydınlatır.\n- Kostik veya aşındırıcı değildir; boya, lastik conta ve metal donanımlara zarar vermez.\n- Yaklaşık 8-10 m²/litre kaplama alanı sunar, geniş güverte/donanım işleri için ekonomik hacim.\nHacim: 4 litre.",
+    "fiyat": "3700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp6603006-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "teak-wonder-tik-temizleyici-4lt",
+    "kategori": "Marin",
+    "marka": [
+      "Teak Wonder"
+    ],
+    "baslik": "Teak Wonder Tik Temizleyici 4 LT",
+    "aciklama": "Zımparalama veya agresif kostik deterjanlara gerek bırakmadan tik yüzeyleri derinlemesine temizleyen bakım ürünü.\n- Yüzey suyla ıslatılır, temizleyici eşit şekilde uygulanır, tahta lifine karşı yönde fırçalanır ve bol suyla durulanır.\n- Ne kostik ne de aşındırıcıdır; lastik conta, boya ve donanımlara zarar vermez.\n- Yaklaşık 6-8 m²/litre kaplama alanı sunar (4 litre şişe).\nHacim: 4 litre.",
+    "fiyat": "3700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktp6603004-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "volvo-penta-xact-top-mount-tek-kumanda-paneli-tutucusu",
     "kategori": "Marin",
     "marka": [
