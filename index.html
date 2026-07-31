@@ -1212,7 +1212,7 @@
   // CATEGORIES'i çizer). Sayfa üretecindeki NAV_GIZLI ile BİRLİKTE güncelle.
   var GIZLI_KATEGORILER = ["Jeneratör","Skan Art"];
 
-  // ANA SAYFA VİTRİN HİYERARŞİSİ (işletme kararı, 31 Tem — Okan): filtresiz ana vitrin
+  // ANA SAYFA VİTRİN HİYERARŞİSİ (işletme kararı, 31 Tem): filtresiz ana vitrin
   // SLOT DÜZENİYLE çizilir → slot 0-3 Jeneratör (sarı/parametrik) · 4-83 Marin ·
   // 84-163 Otomobil · 164+ KARIŞIK tek havuz. Her blok KENDİ İÇİNDE rastgele sıralanır.
   // Ürün ELENMEZ (toplam kart/katalog sayısı DEĞİŞMEZ), yalnız yeniden dizilir.
@@ -1221,7 +1221,7 @@
   // YUTAR: ilk 164 slot zaten Jeneratör/Marin/Otomobil olduğu için o üç kategori oraya
   // giremez (vitrin-siralama-test.js bunu AYRI iddiayla ölçer — kural sessizce kaybolmasın).
   //
-  // ⚠️ TEK KAYNAK — tools/build.py bu diziyi index.html'den REGEX ile OKUR (fail-closed) ve
+  // ⚠️ TEK KAYNAK — sayfa üreteci bu diziyi buradan REGEX ile OKUR (fail-closed) ve
   // ozet.json blok havuzlarını buna göre üretir. İkinci kopya AÇMA.
   //   kategori : ürünün kategorisi (CATEGORIES ya da GIZLI_KATEGORILER içinde olmalı)
   //   adet     : bloğun kaç SLOT kapladığı (stok yetmezse blok KISALIR, boşluk bırakılmaz)
@@ -2953,7 +2953,7 @@
   // gerisi karışık) ve seed'li rastgeleliği tek yerde uygular. Eski edgeVitrin() (havuzdan
   // rastgele 4 parametrik kartı listenin başına koyan ayrı mekanizma) KALDIRILDI: iki ayrı
   // rastgelelik mekanizması sıra kararlılığını bozuyordu. Dışarıdan görünen sonuç AYNI —
-  // ilk 4 kart sarı/parametrik (jenerator/test/vitrin-kabul.js test 6 bunu ölçer).
+  // ilk 4 kart sarı/parametrik (vitrin kabul testi 6 bunu ölçer).
   function edgeHavuz(){
     if(!OZET){ return []; }
     var out = [];
