@@ -856,6 +856,40 @@ jobs:
       - name: "Jeneratör tarama kumesi nobetcisi — kendini test (5 iddia; sahte KIRMIZI + OLCULEMEDI)"
         run: python3 jenerator/test/kabul.py --kendini-test
 
+      # URUN DENETIM KAPISI (madde 32, 31 Tem). 31 Tem'e kadar urun kurallarinin —
+      # uretim-sureci ifsasi ("3D baski" demiyoruz) + Marin fiyat tabani — TEK korumasi bir
+      # mimarin bunu ELLE kosturmasiydi. Artik her itmede bloklayici.
+      # 🔴 NEDEN BAYRAKSIZ KOL DEGIL: varsayilan PARTI tanimi "calisma agaci EKSI HEAD"tir;
+      # CI fresh checkout'unda ikisi AYNIDIR -> parti DAIMA BOS. OLCULDU: git archive HEAD ile
+      # kurulan temiz checkout'ta bayraksiz kol rc=0 / "yeni urun: 0" / tum sayaclar 0 basiyor.
+      # Bayraksiz kol baglansaydi OLU NOBETCI olurdu. `--commit-farki` ayni soruyu CI'da
+      # anlamli eksende sorar: HEAD^ -> HEAD arasinda urunler.json'a eklenen/DEGISEN kayitlar.
+      # (actions/checkout `fetch-depth: 0` yukarida zorunlu on-kosul; shallow olursa kapi
+      # sessizce yesile donmez -> OLCULEMEDI rc 3 ile YAYINI DURDURUR.)
+      # 🔴 BLOKLAYAN SEY: yalniz BU ITMENIN GETIRDIGI ihlal. Katalogda 332 onceden var olan
+      # ihlal duruyor (canli; ayri temizlik isi); ayni (id,kapi,gerekce) HEAD^'te de varsa
+      # RAPOR edilir, BLOKLAMAZ. Gevsetme degil AYIRMA: olculdu, ham halde baglansaydi
+      # urun-metnine hic dokunmayan toplu fiyat islemi bile (68837f62: 12.458 kayit -> 417
+      # ihlal; 1606e166: 12.195 -> 288) tum ekibin itmesini durdururdu.
+      # YANLIS-POZITIF NOBETI (OLCULDU): son 25 gercek urun commit'i 25/25 YESIL. Daha derin
+      # 6 commit'lik ornekte 1 KIRMIZI cikti (a27010ed marin-d35, 5 ifsa) — ve o GERCEK
+      # POZITIF: bir sonraki commit (4e9711e8) tam o kayitlari ELLE temizleyen hijyen
+      # commit'i. Yani kapi, insanin sonradan elle onardigi seyi itme aninda yakaliyor.
+      # Gizli .urun-kaynaklari.json'a BAGLI DEGIL: cikis kodu yalniz `ihlal` kumesinden
+      # turer, lisans ekseni (auto_sil) cikisi hic etkilemez -> gizli kayitli/kayitsiz
+      # olcum BIREBIR ayni (332/332). Saf Python, agsiz, ~10 s.
+      - name: "Urun denetim kapisi (uretim-sureci ifsasi + Marin fiyat tabani — bu itmenin GETIRDIGI ihlal)"
+        run: python3 tools/denetim-kapisi.py --commit-farki
+
+      # ... ve kapinin KENDI kabulu: 6 pozitif (temiz urun / urun disi degisiklik / mesru alan
+      # degisikligi / taban USTU fiyat / TOPLU islem eski ihlale dokundu / temizlik commit'i)
+      # + 5 negatif (yeni urunde dolgu-orani, yeni urunde baski fiili, DEGISEN urun ifsa
+      # kazandi, taban ALTI fiyat, eski ihlalli urun YENI ihlal kazandi) + 2 OLCULEMEDI
+      # (HEAD^ yok, HEAD'deki JSON bozuk) + 2 mutasyon (DEGISEN ekseni NO-OP -> N3 susar;
+      # 'onceden' filtresi asiri-susturma -> N1 susar). Sentetik git deposu, ~10 s.
+      - name: "Urun denetim kapisi — kendini test (pozitif + negatif + OLCULEMEDI + mutasyon)"
+        run: python3 tools/denetim-kapisi.py --kendini-test
+
       # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
       # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden
       # onizlenmis her parametre seti YAZISIZ mesh'i (kase: herkese "PRUVO") servis etmeye

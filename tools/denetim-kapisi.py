@@ -828,6 +828,70 @@ def _head_ids():
     return {u.get("id") for u in d if isinstance(u, dict) and u.get("id") is not None}
 
 
+def _urunler_at(rev):
+    """`git show <rev>:urunler.json` -> liste, okunamazsa None (fail-closed sinyali)."""
+    rc, out = _git("show", "%s:urunler.json" % rev)
+    if rc != 0:
+        return None
+    try:
+        d = json.loads(out.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return None
+    return d if isinstance(d, list) else None
+
+
+def _commit_farki_ids():
+    """CI KOLU: bu push'un urunler.json'a EKLEDIGI + DEGISTIRDIGI id'ler (HEAD^ -> HEAD).
+
+    NEDEN AYRI KOL (31 Tem, OLCULDU): varsayilan PARTI tanimi calisma-agaci EKSI HEAD'dir.
+    CI fresh checkout'unda calisma agaci HEAD ILE AYNIDIR -> parti DAIMA BOS -> kapi
+    "yeni urun: 0 / IHLAL: 0" basip rc 0 doner. Yani bayraksiz kol CI'ya baglansaydi
+    OLU NOBETCI olurdu (olculdu: git archive HEAD ile kurulan temiz checkout'ta rc=0,
+    tum sayaclar 0). Bu kol ayni soruyu CI'da ANLAMLI olan eksende sorar: bu itme
+    katalogda neyi degistirdi?
+
+    Merge commit'inde HEAD^ = BIRINCI ata (onceki main) -> "bu itme main'e ne getirdi"
+    semantigi korunur.
+
+    FAIL-CLOSED: iki taraftan biri okunamazsa (shallow checkout / ilk commit / bozuk JSON)
+    None doner ve cagiran OLCULEMEDI ile exit 3 verir — sessiz YESIL yok.
+    """
+    yeni = _urunler_at("HEAD")
+    eski = _urunler_at("HEAD^")
+    if yeni is None or eski is None:
+        return None, None
+    eski_map = {}
+    for u in eski:
+        if isinstance(u, dict) and u.get("id") is not None:
+            eski_map[u["id"]] = json.dumps(u, sort_keys=True, ensure_ascii=False)
+    ids = set()
+    for u in yeni:
+        if not isinstance(u, dict) or u.get("id") is None:
+            continue
+        uid = u["id"]
+        imza = json.dumps(u, sort_keys=True, ensure_ascii=False)
+        if uid not in eski_map or eski_map[uid] != imza:
+            ids.add(uid)
+    return ids, {u["id"]: u for u in eski
+                 if isinstance(u, dict) and u.get("id") is not None}
+
+
+def _urun_ihlalleri(u):
+    """Tek urunun IHLAL kumesi -> {(kapi, gerekce)}. denetle()'deki 7/8 kollariyla AYNI
+    fonksiyonlari cagirir (kopya kural YOK); 'onceden var miydi' karsilastirmasi icin."""
+    s = set()
+    if not isinstance(u, dict):
+        return s
+    kapi, g = kapi_fiyat(u)
+    if kapi:
+        s.add(("fiyat", g))
+    ifsa = kapi_ifsa(u)
+    for it in ifsa["sert"]:
+        s.add(("ifsa/" + it["kural"],
+               "%s: %r — %s" % (it["gerekce"], it["ifade"], it["cumle"])))
+    return s
+
+
 def _oku_json(path, default):
     try:
         with open(path, encoding="utf-8") as f:
@@ -852,6 +916,246 @@ def _uygula(sil_ids, gerekce_map):
     return ok, hata
 
 
+# =============================================================================
+# KENDINI TEST — sentetik git deposu; repo dosyasi DEGISMEZ, ag/gizli kayit GEREKMEZ
+# =============================================================================
+def _kt_urun(uid, **kw):
+    u = {"id": uid, "kategori": "Otomobil", "marka": ["Audi"],
+         "baslik": "Audi A4 Uyumlu Braket %s" % uid,
+         "aciklama": ("Araca birebir oturan dayanikli baglanti parcasi. "
+                      "Yaklasik dis olculer: 40 × 30 × 12 mm."),
+         "fiyat": "850 TL",
+         "gorseller": ["https://media.pruvo3d.com/urunler/%s-1.jpg" % uid]}
+    u.update(kw)
+    return u
+
+
+def kendini_test():
+    """POZITIF (yanlis-pozitif nobeti) + NEGATIF (olu nobetci nobeti) + OLCULEMEDI + mutasyon."""
+    import shutil
+    import tempfile
+
+    tmp = tempfile.mkdtemp(prefix="denetim-kapisi-kt-")
+    depo = os.path.join(tmp, "depo")
+    os.makedirs(depo)
+    shutil.copytree(_TOOLS, os.path.join(depo, "tools"),
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    kapi = os.path.join(depo, "tools", os.path.basename(os.path.abspath(__file__)))
+    urunler_yolu = os.path.join(depo, "urunler.json")
+
+    def g(*a):
+        subprocess.run(["git", "-C", depo, *a], capture_output=True)
+
+    def yaz(liste):
+        with open(urunler_yolu, "w", encoding="utf-8") as f:
+            json.dump(liste, f, ensure_ascii=False)
+
+    def commit(mesaj):
+        g("add", "-A")
+        g("-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", mesaj)
+
+    def kos(betik=None, ek=None):
+        cmd = [sys.executable, betik or kapi, "--commit-farki",
+               "--rapor", os.path.join(tmp, "rapor.json")]
+        if ek:
+            cmd += ek
+        p = subprocess.run(cmd, cwd=depo, capture_output=True, text=True)
+        return p.returncode, (p.stdout or "") + (p.stderr or "")
+
+    g("init", "-q")
+    sonuc = []
+
+    def iddia(ad, kosul, detay=""):
+        sonuc.append((ad, bool(kosul), detay))
+
+    # --- O1: HEAD^ YOK (tek commit) -> OLCULEMEDI, YESIL SAYILMAZ -----------------
+    temiz = [_kt_urun("a1"), _kt_urun("a2")]
+    yaz(temiz)
+    commit("ilk")
+    rc, out = kos()
+    iddia("O1 HEAD^ YOK (shallow/ilk commit) -> OLCULEMEDI", rc == 3, "rc=%d" % rc)
+
+    # --- P1: TEMIZ urun eklendi -> rc 0 ------------------------------------------
+    yaz(temiz + [_kt_urun("a3")])
+    commit("temiz urun eklendi")
+    rc, out = kos()
+    iddia("P1 temiz urun eklendi -> rc 0", rc == 0, "rc=%d" % rc)
+
+    # --- P2: urunler.json HIC degismedi -> parti BOS, rc 0 ------------------------
+    with open(os.path.join(depo, "not.md"), "w", encoding="utf-8") as f:
+        f.write("urun disi degisiklik\n")
+    commit("urun disi degisiklik")
+    rc, out = kos()
+    iddia("P2 urunler.json degismedi -> rc 0", rc == 0 and "yeni urun: 0" in out, "rc=%d" % rc)
+
+    # --- P3: MESRU alan degisikligi (gorsel) -> rc 0 (yanlis-pozitif nobeti) ------
+    taban = temiz + [_kt_urun("a3")]
+    degisen = [dict(u) for u in taban]
+    degisen[0]["gorseller"] = ["https://media.pruvo3d.com/urunler/a1-1-v2.jpg"]
+    yaz(degisen)
+    commit("gorsel guncellendi")
+    rc, out = kos()
+    iddia("P3 mesru alan degisikligi (gorsel) -> rc 0", rc == 0, "rc=%d" % rc)
+
+    # --- N1: YENI urunde uretim-sureci ifsasi (dolgu orani) -> rc 1 ---------------
+    kirli = _kt_urun("b1", aciklama="Saglamlik icin yuksek dolguyla (%100 dolgu) uretilir. "
+                                    "Yaklasik dis olculer: 40 × 30 × 12 mm.")
+    yaz(degisen + [kirli])
+    commit("ifsali urun eklendi")
+    rc, out = kos()
+    iddia("N1 yeni urunde dolgu-orani ifsasi -> rc 1", rc == 1 and "ifsa" in out, "rc=%d" % rc)
+
+    # temizle (sonraki vakalar icin taban)
+    yaz(degisen)
+    commit("ifsali urun geri alindi")
+
+    # --- N2: YENI urunde baski fiili -> rc 1 --------------------------------------
+    kirli2 = _kt_urun("b2", aciklama="Iki parca halinde basilip yapistirilarak birlestirilir. "
+                                     "Yaklasik dis olculer: 40 × 30 × 12 mm.")
+    yaz(degisen + [kirli2])
+    commit("baski fiili iceren urun eklendi")
+    rc, out = kos()
+    iddia("N2 yeni urunde baski fiili ifsasi -> rc 1", rc == 1 and "ifsa" in out, "rc=%d" % rc)
+    yaz(degisen)
+    commit("geri alindi")
+
+    # --- N3: VAR OLAN urun DEGISTIRILIP ifsa kazandi -> rc 1 ----------------------
+    #     (bu iddia 'eklenen' degil 'DEGISEN' eksenini tasir; mutasyon bolumu bunu olcer)
+    n3 = [dict(u) for u in degisen]
+    n3[1] = dict(n3[1])
+    n3[1]["aciklama"] = ("Yuksek dolgu ile uretilir. Yaklasik dis olculer: 40 × 30 × 12 mm.")
+    yaz(n3)
+    commit("var olan urun ifsa kazandi")
+    rc, out = kos()
+    iddia("N3 DEGISEN urun ifsa kazandi -> rc 1", rc == 1 and "ifsa" in out, "rc=%d" % rc)
+
+    # --- N4: Marin fiyat tabani ihlali -> rc 1 ------------------------------------
+    yaz(n3)
+    commit("taban")
+    marin = _kt_urun("m1", kategori="Marin", fiyat="150 TL",
+                     baslik="Tekne Uyumlu Kilit Braketi m1")
+    yaz(n3 + [marin])
+    commit("marin taban alti fiyat")
+    rc, out = kos()
+    iddia("N4 Marin fiyati taban ALTI -> rc 1", rc == 1 and "fiyat" in out, "rc=%d" % rc)
+
+    # --- P4: Marin fiyati taban USTU -> rc 0 (yanlis-pozitif nobeti) --------------
+    yaz(n3)
+    commit("geri alindi")
+    marin_ok = _kt_urun("m2", kategori="Marin", fiyat="850 TL",
+                        baslik="Tekne Uyumlu Kilit Braketi m2")
+    yaz(n3 + [marin_ok])
+    commit("marin taban ustu fiyat")
+    rc, out = kos()
+    iddia("P4 Marin fiyati taban USTU -> rc 0", rc == 0, "rc=%d" % rc)
+
+    # --- P5: ONCEDEN VAR OLAN ihlale dokunan TOPLU islem -> rc 0 (metin DEGISMEDI) --
+    #     (olculmus vaka: fiyat yuvarlama 12.458 kayda dokunup 417 eski ihlali kapsama sokar)
+    yaz(n3)
+    commit("p5 tabani")
+    p5 = [dict(u) for u in n3]
+    for i, u in enumerate(p5):
+        p5[i] = dict(u)
+        p5[i]["fiyat"] = "900 TL"          # TOPLU fiyat guncellemesi; aciklama DOKUNULMADI
+    yaz(p5)
+    commit("toplu fiyat guncellemesi (eski ifsa metni AYNEN duruyor)")
+    rc, out = kos()
+    _onceden_sifir = "onceden var  : 0" in out
+    iddia("P5 toplu islem eski ihlale dokundu, metin AYNI -> rc 0 (bloklamaz)",
+          rc == 0 and "onceden var" in out and not _onceden_sifir, "rc=%d" % rc)
+
+    # --- N5: ONCEDEN ihlalli urun YENI/FARKLI bir ihlal kazandi -> rc 1 ------------
+    n5 = [dict(u) for u in p5]
+    n5[1] = dict(n5[1])
+    n5[1]["aciklama"] = ("Yuksek dolgu ile uretilir; iki parca halinde basilip yapistirilir. "
+                         "Yaklasik dis olculer: 40 × 30 × 12 mm.")
+    yaz(n5)
+    commit("eski ihlalli urun YENI ihlal kazandi")
+    rc, out = kos()
+    iddia("N5 eski ihlalli urun YENI ihlal kazandi -> rc 1", rc == 1, "rc=%d" % rc)
+
+    # --- P6: temizlik commit'i (ihlal KALDIRILDI) -> rc 0 --------------------------
+    p6 = [dict(u) for u in n5]
+    p6[1] = dict(p6[1])
+    p6[1]["aciklama"] = "Dayanikli baglanti parcasi. Yaklasik dis olculer: 40 × 30 × 12 mm."
+    yaz(p6)
+    commit("temizlik: ifsa kaldirildi")
+    rc, out = kos()
+    iddia("P6 temizlik commit'i (ifsa kaldirildi) -> rc 0", rc == 0, "rc=%d" % rc)
+
+    # --- MUTASYON 2: 'onceden' filtresi HER SEYI susturursa N1 SESSIZ gecmeli ------
+    with open(kapi, encoding="utf-8") as f:
+        kaynak2 = f.read()
+    hedef2 = ('if eski_u is not None and (it["kapi"], it["gerekce"]) in '
+              '_urun_ihlalleri(eski_u):')
+    mutant2 = os.path.join(depo, "tools", "_mutant2-denetim-kapisi.py")
+    if hedef2 in kaynak2:
+        with open(mutant2, "w", encoding="utf-8") as f:
+            f.write(kaynak2.replace(hedef2, "if True:"))
+        yaz(p6)
+        commit("mutasyon2 tabani")
+        yaz(p6 + [_kt_urun("z9", aciklama="Yuksek dolguyla uretilir. "
+                                          "Yaklasik dis olculer: 40 × 30 × 12 mm.")])
+        commit("mutasyon2: YENI ifsali urun")
+        rc_s, _ = kos()
+        rc_m, _ = kos(betik=mutant2)
+        iddia("MU2 'onceden' filtresi ASIRI-SUSTURMA -> saglam KIRMIZI, mutant SESSIZ",
+              rc_s == 1 and rc_m == 0, "saglam rc=%d, mutant rc=%d" % (rc_s, rc_m))
+        os.remove(mutant2)
+        yaz(p6)
+        commit("mutasyon2 geri alindi")
+    else:
+        iddia("MU2 mutasyon capasi bulunamadi (OLCULEMEDI)", False, "capa yok")
+
+    # --- MUTASYON: 'DEGISEN' ekseni NO-OP yapilirsa N3 SESSIZ gecmeli -------------
+    with open(kapi, encoding="utf-8") as f:
+        kaynak = f.read()
+    hedef = "if uid not in eski_map or eski_map[uid] != imza:"
+    mutant_yolu = os.path.join(depo, "tools", "_mutant-denetim-kapisi.py")
+    if hedef in kaynak:
+        with open(mutant_yolu, "w", encoding="utf-8") as f:
+            f.write(kaynak.replace(hedef, "if uid not in eski_map:"))
+        # N3 vakasini yeniden kur
+        yaz(n3)
+        commit("mutasyon tabani")
+        m3 = [dict(u) for u in n3]
+        m3[2] = dict(m3[2])
+        m3[2]["aciklama"] = "Yuksek dolgu ile uretilir. Yaklasik dis olculer: 40 × 30 × 12 mm."
+        yaz(m3)
+        commit("mutasyon: var olan urun ifsa kazandi")
+        rc_saglam, _ = kos()
+        rc_mutant, _ = kos(betik=mutant_yolu)
+        iddia("MU1 'DEGISEN urun' ekseni NO-OP -> saglam KIRMIZI, mutant SESSIZ",
+              rc_saglam == 1 and rc_mutant == 0,
+              "saglam rc=%d, mutant rc=%d" % (rc_saglam, rc_mutant))
+        os.remove(mutant_yolu)
+    else:
+        iddia("MU1 mutasyon capasi bulunamadi (OLCULEMEDI)", False, "capa yok")
+
+    # --- O2: HEAD'deki urunler.json BOZUK (calisma agaci saglam) -> OLCULEMEDI -----
+    with open(urunler_yolu, "w", encoding="utf-8") as f:
+        f.write("{bozuk json")
+    commit("bozuk katalog")
+    yaz(n3)                                   # calisma agaci saglam, HEAD blob'u bozuk
+    rc, out = kos()
+    iddia("O2 HEAD'deki urunler.json BOZUK -> OLCULEMEDI", rc == 3, "rc=%d" % rc)
+
+    shutil.rmtree(tmp, ignore_errors=True)
+
+    print("DENETIM KAPISI — KENDINI TEST (--commit-farki CI kolu)")
+    kalan = 0
+    for ad, ok, detay in sonuc:
+        print("  %s %-56s %s" % ("✅" if ok else "❌", ad, detay))
+        if not ok:
+            kalan += 1
+    print("-" * 70)
+    if kalan:
+        print("SONUC: KIRMIZI ❌ — %d/%d iddia GECMEDI" % (kalan, len(sonuc)))
+        return 1
+    print("SONUC: YESIL ✅ — %d/%d iddia gecti" % (len(sonuc), len(sonuc)))
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -861,7 +1165,15 @@ def main():
     ap.add_argument("--rapor", default=RAPOR, help="rapor JSON cikti yolu")
     ap.add_argument("--tum-katalog", action="store_true",
                     help="KAPI 7/8'i TUM katalogda kostur (denetim/olcum; parti farki yerine)")
+    ap.add_argument("--commit-farki", action="store_true",
+                    help="CI KOLU: parti = HEAD^ -> HEAD arasinda urunler.json'a eklenen/degisen "
+                         "id'ler (fresh checkout'ta calisma-agaci farki DAIMA BOS oldugu icin)")
+    ap.add_argument("--kendini-test", action="store_true",
+                    help="kapinin kendi kabul testi (sentetik depo; repo dosyasi DEGISMEZ)")
     args = ap.parse_args()
+
+    if args.kendini_test:
+        return kendini_test()
 
     urunler = _oku_json(URUNLER, None)
     if not isinstance(urunler, list):
@@ -878,6 +1190,13 @@ def main():
     if args.tum_katalog:
         yeni_ids = {u.get("id") for u in urunler
                     if isinstance(u, dict) and u.get("id") is not None}
+    elif args.commit_farki:
+        yeni_ids, onceki_urunler = _commit_farki_ids()
+        if yeni_ids is None:
+            print("OLCULEMEDI: HEAD ya da HEAD^ icindeki urunler.json okunamadi "
+                  "(shallow checkout / ilk commit / bozuk JSON) — YESIL SAYILMAZ.",
+                  file=sys.stderr)
+            return 3
     elif args.idler is not None:
         yeni_ids = set(args.idler)
     else:
@@ -885,6 +1204,30 @@ def main():
         yeni_ids = working_ids - head_ids
 
     rapor = denetle(urunler, yeni_ids, head_ids, kaynaklar)
+
+    # --- CI KOLU: yalnizca BU ITMENIN GETIRDIGI ihlaller BLOKLAR --------------------
+    # 🔴 GEVSETME DEGIL, AYIRMA (31 Tem, OLCULDU). Katalogda 332 ONCEDEN VAR OLAN ihlal
+    # duruyor (canli; ayri temizlik isi). Kapi ham haliyle baglansaydi urun-DISI bir toplu
+    # islem bile tum ekibin itmesini durdururdu: olculdu, fiyat yuvarlama commit'i 68837f62
+    # 12.458 kayda dokunuyor ve 417 ONCEDEN VAR OLAN ihlali parti kapsamina sokuyor
+    # (1606e166: 12.195 kayit / 288 ihlal). Bunlar YANLIS-POZITIF DEGIL — gercek ihlaller —
+    # ama o itmenin GETIRDIGI sey de degiller; bloklamak orantisiz ve kapiyi ilk toplu
+    # islemde devre disi biraktirirdi.
+    # KURAL: ayni (id, kapi, gerekce) ucluSU HEAD^'te de VARSA "onceden" sayilir -> RAPOR
+    # edilir, BLOKLAMAZ. Yoksa bu itme GETIRMISTIR -> BLOKLAR. Karsilastirma denetle()'nin
+    # kullandigi AYNI fonksiyonlarla yapilir (_urun_ihlalleri), kopya kural yok.
+    # Sonuc: yeni urun ifsa ile gelirse BLOKLAR · var olan urun ifsa KAZANIRSA BLOKLAR ·
+    # metni degismemis eski ihlale dokunan toplu islem BLOKLAMAZ · temizlik commit'i YESIL.
+    onceden = []
+    if args.commit_farki:
+        kalan = []
+        for it in rapor["ihlal"]:
+            eski_u = onceki_urunler.get(it["id"])
+            if eski_u is not None and (it["kapi"], it["gerekce"]) in _urun_ihlalleri(eski_u):
+                onceden.append(it)
+            else:
+                kalan.append(it)
+        rapor["ihlal"] = kalan
 
     # rapor dosyasini yaz (ic alanlari _'li disi)
     disa = {k: v for k, v in rapor.items() if not k.startswith("_")}
@@ -903,6 +1246,9 @@ def main():
     print("  marka_kirli  : %d" % len(rapor["marka_kirli"]))
     print("  IHLAL        : %d (fiyat tabani / uretim-sureci ifsasi — BLOKLAR)"
           % len(rapor["ihlal"]))
+    if args.commit_farki:
+        print("  onceden var  : %d (HEAD^'te de vardi — bu itme GETIRMEDI, bloklamaz; "
+              "ayri temizlik isi)" % len(onceden))
     print("  rapor -> %s" % args.rapor)
 
     if rapor["ihlal"]:

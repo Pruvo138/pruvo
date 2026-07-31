@@ -933,7 +933,21 @@ IZIN_LISTESI = {
     "tools/mimar-commit-kapisi.py": (
         R_HOOK + " Ayrica git commit backstop'u olarak commit EDILMEYEN .git/hooks kablolamasina "
         "ve ana-checkout/worktree ayrimina bagli (R_YOL ile ayni sinif)."),
-    "tools/denetim-kapisi.py": R_GIZLI,
+    # "tools/denetim-kapisi.py" MUAFIYETI KALDIRILDI (31 Tem, madde 32) — R_GIZLI gerekcesi
+    # (shop/test/kabul.js vakasinin AYNISI) YARI DOGRUYDU ve tam da bu yuzden tehlikeliydi:
+    #  (a) "parti CI'da BOS kalir -> anlamsiz YESIL" kismi OLCULEREK DOGRULANDI (git archive
+    #      HEAD ile kurulan temiz checkout'ta bayraksiz kol rc=0, tum sayaclar 0). Bu yuzden
+    #      bayraksiz kol CI'ya BAGLANMADI.
+    #  (b) ".urun-kaynaklari.json YOK -> kapi olcemez" kismi YANLIS: cikis kodu YALNIZ
+    #      `ihlal` kumesinden turer (kaynak: main()'in son satiri), lisans ekseni auto_sil'e
+    #      gider ve cikisi HIC etkilemez. Gizli kayitli/kayitsiz --tum-katalog olcumu
+    #      BIREBIR ayni: IHLAL 332/332 (auto_sil 2182 -> 17850 kayiyor ama bloklamaz).
+    # COZUM (susturma DEGIL, AYIRMA): `--commit-farki` kolu eklendi — parti = HEAD^ -> HEAD
+    # arasinda eklenen/DEGISEN id'ler; yalniz BU ITMENIN GETIRDIGI ihlal bloklar (ayni
+    # (id,kapi,gerekce) HEAD^'te de varsa rapor edilir, bloklamaz). Fail-closed: HEAD/HEAD^
+    # okunamazsa OLCULEMEDI rc 3. deploy.yml'de continue-on-error'SUZ kosuyor + kendi
+    # `--kendini-test`i (15 iddia, 2 mutasyon) de bloklayici.
+
     "tools/kategori-kapisi.py": R_TASARIM,
     "tools/gitignore-kapisi.py": R_YEREL_HIJYEN,
     "tools/regresyon-kapisi.py": (
