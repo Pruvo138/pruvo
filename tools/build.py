@@ -24,6 +24,7 @@ import re
 import json
 import math
 import shutil
+import subprocess
 import html
 import hashlib
 import datetime
@@ -35,6 +36,7 @@ from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
 import filament_ortak
 import marka_model_build
 import landing_hub_build
+import yorum_soy
 
 # ------------------------------------------------------------------ ayarlar
 SITE = "https://pruvo3d.com"
@@ -290,20 +292,101 @@ def dosya_surum(dosya_yolu):
     return h
 
 
+# YAYIN JS DIZINI — commit'li JS kaynaklarinin YORUMU SOYULMUS yayin kopyalari.
+# deploy.yml _site'a BURADAN kopyalar; kaynak dosyalar (secenekler.js ...) tam
+# muhendislik dokumantasyonuyla depoda KALIR. git'e GIRMEZ (.gitignore).
+YAYIN_DIR = "_yayin"
+# deploy.yml beyaz listesindeki commit'li JS varliklari (uretilen ikisi ayrica
+# uretildikleri yerde soyulur: filament-veri.js + taban-fiyatlar.js).
+SOYULACAK_JS = ("secenekler.js", "konfigur.js",
+                "jenerator/hacim.js", "jenerator/konfigurator.js", "jenerator/viewer.js")
+
+
+def _yayin_js_sozdizimi(hedef):
+    """Yayin kopyasini GERCEK bir JS ayristiricisindan (node --check) gecirir.
+
+    NEDEN (bagimsiz ikinci goz): yorum_soy.py kendi JS lexer'ini kullanir ve regex/bolme
+    ayrimi bir SEZGIye dayanir. O sezgi bir gun yanilirsa soyma bir dizgenin/regex'in
+    ICINI silebilir — hata SESSIZDIR: dosya yayinlanir, odeme JS'i tarayicida coker.
+    node --check bagimsiz bir ayristirici oldugu icin o sinifi YAYINDAN ONCE yakalar.
+    FAIL-CLOSED: bozuksa build DURUR; CI'da node yoksa da DURUR (setup-node bloklayici
+    on-kosuldur, yani orada node HEP vardir). Yerelde node yoksa yuksek sesle uyarir."""
+    try:
+        p = subprocess.run(["node", "--check", hedef], capture_output=True, text=True)
+    except OSError:
+        if os.environ.get("GITHUB_ACTIONS"):
+            print("HATA: node yok -> yayin JS sozdizimi DOGRULANAMADI (fail-closed): %s" % hedef)
+            sys.exit(1)
+        print("UYARI: node bulunamadi -> yayin JS sozdizimi DOGRULANAMADI (yerel kosum)")
+        return
+    if p.returncode != 0:
+        print("HATA: yayin kopyasinin SOZDIZIMI BOZUK -> %s\n%s"
+              % (hedef, (p.stderr or "")[:800]))
+        sys.exit(1)
+
+
+def yayin_js_yaz(rel):
+    """<rel> JS kaynagini yorumu soyulmus olarak _yayin/<rel>'e yazar; yolu doner.
+    Kaynak DEGISMEZ. Dosya yoksa (lokalde uretilmemis) None doner."""
+    kaynak = os.path.join(ROOT, rel)
+    if not os.path.isfile(kaynak):
+        return None
+    with open(kaynak, encoding="utf-8") as f:
+        metin = f.read()
+    hedef = os.path.join(ROOT, YAYIN_DIR, rel)
+    d = os.path.dirname(hedef)
+    if d and not os.path.isdir(d):
+        os.makedirs(d)
+    with open(hedef, "w", encoding="utf-8") as f:
+        f.write(yorum_soy.js_soy(metin))
+    _yayin_js_sozdizimi(hedef)             # bozuk soyma YAYINLANMAZ (fail-closed)
+    _SURUM_CACHE.pop(hedef, None)          # ayni kosumda yeniden uretilirse bayat hash kalmasin
+    return hedef
+
+
+def _yayin_yolu(rel):
+    """Bir varligin YAYINLANAN kopyasinin yolu: _yayin/<rel> varsa o, yoksa kaynak.
+    ?v=<hash> boylece TARAYICIYA GIDEN baytlardan turer (soyma sonrasi da dogru)."""
+    y = os.path.join(ROOT, YAYIN_DIR, rel)
+    return y if os.path.isfile(y) else os.path.join(ROOT, rel)
+
+
 _SCRIPT_SRC_RE = re.compile(r'(<script\b[^>]*\ssrc=")(/[^"?]+\.js)(")')
 
 
-def surumle_scriptler(html_metni):
+def _surumle_scriptler(html_metni):
     """HTML icindeki site-ici <script src="/...js"> referanslarina ?v=<icerik-hash>
     ekler. Zaten surumlu (?v= olan — regex .js'ten hemen sonra " bekler, eslesmez) ya da
-    dosyasi bulunmayan (lokalde build'siz) referansa DOKUNMAZ."""
+    dosyasi bulunmayan (lokalde build'siz) referansa DOKUNMAZ.
+    Hash YAYINLANAN kopyadan (varsa _yayin/<rel>) hesaplanir."""
     def _degistir(m):
         yol = m.group(2)                      # or. "/secenekler.js"
-        dosya = os.path.join(ROOT, yol.lstrip("/"))
+        dosya = _yayin_yolu(yol.lstrip("/"))
         if not os.path.isfile(dosya):
             return m.group(0)
         return m.group(1) + yol + "?v=" + dosya_surum(dosya) + m.group(3)
     return _SCRIPT_SRC_RE.sub(_degistir, html_metni)
+
+
+def yayin_html(html_metni):
+    """YAYIN kopyasi donusumu — TEK YER. Iki is yapar:
+      (1) YORUMLARI SOYAR (HTML yorumu + <style> CSS yorumu + JS tur'lu <script>
+          yorumlari; JSON-LD/ham-metin bloklari DOKUNULMAZ) — tools/yorum_soy.py.
+      (2) site-ici <script src>'lerine ?v=<icerik-hash> ekler (onbellek kirici).
+    Neden BURADA: uretilen HER yayin sayfasi (urun/, icerik/yasal, /marka, landing
+    hub, ana sayfa) bu fonksiyondan gecer -> soyma tek noktadan uygulanir, yeni bir
+    sayfa turu eklendiginde unutulamaz. KAYNAK dosyalar (index.html, sablonlar)
+    DEGISMEZ; yorumlar depoda kalir, TARAYICIYA inmez.
+    ⚠️ KAPSAM DISI (bilerek): elle yazilmis 4 statik yasal sayfa
+    (hakkimizda/iletisim/sss/gizlilik) bu fonksiyondan GECMEZ — onlar commit'li
+    kaynaktir ve tools/yasal-sayfa-drift-kapisi.py bayt-esitlik ister. Onlarin
+    nobetcisi tools/yayin-ic-dil-kapisi.py'dir (ic-dil ekseni)."""
+    return _surumle_scriptler(yorum_soy.html_soy(html_metni))
+
+
+# Kardes moduller (marka_model_build / landing_hub_build) ctx'ten bu adla alir;
+# anahtar adi degismesin diye ESKI AD ayni govdeye baglanir (ikinci kopya YOK).
+surumle_scriptler = yayin_html
 
 
 def _marka_cip_enjekte(html_metni, chip_links, slug_map):
@@ -2920,6 +3003,20 @@ def main():
         shutil.rmtree(URUN_DIR)
     os.makedirs(URUN_DIR, exist_ok=True)
 
+    # YAYIN JS KOPYALARI (yorumu soyulmuş) — ÜRÜN DÖNGÜSÜNDEN ÖNCE üretilir ki
+    # sayfalara basılan ?v=<hash> ile deploy'un _site'a kopyaladığı BAYTLAR aynı
+    # dosyadan türesin (aksi halde ürün sayfaları kaynağın, ana sayfa soyulmuşun
+    # hash'ini basar -> aynı varlık için İKİ ayrı ?v=, gereksiz önbellek kaybı).
+    # Eski çıktı önce silinir: kaynaktan kaldırılan bir varlık _yayin'de kalırsa
+    # deploy BAYAT dosya yayınlar (sessiz hata).
+    if os.path.isdir(os.path.join(ROOT, YAYIN_DIR)):
+        shutil.rmtree(os.path.join(ROOT, YAYIN_DIR))
+    for _rel in SOYULACAK_JS:
+        if yayin_js_yaz(_rel) is None:
+            print("HATA: yayin JS varligi bulunamadi -> %s "
+                  "(deploy.yml beyaz listesi ile _yayin/ arasinda drift)" % _rel)
+            sys.exit(1)
+
     # marka -> model hiyerarşik gezinme (anasayfa çip-marka evreni) — additive ek modül.
     # urunler.json'a DOKUNMAZ; /marka/... sayfalarını yazar; sitemap kayıtları + kopyalanacak
     # üst dizin(ler) + anasayfa SSR çip linkleri + çip slug haritası + ürün-çip geri-link
@@ -2979,6 +3076,13 @@ def main():
 
     # taban-fiyatlar.js — sarı kart "X TL'den başlayan" haritası (tek kaynak: şemalar)
     uret_taban_fiyatlar()
+
+    # ÜRETİLEN iki JS varlığının yayın kopyası (yorumu soyulmuş). Bunlar yukarıda
+    # üretildiği için burada soyulur; deploy _site'a _yayin/'dan kopyalar.
+    for _rel in ("filament-veri.js", "taban-fiyatlar.js"):
+        if yayin_js_yaz(_rel) is None:
+            print("HATA: uretilen yayin JS varligi bulunamadi -> %s" % _rel)
+            sys.exit(1)
 
     # index.built.html — ana sayfanin YAYIN kopyasi: script src'leri ?v=<hash> ile
     # surumlenir (KAYNAK index.html degismez). deploy.yml bunu _site/index.html yapar.

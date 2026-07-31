@@ -825,6 +825,15 @@ jobs:
       - name: Yayin ic-dil kapisi — KAYNAK kolu (build'den once)
         run: python3 tools/yayin-ic-dil-kapisi.py --kaynak
 
+      # YORUM SOYUCU: build.py'nin _yayin/ kopyalarini uretirken kullandigi lexer.
+      # Kendini-testi (46 iddia) + BAGIMSIZ tuzak fiksturleri & kirmizi-mutasyon kapisi
+      # (17 fikstur / 10 mutant). build.py'den ONCE kosar: soyucu bozuksa yayin
+      # kopyasi hic uretilmesin. Offline, stdlib (node varsa `node --check` de kosar).
+      - name: Yorum soyucu kabul testi + kirmizi-mutasyon kapisi
+        run: |
+          python3 tools/yorum_soy.py --kendini-test
+          python3 tools/yorum-soy-test.py
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
@@ -841,6 +850,14 @@ jobs:
       - name: "Uretici butunluk kapisi (yayinlanan her id'nin sayfasi var mi)"
         run: python3 tools/uretim-butunluk-kapisi.py
 
+      # YAYIN KOPYASI PARITE KAPISI: soyma PARAYI degistirdi mi. Kaynak JS ile _yayin/
+      # (soyulmus) JS ayri ayri yuklenip TAM KUME fiyat karsilastirmasi yapilir
+      # (23 sema x 25 olcu x 4 filament x 4 renk = 9200 kombinasyon, orneklem YOK) +
+      # uretilen TUM sayfalarin `?v=` referanslari YAYINLANAN bayta baglaniyor mu.
+      # build.py'den SONRA kosmak ZORUNDA (_yayin/ + urun/ ciktisina muhtac; yoksa
+      # OLCULEMEDI ile exit 3 — sessiz YESIL imkansiz). Offline, ~60 s.
+      - name: Yayin kopyasi fiyat paritesi + `?v=` surum hatti (tam kume)
+        run: node jenerator/test/yayin-fiyat-parite.mjs
 
       # JSON-LD BRAND KAPISI: uretilen TUM urun sayfalarinin JSON-LD bloklari taranir —
       # JSON gecerli + hicbir objede yinelenen anahtar yok + Product.brand TEK deger
@@ -900,7 +917,12 @@ jobs:
           # ana sayfa 404 alip bos kalirdi).
           # konfigur.js = dekor konfiguratoru modulu (urunler.json "konfigur" alanli urun
           # sayfalari yukler; bugun urun yok, dosya yayinda hazir bekler — taban-fiyatlar deseni).
-          cp secenekler.js konfigur.js urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml filament-veri.js taban-fiyatlar.js .nojekyll _site/
+          # JS varliklari _yayin/'dan gelir: build.py onlarin YORUMU SOYULMUS yayin
+          # kopyasini oraya yazar (kaynak dosyalar depoda tam dokumantasyonla KALIR,
+          # tarayiciya inmez). _yayin/ yoksa/eksikse `cp` HATA verir -> yayin durur
+          # (fail-closed; sessizce yorumlu kaynak yayinlanamaz).
+          cp _yayin/secenekler.js _yayin/konfigur.js _yayin/filament-veri.js _yayin/taban-fiyatlar.js _site/
+          cp urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml .nojekyll _site/
           cp -r urun _site/
           # Icerik/yasal sayfa dizinleri: build.py'nin urettigi _yayin-icerik-dizinleri.txt'ten
           # (TEK KAYNAK sayfalar.py SITEMAP_SLUGS) kopyalanir -> yeni CONTENT_PAGES otomatik
@@ -915,7 +937,8 @@ jobs:
           # hacim.js tek kaynak (kabul testi #4), semalar Worker'in ileride sunucu-tarafi
           # yeniden hesabi icin de ayni adresten okunur.
           mkdir _site/jenerator
-          cp jenerator/hacim.js jenerator/konfigurator.js jenerator/viewer.js _site/jenerator/
+          # ... ayni sekilde yorumu soyulmus kopyalar (_yayin/jenerator/).
+          cp _yayin/jenerator/hacim.js _yayin/jenerator/konfigurator.js _yayin/jenerator/viewer.js _site/jenerator/
           cp -r jenerator/urunler _site/jenerator/urunler
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3
