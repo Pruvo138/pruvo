@@ -254,17 +254,53 @@ def _cumle(metin, i, j):
     return metin[bas:son]
 
 
-# --- MUAF-1 (KAYIT DUZEYI): urunun HEDEF CIHAZI bir 3D yazici -------------------------
-# Yazici parcasi satarken "3D yazici" demek ZORUNLU ve MESRU — bu PRUVO'nun kendi uretim
-# sureci DEGIL, urunun UYUM bilgisidir. Ama muafiyet KOSULLU: ayni metinde "yazici ILE/DA
-# URETILIR/BASILIR" gecerse o BIZIM surecimizdir -> muafiyet DUSER (kacak deligi kapali).
+# --- MUAF-1 (ESLESME DUZEYI, 31 Tem — eskiden KAYIT duzeyiydi) ------------------------
+# Urunun HEDEF CIHAZI bir 3D yazici olabilir (yazici parcasi satiyoruz). O zaman CIHAZIN
+# KENDI SOZLUGU ("baski tablasi", "baski kafasi", "ekstruder", "filament beslemesi",
+# "OctoPrint", "uzun baskilarda isinan anakart") ZORUNLU ve MESRU UYUM bilgisidir —
+# PRUVO'nun kendi uretim sureci DEGIL.
+#
+# 🔴 NEDEN ARTIK KAYIT DUZEYI DEGIL (OLCULDU, canli katalog 15.755 kayit):
+#   Eski surumde `_yazici_hedef_urun()` True donunce `kapi_ifsa()` HIC desen kosturmadan
+#   bos donuyordu = ALL-OR-NOTHING. Olculdu: 6 muaf kaydin 3'unde kapinin KENDI SERT deseni
+#   ateslIyordu (`filament` x2, `baski tabla` x2) ve muafiyet bunlari SESSIZCE yutuyordu.
+#   Yutulanlarin arasinda GERCEK ihlal de vardi: `raspberry-pi-kamera-mount-chiron`
+#   "az filament harcar" = BIZIM uretim EKONOMIMIZ, cihazin ozelligi degil.
+#   ARTIK: muafiyet tek tek ESLESMEYE uygulanir; yalniz (a) kural _CIHAZ_MUAF_KURAL'daysa
+#   VE (b) o CUMLEDE uretim-ekonomisi dili YOKSA. Kaydin geri kalani normal denetlenir.
 _YAZICI_HEDEF_RE = re.compile(r"(3\s*[db]|3\s*boyutlu)\s*yaz[ıi]c[ıi]", re.UNICODE)
-_YAZICI_BIZIM_RE = re.compile(r"yaz[ıi]c[ıi]\w*[^\n.]{0,40}?(bas[ıi]l|[üu]retil|imal\s*edil)",
-                              re.UNICODE)
+# KACAK DELIGI (31 Tem): eski desen YALNIZ ileri yonluydu (yazici -> fiil) ve yalniz
+# `basıl/üretil/imal edil` FIILINI goruyordu. Kacaklar: ters siralama ("PETG ile basilir,
+# 3D yazici uyumlu") ve baski'nin ISIM/cekim hali ("yazicida baskisi yapilir").
+# ⚠️ CIPLAK `baski` BILEREK EKLENMEDI: "3D yazicilarin BASKI KAFASI" hedef cihaz parcasidir
+#   (canli kayit: ctc-yazici-ust-kablo-tutucu) — ciplak `baski` o kaydi yanlislikla "BIZIM
+#   surecimiz" sayip TUM cihaz sozlugu muafiyetini dusururdu. Yalniz surec ANLAMI tasiyan
+#   cekimli bicimler alinir: baskisi / baskiya / baskida(n) / baskiyla / baski ile.
+#   OLCULDU: 6 yazici-hedef kaydin HICBIRI bu genisletmeyle muafiyetini kaybetmiyor.
+_YAZICI_BIZIM_RE = re.compile(
+    r"yaz[ıi]c[ıi]\w*[^\n.]{0,40}?(?:bas[ıi]l|[üu]retil|imal\s*edil"
+    r"|bask[ıi](?:s[ıi]|ya|d[ae]|yl[ae])|bask[ıi]\s+ile)"
+    r"|(?:bas[ıi]l|[üu]retil|imal\s*edil)[^\n.]{0,40}?yaz[ıi]c[ıi]",
+    re.UNICODE)
+
+# Muafiyetin uygulanabilecegi KURAL adlari (cihaz sozlugu). Bunun DISINDAKI hicbir kural
+# (dolgu/katman/malzeme-tavsiye/dilimleyici/dosya/3D-baski...) hedef-cihaz kaydinda bile
+# muaf DEGILDIR — onlar hangi urunde gecerse gecsin BIZIM surecimizi anlatir.
+# ⚠️ `makine-parametresi` (duvar/kabuk sayisi, brim, raft) BILEREK LISTEDE DEGIL: onlar
+#   hedef cihazi yazici olan urunde de DILIMLEYICI ayaridir = BIZIM surecimiz. Bu yuzden
+#   `baski tabla` / `isitmali tabla` (cihazin FIZIKSEL parcasi) o kuraldan cikarilip
+#   muaf-edilebilir `baski-hacmi` kuraline tasindi.
+_CIHAZ_MUAF_KURAL = frozenset((
+    "filament", "filament-ekosistem", "baski-hacmi", "cihaz-baski-terimi",
+))
+# ... ve ayni CUMLEDE uretim EKONOMISI dili varsa muafiyet DUSER: "az filament harcar"
+# cihazin ozelligi degil BIZIM maliyetimizdir (olculdu: chiron kaydi).
+_URETIM_EKONOMISI_RE = re.compile(r"harca|t[üu]ket|tasarruf", re.UNICODE)
 
 
 def _yazici_hedef_urun(metin):
-    """Urunun hedefi bir 3D yazici mi (-> ifsa kapisi bu kayitta CALISMAZ)?"""
+    """Urunun hedefi bir 3D yazici mi? -> ESLESME duzeyi cihaz-sozlugu muafiyetinin ON
+    KOSULU (kaydin tamamini SUSTURMAZ; bkz. kapi_ifsa._kayit)."""
     if not _YAZICI_HEDEF_RE.search(metin):
         return False
     return _YAZICI_BIZIM_RE.search(metin) is None
@@ -286,19 +322,27 @@ _PRESS_RE = re.compile(r"d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*da
 
 # --- SERT (KESIN-YASAK -> ihlal, BLOKLAR) ---------------------------------------------
 # Her biri TEK BASINA kesin: Turkce'de baska mesru okumasi OLCULMEDI.
+# BICIM: (kural_adi, desen, gerekce, eleme|None)
+#   `eleme` = O KURALA OZEL, cumle kapsamli yanlis-pozitif suzgeci. 🔴 KURAL-YEREL OLMAK
+#   ZORUNDA: ayni suzgec _IFSA_MUAF gibi TUM kurallar icin yazilsaydi "dolgu contasi"
+#   iceren bir cumledeki GERCEK malzeme-tavsiyesi ihlalini de susturur (fail-open).
 _IFSA_SERT = (
     ("dolgu-orani",
      r"(dolgu|doluluk)\s*oran|%\s*\d+\s*(dolgu|doluluk)|y[üu]ksek\s*(dolgu|doluluk)",
-     "dolgu/doluluk orani = dilimleyici parametresi"),
+     "dolgu/doluluk orani = dilimleyici parametresi",
+     None),
     ("katman-yuksekligi",
      r"katman\s*y[üu]ksekli|bask[ıi]\s*katman",
-     "katman yuksekligi = dilimleyici parametresi"),
+     "katman yuksekligi = dilimleyici parametresi",
+     None),
     ("baski-yonu",
      r"bask[ıi]\s*y[öo]n|stl\s*y[öo]nlendirme|dilimleme\s*(s[ıi]ras[ıi]nda|[öo]neril|yap)",
-     "baski yonu / dilimleme = uretim sureci"),
+     "baski yonu / dilimleme = uretim sureci",
+     None),
     ("baskiya-uygunluk",
      r"bask[ıi]ya\s*uygun|kolay\s*bask[ıi]|bask[ıi]\s*kolayl|bask[ıi]\s*alan",
-     "baskiya uygunluk/baski alani = uretim sureci"),
+     "baskiya uygunluk/baski alani = uretim sureci",
+     None),
     # ⚠️ 'nozzle/nozul' ve 'SLS' BILEREK BU LISTEDE DEGIL — OLCULDU (30 Tem, canli katalog):
     #   'nozul' OTOMOTIV parcasidir (far yikama nozulu BMW E46/Z4, sprey nozzle Audi e-tron,
     #   sanziman yagi degisim nozulu Toyota/Subaru, supurge nozulu Mercedes, silecek nozul
@@ -308,7 +352,8 @@ _IFSA_SERT = (
     ("surec-teknolojisi",
      r"\bfdm\b|\bsla\b|\binfill\b|3\s*[db]\s*bas[ıi]l|3\s*boyutlu\s*bas[ıi]l"
      r"|\d+[.,]?\d*\s*mm\s*noz[uüz]l|noz[uüz]l\s*[çc]ap",
-     "uretim teknolojisi adi (FDM/SLA/'3D basilabilir'/nozul CAPI)"),
+     "uretim teknolojisi adi (FDM/SLA/'3D basilabilir'/nozul CAPI)",
+     None),
     # --- 31 Tem: KAPININ HIC GORMEDIGI SINIF (olculdu, canli katalog) ----------------
     # Eski kapi malzeme adini YALNIZ 'basil-' fiiliyle birlikte goruyordu; fiilsiz gecen
     # surec dili hicbir kovaya dusmuyordu. Olculen kacaklar: 'filament' (10 kayit),
@@ -316,23 +361,28 @@ _IFSA_SERT = (
     # 'duvar sayisi', 'STL dosyasi dahildir', 'baskisi daha kolay'.
     ("filament",
      r"filaman\w*|filament\w*",
-     "'filament' = MAKINENIN yemi, musterinin aldigi malzeme DEGIL"),
+     "'filament' = MAKINENIN yemi, musterinin aldigi malzeme DEGIL",
+     None),
     ("katman-iplik-yonu",
      r"iplik\s*y[öo]n|katman\s*y[öo]n|lif\s*y[öo]n|katman\s*[çc]izgi"
      r"|boyuna\s+gelecek\s+bi[çc]imde\s+[üu]retil",
-     "katman/iplik YONU = yerlesim parametresi (kapi katman YUKSEKLIGINI goruyordu, YONU gormuyordu)"),
+     "katman/iplik YONU = yerlesim parametresi (kapi katman YUKSEKLIGINI goruyordu, YONU gormuyordu)",
+     None),
     # ⚠️ 'raft'/'brim' \b ile: 'Alumicraft'/'Starcraft' icinde sinir YOK -> eslesmez (olculdu).
-    # ⚠️ 'baski tablasi' hedef cihazi yazici olan urunlerde MESRU -> _yazici_hedef_urun muaf eder.
+    # ⚠️ 31 Tem: 'baski tabla' / 'isitmali tabla' BU KURALDAN CIKARILDI -> muaf-edilebilir
+    #   `baski-hacmi` kuralina tasindi. Gerekce: tabla hedef cihazin FIZIKSEL parcasidir
+    #   (yazici urununde MESRU), duvar/kabuk sayisi ise her urunde DILIMLEYICI ayaridir.
     ("makine-parametresi",
-     r"bask[ıi]\s*tabla|[ıi]s[ıi]tmal[ıi]\s*tabla|duvar\s*say|kabuk\s*say"
-     r"|perimeter|\bbrim\b|\braft\b",
-     "tabla / duvar-kabuk sayisi / brim-raft = dilimleyici parametresi"),
+     r"duvar\s*say|kabuk\s*say|perimeter|\bbrim\b|\braft\b",
+     "duvar-kabuk sayisi / brim-raft = dilimleyici parametresi (hedef cihaz yazici OLSA BILE)",
+     None),
     # ⚠️ 'cura' \b ILE: 'Acura' (Honda) 6 mesru canli kayitta geciyor — sinirsiz desen
     #    onlari SESSIZCE bloklardi (olculdu).
     ("dilimleyici",
      r"prusaslicer|\bcura\b|slic3r|superslicer|orcaslicer|bambu\s*studio"
      r"|ideamaker|simplify3d|dilimleyici|\bslicer\b",
-     "dilimleyici (slicer) adi = uretim zinciri"),
+     "dilimleyici (slicer) adi = uretim zinciri",
+     None),
     # ⚠️ 'step' TEK BASINA yasak DEGIL (ingilizce/teknik metinde gecer); yalniz
     #    'STEP dosya' bigrami dosya ifsasidir.
     ("dosya-ifsasi",
@@ -340,12 +390,122 @@ _IFSA_SERT = (
      r"|step\s*dosya|fusion\s*360|solidworks|tinkercad|freecad|openscad|\bscad\b"
      r"|(?:cad|kaynak|d[üu]zenlenebilir|[çc]izim|proje)\s+dosya\w*"
      r"|dosya\w*\s+(?:dahil|i[çc]erir|verilir|eklidir)",
-     "CAD/STL dosya ifsasi ya da dosya TESLIMI vaadi — PRUVO fiziksel parca satar"),
+     "CAD/STL dosya ifsasi ya da dosya TESLIMI vaadi — PRUVO fiziksel parca satar",
+     None),
     ("baskiya-uygunluk-2",
      r"bask[ıi]s[ıi]\s+(?:daha\s+)?kolay|bas[ıi]lmas[ıi]\s+(?:daha\s+)?kolay",
-     "'baskisi daha kolay' — eski 'baski kolayl' deseninin KACIRDIGI bicimbirim"),
+     "'baskisi daha kolay' — eski 'baski kolayl' deseninin KACIRDIGI bicimbirim",
+     None),
+    # =====================================================================================
+    # 31 Tem — IKINCI TUR: ISIM/SIFAT EKSENI (kapinin OLCULMUS kor noktasi)
+    # -------------------------------------------------------------------------------------
+    # Kapi surec dilini FIIL ekseninde taniyordu ("3D basıl-", "dolgu oranı", "katman
+    # yüksekliği"); katalogdaki sizinti ISIM/SIFAT ekseninde yaziliydi ("3D baskı",
+    # "tam dolguda", "ince katmanla", "ekonomik baskı", "baskı yatağı", "yazıcı toleransı").
+    # OLCULDU (canli katalog, 15.755 kayit): kapi SERT'te 0 kayit buluyordu, bagimsiz
+    # tarama 112 kayit / 121 cumlede GERCEK ihlal buluyordu. Asagidaki 8 sinif o farki kapatir.
+    #
+    # 🔴 CIPLAK `bask[ıi]` KELIMESI BILEREK YOK — OLCULDU: 140 kayda carpar, 96'si MESRU
+    #   (baski balata, baskiyla oturur, su baskini, baskili devre karti) = %69 yanlis-pozitif;
+    #   ciplak `basıl-` %77, ciplak `dolgu` %44, ciplak `katman` %50, ciplak `yazıcı` %47.
+    #   Bu yuzden HER desen DAR tamlamadir + kendi `eleme` suzgecini tasir.
+    #   OLCULEN TOPLAM YANLIS-POZITIF (canli katalog, elle yargi): 0.
+    # =====================================================================================
+    ("3d-baski-isim",
+     r"3\s*[db]\s*bask[ıi]|3\s*boyutlu\s*bask[ıi]|\b3d\s*print",
+     "'3D baskı' ISIM hali — marka dil kuralinin DOGRUDAN ihlali (kapi yalniz FIILI goruyordu)",
+     None),
+    # ⚠️ `y[üu]ksek` BILEREK YOK: `dolgu-orani` zaten "yuksek dolgu"yu goruyor (mukerrer olmasin).
+    ("dolgu-bicimleri",
+     r"(?:tam|d[üu][şs][üu]k|hafif)\s*dolgu\w*|dolgu\w*\s+[üu]retil|dolgu\s*y[üu]zde"
+     r"|%\s*\d+\s*doluluk|doluluk\s*ve\s*\d+\s*derece",
+     "dolgu BICIMI ('tam dolguda uretilir') = dilimleyici parametresi",
+     # canli yanlis-pozitif: 'icine hafif dolgu MALZEMESI konularak' (dalis yelegi tutamagi)
+     r"dolgu\s*(?:malzeme|panel|conta|par[çc]a|klips|kapa|plaka|profil|eleman|uyum|ama[çc]l)"
+     r"|dolgusu\b|dolgun\b|silikon\s*dolgu|s[üu]nger\s*dolgu|hava\s*dolgusuz|aral[ıi]k\s*dolgu"),
+    ("katman-bicimleri",
+     r"[ıi]nce\s*katman|katman\s*ayar|\d+[.,]\d+\s*mm\s*katman|katman\s*iz\w*",
+     "katman BICIMI ('ince katmanla', '0,16 mm katman', 'katman izi') = dilimleyici parametresi",
+     # 'katman ayrilmasi' = karbon fiberde FIZIKSEL tabaka ayrilmasi (canli Marin kaydi)
+     r"katman\s*ayr[ıi]l|katmanl[ıi]\s*[şs]ekilde|iki\s*katman\s*aras"
+     r"|y[üu]kselen\s*katman|ba[şs]ka\s*bir\s*katman"),
+    ("yazici-makine-parki",
+     r"yaz[ıi]c[ıi]\w*\s*(?:tolerans|ayar|tabla|y[üu]ksekli|limit|s[ıi]n[ıi]r)"
+     r"|yaz[ıi]c[ıi]lar[ıa]\w*\s*(?:uygun|s[ıi][ğg]|uyar)|baz[ıi]\s*yaz[ıi]c[ıi]lar"
+     r"|yaz[ıi]c[ıi]larda\s*bas[ıi]l",
+     "MAKINE PARKI ifsasi ('bazi yazicilarda olcek ayari', 'buyuk yazicilara sigmayabilir') — "
+     "musteriye degil USTAYA yazilmis",
+     None),
+    # ⚠️ MUAF-EDILEBILIR (bkz _CIHAZ_MUAF_KURAL): hedef cihazi 3D yazici olan urunde
+    #   "baski tablasi" cihazin FIZIKSEL parcasidir (canli: iki Raspberry Pi kamera montaji).
+    ("baski-hacmi",
+     r"bask[ıi]\s*(?:yata[ğg]|platform|tabla|boyut\s*s[ıi]n[ıi]r|limit|hacim)"
+     r"|masa[üu]st[üu]\s*bask[ıi]|bask[ıi]\s*s[üu]re|bask[ıi]\s*maliyet"
+     r"|[ıi]s[ıi]tmal[ıi]\s*tabla",
+     "baski HACMI / makine siniri ('baski yatagi boyutu', 'masaustu baski limiti', 'baski suresi')",
+     r"bask[ıi]\s*(?:balata|plaka|pim|c[ıi]vata|bur[çc]|disk|nokta|apar|merkez)"
+     r"|su\s*bask[ıi]n|bask[ıi]l[ıi]\s*devre|debriyaj"),
+    # ⚠️ `tolerans` BU LISTEDE DEGIL -> UYARI kovasinda. OLCULDU: canli katalogdaki 2
+    #   'baski tolerans' kaydinin IKISI DE BASINÇ okumasi (pres/gecme, termal zorlanma).
+    ("baski-parametre",
+     r"(?:ekonomik|h[ıi]zl[ıi]|hassas|basit|standart|dikey|yatay|d[üu]z|p[üu]r[üu]zl[üu]"
+     r"|[çc]ok\s*renkli|iki\s*renkli|[çc]ok\s*malzemeli|deneme|[öo]rnek"
+     r"|y[üu]ksek\s*[çc][öo]z[üu]n[üu]rl[üu]kl[üu])\s*bask[ıi]\w*"
+     r"|bask[ıi]\s*(?:ayar|hassasiyet|deste|geometri|a[çc][ıi]s[ıi]|y[üu]zde|planlan"
+     r"|teknik|yaz[ıi]l[ıi]m|kolayl)"
+     r"|bask[ıi]\s*plastik|bask[ıi]\s*damga|bask[ıi]\s*d[ıi][şs][ıi]\s*par[çc]a"
+     r"|bask[ıi]dan\s*[çc][ıi]kt|bask[ıi]\s*i[çc]inde|print-?in-?place|bask[ıi]\s*[öo]rnek",
+     "baski PARAMETRE/SIFAT es-dizimi ('ekonomik baski', 'baski ayari', 'baski plastik') = surec dili",
+     r"bask[ıi]\s*(?:balata|plaka|pim|c[ıi]vata|bur[çc]|disk|nokta|apar|merkez)"
+     r"|bask[ıi]y[la]a?\s*(?:otur|tutun|ge[çc]|tak[ıi]l|s[ıi]k[ıi][şs]|yerle)"
+     r"|su\s*bask[ıi]n|bask[ıi]l[ıi]\s*devre|sanat\s*bask[ıi]|debriyaj|bask[ıi]\s*ge[çc]me"),
+    # ⚠️ MUAF-EDILEBILIR: bunlar hedef cihazi yazici olan urunde CIHAZIN sozlugudur
+    #   ("baski kafasi kablo demeti", "baskilarinizi kameradan izleyin", "uzun baskilarda
+    #   isinan anakart"); BASKA her urunde BIZIM surecimizdir.
+    ("cihaz-baski-terimi",
+     r"bask[ıi]\s*kafa|bask[ıi]\s*takip|bask[ıi]lar[ıi]n[ıi]z|uzun\s*bask[ıi]",
+     "cihaz-baski terimi (baski kafasi/takibi, uzun baskilar) — hedef cihaz 3D yazici DEGILSE ifsa",
+     None),
+    # ⚠️ `ekstr[uü]zyon` DISARIDA: aluminyum EKSTRUZYON profili 2 mesru canli kayitta geciyor.
+    ("filament-ekosistem",
+     r"octoprint|\bspool\b|\bhotend\b|\bheatsink\b|ekstr[uü]der",
+     "filament ekosistemi (OctoPrint/spool/hotend/heatsink/ekstruder) = uretim zinciri",
+     None),
+    ("basil-print",
+     r"par[çc]a\s*(?:olarak|h[âa]linde)\s*bas[ıi]l|bas[ıi]labilen|bas[ıi]lmaya\s*uygun"
+     r"|bas[ıi]l[ıi]p\s*yap[ıi][şs]",
+     "'basıl-' PRINT anlaminda ('parca olarak basilabilen') — konjonksiyon kolu SUREC JETONU "
+     "istedigi icin kaciyordu",
+     # press-anlami: "dugmeye basilabilen" = BASMA.
+     # ⚠️ KELIME SINIRI ZORUNLU: sinirsiz `tu[şs]` "kuTUSu" icinde eslesir ve GERCEK ihlali
+     #   susturur (OLCULDU: 'kayak-trolling-motoru-direksiyon-montaji' — "servo KUTUSU ust ve
+     #   alt yarim parca olarak basilir" sinirsiz desende sessizce dusuyordu = fail-open).
+     r"\bd[üu][ğg]me\w*|\btu[şs]\w*|\bbuton\w*|\bkorna\w*|\bpedal\w*|\bfitil\w*|ayak\s*day"),
 )
-_IFSA_SERT_RE = tuple((ad, re.compile(d, re.UNICODE), g) for ad, d, g in _IFSA_SERT)
+
+# --- UYARI (SUPHELI -> eskalasyon; BLOKLAMAZ) -----------------------------------------
+# Ayni bicim: (kural_adi, desen, gerekce, eleme|None). Buraya konan bir sinif YAYINI
+# DURDURMAZ, yalnizca mimar/isci onune duser.
+_IFSA_UYARI = (
+    ("baski-tolerans-belirsiz",
+     r"bask[ıi]\s*tolerans",
+     "'baskı toleransı' — PRINT toleransi da BASINÇ/gecme toleransi da olabilir; INSAN karari "
+     "(olculdu: canli katalogdaki 2 kaydin ikisi de BASINÇ okumasi)",
+     None),
+)
+
+# --- MUTASYON CAPASI (kendini-test BELLEKTE bu iki satirin arasina neutralize satiri
+#     enjekte eder; diske mutant YAZILMAZ). Bu iki satiri BIRLESTIRME/SILME.
+_IFSA_DESEN_ARA = {ad: d for ad, d, _g, _e in (_IFSA_SERT + _IFSA_UYARI)}
+# --- MUTASYON CAPASI SONU ---
+_IFSA_SERT_RE = tuple(
+    (ad, re.compile(_IFSA_DESEN_ARA[ad], re.UNICODE), g,
+     (re.compile(e, re.UNICODE) if e else None))
+    for ad, _d, g, e in _IFSA_SERT)
+_IFSA_UYARI_RE = tuple(
+    (ad, re.compile(_IFSA_DESEN_ARA[ad], re.UNICODE), g,
+     (re.compile(e, re.UNICODE) if e else None))
+    for ad, _d, g, e in _IFSA_UYARI)
 
 # --- MALZEME BEYANI  <->  MALZEME SECIM TAVSIYESI (KraL karari, 31 Tem) ---------------
 # Malzeme ADI ihlal DEGIL: "PETG malzemededir" musteriye TESLIM EDILEN PARCANIN
@@ -677,28 +837,45 @@ def _ifsa_muaf_eslesme(cumle):
 
 
 def kapi_ifsa(urun):
-    """KAPI 8 — uretim-sureci ifsasi. ({sert:[...], uyari:[...]}) dondurur.
+    """KAPI 8 — uretim-sureci ifsasi. ({sert:[...], uyari:[...], muaf:[...]}) dondurur.
       sert  = KESIN-YASAK -> ihlal (BLOKLAR); duzeltilmeden parti gecmez.
       uyari = SUPHELI ama BELIRSIZ -> yalnizca isaretlenir, insan/isci karar verir.
-    Kayit duzeyinde MUAF: urunun hedef cihazi bir 3D yazici (bkz _yazici_hedef_urun)."""
-    metin = _metin(urun)
-    if _yazici_hedef_urun(metin):
-        return {"sert": [], "uyari": [],
-                "muaf": "urunun HEDEF CIHAZI 3D yazici — baski sozlugu UYUM bilgisi"}
-    sert, uyari = [], []
+      muaf  = ESLESTI ama olculmus bir gerekceyle DUSURULDU (denetim izi; hukme girmez).
 
-    def _kayit(hedef, ad, m, gerekce):
+    🔴 MUAFIYET DUZEYI = ESLESME (31 Tem). Eskiden kayit duzeyiydi: hedef cihazi 3D yazici
+    olan bir urunde kapi HIC desen kosturmuyordu ve kendi SERT desenleri ateslese bile
+    sessizce yutuluyordu (olculdu: 6 muaf kaydin 3'unde). Artik yalniz CIHAZ SOZLUGU
+    kurallari (_CIHAZ_MUAF_KURAL) ve yalniz uretim-EKONOMISI dili tasimayan cumlelerde
+    dusurulur; kaydin geri kalani normal denetlenir."""
+    metin = _metin(urun)
+    cihaz_hedef = _yazici_hedef_urun(metin)     # ESLESME muafiyetinin ON KOSULU
+    sert, uyari, muaf = [], [], []
+
+    def _kayit(hedef, ad, m, gerekce, eleme=None):
         c = _cumle(metin, m.start(), m.end())
-        muaf = _ifsa_muaf_eslesme(c)
-        if muaf:
+        if _ifsa_muaf_eslesme(c):
             return
-        hedef.append({"kural": ad, "ifade": m.group(0).strip(),
-                      "cumle": c.strip()[:160], "gerekce": gerekce})
+        if eleme is not None and eleme.search(c):
+            return
+        kayit = {"kural": ad, "ifade": m.group(0).strip(),
+                 "cumle": c.strip()[:160], "gerekce": gerekce}
+        if (cihaz_hedef and ad in _CIHAZ_MUAF_KURAL
+                and not _URETIM_EKONOMISI_RE.search(c)):
+            kayit["neden"] = ("hedef cihaz 3D yazici — CIHAZ SOZLUGU (uyum bilgisi), "
+                              "PRUVO'nun uretim sureci DEGIL")
+            muaf.append(kayit)
+            return
+        hedef.append(kayit)
 
     # 1) tek basina KESIN olan desenler
-    for ad, rx, gerekce in _IFSA_SERT_RE:
+    for ad, rx, gerekce, eleme in _IFSA_SERT_RE:
         for m in rx.finditer(metin):
-            _kayit(sert, ad, m, gerekce)
+            _kayit(sert, ad, m, gerekce, eleme)
+
+    # 1b) SUPHELI desenler -> uyari (bloklamaz)
+    for ad, rx, gerekce, eleme in _IFSA_UYARI_RE:
+        for m in rx.finditer(metin):
+            _kayit(uyari, ad, m, gerekce, eleme)
 
     # 2) KONJONKSIYON: 'destek' + ayni cumlede URETIM FIILI -> KESIN (dilimleyici destegi)
     #    'destek' tek basina -> BELIRSIZ (fiziksel destek / kurulum destegi olabilir) -> uyari
@@ -730,7 +907,7 @@ def kapi_ifsa(urun):
         _kayit(sert, "malzeme-tavsiye", m,
                "malzeme SECIMI ureticiye TAVSIYE ediliyor (baski-isi talimati); "
                "malzeme BEYANI serbest, TAVSIYESI degil")
-    return {"sert": sert, "uyari": uyari, "muaf": None}
+    return {"sert": sert, "uyari": uyari, "muaf": muaf}
 
 
 def kapi_gorsel_cakisma(yeni, tum):
@@ -806,6 +983,7 @@ def denetle(urunler, yeni_ids, head_ids, kaynaklar):
     yeni = [u for u in urunler if isinstance(u, dict) and u.get("id") in yeni_ids]
     auto_sil, eskalasyon, marka_kirli = [], [], []
     ihlal = []                                    # KAPI 7/8: BLOKLAR ama SILMEZ (duzeltilir)
+    ifsa_muaf = []                                # KAPI 8: ESLESTI ama gerekceyle dusuruldu (iz)
     haric = set()
     gerekce_map = {}
 
@@ -824,6 +1002,10 @@ def denetle(urunler, yeni_ids, head_ids, kaynaklar):
         for w in ifsa["uyari"]:
             eskalasyon.append({"id": uid, "kapi": "ifsa-uyari/" + w["kural"],
                                "neden": "%s: %r — %s" % (w["gerekce"], w["ifade"], w["cumle"])})
+        # muafiyet IZI: hangi eslesme hangi gerekceyle dusuruldu (hukme GIRMEZ, gorunur olsun)
+        for mf in ifsa.get("muaf") or ():
+            ifsa_muaf.append({"id": uid, "kapi": "ifsa-muaf/" + mf["kural"],
+                              "neden": "%s: %r — %s" % (mf["neden"], mf["ifade"], mf["cumle"])})
         # 1 lisans
         kapi, g = kapi_lisans(u, kayit)
         if kapi:
@@ -868,6 +1050,7 @@ def denetle(urunler, yeni_ids, head_ids, kaynaklar):
         "eskalasyon": eskalasyon,
         "marka_kirli": marka_kirli,
         "ihlal": ihlal,
+        "ifsa_muaf": ifsa_muaf,
         "_sil_ids": sil_ids,
         "_gerekce": gerekce_map,
     }
@@ -1003,6 +1186,7 @@ def kendini_test():
     """POZITIF (yanlis-pozitif nobeti) + NEGATIF (olu nobetci nobeti) + OLCULEMEDI + mutasyon."""
     import shutil
     import tempfile
+    import types
 
     tmp = tempfile.mkdtemp(prefix="denetim-kapisi-kt-")
     depo = os.path.join(tmp, "depo")
@@ -1274,6 +1458,211 @@ def kendini_test():
     iddia("UD-MUAF kacak deligi KAPALI ('yazici ile uretilir' -> muafiyet duser)",
           bool(_yz2), "kural: %s" % (_yz2 or "YOK — KACAK"))
 
+    # =========================================================================
+    # ISIM/SIFAT EKSENI (31 Tem, IKINCI TUR) — kapinin OLCULMUS kor noktasi
+    # -------------------------------------------------------------------------
+    # Kapi surec dilini FIIL ekseninde taniyordu; katalogdaki sizinti ISIM/SIFAT
+    # ekseninde yaziliydi. Asagidaki mutantlarin HEPSI canli katalogdan alinmis
+    # GERCEK cumlelerdir; kanaryalar ise ayni kelimelerin MESRU (basinc/fiziksel/
+    # hedef-cihaz) okumalaridir — ciplak kelime taramasinin %44-96 yanlis-pozitif
+    # verdigi olculdugu icin her desen DARDIR ve kendi eleme suzgecini tasir.
+    _MUTANT2 = [
+        ("A/3d-baski-isim", "⚠️ Yalnizca 3D baski parca satilmaktadir. " + _T),
+        ("B/tam-dolguda", "Sert malzemeyle, tam dolguda uretilir. " + _T),
+        ("B/dusuk-dolguyla", "Esnek malzemeden dusuk dolguyla uretilir. " + _T),
+        ("B/dolgulu-uretilir", "Kalin cidarli ve dolgulu uretilir. " + _T),
+        ("B/doluluk-derece", "Kurulumda 100% doluluk ve 80 derece degerleri ile. " + _T),
+        ("C/ince-katmanla", "Sert malzemeyle, ince katmanla uretilir. " + _T),
+        ("C/mm-katman", "TPU, 0.16 mm katman ile kullanim omru hedeflenmistir. " + _T),
+        ("C/katman-ayari", "Dusuk katman ayariyla saglam oturus rapor edilmistir. " + _T),
+        ("C/katman-izi", "Ozel doku yuzeyiyle katman izlerinin gorunmedigi kalemlik. " + _T),
+        ("D/yazicilara-sigmaz", "Tam model buyuk yazicilara sigmayabilir. " + _T),
+        ("D/bazi-yazicilar", "Bazi yazicilarda %1 civari olcek ayari gerekebilir. " + _T),
+        ("D/yazici-toleransi", "Farkli yazici toleranslari icin iki delik olcusu icerir. " + _T),
+        ("E/masaustu-limit", "Masaustu baski limitine gore iki parcaya bolunmustur. " + _T),
+        ("E/baski-yatagi", "Kucuk, orta ve buyuk baski yatagi boyutlarina gore 3 secenek. " + _T),
+        ("E/baski-suresi", "Kisa baski suresiyle hizli uretilebilir. " + _T),
+        ("F/ekonomik-baski", "- Hizli ve ekonomik baski. " + _T),
+        ("F/deneme-baskisi", "Kucuk bir deneme baskisi tavsiye edilir. " + _T),
+        ("F/baski-yazilimi", "Yolcu kapisi icin baski yaziliminda ayna alinarak kullanilir. " + _T),
+        ("F/baski-plastik", "Not: baski plastik rulmanlar dusuk hiz icindir. " + _T),
+        ("F/print-in-place", "Baski-icinde-mentese (print-in-place) teknigiyle uretilir. " + _T),
+        ("F/cozunurluklu", "Daha iyi sonuc icin yuksek cozunurluklu baski onerilir. " + _T),
+        ("G/cihaz-terimi-baski-kafa", "Baski kafasi kablo demetini tutan ust destek. " + _T),
+        ("G/cihaz-terimi-uzun-baski", "Uzun baskilarda isinan anakarti ufleyerek sogutur. " + _T),
+        ("G/ekosistem", "Hotend ve heatsink icin koruyucu kapak; spool yuvasi vardir. " + _T),
+        ("H/parca-olarak-basilir", "Servo kutusu ust ve alt yarim parca olarak basilir. " + _T),
+        ("H/basilabilen", "Iki yarim halinde de basilabilen govdesi vardir. " + _T),
+    ]
+    _KANARYA2 = [
+        ("dolgu PANELI (parca)", "Toyota Tacoma far dolgu paneli klipsi. " + _T),
+        ("dolgu MALZEMESI konul", "Icine hafif dolgu malzemesi konularak suda yuzmesi saglanir. " + _T),
+        ("dolgu contasi", "Dolgu contasi olarak kullanilan sizdirmazlik parcasi. " + _T),
+        ("hava dolgusuz", "Hava dolgusuz tekerlek gobegi kapagi. " + _T),
+        ("katman AYRILMASI (fiziksel)", "Karbon fiberin katman ayrilmasini onler. " + _T),
+        ("iki katman arasi", "Iki katman arasinda conta gorevi gorur. " + _T),
+        ("baskiyla oturur (BASINÇ)", "Yuvaya baskiyla oturur ve sabit kalir. " + _T),
+        ("baski BALATA", "Baski balata merkezleme pimi seti. " + _T),
+        ("su BASKINI", "Su baskinina karsi tahliye kapagi. " + _T),
+        ("baskiLI DEVRE", "Baskili devre karti (PCB) tutucusu. " + _T),
+        ("debriyaj baski plakasi", "Debriyaj baski plakasi hizalama aleti. " + _T),
+        ("aluminyum EKSTRUZYON", "Aluminyum ekstruzyon profiline geciyor. " + _T),
+        ("dugmeye BASILabilen (press)", "Dugmeye basilabilen kapak mandali. " + _T),
+        ("baski TOLERANSI (SERT degil, UYARI)",
+         "Cam kenari oturusunda daralan baski toleranslarina gore islevseldir. " + _T),
+        ("sicaklik baski toleransi", "Naylon malzemede yuksek sicaklik baski toleransi. " + _T),
+    ]
+    _sag2 = [ad for ad, m in _MUTANT2 if not _sert(m)]
+    _fp2 = [(ad, _sert(m)) for ad, m in _KANARYA2 if _sert(m)]
+    iddia("IS-MUT %d isim/sifat mutanti KIRMIZI (sag kalan=olu iddia)" % len(_MUTANT2),
+          not _sag2, "sag kalan: %s" % (_sag2 or "yok"))
+    iddia("IS-KAN %d kanarya YESIL (yanlis-pozitif nobeti)" % len(_KANARYA2),
+          not _fp2, "yanlis-pozitif: %s" % (_fp2 or "yok"))
+
+    # 'baski tolerans' SERT DEGIL ama SESSIZ de DEGIL -> UYARI kovasinda gorunmeli
+    def _uyari_ad(aciklama):
+        return [w["kural"] for w in kapi_ifsa(_kt_urun("x2", aciklama=aciklama))["uyari"]]
+
+    _tol = _uyari_ad("Cam kenari oturusunda daralan baski toleranslarina gore islevseldir. " + _T)
+    iddia("IS-UYARI 'baski tolerans' UYARI kovasinda (sessizce dusmuyor)",
+          "baski-tolerans-belirsiz" in _tol, "uyari: %s" % (_tol or "YOK — SESSIZ"))
+
+    # --- MUAFIYET DUZEYI: ESLESME mi KAYIT mi (olculmus 6 canli kayit ekseni) -------
+    _YZ = "Anet A6 3D yazici anakart fan tutucusu. "
+
+    def _mf(aciklama):
+        r = kapi_ifsa(_kt_urun("x3", aciklama=aciklama))
+        return [s["kural"] for s in r["sert"]], [m["kural"] for m in r["muaf"]]
+
+    _s, _m = _mf(_YZ + "Kamera kolu baski tablasini yandan gorecek sekilde kisaltilmistir. " + _T)
+    iddia("ES-1 yazici-hedef: 'baski tablasi' MUAF (susturulmuyor, IZ birakiliyor)",
+          not _s and "baski-hacmi" in _m, "sert=%s muaf=%s" % (_s, _m))
+    _s, _m = _mf(_YZ + "Klipsler profile gecmeli, az filament harcar. " + _T)
+    iddia("ES-2 yazici-hedef ama URETIM EKONOMISI ('az filament harcar') -> SERT",
+          "filament" in _s, "sert=%s muaf=%s" % (_s, _m))
+    _s, _m = _mf(_YZ + "Sert malzemeyle, tam dolguda uretilir. " + _T)
+    iddia("ES-3 yazici-hedef kayitta 'tam dolguda' MUAF DEGIL (kural cihaz sozlugu disi)",
+          "dolgu-bicimleri" in _s, "sert=%s muaf=%s" % (_s, _m))
+    _s, _m = _mf(_YZ + "Tabani kalin tutulmus, duvar sayisi artirilmistir. " + _T)
+    iddia("ES-4 yazici-hedef kayitta 'duvar sayisi' MUAF DEGIL (dilimleyici ayari)",
+          "makine-parametresi" in _s, "sert=%s muaf=%s" % (_s, _m))
+    _s, _m = _mf("3D yazicilarin baski kafasi kablo demetini tutan ust destek. " + _T)
+    iddia("ES-5 'yazicilarin BASKI KAFASI' hedef cihaz sayiliyor (muafiyet AYAKTA)",
+          not _s and "cihaz-baski-terimi" in _m, "sert=%s muaf=%s" % (_s, _m))
+    _s, _m = _mf("PETG ile basilir; 3D yazici uyumlu braket. Baski tablasina duz oturur. " + _T)
+    iddia("ES-6 KACAK: TERS siralama ('basilir ... 3D yazici') muafiyeti DUSURUYOR",
+          "baski-hacmi" in _s, "sert=%s muaf=%s" % (_s, _m))
+    _s, _m = _mf("3D yazicida baskisi yapilir. Baski tablasina duz oturur. " + _T)
+    iddia("ES-7 KACAK: 'yazicida BASKISI yapilir' (isim hali) muafiyeti DUSURUYOR",
+          "baski-hacmi" in _s, "sert=%s muaf=%s" % (_s, _m))
+
+    # =========================================================================
+    # KOD MUTASYONU — BELLEKTE (diske mutant YAZILMAZ)
+    # -------------------------------------------------------------------------
+    # 🔴 NEDEN BELLEKTE: diske yazilan mutant dosya dalda CANLI KALIR (olculdu).
+    # Kaynak okunur, tek bir satir donusturulur, ayri bir modul olarak exec edilir;
+    # repo dosyasina DOKUNULMAZ. Her mutant icin: SAGLAM kopya kurali YAKALAMALI,
+    # MUTANT kopya SESSIZ kalmali. Mutantsiz kopya da AYRICA yesil dogrulanir.
+    _KENDI = os.path.abspath(__file__)
+    _CAPA = "# --- MUTASYON CAPASI SONU ---"
+
+    def _yukle(donusum=None):
+        with open(_KENDI, encoding="utf-8") as f:
+            src = f.read()
+        if donusum is not None:
+            yeni = donusum(src)
+            if yeni == src:
+                return None                       # capa tutmadi -> OLCULEMEDI
+            src = yeni
+        mod = types.ModuleType("dk_mutant")
+        mod.__file__ = _KENDI
+        exec(compile(src, _KENDI + "#mutant", "exec"), mod.__dict__)
+        return mod
+
+    def _desen_olsun(ad):
+        return lambda s: s.replace(_CAPA, _CAPA + '\n_IFSA_DESEN_ARA[%r] = r"(?!x)x"' % ad, 1)
+
+    def _satir(eski, yeni):
+        return lambda s: s.replace(eski, yeni, 1)
+
+    _YZF = "Anet A6 3D yazici anakart fan tutucusu. "
+    # (ad, kaynak donusumu, prob metni, kova, beklenen kural)
+    _KOD_MUTANT = [
+        ("K1 desen 3d-baski-isim olduruldu", _desen_olsun("3d-baski-isim"),
+         "Yalnizca 3D baski parca satilmaktadir. " + _T, "sert", "3d-baski-isim"),
+        ("K2 desen dolgu-bicimleri olduruldu", _desen_olsun("dolgu-bicimleri"),
+         "Sert malzemeyle, tam dolguda uretilir. " + _T, "sert", "dolgu-bicimleri"),
+        ("K3 desen katman-bicimleri olduruldu", _desen_olsun("katman-bicimleri"),
+         "Sert malzemeyle, ince katmanla uretilir. " + _T, "sert", "katman-bicimleri"),
+        ("K4 desen yazici-makine-parki olduruldu", _desen_olsun("yazici-makine-parki"),
+         "Tam model buyuk yazicilara sigmayabilir. " + _T, "sert", "yazici-makine-parki"),
+        ("K5 desen baski-hacmi olduruldu", _desen_olsun("baski-hacmi"),
+         "Masaustu baski limitine gore iki parcaya bolunmustur. " + _T, "sert", "baski-hacmi"),
+        ("K6 desen baski-parametre olduruldu", _desen_olsun("baski-parametre"),
+         "- Hizli ve ekonomik baski. " + _T, "sert", "baski-parametre"),
+        ("K7 desen cihaz-baski-terimi olduruldu", _desen_olsun("cihaz-baski-terimi"),
+         "Baski kafasi kablo demetini tutan ust destek. " + _T, "sert", "cihaz-baski-terimi"),
+        ("K8 desen filament-ekosistem olduruldu", _desen_olsun("filament-ekosistem"),
+         "Hotend ve heatsink icin koruyucu kapak. " + _T, "sert", "filament-ekosistem"),
+        ("K9 desen basil-print olduruldu", _desen_olsun("basil-print"),
+         "Iki yarim halinde de basilabilen govdesi vardir. " + _T, "sert", "basil-print"),
+        ("K10 UYARI deseni baski-tolerans olduruldu", _desen_olsun("baski-tolerans-belirsiz"),
+         "Daralan baski toleranslarina gore islevseldir. " + _T, "uyari",
+         "baski-tolerans-belirsiz"),
+        ("K11 muafiyet KAYIT duzeyine dondu (all-or-nothing)",
+         _satir("    sert, uyari, muaf = [], [], []",
+                "    sert, uyari, muaf = [], [], []\n"
+                "    if cihaz_hedef:\n"
+                "        return {'sert': [], 'uyari': [], 'muaf': []}"),
+         _YZF + "Klipsler profile gecmeli, az filament harcar. " + _T, "sert", "filament"),
+        ("K12 _CIHAZ_MUAF_KURAL asiri genis (dolgu da muaf)",
+         _satir('_CIHAZ_MUAF_KURAL = frozenset((\n    "filament"',
+                '_CIHAZ_MUAF_KURAL = frozenset((\n    "dolgu-bicimleri", "filament"'),
+         _YZF + "Sert malzemeyle, tam dolguda uretilir. " + _T, "sert", "dolgu-bicimleri"),
+        ("K13 uretim-ekonomisi suzgeci olduruldu",
+         _satir('_URETIM_EKONOMISI_RE = re.compile(r"harca|t[üu]ket|tasarruf", re.UNICODE)',
+                '_URETIM_EKONOMISI_RE = re.compile(r"(?!x)x", re.UNICODE)'),
+         _YZF + "Klipsler profile gecmeli, az filament harcar. " + _T, "sert", "filament"),
+        ("K14 _YAZICI_BIZIM_RE kacak fixi geri alindi (ters siralama)",
+         _satir('    r"yaz[ıi]c[ıi]\\w*[^\\n.]{0,40}?(?:bas[ıi]l|[üu]retil|imal\\s*edil"\n'
+                '    r"|bask[ıi](?:s[ıi]|ya|d[ae]|yl[ae])|bask[ıi]\\s+ile)"\n'
+                '    r"|(?:bas[ıi]l|[üu]retil|imal\\s*edil)[^\\n.]{0,40}?yaz[ıi]c[ıi]",',
+                '    r"yaz[ıi]c[ıi]\\w*[^\\n.]{0,40}?(?:bas[ıi]l|[üu]retil|imal\\s*edil)",'),
+         "PETG ile basilir; 3D yazici uyumlu braket. Baski tablasina duz oturur. " + _T,
+         "sert", "baski-hacmi"),
+        ("K15 basil-print elemesinde kelime siniri kaldirildi ('kuTUSu' fail-open)",
+         _satir(r'r"\bd[üu][ğg]me\w*|\btu[şs]\w*|\bbuton\w*|\bkorna\w*|\bpedal\w*|\bfitil\w*'
+                r'|ayak\s*day")',
+                r'r"d[üu][ğg]me|tu[şs]|buton|korna|pedal|fitil|ayak\s*day")'),
+         "Servo kutusu ust ve alt yarim parca olarak basilir. " + _T, "sert", "basil-print"),
+    ]
+
+    _saglam_mod = _yukle()
+
+    def _kural(mod, kova, aciklama):
+        return [x["kural"] for x in mod.kapi_ifsa(_kt_urun("k1", aciklama=aciklama))[kova]]
+
+    _capasiz, _saglam_sessiz, _mutant_konustu = [], [], []
+    for ad, don, prob, kova, beklenen in _KOD_MUTANT:
+        if beklenen not in _kural(_saglam_mod, kova, prob):
+            _saglam_sessiz.append(ad)
+            continue
+        mut = _yukle(don)
+        if mut is None:
+            _capasiz.append(ad)
+            continue
+        if beklenen in _kural(mut, kova, prob):
+            _mutant_konustu.append(ad)
+    iddia("KM-SAGLAM mutantsiz kopya %d/%d probu YAKALIYOR (YESIL)"
+          % (len(_KOD_MUTANT) - len(_saglam_sessiz), len(_KOD_MUTANT)),
+          not _saglam_sessiz, "sessiz: %s" % (_saglam_sessiz or "yok"))
+    iddia("KM-CAPA %d kod mutasyonunun capasi TUTTU" % len(_KOD_MUTANT),
+          not _capasiz, "capa tutmayan: %s" % (_capasiz or "yok"))
+    iddia("KM-MUT %d/%d kod mutanti KIRMIZI (sag kalan=olculmemis eksen)"
+          % (len(_KOD_MUTANT) - len(_mutant_konustu) - len(_capasiz) - len(_saglam_sessiz),
+             len(_KOD_MUTANT)),
+          not _mutant_konustu, "sag kalan: %s" % (_mutant_konustu or "yok"))
+
     shutil.rmtree(tmp, ignore_errors=True)
 
     print("DENETIM KAPISI — KENDINI TEST (--commit-farki CI kolu)")
@@ -1304,6 +1693,10 @@ def main():
                          "id'ler (fresh checkout'ta calisma-agaci farki DAIMA BOS oldugu icin)")
     ap.add_argument("--kendini-test", action="store_true",
                     help="kapinin kendi kabul testi (sentetik depo; repo dosyasi DEGISMEZ)")
+    ap.add_argument("--envanter", action="store_true",
+                    help="ENVANTER KOLU (BLOKLAMAZ): --tum-katalog ile birlikte kullanilir; "
+                         "onceden var olan ihlalleri kural kural sayar ve rc 0 doner. "
+                         "Yayin yolunu (deploy) BEKLETMEZ — ayri, bagimsiz bir CI isidir.")
     args = ap.parse_args()
 
     if args.kendini_test:
@@ -1378,12 +1771,33 @@ def main():
           % (len(rapor["dedup"]), sum(len(d["sil"]) for d in rapor["dedup"])))
     print("  eskalasyon   : %d" % len(rapor["eskalasyon"]))
     print("  marka_kirli  : %d" % len(rapor["marka_kirli"]))
-    print("  IHLAL        : %d (fiyat tabani / uretim-sureci ifsasi — BLOKLAR)"
-          % len(rapor["ihlal"]))
+    print("  IHLAL        : %d (fiyat tabani / uretim-sureci ifsasi%s)"
+          % (len(rapor["ihlal"]), " — RAPORLAR, BLOKLAMAZ" if args.envanter else " — BLOKLAR"))
+    print("  ifsa muaf    : %d (eslesti ama CIHAZ SOZLUGU gerekcesiyle dusuruldu)"
+          % len(rapor.get("ifsa_muaf") or ()))
     if args.commit_farki:
         print("  onceden var  : %d (HEAD^'te de vardi — bu itme GETIRMEDI, bloklamaz; "
               "ayri temizlik isi)" % len(onceden))
     print("  rapor -> %s" % args.rapor)
+
+    # === ENVANTER KOLU: BLOKLAMAYAN kural-kural dokum + rc 0 ==========================
+    # 🔴 NEDEN BLOKLAMAZ (OLCULDU, 31 Tem): bu depoda kapi birikmesi yayin suresini 21 gunde
+    # 15,6x uzatti ve musteriye 404 olarak yansidi. Katalogda ONCEDEN VAR OLAN ihlaller
+    # (temizlik isi, ayri parti) bloklayici baglanirsa TUM EKIBIN yayini durur. Kural:
+    # yeni/degisen kayit (--commit-farki) BLOKLAR · tam katalog RAPORLAR.
+    if args.envanter:
+        kural = defaultdict(set)
+        for it in rapor["ihlal"]:
+            kural[it["kapi"]].add(it["id"])
+        print("\n=== ENVANTER (tum katalog, ONCEDEN VAR OLAN ihlaller — YAYINI DURDURMAZ) ===")
+        print("  %-34s | %s" % ("kural", "kayit"))
+        for k in sorted(kural, key=lambda x: (-len(kural[x]), x)):
+            print("  %-34s | %d" % (k, len(kural[k])))
+        print("  %-34s | %d" % ("TOPLAM AYRIK KAYIT",
+                                len({it["id"] for it in rapor["ihlal"]})))
+        print("  %-34s | %d" % ("TOPLAM VURUS", len(rapor["ihlal"])))
+        print("  temizlik partisi -> tools/duzelt.py --toplu (ayri is; bu kol RAPORDUR)")
+        return 0
 
     if rapor["ihlal"]:
         print("\n=== IHLAL (duzeltilmeden parti GECMEZ) ===", file=sys.stderr)
