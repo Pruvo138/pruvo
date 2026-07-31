@@ -14,18 +14,36 @@ FIKSTURLE calisir: canli D1'e, aga, `npx`'e DOKUNMAZ (`siparisler.wrangler_sorgu
 monkeypatch'lenir). `siparisler.py`'ye test-ozel arka kapi EKLENMEZ; TTY enjeksiyonu
 `siparisler._tty` monkeypatch'iyle yapilir.
 
+OLCUT KANALDIR, ALAN DEGIL: TTY disina (boru, `>` yonlendirme, `2>&1`,
+capture_output, CI) ham musteri verisi ve musteri serbest metni CIKMAZ — stdout
+da stderr de dahil. Tarayici hem stdout'u hem stderr'i tarar.
+
   1. maskele_ad / maskele_tel birim vakalari (bos, tek harf, kisa, +90'li, cok kelimeli)
   2. format_siparis(fikstur) VARSAYILAN -> HAM ad/tel YOK, MASKELI bicimler VAR
-  3. UCTAN UCA SIZINTI TARAYICI — main([]) ciktisinda fiksturun HICBIR kisisel
-     degeri (ham / kelime / telefonun son-4 disindaki basamak dizisi) GECMEZ
+  3. UCTAN UCA SIZINTI TARAYICI — main([]) stdout+stderr'inde fiksturun HICBIR
+     kisisel degeri (ham / kelime / telefonun son-4 disindaki basamak dizisi) GECMEZ
   4. `--acik` + TTY YOK -> cikti MASKELI + stderr'de tek satir uyari (FAIL-CLOSED)
   5. `--acik` + TTY VAR -> cikti HAM (pozitif eksen: maskeleme "her seyi yildiza
      cevir" gibi anlamsiz bir seye donuserse bu eksen kirmizi yanar)
-  6. KIRMIZI-MUTASYON KANITI — maskeleme SOKULMUS kopya tempdir'e yazilir,
-     importlib ile yuklenir, (3)'teki AYNI tarayici uygulanir: SIZINTI BULMALI.
+  6. KIRMIZI-MUTASYON KANITI — IKI mutant kopya tempdir'e yazilir, importlib ile
+     yuklenir, (3)'teki AYNI tarayici uygulanir; HER IKISINDE de SIZINTI BULUNMALI:
+       (A) maskeleme sokulmus (maskele_ad/maskele_tel -> KIMLIK)
+       (B) KANAL kapisi sokulmus (`_tty()` -> her zaman True)
      Bulamazsa nobetci OLU demektir -> KIRMIZI.
   7. OZ-NOBETCI — suite_butunlugu() pozitif+negatif eksende olculur; eksik/mukerrer/
-     beyan-disi kayit KIRMIZI. Bu dosyada govde bosaltma (hollowing) fail-open'i YOK.
+     beyan-disi kayit KIRMIZI.
+  8. `parametre_detay` (musteri SERBEST METNI, maskelenemez) TTY yokken ciktida
+     HIC YOK (yer tutucu var) / TTY varken VAR (pozitif eksen).
+  9. `wrangler_sorgu` HATA YOLLARI — ham dokum (SELECT sonucunun ham JSON'u) TTY
+     yokken sizmiyor ve teshis KORUNUYOR / TTY varken siziyor (pozitif eksen).
+
+🔴 BEYAN SINIRI (curutucu olctu, kabul edildi): buradaki oz-nobetci CAGRI SILME
+fail-open'ini kapatir — bir testin cagrisi silinir ya da govdesi no-op edilirse
+`suite_butunlugu()` KIRMIZI yakar. Ama bir testin cagrisi VE `BEKLENEN` demetindeki
+numarasi BIRLIKTE silinirse suite YESIL kalir (olculdu: TEST 4 + `--acik` kapisi
+sokumu -> rc=0). Bu, tasarimin KABUL EDILEN SINIRIDIR: beyani dusurmek iki satirlik
+bir duzenlemedir ve DIFF'TE GORUNUR. "Bu dosyada hicbir bosaltma fail-open'i yok"
+DEMEK YANLIS OLUR.
 """
 import importlib.util
 import io
@@ -45,7 +63,7 @@ SONUC = []
 
 # BEYAN: hangi testlerin KAYIT ETMESI zorunlu. Bir testin cagrisi silinir /
 # govdesi no-op edilirse "kirmizi yok" diye YESIL yanmasin diye vardir.
-BEKLENEN = (1, 2, 3, 4, 5, 6, 7)
+BEKLENEN = (1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 
 def suite_butunlugu(sonuc, beklenen):
@@ -96,6 +114,8 @@ FIKSTUR = [
             "renk": "Kirmizi",
             "adet": 3,
             "tutar_kurus": 12345,
+            # MUSTERI SERBEST METNI — icine bilerek ad+telefon konuldu.
+            "parametre_detay": "Kaziyacak yazi: Kemal Ozturk 5327776655",
         }]),
     },
     {
@@ -119,8 +139,29 @@ FIKSTUR = [
     },
 ]
 
-# Yeni bir kisisel kolon eklenirse SADECE buraya eklemek yeter — tarayici GENELDIR.
-KISISEL_ALANLAR = ("musteri_ad", "musteri_tel")
+# Yeni bir kisisel alan eklenirse SADECE bu IKI demete yazmak yeter — tarayici GENELDIR.
+KISISEL_ALANLAR = ("musteri_ad", "musteri_tel")            # siparis satiri kolonlari
+# Kalem (urunler JSON) icindeki MUSTERI SERBEST METNI alanlari: maskelenemez, TTY
+# disinda HIC BASILMAZ. `baslik` BILEREK YOK — o KATALOG verisidir (urunler.json'dan
+# gelir), musteri metni degildir.
+KALEM_KISISEL_ALANLAR = ("parametre_detay",)
+
+
+def _kisisel_degerler(row):
+    """(alan, deger) ciftleri — satir kolonlari + kalem (urunler JSON) alanlari."""
+    for alan in KISISEL_ALANLAR:
+        yield alan, row.get(alan)
+    try:
+        kalemler = json.loads(row.get("urunler") or "[]")
+    except (ValueError, TypeError):
+        kalemler = []
+    if not isinstance(kalemler, list):
+        kalemler = []
+    for k in kalemler:
+        if not isinstance(k, dict):
+            continue
+        for alan in KALEM_KISISEL_ALANLAR:
+            yield "urunler[].%s" % alan, k.get(alan)
 
 
 def _aranan_parcalar(deger):
@@ -147,15 +188,16 @@ def _aranan_parcalar(deger):
 
 
 def sizinti_tara(metin, satirlar):
-    """(bulgular) — GENEL sizinti tarayicisi. TEST 3 ve TEST 6 AYNISINI kullanir.
+    """(bulgular) — GENEL sizinti tarayicisi. TEST 3/4/6/8/9 AYNISINI kullanir.
 
-    Fiksturdeki her satirin her KISISEL alani icin uretilen imzalari metinde arar.
+    `metin` STDOUT + STDERR birlestirilmis olarak verilir (kanal kurali her ikisini
+    de kapsar). Fiksturdeki her satirin her KISISEL alani icin uretilen imzalari arar.
     Bulunan her imza bir SIZINTI bulgusu doner (bos liste = temiz)."""
     bulgular = []
     dusuk = metin.lower()
     for i, row in enumerate(satirlar, 1):
-        for alan in KISISEL_ALANLAR:
-            for tur, imza, harf_duyarli in _aranan_parcalar(row.get(alan)):
+        for alan, deger in _kisisel_degerler(row):
+            for tur, imza, harf_duyarli in _aranan_parcalar(deger):
                 if not imza:
                     continue
                 gecti = (imza in metin) if harf_duyarli else (imza.lower() in dusuk)
@@ -237,7 +279,7 @@ def test_3_uctan_uca_sizinti():
 
 def test_4_acik_tty_yok_fail_closed():
     cikti, hata = _kos_main(siparisler, ["--acik"], tty=False)
-    bulgular = sizinti_tara(cikti, FIKSTUR)
+    bulgular = sizinti_tara(cikti + hata, FIKSTUR)   # STDERR de taranir (kanal kurali)
     uyari_var = siparisler.UYARI_ACIK_YOKSAYILDI in hata
     kayit(4, "--acik + TTY YOK -> maskeli + stderr uyarisi (fail-closed)",
           not bulgular and uyari_var,
@@ -257,14 +299,40 @@ def test_5_acik_tty_var_ham():
 
 
 # ---------------------------------------------------------- kirmizi mutasyon
-# Maskeleme govdelerini KIMLIK fonksiyonuna cevirir. Capa TUTMAZSA (kaynak
-# degismis) SESSIZ ATLAMA YOK -> KIRMIZI.
-MUTASYONLAR = (
-    (re.compile(r"^def maskele_ad\(ad\):\n(?:[ \t].*\n|[ \t]*\n)*", re.M),
-     'def maskele_ad(ad):\n    return ad or "-"\n\n\n'),
-    (re.compile(r"^def maskele_tel\(tel\):\n(?:[ \t].*\n|[ \t]*\n)*", re.M),
-     'def maskele_tel(tel):\n    return tel or "-"\n\n\n'),
+# IKI ayri kapi, IKI ayri mutant. Capa TUTMAZSA (kaynak degismis) SESSIZ ATLAMA
+# YOK -> KIRMIZI. (A) maskeleme govdelerini KIMLIK'e cevirir; (B) KANAL kapisini
+# soker (`_tty()` her zaman True) -> parametre_detay TTY disinda da basilir.
+MUTANT_A = "A: maskeleme sokuldu (maskele_ad/maskele_tel -> KIMLIK)"
+MUTANT_B = "B: kanal kapisi sokuldu (_tty -> her zaman True)"
+
+MUTANTLAR = (
+    (MUTANT_A, (
+        (re.compile(r"^def maskele_ad\(ad\):\n(?:[ \t].*\n|[ \t]*\n)*", re.M),
+         'def maskele_ad(ad):\n    return ad or "-"\n\n\n'),
+        (re.compile(r"^def maskele_tel\(tel\):\n(?:[ \t].*\n|[ \t]*\n)*", re.M),
+         'def maskele_tel(tel):\n    return tel or "-"\n\n\n'),
+    )),
+    (MUTANT_B, (
+        (re.compile(r"^def _tty\(\):\n(?:[ \t].*\n|[ \t]*\n)*", re.M),
+         'def _tty():\n    return True\n\n\n'),
+    )),
 )
+
+
+def _mutant_gercekten_sokuldu(ad, mut):
+    """(ok, aciklama) — mutant beklenen sekilde BOZULDU mu. Bozulmadiysa
+    "sizinti yok" hukmu anlamsiz olurdu -> fail-closed."""
+    if ad == MUTANT_A:
+        a, t = mut.maskele_ad("Test Musteri"), mut.maskele_tel("5551112233")
+        if a != "Test Musteri" or t != "5551112233":
+            return False, "mutant KIMLIK degil (ad=%r tel=%r)" % (a, t)
+        return True, ""
+    # MUTANT_B: StringIO'ya yonlendirilmis stdout'ta ORIJINAL False doner, mutant True
+    with redirect_stdout(io.StringIO()):
+        deger = mut._tty()
+    if deger is not True:
+        return False, "mutant _tty() StringIO altinda %r dondu (True bekleniyordu)" % deger
+    return True, ""
 
 
 def test_6_kirmizi_mutasyon():
@@ -272,41 +340,130 @@ def test_6_kirmizi_mutasyon():
     with open(kaynak_yolu, encoding="utf-8") as f:
         kaynak = f.read()
 
-    mutant_kaynak = kaynak
-    for kalip, yeni in MUTASYONLAR:
-        mutant_kaynak, n = kalip.subn(yeni, mutant_kaynak, count=1)
-        if n != 1:
-            kayit(6, "kirmizi-mutasyon: maske sokulmus kopyada sizinti goruluyor", False,
-                  "MUTASYON CAPASI TUTMADI (%r) — siparisler.py degismis; nobetci "
-                  "sessizce ATLAMAZ" % kalip.pattern)
-            return
+    ozet, kotu = [], []
+    for ad, mutasyonlar in MUTANTLAR:
+        mutant_kaynak = kaynak
+        capa_bozuk = None
+        for kalip, yeni in mutasyonlar:
+            mutant_kaynak, n = kalip.subn(yeni, mutant_kaynak, count=1)
+            if n != 1:
+                capa_bozuk = ("MUTASYON CAPASI TUTMADI (%r) — siparisler.py degismis; "
+                              "nobetci sessizce ATLAMAZ" % kalip.pattern)
+                break
+        if capa_bozuk:
+            kotu.append("%s -> %s" % (ad, capa_bozuk))
+            continue
 
-    gecici = tempfile.mkdtemp(prefix="pruvo-maske-mutant-")
+        gecici = tempfile.mkdtemp(prefix="pruvo-maske-mutant-")
+        modul_adi = "siparisler_mutant_%d" % len(ozet)
+        try:
+            mutant_yolu = os.path.join(gecici, modul_adi + ".py")
+            with open(mutant_yolu, "w", encoding="utf-8") as f:
+                f.write(mutant_kaynak)
+            spec = importlib.util.spec_from_file_location(modul_adi, mutant_yolu)
+            mut = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mut)
+
+            ok, neden = _mutant_gercekten_sokuldu(ad, mut)
+            if not ok:
+                kotu.append("%s -> %s" % (ad, neden))
+                continue
+
+            cikti, hata = _kos_main(mut, [])
+            bulgular = sizinti_tara(cikti + hata, FIKSTUR)   # TEST 3'un AYNI tarayicisi
+            if bulgular:
+                ozet.append("%s: %d bulgu" % (ad[:1], len(bulgular)))
+            else:
+                kotu.append("%s -> NOBETCI OLU: sokulmus kopyada bile sizinti GORMUYOR"
+                            % ad)
+        finally:
+            sys.modules.pop(modul_adi, None)
+            shutil.rmtree(gecici, ignore_errors=True)
+
+    kayit(6, "kirmizi-mutasyon: sokulmus IKI kopyada da sizinti goruluyor",
+          not kotu, ("BOZUK=%s" % kotu) if kotu else " · ".join(ozet))
+
+
+# ------------------------------------------------- KANAL EKSENI (yeni, 2. tur)
+
+def test_8_parametre_detay_kanali():
+    """MUSTERI SERBEST METNI maskelenemez -> TTY disinda HIC BASILMAZ."""
+    ham_detay = json.loads(FIKSTUR[0]["urunler"])[0]["parametre_detay"]
+    ttysiz, ttysiz_hata = _kos_main(siparisler, [], tty=False)
+    ttyli, _ = _kos_main(siparisler, [], tty=True)
+    hatalar = []
+    if ham_detay in (ttysiz + ttysiz_hata):
+        hatalar.append("TTY YOK iken parametre_detay BASILDI")
+    if "parametre detayi:" not in ttysiz:
+        hatalar.append("TTY YOK iken YER TUTUCU yok — alan sessizce dusmus olabilir "
+                       "(Okan detayin VARLIGINI gormeli)")
+    if ham_detay not in ttyli:
+        hatalar.append("TTY VAR iken parametre_detay BASILMIYOR — pozitif eksen "
+                       "('alani tumden sil' cozumu buradan gecemez)")
+    kayit(8, "parametre_detay: TTY disinda YOK (yer tutucu), TTY'de VAR",
+          not hatalar, ("BULGU=%s" % hatalar) if hatalar else "3/3 eksen")
+
+
+class _SahteP:
+    """subprocess.CompletedProcess yerine gecen asgari nesne (AG YOK)."""
+
+    def __init__(self, stdout, stderr="", returncode=1):
+        self.stdout, self.stderr, self.returncode = stdout, stderr, returncode
+
+
+class _SahteSubprocess:
+    def __init__(self, p):
+        self._p = p
+
+    def run(self, *a, **k):
+        return self._p
+
+
+# Fiksturun HAM JSON'u — gercek wrangler ciktisinin sekli (icinde musteri_ad/tel var).
+HAM_BASARISIZ = json.dumps([{"success": False, "results": FIKSTUR}])
+HAM_COZULEMEZ = "[BOZUK-JSON " + json.dumps([{"success": True, "results": FIKSTUR}])
+
+
+def _hata_yolu_mesaji(stdout, tty):
+    """wrangler_sorgu'yu sahte cikti ile kosar, sys.exit mesajini string dondurur."""
+    eski_sp, eski_tty = siparisler.subprocess, siparisler._tty
+    siparisler.subprocess = _SahteSubprocess(_SahteP(stdout))
+    siparisler._tty = lambda: tty
     try:
-        mutant_yolu = os.path.join(gecici, "siparisler_mutant.py")
-        with open(mutant_yolu, "w", encoding="utf-8") as f:
-            f.write(mutant_kaynak)
-        spec = importlib.util.spec_from_file_location("siparisler_mutant", mutant_yolu)
-        mut = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mut)
-
-        # mutant GERCEKTEN sokulmus mu (yoksa "sizinti yok" anlamsiz olurdu)
-        if (mut.maskele_ad("Test Musteri") != "Test Musteri"
-                or mut.maskele_tel("5551112233") != "5551112233"):
-            kayit(6, "kirmizi-mutasyon: maske sokulmus kopyada sizinti goruluyor", False,
-                  "mutant KIMLIK degil (ad=%r tel=%r) — mutasyon islememis"
-                  % (mut.maskele_ad("Test Musteri"), mut.maskele_tel("5551112233")))
-            return
-
-        cikti, hata = _kos_main(mut, [])
-        bulgular = sizinti_tara(cikti + hata, FIKSTUR)   # TEST 3'un AYNI tarayicisi
-        kayit(6, "kirmizi-mutasyon: maske sokulmus kopyada sizinti goruluyor",
-              bool(bulgular),
-              ("%d bulgu" % len(bulgular)) if bulgular
-              else "NOBETCI OLU: maske sokulmus kopyada bile sizinti GORMUYOR")
+        siparisler.wrangler_sorgu("SELECT 1")
+        return ""
+    except SystemExit as e:
+        return str(e)
     finally:
-        sys.modules.pop("siparisler_mutant", None)
-        shutil.rmtree(gecici, ignore_errors=True)
+        siparisler.subprocess = eski_sp
+        siparisler._tty = eski_tty
+
+
+def test_9_hata_yolu_kanali():
+    """`ham[-2000:]` dokumu SELECT SONUCUDUR — TTY disina cikmamali, teshis kalmali."""
+    hatalar = []
+    yollar = (("wrangler sorgusu basarisiz:", HAM_BASARISIZ),
+              ("wrangler ciktisi cozulemedi:", HAM_COZULEMEZ))
+    for baslik, ham in yollar:
+        ttysiz = _hata_yolu_mesaji(ham, False)
+        ttyli = _hata_yolu_mesaji(ham, True)
+        etiket = baslik.split()[-1].rstrip(":")
+        if baslik not in ttysiz:
+            hatalar.append("%s: beklenen hata yoluna girilmedi (mesaj=%r)"
+                           % (etiket, ttysiz[:80]))
+            continue
+        bulgu_ttysiz = sizinti_tara(ttysiz, FIKSTUR)
+        if bulgu_ttysiz:
+            hatalar.append("%s: TTY YOK iken %d SIZINTI (%s)"
+                           % (etiket, len(bulgu_ttysiz), bulgu_ttysiz[0]))
+        if "tani:" not in ttysiz or "exit=" not in ttysiz or "bayt" not in ttysiz:
+            hatalar.append("%s: TTY YOK iken TESHIS kayboldu (hata sinifi/exit/bayt "
+                           "sayisi basilmali)" % etiket)
+        if not sizinti_tara(ttyli, FIKSTUR):
+            hatalar.append("%s: TTY VAR iken ham dokum YOK — pozitif eksen ('dokumu "
+                           "tumden sil' cozumu buradan gecemez)" % etiket)
+    kayit(9, "wrangler hata yollari: ham dokum TTY disina CIKMIYOR, teshis KALIYOR",
+          not hatalar, ("BULGU=%s" % hatalar) if hatalar else "2 yol × 3 eksen")
 
 
 def test_7_oz_nobetci(beklenen):
@@ -343,6 +500,8 @@ def main():
     test_4_acik_tty_yok_fail_closed()
     test_5_acik_tty_var_ham()
     test_6_kirmizi_mutasyon()
+    test_8_parametre_detay_kanali()
+    test_9_hata_yolu_kanali()
     test_7_oz_nobetci(BEKLENEN)
     print("=" * 66)
     hatalar = suite_butunlugu(SONUC, BEKLENEN)

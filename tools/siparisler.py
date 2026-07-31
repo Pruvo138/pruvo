@@ -12,12 +12,19 @@ KAPSAM = SADECE OKUMA. wrangler'a giden tek yol `wrangler_sorgu()`; SELECT
 disinda bir ifade gecerse (assert) calismadan durur. Hicbir yazma/silme yolu
 YOKTUR — shop/ worker'i (src/index.js) siparisleri yazar, bu arac dokunmaz.
 
-KISISEL VERI: musteri adi ve telefonu VARSAYILAN OLARAK MASKELI basilir
-(`maskele_ad` / `maskele_tel`). Okan siparisi karsilarken gercek numaraya
-ihtiyac duydugu icin `--acik` bayragi vardir ama FAIL-CLOSED'dir: yalnizca
-`_tty()` True iken (gercek terminal) etkilidir. Cikti bir boruya / dosyaya /
-CI log'una akiyorsa bayrak SESSIZCE YUTULMAZ — maskeli basilir ve stderr'e tek
-satir uyari yazilir. Nobetci: tools/siparis-maske-test.py.
+KISISEL VERI — TEK KURAL (KANAL EKSENI): TTY DISINA (boru, `>` yonlendirme,
+`2>&1`, capture_output, CI) HAM MUSTERI VERISI ve MUSTERI SERBEST METNI CIKMAZ;
+stdout da stderr de dahil. Uc uygulama noktasi:
+  1. `musteri_ad` / `musteri_tel` VARSAYILAN MASKELI (`maskele_ad`/`maskele_tel`).
+     `--acik` bayragi ham basar ama FAIL-CLOSED'dir: yalniz `_tty()` True iken
+     etkilidir; degilse SESSIZCE YUTULMAZ — maskeli basar + stderr'e tek satir uyari.
+  2. `parametre_detay` (musterinin yazdigi serbest metin) maskelenemez -> TTY
+     disinda HIC BASILMAZ, yerine karakter sayisi yer tutucusu konur. Olcut TTY'dir,
+     `--acik` DEGIL.
+  3. `wrangler_sorgu` hata yollarindaki HAM DOKUM (SELECT sonucunun ham JSON'u)
+     yalniz TTY'de basilir; teshis (hata sinifi + exit kodu + bayt sayilari) her
+     kosulda basilir (`_ham_dokum`).
+Nobetci: tools/siparis-maske-test.py.
 
 Sema: tools/d1-sema.sql (tablo: siparisler). Para KURUS tamsayisinda tutulur
 (yuvarlama yok); genel toplam = tutar_kurus + kargo_kurus (KDV dahil fiyat,
@@ -74,10 +81,36 @@ def sql_sorgu(son, durum):
     return sql
 
 
+def _ham_dokum(baslik, p, ham):
+    """Hata metnini uretir — HAM DOKUM YALNIZ `_tty()` True iken eklenir.
+
+    🔴 KANAL KURALI (31 Tem, ikinci tur): `ham` = wrangler'in stdout+stderr'i, yani
+    SELECT SONUCUNUN HAM JSON'u — icinde `musteri_ad` ve `musteri_tel` AYNEN vardir.
+    Olculdu: "wrangler sorgusu basarisiz" ve "wrangler ciktisi cozulemedi" yollarinda
+    fikstur adi ve telefonu sys.exit mesajiyla disari sizdi. Maskeleme "hangi alan"
+    ekseninde calisir, bu dokum ise SERBEST metindir -> kural KANAL eksenine cevrildi:
+    TTY disina (boru / yonlendirme / capture_output / CI) HAM DOKUM CIKMAZ.
+
+    TESHIS EDILEBILIRLIK KAYBOLMAZ: hata sinifi, wrangler exit kodu ve stdout/stderr
+    bayt sayilari HER KOSULDA basilir; yalnizca icerik terminale sakli tutulur.
+    ("cikti vermedi" yolu bugun olculdu ve TEMIZ — stdout'ta '[' yoksa sonuc dizisi de
+    yoktur — ama AYNI kapiya baglandi ki wrangler ciktisi degisirse kanal sessizce
+    yeniden acilmasin.)
+    """
+    tani = ("%s\n  tani: wrangler exit=%s · stdout=%d bayt · stderr=%d bayt"
+            % (baslik, p.returncode, len(p.stdout or ""), len(p.stderr or "")))
+    if _tty():
+        return tani + "\n" + ham[-2000:]
+    return (tani + "\n"
+            "  ham cikti KISISEL VERI icerir (SELECT sonucu: musteri_ad/musteri_tel);\n"
+            "  yalnizca GERCEK TERMINALDE basilir — bu kosum boru/dosya/CI'ya akiyor.")
+
+
 def wrangler_sorgu(sql):
     """wrangler d1 execute --remote --json calistirir, satir listesi doner.
 
     SALT-OKUNUR KAPI: SELECT disinda bir ifade buraya gelirse calismaz.
+    Hata yollarindaki ham dokum `_ham_dokum()` kanal kapisindan gecer.
     """
     if not sql.strip().upper().startswith("SELECT"):
         raise ValueError("sadece SELECT calistirilir, gelen: %r" % sql)
@@ -96,14 +129,14 @@ def wrangler_sorgu(sql):
 
     i = p.stdout.find("[")
     if i == -1:
-        sys.exit("wrangler cikti vermedi:\n" + ham[-2000:])
+        sys.exit(_ham_dokum("wrangler cikti vermedi:", p, ham))
     try:
         veri = json.loads(p.stdout[i:])
     except (ValueError, TypeError):
-        sys.exit("wrangler ciktisi cozulemedi:\n" + ham[-2000:])
+        sys.exit(_ham_dokum("wrangler ciktisi cozulemedi:", p, ham))
 
     if not veri or not veri[0].get("success", False):
-        sys.exit("wrangler sorgusu basarisiz:\n" + ham[-2000:])
+        sys.exit(_ham_dokum("wrangler sorgusu basarisiz:", p, ham))
     return veri[0].get("results", []) or []
 
 
@@ -224,9 +257,22 @@ def format_siparis(row, acik=False):
             lines.append("      %s | adet: %s | tutar: %s"
                           % (mr or "-", k.get("adet", "?"),
                              tl(k.get("tutar_kurus") or 0)))
-            detay = _kisalt(k.get("parametre_detay"))
-            if detay:
-                lines.append("      %s" % detay)
+            # 🔴 KANAL KAPISI — `parametre_detay` MUSTERININ YAZDIGI SERBEST METINDIR
+            # (isim kazima, ozel yazi): icinde ad/telefon olabilir ve MASKELENEMEZ
+            # (hangi parcanin PII oldugu bilinemez). Olculdu: detaya konmus ad+telefon
+            # VARSAYILAN (maskeli) kosumda aynen basiliyordu. Cozum alan degil KANAL:
+            # TTY disina (boru/yonlendirme/CI) CIKMAZ; terminalde bugunku gibi
+            # kisaltilmis basar (Okan'in uretim icin ihtiyaci var). Olcut TTY'dir,
+            # `--acik` DEGIL — bayrak bu alani acmaz.
+            # `baslik` BILEREK burada DEGIL: o KATALOG verisidir (urunler.json'dan
+            # gelir, musteri metni degildir) -> maskelenmez, gizlenmez.
+            ham_detay = (k.get("parametre_detay") or "").strip()
+            if ham_detay:
+                if _tty():
+                    lines.append("      %s" % _kisalt(ham_detay))
+                else:
+                    lines.append("      (parametre detayi: %d karakter — terminalde "
+                                 "gorunur)" % len(ham_detay))
     return "\n".join(lines)
 
 
