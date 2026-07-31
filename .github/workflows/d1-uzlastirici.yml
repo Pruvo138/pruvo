@@ -1,0 +1,133 @@
+name: D1 uzlastirici (katalog sapmasi)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR — OLCULEN SESSIZLIK (31 Tem 2026, adli rapor)
+# ══════════════════════════════════════════════════════════════════════════════
+# D1 ile urunler.json arasinda sapma olustugunda (bayat bir kosum yeni partiyi
+# silmesi, bir senkronun kacmasi, `--no-verify` push, GitHub web arayuzunden
+# duzenleme, baska makineden push) SITE urunu gosterir ama EGE (WhatsApp botu)
+# D1'den okudugu icin GOREMEZ = sessiz satis kaybi.
+#
+# OLCULEN PENCERE: sapmayi kapatan TEK mekanizma "baska birinin urun push'u"
+# idi -> min 2,0 dk · medyan 3,9 dk · max 24,2 dk; parti akisi durursa pencere
+# SINIRSIZ. Fark edilme tesadufe kalmisti (iki vaka da elle bakilirken goruldu).
+#
+# BU IS: yayin yolundan TAMAMEN AYRI (deploy.yml'e `needs` ile bagli DEGIL, ayri
+# is akisi, `push` tetikleyicisi YOK) -> yayin yoluna maliyeti 0 sn. 15 dakikada
+# bir katalogu OLCER; sapma varsa ONARIR ve onarimi DOGRULAR.
+#
+# NEDEN "ONAR" (yalniz alarm DEGIL): alarm-only sapmayi bir insan gelene kadar
+# acik birakir; olculen zarar sinifi tam da "kimse bakmadigi icin surer" tipidir.
+# Onarim RISKSIZ DEGIL ama KAPILI: `d1-sync.py` icindeki BAYATLIK KAPISI silmeyi
+# ancak agac uzak main'in UCUNDA iken uygular (bu is her zaman uctan kosar; kosum
+# sirasinda yeni bir push gelirse kapi silmeyi fail-closed durdurur). Yani
+# uzlastirici, kacagi UREten yolun kendisinden gecemez.
+#
+# NEDEN --durum (K5 DEGIL): tools/canli-saglik-kapisi.py K5 ekseni ayni yone bakar
+# ama KAPSAMI EN YENI 20 URUNLE (ve konfigursuzlerle) SINIRLI bir orneklemdir.
+# `d1-sync.py --durum` icerik ekseni TUM katalogu (bugun 15.921 id) urun_hash
+# duzeyinde karsilastirir -> bu sapma sinifi icin kapsam KAT KAT genis.
+#
+# NEDEN yayin adimi da var: silinmis bir satir geri yazilinca TASLAK (yayinda=0)
+# dogar; taslak urunu Ege GOSTERMEZ. Onarim ancak canlida 200 donen taslaklar
+# yayina alininca fiilen kapanir (atomik yayin sozlesmesi, deploy.yml `yayin` isi).
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup: uzlastirici hicbir
+# yayin adimini beklemez ve hicbir yayin adimini bekletmez.
+concurrency:
+  group: d1-uzlastirici
+  cancel-in-progress: true
+
+jobs:
+  uzlastir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # npx wrangler (d1-sync'in D1 istemcisi) icin.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # ON-KOSUL: bu checkout uzak main'in ucunda mi? Degilse OLCUM DE ONARIM DA
+      # yapilmaz (bayat agacla "sapma var" demek SAHTE ALARM, onarmak ise KACAGIN
+      # TA KENDISI olurdu). Bir sonraki cron tazesinden olcer.
+      - name: On-kosul — agac uzak main'in ucunda mi
+        id: bayatlik
+        run: |
+          if python3 tools/d1-sync.py --bayatlik; then
+            echo "uc=evet" >> "$GITHUB_OUTPUT"
+          else
+            echo "uc=hayir" >> "$GITHUB_OUTPUT"
+            echo "BAYAT AGAC — bu kosum olcum/onarim YAPMAZ (sahte alarm + kacak riski)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # OLCUM: sayi ekseni + ICERIK ekseni (urun_hash) — tam kapsam, salt-okuma.
+      # Sapma varsa d1-sync --durum SIFIR-DISI doner; burada onu YUTMUYORUZ, bir
+      # sonraki adima "sapma var mi" bilgisi olarak tasiyoruz (adim kirmizi olsa
+      # is kirmizi olur ve onarim hic kosmazdi).
+      - name: Olcum — D1 == urunler.json (sayi + icerik ekseni)
+        if: steps.bayatlik.outputs.uc == 'evet'
+        id: olcum
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "CLOUDFLARE_API_TOKEN secret yok — uzlastirici OLCEMEDI." >> "$GITHUB_STEP_SUMMARY"
+            echo "sapma=olculemedi" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          rc=0
+          python3 tools/d1-sync.py --durum > durum-once.txt 2>&1 || rc=1
+          cat durum-once.txt
+          if [ "$rc" = "0" ]; then
+            echo "sapma=yok" >> "$GITHUB_OUTPUT"
+            echo "D1 == urunler.json ✅ (sapma yok)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "sapma=var" >> "$GITHUB_OUTPUT"
+            echo "🔴 D1 SAPMASI OLCULDU — onarim kosuyor:" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            tail -30 durum-once.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # ONARIM: ayni bayatlik kapisindan gecer (d1-sync icindeki kapi silmeyi ancak
+      # agac UCTA iken uygular). Kosum sirasinda yeni bir push gelirse kapi devreye
+      # girer, silme YAPILMAZ ve arac sifir-disi cikar -> is KIRMIZI = gorunur.
+      - name: Onarim — d1-sync (bayatlik kapisi devrede)
+        if: steps.olcum.outputs.sapma == 'var'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: python3 tools/d1-sync.py
+
+      # Geri yazilan satir TASLAK dogar; Ege taslagi GORMEZ. Canlida 200 donen
+      # taslaklari yayina al -> onarim fiilen musteriye ulasir.
+      - name: Onarim sonrasi atomik yayin (canlida 200 donen taslaklar)
+        if: steps.olcum.outputs.sapma == 'var'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: python3 tools/yayin-kapisi.py --yayinla
+
+      # TEYIT: onarim IDDIA degil, KANIT olsun. Hala sapma varsa is KIRMIZI kalir
+      # (GitHub bildirimi) — sessizce yesil donmek bu kacagi dogurmus olan hataydi.
+      - name: Teyit — onarimdan sonra sapma SIFIR mi
+        if: steps.olcum.outputs.sapma == 'var'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: |
+          python3 tools/d1-sync.py --durum
+          echo "✅ Onarim DOGRULANDI (D1 == urunler.json)" >> "$GITHUB_STEP_SUMMARY"
