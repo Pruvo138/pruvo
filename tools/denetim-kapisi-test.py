@@ -585,7 +585,15 @@ check("KESIN 'destek gerektirmeden uretilir' (uretim fiili VAR) -> SERT",
 
 # --- MUTASYON: kapi kendini koruyor (kural listesi bosaltilirsa / no-op olursa KIRMIZI) --
 _M_DOLGU = "- %100 dolgu oranı önerilir."
-_M_BASKI = "- PETG ile basılması önerilir."
+# ⚠️ 31 Tem: PROBE DEGISTI. Eski probe "- PETG ile basılması önerilir." idi; yeni
+# 'malzeme-tavsiye' kovasi (malzeme ADI + TAVSIYE fiili) o cumleyi ARTIK BAGIMSIZ
+# olarak yakaliyor. Yani _SUREC_TOKEN_RE no-op edilse bile cumle SERT kaliyordu ve
+# mutant SAG KALIYORDU — iddia OLU hale gelmisti (kural zayifladi diye DEGIL, ikinci
+# bir kova ayni cumleyi kapsadi diye). Iddiayi yasatmak icin probe, YALNIZ
+# 'basil- + surec jetonu' konjonksiyonunun yakalayabilecegi bir cumleye cekildi:
+# malzeme adi YOK, tavsiye fiili YOK, dosya/tabla/katman jetonu YOK; tasiyici jeton
+# yalnizca 'parca halinde'.
+_M_BASKI = "- İki parça halinde basılır."
 check("mutasyon oncesi taban: dolgu SERT", sert_mi(_M_DOLGU))
 _eski_sert = dk._IFSA_SERT_RE
 dk._IFSA_SERT_RE = ()                                   # MUT: kesin-yasak listesi BOSALTILDI

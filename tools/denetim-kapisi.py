@@ -309,8 +309,70 @@ _IFSA_SERT = (
      r"\bfdm\b|\bsla\b|\binfill\b|3\s*[db]\s*bas[ıi]l|3\s*boyutlu\s*bas[ıi]l"
      r"|\d+[.,]?\d*\s*mm\s*noz[uüz]l|noz[uüz]l\s*[çc]ap",
      "uretim teknolojisi adi (FDM/SLA/'3D basilabilir'/nozul CAPI)"),
+    # --- 31 Tem: KAPININ HIC GORMEDIGI SINIF (olculdu, canli katalog) ----------------
+    # Eski kapi malzeme adini YALNIZ 'basil-' fiiliyle birlikte goruyordu; fiilsiz gecen
+    # surec dili hicbir kovaya dusmuyordu. Olculen kacaklar: 'filament' (10 kayit),
+    # 'TPU/PETG ana govde onerilir', 'iplik yonleri boyuna gelecek', 'baski tablasi',
+    # 'duvar sayisi', 'STL dosyasi dahildir', 'baskisi daha kolay'.
+    ("filament",
+     r"filaman\w*|filament\w*",
+     "'filament' = MAKINENIN yemi, musterinin aldigi malzeme DEGIL"),
+    ("katman-iplik-yonu",
+     r"iplik\s*y[öo]n|katman\s*y[öo]n|lif\s*y[öo]n|katman\s*[çc]izgi"
+     r"|boyuna\s+gelecek\s+bi[çc]imde\s+[üu]retil",
+     "katman/iplik YONU = yerlesim parametresi (kapi katman YUKSEKLIGINI goruyordu, YONU gormuyordu)"),
+    # ⚠️ 'raft'/'brim' \b ile: 'Alumicraft'/'Starcraft' icinde sinir YOK -> eslesmez (olculdu).
+    # ⚠️ 'baski tablasi' hedef cihazi yazici olan urunlerde MESRU -> _yazici_hedef_urun muaf eder.
+    ("makine-parametresi",
+     r"bask[ıi]\s*tabla|[ıi]s[ıi]tmal[ıi]\s*tabla|duvar\s*say|kabuk\s*say"
+     r"|perimeter|\bbrim\b|\braft\b",
+     "tabla / duvar-kabuk sayisi / brim-raft = dilimleyici parametresi"),
+    # ⚠️ 'cura' \b ILE: 'Acura' (Honda) 6 mesru canli kayitta geciyor — sinirsiz desen
+    #    onlari SESSIZCE bloklardi (olculdu).
+    ("dilimleyici",
+     r"prusaslicer|\bcura\b|slic3r|superslicer|orcaslicer|bambu\s*studio"
+     r"|ideamaker|simplify3d|dilimleyici|\bslicer\b",
+     "dilimleyici (slicer) adi = uretim zinciri"),
+    # ⚠️ 'step' TEK BASINA yasak DEGIL (ingilizce/teknik metinde gecer); yalniz
+    #    'STEP dosya' bigrami dosya ifsasidir.
+    ("dosya-ifsasi",
+     r"\bstl\b|\b3mf\b|\bgcode\b|\bg-code\b|\.f3d\b|\.stp\b|\b3dm\s*dosya|123dx"
+     r"|step\s*dosya|fusion\s*360|solidworks|tinkercad|freecad|openscad|\bscad\b"
+     r"|(?:cad|kaynak|d[üu]zenlenebilir|[çc]izim|proje)\s+dosya\w*"
+     r"|dosya\w*\s+(?:dahil|i[çc]erir|verilir|eklidir)",
+     "CAD/STL dosya ifsasi ya da dosya TESLIMI vaadi — PRUVO fiziksel parca satar"),
+    ("baskiya-uygunluk-2",
+     r"bask[ıi]s[ıi]\s+(?:daha\s+)?kolay|bas[ıi]lmas[ıi]\s+(?:daha\s+)?kolay",
+     "'baskisi daha kolay' — eski 'baski kolayl' deseninin KACIRDIGI bicimbirim"),
 )
 _IFSA_SERT_RE = tuple((ad, re.compile(d, re.UNICODE), g) for ad, d, g in _IFSA_SERT)
+
+# --- MALZEME BEYANI  <->  MALZEME SECIM TAVSIYESI (KraL karari, 31 Tem) ---------------
+# Malzeme ADI ihlal DEGIL: "PETG malzemededir" musteriye TESLIM EDILEN PARCANIN
+# ozelligini bildirir ve ayri bir eksende ([[malzeme-envanteri-beyan-karari]],
+# tools/malzeme-dayanak-test.py) zaten denetlenir. IHLAL olan, malzemenin URETICIYE
+# bir SECIM olarak TAVSIYE edilmesidir ("PETG onerilir", "TPU ile uretilmesi onerilir"):
+# bu musteriye degil USTAYA yazilmis bir baski-isi talimatidir.
+# Olculdu (canli katalog, 31 Tem): 482 kayitta malzeme kisaltmasi var; bunlarin
+# 128'i TAVSIYE kalibi (temizlendi), 70'i SAF BEYAN (dokunulmadi).
+#
+# ⚠️ 'ABS' DISAMBIGUASYONU: ABS ayni zamanda ANTI-LOCK FREN sistemidir — canli
+#    katalogda 23 fren-baglamli vurus olculdu (ABS unitesi braketi, ABS sensor
+#    kablosu, ABS kor tapa contasi). Fren nesnesi izleyen 'abs' MALZEME SAYILMAZ.
+#    Bu ayrim BURADA (jeton duzeyinde) yapilir; cumle duzeyinde MUAF olarak
+#    yazilsaydi ayni cumledeki GERCEK malzeme ihlalini de susturur (fail-open).
+# ⚠️ HER IKI PARCA DA (?:...) ILE SARILI OLMAK ZORUNDA. Icinde ust-duzey '|' tasiyan
+#    bir parcayi sarmadan bitistirmek, bitisigi YALNIZ SON alternatife baglar ve desen
+#    "ciplak malzeme adi" haline gelir. Olculdu: sarmasiz surum canli katalogda
+#    350 YANLIS-POZITIF verdi ("PETG malzemededir" gibi SAF BEYAN kayitlari).
+_MALZEME_ADI = (r"(?:\bpla\+?\b|\bpetg(?:-cf)?\b|\btpu\b|\basa\b|\btpe\b|\bpctg\b|\bhips\b"
+                r"|\bninjaflex\b"
+                r"|\babs\b(?!\s*(?:fren|sens[öo]r|[üu]nite|pompa|pikap|hidrolik|mod[üu]l|kablo)))")
+_TAVSIYE = (r"(?:öneril\w*|oneril\w*|tavsiye\s+edil\w*|tercih\s+edil\w*|gerekir|gerekli\w*"
+            r"|kullan[ıi]lmas[ıi])")
+_MALZ_TAVSIYE_RE = re.compile(
+    _MALZEME_ADI + r"[^.\n;]{0,80}?" + _TAVSIYE +
+    r"|" + _TAVSIYE + r"[^.\n;]{0,40}?" + _MALZEME_ADI, re.UNICODE)
 
 # --- KONJONKSIYON (tek basina BELIRSIZ, birlikte KESIN — ayni cumlede) ----------------
 _BASMA_RE = re.compile(
@@ -661,6 +723,13 @@ def kapi_ifsa(urun):
         else:
             _kayit(uyari, "basma-belirsiz", m,
                    "'basil-' surec jetonu OLMADAN — press/basma anlami olabilir; INSAN karari")
+
+    # 4) KONJONKSIYON: MALZEME ADI + TAVSIYE fiili ayni cumlede -> KESIN surec ifsasi.
+    #    Malzeme adi TEK BASINA burada ARANMAZ: saf BEYAN ("PETG malzemededir") mesrudur.
+    for m in _MALZ_TAVSIYE_RE.finditer(metin):
+        _kayit(sert, "malzeme-tavsiye", m,
+               "malzeme SECIMI ureticiye TAVSIYE ediliyor (baski-isi talimati); "
+               "malzeme BEYANI serbest, TAVSIYESI degil")
     return {"sert": sert, "uyari": uyari, "muaf": None}
 
 
@@ -1139,6 +1208,71 @@ def kendini_test():
     yaz(n3)                                   # calisma agaci saglam, HEAD blob'u bozuk
     rc, out = kos()
     iddia("O2 HEAD'deki urunler.json BOZUK -> OLCULEMEDI", rc == 3, "rc=%d" % rc)
+
+    # =========================================================================
+    # URETIM-DILI KOVASI (31 Tem) — POZITIF + NEGATIF + MUTASYON, kapi-ici
+    # -------------------------------------------------------------------------
+    # AYRIM: malzeme ADI ihlal DEGIL (BEYAN serbest); malzemenin URETICIYE SECIM
+    # olarak TAVSIYE edilmesi ihlal. Kanaryalar bu ayrimin ve olculmus es-dizim
+    # muafiyetlerinin (ABS=fren, Acura, Alumicraft/Starcraft, Shelly, otomotiv
+    # nozul, gida dilimleme, yazici-hedef urun) bekcisidir.
+    _T = ("Araca birebir oturan dayanikli baglanti parcasi. "
+          "Yaklasik dis olculer: 40 × 30 × 12 mm.")
+
+    def _sert(aciklama):
+        return [s["kural"] for s in kapi_ifsa(_kt_urun("x1", aciklama=aciklama))["sert"]]
+
+    _MUTANT = [
+        ("malzeme-tavsiye/onerilir", "Dayaniklilik icin PETG onerilir. " + _T),
+        ("malzeme-tavsiye/uretilmesi", "- TPU gibi esnek malzemeyle uretilmesi onerilir. " + _T),
+        ("malzeme-tavsiye/ikili", "- TPU tampon iceriri, PETG ana govde onerilir. " + _T),
+        ("malzeme-tavsiye/kullanilmasi", "Dayanikli bir malzeme (or. ABS) kullanilmasi onerilir. " + _T),
+        ("malzeme-tavsiye/gerekir", "Esnek (flexible / TPU) malzemeyle uretilmesi gerekir. " + _T),
+        ("filament", "- Deniz ortami icin ASA filament onerilir. " + _T),
+        ("filament/ascii", "- Seffaf kirmizi filamanla uretilmesi onerilir. " + _T),
+        ("katman-iplik-yonu", "Iplik yonleri boyuna gelecek bicimde uretildiginde dayanimi artirir. " + _T),
+        ("katman-cizgisi", "Iki yari parca yapistirilarak katman cizgilerine dik yuk tasir. " + _T),
+        ("baski-tablasi", "- V2 versiyonu kucuk baski tablalarina uygundur. " + _T),
+        ("duvar-sayisi", "Tabani kalin tutulmus, duvar sayisi artirilmistir. " + _T),
+        ("dilimleyici/prusa", "PrusaSlicer'da hazirlanmistir. " + _T),
+        ("dilimleyici/cura", "Cura profili ile hazirlanmistir. " + _T),
+        ("dosya/stl-step-f3d", "- STL/STEP/Fusion360 (.f3d) dosyalari dahildir. " + _T),
+        ("dosya/cad-icerir", "- Farkli olculere uyarlanabilir CAD dosyasi icerir. " + _T),
+        ("dosya/openscad", "OpenSCAD ile parametrik tasarlanmistir. " + _T),
+        ("dosya/tinkercad", "Tinkercad ile modellenmistir. " + _T),
+        ("baskisi-daha-kolay", "Tek yuzu duz (baskisi daha kolay, yine uyan) model. " + _T),
+    ]
+    _KANARYA = [
+        ("saf malzeme BEYANI", "PETG malzemededir. " + _T),
+        ("malzeme etiketi", "- Malzeme: PLA, mat yuzey. " + _T),
+        ("malzeme + fayda", "ABS malzeme UV ve hava kosullarina dayaniklilik saglar. " + _T),
+        ("malzeme + fayda 2", "TPU esnekligi sayesinde dayaniklidir. " + _T),
+        ("musteri dili", "Dayanikli malzemeyle uretilir. " + _T),
+        ("ABS = anti-lock FREN", "ABS sensor kablosunu tutan braket; montaj icin gerekir. " + _T),
+        ("ABS = fren UNITESI", "ABS hidrolik unitesini sabitler; saglam montaj gerekir. " + _T),
+        ("Acura (cura DEGIL)", "Honda ve Acura araclarda kullanilir; dikkat gerekir. " + _T),
+        ("Alumicraft (raft DEGIL)", "Alumicraft teknelerin tahliye deliklerine takilir. " + _T),
+        ("Starcraft (raft DEGIL)", "Starcraft Seaflite 12 yelkenlisine ozeldir. " + _T),
+        ("Shelly (shell DEGIL)", "Akilli ev otomasyon butonu (Shelly) montajini barindirir. " + _T),
+        ("otomotiv nozulu", "Far yikama nozulunu temizce kapatir. " + _T),
+        ("step (dosya DEGIL)", "Step by step montaj anlatimi vardir. " + _T),
+        ("gida dilimleme makinesi", "Dilimleme makinesi bicagi icin koruyucu. " + _T),
+        ("temiz taban", _T),
+    ]
+    _sag = [ad for ad, m in _MUTANT if not _sert(m)]
+    _fp = [(ad, _sert(m)) for ad, m in _KANARYA if _sert(m)]
+    iddia("UD-MUT %d mutant KIRMIZI (sag kalan=olu iddia)" % len(_MUTANT),
+          not _sag, "sag kalan: %s" % (_sag or "yok"))
+    iddia("UD-KAN %d kanarya YESIL (yanlis-pozitif nobeti)" % len(_KANARYA),
+          not _fp, "yanlis-pozitif: %s" % (_fp or "yok"))
+
+    # yazici HEDEF urun muafiyeti YASIYOR mu (fail-open olmasin diye AYRI iddia)
+    _yz = _sert("3D yazici filament makarasi tutucusu; filament beslemesini iyilestirir. " + _T)
+    iddia("UD-MUAF yazici-hedef urunde 'filament' MESRU", not _yz, "kural: %s" % (_yz or "yok"))
+    # ... ama ayni urun BIZIM surecimizi anlatirsa muafiyet DUSMELI
+    _yz2 = _sert("3D yazici ile uretilir; dayaniklilik icin PETG onerilir. " + _T)
+    iddia("UD-MUAF kacak deligi KAPALI ('yazici ile uretilir' -> muafiyet duser)",
+          bool(_yz2), "kural: %s" % (_yz2 or "YOK — KACAK"))
 
     shutil.rmtree(tmp, ignore_errors=True)
 
