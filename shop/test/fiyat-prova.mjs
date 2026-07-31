@@ -992,6 +992,34 @@ const MASUM_KORPUS = [
 ];
 const RECALL_EN_AZ = 17;   // olculen deger; DUSURULMEZ (dusurmek = nobetciyi gevsetmek)
 
+// ---- KACAK KIMLIGI (31 Tem 2026) — SAYI YETMEZ, HANGI CUMLE oldugu da SABITLENIR ----
+// NEDEN: `yakalanan >= 17` esigi yalniz SAYIYI korur. Bir degisiklik bu uc kacaktan birini
+// kapatip BASKA bir cumleyi acsa recall yine 17 kalir ve kapi hicbir sey demez — nobetci
+// "17" derken korumadigi kume SESSIZCE degisir. Artik KACAN KUMENIN KENDISI beyan edilir.
+//
+// 🔴 31 TEM OLCUMU — bu uc kacak KAPATILAMADI, uc yol da SAYIYLA CURUTULDU (kopyada
+// olculdu, canli dosyaya mutasyon uygulanmadi):
+//   (A) HIZ_KONUSU'na "sinir\w*" eklemek -> recall 20/20 AMA masum korpus 2/12 yandi
+//       ("...(yazi alani siniri)." ve "Boy 60-300 mm ... ust sinir disina cikilamaz.").
+//   (B) "ayni satirda IKI FARKLI MUTLAKLIK sinifi" ailesi -> recall 19/20, masum 0/12,
+//       AMA GERCEK dosyalarda 2 bulgu: shop/src/index.js ve shop/KURULUM.md'deki
+//       KDV satiri ("Okan KESIN %20 ... tahsilat DEGISMEZ") — hiz siniriyla ILGISIZ.
+//   (C) (B)'nin dar hali (ciftin bir uyesi "ust sinir/tavan" sinifi olmak zorunda) ->
+//       recall 19/20, gercek dosyalar 0, masum 0/12; AMA dusmanca masum kumede 6
+//       gercekci mesru cumlenin 3'u yandi ("Sepette en fazla 30 kalem olabilir; bu deger
+//       kesindir." · "En cok 4 gorsel gosterilir, bu her zaman boyledir." · "Yazi alani
+//       en fazla 24 karakter; bu sinir degismez.").
+// KOK SEBEP: uc kacak da hiz siniri KONUSUNU hic anmiyor; izole bir cumle olarak MESRU bir
+// tavan cumlesinden AYIRT EDILEMEZLER. Ayirt edici tek sey BAGLAM (hangi dosya/bolum), onu
+// da korpus fiksturu bilerek soyuyor. Bu kapi deploy.yml'de `continue-on-error`SUZ kosuyor:
+// yanlis-pozitif TUM EKIBIN yayinini durdurur -> 2 korpus cumlesi icin o riski almiyoruz.
+// [[kapi-disiplin-ilkesi]] · [[kapi-kapsam-genisletme-tuzagi]]
+const KACAK_BEYAN = [
+  "Kati bir ust sinir uygular.",
+  "Ust sinir asilmaz.",
+  "Bu deger asilmasi mumkun olmayan bir siniridir.",
+];
+
 /** wrangler.toml beyan iddialari (M6 mutanti AYNI fonksiyonu mutant metinle cagirir). */
 function beyanIddialari(tomlMetin, kodPencere) {
   const liste = unsafeBindingler(tomlMetin);
@@ -1193,6 +1221,19 @@ baslik("== 9) HIZ SINIRI — native rate-limit binding DOGRU KULLANILIYOR (EN IY
                  " (esik " + RECALL_EN_AZ + ") — nobetci gevsetilmis");
   }
   yanan.forEach((c) => hatalar.push("9.7 YANLIS-POZITIF (masum ifade yandi): " + c));
+
+  // ---- 9.8 KACAK KIMLIGI (31 Tem): KACAN KUME beyan edilenle BIREBIR ayni mi ----
+  // Sayi korunurken kumenin degismesi = korunmadigi sanilan sey degisti, kimse gormedi.
+  const kacan = YANLIS_KORPUS.filter(
+    (c, i) => yanlisGuvenceTara([{ ad: "kacak-" + i, metin: c }]).bulgu.length === 0);
+  const beklenmeyen = kacan.filter((c) => !KACAK_BEYAN.includes(c));
+  const kapanan = KACAK_BEYAN.filter((c) => !kacan.includes(c));
+  not("9.8 KACAK KIMLIGI: kacan " + kacan.length + " cumle, beyan edilen " +
+      KACAK_BEYAN.length + " (kume birebir esit olmali; sayinin korunmasi YETMEZ).");
+  beklenmeyen.forEach((c) => hatalar.push(
+    "9.8 BEYAN DISI KACAK (nobetci sessizce gevsedi): " + c));
+  kapanan.forEach((c) => hatalar.push(
+    "9.8 BEYAN BAYAT (bu kacak artik yakalaniyor — KACAK_BEYAN'dan CIKAR): " + c));
 
   if (hatalar.length) {
     kirmizi += 1;

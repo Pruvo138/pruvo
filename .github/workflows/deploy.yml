@@ -884,8 +884,20 @@ jobs:
       - name: "OpenSCAD yasak nobetcisi — kendini test (18 iddia; PATH/symlink/maskeli shim)"
         run: python3 jenerator/test/dogrula.py --kendini-test
 
-      - name: "Jeneratör tarama kumesi nobetcisi — kendini test (5 iddia; sahte KIRMIZI + OLCULEMEDI)"
+      # 31 Tem: bu kola SUITE BUTUNLUGU eksenleri (V6-V8) eklendi. Gerekce: bayraksiz
+      # tam suite CI'da kosmaz (OpenSCAD + build.py ister) ve onun hukmu "kirmizi var mi"
+      # idi -> bir testin GOVDESINI SILMEK suite'i sessizce yesil birakiyordu. Hukum
+      # mantigi saf fonksiyona (suite_butunlugu) alindi ve CI'da kosan bu kolda olculuyor.
+      - name: "Jeneratör tarama kumesi + suite butunlugu nobetcisi — kendini test (sahte KIRMIZI + OLCULEMEDI + silinen test)"
         run: python3 jenerator/test/kabul.py --kendini-test
+
+      # 31 Tem: eslem-olcum.py TAM kolu CI'da kosamaz (gizli `eslem-ozel.json` paketi
+      # + openscad ister) ve tam bu yuzden HUKUM mantigi hic olculmuyordu. OLCULDU:
+      # `uretilemez` (422) sayaci hukme girmiyordu -> TUM setleri 422'ye dusen aile
+      # "yesil" ilan ediliyor, arac rc=0 donuyordu (sifir olculen set = yesil).
+      # Hukum saf fonksiyona alindi; bu kol ag/openscad/paket ISTEMEZ.
+      - name: "Onizleme eslem-olcum hukum nobetcisi — kendini test (sifir olculen set / 422 yesil sayilmaz)"
+        run: python3 onizleme/test/eslem-olcum.py --kendini-test
 
       # URUN DENETIM KAPISI (madde 32, 31 Tem). 31 Tem'e kadar urun kurallarinin —
       # uretim-sureci ifsasi ("3D baski" demiyoruz) + Marin fiyat tabani — TEK korumasi bir

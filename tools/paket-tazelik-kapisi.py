@@ -36,9 +36,12 @@ IDDIALAR (paket kipi)
      BIREBIR ayni mi. Bayat paket burada yakalanir. Kopya mantik YOK: beklenen blok
      tools/onizleme-paket-yukle.py'nin KENDI acik_eslem_uret'iyle uretilir.
   K2 METIN INVARYANTI (gizli aileler dahil): semasinda `tip:"metin"` parametresi olan
-     ve PAKETTE bulunan her aile icin paket eslemi bos-olmayan `ortak.metin` tasimali ve
-     ayni scad degiskeni `sabit`te OLMAMALI (sabit en son uygulanir, musteri metnini EZER).
+     her aile icin paket eslemi bos-olmayan `ortak.metin` tasimali ve ayni scad
+     degiskeni `sabit`te OLMAMALI (sabit en son uygulanir, musteri metnini EZER).
      Gizli-eslem ailesi (kase) main'den turetilemez; bu invaryant onu da kapsar.
+     🔴 31 Tem: aile PAKETTE HIC YOKSA da BULGUDUR. Eskiden yalniz ⚪ sayilirdi ve ⚪
+     hukme girmiyordu -> gizli metin ailesi (kase/jeton) paketten tamamen dusunce
+     K1 (yalniz ACIK_AILELER) gormuyor, K2 ⚪ diyor, kapi rc=0 basiyordu.
 
 OZ-NOBETCILER (her kipte, `--kendini-test` dahil BLOKLAYICI kosar)
   * oz_nobetci()                     paket_denetle govdesi inert mi (5 fikstur)
@@ -184,8 +187,24 @@ def paket_denetle(paket_aileler, beklenen, metin_adlari, yaz=None):
     for aile in sorted(metin_adlari):
         gelen = paket_aileler.get(aile)
         if gelen is None:
+            # 🔴 31 Tem 2026 — FAIL-OPEN ONARIMI. Eskiden burada YALNIZ ⚪ sayaci
+            # artiyordu ve `k2_olculemedi` HUKME HIC GIRMIYORDU (main'de
+            # `kirmizi = bool(sorunlar) or ...`). OLCULDU (mutasyon, --paket kolu):
+            # metin semasi olan GIZLI aileyi (damga-kase / jeton) paketten tamamen
+            # DUSURUNCE K1 gormuyor (ACIK_AILELER'de degil), K2 ⚪ sayiyor ->
+            # kapi rc=0 "SONUC: YESIL" basiyordu. Yani kapinin KURULUS SEBEBI olan
+            # senaryo — 350 TL'lik kase ailesi pakette yokken imajin derlenmesi —
+            # tam da bu kapidan SESSIZCE geciyordu.
+            # ⚪ OLCULEMEDI bu depoda YESIL DEGILDIR: sayac korunur (oz_nobetci (5)
+            # onu ayrica olcer) ama artik BULGUDUR.
             ozet["k2_olculemedi"] += 1
-            yaz("  ⚪ %s — metin semasi var ama pakette aile YOK (olculemedi)" % aile)
+            sorunlar.append("K2 METIN AILESI PAKETTE YOK: %s -> semasinda musteri metni "
+                            "(%s) var ama paket eslemi bu aileyi HIC TASIMIYOR; imaj o "
+                            "aileyi uretemez/eski govdeyle uretir. Paketi tazeleyin: "
+                            "python3 tools/onizleme-paket-yukle.py"
+                            % (aile, ", ".join(metin_adlari[aile])))
+            yaz("  ❌ %s — metin semasi var ama pakette aile YOK (olculemedi = BULGU)"
+                % aile)
             continue
         ortak = gelen.get("ortak") or {}
         metin = ortak.get("metin") or {}
@@ -283,6 +302,21 @@ def oz_nobetci():
     if ozet["k2_olculemedi"] != 1:
         hata.append("(5) pakette olmayan metin ailesi ⚪ OLCULEMEDI diye sayilmadi "
                     "(sayac=%d)" % ozet["k2_olculemedi"])
+
+    # (6) FAIL-CLOSED (31 Tem): ⚪ sayilmasi YETMEZ — HUKME de girmeli. K1 kapsami
+    #     DISINDAKI (gizli) metin ailesi paketten dustugunde BULGU uretilmeli, aksi
+    #     halde --paket kolu rc=0 "YESIL" der. POZITIF **ve** NEGATIF yon ayri ayri:
+    #     yon (a) aile YOKken bulgu VAR; yon (b) aile VARken bulgu YOK (yanlis-pozitif
+    #     uretmez — tek yon olculse nobetci "hep bulgu bas" mutasyonuyla olurdu).
+    s_yok, _ = paket_denetle({}, {}, _SEMA_METIN)      # beklenen BOS -> K1 hic konusmaz
+    if not any("K2 METIN AILESI PAKETTE YOK" in x for x in s_yok):
+        hata.append("(6a) FAIL-OPEN: K1 kapsami disindaki metin ailesi paketten "
+                    "dustugu halde BULGU uretilmedi -> --paket kolu YESIL der "
+                    "(bulgular=%s)" % s_yok)
+    s_var, _ = paket_denetle(dict(_BEKLENEN), {}, _SEMA_METIN)
+    if any("K2 METIN AILESI PAKETTE YOK" in x for x in s_var):
+        hata.append("(6b) YANLIS-POZITIF: aile PAKETTE oldugu halde 'pakette YOK' "
+                    "bulgusu uretildi (bulgular=%s)" % s_var)
     return (not hata), hata
 
 
