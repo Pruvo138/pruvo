@@ -2000,6 +2000,43 @@ def kendini_test():
     dogrula("V80 TANI KAPSAMI: rc=0 + sonuc verisinde 'code':503 -> BASARI (gecici SAYILMAZ)",
             _rr[0] == "DONDU" and _rr[1][0]["results"][0]["code"] == 503, _rr)
 
+    # ── CAGRI SATIRI CAPASI: wrangler() -> wrangler_cikti_coz BAGI (UCTAN UCA) ────
+    # 🔴 OLU IDDIA DERSI (curutucu 2. tur, C6): `wrangler_cikti_coz(..., p.returncode)`
+    # cagrisindaki UCUNCU ARGUMAN dusurulup `0` yazilinca (mutant) kabul testi 101/0
+    # YESIL kaliyordu — cunku V79/V81 fonksiyonu DOGRUDAN cagiriyor, yani rc gardinin
+    # BESLENDIGI satir nobetsizdi. Bu evde adi konmus desen: "nobetci cagri satiri
+    # nobetsiz". Asagidaki iddia bagi UCTAN UCA (sahte subprocess ile) sinar.
+    # PROBE NEDEN BU KADAR DAR: yuk TAM GECERLI bir wrangler basari yuku (bos olmayan
+    # liste + results/success/meta + artik YOK). Boylece `_basari_sekli_mi` de
+    # `_artik_gurultu_mu` da bu vakayi GECIRIR; onu durduran TEK sey cagri satirindan
+    # gecen rc'dir. Kesik/bozuk bir probe secilseydi iddia sekil kuralinin sirtina biner
+    # ve C6 mutanti yine hayatta kalirdi (curutucunun olctugu davranissal delta zaten
+    # YALNIZ "rc != 0 + TAM GECERLI yuk" vakasindaydi).
+    def _uctan_uca_wrangler(rc, cikti):
+        eski = subprocess.run
+        subprocess.run = lambda *a, **k: _SahteP2(rc, cikti)
+        try:
+            try:
+                return ("DONDU", wrangler(["--command", "SELECT 1"]))
+            except SystemExit as e:
+                return ("EXIT", str(e.code))
+        finally:
+            subprocess.run = eski
+
+    _uu = _uctan_uca_wrangler(1, _basari)
+    dogrula("V84 CAGRI SATIRI: wrangler() rc=1 + TAM GECERLI yuk -> SIFIR-DISI (bag CANLI)",
+            _uu[0] == "EXIT", _uu)
+    # MUT: cagri satiri rc'yi GECIRMEZ (`wrangler_cikti_coz(..., 0)`) -> iddia KIRMIZI yanmali.
+    _eski_coz = wrangler_cikti_coz
+    globals()["wrangler_cikti_coz"] = (
+        lambda stdout, ham="", returncode=0: _eski_coz(stdout, ham, 0))
+    _mut_bag = _uctan_uca_wrangler(1, _basari)
+    globals()["wrangler_cikti_coz"] = _eski_coz
+    dogrula("V84b MUT-CAGRI-RC-DUSUR: rc gecirilmezse rc=1 cikti BASARI sanilir (iddia CANLI)",
+            _mut_bag[0] == "DONDU", _mut_bag)
+    dogrula("V84c MUT geri alindi: bag yine SIFIR-DISI",
+            _uctan_uca_wrangler(1, _basari)[0] == "EXIT")
+
     # ── 🔴 MUTASYON IDDIALARI (parse kolu) ───────────────────────────────────────
     # PROBE SECIMI DAR: her probe YALNIZ oldurulen kuralin yakalayabilecegi vakadir.
     #  · rc kapisi probe'u = V79 girdisi (TAM GECERLI JSON + rc=1). Yuk saglam oldugu
