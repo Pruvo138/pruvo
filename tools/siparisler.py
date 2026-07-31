@@ -2,14 +2,22 @@
 # -*- coding: utf-8 -*-
 """PRUVO SIPARIS LISTESI — canli D1'den siparisleri okur. SALT-OKUNUR.
 
-    python3 tools/siparisler.py                       # son 10, tum durumlar
+    python3 tools/siparisler.py                       # son 10, tum durumlar (MASKELI)
     python3 tools/siparisler.py --son 25
     python3 tools/siparisler.py --durum odendi
     python3 tools/siparisler.py --son 5 --durum bekliyor
+    python3 tools/siparisler.py --acik                # ham ad/tel — YALNIZ terminalde
 
 KAPSAM = SADECE OKUMA. wrangler'a giden tek yol `wrangler_sorgu()`; SELECT
 disinda bir ifade gecerse (assert) calismadan durur. Hicbir yazma/silme yolu
 YOKTUR — shop/ worker'i (src/index.js) siparisleri yazar, bu arac dokunmaz.
+
+KISISEL VERI: musteri adi ve telefonu VARSAYILAN OLARAK MASKELI basilir
+(`maskele_ad` / `maskele_tel`). Okan siparisi karsilarken gercek numaraya
+ihtiyac duydugu icin `--acik` bayragi vardir ama FAIL-CLOSED'dir: yalnizca
+`_tty()` True iken (gercek terminal) etkilidir. Cikti bir boruya / dosyaya /
+CI log'una akiyorsa bayrak SESSIZCE YUTULMAZ — maskeli basilir ve stderr'e tek
+satir uyari yazilir. Nobetci: tools/siparis-maske-test.py.
 
 Sema: tools/d1-sema.sql (tablo: siparisler). Para KURUS tamsayisinda tutulur
 (yuvarlama yok); genel toplam = tutar_kurus + kargo_kurus (KDV dahil fiyat,
@@ -36,6 +44,9 @@ except Exception:  # pragma: no cover - zoneinfo veritabani eksikse yedek
 KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SHOP = os.path.join(KOK, "shop")
 DB = "pruvo-katalog"
+
+UYARI_ACIK_YOKSAYILDI = (
+    "--acik yoksayildi: cikti terminal degil (boru/log/CI) — maskeli basildi")
 
 DURUMLAR = ("odendi", "bekliyor", "havale-bekliyor", "incele")
 KOLONLAR = (
@@ -127,6 +138,39 @@ def yerel_saat(iso_utc):
     return dt.astimezone(YEREL_TZ).strftime("%d.%m.%Y %H:%M")
 
 
+def maskele_ad(ad):
+    """Musteri adini maskeler: her kelimenin ILK harfi + '***'.
+
+    "Test Musteri" -> "T*** M***" · "Ayse" -> "A***" · bos/None -> "-".
+    SAF fonksiyon (nobetci birim olarak surer).
+    """
+    ad = (ad or "").strip()
+    if not ad:
+        return "-"
+    return " ".join(k[0] + "***" for k in ad.split())
+
+
+def maskele_tel(tel):
+    """Telefonu maskeler: SON 4 karakter acik, oncesindeki HER karakter '*'.
+
+    "5551112233" -> "******2233" · "+905551112233" -> "*********2233"
+    4 karakterden kisa -> tamami '*' · bos/None -> "-".
+    SAF fonksiyon (nobetci birim olarak surer).
+    """
+    tel = (tel or "").strip()
+    if not tel:
+        return "-"
+    if len(tel) < 4:
+        return "*" * len(tel)
+    return "*" * (len(tel) - 4) + tel[-4:]
+
+
+def _tty():
+    """stdout GERCEK terminal mi. Ayri fonksiyon: nobetci bunu monkeypatch'ler
+    (siparisler.py'ye test-ozel arka kapi/env fikstur EKLENMEZ)."""
+    return sys.stdout.isatty()
+
+
 def _kisalt(metin, azami=60):
     metin = (metin or "").strip()
     if len(metin) <= azami:
@@ -134,8 +178,12 @@ def _kisalt(metin, azami=60):
     return metin[:azami - 3] + "..."
 
 
-def format_siparis(row):
-    """Tek siparis satirini okunur cok-satirli bloga cevirir."""
+def format_siparis(row, acik=False):
+    """Tek siparis satirini okunur cok-satirli bloga cevirir.
+
+    `acik` VARSAYILAN False -> musteri ad/tel MASKELI basilir. True yalnizca
+    main()'in TTY kapisindan gecen `--acik` kolundan gelir.
+    """
     lines = []
     lines.append("=" * 66)
     lines.append("%s   %s (yerel)" % (row.get("siparis_no") or "?",
@@ -149,8 +197,15 @@ def format_siparis(row):
     lines.append("urun toplami: %s | kargo: %s | genel toplam: %s"
                   % (tl(tutar), tl(kargo), tl(genel)))
 
-    lines.append("musteri: %s | %s" % (row.get("musteri_ad") or "-",
-                                        row.get("musteri_tel") or "-"))
+    ham_ad = row.get("musteri_ad") or ""
+    ham_tel = row.get("musteri_tel") or ""
+    if acik:
+        gosterilecek_ad = ham_ad.strip() or "-"
+        gosterilecek_tel = ham_tel.strip() or "-"
+    else:
+        gosterilecek_ad = maskele_ad(ham_ad)
+        gosterilecek_tel = maskele_tel(ham_tel)
+    lines.append("musteri: %s | %s" % (gosterilecek_ad, gosterilecek_tel))
     lines.append("-" * 66)
 
     try:
@@ -181,7 +236,18 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--son", type=int, default=10, help="son N siparis (varsayilan 10)")
     ap.add_argument("--durum", choices=list(DURUMLAR) + ["hepsi"], default="hepsi")
+    ap.add_argument("--acik", action="store_true",
+                    help="musteri ad/telefonunu HAM bas — YALNIZ gercek terminalde "
+                         "etkili, boru/dosya/CI'da yoksayilir")
     args = ap.parse_args(argv)
+
+    # FAIL-CLOSED: acik cikti asla loglanabilir bir kanala akmaz.
+    acik = False
+    if args.acik:
+        if _tty():
+            acik = True
+        else:
+            print(UYARI_ACIK_YOKSAYILDI, file=sys.stderr)
 
     sql = sql_sorgu(args.son, args.durum)
     satirlar = wrangler_sorgu(sql)
@@ -193,7 +259,7 @@ def main(argv=None):
         print("(kayit yok)")
         return 0
     for row in satirlar:
-        print(format_siparis(row))
+        print(format_siparis(row, acik=acik))
         print()
     print("Toplam: %d siparis" % len(satirlar))
     return 0

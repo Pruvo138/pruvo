@@ -7,9 +7,11 @@
 Sahte wrangler ciktisiyla (wrangler_sorgu monkeypatch) tablo bicimini ve
 --durum sozgecini dogrular — GERCEK D1'e dokunmaz, GERCEK subprocess
 calistirmaz. Son madde (6) CANLI D1'e 1 gercek --son 2 kosumu yapar (bu arac
-SALT-OKUNUR, SELECT disina cikamaz — test bunu da ayrica dogrular) ve ilk 2
-kaydin telefon numarasini maskeleyip ekrana basar; bu satirlar elle
-RAPOR-MIMARA.md'ye yapistirilir.
+SALT-OKUNUR, SELECT disina cikamaz — test bunu da ayrica dogrular); ciktidaki
+musteri adi/telefonu MASKELIDIR ama maskelemeyi BU TEST YAPMAZ — maskeleme
+`siparisler.py`'nin kendisinde (`maskele_ad`/`maskele_tel`, varsayilan ACIK)
+yapilir ve nobetcisi `tools/siparis-maske-test.py`'dir. Bu dosya yalnizca
+maskeli degerlerin alan alan basildigini olcer (TEST 5).
 
   1. sql_sorgu: durum="hepsi"      -> WHERE YOK
   2. sql_sorgu: durum="odendi" vb. -> WHERE durum = '...' dogru
@@ -17,9 +19,10 @@ RAPOR-MIMARA.md'ye yapistirilir.
   4. wrangler_sorgu: SELECT olmayan ifade -> ValueError (yazma kapisi kapali)
   5. format_siparis: sahte satirdan beklenen alanlarin hepsi tabloda gorunuyor
      (siparis no, yerel saat, durum, yontem, urun/kargo/genel toplam TL,
-     musteri ad+tel, kalem basligi+malzeme/renk+adet+tutar+kisaltilmis detay)
+     musteri ad+tel MASKELI, kalem basligi+malzeme/renk+adet+tutar+kisaltilmis detay)
   6. CANLI kosum: python3 tools/siparisler.py --son 2 exit 0 doner + cikti
-     "PRUVO SIPARISLER" basligini icerir (telefon maskelenerek ekrana basilir)
+     "PRUVO SIPARISLER" basligini icerir (ad/telefon siparisler.py tarafindan
+     zaten maskeli basilir — bkz tools/siparis-maske-test.py)
 """
 import json
 import os
@@ -140,16 +143,25 @@ def test_5_format_alanlari():
         siparisler.tl(12345),        # urun toplami
         siparisler.tl(25000),        # kargo
         siparisler.tl(12345 + 25000),  # genel toplam
-        "Test Musteri",
-        "5551112233",
+        # 🔴 31 TEM — MASKELI beklenti (HAM beklenti SILINMEDI, maskeliye CEVRILDI:
+        # "alan hala basiliyor mu" ekseni korunur). Maskeleme siparisler.py'de yapilir;
+        # burada LITERAL yazilir (maskele_*() cagrisiyla yazilsa tautoloji olurdu ve
+        # fonksiyon bozulunca beklenti de onunla birlikte bozulurdu).
+        "T*** M***",                 # musteri_ad "Test Musteri" -> maskeli
+        "******2233",                # musteri_tel "5551112233"  -> maskeli
         "Test Urun Basligi",
         "PLA / Kirmizi",
         "adet: 3",
         siparisler.tl(12345),
     ]
     eksik = [b for b in beklenenler if b not in blok]
-    kayit(5, "format_siparis beklenen tum alanlari iceriyor",
-          not eksik, ("eksik=%s" % eksik) if eksik else "")
+    # HAM kisisel deger blokta OLMAMALI (asil nobetci siparis-maske-test.py;
+    # bu satir beklentinin "maskeliye cevrildi" halinin sessizce geri donmesini yakalar)
+    ham_sizan = [h for h in ("Test Musteri", "5551112233") if h in blok]
+    kayit(5, "format_siparis beklenen tum alanlari iceriyor (ad/tel MASKELI)",
+          not eksik and not ham_sizan,
+          ("eksik=%s" % eksik if eksik else "") + ("ham sizinti=%s" % ham_sizan
+                                                   if ham_sizan else ""))
 
     # kisaltma: ham detay bloka TAM girmemeli (kisaltilmis hali girmeli)
     ham_detay = SAHTE_SATIR["urunler"]
@@ -168,7 +180,8 @@ def test_6_canli_kosum():
     kayit(6, "canli D1 kosumu exit 0 + basligi iceriyor", basarili,
           ("exit=%d" % p.returncode) if not basarili else "")
     if basarili:
-        print("      --- canli cikti (ilk 25 satir, RAPOR icin telefon maskele) ---")
+        print("      --- canli cikti (ilk 25 satir; ad/tel siparisler.py'de ZATEN "
+              "maskeli — elle maskeleme gerekmez) ---")
         for satir in p.stdout.splitlines()[:25]:
             print("      %s" % satir)
     elif p.stderr:
