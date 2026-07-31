@@ -1,5 +1,67 @@
 [
   {
+    "id": "deneysel-tekne-pervanesi-prototipi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Deneysel Tekne Pervanesi (Prototip Tasarim)",
+    "aciklama": "Kucuk tekne ve bot dis motorlarinda denenebilecek, prototip asamasinda gelistirilmis deneysel bir pervane tasarimi.\n- Kucuk tekne/bot dis motorlariyla uyumlu prototip bir pervanedir.\n- Farkli pervane geometrilerini denemek isteyenler icin uygundur.\n- Hafif ve kolay degistirilebilir yapidadir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt131939-1.jpg"
+    ]
+  },
+  {
+    "id": "yelkenli-tekne-halat-duzenleyici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne Icin Halat Duzenleyici",
+    "aciklama": "Yelkenli teknelerde halatlarin dolasmadan duzenli asili durmasini saglayan, govdeye monte edilen halat duzenleyici parcasi.\n- Yelkenli tekne ve yat govdelerine monte edilebilir.\n- Halatlarin dolasmadan duzenli asili durmasini saglar.\n- Farkli caplarda halatlarla kullanima uygundur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt3192307-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3192307-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt3192307-3.jpg"
+    ]
+  },
+  {
+    "id": "30cm-balikci-agi-samandirasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "30 cm Balikci Agi Samandirasi",
+    "aciklama": "Balik aglarinin yuzeyde isaretlenmesi icin kullanilan, yaklasik 30 cm boyunda samandira.\n- Balik aglarinin yuzeyde isaretlenmesinde kullanilabilir.\n- Suda kolayca yuzer yapidadir.\n- Elle tasinabilir kompakt boyuttadir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt5292970-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5292970-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt5292970-3.jpg"
+    ]
+  },
+  {
+    "id": "tekne-olta-kamisi-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Icin Olta Kamisi Tutucusu",
+    "aciklama": "Teknelerde olta kamisini sabit ve erisilebilir tutmak icin kullanilan tutucu aparat.\n- Tekne kenarina veya uygun bir yuzeye monte edilebilir.\n- Olta kamisini sabit ve erisilebilir tutar.\n- Kolay takip cikarma imkani sunar.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt6423108-1.jpg"
+    ]
+  },
+  {
+    "id": "disi-motor-yedek-kill-cord-klipsi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Disi Motor Icin Yedek Can Ipi (Kill-Cord) Klipsi",
+    "aciklama": "Disi takma motorlarin acil durdurma (kill-cord/can ipi) sistemi icin yedek baglanti klipsi.\n- Evinrude ve benzeri disi takma motor modelleriyle uyumludur.\n- Kaybolan veya kirilan orijinal klipsin yerine kullanilabilir.\n- Hizli takip cikarma saglayan basit bir tasarima sahiptir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/cgt78235-1.jpg",
+      "https://media.pruvo3d.com/urunler/cgt78235-2.jpg",
+      "https://media.pruvo3d.com/urunler/cgt78235-3.jpg",
+      "https://media.pruvo3d.com/urunler/cgt78235-4.jpg"
+    ]
+  },
+  {
     "id": "dp684062",
     "kategori": "Bahçe",
     "marka": [],
