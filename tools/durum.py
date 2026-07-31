@@ -381,7 +381,8 @@ YEDEK_DAMGA_ADI = ".son-yedek.json"
 # onceliklidir (daha yeni kayit odur).
 YEDEK_ATLAMA_ADI = ".son-yedek-atlama.json"
 YEDEK_BAYAT_SANIYE = 2 * 86400   # ~2 gun. TEK YER — esigi baska yere serpistirme.
-YEDEK_ZAMAN_ASIMI = 5.0          # saniye. Olculen normal sure: 0,0005 s.
+YEDEK_ZAMAN_ASIMI = 5.0          # saniye. Olculen normal sure: ~0,9 s (canli imza
+                                 # dahil; bkz. _canli_kaynak_imzasi maliyet notu).
 
 # YEDEK KILIDI (tools/yedekle.py `.yedek.lock`) — panonun IKINCI kanali.
 # NEDEN VAR: atlanan yedek push aninda %100 SESSIZDIR (pre-push blogu stdout+stderr'i
@@ -589,7 +590,10 @@ def _canli_kaynak_imzasi():
     agac icin yazilmissa (yasanmis F1 hatasi: ROOT worktree'ye dusuyordu; ayrica izole
     kum havuzu kosumlari) karsilastirma "degisti" diye BAGIRIR ve pano gurultuye boger —
     gurultulu pano olu panodur. O halde cevap "olculemedi"dir, yanlis alarm DEGIL.
-    Maliyet olculdu: import 0,017 sn + aday basina 0,002 sn (stat gezinmesi, okuma YOK)."""
+    Maliyet olculdu (31 Tem, imza artik YEDEK PLANINDAN turuyor): iki aday toplam
+    ~0,9 sn (2.645 dosyalik plan: 6 evde git ls-files/status + glob yuruyusleri +
+    sir nobeti). Eski olcum (aday basina 0,002 sn) BAYATTI ve yaniltir. Sinir
+    YEDEK_ZAMAN_ASIMI = 5 sn -> pay ~5,5x; asilirsa pano ⚪ der (fail-VISIBLE)."""
     try:
         yedekle = _yedekle_modulu()
         adaylar = [imza for imza in (yedekle.kaynak_imzasi(s) for s in (False, True))

@@ -536,6 +536,125 @@ def _senaryo_cokme(yb, ekstra_degisimler):
                 "cokdu": r1.returncode != 0}
 
 
+# ============================================================================
+# BOLUM 11 FIKSTURU — IMZA KAPSAMI = KOPYA PLANI (glob fail-open nobeti)
+# ----------------------------------------------------------------------------
+# 🔴 NEDEN VAR (31 Tem 2026, OLCULDU): yedekle.kaynak_imzasi() ek kokleri
+# `os.path.join(ev, giris)` ile kuruyordu; EK_EVLER'deki GLOB'lu girisler
+# ("olcum/*.py") ne isfile ne isdir oldugu icin SESSIZCE atlaniyordu. Olcum: imza
+# 767 dosya / kopya plani 2642 dosya; farkin 1934'u glob kapsami. Sonuc: o dosyalar
+# degistiginde imza KIMILDAMIYOR, `--gerekliyse` "guncel" deyip yedegi ATLIYOR =
+# fail-open, sessiz veri kaybi. Onarim: imza da dogrulama da kopya da yedek_plani()
+# TEK tanimindan turer. Bu bolum onu DAVRANISSAL olcer (yapisal/regex DEGIL):
+# gercek yedekle.py'yi tam-izole kum havuzunda kosturur ve kararina bakar.
+#
+# mtime BILEREK ESKIYE cekilir: mtime ekseni "degisiklik yok" derken karari YALNIZ
+# imza ekseni verebilir -> nobet tam olculmek istenen sinifi olcer.
+
+
+def _glob_girisi(yb):
+    """EK_EVLER'de GLOB tasiyan ILK (ev_adi, giris). Fikstur sabit YAZMAZ, KONFIGU OKUR.
+    Yoksa (None, None) -> senaryo artik gercek konfigurasyonu temsil etmiyordur ve
+    bunu KIRMIZI soyler (⚪'ya KACMAZ; ⚪ butcesi bolum 10'da tam 1'dir)."""
+    for ev_adi in sorted(yb.EK_EVLER):
+        for giris in yb.EK_EVLER[ev_adi]:
+            if "*" in giris or "?" in giris:
+                return ev_adi, giris
+    return None, None
+
+
+# Kum havuzundaki yedekle.py KOPYASINI ayni sahte HOME ile olcen surucu: imza +
+# plan uzunlugu + plandaki kaynak yollari. (Ana surecte import etmek GERCEK HOME'u
+# olcerdi; alt surec ortam["HOME"] ile kosar.)
+_IMZA_SURUCU = (
+    "import importlib.util, json, os\n"
+    "yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tools', 'yedekle.py')\n"
+    "spec = importlib.util.spec_from_file_location('yedekle_olcum', yol)\n"
+    "m = importlib.util.module_from_spec(spec)\n"
+    "spec.loader.exec_module(m)\n"
+    "plan = m.yedek_plani(False)\n"
+    "print(json.dumps({'imza': m.kaynak_imzasi(False), 'plan': len(plan),\n"
+    "                  'kaynaklar': [k for k, _h in plan]}))\n")
+
+
+def _imza_olc(o):
+    """Kum havuzu kopyasinin imza/plan olcumu. Doner: {"imza","plan","kaynaklar"}."""
+    surucu = os.path.join(o["kok"], "imza_surucu.py")
+    with open(surucu, "w", encoding="utf-8") as f:
+        f.write(_IMZA_SURUCU)
+    r = subprocess.run([sys.executable, surucu], capture_output=True, text=True,
+                       env=o["ortam"], cwd=o["kok"])
+    try:
+        return json.loads(r.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        return {"imza": None, "plan": -1, "kaynaklar": [],
+                "hata": (r.stderr or "")[-200:]}
+
+
+def _senaryo_glob_kapsam(yb, degisimler):
+    """GLOB kapsamindaki dosya DEGISINCE `--gerekliyse` yedegi ATLAMAMALI.
+
+    Kurulum: sahte HOME + sahte Drive + EK_EVLER'den OKUNAN adla bir kardes ev
+    (kok'un KARDESI: yedekle.ev_yollari() onu boyle cozer). Sira:
+      r0  TAM yedek  -> damga + hedefte kopya
+      degisiklik     -> glob kapsamindaki dosya YENI icerik, mtime ESKIYE cekili
+      r1  --gerekliyse -> ATLAMAMALI (yedeklemeli), kopya TAZELENMELI
+      r2  --gerekliyse -> degisiklik yokken ATLAMALI (yanlis-pozitif yok)
+    Doner: olcum dict'i; EK_EVLER'de glob yoksa None."""
+    ev_adi, desen = _glob_girisi(yb)
+    if not ev_adi:
+        return None
+    with tempfile.TemporaryDirectory() as td:
+        o = _yedekle_izole_ortam(td, yb)
+        ev = os.path.join(td, ev_adi)
+        os.makedirs(os.path.join(ev, ".git", "hooks"))     # ev_yollari .git ARAR
+        alt = os.path.dirname(desen)
+        dizin = os.path.join(ev, alt) if alt else ev
+        os.makedirs(dizin, exist_ok=True)
+        ad = "kapsam-fikstur" + os.path.splitext(desen)[1]
+        dosya = os.path.join(dizin, ad)
+        ILK = "# glob kapsami fiksturu\n"
+        YENI = "# glob kapsami fiksturu -- ICERIK DEGISTI (bilerek daha uzun satir)\n"
+        with open(dosya, "w", encoding="utf-8") as f:
+            f.write(ILK)
+        if degisimler:
+            _betik_uygula(o, degisimler)
+        r0 = _yedekle_kos(o)                               # TAM yedek
+        d0 = _imza_olc(o)
+        kopya = os.path.join(o["hedef"], yb.EK_KLASOR, "evler", ev_adi,
+                             os.path.join(alt, ad) if alt else ad)
+        ilk_kopyalandi = os.path.isfile(kopya)
+        with open(dosya, "w", encoding="utf-8") as f:      # DEGISIKLIK
+            f.write(YENI)
+        eski = time.time() - 7200                          # mtime ekseni SUSTURULUR
+        os.utime(dosya, (eski, eski))
+        d1 = _imza_olc(o)
+        r1 = _yedekle_kos(o, "--gerekliyse")
+        try:
+            with open(kopya, encoding="utf-8") as f:
+                kopya_icerik = f.read()
+        except OSError:
+            kopya_icerik = ""
+        r2 = _yedekle_kos(o, "--gerekliyse")               # degisiklik YOK
+        # realpath: kum havuzu /var/... (symlink) altinda kurulur ama yedekle.ROOT
+        # git'ten FIZIKSEL yolu (/private/var/...) alir -> ham string karsilastirmasi
+        # dosya PLANDA OLSA BILE kirmizi yakardi (olculdu).
+        planda = os.path.realpath(dosya) in set(
+            os.path.realpath(k) for k in d0.get("kaynaklar", []))
+        return {"r0_ok": "bitti ->" in r0.stdout,
+                "planda": planda,
+                "olculdu": isinstance(d0.get("imza"), dict) and isinstance(d1.get("imza"), dict),
+                "imza_degisti": not yb.imza_esit_mi(d0.get("imza"), d1.get("imza")),
+                "imza_plani_kadar": (isinstance(d0.get("imza"), dict)
+                                     and d0["imza"].get("adet") == d0.get("plan")),
+                "atladi": "kopyalanmadi" in r1.stdout,
+                "yedekledi": "bitti ->" in r1.stdout,
+                "kopya_guncel": kopya_icerik == YENI,
+                "ilk_kopyalandi": ilk_kopyalandi,
+                "degisiklik_yokken_atladi": "kopyalanmadi" in r2.stdout,
+                "d0": d0.get("imza"), "d1": d1.get("imza"), "plan": d0.get("plan")}
+
+
 # TEK MESRU ⚪ URETICISI: bolum 10 sonundaki KALICI fikstur. Adi BURADA ilan edilir
 # ki _capa "ilan edilmis fikstur" ile "kaymis gercek capa"yi AYIRT EDEBILSIN.
 _CAPA_FIKSTUR_ADI = "(fikstur) kasitli anchor-KIRAN refaktor"
@@ -2076,6 +2195,17 @@ def main():
             "eksik=repo_eksikleri(), baslangic=baslangic, kilitsiz=kilitsiz, imza=bas_imza)"
             "  # MUTANT: cikis damgasi basari-yolundan alindi (basta yaziliyor)")
 
+        # --- (d) IMZA KAPSAMI (bolum 11): imza kumesi = KOPYA PLANI --------------
+        # 🔴 MUTANT NE YAPAR: kaynak_imzasi()'nin okudugu kumeyi yedek_plani()'ndan
+        # AYIRIR (ek kapsami plandan suzer) — 31 Tem'de OLCULEN sessiz fail-open'in
+        # ta kendisi: imza glob kapsamindaki 1934 dosyayi gormuyor, `--gerekliyse`
+        # "guncel" deyip yedegi ATLIYOR, kopya BAYAT kaliyor, kimse uyarmiyor.
+        MUT_IMZA = (
+            "    for kaynak, _hedef in yedek_plani(sirlar):",
+            "    for kaynak, _hedef in [x for x in yedek_plani(sirlar)\n"
+            "                           if not x[1].startswith(EK_KLASOR + os.sep)]:"
+            "  # MUTANT: imza EK kapsami GORMUYOR = plandan AYRISTI")
+
         # --- NEGATIF (MESRU) REFAKTORLER: guvence KORUNUR -> davranis DEGISMEZ ---
         REF_YORUM = ("        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)",
                      "        # refaktor yorumu: non-blocking exclusive kilit denemesi\n"
@@ -2084,6 +2214,9 @@ def main():
         REF_YORUM2 = ("    basardi = False",
                       "    # refaktor: fail-closed basari bayragi varsayilani\n"
                       "    basardi = False")
+        REF_IMZA = ("    for kaynak, _hedef in yedek_plani(sirlar):",
+                    "    # refaktor yorumu: imza kumesi TEK tanimdan (yedek_plani) gelir\n"
+                    "    for kaynak, _hedef in yedek_plani(sirlar):")
 
         # ---- ÇAPA-VARLIK NOBETI (fail-closed, senaryolardan ONCE) ------------------
         # Asagidaki nobetlerin GUCU 1. siniftir: mutant yedekle.py'yi GERCEKTEN
@@ -2101,6 +2234,8 @@ def main():
                  MUT_FINALLY[0], 1, True),
                 ("MUT_CIKIS (baslangic imzasi satiri)", MUT_CIKIS[0], 1, True),
                 ("_COKME_CAPA (kopya dongusu basi)", _COKME_CAPA, 1, True),
+                ("MUT_IMZA/REF_IMZA (imza kumesi = yedek_plani dongusu)",
+                 MUT_IMZA[0], 1, True),
                 ("REF_RENAME (bas_imza tanimlayicisi)", REF_RENAME[0], 1, False)):
             _g = _gov_y.count(_cmetin)
             kontrol("ÇAPA-VARLIK: %s capasi tools/yedekle.py'de %s%d kez var"
@@ -2206,6 +2341,68 @@ def main():
         kontrol("ÇAPA BUTCESI: fikstur-ekseninde tam 1 ⚪ var (ilan edilen kalici "
                 "fikstur); ikinci fail-open yol YOK",
                 EKSEN.get("fikstur", 0) == 1, "fikstur ⚪=%d" % EKSEN.get("fikstur", 0))
+
+        # ------- 11) IMZA KAPSAMI = KOPYA PLANI (glob fail-open nobeti) -------
+        # Gerekce ve senaryo: _senaryo_glob_kapsam ustundeki blok.
+        print("\n11) IMZA KAPSAMI = KOPYA PLANI — glob'lu allowlist girisleri "
+              "(sessiz fail-open nobeti)")
+        _ev_adi, _desen = _glob_girisi(yb)
+        kontrol("(11) VERI CAPASI: EK_EVLER'de GLOB'lu giris VAR (senaryo gercek "
+                "konfigurasyonu temsil ediyor; yoksa nobet bayattir)",
+                bool(_ev_adi), "ev=%s giris=%s" % (_ev_adi, _desen))
+
+        g_base = _capa("(11) base glob-kapsam senaryosu [capa]",
+                       lambda: _senaryo_glob_kapsam(yb, []))
+        g_base is None or kontrol(
+            "(11) hazirlik: ilk TAM yedek bitti + glob kapsamindaki dosya PLANDA ve "
+            "hedefe KOPYALANDI + imza OLCULDU",
+            g_base["r0_ok"] and g_base["planda"] and g_base["ilk_kopyalandi"]
+            and g_base["olculdu"],
+            "r0=%s planda=%s kopya=%s olculdu=%s"
+            % (g_base["r0_ok"], g_base["planda"], g_base["ilk_kopyalandi"],
+               g_base["olculdu"]))
+        g_base is None or kontrol(
+            "(11a) glob kapsamindaki dosya DEGISINCE kaynak imzasi DEGISTI "
+            "(mtime ESKI -> karari YALNIZ imza ekseni verebilir)",
+            g_base["imza_degisti"] and g_base["olculdu"],
+            "%s -> %s" % (g_base["d0"], g_base["d1"]))
+        g_base is None or kontrol(
+            "(11b) `--gerekliyse` yedegi ATLAMADI, GERCEKTEN yedekledi (fail-open KAPALI)",
+            g_base["yedekledi"] and not g_base["atladi"],
+            "yedekledi=%s atladi=%s" % (g_base["yedekledi"], g_base["atladi"]))
+        g_base is None or kontrol(
+            "(11c) hedefteki kopya YENI icerigi tasiyor (sessiz veri kaybi YOK)",
+            g_base["kopya_guncel"], "kopya_guncel=%s" % g_base["kopya_guncel"])
+        g_base is None or kontrol(
+            "(11d) YANLIS-POZITIF YOK: hicbir kaynak degismeden kosum ATLIYOR",
+            g_base["degisiklik_yokken_atladi"],
+            "atladi=%s" % g_base["degisiklik_yokken_atladi"])
+        g_base is None or kontrol(
+            "(11e) INVARYANT: imza adedi == yedek plani uzunlugu (imzanin IKINCI bir "
+            "yuruyusu YOK -> tanimlar ayrisamaz)",
+            g_base["imza_plani_kadar"],
+            "adet=%s plan=%s" % ((g_base["d0"] or {}).get("adet"), g_base["plan"]))
+
+        g_mut = _capa("(11) POZITIF MUTANT senaryosu [capa]",
+                      lambda: _senaryo_glob_kapsam(yb, [MUT_IMZA]))
+        g_mut is None or kontrol(
+            "(11) POZITIF MUTANT (imza plandan AYRISTI: ek kapsami gormuyor) -> kosum "
+            "ATLADI, imza KIMILDAMADI, kopya BAYAT kaldi = sessiz veri kaybi "
+            "(11a/11b/11c KIRMIZI yanardi)",
+            g_mut["atladi"] and not g_mut["imza_degisti"] and not g_mut["kopya_guncel"],
+            "atladi=%s imza_degisti=%s kopya_guncel=%s"
+            % (g_mut["atladi"], g_mut["imza_degisti"], g_mut["kopya_guncel"]))
+
+        g_ref = _capa("(neg-11) imza dongusu refaktor senaryosu [capa]",
+                      lambda: _senaryo_glob_kapsam(yb, [REF_IMZA]))
+        g_ref is None or kontrol(
+            "(neg-11) mesru refaktor (imza dongusune yorum satiri) -> (11) BASE "
+            "davranisi AYNEN YESIL (FP yok)",
+            g_ref["imza_degisti"] and g_ref["yedekledi"] and g_ref["kopya_guncel"]
+            and g_ref["degisiklik_yokken_atladi"] and g_ref["imza_plani_kadar"],
+            "imza_degisti=%s yedekledi=%s kopya_guncel=%s bos_kosum_atladi=%s"
+            % (g_ref["imza_degisti"], g_ref["yedekledi"], g_ref["kopya_guncel"],
+               g_ref["degisiklik_yokken_atladi"]))
 
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok in SONUC if not ok]
