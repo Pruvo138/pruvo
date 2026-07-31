@@ -16,6 +16,12 @@ NEYI KORUR (olculmus sessiz hata, 31 Tem 2026):
 IDDIA (bloklayici): YAYIN BEYAZ LISTESINDEKI her .html/.js dosyasinin YORUM YUZEYINDE
   (HTML yorumu + <style> icindeki CSS yorumu + JS yorumlari) yasakli dil vurusu = 0.
 
+IDDIA 2 (bloklayici, HIZALAMA): olculen bayt = YAYINLANAN bayt. JS varliklarinin
+  yayin kopyasi build.py tarafindan _yayin/'a yazilir (yorumu soyulmus) ve deploy.yml
+  _site'a ORADAN kopyalar; bu kapi da _yayin/'i olcer. deploy.yml sessizce kaynaktan
+  kopyalamaya donerse tarayiciya YORUMLU dosya iner ama kapi soyulmus kopyayi olcup
+  YESIL yanardi -> soyma da kapi da OLU. Hizalama kontrolu bunu KIRMIZI yakar.
+
 NEDEN "YORUM YUZEYI" (eksen secimi — olculmus gerekce):
   * VERI BAGISIKLIGI: urun metni sayfaya DIZGE/OBJE literali olarak girer, YORUM olarak
     ASLA. Yorumla sinirlamak, kapiyi katalog ekseninden (denetim-kapisi) tamamen ayirir:
@@ -213,14 +219,71 @@ SABIT_VARLIKLAR = ("index.built.html", "secenekler.js", "konfigur.js",
                    "jenerator/hacim.js", "jenerator/konfigurator.js", "jenerator/viewer.js")
 TABAN_JS = ("secenekler.js", "konfigur.js", "jenerator/hacim.js")
 EN_AZ_URUN = 100
+# JS varliklarinin YAYINLANAN kopyasi build.py tarafindan buraya yazilir (yorumu
+# soyulmus). deploy.yml _site'a BURADAN kopyalar -> kapi da BURAYI olcmeli, yoksa
+# tarayiciya inmeyen KAYNAK dosyayi olcup yanlis yerde kirmizi/yesil yanar.
+YAYIN_DIR = "_yayin"
+# Yorumu SOYULMAYAN, bilerek kapsam disi yuzey: elle yazilmis 4 statik yasal sayfa
+# (hakkimizda/iletisim/sss/gizlilik). Onlar commit'li kaynaktir
+# (tools/yasal-sayfa-drift-kapisi.py bayt-esitlik ister), build.py'nin yayin_html()
+# donusumunden GECMEZ — ama BU kapinin kapsamindan CIKMAZLAR: ic-dil ekseni onlarda da
+# olculur (soyulmadiklari icin yorumlari yayina AYNEN iner).
+
+
+def _yayin_kopyasi(kok, rel):
+    """(olculecek_yol, soyulmus_mu) — _yayin/<rel> varsa YAYINLANAN kopya odur."""
+    y = os.path.join(YAYIN_DIR, rel)
+    if os.path.exists(os.path.join(kok, y)):
+        return y, True
+    return rel, False
+
+
+# ------------------------------------------------- OLCUM HEDEFI = YAYINLANAN BAYT
+# 🔴 IKI KORUMA BIRBIRINI OLU BIRAKMASIN. Bu kapi JS varliklarini _yayin/<rel>'den
+# olcer; o dosyalarin GERCEKTEN yayinlanan baytlar olmasi deploy.yml'in onlari
+# _site'a _yayin/'DAN kopyalamasina baglidir. deploy.yml sessizce kaynaktan
+# kopyalamaya donerse: tarayiciya YORUMLU dosya iner, bu kapi ise soyulmus kopyayi
+# olcup YESIL yanar — yani soyma da kapi da olur. Asagidaki hizalama kontrolu o
+# sessiz hatayi BLOKLAYICI yapar: beyaz listedeki her JS icin deploy.yml'de
+# `_yayin/<rel>` kopyasi ZORUNLU, ciplak `<rel>` kopyasi YASAK.
+_CP_SATIRI = re.compile(r"^\s*cp\s+(?P<govde>.+)$", re.M)
+
+
+def deploy_kopya_jetonlari(yml_metni):
+    """deploy.yml'deki `cp ...` satirlarinin KAYNAK jetonlari (hedef haric)."""
+    jetonlar = set()
+    for m in _CP_SATIRI.finditer(yml_metni or ""):
+        parcalar = m.group("govde").split()
+        if len(parcalar) < 2:
+            continue
+        for p in parcalar[:-1]:                     # son jeton = HEDEF
+            if not p.startswith("-"):               # -r gibi secenekler haric
+                jetonlar.add(p)
+    return jetonlar
+
+
+def hizalama_ihlalleri(yml_metni):
+    """[(rel, sebep)] — olculen bayt ile YAYINLANAN bayt ayrisiyorsa dolu doner."""
+    jetonlar = deploy_kopya_jetonlari(yml_metni)
+    ihlaller = []
+    for rel in SABIT_VARLIKLAR:
+        if not rel.endswith(".js"):
+            continue                                # index.built.html zaten build urunu
+        if rel in jetonlar:
+            ihlaller.append((rel, "deploy.yml KAYNAKTAN kopyaliyor (yorumlu bayt yayinlanir)"))
+        elif (YAYIN_DIR + "/" + rel) not in jetonlar:
+            ihlaller.append((rel, "deploy.yml _yayin/%s kopyasini HIC kopyalamiyor" % rel))
+    return ihlaller
 
 
 def kapsam(kok):
-    """(dosyalar, eksik) — yayin beyaz listesindeki .html/.js yollari."""
+    """(dosyalar, eksik) — yayin beyaz listesindeki .html/.js yollari.
+    `dosyalar` deploy'un _site'a KOYDUGU baytlari gosterir (JS icin _yayin/<rel>)."""
     dosyalar, eksik = [], []
     for rel in SABIT_VARLIKLAR:
-        if os.path.exists(os.path.join(kok, rel)):
-            dosyalar.append(rel)
+        yol, _soyuldu = _yayin_kopyasi(kok, rel)
+        if os.path.exists(os.path.join(kok, yol)):
+            dosyalar.append(yol)
         elif rel in TABAN_JS or rel == "index.built.html":
             eksik.append(rel)
     idx = os.path.join(kok, "_yayin-icerik-dizinleri.txt")
@@ -284,15 +347,39 @@ def tara(metin, yol, sert, ic, tr_lower):
     return bulgu
 
 
-def olc(kok, ayrintili=True, kapsam_fn=None, etiket="yayin"):
+DEPLOY_YML = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
+
+
+def olc(kok, ayrintili=True, yml_metni=None, kapsam_fn=None, etiket="yayin"):
     """(cikis_kodu, satirlar). kapsam_fn: yayin kolu `kapsam`, kaynak kolu `kaynak_kapsam`
-    — sozluk ve yorum lexer'i IKI KOLDA DA AYNI, yalniz dosya kumesi degisir."""
+    — sozluk ve yorum lexer'i IKI KOLDA DA AYNI, yalniz dosya kumesi degisir.
+
+    HIZALAMA KAPISI yalniz YAYIN kolunda kosar: iddiasi "bu kapinin OLCTUGU _yayin/
+    baytlari ile deploy.yml'in YAYINLADIGI baytlar ayni" — KAYNAK kolu tanimi geregi
+    kaynak dosyalari olcer, o iddia oraya uygulanamaz. Yayin kolunda AYNEN duruyor."""
     R = []
     kapsam_fn = kapsam_fn or kapsam
     try:
         sert, ic, tr_lower = desenleri_derle()
     except Exception as e:                                     # noqa: BLE001
         return 3, ["OLCULEMEDI: sozluk (denetim-kapisi.py) yuklenemedi -> %s" % e]
+
+    if etiket == "yayin":
+        if yml_metni is None:
+            try:
+                yml_metni = io.open(DEPLOY_YML, encoding="utf-8").read()
+            except OSError as e:
+                return 3, ["OLCULEMEDI: deploy.yml okunamadi -> %s" % e,
+                           "  (olculen bayt ile YAYINLANAN bayt hizasi dogrulanamaz)"]
+        kaymalar = hizalama_ihlalleri(yml_metni)
+        if kaymalar:
+            R.append("IHLAL: OLCUM HEDEFI SAPMASI — bu kapi _yayin/ kopyasini olcerken "
+                     "deploy.yml baska baytlari yayinliyor (%d varlik)" % len(kaymalar))
+            for rel, sebep in kaymalar:
+                R.append("  %s  -> %s" % (rel, sebep))
+            R.append("COZUM: deploy.yml'de _site'a JS varliklari _yayin/<rel>'den kopyalanmali "
+                     "(build.py o kopyalari uretir; uretemezse zaten exit 1).")
+            return 1, R
 
     dosyalar, eksik = kapsam_fn(kok)
     if eksik:
@@ -562,6 +649,33 @@ def kendini_test():
                len(y) == 1 and y[0][1].strip() == "son", repr(y))
         y = js_yorumlari("/* bir */ kod // iki\n")
         _iddia("L4 iki yorum bicimi de yakalanir", len(y) == 2, repr(y))
+
+        # ------- HIZALAMA: olculen bayt == YAYINLANAN bayt (iki koruma birbirini
+        #         olu birakmasin). Mutasyonlar deploy.yml METNI uzerinde yapilir;
+        #         depodaki dosyaya DOKUNULMAZ.
+        try:
+            gercek_yml = io.open(DEPLOY_YML, encoding="utf-8").read()
+        except OSError:
+            gercek_yml = ""
+        _iddia("H0 gercek deploy.yml HIZALI (JS'ler _yayin/'dan kopyalaniyor)",
+               gercek_yml and not hizalama_ihlalleri(gercek_yml),
+               repr(hizalama_ihlalleri(gercek_yml))[:200])
+
+        mutant = gercek_yml.replace("_yayin/secenekler.js", "secenekler.js")
+        _iddia("H1 MUTANT deploy KAYNAKTAN kopyaliyor -> KIRMIZI",
+               any(r == "secenekler.js" for r, _s in hizalama_ihlalleri(mutant)))
+        k = os.path.join(tmp, "hizalama-kaynak")
+        _sahte_agac(k, temiz_urun, icerik_govdesi=temiz_icerik, ana_govdesi=temiz_ana)
+        kod, _s = olc(k, ayrintili=False, yml_metni=mutant)
+        _iddia("H2 TEMIZ agac + MUTANT deploy -> yine de KIRMIZI (sessiz yesil YOK)",
+               kod == 1, "kod=%d" % kod)
+
+        mutant2 = gercek_yml.replace("_yayin/jenerator/hacim.js ", "")
+        _iddia("H3 MUTANT yayin kopyasini HIC kopyalamiyor -> KIRMIZI",
+               any(r == "jenerator/hacim.js" for r, _s in hizalama_ihlalleri(mutant2)))
+        kod, _s = olc(k, ayrintili=False, yml_metni="")
+        _iddia("H4 deploy.yml BOS -> KIRMIZI (hizalama dogrulanamaz)", kod == 1,
+               "kod=%d" % kod)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
