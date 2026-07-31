@@ -93,8 +93,12 @@ MANIFEST = os.path.join(ROOT, ".urunler-duzelt-izin.json")
 MANIFEST_SIL = os.path.join(ROOT, ".urunler-sil-izin.json")
 LOG = os.path.join(ROOT, ".urunler-guard.log")
 
-DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "gorseller",
-                    "lisans", "konfigur"}
+# `eski_fiyat`: OPSIYONEL ustu cizili indirim gosterimi (tools/build.py
+# eski_fiyat_gosterim). Mesru bir urun alanidir -> guard onu "kirlilik" saymasin ve
+# kampanya bitince `--alan-sil eski_fiyat` ile temizlenebilsin. PARA YOLU DEGIL:
+# tahsil edilen tutar `fiyat`tan turer.
+DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "eski_fiyat",
+                    "gorseller", "lisans", "konfigur"}
 
 # --- ACIKLAMA KORUMA: otomatik uretilen OLCU SATIRI ---------------------------
 # MaCiT dilim-30 (olculmus kayip): denetim kapisi yanlis-pozitifi yuzunden bir urunun
