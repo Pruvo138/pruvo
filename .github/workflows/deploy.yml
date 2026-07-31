@@ -928,6 +928,19 @@ jobs:
       # = limitin 2,5 kati. Degismeyen urune dokunulmaz, tipik push birkac yuz yazma eder).
       # continue-on-error: D1 senkronu SITE YAYININI BLOKLAMAZ — site urunler.json'dan calisir,
       # D1 sadece Ege'nin aramasini besler. Senkron kacarsa bir sonraki push'ta kendini toparlar.
+      #
+      # 🔴 BAYATLIK ON-KOSULU (31 Tem, adli olcum — 9 olay / 367 id sessizce silindi):
+      # Bu adim KENDI checkout'undan kosar. Sirada bekleyen bir kosum yayina cikana kadar
+      # daha yeni bir push, pre-push hook'uyla D1'i ZATEN guncellemis olur; o zaman bu ESKI
+      # agac diff-upsert'un DELETE koluyla YENI partiyi D1'den siler (olculen 9 olayin 9'unda
+      # adim `success` gorundu — sessiz hata). d1-sync.py icindeki bayatlik kapisi bayat
+      # agactan gelen HER YAZMAYI (silme + upsert) zaten fail-closed durdurur; buradaki
+      # on-kosul ise BAYAT KOSUMU HIC BASLATMAZ:
+      #   - D1'e tek satir bile yazilmaz ve bosuna D1 okumasi da yapilmaz,
+      #   - olculen 18-27 s'lik adim suresi yayin yolundan DUSER.
+      # `--bayatlik` D1'e DOKUNMAZ (yalniz `git ls-remote` + `merge-base`), UC ise 0 doner.
+      # Fail-open KALIR: bayat/olculemez kosumda adim exit 0 ile ATLAR, yayin durmaz;
+      # kalintiyi d1-uzlastirici.yml (yayin yolu disinda, 15 dk) kapatir.
       - name: Katalogu D1'e senkronla
         continue-on-error: true
         env:
@@ -936,6 +949,11 @@ jobs:
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
             echo "CLOUDFLARE_API_TOKEN secret yok — D1 senkronu atlandi."
+            exit 0
+          fi
+          if ! python3 tools/d1-sync.py --bayatlik; then
+            echo "BAYAT KOSUM — bu checkout uzak main'in ucunda DEGIL; D1 senkronu ATLANDI."
+            echo "(Ucta kosan is + pre-push hook + d1-uzlastirici.yml katalogu senkron tutar.)"
             exit 0
           fi
           python3 tools/d1-sync.py

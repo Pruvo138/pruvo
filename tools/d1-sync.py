@@ -201,6 +201,120 @@ def urunleri_oku():
     return d
 
 
+# ══════════════════════════════════════════════════════════════════════════════
+# BAYATLIK KAPISI — "eski agac yeni partiyi D1'den SILMESIN" (31 Tem, adli olcum)
+# ══════════════════════════════════════════════════════════════════════════════
+# OLCULEN OLAY: CI'daki "Katalogu D1'e senkronla" adimi KENDI (eski) checkout'undan
+# d1-sync kosar. O sirada daha yeni bir push, pre-push hook'uyla D1'i ZATEN
+# guncellemistir. diff-upsert "yerelde olmayan id"yi D1'den DELETE ettigi icin ESKI
+# kosum YENI partiyi SILER. Bir gunde 9 olay / 367 id sessizce silindi ve 9 olayin
+# 9'unda CI sonucu `success` gorundu. Ikinci yuzey: pre-push hook push edilen commit'i
+# degil CALISMA AGACINI yazar -> bayat bir worktree'den main'e push 3.498 id silerdi.
+#
+# KAPI: DELETE uygulanmadan once "bu agac yayindaki UCU biliyor mu" OLCULUR.
+#   UC        = uzak main'in ucu HEAD'in ATASI (ya da HEAD'in kendisi) -> silme SERBEST
+#   BAYAT     = uzak uc HEAD'in atasi DEGIL (ya da yerelde hic yok) -> silme YAPILMAZ
+#   OLCULEMEDI= git yok / uzak okunamadi -> FAIL-CLOSED, silme YAPILMAZ
+# UPSERT engellenmez (asil yikici islem DELETE'tir; bayat icerik yazimini P3
+# uzlastiricisi kapatir). Engel olursa arac SIFIR-DISI cikar ve NE'yi silmedigini basar.
+#
+# NEDEN "ATA" (ancestor) VE "ESIT" DEGIL: pre-push hook'u push TAMAMLANMADAN once
+# kosar -> o an uzak uc HENUZ eski commit'tir ve HEAD onun UZERINDEDIR. "Esit" sarti
+# butun mesru push'lari kirardi. "Uzak uc benim atam" sarti tam olarak "yayinda olan
+# her seyi biliyorum" demektir -> MESRU SILME (duzelt.py --toplu ile kaldirilan urun,
+# commit'lenip push edilirken) GECER; BAYAT AGAC (CI'nin eski checkout'u, eski worktree)
+# GECMEZ.
+#
+# NEDEN `ls-remote` (fetch DEGIL): nesne indirmez, yalniz ucun SHA'sini okur (~0,5-1 s).
+# Uc SHA yerelde YOKSA zaten bizde olmayan bir sey yayindadir -> BAYAT (fail-closed).
+#
+# MALIYET: yalnizca SILINECEK id VARKEN olculur. Tipik urun partisinde silme 0'dir ->
+# kapi hic calismaz, yayin yoluna maliyeti 0 sn.
+UZAK = "origin"
+UZAK_DAL = "refs/heads/main"
+
+
+def _git(args, zaman_asimi=60):
+    """git calistir. Doner: (rc, stdout.strip()). Calistirilamazsa (None, "")."""
+    try:
+        p = subprocess.run(["git"] + list(args), cwd=KOK, capture_output=True,
+                           text=True, timeout=zaman_asimi)
+    except Exception:                                             # noqa: BLE001
+        return None, ""
+    return p.returncode, (p.stdout or "").strip()
+
+
+def bayatlik_olc():
+    """Yazan agac yayindaki UCU biliyor mu? Doner: dict(durum, sebep, head, uzak).
+
+    durum: "UC" (silme guvenli) | "BAYAT" (silme YASAK) | "OLCULEMEDI" (silme YASAK).
+    HICBIR halde istisna sizdirmez: olculemeyen her sey FAIL-CLOSED sayilir.
+    """
+    def _sonuc(durum, sebep, head="?", uzak="?"):
+        return {"durum": durum, "sebep": sebep, "head": head, "uzak": uzak}
+
+    rc, _ = _git(["rev-parse", "--git-dir"])
+    if rc != 0:
+        return _sonuc("OLCULEMEDI", "git deposu okunamadi (git yok / depo degil)")
+    rc, head = _git(["rev-parse", "HEAD"])
+    if rc != 0 or not head:
+        return _sonuc("OLCULEMEDI", "HEAD okunamadi (commit'siz depo?)")
+    rc, cikti = _git(["ls-remote", UZAK, UZAK_DAL])
+    if rc != 0 or not cikti:
+        return _sonuc("OLCULEMEDI",
+                      "uzak uc okunamadi: git ls-remote %s %s (ag/kimlik/uzak yok)"
+                      % (UZAK, UZAK_DAL), head)
+    uzak = cikti.split()[0].strip()
+    if len(uzak) < 7:
+        return _sonuc("OLCULEMEDI", "uzak uc SHA ayristirilamadi: %r" % cikti[:80], head)
+    if uzak == head:
+        return _sonuc("UC", "HEAD == uzak main ucu", head, uzak)
+    rc, _ = _git(["cat-file", "-e", uzak + "^{commit}"])
+    if rc != 0:
+        return _sonuc("BAYAT", "uzak main ucu bu agacta YOK (yayinda bizde olmayan commit var)",
+                      head, uzak)
+    rc, _ = _git(["merge-base", "--is-ancestor", uzak, head])
+    if rc == 0:
+        return _sonuc("UC", "uzak main ucu HEAD'in atasi (agac uctan GERI DEGIL)", head, uzak)
+    if rc == 1:
+        return _sonuc("BAYAT", "uzak main ucu HEAD'in atasi DEGIL (agac uctan GERIDE/ayrik)",
+                      head, uzak)
+    return _sonuc("OLCULEMEDI", "merge-base olculemedi (rc=%s)" % rc, head, uzak)
+
+
+def bayatlik_engel_metni(b, sayilar, silinen_ornek):
+    """Yazma engellendiginde basilan YUKSEK SESLI metin (liste halinde satirlar).
+
+    sayilar: {"yeni","degisen","silinen","baski","taban","konfigur"} -> engellenen is.
+    silinen_ornek: engellenen DELETE id'leri (en yikici kalem; ornekleri basilir).
+    """
+    toplam = sum(sayilar.values())
+    satirlar = [
+        "!! BAYATLIK KAPISI: BU AGACTAN D1'e HICBIR SEY YAZILMADI (durum: %s)." % b["durum"],
+        "   Sebep: %s" % b["sebep"],
+        "   HEAD=%s · uzak %s ucu=%s"
+        % (str(b["head"])[:12], UZAK_DAL, str(b["uzak"])[:12]),
+        "   Engellenen is (toplam %d): yeni %d | degisen %d | silinen %d | baski %d | "
+        "taban %d | konfigur %d"
+        % (toplam, sayilar.get("yeni", 0), sayilar.get("degisen", 0),
+           sayilar.get("silinen", 0), sayilar.get("baski", 0),
+           sayilar.get("taban", 0), sayilar.get("konfigur", 0)),
+        "   NEDEN: bu agac yayindaki ucu bilmiyor. Yazma UYGULANSAYDI baska bir push'un",
+        "   D1'e yeni yazdigi urunler SILINIR ya da alanlari ESKI degerlere GERI ALINIRDI",
+        "   (site dogru gosterir, Ege bayat gorur = sessiz satis kaybi).",
+    ]
+    if silinen_ornek:
+        satirlar.append(
+            "   Silinmeyen id ornekleri: " + ", ".join(silinen_ornek[:10])
+            + (" ... (+%d)" % (len(silinen_ornek) - 10) if len(silinen_ornek) > 10 else ""))
+    satirlar += [
+        "   Coz: agaci uca getir (git pull --ff-only / taze checkout) ve tekrar kos.",
+        "   Emniyet agi: uctan kosan CI adimi + .github/workflows/d1-uzlastirici.yml (15 dk).",
+        "   NOT: yayin DURMAZ — pre-push hook exit 0 doner, CI adimi continue-on-error.",
+    ]
+    return satirlar
+
+
 def kolon_var_mi(tablo, kolon):
     """Canli tabloda kolon VAR mi? (PRAGMA — satir YAZMAZ, tek ucuz sorgu.)
 
@@ -946,15 +1060,25 @@ def _kt_urun(uid, kategori="Oyun/Hobi", baslik=None):
             "aciklama": "aciklama %s" % uid}
 
 
-def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None):
+def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
+            bayatlik="UC", kok=None):
     """d1-sync'i OFFLINE kosar. Doner: (cikis_kodu, cikti_metni, sayac).
     dusur(sql, sayac) -> True ise o yazma UYGULANMAZ ama BASARI raporlanir (sessiz ariza).
-    oku_patlat -> geri-okuma sorgusu istisna atar (OLCULEMEDI yolu)."""
+    oku_patlat -> geri-okuma sorgusu istisna atar (OLCULEMEDI yolu).
+    bayatlik -> bayatlik_olc()'un dondurecegi durum ("UC"/"BAYAT"/"OLCULEMEDI"); AG YOK.
+       sayac["bayatlik"] kac kez olculdugunu tutar (maliyet ekseni: yazma yoksa 0 olmali).
+    kok -> verilirse GERCEK bayatlik_olc() o git agacinda kosar (stub YOK) ve KOK oraya
+       ayarlanir; uctan uca (git soyagaci + senkron) olcum icin."""
     import contextlib
     import io
     import sqlite3
 
-    sayac = {"yazma": 0, "okuma": 0, "dusurulen": 0, "geri_okuma": 0}
+    sayac = {"yazma": 0, "okuma": 0, "dusurulen": 0, "geri_okuma": 0, "bayatlik": 0}
+
+    def _bayatlik():
+        sayac["bayatlik"] += 1
+        return {"durum": bayatlik, "sebep": "sentetik fikstur (%s)" % bayatlik,
+                "head": "a" * 40, "uzak": "b" * 40}
 
     def _sorgu(sql):
         sayac["okuma"] += 1
@@ -988,12 +1112,17 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None):
         yol = f.name
     g = globals()
     eski = {k: g[k] for k in ("sorgu", "dosya_calistir", "URUNLER", "KAYNAKLAR",
-                              "JEN_URUN_DIR", "taban_fiyat_haritasi")}
+                              "JEN_URUN_DIR", "taban_fiyat_haritasi", "bayatlik_olc",
+                              "KOK")}
     eski_argv = sys.argv
     tampon = io.StringIO()
     try:
         g["sorgu"] = _sorgu
         g["dosya_calistir"] = _dosya_calistir
+        if kok is None:
+            g["bayatlik_olc"] = _bayatlik  # AG YOK: kapi kararini fikstur verir
+        else:
+            g["KOK"] = kok                 # GERCEK kapi, GERCEK git (sentetik depo)
         g["URUNLER"] = yol
         g["KAYNAKLAR"] = os.path.join(tempfile.gettempdir(), "pruvo-kt-yok.json")
         g["JEN_URUN_DIR"] = os.path.join(tempfile.gettempdir(), "pruvo-kt-yok-dizin")
@@ -1036,6 +1165,45 @@ def _kt_baglan(yayinda_default=0):
 def _kt_deger(conn, uid, kolon):
     r = conn.execute("SELECT %s AS v FROM urunler WHERE id=?" % kolon, (uid,)).fetchone()
     return None if r is None else r["v"]
+
+
+def _kt_git(yol, *args):
+    """Sentetik depoda git kos (kimlik + imza ayarlari sabit; kullanicinin ayarina bagli
+    KALMAZ -> CI'da da yerelde de ayni davranir)."""
+    komut = ["git", "-c", "user.email=kt@pruvo.test", "-c", "user.name=KT",
+             "-c", "commit.gpgsign=false", "-c", "protocol.file.allow=always",
+             "-C", yol] + list(args)
+    p = subprocess.run(komut, capture_output=True, text=True)
+    return p.returncode, (p.stdout or "").strip()
+
+
+def _kt_depo_kur(tmp, urun_sayisi=1):
+    """(uzak_bare, yerel) — main dali olan bir uzak + ona bagli bir yerel checkout."""
+    uzak = os.path.join(tmp, "uzak.git")
+    yerel = os.path.join(tmp, "yerel")
+    os.makedirs(uzak)
+    _kt_git(tmp, "init", "--bare", "--quiet", uzak)
+    os.makedirs(yerel)
+    _kt_git(yerel, "init", "--quiet")
+    _kt_git(yerel, "checkout", "--quiet", "-B", "main")
+    _kt_git(yerel, "remote", "add", "origin", uzak)
+    with open(os.path.join(yerel, "urunler.json"), "w", encoding="utf-8") as f:
+        json.dump([_kt_urun("u%02d" % i) for i in range(urun_sayisi)], f)
+    _kt_git(yerel, "add", "-A")
+    _kt_git(yerel, "commit", "--quiet", "-m", "taban")
+    _kt_git(yerel, "push", "--quiet", "origin", "main")
+    return uzak, yerel
+
+
+def _kt_bayatlik(yol):
+    """bayatlik_olc()'u GERCEK git ile, verilen agacta kostur (AG YOK: uzak = yerel dizin)."""
+    g = globals()
+    eski = g["KOK"]
+    try:
+        g["KOK"] = yol
+        return bayatlik_olc()
+    finally:
+        g["KOK"] = eski
 
 
 def kendini_test():
@@ -1271,6 +1439,264 @@ def kendini_test():
             ",yayinda) VALUES (" in _sql and _sql.split("VALUES (")[1].split(")")[0]
             .rstrip().endswith(",0"), _sql[:160])
 
+    # ══════════════════════════════════════════════════════════════════════════
+    # BAYATLIK KAPISI (31 Tem — 9 olay / 367 id sessizce silindi, 9'unda CI success)
+    # ══════════════════════════════════════════════════════════════════════════
+    # A) KARAR CEKIRDEGI — GERCEK git ile, AG YOK (uzak = yerel bare dizin).
+    import shutil
+    tmp = tempfile.mkdtemp(prefix="pruvo-bayatlik-")
+    try:
+        uzak, yerel = _kt_depo_kur(tmp)
+        b = _kt_bayatlik(yerel)
+        dogrula("V42 BAYATLIK: HEAD == uzak main ucu -> UC (silme SERBEST)",
+                b["durum"] == "UC", b)
+
+        # PRE-PUSH HALI: yerelde yeni commit var, uzak HENUZ eski uctadir. Kapi bunu
+        # BAYAT sayarsa TUM MESRU PUSH'lar kirilir (paylasimli hook = herkesin push'u).
+        with open(os.path.join(yerel, "urunler.json"), "w", encoding="utf-8") as f:
+            json.dump([_kt_urun("u00"), _kt_urun("yeni1")], f)
+        _kt_git(yerel, "add", "-A")
+        _kt_git(yerel, "commit", "--quiet", "-m", "parti")
+        b = _kt_bayatlik(yerel)
+        dogrula("V43 BAYATLIK (PRE-PUSH): yerel UCTAN ILERIDE -> UC (mesru push kirilmaz)",
+                b["durum"] == "UC", b)
+        _kt_git(yerel, "push", "--quiet", "origin", "main")
+
+        # 🔴 BUGUNKU OLAYIN GIT EKSENI: CI eski SHA'yi checkout etti, uc ilerledi.
+        eski_sha = _kt_git(yerel, "rev-parse", "HEAD~1")[1]
+        ci = os.path.join(tmp, "ci")
+        _kt_git(tmp, "clone", "--quiet", uzak, ci)
+        _kt_git(ci, "checkout", "--quiet", eski_sha)     # bayat checkout (detached)
+        b = _kt_bayatlik(ci)
+        dogrula("V44 BAYATLIK (BUGUNKU OLAY): eski SHA checkout + uc ilerledi -> BAYAT",
+                b["durum"] == "BAYAT", b)
+
+        # AYRIK (diverged) agac: uctan turemeyen kendi commit'i olan bayat worktree.
+        ayrik = os.path.join(tmp, "ayrik")
+        _kt_git(tmp, "clone", "--quiet", uzak, ayrik)
+        _kt_git(ayrik, "checkout", "--quiet", "-B", "yan", eski_sha)
+        with open(os.path.join(ayrik, "urunler.json"), "w", encoding="utf-8") as f:
+            json.dump([_kt_urun("u00")], f)
+        _kt_git(ayrik, "add", "-A")
+        _kt_git(ayrik, "commit", "--quiet", "-m", "ayrik dal")
+        b = _kt_bayatlik(ayrik)
+        dogrula("V45 BAYATLIK: uctan AYRIK agac (bayat worktree deseni) -> BAYAT",
+                b["durum"] == "BAYAT", b)
+
+        # SIG (shallow) checkout: uc SHA'si yerelde YOK -> bilmedigimiz bir sey yayinda.
+        sig = os.path.join(tmp, "sig")
+        _kt_git(tmp, "clone", "--quiet", "--depth", "1", "file://" + uzak, sig)
+        with open(os.path.join(yerel, "urunler.json"), "w", encoding="utf-8") as f:
+            json.dump([_kt_urun("u00"), _kt_urun("yeni1"), _kt_urun("yeni2")], f)
+        _kt_git(yerel, "add", "-A")
+        _kt_git(yerel, "commit", "--quiet", "-m", "parti2")
+        _kt_git(yerel, "push", "--quiet", "origin", "main")
+        b = _kt_bayatlik(sig)
+        dogrula("V46 BAYATLIK: uc commit'i agacta YOK (sig klon + uc ilerledi) -> BAYAT",
+                b["durum"] == "BAYAT", b)
+
+        # OLCULEMEDI = FAIL-CLOSED (uzak yok / git deposu degil).
+        uzaksiz = os.path.join(tmp, "uzaksiz")
+        _kt_git(tmp, "init", "--quiet", uzaksiz)
+        _kt_git(uzaksiz, "commit", "--quiet", "--allow-empty", "-m", "x")
+        b = _kt_bayatlik(uzaksiz)
+        dogrula("V47 BAYATLIK: uzak okunamiyor -> OLCULEMEDI (yesil DEGIL)",
+                b["durum"] == "OLCULEMEDI", b)
+        b = _kt_bayatlik(os.path.join(tmp, "hicyok"))
+        dogrula("V48 BAYATLIK: git deposu degil -> OLCULEMEDI (istisna SIZMAZ)",
+                b["durum"] == "OLCULEMEDI", b)
+
+        # ── YANLIS-POZITIF NOBETI: 25 GERCEK URUN COMMIT'I (paylasimli hook!) ──────
+        # Kapi yanlis-pozitif verirse TUM mimarlarin push'u kirilir. Her adimda hem
+        # PUSH'TAN ONCE (yerel ileride) hem PUSH'TAN SONRA (uc = HEAD) olculur.
+        yanlis, olculen = [], 0
+        katalog = [_kt_urun("u00")]
+        for i in range(25):
+            katalog.insert(0, _kt_urun("parti%02d" % i))
+            with open(os.path.join(yerel, "urunler.json"), "w", encoding="utf-8") as f:
+                json.dump(katalog, f)
+            _kt_git(yerel, "add", "-A")
+            _kt_git(yerel, "commit", "--quiet", "-m", "urun partisi %d" % i)
+            d = _kt_bayatlik(yerel)["durum"]
+            olculen += 1
+            if d != "UC":
+                yanlis.append(("push-oncesi", i, d))
+            _kt_git(yerel, "push", "--quiet", "origin", "main")
+            d = _kt_bayatlik(yerel)["durum"]
+            olculen += 1
+            if d != "UC":
+                yanlis.append(("push-sonrasi", i, d))
+        dogrula("V49 YANLIS-POZITIF NOBETI: 25 gercek urun commit'i x2 olcum -> KIRMIZI 0",
+                yanlis == [] and olculen == 50, (yanlis[:5], olculen))
+
+        # ── UPSERT EKSENI YANLIS-POZITIF NOBETI (UCTAN UCA) ──────────────────────
+        # Kapi artik UPSERT'i de durduruyor -> mesru akan bir parti AKISI kirilmamali.
+        # Bu nobet stub KULLANMAZ: her adimda GERCEK bayatlik_olc() gercek git agacinda
+        # olcer ve GERCEK senkron (sqlite sahte D1) kosar. Bir tek yanlis-pozitif TUM
+        # mimarlarin urun push'unu yazmasiz birakirdi.
+        connU = _kt_baglan()
+        katalogU = [_kt_urun("t00")]
+        yaziU, kirmiziU, yazmayanU = 0, [], 0
+        yaz_katalogU = os.path.join(tmp, "upsert")
+        os.makedirs(yaz_katalogU, exist_ok=True)
+        for i in range(25):
+            katalogU.insert(0, _kt_urun("uparti%02d" % i))
+            if i % 5 == 4:                       # her 5. partide bir ALAN degisimi de var
+                katalogU[-1] = _kt_urun("t00", "Tamirat" if i % 10 == 4 else "Ev")
+            with open(os.path.join(yerel, "urunler.json"), "w", encoding="utf-8") as f:
+                json.dump(katalogU, f)
+            _kt_git(yerel, "add", "-A")
+            _kt_git(yerel, "commit", "--quiet", "-m", "upsert partisi %d" % i)
+            # PRE-PUSH ANI: uzak HENUZ eski uctadir, yerel ILERIDEDIR (gercek hook hali).
+            kodU, ciktiU, sayacU = _kt_kos(connU, katalogU, [], kok=yerel)
+            if kodU != 0:
+                kirmiziU.append((i, ciktiU[-200:]))
+            if sayacU["yazma"] == 0:
+                yazmayanU += 1
+            yaziU += sayacU["yazma"]
+            _kt_git(yerel, "push", "--quiet", "origin", "main")
+        dogrula("V49b UPSERT YANLIS-POZITIF NOBETI: 25 gercek parti UCTAN UCA -> kirmizi 0",
+                kirmiziU == [], (len(kirmiziU), kirmiziU[:2]))
+        dogrula("V49c UPSERT NOBETI: 25 partinin 25'i D1'e FIILEN yazdi (sessiz atlama YOK)",
+                yazmayanU == 0 and yaziU > 0, (yazmayanU, yaziU))
+        dogrula("V49d UPSERT NOBETI: son partinin urunu D1'de VAR (yazma gercekten islendi)",
+                _kt_deger(connU, "uparti24", "hash") is not None)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+    # B) DAVRANIS — kapi silme yolunda FIILEN devrede mi (offline sqlite fikstur).
+    # 🔴 BUGUNKU OLAYIN BIREBIR YENIDEN URETIMI: D1'de 42 YENI id var (baska bir push
+    # onlari yazdi), bayat agacin urunler.json'unda YOKLAR -> eski kod hepsini SILERDI.
+    yeni_parti = [_kt_urun("dp%06d" % i) for i in range(42)]
+    eski_agac = [_kt_urun("a"), _kt_urun("b"), _kt_urun("c")]
+    connB = _kt_baglan()
+    _kt_kos(connB, eski_agac + yeni_parti, [])                    # yeni parti D1'e girdi
+    kod, cikti, sayac = _kt_kos(connB, eski_agac, [], bayatlik="UC")   # KAPI ONCESI davranis
+    kalan_once = sum(1 for u in yeni_parti if _kt_deger(connB, u["id"], "hash") is not None)
+    dogrula("V50 YENIDEN URETIM (KAPI ONCESI = UC yolu): bayat agac 42 id'yi SILDI",
+            kod == 0 and kalan_once == 0 and "silinen: 42" in cikti, (kod, kalan_once))
+
+    connC = _kt_baglan()
+    _kt_kos(connC, eski_agac + yeni_parti, [])
+    kod, cikti, sayac = _kt_kos(connC, eski_agac, [], bayatlik="BAYAT")  # KAPI SONRASI
+    kalan_sonra = sum(1 for u in yeni_parti if _kt_deger(connC, u["id"], "hash") is not None)
+    dogrula("V51 YENIDEN URETIM (KAPI SONRASI): silinen 0 — 42 id'nin 42'si D1'de DURUYOR",
+            kalan_sonra == 42, kalan_sonra)
+    dogrula("V52 YENIDEN URETIM: engel SESSIZ DEGIL -> sifir-disi + id'ler mesajda",
+            kod != 0 and "BAYATLIK KAPISI" in cikti and "dp0000" in cikti,
+            (kod, cikti[-500:]))
+    dogrula("V53 YENIDEN URETIM: D1'e HIC yazma yapilmadi",
+            sayac["yazma"] == 0, sayac)
+
+    # OLCULEMEDI de silmeyi durdurur (fail-closed; 'olcemedim' YESIL degildir).
+    connD = _kt_baglan()
+    _kt_kos(connD, eski_agac + yeni_parti, [])
+    kod, cikti, _ = _kt_kos(connD, eski_agac, [], bayatlik="OLCULEMEDI")
+    dogrula("V54 FAIL-CLOSED: OLCULEMEDI -> silme 0 + sifir-disi",
+            kod != 0 and _kt_deger(connD, "dp000000", "hash") is not None, kod)
+
+    # ── UPSERT EKSENI (KraL karari 31 Tem): bayat agac UPSERT de YAPAMAZ ──────────
+    # Bayat upsert D1'e ESKI alan degerlerini YENI degerlerin ustune yazar — silmeyle
+    # AYNI sessiz-bozulma sinifi. Bugun "3 bayat hash" olarak fiilen gozlendi.
+    connE = _kt_baglan()
+    _kt_kos(connE, eski_agac + yeni_parti, [])
+    kod, cikti, sayac = _kt_kos(
+        connE, [_kt_urun("a", "Tamirat"), _kt_urun("b"), _kt_urun("c")], [],
+        bayatlik="BAYAT")
+    dogrula("V55 UPSERT ENGELI: bayat agacin ALAN guncellemesi D1'e YAZILMADI",
+            _kt_deger(connE, "a", "kategori") == "Oyun/Hobi" and kod != 0,
+            (_kt_deger(connE, "a", "kategori"), kod))
+    dogrula("V55b UPSERT ENGELI: D1'e HIC yazma cagrisi gitmedi + is dokumu mesajda",
+            sayac["yazma"] == 0 and "Engellenen is" in cikti and "degisen 1" in cikti,
+            (sayac, cikti[-600:]))
+    # SALT-YENI parti (silme YOK): eski kapi bunu HIC olcmezdi, yeni kapi DURDURUR.
+    connE2 = _kt_baglan()
+    _kt_kos(connE2, eski_agac, [])
+    kod, cikti, sayac = _kt_kos(connE2, eski_agac + [_kt_urun("yy")], [], bayatlik="BAYAT")
+    dogrula("V55c UPSERT ENGELI: SILME YOK / yalniz YENI urun -> yine de yazilmadi",
+            kod != 0 and sayac["yazma"] == 0 and sayac["bayatlik"] == 1
+            and _kt_deger(connE2, "yy", "hash") is None, (kod, sayac))
+    dogrula("V55d UPSERT ENGELI: OLCULEMEDI de upsert'i durdurur (fail-closed)",
+            _kt_kos(connE2, eski_agac + [_kt_urun("yy")], [],
+                    bayatlik="OLCULEMEDI")[0] != 0
+            and _kt_deger(connE2, "yy", "hash") is None)
+    _sayac_deger = connE2.execute(
+        "SELECT deger AS v FROM senkron WHERE anahtar='urun_sayisi'").fetchone()
+    dogrula("V55e SAHTE DAMGA YOK: senkron sayaci saglikli kosumun degerinde KALDI (3)",
+            _sayac_deger is not None and _sayac_deger["v"] == "3",
+            _sayac_deger["v"] if _sayac_deger else None)
+
+    # ── MESRU SILME KAPANMADI (duzelt.py --toplu senaryosu) ───────────────────────
+    # duzelt.py --toplu urunleri urunler.json'dan cikarir; commit+push'ta pre-push hook
+    # d1-sync'i kosar ve o an agac UCTAN ILERIDEDIR (V43) -> durum UC -> SILME GECMELI.
+    connF = _kt_baglan()
+    toplu = [_kt_urun("k%02d" % i) for i in range(70)] + eski_agac
+    _kt_kos(connF, toplu, [])
+    kod, cikti, _ = _kt_kos(connF, eski_agac, [], bayatlik="UC")
+    kalan_toplu = sum(1 for i in range(70) if _kt_deger(connF, "k%02d" % i, "hash") is not None)
+    dogrula("V56 MESRU SILME: duzelt.py --toplu ile kaldirilan 70 urun D1'den SILINDI (exit 0)",
+            kod == 0 and kalan_toplu == 0 and "silinen: 70" in cikti, (kod, kalan_toplu))
+
+    # ── MALIYET EKSENI: YAZACAK IS varken TAM 1 kez, yoksa HIC olculmez ─────────
+    connG = _kt_baglan()
+    _kt_kos(connG, eski_agac, [])
+    kod, cikti, sayac = _kt_kos(connG, eski_agac + [_kt_urun("z1")], [])
+    dogrula("V57 MALIYET: yazacak is VARKEN (yalniz yeni urun) bayatlik TAM 1 kez olculur",
+            kod == 0 and sayac["bayatlik"] == 1, sayac)
+    connH = _kt_baglan()
+    _kt_kos(connH, eski_agac, [])
+    kod, cikti, sayac = _kt_kos(connH, eski_agac[:2], [], bayatlik="UC")
+    dogrula("V58 MALIYET: silme VARKEN de bayatlik TAM 1 kez olculur (mukerrer olcum YOK)",
+            kod == 0 and sayac["bayatlik"] == 1, sayac)
+
+    # ── YAZACAK IS YOKSA: kapi HIC olculmez (0 git/ag cagrisi) ──────────────────
+    # Yazmayan kosum zarar veremez; bayat da olsa engellenecek bir sey yoktur.
+    connI = _kt_baglan()
+    _kt_kos(connI, eski_agac + yeni_parti, [])
+    kod, cikti, sayac = _kt_kos(connI, eski_agac + yeni_parti, [], bayatlik="BAYAT")
+    dogrula("V59 MALIYET: degisiklik yokken bayatlik HIC olculmez -> exit 0",
+            kod == 0 and "degisiklik yok" in cikti and sayac["bayatlik"] == 0, (kod, sayac))
+    kod, cikti, sayac = _kt_kos(connI, eski_agac, ["--kuru"], bayatlik="BAYAT")
+    dogrula("V59b MALIYET: --kuru bayatligi OLCMEZ ve engellemez (planlama araci)",
+            kod == 0 and sayac["bayatlik"] == 0 and sayac["yazma"] == 0, (kod, sayac))
+
+    # ── `--bayatlik` KOLU: CI adiminin ON-KOSULU bu cikis koduna bagli ───────────
+    # deploy.yml bu kolu "bayat kosum D1'e HIC dokunmasin" on-kosulu olarak kullanir;
+    # cikis kodu tersine donerse (ya da hep 0 olursa) CI kolu SESSIZCE olur.
+    connJ = _kt_baglan()
+    kod, cikti, sayac = _kt_kos(connJ, eski_agac, ["--bayatlik"], bayatlik="UC")
+    dogrula("V60 --bayatlik: UC -> exit 0 + D1'e HIC dokunmaz",
+            kod == 0 and sayac["yazma"] == 0 and sayac["okuma"] == 0
+            and "bayatlik: UC" in cikti, (kod, sayac, cikti[-200:]))
+    kod, cikti, sayac = _kt_kos(connJ, eski_agac, ["--bayatlik"], bayatlik="BAYAT")
+    dogrula("V61 --bayatlik: BAYAT -> sifir-disi (CI on-kosulu ATLAR)",
+            kod != 0 and sayac["yazma"] == 0, (kod, sayac))
+    kod, cikti, sayac = _kt_kos(connJ, eski_agac, ["--bayatlik"], bayatlik="OLCULEMEDI")
+    dogrula("V62 --bayatlik: OLCULEMEDI -> sifir-disi (olcemedim YESIL degil)",
+            kod != 0, kod)
+
+    # ── CI ON-KOSULU CAPASI: deploy.yml'deki senkron adimi bayatligi SORUYOR mu ──
+    # NEDEN BURADA: `d1-sync.py` ci-kapsam/is-akisi kesif predikatlarina GIRMEZ ve
+    # senkron adimi bilincli olarak `continue-on-error` (fail-open) -> Bolum D/E o
+    # adimi GORMEZ. On-kosul satiri sessizce silinirse BAYAT KOSUM yine D1'e yazar
+    # (upsert'ler bayat kalir) ve hicbir kapi kirmizi yanmaz. Capa burada yasar.
+    _dy = os.path.join(KOK, ".github", "workflows", "deploy.yml")
+    if not os.path.exists(_dy):
+        dogrula("V63 CI ON-KOSUL CAPASI: deploy.yml BULUNAMADI (olculemedi = KIRMIZI)",
+                False, _dy)
+    else:
+        with open(_dy, encoding="utf-8") as _f:
+            _gv = _f.read()
+        _adim = _gv.split("- name: Katalogu D1'e senkronla")
+        _blok = _adim[1].split("\n  - name:")[0].split("\n\n  deploy:")[0] if len(_adim) > 1 else ""
+        _on = _blok.find("d1-sync.py --bayatlik")
+        _tam = _blok.find("python3 tools/d1-sync.py\n")
+        dogrula("V63 CI ON-KOSUL CAPASI: senkron adimi ONCE `--bayatlik` sorar, SONRA senkronlar",
+                len(_adim) == 2 and _on > 0 and _tam > _on, (len(_adim), _on, _tam))
+        dogrula("V64 CI ON-KOSUL CAPASI: on-kosulun CIKIS KODU kullaniliyor (mensiyon degil)",
+                "if ! python3 tools/d1-sync.py --bayatlik; then" in _blok,
+                _blok[:400])
+
     print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
     return 0 if kalan[0] == 0 else 1
 
@@ -1284,10 +1710,20 @@ def main():
                     help="--durum ile: ICERIK eksenini ATLA (yalniz sayi; ~5 s ucuz)")
     ap.add_argument("--kendini-test", action="store_true", dest="kendini",
                     help="OFFLINE kabul testi (sqlite fikstur; canli D1'e DOKUNMAZ)")
+    ap.add_argument("--bayatlik", action="store_true",
+                    help="YALNIZ olc: bu agac uzak main'in UCUNDA mi? (D1'e DOKUNMAZ; "
+                         "UC -> 0, BAYAT/OLCULEMEDI -> 1). CI adimi bunu on-kosul yapar.")
     a = ap.parse_args()
 
     if a.kendini:
         sys.exit(kendini_test())
+
+    if a.bayatlik:
+        b = bayatlik_olc()
+        print("bayatlik: %s — %s" % (b["durum"], b["sebep"]))
+        print("  HEAD=%s · uzak %s ucu=%s"
+              % (str(b["head"])[:12], UZAK_DAL, str(b["uzak"])[:12]))
+        sys.exit(0 if b["durum"] == "UC" else 1)
 
     if a.sema:
         with open(SEMA, encoding="utf-8") as f:
@@ -1411,12 +1847,34 @@ def main():
 
     if a.kuru:
         # KURU KOSUM: yazma da geri-okuma da YAPILMAZ (ikisi de D1'e cagri demektir).
+        # Bayatlik da OLCULMEZ: kuru kosum planlama araci, hicbir seyi engellemez.
         print("(--kuru: hicbir sey yazilmadi, geri-okuma da yapilmadi)")
         return
     if (not yeni and not degisen and not baski_guncelle and not taban_guncelle
             and not konfigur_guncelle and not silinen):
+        # YAZACAK BIR SEY YOK -> bayatlik OLCULMEZ (maliyet 0). Yazmayan kosum zarar veremez.
         print("degisiklik yok — D1'e yazilmadi ✅")
         return
+
+    # ══ BAYATLIK KAPISI — BAYAT AGAC D1'e HICBIR SEY YAZAMAZ ══════════════════════
+    # KraL karari (31 Tem): kapi SILME ile sinirli KALMAZ, UPSERT'i de durdurur.
+    # Gerekce: bayat upsert D1'e ESKI alan degerlerini YENI degerlerin ustune yazar —
+    # silmeyle AYNI sessiz-bozulma sinifi, yalnizca daha az yikici (urunu kaldirmaz,
+    # alani geriye alir). Bugun fiilen gozlendi ("3 bayat hash"). `--durum` icerik ekseni
+    # bunu ancak BIR SONRAKI cagride gorur -> kacak yine SESSIZ kalirdi.
+    # MALIYET: yalnizca YAZILACAK is varken olculur (medyan 0,81 s) ve yayin yolunda
+    # DEGIL pre-push hook'unda oturur; yazacak bir sey yoksa hic olculmez.
+    # FAIL-CLOSED: OLCULEMEDI de BAYAT gibi durdurur — "olcemedim" YESIL degildir.
+    # YAYIN DURMAZ: hook her halukarda exit 0 doner, CI adimi `continue-on-error` —
+    # bayat yazici yalnizca YAZMAZ ve yuksek sesle sifir-disi cikar.
+    b = bayatlik_olc()
+    print("bayatlik kapisi: %s — %s (HEAD=%s · uzak uc=%s)"
+          % (b["durum"], b["sebep"], str(b["head"])[:12], str(b["uzak"])[:12]))
+    if b["durum"] != "UC":
+        sys.exit("\n".join(bayatlik_engel_metni(b, {
+            "yeni": len(yeni), "degisen": len(degisen), "silinen": len(silinen),
+            "baski": len(baski_guncelle), "taban": len(taban_guncelle),
+            "konfigur": len(konfigur_guncelle)}, silinen)))
 
     ifadeler = []
     for parca in [silinen[i:i + PARCA] for i in range(0, len(silinen), PARCA)]:
