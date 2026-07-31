@@ -1084,9 +1084,15 @@ jobs:
         run: pip install pyyaml
       # Once nobetcinin KENDI kabulu (agsiz, 29 iddia; iki yonlu fikstur: "hic kosum yok"
       # KIRMIZI, "yakin zamanda kosum var" YESIL) — sonra GERCEK olcum.
-      - name: "Cron nabiz kapisi: kendini test (agsiz fikstur, iki yonlu)"
+      - name: "Uzlastirma nabiz kapisi: kendini test (agsiz fikstur, iki yonlu)"
         run: python3 tools/cron-nabiz-kapisi.py --kendini-test
-      - name: "Cron nabzi: zamanlanmis isler FIILEN kosuyor mu (ALARM — yayini DURDURMAZ)"
+      # Onarim surucusunun KENDI kabulu (agsiz + GERCEK git fiksturu): yaris kaybini
+      # yeniden dener, GERCEK hatayi (wrangler/D1) YENIDEN DENEMEZ, tazeleme duserse
+      # d1-sync'i HIC cagirmaz. Bu kol olmadan surucunun yeniden-deneme mantigi sessizce
+      # olebilirdi (yaris zaten nadir: olculen %1,47).
+      - name: "Uzlastirici onarim surucusu: kendini test (yaris + fail-closed)"
+        run: python3 tools/uzlastirici-onarim.py --kendini-test
+      - name: "Uzlastirma nabzi: denetim ne kadar suredir yapilmadi (ALARM — yayini DURDURMAZ)"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 tools/cron-nabiz-kapisi.py
