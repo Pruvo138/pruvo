@@ -1,5 +1,47 @@
 [
   {
+    "id": "volvo-penta-xact-top-mount-tek-kumanda-paneli-tutucusu",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Xact Top Mount Tek Kumanda Paneli Tutucusu",
+    "aciklama": "Volvo Penta Xact Powerboat mekanik kumanda kolu (top mount, tek motor) için güverte/konsol üstü montaj podu.\n- Resmi Volvo Penta Accessories Catalog kesim ve vida deseni ölçülerine göre tasarlandı.\n- Üst plaka resmi kesim + vida deliği desenini taşır, alt flanş güverteye vidalanır.\n- Kumanda tespit vidası deliği bilerek pilot (3,2 mm) bırakıldı; gerçek vidanıza göre genişletilebilir.\n- Flanş köşelerinde 4 adet güverte montaj deliği (5,5 mm).\nYaklaşık dış ölçüler: 128 × 213 × 60 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/volvo-penta-xact-top-mount-tek-kumanda-paneli-tutucusu-1.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-penta-xact-top-mount-tek-kumanda-paneli-tutucusu-2.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-penta-xact-top-mount-tek-kumanda-paneli-tutucusu-3.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-penta-xact-top-mount-tek-kumanda-paneli-tutucusu-4.jpg"
+    ],
+    "tavsiyeFilament": [
+      "ASA"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "volvo-penta-xact-side-mount-kumanda-paneli-tutucusu",
+    "kategori": "Marin",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta Xact Side Mount Kumanda Paneli Tutucusu",
+    "aciklama": "Volvo Penta Xact Powerboat mekanik kumanda kolu (side mount) için güverte/konsol üstü montaj podu.\n- Resmi Volvo Penta Accessories Catalog kesim ve vida deseni ölçülerine göre tasarlandı.\n- Üst plaka resmi kesim (dikdörtgen + iki yuvarlak geçiş) + vida deliği desenini taşır, alt flanş güverteye vidalanır.\n- Kumanda tespit vidası deliği bilerek pilot (3,2 mm) bırakıldı; gerçek vidanıza göre genişletilebilir.\n- Flanş köşelerinde 4 adet güverte montaj deliği (5,5 mm).\nYaklaşık dış ölçüler: 228 × 180 × 60 mm.",
+    "fiyat": "650 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/volvo-penta-xact-side-mount-kumanda-paneli-tutucusu-1.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-penta-xact-side-mount-kumanda-paneli-tutucusu-2.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-penta-xact-side-mount-kumanda-paneli-tutucusu-3.jpg",
+      "https://media.pruvo3d.com/urunler/volvo-penta-xact-side-mount-kumanda-paneli-tutucusu-4.jpg"
+    ],
+    "tavsiyeFilament": [
+      "ASA"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "volvo-penta-xact-top-mount-twin-kumanda-paneli-tutucusu",
     "kategori": "Marin",
     "marka": [
