@@ -1663,7 +1663,7 @@ TABLO_TABANLARI = (
     # tabani burada tutmak "35 beyan tek commit'te sessizce silindi + ayni commit'te
     # adimlar A'ya geri tasindi" halini GORUNUR kilar. Bilerek kucultuluyorsa NEDENIYLE
     # birlikte guncelle (serit degisimi = KraL karari).
-    ("SERIT_B", 35),
+    ("SERIT_B", 36),
 )
 
 TABLO_TANI = (
@@ -2114,6 +2114,9 @@ SERIT_B = {
         "URETILEMEYEN 2-renk parcasi sunar. Ucret ekseni ayrica serit A'da "
         "(shop/test/iki-renk-ucret.mjs).",
     # --- mutasyon bataryalari / CI-kapi meta kapilari -----------------------
+    ("deploy.yml", "serit-b", "tools/ara-maliyet-kapisi.py"):
+        "YALNIZ `--kendini-test` (mutasyon: `CROSS JOIN` -> `JOIN`, 3/3 yakalama) kolu; "
+        "GERCEK olcum (600 sorguluk semantik + plan ekseni) serit A'da bloklayici kosuyor.",
     ("deploy.yml", "serit-b", "tools/nobetci-mutasyon-test.py"):
         "SAF MUTASYON BATARYASI (17 mutant): kapilarin kendi kirmizi-yolunu olcer, "
         "yayinlanan hicbir ciktiya bakmaz.",
