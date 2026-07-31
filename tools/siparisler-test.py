@@ -7,9 +7,11 @@
 Sahte wrangler ciktisiyla (wrangler_sorgu monkeypatch) tablo bicimini ve
 --durum sozgecini dogrular — GERCEK D1'e dokunmaz, GERCEK subprocess
 calistirmaz. Son madde (6) CANLI D1'e 1 gercek --son 2 kosumu yapar (bu arac
-SALT-OKUNUR, SELECT disina cikamaz — test bunu da ayrica dogrular) ve ilk 2
-kaydin telefon numarasini maskeleyip ekrana basar; bu satirlar elle
-RAPOR-MIMARA.md'ye yapistirilir.
+SALT-OKUNUR, SELECT disina cikamaz — test bunu da ayrica dogrular); ciktidaki
+musteri adi/telefonu MASKELIDIR ama maskelemeyi BU TEST YAPMAZ — maskeleme
+`siparisler.py`'nin kendisinde (`maskele_ad`/`maskele_tel`, varsayilan ACIK)
+yapilir ve nobetcisi `tools/siparis-maske-test.py`'dir. Bu dosya yalnizca
+maskeli degerlerin alan alan basildigini olcer (TEST 5).
 
   1. sql_sorgu: durum="hepsi"      -> WHERE YOK
   2. sql_sorgu: durum="odendi" vb. -> WHERE durum = '...' dogru
@@ -17,9 +19,10 @@ RAPOR-MIMARA.md'ye yapistirilir.
   4. wrangler_sorgu: SELECT olmayan ifade -> ValueError (yazma kapisi kapali)
   5. format_siparis: sahte satirdan beklenen alanlarin hepsi tabloda gorunuyor
      (siparis no, yerel saat, durum, yontem, urun/kargo/genel toplam TL,
-     musteri ad+tel, kalem basligi+malzeme/renk+adet+tutar+kisaltilmis detay)
+     musteri ad+tel MASKELI, kalem basligi+malzeme/renk+adet+tutar+kisaltilmis detay)
   6. CANLI kosum: python3 tools/siparisler.py --son 2 exit 0 doner + cikti
-     "PRUVO SIPARISLER" basligini icerir (telefon maskelenerek ekrana basilir)
+     "PRUVO SIPARISLER" basligini icerir (ad/telefon siparisler.py tarafindan
+     zaten maskeli basilir — bkz tools/siparis-maske-test.py)
 """
 import json
 import os
@@ -130,8 +133,20 @@ SAHTE_SATIR = {
 }
 
 
+def _blok(row, tty):
+    """format_siparis'i SABIT bir TTY halinde uretir. Cikti artik KANALA bagli
+    (parametre_detay TTY disinda basilmaz) -> testin hukmu, kosumun bir terminalde
+    mi yoksa boruda mi oldugna GORE DEGISMEMELI."""
+    eski = siparisler._tty
+    siparisler._tty = lambda: tty
+    try:
+        return siparisler.format_siparis(row)
+    finally:
+        siparisler._tty = eski
+
+
 def test_5_format_alanlari():
-    blok = siparisler.format_siparis(SAHTE_SATIR)
+    blok = _blok(SAHTE_SATIR, False)        # TTY DISI kol (boru/CI) — deterministik
     beklenenler = [
         "PR-260101-000000-XYZ",
         "01.01.2026 13:00",          # UTC 10:00 -> Europe/Istanbul (+3) 13:00
@@ -140,24 +155,38 @@ def test_5_format_alanlari():
         siparisler.tl(12345),        # urun toplami
         siparisler.tl(25000),        # kargo
         siparisler.tl(12345 + 25000),  # genel toplam
-        "Test Musteri",
-        "5551112233",
+        # 🔴 31 TEM — MASKELI beklenti (HAM beklenti SILINMEDI, maskeliye CEVRILDI:
+        # "alan hala basiliyor mu" ekseni korunur). Maskeleme siparisler.py'de yapilir;
+        # burada LITERAL yazilir (maskele_*() cagrisiyla yazilsa tautoloji olurdu ve
+        # fonksiyon bozulunca beklenti de onunla birlikte bozulurdu).
+        "T*** M***",                 # musteri_ad "Test Musteri" -> maskeli
+        "******2233",                # musteri_tel "5551112233"  -> maskeli
         "Test Urun Basligi",
         "PLA / Kirmizi",
         "adet: 3",
         siparisler.tl(12345),
     ]
     eksik = [b for b in beklenenler if b not in blok]
-    kayit(5, "format_siparis beklenen tum alanlari iceriyor",
-          not eksik, ("eksik=%s" % eksik) if eksik else "")
+    # HAM kisisel deger blokta OLMAMALI (asil nobetci siparis-maske-test.py;
+    # bu satir beklentinin "maskeliye cevrildi" halinin sessizce geri donmesini yakalar)
+    ham_sizan = [h for h in ("Test Musteri", "5551112233") if h in blok]
+    kayit(5, "format_siparis beklenen tum alanlari iceriyor (ad/tel MASKELI)",
+          not eksik and not ham_sizan,
+          ("eksik=%s" % eksik if eksik else "") + ("ham sizinti=%s" % ham_sizan
+                                                   if ham_sizan else ""))
 
-    # kisaltma: ham detay bloka TAM girmemeli (kisaltilmis hali girmeli)
-    ham_detay = SAHTE_SATIR["urunler"]
-    tam_detay = json.loads(ham_detay)[0]["parametre_detay"]
-    kisaltilmis_var = "..." in blok
-    tam_yok = tam_detay not in blok
-    kayit("5b", "parametre_detay kisaltiliyor (tam metin blokta yok, '...' var)",
-          kisaltilmis_var and tam_yok)
+    # 🔴 31 TEM (2. tur) — parametre_detay artik KANALA bagli: musteri SERBEST METNI
+    # oldugu icin TTY disinda HIC basilmaz (siparisler.py kanal kapisi). Kisaltma
+    # ekseni bu yuzden TTY kolunda olculur; TTY disi kolda "hic yok + yer tutucu var"
+    # olculur. Iki eksen de tek kayit (5b) altinda — numaralandirma BOZULMADI.
+    tam_detay = json.loads(SAHTE_SATIR["urunler"])[0]["parametre_detay"]
+    tty_blok = _blok(SAHTE_SATIR, True)
+    kisaltiliyor = ("..." in tty_blok) and (tam_detay not in tty_blok)
+    ttysiz_gizli = (tam_detay not in blok) and ("parametre detayi:" in blok)
+    kayit("5b", "parametre_detay: TTY'de kisaltiliyor, TTY disinda hic basilmiyor",
+          kisaltiliyor and ttysiz_gizli,
+          "" if (kisaltiliyor and ttysiz_gizli)
+          else "kisaltma=%s ttysiz_gizli=%s" % (kisaltiliyor, ttysiz_gizli))
 
 
 def test_6_canli_kosum():
@@ -168,7 +197,8 @@ def test_6_canli_kosum():
     kayit(6, "canli D1 kosumu exit 0 + basligi iceriyor", basarili,
           ("exit=%d" % p.returncode) if not basarili else "")
     if basarili:
-        print("      --- canli cikti (ilk 25 satir, RAPOR icin telefon maskele) ---")
+        print("      --- canli cikti (ilk 25 satir; ad/tel siparisler.py'de ZATEN "
+              "maskeli — elle maskeleme gerekmez) ---")
         for satir in p.stdout.splitlines()[:25]:
             print("      %s" % satir)
     elif p.stderr:
@@ -189,7 +219,7 @@ def test_6_canli_kosum():
 AGSIZ = "--agsiz" in sys.argv
 
 
-# 🔴 31 TEM — BOSALTMA (hollowing) FAIL-OPEN'i KAPATILDI. OLCULDU: --agsiz kolunda
+# 🔴 31 TEM — CAGRI SILME (hollowing) FAIL-OPEN'i KAPATILDI. OLCULDU: --agsiz kolunda
 # 4 mutasyonun 4'u de YESIL yaniyordu (rc=0, "SONUC: 5/5 GECTI"): test_4 (YAZMA
 # KAPISI) cagrisini silmek, govdesini no-op yapmak, test_3/test_1 cagrisini silmek.
 # Hukum yalniz SONUC ICINDEKI kirmizilara bakiyordu -> nobetciyi KALDIRMAK, onu
@@ -197,6 +227,11 @@ AGSIZ = "--agsiz" in sys.argv
 # kapattigi sinifin bu dosyadaki kalintisi). Artik BEKLENEN demeti beyan edilir ve
 # suite_butunlugu() eksik/mukerrer/beyan-disi kaydi KIRMIZI yakar; hukum
 # fonksiyonunun kendisi de TEST 7'de pozitif+negatif eksende olculur.
+# 🔴 BEYAN SINIRI (31 Tem, 2. tur — curutucu olctu, kabul edildi): kapatilanin adi
+# CAGRI SILME'dir. Bir testin CAGRISI ve BEKLENEN demetindeki numarasi BIRLIKTE
+# silinirse suite YESIL kalir (olculdu). Bu tasarimin KABUL EDILEN SINIRIDIR —
+# beyani dusurmek iki satirlik bir duzenlemedir ve DIFF'TE GORUNUR. "Bu dosyada
+# hicbir bosaltma fail-open'i yok" demek FAZLA GENIS bir iddia olur.
 def test_7_oz_nobetci(beklenen):
     tam = [(n, "sentetik", True) for n in beklenen]
     eksikli = [v for v in tam if v[0] != 4]
