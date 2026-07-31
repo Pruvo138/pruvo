@@ -1183,6 +1183,12 @@ def _kt_depo_kur(tmp, urun_sayisi=1):
     yerel = os.path.join(tmp, "yerel")
     os.makedirs(uzak)
     _kt_git(tmp, "init", "--bare", "--quiet", uzak)
+    # 🔴 HERMETIKLIK: `init --bare`in HEAD'i kosucunun `init.defaultBranch` ayarina gore
+    # dogar (yerelde `main`, GitHub kosucusunda BASKA olabilir). O zaman bu bare depodan
+    # `clone` yapan fikstur DOGMAMIS bir dala dusuyor ve agac "commit'siz depo" gorunuyor
+    # -> V46 (sig klon) yerelde BAYAT, CI'da OLCULEMEDI veriyordu (31 Tem, yayin durdu).
+    # HEAD'i ACIKCA main'e capala: fikstur artik kosucunun ayarindan BAGIMSIZ.
+    _kt_git(uzak, "symbolic-ref", "HEAD", "refs/heads/main")
     os.makedirs(yerel)
     _kt_git(yerel, "init", "--quiet")
     _kt_git(yerel, "checkout", "--quiet", "-B", "main")
