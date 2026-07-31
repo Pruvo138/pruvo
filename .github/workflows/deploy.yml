@@ -1564,6 +1564,27 @@ jobs:
       - name: "Yayin ic-dil kapisi oz-nobetcisi (SERIT B)"
         run: python3 tools/yayin-ic-dil-kapisi.py --kendini-test
 
+      # KUTU ARSIVLEYICI — HIJYEN ARACI, YAYIN KAPISI DEGIL. Ortak posta kutusu
+      # (~/.claude/.../mimar-posta-kutusu.md) tavani asinca EN ESKI bloklari arsive
+      # BIREBIR tasir. Kabul testi 14 vaka / 85 iddia: kayipsizlik (bayt + satir + blok
+      # ekseninde), frontmatter + en ustteki N blogun korunmasi, blok ORTASINDAN
+      # bolunmeme, arsiv yoksa dogru frontmatter ile olusturulma, flock tutuluyorken
+      # YAZMAMA + sifir-disi cikis, bozuk/yarim dosyada fail-closed, `--kuru` yazmama.
+      # SENTETIK ARIZA vakalari (4 sinif) lossless dogrulamasinin GERCEKTEN kirmizi
+      # yaktigini olcer -> dogrulamayi silen mutant bu adimda KIRMIZI yanar.
+      # NEDEN SERIT B: olctugu sey yayinlanan icerik DEGIL, mimarlarin yazisma
+      # hijyenidir; canliya cikan hicbir sayfayi/veriyi etkilemez. Tamamen offline,
+      # yalniz tempfile fiksturleri okur (GERCEK kutuya DOKUNMAZ), ~3 s.
+      - name: "Kutu arsivleyici kabul testi (kayipsiz tasima + flock, SERIT B)"
+        run: python3 tools/kutu-arsivle-test.py
+
+      # ... ve kabul testinin KENDI kabulu: mutasyon KOPYAYA uygulanir, canli arac
+      # sha256'si degismez. (a) lossless dogrulamasini oldur -> suite KIRMIZI,
+      # (b) flock'u oldur -> suite KIRMIZI, (c) ilgisiz degisiklik -> suite YESIL.
+      # Bu adim olmadan "kabul testi olu" hali (her mutant yesil) GORUNMEZ kalirdi.
+      - name: "Kutu arsivleyici cift yonlu mutasyon turu (SERIT B)"
+        run: python3 tools/kutu-arsivle-test.py --mutasyon
+
 
   deploy:
     needs: build
