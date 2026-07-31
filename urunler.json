@@ -1,5 +1,149 @@
 [
   {
+    "id": "kayak-kurek-uzatici-aqua-marina",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Aqua Marina Kayak Kurekleri Icin Uzatici",
+    "aciklama": "Aqua Marina marka kayak kureklerinin boyunu 120mm uzatan, surtunme ile sikica oturan baglanti parcasi.\n- Aqua Marina kayak kurekleriyle (29.2mm cap) uyumludur.\n- Kurek boyunu 120mm uzatir.\n- Ek parca gerektirmeden surtunmeyle sikica oturur.\nYaklasik dis olculer: 260 x 32 x 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr490431-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr490431-2.jpg"
+    ]
+  },
+  {
+    "id": "newport-vessels-trolling-motor-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Newport Vessels Trolling Motor Icin Yuksek Performans Pervane",
+    "aciklama": "Newport Vessels trolling motorlar icin tasarlanmis, yuksek performansli yedek pervane.\n- Newport Vessels trolling motor modelleriyle uyumludur.\n- Standart pervanelere gore gelistirilmis itis performansi sunar.\n- Motor miline dogrudan takilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dnewport-vessels-trolling-motor-high-performance-propeller-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3dnewport-vessels-trolling-motor-high-performance-propeller-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MicroFactory3D",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "dalis-samandirasi-makarasi-rev3",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dalis Yuzey Samandirasi (SMB) Icin Balastli Ip Makarasi REV3",
+    "aciklama": "Yuzey isaret samandirasinin (SMB) ipini sarmak icin kullanilan, ic balast bolmeleri sayesinde suda negatif yuzerlik saglayan gelistirilmis makara.\n- Yuzey isaret samandirasi (SMB) ipleriyle kullanilir.\n- Uc adet balast bolmesi ile agirlik eklenebilir.\n- Suya birakildiginda ipin duzgun acilmasini saglar.\nYaklasik dis olculer: 66 x 66 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1836599-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1836599-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1836599-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1836599-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jindraj",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "capa-ipi-isaret-samandirasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Capa/Tuzak Ipi Icin Isaret Samandirasi",
+    "aciklama": "Suya birakilan capa veya tuzak ipinin yerini kolayca bulmayi saglayan, yuzer isaret samandirasi.\n- Capa ipi, istakoz/yengec tuzagi gibi hatlarda kullanilabilir.\n- Farkli renk secenekleriyle ayirt edilebilir kullanim saglar.\n- Boyutu ihtiyaca gore olceklendirilebilir.\nYaklasik dis olculer: 137 x 102 x 102 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr579194-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr579194-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr579194-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr579194-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Francis",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "nucanoe-flint-kayak-olta-rafi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Nucanoe Flint Kayak Icin Olta Kamisi Rafi",
+    "aciklama": "Nucanoe Flint kayakin pruva tutamaginin altina monte edilen, olta kamislarini gecici olarak yerlestirmeye yarayan raf.\n- Nucanoe Flint kayak modeliyle uyumludur.\n- Pruva tutamaginin altina monte edilir.\n- Olta kamislarini tasima sirasinda duzenli tutar.\nYaklasik dis olculer: 178 x 38 x 32 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr51942-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr51942-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr51942-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr51942-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "phi",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yuzer-yem-sepeti-samandira-seti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yuzer Yem Sepeti ve Samandira Seti (Surface Balikciligi)",
+    "aciklama": "Yuzeyde yem sunumu icin kullanilan, ic hava bolmesi sayesinde yuzen samandirali yem sepeti seti.\n- Yuzeyde yem sunumu (surface fishing) icin uygundur.\n- Farkli boy ve montaj secenekleriyle (sabit/degisken uzunluk) kullanilabilir.\n- 4 farkli sepet boyutu secenegi sunar.\nYaklasik dis olculer: 94 x 80 x 50 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1518031-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1518031-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1518031-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr1518031-4.jpg"
+    ]
+  },
+  {
+    "id": "cok-sinekli-olta-hatti-makarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Cok Sinekli Olta Hatlari Icin Saklama Makarasi",
+    "aciklama": "Sinek takimlarini teknede surukleyerek yapilan balikcilikta, birden fazla olta hattini duzenli saklamak icin kullanilan makara.\n- Birden fazla sinek/olta hattini ayri ayri sarabilir.\n- Sinek takimlarinin dolasmasini onler.\n- Tekne korkuluguna monte edilebilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw640759-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw640759-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw640759-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw640759-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-direk-yakasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne Direk Yakasi (Mast Collar)",
+    "aciklama": "Yelkenli tekne diregi ile guverte arasindaki gecisi su gecirmez sekilde kapatan, direk hareketine izin veren yaka.\n- Yelkenli tekne direk profiline gore uyarlanabilir.\n- Guverte etrafinda damlama kenarligi ile su sizintisini engeller.\n- Iki parcali yapida, M6 paslanmaz vida ile monte edilir.\nYaklasik dis olculer: 246 x 164 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr229456-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "xieque",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "haswing-trolling-motor-dumeni",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Haswing Protruar 12V Trolling Motor Icin Dumen",
+    "aciklama": "Haswing Protruar Brushless 1.0 12V trolling motor icin tasarlanmis dumen.\n- Haswing Protruar Brushless 1.0 12V trolling motorla uyumludur.\n- 27.9-28mm mil capina sahip benzer trolling motorlarla da uyumlu olabilir.\n- Iki parcaya bolunmus, kolay monte edilebilir tasarima sahiptir.\nYaklasik dis olculer: 315 x 207 x 96 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1230748-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Zac Myers",
+      "tur": "GPL"
+    }
+  },
+  {
     "id": "yelkenli-ip-eyeri",
     "kategori": "Marin",
     "marka": [],
