@@ -1,5 +1,211 @@
 [
   {
+    "id": "kawasaki-650sx-direksiyon-kablosu-contasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kawasaki 650SX Jetski Icin Direksiyon Kablosu Contasi",
+    "aciklama": "Kawasaki 650SX jetskinin itme-cekme direksiyon kablosunun kaymali milini gres icinde tutan ve suyun kabloya girmesini engelleyen koruyucu conta.\n- Kawasaki 650SX jetski modeliyle uyumludur.\n- Benzer 5mm itme-cekme direksiyon kablolu diger eski jetski modellerinde de kullanilabilir.\n- Kabloyu su girisinden korur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1624265-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1624265-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1624265-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1624265-4.jpg"
+    ]
+  },
+  {
+    "id": "raymarine-otopilot-dumen-acisi-sensoru",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Raymarine Otopilot Icin Dumen Acisi Sensoru Govdesi",
+    "aciklama": "Raymarine otopilot sistemi icin D-profilli bir potansiyometreye uygun sekilde tasarlanmis dumen acisi sensoru govdesi.\n- Raymarine otopilot sistemleriyle uyumludur.\n- D-profilli potansiyometrelerle kullanima uygundur.\n- Kablo cikisi icin kanal icerir.\nYaklasik dis olculer: 152 x 60 x 43 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7105104-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7105104-2.jpg",
+      "https://media.pruvo3d.com/urunler/th7105104-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MattKoch",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "lowrance-buz-transduseri-kablo-durdurucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Lowrance Buz Transduseri Icin Kablo Durdurucu",
+    "aciklama": "Lowrance buz balikciligi transduserlerinde kablo pozisyonunu sabitleyen, ayrica yuzer ozellige sahip durdurucu.\n- Lowrance buz transduseri modelleriyle uyumludur.\n- Kablo pozisyonunu sabit tutar.\n- Yuzer yapisi sayesinde suya dusmesi durumunda kaybolmaz.\nYaklasik dis olculer: 20 x 20 x 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr274504-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr274504-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "BruceDemski",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "dalis-samandirasi-makarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dalis Samandirasi Icin Ip Makarasi",
+    "aciklama": "Dalis sirasinda kullanilan samandiranin ipini sarmak icin tasarlanmis, 75mm capinda makara.\n- Dalis samandiralariyla uyumludur.\n- 75mm cap, 24mm genislikte kompakt bir tasarima sahiptir.\n- Parcali yapisi sayesinde kolayca birlestirilir.\nYaklasik dis olculer: 162 x 75 x 23 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr644956-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr644956-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Boby",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "aqua-marina-esnek-salma",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Aqua Marina SUP/Kayak Icin Esnek Salma (Fin)",
+    "aciklama": "Aqua Marina marka sisme SUP tahtasi ve kayaklar icin esnek yapida yedek salma (fin/skeg) parcasi.\n- Aqua Marina marka sisme SUP ve kayak modelleriyle uyumludur.\n- Esnek yapisi sayesinde carpma anlarinda kolayca esner.\n- Standart salma yuvasina takilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3daqua-marina-flexible-fin-1.jpg",
+      "https://media.pruvo3d.com/urunler/c3daqua-marina-flexible-fin-2.jpg",
+      "https://media.pruvo3d.com/urunler/c3daqua-marina-flexible-fin-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "vd_max",
+      "tur": "cc_by"
+    }
+  },
+  {
+    "id": "ip-samandirasi-yuzer-float",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ip/Halat Icin Yuzer Samandira (Float)",
+    "aciklama": "Yengec avciligi, yuzme veya diger ip/halat gerektiren su aktiviteleri icin kullanilan yuzer samandira.\n- Yengec tuzagi ipi ve benzeri halatlarla kullanima uygundur.\n- Yuzme alani sinirlama gibi farkli su aktivitelerinde de kullanilabilir.\n- Hafif ve yuzer yapiya sahiptir.\nYaklasik dis olculer: 183 x 70 x 70 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr564502-1.jpg"
+    ]
+  },
+  {
+    "id": "tohatsu-5hp-dumen-kolu-uzatici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tohatsu 5HP 2 Zamanli Disi Motor Icin Dumen Kolu Uzatici",
+    "aciklama": "Tohatsu 5HP 2 zamanli disi motorun dumen kolu tutamagina takilan, aluminyum boru ile uzatilan kavrama uzatici.\n- Tohatsu 5HP 2 zamanli disi motor modeliyle uyumludur.\n- 25mm capinda aluminyum boru ile birlikte kullanilir.\n- Dumen kontrolunu daha rahat mesafeden yapmayi saglar.\nYaklasik dis olculer: 145 x 40 x 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr417786-1.jpg"
+    ]
+  },
+  {
+    "id": "evinrude-lark-ii-1960-pervane-somunu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "1960 Evinrude Lark II 40HP Disi Motor Icin Pervane Somunu",
+    "aciklama": "1960 model Evinrude Lark II 40HP disi motor ve benzeri donem modelleri icin yedek pervane somunu.\n- 1960 Evinrude Lark II 40HP disi motorla uyumludur.\n- Ayni donemden benzer disi motor modellerine de uyabilir.\n- Kirilan veya kaybolan orijinal somunun yerine kolay degisim saglar.\nYaklasik dis olculer: 45 x 45 x 38 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr268787-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr268787-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ChadMichels",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "dalis-bcd-cekme-samandirasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dalis BCD Cekme Ipi Icin Kucuk Samandira",
+    "aciklama": "Kalin dalis eldivenleriyle bile BCD hava valflerinin kolayca bulunmasini saglayan, hafif kucuk samandira.\n- Standart BCD (denge yelegi) cekme ipleriyle uyumludur.\n- Kalin dalis eldivenleriyle kullanima uygundur.\n- Kucuk boyutu sayesinde denge (trim) uzerinde etkisi yoktur.\nYaklasik dis olculer: 20 x 19 x 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr855971-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr855971-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr855971-3.jpg"
+    ]
+  },
+  {
+    "id": "scotty-downrigger-kilit-kolu-parcasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Scotty Downrigger Icin Kilit Kolu Parcasi (S-LKLVR1026)",
+    "aciklama": "Scotty downrigger sisteminin 3/8 inc doner montaj kilit kolu (S-LKLVR1026) parcasinin plastik govdesi.\n- Scotty downrigger S-LKLVR1026 parca numarasiyla uyumludur.\n- Metal pimle birlikte kullanima uygun tasarlanmistir.\n- Kirilan orijinal parcanin hizli ve ekonomik yedegidir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1235659-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1235659-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1235659-3.jpg"
+    ]
+  },
+  {
+    "id": "hobie-outback-dumen-takozu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Hobie Outback Kayak Icin Aluminyum Dumen Takozu",
+    "aciklama": "Hobie Outback kayaklarin aluminyum dumen yukseltme modifikasyonunda kullanilan takoz (iki adet gerekir).\n- Hobie Outback kayak modeliyle uyumludur.\n- Aluminyum dumen modifikasyonu icin iki adet birlikte kullanilir.\n- 0.080 inc kalinliginda tasarlanmistir.\nYaklasik dis olculer: 50 x 50 x 5 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4403972-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4403972-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4403972-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "FloridaFishHunter",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "perception-kayak-dumen-blogu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Perception Tipi Kayaklar Icin Dumen Blogu",
+    "aciklama": "Perception tipi kayaklarda kullanilan, 3/8 inc 16 dislili dumen pimine uygun yedek dumen blogu.\n- Perception tipi kayak modelleriyle uyumludur.\n- 3/8 inc 16 dislili dumen pimiyle (pintle) kullanima hazirdir.\n- Kirilan orijinal blogun yerine kolay degisim saglar.\nYaklasik dis olculer: 58 x 35 x 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5836377-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "CouchingTiger",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "sisme-kayak-salma-omurga",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sisme Kayak Icin Salma/Omurga (Skeg)",
+    "aciklama": "Sisme kayaklarin yon tutuşunu artiran, standart salma yuvasina uygun salma/omurga parcasi.\n- Sisme kayak modelleriyle uyumludur.\n- Standart salma yuvasina dogrudan takilir.\n- Yon tutuşunu artirarak duz gitmeyi kolaylastirir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/c3dquilla-kayak-skeg-kayak-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "sportguy3Dprint",
+      "tur": "cc_by_sa"
+    }
+  },
+  {
+    "id": "istakoz-tuzagi-anten-samandirasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Istakoz Tuzagi Icin Anten Samandirasi Baglantisi",
+    "aciklama": "Istakoz tuzagi antenini samandira ipine baglayan, suda gorunurlugu artiran baglanti parcasi.\n- Istakoz/yengec tuzagi anten sistemleriyle uyumludur.\n- Anteni samandira ipine guvenli sekilde baglar.\n- Suda gorunurlugu artirir.\nYaklasik dis olculer: 114 x 44 x 44 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr618826-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ian Black",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "downrigger-top-dugum-koruyucu",
     "kategori": "Marin",
     "marka": [],
