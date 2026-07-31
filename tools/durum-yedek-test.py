@@ -536,16 +536,37 @@ def _senaryo_cokme(yb, ekstra_degisimler):
                 "cokdu": r1.returncode != 0}
 
 
+# TEK MESRU ⚪ URETICISI: bolum 10 sonundaki KALICI fikstur. Adi BURADA ilan edilir
+# ki _capa "ilan edilmis fikstur" ile "kaymis gercek capa"yi AYIRT EDEBILSIN.
+_CAPA_FIKSTUR_ADI = "(fikstur) kasitli anchor-KIRAN refaktor"
+
+
 def _capa(ad, fn):
-    """Bolum 10 anchor-miss KALKANI (ekip-bloklayici kapi FAIL-OPEN): senaryo fn()'in
-    anchor'i MESRU refaktorle kayarsa ('CAPASI BULUNAMADI') o kontrol ⚪+None olur, suite
-    ABORT ETMEZ. DAR: base davranissal KIRMIZI (ok=False) korunur; disi istisna re-raise."""
+    """Bolum 10 anchor-miss nobetcisi — FAIL-CLOSED.
+
+    🔴 NEDEN DEGISTI (31 Tem, capa-onarim turu): eski hal her anchor kaybini ⚪'ya
+    dusururdu ve ⚪ cikis kodunu BOZMAZ. Olculdu: `bas_imza` -> baska ad seklinde TEK
+    mesru yeniden adlandirma bolum 10'un 6 senaryosundan 4'unu (b/c mutant + base +
+    neg-2) sessizce ⚪ yapar, KIRMIZI 0 kalir, kapi YESIL yanardi = tam da bu kapinin
+    kovaladigi SESSIZ-YESIL sinifi. Artik yalniz ILAN EDILMIS kalici fikstur
+    (_CAPA_FIKSTUR_ADI) ⚪ olur; baska her capa kaybi ADIYLA KIRMIZI yanar.
+
+    🔴 NEDEN YAYINI DURDURMAZ: `serit-b` job'unun `needs:`i YOKTUR ve hicbir is ona
+    bagli degildir (`deploy: needs: build`) -> buradaki KIRMIZI pruvo3d.com yayinini
+    DURDURMAZ, yalniz kapiyi GORUNUR kirar. Fail-closed'in maliyeti budur.
+
+    DAR: base davranissal KIRMIZI (ok=False) korunur; disi istisna re-raise."""
     try:
         return fn()
     except RuntimeError as e:
         if "CAPASI BULUNAMADI" not in str(e):
             raise
-        olculemedi(ad, "yedekle.py yapisi degisti — capa guncellenmeli", "fikstur")
+        if ad == _CAPA_FIKSTUR_ADI:
+            olculemedi(ad, "yedekle.py yapisi degisti — capa guncellenmeli", "fikstur")
+            return None
+        kontrol("ÇAPA VAR: %s" % ad, False,
+                "yedekle.py yapisi degisti, CAPA BULUNAMADI -> nobet SESSIZ GECMEZ; "
+                "capayi bugunku yapiya TASI. %s" % str(e)[:150])
         return None
 
 
@@ -2064,6 +2085,29 @@ def main():
                       "    # refaktor: fail-closed basari bayragi varsayilani\n"
                       "    basardi = False")
 
+        # ---- ÇAPA-VARLIK NOBETI (fail-closed, senaryolardan ONCE) ------------------
+        # Asagidaki nobetlerin GUCU 1. siniftir: mutant yedekle.py'yi GERCEKTEN
+        # kosturur ve CIKTIYA assert eder. Zayif halka capanin KENDISIYDI — kayarsa
+        # senaryo hic kosmaz ve (eski _capa'da) kapi sessizce ⚪'ya duserdi. Burada
+        # her capa GERCEK tools/yedekle.py'de ILAN EDILEN ADETTE aranir: kayma,
+        # senaryo davranisina hic karismadan, capanin ADIYLA KIRMIZI yanar.
+        # `kesin=True` -> tek-vurus mutasyon capasi (adet=1 replace anlamli olsun);
+        # `kesin=False` -> yeniden adlandirma capasi (adet=None, HEPSI), >=1 yeter.
+        _gov_y = open(YEDEKLE, encoding="utf-8").read()
+        for _cad, _cmetin, _cadet, _kesin in (
+                ("MUT_FLOCK/REF_YORUM (fcntl.flock non-blocking cagrisi)",
+                 MUT_FLOCK[0], 1, True),
+                ("MUT_FINALLY/REF_YORUM2 (basari bayragi varsayilani)",
+                 MUT_FINALLY[0], 1, True),
+                ("MUT_CIKIS (baslangic imzasi satiri)", MUT_CIKIS[0], 1, True),
+                ("_COKME_CAPA (kopya dongusu basi)", _COKME_CAPA, 1, True),
+                ("REF_RENAME (bas_imza tanimlayicisi)", REF_RENAME[0], 1, False)):
+            _g = _gov_y.count(_cmetin)
+            kontrol("ÇAPA-VARLIK: %s capasi tools/yedekle.py'de %s%d kez var"
+                    % (_cad, "tam " if _kesin else "en az ", _cadet),
+                    (_g == _cadet) if _kesin else (_g >= _cadet),
+                    "gorulen=%d" % _g)
+
         # ---- GUVENCE (a): flock paralel yedekleri serilestirir ----
         a_base_atladi, a_base_bitti = _senaryo_flock(yb, [])
         kontrol("(a) flock BASE: kilit baskasindayken kosum ATLADI (serilestirme calisiyor)",
@@ -2123,12 +2167,45 @@ def main():
         # KALICI FIKSTUR (anchor-kirilgan DEGIL): '__CAPA_FIKSTUR_ASLA_YOK__' hicbir yedekle.py'de
         # yok = anchor-KIRAN mesru refaktor; _capa onu tam 1 ⚪+None yapmali, suite ABORT etmemeli.
         _ol0 = len(OLCULEMEDI)
-        _fx = _capa("(fikstur) kasitli anchor-KIRAN refaktor",
+        _kir0 = len([1 for _a, _ok in SONUC if not _ok])
+        _fx = _capa(_CAPA_FIKSTUR_ADI,
                     lambda: _senaryo_flock(yb, [("__CAPA_FIKSTUR_ASLA_YOK__", "x")]))
         kontrol("(fikstur) anchor-KIRAN refaktor GRACEFUL: _capa None dondu + tam 1 ⚪ "
                 "uretti + suite ABORT ETMEDI (FP mayini kapali kalir)",
                 _fx is None and len(OLCULEMEDI) == _ol0 + 1,
                 "None=%s yeni_olculemedi=%d" % (_fx is None, len(OLCULEMEDI) - _ol0))
+
+        # ---- ÇAPA BUTCESI (fail-closed): ILAN EDILMEYEN her capa kaybi KIRMIZI ----
+        # (1) Fikstur ⚪ URETIR ama KIRMIZI URETMEZ — ilan edilmis tek mesru yol budur.
+        kontrol("(fikstur) ILAN EDILMIS capa kaybi KIRMIZI URETMEDI (⚪ yolu yalniz "
+                "ilan edilene acik)",
+                len([1 for _a, _ok in SONUC if not _ok]) == _kir0,
+                "kirmizi_delta=%d"
+                % (len([1 for _a, _ok in SONUC if not _ok]) - _kir0))
+        # (2) ILAN EDILMEYEN bir capa kayarsa _capa KIRMIZI yakar — ayni kod yolu,
+        #     sahte adla KOSTURULARAK kanitlanir (iddia degil, OLCUM).
+        _kir1 = len([1 for _a, _ok in SONUC if not _ok])
+        _ol1 = len(OLCULEMEDI)
+        print("     (asagidaki TEK ❌ KASITLI oz-nobet fiksturudur: ilan edilmemis "
+              "capa kaybinin KIRMIZI yaktigini KOSARAK kanitlar; kaydi hemen geri "
+              "alinir, ozete GIRMEZ)")
+        _fx2 = _capa("(oz-nobet) ILAN EDILMEMIS capa kaybi",
+                     lambda: _senaryo_flock(yb, [("__CAPA_FIKSTUR_ASLA_YOK__", "x")]))
+        _yeni_kirmizi = len([1 for _a, _ok in SONUC if not _ok]) - _kir1
+        # Oz-nobetin KENDI urettigi KIRMIZI kaydi ozete sizmasin: dogrulandiktan sonra
+        # geri alinir (kapinin kendi kanitini kendi kirmizisi yapmasi anlamsiz olurdu).
+        if _yeni_kirmizi == 1:
+            SONUC.pop()
+        kontrol("ÖZ-NOBET: ILAN EDILMEYEN capa kaybi KIRMIZI yakiyor (⚪'ya KACMIYOR) "
+                "-> capa bayatlarsa kapi SESSIZ GECMEZ",
+                _fx2 is None and _yeni_kirmizi == 1 and len(OLCULEMEDI) == _ol1,
+                "None=%s yeni_kirmizi=%d yeni_⚪=%d"
+                % (_fx2 is None, _yeni_kirmizi, len(OLCULEMEDI) - _ol1))
+        # (3) BUTCE: fikstur ekseninde ⚪ SAYISI tam 1. Ikinci bir fail-open yol
+        #     acilirsa (yeni bir ⚪ ureticisi) bu nobet KIRMIZI yanar.
+        kontrol("ÇAPA BUTCESI: fikstur-ekseninde tam 1 ⚪ var (ilan edilen kalici "
+                "fikstur); ikinci fail-open yol YOK",
+                EKSEN.get("fikstur", 0) == 1, "fikstur ⚪=%d" % EKSEN.get("fikstur", 0))
 
     # ---------------- OZET ----------------
     kirmizi = [a for a, ok in SONUC if not ok]
