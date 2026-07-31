@@ -64,12 +64,42 @@ CREATE TABLE IF NOT EXISTS urunler (
   hs_baslik      TEXT NOT NULL DEFAULT '',  -- nrm(baslik)            -> skor +3
   hs_baslik_kok  TEXT NOT NULL DEFAULT '',  -- ayni metin, kelimeler kokune cevrilmis
   hs_govde       TEXT NOT NULL DEFAULT '',  -- nrm(id+baslik+kategori+marka+aciklama) -> +1
-  hs_govde_kok   TEXT NOT NULL DEFAULT ''   -- ayni metin, kelimeler kokune cevrilmis
+  hs_govde_kok   TEXT NOT NULL DEFAULT '',  -- ayni metin, kelimeler kokune cevrilmis
+
+  -- ATOMIK YAYIN (31 Tem) — "karti gorunen urun asla 404 vermez".
+  -- OLCULEN PENCERE (bu kolonun VAR OLMA SEBEBI, ham sayilar RAPOR-MIMARA.md'de):
+  --   .git/hooks/pre-push d1-sync'i push'tan ONCE kosar -> urun D1'e girer; Pages deploy'u
+  --   ise CI'nin sonunda biter. Son 8 basarili kosumda push -> canli MEDYAN 593 sn (9,9 dk),
+  --   max 740 sn. CI KIRMIZI olursa pencere CI kirmizi kaldigi surece SURER: 31 Tem
+  --   run#1079..1082 arasi 3.241 sn (54 dk) olculdu, o sure boyunca 98 urun D1'DEYDI ama
+  --   /urun/<id>/ 404 donuyordu. 31 Tem 07:33Z'de CANLI teyit: 8/8 yeni id D1'de, 3/3
+  --   ornek sayfa HTTP 404.
+  -- SEMANTIK:
+  --   yayinda=0  TASLAK — satir D1'de var (senkron gecikmesin) ama HICBIR KESIF
+  --              yuzeyinde (arama/katalog/Ege) GOSTERILMEZ. Yeni satir DAIMA 0 girer.
+  --   yayinda=1  YAYINDA — o id'nin /urun/<id>/ sayfasi CANLIDA 200 dondugu FIILEN
+  --              dogrulandiktan sonra tools/yayin-kapisi.py yazar. Tek yon: 0 -> 1.
+  --   release_id yayina alan commit SHA'si (denetim izi; hangi deploy yayinladi).
+  -- 🔴 CONTENT UPSERT'E KARISMAZ: d1-sync KOLONLAR listesinde YOK -> mevcut (yayinda=1)
+  --   bir urunun icerigi degisince satir yeniden yazilir ama yayinda 1 KALIR. Aksi halde
+  --   her toplu duzeltme TUM katalogu ~10 dk boyunca Ege'den gizlerdi (sessiz satis kaybi)
+  --   — ve 404 riski de YOKTUR: id degismedigi surece sayfa zaten canlidadir.
+  yayinda    INTEGER NOT NULL DEFAULT 0,
+  release_id TEXT NOT NULL DEFAULT ''
 );
 
 -- Kategori/marka filtresi + siralama icin.
 CREATE INDEX IF NOT EXISTS urunler_seq  ON urunler(seq DESC);
 CREATE INDEX IF NOT EXISTS urunler_kat  ON urunler(kategori, seq DESC);
+
+-- ATOMIK YAYIN indeksleri (urunler_yayin / urunler_yayin_kat): okuma tarafi WHERE'ine
+-- `yayinda=1` girince yukaridaki iki indeksin ONEK'i bozulur (katalogD1 OFFSET taramasi
+-- indeks yerine tam taramaya duserdi); yayinda ONDE olan iki indeks o siralamayi korur.
+-- 🔴 DDL'leri BU DOSYADA DEGIL, d1-sync.py YAYIN_INDEKS listesindedir ve kolon_goc()'un
+-- ALTER'larindan SONRA kosar. NEDEN (olculdu 31 Tem, canli D1): bu dosya --sema'da
+-- kolon gocunden ONCE uygulanir; tablo zaten var oldugu icin CREATE TABLE IF NOT EXISTS
+-- atlanir, dolayisiyla `yayinda` kolonu henuz YOKTUR ve indeks ifadesi
+-- "no such column: yayinda ... SQLITE_ERROR" ile TUM sema kosumunu dusurur.
 
 -- Arama indeksi. content='urunler' -> metin iki kez saklanmaz (yalnizca indeks yazilir).
 CREATE VIRTUAL TABLE IF NOT EXISTS urunler_fts USING fts5(
