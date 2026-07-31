@@ -2156,6 +2156,14 @@ SERIT_B = {
     ("deploy.yml", "serit-b", "tools/faz3-gecikme-test.py"):
         "Teshis araci faz3-gecikme.js'in yanlis-pozitif/negatif nobetcisi (sahte worker "
         "ucu); yayin ciktisi ekseninde degil.",
+    ("deploy.yml", "serit-b", "tools/kutu-arsivle-test.py"):
+        "HIJYEN ARACI, YAYIN KAPISI DEGIL: tools/kutu-arsivle.py mimarlarin ORTAK POSTA "
+        "KUTUSUNU (~/.claude/.../mimar-posta-kutusu.md) tavana indirir. Olctugu sey "
+        "yazisma hijyenidir; urunler.json / index.html / uretilen sayfa / D1 / R2 / "
+        "odeme yuzeylerinin HICBIRINE dokunmaz, yayinlanan tek bir bayt uretmez. "
+        "Kabul testi + `--mutasyon` turu tempfile fiksturleriyle OFFLINE kosar ve "
+        "GERCEK kutuya YAZMAZ. Bir A-kapisinin buraya kaydirilmasi DEGILDIR: kapinin "
+        "A karsiligi hic olmadi, arac bu dalda dogdu.",
     # --- onizleme (ayri dagitim hedefi) arayuz testleri ---------------------
     ("deploy.yml", "serit-b", "onizleme/test/onbellek-surum.mjs"):
         "ONIZLEME alt sisteminin (ayri imaj dagitimi) onbellek surumu; Pages ciktisini "
