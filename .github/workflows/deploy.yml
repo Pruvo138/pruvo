@@ -940,6 +940,24 @@ jobs:
       - name: "Urun denetim kapisi — kendini test (pozitif + negatif + OLCULEMEDI + mutasyon)"
         run: python3 tools/denetim-kapisi.py --kendini-test
 
+      # GRAMER ARTIGI KAPISI (madde 46'nin eksik halkasi, 31 Tem): 332 kayitlik toplu
+      # yeniden yazimda kural tabanli degisim, tetikleyici kelime cumleden cikinca
+      # GRAMERSIZ ENKAZ birakiyordu ("En ince bolgesi yla olculur", "dik konumda ve
+      # uretilir"). O turda yazilan nobetci ISCININ SCRATCHPAD'INDE kaldi, repoya HIC
+      # girmedi -> bir sonraki toplu yazimda ayni enkaz sessizce canliya cikardi.
+      # YENI EKSEN: cumle-ICI yetim ek (eski nobetci ancak noktalamaya YAPISIK hali
+      # goruyordu). Yanlis-pozitif kurallari CANLI KATALOG uzerinde olculdu: ham 4257
+      # aday -> kesme isareti/tire ile bitisik olanlar (WhatsApp'tan = 1881), "de/da"
+      # baglaci (1197), "ya da" (599), tek harfli marka eki (e-tron/i-MiEV/U tipi, 28)
+      # elenerek 0'a indi. Bugunku canli katalogda (15.597 kayit) vurus 0 -> HAM
+      # bloklayici baglanabildi (denetim-kapisi gibi --commit-farki'na AYIRMAK
+      # GEREKMEDI). urunler.json DIZI degilse / taban kume altindaysa OLCULEMEDI (3).
+      # Saf Python, agsiz, ~1 s.
+      - name: "Gramer artigi kapisi (toplu yeniden yazim enkazi + cumle-ici yetim ek)"
+        run: |
+          python3 tools/gramer-artigi-kapisi.py --kendini-test
+          python3 tools/gramer-artigi-kapisi.py
+
       # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
       # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden
       # onizlenmis her parametre seti YAZISIZ mesh'i (kase: herkese "PRUVO") servis etmeye
