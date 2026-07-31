@@ -709,10 +709,18 @@ R_YOL = ("Mimar-disiplin kapisi: mutlak /Users/okan/dev/pruvo yoluna VE commit E
          "yapisal olarak KIRMIZI. Yerel gelistirici disiplini araci, deploy CI adimi degil.")
 R_YAVAS = ("Yerelde >30s (build+ag ya da mutasyon harness) -> tek build job'unu blokar; "
            "izole/ayri job olmadan Pages hattina alinmaz (RAPOR onerisi).")
-R_SONRA = ("Offline + yerelde YESIL, ama Paket C kapsami YALNIZ mimarin verdigi cekirdek "
-           "eklemeleri CI'ya aldi. Bu test sonraki turda (ubuntu path/env dogrulamasi sonrasi) "
-           "CI'ya alinabilir — kod-kilidi ornegi 'yerel-yesil / CI-kirmizi' tuzagini kanitladi, "
-           "o yuzden kor-ekleme yapilmadi.")
+# 🔴 R_SONRA (31 TEM): GEREKCE CURUTULDU, YENI GIRIS ICIN KULLANMA.
+# Metni "sonraki turda CI'ya alinabilir / deploy.yml'e 0-hunk sarti var" idi — yani
+# TEKNIK degil SURECSEL bir gerekce; o tur bitince gerekce OLDU ama muafiyet KALDI.
+# Bu, denetimde "curuk gerekce" sinifinin ta kendisidir: kimse kapiyi acmiyor, kimse
+# de KIRMIZI gormuyor. OLCULDU (31 Tem, `git clone --local` ile kurulan TEMIZ CI-benzeri
+# checkout, HEAD): R_SONRA'li 27 girisin 26'si rc=0 ve toplam ~11 s; 24'u mutasyonla
+# CANLI oldugu (konusu bozulunca KIRMIZI yandigi) kanitlandi ve deploy.yml'de
+# continue-on-error'SUZ BLOKLAYICI adim olarak baglandi. Kalan uc giris ASAGIDA
+# TEK TEK ve SOMUT gerekceyle durur (R_SONRA metnine dayanan giris KALMADI).
+R_SONRA = ("KULLANIM DISI (bkz. yukaridaki not): surecsel 'sonraki turda' gerekcesi "
+           "31 Tem'de curutuldu. Yeni muafiyet SOMUT ve OLCULEBILIR bir engel yazmali "
+           "(yapisal CI-kirmizi / ag / sure / gizli girdi).")
 R_HOOK = ("Claude Code PreToolUse KANCASI, kosulabilir kabul testi DEGIL: stdin'den JSON alir, "
           "karar objesi dondurur (argumansiz kosunca girdi yok -> exit 0, hicbir sey kanitlamaz). "
           "Yerel ajan disiplin cihazi; GitHub Pages build'inde karsiligi yok.")
@@ -749,7 +757,16 @@ R_FTS5 = ("Yerel fts5-trigram sqlite gerektirir (sema-yukleme adiminda CREATE VI
 # ---- IZIN LISTESI (muaf test -> GEREKCE). Bos gerekce = exit 1. ----------
 IZIN_LISTESI = {
     # --- Ayri dagitim hedefleri (shop / onizleme / jenerator) ---
-    "shop/test/eposta.mjs": R_AYRI,
+    # "shop/test/eposta.mjs" MUAFIYETI KALDIRILDI (31 Tem) — R_AYRI'nin cekirdek cumlesi
+    # ("bu suite o projenin CI hattinda kosulur") bu dosya icin OLCULEREK YANLIS: oyle bir
+    # hat YOK (repoda yalniz deploy.yml + onizleme-imaj.yml var) ve test wrangler/ag/D1
+    # ISTEMEZ — shop/src/eposta.js'i DOGRUDAN import eder, TEMIZ checkout'ta 0,05 s.
+    # Kardesleri (fiyat-prova.mjs, iki-renk-ucret.mjs, olcum.mjs, sepet-panel.js) zaten
+    # deploy.yml'de kosuyor. Muafiyetin bedeli PARA ekseninde: siparis e-postasindaki urun
+    # linki/kapak gorseli sessizce duserse musteri neyi aldigini goremez.
+    # "shop/test/ref-route.mjs" MUAFIYETI KALDIRILDI (31 Tem) — AYNI sinif: ref.js dogrudan
+    # import edilir, env.KATALOG mock'lanir (wrangler/ag YOK, 0,07 s). Nobet ekseni REKLAM
+    # ATIFI + D1 KOTA KORUMASI (click-id kalicilik, INSERT OR IGNORE, IP rate-limit).
     # "shop/test/kabul.js" MUAFIYETI KALDIRILDI (31 Tem) — gerekce KISMEN dogruydu ve tam da
     # bu yuzden tehlikeliydi: suite'in BIR YARISI gercekten CI-disi (test 1..25 `wrangler dev
     # --local` + `npx wrangler@4` indirmesi; test 7 CANLI /ara ucuna vurup YEREL urunler.json
@@ -783,7 +800,6 @@ IZIN_LISTESI = {
     # hedefi degil, RUNTIME idi: test `module.registerHooks` (v22.15+) istiyordu, runner
     # Node 20 -> 6 iddia her kosuda kirmizi (129/6). Hook `module.register` (v20.6+)'a
     # cevrildi, Node 20.20.2'de 188/0 -> test artik deploy.yml'de KOSUYOR.
-    "shop/test/ref-route.mjs": R_AYRI,
     # "shop/test/sepet-panel.js" MUAFIYETI KALDIRILDI (30 Tem) — olcum.mjs ile AYNI SINIF hata:
     # gerekce R_AYRI ("shop ayri Worker hedefi") idi, oysa bu test wrangler/ag/D1 ISTEMEZ;
     # index.html'in inline scriptini node:vm'de kosar ve kardesleri (konfigur-fail-closed.mjs,
@@ -792,9 +808,22 @@ IZIN_LISTESI = {
     # "TEST ALTYAPI HATASI" ile duruyordu -> 9 nobetcinin 9'u hicbir iddia kosturmadan
     # OLDU ve kimse gormedi (CI onu hic calistirmiyordu). Sahte fetch edge'e uyarlandi
     # (14/14 yesil) ve test deploy.yml'de BLOKLAYICI adim olarak kosuyor.
-    "onizleme/test/eslem-olcum.py": R_AYRI,
-    "onizleme/test/kabul.js": R_AYRI,
-    "onizleme/test/kapi1.js": R_AYRI,
+    # 🔴 31 TEM — GEREKCE DUZELTILDI (blanket R_AYRI cumlesi "o projenin CI hattinda
+    # kosulur" bu ucu icin YANLISTI: oyle bir hat YOK). GERCEK engel OLCULDU (temiz
+    # checkout): ilk ikisi `onizleme/derleyici/eslem-ozel.json` GIZLI paketini ister
+    # (gitignore'lu, R2'den cekilir) -> CI fresh checkout'unda "Paket toplanamadi" ile
+    # rc=1; ucuncusu `KAPAT_ANAHTAR` ortam degiskeni (secret) ister -> rc=2. Ucu de
+    # onizleme-imaj.yml hattinda, paket + secret ayaktayken kosar.
+    "onizleme/test/eslem-olcum.py": (
+        R_AYRI + " Somut (31 Tem olcumu): TEMIZ checkout'ta rc=1 — "
+        "`onizleme/derleyici/eslem-ozel.json` gitignore'lu GIZLI paket girdisi yok "
+        "('Paket toplanamadi'). Pages build job'unda o paket YOKTUR."),
+    "onizleme/test/kabul.js": (
+        R_AYRI + " Somut (31 Tem olcumu): TEMIZ checkout'ta rc=1 — ayni gizli paket "
+        "girdisi (`eslem-ozel.json`) yok. Deploy hattinin girdisi degil."),
+    "onizleme/test/kapi1.js": (
+        R_AYRI + " Somut (31 Tem olcumu): TEMIZ checkout'ta rc=2 — `KAPAT_ANAHTAR` "
+        "ortam degiskeni (secret) zorunlu; Pages build job'unda tanimli DEGIL."),
     # 28 Tem (G2): duman_toka_kabul.py -> duman_kabul.py olarak GENELLESTI (tek-aile
     # jeton pini yerine drift+kapsam kapisinin ayirt ediciligi/no-op/CI-kablo olcumu).
     # 🔴 30 Tem (O6 onarimi): bu iki girisin gerekcesi ARTIK MAKINE-DOGRULANIR. Eskiden
@@ -819,24 +848,14 @@ IZIN_LISTESI = {
         "girdisi YOK. Ayirt ediciligi onizleme/test/duman_kabul.py ile olculur. "
         "MAKINE DAYANAGI: tools/is-akisi-kapisi.py BOLUM B iddialari "
         "'parmakizi-dizin' / 'parmakizi-url' / 'duman-url' (+ B-CAPRAZ kurali)."),
-    "onizleme/test/iki-govde-olcum.py": (
-        "2-renk MESH olcumu OPENSCAD ister (ucgen/bbox/hacim); ana site deploy.yml'de "
-        "openscad YOK ve yerel Mac'te SIGABRT veriyor -> onizleme-imaj.yml'de imaj "
-        "konteyneri ayaktayken kosar (duman adiminin icinde). "
-        "🔴 DUZELTME (30 Tem, OLCULDU): bu gerekcenin eski son cumlesi 'cagri satiri "
-        "paket-tazelik-kapisi.py'nin imaj-akisi nobetiyle ayni dosyada durur' diyordu — "
-        "YANLISTI. paket-tazelik-kapisi.py'nin CAGRI_CAPASI sabiti YALNIZ KENDI cagri "
-        "satirini ('tools/paket-tazelik-kapisi.py --paket') izliyor; iki-govde cagrisi "
-        "NOBETSIZDI (cagriyi sil / yoruma al / `|| true` ekle -> dort denetci de rc=0). "
-        "Cagri satiri ARTIK tools/is-akisi-kapisi.py BOLUM B tarafindan izleniyor "
-        "(deploy.yml'de bloklayici adim; silme/yorum/`|| true`/`|| :`/"
-        "`continue-on-error: true`/`if: false` -> KIRMIZI). "
-        "🟡 EK (30 Tem): dosyanin ARTIK openscad'siz bir kolu var — `--kendini-test` "
-        "iddia MANTIGINI fikstur sayilarla olcer (agsiz, ~0,05 s) ve --url kolunun "
-        "ICINDEN de BLOKLAYICI cagrilir, yani su an nobetsiz DEGIL. deploy.yml'e ayri "
-        "bir `--kendini-test` adimi EKLENMEDI (bu turda deploy.yml'e 0 hunk sarti var + "
-        "BOLUM B'nin 'etkili iki-govde cagrisi' SAYACI kayar); mimar karariyla sonraki "
-        "turda eklenebilir. MESH olcumu (ucgen/bbox/hacim) yine yalniz imaj is akisinda."),
+    # "onizleme/test/iki-govde-olcum.py" MUAFIYETI KALDIRILDI (31 Tem) — gerekcenin son
+    # paragrafi kendi kendini curutuyordu: dosyanin AGSIZ/openscad'siz `--kendini-test`
+    # kolu VAR, ~0,05 s ve deterministik; eklenmeme sebebi TEKNIK degil SURECSELDI
+    # ("bu turda deploy.yml'e 0 hunk sarti var"). O tur bitti, sart dustu -> kol
+    # deploy.yml'de continue-on-error'SUZ BLOKLAYICI kosuyor (25 gercek commit'te 25
+    # yesil). MESH olcumu (ucgen/bbox/hacim, openscad) yine YALNIZ onizleme-imaj.yml'de;
+    # o cagri BOLUM B iddiasiyla ayrica korunuyor (silme/yorum/`|| true`/`if: false`
+    # -> is-akisi-kapisi.py KIRMIZI).
     "onizleme/test/fiyat-taban-olcum.mjs": "Kabul KAPISI DEGIL — fiyat regresyonu icin dokum/karsilastirma ARACI (--yaz / --karsilastir). Sabit bir taban dosyasi repoda tutulmadigi icin CI'da tek basina anlamli bir iddiasi yoktur; fiyat kapilari ayri ve bloklayicidir (tools/konfigur-test.py, shop/test/fiyat-prova.mjs, shop/test/iki-renk-ucret.mjs).",
     "jenerator/test/birlestir.py": (
         R_URETEC + " Somut: aile .js dosyalarini jenerator/hacim.js'e BIRLESTIREN arac "
@@ -848,7 +867,11 @@ IZIN_LISTESI = {
     # Bayraksiz tam kosum HALA CI disi (openscad ister) — susturulmadi, yalnizca baglanmadi.
     "jenerator/test/fiyat-tablosu-uret.py": (
         R_URETEC + " Somut: Okan'a .md fiyat sablonu ureten dokum araci."),
-    "jenerator/test/fiyat-test.js": R_AYRI,
+    # "jenerator/test/fiyat-test.js" MUAFIYETI KALDIRILDI (31 Tem) — R_AYRI'nin "jenerator
+    # kendi harness'i" dali OLCULEREK YANLIS: oyle bir CI hatti YOK ve test node disinda
+    # HICBIR sey istemez (openscad/ag/build.py yok, TEMIZ checkout'ta 0,14 s). Kardesi
+    # jenerator/test/metin-beyaz-liste.mjs zaten deploy.yml'de kosuyor. Nobet ekseni PARA:
+    # sema varsayilanlari + tabanHacim + PLA/Siyah taban fiyat esdegerligi.
     "jenerator/test/hacim-eval.js": (
         R_URETEC + " Somut: stdin'den JSON alip hacim hesaplayan CLI yardimcisi "
         "(argumansiz 'gecersiz JSON' der); kabul testi degil, olcum borusu."),
@@ -861,7 +884,16 @@ IZIN_LISTESI = {
     "jenerator/test/kalibrasyon-referans-uret.py": (
         R_URETEC + " Somut: kalibrasyon-referans.json fiksturunu YAZAR — CI'da kosarsa "
         "kabul testlerinin karsilastirdigi referansi EZER (test kendi kendini onaylardi)."),
-    "jenerator/test/kalibrasyon-senkron.js": R_AYRI,
+    "jenerator/test/kalibrasyon-senkron.js": (
+        "🔴 GEREKCE DUZELTILDI (31 Tem): eski blanket R_AYRI cumlesi ('o projenin CI "
+        "hattinda kosulur') YANLISTI — oyle bir hat YOK. GERCEK engel iki parcali ve "
+        "SOMUT: (1) testin CEKIRDEK iddiasi olan 2. katman (kardes ev "
+        "~/dev/pruvo-jenerator/dogrulama/test/aileler ile birebir senkron) CI fresh "
+        "checkout'unda YAPISAL olarak olculemez — dizin yoktur, kol sessizce atlanir ve "
+        "geriye yalnizca dondurulmus referans karsilastirmasi kalir (R_YOL sinifi, "
+        "mimar-kapi-6ev-test.py emsali); (2) o kalan kol bile TEMIZ checkout'ta 25,2 s "
+        "surdu (olculdu) — tek build job'una eklenen en pahali aday. Hacim/fiyat "
+        "cekirdegi CI'da jenerator/test/fiyat-test.js + konfigur-test.py ile olculuyor."),
     "jenerator/test/stl_hacim.py": (
         R_URETEC + " Somut: 'kullanim: stl_hacim.py <dosya.stl>' — tek dosya olcen CLI."),
     "jenerator/test/vida-referans-uret.py": (
@@ -885,23 +917,16 @@ IZIN_LISTESI = {
     # icin deploy.yml'e bloklayici adim olarak baglandilar. Bkz. yukarida R_NODE notu.
     "tools/parite-test.js": R_AG,
     # --- parite karar-cekirdegi harness'leri (27 Tem): AGSIZ + yerelde YESIL ---
-    # ⚠️ NOT (durust gerekce): CI'da setup-node VAR, yani bu ucu TEKNIK olarak deploy.yml'e
-    # eklenebilirdi. Eklenmemelerinin sebebi teknik degil SURECSEL: bu turda deploy.yml'e
-    # 0 HUNK sarti var (dosyanin yazari paralel bir isci dali). Sonraki turda eklenmeli —
-    # onerilen sira: parite-sozlesme-test.py (0,3 s) -> parite-fikstur-test.js (6,7 s) ->
-    # parite-mutasyon-test.js (217 s, ayri/izole job).
-    "tools/parite-fikstur-test.js": (
-        R_SONRA + " Somut: AGSIZ karar-cekirdegi fiksturu (29 senaryo + 1 birim blogu, "
-        "224 iddia, 6,7 s olculdu, canliya 0 istek). deploy.yml'e 0-hunk sarti nedeniyle "
-        "bu turda eklenmedi."),
+    # 🔴 31 TEM: bu kumenin IKISI (parite-sozlesme-test.py 0,19 s · parite-fikstur-test.js
+    # 6,5 s / 226 iddia) muafiyetten CIKARILDI ve deploy.yml'de BLOKLAYICI kosuyor.
+    # Gerekceleri "deploy.yml'e 0-hunk sarti" idi — SURECSEL, o tur bitince curudu; 27 Tem
+    # notunun kendisi zaten "sonraki turda eklenmeli, onerilen sira ..." diyordu ve o sira
+    # bu turda uygulandi. Ucuncusu (mutasyon harness'i) SURE ile duruyor:
     "tools/parite-mutasyon-test.js": (
-        R_YAVAS + " OLCULDU: 14 mutant x fikstur kosumu = 217 s (tek build job'unu blokar; "
-        "M14 asilma nobeti tek basina ~120 s). Ayrica deploy.yml'e 0-hunk sarti nedeniyle "
-        "bu turda eklenmedi; izole/ayri job'a alinmasi onerilir."),
-    "tools/parite-sozlesme-test.py": (
-        R_SONRA + " Somut: 4 tuketicinin cikis-kodu eslemesini olcer (47 iddia, 0,2 s, "
-        "agsiz). deploy.yml'e 0-hunk sarti nedeniyle bu turda eklenmedi — CI'ya alinacak "
-        "ILK aday budur (en ucuz, en yuksek getirili)."),
+        R_YAVAS + " OLCULDU (31 Tem, temiz checkout): 14 mutant x fikstur kosumu = "
+        "217,1 s — tek build job'unu blokar (M14 asilma nobeti tek basina ~120 s). "
+        "Kardesleri (parite-sozlesme + parite-fikstur) artik CI'da kosuyor; bu dosya "
+        "izole/ayri bir job'a alinmadan Pages hattina EKLENMEZ."),
     # --- tools/ python: mimar-disiplin (mutlak yol + commit'siz kablolama) ---
     "tools/mimar-kilit-test.py": R_YOL,
     "tools/mimar-commit-kapisi-test.py": R_YOL,
@@ -917,16 +942,17 @@ IZIN_LISTESI = {
     "tools/kapi-envanteri-test.py": R_YOL,
     "tools/kod-kilidi-test.py": R_YOL,  # E paketi YESILLEDI; mutlak /Users/okan/dev/pruvo yoluna bagli -> fresh checkout'ta yapisal KIRMIZI
     "tools/agent-kapisi-test.py": (
-        R_SONRA + " Somut: AGENT-KAPISI kabul testi (28 Tem) — mimar-icra-kapisi.py'nin "
+        R_YOL + " Somut: AGENT-KAPISI kabul testi (28 Tem) — mimar-icra-kapisi.py'nin "
         "Agent/Task kolu + mimar-kapi-kur.py kablosu; mimar-kilit/6ev/mutasyon/kod-kilidi ile "
-        "AYNI aile. Bolum A (gate davranisi; cwd STRING olarak verilir, gercek repo yoluna bagli "
-        "DEGIL) + Bolum B (kur.py gecici settings KOPYALARI) offline-YESIL. Bolum C (6-EV "
-        "enjeksiyon) girdisi kardes mimar evi gate'leri (/Users/okan/dev/pruvo-hasat, -advisor "
-        ".claude/mimar-icra-kapisi.py); CI fresh checkout'ta bu evler YOK -> C guarded-CEVRE-ATLANAN "
-        "(mimar-kapi-6ev-test.py R_YOL girdisiyle AYNI kaynak, ama orasi fail-closed KIRMIZI, "
-        "burasi skip=exit 0). Yani CI'da yalniz A+B kapsanabilirdi; deploy.yml'e 0-hunk merge "
-        "turunda kor-eklenmedi (kod-kilidi'nin kanitladigi yerel-yesil/CI-kirmizi tuzagi) -> A+B "
-        "sonraki turda CI'ya alinacak ilk adaylardan."),
+        "AYNI aile. Girdisi kardes mimar evi gate'leri (/Users/okan/dev/pruvo-hasat, -advisor "
+        "... .claude/mimar-icra-kapisi.py) ve o evlerin commit EDILMEYEN kablolamasi. "
+        "🔴 GEREKCE DUZELTILDI (31 Tem, OLCULDU): eski metin 'Bolum A+B offline-YESIL, C "
+        "guarded-CEVRE-ATLANAN (skip=exit 0)' diyordu — bu YANLIS. `git clone --local` ile "
+        "kurulan TEMIZ checkout'ta bayraksiz kosum rc=1 verdi "
+        "(\"SONUC: KIRMIZI — basarisiz: ('MaCiT','ZATEN TAM',[]) ('BaBa','ZATEN TAM',[])\"), "
+        "yani atlanan degil KIRMIZI yanan bir kol var. Bloklayici adim olarak eklenirse "
+        "CI'da yapisal olarak TUM yayini durdururdu. Muafiyet MESRU; gerekce artik "
+        "olculen davranisi anlatiyor."),
     # --- tools/ NOBETCILER (*-kapisi.py) — kesif 21 Tem genisletildi, CI'da kosmayanlar ---
     "tools/komut-stili-kapisi.py": R_HOOK,
     "tools/mimar-icra-kapisi.py": R_HOOK,
@@ -959,14 +985,21 @@ IZIN_LISTESI = {
         "CI'da kosmasi cift-sayim olurdu."),
     # --- tools/ python: yavas/harici (>30s) ---
     "tools/feed-cache-bust-test.py": (
-        R_YAVAS + " OLCULDU (F2 raporu): test build.py'yi 2 KEZ kosuyor -> tek build 108,0 s, "
-        "test toplam 227,9 s (mutasyon kosumlarinda 148-302 s). Tek build job'una ~4-5 dk "
-        "eklerdi, kendisi de deploy'un ZATEN kosturdugu build.py'nin ciktisini yeniden uretir. "
-        "CI'YA ALINMA KOSULU (RAPOR onerisi): test build.py'yi alt-surec olarak degil "
-        "render_merchant_feed'i import edip 2 kez cagirarak kosarsa sure saniyeye iner ve "
-        "bloklayici adim olarak eklenebilir."),
-    "tools/filament-test.py": R_YAVAS,
-    "tools/kaynak-akis-test.py": R_YAVAS,
+        R_YAVAS + " OLCULDU: test build.py'yi 2 KEZ kosuyor. ⚠️ SAYI TAZELENDI (31 Tem, "
+        "temiz checkout): toplam 25,4 s — eski kayittaki 227,9 s BAYATTI (F2 raporu, "
+        "108 s'lik build ile). 25 s hala tek build job'una eklenen en pahali ucuncu "
+        "kalem ve kendisi deploy'un ZATEN kosturdugu build.py'nin ciktisini yeniden "
+        "uretir. CI'YA ALINMA KOSULU degismedi: alt-surec yerine render_merchant_feed "
+        "import edilip 2 kez cagrilirsa sure saniyeye iner ve bloklayici eklenebilir."),
+    "tools/filament-test.py": (
+        R_YAVAS + " OLCULDU (31 Tem, temiz checkout): 76,1 s (filament kaynak taramasi). "
+        "Tek build job'unu ~1,5 dk uzatir."),
+    "tools/kaynak-akis-test.py": (
+        R_YAVAS + " OLCULDU (31 Tem, temiz checkout): 86,9 s. "
+        "🔴 GEREKCE DUZELTILDI: yalniz YAVAS degil — ayni kosumda rc=1 verdi. Iddialari "
+        "depo DISINDAKI ~/.claude/skills agacina bakiyor (\"x myminifactory.md mevcut\", "
+        "\"x cgt.md emekli notu\"); CI fresh checkout'unda o agac YOKTUR -> bloklayici "
+        "eklenirse YAPISAL KIRMIZI (R_YOL sinifi, yedekle-test.py emsali)."),
     # "tools/test-bbox-3mf.py" MUAFIYETI KALDIRILDI (30 Tem) — gerekce R_YAVAS (">30 s")
     # idi; OLCULEN 0,1 s'lik bir COKUSTU. Test ankraj olarak GERCEK urun dosyalarini
     # (stl/pr1173083.3mf, stl/pr912419.3mf) aciyordu, ama stl/ gitignore'da: dosyalar ne
@@ -977,36 +1010,33 @@ IZIN_LISTESI = {
     # bolumu ACIKCA "ATLANDI" der. 0,06 s, agsiz -> deploy.yml'de BLOKLAYICI kosuyor.
     # --- tools/ python: fts5-trigram sqlite gerektiren (CI ubuntu'da yok) ---
     "tools/taban-fiyat-d1-test.py": R_FTS5,
-    # --- tools/ python: offline-yesil, sonraki turda alinabilir ---
-    "tools/d1-sync-durum-test.py": R_SONRA,
-    "tools/denetim-kapisi-test.py": R_SONRA,
-    "tools/derin-cap-test.py": R_SONRA,
-    "tools/durum-edge-test.py": R_SONRA,
-    "tools/durum-test.py": R_SONRA,
-    "tools/gorsel-anahtar-test.py": R_SONRA,
-    "tools/gorsel-kapisi-test.py": R_SONRA,
-    "tools/kaynak-entegrasyon-test.py": R_SONRA,
-    "tools/lisans-havuz-test.py": R_SONRA,
-    "tools/makerworld-ara-test.py": R_SONRA,
-    "tools/makerworld-lisans-test.py": R_SONRA,
-    "tools/marka-filtre-test.py": R_SONRA,
-    "tools/meta-piksel-test.py": R_SONRA,
-    "tools/olculmemis-siparis-test.py": R_SONRA,
-    "tools/printables-lisans-test.py": R_SONRA,
-    "tools/siparisler-test.py": R_SONRA,
-    "tools/stl-bbox-binary-test.py": R_SONRA,  # harvest-adaptor birim testi (printables-api.py stl_bbox); sentetik/offline/<1s -> ayni sinif printables-lisans-test.py / test-bbox-3mf muaf, deploy.yml'ye kor-eklenmedi
+    # --- tools/ python: eski "offline-yesil, sonraki turda alinabilir" (R_SONRA) kumesi ---
+    # 🔴 31 TEM: bu kumede 24 giris MUAFIYETTEN CIKARILDI ve deploy.yml'de
+    # continue-on-error'SUZ BLOKLAYICI adim olarak kosuyor (d1-sync-durum · derin-cap ·
+    # durum-edge · durum · gorsel-anahtar · kaynak-entegrasyon · lisans-havuz ·
+    # makerworld-ara · makerworld-lisans · marka-filtre · meta-piksel · olculmemis-siparis ·
+    # printables-lisans · siparisler · stl-bbox-binary · surum · test-baski-senkron ·
+    # test-merchant-feed · thing-codex · thingiverse-gallery · yargi-firearm · yazdir ·
+    # parite-sozlesme · parite-fikstur). Yordam: (1) TEMIZ CI-benzeri checkout'ta kosum
+    # (hepsi rc=0, toplam ~17 s), (2) CANLILIK mutasyonu — her testin ACTIGI kaynak
+    # dosyada satir silme / hedefli bozma; hicbiri "iddiasiz" cikmadi, (3) YANLIS-POZITIF
+    # nobeti: son 25 gercek commit'te tam kosum. Asagida KALAN ucu SOMUT engelle durur.
+    "tools/denetim-kapisi-test.py": (
+        "Olcum girdisi denetim-kapisi.py'nin MUTLAK /Users/okan/dev/pruvo yoluna ve "
+        "working-tree'deki stage'lenmis PARTI farkina bagli (R_YOL/R_GIZLI sinifi): CI "
+        "fresh checkout'unda parti BOStur, kapinin bayraksiz kolu anlamsiz YESIL yakar. "
+        "Denetim kapisinin CI'da olculen kolu `--commit-farki` + `--kendini-test`'tir ve "
+        "deploy.yml'de BLOKLAYICI kosuyor (bkz. yukarida tools/denetim-kapisi.py notu)."),
+    "tools/gorsel-kapisi-test.py": (
+        "Mutlak /Users/okan/dev/pruvo yoluna VE gitignore'lu yerel gorsel/onbellek "
+        "girdisine bagli (R_YOL sinifi) -> CI fresh checkout'unda yapisal olarak olcum "
+        "yapamaz. Gorsel ekseninin CI'da kosan nobetcisi tools/gorsel-boyut-test.py'dir "
+        "(deploy.yml'de bloklayici)."),
     "tools/thing-hazirla-bbox-test.py": (
         "thing-hazirla.py import aninda hardcoded ROOT=/Users/okan/dev/pruvo altindan .thingiverse-token "
         "okur -> CI fresh-checkout'ta import PATLAR (yapisal CI-kirmizi, R_YOL sinifi). bbox() "
         "BELIRSIZ-BIRIM birim testi (metre-sezgisi 2. kopyasi, stl-bbox testi bu ayri fonksiyonu "
         "kapsamaz); sentetik/offline/<1s, yerelde YESIL. test-bbox-3mf emsali: deploy.yml'e kor-eklenmedi."),
-    "tools/surum-test.py": R_SONRA,
-    "tools/test-baski-senkron.py": R_SONRA,
-    "tools/test-merchant-feed.py": R_SONRA,
-    "tools/thing-codex-test.py": R_SONRA,
-    "tools/thingiverse-gallery-test.py": R_SONRA,
-    "tools/yargi-firearm-test.py": R_SONRA,
-    "tools/yazdir-test.py": R_SONRA,
     # NOT: tools/durum-yedek-test.py 27 Tem'de MUAFIYETTEN CIKARILDI -> deploy.yml'de
     # bloklayici adim olarak kosuyor. Olcum: CI taklidinde (bos HOME, Drive yok, sadece
     # takip edilen dosyalar) YESIL (cikis 0). "Hermetik" DEGIL: ortam eksenleri

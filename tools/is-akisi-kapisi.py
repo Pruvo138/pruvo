@@ -1585,9 +1585,10 @@ def bolum_kablosu_kontrol():
 TABLO_TABANLARI = (
     ("B_IDDIALAR", 5), ("B_MUTANTLAR", 10), ("B_JETON_MUTANTLAR", 4),
     ("B_TETIK_MUTANTLAR", 2), ("B_ADIM_IDDIALARI", 1), ("BOZUK_ORNEKLER", 9),
-    ("D_MUTANTLAR", 20), ("E_MUTANTLAR", 12), ("K26_SATIR_FIKSTURLERI", 26),
+    ("D_MUTANTLAR", 20), ("E_MUTANTLAR", 22), ("K26_SATIR_FIKSTURLERI", 26),
     ("K26_BAGLAM_MUTANTLAR", 5), ("K29_MUTANTLAR", 13),
-    ("E_ZORUNLU_CAGRILAR", 2), ("KABLO_TABLOSU", 4), ("B_MESRU_YAZIMLAR", 6),
+    ("E_ZORUNLU_CAGRILAR", 4), ("E_ZORUNLU_VARLIKLAR", 1),
+    ("KABLO_TABLOSU", 4), ("B_MESRU_YAZIMLAR", 6),
 )
 
 TABLO_TANI = (
@@ -2102,7 +2103,43 @@ E_ZORUNLU_CAGRILAR = (
      "CI kapsam kapisi — KAPSAM kolu (her kabul testi kosuluyor mu / gerekceli muaf mi)"),
     ("tools/ci-kapsam-test.py", "--kendini-test",
      "CI kapsam kapisi OZ-NOBETCILERI (bulgu1 + muaf sayaci + adim nobetcileri)"),
+    # 🔴 31 TEM — ADIM TURU KORLUGU OLCUMU (madde 26/29 turu). deploy.yml'de 82 icra
+    # adiminin 6'si HICBIR capaya eslesmiyordu: Bolum D yalnizca KESFEDILMIS kabul
+    # testlerini (`tools/*-test.py` · `*-kapisi.py` ...) kosan adimlari gorur, bu ucu
+    # KABUL TESTI DEGIL ama yayinin belkemigi. Olculdu (mutasyon): ucunu de fail-open
+    # yapan/ silen mutantlarda DORT denetci de rc=0 veriyordu.
+    ("tools/build.py", None,
+     "SITE URETICISI — urun sayfalari + sitemap/robots + merchant feed. Adim duserse "
+     "ya da fail-open olursa `_site` ESKI/BOS icerikle yayinlanir: tum urun sayfalari "
+     "404, sitemap bayat. Hicbir KABUL TESTI kosmadigi icin Bolum D bu adimi GORMEZ."),
+    ("tools/d1-sync.py", "--kendini-test",
+     "D1 YAZMA GERI-OKUMA nobeti (write-verify + icerik ekseni). Adim fail-open olursa "
+     "senkron sessizce bozulur: site urunu gosterir, Ege D1'den GOREMEZ (sessiz satis "
+     "kaybi, [[ege-d1-bagimliligi]]). d1-sync.py kesif predikatina girmez -> Bolum D kor."),
 )
+
+# ---- ZORUNLU YAYIN VARLIKLARI (adim TURU korlugunun ikinci ekseni) ---------
+# 🔴 31 TEM, OLCULEN SAG KALAN MUTANT: `cp jenerator/hacim.js ... _site/jenerator/`
+# satiri `echo cp ...`'a cevrildiginde ci-kapsam-test.py (kapsam + oz-test) VE
+# is-akisi-kapisi.py'nin UCU DE rc=0 verdi. Tek tuketici jenerator/test/kabul.py
+# TEST 4'tur; o test OpenSCAD ister ve CI'da MUAFTIR -> iddia CI'da HIC olculmuyordu.
+# Sonuc: parametrik urun sayfalari hacim.js'i 404 alir, konfigurator fiyat HESAPLAMAZ
+# ve hicbir yerde alarm calmaz. Iddia burada, CI'da kosan bir kapida yasar.
+# KAPSAM DAR TUTULUR (dosya bazli POZITIF, [[kapi-kapsam-genisletme-tuzagi]]):
+# "her cp korunsun" DEMEZ — yalniz konfiguratorun CALISMASI icin sart olan varlik.
+E_ZORUNLU_VARLIKLAR = (
+    ("jenerator/hacim.js",
+     "parametrik (sari seri) konfiguratorun hacim/fiyat cekirdegi. Yayin klasorune "
+     "kopyalanmazsa urun sayfasi onu 404 alir ve fiyat hesaplanmaz."),
+)
+
+E_VARLIK_TANI = (
+    "ZORUNLU YAYIN VARLIGI NOBETI KIRMIZI: %s dosyasinda `%s` varligini ETKILI bir\n"
+    "   komutun ARGUMANI olarak tasiyan hicbir satir YOK.\n"
+    "   Etkisiz sayilan haller: satir SILINMIS · YORUMA alinmis · `echo` MENSIYONUNA\n"
+    "   cevrilmis · `|| true` / `continue-on-error: true` / `if: false` / `set +e`.\n"
+    "   NEDEN BLOKLAYICI: %s\n"
+    "   GERI KOY: 'Yayin klasorunu topla' adiminda `cp %s ... _site/jenerator/`.")
 
 E_TETIKLEYICI_TANI = (
     "TETIKLEYICI NOBETI KIRMIZI: %s dosyasinda AYRISTIRILMIS `on` dugumunun DOGRUDAN\n"
@@ -2221,6 +2258,10 @@ def bolum_e(dizin):
             hatalar.append(E_ZORUNLU_TANI % (
                 E_DOSYA, kapi, (" %s" % bayrak) if bayrak else " (BAYRAKSIZ)",
                 etiket, ek))
+    for varlik, neden in E_ZORUNLU_VARLIKLAR:
+        iddia += 1
+        if not etkili_mensiyon(metin, varlik):
+            hatalar.append(E_VARLIK_TANI % (E_DOSYA, varlik, neden, varlik))
     return hatalar, iddia
 
 
@@ -2753,6 +2794,14 @@ jobs:
         run: python3 tools/ci-kapsam-test.py
       - name: "CI kapsam kapisi oz-nobetcileri"
         run: python3 tools/ci-kapsam-test.py --kendini-test
+      - name: "Statik sayfalari uret"
+        run: python3 tools/build.py
+      - name: "D1 yazma geri-okuma"
+        run: python3 tools/d1-sync.py --kendini-test
+      - name: "Yayin klasorunu topla"
+        run: |
+          mkdir -p _site/jenerator
+          cp jenerator/hacim.js _site/jenerator/
 """
 
 # (ad, metin, KIRMIZI_olmali_mi)
@@ -2806,6 +2855,47 @@ E_MUTANTLAR = (
          "  ikinci:\n    runs-on: ubuntu-latest\n    steps:\n"
          '      - name: "CI kapsam kapisi oz-nobetcileri"\n'
          "        run: python3 tools/ci-kapsam-test.py --kendini-test\n"), False),
+    # --- 31 TEM: ADIM TURU KORLUGU (build.py · d1-sync --kendini-test · hacim.js) ---
+    ("SITE URETICISI adimi butunuyle silindi",
+     E_FIKSTUR_TEMIZ.replace('      - name: "Statik sayfalari uret"\n'
+                             "        run: python3 tools/build.py\n", ""), True),
+    ("SITE URETICISI cagrisi `echo` MENSIYONUNA cevrildi",
+     E_FIKSTUR_TEMIZ.replace("        run: python3 tools/build.py\n",
+                             "        run: echo python3 tools/build.py\n"), True),
+    ("SITE URETICISI adimina `continue-on-error: true`",
+     E_FIKSTUR_TEMIZ.replace('      - name: "Statik sayfalari uret"\n',
+                             '      - name: "Statik sayfalari uret"\n'
+                             "        continue-on-error: true\n"), True),
+    ("D1 geri-okuma cagrisi `|| true` ile yutuldu",
+     E_FIKSTUR_TEMIZ.replace("        run: python3 tools/d1-sync.py --kendini-test\n",
+                             "        run: python3 tools/d1-sync.py --kendini-test "
+                             "|| true\n"), True),
+    ("D1 geri-okuma adimi BAYRAKSIZ kola cevrildi (--durum)",
+     E_FIKSTUR_TEMIZ.replace("        run: python3 tools/d1-sync.py --kendini-test\n",
+                             "        run: python3 tools/d1-sync.py --durum\n"), True),
+    ("YAYIN VARLIGI `cp jenerator/hacim.js` -> `echo cp ...` (OLCULEN SAG KALAN MUTANT)",
+     E_FIKSTUR_TEMIZ.replace("          cp jenerator/hacim.js _site/jenerator/\n",
+                             "          echo cp jenerator/hacim.js _site/jenerator/\n"),
+     True),
+    ("YAYIN VARLIGI satiri YORUMA alindi",
+     E_FIKSTUR_TEMIZ.replace("          cp jenerator/hacim.js _site/jenerator/\n",
+                             "          # cp jenerator/hacim.js _site/jenerator/\n"),
+     True),
+    # --- YANLIS-POZITIF KANARYALARI (MESRU yazim KIRMIZI YANMAMALI) ---
+    ("build.py'ye MESRU ek arguman (`--sadece-ozet` DEGIL, girdi secen bayrak)",
+     E_FIKSTUR_TEMIZ.replace("        run: python3 tools/build.py\n",
+                             "        run: python3 tools/build.py --hizli\n"), False),
+    ("yayin varligi `cp -a` ve TAM yol ile kopyalandi (MESRU)",
+     E_FIKSTUR_TEMIZ.replace("          cp jenerator/hacim.js _site/jenerator/\n",
+                             "          cp -a jenerator/hacim.js "
+                             "_site/jenerator/hacim.js\n"), False),
+    ("D1 adimi AYRI bir job'a tasindi (MESRU)",
+     E_FIKSTUR_TEMIZ.replace('      - name: "D1 yazma geri-okuma"\n'
+                             "        run: python3 tools/d1-sync.py --kendini-test\n",
+                             "  ucuncu:\n    runs-on: ubuntu-latest\n    steps:\n"
+                             '      - name: "D1 yazma geri-okuma"\n'
+                             "        run: python3 tools/d1-sync.py --kendini-test\n"),
+     False),
 )
 
 # Bolum A ucdan-uca fiksturu: bolum_a() GERCEK bir dizinden okuyup hatalari
@@ -3234,10 +3324,10 @@ def kendini_test():
         if temiz_e:
             hatalar.append("E-POZITIF BOZUK: temiz sentetik fikstur icin bolum_e() %d "
                            "hata uretti -> %s" % (len(temiz_e), " ; ".join(temiz_e)))
-        if temiz_iddia != 1 + len(E_ZORUNLU_CAGRILAR):
+        beklenen_iddia = 1 + len(E_ZORUNLU_CAGRILAR) + len(E_ZORUNLU_VARLIKLAR)
+        if temiz_iddia != beklenen_iddia:
             hatalar.append("E-IDDIA SAYACI BOZUK: %d bekleniyordu, %d olculdu -> govde "
-                           "iddia atlamis olabilir"
-                           % (1 + len(E_ZORUNLU_CAGRILAR), temiz_iddia))
+                           "iddia atlamis olabilir" % (beklenen_iddia, temiz_iddia))
         for ad, metin, kirmizi_olmali in E_MUTANTLAR:
             iddia += 1
             with open(e_yol, "w", encoding="utf-8") as f:
@@ -3475,7 +3565,8 @@ def main():
               % (len(K29_MUTANTLAR), sum(1 for m in K29_MUTANTLAR if m[2]),
                  sum(1 for m in K29_MUTANTLAR if not m[2])))
         print("  ✅ E-POZITIF: temiz sentetik fiksturde `on.push` + %d zorunlu kapi adimi "
-              "ETKILI sayiliyor (iddia sayaci da olculdu)" % len(E_ZORUNLU_CAGRILAR))
+              "+ %d zorunlu yayin varligi ETKILI sayiliyor (iddia sayaci da olculdu)"
+              % (len(E_ZORUNLU_CAGRILAR), len(E_ZORUNLU_VARLIKLAR)))
         print("  ✅ E-NEGATIF/E-YANLIS-POZITIF: %d fikstur (%d sessiz-kacis + %d mesru "
               "yazim) dogru siniflandi"
               % (len(E_MUTANTLAR), sum(1 for m in E_MUTANTLAR if m[2]),
@@ -3521,8 +3612,9 @@ def main():
           "`if: false` / `set +e`)" % d_etkisiz)
     print("  D_IZIN beyan edilmis     : %d  (%s)" % (
         d_izinli, ", ".join("%s::%s" % a for a in sorted(D_IZIN)) or "-"))
-    print("  Tetikleyici/zorunlu adim : %d iddia  (%s: `on.push` + %d zorunlu kapi adimi)"
-          % (e_iddia, E_DOSYA, len(E_ZORUNLU_CAGRILAR)))
+    print("  Tetikleyici/zorunlu adim : %d iddia  (%s: `on.push` + %d zorunlu kapi adimi "
+          "+ %d zorunlu yayin varligi)"
+          % (e_iddia, E_DOSYA, len(E_ZORUNLU_CAGRILAR), len(E_ZORUNLU_VARLIKLAR)))
     print("  Kendini-test iddiasi     : %d" % c_iddia)
     print("-" * 70)
     if hatalar:

@@ -1063,6 +1063,78 @@ jobs:
       - name: "Canli saglik nobetcisi — kendini test (3 vaka + yanlis-pozitif + mutasyon)"
         run: python3 tools/canli-saglik-kapisi.py --kendini-test
 
+      # ================= MUAFIYET DENETIMI (31 Tem) — 28 OLU-NOBETCI ADAYI BAGLANDI ====
+      # NEDEN: tools/ci-kapsam-test.py IZIN_LISTESI'ndeki 65 muafiyetin BUYUK bir kismi
+      # "offline-YESIL ama bu turda deploy.yml'e 0-hunk sarti var / sonraki turda alinir"
+      # diyordu — SURECSEL bir gerekce. O tur bitti, gerekce OLDU, muafiyet KALDI: kimse
+      # kapiyi acmadi, kimse KIRMIZI gormedi. Bu blok o borcu kapatir.
+      # YORDAM (her kalem icin AYRI AYRI kosuldu, 31 Tem):
+      #   1) TEMIZ CI-benzeri checkout (`git clone --local` + `clean -xfd`) -> rc=0,
+      #   2) CANLILIK MUTASYONU: testin ACTIGI kaynak dosyada satir-silme / hedefli bozma
+      #      -> hicbiri "iddiasiz" cikmadi (or. feed_id no-op -> test-merchant-feed KIRMIZI;
+      #      surumleme no-op -> surum-test KIRMIZI; piksel kimligi degisti -> meta-piksel KIRMIZI),
+      #   3) YANLIS-POZITIF NOBETI: SON 25 GERCEK COMMIT'te tam kosum -> 28 komut x 25
+      #      commit = 700 kosum, 0 KIRMIZI.
+      # Toplam ek sure ~17 s. Hicbiri `continue-on-error` DEGILDIR (bilerek: hepsi
+      # deterministik + agsiz; fail-open bir kapi bu blogun tam olarak kacindigi seydir).
+      - name: Katalog/parti veri kapilari kabul testi (durum + edge + derin cap)
+        run: |
+          python3 tools/durum-test.py
+          python3 tools/durum-edge-test.py
+          python3 tools/derin-cap-test.py
+      - name: D1 durum tanisi + baski senkron kabul testi
+        run: |
+          python3 tools/d1-sync-durum-test.py
+          python3 tools/test-baski-senkron.py
+      - name: Kaynak/lisans kabul testleri (makerworld + printables + havuz + entegrasyon)
+        run: |
+          python3 tools/makerworld-ara-test.py
+          python3 tools/makerworld-lisans-test.py
+          python3 tools/printables-lisans-test.py
+          python3 tools/lisans-havuz-test.py
+          python3 tools/kaynak-entegrasyon-test.py
+          python3 tools/thingiverse-gallery-test.py
+      - name: Gorsel anahtar + STL bbox kabul testi (R2 anahtar cakismasi + olcu birimi)
+        run: |
+          python3 tools/gorsel-anahtar-test.py
+          python3 tools/stl-bbox-binary-test.py
+      - name: Marka filtre + yargi (silah) kabul testi
+        run: |
+          python3 tools/marka-filtre-test.py
+          python3 tools/yargi-firearm-test.py
+      # PARA EKSENI: siparis kaydi, olculmemis siparis nobeti, yazdirma dokumu.
+      - name: Siparis kabul testleri (siparisler + olculmemis siparis + yazdir)
+        run: |
+          python3 tools/siparisler-test.py
+          python3 tools/olculmemis-siparis-test.py
+          python3 tools/yazdir-test.py
+      # YAYIN EKSENI: uretilen sayfalarda piksel/riza, script surumleme (4 saatlik
+      # tarayici onbellegi) ve Google Merchant feed g:id 50-karakter siniri.
+      - name: Yayin cikti kabul testleri (meta piksel + surum damgasi + merchant feed)
+        run: |
+          python3 tools/meta-piksel-test.py
+          python3 tools/surum-test.py
+          python3 tools/test-merchant-feed.py
+      - name: Urun-AI kapisi kabul testi (thing-codex izin kapisi varsayilan KAPALI)
+        run: python3 tools/thing-codex-test.py
+      # ARAMA PARITE karar-cekirdegi: AGSIZ kollar (canliya 0 istek). Ag'a vuran
+      # tools/parite-test.js ve 217 s'lik parite-mutasyon-test.js MUAF KALIR.
+      - name: Arama parite karar-cekirdegi (sozlesme + fikstur, AGSIZ)
+        run: |
+          python3 tools/parite-sozlesme-test.py
+          node tools/parite-fikstur-test.js
+      # shop birim testleri: wrangler/ag/D1 ISTEMEZ (modulu dogrudan import ederler).
+      - name: Shop birim kabul testleri (siparis e-postasi + reklam atif ucu)
+        run: |
+          node shop/test/eposta.mjs
+          node shop/test/ref-route.mjs
+      - name: Jenerator fiyat/sema kabul testi (varsayilan hacim + PLA taban fiyati)
+        run: node jenerator/test/fiyat-test.js
+      # Iki govde OLCUM MANTIGININ agsiz/openscad'siz kolu (MESH olcumu degil).
+      - name: Iki govde olcum mantigi — kendini test (agsiz kol)
+        run: python3 onizleme/test/iki-govde-olcum.py --kendini-test
+      # ================= MUAFIYET DENETIMI BLOGU SONU =================================
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
