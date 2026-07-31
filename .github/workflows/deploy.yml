@@ -544,6 +544,17 @@ jobs:
       - name: 2-renk yazi ek ucreti kabul testi (karsiliksiz tahsilat kapisi)
         run: node shop/test/iki-renk-ucret.mjs
 
+      # SERIT A (icerik) — 2-RENK URETIM SOZLESMESI. Serit ayriminda once SERIT B'ye
+      # konmustu; denetimde A'ya alindi. GEREKCE: bu kapinin 4. iddiasi YAYINLANAN
+      # `secenekler.js` (Pages beyaz listesinde) ONIZLEME_PARCALAR parca listesi ile
+      # uretim eslem json'unun TEK KAYNAK paritesidir. Sapinca site, uretimin
+      # VEREMEYECEGI bir 2-renk parcasi SUNAR — Okan'in 29 Tem canli vakasinin sinifi
+      # (site satiyor, uretim veremiyor). Ucret ekseni yukaridaki adimda; bu adim
+      # "sunulan sey uretilebilir mi" eksenidir, ikisi ayri. Oz-nobetci kolu SERIT B'de.
+      # OFFLINE: ag YOK, openscad YOK, urunler.json OKUNMAZ. ~2 s.
+      - name: "Iki govde eslem kapisi (2-renk: -D farki yalniz Output)"
+        run: python3 tools/iki-govde-kapisi.py
+
       # OLCUM KABLOLAMA KAPISI (shop/test/olcum.mjs) — 30 Tem'e kadar CI'da HIC kosmuyordu.
       # NE KORUR: Meta CAPI + GA4 Purchase kablolamasi (currency/value/event_id dedup), havale
       # akisinda /durum 'odendi' -> Purchase, idempotens (ayni siparis iki kez -> TEK olay),
@@ -1285,8 +1296,11 @@ jobs:
       # HATASIDIR -> is HIC baslamaz (startup_failure) ve TUM EKIBIN yayini durur.
       # 29 Tem'de bu satir tirnaksiz gitti, deploy.yml 0 sn'de "workflow file issue"
       # verdi (hicbir is baslamadi; ci-kapsam-test.py metin arar, YAML AYRISTIRMAZ).
-      - name: "Iki govde eslem kapisi (2-renk: -D farki yalniz Output)"
-        run: python3 tools/iki-govde-kapisi.py
+      # SERIT B — bu adim IKIYE BOLUNDU (kapi SILINMEDI): bayraksiz (gercek olcum) kol
+      # SERIT A'ya (build) alindi, cunku iddia 4 YAYINLANAN `secenekler.js`
+      # ONIZLEME_PARCALAR listesi ile uretim eslem json'unun TEK KAYNAK paritesini olcer
+      # -> sapinca site URETILEMEYEN bir 2-renk parcasi SUNAR (Okan'in 29 Tem vakasinin
+      # ta kendisi: site satiyor, uretim veremiyor). Oz-nobetci kolu burada kaldi.
       - name: Iki govde eslem kapisi oz-nobetcisi
         run: python3 tools/iki-govde-kapisi.py --kendini-test
       - name: Iki govde kabul kapisi (worker parca ucu + viewer iki renk + sayfa)

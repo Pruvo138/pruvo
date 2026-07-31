@@ -2108,8 +2108,11 @@ SERIT_B = {
     ("deploy.yml", "serit-b", "onizleme/test/iki-govde-olcum.py"):
         "YALNIZ `--kendini-test` (agsiz) kolu; onizleme olcum mantigi.",
     ("deploy.yml", "serit-b", "tools/iki-govde-kapisi.py"):
-        "ONIZLEME/derleme eslemi (-D farki yalniz Output) + oz-nobetci kolu; musteriye "
-        "giden 2-renk UCRET ekseni (shop/test/iki-renk-ucret.mjs) serit A'da kaldi.",
+        "YALNIZ `--kendini-test` kolu. Bayraksiz (GERCEK olcum) kol serit A'da "
+        "bloklayici kosuyor: 4. iddiasi YAYINLANAN secenekler.js ONIZLEME_PARCALAR "
+        "listesi ile uretim eslem json'unun TEK KAYNAK paritesidir; sapinca site "
+        "URETILEMEYEN 2-renk parcasi sunar. Ucret ekseni ayrica serit A'da "
+        "(shop/test/iki-renk-ucret.mjs).",
     # --- mutasyon bataryalari / CI-kapi meta kapilari -----------------------
     ("deploy.yml", "serit-b", "tools/nobetci-mutasyon-test.py"):
         "SAF MUTASYON BATARYASI (17 mutant): kapilarin kendi kirmizi-yolunu olcer, "
