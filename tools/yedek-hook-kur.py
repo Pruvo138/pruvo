@@ -8,8 +8,12 @@
     Elle hatirlanacak bir adim BIRAKILMASIN diye bu betik var; iki kez kosmak zararsiz.
 
 NE YAPAR: `.git/hooks/pre-push` icine isaretli bir blok ekler. Blok her push'ta
-`tools/yedekle.py --gerekliyse` cagirir (son damgadan beri degisiklik yoksa hicbir sey
-kopyalanmaz -> push yavaslamaz).
+IKI hijyen aracini cagirir:
+  1. `tools/yedekle.py --gerekliyse` (son damgadan beri degisiklik yoksa hicbir sey
+     kopyalanmaz -> push yavaslamaz);
+  2. `tools/kutu-arsivle.py` — ortak posta kutusu tavani asarsa en eski bloklar arsive
+     TASINIR (tavan altindaysa tek bayt bile yazmaz).
+Ikisi de JETONSUZ ve FAIL-OPEN'dir.
 
 NEDEN VAR (26 Tem olcumu): yedekle.py DOGRU calisiyordu ama ELLE cagriliyordu; 5 gun
 kosulmadi ve mutasyon-kanitli skill dosyalari yedekte bayat kaldi. Otomasyon tek basina
@@ -62,6 +66,26 @@ pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/yedekle.py" ]; then
   if ! python3 "$pruvo_kok/tools/yedekle.py" --gerekliyse >/dev/null 2>&1; then
     echo "!! YEDEK alinamadi (push DEVAM ediyor) — kontrol: python3 tools/durum.py"
+  fi
+fi
+# --- ORTAK POSTA KUTUSU ARSIVI (tools/kutu-arsivle.py) ---
+# NEDEN BURADA (31 Tem olcumu): arac dogru calisir halde geldi ama HICBIR YERDEN
+# cagrilmiyordu. Tetiklenmeyen bir hijyen araci hicbir kapida kirmizi yakmaz -> sessizce
+# olur (bugun ayni sinif "hic kosmayan cron" olarak da olculdu). yedekle.py ile AYNI
+# kanca, AYNI desen, JETONSUZ.
+# FAIL-OPEN (pazarliksiz): arac patlasa, kilit baskasinda olsa, python3 bulunmasa bile
+# PUSH DEVAM EDER — bu bir HIJYEN araci, YAYIN KAPISI degil (blokta 'exit' YOK).
+# IDEMPOTENT + UCUZ: tavan altindaysa hicbir sey yazmaz.
+# GORUNUR: her push'a 6 satir gurultu basilmaz; yalniz ANLAMLI satir (YAZILDI/UYARI),
+# basarisizlikta ise uyari + tani kuyrugu basilir.
+if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/kutu-arsivle.py" ]; then
+  pruvo_kutu_cikti=$(python3 "$pruvo_kok/tools/kutu-arsivle.py" 2>&1)
+  pruvo_kutu_rc=$?
+  if [ "$pruvo_kutu_rc" -ne 0 ]; then
+    echo "!! POSTA KUTUSU arsivlenemedi (rc=$pruvo_kutu_rc, push DEVAM ediyor) — kontrol: python3 tools/kutu-arsivle.py --kuru"
+    printf '%s\n' "$pruvo_kutu_cikti" | tail -3
+  else
+    printf '%s\n' "$pruvo_kutu_cikti" | grep -E '^(YAZILDI|UYARI)' || true
   fi
 fi
 """ + SON
