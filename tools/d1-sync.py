@@ -1595,6 +1595,28 @@ def kendini_test():
     dogrula("V62 --bayatlik: OLCULEMEDI -> sifir-disi (olcemedim YESIL degil)",
             kod != 0, kod)
 
+    # ── CI ON-KOSULU CAPASI: deploy.yml'deki senkron adimi bayatligi SORUYOR mu ──
+    # NEDEN BURADA: `d1-sync.py` ci-kapsam/is-akisi kesif predikatlarina GIRMEZ ve
+    # senkron adimi bilincli olarak `continue-on-error` (fail-open) -> Bolum D/E o
+    # adimi GORMEZ. On-kosul satiri sessizce silinirse BAYAT KOSUM yine D1'e yazar
+    # (upsert'ler bayat kalir) ve hicbir kapi kirmizi yanmaz. Capa burada yasar.
+    _dy = os.path.join(KOK, ".github", "workflows", "deploy.yml")
+    if not os.path.exists(_dy):
+        dogrula("V63 CI ON-KOSUL CAPASI: deploy.yml BULUNAMADI (olculemedi = KIRMIZI)",
+                False, _dy)
+    else:
+        with open(_dy, encoding="utf-8") as _f:
+            _gv = _f.read()
+        _adim = _gv.split("- name: Katalogu D1'e senkronla")
+        _blok = _adim[1].split("\n  - name:")[0].split("\n\n  deploy:")[0] if len(_adim) > 1 else ""
+        _on = _blok.find("d1-sync.py --bayatlik")
+        _tam = _blok.find("python3 tools/d1-sync.py\n")
+        dogrula("V63 CI ON-KOSUL CAPASI: senkron adimi ONCE `--bayatlik` sorar, SONRA senkronlar",
+                len(_adim) == 2 and _on > 0 and _tam > _on, (len(_adim), _on, _tam))
+        dogrula("V64 CI ON-KOSUL CAPASI: on-kosulun CIKIS KODU kullaniliyor (mensiyon degil)",
+                "if ! python3 tools/d1-sync.py --bayatlik; then" in _blok,
+                _blok[:400])
+
     print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
     return 0 if kalan[0] == 0 else 1
 
