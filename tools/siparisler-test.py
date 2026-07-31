@@ -150,15 +150,33 @@ def test_6_canli_kosum():
         print("      stderr: %s" % p.stderr[-500:])
 
 
+# 🔴 31 TEM — AGSIZ KOL (AYIRMA, susturma DEGIL). OLCULDU: bu dosya CI'ya bloklayici
+# adim olarak baglandiginda TEST 1..5b GECTI ama TEST 6 KIRMIZI yandi —
+#   "In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN
+#    environment variable for wrangler to work"
+# (GitHub Actions kosumu 30596596650). TEST 6 CANLI D1'e wrangler ile vurur; Pages build
+# job'unda o token YOKTUR (yalnizca D1 senkron adiminin env'inde tanimlidir) -> yapisal
+# CI-kirmizi. Yerel makinede wrangler kimlikli oldugu icin YESIL yaniyordu: klasik
+# "yerel-yesil / CI-kirmizi" tuzagi.
+# COZUM: testin AGSIZ yarisi (TEST 1..5b — SQL uretimi, yazma kapisi, format alanlari,
+# parametre kisaltmasi) `--agsiz` kolunda ayrildi ve CI'da BLOKLAYICI kosuyor. Canli kol
+# SUSTURULMADI: bayraksiz kosum hala TEST 6'yi calistirir (yerel + merge kapisi).
+AGSIZ = "--agsiz" in sys.argv
+
+
 def main():
-    print("SIPARISLER.PY KABUL TESTLERI")
+    print("SIPARISLER.PY KABUL TESTLERI%s" % (" (AGSIZ kol)" if AGSIZ else ""))
     print("=" * 66)
     test_1_hepsi_where_yok()
     test_2_durum_where()
     test_3_bilinmeyen_durum()
     test_4_yazma_kapisi()
     test_5_format_alanlari()
-    test_6_canli_kosum()
+    if AGSIZ:
+        print("  ATLANDI TEST 6 — canli D1 kosumu (wrangler + CLOUDFLARE_API_TOKEN "
+              "ister; --agsiz kolunda calistirilmaz)")
+    else:
+        test_6_canli_kosum()
     print("=" * 66)
     basarisiz = [s for s in SONUC if not s[2]]
     print("SONUC: %d/%d GECTI" % (len(SONUC) - len(basarisiz), len(SONUC)))
