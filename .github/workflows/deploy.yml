@@ -475,6 +475,31 @@ jobs:
       - name: Vitrin siralama kabul testi (ilk 20 slot + derleme sirasi + 4 besleme yolu)
         run: node tools/vitrin-siralama-test.js
 
+      # ESKI FIYAT (ustu cizili indirim) KABUL TESTI — opsiyonel `eski_fiyat` alani.
+      # HATA SINIFI SESSIZ: yanlis gosterim musteriye YANILTICI indirim gosterir, sayfa
+      # duzgun gorunur, kimse hata mesaji gormez. Kural FAIL-CLOSED (supheli her durumda
+      # HIC gosterme) ve burada CALISTIRILARAK olculur: (a) Python kurali 29 vakalik tablo,
+      # (b) index.html'in GERCEK kart cizicisi node:vm'de AYNI tabloda AYNI hukmu verir
+      # (iki dilde iki kalip = drift; bu bolum o drifti yakar), (c) render_product ciktisi —
+      # gecersiz vakada cikti alan HIC YOKKEN uretilenle BAYT-ESIT (sifir iz), (d) uretilen
+      # sayfanin KENDI JS'i secim fiyati eski fiyati asinca ustu cizili fiyati GIZLER,
+      # (e) PARA EKSENI iki eksende: e1 YAPISAL/referanssiz (para ilkellerinin kaynaginda
+      # eski_fiyat gecmez + fiyat fonksiyonu urunu HIC almaz + sayfa A/B: gosterim blogu
+      # soyulunca cikti alansiz haliyle BAYT-ESIT), e2 TARIHSEL: 1275 konfigur kombinasyonu
+      # (17 urun x 25 boy x 3 malzeme, ORNEKLEME YOK) degisiklik ONCESI build.py ile kurusu
+      # kurusuna esit + JSON-LD/feed fiyati degismedi. 🔴 e2'nin referansi HEAD'e GORELI
+      # DEGILDIR (merge-base HEAD..origin/main referansi dal main'e girer girmez totolojiye
+      # dusup testi kalici OLCULEMEDI/exit 2 yapiyordu — olculdu 31 Tem): referans, capayi
+      # tasimayan EN YENI ATA BLOB'udur; totoloji nobeti duruyor,
+      # (f) kart_ozeti alani yalniz kurali gecen urunde tasir + ozet A/B (alan enjekte
+      # edilince ozet YALNIZ eski_fiyat anahtari kadar degisir),
+      # (g) duzelt.py/diriltme-kapisi.py alani mesru sayar. Offline, node + python3 gerekir
+      # (ikisi de bu job'da kurulu), depoya YAZMAZ, ~2 s. Mutasyon turu (13/13 kirmizi)
+      # elle: python3 tools/eski-fiyat-test.py --mutasyon (CI'da kosmaz — her mutant node
+      # kosuyor, sure yayin hattina yuk olur).
+      - name: Eski fiyat (ustu cizili indirim) kabul testi
+        run: python3 tools/eski-fiyat-test.py
+
       # KONFIGUR KABUL TESTI: konfigure edilebilir dekor urunu (renk + boy kaydirici)
       # altyapisi. (a) konfigur sema dogrulamasi fail-closed (bozuk sema/capa build'i
       # dusurur), (b) afin capa fiyat modeli — node ile GERCEK /konfigur.js kosulur
