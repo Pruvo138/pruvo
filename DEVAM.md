@@ -75,6 +75,33 @@ siradaki adimlar **DEVAM-ARSIV.md'de** (git disi). Devralan ORADAN devam etsin.
   yama ve tar olarak `raporlar/` altinda arsivlendi.
 - Tasinma envanteri ve yedek raporu kalici yerde; Drive kopyalari sha256 esit dogrulandi.
 
+## d1-sync HATA-YOLU MERGE'U (31 Tem 2026) — merge `7bebc166`
+- Alinan dal `claude/exciting-hodgkin-91ec53` (3 commit). Kapsam merge-base `22ff3989`'dan
+  OLCULDU: **1 dosya** `tools/d1-sync.py`, +431/-14. Cakisma yok, taban taze.
+- Kok neden (CI run 30646713630): wrangler gercek `--json` yukunde kodu TIRNAKLI basiyor
+  (`"code": 7429`); eski alt-dize tanisi 429/500/502/503/504 kollarini OLU birakmis, 7429
+  listede HIC yokmus -> GECICI D1 CPU-reset KALICI islenmis, 3 denemeli retry HIC kosmamis
+  ve hata zarfi parse edilemedigi icin kod ADIYLA basilamamisti.
+- Kapilar (DALIN worktree'sinde, exit kodu goruldu): `--kendini-test` **104 gecti / 0 kaldi** ·
+  `d1-sync-tani-test` 3/3 · `d1-sync-durum-test` 14/14 · `ci-kapsam-test` YESIL (kesfedilen 139 /
+  kosulan 103 / muaf 36) · `kapi-envanteri` 7/7 · `mimar-kilit-test` 224/224 · `kod-kilidi-test`
+  16/16. Hepsi exit 0.
+- Merge sonrasi `d1-sync.py --durum`: D1 **15955 == 15955** benzersiz id; hash uyusmaz 0,
+  eksik 0, fazla 0 (SAYI + ICERIK ekseni yesil).
+- 🔴 **CI kosum 30654284096 (headSha `7bebc166`, `is-ancestor` exit 0) FAILURE** — `build` isi
+  `tools/ara-maliyet-kapisi.py` adiminda dustu (`semantik sapma=3`: `%kapak`, `kapak_`, `50%`).
+  `deploy` ve `yayin` SKIPPED -> bu commit YAYINLANMADI. **Sebep bu dal DEGIL**, uc ayri olcum:
+  (1) dal yalniz `tools/d1-sync.py`'ye dokundu, kapi onu import etmiyor (yalniz yorum atfi);
+  (2) ayni kapi yerelde merge ONCESI agacta (`e0a78925`) da merge SONRASI agacta (`7bebc166`)
+  da **sapma=0 / exit 0**; (3) kapi CI'ya bir onceki commit `e0a78925` ile baglandi, onun
+  kendi kosumu benim push'umla iptal olduğu icin kapinin CI'da ILK fiilen kostugu kosum bu.
+  Sonuc: kapi ORTAM-BAGIMLI (yerel sqlite 3.53.3 / py3.14 YESIL, CI py3.12.13 KIRMIZI).
+  Sahibi `/ara` maliyet kapisi isi (`0e0c30bd` + `e0a78925`); yayin ONUN duzeltilmesine bagli.
+- OLCULEMEDI: canli site dogrulamasi (deploy SKIPPED, yayilacak yeni surum yok) · CI'daki
+  sqlite surumu (kosum logu basmiyor).
+
 ## TABAN (yeniden OLC, ezberleme)
-`d1-sync.py --durum` 15930 == 15930, hash/eksik/fazla 0/0/0 · `ci-kapsam` 136/100/muaf 36 ·
-parite 1199+842 sapma 0 · `kapi-envanteri` 7/7 · `is-akisi` etkisizlestirilmis 0 / D_IZIN 0.
+`d1-sync.py --durum` 15955 == 15955, hash/eksik/fazla 0/0/0 · `ci-kapsam` kesfedilen 139 /
+kosulan 103 / muaf 36 · `kapi-envanteri` 7/7 · `mimar-kilit` 224/224 · `kod-kilidi` 16/16.
+(Onceki taban satiri: 15930 == 15930 · ci-kapsam 136/100/36 · parite 1199+842 sapma 0 —
+parite bu turda KOSULMADI: dal arama/worker duzlemine dokunmadi.)
