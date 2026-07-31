@@ -1,5 +1,156 @@
 [
   {
+    "id": "yelkenli-ip-eyeri",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne Icin Ip Eyeri (Saddle)",
+    "aciklama": "Yelkenli teknelerde halatlarin duzenli ve kontrollu gecmesini saglayan ozel eyer.\n- Yelkenli tekne halatlariyla kullanima uygundur.\n- Halatin asinmasini azaltacak yuvarlatilmis bir gecis yuzeyine sahiptir.\n- Farkli yuzeylere vidalanarak monte edilir.\nYaklasik dis olculer: 40 x 15 x 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr563038-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr563038-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr563038-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Oliver L",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-korkuluk-ray-tabani-ayarlanabilir",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Ayarlanabilir Tekne Korkuluk Ray Tabani",
+    "aciklama": "Tekne korkuluklari, dus perdesi rayi veya aski sistemleri icin farkli boru cap ve seklinde uyarlanabilen ozellestirilebilir taban.\n- Yuvarlak veya dikdortgen boru profilleriyle uyumlu secenekler sunar.\n- Farkli aci ve boru caplarina gore uyarlanabilir.\n- Duvara veya zemine vida ile sabitlenir.\nYaklasik dis olculer: 52 x 34 x 28 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr245812-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr245812-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr245812-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr245812-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Code and Make",
+      "tur": "BSD"
+    }
+  },
+  {
+    "id": "olta-yemi-dumeni-crankbait",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Olta Yemi (Crankbait/Wobbler) Icin Duz Dumen Parcasi",
+    "aciklama": "El yapimi olta yemlerinin (crankbait/wobbler) govdesine gomulerek yuzme hareketini dengeleyen duz dumen parcasi.\n- El yapimi olta yemi projeleriyle uyumludur.\n- Yemin govdesine gomulerek sabitlenir.\n- Farkli agirlik dengeleme secenekleriyle kullanilabilir.\nYaklasik dis olculer: 101 x 79 x 7 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5276692-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5276692-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5276692-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5276692-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Habba_PL",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "rc-airboat-dumeni",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "RC Airboat Icin Dumen Seti",
+    "aciklama": "Uzaktan kumandali (RC) airboat modellerinde yon kontrolu saglayan dumen ve baglanti parcalari seti.\n- RC airboat modelleriyle uyumludur.\n- Servo motor baglantisina uygun tasarlanmistir.\n- Dumen kolu ve baglanti parcalarini icerir.\nYaklasik dis olculer: 172 x 60 x 2 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2413502-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2413502-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2413502-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dlacko",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "kayak-guverte-topu-pr551264",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Guvertesi Icin Ekipman Sabitleme Topu",
+    "aciklama": "Kayak guvertesindeki elastik kordona takilan, kurek veya diger ekipmanlarin yerlestirilmesini kolaylastiran sabitleme topu.\n- Standart kayak guverte elastik kordonlariyla uyumludur.\n- 8mm'e kadar kordon capiyla kullanilabilir.\n- 34mm dis capinda, iki parcadan olusur.\nYaklasik dis olculer: 74 x 35 x 19 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr551264-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr551264-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "solbero",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "balikci-samandirasi-isikli-2-parca",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Balikcilik Icin Isikli Samandira (2 Parca)",
+    "aciklama": "Icine kucuk bir isik yerlestirilebilen, disli birlesim ile acilip kapanan iki parcali balikci samandirasi.\n- Ic kismina kucuk bir isik kaynagi yerlestirilebilir.\n- Disli baglanti sayesinde kolayca acilip kapanir.\n- Gece balikciliginda gorunurlugu artirir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1717834-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1717834-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1717834-3.jpg"
+    ]
+  },
+  {
+    "id": "balikci-yem-tepsisi-gridfinity-5inc",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "5 Inc Paddle Tail Yemler Icin Gridfinity Saklama Tepsisi",
+    "aciklama": "5 inc paddle-tail yapay yemleri kancalariyla birlikte duzenli sekilde saklayan, gridfinity uyumlu tepsi sistemi.\n- 5 inc paddle-tail yapay yemlerle uyumludur.\n- Kancalari da icine alacak sekilde tasarlanmistir.\n- Gridfinity uyumlu kutu sistemlerine dogrudan oturur.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1816674-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1816674-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1816674-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "sup-kayak-elektrikli-itici-govde",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "SUP/Kayak Icin Kompakt Elektrikli Itici Govdesi",
+    "aciklama": "Ayakta kurek (SUP) tahtasi veya kayak icin gelistirilen, motor ve pil bolmelerini icinde barindiran kompakt elektrikli itici govdesi.\n- SUP tahtasi ve kayaklarla kullanima uygundur.\n- Motor, ESC ve pil bolmelerini icinde barindirir.\n- Pompa-jet tahrik sistemiyle calisir.\nYaklasik dis olculer: 210 x 124 x 92 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr965352-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr965352-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr965352-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr965352-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Robert",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "toroidal-tekne-pervanesi-pr619042",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Toroidal Tasarimli Tekne Pervanesi (Suprulmus Kanat)",
+    "aciklama": "Suya daha iyi tutunmasi icin kanatlari suprulmus, toroidal (halka) tasarimli tekne pervanesi.\n- 4mm esnek tahrik miliyle kullanima uygundur.\n- M4 disli uc icin kilit somunu yuvasi bulunur.\n- Suprulmus kanat tasarimi ile suda daha iyi performans sunar.\nYaklasik dis olculer: 38 x 38 x 31 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr619042-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr619042-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr619042-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JWoodrell",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "kucuk-tekne-matkap-disi-motor-pervane-seti",
     "kategori": "Marin",
     "marka": [],
