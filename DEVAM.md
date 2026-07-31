@@ -55,6 +55,26 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - Temizlik: worktree 5'ten 2'ye, yerel dal 16'dan 8'e indi. Kaldirilan
   worktree'lerin commit'siz isi yama olarak raporlar dizininde.
 
+## POSTA KUTUSU ARSIVLEYICISI — ALINDI + TETIGE BAGLANDI
+- Dal main'e alindi: `364095f6` (ileri-sarma, taban `e84b2a65`); 4 dosya, 1153 satir eklendi,
+  silinen 0. Kabul testi bagimsiz kosuldu: 14 vaka / 85 iddia / 0 kirmizi.
+- Cift yonlu mutasyon kopyada 3/3: kayipsizlik dogrulamasi oldurulunce 16 iddia dustu,
+  kilit oldurulunce 4 iddia dustu, ilgisiz degisiklik yesil kaldi; canli dosya imzasi degismedi.
+- Kapilar dalin agacinda: CI kapsami 143 kesif / 107 kosulan / 36 muaf; kapi envanteri 7/7;
+  is akisi serit beyani 39; kisisel veri nobetcisi yesil. Sizinti taramasi 1153 eklenen
+  satirda 10 desen, 0 vurus.
+- MIMAR KARARI uygulandi: arac hicbir yerden cagrilmiyordu, izlenen pre-push kanca
+  sablonuna jetonsuz ve fail-open baglandi (`fcda5576`). Arac patlasa da kilit baskasinda
+  olsa da push durmaz; yalnizca anlamli satirlar gorunur.
+- Tetik ICRAYLA kanitlandi: bos depoda gercek push araci atesledi; kanca kaldirilinca ayni
+  iz uretilmedi. Iki vaka kabul testine kalici eklendi (toplam 32 kontrol, 0 kirmizi);
+  mutasyonda cagri silinince 3 iddia dustu, ilgisiz degisiklikte yesil.
+- Gercek kutuya YAZILMADI: yalniz kuru kosum; 290 satir, tavan 300, tasinacak blok 0 —
+  push oncesi ve sonrasi dosya imzasi ayni.
+- Olcum tuzagi: senkron teyidi ana agacta bir ara tum kayitlari bayat gosterdi. Sebep
+  baska bir oturumun commit'siz hash degisikligiydi; ayni teyit temiz agacta 0 uyusmazlik
+  verdi. Kirli agacta alinan senkron olcumu HUKUM DEGILDIR.
+
 ## TABAN (yeniden olc, ezberleme)
 - Katalog: taban alti 0; D1 sayi ve hash ekseninde uyumlu.
 - Yayin suresi: medyan 1296 saniye, MAD 115 saniye, 7 kosum.
