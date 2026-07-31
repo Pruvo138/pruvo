@@ -1,12 +1,10 @@
 # DEVAM (KraL) — 31 Tem 2026. Onceki her sey DEVAM-ARSIV.md'de (git disi, lossless).
 
 ## 🔴 HESAP TASINMASI (Okan tasiniyor — devralan ONCE bunu okusun)
-- **Envanter: `scratchpad/TASINMA-ENVANTERI.md`** — 117 kalem, 10 asamali tasinma gunu sirasi,
-  her kalemde KIM SAGLAR / SAGLANMAZSA NE KIRILIR / DOGRULAMA KOMUTU. Okan'dan elle gereken 19.
-  ⚠️ Bu dosya SCRATCHPAD'de = oturumla birlikte KAYBOLUR. Devralan ilk isi: kalici yere tasi.
-- **Yedek TAMAM ve dogrulandi:** 2630 dosya / 745.316.384 B; eksik 0, boyut farki 0, 8/8 sha256
-  esit. Once 153 dosyaydi — 4 kardes mimar + BaBa + eski arsivin **128 hafiza dosyasi** hicbir
-  yerde yedekli DEGILDI, kapatildi. Arac commit `f795ff2b` main'e PUSH EDILDI.
+- **Envanter + yedek raporu KALICI:** ikisi de `raporlar/` altinda ve Drive kopyalariyla
+  sha256 esitligi dogrulandi. Envanter 117 kalem, 10 asamali tasinma gunu sirasi;
+  Okan'dan elle gereken 19.
+- **Yedek TAMAM ve dogrulandi:** 2645 dosya / 745824642 B; eksik 0, boyut farki 0.
 - **`.git/hooks` klonlamayla GELMEZ** (pre-push D1 senkronu → kurulmazsa site gosterir Ege
   GOREMEZ, sessiz). Geri yukleme: `python3 tools/yedek-hook-kur.py --geri-yukle`,
   `--kendini-test` 11/11 — bos klonda kapilarin ATESLEDIGI icrayla kanitlandi.
@@ -17,18 +15,6 @@
   degerli dosyalar, sir envanteri, hook geri yukleme, dal itme, yol bagimliligi).
 - 🟡 **KAYDA GECTI, DOKUNULMADI (Okan karari 31 Tem):** tasinma bitince yapilacak
   bir temizlik + anahtar yenileme isi var; ayrinti ve gerekce DEVAM-ARSIV.md'de (git disi).
-
-## 🔴 DEVRALAN ILK 3 IS (31 Tem, oturum kota ile kapandi)
-1. **CI `serit-b` KIRMIZI** — sebebi KraL'in `f795ff2b` push'u: `tools/yedekle.py` degisikligi
-   `durum-yedek-test.py` capasini kirdi. **`build`+`deploy`+`yayin` SUCCESS, yayin ACIK.**
-   Onarim koşuyordu, bitmediyse devam ettir. 🔴 KAPIYI GEVSETME (`continue-on-error` yok,
-   iddia silme yok): capa BAYAT ise yeni gercege tasi + mutasyonla kanitla; arac BOZUKSA araci
-   duzelt. Yedek kapsami DARALMASIN (taban 2630 dosya / 745.316.384 B).
-2. **Scratchpad dosyalarini KALICI YAP** — `TASINMA-ENVANTERI.md`, `RAPOR-MIMARA-M-yedek.md`,
-   `PLAN-metin-temizligi.json`+`d9-plan.py` `raporlar/` altina kopyalanip `yedekle.py`
-   kosturulacakti. Hedefte VAR mi diye ÖLÇ; yoksa tekrarla. (Okan'a dosya olarak da gonderildi.)
-3. **DEVAM.md tavani** — ≤130 satir / ≤12288 B. Tasan bloklar `DEVAM-ARSIV.md` SONUNA TASINIR
-   (silme YOK). En ustteki TASINMA + FIZIKSEL URUN + bu blok KALIR.
 
 ## 🔴 YARIM IS — FIZIKSEL URUN HATTI (31 Tem 2026)
 Fiziksel urun + ilk tedarikci isi: verilen kararlar, olculen durum, kapanmamis kusurlar ve
@@ -43,6 +29,7 @@ siradaki adimlar **DEVAM-ARSIV.md'de** (git disi). Devralan ORADAN devam etsin.
   fiyatlar degismeli.
 
 ## KUYRUKTA (isci verilmedi)
+- `durum.py` dokuz artik dal listeliyor; temizlik karari verilmedi.
 - 104 kayitlik METIN TEMIZLIGI — plan HAZIR ve kendini dogrulamis:
   `scratchpad/PLAN-metin-temizligi.json` (+ `d9-plan.py`, `RAPOR-MIMARA-H-temizlik-plani.md`).
   Uygulaninca kapi vurusu 113->0; olcu satiri kaybi 0; gramer nobetcisi 0; `id`'ye 0 dokunus.
@@ -76,6 +63,17 @@ siradaki adimlar **DEVAM-ARSIV.md'de** (git disi). Devralan ORADAN devam etsin.
   -> [[mutasyon-diske-yazma-tuzagi]]
 - Merge sirasinda `urunler.json` kalintisi Okan'in 3 fiyat duzeltmesini geri alacakti; urun
   verisi main HEAD'ine sabitlenerek onlendi. Veri dalla TASINMAZ.
+
+## OTURUM KAPANISI (31 Tem 2026)
+- CI `serit-b` denetimi kapandi: merge `7ef7427d`; kabul 226 gecti, 0 kirmizi.
+- Yedek imza dogrulamasi kapandi: merge `cdadc477`; kabul 236 gecti, 0 kirmizi;
+  kill-mutant 5 kirmizi, ilgisiz degisiklik yesil; ortalama sure 0,480 sn, sinir 5 sn.
+- Yedek dogrulamasi 2645 dosya / 745824642 bayt; eksik 0, boyut farki 0.
+- D1'de bayat bulunan 56 kayit senkronlandi; kapanis 15930 == 15930,
+  hash uyusmaz 0, eksik 0, fazla 0.
+- Worktree kaydi 5'ten 1'e indi; kaldirilan uc worktree'nin commit'lenmemis isi
+  yama ve tar olarak `raporlar/` altinda arsivlendi.
+- Tasinma envanteri ve yedek raporu kalici yerde; Drive kopyalari sha256 esit dogrulandi.
 
 ## TABAN (yeniden OLC, ezberleme)
 `d1-sync.py --durum` 15930 == 15930, hash/eksik/fazla 0/0/0 · `ci-kapsam` 136/100/muaf 36 ·
