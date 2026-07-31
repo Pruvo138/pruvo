@@ -1299,6 +1299,35 @@ jobs:
           fi
           python3 tools/d1-sync.py
 
+  # ═════════════════════════════════════════════════════════════════════════════
+  # KATALOG ENVANTERI — "kapi neyi GORMUYOR" degil, "katalogda ne DURUYOR" (31 Tem)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN BOSLUK: `--commit-farki` kolu YALNIZ bu itmenin ekledigi/degistirdigi id'lere
+  # bakar. Katalogda ZATEN duran 15.755 kaydin metnine hicbir push'ta bir daha bakilmiyordu
+  # -> kapi "IHLAL 0" derken canlida 107 kayit / ~116 vurus uretim-sureci ifsasi tasiyordu
+  # ve HICBIR ALARM CALMIYORDU (kapinin korlugu SESSIZDI). Bu is o korlugu GORUNUR kilar.
+  #
+  # 🔴 NEDEN AYRI IS ve NEDEN BLOKLAMAZ (OLCULDU, 31 Tem):
+  #   (a) `needs:` YOK ve hicbir is buna BAGLI DEGIL -> build/deploy ile PARALEL kosar,
+  #       yayin yolunu (serit A) TEK SANIYE uzatmaz. Olculdu: envanter adimi 3,2 s.
+  #   (b) BLOKLAYICI YAPILMADI: bu depoda kapi birikmesi yayin suresini 21 gunde 15,6x
+  #       uzatti ve musteriye 404 olarak yansidi. 107 ONCEDEN VAR OLAN ihlal bloklayici
+  #       baglansaydi TUM EKIBIN yayini durur, ilk toplu islemde kapi devre disi birakilirdi.
+  #   KURAL: yeni/degisen kayit (`--commit-farki`, build isinde) BLOKLAR · tam katalog RAPORLAR.
+  # ⚠️ `continue-on-error` KULLANILMADI (fail-open yaziminin kendisi bir nobetci ihlalidir,
+  #    bkz tools/is-akisi-kapisi.py Bolum D): bloklamama, aracin KENDI `--envanter` kolunda
+  #    ACIKCA beyan edilir ve rc 0 doner. Katalog OKUNAMAZSA rc 2 ile KIRMIZI yanar
+  #    (olu nobetci olamaz) — o kirmizi da deploy'u durdurmaz, cunku bu is kimseye bagli degil.
+  envanter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: "Katalog envanteri: onceden var olan uretim-sureci ifsasi (RAPOR — yayini DURDURMAZ)"
+        run: python3 tools/denetim-kapisi.py --tum-katalog --envanter
+
   deploy:
     needs: build
     runs-on: ubuntu-latest

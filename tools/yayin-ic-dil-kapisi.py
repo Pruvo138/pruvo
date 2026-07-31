@@ -65,7 +65,11 @@ def _denetim_sozlugu():
     spec = importlib.util.spec_from_file_location("_dk_sozluk", yol)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return [(ad, rx) for ad, rx, _ in mod._IFSA_SERT_RE], mod.tr_lower
+    # ⚠️ INDISLE OKU, SABIT-UZUNLUKTA ACMA: `_IFSA_SERT_RE` girisleri 31 Tem'de
+    #   (ad, rx, gerekce) -> (ad, rx, gerekce, eleme) oldu. Sabit-uzunluk acma o gun
+    #   bu kapiyi ValueError ile OLCULEMEDI'ye dusururdu (sozluk TEK KAYNAK oldugu icin
+    #   komsu kapinin sema degisikligi buraya sizar). Indisle okuma ileri-uyumludur.
+    return [(t[0], t[1]) for t in mod._IFSA_SERT_RE], mod.tr_lower
 
 
 # IC GELISTIRICI DILI — bu kapiya OZGU kovalar (katalog metninde anlamsiz oldugu icin
