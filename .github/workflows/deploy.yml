@@ -98,6 +98,24 @@ jobs:
       - name: Diriltme kapisi (silinmis urun geri gelmis mi)
         run: python3 tools/diriltme-kapisi.py
 
+      # ARA MALIYET KAPISI — /ara D1 sorgusunun BIRLESIM SIRASI cevrilip tam taramaya
+      # dusuyor mu. BLOKLAYICI (continue-on-error YOK), agsiz, deterministik.
+      # NE KORUR (bu depodaki duzlem): `hs` kolonu tools/arama.py haystack()'ten uretilir
+      # ve katalog buyuklugu urunler.json'dan gelir — ikisi de SERIT A'da yayina giden
+      # girdilerdir. Bu ikisinden biri arama maliyetini patlatirsa canli /ara ucu
+      # `D1_ERROR: exceeded its CPU time limit` ile MUSTERIYE 500 doner; olculdu (31 Tem):
+      # 30 istekten 5'i dusuyordu, 3+ token'li sorgu sinifinda %45,8, 10 token'de %100.
+      # Regresyon SORGU METNINDE degil PLANDA yasadigi icin mevcut parite testleri
+      # (SONUC karsilastirir) bu sinifi GORMEZ — ayri bir eksendir.
+      # YANLIS-POZITIF ANALIZI (olculdu, merge kapisi turu): iki kosum BIREBIR ayni cikti
+      # (sha256 esit) -> deterministik; ag/altyapi importu YOK (yalniz stdlib + arama.py);
+      # adim butcesi KATALOG BOYUYLA olceklenir (250 x urun) ve saglikli en kotu hal urun
+      # basina ~41 adim -> pay ~6x SABIT kalir, katalog buyumesi kapiyi kirmiziya
+      # SURUKLEMEZ. Olculen sure 10,8 s (15.955 urun).
+      # Kapinin KENDI kirmizi yolu: `--kendini-test` kolu serit-b'de kosar.
+      - name: Ara maliyet kapisi (D1 arama plani cevrilmis mi + semantik parite)
+        run: python3 tools/ara-maliyet-kapisi.py
+
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
       # actions/setup-node@v4 (node 20) BLOKLAYICI on-kosuldur ve bu is akisinda zaten
@@ -1482,6 +1500,16 @@ jobs:
       # sapmayi KACIRDIGINI kanitlamali. Offline, stdlib, git/ag GEREKTIRMEZ, <1 s.
       - name: "Canli saglik nobetcisi — kendini test (3 vaka + yanlis-pozitif + mutasyon)"
         run: python3 tools/canli-saglik-kapisi.py --kendini-test
+
+      # ARA MALIYET KAPISI — YALNIZ `--kendini-test` kolu (GERCEK olcum serit A'da
+      # bloklayici kosuyor). NE OLCER: kapinin PLAN ekseni KIRMIZI YANABILIYOR mu.
+      # Mutasyon gercek olayin SEKLIDIR (`CROSS JOIN` -> `JOIN`) ve olaydaki 3+ token'li
+      # siniftan secilmis uc sorguda 3/3 YAKALANMALI. Bu kol olmadan kapinin yesili
+      # hicbir sey kanitlamaz: iz metnini (`SEARCH u USING INDEX urunler_yayin`) bozan tek
+      # satirlik bir mutasyon bayraksiz kolu SESSIZ YESIL birakir (merge kapisi turunde
+      # olculdu: mutant D bayraksiz kolda gorunmez, bu kolda rc=1). Offline, ~0,8 s.
+      - name: "Ara maliyet kapisi ic nobetcisi (kirmizi-mutasyon: CROSS JOIN -> JOIN)"
+        run: python3 tools/ara-maliyet-kapisi.py --kendini-test
 
       # ================= MUAFIYET DENETIMI (31 Tem) — 28 OLU-NOBETCI ADAYI BAGLANDI ====
       # NEDEN: tools/ci-kapsam-test.py IZIN_LISTESI'ndeki 65 muafiyetin BUYUK bir kismi
