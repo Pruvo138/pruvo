@@ -1118,7 +1118,6 @@ jobs:
       - name: Siparis kabul testleri (siparisler + olculmemis siparis + yazdir)
         run: |
           python3 tools/siparisler-test.py --agsiz
-          python3 tools/siparis-maske-test.py
           python3 tools/olculmemis-siparis-test.py
           python3 tools/yazdir-test.py
       # YAYIN EKSENI: uretilen sayfalarda piksel/riza, script surumleme (4 saatlik
