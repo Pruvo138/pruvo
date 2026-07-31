@@ -81,17 +81,33 @@ jobs:
         with:
           node-version: "20"
 
-      # ON-KOSUL: bu checkout uzak main'in ucunda mi? Degilse OLCUM DE ONARIM DA
-      # yapilmaz (bayat agacla "sapma var" demek SAHTE ALARM, onarmak ise KACAGIN
-      # TA KENDISI olurdu). Bir sonraki cron tazesinden olcer.
-      - name: On-kosul — agac uzak main'in ucunda mi
+      # ═══════════════════════════════════════════════════════════════════════
+      # UCA TAZELE — "dogustan bayat checkout" halinin ONARIMI (OLCULDU 31 Tem)
+      # ═══════════════════════════════════════════════════════════════════════
+      # Zamanlanmis kosum `github.sha`'yi (tetikleme anindaki main ucu) checkout eder.
+      # Kuyruk + kurulum gecikmesi boyunca main ilerlerse agac DOGUSTAN bayattir.
+      # OLCULDU (kosum 30664207786, 20:47:18Z): checkout ca0376e7c448, uzak uc
+      # 2d4975f4bf85; on-kosul 20:51:07Z'de (3 dk 49 sn sonra) BAYAT dedi ve
+      # OLCUM/ONARIM/TEYIT adimlarinin HEPSI `skipped` oldu -> kosum SUCCESS, denetim SIFIR.
+      # Bu adim agaci uzak main'in UCUNA getirir: 15 dakikalik cadans, donmus bir SHA'nin
+      # degil GUNCEL katalogun denetimi olur.
+      - name: Uca tazele — agaci uzak main ucuna getir (donmus github.sha DEGIL)
+        run: |
+          git fetch --depth=1 origin main
+          git reset --hard FETCH_HEAD
+          git rev-parse HEAD
+
+      # ON-KOSUL: tazeleme TUTTU mu? Tutmadiysa OLCUM DE ONARIM DA yapilmaz (bayat
+      # agacla "sapma var" demek SAHTE ALARM, onarmak ise KACAGIN TA KENDISI olurdu).
+      # Bu adim artik bir MUHTEMELLIK degil TAZELEMENIN TEYIDIDIR.
+      - name: On-kosul — tazeleme tuttu mu (agac uzak main'in ucunda mi)
         id: bayatlik
         run: |
           if python3 tools/d1-sync.py --bayatlik; then
             echo "uc=evet" >> "$GITHUB_OUTPUT"
           else
             echo "uc=hayir" >> "$GITHUB_OUTPUT"
-            echo "BAYAT AGAC — bu kosum olcum/onarim YAPMAZ (sahte alarm + kacak riski)." >> "$GITHUB_STEP_SUMMARY"
+            echo "BAYAT AGAC — tazelemeden SONRA da uc degil (kosum sirasinda yeni push). Bu kosum olcum/onarim YAPMAZ." >> "$GITHUB_STEP_SUMMARY"
           fi
 
       # OLCUM: sayi ekseni + ICERIK ekseni (urun_hash) — tam kapsam, salt-okuma.
@@ -125,14 +141,23 @@ jobs:
           fi
 
       # ONARIM: ayni bayatlik kapisindan gecer (d1-sync icindeki kapi silmeyi ancak
-      # agac UCTA iken uygular). Kosum sirasinda yeni bir push gelirse kapi devreye
-      # girer, silme YAPILMAZ ve arac sifir-disi cikar -> is KIRMIZI = gorunur.
-      - name: Onarim — d1-sync (bayatlik kapisi devrede)
+      # agac UCTA iken uygular). Kosum sirasinda yeni bir push gelirse kapi devreye girer.
+      #
+      # 🔴 NEDEN SURUCU ILE (OLCULDU 31 Tem, kosum 30650256818): on-kosul 17:12:47.458Z'de
+      # "UC" dedi; 28,79 sn SONRA onarim adimi bayatlik kapisina takildi (uzak uc
+      # 0db2aafbb580'e ilerlemisti) ve 21 bayat hash'in 0'i yazildi. Kok neden KOD/AKIS
+      # (on-kosul ile yazma arasindaki TOCTOU yarisi), ALTYAPI DEGIL: log'da wrangler
+      # hatasi / D1 7429 CPU tavani / ag hatasi YOKTU.
+      # tools/uzlastirici-onarim.py her denemede agaci UCA TAZELER ve YALNIZ bayatlik
+      # kapisi reddinde geri cekilip TEKRAR dener (olculen: 15 sn, 45 sn; tek denemede
+      # carpisma %1,47 -> uc denemede 3,2e-6). BASKA her hata (wrangler/D1/sema/kod)
+      # YENIDEN DENENMEZ, rc 1 ile GORUNUR kalir.
+      - name: Onarim — uzlastirici surucusu (uca tazele + yaris yeniden denemesi)
         if: steps.olcum.outputs.sapma == 'var'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
-        run: python3 tools/d1-sync.py
+        run: python3 tools/uzlastirici-onarim.py
 
       # Geri yazilan satir TASLAK dogar; Ege taslagi GORMEZ. Canlida 200 donen
       # taslaklari yayina al -> onarim fiilen musteriye ulasir.
@@ -147,12 +172,45 @@ jobs:
       # (GitHub bildirimi) — sessizce yesil donmek bu kacagi dogurmus olan hataydi.
       - name: Teyit — onarimdan sonra sapma SIFIR mi
         if: steps.olcum.outputs.sapma == 'var'
+        id: teyit
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
         run: |
           python3 tools/d1-sync.py --durum
           echo "✅ Onarim DOGRULANDI (D1 == urunler.json)" >> "$GITHUB_STEP_SUMMARY"
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # DAMGA — "denetim FIILEN yapildi" kaydi (tools/cron-nabiz-kapisi.py A0 ekseni)
+      # ═══════════════════════════════════════════════════════════════════════
+      # 🔴 NEDEN: bir kosumun YESIL olmasi denetim yapildigi ANLAMINA GELMEZ. OLCULDU
+      # (kosum 30664207786, 20:47:18Z): conclusion=success · olcum/onarim/teyit adimlarinin
+      # HEPSI `skipped`. Alarm ekseni bu yuzden "cron atesledi mi"dan "son basarili
+      # UZLASTIRMA ne kadar eski"ye tasindi; bu adim o eksenin KAYNAGIDIR.
+      #
+      # NEDEN ARTIFACT, depoda IZLENEN dosya DEGIL: uzlastirici 15 dakikada bir main'e
+      # PUSH etseydi main'in ucu surekli oynardi — 17:12Z kosumunu DUSUREN sey tam olarak
+      # main ucunun yazma penceresinde ilerlemesiydi. Damga mekanizmasi, olcmesi gereken
+      # hastaligi URETEMEZ. Artifact ise: depoya yazmaz · makine-okunur (ad + created_at +
+      # expired + workflow_run TEK API cagrisinda) · saklamasi OLCULDU 24 saat (esik N=9
+      # saatin 2,67 kati) · ve YALNIZ bu adim kosarsa dogar.
+      #
+      # KOSMA KOSULU (fail-closed): sapma YOKTU (olcum fiilen kostu) YA DA sapma vardi ve
+      # TEYIT gecti. Onceki adimlardan biri duserse GitHub bu adimi zaten atlar -> damga
+      # DOGMAZ -> bir sonraki nabiz olcumu KIRMIZI yanar. Tazeleme tutmadiysa (uc=hayir)
+      # olcum `skipped` olur, `sapma` bos kalir ve damga YINE dogmaz.
+      - name: Damga — son basarili uzlastirma kaydi
+        if: steps.olcum.outputs.sapma == 'yok' || steps.teyit.outcome == 'success'
+        run: |
+          python3 tools/cron-nabiz-kapisi.py --damga-yaz uzlastirma-damgasi.json
+          cat uzlastirma-damgasi.json
+      - name: Damgayi yukle (artifact — nabiz kapisinin A0 ekseni bunu okur)
+        if: steps.olcum.outputs.sapma == 'yok' || steps.teyit.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: uzlastirma-damgasi
+          path: uzlastirma-damgasi.json
+          if-no-files-found: error
 
       # ═══════════════════════════════════════════════════════════════════════
       # GORUNURLUK — sapma OLDUYSA kosum KIRMIZI yanar (onarim BASARILI olsa bile)
