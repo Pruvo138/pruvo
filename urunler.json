@@ -35,7 +35,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Kano Civatasi Icin Olta Tutucusu Baglanti Parcasi",
-    "aciklama": "Kano govdesindeki civatalara takilan olta tutucusunun ayri parcalar halinde uretilen baglanti elemani.\n- Kano govde civatalarina dogrudan takilir.\n- Ayri parcalar halinde tasarlandigindan baski tablasina kolay yerlesir.\n- Kucuk ve hafif bir tasarima sahiptir.\nYaklasik dis olculer: 17 x 17 x 6 mm.",
+    "aciklama": "Kano govdesindeki civatalara takilan olta tutucusunun baglanti elemanidir.\n- Kano govde civatalarina dogrudan takilir.\n- Cok parcali yapisi sayesinde montaji kolaydir.\n- Kucuk ve hafif bir tasarima sahiptir.\nYaklasik dis olculer: 17 x 17 x 6 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1292207-1.jpg"
@@ -60,8 +60,8 @@
     "id": "minn-kota-powerdrive-tasima-destegi",
     "kategori": "Marin",
     "marka": [],
-    "baslik": "Minn Kota PowerDrive Icin Tekne Korkuluğu Tasima Destegi",
-    "aciklama": "Minn Kota PowerDrive trolling motorun tasima sirasinda tekne korkuluğuna guvenle oturmasini saglayan destek.\n- Minn Kota PowerDrive model trolling motorla uyumludur.\n- Tekne korkuluğuna dogrudan oturacak sekilde tasarlandi.\n- Motorun tasima sirasinda sabit durmasini saglar.",
+    "baslik": "Minn Kota PowerDrive Icin Tekne Korkulugu Tasima Destegi",
+    "aciklama": "Minn Kota PowerDrive trolling motorun tasima sirasinda tekne korkuluguna guvenle oturmasini saglayan mesnet parcasidir.\n- Minn Kota PowerDrive model trolling motorla uyumludur.\n- Tekne korkuluguna dogrudan oturacak sekilde tasarlandi.\n- Motorun tasima sirasinda sabit durmasini saglar.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/c3dminn-kota-powerdrive-transportation-support-for-boat-rail-1.jpg"
@@ -230,7 +230,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Old Town Kayak PDL 120 Icin Lowrance Transduser Montaji",
-    "aciklama": "Old Town PDL 120 model kayaga Lowrance transduser monte etmek icin kullanilan parca.\n- Old Town Kayak PDL 120 model kayakla uyumludur.\n- Lowrance transduser serisiyle calisir.\n- Disaridaki hava kosullarina dayanikli malzeme ile uretilmesi onerilir.\nYaklasik dis olculer: 105 x 102 x 50 mm.",
+    "aciklama": "Old Town PDL 120 model kayaga Lowrance transduser monte etmek icin kullanilan parca.\n- Old Town Kayak PDL 120 model kayakla uyumludur.\n- Lowrance transduser serisiyle calisir.\n- Dis hava kosullarina dayanikli bir yapiya sahiptir.\nYaklasik dis olculer: 105 x 102 x 50 mm.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/pr1778607-1.jpg",
@@ -275,7 +275,7 @@
     "kategori": "Marin",
     "marka": [],
     "baslik": "Tekne Transduseri Icin Tapa (Parca No 407079)",
-    "aciklama": "Artik uretilmeyen, balik bulucu transduserinde kullanilan orijinal tapanin yedek karsiligidir.\n- 407079 parca numarali orijinal tapanin yerine gecer.\n- Esnek TPU malzemeyle uretilmesi onerilir.\n- Transduser govdesine sikica oturan bir tasarima sahiptir.",
+    "aciklama": "Artik temin edilemeyen, balik bulucu transduserinde kullanilan orijinal tapanin yedek karsiligidir.\n- 407079 parca numarali orijinal tapanin yerine gecer.\n- Esnek ve elastik bir yapiya sahiptir.\n- Transduser govdesine sikica oturan bir tasarima sahiptir.",
     "fiyat": "350 TL",
     "gorseller": [
       "https://media.pruvo3d.com/urunler/mw2712495-1.jpg",
@@ -287,17 +287,6 @@
       "tasarimci": "tman421",
       "tur": "CC BY 4.0"
     }
-  },
-  {
-    "id": "transom-saver-burc-amortisor",
-    "kategori": "Marin",
-    "marka": [],
-    "baslik": "Tekne Treyleri Transom Saver Icin Burc/Amortisor",
-    "aciklama": "Tekne treyleri transom saver duzeneğinde kullanilan burc/amortisor parcasinin yedek karsiligidir.\n- Standart transom saver duzenekleriyle uyumludur.\n- Tasima sirasinda motora titresim/darbe emici destek saglar.\n- Kirilan veya asinan orijinal parcanin yerine kolay degisim saglar.",
-    "fiyat": "350 TL",
-    "gorseller": [
-      "https://media.pruvo3d.com/urunler/mw2941851-1.jpg"
-    ]
   },
   {
     "id": "yat-kabini-perde-cubugu-klipsi",
