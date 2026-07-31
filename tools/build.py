@@ -1748,6 +1748,21 @@ def render_product(p, all_products, chip_map=None):
     desc160 = meta_desc(p)
     pnum = price_number(fiyat)
     parametrik = bool(p.get("parametrik"))
+    # --- FIZIKSEL URUN (Okan, 31 Tem — canli kusur): `tur` == "fiziksel" olan kayit HAZIR
+    # TICARI MALDIR (tekne boyasi, vernik, tiner...). 3D BASKIYLA URETILMEZ; dolayisiyla
+    # o urunde malzeme SECIMI ve renk SECIMI YOKTUR, fiyati da SABITTIR.
+    #
+    # 🔴 NEDEN PARA YOLU (sayfa kozmetigi DEGIL): renk butonlarindaki "Diğer (+%15)"
+    # secenegi secenekler.js hesaplaFiyatKurus'a `renk == "Diğer"` olarak gider ve liste
+    # fiyatini x1,15 yapar; malzeme cipleri ayrica x1,60'a kadar (ASA) cikarir. Olculdu:
+    # 1.000 TL'lik boya, ASA+"Diğer" secimiyle 1.840,00 TL tahsil ediliyordu — KARSILIGI
+    # OLMAYAN bir secim icin. Secicileri basmamak bu yolu ISTEMCIDE kapatir: sepet satiri
+    # PRUVO_SECENEK.bosSatir varsayilanlariyla (PLA/Siyah = x1,00) uretilir.
+    #
+    # 🔴 FAIL-CLOSED: SADECE tam "fiziksel" dizesi bu dali acar. Alan YOKSA ya da taninmayan
+    # bir deger tasiyorsa sayfa BUGUNKU gibi uretilir ("3D ISE goster" DEGIL, "fiziksel ISE
+    # kaldir") -> `tur`suz 15.930 baski urununde regresyon 0.
+    fiziksel = (p.get("tur") == "fiziksel")
     # Parametrik (sarı seri) şeması TEK KEZ burada yüklenir: hem JSON-LD taban
     # fiyatı hem aşağıdaki konfigüratör bloğu aynı sema objesini kullanır.
     sema = konf_sema(pid) if parametrik else None
@@ -1891,7 +1906,24 @@ def render_product(p, all_products, chip_map=None):
     fonksiyonel = kategori in FONKSIYONEL_KATEGORILER
     boy_secenekleri = p.get("boy_secenekleri") or []
     # sema yukarıda (JSON-LD taban fiyatı için) TEK KEZ yüklendi.
-    if sema:
+    if fiziksel:
+        # FIZIKSEL URUN paneli — 3D baski secimi YOK: renk butonlari, malzeme cipleri ve
+        # "…'den başlayan" fiyat BASILMAZ (malzeme bloğu da aşağıda boş geçilir). KALAN:
+        # adet seçici + sepet ikonu + WhatsApp ikonu (aynı ADET_IKON_HTML/IKON_BUTONLAR_HTML
+        # bileşenleri — ikinci kopya yok). Fiyat SABIT: liste fiyatı aynen, "başlayan" YOK.
+        opsiyonlar_html = ("""
+    <div class="opsiyonlar" id="opsiyonlar">
+      {adet}
+      {fiyat_blok}
+    </div>
+    """).format(adet=ADET_IKON_HTML % (
+                    ADET_EN_AZ, ADET_EN_COK,
+                    IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
+                fiyat_blok=fiyat_satiri(
+                    eski_html,
+                    '<div class="opsiyon-fiyat" id="opsiyonFiyat">%s</div>' % esc(price_text)))
+        price_html = ""
+    elif sema:
         # Konfigüratör: müşteri ölçü/parametre girer, hacim + fiyat canlı hesaplanır
         # (jenerator/hacim.js + jenerator/konfigurator.js). Kategoriden bağımsız —
         # sarı seride malzeme/renk seçimi de müşteride. tabanFiyatTL=null iken
@@ -2052,8 +2084,14 @@ def render_product(p, all_products, chip_map=None):
     # KONFIGUR sayfası KART_SECIM JS bayrağını AÇMAZ (malzeme kartı seçimi yok — o akışın
     # "malzeme seçilmeden ekleme" kilidi konfigur'da yanlış tetiklenirdi); ikon düzeni
     # (Adet satırında sepet+WA ikonu, sayfa altında büyük buton YOK) yine kullanılır.
-    kart_secim = bool(sema) or (fonksiyonel and not parametrik and not konfigur)
-    if kart_secim or konfigur:
+    # 🔴 FIZIKSEL URUNDE KART_SECIM KAPALI OLMALI: acik kalsaydi sayfa scripti "malzeme+renk
+    # secilmeden sepete eklenemez" kilidini uygular, ama secilecek cip/buton BASILMADIGI icin
+    # seciliMalzeme/seciliRenk sonsuza kadar bos kalir -> SEPETE EKLE BUTONU SESSIZCE HICBIR
+    # SEY YAPMAZ (titret(null) da no-op). Kapaliyken currentSatir bosSatir varsayilanlarini
+    # (PLA/Siyah) kullanir -> tutar liste fiyatinin TA KENDISI, +%15 carpani yok.
+    kart_secim = (not fiziksel) and (
+        bool(sema) or (fonksiyonel and not parametrik and not konfigur))
+    if kart_secim or konfigur or fiziksel:
         eylem_butonlar_html = ""
     else:
         eylem_butonlar_html = BUYUK_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))
@@ -2551,8 +2589,12 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
         # Muhendislik-malzeme WA notu kartlarin altinda — malzeme dropdown'u kalan TEK
         # dal (semasiz-parametrik-fonksiyonel, bugun urun yok) haric her sayfada; o dalda
         # not zaten _malzeme_renk_html icinde, mukerrer basilmaz.
-        malzeme=filament_html(p, wa_not=not (parametrik and fonksiyonel and not sema),
-                              kartlar_gizli=bool(konfigur and konfigur.get("malzemeler"))),
+        # FIZIKSEL urun (hazir ticari mal): malzeme bolumu HIC basilmaz — filament cipleri,
+        # "TAVSIYEMIZ" rozeti, muhendislik-malzeme (Karbon/ABS) WhatsApp notu ve govdedeki
+        # "Malzeme Rehberi" linki bir boya kutusunu 3D baskiyla uretiyormus gibi gosteriyordu.
+        malzeme=("" if fiziksel else
+                 filament_html(p, wa_not=not (parametrik and fonksiyonel and not sema),
+                               kartlar_gizli=bool(konfigur and konfigur.get("malzemeler")))),
         related=rel_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
