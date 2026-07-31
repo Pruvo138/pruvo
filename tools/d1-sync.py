@@ -282,18 +282,35 @@ def bayatlik_olc():
     return _sonuc("OLCULEMEDI", "merge-base olculemedi (rc=%s)" % rc, head, uzak)
 
 
-def bayatlik_engel_metni(b, engellenen):
-    """Silme engellendiginde basilan YUKSEK SESLI metin (liste halinde satirlar)."""
+def bayatlik_engel_metni(b, sayilar, silinen_ornek):
+    """Yazma engellendiginde basilan YUKSEK SESLI metin (liste halinde satirlar).
+
+    sayilar: {"yeni","degisen","silinen","baski","taban","konfigur"} -> engellenen is.
+    silinen_ornek: engellenen DELETE id'leri (en yikici kalem; ornekleri basilir).
+    """
+    toplam = sum(sayilar.values())
     satirlar = [
-        "!! BAYATLIK KAPISI: %d id'nin D1'den SILINMESI ENGELLENDI (durum: %s)."
-        % (len(engellenen), b["durum"]),
+        "!! BAYATLIK KAPISI: BU AGACTAN D1'e HICBIR SEY YAZILMADI (durum: %s)." % b["durum"],
         "   Sebep: %s" % b["sebep"],
-        "   HEAD=%s · uzak %s ucu=%s" % (b["head"][:12], UZAK_DAL, str(b["uzak"])[:12]),
-        "   NEDEN: bu agac yayindaki ucu bilmiyor. Silme UYGULANSAYDI baska bir push'un",
-        "   D1'e yeni yazdigi urunler SESSIZCE silinirdi (site gosterir, Ege GOREMEZ).",
-        "   Silinmeyen id ornekleri: " + ", ".join(engellenen[:10])
-        + (" ... (+%d)" % (len(engellenen) - 10) if len(engellenen) > 10 else ""),
+        "   HEAD=%s · uzak %s ucu=%s"
+        % (str(b["head"])[:12], UZAK_DAL, str(b["uzak"])[:12]),
+        "   Engellenen is (toplam %d): yeni %d | degisen %d | silinen %d | baski %d | "
+        "taban %d | konfigur %d"
+        % (toplam, sayilar.get("yeni", 0), sayilar.get("degisen", 0),
+           sayilar.get("silinen", 0), sayilar.get("baski", 0),
+           sayilar.get("taban", 0), sayilar.get("konfigur", 0)),
+        "   NEDEN: bu agac yayindaki ucu bilmiyor. Yazma UYGULANSAYDI baska bir push'un",
+        "   D1'e yeni yazdigi urunler SILINIR ya da alanlari ESKI degerlere GERI ALINIRDI",
+        "   (site dogru gosterir, Ege bayat gorur = sessiz satis kaybi).",
+    ]
+    if silinen_ornek:
+        satirlar.append(
+            "   Silinmeyen id ornekleri: " + ", ".join(silinen_ornek[:10])
+            + (" ... (+%d)" % (len(silinen_ornek) - 10) if len(silinen_ornek) > 10 else ""))
+    satirlar += [
         "   Coz: agaci uca getir (git pull --ff-only / taze checkout) ve tekrar kos.",
+        "   Emniyet agi: uctan kosan CI adimi + .github/workflows/d1-uzlastirici.yml (15 dk).",
+        "   NOT: yayin DURMAZ — pre-push hook exit 0 doner, CI adimi continue-on-error.",
     ]
     return satirlar
 
@@ -1044,12 +1061,14 @@ def _kt_urun(uid, kategori="Oyun/Hobi", baslik=None):
 
 
 def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
-            bayatlik="UC"):
+            bayatlik="UC", kok=None):
     """d1-sync'i OFFLINE kosar. Doner: (cikis_kodu, cikti_metni, sayac).
     dusur(sql, sayac) -> True ise o yazma UYGULANMAZ ama BASARI raporlanir (sessiz ariza).
     oku_patlat -> geri-okuma sorgusu istisna atar (OLCULEMEDI yolu).
     bayatlik -> bayatlik_olc()'un dondurecegi durum ("UC"/"BAYAT"/"OLCULEMEDI"); AG YOK.
-       sayac["bayatlik"] kac kez olculdugunu tutar (maliyet ekseni: silme yoksa 0 olmali)."""
+       sayac["bayatlik"] kac kez olculdugunu tutar (maliyet ekseni: yazma yoksa 0 olmali).
+    kok -> verilirse GERCEK bayatlik_olc() o git agacinda kosar (stub YOK) ve KOK oraya
+       ayarlanir; uctan uca (git soyagaci + senkron) olcum icin."""
     import contextlib
     import io
     import sqlite3
@@ -1093,13 +1112,17 @@ def _kt_kos(conn, urunler, argv, dusur=None, oku_patlat=False, tabanlar=None,
         yol = f.name
     g = globals()
     eski = {k: g[k] for k in ("sorgu", "dosya_calistir", "URUNLER", "KAYNAKLAR",
-                              "JEN_URUN_DIR", "taban_fiyat_haritasi", "bayatlik_olc")}
+                              "JEN_URUN_DIR", "taban_fiyat_haritasi", "bayatlik_olc",
+                              "KOK")}
     eski_argv = sys.argv
     tampon = io.StringIO()
     try:
         g["sorgu"] = _sorgu
         g["dosya_calistir"] = _dosya_calistir
-        g["bayatlik_olc"] = _bayatlik      # AG YOK: kapi kararini fikstur verir
+        if kok is None:
+            g["bayatlik_olc"] = _bayatlik  # AG YOK: kapi kararini fikstur verir
+        else:
+            g["KOK"] = kok                 # GERCEK kapi, GERCEK git (sentetik depo)
         g["URUNLER"] = yol
         g["KAYNAKLAR"] = os.path.join(tempfile.gettempdir(), "pruvo-kt-yok.json")
         g["JEN_URUN_DIR"] = os.path.join(tempfile.gettempdir(), "pruvo-kt-yok-dizin")
@@ -1505,6 +1528,39 @@ def kendini_test():
                 yanlis.append(("push-sonrasi", i, d))
         dogrula("V49 YANLIS-POZITIF NOBETI: 25 gercek urun commit'i x2 olcum -> KIRMIZI 0",
                 yanlis == [] and olculen == 50, (yanlis[:5], olculen))
+
+        # ── UPSERT EKSENI YANLIS-POZITIF NOBETI (UCTAN UCA) ──────────────────────
+        # Kapi artik UPSERT'i de durduruyor -> mesru akan bir parti AKISI kirilmamali.
+        # Bu nobet stub KULLANMAZ: her adimda GERCEK bayatlik_olc() gercek git agacinda
+        # olcer ve GERCEK senkron (sqlite sahte D1) kosar. Bir tek yanlis-pozitif TUM
+        # mimarlarin urun push'unu yazmasiz birakirdi.
+        connU = _kt_baglan()
+        katalogU = [_kt_urun("t00")]
+        yaziU, kirmiziU, yazmayanU = 0, [], 0
+        yaz_katalogU = os.path.join(tmp, "upsert")
+        os.makedirs(yaz_katalogU, exist_ok=True)
+        for i in range(25):
+            katalogU.insert(0, _kt_urun("uparti%02d" % i))
+            if i % 5 == 4:                       # her 5. partide bir ALAN degisimi de var
+                katalogU[-1] = _kt_urun("t00", "Tamirat" if i % 10 == 4 else "Ev")
+            with open(os.path.join(yerel, "urunler.json"), "w", encoding="utf-8") as f:
+                json.dump(katalogU, f)
+            _kt_git(yerel, "add", "-A")
+            _kt_git(yerel, "commit", "--quiet", "-m", "upsert partisi %d" % i)
+            # PRE-PUSH ANI: uzak HENUZ eski uctadir, yerel ILERIDEDIR (gercek hook hali).
+            kodU, ciktiU, sayacU = _kt_kos(connU, katalogU, [], kok=yerel)
+            if kodU != 0:
+                kirmiziU.append((i, ciktiU[-200:]))
+            if sayacU["yazma"] == 0:
+                yazmayanU += 1
+            yaziU += sayacU["yazma"]
+            _kt_git(yerel, "push", "--quiet", "origin", "main")
+        dogrula("V49b UPSERT YANLIS-POZITIF NOBETI: 25 gercek parti UCTAN UCA -> kirmizi 0",
+                kirmiziU == [], (len(kirmiziU), kirmiziU[:2]))
+        dogrula("V49c UPSERT NOBETI: 25 partinin 25'i D1'e FIILEN yazdi (sessiz atlama YOK)",
+                yazmayanU == 0 and yaziU > 0, (yazmayanU, yaziU))
+        dogrula("V49d UPSERT NOBETI: son partinin urunu D1'de VAR (yazma gercekten islendi)",
+                _kt_deger(connU, "uparti24", "hash") is not None)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
@@ -1529,7 +1585,7 @@ def kendini_test():
     dogrula("V52 YENIDEN URETIM: engel SESSIZ DEGIL -> sifir-disi + id'ler mesajda",
             kod != 0 and "BAYATLIK KAPISI" in cikti and "dp0000" in cikti,
             (kod, cikti[-500:]))
-    dogrula("V53 YENIDEN URETIM: tek is SILME iken D1'e HIC yazma yapilmadi",
+    dogrula("V53 YENIDEN URETIM: D1'e HIC yazma yapilmadi",
             sayac["yazma"] == 0, sayac)
 
     # OLCULEMEDI de silmeyi durdurur (fail-closed; 'olcemedim' YESIL degildir).
@@ -1539,16 +1595,36 @@ def kendini_test():
     dogrula("V54 FAIL-CLOSED: OLCULEMEDI -> silme 0 + sifir-disi",
             kod != 0 and _kt_deger(connD, "dp000000", "hash") is not None, kod)
 
-    # UPSERT AKMAYA DEVAM EDER: silme engellenirken degisen alan D1'e YAZILIR.
+    # ── UPSERT EKSENI (KraL karari 31 Tem): bayat agac UPSERT de YAPAMAZ ──────────
+    # Bayat upsert D1'e ESKI alan degerlerini YENI degerlerin ustune yazar — silmeyle
+    # AYNI sessiz-bozulma sinifi. Bugun "3 bayat hash" olarak fiilen gozlendi.
     connE = _kt_baglan()
     _kt_kos(connE, eski_agac + yeni_parti, [])
-    kod, cikti, _ = _kt_kos(connE, [_kt_urun("a", "Tamirat"), _kt_urun("b"), _kt_urun("c")],
-                            [], bayatlik="BAYAT")
-    dogrula("V55 UPSERT AKAR: silme engellendi ama alan guncellemesi D1'e ISLENDI",
-            _kt_deger(connE, "a", "kategori") == "Tamirat" and kod != 0,
+    kod, cikti, sayac = _kt_kos(
+        connE, [_kt_urun("a", "Tamirat"), _kt_urun("b"), _kt_urun("c")], [],
+        bayatlik="BAYAT")
+    dogrula("V55 UPSERT ENGELI: bayat agacin ALAN guncellemesi D1'e YAZILMADI",
+            _kt_deger(connE, "a", "kategori") == "Oyun/Hobi" and kod != 0,
             (_kt_deger(connE, "a", "kategori"), kod))
-    dogrula("V55b SAHTE DAMGA YOK: yazma olsa BILE senkron sayaci YAZILMADI",
-            "senkron sayaci YAZILMADI" in cikti, cikti[-500:])
+    dogrula("V55b UPSERT ENGELI: D1'e HIC yazma cagrisi gitmedi + is dokumu mesajda",
+            sayac["yazma"] == 0 and "Engellenen is" in cikti and "degisen 1" in cikti,
+            (sayac, cikti[-600:]))
+    # SALT-YENI parti (silme YOK): eski kapi bunu HIC olcmezdi, yeni kapi DURDURUR.
+    connE2 = _kt_baglan()
+    _kt_kos(connE2, eski_agac, [])
+    kod, cikti, sayac = _kt_kos(connE2, eski_agac + [_kt_urun("yy")], [], bayatlik="BAYAT")
+    dogrula("V55c UPSERT ENGELI: SILME YOK / yalniz YENI urun -> yine de yazilmadi",
+            kod != 0 and sayac["yazma"] == 0 and sayac["bayatlik"] == 1
+            and _kt_deger(connE2, "yy", "hash") is None, (kod, sayac))
+    dogrula("V55d UPSERT ENGELI: OLCULEMEDI de upsert'i durdurur (fail-closed)",
+            _kt_kos(connE2, eski_agac + [_kt_urun("yy")], [],
+                    bayatlik="OLCULEMEDI")[0] != 0
+            and _kt_deger(connE2, "yy", "hash") is None)
+    _sayac_deger = connE2.execute(
+        "SELECT deger AS v FROM senkron WHERE anahtar='urun_sayisi'").fetchone()
+    dogrula("V55e SAHTE DAMGA YOK: senkron sayaci saglikli kosumun degerinde KALDI (3)",
+            _sayac_deger is not None and _sayac_deger["v"] == "3",
+            _sayac_deger["v"] if _sayac_deger else None)
 
     # ── MESRU SILME KAPANMADI (duzelt.py --toplu senaryosu) ───────────────────────
     # duzelt.py --toplu urunleri urunler.json'dan cikarir; commit+push'ta pre-push hook
@@ -1561,24 +1637,28 @@ def kendini_test():
     dogrula("V56 MESRU SILME: duzelt.py --toplu ile kaldirilan 70 urun D1'den SILINDI (exit 0)",
             kod == 0 and kalan_toplu == 0 and "silinen: 70" in cikti, (kod, kalan_toplu))
 
-    # ── MALIYET EKSENI: silme YOKSA kapi HIC olculmez (yayin yoluna 0 sn) ────────
+    # ── MALIYET EKSENI: YAZACAK IS varken TAM 1 kez, yoksa HIC olculmez ─────────
     connG = _kt_baglan()
     _kt_kos(connG, eski_agac, [])
     kod, cikti, sayac = _kt_kos(connG, eski_agac + [_kt_urun("z1")], [])
-    dogrula("V57 MALIYET: silme yokken bayatlik HIC olculmez (0 git/ag cagrisi)",
-            kod == 0 and sayac["bayatlik"] == 0, sayac)
+    dogrula("V57 MALIYET: yazacak is VARKEN (yalniz yeni urun) bayatlik TAM 1 kez olculur",
+            kod == 0 and sayac["bayatlik"] == 1, sayac)
     connH = _kt_baglan()
     _kt_kos(connH, eski_agac, [])
     kod, cikti, sayac = _kt_kos(connH, eski_agac[:2], [], bayatlik="UC")
-    dogrula("V58 MALIYET: silme VARKEN bayatlik TAM 1 kez olculur",
+    dogrula("V58 MALIYET: silme VARKEN de bayatlik TAM 1 kez olculur (mukerrer olcum YOK)",
             kod == 0 and sayac["bayatlik"] == 1, sayac)
 
-    # ── TEK IS SILME IKEN: 'degisiklik yok ✅' YALANI URETILMEZ ──────────────────
+    # ── YAZACAK IS YOKSA: kapi HIC olculmez (0 git/ag cagrisi) ──────────────────
+    # Yazmayan kosum zarar veremez; bayat da olsa engellenecek bir sey yoktur.
     connI = _kt_baglan()
     _kt_kos(connI, eski_agac + yeni_parti, [])
     kod, cikti, sayac = _kt_kos(connI, eski_agac + yeni_parti, [], bayatlik="BAYAT")
-    dogrula("V59 KAPI KAPSAMI: silme yoksa engel de yok -> exit 0 'degisiklik yok'",
+    dogrula("V59 MALIYET: degisiklik yokken bayatlik HIC olculmez -> exit 0",
             kod == 0 and "degisiklik yok" in cikti and sayac["bayatlik"] == 0, (kod, sayac))
+    kod, cikti, sayac = _kt_kos(connI, eski_agac, ["--kuru"], bayatlik="BAYAT")
+    dogrula("V59b MALIYET: --kuru bayatligi OLCMEZ ve engellemez (planlama araci)",
+            kod == 0 and sayac["bayatlik"] == 0 and sayac["yazma"] == 0, (kod, sayac))
 
     # ── `--bayatlik` KOLU: CI adiminin ON-KOSULU bu cikis koduna bagli ───────────
     # deploy.yml bu kolu "bayat kosum D1'e HIC dokunmasin" on-kosulu olarak kullanir;
@@ -1765,34 +1845,36 @@ def main():
              len(konfigur_guncelle), len(silinen),
              len(gorulen) - len(yeni) - len(degisen)))
 
-    # ── BAYATLIK KAPISI (yalnizca SILME olacaksa olculur -> tipik partide 0 sn) ─────
-    # Silme YIKICIDIR ve geri alinamaz; upsert degildir. Bu yuzden kapi SADECE burada.
-    engellenen_silme = []
-    if silinen:
-        b = bayatlik_olc()
-        print("bayatlik kapisi: %s — %s (HEAD=%s · uzak uc=%s)"
-              % (b["durum"], b["sebep"], str(b["head"])[:12], str(b["uzak"])[:12]))
-        if b["durum"] != "UC":
-            engellenen_silme = silinen
-            silinen = []                       # DELETE URETILMEZ, beklentiye de GIRMEZ
-            for satir in bayatlik_engel_metni(b, engellenen_silme):
-                print(satir)
-
     if a.kuru:
         # KURU KOSUM: yazma da geri-okuma da YAPILMAZ (ikisi de D1'e cagri demektir).
+        # Bayatlik da OLCULMEZ: kuru kosum planlama araci, hicbir seyi engellemez.
         print("(--kuru: hicbir sey yazilmadi, geri-okuma da yapilmadi)")
         return
     if (not yeni and not degisen and not baski_guncelle and not taban_guncelle
             and not konfigur_guncelle and not silinen):
-        if engellenen_silme:
-            # Tek planlanan is SILME'ydi ve kapi onu durdurdu -> bu "degisiklik yok"
-            # DEGILDIR, ENGELLENMIS bir istir. Yesil raporlanirsa kapi gorunmez olur.
-            sys.exit("\n".join(bayatlik_engel_metni(
-                {"durum": "ENGEL", "sebep": "bayat agac (yukarida olculdu)",
-                 "head": "-", "uzak": "-"}, engellenen_silme)[:1]
-                + ["   (baska yazilacak degisiklik yoktu — D1'e HIC dokunulmadi)"]))
+        # YAZACAK BIR SEY YOK -> bayatlik OLCULMEZ (maliyet 0). Yazmayan kosum zarar veremez.
         print("degisiklik yok — D1'e yazilmadi ✅")
         return
+
+    # ══ BAYATLIK KAPISI — BAYAT AGAC D1'e HICBIR SEY YAZAMAZ ══════════════════════
+    # KraL karari (31 Tem): kapi SILME ile sinirli KALMAZ, UPSERT'i de durdurur.
+    # Gerekce: bayat upsert D1'e ESKI alan degerlerini YENI degerlerin ustune yazar —
+    # silmeyle AYNI sessiz-bozulma sinifi, yalnizca daha az yikici (urunu kaldirmaz,
+    # alani geriye alir). Bugun fiilen gozlendi ("3 bayat hash"). `--durum` icerik ekseni
+    # bunu ancak BIR SONRAKI cagride gorur -> kacak yine SESSIZ kalirdi.
+    # MALIYET: yalnizca YAZILACAK is varken olculur (medyan 0,81 s) ve yayin yolunda
+    # DEGIL pre-push hook'unda oturur; yazacak bir sey yoksa hic olculmez.
+    # FAIL-CLOSED: OLCULEMEDI de BAYAT gibi durdurur — "olcemedim" YESIL degildir.
+    # YAYIN DURMAZ: hook her halukarda exit 0 doner, CI adimi `continue-on-error` —
+    # bayat yazici yalnizca YAZMAZ ve yuksek sesle sifir-disi cikar.
+    b = bayatlik_olc()
+    print("bayatlik kapisi: %s — %s (HEAD=%s · uzak uc=%s)"
+          % (b["durum"], b["sebep"], str(b["head"])[:12], str(b["uzak"])[:12]))
+    if b["durum"] != "UC":
+        sys.exit("\n".join(bayatlik_engel_metni(b, {
+            "yeni": len(yeni), "degisen": len(degisen), "silinen": len(silinen),
+            "baski": len(baski_guncelle), "taban": len(taban_guncelle),
+            "konfigur": len(konfigur_guncelle)}, silinen)))
 
     ifadeler = []
     for parca in [silinen[i:i + PARCA] for i in range(0, len(silinen), PARCA)]:
@@ -1808,17 +1890,11 @@ def main():
         print("  parca %d/%d — yazilan satir: %d"
               % (i // PARCA + 1, (len(ifadeler) + PARCA - 1) // PARCA, yaz))
 
-    # SENKRON SAYACI: silme ENGELLENDIYSE D1'de fazladan satir KALDI -> len(gorulen)
-    # yazmak "senkron tamam" YALANI olur (sayaci okuyan teshis yesil gorur). Yazma.
-    if engellenen_silme:
-        print("senkron sayaci YAZILMADI (silme engellendi -> D1 sayisi urunler.json ile "
-              "ORTUSMUYOR; yanlis 'tamam' damgasi vurulmaz)")
-    else:
-        yaz, _ = dosya_calistir(
-            "INSERT INTO senkron (anahtar,deger) VALUES ('urun_sayisi',%s) "
-            "ON CONFLICT(anahtar) DO UPDATE SET deger=excluded.deger;" % q(str(len(gorulen)))
-        )
-        top_yaz += yaz
+    yaz, _ = dosya_calistir(
+        "INSERT INTO senkron (anahtar,deger) VALUES ('urun_sayisi',%s) "
+        "ON CONFLICT(anahtar) DO UPDATE SET deger=excluded.deger;" % q(str(len(gorulen)))
+    )
+    top_yaz += yaz
 
     print("TOPLAM yazilan satir (wrangler IDDIASI, asagida DOGRULANIR): %d" % top_yaz)
     if top_yaz > 100000:
@@ -1851,18 +1927,6 @@ def main():
                         "ikinci bir senkron (CI adimi / baska oturumun pre-push hook'u) BAYAT "
                         "bir urunler.json ile ustune yaziyor olabilir.")
         sys.exit("\n".join(satirlar))
-
-    # UPSERT'ler dogrulandi; ama SILME engellendiyse is TAM DEGIL -> sifir-disi cik.
-    # (pre-push hook fail-open, CI adimi continue-on-error: yayin DURMAZ, yalniz GORUNUR.)
-    if engellenen_silme:
-        sys.exit("\n".join(
-            ["!! SILME ENGELLENDI — upsert'ler yazildi ve dogrulandi, ama %d id D1'de KALDI."
-             % len(engellenen_silme)]
-            + ["   Silinmeyen id ornekleri: " + ", ".join(engellenen_silme[:10])
-               + (" ... (+%d)" % (len(engellenen_silme) - 10)
-                  if len(engellenen_silme) > 10 else "")]
-            + ["   Coz: agaci uzak main'in UCUNA getir (git pull --ff-only) ve tekrar kos: "
-               "python3 tools/d1-sync.py"]))
 
 
 if __name__ == "__main__":
