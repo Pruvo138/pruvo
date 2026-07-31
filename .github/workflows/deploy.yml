@@ -98,9 +98,6 @@ jobs:
       - name: Diriltme kapisi (silinmis urun geri gelmis mi)
         run: python3 tools/diriltme-kapisi.py
 
-      - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
-        run: python3 tools/diriltme-kapisi.py --kendini-test
-
       # RIZA TIK-KIMLIGI (GIZLILIK) — 30 Tem'e kadar CI'da HIC kosmuyordu. Muafiyet gerekcesi
       # "CI build job'u Python-only (setup-node yok)" DIYORDU; olculdu ki YANLIS: yukaridaki
       # actions/setup-node@v4 (node 20) BLOKLAYICI on-kosuldur ve bu is akisinda zaten
@@ -221,23 +218,6 @@ jobs:
       - name: Ege-bilgi tavan kabul testi (6000 karakter kesme kapisi)
         run: python3 tools/ege-bilgi-tavan-test.py
 
-      # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 30 gecici fiksturle olcer
-      # (tavan asimi · sinir 6000/6001 · astral UTF-16 ayrismasi · kesilen kuyruk onizlemesi ·
-      # dar/genis pay · dosya yok · dosya OKUNAMIYOR · UTF-8 degil · ilan sapmasi + ters yonu ·
-      # mukerrer ilan · binlik ayrac · A1-A5 masum duzenlemeler · capa satir baglami (N1) ·
-      # onek zorunlulugu (N4)). Neden ayri adim: curutucu 21 Tem 5/5 kod mutasyonunun
-      # (tavan hukmunu oldur / UTF-16'yi len(str) yap / marji oynat / fail-loud dalini
-      # return 0 yap / ilan nobetcisini oldur) SAG KALDIGINI olctu — nobetci sessizce olurse
-      # ustteki adim yesil yanmaya devam ederdi. Bugun 14/14 mutant oluyor; olcumu
-      # tekrarlamak icin: python3 tools/ege-bilgi-tavan-mutasyon.py (kapiyi SALT OKUR,
-      # mutasyonu KOPYAYA uygular — CI adimi degil, elde kosulan kanit araci).
-      # ⚠️ ILAN duzlemi UYARI'ya indigi icin oradaki mutantlarin cogu artik EXIT KODUNU degil
-      # yalniz TESHIS METNINI bozar -> fiksturler "iceren/icermeyen" metin sartiyla yazilir;
-      # sadece exit kodu karsilastiran bir fikstur onlari GOREMEZ.
-      # Fiksturler tempfile'da; repo dosyalarina DOKUNMAZ. Offline, stdlib, ~40 ms.
-      - name: Ege-bilgi tavan kapisi ic nobetci (kapinin kendi mantigi)
-        run: python3 tools/ege-bilgi-tavan-test.py --ic-nobetci
-
       # EGE KABILIYET-SINIRI KAPISI (26 Tem): ege-bilgi.md musteriden URETIM olcusu/cizimi
       # ISTIYOR mu, ya da uretim/fiyat SOZU veriyor mu? Canli SISTEM_TALIMATI bunu katalog-bos
       # dalinda uc yerde yasakliyor (pruvo-bot worker/src/index.js :41, :52, :2467; ayrica :57
@@ -258,54 +238,6 @@ jobs:
       # noktayi ACIKCA ilan eder. Offline, stdlib, ~5 ms.
       - name: Ege kabiliyet-siniri kapisi (olcu/cizim istegi · uretim/fiyat sozu)
         run: python3 tools/ege-kabiliyet-kapisi.py
-
-      # TUR 4 TASARIM NOTU: (C) sinifi POZITIF SART ile calisir — [para jetonu] VE
-      # [taahhut kipi]. Onceki NEGATIF VETO ("betimleme varsa susturma") bypass'a acikti:
-      # bir fiil EKLEYEREK kural susturulabiliyordu ("... ve sepette GORUNUR" -> yesil).
-      # Ilke: kelime EKLEYEREK susturulabilen kural, kural degildir. Ayrica cumlecik
-      # bolucusu RAKAM ARASINDAKI nokta/virgulu BOLMEZ — Turkce binlik ayraci ("1.500 TL")
-      # (C) sinifini 1.000 TL ustunde TAMAMEN OLDURUYORDU ve fiksturler 3 haneli oldugu
-      # icin bunu goremiyordu (ders: fiksturler gercek dagilimi ornekleMEZse yesil bir sey
-      # ispatlamaz). (A) sinifi CUMLE penceresinde jeton arar (virgullu devrik tumce),
-      # olumsuzlamayi CUMLECIK penceresinde kontrol eder.
-      # TUR 5 DERSI (fikstur yerlesimi): TUR 4'te dort fiil BETIMLEME'den TAAHHUT'e
-      # tasindi ama hicbir yanlis-pozitif fiksturunde PARA jetonuyla birlikte gecmiyordu
-      # -> 36/36 YESIL yandi ve 17 mesru cumlenin 15'i KIRMIZIyken kimse gormedi.
-      # Fikstur, degisen davranisin TAM USTUNE oturmali; yanindan gecen test YANILTIR.
-      # Z1-Z6 (yesil) + Z7-Z12 (kirmizi) bu sinirin iki tarafini da nobetler.
-      # TUR 6: CIPLAK TURKCE KELIMEYE ASILI DESEN = YANLIS-POZITIF URETECI. Uc homograf
-      # ayiklandi: "sorun"(=problem) · "çapa"(MARIN kategorisinin CEKIRDEK URUNU) ·
-      # "çapak"(baski artigi). Ayrica jenerik 1. cogul fiiller (yaparız/veririz) URUN
-      # baglami ister — "Kargo cikisini ayni gun yaparız" bir uretim sozu DEGILDIR ve
-      # o cumle yuzunden tum sitenin yayini duramaz.
-      # TUR 7: (B) daraltmasi GERI ALINDI (asiri-duzeltmeydi). Olculdu — daraltmanin
-      # onledigi yanlis-pozitifler ERISILEBILIR DEGILDI (yaparız/veririz canli belgede x0),
-      # bedeli ise 28 cumlelik taahhut korpusunda yakalamanin 27 -> 10'a dusmesiydi;
-      # kacanlar arasinda kapinin KURULUS VAKASININ (M2) parafrazlari vardi.
-      # ILKE: yanlis-pozitif GURULTULUdur, dakikalar icinde duzeltilir; (B)/(C) kacisi
-      # SESSIZdir ve musteriye TICARI BEYAN olarak gider. Onarim bastiriciyla degil
-      # BAGLAM GENISLETEREK yapildi (G7-G13 o genislemenin bedelini olcer).
-      # TUR 8: "veririz/vereceğiz" ailesi AYRI ve DAR bir baglam listesi kullanir — ciplak
-      # zamir ("size/biz") TETIKLEYICI DEGIL. Sebep olculdu: "vermek" bilgi/link/kargo/oneri
-      # de verir; tek GENIS listeyle "2.500 TL uzerinde kargoyu SIZE ucretsiz veririz"
-      # KIRMIZI yaniyordu ve tetikleyici canli belgede MEVCUT ("size" l.14, "biz" l.13).
-      # V1-V7 bu ayrimin iki tarafini da nobetler; MUT8 (listeleri birlestir) V1-V5'i kirar.
-      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 73 fiksturle olcer. Hem YAKALAMA
-      # (eski dal metni · "ozel uretiriz" · mm/kumpas/cap olcu talebi · yaklasik/tahminen/
-      # civari/ortalama/bandinda fiyat · ortuk "yapabiliriz") hem YANLIS-POZITIF yonu olculur.
-      # 🔴 YANLIS-POZITIF NEDEN OLUMCUL: bu kapi `build` isinde kosuyor ve `deploy: needs: build`
-      # -> ege-bilgi.md'ye yapilan MESRU bir duzenleme kapiyi kirmizi yakarsa Ege degil TUM
-      # pruvo3d.com yayini durur. Bu yuzden M11-M15 + M21 kalici nobetci: "sorun" homografi
-      # (=problem ismi) · arayuz/ucret BETIMLEMESI ("yaklasik tutar GORUNUR", "250 TL EKLENIR")
-      # · belgenin KENDI l.9 kargo cumlesi · l.11 "netlestir" dili · duz kesin fiyat beyani
-      # (ILAN EDILMIS kor nokta — "duzeltmek" l.9'u kirar).
-      # Kritik fikstur M1: olumsuzlama CUMLECIK duzeyinde aranmali — satir duzeyinde arayan bir
-      # surum, ayni satirdaki "verme" jetonunu gorup "olcu/cizim iste" emrini MASKELER ve
-      # sahte-yesil yanar (olculdu). M16: baglac (cunku/ama/fakat) da ayirici olmali, yoksa
-      # "Olcuyu gonderin CUNKU tahmin yeterli DEGIL" maskelenir. Fiksturler bellekte; repo
-      # dosyalarina DOKUNMAZ. Offline, stdlib.
-      - name: Ege kabiliyet kapisi ic nobetci (kirmizi-mutasyon)
-        run: python3 tools/ege-kabiliyet-kapisi.py --ic-nobetci
 
       # ENJEKSIYON KAPISI: build.py'nin sayfalara inline bastigi JS (attribution/riza + meta)
       # bayt-bayt bozulmadan mi gidiyor. Yasanmis hata: re.sub REPLACEMENT kacisi yorumlayinca
@@ -378,19 +310,6 @@ jobs:
       - name: Asgari gorsel boyutu kapisi kabul testi
         run: python3 tools/gorsel-boyut-test.py
 
-      # NOBETCI MUTASYON HARNESS: yukaridaki iki kapinin KENDISINI olcer — bozulunca GERCEKTEN
-      # kirmizi yaniyorlar mi. Feed politika kapisinin kirmizi CIKIS YOLU ve _kendini_dogrula()
-      # hicbir testle korunmuyordu; olculdu: <title> bulucusunu olduren mutasyon eski kapida
-      # exit 0 veriyordu (gercek bir vape urunu SESSIZCE geciyordu). 14 kapi mutasyonu + 3
-      # gorsel-kablolama mutasyonu kosulur, hepsi KIRMIZI yanmali; mutasyonsuz kontrol kosumu
-      # YESIL yanmali (harness "hep kirmizi" olamaz). Son 4 mutant KENDI sebebiyle yanmak
-      # zorunda (isaret metni dogrulanir): feed kirpma + uc nobetci fiksturunun korlestirilmesi
-      # (_NEGATIF / _RAPOR_POZITIF / _ASIMETRIK — ucu de tek satirla susturulabiliyordu).
-      # Mutasyon DAIMA gecici SYMLINK aynasina uygulanir — canli tools/ dizinine YAZMA YOK.
-      # Offline, urunler.json OKUNMAZ (sentetik katalog), olculdu 38 s.
-      - name: Nobetci mutasyon harness'i (kapilar bozulunca kirmizi yaniyor mu)
-        run: python3 tools/nobetci-mutasyon-test.py
-
       # MARKA KÜRATÖRLÜĞÜ: ana sayfa marka çip listesi yalnız TANINMIS_MARKALAR'dan oluşur
       # (model/motor kodu çip olamaz), varyantlar (Mercedes-Benz, Toyota 86, KIA/Kia) tek
       # kaleme katlanır ve filtre eşleşmesi katlamayla tutarlıdır. index.html'deki bloğu
@@ -398,14 +317,6 @@ jobs:
       # ile koşar (setup-node kurulu; node yoksa FAIL-CLOSED exit 1). Offline, ~1 s.
       - name: Marka liste kabul testi (küratörlü çipler + varyant katlama)
         run: python3 tools/marka-liste-test.py
-
-      # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
-      # anahtarları değil KANONIK TANINMIS_MARKALAR'dan gelir; ham defterdeki sayımlar
-      # markaKatla ile kanonik markaya KATLANIR (Toyota cover/mount... -> tek Toyota),
-      # tanınmayan (tasarımcı-adı/model-kodu) çöp anahtar satır DEĞİL, harvest edilmemiş
-      # tanınmış marka (DeWalt...) 🔴 to-do. Saf Python, sentetik fikstür, OFFLINE, ~1 s.
-      - name: Marka durum paneli kabul testi (kanonik satır + katlama)
-        run: python3 tools/marka-panel-test.py
 
       # MARKA x KATEGORI KAPSAMI (Okan, 30 Tem): cok-dikeyli markalar (olculdu: Yamaha 6
       # dikey, Suzuki 5, BMW 4, Volvo 2) tek marka kovasinda birlesiyordu — Marin'de
@@ -547,14 +458,6 @@ jobs:
       - name: Konfigur bundle kapisi (urunler.json -> shop/src/konfigurlar.js drift)
         run: python3 tools/konfigur-bundle-kapisi.py
 
-      # ... ve kapinin KENDI kabulu (nobetci olu kalmasin): 9 yanlis-pozitif senaryosu YESIL
-      # kalmali, 4 gercek drift mutanti KIRMIZI yanmali, CLI cikis kodlari (esit=0 / drift=1 /
-      # dosya-yok=1) dogru olmali, bozuk konfigur semasi artefakt URETIMINI reddetmeli
-      # (fail-closed: yarim/bozuk artefakt ship edilmez). Gecici dizinde calisir, repo dosyasi
-      # DEGISMEZ. ~2 s.
-      - name: Konfigur bundle kapisi — kendini test (yanlis-pozitif + kirmizi-mutasyon)
-        run: python3 tools/konfigur-bundle-kapisi.py --kendini-test
-
       # SEMA BUNDLE KAPISI (sari/parametrik seri — PARA EKSENI, 31 Tem).
       # shop/src/semalar.js 23 satirlik ELLE YAZILMIS bir import listesiydi ve onu olcen tek
       # nobetci (shop/test/kabul.js test 9a) ci-kapsam-test.py'de MUAFTI -> koruma FIILEN
@@ -569,13 +472,6 @@ jobs:
       # koymak kapiyi YAKMAZ (olculdu: --kendini-test bolum A). Saf Python, offline, ~0,03 s.
       - name: Sema bundle kapisi (jenerator/urunler -> shop/src/semalar.js drift)
         run: python3 tools/sema-bundle-kapisi.py
-
-      # ... ve kapinin KENDI kabulu: 4 yanlis-pozitif + 9 negatif vaka (sema eklendi/silindi/
-      # yeniden adlandirildi, kaynak okunamadi -> OLCULEMEDI, JSON bozuk, id yok, MUKERRER id,
-      # artefakt yok, kaynak bos) + 5 uretici iddiasi + 3 no-op mutasyonu. Gecici dizinde
-      # calisir, repo dosyasi DEGISMEZ. ~0,4 s.
-      - name: Sema bundle kapisi — kendini test (pozitif + negatif + no-op mutasyon)
-        run: python3 tools/sema-bundle-kapisi.py --kendini-test
 
       # SARI SERI DETERMINISTIK ALT KUME (shop kabul suite'inin CI'ya BAGLANABILIR yarisi).
       # 🔴 SUITE IKIYE AYRILDI (gerekce dosya basinda): tam kosum `wrangler dev --local` +
@@ -615,28 +511,6 @@ jobs:
       - name: Konfigur golge modu kabul testi (davranis degismedi + fark olculebilir)
         run: node shop/test/konfigur-golge.mjs
 
-      # KONFIGUR CANLI KAPISI — kendini test (OFFLINE, BLOKLAYICI, continue-on-error YOK).
-      # Ustteki bundle kapisi "repo icindeki iki dosya tutarli mi" der; canli kapi "CANLI
-      # worker musteriden NE TAHSIL EDER" der. Ikisi AYRI eksendir ve 30 Tem'de yasanan
-      # vakayi (artefakt guncel + worker deploy EDILMEMIS -> kart kanali 2 gun kapali)
-      # YALNIZ canli kapi gorebilir; o vaka boyunca butun repo-ici kapilar YESILDI.
-      # Bu adim kapinin SAF karar mantigini olcer (ag YOK, sahte HTTP katmani): 12 senaryo +
-      # 3 HTTP kod eslemesi + 3 KIRMIZI-MUTASYON (fiyat karsilastirmasi / 400 kolu / "ariza"
-      # sinifi oldurulunce ilgili senaryo YESILE donmeli = iddia yuk tasiyor) + gercek
-      # katalogla yanlis-pozitif nobeti. Offline, dosya YAZMAZ, ~2 s.
-      #
-      # 🔴 CANLI OLCUMUN KENDISI BURADA KOSMAZ — BILEREK. Canli SONUC olcumu bir DEPLOY
-      # KAPISI DEGIL, IZLEME (nobet) isidir: deploy ONCESI hicbir sey kanitlamaz, aga
-      # bagimlidir ve yanlis-pozitifi TUM EKIBIN yayinini durdurur. `continue-on-error: true`
-      # ile "bagiran ama bloklamayan" bir adim koymak da yanlis cozumdu: is-akisi-kapisi
-      # Bolum D onu BEYANSIZ FAIL-OPEN sayar ve kapi KIRMIZI yanar; muafiyet beyani ise
-      # D3b'nin DAIRESEL DAYANAK kuralina takilir (bir kapi kendi adimini dayanak gosteremez).
-      # Canli olcumun sahibi tools/canli-saglik-kapisi.py'nin K4 (KART) eksenidir: o arac bu
-      # dosyayi bulup CAGIRIR, bulamazsa ARAC-YOK -> ARIZA -> OLCULEMEDI verir.
-      # Elle/nobette kosum:  python3 tools/konfigur-canli-kapisi.py --gecikme 0.4
-      - name: Konfigur canli kapisi — kendini test (offline karar mantigi + mutasyon)
-        run: python3 tools/konfigur-canli-kapisi.py --kendini-test
-
       # FIYAT ESDEGERLIGI + PROVA UCU (shop/test/fiyat-prova.mjs). Iki seyi birden kilitler:
       # (1) ESDEGERLIK — konfigur aynasinin uretilmis artefakta cevrilmesi ve fiyat hesabinin
       #     sepetiFiyatla()'ya cikarilmasi fiyati DEGISTIRMEDI: ESKI kod (git HEAD: elle ayna)
@@ -669,6 +543,17 @@ jobs:
       # OFFLINE: wrangler YOK, ag YOK, gercek/sahte SIPARIS YOK, repo dosyasi YAZILMAZ. ~2 s.
       - name: 2-renk yazi ek ucreti kabul testi (karsiliksiz tahsilat kapisi)
         run: node shop/test/iki-renk-ucret.mjs
+
+      # SERIT A (icerik) — 2-RENK URETIM SOZLESMESI. Serit ayriminda once SERIT B'ye
+      # konmustu; denetimde A'ya alindi. GEREKCE: bu kapinin 4. iddiasi YAYINLANAN
+      # `secenekler.js` (Pages beyaz listesinde) ONIZLEME_PARCALAR parca listesi ile
+      # uretim eslem json'unun TEK KAYNAK paritesidir. Sapinca site, uretimin
+      # VEREMEYECEGI bir 2-renk parcasi SUNAR — Okan'in 29 Tem canli vakasinin sinifi
+      # (site satiyor, uretim veremiyor). Ucret ekseni yukaridaki adimda; bu adim
+      # "sunulan sey uretilebilir mi" eksenidir, ikisi ayri. Oz-nobetci kolu SERIT B'de.
+      # OFFLINE: ag YOK, openscad YOK, urunler.json OKUNMAZ. ~2 s.
+      - name: "Iki govde eslem kapisi (2-renk: -D farki yalniz Output)"
+        run: python3 tools/iki-govde-kapisi.py
 
       # OLCUM KABLOLAMA KAPISI (shop/test/olcum.mjs) — 30 Tem'e kadar CI'da HIC kosmuyordu.
       # NE KORUR: Meta CAPI + GA4 Purchase kablolamasi (currency/value/event_id dedup), havale
@@ -723,22 +608,6 @@ jobs:
       - name: Sepet paneli + konfigur odenebilirlik provasi kabul testi
         run: node shop/test/sepet-panel.js
 
-      # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
-      # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,
-      # genel GO/NO-GO, worker 403->BLOKLU(HocA), d1 kimlik-hatasi->BLOKLU(Okan), origin turetme,
-      # bayrak ayiklama) sentetik girdilerle KIRMIZI-MUTASYON uslubunda kanitlar. Agsiz, stdlib:
-      # araci yalnizca IMPORT eder (main() cagrilmaz -> import-aninda subprocess/HTTP/d1 I/O YOK,
-      # tum canli I/O fonksiyon govdesinde ve __main__'de). Bloklayici: kapinin karar mantigi
-      # bozulursa (or. sahte-GO / yanlis band / 12.000 esik kaymasi) bu test kirmizi yanar.
-      # build.py'den ONCE kosar, ~40 ms.
-      - name: Edge flip hazirlik kapisi kabul testi (saf karar mantigi)
-        run: python3 tools/edge-flip-hazirlik-test.py
-
-      # D1-SYNC HATA TANISI: gecici ag ve gercek kimlik hatalarinin retry/teshis ayrimini
-      # sahte subprocess sonuclariyla kanitlar. Offline/mock; D1'e ve aga dokunmaz.
-      - name: D1-sync hata tanisi kabul testi
-        run: python3 tools/d1-sync-tani-test.py
-
       # D1 YAZMA GERI-OKUMA (write-verify) KABUL TESTI — BLOKLAYICI (continue-on-error YOK).
       # OLCULEN OLAY (31 Tem): d1-sync tek alan degisimini "degisen: 1 / 5 satir yazildi" diye
       # BASIP exit 0 dondu, canli D1'deki deger ESKI KALDI. Hata sinifi SESSIZ: site urunu
@@ -754,83 +623,6 @@ jobs:
       # urunler.json OKUNMAZ (gecici dosya), ~1 s.
       - name: D1 yazma geri-okuma kabul testi (write-verify + icerik ekseni)
         run: python3 tools/d1-sync.py --kendini-test
-
-      # ATOMIK YAYIN KAPISI — KARAR MANTIGININ offline kabulu (EKSEN 1, 31 Tem).
-      # Kapinin KENDISI (aday secimi + canli 200 sarti + tek-yon UPDATE) burada AGSIZ
-      # sinanir; canliya vuran `--yayinla` kolu deploy'dan SONRA ayri `yayin` isinde kosar
-      # (bu ise BAGLI DEGIL: yayin gecikirse urun TASLAK kalir, yani gorunmez — 404 vermez).
-      # Fault injection ile olculdu: kapinin 7 mutanti (200 sarti gevsedi / canli JSON sarti
-      # dustu / WHERE yayinda=0 dustu / parcalama kirpti / tavan kalkti / olculmeyen id
-      # 'iyi' sayildi / bayat satir sarti dustu) 7/7 KIRMIZI. Offline, stdlib, <1 s.
-      - name: "Atomik yayin kapisi — kendini test (aday secimi + 200 sarti + tek yon)"
-        run: python3 tools/yayin-kapisi.py --kendini-test
-
-      # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
-      # (Bu blok ile alttaki YEDEK TAZELIK blogu BAGIMSIZ iki hunk'tir; merge cakismasinda
-      # ikisi de KORUNUR — biri digerinin yerine gecmez.)
-      # O betik eskiden uctan uca RTT'yi butceyle karsilastiriyordu: Fethiye→Cloudflare ag
-      # gecikmesi tek basina 300 ms'i asabildigi icin SAGLIKLI sistemde KIRMIZI yaniyordu,
-      # simetrigi de vardi (hizli agda yavas Worker YESIL). Karar artik yalniz worker-ici
-      # sureye ("ms") gore verilir; RTT bilgi olarak raporlanir. Bu adim kusrun geri
-      # gelmesini engeller: sahte bir uc kaldirip AG gecikmesi ile WORKER-ICI sureyi
-      # BAGIMSIZ oynatir (tek eksenli fikstur RTT'ye bakan betigi de yesil yakar, yani
-      # hicbir sey olcmez). 6 senaryo: yavas-ag/saglikli -> exit 0, yavas-worker -> exit 1,
-      # hizli-ag/yavas-worker -> exit 1, "ms" alani yok -> exit 2 (OLCULEMEDI),
-      # uc kapali -> exit 2, kismi hata -> exit 1 ("butce" diye raporlanmaz).
-      # OFFLINE: yalniz 127.0.0.1; urunler.json/D1/R2/canli Worker OKUNMAZ. node gerekir
-      # (setup-node yukarida bloklayici on-kosul; node yoksa FAIL-CLOSED exit 1). ~23 s.
-      - name: Faz3 gecikme nobetcisi (RTT degil worker-ici sure ile karar)
-        run: python3 tools/faz3-gecikme-test.py
-
-      # YEDEK TAZELIK PANOSU (durum.py bolum 7): yedegin kendisi degil, YEDEGIN SESSIZCE
-      # DURMASI oldurucu — pano bayatligi/atlanmis kosumu/asili kilidi GORUNUR kilan tek
-      # kanaldir (pre-push yedek ciktisini /dev/null'a yutar). Testin iddiasi "pano yalan
-      # soylemiyor mu": bayat/kismi/gelecek-tarihli/atlanmis/asili-kilit hallerinde "taze"
-      # DEMEMELI, kapsanmis atlamada da bosuna uyarmamali (gurultulu pano = olu pano).
-      # Fiksturler tempdir + sentetik damga uzerinde kosar; Drive/ag GEREKMEZ ve betik
-      # DOSYA YAZMAZ. "Hermetik" DEMIYORUZ: kontrollerin bir kismi makinenin ORTAMINI
-      # (asagidaki eksenler) sorgular, o yuzden kontrol sayisi makineden makineye
-      # DEGISIR — sayiyi buraya YAZMA, betigin KENDI ozetinden oku.
-      # Kontrol SAYISI ve sure betigin KENDI ciktisindadir — buraya SABIT SAYI YAZILMAZ.
-      # Gerekce: yoruma gomulu sayi bir VERI CAPASIDIR, her yeni nobetciyle sessizce
-      # bayatlar ve okuyani yaniltir — bu yorumun onceki surumlerinde tekrar tekrar
-      # oldu (kontrol sayisi, sure, eksen sayisi). Bloklayici, continue-on-error YOK.
-      #
-      # ⚠️ SUREYI/RC'YI OLCERKEN: bu betik bolum 9'da KENDINI `ps`siz bir PATH ile
-      # YENIDEN CAGIRIR (alt kosum, `--ps-yok-alt-kosum`). Alt kosumun ciktisi ve suresi
-      # BU ADIMIN DEGILDIR — alt kosum bolum 9'u atlar, yani kapinin kirmizisini yakan
-      # kontrolleri de atlar (bu yuzden ana kosum alt kosumdan HEP UZUN surer). Bu hat
-      # iki ayri turda tam bu yuzden YANLIS olctu (bir kez rc, bir kez sure). Olcum
-      # DAIMA yukaridaki `run:` satirinin BIREBIR komutuyla, bayraksiz yapilir.
-      #
-      # ORTAM BAGIMLILIKLARI: dis binary / kaynak kumesi yoklugu GORUNUR ⚪ OLCULEMEDI
-      # verir ve cikis kodunu BOZMAZ; sessiz yesile de cevrilmez. EKSENLERIN SAYISINI
-      # BURAYA YAZMA — betigin ozeti her ekseni AYRI satirda kendisi sayar ("PS/GIT/
-      # KAYNAK/FIKSTUR EKSEN OLCULEMEDI") ve ilan edilmemis her ⚪'yi "EKSENSIZ
-      # OLCULEMEDI" ile yakalar. Her ⚪ satiri hangi eksende oldugunu kendi basar.
-      #   - `ps` (procps) — pid KIMLIK dogrulamasi onunla olculur.
-      #   - `git` — ANA calisma agaci cozumu onunla yapilir (yoksa kok WORKTREE'ye duser).
-      #   Ikisi de UC HALLI: PATH'te YOK -> ⚪, deploy BLOKLANMAZ · VAR ama BOZUK ->
-      #   KIRMIZI, fail-closed (bozuk bagimlilik eksik bagimliliktan farklidir) ·
-      #   VAR ve calisiyor -> kontroller NORMAL, bloklayici.
-      #   - YEDEKLENECEK KAYNAK KUMESI (~/.claude/{projects/*/memory,skills} + repo
-      #     kokundeki beklenen dosyalar) — K5 canli-imza olcumunun GERCEK ucu buna
-      #     baglidir. CI fresh checkout'unda HOME BOS ve o dosyalar gitignore'lu
-      #     (izlenen DEGIL) -> kaynak kumesi YOKTUR, o kontroller ⚪ olur.
-      # Gerekce (hepsi icin): bloklayici bir kapinin dis bagimlilik/ortam yoklugunda
-      # TUM SITE YAYININI durdurmasi bu depoda YASANMIS bir ariza sinifidir
-      # ([[kapi-kapsam-eksen-secimi]]) — bu adimda tekrar tekrar yasandi: `ps`siz
-      # makinede rc 1, CI taklidinde kaynak kumesi yoklugundan rc 1, `git`siz makinede
-      # rc 1 + yakalanmamis FileNotFoundError.
-      # EKSEN AYRIMI SART: "ps VARKEN ⚪ 0" nobetcisi TOPLAM ⚪'ya bakarsa alakasiz bir
-      # eksenin ⚪'si onu kirmiziya cevirir (CI taklidinde olculdu).
-      # 🔴 NOBETCIYI, KORUDUGU KOSULUN ICINE KOYMA: kimlik nobetleri ve gitsiz-pano
-      # nobeti SENTETIK PATH fiksturuyle kosar (ozet "BAGIMSIZ NOBET" diye sayar),
-      # yani makinede `ps`/`git` olsa da olmasa da AYNI olcumu yapar. Onceki surumde
-      # nobetcinin kendisi `ps`e bagliydi ve `ps`siz makinede iki gercek mutant sessiz
-      # YESIL geciyordu (olculdu).
-      - name: Yedek tazelik panosu kabul testi (durum.py bolum 7 — sessiz-hata nobeti)
-        run: python3 tools/durum-yedek-test.py
 
       # WA PREFILL KAPISI: urun sayfasindaki BAGLAM-KOR olmamasi gereken iki WhatsApp
       # linki (organik "Bizimle Iletisime Gecin" help-cta-btn + mühendislik malzeme notu)
@@ -912,35 +704,6 @@ jobs:
       - name: "Vitrin kabul kapisi (gizli Jeneratör kategorisi + sari kart fiyati + banner + edge sozlesmesi)"
         run: node jenerator/test/vitrin-kabul.js
 
-      # JENERATOR NOBETCILERININ KENDI KABULU (madde 34b, 31 Tem). Bu iki nobetci 30 Tem'de
-      # yazildi ama `jenerator/test/*` R_AYRI blanket muafiyeti yuzunden CI'da HIC kosmuyordu
-      # -> nobetcinin kendisi curuse kimse gormezdi (olculmus sinif: "yesil yanan olu nobetci").
-      # 🔴 YALNIZ `--kendini-test` KOLLARI BAGLANDI. Bu kollar sentetik fikstur uzerinde
-      # calisir: ag YOK, OpenSCAD YOK, build.py YOK, wrangler YOK. Ikisi de argparse'ta
-      # sys.exit(kendini_test()) ile ERKEN DONER — bayraksiz tam suite'e (TEST 1 OpenSCAD
-      # render + build.py cagrisi) HIC girmez. Bayraksiz tam kosum CI'ya BAGLANMADI ve
-      # susturulmadi; yerelde/merge kapisinda kosulmaya devam ediyor.
-      # Artefakt birakmaz: her iki kol da yazdigi gecici dosyayi (jenerator/*-gecici.js,
-      # urun/_pruvo-kendini-test, __pycache__ .pyc) kendi temizler — olculdu, kosum sonrasi
-      # `git status --porcelain` degismedi. Toplam ~0,5 s.
-      - name: "OpenSCAD yasak nobetcisi — kendini test (18 iddia; PATH/symlink/maskeli shim)"
-        run: python3 jenerator/test/dogrula.py --kendini-test
-
-      # 31 Tem: bu kola SUITE BUTUNLUGU eksenleri (V6-V8) eklendi. Gerekce: bayraksiz
-      # tam suite CI'da kosmaz (OpenSCAD + build.py ister) ve onun hukmu "kirmizi var mi"
-      # idi -> bir testin GOVDESINI SILMEK suite'i sessizce yesil birakiyordu. Hukum
-      # mantigi saf fonksiyona (suite_butunlugu) alindi ve CI'da kosan bu kolda olculuyor.
-      - name: "Jeneratör tarama kumesi + suite butunlugu nobetcisi — kendini test (sahte KIRMIZI + OLCULEMEDI + silinen test)"
-        run: python3 jenerator/test/kabul.py --kendini-test
-
-      # 31 Tem: eslem-olcum.py TAM kolu CI'da kosamaz (gizli `eslem-ozel.json` paketi
-      # + openscad ister) ve tam bu yuzden HUKUM mantigi hic olculmuyordu. OLCULDU:
-      # `uretilemez` (422) sayaci hukme girmiyordu -> TUM setleri 422'ye dusen aile
-      # "yesil" ilan ediliyor, arac rc=0 donuyordu (sifir olculen set = yesil).
-      # Hukum saf fonksiyona alindi; bu kol ag/openscad/paket ISTEMEZ.
-      - name: "Onizleme eslem-olcum hukum nobetcisi — kendini test (sifir olculen set / 422 yesil sayilmaz)"
-        run: python3 onizleme/test/eslem-olcum.py --kendini-test
-
       # URUN DENETIM KAPISI (madde 32, 31 Tem). 31 Tem'e kadar urun kurallarinin —
       # uretim-sureci ifsasi ("3D baski" demiyoruz) + Marin fiyat tabani — TEK korumasi bir
       # mimarin bunu ELLE kosturmasiydi. Artik her itmede bloklayici.
@@ -966,15 +729,6 @@ jobs:
       - name: "Urun denetim kapisi (uretim-sureci ifsasi + Marin fiyat tabani — bu itmenin GETIRDIGI ihlal)"
         run: python3 tools/denetim-kapisi.py --commit-farki
 
-      # ... ve kapinin KENDI kabulu: 6 pozitif (temiz urun / urun disi degisiklik / mesru alan
-      # degisikligi / taban USTU fiyat / TOPLU islem eski ihlale dokundu / temizlik commit'i)
-      # + 5 negatif (yeni urunde dolgu-orani, yeni urunde baski fiili, DEGISEN urun ifsa
-      # kazandi, taban ALTI fiyat, eski ihlalli urun YENI ihlal kazandi) + 2 OLCULEMEDI
-      # (HEAD^ yok, HEAD'deki JSON bozuk) + 2 mutasyon (DEGISEN ekseni NO-OP -> N3 susar;
-      # 'onceden' filtresi asiri-susturma -> N1 susar). Sentetik git deposu, ~10 s.
-      - name: "Urun denetim kapisi — kendini test (pozitif + negatif + OLCULEMEDI + mutasyon)"
-        run: python3 tools/denetim-kapisi.py --kendini-test
-
       # GRAMER ARTIGI KAPISI (madde 46'nin eksik halkasi, 31 Tem): 332 kayitlik toplu
       # yeniden yazimda kural tabanli degisim, tetikleyici kelime cumleden cikinca
       # GRAMERSIZ ENKAZ birakiyordu ("En ince bolgesi yla olculur", "dik konumda ve
@@ -989,106 +743,8 @@ jobs:
       # GEREKMEDI). urunler.json DIZI degilse / taban kume altindaysa OLCULEMEDI (3).
       # Saf Python, agsiz, ~1 s.
       - name: "Gramer artigi kapisi (toplu yeniden yazim enkazi + cumle-ici yetim ek)"
-        run: |
-          python3 tools/gramer-artigi-kapisi.py --kendini-test
-          python3 tools/gramer-artigi-kapisi.py
+        run: python3 tools/gramer-artigi-kapisi.py
 
-      # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
-      # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden
-      # onizlenmis her parametre seti YAZISIZ mesh'i (kase: herkese "PRUVO") servis etmeye
-      # DEVAM eder. Bu adim GERCEK worker'i (onizleme/src/index.js) node'a yukleyip sahte R2
-      # ile anahtari yakalar: surum bump'i anahtari degistiriyor mu + surum ZEHIRLI SURUM
-      # TABANI'nin (bugun v7; v5 yazisiz mesh, v6 rollout penceresi zehirlenmesi) altina
-      # dusmus mu + yalniz `yazi` degisince anahtar ayrisiyor mu. Taban SAYISAL: ileri
-      # bump testi elle duzeltmeden yesil kalir, geri alma KIRMIZI. Node 20'de olculdu
-      # (module.registerHooks gibi Node 22+ API'si YOK; JSON import'lari gomulur).
-      # OFFLINE: ag yok, R2 yok, wrangler yok, repo dosyasi YAZILMAZ (gecici dizin). ~0,5 s.
-      - name: Onizleme onbellek surum kapisi (bayat mesh servis edilmesin)
-        run: node onizleme/test/onbellek-surum.mjs
-
-      # ONIZLEME GORUNURLUK KAPISI (Okan canli sikayeti, 29 Tem — olcuye-ozel-cerceve):
-      # (1) "renk secimi onizlemeyi degistirmiyor": sayfa scripti rengi YALNIZ aile
-      # sabit tablosundan okuyordu, musteri secimi viewer'a HIC gitmiyordu. (2) "yazi
-      # gorunmuyor": kabartma geometri mesh'te VARDI (canli: 1304 -> 2666 ucgen, 1,2 mm
-      # kabartma) ama yazinin ust yuzu cerceve on yuzuyle AYNI normale sahip oldugundan
-      # koyu renkte yalniz ~15/255 tonluk bir fark uretiyordu = gorunmuyordu.
-      # Bu adim GERCEK kodu olcer: build.py'nin sayfaya BASTIGI ONIZLEME_JS metni sahte
-      # DOM'da (canli sayfanin renk-BUTONU duzeni) kosar, altinda GERCEK jenerator/viewer.js
-      # + WebGL cagrilarini kaydeden sahte baglam vardir -> GPU'ya giden uRenk uniform'u
-      # olculur. Yazi ekseni CPU rasterlestiricisiyle piksel farki olcer (kamera + golgeleme
-      # viewer'in KENDI fonksiyonlarindan; kopya matematik yok).
-      # KIRMIZI-MUTASYON (olculdu, 5/5 yakalandi): kParlak 0 (eski isik) -> B2 kirmizi;
-      # ONIZLEME_RENK_SECIMI bosaltilir -> A2/A3 kirmizi; sayfa scripti eski satira
-      # dondurulur -> A4b kirmizi; renk dinleyicisi silinir -> A4c kirmizi; viewer kolu
-      # renkAyarla dondurmez -> A4c kirmizi.
-      # OFFLINE: ag YOK, openscad YOK, R2/wrangler YOK, urunler.json OKUNMAZ, dosya yazmaz.
-      # Node 20'de olculdu (Node 22+ API'si kullanilmaz). ~1 s.
-      - name: Onizleme gorunurluk kapisi (secilen renk + kabartma yazi ekranda mi)
-        run: node onizleme/test/renk-yazi-gorunurluk.mjs
-
-      # IKI GOVDE (2-RENK YAZI) SOZLESMESI — Okan canli sikayeti, 29 Tem:
-      # /urun/olcuye-ozel-cerceve/ "Yazı rengi (2. renk)" seciyor ama uretim TEK GOVDE
-      # donduruyordu (Output="frame") -> yazi cerceveyle AYNI filamandan basiliyordu.
-      # (a) ESLEM/-D ekseni: iki parca ailesi (<aile>#govde / <aile>#yazi) ayni .scad'i
-      #     ayni bayraklarla, YALNIZ `Output` farkiyla surer (hizalama yapisal garanti);
-      #     taban aile BIREBIR AYNI kalir (geriye donuk uyum). Fail-closed uretim.
-      # (b) WORKER/VIEWER/SAYFA ekseni: parcasiz onbellek anahtari BIT-AYNI (donmus capa),
-      #     parcali anahtar ayri ad uzayinda, gecersiz parca 400, viewer iki govdeyi iki
-      #     renkte ve KAYDIRMADAN cizer, sayfa 2-renk secilince IKI istek atar.
-      # KIRMIZI-MUTASYON: kapilarin kendi --kendini-test turlarinda olculur
-      # (5/5 + 1/1 yakalandi; ham cikti dal raporunda).
-      # OFFLINE: ag YOK, openscad YOK, R2/wrangler YOK, urunler.json OKUNMAZ. ~2 s.
-      # MESH ekseni (ucgen/bbox/hacim) openscad ister -> onizleme-imaj.yml
-      # (onizleme/test/iki-govde-olcum.py); burada BILEREK kosmaz.
-      # ⚠️ TIRNAK ZORUNLU: YAML plain scalar'da ": " (iki nokta + bosluk) AYRISTIRMA
-      # HATASIDIR -> is HIC baslamaz (startup_failure) ve TUM EKIBIN yayini durur.
-      # 29 Tem'de bu satir tirnaksiz gitti, deploy.yml 0 sn'de "workflow file issue"
-      # verdi (hicbir is baslamadi; ci-kapsam-test.py metin arar, YAML AYRISTIRMAZ).
-      - name: "Iki govde eslem kapisi (2-renk: -D farki yalniz Output)"
-        run: python3 tools/iki-govde-kapisi.py
-      - name: Iki govde eslem kapisi oz-nobetcisi
-        run: python3 tools/iki-govde-kapisi.py --kendini-test
-      - name: Iki govde kabul kapisi (worker parca ucu + viewer iki renk + sayfa)
-        run: node onizleme/test/iki-govde-kabul.mjs
-      - name: Iki govde kabul kapisi kirmizi-mutasyon turu
-        run: node onizleme/test/iki-govde-kabul.mjs --kendini-test
-
-      # PAKET TAZELIK KAPISI — OFFLINE kip. Bloklayici PAKET olcumu BILEREK burada DEGIL,
-      # onizleme-imaj.yml'de kosar (bayat paket TUM SITE yayinini durdurmasin). Burada
-      # kosan sey UC nobetci: (a) kapinin govdesi inert mi (5 sentetik fikstur),
-      # (b) GERCEK cagri satiri onizleme-imaj.yml'de DURUYOR mu — ci-kapsam-test.py yalniz
-      # deploy.yml'e baktigi icin o satirin silinmesini baska hicbir nobetci gormez
-      # (olculdu: imaj is akisindaki adim silinince ci-kapsam RC=0, bu kapi RC=1),
-      # (c) SURUMLU ANAHTAR: sabit 'guncel' takma adina yazma / sabit s3 nesne yolundan
-      # cekme geri geldi mi. R2'de VAR OLAN anahtarin uzerine yazma bu bucket'ta
-      # "Upload complete." + RC=0 dondugu halde nesneyi DEGISTIRMIYOR (olculdu 29 Tem,
-      # 4 deneme + silme denemesi) -> takma ad bayat kalir, CI onarilmis main'e ragmen
-      # ESKI eslemle imaj derler. Yukleyici ekseni METIN ARAMAZ: yuklenecek_anahtarlar()
-      # fiilen cagrilir (fault-injection ile test edilir).
-      # Bu kip yalnizca kendi fiksturlerini ve onizleme-imaj.yml METNINI okur; urunler.json /
-      # index.html / sema dosyalari OKUNMAZ -> rutin degisiklikte yanlis-pozitif uretemez.
-      - name: Paket tazelik kapisi oz-nobetcileri (cagri satiri + govde inertligi)
-        run: python3 tools/paket-tazelik-kapisi.py
-
-      # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
-      # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
-      # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
-      - name: CI kapsam kapisi (her kabul testi kosuluyor mu / gerekceli muaf mi)
-        run: python3 tools/ci-kapsam-test.py
-
-      # KAPININ KENDI NOBETCILERI — ayri adim olmak ZORUNDA (olculdu 27 Tem):
-      # ci-kapsam-test.py'nin kendi mutasyon nobetcileri (bulgu1_mutasyon_kontrol +
-      # muaf_sayaci_kontrol) yukaridaki BAYRAKSIZ kosumda YALNIZ denetle(..., kontroller=True)
-      # yolundan cagriliyor. Bu iki mutant sinifi orada SESSIZ kaliyordu:
-      #   (1) denetle() icindeki nobetci CAGRILARI silinirse -> bayraksiz kosum exit 0,
-      #       nobetcinin korudugu bug (muaf sayaci kapsamsizi sayar / yalniz-yorum mensiyonu
-      #       'kosuluyor' sayilir) geri gelse bile CI YESIL.
-      #   (2) denetle()'nin KIRMIZI CIKIS YOLU sakatlanirsa (return 1 -> return 0) ekrana
-      #       "SONUC: KIRMIZI ❌" basilsa da adim exit 0 verir -> Actions BASARILI sayar.
-      # --kendini-test nobetcileri DOGRUDAN cagirir ve exit kodunu kendi uretir -> her iki
-      # sinif BLOKLAYICI olur. Offline, deploy.yml disinda girdi okumaz, <1 s.
-      - name: CI kapsam kapisi oz-nobetcileri (bulgu1 + muaf sayaci, dogrudan)
-        run: python3 tools/ci-kapsam-test.py --kendini-test
 
       # MARKA->MODEL PILOT KAPISI: marka_model_build jeneratorunu izole temp ROOT'a kosar ve
       # uretilen HTML'i spec kabul kriterleriyle olcer — collision (F-150 tek URL), >=3 esik,
@@ -1111,53 +767,6 @@ jobs:
       # Offline, stdlib, ~12 s (suresi build.py'nin kendisidir).
       - name: "Yasal sayfa drift kapisi (build.py uretimi == commit'li icerik)"
         run: python3 tools/yasal-sayfa-drift-kapisi.py
-
-      # KAPININ KENDI NOBETCISI — ayri adim olmak ZORUNDA: yukaridaki kosum kapinin
-      # KIRMIZI yolunu hic denemez (agac temizse daima yesil). Bu adim hermetik bir depo
-      # kopyasinda 4 sayfayi tek tek bayatlatir (4/4 KIRMIZI bekler), kapsam daraltmayi
-      # (TABAN slug fail-closed) ve blok-DISI mesru duzenlemeyi (yanlis-pozitif yok)
-      # sinar, sonra kapinin karsilastirma/hukum/build-cagrisi/cikis-kodu satirlarini
-      # KOPYA uzerinde mutasyona ugratip her mutantin sapmayi KACIRDIGINI dogrular.
-      # Ana checkout'a DOKUNMAZ (git archive kopyasi + kirpik katalog), ~3 s.
-      - name: "Yasal sayfa drift kapisi ic nobetcisi (bayatlatma + kirmizi-mutasyon)"
-        run: python3 tools/yasal-sayfa-drift-kapisi.py --kendini-test
-
-      # CANLI SAGLIK NOBETCISI — YALNIZ KENDINI TEST (AGSIZ). Nobetcinin kendisi CANLIYA
-      # bakar (canli katalog sayisi / urun sayfasi 200 / CI hali / kart kanali / D1+gorsel)
-      # ve BILEREK CI'da KOSMAZ: ag ve canli durum oynaktir, tek gecici DNS hatasi tum
-      # ekibin yayinini durdururdu ([[kapi-kapsam-eksen-secimi]]). CI'da kosan sey yalniz
-      # KARAR MANTIGININ fiksturlu kabulu: bugunku uc gercek vaka (18 urun sayfasi CF
-      # onbellekli 404 / CI kirmizi -> 23 urun canlia cikmadi / worker bayat -> kart kanali
-      # kapali) 3/3 YAKALANMALI; yayin-penceresi ikizi (AYNI sayilar, tek fark CI'nin hali)
-      # BEKLENIYOR ile SAPMA'yi AYIRT ETMELI; ag koptugunda SESSIZ YESIL verilmemeli; ve
-      # 8 KIRMIZI-MUTASYON (6 kontrol no-op + `age` esigi + cf HIT listesi) mutantin
-      # sapmayi KACIRDIGINI kanitlamali. Offline, stdlib, git/ag GEREKTIRMEZ, <1 s.
-      - name: "Canli saglik nobetcisi — kendini test (3 vaka + yanlis-pozitif + mutasyon)"
-        run: python3 tools/canli-saglik-kapisi.py --kendini-test
-
-      # ================= MUAFIYET DENETIMI (31 Tem) — 28 OLU-NOBETCI ADAYI BAGLANDI ====
-      # NEDEN: tools/ci-kapsam-test.py IZIN_LISTESI'ndeki 65 muafiyetin BUYUK bir kismi
-      # "offline-YESIL ama bu turda deploy.yml'e 0-hunk sarti var / sonraki turda alinir"
-      # diyordu — SURECSEL bir gerekce. O tur bitti, gerekce OLDU, muafiyet KALDI: kimse
-      # kapiyi acmadi, kimse KIRMIZI gormedi. Bu blok o borcu kapatir.
-      # YORDAM (her kalem icin AYRI AYRI kosuldu, 31 Tem):
-      #   1) TEMIZ CI-benzeri checkout (`git clone --local` + `clean -xfd`) -> rc=0,
-      #   2) CANLILIK MUTASYONU: testin ACTIGI kaynak dosyada satir-silme / hedefli bozma
-      #      -> hicbiri "iddiasiz" cikmadi (or. feed_id no-op -> test-merchant-feed KIRMIZI;
-      #      surumleme no-op -> surum-test KIRMIZI; piksel kimligi degisti -> meta-piksel KIRMIZI),
-      #   3) YANLIS-POZITIF NOBETI: SON 25 GERCEK COMMIT'te tam kosum -> 28 komut x 25
-      #      commit = 700 kosum, 0 KIRMIZI.
-      # Toplam ek sure ~17 s. Hicbiri `continue-on-error` DEGILDIR (bilerek: hepsi
-      # deterministik + agsiz; fail-open bir kapi bu blogun tam olarak kacindigi seydir).
-      - name: Katalog/parti veri kapilari kabul testi (durum + edge + derin cap)
-        run: |
-          python3 tools/durum-test.py
-          python3 tools/durum-edge-test.py
-          python3 tools/derin-cap-test.py
-      - name: D1 durum tanisi + baski senkron kabul testi
-        run: |
-          python3 tools/d1-sync-durum-test.py
-          python3 tools/test-baski-senkron.py
       - name: Kaynak/lisans kabul testleri (makerworld + printables + havuz + entegrasyon)
         run: |
           python3 tools/makerworld-ara-test.py
@@ -1202,9 +811,6 @@ jobs:
           node shop/test/ref-route.mjs
       - name: Jenerator fiyat/sema kabul testi (varsayilan hacim + PLA taban fiyati)
         run: node jenerator/test/fiyat-test.js
-      # Iki govde OLCUM MANTIGININ agsiz/openscad'siz kolu (MESH olcumu degil).
-      - name: Iki govde olcum mantigi — kendini test (agsiz kol)
-        run: python3 onizleme/test/iki-govde-olcum.py --kendini-test
       # ================= MUAFIYET DENETIMI BLOGU SONU =================================
 
       # YAYIN IC-DIL KAPISI — KAYNAK KOLU (build'den ONCE; asagidaki yayin kolunun ERKEN
@@ -1214,6 +820,8 @@ jobs:
       # sonra dusurdu -> deploy + yayin SKIPPED, yayin durdu (31 Tem). Bu kol AYNI sozlugu
       # ve AYNI yorum lexer'ini build GEREKTIRMEDEN uygular; ikinci sozluk YOK, yalniz
       # kapsam degisir. Yayin kolunun YERINE GECMEZ (uretilen sayfalar orada olculur).
+      # SERIT: A (build) — SIZINTI kapisidir, yayini DURDURMALI. SERIT B'ye konsaydi
+      # tarayiciya inen kaynak dosyadaki ic-yol ifsasi yayina cikardi.
       - name: Yayin ic-dil kapisi — KAYNAK kolu (build'den once)
         run: python3 tools/yayin-ic-dil-kapisi.py --kaynak
 
@@ -1231,9 +839,8 @@ jobs:
       # Offline, stdlib, yazma yok. Gercek agacta olculdu (15.479/15.479 YESIL) + 4 mutant
       # (sayfa silindi / sayfa 0 bayt / sitemap'te sayfasiz URL / oksuz sayfa) 4/4 KIRMIZI.
       - name: "Uretici butunluk kapisi (yayinlanan her id'nin sayfasi var mi)"
-        run: |
-          python3 tools/uretim-butunluk-kapisi.py --kendini-test
-          python3 tools/uretim-butunluk-kapisi.py
+        run: python3 tools/uretim-butunluk-kapisi.py
+
 
       # JSON-LD BRAND KAPISI: uretilen TUM urun sayfalarinin JSON-LD bloklari taranir —
       # JSON gecerli + hicbir objede yinelenen anahtar yok + Product.brand TEK deger
@@ -1275,9 +882,8 @@ jobs:
       # ZORUNDA (urun/ + index.built.html'e muhtac; urun/ bos ise OLCULEMEDI ile kirmizi
       # yanar, sessiz YESIL imkansiz). Offline, stdlib, ~10 s.
       - name: Yayin ic-dil kapisi (uretilen ciktinin yorum yuzeyi)
-        run: |
-          python3 tools/yayin-ic-dil-kapisi.py --kendini-test
-          python3 tools/yayin-ic-dil-kapisi.py
+        run: python3 tools/yayin-ic-dil-kapisi.py
+
 
       # SADECE sitenin ihtiyac duydugu dosyalar yayina girer (beyaz liste).
       # Eskiden path: . tum repoyu yayinliyordu -> tools/*.py canli siteden
@@ -1333,6 +939,473 @@ jobs:
             exit 0
           fi
           python3 tools/d1-sync.py
+
+  # ==========================================================================
+  # SERIT B — YAYINI DURDURMAZ (olculmus karar, 31 Tem 2026)
+  # ==========================================================================
+  # NEDEN AYRI JOB: `deploy` job'u YALNIZ `needs: build`'e baglidir; bu job'a
+  # BAGLI DEGILDIR. Yani buradaki bir kapi KIRMIZI yansa bile urun yayini CIKAR
+  # — ama koşum KIRMIZI yanar, bildirim duser ve kirmizilik GORUNUR kalir.
+  #
+  # OLCULEN GEREKCE: CI kosum suresi 21 gunde 0,42 -> 6,55 dk (15,6x) cikti ve
+  # artisin %77'si kapi/test birikmesinden geldi (adim 3 -> 99; kapi payi
+  # %0 -> %75). 28 Tem'de o gunku 13 fail'in HEPSI TEK adimdandi ("CI kapsam
+  # kapisi") ve 6 SAATLIK 404 pencereleri acti: yeni urunun sayfasi canlida
+  # yoktu cunku ürünle ILGISI OLMAYAN bir kapi kirmiziydi. Kapi kaldirilmadi;
+  # DOGRU SERIDE konumlandirildi.
+  #
+  # 🔴 BURAYA ADIM TASIMA KURALI (fail-closed): bir adim ancak "aracin KENDINI
+  # sinamasi" ise buraya girer (mutasyon bataryasi · `--kendini-test`/
+  # `--ic-nobetci` kolu · CI/kapi meta kapisi · pano/teshis araci testi ·
+  # onizleme/ayri-dagitim arayuzu). "Yanlis/eksik/sizintili icerik canliya
+  # cikmasin" diyen HER adim SERIT A'da kalir. SUPHEDE A.
+  #
+  # 🔴 BEYAN ZORUNLU: buraya tasinan HER kapi cagrisi
+  # tools/is-akisi-kapisi.py icindeki SERIT_B tablosunda TEK TEK gerekcesiyle
+  # beyan edilmek ZORUNDADIR (joker `*` KABUL EDILMEZ). Beyansiz bir kapi
+  # cagrisi bu job'da bulunursa Bolum D KIRMIZI yanar -> bir A kapisini
+  # sessizce buraya kaydirmak MUMKUN DEGILDIR.
+  serit-b:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 — diriltme kapisinin oz-nobetcisi ve ci-kapsam mutant
+      # ureticileri git gecmisi/gercek depo dosyalari okur.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python bagimliliklari (boto3 - R2 testleri icin; pyyaml - is akisi kapisi)
+        run: pip install boto3 pyyaml
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Diriltme kapisi kabul testi (pozitif + negatif vakalar + mutasyon hedefleri)
+        run: python3 tools/diriltme-kapisi.py --kendini-test
+
+      # EGE-BILGI TAVAN — IC NOBETCI: kapinin KENDI hukmunu 30 gecici fiksturle olcer
+      # (tavan asimi · sinir 6000/6001 · astral UTF-16 ayrismasi · kesilen kuyruk onizlemesi ·
+      # dar/genis pay · dosya yok · dosya OKUNAMIYOR · UTF-8 degil · ilan sapmasi + ters yonu ·
+      # mukerrer ilan · binlik ayrac · A1-A5 masum duzenlemeler · capa satir baglami (N1) ·
+      # onek zorunlulugu (N4)). Neden ayri adim: curutucu 21 Tem 5/5 kod mutasyonunun
+      # (tavan hukmunu oldur / UTF-16'yi len(str) yap / marji oynat / fail-loud dalini
+      # return 0 yap / ilan nobetcisini oldur) SAG KALDIGINI olctu — nobetci sessizce olurse
+      # ustteki adim yesil yanmaya devam ederdi. Bugun 14/14 mutant oluyor; olcumu
+      # tekrarlamak icin: python3 tools/ege-bilgi-tavan-mutasyon.py (kapiyi SALT OKUR,
+      # mutasyonu KOPYAYA uygular — CI adimi degil, elde kosulan kanit araci).
+      # ⚠️ ILAN duzlemi UYARI'ya indigi icin oradaki mutantlarin cogu artik EXIT KODUNU degil
+      # yalniz TESHIS METNINI bozar -> fiksturler "iceren/icermeyen" metin sartiyla yazilir;
+      # sadece exit kodu karsilastiran bir fikstur onlari GOREMEZ.
+      # Fiksturler tempfile'da; repo dosyalarina DOKUNMAZ. Offline, stdlib, ~40 ms.
+      - name: Ege-bilgi tavan kapisi ic nobetci (kapinin kendi mantigi)
+        run: python3 tools/ege-bilgi-tavan-test.py --ic-nobetci
+
+      # TUR 4 TASARIM NOTU: (C) sinifi POZITIF SART ile calisir — [para jetonu] VE
+      # [taahhut kipi]. Onceki NEGATIF VETO ("betimleme varsa susturma") bypass'a acikti:
+      # bir fiil EKLEYEREK kural susturulabiliyordu ("... ve sepette GORUNUR" -> yesil).
+      # Ilke: kelime EKLEYEREK susturulabilen kural, kural degildir. Ayrica cumlecik
+      # bolucusu RAKAM ARASINDAKI nokta/virgulu BOLMEZ — Turkce binlik ayraci ("1.500 TL")
+      # (C) sinifini 1.000 TL ustunde TAMAMEN OLDURUYORDU ve fiksturler 3 haneli oldugu
+      # icin bunu goremiyordu (ders: fiksturler gercek dagilimi ornekleMEZse yesil bir sey
+      # ispatlamaz). (A) sinifi CUMLE penceresinde jeton arar (virgullu devrik tumce),
+      # olumsuzlamayi CUMLECIK penceresinde kontrol eder.
+      # TUR 5 DERSI (fikstur yerlesimi): TUR 4'te dort fiil BETIMLEME'den TAAHHUT'e
+      # tasindi ama hicbir yanlis-pozitif fiksturunde PARA jetonuyla birlikte gecmiyordu
+      # -> 36/36 YESIL yandi ve 17 mesru cumlenin 15'i KIRMIZIyken kimse gormedi.
+      # Fikstur, degisen davranisin TAM USTUNE oturmali; yanindan gecen test YANILTIR.
+      # Z1-Z6 (yesil) + Z7-Z12 (kirmizi) bu sinirin iki tarafini da nobetler.
+      # TUR 6: CIPLAK TURKCE KELIMEYE ASILI DESEN = YANLIS-POZITIF URETECI. Uc homograf
+      # ayiklandi: "sorun"(=problem) · "çapa"(MARIN kategorisinin CEKIRDEK URUNU) ·
+      # "çapak"(baski artigi). Ayrica jenerik 1. cogul fiiller (yaparız/veririz) URUN
+      # baglami ister — "Kargo cikisini ayni gun yaparız" bir uretim sozu DEGILDIR ve
+      # o cumle yuzunden tum sitenin yayini duramaz.
+      # TUR 7: (B) daraltmasi GERI ALINDI (asiri-duzeltmeydi). Olculdu — daraltmanin
+      # onledigi yanlis-pozitifler ERISILEBILIR DEGILDI (yaparız/veririz canli belgede x0),
+      # bedeli ise 28 cumlelik taahhut korpusunda yakalamanin 27 -> 10'a dusmesiydi;
+      # kacanlar arasinda kapinin KURULUS VAKASININ (M2) parafrazlari vardi.
+      # ILKE: yanlis-pozitif GURULTULUdur, dakikalar icinde duzeltilir; (B)/(C) kacisi
+      # SESSIZdir ve musteriye TICARI BEYAN olarak gider. Onarim bastiriciyla degil
+      # BAGLAM GENISLETEREK yapildi (G7-G13 o genislemenin bedelini olcer).
+      # TUR 8: "veririz/vereceğiz" ailesi AYRI ve DAR bir baglam listesi kullanir — ciplak
+      # zamir ("size/biz") TETIKLEYICI DEGIL. Sebep olculdu: "vermek" bilgi/link/kargo/oneri
+      # de verir; tek GENIS listeyle "2.500 TL uzerinde kargoyu SIZE ucretsiz veririz"
+      # KIRMIZI yaniyordu ve tetikleyici canli belgede MEVCUT ("size" l.14, "biz" l.13).
+      # V1-V7 bu ayrimin iki tarafini da nobetler; MUT8 (listeleri birlestir) V1-V5'i kirar.
+      # EGE KABILIYET — IC NOBETCI: kapinin KENDI hukmunu 73 fiksturle olcer. Hem YAKALAMA
+      # (eski dal metni · "ozel uretiriz" · mm/kumpas/cap olcu talebi · yaklasik/tahminen/
+      # civari/ortalama/bandinda fiyat · ortuk "yapabiliriz") hem YANLIS-POZITIF yonu olculur.
+      # 🔴 YANLIS-POZITIF NEDEN OLUMCUL: bu kapi `build` isinde kosuyor ve `deploy: needs: build`
+      # -> ege-bilgi.md'ye yapilan MESRU bir duzenleme kapiyi kirmizi yakarsa Ege degil TUM
+      # pruvo3d.com yayini durur. Bu yuzden M11-M15 + M21 kalici nobetci: "sorun" homografi
+      # (=problem ismi) · arayuz/ucret BETIMLEMESI ("yaklasik tutar GORUNUR", "250 TL EKLENIR")
+      # · belgenin KENDI l.9 kargo cumlesi · l.11 "netlestir" dili · duz kesin fiyat beyani
+      # (ILAN EDILMIS kor nokta — "duzeltmek" l.9'u kirar).
+      # Kritik fikstur M1: olumsuzlama CUMLECIK duzeyinde aranmali — satir duzeyinde arayan bir
+      # surum, ayni satirdaki "verme" jetonunu gorup "olcu/cizim iste" emrini MASKELER ve
+      # sahte-yesil yanar (olculdu). M16: baglac (cunku/ama/fakat) da ayirici olmali, yoksa
+      # "Olcuyu gonderin CUNKU tahmin yeterli DEGIL" maskelenir. Fiksturler bellekte; repo
+      # dosyalarina DOKUNMAZ. Offline, stdlib.
+      - name: Ege kabiliyet kapisi ic nobetci (kirmizi-mutasyon)
+        run: python3 tools/ege-kabiliyet-kapisi.py --ic-nobetci
+
+      # NOBETCI MUTASYON HARNESS: yukaridaki iki kapinin KENDISINI olcer — bozulunca GERCEKTEN
+      # kirmizi yaniyorlar mi. Feed politika kapisinin kirmizi CIKIS YOLU ve _kendini_dogrula()
+      # hicbir testle korunmuyordu; olculdu: <title> bulucusunu olduren mutasyon eski kapida
+      # exit 0 veriyordu (gercek bir vape urunu SESSIZCE geciyordu). 14 kapi mutasyonu + 3
+      # gorsel-kablolama mutasyonu kosulur, hepsi KIRMIZI yanmali; mutasyonsuz kontrol kosumu
+      # YESIL yanmali (harness "hep kirmizi" olamaz). Son 4 mutant KENDI sebebiyle yanmak
+      # zorunda (isaret metni dogrulanir): feed kirpma + uc nobetci fiksturunun korlestirilmesi
+      # (_NEGATIF / _RAPOR_POZITIF / _ASIMETRIK — ucu de tek satirla susturulabiliyordu).
+      # Mutasyon DAIMA gecici SYMLINK aynasina uygulanir — canli tools/ dizinine YAZMA YOK.
+      # Offline, urunler.json OKUNMAZ (sentetik katalog), olculdu 38 s.
+      - name: Nobetci mutasyon harness'i (kapilar bozulunca kirmizi yaniyor mu)
+        run: python3 tools/nobetci-mutasyon-test.py
+
+      # MARKA DURUM PANELI: parity-panel/parity-csv/marka-kapsama satır evreni ham defter
+      # anahtarları değil KANONIK TANINMIS_MARKALAR'dan gelir; ham defterdeki sayımlar
+      # markaKatla ile kanonik markaya KATLANIR (Toyota cover/mount... -> tek Toyota),
+      # tanınmayan (tasarımcı-adı/model-kodu) çöp anahtar satır DEĞİL, harvest edilmemiş
+      # tanınmış marka (DeWalt...) 🔴 to-do. Saf Python, sentetik fikstür, OFFLINE, ~1 s.
+      - name: Marka durum paneli kabul testi (kanonik satır + katlama)
+        run: python3 tools/marka-panel-test.py
+
+      # ... ve kapinin KENDI kabulu (nobetci olu kalmasin): 9 yanlis-pozitif senaryosu YESIL
+      # kalmali, 4 gercek drift mutanti KIRMIZI yanmali, CLI cikis kodlari (esit=0 / drift=1 /
+      # dosya-yok=1) dogru olmali, bozuk konfigur semasi artefakt URETIMINI reddetmeli
+      # (fail-closed: yarim/bozuk artefakt ship edilmez). Gecici dizinde calisir, repo dosyasi
+      # DEGISMEZ. ~2 s.
+      - name: Konfigur bundle kapisi — kendini test (yanlis-pozitif + kirmizi-mutasyon)
+        run: python3 tools/konfigur-bundle-kapisi.py --kendini-test
+
+      # ... ve kapinin KENDI kabulu: 4 yanlis-pozitif + 9 negatif vaka (sema eklendi/silindi/
+      # yeniden adlandirildi, kaynak okunamadi -> OLCULEMEDI, JSON bozuk, id yok, MUKERRER id,
+      # artefakt yok, kaynak bos) + 5 uretici iddiasi + 3 no-op mutasyonu. Gecici dizinde
+      # calisir, repo dosyasi DEGISMEZ. ~0,4 s.
+      - name: Sema bundle kapisi — kendini test (pozitif + negatif + no-op mutasyon)
+        run: python3 tools/sema-bundle-kapisi.py --kendini-test
+
+      # KONFIGUR CANLI KAPISI — kendini test (OFFLINE, BLOKLAYICI, continue-on-error YOK).
+      # Ustteki bundle kapisi "repo icindeki iki dosya tutarli mi" der; canli kapi "CANLI
+      # worker musteriden NE TAHSIL EDER" der. Ikisi AYRI eksendir ve 30 Tem'de yasanan
+      # vakayi (artefakt guncel + worker deploy EDILMEMIS -> kart kanali 2 gun kapali)
+      # YALNIZ canli kapi gorebilir; o vaka boyunca butun repo-ici kapilar YESILDI.
+      # Bu adim kapinin SAF karar mantigini olcer (ag YOK, sahte HTTP katmani): 12 senaryo +
+      # 3 HTTP kod eslemesi + 3 KIRMIZI-MUTASYON (fiyat karsilastirmasi / 400 kolu / "ariza"
+      # sinifi oldurulunce ilgili senaryo YESILE donmeli = iddia yuk tasiyor) + gercek
+      # katalogla yanlis-pozitif nobeti. Offline, dosya YAZMAZ, ~2 s.
+      #
+      # 🔴 CANLI OLCUMUN KENDISI BURADA KOSMAZ — BILEREK. Canli SONUC olcumu bir DEPLOY
+      # KAPISI DEGIL, IZLEME (nobet) isidir: deploy ONCESI hicbir sey kanitlamaz, aga
+      # bagimlidir ve yanlis-pozitifi TUM EKIBIN yayinini durdurur. `continue-on-error: true`
+      # ile "bagiran ama bloklamayan" bir adim koymak da yanlis cozumdu: is-akisi-kapisi
+      # Bolum D onu BEYANSIZ FAIL-OPEN sayar ve kapi KIRMIZI yanar; muafiyet beyani ise
+      # D3b'nin DAIRESEL DAYANAK kuralina takilir (bir kapi kendi adimini dayanak gosteremez).
+      # Canli olcumun sahibi tools/canli-saglik-kapisi.py'nin K4 (KART) eksenidir: o arac bu
+      # dosyayi bulup CAGIRIR, bulamazsa ARAC-YOK -> ARIZA -> OLCULEMEDI verir.
+      # Elle/nobette kosum:  python3 tools/konfigur-canli-kapisi.py --gecikme 0.4
+      - name: Konfigur canli kapisi — kendini test (offline karar mantigi + mutasyon)
+        run: python3 tools/konfigur-canli-kapisi.py --kendini-test
+
+      # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
+      # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,
+      # genel GO/NO-GO, worker 403->BLOKLU(HocA), d1 kimlik-hatasi->BLOKLU(Okan), origin turetme,
+      # bayrak ayiklama) sentetik girdilerle KIRMIZI-MUTASYON uslubunda kanitlar. Agsiz, stdlib:
+      # araci yalnizca IMPORT eder (main() cagrilmaz -> import-aninda subprocess/HTTP/d1 I/O YOK,
+      # tum canli I/O fonksiyon govdesinde ve __main__'de). Bloklayici: kapinin karar mantigi
+      # bozulursa (or. sahte-GO / yanlis band / 12.000 esik kaymasi) bu test kirmizi yanar.
+      # build.py'den ONCE kosar, ~40 ms.
+      - name: Edge flip hazirlik kapisi kabul testi (saf karar mantigi)
+        run: python3 tools/edge-flip-hazirlik-test.py
+
+      # D1-SYNC HATA TANISI: gecici ag ve gercek kimlik hatalarinin retry/teshis ayrimini
+      # sahte subprocess sonuclariyla kanitlar. Offline/mock; D1'e ve aga dokunmaz.
+      - name: D1-sync hata tanisi kabul testi
+        run: python3 tools/d1-sync-tani-test.py
+
+      # ATOMIK YAYIN KAPISI — KARAR MANTIGININ offline kabulu (EKSEN 1, 31 Tem).
+      # Kapinin KENDISI (aday secimi + canli 200 sarti + tek-yon UPDATE) burada AGSIZ
+      # sinanir; canliya vuran `--yayinla` kolu deploy'dan SONRA ayri `yayin` isinde kosar
+      # (bu ise BAGLI DEGIL: yayin gecikirse urun TASLAK kalir, yani gorunmez — 404 vermez).
+      # Fault injection ile olculdu: kapinin 7 mutanti (200 sarti gevsedi / canli JSON sarti
+      # dustu / WHERE yayinda=0 dustu / parcalama kirpti / tavan kalkti / olculmeyen id
+      # 'iyi' sayildi / bayat satir sarti dustu) 7/7 KIRMIZI. Offline, stdlib, <1 s.
+      - name: "Atomik yayin kapisi — kendini test (aday secimi + 200 sarti + tek yon)"
+        run: python3 tools/yayin-kapisi.py --kendini-test
+
+      # FAZ3 GECIKME NOBETCISI (tools/faz3-gecikme.js) — YANLIS-POZITIF/NEGATIF kapisi.
+      # (Bu blok ile alttaki YEDEK TAZELIK blogu BAGIMSIZ iki hunk'tir; merge cakismasinda
+      # ikisi de KORUNUR — biri digerinin yerine gecmez.)
+      # O betik eskiden uctan uca RTT'yi butceyle karsilastiriyordu: Fethiye→Cloudflare ag
+      # gecikmesi tek basina 300 ms'i asabildigi icin SAGLIKLI sistemde KIRMIZI yaniyordu,
+      # simetrigi de vardi (hizli agda yavas Worker YESIL). Karar artik yalniz worker-ici
+      # sureye ("ms") gore verilir; RTT bilgi olarak raporlanir. Bu adim kusrun geri
+      # gelmesini engeller: sahte bir uc kaldirip AG gecikmesi ile WORKER-ICI sureyi
+      # BAGIMSIZ oynatir (tek eksenli fikstur RTT'ye bakan betigi de yesil yakar, yani
+      # hicbir sey olcmez). 6 senaryo: yavas-ag/saglikli -> exit 0, yavas-worker -> exit 1,
+      # hizli-ag/yavas-worker -> exit 1, "ms" alani yok -> exit 2 (OLCULEMEDI),
+      # uc kapali -> exit 2, kismi hata -> exit 1 ("butce" diye raporlanmaz).
+      # OFFLINE: yalniz 127.0.0.1; urunler.json/D1/R2/canli Worker OKUNMAZ. node gerekir
+      # (setup-node yukarida bloklayici on-kosul; node yoksa FAIL-CLOSED exit 1). ~23 s.
+      - name: Faz3 gecikme nobetcisi (RTT degil worker-ici sure ile karar)
+        run: python3 tools/faz3-gecikme-test.py
+
+      # YEDEK TAZELIK PANOSU (durum.py bolum 7): yedegin kendisi degil, YEDEGIN SESSIZCE
+      # DURMASI oldurucu — pano bayatligi/atlanmis kosumu/asili kilidi GORUNUR kilan tek
+      # kanaldir (pre-push yedek ciktisini /dev/null'a yutar). Testin iddiasi "pano yalan
+      # soylemiyor mu": bayat/kismi/gelecek-tarihli/atlanmis/asili-kilit hallerinde "taze"
+      # DEMEMELI, kapsanmis atlamada da bosuna uyarmamali (gurultulu pano = olu pano).
+      # Fiksturler tempdir + sentetik damga uzerinde kosar; Drive/ag GEREKMEZ ve betik
+      # DOSYA YAZMAZ. "Hermetik" DEMIYORUZ: kontrollerin bir kismi makinenin ORTAMINI
+      # (asagidaki eksenler) sorgular, o yuzden kontrol sayisi makineden makineye
+      # DEGISIR — sayiyi buraya YAZMA, betigin KENDI ozetinden oku.
+      # Kontrol SAYISI ve sure betigin KENDI ciktisindadir — buraya SABIT SAYI YAZILMAZ.
+      # Gerekce: yoruma gomulu sayi bir VERI CAPASIDIR, her yeni nobetciyle sessizce
+      # bayatlar ve okuyani yaniltir — bu yorumun onceki surumlerinde tekrar tekrar
+      # oldu (kontrol sayisi, sure, eksen sayisi). Bloklayici, continue-on-error YOK.
+      #
+      # ⚠️ SUREYI/RC'YI OLCERKEN: bu betik bolum 9'da KENDINI `ps`siz bir PATH ile
+      # YENIDEN CAGIRIR (alt kosum, `--ps-yok-alt-kosum`). Alt kosumun ciktisi ve suresi
+      # BU ADIMIN DEGILDIR — alt kosum bolum 9'u atlar, yani kapinin kirmizisini yakan
+      # kontrolleri de atlar (bu yuzden ana kosum alt kosumdan HEP UZUN surer). Bu hat
+      # iki ayri turda tam bu yuzden YANLIS olctu (bir kez rc, bir kez sure). Olcum
+      # DAIMA yukaridaki `run:` satirinin BIREBIR komutuyla, bayraksiz yapilir.
+      #
+      # ORTAM BAGIMLILIKLARI: dis binary / kaynak kumesi yoklugu GORUNUR ⚪ OLCULEMEDI
+      # verir ve cikis kodunu BOZMAZ; sessiz yesile de cevrilmez. EKSENLERIN SAYISINI
+      # BURAYA YAZMA — betigin ozeti her ekseni AYRI satirda kendisi sayar ("PS/GIT/
+      # KAYNAK/FIKSTUR EKSEN OLCULEMEDI") ve ilan edilmemis her ⚪'yi "EKSENSIZ
+      # OLCULEMEDI" ile yakalar. Her ⚪ satiri hangi eksende oldugunu kendi basar.
+      #   - `ps` (procps) — pid KIMLIK dogrulamasi onunla olculur.
+      #   - `git` — ANA calisma agaci cozumu onunla yapilir (yoksa kok WORKTREE'ye duser).
+      #   Ikisi de UC HALLI: PATH'te YOK -> ⚪, deploy BLOKLANMAZ · VAR ama BOZUK ->
+      #   KIRMIZI, fail-closed (bozuk bagimlilik eksik bagimliliktan farklidir) ·
+      #   VAR ve calisiyor -> kontroller NORMAL, bloklayici.
+      #   - YEDEKLENECEK KAYNAK KUMESI (~/.claude/{projects/*/memory,skills} + repo
+      #     kokundeki beklenen dosyalar) — K5 canli-imza olcumunun GERCEK ucu buna
+      #     baglidir. CI fresh checkout'unda HOME BOS ve o dosyalar gitignore'lu
+      #     (izlenen DEGIL) -> kaynak kumesi YOKTUR, o kontroller ⚪ olur.
+      # Gerekce (hepsi icin): bloklayici bir kapinin dis bagimlilik/ortam yoklugunda
+      # TUM SITE YAYININI durdurmasi bu depoda YASANMIS bir ariza sinifidir
+      # ([[kapi-kapsam-eksen-secimi]]) — bu adimda tekrar tekrar yasandi: `ps`siz
+      # makinede rc 1, CI taklidinde kaynak kumesi yoklugundan rc 1, `git`siz makinede
+      # rc 1 + yakalanmamis FileNotFoundError.
+      # EKSEN AYRIMI SART: "ps VARKEN ⚪ 0" nobetcisi TOPLAM ⚪'ya bakarsa alakasiz bir
+      # eksenin ⚪'si onu kirmiziya cevirir (CI taklidinde olculdu).
+      # 🔴 NOBETCIYI, KORUDUGU KOSULUN ICINE KOYMA: kimlik nobetleri ve gitsiz-pano
+      # nobeti SENTETIK PATH fiksturuyle kosar (ozet "BAGIMSIZ NOBET" diye sayar),
+      # yani makinede `ps`/`git` olsa da olmasa da AYNI olcumu yapar. Onceki surumde
+      # nobetcinin kendisi `ps`e bagliydi ve `ps`siz makinede iki gercek mutant sessiz
+      # YESIL geciyordu (olculdu).
+      - name: Yedek tazelik panosu kabul testi (durum.py bolum 7 — sessiz-hata nobeti)
+        run: python3 tools/durum-yedek-test.py
+
+      # JENERATOR NOBETCILERININ KENDI KABULU (madde 34b, 31 Tem). Bu iki nobetci 30 Tem'de
+      # yazildi ama `jenerator/test/*` R_AYRI blanket muafiyeti yuzunden CI'da HIC kosmuyordu
+      # -> nobetcinin kendisi curuse kimse gormezdi (olculmus sinif: "yesil yanan olu nobetci").
+      # 🔴 YALNIZ `--kendini-test` KOLLARI BAGLANDI. Bu kollar sentetik fikstur uzerinde
+      # calisir: ag YOK, OpenSCAD YOK, build.py YOK, wrangler YOK. Ikisi de argparse'ta
+      # sys.exit(kendini_test()) ile ERKEN DONER — bayraksiz tam suite'e (TEST 1 OpenSCAD
+      # render + build.py cagrisi) HIC girmez. Bayraksiz tam kosum CI'ya BAGLANMADI ve
+      # susturulmadi; yerelde/merge kapisinda kosulmaya devam ediyor.
+      # Artefakt birakmaz: her iki kol da yazdigi gecici dosyayi (jenerator/*-gecici.js,
+      # urun/_pruvo-kendini-test, __pycache__ .pyc) kendi temizler — olculdu, kosum sonrasi
+      # `git status --porcelain` degismedi. Toplam ~0,5 s.
+      - name: "OpenSCAD yasak nobetcisi — kendini test (18 iddia; PATH/symlink/maskeli shim)"
+        run: python3 jenerator/test/dogrula.py --kendini-test
+
+      # 31 Tem: bu kola SUITE BUTUNLUGU eksenleri (V6-V8) eklendi. Gerekce: bayraksiz
+      # tam suite CI'da kosmaz (OpenSCAD + build.py ister) ve onun hukmu "kirmizi var mi"
+      # idi -> bir testin GOVDESINI SILMEK suite'i sessizce yesil birakiyordu. Hukum
+      # mantigi saf fonksiyona (suite_butunlugu) alindi ve CI'da kosan bu kolda olculuyor.
+      - name: "Jeneratör tarama kumesi + suite butunlugu nobetcisi — kendini test (sahte KIRMIZI + OLCULEMEDI + silinen test)"
+        run: python3 jenerator/test/kabul.py --kendini-test
+
+      # 31 Tem: eslem-olcum.py TAM kolu CI'da kosamaz (gizli `eslem-ozel.json` paketi
+      # + openscad ister) ve tam bu yuzden HUKUM mantigi hic olculmuyordu. OLCULDU:
+      # `uretilemez` (422) sayaci hukme girmiyordu -> TUM setleri 422'ye dusen aile
+      # "yesil" ilan ediliyor, arac rc=0 donuyordu (sifir olculen set = yesil).
+      # Hukum saf fonksiyona alindi; bu kol ag/openscad/paket ISTEMEZ.
+      - name: "Onizleme eslem-olcum hukum nobetcisi — kendini test (sifir olculen set / 422 yesil sayilmaz)"
+        run: python3 onizleme/test/eslem-olcum.py --kendini-test
+
+      # ... ve kapinin KENDI kabulu: 6 pozitif (temiz urun / urun disi degisiklik / mesru alan
+      # degisikligi / taban USTU fiyat / TOPLU islem eski ihlale dokundu / temizlik commit'i)
+      # + 5 negatif (yeni urunde dolgu-orani, yeni urunde baski fiili, DEGISEN urun ifsa
+      # kazandi, taban ALTI fiyat, eski ihlalli urun YENI ihlal kazandi) + 2 OLCULEMEDI
+      # (HEAD^ yok, HEAD'deki JSON bozuk) + 2 mutasyon (DEGISEN ekseni NO-OP -> N3 susar;
+      # 'onceden' filtresi asiri-susturma -> N1 susar). Sentetik git deposu, ~10 s.
+      - name: "Urun denetim kapisi — kendini test (pozitif + negatif + OLCULEMEDI + mutasyon)"
+        run: python3 tools/denetim-kapisi.py --kendini-test
+      # SERIT B — bu adim 68 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
+      # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
+      # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.
+      - name: "Gramer artigi kapisi oz-nobetcisi (SERIT B)"
+        run: python3 tools/gramer-artigi-kapisi.py --kendini-test
+
+
+      # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
+      # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden
+      # onizlenmis her parametre seti YAZISIZ mesh'i (kase: herkese "PRUVO") servis etmeye
+      # DEVAM eder. Bu adim GERCEK worker'i (onizleme/src/index.js) node'a yukleyip sahte R2
+      # ile anahtari yakalar: surum bump'i anahtari degistiriyor mu + surum ZEHIRLI SURUM
+      # TABANI'nin (bugun v7; v5 yazisiz mesh, v6 rollout penceresi zehirlenmesi) altina
+      # dusmus mu + yalniz `yazi` degisince anahtar ayrisiyor mu. Taban SAYISAL: ileri
+      # bump testi elle duzeltmeden yesil kalir, geri alma KIRMIZI. Node 20'de olculdu
+      # (module.registerHooks gibi Node 22+ API'si YOK; JSON import'lari gomulur).
+      # OFFLINE: ag yok, R2 yok, wrangler yok, repo dosyasi YAZILMAZ (gecici dizin). ~0,5 s.
+      - name: Onizleme onbellek surum kapisi (bayat mesh servis edilmesin)
+        run: node onizleme/test/onbellek-surum.mjs
+
+      # ONIZLEME GORUNURLUK KAPISI (Okan canli sikayeti, 29 Tem — olcuye-ozel-cerceve):
+      # (1) "renk secimi onizlemeyi degistirmiyor": sayfa scripti rengi YALNIZ aile
+      # sabit tablosundan okuyordu, musteri secimi viewer'a HIC gitmiyordu. (2) "yazi
+      # gorunmuyor": kabartma geometri mesh'te VARDI (canli: 1304 -> 2666 ucgen, 1,2 mm
+      # kabartma) ama yazinin ust yuzu cerceve on yuzuyle AYNI normale sahip oldugundan
+      # koyu renkte yalniz ~15/255 tonluk bir fark uretiyordu = gorunmuyordu.
+      # Bu adim GERCEK kodu olcer: build.py'nin sayfaya BASTIGI ONIZLEME_JS metni sahte
+      # DOM'da (canli sayfanin renk-BUTONU duzeni) kosar, altinda GERCEK jenerator/viewer.js
+      # + WebGL cagrilarini kaydeden sahte baglam vardir -> GPU'ya giden uRenk uniform'u
+      # olculur. Yazi ekseni CPU rasterlestiricisiyle piksel farki olcer (kamera + golgeleme
+      # viewer'in KENDI fonksiyonlarindan; kopya matematik yok).
+      # KIRMIZI-MUTASYON (olculdu, 5/5 yakalandi): kParlak 0 (eski isik) -> B2 kirmizi;
+      # ONIZLEME_RENK_SECIMI bosaltilir -> A2/A3 kirmizi; sayfa scripti eski satira
+      # dondurulur -> A4b kirmizi; renk dinleyicisi silinir -> A4c kirmizi; viewer kolu
+      # renkAyarla dondurmez -> A4c kirmizi.
+      # OFFLINE: ag YOK, openscad YOK, R2/wrangler YOK, urunler.json OKUNMAZ, dosya yazmaz.
+      # Node 20'de olculdu (Node 22+ API'si kullanilmaz). ~1 s.
+      - name: Onizleme gorunurluk kapisi (secilen renk + kabartma yazi ekranda mi)
+        run: node onizleme/test/renk-yazi-gorunurluk.mjs
+
+      # IKI GOVDE (2-RENK YAZI) SOZLESMESI — Okan canli sikayeti, 29 Tem:
+      # /urun/olcuye-ozel-cerceve/ "Yazı rengi (2. renk)" seciyor ama uretim TEK GOVDE
+      # donduruyordu (Output="frame") -> yazi cerceveyle AYNI filamandan basiliyordu.
+      # (a) ESLEM/-D ekseni: iki parca ailesi (<aile>#govde / <aile>#yazi) ayni .scad'i
+      #     ayni bayraklarla, YALNIZ `Output` farkiyla surer (hizalama yapisal garanti);
+      #     taban aile BIREBIR AYNI kalir (geriye donuk uyum). Fail-closed uretim.
+      # (b) WORKER/VIEWER/SAYFA ekseni: parcasiz onbellek anahtari BIT-AYNI (donmus capa),
+      #     parcali anahtar ayri ad uzayinda, gecersiz parca 400, viewer iki govdeyi iki
+      #     renkte ve KAYDIRMADAN cizer, sayfa 2-renk secilince IKI istek atar.
+      # KIRMIZI-MUTASYON: kapilarin kendi --kendini-test turlarinda olculur
+      # (5/5 + 1/1 yakalandi; ham cikti dal raporunda).
+      # OFFLINE: ag YOK, openscad YOK, R2/wrangler YOK, urunler.json OKUNMAZ. ~2 s.
+      # MESH ekseni (ucgen/bbox/hacim) openscad ister -> onizleme-imaj.yml
+      # (onizleme/test/iki-govde-olcum.py); burada BILEREK kosmaz.
+      # ⚠️ TIRNAK ZORUNLU: YAML plain scalar'da ": " (iki nokta + bosluk) AYRISTIRMA
+      # HATASIDIR -> is HIC baslamaz (startup_failure) ve TUM EKIBIN yayini durur.
+      # 29 Tem'de bu satir tirnaksiz gitti, deploy.yml 0 sn'de "workflow file issue"
+      # verdi (hicbir is baslamadi; ci-kapsam-test.py metin arar, YAML AYRISTIRMAZ).
+      # SERIT B — bu adim IKIYE BOLUNDU (kapi SILINMEDI): bayraksiz (gercek olcum) kol
+      # SERIT A'ya (build) alindi, cunku iddia 4 YAYINLANAN `secenekler.js`
+      # ONIZLEME_PARCALAR listesi ile uretim eslem json'unun TEK KAYNAK paritesini olcer
+      # -> sapinca site URETILEMEYEN bir 2-renk parcasi SUNAR (Okan'in 29 Tem vakasinin
+      # ta kendisi: site satiyor, uretim veremiyor). Oz-nobetci kolu burada kaldi.
+      - name: Iki govde eslem kapisi oz-nobetcisi
+        run: python3 tools/iki-govde-kapisi.py --kendini-test
+      - name: Iki govde kabul kapisi (worker parca ucu + viewer iki renk + sayfa)
+        run: node onizleme/test/iki-govde-kabul.mjs
+      - name: Iki govde kabul kapisi kirmizi-mutasyon turu
+        run: node onizleme/test/iki-govde-kabul.mjs --kendini-test
+
+      # PAKET TAZELIK KAPISI — OFFLINE kip. Bloklayici PAKET olcumu BILEREK burada DEGIL,
+      # onizleme-imaj.yml'de kosar (bayat paket TUM SITE yayinini durdurmasin). Burada
+      # kosan sey UC nobetci: (a) kapinin govdesi inert mi (5 sentetik fikstur),
+      # (b) GERCEK cagri satiri onizleme-imaj.yml'de DURUYOR mu — ci-kapsam-test.py yalniz
+      # deploy.yml'e baktigi icin o satirin silinmesini baska hicbir nobetci gormez
+      # (olculdu: imaj is akisindaki adim silinince ci-kapsam RC=0, bu kapi RC=1),
+      # (c) SURUMLU ANAHTAR: sabit 'guncel' takma adina yazma / sabit s3 nesne yolundan
+      # cekme geri geldi mi. R2'de VAR OLAN anahtarin uzerine yazma bu bucket'ta
+      # "Upload complete." + RC=0 dondugu halde nesneyi DEGISTIRMIYOR (olculdu 29 Tem,
+      # 4 deneme + silme denemesi) -> takma ad bayat kalir, CI onarilmis main'e ragmen
+      # ESKI eslemle imaj derler. Yukleyici ekseni METIN ARAMAZ: yuklenecek_anahtarlar()
+      # fiilen cagrilir (fault-injection ile test edilir).
+      # Bu kip yalnizca kendi fiksturlerini ve onizleme-imaj.yml METNINI okur; urunler.json /
+      # index.html / sema dosyalari OKUNMAZ -> rutin degisiklikte yanlis-pozitif uretemez.
+      - name: Paket tazelik kapisi oz-nobetcileri (cagri satiri + govde inertligi)
+        run: python3 tools/paket-tazelik-kapisi.py
+
+      # CI KAPSAM KAPISI: repodaki her IZLENEN kabul testi ya bu is akisinda kosulur ya da
+      # tools/ci-kapsam-test.py IZIN_LISTESI'nde gerekceyle muaf tutulur. Yeni bir test sessizce
+      # CI-disi kalirsa (olu nobetci CI'dan success alirsa) bu adim KIRMIZI yanar. Offline.
+      - name: CI kapsam kapisi (her kabul testi kosuluyor mu / gerekceli muaf mi)
+        run: python3 tools/ci-kapsam-test.py
+
+      # KAPININ KENDI NOBETCILERI — ayri adim olmak ZORUNDA (olculdu 27 Tem):
+      # ci-kapsam-test.py'nin kendi mutasyon nobetcileri (bulgu1_mutasyon_kontrol +
+      # muaf_sayaci_kontrol) yukaridaki BAYRAKSIZ kosumda YALNIZ denetle(..., kontroller=True)
+      # yolundan cagriliyor. Bu iki mutant sinifi orada SESSIZ kaliyordu:
+      #   (1) denetle() icindeki nobetci CAGRILARI silinirse -> bayraksiz kosum exit 0,
+      #       nobetcinin korudugu bug (muaf sayaci kapsamsizi sayar / yalniz-yorum mensiyonu
+      #       'kosuluyor' sayilir) geri gelse bile CI YESIL.
+      #   (2) denetle()'nin KIRMIZI CIKIS YOLU sakatlanirsa (return 1 -> return 0) ekrana
+      #       "SONUC: KIRMIZI ❌" basilsa da adim exit 0 verir -> Actions BASARILI sayar.
+      # --kendini-test nobetcileri DOGRUDAN cagirir ve exit kodunu kendi uretir -> her iki
+      # sinif BLOKLAYICI olur. Offline, deploy.yml disinda girdi okumaz, <1 s.
+      - name: CI kapsam kapisi oz-nobetcileri (bulgu1 + muaf sayaci, dogrudan)
+        run: python3 tools/ci-kapsam-test.py --kendini-test
+
+      # KAPININ KENDI NOBETCISI — ayri adim olmak ZORUNDA: yukaridaki kosum kapinin
+      # KIRMIZI yolunu hic denemez (agac temizse daima yesil). Bu adim hermetik bir depo
+      # kopyasinda 4 sayfayi tek tek bayatlatir (4/4 KIRMIZI bekler), kapsam daraltmayi
+      # (TABAN slug fail-closed) ve blok-DISI mesru duzenlemeyi (yanlis-pozitif yok)
+      # sinar, sonra kapinin karsilastirma/hukum/build-cagrisi/cikis-kodu satirlarini
+      # KOPYA uzerinde mutasyona ugratip her mutantin sapmayi KACIRDIGINI dogrular.
+      # Ana checkout'a DOKUNMAZ (git archive kopyasi + kirpik katalog), ~3 s.
+      - name: "Yasal sayfa drift kapisi ic nobetcisi (bayatlatma + kirmizi-mutasyon)"
+        run: python3 tools/yasal-sayfa-drift-kapisi.py --kendini-test
+
+      # CANLI SAGLIK NOBETCISI — YALNIZ KENDINI TEST (AGSIZ). Nobetcinin kendisi CANLIYA
+      # bakar (canli katalog sayisi / urun sayfasi 200 / CI hali / kart kanali / D1+gorsel)
+      # ve BILEREK CI'da KOSMAZ: ag ve canli durum oynaktir, tek gecici DNS hatasi tum
+      # ekibin yayinini durdururdu ([[kapi-kapsam-eksen-secimi]]). CI'da kosan sey yalniz
+      # KARAR MANTIGININ fiksturlu kabulu: bugunku uc gercek vaka (18 urun sayfasi CF
+      # onbellekli 404 / CI kirmizi -> 23 urun canlia cikmadi / worker bayat -> kart kanali
+      # kapali) 3/3 YAKALANMALI; yayin-penceresi ikizi (AYNI sayilar, tek fark CI'nin hali)
+      # BEKLENIYOR ile SAPMA'yi AYIRT ETMELI; ag koptugunda SESSIZ YESIL verilmemeli; ve
+      # 8 KIRMIZI-MUTASYON (6 kontrol no-op + `age` esigi + cf HIT listesi) mutantin
+      # sapmayi KACIRDIGINI kanitlamali. Offline, stdlib, git/ag GEREKTIRMEZ, <1 s.
+      - name: "Canli saglik nobetcisi — kendini test (3 vaka + yanlis-pozitif + mutasyon)"
+        run: python3 tools/canli-saglik-kapisi.py --kendini-test
+
+      # ================= MUAFIYET DENETIMI (31 Tem) — 28 OLU-NOBETCI ADAYI BAGLANDI ====
+      # NEDEN: tools/ci-kapsam-test.py IZIN_LISTESI'ndeki 65 muafiyetin BUYUK bir kismi
+      # "offline-YESIL ama bu turda deploy.yml'e 0-hunk sarti var / sonraki turda alinir"
+      # diyordu — SURECSEL bir gerekce. O tur bitti, gerekce OLDU, muafiyet KALDI: kimse
+      # kapiyi acmadi, kimse KIRMIZI gormedi. Bu blok o borcu kapatir.
+      # YORDAM (her kalem icin AYRI AYRI kosuldu, 31 Tem):
+      #   1) TEMIZ CI-benzeri checkout (`git clone --local` + `clean -xfd`) -> rc=0,
+      #   2) CANLILIK MUTASYONU: testin ACTIGI kaynak dosyada satir-silme / hedefli bozma
+      #      -> hicbiri "iddiasiz" cikmadi (or. feed_id no-op -> test-merchant-feed KIRMIZI;
+      #      surumleme no-op -> surum-test KIRMIZI; piksel kimligi degisti -> meta-piksel KIRMIZI),
+      #   3) YANLIS-POZITIF NOBETI: SON 25 GERCEK COMMIT'te tam kosum -> 28 komut x 25
+      #      commit = 700 kosum, 0 KIRMIZI.
+      # Toplam ek sure ~17 s. Hicbiri `continue-on-error` DEGILDIR (bilerek: hepsi
+      # deterministik + agsiz; fail-open bir kapi bu blogun tam olarak kacindigi seydir).
+      - name: Katalog/parti veri kapilari kabul testi (durum + edge + derin cap)
+        run: |
+          python3 tools/durum-test.py
+          python3 tools/durum-edge-test.py
+          python3 tools/derin-cap-test.py
+      - name: D1 durum tanisi + baski senkron kabul testi
+        run: |
+          python3 tools/d1-sync-durum-test.py
+          python3 tools/test-baski-senkron.py
+      # Iki govde OLCUM MANTIGININ agsiz/openscad'siz kolu (MESH olcumu degil).
+      - name: Iki govde olcum mantigi — kendini test (agsiz kol)
+        run: python3 onizleme/test/iki-govde-olcum.py --kendini-test
+      # SERIT B — bu adim 95 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
+      # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
+      # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.
+      - name: "Uretici butunluk kapisi oz-nobetcisi (SERIT B)"
+        run: python3 tools/uretim-butunluk-kapisi.py --kendini-test
+
+      # SERIT B — bu adim 99 adimindan AYRILDI (kapi SILINMEDI, ikiye bolundu):
+      # bayraksiz (gercek olcum) kol SERIT A'da bloklayici kaldi, oz-nobetci kolu
+      # buraya tasindi. Gerekce: tools/is-akisi-kapisi.py :: SERIT_B tablosu.
+      - name: "Yayin ic-dil kapisi oz-nobetcisi (SERIT B)"
+        run: python3 tools/yayin-ic-dil-kapisi.py --kendini-test
+
 
   deploy:
     needs: build
