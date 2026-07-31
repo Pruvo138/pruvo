@@ -814,10 +814,11 @@ IZIN_LISTESI = {
     # (gitignore'lu, R2'den cekilir) -> CI fresh checkout'unda "Paket toplanamadi" ile
     # rc=1; ucuncusu `KAPAT_ANAHTAR` ortam degiskeni (secret) ister -> rc=2. Ucu de
     # onizleme-imaj.yml hattinda, paket + secret ayaktayken kosar.
-    "onizleme/test/eslem-olcum.py": (
-        R_AYRI + " Somut (31 Tem olcumu): TEMIZ checkout'ta rc=1 — "
-        "`onizleme/derleyici/eslem-ozel.json` gitignore'lu GIZLI paket girdisi yok "
-        "('Paket toplanamadi'). Pages build job'unda o paket YOKTUR."),
+    # 🔴 31 TEM — "onizleme/test/eslem-olcum.py" MUAFIYETI KALDIRILDI. Gerekce dogruydu
+    # (TAM kol gizli paketi ister) ama BEDELI olculmedi: muaf oldugu icin HUKUM mantigi
+    # CI'da hic kosmuyordu ve orada bir FAIL-OPEN vardi (422/sifir-olculen-set sessiz
+    # YESIL). Cozum kabul.py deseninin aynisi: ag/paket/openscad ISTEMEYEN
+    # `--kendini-test` kolu deploy.yml'de BLOKLAYICI kosar; TAM kol yine imaj hattinda.
     "onizleme/test/kabul.js": (
         R_AYRI + " Somut (31 Tem olcumu): TEMIZ checkout'ta rc=1 — ayni gizli paket "
         "girdisi (`eslem-ozel.json`) yok. Deploy hattinin girdisi degil."),

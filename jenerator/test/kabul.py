@@ -88,6 +88,38 @@ def kayit(no, ad, yesil, detay=""):
                                    ("\n" + detay) if detay else ""))
 
 
+# ---- SUITE BUTUNLUGU (31 Tem 2026) — SILINEN TEST GORUNMEZ DEGILDIR ---------
+# OLCULEN FAIL-OPEN: ozet `8 - len(kirmizi)` SABIT LITERALI ile basiliyordu ve hukum
+# YALNIZ `SONUC` icindeki KIRMIZILARA bakiyordu. Sonuc: bir testin govdesi (ornegin
+# TEST 5 gizlilik taramasi) suite'ten SILINSE SONUC'a hic giris yazilmaz -> kirmizi
+# YOK -> bayraksiz kol exit 0 ve ozet satiri DEGISMEDEN "8 YESIL" der. Yani nobetciyi
+# KALDIRMAK, onu YESILE cevirmenin en kolay yoluydu; hicbir sey bagirmiyordu.
+# FAIL-CLOSED: beklenen test NUMARALARI burada BEYAN edilir; eksik/mukerrer/fazla
+# giris KIRMIZI'dir. (Yeni test eklerken bu demeti de guncelle — bilincli adim.)
+BEKLENEN_TESTLER = (1, 2, 3, 4, 5, 6, 7, 8)
+
+
+def suite_butunlugu(sonuc, beklenen=BEKLENEN_TESTLER):
+    """(hatalar) — SAF fonksiyon; oz-nobetci bunu POZITIF ve NEGATIF yonde surer."""
+    hatalar = []
+    gorulen = [s[0] for s in sonuc]
+    eksik = [n for n in beklenen if n not in gorulen]
+    mukerrer = sorted(set(n for n in gorulen if gorulen.count(n) > 1))
+    fazla = sorted(set(n for n in gorulen if n not in beklenen))
+    if eksik:
+        hatalar.append("SUITE EKSIK: %s numarali test(ler) hic KAYIT ETMEDI -> govdesi "
+                       "silinmis/atlanmis olabilir; 'kirmizi yok' YESIL DEMEK DEGILDIR"
+                       % ", ".join(str(n) for n in eksik))
+    if mukerrer:
+        hatalar.append("SUITE MUKERRER: %s numarasi birden fazla kayit etti"
+                       % ", ".join(str(n) for n in mukerrer))
+    if fazla:
+        hatalar.append("SUITE BEYAN DISI: %s numarali test BEKLENEN_TESTLER'de yok "
+                       "(test eklendiyse demeti guncelle)"
+                       % ", ".join(str(n) for n in fazla))
+    return hatalar
+
+
 def kos(cmd, **kw):
     return subprocess.run(cmd, capture_output=True, text=True, **kw)
 
@@ -279,9 +311,23 @@ def kendini_test():
         if os.path.isdir(artefakt_dizin):
             os.rmdir(artefakt_dizin)
 
+    # (6-8) SUITE BUTUNLUGU — bayraksiz kolun "silinen test gorunmez" fail-open'i.
+    # Bayraksiz tam suite CI'da KOSMAZ (OpenSCAD/build.py ister) -> onun hukum
+    # mantigini SAF fonksiyon olarak burada, CI'da kosan kolda olcuyoruz.
+    tam = [(n, "sentetik", True) for n in BEKLENEN_TESTLER]
+    bekle("V6 NEGATIF-DISI: tam suite butunluk hatasi URETMEZ (yanlis-pozitif yok)",
+          suite_butunlugu(tam) == [], "hatalar=%s" % suite_butunlugu(tam))
+    eksikli = [v for v in tam if v[0] != 5]
+    bekle("V7 POZITIF: bir test hic KAYIT ETMEZSE (govdesi silinmis) KIRMIZI",
+          any("SUITE EKSIK" in h for h in suite_butunlugu(eksikli)),
+          "hatalar=%s" % suite_butunlugu(eksikli))
+    bekle("V8 POZITIF: ayni numara iki kez kayit ederse KIRMIZI",
+          any("SUITE MUKERRER" in h for h in suite_butunlugu(tam + [tam[0]])),
+          "hatalar=%s" % suite_butunlugu(tam + [tam[0]]))
+
     kirmizi = [v for v in vakalar if not v[1]]
-    print("TARAMA KUMESI NOBETCISI — %d/%d YESIL" % (len(vakalar) - len(kirmizi),
-                                                     len(vakalar)))
+    print("TARAMA KUMESI + SUITE BUTUNLUGU NOBETCISI — %d/%d YESIL"
+          % (len(vakalar) - len(kirmizi), len(vakalar)))
     for ad, yesil, detay in vakalar:
         print("  %s %-62s %s" % ("+" if yesil else "-", ad, detay if not yesil else ""))
     return 1 if kirmizi else 0
@@ -511,10 +557,14 @@ def main():
 
     # ---------- özet ----------
     kirmizi = [s for s in SONUC if not s[2]]
-    print("\n==== KABUL OZETI: %d/8 YESIL ====" % (8 - len(kirmizi)))
+    butunluk = suite_butunlugu(SONUC)
+    print("\n==== KABUL OZETI: %d/%d YESIL (beklenen %d test) ===="
+          % (len(SONUC) - len(kirmizi), len(SONUC), len(BEKLENEN_TESTLER)))
     for no, ad, yesil in SONUC:
         print("  %s  #%d %s" % ("+" if yesil else "-", no, ad))
-    sys.exit(1 if kirmizi else 0)
+    for h in butunluk:
+        print("  ❌ %s" % h)
+    sys.exit(1 if (kirmizi or butunluk) else 0)
 
 
 if __name__ == "__main__":

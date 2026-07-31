@@ -184,6 +184,72 @@ def aile_olc(aile, eslem, paket, openscad, set_sayisi, tohumlar, kisit):
     return sonuc
 
 
+# ---- HUKUM (31 Tem 2026) — "HIC OLCULMEDI" YESIL DEGILDIR --------------------
+# OLCULEN FAIL-OPEN (bayraksiz/--hepsi kolu): hukum
+#     if s["kirmizi"] or s["hata"]: kirmizi
+#     elif s["ret"]:                kismi
+#     else:                         YESIL
+# idi. `uretilemez` (422) sayaci hukme HIC GIRMIYORDU. Sonuc: bir ailenin TUM setleri
+# derlemede assert'e dusup 422 diye siniflanirsa kirmizi=0, hata=0, ret=0 kalir ->
+# aile "yesil" ilan edilir ve arac rc=0 doner. Yani SIFIR set olculen aile, hepsi
+# olculmus gibi gorunur. Ustelik 422 siniflandirmasi stderr'de "assert" alt-dizesi
+# ARAMAKTIR: derleyici/paket tarafinda kirilan bir sey stderr'de "assert" gecirdigi
+# anda tum aile sessizce yesile doner.
+# FAIL-CLOSED: (1) hic OLCULEN set yoksa durum "olculemedi" (yesil DEGIL),
+#              (2) 422 de `ret` gibi KISMI'dir — ikisi de "sema bolgesi olculemedi"
+#                  demektir; birini kirmizi sayip digerini sessiz gecmek tutarsizdi.
+def aile_durumu(s):
+    """Aile olcum ozetinden durum — SAF fonksiyon; --kendini-test bunu surer."""
+    if s.get("kirmizi") or s.get("hata"):
+        return "kirmizi"
+    if not s.get("satirlar"):
+        return "olculemedi"          # HIC set olculmedi -> YESIL SAYILMAZ
+    if s.get("ret") or s.get("uretilemez"):
+        return "kismi"               # olculenler yesil ama sema bolgesi eksik
+    return "yesil"
+
+
+def kendini_test():
+    """HUKUM NOBETCISI — POZITIF ve NEGATIF yon ayri vakalar (tek yon = olu nobetci).
+    Ag/openscad/gizli paket ISTEMEZ."""
+    vakalar = []
+
+    def bekle(ad, kosul, detay=""):
+        vakalar.append((ad, bool(kosul), detay))
+
+    olculen = {"satirlar": [{"sapma": 0.1}, {"sapma": 0.2}]}
+
+    def v(**ek):
+        d = dict(olculen)
+        d.update(ek)
+        return d
+
+    bekle("H1 NEGATIF-DISI: olculen + temiz aile YESIL (yanlis-pozitif yok)",
+          aile_durumu(v()) == "yesil", aile_durumu(v()))
+    bekle("H2 POZITIF: sinir ustu sapma KIRMIZI",
+          aile_durumu(v(kirmizi=1)) == "kirmizi", aile_durumu(v(kirmizi=1)))
+    bekle("H3 POZITIF: derleme hatasi KIRMIZI",
+          aile_durumu(v(hata=1)) == "kirmizi", aile_durumu(v(hata=1)))
+    bekle("H4 POZITIF: eslem kapsami disi (ret) KISMI (yesil degil)",
+          aile_durumu(v(ret=1)) == "kismi", aile_durumu(v(ret=1)))
+    bekle("H5 POZITIF (ONARIM): 422/uretilemez KISMI — eskiden SESSIZ YESILDI",
+          aile_durumu(v(uretilemez=1)) == "kismi", aile_durumu(v(uretilemez=1)))
+    bekle("H6 POZITIF (ONARIM): HIC olculen set yoksa OLCULEMEDI — eskiden YESILDI",
+          aile_durumu({"satirlar": [], "uretilemez": 4}) == "olculemedi",
+          aile_durumu({"satirlar": [], "uretilemez": 4}))
+    bekle("H7 POZITIF: bos ozet (hicbir sey kosmadi) OLCULEMEDI",
+          aile_durumu({}) == "olculemedi", aile_durumu({}))
+    bekle("H8 KAPI: 'yesil' DISI her durum rc=1 uretir (main'in hukum kurali)",
+          all(d != "yesil" for d in ("kirmizi", "kismi", "olculemedi", "eslem-yok")))
+
+    kirmizi = [x for x in vakalar if not x[1]]
+    print("ESLEM-OLCUM HUKUM NOBETCISI — %d/%d YESIL"
+          % (len(vakalar) - len(kirmizi), len(vakalar)))
+    for ad, yesil, detay in vakalar:
+        print("  %s %-64s %s" % ("+" if yesil else "-", ad, detay if not yesil else ""))
+    return 1 if kirmizi else 0
+
+
 def _text_deger(bayraklar):
     """-D Text=\"...\" token'inin tirnakli deger kismi ('\"...\"'). Beyaz liste
     icerikte \" birakmadigindan ilk sonraki \" kapanistir."""
@@ -274,10 +340,14 @@ def main():
     ap.add_argument("--set", type=int, default=5)
     ap.add_argument("--tohumlar", default="20260716,20260717")
     ap.add_argument("--json", help="ozeti bu dosyaya JSON dok")
+    ap.add_argument("--kendini-test", action="store_true",
+                    help="hukum nobetcisi (olcum kosturmaz; ag/openscad/paket ISTEMEZ)")
     ap.add_argument("--metin-testi", action="store_true",
                     help="jeton yuz yazisi render + enjeksiyon guvenligi testi (kalibrasyon disi)")
     args = ap.parse_args()
 
+    if args.kendini_test:
+        sys.exit(kendini_test())
     if args.metin_testi:
         sys.exit(metin_render_testi(os.environ.get(
             "PRUVO_UYELIK_DIR", "/Users/okan/dev/pruvo/.uyelik-kodlar")))
@@ -301,12 +371,7 @@ def main():
             continue
         s = aile_olc(aile, eslem, paket, openscad, args.set, tohumlar,
                      kisitlar.get(aile))
-        if s["kirmizi"] or s["hata"]:
-            s["durum"] = "kirmizi"
-        elif s["ret"]:
-            s["durum"] = "kismi"  # olculenler yesil ama sema bolgesi eksik
-        else:
-            s["durum"] = "yesil"
+        s["durum"] = aile_durumu(s)
         print("  --> %-10s en kotu %%%.2f, sinir ustu %d/%d, derleme hatasi %d, "
               "kapsam disi %d, uretilemez(422) %d"
               % (aile, s["enKotu"], s["kirmizi"], s["set"], s["hata"], s["ret"],
