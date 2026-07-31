@@ -21,9 +21,10 @@ stdout da stderr de dahil. Uc uygulama noktasi:
   2. `parametre_detay` (musterinin yazdigi serbest metin) maskelenemez -> TTY
      disinda HIC BASILMAZ, yerine karakter sayisi yer tutucusu konur. Olcut TTY'dir,
      `--acik` DEGIL.
-  3. `wrangler_sorgu` hata yollarindaki HAM DOKUM (SELECT sonucunun ham JSON'u)
-     yalniz TTY'de basilir; teshis (hata sinifi + exit kodu + bayt sayilari) her
-     kosulda basilir (`_ham_dokum`).
+  3. `wrangler_sorgu` hata yollarinda kapi KANALA GORE AYRIK (`_ham_dokum`):
+     wrangler STDOUT'u (= SELECT sonucunun ham JSON'u) yalniz TTY'de basilir;
+     wrangler STDERR'i (= hata metni, sorgu sonucu tasimaz) HER KOSULDA TAM basilir.
+     Teshis (hata sinifi + exit kodu + bayt sayilari + stderr) hicbir kolda kaybolmaz.
 Nobetci: tools/siparis-maske-test.py.
 
 Sema: tools/d1-sema.sql (tablo: siparisler). Para KURUS tamsayisinda tutulur
@@ -81,29 +82,45 @@ def sql_sorgu(son, durum):
     return sql
 
 
-def _ham_dokum(baslik, p, ham):
-    """Hata metnini uretir — HAM DOKUM YALNIZ `_tty()` True iken eklenir.
+YER_TUTUCU_STDOUT = (
+    "  wrangler STDOUT'u SELECT SONUCUDUR (musteri_ad/musteri_tel icerir) —\n"
+    "  yalnizca GERCEK TERMINALDE basilir; bu kosum boru/dosya/CI'ya akiyor.")
 
-    🔴 KANAL KURALI (31 Tem, ikinci tur): `ham` = wrangler'in stdout+stderr'i, yani
-    SELECT SONUCUNUN HAM JSON'u — icinde `musteri_ad` ve `musteri_tel` AYNEN vardir.
-    Olculdu: "wrangler sorgusu basarisiz" ve "wrangler ciktisi cozulemedi" yollarinda
-    fikstur adi ve telefonu sys.exit mesajiyla disari sizdi. Maskeleme "hangi alan"
-    ekseninde calisir, bu dokum ise SERBEST metindir -> kural KANAL eksenine cevrildi:
-    TTY disina (boru / yonlendirme / capture_output / CI) HAM DOKUM CIKMAZ.
 
-    TESHIS EDILEBILIRLIK KAYBOLMAZ: hata sinifi, wrangler exit kodu ve stdout/stderr
-    bayt sayilari HER KOSULDA basilir; yalnizca icerik terminale sakli tutulur.
-    ("cikti vermedi" yolu bugun olculdu ve TEMIZ — stdout'ta '[' yoksa sonuc dizisi de
-    yoktur — ama AYNI kapiya baglandi ki wrangler ciktisi degisirse kanal sessizce
-    yeniden acilmasin.)
+def _ham_dokum(baslik, p):
+    """Hata metnini uretir. KAPI KANALA GORE AYRIKTIR — stdout kapali, stderr acik.
+
+    🔴 NEDEN AYRIK (31 Tem, ucuncu tur — olculdu):
+      * `p.stdout` = `wrangler d1 execute --json` ciktisi, yani SELECT SONUCUNUN HAM
+        JSON'u; `musteri_ad`/`musteri_tel` AYNEN icindedir -> TTY disina CIKMAZ.
+      * `p.stderr` = wrangler'in HATA METNI ("no such table: siparisler [code: 7502]",
+        "getaddrinfo ENOTFOUND", JSON ayristirma hatasi). SORGU SONUCU TASIMAZ ->
+        HER KOSULDA TAM basilir. Ikisi `ham = stdout + stderr` diye tek parca sayilinca
+        TESHIS OLUYORDU: `stdout=0 bayt` olan, yani sonuc icermesi IMKANSIZ olan yolda
+        bile hata metni bastiriliyordu ve CI'da teshis "exit kodu + bayt sayisi"na
+        iniyordu. Bu yetersizligin "dogal" cozumu ise taniya `ham[:N]` eklemek olur —
+        yani kanalin kapiyi sokmeden yeniden acilmasi. Ayrim tam da bunu onler.
+
+    TESHIS HER KOSULDA: hata sinifi (baslik), wrangler exit kodu, stdout/stderr bayt
+    sayilari ve STDERR'IN TAM METNI. Terminale sakli tutulan tek sey stdout govdesidir.
+    ("cikti vermedi" yolunda stdout'ta '[' yoktur — sonuc icermesi imkansizdir — ama
+    yine ayni kapidan gecer ki wrangler ciktisi degisirse kanal sessizce acilmasin.)
     """
+    cikti = p.stdout or ""
+    hata = p.stderr or ""
     tani = ("%s\n  tani: wrangler exit=%s · stdout=%d bayt · stderr=%d bayt"
-            % (baslik, p.returncode, len(p.stdout or ""), len(p.stderr or "")))
-    if _tty():
-        return tani + "\n" + ham[-2000:]
-    return (tani + "\n"
-            "  ham cikti KISISEL VERI icerir (SELECT sonucu: musteri_ad/musteri_tel);\n"
-            "  yalnizca GERCEK TERMINALDE basilir — bu kosum boru/dosya/CI'ya akiyor.")
+            % (baslik, p.returncode, len(cikti), len(hata)))
+    parcalar = [tani]
+    if hata.strip():
+        parcalar.append("  wrangler stderr (TESHIS — sorgu sonucu tasimaz, HER KOSULDA):")
+        parcalar.append(hata[-2000:])
+    if cikti.strip():
+        if _tty():
+            parcalar.append("  wrangler stdout (SELECT sonucu — HAM):")
+            parcalar.append(cikti[-2000:])
+        else:
+            parcalar.append(YER_TUTUCU_STDOUT)
+    return "\n".join(parcalar)
 
 
 def wrangler_sorgu(sql):
@@ -118,6 +135,8 @@ def wrangler_sorgu(sql):
     komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB,
              "--remote", "--json", "--command", sql]
     p = subprocess.run(komut, cwd=SHOP, capture_output=True, text=True)
+    # `ham` YALNIZ kimlik-hatasi TESPITI icindir (iki kanalda da gorunebilir); DOKUM
+    # icin KULLANILMAZ — dokum kanal kanal ayrilir, bkz _ham_dokum().
     ham = (p.stdout or "") + (p.stderr or "")
 
     if "code: 10000" in ham or "Authentication error" in ham:
@@ -129,14 +148,14 @@ def wrangler_sorgu(sql):
 
     i = p.stdout.find("[")
     if i == -1:
-        sys.exit(_ham_dokum("wrangler cikti vermedi:", p, ham))
+        sys.exit(_ham_dokum("wrangler cikti vermedi:", p))
     try:
         veri = json.loads(p.stdout[i:])
     except (ValueError, TypeError):
-        sys.exit(_ham_dokum("wrangler ciktisi cozulemedi:", p, ham))
+        sys.exit(_ham_dokum("wrangler ciktisi cozulemedi:", p))
 
     if not veri or not veri[0].get("success", False):
-        sys.exit(_ham_dokum("wrangler sorgusu basarisiz:", p, ham))
+        sys.exit(_ham_dokum("wrangler sorgusu basarisiz:", p))
     return veri[0].get("results", []) or []
 
 

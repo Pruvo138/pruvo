@@ -20,8 +20,10 @@ da stderr de dahil. Tarayici hem stdout'u hem stderr'i tarar.
 
   1. maskele_ad / maskele_tel birim vakalari (bos, tek harf, kisa, +90'li, cok kelimeli)
   2. format_siparis(fikstur) VARSAYILAN -> HAM ad/tel YOK, MASKELI bicimler VAR
-  3. UCTAN UCA SIZINTI TARAYICI — main([]) stdout+stderr'inde fiksturun HICBIR
-     kisisel degeri (ham / kelime / telefonun son-4 disindaki basamak dizisi) GECMEZ
+  3. UCTAN UCA SIZINTI TARAYICI — main([]) stdout+stderr'inde VE wrangler hata
+     yolunda fiksturun HICBIR kisisel degeri (ham / kelime / telefonun son-4
+     disindaki basamak dizisi) GECMEZ. Hata yolu burada TEKRAR olculur: TEST 9
+     kaybolursa `_ham_dokum` kanali korumasiz kalmasin (YEDEK EKSEN).
   4. `--acik` + TTY YOK -> cikti MASKELI + stderr'de tek satir uyari (FAIL-CLOSED)
   5. `--acik` + TTY VAR -> cikti HAM (pozitif eksen: maskeleme "her seyi yildiza
      cevir" gibi anlamsiz bir seye donuserse bu eksen kirmizi yanar)
@@ -34,8 +36,10 @@ da stderr de dahil. Tarayici hem stdout'u hem stderr'i tarar.
      beyan-disi kayit KIRMIZI.
   8. `parametre_detay` (musteri SERBEST METNI, maskelenemez) TTY yokken ciktida
      HIC YOK (yer tutucu var) / TTY varken VAR (pozitif eksen).
-  9. `wrangler_sorgu` HATA YOLLARI — ham dokum (SELECT sonucunun ham JSON'u) TTY
-     yokken sizmiyor ve teshis KORUNUYOR / TTY varken siziyor (pozitif eksen).
+  9. `wrangler_sorgu` HATA YOLLARI — KANAL AYRIMI: wrangler STDOUT'u (SELECT sonucu)
+     TTY yokken HICBIR PARCASIYLA (bas/orta/kuyruk — konum bagimsiz tarayici)
+     sizmiyor; wrangler STDERR'i (teshis metni) TTY yokken bile GORUNUYOR (3 gercek
+     hata senaryosu); TTY varken ham dokum basiliyor (pozitif eksen).
 
 🔴 BEYAN SINIRI (curutucu olctu, kabul edildi): buradaki oz-nobetci CAGRI SILME
 fail-open'ini kapatir — bir testin cagrisi silinir ya da govdesi no-op edilirse
@@ -115,7 +119,13 @@ FIKSTUR = [
             "adet": 3,
             "tutar_kurus": 12345,
             # MUSTERI SERBEST METNI — icine bilerek ad+telefon konuldu.
-            "parametre_detay": "Kaziyacak yazi: Kemal Ozturk 5327776655",
+            # 🔴 NUMARALAR HEP `555` BLOGUNDAN (kullanilamaz/routable DEGIL): repo
+            # PUBLIC, fikstur gercek bir aboneye ait olmamali.
+            "parametre_detay": "Kaziyacak yazi: Kemal Ozturk 5554443322",
+            # shop/src/index.js: renk "Diger" secilince musteri metni buraya yazilir
+            # (metin(k.renk_ozel, 1, 60)). siparisler.py bugun BASMIYOR -> eksen yesil;
+            # bir gun basilirsa tarayici KIRMIZI yakar (envanter kor kalmasin).
+            "renk_ozel": "Ozel renk: antrasit (Selin Aydin, 5550001122)",
         }]),
     },
     {
@@ -144,7 +154,7 @@ KISISEL_ALANLAR = ("musteri_ad", "musteri_tel")            # siparis satiri kolo
 # Kalem (urunler JSON) icindeki MUSTERI SERBEST METNI alanlari: maskelenemez, TTY
 # disinda HIC BASILMAZ. `baslik` BILEREK YOK — o KATALOG verisidir (urunler.json'dan
 # gelir), musteri metni degildir.
-KALEM_KISISEL_ALANLAR = ("parametre_detay",)
+KALEM_KISISEL_ALANLAR = ("parametre_detay", "renk_ozel")
 
 
 def _kisisel_degerler(row):
@@ -267,10 +277,17 @@ def test_2_format_varsayilan_maskeli():
 
 
 def test_3_uctan_uca_sizinti():
+    """MUTLU YOL + HATA YOLU, tek tarayici. Hata yolu burada da kosar cunku olculdu:
+    TEST 9 cagrisi+beyani birlikte silinirse `_ham_dokum` kanali KORUMASIZ kaliyordu
+    (TEST 8'in kanalinda TEST 3/4 yedegi vardi, bunda yoktu) -> yedek eksen."""
     cikti, hata = _kos_main(siparisler, [])
     bulgular = sizinti_tara(cikti + hata, FIKSTUR)
     saglik = "PRUVO SIPARISLER" in cikti and "Toplam: 2 siparis" in cikti
-    kayit(3, "uctan uca: main([]) ciktisinda SIFIR kisisel deger",
+    # YEDEK EKSEN — wrangler hata yolu (TTY YOK) da ayni tarayicidan gecer
+    hata_mesaji = _hata_yolu_mesaji(HAM_BASARISIZ, False, STDERR_TABLO)
+    bulgular += ["hata yolu: " + b for b in sizinti_tara(hata_mesaji, FIKSTUR)]
+    bulgular += ["hata yolu: " + b for b in _ham_parca_sizdi(hata_mesaji, HAM_BASARISIZ)]
+    kayit(3, "uctan uca: main([]) VE wrangler hata yolu ciktisinda SIFIR kisisel deger",
           not bulgular and saglik,
           ("SIZINTI=%s" % bulgular) if bulgular
           else ("" if saglik else "cikti beklenen bicimde degil (tarayici bos metni "
@@ -419,15 +436,55 @@ class _SahteSubprocess:
         return self._p
 
 
-# Fiksturun HAM JSON'u — gercek wrangler ciktisinin sekli (icinde musteri_ad/tel var).
-HAM_BASARISIZ = json.dumps([{"success": False, "results": FIKSTUR}])
-HAM_COZULEMEZ = "[BOZUK-JSON " + json.dumps([{"success": True, "results": FIKSTUR}])
+# --- FIKSTUR: GERCEK `wrangler d1 execute --json` SEKLI -----------------------
+# 🔴 3. TUR DUZELTMESI (curutucu olctu): eski fikstur PII'yi ilk ~150 bayttan SONRA
+# tasiyordu; gercek ciktida `results` EN BASTA gelir. Bu yuzden "taniya ham[:120]
+# ekleyelim" mutasyonu SAHTE-YESIL yaniyordu. Artik PII UC KONUMDA birden var —
+# BAS (ilk 100 bayt), ORTA, KUYRUK — ve iddia PRENSIBE baglandi: ham dokumun HICBIR
+# parcasi (bas/orta/kuyruk) TTY disina cikmaz (bkz _ham_parca_sizdi).
+def _pii_ilk(row):
+    """Ayni satir, PII kolonlari EN BASTA — kolon sirasi SELECT'e baglidir."""
+    yeni = {"musteri_ad": row["musteri_ad"], "musteri_tel": row["musteri_tel"]}
+    yeni.update(row)
+    return yeni
 
 
-def _hata_yolu_mesaji(stdout, tty):
+_DOLGU = "." * 200
+HAM_BASARISIZ = json.dumps([{
+    "results": [_pii_ilk(r) for r in FIKSTUR],        # BAS: PII ilk 100 bayt icinde
+    "meta": {"d1": _DOLGU, "orta1": _pii_ilk(FIKSTUR[0]),   # ORTA
+             "d2": _DOLGU, "orta2": _pii_ilk(FIKSTUR[1]), "d3": _DOLGU},
+    "success": False,
+    "kuyruk": _pii_ilk(FIKSTUR[0]),                   # KUYRUK
+}], ensure_ascii=False)
+HAM_COZULEMEZ = "[BOZUK-JSON " + HAM_BASARISIZ
+# wrangler'in HATA METNI — sorgu sonucu TASIMAZ, her kosulda gorunmeli (BULGU B).
+STDERR_TABLO = "✘ [ERROR] no such table: siparisler [code: 7502]"
+STDERR_AG = "✘ [ERROR] getaddrinfo ENOTFOUND api.cloudflare.com"
+STDERR_JSON = "✘ [ERROR] Unexpected token B in JSON at position 1"
+
+
+def _ham_parca_sizdi(mesaj, ham, pencere=40, adim=20):
+    """(bulgular) — `ham`in HERHANGI bir `pencere` uzunluktaki dilimi mesajda geciyor mu.
+
+    KONUM BAGIMSIZ: bas / orta / kuyruk kirpmalarinin HEPSINI yakalar. Esik boylece
+    fiksturun bayt dizilimine DEGIL, "ham dokumun hicbir parcasi cikmaz" PRENSIBINE
+    baglanir. Yakalanabilir en kucuk sizinti ~ pencere+adim = 60 karakterdir."""
+    bulgular = []
+    for i in range(0, max(len(ham) - pencere, 0) + 1, adim):
+        dilim = ham[i:i + pencere]
+        if dilim and dilim in mesaj:
+            bulgular.append("ham stdout[%d:%d] mesajda GECIYOR: %r"
+                            % (i, i + pencere, dilim[:40]))
+            if len(bulgular) >= 3:
+                break
+    return bulgular
+
+
+def _hata_yolu_mesaji(stdout, tty, stderr=""):
     """wrangler_sorgu'yu sahte cikti ile kosar, sys.exit mesajini string dondurur."""
     eski_sp, eski_tty = siparisler.subprocess, siparisler._tty
-    siparisler.subprocess = _SahteSubprocess(_SahteP(stdout))
+    siparisler.subprocess = _SahteSubprocess(_SahteP(stdout, stderr))
     siparisler._tty = lambda: tty
     try:
         siparisler.wrangler_sorgu("SELECT 1")
@@ -440,30 +497,51 @@ def _hata_yolu_mesaji(stdout, tty):
 
 
 def test_9_hata_yolu_kanali():
-    """`ham[-2000:]` dokumu SELECT SONUCUDUR — TTY disina cikmamali, teshis kalmali."""
+    """STDOUT (SELECT sonucu) TTY disina cikmaz · STDERR (teshis) HER KOSULDA cikar."""
     hatalar = []
-    yollar = (("wrangler sorgusu basarisiz:", HAM_BASARISIZ),
-              ("wrangler ciktisi cozulemedi:", HAM_COZULEMEZ))
-    for baslik, ham in yollar:
-        ttysiz = _hata_yolu_mesaji(ham, False)
-        ttyli = _hata_yolu_mesaji(ham, True)
+
+    # --- A) SIZINTI EKSENI: iki hata yolu, PII + HAM PARCA + teshis + pozitif kol
+    yollar = (("wrangler sorgusu basarisiz:", HAM_BASARISIZ, STDERR_TABLO),
+              ("wrangler ciktisi cozulemedi:", HAM_COZULEMEZ, STDERR_JSON))
+    for baslik, ham, stderr in yollar:
         etiket = baslik.split()[-1].rstrip(":")
+        ttysiz = _hata_yolu_mesaji(ham, False, stderr)
+        ttyli = _hata_yolu_mesaji(ham, True, stderr)
         if baslik not in ttysiz:
             hatalar.append("%s: beklenen hata yoluna girilmedi (mesaj=%r)"
                            % (etiket, ttysiz[:80]))
             continue
-        bulgu_ttysiz = sizinti_tara(ttysiz, FIKSTUR)
-        if bulgu_ttysiz:
-            hatalar.append("%s: TTY YOK iken %d SIZINTI (%s)"
-                           % (etiket, len(bulgu_ttysiz), bulgu_ttysiz[0]))
+        pii = sizinti_tara(ttysiz, FIKSTUR)
+        if pii:
+            hatalar.append("%s: TTY YOK iken %d PII SIZINTISI (%s)"
+                           % (etiket, len(pii), pii[0]))
+        parca = _ham_parca_sizdi(ttysiz, ham)
+        if parca:
+            hatalar.append("%s: TTY YOK iken HAM PARCA sizdi — %s" % (etiket, parca[0]))
         if "tani:" not in ttysiz or "exit=" not in ttysiz or "bayt" not in ttysiz:
-            hatalar.append("%s: TTY YOK iken TESHIS kayboldu (hata sinifi/exit/bayt "
-                           "sayisi basilmali)" % etiket)
-        if not sizinti_tara(ttyli, FIKSTUR):
+            hatalar.append("%s: TTY YOK iken TESHIS kayboldu (hata sinifi/exit/bayt)"
+                           % etiket)
+        if not sizinti_tara(ttyli, FIKSTUR) or not _ham_parca_sizdi(ttyli, ham):
             hatalar.append("%s: TTY VAR iken ham dokum YOK — pozitif eksen ('dokumu "
                            "tumden sil' cozumu buradan gecemez)" % etiket)
-    kayit(9, "wrangler hata yollari: ham dokum TTY disina CIKMIYOR, teshis KALIYOR",
-          not hatalar, ("BULGU=%s" % hatalar) if hatalar else "2 yol × 3 eksen")
+
+    # --- B) TESHIS EKSENI (pozitif): TTY DISINDA wrangler STDERR metni GORUNMELI.
+    # Aksi halde "her seyi sustur" mutasyonu yesil gecerdi ve CI'da teshis "exit kodu
+    # + bayt sayisi"na inerdi (bu yetersizligin dogal cozumu de A'daki sizintidir).
+    senaryolar = (("tablo yok", "", STDERR_TABLO, "no such table: siparisler"),
+                  ("ag hatasi", "", STDERR_AG, "ENOTFOUND"),
+                  ("bozuk JSON", HAM_COZULEMEZ, STDERR_JSON, "Unexpected token"))
+    for etiket, stdout, stderr, beklenen in senaryolar:
+        mesaj = _hata_yolu_mesaji(stdout, False, stderr)
+        if beklenen not in mesaj:
+            hatalar.append("%s: TTY YOK iken wrangler stderr metni (%r) GORUNMUYOR — "
+                           "teshis oldu" % (etiket, beklenen))
+        if sizinti_tara(mesaj, FIKSTUR):
+            hatalar.append("%s: teshis kolunda PII sizdi" % etiket)
+
+    kayit(9, "hata yollari: stdout TTY disina CIKMIYOR (bas/orta/kuyruk), stderr KALIYOR",
+          not hatalar, ("BULGU=%s" % hatalar) if hatalar
+          else "2 yol × 4 eksen + 3 teshis senaryosu")
 
 
 def test_7_oz_nobetci(beklenen):
