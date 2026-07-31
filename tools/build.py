@@ -2568,67 +2568,45 @@ def kart_ozeti(p):
     }
 
 
-# ------------------------------------------- ANA SAYFA VİTRİN SIRASI (Okan kuralı, 31 Tem)
-# KURAL: ana sayfanın ilk VITRIN_ON_SLOT (20) slotunda Ev/Dekorasyon/Ofis ürünü BULUNMAZ;
-# 21. sıradan itibaren normal görünürler. Ürün ELENMEZ, geri itilir.
+# ------------------------------------ ANA SAYFA VİTRİN HİYERARŞİSİ (Okan kuralı, 31 Tem)
+# KURAL: filtresiz ana vitrin SLOT DÜZENİYLE çizilir — 4 Jeneratör · 80 Marin · 80 Otomobil ·
+# gerisi karışık; her blok KENDİ İÇİNDE rastgele sıralanır.
 #
-# NEDEN DERLEME ANINDA (ölçüldü, 31 Tem): ana sayfanın ilk boyaması ozet.json'un "yeni"
-# listesinden gelir ve tarayıcı ondan yalnız ilk PAGE_SIZE (24) kartı çizer. Yeni ürün
-# urunler.json'un BAŞINA eklendiği için katalogun başında kesintisiz bir hedef-kategori
-# bloğu oluşabiliyor (98 ürünlük blok ölçüldü) — o pencerede ilk 20 slotu dolduracak
-# hedef-dışı ürün KALMIYOR. İstemci sıralayıcısı elindeki listeyi yeniden dizer ama
-# YOKTAN ürün üretemez; 20 hedef-dışı biriktirmek için pencere derinliği 118 gerekiyordu.
-# Çözüm: sırayı TÜM katalog üzerinde BURADA hesaplayıp ozet'e HAZIR yazmak. Tarayıcıya
-# daha fazla ürün indirtmek (pencereyi şişirmek) ve urunler.json'u yeniden dizmek YOK.
+# 🔴 SIRALAMA BURADA YAPILMAZ — build yalnız HAVUZ üretir. Neden: rastgelelik "her sayfa
+# yenilemesinde farklı" olacak. Derleme anında sıralanırsa sıra DEPLOY BAŞINA sabitlenir
+# (aynı ziyaretçi gün boyu aynı vitrini görür). Sıra istemcide, sayfa yüklemesi başına
+# üretilen tek seed ile kurulur (index.html vitrinSirala). Bu dosyanın işi: her blok için
+# `havuz` kadar aday kartı ozet.json'a koymak, ki tarayıcı 24 kartlık ilk boyamadan sonra
+# 164 slotluk ön bloğu AĞA ÇIKMADAN dizebilsin.
 #
-# İSTEMCİ SIRALAYICISI KALDIRILMADI: ana sayfa kartları DÖRT besleme yolundan gelebiliyor
-# (ozet ilk boyaması · Worker /katalog · edgeYedek havuzu · bayrak kapalıyken HOME_ORDER);
-# burada hesaplanan sıra yalnız BİRİNCİSİNİ besler. İki taraf birbirini bozmaz çünkü
-# permütasyon ETKİSİZ-TEKRARLI (idempotent): zaten bu sırada olan listeye uygulanınca
-# listeyi DEĞİŞTİRMEZ (vitrin-siralama-test.js bunu ayrı iddiayla kanıtlar).
+# ESKİ KURAL (Ev/Dekorasyon/Ofis ilk 20 slotta görünmez) KALDIRILDI: yeni düzende ilk 164
+# slot zaten Jeneratör/Marin/Otomobil olduğu için o üç kategori oraya giremez — kural
+# YUTULDU. (vitrin-siralama-test.js bunu ayrı iddiayla ölçer, sessizce kaybolmasın.)
 def _index_vitrin_kurali():
-    """Kuralı index.html'deki TEK KAYNAKTAN oku (VITRIN_GERI_KATEGORILER + VITRIN_ON_SLOT).
-    İkinci bir kopya, kuralın iki tarafta SESSİZCE ayrışması demekti: derleme bir sırayı
-    hesaplar, tarayıcı başka bir kuralı uygular, ekranda hata görünmezdi. Çapa
-    bulunamazsa FAIL-CLOSED (build kırmızı) — sessizce "kural yok" sayılmaz."""
+    """Blok kuralını index.html'deki TEK KAYNAKTAN oku (VITRIN_BLOKLAR).
+    İkinci bir kopya, kuralın iki tarafta SESSİZCE ayrışması demekti: derleme bir havuz
+    üretir, tarayıcı başka bir blok düzeni uygular, ekranda hata görünmezdi. Çapa
+    bulunamaz ya da şema bozuksa FAIL-CLOSED (build kırmızı) — sessizce "kural yok"
+    sayılmaz."""
     with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
         kaynak = f.read()
-    m = re.search(r"var\s+VITRIN_GERI_KATEGORILER\s*=\s*(\[[^\]]*\])\s*;", kaynak)
+    m = re.search(r"var\s+VITRIN_BLOKLAR\s*=\s*(\[[\s\S]*?\])\s*;", kaynak)
     if not m:
-        raise SystemExit("index.html'de VITRIN_GERI_KATEGORILER bulunamadi "
+        raise SystemExit("index.html'de VITRIN_BLOKLAR bulunamadi "
                          "(vitrin kurali tek kaynagi bozulmus).")
-    kategoriler = json.loads(m.group(1))
-    s = re.search(r"var\s+VITRIN_ON_SLOT\s*=\s*(\d+)\s*;", kaynak)
-    if not s:
-        raise SystemExit("index.html'de VITRIN_ON_SLOT bulunamadi "
-                         "(vitrin kurali tek kaynagi bozulmus).")
-    return kategoriler, int(s.group(1))
-
-
-def vitrin_sirala(urunler, geri_kategoriler, slot):
-    """index.html vitrinSirala() ile AYNI permütasyon, TÜM katalog üzerinde.
-
-    Hedef-dışı ürünler kendi göreli sıralarını koruyarak ilk `slot` slotu doldurur;
-    geri kalan her şey (hedef kategoriler + taşan hedef-dışılar) yine kendi sırasıyla
-    arkaya dizilir. ELEME YOK: dönen liste girdinin permütasyonudur.
-
-    YETERSİZ STOK: katalogda `slot` kadar hedef-dışı ürün yoksa BOŞLUK BIRAKILMAZ —
-    kalan slotlar doğal sırayla dolar — ama sapma SESSİZ GEÇMEZ (döndürülen sapma
-    ozet.json'a yazılır ve build günlüğüne UYARI basılır).
-
-    Döner: (sirali_liste, sapma)."""
-    kume = set(geri_kategoriler)
-    on, geri = [], []
-    for p in urunler:
-        if len(on) < slot and (p.get("kategori") or "") not in kume:
-            on.append(p)
-        else:
-            geri.append(p)
-    sapma = {
-        "yetersiz": len(urunler) >= slot and len(on) < slot,
-        "uygun": len(on), "slot": slot, "liste": len(urunler),
-    }
-    return on + geri, sapma
+    try:
+        bloklar = json.loads(m.group(1))
+    except ValueError as e:
+        raise SystemExit("index.html VITRIN_BLOKLAR JSON olarak okunamadi: %s" % e)
+    if not isinstance(bloklar, list) or not bloklar:
+        raise SystemExit("index.html VITRIN_BLOKLAR bos/gecersiz.")
+    for b in bloklar:
+        for alan in ("kategori", "adet", "havuz", "kaynak"):
+            if alan not in b:
+                raise SystemExit("VITRIN_BLOKLAR kaydinda '%s' alani yok: %r" % (alan, b))
+        if b["kaynak"] not in ("parametrik", "bloklar"):
+            raise SystemExit("VITRIN_BLOKLAR kaynak degeri gecersiz: %r" % (b,))
+    return bloklar
 
 
 def render_ozet(products):
@@ -2641,15 +2619,37 @@ def render_ozet(products):
         for m in (p.get("marka") or []):
             kat_markalari[m] = kat_markalari.get(m, 0) + 1
 
-    # Vitrin sırası TÜM katalog üzerinde burada hesaplanır; "yeni" listesi bu sıradan
-    # kesilir. OZET_YENI (48) >= ilk 20 slot + ilk ekranda gösterilen 24 kart olduğu için
-    # hedef kategoriler ilk boyamanın 21+ bölgesinde GÖRÜNMEYE devam eder (elenmezler).
-    vitrin_geri, vitrin_slot = _index_vitrin_kurali()
-    vitrin, vitrin_sapma = vitrin_sirala(products, vitrin_geri, vitrin_slot)
-    if vitrin_sapma["yetersiz"]:
-        print("UYARI: vitrin-sapma — ilk %d slot icin hedef-disi urun YETERSIZ (%d/%d, "
-              "katalog %d); kalan slotlar dogal sirayla doldu."
-              % (vitrin_slot, vitrin_sapma["uygun"], vitrin_slot, vitrin_sapma["liste"]))
+    # BLOK HAVUZLARI (sıralama YOK — yukarıdaki gerekçe). Her blok için katalogun o
+    # kategorideki ilk `havuz` ürünü (en yeni önce) ozet'e konur; tarayıcı seed'iyle
+    # karıştırıp ilk `adet` kadarını çizer. havuz > adet olduğu için her yenilemede
+    # farklı ürünler öne gelir.
+    vitrin_bloklar = _index_vitrin_kurali()
+    parametrik_kartlar = [kart_ozeti(p) for p in products if p.get("parametrik")]
+    bloklar = {}
+    blok_sapma = []
+    yetersiz = False
+    for kural in vitrin_bloklar:
+        kat = kural["kategori"]
+        adet = int(kural["adet"])
+        havuz_n = int(kural["havuz"] or 0)
+        if kural["kaynak"] == "parametrik":
+            # İKİNCİ KOPYA AÇILMAZ: sarı seri havuzu ozet.parametrik alanının kendisi.
+            havuz_kartlar = parametrik_kartlar
+            stok = len(parametrik_kartlar)
+        else:
+            aday = [p for p in products if (p.get("kategori") or "") == kat]
+            stok = len(aday)
+            havuz_kartlar = [kart_ozeti(p) for p in (aday[:havuz_n] if havuz_n else aday)]
+            bloklar[kat] = havuz_kartlar
+        if len(havuz_kartlar) < adet:
+            yetersiz = True
+        blok_sapma.append({"kategori": kat, "adet": adet,
+                           "havuz": len(havuz_kartlar), "stok": stok})
+    if yetersiz:
+        print("UYARI: vitrin-sapma — blok havuzu YETERSIZ (%s); ilgili blok kisalir, "
+              "bosluk birakilmaz."
+              % ", ".join("%s %d/%d" % (b["kategori"], b["havuz"], b["adet"])
+                          for b in blok_sapma))
 
     ozet = {
         "surum": 1,
@@ -2657,14 +2657,15 @@ def render_ozet(products):
         "toplam": len(products),
         "kategoriler": kategoriler,
         "markalar": markalar,
-        # Sarı vitrin havuzu: parametrik ürünlerin TAMAMI — site 4'ünü rastgele seçer.
-        "parametrik": [kart_ozeti(p) for p in products if p.get("parametrik")],
-        # DERLEME ANINDA hesaplanmış vitrin sırası (yukarıdaki blok). Eskiden burada
-        # katalogun ham başı (products[:OZET_YENI]) vardı; ham baş hedef kategoriyle
-        # dolunca ilk 20 slot kuralı SESSİZCE ihlal ediliyordu.
-        "yeni": [kart_ozeti(p) for p in vitrin[:OZET_YENI]],
+        # Sarı vitrin havuzu = Jeneratör bloğunun havuzu: parametrik ürünlerin TAMAMI.
+        "parametrik": parametrik_kartlar,
+        # Blok havuzları (Marin, Otomobil, ...). Sıra istemcide kurulur.
+        "bloklar": bloklar,
+        # KARIŞIK kuyruk + Worker'a ulaşılamazsa yedek arama havuzu: katalogun ham başı
+        # (en yeni ürünler). Vitrin sırası BURADA UYGULANMAZ (istemcinin işi).
+        "yeni": [kart_ozeti(p) for p in products[:OZET_YENI]],
         # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
-        "vitrin": vitrin_sapma,
+        "vitrin": {"yetersiz": yetersiz, "bloklar": blok_sapma, "liste": len(products)},
     }
     return json.dumps(ozet, ensure_ascii=False, separators=(",", ":"))
 
@@ -2881,12 +2882,13 @@ def main():
     if ozet_bayt > OZET_BUTCE:
         if _index_bayragi("EDGE_KATALOG"):
             print("HATA: ozet.json butceyi asti (%d > %d bayt) ve EDGE_KATALOG ACIK. "
-                  "OZET_YENI'yi dusur ya da marka haritasini esikle kirp."
-                  % (ozet_bayt, OZET_BUTCE))
+                  "index.html VITRIN_BLOKLAR havuzlarini kucult, OZET_YENI'yi dusur ya da "
+                  "marka haritasini esikle kirp." % (ozet_bayt, OZET_BUTCE))
             sys.exit(1)
         print("UYARI: ozet.json butceyi asti (%d > %d bayt). EDGE_KATALOG kapali oldugu "
-              "icin yayin KIRILMADI; bayragi acmadan once OZET_YENI'yi dusur ya da marka "
-              "haritasini esikle kirp." % (ozet_bayt, OZET_BUTCE))
+              "icin yayin KIRILMADI; bayragi acmadan once VITRIN_BLOKLAR havuzlarini "
+              "kucult, OZET_YENI'yi dusur ya da marka haritasini esikle kirp."
+              % (ozet_bayt, OZET_BUTCE))
 
 
 if __name__ == "__main__":
