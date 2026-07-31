@@ -1,5 +1,517 @@
 [
   {
+    "id": "sikaflex-290i-dc-kartus-siyah",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 290i DC Ahşap Güverte Derz Dolgusu 300 ml Kartuş - Siyah",
+    "aciklama": "Ahşap (tik) güverte derzlerinin doldurulması için geliştirilmiş, tek bileşenli poliüretan esaslı derz dolgu macunu.\n- Nem ile kürleşir, esnek ve titreşime dayanıklı bir derz oluşturur.\n- Açık güverteye özgü hava koşullarına karşı yüksek dayanım gösterir.\n- 300 ml kartuş ambalaj, siyah renk.",
+    "fiyat": "830 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-290idc-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-290i-dc-sosis-siyah",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 290i DC Ahşap Güverte Derz Dolgusu 400 ml Sosis - Siyah",
+    "aciklama": "Ahşap (tik) güverte derzlerinin doldurulması için geliştirilmiş, tek bileşenli poliüretan esaslı derz dolgu macunu.\n- Nem ile kürleşir, esnek ve titreşime dayanıklı bir derz oluşturur.\n- Açık güverteye özgü hava koşullarına karşı yüksek dayanım gösterir.\n- 400 ml sosis (folyo) ambalaj, siyah renk.",
+    "fiyat": "1280 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-290idc-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-291i-kartus-siyah",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 291i Çok Amaçlı Marine Yapıştırıcı/Sızdırmazlık Macunu 300 ml kartuş - Siyah",
+    "aciklama": "Tekne iç ve dış uygulamaları için çok amaçlı, tek bileşenli poliüretan esaslı yapıştırıcı ve sızdırmazlık macunu.\n- Esnek, titreşime dayanıklı derz ve yapıştırma bağlantıları oluşturur.\n- Ahşap, metal, astarlı yüzeyler ve GRP (cam elyaf) dahil geniş yüzey uyumu.\n- IMO'nun düşük alev yayılımı şartlarını karşılar.\n- 300 ml kartuş ambalaj, siyah renk.",
+    "fiyat": "790 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-291i-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-291i-kartus-beyaz",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 291i Çok Amaçlı Marine Yapıştırıcı/Sızdırmazlık Macunu 300 ml kartuş - Beyaz",
+    "aciklama": "Tekne iç ve dış uygulamaları için çok amaçlı, tek bileşenli poliüretan esaslı yapıştırıcı ve sızdırmazlık macunu.\n- Esnek, titreşime dayanıklı derz ve yapıştırma bağlantıları oluşturur.\n- Ahşap, metal, astarlı yüzeyler ve GRP (cam elyaf) dahil geniş yüzey uyumu.\n- IMO'nun düşük alev yayılımı şartlarını karşılar.\n- 300 ml kartuş ambalaj, beyaz renk.",
+    "fiyat": "790 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-291i-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-291i-sosis-beyaz",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 291i Çok Amaçlı Marine Yapıştırıcı/Sızdırmazlık Macunu 600 ml sosis - Beyaz",
+    "aciklama": "Tekne iç ve dış uygulamaları için çok amaçlı, tek bileşenli poliüretan esaslı yapıştırıcı ve sızdırmazlık macunu.\n- Esnek, titreşime dayanıklı derz ve yapıştırma bağlantıları oluşturur.\n- Ahşap, metal, astarlı yüzeyler ve GRP (cam elyaf) dahil geniş yüzey uyumu.\n- IMO'nun düşük alev yayılımı şartlarını karşılar.\n- 600 ml sosis ambalaj, beyaz renk.",
+    "fiyat": "1250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-291i-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-292i-yapisal-yapistirici-kartus",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 292i Yüksek Mukavemetli Yapısal Yapıştırıcı 300 ml Kartuş",
+    "aciklama": "Dinamik yüklere maruz kalan yapısal derzler için geliştirilmiş, tek bileşenli poliüretan esaslı yapı yapıştırıcısı.\n- Alüminyum (eloksallı dahil), metal astarlar, GRP ve plastikler dahil geniş yüzey uyumu.\n- Boyanabilir, çözücü içermez, düşük VOC.\n- IMO'nun düşük alev yayılımı şartlarını karşılar.",
+    "fiyat": "1060 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-292i-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-295i-uv-kartus-siyah",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 295i UV Dayanımlı Cam/Pleksi Yapıştırıcısı 300 ml Kartuş - Siyah",
+    "aciklama": "Tekne camı ve pleksiglas (PC/PMMA) yapıştırma ve contalama için özel geliştirilmiş, UV ve hava koşullarına yüksek dirençli poliüretan yapıştırıcı.\n- Alüminyum, GRP, paslanmaz çelik ve ahşap dahil geniş yüzey uyumu.\n- Açık güverte gibi UV'ye sürekli maruz kalan derzlerde uzun ömürlü kullanım.\n- 300 ml kartuş ambalaj, siyah renk.",
+    "fiyat": "880 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-295iuv-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-295i-uv-kartus-beyaz",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 295i UV Dayanımlı Cam/Pleksi Yapıştırıcısı 300 ml Kartuş - Beyaz",
+    "aciklama": "Tekne camı ve pleksiglas (PC/PMMA) yapıştırma ve contalama için özel geliştirilmiş, UV ve hava koşullarına yüksek dirençli poliüretan yapıştırıcı.\n- Alüminyum, GRP, paslanmaz çelik ve ahşap dahil geniş yüzey uyumu.\n- Açık güverte gibi UV'ye sürekli maruz kalan derzlerde uzun ömürlü kullanım.\n- 300 ml kartuş ambalaj, beyaz renk.",
+    "fiyat": "880 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-295iuv-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-221-300ml-kartus-gri",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 221 Çok Amaçlı Yapıştırıcı/Sızdırmazlık Macunu 300 ml Kartuş - Gri",
+    "aciklama": "Metal, astarlı/boyalı yüzeyler, seramik ve plastik dahil geniş yüzey uyumuyla kalıcı esnek derzler oluşturan çok amaçlı, tek bileşenli poliüretan yapıştırıcı/sızdırmazlık macunu.\n- El, pnömatik veya elektrikli tabanca ile uygulanır.\n- 5°C-40°C arası işlenebilir, optimum uygulama 15°C-25°C.\n- 300 ml Kartuş ambalaj, gri renk.",
+    "fiyat": "380 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-221-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-221-300ml-kartus-siyah",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 221 Çok Amaçlı Yapıştırıcı/Sızdırmazlık Macunu 300 ml Kartuş - Siyah",
+    "aciklama": "Metal, astarlı/boyalı yüzeyler, seramik ve plastik dahil geniş yüzey uyumuyla kalıcı esnek derzler oluşturan çok amaçlı, tek bileşenli poliüretan yapıştırıcı/sızdırmazlık macunu.\n- El, pnömatik veya elektrikli tabanca ile uygulanır.\n- 5°C-40°C arası işlenebilir, optimum uygulama 15°C-25°C.\n- 300 ml Kartuş ambalaj, siyah renk.",
+    "fiyat": "380 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-221-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-221-400ml-sosis-gri",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 221 Çok Amaçlı Yapıştırıcı/Sızdırmazlık Macunu 400 ml Sosis - Gri",
+    "aciklama": "Metal, astarlı/boyalı yüzeyler, seramik ve plastik dahil geniş yüzey uyumuyla kalıcı esnek derzler oluşturan çok amaçlı, tek bileşenli poliüretan yapıştırıcı/sızdırmazlık macunu.\n- El, pnömatik veya elektrikli tabanca ile uygulanır.\n- 5°C-40°C arası işlenebilir, optimum uygulama 15°C-25°C.\n- 400 ml Sosis ambalaj, gri renk.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-221-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-221-400ml-sosis-siyah",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 221 Çok Amaçlı Yapıştırıcı/Sızdırmazlık Macunu 400 ml Sosis - Siyah",
+    "aciklama": "Metal, astarlı/boyalı yüzeyler, seramik ve plastik dahil geniş yüzey uyumuyla kalıcı esnek derzler oluşturan çok amaçlı, tek bileşenli poliüretan yapıştırıcı/sızdırmazlık macunu.\n- El, pnömatik veya elektrikli tabanca ile uygulanır.\n- 5°C-40°C arası işlenebilir, optimum uygulama 15°C-25°C.\n- 400 ml Sosis ambalaj, siyah renk.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-221-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-221-600ml-sosis-beyaz",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 221 Çok Amaçlı Yapıştırıcı/Sızdırmazlık Macunu 600 ml Sosis - Beyaz",
+    "aciklama": "Metal, astarlı/boyalı yüzeyler, seramik ve plastik dahil geniş yüzey uyumuyla kalıcı esnek derzler oluşturan çok amaçlı, tek bileşenli poliüretan yapıştırıcı/sızdırmazlık macunu.\n- El, pnömatik veya elektrikli tabanca ile uygulanır.\n- 5°C-40°C arası işlenebilir, optimum uygulama 15°C-25°C.\n- 600 ml Sosis ambalaj, beyaz renk.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-221-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-221-600ml-sosis-gri",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 221 Çok Amaçlı Yapıştırıcı/Sızdırmazlık Macunu 600 ml Sosis - Gri",
+    "aciklama": "Metal, astarlı/boyalı yüzeyler, seramik ve plastik dahil geniş yüzey uyumuyla kalıcı esnek derzler oluşturan çok amaçlı, tek bileşenli poliüretan yapıştırıcı/sızdırmazlık macunu.\n- El, pnömatik veya elektrikli tabanca ile uygulanır.\n- 5°C-40°C arası işlenebilir, optimum uygulama 15°C-25°C.\n- 600 ml Sosis ambalaj, gri renk.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-221-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sikaflex-298-tik-guverte-yapistiricisi",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sikaflex 298 Tik Güverte Yatırma Yapıştırıcısı 600 ml Sosis - Kahverengi",
+    "aciklama": "Tik güverte tahtalarının alt güverteye yapıştırılması (bedding) için geliştirilmiş, hafif tiksotropik, tek bileşenli poliüretan yapıştırıcı.\n- GRP, deniz kontrplağı, çelik ve paslanmaz çelik dahil geniş yüzey uyumu.\n- IMO şartlarını karşılar; tuzlu ve tatlı suya karşı dayanıklıdır.\n- 600 ml sosis (folyo) ambalaj, kahverengi renk.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-298-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sika-primer-206-gp-astar-250ml",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sika Primer-206 G+P Astar 250 ml",
+    "aciklama": "Sika'nın tek bileşenli poliüretan yapıştırıcı/sızdırmazlık ürünlerinin uygulanmasından önce yüzey hazırlığı için kullanılan, çözücü bazlı siyah astar.\n- Cam, seramik kaplı cam, boyalı yüzeyler ve bazı plastik/metal yüzeylerde yapışmayı güçlendirir.\n- Fırça, keçe veya sünger aplikatör ile ince bir tabaka halinde uygulanır.\n- 250 ml ambalaj.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-primer206-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sika-primer-206-gp-astar-1000ml",
+    "kategori": "Marin",
+    "marka": [
+      "Sika"
+    ],
+    "baslik": "Sika Primer-206 G+P Astar 1000 ml",
+    "aciklama": "Sika'nın tek bileşenli poliüretan yapıştırıcı/sızdırmazlık ürünlerinin uygulanmasından önce yüzey hazırlığı için kullanılan, çözücü bazlı siyah astar.\n- Cam, seramik kaplı cam, boyalı yüzeyler ve bazı plastik/metal yüzeylerde yapışmayı güçlendirir.\n- Fırça, keçe veya sünger aplikatör ile ince bir tabaka halinde uygulanır.\n- 1000 ml ambalaj.",
+    "fiyat": "4200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kts-primer206-1.jpg"
+    ],
+    "altkategori": "Boya - Bakım",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "rule-360-gph-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Rule"
+    ],
+    "baslik": "Rule 360 GPH Manuel Sintine (Bilga) Pompası 12V",
+    "aciklama": "1965'ten bu yana marine sektörünün referans markası Rule'un dalgıç tip sintine (bilga) pompası; tekne sintinesinde biriken suyu tahliye eder.\n- 360 GPH (galon/saat) debi, 12V DC çalışma gerilimi.\n- Kompakt gövde, dar sintine boşluklarına kolay montaj.\n- Ayrı bir anahtar veya flatör ile birlikte kullanılır (flatör dahil değildir).",
+    "fiyat": "1100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktr-360-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "rule-500-gph-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Rule"
+    ],
+    "baslik": "Rule 500 GPH Manuel Sintine (Bilga) Pompası 12V",
+    "aciklama": "1965'ten bu yana marine sektörünün referans markası Rule'un dalgıç tip sintine (bilga) pompası; tekne sintinesinde biriken suyu tahliye eder.\n- 500 GPH (galon/saat) debi, 12V DC çalışma gerilimi.\n- Kompakt gövde, dar sintine boşluklarına kolay montaj.\n- Ayrı bir anahtar veya flatör ile birlikte kullanılır (flatör dahil değildir).",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktr-500-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "rule-800-gph-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Rule"
+    ],
+    "baslik": "Rule 800 GPH Manuel Sintine (Bilga) Pompası 12V",
+    "aciklama": "1965'ten bu yana marine sektörünün referans markası Rule'un dalgıç tip sintine (bilga) pompası; tekne sintinesinde biriken suyu tahliye eder.\n- 800 GPH (galon/saat) debi, 12V DC çalışma gerilimi.\n- Kompakt gövde, dar sintine boşluklarına kolay montaj.\n- Ayrı bir anahtar veya flatör ile birlikte kullanılır (flatör dahil değildir).",
+    "fiyat": "2300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktr-800-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "attwood-sahara-500-gph-otomatik-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Attwood"
+    ],
+    "baslik": "Attwood Sahara 500 GPH Otomatik Sintine Pompası 12V",
+    "aciklama": "Attwood'un su seviyesini algılayan entegre şamandırasıyla tam otomatik çalışan, dalgıç tip Sahara serisi sintine pompası.\n- 500 GPH debi, 12V çalışma gerilimi.\n- Entegre otomatik anahtar sayesinde ayrı bir flatöre ihtiyaç duymaz.\n- Kompakt, düşük profilli gövde ile dar sintine bölmelerine uygundur.",
+    "fiyat": "3700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kta-sahara-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "attwood-sahara-750-gph-otomatik-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Attwood"
+    ],
+    "baslik": "Attwood Sahara 750 GPH Otomatik Sintine Pompası 12V",
+    "aciklama": "Attwood'un su seviyesini algılayan entegre şamandırasıyla tam otomatik çalışan, dalgıç tip Sahara serisi sintine pompası.\n- 750 GPH debi, 12V çalışma gerilimi.\n- Entegre otomatik anahtar sayesinde ayrı bir flatöre ihtiyaç duymaz.\n- Kompakt, düşük profilli gövde ile dar sintine bölmelerine uygundur.",
+    "fiyat": "4300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kta-sahara-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "attwood-sahara-750-gph-otomatik-sintine-pompasi-24v",
+    "kategori": "Marin",
+    "marka": [
+      "Attwood"
+    ],
+    "baslik": "Attwood Sahara 750 GPH Otomatik Sintine Pompası 24V",
+    "aciklama": "Attwood'un su seviyesini algılayan entegre şamandırasıyla tam otomatik çalışan, dalgıç tip Sahara serisi sintine pompası.\n- 750 GPH debi, 24V çalışma gerilimi.\n- Entegre otomatik anahtar sayesinde ayrı bir flatöre ihtiyaç duymaz.\n- Kompakt, düşük profilli gövde ile dar sintine bölmelerine uygundur.",
+    "fiyat": "6400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kta-sahara-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "attwood-sahara-1100-gph-otomatik-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Attwood"
+    ],
+    "baslik": "Attwood Sahara 1100 GPH Otomatik Sintine Pompası 12V",
+    "aciklama": "Attwood'un su seviyesini algılayan entegre şamandırasıyla tam otomatik çalışan, dalgıç tip Sahara serisi sintine pompası.\n- 1100 GPH debi, 12V çalışma gerilimi.\n- Entegre otomatik anahtar sayesinde ayrı bir flatöre ihtiyaç duymaz.\n- Kompakt, düşük profilli gövde ile dar sintine bölmelerine uygundur.",
+    "fiyat": "4400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kta-sahara-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "attwood-sahara-1100-gph-otomatik-sintine-pompasi-24v",
+    "kategori": "Marin",
+    "marka": [
+      "Attwood"
+    ],
+    "baslik": "Attwood Sahara 1100 GPH Otomatik Sintine Pompası 24V",
+    "aciklama": "Attwood'un su seviyesini algılayan entegre şamandırasıyla tam otomatik çalışan, dalgıç tip Sahara serisi sintine pompası.\n- 1100 GPH debi, 24V çalışma gerilimi.\n- Entegre otomatik anahtar sayesinde ayrı bir flatöre ihtiyaç duymaz.\n- Kompakt, düşük profilli gövde ile dar sintine bölmelerine uygundur.",
+    "fiyat": "7000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kta-sahara-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "seaflo-1100-gph-manuel-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Seaflo"
+    ],
+    "baslik": "Seaflo 1100 GPH Manuel Sintine Pompası 12V",
+    "aciklama": "Seaflo'nun dalgıç tip manuel sintine pompası; tekne içinde biriken suyun tahliyesinde kullanılır.\n- 1100 GPH debi, 12V çalışma gerilimi.\n- Hızlı sökme/takma bağlantı tasarımı sayesinde kolay bakım ve değişim.\n- Ayrı bir anahtar veya flatör ile birlikte kullanılır (flatör dahil değildir).",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktf-manual-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "seaflo-3000-gph-manuel-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Seaflo"
+    ],
+    "baslik": "Seaflo 3000 GPH Manuel Sintine Pompası 12V",
+    "aciklama": "Seaflo'nun dalgıç tip manuel sintine pompası; tekne içinde biriken suyun tahliyesinde kullanılır.\n- 3000 GPH debi, 12V çalışma gerilimi.\n- Hızlı sökme/takma bağlantı tasarımı sayesinde kolay bakım ve değişim.\n- Ayrı bir anahtar veya flatör ile birlikte kullanılır (flatör dahil değildir).",
+    "fiyat": "3300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktf-manual-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "seaflo-3000-gph-manuel-sintine-pompasi-24v",
+    "kategori": "Marin",
+    "marka": [
+      "Seaflo"
+    ],
+    "baslik": "Seaflo 3000 GPH Manuel Sintine Pompası 24V",
+    "aciklama": "Seaflo'nun dalgıç tip manuel sintine pompası; tekne içinde biriken suyun tahliyesinde kullanılır.\n- 3000 GPH debi, 24V çalışma gerilimi.\n- Hızlı sökme/takma bağlantı tasarımı sayesinde kolay bakım ve değişim.\n- Ayrı bir anahtar veya flatör ile birlikte kullanılır (flatör dahil değildir).",
+    "fiyat": "3300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktf-manual-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "seaflo-3500-gph-manuel-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Seaflo"
+    ],
+    "baslik": "Seaflo 3500 GPH Manuel Sintine Pompası 12V",
+    "aciklama": "Seaflo'nun dalgıç tip manuel sintine pompası; tekne içinde biriken suyun tahliyesinde kullanılır.\n- 3500 GPH debi, 12V çalışma gerilimi.\n- Hızlı sökme/takma bağlantı tasarımı sayesinde kolay bakım ve değişim.\n- Ayrı bir anahtar veya flatör ile birlikte kullanılır (flatör dahil değildir).",
+    "fiyat": "3400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktf-manual-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "seaflo-3500-gph-manuel-sintine-pompasi-24v",
+    "kategori": "Marin",
+    "marka": [
+      "Seaflo"
+    ],
+    "baslik": "Seaflo 3500 GPH Manuel Sintine Pompası 24V",
+    "aciklama": "Seaflo'nun dalgıç tip manuel sintine pompası; tekne içinde biriken suyun tahliyesinde kullanılır.\n- 3500 GPH debi, 24V çalışma gerilimi.\n- Hızlı sökme/takma bağlantı tasarımı sayesinde kolay bakım ve değişim.\n- Ayrı bir anahtar veya flatör ile birlikte kullanılır (flatör dahil değildir).",
+    "fiyat": "3400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktf-manual-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "seaflo-750-gph-otomatik-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Seaflo"
+    ],
+    "baslik": "Seaflo 750 GPH Otomatik Sintine Pompası 12V",
+    "aciklama": "Seaflo'nun entegre manyetik şamandıralı, tam otomatik dalgıç tip sintine pompası.\n- 750 GPH debi, 12V çalışma gerilimi.\n- Su seviyesi yükseldiğinde otomatik devreye girer, su boşaldığında durur; ayrı flatör gerektirmez.\n- Tekne sintinesi için pratik, tak-çalıştır kurulum.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktf-auto-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "seaflo-1100-gph-otomatik-sintine-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "Seaflo"
+    ],
+    "baslik": "Seaflo 1100 GPH Otomatik Sintine Pompası 12V",
+    "aciklama": "Seaflo'nun entegre manyetik şamandıralı, tam otomatik dalgıç tip sintine pompası.\n- 1100 GPH debi, 12V çalışma gerilimi.\n- Su seviyesi yükseldiğinde otomatik devreye girer, su boşaldığında durur; ayrı flatör gerektirmez.\n- Tekne sintinesi için pratik, tak-çalıştır kurulum.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ktf-auto-1.jpg"
+    ],
+    "altkategori": "Sintine ve Ekipmanları",
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "international-micron-350-antifouling-boya-2-5lt",
     "kategori": "Marin",
     "marka": [
