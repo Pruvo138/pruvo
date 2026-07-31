@@ -1209,7 +1209,12 @@ jobs:
           # ana sayfa 404 alip bos kalirdi).
           # konfigur.js = dekor konfiguratoru modulu (urunler.json "konfigur" alanli urun
           # sayfalari yukler; bugun urun yok, dosya yayinda hazir bekler — taban-fiyatlar deseni).
-          cp secenekler.js konfigur.js urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml filament-veri.js taban-fiyatlar.js .nojekyll _site/
+          # JS varliklari _yayin/'dan gelir: build.py onlarin YORUMU SOYULMUS yayin
+          # kopyasini oraya yazar (kaynak dosyalar depoda tam dokumantasyonla KALIR,
+          # tarayiciya inmez). _yayin/ yoksa/eksikse `cp` HATA verir -> yayin durur
+          # (fail-closed; sessizce yorumlu kaynak yayinlanamaz).
+          cp _yayin/secenekler.js _yayin/konfigur.js _yayin/filament-veri.js _yayin/taban-fiyatlar.js _site/
+          cp urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml .nojekyll _site/
           cp -r urun _site/
           # Icerik/yasal sayfa dizinleri: build.py'nin urettigi _yayin-icerik-dizinleri.txt'ten
           # (TEK KAYNAK sayfalar.py SITEMAP_SLUGS) kopyalanir -> yeni CONTENT_PAGES otomatik
@@ -1224,7 +1229,8 @@ jobs:
           # hacim.js tek kaynak (kabul testi #4), semalar Worker'in ileride sunucu-tarafi
           # yeniden hesabi icin de ayni adresten okunur.
           mkdir _site/jenerator
-          cp jenerator/hacim.js jenerator/konfigurator.js jenerator/viewer.js _site/jenerator/
+          # ... ayni sekilde yorumu soyulmus kopyalar (_yayin/jenerator/).
+          cp _yayin/jenerator/hacim.js _yayin/jenerator/konfigurator.js _yayin/jenerator/viewer.js _site/jenerator/
           cp -r jenerator/urunler _site/jenerator/urunler
       - name: Pages artefaktini yukle
         uses: actions/upload-pages-artifact@v3
