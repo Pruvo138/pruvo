@@ -178,7 +178,7 @@ _PILOT_COPY = {
     ("Ford", "transit"): {
         "h1": "Ford Transit Yedek Parça — Ölçüye Özel Üretim",
         "giris": "Ford Transit ve ticari filonuz için sürekli kırılan plastik parçaları mı arıyorsunuz? Kargo bölmesi mandalları, kapı kolu ve menteşe parçaları, konsol ve gösterge çevresi kapakları, kablo kanalları ve raf/bağlantı braketleri gibi Transit parçalarını ölçüye özel üretiyoruz. Yoğun kullanımdan yıpranan ya da artık bulunamayan bu parçaları, numunenizden birebir ve doğru malzemeyle yeniden üretiyoruz.",
-        "huni": "Transit'iniz küçük bir parça yüzünden beklemesin. Kırık parçayı getirin ya da fotoğraflayın, ölçelim, dayanıklı malzemeyle ölçüye özel üretelim. Ölçü sizden, üretim bizden. WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına yazın, hızlıca dönelim.",
+        "huni": "Transit'iniz küçük bir parça yüzünden beklemesin. Kırık parçayı getirin ya da kargoyla gönderin, ölçelim, dayanıklı malzemeyle ölçüye özel üretelim. Ölçü sizden, üretim bizden. WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına yazın, hızlıca dönelim.",
     },
     ("BMW", "e46"): {
         "h1": "BMW E46 Yedek Parça — Ölçüye Özel Üretim",
@@ -644,10 +644,11 @@ def _model_sayfasi(ctx, marka, g):
                  "üretiyoruz.")
         huni_govde = ("Aradığınız " + marka + " " + display + " parçasını listede "
                       "bulamadıysanız üretemeyeceğimiz anlamına gelmez. Kırık ya da eski "
-                      "parçayı bize getirin ya da fotoğraflayın; milimetrik ölçüp, "
-                      "çalışacağı yere göre doğru malzemeyle ölçüye özel üretelim. Ölçü "
-                      "sizden, üretim bizden. Parçanızın fotoğrafını WhatsApp'tan "
-                      + WA_TEL_GORUNUR + " numarasına gönderin.")
+                      "parçayı bize ulaştırın — getirin ya da kargoyla gönderin; "
+                      "milimetrik ölçüp, çalışacağı yere göre doğru malzemeyle ölçüye özel "
+                      "üretelim. Ölçü sizden, üretim bizden. Parçanızın fotoğrafını "
+                      "WhatsApp'tan " + WA_TEL_GORUNUR + " numarasına önceden iletirseniz "
+                      "ön teyit veririz.")
 
     n = len(g["urunler"])
     description = (marka + " " + display + " için bulunamayan ya da kırılan plastik yedek "
