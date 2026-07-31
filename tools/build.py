@@ -2651,6 +2651,69 @@ def kart_ozeti(p):
     }
 
 
+# ------------------------------------------- ANA SAYFA VİTRİN SIRASI (Okan kuralı, 31 Tem)
+# KURAL: ana sayfanın ilk VITRIN_ON_SLOT (20) slotunda Ev/Dekorasyon/Ofis ürünü BULUNMAZ;
+# 21. sıradan itibaren normal görünürler. Ürün ELENMEZ, geri itilir.
+#
+# NEDEN DERLEME ANINDA (ölçüldü, 31 Tem): ana sayfanın ilk boyaması ozet.json'un "yeni"
+# listesinden gelir ve tarayıcı ondan yalnız ilk PAGE_SIZE (24) kartı çizer. Yeni ürün
+# urunler.json'un BAŞINA eklendiği için katalogun başında kesintisiz bir hedef-kategori
+# bloğu oluşabiliyor (98 ürünlük blok ölçüldü) — o pencerede ilk 20 slotu dolduracak
+# hedef-dışı ürün KALMIYOR. İstemci sıralayıcısı elindeki listeyi yeniden dizer ama
+# YOKTAN ürün üretemez; 20 hedef-dışı biriktirmek için pencere derinliği 118 gerekiyordu.
+# Çözüm: sırayı TÜM katalog üzerinde BURADA hesaplayıp ozet'e HAZIR yazmak. Tarayıcıya
+# daha fazla ürün indirtmek (pencereyi şişirmek) ve urunler.json'u yeniden dizmek YOK.
+#
+# İSTEMCİ SIRALAYICISI KALDIRILMADI: ana sayfa kartları DÖRT besleme yolundan gelebiliyor
+# (ozet ilk boyaması · Worker /katalog · edgeYedek havuzu · bayrak kapalıyken HOME_ORDER);
+# burada hesaplanan sıra yalnız BİRİNCİSİNİ besler. İki taraf birbirini bozmaz çünkü
+# permütasyon ETKİSİZ-TEKRARLI (idempotent): zaten bu sırada olan listeye uygulanınca
+# listeyi DEĞİŞTİRMEZ (vitrin-siralama-test.js bunu ayrı iddiayla kanıtlar).
+def _index_vitrin_kurali():
+    """Kuralı index.html'deki TEK KAYNAKTAN oku (VITRIN_GERI_KATEGORILER + VITRIN_ON_SLOT).
+    İkinci bir kopya, kuralın iki tarafta SESSİZCE ayrışması demekti: derleme bir sırayı
+    hesaplar, tarayıcı başka bir kuralı uygular, ekranda hata görünmezdi. Çapa
+    bulunamazsa FAIL-CLOSED (build kırmızı) — sessizce "kural yok" sayılmaz."""
+    with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
+        kaynak = f.read()
+    m = re.search(r"var\s+VITRIN_GERI_KATEGORILER\s*=\s*(\[[^\]]*\])\s*;", kaynak)
+    if not m:
+        raise SystemExit("index.html'de VITRIN_GERI_KATEGORILER bulunamadi "
+                         "(vitrin kurali tek kaynagi bozulmus).")
+    kategoriler = json.loads(m.group(1))
+    s = re.search(r"var\s+VITRIN_ON_SLOT\s*=\s*(\d+)\s*;", kaynak)
+    if not s:
+        raise SystemExit("index.html'de VITRIN_ON_SLOT bulunamadi "
+                         "(vitrin kurali tek kaynagi bozulmus).")
+    return kategoriler, int(s.group(1))
+
+
+def vitrin_sirala(urunler, geri_kategoriler, slot):
+    """index.html vitrinSirala() ile AYNI permütasyon, TÜM katalog üzerinde.
+
+    Hedef-dışı ürünler kendi göreli sıralarını koruyarak ilk `slot` slotu doldurur;
+    geri kalan her şey (hedef kategoriler + taşan hedef-dışılar) yine kendi sırasıyla
+    arkaya dizilir. ELEME YOK: dönen liste girdinin permütasyonudur.
+
+    YETERSİZ STOK: katalogda `slot` kadar hedef-dışı ürün yoksa BOŞLUK BIRAKILMAZ —
+    kalan slotlar doğal sırayla dolar — ama sapma SESSİZ GEÇMEZ (döndürülen sapma
+    ozet.json'a yazılır ve build günlüğüne UYARI basılır).
+
+    Döner: (sirali_liste, sapma)."""
+    kume = set(geri_kategoriler)
+    on, geri = [], []
+    for p in urunler:
+        if len(on) < slot and (p.get("kategori") or "") not in kume:
+            on.append(p)
+        else:
+            geri.append(p)
+    sapma = {
+        "yetersiz": len(urunler) >= slot and len(on) < slot,
+        "uygun": len(on), "slot": slot, "liste": len(urunler),
+    }
+    return on + geri, sapma
+
+
 def render_ozet(products):
     kategoriler = {}
     markalar = {}          # {kategori: {marka: adet}} — global sayım = kategorilerin toplamı
@@ -2661,6 +2724,16 @@ def render_ozet(products):
         for m in (p.get("marka") or []):
             kat_markalari[m] = kat_markalari.get(m, 0) + 1
 
+    # Vitrin sırası TÜM katalog üzerinde burada hesaplanır; "yeni" listesi bu sıradan
+    # kesilir. OZET_YENI (48) >= ilk 20 slot + ilk ekranda gösterilen 24 kart olduğu için
+    # hedef kategoriler ilk boyamanın 21+ bölgesinde GÖRÜNMEYE devam eder (elenmezler).
+    vitrin_geri, vitrin_slot = _index_vitrin_kurali()
+    vitrin, vitrin_sapma = vitrin_sirala(products, vitrin_geri, vitrin_slot)
+    if vitrin_sapma["yetersiz"]:
+        print("UYARI: vitrin-sapma — ilk %d slot icin hedef-disi urun YETERSIZ (%d/%d, "
+              "katalog %d); kalan slotlar dogal sirayla doldu."
+              % (vitrin_slot, vitrin_sapma["uygun"], vitrin_slot, vitrin_sapma["liste"]))
+
     ozet = {
         "surum": 1,
         "uretim": TODAY,
@@ -2669,8 +2742,12 @@ def render_ozet(products):
         "markalar": markalar,
         # Sarı vitrin havuzu: parametrik ürünlerin TAMAMI — site 4'ünü rastgele seçer.
         "parametrik": [kart_ozeti(p) for p in products if p.get("parametrik")],
-        # urunler.json'un BAŞI = en yeni (CLAUDE.md: yeni ürün dizinin başına eklenir).
-        "yeni": [kart_ozeti(p) for p in products[:OZET_YENI]],
+        # DERLEME ANINDA hesaplanmış vitrin sırası (yukarıdaki blok). Eskiden burada
+        # katalogun ham başı (products[:OZET_YENI]) vardı; ham baş hedef kategoriyle
+        # dolunca ilk 20 slot kuralı SESSİZCE ihlal ediliyordu.
+        "yeni": [kart_ozeti(p) for p in vitrin[:OZET_YENI]],
+        # Sapma ÖLÇÜLEBİLİR kalır (canlı doğrulama + kabul testi bunu okur).
+        "vitrin": vitrin_sapma,
     }
     return json.dumps(ozet, ensure_ascii=False, separators=(",", ":"))
 
@@ -2743,11 +2820,19 @@ def main():
     # onu üretip sahte fetch'e servis ediyor. Özetin ŞEKLİ tek kaynakta (render_ozet)
     # kalsın diye test kendi kopyasını hesaplamıyor, bu bayrağı çağırıyor. Bütçe kapısı
     # burada KOŞMAZ (tam build'in işi) — bu bayrak sadece artefaktı yazar.
+    # --katalog/--cikti: girdi katalogu ve çıktı yolu değiştirilebilir. NEDEN: vitrin
+    # sıralama kabul testi ozet'i SENTETİK fikstür üzerinde GERÇEK build koduyla üretir
+    # (kendi kopyasını hesaplamaz) ve bunu yaparken depodaki ozet.json'u EZMEZ.
     if "--sadece-ozet" in sys.argv[1:]:
-        with open(JSON_PATH, encoding="utf-8") as f:
+        def _arg(ad, varsayilan):
+            i = sys.argv.index(ad) if ad in sys.argv else -1
+            return sys.argv[i + 1] if 0 <= i < len(sys.argv) - 1 else varsayilan
+        _katalog = _arg("--katalog", JSON_PATH)
+        _cikti = _arg("--cikti", os.path.join(ROOT, OZET_JSON))
+        with open(_katalog, encoding="utf-8") as f:
             _urunler = json.load(f)
         _ozet = render_ozet(_urunler)
-        with open(os.path.join(ROOT, OZET_JSON), "w", encoding="utf-8") as f:
+        with open(_cikti, "w", encoding="utf-8") as f:
             f.write(_ozet)
         print("OK: ozet.json uretildi (%d urun, %d bayt)."
               % (len(_urunler), len(_ozet.encode("utf-8"))))
