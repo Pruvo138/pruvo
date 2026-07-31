@@ -815,17 +815,42 @@ def deploy_cagrilari():
     return bayraksiz, kendini
 
 
+def damga_kosul_arizasi(adim):
+    """Damga adimi FIILEN olculmus bir denetime KOSULLU mu -> ariza metni | None.
+
+    GitHub semantigi: onceki adim duserse `always()` tasimayan adim ZATEN atlanir; ama
+    `skipped` bir olcumden sonra kosul YOKSA adim KOSAR. Bu yuzden kosulun OLCUM
+    adiminin ciktisina bakmasi SART: damganin iddiasi "denetim yapildi"dir."""
+    kosul = str(adim.get("if") or "").strip()
+    if not kosul:
+        return ("`if:` kosulu YOK -> adim her kosumda kosar (olcum `skipped` olsa bile)")
+    if "always()" in kosul:
+        return ("kosulda `always()` var -> olcum/onarim/teyit duşse ya da atlansa bile "
+                "damga dogar (kosul: %r)" % kosul[:90])
+    if "steps.olcum.outputs" not in kosul:
+        return ("kosul OLCUM adiminin ciktisina (`steps.olcum.outputs...`) BAKMIYOR "
+                "(kosul: %r)" % kosul[:90])
+    return None
+
+
 def uzlastirici_kablosu():
     """A0'IN KAYNAGI YASIYOR MU — uzlastirici is akisi damgayi FIILEN uretiyor mu.
 
     Bir okuyucu, YAZICISI olmadan hep KIRMIZI yanar (ya da yazici sessizce silinince
     eksen olur). Bu capa d1-uzlastirici.yml'i GERCEK YAML ayristiricisiyla okur ve
-    dort seyi OLCER (hepsi fail-closed):
+    BES seyi OLCER (hepsi fail-closed):
       (1) `--damga-yaz <dosya>` cagrisi VAR,
       (2) AYNI dosyayi `actions/upload-artifact` ile `name: <DAMGA_ADI>` altinda YUKLER,
       (3) yukleme adimi fail-open DEGIL (`continue-on-error` yok, `if-no-files-found: error`),
       (4) onarim adimi yaris-yeniden-denemeli surucuyu (uzlastirici-onarim.py) ve
-          kosum basinda `git reset --hard FETCH_HEAD` tazelemesini kullanir.
+          kosum basinda `git reset --hard FETCH_HEAD` tazelemesini kullanir,
+      (5) 🔴 HER IKI damga adimi da OLCUMUN SONUCUNA KOSULLU (`steps.olcum.outputs.sapma`)
+          ve `always()` DEGIL. GEREKCE (bu eksenin var olma sebebi): 20:47:18Z kosumu
+          SUCCESS'ti ve olcum/onarim/teyit adimlarinin HEPSI `skipped`ti. Damga adimindan
+          `if:` satiri silinirse damga TAM O KOSUMDA da dogar -> A0 ekseni "denetim
+          yapildi" diye SIFIR denetimi damgalar, yani okudugu sey sahte olur. Bu satir
+          o tek-satirlik zayiflamayi KIRMIZI yakar (olculdu: kalkan olmadan mutant
+          tum kapilarda rc 0 idi).
     Doner: (sorunlar_listesi, bulgular_sozlugu)."""
     yol = os.path.join(WORKFLOW_DIZIN, UZLASTIRICI_DOSYA)
     if not os.path.exists(yol):
@@ -841,6 +866,7 @@ def uzlastirici_kablosu():
 
     yazilan = None
     yukleme = None
+    yazma_adimi = None
     surucu = tazeleme = False
     for a in adimlar:
         komut = str(a.get("run") or "")
@@ -851,6 +877,7 @@ def uzlastirici_kablosu():
                 i = parcalar.index("--damga-yaz")
                 if i + 1 < len(parcalar):
                     yazilan = parcalar[i + 1]
+                    yazma_adimi = a
             if "uzlastirici-onarim.py" in s and s.startswith("python3"):
                 surucu = True
             if s.startswith("git reset --hard FETCH_HEAD"):
@@ -884,8 +911,18 @@ def uzlastirici_kablosu():
         sorunlar.append("`git reset --hard FETCH_HEAD` tazelemesi YOK -> donmus github.sha "
                         "checkout'u 20:47Z'deki 'her sey skipped, kosum YESIL' halini "
                         "yeniden uretir")
+    kosullu = True
+    for etiket, adim in (("damga YAZMA", yazma_adimi), ("damga YUKLEME", yukleme)):
+        if adim is None:
+            continue
+        ariza = damga_kosul_arizasi(adim)
+        if ariza:
+            kosullu = False
+            sorunlar.append("%s adimi OLCUM SONUCUNA KOSULLU DEGIL — %s. Damga o zaman "
+                            "'denetim yapildi' demez, 'kosum bitti' der; 20:47Z'nin SIFIR "
+                            "denetimli YESIL kosumu da damgalanirdi." % (etiket, ariza))
     return sorunlar, {"yazilan": yazilan, "yukleme": yukleme is not None,
-                      "surucu": surucu, "tazeleme": tazeleme}
+                      "surucu": surucu, "tazeleme": tazeleme, "kosullu": kosullu}
 
 
 def kendini_test():
@@ -1137,6 +1174,24 @@ def kendini_test():
           bool(kablo_bulgu.get("surucu")), repr(kablo_bulgu))
     iddia("A0 KAYNAK: kosum agaci uzak main UCUNA tazelenir (donmus github.sha DEGIL)",
           bool(kablo_bulgu.get("tazeleme")), repr(kablo_bulgu))
+    # 🔴 DAMGANIN DOGRULUGU (yasamasi DEGIL): kosul silinirse damga SIFIR denetimi
+    # damgalar. Olculdu (merge kapisi, 1 Agu): bu iddia eklenmeden once `if:` satirini
+    # silen mutant TUM kapilarda rc 0 aliyordu.
+    iddia("A0 KAYNAK: damga adimlari OLCUM SONUCUNA KOSULLU (kosul silinir/`always()` "
+          "olursa 20:47Z'nin SIFIR denetimli YESIL kosumu da damgalanirdi)",
+          bool(kablo_bulgu.get("kosullu")), kablo_ariza or "; ".join(kablo_sorun)
+          or repr(kablo_bulgu))
+    # Fikstur: kosul katmaninin kendisi IKI YONLU olcusun (gercek dosyaya bagimli kalmasin).
+    iddia("A0 KOSUL FIKSTURU: `if:` YOK -> ariza (kosulsuz damga yakalanir)",
+          damga_kosul_arizasi({"run": "x"}) is not None,
+          repr(damga_kosul_arizasi({"run": "x"})))
+    iddia("A0 KOSUL FIKSTURU: `always()` -> ariza",
+          damga_kosul_arizasi({"if": "always()"}) is not None)
+    iddia("A0 KOSUL FIKSTURU: olcum ciktisina bakmayan kosul -> ariza",
+          damga_kosul_arizasi({"if": "github.event_name == 'schedule'"}) is not None)
+    iddia("A0 KOSUL FIKSTURU: gercek kosul -> ariza YOK (yanlis-pozitif yok)",
+          damga_kosul_arizasi({"if": "steps.olcum.outputs.sapma == 'yok' || "
+                                     "steps.teyit.outcome == 'success'"}) is None)
 
     # --- CI KABLOSU: HER IKI KOL da deploy.yml'de ANLAMLI OLARAK kosuyor mu ---
     try:
