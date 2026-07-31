@@ -933,9 +933,10 @@ jobs:
       # Bu adim KENDI checkout'undan kosar. Sirada bekleyen bir kosum yayina cikana kadar
       # daha yeni bir push, pre-push hook'uyla D1'i ZATEN guncellemis olur; o zaman bu ESKI
       # agac diff-upsert'un DELETE koluyla YENI partiyi D1'den siler (olculen 9 olayin 9'unda
-      # adim `success` gorundu — sessiz hata). d1-sync.py icindeki bayatlik kapisi silmeyi
-      # zaten fail-closed durdurur; buradaki on-kosul ise BAYAT KOSUMU HIC BASLATMAZ:
-      #   - D1'e tek satir bile yazilmaz (bayat UPSERT'ler de olusmaz),
+      # adim `success` gorundu — sessiz hata). d1-sync.py icindeki bayatlik kapisi bayat
+      # agactan gelen HER YAZMAYI (silme + upsert) zaten fail-closed durdurur; buradaki
+      # on-kosul ise BAYAT KOSUMU HIC BASLATMAZ:
+      #   - D1'e tek satir bile yazilmaz ve bosuna D1 okumasi da yapilmaz,
       #   - olculen 18-27 s'lik adim suresi yayin yolundan DUSER.
       # `--bayatlik` D1'e DOKUNMAZ (yalniz `git ls-remote` + `merge-base`), UC ise 0 doner.
       # Fail-open KALIR: bayat/olculemez kosumda adim exit 0 ile ATLAR, yayin durmaz;

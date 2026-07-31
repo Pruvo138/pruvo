@@ -18,10 +18,17 @@ name: D1 uzlastirici (katalog sapmasi)
 #
 # NEDEN "ONAR" (yalniz alarm DEGIL): alarm-only sapmayi bir insan gelene kadar
 # acik birakir; olculen zarar sinifi tam da "kimse bakmadigi icin surer" tipidir.
-# Onarim RISKSIZ DEGIL ama KAPILI: `d1-sync.py` icindeki BAYATLIK KAPISI silmeyi
-# ancak agac uzak main'in UCUNDA iken uygular (bu is her zaman uctan kosar; kosum
-# sirasinda yeni bir push gelirse kapi silmeyi fail-closed durdurur). Yani
-# uzlastirici, kacagi UREten yolun kendisinden gecemez.
+# Onarim RISKSIZ DEGIL ama KAPILI: `d1-sync.py` icindeki BAYATLIK KAPISI bayat bir
+# agactan gelen HER YAZMAYI (silme + upsert) reddeder; yazma ancak agac uzak main'in
+# UCUNDA iken gecer (bu is her zaman uctan kosar; kosum sirasinda yeni bir push
+# gelirse kapi fail-closed durdurur ve is KIRMIZI olur). Yani uzlastirici, kacagi
+# UREten yolun kendisinden gecemez.
+#
+# 🔴 BU IS ARTIK EMNIYET AGININ TA KENDISI (KraL karari 31 Tem): bayat yazicilarin
+# TAMAMI bloklandigi icin D1'i guncelleyecek iki yol kaldi — (1) uctan kosan
+# pre-push hook'u / CI adimi, (2) bu uzlastirici. (1) atlanir ya da basarisiz olursa
+# sapmayi KAPATAN tek sey budur. Olculdu (offline, uctan uca): uctaki kosumun D1
+# adimi atlandiginda 42 eksik id bu adim sirasiyla yakalanip kapatildi (EKSIK 42 -> 0).
 #
 # NEDEN --durum (K5 DEGIL): tools/canli-saglik-kapisi.py K5 ekseni ayni yone bakar
 # ama KAPSAMI EN YENI 20 URUNLE (ve konfigursuzlerle) SINIRLI bir orneklemdir.
