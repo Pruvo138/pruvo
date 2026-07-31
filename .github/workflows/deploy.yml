@@ -431,6 +431,22 @@ jobs:
       - name: Konfigur (dekor konfigurator) kabul testi
         run: python3 tools/konfigur-test.py --anahat
 
+      # FIZIKSEL URUN KAPISI (PARA — karsiligi olmayan +%15 tahsilati). `tur: "fiziksel"`
+      # kayitlari hazir ticari maldir (tekne boyasi/vernik/tiner); 3D baskiyla URETILMEZ,
+      # malzeme/renk SECIMI YOKTUR, fiyati SABITTIR. Kategorileri "Marin" oldugu icin sayfalari
+      # kart-secim dalina dusuyor ve renk butonlari + malzeme cipleri + "…'den başlayan"
+      # basiliyordu. "Diğer (+%15)" secimi sepet satirina renk:"Diğer" yazar, secenekler.js
+      # hesaplaFiyatKurus onu x1,15 yapar (Worker sabit-fiyat kolu AYNI fonksiyonu cagirir):
+      # olculdu 1.000 TL boya -> ASA+"Diğer" ile 1.840,00 TL. Kapi: fiziksel fiksturde 9 baski
+      # kancasinin HICBIRI yok + adet/sepet/WhatsApp duruyor + "Diğer" uretebilecek kanca yok
+      # (para capasi GERCEK secenekler.js ile node'da olculur; node yoksa FAIL-CLOSED kirmizi)
+      # + `tur`suz 3D urunde HER SEY yerinde + taninmayan `tur` degeri `tur`suzle BAYT-ESIT
+      # (fail-closed). Offline, sentetik fikstur, urunler.json OKUNMAZ, dosya YAZMAZ, ~1 s;
+      # build.py'den ONCE kosar (render_product'i dogrudan cagirir). Mutasyon turu (2/2
+      # kirmizi) elle: python3 tools/fiziksel-urun-kapisi.py --mutasyon
+      - name: Fiziksel urun kapisi (3D-baski secim UI + karsiliksiz +%15 renk farki)
+        run: python3 tools/fiziksel-urun-kapisi.py
+
       # KONFIGUR FAIL-CLOSED (shop odeme yolu — SESSIZ EKSIK TAHSILAT kapisi). Konfigurlu urun
       # D1'e senkronlanip Worker ELLE deploy edilmediginde kalem eskiden sessizce SABIT katalog
       # fiyatiyla satiliyordu (olculdu: 30 cm/PLA 1.500 TL yerine 500 TL -> 1.000 TL eksik
