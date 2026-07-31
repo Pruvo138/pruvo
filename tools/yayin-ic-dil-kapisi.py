@@ -48,8 +48,20 @@ KAPSAM (fail-closed): yayin beyaz listesi .github/workflows/deploy.yml'dekiyle A
   Veri dosyalari (urunler.json/merchant-feed.xml/sitemap.xml/ozet.json) YORUM TASIYAMAZ,
   bu yuzden ayrica muaf yazilmasina gerek YOKTUR (eksen zaten disliyor).
 
+KAYNAK KOLU (--kaynak) — NEDEN VAR (olculmus regresyon, 31 Tem 2026):
+  Bu kapi YAYIN ciktisini olcer ve o cikti ancak build.py'den SONRA vardir. Sonucu:
+  tarayiciya AYNEN inen bir KAYNAK dosyaya (index.html satir-ici <script> yorumu) ic
+  dosya yolu yazan bir degisiklik dalda hicbir yerde kirmizi yanmadi, main'e girdi ve
+  CI'yi ~4 dakika sonra dusurdu -> deploy + yayin SKIPPED, yayin durdu.
+  `--kaynak` AYNI sozlugu ve AYNI yorum lexer'ini, build GEREKTIRMEDEN, tarayiciya
+  AYNEN giden KAYNAK dosyalara uygular (index.html + yayinlanan JS varliklari).
+  Ikinci sozluk/ikinci lexer YOKTUR — yalniz kapsam degisir; iki kol ayrisamaz.
+  Bu kol yayin kolunun YERINE GECMEZ: uretilen urun/icerik sayfalari yalniz yayin
+  kolunda olculur (build.py sablonlarindan dogarlar).
+
 Kullanim:
     python3 tools/yayin-ic-dil-kapisi.py            # olcum (build.py'den SONRA; bloklayici)
+    python3 tools/yayin-ic-dil-kapisi.py --kaynak   # KAYNAK kolu (build GEREKMEZ; bloklayici)
     python3 tools/yayin-ic-dil-kapisi.py --kendini-test    # ic nobetci (build GEREKMEZ)
 
 Cikis kodu: 0 = temiz · 1 = IHLAL · 3 = OLCULEMEDI (kapsam bulunamadi / sozluk yuklenemedi).
@@ -289,6 +301,24 @@ def kapsam(kok):
     return dosyalar, eksik
 
 
+# KAYNAK kolu: tarayiciya AYNEN inen kaynak dosyalar (index.html -> index.built.html'in
+# govdesi; JS varliklari _site'a aynen kopyalanir). build.py GEREKMEZ.
+KAYNAK_VARLIKLAR = ("index.html",) + tuple(r for r in SABIT_VARLIKLAR if r != "index.built.html")
+KAYNAK_TABAN = ("index.html",) + TABAN_JS
+
+
+def kaynak_kapsam(kok):
+    """(dosyalar, eksik) — build GEREKTIRMEYEN kaynak yuzeyi. TABAN kume yoksa OLCULEMEDI:
+    bos kumede 'vurus 0' YESIL'i imkansiz olsun."""
+    dosyalar, eksik = [], []
+    for rel in KAYNAK_VARLIKLAR:
+        if os.path.exists(os.path.join(kok, rel)):
+            dosyalar.append(rel)
+        elif rel in KAYNAK_TABAN:
+            eksik.append(rel)
+    return dosyalar, eksik
+
+
 # -------------------------------------------------------------------------- olcum
 def desenleri_derle():
     sert, tr_lower = _denetim_sozlugu()
@@ -316,36 +346,44 @@ def tara(metin, yol, sert, ic, tr_lower):
 DEPLOY_YML = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
 
 
-def olc(kok, ayrintili=True, yml_metni=None):
-    """(cikis_kodu, satirlar)."""
+def olc(kok, ayrintili=True, yml_metni=None, kapsam_fn=None, etiket="yayin"):
+    """(cikis_kodu, satirlar). kapsam_fn: yayin kolu `kapsam`, kaynak kolu `kaynak_kapsam`
+    — sozluk ve yorum lexer'i IKI KOLDA DA AYNI, yalniz dosya kumesi degisir.
+
+    HIZALAMA KAPISI yalniz YAYIN kolunda kosar: iddiasi "bu kapinin OLCTUGU _yayin/
+    baytlari ile deploy.yml'in YAYINLADIGI baytlar ayni" — KAYNAK kolu tanimi geregi
+    kaynak dosyalari olcer, o iddia oraya uygulanamaz. Yayin kolunda AYNEN duruyor."""
     R = []
+    kapsam_fn = kapsam_fn or kapsam
     try:
         sert, ic, tr_lower = desenleri_derle()
     except Exception as e:                                     # noqa: BLE001
         return 3, ["OLCULEMEDI: sozluk (denetim-kapisi.py) yuklenemedi -> %s" % e]
 
-    if yml_metni is None:
-        try:
-            yml_metni = io.open(DEPLOY_YML, encoding="utf-8").read()
-        except OSError as e:
-            return 3, ["OLCULEMEDI: deploy.yml okunamadi -> %s" % e,
-                       "  (olculen bayt ile YAYINLANAN bayt hizasi dogrulanamaz)"]
-    kaymalar = hizalama_ihlalleri(yml_metni)
-    if kaymalar:
-        R.append("IHLAL: OLCUM HEDEFI SAPMASI — bu kapi _yayin/ kopyasini olcerken "
-                 "deploy.yml baska baytlari yayinliyor (%d varlik)" % len(kaymalar))
-        for rel, sebep in kaymalar:
-            R.append("  %s  -> %s" % (rel, sebep))
-        R.append("COZUM: deploy.yml'de _site'a JS varliklari _yayin/<rel>'den kopyalanmali "
-                 "(build.py o kopyalari uretir; uretemezse zaten exit 1).")
-        return 1, R
+    if etiket == "yayin":
+        if yml_metni is None:
+            try:
+                yml_metni = io.open(DEPLOY_YML, encoding="utf-8").read()
+            except OSError as e:
+                return 3, ["OLCULEMEDI: deploy.yml okunamadi -> %s" % e,
+                           "  (olculen bayt ile YAYINLANAN bayt hizasi dogrulanamaz)"]
+        kaymalar = hizalama_ihlalleri(yml_metni)
+        if kaymalar:
+            R.append("IHLAL: OLCUM HEDEFI SAPMASI — bu kapi _yayin/ kopyasini olcerken "
+                     "deploy.yml baska baytlari yayinliyor (%d varlik)" % len(kaymalar))
+            for rel, sebep in kaymalar:
+                R.append("  %s  -> %s" % (rel, sebep))
+            R.append("COZUM: deploy.yml'de _site'a JS varliklari _yayin/<rel>'den kopyalanmali "
+                     "(build.py o kopyalari uretir; uretemezse zaten exit 1).")
+            return 1, R
 
-    dosyalar, eksik = kapsam(kok)
+    dosyalar, eksik = kapsam_fn(kok)
     if eksik:
-        return 3, ["OLCULEMEDI: yayin kapsami eksik -> %s" % ", ".join(eksik),
-                   "  (bu kapi build.py'den SONRA kosar; urun/ + index.built.html sart)"]
+        return 3, ["OLCULEMEDI: %s kapsami eksik -> %s" % (etiket, ", ".join(eksik)),
+                   "  (yayin kolu build.py'den SONRA kosar; urun/ + index.built.html sart)"]
 
-    R.append("Kapsam: %d yayin dosyasi (%d desen kovasi)" % (len(dosyalar), len(sert) + len(ic)))
+    R.append("Kapsam: %d %s dosyasi (%d desen kovasi)" % (len(dosyalar), etiket,
+                                                          len(sert) + len(ic)))
     toplam = 0
     dosya_basi = []
     for rel in dosyalar:
@@ -360,7 +398,7 @@ def olc(kok, ayrintili=True, yml_metni=None):
             dosya_basi.append((rel, bulgu))
 
     if not dosya_basi:
-        R.append("TEMIZ: yayin yorum yuzeyinde yasakli dil vurusu 0")
+        R.append("TEMIZ: %s yorum yuzeyinde yasakli dil vurusu 0" % etiket)
         return 0, R
 
     R.append("IHLAL: %d vurus / %d dosya" % (toplam, len(dosya_basi)))
@@ -545,6 +583,56 @@ def kendini_test():
         kod, _s = olc(k, ayrintili=False)
         _iddia("O3 TABAN JS varligi eksik -> OLCULEMEDI", kod == 3, "kod=%d" % kod)
 
+        # ---------------- KAYNAK KOLU (--kaynak): build GEREKTIRMEYEN yuzey ----------
+        # Regresyonun kendisi: index.html'in satir-ici <script> yorumuna ic dosya yolu
+        # yazildi, dalda hicbir kapi yanmadi, main'de CI ~4 dk sonra dustu (yayin durdu).
+        def _kaynak_agac(kok, index_govdesi, varlik_govdesi="/* PRUVO modul */\nvar a=1;\n"):
+            os.makedirs(kok, exist_ok=True)
+            os.makedirs(os.path.join(kok, "jenerator"), exist_ok=True)
+            io.open(os.path.join(kok, "index.html"), "w", encoding="utf-8").write(index_govdesi)
+            for rel in TABAN_JS:
+                io.open(os.path.join(kok, rel), "w", encoding="utf-8").write(varlik_govdesi)
+
+        temiz_index = (
+            "<html><head><style>/* kart duzeni: sepet paneli ustte */</style></head><body>"
+            "<script>\n"
+            "  /* Ustu cizili fiyat: KALIP derleyici tarafiyla AYNI; kabul testinde kilitli. */\n"
+            "  var s = \"tools/build.py\";  /* dizge DEGIL yorum degil: bu yorumda yol YOK */\n"
+            "</script></body></html>")
+        k = os.path.join(tmp, "kaynak-temiz")
+        _kaynak_agac(k, temiz_index)
+        kod, satirlar = olc(k, ayrintili=False, kapsam_fn=kaynak_kapsam, etiket="kaynak")
+        _iddia("KS1 TEMIZ kaynak agaci YESIL (yorumda ic yol yok)", kod == 0,
+               "kod=%d %s" % (kod, satirlar[-1:]))
+
+        k = os.path.join(tmp, "kaynak-index-yol")
+        _kaynak_agac(k, temiz_index.replace(
+            "KALIP derleyici tarafiyla AYNI",
+            "KALIP tools/build.py'deki ile AYNI"))
+        kod, _s = olc(k, ayrintili=False, kapsam_fn=kaynak_kapsam, etiket="kaynak")
+        _iddia("KS2 index.html <script> YORUMUNDA ic dosya yolu -> KIRMIZI (regresyon vakasi)",
+               kod == 1, "kod=%d" % kod)
+
+        k = os.path.join(tmp, "kaynak-varlik-yol")
+        _kaynak_agac(k, temiz_index, "/* TEK KAYNAK: tools/build.py feed_id */\nvar a=1;\n")
+        kod, _s = olc(k, ayrintili=False, kapsam_fn=kaynak_kapsam, etiket="kaynak")
+        _iddia("KS3 yayinlanan JS VARLIGI yorumunda ic yol -> KIRMIZI", kod == 1, "kod=%d" % kod)
+
+        k = os.path.join(tmp, "kaynak-dizge")
+        _kaynak_agac(k, temiz_index.replace(
+            "var s = \"tools/build.py\";",
+            "var s = \"tools/build.py\"; var u = \"jenerator/test/x.json\";"))
+        kod, _s = olc(k, ayrintili=False, kapsam_fn=kaynak_kapsam, etiket="kaynak")
+        _iddia("KS4 yorum DISINDAKI ic yol (dizge) YESIL — eksen yorum yuzeyi", kod == 0,
+               "kod=%d" % kod)
+
+        k = os.path.join(tmp, "kaynak-eksik")
+        _kaynak_agac(k, temiz_index)
+        os.remove(os.path.join(k, "index.html"))
+        kod, _s = olc(k, ayrintili=False, kapsam_fn=kaynak_kapsam, etiket="kaynak")
+        _iddia("KS5 index.html YOK -> OLCULEMEDI (bos kumede sessiz YESIL imkansiz)",
+               kod == 3, "kod=%d" % kod)
+
         # ---------------- LEXER nobetleri (dogrudan) --------------------------------
         y = js_yorumlari("var s = \"// degil\"; // yorum\n")
         _iddia("L1 dizge icindeki // yorum SAYILMAZ",
@@ -597,11 +685,17 @@ def kendini_test():
 def main():
     ap = argparse.ArgumentParser(description="Yayin ciktisinda ic gelistirici dili kapisi")
     ap.add_argument("--kendini-test", action="store_true")
+    ap.add_argument("--kaynak", action="store_true",
+                    help="KAYNAK kolu: build GEREKTIRMEDEN tarayiciya AYNEN inen kaynak "
+                         "dosyalari (index.html + yayinlanan JS varliklari) olcer")
     ap.add_argument("--kok", default=ROOT, help="olculecek yayin agaci (varsayilan: depo koku)")
     a = ap.parse_args()
     if a.kendini_test:
         return kendini_test()
-    kod, satirlar = olc(a.kok)
+    if a.kaynak:
+        kod, satirlar = olc(a.kok, kapsam_fn=kaynak_kapsam, etiket="kaynak")
+    else:
+        kod, satirlar = olc(a.kok)
     for s in satirlar:
         print(s)
     return kod

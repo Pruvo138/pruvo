@@ -1215,6 +1215,16 @@ jobs:
           python3 tools/yorum-soy-test.py
       # ================= MUAFIYET DENETIMI BLOGU SONU =================================
 
+      # YAYIN IC-DIL KAPISI — KAYNAK KOLU (build'den ONCE; asagidaki yayin kolunun ERKEN
+      # ikizi). NEDEN: yayin kolu ancak build.py'den SONRA olcebiliyor; tarayiciya AYNEN
+      # inen bir KAYNAK dosyaya (index.html satir-ici <script> yorumu) ic dosya yolu yazan
+      # bir degisiklik dalda hicbir yerde kirmizi yanmadi, main'e girdi ve CI'yi ~4 dakika
+      # sonra dusurdu -> deploy + yayin SKIPPED, yayin durdu (31 Tem). Bu kol AYNI sozlugu
+      # ve AYNI yorum lexer'ini build GEREKTIRMEDEN uygular; ikinci sozluk YOK, yalniz
+      # kapsam degisir. Yayin kolunun YERINE GECMEZ (uretilen sayfalar orada olculur).
+      - name: Yayin ic-dil kapisi — KAYNAK kolu (build'den once)
+        run: python3 tools/yayin-ic-dil-kapisi.py --kaynak
+
       - name: Statik sayfalari uret
         run: python3 tools/build.py
 
