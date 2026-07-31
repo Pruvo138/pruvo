@@ -2115,8 +2115,11 @@ SERIT_B = {
         "(shop/test/iki-renk-ucret.mjs).",
     # --- mutasyon bataryalari / CI-kapi meta kapilari -----------------------
     ("deploy.yml", "serit-b", "tools/ara-maliyet-kapisi.py"):
-        "YALNIZ `--kendini-test` (mutasyon: `CROSS JOIN` -> `JOIN`, 3/3 yakalama) kolu; "
-        "GERCEK olcum (600 sorguluk semantik + plan ekseni) serit A'da bloklayici kosuyor.",
+        "IKI KOL DA burada (bayraksiz 600-sorgu olcumu + `--kendini-test` mutasyonu). "
+        "Serit A'ya konmadi cunku bayraksiz kol ILK CI kosumunda yanlis-pozitif verip "
+        "deploy'u atlatti (kosum 30654284096); kok neden onarildi ama hangi kolun "
+        "girildigi SQLite SURUMUNE bagli -> CI davranisi yerelde tam dogrulanamiyor ve "
+        "korudugu kaynak (araD1) bu depoda degil. Serit A'ya tasima karari MIMARIN.",
     ("deploy.yml", "serit-b", "tools/nobetci-mutasyon-test.py"):
         "SAF MUTASYON BATARYASI (17 mutant): kapilarin kendi kirmizi-yolunu olcer, "
         "yayinlanan hicbir ciktiya bakmaz.",
