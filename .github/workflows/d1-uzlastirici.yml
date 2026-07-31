@@ -39,9 +39,24 @@ name: D1 uzlastirici (katalog sapmasi)
 # dogar; taslak urunu Ege GOSTERMEZ. Onarim ancak canlida 200 donen taslaklar
 # yayina alininca fiilen kapanir (atomik yayin sozlesmesi, deploy.yml `yayin` isi).
 
+# 🔴 CRON DAKIKASI NEDEN 7/22/37/52 (OLCULDU, 31 Tem 2026 — `*/15` HIC ATESLENMEDI)
+# ─────────────────────────────────────────────────────────────────────────────
+# Bu is akisi 31 Tem 11:38:52Z'de `*/15 * * * *` ile main'e girdi. 16:14Z'de olculdu:
+#   gh api repos/Pruvo138/pruvo/actions/runs?event=schedule -> total_count = 0
+# Yani 4 sa 36 dk boyunca BEKLENEN ~18 tetiklemenin SIFIRI kostu; is akisi `active`,
+# dosya main'de, depo hareketli. `*/15` tam olarak dakika 0/15/30/45'e duser — GitHub'in
+# en yogun tetikleme dakikalari; dokumantasyonun kendi tavsiyesi bu dakikalardan
+# KACINMAKTIR, cunku kuyruk kisitlaninca zamanlanmis kosum DUSER (yeniden denenmez).
+# COZUM: `*/15` yerine ACIK DAKIKA LISTESI ve sabit ofset -> 7,22,37,52.
+#   * 15 dakikalik CADANS AYNEN KORUNUR (4 tetikleme/saat), yalniz faz kayar.
+#   * Ceyrek-saat sinirlarinin hicbirine denk gelmez.
+# Bu secim tools/cron-nabiz-kapisi.py A1 ekseniyle KILITLIDIR: `*/15`e geri cevrilirse
+# nobetci KIRMIZI yanar. A3 ekseni de "son 3 saatte hic zamanlanmis kosum yok" halini
+# alarm sayar -> bu isin bir daha SESSIZCE olmesi mumkun degil.
 on:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "7,22,37,52 * * * *"
+  # Elle kosturma yolu HER ZAMAN acik (cron kacarsa/kuyruk duserse insan tetikleyebilir).
   workflow_dispatch:
 
 permissions:
@@ -138,3 +153,26 @@ jobs:
         run: |
           python3 tools/d1-sync.py --durum
           echo "✅ Onarim DOGRULANDI (D1 == urunler.json)" >> "$GITHUB_STEP_SUMMARY"
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # GORUNURLUK — sapma OLDUYSA kosum KIRMIZI yanar (onarim BASARILI olsa bile)
+      # ═══════════════════════════════════════════════════════════════════════
+      # NEDEN: "sessizce onarip yesil donmek" bu isin var olma sebebinin ta kendisini
+      # gizler. Sapma OLMASI, ustteki bir yolun (pre-push kancasi / CI D1 adimi / elle
+      # push) KACIRDIGININ kanitidir; onarildi diye o kacak yok olmaz. Bugun (31 Tem)
+      # D1'de 56 kayitta icerik ekseni bayat bulundu ve ELLE senkronlandi — hicbir yerde
+      # kirmizi yanmadigi icin fark edilmesi TESADUFE kalmisti.
+      # MALIYET SIFIR: bu is akisi yayin yolundan TAMAMEN AYRI (deploy.yml'e `needs` ile
+      # bagli DEGIL, `push` tetikleyicisi YOK) -> buradaki kirmizi hicbir yayini durdurmaz,
+      # yalnizca GitHub bildirimi dusurur.
+      - name: "Sapma gorunurlugu: sapma olduysa kosum KIRMIZI (yayin ETKILENMEZ)"
+        if: steps.olcum.outputs.sapma == 'var'
+        run: |
+          echo "🔴 D1 SAPMASI OLDU — onarim kosturuldu ve teyit edildi; kosum GORUNURLUK icin KIRMIZI."
+          echo "### 🔴 D1 sapmasi olustu ve onarildi (kosum bilerek KIRMIZI)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Sapma sayilari (onarimdan ONCE olculen):" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -E "icerik ekseni|hash UYUSMAZ|EKSIK|FAZLA|urun sayisi" durum-once.txt >> "$GITHUB_STEP_SUMMARY" || echo "(sapma satirlari ayiklanamadi — tam cikti olcum adiminda)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "Sapmanin KENDISI bir ust-yol kacagidir (pre-push kancasi / CI D1 adimi / elle push)." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
