@@ -94,6 +94,32 @@ DB_AD = "pruvo-katalog"  # execute yolunda KULLANILAN tanimlayici (surumden bagi
 PARCA = 400
 
 
+# ── HATA KODU TESPITI — BICIMDEN BAGIMSIZ (31 Tem, run 30646713630'da OLCULDU) ───────
+# Wrangler AYNI kodu en az UC ayri bicimde basar:
+#     JSON govdesi   ->  "code": 7429          (TIRNAKLI — gercek --json yuku)
+#     duz metin      ->  code: 7429
+#     not/aciklama   ->  [code: 7429]          (KOSELI, tirnaksiz)
+# Eski kural bir ALT-DIZE listesiydi ("code: 429", "status: 500", ...) ve yalniz duz-metin
+# bicimini yakaliyordu. Gercek wrangler yuku JSON oldugu icin OLCULEN SONUC: 429/500/502/
+# 503/504 kollarinin HEPSI OLUYDU (tirnak araya girdigi icin alt-dize tutmuyordu), 7429
+# ise listede HIC yoktu; hatta `"code": 10000` bile auth koluna girmiyordu. Sonuc: D1'in
+# CPU butcesi tukenip RESET edildigi GECICI ariza KALICI sanildi, tek bir yeniden deneme
+# yapilmadan yayin dustu ve 25 urun TASLAK kaldi.
+# Tek regex tum bicimleri ayni kola toplar; `code`/`status` ANAHTAR KELIMESI ZORUNLUDUR ->
+# metinde gecen ciplak sayi ("7429 rows written", bir urun id'si) YANLISLIKLA hata sayilmaz.
+_KOD_RE = re.compile(r'"?\b(?:code|status)"?\s*:\s*"?(\d{3,5})\b')
+# GECICI = yeniden denemeye deger. 7429 = "D1 DB exceeded its CPU time limit and was reset"
+# (baska bir push'un buyuk yazmasi butceyi harcar; DB reset olur, saniyeler icinde toparlar).
+GECICI_KODLAR = frozenset({429, 500, 502, 503, 504, 7429})
+# KALICI: kimlik dogrulama. Mevcut davranis KORUNUR (uc deneme sonrasi auth tanisi).
+AUTH_KODLAR = frozenset({10000})
+
+
+def hata_kodlari(ham):
+    """Metindeki TUM wrangler/Cloudflare hata kodlarini (int kumesi) topla."""
+    return {int(k) for k in _KOD_RE.findall(ham or "")}
+
+
 def wrangler_hata_tanisi(ham):
     """Wrangler hata metnini siniflandir: auth, gecici veya bilinmeyen.
 
@@ -101,21 +127,99 @@ def wrangler_hata_tanisi(ham):
     tek bir 10000 cevabi gecici olabildigi icin wrangler() auth sonucunu da yeniden
     dener. Yalniz tum denemeler ayni sinifta basarisizsa kalici auth tanisi konur.
     """
-    kucuk = ham.lower()
+    kucuk = (ham or "").lower()
     gecici_isaretler = (
         "timed out", "timeout", "etimedout", "econnreset", "econnrefused",
         "enotfound", "getaddrinfo", "socket hang up", "network error",
         "network connectivity", "fetch failed", "service unavailable",
         "bad gateway", "gateway timeout", "too many requests", "rate limit",
-        "code: 429", "status: 429", "code: 500", "status: 500",
-        "code: 502", "status: 502", "code: 503", "status: 503",
-        "code: 504", "status: 504",
     )
     if any(isaret in kucuk for isaret in gecici_isaretler):
         return "gecici"
-    if re.search(r"\bcode\s*:\s*10000\b", kucuk) or "authentication error" in kucuk:
+    kodlar = hata_kodlari(kucuk)
+    if kodlar & GECICI_KODLAR:
+        return "gecici"
+    if kodlar & AUTH_KODLAR or "authentication error" in kucuk:
         return "auth"
     return None
+
+
+# GECICI hatada denemeler ARASI bekleme (saniye). Deneme sayisi 3 -> en cok 2 bekleme.
+# GEREKCE (olculdu 31 Tem): eski deger 0,25 s idi. CPU butcesi tukenip RESET edilen bir D1
+# 250 ms'de toparlanmaz -> "yeniden deneme" KOZMETIK olur (uc deneme de ayni saniyeye duser
+# ve hepsi ayni hatayi alir). 2 s ilk toparlanma penceresini, 8 s ise ayni anda kosan buyuk
+# bir yazmanin (ornegin 1761 satirlik parti) bitmesini bekler. TAVAN 10 s: senkron adimi
+# CI'da dakikalar suruyor, 10 s ne is akisini ne de pre-push hook'unu hissedilir yavaslatir;
+# daha uzun bekleme (or. 30 s+) hook'u insanin iptal edecegi kadar uzatirdi.
+GECICI_BEKLEME = (2.0, 8.0)
+
+
+def hata_zarfi_metni(zarf):
+    """Wrangler HATA zarfini insan/CI icin ADIYLA yaz (kod + ad + notlar)."""
+    e = zarf.get("error") or {}
+    satirlar = ["!! WRANGLER HATA CEVABI (basarili cikti DEGIL) — kod: %s · %s"
+                % (e.get("code"), e.get("name") or "?")]
+    if e.get("text"):
+        satirlar.append("   " + str(e["text"]))
+    for n in (e.get("notes") or []):
+        if isinstance(n, dict) and n.get("text"):
+            satirlar.append("   - " + str(n["text"]))
+    kod = e.get("code")
+    if kod in GECICI_KODLAR:
+        satirlar.append("   (GECICI sinif — yeniden kosmak genelde yeter.)")
+    return "\n".join(satirlar)
+
+
+def wrangler_cikti_coz(stdout, ham=""):
+    """wrangler --json ciktisini coz.
+
+    Doner: BASARILI cikti = LISTE (sekil DEGISMEZ: cagiranlar `r[0]["results"]` bekler).
+    HATA zarfi ({"error": {...}}) gorulurse sys.exit ile ADIYLA raporlanir.
+
+    NEDEN (31 Tem, run 30646713630): eski kod `stdout.find("[")` ile ILK koseli paranteze
+    atliyordu. HATA yukunde bu, zarfin ICINDEKI `"notes": [` dizisidir -> json.loads
+    "Extra data" ile duser ve arac elindeki `7429 / CPU time limit` mesajini YUTUP
+    "wrangler ciktisi cozulemedi" der. Teshisi saatlerce geciktiren sey tam olarak budur.
+    Cozum: metni SOLDAN saga tarayip ILK COZULEBILEN JSON degerini al -> disdaki zarf
+    icteki `notes` dizisinden ONCE gelir, dolayisiyla hata zarf olarak taninir.
+    """
+    coz = json.JSONDecoder()
+
+    def tara(metin):
+        metin = metin or ""
+        aday, zarf, i, n = False, None, 0, len(metin)
+        while i < n:
+            if metin[i] not in "[{":
+                i += 1
+                continue
+            aday = True
+            try:
+                deger, son = coz.raw_decode(metin, i)
+            except ValueError:
+                i += 1
+                continue
+            # 🔴 COZULEN DEGERIN ICINE GIRME: hata zarfinin ICINDEKI `"notes": [`
+            # dizisi de gecerli bir JSON listesidir; taramaya oradan devam edilirse
+            # zarf "basarili cikti" sanilir (KUSUR 2'nin ta kendisi). Bu yuzden
+            # cozulen degerin SONUNA atlanir.
+            i = max(son, i + 1)
+            if isinstance(deger, list):
+                return deger, None, True                  # BASARILI cikti (sekil aynen)
+            if isinstance(deger, dict) and isinstance(deger.get("error"), dict):
+                zarf = zarf or deger
+        return None, zarf, aday
+
+    liste, zarf, aday = tara(stdout)
+    if liste is not None:
+        return liste
+    if zarf is None:                       # hata zarfi stderr'de olabilir
+        _, zarf, aday2 = tara(ham)
+        aday = aday or aday2
+    if zarf is not None:
+        sys.exit(hata_zarfi_metni(zarf) + "\n" + ham[-2000:])
+    if not aday:
+        sys.exit("wrangler cikti vermedi:\n" + ham[-2000:])
+    sys.exit("wrangler ciktisi cozulemedi:\n" + ham[-2000:])
 
 
 def wrangler(args, girdi_dosya=None):
@@ -139,7 +243,9 @@ def wrangler(args, girdi_dosya=None):
         tani = wrangler_hata_tanisi(ham)
         if p.returncode == 0 or tani not in ("auth", "gecici") or deneme == 2:
             break
-        time.sleep(0.25)
+        # ARTAN bekleme (bkz. GECICI_BEKLEME gerekcesi). time.sleep MODUL uzerinden
+        # cagrilir ki kabul testi onu degistirip GERCEKTEN beklemesin.
+        time.sleep(GECICI_BEKLEME[min(deneme, len(GECICI_BEKLEME) - 1)])
 
     if tani == "gecici":
         sys.exit(
@@ -156,13 +262,7 @@ def wrangler(args, girdi_dosya=None):
             + ham[-2000:]
         )
 
-    i = p.stdout.find("[")
-    if i == -1:
-        sys.exit("wrangler cikti vermedi:\n" + ham[-2000:])
-    try:
-        return json.loads(p.stdout[i:])
-    except json.JSONDecodeError:
-        sys.exit("wrangler ciktisi cozulemedi:\n" + ham[-2000:])
+    return wrangler_cikti_coz(p.stdout or "", ham)
 
 
 def sorgu(sql):
@@ -1702,6 +1802,133 @@ def kendini_test():
         dogrula("V64 CI ON-KOSUL CAPASI: on-kosulun CIKIS KODU kullaniliyor (mensiyon degil)",
                 "if ! python3 tools/d1-sync.py --bayatlik; then" in _blok,
                 _blok[:400])
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # WRANGLER HATA SINIFLANDIRMASI + CIKTI COZUMU (31 Tem, run 30646713630)
+    # ══════════════════════════════════════════════════════════════════════════
+    # OLCULEN OLAY: baska bir push'un 1761 satirlik yazmasi D1'in CPU butcesini harcadi,
+    # DB reset edildi ve `yayin` isi kirmizi dustu -> 25 urun TASLAK kaldi. Ariza GECICI
+    # idi (ayni sorgular saniyeler sonra geciyor) ama arac onu KALICI gibi isledi:
+    #   (1) tani kolu OLUYDU: gercek yuk JSON/TIRNAKLI oldugu icin alt-dize listesi
+    #       hicbir kodu yakalamiyordu -> yeniden deneme HIC denenmedi;
+    #   (2) hata zarfi "basarili cikti" sanilip parse ediliyor, `7429 / CPU time limit`
+    #       mesaji YUTULUP "cozulemedi" basiliyordu -> teshis saatlerce gecikti.
+    # Bu vakalar iki kolu da yasatir.
+    _YUK_7429 = ('{\n  "error": {\n'
+                 '    "text": "A request to the Cloudflare API (/accounts/dbbe2a86.../'
+                 'd1/database/3d99d15e-.../query) failed.",\n'
+                 '    "notes": [\n      {\n        "text": "D1 DB exceeded its CPU time '
+                 'limit and was reset. [code: 7429]"\n      }\n    ],\n'
+                 '    "kind": "error",\n    "name": "APIError",\n    "code": 7429,\n'
+                 '    "accountTag": "dbbe2a8620c3c3a57c586b8a98142fb9"\n  }\n}')
+    dogrula("V65 TANI POZITIF (GERCEK CI YUKU): 7429 CPU-reset zarfi -> GECICI",
+            wrangler_hata_tanisi(_YUK_7429) == "gecici", wrangler_hata_tanisi(_YUK_7429))
+    _bicimler = {
+        'TIRNAKLI JSON  "code": 503': '{"error": {"code": 503, "name": "APIError"}}',
+        "TIRNAKSIZ metin  code: 503": "Cloudflare API failed. code: 503",
+        "KOSELI not  [code: 503]": "something broke [code: 503]",
+    }
+    _bicim_kirmizi = {a: wrangler_hata_tanisi(h) for a, h in _bicimler.items()
+                      if wrangler_hata_tanisi(h) != "gecici"}
+    dogrula("V66 TANI BICIM-BAGIMSIZLIGI: 503'un UC bicimi de GECICI (tirnak/koseli/duz)",
+            _bicim_kirmizi == {}, _bicim_kirmizi)
+    _kod_kirmizi = {k: wrangler_hata_tanisi('{"error": {"code": %d}}' % k)
+                    for k in (429, 500, 502, 503, 504, 7429)
+                    if wrangler_hata_tanisi('{"error": {"code": %d}}' % k) != "gecici"}
+    dogrula("V67 TANI KUME: 429/500/502/503/504/7429 JSON bicimde HEPSI gecici",
+            _kod_kirmizi == {}, _kod_kirmizi)
+    # NEGATIF EKSEN — kapi gevsemesin: 10000 KALICI (auth) kolunda KALIR, alakasiz metin None.
+    dogrula("V68 TANI NEGATIF: 10000 auth KOLUNDA KALIR (tirnakli + tirnaksiz)",
+            wrangler_hata_tanisi('{"error": {"code": 10000, "name": "APIError"}}') == "auth"
+            and wrangler_hata_tanisi("Authentication error [code: 10000]") == "auth",
+            (wrangler_hata_tanisi('{"error": {"code": 10000}}'),))
+    dogrula("V69 TANI NEGATIF: alakasiz metin -> None (her seye 'gecici' demez)",
+            wrangler_hata_tanisi("Executed 3 commands in 0.42s") is None,
+            wrangler_hata_tanisi("Executed 3 commands in 0.42s"))
+    # 🔴 DAR TUTMA IDDIASI: kod tespiti `code`/`status` ANAHTARINA baglidir. Serbest
+    # sayi eslesmesine kaysaydi (or. `\b7429\b`) BASARILI bir cikti ya da urun id'si
+    # "gecici hata" sayilir, arac saglam kosumda bekleyip sifir-disi cikardi.
+    _sayi_tuzagi = {
+        "satir sayisi": "Successfully wrote 7429 rows in 1.2s",
+        "urun id'si": '{"results": [{"id": "t429503", "hash": "H1"}], "success": true}',
+        "sure/olcum": "duration: 502.4 ms, rows_read: 500",
+    }
+    _tuzak_kirmizi = {a: wrangler_hata_tanisi(h) for a, h in _sayi_tuzagi.items()
+                      if wrangler_hata_tanisi(h) is not None}
+    dogrula("V70 TANI YANLIS-POZITIF NOBETI: icinde 429/503/500 GECEN saglam metin -> None",
+            _tuzak_kirmizi == {}, _tuzak_kirmizi)
+
+    # ── CIKTI COZUMU: hata zarfi ADIYLA raporlanir, basarili SEKIL degismez ──────
+    try:
+        wrangler_cikti_coz(_YUK_7429, _YUK_7429)
+        _zarf_mesaj = "(SystemExit ATILMADI — hata zarfi BASARI sanildi)"
+    except SystemExit as e:
+        _zarf_mesaj = str(e.code)
+    dogrula("V71 PARSE POZITIF: hata zarfi ADIYLA basilir (7429 + CPU time limit)",
+            "7429" in _zarf_mesaj and "CPU time limit" in _zarf_mesaj
+            and "cozulemedi" not in _zarf_mesaj, _zarf_mesaj[:300])
+    _basari = ('[\n  {\n    "results": [{"id": "a", "hash": "H1"}],\n'
+               '    "success": true,\n    "meta": {"rows_written": 1, "rows_read": 0}\n  }\n]')
+    _r = wrangler_cikti_coz(_basari, _basari)
+    dogrula("V72 PARSE SEKLI DEGISMEDI: basarili cikti -> r[0]['results'] okunabilir",
+            isinstance(_r, list) and _r[0]["results"][0]["id"] == "a"
+            and _r[0]["meta"]["rows_written"] == 1, _r)
+    _r2 = wrangler_cikti_coz("\n Proxy environment variables detected...\n" + _basari
+                             + "\n", "")
+    dogrula("V72b PARSE: JSON'dan ONCE/SONRA log satiri olsa da basari cozulur",
+            isinstance(_r2, list) and _r2[0]["results"][0]["id"] == "a", _r2)
+    try:
+        wrangler_cikti_coz("wrangler kilitlendi, cikti yok", "wrangler kilitlendi, cikti yok")
+        _cop = "(SystemExit ATILMADI)"
+    except SystemExit as e:
+        _cop = str(e.code)
+    dogrula("V72c PARSE NEGATIF: GERCEKTEN cozulemeyen cikti hala ciplak mesaj verir",
+            "cikti vermedi" in _cop or "cozulemedi" in _cop, _cop[:200])
+
+    # ── GERI CEKILME: gecici sinifta ARTAN bekleme, deneme 3, TAVAN sinirli ──────
+    class _SahteP:
+        def __init__(self, kod, cikti):
+            self.returncode, self.stdout, self.stderr = kod, cikti, ""
+
+    _uykular, _cagri = [], [0]
+
+    def _sahte_run(*a, **k):
+        _cagri[0] += 1
+        return _SahteP(1, _YUK_7429)
+
+    _eski_run, _eski_sleep = subprocess.run, time.sleep
+    subprocess.run, time.sleep = _sahte_run, _uykular.append   # GERCEK bekleme YOK
+    try:
+        try:
+            wrangler(["--command", "SELECT 1"])
+            _mesaj = "(SystemExit ATILMADI)"
+        except SystemExit as e:
+            _mesaj = str(e.code)
+    finally:
+        subprocess.run, time.sleep = _eski_run, _eski_sleep
+    dogrula("V73 GERI CEKILME: 7429 -> 3 deneme yapilir (eskiden 1: kod olu, retry YOK)",
+            _cagri[0] == 3, _cagri[0])
+    dogrula("V73b GERI CEKILME: beklemeler ARTAN ve kozmetik DEGIL (>=2 s, toplam <=10 s)",
+            _uykular == list(GECICI_BEKLEME) and _uykular[0] >= 2
+            and _uykular[1] > _uykular[0] and sum(_uykular) <= 10, _uykular)
+    dogrula("V73c GERI CEKILME: tukenince GECICI diye sifir-disi cikar (sessiz degil)",
+            "GECICI HATA" in _mesaj, _mesaj[:200])
+
+    # ── 🔴 MUTASYON IDDIASI: kod tespiti no-op edilirse V65 KIRMIZI yanmali ──────
+    # PROBE NEDEN BU: iddiayi OLU birakmamak icin probe, YALNIZ onarilan kod-tespit
+    # kuralinin yakalayabilecegi bir yuke cekildi. Gercek 7429 zarfinda ag/soket
+    # alt-dizelerinden HICBIRI yok ("timeout" yok — metin "CPU time limit"; "fetch
+    # failed" yok — metin "A request ... failed"), "rate limit"/"too many requests"
+    # de gecmiyor. Yani bu yuku GECICI yapan TEK sey `code: 7429` tespitidir; regex
+    # oldurulunce vaka DUSMEK ZORUNDA. (Desen: denetim-kapisi-test.py MUT-BOS-LISTE.)
+    _eski_kod_re = _KOD_RE
+    globals()["_KOD_RE"] = re.compile(r"(?!)")             # MUT: kod tespiti NO-OP
+    _mutant_tani = wrangler_hata_tanisi(_YUK_7429)
+    globals()["_KOD_RE"] = _eski_kod_re
+    dogrula("V74 MUT-KOD-NOOP: kod tespiti oldurulunce GERCEK 7429 yuku 'gecici' OLMAZ",
+            _mutant_tani != "gecici", _mutant_tani)
+    dogrula("V74b MUT geri alindi: 7429 yine GECICI (mutant kalici yan etki birakmadi)",
+            wrangler_hata_tanisi(_YUK_7429) == "gecici")
 
     print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
     return 0 if kalan[0] == 0 else 1
