@@ -462,10 +462,17 @@ jobs:
       # fikstur + sahte DOM/fetch ile GERCEKTEN kosturur ve dort yolu AYRI AYRI olcer;
       # ayrica kategori gorunumunun/aramanin ETKILENMEDIGINI, urunlerin ELENMEDIGINI
       # (permutasyon), siranin KARARLI kaldigini ve "yeterli hedef-disi urun yok" halinin
-      # SESSIZ gecmedigini iddia eder. Canli katalogda hedef kategoriler ilk 28 kartta
-      # bugun HIC bulunmadigi icin iddialar fikstur uzerinde olculur (canli veriyle
-      # yazilsa VACUOUS olurdu). Offline, dosya YAZMAZ, ~1 s.
-      - name: Vitrin siralama kabul testi (ilk 20 slot + 4 besleme yolu)
+      # SESSIZ gecmedigini iddia eder. Istemci iddialari SENTETIK fikstur uzerinde olculur
+      # (kural derleme aninda da uygulandigi icin canli veriyle yazilsalar VACUOUS olurdu).
+      # 31 Tem'de IKINCI EKSEN eklendi: vitrin sirasi ARTIK DERLEME ANINDA hesaplaniyor
+      # (tools/build.py render_ozet -> ozet.json "yeni"), cunku ilk boyama ozet'ten yalnizca
+      # PAGE_SIZE kart aliyor ve katalogun basinda hedef-kategori blogu olusunca istemci
+      # siralayicisi YOKTAN hedef-disi urun uretemiyordu. Test ozeti GERCEK build.py ile
+      # uretir (kural JS'e kopyalanmaz), iki eksenin birbirini BOZMADIGINI (etkisiz-tekrarli)
+      # kanitlar ve CANLI iddiayi veri durumuna degil URETILEN VITRIN SIRASINA bakarak
+      # olcer — boylece yeni urun partileri yayini durdurmaz. python3 + node gerekir
+      # (ikisi de bu job'da kurulu). Offline, depoya dosya YAZMAZ, ~10 s.
+      - name: Vitrin siralama kabul testi (ilk 20 slot + derleme sirasi + 4 besleme yolu)
         run: node tools/vitrin-siralama-test.js
 
       # KONFIGUR KABUL TESTI: konfigure edilebilir dekor urunu (renk + boy kaydirici)
