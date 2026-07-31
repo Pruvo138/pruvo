@@ -185,7 +185,16 @@ def main():
 
     # --- satir_sql: baski INSERT VALUES'ta AMA ON CONFLICT SET'te DEGIL (CI ezemesin) ---
     sql = d1.satir_sql(u1, 5, arama.haystack(u1), arama.urun_hash(u1), "6-8 duvar")
-    dogrula("satir_sql INSERT'te baski kolonu var", ",baski)VALUES" in sql.replace(" ", ""), sql[:120])
+    # ⚠️ KIRILGAN LITERAL DEGIL, KOLON LISTESI AYRISTIRILIR. Eski iddia `,baski)VALUES`
+    # metnini ariyordu; `baski`den SONRA mesru bir kolon eklenince (31 Tem: atomik yayin
+    # `yayinda`) iddia CI'da KIRMIZI yandi ve deploy'u BLOKLADI — oysa olcmek istedigi sey
+    # ("baski INSERT kolon listesinde") bozulmamisti. Yeni bicim kolon listesini ayristirir:
+    # `baski` INSERT'ten DUSERSE hala KIRMIZI yanar (disi korunur), ama listeye baska kolon
+    # eklenmesi yanlis-pozitif URETMEZ.
+    insert_kolonlari = [k.strip() for k in
+                        sql.split("(", 1)[1].split(")", 1)[0].split(",")]
+    dogrula("satir_sql INSERT kolon listesinde baski var",
+            "baski" in insert_kolonlari, insert_kolonlari)
     dogrula("satir_sql baski degeri INSERT VALUES'ta gomulu", "'6-8 duvar'" in sql)
     dogrula("KOLONLAR ON CONFLICT'te baski GUNCELLEMEZ (CI baski'yi silemez)",
             "baski" not in d1.KOLONLAR)
