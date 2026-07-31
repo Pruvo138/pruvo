@@ -1,5 +1,139 @@
 [
   {
+    "id": "kucuk-tekne-matkap-disi-motor-pervane-seti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Matkap ile Calisan Disi Motor Icin Pervane ve Baglanti Seti",
+    "aciklama": "Kucuk tekne veya kayaklarda akulu matkabi disi motora donusturen, degisebilir pervane secenekleri sunan baglanti seti.\n- Farkli pervane secenekleriyle (standart/ucsuz) kullanilabilir.\n- Rulman yatagi ve tutamak dahil tam bir baglanti seti sunar.\n- M10 disli mil ile kullanima uygundur.\nYaklasik dis olculer: 174 x 154 x 96 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr166288-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr166288-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr166288-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr166288-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "suodrazah",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "dalis-yuzey-samandirasi-makarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dalis Yuzey Samandirasi (SMB) Icin Ip Makarasi",
+    "aciklama": "Dalis sirasinda kullanilan yuzey isaret samandirasinin (SMB) ipini duzenli sarmak icin tasarlanmis makara.\n- Yuzey isaret samandirasi (SMB) ipleriyle kullanilir.\n- Diger dalis ekipmanlarinin iplerini sarmak icin de kullanilabilir.\n- Kompakt ve hafif bir tasarima sahiptir.\nYaklasik dis olculer: 75 x 75 x 29 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1459996-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1459996-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1459996-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jindraj",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "dalis-ekipmani-agir-hizmet-askisi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Dalis Ekipmani (Can Yelegi/BC) Icin Guclendirilmis Aski",
+    "aciklama": "Can yelegi, BC (denge yelegi) gibi agir dalis ekipmanlarini standart askilarin tasiyamadigi durumlar icin gelistirilmis, dayanikli aski.\n- Can yelegi ve BC (denge yelegi) gibi agir dalis ekipmanlariyla uyumludur.\n- Standart askilardan daha yuksek yuk tasima kapasitesine sahiptir.\n- Farkli boyutlardaki ekipmanlar icin kullanilabilir.\nYaklasik dis olculer: 349 x 156 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2876132-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2876132-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "InfinityFrog",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "sevylor-12v-tekne-motoru-pervanesi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sevylor 12V Tekne Motoru Icin Yedek Pervane",
+    "aciklama": "Sevylor 12V tekne motorunun kirilan orijinal pervanesinin yerine gecen, tersine muhendislikle olculendirilmis yedek pervane.\n- Sevylor 12V tekne motoruyla uyumludur.\n- Kirilan orijinal pervanenin birebir olculerine sahiptir.\n- Yuksek dayaniklilik icin gucclendirilmis bir tasarima sahiptir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1558929-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1558929-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1558929-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "kayak-pervanesi-3-parca",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Icin 3 Parcali Pervane",
+    "aciklama": "Kayaklara monte edilebilen, kelepceyle sabitlenen 3 parcali pervane tasarimi.\n- Kayak govdesine uygun sekilde tasarlanmistir.\n- 3 ayri kanat parcasindan olusur, kelepce ile birlestirilir.\n- DIY tahrik sistemleri icin uygundur.\nYaklasik dis olculer: 15 x 11 x 10 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr225496-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr225496-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr225496-3.jpg",
+      "https://media.pruvo3d.com/urunler/pr225496-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "flol3622",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "tekne-pervanesi-5-kanat",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Icin 5 Kanatli Pervane",
+    "aciklama": "Standart 3 kanatli tekne pervanelerine alternatif olarak tasarlanmis, 5 kanatli versiyon.\n- Kucuk tekne motorlariyla uyumludur.\n- 5 kanatli tasarimi ile daha fazla itme yuzeyi sunar.\n- Merkez gobek deligi standart olcude acilmistir.\nYaklasik dis olculer: 116 x 113 x 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr146871-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Ludo B",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "samandira-ip-makarasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Samandira Ipi Icin Tasima Makarasi",
+    "aciklama": "Samandira veya olta ipini duzenli sarmak icin tasarlanmis, tutma sapli, yuzer yapida makara.\n- Kalin govde yapisi sayesinde suda yuzer.\n- Sapi sayesinde kolayca tasinir ve kullanilir.\n- Denizde uzun sureli kullanima dayaniklidir.\nYaklasik dis olculer: 210 x 110 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr564373-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr564373-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "muitxer",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "tekne-kontak-anahtari-samandirasi",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Tekne Kontak Anahtari Icin Yuzer Samandira",
+    "aciklama": "Tekne motoru kontak anahtarinin suya dusmesi durumunda batmasini onleyen, sahil guvenlik navigasyon samandiralarindan ilham alan yuzer anahtarlik.\n- Tekne motoru kontak anahtarlariyla kullanima uygundur.\n- Icteki bosluklu yapisi sayesinde suda yuzer.\n- Kirmizi-yesil klasik samandira renk semasina sahiptir.\nYaklasik dis olculer: 59 x 28 x 28 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2503201-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2503201-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2503201-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Darcania",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
     "id": "pontoon-tekne-bardak-tutucusu-lowe-suncruiser",
     "kategori": "Marin",
     "marka": [],
