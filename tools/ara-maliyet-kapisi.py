@@ -309,13 +309,23 @@ def main():
             # Semantik ekseni yine olculur ama ESKI sekli kosmak olayin maliyetini
             # kapiya tasirdi. Bunun yerine eski sekil, planlayici cevrilmesinden
             # ETKILENMEYEN esdeger bir yolla dogrulanir: CROSS'suz ama FTS'siz duz tarama.
+            # 🔴 KOSUL AYNEN KORUNUR (`u.hs LIKE ?` + AYNI baglar) — `instr()` KULLANILMAZ.
+            # Sebep olculdu (31 Tem, CI kosumu 30654247130 ardili 30654284096): token'da
+            # `%` / `_` varsa LIKE onlari JOKER, instr() DUZ HARF sayar; esdeger olmayan bu
+            # yol korpusun joker sorgularinda ('%kapak' / 'kapak_' / '50%') eski=0 yeni=1997
+            # /1985/1580 diye SAHTE semantik sapma uretti ve kapi TUM EKIBIN yayinini
+            # durdurdu. Sapma YEREL makinede gorunmuyordu: hangi sorgunun ESKI planinin
+            # cevrildigi SQLite SURUMUNE bagli, yani bu kol yalniz bazi ortamlarda giriliyor.
+            # `f.hs` (content='urunler') ile `u.hs` AYNI kolondur -> LIKE'li duz tarama,
+            # FTS birlesimli LIKE'in birebir esdegeridir.
             duz = ("SELECT " + KART + " FROM urunler u WHERE " +
-                   " AND ".join(["instr(u.hs, ?) > 0" for _ in tk] + ["u.yayinda = 1"]) +
+                   " AND ".join(["u.hs LIKE ?" for _ in tk] + ["u.yayinda = 1"]) +
                    " ORDER BY u.seq DESC LIMIT ?")
-            eski_satir, _ = kos(c, duz, list(tk) + [a.limit])
+            # eski_b ZATEN limiti tasir (sql_kur: bag + [limit]); eski_cb yalniz baglar.
+            eski_satir, _ = kos(c, duz, list(eski_b))
             duz_c = ("SELECT COUNT(*) AS n FROM urunler u WHERE " +
-                     " AND ".join(["instr(u.hs, ?) > 0" for _ in tk] + ["u.yayinda = 1"]))
-            eski_sayim, _ = kos(c, duz_c, list(tk))
+                     " AND ".join(["u.hs LIKE ?" for _ in tk] + ["u.yayinda = 1"]))
+            eski_sayim, _ = kos(c, duz_c, list(eski_cb))
         else:
             eski_satir, _ = kos(c, eski_s, eski_b)
             eski_sayim, _ = kos(c, eski_c, eski_cb)
