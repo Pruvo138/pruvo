@@ -1,5 +1,110 @@
 [
   {
+    "id": "pedal-bot-pedali-guclendirilmis",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Pedal Bot Icin Guclendirilmis Pedal",
+    "aciklama": "Orijinal pedal-bot pedallarinin kirilgan yapisina alternatif olarak tasarlanmis, daha dayanikli pedal.\n- Cogu pedal-bot modeliyle uyumludur.\n- 20mm capa kadar millere uygundur.\n- Iki parcadan olusan guclendirilmis bir yapiya sahiptir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw177028-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw177028-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw177028-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "?",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "capa-makarasi-3inc",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Tekne Icin Capa Makarasi (3 Inc)",
+    "aciklama": "30 fit sinifi yelkenli teknelerde capa zincirinin duzgun sarkmasini saglayan, kirilan orijinal makaranin yerine gecen capa makarasi.\n- 30 fit sinifi yelkenli teknelerle uyumludur.\n- Capa zincirinin takilmadan sarkmasini saglar.\n- Dis kosullara dayanikli bir yapiya sahiptir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2885069-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2885069-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2885069-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2885069-4.jpg"
+    ]
+  },
+  {
+    "id": "torqeedo-t503-1003-cruiset-dumen-kolu-uzatici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Torqeedo T503/1003/CruiseT Icin Dumen Kolu Uzatici",
+    "aciklama": "Torqeedo T503, T1003 ve CruiseT elektrikli disi motorlarin dumen kolunu 25mm aluminyum boru ile uzatan parca.\n- Torqeedo T503/1003/CruiseT elektrikli disi motor modelleriyle uyumludur.\n- 25mm capinda aluminyum boruyla birlikte kullanilir.\n- Dumen kontrolunu daha rahat mesafeden yapmayi saglar.\nYaklasik dis olculer: 145 x 40 x 40 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr614871-1.jpg"
+    ]
+  },
+  {
+    "id": "mercury-marine-acil-durdurma-svici",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Mercury Marine Disi Motor Icin Acil Durdurma Svici Baglantisi",
+    "aciklama": "Mercury Marine disi motorlarin acil durdurma (kill switch) sisteminde kullanilan, kaybolan orijinal baglanti halkasinin yedegi.\n- Mercury Marine disi motor modelleriyle uyumludur.\n- Acil durdurma sistemine dogrudan takilir.\n- Esnek yapisi sayesinde hizli cikarilip takilabilir.\nYaklasik dis olculer: 36 x 13 x 2 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr94148-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr94148-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr94148-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "smuk3d",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "yelkenli-kokpit-drenaj-sizdirmazlik-34mm",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Yelkenli Kokpit Drenaj Delikleri Icin Koruyucu Izgara (34mm)",
+    "aciklama": "C&C 38-2 gibi yelkenli teknelerin kokpit drenaj deliklerine takilan, anahtar/somun/civata gibi kucuk esyalarin kaybolmasini onleyen koruyucu izgara.\n- 34mm capindaki standart kokpit drenaj delikleriyle uyumludur.\n- Gevsek oturumu sayesinde hizli su tahliyesi durumunda kendiliginden cikar (guvenlik ozelligi).\n- Kucuk esyalarin drenaj deliginden dusmesini onler.\nYaklasik dis olculer: 43 x 34 x 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr919862-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr919862-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr919862-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Make it Reality",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "kayak-dumen-durdurucu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Kayak Dumeni Icin Durdurucu Blok",
+    "aciklama": "Kayak dumeninin istenmeyen hareketini sinirlayan durdurucu blok.\n- Standart kayak dumen sistemleriyle uyumludur.\n- Dumenin asiri hareketini sinirlar.\n- Kolay montaj icin basit bir geometriye sahiptir.\nYaklasik dis olculer: 25 x 20 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr955176-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr955176-2.jpg"
+    ]
+  },
+  {
+    "id": "rule-mate-sintine-pompasi-sizdirmazlik",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Rule-Mate 500/1100 GPH Sintine Pompasi Icin Koruyucu Izgara",
+    "aciklama": "Rule-Mate 500 ve 1100 GPH sintine pompalarinin emme agzini tikanmaya karsi koruyan izgara.\n- Rule-Mate 500/1100 GPH sintine pompa modelleriyle uyumludur.\n- Pompanin emme agzini yabanci maddelere karsi korur.\n- Ek klips parcalariyla saglamlastirilir.\nYaklasik dis olculer: 123 x 79 x 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1401081-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1401081-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1401081-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pineapple Dan",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
     "id": "kawasaki-650sx-direksiyon-kablosu-contasi",
     "kategori": "Marin",
     "marka": [],
