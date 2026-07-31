@@ -75,6 +75,44 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   baska bir oturumun commit'siz hash degisikligiydi; ayni teyit temiz agacta 0 uyusmazlik
   verdi. Kirli agacta alinan senkron olcumu HUKUM DEGILDIR.
 
+## FIZIKSEL URUN SAYFASI — 3D-BASKI SECIM UI'I KALDIRILDI (ALINDI + CANLI)
+- Dal main'e alindi: `1a938405` (merge-base `39036e18`). Kapsam TAM 3 dosya, +408/-5:
+  `tools/build.py` (+52/-5), yeni `tools/fiziksel-urun-kapisi.py` (+345),
+  `.github/workflows/deploy.yml` (+16). Cakisma yok, taban taze olculdu.
+- Sebep: fiziksel urun sayfasi 3D-baski secim arayuzunu basiyordu. Renk "Diger"
+  secimindeki +%15 yalniz gorsel degildi; `secenekler.js` hesaplaFiyatKurus'u
+  `shop/src/index.js` sepetiFiyatla da cagirdigi icin SUNUCUDA DA tahsil ediliyordu.
+- Merge oncesi 9 kapi dalin agacinda kosuldu, hepsi exit 0: fiziksel-urun-kapisi
+  (+ --mutasyon), ci-kapsam-test (142 kesif / 106 kosulan / 36 muaf), kapi-envanteri
+  7/7, yasal-sayfa-drift 0/4 sapma, konfigur-test, jsonld-offers (15948 offers'li,
+  0 ihlal), merchant-feed, odeme-beyani 10/10.
+- D1 senkron teyidi: 15975 == 15975; hash uyusmazlik 0, eksik 0, fazla 0.
+- CI: kendi SHA'sinin kosumu (30661423450) eszamanlilikla IPTAL edildi. Kabul, SHA'yi
+  ata olarak tasiyan ardil kosumdan alindi: 30661557861, headSha `e84b2a65`,
+  `merge-base --is-ancestor` exit 0. build/deploy/yayin ucu de success. Genel kosum
+  `failure` gorunur; sebep ILGISIZ `cron-nabzi` alarm isidir (yayini durdurmaz).
+- CANLI olcum (canonical URL, cache-bust YOK, UA basligi verildi). Onarim ONCESI ayni
+  olcum 14 ihlal veriyordu (olcum duyarli, tautoloji degil). SONRASI, GERCEK DOM ogesi
+  ekseninde fiziksel sayfa / `tur`suz kontrol sayfasi:
+    id=renkButonlar 0/1 · id=filCipler 0/1 · id=renkOzel 0/1 · class=renk-btn 0/4
+    class=fil-cip 0/5 · data-renk 0/4 · data-malzeme 0/4 · urun-ici rehber linki 0/0
+    KART_SECIM=false 1/0 · KART_SECIM=true 0/1 · "Diger (+%15)" 0/1 · "+%15" 0/1
+    "Tavsiyemiz" 0/1 · adetSec 15 VAR · cartBtn 2 VAR
+  Ham jeton taramasindaki 7 kalinti BAGLAMIYLA olculdu, hepsi ATIL: paylasilan CSS
+  sinif tanimlari, `KART_SECIM=false` ile ulasilamayan JS dallari ve her sayfada olan
+  genel alt-bilgi `/malzeme-rehberi/` linki. `tur`suz kontrol sayfasinda regresyon yok.
+- 🔴 ACIK KALINTI (kapsam DISI, kapanmadi): sunucu fiyatlama fonksiyonu hala `tur`-KOR.
+  Merge SONRASI canli `/api/shop/fiyat` prova ucuyle ayni fiziksel uruncte olculdu:
+    PLA + Siyah   -> 100000 krs (liste, dogru)
+    PLA + "Diger" -> 115000 krs (+%15)
+    ASA + "Diger" -> 184000 krs (+%84)
+  UI artik boyle bir satir URETEMEZ, ama satir `renk` alanina bakilarak fiyatlandigi ve
+  sepet localStorage'da kaldigi icin ONARIM ONCESI kaydedilmis bayat bir sepet satiri
+  hala fazla tahsil edilir. Kalici cozum sunucu tarafinda: fiziksel urunde malzeme/renk
+  carpani UYGULANMAMALI ya da bu alanlar REDDEDILMELI. Isci verilmedi.
+- Temizlik YAPILMADI: `claude/exciting-hodgkin-91ec53` dali ve worktree'si aktif bir
+  oturumda kullaniliyordu; `worktree remove` / `branch -D` bilerek kosulmadi.
+
 ## TABAN (yeniden olc, ezberleme)
 - Katalog: taban alti 0; D1 sayi ve hash ekseninde uyumlu.
 - Yayin suresi: medyan 1296 saniye, MAD 115 saniye, 7 kosum.
