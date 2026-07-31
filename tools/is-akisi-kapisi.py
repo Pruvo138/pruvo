@@ -2159,6 +2159,14 @@ SERIT_B = {
     ("deploy.yml", "serit-b", "onizleme/test/iki-govde-kabul.mjs"):
         "ONIZLEME worker parca ucu + viewer kabulu (+ kirmizi-mutasyon turu); ayri "
         "dagitim hedefi.",
+    # --- KATALOG ENVANTERI isi (RAPOR kolu; bloklayici kol serit A'da) ------
+    ("deploy.yml", "envanter", "tools/denetim-kapisi.py"):
+        "YALNIZ `--tum-katalog --envanter` (RAPOR) kolu. Bu kol TAM katalogu tarar ve "
+        "ONCEDEN VAR OLAN kayitlari sayar; bugun 104 kayit KIRMIZI olurdu ve bloklayici "
+        "baglansaydi TUM EKIBIN yayini dururdu. BLOKLAYICI kol AYNEN SERIT A'da duruyor: "
+        "`--commit-farki` (job `build`) yeni/degisen her kaydi ayni sertlikte bloklar. "
+        "KURAL: yeni/degisen kayit BLOKLAR · tam katalog RAPORLAR. Katalog okunamazsa "
+        "rc 2 ile KIRMIZI yanar (olu nobetci olamaz).",
     # --- yayin SONRASI job (yapisal olarak yayini bloklayamaz) --------------
     ("deploy.yml", "yayin", "tools/yayin-kapisi.py"):
         "ATOMIK YAYIN adimi YAPISAL OLARAK yayindan SONRA kosar (`needs: deploy`): "
