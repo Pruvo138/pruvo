@@ -22,22 +22,32 @@ function esit(ad, gercek, beklenen) {
   if (!ok) { hata++; }
 }
 
+/* HACİM DOĞRULAMA KAPISI (2026-07-31): parametrikFiyatKurus artık İLK argüman olarak
+   aileyi (sema.hacimFormulu) alır ve hacmi gerçek geometriye karşı doğrulanmamış
+   ailede null döner. Aşağıdaki testlerin çoğu FİYAT FORMÜLÜNÜ sınar, kapıyı değil —
+   onlar doğrulanmış bir aile adıyla çağrılır. Kapının kendisi ayrı bölümde
+   (+ jenerator/test/hacim-guveni-kabul.mjs) sınanır. */
+var A = "kutu";   // doğrulanmış aile (sapma %0.00) — saf formül testleri için
+function F(taban, tabanHacim, hacim, malzeme, renk) {
+  return SECENEK.parametrikFiyatKurus(A, taban, tabanHacim, hacim, malzeme, renk);
+}
+
 // --- #2 Fiyat orantısı ---
 // Taban 100 TL, hacim +%8, ASA (×1.60), Diğer renk (×1.15) -> 198,72 TL birebir.
 esit("bileşik örnek 100×1.08×1.60×1.15 (kuruş)",
-     SECENEK.parametrikFiyatKurus(100, 1000, 1080, "ASA", "Diğer"), 19872);
+     F(100, 1000, 1080, "ASA", "Diğer"), 19872);
 esit("bileşik örnek metin", SECENEK.kurusMetni(19872), "198,72 TL");
 // Taban ×1.08 hacim, PLA/Siyah -> TAM ×1.08 (yuvarlama yok, kuruş korunur).
-esit("saf hacim oranı ×1.08", SECENEK.parametrikFiyatKurus(100, 1000, 1080, "PLA", "Siyah"), 10800);
-esit("kuruş kesirli örnek 250×1.037", SECENEK.parametrikFiyatKurus(250, 1000, 1037, "PLA", "Siyah"), 25925);
+esit("saf hacim oranı ×1.08", F(100, 1000, 1080, "PLA", "Siyah"), 10800);
+esit("kuruş kesirli örnek 250×1.037", F(250, 1000, 1037, "PLA", "Siyah"), 25925);
 esit("kuruş metni 259,25", SECENEK.kurusMetni(25925), "259,25 TL");
 // ABS ve Karbon KALDIRILDI (Okan, 16 Tem) — mühendislik malzemeleri WhatsApp'tan.
 esit("filament katsayıları PLA/PETG/TPU/ASA",
      ["PLA", "PETG", "TPU", "ASA"].map(function (m) {
-       return SECENEK.parametrikFiyatKurus(100, 1000, 1000, m, "Siyah");
+       return F(100, 1000, 1000, m, "Siyah");
      }), [10000, 13000, 15500, 16000]);
 // Taban fiyat yoksa fiyat yok ("—" davranışının çekirdeği).
-esit("tabanFiyat null -> fiyat null", SECENEK.parametrikFiyatKurus(null, 1000, 1080, "ASA", "Diğer"), null);
+esit("tabanFiyat null -> fiyat null", F(null, 1000, 1080, "ASA", "Diğer"), null);
 
 // --- ZEMİN (Okan kuralı, 16 Tem — tools/paket-sari-fiyat.md) ---
 // fiyat = taban × max(1, hacim/tabanHacim) × filament × renk.
@@ -45,16 +55,16 @@ esit("tabanFiyat null -> fiyat null", SECENEK.parametrikFiyatKurus(null, 1000, 1
 // filament/renk çarpanları zemin fiyata AYNEN uygulanır. Basamak yok: taban
 // üstünde sürekli oran, kuruş korunur.
 esit("zemin: hacim tabanın yarısı -> taban aynen (PLA/Siyah)",
-     SECENEK.parametrikFiyatKurus(100, 1000, 500, "PLA", "Siyah"), 10000);
+     F(100, 1000, 500, "PLA", "Siyah"), 10000);
 esit("zemin: sınırın hemen altı -> taban",
-     SECENEK.parametrikFiyatKurus(100, 1000, 999.9, "PLA", "Siyah"), 10000);
+     F(100, 1000, 999.9, "PLA", "Siyah"), 10000);
 esit("zemin: kuruş korunur (333 zemin × PETG 1.30 = 432,90)",
-     SECENEK.parametrikFiyatKurus(333, 1000, 500, "PETG", "Siyah"), 43290);
+     F(333, 1000, 500, "PETG", "Siyah"), 43290);
 esit("zemin: filament+renk zemine uygulanır (100×1×1.60×1.15)",
-     SECENEK.parametrikFiyatKurus(100, 1000, 500, "ASA", "Diğer"), 18400);
+     F(100, 1000, 500, "ASA", "Diğer"), 18400);
 // BÜYÜME: taban üstünde hacimle monoton artış (zemin büyümeyi bozmaz).
 var buyume = [1000, 1080, 2000, 5000].map(function (h) {
-  return SECENEK.parametrikFiyatKurus(100, 1000, h, "PLA", "Siyah");
+  return F(100, 1000, h, "PLA", "Siyah");
 });
 esit("büyüme: taban üstü sürekli oran (son adım 3× TAVANA çarpar: 50000->30000)",
      buyume, [10000, 10800, 20000, 30000]);
@@ -127,10 +137,13 @@ Object.keys(KUCUK_SETLER).forEach(function (id) {
   var h = KONF.hacimMm3(s, set, HACIM);
   esit("küçük set taban altında: " + id, h != null && h < s.tabanHacimMm3, true);
   var taban = TABAN_FIYATLAR[id];
+  // ZEMİN kuralı FORMÜL testidir (ürünün kendi ailesiyle değil, doğrulanmış aile A ile
+  // çağrılır): bu ailelerin bir kısmı bugün hacim kapısıyla KAPALI (oring/huni/vida) ve
+  // gerçek aileyle çağrılsa null dönerdi — o kapı ayrı bölümde sınanıyor.
   esit("zemin PLA/Siyah = taban: " + id,
-       SECENEK.parametrikFiyatKurus(taban, s.tabanHacimMm3, h, "PLA", "Siyah"), taban * 100);
+       F(taban, s.tabanHacimMm3, h, "PLA", "Siyah"), taban * 100);
   esit("zemin PETG = taban×1.30: " + id,
-       SECENEK.parametrikFiyatKurus(taban, s.tabanHacimMm3, h, "PETG", "Siyah"),
+       F(taban, s.tabanHacimMm3, h, "PETG", "Siyah"),
        Math.round(taban * 130));
 });
 
@@ -230,8 +243,66 @@ var vd = KONF.varsayilanDegerler(oringSema);
 esit("örnek şema varsayılanları geçerli", KONF.dogrula(oringSema, vd).gecerli, true);
 esit("hacim = tabanHacim (varsayılanlar)",
      Math.abs(KONF.hacimMm3(oringSema, vd, HACIM) - oringSema.tabanHacimMm3) < 1e-6, true);
+// oring bugün hacim kapısıyla KAPALI: fiyat ucu ondan tutar ÜRETMEMELİ (fail-closed).
 var denemeSema = Object.assign({}, oringSema, { tabanFiyatTL: 100 });
-esit("varsayılanda fiyat = taban (PLA/Siyah)",
-     KONF.fiyatKurus(denemeSema, vd, "PLA", "Siyah", { secenek: SECENEK, hacim: HACIM }), 10000);
+esit("kapalı ailede fiyat ucu tutar üretmez (oring)",
+     KONF.fiyatKurus(denemeSema, vd, "PLA", "Siyah",
+                     { secenek: SECENEK, hacim: HACIM }), null);
+// Aynı uç, DOĞRULANMIŞ ailede (kutu) varsayılanda tabanı verir — uç sağlam, kapı seçici.
+var kutuSema = JSON.parse(fs.readFileSync(
+  path.join(URUN_DIR, "olcuye-ozel-kutu-organizer.json"), "utf8"));
+var kutuVd = KONF.varsayilanDegerler(kutuSema);
+esit("varsayılanda fiyat = taban (PLA/Siyah, doğrulanmış aile)",
+     KONF.fiyatKurus(Object.assign({}, kutuSema, { tabanFiyatTL: 100 }), kutuVd,
+                     "PLA", "Siyah", { secenek: SECENEK, hacim: HACIM }), 10000);
+
+/* --- HACİM DOĞRULAMA KAPISI (para, 2026-07-31) — POZİTİF + NEGATİF ---------------
+   Ölçüm: hacim.js ↔ OpenSCAD, 22 aile. %3 sınırını aşan 9 aile + hiç ölçülmemiş vida
+   tutar ÜRETMEZ (fail-closed); geçen 13 aile AYNEN fiyatlanmaya devam eder. */
+var KAPALI_AILELER = ["huni", "izgara", "kasnak", "kayis", "oring", "pervane",
+                      "petek", "rampa", "rulman", "vida"];
+var ACIK_AILELER = ["adaptor", "braket", "cerceve", "cetvel", "disli", "jeton", "kase",
+                    "kavanoz", "konektor", "kutu", "profil", "toka", "yay"];
+
+// POZİTİF: kapı tutuyor — sapan/ölçülmemiş ailede tutar HİÇ üretilmez (0 TL DEĞİL, null).
+KAPALI_AILELER.forEach(function (aile) {
+  esit("kapı: " + aile + " tutar üretmez (null)",
+       SECENEK.parametrikFiyatKurus(aile, 100, 1000, 5000, "PLA", "Siyah"), null);
+  esit("kapı: " + aile + " doğrulanmış sayılmaz",
+       SECENEK.hacimDogrulanmisMi(aile), false);
+});
+
+// NEGATİF: meşru iş DURMUYOR — doğrulanmış ailelerde fiyat AYNEN üretiliyor.
+// (Tek yönlü test ölü olurdu: her şeye null döndüren bir kapı da pozitifi geçerdi.)
+ACIK_AILELER.forEach(function (aile) {
+  esit("kapı NEGATİF: " + aile + " fiyatlanmaya devam eder",
+       SECENEK.parametrikFiyatKurus(aile, 100, 1000, 1080, "PLA", "Siyah"), 10800);
+  esit("kapı NEGATİF: " + aile + " doğrulanmış",
+       SECENEK.hacimDogrulanmisMi(aile), true);
+});
+
+// FAIL-CLOSED YÖN: bilinmeyen/boş/prototip adı YEŞİL sayılmaz (yeni aile kendiliğinden
+// AÇILMAZ — denylist olsaydı açılırdı).
+esit("kapı: hiç tanınmayan yeni aile kapalı",
+     SECENEK.hacimDogrulanmisMi("yepyeni-aile"), false);
+esit("kapı: prototip adı (toString) yeşil sayılmaz",
+     SECENEK.hacimDogrulanmisMi("toString"), false);
+esit("kapı: undefined/boş aile kapalı",
+     [SECENEK.hacimDogrulanmisMi(undefined), SECENEK.hacimDogrulanmisMi(""),
+      SECENEK.hacimDogrulanmisMi(null)], [false, false, false]);
+// İMZA KAYMASI: eski sırayla (aile'siz) çağıran bir yer kalırsa tutar üretmemeli.
+esit("kapı: eski imzayla çağrı tutar üretmez",
+     SECENEK.parametrikFiyatKurus(100, 1000, 1080, "PLA", "Siyah"), null);
+
+// Şemaların hacimFormulu değerleri ile kapı listesi ÖRTÜŞMELİ (liste bayatlarsa kırmızı).
+var tumAileler = semaDosyalari.map(function (dosya) {
+  return JSON.parse(fs.readFileSync(path.join(URUN_DIR, dosya), "utf8")).hacimFormulu;
+}).sort();
+esit("kapı kapsamı: her şema ailesi ya açık ya kapalı listede",
+     tumAileler.filter(function (a) {
+       return ACIK_AILELER.indexOf(a) < 0 && KAPALI_AILELER.indexOf(a) < 0;
+     }), []);
+esit("kapı kapsamı: açık liste secenekler.js ile birebir",
+     Object.keys(SECENEK.HACIM_DOGRULANMIS_AILELER).sort(), ACIK_AILELER.slice().sort());
 
 process.exit(hata ? 1 : 0);

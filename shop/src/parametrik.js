@@ -49,11 +49,28 @@ export function parametrikHesapla(kalem, secenek, sema) {
     return { hata: "parametre-araligi", alanlar: Object.keys(sonuc.hatalar || {}) };
   }
 
+  /* HACIM DOGRULAMA KAPISI (para, 2026-07-31 — bkz. secenekler.js
+     HACIM_DOGRULANMIS_AILELER blogu). Ailenin hacim formulu GERCEK geometriye
+     (OpenSCAD render) karsi olculup %3 sinirini gecmediyse tutar URETILMEZ.
+
+     HACIM HESABINDAN ONCE: guvenmedigimiz bir formulu kosturmanin anlami yok, ayrica
+     boyle bir ailede hacim hesabi kendi icinde de patlayabilir ve musteri "hacim
+     hesaplanamadi" gibi ALAKASIZ bir tani gorurdu. Kapi burada olunca sebep tektir.
+
+     Kapinin KENDISI parametrikFiyatKurus'un ICINDE (tek kaynak, front ile AYNI kod) —
+     burasi ek bir kopya DEGIL, yalnizca musteriye DOGRU MESAJI goturen acik hata kodu.
+     Tanisal ayrim onemli: "fiyat girilmemis" (taban-fiyat-yok) ile "fiyat GUVENILMEZ"
+     ayni sey degildir. */
+  if (!secenek.hacimDogrulanmisMi(sema.hacimFormulu)) {
+    return { hata: "hacim-dogrulanmamis" };
+  }
+
   const hacimMm3 = KONF.hacimMm3(sema, p, HACIM);
   if (hacimMm3 == null) { return { hata: "hacim-hesaplanamadi" }; }
 
   let birimKurus = secenek.parametrikFiyatKurus(
-    sema.tabanFiyatTL, sema.tabanHacimMm3, hacimMm3, kalem.malzeme, kalem.renk);
+    sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, hacimMm3,
+    kalem.malzeme, kalem.renk);
   // tabanFiyatTL null (bugun 18/18) -> fiyat yok -> odeme akisina giremez.
   if (birimKurus == null || !(birimKurus > 0)) { return { hata: "taban-fiyat-yok" }; }
 

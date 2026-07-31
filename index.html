@@ -2041,6 +2041,10 @@
     // ama şu an kartla alınamıyor. Bu kod olmadan müşteri jenerik "Ödeme başlatılamadı"
     // metnini görüp ödemesi başarısız sanıyordu — oysa doğru yol WhatsApp'tan sipariş.
     "konfigur-urun": "Sepetinizde ölçüye özel üretilen bir ürün var; bunun siparişini WhatsApp'tan alıyoruz.",
+    // Worker hacim doğrulama kapısının 400'ü (shop/src/parametrik.js): ürünün hacim
+    // formülü gerçek geometriye karşı doğrulanmadığı için otomatik tutar ÜRETİLMİYOR
+    // (fail-closed — yanlış tutar tahsil etmektense kalem WhatsApp'a düşer).
+    "hacim-dogrulanmamis": "Sepetinizdeki ölçüye özel ürünün fiyatını ölçüye göre teyit ediyoruz; siparişi WhatsApp'tan alıyoruz.",
     "fiyatsiz-urun": "Sepetinizdeki bir ürünün fiyatı güncellenmiş. Sayfayı yenileyip tekrar deneyin.",
     "bilinmeyen-urun": "Sepetinizdeki bir ürün artık yayında değil. Sepeti güncelleyip tekrar deneyin.",
     "gecersiz-adet": "Adet 1-99 arasında olmalı.",

@@ -268,12 +268,16 @@ function frontSatir(ctx, sema, degerler, secim) {
   return ctx.PRUVO_KONF.satiraYaz(satir);
 }
 
-/** BAGIMSIZ fiyat orakili: secenekler.js formulu + hacim.js (2-renk kolundan TAMAMEN ayri). */
+/** BAGIMSIZ fiyat orakili: secenekler.js formulu + hacim.js (2-renk kolundan TAMAMEN ayri).
+ *  `sema.hacimFormulu` (aile) 2026-07-31'den beri parametrikFiyatKurus'un ILK argumani:
+ *  hacim dogrulama kapisi orada. Orakil de AYNI kapidan gecer -> hacmi dogrulanmamis
+ *  ailede orakil de null uretir ve worker'in 400'uyle ORTUSUR. Aile gecilmezse orakil
+ *  her urunde null doner (bu testin 2026-07-31 kirmizi yanma sebebi buydu). */
 function orakil(ctx, sema, degerler, malzeme, renk) {
   const h = ctx.PRUVO_KONF.hacimMm3(sema, degerler, ctx.PRUVO_HACIM);
   if (h == null) { return null; }
   return ctx.PRUVO_SECENEK.parametrikFiyatKurus(
-    sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
+    sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
 }
 
 // ---------------------------------------------------------------- veri / senaryolar
@@ -462,16 +466,25 @@ for (const id of aileler) {
   const kalem = { id, malzeme: "PETG", renk: "Siyah", adet: 1, parametreler: degerler };
   const r = await baslat(ucretsizMod, [d1Satiri(id)], kalem);
   const beklenen = orakil(front, sema, degerler, "PETG", "Siyah");
-  if (r.kod === 200 && r.birimKurus === beklenen) {
+  /* IDDIA = WORKER ile BAGIMSIZ ORAKIL AYNI SEYI SOYLUYOR. Iki mesru sonuc var:
+       (a) ikisi de FIYAT uretti ve kurus BIREBIR ayni  -> 200 + esit
+       (b) ikisi de fiyat URETMEDI (fail-closed uyumu)   -> 400 + null
+     (b) 2026-07-31 hacim dogrulama kapisiyla geldi: hacmi gercek geometriye karsi
+     dogrulanmamis ailede ne front ne Worker tutar uretir. Eskiden burada duz
+     "kod === 200" araniyordu; o hâliyle kapi acildiginda test, DOGRU davranisi
+     kirmizi yakardi. Kritik olan drift'tir: birinin fiyat uretip digerinin
+     uretmemesi HER ZAMAN kirmizi (musteriye gosterilen != tahsil edilen). */
+  const ikisiDeFiyatsiz = (r.kod === 400 && beklenen == null && r.birimKurus == null);
+  if ((r.kod === 200 && beklenen != null && r.birimKurus === beklenen) || ikisiDeFiyatsiz) {
     regOk += 1;
   } else {
     hatalar.push("(3) " + id + ": worker " + r.kod + "/" + r.birimKurus +
                  " != bagimsiz orakil " + beklenen);
   }
-  regSatir.push(id + "=" + r.birimKurus);
+  regSatir.push(id + "=" + (r.birimKurus == null ? "KAPALI" : r.birimKurus));
 }
 not("  " + regOk + "/" + aileler.length + " parametrik aile (varsayilan olcu, PETG/Siyah) " +
-    "BAGIMSIZ orakille BIREBIR");
+    "BAGIMSIZ orakille BIREBIR (fiyat uretmeyen ailede ikisi de KAPALI)");
 not("  fiyatlar (kurus): " + regSatir.join(" · "));
 
 // 13 KONFIGURLU (dekor konfiguratoru) urun — 2-renk kolu bu urunlere HIC dokunmamali.

@@ -336,8 +336,8 @@ function d1Kur() {
     // test 14 (KDV) spec ornegi: 75 PLA + kargo 250 = brut 325,00 -> net 270,83 + KDV 54,17
     "('test-kdv-75','h12',12,'Test KDV 75 TL','Ev','[]','75 TL',0,''), " +
     // test 5 (parametrik kanal ACIK): id'si GERCEK semayla eslesen sari urun — sunucu
-    // SEMALAR.get(id) ile bulur, fiyati kendisi hesaplar (taban fiyat semadan, 100 TL o-ring).
-    "('olcuye-ozel-oring-conta','h13',13,'Test Oring (semali sari)','Jeneratör','[]','',1,''), " +
+    // SEMALAR.get(id) ile bulur, fiyati kendisi hesaplar (taban fiyat semadan, 150 TL kutu).
+    "('olcuye-ozel-kutu-organizer','h13',13,'Test Kutu (semali sari)','Jeneratör','[]','',1,''), " +
     // test konfigur (dekor konfiguratoru): kurt heykeli D1'de parametrik=0 + sabit '150 TL'
     // gorunur; konfigur SEMASI asagida `konfigur` KOLONUNA yazilir (FAZ 4: fiyat kaynagi
     // artik bu kolon; kolon bos kalirsa kalem fail-closed 400 alir, sabit 150 TL'ye DUSMEZ).
@@ -680,8 +680,13 @@ async function test9ParametrikAltyapi(secenekler) {
 
   // (b) sunucu yeniden hesabi — shop/src/parametrik.js'i DOGRUDAN yukle (shippen dosya).
   const PAR = await import("file://" + path.join(SHOP, "src", "parametrik.js"));
+  // FIKSTUR: hacim dogrulama kapisindan GECMIS bir aile olmali (2026-07-31). Eskiden
+  // oring kullaniliyordu; oring'in hacim formulu gercek geometriden %6,70 sapiyor ve
+  // artik tutar URETMIYOR (secenekler.js HACIM_DOGRULANMIS_AILELER) -> bu test onunla
+  // "gecerli set reddedildi" diye kirmizi yanardi. kutu: sapma %0,00, varsayilan
+  // hacim == tabanHacimMm3 (yani carpan 1 -> 18400 kurus sabiti gecerli kalir).
   const sema = JSON.parse(fs.readFileSync(
-    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-kutu-organizer.json"), "utf8"));
   const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
   const HACIM = require(path.join(KOK, "jenerator", "hacim.js"));
   const vd = KONF.varsayilanDegerler(sema);
@@ -767,8 +772,10 @@ async function test26SariFailClosed() {
   const hatalar = [];
   const PAR = await import("file://" + path.join(SHOP, "src", "parametrik.js"));
   const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
+  // FIKSTUR doğrulanmis aile olmali (bkz. test 9 notu): kapali bir aile secilirse TUM
+  // negatif vakalar "hacim-dogrulanmamis" doner ve test kendi eksenini olcmez olurdu.
   const sema = JSON.parse(fs.readFileSync(
-    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-kutu-organizer.json"), "utf8"));
   const vd = KONF.varsayilanDegerler(sema);
   const kalem = () => ({ id: sema.id, malzeme: "PLA", renk: "Siyah",
                          parametreler: JSON.parse(JSON.stringify(vd)), adet: 1 });
@@ -798,6 +805,27 @@ async function test26SariFailClosed() {
   const p1 = Object.keys(vd)[0];
   const araliksiz = Object.assign({}, vd); araliksiz[p1] = 99999;
   vakalar.push(["N12 aralik DISI olcu", sema, { parametreler: araliksiz }, "parametre-araligi"]);
+
+  /* HACIM DOGRULAMA KAPISI (para, 2026-07-31 — OLCULDU). hacim.js kapali-form hacmi
+     GERCEK geometriden (OpenSCAD) %3'ten fazla sapan ailede tutar URETILMEZ. Olculen en
+     kotu tutar farklari: izgara +463,43 TL · rulman +232,12 TL · petek -180,74 TL ·
+     pervane -172,89 TL (taban fiyatlar 200-300 TL). Kapi ALLOWLIST'tir: listede olmayan
+     her aile (yeni/olculmemis/kirmizi) KAPALI. Semanin geri kalani GECERLI oldugu icin
+     bu vakalar yalniz kapiyi olcer.
+     ⚠️ hacimFormulu degistirilince hacim fonksiyonu da degisir; sema.parametreler kutu'nun
+     kaldigi icin hacim hesabi yine calisir ya da null doner — iki halde de tutar CIKMAMALI,
+     iddia zaten "hata dolu + birimKurus YOK". */
+  for (const kirmiziAile of ["izgara", "pervane", "rulman", "petek", "huni", "vida"]) {
+    vakalar.push(["N13-" + kirmiziAile + " hacim formulu dogrulanmamis aile",
+                  Object.assign({}, sema, { hacimFormulu: kirmiziAile }),
+                  null, "hacim-dogrulanmamis"]);
+  }
+  vakalar.push(["N14 hic taninmayan yeni aile (denylist olsaydi ACIK olurdu)",
+                Object.assign({}, sema, { hacimFormulu: "yepyeni-aile-2027" }),
+                null, "hacim-dogrulanmamis"]);
+  vakalar.push(["N15 hacimFormulu YOK (bozuk/eksik sema alani)",
+                Object.assign({}, sema, { hacimFormulu: undefined }),
+                null, "hacim-dogrulanmamis"]);
 
   for (const [ad, s, ek, beklenen] of vakalar) {
     let r;
@@ -1356,10 +1384,10 @@ async function test5Parametrik() {
   // Semali sari urun: gecerli parametre seti (konfigurator varsayilanlari) + istemcinin
   // SAHTE hacim/fiyati -> KABUL edilmeli; sunucu sahte alanlari yok sayar (test 9b).
   const KONF5 = require(path.join(KOK, "jenerator", "konfigurator.js"));
-  const oringSema = JSON.parse(fs.readFileSync(
-    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
-  const kalem = { id: "olcuye-ozel-oring-conta", malzeme: "PLA", renk: "Siyah", adet: 1,
-    parametreler: KONF5.varsayilanDegerler(oringSema), hacim_mm3: 1, parametrik_fiyat_kurus: 1 };
+  const kutuSema = JSON.parse(fs.readFileSync(
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-kutu-organizer.json"), "utf8"));
+  const kalem = { id: "olcuye-ozel-kutu-organizer", malzeme: "PLA", renk: "Siyah", adet: 1,
+    parametreler: KONF5.varsayilanDegerler(kutuSema), hacim_mm3: 1, parametrik_fiyat_kurus: 1 };
   const c4 = await baslatIstek([kalem]);
   const c3 = await baslatIstek([
     { id: "test-urun-a", malzeme: "PLA", renk: "Siyah", adet: 1 }, kalem]); // karisik sepet de KABUL
@@ -1427,16 +1455,16 @@ async function test17ParametrikSatirAyirt() {
   const hatalar = [];
   const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
   const sema = JSON.parse(fs.readFileSync(
-    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-kutu-organizer.json"), "utf8"));
   const vd = KONF.varsayilanDegerler(sema);
-  const set1 = Object.assign({}, vd, { ic_cap: 30 });   // farkli ic cap -> farkli olcu/fiyat
-  const set2 = Object.assign({}, vd, { ic_cap: 40 });
+  const set1 = Object.assign({}, vd, { ic_en: 30 });   // farkli ic en -> farkli olcu/fiyat
+  const set2 = Object.assign({}, vd, { ic_en: 80 });
   const detay1 = KONF.detayMetni(sema, set1);
   const detay2 = KONF.detayMetni(sema, set2);
 
   const c = await baslatIstek([
-    { id: "olcuye-ozel-oring-conta", malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: set1 },
-    { id: "olcuye-ozel-oring-conta", malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: set2 },
+    { id: "olcuye-ozel-kutu-organizer", malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: set1 },
+    { id: "olcuye-ozel-kutu-organizer", malzeme: "PLA", renk: "Siyah", adet: 1, parametreler: set2 },
   ]);
   if (c.kod !== 200) {
     return rapor("17 parametrik satir ayirt", false,
@@ -1450,7 +1478,7 @@ async function test17ParametrikSatirAyirt() {
   if (idler.length !== 2 || new Set(idler).size !== 2) {
     hatalar.push("basketItems id benzersiz degil: " + JSON.stringify(idler));
   }
-  if (!idler.every((x) => x.indexOf("olcuye-ozel-oring-conta#") === 0)) {
+  if (!idler.every((x) => x.indexOf("olcuye-ozel-kutu-organizer#") === 0)) {
     hatalar.push("id son eki (#1/#2) yok: " + JSON.stringify(idler));
   }
   // (b) adlarda olcu ozeti + iki ad birbirinden FARKLI
@@ -1704,15 +1732,15 @@ async function test21EpostaTetigi() {
  *  anahtarsiz -> 404; zip YOK. */
 async function test22Stl() {
   const hatalar = [];
-  // Fixture siparisi: tek parcali (a) + iki parcali (b) + dosyasiz (100) + sari (oring)
+  // Fixture siparisi: tek parcali (a) + iki parcali (b) + dosyasiz (100) + sari (kutu)
   const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
   const sema = JSON.parse(fs.readFileSync(
-    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-oring-conta.json"), "utf8"));
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-kutu-organizer.json"), "utf8"));
   const c = await baslatIstek([
     { id: "test-urun-a", malzeme: "PLA", renk: "Siyah", adet: 1 },
     { id: "test-urun-b", malzeme: "PLA", renk: "Siyah", adet: 1 },
     { id: "test-urun-100", malzeme: "PLA", renk: "Siyah", adet: 1 },
-    { id: "olcuye-ozel-oring-conta", malzeme: "PLA", renk: "Siyah", adet: 1,
+    { id: "olcuye-ozel-kutu-organizer", malzeme: "PLA", renk: "Siyah", adet: 1,
       parametreler: KONF.varsayilanDegerler(sema) },
   ]);
   const no = (c.govde || {}).no;
@@ -1769,10 +1797,10 @@ async function test22Stl() {
   const s3 = await yonetIstek("GET", "/stl?siparis_no=" + no + "&kalem=3");
   const cd3 = ((s3.bas || {})["content-disposition"]) || "";
   const mIc = await mockOku();
-  if (s3.kod !== 200 || !s3.metin.includes("MOCKSTL-olcuye-ozel-oring-conta")) {
+  if (s3.kod !== 200 || !s3.metin.includes("MOCKSTL-olcuye-ozel-kutu-organizer")) {
     hatalar.push("sari stl: " + s3.kod + " icerik=" + JSON.stringify(s3.metin.slice(84, 130)));
   }
-  if (!cd3.includes(no + "-olcuye-ozel-oring-conta.stl")) { hatalar.push("sari Content-Disposition: " + cd3); }
+  if (!cd3.includes(no + "-olcuye-ozel-kutu-organizer.stl")) { hatalar.push("sari Content-Disposition: " + cd3); }
   if (mIc.icDerleSayisi !== onceIc + 1 || (mIc.sonIcDerle || {}).anahtar !== TEST_IC) {
     hatalar.push("ic-derle cagrisi/anahtari: " + JSON.stringify(mIc.sonIcDerle));
   }

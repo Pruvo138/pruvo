@@ -151,7 +151,8 @@
     var SECENEK = (moduller && moduller.secenek) || root.PRUVO_SECENEK;
     var h = hacimMm3(sema, degerler, moduller && moduller.hacim);
     if (h == null) { return null; }
-    return SECENEK.parametrikFiyatKurus(sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
+    return SECENEK.parametrikFiyatKurus(sema.hacimFormulu, sema.tabanFiyatTL,
+                                        sema.tabanHacimMm3, h, malzeme, renk);
   }
 
   // "İç çap: 32 mm · Kesit: 4 mm · Üzerindeki yazı: AHŞAP" — sepet/WhatsApp satır detayı.
@@ -373,7 +374,7 @@
       var renk = (secim && secim.renk) || (renkEl ? renkEl.value : "Siyah") || "Siyah";
       var kurus = (h == null || cerHata) ? null
         : root.PRUVO_SECENEK.parametrikFiyatKurus(
-            sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
+            sema.hacimFormulu, sema.tabanFiyatTL, sema.tabanHacimMm3, h, malzeme, renk);
       // 2-renk yazi ek ucreti: front gosterimi Worker (parametrik.js) ile AYNI olmali,
       // yoksa musteri 600 gorup 675 tahsil edilirdi (clamp DISI ek ucret). Tutar tek
       // kaynaktan (secenekler.js); bugun 0 -> gosterilen fiyat degismez.
@@ -444,7 +445,8 @@
       satir.hacim_mm3 = h;
       var kurus = (h == null) ? null
         : root.PRUVO_SECENEK.parametrikFiyatKurus(
-            durum.sema.tabanFiyatTL, durum.sema.tabanHacimMm3, h, satir.malzeme, satir.renk);
+            durum.sema.hacimFormulu, durum.sema.tabanFiyatTL, durum.sema.tabanHacimMm3,
+            h, satir.malzeme, satir.renk);
       // 2-renk yazi: yazi_renk satira yazilir (ayri-satir anahtari + Worker teyidi) + ek ucret
       // (clamp DISI, tutar+metin secenekler.js'ten — Worker parametrik.js ile AYNI kaynak).
       // Tek-renkte alan hic yazilmaz.

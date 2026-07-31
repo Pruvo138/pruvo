@@ -265,6 +265,55 @@
     return n > ADET_EN_COK ? ADET_EN_COK : n;
   }
 
+  /* ---- HACİM DOĞRULAMA KAPISI (para) — 2026-07-31, ÖLÇÜLDÜ ------------------
+     NEDEN VAR: parametrik fiyat = tabanFiyat × max(1, hacim/tabanHacim); hacmi
+     `jenerator/hacim.js` kapalı-form formülü verir. O formül GERÇEK geometriden
+     (OpenSCAD render) saparsa müşteriden yanlış tutar tahsil edilir ve HİÇBİR ŞEY
+     alarm çalmaz: sipariş normal görünür, kart döner, kayıt tutarlıdır. Sessiz-hata
+     sınıfı tam olarak budur.
+
+     ÖLÇÜM (22 aile × 31 parametre seti × 4 malzeme = 2.728 karşılaştırma; hacim.js
+     ↔ OpenSCAD; `jenerator/test/dogrula.py` çekirdeği):
+       - 9 aile %3 hacim doğruluk sınırını AŞTI.
+       - Para etkisi hacim sapmasıyla AYNI eksen DEĞİL: fiyat bir ORAN olduğu için
+         (pay ve payda ikisi de hacim.js'ten gelir) ORANTILI hata SADELEŞİR; ayrıca
+         max(1,·) tabanı ve 3× tavanı sapmayı yutabilir. Ölçülen en kötü tutar farkı:
+           izgara +463,43 TL (taban 250) · rulman +232,12 TL (taban 200)
+           petek  -180,74 TL (taban 200) · pervane -172,89 TL (taban 300)
+           rampa   +78,28 TL · kayis +77,29 TL · huni +58,28 TL
+         (+ = müşteriden FAZLA tahsil = ticari/hukuki risk; − = EKSİK tahsil = zarar.)
+
+     KURAL — ALLOWLIST, DENYLIST DEĞİL (fail-closed): fiyat YALNIZCA gerçek geometriye
+     karşı ölçülmüş ve %3 sınırını GEÇMİŞ ailelerde üretilir. Listede olmayan aile
+     (yeni eklenen, hiç ölçülmemiş, ölçümü kırmızı) tutar ÜRETMEZ → kart kapanır,
+     kalem WhatsApp kanalına düşer. Denylist yazsaydık yarın eklenen ölçülmemiş bir
+     aile kendiliğinden AÇIK olurdu — bu deponun tekrar tekrar ısırıldığı sessiz
+     fail-open deseni budur.
+
+     🔴 FAIL-CLOSED: sınır aşılınca 0 TL üretilmez, sessiz varsayılana ya da eski
+     fiyata DÜŞÜLMEZ, yuvarlanarak kapatılmaz — tutar HİÇ üretilmez (null).
+     Sipariş kaybetmek yanlış tahsilattan iyidir (Okan kuralı).
+
+     LİSTEYE AİLE EKLEMENİN TEK YOLU: `python3 jenerator/test/dogrula.py <aile>`
+     yeşil (sapma ≤ %3, gerçek OpenSCAD render ile) — sonra buraya yazılır. Ölçmeden
+     ekleme YASAK; ölçüm CI'da koşmuyor (OpenSCAD + kardeş depodaki .scad ister),
+     o yüzden bu liste ÖLÇÜM BEYANIDIR ve dayanağı yukarıdaki tarihtir.
+     Kapı: `jenerator/test/hacim-guveni-kabul.mjs`. */
+  var HACIM_DOGRULANMIS_AILELER = {
+    // aile: ölçülen en kötü hacim sapması (%) — 2026-07-31, seed 4242, 3 rastgele set + varsayılan
+    adaptor: 0.00, braket: 0.27, cerceve: 0.00, cetvel: 0.11, disli: 0.24,
+    jeton: 0.01, kase: 0.09, kavanoz: 0.03, konektor: 0.55, kutu: 0.00,
+    profil: 0.01, toka: 0.01, yay: 0.07
+  };
+
+  /* Aile hacim doğrulamasından geçti mi? Anahtar `sema.hacimFormulu`.
+     hasOwnProperty ile bakılır: prototip zincirinden gelen ("toString" gibi) bir ad
+     kazara YEŞİL saymasın. */
+  function hacimDogrulanmisMi(aile) {
+    return typeof aile === "string" &&
+      Object.prototype.hasOwnProperty.call(HACIM_DOGRULANMIS_AILELER, aile);
+  }
+
   // ---- parametrik ("ölçüye özel") fiyat ----
   // Okan kuralı (16 Tem, tools/paket-sari-fiyat.md):
   //   fiyat = tabanFiyat × max(1, hacim/tabanHacim) × filamentKatsayı × renkFaktör.
@@ -273,7 +322,14 @@
   // + eşik-altı oynamaya iter). Kuruş cinsinden tutulur; yuvarlama YALNIZ kuruş
   // basamağında (float artığı temizliği), TL'ye yuvarlama yok — kusurat kuruşuyla
   // gösterilir/tahsil edilir.
-  function parametrikFiyatKurus(tabanFiyatTL, tabanHacimMm3, hacimMm3, malzeme, renk) {
+  //
+  // `aile` (= sema.hacimFormulu) BİLEREK İLK parametredir: imza değiştiği için eski
+  // sırayla çağıran bir yer güncellenmeden kalırsa `aile` yerine tabanFiyat (sayı)
+  // geçer, allowlist'te bulunmaz ve fiyat null döner — yani unutulan çağrı yeri
+  // sessizce YANLIŞ FİYAT değil, KAPALI KART üretir (fail-closed refactor).
+  function parametrikFiyatKurus(aile, tabanFiyatTL, tabanHacimMm3, hacimMm3, malzeme, renk) {
+    // HACİM DOĞRULAMA KAPISI — her şeyden ÖNCE (bkz. yukarıdaki blok).
+    if (!hacimDogrulanmisMi(aile)) { return null; }
     if (tabanFiyatTL == null || !tabanHacimMm3 || !hacimMm3) { return null; }
     var yuzde = FILAMENT_FARK.hasOwnProperty(malzeme) ? FILAMENT_FARK[malzeme] : 0;
     var kurus = tabanFiyatTL * 100 * Math.max(1, hacimMm3 / tabanHacimMm3) * (1 + yuzde / 100);
@@ -489,6 +545,8 @@
     boyFarki: boyFarki,
     hesaplaFiyatKurus: hesaplaFiyatKurus,
     parametrikFiyatKurus: parametrikFiyatKurus,
+    HACIM_DOGRULANMIS_AILELER: HACIM_DOGRULANMIS_AILELER,
+    hacimDogrulanmisMi: hacimDogrulanmisMi,
     IKI_RENK_EK_KURUS: IKI_RENK_EK_KURUS,
     ikiRenkDetayEki: ikiRenkDetayEki,
     adetDuzelt: adetDuzelt,
