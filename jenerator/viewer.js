@@ -1,29 +1,29 @@
 /* PRUVO — kutuphanesiz mini 3D gosterici (sari seri "Onizle (3D)").
-   Binary STL'i (Worker'in dondurdugu, istemcide gunzip edilmis ArrayBuffer) saf
+   Binary kati modeli (Worker'in dondurdugu, istemcide gunzip edilmis ArrayBuffer) saf
    WebGL ile cizer: dondurme (fare/dokunmatik surukleme), yakinlastirma (tekerlek/
    iki parmak), duz (flat) golgeleme. Harici kutuphane YOK (proje kurali).
 
-   Kullanim (urun sayfasi build.py uretir):
+   Kullanim (urun sayfasini uretec basar):
      var g = PRUVO_VIEWER.goster(canvasEl, stlArrayBuffer);  // tekrar cagrilabilir
      g.sifirla();  g.yokEt();
 
    COK GOVDELI (2-RENK) GOSTERIM — 29 Tem 2026:
      var g = PRUVO_VIEWER.goster(canvasEl, [
        { buf: govdeStl, renk: [r,g,b] },     // 0. govde: cerceve kabugu
-       { buf: yaziStl,  renk: [r,g,b] }      // 1. govde: kabartma yazi (2. filaman)
+       { buf: yaziStl,  renk: [r,g,b] }      // 1. govde: kabartma yazi (2. malzeme)
      ]);
      g.renkAyarla(rgb)      -> 0. govdenin rengi (eski cagrilar aynen calisir)
      g.renklerAyarla([...])  -> govde basina renk
-   Govdeler AYNI koordinat sisteminde gelir (derleyici ayni .scad'i yalniz `Output`
+   Govdeler AYNI koordinat sisteminde gelir (derleyici ayni uretim modelini yalniz `Output`
    farkiyla surer) -> kamera/merkez TUM govdelerin ORTAK kutusundan hesaplanir;
    viewer hicbir govdeyi kaydirmaz/olceklemez (kaydirma = uretimde oturmayan parca).
 
-   Not: STL zaten yuzey-basina tekrarli kose tasir -> flat shading dogal olarak
-   dogru; normal STL'den okunur, sifirsa ucgenden yeniden hesaplanir. */
+   Not: bicim zaten yuzey-basina tekrarli kose tasir -> flat shading dogal olarak
+   dogru; normal veriden okunur, sifirsa ucgenden yeniden hesaplanir. */
 (function (root) {
   "use strict";
 
-  // ---------------------------------------------------------------- STL cozumu
+  // ------------------------------------------------------- kati model cozumu
 
   function stlCoz(buf) {
     if (!(buf instanceof ArrayBuffer) || buf.byteLength < 84) {
@@ -32,7 +32,7 @@
     var dv = new DataView(buf);
     var adet = dv.getUint32(80, true);
     if (84 + adet * 50 !== buf.byteLength) {
-      // ASCII STL veya bozuk govde — Worker binstl uretir, burasi savunma.
+      // Metin bicimli veya bozuk govde — Worker ikili bicim uretir, burasi savunma.
       throw new Error("stl-binary-degil");
     }
     var poz = new Float32Array(adet * 9);
@@ -106,8 +106,8 @@
     "void main(){ vNor = mat3(uDonus[0].xyz, uDonus[1].xyz, uDonus[2].xyz) * aNor;" +
     " gl_Position = uProj * uGoruntu * uDonus * vec4(aPoz, 1.0); }";
 
-  // Taban rengi UNIFORM (uRenk): varsayilan parlak sari (sari seri kimligi, Okan
-  // 16 Tem — sitedeki sari rozetle #f7b500 uyumlu). Renk disaridan verilebilir
+  // Taban rengi UNIFORM (uRenk): varsayilan parlak sari (sari seri kimligi, isletme
+  // karari 16 Tem — sitedeki sari rozetle #f7b500 uyumlu). Renk disaridan verilebilir
   // (goster(canvas, buf, {renk:[r,g,b]}) — or. musterinin sectigi cerceve rengi).
   var VARSAYILAN_RENK = [0.97, 0.71, 0.03];
 

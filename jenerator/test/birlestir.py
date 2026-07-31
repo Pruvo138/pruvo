@@ -22,10 +22,10 @@ CIKTI = os.path.join(TEST_DIR, "..", "hacim.js")
 
 BAS = u"""/* PRUVO — parametrik urun hacim fonksiyonlari (mm3).
    TEK KAYNAK: site (client) ve siparis dogrulama ayni dosyayi yukler; kopyalanmaz.
-   ELLE DUZENLEME: bu dosya jenerator/test/birlestir.py tarafindan
-   jenerator/test/aileler/*.js dosyalarindan uretilir; duzeltme aile dosyasinda yapilir.
+   ELLE DUZENLEME: bu dosya bir birlestirme betigi tarafindan aile
+   kaynaklarindan uretilir; duzeltme aile dosyasinda yapilir.
    Girdi: p = {parametre_adi: deger, ...} (semadaki `ad` alanlari, sayi/secim degerleri).
-   Cikti: yaklasik kati hacim, mm3 (kapali-form; OpenSCAD render dogrulamali, sapma <=%3). */
+   Cikti: yaklasik kati hacim, mm3 (kapali-form; gercek geometri render'i ile dogrulanmis, sapma <=%3). */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) { module.exports = factory(); }
   else { root.PRUVO_HACIM = factory(); }

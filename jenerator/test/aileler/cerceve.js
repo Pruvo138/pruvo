@@ -1,5 +1,5 @@
 function cerceve(p) {
-  // Olcuye-ozel CERCEVE parametrik uretici: cerceve.scad
+  // Olcuye-ozel CERCEVE parametrik uretici: cerceve uretim modeli
   // sozlesmesi. Musteri 5 param: acilik_eni/boyu, kenar_genisligi, derinlik,
   // kenar_stili. caption KAPALI, mounting/lip/retainer YOK (guvenli varsayilan).
   //
@@ -7,9 +7,9 @@ function cerceve(p) {
   //   Aout  = dis rounded-rect alani (Outer_Rounding=4 sabit): Wx*Hy-(4-pi)rOut^2
   //   Aopen = dikdortgen acilik (Opening_Rounding=0): (OW+2ocl)(OH+2ocl)
   //   kenar_kesinti = c_stil * M * e ; M = e-genisligindeki dis halka alani
-  // c_stil olculen izgaradan fit (2026-07-27, olcum/cerceve_katsayi_fit.py; her
+  // c_stil olculen izgaradan fit (2026-07-27 katsayi uydurma calismasi; her
   // konfigde yayilim <=0.005, teoriyle ortusur). flat analitik taban sapmasi
-  // %0.004; tam izgara (44 nokta) en kotu sapma <=%1 (olcum/cerceve_kalibre.py).
+  // %0.004; tam izgara (44 nokta) en kotu sapma <=%1 (kalibrasyon olcumu).
   var OCL = 0.1;          // Opening_Clearance (sabit)
   var K = 4 - Math.PI;    // rounded-rect kose alan terimi katsayisi
   var EDGE = 1.6;         // Edge_Size (sabit)

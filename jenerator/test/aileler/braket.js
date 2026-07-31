@@ -1,11 +1,11 @@
 function braket_delik_alani(fn, cap) {
-  // OpenSCAD circle(d, $fn) içe çizili çokgen alanı
+  // Üretim modelindeki circle(d, $fn) içe çizili çokgen alanı
   var r = cap / 2;
   return 0.5 * fn * r * r * Math.sin(2 * Math.PI / fn);
 }
 
 function braket_delik_sayisi(bas, son, n) {
-  // scad _delik_s ile birebir: bas>=son ya da n==1 → tek (üst üste biner)
+  // Üretim modelindeki _delik_s ile birebir: bas>=son ya da n==1 → tek (üst üste biner)
   if (n <= 0) return 0;
   if (bas >= son || n === 1) return 1;
   return n;

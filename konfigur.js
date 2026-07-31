@@ -1,14 +1,14 @@
 /* PRUVO — Konfigüre edilebilir DEKOR ürünü modülü (renk seçimi + boy kaydırıcı).
-   tools/build.py, urunler.json'da "konfigur" alanı taşıyan ürünün sayfasına bu dosyayı
+   Sayfa üreteci, urunler.json'da "konfigur" alanı taşıyan ürünün sayfasına bu dosyayı
    basar; sayfadaki inline URUN_KONFIGUR objesi + /secenekler.js (PRUVO_SECENEK) ile
    çalışır. "konfigur" alanı OLMAYAN ürün sayfasına bu dosya HİÇ girmez (geri uyumluluk
-   kabulü: tools/konfigur-test.py, konfigur'suz sayfanın bayt-eşit kaldığını doğrular).
+   kabulü: konfigür kabul testi, konfigur'suz sayfanın bayt-eşit kaldığını doğrular).
 
-   FİYAT MODELİ (mimar kararı, Okan onaylı band — TUR-3): iki ÇAPA noktasından çözülen
+   FİYAT MODELİ (mimar kararı, işletme onaylı band — TUR-3): iki ÇAPA noktasından çözülen
    AFİN model: fiyat_TL = sabit + birim × hacim_cm3(boy). Çapalar şemada
    `fiyatCapalari: [[boyMm1, TL1], [boyMm2, TL2]]` (pilot: [[60,150],[300,1300]] →
    birim ≈ 1,2306 TL/cm³, sabit ≈ 140,72 TL) — sabit/birim ELLE YAZILMAZ, çapadan
-   ÇÖZÜLÜR (Okan ileride tek çapa sayısını değiştirince eğri kendiliğinden türesin).
+   ÇÖZÜLÜR (ileride tek çapa sayısı değişince eğri kendiliğinden türesin).
    Hacim, referans modelden küple ölçeklenir: hacim(boy) = refHacimCm3 × 1000 ×
    (boy/refYükseklik)³ (mm³) — doğrusallık fiyat↔hacim ilişkisindedir. Fiyat en küçük
    boydan itibaren KESİN ARTAN (düz-bölge artefaktı yok); görünen fiyat TAM TL'ye
@@ -25,10 +25,10 @@
 })(typeof self !== "undefined" ? self : this, function (root) {
   "use strict";
 
-  // ---- saf çekirdek (tools/konfigur-test.py node ile bunları koşar) ----
+  // ---- saf çekirdek (konfigür kabul testi node ile bunları koşar) ----
 
   // Referans modelden küple ölçeklenmiş malzeme hacmi (mm³). İşlem sırası
-  // tools/build.py konfigur_hacim_mm3 ile BİREBİR aynı (çift hassasiyet eşleniği:
+  // sayfa üreteci konfigur_hacim_mm3 ile BİREBİR aynı (çift hassasiyet eşleniği:
   // JS öncesi basılan başlangıç fiyatı ile canlı hesap ayrışmasın).
   function hacimMm3(konfigur, boyMm) {
     var h = konfigur.hacim;
@@ -37,7 +37,7 @@
   }
 
   // Afin modeli çapa çiftinden çözer: fiyat_TL = sabit + birim × hacim_cm3.
-  // İşlem sırası tools/build.py _konfigur_fiyat_modeli ile BİREBİR (drift nöbeti testte).
+  // İşlem sırası sayfa üreteci _konfigur_fiyat_modeli ile BİREBİR (drift nöbeti testte).
   function fiyatModeli(konfigur) {
     var c = konfigur.fiyatCapalari;
     if (!c || c.length !== 2) { return null; }
@@ -56,7 +56,7 @@
     if (!m) { return null; }
     var k = (typeof katsayi === "number" && isFinite(katsayi) && katsayi > 0) ? katsayi : 1;
     var tl = (m.sabit + m.birim * (hacimMm3(konfigur, boyMm) / 1000)) * k;
-    var tavan = 3 * konfigur.fiyatCapalari[0][1];   // 3× TAVAN (Okan)
+    var tavan = 3 * konfigur.fiyatCapalari[0][1];   // 3× TAVAN (işletme kuralı)
     if (tl > tavan) { tl = tavan; }
     return Math.round(tl) * 100;
   }
@@ -113,7 +113,7 @@
     fiyatKurus: fiyatKurus,
     boyDuzelt: boyDuzelt,
 
-    // sayfa API'si — build.py şablonundaki kancalar çağırır
+    // sayfa API'si — üreteç şablonundaki kancalar çağırır
     kur: function (konfigur, urun, degisimCb) {
       durum.konfigur = konfigur; durum.cb = degisimCb || null;
       durum.boyMm = konfigur.boyutMm.varsayilan;
@@ -150,7 +150,7 @@
         }
       }
 
-      // Renk butonları: seçim + görsel değişimi (data-gorsel build.py'den gelir).
+      // Renk butonları: seçim + görsel değişimi (data-gorsel üreteçten gelir).
       if (durum.renkKok) {
         var btnlar = durum.renkKok.querySelectorAll(".renk-btn");
         var sec = function () {

@@ -28,7 +28,7 @@ function kavanoz_kapak_maske(d, p, l) {
 }
 
 function kavanoz(p) {
-  // Vidalı kapaklı kavanoz / kör tapa: kavanoz.scad sözleşmesi.
+  // Vidalı kapaklı kavanoz / kör tapa: kavanoz üretim modeli sözleşmesi.
   // Ölçülen sapma tam ürün ızgarasında en kötü %0.22 (2026-07-17).
   var k = kavanoz_poly();
   var D = p.govde_capi;

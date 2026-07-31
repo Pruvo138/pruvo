@@ -1,5 +1,5 @@
 function adaptor_uc(cap, gecme, t) {
-  // adaptor.scad sözleşmesi: "dis" = hortumun üzerine geçer (iç çap = cap+0.30),
+  // adaptör üretim modeli sözleşmesi: "dis" = hortumun üzerine geçer (iç çap = cap+0.30),
   // "ic" = hortumun içine girer (dış çap = cap). Dönüş: [dış R, iç R].
   if (gecme === "dis") {
     var ri = (cap + 0.30) / 2;

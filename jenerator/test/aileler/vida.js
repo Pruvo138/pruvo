@@ -26,8 +26,8 @@ function vida_dis_kesit_alani(cap, adim) {
 }
 
 // [cap, değer] tablosunda doğrusal enterpolasyon; uçların dışı uca sabitlenir.
-// Tablolar üretim motorunun standart M ölçülerinde ölçülmüş STL hacimlerinden
-// (jenerator/test/vida-referans-uret.py fixture'ı); ara/yarım ölçüler üretim
+// Tablolar üretim motorunun standart M ölçülerinde ölçülmüş katı model
+// hacimlerinden (vida referans fikstürü); ara/yarım ölçüler üretim
 // eşleminde yok, fiyatları komşu ölçülerden enterpolasyonla türetilir.
 function vida_tablo(tablo, cap) {
   if (cap <= tablo[0][0]) return tablo[0][1];

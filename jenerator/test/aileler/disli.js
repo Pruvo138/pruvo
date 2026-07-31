@@ -1,5 +1,5 @@
 function disli_delik_alani(cap) {
-  // OpenSCAD cylinder($fn=64) ice cizili cokgen alani (d^2 carpani)
+  // Uretim modelindeki cylinder($fn=64) ice cizili cokgen alani (d^2 carpani)
   return 0.7841371226364848 * cap * cap;
 }
 

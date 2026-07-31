@@ -1,9 +1,9 @@
 /* PRUVO — parametrik urun hacim fonksiyonlari (mm3).
    TEK KAYNAK: site (client) ve siparis dogrulama ayni dosyayi yukler; kopyalanmaz.
-   ELLE DUZENLEME: bu dosya jenerator/test/birlestir.py tarafindan
-   jenerator/test/aileler/*.js dosyalarindan uretilir; duzeltme aile dosyasinda yapilir.
+   ELLE DUZENLEME: bu dosya bir birlestirme betigi tarafindan aile
+   kaynaklarindan uretilir; duzeltme aile dosyasinda yapilir.
    Girdi: p = {parametre_adi: deger, ...} (semadaki `ad` alanlari, sayi/secim degerleri).
-   Cikti: yaklasik kati hacim, mm3 (kapali-form; OpenSCAD render dogrulamali, sapma <=%3). */
+   Cikti: yaklasik kati hacim, mm3 (kapali-form; gercek geometri render'i ile dogrulanmis, sapma <=%3). */
 (function (root, factory) {
   if (typeof module === "object" && module.exports) { module.exports = factory(); }
   else { root.PRUVO_HACIM = factory(); }
@@ -12,7 +12,7 @@
 
   // === AILE: adaptor ===
   function adaptor_uc(cap, gecme, t) {
-    // adaptor.scad sözleşmesi: "dis" = hortumun üzerine geçer (iç çap = cap+0.30),
+    // adaptör üretim modeli sözleşmesi: "dis" = hortumun üzerine geçer (iç çap = cap+0.30),
     // "ic" = hortumun içine girer (dış çap = cap). Dönüş: [dış R, iç R].
     if (gecme === "dis") {
       var ri = (cap + 0.30) / 2;
@@ -41,13 +41,13 @@
 
   // === AILE: braket ===
   function braket_delik_alani(fn, cap) {
-    // OpenSCAD circle(d, $fn) içe çizili çokgen alanı
+    // Üretim modelindeki circle(d, $fn) içe çizili çokgen alanı
     var r = cap / 2;
     return 0.5 * fn * r * r * Math.sin(2 * Math.PI / fn);
   }
 
   function braket_delik_sayisi(bas, son, n) {
-    // scad _delik_s ile birebir: bas>=son ya da n==1 → tek (üst üste biner)
+    // Üretim modelindeki _delik_s ile birebir: bas>=son ya da n==1 → tek (üst üste biner)
     if (n <= 0) return 0;
     if (bas >= son || n === 1) return 1;
     return n;
@@ -131,7 +131,7 @@
 
   // === AILE: cerceve ===
   function cerceve(p) {
-    // Olcuye-ozel CERCEVE parametrik uretici: cerceve.scad
+    // Olcuye-ozel CERCEVE parametrik uretici: cerceve uretim modeli
     // sozlesmesi. Musteri 5 param: acilik_eni/boyu, kenar_genisligi, derinlik,
     // kenar_stili. caption KAPALI, mounting/lip/retainer YOK (guvenli varsayilan).
     //
@@ -139,9 +139,9 @@
     //   Aout  = dis rounded-rect alani (Outer_Rounding=4 sabit): Wx*Hy-(4-pi)rOut^2
     //   Aopen = dikdortgen acilik (Opening_Rounding=0): (OW+2ocl)(OH+2ocl)
     //   kenar_kesinti = c_stil * M * e ; M = e-genisligindeki dis halka alani
-    // c_stil olculen izgaradan fit (2026-07-27, olcum/cerceve_katsayi_fit.py; her
+    // c_stil olculen izgaradan fit (2026-07-27 katsayi uydurma calismasi; her
     // konfigde yayilim <=0.005, teoriyle ortusur). flat analitik taban sapmasi
-    // %0.004; tam izgara (44 nokta) en kotu sapma <=%1 (olcum/cerceve_kalibre.py).
+    // %0.004; tam izgara (44 nokta) en kotu sapma <=%1 (kalibrasyon olcumu).
     var OCL = 0.1;          // Opening_Clearance (sabit)
     var K = 4 - Math.PI;    // rounded-rect kose alan terimi katsayisi
     var EDGE = 1.6;         // Edge_Size (sabit)
@@ -194,9 +194,9 @@
     return w * katsayi + cetvel_rakam_alani(n, yaziBoyutu);
   }
 
-  // Liberation Sans (Regular) glif alan + ilerleme tablolari (cetvel.scad text
-  // cagrilari $fn=24). Olcum: olcum/glif_alan_kalibrasyon.py ->
-  // olcum/glif_alan.json. Alan boyut^2, ilerleme boyut basina mm (OpenSCAD
+  // Liberation Sans (Regular) glif alan + ilerleme tablolari (cetvel uretim
+  // modelindeki text cagrilari $fn=24). Kaynak: glif alan kalibrasyon
+  // olcumu. Alan boyut^2, ilerleme boyut basina mm (uretim modeli
   // text olcegi em x 1.389). Tabloda olmayan karakter ortalamalara duser.
   function cetvel_glif_tablolari() {
     return {
@@ -210,7 +210,7 @@
   // Ozel yazinin (yazi_logo) hacim katkisi. Yalniz duz cetvelde islenir
   // (ucgen/l gonye _kenar_tik kullanir, logo yok). Kabartma union'la govde
   // disina tasani da ekler (kirpilmaz); oyma/gomme farki govdeyle sinirlidir:
-  // [-Lx/2, +Lx/2] penceresi (halign=center, olcum: olcum/cetvel_klip_bak.py
+  // [-Lx/2, +Lx/2] penceresi (halign=center, klip olcumuyle dogrulandi:
   // W dizisi ~%20 karakterde doyuyor, pencere modeli doyma alanini %0.2 icinde
   // yakalar). Isaret derinligi etkin 0.59 (isaret_z 0.6, 0.01 bindirme).
   function cetvel_yazi_hacmi(p) {
@@ -279,7 +279,7 @@
 
   // === AILE: disli ===
   function disli_delik_alani(cap) {
-    // OpenSCAD cylinder($fn=64) ice cizili cokgen alani (d^2 carpani)
+    // Uretim modelindeki cylinder($fn=64) ice cizili cokgen alani (d^2 carpani)
     return 0.7841371226364848 * cap * cap;
   }
 
@@ -393,7 +393,7 @@
       (ucKok * ucKok + ucKok * ucTip + ucTip * ucTip) -
       pi * icAltYaricap * icAltYaricap * p.uc_boyu;
 
-    // Kenar (brim): dis silindir sabit, IC DELIK koni egimini izler (motor
+    // Kenar payi: dis silindir sabit, IC DELIK koni egimini izler (motor
     // id2 = id1 - 2*slope*kalinlik) — sig genis hunilerde fark %4'e cikiyordu.
     var kenarDisYaricap = disUstYaricap + 4;
     var egim = (icUstYaricap - icAltYaricap) / p.yukseklik;
@@ -585,10 +585,10 @@
 
   // === AILE: jeton ===
   // Liberation Sans Bold glif alan + ilerleme tablolari ($fn=96 sozlesme
-  // baglami; jeton.scad _yuz2d $fn=96 pinli — eski $fn'siz tesselasyonda "100"
-  // katsayisi cap 20->80 arasinda 0.969->1.028 geziyordu). Olcum:
-  // olcum/glif_alan_kalibrasyon.py -> olcum/glif_alan.json. Alan boyut^2,
-  // ilerleme boyut basina mm (OpenSCAD text olcegi em x 1.389). Tabloda
+  // baglami; jeton uretim modelinde _yuz2d $fn=96 pinli — eski $fn'siz tesselasyonda "100"
+  // katsayisi cap 20->80 arasinda 0.969->1.028 geziyordu). Tablolar
+  // glif alan kalibrasyon olcumunden turer. Alan boyut^2,
+  // ilerleme boyut basina mm (uretim modeli text olcegi em x 1.389). Tabloda
   // olmayan karakter ortalamalara duser.
   function jeton_glif_tablolari() {
     return {
@@ -639,7 +639,7 @@
     var ustYaricap = yaricap - pah;
     var govdeYuksekligi = p.kalinlik - 2 * pah;
 
-    // SCAD gövdesi: tam yarıçaplı silindir ve üstte 2*pah yüksekliğinde kesik koni.
+    // Üretim modeli gövdesi: tam yarıçaplı silindir ve üstte 2*pah yüksekliğinde kesik koni.
     var govde = Math.PI * yaricap * yaricap * govdeYuksekligi;
     var ustPah = Math.PI * 2 * pah / 3 *
       (yaricap * yaricap + yaricap * ustYaricap + ustYaricap * ustYaricap);
@@ -656,10 +656,10 @@
     }
 
     // Yazi siparis metnidir; gelmezse sema varsayilani (taban sozlesmesi).
-    // scad: ts = min(cap*0.34, cap*0.9/max(len,1)*1.3) — uzun metinde kuculur.
+    // Model: ts = min(cap*0.34, cap*0.9/max(len,1)*1.3) — uzun metinde kuculur.
     // Eski model metni yok sayip "100" katsayisini sabit ts=0.34*cap ile
     // kullaniyordu: metin-izgara olcumunde -%8.6..+%3.7 sapma
-    // (olcum/metin_etki_olcum.json).
+    // (metin etki olcumu).
     var yazi = (typeof p.yazi === "string") ? p.yazi : "100";
     var yaziBoyutu = Math.min(p.cap * 0.34,
                               p.cap * 0.9 / Math.max(yazi.length, 1) * 1.3);
@@ -710,9 +710,9 @@
     return konik + Math.PI * (kase_knob_ilkel(u2) - kase_knob_ilkel(u1));
   }
 
-  // Liberation Sans Bold glif alanlari / boyut^2 (scad'de font SABIT; $fn=96
-  // sozlesme baglami). Olcum: olcum/glif_alan_kalibrasyon.py -> olcum/
-  // glif_alan.json (glif basina h=1 ekstruzyon; union = toplam, katkisallik
+  // Liberation Sans Bold glif alanlari / boyut^2 (uretim modelinde font SABIT; $fn=96
+  // sozlesme baglami). Kaynak: glif alan kalibrasyon olcumu
+  // (glif basina h=1 ekstruzyon; union = toplam, katkisallik
   // farki %1e-8; sum(PRUVO)=2.122714 vs eski kd-farki katsayisi 2.122713403,
   // fark %0.00003). Tabloda olmayan karakter ortalamaya duser.
   function kase_glif_alani(metin) {
@@ -732,9 +732,9 @@
     var ys = p.yazi_boyutu;
     var yukseklik = 8;
     var pah = 2.5;
-    // scad oto-boyut: _wc = max(len*ys*0.62, 2*ys); _hc = 2.6*ys (texticon 2
+    // Model oto-boyut: _wc = max(len*ys*0.62, 2*ys); _hc = 2.6*ys (texticon 2
     // satir sayilir). Eski model _wc'yi 3.1*ys'e (len=5, "PRUVO") sabitlemisti —
-    // metin-izgara olcumunde -%93.6..+%50 sapma (olcum/metin_etki_olcum.json).
+    // metin-izgara olcumunde -%93.6..+%50 sapma (metin etki olcumu).
     // face_w2=max(...,15) kelepcesi sema araliginda pasif (ys>=6, dolgu>=3 -> >=18).
     var icerikEn = Math.max(0.62 * metin.length, 2) * ys;
     var icerikBoy = 2.6 * ys;
@@ -882,7 +882,7 @@
   }
 
   function kavanoz(p) {
-    // Vidalı kapaklı kavanoz / kör tapa: kavanoz.scad sözleşmesi.
+    // Vidalı kapaklı kavanoz / kör tapa: kavanoz üretim modeli sözleşmesi.
     // Ölçülen sapma tam ürün ızgarasında en kötü %0.22 (2026-07-17).
     var k = kavanoz_poly();
     var D = p.govde_capi;
@@ -1092,10 +1092,10 @@
 
   // === AILE: kutu ===
   function kutu(p) {
-    // Ölçüye özel kutu (kapaklı · bölmeli): kutu.scad sözleşmesi. Tümü dikdörtgen
+    // Ölçüye özel kutu (kapaklı · bölmeli): kutu üretim modeli sözleşmesi. Tümü dikdörtgen
     // prizma — kapalı form KESİNDİR (ölçülen sapma %0.000, 2026-07-17).
     // Bölme duvarı 1.2 mm sabit; etkin adet gözler 15 mm'nin altına inmeyecek
-    // şekilde kırpılır (scad ile birebir). Geçme kapakta bölme 6 mm kısalır
+    // şekilde kırpılır (üretim modeliyle birebir). Geçme kapakta bölme 6 mm kısalır
     // (kapak dudağı payı); kapak = plaka + dudak çerçevesi (et 1.6, tol 0.2).
     var t = Math.max(p.duvar, 1.2);
     var W = p.ic_en + 2 * t;
@@ -1121,7 +1121,7 @@
     if (p.profil === "kare") {
       kesitAlani = p.kesit_cap * p.kesit_cap;
     } else if (p.profil === "pahli") {
-      // Okan onayi (16 Tem gece): 0.875 eski motora (0.25xCS pah) kalibreydi;
+      // Isletme onayi (16 Tem gece): 0.875 eski motora (0.25xCS pah) kalibreydi;
       // uretim motoru pahi 0.18xCS -> teorik 1-4*(0.18^2)/2 = 0.9352, OLCULEN
       // 0.93349 (8 set, hepsi ayni 5 basamak — render poligonizasyon payi dahil).
       kesitAlani = 0.93349 * p.kesit_cap * p.kesit_cap;
@@ -1511,7 +1511,7 @@
     // (musterinin aldigi cift), mm3.
     //
     // GEOMETRI (2026-07-26 guncelleme): ERKEK kayis ucu artik DAIMA 2-yuvali
-    //   weave-through + egimli surtunme bari (referans erkek.stl; Okan onayladi).
+    //   weave-through + egimli surtunme bari (erkek referans modeli; isletme onayladi).
     //   Kilit mekanizmasi (ray/prong/barb/soket/pencere) DEGISMEDI.
     //   Parametreler:  W = kemer_genisligi (12..45, vars 25) ; H = kalinlik
     //   (8..14, vars 10.8) ; kayis_baglanti = "dikis" | "triglide".
@@ -1522,12 +1522,12 @@
     //   Bu yuzden t-terimi (eskiden erkek+disi ikinci yuva) KUCULDU (~yari):
     //   simdi yalniz disi ikinci yuvasini tasir. dikis'te t=0, capayi ETKILEMEZ.
     //
-    // OLCUM: 56 GERCEK OpenSCAD render (fn=48, parca="ikisi"), 2026-07-26.
+    // OLCUM: 56 GERCEK geometri render'i (fn=48, parca="ikisi"), 2026-07-26.
     //   W(kemer_genisligi) = 12,16,20,25,30,37,45  x  H = 8,10.8,12,14  x  {dikis,triglide}
-    //   Uretici: olcum/toka_v6_izgara_olcum.py -> olcum/toka_v6_izgara.json
-    //            olcum/toka_v6_model_uydur.py  (agirlikli 1/V Householder QR)
+    //   Uretici: toka v6 izgara olcumu -> izgara verisi
+    //            model uydurma calismasi (agirlikli 1/V Householder QR)
     //   BAGIMSIZ dogrulama (fit izgarasinda OLMAYAN 40 nokta,
-    //   W=13,14,22,33,41 x H=8.6,9.4,11.4,13.2): olcum/toka_v6_model_dogrula.py
+    //   W=13,14,22,33,41 x H=8.6,9.4,11.4,13.2): model dogrulama calismasi
     //   EN KOTU SAPMA (56 fit noktasi) = +0.0689%. Erkek egimli bar ~H^2 egrilik
     //   getirir ama H araligi (8..14) dar oldugundan iki-dogrusal+diz modeli
     //   0.07%'de sogurur (H^2 terimi GEREKMEZ).
@@ -1535,12 +1535,12 @@
     // NEDEN "d" (rail-doyma dizi) TERIMI VAR: erkek merkez rayinin yarim genisligi
     //   rail_half = min(ray_genislik/2, (W+1.2)/2 - prong_et - 1.5)
     // W buyudukce ray_genislik/2'de SATURE olur. Doyma noktasi (diz) UYDURULMAZ,
-    // toka.scad sabitlerinden TURETILIR (kilit DEGISMEDI -> diz AYNI):
+    // toka uretim modelinin sabitlerinden TURETILIR (kilit DEGISMEDI -> diz AYNI):
     //   (W+1.2)/2 - prong_et - 1.5 = ray_genislik/2
     //   => W_DIZ = ray_genislik + 2*prong_et + 3.0 - 1.2 = 6.2 + 5.0 + 3.0 - 1.2 = 13.0
     // W < W_DIZ'de (izgarada yalniz W=12) ray inceldigi icin hacim azalir; d =
     //   max(0, 13 - W) + d*H bu eksigi (H'de dogrusal) TAM tasir. ray_genislik/
-    //   prong_et degisirse 13.0 sabiti YENIDEN turetilir (olcum/toka_v6_model_dogrula.py denetler).
+    //   prong_et degisirse 13.0 sabiti YENIDEN turetilir (model dogrulama calismasi denetler).
     //
     // CAPA: W=25,H=10.8,dikis -> 14877.48271244191 mm3 = tabanHacimMm3 (TAM esitlik).
     // Sabit terim, diger katsayilar 6 basamaga YUVARLANDIKTAN SONRA capayi tam
@@ -1548,7 +1548,7 @@
     var W = p.kemer_genisligi;
     var H = p.kalinlik;
     var t = (p.kayis_baglanti === "triglide") ? 1 : 0;
-    var d = Math.max(0, 13.0 - W);   // rail-doyma dizi (W_DIZ scad'den turev, yukari bak)
+    var d = Math.max(0, 13.0 - W);   // rail-doyma dizi (W_DIZ uretim modelinden turev, yukari bak)
 
     return -943.7117961580916
       + 79.989293 * W
@@ -1591,8 +1591,8 @@
   }
 
   // [cap, değer] tablosunda doğrusal enterpolasyon; uçların dışı uca sabitlenir.
-  // Tablolar üretim motorunun standart M ölçülerinde ölçülmüş STL hacimlerinden
-  // (jenerator/test/vida-referans-uret.py fixture'ı); ara/yarım ölçüler üretim
+  // Tablolar üretim motorunun standart M ölçülerinde ölçülmüş katı model
+  // hacimlerinden (vida referans fikstürü); ara/yarım ölçüler üretim
   // eşleminde yok, fiyatları komşu ölçülerden enterpolasyonla türetilir.
   function vida_tablo(tablo, cap) {
     if (cap <= tablo[0][0]) return tablo[0][1];

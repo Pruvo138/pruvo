@@ -1,8 +1,8 @@
 // Liberation Sans Bold glif alan + ilerleme tablolari ($fn=96 sozlesme
-// baglami; jeton.scad _yuz2d $fn=96 pinli — eski $fn'siz tesselasyonda "100"
-// katsayisi cap 20->80 arasinda 0.969->1.028 geziyordu). Olcum:
-// olcum/glif_alan_kalibrasyon.py -> olcum/glif_alan.json. Alan boyut^2,
-// ilerleme boyut basina mm (OpenSCAD text olcegi em x 1.389). Tabloda
+// baglami; jeton uretim modelinde _yuz2d $fn=96 pinli — eski $fn'siz tesselasyonda "100"
+// katsayisi cap 20->80 arasinda 0.969->1.028 geziyordu). Tablolar
+// glif alan kalibrasyon olcumunden turer. Alan boyut^2,
+// ilerleme boyut basina mm (uretim modeli text olcegi em x 1.389). Tabloda
 // olmayan karakter ortalamalara duser.
 function jeton_glif_tablolari() {
   return {
@@ -53,7 +53,7 @@ function jeton(p) {
   var ustYaricap = yaricap - pah;
   var govdeYuksekligi = p.kalinlik - 2 * pah;
 
-  // SCAD gövdesi: tam yarıçaplı silindir ve üstte 2*pah yüksekliğinde kesik koni.
+  // Üretim modeli gövdesi: tam yarıçaplı silindir ve üstte 2*pah yüksekliğinde kesik koni.
   var govde = Math.PI * yaricap * yaricap * govdeYuksekligi;
   var ustPah = Math.PI * 2 * pah / 3 *
     (yaricap * yaricap + yaricap * ustYaricap + ustYaricap * ustYaricap);
@@ -70,10 +70,10 @@ function jeton(p) {
   }
 
   // Yazi siparis metnidir; gelmezse sema varsayilani (taban sozlesmesi).
-  // scad: ts = min(cap*0.34, cap*0.9/max(len,1)*1.3) — uzun metinde kuculur.
+  // Model: ts = min(cap*0.34, cap*0.9/max(len,1)*1.3) — uzun metinde kuculur.
   // Eski model metni yok sayip "100" katsayisini sabit ts=0.34*cap ile
   // kullaniyordu: metin-izgara olcumunde -%8.6..+%3.7 sapma
-  // (olcum/metin_etki_olcum.json).
+  // (metin etki olcumu).
   var yazi = (typeof p.yazi === "string") ? p.yazi : "100";
   var yaziBoyutu = Math.min(p.cap * 0.34,
                             p.cap * 0.9 / Math.max(yazi.length, 1) * 1.3);

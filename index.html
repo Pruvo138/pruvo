@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVKK uyumlu. Ölçüm Kimliği G-5V53CQMSCE herkese açıktır.
-     TEK KAYNAK: aynı blok tools/build.py (GA_HEAD_SNIPPET) + statik sayfalarda birebir tekrar eder — değiştirirsen HEPSİNİ değiştir. -->
+     TEK KAYNAK: aynı blok sayfa üretecinde (GA_HEAD_SNIPPET) + statik sayfalarda birebir tekrar eder — değiştirirsen HEPSİNİ değiştir. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -28,7 +28,7 @@
 </script>
 <!-- Meta Pixel — KVKK/rıza kapılı. Piksel Kimliği 2150216885710153 herkese açıktır.
      GA ile AYNI onay anahtarı (pruvo_onay_analitik==="kabul"): rıza YOKSA fbevents.js YÜKLENMEZ,
-     hiçbir Meta ağ çağrısı olmaz. TEK KAYNAK: aynı blok tools/build.py (META_HEAD_SNIPPET) —
+     hiçbir Meta ağ çağrısı olmaz. TEK KAYNAK: aynı blok sayfa üretecinde (META_HEAD_SNIPPET) —
      değiştirirsen İKİSİNİ de değiştir. -->
 <script>
 (function(){
@@ -209,7 +209,7 @@
     box-shadow:var(--shadow);
     /* z-index 50: sayfa iceriginin ustunde (en yuksek kart katmani 2) ama SEPET
        katmanlarinin ALTINDA kalir (fab 60 / overlay 70 / panel 80) — 100'ken band
-       acik sepet panelinin ustune biniyordu (Okan bildirdi, 16 Tem gece). */
+       acik sepet panelinin ustune biniyordu (16 Tem gece bildirildi). */
     position:sticky; top:0; z-index:50;
   }
   .help-cta-inner{
@@ -519,7 +519,7 @@
   }
   .card-price{font-size:16px;font-weight:800;color:var(--navy);margin-top:auto}
   .card-price.empty{color:var(--gray-text);font-weight:600;font-size:13px}
-  /* NOT (Okan, 16 Tem): kart "Sepete Ekle" butonu ve "Tavsiye" çipi KALDIRILDI —
+  /* NOT (işletme kararı, 16 Tem): kart "Sepete Ekle" butonu ve "Tavsiye" çipi KALDIRILDI —
      sepete ekleme yalnız ürün sayfasından (malzeme+renk seçimi zorunlu). */
 
   /* ---------- SEPET (yüzen buton + panel) ---------- */
@@ -794,9 +794,9 @@
     .grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
   }
 
-  /* ---------- SABİT SOL NAV (Okan, 30 Tem): kategoriler SOLA sabitlenir; masaüstünde her
+  /* ---------- SABİT SOL NAV (işletme kararı, 30 Tem): kategoriler SOLA sabitlenir; masaüstünde her
      zaman görünür, dar ekranda açılır/kapanır çekmece. (Sağdaki "tüm markalar" sidebar'ı
-     Okan'ın isteğiyle kaldırıldı — markalar yalnız #brandChips'te, ortada, bağlama duyarlı
+     işletme isteğiyle kaldırıldı — markalar yalnız #brandChips'te, ortada, bağlama duyarlı
      kalıyor.) */
   .nav-overlay{
     position:fixed; inset:0; background:rgba(13,30,58,.55); z-index:65; display:none;
@@ -1052,7 +1052,7 @@
       <label><input type="radio" name="oYontem" value="havale">
         <span><strong>Havale / EFT</strong> <span class="yontem-not">(IBAN'a gönderim; sipariş no açıklamaya yazılır)</span></span></label>
     </div>
-    <!-- SÖZLEŞME ONAYI (kalem 9, yasal — Okan): işaretlenmeden buton çalışmaz; ASIL
+    <!-- SÖZLEŞME ONAYI (kalem 9, yasal): işaretlenmeden buton çalışmaz; ASIL
          zorunluluk sunucuda (/baslat onaysız isteği 400 ile reddeder, onay anı D1'e
          damgalanır). Linkler MEVCUT yasal sayfalara — yeni sayfa yazılmadı. -->
     <label class="onay-kutu"><input type="checkbox" id="oOnay">
@@ -1098,7 +1098,7 @@
   </div>
 
   <div class="cart-panel-foot">
-    <!-- KARGO (Okan, 16 Tem — KESIN): <2.500 TL -> 250,00 TL gonderim; >=2.500 (dahil) bedava.
+    <!-- KARGO (isletme karari, 16 Tem — KESIN): <2.500 TL -> 250,00 TL gonderim; >=2.500 (dahil) bedava.
          Tek kaynak secenekler.js kargoKurus(); Worker ayni fonksiyonla tahsil eder —
          burada gorunen genel toplam = iyzico'da odenen tutar (kurusuyla). -->
     <div id="cartAraRow" class="cart-alt-row" style="display:none">
@@ -1109,7 +1109,7 @@
       <span>Gönderim</span>
       <span id="cartKargo">250,00 TL</span>
     </div>
-    <!-- KDV DÖKÜMÜ (kalem 8, Okan %20 KESİN): fiyatlar KDV dahil, tahsilat DEĞİŞMEZ —
+    <!-- KDV DÖKÜMÜ (kalem 8, %20 KESİN): fiyatlar KDV dahil, tahsilat DEĞİŞMEZ —
          kargo dahil genel toplam üzerinden tek döküm (secenekler.js kdvAyristir). -->
     <div id="cartKdvHaricRow" class="cart-alt-row kdv" style="display:none">
       <span>Ara toplam (KDV hariç)</span>
@@ -1164,12 +1164,12 @@
 </footer>
 
 <script src="/secenekler.js"></script>
-<!-- Sarı kart "X TL'den başlayan" haritası — build.py üretir (kaynak: jenerator/urunler
+<!-- Sarı kart "X TL'den başlayan" haritası — sayfa üreteci üretir (kaynak: jenerator/urunler
      şemalarındaki tabanFiyatTL). Lokalde/build'siz 404 olursa kart "Ölçüye özel fiyat"
      fallback'ine düşer (aşağıdaki inline script window.PRUVO_TABAN_FIYATLAR'ı opsiyonel okur). -->
 <script src="/taban-fiyatlar.js"></script>
-<!-- NOT: /filament-veri.js artık ana sayfada YÜKLENMEZ (kart tavsiye çipi kaldırıldı,
-     Okan 16 Tem). Dosyayı build.py hâlâ üretir; tek tüketicisi kalmadıysa da deploy
+<!-- NOT: malzeme veri dosyası artık ana sayfada YÜKLENMEZ (kart tavsiye çipi kaldırıldı,
+     16 Tem). Dosyayı sayfa üreteci hâlâ üretir; tek tüketicisi kalmadıysa da deploy
      beyaz listesinde kalması zararsız (ileride tekrar kullanılabilir). -->
 
 <script>
@@ -1186,13 +1186,13 @@
   //
   // NEDEN BAYRAK: 7.9k üründe bugünkü model iyi (yerel arama 15-27 ms). 20k hedefinde
   // urunler.json ~14-15 MB = mobil ilk açılış + bellek riski (ölçüm: katalog-olcek-siniri).
-  // Kod ŞİMDİ yazıldı, açılışı katalog ~12-15k banda girince (mimar+Okan kararı).
+  // Kod ŞİMDİ yazıldı, açılışı katalog ~12-15k banda girince (mimar + işletme kararı).
   //
   // AÇMADAN ÖNCE (sıra ÖNEMLİ, atlanırsa site boş kalır):
-  //   1) Worker'da /katalog ucu CANLI olmalı (ayrı repo ~/dev/pruvo-bot; deploy = Okan kapısı)
-  //   2) node tools/faz3-sayfalama.js + node tools/faz3-gecikme.js YEŞİL
-  //   3) node tools/parite-test.js + node tools/parite-ege.js YEŞİL
-  //   4) bayrak açılıp deploy → CDN purge (tools/faz3-onbellek-purge.md)
+  //   1) Worker'da /katalog ucu CANLI olmalı (ayrı repo; deploy = işletme onayı kapısı)
+  //   2) sayfalama + gecikme kapıları YEŞİL
+  //   3) arama parite kapıları (site + bot) YEŞİL
+  //   4) bayrak açılıp deploy → CDN purge (önbellek purge yordamı)
   var EDGE_KATALOG = true;
   var EDGE_UC = "https://pruvo-whatsapp-bot.gmlmz.workers.dev";
   var EDGE_DEBOUNCE = 250;   // ms — her tuşta istek atma; yazma bitince tek istek
@@ -1200,19 +1200,19 @@
 
   var WHATSAPP = "905451386526";
   var CATEGORIES = ["Marin","Otomobil","Motosiklet","Bisiklet","Tamirat","Ev","Ofis","Elektronik","Kamera","Bahçe","Dekorasyon","Oyun/Hobi"];
-  // GİZLİ kategoriler (Okan, 17 Tem): menüde GÖRÜNMEZ ama ?kategori=<ad> linki, arama ve
+  // GİZLİ kategoriler (işletme kararı, 17 Tem): menüde GÖRÜNMEZ ama ?kategori=<ad> linki, arama ve
   // ürün sayfaları çalışır. "Jeneratör" = TÜM parametrik (sarı seri) ürünler; banner +
-  // vitrin oradan beslenir. "Skan Art" (Okan, 23 Tem) = İskandinav tasarım dilli dekor/heykel
+  // vitrin oradan beslenir. "Skan Art" (işletme kararı, 23 Tem) = İskandinav tasarım dilli dekor/heykel
   // alt-serisi; AYNI mekanizma (nav çipi YOK, banner + derin link var).
   // GİZLEME MEKANİZMASI = bu listede olmak + CATEGORIES'te OLMAMAK (renderCats yalnız
-  // CATEGORIES'i çizer). tools/build.py NAV_GIZLI ile BİRLİKTE güncelle.
+  // CATEGORIES'i çizer). Sayfa üretecindeki NAV_GIZLI ile BİRLİKTE güncelle.
   var GIZLI_KATEGORILER = ["Jeneratör","Skan Art"];
 
-  // ANA SAYFA VİTRİN SIRASI (Okan, 31 Tem): bu kategorilerdeki ürünler ana sayfanın
+  // ANA SAYFA VİTRİN SIRASI (işletme kararı, 31 Tem): bu kategorilerdeki ürünler ana sayfanın
   // İLK 20 SLOTUNDA GÖRÜNMEZ; 21. sıradan itibaren normal şekilde görünürler.
   // Ürün ELENMEZ — yalnız geriye itilir (toplam kart/katalog sayısı DEĞİŞMEZ).
   // ⚠️ TEK KAYNAK — bu üç ad kodun BAŞKA HİÇBİR YERİNDE tekrar yazılmaz (ikinci kopya
-  // açan değişikliği tools/vitrin-siralama-test.js KIRMIZI yakar); adlar CATEGORIES ile
+  // açan değişikliği vitrin sıralama kapısı KIRMIZI yakar); adlar CATEGORIES ile
   // birebir tutulur. Kural YALNIZ ana sayfa vitrinine uygulanır: kategori görünümü
   // (?kategori=Ev) ve arama sonuçları ETKİLENMEZ.
   var VITRIN_GERI_KATEGORILER = ["Ev","Dekorasyon","Ofis"];
@@ -1271,7 +1271,7 @@
        verilmiş rızanın kapısına döner. Bu yüzden rıza yokken çerezler de silinir.
        Dönen dizi = SİLİNEMEYENLER; sessiz geçilmez, konsola uyarı düşer.
        ⚠️ Kalıp attribution-ref.js'teki OLCUM_CEREZ_KALIBI ile AYNI olmak zorunda
-       (drift kapısı: tools/riza-tikkimligi-test.js D0). */
+       (drift kapısı: rıza/tık-kimliği kapısı D0). */
     var OLCUM_CEREZ_KALIBI = /^(_ga|_gid|_fbp|_fbc|_gcl_)/;
     function olcumCerezAdlari(){
       var ham = "";
@@ -1448,10 +1448,10 @@
 
   /* ===== PRUVO KATALOG KIMLIGI (feed_id) — piksel content_ids TEK KAYNAK ===== BEGIN pruvoFeedId
      Meta/Google katalog feed'i (merchant-feed.xml) uzun ürün id'sini <=50 karaktere kısaltır
-     (tools/build.py feed_id): <=50 ise AYNEN, uzunsa ilk 41 karakter + "-" + sha1(pid)[:8].
+     (sayfa üreteci feed_id): <=50 ise AYNEN, uzunsa ilk 41 karakter + "-" + sha1(pid)[:8].
      Piksel content_ids DAİMA bu değeri göndermeli; yoksa uzun-id ürünlerde katalog eşleşmez
-     (ölçüldü: 610/7769 ürün, %7,85 kayıp). Bu JS, build.py feed_id ile BYTE-BİRE-BİR aynıdır;
-     tools/piksel-katalog-parite-test.py node ile 610 uzun-id üzerinde Python'a karşı doğrular.
+     (ölçüldü: 610/7769 ürün, %7,85 kayıp). Bu JS, üretecin feed_id'si ile BYTE-BİRE-BİR aynıdır;
+     Piksel-katalog parite kapısı node ile 610 uzun-id üzerinde üretece karşı doğrular.
      Sepet satır id'si (satir.id) TAM pid kalır (Worker/D1 fiyat anahtarı); dönüşüm yalnız Meta
      olayı gönderilirken yapılır. Tüm id'ler ASCII kebab (ölçüldü) -> UTF-8 == ASCII. */
   function pruvoSha1Hex(str){
@@ -1495,7 +1495,7 @@
 
   // Sepet satırları {id, malzeme, renk, renk_ozel, boy_etiket} — aynı ürün farklı
   // malzeme/renk/boy ile birden çok satırda bulunabilir (secenekler.js: PRUVO_SECENEK).
-  // NOT (Okan, 16 Tem): karttaki hızlı "Sepete Ekle" KALDIRILDI — sepete eklemenin TEK yolu
+  // NOT (işletme kararı, 16 Tem): karttaki hızlı "Sepete Ekle" KALDIRILDI — sepete eklemenin TEK yolu
   // ürün sayfası (malzeme kartı + renk butonu seçimi zorunlu). Böylece hiçbir UI yolu
   // malzemesiz/varsayılan-PLA kalem ekleyemez. bosSatir yalnız eski sepet GÖÇÜ için kalır
   // (secenekler.js sepetYukle: eski düz-id satırlarını çevirir).
@@ -1564,7 +1564,7 @@
   }
   /* Sepet toplamı = satırların KURUŞLU tutarlarının toplamı (ara yuvarlama yok).
      Bu SADECE gösterim: ödenecek tutarı Worker D1 fiyatından yeniden hesaplar ve
-     buradan gelen hiçbir sayıya güvenmez (tools/paket-shop-odeme.md kırmızı çizgisi). */
+     buradan gelen hiçbir sayıya güvenmez (ödeme paketinin kırmızı çizgisi). */
   function cartToplamKurus(lines){
     var t = 0;
     for(var i=0;i<lines.length;i++){
@@ -1577,7 +1577,7 @@
   /* ===== KONFİGÜR ÖDENEBİLİRLİK PROVASI ===== BEGIN konfigurProva
      SORUN (canlı ölçüm, 30 Tem): bir ürün urunler.json'da "konfigur" alanı taşıyorsa site onu
      ödenebilir SAYIYORDU (secenekler.js KONFIGUR_ODEME_ACIK). Oysa Worker bir ürünün konfigür
-     olduğunu YALNIZ kendi BUNDLE'ındaki haritadan bilir (shop/src/konfigurlar.js; D1'de
+     olduğunu YALNIZ kendi BUNDLE'ındaki haritadan bilir (Worker bundle'ı; D1'de
      "konfigur" alanı YOK) ve Worker deploy'u ELLE yapılır. "urunler.json'da/D1'de VAR, canlı
      bundle'da YOK" penceresinde müşteri ürünü sepete atıyor, ÖDEME FORMUNU DOLDURUYOR ve
      en sonda /baslat'ın 400'üne ("bunun siparişini WhatsApp'tan alıyoruz") çarpıyordu.
@@ -1591,7 +1591,7 @@
      🔴 FAIL-CLOSED: 4xx/5xx, ağ hatası, zaman aşımı, çöp gövde, fetch'in hiç olmaması ->
      kart yolu KAPALI, kanal WhatsApp. Cevap gelene kadar da KAPALI ("kontrol ediliyor").
      Belirsizlik "ödenebilir" sayılmaz. Sunucu kapısı SON SÖZ olarak yerinde kalır; bu katman
-     yalnız müşteriyi ERKEN bilgilendirir (shop/src/index.js GEVŞETİLMEDİ).
+     yalnız müşteriyi ERKEN bilgilendirir (Worker kapısı GEVŞETİLMEDİ).
 
      🔴 HIZ SINIRI (/fiyat ucunda native binding, fail-closed): kör istek atılmaz.
        * yalnız KONFİGÜR satırı sorulur (normal/sarı ürün için istek YOK),
@@ -1601,7 +1601,7 @@
        * istekler yalnız sepet GÖRÜNÜMÜ kurulurken (panel render'ı) uçar; sayfa açılışında
          panel açılmıyorsa hiç istek gitmez.
        Ölçüm: N kalemlik sepette gönderilen istek sayısı = FARKLI konfigür satırı sayısı (K),
-       sonraki render'larda 0. Nöbetçi: shop/test/sepet-panel.js test 10-14 (ölçülen: N=5
+       sonraki render'larda 0. Nöbetçi: sepet paneli kabul testi 10-14 (ölçülen: N=5
        kalemlik sepette K=2 farklı konfigür satırı -> 2 istek; yeniden render -> 0 ek istek).
 
      KARIŞIK SEPET (ödenebilir + kapalı kalem bir arada): sunucu sepeti ATOMİK değerlendirir
@@ -1870,7 +1870,7 @@
       return;
     }
     // ODEME_ACIK iken birincil buton ÖDEME; WhatsApp İKİNCİL görünüme iner ama kanal yaşar
-    // (Okan, 16 Tem). Kapalıyken bugünkü gibi WhatsApp birincil. Sepetin TAMAMI kayıp
+    // (işletme kararı, 16 Tem). Kapalıyken bugünkü gibi WhatsApp birincil. Sepetin TAMAMI kayıp
     // satırsa gönderilecek kalem yok -> WhatsApp da pasif.
     if(lines.some(function(L){ return !L.kayip; })){
       orderBtn.className = "cart-order-btn" + (PRUVO_SECENEK.ODEME_ACIK ? " ikincil" : "");
@@ -1914,7 +1914,7 @@
       else{ pr.className = "cart-item-price empty"; pr.textContent = p ? ozet.fiyatMetni : "—"; }
       info.appendChild(pr);
 
-      // Adet +/- (Okan, 16 Tem): satır tutarı = kuruşlu birim × adet. Sadece fiyatı hesaplanan
+      // Adet +/- (işletme kararı, 16 Tem): satır tutarı = kuruşlu birim × adet. Sadece fiyatı hesaplanan
       // satırda gösterilir; parametrik/fiyatsız ürün zaten WhatsApp kanalından gider.
       if(p && ozet.kurus != null){
         var adetKutu = document.createElement("div");
@@ -2006,7 +2006,7 @@
   function havaleEkraniGoster(v){
     document.getElementById("hvNo").textContent = v.no || "";
     document.getElementById("hvUnvan").textContent = v.unvan || "";
-    // IBAN sunucudan BOSLUKSUZ gelir (tek kaynak: shop/wrangler.toml). Ekranda 4'lu
+    // IBAN sunucudan BOSLUKSUZ gelir (tek kaynak: Worker yapilandirmasi). Ekranda 4'lu
     // gruplarla okunur gosterilir; kopyala dugmesi HAM (bosluksuz) degeri kopyalar —
     // banka uygulamalari bosluklu IBAN'i reddedebiliyor.
     var hamIban = (v.iban || "").replace(/\s+/g, "");
@@ -2037,11 +2037,11 @@
   // Worker hata kodları -> müşterinin anlayacağı Türkçe. Bilinmeyen kod sessizce yutulmaz.
   var HATA_METNI = {
     "parametrik-urun": "Sepetinizde ölçüye özel bir ürün var; bunlar için WhatsApp'tan teklif alın.",
-    // Worker konfigür kolunun 400'ü (shop/src/index.js): ürün ölçü seçimiyle özel üretiliyor
+    // Worker konfigür kolunun 400'ü: ürün ölçü seçimiyle özel üretiliyor
     // ama şu an kartla alınamıyor. Bu kod olmadan müşteri jenerik "Ödeme başlatılamadı"
     // metnini görüp ödemesi başarısız sanıyordu — oysa doğru yol WhatsApp'tan sipariş.
     "konfigur-urun": "Sepetinizde ölçüye özel üretilen bir ürün var; bunun siparişini WhatsApp'tan alıyoruz.",
-    // Worker hacim doğrulama kapısının 400'ü (shop/src/parametrik.js): ürünün hacim
+    // Worker hacim doğrulama kapısının 400'ü: ürünün hacim
     // formülü gerçek geometriye karşı doğrulanmadığı için otomatik tutar ÜRETİLMİYOR
     // (fail-closed — yanlış tutar tahsil etmektense kalem WhatsApp'a düşer).
     "hacim-dogrulanmamis": "Sepetinizdeki ölçüye özel ürünün fiyatını ölçüye göre teyit ediyoruz; siparişi WhatsApp'tan alıyoruz.",
@@ -2230,8 +2230,8 @@
       .replace(/ç/g,"c").replace(/ğ/g,"g").replace(/ö/g,"o")
       .replace(/ş/g,"s").replace(/ü/g,"u").replace(/â/g,"a").replace(/î/g,"i");
   }
-  // Türkçe ek kırpma (SORGU tarafı) — Ege'nin kanıtlı aramaKok'u ile BİREBİR (tools/arama.py L80-93,
-  // pruvo-bot worker/src/index.js). Sıra uzundan kısaya; İLK eşleşen ek kırpılır. Kalan kök >= 4 harf
+  // Türkçe ek kırpma (SORGU tarafı) — Ege'nin kanıtlı aramaKok'u ile BİREBİR (ortak arama çekirdeği;
+  // bot Worker'ı da aynısını kullanır). Sıra uzundan kısaya; İLK eşleşen ek kırpılır. Kalan kök >= 4 harf
   // kalacaksa kırpar (fren/vida/far/kapak gibi kısa kökler DOKUNULMAZ). Kök daima orijinalin ÖN-EKİ
   // olduğundan sonuç KAYBOLMAZ, yalnız daha esnek (superset). Ürün metni (haystack) DEĞİŞMEZ.
   var ARAMA_EKLER=["lerimiz","larimiz","lerim","larim","lerin","larin","imiz","iniz","umuz","unuz","leri","lari","nin","nun","den","dan","tan","ten","ler","lar","yle","yla","si","su","yi","yu","ye","ya","na","ne","de","da","te","ta","in","im","un","um","i","u","e","a","m","n"];
@@ -2268,11 +2268,11 @@
   var shown = PAGE_SIZE;     // şu an gösterilen ürün sayısı
   var MARKA_LIMIT = 32;      // marka çip evreni: en çok ürünlü ilk 32 marka çip olur (hem ana
                              // sayfada hem kategori seçiliyken); 33+ uzun kuyruk marka çip DEĞİL,
-                             // yalnız arama kutusuyla bulunur (Okan, 19 Tem). Arama davranışı değişmez.
+                             // yalnız arama kutusuyla bulunur (işletme kararı, 19 Tem). Arama davranışı değişmez.
   function resetPaging(){ shown = PAGE_SIZE; }
 
-  // --- MARKA KÜRATÖRLÜĞÜ BAŞ (tools/marka-liste-test.py bu bloğu ayıklar; marker satırını değiştirme) ---
-  // Çip listesi KÜRATÖRLÜ (Okan, 23 Tem): yalnız TANINMIS_MARKALAR'daki gerçek/tanınmış
+  // --- MARKA KÜRATÖRLÜĞÜ BAŞ (marka listesi kapısı bu bloğu ayıklar; marker satırını değiştirme) ---
+  // Çip listesi KÜRATÖRLÜ (işletme kararı, 23 Tem): yalnız TANINMIS_MARKALAR'daki gerçek/tanınmış
   // markalar çip olur. Motor/model kodları (E46, Tacoma, Corsa, Octavia, R1200GS...) çip
   // DEĞİL; o ürünler SİTE ARAMASIYLA bulunmaya devam eder (arama davranışı DEĞİŞMEZ).
   // "Toyota 86" / "Mercedes-Benz" / "Volvo Penta" gibi tanınmış-marka-önekli değerler ve
@@ -2339,7 +2339,7 @@
   function taninmisMarkaMi(m){ return MARKA_KANONIK[markaNorm(m)] !== undefined; }
   // --- MARKA KÜRATÖRLÜĞÜ SON ---
 
-  // Kategori/marka/arama HER değişimde URL'yi görünümle senkron tutar (Okan, 17 Tem):
+  // Kategori/marka/arama HER değişimde URL'yi görünümle senkron tutar (işletme kararı, 17 Tem):
   // yenile hangi görünümü gösteriyorsa onu getirsin, sürpriz geri-gelme olmasın.
   // Paylaşılabilir ?kategori=&marka=&ara= linkleri çalışmaya devam eder (applyUrlParams okur).
   // replaceState = geçmiş şişmez (her filtre tıkı geri-tuşu adımı olmasın).
@@ -2406,7 +2406,7 @@
     });
   }
   // --- MARKA KAPSAMI BAŞ ---
-  // Okan (30 Tem, ölçülen sessiz hata): çok-dikeyli markalar (Yamaha 6 dikey, Suzuki 5,
+  // İşletme kararı (30 Tem, ölçülen sessiz hata): çok-dikeyli markalar (Yamaha 6 dikey, Suzuki 5,
   // BMW 4, Volvo 2 — Volvo Penta 21 Marin ürünü "Volvo"ya katlanıyor) tek kovada birleşiyor.
   // Marin'de "Yamaha" çipine basan müşteri motosiklet/elektronik parçası görüyordu; kimse
   // hata GÖRMÜYOR, satış sessizce kayboluyordu. ÇÖZÜM: yeni marka adı UYDURULMAZ ("Yamaha
@@ -2426,10 +2426,10 @@
     el.innerHTML = "";
 
     function chip(m){
-      // Marka çipi artık FİLTRE değil, o markanın /marka/<slug>/ sayfasına LİNK'tir (Okan, 27 Tem:
+      // Marka çipi artık FİLTRE değil, o markanın /marka/<slug>/ sayfasına LİNK'tir (işletme kararı, 27 Tem:
       // "eski JS-filtre yerine link"). Slug haritası (window.PRUVO_MARKA_SLUG) yalnız YAYIN kopyasına
-      // (index.built.html) build.py'de gömülür ve yalnız SAYFASI OLAN markaları içerir; olmayan marka
-      // ya da "Tümü" eski buton/filtre davranışında kalır (404 link bırakılmaz). SSR: build.py aynı
+      // (index.built.html) yayın kopyası üretilirken gömülür ve yalnız SAYFASI OLAN markaları içerir; olmayan marka
+      // ya da "Tümü" eski buton/filtre davranışında kalır (404 link bırakılmaz). SSR: üreteç aynı
       // linkleri #brandChips'e önceden basar (JS-siz curl'de görünür — discovery kök-fix).
       var slug = (window.PRUVO_MARKA_SLUG || {})[m];
       if(slug){
@@ -2475,7 +2475,7 @@
       var evMi = (c === "Tümü");
       b.className = "cat-btn" + (evMi ? " cat-home" : "") + (c === activeCat ? " active" : "");
       if(evMi){
-        // "Tümü" yerine ev ikonu (Okan, 18 Tem): tüm ürünlere / ana görünüme dön.
+        // "Tümü" yerine ev ikonu (işletme kararı, 18 Tem): tüm ürünlere / ana görünüme dön.
         // aria-label + title erişilebilirlik + ipucu; işlevi (tam sıfırlama) aynen kalır.
         b.innerHTML = '<svg viewBox="0 0 24 24" width="19" height="19" aria-hidden="true">' +
                       '<path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>';
@@ -2487,7 +2487,7 @@
       b.onclick = function(){
         activeCat = c;
         if(c === "Tümü"){
-          // TAM SIFIRLAMA (Okan, 17 Tem): "Tümü" her yerden ana sayfa görünümüne tek
+          // TAM SIFIRLAMA (işletme kararı, 17 Tem): "Tümü" her yerden ana sayfa görünümüne tek
           // tıkla döner — marka + arama + URL paramları temizlenir, sayfa başına çıkılır.
           activeBrand = "Tümü";
           query = ""; searchEl.value = ""; clearEl.className = "search-clear";
@@ -2561,7 +2561,7 @@
 
     var pr = document.createElement("div");
     // Sarı kartta "X TL'den başlayan": X tek kaynaktan gelir (jenerator/urunler/<id>.json
-    // tabanFiyatTL -> build.py /taban-fiyatlar.js üretir; elle kopya YOK). Biçim ürün
+    // tabanFiyatTL -> üreteç /taban-fiyatlar.js üretir; elle kopya YOK). Biçim ürün
     // sayfasıyla birebir (secenekler.js kurusMetni). Harita yüklenmemişse (build yok /
     // 404) ya da şemada taban null ise eski "Ölçüye özel fiyat" metni. Edge modunda da
     // AYNI: taban-fiyatlar.js küçük ayrı dosya, katalogtan bağımsız iner.
@@ -2575,7 +2575,7 @@
       pr.className = "card-price empty"; pr.textContent = p.parametrik ? "Ölçüye özel fiyat" : "Fiyat için sipariş verin";
     }
 
-    // Kart sade (Okan, 16 Tem): malzeme tavsiye çipi ve "Sepete Ekle" butonu KALDIRILDI.
+    // Kart sade (işletme kararı, 16 Tem): malzeme tavsiye çipi ve "Sepete Ekle" butonu KALDIRILDI.
     // Tavsiye + sepete ekleme ürün SAYFASININ işi (malzeme kartları oradan seçilir);
     // kart yalnız kategori/başlık/açıklama/fiyat gösterir ve /urun/<id>/'e götürür.
     body.appendChild(cat);
@@ -2610,7 +2610,7 @@
     }
   }
 
-  // ---------- ANA SAYFA VİTRİN SIRALAYICISI (Okan kuralı, 31 Tem) ----------
+  // ---------- ANA SAYFA VİTRİN SIRALAYICISI (işletme kuralı, 31 Tem) ----------
   // NEDEN BURADA (TEK NOKTA): ana sayfa kartları ziyaretçiye DÖRT ayrı besleme yolundan
   // gelebiliyor — (1) ozet.json ilk boyaması (edgeYukle sayfa 1), (2) ozet.json inmezse
   // Worker /katalog?sayfa=1 cevabı, (3) "Daha fazla göster" ile eklenen Worker sayfaları,
@@ -2636,7 +2636,7 @@
     // YETERSİZ STOK HÂLİ: yüklü listede ilk 20'yi dolduracak kadar hedef-dışı ürün yoksa
     // BOŞLUK BIRAKILMAZ (kalan slotlar doğal sırayla dolar) ama sapma SESSİZ GEÇMEZ:
     // konsola yazılır ve window.PRUVO_VITRIN_SAPMA'da ölçülebilir kalır (canlı doğrulama
-    // ve tools/vitrin-siralama-test.js bunu okur).
+    // ve vitrin sıralama kapısı bunu okur).
     VITRIN_SAPMA = {
       yetersiz: liste.length >= VITRIN_ON_SLOT && on.length < VITRIN_ON_SLOT,
       uygun: on.length, slot: VITRIN_ON_SLOT, liste: liste.length
@@ -2691,7 +2691,7 @@
       if(bEl){ bEl.style.display = anaGorunum ? "" : "none"; }
     });
 
-    // Marka çipleri (#brandRow) SADECE bir kategori seçiliyken görünür (Okan, 30 Tem):
+    // Marka çipleri (#brandRow) SADECE bir kategori seçiliyken görünür (işletme kararı, 30 Tem):
     // ana sayfada (Tümü) ve salt aramada/marka filtresinde GİZLİ, kategoriye girilince görünür.
     var brandRowEl = document.getElementById("brandRow");
     if(brandRowEl){ brandRowEl.style.display = (activeCat !== "Tümü") ? "" : "none"; }
@@ -3119,7 +3119,7 @@
 </script>
 
 <!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). analytics_storage için açık rıza.
-     TEK KAYNAK: aynı blok tools/build.py (GA_BANNER_SNIPPET) + statik sayfalarda birebir tekrar eder. -->
+     TEK KAYNAK: aynı blok sayfa üretecinde (GA_BANNER_SNIPPET) + statik sayfalarda birebir tekrar eder. -->
 <style>
   #pruvo-cerez-onay{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;
     background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 -2px 14px rgba(0,0,0,.28);
@@ -3162,7 +3162,7 @@
   var ret = document.getElementById("pco-ret");
   /* Rıza değişimini TÜM katmanlara duyur (rıza YAZILDIKTAN sonra çağrılır ki hepsi kapı
      kontrolünden geçsin). Diğer 5 yüzeydeki desenle AYNI.
-     ⚠️ pruvoRefRiza da ŞART: build.py ana sayfanın yayın kopyasına (index.built.html)
+     ⚠️ pruvoRefRiza da ŞART: üreteç ana sayfanın yayın kopyasına (index.built.html)
      attribution-ref.js'i inline basar → Google Ads tıklaması (gclid/gbraid/wbraid) ana
      sayfada YAKALANIR. Burada çağrılmazsa rıza "Kabul" olsa bile kayıttaki click-id null
      kalır (iç sayfalarda URL'de gclid yok) ve wa.me lead'i sunucuya HİÇ gitmez — sessiz

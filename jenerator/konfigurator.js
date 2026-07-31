@@ -1,5 +1,5 @@
 /* PRUVO — Ölçüye özel (parametrik) ürün konfigüratörü.
-   Ürün sayfasında URUN_SEMA (build.py inline eder) + /jenerator/hacim.js (PRUVO_HACIM)
+   Ürün sayfasında URUN_SEMA (üreteç inline eder) + /jenerator/hacim.js (PRUVO_HACIM)
    + /secenekler.js (PRUVO_SECENEK) ile çalışır. Parametre alanlarını kurar, canlı
    hacim + fiyat hesaplar (kuruş korunur, TL'ye yuvarlama yok), sınır dışı girişte
    alanı işaretler ve sepete eklemeyi kilitler. Fiyat, taban fiyat girilene kadar
@@ -9,11 +9,11 @@
   "use strict";
 
   // Cerceve 2-renk yazi basilabilirlik esigi + beyaz liste. Min kenar 10 mm
-  // (KaaN render: production floor; 9mm stem 0.69mm<nozul kirilgan, 10mm 0.89mm robust);
-  // beyaz liste = onizleme/derleyici/server.py METIN_BEYAZ_LISTE kumesiyle AYNI (harf/rakam + . , - _).
+  // (olculdu: 9mm sapta duvar 0.69mm kirilgan, 10mm'de 0.89mm saglam);
+  // beyaz liste = derleyici sunucusunun METIN_BEYAZ_LISTE kumesiyle AYNI (harf/rakam + . , - _).
   //
   // 2-RENK EK UCRETI BURADA SABIT DEGIL: TEK KAYNAK /secenekler.js IKI_RENK_EK_KURUS —
-  // Worker (shop/src/parametrik.js) AYNI degeri okur, ikinci kopya YOK. Ayri sabit tutulursa
+  // Worker (parametrik kol) AYNI degeri okur, ikinci kopya YOK. Ayri sabit tutulursa
   // biri degisip digeri kalir ve musteriye gosterilen fiyat ile tahsil edilen fiyat ayrisir.
   var IKI_RENK_MIN_KENAR = 10;
 
@@ -31,10 +31,10 @@
       : (" · Yazı rengi: " + yaziRenk + " (2 renk)");
   }
   // TUM `metin` parametreleri icin gecerli (cerceve `yazi`, kase `metin`, jeton `yazi` ...):
-  // sunucu (onizleme/derleyici/server.py metin_temizle) beyaz liste DISI her karakteri
+  // sunucu (derleyici metin_temizle) beyaz liste DISI her karakteri
   // SESSIZCE DUSURUR — musteri "AHMET & OGULLARI" yazip "AHMET  OGULLARI" basilmis urun
   // alirdi, hicbir uyari cikmadan. Kural bu yuzden dogrula() yolunda (parametreHatasi ->
-  // `metin` dali): hem sayfa (ciz/gecerliMi/satiraYaz) hem WORKER (shop/src/parametrik.js
+  // `metin` dali): hem sayfa (ciz/gecerliMi/satiraYaz) hem WORKER (parametrik kol
   // KONF.dogrula) ayni kapiyi kullanir. Sunucu tavani/beyaz listesi GEVSEMEZ — bu istemci
   // uyarisi onun YERINE gecmez, sadece kusuru GORUNUR kilar (sunucu hala fail-closed).
   var YAZI_BEYAZ_LISTE = /^[A-Za-z0-9ğüşıöçĞÜŞİÖÇ .,\-_]*$/;
@@ -379,7 +379,7 @@
       // yoksa musteri 600 gorup 675 tahsil edilirdi (clamp DISI ek ucret). Tutar tek
       // kaynaktan (secenekler.js); bugun 0 -> gosterilen fiyat degismez.
       if (kurus != null && cer && cer.ikiRenk) { kurus += ikiRenkEkKurus(); }
-      // Sari kural (Okan): taban fiyat girilmemis ailede (vida) "Olcuye ozel fiyat"
+      // Sari kural (isletme): taban fiyat girilmemis ailede (vida) "Olcuye ozel fiyat"
       // ("—" degil — musteriye fiyatin sonradan teklif edilecegini soyler). Taban
       // fiyati DOLU ailede kart-secim kalibi (normal sayfayla ayni, F kalemi):
       // malzeme+renk secilene kadar "X TL'den baslayan", ikisi de secilince kesin.

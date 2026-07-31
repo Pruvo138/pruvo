@@ -23,7 +23,7 @@ function huni(p) {
     (ucKok * ucKok + ucKok * ucTip + ucTip * ucTip) -
     pi * icAltYaricap * icAltYaricap * p.uc_boyu;
 
-  // Kenar (brim): dis silindir sabit, IC DELIK koni egimini izler (motor
+  // Kenar payi: dis silindir sabit, IC DELIK koni egimini izler (motor
   // id2 = id1 - 2*slope*kalinlik) — sig genis hunilerde fark %4'e cikiyordu.
   var kenarDisYaricap = disUstYaricap + 4;
   var egim = (icUstYaricap - icAltYaricap) / p.yukseklik;

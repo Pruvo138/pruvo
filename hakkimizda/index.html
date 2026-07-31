@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Google Analytics 4 (gtag.js) + Consent Mode v2 — KVKK uyumlu. Ölçüm Kimliği G-5V53CQMSCE herkese açıktır.
-     TEK KAYNAK: aynı blok tools/build.py (GA_HEAD_SNIPPET) + diğer statik sayfalarda birebir tekrar eder. -->
+     TEK KAYNAK: aynı blok sayfa üretecinde (GA_HEAD_SNIPPET) + diğer statik sayfalarda birebir tekrar eder. -->
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -83,7 +83,7 @@
   // sayfada var, PRUVO_ATIF yalniz ana sayfada -> riza geri cekme (gizlilik sayfasindaki
   // "Cerez tercihimi degistir") ana sayfaya ugramadan da tiklama kimligini silebilsin diye
   // temizlik buradan da surulur. Liste index.html'deki TIK_ALANLARI ile AYNI olmak ZORUNDA;
-  // tools/riza-tikkimligi-test.js drift kapisi (C0) iki listeyi karsilastirir.
+  // riza/tik-kimligi drift kapisi (C0) iki listeyi karsilastirir.
   var ATIF_KEY = "pruvo_atif";
   var ATIF_CLICK_FIELDS = ["fbc", "fbclid", "gclid", "gbraid", "wbraid", "ttclid", "msclkid"];
   var activeRef = null;
@@ -591,7 +591,7 @@
 </footer>
 
 <!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). analytics_storage için açık rıza.
-     TEK KAYNAK: aynı blok tools/build.py (GA_BANNER_SNIPPET) + diğer statik sayfalarda birebir tekrar eder. -->
+     TEK KAYNAK: aynı blok sayfa üretecinde (GA_BANNER_SNIPPET) + diğer statik sayfalarda birebir tekrar eder. -->
 <style>
   #pruvo-cerez-onay{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;
     background:#12294d;color:#fff;padding:15px 18px;box-shadow:0 -2px 14px rgba(0,0,0,.28);

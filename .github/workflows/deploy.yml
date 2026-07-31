@@ -1179,6 +1179,21 @@ jobs:
       - name: JSON-LD sku kabul testi (uretilen sayfalar + feed capraz-kontrol)
         run: python3 tools/test-jsonld-sku.py
 
+      # YAYIN IC-DIL KAPISI: tarayiciya INEN kod metninde (HTML yorumu + <style> icindeki
+      # CSS yorumu + JS yorumlari) ic gelistirici dili aramaz. Olculdu 31 Tem: katalog
+      # metninde yasakladigimiz uretim-sureci dili ('filament', '.scad'/'OpenSCAD', 'STL',
+      # 'brim') sitenin KENDI yorumlarinda 209 TEKIL yerde duruyordu ve YAYINLANIYORDU;
+      # ustune IC DOSYA YOLU (tools/*.py, shop/src/*.js — 2026-07-15 denetiminde tam da bu
+      # envanter yayindan cikarilmisti) ve isletme sahibinin adi TICARI KARARLARLA birlikte
+      # ("KARGO (<ad>, 16 Tem — KESIN)"). Hicbir kapi bakmiyordu. Sozluk denetim-kapisi.py
+      # _IFSA_SERT_RE'den IMPORT edilir (ikinci kopya YOK). build.py'den SONRA kosmak
+      # ZORUNDA (urun/ + index.built.html'e muhtac; urun/ bos ise OLCULEMEDI ile kirmizi
+      # yanar, sessiz YESIL imkansiz). Offline, stdlib, ~10 s.
+      - name: Yayin ic-dil kapisi (uretilen ciktinin yorum yuzeyi)
+        run: |
+          python3 tools/yayin-ic-dil-kapisi.py --kendini-test
+          python3 tools/yayin-ic-dil-kapisi.py
+
       # SADECE sitenin ihtiyac duydugu dosyalar yayina girer (beyaz liste).
       # Eskiden path: . tum repoyu yayinliyordu -> tools/*.py canli siteden
       # indirilebiliyordu (ic araclar + ticari mahremiyet; denetim 2026-07-15).

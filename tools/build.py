@@ -424,7 +424,7 @@ ONIZLEME_JS = """
      EDILEMEZ (ayri yazi govdesi indirilmemistir) -> onizleme yeniden kosar. */
   /* Yazi renginin GUNCEL degeri DAIMA seciciden okunur; son cizimdeki deger yalnizca
      secici henuz yoksa yedektir. (Ilk turda burada `sonYaziRenk` kullaniliyordu:
-     musteri 2. rengi degistirince ekran DEGISMIYORDU — Okan'in sikayetinin ta kendisi;
+     musteri 2. rengi degistirince ekran DEGISMIYORDU — bildirilen sikayetin ta kendisi;
      kapi S5b bunu yakaladi.) */
   function guncelYaziRenk(){
     var el=yaziRenkEl();
@@ -451,7 +451,7 @@ ONIZLEME_JS = """
   /* Yazi rengi (2. renk) secicisi konfigurator tarafindan DINAMIK olusturulur;
      bu script ondan once kosabilir -> baglanti tembel yapilir (her denemede
      tekrar aranir, bir kez baglanir). Baglanmazsa 2. renk secimi onizlemeye
-     ULASMAZDI (Okan'in sikayetinin tam ikizi). */
+     ULASMAZDI (bildirilen sikayetin tam ikizi). */
   function yaziRenkEl(){ return document.getElementById("konf_yazi_renk"); }
   function yaziRenkBagla(){
     var el=yaziRenkEl();
@@ -516,7 +516,7 @@ ONIZLEME_JS = """
     istek.then(function(buflar){
       if(ik && buflar.length===2){
         /* IKI GOVDE, IKI RENK: govde + yazi ayni koordinat sisteminde gelir
-           (derleyici ayni .scad'i yalniz Output farkiyla surer) -> viewer hicbirini
+           (derleyici ayni uretim modelini yalniz Output farkiyla surer) -> viewer hicbirini
            kaydirmaz, ust uste tam oturur. */
         gosterge=PRUVO_VIEWER.goster(tuval,
           [{ buf:buflar[0], renk:ik.govdeRenk }, { buf:buflar[1], renk:ik.yaziRenk }]);
@@ -1251,7 +1251,7 @@ PAGE_CSS = """
   body.fab-var .top-btn{bottom:78px}
   .note{font-size:12.5px;color:var(--gray-text);margin-top:12px}
 
-  /* Malzeme bolumu: sitede satilan filament cipleri (ABS/Karbon haric) + tavsiye rozeti + aciklama balonu.
+  /* Malzeme bolumu: sitede satilan malzeme cipleri + tavsiye rozeti + aciklama balonu.
      Balon, cip satirinin ALTINDA konteyner genisliginde acilir (kenar ciplerinde
      ekran disina tasmaz — mobil guvenli). Masaustunde hover, mobilde dokunma
      (.acik sinifi, sayfa scriptindeki toggle) ile acilir; title= mobilde calismadigi
@@ -2103,8 +2103,8 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
   var adetEksi=document.getElementById("adetEksi");
   var adetArti=document.getElementById("adetArti");
   var fiyatEl=document.getElementById("opsiyonFiyat");
-  /* Kart-secim modu (Okan, 16 Tem): fonksiyonel ürünlerde malzeme dropdown YOK, malzeme
-     filament KARTLARINDAN seçilir. Önden seçili malzeme YOK -> seciliMalzeme boş başlar. */
+  /* Kart-secim modu (işletme kararı, 16 Tem): fonksiyonel ürünlerde malzeme dropdown YOK,
+     malzeme KARTLARINDAN seçilir. Önden seçili malzeme YOK -> seciliMalzeme boş başlar. */
   var KART_SECIM = {kart_secim};
   var cipler = document.getElementById("filCipler");
   var renkBtnlar = document.getElementById("renkButonlar");
@@ -2229,7 +2229,7 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
     }} else {{ c.splice(i,1); }}
     PRUVO_SECENEK.sepetKaydet(c); render();
   }});
-  /* Filament kartlarını malzeme seçicisine çevir (yalnız kart-secim modu). Tıklanan kart
+  /* Malzeme kartlarını malzeme seçicisine çevir (yalnız kart-secim modu). Tıklanan kart
      seçili (lacivert dolgu) olur, ötekiler bırakılır; fiyat + sepet durumu tazelenir.
      Bilgi balonunu ayrı IIFE (aşağıda) yönetir — burada yalnız SEÇİM. */
   if(KART_SECIM && cipler){{
@@ -2619,7 +2619,7 @@ def uret_taban_fiyatlar():
             if taban is not None:
                 harita[sema.get("id") or ad[:-5]] = taban
     with open(os.path.join(ROOT, "taban-fiyatlar.js"), "w", encoding="utf-8") as f:
-        f.write("/* tools/build.py uretir — ELLE DUZENLEME. "
+        f.write("/* Sayfa ureteci uretir — ELLE DUZENLEME. "
                 "Tek kaynak: jenerator/urunler/<id>.json tabanFiyatTL */\n"
                 "window.PRUVO_TABAN_FIYATLAR = "
                 + json.dumps(harita, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
@@ -2754,7 +2754,7 @@ def main():
     fil_ref = {k: v for k, v in filament_ortak.referans().items()
                if not k.startswith("_") and k != "kaynaklar"}
     with open(os.path.join(ROOT, "filament-veri.js"), "w", encoding="utf-8") as f:
-        f.write("/* tools/build.py uretir — ELLE DUZENLEME. Tek kaynak: tools/filamentler.json */\n"
+        f.write("/* Sayfa ureteci uretir — ELLE DUZENLEME. Tek kaynak: malzeme tablosu */\n"
                 "window.PRUVO_FILAMENT = "
                 + json.dumps(fil_ref, ensure_ascii=False, separators=(",", ":"))
                 + ";\n")

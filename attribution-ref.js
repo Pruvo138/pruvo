@@ -21,7 +21,7 @@
   // sayfada var, PRUVO_ATIF yalniz ana sayfada -> riza geri cekme (gizlilik sayfasindaki
   // "Cerez tercihimi degistir") ana sayfaya ugramadan da tiklama kimligini silebilsin diye
   // temizlik buradan da surulur. Liste index.html'deki TIK_ALANLARI ile AYNI olmak ZORUNDA;
-  // tools/riza-tikkimligi-test.js drift kapisi (C0) iki listeyi karsilastirir.
+  // riza/tik-kimligi drift kapisi (C0) iki listeyi karsilastirir.
   var ATIF_KEY = "pruvo_atif";
   var ATIF_CLICK_FIELDS = ["fbc", "fbclid", "gclid", "gbraid", "wbraid", "ttclid", "msclkid"];
   var activeRef = null;

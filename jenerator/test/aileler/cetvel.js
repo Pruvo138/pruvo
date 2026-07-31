@@ -21,9 +21,9 @@ function cetvel_isaret_alani(p, kenarIsareti) {
   return w * katsayi + cetvel_rakam_alani(n, yaziBoyutu);
 }
 
-// Liberation Sans (Regular) glif alan + ilerleme tablolari (cetvel.scad text
-// cagrilari $fn=24). Olcum: olcum/glif_alan_kalibrasyon.py ->
-// olcum/glif_alan.json. Alan boyut^2, ilerleme boyut basina mm (OpenSCAD
+// Liberation Sans (Regular) glif alan + ilerleme tablolari (cetvel uretim
+// modelindeki text cagrilari $fn=24). Kaynak: glif alan kalibrasyon
+// olcumu. Alan boyut^2, ilerleme boyut basina mm (uretim modeli
 // text olcegi em x 1.389). Tabloda olmayan karakter ortalamalara duser.
 function cetvel_glif_tablolari() {
   return {
@@ -37,7 +37,7 @@ function cetvel_glif_tablolari() {
 // Ozel yazinin (yazi_logo) hacim katkisi. Yalniz duz cetvelde islenir
 // (ucgen/l gonye _kenar_tik kullanir, logo yok). Kabartma union'la govde
 // disina tasani da ekler (kirpilmaz); oyma/gomme farki govdeyle sinirlidir:
-// [-Lx/2, +Lx/2] penceresi (halign=center, olcum: olcum/cetvel_klip_bak.py
+// [-Lx/2, +Lx/2] penceresi (halign=center, klip olcumuyle dogrulandi:
 // W dizisi ~%20 karakterde doyuyor, pencere modeli doyma alanini %0.2 icinde
 // yakalar). Isaret derinligi etkin 0.59 (isaret_z 0.6, 0.01 bindirme).
 function cetvel_yazi_hacmi(p) {

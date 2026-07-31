@@ -29,9 +29,9 @@ function kase_knob_hacmi(cap) {
   return konik + Math.PI * (kase_knob_ilkel(u2) - kase_knob_ilkel(u1));
 }
 
-// Liberation Sans Bold glif alanlari / boyut^2 (scad'de font SABIT; $fn=96
-// sozlesme baglami). Olcum: olcum/glif_alan_kalibrasyon.py -> olcum/
-// glif_alan.json (glif basina h=1 ekstruzyon; union = toplam, katkisallik
+// Liberation Sans Bold glif alanlari / boyut^2 (uretim modelinde font SABIT; $fn=96
+// sozlesme baglami). Kaynak: glif alan kalibrasyon olcumu
+// (glif basina h=1 ekstruzyon; union = toplam, katkisallik
 // farki %1e-8; sum(PRUVO)=2.122714 vs eski kd-farki katsayisi 2.122713403,
 // fark %0.00003). Tabloda olmayan karakter ortalamaya duser.
 function kase_glif_alani(metin) {
@@ -51,9 +51,9 @@ function kase(p) {
   var ys = p.yazi_boyutu;
   var yukseklik = 8;
   var pah = 2.5;
-  // scad oto-boyut: _wc = max(len*ys*0.62, 2*ys); _hc = 2.6*ys (texticon 2
+  // Model oto-boyut: _wc = max(len*ys*0.62, 2*ys); _hc = 2.6*ys (texticon 2
   // satir sayilir). Eski model _wc'yi 3.1*ys'e (len=5, "PRUVO") sabitlemisti —
-  // metin-izgara olcumunde -%93.6..+%50 sapma (olcum/metin_etki_olcum.json).
+  // metin-izgara olcumunde -%93.6..+%50 sapma (metin etki olcumu).
   // face_w2=max(...,15) kelepcesi sema araliginda pasif (ys>=6, dolgu>=3 -> >=18).
   var icerikEn = Math.max(0.62 * metin.length, 2) * ys;
   var icerikBoy = 2.6 * ys;

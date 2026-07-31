@@ -1,8 +1,8 @@
 function kutu(p) {
-  // Ölçüye özel kutu (kapaklı · bölmeli): kutu.scad sözleşmesi. Tümü dikdörtgen
+  // Ölçüye özel kutu (kapaklı · bölmeli): kutu üretim modeli sözleşmesi. Tümü dikdörtgen
   // prizma — kapalı form KESİNDİR (ölçülen sapma %0.000, 2026-07-17).
   // Bölme duvarı 1.2 mm sabit; etkin adet gözler 15 mm'nin altına inmeyecek
-  // şekilde kırpılır (scad ile birebir). Geçme kapakta bölme 6 mm kısalır
+  // şekilde kırpılır (üretim modeliyle birebir). Geçme kapakta bölme 6 mm kısalır
   // (kapak dudağı payı); kapak = plaka + dudak çerçevesi (et 1.6, tol 0.2).
   var t = Math.max(p.duvar, 1.2);
   var W = p.ic_en + 2 * t;
