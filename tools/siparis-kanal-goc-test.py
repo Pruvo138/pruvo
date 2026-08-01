@@ -28,6 +28,7 @@ icin guvenlidir" bir IDDIADIR — bu test onu SQLite uzerinde FIILEN kosarak olc
 Ag YOK, wrangler YOK, canli D1 YOK — stdlib sqlite3 uzerinde bellek ici bir kopya. D1
 SQLite tabanlidir; ALTER TABLE ADD COLUMN / kismi indeks semantigi burada gecerlidir.
 """
+import importlib.util
 import os
 import re
 import sqlite3
@@ -37,6 +38,14 @@ KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SEMA = os.path.join(KOK, "tools", "d1-sema.sql")
 SYNC = os.path.join(KOK, "tools", "d1-sync.py")
 SHOP_SRC = os.path.join(KOK, "shop", "src")
+
+# d1-sync.py'yi MODUL olarak yukle (tire iceren ad duz `import` ile gelmez). Metin
+# ayristirmasi YERINE gercek nesneleri okuyoruz: GOC_INDEKS bir KAYIT DEFTERI (dict listesi),
+# regex ile okunsaydi kayit sekli degistigi anda test sessizce BOS liste dondururdu -> her
+# iddia "gecti" olurdu. Modul seviyesi yan etkisizdir (yalniz sabit/dosya yolu tanimlar).
+_spec = importlib.util.spec_from_file_location("d1_sync", SYNC)
+d1sync = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(d1sync)
 
 YENI_KOLONLAR = ["kanal", "dis_no"]
 
@@ -84,21 +93,22 @@ def kolon_tanimlari(blok):
 
 def goc_kolon_siparis():
     """tools/d1-sync.py GOC_KOLON_SIPARIS listesi -> [(ad, tip_tanimi)]."""
-    metin = oku(SYNC)
-    m = re.search(r"GOC_KOLON_SIPARIS = \[(.*?)\n\]", metin, re.S)
-    if not m:
-        return []
-    return re.findall(r'\("([a-z_]+)",\s*"([^"]+)"\)', m.group(1))
+    return list(d1sync.GOC_KOLON_SIPARIS)
 
 
 def siparis_indeks():
-    metin = oku(SYNC)
-    m = re.search(r"SIPARIS_INDEKS = \[(.*?)\n\]", metin, re.S)
-    if not m:
-        return []
-    # Python'daki bitisik dize sabitlerini birlestir.
-    parcalar = re.findall(r'"([^"]*)"', m.group(1))
-    return ["".join(parcalar)] if parcalar else []
+    """`siparisler` kismi UNIQUE indeksinin DDL'i — d1-sync.py GOC_INDEKS KAYIT DEFTERINDEN.
+
+    🔴 KAYNAK NEDEN BURASI: indeks eskiden ayri bir SIPARIS_INDEKS listesindeydi; main'deki
+    fail-closed goc mekanizmasi (GOC_INDEKS + sema_hali + kolon_goc dogrulamasi) devraldi.
+    Ayri liste kalsaydi indeks KURULUR ama kuruldugu DOGRULANMAZDI — tek-yonlu kapi orada
+    acilir. Test de kaydi okur ki iki kaynak sessizce ayrisamasin.
+    """
+    return [ix["sql"] for ix in d1sync.GOC_INDEKS if ix["tablo"] == "siparisler"]
+
+
+def siparis_indeks_kayitlari():
+    return [ix for ix in d1sync.GOC_INDEKS if ix["tablo"] == "siparisler"]
 
 
 def worker_insert_kolonlari():
@@ -138,8 +148,48 @@ ol("goc tipi sema ile ayni (kanal)", goc.get("kanal") == "TEXT NOT NULL DEFAULT 
 ol("goc tipi sema ile ayni (dis_no)", goc.get("dis_no") == "TEXT NOT NULL DEFAULT ''",
    goc.get("dis_no"))
 indeksler = siparis_indeks()
-ol("SIPARIS_INDEKS kismi UNIQUE indeks tanimliyor",
+kayitlar = siparis_indeks_kayitlari()
+ol("GOC_INDEKS kaydinda siparisler kismi UNIQUE indeksi var",
    any("UNIQUE INDEX" in i and "WHERE dis_no <> ''" in i for i in indeksler), indeksler)
+ol("kayit `benzersiz` bayragi TASIYOR (fail-closed ikiz sayimi buna bagli)",
+   all(k.get("benzersiz") for k in kayitlar), kayitlar)
+ol("kayit `gerekli` kolonlari kanal+dis_no (kolon yokken indeks DENENMEZ)",
+   all(set(k["gerekli"]) == {"kanal", "dis_no"} for k in kayitlar),
+   [k.get("gerekli") for k in kayitlar])
+ol("kayit `ikiz_sql` tasiyor (indeksi engelleyen satirlar SAYILABILIR)",
+   all(k.get("ikiz_sql") for k in kayitlar))
+
+print("\nB2. SIRA TUZAGI — indeks DDL'i d1-sema.sql'de OLMAMALI (1 Agu 2026 OLCULDU)")
+# 🔴 NEDEN: d1-sema.sql kolon gocunden ONCE uygulanir. Canlida `siparisler` ZATEN VAR ->
+# CREATE TABLE IF NOT EXISTS ATLANIR -> kanal/dis_no kolonlari o anda YOKTUR. Bu dosyanin
+# icine konan `CREATE ... INDEX ON siparisler(kanal, dis_no)` "no such column: kanal" ile
+# TUM `--sema` kosumunu dusurur ve kolon_goc() HIC KOSMAZ: kolonlar canliya ASLA eklenemez.
+# Bu once-KIRMIZI olculdu (dalin ilk hali gercekten boyleydi); urunler_yayin indeksleri de
+# 31 Tem'de AYNI sebeple bu dosyadan cikarilmisti.
+sema_yorumsuz = sql_yorumsuz(oku(SEMA))
+sema_indeksleri = re.findall(r"CREATE\s+(?:UNIQUE\s+)?INDEX[^;]*?ON\s+siparisler\s*\(([^)]*)\)",
+                             sema_yorumsuz, re.I | re.S)
+goc_kolon_adlari = {ad for ad, _ in goc_kolon_siparis()}
+sizan = [g for g in sema_indeksleri
+         if any(k in {c.strip() for c in g.split(",")} for k in goc_kolon_adlari)]
+ol("d1-sema.sql GOC KOLONU kullanan siparisler indeksi ICERMIYOR (yoksa --sema tikanir)",
+   not sizan, sizan)
+
+# Ayni tuzagin FIILEN kosturularak olculmesi — metin nobetcisi kandirilabilir, bu kandirilamaz:
+# canlidaki gibi ESKI tablo kurulur ve d1-sema.sql'in `siparisler` DDL'leri aynen uygulanir.
+_eski = [t for ad, t in kolon_tanimlari(blok) if ad not in YENI_KOLONLAR]
+_db0 = sqlite3.connect(":memory:")
+_db0.execute("CREATE TABLE siparisler (\n  %s\n)" % ",\n  ".join(_eski))
+_sema_hata = ""
+for _ifade in [s.strip() for s in sema_yorumsuz.split(";") if "siparisler" in s]:
+    try:
+        _db0.execute(_ifade)
+    except sqlite3.Error as e:
+        _sema_hata = "%s <<< %s" % (e, " ".join(_ifade.split())[:80])
+        break
+ol("KOSULARAK: goc ONCESI canli tabloda d1-sema.sql DUSMUYOR (kolon_goc'a sira geliyor)",
+   not _sema_hata, _sema_hata)
+_db0.close()
 
 # ---------------------------------------------------------------- C + D + E + F + G
 

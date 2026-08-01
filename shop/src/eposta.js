@@ -7,7 +7,15 @@
  *  - Anahtar loglara/hata metnine yazilmaz.
  *  - Metinler Turkce, sade HTML tablo. Pazarlama dili yok. "3D baski" DENMEZ ("ozel uretim").
  *  - RESEND_URL env ile ezilebilir (kabul testi mock'u; varsayilan https://api.resend.com).
+ *  - 🔴 SINIF BEYANI (tuketici hukuku, 1 Agu): siparis onay metni SEPETIN SINIFINA gore
+ *    yazilir. HAZIR/STOK kalemde URETIM DILI KULLANILMAZ ve 14 gunluk cayma hakki
+ *    hatirlatilir; OZEL URETIMDE bugunku dil AYNEN korunur; KARMA sepette ikisi de
+ *    soylenir ve hangi kalemin hangi sinifta oldugu KALEM BAZINDA gorunur.
+ *    Cumleler ve sinif karari TEK KAYNAK /secenekler.js BEYAN + fizikselMi — burada
+ *    TEKRARLANMAZ. Nobetci: tools/cayma-beyani-kapisi.py (BOLUM A).
  */
+
+import "../../secenekler.js";   // yan etkili: globalThis.PRUVO_SECENEK'i kurar (tek kaynak)
 
 const GONDEREN = "PRUVO <siparis@pruvo3d.com>";
 const WHATSAPP = "905451386526"; // sipariş/WhatsApp linki bot numarasina gider (CLAUDE.md)
@@ -52,10 +60,45 @@ export async function epostaGonder(env, kime, konu, govdeHtml) {
   return { ok: false, hata: "resend-" + c.status + (mesaj ? " " + mesaj.slice(0, 120) : "") };
 }
 
+// ---------------------------------------------------------------- sinif beyani
+
+/** secenekler.js tek kaynagi. Yuklenemezse null — cagiran FAIL-CLOSED "ozel"e duser
+ *  (bugunku metin), yani e-posta sablonu bir modul kazasinda beyan UYDURMAZ.
+ *  Not: Worker index.js zaten ayni dosyayi import eder ve yoksa acilista PATLAR. */
+function _sec() {
+  const S = globalThis.PRUVO_SECENEK;
+  return (S && typeof S.fizikselMi === "function") ? S : null;
+}
+
+/** Sepetin sinifi: "hazir" | "ozel" | "karma".
+ *
+ *  Sinif KARARI BURADA VERILMEZ — satirin `tur` alani (sepetiFiyatla'nin yazdigi POZITIF
+ *  isaret) oldugu gibi secenekler.js sepetSinifi'ye verilir. Yerel bir `tur == "fiziksel"`
+ *  karsilastirmasi YAZILMAZ: ikinci karar noktasi, para yoluyla beyan yolunun sessizce
+ *  ayrismasi demektir. Bos sepet / modul kazasi -> "ozel" (bugunku metin, fail-closed). */
+function sepetSinifi(satirlar) {
+  const S = _sec();
+  if (!S) { return "ozel"; }
+  return S.sepetSinifi((satirlar || []).map((s) => (s || {}).tur));
+}
+
 // ---------------------------------------------------------------- sablonlar
 
-function satirTablosu(satirlar) {
+/**
+ * @param sinif  undefined -> kalem etiketi HIC basilmaz (kargo e-postasi + eski cagrilar
+ *               BAYT-BAYT bugunku ciktisini korur). "ozel" -> yine basilmaz: 15.930 ozel
+ *               uretim kaydinin siparis e-postasi degismez (regresyon butcesi).
+ *               "hazir" / "karma" -> HER satir KENDI sinif etiketini tasir; karma sepet
+ *               tek cumleye INDIRGENMEZ, musteri hangi kalemin hangi sinifta oldugunu
+ *               kalemin kendi satirinda gorur.
+ */
+function satirTablosu(satirlar, sinif) {
+  const S = _sec();
+  const etiketBas = (sinif === "hazir" || sinif === "karma") && !!S;
   const govde = (satirlar || []).map((s) => {
+    const sinifEtiketi = etiketBas
+      ? "<br><small style='color:#6b7280'>" + kac(S.satirBeyani(s && s.tur)) + "</small>"
+      : "";
     const detay = s.parametre_detay ? "<br><small>" + kac(s.parametre_detay) + "</small>" : "";
     const renk = s.renk_ozel || s.renk || "";
     const baslikMetin = kac(s.baslik);
@@ -73,7 +116,7 @@ function satirTablosu(satirlar) {
       : "";
     return "<tr>" +
       "<td style='padding:6px 8px;border-bottom:1px solid #e5e7eb'>" +
-        resim + baslikHtml + detay + "</td>" +
+        resim + baslikHtml + detay + sinifEtiketi + "</td>" +
       // MALZEME / RENK hucresi = BEYAN. Karar bu dosyada VERILMEZ: shop/src/index.js
       // sepetiFiyatla fiziksel urunde (hazir ticari mal) bu alanlari BOS yazar; burasi yalniz
       // bos hali bicimlendirir — "ASA / " ya da " / turuncu" gibi yarim beyan basilmaz,
@@ -124,15 +167,32 @@ export function onayEpostasiHtml(siparis, satirlar, dokum, havale) {
     "<tr><td style='padding:2px 12px 2px 0;color:#6b7280'>KDV (%20 dahil)</td>" +
       "<td style='text-align:right;color:#6b7280'>" + kurusTL(dokum.kdvKurus) + "</td></tr>" +
     "</table>";
+  // 🔴 SINIF BEYANI: metin sepetin sinifina gore secilir. TEK KAYNAK secenekler.js BEYAN;
+  // "ozel" kolu bugunku iki cumleyi AYNEN verir -> 15.930 ozel uretim kaydinda regresyon 0.
+  // Cerceve/renk kutusu DEGISMEZ, yalnizca cumle sinifa gore gelir.
+  const S = _sec();
+  const sinif = sepetSinifi(satirlar);
+  const durumMetni = S ? S.epostaDurumBeyani(sinif, !!havale)
+                       : (havale ? "Siparişiniz alındı. Havale/EFT ödemeniz hesabımıza "
+                                   + "geçtiğinde üretime başlanır."
+                                 : "Ödemeniz alındı, siparişiniz onaylandı. Ürünleriniz "
+                                   + "özel olarak üretilip gönderilecektir.");
   const durumNot = havale
-    ? "<p style='background:#fef9c3;padding:10px;border-radius:6px'>Siparişiniz alındı. " +
-      "Havale/EFT ödemeniz hesabımıza geçtiğinde üretime başlanır.</p>"
-    : "<p style='background:#dcfce7;padding:10px;border-radius:6px'>Ödemeniz alındı, " +
-      "siparişiniz onaylandı. Ürünleriniz özel olarak üretilip gönderilecektir.</p>";
+    ? "<p style='background:#fef9c3;padding:10px;border-radius:6px'>" + kac(durumMetni) + "</p>"
+    : "<p style='background:#dcfce7;padding:10px;border-radius:6px'>" + kac(durumMetni) + "</p>";
+  // Cayma hatirlatmasi: OZEL sepette BOS doner (sozlesmenin hukmu degismiyor, bugunku
+  // e-posta bayt-bayt korunuyor). HAZIR/KARMA sepette 14 gunluk hak yazili hale gelir.
+  // ⚠️ Iade kargo bedelinin kime ait oldugu Okan'a soruldu, cevap BEKLENIYOR -> o cumle
+  //    BURAYA YAZILMAZ; yeri secenekler.js BEYAN.IADE_KARGO_YER'dir ve BOS durur.
+  const caymaMetni = S ? S.caymaBeyani(sinif) : "";
+  const caymaNot = caymaMetni
+    ? "<p style='font-size:13px;color:#374151;margin:8px 0'>" + kac(caymaMetni) + "</p>"
+    : "";
   const icerik =
     "<p>Sipariş numaranız: <b>" + kac(siparis.siparis_no) + "</b></p>" +
     durumNot +
-    satirTablosu(satirlar) +
+    caymaNot +
+    satirTablosu(satirlar, sinif) +
     dokumTablo +
     "<p style='margin-top:12px;font-size:14px'><b>Teslimat adresi:</b><br>" +
     kac(siparis.musteri_ad) + "<br>" + kac(siparis.musteri_adres) + "</p>";

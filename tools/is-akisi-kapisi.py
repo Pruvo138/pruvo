@@ -2118,6 +2118,9 @@ SERIT_B = {
     ("deploy.yml", "serit-b", "tools/canli-saglik-kapisi.py"):
         "YALNIZ `--kendini-test` (offline vaka + mutasyon) kolu; canli saglik olcumu bu "
         "is akisinda kosmuyor.",
+    ("deploy.yml", "serit-b", "tools/fiziksel-canli-kapisi.py"):
+        "YALNIZ `--kendini-test` (offline karar mantigi + yerel kahin) kolu; canli fiziksel "
+        "olcum bu is akisinda kosmuyor.",
     ("deploy.yml", "serit-b", "tools/yasal-sayfa-drift-kapisi.py"):
         "YALNIZ `--kendini-test` (bayatlatma + kirmizi-mutasyon) kolu; GERCEK yasal sayfa "
         "drift olcumu serit A'da bloklayici kosuyor.",

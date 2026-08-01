@@ -583,14 +583,10 @@ GOC_KOLON_SIPARIS = [
     ("dis_no", "TEXT NOT NULL DEFAULT ''"),
 ]
 
-# WHATSAPP kanali dis numara TEKILLIGI — ALTER'lardan SONRA kosmak ZORUNDA (kolon yokken
-# CREATE INDEX tum --sema kosumunu dusururdu; YAYIN_INDEKS ile ayni tuzak, olculdu 31 Tem).
-# KISMI indeks: yalniz dis_no <> '' satirlari kapsar -> mevcut site siparislerinin hepsi
-# ('' tasiyorlar) indeksin DISINDA kalir, catisma URETMEZ. IF NOT EXISTS -> idempotent.
-SIPARIS_INDEKS = [
-    "CREATE UNIQUE INDEX IF NOT EXISTS siparisler_dis_no "
-    "ON siparisler(kanal, dis_no) WHERE dis_no <> '';",
-]
+# 🔴 dis_no TEKILLIGI ICIN AYRI BIR LISTE YOKTUR: kismi UNIQUE indeks asagidaki GOC_INDEKS
+# KAYIT DEFTERINDE (`siparisler_kanal_dis_no`) tanimlidir. Ayri bir SIPARIS_INDEKS listesi
+# tutulsaydi indeks kurulurdu ama KURULDUGU DOGRULANMAZDI (fail-closed hal makinesinin
+# disinda kalirdi) — tek-yonlu kapi tam da orada acilir. Bkz. GOC_INDEKS yorumu.
 
 # ON CONFLICT (UPDATE) sirasinda GUNCELLENEN kolonlar.
 # "baski" BILEREK YOK: baski yalnizca gizli .urun-kaynaklari.json'da (CI'da yok).
@@ -989,19 +985,167 @@ def diff_plan(urunler, mevcut, baskilar, baski_yetki, mseq, mevcut_seq=None, izl
     return yeni, degisen, baski_guncelle, silinen, gorulen
 
 
-# ATOMIK YAYIN indeksleri — ALTER'lardan SONRA kosmak ZORUNDA (yoksa "no such column:
-# yayinda"; olculdu 31 Tem canli D1'de: d1-sema.sql icine konunca --sema TAMAMEN dustu,
-# cunku o dosya kolon gocunden ONCE uygulanir ve tablo zaten var oldugu icin CREATE TABLE
-# IF NOT EXISTS atlanir). IF NOT EXISTS -> idempotent.
-YAYIN_INDEKS = [
-    "CREATE INDEX IF NOT EXISTS urunler_yayin     ON urunler(yayinda, seq DESC);",
-    "CREATE INDEX IF NOT EXISTS urunler_yayin_kat ON urunler(yayinda, kategori, seq DESC);",
+# ══════════════════════════════════════════════════════════════════════════════
+# GOC INDEKSLERI — ALTER'lardan SONRA kosan DDL'ler + hallerinin TEK KAYNAGI
+# ══════════════════════════════════════════════════════════════════════════════
+# Indeksler ALTER'lardan SONRA kosmak ZORUNDA (yoksa "no such column: yayinda"; olculdu
+# 31 Tem canli D1'de: d1-sema.sql icine konunca --sema TAMAMEN dustu, cunku o dosya kolon
+# gocunden ONCE uygulanir ve tablo zaten var oldugu icin CREATE TABLE IF NOT EXISTS
+# atlanir). IF NOT EXISTS -> idempotent.
+#
+# 🔴 NEDEN KAYIT DEFTERI (sadece SQL listesi DEGIL) — TEK-YONLU KAPI PENCERESI:
+# Bir goc "ALTER'lar + kismi UNIQUE indeks" seklindeyse, ALTER'lar GECIP indeks DUSERSE
+# kolonlar VAR olur ama benzersizlik korumasi YOKTUR. Yazma tarafi genelde yalniz KOLON
+# yoklugunu yakalar -> INSERT'ler gecer, yaris KORUMASIZ kalir. O pencerede tek bir ikiz
+# satir olusursa `CREATE UNIQUE INDEX` BIR DAHA ASLA kurulamaz: `--sema` o noktadan sonra
+# HER kosumda duser ve geri donus 3 adimli ELLE temizlik ister (kismi indeks dururken
+# `DROP COLUMN` engellidir -> once DROP INDEX). Yani "sessiz basari" burada onarilabilir
+# bir hata degil, KAPIYI KILITLEYEN bir hatadir.
+# Bu yuzden her indeks BEYAN EDILIR (ad + gerekli kolonlar + benzersizlik + ikiz sorgusu)
+# ve `--sema` kurulum IDDIASINI geri-okumayla KANITA cevirir; `--durum` "kolon VAR ama
+# indeks YOK" halini AYRI ve GORUNUR bir hal olarak raporlar (eskiden YESIL goruyordu).
+#
+# gerekli: indeksin ihtiyac duydugu KOLONLAR. Hepsi yoksa indeks "UYGULANMAZ"dir (o goc
+#   bu tabloya henuz gelmedi) — kirmizi DEGIL. BIR KISMI varsa "KOLON-YARIM" = KIRMIZI
+#   (ALTER'lar yarida kalmis).
+GOC_INDEKS = [
+    {"ad": "urunler_yayin", "tablo": "urunler", "yayin": True,
+     "gerekli": ("yayinda", "seq"), "benzersiz": False,
+     "sql": "CREATE INDEX IF NOT EXISTS urunler_yayin     ON urunler(yayinda, seq DESC);"},
+    {"ad": "urunler_yayin_kat", "tablo": "urunler", "yayin": True,
+     "gerekli": ("yayinda", "kategori", "seq"), "benzersiz": False,
+     "sql": "CREATE INDEX IF NOT EXISTS urunler_yayin_kat ON urunler(yayinda, kategori, seq DESC);"},
+    # SIPARIS KANALI — site DISI uclarin (or. WhatsApp siparis ucu) dis referansi.
+    # KISMI benzersizlik: dis_no BOS olan satirlar (site siparisleri) indekse GIRMEZ, yoksa
+    # tum eski satirlar tek bir ('site','') anahtarinda cakisirdi.
+    # ✅ KOLONLAR ARTIK BU DOSYADA (1 Agu 2026, siparis ucu dali birlestirildi):
+    # GOC_KOLON_SIPARIS icinde kanal + dis_no var. Kayit onlardan ONCE yazilmisti; artik
+    # ayni kosumda kolonlar ALTER ile gelir ve indeks HEMEN kurulup DOGRULANIR. Goc
+    # kosmamis bir veritabaninda hal yine "UYGULANMAZ"dir (gurultu YOK).
+    # 🔴 INDEKS ADI `siparisler_kanal_dis_no` — dal `siparisler_dis_no` diyordu; kayit
+    # defterindeki ad KAZANDI (hal makinesi indeksi ADIYLA arar, iki ad ayrisirsa hal
+    # sonsuza dek "INDEKS-YOK" kalirdi). d1-sema.sql da bu ada hizalandi.
+    {"ad": "siparisler_kanal_dis_no", "tablo": "siparisler", "yayin": False,
+     "gerekli": ("kanal", "dis_no"), "benzersiz": True,
+     "sql": "CREATE UNIQUE INDEX IF NOT EXISTS siparisler_kanal_dis_no "
+            "ON siparisler(kanal, dis_no) WHERE dis_no <> '';",
+     # IKIZ SORGUSU — indeksi ENGELLEYEN satirlari SAYAR. 🔴 SILMEZ/TEMIZLEMEZ: veri silme
+     # mimar/Okan karari; arac yalniz KAC TANE oldugunu ve elle temizlik gerektigini soyler.
+     "ikiz_sql": "SELECT kanal, dis_no, COUNT(*) AS n FROM siparisler WHERE dis_no <> '' "
+                 "GROUP BY kanal, dis_no HAVING COUNT(*) > 1"},
 ]
+
+# SOZLESME SEMBOLU (tools/ara-maliyet-kapisi.py bunu ADIYLA import eder): atomik yayin
+# DDL'leri. Kayit defterinden TURETILIR — ikinci bir elle liste tutulsaydi ikisi sessizce
+# ayrisirdi (bir indeks eklenir, digeri kurulmaz; kimse gormez).
+YAYIN_INDEKS = [ix["sql"] for ix in GOC_INDEKS if ix.get("yayin")]
+
+# Hal adlari (tek kaynak — hem --sema hem --durum ayni kelimeleri kullansin).
+IX_UYGULANMAZ = "UYGULANMAZ"    # gerekli kolonlarin HICBIRI yok -> bu goc henuz gelmedi
+IX_KURULU = "KURULU"            # kolonlar VAR + indeks VAR
+IX_INDEKS_YOK = "INDEKS-YOK"    # 🔴 kolonlar VAR ama indeks YOK = YARIDA KALMIS GOC
+IX_KOLON_YARIM = "KOLON-YARIM"  # 🔴 kolonlarin BIR KISMI var = ALTER'lar yarida kalmis
+
+
+def canli_indeks_adlari():
+    """Canli veritabanindaki indeks adlari (kume). Tek SELECT — satir YAZMAZ."""
+    r = sorgu("SELECT name FROM sqlite_master WHERE type='index'")
+    return {s["name"] for s in ((r[0].get("results") or []) if r else [])}
+
+
+def sema_hali(kayit=None):
+    """Her goc indeksinin CANLI hali. Doner: [{ad, tablo, hal, eksik_kolon, benzersiz}].
+
+    OKUMA MALIYETI: her TABLO icin 1 PRAGMA + TOPLAM 1 sqlite_master SELECT'i.
+    """
+    kayit = GOC_INDEKS if kayit is None else kayit
+    indeksler = canli_indeks_adlari()
+    kolonlar = {t: kolonlari_oku(t) for t in sorted({ix["tablo"] for ix in kayit})}
+    hal = []
+    for ix in kayit:
+        var = kolonlar.get(ix["tablo"], set())
+        eksik = [k for k in ix["gerekli"] if k not in var]
+        if len(eksik) == len(ix["gerekli"]):
+            h = IX_UYGULANMAZ
+        elif eksik:
+            h = IX_KOLON_YARIM
+        elif ix["ad"] in indeksler:
+            h = IX_KURULU
+        else:
+            h = IX_INDEKS_YOK
+        hal.append({"ad": ix["ad"], "tablo": ix["tablo"], "hal": h,
+                    "eksik_kolon": eksik, "benzersiz": ix.get("benzersiz", False),
+                    "ikiz_sql": ix.get("ikiz_sql")})
+    return hal
+
+
+def ikiz_say(ikiz_sql):
+    """Kismi UNIQUE indeksi ENGELLEYEN ikiz satirlari SAY.
+
+    Doner: (grup_sayisi, fazla_satir, ornekler) · olculemezse None.
+    🔴 SILME/TEMIZLEME YOK — bu fonksiyon yalnizca SELECT kosar. Hangi satirin silinecegi
+    TICARI bir karardir (siparis kaydi!), araca birakilmaz.
+    """
+    if not ikiz_sql:
+        return None
+    try:
+        r = sorgu(ikiz_sql)
+    except SystemExit:
+        return None
+    satirlar = (r[0].get("results") or []) if r else []
+    fazla = sum(int(s.get("n") or 0) - 1 for s in satirlar)
+    ornek = [", ".join("%s=%r" % (k, v) for k, v in s.items()) for s in satirlar[:5]]
+    return len(satirlar), fazla, ornek
+
+
+def sema_sorunlari(hal):
+    """Halden INSAN OKUR sorun satirlari uret (bos liste = temiz). Ikiz SAYIMI dahil."""
+    satirlar = []
+    for h in hal:
+        if h["hal"] == IX_KOLON_YARIM:
+            satirlar.append(
+                "YARIDA KALMIS GOC (%s.%s): kolonlarin bir kismi EKSIK: %s — ALTER'lar "
+                "tamamlanmadan indeks KURULAMAZ." % (h["tablo"], h["ad"],
+                                                     ", ".join(h["eksik_kolon"])))
+        elif h["hal"] == IX_INDEKS_YOK:
+            s = ("YARIDA KALMIS GOC (%s.%s): KOLONLAR VAR ama INDEKS YOK." %
+                 (h["tablo"], h["ad"]))
+            if h["benzersiz"]:
+                s += (" Bu KISMI UNIQUE indeks bir YARIS KORUMASIDIR: kurulmadigi surece "
+                      "ikiz satir olusabilir ve olustugu anda indeks BIR DAHA KURULAMAZ "
+                      "(tek-yonlu kapi).")
+            satirlar.append(s)
+            sayim = ikiz_say(h.get("ikiz_sql")) if h["benzersiz"] else None
+            if sayim is None:
+                if h["benzersiz"]:
+                    satirlar.append("   ikiz satir sayimi OLCULEMEDI — 'ikiz yok' SAYILMAZ.")
+            elif sayim[0]:
+                satirlar.append(
+                    "   🔴 IKIZ SATIR ZATEN VAR: %d anahtar · %d FAZLA satir. Indeks bu "
+                    "haliyle KURULAMAZ; ELLE TEMIZLIK sart (arac SILMEZ — siparis kaydi "
+                    "silmek mimar/Okan karari)." % (sayim[0], sayim[1]))
+                for o in sayim[2]:
+                    satirlar.append("     - %s" % o)
+                satirlar.append(
+                    "   Geri alma 3 ADIMLI ve SIRALI: (1) ikizleri ticari kararla temizle, "
+                    "(2) CREATE UNIQUE INDEX'i kur, (3) teyit: d1-sync.py --durum. "
+                    "Kismi indeks DURURKEN `DROP COLUMN` ENGELLIDIR -> once DROP INDEX.")
+            else:
+                satirlar.append(
+                    "   ikiz satir: 0 — indeks SIMDI kurulabilir: "
+                    "python3 tools/d1-sync.py --sema")
+    return satirlar
 
 
 def kolon_goc():
-    """Eksik kolonlari ekle. Idempotent: SQLite'ta 'ADD COLUMN IF NOT EXISTS' yok,
-    o yuzden once table_info'ya bakilir (kor ALTER ikinci calismada patlardi)."""
+    """Eksik kolonlari ekle, ardindan goc indekslerini kur ve KURULDUGUNU DOGRULA.
+
+    Doner: True = goc TAM (kolon + indeks DOGRULANDI) · False = YARIDA KALDI.
+    🔴 Cagiran False'u SIFIR-DISI cikisa cevirmek ZORUNDA: "sessiz basari" bu gocte
+    tek-yonlu kapi acar (bkz. GOC_INDEKS yorumu).
+    Idempotent: SQLite'ta 'ADD COLUMN IF NOT EXISTS' yok, o yuzden once table_info'ya
+    bakilir (kor ALTER ikinci calismada patlardi).
+    """
     for tablo, kolonlar in (("urunler", GOC_KOLON), ("siparisler", GOC_KOLON_SIPARIS)):
         r = sorgu("PRAGMA table_info(%s)" % tablo)
         var = {s["name"] for s in (r[0].get("results") or [])}
@@ -1023,15 +1167,38 @@ def kolon_goc():
             print("!! Worker'daki `yayinda=1` sartini YAYINA ALMADAN ONCE sunu kos:")
             print("!!   python3 tools/yayin-kapisi.py --geriye-doldur")
             print("!! Teyit: python3 tools/yayin-kapisi.py --durum  (taslak sayisi ~0 olmali)")
-    # Kolonlar TAMAMLANDIKTAN sonra atomik yayin indeksleri (kolon yokken CREATE INDEX
-    # tum --sema kosumunu dusururdu — olculdu, bkz. YAYIN_INDEKS yorumu).
-    if kolon_var_mi("urunler", "yayinda"):
-        dosya_calistir("\n".join(YAYIN_INDEKS))
-        print("atomik yayin indeksleri kuruldu (urunler_yayin, urunler_yayin_kat)")
-    # WhatsApp kanali: dis numara tekilligi (kismi UNIQUE indeks) — AYNI sira kurali.
-    if kolon_var_mi("siparisler", "dis_no"):
-        dosya_calistir("\n".join(SIPARIS_INDEKS))
-        print("siparis dis-numara indeksi kuruldu (siparisler_dis_no)")
+
+    # ── INDEKSLER: kolonlar TAMAMLANDIKTAN sonra (kolon yokken CREATE INDEX tum --sema
+    # kosumunu dusururdu — olculdu, bkz. GOC_INDEKS yorumu). Kurulum DENENIR; DUSERSE
+    # yutulmaz ama kosum burada BITMEZ: asagidaki DOGRULAMA hukmu bassin diye hata
+    # metni saklanir (yoksa "wrangler dustu" der, TEK-YONLU KAPI'yi kimse anlamazdi).
+    kurulum_hatasi = {}
+    once = {h["ad"]: h for h in sema_hali()}        # TEK olcum, sonra bellekten okunur
+    for ix in GOC_INDEKS:
+        h = once.get(ix["ad"]) or {"hal": IX_UYGULANMAZ}
+        if h["hal"] in (IX_UYGULANMAZ, IX_KOLON_YARIM):
+            continue                      # kolonlar hazir degil -> DDL denenmez
+        if h["hal"] == IX_KURULU:
+            continue                      # idempotent: zaten kurulu
+        try:
+            dosya_calistir(ix["sql"])
+            print("indeks kuruldu (IDDIA): %s" % ix["ad"])
+        except SystemExit as e:           # wrangler SIFIR-DISI (or. UNIQUE ihlali)
+            kurulum_hatasi[ix["ad"]] = str(e.code)
+            print("!! indeks KURULAMADI: %s" % ix["ad"])
+
+    # ── DOGRULAMA — "kuruldu" IDDIASI burada KANITA cevrilir (geri-okuma deseni) ──────
+    hal = sema_hali()
+    sorunlar = sema_sorunlari(hal)
+    print("goc indeks hali: " + " · ".join("%s=%s" % (h["ad"], h["hal"]) for h in hal))
+    for ad, mesaj in sorted(kurulum_hatasi.items()):
+        print("!! %s DDL hatasi: %s" % (ad, (mesaj or "")[:400]))
+    if sorunlar:
+        print("!! YARIDA KALMIS GOC — asagidaki hal(ler) FAIL-CLOSED:")
+        for s in sorunlar:
+            print("   " + s)
+        return False
+    return True
 
 
 def satir_sql(u, seq, hs, h, baski=""):
@@ -1422,6 +1589,11 @@ def _kt_baglan(yayinda_default=0):
     conn.row_factory = sqlite3.Row
     conn.executescript(_KT_SEMA.replace("yayinda INTEGER NOT NULL DEFAULT 0",
                                         "yayinda INTEGER NOT NULL DEFAULT %d" % yayinda_default))
+    # ATOMIK YAYIN indeksleri fiksture de kurulur: canli D1'de 31 Tem'den beri VARLAR
+    # (kolon_goc her --sema'da idempotent kurar). Fikstur onlarsiz dogsaydi SEMA EKSENI
+    # her vakada "INDEKS-YOK" derdi = fiksturden dogan YANLIS POZITIF, olculen eksen
+    # (siparis gocu) da o gurultunun altinda kalirdi.
+    conn.executescript("\n".join(YAYIN_INDEKS))
     return conn
 
 
@@ -1462,6 +1634,143 @@ def _kt_depo_kur(tmp, urun_sayisi=1):
     _kt_git(yerel, "commit", "--quiet", "-m", "taban")
     _kt_git(yerel, "push", "--quiet", "origin", "main")
     return uzak, yerel
+
+
+# ── GOC INDEKSI FIKSTURU (sema ekseni) ────────────────────────────────────────────
+# Gercek `siparisler` tablosunun BU TEST icin gereken en kucuk hali. kanal/dis_no kolonlari
+# BILEREK burada YOK: goc penceresinin iki yakasi (kolon yok / kolon var) ayri ayri
+# olculebilsin diye ALTER ile eklenir — canli gocun izledigi sirayla.
+_KT_SIPARIS_SEMA = """
+CREATE TABLE siparisler (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  siparis_no TEXT NOT NULL UNIQUE,
+  tarih TEXT NOT NULL,
+  durum TEXT NOT NULL DEFAULT 'bekliyor',
+  tutar_kurus INTEGER NOT NULL,
+  urunler TEXT NOT NULL
+);
+"""
+_KT_SIPARIS_ALTER = [
+    "ALTER TABLE siparisler ADD COLUMN kanal TEXT NOT NULL DEFAULT 'site';",
+    "ALTER TABLE siparisler ADD COLUMN dis_no TEXT NOT NULL DEFAULT '';",
+]
+
+
+def _kt_goc_conn(kanal_kolonu=True, yarim=False, ikiz=0, indeks=False):
+    """Goc fiksturu. kanal_kolonu: iki kolon da eklenmis mi · yarim: YALNIZ kanal eklendi
+    (ALTER'lar yarida kaldi) · ikiz: ayni (kanal,dis_no) ile kac FAZLA satir · indeks:
+    kismi UNIQUE indeks ONCEDEN kurulu mu."""
+    conn = _kt_baglan()
+    conn.executescript(_KT_SIPARIS_SEMA)
+    if yarim:
+        conn.executescript(_KT_SIPARIS_ALTER[0])
+    elif kanal_kolonu:
+        conn.executescript("\n".join(_KT_SIPARIS_ALTER))
+    for i in range(1 + ikiz):
+        if kanal_kolonu and not yarim:
+            conn.execute("INSERT INTO siparisler (siparis_no,tarih,tutar_kurus,urunler,"
+                         "kanal,dis_no) VALUES (?,?,?,?,?,?)",
+                         ("PR-%03d" % i, "2026-07-25T10:00:00Z", 1000, "[]",
+                          "whatsapp", "WA-1"))
+        else:
+            conn.execute("INSERT INTO siparisler (siparis_no,tarih,tutar_kurus,urunler)"
+                         " VALUES (?,?,?,?)",
+                         ("PR-%03d" % i, "2026-07-25T10:00:00Z", 1000, "[]"))
+    if indeks:
+        conn.executescript(GOC_INDEKS[-1]["sql"])
+    conn.commit()
+    return conn
+
+
+def _kt_goc_kos(conn, fn):
+    """sorgu/dosya_calistir uclarini sqlite'a baglayip fn'i kos. (kod, cikti, sonuc).
+    dosya_calistir URETIMDEKI gibi davranir: SQL duserse wrangler rc!=0 -> SystemExit."""
+    import contextlib
+    import io
+    import sqlite3
+
+    def _sorgu(sql):
+        satirlar = [dict(r) for r in conn.execute(sql).fetchall()]
+        return [{"results": satirlar, "meta": {"rows_read": len(satirlar),
+                                               "rows_written": 0}}]
+
+    def _dosya_calistir(sql_metin):
+        yaz = 0
+        for satir in [x for x in sql_metin.split("\n") if x.strip()]:
+            once = conn.total_changes
+            try:
+                conn.executescript(satir)
+            except sqlite3.Error as e:
+                sys.exit("wrangler SIFIR-DISI cikti (rc=1): %s" % e)
+            yaz += conn.total_changes - once
+        return yaz, 0
+
+    g = globals()
+    eski = {k: g[k] for k in ("sorgu", "dosya_calistir")}
+    tampon = io.StringIO()
+    kod, sonuc = 0, None
+    try:
+        g["sorgu"], g["dosya_calistir"] = _sorgu, _dosya_calistir
+        with contextlib.redirect_stdout(tampon):
+            try:
+                sonuc = fn()
+            except SystemExit as e:
+                c = e.code
+                kod = 0 if c in (None, 0) else (c if isinstance(c, int) else 1)
+                if not isinstance(c, int) and c is not None:
+                    print(c)
+    finally:
+        for k, v in eski.items():
+            g[k] = v
+    return kod, tampon.getvalue(), sonuc
+
+
+def _kt_sema_kos(conn):
+    """GERCEK `--sema` yolunu (main) kos. SEMA dosyasi zararsiz bir DDL'e capalanir:
+    olculen sey KOLON GOCU + INDEKS TEYIDI (fikstur sqlite'inda FTS5 sanal tablosu yok)."""
+    with tempfile.NamedTemporaryFile("w", suffix=".sql", delete=False,
+                                     encoding="utf-8") as f:
+        f.write("CREATE TABLE IF NOT EXISTS senkron "
+                "(anahtar TEXT PRIMARY KEY, deger TEXT NOT NULL);\n")
+        yol = f.name
+    g = globals()
+    eski_sema, eski_argv = g["SEMA"], sys.argv
+    try:
+        g["SEMA"] = yol
+        sys.argv = ["d1-sync.py", "--sema"]
+        return _kt_goc_kos(conn, main)
+    finally:
+        g["SEMA"], sys.argv = eski_sema, eski_argv
+        os.unlink(yol)
+
+
+def _kt_durum_kos(conn):
+    """`--durum --hizli`i OFFLINE kos (sayi ekseni TUTAR; olculen sey SEMA EKSENI)."""
+    conn.execute("INSERT INTO urunler (id,hash,seq) VALUES ('u1','h',1)")
+    conn.execute("INSERT INTO senkron (anahtar,deger) VALUES ('urun_sayisi','1')")
+    conn.commit()
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False,
+                                     encoding="utf-8") as f:
+        json.dump([_kt_urun("u1")], f)
+        yol = f.name
+    g = globals()
+    eski_u, eski_argv = g["URUNLER"], sys.argv
+    try:
+        g["URUNLER"] = yol
+        sys.argv = ["d1-sync.py", "--durum", "--hizli"]
+        return _kt_goc_kos(conn, main)
+    finally:
+        g["URUNLER"], sys.argv = eski_u, eski_argv
+        os.unlink(yol)
+
+
+def _kt_indeks_adlari(conn):
+    return {r[0] for r in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'")}
+
+
+def _kt_siparis_sayisi(conn):
+    return conn.execute("SELECT COUNT(*) FROM siparisler").fetchone()[0]
 
 
 def _kt_bayatlik(yol):
@@ -2234,6 +2543,130 @@ def kendini_test():
     dogrula("V74b MUT geri alindi: 7429 yine GECICI (mutant kalici yan etki birakmadi)",
             wrangler_hata_tanisi(_YUK_7429) == "gecici")
 
+    # ══ SEMA EKSENI — GOC INDEKSLERI (tek-yonlu kapi nobeti) ═════════════════════
+    # OLCULEN ARIZA: ALTER'lar gecip `CREATE UNIQUE INDEX` DUSERSE kolonlar VAR olur ama
+    # yaris korumasi YOKTUR; yazma kapisi yalniz KOLON yoklugunu gordugu icin INSERT'ler
+    # gecer. O pencerede olusan tek bir ikiz satir indeksi KALICI olarak kurulamaz yapar.
+    # Once-kirmizi: bu vakalarin HEPSI eski kodda YESIL/SESSIZDI (--sema 0, --durum 0).
+
+    # V75 HAL AYRIMI: dort hal AYRI AYRI (biri digerini maskelemesin).
+    _ad = GOC_INDEKS[-1]["ad"]
+    _h = lambda c: {x["ad"]: x["hal"] for x in _kt_goc_kos(c, sema_hali)[2]}   # noqa: E731
+    dogrula("V75a HAL: kanal/dis_no kolonu YOK -> UYGULANMAZ (kirmizi DEGIL)",
+            _h(_kt_goc_conn(kanal_kolonu=False))[_ad] == IX_UYGULANMAZ)
+    dogrula("V75b HAL: kolon VAR + indeks YOK -> INDEKS-YOK (eskiden YESIL gorunuyordu)",
+            _h(_kt_goc_conn())[_ad] == IX_INDEKS_YOK)
+    dogrula("V75c HAL: kolon VAR + indeks VAR -> KURULU",
+            _h(_kt_goc_conn(indeks=True))[_ad] == IX_KURULU)
+    dogrula("V75d HAL: ALTER'lar YARIDA (yalniz kanal eklendi) -> KOLON-YARIM",
+            _h(_kt_goc_conn(yarim=True))[_ad] == IX_KOLON_YARIM)
+
+    # V76 TEMIZ GOC: indeks kurulur, kurulusu DOGRULANIR, kolon_goc True doner.
+    _c = _kt_goc_conn()
+    _kod, _cikti, _sonuc = _kt_goc_kos(_c, kolon_goc)
+    dogrula("V76 TEMIZ GOC: kismi UNIQUE indeks KURULUR + kolon_goc True",
+            _sonuc is True and _ad in _kt_indeks_adlari(_c), _cikti[-300:])
+
+    # V77 IKIZ SATIR: indeks kurulamaz -> kolon_goc FALSE + ikiz SAYILIR + SILINMEZ.
+    _c = _kt_goc_conn(ikiz=2)
+    _once_satir = _kt_siparis_sayisi(_c)
+    _kod, _cikti, _sonuc = _kt_goc_kos(_c, kolon_goc)
+    dogrula("V77a IKIZ: indeks kurulamayinca kolon_goc FALSE (sessiz basari YOK)",
+            _sonuc is False, _cikti[-300:])
+    dogrula("V77b IKIZ: ikiz satir SAYILIR ve 'ELLE TEMIZLIK' hukmu basilir",
+            "IKIZ SATIR ZATEN VAR" in _cikti and "2 FAZLA satir" in _cikti
+            and "ELLE TEMIZLIK" in _cikti, _cikti[-400:])
+    dogrula("V77c IKIZ: arac HICBIR SATIR SILMEDI (veri silme mimar/Okan karari)",
+            _kt_siparis_sayisi(_c) == _once_satir == 3,
+            "once=%s sonra=%s" % (_once_satir, _kt_siparis_sayisi(_c)))
+
+    # V78 SIRA SERTLESTIRMESI: `--sema` indeks teyit edilmeden 'tamam' DEMEZ.
+    _kod, _cikti, _ = _kt_sema_kos(_kt_goc_conn(ikiz=2))
+    dogrula("V78a --sema: yarida kalmis gocte SIFIR-DISI cikar",
+            _kod != 0 and "GOC YARIDA KALDI" in _cikti, "kod=%s" % _kod)
+    dogrula("V78b --sema: yarida kalmis gocte 'goc TAMAM' DEMEZ",
+            "goc TAMAM" not in _cikti, _cikti[-300:])
+    _kod2, _cikti2, _ = _kt_sema_kos(_kt_goc_conn())
+    dogrula("V78c --sema: temiz gocte exit 0 + 'goc TAMAM' (yanlis-pozitif nobeti)",
+            _kod2 == 0 and "goc TAMAM" in _cikti2, "kod=%s" % _kod2)
+
+    # V79 --durum: "kolon VAR ama indeks YOK" AYRI ve GORUNUR hal (eskiden YESIL).
+    _kod, _cikti, _ = _kt_durum_kos(_kt_goc_conn())
+    dogrula("V79a --durum: kolon VAR + indeks YOK -> exit 1 + 'YARIDA KALMIS GOC'",
+            _kod == 1 and "YARIDA KALMIS GOC" in _cikti and _ad in _cikti,
+            "kod=%s" % _kod)
+    dogrula("V79b --durum: tek-yonlu kapi RISKI adiyla soylenir",
+            "tek-yonlu kapi" in _cikti, _cikti[-300:])
+    _kod, _cikti, _ = _kt_durum_kos(_kt_goc_conn(indeks=True))
+    dogrula("V79c --durum: indeks kuruluyken SEMA ekseni TEMIZ (yanlis-pozitif nobeti)",
+            _kod == 0 and "teyit (SEMA ekseni)" in _cikti, "kod=%s | %s" % (_kod, _cikti[-300:]))
+
+    # V79d KOLON YOKKEN ESKI DAVRANIS: goc kosmadan once arac PATLAMAZ, kirmizi YAKMAZ.
+    _c = _kt_goc_conn(kanal_kolonu=False)
+    _kod, _cikti, _sonuc = _kt_goc_kos(_c, kolon_goc)
+    _dkod, _dcikti, _ = _kt_durum_kos(_kt_goc_conn(kanal_kolonu=False))
+    dogrula("V79d KOLON YOK: kolon_goc True + --durum exit 0 (eski davranis KORUNDU)",
+            _sonuc is True and _dkod == 0 and "YARIDA KALMIS GOC" not in _dcikti,
+            "goc=%s durum=%s" % (_sonuc, _dkod))
+    # V79e — ⚠️ IDDIA 1 Agu 2026'da DEGISTI (siparis ucu dali birlestirildi). ESKI hali
+    # "kolon_goc kosunca da siparisler indeksi UYGULANMAZ kalir" diyordu; o DOGRUYDU cunku
+    # kanal/dis_no kolonlari BU DOSYADA TANIMLI DEGILDI. Artik GOC_KOLON_SIPARIS onlari
+    # tasiyor -> kolon_goc AYNI kosumda kolonlari ekler ve indeksi kurar. Eski cumleyi
+    # zorla yesil tutmak, gocun calistigini gizlemek olurdu. Iddia ikiye ayrildi:
+    dogrula("V79e1 --durum (goc KOSMAMIS db): siparisler indeksi UYGULANMAZ — gurultu YOK",
+            "%s=%s" % (_ad, IX_UYGULANMAZ) in _dcikti, _dcikti[-300:])
+    dogrula("V79e2 kolon_goc: kolonlar YOKKEN bile TEK kosumda ALTER + indeks + DOGRULAMA",
+            ("%s=%s" % (_ad, IX_KURULU)) in _cikti and _ad in _kt_indeks_adlari(_c),
+            _cikti[-300:])
+
+    # V79f SKIP DALI (kolonlari goc TASIMAYAN kayit): DDL DENENMEZ, kirmizi de YANMAZ.
+    # NEDEN AYRI FIKSTUR: V79e2'den sonra gercek kayitlarin hepsinin kolonu goc listesinde
+    # -> "kolonlar hazir degilse atla" dali URETIMDE ULASILMAZ hale geldi. Olculmeyen dal
+    # cururur: yarin goc listesinde OLMAYAN bir kolona dayali kayit eklenirse (baska bir
+    # dal, baska bir tablo) bu dal `--sema`nin tamamini dusurmemeli.
+    _sahte = list(GOC_INDEKS) + [{
+        "ad": "sahte_ix", "tablo": "siparisler", "yayin": False,
+        "gerekli": ("hic_olmayan_kolon",), "benzersiz": False,
+        "sql": "CREATE INDEX IF NOT EXISTS sahte_ix ON siparisler(hic_olmayan_kolon);"}]
+    _c2 = _kt_goc_conn(kanal_kolonu=False)
+    _g = globals()
+    _eski_kayit = _g["GOC_INDEKS"]
+    try:
+        _g["GOC_INDEKS"] = _sahte
+        _kod, _cikti2, _sonuc2 = _kt_goc_kos(_c2, kolon_goc)
+    finally:
+        _g["GOC_INDEKS"] = _eski_kayit
+    dogrula("V79f SKIP: kolonu olmayan kayitta DDL denenmez, kolon_goc True kalir",
+            _sonuc2 is True and "sahte_ix=%s" % IX_UYGULANMAZ in _cikti2
+            and "sahte_ix" not in _kt_indeks_adlari(_c2), _cikti2[-300:])
+
+    # V80 IKIZ TANIM NOBETI: her kaydin BEYAN ettigi `ad`, SQL'i KOSTURUNCA olusan indeks
+    # adiyla AYNI olmali; `gerekli` de DDL'in dokundugu TUM kolonlari kapsamali. Beyan ile
+    # uygulama ayrisirsa hal makinesi sonsuza dek "INDEKS-YOK" der (ya da tersi: kirmizi
+    # yanmasi gereken hal yesil kalir). Metin AYRISTIRMASI YOK — SQL gercekten kosulur.
+    import sqlite3 as _sq
+    _beyan_ok, _kapsam_ok, _hata = True, True, ""
+    for _ix in GOC_INDEKS:
+        _t = _sq.connect(":memory:")
+        _t.executescript("CREATE TABLE %s (%s);"
+                         % (_ix["tablo"], ", ".join("%s TEXT" % k for k in _ix["gerekli"])))
+        try:
+            _t.executescript(_ix["sql"])
+        except _sq.Error as e:
+            _kapsam_ok, _hata = False, "%s: %s" % (_ix["ad"], e)
+            continue
+        _olusan = {r[0] for r in _t.execute(
+            "SELECT name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%'")}
+        if _olusan != {_ix["ad"]}:
+            _beyan_ok, _hata = False, "%s -> %s" % (_ix["ad"], sorted(_olusan))
+    dogrula("V80a IKIZ TANIM: beyan edilen indeks adi = SQL'in FIILEN kurdugu ad",
+            _beyan_ok, _hata)
+    dogrula("V80b IKIZ TANIM: `gerekli` listesi DDL'in dokundugu kolonlari KAPSIYOR",
+            _kapsam_ok, _hata)
+    dogrula("V80c SOZLESME: YAYIN_INDEKS kayittan turer (ara-maliyet-kapisi.py bunu import "
+            "eder) ve yalniz urunler indekslerini tasir",
+            len(YAYIN_INDEKS) == 2 and all("urunler" in s for s in YAYIN_INDEKS))
+
     print("\nSONUC: %d gecti, %d kaldi" % (gecen[0], kalan[0]))
     return 0 if kalan[0] == 0 else 1
 
@@ -2265,8 +2698,18 @@ def main():
     if a.sema:
         with open(SEMA, encoding="utf-8") as f:
             yaz, _ = dosya_calistir(f.read())
-        print("sema kuruldu (yazilan satir: %d)" % yaz)
-        kolon_goc()   # tablo zaten varsa CREATE atlanir -> yeni kolonlari ALTER ekler
+        # 🔴 SIRA SERTLESTIRMESI: burada "sema kuruldu" DENMEZ. Sema dosyasi uygulandi
+        # demek goc BITTI demek DEGIL — kolon ALTER'lari ve INDEKSLER daha kosmadi ve
+        # indeks DOGRULANMADAN "tamam" hukmu basmak, tek-yonlu kapi acan sessiz basaridir.
+        print("sema dosyasi uygulandi (yazilan satir: %d) — goc HENUZ tamam degil" % yaz)
+        if not kolon_goc():   # tablo zaten varsa CREATE atlanir -> eksikleri ALTER ekler
+            sys.exit(
+                "!! GOC YARIDA KALDI — 'sema kuruldu' DENMEZ.\n"
+                "   Kolonlar eklenmis olabilir ama en az bir indeks KURULMADI. Kismi UNIQUE\n"
+                "   indeks yoksa yaris KORUMASIZDIR: o pencerede olusacak ikiz satir indeksi\n"
+                "   KALICI olarak kurulamaz hale getirir (--sema her kosumda duser).\n"
+                "   Yukaridaki hal satirlarina bak; ikiz sayimi ve 3 adimli geri alma orada.")
+        print("goc TAMAM: kolonlar + indeksler DOGRULANDI ✅")
         return
 
     if a.durum:
@@ -2291,6 +2734,25 @@ def main():
             sorunlar.append(
                 "SAYI EKSENI DRIFT: D1=%s != urunler.json benzersiz=%d — senkron kacmis "
                 "olabilir; Ege bayat katalog goruyor (yeni urunu ONEREMEZ)." % (n, benzersiz))
+
+        # ── SEMA EKSENI (goc indeksleri) — "kolon VAR ama indeks YOK" AYRI HAL ────────
+        # NEDEN BURADA: bu hal eskiden --durum'da GORUNMEZDI (sayi da icerik de tutar) ->
+        # yarida kalmis bir goc YESIL raporlaniyordu. Maliyet: tablo basina 1 PRAGMA +
+        # 1 sqlite_master SELECT'i (~birkac saniye); ikiz SAYIMI yalnizca BOZUK halde
+        # kosar. --hizli bunu ATLAMAZ: sema hali sayi/icerik ekseninden BAGIMSIZ ve ucuz.
+        hal = sema_hali()
+        print("sema ekseni (goc indeksleri): "
+              + " · ".join("%s=%s" % (h["ad"], h["hal"]) for h in hal))
+        sema_sorun = sema_sorunlari(hal)
+        if sema_sorun:
+            for s in sema_sorun:
+                print("   " + s)
+            sorunlar.append(
+                "SEMA EKSENI: YARIDA KALMIS GOC — %d indeks hali BOZUK (ayrinti yukarida). "
+                "Coz: python3 tools/d1-sync.py --sema"
+                % sum(1 for h in hal if h["hal"] in (IX_INDEKS_YOK, IX_KOLON_YARIM)))
+        else:
+            print("teyit (SEMA ekseni): beyan edilen goc indekslerinin hali temiz ✅")
 
         # ── ICERIK EKSENI (urun_hash) — VARSAYILAN ACIK ────────────────────────────
         # NEDEN VARSAYILAN: merge-kapisi'nin zorunlu D1 teyidi `d1-sync.py --durum` cagirir.

@@ -2,48 +2,61 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
-## OTURUM KAPANISI — 1 Agu 2026 (KraL · CI kirmizilari turu)
+## OTURUM KAPANISI — 1 Agu 2026 (KraL · 15:00 emri + beyan/olcum turu)
 
-### CANLIYA GITTI
-Not: iki SHA gecmis yeniden yaziminda degisti; varlik ICERIK ekseninde dogrulandi.
-- **D1 istemci hata siniflandirmasi + fail-loud cikti cozumu** (`GECICI_KODLAR` main'de).
-  `yayin` isi, D1'in CPU-tavani sifirlama kodunu KALICI sayip yeniden denemiyordu; tirnakli
-  JSON bicimindeki TUM kod kollari oluydu. Artan geri cekilme 2/8 sn, tavan 10 sn. Kabul 104 iddia.
-  Bagimsiz curutucu 1. turda onarimin bagiran hata davranisini SESSIZ GECISE cevirdigini
-  buldu -> geri cekildi.
-- **Fiziksel urun sayfasindan 3D-baski secim arayuzu kaldirildi** — merge `1a938405`
-  (`tools/fiziksel-urun-kapisi.py` main'de). 15930 baski urununde uretilen sayfa BAYT-ESIT.
-- **Fiziksel uruntte malzeme/renk fiyat carpani SUNUCUDA kapatildi** — merge `e31aaf8a`
-  (`fizikselMi` main'de). Gercek tahsilat ucunda dogrulandi: her secim liste fiyati.
-  961.980 kombinasyonda baski-urunu regresyonu 0. Ayrica edge kartina `tur` alani eklendi
-  (canli olcum: 0 -> 148 kart) ve fiziksel siparis kaydindan malzeme/renk beyani kaldirildi.
-- **Icerik sinifi kabul testindeki yanlis-pozitif capalandi** — merge `0ea09977` + `3be869ac`.
-  Bir urun partisi commit basligi desene takiliyordu. Desen DARALTILMADI; dar beyaz liste +
-  sart-basi fikstur eklendi. Curutucu olcumu: 1,4M sentetik ornekte 0 kacak.
+### CANLIYA GITTI (hepsi olculdu, hepsi itildi)
+- **Yasak fiyat-vaadi kalibi bilgi kaynagindan kaldirildi + KAPI ARTIK GORUYOR.** Kalip 2
+  degil **4** yerdeydi; biri URETILEN blok icindeydi, ureteci duzeltildi. Kapi bu sinifa
+  KORDU: dort satir da 0 bulguyla geciyordu ve bir fikstür yasak cumleyi beklenen-YESIL
+  tutuyordu. Yakalama **0/4 -> 4/4**, ic nobetci **73 -> 103**, mutasyon 14/14, yanlis
+  pozitif 0/3 korpus. Yol boyunca gercek bir yayin durdurucu bulundu: kuralin DOGRU yazilisi
+  (yasagin olumsuz emri) ortak listede yoktu, kapi o metni kirmizi yakiyordu.
+- **Marin altkategori izinli kumesi 3 -> 11** (`c86c29dc`). Uc yazim duzeltildi, biri bilerek
+  eklenmedi. Carpisma 0, imza 11/11.
+- **Cayma sinif beyani hatti** (`8bb161d9`). Sozlesme zaten iki sinifliydi ama ayrim BEYANA
+  hic gecmemisti: siparis e-postasi kosulsuz "ozel uretim" diyordu, yani stok kaleminde
+  musterinin cayma hakkini reddedecek teyit siparis aninda veriliyordu. Dort yuzey sinifa
+  gore konusuyor, karisik sepette kalem bazinda. Yeni kapi 29 iddia, once-kirmizi 19/29,
+  ozel uretim regresyonu 0/15930. Mutasyon turu olu kod yakaladi (sinif fonksiyonu hic
+  cagrilmiyordu).
+- **Kesif kapisi on-kosulu: yayin penceresi ayrildi** (`0166ccb3`). Yeni kayit TASLAK giriyor,
+  uc yayin bayragini suzuyor; on-kosul bunu "kayip" sayip her partiden sonra ~yarim saat
+  BLOKLUYORDU (olculen pencere 29 dk). Hal artik FIILEN okunuyor, sayi farkindan
+  turetilmiyor. Gercek kayip ekseninde fail-closed korundu. Mutasyon 14 -> 22, 22/22.
+- **Fiziksel fiyat yolunun canli nobetcisi** (`5b754c9d`). Kok sebep "kapsam dar" degil,
+  `tur` ekseninin HIC olculmemesiydi. Nobetci "kod kirik" ile "paket bayat"i AYIRIYOR.
+  Bugun kirmizi ve hakli. Offline kol CI'da bloklayici; canli kol bilerek baglanmadi.
+- **Olcum kanal suzgeci + goc fail-closed** (`8ca71f82`). Goc kostugu an site disi her
+  odenmis siparis "olculmemis ciro" alarmi olacakti. Ayrica ALTER gecip indeks duserse
+  tek yonlu kapi aciliyordu; artik sema adimi indeks teyidi gecmeden "tamam" demiyor,
+  ikiz satirlar SAYILIYOR ama silinmiyor. Once-kirmizi 3/3 + 3/3, mutasyon 11/11.
 
-### KOSUYOR
-- Yok. Bu oturumun delege ettigi tum isler kapandi, dal/worktree temizlendi.
-  Okan'in ayri oturumda baslattigi commit-msg nobetcisi performans butcesi isi AYRI;
-  `mesaj-nobeti` su an YESIL.
+### ✅ FAZLA TAHSILAT KAPANDI (Okan deploy etti, 17:29)
+Canli paket bayatti; 676 fiziksel uruntte %84'e varan fazla tahsilat olculmustu. Deploy
+sonrasi yeni nobetci **rc=0**: sapma 0, nesil 0, repo-kirik 0, olculemeyen 0 (deploy oncesi
+6 SAPMA + 6 NESIL idi). Ornek urun canli 270000 = liste 270000 kurus. Saglik kapisi rc=0.
+Onbellek tuzagi UC bicimde elendi (ciplak uc + iki farkli atlatma damgasi + kapinin tamami
+atlatan uctan): uc PoP, `no-store`, ayni sonuc. Odeme ekraninin canli kaynagi da yeni metni
+tasiyor (6/6 capa, iki cekimde bayt-ayni).
+🔴 **KALICI RISK:** CI'da worker deploy adimi YOK, elle yapiliyor — ayni bayatlik tekrar eder.
+⚠️ **Tuzak:** `shop/.wrangler/dry/` altindaki artefakt bir kuru-kosum artigi, yayindaki paket
+DEGIL; ona bakip "deploy eski" hukmu verilmesin.
+**Olculemeyen tek eksen:** siparis onay e-postasinin gercek govdesi — yan etkisiz yolu yok,
+gormek icin dusuk tutarli GERCEK siparis gerekir (Okan kapisi). Uretilen mantik offline rc=0.
+
+### KARARLAR (bu tur)
+- Ege kapisinda sirket sesi birinci cogulun da yanmasi KABUL EDILDI: o metin Ege'ye kendi
+  bilgisi olarak besleniyor, orada "belirleriz" demek Ege'ye vaat ettirmektir. Kapi
+  musteriye gorunen sayfalari okumaz; yasal metinlerde olcum 0.
+- Iade kargo bedeli metne YAZILMADI — ticari karar Okan'da; kapi, cevap gelmeden o cumlenin
+  yazilmasini kirmizi yakiyor.
+- Is bolumu (Okan kurali): is kimin duzlemindeyse o yapar; baskalarini da etkileyen
+  degisiklikte karar verici mimar devam eder. Siparis ucunun olcum ekseni kardes mimara
+  devredildi, Ege tarafi sahibinde kaldi, sema/odeme/merge bende.
 
 ### BEKLIYOR
-- **KARDES DEPO (bot deposu):** edge Worker kart alan listesinde `tur` YOK -> sepet panelinde
-  GOSTERILEN tutar sunucununkinden farkli kalir. Main katalogunda 237 fiziksel urunun 137'si
-  bu koldan geliyor. Tahsilat DOGRU; sapma yalniz GOSTERIM. Olculdu, kutuya yazildi.
-- **OKAN KARARI:** `d1-uzlastirici` cron tetikleyicisinin deploy sonuna alinmasi.
-  Olculdu: 15 dk'lik cron 3,5 saatte 0 kez atesledi (GitHub zamanlanmis is best-effort).
-- **SIRADAKI IS (mimar):** `filament-test.py` 7/25 — fiksturu artik bir fiziksel urune dusuyor;
-  CI'da muaf ama gercek kirmizi.
-- **NOBETCI BORCU** (bugunku davranis DOGRU, gelecek regresyon icin yazili iddia EKSIK): odeme kalem adi
-  bicimi ve veri kolonu bicimi KELIME ariyor (bicim degil); yonetim ekranindaki fiziksel kolun
-  iddiasi yok.
-
-### DERS (olculdu)
-- Uc kez kabul testi yemyesilken bagimsiz curutucu gercek kusur buldu; ikisi ayni sinifti —
-  duzeltme, kapattigi deligin YANINDA yeni bir sessiz ayrisma aciyordu. Kapi yazmak yetmiyor;
-  kapinin GORMEDIGI ekseni ayri bir goz aramali.
-- Gecmis yeniden yazildiktan sonra DUZ MERGE, temizlenmis commit mesajlarini geri getirir.
-  Bu turdaki uc merge de cherry-pick + ff-only ile alindi.
+- Onceki turun acik kalemleri (kardes depo gosterim sapmasi · cron tetikleyici karari ·
+  filament fiksturu · nobetci borcu) DEVAM-ARSIV.md'ye tasindi; kapanmadilar.
 
 ## KARARLAR
 - 1 Agu icerik denetimi: DEVAM.md'de kalan 4 sinifli blok
@@ -80,11 +93,7 @@ Not: iki SHA gecmis yeniden yaziminda degisti; varlik ICERIK ekseninde dogruland
   hazir agiz cumlesi olarak yaziliydi). Bir satir URETILEN blok icindeydi -> elle degil
   **ureteci** duzeltildi, yoksa ilk kosumda geri gelirdi. Kabul: 6 kapi rc=0
   (ic nobetci 73/73, mutasyon 14 mutant / 0 sag kalan). Kapi GEVSETILMEDI.
-- 🔴 **OLCULEN ACIK: kapi bu zarar sinifina KOR.** Yasak kaliba ait 4 ozgun satirin
-  dordu de kapinin kendi bulgu fonksiyonundan **0 bulguyla** gecti. Dahasi kapinin
-  fikstürlerinden biri yasak cumleyi **beklenen-YESIL** olarak kayitli tutuyor — yani kapi
-  bu sinifta sertlestirilemez durumda. Fikstür TERSINE CEVRILMELI; CI'da yayin durduran
-  dosya oldugu icin isci DOKUNMADI, karar bende. **SIRADAKI IS.**
+- ✅ O turda acilan "kapi bu sinifa KOR" bulgusu ayni gun KAPANDI — ust bloga bak.
 - **Marin altkategori izinli kumesi 3 -> 11.** Mimar karari: istenen yazimlardan uctu
   duzeltildi (satici vitrininden kopyalanmis yazim hatasi + yabanci yazim), biri
   EKLENMEDI (o bolum kalici kapandi, sifir urun tasiyacak olu yapilandirma olurdu).
@@ -96,66 +105,22 @@ Not: iki SHA gecmis yeniden yaziminda degisti; varlik ICERIK ekseninde dogruland
   "gerileme" degil **olculmemis**ti. Ag gerektiren kabul ayri kosumla alinir.
 
 ### BEKLIYOR
-- OKAN: fiziksel urun hattinda cayma hakki ayrimi + ticari sozlesme/sartlar.
+- ✅ KAPANDI (1 Agu): "OKAN: cayma hakki ayrimi + ticari sartlar" kaydi BAYATMIS. Okan
+  bildirdi, olculerek dogrulandi: sozlesme ve sayfalar iki sinifi ZATEN ayiriyor, canli
+  metinler depoyla bayt-bayt ayni. Eksik olan ayrimin BEYANA gecmesiydi; o da bu tur kapandi.
 - OKAN: hesap tasinmasinda elle gereken 19 kalem.
+- ✅ KARAR (Okan, 1 Agu): cayma iadesinde geri gonderim kargosu icin sozlesmeye **HICBIR
+  CUMLE YAZILMAYACAK.** Sonucu bilincli: yazili olmadigi surece bedel yasal olarak SATICIDA,
+  yani bizde. Bu bir eksiklik DEGIL, verilmis karardir — "unutulmus" diye tamamlanmasin.
+  Kapi bu cumlenin izinsiz yazilmasini kirmizi yakiyor; koruma YERINDE KALSIN.
 - MIMAR KARARI: arama maliyet kapisinin bloklayan serite tasinmasi.
 - ISCI VERILMEDI: denetim kapisi rapor kolundaki adaylar (urun verisi duzlemi).
 - KARDES MIMAR: vida ailesi PUL-only teslimi, metin temizligi plani.
 
 ## TABAN (yeniden olc, ezberleme)
-- Katalog: D1 sayi ekseni 16542 == 16542; icerik ekseni birebir, uyusmaz 0 / eksik 0 / fazla 0.
-- Calisma alani: 6 worktree, 13 yerel dal (kapanista 3 worktree + 8 olu dal temizlendi).
-
-## EK — mesaj-nobeti kirmizisi: geri-donus kapisi kapandi (1 Agu, kapanis ek kaydi)
-
-- mesaj-nobeti kirmizisinin ikinci sebebi kapandi: geri-donus kapisi taban cozumu
-  onarildi (`f85ca982`, S1).
-- Kok sebep: force-push sonrasi olay yukundeki `before` nesnesi YETIM kaliyordu;
-  `fetch-depth: 0` yetmez (nesne hicbir ref'te degil). Cozum: `cat-file -e` patlayinca
-  yedege dusmeden once `git fetch --no-tags <uzak> <sha>` ile nesneyi kurtar (yalniz CI;
-  kanca kolu bu yola girmez). Fetch basarisizsa davranis aynen eskisi.
-- Olculen: yedek 50 commit penceresi 231140 aday = butcenin %154'u (yapisal asim);
-  dogru menzil 18 commit / 67998 aday (%45,3). Gercek itmeler: medyan 1, p95 4, maks 45.
-- Kirpma (`f416842d`, paralel oturum) KORUNDU ama artik SESSIZ DEGIL: kirpildiginde
-  taranmayan commit + aday sayisi basiliyor, "temiz" hukmu EKSIK OLCUMLU oldugunu soyluyor.
-- Kabul: kapinin kendini-testi 49 vaka / 0 hata (40 -> +9); mutasyon bataryasi 17/17
-  olduruculu OLDU, 3/3 ilgisiz yesil.
-- CI teyidi: kosum 30695623857, `mesaj-nobeti` **success**, taban COZULDU
-  (yedege dusmedi), taranan 1 commit / 1789 aday = butcenin %1,2'si.
-- NOT: o kosumda `before` yetim DEGILDI (saglikli hal); yetim-kurtarma yolunun gercek
-  GH Actions ortaminda calistigi ayni job'un kendini-test adiminda goruldu (vaka 12c).
-- Butce (150000) ve yedek pencere (50) BILEREK degistirilmedi.
-
-
-## MERGE — marka muafiyeti kayitli alan adi govdesinden (1 Agu, olculdu)
-
-- Merge `f6840e3f` (taban `11334fef`, dal tek commit `b85f5b4b`). Kapsam TAM 2 dosya,
-  +259 / -4. Cakisma YOK. Kendi desen taramam: 6 sinifta 0 vurus.
-- **Sorun:** muafiyet host'un ILK etiketinden okunuyordu. Olculdu (n=1294 katalog
-  markasi, alan adi ekseni tek basina): marka etiketi one alinmis bayi bicimi
-  **1294/1294 gecer** (kacak tamamen acik), on ekli mesru marka adresleri
-  **1293/1294 durur** (yanlis-pozitif). Batarya bu ekseni HIC olcmuyordu.
-- **Cozum:** muafiyet kayitli govde etiketinden turer; ikinci seviye kayit ekleri
-  icin bir ust etikete bakilir. Kacak yonu **1294 -> 0**, cok parcali uzantili
-  bicimde **1294 -> 0**, yanlis-pozitif **1293 -> 0**, duz marka tabani
-  **1294/1294 degismedi**.
-- **Beyan edilmis takas:** ters bicim (alt alan marka sahibinin kayitli alani
-  altinda) **1/1294 -> 1294/1294**, cok parcali uzantida **0 -> 1294/1294**. Gerekce
-  kodda: o alan yalniz marka sahibinin tekelinde; ad ozet artefaktindaysa ikinci hat
-  tutar. Ikinci hattin iki ekseni ve tireli yazimdaki kalinti olcumle yazildi.
-- **Dokunulmayan:** maskeleme ve desen dilim taramasi fonksiyonlarinin govdeleri main
-  ile **birebir ayni** (sha256 karsilastirildi); degisen tek kod satiri muafiyet kolu.
-- **Kabul:** kendini-test **84 -> 95** iddia rc=0; mutasyon **28/28 oldurucu OLDU**,
-  3/3 ilgisiz kontrol yesil, sag kalan 0, canli dosya sha256 esitligi TAM.
-  Yedi kapi rc=0 (kendini-test, kaynak-tara, ci-kapsam 149/113/36, kapi envanteri 7/7,
-  kanca nobeti 12 eksen 12 yesil, kisisel veri testi, mutasyon).
-- **D1 teyidi:** sayi ekseni 16542 == 16542; icerik ekseni 16542 urun_hash birebir,
-  uyusmaz 0 / eksik 0 / fazla 0.
-- **Temizlik:** merge edilen worktree + dali silindi (uc on kontrol temiz). Baska bir
-  oturumun aktif agaci ve dali KORUNDU, dokunulmadi.
-- 🔴 **OLU DAL — DIRILTMEYIN:** bu isin ILK turu eski taban uzerinde kurulmus bir dalda
-  yapilmisti ve **merge EDILMEDI**. Sebep: (a) taban gecmis yeniden yaziminin
-  oncesindeydi, duz merge temizlenmis adlari public gecmise geri getirirdi; (b) o dalin
-  maskeleme onarimi main'de zaten VARDI ve main surumu daha guclu (fail-closed) idi,
-  merge GERILEME olurdu. Is guncel main uzerine YENIDEN turetildi; alinan surum budur.
-  O dal artik ISLEVSIZ.
+Bu bolume SAYI YAZMA — gun icinde bayatliyor ve bayat sayi yanlis guven veriyor
+(bugun olculdu: katalog tek oturumda 16589 -> 16672 hareket etti, elle tutulan agac
+listesi de tutmuyordu). Tek dogruluk kaynagi kosulan komut:
+- Katalog / D1: `python3 tools/d1-sync.py --durum`
+- Calisma alani: `git -C /Users/okan/dev/pruvo worktree list`
+- Kapilar: `python3 tools/durum.py`

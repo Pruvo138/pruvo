@@ -266,9 +266,11 @@ CREATE TABLE IF NOT EXISTS siparisler (
   dis_no          TEXT NOT NULL DEFAULT ''
 );
 
--- Dis numara TEKILLIGI (yalniz dolu degerlerde — site siparislerinin hepsi '' ve o satirlar
--- indeksin DISINDA kalir). /wa-siparis kodundaki idempotens kontrolunun VERI TABANI
--- tarafindaki ikizi: iki es zamanli yeniden-deneme yarisirsa ikincisi UNIQUE'e carpar,
--- Okan'in panelinde ikiz siparis olusmaz.
-CREATE UNIQUE INDEX IF NOT EXISTS siparisler_dis_no
-  ON siparisler(kanal, dis_no) WHERE dis_no <> '';
+-- 🔴 DIS NUMARA TEKILLIK INDEKSI BU DOSYADA DEGIL — d1-sync.py GOC_INDEKS kayit defterinde
+-- (`siparisler_kanal_dis_no`). BURAYA KOYULMASI OLCULDU VE ARIZALIYDI (1 Agu 2026):
+-- bu dosya kolon gocunden ONCE uygulanir; canlida `siparisler` ZATEN VAR oldugu icin
+-- yukaridaki CREATE TABLE IF NOT EXISTS ATLANIR -> kanal/dis_no kolonlari HENUZ YOKTUR ->
+-- "no such column: kanal" ile TUM `--sema` kosumu duser ve kolon_goc() HIC KOSMAZ:
+-- kolonlar canliya ASLA eklenemez (tam tikanma, kendi kuyrugunu yiyen goc). urunler_yayin
+-- indeksleri 31 Tem'de AYNI sebeple bu dosyadan cikarilmisti (bkz. 145. satir yorumu).
+-- Dogru yer: ALTER'lardan SONRA kosan ve kurulusu DOGRULANAN GOC_INDEKS kaydi.

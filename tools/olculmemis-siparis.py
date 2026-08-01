@@ -51,6 +51,21 @@ TEK istisna D1'den hesaplanabilir: havale onayi siparis tarihinden 7 GUNDEN gec 
 Meta olayi kesin reddeder (pencere-disi) — ayri bir UYARI kovasinda raporlanir, GA4 ciroyu
 yine kaydettigi icin "kayip" sayilmaz.
 
+*** KANAL SUZGECI — site DISI siparis "kayip" DEGILDIR (yanlis pozitif nobeti) ***
+`siparisler.kanal` (DEFAULT 'site') site disi bir uc oldugunu soyler (or. WhatsApp siparis
+ucu). O akista tarayici YOKTUR: GA4 client_id / Meta fbp uretilmez, /donus da /yonet/durum
+da CALISMAZ -> durum_gecmisi'nde {"o":1} izi HIC OLMAZ. Kolon sorguya girmeseydi bu
+siparisler bu araca izsiz "odenmis" gorunur ve HEPSI "olculmemis ciro" alarmina duserdi:
+gercek kayiplar sahte alarmlarin arasinda BOGULUR (alarm yorgunlugu = alarmi kapatmak).
+  KURAL: kanal ACIKCA site disi ise sinif OLCUM_BEKLENMEZ — kayip SAYILMAZ ama raporda
+  AYRI ve SAYILI basilir (sessizce yutmak yeni bir korluk uretirdi: o kanalin cirosunun
+  olculup olculmedigi bu araca gorunmez KALIR, ama en azindan NE KADAR oldugu yazar).
+  ⚠️ Muafiyet YALNIZ acik degerden dogar: kolon YOKSA (goc kosmadi) ya da deger BOS/NULL
+  ise satir SITE kabul edilir ve eskisi gibi denetlenir — "bilmiyorum" bir kaybi GIZLEYEMEZ.
+  Kolon henuz canli tabloda olmayabilir (goc `d1-sync.py --sema` ile gelir): SELECT once
+  kanal ile denenir, D1 "no such column: kanal" derse kolonsuz SELECT'e DUSULUR (arac
+  patlamaz) ve bu hal raporda GURULTULU yazilir.
+
 *** ESIK TARIHI (yanlis pozitif ayiklama) ***
 Olcum kodu main'e girmeden ONCE odenmis siparisler dogal olarak izsizdir; onlari "kayip"
 saymak PANIGE yol acar. Iki ayri esik var, cunku iki akisin olcumu ayri tarihlerde girdi:
@@ -105,10 +120,22 @@ KOLONLAR = (
     "tutar_kurus", "kargo_kurus", "durum_gecmisi", "iyzico_odeme_id", "token",
 )
 
+# KANAL kolonu AYRI tutulur: canli tabloda HENUZ OLMAYABILIR (goc `d1-sync.py --sema` ile
+# gelir). Kosulsuz KOLONLAR'a konsaydi goc oncesi her kosum "no such column: kanal" ile
+# duserdi — tespit araci goc penceresi boyunca OLU kalirdi. Bkz. siparisleri_oku().
+KOLON_KANAL = "kanal"
+
+# Site DISI kanalin kanonik olmayan degeri. Kolonun DEFAULT'u 'site'; eski satirlar da
+# (goc oncesi acilmis) bu degeri alir.
+KANAL_SITE = "site"
+
 # Siniflar
 KAYIP = "kayip"                  # odenmis, esik SONRASI, olcum izi YOK -> ciro olculmedi
 ESIK_ONCESI = "esik-oncesi"      # olcum kodu yokken odenmis -> tarihsel, kayip SAYILMAZ
 OLCULDU = "olculdu"              # olcum DENENDI (ulastigi garanti degil)
+# Site DISI kanal (or. WhatsApp siparis ucu): bu akista Purchase olcumu HIC BEKLENMEZ,
+# izsizligi bir ARIZA DEGILDIR. Kayip SAYILMAZ; raporda AYRI ve SAYILI basilir.
+OLCUM_BEKLENMEZ = "olcum-beklenmez"
 
 try:
     from zoneinfo import ZoneInfo
@@ -147,16 +174,35 @@ def salt_okunur_dogrula(sql):
     return s
 
 
-def sql_sorgu(son):
-    """Odenmis siparisleri seçen SELECT'i uretir (PII kolonu YOK)."""
+def sql_sorgu(son, kanal=True):
+    """Odenmis siparisleri seçen SELECT'i uretir (PII kolonu YOK).
+
+    kanal=True  -> `kanal` kolonu da secilir (goc KOSMUS canli tablo).
+    kanal=False -> kolonsuz eski SELECT (goc KOSMAMIS tablo; ayni sorgu 'no such column'
+                   ile duserdi). Iki bicim de AYNI fonksiyondan cikar ki ikisi ayrisamasin.
+    """
     son = max(int(son), 1)
     durumlar = ", ".join("'%s'" % d for d in ODENMIS_DURUMLAR)
+    kolonlar = list(KOLONLAR) + ([KOLON_KANAL] if kanal else [])
     return ("SELECT %s FROM siparisler WHERE durum IN (%s) ORDER BY id DESC LIMIT %d"
-            % (", ".join(KOLONLAR), durumlar, son))
+            % (", ".join(kolonlar), durumlar, son))
 
 
-def wrangler_sorgu(sql):
-    """wrangler d1 execute --remote --json (SALT-OKUNUR kapidan gecerek)."""
+# "kolon yok" hatasini AYIRT EDEN tek kural. Baska HER hata (ag/auth/sozdizimi) fail-loud
+# kalmali: hepsini "kolon yok" sayan bir yedek yol, gercek arizayi eski davranisa DUSEREK
+# gizlerdi (sessiz hata). Bu yuzden kolon ADI da eslesmek ZORUNDA.
+def kolon_yok_mu(ham, kolon):
+    """D1/SQLite ciktisi TAM OLARAK bu kolonun yoklugundan mi sikayetci?"""
+    return re.search(r"no such column:?\s*(?:\w+\.)?%s\b" % re.escape(kolon),
+                     ham or "", re.IGNORECASE) is not None
+
+
+def wrangler_dene(sql):
+    """wrangler d1 execute --remote --json — HATAYI YUTMADAN dondur.
+
+    Doner: (basarili_mi, satirlar, ham_cikti). Kimlik hatasi KALICI kabul edilir ve
+    burada sys.exit ile biter (yedek SELECT denemek anlamsiz olurdu).
+    """
     sql = salt_okunur_dogrula(sql)
     komut = ["npx", "--yes", "wrangler@4", "d1", "execute", DB_AD,
              "--remote", "--json", "--command", sql]
@@ -171,14 +217,37 @@ def wrangler_sorgu(sql):
         )
     i = p.stdout.find("[")
     if i == -1:
-        sys.exit("wrangler cikti vermedi:\n" + ham[-2000:])
+        return False, [], ham
     try:
         veri = json.loads(p.stdout[i:])
     except (ValueError, TypeError):
-        sys.exit("wrangler ciktisi cozulemedi:\n" + ham[-2000:])
+        return False, [], ham
     if not veri or not veri[0].get("success", False):
+        return False, [], ham
+    return True, (veri[0].get("results", []) or []), ham
+
+
+def wrangler_sorgu(sql):
+    """wrangler d1 execute (SALT-OKUNUR kapidan gecerek). Hatada FAIL-LOUD."""
+    ok, satirlar, ham = wrangler_dene(sql)
+    if not ok:
         sys.exit("wrangler sorgusu basarisiz:\n" + ham[-2000:])
-    return veri[0].get("results", []) or []
+    return satirlar
+
+
+def siparisleri_oku(son):
+    """Odenmis siparisleri oku. Doner: (satirlar, kanal_kolonu_var_mi).
+
+    KOLON HENUZ YOKKEN DE CALISIR: once kanal'li SELECT denenir; D1 TAM OLARAK
+    "no such column: kanal" derse kolonsuz SELECT'e dusulur (ESKI DAVRANIS korunur).
+    Diger her hata fail-loud — yedek yol bir ariza ortu DEGILDIR.
+    """
+    ok, satirlar, ham = wrangler_dene(sql_sorgu(son, kanal=True))
+    if ok:
+        return satirlar, True
+    if kolon_yok_mu(ham, KOLON_KANAL):
+        return wrangler_sorgu(sql_sorgu(son, kanal=False)), False
+    sys.exit("wrangler sorgusu basarisiz:\n" + ham[-2000:])
 
 
 # ------------------------------------------------------------------ zaman / bicim
@@ -246,6 +315,19 @@ def tahsilat(satir):
     return (satir.get("tutar_kurus") or 0) + (satir.get("kargo_kurus") or 0)
 
 
+def kanal_deger(satir):
+    """Satirin ACIK kanal degeri (kucuk harf) ya da None.
+
+    None = "BILINMIYOR": kolon SELECT'e girmedi (goc kosmamis) YA DA deger bos/NULL.
+    Bilinmeyen kanal SITE gibi denetlenir — muafiyet YALNIZ acik bir degerden dogar,
+    yoksa bos bir kolon tum kayiplari sessizce affederdi.
+    """
+    if KOLON_KANAL not in satir:
+        return None
+    d = (satir.get(KOLON_KANAL) or "").strip().lower()
+    return d or None
+
+
 # ------------------------------------------------------------------ siniflandirma
 
 def siniflandir(satir, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE):
@@ -255,12 +337,24 @@ def siniflandir(satir, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE):
              (DOLAYLI, eski satirlar icin). Ikisi de yoksa /donus HIC calismamistir.
     HAVALE : iz = durum_gecmisi'nde {"o":1} (/yonet/durum calisti).
     Esik ONCESI her sey ESIK_ONCESI (olcum kodu henuz yoktu) — izin yoklugu normal.
+    KANAL  : acikca site DISI ise OLCUM_BEKLENMEZ (esikten de izden de ONCE gelir —
+             o akista olcum kodu hic kosmaz, esik karsilastirmasi anlamsizdir).
     """
     yontem = (satir.get("odeme_yontemi") or "kart").strip() or "kart"
     an, an_kesin = odendi_ani(satir)
     an_sn = iso_sn(an)
     esik = esik_havale if yontem == "havale" else esik_kart
     esik_sn = iso_sn(esik)
+    kanal = kanal_deger(satir)
+
+    # KANAL KAPISI — EN BASTA. Site disi uctan gelen sipariste tarayici yoktur; Purchase
+    # olcumu ne DENENIR ne de BEKLENIR. Bu satirlari esik/iz mantigina sokmak, izsizligi
+    # "kayip" diye damgalamak demektir (yanlis pozitif -> alarm yorgunlugu).
+    if kanal is not None and kanal != KANAL_SITE:
+        return {"sinif": OLCUM_BEKLENMEZ, "an": an, "an_kesin": an_kesin,
+                "meta_penceresi_disi": False, "kanal": kanal,
+                "sebep": "kanal=%s (site DISI) — bu akista tarayici/olcum kodu yok, "
+                         "iz BEKLENMEZ" % kanal}
 
     # Meta 7-gun penceresi: odeme ani (siparis tarihi) ile onay ani arasi > 7 gun ise
     # Meta olayi KESIN reddeder (olcum.js pencere-disi). D1'den hesaplanabilen tek
@@ -273,51 +367,65 @@ def siniflandir(satir, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE):
 
     if an_sn is None or esik_sn is None or an_sn < esik_sn:
         return {"sinif": ESIK_ONCESI, "an": an, "an_kesin": an_kesin,
-                "meta_penceresi_disi": False,
+                "meta_penceresi_disi": False, "kanal": kanal,
                 "sebep": "olcum kodu esikten (%s) once — iz beklenmez" % esik}
 
     if yontem == "havale":
         if olcum_izi_var(gecmis_coz(satir.get("durum_gecmisi"))):
             return {"sinif": OLCULDU, "an": an, "an_kesin": an_kesin,
-                    "meta_penceresi_disi": pencere_disi,
+                    "meta_penceresi_disi": pencere_disi, "kanal": kanal,
                     "sebep": 'durum_gecmisi izi {"o":1} — olcum DENENDI'}
         return {"sinif": KAYIP, "an": an, "an_kesin": an_kesin,
-                "meta_penceresi_disi": pencere_disi,
+                "meta_penceresi_disi": pencere_disi, "kanal": kanal,
                 "sebep": 'havale onayi worker disindan yapilmis: {"o":1} izi YOK'}
 
     # kart — ONCE dogrudan iz, sonra (eski satirlar icin) dolayli sinyal.
     if olcum_izi_var(gecmis_coz(satir.get("durum_gecmisi"))):
         return {"sinif": OLCULDU, "an": an, "an_kesin": an_kesin,
-                "meta_penceresi_disi": False,
+                "meta_penceresi_disi": False, "kanal": kanal,
                 "sebep": 'durum_gecmisi izi {"o":1} — /donus calisti, olcum DENENDI'}
     if (satir.get("iyzico_odeme_id") or "").strip():
         return {"sinif": OLCULDU, "an": an, "an_kesin": an_kesin,
-                "meta_penceresi_disi": False,
+                "meta_penceresi_disi": False, "kanal": kanal,
                 "sebep": "iyzico_odeme_id dolu (DOLAYLI iz; iz kodu oncesi kart siparisi)"
                          " — /donus calisti, olcum DENENDI"}
     return {"sinif": KAYIP, "an": an, "an_kesin": an_kesin,
-            "meta_penceresi_disi": False,
+            "meta_penceresi_disi": False, "kanal": kanal,
             "sebep": "kart siparisi 'odendi' ama ne {\"o\":1} izi ne iyzico_odeme_id var"
                      " — /donus'tan gecmemis"}
 
 
 # ------------------------------------------------------------------ rapor
 
-def rapor(satirlar, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE, ayrinti=False):
-    """(metin, ozet) uretir. ozet['kayip_adet'] cikis kodunu belirler."""
-    kovalar = {KAYIP: [], ESIK_ONCESI: [], OLCULDU: []}
+def rapor(satirlar, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE, ayrinti=False,
+          kanal_kolonu=None):
+    """(metin, ozet) uretir. ozet['kayip_adet'] cikis kodunu belirler.
+
+    kanal_kolonu: SELECT'te kanal kolonu VAR miydi (True/False)? None = bilinmiyor
+    (dogrudan cagri / eski test). Rapor bunu ACIKCA basar: kolon yokken TUM satirlar
+    site kabul edilmistir ve site disi kanallar bu araca GORUNMEZ.
+    """
+    kovalar = {KAYIP: [], ESIK_ONCESI: [], OLCULDU: [], OLCUM_BEKLENMEZ: []}
     pencere_uyari = []
     tahmini_an = []
     for s in satirlar:
         k = siniflandir(s, esik_kart, esik_havale)
         kovalar[k["sinif"]].append((s, k))
-        if k["meta_penceresi_disi"] and k["sinif"] != ESIK_ONCESI:
+        if k["meta_penceresi_disi"] and k["sinif"] not in (ESIK_ONCESI, OLCUM_BEKLENMEZ):
             pencere_uyari.append((s, k))
         if not k["an_kesin"] and k["sinif"] == KAYIP:
             tahmini_an.append(s.get("siparis_no"))
 
     kayip_ciro = sum(tahsilat(s) for s, _ in kovalar[KAYIP])
     onceki_ciro = sum(tahsilat(s) for s, _ in kovalar[ESIK_ONCESI])
+    beklenmez_ciro = sum(tahsilat(s) for s, _ in kovalar[OLCUM_BEKLENMEZ])
+    # Kanal DAGILIMI: hangi site-disi kanaldan kac siparis / ne kadar ciro. "Kayip degil"
+    # demek "gorunmez" demek DEGIL — sayilar burada, kimse "haberim yoktu" diyemesin.
+    kanal_dagilim = {}
+    for s, k in kovalar[OLCUM_BEKLENMEZ]:
+        ad = k.get("kanal") or "?"
+        adet, ciro = kanal_dagilim.get(ad, (0, 0))
+        kanal_dagilim[ad] = (adet + 1, ciro + tahsilat(s))
 
     L = []
     A = L.append
@@ -328,6 +436,15 @@ def rapor(satirlar, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE, ayrinti=False)
     A("Esik (havale) : %s   [edf9d198 havale Purchase main'e girdi]" % esik_havale)
     A("Incelenen odenmis siparis: %d  (durum: %s)"
       % (len(satirlar), ", ".join(ODENMIS_DURUMLAR)))
+    if kanal_kolonu is True:
+        A("Kanal kolonu  : VAR — site DISI kanallar AYRI siniflanir (asagida sayili).")
+    elif kanal_kolonu is False:
+        A("Kanal kolonu  : YOK (goc `d1-sync.py --sema` henuz kosmadi) — TUM satirlar")
+        A("                SITE kabul edildi. Site disi bir uc (or. WhatsApp siparis)")
+        A("                zaten olusmus olsaydi bu rapor onu KAYIP diye damgalardi.")
+    else:
+        A("Kanal kolonu  : BILINMIYOR (rapor dogrudan cagrildi) — acik kanal degeri")
+        A("                tasimayan satirlar SITE kabul edildi.")
     A("")
     A("-" * 78)
     A("KAYIP — esik SONRASI odenmis, olcum izi YOK (ciro Meta/GA4'te GORUNMUYOR)")
@@ -343,6 +460,31 @@ def rapor(satirlar, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE, ayrinti=False)
             A("      sebep: %s" % k["sebep"])
     A("")
     A("  >>> TOPLAM KAYIP: %d siparis · %s <<<" % (len(kovalar[KAYIP]), tl(kayip_ciro)))
+    A("")
+
+    # ── OLCUM BEKLENMEZ (site DISI kanal) — kayip DEGIL ama GORUNMEZ de degil ──────
+    A("-" * 78)
+    A("OLCUM BEKLENMEZ — site DISI kanal (or. WhatsApp siparis ucu). O akista tarayici")
+    A("YOK: GA4 client_id / Meta fbp uretilmez, /donus + /yonet/durum kosmaz -> {\"o\":1}")
+    A("izi HIC olusmaz. Izsizlik ARIZA DEGIL; bu satirlar KAYIP SAYILMAZ.")
+    A("⚠️ Ama bu 'olculdu' de DEMEK DEGIL: bu kanalin cirosunun Meta/GA4'e gidip gitmedigi")
+    A("   BU ARACIN KAPSAMI DISI. Sayilar gizlenmesin diye asagida ayri basilir.")
+    A("-" * 78)
+    if not kovalar[OLCUM_BEKLENMEZ]:
+        A("  (yok)")
+    else:
+        for ad in sorted(kanal_dagilim):
+            adet, ciro = kanal_dagilim[ad]
+            A("  kanal %-12s : %d siparis · %s" % (ad, adet, tl(ciro)))
+        A("")
+        A("  %-24s %-17s %14s  %-7s %s"
+          % ("SIPARIS NO", "ODENDI (yerel)", "TAHSILAT", "YONTEM", "KANAL"))
+        for s, k in kovalar[OLCUM_BEKLENMEZ]:
+            A("  %-24s %-17s %14s  %-7s %s"
+              % (s.get("siparis_no") or "?", yerel_saat(k["an"]), tl(tahsilat(s)),
+                 s.get("odeme_yontemi") or "?", k.get("kanal") or "?"))
+    A("  ara toplam: %d siparis · %s"
+      % (len(kovalar[OLCUM_BEKLENMEZ]), tl(beklenmez_ciro)))
     A("")
 
     if pencere_uyari:
@@ -393,6 +535,12 @@ def rapor(satirlar, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE, ayrinti=False)
     A("    (kod / events_received / fbtrace_id / atlandi). [observability] acik.")
     A("  · 'olculdu' kovasindaki %d siparisin KACINA gercekten ulasildi: BILINMIYOR."
       % len(kovalar[OLCULDU]))
+    A("  · Site DISI kanaldaki %d siparisin (%s) cirosu Meta/GA4'e GITTI MI: bu arac"
+      % (len(kovalar[OLCUM_BEKLENMEZ]), tl(beklenmez_ciro)))
+    A("    SOYLEYEMEZ — o akisin olcumu (varsa) BASKA bir kodda; burada yalniz SAYILIR.")
+    if kanal_kolonu is False:
+        A("  · KANAL KOLONU YOK: site disi kanal bu kosumda AYIRT EDILEMEDI (goc kosunca")
+        A("    tekrar kos — bugunku 'kayip' sayisi o kanali da iceriyor olabilir).")
     if tahmini_an:
         A("  · 'odendi' gecis ani durum_gecmisi'nde YOK, siparis tarihine dusuldu: %s"
           % ", ".join(tahmini_an))
@@ -416,6 +564,11 @@ def rapor(satirlar, esik_kart=ESIK_KART, esik_havale=ESIK_HAVALE, ayrinti=False)
         "esik_oncesi_adet": len(kovalar[ESIK_ONCESI]),
         "esik_oncesi_ciro_kurus": onceki_ciro,
         "olculdu_adet": len(kovalar[OLCULDU]),
+        "olcum_beklenmez_adet": len(kovalar[OLCUM_BEKLENMEZ]),
+        "olcum_beklenmez_ciro_kurus": beklenmez_ciro,
+        "kanal_dagilimi": {ad: {"adet": a, "ciro_kurus": c}
+                           for ad, (a, c) in kanal_dagilim.items()},
+        "kanal_kolonu": kanal_kolonu,
         "meta_penceresi_disi_adet": len(pencere_uyari),
         "incelenen": len(satirlar),
     }
@@ -443,8 +596,14 @@ def main(argv=None):
         if iso_sn(deger) is None:
             sys.exit("%s cozulemedi (ISO 8601 bekleniyor): %r" % (ad, deger))
 
-    satirlar = wrangler_sorgu(sql_sorgu(args.son))
-    metin, ozet = rapor(satirlar, ek, eh, args.ayrinti)
+    satirlar, kanal_kolonu = siparisleri_oku(args.son)
+    if not kanal_kolonu:
+        # GURULTULU: sessiz dusus, "kayip" listesine site disi siparislerin sizmasi
+        # demektir. Kimse bunu fark etmeden rapora bakmasin.
+        print("!! KANAL KOLONU YOK — 'no such column: kanal'; kolonsuz SELECT'e dusuldu")
+        print("   (goc henuz kosmadi: python3 tools/d1-sync.py --sema). TUM satirlar SITE")
+        print("   kabul edildi; site disi bir uc varsa siparisleri KAYIP gorunur.")
+    metin, ozet = rapor(satirlar, ek, eh, args.ayrinti, kanal_kolonu)
     print(metin)
     return 1 if ozet["kayip_adet"] else 0
 
