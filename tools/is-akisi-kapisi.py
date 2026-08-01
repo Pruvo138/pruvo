@@ -1654,9 +1654,13 @@ def bolum_kablosu_kontrol():
 TABLO_TABANLARI = (
     ("B_IDDIALAR", 5), ("B_MUTANTLAR", 10), ("B_JETON_MUTANTLAR", 4),
     ("B_TETIK_MUTANTLAR", 2), ("B_ADIM_IDDIALARI", 1), ("BOZUK_ORNEKLER", 9),
-    ("D_MUTANTLAR", 20), ("E_MUTANTLAR", 22), ("K26_SATIR_FIKSTURLERI", 26),
+    # E_MUTANTLAR 1 Agu: 22 -> 25 (durum-test.py KOL GRANULU mutantlari eklendi).
+    ("D_MUTANTLAR", 20), ("E_MUTANTLAR", 25), ("K26_SATIR_FIKSTURLERI", 26),
     ("K26_BAGLAM_MUTANTLAR", 5), ("K29_MUTANTLAR", 13),
-    ("E_ZORUNLU_CAGRILAR", 4), ("E_ZORUNLU_VARLIKLAR", 1),
+    # 1 Agu: 4 -> 6 (durum-test.py'nin IKI kolu KOL GRANULUNDE eklendi). Taban
+    # yukseltildi cunku kolu tabloDAN silmek, adimi deploy.yml'den silmekle AYNI
+    # kapiyi acar: iddia dusar, kimse kirmizi gormez.
+    ("E_ZORUNLU_CAGRILAR", 6), ("E_ZORUNLU_VARLIKLAR", 1),
     ("KABLO_TABLOSU", 5), ("B_MESRU_YAZIMLAR", 6),
     # 🔴 SERIT_B (31 Tem): tablo BUYUYEBILIR ama TABANIN ALTINA DUSEMEZ. Kucultmek
     # tek basina bir kacis DEGILDIR (S3 bayatlik kurali zaten kirmizi yakar), ama
@@ -2169,7 +2173,12 @@ SERIT_B = {
         "Marka DURUM PANOSU (parity-panel/CSV teshis ciktisi) testi; pruvo3d.com'a "
         "hicbir sey yayinlamaz.",
     ("deploy.yml", "serit-b", "tools/durum-test.py"):
-        "durum.py PANOSUNUN kabul testi; pano bir teshis ciktisidir, yayinlanmaz.",
+        "durum.py PANOSUNUN kabul testi; pano bir teshis ciktisidir, yayinlanmaz. "
+        "IKI KOL DA bu job'da: bayraksiz (gercek pano ciktisi) + `--ic-nobetci` "
+        "(6c sizinti muafiyetinin mutasyon bataryasi). ⚠️ Bu anahtar ARAC YOLU "
+        "granulundedir, KOL granulunde DEGIL — yani tek basina bir kolun adimi "
+        "silinirse BURASI kirmizi yanmaz. Kol capasi Bolum E'dedir "
+        "(E_ZORUNLU_CAGRILAR: iki kol AYRI AYRI beyan edilmistir).",
     ("deploy.yml", "serit-b", "tools/durum-edge-test.py"):
         "durum.py EDGE_KATALOG sayaci (pano bolumu) testi; yayinlanan cikti uretmez.",
     ("deploy.yml", "serit-b", "tools/durum-yedek-test.py"):
@@ -2476,6 +2485,26 @@ E_ZORUNLU_CAGRILAR = (
      "D1 YAZMA GERI-OKUMA nobeti (write-verify + icerik ekseni). Adim fail-open olursa "
      "senkron sessizce bozulur: site urunu gosterir, Ege D1'den GOREMEZ (sessiz satis "
      "kaybi, [[ege-d1-bagimliligi]]). d1-sync.py kesif predikatina girmez -> Bolum D kor."),
+    # 🔴 1 AGU — KOL GRANULU (olculen delik, [[nobetci-cagri-satiri-nobetsiz]]).
+    # durum-test.py'nin IKI kolu var ve IKISI DE ayni job'da (`serit-b`) kosuyor:
+    # bayraksiz kol "bugunku pano ciktisi temiz mi" der, `--ic-nobetci` kolu 6c
+    # SIZINTI MUAFIYETININ kendi capasidir (mutasyon bataryasi). OLCULDU: `--ic-nobetci`
+    # ADIMININ TAMAMI (name+run) silindiginde ci-kapsam-test.py · kapi-envanteri.py ·
+    # is-akisi-kapisi.py UCU DE rc=0 veriyordu. Sebep: tek beyan mekanizmasi (SERIT_B)
+    # ARAC YOLU granulunde anahtarlanir -- `("deploy.yml","serit-b","tools/durum-test.py")`
+    # -- ve ayni job'daki BAYRAKSIZ cagri o anahtari doyurur; kol dusunce kimse gormez.
+    # Bolum E ise KOL granulundedir (kapi + zorunlu bayrak). Bu yuzden iki kol da
+    # AYRI AYRI beyan edilir: bir kolun adimi silinirse KIRMIZI yanan iddia odur.
+    ("tools/durum-test.py", None,
+     "DURUM PANOSU kabul testi — BAYRAKSIZ (gercek olcum) kolu. 6a/6b/6c sizinti "
+     "kapilari burada GERCEK pano ciktisi uzerinde kosar; depo PUBLIC oldugu icin "
+     "bu kol dusmesi sir/kimlik ekseninin CI'da hic olculmemesi demektir."),
+    ("tools/durum-test.py", "--ic-nobetci",
+     "6c 'uzun-anahtar' MUAFIYETININ oz-nobetcisi (S1-S4 sartlarinin her biri icin "
+     "1:1 fikstur + mutant, ters-yon yan etki iddiasi, `/` kisa yolu esdegerlik "
+     "olcumu). Bu kol dusmesi muafiyetin SESSIZCE genisletilebilmesi demektir: "
+     "muafiyeti `return True`e cevirmek ya da S2 tavanini silmek 6c'yi sonsuza dek "
+     "yesil birakirdi (olculdu 1 Agu — tavan silinince bu kol 7/12 KIRMIZI yaniyor)."),
 )
 
 # ---- ZORUNLU YAYIN VARLIKLARI (adim TURU korlugunun ikinci ekseni) ---------
@@ -3158,6 +3187,10 @@ jobs:
         run: python3 tools/build.py
       - name: "D1 yazma geri-okuma"
         run: python3 tools/d1-sync.py --kendini-test
+      - name: "Durum panosu kabul testi"
+        run: python3 tools/durum-test.py
+      - name: "6c sizinti muafiyeti ic nobetcisi"
+        run: python3 tools/durum-test.py --ic-nobetci
       - name: "Yayin klasorunu topla"
         run: |
           mkdir -p _site/jenerator
@@ -3233,6 +3266,25 @@ E_MUTANTLAR = (
     ("D1 geri-okuma adimi BAYRAKSIZ kola cevrildi (--durum)",
      E_FIKSTUR_TEMIZ.replace("        run: python3 tools/d1-sync.py --kendini-test\n",
                              "        run: python3 tools/d1-sync.py --durum\n"), True),
+    # 🔴 1 AGU — KOL GRANULU MUTANTLARI ([[nobetci-cagri-satiri-nobetsiz]]).
+    # OLCULEN DELIK: durum-test.py'nin iki kolu da AYNI job'da kosuyor ve tek beyan
+    # mekanizmasi (SERIT_B) ARAC YOLU granulunde anahtarli oldugu icin, bir kolun
+    # adimi silindiginde ayni job'daki OTEKI kol anahtari doyuruyor ve UC denetci de
+    # rc=0 veriyordu. Asagidaki iki mutant tam bu hali capalar: bir kol dusunce
+    # Bolum E KIRMIZI yanmali. UCUNCUSU (kanarya) ters yonu tutar: kollarin AYRI
+    # ADIMLARDA olmasi MESRUDUR ve tek basina kirmizi yakmamalidir.
+    ("6c IC NOBETCI kolu (`--ic-nobetci`) adimi SILINDI — bayraksiz kol duruyor",
+     E_FIKSTUR_TEMIZ.replace('      - name: "6c sizinti muafiyeti ic nobetcisi"\n'
+                             "        run: python3 tools/durum-test.py --ic-nobetci\n",
+                             ""), True),
+    ("durum-test BAYRAKSIZ kol adimi SILINDI — `--ic-nobetci` kolu duruyor",
+     E_FIKSTUR_TEMIZ.replace('      - name: "Durum panosu kabul testi"\n'
+                             "        run: python3 tools/durum-test.py\n",
+                             ""), True),
+    ("6c ic nobetci kolu `|| true` ile yutuldu",
+     E_FIKSTUR_TEMIZ.replace("        run: python3 tools/durum-test.py --ic-nobetci\n",
+                             "        run: python3 tools/durum-test.py --ic-nobetci "
+                             "|| true\n"), True),
     ("YAYIN VARLIGI `cp jenerator/hacim.js` -> `echo cp ...` (OLCULEN SAG KALAN MUTANT)",
      E_FIKSTUR_TEMIZ.replace("          cp jenerator/hacim.js _site/jenerator/\n",
                              "          echo cp jenerator/hacim.js _site/jenerator/\n"),

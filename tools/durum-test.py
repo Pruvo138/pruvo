@@ -167,23 +167,48 @@ def mesru_kelime_yolu(s):
     PUBLIC'tir; sir/kimlik degildir.
 
     ⚠️ MUAFIYETIN SINIRI — KARA LISTE DEGIL, BEYAZ LISTE. Desen DARALTILMADI
-    (base64 alfabesi yerinde duruyor); yalnizca su IKI sartin IKISINI DE saglayan
-    vuruslar muaf sayilir:
-      (1) `/` ile ayrilan HER segment YALNIZCA ASCII HARF, ve 2..20 harf uzunlugunda
-          (rakam/`+` iceren ya da 20'den uzun ayracsiz govde = ANAHTAR suphesi,
-          muaf DEGIL — base64/base32 anahtarlari pratikte her ikisini de tasir),
-      (2) HER segment TEK BICIMDE: ya tamami buyuk, ya tamami kucuk, ya Bas-harfli
-          (segment ICINDE karisik buyuk/kucuk = base64 imzasi, muaf DEGIL).
-    Iki sart da _muafiyet_fiksturleri()/--ic-nobetci mutasyonlariyla capalanmistir:
-    her sarti tek tek gevseten mutant, sir-benzeri bir fiksturu sizdirir -> KIRMIZI.
+    (base64 alfabesi yerinde duruyor); yalnizca su DORT sarti BIRDEN saglayan
+    vuruslar muaf sayilir. Sartlar TEK TEK numaralidir cunku her biri AYRI bir
+    fikstur + AYRI bir mutantla capalanir (bkz. _SIZMAMALI / ic_nobetci):
+      (S1) `/` ile ayrilan HER segment YALNIZCA ASCII HARF (rakam ya da `+` tasiyan
+           segment = ANAHTAR suphesi, muaf DEGIL),
+      (S2) HER segment EN COK 20 harf — TAVAN. 20'den uzun AYRACSIZ gövde base64/
+           base32 anahtarinin ta kendisidir; muafiyetin en tasiyici sarti budur,
+      (S3) HER segment EN AZ 2 harf — TABAN. Tek harfli segment dizisi (`a/B/c/...`)
+           bir KELIME YOLU degildir, ayracla serpistirilmis bir govdedir,
+      (S4) HER segment TEK BICIMDE: ya tamami buyuk, ya tamami kucuk, ya Bas-harfli
+           (segment ICINDE karisik buyuk/kucuk = base64 imzasi, muaf DEGIL).
+
+    🔴 `/` ZORUNLULUGU AYRI BIR SART DEGILDIR — bilerek. Asagidaki erken cikis bir
+    KISA YOLDUR, capasi da OLCUMDUR: nobetcinin calisma alani 40+ karakterlik
+    vuruslardir ve `/` icermeyen 40+ karakterlik bir dizgi TEK segmenttir, dolayisiyla
+    S2 TAVANI onu zaten reddeder. Yani erken cikisi SILMEK muafiyeti GENISLETMEZ.
+    Bu "herhalde oyledir" degil OLCULUR: ic_nobetci'deki E1 esdegerlik iddiasi, 40+
+    karakterlik sentetik korpusun TAMAMINDA `/` kontrolu OLAN ve OLMAYAN surumlerin
+    AYNI hukmu verdigini dogrular. E1 bir gun KIRMIZI yanarsa (or. S2 tavani
+    gevsetilirse) `/` artik tasiyici demektir ve KENDI fikstur/mutant cifti YAZILMALIDIR.
     """
     if not isinstance(s, str) or "/" not in s:
         return False
+    return _segmentler_kelime_mi(s)
+
+
+def _segmentler_kelime_mi(s):
+    """mesru_kelime_yolu'nun S1-S4 govdesi (`/` kisa yolu HARIC).
+
+    AYRI FONKSIYON: ic_nobetci'deki E1 esdegerlik olcumu tam olarak bu govdeyi
+    `/` kontrolu OLMADAN cagirir — mutant ile gercek kodun IKIZ TANIM olarak
+    ayrisma riski boylece kalkar ([[nobetci-fikstur-sekli]] dersi: mutant, gercek
+    fonksiyonun KOPYASI olursa iki tanim sessizce ayrilir ve olcum yalan soyler).
+    """
     for p in s.split("/"):
-        # (1) yalnizca harf + makul kelime boyu
-        if not p.isascii() or not p.isalpha() or not (2 <= len(p) <= 20):
+        if not p.isascii() or not p.isalpha():      # S1 yalnizca harf
             return False
-        # (2) segment ici bicim tekdüze (ALLCAPS / alllower / Basharfli)
+        if len(p) > 20:                             # S2 TAVAN
+            return False
+        if len(p) < 2:                              # S3 TABAN
+            return False
+        # S4 segment ici bicim tekdüze (ALLCAPS / alllower / Basharfli)
         if not (p.isupper() or p.islower() or (p[0].isupper() and p[1:].islower())):
             return False
     return True
@@ -200,16 +225,25 @@ _MUAF_OLMALI = [
     "trim/manifold/conta/hortum/koruk/kaplin/distributor/tank/yoke/starter",
     "Trim/Manifold/Conta/Hortum/Koruk/Kaplin/Distributor/Tank/Yoke/Starter",
 ]
-_SIZMAMALI = [
-    # sart (1) durdurur: ayracsiz 45 harflik tek govde (base32 anahtar sekli)
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRS",
-    # sart (1) durdurur: segmentlerde RAKAM var (base64/anahtar govdesi)
-    "ABC123DEF456/GHI789JKL012/MNO345PQR678/STU901VWX234",
-    # sart (2) durdurur: segment ICINDE karisik buyuk/kucuk (base64 imzasi)
-    "wJalrXUtnFEMIK/bPxRfiCYzEXA/mPLEkeyQwErTy/AbCdEfGhIj",
-    # sart (1) durdurur: `+` ve `/` karisik ham base64 govdesi
-    "aGVsbG9+/Xb3JsZFRoaXNJc0FGYWtlU2VjcmV0VmFsdWUxMjM0NQ",
-]
+# 🔴 HER KALEM, KENDISINI DURDURAN SARTIN ETIKETIYLE ISARETLIDIR ("S1".."S4") ve
+# ic_nobetci o sarti gevseten mutantin TAM BU KALEMI sizdirmasini SART kosar (1:1).
+# NEDEN BOYLE: ilk surumde mutantlar "en az bir fikstur sizsin" diye olculuyordu ve
+# S2 (tavan) mutanti tavanla birlikte `/` kisa yolunu DA siliyordu -> oldurdugu kalem
+# aslinda `/` yuzunden duruyordu. Sonuc SAHTE 1:1 idi: tavan GERCEK fonksiyondan
+# silinseydi hicbir sey kirmizi yanmayacakti. "En az bir fikstur" olcusu, mutantin
+# HEDEFLEDIGI sartin tasiyici oldugunu KANITLAMAZ.
+#   (etiket, dizgi, DURDURAN_SART)
+_SIZMAMALI = (
+    ("base32-govde", "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMN/OP", "S2"),
+    ("rakamli-govde", "ABC123DEF456/GHI789JKL012/MNO345PQR678/STU901VWX234", "S1"),
+    ("tek-harf-serpistirme", "a/BCDEFGHIJKLMNOPQRST/uvwxyzabcdefghij/KLMNOPQRST", "S3"),
+    ("karisik-kutu", "wJalrXUtnFEMIK/bPxRfiCYzEXA/mPLEkeyQwErTy/AbCdEfGhIj", "S4"),
+    # "COK" = birden fazla sart durduruyor (`+` karakteri S1'i, 43 harflik ikinci
+    # segment S2'yi dusurur). 1:1 iddiasina GIRMEZ — tek bir sarti gevseten mutant
+    # bunu sizdiramaz, cunku digeri hala tutuyor. F0'da ve M0'da olculur; amaci
+    # "derinlemesine savunma gercekten var mi" sorusudur.
+    ("ham-base64", "aGVsbG9+/Xb3JsZFRoaXNJc0FGYWtlU2VjcmV0VmFsdWUxMjM0NQ", "COK"),
+)
 
 
 def _muafiyet_fiksturleri(fonk=None):
@@ -219,70 +253,111 @@ def _muafiyet_fiksturleri(fonk=None):
     for s in _MUAF_OLMALI:
         if not f(s):
             bozuk.append("muaf-olmali-degil<%d kr>" % len(s))
-    for s in _SIZMAMALI:
+    for etiket, s, sart in _SIZMAMALI:
         if f(s):
-            bozuk.append("SIZDI<%d kr>" % len(s))
+            bozuk.append("SIZDI:%s(%s)" % (etiket, sart))
     return bozuk
 
 
-# --ic-nobetci MUTASYONLARI: muafiyetin HER sartini tek tek gevsetir. Gevseyen
-# muafiyet sir-benzeri bir fiksturu gecirirse mutant OLDU (=KIRMIZI) demektir.
-# Olu iddia kabul edilmez: bir sart mutasyona ragmen YESIL kalirsa, o sart
-# TASIYICI DEGILDIR ve muafiyet o kadar dar degildir -> ic nobetci kirmizi yanar.
-def _mutant_hepsini_gecir(s):
-    return isinstance(s, str) and "/" in s          # M1: sartlarin ikisi de silindi
+# --ic-nobetci MUTASYONLARI: muafiyetin HER sartini TEK BASINA gevsetir (baska hicbir
+# sarta dokunmadan). Gevseyen muafiyet o sartin durdurdugu fiksturu gecirirse mutant
+# OLDU demektir. Olu iddia kabul edilmez: hedef fikstur sizMIYORsa o sart TASIYICI
+# DEGILDIR -> ic nobetci KIRMIZI yanar.
+#
+# ⚠️ Mutantlar `_segmentler_kelime_mi`nin KOPYASI DEGIL, ondan TURETILIR: govde tek
+# tek sartlari atlayabilen bir `_govde(s, atla=...)` uzerinden kurulur. Ikiz tanim
+# riski (mutant ile gercek kod sessizce ayrilir) boylece yapisal olarak kapatilir.
+def _govde(s, atla=()):
+    """S1-S4'un, istenen sart(lar) ATLANARAK kosulan hali.
 
-
-def _mutant_uzunluk_tavani_yok(s):
-    if not isinstance(s, str):
-        return False
-    for p in s.split("/"):                          # M2: 2..20 tavani kalkti
-        if not p.isascii() or not p.isalpha():
+    Sart ATLANDIGINDA hic sorulmaz (yarim gevsetme yok): S1 atlanirsa karakter
+    sinifi HIC bakilmaz, S2 atlanirsa tavan HIC bakilmaz vb. Yarim gevsetilen bir
+    mutant, oldurmesi gereken fiksturu KENDI kalintisiyla durdurur ve olcum yalan
+    soyler — bu dosyada bir kez olculdu (ilk M2, tavanla birlikte `/` kisa yolunu
+    da siliyordu).
+    """
+    for p in s.split("/"):
+        if "S1" not in atla and (not p.isascii() or not p.isalpha()):
             return False
-        if not (p.isupper() or p.islower() or (p[0].isupper() and p[1:].islower())):
+        if "S2" not in atla and len(p) > 20:
             return False
+        if "S3" not in atla and len(p) < 2:
+            return False
+        if "S4" not in atla:
+            if not p or not (p.isupper() or p.islower()
+                             or (p[0].isupper() and p[1:].islower())):
+                return False
     return True
 
 
-def _mutant_rakam_serbest(s):
-    if not isinstance(s, str) or "/" not in s:
-        return False
-    for p in s.split("/"):                          # M3: isalpha -> isalnum
-        if not p.isascii() or not p.isalnum() or not (2 <= len(p) <= 20):
+def _mutant(atla):
+    """`/` kisa yolu KORUNARAK yalniz <atla> sartlarini gevseten muafiyet."""
+    def f(s):
+        if not isinstance(s, str) or "/" not in s:
             return False
-        if not (p.isupper() or p.islower() or (p[0].isupper() and p[1:].islower())):
-            return False
-    return True
-
-
-def _mutant_bicim_sarti_yok(s):
-    if not isinstance(s, str) or "/" not in s:
-        return False
-    for p in s.split("/"):                          # M4: segment ici bicim sarti kalkti
-        if not p.isascii() or not p.isalpha() or not (2 <= len(p) <= 20):
-            return False
-    return True
+        return _govde(s, atla)
+    return f
 
 
 def ic_nobetci():
     """`python3 tools/durum-test.py --ic-nobetci` — muafiyetin KENDI capasi."""
-    print("\n6c MUAFIYET IC NOBETCISI (mutasyon) — sir-benzeri dizgi sizarsa mutant OLUR\n")
+    print("\n6c MUAFIYET IC NOBETCISI — her sart AYRI fikstur + AYRI mutantla capalidir\n")
     sonuc = []
 
+    # F0 — muafiyet OLU mu / GENIS mi (gercek fonksiyon, gercek fiksturler)
     bozuk = _muafiyet_fiksturleri()
-    sonuc.append(("F0 gercek muafiyet fiksturleri (muaf-olmali + sizmamali)", not bozuk,
-                  "bozuk=%s" % bozuk))
+    sonuc.append(("F0 gercek fiksturler (%d muaf-olmali + %d sizmamali)"
+                  % (len(_MUAF_OLMALI), len(_SIZMAMALI)), not bozuk, "bozuk=%s" % bozuk))
 
+    # F1 — govde ile gercek fonksiyon AYNI hukmu vermeli (ikiz tanim nobeti):
+    #      mutant uretecinin atlama-yapmayan hali gercek kodun ta kendisi olmali.
+    ayrisan = [e for e, s, _ in _SIZMAMALI if _mutant(())(s) != mesru_kelime_yolu(s)]
+    ayrisan += [("muaf%d" % i) for i, s in enumerate(_MUAF_OLMALI)
+                if _mutant(())(s) != mesru_kelime_yolu(s)]
+    sonuc.append(("F1 mutant ureteci (atlama YOK) == gercek muafiyet", not ayrisan,
+                  "ayrisan=%s" % ayrisan))
+
+    # M1..M4 — HER SART, KENDI fiksturuyle 1:1. Hedef fikstur sizmezse sart tasiyici degil.
     mutantlar = [
-        ("M1 iki sart da silindi (`/` varsa muaf)", _mutant_hepsini_gecir),
-        ("M2 segment uzunluk tavani (2..20) silindi", _mutant_uzunluk_tavani_yok),
-        ("M3 harf sarti gevsetildi (isalpha -> isalnum)", _mutant_rakam_serbest),
-        ("M4 segment ici bicim (ALLCAPS/alllower/Bas) sarti silindi", _mutant_bicim_sarti_yok),
+        ("M1 S1 karakter sinifi (yalniz harf) silindi", ("S1",), "S1"),
+        ("M2 S2 TAVANI (segment <= 20) silindi", ("S2",), "S2"),
+        ("M3 S3 TABANI (segment >= 2) silindi", ("S3",), "S3"),
+        ("M4 S4 bicim sarti (ALLCAPS/alllower/Bas) silindi", ("S4",), "S4"),
     ]
-    for ad, m in mutantlar:
-        sizan = [s for s in _SIZMAMALI if m(s)]
-        sonuc.append((ad + " -> OLMELI", bool(sizan),
-                      "sizan fikstur sayisi=%d" % len(sizan)))
+    for ad, atla, hedef in mutantlar:
+        m = _mutant(atla)
+        hedefler = [(e, s) for e, s, sart in _SIZMAMALI if sart == hedef]
+        sizan = [e for e, s in hedefler if m(s)]
+        # 1:1 SARTI: hedef sartla isaretli fiksturlerin HEPSI sizmali, ve hedef
+        # kume BOS OLAMAZ. "En az bir fikstur sizdi" yetmez — sizdiran kalem baska
+        # bir sartin durdurdugu kalem olabilir (bu dosyada olculen SAHTE 1:1).
+        sonuc.append((ad + " -> hedef fikstur(ler) SIZMALI",
+                      bool(hedefler) and len(sizan) == len(hedefler),
+                      "hedef=%s sizan=%s" % ([e for e, _ in hedefler], sizan)))
+        # TERS YON: mutant, hedefi OLMAYAN fiksturleri sizdirMEMELI. Sizdiriyorsa
+        # "gevsettigim sart" sandigimiz sey aslinda baska kalemleri de tutuyordu
+        # -> etiketleme yanlis, 1:1 iddiasi yine sahte olur.
+        yan = [e for e, s, sart in _SIZMAMALI if sart not in (hedef, "COK") and m(s)]
+        sonuc.append((ad + " -> YAN ETKI YOK (baska sartin kalemi sizmamali)",
+                      not yan, "yan sizan=%s" % yan))
+
+    # M0 — dort sart da silinirse TUM sizmamali kume sizmali. `COK` etiketli kalem
+    #      YALNIZ burada olculur: tek sart gevsetmeyle sizmaz, hepsiyle sizmali.
+    m0 = _mutant(("S1", "S2", "S3", "S4"))
+    sizan0 = [e for e, s, _ in _SIZMAMALI if m0(s)]
+    sonuc.append(("M0 dort sart da silindi -> TUM sizmamali kume SIZMALI",
+                  len(sizan0) == len(_SIZMAMALI),
+                  "sizan=%d/%d" % (len(sizan0), len(_SIZMAMALI))))
+
+    # E1 — `/` KISA YOLUNUN REDUNDANSI OLCUMU (bkz. mesru_kelime_yolu docstring).
+    #      Nobetcinin calisma alani 40+ karakterlik vuruslardir; o alanda `/`
+    #      kontrolu olan ve olmayan surumler AYNI hukmu vermeli. Ayrisirlarsa `/`
+    #      tasiyici bir sarttir ve kendi fikstur/mutant cifti YAZILMALIDIR.
+    korpus = _e1_korpus()
+    ayrik = [k for k in korpus if mesru_kelime_yolu(k) != _segmentler_kelime_mi(k)]
+    sonuc.append(("E1 `/` kisa yolu 40+ alanda REDUNDAN (esdegerlik)", not ayrik,
+                  "korpus=%d ayrisan=%d (`/`siz kalem=%d)"
+                  % (len(korpus), len(ayrik), sum(1 for k in korpus if "/" not in k))))
 
     for ad, gecti, detay in sonuc:
         print("  %s %s | %s" % ("✅" if gecti else "❌", ad, detay))
@@ -290,6 +365,27 @@ def ic_nobetci():
     print("\n%s  %d/%d\n" % ("✅ HEPSI YESIL" if not kirmizi else "❌ KIRMIZI",
                              len(sonuc) - len(kirmizi), len(sonuc)))
     return 1 if kirmizi else 0
+
+
+def _e1_korpus():
+    """E1 esdegerlik korpusu: 40+ karakterlik SENTETIK vuruslar (sir DEGIL).
+
+    Uretim BELIRLENIMLIDIR (sabit tohum) — CI'da dalgalanan bir iddia iddia degildir.
+    Kume bilerek `/`SIZ dizgilerle DOLUDUR: kisa yolun redundansi tam orada sinanir.
+    """
+    import random
+    alfabe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    r = random.Random(20260801)
+    korpus = [s for _e, s, _k in _SIZMAMALI] + list(_MUAF_OLMALI)
+    for _ in range(2000):
+        n = r.randint(40, 90)
+        korpus.append("".join(r.choice(alfabe) for _ in range(n)))
+    # `/`SIZ kol: yalniz harf, yalniz buyuk, yalniz kucuk — tavanin tek engel oldugu hal
+    for _ in range(500):
+        n = r.randint(40, 90)
+        harf = r.choice(("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"))
+        korpus.append("".join(r.choice(harf) for _ in range(n)))
+    return korpus
 
 
 def test_sizinti(cikti):
