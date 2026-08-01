@@ -32,7 +32,13 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - Edge kartlarinda gosterim kismi fakat fail-closed; tam kapsam kardes mimarin duzlemi.
 - JSON-LD'ye `priceSpecification` eklenmedi.
 - Bayat UPSERT bloklanir; yayinlanan konfigur paritesi bloklayici seritte olculur.
-- DEVAM.md public ve git takibinde; hassas ayrinti yalniz DEVAM-ARSIV.md'ye yazilir.
+- DEVAM.md public ve git takibinde (`b28051b3`, 31 Tem — bilincli karar, gitignore'da tek
+  istisna); DEVAM-ARSIV.md git DISI kalir. Tedarikci/oran/kur/sir, gizli dosya adi ve
+  guvenlik-bypass ayrintisi YALNIZ arsive yazilir. Ayni kural CLAUDE.md "BILGI NEREDE"
+  satirinda birebir yazili; iki metin CELISIRSE olculen git durumu hakemdir.
+- 1 Agu icerik denetimi: DEVAM.md'de kalan 4 hassas blok (acik sunucu fiyat kusuru,
+  maskeleme nobetcisi karsilastirmasi, kanca hata davranisi, temizlik oncesi gecmise
+  isaretciler) DEVAM-ARSIV.md'ye BIREBIR tasindi, yerlerine notr isaretci birakildi.
 
 ## OTURUM KAPANISI — KAPANDI
 - Capa kalkani fail-closed: `7ef7427d`.
@@ -64,8 +70,7 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   is akisi serit beyani 39; kisisel veri nobetcisi yesil. Sizinti taramasi 1153 eklenen
   satirda 10 desen, 0 vurus.
 - MIMAR KARARI uygulandi: arac hicbir yerden cagrilmiyordu, izlenen pre-push kanca
-  sablonuna jetonsuz ve fail-open baglandi (`fcda5576`). Arac patlasa da kilit baskasinda
-  olsa da push durmaz; yalnizca anlamli satirlar gorunur.
+  sablonuna baglandi (`fcda5576`). Baglama bicimi ve hata davranisi DEVAM-ARSIV.md'de.
 - Tetik ICRAYLA kanitlandi: bos depoda gercek push araci atesledi; kanca kaldirilinca ayni
   iz uretilmedi. Iki vaka kabul testine kalici eklendi (toplam 32 kontrol, 0 kirmizi);
   mutasyonda cagri silinince 3 iddia dustu, ilgisiz degisiklikte yesil.
@@ -158,15 +163,8 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   Ham jeton taramasindaki 7 kalinti BAGLAMIYLA olculdu, hepsi ATIL: paylasilan CSS
   sinif tanimlari, `KART_SECIM=false` ile ulasilamayan JS dallari ve her sayfada olan
   genel alt-bilgi `/malzeme-rehberi/` linki. `tur`suz kontrol sayfasinda regresyon yok.
-- 🔴 ACIK KALINTI (kapsam DISI, kapanmadi): sunucu fiyatlama fonksiyonu hala `tur`-KOR.
-  Merge SONRASI canli `/api/shop/fiyat` prova ucuyle ayni fiziksel uruncte olculdu:
-    PLA + Siyah   -> 100000 krs (liste, dogru)
-    PLA + "Diger" -> 115000 krs (+%15)
-    ASA + "Diger" -> 184000 krs (+%84)
-  UI artik boyle bir satir URETEMEZ, ama satir `renk` alanina bakilarak fiyatlandigi ve
-  sepet localStorage'da kaldigi icin ONARIM ONCESI kaydedilmis bayat bir sepet satiri
-  hala fazla tahsil edilir. Kalici cozum sunucu tarafinda: fiziksel urunde malzeme/renk
-  carpani UYGULANMAMALI ya da bu alanlar REDDEDILMELI. Isci verilmedi.
+- 🔴 ACIK KALINTI (kapsam DISI, kapanmadi): sunucu fiyatlama tarafinda kapanmamis bir
+  kusur var; olculen ayrinti ve tekrar uretim adimlari DEVAM-ARSIV.md'de. Isci verilmedi.
 - Temizlik YAPILMADI: `claude/exciting-hodgkin-91ec53` dali ve worktree'si aktif bir
   oturumda kullaniliyordu; `worktree remove` / `branch -D` bilerek kosulmadi.
 
@@ -185,13 +183,14 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   16407 == 16407; icerik ekseni 16407 urun_hash birebir, uyusmaz 0 / eksik 0 / fazla 0.
 - KANIT: `git grep -i` calisma agacinda VE `origin/main`'de VURUS 0.
 - ~~🔴 GECMIS TEMIZLENMEDI — OKAN KARARI (1 Agu): blob gecmiste KALIYOR.~~
-  **BU KAYIT GECERSIZ (1 Agu, Okan yeni karar):** gecmis TEMIZLENDI. Adi getiren commit
-  `bc4c6c35` idi; icerik ekseni yeniden yazildi ve `--force-with-lease` ile itildi.
+  **BU KAYIT GECERSIZ (1 Agu, Okan yeni karar):** gecmis TEMIZLENDI. Icerik ekseni
+  yeniden yazildi ve `--force-with-lease` ile itildi (kaynak commit ve yedek ref adi
+  DEVAM-ARSIV.md'de).
   Pencere 18 commit (1825 ata DOKUNULMADI), degisen dosya kumesi TAM OLARAK 1 dosya /
   9 commit, baska hicbir blob degismedi, UCTAKI AGAC birebir ayni, eski uc <-> yeni uc
   `git diff` BOS, mesaj/yazar/tarihler bayt-birebir korundu. Push sonrasi olcum:
   mesaj ekseni 0 (1843 commit), icerik ekseni 0 (163 blob), calisma agaci 0, uzak dal
-  kalintisi 0 (34 dal). Yedek ref `refs/yedek/main-icerik-temizlik-20260801`.
+  kalintisi 0 (34 dal). Yedek ref alindi (adi DEVAM-ARSIV.md'de).
 - 🔴 TEMIZLIGIN KALICILIGI ARTIK KAPIYA BAGLI: gecmis IKI KEZ temizlenmis, IKI KEZ geri
   gelmisti; sebep her seferinde temizlik ONCESI taban uzerine kurulmus bir dalin merge
   edilmesiydi. `tools/gecmis-geri-donus-kapisi.py` (pre-push, fail-closed + CI gorunurluk
@@ -234,22 +233,20 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   bu commit mesajlarinda gecmis temizliginde cikarilmis tedarik zinciri adlari duruyor.
   Depo PUBLIC. Pre-push gecmis geri-donus kapisi zaten fail-closed durdururdu.
 - **(3) ASIL SEBEP — is main'de ZATEN VAR ve dal surumu GERILEME.** Ayni maskeleme
-  acigini kardes oturum bagimsiz kapatmis. Iki surum karsilastirildi: **main fail-closed**
-  — her etikette TUM alfanumerik karakterler yildizlanir, yalniz KAPALI listeyle taninan
-  son etiket acik kalir. **Dal surumu daha zayif** — etiket basina ILK HARF gorunur kalir
-  (kendi docstringi "bu bicim hala sizdirir" diye beyan ediyor) ve uzanti kontrolu
-  olmayan kolda son etiketi ACIK dusuren kalinti bilerek acik birakilmis. Merge ya da
-  cherry-pick, main'in daha guclu maskesini dalin zayif surumuyle DEGISTIRIRDI.
+  acigini kardes oturum bagimsiz kapatmis. Iki surum karsilastirildi: main surumu
+  fail-closed, dal surumu daha zayif; merge ya da cherry-pick main'in daha guclu
+  maskesini dalin zayif surumuyle DEGISTIRIRDI. Iki surumun karsilastirmali ayrintisi
+  DEVAM-ARSIV.md'de.
 - Cherry-pick de temiz uygulanmiyor: iki dosyada da CAKISMA (kapi dosyasi 2 blok,
   mutasyon dosyasi 1 blok) — main tepesi ayni fonksiyonlarda ilerlemis.
 - Dal KENDI icinde saglikli: alti kapi da dalin agacinda rc=0 (kendini-test 90/90,
   kaynak tarama 5 dosya 0 vurus, CI kapsam 148 kesif / 112 kosum / 36 muaf, kapi
   envanteri 7/7, kanca nobeti 11 eksende 11 yesil, kisisel veri testi tum kollar yesil).
   Sorun kalitede degil, **tabanda ve mukerrerlikte.**
-- **KALAN TEK OZGUN PARCA:** marka muafiyetinin kayitli govdeden turetilmesi (bilincli
-  takas: bir yonu kapatip ters yonu aciyor). Bu, main'in GUNCEL kodu uzerine yeniden
-  turetilmeli — bu dal uzerinden DEGIL. Paralel bir oturum su an ayni muafiyet capalari
-  uzerinde calisiyor; is verilmeden once cakisma kontrol edilmeli.
+- **KALAN TEK OZGUN PARCA:** marka muafiyetinin kayitli govdeden turetilmesi; acik takasin
+  ayrintisi DEVAM-ARSIV.md'de. Bu, main'in GUNCEL kodu uzerine yeniden turetilmeli — bu dal
+  uzerinden DEGIL. Paralel bir oturum su an ayni muafiyet capalari uzerinde calisiyor;
+  is verilmeden once cakisma kontrol edilmeli.
 - Main'e HICBIR SEY yazilmadi; gecici cherry-pick agaci ve dali silindi. Dogrulama: ana
   calisma agaci porcelain BOS, dal worktreei porcelain BOS (dal oturumu aktif, DOKUNULMADI).
   D1 teyidi: sayi ekseni 16499 == 16499; icerik ekseni 16499 urun_hash birebir,
