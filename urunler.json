@@ -1,5 +1,559 @@
 [
   {
+    "id": "mercury-18-1842-mercruiser-43-egzoz-manifoldu",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-1842 MerCruiser 4.3L Egzoz Manifoldu",
+    "aciklama": "MerCruiser 4.3L sterndrive motorlar için orijinal kalite döküm egzoz manifoldu.\nMotorun egzoz gazlarını soğutma suyuyla karıştırıp dışarı yönlendiren ana gövdedir; egzoz sisteminin ilk aşamasıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "30500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1842-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-1843-mercruiser-62-egzoz-manifoldu",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-1843 MerCruiser 6.2L Egzoz Manifoldu",
+    "aciklama": "MerCruiser 6.2L sterndrive motorlar için orijinal kalite döküm egzoz manifoldu.\nMotorun egzoz gazlarını soğutma suyuyla karıştırıp dışarı yönlendiren ana gövdedir; egzoz sisteminin ilk aşamasıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "30500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1843-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-1845-mercruiser-43-62-manifold-dirsegi",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-1845 MerCruiser 4.3-6.2L Manifold Dirseği",
+    "aciklama": "MerCruiser 4.3L-6.2L motor ailesi için egzoz manifoldunu su geçişli riser'a (yükseltici dirsek) bağlayan ara parça.\nManifold ile egzoz çıkışı arasındaki soğutma suyu ve egzoz gazı akışını yönlendirir.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "25800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1845-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "volvo-penta-18-1986-egzoz-manifoldu",
+    "kategori": "Marin",
+    "baslik": "Volvo Penta 18-1986 Egzoz Manifoldu (OEM 3857723)",
+    "aciklama": "Volvo Penta sterndrive motorlar için orijinal kalite döküm egzoz manifoldu (OEM referans: 3857723).\nMotorun egzoz gazlarını soğutma suyuyla karıştırıp dışarı yönlendiren ana gövdedir.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "22000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1986-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Volvo Penta"
+    ]
+  },
+  {
+    "id": "volvo-penta-18-1909-omc-manifold-dirsegi",
+    "kategori": "Marin",
+    "baslik": "Volvo Penta 18-1909 OMC-Volvo Manifold Dirseği",
+    "aciklama": "OMC ve Volvo Penta sterndrive motorlarında ortak kullanılan manifold dirseği.\nEgzoz manifoldu ile riser arasındaki bağlantıyı sağlayan geçiş parçasıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "19700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1909-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Volvo Penta"
+    ]
+  },
+  {
+    "id": "mercury-18-1970-mercruiser-manifold-dirsegi",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-1970 MerCruiser Manifold Dirseği (OEM 98504A3)",
+    "aciklama": "MerCruiser sterndrive motorlar için manifold dirseği (OEM referans: 98504A3).\nEgzoz manifoldu ile riser arasındaki su/egzoz geçişini sağlayan bağlantı parçasıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "11000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1970-1-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-1985-mercruiser-manifold-ara-parcasi",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-1985 MerCruiser Manifold Ara Parçası (OEM 93322)",
+    "aciklama": "MerCruiser sterndrive motorlar için manifold ile riser arasına giren ara bağlantı parçası (OEM referans: 93322).\nSoğutma suyu ve egzoz akışının doğru yönlendirilmesini sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "8900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1985-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-1908-mercruiser-manifold-ara-parcasi-2",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-1908 MerCruiser Manifold Ara Parçası (OEM 93322)",
+    "aciklama": "MerCruiser sterndrive motorlar için manifold ile riser arasına giren ara bağlantı parçası (OEM referans: 93322), 18-1985'ten farklı manifold/motor ölçüsüne uygun ayrı stok koduyla satılır.\nSoğutma suyu ve egzoz akışının doğru yönlendirilmesini sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "8400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1908-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-5408-distributor-rotoru",
+    "kategori": "Marin",
+    "baslik": "18-5408 Distribütör Rotoru (Mercury/Volvo Penta/OMC, OEM 808404)",
+    "aciklama": "MerCruiser, Volvo Penta ve OMC benzinli sterndrive motorlarında kullanılan ateşleme distribütörü rotoru (OEM referans: 808404).\nDistribütör kapağı içinde dönerek ateşleme akımını doğru silindire ileten parçadır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-5408-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury",
+      "Volvo Penta"
+    ]
+  },
+  {
+    "id": "volvo-penta-18-5705-trim-rolesi",
+    "kategori": "Marin",
+    "baslik": "Volvo Penta 18-5705 Trim Rölesi (OEM 876039-9)",
+    "aciklama": "Volvo Penta sterndrive motorların trim/tilt sisteminde motoru yön değiştiren elektrik rölesi (OEM referans: 876039-9).\nTrim düğmesine basıldığında pompa motorunun yönünü değiştiren anahtarlama elemanıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-5705-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Volvo Penta"
+    ]
+  },
+  {
+    "id": "volvo-penta-18-5700-trim-rolesi",
+    "kategori": "Marin",
+    "baslik": "Volvo Penta 18-5700 Trim Rölesi (OEM 3858081/3858809)",
+    "aciklama": "Volvo Penta sterndrive motorların trim/tilt sisteminde motoru yön değiştiren elektrik rölesi (OEM referans: 3858081, 3858809).\nTrim düğmesine basıldığında pompa motorunun yönünü değiştiren anahtarlama elemanıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-5700-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Volvo Penta"
+    ]
+  },
+  {
+    "id": "kty-18-8401-mars-motoru-civatasi",
+    "kategori": "Marin",
+    "baslik": "18-8401 Marş Motoru Civatası",
+    "aciklama": "Dıştan takma ve sterndrive deniz motorlarında marş motorunu gövdeye sabitleyen özel uzun civata.\nStandart civatalara göre daha uzun gövdesiyle marş motoru muhafazasının kalınlığını geçecek şekilde tasarlanmıştır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8401-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": []
+  },
+  {
+    "id": "mercury-18-6406-mercruiser-bravo-alpha-istavrozu",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-6406 MerCruiser Bravo/Alpha İstavrozu (OEM 865496A01/865493A0)",
+    "aciklama": "MerCruiser Bravo ve Alpha sterndrive şaft hattında kullanılan istavroz/kardan mafsalı (OEM referans: 865496A01, 865493A0).\nMotor mili ile alt ünite mili arasındaki açısal hareketi ileten bağlantı elemanıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "5800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-6406-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-1711-mercruiser-istavrozu",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-1711 MerCruiser İstavrozu (OEM 862132T)",
+    "aciklama": "MerCruiser sterndrive şaft hattında kullanılan istavroz/kardan mafsalı (OEM referans: 862132T).\nMotor mili ile alt ünite mili arasındaki açısal hareketi ileten bağlantı elemanıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "9900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1711-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-2103-mercruiser-trim-silindir-hortumu",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-2103 MerCruiser Trim Silindir Hortumu (OEM 32-86032)",
+    "aciklama": "MerCruiser sterndrive trim sisteminde hidrolik silindire yağ ileten basınç hortumu (OEM referans: 32-86032).\nTrim pompası ile trim silindiri arasındaki hidrolik bağlantıyı sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2103-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-2114-mercruiser-trim-hortumu",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-2114 MerCruiser Trim Hortumu",
+    "aciklama": "MerCruiser sterndrive trim sisteminde hidrolik silindire yağ ileten basınç hortumu.\nTrim pompası ile trim silindiri arasındaki hidrolik bağlantıyı sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "3400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2114-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-6400-mercruiser-yoke",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-6400 MerCruiser Yoke (Kardan Çatalı)",
+    "aciklama": "MerCruiser sterndrive şaft hattında istavrozu şafta bağlayan çatal parça (yoke).\nMotor mili ile alt ünite arasındaki kardan mafsalı bağlantısının bir ucunu oluşturur.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "11100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-6400-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-2373-mercruiser-trim-silindir-kaplini",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-2373 MerCruiser Trim Silindir Kaplini",
+    "aciklama": "MerCruiser sterndrive trim silindirinin gövdeye bağlandığı kaplin/rakor parçası.\nHidrolik hattın silindire sızdırmaz şekilde bağlanmasını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "4400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2373-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-2413-mercruiser-kaplini",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-2413 MerCruiser Kaplini",
+    "aciklama": "MerCruiser sterndrive motorlarda motor mili ile alt ünite (outdrive) mili arasındaki dönüş hareketini ileten ana kaplin.\nMotor gücünü pervaneye aktaran güç hattının kritik bağlantı elemanıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "42000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2413-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "volvo-penta-18-21751-kaplin",
+    "kategori": "Marin",
+    "baslik": "18-21751 Kaplin (Volvo Penta/OMC/Johnson-Evinrude)",
+    "aciklama": "Volvo Penta, OMC ve Johnson-Evinrude sterndrive motorlarında ortak kullanılan motor-alt ünite kaplini.\nMotor mili ile alt ünite mili arasındaki dönüş hareketini ileten güç aktarım parçasıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "18300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-21751-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Volvo Penta"
+    ]
+  },
+  {
+    "id": "volvo-penta-18-21752-kaplin",
+    "kategori": "Marin",
+    "baslik": "18-21752 Kaplin (Volvo Penta/OMC/Johnson-Evinrude, OEM 983902/986338/385962-3)",
+    "aciklama": "Volvo Penta, OMC ve Johnson-Evinrude sterndrive motorlarında ortak kullanılan motor-alt ünite kaplini (OEM referans: 983902, 986338, 385962-3).\nMotor mili ile alt ünite mili arasındaki dönüş hareketini ileten güç aktarım parçasıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "19800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-21752-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Volvo Penta"
+    ]
+  },
+  {
+    "id": "mercury-18-2341-mercruiser-trim-kovani",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-2341 MerCruiser Trim Kovanı",
+    "aciklama": "MerCruiser sterndrive trim silindirinin gövdeye pimlendiği bağlantı kovanı.\nTrim silindirinin salınım hareketini yataklayan küçük burç/kovan parçasıdır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2341-1-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-2425-mercruiser-trim-silindiri",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-2425 MerCruiser Trim Silindiri (OEM 98704A4)",
+    "aciklama": "MerCruiser sterndrive trim/tilt sisteminde alt üniteyi kaldırıp indiren hidrolik silindir (OEM referans: 98704A4).\nTrim pompasından gelen basınçla piston hareketi üreterek alt ünite açısını değiştirir.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "23100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2425-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-2429-trim-silindir-tamir-kiti",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-2429 Trim Silindir Tamir Kiti (OEM S182429)",
+    "aciklama": "MerCruiser sterndrive trim silindiri için conta/O-ring tamir kiti (OEM referans: S182429).\nSızdıran veya bakım gören trim silindirinin iç sızdırmazlık elemanlarını yeniler.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "23100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2429-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-2094-mercruiser-kuyruk-rulman-kecesi",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-2094 MerCruiser Kuyruk Rulman Keçesi (OEM 26-88416)",
+    "aciklama": "MerCruiser sterndrive alt ünitesinde şaft rulmanının yağ/su sızdırmazlığını sağlayan keçe (OEM referans: 26-88416).\nŞaft ile gövde arasındaki dönüş noktasında sızdırmazlığı korur.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "420 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2094-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "kty-18-2903-conta",
+    "kategori": "Marin",
+    "baslik": "18-2903 Conta (OEM 332696-338880)",
+    "aciklama": "Deniz motoru alt ünitesinde kullanılan sızdırmazlık contası (OEM referans: 332696, 338880).\nİki gövde parçası arasındaki birleşim yüzeyinde yağ/su sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "420 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2903-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": []
+  },
+  {
+    "id": "mercury-18-4392-mercruiser-takim-conta",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-4392 MerCruiser Takım Conta",
+    "aciklama": "MerCruiser V8 motorlar için üst takım conta seti — silindir kapağı, emme manifoldu ve kapak contalarını içerir.\nMotor revizyonu veya kapak sökme işlemlerinde komple değişim için kullanılır.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "15400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-4392-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "mercury-18-3876-conta-kapak",
+    "kategori": "Marin",
+    "baslik": "18-3876 Conta Kapak (MerCruiser 27-75611 / OMC 3853380-914971 / Volvo Penta 841207-856474)",
+    "aciklama": "MerCruiser, OMC ve Volvo Penta sterndrive motorlarında ortak kullanılan kapak contası (OEM referans: MerCruiser 27-75611, OMC 3853380/914971, Volvo Penta 841207/856474).\nKapak ile gövde arasındaki birleşim yüzeyinin sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "3600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3876-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury",
+      "Volvo Penta"
+    ]
+  },
+  {
+    "id": "mercury-18-0405-mercruiser-conta",
+    "kategori": "Marin",
+    "baslik": "Mercury 18-0405 MerCruiser Conta",
+    "aciklama": "MerCruiser sterndrive motorlarında kullanılan sızdırmazlık contası.\nİki gövde parçası arasındaki birleşim yüzeyinde yağ/su sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-0405-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Mercury"
+    ]
+  },
+  {
+    "id": "yamaha-18-3827-kapak-contasi",
+    "kategori": "Marin",
+    "baslik": "Yamaha 18-3827 Kapak Contası",
+    "aciklama": "Yamaha dıştan takma motorlarda kullanılan kapak contası.\nMotor gövdesindeki kapak ile ana blok arasındaki birleşim yüzeyinin sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3827-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Yamaha"
+    ]
+  },
+  {
+    "id": "yamaha-18-2592-samandira-contasi",
+    "kategori": "Marin",
+    "baslik": "Yamaha 18-2592 Şamandıra Contası (OEM 6E5-14384-03)",
+    "aciklama": "Yamaha dıştan takma motor karbüratöründe şamandıra haznesi kapağının sızdırmazlık contası (OEM referans: 6E5-14384-03).\nKarbüratör bakımında/tamirinde şamandıra kapağı ile hazne arasındaki sızdırmazlığı yeniler.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2592-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Yamaha"
+    ]
+  },
+  {
+    "id": "yamaha-18-3832-kapak-contasi",
+    "kategori": "Marin",
+    "baslik": "Yamaha 18-3832 Kapak Contası (OEM 6E5-11181-02)",
+    "aciklama": "Yamaha dıştan takma motorlarda kullanılan silindir kapağı contası (OEM referans: 6E5-11181-02).\nKapak ile silindir bloğu arasındaki birleşim yüzeyinin sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3832-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Yamaha"
+    ]
+  },
+  {
+    "id": "yamaha-18-3894-silindir-kapak-contasi",
+    "kategori": "Marin",
+    "baslik": "Yamaha 18-3894 Silindir Kapak Contası (OEM 6G5-11181-00)",
+    "aciklama": "Yamaha dıştan takma motorlarda kullanılan silindir kapağı contası (OEM referans: 6G5-11181-00).\nKapak ile silindir bloğu arasındaki birleşim yüzeyinin sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3894-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Yamaha"
+    ]
+  },
+  {
+    "id": "yamaha-mercury-18-3828-kapak-contasi",
+    "kategori": "Marin",
+    "baslik": "18-3828 Yamaha-Mercury Kapak Contası (OEM 689-11181-01)",
+    "aciklama": "Yamaha ve Mercury (ortak üretim) dıştan takma motorlarında kullanılan silindir kapağı contası (OEM referans: 689-11181-01).\nKapak ile silindir bloğu arasındaki birleşim yüzeyinin sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3828-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Yamaha",
+      "Mercury"
+    ]
+  },
+  {
+    "id": "yamaha-18-3804-kapak-contasi",
+    "kategori": "Marin",
+    "baslik": "Yamaha 18-3804 Kapak Contası (OEM 689-11181-01)",
+    "aciklama": "Yamaha dıştan takma motorlarda kullanılan silindir kapağı contası (OEM referans: 689-11181-01).\nKapak ile silindir bloğu arasındaki birleşim yüzeyinin sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3804-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Yamaha"
+    ]
+  },
+  {
+    "id": "yamaha-18-3830-kapak-contasi",
+    "kategori": "Marin",
+    "baslik": "Yamaha 18-3830 Kapak Contası (OEM 6H4-11181-01)",
+    "aciklama": "Yamaha dıştan takma motorlarda kullanılan silindir kapağı contası (OEM referans: 6H4-11181-01).\nKapak ile silindir bloğu arasındaki birleşim yüzeyinin sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3830-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Yamaha"
+    ]
+  },
+  {
+    "id": "yamaha-18-99094-silindir-contasi",
+    "kategori": "Marin",
+    "baslik": "Yamaha 18-99094 Silindir Contası",
+    "aciklama": "Yamaha dıştan takma motorlarda kullanılan silindir kapağı contası.\nKapak ile silindir bloğu arasındaki birleşim yüzeyinin sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "7900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-99094-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": [
+      "Yamaha"
+    ]
+  },
+  {
     "id": "seafirst-mo100h-4592100",
     "kategori": "Marin",
     "altkategori": "Dümen ve Kumanda",
