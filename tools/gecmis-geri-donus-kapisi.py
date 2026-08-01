@@ -99,11 +99,32 @@ Kapali oldugunda ayni commit dosyanin TAMAMINI eklenmis sayar — pahali ama KOR
     kendisini GETIREN push'un kendi CI kosumunda zaten taranir (zaman icinde kapsam
     TAM) ve asil olcumu onleyici kol TAM menzil uzerinde yapar.
   * KIRPMA SESSIZ DEGIL: her kosumda "MESAJ x/x · ICERIK y/x commit" basilir, kirpma
-    olduysa atlanan commit SAYISI ayrica uyari satiriyla yazilir. MESAJ ekseni ucuz
-    oldugu icin kirpmadan ETKILENMEZ — HER ZAMAN tum commit'leri kapsar.
+    olduysa TARANMAYAN commit SAYISI **ve** TARANMAYAN aday sayisinin ALT SINIRI
+    ayrica uyari satiriyla yazilir; "temiz" hukmu de o kosumda EKSIK OLCUMLU diye
+    isaretlenir. Boylece "0 bulgu" satiri neyin OLCULMEDIGINI gizlemez. MESAJ ekseni
+    ucuz oldugu icin kirpmadan ETKILENMEZ — HER ZAMAN tum commit'leri kapsar.
 Butce 1.200 commit uzerinde olculerek secildi: `urunler.json`in TAM yeniden yazildigi
 2 commit disinda en pahali TEK commit 57.339 aday, en pahali 20-commit'lik push 52.891
 adaydir; butce onun ~2,6 kati.
+
+🔴 CI TABAN COZUMU — YETIM `before` NESNESI KURTARILIR (onarim, 2 Agu 2026):
+`main` force-push ile YENIDEN YAZILINCA olay yukundeki `before` SHA hicbir ref'ten
+erisilemez YETIM kalir. `actions/checkout` `fetch-depth: 0` yalniz REF'leri getirir —
+nesne klonda YOKTUR, `cat-file -e` patlar, kol "son 50 commit" yedegine duser.
+OLCULDU (kosum 30693623021): yedek pencere 50 commit = 231.140 aday = butcenin
+%154'u, yani YAPISAL olarak asar ve ortada HICBIR SIZINTI YOKKEN rc 2 verir; ayni
+itmenin GERCEK menzili 18 commit = 67.998 aday = butcenin %45,3'u idi ve kirmizi HIC
+olmazdi. Taze klonda `git fetch origin <before-sha>` rc 0 dondu ve yetim nesneyi
+GETIRDI. Bu yuzden `cat-file -e` basarisiz oldugunda, yedege dusmeden ONCE o TEK SHA
+icin dar bir `git fetch` denenir.
+  * YALNIZ CI kolunda: ag izni `GITHUB_ACTIONS` ortam degiskeniyle DOGRULANIR;
+    `--pre-push` kancasi HICBIR ag cagrisi yapmaz (kanca yerel ve hizli kalmalidir).
+  * Fetch basarisiz olur / zaman asimina ugrarsa (FETCH_ZAMAN_ASIMI_SN = 60 sn)
+    davranis AYNEN eskisi gibi
+    kalir: yedege dusulur. Bu bir IYILESTIRME'dir, YENI BIR FAIL YOLU DEGIL.
+  * Cagri DAR: tum gecmis degil YALNIZ o SHA istenir (`--no-tags`).
+Gercek itme dagilimi (59 itme): medyan 1, p95 4, maks 45 commit; medyan itme 1.665
+aday = butcenin %1,1'i — yani taban dogru cozuldugunde butce normal iste ASILMAZ.
 
 🔴 TESHIS SIZDIRMAZ: eslesen METIN hicbir kolda basilmaz — commit + dosya + desen no
 + uzunluk basilir. Aksi halde kapi sizintiyi PUBLIC Actions gunlugune kendi eliyle
@@ -140,6 +161,10 @@ SIFIR_SHA = "0" * 40
 # bunun ~2,6 kati -> normal is GECER, patolojik yeniden-yazim OLCULEMEDI verir.
 ADAY_BUTCESI = 150000
 
+# YETIM `before` NESNESI KURTARMA — ag cagrisi zaman asimi (saniye). Asilirsa
+# davranis DEGISMEZ: eski yedege (son 50 commit) dusulur. Gerekce: modul basligi.
+FETCH_ZAMAN_ASIMI_SN = 60
+
 _KAPI = None
 
 
@@ -173,6 +198,44 @@ def kapi_modulu():
 def _git(args, kok=None):
     return subprocess.run(["git", "-C", kok or ROOT] + args,
                           capture_output=True, text=True, errors="replace")
+
+
+def _nesne_var(sha, kok=None):
+    """Bu klonda `sha` bir commit nesnesi olarak MEVCUT mu."""
+    return _git(["cat-file", "-e", sha + "^{commit}"], kok=kok).returncode == 0
+
+
+def _yetim_nesne_getir(sha, kok=None, uzak="origin",
+                       zaman_asimi=FETCH_ZAMAN_ASIMI_SN):
+    """(basarili, ayrinti) — YETIM bir SHA'yi uzaktan DAR bir fetch ile getirmeyi dener.
+
+    🔴 YALNIZ CI KOLUNDAN CAGRILIR (ag cagrisidir). `--pre-push` kancasi bu yolu HIC
+    kullanmaz: kanca yerel ve hizli kalmalidir, ayrica onleyici kolda taban zaten
+    yereldedir. Cagiran (kol_ci) ag iznini `GITHUB_ACTIONS` ile DOGRULAR.
+
+    Gerekce (olculdu, kosum 30693623021): force-push'tan sonra olay yukundeki `before`
+    SHA hicbir ref'ten erisilemez -> `fetch-depth: 0` bile getirmez -> menzil "son 50
+    commit" yedegine duser (231.140 aday = butcenin %154'u). Taze klonda
+    `git fetch origin <sha>` rc 0 dondu ve nesneyi GETIRDI (gercek menzil: 18 commit /
+    67.998 aday = %45,3).
+
+    BASARISIZLIK YENI BIR FAIL YOLU DEGILDIR: False donunce cagiran ESKI davranisi
+    (yedek pencere) aynen surdurur.
+    """
+    try:
+        p = subprocess.run(
+            ["git", "-C", kok or ROOT, "fetch", "--no-tags", "--quiet", uzak, sha],
+            capture_output=True, text=True, errors="replace", timeout=zaman_asimi)
+    except subprocess.TimeoutExpired:
+        return False, "fetch %d sn zaman asimina ugradi" % zaman_asimi
+    except Exception as e:                                        # noqa: BLE001
+        return False, "fetch calistirilamadi: %s" % type(e).__name__
+    if p.returncode != 0:
+        # stderr BASILMAZ: uzak cikti bu kapinin teshis disiplinine tabi degildir.
+        return False, "fetch rc=%d" % p.returncode
+    if not _nesne_var(sha, kok=kok):
+        return False, "fetch rc=0 ama nesne HALA yok"
+    return True, "fetch rc=0"
 
 
 def push_satirlari(metin):
@@ -294,7 +357,7 @@ def commitleri_tara(shalar, kayit, modul, kok=None, maskeli=True,
     """
     bulgular = []
     olcum = {"commit": len(shalar), "aday": 0, "ozet_ms": 0.0, "eklenen_bayt": 0,
-             "icerik_kapsanan": 0, "icerik_atlanan": 0}
+             "icerik_kapsanan": 0, "icerik_atlanan": 0, "atlanan_aday_alt_siniri": 0}
 
     # --- MESAJ EKSENI ---
     for sha in shalar:
@@ -326,6 +389,10 @@ def commitleri_tara(shalar, kayit, modul, kok=None, maskeli=True,
                     "COZUM: itmeyi daha kucuk parcalara bol, ya da bilerek atlamak icin "
                     "`git push --no-verify` (gurultulu ve kayitli)."
                     % (len(aday_commit) + yeni_sayi, butce))
+            # 🔴 TARANMAYANI SAYIYLA BILDIR: kirpmayi TETIKLEYEN commit'in yeni aday
+            # sayisi OLCULMUSTUR; ondan sonraki commit'ler HIC olculmedi -> bu deger
+            # taranmayan aday sayisinin ALT SINIRIDIR ("temiz" hukmu bunu gizlemesin).
+            olcum["atlanan_aday_alt_siniri"] = yeni_sayi
             olcum["icerik_atlanan"] = len(shalar) - sira
             break
         olcum["eklenen_bayt"] += len(metin)
@@ -363,16 +430,27 @@ def _rapor(bulgular, olcum, baslik, kanca_kolu):
           % (olcum["commit"], olcum["commit"],
              olcum.get("icerik_kapsanan", olcum["commit"]), olcum["commit"]))
     if olcum.get("icerik_atlanan"):
-        # 🔴 SESSIZ DEGIL: kirpma HER ZAMAN sayiyla basilir.
+        # 🔴 SESSIZ DEGIL: kirpma HER ZAMAN sayiyla basilir — kac commit VE kac aday
+        # TARANMADI. Eslesen metin/ad BASILMAZ (teshis sizdirmaz).
         print("  ⚠️ ICERIK EKSENI KIRPILDI: aday butcesi (%d) doldu -> EN YENI %d "
-              "commit tarandi, %d commit ICERIK ekseninde TARANMADI (mesaj ekseni "
-              "hepsini kapsadi). Bu kol GORUNURLUKTUR; asil olcumu pre-push kancasi "
-              "TAM menzil uzerinde yapar ve her commit kendisini getiren push'un CI "
-              "kosumunda ayrica taranir."
+              "commit tarandi. TARANMAYAN: %d commit · >=%d aday (alt sinir: yalniz "
+              "kirpmayi TETIKLEYEN commit olculdu, sonraki %d commit HIC olculmedi). "
+              "Mesaj ekseni hepsini kapsadi. Bu kol GORUNURLUKTUR; asil olcumu "
+              "pre-push kancasi TAM menzil uzerinde yapar ve her commit kendisini "
+              "getiren push'un CI kosumunda ayrica taranir."
               % (ADAY_BUTCESI, olcum.get("icerik_kapsanan", 0),
-                 olcum["icerik_atlanan"]))
+                 olcum["icerik_atlanan"], olcum.get("atlanan_aday_alt_siniri", 0),
+                 max(0, olcum["icerik_atlanan"] - 1)))
     if not bulgular:
-        print("temiz: 0 bulgu.")
+        if olcum.get("icerik_atlanan"):
+            # "0 bulgu" TEK BASINA "temiz" demek DEGILDIR: neyin OLCULMEDIGI ayni
+            # satirda gorunsun, aksi halde kirpilmis kosum tam kosum gibi okunur.
+            print("temiz: 0 bulgu — ANCAK HUKUM EKSIK OLCUMLUDUR: %d commit · >=%d "
+                  "aday ICERIK ekseninde TARANMADI."
+                  % (olcum["icerik_atlanan"],
+                     olcum.get("atlanan_aday_alt_siniri", 0)))
+        else:
+            print("temiz: 0 bulgu.")
         return RC_TEMIZ
     print("", file=sys.stderr)
     if kanca_kolu:
@@ -440,7 +518,8 @@ def kol_pre_push(girdi=None, kok=None, uzak="origin", ozet_yolu=None,
     return _rapor(bulgular, olcum, "geri-donus taramasi", kanca_kolu=True)
 
 
-def kol_ci(kok=None, ozet_yolu=None, ortam=None, yuk=None, butce=ADAY_BUTCESI):
+def kol_ci(kok=None, ozet_yolu=None, ortam=None, yuk=None, butce=ADAY_BUTCESI,
+           uzak="origin", ag=None):
     modul, hata = kapi_modulu()
     if modul is None:
         print("OLCULEMEDI (fail-closed KIRMIZI): %s" % hata, file=sys.stderr)
@@ -457,14 +536,29 @@ def kol_ci(kok=None, ozet_yolu=None, ortam=None, yuk=None, butce=ADAY_BUTCESI):
         print("OLCULEMEDI (fail-closed KIRMIZI): itmenin ucu (GITHUB_SHA/after) "
               "COZULEMEDI.", file=sys.stderr)
         return RC_OLCULEMEDI
-    if once and once != SIFIR_SHA and _git(["cat-file", "-e", once + "^{commit}"],
-                                           kok=kok).returncode == 0:
+    # --- TABAN COZUMU -------------------------------------------------------
+    # 🔴 AG IZNI: bu kol CI'dir; yetim nesne kurtarma YALNIZ burada ve YALNIZ
+    # GITHUB_ACTIONS dogrulanunca calisir. `--pre-push` kancasi bu yola HIC girmez.
+    ag_izni = (str(ortam.get("GITHUB_ACTIONS", "")).lower() == "true"
+               if ag is None else bool(ag))
+    taban_notu = ""
+    taban_var = bool(once) and once != SIFIR_SHA and _nesne_var(once, kok=kok)
+    if once and once != SIFIR_SHA and not taban_var and ag_izni:
+        # ONARIM (2 Agu 2026): force-push sonrasi `before` YETIM kalir ve
+        # `fetch-depth: 0` onu GETIRMEZ (nesne hicbir ref'te degil). Yedege dusmeden
+        # ONCE o TEK SHA'yi getirmeyi dene; basarisiz olursa davranis DEGISMEZ.
+        kurtarildi, ayrinti = _yetim_nesne_getir(once, kok=kok, uzak=uzak)
+        taban_var = kurtarildi
+        taban_notu = (" [taban YETIM nesneydi, dar `git fetch %s <before>` ile "
+                      "KURTARILDI]" % uzak if kurtarildi else
+                      " [yetim `before` nesnesi KURTARILAMADI: %s]" % ayrinti)
+    if taban_var:
         p = _git(["rev-list", "%s..%s" % (once, sonra)], kok=kok)
-        kaynak = "git menzili %s..%s" % (once[:8], sonra[:8])
+        kaynak = "git menzili %s..%s%s" % (once[:8], sonra[:8], taban_notu)
     else:
         p = _git(["rev-list", "-n", "50", sonra], kok=kok)
         kaynak = ("taban COZULEMEDI -> son 50 commit (sig checkout ya da ilk itme); "
-                  "kapsam DAR olabilir")
+                  "kapsam DAR olabilir" + taban_notu)
     if p.returncode != 0:
         print("OLCULEMEDI (fail-closed KIRMIZI): git rev-list rc=%d: %s"
               % (p.returncode, (p.stderr or "").strip()[:200]), file=sys.stderr)
@@ -514,6 +608,8 @@ def kol_menzil(menzil, kok=None, ozet_yolu=None, maskeli=True):
 # 🔴 FIKSTURLERDE GERCEK YASAKLI AD YOKTUR — uydurma adlar kullanilir ve gercek
 # uretim yoluyla (`--desen-yaz`) gecici bir ozet artefaktina cevrilir. Testin olctugu
 # sey MEKANIZMADIR, hangi adin yasakli oldugu DEGIL.
+import contextlib as _ctx                                           # noqa: E402
+import io as _io                                                    # noqa: E402
 import json as _json                                                # noqa: E402
 import shutil as _shutil                                            # noqa: E402
 import tempfile as _tempfile                                        # noqa: E402
@@ -941,6 +1037,116 @@ def kendini_test():
             kontrol("11i KAPI BETIGI YOKKEN push DURUR (fail-closed on-kosul)",
                     p.returncode != 0)
 
+        # ---------------------------------------------------------------
+        # VAKA 12 — FORCE-PUSH SONRASI YETIM `before` NESNESI (CI TABAN COZUMU)
+        # ---------------------------------------------------------------
+        # 🔴 OLCULEN ARIZA (kosum 30693623021): `main` force-push ile yeniden
+        # yazilinca olay yukundeki `before` SHA hicbir ref'ten erisilemez YETIM kalir;
+        # `fetch-depth: 0` REF getirir, NESNE getirmez -> kol "son 50 commit" yedegine
+        # duser (231.140 aday = butcenin %154'u) ve HICBIR SIZINTI YOKKEN rc 2 verir.
+        # Gercek menzil 18 commit / 67.998 aday (%45,3) idi. Bu vaka o senaryoyu
+        # GERCEK git ile kurar ve onarimin ISE YARADIGINI olcer.
+        print("\nVAKA 12 — yetim `before` nesnesi (force-push) / CI taban cozumu")
+        uzakC = os.path.join(tmp, "uzakC.git")
+        subprocess.run(["git", "init", "-q", "--bare", "-b", "main", uzakC],
+                       capture_output=True)
+        # GitHub, ref'ten ERISILEMEYEN SHA'lar icin de `want` kabul eder (olculdu:
+        # taze klonda `git fetch origin <yetim-sha>` rc 0). Sentetik uzak bunu ancak
+        # bu ayarla taklit eder — olculen gercek davranis GitHub'da dogrulanmistir.
+        subprocess.run(["git", "-C", uzakC, "config",
+                        "uploadpack.allowAnySHA1InWant", "true"], capture_output=True)
+        yerelC = os.path.join(tmp, "yerelC")
+        # 🔴 `--no-local` SART: yerel yol klonu VARSAYILAN olarak objects/ dizinini
+        # OLDUGU GIBI kopyalar (erisilemez nesneler DAHIL) — o zaman senaryo kurulmaz.
+        subprocess.run(["git", "clone", "-q", "--no-local", uzakC, yerelC],
+                       capture_output=True)
+        _kos(["git", "config", "user.email", "t@example.com"], yerelC)
+        _kos(["git", "config", "user.name", "T"], yerelC)
+        _kos(["git", "config", "commit.gpgsign", "false"], yerelC)
+        _yaz(yerelC, "a.txt", "taban\n")
+        kokC, _ = _commit(yerelC, "taban commit")
+        _kos(["git", "push", "-q", "origin", "main"], yerelC)
+        for _i in range(3):
+            _yaz(yerelC, "n%d.txt" % _i, "notr is %d\n" % _i)
+            _commit(yerelC, "notr is %d" % _i)
+        _kos(["git", "push", "-q", "origin", "main"], yerelC)
+        once_sha = _kos(["git", "rev-parse", "HEAD"], yerelC).stdout.strip()
+        # GECMIS YENIDEN YAZILIR (temizlik/force-push) -> `once_sha` YETIM kalir.
+        _kos(["git", "reset", "-q", "--hard", kokC], yerelC)
+        for _i in range(2):
+            _yaz(yerelC, "y%d.txt" % _i, "yeniden yazilmis gecmis %d\n" % _i)
+            _commit(yerelC, "yeniden yazilmis gecmis %d" % _i)
+        _kos(["git", "push", "-q", "--force", "origin", "main"], yerelC)
+        sonra_sha = _kos(["git", "rev-parse", "HEAD"], yerelC).stdout.strip()
+
+        def _ci_klonu(ad):
+            yol = os.path.join(tmp, ad)
+            subprocess.run(["git", "clone", "-q", "--no-local", uzakC, yol],
+                           capture_output=True)
+            return yol
+
+        def _ci_kos(kok_, **kw):
+            tampon = _io.StringIO()
+            with _ctx.redirect_stdout(tampon):
+                rc_ = kol_ci(kok=kok_, ozet_yolu=artefakt,
+                             ortam={"GITHUB_SHA": sonra_sha},
+                             yuk={"before": once_sha, "after": sonra_sha}, **kw)
+            return rc_, tampon.getvalue()
+
+        def _commit_sayisi(cikti):
+            for s in cikti.splitlines():
+                if "geri-donus taramasi (CI):" in s:
+                    return int(s.split(":", 1)[1].strip().split()[0])
+            return -1
+
+        ciC = _ci_klonu("ciC")
+        kontrol("12a force-push sonrasi `before` nesnesi CI klonunda YOK (yetim)",
+                not _nesne_var(once_sha, kok=ciC))
+        rc_yedek, cikti_yedek = _ci_kos(ciC, ag=False)
+        kontrol("12b ONARIM DEVRE DISI (ag izni yok) -> taban COZULEMEDI, yedege dusuldu",
+                rc_yedek == RC_TEMIZ and "taban COZULEMEDI" in cikti_yedek,
+                "(rc=%d)" % rc_yedek)
+        rc_onarim, cikti_onarim = _ci_kos(ciC, ag=True)
+        kontrol("12c ONARIM ACIK -> yetim nesne KURTARILDI ve taban COZULDU",
+                rc_onarim == RC_TEMIZ and "KURTARILDI" in cikti_onarim
+                and "git menzili" in cikti_onarim, "(rc=%d)" % rc_onarim)
+        kontrol("12d kurtarilan taban DOGRU (DAR) menzili verir: 2 commit vs yedek 3",
+                _commit_sayisi(cikti_onarim) == 2 and _commit_sayisi(cikti_yedek) == 3,
+                "(onarim=%d yedek=%d)" % (_commit_sayisi(cikti_onarim),
+                                          _commit_sayisi(cikti_yedek)))
+        # 🔴 GERI-DUSUS BOZULMADI: fetch BASARISIZ olunca davranis AYNEN eskisi gibi.
+        ciD = _ci_klonu("ciD")
+        rc_hata, cikti_hata = _ci_kos(ciD, ag=True, uzak="olmayan-uzak")
+        kontrol("12e fetch BASARISIZ -> ESKI davranis (yedek) ve AYNI rc",
+                rc_hata == rc_yedek and "taban COZULEMEDI" in cikti_hata
+                and "KURTARILAMADI" in cikti_hata, "(rc=%d)" % rc_hata)
+        kontrol("12f fetch basarisizken menzil YEDEK pencereyle AYNI",
+                _commit_sayisi(cikti_hata) == _commit_sayisi(cikti_yedek))
+        # 🔴 ONLEYICI KOL AG'A CIKMAZ: kanca yerel ve hizli kalmalidir.
+        _cagri = []
+        _asil_getir = globals()["_yetim_nesne_getir"]
+
+        def _tanik_getir(*a, **k):
+            _cagri.append(1)
+            return _asil_getir(*a, **k)
+
+        globals()["_yetim_nesne_getir"] = _tanik_getir
+        try:
+            kol_pre_push(girdi=_push_girdisi(sonra_sha, once_sha), kok=ciD,
+                         ozet_yolu=artefakt)
+        finally:
+            globals()["_yetim_nesne_getir"] = _asil_getir
+        kontrol("12g ONLEYICI kol (pre-push) HICBIR ag cagrisi YAPMAZ", not _cagri,
+                "(cagri=%d)" % len(_cagri))
+        # 🔴 KIRPMA SESSIZ DEGIL: taranmayan commit VE aday sayisi basilir; "temiz"
+        # hukmu EKSIK OLCUMLU oldugunu SOYLER.
+        rc_kirp, cikti_kirp = _ci_kos(ciC, ag=True, butce=1)
+        kontrol("12h kirpma ateslenince TARANMAYAN commit+aday SAYISI basilir",
+                rc_kirp != RC_OLCULEMEDI and "TARANMAYAN:" in cikti_kirp
+                and ">=" in cikti_kirp, "(rc=%d)" % rc_kirp)
+        kontrol("12i kirpilmis 'temiz' hukmu EKSIK OLCUMLU oldugunu SOYLER",
+                "EKSIK OLCUMLUDUR" in cikti_kirp)
+
     finally:
         _shutil.rmtree(tmp, ignore_errors=True)
 
@@ -975,7 +1181,7 @@ def main(argv=None):
     if ns.pre_push:
         return kol_pre_push(kok=ns.kok, uzak=ns.uzak)
     if ns.ci:
-        return kol_ci(kok=ns.kok)
+        return kol_ci(kok=ns.kok, uzak=ns.uzak)
     return kol_menzil(ns.menzil, kok=ns.kok)
 
 
