@@ -70,9 +70,23 @@ onu okuyor — blast radius kabul edilemez). Yerine:
 
 ### 2.1 İKİZ TANIM YASAĞI (bu evin en pahalı hata sınıfı)
 `marka` ile `uyum[].marka` aynı gerçeği iki yerde tutar → sessizce ayrışır ([[ikiz-tanim-sessiz-ayrisma]]).
-Kural: **`uyum` varsa `marka` ondan TÜRETİLİR** (tekilleştirilmiş `uyum[].marka` kümesi), elle
-yazılmaz. Kapı bunu **fail-closed** ölçer: `uyum` dolu ve `marka != türetilen küme` → KIRMIZI.
-`uyum` boş olan eski kayıtlarda `marka` yazıldığı gibi kalır (regresyon 0).
+Kural: **`uyum` varsa `marka` ondan TÜRETİLİR**, elle yazılmaz. Kapı bunu **fail-closed** ölçer:
+`uyum` dolu ve `marka != türetilen küme` → KIRMIZI. `uyum` boş olan eski kayıtlarda `marka`
+yazıldığı gibi kalır (regresyon 0).
+
+🔴 **TÜRETME KURALI DÜZELTİLDİ (2 Ağu, mühendis ölçümü üzerine):**
+```
+marka = tekilleştir( uyum[].marka  +  uyum[].model )
+```
+**Yalnız `uyum[].marka` DEĞİL.** Sebep ölçüldü: `marka` alanı bugün model jetonlarını da taşıyor
+(6.918 kayıt tam 2 elemanlı) ve **arama metnine (haystack) giriyor**. Sadece markadan türetseydik
+`Focus`, `F-150`, `Golf` gibi jetonlar backfill iner inmez haystack'ten **düşerdi** — müşteri
+"focus" arayınca ürünleri bulamazdı, ve bu **sessiz** bir kayıp olurdu (hiçbir test kırmızı
+yanmaz, sayı tutmaya devam eder).
+
+Bu düzeltmenin üç kazancı var: (1) arama yüzeyi **bire bir korunur**, parite riski sıfır;
+(2) `uyum` saf yapılandırılmış gerçek olarak kalır, `marka` onun düzleştirilmiş **türevi**;
+(3) HocA'nın haystack işi backfill'i **bloklamaz** — sıra bağımlılığı kalkar.
 
 ### 2.2 KANONİK SÖZLÜK — TEK KAYNAK
 - **Marka = KAPALI küme.** Tek kaynak `tools/arama.py` (`ALTKATEGORI_IZINLI` ile aynı desen).
