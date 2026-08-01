@@ -22,6 +22,39 @@ bagimsiz canli teyit: 404 veren urun sayfasi artik **200**, ana sayfa damgasi ta
 Ayni tuzak diger kapilarda arandi: dort kapidaki `git show HEAD:` kullanimi **mesru baska desen**
 (calisma agaci ↔ HEAD tabani); bu hata sinifinin ikinci ornegi YOK.
 
+### CANLIYA GITTI — OLCUM ARACI ARTIK YANLIS SUCLAMIYOR (`09b76410` + `467f8fa8`)
+Iki kardes faz3 araci ayni sebebe (uc cevap vermiyor) FARKLI hukum veriyordu: biri durustce
+"OLCULEMEDI", digeri "SAYFALAMA/SIRA BOZUK" diye kirmizi yakiyordu. Yanlis suclama sinifi —
+ve bugun bedeli olculdu: yayin hatti tam da "olculemedi"yi kirmizi sayan bir kapi yuzunden
+tikandi. Onarim: ariza sinifi TEK yerde belirleniyor, kardes aracin cikis kodu sozlesmesi
+birebir alindi (tasima hatasi/JSON olmayan yanit/eksik alan -> OLCULEMEDI 2; ucun kendi
+bildirdigi hata -> 1 ama "sayfalama" diye raporlanmaz; mukerrer/sayi/sira ayrismasi -> BOZUK 1).
+Kabul UC senaryoyla olculdu: uc yok -> rc=2 ve ciktida "BOZUK" kelimesi HIC gecmiyor (ilk
+kosumda banner sizdiriyordu, nobetci yakaladi) · dogru uc -> rc=0, gercek canli uca karsi
+7 gorunum/16873 urun · **bozuk uc -> rc=1**, uc ayri bozukluk (sayfa sinirinda urun atlama,
+sira takasi, mukerrer id) ayri ayri yakalandi. Kismi halde OLCULMUS ayrisma baskin: 1 gorunum
+olculemedi + 6 ayristi -> rc=1; "olculemedi" hicbir yolla yesil uretmiyor. Yeni nobetci CI
+kapsam kapisinda kapsamsiz yaniyordu, serit B'ye baglandi ve beyan edildi. Kardes arac
+DEGISMEDI (kendi nobetcisi 6/6).
+
+### CANLIYA GITTI — ALTKATEGORI: IZINLI KUME + SESSIZ AYRISMA KAPISI (`235fb25a` + `d379ffb7`)
+Okan onayiyla izinli altkategori kumesine `Elektrik` eklendi (**11 -> 12**); kardes mimarin
+30 urunluk hazir partisi bunu bekliyordu, ayni gece yazildi ve senkron teyit edildi.
+Kume TEK kaynakta, ikiz tanim yok. Kapi gevsemedi: yakin yazimlar (`Elektrikk`, `elektrik`)
+hala rc=5, once-kirmizi gercek (ayni cagri eskiden rc=5 ile reddediliyordu).
+Is sirasinda **daha eski, sessiz bir kusur** bulundu ve kapatildi: uyelik testi `strip()`
+sonrasi yapildigi icin bosluklu deger KABUL ediliyordu, ama yazma yolu kataloga HAM,
+D1 yolu KIRPILMIS metin gonderiyordu — yani katalog ile D1 sessizce ayrisabiliyordu (site ile
+bot ayni urunu farkli yazimla gorebilirdi). Bu, kume genislemesiyle gelmedi, 11 degerin
+hepsinde vardi. Secilen yol **fail-closed**: kanonik olmayan deger artik REDDEDILIYOR
+(sessizce duzeltilmiyor), ve iki yol tek fonksiyondan turuyor -> ayrisma insaatan imkansiz.
+Mevcut veri kesilmedi (935 dolu kayitta 0 bosluklu). Kapi **35 -> 42 iddia**, mutasyon **17/17**.
+Ikinci kalem: bir mutasyon capasi BAYATLAMISTI (gorselsiz urun isi izinli kumeye alan ekleyince
+capa kaydi) ve bir eksenin oldurucu gucu ARTIK OLCULMUYORDU — sessiz degil gurultulu
+basarisizlik verdigi icin "yakalandi" sanilabilirdi. Capalar desene cevrildi; capa kayarsa
+tur artik ADLI hatayla kirmizi yaniyor (`CAPA BAYAT` / `MUTANT UYGULANMADI` + fiilen-uygulandi
+sayaci), uc ayri bozma denemesinin ucunde de rc=1.
+
 ### OLCULDU / KAPANDI (bu tur)
 - **Kardes mimarin siparis ucu ikinci kez denetlendi — MERGE YOK.** Uc acigin ucu de AYNEN
   duruyor; duzeltme commit'i hic gelmemis (ilgili iki dosyaya dokunan son commit, ilk teslimin
