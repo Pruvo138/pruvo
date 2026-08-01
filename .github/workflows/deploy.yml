@@ -1176,8 +1176,14 @@ jobs:
           python-version: "3.12"
       - name: Python bagimliliklari (pyyaml — is akisi cron alanini GERCEK ayristiriciyla okur)
         run: pip install pyyaml
-      # Once nobetcinin KENDI kabulu (agsiz, 29 iddia; iki yonlu fikstur: "hic kosum yok"
-      # KIRMIZI, "yakin zamanda kosum var" YESIL) — sonra GERCEK olcum.
+      # Once nobetcinin KENDI kabulu (agsiz; iki yonlu fikstur: "hic kosum yok" KIRMIZI,
+      # "yakin zamanda kosum var" YESIL) — sonra GERCEK olcum.
+      # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (ayni depoda olculdu, bkz. `mesaj-nobeti`): bayat
+      # sayi kosumun neyi olctugu hakkinda yanlis bilgi verir. Gercek sayiyi betigin
+      # KENDISI "N iddia kosturuldu" satiriyla basar.
+      # 1 Agu: A4 PAKET ekseni eklendi — canli fiyat yolunun ne kadar suredir PARITE ile
+      # kapanmadigi (paket-tazelik-alarmi.yml damgasi). Elle yayinlanan shop Worker'inin
+      # bayatligini gorunur kilan tek zamanlanmis nabiz budur.
       - name: "Uzlastirma nabiz kapisi: kendini test (agsiz fikstur, iki yonlu)"
         run: python3 tools/cron-nabiz-kapisi.py --kendini-test
       # Onarim surucusunun KENDI kabulu (agsiz + GERCEK git fiksturu): yaris kaybini
