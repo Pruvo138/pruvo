@@ -109,11 +109,17 @@ function anahtarGecerli(request, url, env) {
  *     npx wrangler secret put EGE_ANAHTAR
  * Tanimli DEGILSE bu kol tamamen kapalidir (fail-closed) ve /wa-siparis yalnizca
  * YONET_ANAHTAR ile calisir — yani "acik uc" hicbir konfigurasyonda olusmaz.
+ *
+ * 🔴 YALNIZ BASLIK (`X-Ege-Anahtar`) — QUERY PARAM YOLU KAPALI. Onceden `?ege_anahtar=`
+ * de kabul ediliyordu; bu anahtari Cloudflare erisim loglarina, referrer'a ve proxy
+ * kayitlarina DUZ METIN olarak dusuruyordu (URL'ler loglanir, basliklar loglanmaz).
+ * Uc yalnizca sunucudan-sunucuya cagrilir (Ege worker'i), yani tarayici adres cubugu
+ * gibi baslik konulamayan bir cagiran YOKTUR -> param yolunun mesru kullanicisi yok.
+ * `url` parametresi bilerek okunmuyor; imzadan da dusuruldu ki geri gelmesin.
  */
-function egeAnahtarGecerli(request, url, env) {
+function egeAnahtarGecerli(request, env) {
   if (!env.EGE_ANAHTAR) { return false; }
-  const verilen = request.headers.get("X-Ege-Anahtar") ||
-    url.searchParams.get("ege_anahtar") || "";
+  const verilen = request.headers.get("X-Ege-Anahtar") || "";
   return sabitEsit(verilen, env.EGE_ANAHTAR);
 }
 
@@ -516,6 +522,49 @@ function waSentetikId(baslik) {
   return "wa-" + (slug || "parca");
 }
 
+/**
+ * Bir hatanin TUM metnini topla: D1 gercek sebebi bazen `cause` zincirinde tasir
+ * (workerd `Error: D1_ERROR: ...` sarar). Yalniz `e.message`e bakmak kirilgan.
+ */
+function waHataMetni(e) {
+  const parcalar = [];
+  let k = e;
+  for (let i = 0; i < 5 && k; i++) {
+    if (typeof k === "string") { parcalar.push(k); break; }
+    if (k.message) { parcalar.push(String(k.message)); }
+    if (k.cause && k.cause !== k) { k = k.cause; } else { break; }
+  }
+  if (!parcalar.length) { parcalar.push(String(e)); }
+  return parcalar.join(" | ");
+}
+
+/**
+ * Hata bir SQLite/D1 KISITLAMA ihlali mi (UNIQUE dahil)?
+ * ⚠️ Bu kontrol TEK BASINA bir sey KARARLASTIRMAZ — cagiran taraf ayrica satirin
+ * gercekten var oldugunu SELECT ile dogrular. Bu yuzden genis tutulabilir: yanlis
+ * pozitif bir sonraki adimda elenir, yanlis negatif ise gercek bir yaris durumunu
+ * 500'e dusururdu. (Fail-safe yon: genis eslesme + kanit zorunlulugu.)
+ */
+function waKisitlamaIhlali(e) {
+  const metin = waHataMetni(e);
+  return /UNIQUE constraint failed/i.test(metin) ||
+         /constraint failed/i.test(metin) ||
+         /SQLITE_CONSTRAINT/i.test(metin);
+}
+
+/** (kanal, dis_no) ciftiyle mevcut siparis satiri; yoksa null. */
+async function waMevcutSiparis(env, disNo) {
+  return env.KATALOG.prepare(
+    "SELECT siparis_no, durum FROM siparisler WHERE kanal = ? AND dis_no = ?"
+  ).bind(WA_KANAL, disNo).first();
+}
+
+/** Idempotent yanit — TEK yerde: hem on-SELECT hem yaris kolu ayni govdeyi doner. */
+function waTekrarYaniti(satir, disNo) {
+  return yjson({ ok: true, tekrar: true, siparis_no: satir.siparis_no,
+                 durum: satir.durum, kanal: WA_KANAL, dis_no: disNo }, 200);
+}
+
 /** Kalem dizisini coz. Hata -> {hata}; basari -> {satirlar, kalemToplamKurus}. */
 function waKalemleriCoz(urunler) {
   const SECENEK = globalThis.PRUVO_SECENEK;
@@ -607,11 +656,24 @@ export async function waSiparis(request, env) {
   const kdvKurus = (SECENEK && typeof SECENEK.kdvAyristir === "function")
     ? SECENEK.kdvAyristir(tutarKurus + kargoKurus).kdvKurus : 0;
 
-  // --- dis_no (Ege'nin kendi numarasi) — idempotens anahtari ---
-  let disNo = "";
-  if (govde.dis_no !== undefined && govde.dis_no !== null && govde.dis_no !== "") {
-    disNo = waMetin(govde.dis_no, 3, 40) || "";
-    if (!disNo || !/^[A-Za-z0-9_-]{3,40}$/.test(disNo)) { return yjson({ hata: "gecersiz-dis-no" }, 400); }
+  // --- dis_no (Ege'nin kendi numarasi) — idempotens anahtari, ZORUNLU ------------
+  // 🔴 OPSIYONEL DEGIL. Once opsiyoneldi ve bu, idempotensi ISTEGE BAGLI kiliyordu:
+  // dis_no'suz cagrida hicbir tekillik anahtari olmadigi icin Ege'nin agi kopup yeniden
+  // denemesi (ya da bir dongu/webhook tekrari) SINIRSIZ mukerrer siparis aciyordu —
+  // olculdu: dis_no'suz 4 cagri = 4 INSERT, 4 ayri siparis numarasi, 0 idempotens SELECT.
+  // Kismi UNIQUE indeks (`WHERE dis_no <> ''`) de bu satirlari kapsamadigi icin veri
+  // tabani da durduramiyordu. Panelde ikiz siparis = yanlis uretim + yanlis tahsilat.
+  // ⚠️ SITE kanali DOKUNULMADI: `kanal='site'` satirlari dis_no='' ile coklu kalmaya
+  // devam eder (kismi indeks aynen duruyor); sikilastirma YALNIZ bu ucun girdisinde.
+  if (govde.dis_no === undefined || govde.dis_no === null || govde.dis_no === "") {
+    return yjson({ hata: "dis-no-yok",
+                   not: "dis_no ZORUNLU: idempotens anahtari (Ege'nin kendi siparis " +
+                        "numarasi). Ayni deger tekrar gonderilirse yeni siparis acilmaz." },
+                 400);
+  }
+  const disNo = waMetin(govde.dis_no, 3, 40) || "";
+  if (!disNo || !/^[A-Za-z0-9_-]{3,40}$/.test(disNo)) {
+    return yjson({ hata: "gecersiz-dis-no" }, 400);
   }
 
   // --- SEMA KAPISI (FAIL-CLOSED) + IDEMPOTENS + YAZMA ---------------------------
@@ -622,16 +684,10 @@ export async function waSiparis(request, env) {
   // hicbir sey yazilmaz, gurultulu 503 + ne yapilacagi doner.
   try {
     // IDEMPOTENS: ayni dis_no ile ikinci cagri yeni siparis ACMAZ (Ege'nin agi kopup
-    // yeniden denemesi Okan'in panelinde ikiz siparis olusturmasin).
-    if (disNo) {
-      const varOlan = await env.KATALOG.prepare(
-        "SELECT siparis_no, durum FROM siparisler WHERE kanal = ? AND dis_no = ?"
-      ).bind(WA_KANAL, disNo).first();
-      if (varOlan) {
-        return yjson({ ok: true, tekrar: true, siparis_no: varOlan.siparis_no,
-                       durum: varOlan.durum, kanal: WA_KANAL, dis_no: disNo }, 200);
-      }
-    }
+    // yeniden denemesi Okan'in panelinde ikiz siparis olusturmasin). dis_no ZORUNLU
+    // oldugundan bu SELECT her cagri icin kosar (atlanabilir bir kol kalmadi).
+    const varOlan = await waMevcutSiparis(env, disNo);
+    if (varOlan) { return waTekrarYaniti(varOlan, disNo); }
 
     const siparisNo = await yeniSiparisNo(env);
     const simdi = new Date().toISOString();
@@ -654,7 +710,29 @@ export async function waSiparis(request, env) {
                    dis_no: disNo, tutar_kurus: tutarKurus, kargo_kurus: kargoKurus,
                    kdv_kurus: kdvKurus }, 201);
   } catch (e) {
-    if (!/no such column/i.test(String((e && e.message) || e))) { throw e; }
+    if (!/no such column/i.test(waHataMetni(e))) {
+      // --- YARIS DURUMU (TOCTOU) --------------------------------------------------
+      // Yukaridaki idempotens SELECT'i ile INSERT arasinda BASKA bir cagri ayni dis_no
+      // ile yazmis olabilir (Ege paralel iki deneme yaparsa). O halde kismi UNIQUE
+      // indeks (siparisler_kanal_dis_no) INSERT'i reddeder ve buraya bir D1 hatasi
+      // duser. ONCEDEN: hic yakalanmiyordu -> index.js'in genel catch'i 500
+      // `sunucu-hatasi` donuyordu; oysa BEYAN EDILEN sozlesme 200 {tekrar:true}.
+      // Ege 500 gorunce yeniden dener -> tekrar 500 -> siparis panele yazilmis
+      // oldugu halde bot "yazilamadi" sanir (sessiz hata).
+      // GUVENLIK: 200'e cevirme KOSULLU — hatanin kisitlama kokenli oldugunu string'e
+      // BAGLI OLARAK degil, ikinci bir SELECT ile KANITLIYORUZ. Satir gercekten varsa
+      // idempotent yanit dogrudur; yoksa hata AYNEN yeniden firlatilir (500 kalir).
+      if (waKisitlamaIhlali(e)) {
+        let yarisSatiri = null;
+        try { yarisSatiri = await waMevcutSiparis(env, disNo); } catch (e2) { yarisSatiri = null; }
+        if (yarisSatiri) {
+          console.warn("wa-siparis: yaris durumu — ayni dis_no es zamanli yazildi, " +
+                       "idempotent yanit donuluyor (dis_no=" + disNo + ")");
+          return waTekrarYaniti(yarisSatiri, disNo);
+        }
+      }
+      throw e;
+    }
     console.error("wa-siparis: D1 semasinda kanal/dis_no kolonu YOK -> yazma reddedildi " +
                   "(coz: python3 tools/d1-sync.py --sema)");
     return yjson({ hata: "sema-goc-gerekli",
@@ -871,7 +949,7 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   // /yonet* ile AYNI davranis: 404 (ucun varligi sizmaz). EGE_ANAHTAR yalnizca BU kolda
   // okunur -> /liste, /durum, /kargo, /stl onunla ACILMAZ.
   if (altYol === "/wa-siparis" && m === "POST") {
-    if (!anahtarGecerli(request, url, env) && !egeAnahtarGecerli(request, url, env)) {
+    if (!anahtarGecerli(request, url, env) && !egeAnahtarGecerli(request, env)) {
       return yon404();
     }
     return waSiparis(request, env);

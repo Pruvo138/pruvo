@@ -36,13 +36,25 @@ Ege (WhatsApp botu, AYRI depo/worker) bir siparis kapatinca bu uctan AYNI panele
 - **Anahtar**: `EGE_ANAHTAR` (wrangler secret, `openssl rand -hex 24`) — **YALNIZ bu ucu
   acar**; `/liste`, `/durum`, `/kargo`, `/stl` onunla 404 doner (en az yetki: bot'a
   panelin tamami verilmez). `YONET_ANAHTAR` da calisir. Ikisi de yoksa 404.
-  Ayni deger bot worker'ina da secret olarak konur. Baslik: `X-Ege-Anahtar`.
+  Ayni deger bot worker'ina da secret olarak konur.
+  🔴 **YALNIZ BASLIK: `X-Ege-Anahtar`.** `?ege_anahtar=` query param yolu KAPATILDI —
+  URL'ler Cloudflare erisim loglarina/referrer'a duz metin girer, basliklar girmez.
 - **Govde**: `{musteri:{ad,tel,adres,eposta?}, odeme:"kart"|"havale", urunler:[{ad,link?,
-  adet?,tutar_kurus?}], tutar_kurus?, kargo_kurus?, dis_no?, durum?}`.
-  Zorunlu: ad/tel/adres + en az bir urun adi + odeme yontemi. Eksikse 400 + alan adi.
+  adet?,tutar_kurus?}], dis_no, tutar_kurus?, kargo_kurus?, durum?}`.
+  Zorunlu: ad/tel/adres + en az bir urun adi + odeme yontemi + **`dis_no`**.
+  Eksikse 400 + alan adi (`dis_no` yoksa `400 dis-no-yok`).
 - **Numara PANELDE uretilir** (`PR-yyMMdd-HHmmss-XXX`); Ege'nin kendi numarasi `dis_no`
   kolonunda mutabakat + **idempotens** anahtaridir (ayni `dis_no` 2. kez → yeni siparis
   YOK, mevcut numara + `tekrar:true`). Kismi UNIQUE indeks veri tabani tarafinda ikizi kiler.
+- 🔴 **`dis_no` ZORUNLU** (once opsiyoneldi): anahtarsiz cagri hicbir tekillik tasimadigi
+  icin Ege'nin yeniden denemesi SINIRSIZ mukerrer siparis aciyordu (olculdu: 4 cagri =
+  4 siparis) ve kismi indeks (`WHERE dis_no <> ''`) o satirlari kapsamiyordu.
+  ⚠️ SITE kanali degismedi: `kanal='site'` satirlari `dis_no=''` ile coklu kalir.
+- **Yaris durumu**: on-idempotens SELECT'i ile INSERT arasinda baska bir cagri ayni
+  `dis_no` ile yazarsa UNIQUE indeks INSERT'i reddeder; uc bunu **200 `{tekrar:true}`**
+  ile karsilar (500 DEGIL). Guvenlik: 200'e cevirme hata METNINE degil, satirin
+  gercekten var oldugunu KANITLAYAN ikinci SELECT'e baglidir; satir yoksa hata aynen
+  yukari cikar.
 - **Durum**: yalniz `havale-bekliyor` (varsayilan) veya `odendi` yazilabilir; uretim/kargo
   ilerlemesi PANELDEN yapilir. Tutar BOS kalabilir (elle fiyatlandirma) — bu uc TAHSILAT
   YAPMAZ, fiyat hesaplamaz, e-posta/Telegram GONDERMEZ (musteri zaten sohbette).

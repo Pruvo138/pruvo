@@ -19,14 +19,24 @@
  *                   (kolon merdiveni), (2) YAZMA o halde FAIL-CLOSED 503 verir,
  *                   (3) SITE siparisinde olcum kapisi ACIK kalir (regresyon yok),
  *                   (4) WhatsApp siparisinde 'odendi' gecisi olcum TETIKLEMEZ.
- *   F. IDEMPOTENS — ayni dis_no ikinci kez -> yeni INSERT YOK, mevcut numara doner.
+ *   F. IDEMPOTENS — dis_no ZORUNLU (yoksa 400); ayni dis_no ikinci kez -> yeni INSERT
+ *                   YOK, mevcut numara doner; SELECT ile INSERT arasindaki YARIS
+ *                   (UNIQUE ihlali) 500 DEGIL 200 {tekrar:true} verir.
+ *   G. PARA       — KDV kargoyu ICERIR, yuvarlama round'dur (floor DEGIL), kalem
+ *                   tutar_kurus/birim_kurus TAM DEGERLE iddia edilir.
  *
  * ONCE-KIRMIZI (elle kanitlanabilir mutasyonlar):
  *   - yonet.js'te EGE_ANAHTAR kolu /liste'ye de aciliyor yapilirsa -> A kirmizi.
+ *   - egeAnahtarGecerli'ye `url.searchParams.get("ege_anahtar")` geri konursa -> A kirmizi.
  *   - INSERT'ten `kanal` dusurulurse -> B/D kirmizi.
  *   - waSiparis'te `durum` beyaz listesi kaldirilirsa -> C kirmizi.
  *   - durumDegistir'deki KANAL kapisi silinirse -> E(4) kirmizi.
  *   - kolonMerdiveni kaldirilirsa -> E(1) kirmizi.
+ *   - dis_no yeniden OPSIYONEL yapilirsa -> F kirmizi.
+ *   - yaris kolu (waKisitlamaIhlali/waTekrarYaniti) silinirse -> F kirmizi.
+ *   - KDV `tutarKurus + kargoKurus` yerine `tutarKurus`ten hesaplanirsa -> G kirmizi.
+ *   - secenekler.js kdvAyristir'da Math.round -> Math.floor olursa -> G kirmizi.
+ *   - waKalemleriCoz'da tutar_kurus <-> birim_kurus takas edilirse -> G kirmizi.
  */
 
 // ---- JSON IMPORT KOPRUSU (test altyapisi, uretim kodunu ETKILEMEZ) -------------
@@ -67,17 +77,28 @@ const EGE_ANAHTAR = "e".repeat(48);
 
 /**
  * Basit D1 taklidi. secenek:
- *   kolonYok   : true -> kanal/dis_no gecen HER sorgu "no such column: kanal" firlatir
- *   listeSatir : /liste SELECT'inin dondurecegi satir(lar)
- *   siparis    : siparisGetir SELECT'inin dondurecegi satir
- *   disNoKayit : dis_no aramasinin dondurecegi satir (idempotens testi)
+ *   kolonYok      : true -> kanal/dis_no gecen HER sorgu "no such column: kanal" firlatir
+ *   listeSatir    : /liste SELECT'inin dondurecegi satir(lar)
+ *   siparis       : siparisGetir SELECT'inin dondurecegi satir
+ *   disNoKayit    : dis_no aramasinin dondurecegi satir (idempotens testi)
+ *   disNoSirasi   : dis_no aramasinin SIRAYLA dondurecegi satirlar (yaris durumu:
+ *                   1. arama null, INSERT patlar, 2. arama satiri bulur). Son eleman
+ *                   tukendikten sonra tekrarlanir.
+ *   insertCakismasi: true -> `INSERT INTO siparisler` gercek D1 UNIQUE hata metniyle
+ *                   firlatir; string verilirse O metinle firlatir (hata-metni saglamligi).
+ *
+ * `env.denemeler`: DENENEN her INSERT/UPDATE (patlayan dahil). `env.yazmalar`: yalniz
+ * BASARIYLA tamamlananlar. Ikisinin ayri olmasi "INSERT denendi ama yazilmadi" halini
+ * olculebilir kilar.
  */
 function mockEnv(secenek) {
   secenek = secenek || {};
   const sorgular = [];   // {sql, args}
-  const yazmalar = [];   // yalniz INSERT/UPDATE
+  const yazmalar = [];   // yalniz BASARILI INSERT/UPDATE
+  const denemeler = [];  // DENENEN INSERT/UPDATE (patlayan dahil)
+  const sayac = { disNoAramasi: 0 };
   const env = {
-    sorgular, yazmalar,
+    sorgular, yazmalar, denemeler, sayac,
     YONET_ANAHTAR: secenek.yonetAnahtar === null ? undefined : YONET_ANAHTAR,
     EGE_ANAHTAR: secenek.egeAnahtar === false ? undefined : EGE_ANAHTAR,
     SITE_URL: "https://ornek-site.test",
@@ -89,13 +110,27 @@ function mockEnv(secenek) {
             throw new Error("D1_ERROR: no such column: kanal");
           }
           sorgular.push(kayit);
-          if (/^\s*(INSERT|UPDATE)/i.test(sql)) { yazmalar.push(kayit); }
+          if (/^\s*(INSERT|UPDATE)/i.test(sql)) {
+            denemeler.push(kayit);
+            if (secenek.insertCakismasi && /^INSERT INTO siparisler/.test(sql)) {
+              throw new Error(typeof secenek.insertCakismasi === "string"
+                ? secenek.insertCakismasi
+                : "D1_ERROR: UNIQUE constraint failed: siparisler.kanal, " +
+                  "siparisler.dis_no: SQLITE_CONSTRAINT_PRIMARYKEY");
+            }
+            yazmalar.push(kayit);
+          }
           if (/FROM siparisler WHERE siparis_no = \?$/.test(sql) ||
               /SELECT 1 AS v FROM siparisler/.test(sql)) {
             // numara benzersizlik on-kontrolu -> daima bos (numara uretilebilsin)
             if (/SELECT 1 AS v/.test(sql)) { return null; }
           }
           if (/WHERE kanal = \? AND dis_no = \?/.test(sql)) {
+            sayac.disNoAramasi++;
+            if (Array.isArray(secenek.disNoSirasi)) {
+              const i = Math.min(sayac.disNoAramasi - 1, secenek.disNoSirasi.length - 1);
+              return secenek.disNoSirasi[i] || null;
+            }
             return secenek.disNoKayit || null;
           }
           // Baski/parametrik zenginlestirme sorgusu (liste): katalog kaydi YOK varsayimi.
@@ -198,6 +233,30 @@ async function setA() {
                           "/wa-siparis", undefined);
     ol("GET /wa-siparis -> 404 (yalniz POST)", c.status === 404, "kod=" + c.status);
   }
+  // ANAHTAR SIZINTISI: query param yolu KAPALI. URL'ler Cloudflare erisim loglarina,
+  // referrer'a ve proxy kayitlarina duz metin girer; basliklar girmez. DOGRU anahtari
+  // ?ege_anahtar= ile vermek ARTIK yetmemeli.
+  {
+    const env = mockEnv();
+    const urlParamli = new URL("https://ornek-site.test/api/shop/yonet/wa-siparis" +
+                               "?ege_anahtar=" + EGE_ANAHTAR);
+    const c = await yonet(istek(GECERLI, {}, "POST"), env, urlParamli, ctxSahte,
+                          "/wa-siparis", undefined);
+    ol("DOGRU anahtar ?ege_anahtar= query param'inda -> 404 (baslik ZORUNLU)",
+       c.status === 404, "kod=" + c.status);
+    ol("query param anahtariyla INSERT YOK", env.yazmalar.length === 0);
+  }
+  {
+    // Ayni URL + DOGRU baslik -> 201: yukaridaki 404 "URL bozuk" degil, ANAHTAR
+    // YOLUNUN kapali olmasindan geliyor (kontrol kolu).
+    const env = mockEnv();
+    const urlParamli = new URL("https://ornek-site.test/api/shop/yonet/wa-siparis" +
+                               "?ege_anahtar=" + EGE_ANAHTAR);
+    const c = await yonet(istek(GECERLI, egeBaslik(), "POST"), env, urlParamli, ctxSahte,
+                          "/wa-siparis", undefined);
+    ol("ayni URL + X-Ege-Anahtar basligi -> 201 (kontrol kolu)", c.status === 201,
+       "kod=" + c.status);
+  }
 }
 
 // ---------------------------------------------------------------- B. YAZMA
@@ -244,7 +303,8 @@ async function setB() {
   // 'odendi' de yazilabilir; kargolandi/tamamlandi YAZILAMAZ.
   {
     const e2 = mockEnv();
-    const c2 = await cagir({ ...GECERLI, dis_no: "", durum: "odendi" }, egeBaslik(), e2);
+    const c2 = await cagir({ ...GECERLI, dis_no: "WA-ODENDI-1", durum: "odendi" },
+                           egeBaslik(), e2);
     ol("durum='odendi' kabul", c2.status === 201, "kod=" + c2.status);
   }
   {
@@ -256,7 +316,7 @@ async function setB() {
   // Link YOKSA sentetik id "wa-" onekli olur (katalog id'siyle carpismaz).
   {
     const e4 = mockEnv();
-    await cagir({ ...GECERLI, dis_no: "",
+    await cagir({ ...GECERLI, dis_no: "WA-LINKSIZ-1",
                   urunler: [{ ad: "Bulaşık makinesi sepet tekerleği", adet: 1 }] },
                 egeBaslik(), e4);
     const s = JSON.parse(e4.yazmalar[0].args[7]);
@@ -285,6 +345,12 @@ async function setC() {
     ["tutar ondalikli (kurus tamsayi degil)", { ...GECERLI, tutar_kurus: 12.5 }, "gecersiz-tutar"],
     ["tutar negatif", { ...GECERLI, tutar_kurus: -1 }, "gecersiz-tutar"],
     ["dis_no bicimsiz", { ...GECERLI, dis_no: "PR 260801 / 110139" }, "gecersiz-dis-no"],
+    // dis_no ZORUNLU (idempotens anahtari) — uc bicimde de "yok" sayilir.
+    ["dis_no hic verilmemis", { ...GECERLI, dis_no: undefined }, "dis-no-yok"],
+    ["dis_no bos string", { ...GECERLI, dis_no: "" }, "dis-no-yok"],
+    ["dis_no null", { ...GECERLI, dis_no: null }, "dis-no-yok"],
+    ["dis_no 3 karakterden kisa", { ...GECERLI, dis_no: "ab" }, "gecersiz-dis-no"],
+    ["dis_no 40 karakterden uzun", { ...GECERLI, dis_no: "A".repeat(41) }, "gecersiz-dis-no"],
     ["durum beyaz liste disi", { ...GECERLI, durum: "tamamlandi" }, "gecersiz-durum"],
   ];
   for (const [ad, govde, beklenen] of durumlar) {
@@ -298,7 +364,7 @@ async function setC() {
   // Tutar OPSIYONEL: hic tutar yoksa da siparis acilir (Okan elle fiyatlandirir).
   {
     const env = mockEnv();
-    const c = await cagir({ ...GECERLI, dis_no: "", tutar_kurus: undefined,
+    const c = await cagir({ ...GECERLI, dis_no: "WA-TUTARSIZ-1", tutar_kurus: undefined,
                             urunler: [{ ad: "Ölçüye özel parça" }] }, egeBaslik(), env);
     ol("tutar BOS -> 201 (fiyat sonra elle girilir)", c.status === 201, "kod=" + c.status);
     ol("tutar BOS -> tutar_kurus 0 yazilir", env.yazmalar[0].args[3] === 0);
@@ -440,10 +506,205 @@ async function setF() {
   ol("tekrar isareti", j.tekrar === true);
   ol("ikinci INSERT YOK", env.yazmalar.length === 0, "yazma=" + env.yazmalar.length);
 
-  // dis_no VERILMEZSE idempotens aranmaz (her cagri yeni siparis) — bilincli davranis.
-  const env2 = mockEnv({ disNoKayit: { siparis_no: "X", durum: "odendi" } });
-  const c2 = await cagir({ ...GECERLI, dis_no: undefined }, egeBaslik(), env2);
-  ol("dis_no yoksa yeni siparis acilir (201)", c2.status === 201, "kod=" + c2.status);
+  // ---- (F2) dis_no'SUZ CAGRI ARTIK ACILMIYOR --------------------------------------
+  // 🔴 IDDIA TERSINE CEVRILDI (KraL denetimi). ESKI test "dis_no yoksa yeni siparis
+  // acilir (201)" diyerek SINIRSIZ MUKERRER SIPARISI KURAL sayiyordu: dis_no'suz N cagri
+  // = N ayri siparis, hicbir tekillik anahtari yok, kismi UNIQUE indeks de (WHERE
+  // dis_no <> '') o satirlari kapsamiyor. Ege'nin agi koptugunda panelde ikiz siparis
+  // olusuyordu. Artik uc dis_no'yu ZORUNLU tutar.
+  {
+    const env2 = mockEnv({ disNoKayit: { siparis_no: "X", durum: "odendi" } });
+    const c2 = await cagir({ ...GECERLI, dis_no: undefined }, egeBaslik(), env2);
+    const j2 = JSON.parse(await c2.text());
+    ol("dis_no YOKSA siparis ACILMAZ -> 400 dis-no-yok",
+       c2.status === 400 && j2.hata === "dis-no-yok", "kod=" + c2.status + " hata=" + j2.hata);
+    ol("dis_no YOKSA INSERT YOK", env2.yazmalar.length === 0,
+       "yazma=" + env2.yazmalar.length);
+  }
+  // MUKERRER OLCUMU: dis_no'suz 4 art arda cagri -> 0 INSERT (eskiden 4 INSERT idi).
+  {
+    const env3 = mockEnv();
+    for (let i = 0; i < 4; i++) {
+      await cagir({ ...GECERLI, dis_no: undefined }, egeBaslik(), env3);
+    }
+    ol("dis_no'suz 4 cagri -> 0 INSERT (eskiden 4 idi)", env3.yazmalar.length === 0,
+       "insert=" + env3.yazmalar.length);
+  }
+  // AYNI dis_no ile 4 art arda cagri -> tek INSERT, kalan 3'u idempotent 200.
+  {
+    const env4 = mockEnv({ disNoSirasi: [null, { siparis_no: "PR-260801-110300-QWE",
+                                                 durum: "havale-bekliyor" }] });
+    const kodlar = [];
+    for (let i = 0; i < 4; i++) {
+      const c4 = await cagir(GECERLI, egeBaslik(), env4);
+      kodlar.push(c4.status);
+    }
+    const ins4 = env4.yazmalar.filter((y) => /^INSERT INTO siparisler/.test(y.sql));
+    ol("ayni dis_no 4 cagri -> TEK INSERT", ins4.length === 1, "insert=" + ins4.length);
+    ol("ayni dis_no 4 cagri -> kodlar 201,200,200,200",
+       kodlar.join(",") === "201,200,200,200", kodlar.join(","));
+  }
+
+  // ---- (F3) YARIS DURUMU (TOCTOU) -------------------------------------------------
+  // On-SELECT bos donduktan SONRA baska bir cagri ayni dis_no ile yazdi -> INSERT
+  // kismi UNIQUE indekse takilir. BEYAN EDILEN sozlesme: 200 {tekrar:true, siparis_no}.
+  // ESKIDEN: hata yakalanmiyordu -> index.js genel catch -> 500 sunucu-hatasi.
+  {
+    const env5 = mockEnv({
+      insertCakismasi: true,
+      disNoSirasi: [null, { siparis_no: "PR-260801-110400-RTY", durum: "odendi" }],
+    });
+    const c5 = await cagir(GECERLI, egeBaslik(), env5);
+    const j5 = JSON.parse(await c5.text());
+    ol("YARIS: UNIQUE ihlali -> 200 (500 DEGIL)", c5.status === 200, "kod=" + c5.status);
+    ol("YARIS: tekrar:true", j5.tekrar === true);
+    ol("YARIS: rakibin actigi siparis numarasi doner",
+       j5.siparis_no === "PR-260801-110400-RTY", j5.siparis_no);
+    ol("YARIS: rakibin durumu doner", j5.durum === "odendi", j5.durum);
+    ol("YARIS: kanal + dis_no yanitta",
+       j5.kanal === "whatsapp" && j5.dis_no === GECERLI.dis_no);
+    ol("YARIS: INSERT DENENDI ama yazilmadi",
+       env5.denemeler.filter((y) => /^INSERT INTO siparisler/.test(y.sql)).length === 1 &&
+       env5.yazmalar.length === 0,
+       "deneme=" + env5.denemeler.length + " yazma=" + env5.yazmalar.length);
+    ol("YARIS: kurtarma SELECT'i kosuldu (2 dis_no aramasi)",
+       env5.sayac.disNoAramasi === 2, "arama=" + env5.sayac.disNoAramasi);
+  }
+  // Hata metni BASKA sekilde gelirse de calisir (D1 metnine string-bagimli olmayalim).
+  {
+    const env6 = mockEnv({
+      insertCakismasi: "D1_ERROR: SQLITE_CONSTRAINT: constraint failed",
+      disNoSirasi: [null, { siparis_no: "PR-260801-110500-UIO", durum: "havale-bekliyor" }],
+    });
+    const c6 = await cagir(GECERLI, egeBaslik(), env6);
+    ol("YARIS: farkli D1 hata metniyle de 200", c6.status === 200, "kod=" + c6.status);
+  }
+  // 🔴 KARSI KOL: kisitlama hatasi geldi AMA satir GERCEKTEN YOK -> 200 UYDURULMAZ.
+  // (Yaris kolu "her kisitlama hatasini 200 yap" demek DEGIL; kanit SELECT'i sart.)
+  // ⚠️ "firlatti mi" DEMEK YETMEZ: kanit kolu atlanirsa waTekrarYaniti(null) da
+  // firlatir (TypeError) ve iddia yesil kalirdi — olculdu, mutant kacmisti. Bu yuzden
+  // ORIJINAL D1 hatasinin AYNEN yukari ciktigini iddia ediyoruz.
+  {
+    const env7 = mockEnv({ insertCakismasi: true, disNoSirasi: [null, null] });
+    let yakalanan7 = null;
+    try { await cagir(GECERLI, egeBaslik(), env7); } catch (e) { yakalanan7 = e; }
+    ol("YARIS: satir yoksa hata YUTULMAZ (yeniden firlatilir -> 500 kalir)", !!yakalanan7);
+    ol("YARIS: firlatilan hata ORIJINAL D1 hatasi (TypeError degil)",
+       !!yakalanan7 && /UNIQUE constraint failed/.test(String(yakalanan7 && yakalanan7.message)),
+       String(yakalanan7 && yakalanan7.message).slice(0, 90));
+  }
+  // 🔴 KARSI KOL: kisitlama DISI bir hata 200'e cevrilmez — ve AYNEN yukari cikar.
+  {
+    const env8 = mockEnv({ insertCakismasi: "D1_ERROR: network timeout",
+                           disNoSirasi: [null, { siparis_no: "PR-X", durum: "odendi" }] });
+    let yakalanan8 = null;
+    try { await cagir(GECERLI, egeBaslik(), env8); } catch (e) { yakalanan8 = e; }
+    ol("YARIS: kisitlama DISI hata 200'e cevrilmez", !!yakalanan8);
+    ol("YARIS: kisitlama DISI hata AYNEN yukari cikar",
+       !!yakalanan8 && /network timeout/.test(String(yakalanan8 && yakalanan8.message)),
+       String(yakalanan8 && yakalanan8.message).slice(0, 90));
+  }
+}
+
+// ---------------------------------------------------------------- G. PARA EKSENI
+
+/**
+ * 🔴 BEKLENEN DEGERLER ELLE HESAPLANMIS SABITTIR — `SECENEK.kdvAyristir` cagirilarak
+ * URETILMEZ. Sebep olculdu: uretimin kullandigi AYNI fonksiyonla beklenen degeri
+ * hesaplayan bir iddia, o fonksiyondaki yuvarlama mutasyonuna (Math.round -> Math.floor)
+ * KORDUR; iki taraf birlikte kayar ve test yesil kalir. Sabitler KDV_YUZDE=20 icindir;
+ * asagida oran kontrol ediliyor ki oran degisirse test "yanlis sabit" diye degil
+ * "oran degisti" diye kirilsin.
+ *
+ * FIKSTUR (WA-PARA-1):  kalem tutar 90001 kurus, adet 3, kargo 4999 kurus
+ *   brut = 90001 + 4999 = 95000
+ *   net  = round(95000 * 100 / 120) = round(79166,666...) = 79167
+ *   kdv  = 95000 - 79167 = 15833
+ * Ayirt edicilik:
+ *   - KDV kargo HARIC hesaplanirsa -> kdvAyristir(90001) -> kdv = 15000  (!= 15833)
+ *   - round yerine floor -> net 79166 -> kdv = 15834                     (!= 15833)
+ *   - kalem tutar/birim takasi -> birim 90001, tutar 30000 (asagida TAM DEGER iddiasi)
+ * Not: eski TEK para fikstürü 90000 kurustu; 90000*100/120 = 75000 TAM bolunuyordu,
+ * yani round ile floor AYNI sonucu veriyordu -> yuvarlama ekseni HIC olculmuyordu.
+ */
+const PARA_BAZ = {
+  musteri: GECERLI.musteri,
+  odeme: "havale",
+};
+
+async function setG() {
+  console.log("\nG. PARA EKSENI (KDV kargoyu icerir · yuvarlama round · kalem tam degeri)");
+  const SECENEK = globalThis.PRUVO_SECENEK;
+  ol("KDV orani beklenen sabitlerle ayni (KDV_YUZDE=20)",
+     SECENEK && SECENEK.KDV_YUZDE === 20, "oran=" + (SECENEK && SECENEK.KDV_YUZDE));
+
+  // (G1) KARGOLU fikstür — kargo KDV matrahina GIRER.
+  const env = mockEnv();
+  const c = await cagir({ ...PARA_BAZ, dis_no: "WA-PARA-1", kargo_kurus: 4999,
+                          urunler: [{ ad: "Ölçüye özel dişli", adet: 3,
+                                      tutar_kurus: 90001 }] }, egeBaslik(), env);
+  ol("kargolu siparis 201", c.status === 201, "kod=" + c.status);
+  const args = env.yazmalar[0].args;
+  ol("bind: tutar_kurus TAM 90001", args[3] === 90001, "tutar=" + args[3]);
+  ol("bind: kargo_kurus TAM 4999 (fikstürde kargo VAR)", args[4] === 4999,
+     "kargo=" + args[4]);
+  ol("bind: kdv_kurus TAM 15833 (matrah = tutar + KARGO, yuvarlama round)",
+     args[5] === 15833, "kdv=" + args[5]);
+  ol("kdv 15000 DEGIL (kargo matraha dahil edilmemis olurdu)", args[5] !== 15000,
+     "kdv=" + args[5]);
+  ol("kdv 15834 DEGIL (floor'a kaymis olurdu)", args[5] !== 15834, "kdv=" + args[5]);
+  // Kalem tam degerleri: takas mutantinin TEK nobetcisi.
+  const kalem = JSON.parse(args[7])[0];
+  ol("kalem tutar_kurus TAM 90001 (birim ile TAKAS EDILMEMIS)",
+     kalem.tutar_kurus === 90001, "tutar_kurus=" + kalem.tutar_kurus);
+  ol("kalem birim_kurus TAM 30000 (= floor(90001/3), tutar ile TAKAS EDILMEMIS)",
+     kalem.birim_kurus === 30000, "birim_kurus=" + kalem.birim_kurus);
+  ol("kalem adet TAM 3", kalem.adet === 3, "adet=" + kalem.adet);
+
+  // (G2) AYNI kalem, KARGO YOK -> KDV kucululur. Kargonun matraha girdiginin
+  // ikinci, farktan gelen kaniti (tek sabite bakip "tesaduf" demek imkansiz olsun).
+  {
+    const e2 = mockEnv();
+    await cagir({ ...PARA_BAZ, dis_no: "WA-PARA-2", kargo_kurus: 0,
+                  urunler: [{ ad: "Ölçüye özel dişli", adet: 3, tutar_kurus: 90001 }] },
+                egeBaslik(), e2);
+    const a2 = e2.yazmalar[0].args;
+    ol("kargosuz ayni kalem: kdv TAM 15000", a2[5] === 15000, "kdv=" + a2[5]);
+    ol("kargo KDV'yi GERCEKTEN degistiriyor (15833 != 15000)", args[5] !== a2[5],
+       args[5] + " vs " + a2[5]);
+  }
+
+  // (G3) IKINCI yuvarlama fikstürü — govde tutari, tam bolunmeyen baska bir sayi.
+  //      33333 -> net = round(27777,5) = 27778 -> kdv = 5555 ; floor olsa 27777/5556.
+  {
+    const e3 = mockEnv();
+    await cagir({ ...PARA_BAZ, dis_no: "WA-PARA-3", tutar_kurus: 33333, kargo_kurus: 0,
+                  urunler: [{ ad: "Parça", adet: 1, tutar_kurus: 0 }] }, egeBaslik(), e3);
+    const a3 = e3.yazmalar[0].args;
+    ol("govde tutari 33333 -> kdv TAM 5555 (round, .5 yukari)", a3[5] === 5555,
+       "kdv=" + a3[5]);
+    ol("kdv 5556 DEGIL (floor'a kaymis olurdu)", a3[5] !== 5556, "kdv=" + a3[5]);
+  }
+
+  // (G4) COK KALEMLI: toplam kalemlerden gelir, her kalem TAM degerle yazilir.
+  {
+    const e4 = mockEnv();
+    await cagir({ ...PARA_BAZ, dis_no: "WA-PARA-4", kargo_kurus: 1,
+                  urunler: [{ ad: "Parça A", adet: 2, tutar_kurus: 12345 },
+                            { ad: "Parça B", adet: 7, tutar_kurus: 6789 }] },
+                egeBaslik(), e4);
+    const a4 = e4.yazmalar[0].args;
+    ol("cok kalem: tutar TAM 19134 (12345 + 6789)", a4[3] === 19134, "tutar=" + a4[3]);
+    const k4 = JSON.parse(a4[7]);
+    ol("kalem A tutar 12345 / birim 6172 (= floor(12345/2))",
+       k4[0].tutar_kurus === 12345 && k4[0].birim_kurus === 6172,
+       k4[0].tutar_kurus + "/" + k4[0].birim_kurus);
+    ol("kalem B tutar 6789 / birim 969 (= floor(6789/7))",
+       k4[1].tutar_kurus === 6789 && k4[1].birim_kurus === 969,
+       k4[1].tutar_kurus + "/" + k4[1].birim_kurus);
+    // brut = 19134 + 1 = 19135 -> net = round(15945,833) = 15946 -> kdv = 3189
+    ol("cok kalem: kdv TAM 3189 (kargo 1 kurus DAHIL)", a4[5] === 3189, "kdv=" + a4[5]);
+  }
 }
 
 // ---------------------------------------------------------------- kosum
@@ -456,6 +717,7 @@ async function setF() {
   await setD();
   await setE();
   await setF();
+  await setG();
   console.log("\n" + (kalan === 0 ? "✅ HEPSI GECTI" : "❌ KIRMIZI") +
               " — gecen: " + gecen + ", kalan: " + kalan);
   process.exit(kalan === 0 ? 0 : 1);
