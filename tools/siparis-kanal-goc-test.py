@@ -6,9 +6,13 @@
 
 *** NEDEN VAR ***
 `siparisler` tablosuna IKI kolon eklendi: `kanal` (site|whatsapp) ve `dis_no` (Ege'nin
-kendi numarasi). D1 semasina dokunmak bu depodaki EN HASSAS eksendir: canlida ~yuzlerce
-odenmis siparis satiri var, tablo PARA yolundadir ve goc GERI ALINAMAZ. "Additive oldugu
-icin guvenlidir" bir IDDIADIR — bu test onu SQLite uzerinde FIILEN kosarak olcer.
+kendi numarasi). D1 semasina dokunmak bu depodaki EN HASSAS eksendir: tablo PARA yolundadir
+ve goc GERI ALINAMAZ. "Additive oldugu icin guvenlidir" bir IDDIADIR — bu test onu SQLite
+uzerinde FIILEN kosarak olcer.
+  ⚠️ SATIR SAYISI: bu basligin ilk hali "canlida ~yuzlerce odenmis siparis satiri var"
+  diyordu — OLCULMEMIS bir sayiydi. 1 Agu 2026'da canli D1'de salt-okunur olculdu:
+  `SELECT COUNT(*) FROM siparisler` = 6. Sayi gocun RISKINI degistirmez (tek satir bile
+  para kaydidir) ama olculmemis bir rakami gerekce diye yazmak bu deponun kuralina aykiri.
 
 *** OLCULEN IDDIALAR ***
   A. d1-sema.sql'deki CREATE TABLE iki kolonu DOGRU varsayilanlarla tasiyor.
