@@ -1,5 +1,80 @@
 [
   {
+    "id": "sierra-tank-cikisi-yamaha-18-8077",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Yakıt Deposu Çıkışı - Yamaha / Mercury Uyumlu (18-8077-1)",
+    "aciklama": "Sierra International üretimi pirinç yakıt deposu çıkış konnektörü, Yamaha ve Mercury Marine dıştan takma motor yakıt hatlarında kullanılır.\nMevcut deponuzdaki bağlantı parçasının ölçü ve dişi ile karşılaştırıp uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-tank-cikisi-yamaha-18-8077-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-tank-konnektoru-suzuki-18-8071",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Yakıt Deposu Konnektörü - Suzuki Uyumlu (18-8071)",
+    "aciklama": "Sierra International üretimi krom kaplamalı yakıt deposu bağlantı konnektörü, Suzuki dıştan takma motor yakıt hatlarında kullanılır.\nOrijinal Suzuki 99105-00192 referansının doğrudan muadilidir.\nMevcut deponuzdaki bağlantı parçasının ölçü ve dişi ile karşılaştırıp uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "560 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-tank-konnektoru-suzuki-18-8071-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-tank-konnektoru-mercury-18-80402",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Yakıt Deposu Konnektörü - Mercury Uyumlu (18-80402)",
+    "aciklama": "Sierra International üretimi pirinç yakıt deposu bağlantı konnektörü (tank tarafı), Mercury dıştan takma motor yakıt hatlarında kullanılır.\nÖlçü: 1/4 inç (6.4 mm) NPT dişli bağlantı; 18-8091 kodlu Mercury tank-tarafı fişle eşleşir.\nMevcut deponuzdaki bağlantı parçasının ölçü ve dişi ile karşılaştırıp uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-tank-konnektoru-mercury-18-80402-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-gimbal-rulman-18-2100",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Ağır Hizmet Gimbal Rulmanı (Oynak) - 18-2100",
+    "aciklama": "Sierra International üretimi, paslanmaz gövdeli, gres dolumlu ağır hizmet tipi gimbal rulmanı (oynak yatağı).\nUyumluluk: OMC Stern Drive, Volvo Penta, Yamaha inboard/sterndrive ve MerCruiser (Alpha/Bravo I-II-III, MC-1/R/MR, Gen-II) uygulamaları.\nOrijinal OMC 3853807/983937, Mercury 30-60794A4 ve Volvo Penta 3853807 referanslarının doğrudan muadilidir; motorunuzun şasi/gimbal numarasıyla uyumluluğu takmadan önce teyit etmenizi öneririz.",
+    "fiyat": "5100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-gimbal-rulman-18-2100-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mars-motoru-mercruiser-volvo-18-6275",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Marş Motoru - MerCruiser / Volvo Penta Uyumlu (18-6275-1)",
+    "aciklama": "Sierra International üretimi, GM tabanlı MerCruiser ve Volvo Penta deniz motorları için redüktörlü (permanent magnet gear reduction) marş motoru.\nUyumluluk: 1983 ve sonrası GM V6 ve V8 bloklu MerCruiser sterndrive motorları, 1999 ve sonrası MCM 3.0L, 14 inç volan çapı, 2 delikli ofset bağlantı.\nOrijinal MerCruiser 50-807904A1 / 50-863007A1 ve Volvo Penta 3857747 referanslarının doğrudan muadilidir; motorunuzun mevcut marş koduyla uyumluluğu takmadan önce teyit etmenizi öneririz.",
+    "fiyat": "15200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-mars-motoru-mercruiser-volvo-18-6275-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "tecnoseal-anod-sidepower-75",
     "kategori": "Marin",
     "marka": [
