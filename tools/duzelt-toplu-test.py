@@ -26,7 +26,8 @@ Kontroller:
       urun-ekle.py merge_safe kablolamasi, KIRMIZI-MUTASYON.
   (h) ALT KATEGORI KAPISI TOPLU EKLEME YOLUNDA (urun-ekle.py merge_safe): bilinmeyen
       deger, izinli-ama-yanlis-kategori, tedarikci IMZASI, YANLIS-POZITIF kontrolu
-      (gecerli/alansiz/bos parti gecer), KIRMIZI-MUTASYON.
+      (gecerli/alansiz/bos parti gecer), KIRMIZI-MUTASYON; ayrica main()'in CIKIS KODU
+      (tam olarak 6) + o kodun KIRMIZI-MUTASYONU.
 """
 import hashlib
 import importlib.util
@@ -935,6 +936,83 @@ def test_h_mutasyon():
     shutil.rmtree(repo, ignore_errors=True)
 
 
+def _ue_main_kos(ue, staged):
+    """urun-ekle.py'nin GERCEK main() akisini kosar; (cikis_kodu, stdout+stderr) doner.
+
+    NEDEN BU YOL: olculecek sey main() icindeki `except AltkategoriIhlali -> sys.exit(6)`
+    kolu; (h1-h5) merge_safe'i DOGRUDAN cagirdigi icin o kol HIC kosmuyordu (blok silinse
+    arac ciplak traceback'le exit 1 verir, suit yine yesil kalirdi). Ag'a/alt surece
+    CIKMAMAK icin yalniz process_one enjekte edilir: thing-hazirla + thing-codex + R2
+    zinciri (ag + kredi kapisi) taklit edilir, main()'in KENDI akisi (havuz -> merge_safe
+    -> istisna -> rapor -> cikis kodu) GERCEK kalir. Alt surec (`python3 urun-ekle.py`)
+    secilmedi: ayni kolu olcer ama ag zincirini enjekte edecek kanca birakmaz.
+    """
+    # process_one'un GERCEK donus sekli taklit edilir (main()'in ozet tablosu bu alanlari
+    # okur; eksik birakmak testi gercek akistan AYIRIRDI).
+    kayitlar = {}
+    for s in staged:
+        u = s["urun"]
+        kayitlar[s["id"]] = dict(s, durum="STAGED", kategori=u["kategori"],
+                                 marka=u["marka"], gorsel=len(u["gorseller"]),
+                                 fiyat=u["fiyat"], baslik=u["baslik"])
+    ue.process_one = lambda tid: kayitlar[tid]
+    out, err = io.StringIO(), io.StringIO()
+    kod = None
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        try:
+            ue.main(list(kayitlar))
+            kod = 0
+        except SystemExit as e:
+            kod = e.code if isinstance(e.code, int) else 1
+    return kod, out.getvalue() + err.getvalue()
+
+
+def _mutasyon_cikis_kodu(kaynak):
+    """main()'deki altkategori cikis kodunu 6 -> 3 (gorsel-koken kodu) yapar."""
+    eski = "        sys.exit(6)"
+    if eski not in kaynak:
+        return kaynak, False
+    return kaynak.replace(eski, "        sys.exit(3)  # MUTASYON", 1), True
+
+
+def test_h_cikis_kodu():
+    print("\n(h6) main() CIKIS KODU: gecersiz altkategori -> TAM OLARAK 6 + actionable rapor")
+    repo = sahte_repo()
+    ue = _urun_ekle_yukle(repo, "urun_ekle_h6")
+    once, once_kaynak = sha(ue.URUNLER), sha(ue.KAYNAK)
+    with koken_dizini(repo):
+        kod, cikti = _ue_main_kos(ue, [_staged("parti-uydurma", "Marin", "Uydurma Etiket")])
+    kontrol(kod == 6, "cikis kodu TAM OLARAK 6 (olculen %s) — 3 (gorsel-koken) ve "
+                      "1 (ciplak traceback) DEGIL" % kod)
+    kontrol("ALT KATEGORI KAPISI" in cikti and "ALTKATEGORI_IZINLI" in cikti,
+            "stderr'de actionable rapor basildi (izinli kume + genisletme yolu)")
+    kontrol("Traceback" not in cikti, "traceback yerine rapor basildi")
+    kontrol(once == sha(ue.URUNLER), "urunler.json BYTE-ESIT")
+    kontrol(once_kaynak == sha(ue.KAYNAK), ".urun-kaynaklari.json BYTE-ESIT")
+
+    # POZITIF KOL: gecerli parti ayni yoldan exit 0 ile GECER (kod 6 kapisi kilitlemiyor).
+    repo2 = sahte_repo()
+    ue2 = _urun_ekle_yukle(repo2, "urun_ekle_h6b")
+    with koken_dizini(repo2):
+        kod2, _c2 = _ue_main_kos(ue2, [_staged("parti-gecerli", "Marin", "Pervaneler")])
+    kontrol(kod2 == 0, "gecerli parti AYNI main() yolundan exit 0 (olculen %s)" % kod2)
+    shutil.rmtree(repo, ignore_errors=True)
+    shutil.rmtree(repo2, ignore_errors=True)
+
+
+def test_h_cikis_kodu_mutasyon():
+    print("\n(h7) KIRMIZI-MUTASYON: cikis kodu 6 -> 3 yapilinca (h6) KIRMIZI yanmali")
+    repo = sahte_repo()
+    ue = _urun_ekle_yukle(repo, "urun_ekle_h7", mutasyon=_mutasyon_cikis_kodu)
+    with koken_dizini(repo):
+        kod, cikti = _ue_main_kos(ue, [_staged("parti-uydurma", "Marin", "Uydurma Etiket")])
+    kontrol(kod == 3, "MUTASYON: cikis kodu 3 olarak OLCULDU (olculen %s) — (h6)'nin "
+                      "kod esitligi GERCEKTEN ayirt ediyor, testi kandirmiyor" % kod)
+    kontrol("ALT KATEGORI KAPISI" in cikti,
+            "MUTASYON: rapor hala basiliyor (fark YALNIZ cikis kodunda — kod ekseni canli)")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
 def main():
     print("duzelt.py --toplu kabul testi (SAHTE katalog; gercek urunler.json'a dokunulmaz)")
     test_a()
@@ -966,6 +1044,8 @@ def main():
     test_h_imza()
     test_h_yanlis_pozitif()
     test_h_mutasyon()
+    test_h_cikis_kodu()
+    test_h_cikis_kodu_mutasyon()
     print("\n%s" % ("TUM KONTROLLER GECTI." if not hatalar
                     else "BASARISIZ (%d): \n  - %s" % (len(hatalar), "\n  - ".join(hatalar))))
     return 0 if not hatalar else 1
