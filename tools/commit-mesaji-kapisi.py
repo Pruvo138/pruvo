@@ -1300,9 +1300,25 @@ def kendini_test():
 
         uzun = " ".join(["kelime%d" % i for i in range(700)])
         orta = " ".join(["kelime%d" % i for i in range(50)])
+        # I5 SAYACI (gerekce + sayilar asagida, I5'te): ZATEN kosan `ham` olcumu
+        # sirasinda GERCEK `_ozetle` cagrilari sayilir. Sarmalayici YALNIZ bu tek
+        # cagriyi sarar; kalibrasyon partileri (`_parti`) sarmalayicinin DISINDA
+        # kosar, yani birim maliyet olcumu HIC etkilenmez.
+        _ozetle_orij = _ozetle
+        _ozet_sayaci = [0]
+
+        def _sayan_ozetle(aday, tuz_bayt, dongu):
+            _ozet_sayaci[0] += 1
+            return _ozetle_orij(aday, tuz_bayt, dongu)
+
         _parti()
         _parti()
-        ham = _sure_ms(uzun)
+        globals()["_ozetle"] = _sayan_ozetle
+        try:
+            ham = _sure_ms(uzun)
+        finally:
+            globals()["_ozetle"] = _ozetle_orij
+        _sarmal_geri_alindi = globals()["_ozetle"] is _ozetle_orij
         _parti()
         ham_orta = _sure_ms(orta)
         _parti()
@@ -1355,6 +1371,55 @@ def kendini_test():
         kontrol("I4b yalniz KAPI yavaslarsa (birim SABIT, 3x) KIRMIZI yanar — sure "
                 "butcesi hala yuk tasiyor",
                 _hukum(ham, birim) and not _hukum(ham * 3.0, birim))
+        # I5 — IKIZ TANIM NOBETI. I3'un "yapilan is" sayisi `adaylar()`tan YENIDEN
+        # TURETILIR; gercekte yapilan `_ozetle` cagrisi SAYILMAZ. Iki taraf bagimsiz
+        # turetildigi icin SESSIZCE ayrisabilir — bu iddia ikisini esitler.
+        # 🔴 NEDEN GEREKLI (olculdu, `ad_isabetleri()` mutasyonuyla): turetilen sayi
+        # 5701'de SABIT kalirken gercek cagri 0 ve 9201 oldu. "Hic ozetleme yapma"
+        # vakasinda sure 0 ms'e dustugu icin I1/I2/I3/I4/I4b HEPSI YESIL kaldi; o
+        # mutanti YALNIZ bu sayac yakalar. Esitlik TAM olmalidir: `adaylar()` KUME
+        # doner ve `ad_isabetleri()` her adayi TAM BIR kez ozetler.
+        kontrol("I5 turetilen is hacmi == GERCEK _ozetle cagri sayisi (ikiz tanim "
+                "ayrismasi) [turetilen %d / gercek %d]"
+                % (aday_uzun, _ozet_sayaci[0]),
+                _ozet_sayaci[0] == aday_uzun,
+                "turetilen %d != gercek %d" % (aday_uzun, _ozet_sayaci[0]))
+        kontrol("I5b sayac sarmalayicisi GERI ALINDI (kalici monkey-patch YOK)",
+                _sarmal_geri_alindi and globals()["_ozetle"] is _ozetle_orij)
+
+        # I5c — sarmalayici I1'in KALIBRELI sure olcumunu bozmuyor mu? Medyan farkiyla
+        # DEGIL (o gurultu bu buyuklugu yutar), IZOLE mikro-olcumle: ayni imzali bos
+        # govde, sarmalayicili ve sarmalayicisiz; 3 partinin ORTANCASI.
+        def _sarmal_net_ms(tekrar=50000):
+            def _bos(a, t, d):
+                return None
+
+            _iz = [0]
+
+            def _sar(a, t, d):
+                _iz[0] += 1
+                return _bos(a, t, d)
+
+            olcum = []
+            for _parti_no in range(3):
+                t0 = time.perf_counter()
+                for _yin in range(tekrar):
+                    _bos("x", b"", 1)
+                taban = time.perf_counter() - t0
+                t1 = time.perf_counter()
+                for _yang in range(tekrar):
+                    _sar("x", b"", 1)
+                olcum.append(((time.perf_counter() - t1) - taban) * 1000 / tekrar)
+            return sorted(olcum)[1]
+
+        net = max(0.0, _sarmal_net_ms())
+        kontrol("I5c sayac sarmalayicisinin IZOLE net maliyeti ihmal edilebilir "
+                "[%.7f ms/cagri = birimin %%%.4f'i · %d cagrida toplam %.3f ms / "
+                "olculen ham %.0f ms]"
+                % (net, (100.0 * net / birim) if birim else 100.0, _ozet_sayaci[0],
+                   net * _ozet_sayaci[0], ham),
+                birim > 0 and net < 0.01 * birim,
+                "%.7f ms/cagri, birimin %%1'i = %.7f" % (net, 0.01 * birim))
 
         # ---- J) ALAN ADI EKSENI: YANLIS-POZITIF vs TEDARIKCI VITRINI -------
         # 🔴 IKI YONLU OLCUM. Yon 1: gercek katalog markalarinin alan adi hali YESIL
