@@ -436,3 +436,10 @@ tools/arastirma-sari-fiyat.md
 .env*
 !.env.example
 .yonet-anahtar
+
+# 🔴 COMMIT MESAJI SIZINTI NOBETCISININ DESEN KAYNAGI — duz metin yasakli adlar
+# (tedarikci / satici-vitrin adi). Depo PUBLIC: bu dosya ASLA commit'lenmez.
+# Eslesme izlenen tools/sizinti-desen-ozetleri.json'daki PBKDF2 OZETLERINDEN yapilir;
+# bu duz metin dosya YALNIZ `--desen-yaz` uretim koluna girdidir ve YOKLUGU kapiyi
+# durdurmaz (gerekce: tools/commit-mesaji-kapisi.py basligi).
+.sizinti-desenleri.txt

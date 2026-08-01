@@ -1,0 +1,17 @@
+{
+  "surum": 1,
+  "algo": "pbkdf2_sha256",
+  "dongu": 5000,
+  "tuz": "37deae681fb6c8ab0832abe1e30f71c4",
+  "not": "PBKDF2-HMAC-SHA256 ozetleri. Duz ad YOK ve OLMAYACAK (depo PUBLIC). Uretim: python3 tools/commit-mesaji-kapisi.py --desen-yaz (kaynak .sizinti-desenleri.txt, GITIGNORE'LU).",
+  "desenler": [
+    {
+      "n": 8,
+      "ozet": "3bbb8dd42dc127e1e1c8de3ce0e2578482753029fe7a6c768396899a8e378e1a"
+    },
+    {
+      "n": 12,
+      "ozet": "eeaed3ec2d8274efc70d4772d25a386cc716462fcf79fce6c616941ec8ec906e"
+    }
+  ]
+}
