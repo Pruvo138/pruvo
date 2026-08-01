@@ -494,6 +494,41 @@ jobs:
       - name: Cayma beyani kapisi (hazir/stok vs ozel uretim ayrimi BEYAN yolunda)
         run: python3 tools/cayma-beyani-kapisi.py
 
+      # GORSELSIZ RENDER KAPISI (MUSTERIYE GORUNEN YUZEY — TAMAMEN SESSIZ hata). Gorsel
+      # zorunluluguna acilan dar istisna (parti-kontrol.py, 724a69b2) gorselsiz urunun
+      # EKLENEBILMESINI olcuyordu; NASIL GORUNDUGUNU degil. Olculdu: kapak
+      # `SITE + "/favicon.png"` idi, o dosya depoda YOK ve canlida HTTP 404 -> urun
+      # sayfasinda 800x800 KIRIK GORSEL; ayni 404 URL og:image / twitter:image / JSON-LD
+      # `image` alanlarina da basiliyordu. Dahasi ILGILI URUNLER kartinda gorselsiz komsu,
+      # BULUNULAN SAYFANIN kapagiyla ciziliyordu ("B urunu" yazan kartta A'nin fotografi)
+      # — musteri yanlis parcayi siparis edebilirdi. Hicbir kapi kirmizi yakmiyordu.
+      # Kapi: gorselsizde ag istegi olmayan data: URI yer tutucu (index.html phData ile
+      # BAYT-AYNI; drift node'da GERCEK fonksiyon kosturularak olculur), paylasim/JSON-LD
+      # gorsel alanlari HIC basilmaz, komsu kart kendi yer tutucusunu tasir; gorselli
+      # urunde HICBIR SEY degismez (gercek katalogda 16.814/16.814 sayfa BAYT-ESIT olculdu).
+      # node ZORUNLU (yoksa fail-closed kirmizi), offline, urunler.json OKUNMAZ, dosya
+      # YAZMAZ. Mutasyon turu (7/7 kirmizi) elle:
+      #   python3 tools/gorselsiz-render-kapisi.py --mutasyon
+      - name: Gorselsiz render kapisi (kirik kapak + capraz bulasan komsu kart + SEO gorseli)
+        run: python3 tools/gorselsiz-render-kapisi.py
+
+      # TICARI HAL KAPISI (TEK YONLU KAPI = TUZAK). `gorselsiz` muafiyet beyani ve `tur`
+      # sinif alani duzelt.py'nin DEGISTIRILEBILIR kumesinde YOKTU: bayrak bir kez konunca
+      # mesru yoldan geri alinamiyordu (bu depoda ayni sinif iki kez cikti, ikisinde de
+      # ELLE temizlik gerekti). Ikinci olculen delik: `--alan-sil` izinli kumeye bakmadigi
+      # icin `--alan-sil tur` gecerken `gorselsiz: true` kayitta ASILI kaliyordu — hicbir
+      # kolun kabul etmeyecegi ara durum sessizce uretilebiliyordu. Kapi hem geri alma
+      # yolunun ACIK oldugunu hem SINIRLARINI olcer: `tur` yalniz kanonik sinif dizesini
+      # alir (donus --alan-sil ile), `gorselsiz` yalniz boolean true ve yalniz GORSELSIZ
+      # HAZIR MALDA durur, 🔴 SINIF ATLAMASI (hazir mal <-> ozel uretim = fiyat carpani +
+      # cayma hakki rejimi) --gerekce ZORUNLU tutar ve .urunler-guard.log'a yazilir.
+      # parti-kontrol.py'nin BACKFILL yasagi GEVSETILMEDI (P1 iddiasi bunu olcer).
+      # GERCEK duzelt.py sentetik repoda SUREC olarak kosturulur (cikis kodlari olculur),
+      # gercek urunler.json'a DOKUNULMAZ, offline. Mutasyon turu (8/8 kirmizi) elle:
+      #   python3 tools/ticari-hal-kapisi.py --mutasyon
+      - name: Ticari hal kapisi (tur/gorselsiz geri alma yolu + sinif atlamasi gerekcesi)
+        run: python3 tools/ticari-hal-kapisi.py
+
       # EDGE KART ALAN KAPSAMI (PARA — edge modunda SESSIZ fiyat/beyan sapmasi). index.html
       # EDGE_KATALOG=true iken sepet paneli urun objesini urunler.json'dan DEGIL, ozet.json /
       # edge Worker kartindan alir; secenekler.js satirOzeti fiyati O objeden okur. Karttan bir

@@ -1619,6 +1619,52 @@ def images_of(p):
     return [i for i in imgs if i]
 
 
+# --- GORSELSIZ URUN: YER TUTUCU -------------------------------------------------------
+# NEDEN VAR (olculdu, 1 Agu — canli 404): gorseli HIC olmayan urunun sayfasi
+# `SITE + "/favicon.png"` kapagiyla uretiliyordu. O dosya depoda YOK ve canlida
+# `https://pruvo3d.com/favicon.png` -> HTTP 404 (olculdu: curl, 404/text-html). Yani
+# musteri urun sayfasinda 800x800'luk bir KIRIK GORSEL ikonu goruyordu; ayni 404 URL
+# og:image / twitter:image / JSON-LD `image` alanlarina da basiliyordu (paylasim onizlemesi
+# bos, Google icin "image_link gecersiz"). Hicbir kapi kirmizi yakmiyordu — hatanin
+# TAMAMI sessizdi, yalniz musteri ve crawler goruyordu.
+#
+# COZUM: KIRIK GORSEL yerine KASITLI YER TUTUCU. Ag istegi YOK (data: URI) -> 404
+# imkansiz. Sekil ana sayfadaki kart yer tutucusuyla AYNI: index.html `placeholder(kat)`
+# zaten gorselsiz/bozuk kartta bu SVG'yi basiyor, yani ziyaretciye yeni bir gorsel dil
+# uydurmuyoruz — katalogda gordugu ayni kutu urun sayfasinda da cikiyor.
+#
+# 🔴 IKIZ TANIM: bu SVG index.html'deki `placeholder()` ile BIREBIR ayni dizeyi uretmek
+# ZORUNDA. Ayrisirsa iki yuzey sessizce farkli gorunur ([[ikiz-tanim-sessiz-ayrisma]]).
+# Drift nobetcisi: tools/gorselsiz-render-kapisi.py — index.html'in GERCEK fonksiyonunu
+# node'da kosturup bu fonksiyonun ciktisiyla BAYT karsilastirir.
+#
+# ⚠️ data: URI YALNIZ <img src> icindir. og:image / JSON-LD `image` MUTLAK URL bekler;
+# oralara yer tutucu BASILMAZ, alan HIC yazilmaz (bkz. render_product). "Yanlis gorsel"
+# yerine "gorsel yok" beyani -> fail-closed.
+PLACEHOLDER_W = "400"
+PLACEHOLDER_H = "300"
+
+
+def placeholder_svg(kat):
+    """index.html `placeholder(txt)` ile BAYT-AYNI SVG dizesi."""
+    return ('<svg xmlns="http://www.w3.org/2000/svg" width="%s" height="%s">'
+            '<rect width="%s" height="%s" fill="#1c3a6b"/>'
+            '<text x="50%%" y="50%%" fill="#9db1d4" font-family="Arial" font-size="26" '
+            'font-weight="bold" text-anchor="middle" dominant-baseline="middle">PRUVO · %s'
+            '</text></svg>'
+            % (PLACEHOLDER_W, PLACEHOLDER_H, PLACEHOLDER_W, PLACEHOLDER_H, kat or "Ürün"))
+
+
+def placeholder_data_uri(kat):
+    """index.html `phData(kat)` ile BAYT-AYNI data: URI.
+
+    Kacis kumesi encodeURIComponent ile ayni: A-Za-z0-9 ve -_.!~*'() kacilmaz. Python'un
+    varsayilan quote()'u (safe='/') '/' karakterini birakirdi -> "Oyun/Hobi" kategorisinde
+    iki taraf ayrisirdi; safe ACIKCA verilir."""
+    from urllib.parse import quote
+    return "data:image/svg+xml;utf8," + quote(placeholder_svg(kat), safe="-_.!~*'()")
+
+
 def wa_href(p, url):
     msg = u"Merhaba, şu ürünle ilgileniyorum: " + (p.get("baslik") or "") + "\n" + url
     from urllib.parse import quote
@@ -1748,7 +1794,12 @@ def render_product(p, all_products, chip_map=None):
     fiyat = (p.get("fiyat") or "").strip()
     markalar = p.get("marka") or []
     imgs = images_of(p)
-    cover = imgs[0] if imgs else (SITE + "/favicon.png")
+    # cover = GOVDEDE basilan kapak (gorsel yoksa data: URI yer tutucu -> ag istegi yok).
+    # paylasim_gorseli = og:image / twitter:image / JSON-LD `image` icin MUTLAK URL; gorsel
+    # yoksa BOS kalir ve o alanlar HIC basilmaz (bkz. placeholder_data_uri yorumu).
+    # Gorselli urunde ikisi de imgs[0] -> cikti BAYT-ESIT.
+    paylasim_gorseli = imgs[0] if imgs else ""
+    cover = paylasim_gorseli or placeholder_data_uri(kategori)
     desc160 = meta_desc(p)
     pnum = price_number(fiyat)
     parametrik = bool(p.get("parametrik"))
@@ -1816,11 +1867,25 @@ def render_product(p, all_products, chip_map=None):
         offer["price"] = ld_fiyat
         offer["priceValidUntil"] = PRICE_VALID
 
+    # `image` KOSULLU basilir; bu yuzden sozluk IKI parcada kurulur. Anahtar SIRASI
+    # korunur (json.dumps ekleme sirasini yazar): gorselli urunde @context, @type, name,
+    # image, description, sku, mpn, category -> bugunkuyle BAYT-ESIT.
+    #
+    # NEDEN gorselsizde alan HIC yazilmaz: eskiden `imgs or [cover]` ile 404 veren
+    # favicon.png basiliyordu; Google icin bu "gorsel beyan edildi ama alinamiyor" = HATA.
+    # `image` Product'ta ONERILEN alandir, ZORUNLU degil — eksik birakmak durust ve
+    # zararsiz, KIRIK URL degil. Yer tutucu data: URI de basilmaz: schema.org `image`
+    # ImageObject/URL bekler, data: URI crawler icin anlamsiz ve ~1 KB gurultudur. Ayni
+    # urun Merchant feed'e zaten girmiyor (render_merchant_feed gorselsizi eler) -> feed
+    # ile JSON-LD celismez.
     product_ld = {
         "@context": "https://schema.org",
         "@type": "Product",
         "name": baslik,
-        "image": imgs or [cover],
+    }
+    if imgs:
+        product_ld["image"] = imgs
+    product_ld.update({
         "description": re.sub(r"\s+", " ", (p.get("aciklama") or "")).strip(),
         # GSC Merchant listings "sku" 50 karakter siniri: feed g:id/g:mpn ile TEK
         # KAYNAK kanonik kimlik (feed_id: <=50 AYNEN, uzunsa pid[:41]+'-'+sha1[:8]
@@ -1834,7 +1899,7 @@ def render_product(p, all_products, chip_map=None):
         # test-jsonld-sku.py sku özdeşliğini + feed g:mpn çapraz-kontrolünü zaten kilitliyor.
         "mpn": feed_id(pid),
         "category": kategori,
-    }
+    })
     if ld_fiyat:
         product_ld["offers"] = offer
     # brand TEK değer (GSC Merchant listings "brand"i tek bekler; DİZİ/iki-kez basmak
@@ -2130,7 +2195,12 @@ def render_product(p, all_products, chip_map=None):
         cards = []
         for r in rel:
             rimgs = images_of(r)
-            rcov = rimgs[0] if rimgs else cover
+            # 🔴 ESKIDEN: `rimgs[0] if rimgs else cover` — gorseli olmayan komsu urunun
+            # karti BU SAYFANIN kapagiyla basiliyordu. Yani "B urunu" yazan, B'nin
+            # sayfasina giden bir kartta A urununun FOTOGRAFI goruluyordu. Kirik gorselden
+            # BETER: musteri yanlis parcayi siparis edebilir ve hata tamamen sessizdir.
+            # Simdi: komsunun KENDI kategorisinin yer tutucusu (ana sayfa kartiyla ayni).
+            rcov = rimgs[0] if rimgs else placeholder_data_uri(r.get("kategori") or "")
             rfiyat = (r.get("fiyat") or "").strip()
             rprice = ('<div class="rel-price">%s</div>' % esc(rfiyat)) if rfiyat else ""
             cards.append(
@@ -2244,12 +2314,10 @@ def render_product(p, all_products, chip_map=None):
 <meta property="og:title" content="{ogtitle}">
 <meta property="og:description" content="{desc}">
 <meta property="og:url" content="{url}">
-<meta property="og:image" content="{img}">
-<meta name="twitter:card" content="summary_large_image">
+{og_image_meta}<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{ogtitle}">
 <meta name="twitter:description" content="{desc}">
-<meta name="twitter:image" content="{img}">
-<script type="application/ld+json">{product_ld}</script>
+{tw_image_meta}<script type="application/ld+json">{product_ld}</script>
 <script type="application/ld+json">{breadcrumb_ld}</script>
 <style>{css}</style>
 </head>
@@ -2588,7 +2656,16 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
         url=esc(url),
         favicon=FAVICON,
         ogtitle=esc(baslik),
-        img=esc(cover),
+        # og:image / twitter:image — MUTLAK URL alanlari. Gorsel varsa satirlar (kendi
+        # satir sonlariyla) bugunku HALIYLE basilir -> gorselli sayfa bayt-esit. Gorsel
+        # yoksa satirlar HIC basilmaz: eskiden buraya 404 veren favicon.png yaziliyordu ve
+        # WhatsApp/X onizlemesi kirik gorsel gosteriyordu. Alan yoksa paylasim karti
+        # gorselsiz (metin) cizilir — dogru davranis. data: URI BURAYA KONMAZ (OG/Twitter
+        # kaziyicilari data: semasini cekemez).
+        og_image_meta=(('<meta property="og:image" content="%s">\n' % esc(paylasim_gorseli))
+                       if paylasim_gorseli else ""),
+        tw_image_meta=(('<meta name="twitter:image" content="%s">\n' % esc(paylasim_gorseli))
+                       if paylasim_gorseli else ""),
         product_ld=ld(product_ld),
         breadcrumb_ld=ld(breadcrumb_ld),
         css=PAGE_CSS,
