@@ -55,83 +55,6 @@ basarisizlik verdigi icin "yakalandi" sanilabilirdi. Capalar desene cevrildi; ca
 tur artik ADLI hatayla kirmizi yaniyor (`CAPA BAYAT` / `MUTANT UYGULANMADI` + fiilen-uygulandi
 sayaci), uc ayri bozma denemesinin ucunde de rc=1.
 
-### OLCULDU / KAPANDI (bu tur)
-- **Kardes mimarin siparis ucu ikinci kez denetlendi — MERGE YOK.** Uc acigin ucu de AYNEN
-  duruyor; duzeltme commit'i hic gelmemis (ilgili iki dosyaya dokunan son commit, ilk teslimin
-  kendisi). Test 96/96 yesil yanmaya devam ediyor ama **o yesil bu ucunu olcmuyor**: para
-  ekseninde surdugum uc mutantin **ucu de kacti (0/3)**, kontrol mutanti yakalandi — yani duzenek
-  saglam, iddia kor. Kacis sebepleri tek tek olculdu ve recete kutuya yazildi. Dalin geri kalani
-  saglam: cakisma yok, urun verisi diffte yok, 16 kapi/test rc=0.
-- **Calisma alani kalintilari:** artik dal + agac (icerigi main'de oldugu KANITLANDI, calisilmamis
-  degisiklik ve stash yok) baska oturumca temizlenmis, dogrulandi; kayitsiz artik dizin **0**.
-  Iki eski dal main'de olmayan gercek is tasiyor — DOKUNULMADI, sahibi belirsiz.
-- **EDGE_KATALOG bayragi zaten ACIK** olcuyle teyit edildi (uc canli, `/katalog` anlamli JSON
-  donuyor). Katalog mecburi esigin uzerinde ama flip coktan yapilmis — bu kalem KAPALI.
-  ⚠️ Bulundu ama kapatilmadi: iki faz3 araci varsayilan olarak yerel uca bakiyor ve uc cevap
-  vermeyince biri durustce "OLCULEMEDI" derken **digeri "BOZUK" diye kirmizi yakiyor** — ayni
-  sebep, iki farkli hukum. Yanlis suclama sinifi, kapatilacak.
-
-## OTURUM KAPANISI — 1 Agu 2026 (KraL · 15:00 emri + beyan/olcum turu)
-
-### CANLIYA GITTI (hepsi olculdu, hepsi itildi)
-- **Yasak fiyat-vaadi kalibi bilgi kaynagindan kaldirildi + KAPI ARTIK GORUYOR.** Kalip 2
-  degil **4** yerdeydi; biri URETILEN blok icindeydi, ureteci duzeltildi. Kapi bu sinifa
-  KORDU: dort satir da 0 bulguyla geciyordu ve bir fikstür yasak cumleyi beklenen-YESIL
-  tutuyordu. Yakalama **0/4 -> 4/4**, ic nobetci **73 -> 103**, mutasyon 14/14, yanlis
-  pozitif 0/3 korpus. Yol boyunca gercek bir yayin durdurucu bulundu: kuralin DOGRU yazilisi
-  (yasagin olumsuz emri) ortak listede yoktu, kapi o metni kirmizi yakiyordu.
-- **Marin altkategori izinli kumesi 3 -> 11** (`c86c29dc`). Uc yazim duzeltildi, biri bilerek
-  eklenmedi. Carpisma 0, imza 11/11.
-- **Cayma sinif beyani hatti** (`8bb161d9`). Sozlesme zaten iki sinifliydi ama ayrim BEYANA
-  hic gecmemisti: siparis e-postasi kosulsuz "ozel uretim" diyordu, yani stok kaleminde
-  musterinin cayma hakkini reddedecek teyit siparis aninda veriliyordu. Dort yuzey sinifa
-  gore konusuyor, karisik sepette kalem bazinda. Yeni kapi 29 iddia, once-kirmizi 19/29,
-  ozel uretim regresyonu 0/15930. Mutasyon turu olu kod yakaladi (sinif fonksiyonu hic
-  cagrilmiyordu).
-- **Kesif kapisi on-kosulu: yayin penceresi ayrildi** (`0166ccb3`). Yeni kayit TASLAK giriyor,
-  uc yayin bayragini suzuyor; on-kosul bunu "kayip" sayip her partiden sonra ~yarim saat
-  BLOKLUYORDU (olculen pencere 29 dk). Hal artik FIILEN okunuyor, sayi farkindan
-  turetilmiyor. Gercek kayip ekseninde fail-closed korundu. Mutasyon 14 -> 22, 22/22.
-- **Fiziksel fiyat yolunun canli nobetcisi** (`5b754c9d`). Kok sebep "kapsam dar" degil,
-  `tur` ekseninin HIC olculmemesiydi. Nobetci "kod kirik" ile "paket bayat"i AYIRIYOR.
-  Bugun kirmizi ve hakli. Offline kol CI'da bloklayici; canli kol bilerek baglanmadi.
-- **Olcum kanal suzgeci + goc fail-closed** (`8ca71f82`). Goc kostugu an site disi her
-  odenmis siparis "olculmemis ciro" alarmi olacakti. Ayrica ALTER gecip indeks duserse
-  tek yonlu kapi aciliyordu; artik sema adimi indeks teyidi gecmeden "tamam" demiyor,
-  ikiz satirlar SAYILIYOR ama silinmiyor. Once-kirmizi 3/3 + 3/3, mutasyon 11/11.
-
-- **Paket tazelik alarmi** (`b4ee5e03`). Elle deploy edilen paketin bayatligi artik gorunur.
-  Zamanlanmis AYRI is akisi; yayini YAPISAL olarak durduramaz (itme tetikleyicisi yok,
-  hicbir is ona bagli degil) ve bu uc sart KOSULAN kapiyla olculuyor. Hata-yutma bayragi
-  KULLANILMADI. Nabiz iki katli: "kosum yesildi" ile "olcum yapildi" ayri olculuyor.
-  Ag/uc yoksa hal OLCULEMEDI = kirmizi. Once-kirmizi fikstürle alindi.
-- **Filament kirmizisi + nobetci borcu** (`5e4e90e5`). Test 7/25 veriyordu ve CI'da muaf
-  oldugu icin gorunmuyordu; uc fikstür de KONUM tabanliydi ve katalogun basi artik hazir
-  malla dolu. Onarim fikstüre yapildi, hicbir iddia gevsetilmedi: **7/25 -> 26/26**
-  (merge SONRASI guncel agacta yeniden olculdu, katalog 16814, TEST 26 temiz).
-  Borc kapandi: uc eksende KELIME degil BICIM iddiasi (64 iddia). Veri kolonu taramasi
-  tum argumanlari gezdigi icin KOLON TAKASINI goremiyordu; artik pozisyon da iddia
-  ediliyor. Dokuz mutant KALICI repoda: her kosumda "eski gecirdi / yeni yakaladi" olcer.
-- **Gorselsiz hazir urun icin DAR istisna** (`724a69b2`). Muafiyet uc kosul BIRLIKTE
-  saglanmadan dogmaz (acik beyan alani + hazir mal sinifi + gercekten hic gorsel yok);
-  ornuk cikarim YOK, ozel uretimde bayrak muafiyet VERMEZ, onek kurali durur.
-  Her kosumda "gorselsiz kabul edilen: N" basilir (N=0 dahil).
-- **Gorselsiz render onarimi + ticari hal kapisi** (`ed135702`). Istisna canliya cikmadan
-  once olculdu ve ISTISNAYLA ILGISI OLMAYAN IKI ESKI KUSUR buldu: (1) urun sayfasi kapagi
-  gorsel yoksa depoda BULUNMAYAN dosyaya dusuyordu, canli HTTP 404 — ayni 404 sosyal
-  onizleme ve yapisal veriye de giriyordu; (2) ilgili urunler kartinda CAPRAZ BULASMA
-  (gorselsiz komsu, bulunulan sayfanin kapagiyla ciziliyordu). Ikisi de onarildi; gorsel
-  yoksa yapisal veride ilgili anahtar HIC yazilmiyor (kirik adres yerine durust eksiklik).
-  Bayrak tek yonlu kapi olmaktan cikti ama SINIF ATLAMASI acik gerekce ISTER ve izlenebilir
-  kaydedilir (sinif = fiyat + cayma hakki). Beyan edilmemis ikinci delik de kapandi: tekil
-  alan silme yolu izinli kumeye BAKMIYORDU. Regresyon **0 / 16814 sayfa**, mutasyon 15/15.
-- **Yedek beyani gercekle hizalandi** (`0d13d4ae`). "Paylasma" uyarisi yalniz bir alt kolda
-  basiliyordu, artik kosulsuz; uyari nobetin SINIRINI da soyluyor — eleme AD desenine gore,
-  ICERIGE gore degil. Bu bugun isirdi: finansal kimlik tasiyan bir belge ad desenine
-  takilmadigi icin kapsama girmisti. Kapsam/mantik DEGISMEDI, test 184/0.
-
-fazla tahsilat kapandi, ayrinti arsivde.
-
 ### KARARLAR (bu tur)
 - Ege kapisinda sirket sesi birinci cogulun da yanmasi KABUL EDILDI: o metin Ege'ye kendi
   bilgisi olarak besleniyor, orada "belirleriz" demek Ege'ye vaat ettirmektir. Kapi
@@ -173,12 +96,19 @@ kalem arsive inmez; guncel hal mimar eliyle asagiya yeniden yazildi.
   bedel yasal olarak bizde. Eksiklik DEGIL, karardir — "unutulmus" diye tamamlanmasin.
 
 ### KARDES MIMARLARDA
-- **HocA:** `wa-siparis-ucu` dali (worktree'si duruyor, DOKUNULMADI). **IKINCI denetim de
-  yapildi (1 Agu aksam): ucu de AYNEN acik, duzeltme commit'i hic gelmedi** — merge YOK.
-  Bos dis kimlikte sinirsiz mukerrer siparis (olculdu: 4 cagri = 4 siparis; ustelik bu davranisi
-  dalin KENDI testi kural olarak kutsuyor, duzeltme iddianin tersine cevrilmesini ister) ·
-  es zamanli yarista sozlesme yerine 500 · para ekseni mutasyona kapali degil (uc mutant,
-  0/3 yakalandi). Uc kapanip mutant yakalama 3/3 olunca merge + sema gocu + deploy sirasi BENDE.
+- **HocA — UCUNCU denetim yapildi, MERGE YINE YOK (dal `wa-siparis-onarim`).** Uc ESKI acik
+  bagimsiz olcumde KAPANDI: bos dis kimlikte 12/12 cagri reddediliyor ve **0 siparis** aciliyor
+  (eskiden 4 cagri = 4 siparis) · 5'li GERCEK yarista tek satir, 500 yok · benim kacirdigim uc
+  para mutantinin ucu de artik yakalaniyor. Site kanali regresyonsuz, yetki 8 senaryoda fail-closed.
+  🔴 **Ama bu teslimin EKLEDIGI savunma yeni delik acti:** telefon genis kabul edilip (onekli/
+  oneksiz/bosluklu hepsi gecerli) kimlik TAM DIZE karsilastiriliyor — 7 yazimin 4'u ayni musteriyi
+  yabanci sayip reddediyor ve onerilen care izlenince **ayni musteriye 2 siparis** aciliyor.
+  Yani mukerrer siparisi onlemek icin eklenen savunma mukerrer siparis uretiyor; bu girdide yeni
+  kod eskisinden KOTU. Recete verildi (kanonik karsilastirma + onek farki fiksturu). Ayrica bir
+  para mutanti hala kaciyor (govde ve kalem tutari ayni anda sifirdan buyuk olan tek fikstur yeter).
+  Kapanip mutant yakalama tam olunca merge + sema gocu + deploy sirasi BENDE.
+- **HocA (ikinci kalem, ONCELIKLI):** kategori sayfasindaki altkategori filtresi icin uc kart
+  sozlesmesi genisleyecek — Okan'in bekledigi gorunur is. Sema isi YOK, D1 kolonu var ve dolu.
 - **ArTisT:** WhatsApp kanalinin GA4 olcum ekseni devredildi; beni bloklamiyor.
 - **MaCiT:** gorselsiz parti icin YESIL verildi (`ed135702`); katalogda henuz gorselsiz
   urun YOK, yani ilk parti bu yolun canli ilk kullanicisi olacak.
