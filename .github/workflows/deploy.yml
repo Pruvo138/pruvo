@@ -1177,13 +1177,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      # Once nobetcinin KENDI kabulu (56 iddia; gercek git ile sentetik depoda uctan
-      # uca: yasakli ad REDDEDILIR · temiz mesaj GECER · artefakt yokken commit DURUR ·
+      # Once nobetcinin KENDI kabulu (gercek git ile sentetik depoda uctan uca:
+      # yasakli ad REDDEDILIR · temiz mesaj GECER · artefakt yokken commit DURUR ·
       # kanca kaldirilinca HICBIR SEY uretilmez). Sonra GERCEK olcum.
-      - name: "Commit mesaji sizinti nobetcisi: kendini test (56 iddia, gercek git)"
+      # 🔴 ADIM ADINDA IDDIA SAYISI YAZMAZ: "56 iddia" yaziyordu, gercek 58'di —
+      # bayat sayi kosumun neyi olctugu hakkinda yanlis bilgi verir ve kimse
+      # duzeltmez. Gercek sayiyi betigin KENDISI "SONUC: N/N" satiriyla basar;
+      # tekrarini kabul bataryasinin K1 iddiasi engeller.
+      - name: "Commit mesaji sizinti nobetcisi: kendini test (gercek git; sayi ciktida)"
         run: python3 tools/commit-mesaji-kapisi.py --kendini-test
       - name: "Commit mesaji sizintisi: bu itmenin GETIRDIGI mesajlar (ALARM — yayini DURDURMAZ)"
         run: python3 tools/commit-mesaji-kapisi.py --ci
+      # UCUNCU YUZEY: nobetcinin KENDI izlenen kaynaklarinda DUZ METIN yasakli ad.
+      # OLCULEN ARIZA (1 Agu 2026): bu kapinin docstring'i mekanizmayi anlatirken
+      # gercek adi ORNEK diye yaziyordu (6 satir / 2 desen) — commit MESAJI degil
+      # ICERIK sizintisi, ve mevcut icerik nobetcisi (kisisel-veri-test.py) BASKA bir
+      # tedarikci kumesini taradigi icin gormuyordu. Maliyet olculdu: 12,9 s yerel.
+      - name: "Commit mesaji nobetcisi: KENDI kaynaklarinda duz metin ad taramasi"
+        run: python3 tools/commit-mesaji-kapisi.py --kaynak-tara
   # ==========================================================================
   # SERIT B — YAYINI DURDURMAZ (olculmus karar, 31 Tem 2026)
   # ==========================================================================

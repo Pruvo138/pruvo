@@ -23,9 +23,15 @@ import sys
 import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS)
 KAPI = os.path.join(TOOLS, "commit-mesaji-kapisi.py")
 KUR = os.path.join(TOOLS, "commit-mesaji-hook-kur.py")
 OZET = os.path.join(TOOLS, "sizinti-desen-ozetleri.json")
+YML = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
+# Kabul bataryasinin J bolumu katalog markalarini `urunler.json`'dan turetir, K bolumu
+# `deploy.yml` adim adlarini okur -> mutant agacinda IKISI DE bulunmalidir, yoksa her
+# mutant (ilgisiz kontroller dahil) "olcemedim" yuzunden kirmizi yanar ve arac korlesir.
+URUNLER = os.path.join(ROOT, "urunler.json")
 
 
 def _sha(yol):
@@ -86,6 +92,59 @@ MUTANTLAR = (
     ("M15 KANCA fail-closed on-kosulu fail-OPEN yapildi (betik yoksa gec)", "kur",
      '  echo "!! Sizinti kapisi fail-closed\'dir. Kasten atlamak icin: '
      'git commit --no-verify"\n  exit 1\n', '  exit 0\n', True),
+    # --- SURE EKSENI (donanimdan bagimsiz olcu birimi) ---
+    # 🔴 M16 sure ekseninin CEKIRDEGIDIR: cevrim oldurulunce olculen sure yine "ham
+    # ms" olur — yani kapi tekrar donanima bagimlidir ve CI'da kalici kirmizi doner.
+    # Kalibrasyon makinesinde olcek ~1,0 oldugu icin I1/I2 bunu GOREMEZ (yerelde
+    # olculdu: mutant SAG KALIYORDU); yakalayan iddia, cevrimi 3,58x enjekte edilmis
+    # degerlerle cagiran I4'tur. Bu yuzden cevrim modul duzeyinde TEK bir fonksiyondur.
+    ("M16 sure CEVRIMI OLDURULDU (referans_ms -> ham ms; olcu birimi yalan)",
+     "kapi", "    if not birim_ms or birim_ms <= 0:\n        return 0.0\n"
+     "    return ham_ms * (referans_birim_ms / birim_ms)",
+     "    return ham_ms", True),
+    # NOT: "IS TAVANI gevsetildi" (tavan = 10**9) bilerek EKLENMEDI. Olculdu: bir
+    # KAPIYI gevseten mutant, o kapinin bekcilik ettigi kosul IHLAL EDILMEDIKCE
+    # yakalanamaz -> temiz agacta SAG KALIR ve araci yalanci-kirmiziya bogar.
+    # Tavanin yuk tasidigini M18 KANITLAR: kisit gercekten kaybolunca I3 kirmizi yanar.
+    ("M18 aday uretimi KELIME BASI kisitini kaybetti (her konumdan aday)", "kapi",
+     "    for bas in _kelime_baslari(bosluklu):",
+     "    for bas in range(len(bosluklu)):", True),
+    # --- ALAN ADI EKSENI: MARKA MUAFIYETI BYPASS'A DONUSMESIN ---
+    ("M19 marka muafiyeti OZET ONCELIGINI EZDI (muafiyet -> bypass)", "kapi",
+     "        no = _host_desen_isabeti(host, kayit)\n"
+     "        if no is not None:\n"
+     "            isabet.append((host, konum, no))\n"
+     "            continue\n"
+     "        if normalize(host.split(\".\")[0]).replace(\" \", \"\") in markalar:\n"
+     "            continue",
+     "        if normalize(host.split(\".\")[0]).replace(\" \", \"\") in markalar:\n"
+     "            continue\n"
+     "        no = _host_desen_isabeti(host, kayit)\n"
+     "        if no is not None:\n"
+     "            isabet.append((host, konum, no))\n"
+     "            continue", True),
+    ("M20 marka muafiyeti HER host'u yesil yapti (alan adi ekseni fiilen olu)",
+     "kapi", "    if markalar is None:\n        markalar = katalog_markalari()",
+     "    if markalar is None:\n        markalar = katalog_markalari()\n"
+     "    return []", True),
+    ("M21 vitrin host teshisi ALAN ADINI YAZAR (nobetci sizinti kaynagi olur)",
+     "kapi", '                "eslesen bir host gecti (konum %d). Alan adi BILEREK '
+     'yazilmiyor. "\n                "Mesaji duzenle: adres yerine notr ifade '
+     "('kaynak platform').\"\n                % (no, konum))",
+     '                "eslesen bir host gecti: %s (konum %d)."\n'
+     "                % (no, host, konum))", True),
+    ("M22 host ozet eslesmesi OLDURULDU (_host_desen_isabeti -> None)", "kapi",
+     "    if not kayit:\n        return None\n    etiketler =",
+     "    if not kayit:\n        return None\n    return None\n    etiketler =", True),
+    # --- BAYAT ADIM ADI NOBETI ---
+    # 🔴 BU MUTANT KAPIYI DEGIL IS AKISINI bozar: adim adina yeniden sabit bir iddia
+    # SAYISI konur. Nobetci (K1) bunu KIRMIZI yakmali — yoksa "56 iddia / gercek 58"
+    # arizasi sessizce geri gelir. Guvenlik iddialarini olduren mutantlarin aksine
+    # bunun capasi deploy.yml'dedir, bu yuzden `yml` hedefi vardir.
+    ("M23 adim adina bayat iddia SAYISI geri kondu (deploy.yml)", "yml",
+     '- name: "Commit mesaji sizinti nobetcisi: kendini test (gercek git; sayi ciktida)"',
+     '- name: "Commit mesaji sizinti nobetcisi: kendini test (56 iddia, gercek git)"',
+     True),
     # --- ILGISIZ (kontrol): batarya YESIL kalmali ---
     ("K1  ilgisiz: baslik yorumunda kelime degisti", "kapi",
      "IKI KOL — biri ONLER, digeri GORUNUR KILAR",
@@ -98,16 +157,24 @@ MUTANTLAR = (
 
 
 def main():
-    canli_once = {y: _sha(y) for y in (KAPI, KUR, OZET)}
+    canli_once = {y: _sha(y) for y in (KAPI, KUR, OZET, YML, URUNLER)}
     sonuclar = []
     for ad, hedef, eski, yeni, oldurucu in MUTANTLAR:
         tmp = tempfile.mkdtemp(prefix="pruvo-cm-mut-")
         try:
             t_tools = os.path.join(tmp, "tools")
             os.makedirs(t_tools)
+            t_yml = os.path.join(tmp, ".github", "workflows")
+            os.makedirs(t_yml)
             for kaynak in (KAPI, KUR, OZET):
                 shutil.copy2(kaynak, os.path.join(t_tools, os.path.basename(kaynak)))
-            yol = os.path.join(t_tools, os.path.basename(KAPI if hedef == "kapi" else KUR))
+            shutil.copy2(YML, os.path.join(t_yml, "deploy.yml"))
+            # urunler.json 14,4 MB'dir ve HICBIR mutant onu degistirmez -> kopya yerine
+            # sembolik bag (23 mutantta ~330 MB gereksiz I/O'dan kacinilir).
+            os.symlink(URUNLER, os.path.join(tmp, "urunler.json"))
+            yol = {"kapi": os.path.join(t_tools, os.path.basename(KAPI)),
+                   "kur": os.path.join(t_tools, os.path.basename(KUR)),
+                   "yml": os.path.join(t_yml, "deploy.yml")}[hedef]
             with open(yol, encoding="utf-8") as f:
                 metin = f.read()
             if eski not in metin:
@@ -148,7 +215,7 @@ def main():
                 hatalar.append("%s ilgisiz degisiklikte KIRMIZI yandi: %s" % (ad, tani))
         print("%-60s  %-8s  %-3s %s" % (ad[:60], beklenen,
                                         "-" if rc is None else rc, hukum))
-    canli_sonra = {y: _sha(y) for y in (KAPI, KUR, OZET)}
+    canli_sonra = {y: _sha(y) for y in (KAPI, KUR, OZET, YML, URUNLER)}
     for yol in canli_once:
         if canli_once[yol] != canli_sonra[yol]:
             hatalar.append("🔴 CANLI DOSYA DEGISTI (mutant sizdi): %s" % yol)
