@@ -21,7 +21,7 @@
 
   /* ---- HAZIR TICARI MAL (fiziksel urun) — MALZEME/RENK CARPANI YOK ----------------
      `tur == "fiziksel"` olan kayit HAZIR TICARI MALDIR (tekne boyasi, vernik, tiner...):
-     biz URETMEYIZ, RAFTAN satariz. Dolayisiyla o urunde 3D BASKI malzemesi (PLA/PETG/ASA/TPU)
+     biz URETMEYIZ, RAFTAN satariz. Dolayisiyla o urunde uretim malzemesi (PLA/PETG/ASA/TPU)
      ve "Diğer" renk SECIMI KARSILIKSIZDIR -> fiyati SABITTIR, liste fiyatinin ta kendisi.
 
      🔴 NEDEN BURADA (para yolu, 2026-08-01 — olculdu): 31 Tem'de fiziksel urun SAYFASINDAN
@@ -37,11 +37,11 @@
      🔴 FAIL-CLOSED YONU: kural "fiziksel ISE carpan YOK"tur, "3D ISE carpan VAR" DEGIL.
      `tur` alani YOKSA, bossa ya da taninmayan bir deger tasiyorsa (" fiziksel", "Fiziksel",
      0, [] ...) BUGUNKU davranis aynen korunur -> `tur`suz 15.930 baski urununde regresyon 0.
-     Karsilastirma TAM dize esitligidir (build.py render_product + tools/arama.py + D1
+     Karsilastirma TAM dize esitligidir (sayfa ureteci + arama hatti + D1
      semasi ile AYNI kural; kirpma/kucultme YOK).
 
      TEK KAYNAK: bu fonksiyonu hem site (index.html sepet paneli, urun sayfasi) hem shop
-     Worker'i (shop/src/index.js sepetiFiyatla) cagirir — kural ikinci bir yerde
+     Worker'i (sepetiFiyatla) cagirir — kural ikinci bir yerde
      TEKRARLANMAZ. Worker `tur`u D1 `urunler.tur` kolonundan okur ve satirOzeti'ye verir. */
   var TUR_FIZIKSEL = "fiziksel";
   function fizikselMi(tur) { return tur === TUR_FIZIKSEL; }
@@ -279,7 +279,7 @@
      inen artık içindir (yarım kuruş tahsil edilemez; ör. "Diğer" renkte 333 -> 497,835 TL).
 
      `tur` (5. parametre, OPSİYONEL — bkz. TUR_FIZIKSEL bloğu): tam "fiziksel" ise HAZIR TİCARİ
-     MAL demektir; 3D baskı malzemesi/rengi karşılıksızdır -> her İKİ çarpan da 1,00'e sabitlenir
+     MAL demektir; üretim malzemesi/rengi karşılıksızdır -> her İKİ çarpan da 1,00'e sabitlenir
      (tutar = liste fiyatı). Parametre VERİLMEZSE (eski çağrı yerleri) bugünkü davranış aynen
      korunur — imza genişlemesi fail-closed'dur. Boy farkı BİLEREK dokunulmaz: o bir liste
      varyantı farkıdır, baskı çarpanı değil (fiziksel üründe zaten boy_secenekleri yok ve
