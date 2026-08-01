@@ -1,5 +1,135 @@
 [
   {
+    "id": "yamaha-tank-cikisi-18-8077",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha 18-8077 Tank Çıkışı",
+    "aciklama": "Yamaha dıştan takma deniz motorlarının benzin deposu tarafı yakıt hattı bağlantısında kullanılan tank çıkışı (parça kodu: 18-8077).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8077-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "suzuki-tank-girisi-18-8090",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Suzuki"
+    ],
+    "baslik": "Suzuki 18-8090 Tank Girişi",
+    "aciklama": "Suzuki dıştan takma deniz motorlarının benzin deposu tarafı yakıt hattı bağlantısında kullanılan tank girişi (parça kodu: 18-8090).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8090-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tohatsu-mercury-yakit-konnektoru-18-80417",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Tohatsu",
+      "Mercury"
+    ],
+    "baslik": "Tohatsu-Mercury 18-80417 Yakıt Konnektörü",
+    "aciklama": "Tohatsu ve Mercury dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılan konnektör (parça kodu: 18-80417).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80417-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-benzin-fisi-18-80410",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-80410 Benzin Fişi",
+    "aciklama": "Mercury dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılan benzin fişi (parça kodu: 18-80410).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80410-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "honda-benzin-fisi-buyuk-18-80401",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda 18-80401 Benzin Fişi",
+    "aciklama": "Honda dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılan benzin fişi (parça kodu: 18-80401).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80401-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "volvo-penta-elektrikli-benzin-pompasi-4-3gl-5-0gl-18-7331",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta 18-7331 Elektrikli Benzin Pompası (4.3GL/5.0GL)",
+    "aciklama": "Volvo Penta 4.3GL ve 5.0GL model deniz motorları için elektrikli yakıt pompası (parça kodu: 18-7331).\nVolvo Penta ORJ NO:3858261 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "16900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7331-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "volvo-penta-mercruiser-elektrikli-benzin-pompasi-18-7326",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Volvo Penta",
+      "Mercruiser"
+    ],
+    "baslik": "Volvo Penta-MerCruiser 18-7326 Elektrikli Benzin Pompası",
+    "aciklama": "Volvo Penta ve MerCruiser deniz motorları için elektrikli yakıt pompası (parça kodu: 18-7326).\nVolvo Penta ORJ NO:3858714 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "32400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7326-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "volvo-penta-elektrikli-benzin-pompasi-enjektorlu-18-7330",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta 18-7330 Elektrikli Benzin Pompası (Enjektörlü Motorlar İçin)",
+    "aciklama": "Volvo Penta enjeksiyonlu deniz motorları için elektrikli yakıt pompası (parça kodu: 18-7330).\nVolvo Penta ORJ NO:3857650 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "20900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7330-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "mercury-18-1842-mercruiser-43-egzoz-manifoldu",
     "kategori": "Marin",
     "baslik": "Mercury 18-1842 MerCruiser 4.3L Egzoz Manifoldu",
