@@ -76,9 +76,22 @@ function baskiOnerisi(satir, d1Baski, sema) {
 
 // ---- anahtar ------------------------------------------------------------------
 
-/** Sabit-zamanli string esitligi (erken donus zamanlama sizintisini onler). */
-function sabitEsit(a, b) {
-  a = String(a || ""); b = String(b || "");
+/**
+ * Sabit-zamanli string esitligi (erken donus zamanlama sizintisini onler).
+ *
+ * 🔴 FAIL-CLOSED PRIMITIF: taraflardan biri string DEGILSE ya da BOS ise DAIMA false.
+ * Eski hali `String(a || "")` ile ikisini de `""`ye cevirir ve `sabitEsit("", undefined)`
+ * icin **true** donerdi. Tek basina zararsiz gorunur; ama `env.YONET_ANAHTAR` tanimsizken
+ * bos sifreyle giris = YETKI demekti. O gun korumayi tutan sey yalnizca CAGRI SIRASIYDI
+ * (yonet() secret'i once kontrol ediyordu). Koruma cagri sirasina birakilmaz — primitifin
+ * KENDISI kapali olmali. (Olculdu: curutucunun "secret kapisini giris POST'undan sonraya
+ * al" mutanti, bu satir duzelmeden bos sifreye 200 + yetki veriyordu.)
+ * ⚠️ Uzunluk farkinda erken donuyor — yani anahtarin UZUNLUGUNU sizdirir. Bilinen,
+ * mimarin kaydettigi ve bu tura ALINMAYAN kalem.
+ */
+export function sabitEsit(a, b) {
+  if (typeof a !== "string" || typeof b !== "string") { return false; }
+  if (a.length === 0 || b.length === 0) { return false; }
   if (a.length !== b.length) { return false; }
   let fark = 0;
   for (let i = 0; i < a.length; i++) { fark |= a.charCodeAt(i) ^ b.charCodeAt(i); }
@@ -577,25 +590,99 @@ function sayfa() {
  */
 function girisEkrani(url) {
   const yol = String((url && url.pathname) || "/api/shop/yonet").replace(/[&<>"']/g, "");
-  return new Response(GIRIS_HTML.replace("__EYLEM__", yol), {
+  // 🔴 IKAME FONKSIYON — dize DEGIL. `String.replace`'in IKAME DIZESI `$&`, `$\``, `$'`,
+  // `$$` desenlerini yorumlar; backtick yukaridaki [&<>"'] suzgecinden GECER ve `$\``
+  // eslesmeden ONCEKI tum HTML'i action niteligine kopyalar (olculdu: 967 -> 1762 bayt).
+  // Fonksiyon ikamesinde bu desenler yorumlanmaz — `yol` HARFI HARFINE basilir.
+  // (Bugun yonlendirici `yol === "/yonet"` TAM esitligi dayattigi icin erisilemezdi; ama
+  // rota bir gun on-ek eslesmesine cevrilirse dogrudan enjeksiyon olurdu. Suzgec tek
+  // basina sahte guvenceydi.)
+  return new Response(GIRIS_HTML.replace("__EYLEM__", () => yol), {
     status: 200,
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
+}
+
+// ---- giris hiz siniri (worker-ici; Cloudflare binding'i GEREKTIRMEZ) ----------
+// NEDEN GEREKLI: panel eskiden anahtarsiz 404'tu, artik 200 sifre formu donuyor — ucun
+// VARLIGI kesfedilebilir. Anahtar tek ve paylasilan bir sir; kaba kuvvete karsi tek katman
+// bu. (Takas bilincli: anahtarin erisim loglarinda/Referer'da durmasindan cok daha ucuz.)
+// ⚠️ DURUSTCE SINIRI: sayac ISOLATE BASINA tutulur. Cloudflare istegi baska bir isolate'a
+// dusurebilir, dolayisiyla bu MUTLAK bir tavan DEGIL — ucuz bir yavaslatici. Kalici/global
+// tavan Rate Limiting binding'i ister; mimar bu turda kapsam disi tuttu.
+const GIRIS_PENCERE_MS = 60 * 1000;
+const GIRIS_TAVAN = 5;              // pencere basina BASARISIZ deneme
+const GIRIS_GECIKME_MS = 250;       // her basarisiz/bloke denemede sabit bekleme
+const GIRIS_GOVDE_SINIRI = 1024;    // bayt — sifre formu icin fazlasiyla yeterli
+let girisSayac = { pencereBas: 0, adet: 0 };
+
+function bekle(ms) { return new Promise((coz) => setTimeout(coz, ms)); }
+
+/** Pencere doldu mu (tavan asildi mi)? Pencere gecmisse sayac sifirlanir. */
+function girisBlokeMi(simdi) {
+  if (simdi - girisSayac.pencereBas > GIRIS_PENCERE_MS) {
+    girisSayac = { pencereBas: simdi, adet: 0 };
+  }
+  return girisSayac.adet >= GIRIS_TAVAN;
+}
+
+/**
+ * Istek govdesini SINIRLI okur. Sinir asilirsa null (fail-closed) — `request.formData()`
+ * govde boyutuna UST SINIR KOYMAZ; anahtarsiz bir uca sinirsiz ayristirma yaptirmayiz.
+ * Yalniz `application/x-www-form-urlencoded` ayristirilir (form bunu yollar); multipart
+ * yuzeyi bilerek ACILMAZ.
+ */
+async function girisGovdesi(request) {
+  const bildirilen = parseInt(request.headers.get("Content-Length") || "", 10);
+  if (Number.isFinite(bildirilen) && bildirilen > GIRIS_GOVDE_SINIRI) { return null; }
+  if (!request.body) { return ""; }
+  const okuyucu = request.body.getReader();
+  const parcalar = [];
+  let toplam = 0;
+  for (;;) {
+    const { done, value } = await okuyucu.read();
+    if (done) { break; }
+    toplam += value.byteLength;
+    // Content-Length YALAN soyleyebilir / hic olmayabilir (chunked): gercek bayt sayilir.
+    if (toplam > GIRIS_GOVDE_SINIRI) { try { await okuyucu.cancel(); } catch (e) {} return null; }
+    parcalar.push(value);
+  }
+  const hepsi = new Uint8Array(toplam);
+  let ofs = 0;
+  for (const p of parcalar) { hepsi.set(p, ofs); ofs += p.byteLength; }
+  return new TextDecoder().decode(hepsi);
 }
 
 /**
  * POST /yonet — sifre kutusundan gelen anahtar. Anahtar istek GOVDESINDE gider; GET
  * DEGIL, cunku GET onu sorgu dizesine yazardi = kapatmaya calistigimiz sizintinin ta
  * kendisi. Dogruysa HttpOnly cerez kurulur + panele 302 (Location'da sorgu YOK).
- * Govde yok/bozuk/bos -> fail-closed (giris ekrani). Anahtar loga/yanita YAZILMAZ.
+ *
+ * FAIL-CLOSED KOLLARI — hepsi AYNI giris ekranini doner (ayirt edilemez):
+ *   secret yok -> 404 · tavan asildi -> form · govde buyuk/bozuk/bos -> form · yanlis -> form.
+ * Anahtar loga/yanita/hata metnine YAZILMAZ.
  */
 async function girisYap(request, url, env) {
-  let verilen = "";
-  try {
-    const form = await request.formData();
-    verilen = String(form.get("sifre") || "");
-  } catch (e) { verilen = ""; }
-  if (!sabitEsit(verilen, env.YONET_ANAHTAR)) { return girisEkrani(url); }
+  // 🔴 KENDI KAPISI: yonet() zaten secret'i basta kontrol ediyor — ama koruma CAGRI
+  // SIRASINA birakilmaz. Sira degisirse (olculdu: curutucu mutanti) bu uc anahtarsiz
+  // kuruluma yetki verirdi. Kapi burada TEKRARLANIR; ikisi bagimsiz.
+  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const simdi = Date.now();
+  if (girisBlokeMi(simdi)) {
+    // Tavan asildi: sifre HIC BAKILMADAN reddedilir (dogru sifre de). Yanit, hic
+    // denememis ziyaretcininkiyle BIREBIR ayni — "bloke oldun" bile denmez.
+    await bekle(GIRIS_GECIKME_MS);
+    return girisEkrani(url);
+  }
+  const metin = await girisGovdesi(request);
+  const verilen = metin === null ? "" :
+    String(new URLSearchParams(metin).get("sifre") || "");
+  if (!sabitEsit(verilen, env.YONET_ANAHTAR)) {
+    girisSayac.adet++;
+    await bekle(GIRIS_GECIKME_MS);
+    return girisEkrani(url);
+  }
+  girisSayac = { pencereBas: simdi, adet: 0 };   // basarili giris sayaci sifirlar
   return new Response(null, {
     status: 302,
     headers: {

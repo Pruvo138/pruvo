@@ -2304,13 +2304,17 @@ async function yonetCerezAkisi() {
    */
   async function cagir(secenek) {
     const s = secenek || {};
-    const tamUrl = YONET_TABAN + (s.altYol && s.altYol !== "/" ? s.altYol : "") + (s.sorgu || "");
-    const u = new URL(tamUrl);
+    const tamUrl = s.urlUstuneYaz ||
+      (YONET_TABAN + (s.altYol && s.altYol !== "/" ? s.altYol : "") + (s.sorgu || ""));
+    // `urlNesnesi`: yonlendiriciye HAM bir url nesnesi verilir (gercek URL ayristiricisinin
+    // percent-encode ettigi karakterleri de sinamak icin — girisEkrani her pathname'e karsi
+    // saglam olmali, bugun rota tam-esitlik dayatiyor olsa bile).
+    const u = s.urlNesnesi || new URL(tamUrl);
     const basliklar = {};
     if (s.baslik !== undefined) { basliklar["X-Yonet-Anahtar"] = s.baslik; }
     if (s.cerez !== undefined) { basliklar["Cookie"] = s.cerez; }
     if (s.icerikTur !== undefined) { basliklar["Content-Type"] = s.icerikTur; }
-    const istek = new Request(u.toString(), {
+    const istek = new Request(s.urlUstuneYaz || tamUrl, {
       method: s.yontem || "GET", headers: basliklar,
       body: s.govde === undefined ? undefined : s.govde,
     });
@@ -2462,13 +2466,21 @@ async function yonetCerezAkisi() {
     p13.kod === form.kod, "kodlar=" + p13.kod + "/" + form.kod);
   rapor("C13d yanlis-POST govdesinde anahtarin hicbir parcasi YOK",
     sizintiVar(p13.metin, A).length === 0, "sizan=" + JSON.stringify(sizintiVar(p13.metin, A)));
+  // ⚠️ ORAKUL BOSLUGU KAPATILDI: govde+kod+Set-Cookie kiyaslamak YETMIYOR. Basarisiz girise
+  // AYIRT EDICI BIR BASLIK eklemek eski testten YESIL geciyordu. TUM yanit basliklari
+  // (Set-Cookie dahil, sirali) birebir kiyaslanir.
+  rapor("C13e yanlis-POST'un TUM yanit BASLIKLARI cerezsiz-GET ile birebir ayni",
+    p13.basMetin === form.basMetin,
+    "POST=" + JSON.stringify(p13.basMetin) + " GET=" + JSON.stringify(form.basMetin));
 
   // ---- 14. BOS GOVDE (fail-closed) ----
   const p14 = await cagir({ altYol: "/", yontem: "POST" });
   rapor("C14a bos govdeyle POST -> Set-Cookie YOK (fail-closed)",
     p14.cerezKur === "", "Set-Cookie=" + JSON.stringify(p14.cerezKur));
-  rapor("C14b bos govde yaniti = cerezsiz-GET yaniti",
+  rapor("C14b bos govde yaniti = cerezsiz-GET yaniti (kod + govde)",
     p14.kod === form.kod && p14.metin === form.metin, "kod=" + p14.kod);
+  rapor("C14c bos govde yanitinin TUM BASLIKLARI cerezsiz-GET ile birebir ayni",
+    p14.basMetin === form.basMetin, "POST=" + JSON.stringify(p14.basMetin));
 
   // ---- 15. OZELLIK KAPALI: form BILE yok ----
   const p15 = await cagir({ altYol: "/", yontem: "POST", anahtarsizEnv: true,
@@ -2496,6 +2508,82 @@ async function yonetCerezAkisi() {
   rapor("C17b tools/yazdir.py anahtari URL sorgu dizesine GOMMUYOR",
     !/["'?&]anahtar=/.test(yazdirKaynak),
     "eslesme=" + JSON.stringify((yazdirKaynak.match(/.{0,30}["'?&]anahtar=.{0,20}/) || [""])[0]));
+
+  // ---- 20. GIRIS EKRANI ENJEKSIYONU ($ ikame desenleri) ----
+  // `String.replace`'in IKAME DIZESI `$&` `$\`` `$'` `$$` desenlerini YORUMLAR. `$\``
+  // eslesmeden onceki tum HTML'i action niteligine kopyalar; backtick [&<>"'] suzgecinden
+  // GECER. Beklenen: govde, yolun HARFI HARFINE basilmis halinden BAsKA hicbir sey
+  // icermesin — yani uzunluk = temel govde - "__EYLEM__" + suzulmus yol.
+  const TEMEL_YOL = "/api/shop/yonet";          // form (cerezsiz GET) bu yolla uretildi
+  const TEMEL = form.metin.length;
+  const suz = (y) => y.replace(/[&<>"']/g, "");
+  for (const kotu of ["$`", "$&", "$'", "$$"]) {
+    const hamYol = TEMEL_YOL + kotu + "x";
+    // FIKSTUR GERCEK CIKTININ SEKLINI TAKLIT ETSIN: sahte url nesnesi de `searchParams`
+    // tasir — yoksa sorgu parametresini geri ekleyen bir mutant testi COKERTIR, ve cokme
+    // "kirmizi" ile karisir (olculdu: M1 ilk turda SONUC satirini hic basmadi).
+    const c20 = await cagir({ altYol: "/",
+      urlNesnesi: { pathname: hamYol, searchParams: new URLSearchParams("") } });
+    const beklenenBoy = TEMEL - TEMEL_YOL.length + suz(hamYol).length;
+    const formEtiketi = (c20.metin.match(/<form[^>]*>/i) || [""])[0];
+    rapor("C20 yol '" + kotu + "' -> enjeksiyon YOK (govde boyu sabit, action harfi harfine)",
+      c20.metin.length === beklenenBoy &&
+      formEtiketi === '<form method="post" action="' + suz(hamYol) + '">',
+      "boy=" + c20.metin.length + " (beklenen " + beklenenBoy + ") form=" +
+      JSON.stringify(formEtiketi.slice(0, 90)));
+  }
+
+  // ---- 21. sabitEsit FAIL-CLOSED PRIMITIFI ----
+  // Eski hali `String(a||"")` ile bos/tanimsiz girdide TRUE donerdi: `env.YONET_ANAHTAR`
+  // tanimsizken bos sifre = yetki. Korumayi cagri sirasina birakmayiz.
+  const SE = YM.sabitEsit;
+  rapor("C21-0 sabitEsit disa aktarilmis", typeof SE === "function", "tip=" + typeof SE);
+  rapor("C21a sabitEsit('', '') === false", SE("", "") === false, "sonuc=" + SE("", ""));
+  rapor("C21b sabitEsit('', undefined) === false",
+    SE("", undefined) === false, "sonuc=" + SE("", undefined));
+  rapor("C21c sabitEsit(undefined, undefined) === false",
+    SE(undefined, undefined) === false, "sonuc=" + SE(undefined, undefined));
+  rapor("C21d KONTROL: sabitEsit('abc','abc') === true (sertlestirme dogruyu bozmadi)",
+    SE("abc", "abc") === true && SE("abc", "abd") === false, "esit=" + SE("abc", "abc"));
+
+  // ---- 22. girisYap KENDI SECRET KAPISI (savunma derinligi) ----
+  const p22 = await cagir({ altYol: "/", yontem: "POST", anahtarsizEnv: true,
+    icerikTur: "application/x-www-form-urlencoded", govde: "sifre=" });
+  rapor("C22 secret yok + BOS sifre POST -> 404 + Set-Cookie YOK (girisYap kendi kapisi)",
+    p22.kod === 404 && p22.cerezKur === "", "kod=" + p22.kod + " cerez=" +
+    JSON.stringify(p22.cerezKur));
+
+  // ---- 19. GOVDE UST SINIRI (request.formData() sinirsiz ayristirirdi) ----
+  const kocaman = "sifre=" + "A".repeat(4096);
+  const p19a = await cagir({ altYol: "/", yontem: "POST",
+    icerikTur: "application/x-www-form-urlencoded", govde: kocaman });
+  rapor("C19a sinir ustu govde -> 302 YOK + Set-Cookie YOK (fail-closed)",
+    p19a.kod !== 302 && p19a.cerezKur === "", "kod=" + p19a.kod);
+  const p19b = await cagir({ altYol: "/", yontem: "POST",
+    icerikTur: "application/x-www-form-urlencoded",
+    govde: "dolgu=" + "B".repeat(2048) + "&sifre=" + encodeURIComponent(A) });
+  rapor("C19b sinir ustu govdedeki DOGRU sifre bile kabul edilmez",
+    p19b.kod !== 302 && p19b.cerezKur === "", "kod=" + p19b.kod);
+
+  // ---- 18. GIRIS HIZ SINIRI — EN SONDA (sayaci doldurur; sonraki iddialari etkilemesin) ----
+  let deneme = 0;
+  let bloke = null;
+  while (deneme < 12) {
+    deneme++;
+    await cagir({ altYol: "/", yontem: "POST",
+      icerikTur: "application/x-www-form-urlencoded", govde: "sifre=yanlis-" + deneme });
+    const dogru = await cagir({ altYol: "/", yontem: "POST",
+      icerikTur: "application/x-www-form-urlencoded", govde: "sifre=" + encodeURIComponent(A) });
+    if (dogru.kod !== 302) { bloke = dogru; break; }
+  }
+  rapor("C18a art arda basarisiz denemeden sonra DOGRU sifre bile reddediliyor (hiz siniri)",
+    bloke !== null && bloke.kod !== 302 && bloke.cerezKur === "",
+    bloke ? (deneme + " turda bloke; kod=" + bloke.kod) : "12 turda hic bloke olmadi");
+  rapor("C18b bloke yaniti hic-denememis GET ile BIREBIR ayni (kod + govde + basliklar)",
+    bloke !== null && bloke.kod === form.kod && bloke.metin === form.metin &&
+    bloke.basMetin === form.basMetin,
+    bloke ? ("kod=" + bloke.kod + " govde-esit=" + (bloke.metin === form.metin) +
+             " bas-esit=" + (bloke.basMetin === form.basMetin)) : "bloke olmadi");
 
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
     (kalan ? "" : " — HEPSI YESIL ✅"));

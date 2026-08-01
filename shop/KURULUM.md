@@ -17,7 +17,11 @@ acilir. **`?anahtar=` sorgu parametresi YOK** (tam URL erisim loglarina, tarayic
 ve Referer basligina yaziliyordu); makine istemcileri (`tools/yazdir.py`) anahtari
 `X-Yonet-Anahtar` basliginda yollar. `YONET_ANAHTAR` wrangler secret
 (`openssl rand -hex 24`); TANIMSIZSA tum /yonet* uclari 404 doner (sifre kutusu bile
-gosterilmez). Yanlis sifre, hic denememis ziyaretciyle BIREBIR ayni ekrani doner.
+gosterilmez). Yanlis sifre, hic denememis ziyaretciyle BIREBIR ayni ekrani doner
+(govde + durum kodu + TUM basliklar ayni; Set-Cookie yok).
+**Hiz siniri:** dakikada 5 basarisiz denemeden sonra dogru sifre de bir sure kabul edilmez
+(her basarisiz denemede ~250 ms bekleme). Sayac worker isolate'i basinadir — mutlak tavan
+degil, ucuz bir yavaslaticidir. Giris govdesi 1 KB ile sinirlidir.
 - **Liste**: son 50 siparis (durum suzgeci), PII yalniz anahtarli yanitta. Her satirda
   **FILAMENT + RENK vurgulu** + baski onerisi (D1 `urunler.baski` — gizli kayittan
   d1-sync ile; yoksa malzeme fallback'i) + "Yerel komut kopyala" (`python3 tools/yazdir.py
