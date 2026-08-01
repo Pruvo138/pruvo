@@ -1,5 +1,581 @@
 [
   {
+    "id": "champion-buji-l78yc6",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "Champion"
+    ],
+    "baslik": "Champion L78YC6 Deniz Motoru Bujisi",
+    "aciklama": "Champion üretimi orijinal kalite deniz motoru bujisi (parça kodu: L78YC6).\nMariner ve Mercury marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-champion-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "champion-buji-rc10yc4",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "Champion"
+    ],
+    "baslik": "Champion RC10YC4 Deniz Motoru Bujisi",
+    "aciklama": "Champion üretimi orijinal kalite deniz motoru bujisi (parça kodu: RC10YC4).\nMercury marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-champion-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "champion-buji-rc7yc",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "Champion"
+    ],
+    "baslik": "Champion RC7YC Deniz Motoru Bujisi",
+    "aciklama": "Champion üretimi orijinal kalite deniz motoru bujisi (parça kodu: RC7YC).\nPolaris marka su araçlarıyla (ATV/jet ski hattı) uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-champion-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "champion-buji-rs9yc",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "Champion"
+    ],
+    "baslik": "Champion RS9YC Deniz Motoru Bujisi",
+    "aciklama": "Champion üretimi orijinal kalite deniz motoru bujisi (parça kodu: RS9YC).\nMerCruiser marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-champion-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "champion-buji-rv17yc4",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "Champion"
+    ],
+    "baslik": "Champion RV17YC4 Deniz Motoru Bujisi",
+    "aciklama": "Champion üretimi orijinal kalite deniz motoru bujisi (parça kodu: RV17YC4).\nMerCruiser marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-champion-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-b6hs-10",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK B6HS-10 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: B6HS-10).\nMercury ve Mariner marka 2 HP deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-b7hs-10",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK B7HS-10 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: B7HS-10).\nYamaha, Mariner ve Mercury marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-b8hs-10",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK B8HS-10 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: B8HS-10).\nYamaha, Mariner ve Mercury marka 25-60 HP deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-bpr6es",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BPR6ES Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BPR6ES).\nSuzuki ve Johnson marka 4 zamanlı deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-bpr6fs",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BPR6FS Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BPR6FS).\nVolvo marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-bpr6hs",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BPR6HS Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BPR6HS).\nMercury ve Mariner marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-bpr6hs-10",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BPR6HS-10 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BPR6HS-10).\nMercury ve Mariner marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-bpr7hs-10",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BPR7HS-10 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BPR7HS-10).\nMercury, Mariner ve Tohatsu marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-bpr8es",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BPR8ES Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BPR8ES).\nPolaris marka jet ski motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-br4hs",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BR4HS Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BR4HS).\nMarka bağımsız genel marin buji modelidir; hangi motorda kullanılacağını eski bujinizin üzerindeki kod (BR4HS) ile karşılaştırarak teyit ediniz.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-br6fs",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BR6FS Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BR6FS).\nMerCruiser marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-buhw",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BUHW Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BUHW).\nMercury ve Mariner marka tırnaksız tip deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-buhw-2",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BUHW-2 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BUHW-2).\nMercury ve Mariner marka tırnaksız tip deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-buzhw-2",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK BUZHW-2 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: BUZHW-2).\nMercury ve Mariner marka tırnaksız tip deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-cr9ekb",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK CR9EKB Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: CR9EKB).\nMarka bağımsız genel marin buji modelidir; hangi motorda kullanılacağını eski bujinizin üzerindeki kod (CR9EKB) ile karşılaştırarak teyit ediniz.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-dpr7ea-9",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK DPR7EA-9 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: DPR7EA-9).\nParsun marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-dr5hs",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK DR5HS Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: DR5HS).\nHonda marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-ikr9j8",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK IKR9J8 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: IKR9J8).\nMarka bağımsız genel marin buji modelidir; hangi motorda kullanılacağını eski bujinizin üzerindeki kod (IKR9J8) ile karşılaştırarak teyit ediniz.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-ilfr6g",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK ILFR6G Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: ILFR6G).\nMercury Verado serisi deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-ilzkr7d8",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK ILZKR7D8 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: ILZKR7D8).\nMarka bağımsız genel marin buji modelidir; hangi motorda kullanılacağını eski bujinizin üzerindeki kod (ILZKR7D8) ile karşılaştırarak teyit ediniz.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-itr4a15",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK ITR4A15 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: ITR4A15).\nMerCruiser marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-izfr6j",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK IZFR6J Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: IZFR6J).\nMercury Optimax serisi deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-izfr6q",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK IZFR6Q Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: IZFR6Q).\nTohatsu marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-kr9e-g",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK KR9E-G Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: KR9E-G).\nBombardier marka jet ski motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-lfr5a-11",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK LFR5A-11 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: LFR5A-11).\nMercury ve Yamaha marka 4 zamanlı deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-lkar7c-9",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK LKAR7C-9 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: LKAR7C-9).\n4 zamanlı deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-lmar7a-9",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK LMAR7A-9 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: LMAR7A-9).\nMercury marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-lrc4-e",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK LRC4-E Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: LRC4-E).\nHonda marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-pmr9b",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK PMR9B Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: PMR9B).\nKawasaki marka deniz araçlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "2000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-zfr5f-11",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK ZFR5F-11 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: ZFR5F-11).\nHonda marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "ngk-buji-zfr6k-11",
+    "kategori": "Marin",
+    "altkategori": "Bujiler",
+    "marka": [
+      "NGK"
+    ],
+    "baslik": "NGK ZFR6K-11 Deniz Motoru Bujisi",
+    "aciklama": "NGK üretimi orijinal kalite deniz motoru bujisi (parça kodu: ZFR6K-11).\nHonda marka deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski bujinizin üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-ngk-buji-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "tmc-sintine-pompasi-500gl-12v",
     "kategori": "Marin",
     "marka": [
