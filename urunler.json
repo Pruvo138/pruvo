@@ -1,5 +1,49 @@
 [
   {
+    "id": "tecnoseal-anod-mercury-b00049a",
+    "kategori": "Marin",
+    "altkategori": "Tutyalar ve Anotlar",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury Bravo Trim Tab Anodu (ORJ: 76214T5)",
+    "aciklama": "MerCruiser Bravo I/II/III sterndrive serisinin trim tab (yunus kanadı) üzerine monte edilen kurban anot.\nGalvanik korozyona karşı motor aksamını korur; anot yaklaşık yarısı aşındığında değiştirilmelidir.\nMontaj cıvatası ile birlikte gelir (orijinal Mercury referans no: 76214T5).\nStandart alaşım tuzlu su kullanımına uygundur; takmadan önce motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-mercury-b-00049a-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "flap-tutya-aleminyum-90mm",
+    "kategori": "Marin",
+    "altkategori": "Tutyalar ve Anotlar",
+    "baslik": "Alüminyum Flap Tutya 90 mm",
+    "aciklama": "Tekne aynasına (transom) veya dümen flapına cıvata ile monte edilen alüminyum kurban anot (tutya). Çap: 90 mm.\nTatlı-tuzlu su karışık kullanım için uygun alüminyum alaşımdan üretilmiştir; galvanik korozyona karşı çevresindeki metal aksamı korur.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; montaj öncesi tekne/dümen flapınızın cıvata deliği ölçüsüyle uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/flap-tutya-aleminyum-grup-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": []
+  },
+  {
+    "id": "flap-tutya-aleminyum-110mm",
+    "kategori": "Marin",
+    "altkategori": "Tutyalar ve Anotlar",
+    "baslik": "Alüminyum Flap Tutya 110 mm",
+    "aciklama": "Tekne aynasına (transom) veya dümen flapına cıvata ile monte edilen alüminyum kurban anot (tutya). Çap: 110 mm.\nTatlı-tuzlu su karışık kullanım için uygun alüminyum alaşımdan üretilmiştir; galvanik korozyona karşı çevresindeki metal aksamı korur.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; montaj öncesi tekne/dümen flapınızın cıvata deliği ölçüsüyle uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/flap-tutya-aleminyum-grup-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "marka": []
+  },
+  {
     "id": "mercury-18-3549-mercruiser-120f-termostat",
     "kategori": "Marin",
     "marka": [
