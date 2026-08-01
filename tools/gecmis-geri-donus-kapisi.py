@@ -85,13 +85,25 @@ commit'in tum icerigi HIC taranmazdi).
 yeniden adlandiran commit "eklenen satir yok" gorunur, icerik taramadan gecerdi.
 Kapali oldugunda ayni commit dosyanin TAMAMINI eklenmis sayar — pahali ama KOR DEGIL.
 
-🔴 ADAY BUTCESI (fail-closed): benzersiz aday sayisi ADAY_BUTCESI'ni asarsa hukum
-SIZINTI degil OLCULEMEDI'dir (rc 2) ve push DURUR. "Cok buyuk oldugu icin taramadim"
-YESIL DEGILDIR — bu deponun tekrar tekrar olctugu sessiz delik sinifi budur. Butce
-1.200 commit uzerinde olculerek secildi: `urunler.json`in TAM yeniden yazildigi 2
-commit disinda en pahali TEK commit 57.339 aday, en pahali 20-commit'lik push 52.891
-adaydir; butce onun ~2,6 kati. Cikis yolu git'in kendi `--no-verify` bayragidir
-(gurultulu ve kayitli), kapiyi sessizce gevsetmek DEGIL.
+🔴 ADAY BUTCESI — DAVRANIS KOLUN ONLEME GUCUNE GORE AYRILIR:
+  * ONLEYICI kol (`--pre-push`): butce asilirsa hukum SIZINTI degil OLCULEMEDI'dir
+    (rc 2) ve PUSH DURUR. "Cok buyuk oldugu icin taramadim" YESIL DEGILDIR — bu
+    deponun tekrar tekrar olctugu sessiz delik sinifi budur. Cikis yolu git'in kendi
+    `--no-verify` bayragidir (gurultulu ve kayitli), kapiyi gevsetmek DEGIL.
+  * GORUNURLUK kolu (`--ci`): butce dolunca tarama EN YENI commit'te DURUR ve hukum
+    kapsanan kume uzerinden verilir (`kirp=True`). OLCULEN ARIZA (1 Agu 2026, kosum
+    30693623021): force-push'tan sonra CI checkout'unda olay yukundeki `before`
+    nesnesi ORTADAN KALKMISTI; kol "son 50 commit" yedegine dustu, 157.276 aday ile
+    butceyi asti ve ortada HICBIR SIZINTI YOKKEN rc 2 verdi. CI push'TAN SONRA kosar
+    ve hicbir seyi ONLEMEZ -> oradaki rc 2 tek basina kirmizi GURULTUdur; her commit
+    kendisini GETIREN push'un kendi CI kosumunda zaten taranir (zaman icinde kapsam
+    TAM) ve asil olcumu onleyici kol TAM menzil uzerinde yapar.
+  * KIRPMA SESSIZ DEGIL: her kosumda "MESAJ x/x · ICERIK y/x commit" basilir, kirpma
+    olduysa atlanan commit SAYISI ayrica uyari satiriyla yazilir. MESAJ ekseni ucuz
+    oldugu icin kirpmadan ETKILENMEZ — HER ZAMAN tum commit'leri kapsar.
+Butce 1.200 commit uzerinde olculerek secildi: `urunler.json`in TAM yeniden yazildigi
+2 commit disinda en pahali TEK commit 57.339 aday, en pahali 20-commit'lik push 52.891
+adaydir; butce onun ~2,6 kati.
 
 🔴 TESHIS SIZDIRMAZ: eslesen METIN hicbir kolda basilmaz — commit + dosya + desen no
 + uzunluk basilir. Aksi halde kapi sizintiyi PUBLIC Actions gunlugune kendi eliyle
