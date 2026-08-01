@@ -184,10 +184,20 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - Merge `a5fcef74` (ileri-sarma, taban `7f0735e9`). D1 teyidi: sayi ekseni
   16407 == 16407; icerik ekseni 16407 urun_hash birebir, uyusmaz 0 / eksik 0 / fazla 0.
 - KANIT: `git grep -i` calisma agacinda VE `origin/main`'de VURUS 0.
-- 🔴 GECMIS TEMIZLENMEDI — OKAN KARARI (1 Agu): blob gecmiste KALIYOR. Adi getiren commit
-  `bc4c6c35`. Ikinci tarihce yeniden yazimi + force-push YAPILMAYACAK (kardes oturumlarin
-  aktif dallari ve bayat taban tuzagi riski alinmadi). Maruziyet acik: blob GitHub kod
-  aramasinda ve raw API'de gorunur. "Gecmis temizlendi" DENMEZ.
+- ~~🔴 GECMIS TEMIZLENMEDI — OKAN KARARI (1 Agu): blob gecmiste KALIYOR.~~
+  **BU KAYIT GECERSIZ (1 Agu, Okan yeni karar):** gecmis TEMIZLENDI. Adi getiren commit
+  `bc4c6c35` idi; icerik ekseni yeniden yazildi ve `--force-with-lease` ile itildi.
+  Pencere 18 commit (1825 ata DOKUNULMADI), degisen dosya kumesi TAM OLARAK 1 dosya /
+  9 commit, baska hicbir blob degismedi, UCTAKI AGAC birebir ayni, eski uc <-> yeni uc
+  `git diff` BOS, mesaj/yazar/tarihler bayt-birebir korundu. Push sonrasi olcum:
+  mesaj ekseni 0 (1843 commit), icerik ekseni 0 (163 blob), calisma agaci 0, uzak dal
+  kalintisi 0 (34 dal). Yedek ref `refs/yedek/main-icerik-temizlik-20260801`.
+- 🔴 TEMIZLIGIN KALICILIGI ARTIK KAPIYA BAGLI: gecmis IKI KEZ temizlenmis, IKI KEZ geri
+  gelmisti; sebep her seferinde temizlik ONCESI taban uzerine kurulmus bir dalin merge
+  edilmesiydi. `tools/gecmis-geri-donus-kapisi.py` (pre-push, fail-closed + CI gorunurluk
+  kolu) bu ekseni kapatir: itmenin origin'e EKLEDIGI TUM commit'leri (yalniz yeni
+  yazilanlari degil) mesaj VE icerik ekseninde tarar. Kabul 40 vaka / 0 hata (gercek git
+  + gercek push), mutasyon 17/17 oldurucu OLDU, 3/3 ilgisiz YESIL.
 
 ## TABAN (yeniden olc, ezberleme)
 - Katalog: taban alti 0; D1 sayi ve hash ekseninde uyumlu.
