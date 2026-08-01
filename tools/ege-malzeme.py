@@ -99,10 +99,15 @@ def bolum_uret():
         "(NBR, FKM/Viton, EPDM, silikon), metal, cam vb. Bunlar bizim sürecimizde YOK; "
         "sunulması yakışık almaz, yalan söz olur.",
         "",
+        # 🔴 1 Agu: "uygun filamenti + fiyati belirleyip ILETECEGINI soyle" KALDIRILDI.
+        # Okan'in kurali: fiyati VE uretilebilirlik/malzeme kararini Okan/ekip verir;
+        # Ege KOSULU toplar, karari DEVREDER, "ileteceğim" DEMEZ. Satirin geri kalani
+        # (kosul toplama + "Kesin performans garantisi verme") KORUNDU.
         "- Malzemenin KRİTİK olduğu iş (yakıt/yağ/kimyasal teması, yüksek ısı, gıda, yüksek yük): "
         "bir filamentin o şartı tam karşılayıp karşılamayacağı üretim kararıdır. Koşulu net topla "
-        "(hangi sıvı/yakıt · sürekli mi ara sıra mı · kaç derece · esnek mi sert mi), uygun "
-        "filamenti + fiyatı belirleyip ileteceğini söyle + [DEVRET]. Kesin performans garantisi verme.",
+        "(hangi sıvı/yakıt · sürekli mi ara sıra mı · kaç derece · esnek mi sert mi), araştırıp "
+        "döneceğini söyle + [DEVRET]. Malzeme ve fiyat kararı bizde. "
+        "Kesin performans garantisi verme.",
         "- Uzmanlığını doğru soruları sorarak göster; eğitici olabilirsin (\"yanlış malzeme yakıtta "
         "şişer/bozulur, o yüzden koşulu netleştiriyorum\") ama filament-dışı bir malzemeyi çözüm "
         "diye sunma.",
