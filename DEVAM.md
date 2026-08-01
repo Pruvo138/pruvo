@@ -55,34 +55,83 @@ gormek icin dusuk tutarli GERCEK siparis gerekir (Okan kapisi). Uretilen mantik 
   devredildi, Ege tarafi sahibinde kaldi, sema/odeme/merge bende.
 
 ### BEKLIYOR
-⚠️ Budama turu bu bolumu de arsive tasidi (lossless, kayip 0 — ayrinti arsivde). ACIK olan
-kalem arsive inmez; guncel hal mimar eliyle asagiya yeniden yazildi.
+- Onceki turun acik kalemleri (kardes depo gosterim sapmasi · cron tetikleyici karari ·
+  filament fiksturu · nobetci borcu) DEVAM-ARSIV.md'ye tasindi; kapanmadilar.
 
-- 🔴 **HESAP TASINMASI ACIK.** 23 Tem'deki MAKINE gocu bitti; envanterdeki is AYRI:
-  **hesap devirleri** (kod deposu, edge saglayici, calisma alani, odeme, mesajlasma,
-  not/CRM, model saglayici). Migration Assistant hesap devretmez. Olculdu: mevcut
-  oturumlar hala eski hesapta -> **hic baslamamis.**
-  ⚠️ Ozet listedeki "19" EKSIK SAYIM: tablolardaki atamalar **24 ayri eyleme** iniyor.
-  ✅ Bloklayici **6 -> 5**: "yedeksiz gizli dosyalari eski makineden aktar" KAPANDI
-  (19 kalemin 19'u da bu makinede; 13'u goc oncesi tarihli, icerik ACILMADI).
-  🔴 Yerine gecen risk: iki sigorta paketi (~33 MB) YALNIZ bu makinede. **Karar:**
-  paylasilan yedege GIRMEYECEK (temizlik oncesi icerik tasiyorlar) — otomatik yedegin
-  degil, tasinmanin **ELLE** kalemidir, sifreli elden gecirilir.
-  Envanter + yedek raporu `raporlar/` altinda: gitignore'lu, yedek kapsaminda, sha256
-  ozdesligi ve yedek tazeligi dogrulandi.
-- ⚠️ **Envanterin kendi "yedekte YOK" hukmu BAYAT** — yedek araci envanterden SONRA
-  genisletildi; kardes hafiza uzaylari ve uyelik/fiyat kayitlari Drive'da fiilen VAR.
-  Saf sirlarin Drive'da olmamasi BOSLUK DEGIL, sir nobetinin kasitli karari.
-  Duzeltme isciye verildi (eski metin silinmeden, "olculdu" notuyla).
-- ⚠️ **Goc dogrulayicisi yanlis alarm veriyor** (rc=1): gomulu referansi symlink yonu
-  duzeltilmeden onceki hali bekliyor. Gercek kirmizi 0. DAR onarim isciye verildi —
-  referans TOPTAN tazelenmeyecek, yoksa bugunku hal "dogru" diye muhurlenir.
+## KARARLAR
+- 1 Agu icerik denetimi: DEVAM.md'de kalan 4 sinifli blok
+  maskeleme nobetcisi karsilastirmasi, kanca hata davranisi, temizlik oncesi gecmise
+  isaretciler) DEVAM-ARSIV.md'ye BIREBIR tasindi, yerlerine notr isaretci birakildi.
+
+## OTURUM KAPANISI — 1 Agu 2026 (KraL)
+
+### CANLIYA GITTI
+- `7da1124a` — toplu ekleme yolunda altkategori dogrulamasi + cikis kodu kabul testi.
+  Iki commit guncel main uzerine cherry-pick ile alindi (duz merge YOK: dal tabani
+  yeniden yazilmis gecmisin oncesindeydi). Kapsam 2 dosya / +286 satir; urun verisi
+  dosyasi diffte YOK. Bagimsiz kosulan kabul: dal testi rc=0 / 180 iddia · altkategori
+  kapisi rc=0 / 35 iddia · CI kapsam rc=0 · kapi envanteri rc=0 / 21 iddia · is akisi
+  rc=0 · kisisel veri rc=0 · kanca nobeti rc=0. Eklenen 286 satir 8 desen sinifina
+  karsi tarandi, 0 vurus.
+- `204a076d` — izlenen kok belgeler icin icerik sinifi nobetcisi; CI `build` isinde iki
+  adim. Nobetci ad-BAGIMSIZ (kok seviyedeki izlenen belge uzantilari), muafiyet listesi
+  TUTMAZ. Kendini-test 62 kontrol. Kaynak daldaki metin tasimasi bayat taban uzerindeydi;
+  tasima bu kayitta guncel metin uzerinde YENIDEN yapildi (asagida).
+- Bu kayit — DEVAM.md tavan tazelemesi: 253 satir arsive BIREBIR tasindi (kayip 0),
+  nobetci ayni agacta rc=0.
+
+### KOSUYOR
+- Bu listenin elle tutulan hali BAYATLIYORDU (11 dal yaziliydi, agac sayisi tutmuyordu).
+  Tek dogruluk kaynagi artik olculen git ciktisi: `git -C /Users/okan/dev/pruvo worktree list`.
+  Ezberleme, olc.
+
+### 1 AGU 15:00 TURU — olculdu
+- **Ege bilgi kaynagi fiyat/malzeme vaadi notrlestirildi** — merge (dal tek commit
+  `5e8dc5fa`, taban `627159df` main'in GERCEK atasi, ata testi yesil). Kapsam TAM 2 dosya,
+  +11 / -6; urun verisi diffte YOK, cakisma YOK.
+  Spec 2 satir isaret etti, isci tam okumayla **4** buldu; ikisi spec disiydi (biri Ege'ye
+  hazir agiz cumlesi olarak yaziliydi). Bir satir URETILEN blok icindeydi -> elle degil
+  **ureteci** duzeltildi, yoksa ilk kosumda geri gelirdi. Kabul: 6 kapi rc=0
+  (ic nobetci 73/73, mutasyon 14 mutant / 0 sag kalan). Kapi GEVSETILMEDI.
+- ✅ O turda acilan "kapi bu sinifa KOR" bulgusu ayni gun KAPANDI — ust bloga bak.
+- **Marin altkategori izinli kumesi 3 -> 11.** Mimar karari: istenen yazimlardan uctu
+  duzeltildi (satici vitrininden kopyalanmis yazim hatasi + yabanci yazim), biri
+  EKLENMEDI (o bolum kalici kapandi, sifir urun tasiyacak olu yapilandirma olurdu).
+  Carpisma 0 · imza nobeti 11/11 temiz · altkategori kapisi rc=0 · toplu test rc=0.
+- **Parite (ag acik, yeniden kosuldu):** semantik gerileme **0/1199 site · 0/844 Ege**.
+  Kirmizinin tek sebebi ayri: **6 urun yerelde var, D1'de yok** — urun verisi duzleminin
+  senkron gecikmesi, bu turun degisikligiyle ilgisi YOK.
+- Ilk kosumda parite ag KAPALI ortamda kirmizi yanmisti (tum sorgular basarisiz);
+  "gerileme" degil **olculmemis**ti. Ag gerektiren kabul ayri kosumla alinir.
+
+### BEKLIYOR
+- 🔴 **HESAP TASINMASI ACIK — kayit BAYAT DEGILDI, DOGRULANDI.** 23 Tem'deki MAKINE gocu
+  bitti; envanterdeki is AYRI: **hesap devirleri** (kod deposu, edge saglayici, calisma
+  alani, odeme, mesajlasma, not/CRM, model saglayici). Migration Assistant hesap devretmez.
+  Olculdu: mevcut oturumlar hala eski hesapta -> **hic baslamamis.**
+  ⚠️ **"19" EKSIK SAYIM:** ozet liste 19 madde ama tablolarda Okan'a atanmis satirlar
+  **24 ayri eyleme** iniyor (5'i ozette YOK: worker'larin yeni hesapta yeniden yayini,
+  medya alt alan adi baglamasi, baglayici yetkilendirmeleri, hasat platformlarina giris,
+  destek talebi takibi). **6'si BLOKLAYICI** — o altisi yapilmadan digerleri olculemez.
+  Envanter ve yedek raporu `raporlar/` altinda (gitignore'lu, yedek kapsaminda);
+  sha256 ozdesligi ve yedek tazeligi dogrulandi.
+- ⚠️ **Goc dogrulayicisi YANLIS ALARM veriyor** (rc=1): gomulu referansi 22 Tem'de alinmis,
+  symlink yonunun 30 Tem'de duzeltilmesinden ONCE. Gercek kirmizi 0. Referans tazelenmeli,
+  yoksa kirmizi gorup umursamama aliskanligi dogar.
 - ⚠️ **Yedekte KAPSAM DISI 2 giris:** biri turetilmis artefakt (dogru), digeri kardes evde
-  bir cikti klasoru — neredeyse ayni adli komsusu kapsamda VAR. Sessiz kapsam daralmasi
-  sinifi; ayri gorev acildi.
-- **KARDES MIMAR / OKAN:** onceki turun acik kalemleri (kardes depo gosterim sapmasi ·
-  cron tetikleyici karari · filament fiksturu · nobetci borcu) arsivde duruyor;
-  son ikisi bu oturumda isciye verildi.
+  bir cikti klasoru (53 dosya / 31 MB) — neredeyse ayni adli komsu klasor kapsamda VAR,
+  bu YOK. 30 Tem'de bir kez yasanan sessiz kapsam daralmasi sinifi; ayri gorev acildi.
+- ✅ KAPANDI (1 Agu): "OKAN: cayma hakki ayrimi + ticari sartlar" kaydi BAYATMIS. Okan
+  bildirdi, olculerek dogrulandi: sozlesme ve sayfalar iki sinifi ZATEN ayiriyor, canli
+  metinler depoyla bayt-bayt ayni. Eksik olan ayrimin BEYANA gecmesiydi; o da bu tur kapandi.
+- OKAN: hesap tasinmasinda elle gereken 19 kalem.
+- ✅ KARAR (Okan, 1 Agu): cayma iadesinde geri gonderim kargosu icin sozlesmeye **HICBIR
+  CUMLE YAZILMAYACAK.** Sonucu bilincli: yazili olmadigi surece bedel yasal olarak SATICIDA,
+  yani bizde. Bu bir eksiklik DEGIL, verilmis karardir — "unutulmus" diye tamamlanmasin.
+  Kapi bu cumlenin izinsiz yazilmasini kirmizi yakiyor; koruma YERINDE KALSIN.
+- MIMAR KARARI: arama maliyet kapisinin bloklayan serite tasinmasi.
+- ISCI VERILMEDI: denetim kapisi rapor kolundaki adaylar (urun verisi duzlemi).
+- KARDES MIMAR: vida ailesi PUL-only teslimi, metin temizligi plani.
 
 ## TABAN (yeniden olc, ezberleme)
 Bu bolume SAYI YAZMA — gun icinde bayatliyor ve bayat sayi yanlis guven veriyor
