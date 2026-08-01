@@ -2245,13 +2245,17 @@ SERIT_B = {
         "rc 2 ile KIRMIZI yanar (olu nobetci olamaz).",
     # --- CRON NABZI isi (ALARM kolu; yayin kusuru DEGIL) --------------------
     ("deploy.yml", "cron-nabzi", "tools/cron-nabiz-kapisi.py"):
-        "ZAMANLANMIS IS NABZI — olctugu sey GitHub'in TETIKLEME MOTORUDUR, yayinlanan "
-        "icerik DEGIL. Bu isin kirmizisi 'cron kosmuyor' der; o hal bir YAYIN kusuru "
-        "degildir ve yayini durdurmak yanlis olurdu (olculdu: kapi birikmesi bu depoda "
-        "yayin suresini 21 gunde 15,6x uzatti ve musteriye 404 olarak yansidi -> "
-        "[[kapi-birikimi-yayin-gecikmesi]]). Iki kol da burada: `--kendini-test` (agsiz, "
-        "29 iddia) ve GERCEK API olcumu. Veri cekilemezse rc 2 ile KIRMIZI yanar "
-        "(fail-closed; olu nobetci olamaz).",
+        "ZAMANLANMIS DENETIM NABZI — olctugu sey GitHub'in TETIKLEME MOTORU ve "
+        "zamanlanmis denetimlerin TAZELIGIDIR, yayinlanan icerik DEGIL. Bu isin "
+        "kirmizisi 'denetim yapilmiyor' der; o hal bir YAYIN kusuru degildir ve yayini "
+        "durdurmak yanlis olurdu (olculdu: kapi birikmesi bu depoda yayin suresini "
+        "21 gunde 15,6x uzatti ve musteriye 404 olarak yansidi -> "
+        "[[kapi-birikimi-yayin-gecikmesi]]). Iki kol da burada: `--kendini-test` (agsiz "
+        "fikstur) ve GERCEK API olcumu. Veri cekilemezse rc 2 ile KIRMIZI yanar "
+        "(fail-closed; olu nobetci olamaz). 1 Agu: A4 PAKET ekseni eklendi — elle "
+        "yayinlanan shop Worker'inin bayatligi (1 Agu: 14,5 saat, %84'e varan fazla "
+        "tahsilat) ancak burada GORUNUR olur; olcumun KENDISI yayin yolundan ayri bir "
+        "zamanlanmis is akisindadir (paket-tazelik-alarmi.yml, `push` tetikleyicisi YOK).",
     # --- yayin SONRASI job (yapisal olarak yayini bloklayamaz) --------------
     ("deploy.yml", "yayin", "tools/yayin-kapisi.py"):
         "ATOMIK YAYIN adimi YAPISAL OLARAK yayindan SONRA kosar (`needs: deploy`): "

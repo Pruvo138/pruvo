@@ -1,5 +1,650 @@
 [
   {
+    "id": "tmc-sintine-pompasi-500gl-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Pompası 500 GPH 12V",
+    "aciklama": "12V elektrikli sintine (bilge) pompası, 500 galon/saat debi.\nTekne içine sızan suyu otomatik veya manuel devrede dışarı atar; sintine sisteminin temel güvenlik ekipmanıdır.\nKompakt gövde, dar sintine boşluklarına montaja uygundur.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-pompasi-500gl-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-sintine-pompasi-1000gl-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Pompası 1000 GPH 12V",
+    "aciklama": "12V elektrikli sintine (bilge) pompası, 1000 galon/saat debi.\nOrta-büyük sintine hacimleri için yüksek debili tahliye sağlar.\nKompakt gövde, dar sintine boşluklarına montaja uygundur.",
+    "fiyat": "1900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-pompasi-1000gl-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-sintine-pompasi-1000gl-24v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Pompası 1000 GPH 24V",
+    "aciklama": "24V elektrikli sintine (bilge) pompası, 1000 galon/saat debi.\nOrta-büyük sintine hacimleri için yüksek debili tahliye sağlar.\nKompakt gövde, dar sintine boşluklarına montaja uygundur.",
+    "fiyat": "2100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-pompasi-1000gl-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-sintine-pompasi-1500gl-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Pompası 1500 GPH 12V",
+    "aciklama": "12V elektrikli sintine (bilge) pompası, 1500 galon/saat debi.\nBüyük sintine hacimleri ve hızlı su alma durumları için yüksek debili tahliye sağlar.\nKompakt gövde, dar sintine boşluklarına montaja uygundur.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-pompasi-1500gl-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-sintine-pompasi-1500gl-24v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Pompası 1500 GPH 24V",
+    "aciklama": "24V elektrikli sintine (bilge) pompası, 1500 galon/saat debi.\nBüyük sintine hacimleri ve hızlı su alma durumları için yüksek debili tahliye sağlar.\nKompakt gövde, dar sintine boşluklarına montaja uygundur.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-pompasi-1500gl-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-sintine-pompasi-2000gl-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Pompası 2000 GPH 12V",
+    "aciklama": "12V elektrikli sintine (bilge) pompası, 2000 galon/saat debi.\nBüyük tekne sintine hacimleri için yüksek kapasiteli tahliye sağlar.\nKompakt gövde, dar sintine boşluklarına montaja uygundur.",
+    "fiyat": "2800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-pompasi-2000gl-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-sintine-pompasi-2000gl-24v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Pompası 2000 GPH 24V",
+    "aciklama": "24V elektrikli sintine (bilge) pompası, 2000 galon/saat debi.\nBüyük tekne sintine hacimleri için yüksek kapasiteli tahliye sağlar.\nKompakt gövde, dar sintine boşluklarına montaja uygundur.",
+    "fiyat": "2900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-pompasi-2000gl-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-sintine-pompasi-2500gl-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Pompası 2500 GPH 12V",
+    "aciklama": "12V elektrikli sintine (bilge) pompası, 2500 galon/saat debi.\nYüksek debi kapasitesiyle acil su alma durumlarında hızlı tahliye sağlar.\nKompakt gövde, dar sintine boşluklarına montaja uygundur.",
+    "fiyat": "4400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-pompasi-2500gl-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-sintine-flatoru-66x118x60mm",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Flatörü 66x118x60mm (12V/24V)",
+    "aciklama": "12V/24V uyumlu otomatik sintine flatörü (şamandıra anahtarı), 66x118x60mm ölçüsünde.\nSintine suyu belli seviyeye ulaştığında pompayı otomatik devreye sokar, su çekilince keser.\nMevcut sintine pompanızla birlikte otomatik tahliye sistemi kurmak için kullanılır.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-flatoru-66x118x60mm-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-sintine-flatoru-suzgecli",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Sintine Flatörü Süzgeçli (12V/24V)",
+    "aciklama": "12V/24V uyumlu, süzgeçli gövdeli otomatik sintine flatörü (şamandıra anahtarı).\nSüzgeç, pompaya kaçabilecek pislik ve kalıntıları tutarak tıkanmayı önler.\nSintine suyu belli seviyeye ulaştığında pompayı otomatik devreye sokar, su çekilince keser.",
+    "fiyat": "1230 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-sintine-flatoru-suzgecli-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-otomatik-sintine-pompasi-1000gl-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Otomatik Sintine Pompası 1000 GPH 12V",
+    "aciklama": "12V, dahili su seviyesi sensörlü otomatik sintine pompası, 1000 galon/saat debi.\nAyrı flatöre gerek kalmadan su seviyesini algılayıp kendiliğinden çalışır ve durur.\nKompakt gövde, dar sintine boşluklarına montaja uygundur.",
+    "fiyat": "3500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-otomatik-sintine-pompasi-1000gl-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-dalgic-karavan-pompasi-160gl-24v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Dalgıç Karavan Pompası 160 GPH 24V",
+    "aciklama": "24V dalgıç tipi su pompası, 160 galon/saat debi.\nTemiz su tankından musluk/duşa basınçlı su beslemesi için karavan ve teknelerde kullanılır.\nKompakt gövde, tank içine daldırılarak monte edilir.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-dalgic-karavan-pompasi-160gl-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-dalgic-pompasi-280gl-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Dalgıç Pompası 280 GPH 12V",
+    "aciklama": "12V dalgıç tipi su pompası, 280 galon/saat debi.\nTemiz su tankından basınçlı su beslemesi ya da küçük hacimli boşaltma işleri için kullanılır.\nKompakt gövde, tank/kova içine daldırılarak monte edilir.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-dalgic-pompasi-280gl-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-otomatik-sintine-pompasi-1500gl-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Otomatik Sintine Pompası 1500 GPH 12V",
+    "aciklama": "12V, dahili su seviyesi sensörlü otomatik sintine pompası, 1500 galon/saat debi.\nAyrı flatöre gerek kalmadan su seviyesini algılayıp kendiliğinden çalışır ve durur.\nYüksek debisiyle büyük sintine hacimlerinde de hızlı tahliye sağlar.",
+    "fiyat": "4700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-otomatik-sintine-pompasi-1500gl-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "attwood-sintine-flatoru-12-24v",
+    "kategori": "Marin",
+    "marka": [
+      "Attwood"
+    ],
+    "baslik": "Attwood Sintine Flatörü 12V/24V",
+    "aciklama": "12V/24V uyumlu otomatik sintine flatörü (şamandıra anahtarı).\nSintine suyu belli seviyeye ulaştığında pompayı otomatik devreye sokar, su çekilince keser.\nMevcut sintine pompanızla birlikte otomatik tahliye sistemi kurmak için kullanılır.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/attwood-sintine-flatoru-12-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-silecek-motoru-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Silecek Motoru 12V",
+    "aciklama": "12V tekne cam sileceği motoru.\nKaptan köşkü/kokpit camındaki silecek koluna güç aktarır, yağmur ve deniz suyu sıçramasında görüşü açık tutar.\nKompakt gövde, standart silecek montaj noktalarına uyumludur.",
+    "fiyat": "3800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-silecek-motoru-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tmc-silecek-motoru-24v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Silecek Motoru 24V",
+    "aciklama": "24V tekne cam sileceği motoru.\nKaptan köşkü/kokpit camındaki silecek koluna güç aktarır, yağmur ve deniz suyu sıçramasında görüşü açık tutar.\nKompakt gövde, standart silecek montaj noktalarına uyumludur.",
+    "fiyat": "3800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-silecek-motoru-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tmc-macarator-pompasi-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Macerator Pompası 12V",
+    "aciklama": "12V macerator (öğütücü) pompa.\nPis su/foseptik tankının boşaltılması için katı içerikli sıvıyı parçalayarak taşır.\nTekne sintine/pis su tesisatına montaja uygun kompakt gövde.",
+    "fiyat": "5700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-macarator-pompasi-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-macarator-pompasi-24v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Macerator Pompası 24V",
+    "aciklama": "24V macerator (öğütücü) pompa.\nPis su/foseptik tankının boşaltılması için katı içerikli sıvıyı parçalayarak taşır.\nTekne sintine/pis su tesisatına montaja uygun kompakt gövde.",
+    "fiyat": "5700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-macarator-pompasi-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "tmc-elektrikli-luks-tuvalet-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Elektrikli Lüks Tuvalet 12V",
+    "aciklama": "12V elektrikli, düğme kontrollü tekne tuvaleti (lüks seri).\nManuel pompa kolu gerektirmez; tek dokunuşla yıkama/tahliye yapar.\nStandart tekne pis su tesisatına montaja uygundur.",
+    "fiyat": "25000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-elektrikli-luks-tuvalet-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tmc-elektrikli-luks-tuvalet-24v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Elektrikli Lüks Tuvalet 24V",
+    "aciklama": "24V elektrikli, düğme kontrollü tekne tuvaleti (lüks seri).\nManuel pompa kolu gerektirmez; tek dokunuşla yıkama/tahliye yapar.\nStandart tekne pis su tesisatına montaja uygundur.",
+    "fiyat": "25400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-elektrikli-luks-tuvalet-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tmc-elektrikli-tuvalet-buyuk-tas-12v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Elektrikli Tuvalet Büyük Taş 12V",
+    "aciklama": "12V elektrikli tekne tuvaleti, büyük taş (hazne) gövdeli seri.\nDüğme kontrolüyle tek dokunuşta yıkama/tahliye yapar, manuel pompa kolu gerektirmez.\nStandart tekne pis su tesisatına montaja uygundur.",
+    "fiyat": "20800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-elektrikli-tuvalet-buyuk-tas-12v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tmc-elektrikli-tuvalet-buyuk-tas-24v",
+    "kategori": "Marin",
+    "marka": [
+      "TMC"
+    ],
+    "baslik": "TMC Elektrikli Tuvalet Büyük Taş 24V",
+    "aciklama": "24V elektrikli tekne tuvaleti, büyük taş (hazne) gövdeli seri.\nDüğme kontrolüyle tek dokunuşta yıkama/tahliye yapar, manuel pompa kolu gerektirmez.\nStandart tekne pis su tesisatına montaja uygundur.",
+    "fiyat": "20900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tmc-elektrikli-tuvalet-buyuk-tas-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sintine-otomatigi-12-24v",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Sintine Otomatiği 12V/24V",
+    "aciklama": "12V/24V uyumlu otomatik sintine anahtarı (flatör).\nSintine suyu belli seviyeye ulaştığında pompayı otomatik devreye sokar, su çekilince keser.\nMevcut sintine pompanızla birlikte otomatik tahliye sistemi kurmak için kullanılır.",
+    "fiyat": "570 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sintine-otomatigi-12-24v-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Sintine ve Ekipmanları"
+  },
+  {
+    "id": "teleflex-pitot-universal",
+    "kategori": "Marin",
+    "marka": [
+      "Teleflex"
+    ],
+    "baslik": "Teleflex Universal Pitot",
+    "aciklama": "Teleflex marka universal pitot (hız sensörü ucu).\nTekne teknesinin dış yüzeyine monte edilerek su akış basıncını hız göstergesine iletir.\nFarklı gösterge sistemleriyle uyumlu genel amaçlı gövde.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/teleflex-pitot-universal-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "karisik-motor-anahtari-18-15451",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Evrensel Motor Kill Switch İpi (18-15451)",
+    "aciklama": "Dıştan takma deniz motorları için evrensel acil-stop (kill switch) emniyet ipi.\nSürücünün bileğine/can yeleğine takılır; sürücü yerinden ayrılırsa spiral ip gerilip motoru otomatik durdurur.\nFarklı switch başlıklarına uyan çoklu klips ucu içerir, her teknede bulunması önerilen bir güvenlik ekipmanıdır.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/karisik-motor-anahtari-18-15451-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-tahliye-pompasi-18-52104",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Yağ Tahliye Pompası (18-52104)",
+    "aciklama": "Sierra marka manuel yağ tahliye pompası.\nDeniz motorunun karterinden eski yağı temiz ve dökülmeden boşaltmak için kullanılır.\nPeriyodik motor yağı değişiminde bakım aracı olarak kullanılır.",
+    "fiyat": "6100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-yag-tahliye-pompasi-18-52104-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Motor Parçaları"
+  },
+  {
+    "id": "sierra-kablo-cikis-korugu-18-4454",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Kablo Çıkış Körüğü (18-4454)",
+    "aciklama": "Sierra marka lastik körük (kablo/şaft çıkış manşonu).\nKumanda kablosu veya şaftın gövdeden çıkış noktasını su girişine karşı korur.\nAşınmış/çatlamış eski körüğün yerine doğrudan değiştirilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-kablo-cikis-korugu-18-4454-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Motor Parçaları"
+  },
+  {
+    "id": "sierra-kablo-cikis-korugu-18-4455",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Kablo Çıkış Körüğü (18-4455)",
+    "aciklama": "Sierra marka lastik körük (kablo/şaft çıkış manşonu), 18-4454'e göre farklı ölçü.\nKumanda kablosu veya şaftın gövdeden çıkış noktasını su girişine karşı korur.\nAşınmış/çatlamış eski körüğün yerine doğrudan değiştirilir.",
+    "fiyat": "370 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-kablo-cikis-korugu-18-4455-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Motor Parçaları"
+  },
+  {
+    "id": "sierra-motor-calistirma-ipi-18-4904",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Motor Çalıştırma İpi (18-4904)",
+    "aciklama": "Sierra marka ip çekişli (starter) çalıştırma ipi.\nİple çalıştırılan küçük dıştan takma deniz motorlarında yıpranan ipin yerine takılır.\nStandart starter makarası ile uyumlu kalınlık ve uzunluktadır.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-motor-calistirma-ipi-18-4904-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Motor Parçaları"
+  },
+  {
+    "id": "sierra-motor-yikama-aparati-18-9010",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Motor Yıkama Aparatı (18-9010)",
+    "aciklama": "Sierra marka dıştan takma motor yıkama aparatı (\"kulaklık\"/flushing muff).\nMotoru sudan çıkardıktan sonra soğutma sistemini tatlı su ile yıkamak ve tuz/kum birikimini önlemek için alt üniteye takılır.\nBahçe hortumuna bağlanarak kullanılır.",
+    "fiyat": "390 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-motor-yikama-aparati-18-9010-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Motor Parçaları"
+  },
+  {
+    "id": "sierra-pervane-somun-anahtari-18-4444",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra Pervane Somun Anahtarı (18-4444)",
+    "aciklama": "Sierra marka pervane somun sökme/takma anahtarı.\nDıştan takma motor pervanesinin somununu sıkmak/gevşetmek için tasarlanmıştır.\nPervane değişimi ve bakımında servis aracı olarak kullanılır.",
+    "fiyat": "1700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/sierra-pervane-somun-anahtari-18-4444-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true,
+    "altkategori": "Motor Parçaları"
+  },
+  {
+    "id": "teleflex-pvc-montaj-spirali",
+    "kategori": "Marin",
+    "marka": [
+      "Teleflex"
+    ],
+    "baslik": "Teleflex PVC Montaj Spirali",
+    "aciklama": "Teleflex marka PVC montaj spirali (kablo/hortum sarma spirali).\nDümen kumanda kablosu veya hortum demetini bir arada tutup dış etkenlerden korur.\nKesilip istenen uzunlukta kullanılabilir esnek PVC yapıdadır.",
+    "fiyat": "1100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/teleflex-pvc-montaj-spirali-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "yamaha-tank-cikisi-18-8077",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamaha 18-8077 Tank Çıkışı",
+    "aciklama": "Yamaha dıştan takma deniz motorlarının benzin deposu tarafı yakıt hattı bağlantısında kullanılan tank çıkışı (parça kodu: 18-8077).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8077-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "suzuki-tank-girisi-18-8090",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Suzuki"
+    ],
+    "baslik": "Suzuki 18-8090 Tank Girişi",
+    "aciklama": "Suzuki dıştan takma deniz motorlarının benzin deposu tarafı yakıt hattı bağlantısında kullanılan tank girişi (parça kodu: 18-8090).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8090-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tohatsu-mercury-yakit-konnektoru-18-80417",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Tohatsu",
+      "Mercury"
+    ],
+    "baslik": "Tohatsu-Mercury 18-80417 Yakıt Konnektörü",
+    "aciklama": "Tohatsu ve Mercury dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılan konnektör (parça kodu: 18-80417).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80417-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-benzin-fisi-18-80410",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-80410 Benzin Fişi",
+    "aciklama": "Mercury dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılan benzin fişi (parça kodu: 18-80410).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80410-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "honda-benzin-fisi-buyuk-18-80401",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda 18-80401 Benzin Fişi",
+    "aciklama": "Honda dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılan benzin fişi (parça kodu: 18-80401).\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80401-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "volvo-penta-elektrikli-benzin-pompasi-4-3gl-5-0gl-18-7331",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta 18-7331 Elektrikli Benzin Pompası (4.3GL/5.0GL)",
+    "aciklama": "Volvo Penta 4.3GL ve 5.0GL model deniz motorları için elektrikli yakıt pompası (parça kodu: 18-7331).\nVolvo Penta ORJ NO:3858261 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "16900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7331-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "volvo-penta-mercruiser-elektrikli-benzin-pompasi-18-7326",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Volvo Penta",
+      "Mercruiser"
+    ],
+    "baslik": "Volvo Penta-MerCruiser 18-7326 Elektrikli Benzin Pompası",
+    "aciklama": "Volvo Penta ve MerCruiser deniz motorları için elektrikli yakıt pompası (parça kodu: 18-7326).\nVolvo Penta ORJ NO:3858714 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "32400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7326-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "volvo-penta-elektrikli-benzin-pompasi-enjektorlu-18-7330",
+    "kategori": "Marin",
+    "altkategori": "Yakıt Sistemi",
+    "marka": [
+      "Volvo Penta"
+    ],
+    "baslik": "Volvo Penta 18-7330 Elektrikli Benzin Pompası (Enjektörlü Motorlar İçin)",
+    "aciklama": "Volvo Penta enjeksiyonlu deniz motorları için elektrikli yakıt pompası (parça kodu: 18-7330).\nVolvo Penta ORJ NO:3857650 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "20900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7330-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "mercury-18-1842-mercruiser-43-egzoz-manifoldu",
     "kategori": "Marin",
     "baslik": "Mercury 18-1842 MerCruiser 4.3L Egzoz Manifoldu",

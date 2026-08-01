@@ -1,0 +1,140 @@
+name: Paket tazeligi alarmi (canli fiyat yolu)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR — OLCULEN SESSIZLIK (1 Agu 2026)
+# ══════════════════════════════════════════════════════════════════════════════
+# shop Worker'i CI'da YAYINLANMIYOR (elle `wrangler deploy`). 30 Tem 20:30 – 1 Agu 01:58
+# arasinda canli paket 14,5 saat BAYAT kaldi; o pencerede `tur == "fiziksel"` olan 676
+# hazir ticari malda malzeme/renk carpani hala uygulaniyordu -> %84'e varan FAZLA
+# TAHSILAT (16.400 TL'lik bir parca icin canli uc 30.176,00 TL dondu).
+#
+# 🔴 ASIL KUSUR KORLUKTU: o an mevcut IKI canli kapi da YESIL yaniyordu
+# (`konfigur-canli-kapisi.py` rc=0 · `canli-saglik-kapisi.py` rc=0). AYNI SINIF 30 Tem'de
+# de yasandi (worker yayinlanmamis, kart kanali 2 gun kapali). Yani bu TEKRAR EDEN,
+# YAPISAL bir delik: yayin adimi CI'da olmadigi surece bayatlik kendiliginden geri gelir.
+#
+# 1 Agu'da `tools/fiziksel-canli-kapisi.py` main'e alindi ve sapmayi FIILEN yakaliyor
+# (yayin oncesi rc=1, sonrasi rc=0). Ama CANLI KOLU hicbir yere BAGLANMAMISTI —
+# bilerek: ag'a bagimli bir yanlis pozitif TUM EKIBIN yayinini durdurur
+# ([[kapi-kapsam-eksen-secimi]]). BU IS AKISI o kolun evidir.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 NEDEN YAYINI DURDURAMAZ (yapisal, beyan degil)
+# ══════════════════════════════════════════════════════════════════════════════
+#   * `push` tetikleyicisi YOK -> Pages yayin akisi (deploy.yml) bu isi HIC baslatmaz.
+#   * deploy.yml'e `needs:` ile BAGLI DEGIL, `workflow_call` ile CAGRILMIYOR ->
+#     buradaki kirmizinin yayin yoluna maliyeti 0 sn'dir.
+#   * `concurrency` grubu AYRI -> hicbir yayin adimini bekletmez, hicbiri tarafindan
+#     bekletilmez.
+# Bu uc sart `tools/cron-nabiz-kapisi.py::paket_alarmi_kablosu()` tarafindan OLCULUR:
+# bu dosyaya `push:` eklenirse nabiz kapisi KIRMIZI yanar (yani "bloklamaz" iddiasi
+# yorum degil, kosulan bir kapidir).
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# GORUNURLUK — `continue-on-error` YOK
+# ══════════════════════════════════════════════════════════════════════════════
+# Bu depoda beyansiz `continue-on-error` FAIL-OPEN sayilir (is-akisi-kapisi Bolum D).
+# Kullanilmadi: olcum adiminin cikis kodu DOGRUDAN konusur, kosum KIRMIZI yanar ve
+# GitHub bildirimi duser. Ayrica araç `--gh-ozet` ile kosum ozetine (Actions "Summary")
+# ne olduğunu ve NE YAPILACAGINI yazar. Cikis kodunu kabukta yakalamak (`rc=0; ... || rc=1`)
+# BILEREK YAPILMADI: o yazim Bolum D'ye gore beyansiz fail-open'dir.
+#
+# UC HAL, UCU DE ANLAMLI:
+#   durum=parite      rc 0 — canli tahsilat liste fiyati, paket depo HEAD'i ile ayni nesil.
+#   durum=drift       rc 1 — fazla/eksik tahsilat, bayat paket ya da odenemeyen kalem.
+#   durum=olculemedi  rc 2 — ag/uc/node erisilemedi ya da orneklem BOS. SESSIZ YESIL DEGIL:
+#                            kosum KIRMIZI yanar ve DAMGA DOGMAZ.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# NABIZ — "alarmin KENDISI hic kosmadi" hali (OLCULMUS TUZAK)
+# ══════════════════════════════════════════════════════════════════════════════
+# Bu depoda olculdu (31 Tem): `*/15` cron'lu bir is akisi 4 sa 36 dk boyunca beklenen
+# ~18 tetiklemenin SIFIRINI kostu — `*/15` tam olarak dakika 0/15/30/45'e duser ve
+# GitHub o yogun dakikalarda kuyruk kisitlayip tetiklemeyi DUSURUR (yeniden denemez).
+# Bu yuzden dakika alani ACIK LISTE + SABIT OFSET'tir: 11,26,41,56 (15 dk cadans AYNEN
+# korunur, faz kayar; d1-uzlastirici.yml'nin 7,22,37,52 fazina da CARPMAZ).
+#
+# Alarm IKI KATLI nabizla korunur, ikisi de `tools/cron-nabiz-kapisi.py`de kosar ve
+# deploy.yml `cron-nabzi` isinde HER ITMEDE olculur (yayini bloklamayan serit):
+#   A1/A2/A3 — bu dosyanin cron BICIMI yogun dakikaya kaymis mi · is akisi GitHub'da
+#              `active` mi · son `event=schedule` kosumu esigin icinde mi.
+#   A4       — SON BASARILI PAKET TAZELIGI DAMGASI kac saatlik. "Kosum YESIL" ile
+#              "olcum FIILEN yapildi" AYNI SEY DEGILDIR (olculdu 31 Tem 20:47:18Z:
+#              conclusion=success, adimlarin HEPSI skipped). Damga YALNIZ
+#              `durum == 'parite'` iken dogar; drift/olculemedi/atlanan kosum damga
+#              URETMEZ ve A4 o sessizligi sayar.
+on:
+  schedule:
+    - cron: "11,26,41,56 * * * *"
+  # Elle kosum yolu HER ZAMAN acik (cron kacarsa insan tetikleyebilir).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup.
+concurrency:
+  group: paket-tazelik-alarmi
+  cancel-in-progress: true
+
+jobs:
+  tazelik:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # 🔴 node ZORUNLU: YEREL KAHIN (depo HEAD'inin KENDI worker kodu) node ile kosar.
+      # node yoksa kapi rc 2 (OLCULEMEDI) verir — sessiz yesil YOKTUR.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # UCA TAZELE — kahin "YAYINLANMASI GEREKEN kod" olsun
+      # ═══════════════════════════════════════════════════════════════════════
+      # Zamanlanmis kosum tetikleme anindaki `github.sha`'yi checkout eder. Kuyruk +
+      # kurulum gecikmesinde main ilerlerse yerel kahin DOGUSTAN bayat olur ve alarm
+      # "canli bayat" derken aslinda KENDI agacinin eski oldugunu olcerdi (yanlis pozitif)
+      # — ya da tersine gercek bir bayatligi maskelerdi. Uzlastiricida ayni hal OLCULDU
+      # (kosum 30664207786): donmus SHA yuzunden butun adimlar atlandi, kosum YESIL yandi.
+      - name: Uca tazele — agaci uzak main ucuna getir (donmus github.sha DEGIL)
+        run: |
+          git fetch --depth=1 origin main
+          git reset --hard FETCH_HEAD
+          git rev-parse HEAD
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # OLCUM — canli uc NE TAHSIL EDIYOR (yan etkisiz)
+      # ═══════════════════════════════════════════════════════════════════════
+      # POST /api/shop/fiyat PROVA ucudur: siparis ACMAZ, D1'e YAZMAZ, iyzico'ya GITMEZ,
+      # e-posta/Telegram GONDERMEZ, olcum olayi GONDERMEZ. Cikis kodu DOGRUDAN konusur
+      # (kabukta yakalanmaz) — `--gh-ozet` durumu $GITHUB_OUTPUT'a ve kosum ozetine yazar.
+      - name: "Olcum — canli fiyat yolu paritesi (yayin yolundan AYRI, yayini DURDURMAZ)"
+        id: olcum
+        run: python3 tools/fiziksel-canli-kapisi.py --gh-ozet
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # DAMGA — "olcum FIILEN yapildi ve PARITE cikti" kaydi (nabiz A4 ekseni)
+      # ═══════════════════════════════════════════════════════════════════════
+      # KOSMA KOSULU FAIL-CLOSED ve OLCUMUN SONUCUNA baglidir: `durum == 'parite'`.
+      # `always()` DEGIL, `success()` DE DEGIL — cunku damganin iddiasi "kosum bitti"
+      # degil "canli fiyat yolu OLCULDU ve TEMIZ cikti"dir. Olcum duser/atlanirsa damga
+      # DOGMAZ ve bir sonraki nabiz olcumu (A4) KIRMIZI yanar.
+      # NEDEN ARTIFACT, depoda IZLENEN dosya DEGIL: 15 dakikada bir main'e push etmek
+      # main ucunu surekli oynatir ve D1 bayatlik kapisini tetikler — damga mekanizmasi
+      # olcmesi gereken hastaligi URETEMEZ. Artifact depoya yazmaz, makine-okunurdur ve
+      # saklamasi OLCULDU (24 saat > esik N=9 saat).
+      - name: Damga — son basarili paket tazeligi olcumu
+        if: steps.olcum.outputs.durum == 'parite'
+        run: |
+          python3 tools/cron-nabiz-kapisi.py --damga-yaz paket-tazelik-damgasi.json --damga-adi paket-tazelik-damgasi
+          cat paket-tazelik-damgasi.json
+      - name: Damgayi yukle (artifact — nabiz kapisinin A4 ekseni bunu okur)
+        if: steps.olcum.outputs.durum == 'parite'
+        uses: actions/upload-artifact@v4
+        with:
+          name: paket-tazelik-damgasi
+          path: paket-tazelik-damgasi.json
+          if-no-files-found: error

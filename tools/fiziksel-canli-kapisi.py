@@ -61,10 +61,20 @@ CIKIS KODLARI (ucu de ANLAMLI — "olculemedi" ASLA yesil sayilmaz):
   2 OLCULEMEDI  — ag/uc/node erisilemedi, 429, bozuk cevap ya da OLCULECEK FIZIKSEL URUN YOK.
                   Drift KANITI yok, ama parite de KANITLANMADI -> sessiz yesil VERILMEZ.
 
+CANLI KOLUN ZAMANLANMIS EVI (1 Agu): `.github/workflows/paket-tazelik-alarmi.yml`.
+  O is akisinin `push` tetikleyicisi YOKTUR ve hicbir is ona `needs:` ile bagli degildir
+  -> buradaki KIRMIZI hicbir yayini durdurmaz, yalnizca GitHub bildirimi dusurur.
+  `--gh-ozet` o is akisi icindir: durumu makine-okunur bicimde `$GITHUB_OUTPUT`a
+  (durum=parite|drift|olculemedi) ve insan-okunur bicimde `$GITHUB_STEP_SUMMARY`ye yazar.
+  🔴 NEDEN ARACIN KENDISI YAZAR: cikis kodunu KABUKTA yakalamak (`rc=0; ... || rc=1`)
+  tools/is-akisi-kapisi.py Bolum D'ye gore BEYANSIZ FAIL-OPEN'dir; ozeti burada yazinca
+  is akisi satiri DUZ kalir ve cikis kodu dogrudan konusur.
+
 KULLANIM:
     python3 tools/fiziksel-canli-kapisi.py                  # CANLI kol (ag ISTER)
     python3 tools/fiziksel-canli-kapisi.py --uc https://.../api/shop/fiyat
     python3 tools/fiziksel-canli-kapisi.py --adet 5         # kac fiziksel urun ornekleniyor
+    python3 tools/fiziksel-canli-kapisi.py --gh-ozet        # + GitHub is ozeti/ciktisi
     python3 tools/fiziksel-canli-kapisi.py --kendini-test   # OFFLINE kol (CI'da bu kosar)
 """
 import argparse
@@ -511,6 +521,86 @@ SORUN_SINIFLARI = ("SAPMA", "TANIMIYOR", "NESIL", "REPO-KIRIK", "AYIRT-EDICI-YOK
                    "LISTE-SAPMASI", "ARIZA")
 
 
+# ---------------------------------------------------------------- CI gorunurlugu
+# DURUM -> MAKINE ETIKETI. Zamanlanmis alarm is akisi damgayi YALNIZ "parite" etiketinde
+# uretir; yani DRIFT de OLCULEMEDI de damga DOGURMAZ ve nabiz kapisi (A4 ekseni) o
+# sessizligi bir sonraki olcumde KIRMIZI yakar. Bu tablonun tek "parite" degeri olmasi
+# `--kendini-test` E6 iddiasiyla KILITLIDIR: bir gun OLCULEMEDI de "parite"ye eslenirse
+# alarm SIFIR olcumu damgalardi (uzlastiricinin 20:47Z dersi, bu kez fiyat yolunda).
+DURUM_ETIKET = {"PARITE": "parite", "DRIFT": "drift", "OLCULEMEDI": "olculemedi"}
+
+OZET_BASLIK = {
+    "PARITE": "✅ Canli paket TAZE — hazir ticari malda tahsilat LISTE FIYATI",
+    "DRIFT": "🔴 CANLI FIYAT YOLU SAPMIS — musteriden yanlis tutar ya da kalem odenemiyor",
+    "OLCULEMEDI": "⚪ OLCULEMEDI — parite KANITLANMADI (sessiz yesil VERILMEZ)",
+}
+
+OZET_NE_YAPMALI = {
+    "DRIFT": ("REPO-KIRIK satiri VARSA once KODU duzelt (deploy bir sey duzeltmez); "
+              "yoksa shop Worker'ini YENIDEN YAYINLA ve bu alarmi tekrar kostur."),
+    "OLCULEMEDI": ("Ag/uc/node erisilemedi, hiz sinirina takildi ya da orneklem BOS. "
+                   "Bu bir DRIFT KANITI DEGIL, ama parite de kanitlanmadi -> damga "
+                   "DOGMAZ ve nabiz kapisi A4 ekseni bu sessizligi sayar."),
+}
+
+
+def gh_ozet_metni(durum, satirlar, problar, uc):
+    """SAF (ag YOK, dosya YOK) -> GitHub is ozeti icin markdown blogu.
+
+    Ayri fonksiyon cunku METNIN kendisi de olculur: bayat paket halinde ozetin
+    "yeniden yayinla" demesi `--kendini-test` E5 iddiasiyla kilitlidir (sessiz/anlamsiz
+    bir ozet, kirmizi kadar zararlidir: kimse ne yapacagini bilmez)."""
+    fiz = len([p for p in problar if p["sinif"] == "FIZIKSEL"])
+    kon = len([p for p in problar if p["sinif"] == "BASKI"])
+    sayim = {s: len([x for x in satirlar if x[0] == s]) for s in SORUN_SINIFLARI}
+    sat = ["### " + OZET_BASLIK[durum],
+           "",
+           "* uc: `%s`" % uc,
+           "* prova: %d fiziksel + %d kontrol (baski)" % (fiz, kon),
+           "* sapma %d · tanimiyor %d · nesil %d · repo-kirik %d · ayirt-edici-yok %d · "
+           "liste-sapmasi %d · olculemeyen %d"
+           % (sayim["SAPMA"], sayim["TANIMIYOR"], sayim["NESIL"], sayim["REPO-KIRIK"],
+              sayim["AYIRT-EDICI-YOK"], sayim["LISTE-SAPMASI"], sayim["ARIZA"]),
+           ""]
+    sorunlu = [x for x in satirlar if x[0] in SORUN_SINIFLARI]
+    if sorunlu:
+        sat.append("```")
+        for sinif, ah, aciklama in sorunlu[:20]:
+            sat.append("%-16s %s — %s" % (sinif, ah, aciklama))
+        sat.append("```")
+        sat.append("")
+    if durum in OZET_NE_YAPMALI:
+        sat.append("**NE YAPILMALI:** " + OZET_NE_YAPMALI[durum])
+        sat.append("")
+        sat.append("_Bu is akisi yayin yolundan TAMAMEN AYRIDIR (`push` tetikleyicisi YOK, "
+                   "hicbir is ona `needs:` ile bagli degil) — buradaki kirmizi hicbir "
+                   "yayini durdurmaz._")
+    return "\n".join(sat) + "\n"
+
+
+def gh_yaz(durum, satirlar, problar, uc, ortam=None):
+    """`$GITHUB_OUTPUT` -> `durum=<etiket>` · `$GITHUB_STEP_SUMMARY` -> ozet blogu.
+
+    Doner: (etiket, yazilan_dosya_sayisi). Ortam degiskeni YOKSA yazmaz (yerel kosumda
+    zararsiz); yazma hatasi OLCUMU DUSURMEZ — cikis kodu her halukarda karar_kodudur."""
+    o = os.environ if ortam is None else ortam
+    etiket = DURUM_ETIKET[durum]
+    yazilan = 0
+    for degisken, icerik in (("GITHUB_OUTPUT", "durum=%s\n" % etiket),
+                             ("GITHUB_STEP_SUMMARY",
+                              gh_ozet_metni(durum, satirlar, problar, uc))):
+        yol = (o.get(degisken) or "").strip()
+        if not yol:
+            continue
+        try:
+            with open(yol, "a", encoding="utf-8") as f:
+                f.write(icerik)
+            yazilan += 1
+        except OSError as e:                                  # noqa: PERF203
+            print("UYARI: %s yazilamadi (%s) — cikis kodu yine de konusur" % (degisken, e))
+    return etiket, yazilan
+
+
 def rapor(durum, satirlar, problar, uc, sessiz=False):
     if sessiz:
         return DURUM_KOD[durum]
@@ -806,6 +896,69 @@ def kendini_test(node=None):
             iddia("D5 canli == depo kodu senaryosunda kapi YESIL (hep-kirmizi degil)",
                   d == "PARITE", d)
 
+    # ---- (E) ALARM KABLOSU: CI durum etiketi + damga kosulu (ONCE-KIRMIZI)
+    # 🔴 NEDEN AYRI BOLUM: canli kol BUGUN YESIL. "Alarm calisiyor" iddiasi canli kosumla
+    # KANITLANAMAZ; bayat paket senaryosu ancak FIKSTURLE gosterilebilir. Buradaki iddialar
+    # tam olarak 1 Agu'da olculen hali (canli carpan uyguluyor, depo HEAD'i uygulamiyor)
+    # is akisinin OKUDUGU ETIKETE kadar takip eder.
+    ham.append("  (E) ALARM KABLOSU — durum etiketi + damga kosulu (once-kirmizi)")
+    d_p, s_p = karsilastir(problar, liste, dict(iyi), dict(iyi))
+    iddia("E1 PARITE -> etiket 'parite' (damga YALNIZ burada dogar)",
+          DURUM_ETIKET[d_p] == "parite" and DURUM_KOD[d_p] == 0, d_p)
+
+    # 1 AGU'DA CANLIDA OLCULEN HAL: fiziksel uruntte canli x1,840, depo HEAD'i liste.
+    d_d, s_d = karsilastir(problar, liste, dict(iyi), bozuk)
+    iddia("E2 BAYAT PAKET (canli carpan, depo HEAD'i temiz) -> etiket 'drift' + rc 1",
+          DURUM_ETIKET[d_d] == "drift" and DURUM_KOD[d_d] == 1, d_d)
+    d_n, s_n = karsilastir(problar, liste, dict(iyi), nesil)
+    iddia("E2b FIYAT KURALINDAN BAGIMSIZ bayatlik (baski urununde nesil farki) -> 'drift'",
+          DURUM_ETIKET[d_n] == "drift" and DURUM_KOD[d_n] == 1, d_n)
+
+    d_o, s_o = karsilastir(problar, liste, dict(iyi), hata)
+    iddia("E3 AG/UC ERISILEMEDI -> etiket 'olculemedi' + rc 2 (SESSIZ YESIL YOK)",
+          DURUM_ETIKET[d_o] == "olculemedi" and DURUM_KOD[d_o] == 2, d_o)
+
+    # 🔴 DAMGA KOSULU: is akisi `steps.olcum.outputs.durum == 'parite'` okur. Bu tabloda
+    # "parite" degerini uretebilen TEK durum PARITE olmali; aksi halde DRIFT ya da
+    # OLCULEMEDI bir kosum damga dogurur ve nabiz kapisi SIFIR olcumu "denetim yapildi"
+    # sanardi (uzlastiricinin 20:47Z dersi).
+    iddia("E4 'parite' etiketini ureten TEK durum PARITE (damga sifir olcumu damgalayamaz)",
+          [k for k, v in DURUM_ETIKET.items() if v == "parite"] == ["PARITE"],
+          DURUM_ETIKET)
+    iddia("E4b uc durumun UCU DE ayri etiket tasir (etiket carpismasi yok)",
+          len(set(DURUM_ETIKET.values())) == 3 and set(DURUM_ETIKET) == set(DURUM_KOD),
+          DURUM_ETIKET)
+
+    # GERCEK DOSYA YAZIMI: is akisinin okudugu `$GITHUB_OUTPUT` satiri BIREBIR olculur.
+    with tempfile.TemporaryDirectory() as gecici:
+        cikti = os.path.join(gecici, "gh-output")
+        ozet = os.path.join(gecici, "gh-summary")
+        sahte_ortam = {"GITHUB_OUTPUT": cikti, "GITHUB_STEP_SUMMARY": ozet}
+        etiket, yazilan = gh_yaz(d_d, s_d, problar, "http://ornek/uc", sahte_ortam)
+        with open(cikti, encoding="utf-8") as f:
+            cikti_metin = f.read()
+        with open(ozet, encoding="utf-8") as f:
+            ozet_metin = f.read()
+        iddia("E5 $GITHUB_OUTPUT satiri BIREBIR 'durum=drift'",
+              cikti_metin == "durum=drift\n" and etiket == "drift" and yazilan == 2,
+              repr(cikti_metin))
+        iddia("E6 ozet bayat pakette NE YAPILACAGINI soyler (yeniden yayinla)",
+              "yeniden yayinla" in ozet_metin.lower()
+              and "CANLI FIYAT YOLU SAPMIS" in ozet_metin, ozet_metin[:200])
+        iddia("E6b ozet 'bu kirmizi yayini durdurmaz' sozlesmesini YAZAR",
+              "durdurmaz" in ozet_metin, ozet_metin[-200:])
+        # OLCULEMEDI de AYRI bir ozet uretmeli (yesil ozet DEGIL).
+        etiket2, _ = gh_yaz(d_o, s_o, problar, "http://ornek/uc", sahte_ortam)
+        with open(cikti, encoding="utf-8") as f:
+            cikti2 = f.read()
+        iddia("E7 OLCULEMEDI ayri satir yazar ('durum=olculemedi'), 'parite' YAZMAZ",
+              cikti2.endswith("durum=olculemedi\n") and etiket2 == "olculemedi",
+              repr(cikti2))
+    # Ortam degiskeni YOKKEN yazma denemesi olmamali (yerel kosum yan etkisiz).
+    _e, y0 = gh_yaz(d_p, s_p, problar, "http://ornek/uc", {})
+    iddia("E8 ortam degiskeni yokken HICBIR dosya yazilmaz (yerel kosum yan etkisiz)",
+          y0 == 0, y0)
+
     print("\n".join(ham))
     print("-" * 70)
     print("SONUC: YESIL ✅ (kendini test)" if kirmizi == 0
@@ -824,6 +977,9 @@ def main(argv=None):
                     help="istekler arasi bekleme (FIYAT_RATE_LIMIT 60/60 sn)")
     ap.add_argument("--node", default=None, help="node ikili yolu (varsayilan: $NODE ya da node)")
     ap.add_argument("--sessiz", action="store_true", help="yalniz cikis kodu")
+    ap.add_argument("--gh-ozet", action="store_true", dest="gh",
+                    help="durumu $GITHUB_OUTPUT (durum=...) ve $GITHUB_STEP_SUMMARY'ye yaz "
+                         "(zamanlanmis alarm is akisi bunu okur)")
     ap.add_argument("--kendini-test", action="store_true", dest="kendini")
     a = ap.parse_args(argv)
     if a.kendini:
@@ -832,12 +988,18 @@ def main(argv=None):
         urunler = json.load(f)
     problar, kayitlar = orneklem_sec(urunler, a.adet)
     if not problar:
-        return rapor("OLCULEMEDI",
-                     [("ARIZA", "-", "ORNEKLEMDE FIZIKSEL URUN YOK — katalogda `tur` alani "
-                       "dustu mu?")], problar, a.uc, a.sessiz)
-    liste, yerel = yerel_kahin(problar, kayitlar, node=a.node)
-    canli = canli_oku(problar, a.uc, a.gecikme)
-    durum, satirlar = karsilastir(problar, liste, yerel, canli)
+        durum, satirlar = ("OLCULEMEDI",
+                           [("ARIZA", "-", "ORNEKLEMDE FIZIKSEL URUN YOK — katalogda `tur` "
+                             "alani dustu mu?")])
+    else:
+        liste, yerel = yerel_kahin(problar, kayitlar, node=a.node)
+        canli = canli_oku(problar, a.uc, a.gecikme)
+        durum, satirlar = karsilastir(problar, liste, yerel, canli)
+    # 🔴 OZET RAPORDAN ONCE: bos orneklem yolu da damgasiz kalmali. Eskiden bu dal ERKEN
+    # `return` ediyordu; ozet oraya baglanmasaydi "olculecek urun yok" hali is akisinda
+    # ETIKETSIZ kalir ve damga kosulu tanimsiz bir cikti uzerinden okunurdu.
+    if a.gh:
+        gh_yaz(durum, satirlar, problar, a.uc)
     return rapor(durum, satirlar, problar, a.uc, a.sessiz)
 
 
