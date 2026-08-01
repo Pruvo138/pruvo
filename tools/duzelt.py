@@ -42,6 +42,20 @@ URUNU TAMAMEN SILMEK icin (or. yanlislikla eklenmis logo/telif riskli urun):
 Bu, urunu urunler.json'dan kaldirir VE id'yi .urunler-sil-izin.json'a yazar ki
 guard onu HEAD'den geri eklemesin. --sil, --alan/--deger ile BIRLIKTE kullanilmaz.
 
+TICARI HAL ALANLARI (`tur` + `gorselsiz`) — GERI ALINABILIR AMA SAVRULAMAZ:
+Gorsel muafiyeti beyani (`"gorselsiz": true`, yalniz `tur == "fiziksel"` kaydinda gecerli)
+bu araca acildi; yoksa bayrak bir kez konunca mesru yoldan geri alinamiyordu (tek yonlu
+kapi = tuzak). Kurallar TICARI HAL KAPISI'nda (bkz. _ticari_hal_ihlalleri, cikis kodu 6):
+  * `tur` yalniz kanonik sinif dizesini alir; ozel uretime DONUS `--alan-sil tur` iledir.
+  * `gorselsiz` yalniz boolean true alir; beyani kaldirmak `--alan-sil gorselsiz` iledir.
+  * `gorselsiz` yalniz HAZIR TICARI MAL sinifindaki ve GERCEKTEN gorselsiz kayitta durur.
+  * 🔴 SINIF ATLAMASI (hazir mal <-> ozel uretim) --gerekce ZORUNLU tutar ve
+    `.urunler-guard.log`a "ticari-hal: ..." satiri olarak yazilir. Gecis fiyat carpanini
+    (secenekler.js) ve cayma hakki rejimini degistirir; gerekcesiz oynatilamaz.
+Ornek — muafiyet beyanini ve sinifi birlikte geri al:
+  python3 tools/duzelt.py <id> --alan-sil gorselsiz --alan-sil tur \
+      --gerekce "yanlis siniflandirilmisti; ozel uretim"
+
 BIR ALANI TAMAMEN KALDIRMAK icin (or. public JSON'da durmamasi gereken alan):
   python3 tools/duzelt.py <id> --alan-sil uyelik
 Manifeste {"__alan_sil__": true} sentineli yazilir; guard alanin working-tree'de
@@ -111,13 +125,47 @@ LOG = os.path.join(ROOT, ".urunler-guard.log")
 # ne doldurulabiliyordu. KOR KABUL YOK: deger BOS olabilir (alan opsiyonel), doluysa kaydin
 # `kategori` degeriyle TUTARLI olmak ve tedarikci IMZA nobetinden gecmek ZORUNDA —
 # dogrulama _altkategori_ihlalleri() (yazimdan HEMEN ONCE, gorsel-koken kapisi deseni).
+# `tur` + `gorselsiz`: TICARI HAL alanlari (bkz. _ticari_hal_ihlalleri).
+# NEDEN IZINLI LISTEYE GIRDILER (olculdu 1 Agu): 724a69b2 ile gorsel zorunluluguna dar bir
+# istisna acildi — `"gorselsiz": true` + `tur == "fiziksel"` olan urun gorselsiz eklenebilir.
+# Ama iki alan da bu listede OLMADIGI icin bayrak bir kez konunca MESRU YOLDAN GERI
+# ALINAMIYORDU: yanlis beyan edilmis bir kayit ancak elle temizlikle duzeliyordu (ayni
+# sinif bu depoda daha once iki kez cikti). Tek-yonlu kapi, kapi degil tuzaktir.
+#
+# 🔴 SERBEST DEGIL — SINIF ATLAMASI GEREKCE ISTER: hazir mal <-> ozel uretim gecisi PARA
+# ve CAYMA HAKKI demektir (secenekler.js `tur`u okuyup malzeme/renk carpanini 1,00'e
+# sabitler; fiziksel malda cayma rejimi farklidir). Bu yuzden alanlar serbestce degil
+# _ticari_hal_ihlalleri()'nin kurallariyla degisir ve sinif degistiren her yazim
+# --gerekce ZORUNLU tutar + `.urunler-guard.log`a izlenebilir sekilde yazilir.
+#
+# ⚠️ TOPLU BACKFILL YOLU ACILMADI: tools/parti-kontrol.py bu iki alanin BACKFILL'de
+# degismesini KIRMIZI saymaya devam ediyor ve o kural GEVSETILMEDI. Acilan sey urun-basi,
+# beyanli, manifeste bagli ve loglu TEKIL duzeltmedir — sessiz toplu kayma degil.
 DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "eski_fiyat",
-                    "gorseller", "lisans", "konfigur", "altkategori"}
+                    "gorseller", "lisans", "konfigur", "altkategori",
+                    "tur", "gorselsiz"}
 
 # --alan altkategori (ya da --alan kategori) ihlalinde donen cikis kodu. gorsel-koken
 # kapisinin 4'unden AYRI: cagiran (insan ya da betik) hangi kapinin reddettigini cikis
 # kodundan ayirt edebilsin.
 RC_ALTKATEGORI = 5
+# TICARI HAL kapisi (tur/gorselsiz) ihlalinde donen cikis kodu — altkategorininkinden AYRI.
+RC_TICARI_HAL = 6
+
+GORSELSIZ_BAYRAK = "gorselsiz"
+TUR_ALANI = "tur"
+TICARI_HAL_ALANLARI = {TUR_ALANI, GORSELSIZ_BAYRAK}
+
+
+def _tur_gecerli_acik_deger(v):
+    """`tur` icin ACIK (hazir ticari mal) degeri mi?
+
+    "fiziksel" dizesi BURADA YAZILMAZ ([[ikiz-tanim-sessiz-ayrisma]]): deger,
+    arama.tur_kanonik'ten GECIP KENDINE donuyorsa kanonik sinif dizesidir. Boylece
+    "Fiziksel" / " fiziksel" / "fiziksel-degil" gibi taninmayan degerler (tur_kanonik
+    onlari "" yapar) kendiliginden REDDEDILIR ve kural parti-kontrol.py / build.py /
+    secenekler.py ile ayni tek kaynaktan turer."""
+    return isinstance(v, str) and v != "" and arama.tur_kanonik({TUR_ALANI: v}) == v
 
 # --- ACIKLAMA KORUMA: otomatik uretilen OLCU SATIRI ---------------------------
 # MaCiT dilim-30 (olculmus kayip): denetim kapisi yanlis-pozitifi yuzunden bir urunun
@@ -294,6 +342,91 @@ def _altkategori_rapor(ihlaller, kaynak):
     return "\n".join(satirlar)
 
 
+def _gorsel_var(u):
+    """Kayitta KULLANILABILIR gorsel var mi? (bos dize/None gorsel sayilmaz — build.py
+    images_of ile AYNI karar)."""
+    g = u.get("gorseller")
+    return isinstance(g, list) and any(isinstance(x, str) and x for x in g)
+
+
+def _ticari_hal_ihlalleri(onceki_hal, urunler, idler, gerekceler):
+    """TICARI HAL KAPISI — `tur` / `gorselsiz` alanlarinin YAZIM SONRASI durumunu olcer.
+
+    [(uid, sebep), ...] dondurur (bos = temiz). Alanlarin duzelt.py'ye acilmasinin sebebi
+    bayragin TEK YONLU olmamasidir; bu kapi da "geri alinabilir ama savrulamaz" dengesini
+    kurar. Kurallar (hepsi FAIL-CLOSED, hepsi YAZIM SONRASI kayit uzerinde):
+
+      T1  `tur` alani varsa DEGERI kanonik sinif dizesi olmali (_tur_gecerli_acik_deger).
+          Ozel uretime DONUS bos dize ile DEGIL `--alan-sil tur` ile yapilir: ayni durumun
+          iki temsili ("alan yok" ve "") olsaydi okuyan taraflar sessizce ayrisirdi.
+      T2  `gorselsiz` alani varsa DEGERI gercek boolean True olmali. Beyani KALDIRMAK
+          `--alan-sil gorselsiz` iledir; `false` yazmak ucuncu bir durum uretirdi
+          (parti-kontrol yalnizca `is True`yi beyan sayar).
+      T3  `gorselsiz` beyani YALNIZ hazir ticari malda durabilir (arama.tur_kanonik ile
+          olculur). Ozel uretim urununde muafiyet zaten dogmuyor; kaydin uzerinde ASILI
+          kalan bayrak yarin sinif degisince SESSIZCE muafiyet acardi.
+      T4  `gorselsiz` beyani YALNIZ gercekten gorselsiz kayitta durabilir. Gorselli bir
+          kayitta bayrak celiskilidir ve gorseller sonradan bosaltilirsa uyuyan muafiyeti
+          uyandirir.
+      T5  🔴 SINIF ATLAMASI (hazir mal <-> ozel uretim) --gerekce ZORUNLU tutar. Bu gecis
+          PARA ve CAYMA HAKKI yolunu degistirir (secenekler.js `tur`u okuyup malzeme/renk
+          carpanini 1,00'e sabitler). Gerekce `.urunler-guard.log`a yazilir -> degisiklik
+          izlenebilir; "kim, ne zaman, neden" kaydi olmadan sinif oynatilamaz.
+
+    NEDEN "yalniz dokunulan kayitlar": _altkategori_ihlalleri ile AYNI gerekce — katalogun
+    tamamini dogrulamak, bu cagriyla ILGISIZ eski bir ihlal yuzunden mesru bir duzeltmeyi
+    bloklardi (kapi kapsam ekseni). Tum katalog ekseni parti-kontrol.py'nin isidir.
+    """
+    ihlaller = []
+    for u in urunler:
+        if not isinstance(u, dict) or u.get("id") not in idler:
+            continue
+        uid = u.get("id")
+
+        if TUR_ALANI in u and not _tur_gecerli_acik_deger(u.get(TUR_ALANI)):
+            ihlaller.append((uid, "T1 `tur` degeri kanonik sinif dizesi degil: %r "
+                                 "(ozel uretime donmek icin: --alan-sil tur)"
+                             % (u.get(TUR_ALANI),)))
+
+        bayrak_var = GORSELSIZ_BAYRAK in u
+        if bayrak_var and u.get(GORSELSIZ_BAYRAK) is not True:
+            ihlaller.append((uid, "T2 `gorselsiz` yalniz gercek boolean true olabilir: %r "
+                                 "(beyani kaldirmak icin: --alan-sil gorselsiz)"
+                             % (u.get(GORSELSIZ_BAYRAK),)))
+        elif bayrak_var:
+            if not arama.tur_kanonik(u):
+                ihlaller.append((uid, "T3 `gorselsiz` beyani yalniz hazir ticari malda "
+                                     "durabilir; kaydin sinifi ozel uretim "
+                                     "(bayragi da kaldir: --alan-sil gorselsiz)"))
+            if _gorsel_var(u):
+                ihlaller.append((uid, "T4 `gorselsiz` beyani gorselli kayitta duramaz "
+                                     "(gorseller: %d adet)" % len(u.get("gorseller") or [])))
+
+        eski = onceki_hal.get(uid)
+        yeni = arama.tur_kanonik(u)
+        if eski is not None and eski != yeni and not (gerekceler.get(uid) or "").strip():
+            ihlaller.append(
+                (uid, "T5 TICARI SINIF ATLAMASI (%s -> %s) --gerekce ZORUNLU: bu gecis "
+                      "fiyat carpanini ve cayma hakki rejimini degistirir"
+                 % (eski or "ozel uretim", yeni or "ozel uretim")))
+    return ihlaller
+
+
+def _ticari_hal_rapor(ihlaller, kaynak):
+    satirlar = ["HATA: TICARI HAL KAPISI — %s REDDEDILDI (hicbir sey yazilmadi)." % kaynak]
+    for uid, sebep in ihlaller:
+        satirlar.append("  - id=%s: %s" % (uid, sebep))
+    satirlar.append("  `tur` ve `gorselsiz` MESRU olarak geri alinabilir; kural: acik deger,")
+    satirlar.append("  bayrak yalniz gorselsiz hazir malda, sinif atlamasi --gerekce ister.")
+    return "\n".join(satirlar)
+
+
+def _hal_haritasi(urunler, idler):
+    """{id: kanonik_tur} — YAZIM ONCESI ticari sinif anlik goruntusu (T5 icin)."""
+    return {u.get("id"): arama.tur_kanonik(u) for u in urunler
+            if isinstance(u, dict) and u.get("id") in idler}
+
+
 def _log(msg):
     ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     try:
@@ -303,10 +436,23 @@ def _log(msg):
         pass
 
 
-def _parse_deger(raw):
+def _parse_deger(raw, alan=None):
     s = raw.strip()
     if s[:1] in ("[", "{"):
         return json.loads(s)  # liste/sozluk
+    # TICARI HAL alanlari BEYAN alanlaridir: `gorselsiz` GERCEK boolean true olmak
+    # ZORUNDA (parti-kontrol `is True` arar). CLI'da her deger duz metne dusseydi
+    # `--alan gorselsiz --deger true` "true" DIZESI yazar ve kapi onu hakli olarak
+    # reddederdi -> alan CLI'dan hic konulamazdi (yeni bir tek-yonlu kapi). Bu yuzden
+    # SADECE bu alanlarda deger once JSON olarak cozulmeye calisilir:
+    #   true -> True (gecerli) · false/1/[] -> gecerli JSON ama kapi REDDEDER (T2)
+    #   fiziksel/evet -> JSON degil, duz metin kalir (tur icin dogru, gorselsiz icin T2)
+    # Baska hicbir alanin cozumlemesi degismez ("500 TL", basliklar, ... aynen metin).
+    if alan in TICARI_HAL_ALANLARI:
+        try:
+            return json.loads(s)
+        except ValueError:
+            return raw
     return raw  # duz metin (fiyat, baslik, kategori, ...)
 
 
@@ -368,28 +514,33 @@ def _manifest_oku(path, bos):
 
 
 def _toplu_cozumle(yol):
-    """islem.json -> (setler, alan_silmeler, urun_silmeler, hatalar).
+    """islem.json -> (setler, alan_silmeler, urun_silmeler, gerekceler, hatalar).
 
     Yalnizca SEMA/izin/catisma dogrulamasi yapar (katalogtan bagimsiz);
     id'nin katalogda var olup olmadigi kilit altinda ayrica denetlenir.
+
+    `gerekce`: OPSIYONEL anahtar; yalnizca TICARI SINIF atlamasinda ZORUNLU hale gelir
+    (kararı _ticari_hal_ihlalleri verir, burasi sadece tasir). Ayni id icin birden fazla
+    islemde verilirse ilk BOS OLMAYAN deger kullanilir — cagrinin o urune dair tek
+    gerekcesi vardir.
     """
     hatalar = []
     try:
         with open(yol, encoding="utf-8") as f:
             veri = json.load(f)
     except OSError as e:
-        return {}, {}, {}, ["islem dosyasi okunamadi: %s" % e]
+        return {}, {}, {}, {}, ["islem dosyasi okunamadi: %s" % e]
     except ValueError as e:
-        return {}, {}, {}, ["islem dosyasi gecerli JSON degil: %s" % e]
+        return {}, {}, {}, {}, ["islem dosyasi gecerli JSON degil: %s" % e]
 
     if isinstance(veri, dict) and "islemler" in veri:
         veri = veri["islemler"]
     if not isinstance(veri, list):
-        return {}, {}, {}, ["islem dosyasi bir dizi (ya da {\"islemler\": [...]}) olmali"]
+        return {}, {}, {}, {}, ["islem dosyasi bir dizi (ya da {\"islemler\": [...]}) olmali"]
     if not veri:
-        return {}, {}, {}, ["islem dosyasi bos"]
+        return {}, {}, {}, {}, ["islem dosyasi bos"]
 
-    setler, alan_silmeler, urun_silmeler = {}, {}, {}
+    setler, alan_silmeler, urun_silmeler, gerekceler = {}, {}, {}, {}
     for n, islem in enumerate(veri, 1):
         etiket = "islem #%d" % n
         if not isinstance(islem, dict):
@@ -407,11 +558,18 @@ def _toplu_cozumle(yol):
                            "('alan'+'deger' | 'alan-sil' | 'sil'); bulunan: %s"
                            % (etiket, eylem or "hicbiri"))
             continue
-        fazla = set(islem) - {"id", "alan", "deger", "alan-sil", "sil", "not"}
+        fazla = set(islem) - {"id", "alan", "deger", "alan-sil", "sil", "not", "gerekce"}
         if fazla:
             hatalar.append("%s: bilinmeyen anahtar(lar): %s"
                            % (etiket, ", ".join(sorted(fazla))))
             continue
+        if "gerekce" in islem:
+            g = islem["gerekce"]
+            if not isinstance(g, str):
+                hatalar.append("%s: 'gerekce' metin olmali (%r)" % (etiket, g))
+                continue
+            if g.strip() and not (gerekceler.get(uid) or "").strip():
+                gerekceler[uid] = g
 
         if eylem[0] == "alan":
             alan = islem.get("alan")
@@ -460,11 +618,11 @@ def _toplu_cozumle(yol):
         if uid in setler or uid in alan_silmeler:
             hatalar.append("id=%s: 'sil' ayni id icin alan islemleriyle birlestirilemez" % uid)
 
-    return setler, alan_silmeler, urun_silmeler, hatalar
+    return setler, alan_silmeler, urun_silmeler, gerekceler, hatalar
 
 
 def _toplu(yol):
-    setler, alan_silmeler, urun_silmeler, hatalar = _toplu_cozumle(yol)
+    setler, alan_silmeler, urun_silmeler, gerekceler, hatalar = _toplu_cozumle(yol)
     if hatalar:
         print("HATA: toplu islem REDDEDILDI — hicbir sey yazilmadi.", file=sys.stderr)
         for h in hatalar:
@@ -494,6 +652,8 @@ def _toplu(yol):
         # Tek-urun kipiyle AYNI aciklama korumasi (ayni delik, ayni yama); yazimdan
         # ONCE, boylece manifest de korunmus degeri tasir.
         aciklama_raporlari = {}
+        # T5 icin YAZIM ONCESI ticari sinif anlik goruntusu (tek-urun kipiyle AYNI kural).
+        eski_hal = _hal_haritasi(urunler, set(setler) | set(alan_silmeler))
         for uid, alanlar in setler.items():
             r = _aciklama_koru_uygula(urunler[idx_by_id[uid]], alanlar)
             if r:
@@ -523,6 +683,14 @@ def _toplu(yol):
         if alt_ihlal:
             print(_altkategori_rapor(alt_ihlal, "toplu islem"), file=sys.stderr)
             return RC_ALTKATEGORI
+        # TICARI HAL KAPISI — ayni yer, ayni "ya hep ya hic" sozlesmesi.
+        hal_ihlal = _ticari_hal_ihlalleri(
+            eski_hal, urunler, set(setler) | set(alan_silmeler), gerekceler)
+        if hal_ihlal:
+            print("HATA: toplu islem REDDEDILDI — hicbir sey yazilmadi.", file=sys.stderr)
+            print(_ticari_hal_rapor(hal_ihlal, "toplu islem"), file=sys.stderr)
+            return RC_TICARI_HAL
+        yeni_hal = _hal_haritasi(urunler, set(setler) | set(alan_silmeler))
         _atomic_write(URUNLER, urunler)  # TEK yazim
 
         if setler or alan_silmeler:
@@ -557,6 +725,13 @@ def _toplu(yol):
         ek = ", ".join("%s=KALDIRILDI" % a for a in sorted(alan_silmeler.get(uid, [])))
         ozet = (ozet + ", " + ek) if (ozet and ek) else (ozet or ek)
         _log("toplu-duzelt: %s -> %s (izin manifestine yazildi)" % (uid, ozet))
+        if yeni_hal.get(uid) != eski_hal.get(uid):
+            hal_metni = "%s -> %s" % (eski_hal.get(uid) or "ozel uretim",
+                                      yeni_hal.get(uid) or "ozel uretim")
+            _log("ticari-hal: %s : %s (gerekce: %s)"
+                 % (uid, hal_metni, (gerekceler.get(uid) or "").strip()))
+            print("TICARI SINIF DEGISTI: %s : %s  (gerekce: %s)"
+                  % (uid, hal_metni, (gerekceler.get(uid) or "").strip()))
         print("Duzeltildi: %s  (%s)" % (uid, ozet))
     for uid, gerekce in sorted(urun_silmeler.items()):
         _log("toplu-sil: %s -> kaldirildi (%s) (silme manifestine yazildi)" % (uid, gerekce))
@@ -585,12 +760,17 @@ def main():
     ap.add_argument("--alan-sil", action="append", dest="alan_sil",
                     help="urunden bu ALANI tamamen kaldir (tekrarlanabilir); "
                          "'id' kaldirilamaz")
+    ap.add_argument("--gerekce", metavar="METIN",
+                    help="TICARI SINIF (hazir mal <-> ozel uretim) degistiren yazimlarda "
+                         "ZORUNLU kisa gerekce; .urunler-guard.log'a yazilir")
     args = ap.parse_args()
 
     if args.toplu is not None:
-        if args.id or args.alan or args.deger or args.sil is not None or args.alan_sil:
+        if (args.id or args.alan or args.deger or args.sil is not None or args.alan_sil
+                or args.gerekce is not None):
             print("HATA: --toplu tek-urun argumanlariyla (id/--alan/--deger/--sil/"
-                  "--alan-sil) birlikte kullanilamaz.", file=sys.stderr)
+                  "--alan-sil/--gerekce) birlikte kullanilamaz. Toplu kipte gerekce "
+                  "islemin kendi \"gerekce\" anahtarindadir.", file=sys.stderr)
             return 2
         return _toplu(args.toplu)
 
@@ -622,7 +802,7 @@ def main():
                   % (alan, ", ".join(sorted(DEGISTIRILEBILIR))), file=sys.stderr)
             return 2
         try:
-            degisiklikler[alan] = _parse_deger(deger)
+            degisiklikler[alan] = _parse_deger(deger, alan)
         except ValueError as e:
             print("HATA: '%s' alaninin degeri JSON olarak cozumlenemedi: %s" % (alan, e),
                   file=sys.stderr)
@@ -655,6 +835,7 @@ def main():
         # Koruma YAZIMDAN ONCE calisir; boylece hem urunler.json'a hem guard izin
         # manifestine AYNI (korunmus) deger gider -> guard degisikligi geri almaz.
         aciklama_raporu = _aciklama_koru_uygula(urunler[idx], degisiklikler)
+        eski_hal = _hal_haritasi(urunler, {args.id})   # T5 icin YAZIM ONCESI sinif
 
         # SADECE beyan edilen alanlari degistir; beyan disina dokunma.
         for alan, deger in degisiklikler.items():
@@ -674,6 +855,13 @@ def main():
         if alt_ihlal:
             print(_altkategori_rapor(alt_ihlal, "duzeltme"), file=sys.stderr)
             return RC_ALTKATEGORI
+        # TICARI HAL KAPISI — ayni yer, ayni kilit, ayni "hicbir sey yazilmaz" sozlesmesi.
+        hal_ihlal = _ticari_hal_ihlalleri(eski_hal, urunler, {args.id},
+                                          {args.id: args.gerekce})
+        if hal_ihlal:
+            print(_ticari_hal_rapor(hal_ihlal, "duzeltme"), file=sys.stderr)
+            return RC_TICARI_HAL
+        yeni_hal = _hal_haritasi(urunler, {args.id})   # kilit ALTINDA, yazilan haliyle
         _atomic_write(URUNLER, urunler)
 
         # Guard icin deger-bagli izin manifesti (birikimli).
@@ -703,6 +891,14 @@ def main():
         ek = ", ".join("%s=KALDIRILDI" % a for a in silinecek_alanlar)
         ozet = (ozet + ", " + ek) if ozet else ek
     _log("duzelt: %s -> %s (izin manifestine yazildi)" % (args.id, ozet))
+    # SINIF ATLAMASI AYRI SATIR: gerekce ve yon `.urunler-guard.log`ta izlenebilir kalsin.
+    if yeni_hal.get(args.id) != eski_hal.get(args.id):
+        _hal_metni = "%s -> %s" % (eski_hal.get(args.id) or "ozel uretim",
+                                   yeni_hal.get(args.id) or "ozel uretim")
+        _log("ticari-hal: %s : %s (gerekce: %s)"
+             % (args.id, _hal_metni, (args.gerekce or "").strip()))
+        print("TICARI SINIF DEGISTI: %s  (gerekce: %s)"
+              % (_hal_metni, (args.gerekce or "").strip()))
     print("Duzeltildi: %s  (%s)" % (args.id, ozet))
     print("Guard bu degisikligi manifest sayesinde gecirir; commit sonrasi post-commit "
           "hook manifesti temizler.")
