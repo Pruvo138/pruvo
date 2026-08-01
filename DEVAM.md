@@ -103,3 +103,37 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - NOT: o kosumda `before` yetim DEGILDI (saglikli hal); yetim-kurtarma yolunun gercek
   GH Actions ortaminda calistigi ayni job'un kendini-test adiminda goruldu (vaka 12c).
 - Butce (150000) ve yedek pencere (50) BILEREK degistirilmedi.
+
+
+## MERGE — marka muafiyeti kayitli alan adi govdesinden (1 Agu, olculdu)
+
+- Merge `f6840e3f` (taban `11334fef`, dal tek commit `b85f5b4b`). Kapsam TAM 2 dosya,
+  +259 / -4. Cakisma YOK. Kendi sizinti taramam: 6 desen sinifinda 0 vurus.
+- **Sorun:** muafiyet host'un ILK etiketinden okunuyordu. Olculdu (n=1294 katalog
+  markasi, alan adi ekseni tek basina): marka etiketi one alinmis bayi bicimi
+  **1294/1294 gecer** (kacak tamamen acik), on ekli mesru marka adresleri
+  **1293/1294 durur** (yanlis-pozitif). Batarya bu ekseni HIC olcmuyordu.
+- **Cozum:** muafiyet kayitli govde etiketinden turer; ikinci seviye kayit ekleri
+  icin bir ust etikete bakilir. Kacak yonu **1294 -> 0**, cok parcali uzantili
+  bicimde **1294 -> 0**, yanlis-pozitif **1293 -> 0**, duz marka tabani
+  **1294/1294 degismedi**.
+- **Beyan edilmis takas:** ters bicim (alt alan marka sahibinin kayitli alani
+  altinda) **1/1294 -> 1294/1294**, cok parcali uzantida **0 -> 1294/1294**. Gerekce
+  kodda: o alan yalniz marka sahibinin tekelinde; ad ozet artefaktindaysa ikinci hat
+  tutar. Ikinci hattin iki ekseni ve tireli yazimdaki kalinti olcumle yazildi.
+- **Dokunulmayan:** maskeleme ve desen dilim taramasi fonksiyonlarinin govdeleri main
+  ile **birebir ayni** (sha256 karsilastirildi); degisen tek kod satiri muafiyet kolu.
+- **Kabul:** kendini-test **84 -> 95** iddia rc=0; mutasyon **28/28 oldurucu OLDU**,
+  3/3 ilgisiz kontrol yesil, sag kalan 0, canli dosya sha256 esitligi TAM.
+  Yedi kapi rc=0 (kendini-test, kaynak-tara, ci-kapsam 149/113/36, kapi envanteri 7/7,
+  kanca nobeti 12 eksen 12 yesil, kisisel veri testi, mutasyon).
+- **D1 teyidi:** sayi ekseni 16542 == 16542; icerik ekseni 16542 urun_hash birebir,
+  uyusmaz 0 / eksik 0 / fazla 0.
+- **Temizlik:** merge edilen worktree + dali silindi (uc on kontrol temiz). Baska bir
+  oturumun aktif agaci ve dali KORUNDU, dokunulmadi.
+- 🔴 **OLU DAL — DIRILTMEYIN:** bu isin ILK turu eski taban uzerinde kurulmus bir dalda
+  yapilmisti ve **merge EDILMEDI**. Sebep: (a) taban gecmis yeniden yaziminin
+  oncesindeydi, duz merge temizlenmis adlari public gecmise geri getirirdi; (b) o dalin
+  maskeleme onarimi main'de zaten VARDI ve main surumu daha guclu (fail-closed) idi,
+  merge GERILEME olurdu. Is guncel main uzerine YENIDEN turetildi; alinan surum budur.
+  O dal artik ISLEVSIZ.
