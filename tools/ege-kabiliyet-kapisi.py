@@ -44,7 +44,17 @@ NE OLCER (KAPSAM DAR — bilerek):
   belgenin MESRU icerigi fiyat/TL dolu (l.9 kargo esigi + ornek hesap), duz rakam
   yakalayan bir kural TUM SITE deploy'unu sahte-kirmizi ile durdururdu. Bu bir
   ILAN EDILMIS KOR NOKTADIR; fikstur M21 onu kalici olarak nobetler.
-Uctu; dordunculeri buraya EKLEME. Kapsam buyutmek pozitif nobetciyi sessizce
+  (D) KARAR VAADI — Ege'nin fiyati / malzeme-uretilebilirlik kararini KENDISININ
+      CIKARIP ILETECEGINI soylemesi (bkz. KARAR_NESNESI_RE + VAAT_*_RE):
+      · karar nesnesi + URETME cekimi  ("fiyati cikarip", "belirleyip")   -> yanar
+      · karar nesnesi + ILETME cekimi  ("fiyati ileteceğim", "fiyati ilet")-> yanar
+      · SURE jetonu   + ILETME cekimi  ("en kisa surede ileteceğim")      -> yanar
+      · karar nesnesi YOK ("talebi ekibe ileteceğini soyle")              -> YANMAZ
+      · ciplak 3. tekil ("fiyati hesaplar", "fiyat ... cikar")            -> YANMAZ
+Dort sinif oldu. (D) 1 Agu'da MIMAR KARARIYLA eklendi — "ucu gecme" kurali ozel
+olarak kaldirildi, cunku olculdu: yasak kalibin DORT ozgun satiri da (A)/(B)/(C)'den
+0 bulguyla geciyordu ve fikstur Z6 yasak cumleyi beklenen-YESIL olarak KILITLIYORDU.
+BESINCI sinifi kendi basina EKLEME. Kapsam buyutmek pozitif nobetciyi sessizce
 oldurur (olculdu, bu repoda: [[kapi-kapsam-genisletme-tuzagi]]).
 
 ⚠️ BU KAPI `build` ISINDE KOSAR VE `deploy: needs: build` -> bir YANLIS-POZITIF
@@ -240,6 +250,99 @@ FIYAT_SOZ_RE = re.compile(
     r"|\bşu\s+kadar\s+tutar\b",
     re.IGNORECASE)
 
+# --- (D) KARAR VAADI (1 Agu, mimar karari) ---------------------------------
+# OKAN'IN "%100 UYULACAK" KURALI: fiyati VE uretilebilirlik/malzeme karari
+# Okan/ekip verir. Ege kosulu toplar, "arastirip donecegini soyle + [DEVRET]" der.
+# Ege ASLA "fiyati cikarip size ileteceğim" DEMEZ.
+# OLCULDU (1 Agu, duzeltme oncesi 4 ozgun satir): (A)+(B)+(C) toplam 0 bulgu verdi.
+# Yani bu zarar sinifi kapiya TAMAMEN GORUNMEZDI.
+#
+# TASARIM — TEK KELIME DEGIL, FIIL OBEGI. Ucuncu bir sinifin bedelini (bazi mesru
+# fiillerin tek basina yanmasi, bkz. ne_olculmedi()) BUYUTMEMEK icin (D) hicbir zaman
+# tek jetonla yanmaz: her zaman [karar nesnesi | sure jetonu] + [Ege-oznesi cekimi].
+#
+# KARAR NESNESI = Okan'in verdigi kararin KONUSU.
+# ⚠️ `\bücret(?!siz)` : "ucretsiz" PARA_RE'de onek eslesiyor ve canli l.9'da GECIYOR
+#    ("2.500 TL ve uzeri ucretsiz"). Ayni tuzaga (D) dusmez.
+KARAR_NESNESI_RE = re.compile(
+    r"\bfiyat\w*|\bücret(?!siz)\w*|\btutar\w*|\bmaliyet\w*|\bteklif\w*"
+    r"|\ben\s+uygun\w*|uygun\s+filament\w*|uygun\s+malzeme\w*|\bmalzemeyi\b"
+    r"|üretim\s+karar\w*|\büretilebil\w*|\büretebilece\w*",
+    re.IGNORECASE)
+
+# URETME cekimi — karari EGE'nin KENDISININ cikarmasi/belirlemesi/hesaplamasi.
+# 🔴 CIPLAK 3. TEKIL ("çıkar", "hesaplar", "belirler") BILEREK YOK. Canli belgenin
+#    l.7'si ("konfigüratör ... fiyatı hesaplar" — fikstur M27) ve Z3 ("Fiyat
+#    konfigüratörden çıkar") tam o kaliptadir ve BETIMLEMEDIR; oraya girseydi
+#    `deploy: needs: build` yuzunden TUM SITE yayini dururdu.
+VAAT_URETME_RE = re.compile(
+    r"\bçıkarıp\b|\bçıkarırım\b|\bçıkarırız\b|\bçıkaracağım\b|\bçıkaracağız\b"
+    r"|\bçıkaracağını\b|\bçıkardığını\b|\bçıkarayım\b|\bçıkarıyorum\b"
+    r"|\bbelirleyip\b|\bbelirlerim\b|\bbelirleriz\b|\bbelirleyeceğim\b"
+    r"|\bbelirleyeceğiz\b|\bbelirleyeceğini\b|\bbelirlediğini\b|\bbelirleyeyim\b"
+    r"|\bhesaplayıp\b|\bhesaplarım\b|\bhesaplayacağım\b|\bhesaplayacağız\b"
+    r"|\bhesaplayacağını\b|\bhesapladığını\b",
+    re.IGNORECASE)
+
+# ILETME cekimi — karari musteriye ULASTIRMA sozu.
+# EMIR KIPI `\bilet\b` DAHIL: Ege'ye "fiyati ilet" demek, yasak sozun TALIMAT halidir
+# (Z6'nin eski cumlesi tam buydu). "iletişimi" \b sinirindan gecmez, "iletin" (=musteri
+# gondersin) BILEREK YOK — o (A) eksenidir.
+# 🔴 CIPLAK "söyle" YOK: belgenin her yerinde mesru emirdir ("NET söyle", "Liste
+#    fiyati olani söyle"). Yalniz GELECEK cekimi sayilir.
+VAAT_ILETME_RE = re.compile(
+    r"\bilet\b|\biletip\b|\biletirim\b|\biletiriz\b|\bileteceğim\b|\bileteceğiz\b"
+    r"|\bileteceğini\b|\bilettiğini\b|\biletiyorum\b"
+    r"|\bbildiririm\b|\bbildiririz\b|\bbildireceğim\b|\bbildireceğiz\b"
+    r"|\bbildireceğini\b|\bbildirdiğini\b"
+    r"|\bgönderirim\b|\bgöndereceğim\b|\bgöndereceğiz\b|\bgöndereceğini\b"
+    r"|\bsöyleyeceğim\b|\bsöyleyeceğini\b|\byazacağım\b|\byazacağını\b",
+    re.IGNORECASE)
+
+# SURE ALT-EKSENI — AYRI bir zarardir ve nesne eksenine BAGLANAMAZ.
+# GEREKCE (olculdu): duzeltme oncesi l.50 `"en kısa sürede ileteceğim" de` cumleciginde
+# KARAR NESNESI YOKTUR ("en kisa surede" = zaman). Nesne sarti korunsaydi o satir
+# yine 0 bulgu alirdi — yani dort satirin biri hala gorunmez kalirdi.
+# ⚠️ DAR TUTULDU: "birkaç saat" TEK BASINA jeton DEGIL, yalniz "birkaç saat İÇİNDE"
+#    sayilir — cunku canli l.50 "Fiyat calismasi bizde birkac saat surebilir" der ve
+#    bu MESRU bir sure BETIMLEMESIDIR, taahhut degil. Ayni sekilde l.8'in
+#    "3-5 is gununde kargoya verilir" ifadesi de disaridadir.
+SURE_JETONU_RE = re.compile(
+    r"en\s+kısa\s+süre\w*|en\s+geç\b|\bhemen\b|\bbugün\b|\byarın\b|\bakşama\b"
+    r"|birkaç\s+(?:dakika|saat|gün)\s+içinde"
+    r"|\d+\s*(?:dakika|saat|gün)\s+içinde"
+    r"|\b(?:dakika|saat|gün)\s+içinde\b",
+    re.IGNORECASE)
+# Sure kanadinda ILETME cekimlerine "dön-" gelecegi de eklenir: "en kisa surede
+# döneceğim" bir TESLIM SURESI sozudur. ⚠️ CIPLAK "döneceğini söyle" EKLENMEZ —
+# o, kuralin DOGRU hali ve belgede DORT yerde geciyor; sure jetonu olmadan yanmaz.
+VAAT_SURE_FIIL_RE = re.compile(
+    VAAT_ILETME_RE.pattern
+    + r"|\bdöneceğim\b|\bdöneceğiz\b|\bdöneceğini\b|\bdönerim\b|\bdöneriz\b"
+      r"|\byetiştiririm\b|\byetiştireceğim\b",
+    re.IGNORECASE)
+
+# (D)'YE OZEL OLUMSUZLAMA EKI — ortak OLUMSUZ_RE'ye DOKUNULMADI (o (A)/(B)/(C) ile
+# paylasilir; oraya kelime eklemek uc sinifi da gevsetirdi).
+# 🔴 NEDEN GEREKLI (olculdu, mutasyon kosumu): (D)'nin YASAKLAYAN hali dogal olarak
+# tam da (D) fiillerinin -ma/-me emir olumsuzudur:
+#     "Fiyatı çıkarıp iletme."   <- bu, kuralin DOGRU yazilisidir
+# ve bu ekler OLUMSUZ_RE'de YOKTU ("verme/deme/isteme" var, "iletme/çıkarma" yok).
+# Eksiz surumde bu cumle KIRMIZI yanardi -> `deploy: needs: build` -> TUM SITE durur.
+# ⚠️ ILAN EDILEN BEDEL: her bastirici bir BYPASS yuzeyidir. Ayni cumlecige bu
+# kelimelerden birini SOKUSTURAN bir metin (D)'yi susturabilir. Dar tutuldu: yalniz
+# (D)'nin KENDI fiillerinin olumsuz emir/isim-fiil bicimleri.
+D_OLUMSUZ_EK_RE = re.compile(
+    r"\biletme\b|\biletmeyin\b|\bçıkarma\b|\bçıkarmayın\b|\bbelirleme\b"
+    r"|\bbelirlemeyin\b|\bhesaplama\b|\bhesaplamayın\b|\bbildirme\b"
+    r"|\bgönderme\b|\bsöyleme\b|\bdönme\b",
+    re.IGNORECASE)
+
+
+def d_olumsuz(c):
+    """(D) icin olumsuzlama: ortak liste + (D) fiillerinin olumsuz emir bicimleri."""
+    return bool(OLUMSUZ_RE.search(c)) or bool(D_OLUMSUZ_EK_RE.search(c))
+
 # OLUMSUZLAMA — Turkce -ma/-me emir olumsuzu + yasak isaretleri.
 # Cumlecik (clause) duzeyinde bakilir. SATIR duzeyinde bakmak OLUMCUL: 26 Tem'in
 # hatali satiri hem "iste" hem "verme" iceriyordu; satir duzeyi olumsuzlama
@@ -282,6 +385,23 @@ def cumlecikler(satir):
 def cumleler(satir):
     """Satiri cumlelere boler (virgul HARIC). (A) jeton penceresi budur."""
     return [p.strip() for p in CUMLE_AYIRICI.split(satir) if p and p.strip()]
+
+
+# (D) KENDI penceresi: standart ayiraclara IKI NOKTA UST USTE de eklenir.
+# 🔴 NEDEN AYRI: duzeltme oncesi l.19 tek cumlecikti ->
+#     `Emin değilsen uydurma: "en uygunu çıkarıp ileteceğim" + [DEVRET]`
+# ve bastaki "uydurma" OLUMSUZ_RE'de oldugu icin cumlecigin TAMAMINI susturuyordu.
+# Yani yasagin ARDINDAN tirnak icinde verilen ZARARLI ORNEK CUMLE gorunmez kaliyordu.
+# ":" ayirici yapilinca yasak ("uydurma") ile ornek ayri pencerelere duser.
+# (A)/(B)/(C)'nin ortak ayiricisina DOKUNULMADI — onlarin davranisi degismemeli.
+# ⚠️ Rakam korumasi burada da gecerli ("09:00-18:00" bolunmez).
+_D_AYIRAC = r"(?:(?<!\d)[.;,:]|[.;,:](?!\d))"
+D_CUMLECIK_AYIRICI = re.compile(_D_AYIRAC + r"|\n|" + _BAGLAC, re.IGNORECASE)
+
+
+def d_cumlecikler(satir):
+    """(D) jeton penceresi: cumlecik + ':' ayirici."""
+    return [p.strip() for p in D_CUMLECIK_AYIRICI.split(satir) if p and p.strip()]
 
 
 def istek_var(c):
@@ -344,6 +464,28 @@ def bulgular(metin):
                             "fiyat TAAHHUDU (para + %s taahhut kipi) "
                             "(:57 'yaklasik su kadar tutar' DEME)"
                             % ("GUCLU" if guclu else "YAKLASIK+ZAYIF")))
+
+        # ---- (D) KARAR VAADI: KENDI cumlecik penceresi (':' de ayirir) ----
+        # Her kanat FIIL OBEGI ister; tek jetonla ASLA yanmaz.
+        for c in d_cumlecikler(satir):
+            if d_olumsuz(c):
+                continue
+            nesne = KARAR_NESNESI_RE.search(c)
+            if nesne and VAAT_URETME_RE.search(c):
+                out.append((no, "D/KARAR-VAADI", c,
+                            "Ege karari KENDISI URETIYOR ('%s' + uretme cekimi) — "
+                            "fiyat/malzeme/uretilebilirlik karari Okan'da; dogrusu "
+                            "'arastirip donecegini soyle + [DEVRET]'"
+                            % nesne.group(0)))
+            elif nesne and VAAT_ILETME_RE.search(c):
+                out.append((no, "D/KARAR-VAADI", c,
+                            "Ege karari ILETMEYI TAAHHUT EDIYOR ('%s' + iletme cekimi) "
+                            "— karar Okan'da, Ege yalniz [DEVRET] eder"
+                            % nesne.group(0)))
+            elif SURE_JETONU_RE.search(c) and VAAT_SURE_FIIL_RE.search(c):
+                out.append((no, "D/SURE-VAADI", c,
+                            "SURE TAAHHUDU (zaman jetonu + iletme/donus cekimi) — "
+                            "ne zaman donulecegi de Okan'in karari"))
         i += 1
     return out
 
@@ -355,9 +497,12 @@ def olcumu_bas(yol, metin, sessiz=False):
         print("  Dosya : %s" % yol)
         print("  Olcum : %d satir, %d karakter" % (len(metin.split("\n")), len(metin)))
         print("  Kapsam: (A) olcu/cizim ISTEGI · (B) uretim sozu · (C) fiyat TAAHHUDU")
+        print("          · (D) KARAR VAADI (fiyat/malzeme kararini cikarip iletme sozu)")
         print("          (C) = para + GUCLU kip, ya da para + YAKLASIK + ZAYIF kip.")
         print("          (C) OLCMEZ: duz kesin fiyat beyani · tahmin jetonu tasimayan")
         print("          betimleme ('fiyat sayfada yazar') — ilan edilmis kor noktalar.")
+        print("          (D) = [karar nesnesi | sure jetonu] + [Ege-oznesi cekimi];")
+        print("          tek jetonla yanmaz. OLCMEZ: parafraz ('bakip haber ederim').")
         print("-" * 70)
         if not b:
             print("  Bulgu YOK.")
@@ -426,6 +571,11 @@ NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
         "uretiriz"     -> (KASITLI YASAK — uretim sozu Okan'in karari, :41)
     Yani: uretim/fiyat SOZU vermeyen bir cumle kuruyorsan yukaridaki karsiliklari
     kullan; kapi seni bilerek bu yone itiyor.
+    ⚠️ 1 Agu EKI: yukaridaki karsiliklara bir KARAR NESNESI (fiyat/ucret/tutar/
+    maliyet/teklif/uygun malzeme-filament/uretilebilirlik) EKLERSEN (D) sinifi yanar
+    — "arastirip doneriz" YESIL ama "fiyati arastirip bildiririz" KIRMIZI. Bu
+    KASITLIDIR: fiyat ve malzeme/uretilebilirlik karari Okan'dadir, Ege yalniz
+    kosulu toplar ve [DEVRET] eder. Nesnesiz hali kullan (fikstur D19).
   · 🔴 DUZ KESIN FIYAT BEYANI OLCULMEZ. "Bu parca 1.200 TL." · "Fiyat 900-1100 TL."
     gibi RAKAMLI DUZ beyanlar bu kapidan YESIL gecer. Kapsanamaz: belgenin MESRU
     icerigi fiyat/TL dolu (l.9 kargo esigi + ornek hesap), duz rakam yakalayan bir
@@ -477,7 +627,53 @@ NE OLCULMEDI (durust liste — bu bir KELIME kapisidir, ANLAM onaylamaz):
   · Yalniz ege-bilgi.md okunur. SISTEM_TALIMATI'nin kendisi, deploy edilmis worker,
     site sayfalari ve Ege'nin bu metni gercekten UYGULADIGI OLCULMEZ.
   · Olumsuzlama Turkce -ma/-me + yasak jetonu listesidir; listede olmayan
-    olumsuzlama sekli (ornegin "istemekten kacin") sahte-KIRMIZI yakar.""")
+    olumsuzlama sekli (ornegin "istemekten kacin") sahte-KIRMIZI yakar.
+
+  ── (D) KARAR VAADI — 1 Agu'da eklendi, NEYI OLCMEDIGI ───────────────────────
+  · 🔴 PARAFRAZ KACISI (D)'de de GENISTIR ve ilk maddedeki hukum aynen gecerlidir.
+    (D) bir FIIL OBEGI kapisidir: [karar nesnesi | sure jetonu] + [Ege-oznesi
+    cekimi]. Ayni taahhudu BASKA FIILLERLE kuran metin RAHATCA gecer. Olculdu
+    (1 Agu): su varyantlar KACAR — "fiyata bakip haber ederim" · "rakami
+    ogrenip donerim" · "sana bir tutar cikartip yollarim" (cikart- yazimi) ·
+    "maliyeti arastirip paylasirim". Yesil, "metin dogru" DEMEK DEGILDIR.
+  · 🔴 DUZ KESIN FIYAT BEYANI (D)'de de OLCULMEZ — (C) ile ayni gerekce.
+    "Ozel parcaniz 1.200 TL." bu kapidan YESIL gecer.
+  · KOR NOKTA — CIPLAK 3. TEKIL FIIL (D) sayilmaz: "fiyati hesaplar",
+    "fiyat konfiguratorden cikar", "fiyat sayfada yazar". Bilincli: canli l.7 ve
+    fiksturler M27/Z2/Z3 tam bu kaliptadir; oraya girseydi TUM SITE yayini dururdu.
+    Bedeli: "Fiyati sistem cikarir ve size gonderir" tipi EDILGEN/3. TEKIL bir
+    vaat YAKALANMAZ. Fiksturler D21, D24.
+  · KOR NOKTA — SURE JETONU LISTESI DARDIR. Yalniz "en kisa surede / en gec /
+    hemen / bugun / yarin / aksama / N (dakika|saat|gun) icinde" sayilir.
+    KASITLI DISARIDA: "birkac saat" (canli l.50 aynen boyle yaziyor — D25),
+    "3-5 is gununde" (canli l.8 — D20), "ayni gun" (fikstur G1). Bedeli:
+    "Ayni gun ileteceğim" tipi bir sure sozu YAKALANMAZ.
+  · 🔴 (D)-YE OZEL BASTIRICI VAR VE BYPASS YUZEYIDIR. D_OLUMSUZ_EK_RE, (D)
+    fiillerinin olumsuz emir bicimlerini (iletme/çıkarma/belirleme/hesaplama/
+    bildirme/gönderme/söyleme/dönme) bastirir. GEREKCESI olculdu: kuralin DOGRU
+    yazilisi tam bu kelimelerdir ("Fiyatı çıkarıp iletme.") ve ortak OLUMSUZ_RE
+    onlari ICERMIYORDU -> eksiz surum o YASAK METNI kirmizi yakip yayini
+    durduruyordu (fikstur D28). BEDELI: bu kelimelerden birini ayni cumlecige
+    sokusturan bir metin (D)'yi SUSTURABILIR. Ortak OLUMSUZ_RE'ye DOKUNULMADI —
+    oraya kelime eklemek (A)/(B)/(C)'yi de gevsetirdi.
+  · KOR NOKTA — (D) KENDI cumlecik penceresini kullanir ve ortak ayiraclara ':'
+    ekler. Gerekce: duzeltme oncesi l.19'da yasak ("uydurma") ile zararli ORNEK
+    ayni cumlecikteydi ve olumsuzlama ornegi MASKELIYORDU (D1). Bedeli: nesne ile
+    cekim ':' ile ayrilan iki parcaya duserse (D) onlari BIRLESTIREMEZ.
+  · 🔴 (D) SIRKET SESINI EGE'NIN SESINDEN AYIRAMAZ. 1. cogul "belirleriz /
+    iletiriz / bildiririz" SITE metninde mesrudur ("malzemeyi birlikte
+    belirleriz"), ege-bilgi.md'de ise Ege'nin agzina girdigi an yasaktir. Kapi
+    ikisini AYIRT EDEMEZ. Olculdu (1 Agu, tools/sayfalar.py'nin urettigi 256
+    musteri sayfasi): 7 sayfada 1'er bulgu — hepsi sirket-sesi 1. cogul, bir
+    tanesi ("gereksiz yere ust sinifa cikarip fiyat sisirmeyiz") duz sozcuk
+    rastlantisi. YASAL/SSS sayfalarinda 0. Bu kapi o dosyalari OKUMAZ (yalniz
+    ege-bilgi.md), ama ege-bilgi.md'ye ayni uslupla yazan biri yayini durdurur.
+    ALTERNATIF IFADE: "fiyati/malzemeyi ... belirleriz/iletiriz" yerine
+    "arastirip donecegini soyle + [DEVRET]" (kural zaten budur).
+  · KAPSAM DISI — (D) "kim karar verir" sorusunu KELIMEDEN okur. "Malzeme ve
+    fiyat karari bizde" (canli l.39, D14) ile "Malzemeyi biz belirleriz" (D30
+    sinifi) ANLAMCA yakin ama biri YESIL biri KIRMIZI: fark, ikincisinin bir
+    TAAHHUT CEKIMI tasimasidir. Sinir kelimeseldir, anlamsal degil.""")
 
 
 # --------------------------------------------------------------------------
@@ -606,9 +802,18 @@ FIKSTURLER = [
     ("Z5 belgenin l.9 minimal varyanti",
      "- altında gönderi başına 250 TL kargo olur.", False,
      "canli belgenin kendi kargo satirinin anlamca ayni hali — KIRMIZI olursa yayin durur"),
-    ("Z6 belgenin l.45 minimal varyanti",
-     "- Liste fiyatı olanı söyle; özel/parametrikte fiyatı çıkar ve ilet + [DEVRET].",
-     False, "l.45 varyanti — 'cikar' betimleme"),
+    # 🔴 Z6 1 Agu'da TERSINE CEVRILDI (mimar karari). ESKI HALI: ayni cumle
+    # (".. fiyatı çıkar ve ilet ..") beklenen-YESIL kayitliydi ve gerekcesi
+    # "'cikar' betimleme" idi. Bu, kapinin (D) sinifinda SERTLESTIRILMESINI
+    # KILITLIYORDU: yeni desen eklendigi an ic nobetci kirilir, muhendis "demek ki
+    # desen yanlis" diye geri alirdi. Ustelik capasi da BAYATTI — o cumle
+    # ege-bilgi.md'de artik YOK (1 Agu'da notrlendi).
+    # Fikstur artik GUNCEL GERCEGI capalar; eski cumle D5'te KIRMIZI vaka olarak
+    # KORUNUR (regresyon nobetcisi odur).
+    ("Z6 belgenin l.46 GUNCEL hali",
+     "- *Kesin fiyat?* → Liste fiyatı olanı söyle; özel/parametrikte araştırıp "
+     "döneceğini söyle + [DEVRET].",
+     False, "kuralin DOGRU hali — 'arastirip donecegini soyle' YESIL kalmali"),
     # ZAYIF kanadi YAKLASIK ile BIRLIKTE yanmali (ayni fiiller, taahhut baglaminda):
     ("Z7 YAKLASIK + 'olur'", "- Yaklaşık 1.250,50 TL olur.", True, "ZAYIF + tahmin = taahhut"),
     ("Z8 YAKLASIK + 'yazar'", "- Yaklaşık 700 TL civarı bir maliyet yazar.", True,
@@ -691,6 +896,134 @@ FIKSTURLER = [
      "- Size uygun fiyat veririz.", True, "'fiyat' jetonu DAR listede -> yanmali"),
     ("V7 DAR liste: 'parça için indirim veririz'",
      "- Parça için indirim veririz.", True, "'parca' + 'indirim' -> yanmali"),
+    # ═══ (D) KARAR VAADI — 1 Agu, YENI SINIF ═══
+    # 🔴 D1-D4 = ege-bilgi.md'nin DUZELTME ONCESI DORT OZGUN SATIRI. Olculdu (1 Agu,
+    # degisiklikten ONCEKI kapi surumu): dordu de 0 BULGU aliyordu. ONCE-KIRMIZI
+    # kaniti budur — bu dort fikstur eski surumde HATA verir.
+    # MUT: (D) blogu silinirse ya da nesne/cekim sartlarindan biri gevsetilirse
+    # D1-D12 kirilir; ':' ayirici standart ayirica dondurulurse D1 kirilir.
+    ("D1 duzeltme ONCESI l.19 (tirnak icinde ornek)",
+     'Kullanım yerine göre seç: iç mekan → standart · dış/güneş → UV+havaya dayanıklı '
+     '· motor/ısı → kaç dereceye dayanmalı sor · yük/darbe → tok+sağlam. '
+     'Emin değilsen uydurma: "en uygunu çıkarıp ileteceğim" + [DEVRET].',
+     True,
+     "'en uygunu cikarip ileteceğim' — bastaki 'uydurma' OLUMSUZ jetonu, ':' ayirici "
+     "olmasa TUM cumlecigi susturuyordu"),
+    ("D2 duzeltme ONCESI l.39 (malzeme+fiyat karari)",
+     "- Malzemenin KRİTİK olduğu iş: bir filamentin o şartı tam karşılayıp "
+     "karşılamayacağı üretim kararıdır. Koşulu net topla (hangi sıvı/yakıt · kaç "
+     "derece · esnek mi sert mi), uygun filamenti + fiyatı belirleyip ileteceğini "
+     "söyle + [DEVRET]. Kesin performans garantisi verme.",
+     True, "'fiyati belirleyip ileteceğini' = malzeme + fiyat kararini ustlenme"),
+    ("D3 duzeltme ONCESI l.46 (SSS kesin fiyat)",
+     "- *Kesin fiyat?* → Liste fiyatı olanı söyle; özel/parametrikte fiyatı çıkarıp "
+     "ilettiğini söyle + [DEVRET].",
+     True, "'fiyati cikarip ilettiğini' — Z6'nin bayat capasinin gercek kaynagi"),
+    ("D4 duzeltme ONCESI l.50 (SURE alt-ekseni)",
+     '- Fiyat çalışması birkaç saat sürebilir; soğutma, "en kısa sürede ileteceğim" '
+     'de, iletişimi sürdür.',
+     True,
+     "KARAR NESNESI TASIMAYAN tek vaka: '\"en kisa surede ileteceğim\" de' cumleciginde "
+     "nesne YOK — sure alt-ekseni olmasa bu satir gorunmez kalirdi"),
+    ("D5 Z6'nin ESKI cumlesi (tersine cevrildi)",
+     "- Liste fiyatı olanı söyle; özel/parametrikte fiyatı çıkar ve ilet + [DEVRET].",
+     True,
+     "ESKIDEN beklenen-YESIL kayitliydi ve (D)'yi kilitliyordu; 'fiyatı ... ilet' "
+     "emir kipi de yasak sozun talimat halidir"),
+    ("D6 uydurma fiyat: hesaplayip iletme",
+     "- Fiyatı hesaplayıp size ileteceğim.", True, "zarar sinifi: uydurma fiyat"),
+    ("D7 malzeme kararini ustlenme",
+     "- Uygun malzemeyi belirleyip ileteceğim.", True,
+     "zarar sinifi: malzeme karari Ege'de degil"),
+    ("D8 uretilebilirlik sozu",
+     "- Üretilebilirliğini çıkarıp bildireceğim.", True,
+     "zarar sinifi: uretilebilirlik karari Okan'da"),
+    ("D9 duz sure taahhudu", "- En kısa sürede döneceğim.", True,
+     "zarar sinifi: sure taahhudu (nesne YOK, sure kanadi yakalar)"),
+    ("D10 sure + nesne birlikte", "- Fiyatı yarın ileteceğim.", True,
+     "iki kanat da yanar; tek bulgu uretilmeli"),
+    ("D11 teklif: hazirlayip gonderme", "- Teklifi hazırlayıp göndereceğim.", True,
+     "'hazirlayip' URETME listesinde YOK — nesne + ILETME cekimiyle yakalanir"),
+    ("D12 1. cogul kanat", "- Maliyeti çıkarıp size bildiririz.", True,
+     "'ben' degil 'biz' cekimi de ayni taahhut"),
+    # ═══ (D) YANLIS-POZITIF NOBETCILERI — kuralin DOGRU hali YESIL kalmali ═══
+    # ⚠️ `deploy: needs: build`: asagidakilerden biri kirmizi yanarsa TUM pruvo3d.com
+    # yayini durur. Bunlar canli ege-bilgi.md'nin GUNCEL (1 Agu) cumleleridir.
+    ("D13 canli l.19: 'arastirip donecegini soyle'",
+     "- Emin değilsen uydurma: araştırıp döneceğini söyle + [DEVRET].", False,
+     "kuralin DOGRU hali — sure jetonu YOK, karar nesnesi YOK"),
+    ("D14 canli l.39: 'Malzeme ve fiyat karari bizde'",
+     "- Malzeme ve fiyat kararı bizde. Kesin performans garantisi verme.", False,
+     "karar nesnesi VAR ama vaat cekimi YOK — kuralin DOGRU hali"),
+    ("D15 canli l.39 tam hali",
+     "- Koşulu net topla (hangi sıvı/yakıt · sürekli mi ara sıra mı · kaç derece · "
+     "esnek mi sert mi), araştırıp döneceğini söyle + [DEVRET]. Malzeme ve fiyat "
+     "kararı bizde. Kesin performans garantisi verme.", False,
+     "duzeltilmis l.39'un TAMAMI — D2'nin YESIL ikizi"),
+    ("D16 canli l.23: filament onerisi",
+     "- Ege SADECE bu aileden seçenek sunar; uygun filament(ler)i önerebilir, adını "
+     "da söyleyebilir.", False,
+     "'uygun filament' nesne jetonu tasir; 'öner-/söyleyebilir' vaat cekimi DEGIL — "
+     "malzeme ONERMEK serbest, malzeme KARARINI ustlenmek yasak"),
+    ("D17 canli l.50 guncel hali",
+     "- Fiyat çalışması bizde birkaç saat sürebilir; soğutma, süre/fiyat sözü verme, "
+     "araştırıp döneceğini yinele, iletişimi sürdür.", False,
+     "'birkac saat' TEK BASINA sure jetonu DEGIL ('icinde' sart); 'iletişimi' \\b "
+     "sinirindan gecmez — D4'un YESIL ikizi"),
+    ("D18 mesru DEVRET: talebi ekibe iletme",
+     "- Talebi ekibe ileteceğini söyle + [DEVRET].", False,
+     "ILETME cekimi VAR ama KARAR NESNESI YOK -> (D) tek kelimeyle yanmaz. "
+     "Bu fikstur (D)'nin fiil-obegi tasarimini nobetler"),
+    ("D19 mesru: kosulu degerlendirip bildirme",
+     "- Koşulu topla, değerlendirip bildiririz.", False,
+     "ne_olculmedi()'nin ONERDIGI alternatif ifade — nesnesiz oldugu icin YESIL"),
+    ("D20 canli l.8: teslim betimlemesi",
+     "- Siparişi 3-5 iş gününde kargoya veririz.", False,
+     "'is gununde' sure jetonu DEGIL (yalniz 'gun icinde' sayilir)"),
+    ("D21 canli l.7: konfigurator fiyati hesaplar",
+     "- konfigüratör girilen ölçüye göre fiyatı hesaplar, onlar da sepetten kartla "
+     "ödenir.", False,
+     "CIPLAK 3. tekil 'hesaplar' URETME listesinde YOK — M27'nin (D) ikizi"),
+    ("D22 canli l.9: 'ucretsiz' onek tuzagi",
+     "- 2.500 TL ve üzeri ücretsiz; altında gönderi başına 250 TL toplama eklenir.",
+     False, "`\\bücret(?!siz)` olmasa 'ucretsiz' karar nesnesi sayilirdi"),
+    ("D23 calisma saati ':' rakam korumasi",
+     "- Pzt–Cmt 09:00–18:00, Pazar kapalı; fiyat listesi sayfada.", False,
+     "'09:00' bolunmemeli ve hicbir vaat cekimi yok"),
+    # 🔴 D24-D26: (D)'nin UC DAR SINIRININ TAM USTUNE oturan nobetciler.
+    # Bunlar olmadan asagidaki mutantlar SAG KALIYORDU (olculdu, 1 Agu — mutasyon
+    # kosumu): `(?!siz)` kaldir · SURE'yi ciplak "birkaç saat"e genislet ·
+    # `\bilet\b` sinirini kaldir. Bir sinirin bedeli, YANINDAN gecen fiksturle
+    # ispatlanmaz (bu dosyanin TUR 5 dersi).
+    ("D24 'ucretsiz' + iletme cekimi (MUT: `(?!siz)` kaldir)",
+     "- Kargonun ücretsiz olduğunu ileteceğini söyle.", False,
+     "'ucretsiz' KARAR NESNESI DEGILDIR; kargonun bedava oldugunu soylemek l.9'un "
+     "ACIK emridir ('NET söyle')"),
+    ("D25 'birkac saat' + donus (MUT: SURE'yi 'içinde'siz genislet)",
+     "- Fiyat çalışması bizde birkaç saat sürebilir ve araştırıp döneceğini yinele.",
+     False,
+     "'birkac saat' SURE JETONU DEGIL — canli l.50 aynen boyle yaziyor; yalniz "
+     "'birkac saat İÇİNDE' taahhut sayilir"),
+    ("D26 'iletişimi' \\b sinirinda (MUT: `\\bilet\\b` -> `ilet`)",
+     "- Fiyat listesi için iletişimi sürdür.", False,
+     "'iletişimi' ILETME cekimi DEGIL; sinir kaldirilirsa canli l.50 KIRMIZI yanar "
+     "ve TUM SITE yayini durur"),
+    # 🔴 D27-D28: (D)'nin NESNE SARTI ve OLUMSUZLAMA kontrolu — bu ikisi ilk
+    # mutasyon kosumunda TESTSIZ cikti (MUT-D1a ve MUT-D10 SAG KALMISTI).
+    ("D27 nesne SARTI (MUT: uretme kanadindan nesne sartini kaldir)",
+     "- Müşterinin kategorisini belirleyip kataloğa yönlendir.", False,
+     "URETME cekimi ('belirleyip') VAR ama KARAR NESNESI YOK -> yanmamali; "
+     "(D) fiil obegi arar, tek fiil degil"),
+    ("D28 (D) fiilinin OLUMSUZ emri = kuralin DOGRU yazilisi",
+     "- Fiyatı çıkarıp iletme, araştırıp döneceğini söyle + [DEVRET].", False,
+     "'iletme' ortak OLUMSUZ_RE'de YOKTU; D_OLUMSUZ_EK_RE olmadan bu YASAK METNI "
+     "KIRMIZI yakar ve TUM SITE yayini durur"),
+    ("D29 ortak OLUMSUZ_RE hala etkili", "- Fiyatı çıkarıp ileteceğini ASLA söyleme.",
+     False, "'ASLA' ortak listede — (D) olumsuzlama kontrolu kaldirilirsa yanar"),
+    ("D30 'malzemeyi' TEK BASINA nesne (MUT: nesne listesinden cikar)",
+     "- Malzemeyi belirleyip ileteceğini söyle.", True,
+     "'uygun' kelimesi CIKARILARAK kural susturulamamali — D7'nin tek-kelimelik "
+     "parafrazi; bu dosyanin TUR 4 dersi"),
 ]
 
 
@@ -755,8 +1088,9 @@ def main():
         return 1
     # 🔴 "fiyat sozu YOK" DEME — kapi duz kesin fiyat beyanini OLCMUYOR.
     # Bir kapi olcmedigi seyi olcmus gibi raporlayamaz (mimar hukmu 26 Tem).
-    print("SONUC: YESIL ✅ — aranan uc kalip BULUNAMADI:")
+    print("SONUC: YESIL ✅ — aranan dort kalip BULUNAMADI:")
     print("  (A) olcu/cizim istegi · (B) uretim sozu · (C) fiyat TAAHHUDU")
+    print("  · (D) karar vaadi (fiyat/malzeme kararini cikarip iletme sozu)")
     print("  ⚠️  BU 'fiyat sozu yok' DEMEK DEGILDIR. (C) sunlari OLCMEZ:")
     print("      · duz kesin fiyat beyani            ('Bu parca 1.200 TL')")
     print("      · tahmin jetonu tasimayan betimleme ('Fiyat sayfada yazar')")
