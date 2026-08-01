@@ -192,9 +192,8 @@ def api_getir(yol, zaman_asimi=25):
         raise OlcumHatasi("`gh api` %d sn icinde yanit vermedi" % zaman_asimi)
     if p.returncode != 0:
         hata = (p.stderr or p.stdout or "").strip().splitlines()
-        raise OlcumHatasi("`gh api %s` rc=%d: %s"
-                          % (yol.split("?")[0], p.returncode,
-                             hata[0][:160] if hata else "(cikti yok)"))
+        raise OlcumHatasi("`gh api` rc=%d: %s"
+                          % (p.returncode, hata[0][:160] if hata else "(cikti yok)"))
     try:
         return json.loads(p.stdout)
     except ValueError:
