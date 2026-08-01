@@ -99,6 +99,17 @@ BEKLENEN = (
         ("tools/d1-sync.py",
          "D1 senkronu — EN PAHALISI: kosmazsa site urunu gosterir, EGE GOREMEZ"),
     )),
+    # 1 Agu 2026 eklendi (kurucu: tools/commit-mesaji-hook-kur.py).
+    # GEREKCE: depo PUBLIC ve commit MESAJI yazildiktan sonra DEGISTIRILEMEZ —
+    # push'tan sonra tek onarim tarihce yeniden yazimi + force-push'tur. Yani bu
+    # eksenin butun degeri ONLEMEDIR; kanca sessizce olurse koruma SIFIRLANIR ve
+    # hicbir yerde alarm calmaz (olculen olay: 5 commit mesajinda tedarikci/satici
+    # kimligi public'e cikti, icerik ekseninde vurus 0'di).
+    ("commit-msg", (
+        ("tools/commit-mesaji-kapisi.py",
+         "commit mesajinda tedarikci/satici kimligi -> COMMIT DURUR (fail-closed); "
+         "mesaj ekseninin TEK onleyici koludur, CI kolu yalniz gorunurluktur"),
+    )),
 )
 
 # `$(...)` / backtick ACILIMI ve degisken cozumu icin:
