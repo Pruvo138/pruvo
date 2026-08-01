@@ -56,7 +56,7 @@ MUTANTLAR = (
      "        for k in []:", True),
     # --- FAIL-CLOSED YOLLARI --------------------------------------------------
     ("M4  ADAY BUTCESI fail-OPEN yapildi (buyuk itme sessizce taranmaz)", "kapi",
-     "        if len(aday_commit) > butce:", "        if False:", True),
+     "        if len(aday_commit) + yeni_sayi > butce:", "        if False:", True),
     ("M5  OZET ARTEFAKTI yoklugu fail-OPEN yapildi", "kapi",
      "    kayit, hata = modul.ozet_kaydi_yukle(ozet_yolu)\n    return kayit, hata",
      "    kayit, hata = modul.ozet_kaydi_yukle(ozet_yolu)\n"
@@ -66,6 +66,28 @@ MUTANTLAR = (
      '            hatalar.append("pre-push satiri COZULEMEDI (4 alan bekleniyor): %r"\n'
      "                           % satir[:120])\n            continue",
      "        if len(parca) != 4:\n            continue", True),
+    # --- KIRPMA KOLU (gorunurluk kollarinin butce davranisi) ---
+    # 🔴 M15: kirpma "sessiz" hale getirilirse (atlanan sayisi raporlanmazsa) kol
+    # DAR kapsamda YESIL yanar ve kimse fark etmez — bu deponun tekrar tekrar
+    # olctugu sessiz delik sinifi. 6d bunu yakalamali.
+    ("M15 KIRPMA SESSIZLESTIRILDI (atlanan commit sayisi raporlanmaz)", "kapi",
+     '            olcum["icerik_atlanan"] = len(shalar) - sira\n            break',
+     "            break", True),
+    # 🔴 M16: kirpma MESAJ eksenini de kirparsa, force-push sonrasi CI'da mesaj
+    # sizintisi gorunmez olur. Mesaj ekseni ucuzdur ve HER ZAMAN tam kapsamalidir.
+    ("M16 KIRPMA MESAJ EKSENINI de kirpti (ucuz eksen gereksiz yere daraldi)",
+     "kapi",
+     "    # --- MESAJ EKSENI ---\n    for sha in shalar:",
+     "    # --- MESAJ EKSENI ---\n    for sha in (shalar[:1] if kirp else shalar):",
+     True),
+    # 🔴 M17: ONLEYICI kol (pre-push) kirpma moduna alinirsa butce asildiginda
+    # push DURMAZ ve sizinti gecebilir. Kirpma YALNIZ gorunurluk kollarinda mesru.
+    ("M17 PRE-PUSH kolu KIRPMA moduna alindi (onleyici kol fail-open olur)", "kapi",
+     "    bulgular, olcum, hata = commitleri_tara(tum_shalar, kayit, modul, kok=kok,\n"
+     "                                            maskeli=False, butce=butce)",
+     "    bulgular, olcum, hata = commitleri_tara(tum_shalar, kayit, modul, kok=kok,\n"
+     "                                            maskeli=False, butce=butce,\n"
+     "                                            kirp=True)", True),
     # --- DIFF KAPSAMI ---------------------------------------------------------
     ("M7  MERGE birlesik diff'i KAPATILDI (evil merge kacar)", "kapi",
      '    if n > 1:\n        args.append("-c")',

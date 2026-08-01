@@ -260,14 +260,29 @@ class Bulgu(object):
 
 
 def commitleri_tara(shalar, kayit, modul, kok=None, maskeli=True,
-                    butce=ADAY_BUTCESI):
+                    butce=ADAY_BUTCESI, kirp=False):
     """(bulgular, olcum, hata) — mesaj + icerik ekseni.
 
     Adaylar TUM commit'ler boyunca TEK kumede toplanip BIR KEZ ozetlenir (commit'ler
-    buyuk olcude ayni jetonlari paylasir). Butce asilirsa hata doner -> rc 2.
+    buyuk olcude ayni jetonlari paylasir).
+
+    MESAJ ekseni HER ZAMAN TUM commit'leri kapsar (mesajlar ucuzdur). Butce YALNIZ
+    ICERIK eksenini baglar.
+
+    `kirp=False` (ONLEYICI kollar): butce asilirsa hata doner -> rc 2, push DURUR.
+    `kirp=True`  (GORUNURLUK kolu): butce dolunca TARAMA DURUR, kapsanan/atlanan
+        commit sayisi RAPORLANIR ve hukum kapsanan kume uzerinden verilir.
+        🔴 NEDEN CI'da KIRPMA MESRU: (a) CI push'TAN SONRA kosar, hicbir seyi
+        ONLEMEZ — oradaki rc 2 tek basina KIRMIZI GURULTUdur ve bu depoda kapi
+        birikmesinin bedeli olculmustur; (b) her commit, kendisini GETIREN push'un
+        KENDI CI kosumunda zaten taranir, yani zaman icinde kapsam TAMDIR;
+        (c) asil olcumu ONLEYICI kol (pre-push) TAM menzil uzerinde yapar.
+        Kirpma SESSIZ DEGILDIR: kac commit tarandi / kac tanesi atlandi basilir.
+        Cagiran, kirpma modunda commit'leri YENIDEN ESKIYE siralı vermelidir.
     """
     bulgular = []
-    olcum = {"commit": len(shalar), "aday": 0, "ozet_ms": 0.0, "eklenen_bayt": 0}
+    olcum = {"commit": len(shalar), "aday": 0, "ozet_ms": 0.0, "eklenen_bayt": 0,
+             "icerik_kapsanan": 0, "icerik_atlanan": 0}
 
     # --- MESAJ EKSENI ---
     for sha in shalar:
@@ -282,21 +297,29 @@ def commitleri_tara(shalar, kayit, modul, kok=None, maskeli=True,
     # --- ICERIK EKSENI (eklenen satirlar) ---
     uzunluklar = sorted({n for n, _ in kayit["desenler"]})
     aday_commit = {}
-    for sha in shalar:
+    for sira, sha in enumerate(shalar):
         metin, hata = eklenen_metin(sha, kok=kok)
         if metin is None:
             return None, olcum, hata
-        olcum["eklenen_bayt"] += len(metin)
+        bu_commit = set()
         for n in uzunluklar:
             for aday in modul.adaylar(metin, n):
-                aday_commit.setdefault((n, aday), set()).add(sha)
-        if len(aday_commit) > butce:
-            return None, olcum, (
-                "ADAY BUTCESI ASILDI: %d > %d benzersiz aday. Hukum OLCULEMEDI'dir "
-                "(fail-closed) — 'cok buyuk oldugu icin taramadim' YESIL DEGILDIR. "
-                "COZUM: itmeyi daha kucuk parcalara bol, ya da bilerek atlamak icin "
-                "`git push --no-verify` (gurultulu ve kayitli)."
-                % (len(aday_commit), butce))
+                bu_commit.add((n, aday))
+        yeni_sayi = sum(1 for a in bu_commit if a not in aday_commit)
+        if len(aday_commit) + yeni_sayi > butce:
+            if not kirp:
+                return None, olcum, (
+                    "ADAY BUTCESI ASILDI: %d > %d benzersiz aday. Hukum OLCULEMEDI'dir "
+                    "(fail-closed) — 'cok buyuk oldugu icin taramadim' YESIL DEGILDIR. "
+                    "COZUM: itmeyi daha kucuk parcalara bol, ya da bilerek atlamak icin "
+                    "`git push --no-verify` (gurultulu ve kayitli)."
+                    % (len(aday_commit) + yeni_sayi, butce))
+            olcum["icerik_atlanan"] = len(shalar) - sira
+            break
+        olcum["eklenen_bayt"] += len(metin)
+        for anahtar in bu_commit:
+            aday_commit.setdefault(anahtar, set()).add(sha)
+        olcum["icerik_kapsanan"] += 1
     olcum["aday"] = len(aday_commit)
 
     t0 = time.perf_counter()
@@ -324,6 +347,18 @@ def _rapor(bulgular, olcum, baslik, kanca_kolu):
     print("%s: %d commit · %d benzersiz aday · ozetleme %.0f ms · eklenen %.1f KB"
           % (baslik, olcum["commit"], olcum["aday"], olcum["ozet_ms"],
              olcum["eklenen_bayt"] / 1024.0))
+    print("  eksen kapsami: MESAJ %d/%d commit · ICERIK %d/%d commit"
+          % (olcum["commit"], olcum["commit"],
+             olcum.get("icerik_kapsanan", olcum["commit"]), olcum["commit"]))
+    if olcum.get("icerik_atlanan"):
+        # 🔴 SESSIZ DEGIL: kirpma HER ZAMAN sayiyla basilir.
+        print("  ⚠️ ICERIK EKSENI KIRPILDI: aday butcesi (%d) doldu -> EN YENI %d "
+              "commit tarandi, %d commit ICERIK ekseninde TARANMADI (mesaj ekseni "
+              "hepsini kapsadi). Bu kol GORUNURLUKTUR; asil olcumu pre-push kancasi "
+              "TAM menzil uzerinde yapar ve her commit kendisini getiren push'un CI "
+              "kosumunda ayrica taranir."
+              % (ADAY_BUTCESI, olcum.get("icerik_kapsanan", 0),
+                 olcum["icerik_atlanan"]))
     if not bulgular:
         print("temiz: 0 bulgu.")
         return RC_TEMIZ
@@ -351,7 +386,8 @@ def _rapor(bulgular, olcum, baslik, kanca_kolu):
 # ---------------------------------------------------------------------------
 # KOLLAR
 # ---------------------------------------------------------------------------
-def kol_pre_push(girdi=None, kok=None, uzak="origin", ozet_yolu=None):
+def kol_pre_push(girdi=None, kok=None, uzak="origin", ozet_yolu=None,
+                 butce=ADAY_BUTCESI):
     modul, hata = kapi_modulu()
     if modul is None:
         print("OLCULEMEDI (fail-closed KIRMIZI): %s" % hata, file=sys.stderr)
@@ -382,15 +418,17 @@ def kol_pre_push(girdi=None, kok=None, uzak="origin", ozet_yolu=None):
         tum_shalar.extend(shalar)
     tum_shalar = sorted(set(tum_shalar))
     print("itilen ref: %s" % ", ".join(ref_ozet))
+    # 🔴 `kirp` VERILMEZ (=False): bu ONLEYICI koldur. Butce asilirsa hukum
+    # OLCULEMEDI'dir ve PUSH DURUR — kirpma yalniz gorunurluk kollarinda mesrudur.
     bulgular, olcum, hata = commitleri_tara(tum_shalar, kayit, modul, kok=kok,
-                                            maskeli=False)
+                                            maskeli=False, butce=butce)
     if bulgular is None:
         print("OLCULEMEDI (fail-closed KIRMIZI): %s" % hata, file=sys.stderr)
         return RC_OLCULEMEDI
     return _rapor(bulgular, olcum, "geri-donus taramasi", kanca_kolu=True)
 
 
-def kol_ci(kok=None, ozet_yolu=None, ortam=None, yuk=None):
+def kol_ci(kok=None, ozet_yolu=None, ortam=None, yuk=None, butce=ADAY_BUTCESI):
     modul, hata = kapi_modulu()
     if modul is None:
         print("OLCULEMEDI (fail-closed KIRMIZI): %s" % hata, file=sys.stderr)
@@ -419,10 +457,11 @@ def kol_ci(kok=None, ozet_yolu=None, ortam=None, yuk=None):
         print("OLCULEMEDI (fail-closed KIRMIZI): git rev-list rc=%d: %s"
               % (p.returncode, (p.stderr or "").strip()[:200]), file=sys.stderr)
         return RC_OLCULEMEDI
+    # rev-list ciktisi YENIDEN ESKIYE siralidir -> kirpma en YENI commit'leri korur.
     shalar = p.stdout.split()
     print("kaynak: %s" % kaynak)
     bulgular, olcum, hata = commitleri_tara(shalar, kayit, modul, kok=kok,
-                                            maskeli=True)
+                                            maskeli=True, kirp=True, butce=butce)
     if bulgular is None:
         print("OLCULEMEDI (fail-closed KIRMIZI): %s" % hata, file=sys.stderr)
         return RC_OLCULEMEDI
@@ -566,6 +605,7 @@ def kendini_test():
         modul, _ = kapi_modulu()
         kayit, _ = modul.ozet_kaydi_yukle(artefakt)
         bulgular, olcum, _ = commitleri_tara(eklenen, kayit, modul, kok=depo)
+        bulgular_tam = list(bulgular or [])
         eksenler = {b.eksen for b in (bulgular or [])}
         kontrol("1c IKI EKSEN de vurdu (mesaj + icerik)",
                 eksenler == {"mesaj", "icerik"}, "(eksenler=%s)" % sorted(eksenler))
@@ -688,6 +728,42 @@ def kendini_test():
                 bulgular is None and hata is not None)
         kontrol("6b butce hatasi OLCULEMEDI diyor",
                 bool(hata) and "OLCULEMEDI" in (hata or ""))
+        # 🔴 KIRPMA KOLU (yalniz GORUNURLUK kollari): butce dolunca hata DEGIL,
+        # kapsanan/atlanan SAYISI. OLCULEN OLAY (1 Agu 2026): force-push'tan sonra
+        # CI'da `before` nesnesi ORTADAN KALKTI, kol "son 50 commit" tabanina dustu
+        # ve 157.276 aday ile butceyi asip rc 2 verdi — hicbir sizinti YOKKEN.
+        # CI push'tan SONRA kosar, hicbir seyi ONLEMEZ; oradaki rc 2 tek basina
+        # kirmizi gurultudur ve bu depoda kapi birikmesinin bedeli olculmustur.
+        b2, o2, h2 = commitleri_tara(eklenen, kayit, modul, kok=depo, butce=1,
+                                     kirp=True)
+        kontrol("6c kirpma modunda HATA YOK (rc 2 uretmez)",
+                b2 is not None and h2 is None)
+        kontrol("6d kirpma SESSIZ DEGIL: atlanan commit SAYISI raporlanir",
+                o2.get("icerik_atlanan", 0) > 0,
+                "(atlanan=%s)" % o2.get("icerik_atlanan"))
+        kontrol("6e kirpilsa BILE MESAJ ekseni TUM commit'leri kapsar",
+                o2["commit"] == len(eklenen)
+                and any(b.eksen == "mesaj" for b in b2),
+                "(commit=%d)" % o2["commit"])
+        b3, o3, h3 = commitleri_tara(eklenen, kayit, modul, kok=depo, kirp=True)
+        kontrol("6f butce dolmayinca kirpma modu TAM kapsar",
+                h3 is None and o3.get("icerik_atlanan", 0) == 0
+                and o3.get("icerik_kapsanan") == len(eklenen))
+        kontrol("6g butce dolmayinca kirpma modu AYNI hukmu verir",
+                {(b.sha, b.eksen) for b in b3} == {(b.sha, b.eksen)
+                                                   for b in bulgular_tam})
+        # 🔴 6h/6i SERIT AYRIMINI KOLLARIN KENDISINDE sabitler. Bunlar olmadan
+        # "pre-push kolunu kirpma moduna al" mutanti SAG KALIYORDU (olculdu):
+        # commitleri_tara duzeyindeki 6c-6g iddialari hangi KOLUN hangi modu
+        # kullandigini OLCMEZ.
+        rc = kol_pre_push(girdi=_push_girdisi(yerel_sha, uzak_sha), kok=depo,
+                          ozet_yolu=artefakt, butce=1)
+        kontrol("6h ONLEYICI kol (pre-push) butce asilinca rc=2 — KIRPMAZ",
+                rc == RC_OLCULEMEDI, "(rc=%d)" % rc)
+        rc = kol_ci(kok=depo, ozet_yolu=artefakt, ortam={"GITHUB_SHA": yerel_sha},
+                    yuk={}, butce=1)
+        kontrol("6i GORUNURLUK kolu (CI) butce asilinca rc=2 VERMEZ — kirpar",
+                rc != RC_OLCULEMEDI, "(rc=%d)" % rc)
 
         # ---------------------------------------------------------------
         # VAKA 7 — SADECE ICERIK / SADECE MESAJ ekseni (biri digerini maskelemez)
