@@ -6,6 +6,10 @@ Hedef: <Pruvo>/backup/  (memory klasoru + global skill'ler + .urun-kaynaklari.js
 SIRLAR — IKI AYRI REJIM, KARISTIRMA:
   1. REPO KOKUNDEKI SANCAKLI SIR LISTESI (.thingiverse-token, .r2-credentials.json, ...):
      VARSAYILAN yedeklenmez; "--sirlar" ile ayni ozel Drive'a dahil edilir (klasoru PAYLASMA!).
+     🔴 DIKKAT (1 Agu 2026 hizalamasi): "PAYLASMA" yalniz --sirlar'a OZGU DEGILDIR.
+     31 Tem EK KAPSAM genislemesinden beri VARSAYILAN kosum da ticari gizli icerik
+     tasir (raporlar/ — IBAN/VKN gecen tasinma envanteri —, .tedarikci-fiyat/,
+     .uyelik-*). Bu yedek klasoru HICBIR KOSUMDA paylasilabilir degildir.
   2. ~/.claude/skills AGACI: burada sir OLMAMASI gerekir; agac vetted degil (elle duzenlenen,
      git disi bir alan) -> ad kara-listesi + ad deseni + ICERIK imzasi ile KOSULSUZ elenir.
      Bu filtre "--sirlar" ile ACILMAZ: sancakli liste bilinen 5 dosyadir, skills agaci degil.
@@ -875,6 +879,10 @@ def ek_yaz(backup):
                   "SIR ENVANTERI — bu dosyalar SIR TASIDIGI icin yedege ALINMADI.\n"
                   "🔴 BURADA YALNIZ YOL VE SEBEP SINIFI VARDIR; SIRRIN DEGERI YOKTUR.\n"
                   "Yeni hesapta bunlar KAYNAGINDAN yeniden saglanmalidir.\n"
+                  "🔴 YINE DE: BU YEDEK KLASORU KIMSEYLE PAYLASILMAZ. Bu eleme AD\n"
+                  "DESENINE gore yapilir, ICERIGE gore DEGIL — yedekte ad suzgecinden\n"
+                  "gecen ticari gizli metin (raporlar/, .tedarikci-fiyat/, .uyelik-*)\n"
+                  "vardir. Koruma paylasmama kuralindadir, yedek disi birakmakta degil.\n"
                   + _geri_kazanim_metni())
     return sayilar
 
@@ -1514,6 +1522,12 @@ def main():
                  len(mem), len(dahil), len(repo), ek_toplam))
         if haric:
             print("SIR NOBETI: %d dosya paket DISINDA birakilacak." % len(haric))
+        # BEYAN HIZALAMASI (1 Agu 2026) — gercek kosumdaki uyarinin AYNISI kuru
+        # kosumda da basilir; envanterin DOGRULAMA komutu budur, beyan orada da
+        # gercekle ayni olmalidir. (Gerekce: gercek kosumdaki ayni metnin yaninda.)
+        print("🔴 BU YEDEK KLASORU KIMSEYLE PAYLASILMAZ (link/dosya/e-posta) — ticari gizli")
+        print("   icerik tasir: raporlar/, .tedarikci-fiyat/, .uyelik-*. Sir nobeti ADA gore")
+        print("   eler, ICERIGE gore degil.")
         damga = damga_oku(hedef) if hedef else None
         print("TAZELIK DAMGASI: %s" % (damga.get("iso") if damga else "(yok)"))
         k_imza = kaynak_imzasi(sirlar)
@@ -1658,7 +1672,7 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
             if os.path.exists(p):
                 shutil.copy2(p, os.path.join(backup, name))
                 print("yedek (SIR):", name)
-        print("NOT: bu klasoru kimseyle PAYLASMA — sir icerir.")
+        print("NOT: bu klasoru kimseyle PAYLASMA — sancakli SIR dosyalari da icinde.")
 
     # ---- EK KAPSAM: 5+1 evin izlenmeyen kalici bilgisi + diger hafiza uzaylari ----
     # Kum havuzunda (sahte ROOT) kardes ev YOKTUR -> faz kendini kapatir ve bunu BASAR.
@@ -1686,6 +1700,17 @@ def _yedekle(backup, gerekliyse, sirlar, sir_temizle, dahil, haric, kilitsiz=Fal
     damga_yaz(backup, sayilar, eksik=eksik,
               baslangic=baslangic, kilitsiz=kilitsiz, imza=bas_imza)
 
+    # BEYAN HIZALAMASI (1 Agu 2026) — "PAYLASMA" uyarisi eskiden YALNIZ --sirlar
+    # dalinda basiliyordu; VARSAYILAN kosumun paylasilabilir oldugu izlenimi veriyordu.
+    # 31 Tem EK KAPSAM genislemesinden beri bu DOGRU DEGIL: varsayilan kosum da ticari
+    # gizli icerik tasiyor (raporlar/ — icinde IBAN/VKN gecen tasinma envanteri —,
+    # .tedarikci-fiyat/, .uyelik-parametreler.json, .uyelik-kodlar/). Sir nobeti AD
+    # DESENINE gore eler, ICERIGE gore degil; bu metinler suzgecten gecer. Koruma
+    # "yedege almamak"ta degil PAYLASMAMA kuralindadir -> uyari artik KOSULSUZ basilir.
+    # Kapsam DARALTILMADI, hicbir dosya ad ile elenmedi.
+    print("🔴 BU YEDEK KLASORU KIMSEYLE PAYLASILMAZ (link/dosya/e-posta) — ticari gizli")
+    print("   icerik tasir: raporlar/, .tedarikci-fiyat/, .uyelik-*. Sir nobeti ADA gore")
+    print("   eler, ICERIGE gore degil.")
     print("bitti ->", backup)
     return 0
 

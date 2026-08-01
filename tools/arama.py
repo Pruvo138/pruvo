@@ -205,11 +205,22 @@ def stokta_kanonik(u):
 # izinli kume katalogun ONUNDE gidiyor; bu KASITLI, cunku deger once burada olmadan
 # kataloga yazilamiyor. Yeni sekiz degerin hicbiri mevcut kayitlarla carpismiyor
 # (olculdu: 0) ve on birinin de imza nobetinden gectigi tek tek dogrulandi.
+#
+# GENISLETME (2026-08-01, MIMAR KARARI, ikinci tur): kume 11 -> 12; "Elektrik" eklendi.
+# SEBEP olculdu: kardes mimarin altkategori backfill'i 636 kayit yazdi ama 30 urun
+# KARSILIKSIZ kaldi (atesleme bobini, mars motoru/solenoid, distributor rotoru/kapagi,
+# kontak anahtari, role, sensor, silecek motoru) — kumede elektrik grubu YOKTU. Eksik
+# olan izinli DEGERDI, kapi degil: ayni deger `--toplu` ile denendiginde duzelt.py
+# rc=RC_ALTKATEGORI ile REDDETMIS ve urunler.json BYTE-ESIT kalmisti (fail-closed
+# dogru calisiyor). Deger olculdu: imza nobeti temiz (sebep None), katalogun 1.678
+# tekil marka adiyla carpisma 0. Katalogta HENUZ kullanilmiyor — deger once burada
+# olmadan kataloga yazilamadigi icin bu KASITLI (yukaridaki desen).
 ALTKATEGORI_IZINLI = {
     "Marin": (
         "Boya - Bakım",
         "Bujiler",
         "Dümen ve Kumanda",
+        "Elektrik",
         "Filtreler",
         "Motor Parçaları",
         "Motor Yağları",

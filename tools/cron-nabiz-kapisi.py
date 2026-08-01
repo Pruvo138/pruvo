@@ -75,8 +75,10 @@ NE OLCER (5 EKSEN, hepsi FAIL-CLOSED)
      dusurulur ya da damga kosulu `always()` yapilirsa nobetci KIRMIZI yanar.
   A3 NABIZ  (AG · IKINCIL, KAYBOLMADI) — o is akisinin SON `event=schedule` kosumu son N
      saat icinde mi. "Cron HIC ateslemiyor" hali AYRI bir arizadir (damga tazeyken bile
-     elle dispatch'le beslenmis olabilir) ve AYRI raporlanir. Esigi artik NOMINAL cron
-     araligindan DEGIL, OLCULEN TESLIM ORANINDAN turetilir (bkz. esik_saat).
+     elle dispatch'le beslenmis olabilir) ve AYRI raporlanir. Yeni kaydedilen is akisina
+     ilk teslim icin ayni N penceresi taninir; kosum hala yoksa N'den sonra alarm yanar.
+     Esik NOMINAL cron araligindan DEGIL, OLCULEN TESLIM ORANINDAN turetilir
+     (bkz. esik_saat).
 
 ESIK NASIL TURETILDI (TAHMIN DEGIL — OLCUM, bkz. esik_saat)
 ===========================================================
@@ -412,8 +414,9 @@ def gozlem_topla(dosyalar, getir=api_getir):
         raise OlcumHatasi("is akisi listesi beklenen sekilde degil (`workflows` dizisi yok)")
     yol_ile = {}
     for wf in liste["workflows"]:
-        if not isinstance(wf, dict) or "path" not in wf or "id" not in wf:
-            raise OlcumHatasi("is akisi kaydinda `path`/`id` yok: %r" % (wf,))
+        if (not isinstance(wf, dict) or "path" not in wf or "id" not in wf
+                or "created_at" not in wf):
+            raise OlcumHatasi("is akisi kaydinda `path`/`id`/`created_at` yok: %r" % (wf,))
         yol_ile[wf["path"]] = wf
 
     gozlemler = []
@@ -421,7 +424,8 @@ def gozlem_topla(dosyalar, getir=api_getir):
         yol = ".github/workflows/%s" % dosya
         wf = yol_ile.get(yol)
         g = {"dosya": dosya, "cron": cron, "kayitli": wf is not None,
-             "durum": (wf or {}).get("state"), "kosum_sayisi": None, "son_kosum": None}
+             "durum": (wf or {}).get("state"), "kosum_sayisi": None, "son_kosum": None,
+             "kayit_an": _iso(wf["created_at"]) if wf is not None else None}
         try:
             g["aralik"] = aralik_dakika(dakika_kumesi(cron) or {0})
         except OlcumHatasi:
@@ -644,12 +648,19 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
 
         n = g["esik"]
         if g["kosum_sayisi"] == 0:
-            satirlar.append("🔴 A3 NABIZ %s -> event=schedule kosum sayisi SIFIR: cron "
-                            "HIC ATESLENMEMIS. Dosya main'de ve is akisi aktif oldugu "
-                            "halde tek bir zamanlanmis kosum yok -> bu is akisinin "
-                            "yaptigi HICBIR SEY yapilmiyor ve hicbir yerde kirmizi "
-                            "yanmiyor." % etiket)
-            alarm = True
+            kayit_yasi = (simdi - g["kayit_an"]).total_seconds() / 3600.0
+            if kayit_yasi <= n:
+                satirlar.append("🟡 A3 NABIZ %s -> event=schedule kosumu henuz YOK; "
+                                "is akisi %.1f saat once kaydedildi (esik N=%d sa). "
+                                "Ilk tetikleme icin olculen teslim penceresi dolmadi; "
+                                "durum gorunur, alarm henuz yanmaz." % (etiket, kayit_yasi, n))
+            else:
+                satirlar.append("🔴 A3 NABIZ %s -> event=schedule kosum sayisi SIFIR: "
+                                "cron HIC ATESLENMEMIS. Is akisi %.1f saattir kayitli ve aktif "
+                                "(esik N=%d sa) -> bu is akisinin yaptigi HICBIR SEY "
+                                "yapilmiyor ve hicbir yerde kirmizi yanmiyor."
+                                % (etiket, kayit_yasi, n))
+                alarm = True
             continue
         if g["son_kosum"] is None:
             satirlar.append("🔴 A3 NABIZ %s -> son kosum zamani OKUNAMADI (fail-closed)"
@@ -682,8 +693,12 @@ def rapor(rc, satirlar):
     for s in satirlar:
         print("  " + s)
     if rc == 0:
-        print("SONUC: DENETIM TAZE ✅ (son basarili uzlastirma esigin icinde · "
-              "zamanlanmis isler fiilen kosuyor)")
+        if any(s.startswith("🟡 A3 NABIZ") for s in satirlar):
+            print("SONUC: DENETIM TAZE ✅ (damgalar esigin icinde · yeni is akisinin "
+                  "ilk zamanlanmis teslim penceresi henuz dolmadi)")
+        else:
+            print("SONUC: DENETIM TAZE ✅ (son basarili uzlastirma esigin icinde · "
+                  "zamanlanmis isler fiilen kosuyor)")
     elif rc == 1:
         print("SONUC: 🔴 ALARM — katalog-D1 sapmasi esigi asan suredir DENETLENMEDI "
               "(ya da cron sessiz). Bu isin yaptigi denetim YAPILMIYOR ve baska hicbir "
@@ -806,6 +821,7 @@ def _damga_kaydi(yas_saat, expired=False, ad=None, kimlik=8806704610):
 
 
 def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
+               kayit_yas_saat=24.0,
                dosya="d1-uzlastirici.yml", bozuk=None, event="schedule",
                damgalar=None):
     """GERCEK govdenin ayni seklini ureten enjekte edilebilir `getir`.
@@ -840,6 +856,8 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
             wf = dict(_HAM_WF)
             wf["path"] = ".github/workflows/%s" % dosya
             wf["state"] = durum
+            wf["created_at"] = (datetime.now(timezone.utc) - timedelta(
+                hours=kayit_yas_saat)).strftime("%Y-%m-%dT%H:%M:%SZ")
             return {"total_count": 1, "workflows": [wf]}
         if "/runs?" in yol:
             if bozuk == "kosum-sekli":
@@ -1376,8 +1394,14 @@ def kendini_test():
     iddia("A2: is akisi GitHub'da kayitli degil -> KIRMIZI", rc == 1, "rc=%d" % rc)
 
     # --- A3 NABIZ (IKINCIL EKSEN — KAYBOLMADI, esigi OLCULEN cadansa gore) ---
+    rc, s = kos(D, _sahte_api(kosum_sayisi=0, kayit_yas_saat=0.8))
+    iddia("A3 (a0) YENI is akisi, HIC schedule kosumu yok ama kayit yasi N'nin altinda "
+          "-> GORUNUR ve YESIL", rc == 0, "rc=%d" % rc)
+    iddia("A3 (a0) rapor ilk tetikleme penceresini ve yasi SAYIYLA yazar",
+          any("🟡 A3 NABIZ" in x and "0.8 saat" in x and "esik N=9" in x for x in s), s)
     rc, s = kos(D, _sahte_api(kosum_sayisi=0))
-    iddia("A3 (a) HIC schedule kosumu YOK -> KIRMIZI", rc == 1, "rc=%d" % rc)
+    iddia("A3 (a) N'yi asmis is akisinda HIC schedule kosumu YOK -> KIRMIZI",
+          rc == 1, "rc=%d" % rc)
     iddia("A3 (a) teshis 'HIC ATESLENMEMIS' der (susma sinifi adlandirilir)",
           any("HIC ATESLENMEMIS" in x for x in s))
     rc, s = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=0.4))
