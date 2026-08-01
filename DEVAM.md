@@ -193,3 +193,19 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - Katalog: taban alti 0; D1 sayi ve hash ekseninde uyumlu.
 - Yayin suresi: medyan 1296 saniye, MAD 115 saniye, 7 kosum.
 - Calisma alani: 2 worktree, 8 yerel dal.
+
+## NOBETCI BUTCE KAPANISI (mesaj-nobeti performans ekseni)
+- Performans butcesi olculdu: I1 suresinin yuzde 100,6'si PBKDF2 tabani, hash disi pay
+  yuzde 0,21 -> optimize edilecek yer YOK.
+- Mutlak ms butcesi tasinabilir DEGIL: ayni CPU'da kripto kutuphanesi farki 3,21 kat,
+  yerel->CI 3,60 kat (kosucu I1 medyan 6313 ms MAD 13, n=9).
+- Cozum main'de: sure ekseni donanimdan bagimsiz birime cevrildi (`d09cc2cf`, paralel
+  oturum) + ikiz-tanim nobetcisi eklendi (`d8d378cc`, I5/I5b/I5c).
+- Ikiz-tanim acigi OLCULDU: turetilen hacim degismezken gercek `_ozetle` cagrisi
+  5701 -> 0 ve 5701 -> 12090 olabiliyordu; "hic ozetleme yapma" mutasyonunda sure/hacim
+  iddialari YESIL kaliyordu. Simdi I5 yakaliyor.
+- Kendini-test: 84/84 yesil. Regresyon olcumu: 2033 girdi, fark 0.
+- ACIK KALAN: `mesaj-nobeti` hala kirmizi, sebebi FARKLI kapi — "ADAY BUTCESI ASILDI:
+  157276 > 150000", `c779e6f0` geri-donus kapisi.
+- Alinmayan dal: `worktree-agent-ab5e949730e4133e5` bayat kaldigi icin iptal edildi,
+  kurtarilan tek parca I5.
