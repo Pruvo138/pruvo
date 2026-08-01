@@ -112,6 +112,24 @@ echo "!! Duzeltip elle calistir:  python3 $sync"
 exit 0
 """
 
+# tools/commit-mesaji-hook-kur.py'nin URETTIGI blogun birebir sekli
+# (isaretli blok + fail-closed on-kosul + `if ! python3 ...` cagrisi).
+COMMIT_MSG = """#!/bin/sh
+# >>> PRUVO COMMIT MESAJI NOBETI BLOGU (tools/commit-mesaji-hook-kur.py uretir\
+ — ELLE DUZENLEME) >>>
+# FAIL-CLOSED: commit mesajinda tedarikci/satici kimligi varsa COMMIT DURUR.
+pruvo_cm_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$pruvo_cm_kok" ] || [ ! -f "$pruvo_cm_kok/tools/commit-mesaji-kapisi.py" ]; then
+  echo "!! COMMIT MESAJI NOBETI KOSULAMADI — COMMIT DURDURULDU."
+  exit 1
+fi
+if ! python3 "$pruvo_cm_kok/tools/commit-mesaji-kapisi.py" --commit-msg "$1"; then
+  echo "!! COMMIT DURDURULDU — commit mesajinda tedarikci/satici kimligi."
+  exit 1
+fi
+# <<< PRUVO COMMIT MESAJI NOBETI BLOGU <<<
+"""
+
 
 # --------------------------------------------------------------------------
 # ALTYAPI
@@ -155,6 +173,7 @@ def depo_kur(kok, kancalar=True):
     if kancalar:
         yaz(os.path.join(ana, ".git", "hooks", "pre-commit"), PRE_COMMIT, True)
         yaz(os.path.join(ana, ".git", "hooks", "pre-push"), PRE_PUSH, True)
+        yaz(os.path.join(ana, ".git", "hooks", "commit-msg"), COMMIT_MSG, True)
     return ana
 
 
@@ -361,6 +380,7 @@ def kos_vakalar(mod, ayrintili=True):
         ozel = os.path.join(d, "kancalarim")
         yaz(os.path.join(ozel, "pre-commit"), PRE_COMMIT, True)
         yaz(os.path.join(ozel, "pre-push"), PRE_PUSH, True)
+        yaz(os.path.join(ozel, "commit-msg"), COMMIT_MSG, True)
         g(d, "config", "core.hooksPath", ozel, zorunlu=True)
         h = hal(d)
         s.bekle(ad, h == mod.YESIL,
@@ -451,6 +471,7 @@ def kos_vakalar(mod, ayrintili=True):
         ozel = os.path.join(d, "kancalarim")
         yaz(os.path.join(ozel, "pre-commit"), PRE_COMMIT, True)
         yaz(os.path.join(ozel, "pre-push"), PRE_PUSH, True)
+        yaz(os.path.join(ozel, "commit-msg"), COMMIT_MSG, True)
         g(d, "config", "core.hooksPath", ozel, zorunlu=True)
         yapildi, mesaj = mod.onar(d)
         s.bekle(ad, not yapildi, "MESRU ozel hooksPath'e DOKUNULMAMALI (mesaj=%r)" % mesaj)
