@@ -78,6 +78,9 @@ const EGE_ANAHTAR = "e".repeat(48);
 /**
  * Basit D1 taklidi. secenek:
  *   kolonYok      : true -> kanal/dis_no gecen HER sorgu "no such column: kanal" firlatir
+ *   kolonluHata   : kanal/dis_no gecen sorgu "no such column" DISI bir hata firlatir
+ *                   (D1 down / bind hatasi taklidi). Kolonsuz kol SAGLAMDIR: merdiven
+ *                   hatayi yutup ona duserse istek sessizce basarili olur -> iddia yakalar.
  *   listeSatir    : /liste SELECT'inin dondurecegi satir(lar)
  *   siparis       : siparisGetir SELECT'inin dondurecegi satir
  *   disNoKayit    : dis_no aramasinin dondurecegi satir (idempotens testi)
@@ -108,6 +111,14 @@ function mockEnv(secenek) {
         const calistir = async (kip) => {
           if (secenek.kolonYok && /\bkanal\b|\bdis_no\b/.test(sql)) {
             throw new Error("D1_ERROR: no such column: kanal");
+          }
+          // "no such column" DISI D1 arizasi (D1 down / bind hatasi): kolonMerdiveni
+          // bunu YUTMAMALI. `kolonluHata` yalniz kolonlu (kanal/dis_no gecen) sorguda
+          // patlar; kolonsuz kol calisir durumdadir -> merdiven yanlislikla ona duserse
+          // istek SESSIZCE basarili olur ve iddia bunu yakalar.
+          if (secenek.kolonluHata && /\bkanal\b|\bdis_no\b/.test(sql)) {
+            throw new Error(typeof secenek.kolonluHata === "string"
+              ? secenek.kolonluHata : "D1_ERROR: network error while connecting to D1");
           }
           sorgular.push(kayit);
           if (/^\s*(INSERT|UPDATE)/i.test(sql)) {
@@ -440,6 +451,32 @@ async function setE() {
     ol("kolon YOKKEN kanal 'site' varsayilanina duser", j.siparisler[0].kanal === "site");
     ol("kolon YOKKEN dis_no ''", j.siparisler[0].dis_no === "");
   }
+  // (1b) 🔴 MERDIVEN YALNIZ "no such column" YUTAR — baska hata YUKARI FIRLAR.
+  // USTA denetiminde bulundu: yonet.js'teki bu yorum NOBETCISIZDI. `if (false) { throw e; }`
+  // mutantiyla merdiven HER hatayi yutuyordu ve hem dar test hem genis tur YESIL kaliyordu.
+  // Sonucu sessiz KORLUK: gercek bir D1 arizasinda /liste hata vermeden kolonsuz sorguya
+  // duser, panel kanal rozetsiz liste basar ve kimse arizadan haberdar olmaz.
+  {
+    const satir = { id: 9, siparis_no: "PR-260731-101011-QWE",
+      tarih: "2026-07-31T10:10:11.000Z", durum: "odendi", tutar_kurus: 1000,
+      kargo_kurus: 0, kdv_kurus: 0, odeme_yontemi: "kart", kargo_firma: "",
+      kargo_kodu: "", durum_gecmisi: "[]", musteri_ad: "A", musteri_tel: "0",
+      musteri_eposta: "", musteri_adres: "B", urunler: "[]" };
+    const env = mockEnv({ kolonluHata: true, listeSatir: [satir] });
+    let yakalanan = null;
+    try {
+      await yonet(istek(null, yonetBaslik(), "GET"), env,
+                  new URL("https://ornek-site.test/api/shop/yonet/liste"),
+                  ctxSahte, "/liste", undefined);
+    } catch (e) { yakalanan = e; }
+    ol("merdiven: 'no such column' DISI D1 hatasi YUKARI FIRLAR (yutulmaz)", !!yakalanan);
+    ol("merdiven: firlatilan hata ORIJINAL D1 hatasi",
+       !!yakalanan && /network error/.test(String(yakalanan && yakalanan.message)),
+       String(yakalanan && yakalanan.message).slice(0, 90));
+    ol("merdiven: hata yutulup KOLONSUZ kola DUSULMEDI (kolonsuz sorgu hic kosmadi)",
+       !env.sorgular.some((s) => /FROM siparisler/.test(s.sql) && !/\bkanal\b/.test(s.sql)),
+       "sorgu=" + env.sorgular.length);
+  }
   // (2) kolon YOKKEN yazma FAIL-CLOSED (sessizce kanalsiz kayit acilmaz).
   {
     const env = mockEnv({ kolonYok: true });
@@ -495,10 +532,15 @@ async function setE() {
 
 // ---------------------------------------------------------------- F. IDEMPOTENS
 
+// Mevcut satir fikstürlerinde `musteri_tel` ARTIK ZORUNLU: idempotent yanit yalniz
+// AYNI musteriye verilir (capraz-musteri savunmasi, waMevcutYaniti).
+const TEL = "05451386526";              // GECERLI.musteri.tel'in normallesmis hali
+const BASKA_TEL = "05321112233";
+
 async function setF() {
   console.log("\nF. IDEMPOTENS (Ege yeniden denerse ikiz siparis olusmaz)");
   const env = mockEnv({ disNoKayit: { siparis_no: "PR-260801-110200-ABC",
-                                      durum: "havale-bekliyor" } });
+                                      durum: "havale-bekliyor", musteri_tel: TEL } });
   const c = await cagir(GECERLI, egeBaslik(), env);
   const j = JSON.parse(await c.text());
   ol("ayni dis_no -> 200 (201 DEGIL)", c.status === 200, "kod=" + c.status);
@@ -533,7 +575,8 @@ async function setF() {
   // AYNI dis_no ile 4 art arda cagri -> tek INSERT, kalan 3'u idempotent 200.
   {
     const env4 = mockEnv({ disNoSirasi: [null, { siparis_no: "PR-260801-110300-QWE",
-                                                 durum: "havale-bekliyor" }] });
+                                                 durum: "havale-bekliyor",
+                                                 musteri_tel: TEL }] });
     const kodlar = [];
     for (let i = 0; i < 4; i++) {
       const c4 = await cagir(GECERLI, egeBaslik(), env4);
@@ -552,7 +595,8 @@ async function setF() {
   {
     const env5 = mockEnv({
       insertCakismasi: true,
-      disNoSirasi: [null, { siparis_no: "PR-260801-110400-RTY", durum: "odendi" }],
+      disNoSirasi: [null, { siparis_no: "PR-260801-110400-RTY", durum: "odendi",
+                            musteri_tel: TEL }],
     });
     const c5 = await cagir(GECERLI, egeBaslik(), env5);
     const j5 = JSON.parse(await c5.text());
@@ -574,7 +618,8 @@ async function setF() {
   {
     const env6 = mockEnv({
       insertCakismasi: "D1_ERROR: SQLITE_CONSTRAINT: constraint failed",
-      disNoSirasi: [null, { siparis_no: "PR-260801-110500-UIO", durum: "havale-bekliyor" }],
+      disNoSirasi: [null, { siparis_no: "PR-260801-110500-UIO", durum: "havale-bekliyor",
+                            musteri_tel: TEL }],
     });
     const c6 = await cagir(GECERLI, egeBaslik(), env6);
     ol("YARIS: farkli D1 hata metniyle de 200", c6.status === 200, "kod=" + c6.status);
@@ -596,13 +641,80 @@ async function setF() {
   // 🔴 KARSI KOL: kisitlama DISI bir hata 200'e cevrilmez — ve AYNEN yukari cikar.
   {
     const env8 = mockEnv({ insertCakismasi: "D1_ERROR: network timeout",
-                           disNoSirasi: [null, { siparis_no: "PR-X", durum: "odendi" }] });
+                           disNoSirasi: [null, { siparis_no: "PR-X", durum: "odendi",
+                                                 musteri_tel: TEL }] });
     let yakalanan8 = null;
     try { await cagir(GECERLI, egeBaslik(), env8); } catch (e) { yakalanan8 = e; }
     ol("YARIS: kisitlama DISI hata 200'e cevrilmez", !!yakalanan8);
     ol("YARIS: kisitlama DISI hata AYNEN yukari cikar",
        !!yakalanan8 && /network timeout/.test(String(yakalanan8 && yakalanan8.message)),
        String(yakalanan8 && yakalanan8.message).slice(0, 90));
+  }
+
+  // ---- (F4) CAPRAZ-MUSTERI CAKISMASI ----------------------------------------------
+  // 🔴 USTA denetiminde bulundu. Idempotens anahtari yalniz `dis_no`; Ege'nin numara
+  // bicimi (PR-yyMMdd-HHmmss, SANIYE cozunurluklu, SONEK YOK) iki FARKLI musterinin
+  // ayni saniyede ayni numarayi uretmesini dusuk ama SIFIR OLMAYAN ihtimal birakiyor.
+  // Eski davranis: ikinci musteriye BASKA MUSTERININ siparis numarasi 200 {tekrar:true}
+  // ile donuyor, ikinci siparis D1'e HIC yazilmiyordu -> sessiz siparis kaybi + PII
+  // karisimi. Artik telefon eslesmiyorsa 409 dis-no-cakismasi.
+  {
+    const env9 = mockEnv({ disNoKayit: { siparis_no: "PR-260801-110600-ZXC",
+                                         durum: "odendi", musteri_tel: BASKA_TEL } });
+    const c9 = await cagir(GECERLI, egeBaslik(), env9);
+    const j9 = JSON.parse(await c9.text());
+    ol("CAPRAZ: ayni dis_no BASKA musteri -> 409 (200 DEGIL)", c9.status === 409,
+       "kod=" + c9.status);
+    ol("CAPRAZ: hata 'dis-no-cakismasi'", j9.hata === "dis-no-cakismasi", j9.hata);
+    ol("CAPRAZ: BASKA musterinin siparis numarasi SIZMAZ",
+       !JSON.stringify(j9).includes("PR-260801-110600-ZXC"), JSON.stringify(j9).slice(0, 90));
+    ol("CAPRAZ: tekrar isareti YOK", j9.tekrar === undefined);
+    ol("CAPRAZ: INSERT YOK (ikiz de acilmaz)", env9.yazmalar.length === 0,
+       "yazma=" + env9.yazmalar.length);
+  }
+  // FAIL-CLOSED: telefon dogrulanamiyorsa (bos/eksik satir) da 409 — "dogrulayamadim"
+  // hali TEKRAR sayilip siparis kaybedilmez. (Bu uc yazdigi her satira dogrulanmis
+  // telefon koyar, yani bu hal bu kanalda olusamaz; kapi yine de kapali.)
+  {
+    const env10 = mockEnv({ disNoKayit: { siparis_no: "PR-BOS", durum: "odendi",
+                                          musteri_tel: "" } });
+    const c10 = await cagir(GECERLI, egeBaslik(), env10);
+    ol("CAPRAZ: satirda telefon YOKSA da 409 (fail-closed)", c10.status === 409,
+       "kod=" + c10.status);
+  }
+  // YARIS kolunda da ayni savunma gecerli: rakip satir baska musteriye aitse 409.
+  {
+    const env11 = mockEnv({
+      insertCakismasi: true,
+      disNoSirasi: [null, { siparis_no: "PR-RAKIP", durum: "odendi",
+                            musteri_tel: BASKA_TEL }],
+    });
+    const c11 = await cagir(GECERLI, egeBaslik(), env11);
+    const j11 = JSON.parse(await c11.text());
+    ol("CAPRAZ+YARIS: rakip satir BASKA musteri -> 409", c11.status === 409,
+       "kod=" + c11.status);
+    ol("CAPRAZ+YARIS: rakibin numarasi SIZMAZ",
+       !JSON.stringify(j11).includes("PR-RAKIP"), JSON.stringify(j11).slice(0, 90));
+  }
+  // KONTROL KOLU: telefon ESLESIYORSA idempotens BOZULMADI (409 her seye donmuyor).
+  {
+    const env12 = mockEnv({ disNoKayit: { siparis_no: "PR-AYNI", durum: "odendi",
+                                          musteri_tel: TEL } });
+    const c12 = await cagir(GECERLI, egeBaslik(), env12);
+    const j12 = JSON.parse(await c12.text());
+    ol("CAPRAZ kontrol kolu: AYNI musteri -> 200 tekrar (idempotens korundu)",
+       c12.status === 200 && j12.tekrar === true && j12.siparis_no === "PR-AYNI",
+       "kod=" + c12.status);
+  }
+  // Telefon KARSILASTIRMASI normallesmis deger uzerinden: govdede bicimli yazilsa da
+  // (bosluk/parantez/tire) ayni satirla eslesir — yanlis 409 uretilmez.
+  {
+    const env13 = mockEnv({ disNoKayit: { siparis_no: "PR-BICIM", durum: "odendi",
+                                          musteri_tel: TEL } });
+    const c13 = await cagir({ ...GECERLI,
+      musteri: { ...GECERLI.musteri, tel: "(0545) 138 65 26" } }, egeBaslik(), env13);
+    ol("CAPRAZ: telefon BICIMLI yazilsa da ayni musteri sayilir -> 200",
+       c13.status === 200, "kod=" + c13.status);
   }
 }
 
@@ -684,6 +796,24 @@ async function setG() {
     ol("govde tutari 33333 -> kdv TAM 5555 (round, .5 yukari)", a3[5] === 5555,
        "kdv=" + a3[5]);
     ol("kdv 5556 DEGIL (floor'a kaymis olurdu)", a3[5] !== 5556, "kdv=" + a3[5]);
+  }
+
+  // (G3b) 🔴 CEIL NOBETCISI — round ile ceil'i ayiran TEK fikstur.
+  // USTA denetiminde olculdu: mevcut dort para fiksturunun (95000, 33333, 19135, 90001)
+  // HEPSINDE ondalik kisim >= 0,5 idi, yani round == ceil; `Math.round -> Math.ceil`
+  // mutanti 11/12 kirmizinin arasindan TEK BASINA KACIYORDU. Ayirt eden sart:
+  // ondalik kisim < 0,5. brut = 100000 -> 100000*100/120 = 83333,333...
+  //   round = 83333 -> kdv 16667   (DOGRU)
+  //   ceil  = 83334 -> kdv 16666   (mutant)
+  //   floor = 83333 -> kdv 16667   (floor'u AYIRMAZ; onu yukaridaki fiksturler ayiriyor)
+  {
+    const e3b = mockEnv();
+    await cagir({ ...PARA_BAZ, dis_no: "WA-PARA-3B", tutar_kurus: 100000, kargo_kurus: 0,
+                  urunler: [{ ad: "Parça", adet: 1, tutar_kurus: 0 }] }, egeBaslik(), e3b);
+    const a3b = e3b.yazmalar[0].args;
+    ol("govde tutari 100000 -> kdv TAM 16667 (ondalik .333, round ASAGI)",
+       a3b[5] === 16667, "kdv=" + a3b[5]);
+    ol("kdv 16666 DEGIL (ceil'e kaymis olurdu)", a3b[5] !== 16666, "kdv=" + a3b[5]);
   }
 
   // (G4) COK KALEMLI: toplam kalemlerden gelir, her kalem TAM degerle yazilir.

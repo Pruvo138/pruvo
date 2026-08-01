@@ -55,6 +55,12 @@ Ege (WhatsApp botu, AYRI depo/worker) bir siparis kapatinca bu uctan AYNI panele
   ile karsilar (500 DEGIL). Guvenlik: 200'e cevirme hata METNINE degil, satirin
   gercekten var oldugunu KANITLAYAN ikinci SELECT'e baglidir; satir yoksa hata aynen
   yukari cikar.
+- 🔴 **CAPRAZ-MUSTERI**: idempotent yanit yalniz satirin `musteri_tel`'i gelen telefonla
+  ESLESIYORSA verilir; eslesmiyorsa (ya da okunamiyorsa) **`409 dis-no-cakismasi`**.
+  Neden: anahtar yalniz `dis_no` ve Ege'nin bicimi (`PR-yyMMdd-HHmmss`, saniye
+  cozunurluklu, sonek YOK) iki farkli musteride carpisabilir; eski davranis ikinci
+  musteriye BASKA musterinin numarasini donup siparisini hic yazmazdi (sessiz kayip +
+  PII karisimi). Kalici cozum Ege tarafinda: `dis_no`'ya rastgele sonek ekle.
 - **Durum**: yalniz `havale-bekliyor` (varsayilan) veya `odendi` yazilabilir; uretim/kargo
   ilerlemesi PANELDEN yapilir. Tutar BOS kalabilir (elle fiyatlandirma) — bu uc TAHSILAT
   YAPMAZ, fiyat hesaplamaz, e-posta/Telegram GONDERMEZ (musteri zaten sohbette).

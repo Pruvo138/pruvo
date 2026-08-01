@@ -552,15 +552,41 @@ function waKisitlamaIhlali(e) {
          /SQLITE_CONSTRAINT/i.test(metin);
 }
 
-/** (kanal, dis_no) ciftiyle mevcut siparis satiri; yoksa null. */
+/** (kanal, dis_no) ciftiyle mevcut siparis satiri; yoksa null.
+ *  `musteri_tel` DE cekilir: idempotens yanitini vermeden once satirin AYNI musteriye
+ *  ait oldugu dogrulanir (bkz. waMevcutYaniti). */
 async function waMevcutSiparis(env, disNo) {
   return env.KATALOG.prepare(
-    "SELECT siparis_no, durum FROM siparisler WHERE kanal = ? AND dis_no = ?"
+    "SELECT siparis_no, durum, musteri_tel FROM siparisler WHERE kanal = ? AND dis_no = ?"
   ).bind(WA_KANAL, disNo).first();
 }
 
-/** Idempotent yanit — TEK yerde: hem on-SELECT hem yaris kolu ayni govdeyi doner. */
-function waTekrarYaniti(satir, disNo) {
+/**
+ * Mevcut satir bulundugunda verilecek yanit — TEK yerde: hem on-SELECT hem yaris kolu
+ * bunu cagirir.
+ *
+ * 🔴 CAPRAZ-MUSTERI SAVUNMASI. Idempotens anahtari yalniz `dis_no`; Ege'nin numara bicimi
+ * (`PR-yyMMdd-HHmmss`, SANIYE cozunurluklu, sonek YOK) iki FARKLI musterinin ayni saniyede
+ * ayni numarayi uretmesini dusuk ama SIFIR OLMAYAN bir ihtimal birakiyor. O halde eski
+ * davranis, ikinci musteriye BASKA BIR MUSTERININ siparis numarasini `tekrar:true` ile
+ * dondururdu ve ikinci siparis D1'e HIC yazilmazdi — sessiz siparis kaybi + PII karisimi.
+ * Bu yuzden satirin telefonu gelen telefonla eslesmiyorsa idempotent yanit VERILMEZ,
+ * gurultulu `409 dis-no-cakismasi` doner (Ege yeni bir dis_no ile tekrar dener).
+ * ⚠️ FAIL-CLOSED: telefon okunamiyorsa (bos/eksik) da 409. Bu uc yazdigi HER satira
+ * dogrulanmis (10-15 haneli) bir telefon koyar, yani bos telefon bu kanalda olusamaz;
+ * "dogrulayamadim" halini tekrar sayip siparis kaybetmektense gurultu yapmak dogru yon.
+ * KALICI COZUM Ege tarafinda (dis_no'ya sonek/rastgele parca) — bu KAPSAM DISI, burasi
+ * savunma hattidir.
+ */
+function waMevcutYaniti(satir, disNo, tel) {
+  if (String((satir && satir.musteri_tel) || "") !== tel) {
+    console.error("wa-siparis: dis_no CAKISMASI — ayni dis_no BASKA musteri telefonuyla " +
+                  "geldi, idempotent yanit VERILMEDI (dis_no=" + disNo + ")");
+    return yjson({ hata: "dis-no-cakismasi",
+                   not: "Bu dis_no BASKA bir musterinin siparisine ait. Idempotens " +
+                        "anahtari musteriye gore kapsamlanir; yeni bir dis_no ile gonder." },
+                 409);
+  }
   return yjson({ ok: true, tekrar: true, siparis_no: satir.siparis_no,
                  durum: satir.durum, kanal: WA_KANAL, dis_no: disNo }, 200);
 }
@@ -687,7 +713,7 @@ export async function waSiparis(request, env) {
     // yeniden denemesi Okan'in panelinde ikiz siparis olusturmasin). dis_no ZORUNLU
     // oldugundan bu SELECT her cagri icin kosar (atlanabilir bir kol kalmadi).
     const varOlan = await waMevcutSiparis(env, disNo);
-    if (varOlan) { return waTekrarYaniti(varOlan, disNo); }
+    if (varOlan) { return waMevcutYaniti(varOlan, disNo, tel); }
 
     const siparisNo = await yeniSiparisNo(env);
     const simdi = new Date().toISOString();
@@ -726,9 +752,11 @@ export async function waSiparis(request, env) {
         let yarisSatiri = null;
         try { yarisSatiri = await waMevcutSiparis(env, disNo); } catch (e2) { yarisSatiri = null; }
         if (yarisSatiri) {
-          console.warn("wa-siparis: yaris durumu — ayni dis_no es zamanli yazildi, " +
-                       "idempotent yanit donuluyor (dis_no=" + disNo + ")");
-          return waTekrarYaniti(yarisSatiri, disNo);
+          console.warn("wa-siparis: yaris durumu — ayni dis_no es zamanli yazildi " +
+                       "(dis_no=" + disNo + ")");
+          // Yaris kolunda da CAPRAZ-MUSTERI kontrolu gecerli: rakip satir baska bir
+          // musteriye aitse 200 degil 409 doner (bkz. waMevcutYaniti).
+          return waMevcutYaniti(yarisSatiri, disNo, tel);
         }
       }
       throw e;
