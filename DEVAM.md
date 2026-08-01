@@ -4,38 +4,8 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
 ## OTURUM — 1 Agu 2026 aksam (KraL · yayin hatti + ikinci denetim turu)
 
-### 🔴 CANLIYA GITTI — YAYIN HATTI TIKANMISTI, ACILDI (`89a72022`)
-Olculdu: son basarili deploy 19:17'de kalmis; o saatten sonra main'e **20 commit** gitmis ve
-**6 kosum ust uste dusmus**. Canli site ~1,5 saat bayat kaldi, 36 urun D1'de VAR ama sayfalari
-**HTTP 404** veriyordu (parite testleri bu yuzden "OLCULEMEDI" donuyordu — kirmizi degil).
-Sebep urun verisi DEGIL, bu oturumun kendi kapisiydi: `ticari-hal-kapisi.py` "duzeltme ONCESI
-davranis"i **HEAD**'den okuyordu; duzeltme main'e girince HEAD artik duzeltilmis dosya oldu ve
-kapi **kendi kapattigi deligi "hala acik" sanip** kirmizi yandi. Bu, 31 Tem'deki ayni sinifin
-IKINCI vakasi — o zamanki ders "ana hat kolunu ayir" idi, yeni kapi baska yoldan ayni yere dustu.
-Onarim: ONCE kanit artik git gecmisinden degil **repoya gomulu fiksturden** turuyor (sha256 pinli;
-gecmis erisilebildiginde gercek tarihsel dosyayla bayt-esit dogrulaniyor). Sabit commit hash'i
-cozum DEGILDI: `--depth 1` klonda kapi fail-closed dusuyordu, olculdu. Is akisina DOKUNULMADI.
-Olcme gucu azalmadi, artti: **32 -> 34 iddia** (sig klonda 33), mutasyon 8/8, once-kirmizi
-26 bulgu; fikstur silinince/kurcalaninca/bugunku kodla degistirilince ucunde de kirmizi.
-Kabul: run 30711392211 build+deploy+yayin ucu de basarili · D1 **16873, yayinda 16873, TASLAK 0** ·
-bagimsiz canli teyit: 404 veren urun sayfasi artik **200**, ana sayfa damgasi taze.
-Ayni tuzak diger kapilarda arandi: dort kapidaki `git show HEAD:` kullanimi **mesru baska desen**
-(calisma agaci ↔ HEAD tabani); bu hata sinifinin ikinci ornegi YOK.
-
-### CANLIYA GITTI — OLCUM ARACI ARTIK YANLIS SUCLAMIYOR (`09b76410` + `467f8fa8`)
-Iki kardes faz3 araci ayni sebebe (uc cevap vermiyor) FARKLI hukum veriyordu: biri durustce
-"OLCULEMEDI", digeri "SAYFALAMA/SIRA BOZUK" diye kirmizi yakiyordu. Yanlis suclama sinifi —
-ve bugun bedeli olculdu: yayin hatti tam da "olculemedi"yi kirmizi sayan bir kapi yuzunden
-tikandi. Onarim: ariza sinifi TEK yerde belirleniyor, kardes aracin cikis kodu sozlesmesi
-birebir alindi (tasima hatasi/JSON olmayan yanit/eksik alan -> OLCULEMEDI 2; ucun kendi
-bildirdigi hata -> 1 ama "sayfalama" diye raporlanmaz; mukerrer/sayi/sira ayrismasi -> BOZUK 1).
-Kabul UC senaryoyla olculdu: uc yok -> rc=2 ve ciktida "BOZUK" kelimesi HIC gecmiyor (ilk
-kosumda banner sizdiriyordu, nobetci yakaladi) · dogru uc -> rc=0, gercek canli uca karsi
-7 gorunum/16873 urun · **bozuk uc -> rc=1**, uc ayri bozukluk (sayfa sinirinda urun atlama,
-sira takasi, mukerrer id) ayri ayri yakalandi. Kismi halde OLCULMUS ayrisma baskin: 1 gorunum
-olculemedi + 6 ayristi -> rc=1; "olculemedi" hicbir yolla yesil uretmiyor. Yeni nobetci CI
-kapsam kapisinda kapsamsiz yaniyordu, serit B'ye baglandi ve beyan edildi. Kardes arac
-DEGISMEDI (kendi nobetcisi 6/6).
+- Yayin hatti tikanmasi ve kalici onarimi () — ayrinti arsivde.
+- Olcum aracinin yanlis suclamasi kapatildi ( + ) — ayrinti arsivde.
 
 ### CANLIYA GITTI — ALTKATEGORI: IZINLI KUME + SESSIZ AYRISMA KAPISI (`235fb25a` + `d379ffb7`)
 Okan onayiyla izinli altkategori kumesine `Elektrik` eklendi (**11 -> 12**); kardes mimarin
@@ -54,6 +24,39 @@ capa kaydi) ve bir eksenin oldurucu gucu ARTIK OLCULMUYORDU — sessiz degil gur
 basarisizlik verdigi icin "yakalandi" sanilabilirdi. Capalar desene cevrildi; capa kayarsa
 tur artik ADLI hatayla kirmizi yaniyor (`CAPA BAYAT` / `MUTANT UYGULANMADI` + fiilen-uygulandi
 sayaci), uc ayri bozma denemesinin ucunde de rc=1.
+
+### CANLIYA GITTI — ALTKATEGORI MUSTERI YUZEYINDE + KUME 11->12 (`235fb25a` · `d379ffb7` · `aa114660`)
+Okan onayiyla izinli altkategori kumesine bir grup eklendi; kardes mimarin 30 urunluk hazir
+partisi ayni gece yazildi, senkron teyit edildi. Kume TEK kaynakta, ikiz tanim yok; yakin
+yazimlar hala reddediliyor (kapi gevsemedi), once-kirmizi gercek.
+Is sirasinda DAHA ESKI sessiz bir kusur bulundu: uyelik testi kirpma SONRASI yapildigi icin
+bosluklu deger KABUL ediliyor, ama yazma yolu kataloga HAM, D1 yolu KIRPILMIS metin
+gonderiyordu -> iki depo sessizce ayrisabilirdi. **fail-closed** secildi (sessizce duzeltme
+YOK) ve iki yol tek fonksiyondan turuyor. Mevcut veri kesilmedi. Kapi **35 -> 42 iddia**,
+mutasyon **17/17**. Ayrica bir mutasyon capasi BAYATLAMISTI, bir eksenin oldurucu gucu
+olculmuyordu; capalar desene cevrildi, capa kayarsa tur artik ADLI hatayla kirmizi yaniyor.
+**Musteri yuzeyi:** 935 dolu kayit artik urun sayfasinda etiketle ve yapisal veride gorunuyor
+(canli teyit alindi). Bos kayitta hicbir sey basilmiyor: **935 sayfa degisti / 15.939 bayt-esit**,
+degisen kume dolu kayit kumesiyle BIREBIR ayni. Fail-safe 4/4 (bos · alan yok · None · bozuk tip),
+13 vakada sizma 0, yeni nobetci 34 iddia + mutasyon 8/8. Kirilim dugumu BILEREK acilmadi
+(filtre URL'i yok — kirik adres yerine dugumu hic acmadik).
+⚠️ **Arama kolu BILEREK yapilmadi:** alani yalniz site tarafina eklemek pariteyi YESIL yakar ama
+canlida site ile bot sessizce ayrisirdi. Olculen kayip gercek (13 sorguda 745/1056, alan eklenirse
++311 eslesme). Uc sozlesmesi kardes mimarda; devir notu yazildi, Okan karariyla ONCELIKLI.
+
+### CANLIYA GITTI — YAYIN GECIKME NOBETCISI + KENDI KUSURUNUN ONARIMI (`d4806461` · `267b0f5a`)
+Bugunku tikanmanin asil dersi tikanmanin kendisi degil, **20 commit boyunca kimsenin fark
+etmemesiydi**. Nobetci artik "canli main'den ne kadar geride" sorusunu soruyor ve TIKANMA
+(kosum dusuyor) ile ACLIK (kosum iptal ediliyor, hic tamamlanmiyor) arizalarini AYIRIYOR.
+Esikler tahmin degil, son 100 kosumun olcumunden turetildi; bugunku olaya karsi denendi ve
+**insanin fark edisinden ~23 dk once** TIKALI derdi. Bagimsiz: tikanan is akisina baglanmadi,
+panodan ve elle kosuyor; ag yoksa OLCULEMEDI (yesil DEGIL).
+🔴 **Ilk gercek kullanimda kendi kusuru cikti ve kapatildi:** "yayin indi mi"yi kosumun GENEL
+sonucundan okuyordu; bloklayici OLMAYAN bir serit dustugunde kosum kirmizi gorunuyor ama
+deploy+yayin basarili olabiliyor — yani site tazeyken TIKALI aliyorduk. Olcum IS duzeyine indi.
+Once-kirmizi: yanlis alarm senaryosu TIKALI -> AKIYOR; korelme kontrolu: bugunku GERCEK tikanma
+(deploy hic kosmadi) hala TIKALI, ustelik yas esigi bilerek sinirin altinda birakilarak hukum
+yalniz zincir ekseninden gelecek sekilde kuruldu. Mutasyon 7/7, canli damgayla tutarli.
 
 ### KARARLAR (bu tur)
 - Ege kapisinda sirket sesi birinci cogulun da yanmasi KABUL EDILDI: o metin Ege'ye kendi
