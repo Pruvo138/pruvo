@@ -37,6 +37,12 @@ import filament_ortak
 import marka_model_build
 import landing_hub_build
 import yorum_soy
+# `altkategori` (kategori ICINDEKI daraltma etiketi) TEK KAYNAKTAN okunur: arama.py
+# altkategori_kanonik(). Burada ikinci bir "gecerli mi" mantigi YAZILMAZ — yazilsaydi
+# sayfada gorunen etiket ile D1'e/Ege'ye giden deger sessizce ayrisabilirdi
+# ([[ikiz-tanim-sessiz-ayrisma]]). Fonksiyon FAIL-CLOSED: izinli kumede olmayan /
+# imza tasiyan / tipi yanlis / eksik her deger "" doner -> sayfada HIC basilmaz.
+import arama
 
 # ------------------------------------------------------------------ ayarlar
 SITE = "https://pruvo3d.com"
@@ -1792,6 +1798,15 @@ def render_product(p, all_products, chip_map=None):
     baslik = p.get("baslik") or ""
     kategori = p.get("kategori") or ""
     fiyat = (p.get("fiyat") or "").strip()
+    # ALT KATEGORI — kategori icindeki daraltma etiketi (935/16.874 kayitta dolu, hepsi
+    # Marin). Bugune kadar YALNIZ veriydi: musteri hicbir yuzeyde gormuyordu.
+    #
+    # 🔴 FAIL-CLOSED, TEK KAYNAK: deger arama.altkategori_kanonik'ten gelir. Bos / eksik /
+    # None / izinsiz / yanlis-kategorili / metin-olmayan her girdide "" doner -> asagida
+    # ne gorunur etiket ne yapilandirilmis veri anahtari basilir. "Gorsel yoksa kirik adres
+    # yerine durust eksiklik" kuralinin aynisi: bos etiket/bos kirilim/bos JSON-LD YOK.
+    # 15.939 altkategorisiz sayfa bu daldan GECMEZ -> cikti BAYT-ESIT (regresyon 0).
+    altkategori = arama.altkategori_kanonik(p)
     markalar = p.get("marka") or []
     imgs = images_of(p)
     # cover = GOVDEDE basilan kapak (gorsel yoksa data: URI yer tutucu -> ag istegi yok).
@@ -1898,7 +1913,15 @@ def render_product(p, all_products, chip_map=None):
         # kapatır. Değer feed g:mpn ile TEK KAYNAK (feed_id -> sku == mpn, <=50 karakter);
         # test-jsonld-sku.py sku özdeşliğini + feed g:mpn çapraz-kontrolünü zaten kilitliyor.
         "mpn": feed_id(pid),
-        "category": kategori,
+        # category: altkategori VARSA "Ust > Alt" taksonomi yolu (schema.org Product.category
+        # Text kabul eder; '>' ayracli yol Google urun taksonomisi/product_type ile AYNI
+        # yazim — render_merchant_feed'deki `kategori + " > " + marka` ile tutarli). Alan
+        # ZATEN vardi ve DOLUYDU; sadece dolu kayitta bir dugum derinlesir -> yapilandirilmis
+        # veri GECERLI kalir, YENI ANAHTAR eklenmez, bos deger asla basilmaz.
+        # BreadcrumbList'e KONMAZ: ara dugumun `item` URL'i olmak zorunda, altkategori
+        # filtresinin URL'i ise HENUZ YOK (ana sayfa ucu kardes depoda) -> kirik/uydurma
+        # adres basmak yerine dugum HIC acilmaz.
+        "category": (kategori + " > " + altkategori) if altkategori else kategori,
     })
     if ld_fiyat:
         product_ld["offers"] = offer
@@ -1956,6 +1979,16 @@ def render_product(p, all_products, chip_map=None):
 
     # --- parametrik ("ölçüye özel") rozeti (bayrak yukarıda, JSON-LD'den önce hesaplandı)
     badge_html = '<span class="ozel-badge">Ölçüye Özel</span>' if parametrik else ''
+
+    # --- GORUNUR ALT KATEGORI ETIKETI (kategori cipinin hemen sagi)
+    # ⚠️ Bicim SATIR ICI yazilir, PAYLASILAN PAGE_CSS'e kural EKLENMEZ: ortak stil HER urun
+    # sayfasina basildigi icin oraya tek satir eklemek 15.939 altkategorisiz sayfanin da
+    # BAYTINI degistirirdi (regresyon butcesi sha256 ile olculuyor — `.sinif-beyan` ayni
+    # gerekceyle satir ici yazilmisti). Mevcut `.cat` sinifi yeniden kullanilir; ayirt
+    # edici tek fark daha acik lacivert zemin (--navy-2) + soldan bosluk.
+    # Deger BOSSA dize BOS kalir -> sablona hicbir sey basilmaz (bos <span> bile yok).
+    altkat_html = ('<span class="cat" style="margin-left:8px;background:var(--navy-2)">%s</span>'
+                   % esc(altkategori)) if altkategori else ''
 
     # --- üstü çizili ESKİ FİYAT (opsiyonel `eski_fiyat`; kural + gerekçe eski_fiyat_gosterim'de)
     # Geçersiz/eski<=güncel/parametrik/konfigür durumlarında BOŞ dize döner -> sayfa bugünkü
@@ -2358,7 +2391,7 @@ def render_product(p, all_products, chip_map=None):
       {thumbs}
     </div>
     <div class="info">
-      <span class="cat">{kategori}</span>{badge}
+      <span class="cat">{kategori}</span>{altkat}{badge}
       <h1>{h1}</h1>
       {brands}
       {price}
@@ -2671,6 +2704,7 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
         css=PAGE_CSS,
         katq=esc(kategori_url(kategori)),
         kategori=esc(kategori),
+        altkat=altkat_html,
         baslik=esc(baslik),
         main_img=main_img,
         thumbs=thumbs_html,

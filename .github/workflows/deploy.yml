@@ -658,6 +658,29 @@ jobs:
       - name: "Alt kategori kapisi (izinli kume + tedarikci imzasi + duzelt yolu + ikiz tanim)"
         run: python3 tools/altkategori-kapisi.py
 
+      # ALT KATEGORI MUSTERI YUZEYI. Yukaridaki kapi alanin VERI/D1 yolunu korur; bu adim
+      # o verinin MUSTERIYE GORUNEN yuzunu korur — ikisi AYRI eksendir, veri yolu yesilken
+      # yuzey sessizce yok olabilir (1 Agu'a kadar OYLEYDI: 935 dolu kayit, gorunur yuzey 0).
+      # Kilitlenen dort sey:
+      #   A YUZEY    dolu kayitta etiket urun sayfasinda GORUNUYOR (12 tekil degerin hepsi
+      #              GERCEK urun sayfasinda olculur, fikstur degil).
+      #   B SEMA     Product.category "Ust > Alt" yolu; BOS degerde 'Marin > ' gibi ucu acik
+      #              yol YOK, YENI anahtar YOK, anahtar SIRASI kaymiyor (test-jsonld-* ile
+      #              bayt-esitlik korunur); BreadcrumbList DEGISMEDI (ara dugumun URL'i
+      #              henuz yok -> kirik adres yerine dugum HIC acilmiyor).
+      #   C REGRESYON dolu sayfa − (cip + category yolu) == bos sayfa BAYT-ESIT; PAYLASILAN
+      #              CSS'e kural EKLENMEDI (eklenseydi 15.939 altkategorisiz sayfanin bayti
+      #              da kayardi); komsu izolasyonu.
+      #   D FAIL-SAFE bos/alan-yok/None/liste/sayi/sozluk/izinsiz/bosluklu/imzali/enjeksiyon
+      #              -> URETIM COKMEZ ve cikti ALANSIZ sayfayla BAYT-ESIT (sizma 0).
+      #   E TEK KAYNAK etiket arama.altkategori_kanonik'ten gelir; build.py'de izinli kume
+      #              KOPYASI YOK ve kume genisleyince yuzey ANINDA gosterir.
+      # OFFLINE: ag/D1/wrangler YOK, DISKE YAZMAZ (render_product bellekte). ~10 s.
+      # Cift yonlu mutasyon (6 oldurucu KIRMIZI + 2 ilgisiz YESIL + M00 kontrol) elle:
+      #   python3 tools/altkategori-yuzey-test.py --mutasyon
+      - name: "Alt kategori musteri yuzeyi (urun sayfasi etiketi + JSON-LD + regresyon)"
+        run: python3 tools/altkategori-yuzey-test.py
+
       # KONFIGUR GOLGE MODU (FAZ 3). Worker D1'den `konfigur`u OKUR ama fiyati HALA bundle'dan
       # hesaplar; bu adim iki seyi birden kilitler:
       # (1) MUSTERI DAVRANISI DEGISMEDI — capa 150/PLA=73600, 300/ASA=150000, anka-kusu
