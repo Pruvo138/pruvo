@@ -28,10 +28,14 @@ Gecis `--gerekce` ZORUNLU tutar ve loga izlenebilir sekilde yazilir.
 
 IDDIALAR (hepsi GERCEK duzelt.py SUREC olarak kosturulur; cikis kodlari OLCULUR)
 -------------------------------------------------------------------------------
-  O1 ONCE  HEAD'deki duzelt.py `--alan gorselsiz` ve `--alan tur` yazimini REDDEDER
-           (izinsiz alan) -> bayrak mesru yoldan KONULAMIYOR/DUZELTILEMIYORDU.
-  O2 ONCE  HEAD'deki duzelt.py `--alan-sil tur` ile sinifi dusurur ve `gorselsiz: true`
-           kayitta ASILI kalir (rc=0, sessiz gecersiz durum).
+  O0 FIKS  ONCE kolunun kaynagi (tools/fikstur/duzelt-once-gorselsiz.py) sha256 PININE
+           uyar; uymazsa O-serisi KOSMAZ (fail-closed).
+  O0b FIKS Gecmis erisilebiliyorsa fikstur `026baebc^:tools/duzelt.py` ile BAYT-ESITTIR.
+           Sig klonda bu iddia ATLANIR (not olarak yazilir), digerleri TAM kosar.
+  O1 ONCE  ONCE fiksturundeki duzelt.py `--alan gorselsiz` ve `--alan tur` yazimini
+           REDDEDER (izinsiz alan) -> bayrak mesru yoldan KONULAMIYOR/DUZELTILEMIYORDU.
+  O2 ONCE  ONCE fiksturundeki duzelt.py `--alan-sil tur` ile sinifi dusurur ve
+           `gorselsiz: true` kayitta ASILI kalir (rc=0, sessiz gecersiz durum).
   Y1 SONRA Yeni duzelt.py bayragi hazir + gorselsiz kayda KOYAR (rc=0) ve
            `--alan-sil gorselsiz` ile GERI ALIR (rc=0).
   Y2 SONRA `--alan-sil tur --alan-sil gorselsiz` (gerekceyle) TEK cagrida temiz doner;
@@ -73,12 +77,32 @@ import tempfile
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(TOOLS)
+# --------------------------------------------------------------------------- ONCE kolu
+# O-serisi "duzeltmeden ONCEKI duzelt.py" davranisini olcer. Bu kaynak GIT GECMISINDEN
+# DEGIL, REPOYA GOMULU FIKSTURDEN gelir. Neden (olculdu 1 Agu, iki ayri tuzak):
+#   1) ANA-HAT REFERANS TAUTOLOJISI: eskiden `git show HEAD:tools/duzelt.py` okunuyordu.
+#      Duzeltme main'e girince HEAD ARTIK DUZELTILMIS dosyaydi -> kapi "ONCE
+#      reddediliyordu" iddiasini DUZELTILMIS koda karsi sinayip kendi kendini
+#      yanliskliyordu. 1 Agu: 6 kosum ust uste dustu, yayin 20 commit boyunca tikandi.
+#   2) SABIT HASH DE YETMEZ: `026baebc^` bir SIG (shallow) checkout'ta COZULMEZ
+#      (olculdu: `git clone --depth 1` -> `rev-parse 026baebc^` rc=128, kapi fail-closed
+#      rc=1 ve 32 iddia yerine yalniz 2 satir olcer). CI'da bugun `fetch-depth: 0` var,
+#      ama kapinin kaniti O YAML SATIRINA, rebase/squash'a ve gecmis topolojisine
+#      BAGIMLI OLMAMALI — aksi halde tarih her yeniden yazildiginda YAYIN DURUR.
+# Fikstur bu iki bagimliligin IKISINI de keser: dosya repoda durur, sha256 ile PINLENIR
+# (sessiz kayma KIRMIZI yanar) ve gecmis erisilebildiginde ONCE_REF'e karsi BAYT-ESITLIGI
+# ayrica dogrulanir (O0b) -> fikstur "uydurma bir eski dosya" olamaz.
+ONCE_REF = "026baebc^"                       # yalnizca O0b capraz dogrulamasinin capasi
+ONCE_FIKSTUR = os.path.join(TOOLS, "fikstur", "duzelt-once-gorselsiz.py")
+ONCE_FIKSTUR_SHA256 = "17a8095d51af5b5b44539144aa1804b153d8fbf647d8fe00ba2f19072f939b01"
+
 # duzelt.py bunlari KOSULSUZ import eder -> sahte repoya da kopyalanmalilar.
 YARDIMCILAR = ["gorsel_koken.py", "arama.py"]
 
 # --mutasyon kipinde sahte repoya yazilacak MUTANT duzelt.py kaynagi (None = gercegi).
 # TOOLS/ROOT sabitleri ASLA degistirilmez: P1 iddiasi (parti-kontrol) ve "ONCE" kolu
-# (git HEAD) mutandan ETKILENMEMELI, yoksa mutant onlari cokertip sahte "oldu" uretirdi.
+# (gomulu fikstur) mutandan ETKILENMEMELI, yoksa mutant onlari cokertip sahte "oldu"
+# uretirdi. O-serisi kaynagini ACIKCA gecirir -> MUTANT_SRC'yi zaten es geter.
 MUTANT_SRC = None
 
 RC_TICARI_HAL = 6          # duzelt.py ile AYNI deger; burada BAGIMSIZ capa olarak durur
@@ -102,12 +126,41 @@ KATALOG = [FIZ_GORSELSIZ, FIZ_GORSELLI, OZEL, OZEL_GORSELSIZ]
 
 hatalar = []
 satirlar = []
+notlar = []          # OLCULEMEYEN ama gizlenmemesi gereken durumlar; IDDIA SAYILMAZ
 
 
 def kontrol(kosul, mesaj):
     satirlar.append(("  ✔ " if kosul else "  ✘ ") + mesaj)
     if not kosul:
         hatalar.append(mesaj)
+
+
+# --------------------------------------------------------------------------- ONCE kaynagi
+def _once_fiksturu():
+    """(kaynak, ariza) dondurur. Fikstur YOKSA ya da sha256 PINI TUTMUYORSA kaynak
+    None'dir -> cagiran FAIL-CLOSED gider. Pin, fiksturun sessizce "duzeltilmis" bir
+    kopyayla degistirilmesini engeller: o an O-serisi yesil yanar ama HICBIR SEY
+    olcmez ([[ikiz-tanim-sessiz-ayrisma]])."""
+    if not os.path.exists(ONCE_FIKSTUR):
+        return None, "fikstur DOSYASI YOK: tools/fikstur/%s" % os.path.basename(ONCE_FIKSTUR)
+    with open(ONCE_FIKSTUR, "rb") as f:
+        ham = f.read()
+    ozet = hashlib.sha256(ham).hexdigest()
+    if ozet != ONCE_FIKSTUR_SHA256:
+        return None, ("fikstur sha256 PINI TUTMUYOR (beklenen %s…, olculen %s…)"
+                      % (ONCE_FIKSTUR_SHA256[:16], ozet[:16]))
+    return ham.decode("utf-8"), None
+
+
+def _once_capraz_dogrulama():
+    """Fikstur GERCEKTEN `ONCE_REF:tools/duzelt.py` mi? True/False; gecmis erisilemezse
+    None (sig klon / yeniden yazilmis tarih). None hali KIRMIZI YAKMAZ ama gizlenmez de:
+    olcum gucu fiksturun kendisinde durur, capraz dogrulama yalnizca EK kanittir."""
+    r = subprocess.run(["git", "-C", ROOT, "show", ONCE_REF + ":tools/duzelt.py"],
+                       capture_output=True)
+    if r.returncode != 0 or not r.stdout.strip():
+        return None
+    return hashlib.sha256(r.stdout).hexdigest() == ONCE_FIKSTUR_SHA256
 
 
 # --------------------------------------------------------------------------- sahte repo
@@ -172,14 +225,28 @@ def temizle(*repolar):
 def kosum():
     del hatalar[:]
     del satirlar[:]
+    del notlar[:]
 
-    eski_src = subprocess.run(["git", "-C", ROOT, "show", "HEAD:tools/duzelt.py"],
-                              capture_output=True, text=True).stdout
-    if not eski_src.strip():
+    # ---------------------------------------------------------------- O0 (fikstur butunlugu)
+    eski_src, ariza = _once_fiksturu()
+    kontrol(eski_src is not None,
+            "O0 FIKSTUR ONCE kopyasi butun (sha256 pinli)"
+            if eski_src is not None else "O0 FIKSTUR OKUNAMADI: %s" % ariza)
+    if eski_src is None:
         # FAIL-CLOSED: "ONCE" kolu olculemezse kapi yesil VEREMEZ (kanit yarim kalir).
-        hatalar.append("O-serisi OLCULEMEDI: HEAD:tools/duzelt.py okunamadi")
-        satirlar.append("  ✘ ONCE kolu icin HEAD kopyasi alinamadi")
+        hatalar.append("O-serisi OLCULEMEDI: %s" % ariza)
         return
+
+    # -------------------------------------------------- O0b (fikstur <-> gercek gecmis)
+    esit = _once_capraz_dogrulama()
+    if esit is None:
+        notlar.append("O0b capraz dogrulama ATLANDI — `%s` bu checkout'ta cozulmuyor "
+                      "(sig klon veya yeniden yazilmis gecmis). O-serisi gomulu "
+                      "fiksturden TAM olarak olculur; sha256 pini gecerlidir." % ONCE_REF)
+    else:
+        kontrol(esit, "O0b FIKSTUR = `%s:tools/duzelt.py` BAYT-ESIT" % ONCE_REF)
+        if not esit:
+            return
 
     # ---------------------------------------------------------------- O1 / O2 (ONCE)
     r = sahte_repo(duzelt_kaynak=eski_src)
@@ -371,9 +438,15 @@ def mutasyon_kosumu():
     DOKUNULMAZ ([[mutasyon-diske-yazma-tuzagi]]).
 
     PROBE DARLIGI: mutantin oldurulmus sayilmasi icin "herhangi bir hata" yetmez —
-    mutantin bozdugu EKSENDEN bir bulgu gelmeli. Mutant O-serisini (git HEAD) ya da P1'i
-    (parti-kontrol) etkileyemez; onlar mutandan bagimsiz kosar. Bu yuzden bulgular
-    filtrelenir: yalnizca Y/T/B/R iddialarindan gelen bulgu OLUM sayilir."""
+    mutantin bozdugu EKSENDEN bir bulgu gelmeli. Mutant O-serisini (gomulu fikstur) ya
+    da P1'i (parti-kontrol) etkileyemez; onlar mutandan bagimsiz kosar. Bu yuzden
+    bulgular filtrelenir: yalnizca Y/T/B/R iddialarindan gelen bulgu OLUM sayilir.
+
+    SON MUTANT = ONCE-KIRMIZI: tek satirlik mutantlarin yaninda, DUZELTME ONCESI
+    duzelt.py'nin TAMAMI mutant olarak kosturulur. Bu, kapinin "delik gercekten kapandi"
+    kanitinin ta kendisidir: eski delikli davranista kapi KIRMIZI, bugunkunde YESIL
+    yanmali. Fikstur yolu sabit hash'e degil repodaki dosyaya bagli oldugu icin bu kanit
+    sig klonda da, tarih yeniden yazildiginda da AYAKTA kalir."""
     global MUTANT_SRC
     print("MUTASYON — her mutant bu kapiyi KIRMIZI yakmali:")
     temiz_src = _duzelt_kaynagi()
@@ -398,7 +471,36 @@ def mutasyon_kosumu():
         else:
             print("  ✘ HAYATTA %s  — KAPI BU DEGISIKLIGI GORMUYOR" % ad)
     print("\nMUTASYON: %d/%d oldu" % (olen, len(MUTANTLAR)))
-    return 0 if olen == len(MUTANTLAR) else 1
+
+    # ------------------------------------------------------------- ONCE-KIRMIZI
+    print("\nONCE-KIRMIZI — duzeltme ONCESI duzelt.py'nin TAMAMI mutant olarak:")
+    once_src, ariza = _once_fiksturu()
+    once_kirmizi = 0
+    if once_src is None:
+        print("  ✘ fikstur alinamadi: %s" % ariza)
+    else:
+        MUTANT_SRC = once_src
+        try:
+            kosum()
+            ilgili = [h for h in hatalar if h[:2] in ("Y1", "Y2", "T1", "T2", "T3",
+                                                      "T4", "T5", "B1", "R1")]
+        except Exception as e:                                   # noqa: BLE001
+            ilgili = ["eski kaynak coktu: %s: %s" % (type(e).__name__, e)]
+        finally:
+            MUTANT_SRC = None
+        if ilgili:
+            once_kirmizi = 1
+            print("  ✔ KIRMIZI  eski delikli duzelt.py bu kapidan GECEMIYOR (%d bulgu)"
+                  % len(ilgili))
+            print("             ilk bulgu: %s" % ilgili[0][:140])
+        else:
+            print("  ✘ YESIL YANDI — kapi eski DELIKLI davranisi GORMUYOR; "
+                  "O-serisi kaniti BOS")
+    print("ONCE-KIRMIZI: %d/1" % once_kirmizi)
+
+    # Kapiyi temiz kaynakla geri kostur (kosum() global durumu mutantla birakmasin).
+    kosum()
+    return 0 if (olen == len(MUTANTLAR) and once_kirmizi == 1) else 1
 
 
 # --------------------------------------------------------------------------- main
@@ -415,6 +517,8 @@ def main():
     print("-" * 72)
     for s in satirlar:
         print(s)
+    for n in notlar:
+        print("  ⚠ " + n)
     print("-" * 72)
     if hatalar:
         print("KIRMIZI — %d bulgu:" % len(hatalar))
