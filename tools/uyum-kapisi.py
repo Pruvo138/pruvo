@@ -79,7 +79,7 @@ def _guvenli(fn, *a):
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
-def kabul(kok):
+def kabul(kok, katalog_yolu=None):
     A = yukle(kok, "arama", "arama.py")
 
     # ══ S EKSENI — SOZLUGUN KENDI SAGLIGI ═════════════════════════════════════════
@@ -96,13 +96,23 @@ def kabul(kok):
     tum_eki = eki | ureki
     birlesim = izinli | uretici | elenen
     yargilanan = birlesim - tum_eki
-    dogrula("S2 BUDAMA ARITMETIGI: (izinli + uretici + elenen) − mimar eki == oneri "
-            "sayisi (%d) — elenen jeton sessizce geri sizamaz, ONERISIZ jeton yalnizca "
-            "MIMAR EKI'nde ADIYLA kayitli olarak girebilir"
-            % A.UYUM_MARKA_ONERI_SAYISI,
-            len(yargilanan) == A.UYUM_MARKA_ONERI_SAYISI,
-            "(%d + %d + %d) − %d = %d" % (len(izinli), len(uretici), len(elenen),
-                                          len(tum_eki), len(yargilanan)))
+    # 🔴 S2 SAYI DEGIL KIMLIK KORUR. Yalniz buyukluk sabitlenseydi bir jetonu ELENEN'den
+    # IZINLI'ye TASIMAK gorunmez olurdu (birlesim sabit, ayriklik bozulmuyor, ikiz yok) —
+    # bagimsiz curutucu tam bunu yapti (`Turbo`) ve kapi YESIL kalmisti. Artik yargilanmis
+    # BOLUMLEMENIN imzasi olculuyor; mesru genisleme (MIMAR EKI) imzaya GIRMEZ, yani
+    # dogru yoldan buyume kapiyi kirmizi yakmaz.
+    _imza = A.uyum_yargi_imzasi()
+    _boy = tuple(len(b) for b in A.uyum_yargi_bolumleri())
+    dogrula("S2 BUDAMA KIMLIGI: yargilanmis bolumlemenin (izinli−eki, uretici−eki, "
+            "elenen) IMZASI donmus degerle birebir — elenen bir jeton izinli kumeye "
+            "TASINAMAZ; bolum buyuklukleri %s ve toplam %d oneriye esit"
+            % (A.UYUM_MARKA_YARGI_SAYILARI, A.UYUM_MARKA_ONERI_SAYISI),
+            _imza == A.UYUM_MARKA_YARGI_IMZA
+            and _boy == A.UYUM_MARKA_YARGI_SAYILARI
+            and len(yargilanan) == A.UYUM_MARKA_ONERI_SAYISI,
+            "imza=%s beklenen=%s | boy=%s beklenen=%s | toplam=%d"
+            % (_imza, A.UYUM_MARKA_YARGI_IMZA, _boy, A.UYUM_MARKA_YARGI_SAYILARI,
+               len(yargilanan)))
     dogrula("S7 MIMAR EKI'nin HER uyesi KENDI kumesinin alt kumesi ve kumeler ayrik "
             "(uyum eki %d jeton, uretici eki %d jeton) — denetimsiz genisleme yolu YOK"
             % (len(eki), len(ureki)),
@@ -300,6 +310,29 @@ def kabul(kok):
             not _varyant_sizan and not _mesru_red,
             "sizan=%s yanlis-pozitif=%s" % (_varyant_sizan, _mesru_red))
 
+    # V17 — MUKERRER OGE. Kural kodda VARDI ama HICBIR iddia onu olcmuyordu: bagimsiz
+    # curutucu kontrolu tamamen sildi ve kapi YESIL kaldi (X7). Olculmeyen kural, kural
+    # degildir. Mukerrer oge kartezyen sisme ve yanlis "kac araca uyuyor" sayisi uretir.
+    _mukerrer_uyum = [
+        [{"marka": "Ford", "model": "Focus"}, {"marka": "Ford", "model": "Focus"}],
+        [{"marka": "Ford"}, {"marka": "Ford"}],
+        [{"marka": "Ford", "yil": [2003, 2015]}, {"marka": "Ford", "yil": [2003, 2015]}],
+        [{"marka": "Ford", "model": "Focus"}, {"marka": "Volvo"},
+         {"marka": "Ford", "model": "Focus"}],
+    ]
+    _mukerrer_sizan = [
+        v for v in _mukerrer_uyum
+        if A.uyum_sebebi(_urun(uyum=v, marka=A.marka_uyumdan_turet({"uyum": v}))) is None]
+    # Yanlis-pozitif nobeti: AYNI markanin FARKLI modelleri mukerrer DEGILDIR.
+    _farkli = [{"marka": "Ford", "model": "Focus"}, {"marka": "Ford", "model": "Fiesta"}]
+    _farkli_red = A.uyum_sebebi(
+        _urun(uyum=_farkli, marka=["Ford", "Focus", "Fiesta"])) is not None
+    dogrula("V17 MUKERRER OGE: birebir ayni `uyum` ogesi iki kez yazilamaz (%d fikstur "
+            "RED) ama ayni markanin FARKLI modelleri KABUL — kartezyen sisme ve yanlis "
+            "'kac araca uyuyor' sayisi uretilemez" % len(_mukerrer_uyum),
+            not _mukerrer_sizan and not _farkli_red,
+            "sizan=%s farkli_model_reddedildi=%s" % (_mukerrer_sizan[:2], _farkli_red))
+
     # V7 model normalizasyonu
     _ayni = (("F-150", "F150"), ("XSR 700", "XSR700"), ("ID.Buzz", "ID Buzz"),
              ("Zoé", "Zoe"), ("RAV4", "Rav-4"), ("C-Max", "C-MAX"))
@@ -403,7 +436,8 @@ def kabul(kok):
 
     # ══ A EKSENI — GERCEK KATALOG ══════════════════════════════════════════════════
     print("\n[A] KATALOG — urunler.json (yalniz OKUNUR)")
-    with open(os.path.join(GERCEK_KOK, "urunler.json"), encoding="utf-8") as f:
+    with open(katalog_yolu or os.path.join(GERCEK_KOK, "urunler.json"),
+              encoding="utf-8") as f:
         katalog = json.load(f)
     ihlal, uyumlu, kanonik_ayrisan = [], 0, []
     model_ham = {}
@@ -425,8 +459,21 @@ def kabul(kok):
                         model_ham.setdefault(A.model_normalize(ham), set()).add(ham)
     dogrula("A1 katalogtaki HICBIR kayit `uyum` semasini ihlal etmiyor", not ihlal,
             ihlal[:5])
-    dogrula("A2 K5: `uyum` dolu her kayitta `marka` TURETILMIS degere esit "
-            "(uyumlu kayit: %d)" % uyumlu, not ihlal)
+    # 🔴 A2 ARTIK BAGIMSIZ. Onceki hali A1'in `ihlal` bayragini TEKRAR okuyordu — ayni
+    # kosulu iki kez sayan bir TOTOLOJI, iddia sayisini sisirir ve hicbir sey olcmez.
+    # Simdi K5 ekseni AYRI bir kod yolundan (`marka_uyumdan_turet` DOGRUDAN, `uyum_sebebi`
+    # uzerinden DEGIL) taraniyor ve tarayicinin fiilen calistigi POZITIF KONTROL ile
+    # kanitlaniyor: kataloga bilerek bozuk bir kayit eklenir, tarama TAM ONU bulmali
+    # (bulamazsa tarama bos calisiyordur ve "0 ihlal" YALANDIR).
+    _k5_poz = _urun(uyum=[{"marka": "Ford", "model": "Focus"}], marka=["BOZUK"])
+    _k5_poz["id"] = "K5-POZITIF-KONTROL"
+    _k5_ihlal = [u.get("id") for u in list(katalog) + [_k5_poz]
+                 if isinstance(u, dict) and u.get("uyum")
+                 and u.get("marka") != A.marka_uyumdan_turet(u)]
+    dogrula("A2 K5 TARAMASI (A1'den BAGIMSIZ kod yolu): `uyum` dolu %d gercek kayitta "
+            "`marka` == turetilen VE tarayici fiilen calisiyor — sentetik bozuk kayit "
+            "TAM OLARAK yakalaniyor (pozitif kontrol)" % uyumlu,
+            _k5_ihlal == ["K5-POZITIF-KONTROL"], _k5_ihlal[:5])
     dogrula("A3 KABUL EDILEN her kayitta katalog metni == D1 metni (urunler.json ile D1 "
             "SESSIZCE ayrisamaz)", not kanonik_ayrisan, kanonik_ayrisan[:5])
     model_ikiz = {k: sorted(v) for k, v in model_ham.items() if len(v) > 1}
@@ -456,7 +503,7 @@ def kabul(kok):
                 s[-1]["model"] = x
         return s
 
-    ornek, ele, ayrisan_gercek, red_gercek = 0, 0, [], []
+    ornek, ele, ele_mukerrer, ayrisan_gercek, red_gercek = 0, 0, 0, [], []
     for u in katalog:
         if not isinstance(u, dict) or not isinstance(u.get("marka"), list):
             continue
@@ -466,6 +513,18 @@ def kabul(kok):
         if not A.uyum_marka_kanonik(ham[0]):
             continue
         if any(A._serbest_sebebi("model", x) is not None for x in ham[1:]):
+            continue
+        # 🔴 MUKERRER JETON = HAZIRLIKSIZLIK, IHLAL DEGIL (bagimsiz curutucu olctu).
+        # `["Ford","Focus","Ford"]` gibi bir dizi TURETMEYLE geri uretilemez: turetme
+        # TEKILLESTIRIR, yani girdi zaten temsil edilemez. Bu kayit "ayrisma" DEGILDIR,
+        # backfill'in ELE alacagi bir girdidir.
+        # NEDEN BLOKLAMAMALI: bu kapi `build` isinde kosuyor ve `deploy` ona `needs` ile
+        # bagli — tek bir mukerrer jetonlu urun BES EVIN yayinini birden durdururdu.
+        # `tools/urun-ekle.py`'de `marka` tekillestirmesi YOK, yani bu bir zaman meselesi.
+        # Bu adimin TUKETICISI YOK: henuz kimsenin yazmadigi bir alanin HAZIRLIK olcumu
+        # yayin durdurma yetkisine sahip olamaz. Bloklayan sey IHLAL olmali.
+        if len(set(ham)) != len(ham):
+            ele_mukerrer += 1
             continue
         # 🔴 ELE BUCKETI (olculen, gizlenmiyor): dizide KANONIK OLMAYAN bir marka yazimi
         # varsa (`Citroën`, `KIA`, `MINI`, `SMART`, `Ikea`, `BaoFeng`, `Ssangyong`)
@@ -486,11 +545,12 @@ def kabul(kok):
             red_gercek.append((u.get("id"), ham, A.uyum_sebebi(aday)))
     dogrula("A5 GERCEK VERI REGRESYONU: %d gercek kayitta backfill'in yazacagi `uyum`dan "
             "turetilen `marka`, BUGUNKU `marka` degeriyle BIREBIR ayni ve kapidan geciyor "
-            "(arama metni backfill gunu kaymaz — parite riski 0); %d kayit KANONIK OLMAYAN "
-            "marka yazimi tasidigi icin ELE ayrildi" % (ornek, ele),
+            "(arama metni backfill gunu kaymaz — parite riski 0). ELE: %d kanonik olmayan "
+            "marka yazimi + %d mukerrer jeton — SAYILIR, RAPORLANIR, BLOKLAMAZ"
+            % (ornek, ele, ele_mukerrer),
             ornek > 0 and not ayrisan_gercek and not red_gercek,
-            "ornek=%d ele=%d ayrisan=%s red=%s"
-            % (ornek, ele, ayrisan_gercek[:3], red_gercek[:3]))
+            "ornek=%d ele=%d ele_mukerrer=%d ayrisan=%s red=%s"
+            % (ornek, ele, ele_mukerrer, ayrisan_gercek[:3], red_gercek[:3]))
 
     # BACKFILL HAZIRLIGI — sayi, iddia degil. Mevcut `marka` jetonlarinin ne kadari
     # bugunku sozlukten/serbest metin kuralindan gecerdi?
@@ -585,6 +645,19 @@ MUTANTLAR = [
                 r"        sebep = marka_varyanti_sebebi\(ad, oge\.get\(ad\)\)\n"
                 r"        if sebep:\n            return sebep\n"), "", "KIRMIZI",
      "V16: marka/model sinirindaki ikiz kapisi kalkar -> `KIA` model olarak GECER"),
+    # ── BAGIMSIZ CURUTUCUDEN GELEN IKI MUTANT (2 Agu). Ikisi de ONCE SAG KALMISTI;
+    # kapinin o turdeki iddialari onlari gormuyordu. Kural degisti, mutantlar KALICI.
+    # M12 capasi ELENEN literalinin ICINDEKI jetona bakiyor (kume buyudugunde/kuculdugunde
+    # de eslesir); mutant jetonu ELENEN'den CIKARIP IZINLI'ye TASIR — birlesim SABIT kalir.
+    ("M12", "arama.py",
+     re.compile(r'("Toplife", )"Turbo", ("Victoria",\n\}\))'),
+     '\\1\\2\nUYUM_MARKA_IZINLI = frozenset(UYUM_MARKA_IZINLI | {"Turbo"})', "KIRMIZI",
+     "S2: ELENEN'den cikarilan jeton IZINLI'ye TASINIR (birlesim SABIT kalir) -> sayi "
+     "korumasi bunu GORMUYORDU, kimlik korumasi goruyor"),
+    ("M13", "arama.py",
+     re.compile(r"    imzalar = \[json\.dumps.*?len\(set\(imzalar\)\)\)\n", re.S), "",
+     "KIRMIZI",
+     "V17: MUKERRER oge kontrolu tamamen silinir -> ayni uyum ogesi iki kez yazilabilir"),
 ]
 
 KOPYALANAN = ["arama.py"]
@@ -712,11 +785,15 @@ def main():
                     help="modulu bu agactan oku (mutasyon kopyasi)")
     ap.add_argument("--mutasyon", action="store_true",
                     help="cift yonlu mutasyon olcumu (elle; canli dosyaya DOKUNMAZ)")
+    ap.add_argument("--katalog", default=None,
+                    help="A ekseni katalogunu BASKA dosyadan oku (sentetik vaka olcumu; "
+                         "varsayilan gercek urunler.json)")
     a = ap.parse_args()
     if a.mutasyon:
         return mutasyon()
-    print("=== UYUM KAPISI (kok: %s)" % a.kok)
-    return kabul(a.kok)
+    print("=== UYUM KAPISI (kok: %s%s)"
+          % (a.kok, " · katalog: %s" % a.katalog if a.katalog else ""))
+    return kabul(a.kok, a.katalog)
 
 
 if __name__ == "__main__":

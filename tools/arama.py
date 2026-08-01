@@ -518,6 +518,41 @@ UYUM_MARKA_ELENEN = frozenset({
 # elle eklenmistir. Ikisi de denetimsiz genisleme, kapi KIRMIZI yakar.
 UYUM_MARKA_ONERI_SAYISI = 169
 
+# 🔴 SAYI KORUMASI YETMEZ, KIMLIK KORUMASI SART (bagimsiz curutucu olctu, 2 Agu).
+# Onceki hal yalnizca BIRLESIMIN BUYUKLUGUNU sabitliyordu. Bu, bir jetonu ELENEN'den
+# cikarip IZINLI'ye TASIMAYI gormuyordu: birlesim sabit kaliyor (200), S1 ayrikligi
+# bozulmuyor (jeton TASINDI, kopyalanmadi), S4 ikiz uretmiyor. Curutucu tam olarak bunu
+# yapti — `Turbo` ELENEN'den IZINLI'ye tasindi ve kapi YESIL kaldi. Yani "elenen jeton
+# sessizce geri sizamaz" iddiasi FIILEN YANLISTI: `Generic`/`Motorhome`/`Coyote` gibi
+# bilerek elenmis bir jeton denetimsiz sekilde geri donup SAHTE MARKA SAYFASI acabilirdi
+# — K2'nin onlemek icin var oldugu seyin ta kendisi.
+#
+# Cozum: YARGILANMIS BOLUMLEMENIN kimligi donduruluyor. Imza uc bolumun HER BIRI icin
+# AYRI hesaplanir; boylece degisim oldugunda HANGI kovanin oynadigi da gorunur (tek
+# birlesik hash "bir sey degisti" der, hangisi oldugunu SOYLEMEZ).
+#
+# ⚠️ BU IMZA DEGISMEMELI. Yargilanmis bolumleme KAPANMIS bir karardir; sozlugu genisletme
+# yolu MIMAR EKI kumeleridir ve onlar imzaya GIRMEZ (yani mesru genisleme imzayi
+# BOZMAZ). Imza kirmizi yaniyorsa ya kapanmis bir karar yeniden acilmistir — ki bu
+# BILEREK ve GORUNUR yapilmali, imza da elle guncellenmeli — ya da jeton kaymasi vardir.
+UYUM_MARKA_YARGI_IMZA = ("8d0bdf607d0079f9", "e6c2f91212ba9f04", "cec09f9fee6f6211")
+# Bolum buyuklukleri: imza kirmizi yandiginda okunabilir bir ilk teshis verir.
+UYUM_MARKA_YARGI_SAYILARI = (139, 13, 17)
+
+
+def uyum_yargi_bolumleri():
+    """YARGILANMIS bolumleme: (izinli−eki, uretici−eki, elenen). Mimar eki DISARIDA."""
+    return (sorted(UYUM_MARKA_IZINLI - UYUM_MARKA_MIMAR_EKI),
+            sorted(URETICI_MARKA - URETICI_MARKA_MIMAR_EKI),
+            sorted(UYUM_MARKA_ELENEN))
+
+
+def uyum_yargi_imzasi():
+    """Yargilanmis bolumlemenin KIMLIK imzasi — bolum basina bir ozet."""
+    return tuple(
+        hashlib.sha256(json.dumps(b, ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
+        for b in uyum_yargi_bolumleri())
+
 # `uyum` ogesinde TANINAN alanlar. Kume KAPALI: taninmayan anahtar REDDEDILIR (sessizce
 # YUTULMAZ). Yutulsaydi yazim hatasi (`yıl`, `oem_no`) veri kaybi olarak sessizce gecerdi.
 UYUM_ALANLARI = ("marka", "model", "motor", "yil", "oem")
