@@ -443,6 +443,10 @@ RENK_SECENEKLERI = _js_sabiti(_SEC_JS, "RENK_SECENEKLERI")
 RENK_DIGER_YUZDE = _js_sayisi(_SEC_JS, "RENK_DIGER_YUZDE")
 ADET_EN_AZ = _js_sayisi(_SEC_JS, "ADET_EN_AZ")
 ADET_EN_COK = _js_sayisi(_SEC_JS, "ADET_EN_COK")
+# SINIF BEYANI cümleleri TEK KAYNAK secenekler.js BEYAN (aynı sözlüğü sipariş e-postası
+# ve ödeme ekranı da okur). İKİNCİ KOPYA YAZILMAZ: ikiz tanım sessizce ayrışır, burada
+# ayrışma FAIL-CLOSED patlar (_js_sabiti bulamazsa/JSON bozuksa build DÜŞER).
+BEYAN = _js_sabiti(_SEC_JS, "BEYAN")
 
 
 def _js_bayragi(kaynak, ad):
@@ -1911,17 +1915,28 @@ def render_product(p, all_products, chip_map=None):
         # "…'den başlayan" fiyat BASILMAZ (malzeme bloğu da aşağıda boş geçilir). KALAN:
         # adet seçici + sepet ikonu + WhatsApp ikonu (aynı ADET_IKON_HTML/IKON_BUTONLAR_HTML
         # bileşenleri — ikinci kopya yok). Fiyat SABIT: liste fiyatı aynen, "başlayan" YOK.
+        # 🔴 SINIF BEYANI (tüketici hukuku, 1 Ağu): hazır ticari malda cayma hakkı
+        # İŞLER (Mesafeli Sözleşmeler Yönetmeliği m.15 istisnası ölçüye/kişiye özel
+        # üretime bakar). Müşteri hangi sınıfta alışveriş yaptığını ÜRÜN SAYFASINDA
+        # görmeli; `tur` bugüne kadar yalnız para yolunu sürüyor, hiçbir beyanı
+        # sürmüyordu. Cümle secenekler.js BEYAN tek kaynağından gelir; `tur`suz
+        # 15.930 ürün bu daldan GEÇMEZ (regresyon 0).
+        # ⚠️ Biçim SATIR İÇİ yazılır, PAYLAŞILAN CSS bloğuna kural EKLENMEZ: ortak stil
+        # her ürün sayfasına basıldığı için oraya tek satır eklemek 15.930 özel üretim
+        # sayfasının BAYTINI değiştirirdi (regresyon bütçesi sha256 ile ölçülüyor).
         opsiyonlar_html = ("""
     <div class="opsiyonlar" id="opsiyonlar">
       {adet}
       {fiyat_blok}
+      <div class="sinif-beyan" id="sinifBeyan" style="margin-top:10px;font-size:13px;line-height:1.5;color:var(--gray-text)">{beyan}</div>
     </div>
     """).format(adet=ADET_IKON_HTML % (
                     ADET_EN_AZ, ADET_EN_COK,
                     IKON_BUTONLAR_HTML % (esc(pid), esc(wa_href(p, url)))),
                 fiyat_blok=fiyat_satiri(
                     eski_html,
-                    '<div class="opsiyon-fiyat" id="opsiyonFiyat">%s</div>' % esc(price_text)))
+                    '<div class="opsiyon-fiyat" id="opsiyonFiyat">%s</div>' % esc(price_text)),
+                beyan=esc(BEYAN["SAYFA_HAZIR"]))
         price_html = ""
     elif sema:
         # Konfigüratör: müşteri ölçü/parametre girer, hacim + fiyat canlı hesaplanır

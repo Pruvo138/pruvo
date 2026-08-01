@@ -45,6 +45,106 @@
      TEKRARLANMAZ. Worker `tur`u D1 `urunler.tur` kolonundan okur ve satirOzeti'ye verir. */
   var TUR_FIZIKSEL = "fiziksel";
   function fizikselMi(tur) { return tur === TUR_FIZIKSEL; }
+
+  /* ===================== SINIF BEYANI (tuketici hukuku) ===================== BEGIN BEYAN
+     🔴 NEDEN VAR (olculdu 1 Agu): `tur` alani uzun sure YALNIZ PARA yolunu suruyordu
+     (hazir ticari malda malzeme/renk carpanini 1,00'e sabitler). Hicbir HUKUKI BEYANI
+     surmuyordu: siparis onay e-postasi 659 HAZIR TICARI MAL siparisinde de KOSULSUZ
+     "Ürünleriniz özel olarak üretilip gönderilecektir" diyordu. Mesafeli satis
+     sozlesmesi ise "bu urunler siparis sirasinda ACIKCA ozel uretim olarak TEYIT
+     EDILIR" der — yani o cumle, musterinin stok urunde sahip oldugu 14 GUNLUK CAYMA
+     HAKKINI reddetmeye yarayacak teyidi siparis aninda veriyordu. TERS YONDE ihlal.
+
+     BU BLOK YENI HAK/YUKUMLULUK ICAT ETMEZ: yasal sayfalarda (Teslimat ve Iade
+     Kosullari · Mesafeli Satis Sozlesmesi m.5-m.6) ZATEN yazili olan iki sinifli
+     ayrimi musteriye GORUNUR kilar. Cumleler TEK KAYNAKTIR: siparis e-postasi,
+     odeme ekrani ve urun sayfasi ureteci hepsi bu sozlukten beslenir — ikinci kopya
+     YOK, iki yuzey sessizce ayrisamaz.
+
+     🔴 FAIL-CLOSED: sinif "fiziksel ISE hazir"dir, "3D ISE ozel" DEGIL. `tur` yoksa ya
+     da taninmayan bir deger tasiyorsa sinif "ozel"dir = BUGUNKU metin -> `tur`suz
+     15.930 kayitta regresyon 0. Bos sepet de "ozel"dir (bugunku ekran metni).
+
+     ⚠️ KAPSAM DISI: iade/cayma halinde KARGO BEDELININ kime ait oldugu ticari bir
+     karardir ve HENUZ VERILMEMISTIR. Buraya "kargo bedeli su tarafa aittir" cumlesi
+     YAZILMAZ; yeri IADE_KARGO_YER'dir ve BOS kalir (cayma beyani kapisi C4 nobet tutar).
+
+     ⚠️ BICIM: asagidaki nesne GECERLI JSON olmak zorundadir — sayfa ureteci onu ayni
+     sozluk olarak okur (json ayristirici). Cift tirnak, sondaki virgul yok, icinde
+     yorum yok. Ayrisirsa uretim PATLAR (fail-closed). */
+  var BEYAN = {
+    "ETIKET_HAZIR": "Hazır ürün",
+    "ETIKET_OZEL": "Özel üretim",
+    "SATIR_HAZIR": "Hazır ürün — stoktan gönderilir",
+    "SATIR_OZEL": "Özel üretim — siparişinizden sonra üretilir",
+    "CAYMA_HAZIR": "Hazır/stok ürünlerde teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır.",
+    "CAYMA_KARMA": "Hazır ürün olarak işaretli kalemlerde teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır; Özel üretim olarak işaretli kalemler kişiye/ölçüye özel hazırlandığından Mesafeli Sözleşmeler Yönetmeliği m.15 uyarınca bu hakkın kapsamı dışındadır.",
+    "SAYFA_HAZIR": "Hazır ürün — stoktan gönderilir. Teslim tarihinden itibaren 14 gün içinde gerekçe göstermeden cayma hakkınız vardır.",
+    "EPOSTA_ODENDI_HAZIR": "Ödemeniz alındı, siparişiniz onaylandı. Siparişiniz stoktan hazırlanıp gönderilecektir.",
+    "EPOSTA_ODENDI_OZEL": "Ödemeniz alındı, siparişiniz onaylandı. Ürünleriniz özel olarak üretilip gönderilecektir.",
+    "EPOSTA_ODENDI_KARMA": "Ödemeniz alındı, siparişiniz onaylandı. Hazır ürün kalemleriniz stoktan hazırlanıp gönderilir; Özel üretim kalemleriniz özel olarak üretilip gönderilir.",
+    "EPOSTA_HAVALE_HAZIR": "Siparişiniz alındı. Havale/EFT ödemeniz hesabımıza geçtiğinde siparişiniz stoktan hazırlanıp gönderilir.",
+    "EPOSTA_HAVALE_OZEL": "Siparişiniz alındı. Havale/EFT ödemeniz hesabımıza geçtiğinde üretime başlanır.",
+    "EPOSTA_HAVALE_KARMA": "Siparişiniz alındı. Havale/EFT ödemeniz hesabımıza geçtiğinde Hazır ürün kalemleriniz gönderime hazırlanır, Özel üretim kalemleriniz üretime alınır.",
+    "ODEME_HAVALE_HAZIR": "Devam ettiğinizde siparişiniz kaydedilir ve ödeme için IBAN bilgileri gösterilir; ödemeniz hesabımıza geçince siparişiniz stoktan hazırlanıp gönderilir.",
+    "ODEME_HAVALE_OZEL": "Devam ettiğinizde siparişiniz kaydedilir ve ödeme için IBAN bilgileri gösterilir; ödemeniz hesabımıza geçince üretim başlar.",
+    "ODEME_HAVALE_KARMA": "Devam ettiğinizde siparişiniz kaydedilir ve ödeme için IBAN bilgileri gösterilir; ödemeniz hesabımıza geçince Hazır ürün kalemleriniz gönderime hazırlanır, Özel üretim kalemleriniz üretime alınır.",
+    "HAVALE_KUTU_HAZIR": "Ödemeniz hesabımıza geçince siparişiniz stoktan hazırlanıp gönderilir; dilerseniz dekontu WhatsApp'tan iletebilirsiniz.",
+    "HAVALE_KUTU_OZEL": "Ödemeniz hesabımıza geçince üretim başlar; dilerseniz dekontu WhatsApp'tan iletebilirsiniz.",
+    "HAVALE_KUTU_KARMA": "Ödemeniz hesabımıza geçince Hazır ürün kalemleriniz gönderime hazırlanır, Özel üretim kalemleriniz üretime alınır; dilerseniz dekontu WhatsApp'tan iletebilirsiniz.",
+    "IADE_KARGO_YER": ""
+  };
+
+  /* Tek kalemin sinifi. Karar TEK YERDE (fizikselMi) — cagiran hicbir yuzey
+     `tur == "fiziksel"` karsilastirmasini TEKRARLAMAZ. */
+  function satirSinifi(tur) { return fizikselMi(tur) ? "hazir" : "ozel"; }
+
+  /* Sepetin sinifi: "hazir" | "ozel" | "karma". Girdi, satirlarin `tur` degerleri.
+     KARMA sepet TEK CUMLEYE INDIRGENMEZ: cagiran yuzey kalem bazinda da isaretler. */
+  function sepetSinifi(turler) {
+    var hazir = false, ozel = false;
+    (turler || []).forEach(function (t) {
+      if (fizikselMi(t)) { hazir = true; } else { ozel = true; }
+    });
+    if (hazir && ozel) { return "karma"; }
+    if (hazir) { return "hazir"; }
+    return "ozel";                       // bos sepet + taninmayan deger -> bugunku metin
+  }
+
+  /* Sinifa gore secim. Taninmayan sinif adi -> OZEL (fail-closed, bugunku davranis). */
+  function _sinifSec(sinif, hazir, karma, ozel) {
+    if (sinif === "hazir") { return hazir; }
+    if (sinif === "karma") { return karma; }
+    return ozel;
+  }
+
+  function satirBeyani(tur) {
+    return _sinifSec(satirSinifi(tur), BEYAN.SATIR_HAZIR, BEYAN.SATIR_OZEL,
+                     BEYAN.SATIR_OZEL);
+  }
+  function epostaDurumBeyani(sinif, havale) {
+    return havale
+      ? _sinifSec(sinif, BEYAN.EPOSTA_HAVALE_HAZIR, BEYAN.EPOSTA_HAVALE_KARMA,
+                  BEYAN.EPOSTA_HAVALE_OZEL)
+      : _sinifSec(sinif, BEYAN.EPOSTA_ODENDI_HAZIR, BEYAN.EPOSTA_ODENDI_KARMA,
+                  BEYAN.EPOSTA_ODENDI_OZEL);
+  }
+  /* Cayma beyani: OZEL sepette BOS doner. Sebep — sozlesmenin hukmu degismiyor ve
+     ozel uretim sepetinin bugunku metni BAYT-BAYT korunuyor (regresyon butcesi).
+     Cayma istisnasi zaten /teslimat-iade ve /mesafeli-satis §6'da yazili ve odeme
+     ekraninda o sayfalar ONAY KUTUSUYLA baglaniyor. */
+  function caymaBeyani(sinif) {
+    return _sinifSec(sinif, BEYAN.CAYMA_HAZIR, BEYAN.CAYMA_KARMA, "");
+  }
+  function odemeBeyani(sinif) {
+    return _sinifSec(sinif, BEYAN.ODEME_HAVALE_HAZIR, BEYAN.ODEME_HAVALE_KARMA,
+                     BEYAN.ODEME_HAVALE_OZEL);
+  }
+  function havaleKutuBeyani(sinif) {
+    return _sinifSec(sinif, BEYAN.HAVALE_KUTU_HAZIR, BEYAN.HAVALE_KUTU_KARMA,
+                     BEYAN.HAVALE_KUTU_OZEL);
+  }
+  /* ===================== SINIF BEYANI ===================== END BEYAN */
   // İşletme kararı 23 Tem: Dekorasyon + Oyun/Hobi de standart ürün kartını (Renk+Adet+kompakt ikon,
   // katsayılı fiyat) alır — Marin/Otomobil ile birebir. Sayfa üreteci ile BİRLİKTE güncellendi.
   // "Skan Art" (gizli dekor alt-serisi) da aynı düzeni alır: kategori Dekorasyon'dan
@@ -565,6 +665,14 @@
     RENK_DIGER_YUZDE: RENK_DIGER_YUZDE,
     TUR_FIZIKSEL: TUR_FIZIKSEL,
     fizikselMi: fizikselMi,
+    BEYAN: BEYAN,
+    satirSinifi: satirSinifi,
+    sepetSinifi: sepetSinifi,
+    satirBeyani: satirBeyani,
+    epostaDurumBeyani: epostaDurumBeyani,
+    caymaBeyani: caymaBeyani,
+    odemeBeyani: odemeBeyani,
+    havaleKutuBeyani: havaleKutuBeyani,
     FONKSIYONEL_KATEGORILER: FONKSIYONEL_KATEGORILER,
     ADET_EN_AZ: ADET_EN_AZ,
     ADET_EN_COK: ADET_EN_COK,

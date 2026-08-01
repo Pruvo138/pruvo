@@ -738,6 +738,10 @@
   .odeme-hata:empty{margin:0}
   .odeme-yasal{font-size:11px;color:var(--gray-text);line-height:1.5;margin-bottom:10px}
   .odeme-yasal a{color:var(--navy-2)}
+  /* Sınıf beyanı (cayma hakkı) — BOŞKEN hiç yer kaplamaz (:empty), yani hepsi özel
+     üretim olan sepette ödeme ekranı bugünkü haliyle birebir aynı görünür. */
+  .odeme-cayma{display:block;margin:6px 0}
+  .odeme-cayma:empty{display:none}
   .odeme-btnler{display:flex;gap:8px;align-items:stretch}
   .odeme-btnler .cart-pay-btn{margin-bottom:0}
   .odeme-vazgec{
@@ -1069,6 +1073,11 @@
       güvenli sayfasında alınır; PRUVO kart bilgisi görmez ve saklamaz.</span><span
       id="yasalHavale" style="display:none">Devam ettiğinizde siparişiniz kaydedilir ve ödeme
       için IBAN bilgileri gösterilir; ödemeniz hesabımıza geçince üretim başlar.</span>
+      <!-- SINIF BEYANI (tüketici hukuku): sepette HAZIR/STOK kalem varsa 14 günlük cayma
+           hakkı burada YAZILI olur. Hepsi özel üretimse BOŞ kalır (bugünkü ekran birebir
+           korunur) — metin secenekler.js BEYAN tek kaynağından odemeYontemTazele()
+           tarafından basılır; ayrımı cayma beyanı kapısı korur. -->
+      <span id="yasalCayma" class="odeme-cayma"></span>
       <a href="/gizlilik/" target="_blank" rel="noopener">Gizlilik</a> ·
       <a href="/teslimat-iade/" target="_blank" rel="noopener">Teslimat & İade</a>
     </div>
@@ -1096,7 +1105,10 @@
     </div>
     <div class="havale-uyari">
       <strong>Önemli:</strong> Havale/EFT açıklamasına <strong>sipariş numaranızı</strong> yazın.
-      Ödemeniz hesabımıza geçince üretim başlar; dilerseniz dekontu WhatsApp'tan iletebilirsiniz.
+      <!-- Sınıfa göre yazılır (havaleEkraniGoster): hazır/stok siparişte "üretim başlar"
+           DENMEZ. Statik metin özel üretim halidir = JS düşerse bugünkü davranış. -->
+      <span id="hvBeyan">Ödemeniz hesabımıza geçince üretim başlar; dilerseniz dekontu
+      WhatsApp'tan iletebilirsiniz.</span>
     </div>
     <button type="button" id="havaleKapat" class="cart-pay-btn">Tamam</button>
   </div>
@@ -2013,6 +2025,17 @@
   /* Yöntem/onay değişince buton metni + yasal metin + buton kilidi tazelenir.
      Onay kutusu (kalem 9) işaretsizken buton ÇALIŞMAZ — asıl zorunluluk sunucuda
      (/baslat onaysız isteği 400 ile reddeder); burası kullanıcı deneyimi katmanı. */
+  /* Sepetin HUKUKİ SINIFI: "hazir" | "ozel" | "karma". Karar BURADA TEKRARLANMAZ —
+     secenekler.js sepetSinifi/fizikselMi tek kaynaktır (aynı fonksiyonu Worker'ın
+     sipariş e-postası da çağırır, iki yüzey ayrışamaz).
+     🔴 FAIL-CLOSED: katalogda BULUNAMAYAN satırda (urun=null, kayıp) `tur` yoktur ->
+     "ozel" sayılır, yani bugünkü metin gösterilir; hazır-ürün/cayma beyanı bilinmeyen
+     bir kaleme dayanarak ASLA verilmez. */
+  function sepetBeyanSinifi(){
+    return PRUVO_SECENEK.sepetSinifi(cartLines().map(function(e){
+      return e.urun ? e.urun.tur : undefined;
+    }));
+  }
   function odemeYontemTazele(){
     var havale = odemeYontemi() === "havale";
     var btn = document.getElementById("odemeGonder");
@@ -2021,10 +2044,20 @@
     btn.className = btn.disabled ? "cart-pay-btn disabled" : "cart-pay-btn";
     document.getElementById("yasalKart").style.display = havale ? "none" : "inline";
     document.getElementById("yasalHavale").style.display = havale ? "inline" : "none";
+    /* SINIF BEYANI: havale metni + cayma satırı sepetin sınıfına göre. Hepsi özel
+       üretimse odemeBeyani bugünkü cümleyi AYNEN, caymaBeyani BOŞ döner -> ekran
+       birebir bugünkü haliyle kalır (regresyon bütçesi). */
+    var sinif = sepetBeyanSinifi();
+    document.getElementById("yasalHavale").textContent = PRUVO_SECENEK.odemeBeyani(sinif);
+    document.getElementById("yasalCayma").textContent = PRUVO_SECENEK.caymaBeyani(sinif);
   }
   /* Havale sonucu (kalem 6): içerik (no/IBAN/unvan/TAM tutar/KDV dökümü) SUNUCU
      cevabından — sipariş D1'e 'havale-bekliyor' yazıldı, sepet temizlenir. */
   function havaleEkraniGoster(v){
+    /* SINIF BEYANI — sepet AŞAĞIDA temizlendiği için sınıf İLK İŞ hesaplanır; sonra
+       hesaplansaydı sepet boş olur ve her siparişte "ozel" metni basılırdı. */
+    document.getElementById("hvBeyan").textContent =
+      PRUVO_SECENEK.havaleKutuBeyani(sepetBeyanSinifi());
     document.getElementById("hvNo").textContent = v.no || "";
     document.getElementById("hvUnvan").textContent = v.unvan || "";
     // IBAN sunucudan BOSLUKSUZ gelir (tek kaynak: Worker yapilandirmasi). Ekranda 4'lu

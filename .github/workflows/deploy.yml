@@ -476,6 +476,24 @@ jobs:
       - name: Fiziksel urun kapisi (3D-baski secim UI + karsiliksiz +%15 renk farki)
         run: python3 tools/fiziksel-urun-kapisi.py
 
+      # CAYMA BEYANI KAPISI (TUKETICI HUKUKU — SESSIZ, TERS YONDE ihlal). `tur` alani uzun
+      # sure YALNIZ para yolunu suruyordu; hicbir HUKUKI BEYANI surmuyordu. Olculdu (1 Agu):
+      # siparis onay e-postasi (shop/src/eposta.js) KOSULSUZ "Ürünleriniz özel olarak
+      # üretilip gönderilecektir" diyordu — oysa sozlesme §6 "bu urunler siparis sirasinda
+      # ACIKCA ozel uretim olarak TEYIT EDILIR" der. Yani 659 HAZIR TICARI MAL siparisinde
+      # de, musterinin 14 GUNLUK CAYMA HAKKINI reddetmeye yarayacak teyit siparis aninda
+      # veriliyordu. Kapi 29 iddiayla dort beyan yuzeyini birden olcer: e-posta (kalem
+      # bazinda karma sepet dahil), urun sayfasi, teslimat/mesafeli-satis govdesi, odeme
+      # ekrani + tek kaynak (secenekler.js BEYAN; build.py AYNI sozlugu _js_sabiti ile okur,
+      # ikiz tanim ayrisirsa E4 kirmizi). Regresyon capalari ozel uretim metnini bayt
+      # duzeyinde kilitler; fail-closed eksende 15 taninmayan `tur` degeri `tur`suzle
+      # BAYT-ESIT olmali. C4 ayrica iade kargo bedeli cumlesinin YAZILMAMIS kalmasini
+      # bekler (Okan karari BEKLENIYOR). node ZORUNLU (yoksa fail-closed kirmizi), offline,
+      # urunler.json OKUNMAZ, dosya YAZMAZ. Mutasyon turu (3/3 kirmizi, her biri kendi
+      # ekseninde) elle: python3 tools/cayma-beyani-kapisi.py --mutasyon
+      - name: Cayma beyani kapisi (hazir/stok vs ozel uretim ayrimi BEYAN yolunda)
+        run: python3 tools/cayma-beyani-kapisi.py
+
       # EDGE KART ALAN KAPSAMI (PARA — edge modunda SESSIZ fiyat/beyan sapmasi). index.html
       # EDGE_KATALOG=true iken sepet paneli urun objesini urunler.json'dan DEGIL, ozet.json /
       # edge Worker kartindan alir; secenekler.js satirOzeti fiyati O objeden okur. Karttan bir
