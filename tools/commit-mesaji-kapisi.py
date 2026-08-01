@@ -370,7 +370,8 @@ def _public_mi(host):
 #
 # COZUM: markalar IZLENEN ve zaten PUBLIC olan `urunler.json`'un `marka` alanindan
 # CALISMA ANINDA turetilir — yeni bir liste dosyasi YOK, bayatlama YOK, ve public
-# olmayan hicbir ad yazilmaz. Bir host'un ILK etiketi katalog markasiysa YESIL.
+# olmayan hicbir ad yazilmaz. Bir host'un KAYITLI GOVDESI (ilk etiketi DEGIL; bkz
+# `_kayitli_govde` ve orada beyan edilen TAKAS) katalog markasiysa YESIL.
 #
 # 🔴 GEVSEME DEGIL, cunku SIRA SABIT: ozet (ad) ekseni ONCE bakilir ve KAZANIR.
 # Tedarikci/vitrin adi ozet artefaktindadir; marka listesine (kazara ya da kasten)
@@ -444,6 +445,102 @@ def _host_desen_isabeti(host, kayit):
     return None
 
 
+# ---------------------------------------------------------------------------
+# MUAFIYET EKSENI: KAYITLI ALAN ADI GOVDESI (ILK ETIKET DEGIL) — 1 Agu 2026
+# ---------------------------------------------------------------------------
+# 🔴 OLCULEN ARIZA (n=1294 katalog markasi, alan adi ekseni TEK BASINA, kayit=None):
+# muafiyet host'un ILK etiketinden degerlendiriliyordu (`host.split(".")[0]`).
+#
+#   bicim                     eski hukum
+#   <marka>.<vitrin>.com      1294/1294 YESIL  -> KACAK TAMAMEN ACIK
+#   <vitrin>.<marka>.com         1/1294 YESIL
+#   www.<marka>.com           1293/1294 KIRMIZI -> YANLIS-POZITIF
+#   shop.<marka>.com          1293/1294 KIRMIZI -> YANLIS-POZITIF
+#   <marka>.com               1294/1294 YESIL
+#   (her satirdaki tek istisna `google` — zaten PUBLIC_ALAN'da)
+#
+# Yani ILK etiket kurali kapiyi HEM kacirtiyor HEM de mesru isi durduruyordu ve
+# `--kendini-test` bunu HIC olcmuyordu: alt alanli marka host'u icin ne pozitif ne
+# negatif bir iddia vardi.
+#
+# COZUM: muafiyet KAYITLI ALAN ADI GOVDESINDEN okunur — yani gerceklikte satin
+# alinan etiketten. `www.x.com`/`shop.x.com` -> `x`; `x.com.tr`/`x.co.uk` -> `x`;
+# `x.vitrin.com` -> `vitrin` (marka DEGIL).
+#
+# 🔴 TAKAS ACIKCA BEYAN EDILIR (bu bir tercih, kaza degil):
+#   KAPANAN YON — `<marka>.<vitrin>.com`. Gercek bayi/pazaryeri URL'lerinin biciminin
+#   TA KENDISI budur (satici kendi alan adi altinda marka alt alani acar). Bugun
+#   1294/1294 kacak veriyordu; artik 1294/1294 KIRMIZI. Kazanc BU yondedir.
+#   ACILAN YON — `<vitrin>.<marka>.com`. Bu bicimde alt alan MARKA SAHIBININ kayitli
+#   alan adi altindadir, yani onun tekelindedir: bir tedarikcinin oraya vitrin acmasi
+#   fiilen gerceklesmez. Ucuz olani birakip pahali olani kapatiyoruz.
+#   ACILAN YONUN GENISLIGI: yalniz `.com` degil. Cok parcali uzantida MAIN'de HIC
+#   muafiyet yoktu, bu yuzden `<vitrin>.<marka>.co.uk` 0/1294 -> 1294/1294 yesile
+#   gecer (`.com`'daki 1/1294 -> 1294/1294'ten DAHA GENIS bir acilis). Beyan bu.
+#
+#   IKINCI HAT (🔴 OLCULEREK YAZILDI — onceki surumdeki "her iki yonu de dilim
+#   taramasi yakalar" cumlesi ATIF OLARAK YANLISTI). Acilan yonun savunmasi vitrin
+#   adinin NASIL yazildigina gore IKI FARKLI eksenden gelir:
+#     · vitrin adi TEK JETONLU/BITISIK bir etiketse (uydurma: `vitrinadi.marka.com`)
+#       `_host_desen_isabeti` yakalar — dilim taramasi tum bitisik etiket dizilerini
+#       dener — ve host teshise HIC yazilmaz. Iddia J14 bunu `www.` onekiyle olcer:
+#       orada vitrin ne ilk etiket ne kayitli govdedir, dolayisiyla hukum YALNIZ
+#       dilim taramasindan gelebilir (mutant M25 bu iddiayi oldurur).
+#     · vitrin adi TIRELI/COK JETONLU yazilirsa (uydurma: `vitrin-adi.marka.com`)
+#       dilim taramasi `None` doner ve ALAN ADI EKSENI YESIL KALIR. SEBEP KALINTI
+#       OLARAK YAZILIYOR: `_host_desen_isabeti` etiketleri NORMALIZE ETMEZ, HAM
+#       etiketi ozetler; tireli bicim ne bosluklu ne bitisik desenle eslesir. Hukum o
+#       halde UCUNCU eksenden — mesaj-geneli `ad_isabetleri`'nden — gelir (o eksen
+#       normalize eder, tireyi bosluga cevirir) ve teshis yine ADI YAZMAZ. Iddia J18
+#       bunu olcer: alan ekseni YESIL, TOPLAM HUKUM KIRMIZI.
+#   ⚠️ Bu kalinti BILEREK ONARILMADI: `_host_desen_isabeti`'ni normalize eder hale
+#   getirmek bu isin KAPSAMI DISIDIR (ad ekseni zaten tutuyor, sizinti YOK) ve aday
+#   akisini buyutur — is tavaninin marji zaten dardir (I3: 5701/7000).
+#   ALARM KORLUGU PANZEHIRI — `www.`/`shop.` yanlis-pozitifinin kapanmasi bu deponun
+#   ADI KONMUS arizasidir: mesru is durunca cikis yolu `--no-verify` aliskanligi olur
+#   ve o an TUM eksenler (ad ekseni dahil) birden kapanir. Yanlis-pozitif kapatmak,
+#   burada kapinin KENDISINI ayakta tutan sey.
+#   BEDELIN OLCUSU (🔴 OLCULDU, tahmin EDILMEDI) — muafiyet kumesindeki 1294
+#   markanin **257'si** duz bir Ingilizce sozluk kelimesidir. Bunlar kayitli govde
+#   olarak gecen HER host'u muaf kilar; patlama yaricapi budur.
+#     YONTEM (1 Agu 2026): sozluk `/usr/share/dict/words` (BSD/macOS, 234 454 saf
+#     a-z kelime); eslesme kurali = `katalog_markalari()`'nin urettigi NORMALIZE
+#     marka jetonu ile sozluk kelimesinin BIREBIR (kucuk harf, tam) esitligi.
+#     Ornekler: accord, amazon, apple, atlas, canon, alpine, android, adventure,
+#     axis, bolt, bronco, cavalier, cayenne, focus, golf, seat, transit, master ...
+#     ⚠️ Bu SAYI BAYATLAR: katalog buyudukce degisir. Yeniden olcmeden guncelleme.
+#
+# ⚠️ LISTE KAPALI VE KISADIR: yalniz `<govde>.<ek>.<ccTLD>` biciminde GERCEKTEN
+# ikinci seviye kayit eki olarak kullanilan etiketler. Uzun bir "public suffix"
+# taklidi YAPILMAZ ([[mimar-kapi-parser-taklidi]]). IKI YON DE YUK TASIR ve IKISI DE
+# OLCULUR — tek yonlu bir iddia olu nobetcidir:
+#   · KISALMA (eksik ek) -> YANLIS-POZITIF (siki taraf). Iddia J12, mutant M28.
+#   · SISME (fazladan ek) -> KACAK. Bir `shop`/`store`/`www` bu listeye girerse
+#     `<marka>.shop.com` govdesi `marka` sanilir ve MUAF olur. Iddia J17, mutant M29.
+#     🔴 Bu yon ONCE TESTSIZDI: bagimsiz curutucu listeyi sisiren bir mutant yazdi ve
+#     batarya 93/93 YESIL gecti (olu nobetci). J17 o deligi kapatir.
+IKINCI_SEVIYE_EK = frozenset(("com", "co", "net", "org", "gov", "edu", "ac"))
+
+
+def _kayitli_govde(host):
+    """Host'un KAYITLI govde etiketi, normalize edilmis. Yoksa None.
+
+    `www.x.com` -> `x` · `x.com.tr` -> `x` · `a.b.x.co.uk` -> `x` ·
+    `marka.vitrin.com` -> `vitrin` · `x` (tek etiket) -> None (muafiyet YOK).
+
+    TEK KAYNAK: muafiyet SADECE buradan turetilir; ikinci bir govde tanimi
+    yazilmaz ([[ikiz-tanim-sessiz-ayrisma]])."""
+    etiketler = [e for e in (host or "").lower().strip(".").split(".") if e]
+    if len(etiketler) < 2:
+        return None
+    govde = etiketler[-2]
+    if govde in IKINCI_SEVIYE_EK and len(etiketler) >= 3:
+        govde = etiketler[-3]
+    # normalize + bosluk atma: tireli markalar korunur (`alfa-romeo` -> `alfaromeo`
+    # katalog tarafinda da ayni cevrimden gecer, bkz katalog_markalari).
+    return normalize(govde).replace(" ", "")
+
+
 def alan_adi_isabetleri(mesaj, kayit=None, markalar=None):
     """[(host, konum, desen_no), ...] — hukme giren host jetonlari.
 
@@ -481,7 +578,8 @@ def alan_adi_isabetleri(mesaj, kayit=None, markalar=None):
         if no is not None:
             isabet.append((host, konum, no))
             continue
-        if normalize(host.split(".")[0]).replace(" ", "") in markalar:
+        govde = _kayitli_govde(host)
+        if govde is not None and govde in markalar:
             continue
         isabet.append((host, konum, None))
     return sorted(isabet)
@@ -1468,6 +1566,121 @@ def kendini_test():
                                          kayit, gercek_markalar)))
         kontrol("J7 urunler.json YOKKEN muafiyet KAPALI (bos kume = KATI davranis)",
                 katalog_markalari(os.path.join(tmp, "yok.json")) == frozenset())
+
+        # ---- J8..J14) MUAFIYET **KAYITLI GOVDEDEN** OKUNUR -------------------
+        # 🔴 OLCULEN ARIZA: muafiyet host'un ILK etiketindendi -> `<marka>.<vitrin>.com`
+        # (gercek bayi/pazaryeri URL bicimi) 1294/1294 YESIL yaniyordu ve `www.`/`shop.`
+        # onekli MESRU marka adresleri 1293/1294 KIRMIZI yaniyordu. Batarya bu ekseni
+        # HIC olcmuyordu: alt alanli marka host'u icin ne pozitif ne negatif iddia vardi.
+        # Asagisi CIFT YONLUDUR — tek yonlu bir iddia olu nobetcidir.
+        _VIT = "uydurmavitrin"          # UYDURMA — ozet artefaktinda YOK (bicim ekseni)
+        _MRK = next((b for b in sorted(gercek_markalar)
+                     if len(b) >= 4 and all("a" <= k <= "z" for k in b)
+                     and not _public_mi(b + ".com")), None)
+        kontrol("J8 olcum icin PUBLIC olmayan saf harfli bir katalog markasi secildi",
+                bool(_MRK), repr(_MRK))
+
+        def _kirmizi_mi(host, _kayit=None):
+            return bool(alan_adi_isabetleri("kaynak: https://%s/liste" % host,
+                                            _kayit, gercek_markalar))
+
+        def _toplu(kur):
+            """(yesil, kirmizi) — TUM katalog markasi icin bicim suzgeci."""
+            y = k = 0
+            for _b in sorted(gercek_markalar):
+                if _kirmizi_mi(kur(_b)):
+                    k += 1
+                else:
+                    y += 1
+            return y, k
+
+        _n = len(gercek_markalar)
+        _y, _k = _toplu(lambda b: "%s.%s.com" % (b, _VIT))
+        kontrol("J9 KAPANAN YON `<marka>.<vitrin>.com` KIRMIZI [%d/%d] "
+                "(eskiden %d/%d YESIL = kacak tamamen acikti)" % (_k, _n, _n, _n),
+                _k == _n, "yesil kalan: %d" % _y)
+        _y, _k = _toplu(lambda b: "%s.%s.com.tr" % (b, _VIT))
+        kontrol("J10 KAPANAN YON cok parcali uzantiyla da KIRMIZI "
+                "`<marka>.<vitrin>.com.tr` [%d/%d]" % (_k, _n), _k == _n,
+                "yesil kalan: %d" % _y)
+        _y, _k = _toplu(lambda b: "www.%s.com" % b)
+        _y2, _k2 = _toplu(lambda b: "shop.%s.com" % b)
+        kontrol("J11 YANLIS-POZITIF KAPANDI: `www.<marka>.com` + `shop.<marka>.com` "
+                "YESIL [%d/%d + %d/%d] (eskiden 1293/1294 KIRMIZI -> alarm korlugu)"
+                % (_y, _n, _y2, _n), _k == 0 and _k2 == 0,
+                "kirmizi kalan: %d + %d" % (_k, _k2))
+        _y, _k = _toplu(lambda b: "%s.com.tr" % b)
+        _y2, _k2 = _toplu(lambda b: "%s.co.uk" % b)
+        kontrol("J12 COK PARCALI UZANTI DELIGI ACILMADI: `<marka>.com.tr` + "
+                "`<marka>.co.uk` YESIL [%d/%d + %d/%d]" % (_y, _n, _y2, _n),
+                _k == 0 and _k2 == 0, "kirmizi kalan: %d + %d" % (_k, _k2))
+        # 🔴 BEYAN EDILMIS TAKAS — SABITLENIR, gizlenmez: bu yonde alt alan MARKA
+        # SAHIBININ kayitli alani altindadir (onun tekeli), yani fiilen gerceklesmez.
+        # Iddia BILINCLI-YESILDIR; birisi bunu kapatmaya kalkarsa J11 kirmizi yanar
+        # (ikisi ayni kuralin iki yuzudur) ve takas yeniden tartisilmis olur.
+        kontrol("J13 BEYAN EDILMIS TAKAS: `<vitrin>.<marka>.com` alan adi ekseninde "
+                "BILINCLI-YESIL (alt alan marka sahibinin tekelinde)",
+                not _kirmizi_mi("%s.%s.com" % (_VIT, _MRK)),
+                repr(alan_adi_isabetleri("kaynak: https://%s.%s.com/liste"
+                                         % (_VIT, _MRK), None, gercek_markalar)))
+        # 🔴 J13'UN IKIZI — takasin BEDELINI odeyen ikinci hat. Vitrin adi ozet
+        # artefaktindaysa AYNI bicim KIRMIZI olmali ve teshis adi YAZMAMALI.
+        # ⚠️ `www.` ONEKI SART: onsuz vitrin host'un ILK etiketi olurdu ve iddia,
+        # kaldirilan ilk-etiket taramasiyla da yesil yanan bir OLU NOBETCI olurdu.
+        # Onekle vitrin ne ilk etiket ne kayitli govdedir -> hukum YALNIZ
+        # `_host_desen_isabeti`nin dilim taramasindan gelebilir (M25 bunu olcer).
+        _ikiz = "www.%s.%s.com" % (_UYDURMA[3], _MRK)
+        _ikiz_hukum = alan_adi_isabetleri("kaynak: https://%s/liste" % _ikiz,
+                                          kayit, gercek_markalar)
+        kontrol("J14 IKIZI: vitrin OZET ARTEFAKTINDAYSA ayni bicim KIRMIZI "
+                "(ikinci hat: dilim taramasi; vitrin ne ilk etiket ne kayitli govde)",
+                bool(_ikiz_hukum) and _ikiz_hukum[0][2] is not None,
+                repr(_ikiz_hukum)[:120])
+        kontrol("J15 IKIZIN TESHISI ALAN ADINI YAZMAZ (kanca kolunda BILE)",
+                _UYDURMA[3] not in " ".join(
+                    kusur("kaynak: https://%s/liste" % _ikiz)).lower(),
+                " ".join(kusur("kaynak: https://%s/liste" % _ikiz))[:140])
+        kontrol("J16 tek etiketli host'ta muafiyet YOK (_kayitli_govde -> None)",
+                _kayitli_govde("localhost") is None and _kayitli_govde("") is None,
+                repr(_kayitli_govde("localhost")))
+
+        # 🔴 J17 — IKINCI_SEVIYE_EK'in SISME YONU. J12 yalniz KISALMAYI (liste
+        # bosaltilinca yanlis-pozitif) olcuyordu; SISME yonu TESTSIZDI ve bagimsiz
+        # curutucu bunu OLU NOBETCI olarak yakaladi: listeye `www/shop/store/web`
+        # EKLEYEN bir mutantta batarya 93/93 YESIL geciyordu. Oysa sisik listeyle
+        # `<marka>.shop.com` govdesi `marka` sanilir -> KIRMIZI'dan YESIL'e duser,
+        # yani her tedarikci vitrini `shop`/`store` alt alani acarak muaflasabilirdi.
+        # Bu iddia o yonu sabitler; mutant M29 iddianin yuk tasidigini kanitlar.
+        _EK_ADAYI = ("shop", "store", "www", "web")
+        _sizan_ek = []
+        for _ek in _EK_ADAYI:
+            _y, _k = _toplu(lambda b, _e=_ek: "%s.%s.com" % (b, _e))
+            if _k != _n:
+                _sizan_ek.append("%s:%d/%d" % (_ek, _k, _n))
+        kontrol("J17 SISME YONU: `<marka>.<jenerik-ek>.com` KIRMIZI kaliyor "
+                "(%s · her biri %d/%d) — jenerik etiket IKINCI_SEVIYE_EK'e giremez"
+                % ("/".join(_EK_ADAYI), _n, _n), not _sizan_ek,
+                "kacak veren ek: %s" % _sizan_ek)
+
+        # 🔴 J18 — OLCULEN KALINTI, BEYAN DUZELTMESI. Onceki yorum "vitrin adi ozet
+        # artefaktindaysa dilim taramasi HER IKI YONU DE yakalar" diyordu; bagimsiz
+        # curutucu bunun ATIF OLARAK YANLIS oldugunu olctu. `_host_desen_isabeti`
+        # etiketleri NORMALIZE ETMEZ: vitrin adi TIRELI/COK JETONLU yazilirsa dilim
+        # taramasi None doner ve ALAN ADI EKSENI YESIL kalir. Sizinti YOKTUR, cunku
+        # hukum UCUNCU eksenden (mesaj-geneli `ad_isabetleri`, o eksen normalize eder)
+        # gelir ve teshis adi yazmaz. Iddia her UC olcuyu de sabitler ki bu kalinti
+        # sessizce "alan ekseni tutuyor" sanilmasin ve ad ekseni de sessizce olmesin.
+        _TIRELI = "hayali-vitrin"       # UYDURMA — artefaktta "hayali vitrin" KAYITLI
+        _t_metin = "kaynak: https://%s.%s.com/liste" % (_TIRELI, _MRK)
+        _t_alan = alan_adi_isabetleri(_t_metin, kayit, gercek_markalar)
+        _t_ad = ad_isabetleri(mesaj_govdesi(_t_metin), kayit)
+        _t_kusur = " ".join(kusur(_t_metin))
+        kontrol("J18 KALINTI: tireli/cok jetonlu vitrin adinda dilim taramasi "
+                "NORMALIZE ETMEZ -> alan ekseni YESIL, ama AD EKSENI tutar ve "
+                "TOPLAM HUKUM KIRMIZI (teshis adi YAZMAZ)",
+                not _t_alan and bool(_t_ad) and bool(_t_kusur)
+                and "vitrin" not in _t_kusur.lower(),
+                "alan=%r ad=%r kusur=%s" % (_t_alan, _t_ad, _t_kusur[:90]))
 
         # ---- K) BAYAT ADIM ADI NOBETI --------------------------------------
         # 🔴 OLCULEN ARIZA: deploy.yml adim adi "56 iddia" diyordu, gercek 58'di.

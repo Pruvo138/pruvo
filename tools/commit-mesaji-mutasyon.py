@@ -116,9 +116,11 @@ MUTANTLAR = (
      "        if no is not None:\n"
      "            isabet.append((host, konum, no))\n"
      "            continue\n"
-     "        if normalize(host.split(\".\")[0]).replace(\" \", \"\") in markalar:\n"
+     "        govde = _kayitli_govde(host)\n"
+     "        if govde is not None and govde in markalar:\n"
      "            continue",
-     "        if normalize(host.split(\".\")[0]).replace(\" \", \"\") in markalar:\n"
+     "        govde = _kayitli_govde(host)\n"
+     "        if govde is not None and govde in markalar:\n"
      "            continue\n"
      "        no = _host_desen_isabeti(host, kayit)\n"
      "        if no is not None:\n"
@@ -174,6 +176,46 @@ MUTANTLAR = (
      "    govde = etiketler[0]\n"
      '    akislar = (" ".join(etiketler), "".join(etiketler), govde,\n'
      '               " ".join(etiketler[:-1]), "".join(etiketler[:-1]))', True),
+    # --- MUAFIYET EKSENI: KAYITLI GOVDE (1 Agu 2026 OLCULEN KACAK + YANLIS-POZITIF)
+    # 🔴 M26 arizanin TA KENDISIDIR: muafiyet ILK etiketten okununca
+    # `<marka>.<vitrin>.com` — gercek bayi/pazaryeri URL bicimi — 1294/1294 YESIL
+    # yaniyor (kacak tamamen acik) ve `www.`/`shop.` onekli MESRU marka adresleri
+    # 1293/1294 KIRMIZI yaniyordu (alarm korlugu -> `--no-verify` aliskanligi).
+    ("M26 muafiyet ILK ETIKETE dondu (kacak acilir + yanlis-pozitif geri gelir)",
+     "kapi",
+     "    govde = etiketler[-2]\n"
+     "    if govde in IKINCI_SEVIYE_EK and len(etiketler) >= 3:\n"
+     "        govde = etiketler[-3]",
+     "    govde = etiketler[0]", True),
+    # 🔴 M27 "daha comert olsun" refleksinin bedelini olcer: muafiyet HER etikete
+    # bakarsa marka adi host'un HERHANGI bir yerinde gecen TUM adresler yesil olur —
+    # yani `<marka>.<vitrin>.com` yeniden kacak verir. Muafiyet TEK bir etiketten,
+    # KAYITLI govdeden okunmalidir.
+    ("M27 muafiyet HER ETIKETE bakti (any-label -> muafiyet gene bypass olur)",
+     "kapi",
+     "        govde = _kayitli_govde(host)\n"
+     "        if govde is not None and govde in markalar:\n"
+     "            continue",
+     "        if any(normalize(_e).replace(\" \", \"\") in markalar\n"
+     "               for _e in host.lower().strip(\".\").split(\".\")):\n"
+     "            continue", True),
+    # 🔴 M28 ikinci-seviye ek listesinin YUK TASIDIGINI kanitlar: bosaltilirsa
+    # `<marka>.com.tr` / `<marka>.co.uk` govdesi `com`/`co` sanilir ve MESRU marka
+    # adresleri yeniden KIRMIZI yanar (yanlis-pozitif geri gelir).
+    ("M28 ikinci-seviye ek listesi BOSALTILDI (cok parcali uzantida yanlis-pozitif)",
+     "kapi",
+     'IKINCI_SEVIYE_EK = frozenset(("com", "co", "net", "org", "gov", "edu", "ac"))',
+     "IKINCI_SEVIYE_EK = frozenset()", True),
+    # 🔴 M29 M28'IN TERS YONUDUR ve BAGIMSIZ CURUTUCU tarafindan bulundu: liste
+    # yalniz "cok kisa" yonunde korunuyordu. Jenerik etiketler listeye EKLENINCE
+    # `<marka>.shop.com` govdesi `marka` sanilir ve MUAF olur -> her tedarikci vitrini
+    # bir `shop`/`store` alt alaniyla muaflasabilir. Bu mutant ILK yazildiginda
+    # batarya 93/93 YESIL geciyordu (OLU NOBETCI); J17 o deligi kapatti.
+    ("M29 ikinci-seviye ek listesi SISIRILDI (jenerik etiket -> muafiyet kacagi)",
+     "kapi",
+     'IKINCI_SEVIYE_EK = frozenset(("com", "co", "net", "org", "gov", "edu", "ac"))',
+     'IKINCI_SEVIYE_EK = frozenset(("com", "co", "net", "org", "gov", "edu", "ac",\n'
+     '                              "www", "shop", "store", "web"))', True),
     # --- ILGISIZ (kontrol): batarya YESIL kalmali ---
     ("K1  ilgisiz: baslik yorumunda kelime degisti", "kapi",
      "IKI KOL — biri ONLER, digeri GORUNUR KILAR",
