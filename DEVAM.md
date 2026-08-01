@@ -108,7 +108,7 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 ## MERGE — marka muafiyeti kayitli alan adi govdesinden (1 Agu, olculdu)
 
 - Merge `f6840e3f` (taban `11334fef`, dal tek commit `b85f5b4b`). Kapsam TAM 2 dosya,
-  +259 / -4. Cakisma YOK. Kendi sizinti taramam: 6 desen sinifinda 0 vurus.
+  +259 / -4. Cakisma YOK. Kendi desen taramam: 6 sinifta 0 vurus.
 - **Sorun:** muafiyet host'un ILK etiketinden okunuyordu. Olculdu (n=1294 katalog
   markasi, alan adi ekseni tek basina): marka etiketi one alinmis bayi bicimi
   **1294/1294 gecer** (kacak tamamen acik), on ekli mesru marka adresleri
