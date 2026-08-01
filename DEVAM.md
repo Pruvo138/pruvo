@@ -81,8 +81,8 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - KARDES MIMAR: vida ailesi PUL-only teslimi, metin temizligi plani.
 
 ## TABAN (yeniden olc, ezberleme)
-- Katalog: D1 sayi ekseni 16518 == 16518; icerik ekseni birebir, uyusmaz 0 / eksik 0 / fazla 0.
-- Calisma alani: 8 worktree, 15 yerel dal (kapanista 1 worktree + 5 olu dal temizlendi).
+- Katalog: D1 sayi ekseni 16542 == 16542; icerik ekseni birebir, uyusmaz 0 / eksik 0 / fazla 0.
+- Calisma alani: 6 worktree, 13 yerel dal (kapanista 3 worktree + 8 olu dal temizlendi).
 
 ## EK — mesaj-nobeti kirmizisi: geri-donus kapisi kapandi (1 Agu, kapanis ek kaydi)
 
