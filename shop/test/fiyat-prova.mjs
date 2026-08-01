@@ -1110,7 +1110,11 @@ async function yonetKalemleri(mod, urun, k) {
                      [{ id: urun.id, baski: "", parametrik: 0 }]),
   });
   const cevap = await mod.default.fetch(
-    new Request("https://pruvo3d.com/api/shop/yonet/liste?anahtar=" + YONET_ANAHTAR),
+    // Anahtar SORGU DIZESINDE DEGIL, X-Yonet-Anahtar BASLIGINDA gider: `?anahtar=` yolu
+    // kaldirildi (tam URL erisim loglarina/gecmise/Referer'a yaziliyordu). Sorgu ile
+    // cagrilirsa bu uc artik 404 doner ve BICIM ekseni sahte kirmizi yanar.
+    new Request("https://pruvo3d.com/api/shop/yonet/liste",
+                { headers: { "X-Yonet-Anahtar": YONET_ANAHTAR } }),
     env, { waitUntil() {} });
   let govde = {};
   try { govde = await cevap.json(); } catch (e) { govde = {}; }
