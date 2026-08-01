@@ -82,6 +82,35 @@ jobs:
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
 
+      # DEVAM SINIF KAPISI (1 Agu) — IZLENEN KOK DEFTERLERININ **ICERIK SINIFI**.
+      # NEDEN BURADA (yer secimi): `DEVAM.md` 31 Tem'de git takibine ALINDI ve o
+      # tarihten beri bes ev / cok sayida oturum ayni dosyaya yaziyor; ne yazildiginin
+      # SINIFINI kimse denetlemiyordu. Depo PUBLIC: bir kez commit'lenen blob silinse
+      # bile anonim cekilebilir -> sessiz-hata sinifi.
+      # NEDEN COMMIT-MSG DEGIL: ihlal MESAJDA degil DOSYA ICERIGINDE.
+      # NEDEN KANCA DEGIL: git kancalari COMMIT EDILMEZ; bes evde/her klonda kurulu
+      # olduklari GARANTI DEGILDIR ve `--no-verify` atlar. Buradaki kablo ise
+      # tools/ci-kapsam-test.py tarafindan KESFEDILIR (tools/*-kapisi.py) -> silinirse
+      # ya da `echo`/`--help` mensiyonuna cevrilirse O kapi kirmizi yanar.
+      # NEDEN `build` (serit-b DEGIL): `deploy` -> needs: build, `yayin` -> needs: deploy.
+      # Yani bu adim kirmizi yanarsa YAYIN CIKMAZ. serit-b'ye konsaydi "bagiran ama
+      # bloklamayan" olurdu (bkz. tools/is-akisi-kapisi.py :: SERIT_B).
+      # MEVCUT NOBETCILER BU EKSENI GORMEZ: kisisel-veri-test.py DEVAM.md'yi AD
+      # ekseninde IZIN LISTESINE aldi (icerik bakmaz); commit-mesaji-kapisi.py
+      # --kaynak-tara yalniz kendi bes dosyasini tarar.
+      # Tedarikci/satici ADI ekseni commit-mesaji-kapisi.py'nin PBKDF2 OZET
+      # mekanizmasindan MODUL olarak gelir -> yasakli ad hicbir yere YAZILMAZ.
+      # Eslesen METIN BASILMAZ (CI gunlugu PUBLIC). Offline, ~4 s.
+      - name: Devam sinif kapisi (izlenen kok defterlerinin icerik sinifi)
+        run: python3 tools/devam-sinif-kapisi.py
+
+      # Kapinin KENDI hukmu: 22 kirmizi + 29 yesil fikstur, E1 ozet mekanizmasi
+      # (uydurma adla GERCEK uretim yolu), fail-closed (desen kaynagi yok / dosya
+      # UTF-8 cozulemiyor) ve CANLILIK (git rc=0 + bos/kismi liste) dallari.
+      # Ustteki adim yesilken bu adim kirmizi ise nobetci OLMUS demektir.
+      - name: Devam sinif kapisi ic nobetci (kapinin kendi mantigi)
+        run: python3 tools/devam-sinif-kapisi.py --kendini-test
+
       # DIRILTME KAPISI — "silinmis urun sessizce geri geldi mi". BLOKLAYICI
       # (continue-on-error YOK): yerel + deterministik, ag ISTEMEZ.
       # OLCULEN OLAY (30 Tem): bir dal main'e alinirken urunler.json'un SATIR-DUZEYI

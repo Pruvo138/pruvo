@@ -1,0 +1,804 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""tools/devam-sinif-kapisi.py — IZLENEN KOK DEFTERLERINDE **ICERIK SINIFI** KAPISI.
+
+🔴 NEDEN VAR (olculdu 1 Agu 2026): `DEVAM.md` 31 Tem'de Okan karariyla git TAKIBINE
+alindi (devralan yarim isi gorebilsin diye). Alinmadan ONCE hassas bloklar
+`DEVAM-ARSIV.md`'ye (git DISI) tasinmisti — ama o tarihten sonra BES ev ve cok
+sayida oturum AYNI dosyaya yazmaya devam ediyor ve yazilanin ICERIK SINIFINI
+kimse denetlemiyor. Depo PUBLIC (Pruvo138/pruvo): dosya ham olarak servis edilir,
+kod aramasi ve egitim kazimalari tarafindan okunur, ve bir kez commit'lenen blob
+silinse bile anonim olarak cekilebilir.
+
+Yani bu, tam olarak SESSIZ-HATA sinifidir: hicbir sey kirmizi yanmaz, hicbir
+ekran uyarmaz, yalnizca bir gun disaridan biri defteri okur.
+
+MEVCUT NOBETCILER NEDEN YETMEZ (olculdu):
+  * tools/kisisel-veri-test.py Kural B: DEVAM.md'yi AD ekseninde izin listesine
+    aldi -> artik gecirir. Icerik eksenini o kural HIC olcmez.
+  * tools/commit-mesaji-kapisi.py: COMMIT MESAJI ekseni; `--kaynak-tara` kolu ise
+    yalnizca KENDI bes dosyasini tarar (KAYNAK_TARAMA), kok defterlerini DEGIL.
+  * tools/kisisel-veri-test.py icerik ekseni: satici kisisel verisini uretilen
+    HTML sayfalarinda arar; kok .md defterlerini taramaz.
+Bu kapi o bosluktur.
+
+NEDEN COMMIT-MSG DEGIL: ihlal MESAJDA degil DOSYA ICERIGINDEDIR. commit-msg
+kancasi calisma agacini gormez.
+
+NEDEN CI'DAKI `build` KOLU (yer secimi — GEREKCE):
+  * git kancalari COMMIT EDILMEZ (.git/ depoda yasamaz). Bes ev + her yeni klon +
+    her izole worktree icin "kanca kurulu mu" garantisi YOKTUR; `--no-verify` de
+    tek satirda atlar. Bir kancaya baglanan kural, kurulu OLMAYAN makinede
+    SESSIZCE yok demektir — bu kapinin kapatmak istedigi sinifin ta kendisi.
+  * `build` isi yayin yolunun BASIDIR: `deploy` -> `needs: build`, `yayin` ->
+    `needs: deploy`. Yani bu adim kirmizi yanarsa pruvo3d.com'a YAYIN CIKMAZ;
+    kapi "bagiran ama bloklamayan" degildir. (Olcum: tools/is-akisi-kapisi.py
+    SERIT tablosu + `needs` zinciri.)
+  * tools/ci-kapsam-test.py `tools/*-kapisi.py` adini KESFEDER: bu betik
+    deploy.yml'den silinirse ya da `echo`/`--help` ile mensiyona cevrilirse O
+    kapi kirmizi yanar. Yani buradaki kablo KENDI nobetcisine sahiptir; bir
+    kancadaki satirin boyle bir nobetcisi YOKTUR.
+  Beyan edilen sinir: CI `push`ta kosar, yani ihlal main'e ULASTIKTAN sonra
+  yakalanir ve YAYINI durdurur. Daha erken (pre-commit) bir kol EKLENEBILIR ama
+  onun kurulu olmasi GARANTI EDILEMEZ; bu yuzden ZORLAYICI kol CI'dadir.
+
+KAPSAM: `git ls-files` ciktisindan KOK seviyedeki (yolda '/' YOK) BELGE
+uzantili dosyalar. Bugun uc dosya: DEVAM.md · README.md · ege-bilgi.md. Kural
+ad-BAGIMSIZDIR: yarin izlenen yeni bir kok defteri (NOTLAR.md, DEVIR.md) acilirsa
+kapsama KENDILIGINDEN girer. Muafiyet listesi YOKTUR (liste = curume).
+
+🔴 YANLIS-POZITIF BUTCESI (bu dosyanin varlik sarti): DEVAM.md HER OTURUMDA
+guncellenir. Kapi surekli yanarsa herkes `--no-verify` aliskanligina kayar ve
+koruma SIFIRLANIR. Bu yuzden:
+  * MESRU IS AKISI metni YESIL kalir: kapi ADLARI, olcum sayilari, dal/SHA,
+    kime ne is dustugu, "fail-closed" beyani, kabul testi sayilari.
+  * Desenler DAR ve ACIKTIR; genis kelime avina CIKILMAZ.
+  * Butce KOSARAK olculur: --kendini-test hem gercek DEVAM.md'yi hem
+    DEVAM-ARSIV.md'yi (varsa) tarar ve mesru satirlarda vurus SAYAR.
+
+OLCULEN EKSENLER (her biri ayri bir sinif; hepsi FAIL-CLOSED):
+  E1 satici-kimligi   — tedarikci/satici ADI ve GIZLI ALAN ADI. Kural KODA
+                        YAZILMAZ: tools/commit-mesaji-kapisi.py'nin PBKDF2 OZET
+                        mekanizmasi (tools/sizinti-desen-ozetleri.json) MODUL
+                        olarak kullanilir. Duz ad bu dosyada GECMEZ.
+  E2 oran-marj        — iskonto / marj / komisyon / alis-maliyet fiyati + SAYI.
+  E3 gizli-dosya      — sir tasiyan gitignore'lu artefakt ADLARI (dar literal
+                        liste). DEVAM-ARSIV.md BILEREK LISTEDE DEGIL: adi
+                        CLAUDE.md'de zaten yazar ve defterin ilk satiri ona
+                        isaret eder — sir tasiyan bir ad degildir.
+  E4 sir-jeton        — jeton/anahtar BICIMLERI (ALLCAPS *_TOKEN/_KEY/_SECRET,
+                        sk-/ghp_/AKIA, >=32 hane hex, >=40 karakter karisik
+                        base64) + "wrangler secret" sinifi ifadeler.
+  E5 kapi-bypass      — fail-open beyani, `--no-verify`, bypass, PRUVO_*_ATLA,
+                        core.hooksPath, "kapiyi/nobetciyi devre disi", ve
+                        NOBETCI KORLUGU (kapi/nobetci + gormez/kacirir/kor nokta).
+  E6 guvenlik-bulgusu — "yasakli ad", "satici/tedarikci adi|kimligi", "ifsa",
+                        "sizdi", ve GATE-ADI OLMAYAN "sizinti" kullanimi; ayrica
+                        SUNUCU/API yuzeyi + istismar fiili es-olusumu
+                        (or. "sunucuda tahsil edil...", "reddedilmeli", "kor").
+
+🔴 ESLESEN METIN BASILMAZ. Cikti yalniz (dosya, satir no, eksen, DESEN ETIKETI)
+tasir. Aksi halde kapi sizintiyi kendi CI gunlugunde (PUBLIC) cogaltirdi.
+
+Kullanim:
+    python3 tools/devam-sinif-kapisi.py               # izlenen kok defterlerini yargila
+    python3 tools/devam-sinif-kapisi.py --kendini-test
+    python3 tools/devam-sinif-kapisi.py --mutasyon    # KOPYA uzerinde mutasyon bataryasi
+    python3 tools/devam-sinif-kapisi.py --dosya <yol> # tek dosya (tani/fikstur)
+
+Cikis kodu: 0 = temiz · 1 = SINIF IHLALI · 2 = OLCULEMEDI (fail-closed).
+"""
+import argparse
+import hashlib
+import importlib.util
+import os
+import re
+import subprocess
+import sys
+import tempfile
+
+TOOLS = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(TOOLS)
+
+RC_TEMIZ = 0
+RC_IHLAL = 1
+RC_OLCULEMEDI = 2
+
+KAPI_YOLU = "tools/devam-sinif-kapisi.py"
+
+# Kok BELGE uzantilari — kapsam bunlarla sinirlidir. (index.html / urunler.json /
+# *.js kok dosyalari BILEREK kapsam disi: onlar yayinlanan varliklardir ve kendi
+# nobetcileri vardir; buraya alinmalari bloklayici yanlis-pozitif riski yaratir.)
+BELGE_UZANTILARI = (".md", ".markdown", ".txt", ".rst", ".adoc")
+
+
+# ===========================================================================
+# E1 — SATICI KIMLIGI: OZET MEKANIZMASI (duz ad KODA YAZILMAZ)
+# ===========================================================================
+# TEK KAYNAK: tools/commit-mesaji-kapisi.py. Ikinci bir kopya = drift
+# ([[ayna-kapi-kesif-ekseni]]). FAIL-CLOSED: modul ya da ozet artefakti
+# yuklenemezse bu kapi YESIL VERMEZ (rc 2) — "olcemedim" YESIL degildir.
+_OZET_SOZLESME = ("normalize", "ozet_kaydi_yukle", "ad_isabetleri", "adaylar",
+                  "_ozetle", "alan_adi_isabetleri", "katalog_markalari")
+
+
+def ozet_modulu(yol=None):
+    """(modul, hata). tools/commit-mesaji-kapisi.py'yi MODUL olarak yukler."""
+    yol = yol or os.path.join(TOOLS, "commit-mesaji-kapisi.py")
+    if not os.path.isfile(yol):
+        return None, ("desen kaynagi YOK: %s — E1 (satici kimligi) ekseni OLCULEMEZ. "
+                      "Yasakli ad bu dosyaya YAZILAMAZ (depo PUBLIC), o yuzden ozet "
+                      "mekanizmasi ZORUNLUDUR." % yol)
+    try:
+        spec = importlib.util.spec_from_file_location("pruvo_sizinti_ozet", yol)
+        mod = importlib.util.module_from_spec(spec)
+        sys.modules["pruvo_sizinti_ozet"] = mod
+        spec.loader.exec_module(mod)
+    except Exception as e:                                  # noqa: BLE001
+        return None, "desen kaynagi YUKLENEMEDI: %s (%s)" % (yol, e)
+    for ad in _OZET_SOZLESME:
+        if not hasattr(mod, ad):
+            return None, ("desen kaynaginda %s YOK -> ozet sozlesmesi degismis "
+                          "(fail-closed)" % ad)
+    return mod, None
+
+
+# ===========================================================================
+# E2..E6 — DAR VE ACIK DESENLER
+# ===========================================================================
+# 🔴 DESEN YAZMA KURALI: her desen ya TAM BIR IFADEdir ya da IKI PARCANIN AYNI
+# SATIRDA es-olusumudur. Tek basina genis kelime ("acik", "kapi", "guvenlik",
+# "risk") DESEN DEGILDIR — olculdu: bunlar mesru is akisi metnini yakar.
+
+# --- E2: oran / marj -------------------------------------------------------
+# ⚠️ "guvenlik marji" BILEREK DISARIDA (olculdu: bir MUHENDISLIK sabiti —
+# GUVENLIK_MARJI=400 — ticari marj DEGILDIR ve mesru is akisi metninde gecer).
+E2_KONU = re.compile(
+    r"\b(iskonto|(?<!guvenlik )marj|kar payi|karpayi|komisyon|alis fiyati|"
+    r"alim fiyati|maliyet fiyati|tedarik fiyati|kur farki|doviz kuru)\b")
+E2_SAYI = re.compile(r"\d")
+
+# --- E3: sir tasiyan gitignore'lu artefaktlar (HAM metin, dar literal) ------
+# DEVAM-ARSIV.md BILEREK YOK (bkz. baslik). .gitignore/.driveignore de YOK:
+# ikisi de IZLENEN ve zaten PUBLIC.
+E3_DESENLER = (
+    ("r2-kimlik-dosyasi", re.compile(r"(?<![\w.-])\.r2-credentials\.json\b")),
+    ("urun-kaynak-kaydi", re.compile(r"(?<![\w.-])\.urun-kaynaklari\.json\b")),
+    ("sizinti-desen-kaynagi", re.compile(r"(?<![\w.-])\.sizinti-desenleri\.txt\b")),
+    ("wrangler-gizli-degisken", re.compile(r"(?<![\w.-])\.dev\.vars\b")),
+    ("ortam-dosyasi", re.compile(r"(?<![\w.-])\.env(\.[A-Za-z0-9_-]+)?\b")),
+)
+
+# --- E4: jeton / anahtar BICIMLERI (HAM metin) -----------------------------
+# ⚠️ DAR TUTULDU: DEVAM.md 8 haneli git SHA'lariyla ve 9-11 haneli olcum
+# sayilariyla DOLUDUR. Hex esigi 32'dir; bu depoda hicbir mesru satir o uzunlukta
+# hex tasimaz (olculdu). Base64 esigi 40 VE uc karakter sinifinin de bulunmasi
+# sartina baglidir.
+E4_HAM = (
+    ("allcaps-sir-adi",
+     # ⚠️ ONEK'te ALT CIZGI SART: olculdu ki `[A-Z0-9]{2,}` oneki
+     # CLOUDFLARE_API_TOKEN'i KACIRIYORDU ("...E_API" arasinda kelime siniri yok).
+     re.compile(r"\b[A-Z][A-Z0-9_]{2,}_(TOKEN|KEY|SECRET|PASSWORD|CREDENTIAL|"
+                r"CREDENTIALS|APIKEY)\b")),
+    ("saglayici-jetonu", re.compile(r"\b(sk-[A-Za-z0-9]{16,}|ghp_[A-Za-z0-9]{20,}|"
+                                    r"AKIA[0-9A-Z]{12,})\b")),
+    ("uzun-hex", re.compile(r"(?<![0-9A-Za-z])[0-9a-fA-F]{32,}(?![0-9A-Za-z])")),
+)
+_E4_B64 = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/]{40,}={0,2}(?![A-Za-z0-9+/=])")
+E4_NORM = re.compile(r"\b(wrangler secret|secret put|api anahtari|erisim anahtari|"
+                     r"gizli anahtar|hesap kimligi)\b")
+
+# --- E5: kapi bypass'i / fail-open / nobetci korlugu -----------------------
+# NOT: normalize() alfanumerik olmayan her seyi BOSLUGA cevirir; bu yuzden
+# "fail-open" -> "fail open", "--no-verify" -> "no verify", "core.hooksPath" ->
+# "core hookspath". "fail-closed" -> "fail closed" ve DESENDE YOKTUR (mesru beyan).
+E5_DESENLER = (
+    ("fail-open-beyani", re.compile(r"\bfail open\b")),
+    ("kanca-atlama-bayragi", re.compile(r"\bno verify\b")),
+    ("bypass", re.compile(r"\bbypass\w*\b")),
+    ("ortam-atlama-anahtari", re.compile(r"\bpruvo [a-z0-9]+ atla\b")),
+    ("kanca-yolu-oldurme", re.compile(r"\bcore hookspath\b")),
+    ("kapi-devre-disi", re.compile(
+        r"\b(kapiyi|kapisini|nobetciyi|nobetcisini|korumayi|kancayi|kilidi)"
+        r" devre disi\b")),
+)
+# NOBETCI KORLUGU: iki parcanin AYNI SATIRDA es-olusumu.
+E5_KORUYUCU = re.compile(r"\b(nobetci|nobetcisi|nobetciler|kapi|kapisi|kapilar|"
+                         r"guard|kanca|hook)\b")
+E5_KORLUK = re.compile(r"\b(gormez|gormedi|gormuyor|gormezdi|kacirir|kacirdi|"
+                       r"kaciriyor|kaciyordu|yakalamaz|yakalamadi|kor nokta|"
+                       r"nobetsiz|atlanir|atlatilir|korumasiz)\b")
+
+# --- E6: guvenlik bulgusu / sizinti olayi ----------------------------------
+# 🔴 GATE-ADI / OLCUM ISTISNASI (yanlis-pozitif butcesinden GELDI — 1 Agu, 6665
+# satirlik gercek arsiv korpusunda olculdu): "sizinti nobetcisi", "sizinti nobeti",
+# "sizinti yok", "sizinti TEMIZ", "tedarikci-adi nobetcisi" MESRU IS AKISI
+# metnidir (kapi ADI ya da OLCUM sonucu). Ilk surumde bunlar YANIYORDU; boyle bir
+# kapi her oturumda kirmizi yanip `--no-verify` aliskanligi yaratirdi.
+_GATE_ADI = (r"nobetci|nobetcisi|nobetcileri|nobeti|kapisi|kapi|kapilari|"
+             r"taramasi|testi|deseni|desenleri|hatti|butcesi|olcumu|sayaci|"
+             r"riski|sinifi|ekseni")
+_OLCUM_SONUCU = r"yok|temiz|sifir|0\b"
+
+E6_DESENLER = (
+    ("yasakli-ad-ifadesi", re.compile(r"\byasakli ad\w*\b")),
+    ("satici-kimlik-ifadesi",
+     re.compile(r"\b(satici|tedarikci|tasarimci) (ad|adi|adini|kimlig|kimligi|"
+                r"kimligini)\w*\b(?! ?(%s))" % _GATE_ADI)),
+    ("ifsa", re.compile(r"\bifsa\w*\b")),
+    ("sizdi", re.compile(r"\b(sizdi|sizmis|sizmisti|sizdirdi)\b")),
+    # "sizinti" TEK BASINA kirmizidir; ARDINDAN bir KAPI-ADI ismi ya da bir OLCUM
+    # SONUCU gelirse YESIL.
+    ("sizinti-olayi", re.compile(
+        r"\bsizinti\w*\b(?! ?(%s|%s))" % (_GATE_ADI, _OLCUM_SONUCU))),
+)
+# SUNUCU/API YUZEYI + ISTISMAR FIILI es-olusumu (istismar edilebilir acik tarifi).
+E6_YUZEY = re.compile(r"\b(sunucu|sunucuda|sunucuya|sunucunun|sunucudaki|"
+                      r"sunucu tarafinda|api|endpoint|uc noktasi)\b")
+E6_ISTISMAR = re.compile(r"\b(tahsil edil\w*|fazla tahsil|eksik tahsil|"
+                         r"dogrulanmiyor|dogrulanmadan|dogrulanmiyordu|yetkisiz|"
+                         r"reddedilmeli|uygulanmamali|kor)\b")
+
+
+def _b64_isabeti(ham):
+    """>=40 karakterlik base64 gorunumlu dizide UC karakter sinifi da var mi.
+    (Sinif sarti olmadan uzun duz metin/URL parcalari yanlis-pozitif verirdi.)"""
+    for m in _E4_B64.finditer(ham):
+        s = m.group(0)
+        if (any(c.islower() for c in s) and any(c.isupper() for c in s)
+                and any(c.isdigit() for c in s)):
+            return True
+    return False
+
+
+# YEREL/DONGU adresleri E1 alan-adi ekseninde YANLIS-POZITIFTIR: satici/vitrin
+# alan adi degil, gelistirme ucudur (olculdu: `http://localhost:8137` canli panel).
+_YEREL_UC = re.compile(r"\b(localhost|127\.0\.0\.1|0\.0\.0\.0|::1)\b", re.I)
+
+
+def satir_eksenleri(ham, norm, kayit=None, ozet=None, markalar=None,
+                    ad_ekseni=True):
+    """Tek satir -> [(eksen, desen_etiketi), ...]. Eslesen METIN DONMEZ.
+
+    ad_ekseni=False: E1'in PBKDF2 AD kolu ATLANIR — metin_bulgulari() onu TUM
+    belge icin TEK KUMEDE toplu ozetler (satir basina ozetleme O(satir x kelime)
+    PBKDF2 demektir; olculdu: 244 satirda 4,0 s, 1061 satirda 26 s -> defter
+    buyudukce bloklayici CI adimi surunur)."""
+    bulgular = []
+
+    # E1 — satici kimligi (ozet mekanizmasi; duz ad bu dosyada YOK)
+    if ozet is not None and kayit is not None:
+        if ad_ekseni:
+            for no, _n in ozet.ad_isabetleri(ham, kayit):
+                bulgular.append(("E1 satici-kimligi", "gizli-desen-#%d" % no))
+        try:
+            if not _YEREL_UC.search(ham):
+                for kusur in ozet.alan_adi_isabetleri(ham, kayit, markalar):
+                    bulgular.append(("E1 satici-kimligi", "taninmayan-alan-adi"))
+                    del kusur
+        except Exception:                                   # noqa: BLE001
+            bulgular.append(("E1 satici-kimligi", "alan-adi-ekseni-OLCULEMEDI"))
+
+    # E2 — oran / marj
+    if E2_KONU.search(norm) and E2_SAYI.search(norm):
+        bulgular.append(("E2 oran-marj", "oran-konusu+sayi"))
+
+    # E3 — gizli dosya adi
+    for etiket, rx in E3_DESENLER:
+        if rx.search(ham):
+            bulgular.append(("E3 gizli-dosya", etiket))
+
+    # E4 — jeton / anahtar
+    for etiket, rx in E4_HAM:
+        if rx.search(ham):
+            bulgular.append(("E4 sir-jeton", etiket))
+    if _b64_isabeti(ham):
+        bulgular.append(("E4 sir-jeton", "uzun-base64"))
+    if E4_NORM.search(norm):
+        bulgular.append(("E4 sir-jeton", "sir-yonetimi-ifadesi"))
+
+    # E5 — kapi bypass'i / nobetci korlugu
+    for etiket, rx in E5_DESENLER:
+        if rx.search(norm):
+            bulgular.append(("E5 kapi-bypass", etiket))
+    if E5_KORUYUCU.search(norm) and E5_KORLUK.search(norm):
+        bulgular.append(("E5 kapi-bypass", "nobetci-korlugu"))
+
+    # E6 — guvenlik bulgusu / sizinti olayi
+    for etiket, rx in E6_DESENLER:
+        if rx.search(norm):
+            bulgular.append(("E6 guvenlik-bulgusu", etiket))
+    if E6_YUZEY.search(norm) and E6_ISTISMAR.search(norm):
+        bulgular.append(("E6 guvenlik-bulgusu", "sunucu-yuzeyi+istismar"))
+
+    return bulgular
+
+
+def _ad_ekseni_toplu(satirlar, kayit, ozet):
+    """E1 AD kolu — TUM belge icin TEK kumede ozetleme (maliyet kontrolu).
+
+    Adaylar once (uzunluk, aday) -> {satir no} eslemesinde toplanir, sonra HER
+    BENZERSIZ aday BIR KEZ PBKDF2'lenir. Satir basina ozetlemeye gore is,
+    belgedeki BENZERSIZ jeton sayisiyla sinirlanir. Hukum DEGISMEZ: ayni
+    `adaylar()` + ayni `_ozetle()` kullanilir (TEK KAYNAK korunur)."""
+    uzunluklar = sorted({n for n, _ in kayit["desenler"]})
+    aday_satir = {}
+    for i, ham in enumerate(satirlar, start=1):
+        for n in uzunluklar:
+            for aday in ozet.adaylar(ham, n):
+                aday_satir.setdefault((n, aday), set()).add(i)
+    ozet_satir = {}
+    for (n, aday), nolar in aday_satir.items():
+        anahtar = (n, ozet._ozetle(aday, kayit["tuz"], kayit["dongu"]))
+        ozet_satir.setdefault(anahtar, set()).update(nolar)
+    sonuc = []
+    for no, (n, oz) in enumerate(kayit["desenler"]):
+        for satir_no in sorted(ozet_satir.get((n, oz), ())):
+            sonuc.append((satir_no, "E1 satici-kimligi", "gizli-desen-#%d" % no))
+    return sonuc
+
+
+def metin_bulgulari(metin, kayit=None, ozet=None, markalar=None):
+    """Metin -> [(satir_no, eksen, etiket), ...] (1 tabanli satir numarasi)."""
+    normalize = ozet.normalize if ozet is not None else (lambda s: s.lower())
+    satirlar = metin.splitlines()
+    sonuc = []
+    if ozet is not None and kayit is not None:
+        sonuc.extend(_ad_ekseni_toplu(satirlar, kayit, ozet))
+    for i, ham in enumerate(satirlar, start=1):
+        norm = normalize(ham)
+        for eksen, etiket in satir_eksenleri(ham, norm, kayit, ozet, markalar,
+                                             ad_ekseni=False):
+            sonuc.append((i, eksen, etiket))
+    return sorted(sonuc)
+
+
+# ===========================================================================
+# KAPSAM — IZLENEN KOK BELGELERI (fail-closed + canlilik capasi)
+# ===========================================================================
+def _git_ls_files(kok=None):
+    try:
+        r = subprocess.run(["git", "-C", kok or ROOT, "ls-files", "-z"],
+                           capture_output=True, text=True)
+    except OSError as e:
+        return 127, "", "git calistirilamadi: %s" % e
+    return r.returncode, r.stdout, r.stderr
+
+
+def izlenen_kok_belgeleri(kosucu=None, kok=None):
+    """(yollar, hata). FAIL-CLOSED + CANLILIK:
+      * git rc != 0            -> OLCULEMEDI
+      * rc=0 ama BOS liste     -> OLCULEMEDI (bu depoda imkansiz)
+      * liste kapinin KENDI yolunu icermiyor -> OLCULEMEDI (sparse/partial
+        checkout, yanlis ROOT, PATH'te git shim, bozuk index)
+    Bu uc dal olmadan kapi "0 dosya tarandi -> temiz" diyerek SESSIZ YESIL yanardi."""
+    rc, cikti, hata = (kosucu or (lambda: _git_ls_files(kok)))()
+    if rc != 0:
+        return None, "git ls-files basarisiz (rc=%s): %s" % (
+            rc, (hata or "").strip() or "?")
+    hepsi = [y for y in cikti.split("\0") if y]
+    if not hepsi:
+        return None, ("git ls-files BOS liste dondurdu (rc=0) — bu depoda imkansiz; "
+                      "kapsam kaybolmus demektir. Bos kapsam SESSIZ YESIL SAYILMAZ.")
+    if KAPI_YOLU not in hepsi:
+        return None, ("CANLILIK — izlenen dosya listesi kapinin KENDI yolunu (%s) "
+                      "icermiyor: git basarili dondu ama liste BOS ya da KISMI. "
+                      "rc=0 geldi diye SESSIZ YESIL verilmez." % KAPI_YOLU)
+    kok_belge = [y for y in hepsi
+                 if "/" not in y and y.lower().endswith(BELGE_UZANTILARI)]
+    if not kok_belge:
+        return None, ("izlenen KOK belge dosyasi BULUNAMADI — bu depoda en az "
+                      "DEVAM.md ve README.md izlenir. Kapsam bos: OLCULEMEDI.")
+    return sorted(kok_belge), None
+
+
+def dosya_metni(yol):
+    """(metin, hata). Ayristirilamayan dosya YESIL DEGILDIR (fail-closed)."""
+    try:
+        with open(yol, "rb") as f:
+            ham = f.read()
+    except OSError as e:
+        return None, "okunamadi: %s" % e
+    try:
+        return ham.decode("utf-8"), None
+    except UnicodeDecodeError as e:
+        return None, ("UTF-8 olarak COZULEMEDI (%s) — icerik ayristirilamayan bir "
+                      "dosya taranmis SAYILMAZ" % e)
+
+
+# ===========================================================================
+# KOL: GERCEK TARAMA
+# ===========================================================================
+def tara(kok=None, dosyalar=None, ozet_yolu=None, kosucu=None, sessiz=False):
+    """(rc, bulgular, taranan_satir). Cikti eslesen METNI ASLA tasimaz."""
+    kok = kok or ROOT
+    ozet, hata = ozet_modulu(ozet_yolu)
+    if ozet is None:
+        if not sessiz:
+            print("OLCULEMEDI (fail-closed KIRMIZI): %s" % hata, file=sys.stderr)
+        return RC_OLCULEMEDI, [], 0
+    kayit, khata = ozet.ozet_kaydi_yukle()
+    if kayit is None:
+        if not sessiz:
+            print("OLCULEMEDI (fail-closed KIRMIZI): desen ozet artefakti — %s"
+                  % khata, file=sys.stderr)
+        return RC_OLCULEMEDI, [], 0
+    try:
+        markalar = ozet.katalog_markalari()
+    except Exception:                                       # noqa: BLE001
+        markalar = None
+
+    if dosyalar is None:
+        dosyalar, hata = izlenen_kok_belgeleri(kosucu=kosucu, kok=kok)
+        if dosyalar is None:
+            if not sessiz:
+                print("OLCULEMEDI (fail-closed KIRMIZI): %s" % hata, file=sys.stderr)
+            return RC_OLCULEMEDI, [], 0
+
+    bulgular = []
+    satir_sayisi = 0
+    for rel in dosyalar:
+        tam = rel if os.path.isabs(rel) else os.path.join(kok, rel)
+        metin, dhata = dosya_metni(tam)
+        if metin is None:
+            if not sessiz:
+                print("OLCULEMEDI (fail-closed KIRMIZI): %s — %s" % (rel, dhata),
+                      file=sys.stderr)
+            return RC_OLCULEMEDI, [], satir_sayisi
+        satir_sayisi += len(metin.splitlines())
+        for no, eksen, etiket in metin_bulgulari(metin, kayit, ozet, markalar):
+            bulgular.append((rel, no, eksen, etiket))
+
+    if not sessiz:
+        print("taranan kok belgesi: %d · satir: %d" % (len(dosyalar), satir_sayisi))
+        for rel, no, eksen, etiket in bulgular:
+            print("  * SINIF IHLALI: %s:%d — %s [%s]. Eslesen metin BILEREK "
+                  "yazilmiyor." % (rel, no, eksen, etiket), file=sys.stderr)
+        if bulgular:
+            print("IHLAL: %d satir. COZUM: satirlari DEVAM-ARSIV.md'ye (git DISI) "
+                  "TASI, yerine notr tek satirlik isaretci birak. Silme YOK, "
+                  "tasima VAR." % len(bulgular), file=sys.stderr)
+        else:
+            print("temiz: 0 sinif ihlali.")
+    return (RC_IHLAL if bulgular else RC_TEMIZ), bulgular, satir_sayisi
+
+
+# ===========================================================================
+# KABUL BATARYASI
+# ===========================================================================
+# 🔴 FIKSTURLERDE GERCEK YASAKLI AD YOKTUR: E1 ekseni UYDURMA adlarla uretilmis
+# GECICI bir ozet artefaktiyla olculur (uretim yolu da ayni kosumda sinanir).
+_UYDURMA_AD = "Zorbacix"
+
+# KIRMIZI fiksturler: her eksen icin en az bir SENTETIK hassas satir.
+_KIRMIZI = [
+    ("- Iskonto orani yuzde 22 olarak anlasildi.", "E2 oran-marj"),
+    ("- Marj hesabi 1,35 katsayisiyla yapildi.", "E2 oran-marj"),
+    ("- Kaynak kaydi .urun-kaynaklari.json dosyasinda tutuluyor.", "E3 gizli-dosya"),
+    ("- Anahtarlar .r2-credentials.json icinde duruyor.", "E3 gizli-dosya"),
+    ("- CLOUDFLARE_API_TOKEN degeri panelden alindi.", "E4 sir-jeton"),
+    ("- Tuz degeri 37deae681fb6c8ab0832abe1e30f71c0 olarak sabit.", "E4 sir-jeton"),
+    ("- Sir wrangler secret put ile yuklendi.", "E4 sir-jeton"),
+    ("- Arac pre-push kancasina jetonsuz ve fail-open baglandi.", "E5 kapi-bypass"),
+    ("- Acele push icin git push --no-verify kullanildi.", "E5 kapi-bypass"),
+    ("- Kapi bypass yolu hala acik.", "E5 kapi-bypass"),
+    ("- PRUVO_MUKERRER_ATLA=1 ile kapi atlanabiliyor.", "E5 kapi-bypass"),
+    ("- core.hooksPath /dev/null yapilinca hicbir kanca kosmuyor.", "E5 kapi-bypass"),
+    ("- Nobetci bu sinifi GORMEZ, kapsam disinda kaliyor.", "E5 kapi-bypass"),
+    ("- Kapi bu ad halini KACIRDI.", "E5 kapi-bypass"),
+    ("- Dosyanin kendi yorumlarinda iki gercek yasakli ad duz yaziliyordu.",
+     "E6 guvenlik-bulgusu"),
+    ("- Commit mesajlarinda satici kimligi vardi.", "E6 guvenlik-bulgusu"),
+    ("- Duz merge kapatilan sizintiyi geri acardi.", "E6 guvenlik-bulgusu"),
+    ("- Yorumlar ic arac adlarini ifsa ediyordu.", "E6 guvenlik-bulgusu"),
+    ("- Bilgi PUBLIC repoya sizdi.", "E6 guvenlik-bulgusu"),
+    # E1 ALAN ADI kolu: TANINMAYAN her alan adi kirmizidir (bicim kurali —
+    # gizli vitrin/satici alan adi ADI HIC YAZILMADAN yakalanir). Ornek UYDURMA.
+    # (`.example` UZANTI listesinde oldugu icin dosya adi sayilir -> gercek bir
+    #  TLD ile yazilir; ad UYDURMADIR.)
+    ("- Parcalar https://gizlivitrin.xyz/panel uzerinden alindi.",
+     "E1 satici-kimligi"),
+    ("- Sunucu fiyatlama fonksiyonu hala tur-KOR.", "E6 guvenlik-bulgusu"),
+    ("- Bayat sepet satiri sunucuda hala fazla tahsil edilir.", "E6 guvenlik-bulgusu"),
+]
+
+# YESIL fiksturler: MESRU IS AKISI metni (kapi ADLARI, olcum sayilari, dal/SHA,
+# kime ne is dustugu). Bunlarin yanmasi = herkesin `--no-verify` aliskanligi.
+_YESIL = [
+    "- Capa kalkani fail-closed: `7ef7427d`.",
+    "- Nobetci desenine kelime siniri eklendi: `cbe6c2a6`.",
+    "- Kapilar dalin agacinda: CI kapsami 143 kesif / 107 kosulan / 36 muaf.",
+    "- Sizinti taramasi 1153 eklenen satirda 10 desen, 0 vurus.",
+    "- Sizinti nobetcisi yesil; kapi envanteri 7/7.",
+    "- Sizinti kapisi CI'da bloklayici seritte.",
+    "- Kabul testi bagimsiz kosuldu: 14 vaka / 85 iddia / 0 kirmizi.",
+    "- Dal main'e alindi: `364095f6` (ileri-sarma, taban `e84b2a65`).",
+    "- Metin temizligi plani kardes mimara devredildi; teslim kardes mimarda.",
+    "- Yayin suresi medyani 1296 saniye, MAD 115 saniye, 7 kosum.",
+    "- D1 senkron teyidi: sayi ekseni 16.167 == 16.167; uyusmaz 0 / eksik 0 / fazla 0.",
+    "- 200 TL taban tum urunlerde gecerli; parametrik sari seri haric.",
+    "- Edge kartlarinda gosterim kismi fakat fail-closed.",
+    "- Arama maliyet kapisi su an bloklamayan seritte; Serit A'ya tasima karari acik.",
+    "- Mutasyon kopyada 3/3: kilit oldurulunce 4 iddia dustu.",
+    "- Kapi envanteri 7/7; is akisi serit beyani 39.",
+    "- Temizlik: worktree 5'ten 2'ye, yerel dal 16'dan 8'e indi.",
+    "- Katalog: taban alti 0; D1 sayi ve hash ekseninde uyumlu.",
+    "- Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).",
+    "- Yedek 2645 dosya / 745824642 bayt; eksik 0, boyut farki 0.",
+    "- Kosum `30678515290` (`86665da5`): envanter/build/deploy/yayin YESIL.",
+    "- Vitrin https://pruvo3d.com uzerinden yayinlanir.",
+    # --- 1 Agu: 6665 satirlik GERCEK arsiv korpusunda OLCULEN yanlis-pozitifler.
+    # Ilk surumde bunlarin HEPSI yaniyordu; desenler daraltilarak kapatildi.
+    "- `kisisel-veri-test.py` tedarikci-adi nobetcisi +104; git grep 0.",
+    "- Satici adi kapisi 3 mutasyonla NOBETLI.",
+    "- Merge kapisi: kapsam 5 dosya (+818/-35), sizinti yok, kabul 48/48.",
+    "- Sizinti nobeti kosuldu; sizinti TEMIZ (desen 0 + elle gozden gecirme).",
+    "- Sizinti taramasi 0 vurus; sizinti riski sifir.",
+    "- GUVENLIK_MARJI=400 sabitiyle hizalandi; guvenlik marji 400 kaldi.",
+    "- Canli panel http://localhost:8137 uzerinde kosuyor (launchd).",
+]
+
+
+def _gecici_ozet(tmp, ozet, adlar=(_UYDURMA_AD,)):
+    """UYDURMA adlarla GECICI bir ozet artefakti uretir (gercek uretim yolu)."""
+    kaynak = os.path.join(tmp, "uydurma-desenler.txt")
+    hedef = os.path.join(tmp, "uydurma-ozetler.json")
+    with open(kaynak, "w", encoding="utf-8") as f:
+        f.write("\n".join(adlar) + "\n")
+    ozet.desen_yaz(kaynak=kaynak, hedef=hedef, dongu=ozet.ASGARI_DONGU)
+    return hedef
+
+
+def kendini_test():
+    hatalar = []
+    kontrol = 0
+
+    ozet, hata = ozet_modulu()
+    if ozet is None:
+        print("A0 OLCULEMEDI: %s" % hata, file=sys.stderr)
+        return 1
+    kayit, khata = ozet.ozet_kaydi_yukle()
+    if kayit is None:
+        print("A0 OLCULEMEDI: %s" % khata, file=sys.stderr)
+        return 1
+    try:
+        markalar = ozet.katalog_markalari()
+    except Exception:                                       # noqa: BLE001
+        markalar = None
+
+    def _eksenler(satir):
+        return {e for e, _ in satir_eksenleri(satir, ozet.normalize(satir),
+                                              kayit, ozet, markalar)}
+
+    # ---- A) KIRMIZI FIKSTURLER: her sentetik hassas satir YAKALANMALI
+    for satir, beklenen in _KIRMIZI:
+        kontrol += 1
+        bulunan = _eksenler(satir)
+        if beklenen not in bulunan:
+            hatalar.append("A KIRMIZI KACTI (%s beklendi, bulunan %s): %r"
+                           % (beklenen, sorted(bulunan) or "YOK", satir))
+
+    # ---- B) YESIL FIKSTURLER: mesru is akisi metni YANMAMALI
+    for satir in _YESIL:
+        kontrol += 1
+        bulunan = _eksenler(satir)
+        if bulunan:
+            hatalar.append("B YANLIS-POZITIF (desen DARALTILMALI) -> %s: %r"
+                           % (sorted(bulunan), satir))
+
+    # ---- C) E1: OZET MEKANIZMASI CANLI MI (uydurma ad + gercek uretim yolu)
+    with tempfile.TemporaryDirectory() as tmp:
+        sahte_yol = _gecici_ozet(tmp, ozet)
+        sahte, shata = ozet.ozet_kaydi_yukle(sahte_yol)
+        kontrol += 1
+        if sahte is None:
+            hatalar.append("C GECICI OZET URETILEMEDI: %s" % shata)
+        else:
+            kontrol += 3
+            satir = "- Parca %s tedarikcisinden alindi." % _UYDURMA_AD
+            bulunan = {e for e, _ in satir_eksenleri(
+                satir, ozet.normalize(satir), sahte, ozet, markalar)}
+            if "E1 satici-kimligi" not in bulunan:
+                hatalar.append("C E1 (satir kolu) OLU: uydurma ad ozet "
+                               "mekanizmasiyla YAKALANMADI -> %s" % sorted(bulunan))
+            # 🔴 TOPLU KOL AYRI OLCULUR: gercek tarama _ad_ekseni_toplu()'yu
+            # kullanir; satir kolu saglamken toplu kol olduruLURSE kapi sessizce
+            # kor kalirdi (iki kod yolu, tek iddia = nobetsiz kol).
+            belge = "# Defter\n- notr satir\n%s\n- baska notr satir\n" % satir
+            toplu = metin_bulgulari(belge, sahte, ozet, markalar)
+            if not any(e == "E1 satici-kimligi" and no == 3
+                       for no, e, _ in toplu):
+                hatalar.append("C E1 (TOPLU kol) OLU: uydurma ad belge ekseninde "
+                               "3. satirda YAKALANMADI -> %r" % toplu)
+            temiz = "- Dal main'e alindi: `364095f6`."
+            bulunan2 = {e for e, _ in satir_eksenleri(
+                temiz, ozet.normalize(temiz), sahte, ozet, markalar)}
+            if "E1 satici-kimligi" in bulunan2:
+                hatalar.append("C E1 YANLIS-POZITIF: notr satirda ad isabeti")
+
+    # ---- D) FAIL-CLOSED: desen kaynagi YOKKEN yesil VERILMEZ
+    with tempfile.TemporaryDirectory() as tmp:
+        kontrol += 1
+        rc, _, _ = tara(kok=ROOT, dosyalar=[os.path.join(tmp, "bos.md")],
+                        ozet_yolu=os.path.join(tmp, "yok-boyle-bir-dosya.py"),
+                        sessiz=True)
+        if rc != RC_OLCULEMEDI:
+            hatalar.append("D FAIL-CLOSED OLDU: desen kaynagi YOKKEN rc=%d "
+                           "(2 bekleniyordu)" % rc)
+
+    # ---- E) FAIL-CLOSED: dosya AYRISTIRILAMIYORSA yesil VERILMEZ
+    with tempfile.TemporaryDirectory() as tmp:
+        kontrol += 1
+        bozuk = os.path.join(tmp, "bozuk.md")
+        with open(bozuk, "wb") as f:
+            f.write(b"gecerli satir\n\xff\xfe\x00 bozuk bayt\n")
+        rc, _, _ = tara(kok=ROOT, dosyalar=[bozuk], sessiz=True)
+        if rc != RC_OLCULEMEDI:
+            hatalar.append("E FAIL-CLOSED OLDU: UTF-8 cozulemeyen dosyada rc=%d "
+                           "(2 bekleniyordu)" % rc)
+
+    # ---- F) CANLILIK: git rc=0 + BOS / KISMI liste -> OLCULEMEDI
+    for ad, cikti in (("BOS", ""),
+                      ("KISMI", "\0".join(["README.md", "index.html"]))):
+        kontrol += 1
+        yollar, hata = izlenen_kok_belgeleri(kosucu=lambda c=cikti: (0, c, ""))
+        if yollar is not None:
+            hatalar.append("F CANLILIK OLDU: %s listede kapsam kabul edildi -> %r"
+                           % (ad, yollar))
+    kontrol += 1
+    yollar, _ = izlenen_kok_belgeleri(
+        kosucu=lambda: (0, "\0".join(["README.md", "DEVAM.md", KAPI_YOLU]), ""))
+    if yollar != ["DEVAM.md", "README.md"]:
+        hatalar.append("F CANLILIK YANLIS-POZITIF: normal listede kapsam %r" % yollar)
+    kontrol += 1
+    yollar, _ = izlenen_kok_belgeleri(kosucu=lambda: (128, "", "fatal"))
+    if yollar is not None:
+        hatalar.append("F FAIL-LOUD OLDU: git rc!=0 iken kapsam dondu")
+
+    # ---- G) GERCEK DOSYALAR: bugunku izlenen kok defterleri TEMIZ olmali
+    #      (yanlis-pozitif butcesinin GERCEK olcumu — fikstur degil)
+    kontrol += 1
+    rc, bulgular, satir = tara(sessiz=True)
+    if rc == RC_OLCULEMEDI:
+        hatalar.append("G GERCEK TARAMA OLCULEMEDI")
+    elif rc != RC_TEMIZ:
+        hatalar.append("G GERCEK IZLENEN KOK BELGELERINDE %d SINIF IHLALI VAR "
+                       "(tasinmasi gereken satirlar): %r"
+                       % (len(bulgular), bulgular[:8]))
+    print("gercek kapsam: %d satir tarandi, %d ihlal" % (satir, len(bulgular)))
+
+    # ---- H) YANLIS-POZITIF BUTCESI: DEVAM-ARSIV.md (git DISI) kapsam DISIDIR
+    arsiv = os.path.join(ROOT, "DEVAM-ARSIV.md")
+    if os.path.isfile(arsiv):
+        kontrol += 1
+        yollar, _ = izlenen_kok_belgeleri()
+        if yollar and "DEVAM-ARSIV.md" in yollar:
+            hatalar.append("H KAPSAM HATASI: DEVAM-ARSIV.md git DISI olmali ama "
+                           "izlenen kok belgeleri arasinda gorundu")
+
+    for h in hatalar:
+        print("  ✗ %s" % h, file=sys.stderr)
+    print("kendini-test: %d kontrol · %d hata" % (kontrol, len(hatalar)))
+    return 1 if hatalar else 0
+
+
+# ===========================================================================
+# MUTASYON BATARYASI — KOPYA UZERINDE (canli dosyada mutant BIRAKILMAZ)
+# ===========================================================================
+_MUTANTLAR = [
+    ("M1 E2 oldur", 'E2_KONU = re.compile(', 'E2_KONU = re.compile(r"(?!x)x")  #',
+     True),
+    ("M2 E3 oldur", "E3_DESENLER = (", "E3_DESENLER = ()  # ", True),
+    ("M3 E4 hex esigi gevset",
+     r'r"(?<![0-9A-Za-z])[0-9a-fA-F]{32,}(?![0-9A-Za-z])"',
+     r'r"(?<![0-9A-Za-z])[0-9a-fA-F]{999,}(?![0-9A-Za-z])"', True),
+    ("M4 E5 desenleri oldur", "E5_DESENLER = (", "E5_DESENLER = ()  # ", True),
+    ("M5 E5 korluk ekseni oldur", "E5_KORLUK = re.compile(",
+     'E5_KORLUK = re.compile(r"(?!x)x")  #', True),
+    ("M6 E6 desenleri oldur", "E6_DESENLER = (", "E6_DESENLER = ()  # ", True),
+    ("M7 E6 sunucu-istismar ekseni oldur", "E6_ISTISMAR = re.compile(",
+     'E6_ISTISMAR = re.compile(r"(?!x)x")  #', True),
+    ("M8 E1 satir kolunu oldur",
+     "            for no, _n in ozet.ad_isabetleri(ham, kayit):",
+     "            for no, _n in []:", True),
+    ("M8b E1 TOPLU kolunu oldur",
+     "        anahtar = (n, ozet._ozetle(aday, kayit[\"tuz\"], kayit[\"dongu\"]))",
+     "        anahtar = (n, \"0\" * 64)", True),
+    ("M8c E1 alan adi kolunu oldur",
+     "                for kusur in ozet.alan_adi_isabetleri(ham, kayit, markalar):",
+     "                for kusur in []:", True),
+    ("M8d E1 yerel-uc istisnasini genislet", "_YEREL_UC = re.compile(",
+     '_YEREL_UC = re.compile(r".")  #', True),
+    ("M9 fail-closed'u sessiz yesile cevir",
+     "        return RC_OLCULEMEDI, [], 0\n    kayit, khata",
+     "        return RC_TEMIZ, [], 0\n    kayit, khata", True),
+    ("M10 canlilik nobetini oldur", "    if KAPI_YOLU not in hepsi:",
+     "    if False:", True),
+    ("M11 ILGISIZ: yorum satiri eklendi", "import argparse",
+     "import argparse  # ilgisiz yorum (davranis degismez)", False),
+    ("M12 ILGISIZ: cikti metni degistirildi", '"temiz: 0 sinif ihlali."',
+     '"temiz: sifir sinif ihlali."', False),
+]
+
+
+def _sha256(yol):
+    h = hashlib.sha256()
+    with open(yol, "rb") as f:
+        h.update(f.read())
+    return h.hexdigest()
+
+
+def mutasyon():
+    kaynak = os.path.abspath(__file__)
+    once = _sha256(kaynak)
+    with open(kaynak, encoding="utf-8") as f:
+        govde = f.read()
+
+    hatalar = []
+    with tempfile.TemporaryDirectory() as tmp:
+        # Mutant AYRI bir dizinde kosar (canli dosyaya DOKUNULMAZ) ama --kok ile
+        # GERCEK depoyu olcer; boylece kirmizi/yesil hukmu MUTASYONDAN gelir,
+        # "yanlis dizinde kostum"dan degil.
+        for ad, eski, yeni, oldurucu in _MUTANTLAR:
+            if eski not in govde:
+                hatalar.append("%s: BAYAT MUTANT — capa metni bulunamadi: %r"
+                               % (ad, eski[:48]))
+                continue
+            mutant_yol = os.path.join(tmp, "mutant-devam-sinif-kapisi.py")
+            with open(mutant_yol, "w", encoding="utf-8") as f:
+                f.write(govde.replace(eski, yeni, 1))
+            r = subprocess.run([sys.executable, mutant_yol, "--kendini-test",
+                                "--kok", ROOT],
+                               capture_output=True, text=True, cwd=tmp)
+            kirmizi = (r.returncode != 0)
+            if oldurucu and not kirmizi:
+                hatalar.append("%s: OLDURUCU MUTANT HAYATTA KALDI (rc=0) — o eksen "
+                               "NOBETSIZ" % ad)
+            if (not oldurucu) and kirmizi:
+                hatalar.append("%s: ILGISIZ DEGISIKLIK KIRMIZI YANDI (rc=%d) — kapi "
+                               "asiri hassas\n%s" % (ad, r.returncode,
+                                                     r.stderr[-400:]))
+            print("  %-40s -> %s (%s)" % (ad, "KIRMIZI" if kirmizi else "YESIL",
+                                          "oldurucu" if oldurucu else "ilgisiz"))
+    sonra = _sha256(kaynak)
+    if once != sonra:
+        hatalar.append("CANLI DOSYA DEGISTI! sha256 %s -> %s (mutant sizdi)"
+                       % (once[:12], sonra[:12]))
+    print("canli dosya sha256 esitligi: %s (%s)"
+          % ("TAM" if once == sonra else "BOZUK", once[:16]))
+    for h in hatalar:
+        print("  ✗ %s" % h, file=sys.stderr)
+    print("mutasyon: %d mutant · %d hata" % (len(_MUTANTLAR), len(hatalar)))
+    return 1 if hatalar else 0
+
+
+# ===========================================================================
+def main(argv=None):
+    p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    p.add_argument("--kendini-test", action="store_true")
+    p.add_argument("--mutasyon", action="store_true")
+    p.add_argument("--dosya", action="append", default=None,
+                   help="tek dosya tara (tani/fikstur); tekrarlanabilir")
+    # --kok: betik BASKA bir yerde dursa da GERCEK depoyu olcsun. MUTASYON
+    # BATARYASI icin ZORUNLU: mutant kopya gecici bir dizinde kosar; --kok
+    # olmadan kapsam olcumu o gecici dizinde OLCULEMEDI'ye duser ve HER mutant
+    # (oldurucu olmayan dahil) kirmizi yanar -> mutasyon TAUTOLOJIYE doner
+    # ("oldurdum" degil "yanlis dizindeyim" olculur). Olculdu: --kok'suz ilk
+    # kosumda 12/12 mutant kirmizi, 2 ilgisiz mutant da dahil.
+    p.add_argument("--kok", default=None,
+                   help="olculecek depo koku (varsayilan: betigin ust dizini)")
+    a = p.parse_args(argv)
+    if a.kok:
+        global ROOT, TOOLS
+        ROOT = os.path.abspath(a.kok)
+        TOOLS = os.path.join(ROOT, "tools")
+    if a.kendini_test:
+        return kendini_test()
+    if a.mutasyon:
+        return mutasyon()
+    rc, _, _ = tara(dosyalar=a.dosya)
+    return rc
+
+
+if __name__ == "__main__":
+    sys.exit(main())

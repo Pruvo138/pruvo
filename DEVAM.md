@@ -63,9 +63,8 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - Kapilar dalin agacinda: CI kapsami 143 kesif / 107 kosulan / 36 muaf; kapi envanteri 7/7;
   is akisi serit beyani 39; kisisel veri nobetcisi yesil. Sizinti taramasi 1153 eklenen
   satirda 10 desen, 0 vurus.
-- MIMAR KARARI uygulandi: arac hicbir yerden cagrilmiyordu, izlenen pre-push kanca
-  sablonuna jetonsuz ve fail-open baglandi (`fcda5576`). Arac patlasa da kilit baskasinda
-  olsa da push durmaz; yalnizca anlamli satirlar gorunur.
+- MIMAR KARARI uygulandi: arac bir cagri noktasina baglandi (`fcda5576`); baglama
+  bicimi ve gerekcesi DEVAM-ARSIV.md'de.
 - Tetik ICRAYLA kanitlandi: bos depoda gercek push araci atesledi; kanca kaldirilinca ayni
   iz uretilmedi. Iki vaka kabul testine kalici eklendi (toplam 32 kontrol, 0 kirmizi);
   mutasyonda cagri silinince 3 iddia dustu, ilgisiz degisiklikte yesil.
@@ -81,13 +80,9 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   yeni `tools/edge-kart-kapisi.py` (+252), `shop/test/fiyat-prova.mjs` (+482),
   `jenerator/test/vitrin-kabul.js`, `.github/workflows/deploy.yml` (+15).
   `urunler.json` diffte YOK. Onarim commit'i: `86665da5`.
-- 🔴 DUZ MERGE DEGIL CHERRY-PICK — sebep OLCULDU. Dalin tabani, kardes oturumun commit
-  mesajlarindaki satici kimligini temizlemek icin kostugu `filter-branch` + force-push ile
-  yeniden yazildi (yerel main 45 commit ayristi, agac icerigi ayniydi). Duz merge dalin
-  38 ESKI commit'ini geri getirecekti; bunlarin 4'unde commit MESAJINDA satici adi vardi.
-  Yani duz merge, PUBLIC depoda az once kapatilan sizintiyi GERI ACARDI. Cherry-pick
-  sonrasi 9 dosyanin 8'i dalla birebir; `deploy.yml` main'de 58 satir ileri (kardes
-  oturumlarin yeni kapilari) ve dalin +15 satirini iceriyor.
+- 🔴 DUZ MERGE DEGIL CHERRY-PICK — sebep OLCULDU; gerekce DEVAM-ARSIV.md'de.
+  Cherry-pick sonrasi 9 dosyanin 8'i dalla birebir; `deploy.yml` main'de 58 satir ileri
+  (kardes oturumlarin yeni kapilari) ve dalin +15 satirini iceriyor.
   DERS: yeniden yazilmis bir tabana dayanan dalda `merge-base` ESKI bir ataya duser ->
   kapsam olcumu 31 dosya/5111 satir gibi SISER ve `urunler.json` sahte cakisma verir.
   Dogru olcum `origin/main...<dal>` uc-nokta ile alindi: 9 dosya.
@@ -97,11 +92,8 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   ci-kapsam YESIL, kapi-envanteri 7/7, yasal-sayfa-drift 4/4 TEMIZ, odeme-beyani 10/10,
   stok-d1 41, yazdir 8/8, is-akisi YESIL.
 - 🔴 ELLE SECILEN KAPI LISTESI YETMEDI — CI KIRMIZI YANDI. Ilk kosum (`30676683982`)
-  `build` isinde dustu: `yayin-ic-dil-kapisi.py --kaynak`, 8 vurus / 1 dosya
-  (`secenekler.js`). Sebep: `secenekler.js` tarayiciya AYNEN gider; eklenen yorumlar ic
-  arac/dosya adlari ve marka dil kuralinin yasakladigi isim halini tasiyordu. Bu kapi
-  DALIN TABANINDA YOKTU, kardes oturum sonradan ekledi. Onarimda yorumlarin OZU korundu,
-  yalniz ifsa eden ifadeler degistirildi; kod/imza/davranis DEGISMEDI.
+  `build` isinde dustu; bulgu ayrintisi DEVAM-ARSIV.md'de. Ilgili kapi DALIN TABANINDA
+  YOKTU, kardes oturum sonradan ekledi. Onarimda kod/imza/davranis DEGISMEDI.
   DERS: kapi listesi elle secilmez — `deploy.yml`'den CIKARILIR. Ikinci turda 60 yerel
   CI kapisi cikarilip kosuldu, gercek kirmizi 0.
 - Kaynak commit'i ANA CHECKOUT'ta mimar kod-kilidine takildi (Layer 2). Dogru yol: yama
@@ -136,9 +128,8 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - Dal main'e alindi: `1a938405` (merge-base `39036e18`). Kapsam TAM 3 dosya, +408/-5:
   `tools/build.py` (+52/-5), yeni `tools/fiziksel-urun-kapisi.py` (+345),
   `.github/workflows/deploy.yml` (+16). Cakisma yok, taban taze olculdu.
-- Sebep: fiziksel urun sayfasi 3D-baski secim arayuzunu basiyordu. Renk "Diger"
-  secimindeki +%15 yalniz gorsel degildi; `secenekler.js` hesaplaFiyatKurus'u
-  `shop/src/index.js` sepetiFiyatla da cagirdigi icin SUNUCUDA DA tahsil ediliyordu.
+- Sebep: fiziksel urun sayfasi kendisine ait olmayan bir secim arayuzunu basiyordu;
+  kusurun etki zinciri DEVAM-ARSIV.md'de.
 - Merge oncesi 9 kapi dalin agacinda kosuldu, hepsi exit 0: fiziksel-urun-kapisi
   (+ --mutasyon), ci-kapsam-test (142 kesif / 106 kosulan / 36 muaf), kapi-envanteri
   7/7, yasal-sayfa-drift 0/4 sapma, konfigur-test, jsonld-offers (15948 offers'li,
@@ -158,43 +149,24 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   Ham jeton taramasindaki 7 kalinti BAGLAMIYLA olculdu, hepsi ATIL: paylasilan CSS
   sinif tanimlari, `KART_SECIM=false` ile ulasilamayan JS dallari ve her sayfada olan
   genel alt-bilgi `/malzeme-rehberi/` linki. `tur`suz kontrol sayfasinda regresyon yok.
-- 🔴 ACIK KALINTI (kapsam DISI, kapanmadi): sunucu fiyatlama fonksiyonu hala `tur`-KOR.
-  Merge SONRASI canli `/api/shop/fiyat` prova ucuyle ayni fiziksel uruncte olculdu:
-    PLA + Siyah   -> 100000 krs (liste, dogru)
-    PLA + "Diger" -> 115000 krs (+%15)
-    ASA + "Diger" -> 184000 krs (+%84)
-  UI artik boyle bir satir URETEMEZ, ama satir `renk` alanina bakilarak fiyatlandigi ve
-  sepet localStorage'da kaldigi icin ONARIM ONCESI kaydedilmis bayat bir sepet satiri
-  hala fazla tahsil edilir. Kalici cozum sunucu tarafinda: fiziksel urunde malzeme/renk
-  carpani UYGULANMAMALI ya da bu alanlar REDDEDILMELI. Isci verilmedi.
+- 🔴 ACIK KALINTI (kapsam DISI, kapanmadi): fiyatlama hattinda kapanmamis bir kusur
+  var. Olcum, etki ve onerilen kalici cozum DEVAM-ARSIV.md'de. Isci verilmedi.
 - Temizlik YAPILMADI: `claude/exciting-hodgkin-91ec53` dali ve worktree'si aktif bir
   oturumda kullaniliyordu; `worktree remove` / `branch -D` bilerek kosulmadi.
 
-## SIZINTI NOBETCISI — KENDI DOSYASINDAKI ORNEK ADLAR TEMIZLENDI (ALINDI)
-- `tools/commit-mesaji-kapisi.py` kendi docstring/yorumlarinda iki gercek yasakli adi
-  ORNEK olarak duz yaziyordu — dosyanin kendi basligindaki "yasakli ad bu dosyada
-  yazmaz" beyani kendi icinde ihlal ediliyordu. Depo PUBLIC.
-- OLCUM: bildirilen 2 konum yerine 3 konum / 6 satir bulundu (baslik AD EKSENI blogu,
-  `normalize()` ustundeki yorum, `adaylar()` docstring'i). Ucu de `_UYDURMA`
-  fiksturlerindeki uydurma adlarla degistirildi; ayrica "tum ornekler uydurmadir"
-  beyani iki yere kalici olarak yazildi.
+## NOBETCI DOSYASI METIN TEMIZLIGI (ALINDI)
+- `tools/commit-mesaji-kapisi.py` icindeki ornek metinler uydurma karsiliklariyla
+  degistirildi; bulgu ve olcum ayrintisi DEVAM-ARSIV.md'de.
 - Kapsam TAM 1 dosya, +9/-6. Kod/imza/davranis DEGISMEDI (yalniz yorum ve docstring).
 - Kabul: `--kendini-test` 58/58 yesil; mutasyon bataryasi 15/15 oldurucu KIRMIZI,
   3/3 ilgisiz kontrol YESIL, canli dosya sha256 esitligi TAM.
 - Merge `a5fcef74` (ileri-sarma, taban `7f0735e9`). D1 teyidi: sayi ekseni
   16407 == 16407; icerik ekseni 16407 urun_hash birebir, uyusmaz 0 / eksik 0 / fazla 0.
 - KANIT: `git grep -i` calisma agacinda VE `origin/main`'de VURUS 0.
-- ~~🔴 GECMIS TEMIZLENMEDI — OKAN KARARI (1 Agu): blob gecmiste KALIYOR.~~
-  **BU KAYIT GECERSIZ (1 Agu, Okan yeni karar):** gecmis TEMIZLENDI. Adi getiren commit
-  `bc4c6c35` idi; icerik ekseni yeniden yazildi ve `--force-with-lease` ile itildi.
-  Pencere 18 commit (1825 ata DOKUNULMADI), degisen dosya kumesi TAM OLARAK 1 dosya /
-  9 commit, baska hicbir blob degismedi, UCTAKI AGAC birebir ayni, eski uc <-> yeni uc
-  `git diff` BOS, mesaj/yazar/tarihler bayt-birebir korundu. Push sonrasi olcum:
-  mesaj ekseni 0 (1843 commit), icerik ekseni 0 (163 blob), calisma agaci 0, uzak dal
-  kalintisi 0 (34 dal). Yedek ref `refs/yedek/main-icerik-temizlik-20260801`.
-- 🔴 TEMIZLIGIN KALICILIGI ARTIK KAPIYA BAGLI: gecmis IKI KEZ temizlenmis, IKI KEZ geri
-  gelmisti; sebep her seferinde temizlik ONCESI taban uzerine kurulmus bir dalin merge
-  edilmesiydi. `tools/gecmis-geri-donus-kapisi.py` (pre-push, fail-closed + CI gorunurluk
+- 1 Agu, Okan yeni karar: onceki "gecmise dokunulmayacak" karari GECERSIZ; islem
+  yapildi ve olcumleriyle birlikte DEVAM-ARSIV.md'ye yazildi.
+- 🔴 KALICILIK ARTIK KAPIYA BAGLI (tekrar sebebi DEVAM-ARSIV.md'de).
+  `tools/gecmis-geri-donus-kapisi.py` (pre-push, fail-closed + CI gorunurluk
   kolu) bu ekseni kapatir: itmenin origin'e EKLEDIGI TUM commit'leri (yalniz yeni
   yazilanlari degil) mesaj VE icerik ekseninde tarar. Kabul 40 vaka / 0 hata (gercek git
   + gercek push), mutasyon 17/17 oldurucu OLDU, 3/3 ilgisiz YESIL.
