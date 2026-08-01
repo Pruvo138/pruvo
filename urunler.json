@@ -1,5 +1,367 @@
 [
   {
+    "id": "tecnoseal-anod-mercury-b10207",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury Motor Uyumlu Anot Kiti (Büyük)",
+    "aciklama": "Mercury dıştan takma motorlar için orijinal eşdeğeri çinko anot kiti.\nKit içeriğinde farklı montaj noktalarına takılan birden çok anot parçası ve montaj vidaları bulunur.\nAnotlar yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce motorunuzun model/HP değerine göre uyumluluğu teyit etmenizi öneririz.\nStandart alaşım tuzlu su kullanımına uygun çinkodur.",
+    "fiyat": "3300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-kit-1.jpg",
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-kit-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-b10209",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury Motor Uyumlu Anot Kiti (Orta Boy)",
+    "aciklama": "Mercury dıştan takma motorlar için orijinal eşdeğeri çinko anot kiti.\nKit içeriğinde farklı montaj noktalarına takılan birden çok anot parçası ve montaj vidaları bulunur.\nAnotlar yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce motorunuzun model/HP değerine göre uyumluluğu teyit etmenizi öneririz.\nStandart alaşım tuzlu su kullanımına uygun çinkodur.",
+    "fiyat": "3000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-kit-1.jpg",
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-kit-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-b00060",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Mercury Verado Uyumlu Anot",
+    "aciklama": "Tecnoseal üretimi, Mercury Verado dıştan takma motorlarla uyumlu yuvarlak gövde anodu.\nMercury'nin orijinal 76214 serisi anot yuvasına takılır.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-verado-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-b00061",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Mercury Verado Uyumlu Anot (Büyük Ölçü)",
+    "aciklama": "Tecnoseal üretimi, Mercury Verado dıştan takma motorlarla uyumlu yuvarlak gövde anodu.\nMercury'nin orijinal 76214 serisi anot yuvasına takılır, bir üst ölçü/ağırlık seçeneğidir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir.",
+    "fiyat": "1100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-verado-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-b00062",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury Trim Anodu",
+    "aciklama": "Mercury dıştan takma motorların trim/hidrolik silindir bölgesine takılan, orijinal eşdeğeri kanat tipi çinko anot.\nAlt ünitedeki metal aksamı galvanik korozyona karşı korur.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-trimtab-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-b00063",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury Trim Anodu (Küçük Ölçü)",
+    "aciklama": "Mercury dıştan takma motorların trim/hidrolik silindir bölgesine takılan, orijinal eşdeğeri kanat tipi çinko anot.\nAlt ünitedeki metal aksamı galvanik korozyona karşı korur.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-trimtab-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-zeus-b106206",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury Zeus Pod Motor Anot Kiti",
+    "aciklama": "Mercury Zeus pod tahrik sistemleriyle uyumlu, orijinal eşdeğeri anot kiti.\nPod gövdesindeki trim yüzeyine cıvatalarla monte edilir, montaj cıvataları dahildir.\nStandart alaşım tuzlu su kullanımına uygundur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir.",
+    "fiyat": "4500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-zeus-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-martyr-b00601",
+    "kategori": "Marin",
+    "marka": [
+      "Martyr"
+    ],
+    "baslik": "Martyr Mercury Motor Uyumlu Küçük Anot",
+    "aciklama": "Amerikan üretici Martyr'in Mercury dıştan takma motorlarla uyumlu, gövdeye cıvata ile takılan küçük çubuk tipi çinko anodu.\nMotor gövdesindeki metal aksamı galvanik korozyona karşı korur.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir.",
+    "fiyat": "370 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-martyr-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-martyr-b00604",
+    "kategori": "Marin",
+    "marka": [
+      "Martyr"
+    ],
+    "baslik": "Martyr Mercury Motor Uyumlu Küçük Anot (Alternatif Model)",
+    "aciklama": "Amerikan üretici Martyr'in Mercury dıştan takma motorlarla uyumlu, gövdeye cıvata ile takılan küçük çubuk tipi çinko anodu.\nMotor gövdesindeki metal aksamı galvanik korozyona karşı korur.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir.",
+    "fiyat": "370 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-martyr-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-twindisc-b00503",
+    "kategori": "Marin",
+    "marka": [
+      "Twin Disc"
+    ],
+    "baslik": "Twin Disc Şanzıman Uyumlu Anot",
+    "aciklama": "Twin Disc marin şanzıman/redüktör sistemleriyle uyumlu, orijinal eşdeğeri çinko anot.\nSoğutma devresi/gövde üzerindeki metal aksamı galvanik korozyona karşı korur.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir.",
+    "fiyat": "1700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-twindisc-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-vetus-vt03503",
+    "kategori": "Marin",
+    "marka": [
+      "Vetus"
+    ],
+    "baslik": "Vetus Baş İtici Platform Anot Kiti",
+    "aciklama": "Vetus baş/kıç itici (bow/stern thruster) sistemleriyle uyumlu platform anot kiti.\nİtici tüpü ve dişli kutusu bölgesindeki metal aksamı galvanik korozyona karşı korur.\nStandart alaşım tuzlu su kullanımına uygundur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-vetuskit-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-22",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 22 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 22 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-25",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 25 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 25 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-30",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 30 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 30 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-35",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 35 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 35 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-40",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 40 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 40 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-45",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 45 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 45 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-50",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 50 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 50 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-60",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 60 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 60 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "1800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-65",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 65 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 65 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "1900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-70",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 70 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 70 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-75",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 75 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 75 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-80",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 80 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 80 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "2900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-spa-90",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Şaft Tutyası 90 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in şaft (pervane mili) üzerine geçen bilezik tipi çinko anodu, 90 mm şaft çapı için.\nİki parçalı yapısı sayesinde şaftı sökmeden takılabilir.\nStandart alaşım tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce şaft çapınızı ölçüyle teyit etmenizi öneririz.",
+    "fiyat": "4600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-anod-spa-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "sierra-tank-cikisi-yamaha-18-8077",
     "kategori": "Marin",
     "marka": [
