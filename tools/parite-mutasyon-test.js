@@ -28,11 +28,16 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const TOOLS = __dirname;
-const DOSYALAR = ["parite-ortak.js", "parite-test.js", "parite-ege.js", "parite-fikstur-test.js"];
+const DOSYALAR = ["parite-ortak.js", "parite-test.js", "parite-ege.js", "parite-fikstur-test.js",
+  "parite-yayin-fikstur-test.js"];
+const VARSAYILAN_FIKSTUR = "parite-fikstur-test.js";
 
 /**
  * Her mutant: hedef dosyada `ara` metnini `yaz` ile degistirir (TEK sefer, birebir).
  * `ara` bulunamazsa mutant ANLAMSIZDIR -> harness KIRMIZI yanar (kod degisti, nobet bayat).
+ * `fikstur` (opsiyonel): mutanti yakalamasi BEKLENEN kabul fiksturu. Yayin penceresi
+ * savunmalari AYRI fiksturdedir (parite-yayin-fikstur-test.js) — varsayilan fikstur o
+ * senaryolari HIC kosmaz, yani mutant orada "yakalanmamis" gorunurdu.
  */
 const MUTANTLAR = [
   {
@@ -128,6 +133,59 @@ const MUTANTLAR = [
     ara: "        signal: AbortSignal.timeout(ZAMAN_ASIMI_MS),",
     yaz: "        // signal KALDIRILDI (mutant): sonsuz bekleme",
   },
+  // ── YAYIN PENCERESI (1 Agu) savunmalari — hepsi AYRI fiksturde nobetli mi? ─────────
+  // Her biri "muafiyet fazla genisletildi" hatasinin bir yuzudur: muafiyetin GERCEK
+  // kaybi yutmadigini kanitlayan sey, bu mutantlarin TEK TEK kirmizi yakmasidir.
+  {
+    ad: "M15 GERCEK KAYIP kapisi kaldirildi (D1'de HIC olmayan satir da muaf olur)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "    if (hal.yok.length) {",
+    yaz: "    if (false) {",
+  },
+  {
+    ad: "M16 'yayinda ama gorunmuyor' kapisi kaldirildi (uc gerilemesi muaf olur)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "    if (hal.yayinda.length) {",
+    yaz: "    if (false) {",
+  },
+  {
+    ad: "M17 KISMI OLCUM kabul edilir (hal donmeyen id sessizce muaf olur)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "  if (eksikOlcum.length) {",
+    yaz: "  if (false) {",
+  },
+  {
+    ad: "M18 UST SINIR EKSEN A kaldirildi (saatlerdir taslak + sayfasi canli satir muaf)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "    const asan = zararli.filter((t) => t.yasSn === null || t.yasSn > YAYIN_UST_SINIRI_SN);",
+    yaz: "    const asan = [];",
+  },
+  {
+    ad: "M19 UST SINIR EKSEN B kaldirildi (tikanmis deploy sessizce KANONIK sayilir)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "    } else if (eksenBAsti) {",
+    yaz: "    } else if (false) {",
+  },
+  {
+    ad: "M20 SAYFA PROBU TAVANI notu dusuruldu (olculmemis yigin KANONIK sayilir)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "    if (!hal.sayfaOlculdu) {",
+    yaz: "    if (false) {",
+  },
+  {
+    ad: "M21 TASLAK SUZGECI korpus yerine HER SORGUDA uygulanmaz (kok sikayet geri gelir)",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "  const bekIds = (taslakKume && taslakKume.size)\n" +
+      "    ? hamBekIds.filter((id) => !taslakKume.has(id))\n" +
+      "    : hamBekIds;",
+    yaz: "  const bekIds = hamBekIds;",
+  },
+  {
+    ad: "M22 FIKSTUR KACAGI: fikstur modunda canli D1 komutu yine kosar",
+    dosya: "parite-ortak.js", fikstur: "parite-yayin-fikstur-test.js",
+    ara: "  if (fiksturBayraklari(e).length) return null;",
+    yaz: "  // fikstur kapisi KALDIRILDI (mutant)",
+  },
 ];
 
 function kopyaKur() {
@@ -145,9 +203,9 @@ const FIKSTUR_SURE_SINIRI_MS = (() => {
   return Number.isFinite(n) && n >= 5000 ? n : 600000;
 })();
 
-function fiksturKos(dizin) {
+function fiksturKos(dizin, ad) {
   return new Promise((cozul) => {
-    const c = spawn(process.execPath, [path.join(dizin, "parite-fikstur-test.js")], {
+    const c = spawn(process.execPath, [path.join(dizin, ad || VARSAYILAN_FIKSTUR)], {
       env: process.env, cwd: os.tmpdir(),
     });
     let cikti = "";
@@ -184,18 +242,24 @@ async function main() {
   const hatalar = [];
 
   // ── POZITIF KONTROL: mutasyonsuz kopya YESIL olmali (yoksa mutant sonuclari anlamsiz) ──
-  const temiz = kopyaKur();
-  try {
-    const r = await fiksturKos(temiz);
-    if (r.kod === 0) {
-      console.log("\n✅ POZITIF KONTROL: mutasyonsuz kopya YESIL (fikstur exit 0)");
-    } else {
-      console.log("\n❌ POZITIF KONTROL BASARISIZ: mutasyonsuz kopya exit %d", r.kod);
-      console.log(r.cikti.slice(-1500));
-      hatalar.push("pozitif kontrol kirmizi — mutant sonuclari YORUMLANAMAZ");
+  // KULLANILAN HER FIKSTUR ayri ayri kontrol edilir: biri bastan kirmiziysa o fiksturle
+  // olculen mutantlarin "yakalandi" sonucu SAHTEDIR.
+  const kullanilanFiksturler = [...new Set([VARSAYILAN_FIKSTUR]
+    .concat(MUTANTLAR.map((m) => m.fikstur || VARSAYILAN_FIKSTUR)))];
+  for (const f of kullanilanFiksturler) {
+    const temiz = kopyaKur();
+    try {
+      const r = await fiksturKos(temiz, f);
+      if (r.kod === 0) {
+        console.log("\n✅ POZITIF KONTROL (%s): mutasyonsuz kopya YESIL (exit 0)", f);
+      } else {
+        console.log("\n❌ POZITIF KONTROL BASARISIZ (%s): exit %d", f, r.kod);
+        console.log(r.cikti.slice(-1500));
+        hatalar.push("pozitif kontrol kirmizi (" + f + ") — mutant sonuclari YORUMLANAMAZ");
+      }
+    } finally {
+      fs.rmSync(temiz, { recursive: true, force: true });
     }
-  } finally {
-    fs.rmSync(temiz, { recursive: true, force: true });
   }
 
   for (let i = 0; i < MUTANTLAR.length; i++) {
@@ -212,7 +276,7 @@ async function main() {
         continue;
       }
       fs.writeFileSync(yol, ham.replace(m.ara, m.yaz));
-      const r = await fiksturKos(dizin);
+      const r = await fiksturKos(dizin, m.fikstur);
       const yak = yakalayanlar(r.cikti);
       if (r.kod === 1 && yak.length) {
         console.log("\n✅ %s\n   -> fikstur KIRMIZI (exit 1). Yakalayan senaryo(lar):", m.ad);

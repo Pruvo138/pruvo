@@ -264,6 +264,9 @@ if (require.main === module) (async () => {
         limit: LIMIT,
         yerelIdKume: YEREL_ID_KUME,
         gecikmeModu: onKosul.gecikmeModu,
+        // Kanitlanmis TASLAK (D1'de VAR, yayinda=0) id'ler yerel beklentiden DUSULUR:
+        // uc onlari BILEREK gizler, aranabilirlikleri olculebilir bir sey degildir.
+        taslakKume: onKosul.taslakIdler,
       });
       for (const id of k.fazla) fazlaKume.add(id);
       if (!k.kesin) olculemeyenPencere++;

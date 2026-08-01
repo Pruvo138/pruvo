@@ -250,6 +250,9 @@ async function main() {
         limit: LIMIT,
         yerelIdKume: YEREL_ID_KUME,
         gecikmeModu: onKosul.gecikmeModu,
+        // Kanitlanmis TASLAK id'ler yerel beklentiden DUSULUR (parite-test.js ile AYNI
+        // kural; gerekcesi tools/parite-ortak.js siniflandir()'da).
+        taslakKume: onKosul.taslakIdler,
       });
       for (const id of k.fazla) fazlaKume.add(id);
       if (!k.kesin) olculemeyenPencere++;
