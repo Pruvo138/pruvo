@@ -44,6 +44,16 @@ EYLEM IKONLARI (Okan madde 7, 16 Tem — buyuk butonlar -> Adet satirinda ikon c
      FONKSIYONEL oldu -> gercek katalogda panelsiz urun kalmadi, nobetci sentetik olcer).
  25  KAPI: urunler.json'da FIILEN kullanilan her kategori ya tavsiye uretir ya da testin
      icindeki BILINCLI-BOS listesinde yer alir (yeni kategori sessizce tavsiyesiz kalamaz).
+
+FIKSTUR NOBETI (1 Agu — bu paketin fiksturu KAYMISTI):
+ 26  Bu dosyadaki iddialarin TAMAMI OZEL URETIM (baski) urun sayfasi icindir: filament cipi,
+     malzeme karti, renk butonu, kart-secim kapisi. `"tur":"fiziksel"` tasiyan kayit HAZIR
+     TICARI MALDIR ve build.py o sayfaya bu arayuzu BILEREK basmaz (bkz.
+     tools/fiziksel-urun-kapisi.py). Fikstur eskiden `urunler[0]` / "ilk fonksiyonel urun"
+     ile secildigi icin katalogun basina fiziksel urunler girince testler ANLAMSIZ bir vaka
+     uzerinde kirmizi yaniyordu ("7/25") — kod degil FIKSTUR yanlisti, ama cikti bunu
+     SOYLEMIYORDU. Artik fikstur `fikstur_sec()` ile EHLIYET suzgecinden gecerek secilir ve
+     TEST 26 kaymayi ACIKCA "YANLIS VAKA" diye kirmizi yakar.
 """
 import html
 import json
@@ -77,6 +87,35 @@ def _yasal_sayfalari_geri_yukle():
                    cwd=ROOT, capture_output=True, text=True)
 
 SONUC = []
+
+
+# ── FIKSTUR EHLIYETI (SAF — kabul iddialari TEST 26'da) ────────────────────────────────
+# 🔴 NEDEN: bu paketin her iddiasi OZEL URETIM (baski) urun sayfasinin arayuzunu olcer.
+# `tur == "fiziksel"` kayit HAZIR TICARI MALDIR; build.py o sayfaya filament cipi / malzeme
+# karti / renk butonu BILEREK basmaz. Fikstur oraya duserse test "kod kirik" der ama gercekte
+# VAKA yanlistir. Bu iki fonksiyon o kaymayi imkansiz kilar (secim) + gorunur yapar (TEST 26).
+class FiksturKaymasi(Exception):
+    """Fikstur secimi EHIL urun bulamadi. Sessiz/anlamsiz sonuc yerine ACIK duruş."""
+
+
+def baski_urunu_mu(u):
+    """Fikstur EHLIYETI. FAIL-CLOSED: `tur` alani YOK/BOS olan kayit ozel uretim (baski)
+    urunudur; tanidigimiz ("fiziksel") ya da TANIMADIGIMIZ her deger fikstur DISIDIR.
+    Yarin yeni bir `tur` degeri eklenirse bu paket sessizce kaymak yerine DARALIR."""
+    if not isinstance(u, dict):
+        return False
+    return not (u.get("tur") or "").strip()
+
+
+def fikstur_sec(urunler, sart, ad):
+    """Sarti saglayan ILK EHIL urun (deterministik: katalog sirasi). Yoksa PATLAR —
+    fikstursuz kosum "yesil" de "anlamsiz kirmizi" de olmamali."""
+    for u in urunler or []:
+        if sart(u) and baski_urunu_mu(u):
+            return u
+    raise FiksturKaymasi(
+        "YANLIS VAKA (%s): sarti saglayan EHIL (ozel uretim) urun YOK — bu paketin "
+        "iddialari yalniz baski urun sayfasi icin anlamli." % ad)
 
 
 # ── PARITE CIKIS KODU ESLEMESI (SAF — kabul testi asagida, `--parite-eslem-testi`) ──────
@@ -221,6 +260,31 @@ def main():
     site_fil = [f for f in ref["filamentler"] if f.get("site")]
     ozel_fil = [f for f in ref["filamentler"] if not f.get("site")]
 
+    # ── FIKSTUR SECIMI (TEK YER — kayma nobeti TEST 26) ────────────────────────────────
+    # TEK KAYNAK: build.FONKSIYONEL_KATEGORILER (elle kopya YOK -> drift olmaz).
+    import importlib
+    build = importlib.import_module("build")
+    FONK = set(build.FONKSIYONEL_KATEGORILER)
+    # HAVUZ = TEST 2'nin ornekleme evreni; fiziksel (hazir ticari mal) kayit DISARIDA.
+    # Eskiden duz `random.sample(urunler, 20)` idi ve katalogtaki 806 fiziksel urun yuzunden
+    # her kosumda ~%63 olasilikla anlamsiz kirmizi yaniyordu (olculdu).
+    havuz = [u for u in urunler if baski_urunu_mu(u)]
+    try:
+        ornek_urun = fikstur_sec(urunler, lambda u: not u.get("parametrik"),
+                                 "ornek urun sayfasi")
+        fonk_urun = fikstur_sec(
+            urunler, lambda u: u.get("kategori") in FONK and not u.get("parametrik"),
+            "fonksiyonel kart-secim sayfasi")
+        par_u = fikstur_sec(urunler, lambda u: bool(u.get("parametrik")),
+                            "parametrik (sari) sayfa")
+    except FiksturKaymasi as e:
+        # Fikstursuz kosum RAPOR URETMEZ: sessizce anlamsiz kirmizi yakmaktansa DUR.
+        print("  ❌ TEST 26 — FIKSTUR NOBETI | %s" % e, flush=True)
+        sys.exit(1)
+    ornek_sayfa = sayfa(ornek_urun["id"])
+    fs = sayfa(fonk_urun["id"])
+    ps21 = sayfa(par_u["id"])
+
     # ---- 1) urunler.json degismemis
     d = subprocess.run(["git", "diff", "--name-only", "--", "urunler.json"],
                        capture_output=True, text=True, cwd=ROOT)
@@ -231,8 +295,8 @@ def main():
     # DETERMINIZM: 7903 urunun yalnizca 21'i parametrik -> duz random.sample parametrigi
     # ~%5 olasilikla yakalar; test o yuzden yazi-tura kirmizi/yesil olurdu. Rastgeleligi
     # koruyoruz (genis kapsam) ama en az BIR parametrik urunu ZORLA orneklemin icine koyuyoruz.
-    par_hepsi = [u for u in urunler if u.get("parametrik")]
-    ornek = random.sample(urunler, 20)
+    par_hepsi = [u for u in havuz if u.get("parametrik")]
+    ornek = random.sample(havuz, 20)
     if par_hepsi and not any(u.get("parametrik") for u in ornek):
         ornek[random.randrange(len(ornek))] = random.choice(par_hepsi)
     hatalar = []
@@ -281,7 +345,6 @@ def main():
     reh_var = os.path.exists(reh_yol)
     reh = open(reh_yol, encoding="utf-8").read() if reh_var else ""
     sm = open(os.path.join(ROOT, "sitemap.xml"), encoding="utf-8").read()
-    ornek_sayfa = sayfa(urunler[0]["id"])
     kosullar = {
         "sayfa uretildi": reh_var,
         "%d malzemenin hepsi rehberde" % len(ref["filamentler"]):
@@ -319,8 +382,6 @@ def main():
                   file=sys.stderr, flush=True)
 
     # ---- 6) override: sahte urunle render -> harita degil override basiliyor
-    import importlib
-    build = importlib.import_module("build")
     sahte = {"id": "test-override-sahte", "kategori": "Ev", "marka": [],
              "baslik": "Override Test", "aciklama": "test", "fiyat": "100 TL",
              "gorseller": [], "tavsiyeFilament": ["ASA"]}
@@ -357,27 +418,20 @@ def main():
           not hatalar8, "; ".join(hatalar8) or "temiz")
 
     # ================= KART-SECIM (malzeme dropdown -> kart secici) =================
-    # TEK KAYNAK: build.FONKSIYONEL_KATEGORILER (elle kopya YOK -> drift olmaz).
-    FONK = set(build.FONKSIYONEL_KATEGORILER)
-    fonk_urun = next((u for u in urunler
-                      if u.get("kategori") in FONK and not u.get("parametrik")), None)
-    fs = sayfa(fonk_urun["id"]) if fonk_urun else ""
+    # fonk_urun / fs yukarida (FIKSTUR SECIMI blogu) secildi — EHLIYET suzgecinden gecti.
 
     # ---- 9 (a) dropdown YOK + kartlar data-malzeme + tiklama SECER
     h9 = []
-    if not fonk_urun:
-        h9.append("fonksiyonel non-parametrik urun bulunamadi")
-    else:
-        if 'id="malzemeSec"' in fs:
-            h9.append("malzeme dropdown hala var")
-        for f in site_fil:
-            if ('data-malzeme="%s"' % html.escape(f["ad"], quote=True)) not in fs:
-                h9.append("%s karti data-malzeme tasimıyor" % f["ad"])
-        for parca in ["var KART_SECIM = true;",
-                      'seciliMalzeme = this.getAttribute("data-malzeme")',
-                      'classList.toggle("secili"']:
-            if parca not in fs:
-                h9.append("secim JS eksik: %s" % parca)
+    if 'id="malzemeSec"' in fs:
+        h9.append("malzeme dropdown hala var")
+    for f in site_fil:
+        if ('data-malzeme="%s"' % html.escape(f["ad"], quote=True)) not in fs:
+            h9.append("%s karti data-malzeme tasimıyor" % f["ad"])
+    for parca in ["var KART_SECIM = true;",
+                  'seciliMalzeme = this.getAttribute("data-malzeme")',
+                  'classList.toggle("secili"']:
+        if parca not in fs:
+            h9.append("secim JS eksik: %s" % parca)
     kayit(9, "(a) malzeme dropdown YOK + kartlar data-malzeme + tiklama secim JS'i",
           not h9, "; ".join(h9[:4]) or "temiz")
 
@@ -561,13 +615,10 @@ def main():
     # -> semali parametrikte butonlar Adet satirinda, sayfa altina buyuk buton BASILMAZ.
     # (16 Tem 15:44'te yazilan "parametrik duzene dokunulmadi" iddiasi Okan'in SONRAKI
     #  karariyla gecersiz kaldi; test o gun bayatladi.) Buyuk buton yolunun NOBETCISI -> TEST 24.
-    par_u = next((u for u in urunler if u.get("parametrik")), None)
-    ps21 = sayfa(par_u["id"]) if par_u else ""
-    if not par_u:
-        h21.append("parametrik urun bulunamadi (kapsam olculemedi)")
-    if par_u and "ikon-btn ikon-sepet" not in ps21:
+    # par_u / ps21 yukarida (FIKSTUR SECIMI blogu) secildi — EHLIYET suzgecinden gecti.
+    if "ikon-btn ikon-sepet" not in ps21:
         h21.append("parametrik sayfada ikon sepet yok (kart-secim duzeni bekleniyor)")
-    if par_u and "ikon-btn ikon-wa" not in ps21:
+    if "ikon-btn ikon-wa" not in ps21:
         h21.append("parametrik sayfada ikon WhatsApp yok (kart-secim duzeni bekleniyor)")
     if 'class="cart-btn" id="cartBtn"' in ps21 or 'class="order-wa" id="orderAlt"' in ps21:
         h21.append("parametrik sayfada eski BUYUK butonlar geri gelmis (F kalemi geri alinmis)")
@@ -644,6 +695,55 @@ def main():
     kayit(25, "KAPI: kullanilan %d kategorinin hepsi ya tavsiye uretir ya BILINCLI_BOS'ta "
           "(bugun bilincli bos: %s)" % (len(kullanilan_kat), ", ".join(sorted(BILINCLI_BOS))),
           not h25, "; ".join(h25[:4]) or "temiz")
+
+    # ---- 26 FIKSTUR NOBETI: kayma "YANLIS VAKA" diye YANAR, sessiz anlamsiz sonuc URETMEZ
+    # 🔴 NEDEN VAR (olculdu, 1 Agu): fikstur `urunler[0]` / "ilk fonksiyonel urun" ile
+    # seciliyordu. Katalogun basina hazir ticari mal (`"tur":"fiziksel"`) girince fikstur
+    # oraya dustu; build.py o sayfaya filament/renk/kart arayuzunu BILEREK basmaz, dolayisiyla
+    # 6 test "kod kirik" gibi kirmizi yandi. Kirmizi GERCEKTI ama SEBEBI YANLISTI ve cikti bunu
+    # SOYLEMIYORDU. Bu iddia o ayrimi yapar: fikstur EHIL degilse mesaj "YANLIS VAKA" der.
+    h26 = []
+    # (a) FIILEN kullanilan fiksturler EHIL mi (secim helper'i baypas edilirse burasi yanar)
+    for ad, u in [("ornek urun sayfasi", ornek_urun),
+                  ("fonksiyonel kart-secim", fonk_urun),
+                  ("parametrik (sari)", par_u)]:
+        if not baski_urunu_mu(u):
+            h26.append("YANLIS VAKA — %s fiksturu '%s' EHIL DEGIL (tur=%r); bu paketin "
+                       "iddialari YALNIZ ozel uretim sayfasi icin anlamlidir"
+                       % (ad, u.get("id"), u.get("tur")))
+    # (b) TEST 2 ornekleme havuzu: ehil olmayan urun SIZMAMALI + ornek alacak kadar buyuk
+    havuz_disi = [u for u in havuz if not baski_urunu_mu(u)]
+    if havuz_disi:
+        h26.append("TEST 2 havuzunda %d EHIL OLMAYAN kayit (ilk: %s)"
+                   % (len(havuz_disi), havuz_disi[0].get("id")))
+    if len(havuz) < 20:
+        h26.append("TEST 2 havuzu 20 ornek icin kucuk (%d)" % len(havuz))
+    # (c) URETILEN SAYFA ekseni (veri ile uretim ayrismasi): fikstur sayfasi hazir ticari mal
+    #     isaretini TASIMAMALI (build.py yalniz fiziksel uruntte `"tur":"fiziksel"` basar).
+    for ad, s in [("ornek", ornek_sayfa), ("fonksiyonel", fs), ("parametrik", ps21)]:
+        if '"tur":"fiziksel"' in s:
+            h26.append("%s fikstur SAYFASI hazir ticari mal isareti tasiyor "
+                       "(urunler.json ile uretim ayrismis olabilir)" % ad)
+    # (d) SECICI FAIL-LOUD MU: yalniz ehil-olmayan kayit iceren sentetik katalogda SESSIZCE
+    #     bir urun dondurmemeli, FiksturKaymasi ATMALI.
+    try:
+        kacan = fikstur_sec([{"id": "sentetik-fiziksel", "kategori": "Marin", "tur": "fiziksel"},
+                             {"id": "sentetik-bilinmeyen", "kategori": "Marin", "tur": "dijital"}],
+                            lambda u: True, "sentetik nobet")
+        h26.append("secici EHIL OLMAYAN kaydi SESSIZCE dondurdu: %s" % kacan.get("id"))
+    except FiksturKaymasi:
+        pass
+    # (e) TERS YON — nobetci fazla dar olmasin: ehil kayit VARSA secici onu BULMALI.
+    try:
+        secilen = fikstur_sec([{"id": "sentetik-fiziksel", "tur": "fiziksel"},
+                               {"id": "sentetik-baski"}], lambda u: True, "sentetik ehil")
+        if secilen.get("id") != "sentetik-baski":
+            h26.append("secici ehil kaydi atladi: %s" % secilen.get("id"))
+    except FiksturKaymasi:
+        h26.append("secici ehil kayit VARKEN de patliyor (nobetci fazla dar)")
+    kayit(26, "FIKSTUR NOBETI: fiksturler ozel uretim urunu (kayma 'YANLIS VAKA' diye yanar); "
+          "havuz %d urun, %d fiziksel disarida" % (len(havuz), len(urunler) - len(havuz)),
+          not h26, "; ".join(h26[:3]) or "temiz")
 
     print("-" * 70)
     kaldi = [x for x in SONUC if not x[2]]
