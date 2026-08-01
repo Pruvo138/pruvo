@@ -58,9 +58,28 @@
  * sayar ve ⚪ OLCULEMEDI (cikis 3) der. Eski metin tek-yetim durumunda OLGUSAL OLARAK
  * YANLIS teshis basiyordu (olculdu: A8).
  *
+ * ⚠️ YAYIN PENCERESI (1 Agu onarimi) — "YAYIN GECIKMESI" ile "GERCEK KAYIP" AYRI SINIFTIR.
+ * Atomik yayin geregi yeni satir D1'e TASLAK girer (yayinda=0) ve HER kesif sorgusu
+ * `yayinda = 1` suzer -> taslak satir, uc icin "D1'de HIC YOK" satirdan AYIRT EDILEMEZ.
+ * Bayragi deploy'un `yayin` isi cevirir; olculen pencere 29 dk 10 sn (push 12:09:22Z ->
+ * yayin 12:38:32Z; tikanma `build` isinde). Eski kod bu pencerede supurmeyi "YERELDE VAR /
+ * D1'DE YOK" diye KIRMIZI yakiyordu: her urun partisinden sonra yarim saat boyunca
+ * 1199/844 sorgunun HICBIRI kosmuyordu (olculdu: butce 1 on-kosul + 166 supurme partisi
+ * = 167 istekte tukeniyor, kapi on-kosulda dusuyordu). Bu YAPISALDI, her partide tekrar
+ * ediyordu.
+ * ONARIM: on-kosul, eksik cikan her id icin `yayinda` kolonunu FIILEN OKUR (yayinHaliOku
+ * -> tools/yayin-kapisi.py --hal-json). Sinif SAYI FARKINDAN TUREMEZ:
+ *   satir D1'de YOK          -> GERCEK KAYIP   -> KIRMIZI (kapinin var olma sebebi; gevsetilmez)
+ *   satir VAR + yayinda=1    -> uc gostermiyor -> KIRMIZI (yayinda ama gorunmuyor = gerileme)
+ *   satir VAR + yayinda=0    -> YAYIN GECIKMESI -> kirmizi DEGIL, ust sinira TABI (asagida)
+ *   okuma BASARISIZ          -> KIRMIZI (fail-closed; "olcemedim" asla yesil sayilmaz)
+ *
  * VERI CAPASI YOK: bu dosyada hicbir sabit urun sayisi/id/SHA/tarih yoktur — her sayi
  * kosum aninda olculur.
  */
+
+const cp = require("child_process");
+const path = require("path");
 
 // Cloudflare WAF varsayilan urllib/python-requests UA'sina 403 verir (media.pruvo3d.com'da
 // olculdu, 27 Tem'de CANLI /ara ucunda da dogrulandi: urllib UA -> 403, Chrome UA -> 200).
@@ -94,6 +113,8 @@ const FIKSTUR_ENV = [
   "PARITE_DENEME",
   "PARITE_BEKLEME_MS",
   "PARITE_SUPURME_TAVANI",
+  "PARITE_YAYIN_HALI",           // yayin hali komutu ELLE verildi (kanonik D1 okunmuyor)
+  "PARITE_YAYIN_UST_SINIRI_SN",  // taslak yasi ust siniri ELLE degistirildi
 ];
 
 /** Set edilmis test-only env degiskenleri (bos string sayilmaz). SAF. */
@@ -123,6 +144,30 @@ const BEKLEME_MS = sayiEnv("PARITE_BEKLEME_MS", 400, 1, 5000);
 // carpildigi nokta "kanit yontemi katalogu buyuttu" degil "katalog Ege'yi asti" noktasidir.
 // Tavan carpilirsa cikti bunu ACIKCA yazar (sessiz zayiflama yok).
 const SUPURME_TAVANI = sayiEnv("PARITE_SUPURME_TAVANI", 200, 1, 100000);
+
+// ── 🔴 TASLAK YASI UST SINIRI — "uzun sure taslak kalan satir sessizce YESIL GECMEZ" ──
+// DEGER SECIMI (veri capasi DEGIL, OLCUME dayali sinir): push -> canli olculen pencere
+// medyan 593 sn / azami 740 sn (yayin-kapisi.py dosya basi, son 8 basarili kosum) ve bu
+// onarimi tetikleyen olayda 29 dk 10 sn. 1800 sn (30 dk) olculen AZAMI pencerenin ~2,4
+// katidir ve `yayin` isinin kendi HTTP dogrulama turuna da pay birakir. Bunun otesi
+// "pencere" degil TIKANMA'dir.
+// IKI EKSENDE AYRI UYGULANIR (ikisi de FIILEN olculur, tahmin YOK):
+//   EKSEN A — ZARARLI hal: satir TASLAK ama /urun/<id>/ CANLIDA 200. Site satiyor, Ege
+//     GOREMEZ = tam da bu kapinin varlik sebebi olan sessiz satis kaybi. Saat: o sayfanin
+//     kendi `date - last-modified`i (yayin adiminin elinde gecen sure). Sinir asilirsa
+//     ya da OLCULEMEZSE -> KIRMIZI.
+//   EKSEN B — ZARARSIZ hal: satir TASLAK ve sayfasi CANLI DEGIL. Gosterilseydi 404 veren
+//     kart uretilirdi — atomik yayinin ONLEMEK ICIN VAR OLDUGU hal, yani gerileme DEGIL.
+//     Bu eksende KIRMIZI YAKILMAZ (yanlis-pozitif kapinin kendi hastaligidir). Saat:
+//     canli /urunler.json artefaktinin yasi = "site en son ne zaman deploy etti". Sinir
+//     asilirsa ya da olculemezse kosum KIRMIZI olmaz ama KANONIK de sayilmaz -> cikis 3.
+// 🔴 NEDEN B'DE KIRMIZI YOK: "taslak N dakikadir bekliyor" ifadesinin ALT SINIRI D1'den
+// olculemez (semada zaman damgasi kolonu YOK) ve elde kalan tek vekil (artefakt yasi)
+// "depo bir sure sessizdi, sonra push geldi" halinde YANLIS POZITIF uretir. Doktrin
+// gereği cozulemeyen 3'tur, 1 DEGIL (1 > 3 > 0 sirasi bozulmaz: gercek kayip yine 1).
+const YAYIN_UST_SINIRI_SN = sayiEnv("PARITE_YAYIN_UST_SINIRI_SN", 1800, 30, 86400);
+// Yayin hali komutunun kendi sure siniri: asilan kapi OLU kapidir.
+const YAYIN_HALI_ZAMAN_ASIMI_MS = 240000;
 
 /**
  * OLCUM ARIZASI — "ayrisma" DEGIL, "hukum veremedim". Asla KIRMIZI'ya (1) donusmez, ama
@@ -287,6 +332,104 @@ async function d1deOlmayanlar(uc, idler, sayac, nonce) {
 }
 
 /**
+ * Yayin hali komutunun argv'si. Doner: string dizisi | null (komut YOK/bozuk).
+ * PARITE_YAYIN_HALI (JSON argv dizisi) YALNIZ fikstur icindir ve FIKSTUR_ENV'dedir ->
+ * verildigi kosum pariteyi ASLA BELGELENDIREMEZ. Fikstur modunda komut VERILMEMISSE
+ * canli D1'e DOKUNULMAZ (null doner) — bir kabul fiksturu asla gercek katalogu okumaz.
+ */
+function yayinHaliArgv(env) {
+  const e = env || process.env;
+  const ham = e.PARITE_YAYIN_HALI;
+  if (ham !== undefined && String(ham).trim() !== "") {
+    let a = null;
+    try { a = JSON.parse(ham); } catch (x) { return null; }
+    if (Array.isArray(a) && a.length && a.every((s) => typeof s === "string" && s)) return a;
+    return null;
+  }
+  if (fiksturBayraklari(e).length) return null;
+  return ["python3", path.join(__dirname, "yayin-kapisi.py"), "--hal-json"];
+}
+
+/**
+ * Verilen id'lerin D1'deki YAYIN HALINI oku (tek cagri, id'ler stdin'den).
+ * Doner: { olculdu:true, yok[], yayinda[], taslak[{id,sayfa,yasSn}], sayfaOlculdu,
+ *          artefaktYasSn } | { olculdu:false, sebep }
+ *
+ * 🔴 FAIL-CLOSED: komut yok / cikis sifir-disi / JSON bozuk / SORULAN BIR ID ICIN HAL
+ * DONMEMIS -> olculdu:false. Cagiran taraf bunu KIRMIZI'ya cevirir; "olcemedim" hicbir
+ * kolonda "iyi" degildir. Kismi cevap KABUL EDILMEZ: eksik kalan tek id, gercek kaybi
+ * sessizce muaf yapardi.
+ */
+function yayinHaliOku(idler) {
+  const argv = yayinHaliArgv();
+  if (!argv) {
+    return { olculdu: false, sebep: (process.env.PARITE_YAYIN_HALI ? "PARITE_YAYIN_HALI " +
+      "cozulemedi (JSON argv dizisi bekleniyor)" : "FIKSTUR MODU: yayin hali komutu " +
+      "VERILMEDI -> canli D1 OKUNMAZ") };
+  }
+  let r;
+  try {
+    r = cp.spawnSync(argv[0], argv.slice(1), {
+      input: idler.join("\n"),
+      encoding: "utf8",
+      maxBuffer: 128 * 1024 * 1024,
+      timeout: YAYIN_HALI_ZAMAN_ASIMI_MS,
+    });
+  } catch (e) {
+    return { olculdu: false, sebep: "komut calistirilamadi: " + (e && e.message) };
+  }
+  if (r.error) return { olculdu: false, sebep: "komut calistirilamadi: " + r.error.message };
+  const kuyruk = (s) => String(s || "").trim().slice(-300);
+  if (r.status !== 0) {
+    return { olculdu: false, sebep: "komut cikis " + r.status + " — " +
+      kuyruk(r.stdout) + " | " + kuyruk(r.stderr) };
+  }
+  const satirlar = String(r.stdout || "").split("\n").map((s) => s.trim()).filter(Boolean);
+  let j = null;
+  try { j = JSON.parse(satirlar[satirlar.length - 1] || ""); } catch (e) { j = null; }
+  if (!j || typeof j !== "object") {
+    return { olculdu: false, sebep: "cikti JSON degil — " + kuyruk(r.stdout) };
+  }
+  if (j.olculdu !== true) {
+    return { olculdu: false, sebep: String(j.sebep || "olculdu=false") };
+  }
+  const dizi = (x) => (Array.isArray(x) ? x.filter((s) => typeof s === "string" && s) : null);
+  const yok = dizi(j.yok);
+  const yayinda = dizi(j.yayinda);
+  const hamTaslak = Array.isArray(j.taslak) ? j.taslak : null;
+  if (!yok || !yayinda || !hamTaslak) {
+    return { olculdu: false, sebep: "cikti sozlesmeye uymuyor (yok/yayinda/taslak dizi degil)" };
+  }
+  const taslak = [];
+  for (const t of hamTaslak) {
+    if (!t || typeof t.id !== "string" || !t.id) {
+      return { olculdu: false, sebep: "taslak kaydinda id YOK" };
+    }
+    taslak.push({
+      id: t.id,
+      sayfa: Number.isInteger(t.sayfa) ? t.sayfa : null,
+      yasSn: Number.isInteger(t.yas_sn) ? t.yas_sn : null,
+    });
+  }
+  const kapsanan = new Set(yok.concat(yayinda, taslak.map((t) => t.id)));
+  const eksikOlcum = idler.filter((id) => !kapsanan.has(id));
+  if (eksikOlcum.length) {
+    return { olculdu: false, sebep: eksikOlcum.length + " id icin hal DONMEDI (kismi olcum " +
+      "KABUL EDILMEZ) — or. " + eksikOlcum.slice(0, 3).join(", ") };
+  }
+  return {
+    olculdu: true, yok, yayinda, taslak,
+    sayfaOlculdu: j.sayfa_olculdu === true,
+    artefaktYasSn: Number.isInteger(j.artefakt_yas_sn) ? j.artefakt_yas_sn : null,
+  };
+}
+
+/** "1837 sn" -> "30,6 dk" (cikti insan okusun diye; hesap SANIYE uzerinden yapilir). */
+function dk(sn) {
+  return sn === null || sn === undefined ? "OLCULEMEDI" : (sn / 60).toFixed(1) + " dk";
+}
+
+/**
  * ON-KOSUL: checkout katalogu ile CANLI katalog ayni mi; degilse "katalog farki"
  * siniflandirmasi acilabilir mi?
  *
@@ -300,11 +443,14 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
   const notlar = [];
   const olculemedi = [];
   const yerelSayi = yerelIdler.length;
+  // Kanitlanmis TASLAK id'ler: D1'de SATIRI VAR ama yayinda=0 -> uc onlari BILEREK
+  // gizler. Karsilastirma korpusundan cikarilirlar (bkz. siniflandir()).
+  let taslakIdler = new Set();
   const kapali = (n) => {
     notlar.push(n);
     olculemedi.push(n);
     return { gecikmeModu: false, kirmizi: null, notlar, olculemedi,
-      canliSayi: null, yerelSayi, acik: 0 };
+      canliSayi: null, yerelSayi, acik: 0, taslakIdler };
   };
 
   let canliSayi = null;
@@ -321,7 +467,8 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
   if (canliSayi === yerelSayi) {
     notlar.push("checkout katalogu CANLI ile ayni (" + yerelSayi +
       ") -> siniflandirma KAPALI (her ayrisim KIRMIZI)");
-    return { gecikmeModu: false, kirmizi: null, notlar, olculemedi, canliSayi, yerelSayi, acik: 0 };
+    return { gecikmeModu: false, kirmizi: null, notlar, olculemedi, canliSayi, yerelSayi,
+      acik: 0, taslakIdler };
   }
 
   // Sayilar farkli: "katalog farki" IDDIASI ancak yerel ⊆ D1 KANITLANIRSA acilir.
@@ -335,32 +482,109 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
   }
 
   if (eksik.length) {
-    return {
-      gecikmeModu: false,
-      kirmizi: "YERELDE VAR / D1'DE YOK: " + eksik.length + " urun (Ege GOREMEZ = sessiz " +
-        "satis kaybi). yerel=" + yerelSayi + " canli=" + canliSayi +
-        " | ornek: " + eksik.slice(0, 5).join(", "),
-      notlar, olculemedi, canliSayi, yerelSayi, acik: canliSayi - yerelSayi,
-    };
+    // ── EKSIK ID'LER: "YAYIN GECIKMESI" mi "GERCEK KAYIP" mi? ────────────────────
+    // Sayi farkina BAKILMAZ; `yayinda` kolonu FIILEN okunur (dosya basi "YAYIN PENCERESI").
+    const kirmiziBasi = "YERELDE VAR / D1'DE YOK: " + eksik.length + " urun. yerel=" +
+      yerelSayi + " canli=" + canliSayi + " | ornek: " + eksik.slice(0, 5).join(", ");
+    const kirmiziDon = (sebep) => ({
+      gecikmeModu: false, kirmizi: kirmiziBasi + " | " + sebep,
+      notlar, olculemedi, canliSayi, yerelSayi, acik: canliSayi - yerelSayi, taslakIdler,
+    });
+
+    const hal = yayinHaliOku(eksik);
+    if (!hal.olculdu) {
+      // 🔴 FAIL-CLOSED: hal OKUNAMADIYSA eski (kati) davranis aynen surer.
+      return kirmiziDon("YAYIN HALI OKUNAMADI (" + hal.sebep + ") -> sinif AYIRT " +
+        "EDILEMEDI, fail-closed KIRMIZI. 'Olcemedim' YESIL SAYILMAZ.");
+    }
+    if (hal.yok.length) {
+      return kirmiziDon("GERCEK KAYIP: " + hal.yok.length + " id'nin D1'de SATIRI HIC YOK " +
+        "(taslak DEGIL — senkron dusmus, Ege GOREMEZ = sessiz satis kaybi) | ornek: " +
+        hal.yok.slice(0, 5).join(", "));
+    }
+    if (hal.yayinda.length) {
+      return kirmiziDon("YAYINDA AMA GORUNMUYOR: " + hal.yayinda.length + " id D1'de " +
+        "yayinda=1 oldugu HALDE /katalog?ids= dondurmedi (yayin gecikmesiyle ACIKLANAMAZ " +
+        "— uc/indeks gerilemesi) | ornek: " + hal.yayinda.slice(0, 5).join(", "));
+    }
+
+    // Buradan sonra: eksik cikan HER id kanitlanmis TASLAK. Ust sinir uygulanir.
+    // EKSEN A — ZARARLI: sayfasi CANLIDA 200 olan taslak (site satiyor, Ege goremez).
+    const zararli = hal.taslak.filter((t) => t.sayfa === 200);
+    const asan = zararli.filter((t) => t.yasSn === null || t.yasSn > YAYIN_UST_SINIRI_SN);
+    if (asan.length) {
+      return kirmiziDon("TASLAK ama SAYFASI CANLI: " + asan.length + " urun, yayin adimi " +
+        "UST SINIRI (" + dk(YAYIN_UST_SINIRI_SN) + ") asti ya da yasi OLCULEMEDI (" +
+        asan.map((t) => t.id + "=" + dk(t.yasSn)).slice(0, 3).join(", ") + "). Sayfa " +
+        "CANLIDA 200 donerken satir TASLAK: bu pencere DEGIL TIKANMADIR -> KIRMIZI.");
+    }
+
+    taslakIdler = new Set(hal.taslak.map((t) => t.id));
+    const gizliKalan = hal.taslak.length - zararli.length;
+    notlar.push("⏳ YAYIN GECIKMESI: " + hal.taslak.length + " satir D1'de VAR ama TASLAK " +
+      "(yayinda=0) -> uc onlari BILEREK gizliyor. KIRMIZI DEGIL. " + zararli.length +
+      " tanesinin sayfasi CANLI (yayin adimi bekliyor, en yaslisi " +
+      dk(zararli.reduce((a, t) => Math.max(a, t.yasSn || 0), 0)) + "), " + gizliKalan +
+      " tanesinin sayfasi HENUZ CANLI DEGIL (gosterilseydi 404 veren kart olurdu). " +
+      "Karsilastirma korpusundan CIKARILDI -> sorgular KOSAR. " +
+      "Canli artefakt yasi: " + dk(hal.artefaktYasSn) +
+      " | ornek: " + hal.taslak.slice(0, 3).map((t) => t.id).join(", "));
+
+    // EKSEN B — ZARARSIZ taslaklarin ust siniri: KIRMIZI degil, ama KANONIK de degil.
+    // (Kosul AYRI degiskende: mutasyon nobeti bu satiri TEK TEK bozabilsin.)
+    const eksenBAsti = gizliKalan > 0 &&
+      (hal.artefaktYasSn === null || hal.artefaktYasSn > YAYIN_UST_SINIRI_SN);
+    if (!hal.sayfaOlculdu) {
+      const n = "TASLAK yigini sayfa probu TAVANINI asti -> hangi taslagin sayfasi canli " +
+        "OLCULMEDI. Gerileme sayilmaz (KIRMIZI DEGIL) ama bu kosum pariteyi BELGELENDIREMEZ.";
+      notlar.push(n);
+      olculemedi.push(n);
+    } else if (eksenBAsti) {
+      const n = "UST SINIR: " + gizliKalan + " taslagin sayfasi canli degil ve site en son " +
+        dk(hal.artefaktYasSn) + " once deploy etmis (sinir " + dk(YAYIN_UST_SINIRI_SN) +
+        "). 'Pencere' ile 'tikanmis deploy' AYIRT EDILEMEDI (D1'de zaman damgasi kolonu " +
+        "YOK; artefakt yasi tek basina bu ayrimi kurmaz) -> KIRMIZI DEGIL ama YESIL DE " +
+        "DEGIL: bu kosum pariteyi BELGELENDIRMEZ.";
+      notlar.push(n);
+      olculemedi.push(n);
+    }
   }
-  if (canliSayi < yerelSayi) {
+
+  // Taslaklar cikarildiktan sonraki ETKIN yerel korpus — canli sayiyla bu karsilastirilir.
+  // 🔴 METIN SOZLESMESI: taslak YOKKEN cikti BIREBIR eski haliyle kalir ("yerel=N");
+  // taslak varsa dusum ACIKCA yazilir. Kabul testleri (parite-fikstur-test.js S1/S13) bu
+  // ifadeyi olcer — sessizce yeniden adlandirmak o kapilari OLU birakirdi.
+  const yerelEtkin = yerelSayi - taslakIdler.size;
+  const yerelYazi = taslakIdler.size
+    ? "yerel=" + yerelSayi + " (taslak " + taslakIdler.size + " dusuldu -> etkin=" + yerelEtkin + ")"
+    : "yerel=" + yerelSayi;
+  if (canliSayi === yerelEtkin) {
+    if (taslakIdler.size) {
+      notlar.push("Taslaklar dusuldukten sonra korpuslar BIREBIR: " + yerelYazi +
+        " = canli=" + canliSayi + " -> siniflandirma KAPALI (kati mod).");
+    }
+    return { gecikmeModu: false, kirmizi: null, notlar, olculemedi, canliSayi, yerelSayi,
+      acik: 0, taslakIdler };
+  }
+  if (canliSayi < yerelEtkin) {
     // Tutarsiz: canli sayi daha kucuk ama her yerel id D1'de bulundu (sayi onbellegi bayat
     // olabilir, KV TTL 300 sn). Kanit celisik -> siniflandirma ACILMAZ.
-    return kapali("TUTARSIZ olcum: canli=" + canliSayi + " < yerel=" + yerelSayi +
+    return kapali("TUTARSIZ olcum: canli=" + canliSayi + " < " + yerelYazi +
       " ama yerel id'lerin hepsi D1'de -> siniflandirma KAPALI (fail-closed)");
   }
 
   // ⚠️ TESHIS: kanit yalnizca "yerel ⊂ canli"yi soyler; SEBEBI SOYLEMEZ. Iki olasilik
   // ADIYLA sayilir, kesin hukum BASILMAZ (bkz. dosya basi "TESHIS DURUSTLUGU").
-  const acik = canliSayi - yerelSayi;
-  const teshis = "D1 FAZLALIGI: yerel=" + yerelSayi + " < canli=" + canliSayi +
+  const acik = canliSayi - yerelEtkin;
+  const teshis = "D1 FAZLALIGI: " + yerelYazi + " < canli=" + canliSayi +
     " | fazla=" + acik + " satir; supurme kaniti: yerel id'lerin TAMAMI D1'de. " +
     "SEBEP AYIRT EDILEMEDI -> (a) dal/checkout BAYAT (main ilerlemis) ya da " +
     "(b) D1'de YETIM satir (yerelde silinmis urun D1'de duruyor). " +
     "Tam parite BELGELENDIRILEMEDI.";
   notlar.push(teshis);
   olculemedi.push(teshis);
-  return { gecikmeModu: true, kirmizi: null, notlar, olculemedi, canliSayi, yerelSayi, acik };
+  return { gecikmeModu: true, kirmizi: null, notlar, olculemedi, canliSayi, yerelSayi, acik,
+    taslakIdler };
 }
 
 /**
@@ -372,7 +596,20 @@ async function onKosulOlc({ uc, yerelIdler, sayac, nonce }) {
  * dondurdu) pencere DISINDA kalan yerel id'ler HIC GORULMEDI -> o sorgu icin "tehlikeli
  * yon YOK" denemez. sonucYaz bunu sayar ve KESIN HUKUM cumlesini basmaz.
  */
-function siniflandir({ bekIds, alinan, toplam, limit, yerelIdKume, gecikmeModu }) {
+function siniflandir({ bekIds: hamBekIds, alinan, toplam, limit, yerelIdKume, gecikmeModu,
+  taslakKume }) {
+  // 🔴 TASLAK SUZGECI — arama SEMANTIGINE DOKUNMAZ, KORPUSU daraltir.
+  // Taslak satir D1'in HICBIR kesif yuzeyinde gorunmez (yayinda=1 sarti), yani onun
+  // aranabilirligi OLCULEBILIR bir sey DEGILDIR. Yerel beklentide birakilirsa her sorgu
+  // "sayi tutmuyor" diye kirmizi yanar ve gercek bir gerileme bu gurultuye gomulur.
+  // Suzmek olcum KAYBI degildir: kume, `yayinda` kolonu FIILEN OKUNARAK kanitlanmis
+  // id'lerden olusur (on-kosul); D1'de OLMAYAN bir id buraya ASLA giremez.
+  // Sonuc listesinden cikarmak korpustan cikarmakla AYNIDIR: site tarafi saf bir
+  // suzgectir (index.html filtered), Ege tarafinda skor korpus-BAGIMSIZDIR ve siralama
+  // kararlidir -> kalan ogelerin BAGIL sirasi degismez.
+  const bekIds = (taslakKume && taslakKume.size)
+    ? hamBekIds.filter((id) => !taslakKume.has(id))
+    : hamBekIds;
   const bekKirpik = bekIds.slice(0, limit);
   const ayniSayi = toplam === bekIds.length;
   const ayniListe = alinan.length === bekKirpik.length &&
@@ -626,4 +863,5 @@ module.exports = {
   canliKatalogSayisi, d1deOlmayanlar, onKosulOlc, siniflandir,
   sonucYaz, wafYaz, olcumNotu, fazlaKumeTutarli, fazlalikTeshis,
   fiksturBayraklari, fiksturNotu,
+  YAYIN_UST_SINIRI_SN, yayinHaliArgv, yayinHaliOku, dk,
 };

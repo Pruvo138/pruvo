@@ -913,10 +913,14 @@ jobs:
         run: python3 tools/thing-codex-test.py
       # ARAMA PARITE karar-cekirdegi: AGSIZ kollar (canliya 0 istek). Ag'a vuran
       # tools/parite-test.js ve 217 s'lik parite-mutasyon-test.js MUAF KALIR.
-      - name: Arama parite karar-cekirdegi (sozlesme + fikstur, AGSIZ)
+      # YAYIN PENCERESI kolu: taslak (yayinda=0) satirin "gecici yayin gecikmesi" ile
+      # "GERCEK KAYIP"tan ayrilmasi. Kendi sahte yayin-hali komutunu kullanir; canli D1'e
+      # SIFIR sorgu atar, bot deposu yoksa Ege senaryolarini ATLAR (CI'da o depo yoktur).
+      - name: Arama parite karar-cekirdegi (sozlesme + fikstur + yayin penceresi, AGSIZ)
         run: |
           python3 tools/parite-sozlesme-test.py
           node tools/parite-fikstur-test.js
+          node tools/parite-yayin-fikstur-test.js
       # shop birim testleri: wrangler/ag/D1 ISTEMEZ (modulu dogrudan import ederler).
       - name: Shop birim kabul testleri (siparis e-postasi + reklam atif ucu)
         run: |
