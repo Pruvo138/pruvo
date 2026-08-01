@@ -1648,6 +1648,21 @@ jobs:
       - name: "Gramer artigi kapisi oz-nobetcisi (SERIT B)"
         run: python3 tools/gramer-artigi-kapisi.py --kendini-test
 
+      # YAYIN GECIKME NOBETCISI — KABUL TESTI (1 Agu 2026).
+      # NE OLCER: 15 agsiz fikstur (bugunku GERCEK tikanma · aclik · normal yogun gun ·
+      # agsiz/yetkisiz/bozuk-sekil) + kablolama nobetleri.
+      # 🔴 BURADA OLMASI TASARIMIN PARCASIDIR, kolaylik degil: nobetcinin KENDISI
+      # (canli olcum kolu) deploy.yml'e BAGLANMAZ — bagli olsaydi hat tikandiginda
+      # nobetci de kosamaz, tam ihtiyac aninda susardi. deploy.yml'de yalniz bu AGSIZ
+      # kabul testi kosar; olcumun kendisi ELLE ve `tools/durum.py` bolum 9'dan kosar.
+      # Kabul testinin 4a iddiasi tam da bunu nobetler: bayraksiz (olcum yapan) bir
+      # cagri deploy.yml'e sizarsa KIRMIZI yanar.
+      # SERIT B gerekcesi: bu bir "sizintili/yanlis icerik canliya cikmasin" kapisi
+      # DEGIL, aracin kendini sinamasidir; yayini durdurmasi olculmus zarardir.
+      # Beyan: tools/is-akisi-kapisi.py :: SERIT_B. Offline, ag YOK, ~1 s.
+      - name: "Yayin gecikme nobetcisi kabul testi (fikstur + kablolama, SERIT B)"
+        run: python3 tools/yayin-gecikme-test.py
+
 
       # ONBELLEK SURUM KAPISI (metin onariminin IKINCI kanadi, 29 Tem): eslem duzelse bile
       # /olustur once R2 onbelleginden servis eder -> ONBELLEK_SURUM bump'lanmazsa onceden

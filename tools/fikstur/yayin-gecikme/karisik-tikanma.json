@@ -1,0 +1,285 @@
+{
+ "_aciklama": "KARISIK tikanma: iptal ve hata SIRAYLA geliyor, hicbir zincir esige ulasmiyor (iptal 1 · hata 0) ama icerik 175 dk'dir yayinlanmadi. YAS KOLU olmasa bu hal SESSIZ gecerdi.",
+ "_beklenen": "TIKALI",
+ "_karsilastirma_tabani": "e000000900000000000000000000000000000000",
+ "_simdi": "2026-08-01T14:00:00Z",
+ "karsilastirma": {
+  "ahead_by": 25,
+  "commits": [
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:05:00Z"
+     }
+    },
+    "sha": "e1000000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:11:00Z"
+     }
+    },
+    "sha": "e1010000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:17:00Z"
+     }
+    },
+    "sha": "e1020000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:23:00Z"
+     }
+    },
+    "sha": "e1030000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:29:00Z"
+     }
+    },
+    "sha": "e1040000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:35:00Z"
+     }
+    },
+    "sha": "e1050000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:41:00Z"
+     }
+    },
+    "sha": "e1060000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:47:00Z"
+     }
+    },
+    "sha": "e1070000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:53:00Z"
+     }
+    },
+    "sha": "e1080000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T11:59:00Z"
+     }
+    },
+    "sha": "e1090000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:05:00Z"
+     }
+    },
+    "sha": "e1100000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:11:00Z"
+     }
+    },
+    "sha": "e1110000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:17:00Z"
+     }
+    },
+    "sha": "e1120000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:23:00Z"
+     }
+    },
+    "sha": "e1130000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:29:00Z"
+     }
+    },
+    "sha": "e1140000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:35:00Z"
+     }
+    },
+    "sha": "e1150000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:41:00Z"
+     }
+    },
+    "sha": "e1160000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:47:00Z"
+     }
+    },
+    "sha": "e1170000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:53:00Z"
+     }
+    },
+    "sha": "e1180000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:59:00Z"
+     }
+    },
+    "sha": "e1190000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T13:05:00Z"
+     }
+    },
+    "sha": "e1200000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T13:11:00Z"
+     }
+    },
+    "sha": "e1210000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T13:17:00Z"
+     }
+    },
+    "sha": "e1220000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T13:23:00Z"
+     }
+    },
+    "sha": "e1230000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T13:29:00Z"
+     }
+    },
+    "sha": "e1240000000000000000000000000000"
+   }
+  ],
+  "status": "ahead",
+  "total_commits": 25
+ },
+ "kosumlar": [
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T13:52:00Z",
+   "event": "push",
+   "head_sha": "e000000100000000000000000000000000000000",
+   "id": 30705000001,
+   "run_started_at": "2026-08-01T13:52:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T13:56:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T13:40:00Z",
+   "event": "push",
+   "head_sha": "e000000200000000000000000000000000000000",
+   "id": 30705000002,
+   "run_started_at": "2026-08-01T13:40:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T13:51:00Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T13:30:00Z",
+   "event": "push",
+   "head_sha": "e000000300000000000000000000000000000000",
+   "id": 30705000003,
+   "run_started_at": "2026-08-01T13:30:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T13:39:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T13:15:00Z",
+   "event": "push",
+   "head_sha": "e000000400000000000000000000000000000000",
+   "id": 30705000004,
+   "run_started_at": "2026-08-01T13:15:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T13:29:00Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T12:58:00Z",
+   "event": "push",
+   "head_sha": "e000000500000000000000000000000000000000",
+   "id": 30705000005,
+   "run_started_at": "2026-08-01T12:58:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T13:14:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T12:40:00Z",
+   "event": "push",
+   "head_sha": "e000000600000000000000000000000000000000",
+   "id": 30705000006,
+   "run_started_at": "2026-08-01T12:40:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T12:57:00Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-08-01T10:35:10Z",
+   "event": "push",
+   "head_sha": "e000000900000000000000000000000000000000",
+   "id": 30705000009,
+   "run_started_at": "2026-08-01T10:35:10Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T11:02:44Z"
+  }
+ ]
+}

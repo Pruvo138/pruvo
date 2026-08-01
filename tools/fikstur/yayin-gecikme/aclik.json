@@ -1,0 +1,217 @@
+{
+ "_aciklama": "ACLIK: 7 ARDISIK iptal, hicbir kosum tamamlanmiyor, birikme buyuyor. Push araligi build suresinin altinda kaldiginda dogar.",
+ "_beklenen": "ACLIK",
+ "_karsilastirma_tabani": "4c1a55000000000000000000000000000000aaaa",
+ "_simdi": "2026-08-01T19:30:00Z",
+ "karsilastirma": {
+  "ahead_by": 14,
+  "commits": [
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T17:12:00Z"
+     }
+    },
+    "sha": "b1000000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T17:20:00Z"
+     }
+    },
+    "sha": "b1010000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T17:28:00Z"
+     }
+    },
+    "sha": "b1020000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T17:36:00Z"
+     }
+    },
+    "sha": "b1030000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T17:44:00Z"
+     }
+    },
+    "sha": "b1040000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T17:52:00Z"
+     }
+    },
+    "sha": "b1050000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T18:00:00Z"
+     }
+    },
+    "sha": "b1060000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T18:08:00Z"
+     }
+    },
+    "sha": "b1070000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T18:16:00Z"
+     }
+    },
+    "sha": "b1080000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T18:24:00Z"
+     }
+    },
+    "sha": "b1090000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T18:32:00Z"
+     }
+    },
+    "sha": "b1100000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T18:40:00Z"
+     }
+    },
+    "sha": "b1110000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T18:48:00Z"
+     }
+    },
+    "sha": "b1120000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T18:56:00Z"
+     }
+    },
+    "sha": "b1130000000000000000000000000000"
+   }
+  ],
+  "status": "ahead",
+  "total_commits": 14
+ },
+ "kosumlar": [
+  {
+   "conclusion": null,
+   "created_at": "2026-08-01T19:28:10Z",
+   "event": "push",
+   "head_sha": "b000000100000000000000000000000000000000",
+   "id": 30714800001,
+   "run_started_at": "2026-08-01T19:28:10Z",
+   "status": "in_progress",
+   "updated_at": "2026-08-01T19:28:12Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T19:24:02Z",
+   "event": "push",
+   "head_sha": "b000000200000000000000000000000000000000",
+   "id": 30714700002,
+   "run_started_at": "2026-08-01T19:24:02Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T19:28:11Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T19:19:20Z",
+   "event": "push",
+   "head_sha": "b000000300000000000000000000000000000000",
+   "id": 30714600003,
+   "run_started_at": "2026-08-01T19:19:20Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T19:24:03Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T19:16:08Z",
+   "event": "push",
+   "head_sha": "b000000400000000000000000000000000000000",
+   "id": 30714500004,
+   "run_started_at": "2026-08-01T19:16:08Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T19:19:21Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T19:12:58Z",
+   "event": "push",
+   "head_sha": "b000000500000000000000000000000000000000",
+   "id": 30714400005,
+   "run_started_at": "2026-08-01T19:12:58Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T19:16:09Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T19:05:41Z",
+   "event": "push",
+   "head_sha": "b000000600000000000000000000000000000000",
+   "id": 30714300006,
+   "run_started_at": "2026-08-01T19:05:41Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T19:12:59Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T18:57:12Z",
+   "event": "push",
+   "head_sha": "b000000700000000000000000000000000000000",
+   "id": 30714200007,
+   "run_started_at": "2026-08-01T18:57:12Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T19:05:42Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T18:49:30Z",
+   "event": "push",
+   "head_sha": "b000000800000000000000000000000000000000",
+   "id": 30714100008,
+   "run_started_at": "2026-08-01T18:49:30Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T18:57:13Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-08-01T17:00:05Z",
+   "event": "push",
+   "head_sha": "4c1a55000000000000000000000000000000aaaa",
+   "id": 30713000009,
+   "run_started_at": "2026-08-01T17:00:05Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T17:28:40Z"
+  }
+ ]
+}

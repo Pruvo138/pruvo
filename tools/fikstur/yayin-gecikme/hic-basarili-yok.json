@@ -1,0 +1,107 @@
+{
+ "_aciklama": "Pencerede (10 kosum) HIC basarili yayin yok: canli ile main arasindaki fark bu pencereden OLCULEMEZ ama bu bir OLCUM YOKLUGU DEGIL, TIKANMA BULGUSUDUR.",
+ "_beklenen": "TIKALI",
+ "_simdi": "2026-08-01T15:00:00Z",
+ "kosumlar": [
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T14:50:00Z",
+   "event": "push",
+   "head_sha": "7000000100000000000000000000000000000000",
+   "id": 30704000001,
+   "run_started_at": "2026-08-01T14:50:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T14:55:00Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T14:44:00Z",
+   "event": "push",
+   "head_sha": "7000000200000000000000000000000000000000",
+   "id": 30704000002,
+   "run_started_at": "2026-08-01T14:44:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T14:49:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T14:30:00Z",
+   "event": "push",
+   "head_sha": "7000000300000000000000000000000000000000",
+   "id": 30704000003,
+   "run_started_at": "2026-08-01T14:30:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T14:43:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T14:12:00Z",
+   "event": "push",
+   "head_sha": "7000000400000000000000000000000000000000",
+   "id": 30704000004,
+   "run_started_at": "2026-08-01T14:12:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T14:29:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T13:55:00Z",
+   "event": "push",
+   "head_sha": "7000000500000000000000000000000000000000",
+   "id": 30704000005,
+   "run_started_at": "2026-08-01T13:55:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T14:11:00Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T13:40:00Z",
+   "event": "push",
+   "head_sha": "7000000600000000000000000000000000000000",
+   "id": 30704000006,
+   "run_started_at": "2026-08-01T13:40:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T13:54:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T13:22:00Z",
+   "event": "push",
+   "head_sha": "7000000700000000000000000000000000000000",
+   "id": 30704000007,
+   "run_started_at": "2026-08-01T13:22:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T13:39:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T13:05:00Z",
+   "event": "push",
+   "head_sha": "7000000800000000000000000000000000000000",
+   "id": 30704000008,
+   "run_started_at": "2026-08-01T13:05:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T13:21:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T12:47:00Z",
+   "event": "push",
+   "head_sha": "7000000900000000000000000000000000000000",
+   "id": 30704000009,
+   "run_started_at": "2026-08-01T12:47:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T13:04:00Z"
+  },
+  {
+   "conclusion": "failure",
+   "created_at": "2026-08-01T12:30:00Z",
+   "event": "push",
+   "head_sha": "7000001000000000000000000000000000000000",
+   "id": 30704000010,
+   "run_started_at": "2026-08-01T12:30:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T12:46:00Z"
+  }
+ ]
+}

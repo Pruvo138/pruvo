@@ -1,0 +1,6 @@
+{
+ "_aciklama": "YETKI YOK: API 401 -> OLCULEMEDI (YESIL DEGIL).",
+ "_beklenen": "OLCULEMEDI",
+ "_hata": "`gh api repos/.../runs` rc=1: HTTP 401: Bad credentials",
+ "_simdi": "2026-08-01T12:00:00Z"
+}
