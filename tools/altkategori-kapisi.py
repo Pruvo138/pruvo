@@ -195,9 +195,22 @@ def kabul(kok):
             "(izinli kume katalogtan turedi, tersi degil)",
             all(v <= set(arama.ALTKATEGORI_IZINLI.get(k, ())) for k, v in esles.items()),
             {k: sorted(v) for k, v in esles.items()})
+    # 🔴 KATALOG <-> D1 METIN AYRISMASI: kataloga YAZILAN metin ile D1'e GIDEN metin
+    # birebir ayni olmali. Ayrisirsa site ile Ege ayni urunu FARKLI yazimla gorur ve
+    # hicbir hash/senkron ekseni bunu yakalamaz (olculdu 1 Agu: ' Elektrik' kapidan rc=0
+    # geciyordu, katalog ' Elektrik' D1 'Elektrik' oluyordu).
+    ayrisan = [(u.get("id"), u.get("altkategori"), arama.altkategori_kanonik(u))
+               for u in katalog
+               if isinstance(u, dict)
+               and arama.altkategori_sebebi(u.get("kategori"), u.get("altkategori")) is None
+               and arama.altkategori_kanonik(u)
+               != (u.get("altkategori") if isinstance(u.get("altkategori"), str) else "")]
+    dogrula("A4 KABUL EDILEN her kayitta katalog metni == D1 metni (urunler.json ile D1 "
+            "SESSIZCE ayrisamaz)", not ayrisan, ayrisan[:5])
     print("  OLCUM: %d kayit · altkategori dolu %d · bos/eksik %d · esles %d · tekil deger %d"
+          " · katalog!=D1 ayrisan %d"
           % (len(katalog), dolu, bos, sum(len(v) for v in esles.values()),
-             len({x for v in esles.values() for x in v})))
+             len({x for v in esles.values() for x in v}), len(ayrisan)))
 
     # ══ B EKSENI — TEDARIKCI IMZASI (depo PUBLIC) ══════════════════════════════════
     print("\n[B] IMZA — deger tedarikci kimligi ele vermesin")
@@ -265,6 +278,26 @@ def kabul(kok):
     dogrula("C5 GECERLI esles KABUL EDILIYOR (kapi gereginden dar degil)",
             arama.altkategori_sebebi("Marin", "Boya - Bakım") is None
             and arama.altkategori_sebebi("Marin", "Sintine ve Ekipmanları") is None)
+    # KANONIK OLMAYAN yazim (bosluk ekseni) — bu eksen ONCE FAIL-OPEN'DI: uyelik testi
+    # strip() SONRASI yapildigi icin ' Elektrik' rc=0 ile kabul ediliyor, kataloga HAM,
+    # D1'e KIRPILMIS gidiyordu. Simdi fail-closed.
+    _bosluklu = (" Elektrik", "Elektrik ", " Elektrik ", "\tElektrik", "Elektrik\n",
+                 " Pervaneler", "Pervaneler ", "   ")
+    _gecen_bosluklu = [v for v in _bosluklu
+                       if arama.altkategori_sebebi("Marin", v) is None]
+    dogrula("C12 KANONIK OLMAYAN yazim REDDEDILIYOR (%d fikstur: bas/son bosluk, sekme, "
+            "satir sonu, yalniz-bosluk) — sessizce kirpilip kabul EDILMIYOR"
+            % len(_bosluklu), not _gecen_bosluklu, _gecen_bosluklu)
+    _izinli12 = arama.ALTKATEGORI_IZINLI.get("Marin", ())
+    _reddedilen_dogru = [d for d in _izinli12
+                         if arama.altkategori_sebebi("Marin", d) is not None]
+    dogrula("C13 REGRESYON: izinli kumenin %d degerinin HEPSI dogru yazimla hala KABUL "
+            "(bosluk kapisi mesru veriyi kesmiyor)" % len(_izinli12),
+            not _reddedilen_dogru, _reddedilen_dogru)
+    _yakin = ("Elektrikk", "elektrik", "ELEKTRIK", "Pervanelerr", "pervaneler")
+    _gecen_yakin = [d for d in _yakin if arama.altkategori_sebebi("Marin", d) is None]
+    dogrula("C14 REGRESYON: YAKIN yazimlar hala RED (%s)" % ", ".join(_yakin),
+            not _gecen_yakin, _gecen_yakin)
 
     repo = sahte_repo(kok)
     try:
@@ -302,6 +335,13 @@ def kabul(kok):
         dogrula("C11 TOPLU kip AYNI kapidan geciyor: bir islem gecersizse HICBIRI "
                 "yazilmaz (ya hep ya hic)",
                 rc == duz.RC_ALTKATEGORI and sha4 == sha3, "rc=%s" % rc)
+        _, sha5, _ = duzelt_cagir(repo, ["alt-test-2", "--alan", "baslik", "--deger", "Z"])
+        rc_bos, sha6, _ = duzelt_cagir(repo, ["alt-test-1", "--alan", "altkategori",
+                                              "--deger", " Elektrik"])
+        dogrula("C15 GERCEK duzelt.py: BOSLUKLU deger -> rc=%d (FAIL-CLOSED) ve "
+                "urunler.json BYTE-ESIT kalir — kataloga ham ' Elektrik' YAZILAMAZ "
+                "(D1'e kirpilmis gidip ayrisamaz)" % duz.RC_ALTKATEGORI,
+                rc_bos == duz.RC_ALTKATEGORI and sha6 == sha5, "rc=%s" % rc_bos)
     finally:
         shutil.rmtree(repo, ignore_errors=True)
 
@@ -355,6 +395,35 @@ def kabul(kok):
     dogrula("D13 GECERLI deger kanoniklestirmeden GECER (kapi veriyi yutmuyor)",
             arama.altkategori_kanonik(_urun("a", altkategori="Boya - Bakım"))
             == "Boya - Bakım")
+    # 🔴 TEK KAYNAK INVARYANTI (ikiz tanim yasagi, DAVRANISLA olculur): her ham deger icin
+    # ya sebebi() REDDEDER (kanonik "" olur, katalog o degeri hic ALMAZ) ya da kanonik()
+    # girdiyi AYNEN dondurur. Ucuncu bir hal — "kabul edildi ama D1'e baska metin gitti" —
+    # katalog ile D1'in sessizce ayrismasidir; olculen kusur tam olarak buydu.
+    _ham_fikstur = [
+        "Elektrik", " Elektrik", "Elektrik ", " Elektrik ", "\tElektrik", "Elektrik\n",
+        "Pervaneler", " Pervaneler", "Pervaneler ", "  Boya - Bakım", "Boya - Bakım",
+        "Sintine ve Ekipmanları ", "", "   ", "Uydurma Altkategori", " Uydurma",
+        "Elektrikk", "elektrik", "Tekne Boyasi 2K",
+    ]
+    _ayrisan = []
+    for _v in _ham_fikstur:
+        _u = _urun("a", altkategori=_v)
+        _kan = arama.altkategori_kanonik(_u)
+        if arama.altkategori_sebebi("Marin", _v) is None:
+            if _kan != _v:
+                _ayrisan.append(("KABUL ama ayrisma", _v, _kan))
+        elif _kan != "":
+            _ayrisan.append(("RED ama kanonik bos degil", _v, _kan))
+    dogrula("D17 TEK KAYNAK: %d ham fiksturun hicbirinde 'kabul edildi ama D1 metni FARKLI' "
+            "hali YOK — katalog metni ile D1 metni ayni fonksiyondan (altkategori_metin) "
+            "turer" % len(_ham_fikstur), not _ayrisan, _ayrisan[:5])
+    dogrula("D18 altkategori_metin TEK KAYNAK olarak MEVCUT ve kanonik bicimi uretiyor "
+            "(sebebi/kanonik ikizini besleyen fonksiyon)",
+            hasattr(arama, "altkategori_metin")
+            and arama.altkategori_metin(" Elektrik ") == "Elektrik"
+            and arama.altkategori_metin(None) == ""
+            and arama.altkategori_metin(["x"]) == "",
+            getattr(arama, "altkategori_metin", None))
 
     # SQL'i GERCEKTEN kostur: kolon listesi ile deger listesi HIZALI mi (siralama kaymasi
     # sessizdir — altkategori metni baska bir kolona, o kolonun degeri altkategori'ye duser).
@@ -395,6 +464,18 @@ def kabul(kok):
 # KIRMIZI beklenen = oldurucu mutant (kapi yakalamali) · YESIL beklenen = ILGISIZ
 # degisiklik (kapinin gereginden genis olmadiginin kaniti — yanlis-pozitif herkesin
 # push'unu kirar).
+#
+# 🔴 CAPA BICIMI — DUZ METIN YA DA re.Pattern:
+# Duz metin capa, capaladigi satirin KOMSULUGU degisince BAYATLAR ve o mutantin olctugu
+# eksen SESSIZCE olculmez olur. OLCULDU (1 Agu): C1 ekseninin capasi '"konfigur",
+# "altkategori"}' idi; commit 026baebc DEGISTIRILEBILIR kumesine "tur", "gorselsiz"
+# ekleyince kume literalinin SONU kaydi, capa 0 kez eslesti ve C1'in oldurucu gucu bir
+# tur boyunca OLCULMEDI. Cozum iki katli:
+#   1) Kirilgan capalar re.Pattern'e cevrildi — capa artik komsu satirlara DEGIL, mutasyona
+#      ugrayacak YAPIYA (ornegin DEGISTIRILEBILIR literalinin ICI) bakiyor.
+#   2) Capa kayarsa tur KIRMIZI yanar ve mutant SAYILMAZ (asagida _mutasyon_uygula +
+#      "mutant fiilen uygulandi mi" sha kontrolu). "Capa bulunamadi" ASLA yesil degildir.
+# re.Pattern kullanildiginda `yeni` bir m.expand() sablonudur (\1 gruplari gecerlidir).
 MUTANTLAR = [
     ("arama.py", "        altkategori_kanonik(u),\n", "", "KIRMIZI",
      "D9: altkategori hash'ten cikar -> alt-filtre degisimi D1'e HIC yazilmaz"),
@@ -428,13 +509,22 @@ MUTANTLAR = [
      "KIRMIZI", "B4: rakam beyaz listeye girer -> urun kodu/SKU tasiyan deger GECER"),
     ("arama.py", "    if d not in izinli:", "    if False:", "KIRMIZI",
      "A1/C2: izinli kume kalkar -> uydurma taksonomi sessizce kabul edilir"),
-    ("duzelt.py", '"konfigur", "altkategori"}', '"konfigur"}', "KIRMIZI",
-     "C1: alan yeniden YAZILAMAZ olur (bugunku tikanma geri gelir)"),
-    ("duzelt.py", "        alt_ihlal = _altkategori_ihlalleri(urunler, {args.id})",
-     "        alt_ihlal = []", "KIRMIZI",
+    ("arama.py", re.compile(r"    if d != deger:\n        return \(\"KANONIK DEGIL.*?\)\n",
+                            re.S), "", "KIRMIZI",
+     "A4/C12/C15/D17: kanonik yazim kapisi FAIL-OPEN olur -> ' Elektrik' kabul edilir, "
+     "kataloga HAM, D1'e KIRPILMIS gider (katalog<->D1 sessiz metin ayrismasi)"),
+    # 🔴 CAPA re.Pattern: DEGISTIRILEBILIR bir KUME LITERALI ve icerigi buyuyor (026baebc
+    # "tur"/"gorselsiz" ekledi). Capa literalin SINIRINA degil ICINDEKI jetona bakiyor;
+    # kume bir daha buyudugunde/kuculdugunde de eslesir.
+    ("duzelt.py", re.compile(r'(DEGISTIRILEBILIR = \{[^}]*?)"altkategori",\s*'), r"\1",
+     "KIRMIZI", "C1: alan yeniden YAZILAMAZ olur (bugunku tikanma geri gelir)"),
+    ("duzelt.py", re.compile(
+        r"( +)alt_ihlal = _altkategori_ihlalleri\(urunler, \{args\.id\}\)"),
+     r"\1alt_ihlal = []", "KIRMIZI",
      "C6/C8: tek-urun kipinde kapi devre disi -> kor kabul"),
-    ("duzelt.py", "            urunler, set(setler) | set(alan_silmeler))",
-     "            urunler, set())", "KIRMIZI",
+    ("duzelt.py", re.compile(
+        r"( +)urunler, set\(setler\) \| set\(alan_silmeler\)\)"),
+     r"\1urunler, set())", "KIRMIZI",
      "C11: TOPLU kipte kapi devre disi (tek-urun kipi dogru olsa BILE)"),
     ("d1-sync.py", "TAM_OKUMA_ESIGI = 800", "TAM_OKUMA_ESIGI = 900", "YESIL",
      "ILGISIZ: geri-okuma olcek esigi — altkategori iddialarina DOKUNMAZ"),
@@ -473,6 +563,27 @@ def _kok_kostur(tmp):
                           capture_output=True, text=True)
 
 
+def _mutasyon_uygula(metin, eski, yeni):
+    """(yeni_metin, eslesme_sayisi). eski: duz metin ya da re.Pattern (yeni = expand sablonu).
+
+    eslesme_sayisi != 1 ise yeni_metin None doner — cagiran bunu HATA sayar (yesil DEGIL).
+    """
+    if isinstance(eski, re.Pattern):
+        esler = list(eski.finditer(metin))
+        if len(esler) != 1:
+            return None, len(esler)
+        m = esler[0]
+        return metin[:m.start()] + m.expand(yeni) + metin[m.end():], 1
+    sayi = metin.count(eski)
+    if sayi != 1:
+        return None, sayi
+    return metin.replace(eski, yeni), 1
+
+
+def _capa_metni(eski):
+    return eski.pattern if isinstance(eski, re.Pattern) else eski
+
+
 def mutasyon():
     print("=== CIFT YONLU MUTASYON — mutant KOPYAYA uygulanir, CANLI dosyaya ASLA")
     once = {d: _sha(os.path.join(GERCEK_KOK, "tools", d)) for d in KOPYALANAN}
@@ -494,18 +605,34 @@ def mutasyon():
         print("\nMUTASYON SONUCU: OLCULEMEDI — harness bozuk, mutant sonuclari YALANCI.")
         return 1
     shutil.rmtree(tmp0, ignore_errors=True)
+    uygulanan = 0
     for i, (dosya, eski, yeni, beklenen, aciklama) in enumerate(MUTANTLAR, 1):
         tmp = _kopya_kur()
         hedef = os.path.join(tmp, "tools", dosya)
         with open(hedef, encoding="utf-8") as f:
             metin = f.read()
-        if metin.count(eski) != 1:
-            basarisiz.append("M%02d capa BULUNAMADI/COKLU (%d kez): %s"
-                             % (i, metin.count(eski), eski[:60]))
+        # 🔴 CAPA KAYMASI = KIRMIZI, "gecti" DEGIL. Capa eslesmezse o eksen OLCULMEMISTIR;
+        # sessizce atlanirsa tur "16/16 tuttu" der ve olculmeyen eksen olculmus sanilir.
+        mutant, sayi = _mutasyon_uygula(metin, eski, yeni)
+        if mutant is None:
+            basarisiz.append("M%02d CAPA BAYAT (%d kez eslesti, 1 olmali) %s: %s"
+                             % (i, sayi, dosya, _capa_metni(eski)[:70]))
+            print("  HATA M%02d [%s] %s -> CAPA BAYAT (%d eslesme) | EKSEN OLCULMEDI | %s"
+                  % (i, beklenen, dosya, sayi, aciklama))
+            shutil.rmtree(tmp, ignore_errors=True)
+            continue
+        # Capa eslesti ama metin DEGISMEDIYSE mutant fiilen uygulanmamistir (eski == yeni,
+        # ya da expand sablonu ayni metni uretti). Bu da OLCULEMEDI'dir, yesil DEGIL.
+        if mutant == metin:
+            basarisiz.append("M%02d MUTANT UYGULANMADI (metin DEGISMEDI) %s: %s"
+                             % (i, dosya, _capa_metni(eski)[:70]))
+            print("  HATA M%02d [%s] %s -> MUTANT UYGULANMADI | EKSEN OLCULMEDI | %s"
+                  % (i, beklenen, dosya, aciklama))
             shutil.rmtree(tmp, ignore_errors=True)
             continue
         with open(hedef, "w", encoding="utf-8") as f:
-            f.write(metin.replace(eski, yeni))
+            f.write(mutant)
+        uygulanan += 1
         p = _kok_kostur(tmp)
         goruldu = "KIRMIZI" if p.returncode != 0 else "YESIL"
         isaret = "OK  " if goruldu == beklenen else "HATA"
@@ -530,6 +657,10 @@ def mutasyon():
           % (len(once), "DEGISMEDI ✔" if not bozuk else "DEGISTI ✘ %s" % bozuk))
     if bozuk:
         basarisiz.append("CANLI DOSYA DEGISTI: %s" % bozuk)
+    # Her uygulanmayan mutant zaten dongude basarisiz'a yazildi (CAPA BAYAT / UYGULANMADI);
+    # bu satir sayiyi TEK BAKISTA gorunur kilar.
+    print("  MUTANT FIILEN UYGULANDI: %d/%d (capasi bayat olan mutant OLCULMEMIS sayilir)"
+          % (uygulanan, len(MUTANTLAR)))
     if basarisiz:
         print("\nMUTASYON SONUCU: %d/%d beklenti TUTMADI" % (len(basarisiz), len(MUTANTLAR)))
         for s in basarisiz:

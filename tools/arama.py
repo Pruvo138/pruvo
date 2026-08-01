@@ -285,6 +285,25 @@ def altkategori_imza_sebebi(deger):
     return None
 
 
+def altkategori_metin(deger):
+    """`altkategori` alaninin KANONIK metin bicimi — TEK KAYNAK.
+
+    🔴 BU FONKSIYON ILE altkategori_sebebi ARASINDAKI SOZLESME (olculdu 2026-08-01):
+    sebebi() KANONIK OLMAYAN her degeri REDDEDER (asagidaki `d != deger` dali), kanonik()
+    ise kabul edilen degeri BU fonksiyondan gecirir. Yani "kataloga yazilan metin" ile
+    "D1'e giden metin" ayni fonksiyondan turer ve AYRISAMAZ.
+
+    NEDEN SART (olculen kusur): once `strip()` uyelik testinin ICINDE yapiliyordu, bu
+    yuzden ' Elektrik' (bastaki bosluk) KABUL EDILIYORDU (rc=0). duzelt.py kataloga HAM
+    degeri (' Elektrik') yazarken altkategori_kanonik D1'e KIRPILMIS degeri ('Elektrik')
+    gonderiyordu: urunler.json ile D1 arasinda SESSIZ bir metin farki — site ile Ege ayni
+    urunu farkli yazimla gorurdu, hicbir hash/senkron ekseni bunu yakalamazdi.
+    """
+    if not isinstance(deger, str):
+        return ""
+    return deger.strip()
+
+
 def altkategori_sebebi(kategori, deger):
     """(kategori, altkategori) ikilisi gecerli mi? Sebep metni ya da None (gecerli).
 
@@ -294,7 +313,15 @@ def altkategori_sebebi(kategori, deger):
         return None
     if not isinstance(deger, str):
         return "altkategori metin olmali, %s degil" % type(deger).__name__
-    d = deger.strip()
+    d = altkategori_metin(deger)
+    # 🔴 FAIL-CLOSED, SESSIZ DUZELTME DEGIL: bosluklu deger kirpilip kabul EDILMEZ,
+    # cagirana REDDEDILDIGI soylenir. Alternatifi (kataloga da kirpilmis degeri yazmak)
+    # ayni ayrismayi kapatirdi ama kullanicinin YAZDIGINI sessizce degistirirdi; bu evin
+    # cizgisi "sessizce duzeltme, soyle". '   ' (yalniz bosluk) da buraya duser: alani
+    # bosaltmak icin '' ya da --alan-sil altkategori kullanilir.
+    if d != deger:
+        return ("KANONIK DEGIL: %r — bas/son bosluk tasiyor; kanonik bicim %r "
+                "(alani bosaltmak icin '' ya da --alan-sil altkategori)" % (deger, d))
     if not d:
         return None
     imza = altkategori_imza_sebebi(d)
@@ -320,11 +347,14 @@ def altkategori_kanonik(u):
     "" yazmak urunu KAYBETTIRMEZ (urun kendi kategorisi altinda bulunur), yalnizca
     alt-filtre etiketini dusurur. Sessiz KALMAZ: tools/altkategori-kapisi.py A/B
     eksenleri ayni degeri KIRMIZI yakar.
+
+    KABUL EDILEN deger icin BU FONKSIYON GIRDIYI AYNEN DONDURUR (altkategori_metin ile
+    sebebi() ayni kanonik bicimde anlasir) -> katalog metni ile D1 metni BIREBIR AYNI.
     """
     deger = u.get("altkategori")
     if altkategori_sebebi(u.get("kategori"), deger) is not None:
         return ""
-    return (deger or "").strip()
+    return altkategori_metin(deger)
 
 
 # D1'e yazilan alanlar — biri degisirse satir yeniden yazilir, degismezse yazilmaz.
