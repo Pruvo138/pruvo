@@ -1,5 +1,260 @@
 [
   {
+    "id": "mercury-18-3549-mercruiser-120f-termostat",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-3549 MerCruiser 120°F Termostat",
+    "aciklama": "MerCruiser sterndrive motorları için orijinal kalite soğutma termostatı (OEM referans: 14586).\nMotorun soğutma sisteminde çalışma sıcaklığını 120°F (49°C) eşiğinde düzenler.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3549-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-43015-mercruiser-170f-termostat",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-43015 MerCruiser 170°F Termostat",
+    "aciklama": "MerCruiser 4.3L, 4.5L, 5.0L, 5.7L ve 6.2L sterndrive motorları için orijinal kalite soğutma termostatı (OEM referans: 864493).\nMotorun soğutma sisteminde çalışma sıcaklığını 170°F (77°C) eşiğinde düzenler.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-43015-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-1989-mercruiser-termostat-muhafazasi",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-1989 MerCruiser Termostat Muhafazası",
+    "aciklama": "MerCruiser sterndrive motorları için orijinal kalite termostat muhafaza gövdesi (OEM referans: 87290A4).\nTermostatı ve contasını içinde barındıran, soğutma suyu hattına bağlanan döküm gövdedir.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "16400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-1989-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-2615-bravo-kuyruk-oring-takimi",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-2615 Bravo Kuyruk O-Ring Takımı",
+    "aciklama": "MerCruiser Bravo sterndrive'ların şanzıman (bell housing) montajında kullanılan O-ring ve conta takımı (OEM referans: 16755Q1).\nKuyruk ile şanzıman gövdesi arasındaki bağlantının sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2615-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-3551-142f-termostat",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-3551 142°F Termostat",
+    "aciklama": "MerCruiser ve Volvo Penta sterndrive motorları için orijinal kalite soğutma termostatı (OEM referans: 59137).\nMotorun soğutma sisteminde çalışma sıcaklığını 142°F (61°C) eşiğinde düzenler.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3551-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "omc-18-3677-deniz-motoru-termostati",
+    "kategori": "Marin",
+    "marka": [
+      "OMC"
+    ],
+    "baslik": "OMC 18-3677 Deniz Motoru Termostatı",
+    "aciklama": "MerCruiser, Volvo Penta ve OMC/Cobra sterndrive motorlarında (4.3L-5.0L-5.8L EFI) kullanılan soğutma termostatı (OEM referans: 3856961).\nMotorun soğutma sisteminde çalışma sıcaklığını düzenler.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3677-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-3649-mercruiser-160f-termostat",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-3649 MerCruiser 160°F Termostat",
+    "aciklama": "MerCruiser 3.0L-7.4L V6/V8 sterndrive motorları için orijinal kalite soğutma termostatı (OEM referans: 8M0109441).\nMotorun soğutma sisteminde çalışma sıcaklığını 160°F (71°C) eşiğinde düzenler.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3649-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "omc-18-3544-deniz-motoru-termostati",
+    "kategori": "Marin",
+    "marka": [
+      "OMC"
+    ],
+    "baslik": "OMC 18-3544 Deniz Motoru Termostatı",
+    "aciklama": "OMC/Johnson-Evinrude sterndrive motorlarının soğutma sisteminde kullanılan termostat (OEM referans: 0435491).\nMotorun çalışma sıcaklığını düzenleyen plastik gövdeli termostat valfidir.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-3544-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-2619-alpha-kuyruk-conta-takimi",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-2619 Alpha Kuyruk Conta Takımı",
+    "aciklama": "MerCruiser R, MR ve Alpha One Gen II sterndrive'ların kuyruk (bell housing) montajında kullanılan conta ve O-ring takımı (OEM referans: 94996Q2).\nKuyruk ile şanzıman gövdesi arasındaki bağlantının sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2619-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-60916-silindir-kapak-contasi",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-60916 Silindir Kapak Contası",
+    "aciklama": "Küçük hacimli deniz motorlarında kullanılan silindir kapak contası (OEM referans: 850836001).\nSilindir kapağı ile motor bloğu arasındaki sızdırmazlığı sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-60916-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-2909-egzoz-manifold-contasi",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-2909 Egzoz Manifold Contası",
+    "aciklama": "GM V6 bloklu MerCruiser sterndrive motorlarının egzoz manifoldu bağlantısında kullanılan conta (OEM referans: 99757).\nManifold ile motor bloğu arasındaki egzoz gazı sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2909-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-2949-v8-egzoz-manifold-contasi",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-2949 V8 Egzoz Manifold Contası",
+    "aciklama": "GM V8 bloklu MerCruiser ve Volvo Penta sterndrive motorlarının egzoz manifoldu bağlantısında kullanılan conta (OEM referans: 33395).\nManifold ile motor bloğu arasındaki egzoz gazı sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2949-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-0720-egzoz-riser-contasi-kapali",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-0720 Egzoz Riser Contası (Kapalı Tip)",
+    "aciklama": "GM V6/V8 bloklu 2002 ve sonrası MerCruiser sterndrive motorlarının kuru-blok (dry joint) egzoz riser bağlantısında kullanılan kapalı tip conta (OEM referans: 864549A02).\n4.3L, 5.0L, 5.7L ve 6.2L motorlarla uyumludur.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-0720-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-0721-egzoz-riser-contasi-acik",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-0721 Egzoz Riser Contası (Açık Tip)",
+    "aciklama": "GM V6/V8 bloklu 2002 ve sonrası MerCruiser sterndrive motorlarının kuru-blok (dry joint) egzoz riser bağlantısında kullanılan açık tip (iki su geçişli) conta (OEM referans: 864547A02).\n4.3L, 5.0L, 5.7L ve 6.2L motorlarla uyumludur.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-0721-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-0722-egzoz-riser-contasi-kisitli",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-0722 Egzoz Riser Contası (Kısıtlı Tip)",
+    "aciklama": "GM V6/V8 bloklu 2002 ve sonrası MerCruiser sterndrive motorlarının kuru-blok (dry joint) egzoz riser bağlantısında kullanılan kısıtlı tip (tek su geçişli) conta (OEM referans: 864850A02).\n4.3L, 5.0L, 5.7L ve 6.2L motorlarla uyumludur.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-0722-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-2645-bravo-alt-unite-conta-takimi",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-2645 Bravo Alt Ünite Conta Takımı",
+    "aciklama": "MerCruiser Bravo I, II, III, X ve XR sterndrive'ların alt ünite (lower gearcase) revizyonunda kullanılan komple keçe, O-ring ve conta takımı (OEM referans: 76868A04).\nDişli kutusu bakımında değişmesi gereken tüm sızdırmazlık elemanlarını içerir.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2645-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "mercury-18-2646-alpha-gen2-alt-unite-conta-takimi",
+    "kategori": "Marin",
+    "marka": [
+      "Mercury"
+    ],
+    "baslik": "Mercury 18-2646 Alpha One Gen II Alt Ünite Conta Takımı",
+    "aciklama": "MerCruiser Alpha One Gen II sterndrive'ların alt ünite (lower gearcase) revizyonunda kullanılan komple keçe, O-ring ve conta takımı (OEM referans: 816575A3).\nDişli kutusu bakımında değişmesi gereken tüm sızdırmazlık elemanlarını içerir.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-2646-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "yamaha-impeller-18-8911",
     "kategori": "Marin",
     "marka": [
