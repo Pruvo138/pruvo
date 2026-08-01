@@ -1,5 +1,232 @@
 [
   {
+    "id": "star-brite-80w90-kuyruk-sanziman-yagi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "Star Brite"
+    ],
+    "baslik": "Star Brite 80W-90 Şanzıman (Kuyruk) Yağı 1 Litre",
+    "aciklama": "Dıştan takma ve içten-dıştan (stern drive) deniz motorlarının alt ünitesi (şanzıman/kuyruk dişli kutusu) için yüksek viskoziteli SAE 80W-90 dişli yağı.\n- Mercury, Yamaha, Suzuki, Honda, Tohatsu gibi birçok marka motorun alt ünitesinde kullanılabilir.\n- Aşınma önleyici ve korozyon engelleyici katkı paketi içerir.\n- 1 litre (32 US fl oz / 945 mL) şişede.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-65-43-712-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-65-43-712-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "star-brite-fogging-oil-kislama-spreyi",
+    "kategori": "Marin",
+    "marka": [
+      "Star Brite"
+    ],
+    "baslik": "Star Brite Fogging Oil Kışlama / Depolama Koruma Spreyi 340 g",
+    "aciklama": "Uzun süreli depolama veya kışa alma öncesi motor içini nem, pas ve korozyona karşı koruyan derin nüfuz edici fogging (sisleme) yağı.\n- Silindir içine ve yakıt sistemine püskürtülerek uygulanır, sezon başında yeniden çalıştırmayı kolaylaştırır.\n- 2 ve 4 zamanlı dıştan takma motorlarda kullanılabilir.\n- 340 gram (12 oz) aerosol kutuda.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-65-43-481-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-65-43-481-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "honda-marine-5w-30-motor-yagi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Marine 5W-30 Yarı Sentetik Motor Yağı 1 Litre",
+    "aciklama": "Honda dıştan takma deniz motorları için özel formüle edilmiş yarı sentetik SAE 5W-30 motor yağı.\n- Düşük viskozitesi sayesinde soğuk havada marş ve motor korumasında avantaj sağlar.\n- Honda Marine'in kendi FC-W sertifikalı orijinal formülasyonudur.\n- 1 litre (946 mL) şişede.",
+    "fiyat": "1800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-8221777100-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "honda-marine-10w-30-motor-yagi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Marine 10W-30 4 Zamanlı Motor Yağı 1 Litre",
+    "aciklama": "Honda dıştan takma deniz motorları için Honda Marine FC-W onaylı SAE 10W-30 motor yağı.\n- 4 zamanlı Honda deniz motorlarında genel kullanım için üreticinin kendi önerdiği viskozite.\n- Ulusal Deniz Üreticileri Birliği (NMMA) FC-W standardını karşılar.\n- 1 litre şişede.",
+    "fiyat": "2100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-8221999100he-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "honda-marine-sae-90-sanziman-yagi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "Honda"
+    ],
+    "baslik": "Honda Marine SAE 90 Şanzıman (Dişli Kutusu) Yağı 1 Litre",
+    "aciklama": "Honda dıştan takma motorların alt ünite dişli kutusu (şanzıman/kuyruk) için SAE 90 dişli yağı.\n- Geniş çalışma sıcaklığı ve yük aralığında koruyucu özelliğini korur.\n- Düzenli değişimle dişli kutusu ömrünü uzatmaya yardımcı olur.\n- 1 litre şişede.",
+    "fiyat": "2600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-8251999102he-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "yamalube-2m-tcw3-2-zamanli-motor-yagi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamalube 2M TC-W3 2 Zamanlı Deniz Motoru Yağı 1 Litre",
+    "aciklama": "Yamaha'nın 2 zamanlı dıştan takma deniz motorları için ürettiği, NMMA TC-W3 sertifikalı orijinal Yamalube motor yağı.\n- Yakıtla karışım oranına göre kullanılır, karbon birikimini azaltmaya yardımcı olur.\n- TC-W3 sertifikası gerektiren diğer 2 zamanlı deniz motorlarıyla da uyumludur.\n- 1 US quart (946 mL) şişede.",
+    "fiyat": "2700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-90790-bt208-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "yamalube-2m-tcw3-2-zamanli-motor-yagi-galon",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamalube 2M TC-W3 2 Zamanlı Deniz Motoru Yağı Galon (3,78 L)",
+    "aciklama": "Yamaha'nın 2 zamanlı dıştan takma deniz motorları için ürettiği NMMA TC-W3 sertifikalı orijinal Yamalube motor yağı, büyük hacimli galon ambalajında.\n- Sık kullanılan teknelerde tek seferde uzun süre yeter.\n- TC-W3 sertifikası gerektiren diğer 2 zamanlı deniz motorlarıyla da uyumludur.\n- 1 ABD galonu (3,78 litre) bidonda.",
+    "fiyat": "6300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-90790-bt209-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "yamalube-4m-10w30-4-zamanli-motor-yagi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamalube 4M 10W-30 4 Zamanlı Deniz Motoru Yağı 1 Litre",
+    "aciklama": "Yamaha'nın 4 zamanlı dıştan takma deniz motorları için özel formüle ettiği FC-W sertifikalı SAE 10W-30 orijinal Yamalube motor yağı.\n- 4 zamanlı deniz motorlarının yüksek devir ve tuzlu su koşullarına göre katkılandırılmıştır.\n- 1 US quart (946 mL) şişede.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-b90790-bt401-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "yamalube-4m-10w30-4-zamanli-motor-yagi-galon",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamalube 4M 10W-30 4 Zamanlı Deniz Motoru Yağı Galon (3,78 L)",
+    "aciklama": "Yamaha'nın 4 zamanlı dıştan takma deniz motorları için FC-W sertifikalı SAE 10W-30 orijinal Yamalube motor yağı, galon ambalajında.\n- Sık yağ değişimi yapan işletme/filo tekneleri için ekonomik hacim.\n- 1 ABD galonu (3,78 litre) bidonda.",
+    "fiyat": "6300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-b90790-bs402-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "yamalube-kuyruk-sanziman-yagi-tup",
+    "kategori": "Marin",
+    "marka": [
+      "Yamaha"
+    ],
+    "baslik": "Yamalube Kuyruk (Şanzıman) Dişli Yağı Tüp",
+    "aciklama": "Yamaha dıştan takma motorların alt ünite dişli kutusu (kuyruk/şanzıman) için orijinal Yamalube dişli yağı, kolay uygulanan tüp ambalajında.\n- Alt ünite bakımında düzenli yağ değişimi için pratik kullanım.\n- Aşınma ve korozyona karşı katkı paketi içerir.",
+    "fiyat": "2100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-bacc-gear-ub-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "quicksilver-premium-tcw3-2-zamanli-motor-yagi-1lt",
+    "kategori": "Marin",
+    "marka": [
+      "Quicksilver"
+    ],
+    "baslik": "Quicksilver Premium TC-W3 2 Zamanlı Deniz Motoru Yağı 1 Litre",
+    "aciklama": "Mercury Marine'in Quicksilver markasıyla sunduğu, NMMA TC-W3 sertifikalı 2 zamanlı dıştan takma motor yağı.\n- Mercury/Mariner dahil TC-W3 gerektiren birçok 2 zamanlı deniz motorunda kullanılabilir.\n- Karbon birikimini azaltır, aşınmaya karşı koruma sağlar.\n- 1 US quart (946 mL) şişede.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-92-858021q01-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "quicksilver-optimax-dfi-2-zamanli-motor-yagi-4lt",
+    "kategori": "Marin",
+    "marka": [
+      "Quicksilver"
+    ],
+    "baslik": "Quicksilver Optimax DFI Sentetik Karışım 2 Zamanlı Motor Yağı 4 Litre",
+    "aciklama": "Mercury/Mariner OptiMax ve doğrudan yakıt enjeksiyonlu (DFI) 2 zamanlı dıştan takma motorlar için özel formüle edilmiş sentetik karışım motor yağı.\n- Düşük yağlama oranlarında ve yüksek çalışma sıcaklıklarında performansı korur.\n- Egzoz dumanını ve karbon birikimini azaltır.\n- 4 litre (1,06 ABD galonu) bidonda.",
+    "fiyat": "5900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-92-858037q01-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "quicksilver-optimax-dfi-2-zamanli-motor-yagi-10lt",
+    "kategori": "Marin",
+    "marka": [
+      "Quicksilver"
+    ],
+    "baslik": "Quicksilver Optimax DFI Sentetik Karışım 2 Zamanlı Motor Yağı 10 Litre",
+    "aciklama": "Mercury/Mariner OptiMax ve DFI 2 zamanlı dıştan takma motorlar için sentetik karışım motor yağı, büyük hacimli ambalajda.\n- Sık kullanılan tekneler ve filo bakımı için ekonomik hacim.\n- Düşük yağlama oranlarında ve yüksek sıcaklıklarda performansı korur.\n- 10 litre (2,5 ABD galonu) bidonda.",
+    "fiyat": "13100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-92-858038q01-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "quicksilver-25w40-sentetik-4-zamanli-motor-yagi-4lt",
+    "kategori": "Marin",
+    "marka": [
+      "Quicksilver"
+    ],
+    "baslik": "Quicksilver 25W-40 Sentetik Karışım 4 Zamanlı Motor Yağı 4 Litre",
+    "aciklama": "Mercury dıştan takma, sterndrive ve içten (inboard) deniz motorları için SAE 25W-40 sentetik karışım motor yağı.\n- Gelişmiş korozyon önleyici katkı paketi, nemli/tuzlu ortamda koruma sağlar.\n- FC-W ve FC-W Katalizör Uyumlu sertifikalarını karşılar.\n- 4 litre (1 ABD galonu) bidonda.",
+    "fiyat": "6100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-93-8m0086227-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "quicksilver-4str-25w50-motor-yagi",
+    "kategori": "Marin",
+    "marka": [
+      "Quicksilver"
+    ],
+    "baslik": "Quicksilver 4-Stroke 25W-50 Yüksek Performans Motor Yağı",
+    "aciklama": "Mercury Verado gibi yüksek performanslı 4 zamanlı deniz motorları için SAE 25W-50 sentetik karışım motor yağı.\n- Yüksek devir ve yük altında viskozitesini korur, vernik/çamur oluşumuna karşı dayanıklıdır.\n- FC-W sertifikalı, NMMA pas koruma gereksinimlerini aşar.\n- 1 litre (US quart) şişede.",
+    "fiyat": "7600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-92-8m0096727-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "champion-buji-d16",
     "kategori": "Marin",
     "marka": [
