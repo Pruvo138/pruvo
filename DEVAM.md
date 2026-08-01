@@ -31,11 +31,18 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   tek yonlu kapi aciliyordu; artik sema adimi indeks teyidi gecmeden "tamam" demiyor,
   ikiz satirlar SAYILIYOR ama silinmiyor. Once-kirmizi 3/3 + 3/3, mutasyon 11/11.
 
-### 🔴 OKAN KAPISI — ACIK, PARA
-Canli shop worker paketi BAYAT; 1 Agu'daki karsiliksiz tahsilat onarimi canliya CIKMADI.
-676 fiziksel uruntte %84'e varan fazla tahsilat olculdu (bir uruntte 270000 yerine 496800
-kurus). CI'da worker deploy adimi YOK, elle yapiliyor. Fiziksel canli nobetci deploy olana
-kadar kirmizi kalacak.
+### ✅ FAZLA TAHSILAT KAPANDI (Okan deploy etti, 17:29)
+Canli paket bayatti; 676 fiziksel uruntte %84'e varan fazla tahsilat olculmustu. Deploy
+sonrasi yeni nobetci **rc=0**: sapma 0, nesil 0, repo-kirik 0, olculemeyen 0 (deploy oncesi
+6 SAPMA + 6 NESIL idi). Ornek urun canli 270000 = liste 270000 kurus. Saglik kapisi rc=0.
+Onbellek tuzagi UC bicimde elendi (ciplak uc + iki farkli atlatma damgasi + kapinin tamami
+atlatan uctan): uc PoP, `no-store`, ayni sonuc. Odeme ekraninin canli kaynagi da yeni metni
+tasiyor (6/6 capa, iki cekimde bayt-ayni).
+🔴 **KALICI RISK:** CI'da worker deploy adimi YOK, elle yapiliyor — ayni bayatlik tekrar eder.
+⚠️ **Tuzak:** `shop/.wrangler/dry/` altindaki artefakt bir kuru-kosum artigi, yayindaki paket
+DEGIL; ona bakip "deploy eski" hukmu verilmesin.
+**Olculemeyen tek eksen:** siparis onay e-postasinin gercek govdesi — yan etkisiz yolu yok,
+gormek icin dusuk tutarli GERCEK siparis gerekir (Okan kapisi). Uretilen mantik offline rc=0.
 
 ### KARARLAR (bu tur)
 - Ege kapisinda sirket sesi birinci cogulun da yanmasi KABUL EDILDI: o metin Ege'ye kendi
