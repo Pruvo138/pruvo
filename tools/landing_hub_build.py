@@ -68,7 +68,8 @@ _HUB_CSS = """
 
 def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld, body_html):
     esc = ctx["esc"]
-    css = ctx["PAGE_CSS"] + _HUB_CSS
+    # Taban CSS harici varliktan gelir (build.stil_bloklari); _HUB_CSS ayri varlik.
+    stil = ctx["stil_bloklari"](_HUB_CSS)
     return ctx["surumle_scriptler"](u"""<!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -89,7 +90,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
 <meta property="og:url" content="{url}">
 <script type="application/ld+json">{collection_ld}</script>
 <script type="application/ld+json">{breadcrumb_ld}</script>
-<style>{css}</style>
+{stil}
 </head>
 <body>
 <header>
@@ -121,7 +122,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
         ogtitle=esc(title),
         url=esc(canonical_url),
         favicon=ctx["FAVICON"],
-        css=css,
+        stil=stil,
         body=body_html,
         foot_nav=ctx["FOOT_NAV_HTML"],
         pay_band=ctx["PAY_BAND_HTML"],

@@ -125,10 +125,30 @@ def main():
     surumlu_toplam = 0
     yayin_kopyali = 0     # ?v='si YAYIN kopyasindan turetilen referans sayisi
     kritik = set()  # gorulen kritik dosyalar (secenekler + taban)
+    varlik_gorulen = 0
     for ad, html in sayfalar.items():
         for m in SURUMSUZ_RE.finditer(html):
-            hatalar.append("%s: SURUMSUZ script src=\"%s\" (onbellek kirici yok)"
-                           % (ad, m.group(1)))
+            yol = m.group(1)
+            if yol.startswith(build.VARLIK_URL_ONEK):
+                # ICERIK-ADRESLI VARLIK: onbellek kirici ADIN KENDISIDIR (sha256 ilk 10),
+                # ustune ?v= yazmak ayni bayta ikinci bir surum ekseni verirdi. MUAFIYET
+                # DEGIL, BASKA BICIMDE OLCUM: ad dosyanin BAYTLARINDAN yeniden turetilir;
+                # tutmuyorsa bayat/yanlis dosya servis edilirdi -> KIRMIZI.
+                dosya = os.path.join(ROOT, yol.lstrip("/"))
+                if not os.path.isfile(dosya):
+                    hatalar.append("%s: varlik dosyasi YOK -> sayfa ciplak kalir (%s)" % (ad, yol))
+                    continue
+                with open(dosya, encoding="utf-8") as f:
+                    govde = f.read()
+                temel, uz = os.path.splitext(os.path.basename(yol))
+                bek = "%s-%s%s" % (temel.rsplit("-", 1)[0], build.varlik_hash(govde), uz)
+                if bek != os.path.basename(yol):
+                    hatalar.append("%s: varlik adi kendi BAYTLARINDAN turemiyor (%s != %s)"
+                                   % (ad, os.path.basename(yol), bek))
+                else:
+                    varlik_gorulen += 1
+                continue
+            hatalar.append("%s: SURUMSUZ script src=\"%s\" (onbellek kirici yok)" % (ad, yol))
         for m in SURUMLU_RE.finditer(html):
             surumlu_toplam += 1
             yol, ver = m.group(1), m.group(2)
@@ -146,6 +166,13 @@ def main():
                 hatalar.append("%s: %s surumu '%s' != YAYINLANAN icerik hash'i '%s' "
                                "(olculen bayt: %s)" % (ad, yol, ver, bek,
                                                        os.path.relpath(dosya, ROOT)))
+
+    # Kapsam yoklamasi (varlik kolu): urun sayfalari icerik-adresli JS varligi REFERANS
+    # ETMELI. Sifir gorulme = ya taşıma geri alinmis ya regex bosa dusmus; iki halde de
+    # yukaridaki ad-dogrulamasi HIC kosmamis olur -> yalancı yesil.
+    if varlik_gorulen == 0:
+        hatalar.append("varlik kolu HIC olculmedi: hicbir sayfada %s*.js referansi yok "
+                       "(regex/kapsam bosa dustu mu?)" % build.VARLIK_URL_ONEK)
 
     # Kapsam yoklamasi: iki kritik dosya da EN AZ bir sayfada surumlu gorulmeli
     # (aksi halde regex/kapsam sessizce bosa dusmustur, test yanlislikla yesil yanar).

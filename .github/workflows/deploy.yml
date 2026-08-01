@@ -985,6 +985,16 @@ jobs:
           python3 tools/meta-piksel-test.py
           python3 tools/surum-test.py
           python3 tools/test-merchant-feed.py
+      # VARLIK EKSENI: tekrar eden CSS/JS icerik-adresli /varlik/<ad>-<hash> dosyalarina
+      # tasindi (yayin ~1,03 GB -> ~0,61 GB; Pages siniri ~1 GB). Iki hata sinifi SESSIZ:
+      # ayni adin ustune yazmak (BAYAT varlik servis edilir) ve satir-ici cekirdegin harici
+      # dosyayla IKIZLESMESI. Kapi 10 ekseni olcer; mutasyon nobeti kapinin OLU olmadigini
+      # (ve M6 kontrol mutantiyla "her seye kirmizi yanan" olmadigini) kanitlar.
+      # build.py'den ONCE kosar: kendi sinirli ornegini kendisi render eder.
+      - name: Varlik (ortak CSS/JS harici dosya) kabul testi + mutasyon nobeti
+        run: |
+          python3 tools/varlik-test.py
+          python3 tools/varlik-mutasyon.py
       - name: Urun-AI kapisi kabul testi (thing-codex izin kapisi varsayilan KAPALI)
         run: python3 tools/thing-codex-test.py
       # ARAMA PARITE karar-cekirdegi: AGSIZ kollar (canliya 0 istek). Ag'a vuran
@@ -1117,6 +1127,12 @@ jobs:
           cp _yayin/secenekler.js _yayin/konfigur.js _yayin/filament-veri.js _yayin/taban-fiyatlar.js _site/
           cp urunler.json ozet.json CNAME ege-bilgi.md robots.txt sitemap.xml merchant-feed.xml .nojekyll _site/
           cp -r urun _site/
+          # SAYFA VARLIKLARI (/varlik/*.css,*.js): build.py'nin urettigi icerik-adresli
+          # same-origin dosyalar. Sayfalar bunlara REFERANS verir (gomulu degil) -> dizin
+          # eksik/bos gelirse tum sayfalar CIPLAK yayinlanirdi; fail-closed kontrol edilir.
+          # Yorumlari uretim aninda soyulmustur (build.varlik_adres), bu yuzden _yayin/ yok.
+          if [ ! -d varlik ] || [ -z "$(ls -A varlik)" ]; then echo "HATA: varlik/ yok veya bos (build.py kosmadi mi?) -> sayfalar ciplak kalir"; exit 1; fi
+          cp -r varlik _site/varlik
           # Icerik/yasal sayfa dizinleri: build.py'nin urettigi _yayin-icerik-dizinleri.txt'ten
           # (TEK KAYNAK sayfalar.py SITEMAP_SLUGS) kopyalanir -> yeni CONTENT_PAGES otomatik
           # yayina girer, elle beyaz-liste tutulmaz (eskiden buraya eklenmeyen sayfa sessizce 404'tu).

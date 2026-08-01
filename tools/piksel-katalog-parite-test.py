@@ -49,6 +49,25 @@ ROOT = os.path.dirname(TOOLS)
 sys.path.insert(0, TOOLS)
 import build as B  # noqa: E402  feed_id / feed_price / images_of / render_product — TEK KAYNAK
 
+# --- YAYIN YUZEYI SARGISI (2 Agu 2026) --------------------------------------------
+# Sayfanin ORTAK CSS/JS'i artik sayfaya gomulu degil: icerik-adresli /varlik/<ad>-<hash>
+# dosyalarindan REFERANSLA geliyor. Bu kapi sayfanin <script>/<style> govdesinde kural
+# ariyor; ham HTML'i okursa aradigi kod TARAYICIYA INMEYE DEVAM ETTIGI HALDE metinde
+# bulunmaz ve kapi SESSIZCE yesile doner (olculen yuzey kucuulur). Bu yuzden render
+# ciktisi TEK KAYNAK tools/yayin_yuzey.py'den gecirilir: /varlik/ referanslari
+# icerikleriyle yerine konur, olculen metin tasima ONCESIYLE ayni kurallari tasir.
+import yayin_yuzey                                                       # noqa: E402
+_HAM_RENDER_PRODUCT = B.render_product
+
+
+def _yayin_yuzeyli_render_product(*a, **k):
+    return yayin_yuzey.govde(_HAM_RENDER_PRODUCT(*a, **k))
+
+
+B.render_product = _yayin_yuzeyli_render_product
+# ----------------------------------------------------------------------------------
+
+
 URUNLER = os.path.join(ROOT, "urunler.json")
 INDEX_HTML = os.path.join(ROOT, "index.html")
 OLCUM_JS = os.path.join(ROOT, "shop", "src", "olcum.js")

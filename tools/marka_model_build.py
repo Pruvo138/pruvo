@@ -555,7 +555,10 @@ def _huni_blok(esc, baslik, govde, prefill, cta):
 def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld, body_html,
            kapsam_js=""):
     esc = ctx["esc"]
-    css = ctx["PAGE_CSS"] + _MM_CSS
+    # Taban CSS artik SAYFAYA GOMULMEZ: kritik cekirdek satir-ici, gerisi icerik-adresli
+    # /varlik/sayfa-<hash>.css. _MM_CSS AYRI bir varliga gider -> taban dosya urun/icerik/
+    # marka/hub sayfalarinda AYNI dosyadir (ikinci kopya uretilmez).
+    stil = ctx["stil_bloklari"](_MM_CSS)
     return ctx["surumle_scriptler"](u"""<!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -576,7 +579,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
 <meta property="og:url" content="{url}">
 <script type="application/ld+json">{collection_ld}</script>
 <script type="application/ld+json">{breadcrumb_ld}</script>
-<style>{css}</style>
+{stil}
 </head>
 <body>
 <header>
@@ -609,7 +612,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
         ogtitle=esc(title),
         url=esc(canonical_url),
         favicon=ctx["FAVICON"],
-        css=css,
+        stil=stil,
         body=body_html,
         foot_nav=ctx["FOOT_NAV_HTML"],
         pay_band=ctx["PAY_BAND_HTML"],
