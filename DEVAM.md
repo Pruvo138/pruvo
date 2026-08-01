@@ -251,3 +251,44 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   calisma agaci porcelain BOS, dal worktreei porcelain BOS (dal oturumu aktif, DOKUNULMADI).
   D1 teyidi: sayi ekseni 16499 == 16499; icerik ekseni 16499 urun_hash birebir,
   uyusmaz 0 / eksik 0 / fazla 0.
+
+
+## 6c SIZINTI NOBETCISI BEYAZ LISTESI + CAPA ONARIMI — main'e ALINDI (1 Agu, cherry-pick)
+
+- Alinan iki commit: `0ea09977` (dar beyaz liste + ic nobetci + CI adimi) ·
+  `3be869ac` (S1..S4 sart-basi fikstur, sahte M2 onarimi, kol granulu beyani).
+  Kaynak dal `claude/exciting-hodgkin-91ec53` (`f03bd0c0`/`effa4747`); dal AKTIF, dokunulmadi.
+- **DUZ MERGE YAPILMADI — cherry-pick.** Dalin onceki commitleri main'e zaten cherry-pick ile
+  alinmisti; dal tabani gecmis yeniden yaziminin oncesinde. Duz merge dalin eski commitlerini
+  geri baglar ve temizlenmis tedarik zinciri adlarini PUBLIC gecmise geri acardi.
+- **Kapsam (uc-nokta, `origin/main...HEAD`): 3 dosya / +321/-6** —
+  `tools/durum-test.py` +255/-1 · `tools/is-akisi-kapisi.py` +58/-5 ·
+  `.github/workflows/deploy.yml` +14. `urunler.json` GORULMEDI (MaCiT duzlemi korundu).
+  Cherry-pick CAKISMASIZ uygulandi (iki kez: taban main ilerleyince yeniden turetildi).
+- **Sizinti taramasi (gidecek MESAJLAR + diff):** `.urun-kaynaklari.json`'dan turetilen
+  **11.357 adlik** tedarikci/tasarimci kumesine karsi **0 vurus**; telefon/eposta/RAPOR-*/
+  kova/AWS/JWT/Slack/hex40 siniflarinda diff **TEMIZ**.
+- **Kapilar — ENTEGRE agacta (main'in guncel katalogu), 9/9 rc=0:**
+  durum-test **9/9** (6b 44.906 aday deger tarandi, 0 sizinti) · `--ic-nobetci` **12/12**
+  (E1 esdegerlik: 2508 kalemlik korpus, ayrisan 0) · durum-edge 8/8 · derin-cap 3/3 ·
+  kisisel-veri YESIL · ci-kapsam YESIL · kapi-envanteri 7/7 · is-akisi-kapisi YESIL
+  (8 iddia, kendini-test 165) · mimar-kilit 224/224.
+- **Gerekce:** CI run `30691723803` `serit-b` kirmizisi — TEST 6c bir GIT COMMIT BASLIGINI
+  kimlik sandi (`TRIM/MANIFOLD/...`, 69 kr, buyuk harf + `/`, `[A-Za-z0-9/+]{40,}`
+  desenine takiliyor). Gercek sir YOKTU. **Desen DARALTILMADI**, dar beyaz liste eklendi
+  (her segment 2..20 ASCII harf + tek bicim). Bagimsiz curutucu: 1,4M sentetik sirda 0 kacak,
+  AWS/JWT/hex40/ham base64/Slack webhook 5/5 yakalaniyor.
+- **CI kaniti:** kosum `30695159960` (headSha `01e2f1881d`),
+  `git merge-base --is-ancestor 3be869ac 01e2f1881d` **exit 0**.
+  **`serit-b` = success** (kirmizi olan is buydu). Yeni adim
+  `6c sizinti muafiyeti ic nobetcisi (mutasyon)` kosumda VAR ve success; daha once patlayan
+  `Katalog/parti veri kapilari kabul testi` de success. Kendi SHA'mizin dogrudan kosumu
+  (`30695091285`) escakismayla `cancelled` olmustu — `--limit 1` kanit sayilmadi, ardil
+  kosum is-ancestor ile kanitlandi.
+- **D1 teyidi:** sayi ekseni 16518 == 16518; icerik ekseni 16518 urun_hash birebir,
+  uyusmaz 0 / eksik 0 / fazla 0. Sema degismedi, `--sema` KOSTURULMADI.
+- **Canli site dogrulamasi GEREKMIYOR** — bu is yalniz CI kapisi, musteri yuzeyi degil
+  (site ciktisi bayt olarak degismedi).
+- Push notu: push `remote rejected` verdi cunku kardes oturum ayni anda ilerletmisti;
+  o oturumun push'u BIZIM iki commitimizi ata olarak TASIDI (is-ancestor exit 0 ile
+  dogrulandi), yeniden push GEREKMEDI. `--force` kullanilmadi.
