@@ -1,5 +1,865 @@
 [
   {
+    "id": "sierra-filtre-braketi-18-7853-1",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7853-1 Mercury Deniz Motoru Filtre Braketi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt filtresi montaj braketi (parça kodu: 18-7853-1).\nYakıt filtresi kartuşunun motora sabitlenmesini sağlayan montaj braketidir; filtre elemanıyla birlikte kullanılır.\nMercury marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "2400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7853-1-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yakit-filtresi-18-7844",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7844 Mercruiser/Yamaha Deniz Motoru Yakıt Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt (benzin/su ayırıcı) filtresi (parça kodu: 18-7844).\nDeniz motoru yakıt sisteminde suyu ve kirliliği yakıttan ayırarak enjektör/karbüratörü korur.\nMercruiser, Yamaha marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7844-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7844-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yakit-filtresi-18-7845",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7845 Mercruiser/Yamaha Deniz Motoru Yakıt Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt (benzin/su ayırıcı) filtresi (parça kodu: 18-7845).\nDeniz motoru yakıt sisteminde suyu ve kirliliği yakıttan ayırarak enjektör/karbüratörü korur.\nMercruiser, Yamaha marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7845-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7845-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-filtre-braketi-18-7852-1",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7852-1 Deniz Motoru Filtre Braketi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt filtresi montaj braketi (parça kodu: 18-7852-1).\nYakıt filtresi kartuşunun motora sabitlenmesini sağlayan montaj braketidir; filtre elemanıyla birlikte kullanılır.\nÇeşitli dıştan takma deniz motoru modelleriyle uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "3300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7853-1-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-filtre-braketi-18-7852-2",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7852-2 Deniz Motoru Filtre Braketi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt filtresi montaj braketi (parça kodu: 18-7852-2).\nYakıt filtresi kartuşunun motora sabitlenmesini sağlayan montaj braketidir; filtre elemanıyla birlikte kullanılır.\nÇeşitli dıştan takma deniz motoru modelleriyle uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "3900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7853-1-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yakit-filtresi-18-7919",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7919 Deniz Motoru Yakıt Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt (benzin/su ayırıcı) filtresi (parça kodu: 18-7919).\nDeniz motoru yakıt sisteminde suyu ve kirliliği yakıttan ayırarak enjektör/karbüratörü korur.\nÇeşitli dıştan takma deniz motoru modelleriyle uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7919-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7919-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yakit-filtresi-18-7920",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7920 Deniz Motoru Yakıt Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt (benzin/su ayırıcı) filtresi (parça kodu: 18-7920).\nDeniz motoru yakıt sisteminde suyu ve kirliliği yakıttan ayırarak enjektör/karbüratörü korur.\nÇeşitli dıştan takma deniz motoru modelleriyle uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "2000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7920-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7920-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-filtre-kiti-18-7922",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7922 Deniz Motoru Filtre Kiti",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt filtresi kabı/kiti (parça kodu: 18-7922).\nYakıt/su ayırıcı filtre gövdesinin şeffaf alt kabı veya tam kit halinde yedek parçasıdır; su seviyesinin gözle kontrolünü sağlar.\nÇeşitli dıştan takma deniz motoru modelleriyle uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7922-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-filtre-kiti-18-7928",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7928 Deniz Motoru Filtre Kiti",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt filtresi kabı/kiti (parça kodu: 18-7928).\nYakıt/su ayırıcı filtre gövdesinin şeffaf alt kabı veya tam kit halinde yedek parçasıdır; su seviyesinin gözle kontrolünü sağlar.\nÇeşitli dıştan takma deniz motoru modelleriyle uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "3500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7928-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-filtre-kiti-18-7932",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7932 Deniz Motoru Filtre Kiti",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt filtresi kabı/kiti (parça kodu: 18-7932).\nYakıt/su ayırıcı filtre gövdesinin şeffaf alt kabı veya tam kit halinde yedek parçasıdır; su seviyesinin gözle kontrolünü sağlar.\nÇeşitli dıştan takma deniz motoru modelleriyle uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "5500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7932-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7932-2.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7932-3.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yakit-filtresi-18-79908",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-79908 Honda Deniz Motoru Yakıt Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt (benzin/su ayırıcı) filtresi (parça kodu: 18-79908).\nDeniz motoru yakıt sisteminde suyu ve kirliliği yakıttan ayırarak enjektör/karbüratörü korur.\nHonda marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-79908-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-79908-2.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-79908-3.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yakit-filtresi-18-7831",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7831 Mercury Deniz Motoru Yakıt Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt (benzin/su ayırıcı) filtresi (parça kodu: 18-7831).\nDeniz motoru yakıt sisteminde suyu ve kirliliği yakıttan ayırarak enjektör/karbüratörü korur.\nMercury marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7831-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7831-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yakit-filtresi-18-7830",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7830 Mercury Deniz Motoru Yakıt Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt (benzin/su ayırıcı) filtresi (parça kodu: 18-7830).\nDeniz motoru yakıt sisteminde suyu ve kirliliği yakıttan ayırarak enjektör/karbüratörü korur.\nMercury marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7830-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yakit-filtresi-18-79809",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-79809 Yamaha Deniz Motoru Yakıt Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt (benzin/su ayırıcı) filtresi (parça kodu: 18-79809).\nDeniz motoru yakıt sisteminde suyu ve kirliliği yakıttan ayırarak enjektör/karbüratörü korur.\nYamaha marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-79809-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yakit-filtresi-18-7789",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7789 Volvo Deniz Motoru Yakıt Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru yakıt (benzin/su ayırıcı) filtresi (parça kodu: 18-7789).\nDeniz motoru yakıt sisteminde suyu ve kirliliği yakıttan ayırarak enjektör/karbüratörü korur.\nVolvo marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7789-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7789-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7918",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7918 Mercury Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7918).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercury marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7901",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7901 Mercury/Yamaha Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7901).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercury, Yamaha marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7914",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7914 Mercury Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7914).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercury marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7914-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7914-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7871",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7871 Mercruiser Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7871).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercruiser marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-21-01-207",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 21-01-207 Mercruiser/Quicksilver Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 21-01-207).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercruiser, Quicksilver marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7909",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7909 Honda Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7909).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nHonda marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7909-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7909-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7913",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7913 Mercury/Honda Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7913).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercury, Honda marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7913-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7913-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7758",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7758 Mercury Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7758).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercury marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7758-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7758-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7921",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7921 Mercury Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7921).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercury marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7921-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7921-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7879",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7879 Mercruiser/Yamaha Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7879).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercruiser, Yamaha marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7879-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7879-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7875",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7875 Mercruiser/Volvo Penta Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7875).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercruiser, Volvo Penta, Volvo, Penta, OMC marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7875-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7875-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7897",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7897 Suzuki Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7897).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nSuzuki marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7897-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7897-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-8870",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8870 Suzuki Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-8870).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nSuzuki marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "470 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7903",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7903 Suzuki Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7903).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nSuzuki marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "470 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7903-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7903-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7895",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7895 Suzuki Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7895).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nSuzuki marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7905",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7905 Suzuki Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7905).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nSuzuki marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7905-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7905-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7896",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7896 Suzuki Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7896).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nSuzuki marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7896-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7896-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7915-1",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7915-1 Suzuki Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7915-1).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nSuzuki marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7915-1-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7915-1-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-8700",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8700 Yamaha Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-8700).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nYamaha marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8700-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-8700-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7911",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7911 Yamaha Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7911).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nYamaha marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7911-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7911-2.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7911-3.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7906",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7906 Yamaha Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7906).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nYamaha marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7906-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7906-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7902",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7902 Yamaha Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7902).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nYamaha marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7902-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7902-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7954",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7954 Yamaha Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7954).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nYamaha marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7954-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7954-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7824",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7824 Mercruiser/Volvo Penta Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7824).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nMercruiser, Volvo Penta, Volvo, Penta, OMC marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7824-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7824-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7876",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7876 Yamaha Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7876).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nYamaha marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7876-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7876-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-8125",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8125 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-8125).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-8126",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8126 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-8126).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7878",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7878 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7878).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7878-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7878-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-8003",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8003 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-8003).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8003-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-8003-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7884",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7884 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7884).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-0036",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-0036 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-0036).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "2100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7974",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7974 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7974).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "2100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-0033",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-0033 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-0033).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7880",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7880 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7880).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-0035",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-0035 Volvo Penta/Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-0035).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo Penta, Volvo, Penta marka deniz motorlarında çapraz uyumlu kullanılabilir.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7926",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7926 Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7926).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-0032",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-0032 Volvo Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-0032).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nVolvo marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7910",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7910 Honda Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7910).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nHonda marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yag-filtresi-18-7917",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7917 Yanmar Deniz Motoru Yağ Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru motor yağ filtresi (parça kodu: 18-7917).\nDeniz motorunun yağlama sistemindeki metal parçacıkları ve kirliliği tutarak motor yağını temiz tutar, düzenli bakımın standart parçasıdır.\nYanmar marka dıştan takma/içten-dıştan deniz motorlarıyla uyumludur.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7918-1.jpg",
+      "https://media.pruvo3d.com/urunler/kty-18-7918-2.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "star-brite-80w90-kuyruk-sanziman-yagi-1lt",
     "kategori": "Marin",
     "marka": [
