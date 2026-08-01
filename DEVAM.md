@@ -2,6 +2,42 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## OTURUM — 1 Agu 2026 aksam (KraL · yayin hatti + ikinci denetim turu)
+
+### 🔴 CANLIYA GITTI — YAYIN HATTI TIKANMISTI, ACILDI (`89a72022`)
+Olculdu: son basarili deploy 19:17'de kalmis; o saatten sonra main'e **20 commit** gitmis ve
+**6 kosum ust uste dusmus**. Canli site ~1,5 saat bayat kaldi, 36 urun D1'de VAR ama sayfalari
+**HTTP 404** veriyordu (parite testleri bu yuzden "OLCULEMEDI" donuyordu — kirmizi degil).
+Sebep urun verisi DEGIL, bu oturumun kendi kapisiydi: `ticari-hal-kapisi.py` "duzeltme ONCESI
+davranis"i **HEAD**'den okuyordu; duzeltme main'e girince HEAD artik duzeltilmis dosya oldu ve
+kapi **kendi kapattigi deligi "hala acik" sanip** kirmizi yandi. Bu, 31 Tem'deki ayni sinifin
+IKINCI vakasi — o zamanki ders "ana hat kolunu ayir" idi, yeni kapi baska yoldan ayni yere dustu.
+Onarim: ONCE kanit artik git gecmisinden degil **repoya gomulu fiksturden** turuyor (sha256 pinli;
+gecmis erisilebildiginde gercek tarihsel dosyayla bayt-esit dogrulaniyor). Sabit commit hash'i
+cozum DEGILDI: `--depth 1` klonda kapi fail-closed dusuyordu, olculdu. Is akisina DOKUNULMADI.
+Olcme gucu azalmadi, artti: **32 -> 34 iddia** (sig klonda 33), mutasyon 8/8, once-kirmizi
+26 bulgu; fikstur silinince/kurcalaninca/bugunku kodla degistirilince ucunde de kirmizi.
+Kabul: run 30711392211 build+deploy+yayin ucu de basarili · D1 **16873, yayinda 16873, TASLAK 0** ·
+bagimsiz canli teyit: 404 veren urun sayfasi artik **200**, ana sayfa damgasi taze.
+Ayni tuzak diger kapilarda arandi: dort kapidaki `git show HEAD:` kullanimi **mesru baska desen**
+(calisma agaci ↔ HEAD tabani); bu hata sinifinin ikinci ornegi YOK.
+
+### OLCULDU / KAPANDI (bu tur)
+- **Kardes mimarin siparis ucu ikinci kez denetlendi — MERGE YOK.** Uc acigin ucu de AYNEN
+  duruyor; duzeltme commit'i hic gelmemis (ilgili iki dosyaya dokunan son commit, ilk teslimin
+  kendisi). Test 96/96 yesil yanmaya devam ediyor ama **o yesil bu ucunu olcmuyor**: para
+  ekseninde surdugum uc mutantin **ucu de kacti (0/3)**, kontrol mutanti yakalandi — yani duzenek
+  saglam, iddia kor. Kacis sebepleri tek tek olculdu ve recete kutuya yazildi. Dalin geri kalani
+  saglam: cakisma yok, urun verisi diffte yok, 16 kapi/test rc=0.
+- **Calisma alani kalintilari:** artik dal + agac (icerigi main'de oldugu KANITLANDI, calisilmamis
+  degisiklik ve stash yok) baska oturumca temizlenmis, dogrulandi; kayitsiz artik dizin **0**.
+  Iki eski dal main'de olmayan gercek is tasiyor — DOKUNULMADI, sahibi belirsiz.
+- **EDGE_KATALOG bayragi zaten ACIK** olcuyle teyit edildi (uc canli, `/katalog` anlamli JSON
+  donuyor). Katalog mecburi esigin uzerinde ama flip coktan yapilmis — bu kalem KAPALI.
+  ⚠️ Bulundu ama kapatilmadi: iki faz3 araci varsayilan olarak yerel uca bakiyor ve uc cevap
+  vermeyince biri durustce "OLCULEMEDI" derken **digeri "BOZUK" diye kirmizi yakiyor** — ayni
+  sebep, iki farkli hukum. Yanlis suclama sinifi, kapatilacak.
+
 ## OTURUM KAPANISI — 1 Agu 2026 (KraL · 15:00 emri + beyan/olcum turu)
 
 ### CANLIYA GITTI (hepsi olculdu, hepsi itildi)
@@ -104,11 +140,12 @@ kalem arsive inmez; guncel hal mimar eliyle asagiya yeniden yazildi.
   bedel yasal olarak bizde. Eksiklik DEGIL, karardir — "unutulmus" diye tamamlanmasin.
 
 ### KARDES MIMARLARDA
-- **HocA:** `wa-siparis-ucu` dali (worktree'si duruyor, DOKUNULMADI). Bagimsiz curutme
-  yaptim, **merge DEGIL DUZELTILSIN**: bos dis kimlikte sinirsiz mukerrer siparis
-  (olculdu: 4 cagri = 4 siparis) · es zamanli yarista sozlesme yerine 500 · para ekseni
-  mutasyona kapali degil (KDV kaymasi 96/96 yesilken KACTI). Uc kapaninca merge + sema
-  gocu + deploy sirasi BENDE.
+- **HocA:** `wa-siparis-ucu` dali (worktree'si duruyor, DOKUNULMADI). **IKINCI denetim de
+  yapildi (1 Agu aksam): ucu de AYNEN acik, duzeltme commit'i hic gelmedi** — merge YOK.
+  Bos dis kimlikte sinirsiz mukerrer siparis (olculdu: 4 cagri = 4 siparis; ustelik bu davranisi
+  dalin KENDI testi kural olarak kutsuyor, duzeltme iddianin tersine cevrilmesini ister) ·
+  es zamanli yarista sozlesme yerine 500 · para ekseni mutasyona kapali degil (uc mutant,
+  0/3 yakalandi). Uc kapanip mutant yakalama 3/3 olunca merge + sema gocu + deploy sirasi BENDE.
 - **ArTisT:** WhatsApp kanalinin GA4 olcum ekseni devredildi; beni bloklamiyor.
 - **MaCiT:** gorselsiz parti icin YESIL verildi (`ed135702`); katalogda henuz gorselsiz
   urun YOK, yani ilk parti bu yolun canli ilk kullanicisi olacak.
