@@ -105,6 +105,22 @@ gormek icin dusuk tutarli GERCEK siparis gerekir (Okan kapisi). Uretilen mantik 
   "gerileme" degil **olculmemis**ti. Ag gerektiren kabul ayri kosumla alinir.
 
 ### BEKLIYOR
+- 🔴 **HESAP TASINMASI ACIK — kayit BAYAT DEGILDI, DOGRULANDI.** 23 Tem'deki MAKINE gocu
+  bitti; envanterdeki is AYRI: **hesap devirleri** (kod deposu, edge saglayici, calisma
+  alani, odeme, mesajlasma, not/CRM, model saglayici). Migration Assistant hesap devretmez.
+  Olculdu: mevcut oturumlar hala eski hesapta -> **hic baslamamis.**
+  ⚠️ **"19" EKSIK SAYIM:** ozet liste 19 madde ama tablolarda Okan'a atanmis satirlar
+  **24 ayri eyleme** iniyor (5'i ozette YOK: worker'larin yeni hesapta yeniden yayini,
+  medya alt alan adi baglamasi, baglayici yetkilendirmeleri, hasat platformlarina giris,
+  destek talebi takibi). **6'si BLOKLAYICI** — o altisi yapilmadan digerleri olculemez.
+  Envanter ve yedek raporu `raporlar/` altinda (gitignore'lu, yedek kapsaminda);
+  sha256 ozdesligi ve yedek tazeligi dogrulandi.
+- ⚠️ **Goc dogrulayicisi YANLIS ALARM veriyor** (rc=1): gomulu referansi 22 Tem'de alinmis,
+  symlink yonunun 30 Tem'de duzeltilmesinden ONCE. Gercek kirmizi 0. Referans tazelenmeli,
+  yoksa kirmizi gorup umursamama aliskanligi dogar.
+- ⚠️ **Yedekte KAPSAM DISI 2 giris:** biri turetilmis artefakt (dogru), digeri kardes evde
+  bir cikti klasoru (53 dosya / 31 MB) — neredeyse ayni adli komsu klasor kapsamda VAR,
+  bu YOK. 30 Tem'de bir kez yasanan sessiz kapsam daralmasi sinifi; ayri gorev acildi.
 - ✅ KAPANDI (1 Agu): "OKAN: cayma hakki ayrimi + ticari sartlar" kaydi BAYATMIS. Okan
   bildirdi, olculerek dogrulandi: sozlesme ve sayfalar iki sinifi ZATEN ayiriyor, canli
   metinler depoyla bayt-bayt ayni. Eksik olan ayrimin BEYANA gecmesiydi; o da bu tur kapandi.
