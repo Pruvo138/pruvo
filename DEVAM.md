@@ -184,9 +184,10 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - Merge `a5fcef74` (ileri-sarma, taban `7f0735e9`). D1 teyidi: sayi ekseni
   16407 == 16407; icerik ekseni 16407 urun_hash birebir, uyusmaz 0 / eksik 0 / fazla 0.
 - KANIT: `git grep -i` calisma agacinda VE `origin/main`'de VURUS 0.
-- 🔴 ACIK KALINTI (kapsam DISI, OKAN KAPISI): blob GECMISTE DURUYOR. Adi getiren commit
-  `bc4c6c35` (1 Agu). Gecmisten atmak ikinci bir tarihce yeniden yazimi + force-push
-  demektir. Karar alinana kadar "gecmis temizlendi" DENMEZ.
+- 🔴 GECMIS TEMIZLENMEDI — OKAN KARARI (1 Agu): blob gecmiste KALIYOR. Adi getiren commit
+  `bc4c6c35`. Ikinci tarihce yeniden yazimi + force-push YAPILMAYACAK (kardes oturumlarin
+  aktif dallari ve bayat taban tuzagi riski alinmadi). Maruziyet acik: blob GitHub kod
+  aramasinda ve raw API'de gorunur. "Gecmis temizlendi" DENMEZ.
 
 ## TABAN (yeniden olc, ezberleme)
 - Katalog: taban alti 0; D1 sayi ve hash ekseninde uyumlu.
