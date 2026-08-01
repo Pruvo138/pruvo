@@ -75,6 +75,63 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   baska bir oturumun commit'siz hash degisikligiydi; ayni teyit temiz agacta 0 uyusmazlik
   verdi. Kirli agacta alinan senkron olcumu HUKUM DEGILDIR.
 
+## FIZIKSEL URUN SUNUCU FIYAT GARDI + EDGE KART `tur` (ALINDI + CANLI)
+- main'e ALINDI: `e31aaf8a` (ileri-sarma). Kapsam TAM 9 dosya, +927/-45: `shop/src/index.js`,
+  `secenekler.js`, `shop/src/yonet.js`, `shop/src/eposta.js`, `tools/build.py`,
+  yeni `tools/edge-kart-kapisi.py` (+252), `shop/test/fiyat-prova.mjs` (+482),
+  `jenerator/test/vitrin-kabul.js`, `.github/workflows/deploy.yml` (+15).
+  `urunler.json` diffte YOK. Onarim commit'i: `86665da5`.
+- 🔴 DUZ MERGE DEGIL CHERRY-PICK — sebep OLCULDU. Dalin tabani, kardes oturumun commit
+  mesajlarindaki satici kimligini temizlemek icin kostugu `filter-branch` + force-push ile
+  yeniden yazildi (yerel main 45 commit ayristi, agac icerigi ayniydi). Duz merge dalin
+  38 ESKI commit'ini geri getirecekti; bunlarin 4'unde commit MESAJINDA satici adi vardi.
+  Yani duz merge, PUBLIC depoda az once kapatilan sizintiyi GERI ACARDI. Cherry-pick
+  sonrasi 9 dosyanin 8'i dalla birebir; `deploy.yml` main'de 58 satir ileri (kardes
+  oturumlarin yeni kapilari) ve dalin +15 satirini iceriyor.
+  DERS: yeniden yazilmis bir tabana dayanan dalda `merge-base` ESKI bir ataya duser ->
+  kapsam olcumu 31 dosya/5111 satir gibi SISER ve `urunler.json` sahte cakisma verir.
+  Dogru olcum `origin/main...<dal>` uc-nokta ile alindi: 9 dosya.
+- Kapilar ENTEGRE durumda (main katalogu + iki commit) kosuldu: 17/17 YESIL — fiyat-prova
+  12/12, sepet-panel 14, eposta 17, konfigur-fail-closed 5/5, vitrin-kabul 9,
+  edge-kart-kapisi YESIL + mutasyon 3/3 KIRMIZI, fiziksel-urun-kapisi YESIL + mutasyon GECTI,
+  ci-kapsam YESIL, kapi-envanteri 7/7, yasal-sayfa-drift 4/4 TEMIZ, odeme-beyani 10/10,
+  stok-d1 41, yazdir 8/8, is-akisi YESIL.
+- 🔴 ELLE SECILEN KAPI LISTESI YETMEDI — CI KIRMIZI YANDI. Ilk kosum (`30676683982`)
+  `build` isinde dustu: `yayin-ic-dil-kapisi.py --kaynak`, 8 vurus / 1 dosya
+  (`secenekler.js`). Sebep: `secenekler.js` tarayiciya AYNEN gider; eklenen yorumlar ic
+  arac/dosya adlari ve marka dil kuralinin yasakladigi isim halini tasiyordu. Bu kapi
+  DALIN TABANINDA YOKTU, kardes oturum sonradan ekledi. Onarimda yorumlarin OZU korundu,
+  yalniz ifsa eden ifadeler degistirildi; kod/imza/davranis DEGISMEDI.
+  DERS: kapi listesi elle secilmez — `deploy.yml`'den CIKARILIR. Ikinci turda 60 yerel
+  CI kapisi cikarilip kosuldu, gercek kirmizi 0.
+- Kaynak commit'i ANA CHECKOUT'ta mimar kod-kilidine takildi (Layer 2). Dogru yol: yama
+  gecici worktree'ye tasindi, orada commit'lendi, ana agaca `--ff-only` alindi, worktree silindi.
+- `ozet.json` BAYATLIK RISKI GERCEK DEGIL: dosya `.gitignore`'da ve CI her yayinda
+  `build.py` ile YENIDEN URETIYOR. Yine de main'in guncel katalogundan uretildi:
+  16.167 urun -> 134.271 bayt (butce 150 KB), 271 kart, `tur` tasiyan 148; agac TEMIZ.
+- "tur tasiyan kart ~237 olmali" beklentisi HATALIYDI: `ozet.json` tam katalog degil,
+  271 kartlik VITRIN ozeti. 237 = katalogtaki fiziksel urun sayisi; 148 = bunlardan
+  vitrine giren kart. Iki sayi ayni eksende DEGIL.
+- D1 senkron teyidi: sayi ekseni 16.167 == 16.167; icerik ekseni 16.167 urun_hash birebir,
+  uyusmaz 0 / eksik 0 / fazla 0.
+- CI: `merge-base --is-ancestor` exit 0 ile KANITLANDI. Kosum `30678515290` (`86665da5`):
+  envanter/serit-b/cron-nabzi/build/deploy/yayin YESIL. Genel sonuc `failure`, sebebi AYRI
+  bir is: kardes oturumun YENI `mesaj-nobeti` kapisi kendini testinde 56/58 — dusen iki
+  iddia PERFORMANS BUTCESI (700 jeton 6438 ms / butce 3000 ms; 50 jeton 524 ms / butce 400 ms).
+  Dogruluk iddialarinin hepsi yesil; bu is BIZIM degisiklikle ILGISIZ ve ayri is olarak isaretlendi.
+- CANLI DOGRULAMA (cache-bust'SIZ, UA basligi ile):
+  · fiziksel urun sayfasi (4 ornek): kapinin kendi 9 kancasi ANA GOVDEDE 0/9, kalmasi
+    zorunlu 3 oge 3/3 VAR. Nobetcinin NEGATIF yonu ayni kosumda olculdu: bir baski urunu
+    9/9 kanca gosteriyor -> olcum CANLI, olu DEGIL.
+  · canli `ozet.json`: `tur` tasiyan kart DAGITIM ONCESI 0 -> DAGITIM SONRASI 148
+    (271 kart). Alan edge'e INDI.
+- ONCEDEN KIRMIZI (bu isle ILGISIZ, ayri is): `shop/test/kabul.js` test 7 (agli parite,
+  26 gecti / 1 kaldi) ve `tools/filament-test.py` (7/25 — fikstur bir fiziksel urun seciyor).
+  Ikisi de dalin tabaninda da kirmiziydi.
+- Dal worktree'si AKTIF oturumda -> §7 temizligi BILEREK YAPILMADI. `durum.py` dali
+  "38 ileri / DEVAM EDIYOR" gosterir; bu cherry-pick'in beklenen sonucudur, kapsamdaki
+  9 dosyanin 8'i main'de BIREBIR, 9.'su (deploy.yml) main'de daha ileri.
+
 ## FIZIKSEL URUN SAYFASI — 3D-BASKI SECIM UI'I KALDIRILDI (ALINDI + CANLI)
 - Dal main'e alindi: `1a938405` (merge-base `39036e18`). Kapsam TAM 3 dosya, +408/-5:
   `tools/build.py` (+52/-5), yeni `tools/fiziksel-urun-kapisi.py` (+345),
