@@ -81,10 +81,12 @@ IKI KURAL AILESI
 ═══════════════════════════════════════════════════════════════════════════════
   AD EKSENI (ozet)     : normalize edilmis mesajda, KELIME BASINDAN baslayan ve desen
                          uzunlugunda olan her aday ozetlenip karsilastirilir. Iki akis
-                         taranir: (1) bosluklu normal akis ("kuruoglu nun" gibi ek/
+                         taranir: (1) bosluklu normal akis ("zorbacix in" gibi ek/
                          noktalama ayrilmis yazimlar), (2) sikistirilmis akis (bosluklar
-                         atilmis: "tekneye parca" -> "tekneyeparca"). Ek/noktalama ve
+                         atilmis: "hayali vitrin" -> "hayalivitrin"). Ek/noktalama ve
                          Turkce harf (ğ/ı/ş/ç/ö/ü/İ) farklari NORMALIZE ile duser.
+                         🔴 BU DOSYADAKI TUM ORNEKLER UYDURMADIR (bkz. `_UYDURMA`):
+                         gercek yasakli ad ORNEK OLARAK BILE izlenen dosyaya yazilmaz.
   ALAN ADI EKSENI      : BICIM kuralidir, isim listesi DEGIL — mesajdaki her URL/host
                          jetonu, IZLENEN ve tamami PUBLIC olan PUBLIC_ALAN listesinde
                          degilse KIRMIZI. Satici/vitrin alan adi boylece ADI HIC
@@ -145,8 +147,8 @@ VARSAYILAN_DONGU = 5000
 # NORMALIZE + ADAY URETIMI
 # ---------------------------------------------------------------------------
 # Turkce'ye ozgu harfler NFKD ile ayrisip birlesen isaretleri dusunce ASCII'ye iner
-# (ğ->g, ş->s, ç->c, ö->o, ü->u, İ->i). `ı` ayrisMAZ -> elle eslenir. Amac: "Kuruoğlu",
-# "KURUOGLU", "kuruoglu'nun" ayni normal bicime insin.
+# (ğ->g, ş->s, ç->c, ö->o, ü->u, İ->i). `ı` ayrisMAZ -> elle eslenir. Amac (ornek UYDURMA):
+# "Zorbaçıx", "ZORBACIX", "zorbacix'in" ayni normal bicime insin.
 _ELLE_ESLEM = {"ı": "i", "İ": "i", "ł": "l", "ø": "o", "đ": "d", "ß": "ss"}
 
 
@@ -177,8 +179,9 @@ def adaylar(metin, uzunluk):
     """<uzunluk> karakterlik aday kumesi: bosluklu VE sikistirilmis akisin kelime
     baslarindan alinan dilimler. Kume -> tekrarli jetonlar bir kez ozetlenir.
 
-    IKI AKIS BILEREK: bosluklu akis "kuruoglu nun" gibi ek/noktalama ayrilmis yazimi,
-    sikistirilmis akis ise "tekneye parca" gibi AYRIK yazilmis bitisik adi yakalar."""
+    IKI AKIS BILEREK: bosluklu akis "zorbacix in" gibi ek/noktalama ayrilmis yazimi,
+    sikistirilmis akis ise "hayali vitrin" gibi AYRIK yazilmis bitisik adi yakalar.
+    (Ornekler UYDURMADIR — gercek yasakli ad bu dosyada YAZMAZ.)"""
     if uzunluk <= 0:
         return set()
     bosluklu = normalize(metin)
