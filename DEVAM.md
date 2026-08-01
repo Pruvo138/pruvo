@@ -170,6 +170,24 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - Temizlik YAPILMADI: `claude/exciting-hodgkin-91ec53` dali ve worktree'si aktif bir
   oturumda kullaniliyordu; `worktree remove` / `branch -D` bilerek kosulmadi.
 
+## SIZINTI NOBETCISI — KENDI DOSYASINDAKI ORNEK ADLAR TEMIZLENDI (ALINDI)
+- `tools/commit-mesaji-kapisi.py` kendi docstring/yorumlarinda iki gercek yasakli adi
+  ORNEK olarak duz yaziyordu — dosyanin kendi basligindaki "yasakli ad bu dosyada
+  yazmaz" beyani kendi icinde ihlal ediliyordu. Depo PUBLIC.
+- OLCUM: bildirilen 2 konum yerine 3 konum / 6 satir bulundu (baslik AD EKSENI blogu,
+  `normalize()` ustundeki yorum, `adaylar()` docstring'i). Ucu de `_UYDURMA`
+  fiksturlerindeki uydurma adlarla degistirildi; ayrica "tum ornekler uydurmadir"
+  beyani iki yere kalici olarak yazildi.
+- Kapsam TAM 1 dosya, +9/-6. Kod/imza/davranis DEGISMEDI (yalniz yorum ve docstring).
+- Kabul: `--kendini-test` 58/58 yesil; mutasyon bataryasi 15/15 oldurucu KIRMIZI,
+  3/3 ilgisiz kontrol YESIL, canli dosya sha256 esitligi TAM.
+- Merge `a5fcef74` (ileri-sarma, taban `7f0735e9`). D1 teyidi: sayi ekseni
+  16407 == 16407; icerik ekseni 16407 urun_hash birebir, uyusmaz 0 / eksik 0 / fazla 0.
+- KANIT: `git grep -i` calisma agacinda VE `origin/main`'de VURUS 0.
+- 🔴 ACIK KALINTI (kapsam DISI, OKAN KAPISI): blob GECMISTE DURUYOR. Adi getiren commit
+  `bc4c6c35` (1 Agu). Gecmisten atmak ikinci bir tarihce yeniden yazimi + force-push
+  demektir. Karar alinana kadar "gecmis temizlendi" DENMEZ.
+
 ## TABAN (yeniden olc, ezberleme)
 - Katalog: taban alti 0; D1 sayi ve hash ekseninde uyumlu.
 - Yayin suresi: medyan 1296 saniye, MAD 115 saniye, 7 kosum.
