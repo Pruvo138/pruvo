@@ -1153,7 +1153,16 @@ def _kanca_nobeti_satirlari():
 # ⚠️ AG: bu bolum panonun TEK ag cagrisidir (`gh api`). Pano bir KAPI degildir ve
 # ASLA ASILMAZ -> olcum daemon parcacikta, zaman siniriyla kosar (N3 deseni, bolum 7
 # ile ayni). `gh` yok / yetki yok / sinir asildi -> ⚪ OLCULEMEDI ("sorun yok" DEGIL).
-YAYIN_ZAMAN_ASIMI = 12.0
+#
+# 🔴 SINIR NEDEN 12 DEGIL (1 Agu 2026, OLCULDU): nobetci "yayin indi mi"yi artik IS
+# duzeyinde sorar (kosumun genel conclusion'i bu hatta yayin kaniti degil — bloklamayan
+# serit-b dusunce kosum `failure` gorunuyor, deploy+yayin basarili oluyordu). Olculen
+# butce: kosum listesi 1,7 sn + her `jobs` cagrisi ort. 1,0 sn; tarama ilk yayinlayan
+# kosumda DURUR -> saglikli halde 2 cagri (~2,7 sn). UST SINIR is sorgu tavaniyla
+# baglidir (8) => ~9,7 sn. 12 sn'lik eski sinir tam da TIKANMA halinde (tarama
+# uzadiginda) asilirdi: nobetci en cok ihtiyac duyulan anda ⚪ OLCULEMEDI'ye duserdi.
+# 20 sn = olculen ust sinirin ~2 kati.
+YAYIN_ZAMAN_ASIMI = 20.0
 
 
 def _yayin_gecikme_satirlari():

@@ -1,5 +1,46 @@
 {
- "_aciklama": "GERCEK `gh api` govdesinin SEKLI (1 Agu 2026, repos/<depo>/actions/workflows/deploy.yml/runs ve .../compare). Kisisel veri (ad/e-posta/commit mesaji) SABIT fikstur degerleriyle degistirildi; ALAN ADLARI ve IC ICE GECME AYNEN korundu. Senaryo fiksturleri bu capayi SABLON alir ve yalniz var olan alanlari ezer -> uydurma alan icat edilemez.",
+ "_aciklama": "GERCEK `gh api` govdesinin SEKLI (1 Agu 2026, repos/<depo>/actions/workflows/deploy.yml/runs ve .../compare ve .../actions/runs/<id>/jobs). Kisisel veri (ad/e-posta/commit mesaji) SABIT fikstur degerleriyle degistirildi; ALAN ADLARI ve IC ICE GECME AYNEN korundu. Senaryo fiksturleri bu capayi SABLON alir ve yalniz var olan alanlari ezer -> uydurma alan icat edilemez. Is (job) capasinda `steps` yalnizca ILK adima kirpildi (nobetci `steps` OKUMAZ; kirpma bu satirla ILAN EDILIR) — `name`/`status`/`conclusion` alanlari GERCEK govdeden gelir.",
+ "isler": {
+  "jobs": [
+   {
+    "check_run_url": "https://api.github.com/repos/Pruvo138/pruvo/check-runs/91416405822",
+    "completed_at": "2026-08-01T20:51:07Z",
+    "conclusion": "success",
+    "created_at": "2026-08-01T20:50:01Z",
+    "head_branch": "main",
+    "head_sha": "467f8fa83fd6bb97d530e831b9b09ce4c74f7c52",
+    "html_url": "https://github.com/Pruvo138/pruvo/actions/runs/30713270226/job/91416405822",
+    "id": 91416405822,
+    "labels": [
+     "ubuntu-latest"
+    ],
+    "name": "deploy",
+    "node_id": "CR_kwDOfikstur",
+    "run_attempt": 1,
+    "run_id": 30713270226,
+    "run_url": "https://api.github.com/repos/Pruvo138/pruvo/actions/runs/30713270226",
+    "runner_group_id": 0,
+    "runner_group_name": "GitHub Actions",
+    "runner_id": 0,
+    "runner_name": "fikstur-kosucu",
+    "started_at": "2026-08-01T20:50:12Z",
+    "status": "completed",
+    "steps": [
+     {
+      "completed_at": "2026-08-01T20:50:14Z",
+      "conclusion": "success",
+      "name": "Set up job",
+      "number": 1,
+      "started_at": "2026-08-01T20:50:13Z",
+      "status": "completed"
+     }
+    ],
+    "url": "https://api.github.com/repos/Pruvo138/pruvo/actions/jobs/91416405822",
+    "workflow_name": "Build & deploy to GitHub Pages"
+   }
+  ],
+  "total_count": 1
+ },
  "karsilastirma": {
   "ahead_by": 2,
   "base_commit": {
