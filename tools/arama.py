@@ -415,8 +415,21 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
-    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI ikili) ──
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI 30 jeton) ──
+    # 1. tur: paket §2'nin ornek degerleri.
     "Volvo Penta", "Yanmar",
+    # 2. tur, A grubu (17) — arac / tekne / deniz motoru markasi. Heuristik bunlari
+    # KACIRMISTI; kok sebep olculdu: ev sahibini "baskin tek partneri var" diye model
+    # saniyor (`Vauxhall` 71 kaydin 68'inde `Opel` ile geciyor).
+    "Chery", "Chevrolet", "Dodge", "Fiat", "Infiniti", "Jeanneau", "Johnson Pump",
+    "Kawasaki", "Kia", "Lamborghini", "Lexus", "Maserati", "Mercruiser", "Scion",
+    "Smart", "Subaru", "Vauxhall",
+    # 2. tur, B grubu (11) — ev sahibi CIHAZ/EKIPMAN ureticisi (kumedeki DJI/Canon/Prusa
+    # ile ayni sinif): bir GoPro aparati GoPro'ya TAKILIR. Adetlerin dusuk olmasi (1-12)
+    # olcut DEGIL: sozluk "gecerli mi"yi belirler, "sayfasi acilir mi"yi degil — ikincisi
+    # paket §4'teki sayfa acma esigi N'in isidir.
+    "Anker", "Garmin", "GoPro", "Kenwood", "Krups", "Pioneer", "Raspberry Pi", "Remis",
+    "Rode", "Samsung", "Sony",
 })
 
 # 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
@@ -435,7 +448,28 @@ UYUM_MARKA_IZINLI = frozenset({
 # indirilmezler ve model_normalize onlari CAKISTIRMAZ (`volvo` != `volvopenta`) — kapi bunu
 # AYRI bir iddia olarak olcer (V13), cunku "Penta" ekini kirpan bir normalizasyon iki farkli
 # uyum evrenini sessizce tek sayfaya yigardi.
-UYUM_MARKA_MIMAR_EKI = frozenset({"Volvo Penta", "Yanmar"})
+UYUM_MARKA_MIMAR_EKI = frozenset({
+    "Volvo Penta", "Yanmar",
+    "Chery", "Chevrolet", "Dodge", "Fiat", "Infiniti", "Jeanneau", "Johnson Pump",
+    "Kawasaki", "Kia", "Lamborghini", "Lexus", "Maserati", "Mercruiser", "Scion",
+    "Smart", "Subaru", "Vauxhall",
+    "Anker", "Garmin", "GoPro", "Kenwood", "Krups", "Pioneer", "Raspberry Pi", "Remis",
+    "Rode", "Samsung", "Sony",
+})
+
+# 🔴 REDDEDILEN ADAYLAR (2 Agu, mimar karari) — kayda geciyor ki bir sonraki tur ayni
+# jetonlari yeniden "kesfetmesin" ve karar yeniden tartisilmasin:
+#   `PSA` (15) · `VAG` (13)  grup kisaltmasi, marque DEGIL — musteri "VAG parcasi" aramaz
+#   `Alpine` (5)             cift anlam: Renault Alpine (marque) / Alpine oto ses (cihaz)
+#   `Brodit` (2)             telefon tutucu ureticisi, sinirda
+#   `Gurtner` (2)            karburator ureticisi -> URETICI tarafi, uyum ekseni degil
+#   `Sierra` (149)           🔴 SOZLUK sorunu DEGIL, VERI sorunu — asagida.
+# `Sierra` jetonu IKI FARKLI seyi adlandiriyor ve dogru cozum KAYIT BASINA ayrismadir.
+# OLCULDU: 149 kaydin 141'i kategori `Marin`, 8'i `Otomobil`; otomobil tarafindaki
+# partnerler `Ford`(4), `Suzuki`(4), `Samurai`(3), `Jimny`(3), `SJ413`(3) — yani orada
+# `Sierra` bir MODEL (Ford/GMC/Suzuki Sierra). Marin tarafindaki 141 kayit ise deniz
+# yedek parca markasidir. Karar BACKFILL ANINDA verilecek (MaCiT duzlemi), sozlukte degil.
+URETICI_MARKA_MIMAR_EKI = frozenset({"Bosch"})
 
 # URETICI EKSENI — GERCEK markalardir ama UYUM ekseni DEGILDIR: bunlar takilan sarf/parcanin
 # ureticisidir (buji, tutya, dolgu/yapistirici, tekne boyasi, temizleyici, zimpara, direksiyon
@@ -445,6 +479,9 @@ UYUM_MARKA_MIMAR_EKI = frozenset({"Volvo Penta", "Yanmar"})
 # kaybolur ve bir sonraki tur onlari yeniden "marka" diye geri koyardi. Bu turda TUKETICISI
 # YOKTUR; ileride "uretici/parca markasi" filtresi gerekirse kaynak burasidir.
 URETICI_MARKA = frozenset({
+    "Bosch",         # 🔴 MIMAR EKI (oneri disi): el aleti = ev sahibi, oto elektrik
+                     # parcasi = uretici. Bu CIFT SINIF tam olarak bu kumenin tanimidir;
+                     # supheli jeton uyum ekseninde GECERSIZ olur (fail-closed yon).
     "3M",            # zimpara / bant / yapistirici
     "Champion",      # buji (ayrica jeneratör — belirsiz, fail-closed yonu URETICI)
     "Denso",         # buji / elektrik parcasi
@@ -567,6 +604,30 @@ def model_normalize(deger):
     return _MODEL_AYIRAC_RE.sub("", m)
 
 
+# Kapali kumenin NORMALIZE anahtarlari. Modul yuklenirken BIR KEZ turetilir — kumenin
+# KENDISINDEN, ikinci bir liste tutulmaz (ikiz tanim yasagi).
+_UYUM_MARKA_ANAHTARLARI = frozenset(model_normalize(m) for m in UYUM_MARKA_IZINLI)
+
+
+def marka_varyanti_sebebi(ad, deger):
+    """model/motor degeri KAPALI kumedeki bir markanin YAZIM VARYANTI mi? Sebep ya da None.
+
+    🔴 NEDEN SART (bu tur olculdu): kumeye `Kia` ve `Smart` girdi; katalogda `KIA` (1) ve
+    `SMART` (1) yazimlari da var. Kural olmasaydi backfill `marka: "Kia"` ile `model: "KIA"`
+    yazabilir, AYNI gercek iki ayri alanda iki ayri sayfa uretirdi — S4'un sozluk ICINDE
+    yasakladigi ikizin marka/model SINIRINDAN sizan hali. Sinir da kapatiliyor.
+
+    OLCUM (16.874 kayit, 1.704 jeton): kumeye duson AMA kanonik olmayan yazim TAM 7 tane —
+    `BaoFeng`(1), `Citroën`(4), `Ikea`(2), `KIA`(1), `MINI`(1), `SMART`(1), `Ssangyong`(3).
+    Yedisi de gercekten MARKA yazimidir, yani kuralin YANLIS-POZITIFI OLCULEN VERIDE 0.
+    """
+    n = model_normalize(deger)
+    if not n or n not in _UYUM_MARKA_ANAHTARLARI:
+        return None
+    return ("%s KAPALI marka kumesindeki bir markanin YAZIM VARYANTI (%r -> %r) — marka "
+            "`marka` alanina yazilir, model/motor alanina DEGIL" % (ad, deger, n))
+
+
 def _serbest_sebebi(ad, deger):
     """model/motor/oem gibi ACIK metin alani gecerli mi? Sebep metni ya da None.
 
@@ -665,6 +726,10 @@ def uyum_ogesi_sebebi(oge):
                 % (ham, len(UYUM_MARKA_IZINLI)))
     for ad in ("model", "motor", "oem"):
         sebep = _serbest_sebebi(ad, oge.get(ad))
+        if sebep:
+            return sebep
+    for ad in ("model", "motor"):
+        sebep = marka_varyanti_sebebi(ad, oge.get(ad))
         if sebep:
             return sebep
     return uyum_yil_sebebi(oge.get("yil"))

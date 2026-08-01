@@ -92,19 +92,24 @@ def kabul(kok):
             % (sorted(izinli & uretici), sorted(izinli & elenen),
                sorted(uretici & elenen)))
     eki = A.UYUM_MARKA_MIMAR_EKI
+    ureki = A.URETICI_MARKA_MIMAR_EKI
+    tum_eki = eki | ureki
     birlesim = izinli | uretici | elenen
-    yargilanan = (izinli - eki) | uretici | elenen
-    dogrula("S2 BUDAMA ARITMETIGI: (izinli − mimar eki) + uretici + elenen == oneri "
+    yargilanan = birlesim - tum_eki
+    dogrula("S2 BUDAMA ARITMETIGI: (izinli + uretici + elenen) − mimar eki == oneri "
             "sayisi (%d) — elenen jeton sessizce geri sizamaz, ONERISIZ jeton yalnizca "
             "MIMAR EKI'nde ADIYLA kayitli olarak girebilir"
             % A.UYUM_MARKA_ONERI_SAYISI,
             len(yargilanan) == A.UYUM_MARKA_ONERI_SAYISI,
-            "(%d − %d) + %d + %d = %d" % (len(izinli), len(eki), len(uretici),
-                                          len(elenen), len(yargilanan)))
-    dogrula("S7 MIMAR EKI izinli kumenin ALT KUMESI ve oneri kovalariyla CAKISMIYOR "
-            "(%s) — denetimsiz genisleme yolu YOK" % ", ".join(sorted(eki)),
-            eki <= izinli and not (eki & uretici) and not (eki & elenen),
-            "eki=%s izinli_disi=%s" % (sorted(eki), sorted(eki - izinli)))
+            "(%d + %d + %d) − %d = %d" % (len(izinli), len(uretici), len(elenen),
+                                          len(tum_eki), len(yargilanan)))
+    dogrula("S7 MIMAR EKI'nin HER uyesi KENDI kumesinin alt kumesi ve kumeler ayrik "
+            "(uyum eki %d jeton, uretici eki %d jeton) — denetimsiz genisleme yolu YOK"
+            % (len(eki), len(ureki)),
+            eki <= izinli and ureki <= uretici and not (eki & ureki)
+            and not (eki & elenen) and not (ureki & elenen),
+            "uyum_eki_disi=%s uretici_eki_disi=%s"
+            % (sorted(eki - izinli), sorted(ureki - uretici)))
     bicimsiz = [d for d in birlesim
                 if not isinstance(d, str) or not d or d.strip() != d]
     dogrula("S3 kumelerin HER degeri KANONIK (metin, bos degil, bas/son bosluksuz)",
@@ -131,9 +136,11 @@ def kabul(kok):
 
     # V1 kapali kume
     icerden = [d for d in ("Ford", "Volkswagen", "Mercedes", "Tofaş", "Volvo",
-                           "Volvo Penta", "Yanmar")
+                           "Volvo Penta", "Yanmar", "Fiat", "Vauxhall", "Johnson Pump",
+                           "GoPro", "Raspberry Pi", "Kia", "Smart")
                if A.uyum_marka_kanonik(d) != d]
-    disardan = [d for d in ("Focus", "F-150", "NGK", "Teleflex", "Fiat", "Vauxhall",
+    disardan = [d for d in ("Focus", "F-150", "NGK", "Teleflex", "Bosch", "PSA", "VAG",
+                            "Alpine", "Brodit", "Gurtner", "Sierra", "Johnson",
                             "Uydurma Marka", "")
                 if A.uyum_marka_kanonik(d) != ""]
     dogrula("V1 kapali kumedeki marka KABUL, kume disi marka RED",
@@ -263,6 +270,35 @@ def kabul(kok):
             A.uyum_sebebi(_paket_ornegi) is None
             and A.uyum_kanonik(_paket_ornegi) == _paket_ornegi["uyum"],
             A.uyum_sebebi(_paket_ornegi))
+
+    # V15 — V13'un kardesi: COK KELIMELI marka adinin ILK kelimesi ayri bir jeton DEGILDIR.
+    dogrula("V15 `Johnson Pump` ile `Johnson` AYRI jetonlardir: normalize anahtarlari "
+            "cakismiyor (`johnsonpump` != `johnson`), `Johnson` kumede YOK ve model olarak "
+            "da GECMEZ — ilk kelimeyi yutan bir katlama iki uyum evrenini birlestirirdi",
+            A.uyum_marka_kanonik("Johnson Pump") == "Johnson Pump"
+            and A.uyum_marka_kanonik("Johnson") == ""
+            and A.model_normalize("Johnson Pump") != A.model_normalize("Johnson")
+            and A.uyum_marka_kanonik("Raspberry") == ""
+            and A.model_normalize("Raspberry Pi") != A.model_normalize("Raspberry"),
+            (A.model_normalize("Johnson Pump"), A.model_normalize("Johnson")))
+
+    # V16 — MARKA/MODEL SINIRINDAKI IKIZ. Kumeye `Kia`/`Smart` girdi; katalogda `KIA`,
+    # `SMART` yazimlari da var. Kural olmasaydi `marka: "Kia"` + `model: "KIA"` ayni
+    # gercegi IKI alanda tutar ve iki ayri sayfa uretirdi.
+    _varyant = ("KIA", "SMART", "MINI", "Citroën", "Ikea", "BaoFeng", "Ssangyong",
+                "Ford", "ford", "F O R D", "Volvo Penta")
+    _varyant_sizan = [
+        v for v in _varyant
+        if A.uyum_sebebi(_urun(uyum=[{"marka": "Ford", "model": v}],
+                               marka=["Ford", v])) is None]
+    _mesru_model = ("Focus", "F-150", "Berlingo", "D2-55", "Sprinter", "206+", "K5")
+    _mesru_red = [m for m in _mesru_model if A.marka_varyanti_sebebi("model", m)]
+    dogrula("V16 MARKA/MODEL SINIRI: kapali kumedeki bir markanin YAZIM VARYANTI model/"
+            "motor alanina yazilamaz (%d fikstur RED) ve %d mesru model bundan "
+            "ETKILENMIYOR — olculen yanlis-pozitif 0"
+            % (len(_varyant), len(_mesru_model)),
+            not _varyant_sizan and not _mesru_red,
+            "sizan=%s yanlis-pozitif=%s" % (_varyant_sizan, _mesru_red))
 
     # V7 model normalizasyonu
     _ayni = (("F-150", "F150"), ("XSR 700", "XSR700"), ("ID.Buzz", "ID Buzz"),
@@ -401,7 +437,26 @@ def kabul(kok):
     # `marka` dizileri alinir, backfill'in yazacagi `uyum` sentezlenir ve turetilen
     # `marka`nin BUGUNKU deger ile BIREBIR ayni oldugu olculur. Ayni olmazsa arama metni
     # (haystack/ege_govde `marka`yi okur) backfill gunu SESSIZCE kayar.
-    ornek, ayrisan_gercek, red_gercek = 0, [], []
+    # 🔴 SENTEZ KURALI, OLCULEN VERIDEN DOGDU: `marka` dizisi HER ZAMAN [marka, model]
+    # degil. Katalogda [marka, MARKA] kayitlari da var (olculdu: `["Tohatsu","Mercury"]`,
+    # `["Volvo Penta","Mercruiser"]` — bir parcanin IKI markaya uymasi). Naif "ilk eleman
+    # marka, kalanlar model" sentezi bu kayitlari model-varyanti kapisina (V16) carptirdi.
+    # Dogru sentez: sozlukteki her jeton KENDI ogesini acar, sozluk disi jeton bir onceki
+    # markanin modeli olur. Backfill'in yapmasi gereken de tam olarak budur.
+    def _sentezle(ham):
+        s = []
+        for x in ham:
+            if A.uyum_marka_kanonik(x):
+                s.append({"marka": x})
+            elif not s:
+                return None                      # marka ile BASLAMAYAN dizi: ELE kalir
+            elif s[-1].get("model"):
+                s.append({"marka": s[-1]["marka"], "model": x})
+            else:
+                s[-1]["model"] = x
+        return s
+
+    ornek, ele, ayrisan_gercek, red_gercek = 0, 0, [], []
     for u in katalog:
         if not isinstance(u, dict) or not isinstance(u.get("marka"), list):
             continue
@@ -412,8 +467,17 @@ def kabul(kok):
             continue
         if any(A._serbest_sebebi("model", x) is not None for x in ham[1:]):
             continue
-        sentez = ([{"marka": ham[0], "model": m} for m in ham[1:]]
-                  or [{"marka": ham[0]}])
+        # 🔴 ELE BUCKETI (olculen, gizlenmiyor): dizide KANONIK OLMAYAN bir marka yazimi
+        # varsa (`Citroën`, `KIA`, `MINI`, `SMART`, `Ikea`, `BaoFeng`, `Ssangyong`)
+        # backfill o kaydi OTOMATIK yazamaz — jetonun once kanonige cevrilmesi gerekir.
+        # Sayilir ve RAPORLANIR; sessizce "kapsam disi" sayilmaz.
+        if any(not A.uyum_marka_kanonik(x) and A.marka_varyanti_sebebi("model", x)
+               for x in ham):
+            ele += 1
+            continue
+        sentez = _sentezle(ham)
+        if sentez is None:
+            continue
         aday = dict(u, uyum=sentez)
         ornek += 1
         if A.marka_uyumdan_turet(aday) != ham:
@@ -422,9 +486,11 @@ def kabul(kok):
             red_gercek.append((u.get("id"), ham, A.uyum_sebebi(aday)))
     dogrula("A5 GERCEK VERI REGRESYONU: %d gercek kayitta backfill'in yazacagi `uyum`dan "
             "turetilen `marka`, BUGUNKU `marka` degeriyle BIREBIR ayni ve kapidan geciyor "
-            "(arama metni backfill gunu kaymaz — parite riski 0)" % ornek,
+            "(arama metni backfill gunu kaymaz — parite riski 0); %d kayit KANONIK OLMAYAN "
+            "marka yazimi tasidigi icin ELE ayrildi" % (ornek, ele),
             ornek > 0 and not ayrisan_gercek and not red_gercek,
-            "ornek=%d ayrisan=%s red=%s" % (ornek, ayrisan_gercek[:3], red_gercek[:3]))
+            "ornek=%d ele=%d ayrisan=%s red=%s"
+            % (ornek, ele, ayrisan_gercek[:3], red_gercek[:3]))
 
     # BACKFILL HAZIRLIGI — sayi, iddia degil. Mevcut `marka` jetonlarinin ne kadari
     # bugunku sozlukten/serbest metin kuralindan gecerdi?
@@ -512,6 +578,13 @@ MUTANTLAR = [
      '        jetonlar = (model_metin(oge.get("model")),\n'
      '                    uyum_marka_kanonik(oge.get("marka")))\n', "KIRMIZI",
      "V12/A5: turetme SIRASI ters (model once) -> `marka` dizilimi bugunkunden kayar"),
+    # M11 — marka/model sinirindaki ikiz kapisi kalkar. `Kia` kumedeyken `KIA` model
+    # olarak gecer ve ayni gercek IKI ayri sayfa uretir.
+    ("M11", "arama.py",
+     re.compile(r"    for ad in \(\"model\", \"motor\"\):\n"
+                r"        sebep = marka_varyanti_sebebi\(ad, oge\.get\(ad\)\)\n"
+                r"        if sebep:\n            return sebep\n"), "", "KIRMIZI",
+     "V16: marka/model sinirindaki ikiz kapisi kalkar -> `KIA` model olarak GECER"),
 ]
 
 KOPYALANAN = ["arama.py"]
