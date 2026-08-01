@@ -36,6 +36,9 @@ import { KONFIGURLAR } from "./konfigurlar.js";
 import { konfigurBeklenirMi } from "./konfigur-beklenen.js";
 import { golgeKalem, golgeLogSatiri } from "./konfigur-golge.js";
 import { yonet, gecmiseEkle } from "./yonet.js";
+// Siparis numarasi ureteci TEK KAYNAK (yonet.js /wa-siparis de bunu kullanir; dairesel
+// import olmasin diye ortak modulde).
+import { yeniSiparisNo } from "./siparis-no.js";
 import { epostaAkisi, onayEpostasiHtml } from "./eposta.js";
 import { olcumGonder, olcumLog } from "./olcum.js";
 import { refKaydet, REF_KALIBI } from "./ref.js";
@@ -95,36 +98,10 @@ function kurusTL(kurus) {
   return kurusMetin(kurus).replace(".", ",") + " TL";
 }
 
-/** Siparis numarasi (kalem 5): Ege/Sheet akisiyla AYNI aile — PR-yyMMdd-HHmmss
- *  (Europe/Istanbul saati) + ayni-saniye carpismasina karsi kisa rastgele sonek.
- *  Musteriye gorunur (donus sayfasi, havale ekrani, Telegram); iyzico
- *  conversationId/basketId ile eslesir. */
-function siparisNoUret() {
-  const p = {};
-  new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/Istanbul", hourCycle: "h23",
-    year: "2-digit", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-  }).formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
-  // 0/O ve 1/I alfabede yok: numara telefonda/dekont aciklamasinda yanlis okunmasin.
-  const ABC = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let sonek = "";
-  for (let i = 0; i < 3; i++) { sonek += ABC[Math.floor(Math.random() * ABC.length)]; }
-  return "PR-" + p.year + p.month + p.day + "-" + p.hour + p.minute + p.second + "-" + sonek;
-}
-
-/** Benzersiz numara: rastgele sonek carpismayi zaten kilar; yine de INSERT oncesi D1
- *  on-kontrolu yapilir (kart akisinda numara once iyzico'ya conversationId olarak gider —
- *  INSERT'te UNIQUE patlasa numara degistirilemezdi). UNIQUE kisiti son savunma olarak durur. */
-async function yeniSiparisNo(env) {
-  for (let i = 0; i < 5; i++) {
-    const no = siparisNoUret();
-    const varMi = await env.KATALOG.prepare(
-      "SELECT 1 AS v FROM siparisler WHERE siparis_no = ?").bind(no).first();
-    if (!varMi) { return no; }
-  }
-  throw new Error("siparis numarasi uretilemedi (ust uste carpisma)");
-}
+// Siparis numarasi ureteci (siparisNoUret / yeniSiparisNo) 1 Agu 2026'da ./siparis-no.js'e
+// TASINDI — govde birebir ayni, davranis DEGISMEDI. Gerekce: WhatsApp kanali (yonet.js
+// /wa-siparis) AYNI numara ailesini uretmek zorunda ve index.js <-> yonet.js dogrudan
+// import'u DAIRESEL olurdu. Ikinci kopya YOK (iki uretec zamanla ayrisirdi).
 
 function yonlendir(env, sonuc, siparisNo, dokum) {
   // dokum (kalem 8, yalniz 'ok' donusunde): t=tahsilat kurus, kdv=kdv kurus — musteri donus

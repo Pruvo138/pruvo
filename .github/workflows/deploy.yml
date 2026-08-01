@@ -902,6 +902,7 @@ jobs:
           python3 tools/siparis-maske-test.py
           python3 tools/olculmemis-siparis-test.py
           python3 tools/yazdir-test.py
+          python3 tools/siparis-kanal-goc-test.py
       # YAYIN EKSENI: uretilen sayfalarda piksel/riza, script surumleme (4 saatlik
       # tarayici onbellegi) ve Google Merchant feed g:id 50-karakter siniri.
       - name: Yayin cikti kabul testleri (meta piksel + surum damgasi + merchant feed)
@@ -918,10 +919,11 @@ jobs:
           python3 tools/parite-sozlesme-test.py
           node tools/parite-fikstur-test.js
       # shop birim testleri: wrangler/ag/D1 ISTEMEZ (modulu dogrudan import ederler).
-      - name: Shop birim kabul testleri (siparis e-postasi + reklam atif ucu)
+      - name: Shop birim kabul testleri (siparis e-postasi + reklam atif ucu + WhatsApp siparis ucu)
         run: |
           node shop/test/eposta.mjs
           node shop/test/ref-route.mjs
+          node shop/test/wa-siparis.mjs
       - name: Jenerator fiyat/sema kabul testi (varsayilan hacim + PLA taban fiyati)
         run: node jenerator/test/fiyat-test.js
       # ================= MUAFIYET DENETIMI BLOGU SONU =================================

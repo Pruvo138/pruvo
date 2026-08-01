@@ -573,6 +573,23 @@ GOC_KOLON_SIPARIS = [
     # Reklam ROI olcumu (reklam-roi-sistemi.md Faz 0): atif kimlikleri (GA client_id + Meta
     # fbp/fbc + UTM) kompakt JSON. Purchase event (shop donus) bunlari kullanir; PII yok.
     ("atif", "TEXT NOT NULL DEFAULT ''"),
+    # KANAL AYRACI (1 Agu 2026, WhatsApp siparis ucu — shop/src/yonet.js /wa-siparis):
+    # 'site' | 'whatsapp'. DEFAULT 'site' -> ALTER anindan itibaren MEVCUT TUM satirlar
+    # DOGRU degeri alir (hepsi site siparisiydi): geriye doldurma GEREKMEZ, `yayinda`
+    # kolonundaki gibi bir sira tuzagi YOKTUR. Gerekce: tools/d1-sema.sql kanal yorumu.
+    ("kanal", "TEXT NOT NULL DEFAULT 'site'"),
+    # Dis sistemin KENDI siparis numarasi (Ege: PR-yyMMdd-HHmmss, sonek YOK). Mutabakat +
+    # /wa-siparis idempotens anahtari. Site siparislerinde '' kalir.
+    ("dis_no", "TEXT NOT NULL DEFAULT ''"),
+]
+
+# WHATSAPP kanali dis numara TEKILLIGI — ALTER'lardan SONRA kosmak ZORUNDA (kolon yokken
+# CREATE INDEX tum --sema kosumunu dusururdu; YAYIN_INDEKS ile ayni tuzak, olculdu 31 Tem).
+# KISMI indeks: yalniz dis_no <> '' satirlari kapsar -> mevcut site siparislerinin hepsi
+# ('' tasiyorlar) indeksin DISINDA kalir, catisma URETMEZ. IF NOT EXISTS -> idempotent.
+SIPARIS_INDEKS = [
+    "CREATE UNIQUE INDEX IF NOT EXISTS siparisler_dis_no "
+    "ON siparisler(kanal, dis_no) WHERE dis_no <> '';",
 ]
 
 # ON CONFLICT (UPDATE) sirasinda GUNCELLENEN kolonlar.
@@ -1011,6 +1028,10 @@ def kolon_goc():
     if kolon_var_mi("urunler", "yayinda"):
         dosya_calistir("\n".join(YAYIN_INDEKS))
         print("atomik yayin indeksleri kuruldu (urunler_yayin, urunler_yayin_kat)")
+    # WhatsApp kanali: dis numara tekilligi (kismi UNIQUE indeks) — AYNI sira kurali.
+    if kolon_var_mi("siparisler", "dis_no"):
+        dosya_calistir("\n".join(SIPARIS_INDEKS))
+        print("siparis dis-numara indeksi kuruldu (siparisler_dis_no)")
 
 
 def satir_sql(u, seq, hs, h, baski=""):
