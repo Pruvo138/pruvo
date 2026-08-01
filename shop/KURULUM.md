@@ -30,6 +30,30 @@ sayfa (worker icinde gomulu; harici kutuphane yok). `YONET_ANAHTAR` wrangler sec
   kaynak kaydina bak" notu (tedarikci bilgisi sayfaya YAZILMAZ). Toplu yukleme:
   `python3 tools/stl-r2-yukle.py` (idempotent; yanlis adlanani raporlar, tahmin etmez).
 
+## WhatsApp (Ege) siparisleri — `POST /yonet/wa-siparis`
+
+Ege (WhatsApp botu, AYRI depo/worker) bir siparis kapatinca bu uctan AYNI panele yazar.
+- **Anahtar**: `EGE_ANAHTAR` (wrangler secret, `openssl rand -hex 24`) — **YALNIZ bu ucu
+  acar**; `/liste`, `/durum`, `/kargo`, `/stl` onunla 404 doner (en az yetki: bot'a
+  panelin tamami verilmez). `YONET_ANAHTAR` da calisir. Ikisi de yoksa 404.
+  Ayni deger bot worker'ina da secret olarak konur. Baslik: `X-Ege-Anahtar`.
+- **Govde**: `{musteri:{ad,tel,adres,eposta?}, odeme:"kart"|"havale", urunler:[{ad,link?,
+  adet?,tutar_kurus?}], tutar_kurus?, kargo_kurus?, dis_no?, durum?}`.
+  Zorunlu: ad/tel/adres + en az bir urun adi + odeme yontemi. Eksikse 400 + alan adi.
+- **Numara PANELDE uretilir** (`PR-yyMMdd-HHmmss-XXX`); Ege'nin kendi numarasi `dis_no`
+  kolonunda mutabakat + **idempotens** anahtaridir (ayni `dis_no` 2. kez → yeni siparis
+  YOK, mevcut numara + `tekrar:true`). Kismi UNIQUE indeks veri tabani tarafinda ikizi kiler.
+- **Durum**: yalniz `havale-bekliyor` (varsayilan) veya `odendi` yazilabilir; uretim/kargo
+  ilerlemesi PANELDEN yapilir. Tutar BOS kalabilir (elle fiyatlandirma) — bu uc TAHSILAT
+  YAPMAZ, fiyat hesaplamaz, e-posta/Telegram GONDERMEZ (musteri zaten sohbette).
+- **Olcum**: `kanal='site'` DISI siparislerde reklam Purchase olayi tetiklenmez (WhatsApp
+  cirosu GA4'e sentetik client_id ile "direct" satis olarak yazilmasin); atlama loglanir.
+- 🔴 **SIRA**: once `python3 tools/d1-sync.py --sema` (kanal/dis_no kolonlari + indeks),
+  SONRA worker deploy, sonra `EGE_ANAHTAR`. Goc kosmadan uc **503 `sema-goc-gerekli`**
+  doner (fail-closed; kanalsiz kayit yazilmaz). Panelin GET/render tarafi gocten ONCE de
+  calisir (kolon merdiveni) — yani sira sasarsa panel DUSMEZ, yalnizca yazma reddedilir.
+- Kabul: `node shop/test/wa-siparis.mjs` + `python3 tools/siparis-kanal-goc-test.py`.
+
 ## E-posta (Resend — siparis yonetimi paketi Faz 2)
 
 Gonderen `PRUVO <siparis@pruvo3d.com>`; sablonlar Turkce sade HTML (`src/eposta.js`).
