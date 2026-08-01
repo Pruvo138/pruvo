@@ -102,9 +102,10 @@ kadar kirmizi kalacak.
   bildirdi, olculerek dogrulandi: sozlesme ve sayfalar iki sinifi ZATEN ayiriyor, canli
   metinler depoyla bayt-bayt ayni. Eksik olan ayrimin BEYANA gecmesiydi; o da bu tur kapandi.
 - OKAN: hesap tasinmasinda elle gereken 19 kalem.
-- OKAN: cayma hakkiyla iade edilen HAZIR/STOK uruntte geri gonderim kargosunu kim oder?
-  Sozlesmede yazili DEGIL, dolayisiyla su an yasal olarak BIZE ait. Cevap gelmeden metne
-  yazilmiyor; kapi o cumlenin izinsiz yazilmasini kirmizi yakiyor.
+- ✅ KARAR (Okan, 1 Agu): cayma iadesinde geri gonderim kargosu icin sozlesmeye **HICBIR
+  CUMLE YAZILMAYACAK.** Sonucu bilincli: yazili olmadigi surece bedel yasal olarak SATICIDA,
+  yani bizde. Bu bir eksiklik DEGIL, verilmis karardir — "unutulmus" diye tamamlanmasin.
+  Kapi bu cumlenin izinsiz yazilmasini kirmizi yakiyor; koruma YERINDE KALSIN.
 - MIMAR KARARI: arama maliyet kapisinin bloklayan serite tasinmasi.
 - ISCI VERILMEDI: denetim kapisi rapor kolundaki adaylar (urun verisi duzlemi).
 - KARDES MIMAR: vida ailesi PUL-only teslimi, metin temizligi plani.
