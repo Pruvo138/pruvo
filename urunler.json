@@ -1,5 +1,365 @@
 [
   {
+    "id": "sierra-yamaha-mekanik-yakit-pompasi-18-7349",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7349 Yamaha Mekanik (Diyaframlı) Yakıt Pompası",
+    "aciklama": "Sierra üretimi orijinal kalite mekanik (diyaframlı) yakıt pompası (parça kodu: 18-7349).\nYamaha dıştan takma deniz motorlarıyla uyumludur.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "3200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7349-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yamaha-yakit-pompasi-filtreli-18-7340",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7340 Yamaha Yakıt Pompası (Filtreli)",
+    "aciklama": "Sierra üretimi orijinal kalite filtreli yakıt pompası (parça kodu: 18-7340).\nYamaha dıştan takma deniz motorlarıyla uyumludur.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "18900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7340-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercruiser-sterndrive-elektrikli-yakit-pompasi-18-35433",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-35433 MerCruiser Sterndrive Elektrikli Yakıt Pompası",
+    "aciklama": "Sierra üretimi orijinal kalite elektrikli yakıt pompası (parça kodu: 18-35433).\nMerCruiser sterndrive ve I/O deniz motorlarıyla uyumludur.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "16600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-35433-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercruiser-yakit-basinc-regulatoru-18-33207",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-33207 MerCruiser Yakıt Basınç Regülatörü",
+    "aciklama": "Sierra üretimi orijinal kalite yakıt basınç regülatörü (parça kodu: 18-33207).\nMerCruiser enjeksiyonlu deniz motorlarıyla uyumludur.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "14200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-33207-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-yamaha-mercury-benzin-fisi-18-8076",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8076 Yamaha-Mercury Ortak Tip Benzin Fişi",
+    "aciklama": "Sierra üretimi orijinal kalite benzin fişi (parça kodu: 18-8076).\nYamaha ve Mercury dıştan takma deniz motorlarının ortak tip yakıt hattı bağlantısında kullanılır.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8076-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-suzuki-benzin-fisi-18-8087",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8087 Suzuki Benzin Fişi",
+    "aciklama": "Sierra üretimi orijinal kalite benzin fişi (parça kodu: 18-8087).\nSuzuki dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılır.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8087-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-tohatsu-hizli-baglanti-benzin-fisi-18-8079",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8079 Tohatsu Hızlı Bağlantılı Benzin Fişi",
+    "aciklama": "Sierra üretimi orijinal kalite hızlı bağlantılı (quick-disconnect) benzin fişi (parça kodu: 18-8079).\nTohatsu dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılır.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8079-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-tohatsu-motor-girisi-yakit-fisi-18-8078",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8078 Tohatsu Motor Girişi Yakıt Fişi",
+    "aciklama": "Sierra üretimi orijinal kalite motor girişi yakıt fişi (parça kodu: 18-8078).\nTohatsu dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılır.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8078-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-tohatsu-mercury-klips-yakit-konnektoru-18-80412",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-80412 Tohatsu-Mercury Klips Tipi Yakıt Konnektörü",
+    "aciklama": "Sierra üretimi orijinal kalite klips tipi yakıt konnektörü (parça kodu: 18-80412).\nTohatsu ve Mercury/Mariner dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılır.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80412-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-honda-yakit-konnektoru-18-80407",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-80407 Honda Yakıt Konnektörü",
+    "aciklama": "Sierra üretimi orijinal kalite yakıt konnektörü (parça kodu: 18-80407).\nHonda dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılır.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80407-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-honda-tank-girisi-18-80406",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-80406 Honda Motor Tank Girişi",
+    "aciklama": "Sierra üretimi orijinal kalite tank (depo) girişi bağlantı parçası (parça kodu: 18-80406).\nHonda dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılır.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80406-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-honda-benzin-fisi-18-80408",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-80408 Honda Benzin Fişi",
+    "aciklama": "Sierra üretimi orijinal kalite benzin fişi (parça kodu: 18-80408).\nHonda dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılır.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-80408-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercruiser-yakit-pompasi-cooler-kiti-18-8862",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8862 MerCruiser Yakıt Pompası ve Soğutucu (Cooler) Kiti",
+    "aciklama": "Sierra üretimi orijinal kalite yakıt pompası ve yakıt soğutucu (cooler) komple kiti (parça kodu: 18-8862).\nMerCruiser sterndrive/inboard deniz motorlarıyla uyumludur.\nMercury/Quicksilver 861156A03 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "30100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8862-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercruiser-yakit-pompa-enjeksiyon-rayi-kiti-18-8864",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8864 MerCruiser Yakıt Pompası ve Enjeksiyon Rayı Kiti",
+    "aciklama": "Sierra üretimi orijinal kalite yakıt pompası ve enjeksiyon rayı (fuel rail) komple kiti (parça kodu: 18-8864).\nMerCruiser enjeksiyonlu deniz motorlarıyla uyumludur.\nMercury/Quicksilver 866169T01 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "23200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8864-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercruiser-dusuk-basinc-yakit-pompasi-18-8868",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8868 MerCruiser Düşük Basınç Yakıt Pompası",
+    "aciklama": "Sierra üretimi orijinal kalite düşük basınç yakıt pompası (parça kodu: 18-8868).\nMerCruiser sterndrive/inboard deniz motorlarıyla uyumludur.\nMercury/Quicksilver 861155A3 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "19100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8868-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercruiser-yakit-pompasi-18-7283",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7283 MerCruiser Yakıt Pompası",
+    "aciklama": "Sierra üretimi orijinal kalite yakıt pompası (parça kodu: 18-7283).\nMerCruiser sterndrive/inboard deniz motorlarıyla uyumludur.\nMercury/Quicksilver 861678A1 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "9600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7283-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercruiser-elektrikli-yakit-pompasi-v8-18-8865",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8865 MerCruiser V8 Elektrikli Yakıt Pompası",
+    "aciklama": "Sierra üretimi orijinal kalite elektrikli düşük basınç yakıt pompası (parça kodu: 18-8865).\nBelirli V8 GM bazlı MerCruiser sterndrive deniz motorlarıyla uyumludur.\nMercury/Quicksilver 866170A01 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "22600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8865-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercruiser-mekanik-yakit-pompasi-18-7288",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7288 MerCruiser Mekanik Yakıt Pompası",
+    "aciklama": "Sierra üretimi orijinal kalite mekanik (diyaframlı) yakıt pompası (parça kodu: 18-7288).\nMerCruiser sterndrive/inboard deniz motorlarıyla uyumludur.\nMercury/Quicksilver 812454A1 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "13400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7288-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercury-mercruiser-yakit-basinc-regulatoru-18-7662",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7662 Mercury-MerCruiser Yakıt Basınç Regülatörü",
+    "aciklama": "Sierra üretimi orijinal kalite yakıt basınç regülatörü (parça kodu: 18-7662).\nMercury ve MerCruiser enjeksiyonlu deniz motorlarıyla uyumludur.\nMercury/Quicksilver 885174 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "20000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7662-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-suzuki-depo-konnektoru-18-8071",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8071 Suzuki Depo (Tank) Konnektörü",
+    "aciklama": "Sierra üretimi orijinal kalite depo (tank) konnektörü (parça kodu: 18-8071).\nSuzuki dıştan takma deniz motorlarının benzin deposu tarafı yakıt hattı bağlantısında kullanılır.\nSuzuki 99105-00192 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8071-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-suzuki-yakit-konnektoru-18-8062",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8062 Suzuki Yakıt Konnektörü",
+    "aciklama": "Sierra üretimi orijinal kalite yakıt konnektörü (parça kodu: 18-8062).\nSuzuki dıştan takma deniz motorlarının yakıt hattı bağlantısında kullanılır.\nSuzuki 65750-98505 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8062-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-tohatsu-nissan-yakit-konnektoru-depo-18-8089",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8089 Tohatsu-Nissan Yakıt Konnektörü (Depo Tarafı)",
+    "aciklama": "Sierra üretimi orijinal kalite yakıt konnektörü (parça kodu: 18-8089).\nTohatsu ve Nissan Marine dıştan takma deniz motorlarının depo (tank) tarafı yakıt hattı bağlantısında kullanılır.\nTohatsu/Nissan Marine 3B2-70260-0 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8089-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-tohatsu-nissan-yakit-konnektoru-motor-18-8088",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8088 Tohatsu-Nissan Yakıt Konnektörü (Motor Tarafı)",
+    "aciklama": "Sierra üretimi orijinal kalite yakıt konnektörü (parça kodu: 18-8088).\nTohatsu ve Nissan Marine dıştan takma deniz motorlarının motor tarafı yakıt hattı bağlantısında kullanılır.\nTohatsu/Nissan Marine 345-70250-0 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8088-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-mercury-benzin-fisi-hizli-baglanti-18-8091",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-8091 Mercury-Mariner Hızlı Bağlantılı Benzin Fişi",
+    "aciklama": "Sierra üretimi orijinal kalite hızlı bağlantılı (quick-disconnect) benzin fişi (parça kodu: 18-8091).\nMercury ve Mariner dıştan takma deniz motorlarının yakıt hortumu bağlantısında kullanılır.\nMercury/Quicksilver 13563Q7 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski parça kodundan uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-8091-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "sierra-atesleme-bobini-18-5443",
     "kategori": "Marin",
     "marka": [
