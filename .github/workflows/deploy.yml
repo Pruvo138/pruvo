@@ -664,20 +664,25 @@ jobs:
       # kolonu yoktur, sayfa uretmez: sozluk main'e ONCE iner, parti SONRA yazilir
       # (ters sira `Elektrik` kaleminde fail-closed reddedildi).
       # Dort sessiz-hata sinifi kilitlenir:
-      #   S SOZLUK  Marka KAPALI kume (139 deger). Kume ICINDE ikiz olamaz (`Mini`/`MINI`
+      #   S SOZLUK  Marka KAPALI kume (141 deger). Kume ICINDE ikiz olamaz (`Mini`/`MINI`
       #             ayni normalize degere dusemez). Uretici markalari (NGK/Tecnoseal/
       #             Teleflex...) AYRI kumede ve uyum ekseninde GECERSIZ — "NGK" diye sahte
       #             marka sayfasi acilamaz. Budama aritmetigi CALISTIRILARAK dogrulanir
-      #             (139 izinli + 13 uretici + 17 elenen == 169 oneri): elenen jeton geri
-      #             sizamaz, onerisiz jeton sessizce eklenemez.
+      #             ((141 izinli − 2 mimar eki) + 13 uretici + 17 elenen == 169 oneri):
+      #             elenen jeton geri sizamaz, ONERISIZ jeton yalnizca MIMAR EKI'nde
+      #             ADIYLA kayitli olarak girebilir (`Volvo Penta`, `Yanmar`).
       #   V SEMA    Kume disi/yakin yazim/bozuk tip/ters yil araligi/enjeksiyon RED; ' Ford'
       #             SESSIZCE KIRPILMAZ (bu depoda `altkategori`de OLCULEN kusur: katalog
       #             ham, D1 kirpilmis deger alir ve hicbir hash ekseni gormez).
-      #   K IKIZ    `marka`, `uyum` doluyken ondan TURETILIR; elle yazilmis/sirasi kaymis
-      #     TANIM   deger KIRMIZI. `uyum` bos ESKI kayitta bu dal hic calismaz (regresyon 0).
-      #   A KATALOG Gercek 16.874 kayit taranir (yalniz OKUNUR) + backfill hazirligi sayilir.
+      #   K IKIZ    `marka` = tekillestir(uyum[].marka + uyum[].model); elle yazilmis/
+      #     TANIM   sirasi kaymis/YALNIZ markadan turetilmis deger KIRMIZI. Model DE girer
+      #             cunku `marka` bugun haystack'e giriyor ve model jetonu tasiyor —
+      #             yalniz markadan turetmek arama yuzeyini SESSIZCE daraltirdi.
+      #             `uyum` bos ESKI kayitta bu dal hic calismaz (regresyon 0).
+      #   A KATALOG Gercek 16.874 kayit taranir (yalniz OKUNUR); 13.478 gercek kayitta
+      #             turetilen `marka` == bugunku `marka` olculur + backfill hazirligi.
       # FAIL-CLOSED: gecersiz `uyum` -> [] (urun KAYBOLMAZ, kendi kategorisinde bulunur).
-      # OFFLINE: ag/D1/wrangler YOK. Cift yonlu mutasyon (7 oldurucu KIRMIZI + 1 ilgisiz
+      # OFFLINE: ag/D1/wrangler YOK. Cift yonlu mutasyon (9 oldurucu KIRMIZI + 1 ilgisiz
       # YESIL + mutasyonsuz harness kontrolu) elle:
       #   python3 tools/uyum-kapisi.py --mutasyon
       - name: "Uyum kapisi (kapali marka sozlugu + sema + ikiz tanim + enjeksiyon)"

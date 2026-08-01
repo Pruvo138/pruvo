@@ -415,7 +415,27 @@ UYUM_MARKA_IZINLI = frozenset({
     "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
     "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
     "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
+    # ── MIMAR ELIYLE EKLENEN (asagidaki UYUM_MARKA_MIMAR_EKI ile AYNI ikili) ──
+    "Volvo Penta", "Yanmar",
 })
+
+# 🔴 ONERI DISINDAN, MIMAR ONAYIYLA eklenen jetonlar. AYRI tutulmalari SART: budama
+# aritmetigi (S2) "sozluk = yargilanmis oneri" der; onaysiz bir jeton o esitligi kirar.
+# Bu kume, esitligi kiran TEK mesru yoldur ve her uyesi ADIYLA kayda gecer.
+#
+# K2 NETLESTIRILDI (mimar, 2 Agu): "belirsiz jeton VARSAYILAN olarak modeldir; mimar
+# ACIK gerekceyle ev-sahibi marka olarak kabul edebilir." Mutlak degil, VARSAYILAN.
+#   `Volvo Penta` (51 kayit, Codex `belirsiz`) — deniz motoru markasi. Okan'in talebindeki
+#     iki ornekten biri BIREBIR bu; paket §2 ornegi de buna dayaniyor. Kumede olmamasi
+#     amiral kullanim durumunun calismamasi demekti.
+#   `Yanmar` (7 kayit, Codex `model`) — deniz motoru markasi, paket §2'nin ikinci ornegi.
+# Ikisi de bu turun kendi olcutuyle TARTISMASIZ EV SAHIBI: parca onlara TAKILIR.
+#
+# ⚠️ `Volvo` ile `Volvo Penta` AYRI EV SAHIPLERIDIR (otomobil ile deniz motoru). Tek jetona
+# indirilmezler ve model_normalize onlari CAKISTIRMAZ (`volvo` != `volvopenta`) — kapi bunu
+# AYRI bir iddia olarak olcer (V13), cunku "Penta" ekini kirpan bir normalizasyon iki farkli
+# uyum evrenini sessizce tek sayfaya yigardi.
+UYUM_MARKA_MIMAR_EKI = frozenset({"Volvo Penta", "Yanmar"})
 
 # URETICI EKSENI — GERCEK markalardir ama UYUM ekseni DEGILDIR: bunlar takilan sarf/parcanin
 # ureticisidir (buji, tutya, dolgu/yapistirici, tekne boyasi, temizleyici, zimpara, direksiyon
@@ -653,16 +673,34 @@ def uyum_ogesi_sebebi(oge):
 def marka_uyumdan_turet(u):
     """K5 — `marka` alaninin `uyum`dan TURETILMIS hali (tekil, ilk gorulme sirasinda).
 
-    IKIZ TANIM YASAGI: `marka` ile `uyum[].marka` ayni gercegi iki yerde tutar ve
-    SESSIZCE ayrisir. Kural: `uyum` varsa `marka` ondan TURETILIR, elle yazilmaz.
+        marka = tekillestir( uyum[].marka + uyum[].model )
+
+    IKIZ TANIM YASAGI: `marka` ile `uyum` ayni gercegi iki yerde tutar ve SESSIZCE
+    ayrisir. Kural: `uyum` varsa `marka` ondan TURETILIR, elle yazilmaz.
+
+    🔴 MODEL DE GIRER — KURAL 2 AGU'DA DEGISTI, SEBEBI OLCULDU. Once yalniz
+    `uyum[].marka` turetiliyordu. Ama bugunku `marka` alani marka VE model karisimidir
+    (olculdu: 6.918 kayit tam 2 elemanli, `["Ford","Focus"]` bicimi) ve `marka`
+    haystack()/ege_govde() araciligiyla ARAMA metnine giriyor. Yalniz markadan
+    turetseydik backfill iner inmez `Focus` haystack'ten DUSER ve "focus" aramasi
+    yalnizca baslik/aciklamadan eslesirdi: SESSIZ bir arama kaybi, hicbir alarm calmaz.
+    Model de girince `marka` bugunku anlamini BIREBIR korur -> arama yuzeyi degismez,
+    parite riski sifir ve haystack genisletmesi backfill'i BLOKLAMAZ (paket §5'teki
+    sira bagimliligi kalkti).
+
+    SIRA KASITLI: her oge icin ONCE marka SONRA model -> bugunku `["marka", "model"]`
+    dizilimi korunur. `motor`/`oem` GIRMEZ: bunlar bugun `marka` alaninda yok, eklemek
+    arama metnini GENISLETIR ve pariteyi bu sefer TERS yonde kaydirirdi.
     """
     turetilen = []
     for oge in (u.get("uyum") or []):
         if not isinstance(oge, dict):
             continue
-        m = uyum_marka_kanonik(oge.get("marka"))
-        if m and m not in turetilen:
-            turetilen.append(m)
+        jetonlar = (uyum_marka_kanonik(oge.get("marka")),
+                    model_metin(oge.get("model")))
+        for deger in jetonlar:
+            if deger and deger not in turetilen:
+                turetilen.append(deger)
     return turetilen
 
 
