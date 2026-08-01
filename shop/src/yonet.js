@@ -618,7 +618,10 @@ let girisSayac = { pencereBas: 0, adet: 0 };
 
 function bekle(ms) { return new Promise((coz) => setTimeout(coz, ms)); }
 
-/** Pencere doldu mu (tavan asildi mi)? Pencere gecmisse sayac sifirlanir. */
+/**
+ * Pencere doldu mu (esik asildi mi)? Pencere gecmisse sayac sifirlanir.
+ * Sayac isolate basina tutulur; GARANTILI bir ust sinir DEGILDIR (bkz. yukaridaki not).
+ */
 function girisBlokeMi(simdi) {
   if (simdi - girisSayac.pencereBas > GIRIS_PENCERE_MS) {
     girisSayac = { pencereBas: simdi, adet: 0 };
