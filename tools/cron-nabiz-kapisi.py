@@ -29,7 +29,19 @@ kosumu yoksa KIRMIZI". IKI OLCUM o ekseni CURUTTU:
 GERCEK RISK "cron atesledi mi" DEGIL, "D1 ile katalog arasindaki sapma NE KADAR SUREDIR
 DENETLENMEDI"dir. Alarm o eksene tasindi.
 
-NE OLCER (4 EKSEN, hepsi FAIL-CLOSED)
+🔴 IKINCI DAMGA EKSENI — A4 PAKET TAZELIGI (1 Agu 2026, OLCULDU)
+================================================================
+shop Worker'i CI'da YAYINLANMIYOR (elle `wrangler deploy`). Canli paket 30 Tem 20:30 –
+1 Agu 01:58 arasinda 14,5 SAAT bayat kaldi; 676 fiziksel uruntte %84'e varan FAZLA
+TAHSILAT oldu ve o an mevcut IKI canli kapi da YESIL yaniyordu. Ayni sinif 30 Tem'de de
+yasandi (kart kanali 2 gun kapali) — yani yapisal ve TEKRAR EDEN bir delik.
+Onarim `.github/workflows/paket-tazelik-alarmi.yml`dir (15 dk cadans, `push` YOK ->
+yayini durduramaz). O alarmin KENDISININ olmesi yine sessiz olurdu; A4 ekseni tam olarak
+onu olcer: "canli fiyat yolu ne kadar suredir denetlenmedi".
+A0 ile A4 AYNI karar kodundan gecer (`_damga_satiri`) — ikiz mantik tutulmaz
+([[ikiz-tanim-sessiz-ayrisma]]); yalnizca konu metinleri ve capa dosyasi ayridir.
+
+NE OLCER (5 EKSEN, hepsi FAIL-CLOSED)
 =====================================
   A0 DAMGA  (AG · BIRINCIL) — SON BASARILI UZLASTIRMA damgasi N saatten eski mi.
      Damgayi uzlastirici KENDI kosar: olcum FIILEN yapildiktan (ve sapma varsa onarim
@@ -55,6 +67,12 @@ NE OLCER (4 EKSEN, hepsi FAIL-CLOSED)
   A2 DURUM  (AG)    — cron tasiyan is akisi GitHub tarafinda kayitli ve `state == active` mi
      (GitHub 60 gun hareketsizlikta zamanlanmis is akisini `disabled_inactivity` yapar —
      dosya yerinde durur, kimse fark etmez).
+  A4 PAKET  (AG · BIRINCIL, A0 ILE AYNI DESEN) — SON BASARILI PAKET TAZELIGI damgasi N
+     saatten eski mi. Damgayi `paket-tazelik-alarmi.yml` KENDI kosar ve YALNIZ olcum
+     `durum == 'parite'` verdiginde yukler; drift / olculemedi / atlanan kosum damga
+     URETMEZ. Bu eksenin capasi ayrica IS AKISI KABLOSUDUR (`paket_alarmi_kablosu`):
+     alarm dosyasi silinir, `push:` ile yayin yoluna baglanir, canli kol `--kendini-test`e
+     dusurulur ya da damga kosulu `always()` yapilirsa nobetci KIRMIZI yanar.
   A3 NABIZ  (AG · IKINCIL, KAYBOLMADI) — o is akisinin SON `event=schedule` kosumu son N
      saat icinde mi. "Cron HIC ateslemiyor" hali AYRI bir arizadir (damga tazeyken bile
      elle dispatch'le beslenmis olabilir) ve AYRI raporlanir. Esigi artik NOMINAL cron
@@ -117,6 +135,29 @@ UZLASTIRICI_DOSYA = "d1-uzlastirici.yml"
 # Uzlastiricinin her BASARILI denetimden sonra yukledigi artifact adi (TEK KAYNAK:
 # .github/workflows/d1-uzlastirici.yml `Damga` adimi ayni sabiti kullanir).
 DAMGA_ADI = "uzlastirma-damgasi"
+
+# PAKET TAZELIGI ALARMI — A4 ekseninin capasi. Bu dosya yoksa/cron'suzsa OLCULEMEDI
+# (rc 2): nobetci "canli fiyat yolunu denetleyen bir is var" VARSAYMAZ, OLCER.
+PAKET_ALARM_DOSYA = "paket-tazelik-alarmi.yml"
+PAKET_DAMGA_ADI = "paket-tazelik-damgasi"
+# Alarmin GERCEK olcum kolu (bayraksiz = canli). `--kendini-test`e dusurulurse alarm
+# hicbir canli sey olcmez ama kosum YESIL kalirdi -> kablo capasi bunu KIRMIZI yakar.
+PAKET_OLCUM_ARACI = "tools/fiziksel-canli-kapisi.py"
+# Damganin dogmasi icin olcumun vermesi GEREKEN etiket. TEK KAYNAK: bu dize
+# tools/fiziksel-canli-kapisi.py::DURUM_ETIKET["PARITE"] ile AYNI olmak zorundadir ve
+# `--kendini-test` bunu KOSARAK dogrular (elle senkron tutulan ikinci kopya YOK).
+PAKET_PARITE_ETIKETI = "parite"
+
+# DAMGA KUTUGU — ad -> (yazan is akisi, damganin IDDIASI). `--damga-yaz` bu kutukten
+# DISARI cikamaz: bilinmeyen bir ad verilirse hata verir (uydurma adla yuklenen bir
+# artifact hicbir eksen tarafindan okunmaz, yani sessiz bir hicligi damgalardi).
+DAMGA_KUTUGU = {
+    DAMGA_ADI: (UZLASTIRICI_DOSYA,
+                "d1-katalog sapmasi olculdu ve kapatildi (olcum + gerekiyorsa onarim teyidi)"),
+    PAKET_DAMGA_ADI: (PAKET_ALARM_DOSYA,
+                      "canli fiyat yolu olculdu ve PARITE cikti (hazir ticari malda "
+                      "tahsilat liste fiyati; canli paket depo HEAD'i ile ayni nesil)"),
+}
 
 # Yogun tetikleme dakikalari — `*/15` tam bu kumeye duser.
 YOGUN_DAKIKALAR = frozenset((0, 15, 30, 45))
@@ -412,8 +453,8 @@ def gozlem_topla(dosyalar, getir=api_getir):
 
 
 # ---- A0: SON BASARILI UZLASTIRMA DAMGASI ------------------------------------
-def damga_gozle(getir=api_getir):
-    """En yeni SURESI DOLMAMIS `uzlastirma-damgasi` artifact'i -> gozlem sozlugu.
+def damga_gozle(getir=api_getir, ad=DAMGA_ADI):
+    """En yeni SURESI DOLMAMIS `<ad>` artifact'i -> gozlem sozlugu (A0 ve A4 AYNI kod).
 
     Doner: {"var": bool, "an": datetime|None, "kosum": id|None, "sha": str|None,
             "toplam": int, "suresi_dolan": int, "sebep": str|None}
@@ -421,7 +462,7 @@ def damga_gozle(getir=api_getir):
     cozulemeyen zaman damgasi. "Damga YOK" ise SEKIL arizasi degil OLCUM'dur ->
     var=False doner ve hukum katmani bunu ALARM sayar."""
     d = getir("repos/%s/actions/artifacts?name=%s&per_page=100"
-              % (DEPO, urllib.parse.quote(DAMGA_ADI)))
+              % (DEPO, urllib.parse.quote(ad)))
     if not isinstance(d, dict) or not isinstance(d.get("artifacts"), list):
         raise OlcumHatasi("artifact yaniti beklenen sekilde degil (`artifacts` dizisi yok) "
                           "-> damga OKUNAMADI, 'yesil' SAYILMAZ")
@@ -434,14 +475,16 @@ def damga_gozle(getir=api_getir):
                 raise OlcumHatasi("artifact kaydinda `%s` YOK: %r" % (alan, a))
         # AD SUZGECI NOBETI: `?name=` sunucu tarafinda calismazsa baska bir is akisinin
         # artifact'i damga sanilirdi (sahte YESIL). Suzgecin fiilen calistigini OLC.
-        if a["name"] != DAMGA_ADI:
+        # 🔴 IKI DAMGA VARKEN BU SATIR DAHA DA KRITIK: suzgec calismazsa uzlastirma
+        # damgasi paket damgasi sanilir ve olu bir alarm TAZE gorunurdu.
+        if a["name"] != ad:
             raise OlcumHatasi("artifact ad suzgeci CALISMIYOR: name=%r istendi, %r dondu "
-                              "-> damga ekseni olculemez" % (DAMGA_ADI, a["name"]))
+                              "-> damga ekseni olculemez" % (ad, a["name"]))
     taze = [a for a in kayitlar if not a["expired"]]
     if not kayitlar:
         return {"var": False, "an": None, "kosum": None, "sha": None, "toplam": 0,
                 "suresi_dolan": 0,
-                "sebep": "depoda `%s` adli HIC artifact YOK" % DAMGA_ADI}
+                "sebep": "depoda `%s` adli HIC artifact YOK" % ad}
     if not taze:
         return {"var": False, "an": None, "kosum": None, "sha": None,
                 "toplam": len(kayitlar), "suresi_dolan": len(kayitlar),
@@ -457,12 +500,12 @@ def damga_gozle(getir=api_getir):
             "sebep": None}
 
 
-def uzlastirici_esigi(dosyalar):
-    """A0 esigi UZLASTIRICININ cron cadansindan turetilir (nominal -> olculen teslim
-    orani -> N). Uzlastirici dosyasi yoksa/cron'suzsa OLCULEMEDI: bu nobetci
-    "denetleyen bir is var" VARSAYMAZ."""
+def is_akisi_esigi(dosyalar, hedef, capa_tanisi):
+    """DAMGA esigi, DAMGAYI YAZAN is akisinin cron cadansindan turetilir (nominal ->
+    olculen teslim orani -> N). Hedef dosya yoksa/cron'suzsa OLCULEMEDI: bu nobetci
+    "denetleyen bir is var" VARSAYMAZ. A0 ve A4 AYNI fonksiyondan gecer."""
     for dosya, cron in dosyalar:
-        if dosya != UZLASTIRICI_DOSYA:
+        if dosya != hedef:
             continue
         dakikalar = dakika_kumesi(cron)
         if dakikalar is None:
@@ -473,21 +516,87 @@ def uzlastirici_esigi(dosyalar):
             try:
                 return dosya, esik_saat(int(adim)), int(adim)
             except ValueError:
-                raise OlcumHatasi("uzlastirici cron dakika alani cozulemedi: %r" % cron)
+                raise OlcumHatasi("%s cron dakika alani cozulemedi: %r" % (hedef, cron))
         aralik = aralik_dakika(dakikalar)
         return dosya, esik_saat(aralik), aralik
-    raise OlcumHatasi(
+    raise OlcumHatasi(capa_tanisi)
+
+
+def uzlastirici_esigi(dosyalar):
+    """A0 esigi (bkz. is_akisi_esigi)."""
+    return is_akisi_esigi(
+        dosyalar, UZLASTIRICI_DOSYA,
         "UZLASTIRICI BULUNAMADI: cron tasiyan is akislari arasinda %s YOK. A0 damga "
         "ekseninin capasi budur — dosya silinir/adi degisirse 'denetim yapiliyor' "
         "iddiasi olculemez hale gelir, sessiz YESIL verilmez." % UZLASTIRICI_DOSYA)
 
 
+def paket_alarm_esigi(dosyalar):
+    """A4 esigi (bkz. is_akisi_esigi)."""
+    return is_akisi_esigi(
+        dosyalar, PAKET_ALARM_DOSYA,
+        "PAKET TAZELIGI ALARMI BULUNAMADI: cron tasiyan is akislari arasinda %s YOK. "
+        "A4 ekseninin capasi budur — canli fiyat yolunu olcen TEK zamanlanmis is odur "
+        "ve silinirse 14,5 saatlik fazla tahsilat penceresi (1 Agu) hicbir yerde "
+        "kirmizi yakmadan geri gelir. Sessiz YESIL verilmez." % PAKET_ALARM_DOSYA)
+
+
 # ---- HUKUM ------------------------------------------------------------------
-def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None):
+# A0 ve A4 TEK karar yolundan gecer. Ikinci bir "damga yasi" kopyasi yazilsaydi biri
+# gevsedigi zaman oburu sessizce dogru kalir ve ayrisma gorunmezdi
+# ([[ikiz-tanim-sessiz-ayrisma]]). Konu metinleri disaridan verilir; MANTIK ORTAK.
+def _damga_satiri(eksen, damga, n, simdi, sablon):
+    """(satir, alarm_mi). `sablon` = {"yok": ..., "bayat": ..., "taze": ...} bicim dizeleri.
+       yok   <- (sebep, N)
+       bayat <- (yas, N, yas, kosum, sha12)
+       taze  <- (yas, N, taze_sayi, suresi_dolan, kosum)"""
+    if not damga.get("var"):
+        return ("🔴 %s -> " % eksen) + sablon["yok"] % (damga.get("sebep"), n), True
+    yas = (simdi - damga["an"]).total_seconds() / 3600.0
+    if yas > n:
+        return (("🔴 %s -> " % eksen) + sablon["bayat"]
+                % (yas, n, yas, damga.get("kosum"), str(damga.get("sha"))[:12])), True
+    return (("✅ %s -> " % eksen) + sablon["taze"]
+            % (yas, n, damga["toplam"] - damga["suresi_dolan"], damga["suresi_dolan"],
+               damga.get("kosum"))), False
+
+
+A0_SABLON = {
+    "yok": ("SON BASARILI UZLASTIRMA DAMGASI YOK (%s). Katalog-D1 sapmasi HIC "
+            "denetlenmedi ya da denetim %d saatten uzun suredir tamamlanmadi. Bir "
+            "kosumun YESIL olmasi denetim yapildigi ANLAMINA GELMEZ (olculdu 31 Tem "
+            "20:47:18Z: conclusion=success · olcum/onarim/teyit adimlarinin HEPSI "
+            "skipped)."),
+    "bayat": ("son basarili uzlastirma %.1f saat once (esik N=%d sa). D1 ile "
+              "urunler.json arasindaki sapma %.1f saattir DENETLENMEDI; Ege bayat veri "
+              "gosteriyor olabilir ve baska hicbir kapi bunu gormez. (damga kosumu %s · "
+              "sha %s)"),
+    "taze": ("son basarili uzlastirma %.1f saat once (esik N=%d sa · taze damga %d, "
+             "suresi dolan %d · kosum %s)"),
+}
+
+A4_SABLON = {
+    "yok": ("SON BASARILI PAKET TAZELIGI DAMGASI YOK (%s). Canli fiyat yolu HIC "
+            "denetlenmedi ya da denetim %d saatten uzun suredir PARITE ile "
+            "kapanmadi. OLCULDU (1 Agu): canli paket 14,5 saat bayat kalinca 676 "
+            "fiziksel uruntte %%84'e varan FAZLA TAHSILAT olustu ve o an mevcut IKI "
+            "canli kapi da YESIL yaniyordu. shop Worker'i CI'da yayinlanmadigi icin "
+            "bu sinif kendiliginden geri gelir."),
+    "bayat": ("son basarili paket tazeligi olcumu %.1f saat once (esik N=%d sa). Canli "
+              "fiyat yolu %.1f saattir PARITE ile kapanmadi: alarm ya kosmuyor ya da "
+              "kostugu her seferde drift/olculemedi donuyor. Musteriden yanlis tutar "
+              "tahsil ediliyor olabilir. (damga kosumu %s · sha %s)"),
+    "taze": ("son basarili paket tazeligi olcumu %.1f saat once (esik N=%d sa · taze "
+             "damga %d, suresi dolan %d · kosum %s)"),
+}
+
+
+def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
+                paket=None, paket_esigi=None):
     """(rc, satirlar). rc 0 yesil · 1 alarm · 2 olculemedi.
 
-    `damga` verilmezse A0 ekseni RAPORLANMAZ (agsiz A1 birim testleri icin);
-    GERCEK olcum yolunda main() her zaman verir."""
+    `damga`/`paket` verilmezse A0/A4 ekseni RAPORLANMAZ (agsiz A1 birim testleri icin);
+    GERCEK olcum yolunda main() her ikisini de verir."""
     simdi = simdi or datetime.now(timezone.utc)
     satirlar = []
     alarm = False
@@ -498,33 +607,15 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None):
                    "boslukta calisiyor demektir (kesif bozulmus ya da cron silinmis) — "
                    "sessiz YESIL verilmez."]
 
-    # --- A0 DAMGA (BIRINCIL EKSEN) -------------------------------------------
-    if damga is not None:
-        n0 = damga_esigi if damga_esigi else ESIK_TABAN_SAAT
-        if not damga.get("var"):
-            satirlar.append(
-                "🔴 A0 DAMGA -> SON BASARILI UZLASTIRMA DAMGASI YOK (%s). Katalog-D1 "
-                "sapmasi HIC denetlenmedi ya da denetim %d saatten uzun suredir "
-                "tamamlanmadi. Bir kosumun YESIL olmasi denetim yapildigi ANLAMINA "
-                "GELMEZ (olculdu 31 Tem 20:47:18Z: conclusion=success · olcum/onarim/"
-                "teyit adimlarinin HEPSI skipped)." % (damga.get("sebep"), n0))
-            alarm = True
-        else:
-            yas0 = (simdi - damga["an"]).total_seconds() / 3600.0
-            if yas0 > n0:
-                satirlar.append(
-                    "🔴 A0 DAMGA -> son basarili uzlastirma %.1f saat once (esik N=%d sa). "
-                    "D1 ile urunler.json arasindaki sapma %.1f saattir DENETLENMEDI; "
-                    "Ege bayat veri gosteriyor olabilir ve baska hicbir kapi bunu gormez. "
-                    "(damga kosumu %s · sha %s)"
-                    % (yas0, n0, yas0, damga.get("kosum"), str(damga.get("sha"))[:12]))
-                alarm = True
-            else:
-                satirlar.append(
-                    "✅ A0 DAMGA -> son basarili uzlastirma %.1f saat once (esik N=%d sa · "
-                    "taze damga %d, suresi dolan %d · kosum %s)"
-                    % (yas0, n0, damga["toplam"] - damga["suresi_dolan"],
-                       damga["suresi_dolan"], damga.get("kosum")))
+    # --- A0 DAMGA + A4 PAKET (BIRINCIL EKSENLER, AYNI KARAR YOLU) ------------
+    for eksen, gozlem, esik, sablon in (
+            ("A0 DAMGA", damga, damga_esigi, A0_SABLON),
+            ("A4 PAKET", paket, paket_esigi, A4_SABLON)):
+        if gozlem is None:
+            continue
+        satir, yandi = _damga_satiri(eksen, gozlem, esik or ESIK_TABAN_SAAT, simdi, sablon)
+        satirlar.append(satir)
+        alarm = alarm or yandi
 
     for dosya, cron in dosyalar:
         hata, aralik = bicim_hukmu(dosya, cron)
@@ -925,6 +1016,196 @@ def uzlastirici_kablosu():
                       "surucu": surucu, "tazeleme": tazeleme, "kosullu": kosullu}
 
 
+def paket_kosul_arizasi(adim):
+    """Paket damga adimi FIILEN PARITE cikmis bir olcume KOSULLU mu -> ariza | None.
+
+    A0'in `damga_kosul_arizasi`'nin kardesi ama AYNI DEGIL: orada kosul "sapma yok ya da
+    teyit gecti"dir, burada "olcum PARITE dedi"dir. Ortak kural aynidir — kosul OLCUMUN
+    CIKTISINA bakmali, `always()`/`success()` OLMAMALI. `success()` de yeterli DEGIL:
+    olcum adimi rc 0 verse bile bu is akisinda o rc'nin anlami zaten PARITE'dir, ama
+    kosul cikti yerine `success()`e baglanirsa yarin araca "uyari ama rc 0" gibi bir hal
+    eklendiginde damga SESSIZCE o hali de damgalar."""
+    kosul = str(adim.get("if") or "").strip()
+    if not kosul:
+        return "`if:` kosulu YOK -> adim her kosumda kosar (olcum `skipped` olsa bile)"
+    if "always()" in kosul:
+        return ("kosulda `always()` var -> olcum duşse/atlansa bile damga dogar "
+                "(kosul: %r)" % kosul[:90])
+    if "steps.olcum.outputs.durum" not in kosul:
+        return ("kosul OLCUM adiminin ciktisina (`steps.olcum.outputs.durum`) BAKMIYOR "
+                "(kosul: %r)" % kosul[:90])
+    if ("'%s'" % PAKET_PARITE_ETIKETI) not in kosul:
+        return ("kosul %r etiketini SART KOSMUYOR -> drift ya da olculemedi bir kosum da "
+                "damga dogurabilir (kosul: %r)" % (PAKET_PARITE_ETIKETI, kosul[:90]))
+    return None
+
+
+def _olcum_araci_etiketi():
+    """tools/fiziksel-canli-kapisi.py::DURUM_ETIKET['PARITE'] — KOSARAK okunur.
+
+    Iki dosyada iki dize tutulsaydi biri degistiginde damga kosulu sessizce hicbir zaman
+    saglanmaz olurdu (alarm sonsuza kadar damgasiz kalir, A4 surekli kirmizi yanar ve
+    ilk toplu iste kapatilirdi). Bu yuzden etiket TEK KAYNAKTAN kosarak alinir."""
+    mod = _modul("fiziksel-canli-kapisi")
+    tablo = getattr(mod, "DURUM_ETIKET", None)
+    if not isinstance(tablo, dict) or "PARITE" not in tablo:
+        raise OlcumHatasi("tools/fiziksel-canli-kapisi.py::DURUM_ETIKET okunamadi -> "
+                          "damga kosulunun etiketi DOGRULANAMAZ")
+    return tablo["PARITE"]
+
+
+def paket_alarmi_kablosu():
+    """A4'UN KAYNAGI YASIYOR MU + YAYINI DURDURAMIYOR MU — GERCEK dosyadan OLCULUR.
+
+    ALTI sart, hepsi fail-closed:
+      (1) `python3 tools/fiziksel-canli-kapisi.py` CANLI kolu (bayrakSIZ olcum) kosuyor.
+          `--kendini-test`e dusurulmus bir alarm hicbir canli sey olcmez ama YESIL yanar.
+      (2) Olcum adimi cikis kodunu YUTMUYOR (`||`, `continue-on-error`, `set +e` yok) ve
+          adim `id: olcum` tasiyor (damga kosulunun okudugu cikti oradan gelir).
+      (3) `--damga-yaz <dosya> --damga-adi paket-tazelik-damgasi` cagrisi VAR.
+      (4) AYNI dosya `actions/upload-artifact` ile `name: paket-tazelik-damgasi` altinda
+          ve `if-no-files-found: error` + `continue-on-error`SIZ yukleniyor.
+      (5) HER IKI damga adimi da OLCUMUN CIKTISINA (`durum == 'parite'`) KOSULLU.
+      (6) 🔴 YAYINI DURDURAMAZ: is akisinda `push` tetikleyicisi YOK ve `workflow_call`
+          ile de cagrilamiyor. Bu, raporun "BLOKLAYICI_MI=hayir" iddiasinin YORUM degil
+          KOSULAN bir kapi olmasini saglar: biri bu dosyaya `push:` eklerse nobetci
+          KIRMIZI yanar.
+      (7) Kosum agaci uzak main UCUNA tazeleniyor (donmus github.sha kahini bayatlatir).
+    Doner: (sorunlar, bulgular)."""
+    yol = os.path.join(WORKFLOW_DIZIN, PAKET_ALARM_DOSYA)
+    if not os.path.exists(yol):
+        raise OlcumHatasi("paket tazeligi alarmi is akisi YOK: %s" % yol)
+    with open(yol, encoding="utf-8") as f:
+        ham = f.read()
+    govde = yaml_belge(ham)
+    if not isinstance(govde, dict) or not isinstance(govde.get("jobs"), dict):
+        raise OlcumHatasi("%s: `jobs` bolumu okunamadi" % PAKET_ALARM_DOSYA)
+
+    sorunlar = []
+    tetik = _on_bolumu(govde)
+    tetik_adlari = set()
+    if isinstance(tetik, dict):
+        tetik_adlari = set(str(k) for k in tetik)
+    elif isinstance(tetik, list):
+        tetik_adlari = set(str(k) for k in tetik)
+    elif isinstance(tetik, str):
+        tetik_adlari = {tetik}
+    for yasak in ("push", "pull_request", "workflow_call"):
+        if yasak in tetik_adlari:
+            sorunlar.append(
+                "🔴 YAYIN YOLUNA BAGLANMIS: %s icinde `%s` tetikleyicisi VAR. Bu is "
+                "akisinin TEK gerekcesi 'kirmizisi yayini durdurmaz' olmasidir; ag'a "
+                "bagimli tek bir yanlis pozitif TUM EKIBIN yayinini durdururdu "
+                "([[kapi-kapsam-eksen-secimi]])." % (PAKET_ALARM_DOSYA, yasak))
+    if "schedule" not in tetik_adlari:
+        sorunlar.append("%s icinde `schedule` tetikleyicisi YOK -> alarm hic kosmaz"
+                        % PAKET_ALARM_DOSYA)
+
+    adimlar = []
+    for _job_ad, job in govde["jobs"].items():
+        if isinstance(job, dict) and isinstance(job.get("steps"), list):
+            adimlar.extend(a for a in job["steps"] if isinstance(a, dict))
+
+    olcum_adimi = None
+    olcum_kendini_test = False
+    yazilan = None
+    yazma_adimi = None
+    yazilan_damga_adi = None
+    yukleme = None
+    tazeleme = False
+    for a in adimlar:
+        komut = str(a.get("run") or "")
+        for satir in komut.splitlines():
+            s = satir.strip()
+            if s.startswith("git reset --hard FETCH_HEAD"):
+                tazeleme = True
+            if PAKET_OLCUM_ARACI in s and s.startswith("python3"):
+                if "--kendini-test" in s.split():
+                    olcum_kendini_test = True
+                else:
+                    olcum_adimi = a
+                    # Cikis kodunu YUTAN kabuk formlari (Bolum D ile ayni sinif).
+                    for yutan in ("||", "|", ";", "set +e", "&&"):
+                        if yutan in s:
+                            sorunlar.append(
+                                "olcum satiri cikis kodunu YUTABILIR (%r icinde %r) -> "
+                                "alarm kirmizi yanamaz" % (s[:90], yutan))
+            if "cron-nabiz-kapisi.py" in s and "--damga-yaz" in s:
+                parcalar = s.split()
+                i = parcalar.index("--damga-yaz")
+                if i + 1 < len(parcalar):
+                    yazilan = parcalar[i + 1]
+                    yazma_adimi = a
+                if "--damga-adi" in parcalar:
+                    j = parcalar.index("--damga-adi")
+                    if j + 1 < len(parcalar):
+                        yazilan_damga_adi = parcalar[j + 1]
+        if str(a.get("uses") or "").startswith("actions/upload-artifact"):
+            ile = a.get("with") if isinstance(a.get("with"), dict) else {}
+            if str(ile.get("name") or "") == PAKET_DAMGA_ADI:
+                yukleme = a
+
+    if olcum_adimi is None:
+        sorunlar.append(
+            "CANLI OLCUM KOLU YOK: %s icinde bayrakSIZ `python3 %s` cagrisi bulunamadi%s "
+            "-> alarm hicbir canli sey olcmez ama kosum YESIL yanar."
+            % (PAKET_ALARM_DOSYA, PAKET_OLCUM_ARACI,
+               " (yalniz `--kendini-test` kolu var)" if olcum_kendini_test else ""))
+    else:
+        if olcum_adimi.get("continue-on-error"):
+            sorunlar.append("olcum adimi `continue-on-error` ile FAIL-OPEN")
+        if str(olcum_adimi.get("id") or "") != "olcum":
+            sorunlar.append("olcum adiminin `id:` degeri 'olcum' DEGIL (%r) -> damga "
+                            "kosulunun okudugu cikti KAYNAKSIZ kalir"
+                            % olcum_adimi.get("id"))
+        if "--gh-ozet" not in str(olcum_adimi.get("run") or ""):
+            sorunlar.append("olcum cagrisinda `--gh-ozet` YOK -> adim `durum` ciktisi "
+                            "URETMEZ, damga kosulu hicbir zaman saglanmaz")
+    if not yazilan:
+        sorunlar.append("%s icinde `cron-nabiz-kapisi.py --damga-yaz <dosya>` cagrisi YOK "
+                        "-> A4 ekseni KAYNAKSIZ kalir" % PAKET_ALARM_DOSYA)
+    if yazilan_damga_adi != PAKET_DAMGA_ADI:
+        sorunlar.append("`--damga-adi` %r DEGIL (%r) -> yazilan damgayi A4 ekseni OKUMAZ"
+                        % (PAKET_DAMGA_ADI, yazilan_damga_adi))
+    if yukleme is None:
+        sorunlar.append("`actions/upload-artifact` adimi `name: %s` ile YOK -> damga "
+                        "dogsa bile nabiz kapisi onu GOREMEZ" % PAKET_DAMGA_ADI)
+    else:
+        ile = yukleme.get("with") if isinstance(yukleme.get("with"), dict) else {}
+        if yazilan and str(ile.get("path") or "").strip() != yazilan:
+            sorunlar.append("yazilan dosya (%r) ile yuklenen `path` (%r) AYNI DEGIL"
+                            % (yazilan, ile.get("path")))
+        if str(ile.get("if-no-files-found") or "").lower() != "error":
+            sorunlar.append("`if-no-files-found: error` YOK -> damga dosyasi olusmasa bile "
+                            "adim SESSIZCE gecer (fail-open)")
+        if yukleme.get("continue-on-error"):
+            sorunlar.append("damga yukleme adimi `continue-on-error` ile FAIL-OPEN")
+    if not tazeleme:
+        sorunlar.append("`git reset --hard FETCH_HEAD` tazelemesi YOK -> donmus github.sha "
+                        "checkout'u YEREL KAHIN'i bayatlatir (sahte 'canli bayat' teshisi)")
+    kosullu = True
+    for etiket, adim in (("damga YAZMA", yazma_adimi), ("damga YUKLEME", yukleme)):
+        if adim is None:
+            continue
+        ariza = paket_kosul_arizasi(adim)
+        if ariza:
+            kosullu = False
+            sorunlar.append("%s adimi OLCUM SONUCUNA KOSULLU DEGIL — %s. Damga o zaman "
+                            "'canli fiyat yolu temiz' demez, 'kosum bitti' der."
+                            % (etiket, ariza))
+    # TEK KAYNAK NOBETI: is akisindaki etiket ile aracin URETTIGI etiket AYNI mi.
+    arac_etiketi = _olcum_araci_etiketi()
+    if arac_etiketi != PAKET_PARITE_ETIKETI:
+        sorunlar.append(
+            "ETIKET AYRISMASI: %s PARITE icin %r uretiyor, damga kosulu %r bekliyor -> "
+            "damga HICBIR ZAMAN dogmaz ve A4 sonsuza kadar kirmizi yanardi."
+            % (PAKET_OLCUM_ARACI, arac_etiketi, PAKET_PARITE_ETIKETI))
+    return sorunlar, {"olcum": olcum_adimi is not None, "yazilan": yazilan,
+                      "damga_adi": yazilan_damga_adi, "yukleme": yukleme is not None,
+                      "tazeleme": tazeleme, "kosullu": kosullu,
+                      "tetikler": sorted(tetik_adlari), "arac_etiketi": arac_etiketi}
+
+
 def kendini_test():
     """IKI YONLU kabul: kirmizi yol da yesil yol da FIKSTURLE kosturulur."""
     hatalar = []
@@ -939,17 +1220,20 @@ def kendini_test():
         if not kosul:
             hatalar.append(ad)
 
-    def kos(dosyalar, getir, damga_ile=False):
-        """damga_ile=True -> A0 ekseni de olculur (GERCEK olcum yolunun ayni sirasi)."""
+    def kos(dosyalar, getir, damga_ile=False, paket_ile=False):
+        """damga_ile=True -> A0 · paket_ile=True -> A4 (GERCEK olcum yolunun ayni sirasi)."""
         try:
             g = gozlem_topla(dosyalar, getir)
-            d = n0 = None
+            d = n0 = p = n4 = None
             if damga_ile:
                 _ad, n0, _ar = uzlastirici_esigi(dosyalar)
-                d = damga_gozle(getir)
+                d = damga_gozle(getir, DAMGA_ADI)
+            if paket_ile:
+                _ad4, n4, _ar4 = paket_alarm_esigi(dosyalar)
+                p = damga_gozle(getir, PAKET_DAMGA_ADI)
         except OlcumHatasi as e:
             return 2, ["OLCULEMEDI: %s" % e]
-        return degerlendir(dosyalar, g, damga=d, damga_esigi=n0)
+        return degerlendir(dosyalar, g, damga=d, damga_esigi=n0, paket=p, paket_esigi=n4)
 
     D = [("d1-uzlastirici.yml", "7,22,37,52 * * * *")]
 
@@ -1205,32 +1489,184 @@ def kendini_test():
     iddia("CI KABLOSU: deploy.yml `--kendini-test` kolunu ANLAMLI olarak kosuyor",
           kendini, kablo_hata or "bulunamadi")
 
+    # ═══════════════════════════════════════════════════════════════════════
+    # A4 PAKET TAZELIGI — ONCE-KIRMIZI FIKSTURLERI
+    # ═══════════════════════════════════════════════════════════════════════
+    # 🔴 NEDEN FIKSTUR SART: canli kol BUGUN YESIL (Okan 1 Agu 17:29'da deploy etti,
+    # fiziksel nobetci rc=0). "Alarm bayatligi gorur" iddiasi canli kosumla KANITLANAMAZ;
+    # ancak fiksturle gosterilebilir. Asagidaki senaryolarin hepsi AGSIZ.
+    P = [("d1-uzlastirici.yml", "7,22,37,52 * * * *"),
+         (PAKET_ALARM_DOSYA, "11,26,41,56 * * * *")]
+
+    def paket_api(paket_damgalari, yas_saat=0.4, kosum_sayisi=137, bozuk=None):
+        """Iki is akisi + IKI AYRI damga adi donduren `getir` (ad suzgeci FIILEN calisir)."""
+        temel = _sahte_api(kosum_sayisi=kosum_sayisi, yas_saat=yas_saat, bozuk=bozuk)
+
+        def getir(yol, zaman_asimi=25):
+            if "actions/artifacts?" in yol:
+                if bozuk == "paket-ag":
+                    raise OlcumHatasi("GitHub API HTTP 502: actions/artifacts")
+                if ("name=%s" % PAKET_DAMGA_ADI) in yol:
+                    if bozuk == "paket-suzgec":
+                        return {"total_count": 1,
+                                "artifacts": [_damga_kaydi(0.5, ad=DAMGA_ADI)]}
+                    return {"total_count": len(paket_damgalari),
+                            "artifacts": [dict(a, name=PAKET_DAMGA_ADI)
+                                          for a in paket_damgalari]}
+                return {"total_count": 1, "artifacts": [_damga_kaydi(1.0)]}
+            if "actions/workflows?" in yol:
+                wf1 = dict(_HAM_WF)
+                wf1["path"] = ".github/workflows/d1-uzlastirici.yml"
+                wf2 = dict(_HAM_WF)
+                wf2["id"] = _HAM_WF["id"] + 1
+                wf2["path"] = ".github/workflows/%s" % PAKET_ALARM_DOSYA
+                return {"total_count": 2, "workflows": [wf1, wf2]}
+            return temel(yol, zaman_asimi)
+        return getir
+
+    # A4 esigi: 15 dk nominal cadans -> A0 ile AYNI turetim -> N=9 saat.
+    _pd, n4, par4 = paket_alarm_esigi(P)
+    iddia("A4 ESIK: %s cron araligi 15 dk -> N=9 sa (A0 ile AYNI turetim)"
+          % PAKET_ALARM_DOSYA, (par4, n4) == (15, 9), "(aralik=%s, N=%s)" % (par4, n4))
+
+    rc, s = kos(P, paket_api([_damga_kaydi(1.5)]), damga_ile=True, paket_ile=True)
+    iddia("A4 (a) TAZE paket damgasi (1,5 sa < N=9) -> YESIL", rc == 0, "rc=%d" % rc)
+    iddia("A4 (a) rapor A0 ve A4 satirlarini AYRI AYRI basar",
+          any(x.startswith("✅ A0 DAMGA") for x in s)
+          and any(x.startswith("✅ A4 PAKET") for x in s), s)
+
+    # 🔴 ONCE-KIRMIZI 1: canli paket bayat kalinca alarm damga URETMEZ -> damga yaslanir.
+    # 14,5 saat = 1 Agu'da FIILEN olculen bayatlik penceresi; esik N=9 sa.
+    rc, s = kos(P, paket_api([_damga_kaydi(14.5)]), damga_ile=True, paket_ile=True)
+    iddia("A4 (b) ONCE-KIRMIZI: 1 Agu'da OLCULEN 14,5 saatlik bayatlik penceresi -> "
+          "KIRMIZI (esik N=9 sa)", rc == 1, "rc=%d" % rc)
+    iddia("A4 (b) teshis fazla tahsilat olcumunu ADIYLA anlatir",
+          any("A4 PAKET" in x and "FAZLA TAHSILAT" in x for x in s)
+          or any("A4 PAKET" in x and "PARITE ile kapanmadi" in x for x in s), s)
+    rc, _ = kos(P, paket_api([_damga_kaydi(8.9)]), damga_ile=True, paket_ile=True)
+    iddia("A4 esik SINIRI: 8,9 sa < N=9 -> YESIL", rc == 0, "rc=%d" % rc)
+    rc, _ = kos(P, paket_api([_damga_kaydi(9.1)]), damga_ile=True, paket_ile=True)
+    iddia("A4 esik SINIRI: 9,1 sa > N=9 -> KIRMIZI", rc == 1, "rc=%d" % rc)
+
+    # 🔴 ONCE-KIRMIZI 2: alarm HIC kosmadi / her kosumda drift-olculemedi dondu ->
+    # damga HIC dogmadi. "Kosum yesildi" ile "olcum yapildi" ayrimi tam burada yasar.
+    rc, s = kos(P, paket_api([]), damga_ile=True, paket_ile=True)
+    iddia("A4 (c) ONCE-KIRMIZI: HIC paket damgasi YOK (alarm hic kosmadi ya da her "
+          "kosumda drift/olculemedi dondu) -> KIRMIZI", rc == 1, "rc=%d" % rc)
+    iddia("A4 (c) teshis 'canli fiyat yolu HIC denetlenmedi' der",
+          any("A4 PAKET" in x and "HIC" in x for x in s), s)
+    rc, s = kos(P, paket_api([_damga_kaydi(30.0, expired=True)]),
+                damga_ile=True, paket_ile=True)
+    iddia("A4 (d) TUM paket damgalari SURESI DOLMUS -> KIRMIZI", rc == 1, "rc=%d" % rc)
+
+    # EKSEN AYRIMI: A0 taze iken A4 bayat olabilir (ve tersi) — ikisi AYRI raporlanir.
+    rc, s = kos(P, paket_api([_damga_kaydi(14.5)]), damga_ile=True, paket_ile=True)
+    iddia("EKSEN AYRIMI: A0 YESIL iken A4 KIRMIZI satiri AYRI durur (uzlastirici "
+          "calisiyor diye fiyat yolu denetlenmis SAYILMAZ)",
+          any(x.startswith("✅ A0 DAMGA") for x in s)
+          and any(x.startswith("🔴 A4 PAKET") for x in s), s)
+
+    # FAIL-CLOSED: paket damgasi OKUNAMAZSA yesil DEGIL.
+    for boz, ad in (("paket-ag", "artifact API cagrilamadi"),
+                    ("paket-suzgec", "`?name=` suzgeci CALISMAMIS (uzlastirma damgasi "
+                                     "dondu — olu alarm TAZE gorunurdu)")):
+        rc, _ = kos(P, paket_api([_damga_kaydi(0.5)], bozuk=boz),
+                    damga_ile=True, paket_ile=True)
+        iddia("A4 FAIL-CLOSED: %s -> rc 2 (OLCULEMEDI)" % ad, rc == 2, "rc=%d" % rc)
+
+    # CAPA: alarm is akisi cron tasiyanlar arasindan DUSERSE eksen olculemez.
+    rc, _ = kos([("d1-uzlastirici.yml", "7,22,37,52 * * * *")],
+                paket_api([_damga_kaydi(0.5)]), damga_ile=True, paket_ile=True)
+    iddia("A4 CAPA: %s cron tasiyan is akislari arasinda YOK -> rc 2 (alarm silinirse "
+          "sessiz YESIL verilmez)" % PAKET_ALARM_DOSYA, rc == 2, "rc=%d" % rc)
+
+    # --- A4 KAYNAK CAPASI: GERCEK is akisi dosyasi olculur --------------------
+    try:
+        p_sorun, p_bulgu = paket_alarmi_kablosu()
+        p_ariza = None
+    except Exception as e:  # noqa: BLE001
+        p_sorun, p_bulgu, p_ariza = ["olculemedi"], {}, "%s: %s" % (type(e).__name__, e)
+    iddia("A4 KAYNAK: %s canli olcum kolunu kosar, damgayi `%s` adiyla URETIR ve YUKLER"
+          % (PAKET_ALARM_DOSYA, PAKET_DAMGA_ADI),
+          not p_sorun, p_ariza or "; ".join(p_sorun) or repr(p_bulgu))
+    iddia("A4 KAYNAK: 🔴 YAYINI DURDURAMAZ — alarm is akisinda `push`/`pull_request`/"
+          "`workflow_call` tetikleyicisi YOK (bu iddia yorum degil, KOSULAN kapidir)",
+          bool(p_bulgu.get("tetikler"))
+          and not ({"push", "pull_request", "workflow_call"} & set(p_bulgu["tetikler"])),
+          repr(p_bulgu.get("tetikler")))
+    iddia("A4 KAYNAK: canli (bayrakSIZ) olcum kolu kosuyor — `--kendini-test`e "
+          "dusurulmus bir alarm hicbir canli sey olcmez ama YESIL yanar",
+          bool(p_bulgu.get("olcum")), repr(p_bulgu))
+    iddia("A4 KAYNAK: kosum agaci uzak main UCUNA tazelenir (donmus github.sha kahini "
+          "bayatlatir)", bool(p_bulgu.get("tazeleme")), repr(p_bulgu))
+    iddia("A4 KAYNAK: damga adimlari OLCUM CIKTISINA (`durum == 'parite'`) KOSULLU",
+          bool(p_bulgu.get("kosullu")), p_ariza or "; ".join(p_sorun) or repr(p_bulgu))
+    # TEK KAYNAK: etiket dizesi aracin KENDISINDEN kosarak alinir (elle ikinci kopya yok).
+    iddia("A4 TEK KAYNAK: damga kosulundaki etiket, %s::DURUM_ETIKET['PARITE'] ile "
+          "KOSARAK dogrulanir" % PAKET_OLCUM_ARACI,
+          p_bulgu.get("arac_etiketi") == PAKET_PARITE_ETIKETI, repr(p_bulgu))
+
+    # Kosul katmani IKI YONLU (gercek dosyaya bagimli kalmasin).
+    iddia("A4 KOSUL FIKSTURU: `if:` YOK -> ariza",
+          paket_kosul_arizasi({"run": "x"}) is not None)
+    iddia("A4 KOSUL FIKSTURU: `always()` -> ariza",
+          paket_kosul_arizasi({"if": "always()"}) is not None)
+    iddia("A4 KOSUL FIKSTURU: `success()` (olcum ciktisina BAKMAYAN kosul) -> ariza",
+          paket_kosul_arizasi({"if": "success()"}) is not None)
+    iddia("A4 KOSUL FIKSTURU: cikti okunuyor ama 'parite' SART KOSULMUYOR -> ariza "
+          "(drift bir kosum da damga dogururdu)",
+          paket_kosul_arizasi({"if": "steps.olcum.outputs.durum != ''"}) is not None)
+    iddia("A4 KOSUL FIKSTURU: gercek kosul -> ariza YOK (yanlis-pozitif yok)",
+          paket_kosul_arizasi({"if": "steps.olcum.outputs.durum == 'parite'"}) is None)
+
+    # DAMGA KUTUGU: yazici iki adi da tanir, kutuk disina cikamaz.
+    for ad in (DAMGA_ADI, PAKET_DAMGA_ADI):
+        g = damga_govdesi({"GITHUB_RUN_ID": "1", "GITHUB_SHA": "a" * 40}, ad)
+        iddia("DAMGA KUTUGU: %r govdesi kendi is akisini ve IDDIASINI tasir" % ad,
+              g["damga"] == ad and g["is_akisi"] == DAMGA_KUTUGU[ad][0]
+              and g["iddia"] == DAMGA_KUTUGU[ad][1], g)
+    try:
+        damga_govdesi({}, "uydurma-damga")
+        kutuk_kapali = False
+    except OlcumHatasi:
+        kutuk_kapali = True
+    iddia("DAMGA KUTUGU: kutukte OLMAYAN ad REDDEDILIR (hicbir eksenin okumadigi bir "
+          "artifact sessiz bir hicligi damgalardi)", kutuk_kapali)
+
     print("\n%d iddia kosturuldu, %d KIRMIZI." % (sayac[0], len(hatalar)))
     return hatalar
 
 
-def damga_govdesi(ortam=None):
+def damga_govdesi(ortam=None, ad=DAMGA_ADI):
     """DAMGANIN MAKINE-OKUNUR govdesi. Okuyucu ile YAZICI AYNI DOSYADA tutulur: artifact
-    adi (DAMGA_ADI) tek kaynaktir, ikisi birbirinden BAGIMSIZ bayatlayamaz."""
+    adlari (DAMGA_KUTUGU) tek kaynaktir, ikisi birbirinden BAGIMSIZ bayatlayamaz.
+
+    Bilinmeyen ad -> OlcumHatasi: kutukte olmayan bir adla yuklenen artifact'i HICBIR
+    eksen okumaz, yani sessiz bir hicligi damgalardi."""
+    if ad not in DAMGA_KUTUGU:
+        raise OlcumHatasi("BILINMEYEN DAMGA ADI %r — kutukte olan adlar: %s. Kutukte "
+                          "olmayan bir damgayi hicbir eksen OKUMAZ (sessiz hiclik)."
+                          % (ad, ", ".join(sorted(DAMGA_KUTUGU))))
+    is_akisi, iddia = DAMGA_KUTUGU[ad]
     o = os.environ if ortam is None else ortam
     return {
         "surum": 1,
-        "damga": DAMGA_ADI,
+        "damga": ad,
         "an": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "is_akisi": UZLASTIRICI_DOSYA,
+        "is_akisi": is_akisi,
         "kosum_id": o.get("GITHUB_RUN_ID"),
         "kosum_no": o.get("GITHUB_RUN_NUMBER"),
         "olay": o.get("GITHUB_EVENT_NAME"),
         "sha": o.get("GITHUB_SHA"),
         "depo": o.get("GITHUB_REPOSITORY") or DEPO,
-        # NE IDDIA EDILIYOR: bu damga "kosum yesildi" DEMEK DEGIL, "D1-katalog sapmasi
-        # FIILEN olculdu ve (sapma varsa) onarim TEYIT edildi" demektir.
-        "iddia": "d1-katalog sapmasi olculdu ve kapatildi (olcum + gerekiyorsa onarim teyidi)",
+        # NE IDDIA EDILIYOR: bu damga "kosum yesildi" DEMEK DEGIL, olcumun FIILEN
+        # yapildigi ve temiz kapandigi demektir (kutukten gelir).
+        "iddia": iddia,
     }
 
 
-def damga_yaz(yol, ortam=None):
-    govde = damga_govdesi(ortam)
+def damga_yaz(yol, ortam=None, ad=DAMGA_ADI):
+    govde = damga_govdesi(ortam, ad)
     with open(yol, "w", encoding="utf-8") as f:
         json.dump(govde, f, ensure_ascii=False, indent=2, sort_keys=True)
         f.write("\n")
@@ -1242,12 +1678,19 @@ def main():
     ap.add_argument("--kendini-test", action="store_true",
                     help="AGSIZ fikstur kabulu (CI'da bu kol da kosar)")
     ap.add_argument("--damga-yaz", metavar="DOSYA",
-                    help="Son basarili uzlastirma damgasini JSON olarak yaz "
-                         "(d1-uzlastirici.yml `Damga` adimi kullanir)")
+                    help="Son basarili denetim damgasini JSON olarak yaz "
+                         "(d1-uzlastirici.yml / paket-tazelik-alarmi.yml `Damga` adimi)")
+    ap.add_argument("--damga-adi", metavar="AD", default=DAMGA_ADI,
+                    choices=sorted(DAMGA_KUTUGU),
+                    help="hangi damga yazilacak (varsayilan: %s)" % DAMGA_ADI)
     a = ap.parse_args()
 
     if a.damga_yaz:
-        govde = damga_yaz(a.damga_yaz)
+        try:
+            govde = damga_yaz(a.damga_yaz, ad=a.damga_adi)
+        except OlcumHatasi as e:
+            print("🔴 DAMGA YAZILAMADI: %s" % e)
+            return 2
         print("DAMGA YAZILDI -> %s" % a.damga_yaz)
         print(json.dumps(govde, ensure_ascii=False, sort_keys=True))
         return 0
@@ -1266,8 +1709,16 @@ def main():
     try:
         dosyalar = cron_ifadeleri()
         uzl_dosya, damga_esigi, uzl_aralik = uzlastirici_esigi(dosyalar)
+        pkt_dosya, paket_esigi, pkt_aralik = paket_alarm_esigi(dosyalar)
+        # KABLO CAPALARI olcumun ONUNDE: okuyucu saglam ama YAZICI kirikken "damga yok"
+        # demek yanlis teshistir. Kablo kopuksa hal OLCULEMEDI'dir (rc 2), ALARM degil.
+        p_sorun, _p_bulgu = paket_alarmi_kablosu()
+        if p_sorun:
+            raise OlcumHatasi(
+                "A4 KABLOSU KOPUK (%s): %s" % (PAKET_ALARM_DOSYA, " · ".join(p_sorun)))
         gozlemler = gozlem_topla(dosyalar)
-        damga = damga_gozle()
+        damga = damga_gozle(ad=DAMGA_ADI)
+        paket = damga_gozle(ad=PAKET_DAMGA_ADI)
     except OlcumHatasi as e:
         print("UZLASTIRMA NABIZ KAPISI — depo %s" % DEPO)
         print("  🔴 OLCULEMEDI: %s" % e)
@@ -1278,8 +1729,11 @@ def main():
           "-> esik N=%d sa)"
           % (uzl_dosya, uzl_aralik, TESLIM_ORANI, efektif_aralik_dk(uzl_aralik),
              damga_esigi))
+    print("  (A4 capasi: %s · nominal %d dk · efektif %.0f dk -> esik N=%d sa)"
+          % (pkt_dosya, pkt_aralik, efektif_aralik_dk(pkt_aralik), paket_esigi))
     return rapor(*degerlendir(dosyalar, gozlemler, damga=damga,
-                              damga_esigi=damga_esigi))
+                              damga_esigi=damga_esigi, paket=paket,
+                              paket_esigi=paket_esigi))
 
 
 if __name__ == "__main__":
