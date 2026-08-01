@@ -74,8 +74,13 @@ function satirTablosu(satirlar) {
     return "<tr>" +
       "<td style='padding:6px 8px;border-bottom:1px solid #e5e7eb'>" +
         resim + baslikHtml + detay + "</td>" +
+      // MALZEME / RENK hucresi = BEYAN. Karar bu dosyada VERILMEZ: shop/src/index.js
+      // sepetiFiyatla fiziksel urunde (hazir ticari mal) bu alanlari BOS yazar; burasi yalniz
+      // bos hali bicimlendirir — "ASA / " ya da " / turuncu" gibi yarim beyan basilmaz,
+      // beyan hic yoksa "—" konur (bir boya kutusu icin dogru olan budur).
       "<td style='padding:6px 8px;border-bottom:1px solid #e5e7eb'>" +
-        kac(s.malzeme || "") + " / " + kac(renk) + "</td>" +
+        ((s.malzeme && renk) ? kac(s.malzeme) + " / " + kac(renk)
+                             : (kac(s.malzeme || renk) || "—")) + "</td>" +
       "<td style='padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:center'>" +
         kac(s.adet) + "</td>" +
       "<td style='padding:6px 8px;border-bottom:1px solid #e5e7eb;text-align:right'>" +

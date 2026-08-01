@@ -123,10 +123,13 @@ async function modulYukle(dizin) {
 }
 
 // ------------------------------------------------------------------ sahte cevre
-const ag = { iyzico: 0, telegram: 0, diger: 0, toplam: 0 };
-globalThis.fetch = async function sahteFetch(hedef) {
+const ag = { iyzico: 0, telegram: 0, diger: 0, toplam: 0, istekler: [] };
+globalThis.fetch = async function sahteFetch(hedef, ayar) {
   const u = String(hedef && hedef.url ? hedef.url : hedef);
   ag.toplam += 1;
+  // GOVDE KAYDI (set 11 fis ekseni): iyzico kalem adi ve Telegram metni ancak istegin
+  // govdesinden okunabilir. Yalniz OLCUM — hicbir karar bu kayda BAKMAZ.
+  ag.istekler.push({ url: u, govde: (ayar && typeof ayar.body === "string") ? ayar.body : "" });
   if (u.includes("iyzico.test")) {
     ag.iyzico += 1;
     return new Response(JSON.stringify({
@@ -188,6 +191,10 @@ const ENV_TABAN = {
   TELEGRAM_TOKEN: "test-telegram-token",
   TELEGRAM_CHAT: "1",
   TELEGRAM_API: "https://telegram.test",
+  // HAVALE kolu (set 11 fis ekseni): Telegram bildirimi /baslat'ta YALNIZ havale yolunda
+  // cikar (kart yolunda bildirim /donus'tadir). Bu iki var olmadan uc 503 doner.
+  HAVALE_IBAN: "TR090006701000000059703630",
+  HAVALE_UNVAN: "Test Unvan",
 };
 
 // ------------------------------------------- native rate-limit binding (beyan + sahte)
@@ -293,14 +300,16 @@ const MUSTERI = { ad: "Test Musteri", tel: "05321112233", eposta: "test@pruvo3d.
 
 /** /baslat — GERCEK worker kodundan; cevabi + D1'e yazilan satiri + sayaclari dondurur.
  *  yasakKolonlar: D1 semasinda olmayan kolonlar (bkz. d1Sahte). */
-async function baslat(mod, d1Satirlari, sepet, yasakKolonlar) {
+async function baslat(mod, d1Satirlari, sepet, yasakKolonlar, odeme) {
   const sayaclar = yeniSayac();
   const agOnce = ag.toplam;
+  const istekOnce = ag.istekler.length;
   const env = Object.assign({}, ENV_TABAN,
                             { KATALOG: d1Sahte(d1Satirlari, sayaclar, yasakKolonlar) });
   const istek = new Request("https://pruvo3d.com/api/shop/baslat", {
     method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ sozlesme_onay: true, odeme: "kart", musteri: MUSTERI, sepet }),
+    body: JSON.stringify({ sozlesme_onay: true, odeme: odeme || "kart",
+                           musteri: MUSTERI, sepet }),
   });
   const cevap = await mod.default.fetch(istek, env, { waitUntil() {} });
   let govde = {};
@@ -313,7 +322,11 @@ async function baslat(mod, d1Satirlari, sepet, yasakKolonlar) {
     tutarKurus = insert.arg.find((x) => typeof x === "number" && x > 0) ?? null;
   }
   return { kod: cevap.status, govde, satir, birimKurus: satir ? satir.birim_kurus : null,
-           tutarKurus, d1Yazma: sayaclar.run, agCagri: ag.toplam - agOnce, sayaclar };
+           tutarKurus, d1Yazma: sayaclar.run, agCagri: ag.toplam - agOnce, sayaclar,
+           // FIS EKSENI (set 11): D1 INSERT'in HAM argumanlari (filament/renk kolonlari dahil)
+           // + bu cagrida cikan ag istekleri (iyzico kalem adi, Telegram metni).
+           insertArg: insert ? insert.arg : null,
+           istekler: ag.istekler.slice(istekOnce) };
 }
 
 let ipSayaci = 0;
@@ -921,6 +934,115 @@ baslik("== 10) FIZIKSEL URUN — malzeme/renk carpani UYGULANMAZ (tutar = LISTE 
   else {
     ham.push("  ✅ GECTI — fiziksel urun DAIMA " + FIZ_LISTE_KURUS + " krs; 3D fiyatlamasi " +
              "onarim oncesiyle BIREBIR (100000/115000/184000)");
+  }
+}
+
+// ============================ 11) FIS EKSENI — fiziksel siparis "ASA / turuncu" DEMEZ
+/**
+ * NEDEN VAR (bagimsiz curutucu bulgusu, 1 Agu): fiyat duzeltildikten SONRA bile siparis
+ * ARTEFAKTLARI malzeme/renk beyanini tasiyordu — D1 INSERT `..., "ASA", "turuncu", ...`,
+ * iyzico kalem adi "Tekne boyasi (ASA, turuncu)", Telegram "— ASA / turuncu", e-posta
+ * hucresi "ASA / turuncu". Yani FIS, tahsil edilen liste fiyatiyla CELISIYORDU. Metin
+ * susturmasi (satirOzeti) yalniz SEPET PANELINE ulasiyordu; siparis kaydina ULASMIYORDU
+ * ve o iddia OLU idi (susturmayi geri alan mutant TUM kapilardan yesil geciyordu).
+ *
+ * KARAR TEK NOKTADA: shop/src/index.js sepetiFiyatla fiziksel kalemde satira malzeme/renk
+ * YAZMAZ + `tur:"fiziksel"` isaretini koyar; asagi akistaki yuzeyler yalnizca BICIMLEYICIDIR.
+ * Bu set o karari DORT YUZEYDE birden olcer ve 3D siparisinde alanlarin AYNEN durdugunu
+ * ayrica iddia eder (regresyon nobetcisi).
+ */
+const FIS_MALZEME = "ASA";
+const FIS_RENK_OZEL = "turuncu";
+
+/** Verilen dizinden (temp modul agaci) eposta.js — fis metninin DORDUNCU yuzeyi. */
+async function epostaYukle(dizin) {
+  sayac += 1;
+  return await import(pathToFileURL(path.join(dizin, "eposta.js")).href + "?s=" + sayac);
+}
+const EPOSTA_DOKUM = { tutarKurus: 100000, kargoKurus: 25000, tahsilatKurus: 125000,
+                       kdvKurus: 20833 };
+const EPOSTA_SIPARIS = { siparis_no: "PR-TEST-FIS", musteri_ad: "Test",
+                         musteri_adres: "Test adres", musteri_eposta: "t@pruvo3d.com" };
+
+/** `insertArg` icinde metnin ARGUMAN olarak (kolon degeri) gecip gecmedigi. `urunler` JSON
+ *  dizesi de bir argumandir; onu AYIRIRIZ, cunku satir JSON'u ayrica iddia edilir. */
+function kolonArgIceriyorMu(insertArg, metin) {
+  return (insertArg || []).some((x) => typeof x === "string" && !x.startsWith("[") &&
+                                       x.split("+").includes(metin));
+}
+function istekIceriyorMu(istekler, parca, metin) {
+  return (istekler || []).some((i) => i.url.includes(parca) && i.govde.includes(metin));
+}
+
+async function fisIddialari(mod, epostaMod) {
+  const s = [];
+  const vakalar = [
+    { yon: "fis-fiziksel", ad: "FIZIKSEL", urun: FIZ_URUN, beyanVar: false },
+    { yon: "fis-3d", ad: "3D", urun: UCB_URUN, beyanVar: true },
+  ];
+  for (const v of vakalar) {
+    const b = await baslat(mod, [v.urun],
+      [fizKalem(v.urun.id, FIS_MALZEME, "Diğer", FIS_RENK_OZEL)]);
+    const satir = b.satir || {};
+    const bekle = (ad, olculen, dogru) =>
+      s.push({ yon: v.yon, ad: v.ad + " " + ad, ok: olculen === dogru, olculen: olculen });
+    // 1) D1 `siparisler.urunler` (satir JSON'u) — uretim/yonetim ekraninin kaynagi
+    bekle("satir.malzeme", satir.malzeme, v.beyanVar ? FIS_MALZEME : "");
+    bekle("satir.renk_ozel", satir.renk_ozel, v.beyanVar ? FIS_RENK_OZEL : "");
+    bekle("satir.renk", satir.renk, v.beyanVar ? "Diğer" : "");
+    bekle("satir.tur isareti", satir.tur || "", v.beyanVar ? "" : "fiziksel");
+    // 2) D1 `siparisler.filament` / `.renk` KOLONLARI
+    bekle("D1 filament kolonu", kolonArgIceriyorMu(b.insertArg, FIS_MALZEME), v.beyanVar);
+    bekle("D1 renk kolonu", kolonArgIceriyorMu(b.insertArg, FIS_RENK_OZEL), v.beyanVar);
+    // 3) iyzico basketItems kalem ADI (musterinin dekontunda gordugu metin)
+    bekle("iyzico kalem adi malzeme", istekIceriyorMu(b.istekler, "iyzico", FIS_MALZEME),
+          v.beyanVar);
+    bekle("iyzico kalem adi renk", istekIceriyorMu(b.istekler, "iyzico", FIS_RENK_OZEL),
+          v.beyanVar);
+    // 4) Telegram bildirimi — /baslat'ta YALNIZ havale kolunda cikar (kart yolunda bildirim
+    //    /donus'tadir). AYRI bir cagri gerekir; havaleMesaji ve siparisMesaji AYNI
+    //    bicimleyiciyi (kalemSecimi) kullanir, o yuzden havale kolu ikisini de temsil eder.
+    const h = await baslat(mod, [v.urun],
+      [fizKalem(v.urun.id, FIS_MALZEME, "Diğer", FIS_RENK_OZEL)], undefined, "havale");
+    s.push({ yon: v.yon, ad: v.ad + " havale kolu 200 (telegram olculebilsin)",
+             ok: h.kod === 200, olculen: h.kod });
+    s.push({ yon: v.yon, ad: v.ad + " telegram bildirimi CIKTI (olu iddia degil)",
+             ok: (h.istekler || []).some((i) => i.url.includes("telegram")),
+             olculen: (h.istekler || []).map((i) => i.url.split("/")[2]).join(",") });
+    bekle("telegram metni malzeme", istekIceriyorMu(h.istekler, "telegram", FIS_MALZEME),
+          v.beyanVar);
+    bekle("telegram metni renk", istekIceriyorMu(h.istekler, "telegram", FIS_RENK_OZEL),
+          v.beyanVar);
+    // 5) e-posta satir tablosu (GERCEK eposta.js, ayni satir objesiyle)
+    const html = epostaMod.onayEpostasiHtml(EPOSTA_SIPARIS, [satir], EPOSTA_DOKUM, false);
+    bekle("e-posta malzeme", html.includes(FIS_MALZEME), v.beyanVar);
+    bekle("e-posta renk", html.includes(FIS_RENK_OZEL), v.beyanVar);
+    // Fiziksel fisin BOS degil, ANLASILIR olmasi: hucre "—" ile doldurulur (yarim beyan yok)
+    if (!v.beyanVar) {
+      bekle("e-posta hucresi '—' (yarim beyan yok)", html.includes(">—</td>"), true);
+      bekle("e-posta 'ASA / ' yarim beyan YOK", html.includes(FIS_MALZEME + " / "), false);
+    }
+    // Tutar her iki halde de DEGISMEZ (fis ekseni fiyati ETKILEMEZ)
+    bekle("tutar (krs)", b.birimKurus, v.beyanVar ? UCB_SPEC["ASA/Diğer"] : FIZ_LISTE_KURUS);
+  }
+  return s;
+}
+
+baslik("== 11) FIS EKSENI — fiziksel siparis kaydi/e-postasi malzeme-renk BEYAN ETMEZ ==");
+{
+  const epostaMod = await epostaYukle(YENI_DIZIN);
+  const iddia = await fisIddialari(YENI, epostaMod);
+  const kalan = iddia.filter((i) => !i.ok);
+  not("iddia: " + iddia.length + " (fiziksel " + iddia.filter((i) => i.yon === "fis-fiziksel").length +
+      " · 3D regresyon " + iddia.filter((i) => i.yon === "fis-3d").length + ") — kalan: " +
+      kalan.length);
+  not("olculen yuzeyler: D1 satir JSON'u · D1 filament/renk kolonlari · iyzico kalem adi · " +
+      "Telegram metni · e-posta satir tablosu (gercek eposta.js)");
+  kalan.slice(0, 12).forEach((i) => ham.push("    ❌ " + i.ad + " (olculen: " + i.olculen + ")"));
+  if (kalan.length) { kirmizi += 1; ham.push("  ❌ KALDI — fis ekseni"); }
+  else {
+    ham.push("  ✅ GECTI — fiziksel siparis hicbir yuzeyde 'ASA'/'turuncu' demiyor; " +
+             "3D siparisinde DORT yuzeyde de AYNEN duruyor");
   }
 }
 
@@ -1726,9 +1848,23 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
       fs.writeFileSync(path.join(kokDizin, "shop", "src", ad),
                        jsonGom(kaynak, SRC, etiket + "/" + ad));
     }
+    // 🔴 BULASMA KORUMASI (olculdu — bu tuzak once ISIRDI): secenekler.js bir IIFE'dir ve
+    // `globalThis.PRUVO_SECENEK`e YAZAR. Mutant kopya import edilince o global TUM surec icin
+    // mutanta doner; SONRAKI mutantlar (M13/M14) worker'i import ettiginde `SECENEK`i
+    // mutant halinden okur ve iddialar YANLIS eksende kirmizi yanar (M13 kosumunda 3D fikstur
+    // "fiziksel" gibi fiyatlandi). Modul import ANINDA kendi referansini kaptigi icin globali
+    // HEMEN geri koymak mutanti bozmaz, yalnizca sizintiyi keser.
+    const oncekiSecenek = globalThis.PRUVO_SECENEK;
     sayac += 1;
     const mod = await import(
       pathToFileURL(path.join(kokDizin, "shop", "src", "index.js")).href + "?s=" + sayac);
+    globalThis.PRUVO_SECENEK = oncekiSecenek;
+    // KANARYA: global gercekten geri geldi mi? (Gelmezse sonraki setler sessizce yanlis
+    // olcerdi — "yesil ama olctugu sey baska" sinifi.)
+    if (globalThis.PRUVO_SECENEK.fizikselMi("fiziksel") !== true ||
+        globalThis.PRUVO_SECENEK.fizikselMi("baska") !== false) {
+      return { hata: "global PRUVO_SECENEK mutant halde kaldi (bulasma korumasi calismadi)" };
+    }
     return { mod };
   }
   const FIZ_CAPA = 'function fizikselMi(tur) { return tur === TUR_FIZIKSEL; }';
@@ -1793,6 +1929,77 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
       } else {
         ham.push("    ✅ M12: gard her urunde acikken " + ucbKirmizi +
                  " 3D regresyon iddiasi KIRMIZI");
+      }
+    }
+  }
+
+  // ---- M13/M14: FIS EKSENI (siparis artefaktlarina beyan yazma karari) ----
+  /** shop/src/index.js'i mutasyona ugratip index + eposta modullerini birlikte yukler. */
+  async function fisMutanti(etiket, capa, yerine) {
+    if (KAYNAKLAR["index.js"].split(capa).length - 1 !== 1) {
+      return { hata: "capa kayip/coklu" };
+    }
+    const dizin = dizinKur(etiket, Object.assign({}, KAYNAKLAR,
+      { "index.js": KAYNAKLAR["index.js"].replace(capa, yerine) }));
+    return { mod: await modulYukle(dizin), eposta: await epostaYukle(dizin) };
+  }
+
+  // M13 = curutucunun C5'i: metin susturmasi GERI ALINIR, fiyat DOGRU kalir. Kusurun ta
+  // kendisi: liste fiyati tahsil edilirken fis "ASA / turuncu" der. Bu mutant onarim
+  // ONCESINDE TUM kapilardan YESIL geciyordu -> iddia OLU idi.
+  ham.push("  -- M13: fiziksel satira malzeme/renk YINE yaziliyor (fiyat dogru kalir) --");
+  {
+    const m = await fisMutanti("m13src",
+      'malzeme: fizikselKalem ? "" : k.malzeme,\n      renk: fizikselKalem ? "" : k.renk,\n' +
+      '      renk_ozel: fizikselKalem ? "" : k.renk_ozel,',
+      "malzeme: k.malzeme,\n      renk: k.renk,\n      renk_ozel: k.renk_ozel,");
+    if (m.hata) {
+      kirmizi += 1;
+      ham.push("    ❌ M13 mutasyonu UYGULANAMADI — " + m.hata);
+    } else {
+      const iddia = await fisIddialari(m.mod, m.eposta);
+      const kalan = iddia.filter((i) => !i.ok);
+      const fizKirmizi = kalan.filter((i) => i.yon === "fis-fiziksel").length;
+      const ucbKirmizi = kalan.filter((i) => i.yon === "fis-3d").length;
+      // Fiyat iddialari (tutar) mutantta YESIL kalmali: probe FIS eksenine DAR.
+      const tutarKirmizi = kalan.filter((i) => i.ad.includes("tutar (krs)")).length;
+      not("M13: susturma geri alindi -> FIZIKSEL fis iddialarindan " + fizKirmizi +
+          " KIRMIZI (>=8 olmali), 3D " + ucbKirmizi + " (0 olmali), tutar iddialari " +
+          tutarKirmizi + " (0 olmali — probe fis eksenine DAR)");
+      kalan.filter((i) => i.yon === "fis-fiziksel").slice(0, 5)
+        .forEach((i) => ham.push("    · yakalandi: " + i.ad + " (olculen: " + i.olculen + ")"));
+      if (fizKirmizi < 8 || ucbKirmizi !== 0 || tutarKirmizi !== 0) {
+        kirmizi += 1;
+        ham.push("    ❌ M13 KALDI — fis iddiasi OLU (susturma geri alininca kimse uyarmiyor)");
+      } else {
+        ham.push("    ✅ M13: " + fizKirmizi + " fis iddiasi KIRMIZI, fiyat ekseni etkilenmedi");
+      }
+    }
+  }
+
+  // M14: karar HER kalemde "fiziksel" saylir -> 3D siparisinde malzeme/renk beyani SESSIZCE
+  // kaybolur (uretim neyi basacagini bilemez). 3D regresyon nobetcisi KIRMIZI yanmali.
+  ham.push("  -- M14: her kalem fiziksel sayiliyor (3D beyani kayboluyor) --");
+  {
+    const m = await fisMutanti("m14src",
+      "const fizikselKalem = SECENEK.fizikselMi(u.tur);",
+      "const fizikselKalem = true;");
+    if (m.hata) {
+      kirmizi += 1;
+      ham.push("    ❌ M14 mutasyonu UYGULANAMADI — " + m.hata);
+    } else {
+      const iddia = await fisIddialari(m.mod, m.eposta);
+      const kalan = iddia.filter((i) => !i.ok);
+      const ucbKirmizi = kalan.filter((i) => i.yon === "fis-3d").length;
+      not("M14: gard her kalemde acik -> 3D fis regresyon iddialarindan " + ucbKirmizi +
+          " KIRMIZI (>=8 olmali)");
+      kalan.filter((i) => i.yon === "fis-3d").slice(0, 5)
+        .forEach((i) => ham.push("    · yakalandi: " + i.ad + " (olculen: " + i.olculen + ")"));
+      if (ucbKirmizi < 8) {
+        kirmizi += 1;
+        ham.push("    ❌ M14 KALDI — 3D beyan regresyon nobetcisi OLU");
+      } else {
+        ham.push("    ✅ M14: " + ucbKirmizi + " 3D fis regresyon iddiasi KIRMIZI");
       }
     }
   }

@@ -60,6 +60,12 @@ const BASKI_FALLBACK = {
 };
 
 function baskiOnerisi(satir, d1Baski, sema) {
+  // HAZIR TICARI MAL (satirda `tur:"fiziksel"`): BASKI YOK. Baski onerisi basmak — hatta
+  // "Malzemeye uygun genel baskı ayarlarıyla üretilir." demek — bir boya kutusunu URETIYORMUS
+  // gibi gosterir. Kosul TAM dize; `tur` yok/taninmaz ise bugunku kollar aynen isler.
+  if (satir && satir.tur === "fiziksel") {
+    return "Hazır ticari ürün — 3D baskı YOK, stoktan gönderilir.";
+  }
   if (d1Baski && d1Baski.trim() && d1Baski.trim() !== "-") { return d1Baski.trim(); }
   if (sema && (sema.baski || sema.baskiIpucu)) { return sema.baski || sema.baskiIpucu; }
   return BASKI_FALLBACK[satir.malzeme] || "Malzemeye uygun genel baskı ayarlarıyla üretilir.";
@@ -140,6 +146,9 @@ async function liste(env, url) {
         baslik: k.baslik || "",
         malzeme: k.malzeme || "",
         renk: k.renk_ozel || k.renk || "",
+        // Hazir ticari mal isareti — beyan alanlari BOS oldugunda "veri kayip" mi yoksa
+        // "secim yok" mu oldugunu ekran bu alandan bilir (bkz. baskiOnerisi + satir cizici).
+        tur: k.tur === "fiziksel" ? "fiziksel" : "",
         adet: k.adet || 1,
         parametrik: parametrik,
         parametre_detay: k.parametre_detay || "",
@@ -655,9 +664,13 @@ function satirHtml(no,k){
  var baslikLink=k.urun_url?
   '<a href="'+esc(k.urun_url)+'" target="_blank" rel="noopener">'+esc(k.baslik)+'</a>':
   esc(k.baslik);
+ // Beyan (malzeme · renk) YALNIZ varsa basilir; fiziksel kalemde " · " gibi yarim bir satir
+ // yerine "Hazır ürün" yazar — ekran kaydin ne oldugunu SOYLER, bosluk birakmaz.
+ var filrenk=(k.malzeme||k.renk)?
+  esc(k.malzeme)+' · <span class="renk">'+esc(k.renk)+'</span>':
+  (k.tur==='fiziksel'?'Hazır ürün':'');
  return '<div class="satir">'+
-  '<div class="filrenk">'+esc(k.malzeme)+' · <span class="renk">'+esc(k.renk)+'</span>'+
-  ' × '+esc(k.adet)+'</div>'+
+  '<div class="filrenk">'+filrenk+' × '+esc(k.adet)+'</div>'+
   '<div>'+baslikLink+(k.parametre_detay?' <span class="kucuk">['+esc(k.parametre_detay)+']</span>':'')+'</div>'+
   '<div class="kucuk">Ürün kodu: '+esc(k.id)+'</div>'+
   '<div class="baski">🖨️ '+esc(k.baski_oneri)+'</div>'+

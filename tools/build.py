@@ -2807,7 +2807,24 @@ def kart_ozeti(p):
     Bugün urunler.json'da OLMAYAN ama sepet fiyatını etkileyecek bir alan (ör.
     `boy_secenekleri`, secenekler.js boyFarki) ileride eklenirse BURAYA DA girmeli:
     yoksa edge modunda sepet paneli boy farkını 0 sayar (sessiz fiyat sapması).
-    Bugün ölçüldü: urunler.json'da boy_secenekleri taşıyan ürün 0 → risk uyuyor."""
+    Bugün ölçüldü: urunler.json'da boy_secenekleri taşıyan ürün 0 → risk uyuyor.
+
+    🔴 `tur` (31 Tem / 1 Ağu) TAM DA O ALAN OLDU ve sözleşme İHLAL EDİLMİŞTİ: satirOzeti
+    fiziksel üründe malzeme/renk çarpanını 1,00'e sabitler; kartta `tur` yoksa edge modunda
+    panel bayat bir sepet satırını ×1,84 gösterip Worker liste fiyatını tahsil ediyordu
+    (ölçüldü: international-micron-99-antifouling-boya-20lt → panel 15.842.400 krs, sunucu
+    8.610.000 krs, fark 7.232.400 krs; 103 fiziksel üründe toplam 53.270.280 krs) ve panel
+    "Malzeme: ASA (+%60) · Renk: turuncu (özel, +%15)" yazıp aynı şişik tutarı WhatsApp
+    mesajına koyuyordu. Kapı: tools/edge-kart-kapisi.py (satirOzeti'nin OKUDUĞU alanları
+    kaynaktan çıkarır, katalogda değer taşıyanları kartta ARAR).
+
+    `tur` KOŞULLU basılır (eski_fiyat emsali): DEĞER TAŞIMAYAN üründe alan HİÇ yazılmaz.
+    NEDEN koşullu: (a) ozet.json ~16k kartlık bir bütçe dosyasıdır (OZET_BUTCE) ve 15.930
+    ürüne `"tur":""` yazmak ~130 KB'lık taşıyıcısız yük demektir; (b) SÖZLEŞME zaten
+    fail-closed yönde yazılıdır — `tur` ALANI YOK == ÖZEL ÜRETİM (3D), tıpkı D1'deki `''`
+    varsayılanı ve secenekler.js fizikselMi() gibi: yalnız TAM "fiziksel" dizesi hazır
+    ticari mal demektir. Yani eksik alan hiçbir zaman "bilinmiyor" değil, "3D"dir ve
+    okuyan taraf bugünkü davranışı uygular."""
     kart = {
         "id": p.get("id"),
         "baslik": p.get("baslik") or "",
@@ -2829,6 +2846,11 @@ def kart_ozeti(p):
     eski_metin, _ = eski_fiyat_gosterim(p)
     if eski_metin:
         kart["eski_fiyat"] = eski_metin
+    # TİCARİ HAL — sepet FİYATINI ve BEYANINI etkiler (secenekler.js satirOzeti `urun.tur`u
+    # okur). Yalnız TAM "fiziksel" değeri basılır; başka/boş değer HİÇ yazılmaz (yukarıdaki
+    # sözleşme: alan yok = özel üretim). Bu satır düşerse tools/edge-kart-kapisi.py KIRMIZI.
+    if p.get("tur") == "fiziksel":
+        kart["tur"] = "fiziksel"
     return kart
 
 

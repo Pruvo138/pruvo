@@ -447,6 +447,21 @@ jobs:
       - name: Fiziksel urun kapisi (3D-baski secim UI + karsiliksiz +%15 renk farki)
         run: python3 tools/fiziksel-urun-kapisi.py
 
+      # EDGE KART ALAN KAPSAMI (PARA — edge modunda SESSIZ fiyat/beyan sapmasi). index.html
+      # EDGE_KATALOG=true iken sepet paneli urun objesini urunler.json'dan DEGIL, ozet.json /
+      # edge Worker kartindan alir; secenekler.js satirOzeti fiyati O objeden okur. Karttan bir
+      # alan eksikse panel sunucudan FARKLI fiyat gosterir. Olculdu (1 Agu): `tur` alani fiyat
+      # kuralina girdi ama kart_ozeti'ye eklenmemisti -> antifouling boyada panel 15.842.400 krs,
+      # Worker 8.610.000 krs (fark 7.232.400 krs; 103 fiziksel urunde 53.270.280 krs). Kapi
+      # ALAN LISTESI ekseninde calisir: `urun.<alan>` okumalarini secenekler.js KAYNAGINDAN
+      # cikarir, katalogda deger tasiyan her alani kartta arar (deger tasiyan urunu olmayan alan
+      # muaf ama SAYIYLA raporlanir). Boylece YARIN eklenen bir alan da kapsama girer.
+      # Kardes depo (edge Worker KART_ALANLARI) YALNIZ OLCULUR, kirmizi yakmaz (CI'da yok).
+      # Offline, dosya YAZMAZ (build.py bellekte modul olarak yuklenir), ~3 s.
+      # Mutasyon turu (3/3 kirmizi) elle: python3 tools/edge-kart-kapisi.py --mutasyon
+      - name: Edge kart alan kapsami (sepet fiyatini etkileyen alan kartta var mi)
+        run: python3 tools/edge-kart-kapisi.py
+
       # KONFIGUR FAIL-CLOSED (shop odeme yolu — SESSIZ EKSIK TAHSILAT kapisi). Konfigurlu urun
       # D1'e senkronlanip Worker ELLE deploy edilmediginde kalem eskiden sessizce SABIT katalog
       # fiyatiyla satiliyordu (olculdu: 30 cm/PLA 1.500 TL yerine 500 TL -> 1.000 TL eksik

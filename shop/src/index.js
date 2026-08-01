@@ -68,6 +68,25 @@ function cors(env) {
 
 /** Kurusu para metnine cevirir — TAMSAYI aritmetigi (toFixed FP'ye dokunur): 43290 -> "432.90".
  *  iyzico nokta bekler; ekranda/Telegram'da virgullu gosterilir. */
+/** Siparis satirinin MALZEME/RENK BEYANI (fis metni). Karar YUKARIDA verilir (sepetiFiyatla:
+ *  fiziksel urunde alanlar BOS yazilir); burasi yalnizca BICIMLEYICI — bos alan "beyan yok"
+ *  demektir ve "" doner, cagiran yuzey o zaman ibareyi HIC basmaz. Kural burada TEKRARLANMAZ
+ *  (`tur` kontrolu yok): tek karar noktasi satirin kuruldugu yerdir. */
+function kalemSecimi(s, ayrac) {
+  const m = (s && s.malzeme) || "";
+  const r = (s && (s.renk_ozel || s.renk)) || "";
+  if (!m && !r) { return ""; }
+  return (m && r) ? (m + (ayrac || " / ") + r) : (m || r);
+}
+
+/** D1 `siparisler.filament` / `.renk` kolon degeri: satirlardaki BENZERSIZ beyanlar, "+" ile.
+ *  BOS beyan ELENIR (fiziksel kalem malzeme/renk YAZMAZ): karma sepette "PLA+" gibi ucu acik
+ *  bir dize, tamami fiziksel siparişte ise anlamsiz bir ayrac olusurdu. Tamami fiziksel
+ *  siparişte deger BOS DIZEDIR — "bilinmiyor" degil, "beyan yok". */
+function kolonBirlestir(satirlar, sec) {
+  return [...new Set((satirlar || []).map(sec).filter(Boolean))].join("+");
+}
+
 function kurusMetin(kurus) {
   return Math.floor(kurus / 100) + "." + String(kurus % 100).padStart(2, "0");
 }
@@ -404,9 +423,23 @@ async function sepetiFiyatla(env, kalemler) {
     // Ara yuvarlama YOK: birim kurus x adet, kalem tutari kurusuyla toplanir.
     const tutar = birimKurus * k.adet;
     toplamKurus += tutar;
+    // 🔴 BEYAN TEK KARAR NOKTASI (fis ekseni): fiziksel urunde (hazir ticari mal) malzeme/renk
+    // SECIMI YOKTUR -> siparis satirina YAZILMAZ. Asagi akistaki HICBIR yuzey (e-posta,
+    // Telegram, iyzico kalem adi, D1 filament/renk kolonlari, yonetim ekrani) bu karari
+    // TEKRARLAMAZ; hepsi bos degeri "beyan yok" olarak bicimler. Aksi halde bir boya kutusu
+    // "Malzeme: ASA / turuncu" diye KAYDEDILIR, liste fiyati tahsil edilirdi — fis tutarla
+    // celisirdi. `tur` satirda POZITIF isaret olarak tasinir: kayit kendini "hazir ticari mal"
+    // diye tanimlar, bos alanlar "veri kayip" gibi okunmaz.
+    // FAIL-CLOSED: kosul TAM "fiziksel"; `tur` yok/taninmaz ise satir BUGUNKU gibi kurulur
+    // (3D siparislerinde malzeme/renk AYNEN durur).
+    const fizikselKalem = SECENEK.fizikselMi(u.tur);
     satirlar.push({
       id: k.id, baslik: u.baslik, kategori: u.kategori, gorsel: u.gorsel || "",
-      malzeme: k.malzeme, renk: k.renk, renk_ozel: k.renk_ozel, adet: k.adet,
+      malzeme: fizikselKalem ? "" : k.malzeme,
+      renk: fizikselKalem ? "" : k.renk,
+      renk_ozel: fizikselKalem ? "" : k.renk_ozel,
+      ...(fizikselKalem ? { tur: SECENEK.TUR_FIZIKSEL } : {}),
+      adet: k.adet,
       birim_kurus: birimKurus, tutar_kurus: tutar, ...ekAlanlar,
     });
   }
@@ -471,8 +504,8 @@ async function baslat(request, env, url, ctx) {
     ).bind(
       siparisNo, new Date().toISOString(), toplamKurus, kargoKurus, kdv.kdvKurus,
       onayDamgasi, JSON.stringify(satirlar),
-      [...new Set(satirlar.map((s) => s.malzeme))].join("+"),
-      [...new Set(satirlar.map((s) => s.renk_ozel || s.renk))].join("+"),
+      kolonBirlestir(satirlar, (s) => s.malzeme),
+      kolonBirlestir(satirlar, (s) => s.renk_ozel || s.renk),
       musteri.ad, musteri.tel, musteri.eposta, acikAdres, atifJson
     ).run();
     ctx.waitUntil(telegram(env, havaleMesaji(siparisNo, satirlar, toplamKurus, kargoKurus,
@@ -516,10 +549,15 @@ async function baslat(request, env, url, ctx) {
     // sinirina karsi kisaltilir): ayni urunun farkli olculu iki satiri iyzico ekraninda
     // ve dekontunda ayirt edilsin.
     const detay = s.parametre_detay ? " — " + String(s.parametre_detay).slice(0, 60) : "";
+    // Parantez ici = BEYAN. Fiziksel kalemde malzeme/renk beyani YOKTUR (kalemSecimi "" doner)
+    // -> parantez yalniz adet icin acilir, hic icerik kalmazsa HIC acilmaz. Karti okuyan
+    // musteri dekontunda "Tekne boyasi (ASA, turuncu)" GORMEZ.
+    const secim = kalemSecimi(s, ", ");
+    const adetMetni = s.adet > 1 ? s.adet + " adet" : "";
+    const parantez = [secim, adetMetni].filter(Boolean).join(", ");
     return {
       id: bid,
-      name: (s.baslik + " (" + s.malzeme + ", " + (s.renk_ozel || s.renk) +
-             (s.adet > 1 ? ", " + s.adet + " adet" : "") + ")" + detay).slice(0, 120),
+      name: (s.baslik + (parantez ? " (" + parantez + ")" : "") + detay).slice(0, 120),
       category1: s.kategori || "Genel",
       itemType: "PHYSICAL",
       // iyzico: basketItems price toplami = price. Kurus toplaminda birebir tutar.
@@ -578,9 +616,9 @@ async function baslat(request, env, url, ctx) {
     siparisNo, init.token, new Date().toISOString(), toplamKurus, kargoKurus,
     kdv.kdvKurus, onayDamgasi,
     JSON.stringify(satirlar),
-    [...new Set(satirlar.map((s) => s.malzeme))].join("+"),
+    kolonBirlestir(satirlar, (s) => s.malzeme),
     // "Diğer" renkte musterinin yazdigi renk kaydedilir (uretim bunu okur), yoksa liste rengi
-    [...new Set(satirlar.map((s) => s.renk_ozel || s.renk))].join("+"),
+    kolonBirlestir(satirlar, (s) => s.renk_ozel || s.renk),
     musteri.ad, musteri.tel, musteri.eposta, acikAdres, atifJson
   ).run();
 
@@ -895,8 +933,9 @@ async function donus(request, env, ctx) {
 /** Havale bildirimi (kalem 6). DIKKAT: para HENUZ gorulmedi — metin "odeme geldi" tonunda
  *  OLAMAZ (kabul testi 13 bunu sinar); uretim ancak elle onaydan (KURULUM.md komutu) sonra. */
 function havaleMesaji(siparisNo, satirlar, urunKurus, kargoKurus, tahsilatKurus, musteri, acikAdres) {
+  // Beyan bos ise (fiziksel kalem) " — ASA / turuncu" ibaresi HIC basilmaz; bkz. kalemSecimi.
   const kalemler = satirlar.map((s) =>
-    "• " + s.baslik + " — " + s.malzeme + " / " + (s.renk_ozel || s.renk) +
+    "• " + s.baslik + (kalemSecimi(s) ? " — " + kalemSecimi(s) : "") +
     (s.parametre_detay ? " [" + s.parametre_detay + "]" : "") +
     " × " + s.adet + " = " + kurusTL(s.tutar_kurus)).join("\n");
   return "🏦 HAVALE BEKLENIYOR: " + siparisNo + " " + kurusTL(tahsilatKurus) +
@@ -914,7 +953,7 @@ function siparisMesaji(siparis, det) {
   let satirlar = [];
   try { satirlar = JSON.parse(siparis.urunler) || []; } catch (e) { satirlar = []; }
   const kalemler = satirlar.map((s) =>
-    "• " + s.baslik + " — " + s.malzeme + " / " + (s.renk_ozel || s.renk) +
+    "• " + s.baslik + (kalemSecimi(s) ? " — " + kalemSecimi(s) : "") +
     (s.parametre_detay ? " [" + s.parametre_detay + "]" : "") +
     " × " + s.adet + " = " + kurusTL(s.tutar_kurus)).join("\n");
   const kargo = siparis.kargo_kurus || 0;

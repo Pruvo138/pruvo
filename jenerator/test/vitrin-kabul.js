@@ -213,7 +213,7 @@ const ACIKLAMA_KES = 160;
 /** urunler.json objesi -> Worker/ozet kart sekli (build.py kart_ozeti'nin aynisi).
  *  Bu projeksiyonun build.py ile BIREBIR oldugu test 8'de OLCULUR (drift = kirmizi). */
 function edgeKart(p) {
-  return {
+  const kart = {
     id: p.id,
     baslik: p.baslik || "",
     kategori: p.kategori || "",
@@ -223,6 +223,13 @@ function edgeKart(p) {
     parametrik: !!p.parametrik,
     aciklama: (p.aciklama || "").slice(0, ACIKLAMA_KES),
   };
+  // TICARI HAL (1 Agu): sepet paneli edge modunda fiyati BU karttan hesaplar; secenekler.js
+  // satirOzeti `urun.tur`u okuyup fiziksel urunde malzeme/renk carpanini 1,00'e sabitler.
+  // Alan KOSULLU basilir (build.py kart_ozeti ile ayni kural): yalniz TAM "fiziksel";
+  // ALAN YOK = ozel uretim (3D). Kapsam nobetcisi AYRI bir kapida ve ALAN LISTESI
+  // ekseninde: tools/edge-kart-kapisi.py (buradaki izdusum yalniz "taklit == gercek" der).
+  if (p.tur === "fiziksel") { kart.tur = "fiziksel"; }
+  return kart;
 }
 
 function cevap(veri, kod) {
