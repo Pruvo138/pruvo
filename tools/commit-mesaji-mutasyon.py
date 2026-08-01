@@ -67,8 +67,9 @@ MUTANTLAR = (
      '    return (ham or "").strip()\n    satirlar = []\n'
      '    for satir in (ham or "").splitlines():', True),
     ("M8  CI maskesi OLDURULDU (host acik yazilir)", "kapi",
-     '    etiketler = host.split(".")\n    govde = etiketler[0]',
-     '    return host\n    etiketler = host.split(".")\n    govde = etiketler[0]', True),
+     '    ham = (host or "").strip()\n    if not ham:\n        return "*"',
+     '    return host\n    ham = (host or "").strip()\n'
+     '    if not ham:\n        return "*"', True),
     ("M9  PUBLIC_ALAN hukmu OLDURULDU (_public_mi -> False)", "kapi",
      'def _public_mi(host):\n    host = host.lower().strip(".")',
      'def _public_mi(host):\n    return False\n    host = host.lower().strip(".")', True),
@@ -145,6 +146,34 @@ MUTANTLAR = (
      '- name: "Commit mesaji sizinti nobetcisi: kendini test (gercek git; sayi ciktida)"',
      '- name: "Commit mesaji sizinti nobetcisi: kendini test (56 iddia, gercek git)"',
      True),
+    # --- MASKELEME (1 Agu 2026 OLCULEN AKTIF SIZINTI KANALI) ---
+    # 🔴 M24 arizanin TA KENDISIDIR: maskeleme yalniz ILK etikete uygulanirsa cok
+    # etiketli bir hostta gizli govde (uydurma ornek: `altalan.gizliad.com`) PUBLIC
+    # Actions gunlugune ACIK duser. Olculdu: 12 varyantin 9'unda ad acik kaliyordu.
+    ("M24 maskeleme ILK ETIKETLE sinirlandi (gizli govde PUBLIC gunluge acik duser)",
+     "kapi",
+     "    gizlenecek = etiketler[:-1] if tld_acik else etiketler\n"
+     '    parcalar = ["".join("*" if k.isalnum() else k for k in e) '
+     "for e in gizlenecek]\n"
+     "    if tld_acik:\n"
+     "        parcalar.append(son)\n"
+     '    return ".".join(parcalar)',
+     "    govde = etiketler[0]\n"
+     '    gizli = (govde[0] + "*" * (len(govde) - 1)) if govde else "*"\n'
+     '    return ".".join([gizli] + etiketler[1:])', True),
+    # 🔴 M25 arizanin IKINCI yarisi: gizli ad ALT/ORTA etiketse eski akis kumesi onu
+    # desen olarak TANIMIYOR -> host "taninmayan alan adi" koluna dusuyor ve KANCA
+    # kolunda ACIK yazdiriliyordu (D11 bunu olcer).
+    ("M25 host desen akislari ESKI kumeye dondu (alt/orta etiket taninmaz)", "kapi",
+     "    akislar = set()\n"
+     "    for bas in range(len(etiketler)):\n"
+     "        for son_ in range(bas + 1, len(etiketler) + 1):\n"
+     "            dilim = etiketler[bas:son_]\n"
+     '            akislar.add(" ".join(dilim))\n'
+     '            akislar.add("".join(dilim))',
+     "    govde = etiketler[0]\n"
+     '    akislar = (" ".join(etiketler), "".join(etiketler), govde,\n'
+     '               " ".join(etiketler[:-1]), "".join(etiketler[:-1]))', True),
     # --- ILGISIZ (kontrol): batarya YESIL kalmali ---
     ("K1  ilgisiz: baslik yorumunda kelime degisti", "kapi",
      "IKI KOL — biri ONLER, digeri GORUNUR KILAR",

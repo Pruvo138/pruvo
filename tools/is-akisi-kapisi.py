@@ -2078,6 +2078,22 @@ SERIT_B = {
         "Yayini durdurmanin tamir degeri SIFIR: deploy.yml push'tan SONRA kosar, "
         "commit zaten public'tir ve commit mesaji nesnenin DEGISTIRILEMEZ parcasidir; "
         "ayrica commit mesaji sitede GORUNMEZ (canliya cikan icerik sinifi degil).",
+    # --- GECMIS GERI-DONUS NOBETI (1 Agu 2026) — GERCEK olcum kolu da burada --------
+    # 🔴 ISTISNAI GIRIS, kardes commit-mesaji girisiyle AYNI gerekce zinciri:
+    #   (a) deploy.yml push'TAN SONRA kosar; geri gelen commit'ler o an ZATEN public
+    #       remote'tadir -> yayini durdurmanin TAMIR DEGERI SIFIRDIR (tek onarim yine
+    #       tarihce yeniden yazimi + force-push, Okan kapisi).
+    #   (b) Commit mesaji ve gecmisteki blob sitede GORUNMEZ -> "sizintili icerik
+    #       canliya cikmasin" sinifi DEGILDIR.
+    #   (c) ONLEME kolu CI'da degil `pre-push` KANCASINDADIR (fail-closed,
+    #       tools/gecmis-geri-donus-hook-kur.py) — CI kolu ikinci hat/gorunurluktur.
+    #   (d) Bedel olculdu: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
+    #       6 saatlik canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
+    ("deploy.yml", "mesaj-nobeti", "tools/gecmis-geri-donus-kapisi.py"):
+        "ONLEME `pre-push` KANCASINDADIR (fail-closed); CI kolu ikinci hattir. "
+        "Yayini durdurmanin tamir degeri SIFIR: deploy.yml push'tan SONRA kosar ve "
+        "geri getirilen commit'ler o an zaten public'tir; ayrica commit mesaji ile "
+        "gecmisteki blob sitede GORUNMEZ (canliya cikan icerik sinifi degil).",
     # --- oz-nobetci / kendini-test kollari (gercek olcum kolu SERIT A'da BLOKLAYICI) ---
     ("deploy.yml", "serit-b", "tools/diriltme-kapisi.py"):
         "YALNIZ `--kendini-test` kolu; silinmis urun diriltme OLCUMU (bayraksiz kol) "

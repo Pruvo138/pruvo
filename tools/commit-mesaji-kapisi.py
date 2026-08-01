@@ -426,9 +426,17 @@ def _host_desen_isabeti(host, kayit):
     etiketler = [e for e in host.lower().strip(".").split(".") if e]
     if not etiketler:
         return None
-    govde = etiketler[0]
-    akislar = (" ".join(etiketler), "".join(etiketler), govde,
-               " ".join(etiketler[:-1]), "".join(etiketler[:-1]))
+    # 🔴 TUM BITISIK ETIKET DIZILERI (tek etiketler dahil). Onceki surum yalniz
+    # ILK etiketi ve "son haric" zinciri deniyordu -> gizli ad bir ALT ALAN ya da
+    # ortadaki bir etiketse (uydurma ornek: `altalan.gizliad.com`) host BURADA
+    # taninmaz, "TANINMAYAN ALAN ADI" koluna duser ve maskelenmis de olsa yazdirilirdi.
+    # Tanindiginda ise host teshise HIC yazilmaz — en guvenli kol budur.
+    akislar = set()
+    for bas in range(len(etiketler)):
+        for son_ in range(bas + 1, len(etiketler) + 1):
+            dilim = etiketler[bas:son_]
+            akislar.add(" ".join(dilim))
+            akislar.add("".join(dilim))
     for i, (n, ozet) in enumerate(kayit["desenler"]):
         for akis in akislar:
             if len(akis) == n and _ozetle(akis, kayit["tuz"], kayit["dongu"]) == ozet:
@@ -480,11 +488,35 @@ def alan_adi_isabetleri(mesaj, kayit=None, markalar=None):
 
 
 def maskele(host):
-    """`ornek.com` -> `o****.com` — CI gunlugu PUBLIC'tir, host acik yazilamaz."""
-    etiketler = host.split(".")
-    govde = etiketler[0]
-    gizli = (govde[0] + "*" * (len(govde) - 1)) if govde else "*"
-    return ".".join([gizli] + etiketler[1:])
+    """`ornek.com` -> `*****.com` — CI gunlugu PUBLIC'tir, host acik yazilamaz.
+
+    🔴 OLCULEN ARIZA (1 Agu 2026): onceki surum YALNIZ ILK etiketi yildizliyordu
+    (`o****.com`). Cok etiketli bir hostta bu, ASIL gizli etiketi ACIK birakiyordu:
+    (uydurma ornek) `altalan.gizliad.com` -> `a******.gizliad.com`. Yani nobetci,
+    korumak icin var oldugu adi KENDI CIKTISIYLA — PUBLIC GitHub Actions gunlugune —
+    yayinliyordu. Ayni sinif `a.b.gizliad.co.uk` gibi coklu-etiket ve buyuk/kucuk
+    harf karisik varyantlarda da olculdu.
+
+    KURAL (fail-closed): ALFANUMERIK her karakter yildizlanir; YALNIZ son etiket,
+    KAPALI `TLD` listesinde taniniyorsa acik kalir. Taninmayan son etiket de
+    maskelenir ("emin olamadigim seyi acik yazmam").
+
+    TESHIS DEGERI KORUNUR ve ADI TASIMAZ: etiket SAYISI, her etiketin UZUNLUGU,
+    ayirici noktalama ve (taninmissa) TLD gorunur. Hangi commit / hangi eksen /
+    kacinci desen / hangi konum bilgisi zaten AYRICA basilir.
+    """
+    ham = (host or "").strip()
+    if not ham:
+        return "*"
+    etiketler = ham.split(".")
+    son = etiketler[-1]
+    son_temiz = "".join(k for k in son.lower() if k.isalnum())
+    tld_acik = len(etiketler) > 1 and son_temiz in TLD
+    gizlenecek = etiketler[:-1] if tld_acik else etiketler
+    parcalar = ["".join("*" if k.isalnum() else k for k in e) for e in gizlenecek]
+    if tld_acik:
+        parcalar.append(son)
+    return ".".join(parcalar)
 
 
 # ---------------------------------------------------------------------------
@@ -953,10 +985,86 @@ def kendini_test():
         # gecmez. Maskeleme "adi bilinmeyen ama supheli host" hali icindir.
         maskeli = " ".join(kusur("kaynak: bilinmeyensatici.com", maskeli=True))
         kontrol("D2 --ci kolunda alan adi MASKELENIR",
-                "bilinmeyensatici" not in maskeli and "b*" in maskeli, maskeli[:120])
+                "bilinmeyensatici" not in maskeli and "*****.com" in maskeli,
+                maskeli[:120])
         acik = " ".join(kusur("kaynak: bilinmeyensatici.com", maskeli=False))
         kontrol("D3 kanca kolunda alan adi ACIK (yerel teshis)",
                 "bilinmeyensatici.com" in acik, acik[:120])
+
+        # ---- D4..D9) COK ETIKETLI MASKELEME (1 Agu 2026 OLCULEN ARIZA) -----
+        # Onceki `maskele()` YALNIZ ilk etiketi yildizliyordu -> ortadaki/alt alan
+        # etiketi PUBLIC Actions gunlugune ACIK dusuyordu. Asagidaki varyantlarin
+        # HICBIRINDE gizli govde acik kalmamalidir; hukum ise HALA KIRMIZI olmalidir
+        # (maskeleme, tespiti oldurmez).
+        _GIZLI_GOVDE = "gizliad"          # UYDURMA — gercek adla ilgisi YOK
+        _VARYANTLAR = (
+            "altalan.%s.com" % _GIZLI_GOVDE,
+            "a.b.%s.co.uk" % _GIZLI_GOVDE,
+            "AltAlan.%s.COM" % _GIZLI_GOVDE.upper(),
+            "cok.derin.alt.alan.%s.net" % _GIZLI_GOVDE,
+            "%s.tr" % _GIZLI_GOVDE,
+            "www.%s.io" % _GIZLI_GOVDE,
+            "https://alt.%s.dev/yol" % _GIZLI_GOVDE,
+            "satis@alt.%s.org" % _GIZLI_GOVDE,
+        )
+        _acik_kalan = []
+        _kirmizi_kalmayan = []
+        for _v in _VARYANTLAR:
+            _metin = "kaynak: %s" % _v
+            _mask = " ".join(kusur(_metin, maskeli=True))
+            if _GIZLI_GOVDE in _mask.lower():
+                _acik_kalan.append(_v)
+            if not kusur(_metin, maskeli=True):
+                _kirmizi_kalmayan.append(_v)
+        kontrol("D4 cok etiketli hostlarda gizli govde ACIK KALMIYOR (%d varyant)"
+                % len(_VARYANTLAR), not _acik_kalan, "acik kalan: %s" % _acik_kalan)
+        kontrol("D5 maskeleme HUKMU oldurmedi (hepsi hala KIRMIZI)",
+                not _kirmizi_kalmayan, "yesil kalan: %s" % _kirmizi_kalmayan)
+        kontrol("D6 maskele() ORTADAKI etiketi de yildizlar",
+                "gizliad" not in maskele("altalan.gizliad.com"),
+                maskele("altalan.gizliad.com"))
+        kontrol("D7 maskele() taninan TLD'yi acik birakir (teshis degeri)",
+                maskele("altalan.gizliad.com").endswith(".com"))
+        kontrol("D8 maskele() TANINMAYAN son etiketi de maskeler (fail-closed)",
+                "*" in maskele("gizliad.bilinmeyen")
+                and "bilinmeyen" not in maskele("gizliad.bilinmeyen"),
+                maskele("gizliad.bilinmeyen"))
+        kontrol("D9 maskele() bos/bozuk girdide ad SIZDIRMAZ",
+                maskele("") == "*" and "gizliad" not in maskele("gizliad"))
+
+        # ---- D10..D12) GIZLI AD **ALT/ORTA ETIKET** OLARAK -> HICBIR KOLDA YAZILMAZ
+        # 🔴 ARIZANIN CEKIRDEGI BUYDU: `_host_desen_isabeti` yalniz ILK etiketi ve
+        # "son haric" zincirini deniyordu. `altalan.gizlivitrin.com` gibi bir hostta
+        # gizli govde ORTADA kaldigi icin desen olarak TANINMIYOR, "TANINMAYAN ALAN
+        # ADI" koluna dusuyor ve (eski maskele ile) PUBLIC gunluge ACIK yaziliyordu.
+        # Simdi TUM bitisik etiket dizileri denenir -> host desen olarak taninir ve
+        # teshise HIC yazilmaz; yani KANCA kolunda BILE ad gorunmez.
+        _VITRIN = "gizlivitrin"        # UYDURMA — fikstur artefaktinda KAYITLI desen
+        _ALT_VARYANTLAR = (
+            "altalan.%s.com" % _VITRIN,
+            "a.b.%s.co.uk" % _VITRIN,
+            "AltAlan.%s.COM" % _VITRIN.upper(),
+            "cdn.static.%s.net" % _VITRIN,
+            "https://alt.%s.dev/yol" % _VITRIN,
+            "satis@alt.%s.org" % _VITRIN,
+        )
+        _sizan_ci, _sizan_kanca, _yesil = [], [], []
+        for _v in _ALT_VARYANTLAR:
+            _metin = "kaynak: %s" % _v
+            _k_ci = " ".join(kusur(_metin, maskeli=True))
+            _k_kanca = " ".join(kusur(_metin, maskeli=False))
+            if _VITRIN in _k_ci.lower():
+                _sizan_ci.append(_v)
+            if _VITRIN in _k_kanca.lower():
+                _sizan_kanca.append(_v)
+            if not _k_ci:
+                _yesil.append(_v)
+        kontrol("D10 alt/orta etiketteki GIZLI AD --ci kolunda SIZMIYOR (%d varyant)"
+                % len(_ALT_VARYANTLAR), not _sizan_ci, "sizan: %s" % _sizan_ci)
+        kontrol("D11 alt/orta etiketteki GIZLI AD KANCA kolunda BILE SIZMIYOR",
+                not _sizan_kanca, "sizan: %s" % _sizan_kanca)
+        kontrol("D12 alt/orta etiket varyantlarinin hukmu HALA KIRMIZI",
+                not _yesil, "yesil kalan: %s" % _yesil)
 
         # ---- E) GIT YORUM SATIRLARI HUKME GIRMEZ ---------------------------
         sablon = ("tedarikci partisi eklendi\n"

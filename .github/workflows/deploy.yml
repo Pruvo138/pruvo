@@ -1195,6 +1195,17 @@ jobs:
       # tedarikci kumesini taradigi icin gormuyordu. Maliyet olculdu: 12,9 s yerel.
       - name: "Commit mesaji nobetcisi: KENDI kaynaklarinda duz metin ad taramasi"
         run: python3 tools/commit-mesaji-kapisi.py --kaynak-tara
+      # DORDUNCU YUZEY — GERI DONUS: temizlenmis sizintiyi GERI GETIREN itme/merge.
+      # OLCULEN ARIZA (1 Agu 2026, IKI KEZ): `main`in gecmisi temizlendi, iki kez de
+      # geri geldi; her seferinde temizlik ONCESI taban uzerine kurulmus bir dalin
+      # merge'i eski sizintili commit'leri gecmise geri bagladi. O commit'lerin
+      # mesajlari YENIDEN YAZILMADIGI icin `commit-msg` kancasi onlari HIC gormez —
+      # yani yukaridaki kollarin HICBIRI bu ekseni olcmuyordu. ONLEME `pre-push`
+      # kancasindadir (tools/gecmis-geri-donus-hook-kur.py); bu kol GORUNURLUK.
+      - name: "Geri-donus nobetcisi: kendini test (gercek git + gercek push; sayi ciktida)"
+        run: python3 tools/gecmis-geri-donus-kapisi.py --kendini-test
+      - name: "Geri-donus: bu itmenin GETIRDIGI commit'ler (mesaj + icerik; ALARM — yayini DURDURMAZ)"
+        run: python3 tools/gecmis-geri-donus-kapisi.py --ci
   # ==========================================================================
   # SERIT B — YAYINI DURDURMAZ (olculmus karar, 31 Tem 2026)
   # ==========================================================================

@@ -79,6 +79,27 @@ exit 0
 """
 
 PRE_PUSH = """#!/bin/sh
+# >>> PRUVO GECMIS GERI-DONUS NOBETI BLOGU (tools/gecmis-geri-donus-hook-kur.py uretir) >>>
+# Fikstur GERCEK kanca govdesinin SEKLINI taklit eder (stdin yakala -> kapiyi besle ->
+# `exec <` ile kalan kancaya geri ver); aksi halde nobetci gercekte olmayan bir bicimi
+# olcerdi ([[nobetci-fikstur-sekli]]).
+pruvo_gd_kok=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -z "$pruvo_gd_kok" ] || [ ! -f "$pruvo_gd_kok/tools/gecmis-geri-donus-kapisi.py" ]; then
+  echo "!! GECMIS GERI-DONUS NOBETI KOSULAMADI — PUSH DURDURULDU."
+  exit 1
+fi
+pruvo_gd_girdi=$(mktemp 2>/dev/null || echo /tmp/pruvo-gd-$$)
+cat > "$pruvo_gd_girdi"
+python3 "$pruvo_gd_kok/tools/gecmis-geri-donus-kapisi.py" --pre-push < "$pruvo_gd_girdi"
+pruvo_gd_rc=$?
+if [ "$pruvo_gd_rc" -ne 0 ]; then
+  rm -f "$pruvo_gd_girdi"
+  echo "!! PUSH DURDURULDU — bu itme temizlenmis sizintiyi geri getiriyor."
+  exit 1
+fi
+exec < "$pruvo_gd_girdi"
+rm -f "$pruvo_gd_girdi"
+# <<< PRUVO GECMIS GERI-DONUS NOBETI BLOGU <<<
 # >>> PRUVO YEDEK BLOGU (tools/yedek-hook-kur.py uretir — ELLE DUZENLEME) >>>
 pruvo_kok=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ -n "$pruvo_kok" ] && [ -f "$pruvo_kok/tools/yedekle.py" ]; then

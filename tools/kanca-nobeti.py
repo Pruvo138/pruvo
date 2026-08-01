@@ -98,6 +98,16 @@ BEKLENEN = (
          "ortak posta kutusu tavan arsivi; kosmazsa kutu budanmaz"),
         ("tools/d1-sync.py",
          "D1 senkronu — EN PAHALISI: kosmazsa site urunu gosterir, EGE GOREMEZ"),
+        # 1 Agu 2026 eklendi (kurucu: tools/gecmis-geri-donus-hook-kur.py).
+        # GEREKCE: `main`in gecmisi tedarikci adindan IKI KEZ temizlendi, IKI KEZ de
+        # geri geldi — her seferinde temizlik ONCESI taban uzerine kurulmus bir dalin
+        # merge'i eski sizintili commit'leri gecmise geri bagladi. O commit'lerin
+        # mesajlari yeniden YAZILMADIGI icin `commit-msg` kancasi onlari HIC gormez;
+        # tek onleyici yuzey push anidir. Kanca sessizce olurse temizlik ucuncu kez
+        # geri doner ve hicbir yerde alarm calmaz.
+        ("tools/gecmis-geri-donus-kapisi.py",
+         "itmenin GETIRDIGI commit'lerde (mesaj + icerik ekseni) temizlenmis sizinti "
+         "-> PUSH DURUR (fail-closed); geri-donusun TEK onleyici koludur"),
     )),
     # 1 Agu 2026 eklendi (kurucu: tools/commit-mesaji-hook-kur.py).
     # GEREKCE: depo PUBLIC ve commit MESAJI yazildiktan sonra DEGISTIRILEMEZ —
