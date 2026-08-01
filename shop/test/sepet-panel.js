@@ -135,11 +135,17 @@ function bekle(ms) { return new Promise((r) => setTimeout(r, ms)); }
  * ekseni localStorage'daki satir bayragidir; test 10-13 bu gercegi kosar).
  */
 function kartOzeti(p) {
-  return {
+  const k = {
     id: p.id, baslik: p.baslik || "", kategori: p.kategori || "", marka: p.marka || [],
     fiyat: p.fiyat || "", gorsel: (p.gorseller || [null])[0],
     parametrik: !!p.parametrik, aciklama: (p.aciklama || "").slice(0, 200),
   };
+  // `tur`: YALNIZ tam "fiziksel" degeri basilir (canli kart_ozeti ile AYNI kural).
+  // Bu alan hem FIYAT (malzeme/renk carpanini 1,00'e sabitler) hem SINIF BEYANI
+  // (cayma hakki metni) yolunu surer; aynadan dusmesi edge modunda ikisini birden
+  // sessizce bozardi -> test 15 bu ekseni kosar.
+  if (p.tur === "fiziksel") { k.tur = "fiziksel"; }
+  return k;
 }
 
 /**
@@ -947,6 +953,72 @@ async function test14IstekSayisi() {
     "N=5 sepet / K=2 farkli konfigur satiri -> 2 istek; yeniden render -> 0 ek istek");
 }
 
+/** 15 — SINIF BEYANI (tuketici hukuku): odeme ekraninin metni sepetin SINIFINA gore
+ *  yaziliyor mu? Bu test GREP DEGIL, GERCEK KOSUM: index.html'in kendi
+ *  odemeYontemTazele() / havaleEkraniGoster() fonksiyonlari node:vm icinde cagrilir ve
+ *  sahte DOM'daki metin okunur. Beklenen degerler secenekler.js BEYAN TEK KAYNAGINDAN
+ *  gelir (elle kopya yok) — cumle degisirse test degil, kaynak degisir.
+ *
+ *  Neden onemli: hazir/stok urunde 14 gunluk cayma hakki ISLER; ekran "uretim baslar"
+ *  derse musteriye ozel uretim teyidi verilmis olur (ters yonde ihlal). Hepsi ozel
+ *  uretim olan sepette ise metin BUGUNKU haliyle kalmali (regresyon). */
+async function test15SinifBeyani() {
+  const hatalar = [];
+  const B = SECENEK.BEYAN;
+  const FIZIKSEL = { id: "hazir-urun", kategori: "Marin", marka: [], baslik: "Hazir Mal",
+    aciklama: "test", fiyat: "1000 TL", gorseller: [], tur: "fiziksel" };
+  const satir = (id) => ({ id: id, malzeme: "PLA", renk: "Siyah", adet: 1 });
+
+  // Satir-ici betik bir IIFE'dir; ic fonksiyonlar disaridan CAGIRILAMAZ. Tetik GERCEK
+  // kullanici yolu: "Kartla Guvenli Ode" -> odemeFormuGoster(true) -> odemeYontemTazele().
+  async function olc(sepet, katalog) {
+    const s = await sayfaKur({ sepet: sepet, katalog: katalog });
+    s.el("cartPay").onclick();
+    if (s.el("odemeForm").style.display !== "block") {
+      throw new Error("odeme formu acilmadi — beyan yuzeyi olculemedi");
+    }
+    return { s: s, havale: s.el("yasalHavale").textContent,
+             cayma: s.el("yasalCayma").textContent };
+  }
+
+  // (a) hepsi OZEL uretim -> bugunku metin AYNEN, cayma satiri BOS
+  const a = await olc([satir(GERCEK.id)], [GERCEK]);
+  if (a.havale !== B.ODEME_HAVALE_OZEL) {
+    hatalar.push("ozel sepet havale metni degismis: " + JSON.stringify(a.havale.slice(0, 60)));
+  }
+  if (a.cayma !== "") { hatalar.push("ozel sepette cayma satiri BOS degil: " + a.cayma); }
+
+  // (b) hepsi HAZIR -> uretim dili YOK + 14 gunluk cayma hakki YAZILI
+  const b = await olc([satir(FIZIKSEL.id)], [FIZIKSEL]);
+  if (b.havale !== B.ODEME_HAVALE_HAZIR) {
+    hatalar.push("hazir sepet havale metni sinifli degil: " + JSON.stringify(b.havale.slice(0, 60)));
+  }
+  if (/üretim|üretil/i.test(b.havale + " " + b.cayma)) {
+    hatalar.push("hazir sepette URETIM DILI sizdi: " + b.havale + " | " + b.cayma);
+  }
+  if (b.cayma !== B.CAYMA_HAZIR) { hatalar.push("hazir sepette cayma beyani yok: " + b.cayma); }
+
+  // (c) KARMA sepet -> iki sinif da soyleniyor
+  const c = await olc([satir(GERCEK.id), satir(FIZIKSEL.id)], [GERCEK, FIZIKSEL]);
+  if (c.havale !== B.ODEME_HAVALE_KARMA) { hatalar.push("karma sepet havale metni: " + c.havale); }
+  if (c.cayma !== B.CAYMA_KARMA) { hatalar.push("karma sepet cayma metni: " + c.cayma); }
+
+  // (d) `tur` EDGE KARTINDAN GECIYOR MU? Edge modunda tarayiciya katalog INMEZ; sepet
+  //     paneli urunu YALNIZ kart ozetinden gorur. Alan aynadan duserse sinif sessizce
+  //     "ozel"e doner ve (b) yesil YANAMAZ — bu satir o bagi acikca kaydeder.
+  if (kartOzeti(FIZIKSEL).tur !== "fiziksel") {
+    hatalar.push("edge kart ozeti `tur` tasimiyor — sinif beyani edge modunda olur");
+  }
+
+  // NOT (kapsam): havale SONUC kutusu (hvBeyan) ve katalogda bulunamayan satirin
+  // fail-closed sinifi bu harness'tan tetiklenemez (biri gercek /baslat cevabi ister,
+  // digerinde odeme yolu zaten KILITLIDIR). O iki eksen cayma beyani kapisinda
+  // (D5 fail-closed + D6 kablo) olculur.
+
+  rapor("15 sinif beyani (odeme ekrani, gercek DOM kosumu)", hatalar,
+    "ozel=bugunku metin · hazir=uretim dili yok + 14 gun · karma=iki sinif · edge kart `tur` tasiyor");
+}
+
 // ---------------------------------------------------------------- akis
 
 async function main() {
@@ -965,6 +1037,7 @@ async function main() {
   await test12FailClosed();
   await test13KarisikSepet();
   await test14IstekSayisi();
+  await test15SinifBeyani();
   console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
     (kalan ? "" : " — HEPSI YESIL ✅"));
   process.exit(kalan ? 1 : 0);

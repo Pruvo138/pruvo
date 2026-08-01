@@ -178,6 +178,25 @@ def _seller_table():
     )
 
 
+# ------------------------------------------------------------------ sınıf beyanı (teslimat)
+# 🔴 NEDEN VAR (ölçüldü 1 Ağu): teslimat kolu TEK SINIFLI yazılmıştı — "ürünler talep
+# üzerine üretildiğinden ... ölçü onayından sonra 3-5 iş günü". Kataloğun 659 kaydı
+# (`"tur":"fiziksel"`) HAZIR TİCARİ MALDIR; o üründe "ölçü onayı" diye bir aşama YOKTUR
+# ve cayma hakkı 14 gün İŞLER. Cayma hakkı bölümü (§5/§6) ayrımı zaten iki sınıflı
+# anlatıyordu; teslimat kolu anlatmıyordu. Bu cümle o boşluğu kapatır.
+#
+# TEK KAYNAK: hem /teslimat-iade hem /mesafeli-satis m.4 AYNI cümleyi basar; iki gövdeye
+# ayrı ayrı yazılsaydı biri güncellenip diğeri bayatlardı (ikiz tanım sessiz ayrışması).
+# Nöbetçi: tools/cayma-beyani-kapisi.py C1/C2 — cümle iki gövdede de aranır.
+#
+# ⚠️ YENİ TAAHHÜT YOK: burada YENİ bir gün sayısı verilmez ("3-5 iş günü" özel üretim
+# kolunda kalır). İade/cayma halinde KARGO BEDELİNİN kime ait olduğu Okan'a soruldu,
+# cevap BEKLENİYOR -> o cümle bu metne YAZILMAZ (kapı C4 nöbet tutar).
+STOK_TESLIM_CUMLESI = (
+    "Hazır/stok ürünlerde ölçü onayı aşaması yoktur; ürün ödemeniz onaylandıktan sonra "
+    "stoktan hazırlanıp kargoya verilir."
+)
+
 # ------------------------------------------------------------------ sayfa gövdeleri
 # hakkimizda/iletisim/sss/gizlilik elle yazılmış statik sayfalardır; gövde düzeni <slug>/index.html üzerinden yapılır.
 
@@ -189,9 +208,13 @@ def _teslimat_iade():
         '<p class="lead">Kargo, teslimat süresi ve iade/cayma hakkı.</p>'
         "<h2>Teslimat</h2>"
         "<ul>"
-        "<li>Ürünler talep üzerine üretildiğinden ürün genellikle <strong>%s</strong> "
+        # SINIF AYRIMI: bu madde ÖZEL ÜRETİM ürünler içindir; hazır/stok ürün bir sonraki
+        # maddededir. Ayrım cayma hakkı bölümüyle (§ Cayma Hakkı / İstisnası) aynı yönde.
+        "<li><strong>Kişiye/ölçüye özel üretilen ürünler</strong> talep üzerine "
+        "üretildiğinden ürün genellikle <strong>%s</strong> "
         "içinde kargoya verilir; kargo transit süresi adrese ve kargo firmasına göre "
         "ayrıdır. Özel/karmaşık işlerde süre sipariş sırasında bildirilir.</li>"
+        "<li>" + STOK_TESLIM_CUMLESI + "</li>"
         # Kargo metni ACIK KURAL olarak yazilir (mimar karari, 16 Tem; Okan kurali —
         # tutarlar secenekler.js kargoKurus ile birebir, degisirse burasi da guncellenir).
         "<li>Gönderiler <strong>%s</strong> ile yapılır. 2.500 TL altındaki siparişlerde "
@@ -238,10 +261,14 @@ def _mesafeli_satis():
         "onayında belirtilir. Ödeme, Satıcı'nın sunduğu güvenli ödeme yöntemleriyle yapılır; "
         "kart bilgileri Satıcı tarafından saklanmaz.</p>"
         "<h2>4. Teslimat</h2>"
-        "<p>Ürün, üretim tamamlandıktan sonra <strong>%s</strong> ile ALICI'nın bildirdiği "
+        # SINIF AYRIMI (m.6 istisnasıyla aynı yönde): ilk paragraf ÖZEL ÜRETİM ürünler,
+        # ikincisi hazır/stok ürünler içindir. "Ölçü onayı" aşaması hazır üründe YOKTUR.
+        "<p><strong>Kişiye/ölçüye özel üretilen ürünlerde</strong> ürün, üretim "
+        "tamamlandıktan sonra <strong>%s</strong> ile ALICI'nın bildirdiği "
         "adrese gönderilir. Ürün genellikle <strong>%s</strong> içinde kargoya verilir; kargo "
         "transit süresi adrese ve kargo firmasına göre ayrıdır. Özel üretimlerde süre sipariş "
         "sırasında bildirilir; yasal azami süre 30 gündür.</p>"
+        "<p>" + STOK_TESLIM_CUMLESI + " Yasal azami teslim süresi 30 gündür.</p>"
         "<h2>5. Cayma Hakkı</h2>"
         "<p>ALICI, standart ürünlerde teslim tarihinden itibaren <strong>14 gün</strong> içinde "
         "gerekçe göstermeksizin cayma hakkına sahiptir. Cayma bildirimi %s / %s üzerinden "
