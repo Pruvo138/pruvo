@@ -11,6 +11,11 @@ Her yeni urun icin kontroller:
   3. kategori gecerli kategori listesinde
   4. marka alani liste tipinde
   5. gorseller >= 1 eleman ve hepsi https://media.pruvo3d.com/ ile baslar
+     (DAR ISTISNA — bkz. _gorselsiz_muaf: urun kaydinda ACIKCA `"gorselsiz": true`
+      beyani VARSA **ve** urun hazir ticari mal ise (`tur == "fiziksel"`), gorsel HIC
+      olmayabilir. Bayraksiz gorselsiz urun ve baski/ozel uretim urunu KIRMIZI kalir;
+      gorsel VARSA media.pruvo3d.com oneki AYNEN aranir. Istisna uygulanan satirlar
+      sessiz gecmez: "gorselsiz kabul edilen: N (id...)" satiriyla basilir.)
   6. aciklamada "3d bask" gecmez (buyuk/kucuk harf duyarsiz)
   7. fiyat: parametrik=true ise BOS; degilse "<sayi> TL" biciminde
   8. aciklamada "mm" iceren bir olcu ifadesi (ISTISNA: .urun-kaynaklari.json'da
@@ -22,6 +27,9 @@ degistiginde (or. gorsel backfill) yapisal dogrulama yapar — eskiden bu tamame
 korlemesine YESIL'di ("parti yok: working tree = HEAD"). Kontroller:
   - mevcut id kayboldu (urun silinmis) -> RED (default + strict)
   - degisen mevcut urunlerde yeni gorseller[] gecerli https://media.pruvo3d.com/... mi
+    (ayni DAR ISTISNA burada da gecerli: `gorselsiz` bayrakli FIZIKSEL urunde gorsel
+     listesi bosalabilir. Bayragin KENDISI backfill'de eklenemez — `gorseller` disi
+     her alan degisikligi zaten RED; yani bayrak yalniz urun EKLENIRKEN beyan edilir.)
   - backfill-disi alan (fiyat/baslik/kategori...) sessizce degistiyse -> RED
   - --backfill (strict): urun SAYISI sabit + hic yeni id belirmemeli (backfill
     urun EKLEMEZ/SILMEZ, sadece alan gunceller)
@@ -65,7 +73,32 @@ def _gecerli_kategoriler():
 # kanonik ad gecer; ASCII'ye dusme kaynaginda (thing-codex.py) normalize edilir.
 KATEGORILER = _gecerli_kategoriler()
 
+
+def _arama_modulu():
+    """tools/arama.py — TICARI SINIFIN (`tur`) TEK KAYNAGI.
+
+    "fiziksel" dizesini burada TEKRAR YAZMIYORUZ (ikiz tanim sessizce ayrisir):
+    sinif karari arama.tur_kanonik'ten gelir; ayni fonksiyonu build.py/d1-sync.py da
+    kullanir. Yuklenemezse FAIL-CLOSED cikilir — sinif belirlenemeden gorsel muafiyeti
+    verilemez (sessizce "muaf degil" demek de yanlis olurdu: kapi sessizce ayrisirdi).
+    """
+    yol = os.path.join(ROOT, "tools", "arama.py")
+    spec = importlib.util.spec_from_file_location("arama_parti_kontrol", yol)
+    if spec is None or spec.loader is None:
+        sys.exit("HATA: tools/arama.py yuklenemedi: " + yol)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    if not hasattr(mod, "tur_kanonik"):
+        sys.exit("HATA: tools/arama.py'de tur_kanonik yok: " + yol)
+    return mod
+
+
+_ARAMA = _arama_modulu()
+
 MEDYA_ONEK = "https://media.pruvo3d.com/"
+
+# Gorsel zorunlulugundan DAR muafiyet beyani (urun kaydinda ACIK alan).
+GORSELSIZ_BAYRAK = "gorselsiz"
 
 _KEBAB_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 _FIYAT_RE = re.compile(r"^\d[\d.,]* TL$")
@@ -158,6 +191,71 @@ def _olcu_muaf(kayit):
     return any(dom in link for dom in _OLCU_MUAF_DOMAIN)
 
 
+# ---------------------------------------------------------------------------
+# GORSEL ZORUNLULUGU — VARSAYILAN AYNEN ZORUNLU, ISTISNA DAR VE BEYANLI
+#
+# Okan karari (1 Agu): belirli FIZIKSEL (hazir ticari mal) satin-alma urunlerinde
+# darbogaz gorsel degil urun kimligi/OEM kodu -> gorsel HIC olmayabilir. Bu kural
+# BLANKET DEGIL; ucu birden saglanmadan muafiyet DOGMAZ:
+#   (1) urun kaydinda ACIK beyan: "gorselsiz": true  — ORNUK CIKARIM YOK, arac
+#       kendiliginden "bu fizikselse gecerim" DEMEZ; bayraksiz gorselsiz urun KIRMIZI.
+#   (2) urun HAZIR TICARI MAL sinifinda: tur == "fiziksel" (arama.tur_kanonik, tek
+#       kaynak). Baski/ozel uretim urununde bayrak verilse bile KIRMIZI.
+#   (3) gorsel GERCEKTEN yok: alan hic yok ya da BOS LISTE. Bicimsiz deger
+#       ("gorseller": "x" / null / {}) "yok" SAYILMAZ -> istisna onu ACMAZ.
+# Gorsel VARSA media.pruvo3d.com onek kurali AYNEN gecerlidir; istisna yalniz
+# "hic gorsel yok" halini acar, KOTU gorseli degil.
+#
+# TIP TUZAGI (bilerek `is True`): Python'da True == 1 ve isinstance(True, int).
+# `if urun.get("gorselsiz")` yazsaydik "true" dizesi, 1, [] disi her truthy deger
+# muafiyet acardi -> beyan alani sessizce "her sey" olurdu (arama.stokta_kanonik ile
+# AYNI kimlik testi disiplini).
+# ---------------------------------------------------------------------------
+
+def _gorsel_yok(urun):
+    """Gorsel HIC YOK hali: `gorseller` alani yok VEYA bos liste.
+
+    Bicimsiz deger (str/dict/None/sayi) burada "yok" SAYILMAZ; oyle bir kayit
+    bozuk veridir ve istisnadan yararlanamaz (mevcut "liste degil" bulgusu kalir).
+    """
+    if not isinstance(urun, dict):
+        return False
+    if "gorseller" not in urun:
+        return True
+    g = urun.get("gorseller")
+    return isinstance(g, list) and not g
+
+
+def _gorselsiz_muaf(urun):
+    """ACIK beyan + FIZIKSEL sinif -> gorsel zorunlulugundan muaf mi? (dar istisna)"""
+    if not isinstance(urun, dict):
+        return False
+    if urun.get(GORSELSIZ_BAYRAK) is not True:
+        return False
+    # tur_kanonik: "fiziksel" ya da "" (ozel uretim). Bos dize = baski -> muafiyet YOK.
+    return bool(_ARAMA.tur_kanonik(urun))
+
+
+def _muafiyet_islendi(urun):
+    """Istisna bu urunde GERCEKTEN uygulandi mi (gorunurluk sayimi bundan turer)."""
+    return _gorsel_yok(urun) and _gorselsiz_muaf(urun)
+
+
+def _gorselsiz_bulgulari(urun):
+    """`gorseller` bos/eksik/bicimsiz halinin karari — yeni-urun ve backfill
+    kollarinin ORTAK tek kaynagi. Bos liste dondurmesi = istisna islendi."""
+    if _muafiyet_islendi(urun):
+        return []
+    bulgular = []
+    if urun.get(GORSELSIZ_BAYRAK) is True and _gorsel_yok(urun):
+        # Bayrak var ama sinif tutmuyor: muafiyet YOK ve bu sessiz kalmasin.
+        bulgular.append(
+            "gorselsiz bayragi yalniz tur=='fiziksel' urunde gecerli; "
+            "bu urunde gorsel ZORUNLU")
+    bulgular.append("gorseller bos veya liste degil")
+    return bulgular
+
+
 def _denetle_urun(urun, gosterim_id, kaynaklar):
     """Tek bir yeni urun icin bulgu (aciklama) listesi dondurur."""
     bulgular = []
@@ -182,9 +280,11 @@ def _denetle_urun(urun, gosterim_id, kaynaklar):
         bulgular.append("marka liste tipinde degil")
 
     # 5. gorseller >= 1 ve hepsi media.pruvo3d.com ile baslar
+    #    (DAR ISTISNA: acikca "gorselsiz": true beyan eden FIZIKSEL urunde gorsel
+    #     aranmaz — karar _gorselsiz_bulgulari'nda, backfill koluyla ORTAK.)
     gorseller = urun.get("gorseller")
     if not isinstance(gorseller, list) or not gorseller:
-        bulgular.append("gorseller bos veya liste degil")
+        bulgular.extend(_gorselsiz_bulgulari(urun))
     else:
         for g in gorseller:
             if not isinstance(g, str) or not g.startswith(MEDYA_ONEK):
@@ -275,7 +375,9 @@ def _mevcut_denetle(onceki, sonraki, kaynaklar=None, strict=False):
       - degisen ortak urunlerde: gorseller degistiyse yeni durum gecerli
         https://media.pruvo3d.com/... olmali; degil -> RED
       - gorseller DISI alan (fiyat/baslik/kategori/marka/aciklama/lisans/...)
-        degistiyse -> RED (sessiz backfill-disi degisiklik)
+        degistiyse -> RED (sessiz backfill-disi degisiklik). `gorselsiz` ve `tur`
+        de bu kurala TABIDIR: muafiyet bayragi backfill'de EKLENEMEZ, yalniz urun
+        eklenirken beyan edilir (fail-closed).
     strict=True (--backfill): ek olarak
       - urun sayisi degistiyse -> RED
       - yeni id belirdiyse -> RED (backfill urun eklemez)
@@ -310,7 +412,9 @@ def _mevcut_denetle(onceki, sonraki, kaynaklar=None, strict=False):
             if alan == "gorseller":
                 g = s.get("gorseller")
                 if not isinstance(g, list) or not g:
-                    bulgular.append((uid, "gorseller bos veya liste degil"))
+                    # yeni-urun koluyla ORTAK karar (dar istisna dahil)
+                    for aciklama in _gorselsiz_bulgulari(s):
+                        bulgular.append((uid, aciklama))
                 else:
                     for x in g:
                         if not isinstance(x, str) or not x.startswith(MEDYA_ONEK):
@@ -321,6 +425,59 @@ def _mevcut_denetle(onceki, sonraki, kaynaklar=None, strict=False):
                     (uid, "backfill-disi alan '%s' sessizce degisti: %r -> %r"
                      % (alan, o.get(alan), s.get(alan))))
     return bulgular
+
+
+def _parti_muaflar(urunler, head_ids):
+    """Partide gorsel muafiyeti UYGULANAN yeni urunlerin gosterim id'leri."""
+    if head_ids is None:
+        return []
+    return [gid for gid, urun in _yeni_urunler(urunler, head_ids)
+            if _muafiyet_islendi(urun)]
+
+
+def _mevcut_muaflar(onceki, sonraki):
+    """Backfill'de gorseller BOSALAN ve muafiyet uygulanan mevcut urun id'leri."""
+    o_map = _urun_haritasi(onceki)
+    s_map = _urun_haritasi(sonraki)
+    return sorted(
+        uid for uid in (set(o_map) & set(s_map))
+        if o_map[uid].get("gorseller") != s_map[uid].get("gorseller")
+        and _muafiyet_islendi(s_map[uid])
+    )
+
+
+# ---------------------------------------------------------------------------
+# CIKTI — GORUNURLUK
+# main() sadece BASAR; ne yazilacagini bu saf fonksiyon belirler ki "gorselsiz kabul
+# edilen" sayaci kabul testinden GECEBILSIN. Sayac, bulgu OLSA DA OLMASA DA basilir
+# (sifir da basilir): sessiz muafiyet yeni bir korluk uretir.
+# ---------------------------------------------------------------------------
+
+def _muaf_satiri(muaf_idler):
+    """Muafiyet sayaci satiri — hep uretilir, bos gecilmez."""
+    if muaf_idler:
+        return "gorselsiz kabul edilen: %d (%s)" % (
+            len(muaf_idler), ", ".join(muaf_idler))
+    return "gorselsiz kabul edilen: 0"
+
+
+def _rapor_satirlari(yeni_bulgular, yeni_boyut, mevcut_bulgular, degisen, silinen,
+                     muaf_idler):
+    """(basilacak_satirlar, cikis_kodu). Denetlenecek hicbir sey yoksa sayac basilmaz."""
+    if yeni_boyut == 0 and not degisen and not silinen:
+        return ["parti yok: working tree = HEAD"], 0
+
+    satirlar = [_muaf_satiri(muaf_idler)]
+    tum_bulgular = list(yeni_bulgular or []) + list(mevcut_bulgular or [])
+    if tum_bulgular:
+        for gosterim_id, aciklama in tum_bulgular:
+            satirlar.append("SORUN %s: %s" % (gosterim_id, aciklama))
+        return satirlar, 1
+
+    satirlar.append(
+        "parti temiz: %d yeni urun, %d mevcut urun degisikligi kontrol edildi"
+        % (yeni_boyut, len(degisen)))
+    return satirlar, 0
 
 
 def _mevcut_degisenler(onceki, sonraki):
@@ -401,6 +558,72 @@ def _oz_sinama():
             "https://media.pruvo3d.com/urunler/a-1.jpg",
             "https://media.pruvo3d.com/urunler/a-2.jpg",
         ])),
+
+        # 5b. GORSELSIZ DAR ISTISNA — varsayilan ZORUNLULUK korunuyor mu?
+        # 🔴 ONCE-KIRMIZI capalari: bayrak YOKSA gorselsiz urun (fiziksel olsun ya da
+        # olmasin) KIRMIZI kalir. Istisna varsayilani ACMIYORSA bu ikisi yesil kalir.
+        ("gorselsiz bayraksiz KIRMIZI (fiziksel)",
+         yakalar("gorseller bos", tur="fiziksel", gorseller=[])),
+        ("gorselsiz bayraksiz KIRMIZI (tursuz/baski)",
+         yakalar("gorseller bos", gorseller=[])),
+        ("gorselsiz bayraksiz KIRMIZI (alan hic yok)",
+         any("gorseller bos" in b for b in _denetle_urun(
+             {"id": "x", "kategori": "Marin", "marka": [], "baslik": "X",
+              "aciklama": "Yaklasik dis olculer: 1 x 1 x 1 mm.", "fiyat": "850 TL",
+              "tur": "fiziksel"}, "x", {}))),
+
+        # KABUL: bayrak + fiziksel + gorsel yok -> gecer (yeni davranis)
+        ("bayrakli fiziksel gorselsiz GECER",
+         temiz(tur="fiziksel", gorselsiz=True, gorseller=[])),
+        ("bayrakli fiziksel gorsel alani YOK GECER",
+         not _denetle_urun(
+             {"id": "x", "kategori": "Marin", "marka": [], "baslik": "X",
+              "aciklama": "Yaklasik dis olculer: 1 x 1 x 1 mm.", "fiyat": "850 TL",
+              "tur": "fiziksel", "gorselsiz": True}, "x", {})),
+
+        # RED: bayrak BASKI (ozel uretim) urununde muafiyet DOGURMAZ
+        ("bayrakli baski gorselsiz KIRMIZI",
+         yakalar("gorseller bos", gorselsiz=True, gorseller=[])),
+        ("bayrakli baski gorselsiz gerekce basar",
+         yakalar("yalniz tur=='fiziksel'", gorselsiz=True, gorseller=[])),
+        ("bayrakli parametrik gorselsiz KIRMIZI",
+         yakalar("gorseller bos", parametrik=True, fiyat="", gorselsiz=True,
+                 gorseller=[])),
+
+        # RED: `tur` FAIL-CLOSED — yalniz tam "fiziksel" dizesi sinif acar
+        ("tur 'Fiziksel' KIRMIZI", yakalar(
+            "gorseller bos", tur="Fiziksel", gorselsiz=True, gorseller=[])),
+        ("tur ' fiziksel' KIRMIZI", yakalar(
+            "gorseller bos", tur=" fiziksel", gorselsiz=True, gorseller=[])),
+        ("tur 'fiziksel-degil' KIRMIZI", yakalar(
+            "gorseller bos", tur="fiziksel-degil", gorselsiz=True, gorseller=[])),
+
+        # RED: bayrak FAIL-CLOSED — yalniz gercek boolean True beyandir
+        ("bayrak 'true' dizesi KIRMIZI", yakalar(
+            "gorseller bos", tur="fiziksel", gorselsiz="true", gorseller=[])),
+        ("bayrak 1 (int) KIRMIZI", yakalar(
+            "gorseller bos", tur="fiziksel", gorselsiz=1, gorseller=[])),
+        ("bayrak 'evet' KIRMIZI", yakalar(
+            "gorseller bos", tur="fiziksel", gorselsiz="evet", gorseller=[])),
+        ("bayrak False KIRMIZI", yakalar(
+            "gorseller bos", tur="fiziksel", gorselsiz=False, gorseller=[])),
+
+        # RED: istisna yalniz "hic gorsel yok" halini acar — BOZUK gorsel alanini DEGIL
+        ("bayrakli fiziksel gorseller 'x' KIRMIZI", yakalar(
+            "gorseller bos", tur="fiziksel", gorselsiz=True, gorseller="x")),
+        ("bayrakli fiziksel gorseller None KIRMIZI", yakalar(
+            "gorseller bos", tur="fiziksel", gorselsiz=True, gorseller=None)),
+
+        # RED: onek kurali istisnadan ETKILENMEZ (gorsel VARSA aynen aranir)
+        ("bayrakli fiziksel yanlis onek KIRMIZI", yakalar(
+            "baslamiyor", tur="fiziksel", gorselsiz=True,
+            gorseller=["https://example.com/x.jpg"])),
+        ("bayrakli fiziksel http onek KIRMIZI", yakalar(
+            "baslamiyor", tur="fiziksel", gorselsiz=True,
+            gorseller=["http://media.pruvo3d.com/urunler/a-1.jpg"])),
+        ("bayrakli fiziksel dogru onek GECER", temiz(
+            tur="fiziksel", gorselsiz=True,
+            gorseller=["https://media.pruvo3d.com/urunler/a-1.jpg"])),
 
         # 6. 3d bask (aciklamalar CAPALI olcu ifadesi tasir ki olcu kapisina takilmasinlar;
         #    boylece bu kontroller yalniz "3d bask" bulgusunu izole eder)
@@ -554,6 +777,91 @@ def _oz_sinama():
     kontroller.append(("degismeyen urun temiz",
                        _mevcut_denetle(onceki, [A1, B1], strict=True) == []))
 
+    # -----------------------------------------------------------------
+    # BACKFILL kolunda GORSELSIZ DAR ISTISNA (yeni-urun koluyla AYNI karar)
+    # -----------------------------------------------------------------
+    # F1: HEAD'de zaten bayrakli FIZIKSEL urun; gorseller bosaldi -> KABUL
+    F1 = m_urun("mevcut-f", tur="fiziksel", gorselsiz=True,
+                gorseller=["https://media.pruvo3d.com/urunler/f-1.jpg"])
+    F2 = m_urun("mevcut-f", tur="fiziksel", gorselsiz=True, gorseller=[])
+    kontroller.append(("backfill bayrakli fiziksel bosalma KABUL",
+                       _mevcut_denetle([F1], [F2], strict=True) == []))
+
+    # F3: ayni sey BAYRAKSIZ -> KIRMIZI (varsayilan zorunluluk backfill'de de duruyor)
+    G1 = m_urun("mevcut-g", tur="fiziksel",
+                gorseller=["https://media.pruvo3d.com/urunler/g-1.jpg"])
+    G2 = m_urun("mevcut-g", tur="fiziksel", gorseller=[])
+    kontroller.append(("backfill bayraksiz bosalma KIRMIZI", any(
+        "gorseller bos" in m for _, m in _mevcut_denetle([G1], [G2], strict=True))))
+
+    # F4: BASKI urunu bayrakli olsa da bosalamaz -> KIRMIZI
+    H1 = m_urun("mevcut-h", gorselsiz=True,
+                gorseller=["https://media.pruvo3d.com/urunler/h-1.jpg"])
+    H2 = m_urun("mevcut-h", gorselsiz=True, gorseller=[])
+    kontroller.append(("backfill bayrakli baski bosalma KIRMIZI", any(
+        "gorseller bos" in m for _, m in _mevcut_denetle([H1], [H2], strict=True))))
+
+    # F5: istisna URL semasini ACMAZ (bayrakli fiziksel urunde bile)
+    F_bad = m_urun("mevcut-f", tur="fiziksel", gorselsiz=True,
+                   gorseller=["http://kotu/x.jpg"])
+    kontroller.append(("backfill bayrakli gecersiz URL KIRMIZI", any(
+        "gecersiz gorsel URL" in m for _, m in _mevcut_denetle([F1], [F_bad], strict=True))))
+
+    # F6: bayragin KENDISI backfill'de eklenemez (backfill-disi alan kurali durur)
+    kontroller.append(("backfill bayrak eklemek KIRMIZI", any(
+        "'gorselsiz'" in m for _, m in _mevcut_denetle([G1], [
+            m_urun("mevcut-g", tur="fiziksel", gorselsiz=True, gorseller=[])],
+            strict=True))))
+
+    # -----------------------------------------------------------------
+    # GORUNURLUK: muafiyet sayaci (sessiz muafiyet = yeni korluk)
+    # -----------------------------------------------------------------
+    muaf_urun = m_urun("muaf-anod", tur="fiziksel", gorselsiz=True, gorseller=[])
+    normal_urun = m_urun("normal-urun")
+    kontroller.append((
+        "parti muaf sayimi",
+        _parti_muaflar([normal_urun, muaf_urun, {"id": "eski-urun"}], {"eski-urun"})
+        == ["muaf-anod"],
+    ))
+    kontroller.append((
+        "parti muaf sayimi (muaf yoksa bos)",
+        _parti_muaflar([normal_urun], set()) == [],
+    ))
+    kontroller.append((
+        "backfill muaf sayimi",
+        _mevcut_muaflar([F1], [F2]) == ["mevcut-f"],
+    ))
+    kontroller.append((
+        "backfill muaf sayimi (bayraksiz sayilmaz)",
+        _mevcut_muaflar([G1], [G2]) == [],
+    ))
+    kontroller.append(("muaf satiri sayi + id basar",
+                       _muaf_satiri(["a", "b"]) == "gorselsiz kabul edilen: 2 (a, b)"))
+    kontroller.append(("muaf satiri sifir basar",
+                       _muaf_satiri([]) == "gorselsiz kabul edilen: 0"))
+
+    # sayac TEMIZ kosumda da, BULGULU kosumda da basilmali (susturma mutasyonu olur)
+    temiz_satirlar, temiz_rc = _rapor_satirlari([], 2, [], [], set(), ["muaf-anod"])
+    kontroller.append((
+        "rapor temiz kosumda sayac basar",
+        temiz_rc == 0 and any("gorselsiz kabul edilen: 1 (muaf-anod)" in s
+                              for s in temiz_satirlar)
+        and any("parti temiz" in s for s in temiz_satirlar),
+    ))
+    kirli_satirlar, kirli_rc = _rapor_satirlari(
+        [("kotu", "kategori gecersiz")], 2, [], [], set(), ["muaf-anod"])
+    kontroller.append((
+        "rapor bulgulu kosumda da sayac basar",
+        kirli_rc == 1 and any("gorselsiz kabul edilen: 1 (muaf-anod)" in s
+                              for s in kirli_satirlar)
+        and any(s.startswith("SORUN kotu:") for s in kirli_satirlar),
+    ))
+    yok_satirlar, yok_rc = _rapor_satirlari([], 0, [], [], set(), [])
+    kontroller.append((
+        "rapor parti yok davranisi korundu",
+        yok_rc == 0 and yok_satirlar == ["parti yok: working tree = HEAD"],
+    ))
+
     hatalar = [ad for ad, gecti in kontroller if not gecti]
     if hatalar:
         for ad in hatalar:
@@ -599,20 +907,15 @@ def main():
     # 2. MEVCUT-URUN-DEGISIKLIGI kipi (backfill: HEAD'de var olan urunler)
     mevcut_bulgular = _mevcut_denetle(head_urunler, urunler, kaynaklar, strict=args.backfill)
     degisen, silinen = _mevcut_degisenler(head_urunler, urunler)
+    # gorunurluk: gorsel muafiyeti uygulanan satirlar (yeni + backfill)
+    muaf_idler = (_parti_muaflar(urunler, head_ids)
+                  + _mevcut_muaflar(head_urunler, urunler))
 
-    if yeni_boyut == 0 and not degisen and not silinen:
-        print("parti yok: working tree = HEAD")
-        return 0
-
-    tum_bulgular = list(yeni_bulgular or []) + list(mevcut_bulgular)
-    if tum_bulgular:
-        for gosterim_id, aciklama in tum_bulgular:
-            print("SORUN %s: %s" % (gosterim_id, aciklama))
-        return 1
-
-    print("parti temiz: %d yeni urun, %d mevcut urun degisikligi kontrol edildi"
-          % (yeni_boyut, len(degisen)))
-    return 0
+    satirlar, rc = _rapor_satirlari(yeni_bulgular, yeni_boyut, mevcut_bulgular,
+                                    degisen, silinen, muaf_idler)
+    for satir in satirlar:
+        print(satir)
+    return rc
 
 
 if __name__ == "__main__":
