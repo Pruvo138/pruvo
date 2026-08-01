@@ -83,3 +83,23 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 ## TABAN (yeniden olc, ezberleme)
 - Katalog: D1 sayi ekseni 16518 == 16518; icerik ekseni birebir, uyusmaz 0 / eksik 0 / fazla 0.
 - Calisma alani: 8 worktree, 15 yerel dal (kapanista 1 worktree + 5 olu dal temizlendi).
+
+## EK — mesaj-nobeti kirmizisi: geri-donus kapisi kapandi (1 Agu, kapanis ek kaydi)
+
+- mesaj-nobeti kirmizisinin ikinci sebebi kapandi: geri-donus kapisi taban cozumu
+  onarildi (`f85ca982`, S1).
+- Kok sebep: force-push sonrasi olay yukundeki `before` nesnesi YETIM kaliyordu;
+  `fetch-depth: 0` yetmez (nesne hicbir ref'te degil). Cozum: `cat-file -e` patlayinca
+  yedege dusmeden once `git fetch --no-tags <uzak> <sha>` ile nesneyi kurtar (yalniz CI;
+  kanca kolu bu yola girmez). Fetch basarisizsa davranis aynen eskisi.
+- Olculen: yedek 50 commit penceresi 231140 aday = butcenin %154'u (yapisal asim);
+  dogru menzil 18 commit / 67998 aday (%45,3). Gercek itmeler: medyan 1, p95 4, maks 45.
+- Kirpma (`f416842d`, paralel oturum) KORUNDU ama artik SESSIZ DEGIL: kirpildiginde
+  taranmayan commit + aday sayisi basiliyor, "temiz" hukmu EKSIK OLCUMLU oldugunu soyluyor.
+- Kabul: kapinin kendini-testi 49 vaka / 0 hata (40 -> +9); mutasyon bataryasi 17/17
+  olduruculu OLDU, 3/3 ilgisiz yesil.
+- CI teyidi: kosum 30695623857, `mesaj-nobeti` **success**, taban COZULDU
+  (yedege dusmedi), taranan 1 commit / 1789 aday = butcenin %1,2'si.
+- NOT: o kosumda `before` yetim DEGILDI (saglikli hal); yetim-kurtarma yolunun gercek
+  GH Actions ortaminda calistigi ayni job'un kendini-test adiminda goruldu (vaka 12c).
+- Butce (150000) ve yedek pencere (50) BILEREK degistirilmedi.
