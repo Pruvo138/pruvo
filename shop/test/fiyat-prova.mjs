@@ -1028,6 +1028,205 @@ async function fisIddialari(mod, epostaMod) {
   return s;
 }
 
+// ==================== 11b) BICIM IDDIALARI — "kelime var mi" DEGIL "yapiya uyuyor mu"
+/**
+ * 🔴 NOBETCI BORCU (1 Agu, kayitli): set 11'in UC ekseni KELIME ariyordu, BICIM degil —
+ * (1) iyzico kalem adi, (2) D1 filament/renk kolonlari, (3) yonetim ekraninin fiziksel kolu
+ * icin HIC iddia yoktu. Bugunku davranis DOGRUYDU; korumasiz olan GELECEK regresyondu.
+ *
+ * KELIME IDDIASININ KOR NOKTASI (olculdu, asagidaki M15/M16/M17 mutantlari):
+ *   · "ASA" hala govdede geciyor ama ayrac ", " -> " / " oldu           -> kelime YESIL
+ *   · fiziksel kalemde bos parantez basiliyor ("Sinama urunu ()")       -> kelime YESIL
+ *   · kolon "ASA+" oluyor (bos beyan elenmiyor) ya da "ASA+ASA"         -> kelime YESIL
+ *   · filament ve renk KOLONLARI YER DEGISTIRIYOR                        -> kelime YESIL
+ *   · yonetim ekraninda `tur` alani JSON'dan tamamen dusuyor             -> iddia YOKTU
+ * Hepsi de siparis kaydini/fisi/uretim ekranini BOZAR. Asagidaki iddialar SEKLE bakar:
+ * tam dize esitligi, parantez yapisi, kolon dilimlenmesi, alan TIPI ve alanlar arasi
+ * TUTARLILIK (isaret <-> bos beyan). "Icinde su kelime var mi" HICBIR yerde kullanilmaz.
+ */
+const BICIM_BASLIK = FIZ_TABAN.baslik;          // "Sinama urunu" — fikstur basligi
+const UCB_URUN2 = Object.assign({ id: "sinama-3d-parca-iki" }, FIZ_TABAN, { tur: "" });
+const YONET_ANAHTAR = "test-bicim-yonet-anahtari";
+/** Baski (uretim) onerisi SEKLI — yonet.js BASKI_FALLBACK + genel cumle. Fiziksel kalemde
+ *  bu SEKILDE bir metin cikmasi "boya kutusunu URETIYORUZ" demektir. */
+const BASKI_ONERI_SEKLI = /^Genel öneri:|^Malzemeye uygun genel/;
+/** kolonBirlestir sozlesmesi: BOS ya da "+" ile birlesmis BOS OLMAYAN parcalar. */
+const KOLON_SEKLI = /^$|^[^+]+(\+[^+]+)*$/;
+
+function kalem(id, malzeme, renk, ozel, adet) {
+  return { id: id, malzeme: malzeme, renk: renk, renk_ozel: ozel || "", adet: adet || 1 };
+}
+
+/** iyzico'ya GIDEN govdeden basketItems (urun kalemleri; kargo kalemi ELENIR). */
+function iyzicoUrunKalemleri(istekler) {
+  const i = (istekler || []).find((x) => x.url.includes("iyzico"));
+  if (!i) { return null; }
+  let g = null;
+  try { g = JSON.parse(i.govde); } catch (e) { return null; }
+  return (g.basketItems || []).filter((b) => b.id !== "gonderim");
+}
+
+/** INSERT'in filament/renk KOLONLARI — POZISYONDAN okunur (satir JSON'unun hemen ardindaki
+ *  iki arguman; bkz. shop/src/index.js INSERT kolon sirasi). Kolonlarin YER DEGISTIRMESI
+ *  ancak boyle yakalanir: "govdede su kelime geciyor mu" taramasi bunu GORMEZ. */
+function insertKolonlari(insertArg) {
+  const i = (insertArg || []).findIndex((x) => typeof x === "string" && x.startsWith("["));
+  if (i < 0) { return null; }
+  return { filament: insertArg[i + 1], renk: insertArg[i + 2] };
+}
+
+/** Yonetim ekraninin (/yonet/liste) D1'i: siparis satiri + urun satiri ayri SELECT'ler. */
+function d1Yonet(siparisSatirlari, urunSatirlari) {
+  return {
+    prepare(sql) {
+      const siparisMi = /FROM siparisler/.test(sql);
+      return {
+        bind(...arg) {
+          return {
+            async all() {
+              return { results: siparisMi ? siparisSatirlari
+                : (urunSatirlari || []).filter((u) => arg.includes(u.id)) };
+            },
+            async first() { return siparisMi ? (siparisSatirlari[0] || null) : null; },
+            async run() { return { meta: { changes: 1 } }; },
+          };
+        },
+      };
+    },
+  };
+}
+
+/** GERCEK akis: /baslat siparis satirini kurar -> ayni satir JSON'u yonetim ekranina girer. */
+async function yonetKalemleri(mod, urun, k) {
+  const b = await baslat(mod, [urun], [k]);
+  const urunlerJson = (b.insertArg || []).find((x) => typeof x === "string" && x.startsWith("["));
+  const env = Object.assign({}, ENV_TABAN, {
+    YONET_ANAHTAR: YONET_ANAHTAR,
+    KATALOG: d1Yonet([{ id: 1, siparis_no: "PR-TEST-YONET", tarih: "2026-08-01T00:00:00.000Z",
+                        durum: "bekliyor", tutar_kurus: 100000, kargo_kurus: 0, kdv_kurus: 0,
+                        odeme_yontemi: "kart", urunler: urunlerJson || "[]", kargo_firma: "",
+                        kargo_kodu: "", durum_gecmisi: "[]", musteri_ad: "T", musteri_tel: "0",
+                        musteri_eposta: "t@pruvo3d.com", musteri_adres: "A" }],
+                     [{ id: urun.id, baski: "", parametrik: 0 }]),
+  });
+  const cevap = await mod.default.fetch(
+    new Request("https://pruvo3d.com/api/shop/yonet/liste?anahtar=" + YONET_ANAHTAR),
+    env, { waitUntil() {} });
+  let govde = {};
+  try { govde = await cevap.json(); } catch (e) { govde = {}; }
+  const s = (govde.siparisler || [])[0] || {};
+  return { kod: cevap.status, kalemler: s.kalemler || [] };
+}
+
+/** UC EKSENIN BICIM IDDIALARI. yon: "bicim-iyzico" | "bicim-kolon" | "bicim-yonet". */
+async function bicimIddialari(mod) {
+  const s = [];
+  const ekle = (yon, ad, olculen, dogru) =>
+    s.push({ yon: yon, ad: ad, ok: olculen === dogru, olculen: JSON.stringify(olculen) });
+
+  // ---------- EKSEN 1: iyzico basketItems[].name BICIMI ----------
+  // Sozlesme (shop/src/index.js): baslik + " (" + [secim, adet].join(", ") + ")".
+  // secim = malzeme + ", " + renk; fiziksel kalemde secim YOK -> parantez YALNIZ adet icin
+  // acilir, adet 1 ise parantez HIC acilmaz. TAM DIZE esitligi ile olculur.
+  {
+    const vaka = [
+      ["3D adet=1", UCB_URUN, kalem(UCB_URUN.id, "ASA", "Diğer", "turuncu", 1),
+       BICIM_BASLIK + " (ASA, turuncu)"],
+      ["3D adet=3", UCB_URUN, kalem(UCB_URUN.id, "ASA", "Diğer", "turuncu", 3),
+       BICIM_BASLIK + " (ASA, turuncu, 3 adet)"],
+      ["FIZIKSEL adet=1", FIZ_URUN, kalem(FIZ_URUN.id, "ASA", "Diğer", "turuncu", 1),
+       BICIM_BASLIK],
+      ["FIZIKSEL adet=3", FIZ_URUN, kalem(FIZ_URUN.id, "ASA", "Diğer", "turuncu", 3),
+       BICIM_BASLIK + " (3 adet)"],
+    ];
+    for (const [ad, urun, k, beklenen] of vaka) {
+      const b = await baslat(mod, [urun], [k]);
+      const kalemler = iyzicoUrunKalemleri(b.istekler);
+      ekle("bicim-iyzico", "iyzico kalem sayisi (" + ad + ")",
+           kalemler ? kalemler.length : null, 1);
+      const ad_ = kalemler && kalemler[0] ? kalemler[0].name : null;
+      ekle("bicim-iyzico", "iyzico ad TAM BICIM (" + ad + ")", ad_, beklenen);
+      // YAPISAL (baslik metninden BAGIMSIZ) iddia: parantez ici virgul-parcalari.
+      const m = /\(([^()]*)\)\s*$/.exec(ad_ || "");
+      const parcalar = m ? m[1].split(", ") : [];
+      ekle("bicim-iyzico", "parantez ici parca sayisi (" + ad + ")", parcalar.length,
+           ad.indexOf("FIZIKSEL") === 0 ? (ad.indexOf("adet=3") > 0 ? 1 : 0)
+                                        : (ad.indexOf("adet=3") > 0 ? 3 : 2));
+      // BOS PARANTEZ YASAK: "()" hem musteriye anlamsiz hem bicim bozuk.
+      ekle("bicim-iyzico", "bos parantez YOK (" + ad + ")", /\(\s*\)/.test(ad_ || ""), false);
+      // Fiziksel kalemde parantez YALNIZ adet tasiyabilir (beyan parcasi GIREMEZ).
+      if (ad.indexOf("FIZIKSEL") === 0) {
+        ekle("bicim-iyzico", "fiziksel parantezinde YALNIZ adet parcasi (" + ad + ")",
+             parcalar.every((p) => /^\d+ adet$/.test(p)), true);
+      }
+    }
+  }
+
+  // ---------- EKSEN 2: D1 siparisler.filament / .renk KOLON BICIMI ----------
+  // Sozlesme (kolonBirlestir): BENZERSIZ + BOS OLMAYAN beyanlar, "+" ile. Kolonlar
+  // POZISYONEL okunur -> yer degistirme de yakalanir.
+  {
+    const vaka = [
+      ["yalniz FIZIKSEL", [FIZ_URUN], [kalem(FIZ_URUN.id, "ASA", "Diğer", "turuncu", 1)],
+       "", ""],
+      ["yalniz 3D", [UCB_URUN], [kalem(UCB_URUN.id, "ASA", "Diğer", "turuncu", 1)],
+       "ASA", "turuncu"],
+      // KARMA sepet: fiziksel satir kolona HICBIR SEY katmaz -> "ASA+" gibi ucu acik
+      // dize OLUSMAZ. (Kelime taramasi "ASA+"yi da YESIL gecirirdi.)
+      ["KARMA (fiziksel + 3D)", [FIZ_URUN, UCB_URUN],
+       [kalem(FIZ_URUN.id, "PLA", "Siyah", "", 1),
+        kalem(UCB_URUN.id, "ASA", "Diğer", "turuncu", 1)], "ASA", "turuncu"],
+      // IKI 3D satiri: malzemeler AYRI -> "+" ile birlesir; renkler AYNI -> TEKRARLANMAZ.
+      ["iki 3D (ayri malzeme, ayni renk)", [UCB_URUN, UCB_URUN2],
+       [kalem(UCB_URUN.id, "ASA", "Diğer", "turuncu", 1),
+        kalem(UCB_URUN2.id, "PLA", "Diğer", "turuncu", 1)], "ASA+PLA", "turuncu"],
+    ];
+    for (const [ad, urunler_, kalemler, bekFil, bekRenk] of vaka) {
+      const b = await baslat(mod, urunler_, kalemler);
+      const kol = insertKolonlari(b.insertArg) || {};
+      ekle("bicim-kolon", "filament kolonu TAM BICIM (" + ad + ")", kol.filament, bekFil);
+      ekle("bicim-kolon", "renk kolonu TAM BICIM (" + ad + ")", kol.renk, bekRenk);
+      for (const [kad, deger] of [["filament", kol.filament], ["renk", kol.renk]]) {
+        ekle("bicim-kolon", kad + " kolonu TIPI dize (" + ad + ")", typeof deger, "string");
+        ekle("bicim-kolon", kad + " kolonu SEKLI (bos ya da '+' ile dolu parcalar) (" + ad + ")",
+             KOLON_SEKLI.test(String(deger == null ? " " : deger)), true);
+        const parca = String(deger || "").split("+").filter((x) => x !== "");
+        ekle("bicim-kolon", kad + " kolonunda TEKRAR YOK (" + ad + ")",
+             parca.length, new Set(parca).size);
+      }
+    }
+  }
+
+  // ---------- EKSEN 3: YONETIM EKRANI (/yonet/liste) fiziksel kolu ----------
+  // 🔴 Bu eksende ONCEDEN HIC IDDIA YOKTU. Ekran, bos malzeme/renk hucresini "veri kayip"
+  // mi "secim yok" mu diye AYIRT ETMEK icin `tur` alanina bakar -> alanin TIPI ve alanlar
+  // arasi TUTARLILIGI bicim iddiasidir.
+  {
+    const vaka = [
+      ["FIZIKSEL", FIZ_URUN, kalem(FIZ_URUN.id, "ASA", "Diğer", "turuncu", 1), "fiziksel"],
+      ["3D", UCB_URUN, kalem(UCB_URUN.id, "ASA", "Diğer", "turuncu", 1), ""],
+    ];
+    for (const [ad, urun, k, bekTur] of vaka) {
+      const y = await yonetKalemleri(mod, urun, k);
+      ekle("bicim-yonet", "liste HTTP (" + ad + ")", y.kod, 200);
+      ekle("bicim-yonet", "kalem sayisi (" + ad + ")", y.kalemler.length, 1);
+      const kk = y.kalemler[0] || {};
+      // (a) ALAN VAR MI + TIPI DIZE MI (JSON'dan dusen alan "veri kayip" gibi okunur)
+      ekle("bicim-yonet", "tur alani VAR (" + ad + ")", Object.prototype.hasOwnProperty.call(kk, "tur"), true);
+      ekle("bicim-yonet", "tur alani TIPI dize (" + ad + ")", typeof kk.tur, "string");
+      // (b) DEGERI IKI KANONIK HALDEN BIRI + dogru olan
+      ekle("bicim-yonet", "tur kanonik deger (" + ad + ")", kk.tur, bekTur);
+      // (c) TUTARLILIK: isaret <-> bos beyan. Ikisi ayrisirsa ekran YANLIS okur.
+      ekle("bicim-yonet", "isaret <-> bos beyan TUTARLI (" + ad + ")",
+           (kk.tur === "fiziksel") === (kk.malzeme === "" && kk.renk === ""), true);
+      // (d) URETIM ONERISI hangi DALDAN geldi: fiziksel kalemde baski onerisi SEKLI CIKMAZ.
+      ekle("bicim-yonet", "baski onerisi SEKLI (" + ad + ")",
+           BASKI_ONERI_SEKLI.test(String(kk.baski_oneri || "")), bekTur !== "fiziksel");
+    }
+  }
+  return s;
+}
+
 baslik("== 11) FIS EKSENI — fiziksel siparis kaydi/e-postasi malzeme-renk BEYAN ETMEZ ==");
 {
   const epostaMod = await epostaYukle(YENI_DIZIN);
@@ -1043,6 +1242,23 @@ baslik("== 11) FIS EKSENI — fiziksel siparis kaydi/e-postasi malzeme-renk BEYA
   else {
     ham.push("  ✅ GECTI — fiziksel siparis hicbir yuzeyde 'ASA'/'turuncu' demiyor; " +
              "3D siparisinde DORT yuzeyde de AYNEN duruyor");
+  }
+}
+
+baslik("== 11b) BICIM EKSENI — iyzico kalem adi · D1 kolonlari · yonetim ekrani (KELIME DEGIL) ==");
+{
+  const iddia = await bicimIddialari(YENI);
+  const kalan = iddia.filter((i) => !i.ok);
+  const say = (y) => iddia.filter((i) => i.yon === y).length;
+  not("iddia: " + iddia.length + " (iyzico ad " + say("bicim-iyzico") + " · D1 kolon " +
+      say("bicim-kolon") + " · yonetim ekrani " + say("bicim-yonet") + ") — kalan: " +
+      kalan.length);
+  not("olcum SEKLE bakar: tam dize esitligi · parantez parca sayisi · kolon dilimlenmesi " +
+      "(tekrar/bos parca/pozisyon) · alan tipi · isaret<->bos beyan tutarliligi");
+  kalan.slice(0, 12).forEach((i) => ham.push("    ❌ " + i.ad + " (olculen: " + i.olculen + ")"));
+  if (kalan.length) { kirmizi += 1; ham.push("  ❌ KALDI — bicim ekseni"); }
+  else {
+    ham.push("  ✅ GECTI — uc yuzeyin de BICIMI sozlesmeye uyuyor (M15/M16/M17 bunu olcer)");
   }
 }
 
@@ -2001,6 +2217,100 @@ baslik("== 8) KIRMIZI-MUTASYON (M1..M9) ==");
       } else {
         ham.push("    ✅ M14: " + ucbKirmizi + " 3D fis regresyon iddiasi KIRMIZI");
       }
+    }
+  }
+
+  // ---- M15/M16/M17: BICIM EKSENI — "kelime AYNI, BICIM BOZUK" ONCE-KIRMIZI KANITI ----
+  /**
+   * 🔴 BU BLOK NE KANITLAR: her mutant, yasak/beklenen KELIMEYI oldugu gibi birakir ve
+   * yalnizca YAPIYI bozar. Olculen iki sayi:
+   *   ESKI (set 11, kelime arayan iddialar) -> 0 KIRMIZI olmali (yani gecirir; borcun sebebi)
+   *   YENI (set 11b, bicim iddialari)       -> >=1 KIRMIZI olmali (yani yakalar)
+   * Ikisi birden tutmazsa bu blok KIRMIZI yanar. Boylece "bicim iddiasi gercekten yuk
+   * tasiyor mu" sorusu her kosumda YENIDEN olculur, bir kereye mahsus rapor cumlesi degil.
+   */
+  /** shop/src altindaki HERHANGI bir dosyayi mutasyona ugratip modulleri birlikte yukler. */
+  async function srcMutanti(etiket, dosya, capa, yerine) {
+    if ((KAYNAKLAR[dosya] || "").split(capa).length - 1 !== 1) {
+      return { hata: "capa kayip/coklu (" + dosya + ")" };
+    }
+    const yeni = Object.assign({}, KAYNAKLAR);
+    yeni[dosya] = KAYNAKLAR[dosya].replace(capa, yerine);
+    const dizin = dizinKur(etiket, yeni);
+    return { mod: await modulYukle(dizin), eposta: await epostaYukle(dizin) };
+  }
+
+  const BICIM_MUTANTLARI = [
+    { kod: "M15a", yon: "bicim-iyzico", dosya: "index.js",
+      ad: "iyzico kalem adinda beyan ayraci ', ' -> ' / ' (kelimeler AYNI)",
+      capa: 'const secim = kalemSecimi(s, ", ");',
+      yerine: 'const secim = kalemSecimi(s, " / ");' },
+    { kod: "M15b", yon: "bicim-iyzico", dosya: "index.js",
+      ad: "parantez KOSULSUZ acilir -> fiziksel kalem adi 'Sinama urunu ()' olur",
+      capa: '(parantez ? " (" + parantez + ")" : "")',
+      yerine: '(" (" + parantez + ")")' },
+    { kod: "M15c", yon: "bicim-iyzico", dosya: "index.js",
+      ad: "parantez HIC acilmaz -> beyan ada bitisik yazilir (kelimeler AYNI)",
+      capa: '(parantez ? " (" + parantez + ")" : "")',
+      yerine: '(parantez ? " " + parantez : "")' },
+    { kod: "M16a", yon: "bicim-kolon", dosya: "index.js",
+      ad: "kolonda BOS beyan elenmiyor -> karma sepette '+ASA' (ucu acik dize)",
+      capa: 'return [...new Set((satirlar || []).map(sec).filter(Boolean))].join("+");',
+      yerine: 'return [...new Set((satirlar || []).map(sec))].join("+");' },
+    { kod: "M16b", yon: "bicim-kolon", dosya: "index.js",
+      ad: "kolonda BENZERSIZLIK yok -> iki satirda 'turuncu+turuncu'",
+      capa: 'return [...new Set((satirlar || []).map(sec).filter(Boolean))].join("+");',
+      yerine: 'return (satirlar || []).map(sec).filter(Boolean).join("+");' },
+    { kod: "M16c", yon: "bicim-kolon", dosya: "index.js",
+      ad: "filament ve renk KOLONLARI YER DEGISTIRDI (kart yolu; her iki kelime de govdede)",
+      capa: '    kolonBirlestir(satirlar, (s) => s.malzeme),\n' +
+            '    // "Diğer" renkte musterinin yazdigi renk kaydedilir (uretim bunu okur), yoksa liste rengi\n' +
+            '    kolonBirlestir(satirlar, (s) => s.renk_ozel || s.renk),',
+      yerine: '    kolonBirlestir(satirlar, (s) => s.renk_ozel || s.renk),\n' +
+              '    // MUTANT: kolonlar yer degistirdi\n' +
+              '    kolonBirlestir(satirlar, (s) => s.malzeme),' },
+    { kod: "M17a", yon: "bicim-yonet", dosya: "yonet.js",
+      ad: "yonetim kaleminde `tur` ham gecirilir -> 3D'de alan JSON'dan DUSER",
+      capa: '        tur: k.tur === "fiziksel" ? "fiziksel" : "",',
+      yerine: '        tur: k.tur,' },
+    { kod: "M17b", yon: "bicim-yonet", dosya: "yonet.js",
+      ad: "yonetim kaleminde `tur` DAIMA bos -> hazir ticari mal isareti kaybolur",
+      capa: '        tur: k.tur === "fiziksel" ? "fiziksel" : "",',
+      yerine: '        tur: "",' },
+    { kod: "M17c", yon: "bicim-yonet", dosya: "yonet.js",
+      ad: "baskiOnerisi'nin fiziksel dali silindi -> boya kutusuna URETIM onerisi basilir",
+      capa: '  if (satir && satir.tur === "fiziksel") {\n' +
+            '    return "Hazır ticari ürün — 3D baskı YOK, stoktan gönderilir.";\n' +
+            '  }\n',
+      yerine: "" },
+  ];
+
+  for (const mt of BICIM_MUTANTLARI) {
+    ham.push("  -- " + mt.kod + ": " + mt.ad + " --");
+    const m = await srcMutanti(mt.kod.toLowerCase() + "src", mt.dosya, mt.capa, mt.yerine);
+    if (m.hata) {
+      kirmizi += 1;
+      ham.push("    ❌ " + mt.kod + " mutasyonu UYGULANAMADI — " + m.hata);
+      continue;
+    }
+    const eski = (await fisIddialari(m.mod, m.eposta)).filter((i) => !i.ok).length;
+    const yeni = (await bicimIddialari(m.mod)).filter((i) => !i.ok);
+    const icKirmizi = yeni.filter((i) => i.yon === mt.yon);
+    const disKirmizi = yeni.length - icKirmizi.length;
+    not(mt.kod + ": ESKI (kelime arayan set 11) kirmizi=" + eski + " (0 olmali — borcun " +
+        "sebebi tam olarak bu) · YENI (bicim, " + mt.yon + ") kirmizi=" + icKirmizi.length +
+        " (>=1 olmali) · eksen disi bicim kirmizi=" + disKirmizi);
+    icKirmizi.slice(0, 3).forEach(
+      (i) => ham.push("    · yakalandi: " + i.ad + " (olculen: " + i.olculen + ")"));
+    if (eski !== 0 || icKirmizi.length < 1) {
+      kirmizi += 1;
+      ham.push("    ❌ " + mt.kod + " KALDI — " + (icKirmizi.length < 1
+        ? "bicim iddiasi bu bozulmayi GORMUYOR (iddia olu)"
+        : "eski kelime iddiasi da yandi: once-kirmizi kaniti bu mutantla ARTIK kurulamaz, " +
+          "mutant ya da iddia guncellenmeli"));
+    } else {
+      ham.push("    ✅ " + mt.kod + ": kelime iddiasi GECIRDI (0), bicim iddiasi YAKALADI (" +
+               icKirmizi.length + ")");
     }
   }
 
