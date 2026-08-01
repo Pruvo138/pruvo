@@ -219,3 +219,38 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   157276 > 150000", `c779e6f0` geri-donus kapisi.
 - Alinmayan dal: `worktree-agent-ab5e949730e4133e5` bayat kaldigi icin iptal edildi,
   kurtarilan tek parca I5.
+
+
+## MERGE REDDEDILDI — eski tabanli nobetci dali (1 Agu, olculdu)
+
+- Bir mesaj-nobetcisi dali (uc 15 ileri) main'e alinmak uzere verildi; **ALINMADI.**
+  Sebep tek degil; ucu de olculdu, ucu de tek basina bloklayici.
+- **(1) Taban kopuk.** Dal, gecmis yeniden yaziminden ONCEKI taban uzerinde. Dalin ucu
+  main'in atasi DEGIL (`--is-ancestor` rc=1). `merge-base` cok eski bir ataya dusuyor,
+  bu yuzden otomatik kapsam olcumu **12 dosya / +6604** basiyor (icinde urun verisi
+  +4398 ve 6 cakisma); gercek is ise **2 dosya / +228/-16**. Uc-nokta olcum bu tuzakta
+  DUZELTMIYOR (o da merge-base'e dayanir); dogru olcum dalin KENDI commitinin diffi.
+- **(2) Duz merge sizintiyi geri acardi.** Merge, dalin 15 eski commitini geri baglardi;
+  bu commit mesajlarinda gecmis temizliginde cikarilmis tedarik zinciri adlari duruyor.
+  Depo PUBLIC. Pre-push gecmis geri-donus kapisi zaten fail-closed durdururdu.
+- **(3) ASIL SEBEP — is main'de ZATEN VAR ve dal surumu GERILEME.** Ayni maskeleme
+  acigini kardes oturum bagimsiz kapatmis. Iki surum karsilastirildi: **main fail-closed**
+  — her etikette TUM alfanumerik karakterler yildizlanir, yalniz KAPALI listeyle taninan
+  son etiket acik kalir. **Dal surumu daha zayif** — etiket basina ILK HARF gorunur kalir
+  (kendi docstringi "bu bicim hala sizdirir" diye beyan ediyor) ve uzanti kontrolu
+  olmayan kolda son etiketi ACIK dusuren kalinti bilerek acik birakilmis. Merge ya da
+  cherry-pick, main'in daha guclu maskesini dalin zayif surumuyle DEGISTIRIRDI.
+- Cherry-pick de temiz uygulanmiyor: iki dosyada da CAKISMA (kapi dosyasi 2 blok,
+  mutasyon dosyasi 1 blok) — main tepesi ayni fonksiyonlarda ilerlemis.
+- Dal KENDI icinde saglikli: alti kapi da dalin agacinda rc=0 (kendini-test 90/90,
+  kaynak tarama 5 dosya 0 vurus, CI kapsam 148 kesif / 112 kosum / 36 muaf, kapi
+  envanteri 7/7, kanca nobeti 11 eksende 11 yesil, kisisel veri testi tum kollar yesil).
+  Sorun kalitede degil, **tabanda ve mukerrerlikte.**
+- **KALAN TEK OZGUN PARCA:** marka muafiyetinin kayitli govdeden turetilmesi (bilincli
+  takas: bir yonu kapatip ters yonu aciyor). Bu, main'in GUNCEL kodu uzerine yeniden
+  turetilmeli — bu dal uzerinden DEGIL. Paralel bir oturum su an ayni muafiyet capalari
+  uzerinde calisiyor; is verilmeden once cakisma kontrol edilmeli.
+- Main'e HICBIR SEY yazilmadi; gecici cherry-pick agaci ve dali silindi. Dogrulama: ana
+  calisma agaci porcelain BOS, dal worktreei porcelain BOS (dal oturumu aktif, DOKUNULMADI).
+  D1 teyidi: sayi ekseni 16499 == 16499; icerik ekseni 16499 urun_hash birebir,
+  uyusmaz 0 / eksik 0 / fazla 0.
