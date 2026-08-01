@@ -33,6 +33,13 @@ gbk = importlib.util.module_from_spec(_gbspec); _gbspec.loader.exec_module(gbk)
 # kaybolursa betik ACILISTA coker (sessiz fail-open yok; nobetci "yoksa gecer" olamaz).
 _gkspec = importlib.util.spec_from_file_location("gorsel_koken", os.path.join(TOOLS, "gorsel_koken.py"))
 gk = importlib.util.module_from_spec(_gkspec); _gkspec.loader.exec_module(gk)
+# ALT KATEGORI TAKSONOMISI: izinli (kategori, altkategori) kumesi + tedarikci IMZA nobeti
+# tools/arama.py'de TEK kaynak olarak yasar (ayni fonksiyon urun_hash'i ve D1 kolonunu da
+# besler) — taksonomi BURADA COGALTILMAZ, cogaltilsaydi iki liste sessizce ayrisirdi.
+# Import gk ile AYNI sebeple KOSULSUZ: modul kaybolursa betik ACILISTA coker (bir nobetci
+# "dosyasi yoksa gecer" olamaz).
+_arspec = importlib.util.spec_from_file_location("arama", os.path.join(TOOLS, "arama.py"))
+arama = importlib.util.module_from_spec(_arspec); _arspec.loader.exec_module(arama)
 # R2 anahtar turetme TEK KAYNAK (satir-ici kopya YASAK, bkz tools/r2_anahtar.py)
 _r2spec = importlib.util.spec_from_file_location(
     "r2_anahtar", os.path.join(os.path.dirname(os.path.abspath(__file__)), "r2_anahtar.py"))
@@ -148,6 +155,47 @@ def _atomic_write(path, obj, **kw):
     os.replace(tmp, path)
 
 
+class AltkategoriIhlali(Exception):
+    """Parti icinde gecersiz `altkategori` var -> HICBIR SEY yazilmaz.
+
+    gk.KokenIhlali deseni: kilit altinda, yazimdan HEMEN ONCE firlatilir; cagiran
+    urunler.json'a da .urun-kaynaklari.json'a da dokunmadan cikar.
+    """
+
+
+def _altkategori_ihlalleri(yeni):
+    """Yalniz BU CAGRININ ekledigi kayitlari denetler; (id, kategori, deger, sebep) listesi.
+
+    NEDEN yalniz `yeni`: katalogtaki ILGISIZ eski bir ihlal mesru bir partiyi kilitlemesin
+    (kapi kapsam ekseni — duzelt.py'deki _altkategori_ihlalleri ile ayni gerekce). Tum
+    katalog ekseni AYRI ve kalicidir: tools/altkategori-kapisi.py.
+    Bos/eksik deger GECERLIDIR: alan opsiyonel (karari arama.altkategori_sebebi verir).
+    """
+    ihlaller = []
+    for u in yeni:
+        if not isinstance(u, dict):
+            continue
+        sebep = arama.altkategori_sebebi(u.get("kategori"), u.get("altkategori"))
+        if sebep:
+            ihlaller.append((u.get("id"), u.get("kategori"), u.get("altkategori"), sebep))
+    return ihlaller
+
+
+def _altkategori_rapor(ihlaller):
+    satirlar = ["HATA: ALT KATEGORI KAPISI — urun-ekle.py merge_safe REDDEDILDI "
+                "(hicbir sey yazilmadi: ne urunler.json ne .urun-kaynaklari.json)."]
+    for uid, kat, alt, sebep in ihlaller:
+        satirlar.append("  - id=%s: kategori=%r altkategori=%r -> %s" % (uid, kat, alt, sebep))
+    satirlar.append("  Izinli kume (tools/arama.py ALTKATEGORI_IZINLI — katalogta FIILEN "
+                    "kullanilan esleslerden dondurulmus):")
+    for k in sorted(arama.ALTKATEGORI_IZINLI):
+        satirlar.append("    %s -> %s" % (k, ", ".join(arama.ALTKATEGORI_IZINLI[k])))
+    satirlar.append("  Alan OPSIYONEL: altkategori HIC olmayabilir ya da bos ('') olabilir.")
+    satirlar.append("  Kumeyi genisletmek MIMAR karari: arama.py ALTKATEGORI_IZINLI elle "
+                    "guncellenir (yeni deger tedarikci IMZA nobetinden de gecmelidir).")
+    return "\n".join(satirlar)
+
+
 def merge_safe(staged):
     lockf = open(LOCK, "w"); fcntl.flock(lockf, fcntl.LOCK_EX)
     try:
@@ -166,6 +214,14 @@ def merge_safe(staged):
         # .urun-kaynaklari.json da). Tetik yalniz kategori "Skan Art" + gorselli urunde;
         # platform partileri (Otomobil/Marin/...) HIC degerlendirilmez.
         gk.zorla(eski_harita, gk.harita(urunler), ROOT, kaynak="urun-ekle.py merge_safe")
+        # ALT KATEGORI KAPISI — AYNI YAYIM NOKTASI (kilit altinda, _atomic_write'tan HEMEN
+        # ONCE). NEDEN BURADA: bu yol duzelt.py'den GECMEZ, yani partiyle gelen yeni bir
+        # `altkategori` degeri kataloga DOGRULANMADAN girerdi ve ancak CI'da yakalanirdi;
+        # .git/hooks/pre-push d1-sync'i CI'DAN ONCE kostugu icin deger o arada D1'e yazilirdi
+        # (olculdu: "Pervaneler", 34 kayit). Ihlal -> istisna -> hicbir dosya yazilmaz.
+        alt_ihlal = _altkategori_ihlalleri(yeni)
+        if alt_ihlal:
+            raise AltkategoriIhlali(_altkategori_rapor(alt_ihlal))
         _atomic_write(URUNLER, urunler, ensure_ascii=False, indent=2)
         _atomic_write(KAYNAK, kaynak, ensure_ascii=False, indent=1)
         return len(yeni), len(urunler)
@@ -190,6 +246,13 @@ def main(ids):
         # Koken kaniti eksik -> HICBIR SEY yazilmadi. Traceback yerine actionable rapor.
         print("\n" + str(e), file=sys.stderr)
         sys.exit(3)
+    except AltkategoriIhlali as e:
+        # Gecersiz altkategori -> HICBIR SEY yazilmadi. Traceback yerine actionable rapor.
+        # CIKIS KODU 6 (cakismasin diye): 3 bu dosyada gorsel-koken ihlalinin kodu; 4 ve 5
+        # duzelt.py'nin koken/altkategori kodlari — birini yeniden kullanmak log ve CI
+        # eslemesini belirsizlestirirdi. 6 tools/ agacinda serbest.
+        print("\n" + str(e), file=sys.stderr)
+        sys.exit(6)
     print("\n" + "=" * 70)
     print("STAGED (commit ETMEDIM — gozden gecir, fiyatlari kesinlestir):")
     for s in sorted(sonuc, key=lambda x: x.get("durum") != "STAGED"):

@@ -24,6 +24,9 @@ Kontroller:
       1-baytlik sahte render, sahte STL, sha256 uyusmazligi, YANLIS-POZITIF
       kontrolu (platform kategorileri + dokunulmayan Skan Art), toplu kip,
       urun-ekle.py merge_safe kablolamasi, KIRMIZI-MUTASYON.
+  (h) ALT KATEGORI KAPISI TOPLU EKLEME YOLUNDA (urun-ekle.py merge_safe): bilinmeyen
+      deger, izinli-ama-yanlis-kategori, tedarikci IMZASI, YANLIS-POZITIF kontrolu
+      (gecerli/alansiz/bos parti gecer), KIRMIZI-MUTASYON.
 """
 import hashlib
 import importlib.util
@@ -797,6 +800,141 @@ def test_g_mutasyon():
     shutil.rmtree(repo, ignore_errors=True)
 
 
+# ============================================= (h) ALT KATEGORI KAPISI (ekleme) ===
+# OLCULEN ACIK: `altkategori` iki yerde fail-closed dogrulaniyordu (duzelt.py rc=5 ve CI
+# kapisi tools/altkategori-kapisi.py) ama TOPLU EKLEME yolu urun-ekle.py merge_safe hicbir
+# dogrulama yapmiyordu -> yeni/tedarikci-imzali bir deger kataloga DENETIMSIZ girip ancak
+# CI'da yakalaniyordu (pre-push d1-sync CI'dan ONCE kosar). Olculen vaka: 34 "Pervaneler".
+# Bu bolum o yolu kirmizi yakar.
+URUN_EKLE_MODULLERI = ("veri_kok.py", "filament_ortak.py", "gorsel_mukerrer_kapisi.py",
+                       "gorsel_boyut_kapisi.py", "gorsel_koken.py", "r2_anahtar.py",
+                       "arama.py")
+
+
+def _urun_ekle_yukle(repo, ad, mutasyon=None):
+    """urun-ekle.py'yi (istege bagli MUTASYONLU) SAHTE repo kopyasindan yukler.
+
+    Kopya sart: mutasyon kaynak METINDE yapilir, gercek tools/urun-ekle.py'ye ASLA
+    dokunulmaz. Betik modullerini KENDI dizininden yukledigi icin bagimliliklar da
+    sahte repoya kopyalanir.
+    """
+    for m in URUN_EKLE_MODULLERI:
+        hedef = os.path.join(repo, "tools", m)
+        if not os.path.exists(hedef):
+            shutil.copy(os.path.join(KOK, "tools", m), hedef)
+    with open(KAYNAK_URUN_EKLE, encoding="utf-8") as f:
+        kaynak = f.read()
+    if mutasyon:
+        kaynak, uygulandi = mutasyon(kaynak)
+        kontrol(uygulandi, "MUTASYON kaynak metne UYGULANDI (aksi halde test bos kosardi)")
+    yol = os.path.join(repo, "tools", "urun-ekle.py")
+    with open(yol, "w", encoding="utf-8") as f:
+        f.write(kaynak)
+    hata = io.StringIO()
+    with contextlib.redirect_stderr(hata):       # veri_kok kok uyarisi
+        spec = importlib.util.spec_from_file_location(ad, yol)
+        ue = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ue)
+    ue.URUNLER = os.path.join(repo, "urunler.json")
+    ue.KAYNAK = os.path.join(repo, ".urun-kaynaklari.json")
+    ue.LOCK = os.path.join(repo, ".urunler.lock")
+    ue.ROOT = repo
+    with open(ue.KAYNAK, "w", encoding="utf-8") as f:
+        json.dump({}, f)
+    return ue
+
+
+def _staged(uid, kategori, altkategori=None, **ek):
+    """STAGE kaydi kurar. altkategori=None -> alan HIC yok; "" -> alan bos."""
+    urun = {"id": uid, "kategori": kategori, "marka": [], "baslik": "Parti " + uid,
+            "aciklama": "parti aciklamasi", "fiyat": "500 TL",
+            "gorseller": ["https://media.pruvo3d.com/urunler/%s-1.jpg" % uid]}
+    if altkategori is not None:
+        urun["altkategori"] = altkategori
+    urun.update(ek)
+    return {"id": uid, "urun": urun, "src": {"kaynak": "Thingiverse"}}
+
+
+def _h_senaryo(ad, staged, beklenen_blok, ad_ek=""):
+    """Parti merge_safe'e verilir; reddedilirse HICBIR dosya yazilmamis olmali."""
+    repo = sahte_repo()
+    ue = _urun_ekle_yukle(repo, "urun_ekle_h_" + ad_ek)
+    once = sha(ue.URUNLER)
+    once_kaynak = sha(ue.KAYNAK)
+    with koken_dizini(repo):
+        try:
+            n, _toplam = ue.merge_safe(staged)
+            engellendi, sebep = False, ""
+        except ue.AltkategoriIhlali as e:
+            engellendi, sebep, n = True, str(e), 0
+    if beklenen_blok:
+        kontrol(engellendi, "%s: AltkategoriIhlali firlatildi" % ad)
+        kontrol(once == sha(ue.URUNLER), "%s: urunler.json BYTE-ESIT (yazim YOK)" % ad)
+        kontrol(once_kaynak == sha(ue.KAYNAK),
+                "%s: .urun-kaynaklari.json da BYTE-ESIT (gizli kayit yazilmadi)" % ad)
+        kontrol("ALT KATEGORI KAPISI" in sebep and "ALTKATEGORI_IZINLI" in sebep,
+                "%s: gerekce actionable (izinli kume + genisletme yolu)" % ad)
+    else:
+        kontrol(not engellendi, "%s: GECTI (yanlis-pozitif YOK)" % ad)
+        kontrol(n == len(staged), "%s: %d kayit gercekten yazildi (olculen %s)"
+                % (ad, len(staged), n))
+        kontrol(once != sha(ue.URUNLER), "%s: urunler.json DEGISTI" % ad)
+    shutil.rmtree(repo, ignore_errors=True)
+
+
+def test_h_bilinmeyen_deger():
+    print("\n(h1) BILINMEYEN altkategori -> merge_safe REDDEDER (hicbir sey yazilmaz)")
+    _h_senaryo("uydurma etiket", [_staged("parti-uydurma", "Marin", "Uydurma Etiket")],
+               True, "h1")
+
+
+def test_h_yanlis_kategori():
+    print("\n(h2) izinli deger AMA YANLIS kategori altinda -> REDDEDER")
+    _h_senaryo("yanlis kategori", [_staged("parti-yanlis-kat", "Otomobil", "Pervaneler")],
+               True, "h2")
+
+
+def test_h_imza():
+    print("\n(h3) tedarikci IMZASI tasiyan deger (rakam/SKU) -> REDDEDER")
+    _h_senaryo("imza nobeti", [_staged("parti-imza", "Marin", "Sintine 2K")], True, "h3")
+
+
+def test_h_yanlis_pozitif():
+    print("\n(h4) YANLIS-POZITIF KONTROLU: gecerli deger + altkategorisiz parti GECER")
+    _h_senaryo("gecerli deger", [_staged("parti-gecerli", "Marin", "Pervaneler")],
+               False, "h4a")
+    _h_senaryo("altkategori YOK", [_staged("parti-alansiz", "Otomobil")], False, "h4b")
+    _h_senaryo("altkategori BOS", [_staged("parti-bos", "Otomobil", "")], False, "h4c")
+
+
+def _mutasyon_noop(kaynak):
+    """merge_safe'teki dogrulamayi NO-OP'a cevir (girinti bozulmadan)."""
+    eski = "alt_ihlal = _altkategori_ihlalleri(yeni)"
+    if eski not in kaynak:
+        return kaynak, False
+    return kaynak.replace(eski, "alt_ihlal = []  # MUTASYON", 1), True
+
+
+def test_h_mutasyon():
+    print("\n(h5) KIRMIZI-MUTASYON: kapi no-op yapilinca gecersiz altkategori GERCEKTEN giriyor")
+    repo = sahte_repo()
+    ue = _urun_ekle_yukle(repo, "urun_ekle_h5", mutasyon=_mutasyon_noop)
+    staged = [_staged("parti-uydurma", "Marin", "Uydurma Etiket")]
+    engellendi = False
+    with koken_dizini(repo):
+        try:
+            ue.merge_safe(staged)
+        except ue.AltkategoriIhlali:
+            engellendi = True
+    with open(ue.URUNLER, encoding="utf-8") as f:
+        katalog = {p["id"]: p for p in json.load(f)}
+    kontrol(not engellendi, "mutasyonlu kosum istisna FIRLATMADI")
+    kontrol(katalog.get("parti-uydurma", {}).get("altkategori") == "Uydurma Etiket",
+            "MUTASYON: kapi kapaliyken gecersiz altkategori KATALOGA GIRDI "
+            "(nobetci canli, testi kandirmiyor)")
+    shutil.rmtree(repo, ignore_errors=True)
+
+
 def main():
     print("duzelt.py --toplu kabul testi (SAHTE katalog; gercek urunler.json'a dokunulmaz)")
     test_a()
@@ -823,6 +961,11 @@ def main():
     test_g_toplu()
     test_g_urun_ekle()
     test_g_mutasyon()
+    test_h_bilinmeyen_deger()
+    test_h_yanlis_kategori()
+    test_h_imza()
+    test_h_yanlis_pozitif()
+    test_h_mutasyon()
     print("\n%s" % ("TUM KONTROLLER GECTI." if not hatalar
                     else "BASARISIZ (%d): \n  - %s" % (len(hatalar), "\n  - ".join(hatalar))))
     return 0 if not hatalar else 1
