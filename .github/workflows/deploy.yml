@@ -658,6 +658,31 @@ jobs:
       - name: "Alt kategori kapisi (izinli kume + tedarikci imzasi + duzelt yolu + ikiz tanim)"
         run: python3 tools/altkategori-kapisi.py
 
+      # UYUM EKSENI (`uyum`: marka/model/motor/yil/oem) — urunun NEYE UYDUGU.
+      # Kategori "urun NE" der, uyum "neye takilir" der; ikisi tek agaca binince yigilir
+      # (tools/paket-uyum-ekseni.md). Bu ADIMDA TUKETICI YOK — urun_hash'e girmez, D1
+      # kolonu yoktur, sayfa uretmez: sozluk main'e ONCE iner, parti SONRA yazilir
+      # (ters sira `Elektrik` kaleminde fail-closed reddedildi).
+      # Dort sessiz-hata sinifi kilitlenir:
+      #   S SOZLUK  Marka KAPALI kume (139 deger). Kume ICINDE ikiz olamaz (`Mini`/`MINI`
+      #             ayni normalize degere dusemez). Uretici markalari (NGK/Tecnoseal/
+      #             Teleflex...) AYRI kumede ve uyum ekseninde GECERSIZ — "NGK" diye sahte
+      #             marka sayfasi acilamaz. Budama aritmetigi CALISTIRILARAK dogrulanir
+      #             (139 izinli + 13 uretici + 17 elenen == 169 oneri): elenen jeton geri
+      #             sizamaz, onerisiz jeton sessizce eklenemez.
+      #   V SEMA    Kume disi/yakin yazim/bozuk tip/ters yil araligi/enjeksiyon RED; ' Ford'
+      #             SESSIZCE KIRPILMAZ (bu depoda `altkategori`de OLCULEN kusur: katalog
+      #             ham, D1 kirpilmis deger alir ve hicbir hash ekseni gormez).
+      #   K IKIZ    `marka`, `uyum` doluyken ondan TURETILIR; elle yazilmis/sirasi kaymis
+      #     TANIM   deger KIRMIZI. `uyum` bos ESKI kayitta bu dal hic calismaz (regresyon 0).
+      #   A KATALOG Gercek 16.874 kayit taranir (yalniz OKUNUR) + backfill hazirligi sayilir.
+      # FAIL-CLOSED: gecersiz `uyum` -> [] (urun KAYBOLMAZ, kendi kategorisinde bulunur).
+      # OFFLINE: ag/D1/wrangler YOK. Cift yonlu mutasyon (7 oldurucu KIRMIZI + 1 ilgisiz
+      # YESIL + mutasyonsuz harness kontrolu) elle:
+      #   python3 tools/uyum-kapisi.py --mutasyon
+      - name: "Uyum kapisi (kapali marka sozlugu + sema + ikiz tanim + enjeksiyon)"
+        run: python3 tools/uyum-kapisi.py
+
       # ALT KATEGORI MUSTERI YUZEYI. Yukaridaki kapi alanin VERI/D1 yolunu korur; bu adim
       # o verinin MUSTERIYE GORUNEN yuzunu korur — ikisi AYRI eksendir, veri yolu yesilken
       # yuzey sessizce yok olabilir (1 Agu'a kadar OYLEYDI: 935 dolu kayit, gorunur yuzey 0).

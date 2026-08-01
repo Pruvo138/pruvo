@@ -16,9 +16,11 @@ uretilmis D1 indeksini sitenin sonucuyla karsilastirir — burada bir harf kaysa
 test kirmizi yanar.
 """
 
+import copy
 import hashlib
 import json
 import re
+import unicodedata
 
 _HARF = str.maketrans({
     "ı": "i", "ç": "c", "ğ": "g", "ö": "o", "ş": "s", "ü": "u", "â": "a", "î": "i",
@@ -355,6 +357,362 @@ def altkategori_kanonik(u):
     if altkategori_sebebi(u.get("kategori"), deger) is not None:
         return ""
     return altkategori_metin(deger)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# UYUM EKSENI (`uyum`) — urunun NEYE UYDUGU. Kategori "urun NE" der, uyum "neye takilir".
+#
+# NEDEN BURADA (altkategori/tur/stokta ile AYNI gerekce): bu alan ileride hem urun_hash'e
+# hem D1 kolonuna girecek. Iki yerde AYRI turetilseydi hash "degismedi" derken kolon
+# degisir (ya da tersi) ve D1 SESSIZCE eski degeri servis ederdi. Tek fonksiyon = tek kaynak.
+#
+# 🔴 BU TURDA TUKETICI YOK — bilerek: urun_hash'e KATILMADI, d1-sema/d1-sync'e kolon
+# EKLENMEDI, index.html/build.py'ye DOKUNULMADI. Sozluk once main'e iner, parti SONRA
+# yazilir; ters sira fail-closed reddedilir (`Elektrik` kaleminde olculdu).
+#
+# SEMA (tools/paket-uyum-ekseni.md §2): dizi; her oge
+#   {"marka": <KAPALI kumeden, ZORUNLU>, "model": <opsiyonel>, "motor": <opsiyonel>,
+#    "yil": [bas, son] ya da [], "oem": <opsiyonel>}
+# Alan YOKSA / bos dizi ise kayit UYUMSUZDUR — bu GECERLIDIR, hata degil (16.874 kaydin
+# tamami bugun boyle; olculdu: `uyum` dolu kayit = 0).
+#
+# 🔴 K2 — SUPHE DAIMA "MARKA DEGIL" YONUNE DUSER. Modeli yanlislikla marka saymak
+# musteriye SAHTE MARKA SAYFASI uretir (geri alinamaz itibar zarari); markayi yanlislikla
+# model saymak yalnizca o sayfayi acmaz (gorunmez, geri alinabilir).
+#
+# ── K3 BUDAMA (olculdu 2026-08-02, 16.874 kayit / 1.704 tekil `marka` jetonu) ─────────
+# Girdi bir ONERIDIR: sinyal tabanli siniflandirma 169 marka / 806 model / 729 belirsiz
+# verdi. Uc kume asagida TEK TEK yargilanarak ayrildi ve UCU BIRDEN saklanir; birlesimleri
+# ONERININ TAMAMINA esittir (kapi bu aritmetigi CALISTIRARAK dogrular) — boylece budama
+# karari denetlenebilir ve elenen bir jeton sessizce geri sizamaz.
+#
+# OLCULEN DUZELTME: mimarin "169'un icinde Focus/F-150/Fiesta/Golf/E46/Mustang gibi acik
+# modeller var" beklentisi ADRESINDE DEGILDI — olculdu, o jetonlarin HICBIRI marka
+# onerisinde degil (Focus/F-150/Fiesta/Golf/E46/Mustang/Corsa/Mondeo/Transit/Ranger/
+# Maverick = `model`, Tacoma/Sierra = `belirsiz`). 169'daki gercek kirlilik baska tipte:
+# jenerik kelimeler, standart kodlari, ikiz yazimlar ve PARCA URETICILERI.
+#
+# AYIRMA OLCUTU (uygulanabilir, tek cumle): jeton bir EV SAHIBI mi adlandiriyor —
+# uretilen parcanin TAKILDIGI arac/tekne/motor/makine/cihaz — yoksa TAKILAN sarf/parcanin
+# ureticisi mi? "Bu urun <X> ...'a takilir" anlamli ise UYUM; urunun KENDISI o markanin
+# malı ise (buji, tutya, yapistirici, temizleyici, zimpara) URETICI.
+UYUM_MARKA_IZINLI = frozenset({
+    "Abus", "Alfa Romeo", "Anet", "Apple", "Aprilia", "Arora", "Attwood", "Audi",
+    "Aukey", "BMW", "BYD", "Bafang", "Baier", "Bajaj", "Baofeng", "Beneteau", "Bentley",
+    "Black and Decker", "Borbet", "Briggs & Stratton", "CFMoto", "Cadillac", "Canon",
+    "Chrysler", "Citroen", "Cupra", "DJI", "Dacia", "Daewoo", "Datsun", "Dimplex",
+    "Ducati", "Dürkopp Adler", "Einhell", "Fiamma", "Flashforge", "Ford", "GMC",
+    "Geely", "Grunhelm", "Haval", "Honda", "Hummer", "Husqvarna", "Huter", "Hyundai",
+    "IKEA", "Isuzu", "Itiwit", "Iveco", "Jabsco", "Jaguar", "Jawa", "Jeep",
+    "John Deere", "KTM", "Kanuni", "Kayo", "Kazuma", "Kuba", "Kärcher", "Lalizas",
+    "Lancia", "Land Rover", "Lifetime", "Line 6", "MAN", "Magic Bullet", "Mahindra",
+    "Mariner", "Massey Ferguson", "Mazda", "Mercedes", "Mercury", "Miele", "Mini",
+    "Minn Kota", "Mitsubishi", "Mondial", "Motoran", "Motorola", "Moulinex", "NODET",
+    "Nikon", "Nissan", "OMC", "ObdEleven", "Old Town", "Opel", "Pelican", "Peugeot",
+    "Philips", "Porsche", "Prusa", "Puch", "Pössl", "Quechua", "Quicksilver", "Renault",
+    "Rial", "Rover", "Rule", "Ryobi", "Saab", "Saeco", "Scania", "Scarlett", "Seaflo",
+    "Seat", "Segway", "Sherwood", "Shimano", "Sigma", "Skoda", "Skyteam", "Sodastream",
+    "Speeduino", "SsangYong", "Stihl", "Suzuki", "TMC", "Tesla", "Thermomix", "Tofaş",
+    "Tohatsu", "Toyota", "Twin Disc", "Vespa", "Vetus", "Volkswagen", "Volvo",
+    "Weinsberg", "Xbox", "Xiaomi", "Yamaha", "Yunteng", "Zelmer", "Zodiac", "Zontes",
+})
+
+# URETICI EKSENI — GERCEK markalardir ama UYUM ekseni DEGILDIR: bunlar takilan sarf/parcanin
+# ureticisidir (buji, tutya, dolgu/yapistirici, tekne boyasi, temizleyici, zimpara, direksiyon
+# kablosu). "Bu urun NGK'ya takilir" cumlesi anlamsizdir; "bu urun bir NGK bujisidir" anlamlidir.
+# AYRI kume tutulmasinin sebebi: (1) uyum[].marka'da GECERSIZ olmalari fail-closed sart —
+# aksi halde "NGK" diye SAHTE bir uyum sayfasi acilir; (2) tek kumede eritilselerdi bu yargi
+# kaybolur ve bir sonraki tur onlari yeniden "marka" diye geri koyardi. Bu turda TUKETICISI
+# YOKTUR; ileride "uretici/parca markasi" filtresi gerekirse kaynak burasidir.
+URETICI_MARKA = frozenset({
+    "3M",            # zimpara / bant / yapistirici
+    "Champion",      # buji (ayrica jeneratör — belirsiz, fail-closed yonu URETICI)
+    "Denso",         # buji / elektrik parcasi
+    "International", # yat boyasi (AkzoNobel) — ayrica jenerik Ingilizce kelime, capraz-anlamli
+    "Martyr",        # tutya / anot
+    "NGK",           # buji
+    "Nordlinger",    # dolgu / yapistirici
+    "Seafirst",      # tekne boyasi
+    "Sika",          # dolgu / yapistirici
+    "Star Brite",    # tekne bakim kimyasali
+    "Teak Wonder",   # tik bakim kimyasali
+    "Tecnoseal",     # tutya / anot
+    "Teleflex",      # direksiyon/kumanda kablosu (mimarin ornegi)
+})
+
+# ELENEN — "marka" onerildi ama MARKA DEGIL (ya da kanonik yazim DEGIL). Kume SAKLANIR ki
+# elenmis bir jeton bir sonraki turda sessizce geri sizmasin ve budama aritmetigi
+# CALISTIRILABILIR kalsin (kapi: uc kume ayrik + birlesim = 169).
+#   jenerik kelime / urun tipi : Generic, Turbo, Motorhome, Android, Victoria
+#   motor / donanim adi        : Coyote (Ford 5.0 motoru)
+#   standart / kod             : DIN1, CTC
+#   tanimsiz tekil jeton       : Canora, DiveTalk, RocketStart, STORM Racing, Toplife
+#   jeneriklesmis tur adi      : Mobylette (moped tur adi; Motobecane model hatti)
+#   IKIZ YAZIM (K4 kaybeden)   : MINI (Mini=24 > MINI=1) · Mercedes-Benz (Mercedes=1011 >
+#                                Mercedes-Benz=21) · Ssangyong (SsangYong=6 > Ssangyong=3)
+UYUM_MARKA_ELENEN = frozenset({
+    "Android", "CTC", "Canora", "Coyote", "DIN1", "DiveTalk", "Generic", "MINI",
+    "Mercedes-Benz", "Mobylette", "Motorhome", "RocketStart", "STORM Racing",
+    "Ssangyong", "Toplife", "Turbo", "Victoria",
+})
+
+# Codex'in URETTIGI oneri kumesinin buyuklugu. Uc kumenin birlesimi buna ESIT olmali —
+# esit degilse ya bir jeton sessizce dusmus ya da sozluge oneride OLMAYAN bir deger
+# elle eklenmistir. Ikisi de denetimsiz genisleme, kapi KIRMIZI yakar.
+UYUM_MARKA_ONERI_SAYISI = 169
+
+# `uyum` ogesinde TANINAN alanlar. Kume KAPALI: taninmayan anahtar REDDEDILIR (sessizce
+# YUTULMAZ). Yutulsaydi yazim hatasi (`yıl`, `oem_no`) veri kaybi olarak sessizce gecerdi.
+UYUM_ALANLARI = ("marka", "model", "motor", "yil", "oem")
+
+# Serbest metin alanlari (model/motor/oem) icin BEYAZ LISTE — kara liste DEGIL:
+# gorulmemis bir enjeksiyon bicimi sessizce gecmesin. Olculdu (1.704 jeton): gecen
+# ozel karakterler '-' 82, '.' 8, '&' 3, '/' 2, '+' 1; harflerin TAMAMI Latin; en uzun
+# jeton 18 karakter, en cok kelime 3.
+#
+# AYIRAC ile EK ayrimi KASITLI: ayiraca KONUM kurali uygulanir (asagida), eke uygulanmaz.
+#   AYIRAC " -./"  yol/slug anlami tasir -> yalniz IKI alfanumerigin ARASINDA durabilir.
+#   EK     "+"     yol anlami YOK, mesru model sonekidir (olculdu: `206+` Peugeot modeli).
+# '&' BILEREK HICBIRINDE DEGIL (HTML varlik isareti). OLCULEN BEDEL: bu kural katalogun
+# 1.704 jetonundan 3'unu reddeder — 'Briggs & Stratton' (zaten KAPALI marka kumesinde,
+# serbest metin kuralindan gecmesi GEREKMEZ), 'K&N' (filtre ureticisi, uyum ekseni degil),
+# 'Town & Country' (Chrysler modeli — backfill'de ELE kalir, sayiyla raporlanir).
+UYUM_SERBEST_AYIRAC = frozenset(" -./")
+UYUM_SERBEST_EK = frozenset("+")
+UYUM_SERBEST_AZAMI_UZUNLUK = 40
+UYUM_SERBEST_AZAMI_KELIME = 5
+
+# `yil` araligi. 0 = ACIK UC ve YALNIZ son elemanda gecerlidir ([2015, 0] = "2015'ten beri").
+# [0, 2015] REDDEDILIR: acik BAS diye bir sey yok, 0 orada veri hatasidir.
+UYUM_YIL_ACIK_UC = 0
+UYUM_YIL_EN_ERKEN = 1900
+UYUM_YIL_EN_GEC = 2100
+
+_MODEL_AYIRAC_RE = re.compile(r"[.\-\s]")
+
+
+def _latin_harf(c):
+    """Harf VE Latin yazisinda mi? Kiril/Yunan homoglifi ('А', 'Ѕ') buradan GECMEZ —
+    gorunuste ayni, normalize sonucu FARKLI bir jeton uretir (sessiz ikiz uretici)."""
+    return c.isalpha() and unicodedata.name(c, "").startswith("LATIN")
+
+
+def uyum_marka_kanonik(deger):
+    """Ham jetonu KANONIK markaya indirir ya da "" (kume disi / bicimsiz).
+
+    🔴 SESSIZ KIRPMA YOK — uyelik testi HAM deger uzerinde yapilir. ' Ford' KABUL EDILMEZ;
+    kabul edilseydi (strip() uyelik testinin ICINE alinsaydi) kataloga ' Ford', D1'e 'Ford'
+    giderdi: site ile Ege ayni urunu FARKLI yazimla gorurdu ve hicbir hash/senkron ekseni
+    bunu yakalamazdi. Bu tam olarak `altkategori`de OLCULEN kusurdur (1 Agu, ' Elektrik').
+
+    KABUL EDILEN deger AYNEN doner -> "kataloga yazilan metin" ile "D1'e giden metin"
+    ayrisamaz (ucuncu bir hal yoktur).
+    """
+    if not isinstance(deger, str):
+        return ""
+    if deger not in UYUM_MARKA_IZINLI:
+        return ""
+    return deger
+
+
+def model_metin(deger):
+    """`model`/`motor`/`oem` alanlarinin KANONIK metin bicimi — TEK KAYNAK.
+
+    altkategori_metin ile AYNI SOZLESME: sebebi() kanonik OLMAYAN her degeri REDDEDER,
+    kanonik() ise kabul edilen degeri BU fonksiyondan gecirir. Yani katalog metni ile D1
+    metni ayni fonksiyondan turer ve AYRISAMAZ.
+    """
+    if not isinstance(deger, str):
+        return ""
+    return deger.strip()
+
+
+def model_normalize(deger):
+    """Model IKIZ tespiti icin katlama anahtari — kataloga/D1'e ASLA YAZILMAZ.
+
+    K4: ayni araci anlatan farkli ham yazimlar TEK anahtara duser
+    (`F-150` == `F150`, `XSR 700` == `XSR700`, `ID.Buzz` == `ID Buzz`, `Zoé` == `Zoe`),
+    ama FARKLI araclar ayrik kalir (`Focus` != `Focuss`).
+
+    Model kumesi ACIK oldugu icin onceden sayilamaz; ikiz ancak KATLAMA ile gorulur.
+    Katlama norm()'dan (sitenin TEK kaynagi) turer -> ikinci bir Turkce kucultme kopyasi
+    dogmaz. Uzerine NFKD aksan soyme + [.-bosluk] silme gelir.
+    """
+    m = model_metin(deger)
+    if not m:
+        return ""
+    m = norm(m)
+    m = "".join(c for c in unicodedata.normalize("NFKD", m)
+                if not unicodedata.combining(c))
+    return _MODEL_AYIRAC_RE.sub("", m)
+
+
+def _serbest_sebebi(ad, deger):
+    """model/motor/oem gibi ACIK metin alani gecerli mi? Sebep metni ya da None.
+
+    BOS/eksik GECERLIDIR (alanlar opsiyonel). Kural BEYAZ LISTEDIR: yalniz Latin harf,
+    rakam ve UYUM_SERBEST_AYIRAC gecer -> HTML/SQL benzeri her deger ('<b>', "' OR 1=1--",
+    '${x}', ';DROP') ve Latin disi homoglif REDDEDILIR.
+    """
+    if deger is None:
+        return None
+    if not isinstance(deger, str):
+        return "%s metin olmali, %s degil" % (ad, type(deger).__name__)
+    d = model_metin(deger)
+    # 🔴 FAIL-CLOSED, SESSIZ DUZELTME DEGIL (altkategori_sebebi ile ayni cizgi).
+    if d != deger:
+        return ("%s KANONIK DEGIL: %r — bas/son bosluk tasiyor; kanonik bicim %r"
+                % (ad, deger, d))
+    if not d:
+        return None
+    if len(d) > UYUM_SERBEST_AZAMI_UZUNLUK:
+        return "%s cok uzun (%d > %d karakter)" % (ad, len(d), UYUM_SERBEST_AZAMI_UZUNLUK)
+    if len(d.split()) > UYUM_SERBEST_AZAMI_KELIME:
+        return "%s cok fazla kelime (%d > %d)" % (ad, len(d.split()),
+                                                  UYUM_SERBEST_AZAMI_KELIME)
+    govde = False
+    for c in d:
+        if c.isdigit() or _latin_harf(c):
+            govde = True
+            continue
+        if c in UYUM_SERBEST_AYIRAC or c in UYUM_SERBEST_EK:
+            continue
+        return ("%s izinsiz karakter (%r) — beyaz liste: Latin harf, rakam, %r"
+                % (ad, c, "".join(sorted(UYUM_SERBEST_AYIRAC | UYUM_SERBEST_EK))))
+    if not govde:
+        return "%s alfanumerik govde tasimiyor (%r)" % (ad, d)
+    # 🔴 AYIRAC KONUMU DA KURALDIR — karakter beyaz listesi TEK BASINA YETMEZ (OLCULDU:
+    # '../../etc/passwd' yalniz '.', '/' ve harf tasidigi icin karakter suzgecinden GECTI
+    # ve V10 ekseni bu turda KIRMIZI yandi). Ayirac ancak IKI alfanumerigin ARASINDA
+    # durabilir: bas/son ayirac ve ARDISIK ayirac reddedilir -> '..', '//', './' ve
+    # bas/son nokta bicimleri kapanir. Mesru veriyi kesmez (olculdu): 'F-150', '5.0',
+    # 'ID.Buzz', '85.12.345/A', 'Quad Lock', '206+' gecer.
+    if d[0] in UYUM_SERBEST_AYIRAC or d[-1] in UYUM_SERBEST_AYIRAC:
+        return "%s ayirac ile basliyor/bitiyor (%r)" % (ad, d)
+    for onceki, simdiki in zip(d, d[1:]):
+        if onceki in UYUM_SERBEST_AYIRAC and simdiki in UYUM_SERBEST_AYIRAC:
+            return ("%s ARDISIK ayirac (%r) — yol gecisi/bicim bozuklugu sinyali"
+                    % (ad, onceki + simdiki))
+    return None
+
+
+def uyum_yil_sebebi(deger):
+    """`yil` gecerli mi? Sebep metni ya da None.
+
+    GECERLI: [] (bilinmiyor — UYDURMA YOK) · [bas, son] · [bas, 0] (acik uc).
+    GECERSIZ: tek elemanli, ikiden fazla, metin ("2015"), bool (True), ters aralik,
+    acik BAS ([0, 2015]), aralik disi yil.
+    """
+    if deger is None:
+        return None
+    if not isinstance(deger, list):
+        return "yil dizi olmali, %s degil" % type(deger).__name__
+    if not deger:
+        return None
+    if len(deger) != 2:
+        return "yil [bas, son] olmali (%d elemanli) — acik uc icin [bas, 0]" % len(deger)
+    bas, son = deger
+    for ad, v in (("bas", bas), ("son", son)):
+        # 🔴 bool BILEREK ELENIR: Python'da isinstance(True, int) -> True. Kontrol
+        # olmasaydi [True, False] "[1, 0]" diye GECERDI (stokta_kanonik'teki tuzagin aynisi).
+        if isinstance(v, bool) or not isinstance(v, int):
+            return "yil %s tam sayi olmali, %r degil" % (ad, v)
+    if not (UYUM_YIL_EN_ERKEN <= bas <= UYUM_YIL_EN_GEC):
+        return ("yil bas %d araligin disinda (%d–%d) — 0 yalniz SON elemanda acik uctur"
+                % (bas, UYUM_YIL_EN_ERKEN, UYUM_YIL_EN_GEC))
+    if son == UYUM_YIL_ACIK_UC:
+        return None
+    if not (UYUM_YIL_EN_ERKEN <= son <= UYUM_YIL_EN_GEC):
+        return "yil son %d araligin disinda (%d–%d)" % (son, UYUM_YIL_EN_ERKEN,
+                                                        UYUM_YIL_EN_GEC)
+    if son < bas:
+        return "yil araligi TERS: [%d, %d]" % (bas, son)
+    return None
+
+
+def uyum_ogesi_sebebi(oge):
+    """Tek bir `uyum` ogesi gecerli mi? Sebep metni ya da None."""
+    if not isinstance(oge, dict):
+        return "uyum ogesi sozluk olmali, %s degil" % type(oge).__name__
+    fazla = sorted(k for k in oge if k not in UYUM_ALANLARI)
+    if fazla:
+        return ("taninmayan alan %s — izinli: %s (yazim hatasi sessizce YUTULMAZ)"
+                % (fazla, ", ".join(UYUM_ALANLARI)))
+    ham = oge.get("marka")
+    if uyum_marka_kanonik(ham) == "":
+        return ("marka ZORUNLU ve KAPALI kumeden olmali — %r kumede YOK "
+                "(kume %d deger; bosluklu/kucuk-buyuk harf farkli yazim da REDDEDILIR)"
+                % (ham, len(UYUM_MARKA_IZINLI)))
+    for ad in ("model", "motor", "oem"):
+        sebep = _serbest_sebebi(ad, oge.get(ad))
+        if sebep:
+            return sebep
+    return uyum_yil_sebebi(oge.get("yil"))
+
+
+def marka_uyumdan_turet(u):
+    """K5 — `marka` alaninin `uyum`dan TURETILMIS hali (tekil, ilk gorulme sirasinda).
+
+    IKIZ TANIM YASAGI: `marka` ile `uyum[].marka` ayni gercegi iki yerde tutar ve
+    SESSIZCE ayrisir. Kural: `uyum` varsa `marka` ondan TURETILIR, elle yazilmaz.
+    """
+    turetilen = []
+    for oge in (u.get("uyum") or []):
+        if not isinstance(oge, dict):
+            continue
+        m = uyum_marka_kanonik(oge.get("marka"))
+        if m and m not in turetilen:
+            turetilen.append(m)
+    return turetilen
+
+
+def uyum_sebebi(u):
+    """Kaydin `uyum` alani gecerli mi? Sebep metni ya da None (gecerli).
+
+    ALAN YOK / None / [] -> GECERLI (opsiyonel; bugun 16.874 kaydin TAMAMI boyle).
+    """
+    deger = u.get("uyum")
+    if deger is None:
+        return None
+    if not isinstance(deger, list):
+        return "uyum dizi olmali, %s degil" % type(deger).__name__
+    if not deger:
+        return None
+    for i, oge in enumerate(deger):
+        sebep = uyum_ogesi_sebebi(oge)
+        if sebep:
+            return "uyum[%d]: %s" % (i, sebep)
+    imzalar = [json.dumps([o.get(k) for k in UYUM_ALANLARI], ensure_ascii=False,
+                          sort_keys=True) for o in deger]
+    if len(set(imzalar)) != len(imzalar):
+        return "uyum MUKERRER oge tasiyor (%d oge, %d tekil)" % (len(imzalar),
+                                                                 len(set(imzalar)))
+    # 🔴 K5 IKIZ KAPISI — `uyum` DOLU iken `marka` ondan TURETILMIS olmak ZORUNDA.
+    # Siralama da olculur: `marka` bir DIZIDIR, uc onu SIRAYLA gosterir; sira kaymasi
+    # da bir ayrismadir. `uyum` bos olan ESKI kayitlarda bu dal HIC calismaz (regresyon 0).
+    turetilen = marka_uyumdan_turet(u)
+    mevcut = u.get("marka")
+    if mevcut != turetilen:
+        return ("IKIZ TANIM: `marka` %r, `uyum`dan turetilen %r — `uyum` doluyken "
+                "`marka` elle yazilmaz, TURETILIR" % (mevcut, turetilen))
+    return None
+
+
+def uyum_kanonik(u):
+    """D1/edge'e gidecek kanonik `uyum` degeri. FAIL-CLOSED: gecersiz her deger [].
+
+    Neden fail-closed (altkategori_kanonik deseni): .git/hooks/pre-push d1-sync'i push'tan
+    ONCE kosar, CI kapisi push'tan SONRA — yani bozuk bir deger kapi kirmizi yanmadan once
+    D1'e, oradan Ege'ye ve musteriye ulasabilirdi. [] yazmak urunu KAYBETTIRMEZ (urun kendi
+    kategorisi altinda bulunur), yalnizca uyum yuzeyini dusurur; tools/uyum-kapisi.py ayni
+    degeri KIRMIZI yakar, yani sessiz KALMAZ.
+
+    KABUL EDILEN kayitta girdi AYNEN (derin kopya) doner -> katalog metni ile D1 metni
+    BIREBIR AYNI. Derin kopya sart: cagiran donen listeyi degistirirse katalog bozulmamali.
+    """
+    if uyum_sebebi(u) is not None:
+        return []
+    return copy.deepcopy(u.get("uyum") or [])
 
 
 # D1'e yazilan alanlar — biri degisirse satir yeniden yazilir, degismezse yazilmaz.
