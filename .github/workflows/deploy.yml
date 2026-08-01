@@ -1680,6 +1680,20 @@ jobs:
           python3 tools/durum-test.py
           python3 tools/durum-edge-test.py
           python3 tools/derin-cap-test.py
+      # 6c ("ciktida kimlik-bicimli dizgi yok") bir SIR/KIMLIK nobetcisidir ve depo
+      # PUBLIC'tir. 1 Agu 2026'da 6c bir MESRU dizgide kirmizi yandi: base64 alfabesi
+      # `/` icerdigi icin, panonun 1) bolumunde kirpilmadan basilan bir git commit
+      # basligindaki "BUYUKHARF/BUYUKHARF/..." kategori listesi anahtar sanildi.
+      # Cozum deseni DARALTMAK degil, DAR bir BEYAZ LISTE muafiyeti yazmak oldu.
+      # Bu adim o muafiyetin kendi capasidir: muafiyeti gevseten 4 mutant (sartlarin
+      # her biri tek tek silinerek) sir-benzeri fiksturleri SIZDIRMALI. Sizdirmayan
+      # mutant = tasiyici olmayan sart = muafiyet sandigimiz kadar dar degil -> KIRMIZI.
+      # Neden AYRI adim: yukaridaki kosum yalnizca "bugunku pano ciktisi temiz mi"
+      # der; muafiyet birisi tarafindan `return True`e cevrilse 6c sessizce sonsuza
+      # dek yesil yanardi (olculdu: F0 fiksturu olmadan hicbir kapi bunu gormuyor).
+      # Offline, stdlib, ~30 ms.
+      - name: "6c sizinti muafiyeti ic nobetcisi (mutasyon)"
+        run: python3 tools/durum-test.py --ic-nobetci
       - name: D1 durum tanisi + baski senkron kabul testi
         run: |
           python3 tools/d1-sync-durum-test.py

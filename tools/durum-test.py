@@ -153,6 +153,145 @@ def test_5():
     return p.stdout
 
 
+def mesru_kelime_yolu(s):
+    """"uzun-anahtar" muafiyeti: `/` ile ayrilmis DUZ KELIME dizisi mi?
+
+    KURULUS VAKASI (1 Agu 2026, CI run 30691723803, is `serit-b`, headSha 1580c654):
+    6c KIRMIZI yandi -> `yakalanan=['uzun-anahtar']`. Yakalanan dizgi bir SIR DEGIL,
+    panonun `1) AKTIF WORKTREE'LER` bolumunde KISALTILMADAN basilan bir GIT COMMIT
+    BASLIGIYDI (kaynak: tools/durum.py :: main(), `--format=%cr — %h %s`; 2) bolumu
+    konuyu [:56] kirpar, 1) bolumu KIRPMAZ). 69 karakterlik, tamami BUYUK HARF +
+    `/` olan bir marin kategori listesi ("TRIM/MANIFOLD/CONTA/..." gibi). Desen
+    base64 alfabesini kullandigi ve `/` o alfabede oldugu icin, egik cizgiyle
+    ayrilmis kelime dizileri ANAHTAR sanildi. Deger commit gecmisinde ZATEN
+    PUBLIC'tir; sir/kimlik degildir.
+
+    ⚠️ MUAFIYETIN SINIRI — KARA LISTE DEGIL, BEYAZ LISTE. Desen DARALTILMADI
+    (base64 alfabesi yerinde duruyor); yalnizca su IKI sartin IKISINI DE saglayan
+    vuruslar muaf sayilir:
+      (1) `/` ile ayrilan HER segment YALNIZCA ASCII HARF, ve 2..20 harf uzunlugunda
+          (rakam/`+` iceren ya da 20'den uzun ayracsiz govde = ANAHTAR suphesi,
+          muaf DEGIL — base64/base32 anahtarlari pratikte her ikisini de tasir),
+      (2) HER segment TEK BICIMDE: ya tamami buyuk, ya tamami kucuk, ya Bas-harfli
+          (segment ICINDE karisik buyuk/kucuk = base64 imzasi, muaf DEGIL).
+    Iki sart da _muafiyet_fiksturleri()/--ic-nobetci mutasyonlariyla capalanmistir:
+    her sarti tek tek gevseten mutant, sir-benzeri bir fiksturu sizdirir -> KIRMIZI.
+    """
+    if not isinstance(s, str) or "/" not in s:
+        return False
+    for p in s.split("/"):
+        # (1) yalnizca harf + makul kelime boyu
+        if not p.isascii() or not p.isalpha() or not (2 <= len(p) <= 20):
+            return False
+        # (2) segment ici bicim tekdüze (ALLCAPS / alllower / Basharfli)
+        if not (p.isupper() or p.islower() or (p[0].isupper() and p[1:].islower())):
+            return False
+    return True
+
+
+# Muafiyet fiksturleri. SIR DEGIL — hepsi bu dosyada uretilmis UYDURMA dizgilerdir.
+#   MUAF_OLMALI : gercek vaka(lar) — muafiyet OLU olmasin diye.
+#   SIZMAMALI   : sir-benzeri sekiller — muafiyet GENIS olmasin diye. Her kalemin
+#                 yanindaki not, onu hangi SARTIN durdurdugunu soyler.
+_MUAF_OLMALI = [
+    # kurulus vakasinin sekli (gercek commit basligindan; public)
+    "TRIM/MANIFOLD/CONTA/HORTUM/KORUK/KAPLIN/DISTRIBUTOR/TANK/YOKE/STARTER",
+    # ayni sekil kucuk harf ve Bas-harfli varyantlariyla
+    "trim/manifold/conta/hortum/koruk/kaplin/distributor/tank/yoke/starter",
+    "Trim/Manifold/Conta/Hortum/Koruk/Kaplin/Distributor/Tank/Yoke/Starter",
+]
+_SIZMAMALI = [
+    # sart (1) durdurur: ayracsiz 45 harflik tek govde (base32 anahtar sekli)
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRS",
+    # sart (1) durdurur: segmentlerde RAKAM var (base64/anahtar govdesi)
+    "ABC123DEF456/GHI789JKL012/MNO345PQR678/STU901VWX234",
+    # sart (2) durdurur: segment ICINDE karisik buyuk/kucuk (base64 imzasi)
+    "wJalrXUtnFEMIK/bPxRfiCYzEXA/mPLEkeyQwErTy/AbCdEfGhIj",
+    # sart (1) durdurur: `+` ve `/` karisik ham base64 govdesi
+    "aGVsbG9+/Xb3JsZFRoaXNJc0FGYWtlU2VjcmV0VmFsdWUxMjM0NQ",
+]
+
+
+def _muafiyet_fiksturleri(fonk=None):
+    """Muafiyet fonksiyonunu fiksturlerle olcer. Doner: bozuk kalemlerin listesi."""
+    f = fonk or mesru_kelime_yolu
+    bozuk = []
+    for s in _MUAF_OLMALI:
+        if not f(s):
+            bozuk.append("muaf-olmali-degil<%d kr>" % len(s))
+    for s in _SIZMAMALI:
+        if f(s):
+            bozuk.append("SIZDI<%d kr>" % len(s))
+    return bozuk
+
+
+# --ic-nobetci MUTASYONLARI: muafiyetin HER sartini tek tek gevsetir. Gevseyen
+# muafiyet sir-benzeri bir fiksturu gecirirse mutant OLDU (=KIRMIZI) demektir.
+# Olu iddia kabul edilmez: bir sart mutasyona ragmen YESIL kalirsa, o sart
+# TASIYICI DEGILDIR ve muafiyet o kadar dar degildir -> ic nobetci kirmizi yanar.
+def _mutant_hepsini_gecir(s):
+    return isinstance(s, str) and "/" in s          # M1: sartlarin ikisi de silindi
+
+
+def _mutant_uzunluk_tavani_yok(s):
+    if not isinstance(s, str):
+        return False
+    for p in s.split("/"):                          # M2: 2..20 tavani kalkti
+        if not p.isascii() or not p.isalpha():
+            return False
+        if not (p.isupper() or p.islower() or (p[0].isupper() and p[1:].islower())):
+            return False
+    return True
+
+
+def _mutant_rakam_serbest(s):
+    if not isinstance(s, str) or "/" not in s:
+        return False
+    for p in s.split("/"):                          # M3: isalpha -> isalnum
+        if not p.isascii() or not p.isalnum() or not (2 <= len(p) <= 20):
+            return False
+        if not (p.isupper() or p.islower() or (p[0].isupper() and p[1:].islower())):
+            return False
+    return True
+
+
+def _mutant_bicim_sarti_yok(s):
+    if not isinstance(s, str) or "/" not in s:
+        return False
+    for p in s.split("/"):                          # M4: segment ici bicim sarti kalkti
+        if not p.isascii() or not p.isalpha() or not (2 <= len(p) <= 20):
+            return False
+    return True
+
+
+def ic_nobetci():
+    """`python3 tools/durum-test.py --ic-nobetci` — muafiyetin KENDI capasi."""
+    print("\n6c MUAFIYET IC NOBETCISI (mutasyon) — sir-benzeri dizgi sizarsa mutant OLUR\n")
+    sonuc = []
+
+    bozuk = _muafiyet_fiksturleri()
+    sonuc.append(("F0 gercek muafiyet fiksturleri (muaf-olmali + sizmamali)", not bozuk,
+                  "bozuk=%s" % bozuk))
+
+    mutantlar = [
+        ("M1 iki sart da silindi (`/` varsa muaf)", _mutant_hepsini_gecir),
+        ("M2 segment uzunluk tavani (2..20) silindi", _mutant_uzunluk_tavani_yok),
+        ("M3 harf sarti gevsetildi (isalpha -> isalnum)", _mutant_rakam_serbest),
+        ("M4 segment ici bicim (ALLCAPS/alllower/Bas) sarti silindi", _mutant_bicim_sarti_yok),
+    ]
+    for ad, m in mutantlar:
+        sizan = [s for s in _SIZMAMALI if m(s)]
+        sonuc.append((ad + " -> OLMELI", bool(sizan),
+                      "sizan fikstur sayisi=%d" % len(sizan)))
+
+    for ad, gecti, detay in sonuc:
+        print("  %s %s | %s" % ("✅" if gecti else "❌", ad, detay))
+    kirmizi = [a for a, g, _ in sonuc if not g]
+    print("\n%s  %d/%d\n" % ("✅ HEPSI YESIL" if not kirmizi else "❌ KIRMIZI",
+                             len(sonuc) - len(kirmizi), len(sonuc)))
+    return 1 if kirmizi else 0
+
+
 def test_sizinti(cikti):
     """Repo PUBLIC + cikti yerelde okunuyor -> uc ayri sizinti kapisi.
 
@@ -204,12 +343,26 @@ def test_sizinti(cikti):
         "uzun-anahtar": r"\b[A-Za-z0-9/+]{40,}\b",
         "telefon": r"\b(?:90|\+90)?5\d{9}\b",
     }
-    yakalanan = [ad for ad, d in desenler.items() if re.search(d, cikti)]
-    kayit("6c", "ciktida kimlik-bicimli dizgi yok", not yakalanan,
-          "yakalanan=%s" % yakalanan)
+    yakalanan = []
+    for ad, d in desenler.items():
+        vurus = [m.group(0) for m in re.finditer(d, cikti)]
+        if ad == "uzun-anahtar":
+            vurus = [v for v in vurus if not mesru_kelime_yolu(v)]
+        if vurus:
+            yakalanan.append(ad)
+    # OLU MUAFIYET NOBETI: muafiyet fonksiyonu birisi tarafindan korlestirilirse
+    # (or. `return True`) yukaridaki filtre sessizce her seyi gecirirdi ve 6c
+    # SONSUZA DEK yesil yanardi. Fiksturler bunu AYNI kosumda kirmizi yakar.
+    fikstur = _muafiyet_fiksturleri()
+    kayit("6c", "ciktida kimlik-bicimli dizgi yok",
+          not yakalanan and not fikstur,
+          "yakalanan=%s%s" % (yakalanan,
+                              (" | MUAFIYET FIKSTURU BOZUK: %s" % fikstur) if fikstur else ""))
 
 
 def main():
+    if "--ic-nobetci" in sys.argv:
+        return ic_nobetci()
     print("\nDURUM PANOSU KABUL TESTLERI (gecici repo — gercek repoya dokunulmaz)\n")
     tmp = tempfile.mkdtemp(prefix="durum-test-")
     try:
