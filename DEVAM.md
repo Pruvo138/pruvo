@@ -4,8 +4,10 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
 ## OTURUM — 1 Agu 2026 aksam (KraL · yayin hatti + ikinci denetim turu)
 
-- Yayin hatti tikanmasi ve kalici onarimi () — ayrinti arsivde.
-- Olcum aracinin yanlis suclamasi kapatildi ( + ) — ayrinti arsivde.
+- Yayin hatti tikanmasi ve kalici onarimi (`89a72022`) — kapi kendi kapattigi deligi "hala acik"
+  saniyordu; ONCE kaniti artik repoya gomulu fiksturden turuyor. Ayrinti arsivde.
+- Olcum aracinin yanlis suclamasi kapatildi (`09b76410` + `467f8fa8`) — uc cevap vermeyince
+  "bozuk" deniyordu; artik OLCULEMEDI ile BOZUK ayri. Ayrinti arsivde.
 
 ### CANLIYA GITTI — ALTKATEGORI: IZINLI KUME + SESSIZ AYRISMA KAPISI (`235fb25a` + `d379ffb7`)
 Okan onayiyla izinli altkategori kumesine `Elektrik` eklendi (**11 -> 12**); kardes mimarin
