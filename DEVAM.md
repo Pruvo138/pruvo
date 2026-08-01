@@ -2,6 +2,49 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## OTURUM KAPANISI — 1 Agu 2026 (KraL · CI kirmizilari turu)
+
+### CANLIYA GITTI
+Not: iki SHA gecmis yeniden yaziminda degisti; varlik ICERIK ekseninde dogrulandi.
+- **D1 istemci hata siniflandirmasi + fail-loud cikti cozumu** (`GECICI_KODLAR` main'de).
+  `yayin` isi, D1'in CPU-tavani sifirlama kodunu KALICI sayip yeniden denemiyordu; tirnakli
+  JSON bicimindeki TUM kod kollari oluydu. Artan geri cekilme 2/8 sn, tavan 10 sn. Kabul 104 iddia.
+  Bagimsiz curutucu 1. turda onarimin bagiran hata davranisini SESSIZ GECISE cevirdigini
+  buldu -> geri cekildi.
+- **Fiziksel urun sayfasindan 3D-baski secim arayuzu kaldirildi** — merge `1a938405`
+  (`tools/fiziksel-urun-kapisi.py` main'de). 15930 baski urununde uretilen sayfa BAYT-ESIT.
+- **Fiziksel uruntte malzeme/renk fiyat carpani SUNUCUDA kapatildi** — merge `e31aaf8a`
+  (`fizikselMi` main'de). Gercek tahsilat ucunda dogrulandi: her secim liste fiyati.
+  961.980 kombinasyonda baski-urunu regresyonu 0. Ayrica edge kartina `tur` alani eklendi
+  (canli olcum: 0 -> 148 kart) ve fiziksel siparis kaydindan malzeme/renk beyani kaldirildi.
+- **Icerik sinifi kabul testindeki yanlis-pozitif capalandi** — merge `0ea09977` + `3be869ac`.
+  Bir urun partisi commit basligi desene takiliyordu. Desen DARALTILMADI; dar beyaz liste +
+  sart-basi fikstur eklendi. Curutucu olcumu: 1,4M sentetik ornekte 0 kacak.
+
+### KOSUYOR
+- Yok. Bu oturumun delege ettigi tum isler kapandi, dal/worktree temizlendi.
+  Okan'in ayri oturumda baslattigi commit-msg nobetcisi performans butcesi isi AYRI;
+  `mesaj-nobeti` su an YESIL.
+
+### BEKLIYOR
+- **KARDES DEPO (bot deposu):** edge Worker kart alan listesinde `tur` YOK -> sepet panelinde
+  GOSTERILEN tutar sunucununkinden farkli kalir. Main katalogunda 237 fiziksel urunun 137'si
+  bu koldan geliyor. Tahsilat DOGRU; sapma yalniz GOSTERIM. Olculdu, kutuya yazildi.
+- **OKAN KARARI:** `d1-uzlastirici` cron tetikleyicisinin deploy sonuna alinmasi.
+  Olculdu: 15 dk'lik cron 3,5 saatte 0 kez atesledi (GitHub zamanlanmis is best-effort).
+- **SIRADAKI IS (mimar):** `filament-test.py` 7/25 — fiksturu artik bir fiziksel urune dusuyor;
+  CI'da muaf ama gercek kirmizi.
+- **NOBETCI BORCU** (bugunku davranis DOGRU, gelecek regresyon icin yazili iddia EKSIK): odeme kalem adi
+  bicimi ve veri kolonu bicimi KELIME ariyor (bicim degil); yonetim ekranindaki fiziksel kolun
+  iddiasi yok.
+
+### DERS (olculdu)
+- Uc kez kabul testi yemyesilken bagimsiz curutucu gercek kusur buldu; ikisi ayni sinifti —
+  duzeltme, kapattigi deligin YANINDA yeni bir sessiz ayrisma aciyordu. Kapi yazmak yetmiyor;
+  kapinin GORMEDIGI ekseni ayri bir goz aramali.
+- Gecmis yeniden yazildiktan sonra DUZ MERGE, temizlenmis commit mesajlarini geri getirir.
+  Bu turdaki uc merge de cherry-pick + ff-only ile alindi.
+
 ## KARARLAR
 - 1 Agu icerik denetimi: DEVAM.md'de kalan 4 sinifli blok
   maskeleme nobetcisi karsilastirmasi, kanca hata davranisi, temizlik oncesi gecmise
