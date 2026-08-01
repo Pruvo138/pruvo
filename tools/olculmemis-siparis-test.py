@@ -23,6 +23,14 @@ Testler SAHTE satirlarla calisir (D1'e dokunmaz, subprocess calistirmaz) — sad
   12 KART DOGRUDAN IZ: {"o":1} izli kart -> olculdu (iyzico_odeme_id bos olsa bile);
      esik oncesi izsiz kart -> kayip DEGIL; esik sonrasi izsiz kart -> KAYIP;
      12b eski surum kart (izsiz + iyzico_odeme_id dolu) -> kayip DEGIL
+  13 KANAL SUZGECI: site DISI kanal (whatsapp) izsiz odenmis siparis KAYIP SAYILMAZ,
+     OLCUM_BEKLENMEZ sinifina duser; site siparisleri ETKILENMEZ; kanal BILINMIYORSA
+     (kolon yok / bos deger) satir eskisi gibi DENETLENIR
+  14 RAPOR: site disi kanal AYRI ve SAYILI basilir (sessizce yutulmaz) + kayip cirosuna
+     KARISMAZ + cikis kodu yalniz gercek kayba bakar
+  15 KOLON YOKKEN CALISIR: gercek sqlite ile "no such column: kanal" -> kolonsuz SELECT'e
+     dusulur (eski davranis); BASKA hata FAIL-LOUD (yedek yol ariza ortmez)
+  16 Iki SELECT bicimi de SALT-OKUNUR kapidan gecer
 """
 import argparse
 import json
@@ -50,13 +58,17 @@ def kayit(no, ad, gecti, detay=""):
 
 
 def satir(no, yontem, durum, gecmis, tutar=30000, kargo=25000,
-          tarih="2026-07-20T10:00:00.000Z", odeme_id=None, token=None):
-    return {
+          tarih="2026-07-20T10:00:00.000Z", odeme_id=None, token=None, kanal=None):
+    """kanal=None -> anahtar HIC KONMAZ (kolon SELECT'e girmemis satiri taklit eder)."""
+    s = {
         "siparis_no": no, "tarih": tarih, "durum": durum, "odeme_yontemi": yontem,
         "tutar_kurus": tutar, "kargo_kurus": kargo,
         "durum_gecmisi": json.dumps(gecmis) if gecmis is not None else "",
         "iyzico_odeme_id": odeme_id, "token": token,
     }
+    if kanal is not None:
+        s["kanal"] = kanal
+    return s
 
 
 # ------------------------------------------------------------------ 1-3, 8, 9
@@ -274,6 +286,202 @@ def test_10_kaynak_denetimi():
           ("supheli=%s" % supheli) if supheli else "")
 
 
+# ------------------------------------------------------------------ 13-16 (kanal)
+
+# Site DISI kanal: WhatsApp siparis ucu. O akista tarayici YOK -> {"o":1} izi HIC olusmaz.
+WA_HAVALE = satir("PR-260725-100000-WA1", "havale", "odendi",
+                  [{"d": "odendi", "z": "2026-07-25T11:00:00.000Z"}],
+                  tarih="2026-07-25T10:00:00.000Z", kanal="whatsapp")
+WA_KART = satir("PR-260725-110000-WA2", "kart", "odendi",
+                [{"d": "odendi", "z": "2026-07-25T11:30:00.000Z"}],
+                tarih="2026-07-25T11:00:00.000Z", kanal="whatsapp")
+WA_KARGO = satir("PR-260725-120000-WA3", "havale", "kargolandi",
+                 [{"d": "odendi", "z": "2026-07-25T12:00:00.000Z"}],
+                 tarih="2026-07-25T12:00:00.000Z", kanal="whatsapp")
+SITE_IZSIZ = satir("PR-260725-140000-ST2", "havale", "odendi",
+                   [{"d": "odendi", "z": "2026-07-25T14:00:00.000Z"}],
+                   tarih="2026-07-25T14:00:00.000Z", kanal="site")
+SITE_IZLI = satir("PR-260725-130000-ST1", "havale", "odendi",
+                  [{"d": "odendi", "z": "2026-07-25T13:00:00.000Z", "o": 1}],
+                  tarih="2026-07-25T13:00:00.000Z", kanal="site")
+
+
+def test_13_kanal_suzgeci():
+    """Uc site-disi hal + uc KONTROL hali AYRI AYRI (biri digerini maskelemesin).
+
+    ONCE-KIRMIZI (olculdu): kanal kolonu SELECT'e girmeden once bu uc satirin UCU DE
+    'kayip' cikiyordu — yani goc kostugu an her odenmis WhatsApp siparisi 'olculmemis
+    ciro' alarmina duserdi ve GERCEK kayiplar o gurultuye gomulurdu.
+    """
+    wa = [olc.siniflandir(s, ESIK_K, ESIK_H)["sinif"]
+          for s in (WA_HAVALE, WA_KART, WA_KARGO)]
+    kayit(13, "site DISI kanal (whatsapp): havale/kart/kargolandi -> OLCUM_BEKLENMEZ",
+          all(x == olc.OLCUM_BEKLENMEZ for x in wa), " / ".join(wa))
+
+    izli = olc.siniflandir(SITE_IZLI, ESIK_K, ESIK_H)
+    izsiz = olc.siniflandir(SITE_IZSIZ, ESIK_K, ESIK_H)
+    kayit("13b", "KONTROL: site siparisleri ETKILENMEZ (izli->olculdu, izsiz->KAYIP)",
+          izli["sinif"] == olc.OLCULDU and izsiz["sinif"] == olc.KAYIP,
+          "%s / %s" % (izli["sinif"], izsiz["sinif"]))
+
+    # BILINMIYOR bir kaybi GIZLEYEMEZ: kolon yok (anahtar hic yok) ya da deger bos ise
+    # satir SITE kabul edilir ve eskisi gibi denetlenir.
+    kolonsuz = olc.siniflandir(satir("PR-260725-150000-NK1", "havale", "odendi",
+                                     [{"d": "odendi", "z": "2026-07-25T15:00:00.000Z"}],
+                                     tarih="2026-07-25T15:00:00.000Z"), ESIK_K, ESIK_H)
+    bos = olc.siniflandir(satir("PR-260725-160000-NK2", "havale", "odendi",
+                                [{"d": "odendi", "z": "2026-07-25T16:00:00.000Z"}],
+                                tarih="2026-07-25T16:00:00.000Z", kanal="  "), ESIK_K, ESIK_H)
+    null = olc.siniflandir(satir("PR-260725-170000-NK3", "havale", "odendi",
+                                 [{"d": "odendi", "z": "2026-07-25T17:00:00.000Z"}],
+                                 tarih="2026-07-25T17:00:00.000Z", kanal=""), ESIK_K, ESIK_H)
+    kayit("13c", "BILINMEYEN kanal (kolon yok / bos / NULL) KAYBI GIZLEMEZ -> hala KAYIP",
+          all(k["sinif"] == olc.KAYIP for k in (kolonsuz, bos, null)),
+          "%s / %s / %s" % (kolonsuz["sinif"], bos["sinif"], null["sinif"]))
+
+    # Buyuk/kucuk harf: 'SITE' de site sayilir (kanonik olmayan yazim muafiyet URETMESIN).
+    buyuk = olc.siniflandir(satir("PR-260725-180000-NK4", "havale", "odendi",
+                                  [{"d": "odendi", "z": "2026-07-25T18:00:00.000Z"}],
+                                  tarih="2026-07-25T18:00:00.000Z", kanal="SITE"),
+                            ESIK_K, ESIK_H)
+    kayit("13d", "'SITE' (buyuk harf) site sayilir -> denetlenir (KAYIP)",
+          buyuk["sinif"] == olc.KAYIP, buyuk["sinif"])
+
+
+def test_14_rapor_kanal():
+    """Kayip degil AMA GORUNMEZ de degil: sayilar raporda ve ozette AYRI durmali."""
+    satirlar = [WA_HAVALE, WA_KART, WA_KARGO, SITE_IZLI, SITE_IZSIZ]
+    metin, ozet = olc.rapor(satirlar, ESIK_K, ESIK_H, kanal_kolonu=True)
+    wa_ciro = 3 * (30000 + 25000)
+    dogru = (ozet["kayip_adet"] == 1
+             and ozet["kayip_ciro_kurus"] == 55000
+             and ozet["olcum_beklenmez_adet"] == 3
+             and ozet["olcum_beklenmez_ciro_kurus"] == wa_ciro
+             and ozet["kanal_dagilimi"].get("whatsapp", {}).get("adet") == 3)
+    kayit(14, "rapor ozeti: 3 site-disi AYRI sayilir, kayip 1'de kalir",
+          dogru, json.dumps(ozet, ensure_ascii=False, sort_keys=True))
+
+    gorunur = ("OLCUM BEKLENMEZ" in metin and "whatsapp" in metin
+               and olc.tl(wa_ciro) in metin
+               and WA_HAVALE["siparis_no"] in metin)
+    kayit("14b", "site disi kanal SESSIZCE YUTULMAZ: baslik + kanal + ciro + siparis no",
+          gorunur)
+
+    # KAYIP bolumunde WhatsApp siparis numarasi GECMEMELI (yanlis pozitif nobeti).
+    kayip_blok = metin.split("TOPLAM KAYIP")[0]
+    kayit("14c", "WhatsApp siparisleri KAYIP bolumune SIZMAZ",
+          WA_HAVALE["siparis_no"] not in kayip_blok
+          and SITE_IZSIZ["siparis_no"] in kayip_blok)
+
+    # Cikis kodu SADECE gercek kayba bakar: yalniz site-disi satirlar varken 0 olmali.
+    _, sadece_wa = olc.rapor([WA_HAVALE, WA_KART, WA_KARGO], ESIK_K, ESIK_H,
+                             kanal_kolonu=True)
+    kayit("14d", "cikis kodu: yalniz site-disi siparis varken 0 (alarm CALMAZ)",
+          (1 if sadece_wa["kayip_adet"] else 0) == 0
+          and sadece_wa["olcum_beklenmez_adet"] == 3)
+
+    # Kolon YOKKEN rapor bunu ACIKCA yazmali (sessiz korluk YOK).
+    metin2, ozet2 = olc.rapor([SITE_IZSIZ], ESIK_K, ESIK_H, kanal_kolonu=False)
+    kayit("14e", "kanal kolonu YOKKEN rapor bunu ACIKCA beyan eder",
+          "Kanal kolonu  : YOK" in metin2 and ozet2["kanal_kolonu"] is False)
+
+
+def _sqlite_kosucu(kanal_kolonu=True, tablo=True):
+    """GERCEK sqlite'a baglanan sahte wrangler_dene. Hata metinleri UYDURMA DEGIL:
+    kolon yoksa sqlite'in kendi 'no such column: kanal' mesaji doner."""
+    import sqlite3
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    if tablo:
+        ek = ", kanal TEXT NOT NULL DEFAULT 'site'" if kanal_kolonu else ""
+        conn.executescript(
+            "CREATE TABLE siparisler (id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            " siparis_no TEXT, tarih TEXT, durum TEXT, odeme_yontemi TEXT,"
+            " tutar_kurus INTEGER, kargo_kurus INTEGER, durum_gecmisi TEXT,"
+            " iyzico_odeme_id TEXT, token TEXT%s);" % ek)
+        if kanal_kolonu:
+            conn.execute("INSERT INTO siparisler (siparis_no,tarih,durum,odeme_yontemi,"
+                         "tutar_kurus,kargo_kurus,durum_gecmisi,kanal) "
+                         "VALUES ('PR-1','2026-07-25T10:00:00Z','odendi','havale',"
+                         "1000,0,'','whatsapp')")
+        else:
+            conn.execute("INSERT INTO siparisler (siparis_no,tarih,durum,odeme_yontemi,"
+                         "tutar_kurus,kargo_kurus,durum_gecmisi) "
+                         "VALUES ('PR-1','2026-07-25T10:00:00Z','odendi','havale',1000,0,'')")
+        conn.commit()
+    sayac = {"n": 0}
+
+    def _dene(sql):
+        sayac["n"] += 1
+        olc.salt_okunur_dogrula(sql)      # kapi GERCEKTEN kosar
+        try:
+            return True, [dict(r) for r in conn.execute(sql).fetchall()], ""
+        except sqlite3.Error as e:
+            return False, [], "✘ [ERROR] %s" % e
+    return _dene, sayac
+
+
+def test_15_kolon_yokken_calisir():
+    eski = olc.wrangler_dene
+    try:
+        # 15a KOLON VAR: tek denemede biter, kanal degeri satirda gelir.
+        olc.wrangler_dene, sayac = _sqlite_kosucu(kanal_kolonu=True)
+        satirlar, kanal_var = olc.siparisleri_oku(50)
+        kayit(15, "kolon VARKEN: tek sorgu + kanal degeri okunur",
+              kanal_var is True and sayac["n"] == 1
+              and satirlar[0].get("kanal") == "whatsapp",
+              "deneme=%d" % sayac["n"])
+
+        # 15b KOLON YOK: gercek 'no such column: kanal' -> kolonsuz SELECT'e DUSER.
+        olc.wrangler_dene, sayac = _sqlite_kosucu(kanal_kolonu=False)
+        satirlar, kanal_var = olc.siparisleri_oku(50)
+        kayit("15b", "kolon YOKKEN: kolonsuz SELECT'e dusulur, arac PATLAMAZ",
+              kanal_var is False and sayac["n"] == 2 and len(satirlar) == 1
+              and "kanal" not in satirlar[0],
+              "deneme=%d satir=%d" % (sayac["n"], len(satirlar)))
+
+        # 15c ESKI DAVRANIS: kolon yokken siniflandirma degismemis olmali.
+        k = olc.siniflandir(satirlar[0], ESIK_K, ESIK_H)
+        kayit("15c", "kolon YOKKEN siniflandirma ESKI davranista (izsiz odendi -> KAYIP)",
+              k["sinif"] == olc.KAYIP, k["sinif"])
+
+        # 15d BASKA HATA yedek yola DUSMEZ (fail-loud): tablo yoksa sys.exit.
+        olc.wrangler_dene, sayac = _sqlite_kosucu(tablo=False)
+        try:
+            olc.siparisleri_oku(50)
+            oldu, detay = False, "sys.exit BEKLENIYORDU"
+        except SystemExit as e:
+            oldu, detay = ("no such table" in str(e.code)), str(e.code)[:120]
+        kayit("15d", "kolon-disi hata (no such table) FAIL-LOUD — yedek yola DUSMEZ",
+              oldu and sayac["n"] == 1, detay)
+    finally:
+        olc.wrangler_dene = eski
+
+    # 15e SAF KURAL: 'kolon yok' tespiti YALNIZ o kolonun adiyla eslesir.
+    dogru = (olc.kolon_yok_mu("✘ [ERROR] no such column: kanal", "kanal")
+             and olc.kolon_yok_mu("D1_ERROR: no such column: siparisler.kanal", "kanal")
+             and not olc.kolon_yok_mu("no such column: dis_no", "kanal")
+             and not olc.kolon_yok_mu("no such column: kanal_kodu", "kanal")
+             and not olc.kolon_yok_mu("fetch failed / network error", "kanal")
+             and not olc.kolon_yok_mu("", "kanal"))
+    kayit("15e", "kolon_yok_mu: yalniz DOGRU kolon adinda eslesir (ariza ortmez)", dogru)
+
+
+def test_16_iki_select_de_salt_okunur():
+    hepsi = True
+    detay = ""
+    for kanal in (True, False):
+        sql = olc.sql_sorgu(200, kanal=kanal)
+        try:
+            olc.salt_okunur_dogrula(sql)
+        except ValueError as e:
+            hepsi, detay = False, str(e)
+    kanal_sql = olc.sql_sorgu(200, kanal=True)
+    kayit(16, "iki SELECT bicimi de salt-okunur kapidan gecer + kanal kolonu SECILIR",
+          hepsi and ", kanal" in kanal_sql and "kanal" not in olc.sql_sorgu(200, kanal=False),
+          detay)
+
+
 # ------------------------------------------------------------------ 11 (canli)
 
 def test_11_canli():
@@ -308,6 +516,10 @@ def main():
     test_9_meta_penceresi()
     test_10_kaynak_denetimi()
     test_12_kart_dogrudan_iz()
+    test_13_kanal_suzgeci()
+    test_14_rapor_kanal()
+    test_15_kolon_yokken_calisir()
+    test_16_iki_select_de_salt_okunur()
     if args.canli:
         test_11_canli()
     print("=" * 78)
