@@ -2202,6 +2202,14 @@ SERIT_B = {
     ("deploy.yml", "serit-b", "tools/faz3-gecikme-test.py"):
         "Teshis araci faz3-gecikme.js'in yanlis-pozitif/negatif nobetcisi (sahte worker "
         "ucu); yayin ciktisi ekseninde degil.",
+    ("deploy.yml", "serit-b", "tools/faz3-sayfalama-test.py"):
+        "Teshis araci faz3-sayfalama.js'in 'OLCULEMEDI vs BOZUK' nobetcisi (sahte "
+        "katalog ucu, yalniz 127.0.0.1). Kardesi faz3-gecikme-test.py ile AYNI serit: "
+        "olctugu sey TESHIS ARACININ hukmu, yayinlanan icerik DEGIL — urunler.json'u "
+        "yalniz OKUR, uretilen sayfa/D1/R2/odeme yuzeylerine dokunmaz, tek bayt "
+        "yayinlamaz. Buradaki kirmizi 'nobetci curudu' der, 'site bozuk' DEMEZ; yayini "
+        "durdurmak yanlis olurdu ([[kapi-birikimi-yayin-gecikmesi]]). Bir A-kapisinin "
+        "buraya kaydirilmasi DEGILDIR: kapinin A karsiligi hic olmadi, arac bu dalda dogdu.",
     ("deploy.yml", "serit-b", "tools/kutu-arsivle-test.py"):
         "HIJYEN ARACI, YAYIN KAPISI DEGIL: tools/kutu-arsivle.py mimarlarin ORTAK POSTA "
         "KUTUSUNU (~/.claude/.../mimar-posta-kutusu.md) tavana indirir. Olctugu sey "

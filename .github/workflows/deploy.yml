@@ -1536,6 +1536,25 @@ jobs:
       - name: Faz3 gecikme nobetcisi (RTT degil worker-ici sure ile karar)
         run: python3 tools/faz3-gecikme-test.py
 
+      # FAZ3 SAYFALAMA NOBETCISI (tools/faz3-sayfalama.js) — "OLCULEMEDI vs BOZUK" kapisi.
+      # Kardes betik (yukaridaki gecikme) bu ayrimi yapiyordu, sayfalama betigi YAPMIYORDU:
+      # her istek arizasini "gorunum ayristi" sayip SAYFALAMA/SIRA BOZUK basiyor ve cikis 1
+      # donuyordu. Olculdu (1 Agu): yerel uc kosmuyorken 7/7 gorunum "fetch failed" verdi ve
+      # betik hicbir sayfa gormeden sayfalamanin bozuk oldugunu IDDIA ETTI (yanlis suclama;
+      # bu evde bedeli olculdu — "olculemedi"yi kirmizi sayan bir kapi yayin hattini 1,5 saat
+      # tikamisti). Bu adim IKI YONU birden tutar: gevseme yonu (gercek sayfalama/sira
+      # kirilmasi hala KIRMIZI mi) ve suclama yonu (uc yokken kirmizi yanmiyor ve "BOZUK"
+      # demiyor mu). Tek yonlu fikstur yetmez: kosulsuz exit 0 basan betik "uc yok"
+      # senaryosunu, kosulsuz exit 1 basan betik "bozuk uc" senaryosunu gecerdi.
+      # 9 senaryo: uc yok -> exit 2, dogru uc -> exit 0, sinirda urun atlama/sira ayrismasi/
+      # mukerrer -> exit 1, ucun bildirdigi hata -> exit 1 ("sayfalama" diye raporlanmaz),
+      # JSON olmayan yanit + alan eksik -> exit 2, kismi hal -> exit 1 (olculmus ayrisma
+      # olculemeyeni bastirir). OFFLINE: yalniz 127.0.0.1'e baglanir; D1/R2/canli Worker
+      # OKUNMAZ (sahte uc urunler.json'u kendi okur, yalniz id doner). node gerekir
+      # (setup-node yukarida; node yoksa FAIL-CLOSED exit 1). ~50 s.
+      - name: Faz3 sayfalama nobetcisi (olculemeyen uc "bozuk" sayilmasin)
+        run: python3 tools/faz3-sayfalama-test.py
+
       # YEDEK TAZELIK PANOSU (durum.py bolum 7): yedegin kendisi degil, YEDEGIN SESSIZCE
       # DURMASI oldurucu — pano bayatligi/atlanmis kosumu/asili kilidi GORUNUR kilan tek
       # kanaldir (pre-push yedek ciktisini /dev/null'a yutar). Testin iddiasi "pano yalan
