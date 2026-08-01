@@ -1,5 +1,950 @@
 [
   {
+    "id": "tecnoseal-anod-sidepower-75",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Side-Power (Sleipner) Baş İtici Uyumlu Pervane Anodu 75",
+    "aciklama": "İtalyan üretici Tecnoseal'in Side-Power (Sleipner) baş itici pervanesiyle uyumlu 75 serisi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "410 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-sidepower-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-10053a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Alpha 1 Gen 2 Uyumlu Anot Kiti",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Alpha 1 Gen 2 dıştan kuyruk (sterndrive) ile uyumlu komple anot kiti (OEM 888756A1 çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-10054a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Bravo 1 Uyumlu Anot Kiti",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Bravo 1 dıştan kuyruk ile uyumlu komple anot kiti (OEM 888758A1 çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "3200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-10055a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Bravo 2-3 Uyumlu Anot Kiti",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Bravo 2 ve Bravo 3 dıştan kuyruklarla uyumlu komple anot kiti (OEM 888761A1 çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "3000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-10164a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Bravo 3 Uyumlu Anot Kiti",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Bravo 3 dıştan kuyruk ile uyumlu komple anot kiti (OEM 888761Q02 çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "3200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-10202a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Mercury Marine Uyumlu Anot Kiti",
+    "aciklama": "İtalyan üretici Tecnoseal'in Mercury Marine deniz motorlarıyla uyumlu komple anot kiti.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-b00041a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Alpha Uyumlu Plaka Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Alpha sterndrive gövdesine cıvatalanan plaka tipi anodu (OEM 821629T çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-b00042a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Alpha Uyumlu Trim Silindir Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Alpha trim silindirine takılan anodu (OEM 821629T çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "310 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-b00043a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Alpha Uyumlu Pervane Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Alpha pervane göbeğine uyumlu anodu (OEM 806105T çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-b00045a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Alpha Uyumlu Transom Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Alpha kıç ayna (transom) montajlı anodu (OEM 821631T çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-b00046a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Bravo Uyumlu Plaka Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Bravo sterndrive gövdesine cıvatalanan plaka tipi anodu (OEM 821630T çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-b00047a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Bravo Uyumlu Trim Silindir Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Bravo trim silindirine takılan anodu (OEM 806190T çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-b00050a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Alpha Gen 1 Uyumlu Cıvata Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Alpha Gen 1 gimbal cıvatasına uyumlu küçük anodu (OEM 55989T çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-b00051a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Mercury Marine Uyumlu Cep Tipi Motor Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in Mercury Marine dıştan takma motorlarla uyumlu cep (pocket) tipi motor anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-b00052a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Mercury Marine Dıştan Takma Uyumlu Trim Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in Mercury Marine dıştan takma motorlarla uyumlu trim anodu (OEM 818298T çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-b00093a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Mercury Verado Uyumlu Manifold Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in Mercury Verado dıştan takma motorlarla uyumlu manifold anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercury-b00094a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Mercury Verado Uyumlu Trim Silindir Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in Mercury Verado dıştan takma motorlarla uyumlu trim silindir anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-b00163a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Bravo 3 Uyumlu Pervane Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Bravo 3 pervane göbeğine uyumlu anodu (OEM 865182A çapraz referans).\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-mercruiser-b00286a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal MerCruiser Bravo 3 Uyumlu Trim Flat Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in MerCruiser Bravo 3 trim flat (yassı) tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-mercruiser-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00119a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine Uyumlu Kuyruk Anodu (OEM 6E0-45251-11)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine dıştan takma motorlarla uyumlu kuyruk (skeg) anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "330 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-block-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00121a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine Uyumlu Trim Tab Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine dıştan takma motorlarla uyumlu trim tab anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1000 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-trimtab-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00123a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine 60-90 HP Uyumlu Trim Tab Anodu (OEM 688-45371-01)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine 60-90 HP dıştan takma motorlarla uyumlu trim tab anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-trimtab-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00124a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine Uyumlu Blok Anodu (OEM 6E5-45251-00)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine dıştan takma motorlarla uyumlu blok tipi motor anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "330 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-block-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00125a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine 150-175 HP Uyumlu Trim Tab Anodu (OEM 6J9-45371-01)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine 150-175 HP dıştan takma motorlarla uyumlu trim tab anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-trimtab-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00126a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine Uyumlu Transom Anodu (OEM 6H1-45251-02)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine dıştan takma motorlarla uyumlu kıç ayna (transom) anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-block-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00127a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine Uyumlu Transom Anodu (OEM 6G5-45251-02)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine dıştan takma motorlarla uyumlu kıç ayna (transom) anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-block-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00128a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine Uyumlu Blok Anodu (OEM 688-45251-01)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine dıştan takma motorlarla uyumlu blok tipi motor anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-block-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00180a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine 200-250 HP 4 Zamanlı Uyumlu Trim Tab Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine 200-250 HP 4 zamanlı dıştan takma motorlarla uyumlu trim tab anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-trimtab-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00201",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine İçten Takma (Inboard) Motor Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine içten takma (inboard) motorlarla uyumlu anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2100 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-block-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-yamaha-b00202",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Yamaha Marine İçten Takma (Inboard) Motor Anodu (Büyük Boy)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Yamaha Marine içten takma (inboard) motorlarla uyumlu büyük boy anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "5800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kt-tecnoseal-yamaha-block-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-volvo-b00110a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Volvo Penta DP-X Uyumlu Motor Anodu (OEM 872793)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Volvo Penta DP-X dıştan kuyruğuyla uyumlu motor anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "330 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-volvo2-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-volvo-b00111a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Volvo Penta 280 Dual Prop Uyumlu Bar Anodu (OEM 832598)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Volvo Penta 280 çift pervaneli (dual prop) kuyruklarla uyumlu bar tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-volvo2-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-volvo-b00112a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Volvo Penta 290 Uyumlu Bar Anodu (OEM 852835)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Volvo Penta 290 serisi tüm kuyruklarla uyumlu bar tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-volvo2-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-volvo-b00114a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Volvo Penta V-16 Uyumlu Pervane Anodu (OEM 875809)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Volvo Penta V-16 pervane göbeğine uyumlu anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-volvo2-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-volvo-b00116a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Volvo Penta Duo Prop Uyumlu Pervane Anodu (OEM 875821)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Volvo Penta çift pervaneli (Duo Prop) kuyruklarla uyumlu pervane anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-volvo2-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-volvo-b00117a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Volvo Penta SX Uyumlu Transom Anodu (OEM 3854130)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Volvo Penta SX modelleriyle uyumlu kıç ayna (transom) anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-volvo2-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-volvo-b00160a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Volvo Penta 110 Sail Drive Uyumlu Pervane Anodu (OEM 875812)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Volvo Penta 110 Sail Drive ile uyumlu pervane anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-volvo2-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-volvo-b00161a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Volvo Penta V-18 Uyumlu Pervane Anodu (OEM 875815)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Volvo Penta V-18 pervane göbeğine uyumlu anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-volvo2-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-volvo-b00162a",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Volvo Penta SX Kuyruk Uyumlu Transom Plaka Anodu (OEM 3855411)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Volvo Penta SX kuyruklarıyla uyumlu kıç ayna (transom) plaka anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-volvo2-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-riva-686",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Riva Uyumlu Pervane Ogiva Anodu (Küçük Boy)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Riva tekne pervanelerine özel tasarlanmış ogiva (burun konisi) tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "5800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-riva-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-riva-657",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Riva Uyumlu Pervane Ogiva Anodu (Büyük Boy)",
+    "aciklama": "İtalyan üretici Tecnoseal'in Riva tekne pervanelerine özel tasarlanmış büyük boy ogiva (burun konisi) tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "20200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-riva-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-balik-askili",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Askılı Balık (Grouper) Tipi Anot",
+    "aciklama": "İtalyan üretici Tecnoseal'in kablo ve klemensle tekne borda/iskele/yanaşma noktasına asılarak kullanılan balık şeklinde askılı katodik koruma anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-balik-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-divers-askili",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Askılı Konik Anot (Diver Tipi)",
+    "aciklama": "İtalyan üretici Tecnoseal'in kablo ile suya sarkıtılarak kullanılan konik gövdeli askılı katodik koruma anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "4300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-divers-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "martyr-anod-cm200-kucuk",
+    "kategori": "Marin",
+    "marka": [
+      "Martyr"
+    ],
+    "baslik": "Martyr CM200 Gövde (Hull) Anodu (Küçük Boy)",
+    "aciklama": "Amerikan üretici Martyr'in tekne gövdesine (hull) cıvatalanan CM200 serisi çinko anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/martyr-cm200-real-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "martyr-anod-cm200-buyuk",
+    "kategori": "Marin",
+    "marka": [
+      "Martyr"
+    ],
+    "baslik": "Martyr CM200 Gövde (Hull) Anodu (Büyük Boy)",
+    "aciklama": "Amerikan üretici Martyr'in tekne gövdesine (hull) cıvatalanan CM200 serisi büyük boy çinko anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/martyr-cm200-real-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-demirli-1kg",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Askılı/Demirli Konik Anot 1 KG",
+    "aciklama": "İtalyan üretici Tecnoseal'in demir zincirine veya bir halata bağlanarak suya sarkıtılan, 1 kg ağırlığında konik gövdeli katodik koruma anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-divers-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-demirli-2kg",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Askılı/Demirli Konik Anot 2 KG",
+    "aciklama": "İtalyan üretici Tecnoseal'in demir zincirine veya bir halata bağlanarak suya sarkıtılan, 2 kg ağırlığında konik gövdeli katodik koruma anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-divers-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-flap-090",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Flap (Trim Tab) Tipi Tekne Anodu 90 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in tekne dümen/flap (trim tab) yüzeylerine cıvatalanan damla profilli 90 mm anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-flap-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-flap-110",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Flap (Trim Tab) Tipi Tekne Anodu 110 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in tekne dümen/flap (trim tab) yüzeylerine cıvatalanan damla profilli 110 mm anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-flap-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-flap-125",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Flap (Trim Tab) Tipi Tekne Anodu 125 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in tekne dümen/flap (trim tab) yüzeylerine cıvatalanan damla profilli 125 mm anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-flap-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-flap-140",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Flap (Trim Tab) Tipi Tekne Anodu 140 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in tekne dümen/flap (trim tab) yüzeylerine cıvatalanan damla profilli 140 mm anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-flap-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-sterndisc-125",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Kıç Ayna (Stern) Disk Anodu 125 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in İtalyan tipi tekne/tender kıç aynasına (transom) cıvatalanan 125 mm çaplı disk anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-sterndisc-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-sterndisc-140",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Kıç Ayna (Stern) Disk Anodu 140 mm",
+    "aciklama": "İtalyan üretici Tecnoseal'in İtalyan tipi tekne/tender kıç aynasına (transom) cıvatalanan 140 mm çaplı disk anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-sterndisc-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-vetus-80",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Vetus Baş İtici (Bow Thruster) Uyumlu Halka Anot 80",
+    "aciklama": "İtalyan üretici Tecnoseal'in Vetus marka baş itici (bow thruster) üniteleriyle uyumlu 80 serisi halka tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-vetus-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-vetus-100",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Vetus Baş İtici (Bow Thruster) Uyumlu Halka Anot 100",
+    "aciklama": "İtalyan üretici Tecnoseal'in Vetus marka baş itici (bow thruster) üniteleriyle uyumlu 100 serisi halka tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-vetus-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-vetus-200",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Vetus Baş İtici (Bow Thruster) Uyumlu Halka Anot 200",
+    "aciklama": "İtalyan üretici Tecnoseal'in Vetus marka baş itici (bow thruster) üniteleriyle uyumlu 200 serisi halka tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "2200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-vetus-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-vetus-225",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Vetus Baş İtici (Bow Thruster) Uyumlu Halka Anot 225",
+    "aciklama": "İtalyan üretici Tecnoseal'in Vetus marka baş itici (bow thruster) üniteleriyle uyumlu 225 serisi halka tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "4900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-vetus-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-saft-100",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Büyük Çaplı Şaft (Pervane Mili) Halka Anodu 100",
+    "aciklama": "İtalyan üretici Tecnoseal'in büyük çaplı pervane şaftlarına monte edilen iki parçalı halka (kelepçe) tipi anodu, tedarikçi ölçü kodu 100.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "4900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-saft-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-saft-110",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Büyük Çaplı Şaft (Pervane Mili) Halka Anodu 110",
+    "aciklama": "İtalyan üretici Tecnoseal'in büyük çaplı pervane şaftlarına monte edilen iki parçalı halka (kelepçe) tipi anodu, tedarikçi ölçü kodu 110.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "5900 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-saft-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-vetus-platform-kit",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Vetus Platform Tipi Anot Kiti",
+    "aciklama": "İtalyan üretici Tecnoseal'in Vetus baş itici platform gövdesiyle uyumlu komple anot kiti.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-platform-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-flexofold-1040",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Flex-O-Fold Pervane Uyumlu Ogiva Anodu",
+    "aciklama": "İtalyan üretici Tecnoseal'in Flex-O-Fold katlanır pervanelerle uyumlu ogiva (burun konisi) tipi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "1600 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-flexofold-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-sidepower-125",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Side-Power (Sleipner) Baş İtici Uyumlu Pervane Anodu 125",
+    "aciklama": "İtalyan üretici Tecnoseal'in Side-Power (Sleipner) baş itici pervanesiyle uyumlu 125 serisi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-sidepower-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "tecnoseal-anod-sidepower-185",
+    "kategori": "Marin",
+    "marka": [
+      "Tecnoseal"
+    ],
+    "baslik": "Tecnoseal Side-Power (Sleipner) Baş İtici Uyumlu Pervane Anodu 185",
+    "aciklama": "İtalyan üretici Tecnoseal'in Side-Power (Sleipner) baş itici pervanesiyle uyumlu 185 serisi anodu.\nStandart alaşımı tuzlu su kullanımına uygun çinkodur; tatlı suda kullanılan teknelerde magnezyum alaşımlı anot tercih edilmelidir.\nAnot yaklaşık yarısı aşındığında değiştirilmelidir; takmadan önce eski parçanızın ölçü ve numarasıyla uyumluluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/tecnoseal-sidepower-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "sierra-termostat-mercury-3536",
     "kategori": "Marin",
     "marka": [
