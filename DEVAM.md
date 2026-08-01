@@ -2,63 +2,43 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## OTURUM KAPANISI — 2 Agu 2026 (KraL · yayin hatti + altkategori + ucuncu denetim)
+
+**CANLIYA GITTI (hepsi olculdu, itildi, canli teyit alindi):**
+`89a72022` yayin hatti tikanmasi onarildi (kapi kendi kapattigi deligi "hala acik" saniyordu;
+ONCE kaniti artik repoya gomulu fiksturden turuyor) · `09b76410`+`467f8fa8` olcum araci artik
+"olculemedi"yi "bozuk" diye suclamiyor · `235fb25a`+`d379ffb7` altkategori izinli kumesi 11->12
+ve katalog<->D1 sessiz metin ayrismasi fail-closed kapatildi (kapi 35->42 iddia, mutasyon 17/17)
+· `aa114660` altkategori MUSTERI YUZEYINDE (935 sayfa degisti, 15.939 bayt-esit, fail-safe 4/4)
+· `d4806461`+`267b0f5a` yayin gecikme nobetcisi + kendi kusurunun onarimi (olcum IS duzeyine indi)
+· `782cd74e` panonun sahte anahtar alarmi (Okan eliyle) · devam kayitlari `4e08b0f5`, `7f186361`,
+`a2be7d66`. Kapanis olcumu: ana agac TEMIZ, HEAD=origin/main=`a2be7d66`, D1 16874=16874
+(hash uyusmaz/eksik/fazla 0), nobetci 🟢 AKIYOR, agac 5->4 (kendi artigim silindi).
+
+**KOSUYOR:** bu oturumun delege ettigi TUM isler kapandi ve raporlandi. Koşan is YOK.
+
+**BEKLIYOR — kim neyle bloke:**
+- **HocA (dal `wa-siparis-onarim`, worktree DURUYOR, DOKUNULMADI):** ucuncu denetim yapildi,
+  uc eski acik KAPANDI ama teslimin EKLEDIGI 409 savunmasi meshru tekrari ikiz siparise
+  ceviriyor (telefon genis kabul edilip TAM DIZE karsilastiriliyor; 7 yazimin 4'u carpiyor,
+  olculdu: ayni musteriye 2 satir). Recete kutuda. **Merge BENDE, ondan sonra sema gocu +
+  worker deploy + anahtar paylasimi.** Bir para mutanti da hala kaciyor (govde+kalem tutari
+  ayni anda sifirdan buyuk tek fikstur yeter).
+- **HocA (ikinci, ONCELIKLI — Okan'in bekledigi gorunur is):** kategori sayfasindaki altkategori
+  filtresi icin uc kart sozlesmesi genisleyecek. Sema isi YOK, D1 kolonu var ve dolu. Site tarafi
+  HAZIR bekliyor; alan gelince cip/filtre + kirilim dugumu ayni gun aciliyor.
+- **BENDE (siradaki tur):** panel anahtarinin query param yolu (erisim loglarinda gorunuyor) ·
+  fikstur hijyeni (firmanin kendi numarasi fikstürde kullanilmis) · iki eski dal
+  (`koru/faz3-edge-arama`, `kurtarma/nobetci-tur3`) main'de olmayan is tasiyor, siniflandirilmadi.
+- **Baska oturumlarin agaclari** (`angry-lederberg-d7aa53`, `ci-duzeltme-54cca90a`) duruyor —
+  ucu main'de ama sahipleri aktif, DOKUNULMADI.
+
 ## OTURUM — 1 Agu 2026 aksam (KraL · yayin hatti + ikinci denetim turu)
 
 - Yayin hatti tikanmasi ve kalici onarimi (`89a72022`) — kapi kendi kapattigi deligi "hala acik"
   saniyordu; ONCE kaniti artik repoya gomulu fiksturden turuyor. Ayrinti arsivde.
 - Olcum aracinin yanlis suclamasi kapatildi (`09b76410` + `467f8fa8`) — uc cevap vermeyince
   "bozuk" deniyordu; artik OLCULEMEDI ile BOZUK ayri. Ayrinti arsivde.
-
-### CANLIYA GITTI — ALTKATEGORI: IZINLI KUME + SESSIZ AYRISMA KAPISI (`235fb25a` + `d379ffb7`)
-Okan onayiyla izinli altkategori kumesine `Elektrik` eklendi (**11 -> 12**); kardes mimarin
-30 urunluk hazir partisi bunu bekliyordu, ayni gece yazildi ve senkron teyit edildi.
-Kume TEK kaynakta, ikiz tanim yok. Kapi gevsemedi: yakin yazimlar (`Elektrikk`, `elektrik`)
-hala rc=5, once-kirmizi gercek (ayni cagri eskiden rc=5 ile reddediliyordu).
-Is sirasinda **daha eski, sessiz bir kusur** bulundu ve kapatildi: uyelik testi `strip()`
-sonrasi yapildigi icin bosluklu deger KABUL ediliyordu, ama yazma yolu kataloga HAM,
-D1 yolu KIRPILMIS metin gonderiyordu — yani katalog ile D1 sessizce ayrisabiliyordu (site ile
-bot ayni urunu farkli yazimla gorebilirdi). Bu, kume genislemesiyle gelmedi, 11 degerin
-hepsinde vardi. Secilen yol **fail-closed**: kanonik olmayan deger artik REDDEDILIYOR
-(sessizce duzeltilmiyor), ve iki yol tek fonksiyondan turuyor -> ayrisma insaatan imkansiz.
-Mevcut veri kesilmedi (935 dolu kayitta 0 bosluklu). Kapi **35 -> 42 iddia**, mutasyon **17/17**.
-Ikinci kalem: bir mutasyon capasi BAYATLAMISTI (gorselsiz urun isi izinli kumeye alan ekleyince
-capa kaydi) ve bir eksenin oldurucu gucu ARTIK OLCULMUYORDU — sessiz degil gurultulu
-basarisizlik verdigi icin "yakalandi" sanilabilirdi. Capalar desene cevrildi; capa kayarsa
-tur artik ADLI hatayla kirmizi yaniyor (`CAPA BAYAT` / `MUTANT UYGULANMADI` + fiilen-uygulandi
-sayaci), uc ayri bozma denemesinin ucunde de rc=1.
-
-### CANLIYA GITTI — ALTKATEGORI MUSTERI YUZEYINDE + KUME 11->12 (`235fb25a` · `d379ffb7` · `aa114660`)
-Okan onayiyla izinli altkategori kumesine bir grup eklendi; kardes mimarin 30 urunluk hazir
-partisi ayni gece yazildi, senkron teyit edildi. Kume TEK kaynakta, ikiz tanim yok; yakin
-yazimlar hala reddediliyor (kapi gevsemedi), once-kirmizi gercek.
-Is sirasinda DAHA ESKI sessiz bir kusur bulundu: uyelik testi kirpma SONRASI yapildigi icin
-bosluklu deger KABUL ediliyor, ama yazma yolu kataloga HAM, D1 yolu KIRPILMIS metin
-gonderiyordu -> iki depo sessizce ayrisabilirdi. **fail-closed** secildi (sessizce duzeltme
-YOK) ve iki yol tek fonksiyondan turuyor. Mevcut veri kesilmedi. Kapi **35 -> 42 iddia**,
-mutasyon **17/17**. Ayrica bir mutasyon capasi BAYATLAMISTI, bir eksenin oldurucu gucu
-olculmuyordu; capalar desene cevrildi, capa kayarsa tur artik ADLI hatayla kirmizi yaniyor.
-**Musteri yuzeyi:** 935 dolu kayit artik urun sayfasinda etiketle ve yapisal veride gorunuyor
-(canli teyit alindi). Bos kayitta hicbir sey basilmiyor: **935 sayfa degisti / 15.939 bayt-esit**,
-degisen kume dolu kayit kumesiyle BIREBIR ayni. Fail-safe 4/4 (bos · alan yok · None · bozuk tip),
-13 vakada sizma 0, yeni nobetci 34 iddia + mutasyon 8/8. Kirilim dugumu BILEREK acilmadi
-(filtre URL'i yok — kirik adres yerine dugumu hic acmadik).
-⚠️ **Arama kolu BILEREK yapilmadi:** alani yalniz site tarafina eklemek pariteyi YESIL yakar ama
-canlida site ile bot sessizce ayrisirdi. Olculen kayip gercek (13 sorguda 745/1056, alan eklenirse
-+311 eslesme). Uc sozlesmesi kardes mimarda; devir notu yazildi, Okan karariyla ONCELIKLI.
-
-### CANLIYA GITTI — YAYIN GECIKME NOBETCISI + KENDI KUSURUNUN ONARIMI (`d4806461` · `267b0f5a`)
-Bugunku tikanmanin asil dersi tikanmanin kendisi degil, **20 commit boyunca kimsenin fark
-etmemesiydi**. Nobetci artik "canli main'den ne kadar geride" sorusunu soruyor ve TIKANMA
-(kosum dusuyor) ile ACLIK (kosum iptal ediliyor, hic tamamlanmiyor) arizalarini AYIRIYOR.
-Esikler tahmin degil, son 100 kosumun olcumunden turetildi; bugunku olaya karsi denendi ve
-**insanin fark edisinden ~23 dk once** TIKALI derdi. Bagimsiz: tikanan is akisina baglanmadi,
-panodan ve elle kosuyor; ag yoksa OLCULEMEDI (yesil DEGIL).
-🔴 **Ilk gercek kullanimda kendi kusuru cikti ve kapatildi:** "yayin indi mi"yi kosumun GENEL
-sonucundan okuyordu; bloklayici OLMAYAN bir serit dustugunde kosum kirmizi gorunuyor ama
-deploy+yayin basarili olabiliyor — yani site tazeyken TIKALI aliyorduk. Olcum IS duzeyine indi.
-Once-kirmizi: yanlis alarm senaryosu TIKALI -> AKIYOR; korelme kontrolu: bugunku GERCEK tikanma
-(deploy hic kosmadi) hala TIKALI, ustelik yas esigi bilerek sinirin altinda birakilarak hukum
-yalniz zincir ekseninden gelecek sekilde kuruldu. Mutasyon 7/7, canli damgayla tutarli.
 
 ### KARARLAR (bu tur)
 - Ege kapisinda sirket sesi birinci cogulun da yanmasi KABUL EDILDI: o metin Ege'ye kendi
