@@ -1139,6 +1139,51 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python3 tools/cron-nabiz-kapisi.py
+  # ═════════════════════════════════════════════════════════════════════════════
+  # COMMIT MESAJI SIZINTI NOBETI — IKINCI KOL (1 Agu 2026)
+  # ═════════════════════════════════════════════════════════════════════════════
+  # OLCULEN OLAY: depo PUBLIC. Tedarikci adi commit MESAJLARINDA 5 commit'te, satici/
+  # vitrin alan adi 2 commit'te gecti (7 vurus, 5 benzersiz commit). Icerik
+  # degisikliklerinde vurus 0 -> mevcut nobetciler (dosya ADI + dosya ICERIGI ekseni)
+  # bu yuzeyi HIC gormuyordu.
+  #
+  # BIRINCI (ONLEYICI) KOL BURASI DEGIL: `commit-msg` git kancasidir
+  # (tools/commit-mesaji-hook-kur.py). Commit nesnesi yazildiktan sonra mesaj
+  # DEGISTIRILEMEZ -> onleme yalniz yazim aninda mumkundur.
+  #
+  # 🔴 NEDEN AYRI IS ve NEDEN BLOKLAMAZ (olculdu; `envanter` + `cron-nabzi` ile ayni
+  # desen): `needs:` YOK ve hicbir is buna bagli DEGIL -> `deploy` ile PARALEL kosar,
+  # yayin yolunu tek saniye uzatmaz.
+  #   (a) TAMIR DEGERI SIFIR: bu is akisi yalniz `push: branches: [main]` ile ve
+  #       PUSH'TAN SONRA kosar; o an commit ZATEN public remote'tadir. Yayini durdurmak
+  #       sizmis mesaji geri getirmez ve sitede commit mesaji GORUNMEZ (yani "sizintili
+  #       icerik canliya cikmasin" sinifi DEGILDIR — o sinif serit A'da kalir).
+  #   (b) BEDELI OLCULDU: urunle ILGISIZ kapilarin yayini durdurmasi bu depoda 6 SAATLIK
+  #       canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
+  # ⚠️ `continue-on-error` KULLANILMADI (fail-open yazimi nobetci ihlalidir): rc dogrudan
+  #    konusur, job KIRMIZI yanar, bildirim duser. Kapi OLCEMEZSE (desen artefakti yok /
+  #    menzil cozulemedi) rc 2 ile KIRMIZI yanar — "olcemedim" YESIL degildir.
+  # 🔴 TESHIS MASKELI: `--ci` kolu eslesen adi HIC yazmaz, alan adini maskeler. Aksi
+  #    halde kapi sizintiyi PUBLIC Actions gunlugune kendi eliyle kopyalardi.
+  mesaj-nobeti:
+    runs-on: ubuntu-latest
+    steps:
+      # fetch-depth: 0 — `--ci` kolu `before..after` MENZILINI git ile cozer; SIG
+      # (depth=1) klonda menzil COZULEMEZ ve kapi olay yukune duserdi (o kol da var
+      # ama menzil daha dogrudur: 20'den fazla commit tasiyan itmede yuk BUDANIR).
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Once nobetcinin KENDI kabulu (56 iddia; gercek git ile sentetik depoda uctan
+      # uca: yasakli ad REDDEDILIR · temiz mesaj GECER · artefakt yokken commit DURUR ·
+      # kanca kaldirilinca HICBIR SEY uretilmez). Sonra GERCEK olcum.
+      - name: "Commit mesaji sizinti nobetcisi: kendini test (56 iddia, gercek git)"
+        run: python3 tools/commit-mesaji-kapisi.py --kendini-test
+      - name: "Commit mesaji sizintisi: bu itmenin GETIRDIGI mesajlar (ALARM — yayini DURDURMAZ)"
+        run: python3 tools/commit-mesaji-kapisi.py --ci
   # ==========================================================================
   # SERIT B — YAYINI DURDURMAZ (olculmus karar, 31 Tem 2026)
   # ==========================================================================

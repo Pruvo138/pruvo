@@ -2060,6 +2060,24 @@ D_TANI_ONEK = (
 # kapilari · pano/teshis araci testleri · onizleme ve ayri-dagitim arayuz testleri.
 # SUPHEDE A (fail-closed). Bir kapiyi buraya tasimak = KraL KARARI, tek basina alinmaz.
 SERIT_B = {
+    # --- COMMIT MESAJI SIZINTI NOBETI (1 Agu 2026) — GERCEK olcum kolu da burada -----
+    # 🔴 ISTISNAI GIRIS: bu tabloya kural olarak yalniz "aracin KENDINI sinamasi"
+    # girer; burada GERCEK tarama kolu (`--ci`) da B'dedir. GEREKCE (olculdu):
+    #   (a) deploy.yml YALNIZ `push: branches: [main]` ile ve PUSH'TAN SONRA kosar. O an
+    #       commit ZATEN public remote'tadir ve commit MESAJI nesnenin degistirilemez
+    #       parcasidir -> yayini durdurmanin TAMIR DEGERI SIFIRDIR (tek onarim tarihce
+    #       yeniden yazimi + force-push'tur, Okan kapisi).
+    #   (b) Commit mesaji SITEDE GORUNMEZ -> "sizintili icerik canliya cikmasin" sinifi
+    #       DEGILDIR; serit secim olcutu bu adimi A'ya cagirmaz.
+    #   (c) ONLEME kolu CI'da degil `commit-msg` KANCASINDADIR (fail-closed,
+    #       tools/commit-mesaji-hook-kur.py) — CI kolu GORUNURLUK hattidir.
+    #   (d) Olculen bedel: urunle ILGISIZ bir kapinin yayini durdurmasi bu depoda
+    #       6 saatlik canli 404 pencereleri acti ([[kapi-birikimi-yayin-gecikmesi]]).
+    ("deploy.yml", "mesaj-nobeti", "tools/commit-mesaji-kapisi.py"):
+        "ONLEME `commit-msg` KANCASINDADIR (fail-closed); CI kolu ikinci hattir. "
+        "Yayini durdurmanin tamir degeri SIFIR: deploy.yml push'tan SONRA kosar, "
+        "commit zaten public'tir ve commit mesaji nesnenin DEGISTIRILEMEZ parcasidir; "
+        "ayrica commit mesaji sitede GORUNMEZ (canliya cikan icerik sinifi degil).",
     # --- oz-nobetci / kendini-test kollari (gercek olcum kolu SERIT A'da BLOKLAYICI) ---
     ("deploy.yml", "serit-b", "tools/diriltme-kapisi.py"):
         "YALNIZ `--kendini-test` kolu; silinmis urun diriltme OLCUMU (bayraksiz kol) "
