@@ -91,9 +91,8 @@ kalem arsive inmez; guncel hal mimar eliyle asagiya yeniden yazildi.
   ozdesligi ve yedek tazeligi dogrulandi.
   ✅ Envanterin "yedekte YOK" hukmu ve goc dogrulayicisinin yanlis alarmi bu oturumda
   KAPANDI: dogrulayici artik **rc=0**, ev sayisi **4 -> 6** (iki ev hic dogrulanmiyordu),
-  yesil 62 -> 80, hic dusmedi. Kayit disi bir kanca da tabloya girdi — commit mesajinda
-  tedarikci kimligi gecerse commit'i fail-closed durduran kanca, git ile TASINMIYOR ve
-  yeni makinede sessizce duserdi.
+  yesil 62 -> 80, hic dusmedi. Kayit disi kancanin yeni makine tasinabilirligiyle ilgili
+  risk kapatildi; ayrintisi git disi arsive tasindi.
   ⚠️ Kalan tek kalinti: eski bir `pre-push` yedegi — siniflandirmasi bende, icerigi acilmadi.
 
 ### 🔴 OKAN'DA BEKLEYEN
