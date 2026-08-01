@@ -197,8 +197,28 @@ def stokta_kanonik(u):
 # yazilir. Toplu ekleme yolu (urun-ekle.py) duzelt.py'den GECMEZ: oradan giren yeni bir
 # deger tools/altkategori-kapisi.py A ekseninde CI'yi KIRMIZI yakar (olculdu 1 Agu:
 # "Pervaneler" tam olarak boyle geldi, 34 kayit).
+#
+# GENISLETME (2026-08-01, MIMAR KARARI): kume 3 -> 11 degere cikti. Ilk uc deger
+# yukaridaki olcumden geldi; kalan sekizi kardes mimarin bekleyen partileri icin ELLE
+# eklendi ve yazimlari mimar tarafindan kanoniklestirildi (dogru Turkce, cogul bicim).
+# Bunlar HENUZ katalogda kullanilmiyor (olculdu: 134 dolu kayit, 3 tekil deger) — yani
+# izinli kume katalogun ONUNDE gidiyor; bu KASITLI, cunku deger once burada olmadan
+# kataloga yazilamiyor. Yeni sekiz degerin hicbiri mevcut kayitlarla carpismiyor
+# (olculdu: 0) ve on birinin de imza nobetinden gectigi tek tek dogrulandi.
 ALTKATEGORI_IZINLI = {
-    "Marin": ("Boya - Bakım", "Pervaneler", "Sintine ve Ekipmanları"),
+    "Marin": (
+        "Boya - Bakım",
+        "Bujiler",
+        "Dümen ve Kumanda",
+        "Filtreler",
+        "Motor Parçaları",
+        "Motor Yağları",
+        "Pervaneler",
+        "Sintine ve Ekipmanları",
+        "Soğutma",
+        "Tutyalar ve Anotlar",
+        "Yakıt Sistemi",
+    ),
 }
 
 # ── IMZA NOBETI (depo PUBLIC) ────────────────────────────────────────────────
