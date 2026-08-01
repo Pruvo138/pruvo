@@ -117,6 +117,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 import unicodedata
 
 TOOLS = os.path.dirname(os.path.abspath(__file__))
@@ -207,6 +208,26 @@ def adaylar(metin, uzunluk):
 # ---------------------------------------------------------------------------
 def _ozetle(aday, tuz_bayt, dongu):
     return hashlib.pbkdf2_hmac("sha256", aday.encode("utf-8"), tuz_bayt, dongu).hex()
+
+
+# ---------------------------------------------------------------------------
+# SURE EKSENI OLCU BIRIMI — "REFERANS MAKINE MS" (gerekce: kabul bataryasi, I bolumu)
+# ---------------------------------------------------------------------------
+# Kalibrasyon makinesinde 5000 donguluk bir PBKDF2 cagrisi 0,4008 ms surdu. Sure
+# butcesi (3000/400 ms) O makineye gore yazilmistir; baska bir makinede olculen ham
+# ms, o makinenin OLCULEN birim maliyetiyle bu referansa cevrilir. Boylece butce her
+# yerde AYNI seyi — yapilan isi — olcer, makine hizini DEGIL.
+REFERANS_BIRIM_MS = 0.40
+
+
+def referans_ms(ham_ms, birim_ms, referans_birim_ms=REFERANS_BIRIM_MS):
+    """Bu makinede olculen ham ms -> REFERANS makine ms.
+
+    birim_ms olculemezse 0.0 doner; cagiran `0 < sure` bekledigi icin bu FAIL-CLOSED
+    kirmizi olur ("olcemedim" YESIL degildir)."""
+    if not birim_ms or birim_ms <= 0:
+        return 0.0
+    return ham_ms * (referans_birim_ms / birim_ms)
 
 
 def ozet_kaydi_yukle(yol=None):
@@ -336,8 +357,92 @@ def _public_mi(host):
     return False
 
 
-def alan_adi_isabetleri(mesaj):
-    """[(host, konum), ...] — PUBLIC_ALAN disinda kalan URL/e-posta/host jetonlari."""
+# ---------------------------------------------------------------------------
+# KATALOG MARKA MUAFIYETI — OLCULEN YANLIS-POZITIF ONARIMI (1 Agu 2026)
+# ---------------------------------------------------------------------------
+# 🔴 OLCULEN ARIZA: alan adi ekseni SAF bicim kuraliydi -> PUBLIC_ALAN disindaki HER
+# host kirmizi. `urunler.json`'daki 1291 gercek katalog markasinin `<marka>.com`
+# haliyle olculdu: 1291/1291'i KIRMIZI yaniyordu. Yani "Bosch icin NGK muadili
+# eklendi, bkz bosch.com" gibi TAMAMEN MESRU bir mesaj commit'i durduruyordu. Bu,
+# gorevin adlandirdigi ALARM KORLUGU sinifinin ta kendisidir: mesru is engellenince
+# cikis yolu `--no-verify` aliskanligi olur ve o an TUM eksenler (ad ekseni dahil)
+# birden kapanir. Kapinin yanlis-pozitifi, kapinin KENDISINI kapatir.
+#
+# COZUM: markalar IZLENEN ve zaten PUBLIC olan `urunler.json`'un `marka` alanindan
+# CALISMA ANINDA turetilir — yeni bir liste dosyasi YOK, bayatlama YOK, ve public
+# olmayan hicbir ad yazilmaz. Bir host'un ILK etiketi katalog markasiysa YESIL.
+#
+# 🔴 GEVSEME DEGIL, cunku SIRA SABIT: ozet (ad) ekseni ONCE bakilir ve KAZANIR.
+# Tedarikci/vitrin adi ozet artefaktindadir; marka listesine (kazara ya da kasten)
+# girse bile ozet isabeti muafiyeti EZER ve host KIRMIZI kalir (iddia J3/J4 bunu
+# olcer). Muafiyetin acabildigi tek kapi, ozette OLMAYAN + katalogda VAR OLAN, yani
+# tanimi geregi zaten PUBLIC olan bir markadir.
+#
+# MALIYET: `urunler.json` 14,4 MB / 16 407 urun -> tam ayristirma 102 ms. Bu yuzden
+# TEMBEL yuklenir: yalniz mesajda PUBLIC_ALAN disi bir host VARSA okunur (normal
+# commit'lerin ezici cogunlugunda hic okunmaz) ve surec basina bir kez onbelleklenir.
+URUNLER_JSON = os.path.join(ROOT, "urunler.json")
+ASGARI_MARKA_UZUNLUGU = 4          # 3 harfli marka her alan adinda yanardi
+_MARKA_ONBELLEK = {}
+
+
+def katalog_markalari(yol=None):
+    """Normalize edilmis katalog markasi kumesi. Dosya yoksa/bozuksa BOS kume.
+
+    BOS kume = muafiyet YOK = eski KATI davranis; yani bu yolun arizasi kapiyi
+    GEVSETMEZ, siki tarafa duser (fail-closed yonu)."""
+    yol = yol or URUNLER_JSON
+    if yol in _MARKA_ONBELLEK:
+        return _MARKA_ONBELLEK[yol]
+    kume = set()
+    try:
+        with open(yol, encoding="utf-8") as f:
+            veri = json.load(f)
+        for urun in (veri if isinstance(veri, list) else ()):
+            if not isinstance(urun, dict):
+                continue
+            for marka in (urun.get("marka") or ()):
+                if not isinstance(marka, str):
+                    continue
+                n = normalize(marka).replace(" ", "")
+                # Salt rakam olan model kodlari (`1007`, `2002`) muafiyete girmez:
+                # alan adi olarak gecmezler, kumeyi gereksiz genisletirlerdi.
+                if len(n) >= ASGARI_MARKA_UZUNLUGU and any("a" <= k <= "z" for k in n):
+                    kume.add(n)
+    except (OSError, ValueError):
+        kume = set()
+    kume = frozenset(kume)
+    _MARKA_ONBELLEK[yol] = kume
+    return kume
+
+
+def _host_desen_isabeti(host, kayit):
+    """Host'un kendisi GIZLI DESEN mi (tedarikci/vitrin alan adi).
+
+    Host'un etiket zinciri hem bosluklu ('vitrin com') hem sikistirilmis
+    ('vitrincom') hem de govde ('vitrin') olarak ozetlenip karsilastirilir."""
+    if not kayit:
+        return None
+    etiketler = [e for e in host.lower().strip(".").split(".") if e]
+    if not etiketler:
+        return None
+    govde = etiketler[0]
+    akislar = (" ".join(etiketler), "".join(etiketler), govde,
+               " ".join(etiketler[:-1]), "".join(etiketler[:-1]))
+    for i, (n, ozet) in enumerate(kayit["desenler"]):
+        for akis in akislar:
+            if len(akis) == n and _ozetle(akis, kayit["tuz"], kayit["dongu"]) == ozet:
+                return i
+    return None
+
+
+def alan_adi_isabetleri(mesaj, kayit=None, markalar=None):
+    """[(host, konum, desen_no), ...] — hukme giren host jetonlari.
+
+    `desen_no` None ise "PUBLIC_ALAN'da olmayan TANINMAYAN host" (bicim kurali);
+    sayi ise "host'un KENDISI gizli desen" -> host teshise ASLA yazilmaz.
+
+    `markalar=None` -> katalog tembel yuklenir; `frozenset()` -> muafiyet KAPALI."""
     if not mesaj:
         return []
     bulunan = {}
@@ -357,7 +462,21 @@ def alan_adi_isabetleri(mesaj):
         if _public_mi(jeton):
             continue
         bulunan.setdefault(jeton, m.start(1))
-    return sorted((h, k) for h, k in bulunan.items())
+    if not bulunan:
+        return []
+    if markalar is None:
+        markalar = katalog_markalari()
+    isabet = []
+    for host, konum in bulunan.items():
+        # 🔴 SIRA GUVENLIK ICIN SABIT: once GIZLI DESEN, sonra marka muafiyeti.
+        no = _host_desen_isabeti(host, kayit)
+        if no is not None:
+            isabet.append((host, konum, no))
+            continue
+        if normalize(host.split(".")[0]).replace(" ", "") in markalar:
+            continue
+        isabet.append((host, konum, None))
+    return sorted(isabet)
 
 
 def maskele(host):
@@ -391,7 +510,7 @@ def mesaj_govdesi(ham, yorum_karakteri="#"):
     return "\n".join(satirlar).strip()
 
 
-def mesaj_kusurlari(mesaj, kayit, maskeli=False):
+def mesaj_kusurlari(mesaj, kayit, maskeli=False, markalar=None):
     """[teshis, ...] — bos liste = temiz. Eslesen METIN asla teshise girmez."""
     kusurlar = []
     for no, n in ad_isabetleri(mesaj, kayit):
@@ -400,13 +519,23 @@ def mesaj_kusurlari(mesaj, kayit, maskeli=False):
             "Depo PUBLIC — commit mesaji DEGISTIRILEMEZ ve raw API'den anonim okunur. "
             "(Eslesen metin BILEREK yazilmiyor: bu ciktinin kendisi de sizinti olurdu.)"
             % (no, n))
-    for host, konum in alan_adi_isabetleri(mesaj):
+    for host, konum, no in alan_adi_isabetleri(mesaj, kayit, markalar):
+        if no is not None:
+            # 🔴 HOST GIZLI DESENIN KENDISI -> maskeli/acik FARK ETMEZ, YAZILMAZ.
+            # Kanca kolunda bile: burada gorunen ad, ad ekseninin gizledigi adin
+            # ta kendisidir; teshise yazmak nobetciyi sizinti kaynagina cevirirdi.
+            kusurlar.append(
+                "TEDARIKCI/SATICI ALAN ADI: commit mesajinda gizli desen #%d ile "
+                "eslesen bir host gecti (konum %d). Alan adi BILEREK yazilmiyor. "
+                "Mesaji duzenle: adres yerine notr ifade ('kaynak platform')."
+                % (no, konum))
+            continue
         gosterim = maskele(host) if maskeli else host
         kusurlar.append(
             "TANINMAYAN ALAN ADI: %r (konum %d) — commit mesajinda yalniz PUBLIC_ALAN "
-            "listesindeki alan adlari gecebilir. Satici/vitrin/tedarikci alan adi "
-            "PUBLIC depoya girmez. Mesru ve PUBLIC bir alan adiysa "
-            "tools/commit-mesaji-kapisi.py PUBLIC_ALAN listesine ekle."
+            "listesindeki alan adlari ve KATALOG MARKASI alan adlari gecebilir. "
+            "Satici/vitrin/tedarikci alan adi PUBLIC depoya girmez. Mesru ve PUBLIC "
+            "bir alan adiysa tools/commit-mesaji-kapisi.py PUBLIC_ALAN listesine ekle."
             % (gosterim, konum))
     return kusurlar
 
@@ -586,6 +715,98 @@ def kol_ci(kok=None, ozet_yolu=None):
     return RC_TEMIZ
 
 
+# ---------------------------------------------------------------------------
+# KAYNAK TARAMA KOLU — UCUNCU YUZEY: NOBETCININ KENDI DOSYALARI
+# ---------------------------------------------------------------------------
+# 🔴 OLCULEN ARIZA (1 Agu 2026): bu dosyanin KENDI docstring/yorumlari, mekanizmayi
+# anlatmak icin ORNEK diye GERCEK yasakli adi duz metin yaziyordu (6 satir, 2 desen).
+# Yani "yasakli ad hicbir IZLENEN dosyada yazmaz" beyani kapinin KENDISINDE ihlaldi.
+# Bu bir COMMIT MESAJI sizintisi degil ICERIK sizintisidir: depo PUBLIC, dosya ham
+# olarak servis edilir, kod aramasi ve egitim kazimalari tarafindan okunur.
+# NEDEN MEVCUT NOBETCILER GORMEDI: tools/kisisel-veri-test.py'nin icerik ekseni BASKA
+# bir tedarikci kumesini (kendi parcali kaliplarini) tarar; bu artefaktin desenlerini
+# BILMEZ. Iki kume arasindaki bosluk olculdu ve bu kol o bosluktur.
+KAYNAK_TARAMA = (
+    "tools/commit-mesaji-kapisi.py",
+    "tools/commit-mesaji-hook-kur.py",
+    "tools/commit-mesaji-mutasyon.py",
+    "tools/sizinti-desen-ozetleri.json",
+    ".github/workflows/deploy.yml",
+)
+# 🔴 KAPSAM DARALTMA — OLCULEN MALIYET. Tam kapsam (5 dosyanin TAMAMI) 31,7 s surdu;
+# CI'da (olculen 3,58x) ~113 s eder ve bu deponun tekrar tekrar olctugu KAPI BIRIKMESI
+# arizasini buyutur. Maliyetin ezici cogunlugu 131 KB'lik deploy.yml'dendir ve o
+# dosyanin bu eksende TASIDIGI RISK yalniz `mesaj-nobeti` job'unun kendi metnidir
+# (adim adlari + yorumlari) — geri kalan 40'tan fazla job'un bu nobetciyle ilgisi YOK
+# ve onlar zaten tools/kisisel-veri-test.py'nin icerik ekseninde. Bu yuzden deploy.yml
+# BLOK olarak taranir. Daraltma OLCULDU: 31,7 s -> 12,2 s, kapsam kaybi YOK (bu
+# nobetcinin yazdigi/yazabilecegi tek yer o bloktur).
+_BLOK_KAPSAM = {".github/workflows/deploy.yml": ("\n  mesaj-nobeti:", "\n  # ")}
+
+
+def _kaynak_metni(yol, rel):
+    try:
+        with open(yol, encoding="utf-8", errors="replace") as f:
+            metin = f.read()
+    except OSError:
+        return None
+    kapsam = _BLOK_KAPSAM.get(rel)
+    if kapsam:
+        bas, son = kapsam
+        if bas not in metin:
+            # Blok BULUNAMADI -> daraltma yapilamadi. Sessizce "hicbir sey taramadim"
+            # DEMEK YERINE tum dosya taranir (fail-closed yonu: pahali ama kor degil).
+            return metin
+        metin = metin.split(bas, 1)[1]
+        return metin.split(son, 1)[0]
+    return metin
+
+
+def kaynak_tara(kayit, kok=None, dosyalar=KAYNAK_TARAMA):
+    """[(dosya, desen_no), ...] — izlenen kaynaklarda DUZ METIN yasakli ad.
+
+    🔴 MALIYET NOTU: adaylar TUM dosyalar boyunca TEK kumede toplanip bir kez
+    ozetlenir (kaynaklar buyuk olcude ayni jetonlari paylasir). Eslesen METIN yine
+    ASLA donmez/basilmaz."""
+    kok = kok or ROOT
+    uzunluklar = sorted({n for n, _ in kayit["desenler"]})
+    # aday -> onu iceren dosyalar
+    aday_dosya = {}
+    for rel in dosyalar:
+        metin = _kaynak_metni(os.path.join(kok, rel), rel)
+        if metin is None:
+            continue
+        for n in uzunluklar:
+            for aday in adaylar(metin, n):
+                aday_dosya.setdefault((n, aday), set()).add(rel)
+    ozet_aday = {}
+    for (n, aday), _ in aday_dosya.items():
+        ozet_aday.setdefault((n, _ozetle(aday, kayit["tuz"], kayit["dongu"])),
+                             set()).update(aday_dosya[(n, aday)])
+    bulgular = []
+    for i, (n, ozet) in enumerate(kayit["desenler"]):
+        for rel in sorted(ozet_aday.get((n, ozet), ())):
+            bulgular.append((rel, i))
+    return sorted(bulgular)
+
+
+def kol_kaynak_tara(kok=None, ozet_yolu=None):
+    kayit = _kayit_ya_da_cik(ozet_yolu)
+    if kayit is None:
+        return RC_OLCULEMEDI
+    bulgular = kaynak_tara(kayit, kok=kok)
+    print("taranan kaynak dosyasi: %d" % len(KAYNAK_TARAMA))
+    if not bulgular:
+        print("temiz: 0 vurus (izlenen kaynaklarda duz metin yasakli ad YOK).")
+        return RC_TEMIZ
+    for rel, no in bulgular:
+        print("  * ICERIK SIZINTISI: %s dosyasinda gizli desen #%d DUZ METIN gecti. "
+              "(Eslesen metin BILEREK yazilmiyor.) Ornekleri UYDURMA adla degistir."
+              % (rel, no), file=sys.stderr)
+    print("SIZINTI: %d vurus" % len(bulgular), file=sys.stderr)
+    return RC_SIZINTI
+
+
 def kol_menzil(menzil, kok=None, ozet_yolu=None, maskeli=True):
     kayit = _kayit_ya_da_cik(ozet_yolu)
     if kayit is None:
@@ -611,7 +832,11 @@ def kol_menzil(menzil, kok=None, ozet_yolu=None, maskeli=True):
 # olurdu. Testin olctugu sey MEKANIZMADIR (normalize + aday + ozet + fail-closed),
 # hangi adin yasakli oldugu DEGIL. Uydurma adlar `--desen-yaz` ile gecici bir ozet
 # artefaktina donusur; boylece uretim yolu da AYNI kosumda sinanir.
-_UYDURMA = ("Zorbacix", "HayaliVitrin", "gizlivitrin.example")
+#
+# `gizlivitrin` UYDURMA BIR VITRIN GOVDESIDIR ve ozet artefaktina GIRER: alan adi
+# ekseninin "host'un KENDISI gizli desen" kolunu (J3/J4) gercek uretim yoluyla
+# olcebilmek icin gereklidir. Gercek vitrin adiyla HICBIR ilgisi yoktur.
+_UYDURMA = ("Zorbacix", "HayaliVitrin", "gizlivitrin.example", "gizlivitrin")
 
 # Gercek katalogdan ornekleme (yanlis-pozitif nobeti). Bunlar SATILAN URUN
 # MARKALARIDIR: sitede zaten gorunurler, commit mesajinda gecmeleri SIZINTI DEGILDIR.
@@ -722,11 +947,16 @@ def kendini_test():
         ad_teshis = " ".join(kusur("%s partisi" % kirmizi))
         kontrol("D1 ad teshisi ESLESEN METNI YAZMAZ",
                 kirmizi.lower() not in ad_teshis.lower(), ad_teshis[:120])
-        maskeli = " ".join(kusur("kaynak: gizlivitrin.com", maskeli=True))
+        # D2/D3 maskeleme kolunu TANINMAYAN (ama gizli desen OLMAYAN) bir host ile
+        # olcer. 🔴 NEDEN `gizlivitrin.com` DEGIL: o host artik ozet ekseninden
+        # yakalanir ve teshisi ADI HIC YAZMAZ (J5) — yani maskeleme kolundan HIC
+        # gecmez. Maskeleme "adi bilinmeyen ama supheli host" hali icindir.
+        maskeli = " ".join(kusur("kaynak: bilinmeyensatici.com", maskeli=True))
         kontrol("D2 --ci kolunda alan adi MASKELENIR",
-                "gizlivitrin" not in maskeli and "g*" in maskeli, maskeli[:120])
-        acik = " ".join(kusur("kaynak: gizlivitrin.com", maskeli=False))
-        kontrol("D3 kanca kolunda alan adi ACIK (yerel teshis)", "gizlivitrin.com" in acik)
+                "bilinmeyensatici" not in maskeli and "b*" in maskeli, maskeli[:120])
+        acik = " ".join(kusur("kaynak: bilinmeyensatici.com", maskeli=False))
+        kontrol("D3 kanca kolunda alan adi ACIK (yerel teshis)",
+                "bilinmeyensatici.com" in acik, acik[:120])
 
         # ---- E) GIT YORUM SATIRLARI HUKME GIRMEZ ---------------------------
         sablon = ("tedarikci partisi eklendi\n"
@@ -907,18 +1137,187 @@ def kendini_test():
                 m3 is None and bool(hata3))
 
         # ---- I) SURE OLCUMU (kanca kullanici bekletmemeli) -----------------
+        # 🔴 ESIK MUTLAK MS DEGIL, "REFERANS MAKINE MS"IDIR — OLCUMLE DUZELTILDI
+        # (1 Agu 2026). OLCULEN ARIZA: bu iki iddia bir Apple Silicon gelistirici
+        # makinesinde kalibre edildi ve GitHub `ubuntu-latest` kosucusunda HIC
+        # yesil yanmadi — job kurulusundan (40367736) itibaren HER kosumda kirmizi:
+        #   I1  yerel 1748/1754/1782/1783/1789 ms   ·  CI 6289/6302/6416 ms
+        #   I2  yerel  143/ 144/ 145/ 146/ 147 ms   ·  CI  511/ 525/ 522 ms
+        # Kosum-ici degisim her iki makinede de %2'nin ALTINDA, oran ise iki
+        # olcumde de AYNI (3,58x) -> kosucu gurultusu ya da bizim kodumuzda bir
+        # gerileme DEGIL, sabit bir donanim hizi farki.
+        # NEDEN NORMALIZE, NEDEN KOR GENISLETME DEGIL: kapinin suresinin %96,9'u
+        # KACINILMAZ PBKDF2 cagrisidir (700 jetonda 4303 cagri x 0,4008 ms = 1725 ms
+        # / olculen 1780 ms) — yani sure = YAPILAN IS x MAKINE HIZI. Esigi kor bir
+        # sekilde 12 000 ms'ye cekmek "kanca kullaniciyi bekletmesin" iddiasini
+        # ANLAMSIZLASTIRIRDI. Ustelik mutlak esik TERS yonde de bozuktu: gelistirici
+        # makinesinde 1780/3000, yani gercek bir %68'lik gerilemeyi bile YESIL
+        # yakardi. Bu yuzden olculen sure, o anki makinenin OLCULEN PBKDF2 birim
+        # maliyetiyle referans makineye cevrilir: 3000/400 ms butcesi ve ANLAMI
+        # aynen kalir, ama her makinede AYNI seyi (yapilan isi) olcer.
+        # Cevrim MODUL DUZEYINDEKI `referans_ms()`tir (bu bolumun disinda tanimli):
+        # I1/I2 ve I4 AYNI fonksiyonu cagirir, yani asagidaki enjeksiyon testi
+        # gercek kod yolunu olcer — testin kendi icinde yeniden yazilmis bir kopyayi
+        # DEGIL (olculdu: kopya yazildiginda olcegi olduren mutant SAG KALIYORDU).
+        # 🔴 KALIBRASYON OLCUM PENCERESINE SERPISTIRILIR — OLCULEN ARIZA: ilk taslakta
+        # birim maliyet SADECE BASTA ve 3 partinin EN IYISI (min) olarak olculuyordu.
+        # tools/commit-mesaji-mutasyon.py kosumunda (25 ardisik kosum, makine isinip
+        # yavasladi) bu ILGISIZ bir mutantta SAHTE-KIRMIZI uretti: kalibrasyon hizli
+        # bir pencere yakalayip 1,07x dedi, oysa kapi kosumu sirasinda makine ~1,6x
+        # yavaslamisti (ham 3817 ms / normalde 2352 ms). Yani hata kapida degil,
+        # OLCU ALETINDEYDI: kisa bir pencerede olculen birim, uzun bir pencerede
+        # kosan kapiyi temsil etmiyordu.
+        # COZUM: partiler olcumun ONUNE, ARASINA ve SONUNA serpistirilir ve ORTANCA
+        # alinir. Ortanca, "min"in aksine gecici bir hizli pencereye kanmaz; "max"in
+        # aksine tek bir yavas partiyi butun olcume yaymaz.
+        partiler = []
+
+        def _parti():
+            t = time.perf_counter()
+            for i in range(100):
+                _ozetle("olcum%08d" % i, kayit["tuz"], kayit["dongu"])
+            partiler.append((time.perf_counter() - t) * 1000 / 100)
+
+        def _birim():
+            sirali = sorted(partiler)
+            n = len(sirali)
+            if not n:
+                return 0.0
+            return sirali[n // 2] if n % 2 else (sirali[n // 2 - 1] + sirali[n // 2]) / 2
+
+        def _sure_ms(mesaj):
+            t = time.perf_counter()
+            kusur(mesaj)
+            return (time.perf_counter() - t) * 1000
+
         uzun = " ".join(["kelime%d" % i for i in range(700)])
-        t0 = time.perf_counter()
-        kusur(uzun)
-        sure = (time.perf_counter() - t0) * 1000
-        kontrol("I1 700 jetonlu (EN KOTU gercek mesaj) kapi < 3000 ms",
-                sure < 3000, "%.0f ms" % sure)
         orta = " ".join(["kelime%d" % i for i in range(50)])
-        t0 = time.perf_counter()
-        kusur(orta)
-        sure_orta = (time.perf_counter() - t0) * 1000
-        kontrol("I2 50 jetonlu (ORTANCA gercek mesaj) kapi < 400 ms",
-                sure_orta < 400, "%.0f ms" % sure_orta)
+        _parti()
+        _parti()
+        ham = _sure_ms(uzun)
+        _parti()
+        ham_orta = _sure_ms(orta)
+        _parti()
+        # Tek birim, TUM olcum penceresine yayilmis 4 partinin ORTANCASI.
+        birim = _birim()
+        yavaslik = (birim / REFERANS_BIRIM_MS) if birim else 0.0
+        sure = referans_ms(ham, birim)
+        sure_orta = referans_ms(ham_orta, birim)
+        kontrol("I1 700 jetonlu (EN KOTU gercek mesaj) kapi < 3000 referans-ms "
+                "[ham %.0f ms · makine %.2fx · %.0f referans-ms]"
+                % (ham, yavaslik, sure),
+                0 < sure < 3000, "%.0f referans-ms (ham %.0f ms)" % (sure, ham))
+        kontrol("I2 50 jetonlu (ORTANCA gercek mesaj) kapi < 400 referans-ms "
+                "[ham %.0f ms · %.0f referans-ms]" % (ham_orta, sure_orta),
+                0 < sure_orta < 400,
+                "%.0f referans-ms (ham %.0f ms)" % (sure_orta, ham_orta))
+        # I3 — MAKINEDEN TAMAMEN BAGIMSIZ IS TAVANI. I1/I2 sure eksenidir; bu iddia
+        # SURE OLCMEZ, YAPILAN ISI (PBKDF2 cagri sayisi) sozlesmesine karsi olcer.
+        # SOZLESME: `adaylar()` her desen uzunlugu icin, IKI akista (bosluklu +
+        # sikistirilmis), KELIME BASINA en fazla BIR aday uretir -> tavan
+        # 2 x jeton x uzunluk_sayisi. Kelime-basi kisiti kaybolursa (ya da bir ucuncu
+        # akis eklenirse) bu tavan ASILIR ve iddia her makinede KIRMIZI yanar.
+        # 🔴 NEDEN "DOGRUSALLIK ORANI" DEGIL: onceki taslakta iddia 700/50 aday
+        # ORANININ < 20x kalmasiydi. OLCULDU: aday sayisi TANIMI GEREGI dogrusaldir
+        # (adaylar SABIT uzunlukta dilimlerdir, sayilari konum sayisiyla artar), yani
+        # o oran gercek bir O(n^2) mutasyonunda bile 15,4x'te kaldi -> iddia ASLA
+        # kirmizi yanamayan bir TAUTOLOJIYDI. Tavan bicimi ayni mutasyonu yakalar
+        # (24 935 > 5 600).
+        _uzunluklar = sorted({n for n, _ in kayit["desenler"]})
+        aday_uzun = sum(len(adaylar(uzun, n)) for n in _uzunluklar)
+        tavan = 2 * 700 * len(_uzunluklar)
+        kontrol("I3 PBKDF2 cagri sayisi IS TAVANININ altinda (2 akis x kelime basi x "
+                "desen uzunlugu) [%d / tavan %d]" % (aday_uzun, tavan),
+                0 < aday_uzun <= tavan, "%d > %d" % (aday_uzun, tavan))
+        # I4 — HUKUM DONANIMDAN BAGIMSIZ MI? Olculen kosucu yavasligi ENJEKTE edilir
+        # (makineyi mesgul etmeye calismak olculdu: 24 CPU yakiciyla bile yavaslama
+        # yalniz %4'tu, yani tekrarlanabilir bir CI taklidi DEGIL). Tekduze daha yavas
+        # bir CPU'da kapi suresi de birim maliyet de AYNI katsayiyla buyur.
+        def _hukum(ham_ms, birim_ms):
+            return 0 < referans_ms(ham_ms, birim_ms) < 3000
+
+        kontrol("I4 tekduze yavaslamada HUKUM DEGISMEZ (0,25x / 3,58x=olculen CI / "
+                "10x / 40x enjekte)",
+                all(_hukum(ham * k, birim * k) == _hukum(ham, birim)
+                    for k in (0.25, 3.58, 10.0, 40.0)))
+        # 🔴 IKINCI YON SART: yalniz KAPI yavaslarsa (birim maliyet SABIT) bu gercek
+        # bir gerilemedir ve KIRMIZI yanmalidir. Bu iddia olmadan "her zaman yesil"
+        # veren anlamsiz bir olcu birimi yazmis olurduk — sure butcesinin AMACI
+        # (yavas kanca -> `--no-verify` aliskanligi) burada korunur.
+        kontrol("I4b yalniz KAPI yavaslarsa (birim SABIT, 3x) KIRMIZI yanar — sure "
+                "butcesi hala yuk tasiyor",
+                _hukum(ham, birim) and not _hukum(ham * 3.0, birim))
+
+        # ---- J) ALAN ADI EKSENI: YANLIS-POZITIF vs TEDARIKCI VITRINI -------
+        # 🔴 IKI YONLU OLCUM. Yon 1: gercek katalog markalarinin alan adi hali YESIL
+        # olmali (yoksa mesru is engellenir -> `--no-verify` aliskanligi -> o an TUM
+        # eksenler kapanir). Yon 2: tedarikci/vitrin alan adi HALA KIRMIZI olmali.
+        gercek_markalar = katalog_markalari()
+        kontrol("J0 katalog marka kumesi urunler.json'dan turedi [%d marka]"
+                % len(gercek_markalar), len(gercek_markalar) >= 100,
+                "%d marka" % len(gercek_markalar))
+        # Toplu suzgec SAF bicim+marka kuralini olcer (ozet ekseni disarida): 1291
+        # marka icin ozetleme kabul bataryasini dakikalarca uzatirdi. Ozet ONCELIGI
+        # ayrica J3/J4'te GERCEK artefaktla olculur.
+        onceki_kirmizi, yeni_kirmizi = [], []
+        for marka in sorted(gercek_markalar):
+            m = "muadil parca eklendi, bkz https://%s.com/parts" % marka
+            if alan_adi_isabetleri(m, None, frozenset()):
+                onceki_kirmizi.append(marka)
+            if alan_adi_isabetleri(m, None, gercek_markalar):
+                yeni_kirmizi.append(marka)
+        kontrol("J1 katalog marka alan adlari YESIL [%d/%d]"
+                % (len(gercek_markalar) - len(yeni_kirmizi), len(gercek_markalar)),
+                not yeni_kirmizi, "kirmizi kalan: %r" % (yeni_kirmizi[:5],))
+        # J2 olcumu ANLAMLI kilar: muafiyet olmasa bu kume KIRMIZI yanardi. Tek
+        # istisna `google` — PUBLIC_ALAN'da zaten var (platform alani ve ayni zamanda
+        # katalog markasi), yani muafiyet ONCESI de yesildi. Beklenen: N-1.
+        kontrol("J2 olcum ANLAMLI: muafiyet OLMADAN kume KIRMIZI yaniyordu "
+                "[%d/%d; tek istisna PUBLIC_ALAN'daki 'google']"
+                % (len(onceki_kirmizi), len(gercek_markalar)),
+                len(onceki_kirmizi) == len(gercek_markalar) - 1,
+                "%d/%d" % (len(onceki_kirmizi), len(gercek_markalar)))
+        vitrin = "kaynak: https://gizlivitrin.com/urunler"
+        kontrol("J3 tedarikci vitrini alan adi HALA KIRMIZI (ozet ekseninden)",
+                bool(alan_adi_isabetleri(vitrin, kayit, gercek_markalar)))
+        # 🔴 EN KRITIK IDDIA: muafiyet listesine vitrin adi (kazara ya da KASTEN)
+        # girse BILE ozet onceligi muafiyeti EZER -> muafiyet bir BYPASS'a donusemez.
+        zehirli = alan_adi_isabetleri(
+            vitrin, kayit, frozenset(set(gercek_markalar) | {"gizlivitrin"}))
+        kontrol("J4 vitrin adi MARKA MUAFIYETINE sokulsa bile ozet onceligi EZER "
+                "(muafiyet bypass'a donusemez)",
+                bool(zehirli) and zehirli[0][2] is not None, repr(zehirli)[:120])
+        kontrol("J5 vitrin teshisi ALAN ADINI YAZMAZ (kanca kolunda BILE)",
+                "gizlivitrin" not in " ".join(kusur(vitrin)).lower(),
+                " ".join(kusur(vitrin))[:140])
+        kontrol("J6 katalogda OLMAYAN taninmayan host HALA KIRMIZI (fail-closed)",
+                bool(alan_adi_isabetleri("kaynak: bilinmeyensatici.com/liste",
+                                         kayit, gercek_markalar)))
+        kontrol("J7 urunler.json YOKKEN muafiyet KAPALI (bos kume = KATI davranis)",
+                katalog_markalari(os.path.join(tmp, "yok.json")) == frozenset())
+
+        # ---- K) BAYAT ADIM ADI NOBETI --------------------------------------
+        # 🔴 OLCULEN ARIZA: deploy.yml adim adi "56 iddia" diyordu, gercek 58'di.
+        # Bayat sayi kosumun neyi olctugu hakkinda YANLIS bilgi verir ve kimse
+        # duzeltmez. COZUM: sayi adim ADINDAN CIKARILDI (gercek sayiyi bu betik
+        # "SONUC: N/N" satiriyla KENDI basar) ve tekrari bu iddia engeller.
+        yml = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
+        try:
+            with open(yml, encoding="utf-8") as f:
+                yml_metin = f.read()
+        except OSError:
+            yml_metin = ""
+        kontrol("K0 deploy.yml okunabildi (izlenen dosya; yoklugu OLCULEMEDI'dir)",
+                bool(yml_metin))
+        job = yml_metin.split("\n  mesaj-nobeti:", 1)[-1].split("\n  # ", 1)[0]
+        adlar = re.findall(r"- name:.*", job)
+        bayat = [a for a in adlar if re.search(r"\d+\s+iddia", a)]
+        kontrol("K1 mesaj-nobeti adim ADLARINDA sabitlenmis iddia SAYISI YOK "
+                "(bayatlayamaz) [%d adim]" % len(adlar),
+                bool(yml_metin) and bool(adlar) and not bayat, "bayat: %r" % (bayat,))
+        kontrol("K2 mesaj-nobeti job'u bu betigi GERCEKTEN kosuyor (iki kol)",
+                "tools/commit-mesaji-kapisi.py --kendini-test" in job
+                and "tools/commit-mesaji-kapisi.py --ci" in job)
     finally:
         _shutil.rmtree(tmp, ignore_errors=True)
 
@@ -937,6 +1336,8 @@ def main(argv=None):
     ap.add_argument("--menzil", metavar="A..B")
     ap.add_argument("--son", type=int, metavar="N")
     ap.add_argument("--kendini-test", action="store_true")
+    ap.add_argument("--kaynak-tara", action="store_true",
+                    help="izlenen nobetci kaynaklarinda DUZ METIN yasakli ad ara")
     ap.add_argument("--desen-yaz", action="store_true")
     ap.add_argument("--desen-kaynak", metavar="YOL")
     ap.add_argument("--ozet-dosya", metavar="YOL")
@@ -953,6 +1354,8 @@ def main(argv=None):
         return RC_TEMIZ
     if a.kendini_test:
         return kendini_test()
+    if a.kaynak_tara:
+        return kol_kaynak_tara(ozet_yolu=a.ozet_dosya)
     if a.commit_msg:
         return kol_commit_msg(a.commit_msg, a.ozet_dosya)
     if a.ci:
