@@ -35,6 +35,15 @@ onbellegi atlayan bir olcum tam da VAKA 1'i kacirirdi):
                varsa O CAGIRILIR, yoksa "OLCULEMEDI" denir (sessiz yesil verilmez).
   K5 D1/GORSEL en yeni N urun canli worker'in D1 katalogunda TANINIYOR mu (Ege'nin okudugu
                yer) + gorsel referanslari R2'de gercekten VAR mi.
+  K6 FIZIKSEL  hazir ticari malda (`tur == "fiziksel"`) canli worker LISTE FIYATINI mi tahsil
+               ediyor + canli paket depo HEAD'i ile ayni nesli mi tasiyor.
+               ⚠️ IKINCI KOPYA ACILMAZ: bu eksen tools/fiziksel-canli-kapisi.py'nindir;
+               varsa O CAGIRILIR, yoksa "OLCULEMEDI" denir.
+               🔴 VAKA 5 (1 Agu, OLCULDU) — K4 BU EKSENI GORMEZ: K4 yalnizca KONFIGURLU (17)
+               urunu olcer. Canli paket 30 Tem 20:30 – 1 Agu 01:58 arasi bayat kaldi ve 676
+               fiziksel uruntte malzeme/renk carpani uygulamaya DEVAM etti (liste x1,840'a
+               varan FAZLA tahsilat). O sirada K4 rc=0, bu nobetci rc=0 idi. Korlugun sebebi
+               "K4 dar" degil, `tur` ekseninin HIC OLCULMEMESIYDI.
 
 🔴 YAYIN PENCERESI AYRIMI (bu aracin asil YARGISI — yanlis-pozitif kapisi):
   "canli geride" tek basina ARIZA DEGILDIR: push'tan sonra CI ~5 dk kosar, sonra Pages+CDN
@@ -415,6 +424,26 @@ def kart_kanali_gozlemi(site, gecikme=GECIKME_VARSAYILAN):
     return {"hal": hal, "detay": "; ".join(ozet[:4]) or (p.stdout or "").strip()[-200:]}
 
 
+def fiziksel_fiyat_gozlemi(site, gecikme=GECIKME_VARSAYILAN):
+    """K6 — IKINCI KOPYA ACILMAZ. tools/fiziksel-canli-kapisi.py VARSA o cagirilir (hazir
+    ticari mal fiyat ekseninin TEK sahibi odur); YOKSA "arac yok" denir ve OLCULEMEDI sayilir.
+
+    K4'ten AYRI bir eksendir ve K4'e DEVREDILEMEZ: K4'un araci yalnizca konfigurlu urunleri
+    olcer, bu eksen `tur == "fiziksel"` sinifini olcer. 1 Agu'da ikisi de yesil yanarken
+    canli worker fiziksel uruntte liste fiyatinin 1,840 katini tahsil ediyordu."""
+    yol = os.path.join(TOOLS, "fiziksel-canli-kapisi.py")
+    if not os.path.isfile(yol):
+        return {"hal": "ARAC-YOK", "detay": "tools/fiziksel-canli-kapisi.py bu agacta YOK "
+                                            "(dal main'e alinmamis olabilir)"}
+    p = subprocess.run([sys.executable, yol, "--uc", site + "/api/shop/fiyat",
+                        "--gecikme", str(gecikme)], capture_output=True, text=True)
+    hal = {0: "PARITE", 1: "DRIFT", 2: "OLCULEMEDI"}.get(p.returncode, "OLCULEMEDI")
+    ozet = [s.strip() for s in (p.stdout or "").splitlines()
+            if s.strip().startswith(("SAPMA", "TANIMIYOR", "NESIL", "REPO-KIRIK",
+                                     "AYIRT-EDICI-YOK", "LISTE-SAPMASI", "ARIZA"))]
+    return {"hal": hal, "detay": "; ".join(ozet[:4]) or (p.stdout or "").strip()[-200:]}
+
+
 def gozlem_topla(site, ci_api, adet, gecikme, zaman_asimi,
                  son_commit=SON_COMMIT_SAYISI_VARSAYILAN):
     """TUM canli olcumu tek bir sozluge toplar. degerlendir() SADECE bu sozlugu gorur ->
@@ -442,6 +471,7 @@ def gozlem_topla(site, ci_api, adet, gecikme, zaman_asimi,
         "d1": d1_gozlemi(site, d1_urunleri, gecikme, zaman_asimi),
         "gorseller": gorsel_gozlemi(site, urunler, zaman_asimi=zaman_asimi),
         "kart_kanali": kart_kanali_gozlemi(site, gecikme),
+        "fiziksel_fiyat": fiziksel_fiyat_gozlemi(site, gecikme),
     }
 
 
@@ -637,6 +667,26 @@ def kontrol_kart(g, _hal):
              "`python3 tools/konfigur-canli-kapisi.py` elle kostur.")]
 
 
+def kontrol_fiziksel(g, _hal):
+    """K6 — hazir ticari mal fiyat ekseni. K4 (KART) ile AYNI kalibi kullanir ama BASKA bir
+    sinifi olcer; birinin yesili otekini KANITLAMAZ."""
+    k = g.get("fiziksel_fiyat") or {}
+    hal = k.get("hal")
+    if hal == "PARITE":
+        return [("FIZIKSEL", "TAMAM", "hazir ticari malda canli tahsilat LISTE FIYATI "
+                 "(fiziksel-canli-kapisi)", "")]
+    if hal == "DRIFT":
+        return [("FIZIKSEL", "SAPMA",
+                 "hazir ticari malda YANLIS TUTAR tahsil ediliyor: " + str(k.get("detay")),
+                 "REPO-KIRIK satiri varsa once KODU duzelt; yoksa shop dizininden Worker'i "
+                 "yeniden yayinla, sonra `python3 tools/fiziksel-canli-kapisi.py` ile teyit et.")]
+    if hal == "ARAC-YOK":
+        return [("FIZIKSEL", "ARIZA", "hazir ticari mal fiyati OLCULEMEDI — " + str(k.get("detay")),
+                 "tools/fiziksel-canli-kapisi.py'yi main'e al; bu eksen o araca aittir.")]
+    return [("FIZIKSEL", "ARIZA", "hazir ticari mal fiyati OLCULEMEDI — " + str(k.get("detay")),
+             "`python3 tools/fiziksel-canli-kapisi.py` elle kostur.")]
+
+
 def kontrol_gorsel(g, _hal):
     satirlar = []
     kayitlar = g.get("gorseller") or []
@@ -712,6 +762,7 @@ KONTROLLER = [
     ("SAYFA", kontrol_sayfalar),
     ("D1", kontrol_d1),
     ("KART", kontrol_kart),
+    ("FIZIKSEL", kontrol_fiziksel),
     ("GORSEL", kontrol_gorsel),
 ]
 
@@ -807,6 +858,7 @@ def _temel(**ustyaz):
         "gorseller": [{"id": i, "url": "https://ornek/%s.jpg" % i, "http": 200, "hata": None}
                       for i in idler],
         "kart_kanali": {"hal": "PARITE", "detay": ""},
+        "fiziksel_fiyat": {"hal": "PARITE", "detay": ""},
     }
     g.update(ustyaz)
     return g
@@ -913,6 +965,20 @@ def fikstur_olculemedi():
     for k in g["gorseller"]:
         k.update({"http": None, "hata": "URLError: dns"})
     g["kart_kanali"] = {"hal": "ARAC-YOK", "detay": "arac yok"}
+    g["fiziksel_fiyat"] = {"hal": "ARAC-YOK", "detay": "arac yok"}
+    return g
+
+
+def fikstur_vaka5():
+    """VAKA 5 (1 Agu, OLCULDU) — canli paket BAYAT: hazir ticari malda malzeme/renk carpani
+    hala uygulaniyor (liste x1,840 FAZLA tahsilat). KRITIK AYRIM: K4 (KART) YESIL — cunku
+    konfigurlu 17 urun dogru fiyatlaniyor. Bu vakayi YALNIZ K6 gorur; yesil bir K4 hicbir
+    sey kanitlamaz."""
+    g = _temel()
+    g["fiziksel_fiyat"] = {
+        "hal": "DRIFT",
+        "detay": "SAPMA yamalube-... [ASA Diğer] — canli 386400 kurus, liste 210000 kurus "
+                 "(x1.840 FAZLA tahsilat); NESIL — canli paket depo HEAD'i ile ayrisik"}
     return g
 
 
@@ -922,6 +988,8 @@ FIKSTURLER = [
     ("VAKA-3 kart kanali kapali (worker bayat)", fikstur_vaka3, "SAPMA", "KART", "SAPMA"),
     ("VAKA-4 yeni urun dizi-basi disinda, sayfasi 404", fikstur_vaka4, "SAPMA",
      "SAYFA", "SAPMA"),
+    ("VAKA-5 hazir ticari malda fazla tahsilat (K4 YESILKEN)", fikstur_vaka5, "SAPMA",
+     "FIZIKSEL", "SAPMA"),
 ]
 
 
@@ -1043,6 +1111,14 @@ def kendini_test():
     iddia("K4 araci YOKKEN sessiz yesil verilmez (ARAC-YOK -> ARIZA)",
           degerlendir(_temel(kart_kanali={"hal": "ARAC-YOK", "detay": "yok"}))[0]
           == "OLCULEMEDI")
+    iddia("K6 araci YOKKEN sessiz yesil verilmez (ARAC-YOK -> ARIZA)",
+          degerlendir(_temel(fiziksel_fiyat={"hal": "ARAC-YOK", "detay": "yok"}))[0]
+          == "OLCULEMEDI")
+    # 🔴 EKSEN AYRILIGI: K4'un yesili K6'yi KANITLAMAZ. 1 Agu'da tam olarak bu oldu.
+    _v5 = fikstur_vaka5()
+    iddia("K4 YESILKEN K6 SAPMA verebiliyor (eksenler BAGIMSIZ, biri otekini kanitlamaz)",
+          _v5["kart_kanali"]["hal"] == "PARITE" and degerlendir(_v5)[0] == "SAPMA",
+          degerlendir(_v5)[0])
 
     # ---- (D) KIRMIZI-MUTASYON: her kontrol NO-OP yapilinca ilgili fikstur YESILE donmeli
     #
@@ -1066,6 +1142,9 @@ def kendini_test():
 
     def _tek_kart():
         return _temel(kart_kanali={"hal": "DRIFT", "detay": "x"})
+
+    def _tek_fiziksel():
+        return _temel(fiziksel_fiyat={"hal": "DRIFT", "detay": "x"})
 
     def _tek_d1():
         g = _temel()
@@ -1101,6 +1180,8 @@ def kendini_test():
          '    ("CI", ' + "_noop),", _tek_ci),
         ("MU9 ORNEKLEM kontrolu no-op", '    ("ORNEKLEM", ' + "kontrol_orneklem),",
          '    ("ORNEKLEM", ' + "_noop),", _tek_orneklem),
+        ("MU11 FIZIKSEL kontrolu no-op", '    ("FIZIKSEL", ' + "kontrol_fiziksel),",
+         '    ("FIZIKSEL", ' + "_noop),", _tek_fiziksel),
     ]
     for ad, capa, yerine, kur in mutasyonlar:
         if oz.count(capa) != 1:
@@ -1174,11 +1255,16 @@ def kendini_test():
     taban_anahtar = set(_temel().keys())
     kaynak_anahtar = set(re.findall(r'^\s{8}"(\w+)":', oz, re.M))
     eksik = {"depo", "canli_katalog", "ci", "sayfalar", "d1", "gorseller",
-             "kart_kanali", "orneklem"} - taban_anahtar
+             "kart_kanali", "fiziksel_fiyat", "orneklem"} - taban_anahtar
     iddia("fikstur semasi degerlendir()'in bekledigi TUM eksenleri iceriyor", not eksik, eksik)
     iddia("gozlem_topla() ile fikstur AYNI anahtar kumesini kullaniyor",
           taban_anahtar <= (kaynak_anahtar | taban_anahtar))
-    iddia("KONTROLLER listesi 7 ekseni de kabloluyor", len(KONTROLLER) == 7, len(KONTROLLER))
+    iddia("KONTROLLER listesi 8 ekseni de kabloluyor", len(KONTROLLER) == 8, len(KONTROLLER))
+    # 🔴 DEVIR ZINCIRI: her devreden eksen kendi aracini ISIMLE cagirmali ve arac yoksa
+    # ARAC-YOK demeli. Bir eksenin baska bir eksenin aracina devredilmesi (K6 -> K4) tam da
+    # 1 Agu korlugunu uretirdi.
+    iddia("K6 devir zinciri K4'ten AYRI bir araca gidiyor",
+          "fiziksel-canli-kapisi.py" in oz and "konfigur-canli-kapisi.py" in oz)
 
     print("\n".join(ham))
     print("-" * 78)

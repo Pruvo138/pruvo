@@ -1421,6 +1421,33 @@ jobs:
       - name: Konfigur canli kapisi — kendini test (offline karar mantigi + mutasyon)
         run: python3 tools/konfigur-canli-kapisi.py --kendini-test
 
+      # FIZIKSEL CANLI KAPISI — kendini test (OFFLINE, BLOKLAYICI, continue-on-error YOK).
+      # AYRI EKSEN, ustteki kapiya DEVREDILEMEZ: konfigur-canli-kapisi yalnizca KONFIGURLU
+      # (17) urunu olcer; bu kapi `tur == "fiziksel"` sinifini (676 hazir ticari mal) olcer.
+      # 🔴 NEDEN VAR (1 Agu, OLCULDU): canli worker paketi 30 Tem 20:30 – 1 Agu 01:58 arasi
+      # bayat kaldi ve hazir ticari malda malzeme/renk carpanini uygulamaya DEVAM etti —
+      # bayat bir localStorage sepet satiri (ASA + "Diger") liste fiyatinin 1,840 katini
+      # tahsil ediyordu (16.400 TL'lik urun icin canli uc 30.176,00 TL dondu). O sirada
+      # konfigur-canli-kapisi rc=0 VE canli-saglik-kapisi rc=0 idi: `tur` fiyat yolu icin
+      # hicbir CANLI eksen yoktu. Korluk 30 Tem'dekiyle AYNI SINIFTI ve tekrar etti.
+      # Bu adim kapinin OFFLINE kollarini olcer: 18 karar senaryosu (fazla/eksik tahsilat,
+      # bayat paket, depoda kirik kural, taninmayan urun, bos orneklem = OLCULEMEDI) +
+      # 3 HTTP kod eslemesi + 5 KIRMIZI-MUTASYON (her mutant KAYBOLMASI GEREKEN SINIFI
+      # kaybetmeli; once ORIJINALIN o sinifi urettigi dogrulanir) + gercek katalogla
+      # YEREL KAHIN kosumu: depo HEAD'inin KENDI worker kodu sahte D1 ile kosturulup
+      # "fiziksel = liste fiyati / baski = carpanli" iddialari kanitlanir.
+      # node ISTER (yukaridaki setup-node BLOKLAYICI on-kosul); node yoksa KIRMIZI verir,
+      # sessiz yesil YOK. Agsiz, siparis ACMAZ, depo agaci DEGISMEZ, ~3 s.
+      #
+      # 🔴 CANLI OLCUM BURADA KOSMAZ — BILEREK (konfigur-canli-kapisi ile AYNI gerekce):
+      # canli sonuc olcumu deploy kapisi degil IZLEME isidir, aga bagimlidir ve yanlis
+      # pozitifi TUM EKIBIN yayinini durdurur. Canli kolun sahibi
+      # tools/canli-saglik-kapisi.py K6 (FIZIKSEL) eksenidir: o arac bu dosyayi bulup
+      # CAGIRIR, bulamazsa ARAC-YOK -> ARIZA -> OLCULEMEDI verir.
+      # Elle/nobette kosum:  python3 tools/fiziksel-canli-kapisi.py --gecikme 0.5
+      - name: Fiziksel canli kapisi — kendini test (offline karar mantigi + yerel kahin)
+        run: python3 tools/fiziksel-canli-kapisi.py --kendini-test
+
       # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
       # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,
       # genel GO/NO-GO, worker 403->BLOKLU(HocA), d1 kimlik-hatasi->BLOKLU(Okan), origin turetme,
