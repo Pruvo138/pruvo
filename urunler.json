@@ -1,5 +1,65 @@
 [
   {
+    "id": "sierra-hava-filtresi-18-7908",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7908 Volvo Penta Deniz Motoru Hava Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru hava filtresi (parça kodu: 18-7908).\nVolvo Penta dıştan takma motorlarda hava giriş sistemini korumak için kullanılır.\nOrijinal ölçülerde üretilmiştir, doğrudan takılabilir yapıdadır.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "4200 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7908-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-hava-filtresi-18-7890",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7890 Volvo Penta Deniz Motoru Hava Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru hava filtresi (parça kodu: 18-7890).\nVolvo Penta dıştan takma motorlarda hava giriş sistemini korumak için kullanılır.\nOrijinal ölçülerde üretilmiştir, doğrudan takılabilir yapıdadır.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "1400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7890-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-hava-filtresi-18-7999",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7999 Mercury Verado Deniz Motoru Hava Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru hava filtresi (parça kodu: 18-7999).\nMercury Verado dıştan takma motorlarda hava giriş sistemini korumak için kullanılır.\nOrijinal ölçülerde üretilmiştir, doğrudan takılabilir yapıdadır.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "2700 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7999-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
+    "id": "sierra-hava-filtresi-18-7997",
+    "kategori": "Marin",
+    "marka": [
+      "Sierra"
+    ],
+    "baslik": "Sierra 18-7997 Mercury Optimax Deniz Motoru Hava Filtresi",
+    "aciklama": "Sierra üretimi orijinal kalite deniz motoru hava filtresi (parça kodu: 18-7997).\nMercury Optimax dıştan takma motorlarda hava giriş sistemini korumak için kullanılır.\nOrijinal ölçülerde üretilmiştir, doğrudan takılabilir yapıdadır.\nKullanmadan önce motorunuzun kullanım kılavuzundan ya da eski parçanızın üzerindeki koddan uygunluğu teyit etmenizi öneririz.",
+    "fiyat": "800 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/kty-18-7997-1.jpg"
+    ],
+    "tur": "fiziksel",
+    "stokta": true
+  },
+  {
     "id": "kty-18-7724-ara-yakit-filtresi",
     "kategori": "Marin",
     "marka": [],
