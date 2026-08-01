@@ -2,40 +2,7 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
-## 🔴 HESAP TASINMASI
-- Envanter + yedek raporu kalici yerde ve Drive kopyalariyla sha256 esit dogrulandi.
-  Envanter 117 kalem, 10 asamali tasinma gunu sirasi; Okan'dan elle gereken 19.
-- Yedek 2645 dosya / 745824642 bayt; eksik 0, boyut farki 0.
-- Yeni kurulumda yerel otomasyon ve yol bagimliliklari geri yukleme rehberine gore
-  kurulup kendini-test ile dogrulanmali.
-- Diger 4 mimara tasinma talimati Okan tarafindan iletildi.
-- Tasinma sonrasina birakilan temizlik ve yenileme isi var; ayrinti DEVAM-ARSIV.md'de.
-
-## 🔴 YARIM IS — FIZIKSEL URUN HATTI
-- Verilen kararlar, olculen durum, kapanmamis kusurlar ve siradaki adimlar
-  DEVAM-ARSIV.md'de. Devralan oradan devam etsin.
-- Kod acilmadan once cayma hakki ayrimi ile ticari sozlesme/sartlar Okan kapisinda.
-  Ardindan sema, katalog senkronu ve Ege entegrasyonu tamamlanacak.
-
-## KUYRUKTA (isci verilmedi)
-- Metin temizligi plani kardes mimara devredildi.
-- Denetim kapisinin rapor kolunda 8 `auto_sil` ve 6 eskalasyon adayi var; bunlar
-  urun verisi duzleminde.
-- Parite korpusu uc ve uzeri kelimeli sorgulara yapisal olarak KOR; korpus uretimi
-  gozden gecirilmeli.
-- Arama maliyet kapisi su an bloklamayan seritte; Serit A'ya tasima karari acik.
-- Vida ailesi icin PUL-only karari verildi; teslim kardes mimarda.
-
 ## KARARLAR
-- 200 TL taban tum urunlerde gecerli; parametrik sari seri haric.
-- Ustu cizili fiyat parametrik sari seride kapali; konfigur urunler kapsam disi.
-- Edge kartlarinda gosterim kismi fakat fail-closed; tam kapsam kardes mimarin duzlemi.
-- JSON-LD'ye `priceSpecification` eklenmedi.
-- Bayat UPSERT bloklanir; yayinlanan konfigur paritesi bloklayici seritte olculur.
-- DEVAM.md public ve git takibinde (`b28051b3`, 31 Tem — bilincli karar, gitignore'da tek
-  istisna); DEVAM-ARSIV.md git DISI kalir. Ticari kimlik/oran/kur/sir, gizli dosya adi ve
-  ic mimari ayrinti YALNIZ arsive yazilir. Ayni kural CLAUDE.md "BILGI NEREDE"
-  satirinda birebir yazili; iki metin CELISIRSE olculen git durumu hakemdir.
 - 1 Agu icerik denetimi: DEVAM.md'de kalan 4 sinifli blok
   maskeleme nobetcisi karsilastirmasi, kanca hata davranisi, temizlik oncesi gecmise
   isaretciler) DEVAM-ARSIV.md'ye BIREBIR tasindi, yerlerine notr isaretci birakildi.
@@ -57,21 +24,33 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 - Bu kayit — DEVAM.md tavan tazelemesi: 253 satir arsive BIREBIR tasindi (kayip 0),
   nobetci ayni agacta rc=0.
 
-### KOSUYOR (dokunulmadi)
-- `claude/exciting-hodgkin-91ec53` — muafiyet capa ekseni; oturum aktif.
-- `claude/priceless-leakey-21ffb7` — mesaj nobetcisi maskeleme ekseni; ayni isin EN GUNCEL
-  surumu bu dalda, oturum aktif.
-- `claude/quirky-goldberg-eccb5a` — tedarikci partisi dilimi; urun verisi duzlemi, oturum aktif.
-- `claude/infallible-ishizaka-004812` — oturum aktif; ucu main'de.
-- `worktree-agent-afa00ca5cf9f4d429` — geri-donus kapisi CI kolu; worktree kilitli.
-- `claude/muafiyet-govde-ekseni` — worktree'sinde commit'siz is duruyor; DOKUNULMADI.
-- `claude/lucid-kowalevski-d55b94` · `worktree-agent-a58a9edefc8743899` ·
-  `worktree-agent-a374f4375e63c16c3` — ayni nobetci isinin ESKI kopyalari; guncel superset
-  yukarida. Icerik kaybi riski yok, temizlik o isin sahibine birakildi.
-- `codex/toka-jenerator` · `toka-listeleme` — jenerator duzlemi, bu evin isi DEGIL.
-- `koru/faz3-edge-arama` — bayrak kapali, park edilmis.
-- `g2-yedek-333ac826` — onizleme kapisinin eski yedek dali; ayni is main'de iki onarim
-  turu ILERIDE, yine de yedek oldugu icin silinmedi.
+### KOSUYOR
+- Bu listenin elle tutulan hali BAYATLIYORDU (11 dal yaziliydi, agac sayisi tutmuyordu).
+  Tek dogruluk kaynagi artik olculen git ciktisi: `git -C /Users/okan/dev/pruvo worktree list`.
+  Ezberleme, olc.
+
+### 1 AGU 15:00 TURU — olculdu
+- **Ege bilgi kaynagi fiyat/malzeme vaadi notrlestirildi** — merge (dal tek commit
+  `5e8dc5fa`, taban `627159df` main'in GERCEK atasi, ata testi yesil). Kapsam TAM 2 dosya,
+  +11 / -6; urun verisi diffte YOK, cakisma YOK.
+  Spec 2 satir isaret etti, isci tam okumayla **4** buldu; ikisi spec disiydi (biri Ege'ye
+  hazir agiz cumlesi olarak yaziliydi). Bir satir URETILEN blok icindeydi -> elle degil
+  **ureteci** duzeltildi, yoksa ilk kosumda geri gelirdi. Kabul: 6 kapi rc=0
+  (ic nobetci 73/73, mutasyon 14 mutant / 0 sag kalan). Kapi GEVSETILMEDI.
+- 🔴 **OLCULEN ACIK: kapi bu zarar sinifina KOR.** Yasak kaliba ait 4 ozgun satirin
+  dordu de kapinin kendi bulgu fonksiyonundan **0 bulguyla** gecti. Dahasi kapinin
+  fikstürlerinden biri yasak cumleyi **beklenen-YESIL** olarak kayitli tutuyor — yani kapi
+  bu sinifta sertlestirilemez durumda. Fikstür TERSINE CEVRILMELI; CI'da yayin durduran
+  dosya oldugu icin isci DOKUNMADI, karar bende. **SIRADAKI IS.**
+- **Marin altkategori izinli kumesi 3 -> 11.** Mimar karari: istenen yazimlardan uctu
+  duzeltildi (satici vitrininden kopyalanmis yazim hatasi + yabanci yazim), biri
+  EKLENMEDI (o bolum kalici kapandi, sifir urun tasiyacak olu yapilandirma olurdu).
+  Carpisma 0 · imza nobeti 11/11 temiz · altkategori kapisi rc=0 · toplu test rc=0.
+- **Parite (ag acik, yeniden kosuldu):** semantik gerileme **0/1199 site · 0/844 Ege**.
+  Kirmizinin tek sebebi ayri: **6 urun yerelde var, D1'de yok** — urun verisi duzleminin
+  senkron gecikmesi, bu turun degisikligiyle ilgisi YOK.
+- Ilk kosumda parite ag KAPALI ortamda kirmizi yanmisti (tum sorgular basarisiz);
+  "gerileme" degil **olculmemis**ti. Ag gerektiren kabul ayri kosumla alinir.
 
 ### BEKLIYOR
 - OKAN: fiziksel urun hattinda cayma hakki ayrimi + ticari sozlesme/sartlar.
