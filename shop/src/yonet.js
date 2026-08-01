@@ -9,8 +9,11 @@
  *   GET  /api/shop/yonet/stl        -> uretim dosyasi indir (parametrik: derleyici; normal: R2)
  *
  * KIRMIZI CIZGILER (tools/paket-siparis-yonetimi.md):
- *  - Erisim: ?anahtar=<YONET_ANAHTAR> ya da X-Yonet-Anahtar. Anahtar YOK/YANLIS -> 404
- *    (varligi sizmasin). YONET_ANAHTAR secret tanimli DEGILSE tum /yonet* 404 (ozellik kapali).
+ *  - Erisim: X-Yonet-Anahtar basligi (makine istemcileri) YA DA `pruvo_yonet` HttpOnly cerezi
+ *    (tarayici; POST /yonet sifre kutusundan kurulur). ❌ `?anahtar=` SORGU PARAMETRESI YOK —
+ *    tam URL erisim loglarina/tarayici gecmisine/Referer basligina yaziliyordu (sessiz sizinti).
+ *    Anahtar YOK/YANLIS -> /yonet GET'te sifre kutusu, diger uclarda 404 (varligi sizmasin).
+ *    YONET_ANAHTAR secret tanimli DEGILSE tum /yonet* 404 (ozellik kapali; form bile yok).
  *  - Anahtar loglara/HATA metnine YAZILMAZ. PII yalniz anahtarli yanitta. CORS yok (same-origin).
  *  - Gizli kaynak bilgisi (tedarikci/link) sayfaya/JSON'a GIRMEZ.
  *  - 'kargolandi'ya SADECE /kargo ucundan gecilir (takip kodu zorunlu) — tek yol.
@@ -82,12 +85,69 @@ function sabitEsit(a, b) {
   return fark === 0;
 }
 
-/** Anahtar gecerli mi? Secret tanimsizsa DAIMA false (ozellik kapali; 404). */
+// ---- oturum cerezi ------------------------------------------------------------
+// TEK KAYNAK: ad/omur/bayraklar asagidaki uc sabitten turer. Ikizlenirse ("pruvo_yonet"
+// bir yerde, "pruvo-yonet" baska yerde) kapi SESSIZCE ayrisir.
+
+const CEREZ_ADI = "pruvo_yonet";
+const CEREZ_OMUR_SN = 12 * 60 * 60;   // 12 saat
+/**
+ * Bayraklarin hepsi ZORUNLU:
+ *  HttpOnly        — sayfa JS'i okuyamaz (XSS anahtari calamaz),
+ *  Secure          — yalniz TLS uzerinde gider,
+ *  SameSite=Strict — capraz-siteden gelen gezinmede GONDERILMEZ (Referer/CSRF ekseni kapali),
+ *  Path=/          — hem /api/shop/yonet paneli hem /api/shop/yonet/stl indirmeleri kapsanir.
+ */
+const CEREZ_BAYRAK = "HttpOnly; Secure; SameSite=Strict; Path=/";
+
+/** Oturum cerezini KURAN Set-Cookie dizesi (saf: yan etkisi yok, istek gormez). */
+export function yonetCereziKur(anahtar) {
+  return CEREZ_ADI + "=" + encodeURIComponent(anahtar == null ? "" : String(anahtar)) +
+    "; " + CEREZ_BAYRAK + "; Max-Age=" + CEREZ_OMUR_SN;
+}
+
+/** Oturum cerezini SILEN Set-Cookie dizesi (cikis; ayni bayraklar, Max-Age=0). */
+export function yonetCereziSil() {
+  return CEREZ_ADI + "=; " + CEREZ_BAYRAK + "; Max-Age=0";
+}
+
+/**
+ * Istekteki yonetim cerezinin DEGERI (yoksa ""). Cerez ADI TAM esitlenir.
+ * ⚠️ `cookieBasligi.includes(anahtar)` gibi naive bir arama, `baska=pruvo_yonet=<anahtar>`
+ * seklinde BASKA bir cerezin DEGERI icine gomulen anahtari da gecerli sayardi; ayni sekilde
+ * `pruvo_yonet_x=<anahtar>` yakin-iskasini da. Ad esitligi bu iki yolu da kapatir.
+ */
+export function yonetCereziOku(request) {
+  const ham = (request && request.headers && request.headers.get("Cookie")) || "";
+  if (!ham) { return ""; }
+  for (const parca of ham.split(";")) {
+    const esit = parca.indexOf("=");
+    if (esit < 0) { continue; }
+    if (parca.slice(0, esit).trim() !== CEREZ_ADI) { continue; }
+    let deger = parca.slice(esit + 1).trim();
+    if (deger.length >= 2 && deger.charAt(0) === '"' &&
+        deger.charAt(deger.length - 1) === '"') {
+      deger = deger.slice(1, -1);
+    }
+    try { return decodeURIComponent(deger); } catch (e) { return deger; }
+  }
+  return "";
+}
+
+/**
+ * Anahtar gecerli mi? Secret tanimsizsa DAIMA false (ozellik kapali; 404).
+ * IKI TASIYICI: `X-Yonet-Anahtar` basligi (tools/yazdir.py + makine istemcileri) ve
+ * `pruvo_yonet` HttpOnly cerezi (tarayici — cerez hem fetch'te hem <a href> gezinmesinde
+ * kendiliginden gider; sorgu parametresinin var olma sebebi buydu, cerez onu IKAME EDER).
+ * ❌ `url.searchParams.get("anahtar")` KALDIRILDI (sizinti). `url` imzada DURUYOR ama
+ * yetki icin OKUNMUYOR — cagri yerleri degismesin diye.
+ */
 function anahtarGecerli(request, url, env) {
   if (!env.YONET_ANAHTAR) { return false; }
-  const verilen = request.headers.get("X-Yonet-Anahtar") ||
-    url.searchParams.get("anahtar") || "";
-  return sabitEsit(verilen, env.YONET_ANAHTAR);
+  if (sabitEsit(request.headers.get("X-Yonet-Anahtar") || "", env.YONET_ANAHTAR)) {
+    return true;
+  }
+  return sabitEsit(yonetCereziOku(request), env.YONET_ANAHTAR);
 }
 
 // ---- yanit yardimcilari (CORS YOK — yonetim same-origin) ----------------------
@@ -506,6 +566,46 @@ function sayfa() {
   });
 }
 
+// ---- giris kapisi (sifre kutusu) ----------------------------------------------
+
+/**
+ * Yetkisiz `GET /yonet` VE yanlis/bos anahtarli `POST /yonet` icin BIREBIR AYNI yanit.
+ * ⚠️ AYIRT EDICI MESAJ YOK ("anahtar yanlis" DEMEZ): "varligi sizmasin" kurali burada da
+ * gecerli — yanlis deneme ile hic denememis ziyaretci ayni kodu, ayni govdeyi, ayni
+ * basliklari gorur (Set-Cookie de YOK). Ekranda siparis/PII/panel govdesi YOKTUR.
+ * Form eylemi istegin KENDI yolundan turer (sorgu dizesi TASINMAZ).
+ */
+function girisEkrani(url) {
+  const yol = String((url && url.pathname) || "/api/shop/yonet").replace(/[&<>"']/g, "");
+  return new Response(GIRIS_HTML.replace("__EYLEM__", yol), {
+    status: 200,
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
+
+/**
+ * POST /yonet — sifre kutusundan gelen anahtar. Anahtar istek GOVDESINDE gider; GET
+ * DEGIL, cunku GET onu sorgu dizesine yazardi = kapatmaya calistigimiz sizintinin ta
+ * kendisi. Dogruysa HttpOnly cerez kurulur + panele 302 (Location'da sorgu YOK).
+ * Govde yok/bozuk/bos -> fail-closed (giris ekrani). Anahtar loga/yanita YAZILMAZ.
+ */
+async function girisYap(request, url, env) {
+  let verilen = "";
+  try {
+    const form = await request.formData();
+    verilen = String(form.get("sifre") || "");
+  } catch (e) { verilen = ""; }
+  if (!sabitEsit(verilen, env.YONET_ANAHTAR)) { return girisEkrani(url); }
+  return new Response(null, {
+    status: 302,
+    headers: {
+      "Location": String((url && url.pathname) || "/api/shop/yonet"),
+      "Set-Cookie": yonetCereziKur(env.YONET_ANAHTAR),
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 // ---- giris (index.js buraya yonlendirir) --------------------------------------
 
 // ---- /konfigur-golge (FAZ 3 KONTROL KIPI) -------------------------------------
@@ -561,11 +661,20 @@ async function konfigurGolge(env, url) {
 
 /**
  * /yonet* yonlendirici. altYol = "/", "/liste", "/durum", "/kargo", "/stl", "/konfigur-golge".
- * Anahtar YOK/YANLIS -> 404 (varlik sizmasin). telegram: index.js'in telegram fonksiyonu.
+ * KAPI SIRASI (fail-closed):
+ *   1. YONET_ANAHTAR secret YOK -> her sey 404 (ozellik kapali; giris formu BILE yok),
+ *   2. POST /yonet -> giris kapisi (sifre kutusu; dogruysa cerez + 302),
+ *   3. anahtar yok/yanlis -> GET /yonet'te sifre kutusu, DIGER her ucta 404 (varlik sizmasin),
+ *   4. yetkili -> normal yonlendirme.
+ * telegram: index.js'in telegram fonksiyonu.
  */
 export async function yonet(request, env, url, ctx, altYol, telegram) {
-  if (!anahtarGecerli(request, url, env)) { return yon404(); }
+  if (!env.YONET_ANAHTAR) { return yon404(); }
   const m = request.method;
+  if (altYol === "/" && m === "POST") { return girisYap(request, url, env); }
+  if (!anahtarGecerli(request, url, env)) {
+    return (altYol === "/" && m === "GET") ? girisEkrani(url) : yon404();
+  }
   if (altYol === "/" && m === "GET") { return sayfa(); }
   if (altYol === "/liste" && m === "GET") { return liste(env, url); }
   if (altYol === "/durum" && m === "POST") { return durumDegistir(request, env, ctx); }
@@ -576,6 +685,30 @@ export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (altYol === "/konfigur-golge" && m === "GET") { return konfigurGolge(env, url); }
   return yon404();
 }
+
+// Giris ekrani: TEK sifre alani. Siparis/PII/panel govdesi/JS YOK; baslikta "Sipariş
+// Yönetimi" gibi ne oldugunu soyleyen bir ipucu da YOK. `__EYLEM__` istegin kendi
+// yoluyla degistirilir (girisEkrani); anahtar POST GOVDESINDE gider, sorgu dizesinde DEGIL.
+const GIRIS_HTML = `<!doctype html><html lang="tr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PRUVO</title>
+<style>
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+ background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#1f2937}
+form{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:22px;
+ display:flex;flex-direction:column;gap:12px;min-width:260px}
+h1{font-size:18px;margin:0;color:#12294d}
+input{font-size:16px;padding:9px 10px;border:1px solid #e5e7eb;border-radius:6px}
+button{font-size:16px;padding:9px 10px;border:0;border-radius:6px;background:#12294d;
+ color:#fff;cursor:pointer}
+</style></head><body>
+<form method="post" action="__EYLEM__">
+ <h1>PRUVO</h1>
+ <input type="password" name="sifre" autocomplete="current-password" autofocus>
+ <button type="submit">Gir</button>
+</form>
+</body></html>`;
 
 // Sayfa HTML en altta (okunurluk): mobil uyumlu, lacivert/gri, harici kutuphane YOK.
 const SAYFA_HTML = `<!doctype html><html lang="tr"><head>
@@ -637,13 +770,13 @@ a.indir{display:inline-block;padding:6px 10px;background:#374151;color:#fff;bord
 </header>
 <main id="liste"><p>Yükleniyor…</p></main>
 <script>
-var ANAHTAR=new URLSearchParams(location.search).get("anahtar")||"";
 function esc(s){s=(s==null?"":""+s);return s.replace(/&/g,"&amp;").replace(/</g,"&lt;")
  .replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function tl(k){k=Math.max(0,Math.floor(+k||0));var t=Math.floor(k/100),ku=(""+(k%100)).padStart(2,"0");
  return (""+t).replace(/\\B(?=(\\d{3})+(?!\\d))/g,".")+","+ku+" TL";}
 async function api(yol,secenek){
- secenek=secenek||{};secenek.headers=Object.assign({"X-Yonet-Anahtar":ANAHTAR},secenek.headers||{});
+ // Kimlik HttpOnly cerezden gelir; sayfa JS'i anahtari GORMEZ (okuyamaz da).
+ secenek=secenek||{};secenek.credentials="same-origin";
  var c=await fetch("/api/shop/yonet"+yol,secenek);
  var v=null;try{v=await c.json();}catch(e){}
  return {kod:c.status,govde:v};
@@ -652,8 +785,9 @@ function durumRozet(d){return '<span class="rozet '+esc(d)+'">'+esc(d)+'</span>'
 function satirHtml(no,k){
  var indir;
  if(k.parametrik){
+  // Anahtar URL'e GOMULMEZ: gezinme de cerezi tasir (SameSite=Strict, Path=/).
   indir='<a class="indir" href="/api/shop/yonet/stl?siparis_no='+encodeURIComponent(no)+
-   '&kalem='+k.kalem+'&anahtar='+encodeURIComponent(ANAHTAR)+'">STL üret + indir</a>';
+   '&kalem='+k.kalem+'">STL üret + indir</a>';
  }else{
   // COK-PARCA: dugme parca listesini ceker, parcalar tek tek indirilir (zip yok).
   var kutuId='parca-'+no+'-'+k.kalem;
@@ -696,7 +830,7 @@ async function parcalar(no,id,kutuId){
  kutu.innerHTML=" "+p.map(function(x){
   return '<a class="indir" style="margin:2px 4px 2px 0" href="/api/shop/yonet/stl?id='+
    encodeURIComponent(id)+'&dosya='+encodeURIComponent(x.dosya)+
-   '&siparis_no='+encodeURIComponent(no)+'&anahtar='+encodeURIComponent(ANAHTAR)+'">'+
+   '&siparis_no='+encodeURIComponent(no)+'">'+
    esc(x.dosya)+esc(boyutMetni(x.boyut))+'</a>';
  }).join("");
 }
@@ -735,7 +869,8 @@ async function yukle(){
  var m=document.getElementById("liste");
  m.innerHTML="<p>Yükleniyor…</p>";
  var r=await api("/liste"+(d?"?durum="+encodeURIComponent(d):""));
- if(r.kod!==200){m.innerHTML='<p class="hata">Liste alınamadı ('+r.kod+'). Anahtar doğru mu?</p>';return;}
+ if(r.kod!==200){m.innerHTML='<p class="hata">Liste alınamadı ('+r.kod+
+  '). Oturum düşmüş olabilir — sayfayı yenileyin.</p>';return;}
  var s=r.govde.siparisler||[];
  if(!s.length){m.innerHTML="<p>Sipariş yok.</p>";return;}
  m.innerHTML=s.map(kartHtml).join("");

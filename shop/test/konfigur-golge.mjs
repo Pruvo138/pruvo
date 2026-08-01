@@ -256,9 +256,12 @@ async function rapor(mod, d1Satirlari, anahtar, ayar) {
   const kayitlar = [];
   const env = Object.assign({}, ENV, { KATALOG: d1Sahte(d1Satirlari, kayitlar, ayar),
                                        YONET_ANAHTAR: "test-yonet-anahtari" });
-  const url = "https://pruvo3d.com/api/shop/yonet/konfigur-golge" +
-              (anahtar ? "?anahtar=" + encodeURIComponent(anahtar) : "");
-  const cevap = await mod.default.fetch(new Request(url), env, { waitUntil() {} });
+  // Anahtar SORGU DIZESINDE DEGIL, X-Yonet-Anahtar BASLIGINDA gider (sorgu parametresi
+  // yolu kaldirildi; bkz. shop/src/yonet.js anahtarGecerli + `--yonet-cerez` alt kumesi).
+  const url = "https://pruvo3d.com/api/shop/yonet/konfigur-golge";
+  const basliklar = anahtar ? { "X-Yonet-Anahtar": anahtar } : {};
+  const cevap = await mod.default.fetch(new Request(url, { headers: basliklar }), env,
+                                        { waitUntil() {} });
   let govde = {};
   try { govde = await cevap.json(); } catch (e) { govde = {}; }
   return { kod: cevap.status, govde, yazma: kayitlar.length };
