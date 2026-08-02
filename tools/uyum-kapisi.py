@@ -19,8 +19,9 @@ OLCULEN DORT SESSIZ-HATA SINIFI:
             `altkategori`de OLCULDU: ' Elektrik' rc=0 gecmis, D1'e 'Elektrik' gitmisti).
   K IKIZ    `marka` ile `uyum[].marka` ayni gercegi IKI yerde tutar; biri elle degisince
     TANIM   sessizce ayrisir. `marka` TURETILIR (paket §2.1).
-  A KATALOG Gercek 16.874 kayit: bugun `uyum` dolu kayit YOK; kapi bu sayiyi OLCER ki
-            ilk parti girdiginde regresyon gorunur olsun.
+  A KATALOG Gercek 16.874 kaydin 13.040'inda `uyum` DOLU (backfill girdi; sayi kosumda
+            OLCULUR, capa DEGIL). Kapi bu sayiyi her kosumda basar ki katalog buyudukce
+            regresyon gorunur olsun.
 
 CANLI D1'e / wrangler'a / AGA DOKUNMAZ. urunler.json yalnizca OKUNUR.
 """
@@ -36,6 +37,11 @@ import sys
 import tempfile
 
 GERCEK_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# 🔴 IDDIA TABANI = bu kapinin KOSMASI GEREKEN en az iddia sayisi (kosum ici sayi sarti
+# commit'ler arasi kapsam kaybini GORMEZ; bkz. kabul() sonundaki capa). DUSURMEK ancak
+# iddianin neden kaldirildigini yazan AYNI commit'te mesrudur; ARTIS serbesttir.
+IDDIA_TABANI = 36
 
 gecen = [0]
 kalan = [0]
@@ -758,9 +764,24 @@ def kabul(kok, katalog_yolu=None):
              len([i for i in _b7_duz_kayip if i != "B7-POZITIF-KONTROL"]),
              len(_b7_kalan_kayip)))
 
-    print("\nSONUC: %s — gecen %d · kalan %d"
-          % ("YESIL" if kalan[0] == 0 else "KIRMIZI", gecen[0], kalan[0]))
-    return 0 if kalan[0] == 0 else 1
+    # 🔴 IDDIA TABANI — KOSUMLAR ARASI CAPA (commit'ler arasi sessiz kapsam kaybi kapisi).
+    # Mutasyon surucusunun sayi sarti yalnizca TEK KOSUM icindedir: taban her seferinde
+    # M00'da yeniden olculdugu icin, bir iddia SILINIP commit'lenirse hem kabul hem
+    # mutasyon YESIL kalirdi (bagimsiz curutucu S1'i silerek gosterdi: 35 GECTI, rc=0).
+    # YALNIZ DUSUS kirmizi yakar; ARTIS serbesttir — mesru iddia eklemek bloklanmamali.
+    _toplam = gecen[0] + kalan[0]
+    _taban_dustu = _toplam < IDDIA_TABANI
+    if _taban_dustu:
+        print("\n  🔴 IDDIA TABANI DUSTU: olculen %d < beklenen %d (IDDIA_TABANI) — bir "
+              "kabul iddiasi SESSIZCE kayboldu. Iddia silmek mesruysa IDDIA_TABANI'ni "
+              "AYNI commit'te dusur ve gerekcesini yaz." % (_toplam, IDDIA_TABANI))
+    elif _toplam > IDDIA_TABANI:
+        print("\n  OLCUM: iddia sayisi %d, taban %d — ARTIS serbest (IDDIA_TABANI'ni "
+              "yukselt ki capa ilerlesin)." % (_toplam, IDDIA_TABANI))
+    print("\nSONUC: %s — gecen %d · kalan %d · iddia %d (taban %d)"
+          % ("YESIL" if kalan[0] == 0 and not _taban_dustu else "KIRMIZI",
+             gecen[0], kalan[0], _toplam, IDDIA_TABANI))
+    return 0 if (kalan[0] == 0 and not _taban_dustu) else 1
 
 
 # ── CIFT YONLU MUTASYON ─────────────────────────────────────────────────────────────
@@ -773,9 +794,12 @@ def kabul(kok, katalog_yolu=None):
 #    beyan == []  -> KONTROL MUTANTI (YESIL beklenir; kapinin gereginden genis olmadigi).
 #
 # 🔴 OLCUT, HER KAYDIN KENDI ALANINDA (tools/duzelt-uyum-mutasyon.py ile AYNI mekanizma):
-#    ESIT   -> kirmizi kume BEYANA TAM ESIT. Fazladan kirmizi da KUSURDUR. VARSAYILAN.
-#    KAPSAR -> beyan ⊆ kirmizi. YALNIZ aciklamasinda "KAPSAR GEREKCE:" yazan capraz/
-#              bilesik bozulmalarda; gerekce yoksa surucu kaydi REDDEDER (fail-closed).
+#    ESIT -> kirmizi kume BEYANA TAM ESIT. Fazladan kirmizi da KUSURDUR. TEK IZINLI OLCUT.
+#    Baska bir deger yazilirsa surucu kaydi mutasyon KOSULMADAN reddeder (fail-closed).
+#    🔴 GEVSEK OLCUT (beyan ⊆ kirmizi) BILEREK YOK: bagimsiz curutucu boyle bir kacis
+#    kapisini TEK KELIMELIK bir "gerekce" yazarak asti ve 6 beyansiz kirmiziyi gizledi.
+#    Metin arayan bir garanti, garanti DEGILDIR. Fazladan kirmizi mesruysa BEYANA YAZILIR
+#    — o zaten ESIT'in kendisidir.
 #
 # Capa kayarsa tur KIRMIZI yanar ve mutant SAYILMAZ — "capa bulunamadi" ASLA yesil degildir.
 # Iddia SAYISI da her kosumda taban ile karsilastirilir: sayi duserse mutant kapiyi
@@ -1000,32 +1024,32 @@ def _capa_metni(eski):
     return eski.pattern if isinstance(eski, re.Pattern) else eski
 
 
-OLCUTLER = ("ESIT", "KAPSAR")
-KAPSAR_GEREKCE_ISARETI = "KAPSAR GEREKCE:"
+OLCUTLER = ("ESIT",)
 
 
 def _iddia_kodlari(cikti):
-    """Kosum ciktisindan (kirmizi_kod_kumesi, toplam_iddia_sayisi).
+    """Kosum ciktisindan (kirmizi_kod_kumesi, tum_kod_listesi).
 
     Iddia adinin ILK jetonu kodudur ("KALDI B7 KATALOG..." -> "B7"). Kod okunamiyorsa
     satir SAYILIR ama isimsiz kalir — beyan karsilastirmasi o zaman eksik yakar.
+    Toplam iddia sayisi = len(tum_kod_listesi).
     """
-    kirmizi, toplam = set(), 0
+    kirmizi, tum = set(), []
     for satir in cikti.splitlines():
         s = satir.strip()
         for bas, kirmizi_mi in (("GECTI ", False), ("KALDI ", True)):
             if s.startswith(bas):
-                toplam += 1
                 parcalar = s[len(bas):].split()
+                tum.append(parcalar[0] if parcalar else "?")
                 if kirmizi_mi and parcalar:
                     kirmizi.add(parcalar[0])
-    return kirmizi, toplam
+    return kirmizi, tum
 
 
 def _beyan_kapisi():
-    """Kayitlarin KENDI sekli fail-closed dogrulanir: bilinmeyen olcut ya da gerekcesiz
-    KAPSAR, mutasyon KOSULMADAN reddedilir — yoksa 'olcut yazdim' demek olcut OLMASINI
-    saglamazdi."""
+    """Kayitlarin KENDI sekli fail-closed dogrulanir: bilinmeyen olcut mutasyon
+    KOSULMADAN reddedilir. Tek izinli olcut ESIT'tir; gevsek bir olcut YOKTUR, cunku
+    "gerekce yazdim" demek gerekce OLMASINI saglamiyordu (metin araniyordu, yargi degil)."""
     hatalar = []
     kodlar = set()
     for kayit in MUTANTLAR:
@@ -1033,17 +1057,14 @@ def _beyan_kapisi():
             hatalar.append("%r: kayit 7 alanli olmali (kod, dosya, eski, yeni, beyan, "
                            "olcut, aciklama)" % (kayit[0],))
             continue
-        kod, _dosya, _eski, _yeni, beyan, olcut, aciklama = kayit
+        kod, _dosya, _eski, _yeni, beyan, olcut, _aciklama = kayit
         if kod in kodlar:
             hatalar.append("%s: MUKERRER mutant kodu" % kod)
         kodlar.add(kod)
         if olcut not in OLCUTLER:
-            hatalar.append("%s: bilinmeyen olcut %r (izinli: %s)"
+            hatalar.append("%s: bilinmeyen olcut %r — TEK izinli olcut: %s (gevsek olcut "
+                           "YOK: fazladan kirmizi mesruysa BEYANA yazilir)"
                            % (kod, olcut, ", ".join(OLCUTLER)))
-        if olcut == "KAPSAR" and KAPSAR_GEREKCE_ISARETI not in aciklama:
-            hatalar.append("%s: KAPSAR olcutu GEREKCESIZ — aciklamada %r gecmeli "
-                           "(fazladan kirmizi ancak YAZILI gerekceyle mubah)"
-                           % (kod, KAPSAR_GEREKCE_ISARETI))
         if not isinstance(beyan, list) or any(not isinstance(b, str) for b in beyan):
             hatalar.append("%s: beyan iddia KODLARINDAN olusan bir liste olmali" % kod)
     return hatalar
@@ -1070,7 +1091,8 @@ def mutasyon():
     # (capa DEGIL): her mutant kosumu bu sayiyla karsilastirilir.
     tmp0 = _kopya_kur()
     p0 = _kok_kostur(tmp0)
-    t_kirmizi, taban_iddia = _iddia_kodlari((p0.stdout or "") + (p0.stderr or ""))
+    t_kirmizi, t_kodlar = _iddia_kodlari((p0.stdout or "") + (p0.stderr or ""))
+    taban_iddia = len(t_kodlar)
     kontrol_ok = p0.returncode == 0 and not t_kirmizi and taban_iddia > 0
     print("  %s M00 [YESIL] MUTASYONSUZ KONTROL -> %s (harness saglam mi) | TABAN IDDIA "
           "SAYISI = %d" % ("OK  " if kontrol_ok else "HATA",
@@ -1113,7 +1135,8 @@ def mutasyon():
         uygulanan += 1
         p = _kok_kostur(tmp)
         cikti = (p.stdout or "") + (p.stderr or "")
-        kirmizi, iddia = _iddia_kodlari(cikti)
+        kirmizi, kodlar = _iddia_kodlari(cikti)
+        iddia = len(kodlar)
         goruldu = "KIRMIZI" if p.returncode != 0 else "YESIL"
         # 🔴 IDDIA SAYISI SARTI: mutant kabul testini COKERTEREK de rc!=0 verebilir
         # (IndexError/ImportError). Sayi duserse geri kalan iddialar HIC OLCULMEMISTIR ve
@@ -1125,7 +1148,7 @@ def mutasyon():
                           "'kirmizi' OLCUM DEGIL" % (iddia, taban_iddia))
         if beyan:
             eksik = [b for b in beyan if b not in kirmizi]
-            fazla = sorted(kirmizi - set(beyan)) if olcut == "ESIT" else []
+            fazla = sorted(kirmizi - set(beyan))
             if eksik:
                 notlar.append("EKSIK: %s (mutant SAG KALDI)" % ",".join(eksik))
             if fazla:
@@ -1168,6 +1191,16 @@ def mutasyon():
     print("\n  OLCUM — TEK-KIRMIZI HARITASI (ayirt edici mutanti OLAN eksenler): %s"
           % (", ".join("%s<-%s" % (e, ",".join(k))
                        for e, k in sorted(tek_kirmizi.items())) or "YOK"))
+
+    # 🔴 KAPSAMIN NEREDE BITTIGI GORUNUR OLSUN (bloklamaz — SESSIZ de kalmaz): hicbir
+    # mutantin beyaninda gecmeyen iddianin mutasyon kaniti YOKTUR; "kapi bu ekseni
+    # olcuyor" hukmu o iddia icin OLCULMEMISTIR ([[beyan-edilmis-survivor]]).
+    beyanlanan = set()
+    for _k, _d, _e, _y, _beyan, _o, _a in MUTANTLAR:
+        beyanlanan |= set(_beyan)
+    kapsanmayan = [k for k in t_kodlar if k not in beyanlanan]
+    print("  OLCUM — HICBIR MUTANT BEYANINDA GECMEYEN IDDIA: %d/%d (%s)"
+          % (len(kapsanmayan), taban_iddia, ",".join(kapsanmayan) or "-"))
 
     sonra = {d: _sha(os.path.join(GERCEK_KOK, "tools", d)) for d in KOPYALANAN}
     bozuk = [d for d in once if once[d] != sonra[d]]
