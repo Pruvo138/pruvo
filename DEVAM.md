@@ -70,7 +70,7 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   (`69fd4a08` backfill'i inmemis) → `d1-sync` kosuldu, uc eksen temiz.
 - **Hijyen (EMIR):** DEVAM.md 410 -> 87 sat / 29908 -> 6431 B, ARSIV 7417 -> 7740 (silinen =
   eklenen **birebir 323**, sinif kapisi exit 0, `d5d76782`) · CLAUDE.md 12262 -> **11768 B**
-  (marj 26 -> 520 B, link/yol/skill kumeleri birebir) · kutu 353 -> **217** · `uyum-backfill.py`
+  (bosluk payi 26 -> 520 B, link/yol/skill kumeleri birebir) · kutu 353 -> **217** · `uyum-backfill.py`
   referans 0 → silindi · **KraL worktree 7 -> 0**; tavan Okan hukmuyle artik SAHIPLIK bazli
   sayiliyor.
 
