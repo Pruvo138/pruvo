@@ -624,14 +624,15 @@ jobs:
       #   * HIZ SINIRI — art arda basarisiz denemeden sonra DOGRU sifre bile reddedilir,
       #   * YANLIS-PAROLA AYIRT EDILEMEZLIGI — bloke/bos-govde yaniti hic-denememis GET ile
       #     kod + govde + TUM BASLIKLAR duzeyinde BIREBIR ayni (oracle sizintisi yok).
-      # OLU NOBETCI DEGIL (olculdu, node v20.20.2): yonet.js'e uygulanan 7 mutantin 7'si de
-      # KIRMIZI yakti — sabitEsit->=== (2 iddia), HttpOnly kaldir (3), Secure yok+SameSite=Lax
-      # (5), hiz siniri devre disi (2), sayac artmiyor (2), yanlis parola ayirt edilebilir (3),
-      # `?anahtar=` geri ekle (3). Her mutasyondan sonra taban TAM YESILE dondu.
+      # OLU NOBETCI DEGIL: mutasyon surucusu REPODA durur -> `python3 tools/yonet-cerez-
+      # mutasyon.py` (CI'da kosmaz; gelistirici/curutucu araci). Kirmizi-beklentili ve
+      # kontrol mutantlarinin listesi, beklenen iddia kodlari ve olculen matris O DOSYADA
+      # (sayilar da kosumda basilir — buraya kopyalanmaz, bkz. yukaridaki kural).
       # 2 Agu EKI: iki SECRET KAPISI artik AYRI AYRI olculuyor (C22a girisYap'in kendi
       # kapisi — yonet() bypass edilerek IZOLE; C22b yonet()'in ust kapisi). Onceden tek
       # iddia ikisinin VEYA'sini olcuyordu: girisYap'in kapisi TEK BASINA silinince alt
-      # kume YESIL kaliyordu (olculdu). Simdi o mutant KIRMIZI yaniyor.
+      # kume YESIL kaliyordu (olculdu) — surucude "K4 SURVIVOR" olarak BEYAN EDILMISTI.
+      # Simdi o mutant KIRMIZI yaniyor ve surucude M10 olarak kirmizi-beklentilidir.
       # ⚠️ YUKLEYICI: semalar.js'in JSON import'lari icin `node:module` **register** (v20.6+)
       # kancasi kullanilir — `registerHooks` (v22.15+) DEGIL. Bu bilincli: CI tabani Node 20
       # ve [[shop/test/olcum.mjs ~481]] ayni kararla ayni deseni tasiyor; surum dali BILEREK

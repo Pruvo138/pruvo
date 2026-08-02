@@ -33,18 +33,24 @@ MUTANTLAR (hepsi GERCEK, canliya sizabilecek bozulmalar; hepsi KIRMIZI yanmali)
   M7 cerez adi naive includes — `pruvo_yonet_x=<anahtar>` yakin-iskasi yetki alir
   M8 HttpOnly dusuruldu       — XSS oturum cerezini calabilir
   M9 SameSite=Strict -> Lax   — capraz-site gezinmede cerez gider (CSRF ekseni acilir)
+  M10 girisYap'in KENDI secret — savunma derinliginin IC KATMANI duser. 2 Agu'a kadar bu
+      kapisi silindi             mutant SURVIVOR'di (K4 adiyla, YESIL beklentisiyle):
+                                 alt kume onu HIC olcmuyordu, cunku tek iddia (eski "C22")
+                                 istegi yonet() uzerinden gecirip IKI kapinin VEYA'sini
+                                 olcuyordu. Iddia C22a (girisYap IZOLE, yonet() bypass) +
+                                 C22b (yonet() ust kapisi IZOLE) olarak IKIYE AYRILDI ve
+                                 bu mutant artik KIRMIZI yaniyor -> SURVIVOR degil.
 
 KONTROL MUTANTLARI (YESIL kalmali — surucu "her sey kirmizi" diye ucuza gecemesin;
 ayrica kapinin ILGISIZ refaktorde yanlis alarm uretmedigi olculur)
   K1 sabitEsit'te YEREL DEGISKEN adi degisti (davranis ayni)
   K2 girisYap'a YORUM SATIRI eklendi (davranis ayni)
   K3 anahtarGecerli'de baslik/cerez KONTROL SIRASI takas edildi (iki tasiyici da calisir)
-  K4 SURVIVOR — YALNIZ girisYap'in kendi secret kapisi silindi. yonet()'in kapisi ONDE
-     durdugu icin bugun YESIL kalir; bu bir zafiyet DEGIL, savunma derinliginin
-     OLCUMUDUR. Gercek risk (iki kapinin BIRDEN dusmesi) M3'te kirmizi yanar.
-     ⚠️ K4 "girisYap'in kapisi gereksiz" DEMEZ: K4 yesil + M3 kirmizi ikilisi, korumanin
-     CAGRI SIRASINA birakilmadigini BIRLIKTE kanitlar. K4 bir gun KIRMIZI yanarsa bu da
-     bulgudur (dis kapi kaymis demektir) — o yuzden beklentisi beyan edilmis haldedir.
+  (K4 EMEKLI: yukaridaki M10'a donustu. Beyan edilmis SURVIVOR'in tehlikesi olculdu —
+   "bugun yesil kalmasi normal" demek, o katmanin HIC olculmedigini gizliyordu; iki ayri
+   yesil commit iki kapiyi ayri ayri dusurup birlikte anahtarsiz cerez kurulumuna kapi
+   acabilirdi. Bir katmanin savunma derinligi oldugu iddiasi ancak o katman TEK BASINA
+   olculuyorsa kanittir.)
 
 KABUL — HER KIRMIZI-BEKLENTILI MUTANT ICIN UC SART BIRDEN:
   1. IDDIA SAYISI taban kosumla AYNI. (Cokme kirmiziyla KARISIR: mutant testi
@@ -154,7 +160,7 @@ _ICKAPI_SIL = (
     """  const simdi = Date.now();""")
 
 M3 = ("M3", "secret kapisi giris POST'unun ARKASINA alindi + girisYap'in kendi kapisi silindi",
-      [_SIRA_TAKAS, _ICKAPI_SIL], ["C15", "C22"])
+      [_SIRA_TAKAS, _ICKAPI_SIL], ["C15", "C22a"])
 
 M4 = ("M4", "girisEkrani'nda ikame FONKSIYONU yerine ikame DIZESI ($` enjeksiyonu)", [(
     """GIRIS_HTML.replace("__EYLEM__", () => yol)""",
@@ -218,11 +224,13 @@ K3 = ("K3", "KONTROL: anahtarGecerli'de baslik/cerez kontrol SIRASI takas edildi
   return sabitEsit(request.headers.get("X-Yonet-Anahtar") || "", env.YONET_ANAHTAR);""")],
       [])
 
-K4 = ("K4", "KONTROL/SURVIVOR: YALNIZ girisYap'in kendi kapisi silindi "
-            "(yonet()'in kapisi ONDE — savunma derinligi olcumu)",
-      [_ICKAPI_SIL], [])
+# ESKIDEN K4 (beyan edilmis SURVIVOR, YESIL beklentili). Iddia ikiye ayrilinca (C22a/C22b)
+# bu katman TEK BASINA olculur oldu -> artik KIRMIZI beklentilidir. C22b'yi BEKLEMEZ:
+# yonet()'in ust kapisi bu mutantta yerinde durdugu icin GET / hala 404 doner (dogru).
+M10 = ("M10", "YALNIZ girisYap'in kendi secret kapisi silindi (savunma derinliginin IC katmani)",
+       [_ICKAPI_SIL], ["C22a"])
 
-MUTANTLAR = [M1, M2, M3, M4, M5, M6, M7, M8, M9, K1, K2, K3, K4]
+MUTANTLAR = [M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, K1, K2, K3]
 
 
 # ------------------------------------------------------------------ ayna
