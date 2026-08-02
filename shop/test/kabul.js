@@ -2392,6 +2392,18 @@ async function yonetCerezAkisi() {
   rapor("C5b pruvo-yonet=<dogru> -> 404 (ad tam esitlenir)", c5b.kod === 404, "kod=" + c5b.kod);
 
   // ---- 6. OZELLIK KAPALI (secret yok) ----
+  // 🔴 IKI CAGRI = IKI EKSEN, IKISI DE OLCULUYOR (2 Agu, olculdu). Bu iki iddia hem TASIYICI
+  // (cerez / baslik) hem de CAGRI ORDINALI bakimindan ayrilir; "tasiyici farki, gerisi kopya"
+  // deyip birini SILME — silinen sey yuklem degil CAGRI SAYISIDIR ve ozellik-kapali /liste
+  // kolunun "ilk cagri temiz, ikinci cagri sizdiriyor" sinifi nobetsiz kalir (modul duzeyi
+  // durum istekler ARASI yasar; bkz. `girisSayac`).
+  // Onceden bu iki iddianin ordinal ekseni icin nobetcide HICBIR kayit yoktu: C6a/C6b yalniz
+  // GENIS bir mutantin (M13 — ust kapi TUM ozellik-kapali GET'lerde 200) yan kirmizisi olarak
+  // goruluyordu, yani TEK BASLARINA ne tuttuklari OLCULMEMISTI. Arandi ve BULUNDU
+  // (tools/yonet-cerez-mutasyon.py):
+  //   C6a -> M24: ozellik-kapali /liste YALNIZ ILK cagride siparis listesini servis eder,
+  //   C6b -> M25: ayni sizinti YALNIZ IKINCI+ cagride olur.
+  // Her ikisi de alt kumede TEK kirmizi yakiyor (iddia sayisi 70/70 — cokme degil, olcum).
   const c6a = await liste({ anahtarsizEnv: true, cerez: "pruvo_yonet=" + A });
   rapor("C6a env.YONET_ANAHTAR yok + dogru cerez -> 404", c6a.kod === 404, "kod=" + c6a.kod);
   const c6b = await liste({ anahtarsizEnv: true, baslik: A });
