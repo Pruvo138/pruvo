@@ -749,6 +749,103 @@ def marka_varyanti_sebebi(ad, deger):
             "`marka` alanina yazilir, model/motor alanina DEGIL" % (ad, deger, n))
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# BILESIK MARKA ADI — `Mercedes-Benz` -> `Mercedes` (Okan hukmu, tools/paket-bilesik-marka.md)
+#
+# 🔴 NEDEN AYRI FONKSIYON, `marka_varyanti_sebebi()`'ye EKLENMEDI: yukaridaki 7'li kume
+# olculmus bir YAZIM VARYANTI listesidir (`KIA`/`Kia`, `MINI`/`Mini` — ayni adin farkli
+# YAZIMI). `Mercedes-Benz` yazim varyanti DEGILDIR: kanonik markayi ICEREN, kendi basina
+# dogru yazilmis bir BILESIK ADDIR. Iki kural sinifini tek fonksiyonda eritmek 7'li capayi
+# anlamsiz kilardi (MaCiT'in kova ayrimi o capaya dayaniyor). Ayri sinif -> ayri tablo,
+# ayri fonksiyon, ayri iddia. Bu blok `marka_varyanti_*`nin BAYRAGINI OKUMAZ ve tersi de
+# dogrudur -> iki BAGIMSIZ kod yolu, iki AYRI iddia ([[beyan-edilmis-survivor]]).
+#
+# 🔴 GENEL NORMALIZASYON YASAK. "Tire/bosluk kirp, iceriyorsa esle" turu bir kural
+# YAZILMAZ: mesru jetonlari yer (OLCULEN katalog verisi — `F-150`, `Rolls-Royce`,
+# `D2-55`, `206+`, `K5`). Tablo KAPALI ve ELLE yazilmistir; tabloda OLMAYAN bir bilesik ad
+# sessizce eslenmez, OLDUGU GIBI kalir (fail-closed = uydurma esleme YOK).
+#
+# ⚠️ TEK TOHUM. Okan yalnizca bu esitligi verdi. Tablonun buyumesi GORUNUR bir karardir;
+# kabul testi tablonun ICERIGINI dondurur, yani sessiz genisleme kapi KIRMIZI yakar.
+BILESIK_MARKA_KANONIK = {
+    "Mercedes-Benz": "Mercedes",
+}
+
+
+def bilesik_marka_kanonik(deger):
+    """Bilesik marka adini KAPALI tablodan kanonik markaya indirir.
+
+    Tabloda YOKSA deger AYNEN doner (uyum_marka_kanonik gibi "" DONDURMEZ: burasi bir
+    UYELIK testi degil, bir ESLEME'dir; eslemesi olmayan deger gecerli olabilir).
+    Metin olmayan deger de aynen doner -> cagiran taraf tip kontrolunu kaybetmez.
+    """
+    if not isinstance(deger, str):
+        return deger
+    return BILESIK_MARKA_KANONIK.get(deger, deger)
+
+
+def bilesik_marka_sebebi(deger):
+    """Deger KANONIKLESTIRILMESI GEREKEN bir bilesik marka adi mi? Sebep ya da None.
+
+    UYELIK testidir (tablonun ANAHTARI mi), esleme sonucuna BAKMAZ: tablonun degeri
+    yanlis yazilsa bile "bu deger tabloya tabidir" yargisi ayakta kalir -> iki eksen
+    (esleme dogru mu / hangi kayitlar tabloya tabi) ayri ayri olculebilir.
+    """
+    if not isinstance(deger, str) or deger not in BILESIK_MARKA_KANONIK:
+        return None
+    return ("%r BILESIK marka adidir ve kanonik markaya indirilir (%r) — kapali tablo, "
+            "genel normalizasyon YOK" % (deger, BILESIK_MARKA_KANONIK[deger]))
+
+
+def arama_jetonu_korunuyor(u, jeton):
+    """`jeton` sorgusu bu kaydi HALA buluyor mu? (sitenin KENDI ucluşu ile olculur)
+
+    haystack() + tokenlar() + esles() = index.html'in arama yolunun birebir karsiligi.
+    Ikinci bir arama kopyasi YAZILMAZ: kopya yazilsaydi "kapida yesil, sitede kayip"
+    ayrismasi dogar ve tam da onlemek istedigimiz sessiz kayip olculemez hale gelirdi.
+    """
+    return esles(haystack(u), tokenlar(jeton))
+
+
+def bilesik_marka_kanoniklestir(u):
+    """Kaydin `marka` dizisinin BILESIK-AD kanoniklestirilmis hali — ARAMA JETONU KAYIPSIZ.
+
+    🔴 BU PAKETIN VARLIK SEBEBI. `marka` yalnizca bir etiket degil, ARAMA METNIDIR
+    (haystack() ve ege_govde() onu okur). `Mercedes-Benz` -> `Mercedes` yazildiginda
+    "Mercedes-Benz" sorgusu tek bir jetona ayrisir (`mercedes-benz`) ve ALT-DIZE olarak
+    aranir; ham yazim kaydin arama metninden tamamen dustuyse urun o sorguyla BULUNAMAZ.
+    Hicbir alarm calmaz — sessiz kayip sinifi.
+
+    OLCULDU (16.874 kayit): `marka` alaninda `Mercedes-Benz` tasiyan 21 kayit var; duz
+    kanoniklestirme bunlarin 5'inde sorgu jetonunu DUSURUYOR (kalan 16'sinda ham yazim
+    baslik/aciklamada oldugu icin ayakta kaliyor).
+
+    KURAL: kanoniklestirme once yapilir, SONRA sonuc kaydin arama metninde OLCULUR. Jeton
+    dustuyse ham yazim dizinin SONUNA ARAMA TAKMASI olarak korunur.
+      - Kayip YOKSA takma EKLENMEZ -> arama yuzeyi GENISLEMEZ (gereksiz genisleme de bir
+        davranis degisikligidir; `Mercedes` tasiyan 1.011 kayit bundan ETKILENMEZ).
+      - `marka` cipleri/sayfalari zaten katliyor (index.html markaKatla: `Mercedes-Benz`
+        -> `Mercedes`, ayni urunde baz+varyant cifti TEK sayilir) -> takma SAHTE marka
+        sayfasi ACMAZ, yalnizca arama metnini korur.
+    Bilesik ad TASIMAYAN kayitta cikti girdiyle BIREBIR aynidir (regresyon 0).
+    """
+    marka = list(u.get("marka") or [])
+    yeni, dusen = [], []
+    for m in marka:
+        k = bilesik_marka_kanonik(m)
+        if k != m:
+            dusen.append(m)
+        if k not in yeni:
+            yeni.append(k)
+    if not dusen:
+        return yeni
+    aday = dict(u, marka=yeni)
+    for ham in dusen:
+        if not arama_jetonu_korunuyor(aday, ham) and ham not in yeni:
+            yeni.append(ham)
+    return yeni
+
+
 def _serbest_sebebi(ad, deger):
     """model/motor/oem gibi ACIK metin alani gecerli mi? Sebep metni ya da None.
 
