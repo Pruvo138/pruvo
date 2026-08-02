@@ -1,0 +1,87 @@
+{
+ "_aciklama": "YAS TABANI KANARISI (2 Agu 2026 GERCEK govdesi, kosum 30747898143 dongusu): hat SAGLIKLI, kuyruk uzun. Son yayin 12:42:30'da INDI (kosum 12:28:46'da BASLADI degil). ESKI taban (run_started_at 11:54:04) yasi 75,0 dk verir = o gunun TIKALI esigi -> KIRMIZI. YENI taban (yayin ani 12:42:30) 26,6 dk verir -> AKIYOR, sari bile degil. Bu, 2 Agu'da 9/9 dongude yanan yanlis alarmin ta kendisidir. Kosan kosum 40,3 dk'dir surmektedir (olculen normal): omur ekseni de TEMIZ.",
+ "_beklenen": "AKIYOR",
+ "_isler": {
+  "30746687481": {
+   "build": {
+    "completed_at": "2026-08-02T12:41:49Z",
+    "conclusion": "success"
+   },
+   "deploy": {
+    "completed_at": "2026-08-02T12:42:30Z",
+    "conclusion": "success"
+   },
+   "serit-b": {
+    "completed_at": "2026-08-02T12:23:39Z",
+    "conclusion": "success"
+   },
+   "yayin": {
+    "completed_at": "2026-08-02T12:43:11Z",
+    "conclusion": "success"
+   }
+  }
+ },
+ "_karsilastirma_tabani": "352711ad3fc3f7b7c7033ba830181f72d49adef5",
+ "_simdi": "2026-08-02T13:09:05Z",
+ "karsilastirma": {
+  "ahead_by": 4,
+  "commits": [
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-02T11:53:31Z"
+     }
+    },
+    "sha": "5517c3fa6fa4b636d75b8c46e32d94ac1dffee09"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-02T12:22:54Z"
+     }
+    },
+    "sha": "d05c3662c04966114a396c059e4e2ddc264c4a89"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-02T12:27:33Z"
+     }
+    },
+    "sha": "69fd4a08459a174741354e96f31b7ab251d8baf5"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-02T12:28:29Z"
+     }
+    },
+    "sha": "19e69afbc035da01bab4e16617ea0b2079284410"
+   }
+  ],
+  "status": "ahead",
+  "total_commits": 4
+ },
+ "kosumlar": [
+  {
+   "conclusion": null,
+   "created_at": "2026-08-02T12:28:46Z",
+   "event": "push",
+   "head_sha": "19e69afbc035da01bab4e16617ea0b2079284410",
+   "id": 30747898143,
+   "run_started_at": "2026-08-02T12:28:46Z",
+   "status": "in_progress",
+   "updated_at": "2026-08-02T13:08:24Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-08-02T11:54:04Z",
+   "event": "push",
+   "head_sha": "352711ad3fc3f7b7c7033ba830181f72d49adef5",
+   "id": 30746687481,
+   "run_started_at": "2026-08-02T11:54:04Z",
+   "status": "completed",
+   "updated_at": "2026-08-02T12:43:11Z"
+  }
+ ]
+}
