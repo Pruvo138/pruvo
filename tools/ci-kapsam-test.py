@@ -111,11 +111,27 @@ DEPLOY_VARSAYILAN = os.path.join(ROOT, ".github", "workflows", "deploy.yml")
 # tetiklemezse o nobetci HIC kosmaz; kapsam kapisinin tum anlami "her push'ta
 # GERCEKTEN olculuyor mu" sorusudur.
 IS_AKISI_DIZINI = os.path.join(ROOT, ".github", "workflows")
-ELLE_TETIKLER = frozenset(("workflow_dispatch", "repository_dispatch"))
+# `workflow_call`: is akisi ancak BASKA bir is akisi onu CAGIRIRSA kosar; kendi basina
+# hicbir olayla tetiklenmez. Kapsam acisindan `workflow_dispatch` ile AYNI SINIFTIR
+# (olculdu, bagimsiz curutucu O1): ELLE sayilmazsa cagrilmayan bir `workflow_call`
+# akisindaki her cagri sessizce "kapsanmis" olurdu.
+ELLE_TETIKLER = frozenset(("workflow_dispatch", "repository_dispatch", "workflow_call"))
 IS_AKISI_PAT = re.compile(r"^\.github/workflows/[^/]+\.(?:yml|yaml)$")
 SINIF_OTOMATIK = "OTOMATIK"
 SINIF_ELLE = "ELLE"
 SINIF_BELIRSIZ = "BELIRSIZ"
+
+
+def otomatik_mi(sinif):
+    """🔴 'OTOMATIK MI' SORUSUNUN TEK KAYNAGI (O4, [[ikiz-tanim-sessiz-ayrisma]]).
+
+    ONCE bu hukum IKI YERDE bagimsiz hesaplaniyordu (`kosulan_coklu` ve
+    `bayrak_envanteri`). Olculdu (bagimsiz curutucu N13): `kosulan_coklu`'yu BELIRSIZ'i
+    OTOMATIK sayacak sekilde bozan mutant IKI KOLDA DA YESIL GECTI — cunku bayrak
+    yolundaki fikstur o mutanti ORTUYOR, DOSYA duzeyi kapsamda ise BELIRSIZ yonunu
+    civileyen fikstur YOKTU. Tek kaynak + ALT_KUME_FIKSTURLERI'ndeki dosya-duzeyi
+    BELIRSIZ fiksturu birlikte o kacisi kapatir."""
+    return sinif == SINIF_OTOMATIK
 
 
 # ---- ORTAK "GERCEK ICRA MI" SUZGECI — TEK KAYNAK ---------------------------
@@ -790,7 +806,8 @@ def kosulan_coklu(akislar, kesif):
     kos_otomatik = {}
     kos_elle = {}
     for akis_yol, metin, sinif in akislar:
-        hedef = kos_otomatik if sinif == SINIF_OTOMATIK else kos_elle
+        # TEK KAYNAK (O4): bayrak_envanteri() ile AYNI predikat.
+        hedef = kos_otomatik if otomatik_mi(sinif) else kos_elle
         for yol in kosulan(metin, kesif):
             hedef.setdefault(yol, set()).add(akis_yol)
     return kos_otomatik, kos_elle
@@ -845,46 +862,129 @@ def sayilamayan_python3(deploy_metin):
 BEYAN_ETIKETI = "CI-ALT-KUME"
 BEYAN_RE = re.compile(r"^[ \t]*(?:#|//)[ \t]*" + BEYAN_ETIKETI + r":[ \t]*(--\S+)")
 
+# O9: bir satirin "beyan OLMAK ISTEDIGI ama ayristirilamadigi" hali. BLOKLAMAZ, tani basar.
+BEYAN_BENZERI_RE = re.compile(r"^[\s﻿]*(?:#|//|\*|/\*)", re.U)
+
+_JETON_CAPA_ONBELLEK = {}
+
+
+def _jeton_capasi(bayrak):
+    """<bayrak>'i JETON SINIRIYLA arayan regex (O10 — ALT-DIZE capasi curume kacirtiyordu).
+
+    🔴 OLCULEN KACIS: curume kurali `bayrak not in metin` ALT-DIZE arıyordu. `--x`
+    girisi, dosyada bayrak `--x-yeni` diye YENIDEN ADLANDIRILDIKTAN sonra da "taze"
+    kaliyordu (`--x` hala `--x-yeni`'nin icinde geciyor) -> BAYAT kirmizisi HIC YANMADI
+    (3 vakada olculdu). Jeton sinirinda `-`/`_`/alfanumerik DEVAM ETMEMELIDIR."""
+    capa = _JETON_CAPA_ONBELLEK.get(bayrak)
+    if capa is None:
+        capa = re.compile(r"(?<![\w-])" + re.escape(bayrak) + r"(?![\w-])")
+        _JETON_CAPA_ONBELLEK[bayrak] = capa
+    return capa
+
 
 def beyanlari_ayikla(metin):
     """[bayrak, ...] — <metin>'in KENDI ICINDE beyan ettigi CI alt kumeleri.
 
     Sirali ve tekrarsiz. `--` ile BASLAMAYAN jeton (or. doc yer tutucusu) beyan
     SAYILMAZ: bu, kapinin kendi dokumantasyonunu kendi kurali sanmasini engelleyen
-    tek mekanizmadir."""
+    tek mekanizmadir.
+
+    O9: jetonun SONUNDAKI noktalama temizlenir. Olculdu — virgullu yazim
+    (`<etiket>: --bayrak, --beta`) `--bayrak,` jetonu uretiyordu; o jeton dosya
+    metninde ASLA gecmedigi icin curume kurali SAHTE-KIRMIZI yakiyordu."""
     bulunan = []
     for satir in metin.splitlines():
         m = BEYAN_RE.match(satir)
-        if m and m.group(1) not in bulunan:
-            bulunan.append(m.group(1))
+        if not m:
+            continue
+        bayrak = m.group(1).rstrip(",;.:)]}\"'")
+        if bayrak.startswith("--") and bayrak != "--" and bayrak not in bulunan:
+            bulunan.append(bayrak)
     return bulunan
 
 
+def beyan_benzeri_ayristirilamayan(metin):
+    """[(satir_no, satir), ...] — icinde BEYAN ETIKETI GECEN ama beyan olarak
+    AYRISTIRILAMAYAN YORUM satirlari (O9 — BLOKLAMAZ, yalniz tani).
+
+    🔴 NEDEN: beyan yaziminin 8 varyantindan 6'si SESSIZCE dusuyordu (BOM, kucuk harf
+    etiket, `/* */`, jsdoc ` * `, iki nokta yok, tirnakli bayrak). Tipo = beyanin
+    TUMUYLE SILINMESI ve HICBIR tani yok -> yazar 'beyan ettim' saniyor, kapi gormuyor.
+    SAYI CAPASI EKLENMEZ (bayatlar); yalniz gorunur tani basilir.
+    Yer tutucu disiplini: etiket sabitten TURETILIR, bu dosyanin kendi prose'u
+    `#`/`//` ile baslamayan satirlarda yasadigi icin kendi metnini beyan sanmaz."""
+    bulgular = []
+    for i, satir in enumerate(metin.splitlines(), 1):
+        if BEYAN_ETIKETI.lower() not in satir.lower():
+            continue
+        if not BEYAN_BENZERI_RE.match(satir):
+            continue
+        if BEYAN_RE.match(satir):
+            continue
+        bulgular.append((i, satir.strip()[:120]))
+    return bulgular
+
+
 def dosya_metinleri_oku(kesif):
-    """{yol: metin} — KESFEDILEN dosyalarin icerigi. Okunamayan dosya LISTEYE GIRMEZ
-    (fail-open: beyan/capa sorulari o dosya icin sorulmaz; kapsam kurali degismez)."""
+    """({yol: metin}, okunamayan) — KESFEDILEN dosyalarin icerigi.
+
+    Okunamayan dosya LISTEYE GIRMEZ (fail-open: beyan/capa sorulari o dosya icin
+    sorulmaz; kapsam kurali degismez) AMA SAYIYLA raporlanir.
+
+    🔴 O8: ONCE yalniz `OSError` yakalaniyordu. UTF-8 OLMAYAN baytli IZLENEN bir test
+    dosyasi `UnicodeDecodeError` atar (OSError DEGIL) ve BLOKLAYICI kapiyi TRACEBACK'le
+    patlatirdi — okunur tani yerine yigin izi, tum yayin durur. Artik her istisna
+    yakalanir ve 'okunamadi' olarak SAYILIR (sessiz atlama degil)."""
     metinler = {}
+    okunamayan = []
     for yol in kesif:
         try:
             with open(os.path.join(ROOT, yol), encoding="utf-8") as f:
                 metinler[yol] = f.read()
-        except OSError:
+        except Exception as e:  # noqa: BLE001 — bilincli: tek dosya kapiyi patlatmasin
+            okunamayan.append((yol, "%s: %s" % (type(e).__name__, e)))
+    return metinler, okunamayan
+
+
+def _bayrak_jetonlari(argumanlar):
+    """Bir cagrinin ETKILI argumanlarindan BAYRAK jetonlari.
+
+    O6: GNU `--bayrak=deger` yazimi da SAYILIR. Olculdu (bagimsiz curutucu): gercek
+    `--yonet-cerez` cagrisi `--yonet-cerez=1` bicimine cevrildiginde alt kume
+    'kosmuyor' sayiliyordu -> SAHTE-KIRMIZI (tum ekibin yayini durur). Hem tam jeton
+    hem `=` oncesi kok eklenir; `--` tek basina bayrak DEGILDIR."""
+    bayraklar = set()
+    for a in (argumanlar or []):
+        if not a.startswith("--") or a == "--":
             continue
-    return metinler
+        bayraklar.add(a)
+        if "=" in a:
+            kok = a.split("=", 1)[0]
+            if kok != "--":
+                bayraklar.add(kok)
+    return bayraklar
 
 
 def bayrak_envanteri(akislar, kesif):
-    """{yol: (otomatik_bayraklar, elle_bayraklar, olculemedi_mi)}.
+    """{yol: (otomatik_bayraklar, elle_bayraklar, olculemedi_satirlar)}.
 
     Bayrak tespiti HAM METINDE `in` ARAMASIYLA YAPILMAZ: hukum SUZGEC.anlamli_cagri()
     EVET dedigi zaman DONEN `argumanlar` listesinden okunur. Ham metin araması
     `echo`/yorum/`--help` sinifi sessiz kacislarin yasadigi yerdir (30 Tem, olculen
     4 delik) — suzgec o ekseni sahiplenen sertlestirilmis TEK KAYNAKTIR.
 
-    olculemedi_mi=True: OTOMATIK bir is akisinda bu yolu ANAN ama JETONLANAMAYAN bir
-    satir var -> o dosyanin TUM beyan edilen alt kumeleri KAPSANMIS sayilir (fail-OPEN,
-    bilincli: `kosulan()`'in bugunku belirsizlik politikasiyla AYNI yon; bu kapi
-    `continue-on-error`SUZ kosar)."""
+    olculemedi_satirlar = [(akis_yolu, komut, sebep), ...] — OTOMATIK bir is akisinda
+    bu yolu ANAN ama JETONLANAMAYAN satirlar (fail-OPEN yonu spec B2 geregi KORUNUR).
+
+    🔴 O2 — FAIL-OPEN KALDI AMA (a) DARALDI (b) SESSIZ DEGIL:
+      (a) KAPSAM: ONCE bir tek jetonlanamayan satir o dosyanin TUM beyan edilen alt
+          kumelerini "kapsanmis" yapiyordu (DOSYA duzeyi). Olculdu: gercek
+          `--yonet-cerez` cagrisi SILINIP tek bozuk satir eklendiginde kapi rc=0 verip
+          "kapsanan 2" YAZIYORDU — aktif YANLIS BEYAN. Artik fail-open yalniz jetonu
+          o SATIRIN HAM METNINDE GECEN bayrak icin gecerlidir (spec B2 zaten SATIR
+          icin veriyordu; kod DOSYA'ya genellemisti).
+      (b) GORUNURLUK: fail-open ile kapsanmis sayilan her (yol,bayrak) denetle()'de
+          GORUNUR bir "ALT KUME OLCULEMEDI -> kapsanmis SAYILDI" satiri basar."""
     komutlar = {}
     sinif = {}
     for akis_yol, metin, akis_sinifi in akislar:
@@ -895,27 +995,43 @@ def bayrak_envanteri(akislar, kesif):
         onek = _onek_re(yol)
         oto = set()
         elle = set()
-        belirsiz = False
+        olculemedi = []
         for akis_yol, kmt in komutlar.items():
-            otomatik_mi = sinif[akis_yol] == SINIF_OTOMATIK
+            oto_mu = otomatik_mi(sinif[akis_yol])
             for k in kmt:
                 if not onek.match(k):
                     continue
-                hukum, _sebep, argumanlar = SUZGEC.anlamli_cagri(k, yol)
+                hukum, sebep, argumanlar = SUZGEC.anlamli_cagri(k, yol)
                 if hukum == SUZGEC.OLCULEMEDI:
-                    if otomatik_mi:
-                        belirsiz = True
+                    if oto_mu:
+                        olculemedi.append((akis_yol, k, sebep))
                     continue
                 if hukum != SUZGEC.EVET:
                     continue
-                bayraklar = {a for a in (argumanlar or []) if a.startswith("--")}
-                (oto if otomatik_mi else elle).update(bayraklar)
-        envanter[yol] = (oto, elle, belirsiz)
+                (oto if oto_mu else elle).update(_bayrak_jetonlari(argumanlar))
+        envanter[yol] = (oto, elle, olculemedi)
     return envanter
 
 
+def fail_open_kapsar(bayrak, olculemedi_satirlar):
+    """(kapsiyor_mu, sebep) — <bayrak> jetonlanamayan bir SATIR yuzunden kapsanmis
+    sayilmali mi (O2 daraltmasi).
+
+    Yalniz jetonu HAM SATIRDA GECEN bayrak icin EVET. Jetonu hic gecmeyen bir satir
+    o bayragi calistiriyor OLAMAZ, dolayisiyla onu 'kapsanmis' saymak fail-open
+    DEGIL, olculmus bir YANLIS BEYANDI."""
+    for akis_yol, komut, sebep in olculemedi_satirlar:
+        if _jeton_capasi(bayrak).search(komut):
+            return True, "%s · %s" % (akis_yol, sebep or "jetonlanamadi")
+    return False, None
+
+
 def alt_kume_denetimi(kesif, dosya_metinleri, bayrak_env, alt_kume_izin):
-    """(hatalar, beyan_sayisi, kapsanan_sayisi, muaf_sayisi) — BLOKLAYICI CEKIRDEK.
+    """(hatalar, beyan_sayisi, kapsanan_sayisi, muaf_sayisi, fail_open) — BLOKLAYICI CEKIRDEK.
+
+    fail_open = [(yol, bayrak, sebep), ...] — JETONLANAMAYAN bir satir yuzunden
+    "kapsanmis" SAYILAN alt kumeler (O2). Cagiran bunlari GORUNUR uyari olarak basar;
+    sessiz kalmasi olculmus bir YANLIS BEYANDI.
 
     KURAL (ucuncu hal YOK):
       1. OTOMATIK bir is akisi o dosyayi FIILEN kosuyor VE komutun etkili argumanlari
@@ -930,6 +1046,7 @@ def alt_kume_denetimi(kesif, dosya_metinleri, bayrak_env, alt_kume_izin):
         bayrak yeniden adlandirilirsa giris curur)
       * giris VAR ama alt kume OTOMATIK'te FIILEN kosuyor -> hata (BAYAT)"""
     hatalar = []
+    fail_open = []
     beyan_sayisi = 0
     kapsanan = 0
     muaf = 0
@@ -939,11 +1056,17 @@ def alt_kume_denetimi(kesif, dosya_metinleri, bayrak_env, alt_kume_izin):
         metin = dosya_metinleri.get(yol)
         if metin is None:
             continue
-        oto, _elle, belirsiz = bayrak_env.get(yol, (set(), set(), False))
+        oto, _elle, olculemedi = bayrak_env.get(yol, (set(), set(), []))
         for bayrak in beyanlari_ayikla(metin):
             beyan_sayisi += 1
-            if belirsiz or bayrak in oto:
+            if bayrak in oto:
                 kapsanan += 1
+                continue
+            # O2: fail-open ARTIK SATIR DUZEYINDE ve GORUNUR.
+            acik, sebep = fail_open_kapsar(bayrak, olculemedi)
+            if acik:
+                kapsanan += 1
+                fail_open.append((yol, bayrak, sebep))
                 continue
             gerekce = alt_kume_izin.get((yol, bayrak))
             if gerekce and gerekce.strip():
@@ -963,15 +1086,16 @@ def alt_kume_denetimi(kesif, dosya_metinleri, bayrak_env, alt_kume_izin):
                            "yolu duzelt): %s %s" % (yol, bayrak))
             continue
         metin = dosya_metinleri.get(yol)
-        if metin is not None and bayrak not in metin:
+        # O10: JETON SINIRLI capa (alt-dize capasi `--x` -> `--x-yeni` curumesini kacirdi).
+        if metin is not None and not _jeton_capasi(bayrak).search(metin):
             hatalar.append("BAYAT alt kume izni (bayrak jetonu dosyanin METNINDE HIC "
                            "gecmiyor — yeniden adlandirildi ya da silindi): %s %s"
                            % (yol, bayrak))
-        oto, _elle, _belirsiz = bayrak_env.get(yol, (set(), set(), False))
+        oto, _elle, _olculemedi = bayrak_env.get(yol, (set(), set(), []))
         if bayrak in oto:
             hatalar.append("BAYAT alt kume izni (alt kume ARTIK OTOMATIK is akisinda "
                            "KOSUYOR — izinden cikar): %s %s" % (yol, bayrak))
-    return hatalar, beyan_sayisi, kapsanan, muaf
+    return hatalar, beyan_sayisi, kapsanan, muaf, fail_open
 
 
 # ---- BOLUM C: UYARI KATMANI (EXIT KODUNA ASLA DOKUNMAZ) --------------------
@@ -1074,7 +1198,7 @@ def uyari_katmani(kesif, dosya_metinleri, bayrak_env, alt_kume_izin):
         metin = dosya_metinleri.get(yol)
         if metin is None:
             continue
-        oto, elle, _belirsiz = bayrak_env.get(yol, (set(), set(), False))
+        oto, elle, _olculemedi = bayrak_env.get(yol, (set(), set(), []))
         if not yol.endswith(".py"):
             js_olculemedi += 1
             for b in sorted(elle - oto):
@@ -2578,6 +2702,30 @@ TETIK_FIKSTURLERI = (
      "AYRISTIRMA HATASI -> BELIRSIZ (taklit/tahmin URETILMEZ)"),
     ("- bu bir dizi\n- kok esleme degil\n", SINIF_BELIRSIZ, None,
      "kok ESLEME degil -> BELIRSIZ"),
+    # ---- O1: "AYRISTIRICI BASARILI AMA TETIK KUMESI BOS/ANLAMSIZ" -------------
+    # 🔴 BU YONU HICBIR FIKSTUR TUTMUYORDU: curutucunun N11 mutanti IKI KOLDA DA
+    # YESIL gecti. Bos kume -> ELLE_TETIKLER farki bos -> tuketici OTOMATIK sayardi.
+    ("on:\n  # push:\n" + _TF_JOBS, SINIF_BELIRSIZ, None,
+     "🔴 TETIKLERI YORUMA ALINMIS (`on:` altinda yalniz `# push:`) -> tetik kumesi "
+     "BOS -> BELIRSIZ. ONCE: {''} -> OTOMATIK (SAHTE-YESIL; GitHub bu akisi HIC "
+     "kosturmaz, icindeki her cagri 'kapsanmis' sayilirdi)"),
+    ("on: ''\n" + _TF_JOBS, SINIF_BELIRSIZ, None,
+     "`on: ''` (BOS SKALAR) -> BELIRSIZ (ayni sinif)"),
+    ("t: &t\n  push:\n    branches: [main]\non:\n  <<: *t\n" + _TF_JOBS,
+     SINIF_BELIRSIZ, None,
+     "YAML MERGE ANAHTARI (`<<: *t`) -> jeton '<<' gecerli olay adi DEGIL -> BELIRSIZ"),
+    ("on:\n  workflow_call:\n" + _TF_JOBS, SINIF_ELLE, {"workflow_call"},
+     "🔴 YALNIZ `workflow_call` -> ELLE: baska bir is akisi CAGIRMADAN kosmaz, "
+     "kendi basina hicbir olayla tetiklenmez"),
+    # ---- O3: IKI KOL PARITESI (alias + cok-belgeli) --------------------------
+    ("t: &t\n  - push\non: *t\n" + _TF_JOBS, SINIF_OTOMATIK, {"push"},
+     "🔴 ALIAS (`on: *t`, anchor=[push]) -> OTOMATIK. ONCE KOL SAPMASIYDI: "
+     "psych ELLE / pyyaml OTOMATIK ([[ikiz-tanim-sessiz-ayrisma]])"),
+    ("t: &t\n  push:\n    branches: [main]\non: *t\n" + _TF_JOBS, SINIF_OTOMATIK,
+     {"push"}, "ALIAS ESLEMESI (`on: *t`) -> OTOMATIK (ayni kol sapmasi)"),
+    ("on: push\n" + _TF_JOBS + "---\nbaska: belge\n", SINIF_BELIRSIZ, None,
+     "🔴 COK BELGELI (`---`) -> IKI KOLDA da BELIRSIZ (fail-closed). ONCE: "
+     "psych ilk belgeyi sessizce okuyup ELLE, pyyaml ComposerError ile BELIRSIZ"),
 )
 
 # 🔴 YER TUTUCU DISIPLINI: asagidaki fiksturlerde GERCEK beyan satirlari `_BY_ISARET`
@@ -2608,6 +2756,14 @@ BEYAN_FIKSTURLERI = (
      "SATIR BASINDA olmayan (kod satirinin sonundaki) yorum beyan SAYILMAZ"),
     ("%s %s\n" % (_BY_ISARET, _BY_ET), [],
      "etiket var ama JETON YOK -> beyan SAYILMAZ"),
+    # ---- O9: SONDAKI NOKTALAMA -----------------------------------------------
+    # Olculdu: virgullu yazim `--alfa,` jetonu uretiyordu; o jeton dosya metninde
+    # ASLA gecmedigi icin curume kurali SAHTE-KIRMIZI yakiyordu (yayin durur).
+    ("%s %s --alfa, --beta\n" % (_BY_ISARET, _BY_ET), ["--alfa"],
+     "🔴 VIRGULLU yazim -> sondaki noktalama TEMIZLENIR (`--alfa,` DEGIL `--alfa`); "
+     "ikinci jeton beyan SAYILMAZ (satirda TEK beyan kurali korunur)"),
+    ("%s %s --alfa.\n" % (_BY_ISARET, _BY_ET), ["--alfa"],
+     "cumle sonu noktasi TEMIZLENIR"),
 )
 
 # ---- UCTAN UCA ALT KUME FIKSTURLERI ----------------------------------------
@@ -2686,15 +2842,59 @@ ALT_KUME_FIKSTURLERI = (
      {_AK_YOL: _ak_metin("--alfa")}, {}, 1,
      ("BEYAN EDILEN ALT KUME KOSMUYOR", "TETIGI COZULEMEDI"), (),
      "BELIRSIZ tetik ELLE gibi ele alinir (kapsam SAYILMAZ) + UYARI satiri basilir"),
+    # ---- O2: FAIL-OPEN'IN KAPSAMI SATIR DUZEYINE INDIRILDI + GORUNUR ---------
+    ([_ak_akis(_AK_CAGRI_SADE + ' --x "acik-tirnak')], [_AK_YOL],
+     {_AK_YOL: _ak_metin("--alfa")}, {}, 1,
+     ("BEYAN EDILEN ALT KUME KOSMUYOR", "--alfa"), ("kapsanan 1",),
+     "🔴 (O2-a) JETONLANAMAYAN satir bayragi ICERMIYOR -> alt kume KAPSANMIS "
+     "SAYILMAZ. ONCE: tek bozuk satir DOSYANIN TUM alt kumelerini kapsiyordu; "
+     "gercek cagri silinip bu satir konunca kapi rc=0 verip 'kapsanan 2' YAZIYORDU "
+     "(aktif YANLIS BEYAN, tek satir OLCULEMEDI izi yoktu)."),
+    ([_ak_akis(_AK_CAGRI_SADE + ' --alfa "acik-tirnak')], [_AK_YOL],
+     {_AK_YOL: _ak_metin("--alfa")}, {}, 0,
+     ("ALT KUME OLCULEMEDI -> kapsanmis SAYILDI (fail-open)", "--alfa"), ("KOSMUYOR",),
+     "(O2-b) JETONLANAMAYAN satir bayragi ICERIYOR -> fail-open KORUNUR (spec B2) "
+     "ama artik GORUNUR bir OLCULEMEDI satiri basar (sessiz DEGIL)"),
+    # ---- O4: DOSYA DUZEYINDE BELIRSIZ -> KAPSAM SAYILMAZ ---------------------
+    ([_ak_akis(_AK_CAGRI_SADE, SINIF_BELIRSIZ)], [_AK_YOL],
+     {_AK_YOL: "kod\n"}, {}, 1,
+     ("KAPSAMSIZ", "TETIGI COZULEMEDI"), (),
+     "🔴 (O4) DOSYA duzeyi BELIRSIZ: beyan YOK, yalniz BELIRSIZ tetikli akis kosuyor "
+     "-> KAPSAMSIZ (KIRMIZI). Bu yonu hicbir fikstur tutmuyordu; curutucunun N13 "
+     "mutanti (`kosulan_coklu` BELIRSIZ'i OTOMATIK sayar) IKI KOLDA da YESIL gecti."),
+    ([_ak_akis(_AK_CAGRI_SADE, SINIF_OTOMATIK)], [_AK_YOL],
+     {_AK_YOL: "kod\n"}, {}, 0,
+     ("SONUC: YESIL",), ("KAPSAMSIZ",),
+     "(O4 KONTROL) ayni girdi OTOMATIK tetikle -> YESIL (fikstur cifti; tek yonlu "
+     "olcum korelir)"),
+    # ---- O6: GNU `--bayrak=deger` ------------------------------------------
+    ([_ak_akis(_AK_CAGRI_SADE + " --alfa=1")], [_AK_YOL],
+     {_AK_YOL: _ak_metin("--alfa")}, {}, 0,
+     ("Beyan edilen alt kume  : 1  (kapsanan 1",), ("KOSMUYOR",),
+     "🔴 (O6) `--bayrak=deger` yazimi KAPSAR. ONCE: `--alfa=1` cagrisi `--alfa` "
+     "beyanini kapsamiyordu -> SAHTE-KIRMIZI (tum ekibin yayini durur)"),
+    # ---- O10: CURUME CAPASI JETON SINIRLI -----------------------------------
+    ([_ak_akis(_AK_CAGRI_SADE)], [_AK_YOL],
+     {_AK_YOL: "ap.add_argument('--alfa-yeni')\n"},
+     {(_AK_YOL, "--alfa"): "olculmus gerekce"}, 1,
+     ("BAYAT alt kume izni", "METNINDE HIC"), (),
+     "🔴 (O10) `--alfa` -> `--alfa-yeni` YENIDEN ADLANDIRMASI izni BAYAT yapar. "
+     "ONCE: capa ALT-DIZE ariyordu, `--alfa` hala `--alfa-yeni` icinde gectigi icin "
+     "giris 'taze' kaliyordu ve BAYAT kirmizisi HIC yanmiyordu (3 vakada olculdu)"),
+    ([_ak_akis(_AK_CAGRI_SADE)], [_AK_YOL],
+     {_AK_YOL: "ap.add_argument('--alfa')\n"},
+     {(_AK_YOL, "--alfa"): "olculmus gerekce"}, 0,
+     ("SONUC: YESIL",), ("BAYAT alt kume",),
+     "(O10 KONTROL) jeton GERCEKTEN duruyorsa giris TAZE kalir -> YESIL"),
     ([_ak_akis(_AK_CAGRI_SADE)], [_AK_YOL], {_AK_YOL: _ak_metin("--beta")},
      {(_AK_YOL, "--beta"): "OLCULMUS gerekce: sentetik"}, 0,
      ("Beyan edilen alt kume  : 1  (kapsanan 0 · muaf 1)",), ("KOSMUYOR",),
      "MUAF yolu: gerekceli izin girisi kapiyi YESIL birakir"),
 )
 
-TETIK_FIKSTUR_ASGARI = 10
-BEYAN_FIKSTUR_ASGARI = 9
-ALT_KUME_FIKSTUR_ASGARI = 13
+TETIK_FIKSTUR_ASGARI = 17
+BEYAN_FIKSTUR_ASGARI = 11
+ALT_KUME_FIKSTUR_ASGARI = 20
 
 
 def tetik_fikstur_kontrol_govdesi():
@@ -2712,7 +2912,56 @@ def tetik_fikstur_kontrol_govdesi():
                         "(sahte-YESIL); ELLE'ye kayan bir hata TUM ekibin yayinini "
                         "durdurur." % (etiket, beklenen_sinif, beklenen_tetik,
                                        sinif, tetikler))
+    hata.extend(iki_kol_tetik_kontrol_govdesi())
     return hata
+
+
+# 🔴 O3b — IKI KOLU FIILEN KARSILASTIRAN NOBETCI (KATLAMA_FIKSTURLERI deseninin aynisi).
+# NEDEN GEREKTI: yaml-oku.py'nin yorumu "iki kol AYNI kumeyi dondurmek ZORUNDADIR
+# (tuketicideki TETIK_FIKSTURLERI bunu kilitler)" DIYORDU ama KILITLEMIYORDU:
+# TETIK_FIKSTURLERI yalniz O ANDA AKTIF kolda kosar (PyYAML varsa psych HIC cagrilmaz),
+# yani iki kol HIC karsilastirilmiyordu. Olculdu (bagimsiz curutucu, 25 girdi): UC ayrisma.
+# Ayrisma YEREL-KIRMIZI / CI-YESIL uretir — yani en pahali hata sinifi.
+# OLCULEMEDI HALI SESSIZ GECMEZ: tek kol varsa "karsilastirma YAPILAMADI" satiri basilir
+# (bloklamaz); sessiz "sapma yok" saymak bu nobetciyi OLU yapardi.
+IKI_KOL_EK_GIRDILER = (
+    "on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n" + _TF_JOBS,
+    "t: &t\n  - push\n  - schedule\non: *t\n" + _TF_JOBS,
+    "on:\n  <<: *yok\n" + _TF_JOBS,
+    'on: "push"\n' + _TF_JOBS,
+    "on:\n" + _TF_JOBS,
+)
+
+
+def iki_kol_tetik_kontrol_govdesi():
+    """PyYAML kolu ile psych kolunu AYNI girdilerde karsilastirir; (hata) dondurur."""
+    girdiler = [g for g, _s, _t, _e in TETIK_FIKSTURLERI] + list(IKI_KOL_EK_GIRDILER)
+    try:
+        sapmalar, olculen_kol = YAML_OKU.iki_kol_tetik_sapmasi(girdiler)
+    except Exception as e:  # noqa: BLE001 — nobetci kapiyi PATLATMAZ, konusur
+        return ["IKI KOL KARSILASTIRMASI OLCULEMEDI: %s: %s" % (type(e).__name__, e)]
+    if olculen_kol < 2:
+        # BLOKLAMAZ ama GORUNUR (bu satir raporda kalir; sessiz yesil YOK).
+        return []
+    return ["KOL SAPMASI (tetik, girdi #%d): PyYAML kolu %r, psych kolu %r -> AYNI "
+            "girdide FARKLI tetik kumesi. Bu YEREL-KIRMIZI / CI-YESIL uretir "
+            "([[ikiz-tanim-sessiz-ayrisma]]); iki kol TEK KAYNAKTAN turemeli."
+            % (i, p, r) for i, p, r in sapmalar]
+
+
+def iki_kol_durum_satiri():
+    """Raporda basilacak (bloklamayan) iki-kol olcum durumu."""
+    girdiler = [g for g, _s, _t, _e in TETIK_FIKSTURLERI] + list(IKI_KOL_EK_GIRDILER)
+    try:
+        sapmalar, olculen_kol = YAML_OKU.iki_kol_tetik_sapmasi(girdiler)
+    except Exception as e:  # noqa: BLE001
+        return "  🟡 IKI KOL PARITESI OLCULEMEDI: %s: %s" % (type(e).__name__, e)
+    if olculen_kol < 2:
+        return ("  🟡 IKI KOL PARITESI OLCULEMEDI: bu ortamda %d GERCEK kol var "
+                "(karsilastirma icin 2 gerekir) — sapma YOK demek DEGILDIR"
+                % olculen_kol)
+    return ("  Iki kol paritesi       : %d girdi · sapma %d"
+            % (len(girdiler), len(sapmalar)))
 
 
 def beyan_fikstur_kontrol_govdesi():
@@ -3149,17 +3398,42 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
 
     hatalar = []
 
+    # 🔴 O5 — "HICBIR GERCEK AYRISTIRICI YOK" AYRI VE ACIK BIR HALDIR.
+    # Olculen sahte-KIRMIZI: ayristirici yokken 4 is akisinin 4'u de BELIRSIZ olur,
+    # hicbiri OTOMATIK sayilmaz ve kapi 124 ADET "KAPSAMSIZ" satiri basardi. O 124
+    # satir DOGRU DEGIL — testler kosuluyor, kapi OLCEMIYOR. `run:` cozumunun taklit
+    # yedegi var, tetik siniflandirmasinin YOK; bu asimetri raporda ACIKCA soylenir.
+    # SEMANTIK GEVSETILMEZ: rc=1 KALIR (fail-closed), yalniz SEBEP dogru yazilir.
+    ayristirici_yok = akislar is not None and YAML_OKU.ayristirici_adi() is None
+    if ayristirici_yok:
+        hatalar.append(
+            "OLCULEMEDI — HICBIR GERCEK YAML AYRISTIRICISI YOK (PyYAML de ruby/psych de "
+            "yok): is akislarinin TETIK SINIFI cozulemedigi icin %d is akisinin hepsi "
+            "BELIRSIZ sayildi ve KAPSAM HIC OLCULEMEDI. Bu 'testler kosmuyor' DEMEK "
+            "DEGILDIR; kapi OLCEMIYOR demektir (fail-closed: rc=1). COZUM: `pip install "
+            "pyyaml` ya da ortama ruby kur. NOT: `run:` cozumunun taklit yedegi VAR, "
+            "tetik siniflandirmasinin YOKTUR — kapsam hukmu tetige dayandigi icin "
+            "tahmin URETILMEZ." % len(akislar))
+
     # B) OPT-IN ALT KUME BEYANI — BLOKLAYICI CEKIRDEK (yalniz akislar verilince)
     beyan_sayisi = kapsanan_alt_kume = muaf_alt_kume = 0
+    alt_kume_fail_open = []
+    okunamayan_dosya = []
+    beyan_benzeri = []
     if akislar is not None:
         if dosya_metinleri is None:
-            dosya_metinleri = dosya_metinleri_oku(kesif)
+            dosya_metinleri, okunamayan_dosya = dosya_metinleri_oku(kesif)
         if alt_kume_izin is None:
             alt_kume_izin = ALT_KUME_IZIN_LISTESI
         bayrak_env = bayrak_envanteri(akislar, kesif)
-        alt_hata, beyan_sayisi, kapsanan_alt_kume, muaf_alt_kume = alt_kume_denetimi(
+        (alt_hata, beyan_sayisi, kapsanan_alt_kume, muaf_alt_kume,
+         alt_kume_fail_open) = alt_kume_denetimi(
             kesif, dosya_metinleri, bayrak_env, alt_kume_izin)
         hatalar.extend(alt_hata)
+        # O9: beyan OLMAK ISTEYEN ama ayristirilamayan satirlar (BLOKLAMAZ).
+        for yol in sorted(dosya_metinleri):
+            for satir_no, satir in beyan_benzeri_ayristirilamayan(dosya_metinleri[yol]):
+                beyan_benzeri.append((yol, satir_no, satir))
 
     # 2) gerekcesiz izin girisi
     for yol, gerekce in izin_listesi.items():
@@ -3177,13 +3451,16 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
             hatalar.append("BAYAT izin (test ARTIK KOSULUYOR — izinden cikar): %s" % yol)
 
     # 1) kapsamsiz: kesfedilmis ama ne kosuluyor ne izinli
+    # O5: ayristirici HIC yoksa bu liste 'kapsamsiz test' DEGIL, 'olculemeyen kapi'dir
+    # -> tek satirlik dogru tani yukarida basildi, 124 yaniltici satir BASILMAZ.
     kapsamsiz = []
-    for yol in kesif:
-        if yol in kos:
-            continue
-        if yol in izin_listesi:
-            continue
-        kapsamsiz.append(yol)
+    if not ayristirici_yok:
+        for yol in kesif:
+            if yol in kos:
+                continue
+            if yol in izin_listesi:
+                continue
+            kapsamsiz.append(yol)
     for yol in kapsamsiz:
         hatalar.append("KAPSAMSIZ (ne kosuluyor ne izin listesinde): %s" % yol)
 
@@ -3255,6 +3532,31 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         satirlar.append("  Beyan edilen alt kume  : %d  (kapsanan %d · muaf %d)"
                         % (beyan_sayisi, kapsanan_alt_kume, muaf_alt_kume))
         satirlar.append("  Muaf alt kume (izin)   : %d" % len(alt_kume_izin))
+        # O3b: iki-kol paritesi HER kosumda GORUNUR (olculemediyse de soylenir).
+        satirlar.append(iki_kol_durum_satiri())
+        # 🔴 O2 — FAIL-OPEN GORUNUR OLMAK ZORUNDA. Bu satirlar exit kodunu ETKILEMEZ
+        # ama "kapsanan" sayisinin bir kismi OLCUMDEN DEGIL, OLCEMEMEKTEN geliyorsa
+        # rapor bunu SOYLEMELIDIR (yoksa aktif yanlis beyan olur — olculdu).
+        for yol, bayrak, sebep in alt_kume_fail_open:
+            satirlar.append("  🟡 ALT KUME OLCULEMEDI -> kapsanmis SAYILDI (fail-open): "
+                            "%s %s · %s" % (yol, bayrak, sebep))
+        # O8: okunamayan kesif dosyalari SAYIYLA (sessiz atlama degil).
+        if okunamayan_dosya:
+            satirlar.append("  🟡 OKUNAMAYAN kesif dosyasi: %d (beyan/capa sorulari bu "
+                            "dosyalar icin SORULMADI)" % len(okunamayan_dosya))
+            for yol, sebep in okunamayan_dosya[:5]:
+                satirlar.append("      %s · %s" % (yol, sebep[:120]))
+            if len(okunamayan_dosya) > 5:
+                satirlar.append("      ... %d kalem BASILMADI"
+                                % (len(okunamayan_dosya) - 5))
+        # O9: beyan olmak isteyip ayristirilamayan satirlar (tani, BLOKLAMAZ).
+        if beyan_benzeri:
+            satirlar.append("  🟡 BEYAN BENZERI satir ayristirilamadi: %d (tipo = beyanin "
+                            "TUMUYLE dusmesi demektir)" % len(beyan_benzeri))
+            for yol, satir_no, satir in beyan_benzeri[:10]:
+                satirlar.append("      %s:%d  %s" % (yol, satir_no, satir))
+            if len(beyan_benzeri) > 10:
+                satirlar.append("      ... %d kalem BASILMADI" % (len(beyan_benzeri) - 10))
         # 🔴 BOLUM C — UYARI KATMANI: EXIT KODUNA ASLA DOKUNMAZ. Istisna sizarsa
         # tek satir tani basilir ve hukum DEGISMEZ.
         try:

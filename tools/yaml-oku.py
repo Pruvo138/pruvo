@@ -53,7 +53,12 @@ require 'json'
 
 def capa_topla(node, capalar)
   return if node.nil?
-  if node.respond_to?(:anchor) && node.anchor && !node.anchor.to_s.empty?
+  # 🔴 ALIAS DUGUMU CAPA TABLOSUNA YAZILMAZ: Psych'te Alias da `anchor`'a CEVAP VERIR,
+  # ve belge sirasinda alias TANIMDAN SONRA geldigi icin tabloyu EZIYORDU -> `coz()`
+  # alias'i yine bir Alias'a cozup vazgeciyordu (olculdu: `on: *t` psych'te None,
+  # pyyaml'da {'push'} -> KOL SAPMASI). Yalniz TANIM dugumleri toplanir.
+  if !node.is_a?(Psych::Nodes::Alias) &&
+     node.respond_to?(:anchor) && node.anchor && !node.anchor.to_s.empty?
     capalar[node.anchor] = node
   end
   if node.respond_to?(:children) && node.children
@@ -109,27 +114,62 @@ print JSON.generate(sonuc)
 # birden "kosmuyor" gorunurdu. DUGUM API'sinde anahtarin HAM metni ("on") gorunur ->
 # tuzak yapisal olarak ORTADAN KALKAR; tirnakli `"on":` yazimi da AYNI ham metni verir.
 # Yine de cagiran taraf ("on" VEYA True — ikisini de kabul et) kuralina uyabilsin diye
-# ASAGIDAKI PyYAML kolu BOOLEAN cozumlu anahtari da ayrica kabul eder; iki kol AYNI
-# kumeyi dondurmek ZORUNDADIR (tuketicideki TETIK_FIKSTURLERI bunu kilitler).
+# ASAGIDAKI PyYAML kolu BOOLEAN cozumlu anahtari da ayrica kabul eder.
+#
+# 🔴 IKI KOL AYNI KUMEYI DONDURMEK ZORUNDADIR — ve bu artik FIILEN OLCULUYOR.
+# ESKI YORUM YANLISTI: "tuketicideki TETIK_FIKSTURLERI bunu kilitler" deniyordu; KILITLEMIYORDU.
+# TETIK_FIKSTURLERI yalniz O ANDA AKTIF olan kolda kosar (PyYAML varsa psych hic cagrilmaz),
+# yani iki kol HIC karsilastirilmiyordu. Olculdu (bagimsiz curutucu, 25 girdi): UC ayrisma —
+# `on: *t` (alias) psych ELLE / pyyaml OTOMATIK · ayni anchor eslemesi ELLE / OTOMATIK ·
+# cok-belgeli `---` psych ELLE / pyyaml BELIRSIZ. Bu tam olarak [[ikiz-tanim-sessiz-ayrisma]]:
+# YEREL-KIRMIZI / CI-YESIL uretir. ONARIM: (a) alias anchor tablosundan COZULUR ve cok-belgeli
+# girdi IKI KOLDA da fail-closed hata olur, (b) `iki_kol_tetik_sapmasi()` iki kolu FIILEN
+# karsilastirir ve tuketicideki nobetci sapmayi KIRMIZI yakar.
 RUBY_TETIK_KAYNAK = r"""
 require 'yaml'
 require 'json'
 
-def tetik_kumesi(kok)
-  return nil if kok.nil?
-  belge = kok
-  belge = belge.children[0] if belge.is_a?(Psych::Nodes::Stream)
+def capa_topla(node, capalar)
+  return if node.nil?
+  # 🔴 ALIAS DUGUMU CAPA TABLOSUNA YAZILMAZ: Psych'te Alias da `anchor`'a CEVAP VERIR,
+  # ve belge sirasinda alias TANIMDAN SONRA geldigi icin tabloyu EZIYORDU -> `coz()`
+  # alias'i yine bir Alias'a cozup vazgeciyordu (olculdu: `on: *t` psych'te None,
+  # pyyaml'da {'push'} -> KOL SAPMASI). Yalniz TANIM dugumleri toplanir.
+  if !node.is_a?(Psych::Nodes::Alias) &&
+     node.respond_to?(:anchor) && node.anchor && !node.anchor.to_s.empty?
+    capalar[node.anchor] = node
+  end
+  if node.respond_to?(:children) && node.children
+    node.children.each { |c| capa_topla(c, capalar) }
+  end
+end
+
+def coz(node, capalar)
+  # ALIAS COZUMU: PyYAML compose() alias dugumunu anchor'lanan DUGUMUN KENDISIYLE
+  # degistirir; psych'te Alias ayri bir dugumdur. Cozmezsek ayni girdide iki kol
+  # FARKLI hukum verir (olculdu: `on: *t` -> psych ELLE, pyyaml OTOMATIK).
+  gorulen = 0
+  while node.is_a?(Psych::Nodes::Alias) && gorulen < 32
+    node = capalar[node.anchor]
+    gorulen += 1
+  end
+  node
+end
+
+def tetik_kumesi(belge, capalar)
   return nil if belge.nil?
-  belge = belge.children[0] if belge.is_a?(Psych::Nodes::Document)
+  belge = coz(belge.children[0], capalar) if belge.is_a?(Psych::Nodes::Document)
   return nil unless belge.is_a?(Psych::Nodes::Mapping)
   belge.children.each_slice(2) do |k, v|
     next if k.nil? || v.nil?
     next unless k.is_a?(Psych::Nodes::Scalar)
     next unless k.value.to_s.downcase == 'on'
+    v = coz(v, capalar)
     if v.is_a?(Psych::Nodes::Scalar)
       return [v.value.to_s.strip]
     elsif v.is_a?(Psych::Nodes::Sequence)
-      return v.children.select { |c| c.is_a?(Psych::Nodes::Scalar) }
+      return v.children.map { |c| coz(c, capalar) }
+                       .select { |c| c.is_a?(Psych::Nodes::Scalar) }
                        .map { |c| c.value.to_s.strip }
     elsif v.is_a?(Psych::Nodes::Mapping)
       return v.children.each_slice(2).map { |kk, _vv| kk }
@@ -144,12 +184,22 @@ end
 girdi = JSON.parse($stdin.read)
 sonuc = girdi['metinler'].map do |metin|
   begin
-    kok = Psych.parse(metin)
-    t = tetik_kumesi(kok)
-    if t.nil?
-      { 'ok' => false, 'hata' => 'TETIKLEYICI YOK: kok esleme degil ya da `on:` anahtari yok' }
+    akis = Psych.parse_stream(metin)
+    belgeler = akis.nil? ? [] : akis.children
+    if belgeler.size != 1
+      # COK BELGELI / BOS girdi -> FAIL-CLOSED. PyYAML `compose()` bu girdide zaten
+      # ComposerError atiyor; psych'in ilk belgeyi sessizce okumasi KOL SAPMASIYDI.
+      { 'ok' => false,
+        'hata' => "TEK BELGE DEGIL (#{belgeler.size} belge) -> fail-closed" }
     else
-      { 'ok' => true, 'tetikler' => t }
+      capalar = {}
+      capa_topla(akis, capalar)
+      t = tetik_kumesi(belgeler[0], capalar)
+      if t.nil?
+        { 'ok' => false, 'hata' => 'TETIKLEYICI YOK: kok esleme degil ya da `on:` anahtari yok' }
+      else
+        { 'ok' => true, 'tetikler' => t }
+      end
     end
   rescue => e
     { 'ok' => false, 'hata' => "#{e.class}: #{e.message}" }
@@ -356,13 +406,42 @@ def onbellegi_isit(metinler):
 _TETIK_ONBELLEK = {}
 
 
+# GERCEK bir GitHub olay adinin yazim sekli. `on:` altinda bundan BASKA bir jeton
+# (bos dize, YAML merge anahtari `<<`, noktalama) GitHub icin ANLAMSIZDIR.
+_OLAY_ADI = __import__("re").compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+
+def _tetik_normalize(ham):
+    """(kume, hata) — HAM tetik jetonlarini TEK KAYNAKTAN suz (IKI KOL da bunu cagirir).
+
+    🔴 BOS/ANLAMSIZ TETIK KUMESI **BELIRSIZ**'DIR, "OTOMATIK" DEGIL (fail-closed).
+    OLCULEN SAHTE-YESIL (bagimsiz curutucu): tetikleri YORUMA ALINMIS bir is akisi
+    (`on:` altinda yalniz `# push:`) tetik kumesi olarak {''} veriyordu; '' hicbir
+    ELLE tetigi olmadigi icin tuketici onu **OTOMATIK** sayiyordu. GitHub oyle bir
+    is akisini HIC KOSTURMAZ -> o akista "kosuyor" gorunen her dosya sessizce
+    kapsanmis sayilirdi. Ayni sinif: `on: ''`, `on:\\n  <<: *t` (merge anahtari ->
+    ['<<']), ve genel olarak "ayristirici BASARILI ama kume BOS/anlamsiz".
+    Bu yonde BELIRSIZ yalniz KAPSAMI DARALTIR (uyari satiri basilir, exit'i etkilemez)."""
+    temiz = {str(t).strip() for t in (ham or [])}
+    gecerli = {t for t in temiz if _OLAY_ADI.match(t)}
+    if not gecerli:
+        return None, ("TETIKLEYICI ANLAMSIZ: `on:` cozuldu ama gecerli olay adi YOK "
+                      "(ham=%r) -> tetikleri yoruma alinmis / bos / merge-anahtarli "
+                      "is akisi; GitHub bunu HIC kosturmaz (fail-closed BELIRSIZ)"
+                      % (sorted(temiz),))
+    return gecerli, None
+
+
 def _pyyaml_tetikler(metin):
     """(kume, hata) — PyYAML DUGUM (compose) kolu.
 
     🔴 `safe_load` KULLANILMAZ: YAML 1.1'de ciplak `on` BOOLEAN'a cozulur ve sozlukte
     anahtar `True` olur. Dugum API'sinde ham metin ("on") korunur. Yine de sozlesme
     geregi ("on" VEYA True kabul edilmeli) BOOLEAN cozumu de kabul edilir: bir anahtar
-    dugumunun etiketi bool ise degeri `_bool_on()` ile sinanir."""
+    dugumunun etiketi bool ise degeri `_bool_on()` ile sinanir.
+
+    NOT: `compose()` COK BELGELI girdide ComposerError atar -> BELIRSIZ. psych kolu da
+    artik ayni yerde fail-closed (belge sayisi != 1); bu bilincli KOL PARITESIDIR."""
     try:
         kok = _yaml.compose(metin)
     except Exception as e:
@@ -375,14 +454,14 @@ def _pyyaml_tetikler(metin):
         if not _on_anahtari(anahtar.value):
             continue
         if isinstance(deger, _yaml.ScalarNode):
-            return {deger.value.strip()}, None
+            return _tetik_normalize([deger.value])
         if isinstance(deger, _yaml.SequenceNode):
-            return {d.value.strip() for d in deger.value
-                    if isinstance(d, _yaml.ScalarNode)}, None
+            return _tetik_normalize([d.value for d in deger.value
+                                     if isinstance(d, _yaml.ScalarNode)])
         if isinstance(deger, _yaml.MappingNode):
-            return {k.value.strip() for k, _v in deger.value
-                    if isinstance(k, _yaml.ScalarNode)}, None
-        return set(), None
+            return _tetik_normalize([k.value for k, _v in deger.value
+                                     if isinstance(k, _yaml.ScalarNode)])
+        return _tetik_normalize([])
     return None, "TETIKLEYICI YOK: `on:` anahtari yok"
 
 
@@ -417,7 +496,8 @@ def _psych_tetikler_toplu(metinler):
         if not kayit.get("ok"):
             sonuc.append((None, "%s" % kayit.get("hata")))
             continue
-        sonuc.append(({str(t).strip() for t in kayit["tetikler"]}, None))
+        # AYNI normalize govdesi (TEK KAYNAK) — kol ayrismasinin yasadigi yer burasiydi.
+        sonuc.append(_tetik_normalize(kayit["tetikler"]))
     return sonuc
 
 
@@ -443,6 +523,35 @@ def tetikleyiciler(metin):
         _TETIK_ONBELLEK.clear()
     _TETIK_ONBELLEK[metin] = sonuc
     return sonuc
+
+
+def kollar_mevcut():
+    """(pyyaml_var, psych_var) — hangi GERCEK kol bu ortamda OLCULEBILIR."""
+    return (_yaml is not None and not _AYRISTIRICI_KAPALI, bool(_psych_surumu()))
+
+
+def iki_kol_tetik_sapmasi(metinler):
+    """(sapmalar, olculen_kol) — IKI KOLU FIILEN KARSILASTIR (O3b nobetcisinin govdesi).
+
+    sapmalar = [(indeks, pyyaml_hukmu, psych_hukmu), ...]; hukum = tetik kumesi (set)
+    ya da None (= BELIRSIZ). HATA METINLERI KIYASLANMAZ, yalniz HUKUM: tuketicinin
+    sinifi (OTOMATIK/ELLE/BELIRSIZ) yalniz kumeden turer.
+
+    olculen_kol = kac GERCEK kol olculebildi (2 degilse karsilastirma YAPILAMADI —
+    cagiran bunu GORUNUR bir OLCULEMEDI satiri olarak basmak ZORUNDADIR; sessiz
+    'sapma yok' saymak bu nobetciyi olu yapar)."""
+    pyyaml_var, psych_var = kollar_mevcut()
+    if not (pyyaml_var and psych_var):
+        return [], (1 if (pyyaml_var or psych_var) else 0)
+    metinler = list(metinler)
+    psych = _psych_tetikler_toplu(metinler)
+    sapmalar = []
+    for i, metin in enumerate(metinler):
+        p_kume, _p_hata = _pyyaml_tetikler(metin)
+        r_kume, _r_hata = psych[i]
+        if p_kume != r_kume:
+            sapmalar.append((i, p_kume, r_kume))
+    return sapmalar, 2
 
 
 def tetik_onbellegi_isit(metinler):
