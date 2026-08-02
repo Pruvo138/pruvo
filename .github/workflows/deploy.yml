@@ -1830,14 +1830,24 @@ jobs:
       # yay ailesinin ucgen kolundaki hacim sapmasi (fiyat ekseni: hacim EKSIK tahmin
       # edilince musteriden EKSIK tahsil edilir) tam bu yuzden haftalarca gorunmedi.
       # yay-tarama.py rastgele set KULLANMAZ: semadan turetilen kural tabanli izgarayi
-      # (tum enum degerleri x her sayisal parametrenin min/orta/max'i) bastan sona tarar.
-      # 🔴 YALNIZ `--kendini-test` KOLU BAGLANDI — bayraksiz tam tarama 810 OpenSCAD
-      # renderi ister (CI'da OpenSCAD ve kardes depodaki model YOK; dogrula.py ile ayni
-      # gerekce). Bu kol sentetik semayla surucunun KENDI izgara + hukum mantigini olcer:
-      # izgaranin enum degeri ya da uc nokta kaybetmesi (kor tarama) ve fail-open hukum
-      # (olculemeyen nokta / sifir olculen set YESIL sayilmasi) KIRMIZI yanar.
-      # Offline: ag YOK, OpenSCAD YOK, node YOK, dosya YAZMAZ. ~0,1 s.
-      - name: "Yay tarama surucusu — kendini test (19 iddia; izgara kapsami + fail-closed hukum + bayat onbellek)"
+      # (tum enum degerleri x her sayisal parametrenin min/orta/max'i) tarar; ustune
+      # OLCULEREK canli bulunan eksenleri sema cozunurluguna kadar sikilastirir.
+      # OLCULEN KAPSAM (3 Agu 2026): 810 mantiksal kapsam noktasi 42 BENZERSIZ
+      # geometriye iniyor (dalga kolunda dis_cap/serbest_boy/tel_capi OLU eksen,
+      # spiral kolunda dalga_formu/dalga_boyu OLU) — render paylasimi 19,3x. Bosa
+      # cikan butce canli eksenlere gidiyor. Maliyet olculdu (--paralel 8, bos onbellek):
+      # kapsam taramasinin TAMAMI 110 render / 65,5 sn = 0,60 sn/render.
+      # 🔴 YALNIZ `--kendini-test` KOLU BAGLANDI — bayraksiz tam tarama OpenSCAD +
+      # kardes depodaki uretim modeli ister (CI'da ikisi de YOK; dogrula.py ile ayni
+      # gerekce). O kol MERGE KAPISINA DA BAGLI DEGIL, yalniz yerelde elle kosulur;
+      # yani `yay` hacim modelini GERCEK geometriye karsi olcen CI kapisi YOKTUR
+      # (acik kalem — gerekce tools/is-akisi-kapisi.py::SERIT_B beyaninda).
+      # Bu kol sentetik semayla surucunun KENDI mantigini olcer: izgaranin enum degeri
+      # ya da uc nokta kaybetmesi (kor tarama), fail-open hukum (olculemeyen nokta /
+      # sifir olculen set YESIL sayilmasi), sinir karsilastirmasinin kaymasi, olu-eksen
+      # paylasiminin fail-open olmasi ve olcum aracinin olctugu hacim.js'i EZMESI
+      # KIRMIZI yanar. Offline: ag YOK, OpenSCAD YOK, node YOK, diske YAZMAZ. ~0,6 s.
+      - name: "Yay tarama surucusu — kendini test (44 iddia; izgara + fail-closed hukum + tara() hukum yolu + hacim.js ayrisma kapisi)"
         run: python3 jenerator/test/yay-tarama.py --kendini-test
 
       # 31 Tem: eslem-olcum.py TAM kolu CI'da kosamaz (gizli `eslem-ozel.json` paketi

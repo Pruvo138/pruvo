@@ -2161,12 +2161,18 @@ SERIT_B = {
         "OLCULEMEDI / silinen test); yayinlanan icerige bakmaz.",
     ("deploy.yml", "serit-b", "jenerator/test/yay-tarama.py"):
         "YALNIZ `--kendini-test` kolu — TARAMA SURUCUSUNUN KENDI testi (izgara "
-        "kapsami: enum/uc nokta kaybi · hukum: olculemeyen nokta ya da sifir olculen "
-        "set YESIL sayilamaz · bayat render onbellegi). Kardesleri dogrula.py/kabul.py "
-        "ile AYNI band: yayinlanan icerige BAKMAZ, kirmizi yanmasi 'yanlis icerik "
-        "canliya cikti' demek degildir. Bayraksiz (GERCEK olcum) kol CI'ya BAGLANAMAZ: "
-        "810 OpenSCAD renderi + kardes depodaki uretim modeli ister; yerelde ve merge "
-        "kapisinda kosulur.",
+        "kapsami · fail-closed hukum · olu-eksen paylasimi · hacim.js ayrisma kapisi). "
+        "Kardesleri dogrula.py/kabul.py ile AYNI band: yayinlanan icerige BAKMAZ. "
+        "🔴 DURUST BEYAN (3 Agu 2026, curutucu duzeltmesi): bayraksiz (GERCEK olcum) "
+        "kol OpenSCAD + kardes depodaki uretim modeli istedigi icin CI'da KOSMAZ ve "
+        "MERGE KAPISINA DA BAGLI DEGILDIR — YALNIZ YERELDE, ELLE kosulur. Onceki "
+        "beyan 'yerelde ve merge kapisinda kosulur' diyordu; olculdu, YALANDI (bu "
+        "dize repoda kendi dosyasi + bu beyan + deploy.yml'in --kendini-test satiri "
+        "disinda HIC gecmiyor). EKSIK KALAN KONTROL: `yay` hacim modelinin GERCEK "
+        "geometriye karsi dogrulugunu CI'da olcen hicbir kapi yok; hacim.js'e konan "
+        "+%5 tahsilat mutantini 9 CI kapisindan HICBIRI oldurmedi (olduren tek kapi "
+        "jenerator/test/kalibrasyon-senkron.js ve o da CI-muaf). Bu delik MIMARDA "
+        "acik kalem olarak duruyor.",
     ("deploy.yml", "serit-b", "onizleme/test/eslem-olcum.py"):
         "YALNIZ `--kendini-test` kolu; onizleme ayri dagitim hedefi (imaj).",
     ("deploy.yml", "serit-b", "onizleme/test/iki-govde-olcum.py"):
