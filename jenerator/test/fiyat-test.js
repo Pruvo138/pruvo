@@ -173,6 +173,19 @@ esit("vida: standart ölçüler geçerli (civata M5/M12/M20)",
       KONF.dogrula(vidaSema, vidaSet("civata", 12)).gecerli,
       KONF.dogrula(vidaSema, vidaSet("civata", 20)).gecerli], [true, true, true]);
 
+// --- sema.kisitlar KABUL TABLOSU (rulman çapraz-parametre + vida sabit-min çapası) ---
+// Tablo TEK KAYNAK: jenerator/test/kisit-vakalar.js — mutasyon sürücüsü
+// (jenerator/test/kisit-mutasyon.js) AYNI tabloyu koşar, ikinci kopya yok.
+// Rulman satırlarının dayanağı ÖLÇÜM: üretim motoruna gerçek render (601 render,
+// 0 ayrışma). Her sınır İKİ YÖNLÜ pinlenir (kabul + ret komşusu).
+var KISIT = require(path.join(__dirname, "kisit-vakalar.js"));
+KISIT.kosu(KONF, {
+  rulman: JSON.parse(fs.readFileSync(path.join(URUN_DIR, "olcuye-ozel-rulman.json"), "utf8")),
+  vida: vidaSema
+}).forEach(function (r) {
+  esit("kisit " + r.kod + " (" + r.sema + "): " + r.not, r.gercek, r.beklenen);
+});
+
 // --- parametrik sepet satırı özeti ---
 var satir = { id: "x", malzeme: "ASA", renk: "Diğer", renk_ozel: "mor", boy_etiket: null,
               parametreler: { ic_cap: 32 }, parametre_detay: "İç çap: 32 mm",
