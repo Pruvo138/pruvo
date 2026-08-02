@@ -63,11 +63,19 @@ MUTANTLAR (hepsi GERCEK, canliya sizabilecek bozulmalar; hepsi KIRMIZI yanmali)
       M22/M23 IKINCI+ cagri      ozellik-kapali root GET bozulur (M20 kod, M21 govde); M22/M23
                                  ayni ikiliyi IKINCI+ cagri icin yapar. Dort ordinal-eksen
                                  iddiasinin (C15b/C15c/C22b/C22c) ayirt edicileri bunlardir.
+  M24/M25 /liste kolunun       — ozellik-kapali /liste YALNIZ ILK (M24) ya da YALNIZ IKINCI+
+      iki ordinali               (M25) cagride siparis listesini anahtarsiz servis eder.
+                                 C6a/C6b'nin AYIRT EDICILERI. 2 Agu'da OLCULEREK eklendi:
+                                 oncesinde bu iki iddianin ordinal ekseni icin surucude
+                                 HICBIR kayit yoktu (C6a/C6b yalniz M13'un yan kirmizisiydi).
 
 EKSENE INDIRME (2 Agu, olculdu — "iddia sisirmesi" YAPILMADI). Kural: bir eksen ancak
 YALNIZ onu kirmizi yakan bir mutant VARSA kendi iddiasi olur; yoksa iddia EKLENMEZ.
 Bugun kural TAM oturuyor: C15a, C15b, C15c, C22a, C22b, C22c, C22d, C22e — sekizinin de
 kendi TEK-KIRMIZI mutanti var (sirasiyla M11, M20, M21, M17, M22, M23, M18, M19).
+BUNLARA EK olarak C6a/C6b (ozellik-kapali /liste kolunun iki cagri ordinali) de artik TEK
+kirmizi yakan ayirt edicilere sahip: M24/M25 (olculdu; YENI IDDIA EKLENMEDI — var olan iki
+iddianin ne tuttugu nobet altina alindi).
 
 🔴 CAGRI SIRASI OLCUMUN PARCASIDIR — SONDAYI SILME. Alt kume ozellik-kapali panel kokunu
 IKI kez yokluyor: 15. blokta (C15b/C15c) ve 22. blokta (C22b/C22c). Bir ara turda "yuklemleri
@@ -158,22 +166,42 @@ def sha(yol):
         return hashlib.sha256(f.read()).hexdigest()
 
 
+# ------------------------------------------------------------------ olcutler
+# 🔴 GECERLI OLCUT DEGERLERI TEK KAYNAKTIR. Dosyanin hicbir yerinde "ESIT"/"KAPSAR" dizesi
+# ELLE yazilmaz (ne sarmalayicida, ne tuketim yerinde, ne rapor satirinda): ikiz tanim
+# sessizce ayrisir. Sarmalayicilar (tek_eksen/esit_kume/genis) bu sabitleri dondurur,
+# tuketim yeri yine bu sabitlerle karsilastirir, dogrulayici yine bu demetten uretir.
+OLCUT_ESIT = "ESIT"        # kirmizi kume == beyan (fazlalik KUSUR -> capa)
+OLCUT_KAPSAR = "KAPSAR"    # beyan ⊆ kirmizi (ek kirmizi BEKLENIR -> capa YOK)
+OLCUTLER = (OLCUT_ESIT, OLCUT_KAPSAR)
+
 # ------------------------------------------------------------------ mutantlar
 # (kod, aciklama, [(bulunacak, yerine), ...], beklenen_kirmizi_iddia_kodlari, OLCUT)
 # beklenen kod listesi BOS ise: KONTROL mutanti -> YESIL kalmali.
 #
-# 🔴 OLCUT, MUTANTIN KENDI KAYDINDA (asagidaki MUTANTLAR listesinde tek kelimeyle):
-#   tek_eksen(...) -> "ESIT":   kirmizi kume BEKLENENE ESIT olmali. Bir iddianin "AYIRT
-#       EDICI / TEK KIRMIZI" oldugu hukmu ANCAK boyle korunur. Onceki surumde olcut yalnizca
-#       KAPSAMA idi (beklenen ⊆ kirmizi): beklenenin USTUNE fazladan iddia kirmizi yansa da
-#       mutant PASS veriyordu. Yani "M14 yalniz C22c'yi yakar" gibi TUM ayirt edicilik
-#       iddialarimiz nobetci tarafindan HIC olculmuyordu — biri yarin bir iddiayi genisletse
-#       ozellik sessizce olur, tek kapi bile kirmizi yanmazdi. Kendini-test yapildi: ayirt
-#       edici bir mutanta fazladan iddia kirmizi yaktiran sapma eklendiginde ESIT olcutu
-#       KIRMIZI, eski KAPSAR olcutu YESIL veriyor.
-#   genis(...) -> "KAPSAR":     beklenen ⊆ kirmizi. GENIS/BILESIK bozulmalar icindir (birden
-#       cok ekseni ayni anda dusurenler); onlarda ek kirmizi BEKLENIR ve capa olmamalidir.
-# Kontrol mutantlarinda (beklenen BOS) olcut kullanilmaz: kirmizi SIFIR olmali.
+# 🔴 OLCUT, MUTANTIN KENDI KAYDINDA (asagidaki MUTANTLAR listesinde tek sarmalayiciyla):
+#   tek_eksen(...) / esit_kume(...) -> OLCUT_ESIT:  kirmizi kume BEKLENENE ESIT olmali. Bir
+#       iddianin "AYIRT EDICI / TEK KIRMIZI" oldugu hukmu ANCAK boyle korunur. Ilk surumde
+#       olcut yalnizca KAPSAMA idi (beklenen ⊆ kirmizi): beklenenin USTUNE fazladan iddia
+#       kirmizi yansa da mutant PASS veriyordu. Yani "M14 yalniz C22c'yi yakar" gibi TUM
+#       ayirt edicilik iddialarimiz nobetci tarafindan HIC olculmuyordu — biri yarin bir
+#       iddiayi genisletse ozellik sessizce olur, tek kapi bile kirmizi yanmazdi. Kendini-test
+#       yapildi: ayirt edici bir mutanta fazladan iddia kirmizi yaktiran sapma eklendiginde
+#       ESIT olcutu KIRMIZI, eski KAPSAR olcutu YESIL veriyor.
+#   genis(...) -> OLCUT_KAPSAR:  beklenen ⊆ kirmizi. Kirmizi kumesi beyanindan GENIS OLCULEN
+#       (ya da genis olmasi BEKLENEN) bozulmalar icindir; onlarda ek kirmizi capa yapilmaz.
+# Kontrol mutantlarinda (beklenen BOS) olcut degeri kullanilmaz — ama YINE DE GECERLI olmak
+# ZORUNDADIR (bkz. olcut_dogrula): kayit sekli tek turlu kalsin, "olcutu bos gecince kontrol
+# olur" gibi sessiz bir ikinci anlam DOGMASIN.
+#
+# 🔴 FAIL-CLOSED (2 Agu, olculdu): taninmayan/eksik olcut degeri VARSAYILANA DUSMEZ. Once
+# `olcut == "ESIT"` yazan tek bir karsilastirma vardi; degeri "Esit" diye yanlis yazmak
+# (buyuk/kucuk harf sapmasi) mutanti SESSIZCE KAPSAR'a dusuruyor ve surucu cikis 0 veriyordu
+# — en kati kapimiz bir YAZIM HATASIYLA gevsiyordu, hicbir sey kirmizi yanmadan. Artik:
+#   (a) kosumdan ONCE olcut_dogrula() TUM kayitlari suzer; tek bir gecersiz deger bile
+#       surucuyu ORADA durdurur (hangi kayitta hangi deger oldugu yazilir),
+#   (b) tuketim yerinde de "ne ESIT ne KAPSAR" hali SystemExit'tir (varsayilan dal YOK).
+# Kabul: bir kaydin olcutu "Esit" yapilinca cikis 1 (once 0); olcut alani silinince cikis 1.
 
 M1 = ("M1", "?anahtar= sorgu parametresi yolu GERI GELDI (isin bas sebebi)", [(
     """function anahtarGecerli(request, url, env) {
@@ -322,7 +350,9 @@ M12 = ("M12", "yon404 TEK KAYNAGININ govdesine <form> enjekte edildi (kod HALA 4
 # M13 — KOD ekseni, TUM ozellik-kapali GET'lerde: formsuz 200 doner (POST kolu 404 kalir).
 # AYIRT EDICI DEGIL (olculdu): ust kapi TUM yollarda ortak oldugu icin /liste ucunun
 # ozellik-kapali iddialarini (C6a/C6b) da dusurur. Kod ekseninin AYIRT EDICI mutanti
-# M15'tir (yalniz `GET /`). M13 durur: genis bozulmanin genis kirmizi yaktigini sabitler.
+# M15'tir (yalniz `GET /`); C6a/C6b'nin ayirt edicileri M24/M25'tir (yalniz /liste, tek
+# ordinal). M13 durur: genis bozulmanin genis kirmizi yaktigini sabitler — kirmizi kumesi
+# {C15b,C22b,C6a,C6b} olarak OLCULDU ve capalandi (esit_kume).
 M13 = ("M13", "ust kapi ozellik-kapali TUM GET'lerde formsuz 200 dondurur (POST kolu 404)",
        [("""export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }
@@ -480,30 +510,112 @@ M23 = _kok_ordinali(
     "++_kokSayac > 1", _FORMLU_404, ["C22c"])
 
 
+# --- /liste KOLUNUN ORDINALLERI (M24/M25) — C6a/C6b'nin AYIRT EDICILERI -------------
+# 🔴 KAYIT DUZELTMESI (2 Agu, KENDIM OLCTUM): C6a/C6b'nin ordinal ekseni icin surucude
+# HICBIR ayirt edici mutant kaydi YOKTU — C6a/C6b yalnizca GENIS mutantlarin (M13) yan
+# kirmizisi olarak goruluyordu, yani "bu iki iddia tek basina neyi tutuyor" OLCULMEMISTI.
+# Arandi, BULUNDU ve iki kez arka arkaya olculdu: her biri TEK kirmizi yakiyor, iddia
+# sayisi 70/70 (cokme yok). Yapisal sebep: 6. blok ozellik-kapali /liste kolunu IKI AYRI
+# cagriyla yokluyor (once dogru CEREZ ile = C6a, sonra dogru BASLIK ile = C6b), yani kol
+# hem tasiyici hem de CAGRI ORDINALI ekseninde nobetli.
+# GERCEK ZARAR (bu yuzden govdesi bos 200 degil, dogrudan liste()): ozellik KAPALIYKEN
+# /yonet/liste siparis listesini — musteri adi/tel/eposta/adres — anahtarsiz servis eder.
+# ⚠️ 6. bloktaki IKI cagridan birini "tasiyici farki, gerisi kopya" diye SILME: silinen sey
+# yuklem degil CAGRI SAYISIDIR ve asagidaki iki mutanttan biri o anda YESIL gecmeye baslar.
+def _liste_ordinali(kod, aciklama, kosul, beklenen):
+    """Ozellik-kapali /liste GET'lerini sayar ve YALNIZ <kosul>u saglayan cagride gercek
+    liste()'yi servis eder; diger her sey bugunku gibi yon404()'tur."""
+    return (kod, aciklama, [(_KOK_ANCHOR, """let _listeSayac = 0;
+export async function yonet(request, env, url, ctx, altYol, telegram) {
+  const m = request.method;
+  if (!env.YONET_ANAHTAR) {
+    if (altYol === "/liste" && m === "GET" && """ + kosul + """) { return liste(env, url); }
+    return yon404();
+  }""")], beklenen)
+
+
+M24 = _liste_ordinali(
+    "M24", "YALNIZ ILK ozellik-kapali /liste GET'i siparis listesini servis eder (cerez kolu)",
+    "++_listeSayac === 1", ["C6a"])
+M25 = _liste_ordinali(
+    "M25", "YALNIZ IKINCI+ ozellik-kapali /liste GET'i siparis listesini servis eder (baslik kolu)",
+    "++_listeSayac > 1", ["C6b"])
+
+
 def tek_eksen(m):
-    """Kirmizi kume TAM OLARAK beklenendir -> olcut kume ESITLIGI (fazlalik = KUSUR).
-    Iki durumda kullanilir: (a) AYIRT EDICI mutant ("yalniz su iddiayi yakar"), (b) iddiasi
-    "sunlar duser ve BUNLAR YESIL KALIR" olan mutant (M16: ilk cagri temiz kalmali).
-    Bu olcut olmadan hukum nobetsizdir: KAPSAR olcutu fazladan kirmiziyi sessizce gecirir."""
-    return m + ("ESIT",)
+    """TEK iddia bekleyen AYIRT EDICI mutant -> olcut kume ESITLIGI (fazlalik = KUSUR).
+    "Yalniz su iddiayi yakar" hukmu ANCAK boyle nobet altindadir; KAPSAR olcutu fazladan
+    kirmiziyi sessizce gecirir."""
+    return m + (OLCUT_ESIT,)
+
+
+def esit_kume(m):
+    """Birden COK iddia bekleyen ama kirmizi kumesi TAM OLARAK beyani KADAR OLCULEN mutant.
+    tek_eksen ile AYNI olcuttur (tek kaynak: OLCUT_ESIT); ayri ad yalnizca okuyucuya
+    "bu 'tek eksen' iddiasi DEGIL, olculmus kume esitligi capasi" der.
+    🔴 ESIT'e ancak kirmizi kumesi KARARLI olculen kayit alinir: tekrarli kosumda ayni
+    kume cikmali. (Bu dosyada kayitlar birbirini KIRLETEMEZ: `kos()` her kayit icin AYRI
+    bir node SURECI baslatir -> modul duzeyi durum — `girisSayac` gibi — her kosumda
+    sifirdan baslar. Sira duyarliligi TEK bir kosumun ICINDEDIR, kayitlar arasinda degil.)"""
+    return m + (OLCUT_ESIT,)
 
 
 def genis(m):
-    """GENIS/BILESIK bozulma -> olcut KAPSAMA (beklenen ⊆ kirmizi); ek kirmizi BEKLENIR."""
-    return m + ("KAPSAR",)
+    """Kirmizi kumesi beyanindan GENIS olculen/beklenen bozulma -> olcut KAPSAMA
+    (beklenen ⊆ kirmizi); ek kirmizi capa yapilmaz. Kararliligi ISPATLANAMAYAN kayit da
+    BURADA kalir: yanlis-kirmizinin maliyeti, kacirilan capadan buyuktur."""
+    return m + (OLCUT_KAPSAR,)
 
 
+# 🔴 SARMALAYICI SECIMI OLCULEREK YAPILDI (2 Agu). 14 KAPSAR kaydinin kirmizi kumesi iki
+# kez arka arkaya olculdu: 11'i beyanina BIREBIR ESIT cikti (kararli) -> capa alindi
+# (esit_kume). Ucu GERCEKTEN kapsama istiyor, KAPSAR kaldi ve sebebi kaydinda yazili:
+#   M6 -> +C18a,C18b  (govde siniri kalkinca sinir-ustu POST'lar hiz sayacini besliyor)
+#   M8 -> +C10f       (CEREZ_BAYRAK tek kaynak: yonetCereziSil() ayni bayraklari tasiyor)
+#   M9 -> +C10f       (ayni sebep)
 MUTANTLAR = [
-    genis(M1), genis(M2), genis(M3), genis(M4), genis(M5), genis(M6), genis(M7),
-    genis(M8), genis(M9), genis(M10),
+    esit_kume(M1), esit_kume(M2), esit_kume(M3), esit_kume(M4), esit_kume(M5),
+    genis(M6),                       # OLCULDU: +C18a,C18b — kapsama GERCEKTEN gerekli
+    esit_kume(M7),
+    genis(M8), genis(M9),            # OLCULDU: +C10f — kapsama GERCEKTEN gerekli
+    esit_kume(M10),
     tek_eksen(M11),
-    genis(M12), genis(M13),
-    genis(M14), genis(M15),          # BEYAN BAYATLADI, ESIT olcutu yakaladi — bkz. kayitlari
+    esit_kume(M12), esit_kume(M13),
+    esit_kume(M14), esit_kume(M15),  # BEYAN BAYATLAMISTI (2 ordinal); kume simdi olculu
     tek_eksen(M16),                  # iddiasinin PARCASI: C15b/C15c YESIL kalir
     tek_eksen(M17), tek_eksen(M18), tek_eksen(M19),
     tek_eksen(M20), tek_eksen(M21), tek_eksen(M22), tek_eksen(M23),
+    tek_eksen(M24), tek_eksen(M25),
     genis(K1), genis(K2), genis(K3),
 ]
+
+
+def olcut_dogrula(mutantlar):
+    """🔴 FAIL-CLOSED KAYIT SUZGECI — kosumdan ONCE calisir.
+    Kayit sekli (5 alan) ve olcut degeri TANINMIYORSA surucu varsayilana DUSMEZ; kusur
+    listesi doner ve cagiran KIRMIZI yakip durur. Sebep: olcut bir dize alani; yanlis
+    yazilmasi (or. "Esit") eskiden mutanti sessizce en GEVSEK olcute dusuruyordu."""
+    kusurlar = []
+    for sira, kayit in enumerate(mutantlar):
+        etiket = "kayit #%d" % sira
+        if not isinstance(kayit, tuple) or len(kayit) != 5:
+            kusurlar.append(
+                "%s: 5 alanli demet DEGIL (uzunluk=%s, ilk alan=%r) — olcut sarmalayicisi "
+                "(tek_eksen/esit_kume/genis) UNUTULMUS olabilir"
+                % (etiket, len(kayit) if hasattr(kayit, "__len__") else "?",
+                   kayit[0] if hasattr(kayit, "__getitem__") and len(kayit) else kayit))
+            continue
+        kod, _aciklama, degisimler, _beklenen, olcut = kayit
+        etiket = "kayit #%d [%s]" % (sira, kod)
+        if olcut not in OLCUTLER:
+            kusurlar.append(
+                "%s: GECERSIZ olcut %r — taninan degerler: %s. Varsayilana DUSULMEZ; "
+                "sarmalayiciyi kullan (tek_eksen/esit_kume -> %s, genis -> %s)"
+                % (etiket, olcut, ", ".join(repr(o) for o in OLCUTLER),
+                   OLCUT_ESIT, OLCUT_KAPSAR))
+        if not degisimler:
+            kusurlar.append("%s: mutasyon listesi BOS — bu kayit hicbir sey olcmez" % etiket)
+    return kusurlar
 
 
 # ------------------------------------------------------------------ ayna
@@ -578,12 +690,27 @@ def main():
     print("  hedef: shop/src/yonet.js  sha256=%s…  (%d bayt)"
           % (canli_once[:16], len(pristine.encode("utf-8"))))
 
+    # --- 0a) KAYIT SUZGECI: gecersiz olcut = KIRMIZI (varsayilana DUSME YOK) ---------
+    # Ayna kurulmadan ONCE kosar: bozuk kayitla yapilan kosum "olculdu" DEGILDIR.
+    print("\n0a) OLCUT KAYITLARI (fail-closed)")
+    kusurlar = olcut_dogrula(MUTANTLAR)
+    check("her mutant kaydi 5 alanli + olcutu taninan bir deger (%s)"
+          % ", ".join(OLCUTLER), not kusurlar,
+          "%d kayit denetlendi%s" % (len(MUTANTLAR),
+                                     "" if not kusurlar else "; %d KUSUR" % len(kusurlar)))
+    if kusurlar:
+        for k in kusurlar:
+            print("     ⚠️ " + k)
+        print("\n  🔴 GECERSIZ OLCUT KAYDI: surucu en gevsek olcute SESSIZCE DUSMEZ. "
+              "Kayitlari duzelt; duzeltilene kadar bu harness HICBIR SEY olcmus SAYILMAZ.")
+        return 1
+
     ayna = tempfile.mkdtemp(prefix="yonet-cerez-mutasyon-")
     try:
         ayna_kur(ayna)
 
-        # --- 0) AYNA DOKUNULMAZLIGI: kaynaga giden fiziksel yol var mi? -------------
-        print("\n0) AYNA DOKUNULMAZLIGI")
+        # --- 0b) AYNA DOKUNULMAZLIGI: kaynaga giden fiziksel yol var mi? ------------
+        print("\n0b) AYNA DOKUNULMAZLIGI")
         baglar = symlinkleri_bul(ayna)
         check("aynada SYMLINK yok (kaynaga giden yol fiziksel olarak kapali)",
               not baglar, "symlink: %s" % (baglar[:6] or "-"))
@@ -619,7 +746,7 @@ def main():
         print("\n2) MUTASYON BATARYASI — %d kosum (%d kirmizi-beklentili [%d ESIT olcutlu], "
               "%d kontrol)"
               % (len(MUTANTLAR), sum(1 for m in MUTANTLAR if m[3]),
-                 sum(1 for m in MUTANTLAR if m[3] and m[4] == "ESIT"),
+                 sum(1 for m in MUTANTLAR if m[3] and m[4] == OLCUT_ESIT),
                  sum(1 for m in MUTANTLAR if not m[3])))
         matris = []
         for kod, aciklama, degisimler, beklenen, olcut in MUTANTLAR:
@@ -631,7 +758,18 @@ def main():
                 # ESIT olcutu: BEKLENENIN USTUNE cikan her kirmizi de KUSURDUR. "Bu mutant
                 # yalniz su iddiayi yakar" hukmu ancak boyle nobet altindadir; KAPSAR
                 # olcutunde fazlalik sessizce gecerdi.
-                fazla = (sorted(set(kirmizi_kod) - set(beklenen)) if olcut == "ESIT" else [])
+                # 🔴 VARSAYILAN DAL YOK: taninmayan olcut burada da DURDURUR (olcut_dogrula
+                # zaten suzer; bu ikinci kapi, listeyi kosum aninda uretecek bir gelecek
+                # degisiklikte de fail-closed kalinsin diyedir).
+                if olcut == OLCUT_ESIT:
+                    fazla = sorted(set(kirmizi_kod) - set(beklenen))
+                elif olcut == OLCUT_KAPSAR:
+                    fazla = []
+                else:
+                    raise SystemExit(
+                        "OLCUT TANINMIYOR (%s): %r — taninan degerler: %s. Surucu "
+                        "VARSAYILANA DUSMEZ (fail-closed)."
+                        % (kod, olcut, ", ".join(repr(o) for o in OLCUTLER)))
                 gecti = sayi_ok and rc == 1 and bool(kirmizi) and not eksik and not fazla
                 detay = ("cikis=%d iddia=%s/%d kirmizi=%d olcut=%s isaret=%s"
                          % (rc, iddia, t_iddia, len(kirmizi), olcut,
