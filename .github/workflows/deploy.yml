@@ -701,6 +701,32 @@ jobs:
       - name: "Alt kategori kapisi (izinli kume + tedarikci imzasi + duzelt yolu + ikiz tanim)"
         run: python3 tools/altkategori-kapisi.py
 
+      # ALT KATEGORI TAKSONOMISI + UC GECISLI SINIFLANDIRICI (tools/altkategori-sinifla.py).
+      # Yukaridaki kapi alanin VERI YOLUNU olcer; bu test KUMENIN KENDISINI ve urunu gruba
+      # DUSUREN KURALI olcer. OLCULEN BASLANGIC (2 Agu): alt kategori tanimli TEK kategori
+      # Marin'di (12 deger) ve katalogun %94'unde alan BOSTU -> kategori sayfalari yiginla
+      # aciliyordu. Kume 6 kategoriye / 60 degere cikti. Kilitlenen eksenler:
+      #   K KUME    Her deger imza nobetinden AYRI AYRI geciyor; Marin'in 12 MIRAS degeri
+      #             BAYT-ESIT korunuyor (935 kayit onlari kullaniyor, bir harf sessizce
+      #             hepsini gecersizlestirirdi) ve hicbir iki deger ayni normalize
+      #             anahtara katlanmiyor.
+      #   E ESIK    <100 urunlu kategoriye kume TANIMLI DEGIL, <15 urunlu grup kumede YOK
+      #             — ikisi de GERCEK katalogda olculuyor, kagitta kalmiyor. Elenen
+      #             adaylar gerekcesiyle kayitli (yeniden "kesfedilip" tartisilmasin).
+      #   S SIRA    Artik kova oncelikte EN SONDA: daha belirgin bir yer/sistem grubuna
+      #             dusen urun kovaya GITMEZ (kova one kayarsa yigilma cozulmez, TASINIR).
+      #   T TURETME 2. gecis (yakinlik) sozlugu 1. GECIS CIKTISINDAN turer; elle yazilmis
+      #             kelime listesi YOK — 1. gecis degisince 2. gecis atamasi da degisiyor.
+      #   D DETERM. Ayni girdi ayni cikti; girdi SIRASI sonucu degistirmiyor.
+      #   F FAIL-   Siniflandirici kume DISI deger URETEMEZ (tek kaynak arama.py'deki
+      #     CLOSED  kumedir) ve urettigi her deger duzelt.py kapisindan da geciyor.
+      # 🔴 SINIFLANDIRICI urunler.json'a YAZMAZ, yalniz hesaplar (yazma yolu duzelt.py).
+      # OFFLINE: urunler.json yalnizca OKUNUR. Cift yonlu mutasyon (6 oldurucu KIRMIZI +
+      # 1 ilgisiz YESIL + mutasyonsuz harness kontrolu) elle:
+      #   python3 tools/altkategori-sinifla-test.py --mutasyon
+      - name: "Alt kategori taksonomisi + siniflandirici kabul testi"
+        run: python3 tools/altkategori-sinifla-test.py
+
       # UYUM EKSENI (`uyum`: marka/model/motor/yil/oem) — urunun NEYE UYDUGU.
       # Kategori "urun NE" der, uyum "neye takilir" der; ikisi tek agaca binince yigilir
       # (tools/paket-uyum-ekseni.md). Bu ADIMDA TUKETICI YOK — urun_hash'e girmez, D1
