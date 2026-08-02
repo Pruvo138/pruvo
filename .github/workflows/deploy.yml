@@ -834,6 +834,33 @@ jobs:
       - name: "Alt kategori cip satiri (ana sayfa daraltma: cip + URL + filtre baglantisi)"
         run: python3 tools/altkategori-cip-test.py
 
+      # CIP SATIRLARI CAPRAZ DARALMA + MODEL EKSENI — tools/cip-indeks-test.py.
+      # NEDEN AYRI BIR ADIM (ustteki kapi bu ekseni GORMEZ): altkategori-cip-test.py TEK
+      # satirin (GRUP) kendi ekseninde davranisini olcer; bu kapi UC SATIRIN BIRBIRINE gore
+      # daralmasini ve YENI MODEL eksenini olcer. Olculen musteri hatasi (2 Agu, CANLI):
+      # `Marin`+`Bujiler` secili (136 urun, hepsi ayni marka bujisi) iken MARKA satiri hala
+      # Mercury/Volvo/Yamaha/Jeanneau/Beneteau/GoPro/Zodiac gosteriyordu — hicbirinin o
+      # grupta urunu YOK, her cip bir OLU UC. Kok neden: cip evrenleri KATEGORIDEN
+      # turetiliyordu, filtrelenmis kumeden degil (sabit menude bos kombinasyon: Marin
+      # %86,2 · Motosiklet %72 · Otomobil %58).
+      # OLCULEN SESSIZ-HATA SINIFLARI: (1) cip gorunur/tiklanir, liste degismez;
+      # (2) cip gosterilir ama 0 urun verir; (3) UC parametreyi SESSIZCE YOK SAYAR
+      # (olculdu: /katalog?marka=BMW&model=E46 -> toplam 1673 = marka toplaminin AYNISI);
+      # (4) satir KENDI secimiyle daralir -> kullanici filtreyi DEGISTIREMEZ.
+      # Bu yuzden her iddianin KONTROL EKSENI var ve GORUNEN HER CIP TEK TEK tiklanip >0
+      # olculur (ORNEKLEME YOK). Ayrica: gercek katalog uzerinde esik (marka>=15, model>=3,
+      # marka basina >=2 model) + "indekste sifirli kombinasyon YOK" iddialari; yayin
+      # kopyasina enjeksiyonun fiilen oldugu; mobil cip satirinin kaydirilabilir tek satir
+      # oldugu; arama metnine (hs) model EKLENMEDIGI (site<->Ege paritesi).
+      # NASIL: index.html'in GERCEK inline scripti node:vm'de kosar (kod kopyalanmaz), IKI
+      # MOD da olculur (edge + yerel). Cip indeksi UYDURULMAZ: gercek uretec
+      # (tools/cip-indeks.py) fikstur katalogu uzerinde calistirilip verilir.
+      # OFFLINE: ag YOK, DISKE YAZMAZ, ~25 s. node ZORUNLU (setup-node yukarida).
+      # Cift yonlu mutasyon (17 oldurucu KIRMIZI + 3 ilgisiz YESIL + M00 kontrol) elle:
+      #   python3 tools/cip-indeks-test.py --mutasyon
+      - name: "Cip satirlari capraz daralma + model ekseni (olu uc + fail-open nobeti)"
+        run: python3 tools/cip-indeks-test.py
+
       # KONFIGUR GOLGE MODU (FAZ 3). Worker D1'den `konfigur`u OKUR ama fiyati HALA bundle'dan
       # hesaplar; bu adim iki seyi birden kilitler:
       # (1) MUSTERI DAVRANISI DEGISMEDI — capa 150/PLA=73600, 300/ASA=150000, anka-kusu
