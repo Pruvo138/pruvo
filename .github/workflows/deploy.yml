@@ -816,6 +816,24 @@ jobs:
       - name: "Alt kategori musteri yuzeyi (urun sayfasi etiketi + JSON-LD + regresyon)"
         run: python3 tools/altkategori-yuzey-test.py
 
+      # ALT KATEGORI CIP SATIRI (ana sayfa daraltma yuzeyi) — tools/altkategori-cip-test.py.
+      # NEDEN AYRI BIR ADIM: ustteki iki kapi VERI yolunu (D1/hash/izinli kume) ve URUN
+      # SAYFASI etiketini olcer; ANA SAYFA daraltmasi UCUNCU bir eksendir ve ikisi yesilken
+      # sessizce yok olabilir (olculdu 2 Agu: D1'de 16.646 dolu kayit + 60 tekil ikili VARDI,
+      # index.html `altkategori` parametresini HIC okumuyordu — musteri tiklayip daraltamiyordu).
+      # OLCULEN SESSIZ-HATA SINIFI: "cip GORUNUR, TIKLANIR, liste DEGISMEZ, alarm CALMAZ".
+      # Bu yuzden her iddianin KONTROL EKSENI var: sayi DEGISMELI (Marin 10 -> Bujiler 5),
+      # uydurma deger 0 DONMELI, donen kayitlarin DEGERI secilene ESIT olmali.
+      # NASIL: index.html'in GERCEK inline scripti node:vm'de, DOM taklidi + sahte fetch ile
+      # calisir (kod kopyalanmaz); cipler GERCEKTEN tiklanir. IKI MOD da kosar — edge
+      # (EDGE_KATALOG=true, canli hal: parametre Worker'a gider) ve yerel (geri donus yolu:
+      # filtre istemcide). Ayrica IKIZ ekseni: cip evreni arama.ALTKATEGORI_IZINLI ile birebir.
+      # OFFLINE: ag YOK, DISKE YAZMAZ, ~15 s. node ZORUNLU (setup-node yukarida).
+      # Cift yonlu mutasyon (10 oldurucu KIRMIZI + 3 ilgisiz YESIL + M00 kontrol) elle:
+      #   python3 tools/altkategori-cip-test.py --mutasyon
+      - name: "Alt kategori cip satiri (ana sayfa daraltma: cip + URL + filtre baglantisi)"
+        run: python3 tools/altkategori-cip-test.py
+
       # KONFIGUR GOLGE MODU (FAZ 3). Worker D1'den `konfigur`u OKUR ama fiyati HALA bundle'dan
       # hesaplar; bu adim iki seyi birden kilitler:
       # (1) MUSTERI DAVRANISI DEGISMEDI — capa 150/PLA=73600, 300/ASA=150000, anka-kusu

@@ -1011,6 +1011,14 @@
     <span class="brand-label">Marka:</span>
     <div class="brand-chips" id="brandChips"></div>
   </div>
+  <!-- ALT KATEGORİ (grup) çip satırı — marka satırının AYNI görsel dili (brand-row/
+       brand-btn sınıfları yeniden kullanılır, yeni CSS YOK). Yalnız alt kategorisi
+       TANIMLI kategorilerde görünür; renderGrid display'i yönetir (varsayılan gizli,
+       fail-closed: JS düşerse boş kutu kalmaz). -->
+  <div class="brand-row" id="altRow" style="display:none">
+    <span class="brand-label">Grup:</span>
+    <div class="brand-chips" id="altChips"></div>
+  </div>
   <div class="section-title" id="sectionTitle">Tüm Ürünler</div>
   <div class="result-count" id="resultCount"></div>
   <div class="edge-durum" id="edgeDurum" style="display:none"></div>
@@ -1223,6 +1231,28 @@
   // GİZLEME MEKANİZMASI = bu listede olmak + CATEGORIES'te OLMAMAK (renderCats yalnız
   // CATEGORIES'i çizer). Sayfa üretecindeki NAV_GIZLI ile BİRLİKTE güncelle.
   var GIZLI_KATEGORILER = ["Jeneratör","Skan Art"];
+
+  // >>> ALTKATEGORI VERISI (URETILEN BLOK — python3 tools/altkategori-veri.py)
+  // Alt kategori cip evreni. TEK KAYNAK: tools/arama.py :: ALTKATEGORI_IZINLI
+  // (duzelt.py / d1-sync / build.py ayni kumeden turer). ELLE DUZENLEME —
+  // kume degisince `python3 tools/altkategori-veri.py` kosulur; ayrisirsa
+  // tools/altkategori-cip-test.py (CI'da bloklayici) KIRMIZI yanar.
+  var ALTKATEGORILER = {
+    "Marin": ["Boya - Bakım","Bujiler","Dümen ve Kumanda","Elektrik","Filtreler","Motor Parçaları","Motor Yağları","Pervaneler","Sintine ve Ekipmanları","Soğutma","Tutyalar ve Anotlar","Yakıt Sistemi","Bağlama Ekipmanları","Güverte ve Donanım","Kano ve Kayak","Montaj Ekipmanları","Olta Ekipmanları"],
+    "Otomobil": ["Aydınlatma","Ayna ve Silecek","Bagaj ve Taşıma","Dış Aksam","Kapı ve Cam","Klima ve Havalandırma","Koltuk ve Kemer","Konsol ve Torpido","Montaj ve Bağlantı","Motor Bölümü","Multimedya ve Elektronik","Sürüş Kumandaları","Tavan ve Güneşlik","Tekerlek ve Jant","Yakıt ve Egzoz","İç Aksam"],
+    "Motosiklet": ["Aydınlatma","Depo ve Yakıt","Elektrik","Fren ve Süspansiyon","Gidon ve Kumandalar","Grenaj ve Kaporta","Gösterge ve Kokpit","Montaj ve Bağlantı","Motor Bölümü","Multimedya ve Elektronik","Sele ve Sehpa","Tekerlek ve Aktarma","Çanta ve Bagaj"],
+    "Dekorasyon": ["Bitki ve Saksı","Dekoratif Objeler","Duvar ve Raf","Heykel ve Figür","Mum ve Aydınlatma","Servis ve Sunum","Vazo ve Çiçeklik"],
+    "Ev": ["Banyo","Duvar ve Askı","Mutfak","Saklama ve Düzen"],
+    "Elektronik": ["Cihaz Parçaları","Ev ve Mutfak Cihazları","Ses ve Müzik"]
+  };
+  // <<< ALTKATEGORI VERISI
+  // Seçili kategorinin alt kategori (grup) evreni. Kategoride tanım YOKSA boş dizi →
+  // çip satırı HİÇ çizilmez (boş kutu bırakmaz). Dizi DIŞI bir değer gelirse (blok
+  // bozulursa) yine boş dizi: fail-closed, çizim çökmez.
+  function altListesi(kat){
+    var l = ALTKATEGORILER[kat];
+    return (Object.prototype.toString.call(l) === "[object Array]") ? l : [];
+  }
 
   // ANA SAYFA VİTRİN HİYERARŞİSİ (işletme kararı, 31 Tem): filtresiz ana vitrin
   // SLOT DÜZENİYLE çizilir → slot 0-3 Jeneratör (sarı/parametrik) · 4-83 Marin ·
@@ -2354,6 +2384,8 @@
 
   var activeCat = "Tümü";
   var activeBrand = "Tümü";
+  // Alt kategori (grup) filtresi — kategori İÇİNDEKİ daraltma. "Tümü" = filtre YOK.
+  var activeAlt = "Tümü";
   var query = "";
 
   var PAGE_SIZE = 24;        // ana sayfada ilk gösterilen ürün sayısı
@@ -2438,6 +2470,7 @@
   function syncUrl(){
     var params = new URLSearchParams();
     if(activeCat !== "Tümü"){ params.set("kategori", activeCat); }
+    if(activeAlt !== "Tümü"){ params.set("altkategori", activeAlt); }
     if(activeBrand !== "Tümü"){ params.set("marka", activeBrand); }
     if(query.trim()){ params.set("ara", query.trim()); }
     var s = params.toString();
@@ -2558,6 +2591,41 @@
     visible.forEach(function(m){ el.appendChild(chip(m)); });
   }
 
+  // ---------- ALT KATEGORİ (GRUP) ÇİPLERİ ----------
+  // Marka çipleriyle AYNI desen ve AYNI sınıflar (brand-btn/active) — yeni görsel dil YOK.
+  // FARKLAR (bilinçli): (a) evren KÜRATÖRLÜ DEĞİL, üretilen ALTKATEGORILER bloğundan gelir
+  // (tek kaynak: tools/arama.py); (b) çip LİNK değil FİLTRE'dir (alt kategori sayfası yok);
+  // (c) seçili çipe TEKRAR tıklamak seçimi TEMİZLER ("Tümü" çipi ikinci temizleme yolu).
+  function renderAlts(){
+    var el = document.getElementById("altChips");
+    if(!el){ return; }
+    el.innerHTML = "";
+    var liste = altListesi(activeCat);
+    // Deep-link ya da küme-dışı bir değer seçiliyse çipi KAYBOLMASIN (marka çipindeki
+    // "cap dışı seçili marka" emsali) — kullanıcının seçimi temizleyecek yolu kalsın.
+    if(activeAlt !== "Tümü" && liste.indexOf(activeAlt) === -1){
+      liste = liste.concat([activeAlt]);
+    }
+    if(liste.length === 0){ return; }   // alt kategorisi olmayan kategoride ÇİP YOK
+
+    function cip(deger){
+      var b = document.createElement("button");
+      b.className = "brand-btn" + (deger === activeAlt ? " active" : "");
+      b.textContent = deger;
+      b.onclick = function(){
+        activeAlt = (deger === activeAlt) ? "Tümü" : deger;   // tekrar tık = temizle
+        resetPaging();
+        syncUrl();
+        renderAlts();
+        if(EDGE_KATALOG){ edgeTazele(); return; }   // çizimi cevap gelince yapar
+        renderGrid();
+      };
+      return b;
+    }
+    el.appendChild(cip("Tümü"));
+    liste.forEach(function(a){ el.appendChild(cip(a)); });
+  }
+
   function renderCats(){
     var el = document.getElementById("cats");
     var all = ["Tümü"].concat(CATEGORIES);
@@ -2582,6 +2650,7 @@
           // TAM SIFIRLAMA (işletme kararı, 17 Tem): "Tümü" her yerden ana sayfa görünümüne tek
           // tıkla döner — marka + arama + URL paramları temizlenir, sayfa başına çıkılır.
           activeBrand = "Tümü";
+          activeAlt = "Tümü";
           query = ""; searchEl.value = ""; clearEl.className = "search-clear";
           window.scrollTo({top:0, behavior:"smooth"});
         }else if(activeBrand !== "Tümü" && brandCounts()[activeBrand] === undefined){
@@ -2589,9 +2658,14 @@
           // bir deep-link markası da kategorisinde ürünü varken sıfırlanmasın)
           activeBrand = "Tümü";
         }
+        // Seçili grup YENİ kategoride tanımlı değilse düşer (kategoriler arası taşınmaz);
+        // "Tümü" dalı zaten yukarıda sıfırladı.
+        if(activeAlt !== "Tümü" && altListesi(activeCat).indexOf(activeAlt) === -1){
+          activeAlt = "Tümü";
+        }
         resetPaging();
         syncUrl();
-        renderCats(); renderBrands();
+        renderCats(); renderBrands(); renderAlts();
         closeDrawers();
         if(EDGE_KATALOG){ edgeTazele(); return; }   // çizimi cevap gelince yapar
         renderGrid();
@@ -2607,9 +2681,15 @@
     var hedefMarka = activeBrand === "Tümü" ? null : markaKatla(activeBrand);
     return PRODUCTS.filter(function(p){
       var catOk = activeCat === "Tümü" || p.kategori === activeCat;
+      // ALT KATEGORİ: TAM eşitlik (Worker'ın `u.altkategori = ?` koşuluyla AYNI kural).
+      // Katlama/normalleştirme YOK — marka ekseninin aksine değerler kanonik tek kaynaktan
+      // gelir. İzinli küme DIŞI bir değer (deep-link `?altkategori=xyzyok`) hiçbir kayda
+      // eşit olmaz → 0 sonuç. Bu FAIL-CLOSED yön BİLEREK: değeri düşürseydik sessizce
+      // TÜM liste dönerdi ve sunucu (0 döner) ile istemci AYRIŞIRDI.
+      var altOk = activeAlt === "Tümü" || (p.altkategori || "") === activeAlt;
       var brandOk = !hedefMarka ||
         (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
-      if(!catOk || !brandOk){ return false; }
+      if(!catOk || !altOk || !brandOk){ return false; }
       if(tokens.length === 0){ return true; }
       var hs = haystack(p);
       for(var i=0;i<tokens.length;i++){ if(hs.indexOf(tokens[i]) === -1){ return false; } }
@@ -2858,7 +2938,11 @@
 
     // Ana sayfa varsayılan görünümü: önceden hesaplanmış HOME_ORDER (sarı sıra + her
     // kategoriden birer sıra + kalan karışık). Kategori/marka filtresi ve arama yoksa uygulanır.
-    var anaGorunum = activeCat === "Tümü" && query.trim() === "" && activeBrand === "Tümü";
+    // 🔴 activeAlt DE ANA GÖRÜNÜM ŞARTIDIR: aksi halde ?altkategori=X (kategorisiz
+    // deep-link) "ana görünüm" sayılır, filtrelenmiş liste HOME_ORDER ile EZİLİR ve
+    // müşteri daraltma istediği halde TÜM kataloğu görür — sessiz fail-open.
+    var anaGorunum = activeCat === "Tümü" && query.trim() === "" &&
+                     activeBrand === "Tümü" && activeAlt === "Tümü";
     var cizilecek, toplam, dahaVar;
 
     if(EDGE_KATALOG){
@@ -2902,6 +2986,16 @@
     // ana sayfada (Tümü) ve salt aramada/marka filtresinde GİZLİ, kategoriye girilince görünür.
     var brandRowEl = document.getElementById("brandRow");
     if(brandRowEl){ brandRowEl.style.display = (activeCat !== "Tümü") ? "" : "none"; }
+
+    // Alt kategori (grup) çip satırı: SADECE alt kategorisi TANIMLI bir kategori seçiliyken.
+    // Tanımı olmayan kategoride satır HİÇ görünmez (boş kutu bırakmaz). Tek istisna:
+    // küme-dışı bir grup deep-link'le seçiliyse satır görünür ki kullanıcı temizleyebilsin.
+    var altRowEl = document.getElementById("altRow");
+    if(altRowEl){
+      var altVar = activeCat !== "Tümü" &&
+                   (altListesi(activeCat).length > 0 || activeAlt !== "Tümü");
+      altRowEl.style.display = altVar ? "" : "none";
+    }
 
     if(query.trim() !== ""){
       title.textContent = '"' + query.trim() + '" araması';
@@ -2979,7 +3073,10 @@
     return out;
   }
   function edgeAnaSayfaMi(){
-    return activeCat === "Tümü" && activeBrand === "Tümü" && query.trim() === "";
+    // activeAlt şartı renderGrid'deki anaGorunum ile AYNI gerekçeyle burada da var:
+    // grup seçiliyken ana vitrin havuzu/sayfalaması devreye girmemeli.
+    return activeCat === "Tümü" && activeBrand === "Tümü" &&
+           activeAlt === "Tümü" && query.trim() === "";
   }
   // ANA VİTRİN BESLEME HAVUZU: ozet.json'daki blok havuzları + karışık kuyruk (yeni).
   // Sıra BURADA kurulmaz — vitrinSirala blok düzenini (4 Jeneratör · 80 Marin · 80 Otomobil ·
@@ -3004,6 +3101,9 @@
     var p = new URLSearchParams();
     if(activeCat !== "Tümü"){ p.set("kategori", activeCat); }
     if(activeBrand !== "Tümü"){ p.set("marka", activeBrand); }
+    // Alt kategori İKİ uçta da geçerli (Worker: /katalog ve /ara aynı katMarkaAltKosulu'nu
+    // kullanır) — bu yüzden `if(q)` dallanmasından ÖNCE bağlanır.
+    if(activeAlt !== "Tümü"){ p.set("altkategori", activeAlt); }
     if(q){
       // /ara sayfa DEĞİL limit alıyor (parite testinin referans aldığı uç — imzasına
       // DOKUNMUYORUZ). "Daha fazla" = limiti bir sayfa büyütüp listeyi tazele.
@@ -3119,6 +3219,12 @@
 
     if(activeCat !== "Tümü"){
       liste = liste.filter(function(p){ return p.kategori === activeCat; });
+    }
+    // Grup filtresi YEDEK modda da UYGULANIR. ozet.json kartları `altkategori` TAŞIMAZ
+    // (build.py kart sözleşmesi) → seçili grupta sonuç 0 çıkar. Bu FAIL-CLOSED yön
+    // bilinçli: filtreyi yok saymak müşteriye "grup içi" diye TÜM kategoriyi gösterirdi.
+    if(activeAlt !== "Tümü"){
+      liste = liste.filter(function(p){ return (p.altkategori || "") === activeAlt; });
     }
     if(activeBrand !== "Tümü"){
       // filtered() ile aynı katlama kuralı (varyantlı ürün yedek modda da eşleşsin)
@@ -3293,6 +3399,12 @@
     var params = new URLSearchParams(location.search);
     var kat = params.get("kategori");
     if(kat && (["Tümü"].concat(CATEGORIES).concat(GIZLI_KATEGORILER)).indexOf(kat) !== -1){ activeCat = kat; }
+    // ALT KATEGORİ — kategori gibi izinli-küme SÜZGECİNDEN GEÇİRİLMEZ, AYNEN alınır.
+    // 🔴 GEREKÇE (sessiz-hata sınıfı): bilinmeyen değeri düşürmek fail-OPEN olurdu —
+    // ?altkategori=xyzyok tam listeyi getirir, Worker aynı girdide 0 döner, iki uç
+    // ayrışır. Değer korunur → filtered()/edgeIstek() 0 sonuç verir (fail-closed).
+    var alt = params.get("altkategori");
+    if(alt){ activeAlt = alt; }
     var mar = params.get("marka");
     // Eski link / ürün sayfası çipi "Mercedes-Benz" gibi VARYANT taşıyabilir → kanonik
     // kaleme katlanır (çip aktif görünür, eşleşme filtered() ile aynı kurala oturur).
@@ -3301,6 +3413,23 @@
     if(ara){ query = ara; searchEl.value = ara; clearEl.className = "search-clear show"; }
     return false;
   }
+
+  // GERİ/İLERİ (popstate): görünüm URL'nin TEKRAR OKUNMASIYLA kurulur.
+  // Önce üç eksen de VARSAYILANA çekilir — applyUrlParams yalnız VAR OLAN parametreyi
+  // yazar; sıfırlamasaydık "?altkategori=Bujiler" → geri → parametresiz URL'de seçim
+  // EKRANDA KALIR ama URL'de yoktur (URL ile görünüm sessizce ayrışır).
+  // NOT: filtre değişimleri replaceState ile senkronlanır (işletme kararı, 17 Tem:
+  // geçmiş şişmesin) — bu dinleyici ürün sayfasından/ dış geçmişten dönüşte
+  // görünümün URL'ye oturmasını garantiler.
+  window.addEventListener("popstate", function(){
+    activeCat = "Tümü"; activeBrand = "Tümü"; activeAlt = "Tümü";
+    query = ""; searchEl.value = ""; clearEl.className = "search-clear";
+    if(applyUrlParams()){ return; }
+    resetPaging();
+    renderCats(); renderBrands(); renderAlts();
+    if(EDGE_KATALOG){ edgeTazele(); return; }
+    renderGrid();
+  });
 
   renderCats();
   // SEPET KATALOGTAN BAĞIMSIZ YÜKLENİR (17 Tem — sessiz hata sınıfı): loadCart + updateCartFab
@@ -3334,6 +3463,7 @@
         if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
         renderCats();
         renderBrands();
+        renderAlts();
         edgeYukle(1, false);              // ana sayfada ağa ÇIKMAZ (ozet.json yeter)
         try{ updateCartFab(); }catch(e){ console.error("Sepet rozeti güncellenemedi:", e); }
         try{ edgeSepetiTamamla(); }catch(e){ console.error("Sepet ürünleri alınamadı:", e); }
@@ -3350,6 +3480,7 @@
           applyUrlParams();
           renderCats();
           renderBrands();
+          renderAlts();
           edgeYukle(1, false);
         }catch(e){ console.error("Katalog çizilemedi:", e); }
       });
@@ -3373,6 +3504,7 @@
       if(applyUrlParams()){ return; }   // yönlendirme yapıldıysa dur
       renderCats();
       renderBrands();
+      renderAlts();
       renderGrid();
       try{ updateCartFab(); }catch(e){ console.error("Sepet rozeti güncellenemedi:", e); }
       // Sepet=1 ile gelindiyse (ya da panel açılışta zaten açıldıysa) katalog gelince paneli
