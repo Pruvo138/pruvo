@@ -2,6 +2,59 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## MERGE — 2 Agu 2026 (yetki kabul kumesi: cok-eksenli VE iddialari eksenine bolundu)
+
+`431f60ec` main'e alindi ve itildi (`7930a93e..431f60ec`). Kapsam merge-base'den (`1e4d0b20`)
+**3 dosya / +373 -37**: `shop/src/yonet.js` (YALNIZ YORUM), `shop/test/kabul.js`,
+`tools/yonet-cerez-mutasyon.py`. `urunler.json` / `worker/` / arama diffte YOK → parite testleri
+GEREKMEDI (olculdu: bu yollarda 0 dosya, atlanmadi). Sizinti taramasi: 0 vurus.
+
+**Olculen sayilar (hepsi DALIN worktree'sinde, cikis kodlari gorulerek):**
+- `node shop/test/kabul.js --yonet-cerez` → `SONUC: 70 gecti, 0 kaldi`, `IDDIA SAYISI: 70`, RC=0.
+  **65 → 70** (onceki tur 66'ya cikmisti; 66 → 70). Hicbir turda DUSMEDI.
+- **8 eksenin 8'inde de kendi TEK-KIRMIZI mutanti var:** `C15a`·`C15b`·`C15c`·`C22a`·`C22b`·
+  `C22c`·`C22d`·`C22e`. Yeni mutantlar M16–M23; surucu 26 kayit (23 kirmizi-beklentili + 3 kontrol).
+- `python3 tools/yonet-cerez-mutasyon.py` → RC=0, `TUM MUTANTLAR YAKALANDI, KONTROLLER YESIL`.
+  Kaynak sha256 basta/sonda ayni — mutant diske sizmadi.
+- **Nobetci olcutu SERTLESTI:** mutant kaydindaki `olcut` alani `tek_eksen` → **ESIT**
+  (kirmizi kume == beyan; fazlalik KUSUR), `genis` → **KAPSAR** (beyan ⊆ kirmizi). Eskiden hepsi
+  KAPSAR'di. Olcut kurulur kurulmaz iki bayat beyani (M14/M15) kendi kosumunda yakaladi.
+- Diger kapilar (dalin agacinda, RC): `--sema-paritesi` 0 · `kisisel-veri-test.py` 0 ·
+  `ci-kapsam-test.py` 0 (161 kesfedilen / 125 kosulan / 36 muaf) · `kapi-envanteri.py` 0 (**7/7**).
+- Merge SONRASI ana checkout'ta bagimsiz teyit: kabul `IDDIA SAYISI: 70` RC=0 · surucu RC=0.
+- `yasal-sayfa-drift-kapisi.py` → YESIL, 0/4 sapan.
+- `d1-sync.py --durum`: **16874 == 16874**, hash uyusmaz 0 / eksik 0 / fazla 0, sema ekseni temiz.
+- **CI:** kosum `30743814411`, `headSha` = `431f60ec` **birebir** (`merge-base --is-ancestor` exit 0).
+  7 isin 7'si success (cron-nabzi · envanter · mesaj-nobeti · serit-b · build · deploy · yayin);
+  `Yonet anahtar/cerez kabul testi` adimi **success** (bloklayici, `continue-on-error` YOK).
+
+**🔴 CURUTUCUNUN BIRINCI TURDA BULDUGU KAPSAM KAYBI — onarildi.** Ozellik-kapali `GET /` sondasi
+"yuklemi baska bir iddiayla ozdes" gerekcesiyle silinmisti; gerekce **durumsuzluk varsayiyordu**,
+oysa modul duzeyi durum istekler ARASI yasiyor. Sonda silinince panel koku IKI degil BIR kez
+yoklaniyordu ve "ilk cagri temiz, IKINCI cagri sizdiriyor" sinifi bir mutant KACIYORDU
+(olculdu: onarim oncesi ayni mutant cikis=0 → KACAK; onarim sonrasi cikis=1, 2 iddia kirmizi).
+Sonda iddialariyla birlikte geri kondu, sinif tasiyicisi mutant surucuye eklendi. Ikinci turda
+bagimsiz curutucu uc agaci ayri cikarip ayni mutant metinleriyle kiyasladi: kacak kapandi,
+YENI kayip yok, `tek_eksen`→`genis` yeniden siniflandirmasinda suistimal 0 (26 kaydin hepsi
+kosuldu, beyan-olcum uyusmazligi 0).
+
+**ACIK MADDELER (merge'i BLOKLAMADI, ayri dalda ele alinacak — bu dalda ONARILMADI):**
+1. Surucudeki `olcut` alaninin yazim hatasina karsi davranisi sert DEGIL; sinifi ve olcumu
+   DEVAM-ARSIV.md'de. Tek satirlik care var, bu dalda uygulanmadi.
+2. 14 `KAPSAR` kaydinin **11'inin** kirmizi kumesi bugun beyanina birebir esit — bedava capa
+   kaciriliyor (ESIT'e cevrilebilecek 11 kayit).
+
+**OLCULEMEDI:** `sabitEsit` zamanlama yan-kanali. Beyan **yapisal** (kod okumasiyla), calisma
+zamaninda **olculmedi** — bu depoda deterministik bir zamanlama olcegi yok. "Yesil" DEMIYORUM.
+Ayrica acik kayit: ozellik-kapali `/liste` kolunda ordinal (ilk/ikinci cagri) sinifi ARANMADI.
+
+**Temizlik:** `worktree-agent-a24619011271d9d79` dali (yerel + **uzak**) ve worktree'si silindi
+(porcelain bos, icerik main'de, ana agacta yetim degisiklik yok). Ana agactaki `urunler.json`
+degisikligi ve `uyum-backfill.py` BASKA oturumun isi — DOKUNULMADI.
+
+**DERS:** "iki iddianin yuklemi ozdes" gerekcesiyle sonda silmek, durum tasiyan bir uctan cagri
+**sirasini** da siler. Cagri ordinali olcumun parcasidir; ozdeslik yalnizca durumsuz uclarda gecerli.
+
 ## MERGE — 2 Agu 2026 (yonet giris kapisi: iki secret kapisi AYRI AYRI olculuyor)
 
 `db9d6de6` main'e **fast-forward** alindi ve itildi (`b0b98509..db9d6de6`). Kapsam merge-base'den
