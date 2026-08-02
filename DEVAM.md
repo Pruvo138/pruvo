@@ -2,6 +2,62 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## OTURUM — 2 Agu 2026 gunduz (KraL · uyum ekseni + panel anahtari + sayfa agirligi + taksonomi)
+
+**CANLIYA GITTI (olculdu, itildi, canli teyit alindi):**
+- `4f122b84`+`9e61416e` **yonetim anahtari URL'den cikti** → HttpOnly cerez + sifre kutusu girisi.
+  Kabul 63 iddia, 17 mutant. Bagimsiz curutucu 26 atlatma denemesiyle cekirdegi kiramadi; buldugu
+  4 kusur (ikame enjeksiyonu, fail-open primitif, olcme boslugu, hiz siniri yoklugu) kapatildi.
+  🔴 **Shop worker'i hicbir workflow deploy ETMIYOR** — elle yayinlandi (surum `50686981`, 07:20 UTC).
+  Canli teyit: yetkisiz uc yol da BIREBIR ayni 1326 baytlik yanit (ayni sha, cerez yok), `/baslat` 400.
+- **Yonetim anahtari DONDURULDU** (Okan onayi). Eski anahtar canlida **404**, yeni calisiyor,
+  odeme regresyonsuz. Parmak izi: uzunluk 43, sha256[0:8]=`ee4a4858`. Deger hicbir loga/rapora
+  girmedi; yedek silindi; 108.189 dosya tarandi, `.yonet-anahtar` disinda kopya YOK.
+  ⚠️ Olculdu: `secret put` sonrasi **10. saniyede eski anahtar hala 200** — tek atisla olcme.
+- `986b052e` **uyum ekseni sozlugu + semasi + kapisi** (tuketici YOK). Kapali marka kumesi 169
+  jeton, `URETICI_MARKA` 14, `ELENEN` 17; 29 iddia, 13/13 mutant; parite site 1199 ✅ Ege 845 ✅.
+  Curutucu iki bloklayici buldu, ikisi de kapandi: S2 **sayiyi degil kimligi** koruyor artik
+  (kova bazinda donmus imza), mukerrer jeton ELE kovasinda (yayini dusurmuyor).
+- `68c92a44`+`66da9cd8` **sayfa agirligi**: ortalama urun sayfasi **60.426 → 36.753 bayt** (canli
+  olculdu), yayin **1,029 → 0,609 GB** (Pages ~1 GB siniri, %39 bosluk). Varlik URL'leri 200,
+  atif/fiyat/sepet yerinde. `tools/paket-uyum-ekseni.md` (`e3edbd15`,`8d36eb9c`) spec olarak main'de.
+
+**OLCULEN KARARLAR (gerekce DEVAM disinda, pakette):**
+- `marka = tekillestir(uyum[].marka + uyum[].model)` — yalniz markadan turetseydik `Focus`/`F-150`
+  backfill iner inmez **haystack'ten duserdi**, sessiz arama kaybi. 13.616 kayitta ayrisan 0.
+- Marka-model sayfalari **EDGE**'de uretilecek, statik DEGIL (bayt tavani).
+- Alt kategori ekseni **YER/SISTEM**, SEKIL degil: sekil ekseni 60 grup/%89 cakisma/en buyuk grup
+  %37; yer ekseni 16 grup/%24,9 cakisma/%16,3. Otomobil 16 grup kilitleniyor.
+- Kategori <100 urunse alt kategori ALMAZ (8 kategori) · grup <15 urunse acilmaz. **KARAR, eksiklik degil.**
+- Okan karari: siniflanamayan urun **bos KALMAYACAK**, uc gecisli atama (kesin → turetilmis
+  sozlukle yakinlik → artik kova). Koruma: bir grubun >%50'si 2./3. gecisten geliyorsa KIRMIZI isaretlenir.
+
+**🔴 ACIK — KAPI KARANLIGI (bugun uc bagimsiz olcumden ayni desen):**
+Yazilmis ama CI'da KOSMAYAN nobetciler var; `ci-kapsam-test.py` *dosya* kesfediyor, *bayrak* degil.
+- `jenerator/test/kabul.py` **TEST 1 gercek kosumda KIRMIZI ve PARA ekseni**: `hacim.js` ↔ OpenSCAD
+  7 ailede ayrisiyor (pervane **%51,2**, izgara %39,9, rulman %35,9, kayis %28,7, kasnak %20,6,
+  huni %9,8, petek %7,6). Sari seride fiyat hacimden turedigi icin **fiyat yanlis olabilir**.
+  `deploy.yml:1728/1735` bu takimi yalniz `--kendini-test` ile cagiriyor. **KaaN'a devredildi.**
+- `filament-test.py` ve `konfigur-nobet-mutasyon.py` hicbir workflow'da gecmiyor.
+- `yayin-ic-dil-kapisi` varlik kolunda asgari-sayi nobeti YOK → `varlik/` bos gelirse fail-open.
+- Spec yazildi: `spec-kapi-karanligi.md` (scratchpad). Okan'in actigi iki arka plan isi
+  (`c14cd59b`,`bf788be6`,`b9facc26`) 63 iddialik kumeyi CI'ya bagladi — ilk parca kapandi.
+
+**KOSUYOR:** `altkategori-kume-kilit` dali (14 kategorinin taksonomisi + deterministik
+siniflandirici, uc gecisli atama). Bitince main'e alinacak (Okan: "bittiginde main'e al").
+
+**BEKLIYOR — kim neyle bloke:**
+- **HocA:** kart sozlesmesine `altkategori` (Okan'in gordugu yuzey; canli olculdu, uc HALA inmemis
+  — `/ara` ve `mod=ege` alan listelerinde alan YOK). Okan istegiyle oturumu uyandirildi.
+  Ikinci kalem: telefon kanoniklestirmesi (`wa-siparis-onarim` merge bende bekliyor).
+- **MaCiT:** uyum backfill'i YESIL verildi; `Sierra` (149 kayit: 141 Marin / 8 Otomobil) kayit
+  basina karar noktasi.
+- **KaaN:** parametrik hacim/fiyat ayrismasi (yukarida).
+- **BENDE:** D1 `uyum` kolonu (`--sema` ONCE, sonra kod) · `urun-ekle.py`'de `marka` tekillestirmesi
+  yok · imzali/donuk oturum jetonu + panel cikis rotasi · `sabitEsit` uzunluk sizintisi ·
+  iki eski dal (`koru/faz3-edge-arama`, `kurtarma/nobetci-tur3`) **olculdu: icerikleri main'de**
+  (`22b42cb8` / `9c90741b`), silinmedi cunku `kurtarma/nobetci-tur3` uzakta YOK, tek kopya.
+
 ## OTURUM KAPANISI — 2 Agu 2026 (KraL · yayin hatti + altkategori + ucuncu denetim)
 
 **CANLIYA GITTI (hepsi olculdu, itildi, canli teyit alindi):**
