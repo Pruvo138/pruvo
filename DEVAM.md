@@ -2,6 +2,54 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## OTURUM KAPANISI — 2 Agu 2026 · Uyum ekseni: yazma yolu + kapi sertlestirmesi + D1 kolonu
+
+- **CANLIYA GITTI (uc commit):** `e6254d30` `uyum` **yazma yolu** — `duzelt.py`'de `uyum` alani +
+  `RC_UYUM=7`; `marka` artik `uyum`dan turetiliyor ve ayni cagrida ikisini birden vermek
+  **REDDEDILIYOR**. Kabul **35 iddia / 8 eksen**, mutasyon **16 mutant, 8/8 tek-kirmizi**. ·
+  `0b26431e` `uyum-kapisi` **sertlestirmesi** — iddia **36**, taban capasi **yalniz dususte**
+  kirmizi yakiyor, mutant **23**, `KAPSAR` olcutu **tamamen KALDIRILDI**. · `aa0f839c` D1 `uyum`
+  **kolonu + `d1-sync` hash kapsami** — tam senkron **43 parca / 50.623 satir**, `--durum` uc
+  eksen yesil, canli geri-okuma **DEGER 21/21**.
+- **OLCULEN KARAR — bilesik marka icin global takma REDDEDILDI:** Turkce kok kirpma
+  `benzin` -> `benz` yaptigi icin takma, `benzin` sorgusunu **550 -> 1428** (**+878 alakasiz**)
+  sisiriyor ve **1011 kaydin 1001'inde** gercek A1/A2 ihlali doguruyordu. Yerine **5 baslik
+  duzeltmesi** (**+25 bayt**, yanlis-pozitif **0**) MaCiT'e verildi.
+- 🔴 **DERS (yeni — sema sira kuralina ekleniyor):** "sema once, kod sonra" `no such column`
+  tuzagini kapatir **ama hash TANIMINI degistiren kolonlarda veri ancak kod main'e vardiktan
+  sonra yakinsar** — arada eski kodla kosan her yazici hash'i geri sarar ve `--durum` herkeste
+  kirmizi yanar.
+- **BENDE (acik):** `d1-sync --durum` uc ekseni **tek cikis kodunu** paylasiyor — yalniz rc'ye
+  bakan cagiran (merge kapimin D1 adimi) gercek sapmayi gurultuden ayiramiyor · `parite-test.js`
+  marka filtresi UI'dan ayrisiyor (`markaKatla` vs tam jeton; cip evreninde **8 marka / 82 urun**,
+  her kosumda fiilen **5 deger / 696 urun**) · `uyum-kapisi`'nde **7 iddianin** (S1, S3, S4, S7,
+  V3, A3, A4) tek-kirmizi mutanti YOK, kosumda sayisiyla basiliyor.
+- **BEKLIYOR:** MaCiT 5 baslik · HocA `uyum` kolonunu okuyan uc (kolon canlida DOLU, uc YOK) +
+  `d1-sync.py`/`d1-sema.sql` sira koordinasyonu · CI/yayin kuyrugu (asagidaki olcum).
+- **CI — OLCULEMEDI (rerun DENENMEDI):** `aa0f839c` tasiyan **tamamlanmis kosum YOK**.
+  `gh run list --limit 20` cikis **0**: `30752012022` headSha `aa0f839c` ile **BIREBIR** ama hala
+  **`in_progress`**; ardil kosum `30752548642` (headSha `4ad59e11`; `merge-base --is-ancestor`
+  cikis **0** -> atalik **KANITLANDI**) **`pending`**. `--limit 1` yesili kanit sayilmadi.
+- **YAYIN GECIKMESI (`tools/durum.py`, 🟡 rc 1):** canli main'den **4 commit geride**, en eski
+  bekleyen **60 dk** (uyari esigi **45**) · son yayinlanan sha **`0b26431e`** (`deploy` isi
+  basarili, 14:30 UTC) · ardisik iptal **1** (aclik esigi 6), ardisik hata **0** (tikanma esigi 4)
+  · pencere **40 kosum** (38 tamamlandi / 2 kosuyor-bekliyor). Yani **`aa0f839c` henuz CANLIDA
+  DEGIL** — kolon ve kod main'de, yayin kuyrukta.
+- **HIJYEN — olu ic-rapor isaretcisi (public depo):** izlenen dosyalarda tarama **21 dosya /
+  46 satir**. Bunun **31'i CANLI protokol** (nobetci `kisisel-veri-test.py` **22** fikstur +
+  docstring, `mimar-kod-kilidi.py` muafiyet **1**, `durum.py` calisma-zamani okumasi **2**,
+  `olculmemis-siparis-test.py` teslim talimati **1**, paket `.md`'lerinde isci teslim talimati
+  **5**) -> **DOKUNULMADI**. **15'i OLU isaretci.** `tools/paket-uyum-ekseni.md:164` duzeltildi:
+  gonderme (`Olcum + kabul: tools/RAPOR-MIMARA.md`) **silinmedi, sonucla degistirildi** ->
+  "Olculdu ve kapandi (`aa0f839c`): tam senkron 43 parca / 50.623 satir, `--durum` uc eksen
+  yesil, canli geri-okuma DEGER 21/21". Kalan **14 olu isaretci / 13 `.py` dosyasi**
+  (`ci-kapsam-test` · `d1-sync` · `denetim-kapisi` x2 · `derin-cap-test` · `durum-yedek-test` ·
+  `gorsel-boyut-test` · `icra-suzgeci` · `iki-govde-kapisi` · `is-akisi-kapisi` ·
+  `metin-eslem-test` · `myminifactory-api` · `uretim-butunluk-kapisi` · `yayin-kapisi`) —
+  **YAPILMADI**, sebep: `.py` **KAYNAK**'tir ve mimar commit kapisi ana checkout'ta kaynak
+  commit'ini ACMAZ (`KAYNAK_UZANTI`); ayri worktree turu gerekir. `.gitignore` korumasina
+  dokunulmadi; `raporlar/RAPOR-MIMARA.md` diskte VAR ama **izlenmiyor** (koruma calisiyor).
+
 ## MERGE — 2 Agu 2026 · WA siparis ucu yetki ekseni (`a3bd3a79`) + bilesik marka (`d05c3662`)
 
 - **`d05c3662`** bilesik marka adi kanoniklestirmesi: kapali tablo, bagimsiz kod yolu. Parite

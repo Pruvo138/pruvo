@@ -161,7 +161,8 @@ kalır, kendi sayfası olmaz.
    `urunler.json` alanıdır — CI de yerel de AYNI değeri görür, thrash yüzeyi YOK. Hedefli
    UPDATE deseni (`konfigur`/`taban_fiyat`) seçilseydi hash `uyum` değişimini görmez, satır
    "değişmemiş" sayılır ve D1 sessizce bayat uyum servis ederdi. Desen kaynağı:
-   `tur`/`stokta`/`altkategori`. Ölçüm + kabul: `tools/RAPOR-MIMARA.md` (uyum D1 kolonu turu).
+   `tur`/`stokta`/`altkategori`. **Ölçüldü ve kapandı** (`aa0f839c`): tam senkron 43 parça /
+   50.623 satır, `d1-sync.py --durum` üç eksen yeşil, canlı geri-okuma DEĞER 21/21.
 3. **Backfill** — token yakan amele iş → **Codex partileri**, dar spec + `-o son-mesaj.txt`.
    🔴 `urunler.json`'a yazan **tek yazar MaCiT**'tir; partiler onun düzleminde koşar, KraL yazmaz.
 4. **Uç + arama** — edge kart sözleşmesine alan, gerekiyorsa haystack. 🔴 Haystack'e giriyorsa
