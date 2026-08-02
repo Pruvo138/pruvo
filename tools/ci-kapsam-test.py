@@ -3119,6 +3119,147 @@ def iki_kol_canlilik_kontrol_govdesi():
     return hata
 
 
+# Durum satirinin KABUL EDILEN iki bicimi (F5: sabit metin dondurmek de bir mutasyondur).
+IKI_KOL_DURUM_RE = re.compile(
+    r"^\s*Iki kol paritesi\s+: tetik (\d+) girdi · sapma (\d+) \| run (\d+) girdi · sapma (\d+)\s*$")
+IKI_KOL_OLCULEMEDI_RE = re.compile(r"^\s*🟡 IKI KOL PARITESI OLCULEMEDI:")
+
+
+def tutarlilik_kontrolu(satirlar, hatalar, kontroller):
+    """🔴 F1/F5 — RAPOR METNI ile HUKUM CELISEMEZ.
+
+    OLCULEN EN KOTU VAKA (DA4): gercek bir kol sapmasi VARKEN rapor satiri `sapma 3`
+    yaziyor ve kapi `SONUC: YESIL ✅` veriyordu — olcum YAPILIYOR, BASILIYOR, HUKME
+    GIRMIYOR. Bu nobetci o celiskiyi BLOKLAYICI olarak yakalar; boylece `hata.extend(x())`
+    -> `x()` sinifindaki TUM sonuc-yutma mutasyonlari (iki-kol ekseninde) kirmizi yanar.
+
+    Ayrica durum satirinin BICIMI dogrulanir: sabit/serbest metin dondurmek (A6) da
+    bir olcum kaybidir ve buradan yakalanir."""
+    hata = []
+    durum = [s for s in satirlar
+             if IKI_KOL_DURUM_RE.match(s) or IKI_KOL_OLCULEMEDI_RE.match(s)]
+    if len(durum) != 1:
+        hata.append(
+            "IKI KOL DURUM SATIRI KAYIP/BOZUK: beklenen BICIMDE tam 1 satir olmali, %d "
+            "bulundu -> `iki_kol_durum_satiri()` sabit metin donduruyor ya da cagrisi "
+            "dusmus olabilir; rapor 'olctum' der gibi gorunup HICBIR SEY olcmez."
+            % len(durum))
+        return hata
+    m = IKI_KOL_DURUM_RE.match(durum[0])
+    if not m:
+        return hata  # OLCULEMEDI bicimi: sapma iddiasi YOK, celiski de YOK.
+    t_sapma, r_sapma = int(m.group(2)), int(m.group(4))
+    if (t_sapma or r_sapma) and kontroller:
+        if not any("KOL SAPMASI" in h for h in hatalar):
+            hata.append(
+                "CELISKI — RAPOR 'sapma %d/%d' DIYOR AMA HUKUM TEMIZ: iki-kol sapmasi "
+                "OLCULMUS ve BASILMIS ama hata listesine GIRMEMIS -> nobetcinin sonucu "
+                "YUTULMUS (`hata.extend(x())` yerine `x()`). Olcum hukme girmiyorsa "
+                "nobetci OLUDUR." % (t_sapma, r_sapma))
+    return hata
+
+
+def iki_kol_govde_kontrol_govdesi():
+    """🔴 F2 — KARSILASTIRMA GOVDESININ KENDISI olculur (nobetcinin olctugu govde nobetsizdi).
+
+    `iki_kol_canlilik_kontrol_govdesi()` tam bu iki fonksiyonu MONKEYPATCH ettigi icin
+    onlarin GOVDESINI yapisal olarak OLCEMEZ. Olculdu: `if p_kume != r_kume:` satirini
+    `if False and ...` yapan mutant psych'te rc=1 verirken **pyyaml'da rc=0** birakiyor ve
+    rapor `sapma 0` YAZIYORDU (gercek BOM sapmasi varken AKTIF YANLIS BEYAN).
+
+    YONTEM: KOL FONKSIYONLARI (bir alt katman) monkeypatch'lenir, `iki_kol_*_sapmasi`
+    GERCEK govdesiyle kosar. Boylece `!=` karsilastirmasi FIILEN olculur."""
+    hata = []
+    y = YAML_OKU
+    saklanan = (y.kollar_mevcut, y._pyyaml_tetikler, y._psych_tetikler_toplu,
+                y._pyyaml_bloklar, y._psych_bloklar_toplu)
+    try:
+        y.kollar_mevcut = lambda: (True, True)
+        # --- TETIK: kollar AYRI hukum veriyor -> SAPMA GORULMELI ---
+        y._pyyaml_tetikler = lambda m: ({"push"}, None)
+        y._psych_tetikler_toplu = lambda ms: [(None, "hata")] * len(ms)
+        sap, kol = YAML_OKU.iki_kol_tetik_sapmasi(["a", "b"])
+        if kol != 2 or len(sap) != 2:
+            hata.append("IKI KOL TETIK GOVDESI OLU: kollar AYRI hukum verirken sapma "
+                        "GORULMEDI (kol=%r sapma=%r) -> `!=` karsilastirmasi no-op "
+                        "yapilmis olabilir; gercek ayrisma SESSIZ kalir." % (kol, sap))
+        # --- TETIK: kollar AYNI -> SAPMA OLMAMALI (yanlis-kirmizi yuzeyi) ---
+        y._psych_tetikler_toplu = lambda ms: [({"push"}, None)] * len(ms)
+        sap, _kol = YAML_OKU.iki_kol_tetik_sapmasi(["a", "b"])
+        if sap:
+            hata.append("IKI KOL TETIK GOVDESI YANLIS-KIRMIZI: kollar AYNI hukum "
+                        "verirken sapma bildirdi (%r)." % (sap,))
+        # --- RUN: kollar AYRI -> SAPMA GORULMELI ---
+        y._pyyaml_bloklar = lambda m: ([(1, 1, 1, "x")], None)
+        y._psych_bloklar_toplu = lambda ms: [(None, "hata")] * len(ms)
+        sap, kol = YAML_OKU.iki_kol_run_sapmasi(["a", "b"])
+        if kol != 2 or len(sap) != 2:
+            hata.append("IKI KOL RUN GOVDESI OLU: kollar AYRI blok kumesi verirken sapma "
+                        "GORULMEDI (kol=%r sapma=%r) -> bir `run:` satirinin kapsamdan "
+                        "sessizce dusmesi FARK EDILMEZ." % (kol, sap))
+        # --- RUN: kollar AYNI -> SAPMA OLMAMALI ---
+        y._psych_bloklar_toplu = lambda ms: [([(1, 1, 1, "x")], None)] * len(ms)
+        sap, _kol = YAML_OKU.iki_kol_run_sapmasi(["a", "b"])
+        if sap:
+            hata.append("IKI KOL RUN GOVDESI YANLIS-KIRMIZI: kollar AYNI blok kumesi "
+                        "verirken sapma bildirdi (%r)." % (sap,))
+        # --- TEK KOL: karsilastirma YAPILAMAZ, sapma UYDURULMAMALI ---
+        y.kollar_mevcut = lambda: (True, False)
+        sap, kol = y.iki_kol_tetik_sapmasi(["a"])
+        if kol == 2 or sap:
+            hata.append("IKI KOL GOVDESI TEK KOLDA HUKUM URETTI (kol=%r sapma=%r) -> "
+                        "olculemeyen sey 'olculdu' sayiliyor." % (kol, sap))
+    except Exception as e:  # noqa: BLE001
+        hata.append("IKI KOL GOVDE NOBETCISI OLCULEMEDI: %s: %s" % (type(e).__name__, e))
+    finally:
+        (y.kollar_mevcut, y._pyyaml_tetikler, y._psych_tetikler_toplu,
+         y._pyyaml_bloklar, y._psych_bloklar_toplu) = saklanan
+    return hata
+
+
+# F3: girdi kumesinin AYIRT EDICI oldugunu civileyen ICERIK capalari. Salt SAYI capasi
+# yetmez — olculdu: `iki_kol_girdi_kumesi()` AYNI UZUNLUKTA NOTR girdi dondurunce tavan
+# nobeti YESIL kaliyordu ([[hukum-yanlis-birimde]]: tablo sayiliyordu, FONKSIYON CIKTISI degil).
+IKI_KOL_TETIK_CAPALARI = (
+    ("﻿", "BOM onekli girdi"),
+    ("on: *t\nt: &t", "ILERI alias girdisi"),
+    ("---", "cok-belgeli girdi"),
+    ("workflow_call", "workflow_call girdisi"),
+)
+IKI_KOL_RUN_CAPALARI = (
+    ("run: *c", "alias'li run girdisi"),
+    ("run: *yok", "TANIMSIZ alias girdisi"),
+    ("---", "cok-belgeli run girdisi"),
+    ("﻿", "BOM onekli run girdisi"),
+)
+
+
+def iki_kol_girdi_kumesi_kontrol_govdesi():
+    """🔴 F3 — asgari kontrol FONKSIYONUN CIKTISI uzerinde + kume AYIRT EDICI olmali."""
+    hata = []
+    try:
+        tetik, run = iki_kol_girdi_kumesi()
+    except Exception as e:  # noqa: BLE001
+        return ["IKI KOL GIRDI KUMESI OLCULEMEDI: %s: %s" % (type(e).__name__, e)]
+    for ad, kume, asgari in (("tetik", tetik, len(TETIK_FIKSTURLERI) + IKI_KOL_EK_ASGARI),
+                             ("run", run, IKI_KOL_RUN_ASGARI)):
+        if len(kume) < asgari:
+            hata.append("IKI KOL GIRDI KUMESI KUCULMUS (%s): fonksiyon %d girdi "
+                        "donduruyor, EN AZ %d olmali -> 'sapma 0' iddiasi kume "
+                        "kadar guclu; kume kucultulurse iddia SESSIZCE zayiflar."
+                        % (ad, len(kume), asgari))
+    for kume, capalar, ad in ((tetik, IKI_KOL_TETIK_CAPALARI, "tetik"),
+                              (run, IKI_KOL_RUN_CAPALARI, "run")):
+        govde = "\n".join(kume)
+        for capa, etiket in capalar:
+            if capa not in govde:
+                hata.append("IKI KOL GIRDI KUMESI AYIRT EDICILIGINI KAYBETMIS (%s): %s "
+                            "kumede YOK -> kume AYNI UZUNLUKTA notr girdilerle "
+                            "degistirilmis olabilir; sayi capasi bunu GORMEZ "
+                            "([[hukum-yanlis-birimde]])." % (ad, etiket))
+    return hata
+
+
 def ayristirici_yok_kontrol_govdesi():
     """AYRISTIRICI_YOK_FIKSTURLERI'ni denetle() UZERINDEN olcer (P5); (hata) dondurur."""
     hata = []
@@ -3223,20 +3364,59 @@ def uctan_uca_alt_kume_kontrol_govdesi():
     return hata
 
 
+# 🔴 F1 — `hata.extend(<nobetci>())` -> `<nobetci>()` SINIFI (SONUC YUTULUR).
+# OLCULEN OLU NOBETCI: bu tek karakterlik mutasyon her nobetciyi SESSIZCE olduruyordu;
+# AST kablosu yalniz CAGRININ VARLIGINA baktigi icin YESIL kaliyordu (olculdu: 5 mutant,
+# iki ortamda da 0/0). ONARIM YAPISALDIR: govdeler bir TABLODAN dolasilir, sonuc
+# TEK YERDE toplanir — "extend'i dusurmek" diye bir hamle KALMAZ. Tabloya dokunmak ise
+# _nobetci_tablosu_kontrol() tarafindan yakalanir.
+# NOT: bu sinif MAIN'DEN MIRASTIR (mevcut nobetcilerde de ayni desen var). Burada YALNIZ
+# BU DALIN EKLEDIGI nobetciler kapsanir; miras ayri madde olarak rapora yazildi.
+ALT_KUME_NOBETCI_GOVDELERI = (
+    ("fikstur-sayisi", lambda: _fikstur_sayisi_kontrol()),
+    ("tetik", lambda: tetik_fikstur_kontrol_govdesi()),
+    ("beyan", lambda: beyan_fikstur_kontrol_govdesi()),
+    ("uctan-uca", lambda: uctan_uca_alt_kume_kontrol_govdesi()),
+    ("uyari-izole", lambda: uyari_katmani_izole_kontrol_govdesi()),
+    ("okuma-dayanikliligi", lambda: okuma_dayanikliligi_kontrol_govdesi()),
+    ("ayristirici-yok", lambda: ayristirici_yok_kontrol_govdesi()),
+    ("iki-kol-canlilik", lambda: iki_kol_canlilik_kontrol_govdesi()),
+    ("iki-kol-run", lambda: iki_kol_run_kontrol_govdesi()),
+    ("iki-kol-govde", lambda: iki_kol_govde_kontrol_govdesi()),
+    ("iki-kol-girdi-kumesi", lambda: iki_kol_girdi_kumesi_kontrol_govdesi()),
+)
+
+# Tablodan DUSURULMESI yasak nobetciler (F1'in ikinci adimi: once tabloyu buda, sonra...).
+ZORUNLU_NOBETCILER = ("fikstur-sayisi", "tetik", "beyan", "uctan-uca", "uyari-izole",
+                      "okuma-dayanikliligi", "ayristirici-yok", "iki-kol-canlilik",
+                      "iki-kol-run", "iki-kol-govde", "iki-kol-girdi-kumesi")
+
+
+def _nobetci_tablosu_kontrol():
+    """ALT_KUME_NOBETCI_GOVDELERI'nden zorunlu bir nobetci DUSURULDU mu."""
+    var = {ad for ad, _f in ALT_KUME_NOBETCI_GOVDELERI}
+    eksik = [ad for ad in ZORUNLU_NOBETCILER if ad not in var]
+    if not eksik:
+        return []
+    return ["NOBETCI TABLOSU BUDANMIS: %r tablodan dusurulmus -> o eksen SESSIZCE "
+            "olculmez olur (fikstur govdesi dogru cevap verir, ONA KIMSE SORMAZ). "
+            "GERI KOY." % (eksik,)]
+
+
 def alt_kume_fikstur_kontrol():
     """ALT KUME EKSENI NOBETCISI (BOLUM A + B + C) — (ok, hata_satirlari).
 
-    Uc govdeyi birden sorar: TETIK siniflandirmasi · BEYAN ayristirmasi · UCTAN UCA
-    kabul/ret semantigi. Ayrica UYARI KATMANININ (BOLUM C) exit koduna DOKUNMADIGINI
-    ve istisnayi YUTTUGUNU sentetik ariza enjeksiyonuyla kanitlar."""
-    hata = _fikstur_sayisi_kontrol()
-    hata.extend(tetik_fikstur_kontrol_govdesi())
-    hata.extend(beyan_fikstur_kontrol_govdesi())
-    hata.extend(uctan_uca_alt_kume_kontrol_govdesi())
-    hata.extend(uyari_katmani_izole_kontrol_govdesi())
-    hata.extend(okuma_dayanikliligi_kontrol_govdesi())
-    hata.extend(ayristirici_yok_kontrol_govdesi())
-    hata.extend(iki_kol_canlilik_kontrol_govdesi())
+    Govdeler TABLODAN dolasilir (F1): her govdenin bulgusu TEK yerde toplanir, boylece
+    tek bir `extend` dusurup bir ekseni sessizce oldurmek MUMKUN DEGILDIR."""
+    hata = _nobetci_tablosu_kontrol()
+    for ad, govde in ALT_KUME_NOBETCI_GOVDELERI:
+        try:
+            bulgular = govde() or []
+        except Exception as e:  # noqa: BLE001 — bir govde patlarsa OTEKILER olculmeli
+            hata.append("NOBETCI GOVDESI PATLADI (%s): %s: %s"
+                        % (ad, type(e).__name__, e))
+            continue
+        hata.extend("[%s] %s" % (ad, b) for b in bulgular)
     return (not hata), hata
 
 
@@ -3327,10 +3507,8 @@ def suzgec_fikstur_kontrol():
     hata.extend(katlama_fikstur_kontrol_govdesi())
     # BICIM TESHISI ekseni (T3) — tani govdesi no-op/ters yapildi.
     hata.extend(bicim_teshis_kontrol_govdesi())
-    # 🔴 `run:` KOLU IKI-KOL PARITESI (P3): KATLAMA taklit<->gercek kiyaslar,
-    # pyyaml<->psych DEGIL. Burada yasar cunku `run:` cozumu SUZGEC'in besledigi
-    # eksendir ve bu nobetci her iki kolda da kosar.
-    hata.extend(iki_kol_run_kontrol_govdesi())
+    # NOT: `run:` kolu IKI-KOL PARITESI artik ALT_KUME_NOBETCI_GOVDELERI tablosunda
+    # ("iki-kol-run") — F1 geregi TEK toplama noktasi kullanilir.
     return (not hata), hata
 
 
@@ -3384,24 +3562,29 @@ AYRISTIRICI_KABLOLARI = (
     # bir capaya duser ve ELLE/OTOMATIK ayrimi sessizce yanlislasir.
     ("tetik_sinifi", ("tetikleyiciler",)),
     ("tetik_fikstur_kontrol_govdesi", ("tetik_onbellegi_isit",)),
+    # F2: KARSILASTIRMA GOVDESI monkeypatch'ten BAGIMSIZ olculmeli — nobetci kol
+    # fonksiyonlarini degistirir ama `iki_kol_*_sapmasi`'nin GERCEK govdesini cagirir.
+    ("iki_kol_govde_kontrol_govdesi", ("iki_kol_tetik_sapmasi", "iki_kol_run_sapmasi")),
+    ("iki_kol_tetik_kontrol_govdesi", ("iki_kol_tetik_sapmasi",)),
+    ("iki_kol_run_kontrol_govdesi", ("iki_kol_run_sapmasi",)),
+    ("iki_kol_durum_satiri", ("iki_kol_tetik_sapmasi", "iki_kol_run_sapmasi")),
 )
 
 # ALT KUME KABLOLARI (BOLUM A+B+C): nobetci govdesi UC olcumu de SORMAK ZORUNDA.
 # Fikstur tablolari govdenin no-op yapilmasini yakalar ama CAGRISININ silinmesini
 # GORMEZ (fonksiyon dogru cevap veriyor, ona kimse sormuyor) -> AST kablosu.
 ALT_KUME_KABLOLARI = (
-    ("alt_kume_fikstur_kontrol", ("tetik_fikstur_kontrol_govdesi",)),
-    ("alt_kume_fikstur_kontrol", ("beyan_fikstur_kontrol_govdesi",)),
-    ("alt_kume_fikstur_kontrol", ("uctan_uca_alt_kume_kontrol_govdesi",)),
-    ("alt_kume_fikstur_kontrol", ("uyari_katmani_izole_kontrol_govdesi",)),
-    ("alt_kume_fikstur_kontrol", ("_fikstur_sayisi_kontrol",)),
-    ("alt_kume_fikstur_kontrol", ("okuma_dayanikliligi_kontrol_govdesi",)),
+    # F1: govdeler artik ALT_KUME_NOBETCI_GOVDELERI tablosundan dolasiliyor; tablonun
+    # BUDANMASINI `_nobetci_tablosu_kontrol` yakalar, o cagrinin dusmesini ise bu kablo.
+    ("alt_kume_fikstur_kontrol", ("_nobetci_tablosu_kontrol",)),
     ("okuma_dayanikliligi_kontrol_govdesi", ("dosya_metinleri_oku",)),
-    ("alt_kume_fikstur_kontrol", ("ayristirici_yok_kontrol_govdesi",)),
     ("ayristirici_yok_kontrol_govdesi", ("denetle",)),
-    ("alt_kume_fikstur_kontrol", ("iki_kol_canlilik_kontrol_govdesi",)),
     ("iki_kol_canlilik_kontrol_govdesi", ("iki_kol_tetik_kontrol_govdesi",
                                           "iki_kol_run_kontrol_govdesi")),
+    # F3: asgari kontrol FONKSIYONUN CIKTISI uzerinde olmali.
+    ("iki_kol_girdi_kumesi_kontrol_govdesi", ("iki_kol_girdi_kumesi",)),
+    # F1/F5: rapor metni <-> hukum tutarliligi.
+    ("denetle", ("tutarlilik_kontrolu",)),
     # uctan uca nobetci CI'da kosan kodun TA KENDISINI cagirmali (kopya karar
     # mantigi yazilirsa fikstur kendi kendini onaylar)
     ("uctan_uca_alt_kume_kontrol_govdesi", ("denetle",)),
@@ -3431,8 +3614,6 @@ ALT_KUME_KABLOLARI = (
     # 🔴 P2 — O8/O9 tanilarinin kablosu: cagriyi silmek rc=0 birakiyordu.
     ("denetle", ("beyan_benzeri_ayristirilamayan",)),
     ("denetle", ("dosya_metinleri_oku",)),
-    # 🔴 P3 — `run:` kolu iki-kol paritesi (tetik kolunun aynasi).
-    ("suzgec_fikstur_kontrol", ("iki_kol_run_kontrol_govdesi",)),
 )
 
 # TANI KABLOLARI (T3): bicim teshisi, KIRMIZI yanan IKI nobetcinin de tani metnine
@@ -3824,6 +4005,10 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         except Exception as e:  # noqa: BLE001 — bilincli: uyari katmani BLOKLAMAZ
             satirlar.append("UYARI KATMANI OLCULEMEDI: %s: %s"
                             % (type(e).__name__, e))
+    # 🔴 F1/F5 — RAPOR METNI ile HUKUM arasindaki celiski BLOKLAYICIDIR. En sonda,
+    # tum satirlar ve tum hatalar olustuktan SONRA sorulur.
+    if akislar is not None:
+        hatalar.extend(tutarlilik_kontrolu(satirlar, hatalar, kontroller))
     satirlar.append("-" * 70)
     if hatalar:
         for h in hatalar:
