@@ -622,6 +622,10 @@ jobs:
       #     daima false; secret tanimsizken POST+GET 404 (form BILE cikmaz); bos govde ve
       #     sinir ustu govde -> Set-Cookie YOK,
       #   * HIZ SINIRI — art arda basarisiz denemeden sonra DOGRU sifre bile reddedilir,
+      #   * KABA KUVVET GECIKMESI — basarisiz/bloke her denemede sabit bekleme ISTENIR
+      #     (C23; ALT SINIR >= 100 ms, UST SINIR YOK — duvar saati degil, istenen setTimeout
+      #     gecikmesi olculur, o yuzden yavas kosucuda yanlis-kirmizi YAKMAZ). 2 Agu'a kadar
+      #     bu eksen NOBETSIZDI: `GIRIS_GECIKME_MS` 250 -> 0 mutanti SURVIVOR'di (olculdu),
       #   * YANLIS-PAROLA AYIRT EDILEMEZLIGI — bloke/bos-govde yaniti hic-denememis GET ile
       #     kod + govde + TUM BASLIKLAR duzeyinde BIREBIR ayni (oracle sizintisi yok).
       # OLU NOBETCI DEGIL: mutasyon surucusu REPODA durur -> `python3 tools/yonet-cerez-

@@ -2694,6 +2694,71 @@ async function yonetCerezAkisi() {
   rapor("C19b sinir ustu govdedeki DOGRU sifre bile kabul edilmez",
     p19b.kod !== 302 && p19b.cerezKur === "", "kod=" + p19b.kod);
 
+  // ---- 23. KABA KUVVET YAVASLATICISI (GIRIS_GECIKME_MS) — ALT SINIR, UST SINIR YOK ----
+  // 🔴 NEDEN VAR: 2 Agu'a kadar bu koruma NOBETSIZDI. Bagimsiz curutucu OLCTU: yonet.js'te
+  // `GIRIS_GECIKME_MS` 250 -> 0 yapilinca (yavaslatici TAMAMEN kalkar) alt kumede HICBIR
+  // iddia kirmizi yanmiyordu — SURVIVOR (olculdu: cikis 0, kirmizi 0, iddia 70/70). Anahtar
+  // TEK ve PAYLASILAN bir sir; hiz siniri isolate basina tutulur ve MUTLAK bir tavan DEGIL
+  // (bkz. yonet.js ~610) — sabit gecikme, kaba kuvvetin HIZINI dusuren AYRI bir katmandir.
+  //
+  // 🔴 DUVAR SAATI DEGIL, ISTENEN GECIKME OLCULUR. `bekle(ms)` -> `setTimeout(coz, ms)`;
+  // sonda `globalThis.setTimeout`'u GECICI olarak sarar, ISTENEN ms'i kaydeder ve zamanlayiciyi
+  // 0 ms'ye dusurup hemen cozer. KAYNAK DEGISMEZ — yalnizca olcum. Yol OLCULEREK secildi
+  // (25'er kosum): GERCEK gecen sure min=250.23 medyan=251.51 max=285.05 ms — planlayici
+  // JITTER'i tasir, yani duvar saatine dayali bir UST sinir yuklu bir CI kosucusunda
+  // YANLIS-KIRMIZI yakardi; ISTENEN gecikme ise 25/25 kosumda TAM 250.00 — SIFIR sacilim,
+  // sistem saatinden BAGIMSIZ, deterministik. Ustelik bu yol `await bekle(...)` satirinin
+  // KOMPLE SILINMESI sinifini da yakalar (hic setTimeout istenmez); sabit degeri disa
+  // aktarip okumak o sinifi KACIRIRDI.
+  //
+  // 🔴 YALNIZ ALT SINIR (>= ESIK); UST SINIR ASLA KONULMAZ — bu alt kume main'de BLOKLAYICI,
+  // tek bir yanlis-kirmizi tum ekibin yayinini durdurur.
+  // ESIK NEDEN 100 ms: bugunku deger 250 (olculdu, sacilim yok) -> 2.5 kat marj. Gecikmenin
+  // BILINCLI yeniden ayarlanmasi (150/200/300/1000 ms) YESIL kalir; 0'a dusurulmesi ya da
+  // kaba kuvveti artik yavaslatmayan bir degere (<100 ms) inmesi KIRMIZI yanar.
+  // AYIRT EDICI MUTANT: tools/yonet-cerez-mutasyon.py M26 (250 -> 0) — TEK kirmizi.
+  // ⚠️ Sonda BILEREK TEK EKSENLI: yanit kodu/govdesi burada KIYASLANMAZ (onlari C13/C14
+  // zaten olcuyor). Karisik yuklem, baska mutantlarin "tek kirmizi" hukmunu bozardi.
+  // 🔴 IKI BAGIMSIZ TANIK, TEK YUKLEM (surum dali YOK — bkz. bu dosyadaki `module.register`
+  // dersi). Yuklem: max(ISTENEN gecikme, GERCEK gecen sure) >= ESIK. Ikisi de ALT SINIR;
+  // ust sinir hicbir yerde YOK. Sebep: yerelde yalnizca node v25 var, CI tabani NODE 20 —
+  // `globalThis.setTimeout` yamasinin (jest/sinon'un da kullandigi standart teknik) node
+  // 20'de birebir kosumu BURADA olculemedi. Yama TAKILIRSA istenen gecikme (250) tanikligi
+  // gecerlidir, gecen sure ~0 olur; yama TAKILMAZSA gercek zamanlayici koşar ve gecen sure
+  // (olculdu: min 250.23 ms) taniklik eder. Iki halde de YANLIS-KIRMIZI YOK. Gecikme
+  // GERCEKTEN kaldirilirsa (mutant) IKISI BIRDEN sifira duser -> KIRMIZI. Dallanma yok:
+  // tek Math.max ifadesi.
+  const GECIKME_ESIGI_MS = 100;
+  const istenenGecikmeler = [];
+  const gercekSetTimeout = globalThis.setTimeout;
+  let yamaTakildi = false;
+  let yamaHatasi = "";
+  // ⚠️ BU DOSYA "use strict": salt-okunur bir global'e atama COKERTIR. Yama TAKILAMAZSA
+  // sonda COKMEZ, sessizce GECEN SURE tanigina duser — bloklayici bir alt kumede sondanin
+  // kendi kurulum kazasi TUM EKIBIN yayinini durduramaz. Geri koyma da ayni sebeple korumali.
+  const t23 = Date.now();
+  try {
+    try {
+      globalThis.setTimeout = function (geriCagri, ms, ...kalan) {
+        istenenGecikmeler.push(Number(ms) || 0);
+        return gercekSetTimeout(geriCagri, 0, ...kalan);
+      };
+      yamaTakildi = globalThis.setTimeout !== gercekSetTimeout;
+    } catch (e) { yamaHatasi = String((e && e.message) || e); }
+    await cagir({ altYol: "/", yontem: "POST", icerikTur: "application/x-www-form-urlencoded",
+      govde: govdeYap("yanlis-gecikme-sondasi") });
+  } finally {
+    try { globalThis.setTimeout = gercekSetTimeout; } catch (e) { /* zaten degismedi */ }
+  }
+  const gecenMs = Date.now() - t23;
+  const olculenGecikme = Math.max(gecenMs, ...istenenGecikmeler);
+  rapor("C23 basarisiz giris kaba kuvvet gecikmesi ISTIYOR (>= " + GECIKME_ESIGI_MS +
+    " ms; ALT SINIR — ust sinir YOK)",
+    olculenGecikme >= GECIKME_ESIGI_MS,
+    "olculen=" + olculenGecikme + " ms (istenen=" + JSON.stringify(istenenGecikmeler) +
+    " gecen=" + gecenMs + " ms; sonda yamasi=" + (yamaTakildi ? "TAKILDI" : "TAKILMADI") +
+    (yamaHatasi ? " [" + yamaHatasi + "]" : "") + ") esik=" + GECIKME_ESIGI_MS + " ms");
+
   // ---- 18. GIRIS HIZ SINIRI — EN SONDA (sayaci doldurur; sonraki iddialari etkilemesin) ----
   let deneme = 0;
   let bloke = null;

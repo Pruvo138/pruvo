@@ -68,6 +68,12 @@ MUTANTLAR (hepsi GERCEK, canliya sizabilecek bozulmalar; hepsi KIRMIZI yanmali)
                                  C6a/C6b'nin AYIRT EDICILERI. 2 Agu'da OLCULEREK eklendi:
                                  oncesinde bu iki iddianin ordinal ekseni icin surucude
                                  HICBIR kayit yoktu (C6a/C6b yalniz M13'un yan kirmizisiydi).
+  M26 kaba kuvvet gecikmesi    — GIRIS_GECIKME_MS 250 -> 0: basarisiz/bloke her denemedeki
+      TAMAMEN kalkti             sabit yavaslatici yok olur. 2 Agu'a kadar bu eksen
+                                 OLCULMEMISTI ve mutant SURVIVOR'di (olculdu: cikis 0,
+                                 kirmizi 0, iddia 70/70). Alt kumeye C23 eklendi (istenen
+                                 setTimeout gecikmesi >= 100 ms; ALT SINIR, ust sinir YOK,
+                                 duvar saati DEGIL) -> artik TEK kirmizi.
 
 EKSENE INDIRME (2 Agu, olculdu — "iddia sisirmesi" YAPILMADI). Kural: bir eksen ancak
 YALNIZ onu kirmizi yakan bir mutant VARSA kendi iddiasi olur; yoksa iddia EKLENMEZ.
@@ -89,8 +95,8 @@ YESIL geciyordu. Yuklem ozdesligi argumani DURUMSUZLUGU varsayiyordu ve o varsay
 Bunu YENI ESIT olcutu ilk kosumda yakaladi; eski KAPSAR olcutu sessizce PASS verirdi.
 M14/M15 genis()e alindi, ordinal ayirt edicileri M20-M23 olarak eklendi.
 
-KONTROL MUTANTLARI (YESIL kalmali — surucu "her sey kirmizi" diye ucuza gecemesin;
-ayrica kapinin ILGISIZ refaktorde yanlis alarm uretmedigi olculur)
+KONTROL MUTANTLARI (kontrol() ile BEYAN EDILIR; YESIL kalmali — surucu "her sey kirmizi"
+diye ucuza gecemesin; ayrica kapinin ILGISIZ refaktorde yanlis alarm uretmedigi olculur)
   K1 sabitEsit'te YEREL DEGISKEN adi degisti (davranis ayni)
   K2 girisYap'a YORUM SATIRI eklendi (davranis ayni)
   K3 anahtarGecerli'de baslik/cerez KONTROL SIRASI takas edildi (iki tasiyici da calisir)
@@ -113,6 +119,26 @@ Kontrol mutantlarinda: cikis 0, ❌ yok, IDDIA SAYISI taban ile ayni.
 CAPA YOK: taban iddia sayisi KOSUMDA olculur, kodda SABIT DEGILDIR (bugunku sayiyi
 yazsak, yarin bir iddia eklenince sahte kirmizi yanardi). Mutant kosumlari o OLCULEN
 sayiyla karsilastirilir.
+
+🔴 SURUCUNUN KENDI IKI DELIGI KAPATILDI (2 Agu, bagimsiz curutucu OLCTU):
+  (a) VAKUM YESILI — MUTANTLAR bosaltilinca (ya da tek kayda dusurulunce) surucu "0 kosum"
+      yapip `TUM MUTANTLAR YAKALANDI ✅` basiyor ve cikis 0 veriyordu. Hicbir sey
+      olculmemisken "hepsi yesil" demek, bu nobetcinin kapatmak icin var oldugu kalibin ta
+      kendisidir. Artik alt sinir IKI BAGIMSIZ kaynaktan gelir: (1) modul duzeyinde TANIMLI
+      her M<n>/K<n> kaydi MUTANTLAR'da KAYITLI olmak zorunda (tek kaynak MODULUN KENDISI —
+      yeni kayit eklenince taban KENDILIGINDEN yukselir, elle guncellenecek sayi YOK) ve
+      (2) ASGARI_KAYIT/ASGARI_KIRMIZI/ASGARI_KONTROL tabanlari (tanim+kayit BIRLIKTE
+      silinirse envanter kucuk kalirdi). Kabul: liste bosaltilinca cikis 1, tek kayit
+      birakilinca cikis 1 (ikisi de once 0'di).
+  (b) `beklenen=[]` AKLAMASI — sinif `beklenen`in BOSLUGUNDAN turetiliyordu, yani GERCEK
+      bir bozulmayi bos beklenenle kaydetmek onu "kontrol" yapiyordu. Yakalanan bir bozulma
+      boyle aklanamaz (kirmizi yanar, olculdu), ama SURVIVOR aklanabiliyordu: olculdu ki
+      `GIRIS_GECIKME_MS 250 -> 0` beklenen=[] ile eklendiginde surucu "MZ YESIL / TUM
+      MUTANTLAR YAKALANDI" basip cikis 0 veriyordu — en tehlikeli hal, cunku olculmemis
+      eksen tam da orada gizlenir. Artik sinif BEYAN EDILIR (kontrol() sarmalayicisi):
+      kirmizi-beklentili kaydin `beklenen`i BOS OLAMAZ, kontrol kaydininki BOS OLMAK
+      ZORUNDA; ikisi de kosumdan ONCE fail-closed suzulur, tuketim yeri de sinifi
+      beyandan okur (`if beklenen:` dali KALDIRILDI).
 
 Ag YOK · wrangler YOK · D1 YOK · canli uc YOK (alt kumenin kendisi deterministik).
 Bu harness CI'da KOSMAZ — gelistirici/curutucu aracidir.
@@ -173,11 +199,28 @@ def sha(yol):
 # tuketim yeri yine bu sabitlerle karsilastirir, dogrulayici yine bu demetten uretir.
 OLCUT_ESIT = "ESIT"        # kirmizi kume == beyan (fazlalik KUSUR -> capa)
 OLCUT_KAPSAR = "KAPSAR"    # beyan ⊆ kirmizi (ek kirmizi BEKLENIR -> capa YOK)
-OLCUTLER = (OLCUT_ESIT, OLCUT_KAPSAR)
+OLCUT_KONTROL = "KONTROL"  # davranis-koruyan refaktor: YESIL kalmali (beklenen BOS olmali)
+OLCUTLER = (OLCUT_ESIT, OLCUT_KAPSAR, OLCUT_KONTROL)
+KIRMIZI_OLCUTLER = (OLCUT_ESIT, OLCUT_KAPSAR)
+
+# 🔴 KAYIT SINIFI ARTIK BEYAN EDILIR, `beklenen`in BOSLUGUNDAN CIKARILMAZ (2 Agu, olculdu).
+# ONCE: sinif "beklenen bos mu?" diye TURETILIYORDU. Bu, GERCEK bir bozulmayi "kontrol" diye
+# kaydedip BEDAVA YESIL almanin yoluydu ve olculdu: `GIRIS_GECIKME_MS 250 -> 0` (kaba kuvvet
+# yavaslaticisini TAMAMEN kaldiran gercek bir zafiyet) beklenen=[] ile eklendiginde surucu
+# "MZ YESIL / TUM MUTANTLAR YAKALANDI" basip cikis 0 veriyordu. Yakalanabilen bir bozulma
+# ayni sekilde aklanmaya calisilirsa zaten kirmizi yanar (olculdu: kapi silen mutant -> cikis 1)
+# — yani delik TAM OLARAK "SURVIVOR'i kontrol diye etiketlemek"ti; en tehlikeli hal, cunku
+# olculmemis eksen tam da orada gizlenir. Artik:
+#   - OLCUT_ESIT / OLCUT_KAPSAR (kirmizi-beklentili) kaydin `beklenen`i BOS OLAMAZ,
+#   - OLCUT_KONTROL kaydin `beklenen`i BOS OLMAK ZORUNDA,
+#   - ikisi de kosumdan ONCE fail-closed suzulur (olcut_dogrula).
+# Boylece "kontrol" bir SINIF BEYANIDIR: yazan kisi "bu mutasyon DAVRANISI KORUR" demis olur.
 
 # ------------------------------------------------------------------ mutantlar
 # (kod, aciklama, [(bulunacak, yerine), ...], beklenen_kirmizi_iddia_kodlari, OLCUT)
-# beklenen kod listesi BOS ise: KONTROL mutanti -> YESIL kalmali.
+# SINIF `beklenen`in BOSLUGUNDAN CIKARILMAZ, sarmalayiciyla BEYAN EDILIR:
+#   tek_eksen/esit_kume/genis -> kirmizi-beklentili (beklenen DOLU olmak ZORUNDA),
+#   kontrol                   -> davranis-koruyan refaktor (beklenen BOS olmak ZORUNDA).
 #
 # 🔴 OLCUT, MUTANTIN KENDI KAYDINDA (asagidaki MUTANTLAR listesinde tek sarmalayiciyla):
 #   tek_eksen(...) / esit_kume(...) -> OLCUT_ESIT:  kirmizi kume BEKLENENE ESIT olmali. Bir
@@ -542,6 +585,19 @@ M25 = _liste_ordinali(
     "++_listeSayac > 1", ["C6b"])
 
 
+# --- KABA KUVVET YAVASLATICISI (M26) — C23'un AYIRT EDICI mutanti ---------------------
+# 🔴 2 Agu'a kadar OLCULMEMIS EKSEN. Bagimsiz curutucu olctu: `GIRIS_GECIKME_MS` 250 -> 0
+# yapilinca (basarisiz/bloke her denemedeki sabit bekleme TAMAMEN kalkar) alt kumede HICBIR
+# iddia kirmizi yanmiyordu — SURVIVOR (olculdu: cikis 0, kirmizi 0, iddia 70/70). Yani panelin
+# TEK ve PAYLASILAN anahtarini kaba kuvvete karsi yavaslatan katman NOBETSIZDI: biri bu sabiti
+# "testler zaten yavasliyor" gerekcesiyle sifirlasa hicbir kapi kirmizi yanmazdi.
+# Alt kumeye C23 eklendi (istenen setTimeout gecikmesi >= 100 ms; ALT SINIR, ust sinir YOK,
+# duvar saati DEGIL) ve bu mutant onun ayirt edicisidir: kirmizi kume TAM OLARAK {C23}.
+M26 = ("M26", "GIRIS_GECIKME_MS 250 -> 0 (kaba kuvvet yavaslaticisi TAMAMEN kalkti)",
+       [("const GIRIS_GECIKME_MS = 250;", "const GIRIS_GECIKME_MS = 0;")],
+       ["C23"])
+
+
 def tek_eksen(m):
     """TEK iddia bekleyen AYIRT EDICI mutant -> olcut kume ESITLIGI (fazlalik = KUSUR).
     "Yalniz su iddiayi yakar" hukmu ANCAK boyle nobet altindadir; KAPSAR olcutu fazladan
@@ -567,6 +623,15 @@ def genis(m):
     return m + (OLCUT_KAPSAR,)
 
 
+def kontrol(m):
+    """DAVRANIS-KORUYAN refaktor -> YESIL kalmali. 🔴 SINIF BEYANIDIR: eskiden "kontrol"
+    olmak `beklenen`in BOS birakilmasindan TURETILIYORDU, yani bir SURVIVOR'i (yakalanmayan
+    GERCEK bozulma) beklenen=[] ile kaydedip bedava yesil almak mumkundu (olculdu). Artik
+    kirmizi-beklentili kaydin `beklenen`i bos OLAMAZ ve kontrol kaydininki bos OLMAK
+    ZORUNDADIR; ikisi de kosumdan ONCE fail-closed suzulur."""
+    return m + (OLCUT_KONTROL,)
+
+
 # 🔴 SARMALAYICI SECIMI OLCULEREK YAPILDI (2 Agu). 14 KAPSAR kaydinin kirmizi kumesi iki
 # kez arka arkaya olculdu: 11'i beyanina BIREBIR ESIT cikti (kararli) -> capa alindi
 # (esit_kume). Ucu GERCEKTEN kapsama istiyor, KAPSAR kaldi ve sebebi kaydinda yazili:
@@ -586,35 +651,134 @@ MUTANTLAR = [
     tek_eksen(M17), tek_eksen(M18), tek_eksen(M19),
     tek_eksen(M20), tek_eksen(M21), tek_eksen(M22), tek_eksen(M23),
     tek_eksen(M24), tek_eksen(M25),
-    genis(K1), genis(K2), genis(K3),
+    tek_eksen(M26),                  # OLCULMEMIS eksenin (kaba kuvvet gecikmesi) nobetcisi
+    kontrol(K1), kontrol(K2), kontrol(K3),
 ]
 
+# 🔴 VAKUM YESILI KAPISI (2 Agu, olculdu). MUTANTLAR bosaltilinca surucu "0 kosum" yapip
+# `TUM MUTANTLAR YAKALANDI ✅` basiyor ve cikis 0 veriyordu; tek kayit birakilinca da. Yani
+# HICBIR SEY olculmemisken "hepsi yesil" — bu turda kapattigimiz kalibin ta kendisi.
+# ALT SINIR IKI BAGIMSIZ KAYNAKTAN turetilir (redundans bilincli):
+#   (1) ENVANTER — modul duzeyinde TANIMLI her mutant kaydi (M<n>/K<n> adli 4 alanli demet)
+#       MUTANTLAR'da KAYITLI olmak zorundadir. Tek kaynak MODULUN KENDISIDIR: yeni mutant
+#       tanimlandiginda alt sinir KENDILIGINDEN yukselir, elle guncellenecek sayi YOKTUR
+#       (bakim yuku sifir). Ayrica "mutanti tanimladim ama listeye eklemeyi UNUTTUM"
+#       sessiz deligini de kapatir — bu delik listeyi bosaltmaktan daha olasidir.
+#   (2) ASGARI_KAYIT — envanterden BAGIMSIZ bir TABAN. (1) tek basina yeterli DEGIL: kayit
+#       TANIMI ile KAYDI birlikte silinirse envanter kucuk kalir ve yine sessizce gecerdi.
+#       Bu sayi TAVAN DEGIL TABANDIR: kayit EKLENDIKCE ARTMASI GEREKMEZ (bakim yuku yok),
+#       yalnizca toplu silmeyi yakalar. Dusurulmesi ancak KASITLI bir kapsam kararidir ve
+#       o kararin bu satirda gerekcelenmesi gerekir.
+# Ayrica ayni kod IKI KEZ kaydedilirse (kopyala-yapistir) sayi sisirilebilirdi: kod
+# BENZERSIZLIGI de burada dogrulanir.
+ASGARI_KAYIT = 29        # bugun 29 (M1-M26 + K1-K3). TABAN; artirmak ZORUNLU degil.
+ASGARI_KIRMIZI = 20      # kirmizi-beklentili kayit tabani (bugun 26)
+ASGARI_KONTROL = 3       # K1/K2/K3 — "her sey kirmizi" diye ucuza gecmeyi engelleyen kayitlar
 
-def olcut_dogrula(mutantlar):
+
+def kayit_envanteri(kapsam):
+    """Modul duzeyinde TANIMLI mutant kayitlarini bulur: adi `M<n>`/`K<n>` olan, 4 alanli
+    ve ilk alani KENDI ADIYLA ayni olan demetler. (Sarmalayicidan gecmis 5 alanli kayitlar
+    burada DEGIL, MUTANTLAR'dadir.)"""
+    ad_re = re.compile(r"^[MK]\d+$")
+    envanter = {}
+    ad_sapmasi = []
+    for ad, deger in kapsam.items():
+        if not ad_re.match(ad):
+            continue
+        if not (isinstance(deger, tuple) and len(deger) == 4 and isinstance(deger[0], str)):
+            continue
+        if deger[0] != ad:
+            ad_sapmasi.append("%s kaydinin kodu %r (ad ile kod AYRISMIS — kopyala-yapistir "
+                              "kazasi mutanti gorunmez kilar)" % (ad, deger[0]))
+            continue
+        envanter[deger[0]] = ad
+    return envanter, ad_sapmasi
+
+
+def olcut_dogrula(mutantlar, kapsam=None):
     """🔴 FAIL-CLOSED KAYIT SUZGECI — kosumdan ONCE calisir.
-    Kayit sekli (5 alan) ve olcut degeri TANINMIYORSA surucu varsayilana DUSMEZ; kusur
-    listesi doner ve cagiran KIRMIZI yakip durur. Sebep: olcut bir dize alani; yanlis
-    yazilmasi (or. "Esit") eskiden mutanti sessizce en GEVSEK olcute dusuruyordu."""
+    Kayit sekli (5 alan), olcut degeri, olcut<->beklenen TUTARLILIGI ve KAYIT ENVANTERI
+    denetlenir. Herhangi biri tutmuyorsa surucu varsayilana DUSMEZ: kusur listesi doner ve
+    cagiran KIRMIZI yakip durur.
+    Sebepler (hepsi OLCULDU):
+      - olcut bir dize alani; yanlis yazilmasi (or. "Esit") mutanti sessizce en GEVSEK
+        olcute dusuruyordu,
+      - sinif `beklenen`in BOSLUGUNDAN turetiliyordu; bir SURVIVOR beklenen=[] ile "kontrol"
+        diye kaydedilince BEDAVA YESIL aliyordu,
+      - liste bosaltilinca / tek kayda dusurulunce surucu "0 kosum" yapip YESIL basiyordu."""
     kusurlar = []
+    gorulen = {}
     for sira, kayit in enumerate(mutantlar):
         etiket = "kayit #%d" % sira
         if not isinstance(kayit, tuple) or len(kayit) != 5:
             kusurlar.append(
                 "%s: 5 alanli demet DEGIL (uzunluk=%s, ilk alan=%r) — olcut sarmalayicisi "
-                "(tek_eksen/esit_kume/genis) UNUTULMUS olabilir"
+                "(tek_eksen/esit_kume/genis/kontrol) UNUTULMUS olabilir"
                 % (etiket, len(kayit) if hasattr(kayit, "__len__") else "?",
                    kayit[0] if hasattr(kayit, "__getitem__") and len(kayit) else kayit))
             continue
-        kod, _aciklama, degisimler, _beklenen, olcut = kayit
+        kod, _aciklama, degisimler, beklenen, olcut = kayit
         etiket = "kayit #%d [%s]" % (sira, kod)
+        if kod in gorulen:
+            kusurlar.append("%s: kod MUKERRER (once #%d) — ayni kodu iki kez kaydetmek "
+                            "kayit sayisini SISIRIR" % (etiket, gorulen[kod]))
+        gorulen[kod] = sira
         if olcut not in OLCUTLER:
             kusurlar.append(
                 "%s: GECERSIZ olcut %r — taninan degerler: %s. Varsayilana DUSULMEZ; "
-                "sarmalayiciyi kullan (tek_eksen/esit_kume -> %s, genis -> %s)"
+                "sarmalayiciyi kullan (tek_eksen/esit_kume -> %s, genis -> %s, kontrol -> %s)"
                 % (etiket, olcut, ", ".join(repr(o) for o in OLCUTLER),
-                   OLCUT_ESIT, OLCUT_KAPSAR))
+                   OLCUT_ESIT, OLCUT_KAPSAR, OLCUT_KONTROL))
+        # 🔴 SINIF <-> BEKLENEN TUTARLILIGI: sinif ARTIK BEYAN EDILIR, `beklenen`in
+        # boslugundan TURETILMEZ. Iki yon de fail-closed'dur.
+        elif olcut in KIRMIZI_OLCUTLER and not beklenen:
+            kusurlar.append(
+                "%s: KIRMIZI-beklentili (olcut=%s) ama `beklenen` BOS — bu kayit hicbir "
+                "iddiayi isaretlemez. GERCEK bir bozulmayi bos beklenenle kaydetmek onu "
+                "'kontrol' diye AKLAR (survivor bedava yesil gecer). Ya beklenen iddia "
+                "kodlarini YAZ, ya da davranis GERCEKTEN korunuyorsa kontrol() kullan."
+                % (etiket, olcut))
+        elif olcut == OLCUT_KONTROL and beklenen:
+            kusurlar.append(
+                "%s: KONTROL kaydi (davranis-koruyan refaktor) ama `beklenen` DOLU (%s) — "
+                "kontrol kaydinin kirmizi beklentisi OLAMAZ; kirmizi bekliyorsan "
+                "tek_eksen/esit_kume/genis kullan" % (etiket, ",".join(beklenen)))
         if not degisimler:
             kusurlar.append("%s: mutasyon listesi BOS — bu kayit hicbir sey olcmez" % etiket)
+
+    # --- ALT SINIR: "hic olcmeden yesil" YOK ------------------------------------------
+    kirmizi_adet = sum(1 for m in mutantlar
+                       if isinstance(m, tuple) and len(m) == 5 and m[4] in KIRMIZI_OLCUTLER)
+    kontrol_adet = sum(1 for m in mutantlar
+                       if isinstance(m, tuple) and len(m) == 5 and m[4] == OLCUT_KONTROL)
+    if len(mutantlar) < ASGARI_KAYIT:
+        kusurlar.append(
+            "KAYIT SAYISI ALT SINIRIN ALTINDA: %d kayit bulundu, taban %d. Surucu bos/kirpik "
+            "listeyle 'TUM MUTANTLAR YAKALANDI' DEMEZ — hicbir sey olculmemisken yesil "
+            "yanmak, bu nobetcinin kapatmak icin var oldugu kalibin ta kendisidir."
+            % (len(mutantlar), ASGARI_KAYIT))
+    if kirmizi_adet < ASGARI_KIRMIZI:
+        kusurlar.append("KIRMIZI-BEKLENTILI KAYIT SAYISI ALT SINIRIN ALTINDA: %d bulundu, "
+                        "taban %d" % (kirmizi_adet, ASGARI_KIRMIZI))
+    if kontrol_adet < ASGARI_KONTROL:
+        kusurlar.append("KONTROL KAYDI SAYISI ALT SINIRIN ALTINDA: %d bulundu, taban %d "
+                        "(kontrol kayitlari olmadan surucu 'her sey kirmizi' diye ucuza "
+                        "gecebilir)" % (kontrol_adet, ASGARI_KONTROL))
+
+    # --- ENVANTER: TANIMLI her kayit KAYITLI mi? (alt sinirin ikinci, bagimsiz kaynagi) --
+    if kapsam is not None:
+        envanter, ad_sapmasi = kayit_envanteri(kapsam)
+        kusurlar.extend(ad_sapmasi)
+        kayitli = set(gorulen)
+        eksik = sorted(set(envanter) - kayitli,
+                       key=lambda k: (k[0], int(k[1:]) if k[1:].isdigit() else 0))
+        if eksik:
+            kusurlar.append(
+                "TANIMLI AMA KAYITSIZ MUTANT(LAR): %s — modulde tanimli %d kayittan %d'i "
+                "MUTANTLAR listesinde YOK. Bu kayitlar HICBIR SEY olcmez; alt sinir "
+                "MODULUN KENDISINDEN turer (elle guncellenecek sayi yoktur)."
+                % (", ".join(eksik), len(envanter), len(eksik)))
     return kusurlar
 
 
@@ -690,19 +854,23 @@ def main():
     print("  hedef: shop/src/yonet.js  sha256=%s…  (%d bayt)"
           % (canli_once[:16], len(pristine.encode("utf-8"))))
 
-    # --- 0a) KAYIT SUZGECI: gecersiz olcut = KIRMIZI (varsayilana DUSME YOK) ---------
-    # Ayna kurulmadan ONCE kosar: bozuk kayitla yapilan kosum "olculdu" DEGILDIR.
-    print("\n0a) OLCUT KAYITLARI (fail-closed)")
-    kusurlar = olcut_dogrula(MUTANTLAR)
-    check("her mutant kaydi 5 alanli + olcutu taninan bir deger (%s)"
+    # --- 0a) KAYIT SUZGECI: gecersiz olcut / sinif celiskisi / bos-kirpik liste = KIRMIZI
+    # Ayna kurulmadan ONCE kosar: bozuk ya da BOS kayitla yapilan kosum "olculdu" DEGILDIR.
+    print("\n0a) OLCUT + SINIF + ALT SINIR KAYITLARI (fail-closed)")
+    envanter, _sapma = kayit_envanteri(globals())
+    kusurlar = olcut_dogrula(MUTANTLAR, globals())
+    check("her kayit 5 alanli, olcutu taninan (%s), sinif<->beklenen tutarli, "
+          "TANIMLI kayitlarin hepsi KAYITLI ve sayilar taban ustunde"
           % ", ".join(OLCUTLER), not kusurlar,
-          "%d kayit denetlendi%s" % (len(MUTANTLAR),
-                                     "" if not kusurlar else "; %d KUSUR" % len(kusurlar)))
+          "%d kayit denetlendi (modulde TANIMLI %d; taban %d)%s"
+          % (len(MUTANTLAR), len(envanter), ASGARI_KAYIT,
+             "" if not kusurlar else "; %d KUSUR" % len(kusurlar)))
     if kusurlar:
         for k in kusurlar:
             print("     ⚠️ " + k)
-        print("\n  🔴 GECERSIZ OLCUT KAYDI: surucu en gevsek olcute SESSIZCE DUSMEZ. "
-              "Kayitlari duzelt; duzeltilene kadar bu harness HICBIR SEY olcmus SAYILMAZ.")
+        print("\n  🔴 KAYIT KUSURU: surucu ne en gevsek olcute SESSIZCE DUSER, ne de BOS/"
+              "KIRPIK listeyle 'TUM MUTANTLAR YAKALANDI' der. Kayitlari duzelt; duzeltilene "
+              "kadar bu harness HICBIR SEY olcmus SAYILMAZ.")
         return 1
 
     ayna = tempfile.mkdtemp(prefix="yonet-cerez-mutasyon-")
@@ -744,16 +912,23 @@ def main():
 
         # --- 2) MUTASYON BATARYASI -------------------------------------------------
         print("\n2) MUTASYON BATARYASI — %d kosum (%d kirmizi-beklentili [%d ESIT olcutlu], "
-              "%d kontrol)"
-              % (len(MUTANTLAR), sum(1 for m in MUTANTLAR if m[3]),
-                 sum(1 for m in MUTANTLAR if m[3] and m[4] == OLCUT_ESIT),
-                 sum(1 for m in MUTANTLAR if not m[3])))
+              "%d kontrol; taban: %d kayit / %d kirmizi / %d kontrol)"
+              % (len(MUTANTLAR),
+                 sum(1 for m in MUTANTLAR if m[4] in KIRMIZI_OLCUTLER),
+                 sum(1 for m in MUTANTLAR if m[4] == OLCUT_ESIT),
+                 sum(1 for m in MUTANTLAR if m[4] == OLCUT_KONTROL),
+                 ASGARI_KAYIT, ASGARI_KIRMIZI, ASGARI_KONTROL))
         matris = []
         for kod, aciklama, degisimler, beklenen, olcut in MUTANTLAR:
             metin = mutasyonla(pristine, degisimler, kod)
             rc, iddia, kirmizi_kod, kirmizi, kuyruk = kos(ayna, metin)
             sayi_ok = (iddia == t_iddia)
-            if beklenen:
+            # 🔴 SINIF KAYITTAN OKUNUR (`beklenen` BOS MU diye BAKILMAZ): "kontrol" bir
+            # BEYANDIR. Eski `if beklenen:` dali, beklenen'i bos birakilan GERCEK bir
+            # bozulmayi sessizce kontrol sinifina dusuruyordu (olculdu: survivor bedava
+            # yesil). olcut_dogrula bu hali zaten kosumdan ONCE reddeder; buradaki dal da
+            # ondan BAGIMSIZ olarak sinifi beyandan okur (redundans bilincli).
+            if olcut in KIRMIZI_OLCUTLER:
                 eksik = [b for b in beklenen if b not in kirmizi_kod]
                 # ESIT olcutu: BEKLENENIN USTUNE cikan her kirmizi de KUSURDUR. "Bu mutant
                 # yalniz su iddiayi yakar" hukmu ancak boyle nobet altindadir; KAPSAR
@@ -782,12 +957,24 @@ def main():
                     detay += ("  ⚠️ IDDIA SAYISI TUTMUYOR -> mutant testi COKERTMIS "
                               "olabilir; bu 'kirmizi' OLCUM DEGIL")
                 beklenti = "KIRMIZI/" + olcut
-            else:
-                gecti = sayi_ok and rc == 0 and not kirmizi
+            elif olcut == OLCUT_KONTROL:
+                # KONTROL kaydi da DOGRULANIR: yesil KALMALI (tek bir kirmizi bile KUSUR)
+                # ve iddia sayisi taban ile ayni olmali (cokme "yesil" ile karismasin).
+                # Beklenen'in BOS oldugu burada da SART: kontrol() disindan gelen bozuk bir
+                # kayit sessizce buraya dusmesin (olcut_dogrula zaten reddeder).
+                gecti = sayi_ok and rc == 0 and not kirmizi and not beklenen
                 detay = ("cikis=%d iddia=%s/%d kirmizi=%d %s"
                          % (rc, iddia, t_iddia, len(kirmizi),
                             kirmizi[0][:90] if kirmizi else ""))
+                if beklenen:
+                    detay += ("  ⚠️ KONTROL kaydinin beklenen listesi DOLU (%s) — sinif "
+                              "beyani ile kayit CELISIYOR" % ",".join(beklenen))
                 beklenti = "YESIL"
+            else:
+                raise SystemExit(
+                    "OLCUT TANINMIYOR (%s): %r — taninan degerler: %s. Surucu VARSAYILANA "
+                    "DUSMEZ (fail-closed)."
+                    % (kod, olcut, ", ".join(repr(o) for o in OLCUTLER)))
             check("%s [%s] %s" % (kod, beklenti, aciklama), gecti, detay)
             if not gecti:
                 print("       --- %s ciktisinin kuyrugu ---\n%s" % (kod, kuyruk))
