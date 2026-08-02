@@ -695,8 +695,7 @@ R_AYRI = ("Ayri alt-proje/dagitim hedefi (shop=Cloudflare Worker, onizleme, jene
           "hattinda kosulur, Pages job'una girmez.")
 # 🔴 R_NODE SABITI KALDIRILDI (30 Tem) — GEREKCE FIILEN YANLISTI, GERI EKLEME.
 # Metni soyleydi: "CI build job'u Python-only (setup-node yok) -> JS/Node suite'i kosamaz."
-# OLCULDU: .github/workflows/deploy.yml'de `actions/setup-node@v4` (build job'unda node 22 —
-# 2 Agu'da 20'den yukseltildi, gerekce o blogun yorumunda; serit-b/yayin job'lari 20) BLOKLAYICI bir
+# OLCULDU: .github/workflows/deploy.yml'de `actions/setup-node@v4` (node 20) BLOKLAYICI bir
 # ON-KOSULDUR ve o is akisinda ZATEN bes node testi kosuyor (shop/test/*.mjs, sepet-panel.js,
 # jenerator/test/*.js|mjs, onizleme/test/*.mjs). Yani bu gerekce dogru olsaydi o adimlarin
 # hepsi kirmizi yanardi. Gerekceye dayanan dort giris (riza-tikkimligi-test.js — GIZLILIK,

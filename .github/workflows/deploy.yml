@@ -58,23 +58,9 @@ jobs:
       # Node: piksel<->katalog parite testinin JS-uc nobeti (index.html pruvoFeedId + olcum.js
       # feedId/metaGovdesi/ga4Govdesi) node ile kosar. FAIL-CLOSED: node yoksa test CI'da exit 1
       # verir (yalanci-yesil olamaz), o yuzden setup-node BLOKLAYICI bir on-kosuldur.
-      # 🔴 SURUM 20 -> 22 (2 Agu, OLCULEREK): asagidaki `kabul.js --yonet-cerez` alt kumesi
-      # yonet.js'i node:vm yerine GERCEK modul yukleyicisiyle izole eder; bunun icin
-      # `node:module` registerHooks API'sini ister (v22.15+/23.5+). OLCUM: node v20.20.2 ->
-      # `typeof registerHooks === "undefined"` -> test "C0 modul yukleyici" deyip exit 1;
-      # node v22.23.2 -> registerHooks = function -> 63/63 yesil, exit 0. Yani surum
-      # yukseltilmezse yeni guvenlik adimi CI'da HER kosuda kirmizi yanardi.
-      # REGRESYON OLCULDU (bu job'daki node ile kosan 19 komutun HEPSI, node v20.20.2 VE
-      # node v22.23.2 ile ayri ayri): 19/19 komutta exit kodu IKI SURUMDE DE AYNI —
-      # 18'i exit 0, biri (jenerator/test/yayin-fiyat-parite.mjs) iki surumde de exit 3
-      # ("OLCULEMEDI: _yayin/ yok", yerel on-kosul; CI'da build.py once kosar). Tek fark
-      # `--yonet-cerez`: node20=1, node22=0. Yani 22'ye gecis baska hicbir node testini
-      # KIRMIYOR — olculdu, tahmin degil.
-      # ⚠️ KAPSAM: yalniz BU job. serit-b ve yayin job'lari kendi setup-node bloklarini
-      # tasir ve "20"de KALIR (registerHooks isteyen test onlarda YOK).
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "20"
       # Kisisel veri sizinti kilidi — BILEREK BLOKLAYICI (continue-on-error YOK;
       # mukerrer-hook felsefesi): bu test kirmiziysa kisisel veri ham HTML'e siziyor
       # demektir, yayini erken durdurmak ucuz, sessiz sizinti pahali. JSON-LD
@@ -611,9 +597,10 @@ jobs:
       - name: Sari seri sema paritesi + fail-closed nobeti (deterministik alt kume)
         run: node shop/test/kabul.js --sema-paritesi
 
-      # YONET (ADMIN GIRIS) KAPISI — deterministik alt kume, 63 IDDIA (olculdu: node v22.23.2
-      # -> 63 gecti / 0 kaldi, exit 0). AG YOK, WRANGLER YOK, D1 YOK: yonet.js dogrudan izole
-      # yuklenir, ~0,3 s.
+      # YONET (ADMIN GIRIS) KAPISI — deterministik alt kume, 63 IDDIA. AG YOK, WRANGLER YOK,
+      # D1 YOK: shop/src/yonet.js (deploy edilen dosya, kopya DEGIL) dogrudan yuklenir, ~0,3 s.
+      # OLCULDU — CI TABANI NODE 20'de YESIL: node v20.20.2 -> 63 gecti / 0 kaldi, exit 0;
+      # node v22.23.2 -> ayni (63/0). Surum dali YOK, tek kod yolu.
       # 🔴 BU DELIK NEDEN VARDI: tools/ci-kapsam-test.py DOSYA kesfeder, BAYRAK KESFETMEZ.
       # shop/test/kabul.js deploy.yml'de `--sema-paritesi` ile kosuldugu icin kapsam kapisi
       # dosyayi "kosuluyor" sayiyordu -> ayni dosyaya sonradan eklenen `--yonet-cerez`
@@ -632,8 +619,14 @@ jobs:
       #   * HIZ SINIRI — art arda basarisiz denemeden sonra DOGRU sifre bile reddedilir,
       #   * YANLIS-PAROLA AYIRT EDILEMEZLIGI — bloke/bos-govde yaniti hic-denememis GET ile
       #     kod + govde + TUM BASLIKLAR duzeyinde BIREBIR ayni (oracle sizintisi yok).
-      # ⚠️ node:module registerHooks (v22.15+) ISTER -> job'un setup-node surumu bilerek "22"
-      # (gerekce + regresyon olcumu setup-node bloguna yazildi). continue-on-error YOK.
+      # OLU NOBETCI DEGIL (olculdu, node v20.20.2): yonet.js'e uygulanan 7 mutantin 7'si de
+      # KIRMIZI yakti — sabitEsit->=== (2 iddia), HttpOnly kaldir (3), Secure yok+SameSite=Lax
+      # (5), hiz siniri devre disi (2), sayac artmiyor (2), yanlis parola ayirt edilebilir (3),
+      # `?anahtar=` geri ekle (3). Her mutasyondan sonra taban 63/0'a dondu.
+      # ⚠️ YUKLEYICI: semalar.js'in JSON import'lari icin `node:module` **register** (v20.6+)
+      # kancasi kullanilir — `registerHooks` (v22.15+) DEGIL. Bu bilincli: CI tabani Node 20
+      # ve [[shop/test/olcum.mjs ~481]] ayni kararla ayni deseni tasiyor; surum dali BILEREK
+      # YOK. Bu adim ugruna setup-node surumunu yukseltmek GEREKMEZ. continue-on-error YOK.
       - name: Yonet anahtar/cerez kabul testi (admin giris kapisi — deterministik alt kume)
         run: node shop/test/kabul.js --yonet-cerez
 
