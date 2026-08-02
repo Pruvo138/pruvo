@@ -557,6 +557,13 @@ GOC_KOLON = [
     # (KOLONLAR'da da VAR). Gerekce + fail-closed kural: d1-sema.sql altkategori yorumu
     # ve arama.altkategori_kanonik.
     ("altkategori", "TEXT NOT NULL DEFAULT ''"),
+    # UYUM (2 Agu) — arac uyumlulugu (JSON dizi). altkategori/tur/stokta ile AYNI sinif:
+    # PUBLIC urunler.json alani, icerik upsert'i ile yazilir, HASH'E GIRER (KOLONLAR'da da
+    # VAR). Gerekce + fail-closed kural: d1-sema.sql uyum yorumu ve arama.uyum_kanonik.
+    # ALTER DEFAULT'u '[]' ('' DEGIL): kolon JSON DIZI tasir, okuma ucu JSON.parse'i
+    # kosulsuz uygulayabilsin (marka kolonunun deseni). Goc anindan senkron bitene kadarki
+    # pencerede mevcut satirlar "uyum bilgisi yok" der — yanlis uyum VAAT ETMEZ.
+    ("uyum", "TEXT NOT NULL DEFAULT '[]'"),
 ]
 
 # siparisler icin ayni mekanizma (shop kargo + siparis yonetimi paketleri): DEFAULT'lu
@@ -613,6 +620,11 @@ KOLONLAR = [
     # KOLONLAR'da olmasaydi hash yeni degerle yazilir ama altkategori ESKI kalirdi
     # (hash "senkron" der, alt-filtre bayat = sessiz hata).
     "altkategori",
+    # UYUM — hash'e girdigi icin ON CONFLICT yolunda da GUNCELLENMELIDIR: mevcut bir urunun
+    # uyum listesi degistiginde upsert calisir ve kolonu yazar. KOLONLAR'da olmasaydi hash
+    # yeni degerle yazilir ama uyum ESKI kalirdi (hash "senkron" der, Ege bayat uyum
+    # servis eder = musteriye yanlis uyum vaadi, sessiz).
+    "uyum",
 ]
 
 # satir_sql INSERT'inde YAZILAN ama ON CONFLICT/UPDATE yolunda BILEREK guncellenmeyen
@@ -1201,6 +1213,26 @@ def kolon_goc():
     return True
 
 
+def uyum_metin(u):
+    """`uyum` alaninin D1'de SAKLANAN bicimi: kanonik JSON DIZI metni.
+
+    KAYNAK arama.uyum_kanonik(u) — urun_hash'i besleyen AYNI fonksiyon. Ikinci bir
+    turetme yolu ACILMAZ: acilsaydi hash bir degeri, kolon baskasini gorurdu ve
+    "hash senkron der, kolon bayat" ayrismasi dogardi ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    BICIM (yeni bir bicim ICAT EDILMEDI, mevcut karmasik alanlardan alindi):
+      * JSON dizi metni + ensure_ascii=False -> `marka` kolonunun deseni (o da JSON dizi;
+        Turkce karakterler kacissiz, D1'de okunur kalir).
+      * sort_keys=True + kompakt ayirac -> `konfigur_kanonik` deseni: oge icindeki anahtar
+        SIRASI degisimi (ayni veri, baska yazim) sahte bir UPDATE uretmesin, D1'de
+        gereksiz bayt durmasin. urun_hash'in dis json.dumps'i da sort_keys=True kullanir
+        -> hash'in gordugu normalizasyon ile kolonunki AYNI.
+    BOS hal '[]' (kolon DEFAULT'u ile ayni) -> okuma ucu JSON.parse'i kosulsuz uygulayabilir.
+    """
+    return json.dumps(arama.uyum_kanonik(u), ensure_ascii=False, sort_keys=True,
+                      separators=(",", ":"))
+
+
 def satir_sql(u, seq, hs, h, baski=""):
     """Tek urun icin upsert. ON CONFLICT -> rid/seq korunur (FTS rowid'i sabit kalir)."""
     g = (u.get("gorseller") or [None])[0]
@@ -1220,6 +1252,9 @@ def satir_sql(u, seq, hs, h, baski=""):
         # ALT KATEGORI — KANONIK deger (arama.py tek kaynak; hash de AYNI fonksiyondan
         # besleniyor -> "hash degisti ama kolon degismedi" ayrismasi imkansiz).
         q(arama.altkategori_kanonik(u)),
+        # UYUM — KANONIK JSON dizi metni (uyum_metin; arama.uyum_kanonik tek kaynak, hash de
+        # AYNI fonksiyondan besleniyor -> "hash degisti ama kolon degismedi" ayrismasi imkansiz).
+        q(uyum_metin(u)),
     ]
     # ATOMIK YAYIN: YENI satir DAIMA taslak (yayinda=0) girer. Kolon SQL'de ACIKCA
     # yazilir (DEFAULT'a guvenilmez): DEFAULT sonradan degistirilirse ya da tablo baska
@@ -1229,7 +1264,7 @@ def satir_sql(u, seq, hs, h, baski=""):
     return (
         "INSERT INTO urunler (id,hash,seq,baslik,kategori,marka,fiyat,gorsel,parametrik,hs,"
         "aciklama,ege,hs_baslik,hs_baslik_kok,hs_govde,hs_govde_kok,baski,tur,stokta,"
-        "altkategori,yayinda) VALUES ("
+        "altkategori,uyum,yayinda) VALUES ("
         + ",".join(degerler) + ",0"
         + ") ON CONFLICT(id) DO UPDATE SET "
         + ", ".join("%s=excluded.%s" % (k, k) for k in KOLONLAR) + ";"
@@ -1261,7 +1296,14 @@ GERI_OKUMA_KOLONLARI = ["hash", "baslik", "kategori", "baski", "taban_fiyat",
 # konfigur'un aksine bunlar atlanabilir DEGIL: satir_sql'in INSERT listesindedirler,
 # yoksa HER upsert "no such column" ile duser. Bu yuzden main() basinda GURULTULU
 # olculur — kriptik yarim yazma yerine tek satirlik "kos: --sema" tanisi.
-ZORUNLU_KOLONLAR = ["tur", "stokta"]
+ZORUNLU_KOLONLAR = ["tur", "stokta", "uyum"]
+
+# NEDEN `uyum` GERI_OKUMA_KOLONLARI'nda DEGIL (bilincli, gerekceli): uyum icerik upsert'i ile
+# hash ile AYNI ifadede yazilir -> hash D1'de dogruysa o upsert FIILEN uygulanmistir (baslik/
+# marka/fiyat/aciklama gibi diger icerik kolonlariyla ayni garanti). tur/stokta'nin AYRICA
+# okunmasinin sebebi TIP ekseniydi ('0' METNI JS'te true okunur); uyum TEXT kolonudur, o sinif
+# hata YOK. Ustelik tam-tablo geri-okuma yolunda (>800 id) uyum'u SELECT'e koymak her senkronda
+# 16.874 satirlik JSON govdesini bosuna cekerdi.
 
 # BEYAN EDILEN OLCEK SINIRI: yazilan id sayisi bu esigi asarsa hedefli `IN (...)` parcalari
 # yerine TEK tam-tablo SELECT'i kullanilir. 🔴 ORNEKLEME DEGIL — iki yol da yazilan id'lerin
@@ -1471,7 +1513,8 @@ CREATE TABLE urunler (
   release_id TEXT NOT NULL DEFAULT '',
   tur TEXT NOT NULL DEFAULT '',
   stokta INTEGER NOT NULL DEFAULT -1,
-  altkategori TEXT NOT NULL DEFAULT ''
+  altkategori TEXT NOT NULL DEFAULT '',
+  uyum TEXT NOT NULL DEFAULT '[]'
 );
 CREATE TABLE senkron (anahtar TEXT PRIMARY KEY, deger TEXT NOT NULL);
 """

@@ -152,8 +152,16 @@ kalır, kendi sayfası olmaz.
 2. **D1 kolonu ÖNCE canlıya** — `python3 tools/d1-sync.py --sema`, `PRAGMA table_info` ile
    VAR olduğu doğrulanır, **ANCAK ONDAN SONRA** kolonu SELECT eden kod push'lanır. Ters sıra
    tüm oturumların push'unu kırar ([[ege-d1-bagimliligi]] şema sıra kuralı).
-   ⚠️ Yeni kolon `urun_hash`'e **KATILMAZ** (yerel↔CI thrash, [[d1-baski-hash-thrash]]);
-   hedefli UPDATE yazılır.
+   ~~⚠️ Yeni kolon `urun_hash`'e **KATILMAZ** (yerel↔CI thrash, [[d1-baski-hash-thrash]]);
+   hedefli UPDATE yazılır.~~
+   🔴 **DÜZELTİLDİ (2 Ağu, mimar kararı — uygulandı):** `uyum` `urun_hash`'e **GİRER** ve içerik
+   upsert'i (`KOLONLAR` + `satir_sql`) ile yazılır. [[d1-baski-hash-thrash]] gerekçesi burada
+   GEÇERSİZ: o thrash `baski`nın **gizli** `.urun-kaynaklari.json`'dan gelmesinden doğuyordu
+   (yerel görür, CI görmez → iki ortam farklı hash yazıp birbirini ezer). `uyum` **PUBLIC**
+   `urunler.json` alanıdır — CI de yerel de AYNI değeri görür, thrash yüzeyi YOK. Hedefli
+   UPDATE deseni (`konfigur`/`taban_fiyat`) seçilseydi hash `uyum` değişimini görmez, satır
+   "değişmemiş" sayılır ve D1 sessizce bayat uyum servis ederdi. Desen kaynağı:
+   `tur`/`stokta`/`altkategori`. Ölçüm + kabul: `tools/RAPOR-MIMARA.md` (uyum D1 kolonu turu).
 3. **Backfill** — token yakan amele iş → **Codex partileri**, dar spec + `-o son-mesaj.txt`.
    🔴 `urunler.json`'a yazan **tek yazar MaCiT**'tir; partiler onun düzleminde koşar, KraL yazmaz.
 4. **Uç + arama** — edge kart sözleşmesine alan, gerekiyorsa haystack. 🔴 Haystack'e giriyorsa

@@ -1071,5 +1071,15 @@ def urun_hash(u):
         # alarm calmaz. KANONIK deger yazilir (ham degil) -> hash'in gordugu deger ile
         # kolona giden deger AYNI fonksiyondan gelir, ayrisma INSAATAN imkansiz.
         altkategori_kanonik(u),
+        # UYUM (arac uyumlulugu): HASH'E GIRMESI SART — alan D1'de Ege'nin cevaplayabildigi
+        # bir SORUYU besler ("bu parca Passat B8 2.0 TDI'ye uyar mi"). Hash kapsamasaydi bir
+        # urunun uyum listesi degistiginde hash AYNI kalir, diff_plan satiri "degismemis"
+        # sayar ve D1'e HIC YAZMAZDI: Ege bayat uyum servis eder, musteriye YANLIS uyum
+        # vaadi gider ve hicbir alarm calmaz. tur/stokta/altkategori ile AYNI sinif — alan
+        # PUBLIC urunler.json'da yasar, CI de yerel de AYNI degeri gorur ([[d1-baski-hash-
+        # thrash]]'in gizli-kayit sorunu burada YOK). KANONIK deger yazilir (ham degil) ->
+        # hash'in gordugu deger ile D1 kolonuna giden deger (d1-sync.uyum_metin) AYNI
+        # fonksiyondan besleniyor, ayrisma INSAATAN imkansiz.
+        uyum_kanonik(u),
     ], ensure_ascii=False, sort_keys=True)
     return hashlib.sha256(ozet.encode("utf-8")).hexdigest()[:16]

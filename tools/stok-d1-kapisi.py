@@ -295,7 +295,13 @@ def kabul(kok):
     kt_fark = set(sema) ^ set(kt_sema)
     dogrula("C7 offline fikstur semasi (_KT_SEMA) == d1-sema.sql kolon kumesi",
             not kt_fark, sorted(kt_fark))
-    for alan in ("tur", "stokta"):
+    # `uyum` (2 Agu) AYNI SINIF: PUBLIC urunler.json alani, icerik upsert'i ile yazilir,
+    # hash'e girer. Bes tanimdan BIRINDE eksik kalirsa ariza SESSIZ olur — kolon semada
+    # yokken INSERT "no such column" ile TUM senkronu dusurur, KOLONLAR'da yokken satir ilk
+    # yazimda dogru sonraki her guncellemede BAYAT kalir. (uyum'a OZGU eksenler — hash
+    # kapsami, fail-closed kanonik, K5 ikizi — tools/uyum-kapisi.py'nin isi; burasi yalnizca
+    # BES TANIM kilididir.)
+    for alan in ("tur", "stokta", "uyum"):
         dogrula("C8 `%s` BES tanimin hepsinde (sema · GOC · _KT_SEMA · INSERT · KOLONLAR)" % alan,
                 alan in sema and alan in goc and alan in kt_sema
                 and alan in ins and alan in d1.KOLONLAR,
