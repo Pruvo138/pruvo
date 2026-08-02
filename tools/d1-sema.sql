@@ -28,6 +28,24 @@ CREATE TABLE IF NOT EXISTS urunler (
   -- alt-filtre servis ederdi.
   altkategori TEXT NOT NULL DEFAULT '',
   marka     TEXT NOT NULL DEFAULT '[]',   -- JSON dizi
+  -- UYUM (arac uyumlulugu) — JSON dizi, ogeler {marka,model,motor,yil,oem} (arama.UYUM_ALANLARI).
+  -- '[]' = uyum bilgisi YOK. Veri urunler.json "uyum" alaninda YASIYORDU (olculdu 2026-08-02:
+  -- 16.874 kaydin 13.040'inda DOLU) ama d1-sync'in alan listesinde HIC yoktu -> D1'e, oradan
+  -- Ege'ye ULASMIYORDU: musteri "Passat B8 2.0 TDI'ye uyar mi" diye sorunca bot cevaplayamiyordu
+  -- (site urunu dogru gosterir, Ege goremez = sessiz satis kaybi).
+  -- KAYNAK + FAIL-CLOSED: arama.uyum_kanonik(u) — bicimsiz/sozluk disi/mukerrer oge tasiyan ya da
+  -- `marka` ikizi ayrismis (K5) her kayit '[]' olur; tools/uyum-kapisi.py ayni veriyi KIRMIZI yakar,
+  -- yani sessiz KALMAZ. BICIM: json.dumps(..., sort_keys=True, kompakt ayirac) — d1-sync.uyum_metin();
+  -- `marka`nin JSON-dizi deseni + konfigur'un kanoniklestirme deseni (anahtar sirasi degisimi sahte
+  -- UPDATE uretmesin).
+  -- 🔴 HASH'E GIRER (tur/stokta/altkategori deseni; taban_fiyat/konfigur'un TERSI): alan PUBLIC
+  -- urunler.json'da yasar, yani CI de yerel de AYNI degeri gorur ([[d1-baski-hash-thrash]]'in gizli
+  -- kayit sorunu burada YOK) ve icerik upsert'i (KOLONLAR + satir_sql) ile yazilir. Hash
+  -- kapsamasaydi bir urunun uyum listesi degistiginde hash AYNI kalir, diff_plan satiri
+  -- "degismemis" sayar ve D1'e HIC YAZMAZDI -> Ege bayat uyum servis eder, hicbir alarm calmaz.
+  -- KANONIK deger yazilir (ham degil): hash'in gordugu deger ile kolona giden deger AYNI
+  -- fonksiyondan (uyum_kanonik) gelir -> "hash degisti ama kolon degismedi" ayrismasi imkansiz.
+  uyum      TEXT NOT NULL DEFAULT '[]',
   fiyat     TEXT NOT NULL DEFAULT '',
   gorsel    TEXT,                         -- gorseller[0] (kart kapagi)
   parametrik INTEGER NOT NULL DEFAULT 0,
