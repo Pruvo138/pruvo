@@ -247,5 +247,30 @@ CREATE TABLE IF NOT EXISTS siparisler (
   -- utm_campaign, utm_id}. redirect'te URL param/cerez DUSER -> order kaydina yazilir; purchase
   -- event (donus'ta, iyzico OK aninda) bunlari GA4 client_id / Meta fbp-fbc / UTM atfi icin okur.
   -- PII YOK (v1): email/telefon YAZILMAZ. Eski satirlarda '' (atif oncesi).
-  atif            TEXT NOT NULL DEFAULT ''
+  atif            TEXT NOT NULL DEFAULT '',
+  -- KANAL AYRACI (1 Agu 2026, Okan talebi): siparis HANGI kanaldan kapandi.
+  --   'site'     -> pruvo3d.com self-servis akisi (shop/src/index.js /baslat) — VARSAYILAN
+  --   'whatsapp' -> Ege botunun kapattigi siparis (shop/src/yonet.js /wa-siparis)
+  -- DEFAULT 'site': ALTER anindan itibaren MEVCUT TUM satirlar dogru degeri alir (o siparislerin
+  -- hepsi site akisindan geldi) -> geriye doldurma GEREKMEZ, rapor/ekran bozulmaz.
+  -- 🔴 OLCUM: reklam Purchase olayi YALNIZ kanal='site' satirlarda tetiklenir (yonet.js
+  -- durumDegistir KANAL kapisi). WhatsApp cirosu tarayicidan gecmez, `atif` bostur; GA4'e
+  -- sentetik client_id ile gonderilseydi web disi ciro "direct" satis gibi gorunup site ROI
+  -- raporunu sisirirdi.
+  kanal           TEXT NOT NULL DEFAULT 'site',
+  -- DIS SIPARIS NUMARASI: kaynak sistemin KENDI numarasi (Ege: PR-yyMMdd-HHmmss, sonek YOK).
+  -- Bu tablonun `siparis_no`'su HER ZAMAN burada uretilir (PR-yyMMdd-HHmmss-XXX); dis_no
+  -- yalnizca MUTABAKAT anahtaridir (Ege'nin Sheet kaydiyla eslesme) ve /wa-siparis ucunun
+  -- IDEMPOTENS anahtaridir (ayni dis_no ikinci kez gelirse yeni siparis acilmaz).
+  -- Site siparislerinde '' (bos = dis kaynak yok).
+  dis_no          TEXT NOT NULL DEFAULT ''
 );
+
+-- 🔴 DIS NUMARA TEKILLIK INDEKSI BU DOSYADA DEGIL — d1-sync.py GOC_INDEKS kayit defterinde
+-- (`siparisler_kanal_dis_no`). BURAYA KOYULMASI OLCULDU VE ARIZALIYDI (1 Agu 2026):
+-- bu dosya kolon gocunden ONCE uygulanir; canlida `siparisler` ZATEN VAR oldugu icin
+-- yukaridaki CREATE TABLE IF NOT EXISTS ATLANIR -> kanal/dis_no kolonlari HENUZ YOKTUR ->
+-- "no such column: kanal" ile TUM `--sema` kosumu duser ve kolon_goc() HIC KOSMAZ:
+-- kolonlar canliya ASLA eklenemez (tam tikanma, kendi kuyrugunu yiyen goc). urunler_yayin
+-- indeksleri 31 Tem'de AYNI sebeple bu dosyadan cikarilmisti (bkz. 145. satir yorumu).
+-- Dogru yer: ALTER'lardan SONRA kosan ve kurulusu DOGRULANAN GOC_INDEKS kaydi.

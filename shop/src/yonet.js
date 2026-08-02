@@ -7,6 +7,7 @@
  *   POST /api/shop/yonet/durum      -> {siparis_no, durum} durum makinesi (izinli gecisler)
  *   POST /api/shop/yonet/kargo      -> {siparis_no, kargo_firma, kargo_kodu} -> 'kargolandi' + e-posta
  *   GET  /api/shop/yonet/stl        -> uretim dosyasi indir (parametrik: derleyici; normal: R2)
+ *   POST /api/shop/yonet/wa-siparis -> WhatsApp (Ege) kanalindan gelen siparisi panele yazar
  *
  * KIRMIZI CIZGILER (tools/paket-siparis-yonetimi.md):
  *  - Erisim: X-Yonet-Anahtar basligi (makine istemcileri) YA DA `pruvo_yonet` HttpOnly cerezi
@@ -24,6 +25,7 @@
  */
 
 import { SEMALAR } from "./semalar.js";
+import { yeniSiparisNo } from "./siparis-no.js";
 import { KONFIGURLAR } from "./konfigurlar.js";
 import { golgeRaporu } from "./konfigur-golge.js";
 import {
@@ -71,6 +73,14 @@ function baskiOnerisi(satir, d1Baski, sema) {
   }
   if (d1Baski && d1Baski.trim() && d1Baski.trim() !== "-") { return d1Baski.trim(); }
   if (sema && (sema.baski || sema.baskiIpucu)) { return sema.baski || sema.baskiIpucu; }
+  // WHATSAPP KANALI (Ege): kalemin malzemesi/rengi ve olcusu sohbette konusulur, siparis
+  // ucuna beyan olarak GELMEZ. Katalog kaydi varsa yukaridaki kollar zaten onu bastirdi;
+  // buraya dusen kalem katalog disi ozel parcadir. Malzeme fallback'i basmak UYDURMA
+  // olurdu ("%15 doluluk" diye bir karar verilmedi) -> nereye bakilacagi soylenir.
+  if (satir && satir.kanal === WA_KANAL) {
+    return "WhatsApp siparişi — üretim detayı müşteri sohbetinde (Ege) kayıtlı; " +
+      "malzeme/ölçü beyanı bu uçtan gelmez.";
+  }
   return BASKI_FALLBACK[satir.malzeme] || "Malzemeye uygun genel baskı ayarlarıyla üretilir.";
 }
 
@@ -163,7 +173,57 @@ function anahtarGecerli(request, url, env) {
   return sabitEsit(yonetCereziOku(request), env.YONET_ANAHTAR);
 }
 
+/**
+ * EGE (WhatsApp botu) ANAHTARI — YALNIZ /wa-siparis ucunu acar. EN AZ YETKI:
+ * Ege AYRI bir worker'dir (pruvo-bot deposu, ayri secret seti). Ona YONET_ANAHTAR'i
+ * vermek panelin TAMAMINI acardi: butun siparislerin PII'si (/liste), durum degistirme,
+ * iptal, uretim dosyasi indirme. Bir siparis YAZMAK icin bunlarin hicbiri gerekmiyor.
+ * Bu yuzden ayri, TEK UCA yetkili bir secret tanimlanir:
+ *     npx wrangler secret put EGE_ANAHTAR
+ * Tanimli DEGILSE bu kol tamamen kapalidir (fail-closed) ve /wa-siparis yalnizca
+ * YONET_ANAHTAR ile calisir — yani "acik uc" hicbir konfigurasyonda olusmaz.
+ *
+ * 🔴 YALNIZ BASLIK (`X-Ege-Anahtar`) — QUERY PARAM YOLU KAPALI. Onceden `?ege_anahtar=`
+ * de kabul ediliyordu; bu anahtari Cloudflare erisim loglarina, referrer'a ve proxy
+ * kayitlarina DUZ METIN olarak dusuruyordu (URL'ler loglanir, basliklar loglanmaz).
+ * Uc yalnizca sunucudan-sunucuya cagrilir (Ege worker'i), yani tarayici adres cubugu
+ * gibi baslik konulamayan bir cagiran YOKTUR -> param yolunun mesru kullanicisi yok.
+ * `url` parametresi bilerek okunmuyor; imzadan da dusuruldu ki geri gelmesin.
+ */
+function egeAnahtarGecerli(request, env) {
+  if (!env.EGE_ANAHTAR) { return false; }
+  const verilen = request.headers.get("X-Ege-Anahtar") || "";
+  return sabitEsit(verilen, env.EGE_ANAHTAR);
+}
+
 // ---- yanit yardimcilari (CORS YOK — yonetim same-origin) ----------------------
+
+// ---- KANAL ayraci -------------------------------------------------------------
+// 'site'     -> pruvo3d.com self-servis akisi (index.js /baslat). D1 kolonunun DEFAULT'u.
+// 'whatsapp' -> Ege'nin (WhatsApp botu) kapattigi siparis (/wa-siparis).
+const KANAL_SITE = "site";
+const WA_KANAL = "whatsapp";
+
+/**
+ * OPSIYONEL KOLON MERDIVENI (index.js sepetiFiyatla'daki desenin AYNISI).
+ *
+ * `kanal`/`dis_no` kolonlari canli D1'de ancak `python3 tools/d1-sync.py --sema` kosunca
+ * olusur. Kolonlu bir SELECT o ALTER'dan ONCE "no such column" ile PATLAR. Bu sarmalayici
+ * OKUMA yollarini (liste, siparisGetir) o pencerede AYAKTA tutar: kolonlu sorgu patlarsa
+ * AYNI sorgu kolonsuz tekrarlanir, alanlar undefined kalir ve cagiran bugunku davranisina
+ * duser. Yani panelin GET/render tarafi goc kosmadan da BOZULMAZ.
+ * ⚠️ YAZMA yolunda (/wa-siparis) KULLANILMAZ: orada fail-CLOSED 503 doner — kanal ayraci
+ * OLMADAN yazilan bir WhatsApp siparisi panelde SITE siparisi gibi gorunurdu (sessiz hata).
+ * Yalniz "no such column" yutulur; baska her hata (D1 down, bind hatasi) YUKARI FIRLAR.
+ */
+async function kolonMerdiveni(kolonlu, kolonsuz) {
+  try {
+    return await kolonlu();
+  } catch (e) {
+    if (!/no such column/i.test(String((e && e.message) || e))) { throw e; }
+    return await kolonsuz();
+  }
+}
 
 function yjson(veri, kod) {
   return new Response(JSON.stringify(veri), {
@@ -180,14 +240,21 @@ async function liste(env, url) {
   const limit = Math.min(200, Math.max(1, parseInt(url.searchParams.get("limit") || "50", 10) || 50));
   // Ana siteye kalici urun sayfasi linki (yonetim ekraninda kalem basligi buraya tiklanir).
   const siteUrl = ((env && env.SITE_URL) || "https://pruvo3d.com").replace(/\/$/, "");
-  const secim =
+  const TABAN =
     "SELECT id, siparis_no, tarih, durum, tutar_kurus, kargo_kurus, kdv_kurus, odeme_yontemi," +
     " urunler, kargo_firma, kargo_kodu, durum_gecmisi," +
-    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres FROM siparisler";
-  const stmt = durum
-    ? env.KATALOG.prepare(secim + " WHERE durum = ? ORDER BY id DESC LIMIT ?").bind(durum, limit)
-    : env.KATALOG.prepare(secim + " ORDER BY id DESC LIMIT ?").bind(limit);
-  const sonuc = await stmt.all();
+    " musteri_ad, musteri_tel, musteri_eposta, musteri_adres";
+  // kanal/dis_no OPSIYONEL (goc kosmadiysa yok) -> merdiven; yoksa alanlar undefined kalir
+  // ve asagida 'site'/'' varsayilanina duser (bugunku ekranin AYNISI).
+  const kur = (alanlar) => {
+    const secim = alanlar + " FROM siparisler";
+    return durum
+      ? env.KATALOG.prepare(secim + " WHERE durum = ? ORDER BY id DESC LIMIT ?").bind(durum, limit)
+      : env.KATALOG.prepare(secim + " ORDER BY id DESC LIMIT ?").bind(limit);
+  };
+  const sonuc = await kolonMerdiveni(
+    () => kur(TABAN + ", kanal, dis_no").all(),
+    () => kur(TABAN).all());
   const satirlar = sonuc.results || [];
 
   // Satir urun id'lerinin D1 baski/parametrik kayitlarini topla (baski fisi zenginlestirme).
@@ -227,7 +294,12 @@ async function liste(env, url) {
         parametre_detay: k.parametre_detay || "",
         baski_oneri: baskiOnerisi(k, ur.baski, sema),
         // Yonetim ekraninda kalem basligi buraya tiklanir (urun sayfasi, ana site).
-        urun_url: siteUrl + "/urun/" + encodeURIComponent(k.id || "") + "/",
+        // WhatsApp kaleminde kalemin KENDI linki (k.url) varsa O kullanilir: o kalem
+        // katalog id'siyle gelmeyebilir, /urun/<id>/ adresi 404 olurdu. Link YAZILIRKEN
+        // dogrulanir (yalniz https://); burada ikinci savunma olarak yine suzulur.
+        urun_url: (typeof k.url === "string" && /^https:\/\//i.test(k.url))
+          ? k.url
+          : siteUrl + "/urun/" + encodeURIComponent(k.id || "") + "/",
       };
       // Yerel yazdir.py + tarayici indirme uclari (anahtar sayfa URL'inden eklenir).
       if (parametrik) {
@@ -246,6 +318,12 @@ async function liste(env, url) {
       siparis_no: s.siparis_no,
       tarih: s.tarih,
       durum: s.durum,
+      // KANAL: kolon yoksa (goc oncesi) ya da bos gelirse 'site' — mevcut satirlarin
+      // TAMAMI site siparisidir, ekran bugunku gibi rozet basmaz.
+      kanal: s.kanal || KANAL_SITE,
+      // Ege'nin KENDI numarasi (PR-yyMMdd-HHmmss, sonek YOK) — Sheet kaydiyla eslesme icin.
+      // Panel ID'si ile KARISTIRILMAZ: panelin siparis_no'su yine bu tabloda uretilir.
+      dis_no: s.dis_no || "",
       odeme_yontemi: s.odeme_yontemi,
       tutar_kurus: s.tutar_kurus,
       kargo_kurus: s.kargo_kurus,
@@ -303,11 +381,17 @@ function olcumDenendiMi(gecmisJson) {
 }
 
 async function siparisGetir(env, siparisNo) {
-  return env.KATALOG.prepare(
+  const TABAN =
     "SELECT siparis_no, tarih, durum, durum_gecmisi, urunler, tutar_kurus, kargo_kurus," +
     " kdv_kurus, odeme_yontemi, atif," +
-    " musteri_ad, musteri_eposta, musteri_adres FROM siparisler WHERE siparis_no = ?"
-  ).bind(siparisNo).first();
+    " musteri_ad, musteri_eposta, musteri_adres";
+  const kur = (alanlar) => env.KATALOG.prepare(
+    alanlar + " FROM siparisler WHERE siparis_no = ?").bind(siparisNo);
+  // `kanal` opsiyoneldir (goc kosmadiysa yok): merdiven. Kolon yoksa s.kanal undefined
+  // kalir -> asagidaki olcum kapisi bugunku gibi ACIK olur (davranis degismez).
+  return kolonMerdiveni(
+    () => kur(TABAN + ", kanal").first(),
+    () => kur(TABAN).first());
 }
 
 /** ISO tarihi -> saniye damgasi. Bozuk/bossa 0 (cagiran "simdi"ye duser). */
@@ -370,7 +454,18 @@ async function durumDegistir(request, env, ctx) {
   //     Iz varsa bir daha DENENMEZ — elle iki kez 'odendi' denenirse de tek olay.
   //     ⚠️ Iz "denendi" demek, "Meta aldi" DEMEK DEGIL (bkz. gecmiseEkle/olcumDenendiMi).
   // Meta event_id ile ayrica dedup yapar; o DORDUNCU ag, tek savunma DEGIL.
-  const olcumluGecis = (hedef === "odendi");
+  //
+  // 🔴 DORDUNCU KAPI — KANAL (1 Agu 2026, WhatsApp siparis ucu): reklam olcumu SITE
+  // siparisleri icindir. WhatsApp siparisi tarayicidan gecmez -> `atif` BOSTUR: Meta
+  // zaten atlar (user_data-bos) ama GA4 fallback client_id (siparis_no + ".0") ile
+  // Purchase'i YINE GONDERIRDI. Sonuc: web disi ciro GA4'te "direct" satis gibi gorunur
+  // ve site ROI raporunu sisirir. Bu yuzden kanal 'site' DEGILSE olcum tetiklenmez;
+  // atlama SESSIZ DEGIL, olcumLog ile gorunur yazilir.
+  // GERIYE UYUM: `kanal` kolonu yoksa (goc kosmadi) s.kanal undefined -> kapi ACIK kalir;
+  // mevcut satirlarin hepsi ALTER'dan sonra DEFAULT 'site' alir. Yani site akisinda
+  // davranis DEGISMEZ.
+  const siteKanali = !s.kanal || s.kanal === KANAL_SITE;
+  const olcumluGecis = (hedef === "odendi") && siteKanali;
   const zatenDenendi = olcumDenendiMi(s.durum_gecmisi);
   const olcumTetikle = olcumluGecis && !zatenDenendi;
 
@@ -386,6 +481,12 @@ async function durumDegistir(request, env, ctx) {
     // Sessiz atlama YOK: "bu siparisin ikinci Purchase'i nerede?" sorusu cevaplanabilsin.
     olcumLog({ olay: "Purchase", siparis_no: siparisNo, kaynak: "havale",
                atlandi: "zaten-denendi" });
+  }
+  if (hedef === "odendi" && !siteKanali) {
+    // Kanal kapisi (yukari bak). Gecis BASARIYLA yapildiktan sonra loglanir — 409'da
+    // yanlis bir "atlandi" satiri uretmeyelim.
+    olcumLog({ olay: "Purchase", siparis_no: siparisNo, kaynak: String(s.kanal),
+               atlandi: "site-disi-kanal" });
   }
   if (olcumTetikle && g.meta.changes > 0) {
     // Fire-and-forget (ctx.waitUntil olcum.js icinde): olcum hatasi durum degisimini
@@ -433,6 +534,312 @@ async function kargo(request, env, ctx, telegram) {
   }
   return yjson({ ok: true, siparis_no: siparisNo, durum: "kargolandi",
                  kargo_firma: firma, kargo_kodu: kod }, 200);
+}
+
+// ---- /wa-siparis (WhatsApp / Ege kanali) --------------------------------------
+
+/**
+ * POST /api/shop/yonet/wa-siparis — Ege'nin (WhatsApp botu, AYRI depo/worker) kapattigi
+ * siparisi AYNI panele yazar. Okan tek yerden takip etsin diye (Okan talebi, 1 Agu 2026).
+ *
+ * KIRMIZI CIZGILER
+ *  - ID SEMASI BURADA URETILIR: siparis_no = PR-yyMMdd-HHmmss-XXX (siparis-no.js, kart/havale
+ *    akisiyla AYNI uretec). Ege'nin KENDI numarasi (sonek YOK) siparis_no OLARAK ALINMAZ —
+ *    iki sema karisirdi; o numara `dis_no` kolonunda MUTABAKAT ANAHTARI olarak durur.
+ *  - PARA: bu uc TAHSILAT YAPMAZ. iyzico'ya gitmez, fiyat HESAPLAMAZ, katalog fiyatina
+ *    BAKMAZ. `tutar_kurus` cagirandan gelir ve BOS/0 kalabilir (Okan cogu WhatsApp isini
+ *    elle fiyatlandirir) — sunucu-tarafi fiyat kurali SITE akisinin kirmizi cizgisidir ve
+ *    orada AYNEN durur, buraya TASINMAZ.
+ *  - DURUM: yalniz 'havale-bekliyor' (varsayilan, "odeme bekleniyor") ya da 'odendi'
+ *    yazilabilir. Uretim/kargo/tamamlandi gecisleri PANELDEN yapilir (durum makinesi
+ *    degismedi) -> bu uc kargolandi/tamamlandi damgasi URETEMEZ.
+ *  - IDEMPOTENS: `dis_no` verilirse ayni dis_no ile ikinci cagri YENI siparis ACMAZ,
+ *    mevcut kaydi doner ({tekrar:true}). Ege'nin agi kopup yeniden denemesi Okan'in
+ *    panelinde ikiz siparis olusturmasin.
+ *  - E-POSTA/TELEGRAM GONDERMEZ: musteri zaten WhatsApp'ta konusuyor, ikinci bir kanaldan
+ *    "siparisiniz alindi" mesaji cift bildirim olur. (Bilincli kapsam karari.)
+ *  - REKLAM OLCUMU TETIKLEMEZ (ne burada ne panelde 'odendi' geciste — durumDegistir'deki
+ *    KANAL kapisi). Gerekce orada yazili.
+ */
+
+/** Bosluk kirpilmis metin; uzunluk araligi disindaysa null (index.js metin() ile ayni sozlesme). */
+function waMetin(v, enAz, enCok) {
+  const s = typeof v === "string" ? v.trim() : "";
+  return s.length >= enAz && s.length <= enCok ? s : null;
+}
+
+/** Tamsayi kurus alani: verilmemisse 0, gecersizse null (cagiran 400 doner). */
+function waKurus(v) {
+  if (v === undefined || v === null || v === "") { return 0; }
+  if (!Number.isInteger(v) || v < 0 || v > 100000000) { return null; }
+  return v;
+}
+
+/** Urun linkinden katalog id'si: https://<host>/urun/<id>/ -> "<id>". Eslesmezse "". */
+function waLinktenId(link) {
+  const m = /^https:\/\/[^/]+\/urun\/([a-z0-9-]{1,120})\/?$/i.exec(String(link || ""));
+  return m ? m[1].toLowerCase() : "";
+}
+
+/** Katalog disi kalem icin GUVENLI sentetik id: "wa-" + baslik slug'i.
+ *  "wa-" oneki ZORUNLU: sentetik id GERCEK bir katalog id'sine denk gelirse panel o urunun
+ *  baski notunu ve R2 dosyalarini bu kaleme yapistirirdi (yanlis uretim dosyasi = pahali
+ *  hata). Onek carpismayi yapisal olarak imkansiz kilar. */
+function waSentetikId(baslik) {
+  const TR = { "ç": "c", "ğ": "g", "ı": "i", "ö": "o", "ş": "s", "ü": "u", "â": "a", "î": "i", "û": "u" };
+  const slug = String(baslik || "").toLowerCase()
+    .replace(/[çğıöşüâîû]/g, (c) => TR[c] || c)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 100);
+  return "wa-" + (slug || "parca");
+}
+
+/**
+ * Bir hatanin TUM metnini topla: D1 gercek sebebi bazen `cause` zincirinde tasir
+ * (workerd `Error: D1_ERROR: ...` sarar). Yalniz `e.message`e bakmak kirilgan.
+ */
+function waHataMetni(e) {
+  const parcalar = [];
+  let k = e;
+  for (let i = 0; i < 5 && k; i++) {
+    if (typeof k === "string") { parcalar.push(k); break; }
+    if (k.message) { parcalar.push(String(k.message)); }
+    if (k.cause && k.cause !== k) { k = k.cause; } else { break; }
+  }
+  if (!parcalar.length) { parcalar.push(String(e)); }
+  return parcalar.join(" | ");
+}
+
+/**
+ * Hata bir SQLite/D1 KISITLAMA ihlali mi (UNIQUE dahil)?
+ * ⚠️ Bu kontrol TEK BASINA bir sey KARARLASTIRMAZ — cagiran taraf ayrica satirin
+ * gercekten var oldugunu SELECT ile dogrular. Bu yuzden genis tutulabilir: yanlis
+ * pozitif bir sonraki adimda elenir, yanlis negatif ise gercek bir yaris durumunu
+ * 500'e dusururdu. (Fail-safe yon: genis eslesme + kanit zorunlulugu.)
+ */
+function waKisitlamaIhlali(e) {
+  const metin = waHataMetni(e);
+  return /UNIQUE constraint failed/i.test(metin) ||
+         /constraint failed/i.test(metin) ||
+         /SQLITE_CONSTRAINT/i.test(metin);
+}
+
+/** (kanal, dis_no) ciftiyle mevcut siparis satiri; yoksa null.
+ *  `musteri_tel` DE cekilir: idempotens yanitini vermeden once satirin AYNI musteriye
+ *  ait oldugu dogrulanir (bkz. waMevcutYaniti). */
+async function waMevcutSiparis(env, disNo) {
+  return env.KATALOG.prepare(
+    "SELECT siparis_no, durum, musteri_tel FROM siparisler WHERE kanal = ? AND dis_no = ?"
+  ).bind(WA_KANAL, disNo).first();
+}
+
+/**
+ * Mevcut satir bulundugunda verilecek yanit — TEK yerde: hem on-SELECT hem yaris kolu
+ * bunu cagirir.
+ *
+ * 🔴 CAPRAZ-MUSTERI SAVUNMASI. Idempotens anahtari yalniz `dis_no`; Ege'nin numara bicimi
+ * (`PR-yyMMdd-HHmmss`, SANIYE cozunurluklu, sonek YOK) iki FARKLI musterinin ayni saniyede
+ * ayni numarayi uretmesini dusuk ama SIFIR OLMAYAN bir ihtimal birakiyor. O halde eski
+ * davranis, ikinci musteriye BASKA BIR MUSTERININ siparis numarasini `tekrar:true` ile
+ * dondururdu ve ikinci siparis D1'e HIC yazilmazdi — sessiz siparis kaybi + PII karisimi.
+ * Bu yuzden satirin telefonu gelen telefonla eslesmiyorsa idempotent yanit VERILMEZ,
+ * gurultulu `409 dis-no-cakismasi` doner (Ege yeni bir dis_no ile tekrar dener).
+ * ⚠️ FAIL-CLOSED: telefon okunamiyorsa (bos/eksik) da 409. Bu uc yazdigi HER satira
+ * dogrulanmis (10-15 haneli) bir telefon koyar, yani bos telefon bu kanalda olusamaz;
+ * "dogrulayamadim" halini tekrar sayip siparis kaybetmektense gurultu yapmak dogru yon.
+ * KALICI COZUM Ege tarafinda (dis_no'ya sonek/rastgele parca) — bu KAPSAM DISI, burasi
+ * savunma hattidir.
+ */
+function waMevcutYaniti(satir, disNo, tel) {
+  if (String((satir && satir.musteri_tel) || "") !== tel) {
+    console.error("wa-siparis: dis_no CAKISMASI — ayni dis_no BASKA musteri telefonuyla " +
+                  "geldi, idempotent yanit VERILMEDI (dis_no=" + disNo + ")");
+    return yjson({ hata: "dis-no-cakismasi",
+                   not: "Bu dis_no BASKA bir musterinin siparisine ait. Idempotens " +
+                        "anahtari musteriye gore kapsamlanir; yeni bir dis_no ile gonder." },
+                 409);
+  }
+  return yjson({ ok: true, tekrar: true, siparis_no: satir.siparis_no,
+                 durum: satir.durum, kanal: WA_KANAL, dis_no: disNo }, 200);
+}
+
+/** Kalem dizisini coz. Hata -> {hata}; basari -> {satirlar, kalemToplamKurus}. */
+function waKalemleriCoz(urunler) {
+  const SECENEK = globalThis.PRUVO_SECENEK;
+  const enAzAdet = (SECENEK && SECENEK.ADET_EN_AZ) || 1;
+  const enCokAdet = (SECENEK && SECENEK.ADET_EN_COK) || 99;
+  if (!Array.isArray(urunler) || urunler.length < 1 || urunler.length > 20) {
+    return { hata: "gecersiz-urunler" };
+  }
+  const satirlar = [];
+  let toplam = 0;
+  for (const u of urunler) {
+    if (!u || typeof u !== "object") { return { hata: "gecersiz-urun" }; }
+    const ad = waMetin(u.ad, 2, 200);
+    if (!ad) { return { hata: "urun-ad" }; }
+    // Link OPSIYONEL ama verildiyse SADECE https:// kabul edilir: bu deger yonetim
+    // sayfasinda href olarak basilir -> javascript:/data: semasi yolu kapali kalsin.
+    let link = "";
+    if (u.link !== undefined && u.link !== null && u.link !== "") {
+      link = waMetin(u.link, 12, 300) || "";
+      if (!link || !/^https:\/\//i.test(link)) { return { hata: "urun-link" }; }
+    }
+    const adet = (u.adet === undefined || u.adet === null) ? 1 : u.adet;
+    if (!Number.isInteger(adet) || adet < enAzAdet || adet > enCokAdet) {
+      return { hata: "urun-adet" };
+    }
+    const tutar = waKurus(u.tutar_kurus);
+    if (tutar === null) { return { hata: "urun-tutar" }; }
+    toplam += tutar;
+    const id = waLinktenId(link) || waSentetikId(ad);
+    // Satir bicimi SITE akisiyla AYNI anahtarlari tasir (liste() ve yazdir.py bunu okur).
+    // malzeme/renk BOS: WhatsApp'ta beyan sohbette kalir, uydurulmaz (bkz. baskiOnerisi).
+    satirlar.push({
+      id: id, baslik: ad, malzeme: "", renk: "", renk_ozel: "",
+      adet: adet, birim_kurus: adet > 0 ? Math.floor(tutar / adet) : tutar,
+      tutar_kurus: tutar,
+      kanal: WA_KANAL,
+      ...(link ? { url: link } : {}),
+    });
+  }
+  return { satirlar, kalemToplamKurus: toplam };
+}
+
+export async function waSiparis(request, env) {
+  let govde;
+  try { govde = await request.json(); } catch (e) { return yjson({ hata: "gecersiz-json" }, 400); }
+  if (!govde || typeof govde !== "object") { return yjson({ hata: "gecersiz-istek" }, 400); }
+
+  // --- musteri (ad + tel + adres ZORUNLU; eposta opsiyonel — WhatsApp'ta cogu zaman yok) ---
+  const m = govde.musteri || {};
+  const ad = waMetin(m.ad, 2, 120);
+  if (!ad) { return yjson({ hata: "musteri-ad" }, 400); }
+  const tel = (typeof m.tel === "string" ? m.tel : "").replace(/[^0-9]/g, "");
+  if (tel.length < 10 || tel.length > 15) { return yjson({ hata: "musteri-tel" }, 400); }
+  const adres = waMetin(m.adres, 5, 500);
+  if (!adres) { return yjson({ hata: "musteri-adres" }, 400); }
+  let eposta = "";
+  if (m.eposta !== undefined && m.eposta !== null && m.eposta !== "") {
+    eposta = waMetin(m.eposta, 6, 200) || "";
+    if (!eposta || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(eposta)) {
+      return yjson({ hata: "musteri-eposta" }, 400);
+    }
+  }
+
+  // --- odeme yontemi: sessiz varsayilan YOK (site akisindaki kural burada da gecerli) ---
+  const odeme = govde.odeme;
+  if (odeme !== "kart" && odeme !== "havale") { return yjson({ hata: "gecersiz-odeme" }, 400); }
+
+  // --- durum: yalniz iki deger; varsayilan 'havale-bekliyor' (= odeme bekleniyor) ---
+  const durum = (govde.durum === undefined || govde.durum === null || govde.durum === "")
+    ? "havale-bekliyor" : govde.durum;
+  if (durum !== "havale-bekliyor" && durum !== "odendi") {
+    return yjson({ hata: "gecersiz-durum" }, 400);
+  }
+
+  // --- kalemler ---
+  const kc = waKalemleriCoz(govde.urunler);
+  if (kc.hata) { return yjson({ hata: kc.hata }, 400); }
+  const { satirlar, kalemToplamKurus } = kc;
+
+  // --- tutar: govdeden gelen toplam, yoksa kalem toplamlari (ikisi de 0 olabilir) ---
+  const tutarAlani = waKurus(govde.tutar_kurus);
+  if (tutarAlani === null) { return yjson({ hata: "gecersiz-tutar" }, 400); }
+  const tutarKurus = tutarAlani > 0 ? tutarAlani : kalemToplamKurus;
+  const kargoKurus = waKurus(govde.kargo_kurus);
+  if (kargoKurus === null) { return yjson({ hata: "gecersiz-kargo" }, 400); }
+  // KDV dokumu: oran TEK KAYNAK secenekler.js (index.js ile ayni fonksiyon). Tutar 0 ise
+  // dokum de 0'dir — "bilinmiyor" demek, sifir KDV beyani DEGIL (fiyat sonra elle girilir).
+  const SECENEK = globalThis.PRUVO_SECENEK;
+  const kdvKurus = (SECENEK && typeof SECENEK.kdvAyristir === "function")
+    ? SECENEK.kdvAyristir(tutarKurus + kargoKurus).kdvKurus : 0;
+
+  // --- dis_no (Ege'nin kendi numarasi) — idempotens anahtari, ZORUNLU ------------
+  // 🔴 OPSIYONEL DEGIL. Once opsiyoneldi ve bu, idempotensi ISTEGE BAGLI kiliyordu:
+  // dis_no'suz cagrida hicbir tekillik anahtari olmadigi icin Ege'nin agi kopup yeniden
+  // denemesi (ya da bir dongu/webhook tekrari) SINIRSIZ mukerrer siparis aciyordu —
+  // olculdu: dis_no'suz 4 cagri = 4 INSERT, 4 ayri siparis numarasi, 0 idempotens SELECT.
+  // Kismi UNIQUE indeks (`WHERE dis_no <> ''`) de bu satirlari kapsamadigi icin veri
+  // tabani da durduramiyordu. Panelde ikiz siparis = yanlis uretim + yanlis tahsilat.
+  // ⚠️ SITE kanali DOKUNULMADI: `kanal='site'` satirlari dis_no='' ile coklu kalmaya
+  // devam eder (kismi indeks aynen duruyor); sikilastirma YALNIZ bu ucun girdisinde.
+  if (govde.dis_no === undefined || govde.dis_no === null || govde.dis_no === "") {
+    return yjson({ hata: "dis-no-yok",
+                   not: "dis_no ZORUNLU: idempotens anahtari (Ege'nin kendi siparis " +
+                        "numarasi). Ayni deger tekrar gonderilirse yeni siparis acilmaz." },
+                 400);
+  }
+  const disNo = waMetin(govde.dis_no, 3, 40) || "";
+  if (!disNo || !/^[A-Za-z0-9_-]{3,40}$/.test(disNo)) {
+    return yjson({ hata: "gecersiz-dis-no" }, 400);
+  }
+
+  // --- SEMA KAPISI (FAIL-CLOSED) + IDEMPOTENS + YAZMA ---------------------------
+  // `kanal`/`dis_no` kolonlari canli D1'de ancak `python3 tools/d1-sync.py --sema` kosunca
+  // olusur. Kolonsuz bir INSERT teknik olarak calisirdi ama kayit panelde SITE siparisi
+  // gibi gorunurdu (kanal rozeti yok, olcum kapisi devre disi) — sessiz ve geri donusu
+  // zahmetli bir hata. Bu yuzden OKUMA yollarinin aksine burada FAIL-CLOSED: kolon yoksa
+  // hicbir sey yazilmaz, gurultulu 503 + ne yapilacagi doner.
+  try {
+    // IDEMPOTENS: ayni dis_no ile ikinci cagri yeni siparis ACMAZ (Ege'nin agi kopup
+    // yeniden denemesi Okan'in panelinde ikiz siparis olusturmasin). dis_no ZORUNLU
+    // oldugundan bu SELECT her cagri icin kosar (atlanabilir bir kol kalmadi).
+    const varOlan = await waMevcutSiparis(env, disNo);
+    if (varOlan) { return waMevcutYaniti(varOlan, disNo, tel); }
+
+    const siparisNo = await yeniSiparisNo(env);
+    const simdi = new Date().toISOString();
+    // token NULL: /donus bu satiri HICBIR iyzico token'iyla bulamaz (havale akisiyla ayni
+    // koruma) -> WhatsApp siparisinin durumu istemciden degistirilemez.
+    await env.KATALOG.prepare(
+      "INSERT INTO siparisler (siparis_no, token, tarih, durum, tutar_kurus, kargo_kurus," +
+      " kdv_kurus, odeme_yontemi, sozlesme_onay, urunler, filament, renk," +
+      " musteri_ad, musteri_tel, musteri_eposta, musteri_adres, atif, durum_gecmisi," +
+      " kanal, dis_no)" +
+      " VALUES (?, NULL, ?, ?, ?, ?, ?, ?, '', ?, '', '', ?, ?, ?, ?, '', ?, ?, ?)"
+    ).bind(
+      siparisNo, simdi, durum, tutarKurus, kargoKurus, kdvKurus, odeme,
+      JSON.stringify(satirlar),
+      ad, tel, eposta, adres,
+      gecmiseEkle("", durum), WA_KANAL, disNo
+    ).run();
+
+    return yjson({ ok: true, siparis_no: siparisNo, durum: durum, kanal: WA_KANAL,
+                   dis_no: disNo, tutar_kurus: tutarKurus, kargo_kurus: kargoKurus,
+                   kdv_kurus: kdvKurus }, 201);
+  } catch (e) {
+    if (!/no such column/i.test(waHataMetni(e))) {
+      // --- YARIS DURUMU (TOCTOU) --------------------------------------------------
+      // Yukaridaki idempotens SELECT'i ile INSERT arasinda BASKA bir cagri ayni dis_no
+      // ile yazmis olabilir (Ege paralel iki deneme yaparsa). O halde kismi UNIQUE
+      // indeks (siparisler_kanal_dis_no) INSERT'i reddeder ve buraya bir D1 hatasi
+      // duser. ONCEDEN: hic yakalanmiyordu -> index.js'in genel catch'i 500
+      // `sunucu-hatasi` donuyordu; oysa BEYAN EDILEN sozlesme 200 {tekrar:true}.
+      // Ege 500 gorunce yeniden dener -> tekrar 500 -> siparis panele yazilmis
+      // oldugu halde bot "yazilamadi" sanir (sessiz hata).
+      // GUVENLIK: 200'e cevirme KOSULLU — hatanin kisitlama kokenli oldugunu string'e
+      // BAGLI OLARAK degil, ikinci bir SELECT ile KANITLIYORUZ. Satir gercekten varsa
+      // idempotent yanit dogrudur; yoksa hata AYNEN yeniden firlatilir (500 kalir).
+      if (waKisitlamaIhlali(e)) {
+        let yarisSatiri = null;
+        try { yarisSatiri = await waMevcutSiparis(env, disNo); } catch (e2) { yarisSatiri = null; }
+        if (yarisSatiri) {
+          console.warn("wa-siparis: yaris durumu — ayni dis_no es zamanli yazildi " +
+                       "(dis_no=" + disNo + ")");
+          // Yaris kolunda da CAPRAZ-MUSTERI kontrolu gecerli: rakip satir baska bir
+          // musteriye aitse 200 degil 409 doner (bkz. waMevcutYaniti).
+          return waMevcutYaniti(yarisSatiri, disNo, tel);
+        }
+      }
+      throw e;
+    }
+    console.error("wa-siparis: D1 semasinda kanal/dis_no kolonu YOK -> yazma reddedildi " +
+                  "(coz: python3 tools/d1-sync.py --sema)");
+    return yjson({ hata: "sema-goc-gerekli",
+                   not: "siparisler.kanal / siparisler.dis_no kolonlari yok; " +
+                        "python3 tools/d1-sync.py --sema calistirilmali" }, 503);
+  }
 }
 
 // ---- /stl + /stl-liste (COK-PARCA tasarimi — mimar duzeltme turu) ---------------
@@ -760,14 +1167,37 @@ async function konfigurGolge(env, url) {
  * /yonet* yonlendirici. altYol = "/", "/liste", "/durum", "/kargo", "/stl", "/konfigur-golge".
  * KAPI SIRASI (fail-closed):
  *   1. YONET_ANAHTAR secret YOK -> her sey 404 (ozellik kapali; giris formu BILE yok),
- *   2. POST /yonet -> giris kapisi (sifre kutusu; dogruysa cerez + 302),
- *   3. anahtar yok/yanlis -> GET /yonet'te sifre kutusu, DIGER her ucta 404 (varlik sizmasin),
- *   4. yetkili -> normal yonlendirme.
+ *   2. POST /wa-siparis -> Ege ucu (yonetim anahtari YA DA EGE_ANAHTAR),
+ *   3. POST /yonet -> giris kapisi (sifre kutusu; dogruysa cerez + 302),
+ *   4. anahtar yok/yanlis -> GET /yonet'te sifre kutusu, DIGER her ucta 404 (varlik sizmasin),
+ *   5. yetkili -> normal yonlendirme.
+ *
+ * 🔴 1. ADIM NEDEN 2.'DEN ONCE: `YONET_ANAHTAR` yoksa ozellik KAPALIDIR ve kapali
+ * ozelligin altinda YAZMA yolu da acik kalamaz -> `/wa-siparis` bu kapinin ARKASINDADIR,
+ * yani EGE_ANAHTAR tek basina siparis YAZDIRAMAZ. Ters sira, ayarlanmamis bir secret'in
+ * arkasinda acik bir yazma ucu birakirdi (sessiz-hata sinifi). Nobetci:
+ * `shop/test/wa-siparis.mjs` "OZELLIK KAPALI:" iddialari; ayirt edici mutant (kapiyi
+ * /wa-siparis blogunun ARKASINA tasir) -> `tools/wa-yetki-mutasyon.py` M2.
+ *
+ * ⚠️ Bu yorumu fonksiyon GOVDESINE tasima: `tools/yonet-cerez-mutasyon.py`in 6 mutanti
+ * imza satirini gate satirina BITISIK varsayan capalar kullaniyor; araya satir girerse
+ * o harness BAYAT duser ve 25 mutantin hepsi olcusuz kalir.
+ *
  * telegram: index.js'in telegram fonksiyonu.
  */
 export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }
   const m = request.method;
+  // WHATSAPP SIPARIS UCU — IKI anahtardan biri yeter: yonetim anahtari (Okan) ya da
+  // yalnizca bu uca yetkili EGE_ANAHTAR (bkz. egeAnahtarGecerli). Ikisi de yok/yanlissa
+  // /yonet* ile AYNI davranis: 404 (ucun varligi sizmaz). EGE_ANAHTAR yalnizca BU kolda
+  // okunur -> /liste, /durum, /kargo, /stl onunla ACILMAZ; giris ekranini da ACMAZ.
+  if (altYol === "/wa-siparis" && m === "POST") {
+    if (!anahtarGecerli(request, url, env) && !egeAnahtarGecerli(request, env)) {
+      return yon404();
+    }
+    return waSiparis(request, env);
+  }
   if (altYol === "/" && m === "POST") { return girisYap(request, url, env); }
   if (!anahtarGecerli(request, url, env)) {
     return (altYol === "/" && m === "GET") ? girisEkrani(url) : yon404();
@@ -834,6 +1264,9 @@ main{padding:12px;max-width:960px;margin:0 auto}
 .rozet.tamamlandi{background:#dcfce7;color:#166534}
 .rozet.iptal{background:#fee2e2;color:#991b1b}
 .rozet.havale-bekliyor{background:#fef9c3;color:#854d0e}
+/* KANAL rozeti — yalniz site DISI kanalda basilir (WhatsApp/Ege). Site siparisinde
+   ekran bugunku gibi kalir (rozet HIC olusmaz). */
+.rozet.kanal{background:#dcfce7;color:#14532d}
 .mus{font-size:14px;color:#374151;margin:8px 0}
 .satir{border:1px solid var(--kenar);border-radius:8px;padding:10px;margin:8px 0;background:#fafafa}
 .filrenk{font-size:17px;font-weight:bold;color:var(--lacivert)}
@@ -947,9 +1380,14 @@ function kartHtml(s){
  }
  var kargoBilgi=s.kargo_kodu?'<div class="kucuk">Kargo: '+esc(s.kargo_firma)+' — '+esc(s.kargo_kodu)+'</div>':'';
  var gecmis=(s.durum_gecmisi||[]).map(function(g){return esc(g.d)+" ("+esc((g.z||"").slice(0,16).replace("T"," "))+")";}).join(" → ");
+ // KANAL rozeti + Ege'nin kendi numarasi: yalniz site DISI siparislerde basilir.
+ // Site siparisinde (kanal yok ya da "site") kart bugunku HALIYLE kalir.
+ var kanalRozet=(s.kanal&&s.kanal!=="site")?'<span class="rozet kanal">'+esc(s.kanal)+'</span>':'';
+ var disNo=s.dis_no?'<div class="kucuk">Ege sipariş no: '+esc(s.dis_no)+'</div>':'';
  return '<div class="kart">'+
-  '<div class="ust"><span class="no">'+esc(s.siparis_no)+'</span>'+durumRozet(s.durum)+
+  '<div class="ust"><span class="no">'+esc(s.siparis_no)+'</span>'+durumRozet(s.durum)+kanalRozet+
    '<span class="kucuk">'+esc((s.tarih||"").slice(0,16).replace("T"," "))+' · '+esc(s.odeme_yontemi)+'</span></div>'+
+  disNo+
   '<div class="mus"><b>'+esc(s.musteri.ad)+'</b> · '+esc(s.musteri.tel)+'<br>'+esc(s.musteri.adres)+
    ' · '+esc(s.musteri.eposta)+'</div>'+
   '<div class="kucuk">Toplam '+tl(s.tutar_kurus)+' + kargo '+tl(s.kargo_kurus)+

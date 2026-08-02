@@ -268,14 +268,18 @@ M2 = ("M2", "sabitEsit FAIL-OPEN'a dondu (String(a || \"\") — bos girdide true
       ["C21a", "C21b", "C21c"])
 
 # yonet()'in secret kapisini POST dagitiminin ARKASINA alir.
-_SIRA_TAKAS = (
-    """export async function yonet(request, env, url, ctx, altYol, telegram) {
-  if (!env.YONET_ANAHTAR) { return yon404(); }
-  const m = request.method;
-  if (altYol === "/" && m === "POST") { return girisYap(request, url, env); }""",
-    """export async function yonet(request, env, url, ctx, altYol, telegram) {
-  const m = request.method;
-  if (altYol === "/" && m === "POST") { return girisYap(request, url, env); }
+# ⚠️ CAPA GUNCELLENDI: `/wa-siparis` blogu ozellik-kapali kapisi ile giris POST'unun
+# ARASINA girdi, yani eski TEK PARCALI capa (gate + `const m` + giris POST'u bitisik)
+# artik eslesmiyordu ve harness BAYAT duserek 25 mutantin hepsini olcusuz birakiyordu.
+# M3'un NIYETI aynen korundu (secret kapisi giris POST'unun ARKASINA alinir); capa iki
+# parcaya bolundu ki araya giren bloklardan BAGIMSIZ olsun.
+_SIRA_TAKAS_KALDIR = (
+    """  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const m = request.method;""",
+    """  const m = request.method;""")
+_SIRA_TAKAS_KOY = (
+    """  if (altYol === "/" && m === "POST") { return girisYap(request, url, env); }""",
+    """  if (altYol === "/" && m === "POST") { return girisYap(request, url, env); }
   if (!env.YONET_ANAHTAR) { return yon404(); }""")
 # girisYap'in KENDI secret kapisini siler.
 _ICKAPI_SIL = (
@@ -284,7 +288,7 @@ _ICKAPI_SIL = (
     """  const simdi = Date.now();""")
 
 M3 = ("M3", "secret kapisi giris POST'unun ARKASINA alindi + girisYap'in kendi kapisi silindi",
-      [_SIRA_TAKAS, _ICKAPI_SIL], ["C15a", "C22a", "C22e"])
+      [_SIRA_TAKAS_KALDIR, _SIRA_TAKAS_KOY, _ICKAPI_SIL], ["C15a", "C22a", "C22e"])
 
 M4 = ("M4", "girisEkrani'nda ikame FONKSIYONU yerine ikame DIZESI ($` enjeksiyonu)", [(
     """GIRIS_HTML.replace("__EYLEM__", () => yol)""",

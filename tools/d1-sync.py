@@ -573,7 +573,20 @@ GOC_KOLON_SIPARIS = [
     # Reklam ROI olcumu (reklam-roi-sistemi.md Faz 0): atif kimlikleri (GA client_id + Meta
     # fbp/fbc + UTM) kompakt JSON. Purchase event (shop donus) bunlari kullanir; PII yok.
     ("atif", "TEXT NOT NULL DEFAULT ''"),
+    # KANAL AYRACI (1 Agu 2026, WhatsApp siparis ucu — shop/src/yonet.js /wa-siparis):
+    # 'site' | 'whatsapp'. DEFAULT 'site' -> ALTER anindan itibaren MEVCUT TUM satirlar
+    # DOGRU degeri alir (hepsi site siparisiydi): geriye doldurma GEREKMEZ, `yayinda`
+    # kolonundaki gibi bir sira tuzagi YOKTUR. Gerekce: tools/d1-sema.sql kanal yorumu.
+    ("kanal", "TEXT NOT NULL DEFAULT 'site'"),
+    # Dis sistemin KENDI siparis numarasi (Ege: PR-yyMMdd-HHmmss, sonek YOK). Mutabakat +
+    # /wa-siparis idempotens anahtari. Site siparislerinde '' kalir.
+    ("dis_no", "TEXT NOT NULL DEFAULT ''"),
 ]
+
+# 🔴 dis_no TEKILLIGI ICIN AYRI BIR LISTE YOKTUR: kismi UNIQUE indeks asagidaki GOC_INDEKS
+# KAYIT DEFTERINDE (`siparisler_kanal_dis_no`) tanimlidir. Ayri bir SIPARIS_INDEKS listesi
+# tutulsaydi indeks kurulurdu ama KURULDUGU DOGRULANMAZDI (fail-closed hal makinesinin
+# disinda kalirdi) — tek-yonlu kapi tam da orada acilir. Bkz. GOC_INDEKS yorumu.
 
 # ON CONFLICT (UPDATE) sirasinda GUNCELLENEN kolonlar.
 # "baski" BILEREK YOK: baski yalnizca gizli .urun-kaynaklari.json'da (CI'da yok).
@@ -1005,9 +1018,13 @@ GOC_INDEKS = [
     # SIPARIS KANALI — site DISI uclarin (or. WhatsApp siparis ucu) dis referansi.
     # KISMI benzersizlik: dis_no BOS olan satirlar (site siparisleri) indekse GIRMEZ, yoksa
     # tum eski satirlar tek bir ('site','') anahtarinda cakisirdi.
-    # ⚠️ KOLONLARI BU DOSYA TANIMLAMAZ (GOC_KOLON_SIPARIS'te YOK): kanal/dis_no kolonlari
-    # siparis ucu dalindan gelir. Kayit burada ONCE durur ki kolonlar geldigi ANDA indeks
-    # kurulsun ve KURULDUGU DOGRULANSIN; kolon yokken hal "UYGULANMAZ"dir (gurultu YOK).
+    # ✅ KOLONLAR ARTIK BU DOSYADA (1 Agu 2026, siparis ucu dali birlestirildi):
+    # GOC_KOLON_SIPARIS icinde kanal + dis_no var. Kayit onlardan ONCE yazilmisti; artik
+    # ayni kosumda kolonlar ALTER ile gelir ve indeks HEMEN kurulup DOGRULANIR. Goc
+    # kosmamis bir veritabaninda hal yine "UYGULANMAZ"dir (gurultu YOK).
+    # 🔴 INDEKS ADI `siparisler_kanal_dis_no` — dal `siparisler_dis_no` diyordu; kayit
+    # defterindeki ad KAZANDI (hal makinesi indeksi ADIYLA arar, iki ad ayrisirsa hal
+    # sonsuza dek "INDEKS-YOK" kalirdi). d1-sema.sql da bu ada hizalandi.
     {"ad": "siparisler_kanal_dis_no", "tablo": "siparisler", "yayin": False,
      "gerekli": ("kanal", "dis_no"), "benzersiz": True,
      "sql": "CREATE UNIQUE INDEX IF NOT EXISTS siparisler_kanal_dis_no "
@@ -2591,8 +2608,37 @@ def kendini_test():
     dogrula("V79d KOLON YOK: kolon_goc True + --durum exit 0 (eski davranis KORUNDU)",
             _sonuc is True and _dkod == 0 and "YARIDA KALMIS GOC" not in _dcikti,
             "goc=%s durum=%s" % (_sonuc, _dkod))
-    dogrula("V79e KOLON YOK: siparisler indeksi DENENMEZ (UYGULANMAZ hali basilir)",
-            "%s=%s" % (_ad, IX_UYGULANMAZ) in _cikti, _cikti[-300:])
+    # V79e — ⚠️ IDDIA 1 Agu 2026'da DEGISTI (siparis ucu dali birlestirildi). ESKI hali
+    # "kolon_goc kosunca da siparisler indeksi UYGULANMAZ kalir" diyordu; o DOGRUYDU cunku
+    # kanal/dis_no kolonlari BU DOSYADA TANIMLI DEGILDI. Artik GOC_KOLON_SIPARIS onlari
+    # tasiyor -> kolon_goc AYNI kosumda kolonlari ekler ve indeksi kurar. Eski cumleyi
+    # zorla yesil tutmak, gocun calistigini gizlemek olurdu. Iddia ikiye ayrildi:
+    dogrula("V79e1 --durum (goc KOSMAMIS db): siparisler indeksi UYGULANMAZ — gurultu YOK",
+            "%s=%s" % (_ad, IX_UYGULANMAZ) in _dcikti, _dcikti[-300:])
+    dogrula("V79e2 kolon_goc: kolonlar YOKKEN bile TEK kosumda ALTER + indeks + DOGRULAMA",
+            ("%s=%s" % (_ad, IX_KURULU)) in _cikti and _ad in _kt_indeks_adlari(_c),
+            _cikti[-300:])
+
+    # V79f SKIP DALI (kolonlari goc TASIMAYAN kayit): DDL DENENMEZ, kirmizi de YANMAZ.
+    # NEDEN AYRI FIKSTUR: V79e2'den sonra gercek kayitlarin hepsinin kolonu goc listesinde
+    # -> "kolonlar hazir degilse atla" dali URETIMDE ULASILMAZ hale geldi. Olculmeyen dal
+    # cururur: yarin goc listesinde OLMAYAN bir kolona dayali kayit eklenirse (baska bir
+    # dal, baska bir tablo) bu dal `--sema`nin tamamini dusurmemeli.
+    _sahte = list(GOC_INDEKS) + [{
+        "ad": "sahte_ix", "tablo": "siparisler", "yayin": False,
+        "gerekli": ("hic_olmayan_kolon",), "benzersiz": False,
+        "sql": "CREATE INDEX IF NOT EXISTS sahte_ix ON siparisler(hic_olmayan_kolon);"}]
+    _c2 = _kt_goc_conn(kanal_kolonu=False)
+    _g = globals()
+    _eski_kayit = _g["GOC_INDEKS"]
+    try:
+        _g["GOC_INDEKS"] = _sahte
+        _kod, _cikti2, _sonuc2 = _kt_goc_kos(_c2, kolon_goc)
+    finally:
+        _g["GOC_INDEKS"] = _eski_kayit
+    dogrula("V79f SKIP: kolonu olmayan kayitta DDL denenmez, kolon_goc True kalir",
+            _sonuc2 is True and "sahte_ix=%s" % IX_UYGULANMAZ in _cikti2
+            and "sahte_ix" not in _kt_indeks_adlari(_c2), _cikti2[-300:])
 
     # V80 IKIZ TANIM NOBETI: her kaydin BEYAN ettigi `ad`, SQL'i KOSTURUNCA olusan indeks
     # adiyla AYNI olmali; `gerekli` de DDL'in dokundugu TUM kolonlari kapsamali. Beyan ile

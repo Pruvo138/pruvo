@@ -40,6 +40,48 @@ degil, ucuz bir yavaslaticidir. Giris govdesi 1 KB ile sinirlidir.
   kaynak kaydina bak" notu (tedarikci bilgisi sayfaya YAZILMAZ). Toplu yukleme:
   `python3 tools/stl-r2-yukle.py` (idempotent; yanlis adlanani raporlar, tahmin etmez).
 
+## WhatsApp (Ege) siparisleri — `POST /yonet/wa-siparis`
+
+Ege (WhatsApp botu, AYRI depo/worker) bir siparis kapatinca bu uctan AYNI panele yazar.
+- **Anahtar**: `EGE_ANAHTAR` (wrangler secret, `openssl rand -hex 24`) — **YALNIZ bu ucu
+  acar**; `/liste`, `/durum`, `/kargo`, `/stl` onunla 404 doner (en az yetki: bot'a
+  panelin tamami verilmez). `YONET_ANAHTAR` da calisir. Ikisi de yoksa 404.
+  Ayni deger bot worker'ina da secret olarak konur.
+  🔴 **YALNIZ BASLIK: `X-Ege-Anahtar`.** `?ege_anahtar=` query param yolu KAPATILDI —
+  URL'ler Cloudflare erisim loglarina/referrer'a duz metin girer, basliklar girmez.
+- **Govde**: `{musteri:{ad,tel,adres,eposta?}, odeme:"kart"|"havale", urunler:[{ad,link?,
+  adet?,tutar_kurus?}], dis_no, tutar_kurus?, kargo_kurus?, durum?}`.
+  Zorunlu: ad/tel/adres + en az bir urun adi + odeme yontemi + **`dis_no`**.
+  Eksikse 400 + alan adi (`dis_no` yoksa `400 dis-no-yok`).
+- **Numara PANELDE uretilir** (`PR-yyMMdd-HHmmss-XXX`); Ege'nin kendi numarasi `dis_no`
+  kolonunda mutabakat + **idempotens** anahtaridir (ayni `dis_no` 2. kez → yeni siparis
+  YOK, mevcut numara + `tekrar:true`). Kismi UNIQUE indeks veri tabani tarafinda ikizi kiler.
+- 🔴 **`dis_no` ZORUNLU** (once opsiyoneldi): anahtarsiz cagri hicbir tekillik tasimadigi
+  icin Ege'nin yeniden denemesi SINIRSIZ mukerrer siparis aciyordu (olculdu: 4 cagri =
+  4 siparis) ve kismi indeks (`WHERE dis_no <> ''`) o satirlari kapsamiyordu.
+  ⚠️ SITE kanali degismedi: `kanal='site'` satirlari `dis_no=''` ile coklu kalir.
+- **Yaris durumu**: on-idempotens SELECT'i ile INSERT arasinda baska bir cagri ayni
+  `dis_no` ile yazarsa UNIQUE indeks INSERT'i reddeder; uc bunu **200 `{tekrar:true}`**
+  ile karsilar (500 DEGIL). Guvenlik: 200'e cevirme hata METNINE degil, satirin
+  gercekten var oldugunu KANITLAYAN ikinci SELECT'e baglidir; satir yoksa hata aynen
+  yukari cikar.
+- 🔴 **CAPRAZ-MUSTERI**: idempotent yanit yalniz satirin `musteri_tel`'i gelen telefonla
+  ESLESIYORSA verilir; eslesmiyorsa (ya da okunamiyorsa) **`409 dis-no-cakismasi`**.
+  Neden: anahtar yalniz `dis_no` ve Ege'nin bicimi (`PR-yyMMdd-HHmmss`, saniye
+  cozunurluklu, sonek YOK) iki farkli musteride carpisabilir; eski davranis ikinci
+  musteriye BASKA musterinin numarasini donup siparisini hic yazmazdi (sessiz kayip +
+  PII karisimi). Kalici cozum Ege tarafinda: `dis_no`'ya rastgele sonek ekle.
+- **Durum**: yalniz `havale-bekliyor` (varsayilan) veya `odendi` yazilabilir; uretim/kargo
+  ilerlemesi PANELDEN yapilir. Tutar BOS kalabilir (elle fiyatlandirma) — bu uc TAHSILAT
+  YAPMAZ, fiyat hesaplamaz, e-posta/Telegram GONDERMEZ (musteri zaten sohbette).
+- **Olcum**: `kanal='site'` DISI siparislerde reklam Purchase olayi tetiklenmez (WhatsApp
+  cirosu GA4'e sentetik client_id ile "direct" satis olarak yazilmasin); atlama loglanir.
+- 🔴 **SIRA**: once `python3 tools/d1-sync.py --sema` (kanal/dis_no kolonlari + indeks),
+  SONRA worker deploy, sonra `EGE_ANAHTAR`. Goc kosmadan uc **503 `sema-goc-gerekli`**
+  doner (fail-closed; kanalsiz kayit yazilmaz). Panelin GET/render tarafi gocten ONCE de
+  calisir (kolon merdiveni) — yani sira sasarsa panel DUSMEZ, yalnizca yazma reddedilir.
+- Kabul: `node shop/test/wa-siparis.mjs` + `python3 tools/siparis-kanal-goc-test.py`.
+
 ## E-posta (Resend — siparis yonetimi paketi Faz 2)
 
 Gonderen `PRUVO <siparis@pruvo3d.com>`; sablonlar Turkce sade HTML (`src/eposta.js`).
