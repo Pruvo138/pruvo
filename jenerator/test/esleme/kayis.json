@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-triger-kayisi",
+  "motor": "uretim",
   "scad": "kayis.scad",
   "fonksiyon": "kayis",
   "esleme": {

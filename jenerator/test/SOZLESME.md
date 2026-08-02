@@ -62,6 +62,7 @@ Kurallar:
 ```json
 {
   "urunId": "<urunId>",
+  "motor": "pruvo",
   "scad": "<aile>.scad",
   "fonksiyon": "<aile>",
   "esleme": {"ic_cap": "Inside_Diameter", "kesit": "Cross_Section", "profil": "Profile"},
@@ -69,6 +70,23 @@ Kurallar:
   "sabit": {"Segments": 120}
 }
 ```
+
+- 🔴 `motor` ZORUNLU — hacim fonksiyonun HANGİ geometriye kalibre olduğunu beyan eder:
+  - `"pruvo"` : referans PRUVO'nun kendi üreteci (`pruvo-jenerator/jeneratorler/<scad>`).
+  - `"uretim"`: hacim.js üretim motoruna kalibre; yetkili ölçüm
+    `onizleme/test/eslem-olcum.py` (motorun dosya/değişken adları GİZLİ, buraya YAZILMAZ).
+
+  Beyan yoksa/tanınmıyorsa `dogrula.py` **OLÇÜLEMEDİ** der ve kırmızı yanar — yeşil sayılmaz.
+
+  NEDEN ZORUNLU (ölçüldü 2026-08-02): `scad` alanı ÇIPLAK bir dosya adıdır ve
+  `PRUVO_SCAD_DIR` onu PRUVO'nun kendi üreteçlerine çözer. PRUVO'nun kendi üreteci,
+  üretim motorunun **drop-in yerine geçmesi için AYNI değişken adlarını** kullanır
+  (`Mouth_Diameter`, `Inside_Diameter`...). Sonuç: `-D` bayrakları hatasız uygulandı,
+  render başarılı oldu, ama ölçülen KATI bambaşka bir geometriydi. 8 ailede TEST 1
+  yanlış nesneyi ölçtü (%39'a varan sahte sapma) ve bu kırmızı FİYAT kapısına
+  (`secenekler.js` `HACIM_DOGRULANMIS_AILELER`) girip doğru fiyat üretebilen aileleri
+  satıştan kapattı. Aynı ad + aynı değişkenler = SESSİZ nesne değişimi; beyan bunun
+  tek panzehiridir.
 
 - `esleme`: şemadaki her `sayi`/`secim` parametresi → .scad'daki değişken adı.
   (`metin` parametresi eşlenebilir ya da `sabit`te tutulur.)
