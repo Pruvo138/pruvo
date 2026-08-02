@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// CI-ALT-KUME: --sema-paritesi  agsiz/wranglersiz PARA nobeti (sema kapsami 23/23 + sari
+// seri fail-closed); deploy.yml'de continue-on-error'SUZ bloklayici kosar.
+// CI-ALT-KUME: --yonet-cerez  agsiz/wranglersiz ADMIN GIRIS GUVENLIGI alt kumesi (63 iddia:
+// cerez oturumu, sabit-zamanli karsilastirma, hiz siniri, enjeksiyon). Beyan BILEREK
+// duruyor: alt kume su an HICBIR is akisinda kosmuyor ve bu delik kapinin
+// ALT_KUME_IZIN_LISTESI'nde OLCULMUS gerekceyle KAYITLI (susturma degil, bekleyen karar).
 /**
  * PRUVO shop KABUL TESTLERI (tools/paket-shop-odeme.md 7 madde + tools/paket-shop-kargo.md:
  * 10 kargo, 11 retrieve-incele, 12 siparis numarasi, 13 havale/eft, 14 kdv, 15 sozlesme onayi).

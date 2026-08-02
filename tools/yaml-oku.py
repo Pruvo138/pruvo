@@ -30,6 +30,8 @@ KULLANIM (kutuphane):
     import yaml_oku
     bloklar, hata = yaml_oku.run_dugumleri(metin)
     # bloklar = [(anahtar_satir, ilk_ham, son_ham, deger), ...] ya da hata varsa None
+    tetikler, hata = yaml_oku.tetikleyiciler(metin)
+    # tetikler = {"push", "workflow_dispatch", ...} ya da hata varsa None
 """
 import json
 import subprocess
@@ -94,6 +96,68 @@ end
 print JSON.generate(sonuc)
 """
 
+# ---- RUBY/PSYCH TETIKLEYICI KOLU -------------------------------------------
+# Girdi : stdin'e JSON {"metinler": ["...", ...]}
+# Cikti : stdout'a JSON [{"ok":true,"tetikler":["push", ...]}, ...]
+#
+# 🔴 NEDEN DUGUM (Psych.parse) API'si, `Psych.load` DEGIL — YAML 1.1 `on:` TUZAGI:
+# YAML 1.1'de ciplak `on` bir BOOLEAN'dir. `Psych.load` (ve PyYAML `safe_load`) bu
+# anahtari **true / True** olarak COZER; yani `doc["on"]` HICBIR ZAMAN bulunmaz ve
+# naif bir okuyucu "bu is akisinin tetikleyicisi YOK" hukmunu verir. O hukum bu depoda
+# SESSIZ bir SINIFLAMA HATASIDIR: push ile kosan deploy.yml "BELIRSIZ" sayilirdi ve
+# BELIRSIZ kapsam acisindan ELLE gibi ele alindigi icin CI'da fiilen kosan 124 dosya
+# birden "kosmuyor" gorunurdu. DUGUM API'sinde anahtarin HAM metni ("on") gorunur ->
+# tuzak yapisal olarak ORTADAN KALKAR; tirnakli `"on":` yazimi da AYNI ham metni verir.
+# Yine de cagiran taraf ("on" VEYA True — ikisini de kabul et) kuralina uyabilsin diye
+# ASAGIDAKI PyYAML kolu BOOLEAN cozumlu anahtari da ayrica kabul eder; iki kol AYNI
+# kumeyi dondurmek ZORUNDADIR (tuketicideki TETIK_FIKSTURLERI bunu kilitler).
+RUBY_TETIK_KAYNAK = r"""
+require 'yaml'
+require 'json'
+
+def tetik_kumesi(kok)
+  return nil if kok.nil?
+  belge = kok
+  belge = belge.children[0] if belge.is_a?(Psych::Nodes::Stream)
+  return nil if belge.nil?
+  belge = belge.children[0] if belge.is_a?(Psych::Nodes::Document)
+  return nil unless belge.is_a?(Psych::Nodes::Mapping)
+  belge.children.each_slice(2) do |k, v|
+    next if k.nil? || v.nil?
+    next unless k.is_a?(Psych::Nodes::Scalar)
+    next unless k.value.to_s.downcase == 'on'
+    if v.is_a?(Psych::Nodes::Scalar)
+      return [v.value.to_s.strip]
+    elsif v.is_a?(Psych::Nodes::Sequence)
+      return v.children.select { |c| c.is_a?(Psych::Nodes::Scalar) }
+                       .map { |c| c.value.to_s.strip }
+    elsif v.is_a?(Psych::Nodes::Mapping)
+      return v.children.each_slice(2).map { |kk, _vv| kk }
+                       .select { |kk| kk.is_a?(Psych::Nodes::Scalar) }
+                       .map { |kk| kk.value.to_s.strip }
+    end
+    return []
+  end
+  nil
+end
+
+girdi = JSON.parse($stdin.read)
+sonuc = girdi['metinler'].map do |metin|
+  begin
+    kok = Psych.parse(metin)
+    t = tetik_kumesi(kok)
+    if t.nil?
+      { 'ok' => false, 'hata' => 'TETIKLEYICI YOK: kok esleme degil ya da `on:` anahtari yok' }
+    else
+      { 'ok' => true, 'tetikler' => t }
+    end
+  rescue => e
+    { 'ok' => false, 'hata' => "#{e.class}: #{e.message}" }
+  end
+end
+print JSON.generate(sonuc)
+"""
+
 _PSYCH_SURUM = None
 
 # 🔴 ORTAM DEGISKENI YOK (30 Tem, MIMAR HUKMU — bilincli tasarim karari):
@@ -124,6 +188,7 @@ def ayristiriciyi_kapat(kapali=True):
     _AYRISTIRICI_KAPALI = bool(kapali)
     _PSYCH_SURUM = None
     _ONBELLEK.clear()
+    _TETIK_ONBELLEK.clear()
     return _AYRISTIRICI_KAPALI
 
 
@@ -279,6 +344,118 @@ def onbellegi_isit(metinler):
         if len(_ONBELLEK) > 512:
             _ONBELLEK.clear()
         _ONBELLEK[metin] = sonuc
+
+
+# ---- TETIKLEYICILER (`on:`) — is akisinin OTOMATIK mi ELLE mi oldugu -------
+# NEDEN BURADA (KATMAN 0): tuketici (tools/ci-kapsam-test.py) "bu dosya CI'da GERCEKTEN
+# kosuyor mu" sorusunu cevaplarken ELLE tetiklenen (`workflow_dispatch` disinda hicbir
+# tetigi olmayan) bir is akisindaki cagriyi KAPSAM SAYMAMALIDIR. O ayrimin dayanagi
+# `on:` bloguDUR ve METIN TAKLIDIYLE okunamaz: uc ayri yazim (skalar / dizi / esleme) +
+# YAML 1.1 boolean tuzagi + tirnak/anchor kurallari ayristiricinin isidir
+# ([[mimar-kapi-parser-taklidi]]). Kol sirasi run_dugumleri() ile AYNI: PyYAML -> psych.
+_TETIK_ONBELLEK = {}
+
+
+def _pyyaml_tetikler(metin):
+    """(kume, hata) — PyYAML DUGUM (compose) kolu.
+
+    🔴 `safe_load` KULLANILMAZ: YAML 1.1'de ciplak `on` BOOLEAN'a cozulur ve sozlukte
+    anahtar `True` olur. Dugum API'sinde ham metin ("on") korunur. Yine de sozlesme
+    geregi ("on" VEYA True kabul edilmeli) BOOLEAN cozumu de kabul edilir: bir anahtar
+    dugumunun etiketi bool ise degeri `_bool_on()` ile sinanir."""
+    try:
+        kok = _yaml.compose(metin)
+    except Exception as e:
+        return None, "AYRISTIRMA HATASI (pyyaml): %s" % e
+    if not isinstance(kok, _yaml.MappingNode):
+        return None, "TETIKLEYICI YOK: kok bir YAML eslemesi degil"
+    for anahtar, deger in kok.value:
+        if not isinstance(anahtar, _yaml.ScalarNode):
+            continue
+        if not _on_anahtari(anahtar.value):
+            continue
+        if isinstance(deger, _yaml.ScalarNode):
+            return {deger.value.strip()}, None
+        if isinstance(deger, _yaml.SequenceNode):
+            return {d.value.strip() for d in deger.value
+                    if isinstance(d, _yaml.ScalarNode)}, None
+        if isinstance(deger, _yaml.MappingNode):
+            return {k.value.strip() for k, _v in deger.value
+                    if isinstance(k, _yaml.ScalarNode)}, None
+        return set(), None
+    return None, "TETIKLEYICI YOK: `on:` anahtari yok"
+
+
+def _on_anahtari(ham):
+    """<ham> anahtar metni `on:` mi? YAML 1.1'de `on`/`On`/`ON` boolean'dir; dugum
+    API'sinde HAM metin gorunur, `Psych.load`/`safe_load` kolunda `True` gelirdi.
+    Ikisi de kabul edilir (SPEC: anahtar `"on"` VEYA `True` olabilir)."""
+    if ham is True:
+        return True
+    return isinstance(ham, str) and ham.strip().lower() == "on"
+
+
+def _psych_tetikler_toplu(metinler):
+    try:
+        r = subprocess.run(["ruby", "-e", RUBY_TETIK_KAYNAK],
+                           input=json.dumps({"metinler": list(metinler)}),
+                           capture_output=True, text=True, timeout=120)
+    except Exception as e:
+        return [(None, "AYRISTIRMA HATASI: ruby/psych cagrilamadi (%s)" % e)
+                for _ in metinler]
+    if r.returncode != 0:
+        return [(None, "AYRISTIRMA HATASI: ruby/psych tetik yardimcisi calismadi "
+                 "(rc=%d) %s" % (r.returncode, r.stderr.strip()[:200]))
+                for _ in metinler]
+    try:
+        kayitlar = json.loads(r.stdout)
+    except Exception as e:
+        return [(None, "AYRISTIRMA HATASI: ruby/psych JSON tetik ciktisi cozulemedi (%s)"
+                 % e) for _ in metinler]
+    sonuc = []
+    for kayit in kayitlar:
+        if not kayit.get("ok"):
+            sonuc.append((None, "%s" % kayit.get("hata")))
+            continue
+        sonuc.append(({str(t).strip() for t in kayit["tetikler"]}, None))
+    return sonuc
+
+
+def tetikleyiciler(metin):
+    """(tetik_kumesi, hata) — is akisi metnindeki TOP-LEVEL `on:` tetikleyici adlari.
+
+    Uc yazim da desteklenir:
+        on: push                          -> {"push"}
+        on: [push, workflow_dispatch]     -> {"push", "workflow_dispatch"}
+        on:\\n  schedule:\\n    - cron: ...  -> {"schedule"}
+    hata None degilse kume None'dir. Hicbir GERCEK ayristirici yoksa
+    hata = "AYRISTIRICI YOK" -> CAGIRAN FAIL-CLOSED davranmak ZORUNDADIR (bu depoda:
+    sinif "BELIRSIZ", ve BELIRSIZ kapsam acisindan ELLE gibi ele alinir)."""
+    if metin in _TETIK_ONBELLEK:
+        return _TETIK_ONBELLEK[metin]
+    if _pyyaml_var():
+        sonuc = _pyyaml_tetikler(metin)
+    elif _psych_surumu():
+        sonuc = _psych_tetikler_toplu([metin])[0]
+    else:
+        sonuc = (None, "AYRISTIRICI YOK")
+    if len(_TETIK_ONBELLEK) > 512:
+        _TETIK_ONBELLEK.clear()
+    _TETIK_ONBELLEK[metin] = sonuc
+    return sonuc
+
+
+def tetik_onbellegi_isit(metinler):
+    """psych kolunda TOPLU tetik ayristirmasi (tek ruby sureci) — fikstur kumeleri icin."""
+    if _pyyaml_var() or not _psych_surumu():
+        return
+    kalan = [m for m in metinler if m not in _TETIK_ONBELLEK]
+    if not kalan:
+        return
+    for metin, sonuc in zip(kalan, _psych_tetikler_toplu(kalan)):
+        if len(_TETIK_ONBELLEK) > 512:
+            _TETIK_ONBELLEK.clear()
+        _TETIK_ONBELLEK[metin] = sonuc
 
 
 if __name__ == "__main__":  # kucuk teshis kolu (kapi DEGIL)
