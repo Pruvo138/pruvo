@@ -54,23 +54,32 @@ MUTANTLAR (hepsi GERCEK, canliya sizabilecek bozulmalar; hepsi KIRMIZI yanmali)
       `GET /`te formsuz 200      kokunun VARLIGI 200'le dogrulanir. C22b'nin AYIRT EDICI
                                  mutanti (tek kirmizi).
 
+  M16 ozellik-kapali root GET  — ILK cagri temiz 404, IKINCI+ cagri giris ekrani. CAGRI
+      IKINCI+ cagride sizar      SIRASI sinifinin tasiyicisi (asagi bak).
+  M17/M18/M19                  — girisYap'in kendi kapisinin KOD / CEREZ / GOVDE eksenlerini
+      girisYap'in uc ekseni      TEK TEK bozar. M18 tam da bu kapinin engelledigi zarardir:
+                                 404 ve formsuz govde doner AMA anahtarsiz oturum cerezi BASAR.
+  M20/M21 ILK cagri            — soguk baslangic / tembel ilklendirme sinifi: yalniz ILK
+      M22/M23 IKINCI+ cagri      ozellik-kapali root GET bozulur (M20 kod, M21 govde); M22/M23
+                                 ayni ikiliyi IKINCI+ cagri icin yapar. Dort ordinal-eksen
+                                 iddiasinin (C15b/C15c/C22b/C22c) ayirt edicileri bunlardir.
+
 EKSENE INDIRME (2 Agu, olculdu — "iddia sisirmesi" YAPILMADI). Kural: bir eksen ancak
 YALNIZ onu kirmizi yakan bir mutant VARSA kendi iddiasi olur; yoksa iddia EKLENMEZ.
-  Eski C15 (POST 404 VE GET 404 VE GET govdesinde form yok):
-    - POST 404  -> ayirt edici mutant M11 -> KENDI iddiasi, adi C15a.
-    - GET 404   -> AYRI IDDIA EKLENMEDI: yuklemi C22b ile OZDES (ayni cagri, ayni yuklem).
-    - form yok  -> AYRI IDDIA EKLENMEDI: yuklemi C22c ile OZDES.
-  Eski C22b (GET 404 VE form yok) — ayni kural KENDI isimize de uygulandi:
-    - KOD ekseni   -> ayirt edici mutant M15 -> C22b (yalniz kod).
-    - GOVDE ekseni -> ayirt edici mutant M14 -> C22c (yeni iddia).
-Iddia sayisi 65 -> 66 (C15 tek parca kaldi ama daraldi; C22b ikiye bolundu). Sayi hedef
-DEGILDI: bolme yalnizca eksen TEK BASINA kirmizi yanabildigi icin yapildi.
+Bugun kural TAM oturuyor: C15a, C15b, C15c, C22a, C22b, C22c, C22d, C22e — sekizinin de
+kendi TEK-KIRMIZI mutanti var (sirasiyla M11, M20, M21, M17, M22, M23, M18, M19).
 
-ACIK KAYIT (bu turda BOLUNMEDI, mimarin sinirı "C22b disinda bolme yapma"): C22a UC eksenli
-bir VE'dir (404 VE Set-Cookie yok VE form yok) ve govde ekseni TEK BASINA dusebiliyor —
-olculdu, M12'de C22a'nin detay satiri `kod=404 cerez="" form var mi=true` cikiyor. Yani
-C22a kirmizi yandiginda hangi eksenin dustugunu detay satiri soyler, IDDIA ADI soylemez.
-Karar mimarindir; burada YORUMA GOMULMEDI, acikca kayda gecirildi.
+🔴 CAGRI SIRASI OLCUMUN PARCASIDIR — SONDAYI SILME. Alt kume ozellik-kapali panel kokunu
+IKI kez yokluyor: 15. blokta (C15b/C15c) ve 22. blokta (C22b/C22c). Bir ara turda "yuklemleri
+ozdes, kopya" denilip 15. bloktaki sonda SILINMISTI. OLCULDU ki bu KAPSAM KAYBIYDI: modul
+duzeyi durum Workers'ta istekler ARASI yasar (bu dosyada `girisSayac` zaten oyle), yani
+"ilk cagri temiz, ikinci cagri sizdiriyor" sinifi (M16) sonda silinmisken alt kumeyi
+YESIL geciyordu. Yuklem ozdesligi argumani DURUMSUZLUGU varsayiyordu ve o varsayim yanlisti.
+
+⚠️ BEYAN BAYATLAMASI (olculdu): sonda geri konunca ust kapiden gecen root GET sayisi 1'den
+2'ye cikti ve M14/M15 "tek eksen" olmaktan cikti (her biri iki ordinali birden dusuruyor).
+Bunu YENI ESIT olcutu ilk kosumda yakaladi; eski KAPSAR olcutu sessizce PASS verirdi.
+M14/M15 genis()e alindi, ordinal ayirt edicileri M20-M23 olarak eklendi.
 
 KONTROL MUTANTLARI (YESIL kalmali — surucu "her sey kirmizi" diye ucuza gecemesin;
 ayrica kapinin ILGISIZ refaktorde yanlis alarm uretmedigi olculur)
@@ -150,8 +159,21 @@ def sha(yol):
 
 
 # ------------------------------------------------------------------ mutantlar
-# (kod, aciklama, [(bulunacak, yerine), ...], beklenen_kirmizi_iddia_kodlari)
+# (kod, aciklama, [(bulunacak, yerine), ...], beklenen_kirmizi_iddia_kodlari, OLCUT)
 # beklenen kod listesi BOS ise: KONTROL mutanti -> YESIL kalmali.
+#
+# 🔴 OLCUT, MUTANTIN KENDI KAYDINDA (asagidaki MUTANTLAR listesinde tek kelimeyle):
+#   tek_eksen(...) -> "ESIT":   kirmizi kume BEKLENENE ESIT olmali. Bir iddianin "AYIRT
+#       EDICI / TEK KIRMIZI" oldugu hukmu ANCAK boyle korunur. Onceki surumde olcut yalnizca
+#       KAPSAMA idi (beklenen ⊆ kirmizi): beklenenin USTUNE fazladan iddia kirmizi yansa da
+#       mutant PASS veriyordu. Yani "M14 yalniz C22c'yi yakar" gibi TUM ayirt edicilik
+#       iddialarimiz nobetci tarafindan HIC olculmuyordu — biri yarin bir iddiayi genisletse
+#       ozellik sessizce olur, tek kapi bile kirmizi yanmazdi. Kendini-test yapildi: ayirt
+#       edici bir mutanta fazladan iddia kirmizi yaktiran sapma eklendiginde ESIT olcutu
+#       KIRMIZI, eski KAPSAR olcutu YESIL veriyor.
+#   genis(...) -> "KAPSAR":     beklenen ⊆ kirmizi. GENIS/BILESIK bozulmalar icindir (birden
+#       cok ekseni ayni anda dusurenler); onlarda ek kirmizi BEKLENIR ve capa olmamalidir.
+# Kontrol mutantlarinda (beklenen BOS) olcut kullanilmaz: kirmizi SIFIR olmali.
 
 M1 = ("M1", "?anahtar= sorgu parametresi yolu GERI GELDI (isin bas sebebi)", [(
     """function anahtarGecerli(request, url, env) {
@@ -191,7 +213,7 @@ _ICKAPI_SIL = (
     """  const simdi = Date.now();""")
 
 M3 = ("M3", "secret kapisi giris POST'unun ARKASINA alindi + girisYap'in kendi kapisi silindi",
-      [_SIRA_TAKAS, _ICKAPI_SIL], ["C15a", "C22a"])
+      [_SIRA_TAKAS, _ICKAPI_SIL], ["C15a", "C22a", "C22e"])
 
 M4 = ("M4", "girisEkrani'nda ikame FONKSIYONU yerine ikame DIZESI ($` enjeksiyonu)", [(
     """GIRIS_HTML.replace("__EYLEM__", () => yol)""",
@@ -259,7 +281,7 @@ K3 = ("K3", "KONTROL: anahtarGecerli'de baslik/cerez kontrol SIRASI takas edildi
 # bu katman TEK BASINA olculur oldu -> artik KIRMIZI beklentilidir. C22b'yi BEKLEMEZ:
 # yonet()'in ust kapisi bu mutantta yerinde durdugu icin GET / hala 404 doner (dogru).
 M10 = ("M10", "YALNIZ girisYap'in kendi secret kapisi silindi (savunma derinliginin IC katmani)",
-       [_ICKAPI_SIL], ["C22a"])
+       [_ICKAPI_SIL], ["C22a", "C22e"])
 
 # --- OZELLIK-KAPALI (secret yok) KOLUNUN UC EKSENI -----------------------------------
 # M11/M12/M13, eski tek-parca C15 iddiasi eksenlerine ayrilirken ARANAN "ayirt edici
@@ -283,10 +305,10 @@ M11 = ("M11", "ozellik-kapali kol BIRLESTIRILDI: secret yok + POST / -> giris EK
        ["C15a"])
 
 # M12 — GOVDE ekseni, TEK KAYNAKTAN: kod 404 KORUNUR, yon404'un KENDISI HTML+<form> olur.
-# AYIRT EDICI DEGIL (olculdu): yon404 tek kaynak oldugu icin hem girisYap'in kendi 404'unu
-# (C22a) hem ust kapinin 404'unu (C22c) ayni anda bozar. Govde ekseninin AYIRT EDICI mutanti
-# M14'tur (yalniz ust kapinin 404'u). M12 yine de durur: tek kaynagin bozulmasi GERCEK bir
-# bozulmadir ve iki iddianin BIRLIKTE dustugunu kosumda sabitler.
+# AYIRT EDICI DEGIL (olculdu): yon404 tek kaynak oldugu icin hem girisYap'in kendi 404'unun
+# govdesini (C22e) hem ust kapinin 404'unun govdesini (C22c) ayni anda bozar. Iki govde
+# ekseninin AYRI AYRI ayirt edici mutantlari M14 (ust kapi) ve M19 (girisYap). M12 yine de
+# durur: tek kaynagin bozulmasi GERCEK bir bozulmadir ve ikisinin BIRLIKTE dustugunu sabitler.
 M12 = ("M12", "yon404 TEK KAYNAGININ govdesine <form> enjekte edildi (kod HALA 404)",
        [("""function yon404() { return yjson({ hata: "bulunamadi" }, 404); }""",
          """function yon404() {
@@ -295,7 +317,7 @@ M12 = ("M12", "yon404 TEK KAYNAGININ govdesine <form> enjekte edildi (kod HALA 4
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
 }""")],
-       ["C22a", "C22c"])
+       ["C15c", "C22c", "C22e"])
 
 # M13 — KOD ekseni, TUM ozellik-kapali GET'lerde: formsuz 200 doner (POST kolu 404 kalir).
 # AYIRT EDICI DEGIL (olculdu): ust kapi TUM yollarda ortak oldugu icin /liste ucunun
@@ -310,12 +332,16 @@ M13 = ("M13", "ust kapi ozellik-kapali TUM GET'lerde formsuz 200 dondurur (POST 
   if (!env.YONET_ANAHTAR) {
     return m === "GET" ? new Response("", { status: 200 }) : yon404();
   }""")],
-       ["C22b", "C6a", "C6b"])
+       ["C15b", "C22b", "C6a", "C6b"])
 
-# M14 — C22c'nin (ust kapi GOVDE ekseni) AYIRT EDICI mutanti: ust kapi KENDI 404'unu uretir
-# ve govdesine <form> girer; KOD 404 KALIR, yon404 TEK KAYNAGINA DOKUNULMAZ. Gercek zarar:
-# ozellik KAPALIYKEN panel kokunde giris formu servis edilir (durum kodu "yok" derken govde
-# "var" der) -> ucun varligi sizar. yon404'e dokunmadigi icin C22a duser DEGIL -> TEK kirmizi.
+# M14 — ust kapi KENDI 404'unu uretir ve govdesine <form> girer; KOD 404 KALIR, yon404 TEK
+# KAYNAGINA DOKUNULMAZ (o yuzden C22e/girisYap govdesi ayakta). Gercek zarar: ozellik
+# KAPALIYKEN panel kokunde giris formu servis edilir -> ucun varligi sizar.
+# ⚠️ ESKIDEN tek_eksen(ESIT) BEYAN EDILIYORDU ve BEYAN BAYATLADI: 15. bloktaki ozellik-kapali
+# sonda geri konunca ust kapiden gecen root GET SAYISI 1'den 2'ye cikti, mutant her ikisini
+# de kirletiyor -> kirmizi kume {C15c, C22c}. Yeni ESIT olcutu bunu ILK kosumda yakaladi
+# (eski KAPSAR olcutunde sessizce PASS verirdi). Artik GENIS: ekseni iki cagri ordinalinde
+# birden dusuruyor. Tek-ordinal ayirt ediciler M21 (ilk cagri) ve M23 (ikinci+ cagri).
 M14 = ("M14", "ust kapinin KENDI 404 govdesine <form> girdi (kod 404, yon404 TEK KAYNAGI saglam)",
        [("""export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }""",
@@ -326,12 +352,13 @@ M14 = ("M14", "ust kapinin KENDI 404 govdesine <form> girdi (kod 404, yon404 TEK
       headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
     });
   }""")],
-       ["C22c"])
+       ["C15c", "C22c"])
 
-# M15 — C22b'nin (ust kapi KOD ekseni) AYIRT EDICI mutanti: ust kapi YALNIZ `GET /`te formsuz
-# 200 doner; /liste kolu 404 kalir (C6a/C6b yesil), POST kolu 404 kalir (C15a yesil), govde
-# form icermez (C22c yesil) -> TEK kirmizi. Gercek zarar: ozellik kapaliyken panel kokunun
-# VARLIGI 200 ile dogrulanir (404 "yok" demeliydi).
+# M15 — ust kapi YALNIZ `GET /`te formsuz 200 doner; /liste kolu 404 kalir (C6a/C6b yesil),
+# POST kolu 404 kalir (C15a yesil), govde form icermez (govde eksenleri yesil). Gercek zarar:
+# ozellik kapaliyken panel kokunun VARLIGI 200 ile dogrulanir (404 "yok" demeliydi).
+# ⚠️ M14 ile AYNI SEBEPTEN tek_eksen BEYANI BAYATLADI (sonda geri konunca iki root GET oldu):
+# kirmizi kume {C15b, C22b}. Tek-ordinal ayirt ediciler M20 (ilk cagri) ve M22 (ikinci+).
 M15 = ("M15", "ust kapi YALNIZ `GET /`te formsuz 200 doner (diger yollar + POST 404 kalir)",
        [("""export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }
@@ -341,9 +368,142 @@ M15 = ("M15", "ust kapi YALNIZ `GET /`te formsuz 200 doner (diger yollar + POST 
   if (!env.YONET_ANAHTAR) {
     return (altYol === "/" && m === "GET") ? new Response("", { status: 200 }) : yon404();
   }""")],
-       ["C22b"])
+       ["C15b", "C22b"])
 
-MUTANTLAR = [M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, M15, K1, K2, K3]
+# M16 — 🔴 CAGRI SIRASI SINIFI: ozellik-kapali panel koku ILK GET'te temiz 404 doner, IKINCI
+# ve sonraki GET'te giris ekranini sizdirir. Modul duzeyi durum Workers'ta istekler ARASI
+# yasar (bu dosyada `girisSayac` zaten oyle), yani bu sinif hayali degil.
+# NEDEN IKI SONDA GEREKIR: alt kume ozellik-kapali panel kokunu IKI kez yokluyor — once 15.
+# blokta (C15b/C15c), sonra 22. blokta (C22b/C22c). Bir tur once "C22b ile ayni yuklem" diye
+# 15. bloktaki sonda SILINMISTI; o halde bu mutant alt kumeyi YESIL geciyordu (olculdu).
+# Sondayi geri koyunca ILK cagri temiz kalir, IKINCI cagri sizar -> C22b + C22c kirmizi.
+# Bu mutant, sondanin bir daha "gereksiz kopya" diye silinmesini engelleyen nobetcidir.
+M16 = ("M16", "ozellik-kapali panel koku IKINCI+ GET'te giris ekrani sizdirir (ILK GET temiz)",
+       [("""export async function yonet(request, env, url, ctx, altYol, telegram) {
+  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const m = request.method;""",
+         """let _kapaliKokSayac = 0;
+export async function yonet(request, env, url, ctx, altYol, telegram) {
+  const m = request.method;
+  if (!env.YONET_ANAHTAR) {
+    if (altYol === "/" && m === "GET" && ++_kapaliKokSayac > 1) { return girisEkrani(url); }
+    return yon404();
+  }""")],
+       ["C22b", "C22c"])
+
+# --- girisYap'IN KENDI KAPISININ UC EKSENI (C22a / C22d / C22e) ----------------------
+# Ucu de AYIRT EDICI: her mutant kapiyi SILMEZ, yalnizca TEK bir ekseni bozar; digerleri
+# saglam kaldigi icin alt kumede TEK iddia kirmizi yanar. (Ust kapi yolda olmadigindan —
+# C22 blogu girisYap'i DOGRUDAN cagirir — bu mutantlar ust kapi iddialarini etkilemez.)
+
+# M17 — KOD ekseni: kapi 404 yerine bos/cerezsiz 200 doner. Govde formsuz, Set-Cookie yok.
+M17 = ("M17", "girisYap kendi kapisi 404 yerine formsuz/cerezsiz 200 doner (KOD ekseni)",
+       [("""  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const simdi = Date.now();""",
+         """  if (!env.YONET_ANAHTAR) {
+    return new Response("", { status: 200, headers: { "Cache-Control": "no-store" } });
+  }
+  const simdi = Date.now();""")],
+       ["C22a"])
+
+# M18 — CEREZ ekseni: kapi DOGRU kodu (404) ve formsuz govdeyi doner AMA oturum cerezini
+# BASAR. Tam da bu kapinin engelledigi zarar: ANAHTARSIZ oturum cerezi kurulumu. Bir tur
+# once bu eksen icin "ayirt edici mutant ARANMADI" diye kayit dusulmustu; arandi, BULUNDU.
+M18 = ("M18", "girisYap kendi kapisi 404 + formsuz govde doner AMA Set-Cookie BASAR (CEREZ ekseni)",
+       [("""  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const simdi = Date.now();""",
+         """  if (!env.YONET_ANAHTAR) {
+    return new Response(JSON.stringify({ hata: "bulunamadi" }), {
+      status: 404,
+      headers: { "Content-Type": "application/json; charset=utf-8",
+                 "Cache-Control": "no-store", "Set-Cookie": yonetCereziKur("1") },
+    });
+  }
+  const simdi = Date.now();""")],
+       ["C22d"])
+
+# M19 — GOVDE ekseni: kapi KENDI 404'unu HTML+<form> olarak uretir; kod 404 kalir, cerez
+# basilmaz ve yon404 TEK KAYNAGINA DOKUNULMAZ (ona dokunmak C22c'yi de dusururdu — M12).
+M19 = ("M19", "girisYap kendi kapisinin 404 govdesi HTML+<form> olur (GOVDE ekseni)",
+       [("""  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const simdi = Date.now();""",
+         """  if (!env.YONET_ANAHTAR) {
+    return new Response("<html><body><form action=\\"/ara\\"></form></body></html>", {
+      status: 404,
+      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    });
+  }
+  const simdi = Date.now();""")],
+       ["C22e"])
+
+
+# --- ORDINAL-DUYARLI AYIRT EDICILER (M20-M23) ----------------------------------------
+# Ozellik-kapali panel koku alt kumede IKI kez yoklaniyor: ILK GET (C15b/C15c) ve IKINCI GET
+# (C22b/C22c). M14/M15 gibi "her cagride" bozan mutantlar iki ordinali BIRDEN dusurur, yani
+# tek bir iddiayi ayirt EDEMEZ. Asagidaki dort mutant ordinali secer ve TEK ekseni bozar —
+# dort iddianin her birinin KENDI ayirt edici mutanti olsun diye. Ikisi de gercek sinif:
+#   ILK cagri     = soguk baslangic / tembel ilklendirme (modul durumu ilk istekte hazir degil),
+#   IKINCI+ cagri = istekler arasi yasayan modul durumunun kirlenmesi (bkz. `girisSayac`).
+_KOK_ANCHOR = ("""export async function yonet(request, env, url, ctx, altYol, telegram) {
+  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const m = request.method;""")
+_FORMSUZ_200 = ("""new Response("", { status: 200, """
+                """headers: { "Cache-Control": "no-store" } })""")
+_FORMLU_404 = ("""new Response("<html><body><form action=\\"/ara\\"></form></body></html>", """
+               """{ status: 404, headers: { "Content-Type": "text/html; charset=utf-8", """
+               """"Cache-Control": "no-store" } })""")
+
+
+def _kok_ordinali(kod, aciklama, kosul, yanit, beklenen):
+    """Ozellik-kapali panel koku GET'lerini sayar ve YALNIZ <kosul>u saglayan cagride
+    <yanit>i dondurur; diger her sey bugunku gibi yon404()'tur."""
+    return (kod, aciklama, [(_KOK_ANCHOR, """let _kokSayac = 0;
+export async function yonet(request, env, url, ctx, altYol, telegram) {
+  const m = request.method;
+  if (!env.YONET_ANAHTAR) {
+    if (altYol === "/" && m === "GET" && """ + kosul + """) { return """ + yanit + """; }
+    return yon404();
+  }""")], beklenen)
+
+
+M20 = _kok_ordinali(
+    "M20", "YALNIZ ILK ozellik-kapali root GET formsuz 200 doner (soguk baslangic; KOD ekseni)",
+    "++_kokSayac === 1", _FORMSUZ_200, ["C15b"])
+M21 = _kok_ordinali(
+    "M21", "YALNIZ ILK ozellik-kapali root GET 404+<form> doner (soguk baslangic; GOVDE ekseni)",
+    "++_kokSayac === 1", _FORMLU_404, ["C15c"])
+M22 = _kok_ordinali(
+    "M22", "YALNIZ IKINCI+ ozellik-kapali root GET formsuz 200 doner (KOD ekseni)",
+    "++_kokSayac > 1", _FORMSUZ_200, ["C22b"])
+M23 = _kok_ordinali(
+    "M23", "YALNIZ IKINCI+ ozellik-kapali root GET 404+<form> doner (GOVDE ekseni)",
+    "++_kokSayac > 1", _FORMLU_404, ["C22c"])
+
+
+def tek_eksen(m):
+    """Kirmizi kume TAM OLARAK beklenendir -> olcut kume ESITLIGI (fazlalik = KUSUR).
+    Iki durumda kullanilir: (a) AYIRT EDICI mutant ("yalniz su iddiayi yakar"), (b) iddiasi
+    "sunlar duser ve BUNLAR YESIL KALIR" olan mutant (M16: ilk cagri temiz kalmali).
+    Bu olcut olmadan hukum nobetsizdir: KAPSAR olcutu fazladan kirmiziyi sessizce gecirir."""
+    return m + ("ESIT",)
+
+
+def genis(m):
+    """GENIS/BILESIK bozulma -> olcut KAPSAMA (beklenen ⊆ kirmizi); ek kirmizi BEKLENIR."""
+    return m + ("KAPSAR",)
+
+
+MUTANTLAR = [
+    genis(M1), genis(M2), genis(M3), genis(M4), genis(M5), genis(M6), genis(M7),
+    genis(M8), genis(M9), genis(M10),
+    tek_eksen(M11),
+    genis(M12), genis(M13),
+    genis(M14), genis(M15),          # BEYAN BAYATLADI, ESIT olcutu yakaladi — bkz. kayitlari
+    tek_eksen(M16),                  # iddiasinin PARCASI: C15b/C15c YESIL kalir
+    tek_eksen(M17), tek_eksen(M18), tek_eksen(M19),
+    tek_eksen(M20), tek_eksen(M21), tek_eksen(M22), tek_eksen(M23),
+    genis(K1), genis(K2), genis(K3),
+]
 
 
 # ------------------------------------------------------------------ ayna
@@ -456,24 +616,34 @@ def main():
               sha(HEDEF) == canli_once)
 
         # --- 2) MUTASYON BATARYASI -------------------------------------------------
-        print("\n2) MUTASYON BATARYASI — %d kosum (%d kirmizi-beklentili, %d kontrol)"
+        print("\n2) MUTASYON BATARYASI — %d kosum (%d kirmizi-beklentili [%d ESIT olcutlu], "
+              "%d kontrol)"
               % (len(MUTANTLAR), sum(1 for m in MUTANTLAR if m[3]),
+                 sum(1 for m in MUTANTLAR if m[3] and m[4] == "ESIT"),
                  sum(1 for m in MUTANTLAR if not m[3])))
         matris = []
-        for kod, aciklama, degisimler, beklenen in MUTANTLAR:
+        for kod, aciklama, degisimler, beklenen, olcut in MUTANTLAR:
             metin = mutasyonla(pristine, degisimler, kod)
             rc, iddia, kirmizi_kod, kirmizi, kuyruk = kos(ayna, metin)
             sayi_ok = (iddia == t_iddia)
             if beklenen:
                 eksik = [b for b in beklenen if b not in kirmizi_kod]
-                gecti = sayi_ok and rc == 1 and bool(kirmizi) and not eksik
-                detay = ("cikis=%d iddia=%s/%d kirmizi=%d isaret=%s"
-                         % (rc, iddia, t_iddia, len(kirmizi),
+                # ESIT olcutu: BEKLENENIN USTUNE cikan her kirmizi de KUSURDUR. "Bu mutant
+                # yalniz su iddiayi yakar" hukmu ancak boyle nobet altindadir; KAPSAR
+                # olcutunde fazlalik sessizce gecerdi.
+                fazla = (sorted(set(kirmizi_kod) - set(beklenen)) if olcut == "ESIT" else [])
+                gecti = sayi_ok and rc == 1 and bool(kirmizi) and not eksik and not fazla
+                detay = ("cikis=%d iddia=%s/%d kirmizi=%d olcut=%s isaret=%s"
+                         % (rc, iddia, t_iddia, len(kirmizi), olcut,
                             "TAM" if not eksik else ("EKSIK:" + ",".join(eksik))))
+                if fazla:
+                    detay += ("  ⚠️ ESIT OLCUTU: BEKLENMEYEN FAZLA KIRMIZI -> " +
+                              ",".join(fazla) + " (bu mutant 'ayirt edici/tek eksen' diye "
+                              "BEYAN EDILMISTI; ya beyan ya iddia yanlis)")
                 if not sayi_ok:
                     detay += ("  ⚠️ IDDIA SAYISI TUTMUYOR -> mutant testi COKERTMIS "
                               "olabilir; bu 'kirmizi' OLCUM DEGIL")
-                beklenti = "KIRMIZI"
+                beklenti = "KIRMIZI/" + olcut
             else:
                 gecti = sayi_ok and rc == 0 and not kirmizi
                 detay = ("cikis=%d iddia=%s/%d kirmizi=%d %s"
@@ -489,10 +659,10 @@ def main():
                 check("KAYNAK AGAC DEGISTI (ayna kacagi!) [%s]" % kod, False)
 
         print("\n   --- MUTASYON MATRISI ---")
-        print("   %-4s %-9s %-6s %-10s %-8s %s" % ("kod", "beklenti", "cikis", "iddia",
-                                                   "kirmizi", "kirmizi iddia kodlari"))
+        print("   %-4s %-14s %-6s %-10s %-8s %s" % ("kod", "beklenti", "cikis", "iddia",
+                                                    "kirmizi", "kirmizi iddia kodlari"))
         for kod, beklenti, rc, iddia, adet, kodlar in matris:
-            print("   %-4s %-9s %-6d %-10s %-8d %s"
+            print("   %-4s %-14s %-6d %-10s %-8d %s"
                   % (kod, beklenti, rc, "%s/%d" % (iddia, t_iddia), adet, kodlar))
     finally:
         shutil.rmtree(ayna, ignore_errors=True)
