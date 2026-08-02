@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-profil-beam",
+  "motor": "pruvo",
   "scad": "profil.scad",
   "fonksiyon": "profil",
   "esleme": {

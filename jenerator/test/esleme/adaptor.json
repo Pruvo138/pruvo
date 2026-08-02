@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-hortum-adaptoru",
+  "motor": "pruvo",
   "scad": "adaptor.scad",
   "fonksiyon": "adaptor",
   "esleme": {

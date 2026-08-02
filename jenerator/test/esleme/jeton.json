@@ -1,5 +1,6 @@
 {
   "urunId": "kisiye-ozel-jeton-cip-madalyon",
+  "motor": "pruvo",
   "scad": "jeton.scad",
   "fonksiyon": "jeton",
   "esleme": {

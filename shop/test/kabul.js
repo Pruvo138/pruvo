@@ -692,11 +692,11 @@ async function test9ParametrikAltyapi(secenekler) {
 
   // (b) sunucu yeniden hesabi — shop/src/parametrik.js'i DOGRUDAN yukle (shippen dosya).
   const PAR = await import("file://" + path.join(SHOP, "src", "parametrik.js"));
-  // FIKSTUR: hacim dogrulama kapisindan GECMIS bir aile olmali (2026-07-31). Eskiden
-  // oring kullaniliyordu; oring'in hacim formulu gercek geometriden %6,70 sapiyor ve
-  // artik tutar URETMIYOR (secenekler.js HACIM_DOGRULANMIS_AILELER) -> bu test onunla
-  // "gecerli set reddedildi" diye kirmizi yanardi. kutu: sapma %0,00, varsayilan
-  // hacim == tabanHacimMm3 (yani carpan 1 -> 18400 kurus sabiti gecerli kalir).
+  // FIKSTUR: hacim dogrulama kapisindan GECMIS bir aile olmali. kutu secildi cunku
+  // sapmasi %0,00 VE varsayilanlarda hacim == tabanHacimMm3 (carpan 1 -> 18400 kurus
+  // sabiti gecerli kalir). (Tarihce: eskiden oring kullaniliyordu; oring 2026-07-31'de
+  // kapiya takilinca kutu'ya gecildi. oring 2026-08-02'de yeniden ACILDI — o sapma
+  // referans arizasiydi — ama fikstur kutu'da BIRAKILDI: 18400 sabiti kutu'ya bagli.)
   const sema = JSON.parse(fs.readFileSync(
     path.join(KOK, "jenerator", "urunler", "olcuye-ozel-kutu-organizer.json"), "utf8"));
   const KONF = require(path.join(KOK, "jenerator", "konfigurator.js"));
@@ -818,16 +818,18 @@ async function test26SariFailClosed() {
   const araliksiz = Object.assign({}, vd); araliksiz[p1] = 99999;
   vakalar.push(["N12 aralik DISI olcu", sema, { parametreler: araliksiz }, "parametre-araligi"]);
 
-  /* HACIM DOGRULAMA KAPISI (para, 2026-07-31 — OLCULDU). hacim.js kapali-form hacmi
-     GERCEK geometriden (OpenSCAD) %3'ten fazla sapan ailede tutar URETILMEZ. Olculen en
-     kotu tutar farklari: izgara +463,43 TL · rulman +232,12 TL · petek -180,74 TL ·
-     pervane -172,89 TL (taban fiyatlar 200-300 TL). Kapi ALLOWLIST'tir: listede olmayan
-     her aile (yeni/olculmemis/kirmizi) KAPALI. Semanin geri kalani GECERLI oldugu icin
-     bu vakalar yalniz kapiyi olcer.
+  /* HACIM DOGRULAMA KAPISI (para, 2026-07-31 + 2026-08-02). hacim.js kapali-form hacmi
+     GERCEK geometriden %3'ten fazla sapan ya da HIC olculmemis ailede tutar URETILMEZ.
+     Kapi ALLOWLIST'tir: listede olmayan her aile (yeni/olculmemis/kirmizi) KAPALI.
+     2026-08-02: izgara/pervane/petek/huni/kasnak/kayis/oring bagimsiz olcumle ACILDI
+     (eski kirmizilari REFERANS ARIZASI uretmisti — bkz. secenekler.js DUZELTME blogu).
+     `rulman` ACILMADI: hacmi yesil ama SEMA ARALIGI uretilemez kombinasyon veriyor.
+     Fikstur bu yuzden KAPALI kalan uc aile: rampa + rulman + vida.
+     Semanin geri kalani GECERLI oldugu icin bu vakalar yalniz kapiyi olcer.
      ⚠️ hacimFormulu degistirilince hacim fonksiyonu da degisir; sema.parametreler kutu'nun
      kaldigi icin hacim hesabi yine calisir ya da null doner — iki halde de tutar CIKMAMALI,
      iddia zaten "hata dolu + birimKurus YOK". */
-  for (const kirmiziAile of ["izgara", "pervane", "rulman", "petek", "huni", "vida"]) {
+  for (const kirmiziAile of ["rampa", "rulman", "vida"]) {
     vakalar.push(["N13-" + kirmiziAile + " hacim formulu dogrulanmamis aile",
                   Object.assign({}, sema, { hacimFormulu: kirmiziAile }),
                   null, "hacim-dogrulanmamis"]);

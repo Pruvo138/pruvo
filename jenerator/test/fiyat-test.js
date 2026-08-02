@@ -138,7 +138,7 @@ Object.keys(KUCUK_SETLER).forEach(function (id) {
   esit("küçük set taban altında: " + id, h != null && h < s.tabanHacimMm3, true);
   var taban = TABAN_FIYATLAR[id];
   // ZEMİN kuralı FORMÜL testidir (ürünün kendi ailesiyle değil, doğrulanmış aile A ile
-  // çağrılır): bu ailelerin bir kısmı bugün hacim kapısıyla KAPALI (oring/huni/vida) ve
+  // çağrılır): bu ailelerin bir kısmı bugün hacim kapısıyla KAPALI (rampa/vida) ve
   // gerçek aileyle çağrılsa null dönerdi — o kapı ayrı bölümde sınanıyor.
   esit("zemin PLA/Siyah = taban: " + id,
        F(taban, s.tabanHacimMm3, h, "PLA", "Siyah"), taban * 100);
@@ -243,11 +243,22 @@ var vd = KONF.varsayilanDegerler(oringSema);
 esit("örnek şema varsayılanları geçerli", KONF.dogrula(oringSema, vd).gecerli, true);
 esit("hacim = tabanHacim (varsayılanlar)",
      Math.abs(KONF.hacimMm3(oringSema, vd, HACIM) - oringSema.tabanHacimMm3) < 1e-6, true);
-// oring bugün hacim kapısıyla KAPALI: fiyat ucu ondan tutar ÜRETMEMELİ (fail-closed).
-var denemeSema = Object.assign({}, oringSema, { tabanFiyatTL: 100 });
-esit("kapalı ailede fiyat ucu tutar üretmez (oring)",
-     KONF.fiyatKurus(denemeSema, vd, "PLA", "Siyah",
+// FAIL-CLOSED fikstürü: hacim kapısıyla KAPALI bir aile ondan tutar ÜRETMEMELİ.
+// (2026-08-02'ye kadar burada oring vardı; oring bağımsız ölçümle AÇILDI — fikstür
+// hâlâ kapalı olan `rampa`ya taşındı. rampa da varsayılanda hacim == tabanHacim,
+// yani "null" sonucu ölçek değil YALNIZCA kapıdan gelir.)
+var rampaSema = JSON.parse(fs.readFileSync(
+  path.join(KOK, "jenerator", "urunler", "olcuye-ozel-ramp-sim-takoz.json"), "utf8"));
+var rampaVd = KONF.varsayilanDegerler(rampaSema);
+esit("rampa şema varsayılanları geçerli", KONF.dogrula(rampaSema, rampaVd).gecerli, true);
+var denemeSema = Object.assign({}, rampaSema, { tabanFiyatTL: 100 });
+esit("kapalı ailede fiyat ucu tutar üretmez (rampa)",
+     KONF.fiyatKurus(denemeSema, rampaVd, "PLA", "Siyah",
                      { secenek: SECENEK, hacim: HACIM }), null);
+// AÇILAN aile (oring) artık AYNI uçtan tutar üretir — kapı seçici, kör değil.
+esit("açılan ailede fiyat ucu taban üretir (oring)",
+     KONF.fiyatKurus(Object.assign({}, oringSema, { tabanFiyatTL: 100 }), vd, "PLA", "Siyah",
+                     { secenek: SECENEK, hacim: HACIM }), 10000);
 // Aynı uç, DOĞRULANMIŞ ailede (kutu) varsayılanda tabanı verir — uç sağlam, kapı seçici.
 var kutuSema = JSON.parse(fs.readFileSync(
   path.join(URUN_DIR, "olcuye-ozel-kutu-organizer.json"), "utf8"));
@@ -256,13 +267,19 @@ esit("varsayılanda fiyat = taban (PLA/Siyah, doğrulanmış aile)",
      KONF.fiyatKurus(Object.assign({}, kutuSema, { tabanFiyatTL: 100 }), kutuVd,
                      "PLA", "Siyah", { secenek: SECENEK, hacim: HACIM }), 10000);
 
-/* --- HACİM DOĞRULAMA KAPISI (para, 2026-07-31) — POZİTİF + NEGATİF ---------------
-   Ölçüm: hacim.js ↔ OpenSCAD, 22 aile. %3 sınırını aşan 9 aile + hiç ölçülmemiş vida
-   tutar ÜRETMEZ (fail-closed); geçen 13 aile AYNEN fiyatlanmaya devam eder. */
-var KAPALI_AILELER = ["huni", "izgara", "kasnak", "kayis", "oring", "pervane",
-                      "petek", "rampa", "rulman", "vida"];
-var ACIK_AILELER = ["adaptor", "braket", "cerceve", "cetvel", "disli", "jeton", "kase",
-                    "kavanoz", "konektor", "kutu", "profil", "toka", "yay"];
+/* --- HACİM DOĞRULAMA KAPISI (para, 2026-07-31 + 2026-08-02) — POZİTİF + NEGATİF ---
+   Ölçüm: hacim.js ↔ gerçek geometri, 22 aile. Tutar YALNIZ ölçülmüş-ve-geçmiş ailede
+   üretilir (fail-closed); kapalı ailede null döner.
+   2026-08-02: eski 9 kırmızının 8'i (huni, izgara, kasnak, kayis, oring, pervane,
+   petek, rulman) REFERANS ARIZASI çıktı — bağımsız ölçümde hepsi ≤ %0,39.
+   Bunlardan 7'si listeye alındı; açık aile 13 → 20.
+   KAPALI KALAN: rampa (bağımsız ölçümle doğrulanmadı), vida (hiç ölçülmedi) ve
+   rulman (hacmi yeşil ama ŞEMA ARALIĞI üretilemez kombinasyon veriyor — üretemediğimiz
+   konfigürasyon satılabilir görünmez; şema onarılana kadar fail-closed). */
+var KAPALI_AILELER = ["rampa", "rulman", "vida"];
+var ACIK_AILELER = ["adaptor", "braket", "cerceve", "cetvel", "disli", "huni", "izgara",
+                    "jeton", "kase", "kasnak", "kavanoz", "kayis", "konektor", "kutu",
+                    "oring", "pervane", "petek", "profil", "toka", "yay"];
 
 // POZİTİF: kapı tutuyor — sapan/ölçülmemiş ailede tutar HİÇ üretilmez (0 TL DEĞİL, null).
 KAPALI_AILELER.forEach(function (aile) {

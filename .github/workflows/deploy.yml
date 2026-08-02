@@ -2144,6 +2144,110 @@ jobs:
         run: python3 tools/kanca-nobeti-test.py --mutasyon
 
 
+  # ===========================================================================
+  # HACIM TAM TAKIM (2026-08-02) — GERCEK TEST 1 (kapali-form vs RENDER)
+  #
+  # NEDEN AYRI IS: serit-b'deki iki jeneratör adimi BILEREK `--kendini-test`
+  # kolundadir (nobetcinin KENDI kabulu; hermetik, ~0,5 s). Bayraksiz TAM kosum
+  # iki DIS kaynak ister ve ikisi de bu depoda YOKTUR:
+  #   (1) motor=pruvo aileleri -> PRUVO'nun kendi ureteclerinin .scad kaynagi,
+  #       PRIVATE kardes depo `Pruvo138/pruvo-jenerator` (cross-repo okuma jetonu),
+  #   (2) motor=uretim aileleri -> gitignore'lu uretim paketi
+  #       (ONIZLEME_PAKET_B64 / R2), cunku hacim.js o ailelerde uretim motoruna
+  #       kalibre ve motorun dosya/degisken adlari GIZLIDIR.
+  # Bu is ONLARI ACIKCA ISTER. Jeton/secret yoksa OLCULEMEDI der ve KIRMIZI yanar
+  # — "yok, o zaman atla" SESSIZ YESIL uretirdi; bu deponun tekrar tekrar isirildigi
+  # desen tam olarak budur.
+  #
+  # 🔴 `deploy` isi buna BAGLANMADI (deploy: needs: build). Gerekce: jeton/secret
+  # baglanmadan bu is kirmizi yanar ve TUM EKIBIN yayinini durdururdu. Bagimlilik
+  # eklemek = MIMAR + OKAN karari (secret/yetki = Okan kapisi).
+  # ===========================================================================
+  hacim-tam-takim:
+    # 🔴 BUGUN YALNIZ ELLE TETIK. Gerekce OLCULDU (2 Agu, seed 689931, pristine main):
+    # `rampa` ailesinin `ust_yuzey=basamakli` kolu hacim.js ile PRUVO'nun kendi
+    # ureteci arasinda %15,4-%30,6 sapiyor — DEGISIKLIKTEN ONCE DE sapiyordu
+    # (uretim motoru kalibrasyon notu da "rampa(basamakli) SINIR DISI" diyor).
+    # Yani bu is BUGUN KIRMIZI yanar ve dogru olani yapar: gercek, onceden GIZLI
+    # kalmis bir kusuru gorunur kilar. Ama her push'ta kirmizi yanan bir kapi bu
+    # depoda olculmus bir bedele sahiptir (kapi birikmesi -> ilk toplu iste kapi
+    # devre disi birakilir). O yuzden once `rampa` basamakli kolu onarilir, SONRA
+    # bu satir kaldirilip is push'a baglanir. Sirali adim, susturma DEGIL:
+    # is akisinda DURUYOR, elle her an kosturulabilir ve kirmizisi gercektir.
+    # AYRICA: dogrula.py tohumu her kosumda RASTGELE -> "yesil" olasiliksaldir;
+    # rampa/yay tam bu yuzden haftalarca gorunmedi. Secenek KOLLARINI deterministik
+    # tarayan bir kapsam olcutu ayri istir (mimar tablosu).
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # On-kosul BEYANI — eksikse ERKEN ve GURULTULU dur (sessiz atlama YOK).
+      - name: "On-kosul: kardes depo jetonu + uretim paketi secret'i beyan edilmis mi"
+        env:
+          JEN_TOKEN: ${{ secrets.PRUVO_JENERATOR_TOKEN }}
+          PAKET_B64: ${{ secrets.ONIZLEME_PAKET_B64 }}
+        run: |
+          eksik=""
+          if [ -z "$JEN_TOKEN" ]; then eksik="$eksik PRUVO_JENERATOR_TOKEN"; fi
+          if [ -z "$PAKET_B64" ]; then eksik="$eksik ONIZLEME_PAKET_B64"; fi
+          if [ -n "$eksik" ]; then
+            echo "OLCULEMEDI (fail-closed KIRMIZI): eksik secret ->$eksik"
+            echo "Bu bir YESIL DEGILDIR: gercek TEST 1 hic kosmadi."
+            exit 1
+          fi
+          echo "on-kosullar tamam"
+
+      - name: "Kardes depo (PRUVO kendi ureteclerinin .scad kaynagi)"
+        uses: actions/checkout@v4
+        with:
+          repository: Pruvo138/pruvo-jenerator
+          token: ${{ secrets.PRUVO_JENERATOR_TOKEN }}
+          path: .pruvo-jenerator
+
+      - name: "Gizli uretim paketini geri ac (motor=uretim aileleri icin)"
+        env:
+          PAKET_B64: ${{ secrets.ONIZLEME_PAKET_B64 }}
+        run: |
+          printf '%s' "$PAKET_B64" | base64 -d > /tmp/paket.tar.gz
+          tar -xzf /tmp/paket.tar.gz -C onizleme/derleyici
+          test -f onizleme/derleyici/eslem-ozel.json || {
+            echo "OLCULEMEDI: paket acildi ama eslem-ozel.json yok"; exit 1; }
+
+      - name: "OpenSCAD (nightly AppImage + xvfb)"
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb fonts-dejavu fonts-liberation \
+            libegl1 libgl1 libglu1-mesa libopengl0
+          FN=$(curl -s https://files.openscad.org/snapshots/ \
+               | grep -oE 'OpenSCAD-[0-9.]+\.ai[0-9]+-x86_64\.AppImage' | sort -u | tail -1)
+          wget -q "https://files.openscad.org/snapshots/$FN" -O openscad.AppImage
+          chmod +x openscad.AppImage
+          ./openscad.AppImage --appimage-extract >/dev/null
+          printf '#!/bin/sh\nexec xvfb-run -a "%s/squashfs-root/AppRun" "$@"\n' "$PWD" \
+            > /usr/local/bin/openscad
+          chmod +x /usr/local/bin/openscad
+          openscad --version
+
+      # GERCEK TEST 1: her aile kendi BEYAN ETTIGI motora karsi olculur
+      # (esleme/<aile>.json "motor" alani). Beyan yoksa ya da beyan edilen motor
+      # bulunamazsa dogrula.py OLCULEMEDI der ve sifir-disi doner (fail-closed).
+      - name: "TEST 1 TAM KOSUM — hacim.js vs render (22 aile, motor beyanli)"
+        env:
+          PRUVO_SCAD_DIR: ${{ github.workspace }}/.pruvo-jenerator/jeneratorler
+        run: python3 jenerator/test/dogrula.py --hepsi --set 3
+
+      - name: "Jeneratör kabul takimi TAM KOSUM (8 test; TEST 1 + build.py dahil)"
+        env:
+          PRUVO_SCAD_DIR: ${{ github.workspace }}/.pruvo-jenerator/jeneratorler
+        run: python3 jenerator/test/kabul.py
+
   deploy:
     needs: build
     runs-on: ubuntu-latest

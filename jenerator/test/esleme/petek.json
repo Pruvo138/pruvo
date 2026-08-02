@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-petek-delikli-panel",
+  "motor": "uretim",
   "scad": "petek.scad",
   "fonksiyon": "petek",
   "esleme": {

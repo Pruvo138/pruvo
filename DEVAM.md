@@ -2,6 +2,52 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## MERGE — 3 Agu 2026 · Jeneratör hacim referans onarimi + 7 aile satisa acildi (`ae6679b9`, `c0e3a360`)
+
+- **Sira bagimli iki dal, bu sirayla alindi.** Dal 1 merge SHA **`ae6679b9`** (merge-base
+  `19e69afb`, kapsam **28 dosya / +309 -10**); dal 2 merge SHA **`c0e3a360`** (fast-forward,
+  kapsam **3 dosya / +75 -25**). Ikisinde de cakisma yok, sizinti taramasi 0 vurus, agac
+  temizligi 0 sapma / 0 yabanci. `urunler.json` ve `worker/` dokunulmadi.
+- **ONCE KIRMIZI YANDI, merge EDILMEDI — iki kusur da dalin kendisiydi (2x2 atif):**
+  `is-akisi-kapisi.py` ANA-MAIN **0** / dal1 **1** / dal2 0 · `yayin-ic-dil-kapisi.py --kaynak`
+  ANA-MAIN **0** / dal1 0 / dal2 **1**. Ikisi de bloklayici `build` isinde (`deploy: needs:
+  build`) — oldugu gibi merge edilseydi **tum ekibin yayini dururdu**.
+  Dal 1: yeni `hacim-tam-takim` isinin iki kolu serit B'de beyansizdi -> `SERIT_B` tablosuna
+  gerekceyle tek tek yazildi, taban sayaci **36 -> 38**; kapi gevsetilmedi (sayac disinda
+  degisen satir 0: **+27 -1**, silinen tek satir sayacin kendisi). Dal 2: kaynak yorumunda ic
+  alan adi vardi (depo PUBLIC, dosya tarayiciya gidiyor) -> yorum anlami korunarak yeniden
+  yazildi.
+- **PARA EKSENI — acilan aile 8 DEGIL 7.** `rulman` bilerek DISARIDA birakildi: hacim dogrulugu
+  yesil (%0,08) ama sema araligi dogrulamadan gecen bazi kombinasyonlar icin **uretilemez**
+  cikiyor; uretemedigimiz konfigurasyon satilabilir gorunmez (fail-closed). Acilanlar
+  (varsayilan -> azami, kurus): huni 17000->51000 · izgara 25000->74291 · kasnak 18000->54000 ·
+  kayis 15000->45000 · oring 10000->30000 · pervane 30000->90000 · petek 20000->60000. Hepsi
+  pozitif ve **3x taban tavaninin altinda**; main'de yedisi de `null` idi.
+- **13 eski ailede tutar farki KURUSU KURUSUNA SIFIR** (varsayilan ve azami, bagimsiz olculdu).
+  Kapali kalan uc aile (`rampa`, `rulman`, `vida`) hem varsayilanda hem azamide tutar uretmiyor.
+- **Kapi bataryasi `deploy.yml`den cikarilarak TAM kosuldu** (dalin kendi agacinda, ilk kirmizida
+  durmadan): dal 1 **155 yesil**, dal 2 birlesik **158 yesil**. Her ikisinde kalan 2 kirmizi
+  ANA-MAIN'de de ayni (`commit-mesaji-kapisi.py --ci`, `gecmis-geri-donus-kapisi.py --ci`,
+  rc=2 — yerelde itme ucu cozulemiyor), **delta sifir**. 2 olcum dis kaynak istedigi icin
+  **OLCULEMEDI** (OpenSCAD + kardes depo + gizli paket), 2 komut canliya yazdigi icin kosulmadi.
+- **`shop/test/kabul.js` delta: ANA-MAIN 28/28, dal 28/28 — fark 0.** (Muhendisin "27/28, 1
+  kirmizi main'de de var" beyani BAYAT cikti; o kirmizi artik yok.)
+- **Devralinan parite kirmizisi KAPANMIS:** `parite-test.js` rc=0, **1199/1199, 0 aciklanamayan**
+  (20 idi); `parite-ege.js` **845/845**. Buyumedi, sifirlandi.
+- **Merge sonrasi:** D1 uc eksen yesil (**16874 = 16874**, sema temiz, **16874** urun_hash
+  birebir). CI **SHA'yi ICEREN** kosumla kanitlandi (`--limit 1` kullanilmadi):
+  `ae6679b9` -> kosum 30769685120 birebir SUCCESS · `c0e3a360` -> kosum 30770624596 birebir
+  SUCCESS.
+- **CANLI dogrulama (canonical URL, `?cb=` YOK, edge `age=0`):** canli `secenekler.js` allowlist'i
+  **20 aile** — acilan 7'sinin hepsi VAR, `rampa`/`rulman`/`vida` YOK. Canli kod canli sayfadaki
+  gomulu semayla uctan uca kosturuldu: **huni 17000 · izgara 25000 · oring 10000 · pervane 30000 ·
+  kasnak 18000 kurus uretti; `rulman` canlida `null` (kapali).** 6 urun sayfasi HTTP 200.
+- **Kapsam disi iki bulgu (merge'i bloklamadi, delta sifir, ayri ise cikarildi):** `yay`
+  allowlist'te 0,07 beyanli ama olcumde **%3,96** sapiyor (limit %3 — canlida eksik tahsil);
+  `rulman` sema araligi kusuru. Ikisi de main'de ONCEDEN vardi.
+- Temizlik: iki worktree + iki yerel dal + iki uzak dal silindi; `durum.py` ikisini de
+  "0 ileri | ucu main'de" gosterdi. Baska oturumlarin worktree'lerine dokunulmadi.
+
 ## MERGE — 2 Agu 2026 · Yayin gecikme nobetcisi: yas tabani + kosum omru ekseni (`1d19ce96`)
 
 - **Merge SHA `1d19ce96`** (merge-base `17cdc675`). Kapsam **10 dosya / +1391 −475**:
