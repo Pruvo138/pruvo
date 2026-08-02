@@ -92,6 +92,25 @@ sys.path.insert(0, TOOLS)
 
 import build  # noqa: E402
 
+# --- YAYIN YUZEYI SARGISI (2 Agu 2026) --------------------------------------------
+# Sayfanin ORTAK CSS/JS'i artik sayfaya gomulu degil: icerik-adresli /varlik/<ad>-<hash>
+# dosyalarindan REFERANSLA geliyor. Bu kapi sayfanin <script>/<style> govdesinde kural
+# ariyor; ham HTML'i okursa aradigi kod TARAYICIYA INMEYE DEVAM ETTIGI HALDE metinde
+# bulunmaz ve kapi SESSIZCE yesile doner (olculen yuzey kucuulur). Bu yuzden render
+# ciktisi TEK KAYNAK tools/yayin_yuzey.py'den gecirilir: /varlik/ referanslari
+# icerikleriyle yerine konur, olculen metin tasima ONCESIYLE ayni kurallari tasir.
+import yayin_yuzey                                                       # noqa: E402
+_HAM_RENDER_PRODUCT = build.render_product
+
+
+def _yayin_yuzeyli_render_product(*a, **k):
+    return yayin_yuzey.govde(_HAM_RENDER_PRODUCT(*a, **k))
+
+
+build.render_product = _yayin_yuzeyli_render_product
+# ----------------------------------------------------------------------------------
+
+
 HATALAR = []        # KALICI iddia ihlali -> çıkış 1 (KIRMIZI)
 UYARILAR = []       # ölçüldü ama BLOKLAMAYAN bulgu (c4 ayrışması) -> çıkış kodunu etkilemez
 OLCULEMEDI = []     # ölçüm yapılamadı (referans yok / totoloji) -> çıkış 2 (--anahat ile 0)

@@ -241,8 +241,16 @@ def kayit(no, ad, gecti, detay=""):
 
 
 def sayfa(pid):
+    """URETILEN urun sayfasinin YAYIN YUZEYI (sayfa + referans ettigi /varlik/ dosyalari).
+
+    2 Agu 2026: ortak CSS/JS sayfaya gomulu olmaktan cikip icerik-adresli
+    /varlik/<ad>-<hash> dosyalarina tasindi. Ham index.html okunursa bu testin aradigi
+    kural (44x44 dokunma alani, renk butonu mantigi, canli WhatsApp mesaji ...) hala
+    TARAYICIYA INIYOR ama bu metinde bulunmaz -> olcum SESSIZCE korelir, test yalanci
+    yesil yanar. TEK KAYNAK sargi: tools/yayin_yuzey.py."""
+    import yayin_yuzey
     with open(os.path.join(ROOT, "urun", pid, "index.html"), encoding="utf-8") as f:
-        return f.read()
+        return yayin_yuzey.govde(f.read(), ROOT)
 
 
 def main():
@@ -264,6 +272,20 @@ def main():
     # TEK KAYNAK: build.FONKSIYONEL_KATEGORILER (elle kopya YOK -> drift olmaz).
     import importlib
     build = importlib.import_module("build")
+    # YAYIN YUZEYI SARGISI (2 Agu 2026): sayfanin ORTAK CSS/JS'i artik gomulu degil,
+    # icerik-adresli /varlik/<ad>-<hash> dosyalarindan REFERANSLA geliyor. Bu test
+    # sayfanin <style>/<script> govdesinde kural (44x44 dokunma alani, renk butonu
+    # mantigi ...) ariyor; ham HTML'i okursa aradigi kural TARAYICIYA INMEYE DEVAM
+    # ETTIGI HALDE metinde bulunmaz -> olcum SESSIZCE korelir. TEK KAYNAK sargi:
+    # tools/yayin_yuzey.py referanslari icerikleriyle yerine koyar.
+    if not getattr(build.render_product, "_yayin_yuzeyli", False):
+        yayin_yuzey = importlib.import_module("yayin_yuzey")
+        _ham = build.render_product
+
+        def _sarili(*a, **k):
+            return yayin_yuzey.govde(_ham(*a, **k))
+        _sarili._yayin_yuzeyli = True
+        build.render_product = _sarili
     FONK = set(build.FONKSIYONEL_KATEGORILER)
     # HAVUZ = TEST 2'nin ornekleme evreni; fiziksel (hazir ticari mal) kayit DISARIDA.
     # Eskiden duz `random.sample(urunler, 20)` idi ve katalogtaki 806 fiziksel urun yuzunden
@@ -427,7 +449,14 @@ def main():
     for f in site_fil:
         if ('data-malzeme="%s"' % html.escape(f["ad"], quote=True)) not in fs:
             h9.append("%s karti data-malzeme tasimıyor" % f["ad"])
-    for parca in ["var KART_SECIM = true;",
+    # KART-SECIM BAYRAGI (2 Agu 2026): paylasilan JS govdesi /varlik/urun-<hash>.js'e
+    # tasindi; sayfaya-ozel deger artik SAYFADAKI veri blogundan gelir
+    # (`var URUN_KART_SECIM = true;`) ve ortak govde onu okur
+    # (`var KART_SECIM = URUN_KART_SECIM;`). IKI CAPA da aranir: yalniz birine bakmak,
+    # bagin bir ucu koparsa (deger basiliyor ama okunmuyor / okunuyor ama basilmiyor)
+    # testi YESIL birakirdi.
+    for parca in ["var URUN_KART_SECIM = true;",
+                  "var KART_SECIM = URUN_KART_SECIM;",
                   'seciliMalzeme = this.getAttribute("data-malzeme")',
                   'classList.toggle("secili"']:
         if parca not in fs:

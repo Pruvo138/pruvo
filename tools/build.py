@@ -364,9 +364,13 @@ def _surumle_scriptler(html_metni):
     """HTML icindeki site-ici <script src="/...js"> referanslarina ?v=<icerik-hash>
     ekler. Zaten surumlu (?v= olan — regex .js'ten hemen sonra " bekler, eslesmez) ya da
     dosyasi bulunmayan (lokalde build'siz) referansa DOKUNMAZ.
-    Hash YAYINLANAN kopyadan (varsa _yayin/<rel>) hesaplanir."""
+    Hash YAYINLANAN kopyadan (varsa _yayin/<rel>) hesaplanir.
+    /varlik/ ALTINA DOKUNULMAZ: o dosyalarin ADI zaten icerik hash'idir (varlik_adres);
+    ustune ?v= yazmak ayni bayta IKINCI bir surum ekseni verirdi ([[ikiz-tanim-sessiz-ayrisma]])."""
     def _degistir(m):
         yol = m.group(2)                      # or. "/secenekler.js"
+        if yol.startswith(VARLIK_URL_ONEK):
+            return m.group(0)                 # icerik-adresli varlik — surumlenmez
         dosya = _yayin_yolu(yol.lstrip("/"))
         if not os.path.isfile(dosya):
             return m.group(0)
@@ -393,6 +397,101 @@ def yayin_html(html_metni):
 # Kardes moduller (marka_model_build / landing_hub_build) ctx'ten bu adla alir;
 # anahtar adi degismesin diye ESKI AD ayni govdeye baglanir (ikinci kopya YOK).
 surumle_scriptler = yayin_html
+
+
+# ------------------------------------------------------------------ VARLIK (icerik-adresli same-origin dosya)
+# NEDEN VAR (olculdu, 2 Agu): urun sayfasinin ~%86'si her sayfada BIREBIR ayni bayttı ve
+# bunun en buyugu gomulu CSS + gomulu urun JS'iydi. 16.874 urunde brut tekrar ~0,87 GB;
+# toplam yayin ~1,03 GB ve GitHub Pages siniri ~1 GB — sinira dayanmistik. Cozum: tekrar
+# eden bloklari sayfaya GOMMEK yerine KENDI ALANIMIZDA bir dosyaya yazip referansla cagirmak.
+# ⚠️ HARICI HOST / CDN / KUTUPHANE YOK — dosyalar /varlik/ altinda, ayni origin'de; disaridan
+# hicbir sey cekilmez (CLAUDE.md'nin CDN yasagi kendi statik varligimiza uygulanmaz).
+#
+# 🔴 AD ICERIKTEN TURER (sha256 ilk 10) — bu depoda olculmus hata sinifi: ayni anahtarin
+# UZERINE YAZMAK bayat dosyanin CDN'den servis edilmesine yol acti ([[r2-sessiz-uzerine-yazma]],
+# [[gorsel-anahtar-cakismasi]]). Icerik degismezse ad AYNI kalir (gereksiz cache-miss yok);
+# bir bayt degisirse ad DEGISIR (bayat CSS/JS servis edilmesi imkansiz).
+VARLIK_DIR_ADI = "varlik"
+VARLIK_DIR = os.path.join(ROOT, VARLIK_DIR_ADI)
+VARLIK_URL_ONEK = "/" + VARLIK_DIR_ADI + "/"
+VARLIK_HASH_UZUNLUK = 10
+# icerik -> url onbellegi: ayni blok 16.874 kez uretilse de dosya BIR kez yazilir.
+_VARLIK_ONBELLEK = {}
+
+
+def varlik_hash(icerik):
+    """Yayina inen BAYTLARDAN turetilen kisa ad. TEK KAYNAK: ad da, dosya da bu
+    dizeden turer -> sayfadaki referans ile dosya adinin ayrisma yolu YOKTUR."""
+    return hashlib.sha256(icerik.encode("utf-8")).hexdigest()[:VARLIK_HASH_UZUNLUK]
+
+
+def varlik_adres(onek, uzanti, icerik):
+    """<icerik>'i /varlik/<onek>-<hash>.<uzanti> dosyasina yazar ve URL'ini doner.
+
+    Yorumlar BURADA soyulur (yayin_html gomulu bloklarda ne yapiyorsa aynisi, AYNI
+    lexer'dan) -> dosyanin bayti = tarayiciya inen bayt = kapinin olctugu bayt.
+    FAIL-CLOSED: bos icerik, yazilamayan dizin ya da geri-okumada bayt farki => build DURUR.
+    Sessizce ciplak (stil/JS'siz) sayfa URETILMEZ."""
+    if uzanti == "css":
+        govde = yorum_soy.css_soy(icerik)
+    elif uzanti == "js":
+        govde = yorum_soy.js_soy(icerik)
+    else:
+        raise RuntimeError("varlik_adres: bilinmeyen uzanti %r" % uzanti)
+    if not govde.strip():
+        raise RuntimeError("varlik_adres: BOS varlik govdesi (%s.%s) — sayfa ciplak kalirdi"
+                           % (onek, uzanti))
+    ad = "%s-%s.%s" % (onek, varlik_hash(govde), uzanti)
+    url = VARLIK_URL_ONEK + ad
+    if _VARLIK_ONBELLEK.get(ad) == url and os.path.isfile(os.path.join(VARLIK_DIR, ad)):
+        return url
+    try:
+        if not os.path.isdir(VARLIK_DIR):
+            os.makedirs(VARLIK_DIR)
+        hedef = os.path.join(VARLIK_DIR, ad)
+        with open(hedef, "w", encoding="utf-8") as f:
+            f.write(govde)
+        with open(hedef, encoding="utf-8") as f:
+            geri = f.read()
+    except OSError as e:
+        raise RuntimeError("varlik_adres: %s yazilamadi (%s) — build DURDU" % (ad, e))
+    if geri != govde:
+        raise RuntimeError("varlik_adres: %s geri-okumada AYRISTI — build DURDU" % ad)
+    _VARLIK_ONBELLEK[ad] = url
+    return url
+
+
+# Kritik cekirdek CSS ile harici dosya TEK KAYNAKTAN (PAGE_CSS) calisma aninda BOLUNUR.
+# 🔴 IKINCI METIN BLOGU TUTULMAZ: elle yazilan bir "cekirdek" kopyasi ikiz tanimdir ve
+# sessizce ayrisir ([[ikiz-tanim-sessiz-ayrisma]]) — kaynagi bozan bir mutant IKI ciktiyi
+# da degistirmek ZORUNDA. Sinir isareti kaynaktan kaybolursa build DURUR (fail-closed).
+# ISARET KENDI SATIRINDA ve girintisiz durur; iki parcadan da DISLANIR -> cekirdek+kalan,
+# isaretin eklenmesinden ONCEKI CSS ile BAYT-ESITTIR (kabul testi eksen 2 bunu olcer).
+KRITIK_CSS_SINIRI = "/* === KRITIK CEKIRDEK SONU === */\n"
+
+
+def css_bol(css):
+    """(satir_ici_cekirdek, harici_kalan) — ikisi de KAYNAGIN DILIMI, kopyasi DEGIL."""
+    i = css.find(KRITIK_CSS_SINIRI)
+    if i < 0:
+        raise RuntimeError("PAGE_CSS'te kritik cekirdek siniri YOK -> bolme yapilamaz "
+                           "(fail-closed; ikiz cekirdek yazmak YASAK)")
+    return css[:i], css[i + len(KRITIK_CSS_SINIRI):]
+
+
+def stil_bloklari(ek_css=""):
+    """Sayfanin <head>'ine giren stil yuzeyi: kritik cekirdek SATIR-ICI + gerisi HARICI.
+
+    Cekirdek ilk boyamayi (renk degiskenleri, reset, body, header) tasir; geri kalan
+    PAGE_CSS icerik-adresli /varlik/sayfa-<hash>.css dosyasindan gelir. `ek_css` (marka /
+    landing hub gibi sayfa turune ozel kurallar) AYRI bir varliga yazilir ki taban dosya
+    TUM sayfa turlerinde AYNI kalsin — ikinci kopya uretilmez (spec 2. bolum)."""
+    cekirdek, kalan = css_bol(PAGE_CSS)
+    parcalar = ["<style>" + cekirdek + "</style>",
+                '<link rel="stylesheet" href="%s">' % varlik_adres("sayfa", "css", kalan)]
+    if ek_css:
+        parcalar.append('<link rel="stylesheet" href="%s">' % varlik_adres("ek", "css", ek_css))
+    return "\n".join(parcalar)
 
 
 def _marka_cip_enjekte(html_metni, chip_links, slug_map):
@@ -1215,6 +1314,7 @@ PAGE_CSS = """
     white-space:nowrap}
   .top-back:hover{color:#fff}
 
+/* === KRITIK CEKIRDEK SONU === */
   .help-cta{background:var(--gray-card);border-bottom:1px solid var(--gray-line);box-shadow:var(--shadow);
     position:sticky;top:0;z-index:100}
   .help-cta-inner{max-width:1100px;margin:0 auto;padding:16px 20px;display:flex;align-items:center;
@@ -1792,6 +1892,271 @@ def filament_html(p, wa_not=False, kartlar_gizli=False):
 
 
 # ------------------------------------------------------------------ ürün sayfası
+# ------------------------------------------------------------------ urun sayfasi PAYLASILAN JS
+# Bu govde HER urun sayfasinda BIREBIR aynidir -> sayfaya gomulmez, icerik-adresli
+# /varlik/urun-<hash>.js dosyasina yazilir ve referansla cagirilir (varlik_adres).
+# URUNE OZEL VERI sayfada satir-ici kalir: URUN / URUN_SEMA / URUN_KART_SECIM /
+# URUN_KONFIGUR. Bu dosya klasik (async/defer'siz) script'tir; sayfadaki veri blogu
+# ONUNDE durur -> tarayici sirayi korur, degisken tanimli olur.
+# Kanca alanlari ({konf_*} / {onizleme_js}) yalniz ilgili sayfa turunde DOLU olur; dolu
+# ve bos govde AYRI icerik = AYRI hash = AYRI dosya (davranis bire bir korunur).
+URUN_JS_SABLONU = u"""(function(){{
+  var topBtn=document.getElementById("topBtn");
+  window.addEventListener("scroll",function(){{
+    topBtn.classList.toggle("show", window.scrollY > 600);
+  }},{{passive:true}});
+  topBtn.onclick=function(){{ window.scrollTo({{top:0, behavior:"smooth"}}); }};
+}})();
+function pv(el,src){{
+  document.getElementById('mainImg').src=src;
+  var t=document.querySelectorAll('.thumb');
+  for(var i=0;i<t.length;i++){{t[i].className='thumb';}}
+  el.className='thumb active';
+}}
+/* Sepet: bu ürünü index.html ile ortak localStorage sepetine (secenekler.js: PRUVO_SECENEK) ekle/çıkar.
+   Malzeme/renk/boy seçiliyse (opsiyonlar bloğu varsa) seçilen TAM konfigürasyon bileşik anahtarla
+   toggle edilir; farklı bir konfigürasyonla eklenmiş başka bir satıra dokunulmaz. */
+(function(){{
+  var btn=document.getElementById("cartBtn"); if(!btn){{ return; }}
+  var id=URUN.id;
+  var label=btn.querySelector(".cart-label");
+  var fab=document.getElementById("cartFab");
+  var count=document.getElementById("cartCount");
+  var orderAlt=document.getElementById("orderAlt");
+  var malzemeSec=document.getElementById("malzemeSec");
+  var renkSec=document.getElementById("renkSec");
+  var renkOzel=document.getElementById("renkOzel");
+  var boySec=document.getElementById("boySec");
+  var adetSec=document.getElementById("adetSec");
+  var adetEksi=document.getElementById("adetEksi");
+  var adetArti=document.getElementById("adetArti");
+  var fiyatEl=document.getElementById("opsiyonFiyat");
+  /* Ustu cizili eski fiyat (opsiyonel `eski_fiyat`). Sayfada YOKSA null -> hicbir sey olmaz. */
+  var eskiEl=document.getElementById("eskiFiyat");
+  /* Kart-secim modu (işletme kararı, 16 Tem): fonksiyonel ürünlerde malzeme dropdown YOK,
+     malzeme KARTLARINDAN seçilir. Önden seçili malzeme YOK -> seciliMalzeme boş başlar. */
+  var KART_SECIM = URUN_KART_SECIM;
+  var cipler = document.getElementById("filCipler");
+  var renkBtnlar = document.getElementById("renkButonlar");
+  var seciliMalzeme = "";
+  var seciliRenk = "";
+
+  function currentSatir(){{
+    var s = PRUVO_SECENEK.bosSatir(id);
+    if(malzemeSec){{ s.malzeme = malzemeSec.value; }}
+    else if(KART_SECIM){{ s.malzeme = seciliMalzeme; }}
+    if(renkSec){{
+      s.renk = renkSec.value;
+      s.renk_ozel = (renkSec.value === "Diğer" && renkOzel) ? renkOzel.value : "";
+    }} else if(KART_SECIM){{
+      s.renk = seciliRenk;
+      s.renk_ozel = (seciliRenk === "Diğer" && renkOzel)
+        ? renkOzel.value.trim().slice(0, 30) : "";
+    }}
+    if(boySec){{ s.boy_etiket = boySec.value || null; }}
+    if(adetSec){{ s.adet = PRUVO_SECENEK.adetDuzelt(adetSec.value); }}
+    /* Parametrik urun: konfigurator parametreleri + hacim + (taban fiyat varsa) kurusu satira
+       yazar. Adet YUKARIDA set edildi -> parametrik satirda da gecerli. */
+    if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{ PRUVO_KONF.satiraYaz(s); }}{konf_satir_hook}
+    return s;
+  }}
+  /* Adet kutusu: aralik disi deger (elle yazilan 0/500) secenekler.js kuralina cekilir —
+     Worker da AYNI araligi dogrular, aralik disi istegi reddeder. */
+  function adetYaz(v){{
+    if(!adetSec){{ return; }}
+    adetSec.value = PRUVO_SECENEK.adetDuzelt(v);
+    render();
+  }}
+  /* Eksik seçim grubunu titret + kırmızıya çevir (geçici). Konteyner (malzeme kartları /
+     renk butonları) -> cocuk cerceveleri kirmizi; metin kutusu -> kendisi. Saf CSS/JS. */
+  function titret(el){{
+    if(!el){{ return; }}
+    var kutu = el.classList.contains("renk-ozel");
+    el.classList.remove("titre", "hata-vurgu", "hata");
+    void el.offsetWidth;                           // animasyonu yeniden başlat (reflow)
+    el.classList.add("titre", kutu ? "hata" : "hata-vurgu");
+    setTimeout(function(){{ el.classList.remove("titre", "hata-vurgu", "hata"); }}, 500);
+  }}
+  function render(){{
+    var c = PRUVO_SECENEK.sepetYukle();
+    var satir = currentSatir();
+    var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
+    var has = c.some(function(s){{ return PRUVO_SECENEK.satirAnahtari(s) === anahtar; }});
+    btn.classList.toggle("added", has);
+    if(label){{ label.textContent = has ? "Sepette ✓" : "Sepete Ekle"; }}
+    else {{
+      /* İkon buton (yazısız, madde 7): durum bildirimi title + aria-label ile. */
+      var bm = has ? "Sepette ✓ — çıkarmak için tıklayın" : "Sepete Ekle";
+      btn.setAttribute("aria-label", bm); btn.setAttribute("title", bm);
+    }}
+    if(count){{ count.textContent = c.length; }}
+    if(fab){{ fab.style.display = c.length ? "inline-flex" : "none"; }}
+    /* yukarı-çık oku FAB'la çakışmasın (CSS: body.fab-var .top-btn) */
+    document.body.classList.toggle("fab-var", c.length > 0);
+    var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
+    /* ESKI FIYAT NOBETI (yalniz GOSTERIM — sepet/odeme kurusuna DOKUNMAZ): ustu cizili
+       fiyat, secilen malzeme/renk BIRIM fiyatini eski fiyatin ustune cikardigi anda
+       GIZLENIR. Aksi halde 1.200 TL cizili dururken 1.275 TL tahsil edilir gorunurdu —
+       yaniltici indirim (sessiz ticari/hukuki hata). Kiyas BIRIM kurusla yapilir (adet
+       carpani iki tarafta da yok). ozet.birimKurus null ise (fiyatsiz urun) gizlenir. */
+    if(eskiEl){{
+      var _eskiKurus = parseInt(eskiEl.getAttribute("data-kurus") || "0", 10);
+      eskiEl.hidden = !(_eskiKurus > 0 && ozet.birimKurus != null
+                        && _eskiKurus > ozet.birimKurus);
+    }}
+    /* Konfigüratörlü sayfada fiyat alanını konfigüratör yönetir (kuruşlu canlı hesap,
+       taban fiyat yoksa "—"); geçersiz ölçüde sepete ekleme kilitlenir. */
+    if(fiyatEl && !URUN_SEMA{konf_fiyat_kosul}){{
+      /* Kart-secim: malzeme+renk seçilene kadar fiyat taban (PLA) "…'den başlayan";
+         ikisi de seçilince kesin katsayılı/renkli fiyat gösterilir. */
+      if(KART_SECIM && (!seciliMalzeme || !seciliRenk) && ozet.birimKurus != null){{
+        fiyatEl.textContent = ozet.fiyatMetni + "'den başlayan";
+      }} else {{
+        fiyatEl.textContent = ozet.fiyatMetni;
+      }}
+    }}
+    if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{
+      PRUVO_KONF.tazele();
+      var gecerli = PRUVO_KONF.gecerliMi();
+      btn.disabled = !gecerli;
+      btn.classList.toggle("kilitli", !gecerli);
+    }}{konf_render_hook}
+    if(orderAlt){{
+      var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + URUN.baslik +
+                  (ozet.detay ? ("\\n" + ozet.detay) : "") + "\\n" + location.href;
+      var ref = (typeof window.pruvoRef === "function") ? window.pruvoRef() : "";
+      if(ref){{ mesaj += "\\n" + ref; }}
+      orderAlt.href = "https://wa.me/{whatsapp}?text=" + encodeURIComponent(mesaj);
+    }}
+  }}
+  btn.addEventListener("click", function(){{{konf_klik_guard}
+    /* Malzeme + renk seçilmeden sepete eklenemez (istemci 1. savunma; Worker 2. savunma).
+       "Diğer" renkte serbest metin kutusu da dolu olmalı. Eksik olan grup(lar) titrer. */
+    if(KART_SECIM){{
+      var eksikM = !seciliMalzeme;
+      var eksikR = !seciliRenk;
+      var eksikO = seciliRenk === "Diğer" && renkOzel && !renkOzel.value.trim();
+      if(eksikM || eksikR || eksikO){{
+        if(eksikM){{ titret(cipler); }}
+        if(eksikR){{ titret(renkBtnlar); }}
+        if(eksikO){{ titret(renkOzel); }}
+        var hedef = eksikM ? cipler : (eksikR ? renkBtnlar : renkOzel);
+        if(hedef){{
+          try {{ hedef.scrollIntoView({{ behavior:"smooth", block:"center" }}); }} catch(e) {{}}
+          var od = eksikO ? renkOzel
+            : (hedef.querySelector ? hedef.querySelector(".fil-cip,.renk-btn") : null);
+          if(od){{ od.focus(); }}
+        }}
+        return;
+      }}
+    }}
+    var c = PRUVO_SECENEK.sepetYukle();
+    var satir = currentSatir();
+    var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
+    var i=-1;
+    for(var j=0;j<c.length;j++){{ if(PRUVO_SECENEK.satirAnahtari(c[j])===anahtar){{ i=j; break; }} }}
+    if(i===-1){{
+      c.push(satir);
+      /* AddToCart (rıza-kapılı): yalnız gerçek EKLEMEDE (toggle-çıkarmada değil). value = seçilen
+         konfigürasyonun kuruşlu tutarı TRY'ye; content_ids DAİMA katalog kimliği URUN.fid
+         (=feed_id(pid), feed g:id ile tek kaynak), content_type "product". */
+      try {{
+        var mAtc = PRUVO_SECENEK.satirOzeti(URUN, satir);
+        var mAtcVeri = {{ content_ids:[URUN.fid], content_type:"product", currency:"TRY" }};
+        if(mAtc && mAtc.kurus != null){{ mAtcVeri.value = mAtc.kurus/100; }}
+        if(typeof window.pruvoMetaTrack === "function"){{ window.pruvoMetaTrack("AddToCart", mAtcVeri); }}
+      }} catch(e) {{}}
+    }} else {{ c.splice(i,1); }}
+    PRUVO_SECENEK.sepetKaydet(c); render();
+  }});
+  /* Malzeme kartlarını malzeme seçicisine çevir (yalnız kart-secim modu). Tıklanan kart
+     seçili (lacivert dolgu) olur, ötekiler bırakılır; fiyat + sepet durumu tazelenir.
+     Bilgi balonunu ayrı IIFE (aşağıda) yönetir — burada yalnız SEÇİM. */
+  if(KART_SECIM && cipler){{
+    var kartlar = cipler.querySelectorAll(".fil-cip");
+    for(var k=0;k<kartlar.length;k++){{
+      kartlar[k].addEventListener("click", function(){{
+        seciliMalzeme = this.getAttribute("data-malzeme") || "";
+        for(var n=0;n<kartlar.length;n++){{ kartlar[n].classList.toggle("secili", kartlar[n]===this); }}
+        render();
+      }});
+    }}
+  }}
+  /* Renk butonları: tıklanan seçili (lacivert dolgu), ötekiler bırakılır. "Diğer" seçilince
+     serbest metin kutusu belirir (müşteri istediği rengi yazar). */
+  if(KART_SECIM && renkBtnlar){{
+    var rbtnlar = renkBtnlar.querySelectorAll(".renk-btn");
+    for(var rr=0;rr<rbtnlar.length;rr++){{
+      rbtnlar[rr].addEventListener("click", function(){{
+        seciliRenk = this.getAttribute("data-renk") || "";
+        for(var n=0;n<rbtnlar.length;n++){{ rbtnlar[n].classList.toggle("secili", rbtnlar[n]===this); }}
+        if(renkOzel){{ renkOzel.style.display = (seciliRenk === "Diğer") ? "block" : "none"; }}
+        render();
+      }});
+    }}
+  }}
+  [malzemeSec, renkSec, boySec].forEach(function(el){{
+    if(!el){{ return; }}
+    el.addEventListener("change", function(){{
+      if(renkSec && renkOzel){{ renkOzel.style.display = renkSec.value === "Diğer" ? "inline-block" : "none"; }}
+      render();
+    }});
+  }});
+  if(renkOzel){{ renkOzel.addEventListener("input", render); }}
+  if(URUN_SEMA && window.PRUVO_KONF && window.PRUVO_HACIM){{
+    /* F kalemi: sari sayfa da kart-secim — konfiguratorun fiyat gostergesi
+       secili kart/cipten beslenir (dropdown yok; tek kaynak secenekler.js kurali). */
+    if(KART_SECIM && PRUVO_KONF.secimKaynagi){{
+      PRUVO_KONF.secimKaynagi(function(){{ return {{ malzeme: seciliMalzeme, renk: seciliRenk }}; }});
+    }}
+    PRUVO_KONF.kur(URUN_SEMA, document.getElementById("konfAlanlar"), render);
+  }}{konf_kur_hook}
+  if(adetEksi){{ adetEksi.addEventListener("click", function(){{ adetYaz((adetSec.value|0)-1); }}); }}
+  if(adetArti){{ adetArti.addEventListener("click", function(){{ adetYaz((adetSec.value|0)+1); }}); }}
+  if(adetSec){{
+    /* Bu urun/konfigurasyon SEPETTEYSE adet degisikligi sepete de islenir: kullanici
+       "Sepette ✓" gorurken adeti 3 yapip sepette 1 kalmasi sasirtici olurdu. */
+    adetSec.addEventListener("change", function(){{
+      var yeni = PRUVO_SECENEK.adetDuzelt(adetSec.value);
+      adetSec.value = yeni;
+      var c = PRUVO_SECENEK.sepetYukle();
+      var anahtar = PRUVO_SECENEK.satirAnahtari(currentSatir());
+      var degisti = false;
+      for(var j=0;j<c.length;j++){{
+        if(PRUVO_SECENEK.satirAnahtari(c[j])===anahtar){{ c[j].adet = yeni; degisti = true; }}
+      }}
+      if(degisti){{ PRUVO_SECENEK.sepetKaydet(c); }}
+      render();
+    }});
+    adetSec.addEventListener("input", render);
+  }}
+  render();
+}})();
+/* Malzeme çipleri: masaüstünde hover (CSS), mobilde DOKUNMA ile açılır/kapanır.
+   title= mobilde çalışmadığı için balon .acik sınıfıyla toggle edilir; başka çipe
+   dokununca öncekiler kapanır, sayfada boş yere dokununca hepsi kapanır. */
+(function(){{
+  var cips=document.querySelectorAll(".fil-cip");
+  function kapat(haric){{
+    for(var i=0;i<cips.length;i++){{
+      if(cips[i]!==haric){{ cips[i].classList.remove("acik"); cips[i].setAttribute("aria-expanded","false"); }}
+    }}
+  }}
+  for(var i=0;i<cips.length;i++){{
+    cips[i].addEventListener("click",function(e){{
+      e.stopPropagation();
+      var acildi=this.classList.toggle("acik");
+      this.setAttribute("aria-expanded",acildi?"true":"false");
+      kapat(this);
+    }});
+  }}
+  document.addEventListener("click",function(){{ kapat(null); }});
+}})();
+{onizleme_js}
+"""
+
+
+
 def render_product(p, all_products, chip_map=None):
     pid = p["id"]
     url = product_url(pid)
@@ -2328,6 +2693,19 @@ def render_product(p, all_products, chip_map=None):
         konf_kur_hook = ("\n  if(URUN_KONFIGUR && window.PRUVO_KONFIGUR){ "
                          "PRUVO_KONFIGUR.kur(URUN_KONFIGUR, URUN, render); }")
 
+    # PAYLASILAN JS: sayfaya gomulmez, icerik-adresli /varlik/urun-<hash>.js olur.
+    # Kancalar burada (build zamani) doldurulur -> uretilen govde bugunkuyle BIREBIR ayni
+    # baytlardir; yalniz sayfanin ICINDEN cikip kendi dosyasina tasinmistir.
+    urun_js_url = varlik_adres("urun", "js", URUN_JS_SABLONU.format(
+        konf_satir_hook=konf_satir_hook,
+        konf_fiyat_kosul=konf_fiyat_kosul,
+        konf_render_hook=konf_render_hook,
+        konf_klik_guard=konf_klik_guard,
+        konf_kur_hook=konf_kur_hook,
+        onizleme_js=onizleme_js,
+        whatsapp=WHATSAPP,
+    ))
+
     doc = u"""<!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -2352,7 +2730,7 @@ def render_product(p, all_products, chip_map=None):
 <meta name="twitter:description" content="{desc}">
 {tw_image_meta}<script type="application/ld+json">{product_ld}</script>
 <script type="application/ld+json">{breadcrumb_ld}</script>
-<style>{css}</style>
+{stil}
 </head>
 <body>
 <header>
@@ -2417,268 +2795,15 @@ def render_product(p, all_products, chip_map=None):
 <button id="topBtn" class="top-btn" aria-label="Yukarı çık">
   <svg viewBox="0 0 24 24"><path d="M12 4.6 4.6 12l1.8 1.8 4.3-4.3V20h2.6V9.5l4.3 4.3 1.8-1.8z"/></svg>
 </button>
-<script>
-(function(){{
-  var topBtn=document.getElementById("topBtn");
-  window.addEventListener("scroll",function(){{
-    topBtn.classList.toggle("show", window.scrollY > 600);
-  }},{{passive:true}});
-  topBtn.onclick=function(){{ window.scrollTo({{top:0, behavior:"smooth"}}); }};
-}})();
-</script>
 
 <script src="/secenekler.js"></script>
 {konf_scripts}
 <script>
-function pv(el,src){{
-  document.getElementById('mainImg').src=src;
-  var t=document.querySelectorAll('.thumb');
-  for(var i=0;i<t.length;i++){{t[i].className='thumb';}}
-  el.className='thumb active';
-}}
 var URUN = {urun_json};
-var URUN_SEMA = {sema_json};{konfigur_tanim}
-/* Sepet: bu ürünü index.html ile ortak localStorage sepetine (secenekler.js: PRUVO_SECENEK) ekle/çıkar.
-   Malzeme/renk/boy seçiliyse (opsiyonlar bloğu varsa) seçilen TAM konfigürasyon bileşik anahtarla
-   toggle edilir; farklı bir konfigürasyonla eklenmiş başka bir satıra dokunulmaz. */
-(function(){{
-  var btn=document.getElementById("cartBtn"); if(!btn){{ return; }}
-  var id=URUN.id;
-  var label=btn.querySelector(".cart-label");
-  var fab=document.getElementById("cartFab");
-  var count=document.getElementById("cartCount");
-  var orderAlt=document.getElementById("orderAlt");
-  var malzemeSec=document.getElementById("malzemeSec");
-  var renkSec=document.getElementById("renkSec");
-  var renkOzel=document.getElementById("renkOzel");
-  var boySec=document.getElementById("boySec");
-  var adetSec=document.getElementById("adetSec");
-  var adetEksi=document.getElementById("adetEksi");
-  var adetArti=document.getElementById("adetArti");
-  var fiyatEl=document.getElementById("opsiyonFiyat");
-  /* Ustu cizili eski fiyat (opsiyonel `eski_fiyat`). Sayfada YOKSA null -> hicbir sey olmaz. */
-  var eskiEl=document.getElementById("eskiFiyat");
-  /* Kart-secim modu (işletme kararı, 16 Tem): fonksiyonel ürünlerde malzeme dropdown YOK,
-     malzeme KARTLARINDAN seçilir. Önden seçili malzeme YOK -> seciliMalzeme boş başlar. */
-  var KART_SECIM = {kart_secim};
-  var cipler = document.getElementById("filCipler");
-  var renkBtnlar = document.getElementById("renkButonlar");
-  var seciliMalzeme = "";
-  var seciliRenk = "";
-
-  function currentSatir(){{
-    var s = PRUVO_SECENEK.bosSatir(id);
-    if(malzemeSec){{ s.malzeme = malzemeSec.value; }}
-    else if(KART_SECIM){{ s.malzeme = seciliMalzeme; }}
-    if(renkSec){{
-      s.renk = renkSec.value;
-      s.renk_ozel = (renkSec.value === "Diğer" && renkOzel) ? renkOzel.value : "";
-    }} else if(KART_SECIM){{
-      s.renk = seciliRenk;
-      s.renk_ozel = (seciliRenk === "Diğer" && renkOzel)
-        ? renkOzel.value.trim().slice(0, 30) : "";
-    }}
-    if(boySec){{ s.boy_etiket = boySec.value || null; }}
-    if(adetSec){{ s.adet = PRUVO_SECENEK.adetDuzelt(adetSec.value); }}
-    /* Parametrik urun: konfigurator parametreleri + hacim + (taban fiyat varsa) kurusu satira
-       yazar. Adet YUKARIDA set edildi -> parametrik satirda da gecerli. */
-    if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{ PRUVO_KONF.satiraYaz(s); }}{konf_satir_hook}
-    return s;
-  }}
-  /* Adet kutusu: aralik disi deger (elle yazilan 0/500) secenekler.js kuralina cekilir —
-     Worker da AYNI araligi dogrular, aralik disi istegi reddeder. */
-  function adetYaz(v){{
-    if(!adetSec){{ return; }}
-    adetSec.value = PRUVO_SECENEK.adetDuzelt(v);
-    render();
-  }}
-  /* Eksik seçim grubunu titret + kırmızıya çevir (geçici). Konteyner (malzeme kartları /
-     renk butonları) -> cocuk cerceveleri kirmizi; metin kutusu -> kendisi. Saf CSS/JS. */
-  function titret(el){{
-    if(!el){{ return; }}
-    var kutu = el.classList.contains("renk-ozel");
-    el.classList.remove("titre", "hata-vurgu", "hata");
-    void el.offsetWidth;                           // animasyonu yeniden başlat (reflow)
-    el.classList.add("titre", kutu ? "hata" : "hata-vurgu");
-    setTimeout(function(){{ el.classList.remove("titre", "hata-vurgu", "hata"); }}, 500);
-  }}
-  function render(){{
-    var c = PRUVO_SECENEK.sepetYukle();
-    var satir = currentSatir();
-    var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
-    var has = c.some(function(s){{ return PRUVO_SECENEK.satirAnahtari(s) === anahtar; }});
-    btn.classList.toggle("added", has);
-    if(label){{ label.textContent = has ? "Sepette ✓" : "Sepete Ekle"; }}
-    else {{
-      /* İkon buton (yazısız, madde 7): durum bildirimi title + aria-label ile. */
-      var bm = has ? "Sepette ✓ — çıkarmak için tıklayın" : "Sepete Ekle";
-      btn.setAttribute("aria-label", bm); btn.setAttribute("title", bm);
-    }}
-    if(count){{ count.textContent = c.length; }}
-    if(fab){{ fab.style.display = c.length ? "inline-flex" : "none"; }}
-    /* yukarı-çık oku FAB'la çakışmasın (CSS: body.fab-var .top-btn) */
-    document.body.classList.toggle("fab-var", c.length > 0);
-    var ozet = PRUVO_SECENEK.satirOzeti(URUN, satir);
-    /* ESKI FIYAT NOBETI (yalniz GOSTERIM — sepet/odeme kurusuna DOKUNMAZ): ustu cizili
-       fiyat, secilen malzeme/renk BIRIM fiyatini eski fiyatin ustune cikardigi anda
-       GIZLENIR. Aksi halde 1.200 TL cizili dururken 1.275 TL tahsil edilir gorunurdu —
-       yaniltici indirim (sessiz ticari/hukuki hata). Kiyas BIRIM kurusla yapilir (adet
-       carpani iki tarafta da yok). ozet.birimKurus null ise (fiyatsiz urun) gizlenir. */
-    if(eskiEl){{
-      var _eskiKurus = parseInt(eskiEl.getAttribute("data-kurus") || "0", 10);
-      eskiEl.hidden = !(_eskiKurus > 0 && ozet.birimKurus != null
-                        && _eskiKurus > ozet.birimKurus);
-    }}
-    /* Konfigüratörlü sayfada fiyat alanını konfigüratör yönetir (kuruşlu canlı hesap,
-       taban fiyat yoksa "—"); geçersiz ölçüde sepete ekleme kilitlenir. */
-    if(fiyatEl && !URUN_SEMA{konf_fiyat_kosul}){{
-      /* Kart-secim: malzeme+renk seçilene kadar fiyat taban (PLA) "…'den başlayan";
-         ikisi de seçilince kesin katsayılı/renkli fiyat gösterilir. */
-      if(KART_SECIM && (!seciliMalzeme || !seciliRenk) && ozet.birimKurus != null){{
-        fiyatEl.textContent = ozet.fiyatMetni + "'den başlayan";
-      }} else {{
-        fiyatEl.textContent = ozet.fiyatMetni;
-      }}
-    }}
-    if(URUN_SEMA && window.PRUVO_KONF && PRUVO_KONF.hazir()){{
-      PRUVO_KONF.tazele();
-      var gecerli = PRUVO_KONF.gecerliMi();
-      btn.disabled = !gecerli;
-      btn.classList.toggle("kilitli", !gecerli);
-    }}{konf_render_hook}
-    if(orderAlt){{
-      var mesaj = "Merhaba, şu ürünle ilgileniyorum: " + URUN.baslik +
-                  (ozet.detay ? ("\\n" + ozet.detay) : "") + "\\n" + location.href;
-      var ref = (typeof window.pruvoRef === "function") ? window.pruvoRef() : "";
-      if(ref){{ mesaj += "\\n" + ref; }}
-      orderAlt.href = "https://wa.me/{whatsapp}?text=" + encodeURIComponent(mesaj);
-    }}
-  }}
-  btn.addEventListener("click", function(){{{konf_klik_guard}
-    /* Malzeme + renk seçilmeden sepete eklenemez (istemci 1. savunma; Worker 2. savunma).
-       "Diğer" renkte serbest metin kutusu da dolu olmalı. Eksik olan grup(lar) titrer. */
-    if(KART_SECIM){{
-      var eksikM = !seciliMalzeme;
-      var eksikR = !seciliRenk;
-      var eksikO = seciliRenk === "Diğer" && renkOzel && !renkOzel.value.trim();
-      if(eksikM || eksikR || eksikO){{
-        if(eksikM){{ titret(cipler); }}
-        if(eksikR){{ titret(renkBtnlar); }}
-        if(eksikO){{ titret(renkOzel); }}
-        var hedef = eksikM ? cipler : (eksikR ? renkBtnlar : renkOzel);
-        if(hedef){{
-          try {{ hedef.scrollIntoView({{ behavior:"smooth", block:"center" }}); }} catch(e) {{}}
-          var od = eksikO ? renkOzel
-            : (hedef.querySelector ? hedef.querySelector(".fil-cip,.renk-btn") : null);
-          if(od){{ od.focus(); }}
-        }}
-        return;
-      }}
-    }}
-    var c = PRUVO_SECENEK.sepetYukle();
-    var satir = currentSatir();
-    var anahtar = PRUVO_SECENEK.satirAnahtari(satir);
-    var i=-1;
-    for(var j=0;j<c.length;j++){{ if(PRUVO_SECENEK.satirAnahtari(c[j])===anahtar){{ i=j; break; }} }}
-    if(i===-1){{
-      c.push(satir);
-      /* AddToCart (rıza-kapılı): yalnız gerçek EKLEMEDE (toggle-çıkarmada değil). value = seçilen
-         konfigürasyonun kuruşlu tutarı TRY'ye; content_ids DAİMA katalog kimliği URUN.fid
-         (=feed_id(pid), feed g:id ile tek kaynak), content_type "product". */
-      try {{
-        var mAtc = PRUVO_SECENEK.satirOzeti(URUN, satir);
-        var mAtcVeri = {{ content_ids:[URUN.fid], content_type:"product", currency:"TRY" }};
-        if(mAtc && mAtc.kurus != null){{ mAtcVeri.value = mAtc.kurus/100; }}
-        if(typeof window.pruvoMetaTrack === "function"){{ window.pruvoMetaTrack("AddToCart", mAtcVeri); }}
-      }} catch(e) {{}}
-    }} else {{ c.splice(i,1); }}
-    PRUVO_SECENEK.sepetKaydet(c); render();
-  }});
-  /* Malzeme kartlarını malzeme seçicisine çevir (yalnız kart-secim modu). Tıklanan kart
-     seçili (lacivert dolgu) olur, ötekiler bırakılır; fiyat + sepet durumu tazelenir.
-     Bilgi balonunu ayrı IIFE (aşağıda) yönetir — burada yalnız SEÇİM. */
-  if(KART_SECIM && cipler){{
-    var kartlar = cipler.querySelectorAll(".fil-cip");
-    for(var k=0;k<kartlar.length;k++){{
-      kartlar[k].addEventListener("click", function(){{
-        seciliMalzeme = this.getAttribute("data-malzeme") || "";
-        for(var n=0;n<kartlar.length;n++){{ kartlar[n].classList.toggle("secili", kartlar[n]===this); }}
-        render();
-      }});
-    }}
-  }}
-  /* Renk butonları: tıklanan seçili (lacivert dolgu), ötekiler bırakılır. "Diğer" seçilince
-     serbest metin kutusu belirir (müşteri istediği rengi yazar). */
-  if(KART_SECIM && renkBtnlar){{
-    var rbtnlar = renkBtnlar.querySelectorAll(".renk-btn");
-    for(var rr=0;rr<rbtnlar.length;rr++){{
-      rbtnlar[rr].addEventListener("click", function(){{
-        seciliRenk = this.getAttribute("data-renk") || "";
-        for(var n=0;n<rbtnlar.length;n++){{ rbtnlar[n].classList.toggle("secili", rbtnlar[n]===this); }}
-        if(renkOzel){{ renkOzel.style.display = (seciliRenk === "Diğer") ? "block" : "none"; }}
-        render();
-      }});
-    }}
-  }}
-  [malzemeSec, renkSec, boySec].forEach(function(el){{
-    if(!el){{ return; }}
-    el.addEventListener("change", function(){{
-      if(renkSec && renkOzel){{ renkOzel.style.display = renkSec.value === "Diğer" ? "inline-block" : "none"; }}
-      render();
-    }});
-  }});
-  if(renkOzel){{ renkOzel.addEventListener("input", render); }}
-  if(URUN_SEMA && window.PRUVO_KONF && window.PRUVO_HACIM){{
-    /* F kalemi: sari sayfa da kart-secim — konfiguratorun fiyat gostergesi
-       secili kart/cipten beslenir (dropdown yok; tek kaynak secenekler.js kurali). */
-    if(KART_SECIM && PRUVO_KONF.secimKaynagi){{
-      PRUVO_KONF.secimKaynagi(function(){{ return {{ malzeme: seciliMalzeme, renk: seciliRenk }}; }});
-    }}
-    PRUVO_KONF.kur(URUN_SEMA, document.getElementById("konfAlanlar"), render);
-  }}{konf_kur_hook}
-  if(adetEksi){{ adetEksi.addEventListener("click", function(){{ adetYaz((adetSec.value|0)-1); }}); }}
-  if(adetArti){{ adetArti.addEventListener("click", function(){{ adetYaz((adetSec.value|0)+1); }}); }}
-  if(adetSec){{
-    /* Bu urun/konfigurasyon SEPETTEYSE adet degisikligi sepete de islenir: kullanici
-       "Sepette ✓" gorurken adeti 3 yapip sepette 1 kalmasi sasirtici olurdu. */
-    adetSec.addEventListener("change", function(){{
-      var yeni = PRUVO_SECENEK.adetDuzelt(adetSec.value);
-      adetSec.value = yeni;
-      var c = PRUVO_SECENEK.sepetYukle();
-      var anahtar = PRUVO_SECENEK.satirAnahtari(currentSatir());
-      var degisti = false;
-      for(var j=0;j<c.length;j++){{
-        if(PRUVO_SECENEK.satirAnahtari(c[j])===anahtar){{ c[j].adet = yeni; degisti = true; }}
-      }}
-      if(degisti){{ PRUVO_SECENEK.sepetKaydet(c); }}
-      render();
-    }});
-    adetSec.addEventListener("input", render);
-  }}
-  render();
-}})();
-/* Malzeme çipleri: masaüstünde hover (CSS), mobilde DOKUNMA ile açılır/kapanır.
-   title= mobilde çalışmadığı için balon .acik sınıfıyla toggle edilir; başka çipe
-   dokununca öncekiler kapanır, sayfada boş yere dokununca hepsi kapanır. */
-(function(){{
-  var cips=document.querySelectorAll(".fil-cip");
-  function kapat(haric){{
-    for(var i=0;i<cips.length;i++){{
-      if(cips[i]!==haric){{ cips[i].classList.remove("acik"); cips[i].setAttribute("aria-expanded","false"); }}
-    }}
-  }}
-  for(var i=0;i<cips.length;i++){{
-    cips[i].addEventListener("click",function(e){{
-      e.stopPropagation();
-      var acildi=this.classList.toggle("acik");
-      this.setAttribute("aria-expanded",acildi?"true":"false");
-      kapat(this);
-    }});
-  }}
-  document.addEventListener("click",function(){{ kapat(null); }});
-}})();
-{onizleme_js}
+var URUN_SEMA = {sema_json};
+var URUN_KART_SECIM = {kart_secim};{konfigur_tanim}
 </script>
+<script src="{urun_js}"></script>
 {meta_view_content}
 {ga_banner}
 </body>
@@ -2701,7 +2826,7 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
                        if paylasim_gorseli else ""),
         product_ld=ld(product_ld),
         breadcrumb_ld=ld(breadcrumb_ld),
-        css=PAGE_CSS,
+        stil=stil_bloklari(),
         katq=esc(kategori_url(kategori)),
         kategori=esc(kategori),
         altkat=altkat_html,
@@ -2735,16 +2860,13 @@ var URUN_SEMA = {sema_json};{konfigur_tanim}
         urun_json=urun_json,
         sema_json=sema_json,
         konfigur_tanim=konfigur_tanim,
-        konf_satir_hook=konf_satir_hook,
-        konf_fiyat_kosul=konf_fiyat_kosul,
-        konf_render_hook=konf_render_hook,
-        konf_klik_guard=konf_klik_guard,
-        konf_kur_hook=konf_kur_hook,
+        # konf_* kancalari + onizleme_js + whatsapp ARTIK SAYFADA DEGIL: paylasilan
+        # JS govdesindeler (URUN_JS_SABLONU, yukarida doldurulur). Burada tekrar
+        # verilmezler ki "hangi metin nerede uretiliyor" tek yerde kalsin.
         kart_secim=("true" if kart_secim else "false"),
+        urun_js=urun_js_url,
         eylem_butonlar=eylem_butonlar_html,
         konf_scripts=konf_scripts,
-        onizleme_js=onizleme_js,
-        whatsapp=WHATSAPP,
         ga_head=GA_HEAD_SNIPPET,
         meta_head=META_HEAD_SNIPPET,
         meta_view_content=meta_view_content,
@@ -2779,7 +2901,7 @@ def render_content_page(slug, title, meta, body_html):
 <meta property="og:title" content="{ogtitle}">
 <meta property="og:description" content="{desc}">
 <meta property="og:url" content="{url}">
-<style>{css}</style>
+{stil}
 </head>
 <body>
 <header>
@@ -2811,7 +2933,7 @@ def render_content_page(slug, title, meta, body_html):
         ogtitle=esc(title),
         url=esc(url),
         favicon=FAVICON,
-        css=PAGE_CSS,
+        stil=stil_bloklari(),
         body=body_html,
         foot_nav=FOOT_NAV_HTML,
         pay_band=PAY_BAND_HTML,
@@ -3125,7 +3247,10 @@ def marka_model_ctx():
         "ROOT": ROOT, "SITE": SITE, "TODAY": TODAY,
         "esc": esc, "surumle_scriptler": surumle_scriptler,
         "product_url": product_url, "FAVICON": FAVICON,
-        "PAGE_CSS": PAGE_CSS, "FOOT_NAV_HTML": FOOT_NAV_HTML,
+        # PAGE_CSS ham metni HALA verilir (kardes modul kendi kurallarini onun uzerine
+        # yaziyor olabilir); stil YUZEYI ise TEK KAYNAK stil_bloklari'ndan gelir.
+        "PAGE_CSS": PAGE_CSS, "stil_bloklari": stil_bloklari,
+        "varlik_adres": varlik_adres, "FOOT_NAV_HTML": FOOT_NAV_HTML,
         "PAY_BAND_HTML": PAY_BAND_HTML, "PV_SCRIPT_HTML": PV_SCRIPT_HTML,
         "GA_HEAD_SNIPPET": GA_HEAD_SNIPPET, "META_HEAD_SNIPPET": META_HEAD_SNIPPET,
         "attribution_head_snippet": attribution_head_snippet,
@@ -3208,6 +3333,13 @@ def main():
     # deploy BAYAT dosya yayınlar (sessiz hata).
     if os.path.isdir(os.path.join(ROOT, YAYIN_DIR)):
         shutil.rmtree(os.path.join(ROOT, YAYIN_DIR))
+    # VARLIK DIZINI ayni gerekce: kaynaktan kalkan bir blok varlik/ icinde kalirsa deploy
+    # BAYAT dosya yayinlar. Icerik-adresli oldugu icin bayat dosyaya artik referans veren
+    # yoktur ama yayina girip yer kaplar; her kosumda sifirdan uretilir.
+    if os.path.isdir(VARLIK_DIR):
+        shutil.rmtree(VARLIK_DIR)
+    _VARLIK_ONBELLEK.clear()
+    os.makedirs(VARLIK_DIR, exist_ok=True)
     for _rel in SOYULACAK_JS:
         if yayin_js_yaz(_rel) is None:
             print("HATA: yayin JS varligi bulunamadi -> %s "
@@ -3301,6 +3433,20 @@ def main():
 
     # .nojekyll  (GitHub Pages tüm dosyaları olduğu gibi sunsun)
     open(os.path.join(ROOT, ".nojekyll"), "w").close()
+
+    # VARLIK FAIL-CLOSED: bir sayfa uretildiyse en az bir CSS + bir JS varligi yazilmis
+    # OLMALI. Bos varlik dizini = sayfalar ciplak (stilsiz/JS'siz) yayinlanmis demektir;
+    # bu SESSIZ hata olmasin diye build burada DURUR.
+    _varliklar = sorted(os.listdir(VARLIK_DIR)) if os.path.isdir(VARLIK_DIR) else []
+    _v_css = [a for a in _varliklar if a.endswith(".css")]
+    _v_js = [a for a in _varliklar if a.endswith(".js")]
+    if products and not (_v_css and _v_js):
+        print("HATA: varlik/ eksik (css=%d js=%d) -> sayfalar CIPLAK kalirdi; yayin DURDU."
+              % (len(_v_css), len(_v_js)))
+        sys.exit(1)
+    _v_bayt = sum(os.path.getsize(os.path.join(VARLIK_DIR, a)) for a in _varliklar)
+    print("varlik/: %d dosya (%d css + %d js), %d bayt"
+          % (len(_varliklar), len(_v_css), len(_v_js), _v_bayt))
 
     print("OK: %d urun sayfasi + sitemap.xml + robots.txt + merchant-feed.xml (%d urun) uretildi."
           % (len(products), feed_n))
