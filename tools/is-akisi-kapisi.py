@@ -2159,6 +2159,14 @@ SERIT_B = {
     ("deploy.yml", "serit-b", "jenerator/test/kabul.py"):
         "YALNIZ `--kendini-test` kolu — TEST HARNESS'ININ KENDI testi (sahte KIRMIZI / "
         "OLCULEMEDI / silinen test); yayinlanan icerige bakmaz.",
+    ("deploy.yml", "serit-b", "jenerator/test/yay-tarama.py"):
+        "YALNIZ `--kendini-test` kolu — TARAMA SURUCUSUNUN KENDI testi (izgara "
+        "kapsami: enum/uc nokta kaybi · hukum: olculemeyen nokta ya da sifir olculen "
+        "set YESIL sayilamaz · bayat render onbellegi). Kardesleri dogrula.py/kabul.py "
+        "ile AYNI band: yayinlanan icerige BAKMAZ, kirmizi yanmasi 'yanlis icerik "
+        "canliya cikti' demek degildir. Bayraksiz (GERCEK olcum) kol CI'ya BAGLANAMAZ: "
+        "810 OpenSCAD renderi + kardes depodaki uretim modeli ister; yerelde ve merge "
+        "kapisinda kosulur.",
     ("deploy.yml", "serit-b", "onizleme/test/eslem-olcum.py"):
         "YALNIZ `--kendini-test` kolu; onizleme ayri dagitim hedefi (imaj).",
     ("deploy.yml", "serit-b", "onizleme/test/iki-govde-olcum.py"):

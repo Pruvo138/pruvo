@@ -434,11 +434,24 @@
      ekleme YASAK; ölçüm CI'da koşmuyor (geometri motoru + kardeş depodaki model ister),
      o yüzden bu liste ÖLÇÜM BEYANIDIR ve dayanağı yukarıdaki tarihtir.
      Kapı: hacim güveni kabul testi. */
+  /* ⚠️ 2026-08-03 — RASTGELE TOHUM KÖRLÜĞÜ (ölçülmüş, `yay` vakası): aşağıdaki
+     sayıların dayanağı olan aile doğrulama çekirdeği her koşumda RASTGELE tohum
+     kullanır. Yeşil bir koşum "BU TOHUMDA kırmızı yok" demektir, "aile temiz"
+     DEMEZ. `yay` bu listeye 0.07 beyanıyla girmişti; deterministik ızgara
+     taraması (810 nokta, aile tarama sürücüsü) aynı ailenin üçgen
+     kolunda %3.80, testere kolunda %1.19 sapma ölçtü — yani beyan edilen sayı
+     ailenin EN KÖTÜSÜ değil, o tohumun gördüğü noktaydı. Aşağıdaki `yay` değeri
+     artık deterministik taramanın en kötüsüdür. DİĞER AİLELER AYNI KÖRLÜKTEDİR:
+     onlar için de deterministik tarama koşulmadan sayıları "en kötü" saymayın. */
   var HACIM_DOGRULANMIS_AILELER = {
     // aile: ölçülen en kötü hacim sapması (%) — 2026-07-31, seed 4242, 3 rastgele set + varsayılan
     adaptor: 0.00, braket: 0.27, cerceve: 0.00, cetvel: 0.11, disli: 0.24,
     jeton: 0.01, kase: 0.09, kavanoz: 0.03, konektor: 0.55, kutu: 0.00,
-    profil: 0.01, toka: 0.01, yay: 0.07
+    profil: 0.01, toka: 0.01,
+    // yay: 2026-08-03, DETERMİNİSTİK ızgara (810 nokta: 2 tip × 5 dalga formu ×
+    // her sayısal parametrenin min/orta/max'ı), gerçek geometri render'ına karşı
+    // en kötü %0.824 (dalga/sinüs, dalga_boyu=40) → yukarı yuvarlanmış:
+    yay: 0.83
   };
 
   /* Aile hacim doğrulamasından geçti mi? Anahtar `sema.hacimFormulu`.

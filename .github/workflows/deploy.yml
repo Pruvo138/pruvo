@@ -1825,6 +1825,21 @@ jobs:
       - name: "Jeneratör tarama kumesi + suite butunlugu nobetcisi — kendini test (sahte KIRMIZI + OLCULEMEDI + silinen test)"
         run: python3 jenerator/test/kabul.py --kendini-test
 
+      # YAY TARAMA SURUCUSU (3 Agu). NEDEN VAR: dogrula.py her kosumda RASTGELE tohum
+      # kullanir; yesil bir kosum "BU TOHUMDA kirmizi yok" demektir, "aile temiz" DEMEZ.
+      # yay ailesinin ucgen kolundaki hacim sapmasi (fiyat ekseni: hacim EKSIK tahmin
+      # edilince musteriden EKSIK tahsil edilir) tam bu yuzden haftalarca gorunmedi.
+      # yay-tarama.py rastgele set KULLANMAZ: semadan turetilen kural tabanli izgarayi
+      # (tum enum degerleri x her sayisal parametrenin min/orta/max'i) bastan sona tarar.
+      # 🔴 YALNIZ `--kendini-test` KOLU BAGLANDI — bayraksiz tam tarama 810 OpenSCAD
+      # renderi ister (CI'da OpenSCAD ve kardes depodaki model YOK; dogrula.py ile ayni
+      # gerekce). Bu kol sentetik semayla surucunun KENDI izgara + hukum mantigini olcer:
+      # izgaranin enum degeri ya da uc nokta kaybetmesi (kor tarama) ve fail-open hukum
+      # (olculemeyen nokta / sifir olculen set YESIL sayilmasi) KIRMIZI yanar.
+      # Offline: ag YOK, OpenSCAD YOK, node YOK, dosya YAZMAZ. ~0,1 s.
+      - name: "Yay tarama surucusu — kendini test (19 iddia; izgara kapsami + fail-closed hukum + bayat onbellek)"
+        run: python3 jenerator/test/yay-tarama.py --kendini-test
+
       # 31 Tem: eslem-olcum.py TAM kolu CI'da kosamaz (gizli `eslem-ozel.json` paketi
       # + openscad ister) ve tam bu yuzden HUKUM mantigi hic olculmuyordu. OLCULDU:
       # `uretilemez` (422) sayaci hukme girmiyordu -> TUM setleri 422'ye dusen aile

@@ -7,91 +7,108 @@ function yay_dalga_degeri(form, faz, genlik) {
   return genlik * (f < 0.5 ? 1 : -1);
 }
 
-function yay_dalga_yolu(form, boy) {
-  // Uretim motorunun orneklemesi birebir: 240 ornek, faz kaymasi 0.125
-  // (eslem sabiti Phase — ornekler dalga gecislerinin tam ustune dusmesin diye;
-  // 0'da kalirsa uc nokta sin(1440°) yuvarlama gurultusune duser ve boy'a gore
-  // fazladan bir sicrama olusur/olusmazdi). Form ofsetleri motorla ayni:
-  // ucgen +0.25, testere +0.5.
-  var genlik = 10;
-  var cevrim = 4;
-  var ornek = 240;
-  var ofset = 0.125 + (form === "ucgen" ? 0.25 : form === "testere" ? 0.5 : 0);
-  var ham = [];
-  var i;
-  for (i = 0; i <= ornek; i++) {
-    ham.push([i * (boy / ornek),
-      yay_dalga_degeri(form, cevrim * i / ornek + ofset, genlik)]);
-  }
+// KOD KAYNAGI: kalibrasyon kaynagindaki ayni aile fonksiyonu. Kod govdesi (yorum
+// disi her satir) BAYT-OZDES tutulur; kalibrasyon senkron testi ayrismayi DAVRANIS
+// ekseninde olcer. Yorumlar farklidir: yayin ic-dil kapisi bu dosyada ic yol/arac
+// adi tasinmasina izin vermez. Yorumlardaki sayilar BU depoda olculmustur.
+// 3 Agu 2026 — IKIZ TANIM AYRISMASI: kalibrasyon kaynagi bu modeli tasirken bu
+// depodaki kopya eski (240 ornekli, faz kaymali, bandi duz kabul eden) surumde
+// kalmisti; kalibrasyon senkron testinin aile listesinde `yay` YOKTU, yani
+// ayrisma hicbir kapiyi yakmiyordu. Duzeltmeyle birlikte `yay` o listeye eklendi.
 
-  // Dogrusal ara noktalari birlestir (kose sayimi icin sart).
-  var yol = [ham[0]];
-  for (i = 1; i < ham.length; i++) {
-    var q = ham[i];
-    if (yol.length >= 2) {
-      var a = yol[yol.length - 2];
-      var b = yol[yol.length - 1];
-      if (Math.abs((b[0] - a[0]) * (q[1] - a[1]) -
-                   (b[1] - a[1]) * (q[0] - a[0])) < 1e-9) {
-        yol[yol.length - 1] = q;
-        continue;
-      }
-    }
-    yol.push(q);
-  }
-
-  // <0.7 mm araliktaki ic nokta cifti tek koseye iner: ucgen tepesindeki
-  // orneklem duzlugu iki yakin 76°'lik kose yapar, bindirme kaybi tek keskin
-  // kose gibi davranir — tek apekse indirmek kayip modelini dogru kurar.
-  var sade = [yol[0]];
-  i = 1;
-  while (i < yol.length - 1) {
-    if (i + 1 < yol.length - 1 &&
-        Math.hypot(yol[i + 1][0] - yol[i][0], yol[i + 1][1] - yol[i][1]) < 0.7) {
-      sade.push([(yol[i][0] + yol[i + 1][0]) / 2,
-                 (yol[i][1] + yol[i + 1][1]) / 2]);
-      i += 2;
-    } else {
-      sade.push(yol[i]);
-      i += 1;
-    }
-  }
-  sade.push(yol[yol.length - 1]);
-  return sade;
+// Uretim geometrisi seridi 16 kenarli DUZGUN COKGEN ile suprur, cember ile DEGIL.
+// Bir segmentin suprudugu bandin genisligi cokgenin o dogrultudaki destek
+// genisligidir:
+// 2r*cos(delta), delta = dogrultunun en yakin kose acisina uzakligi (0..11.25 derece).
+// Yataya/dikeye paralel segmentte tam 2r, 11.25 derecede en dar (2r*0.98079).
+// (Tepelerin 22,5° katlarinda oldugu render ile olculdu: yatay stadyumun alani
+// L*2r + A16'ya, 11,25°'lik stadyumunki L*1,96157r'ye birebir oturuyor.)
+function yay_16gen_genislik(aci, r, dilim) {
+  var d = ((aci % dilim) + dilim) % dilim;
+  return 2 * r * Math.cos(Math.min(d, dilim - d));
 }
 
+// Dalga govdesi: N segmentlik poligon zinciri; her segment iki komsu ornekteki
+// 16-genin disbukey ortusu (hull); hepsinin BIRLESIMI dogrusal supurulur.
+//
+// Alan = SUM(kol_boyu * kol_genisligi) + A16 - SUM_kose(fazla_ortusme)
+//
+//   A16            : 16-gen alani — iki uctaki yarim baslik bir tam 16-gen eder.
+//   fazla_ortusme  : komsu iki hull, paylastiklari 16-gen'in OTESINDE de ortusur.
+//                    Iki kolun bandi (yari genislik a ve b) alfa ic acisiyla
+//                    kesisir; kesisim bolgesi bir UCURTMA'dir, alani
+//                    ((a+b)/2)^2 * cot(alfa/2). Bundan zaten sayilan 16-gen
+//                    diliminin (A16 * sapma / 2pi) dususu gerekir.
+//
+// ORNEKLEME URETIM GEOMETRISIYLE BIREBIR: N = max(cevrim*40, 40), faz = cevrim*i/N.
+// FAZ KAYMASI YOKTUR — bu depodaki eski surum 240 ornek + 0.125/0.25/0.5 ofset
+// kullaniyordu; o ornekleme hicbir uretim yolunda YOK ve ucgen tepesini iki ornek
+// ARASINA dusurup yolu kisaltiyordu (hacim eksik tahmin -> eksik tahsilat).
+//
+// OLCULDU (aile tarama surucusu, 810 noktalik deterministik sema izgarasi,
+// 3 Agu 2026; gercek geometri olcumune karsi dal basina EN KOTU sapma, %):
+//   ONCE  ucgen 3.800 · testere 1.192 · sinus 0.907 · kare 0.419 · darbe 0.419 · spiral 0.066
+//   SONRA ucgen 0.004 · testere 0.002 · sinus 0.824 · kare 0.001 · darbe 0.001 · spiral 0.066
+// Kalan sinus sapmasi (en kotu dalga_boyu=40'ta) MODELIN BILINEN SINIRIDIR: dik
+// sinus tepesinde egrilik yaricapi serit yari kalinligindan kucuk dusuyor,
+// komsu-OLMAYAN segmentler de ortusuyor; ardisik-cift bindirme modeli o fazlaligi
+// dusmedigi icin hacim bir miktar FAZLA tahmin ediliyor.
 function yay_dalga_hacmi(p) {
-  // Serit = yolun stroke'u (genislik 2, uclar duz, eklemler yuvarlak).
-  // Alan = kalinlik x yol boyu − kose bindirme kayiplari:
-  // her donus acisi θ icin kayip (t²/4)(tan(θ/2) − θ/2) (miter kesisimi
-  // eksi yuvarlak eklem yelpazesi). Motor renderlarina karsi olculdu:
-  // kare/darbe/testere ≤%0.02, sinus ≤%0.6, ucgen ≤%1.7 (tum boy araligi).
+  var genlik = 10;
+  var cevrim = 4;
   var seritKalinligi = 2;
   var seritYuksekligi = 8;
-  var yol = yay_dalga_yolu(p.dalga_formu, p.dalga_boyu);
-  var uzunluk = 0;
-  var kayip = 0;
-  for (var i = 1; i < yol.length; i++) {
-    uzunluk += Math.hypot(yol[i][0] - yol[i - 1][0], yol[i][1] - yol[i - 1][1]);
-    if (i < yol.length - 1) {
-      var v1x = yol[i][0] - yol[i - 1][0];
-      var v1y = yol[i][1] - yol[i - 1][1];
-      var v2x = yol[i + 1][0] - yol[i][0];
-      var v2y = yol[i + 1][1] - yol[i][1];
-      var n1 = Math.hypot(v1x, v1y);
-      var n2 = Math.hypot(v2x, v2y);
-      if (n1 > 1e-12 && n2 > 1e-12) {
-        var c = Math.max(-1, Math.min(1, (v1x * v2x + v1y * v2y) / (n1 * n2)));
-        var donus = Math.acos(c);
-        if (donus > 1e-9) {
-          kayip += (seritKalinligi * seritKalinligi / 4) *
-            (Math.tan(donus / 2) - donus / 2);
-        }
-      }
+  var parcaSayisi = Math.max(cevrim * 40, 40); // uretim: N = max(cevrim*40, 40)
+  var kenarSayisi = 16;                        // uretim: 16 kenarli kesit
+  var r = seritKalinligi / 2;
+  var dilim = 2 * Math.PI / kenarSayisi;
+  var a16 = 0.5 * kenarSayisi * r * r * Math.sin(dilim);
+
+  var dx = p.dalga_boyu / parcaSayisi;
+  var alan = a16;
+  // Ardisik DOGRUDAS segmentler tek "kol"da toplanir: kose duzeltmesi yalniz
+  // gercek geometrik koselere uygulanmali (ucgen/kare/testere dalgasinin duz
+  // kenari 20 alt-segmente bolunmustur; her birine kose saymak yanlis olur).
+  var kolAci = [], kolBoy = [], kolGenislik = [];
+  var onceki = yay_dalga_degeri(p.dalga_formu, 0, genlik);
+
+  for (var i = 1; i <= parcaSayisi; i++) {
+    var simdiki = yay_dalga_degeri(p.dalga_formu, cevrim * i / parcaSayisi, genlik);
+    var dy = simdiki - onceki;
+    onceki = simdiki;
+    var boy = Math.sqrt(dx * dx + dy * dy);
+    var aci = Math.atan2(dy, dx);
+    var w = yay_16gen_genislik(aci + Math.PI / 2, r, dilim);
+    alan += boy * w;
+    var n = kolAci.length;
+    if (n > 0 && Math.abs(aci - kolAci[n - 1]) < 1e-9) {
+      kolBoy[n - 1] += boy;
+    } else {
+      kolAci.push(aci);
+      kolBoy.push(boy);
+      kolGenislik.push(w);
     }
   }
-  var kesitAlani = seritKalinligi * uzunluk - kayip;
-  return kesitAlani * seritYuksekligi;
+
+  for (var k = 1; k < kolAci.length; k++) {
+    var sap = kolAci[k] - kolAci[k - 1];
+    while (sap > Math.PI) sap -= 2 * Math.PI;
+    while (sap < -Math.PI) sap += 2 * Math.PI;
+    var sapma = Math.abs(sap);
+    if (sapma < 1e-9) continue;
+    var alfa = Math.PI - sapma;                       // iki kol arasi ic aci
+    var abar = (kolGenislik[k - 1] + kolGenislik[k]) / 4;
+    var ucurtma = alfa > 1e-9 ? abar * abar / Math.tan(alfa / 2) : Infinity;
+    // KILIT: alfa -> 0 (tam katlanma) cot'u patlatir. Ortusme hicbir zaman kisa
+    // komsu kolun KENDI bant alanini asamaz — bu geometrik ust siniri dayat.
+    // Uretimde erisilmez (en sivri hal ucgen+dalga_boyu=40 -> alfa 0.49 rad,
+    // ucurtma 4.0 mm2, tavan 41.2 mm2); yine de NaN/negatif hacim uretilemesin.
+    var tavan = 2 * abar * Math.min(kolBoy[k - 1], kolBoy[k]);
+    if (!(ucurtma <= tavan)) ucurtma = tavan;
+    alan -= ucurtma - a16 * sapma / (2 * Math.PI);
+  }
+
+  return Math.max(alan, a16) * seritYuksekligi;
 }
 
 function yay(p) {
