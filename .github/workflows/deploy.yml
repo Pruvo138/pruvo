@@ -763,6 +763,32 @@ jobs:
       - name: "Uyum kapisi (kapali marka sozlugu + sema + ikiz tanim + enjeksiyon)"
         run: python3 tools/uyum-kapisi.py
 
+      # UYUM YAZMA YOLU (tools/duzelt.py). Yukaridaki adim `uyum`un SOZLUGUNU ve KATALOG
+      # eksenini korur; bu adim o veriyi kataloga YAZAN tek mesru yolu korur — ikisi AYRI
+      # eksendir. Alan duzelt.py'nin izinli kumesinde OLMADIGI icin 13.040 temiz kayit
+      # mesru yoldan yazilamiyordu (ilk parti rc=2 aldi, atomik dogrulama sayesinde
+      # HICBIR SEY yazilmadi). Yol acildi ve dort sessiz-hata sinifi kilitlendi:
+      #   TURETIM  `marka` ELLE YAZILMAZ, `uyum`dan arama.marka_uyumdan_turet() ile AYNI
+      #            islemde turetilir ve guard izin manifestine de o deger gider (aksi halde
+      #            guard turetimi HEAD'e geri alir, turetim sessizce ETKISIZ kalirdi).
+      #            🔴 SESSIZ SINIF: `marka` haystack uzerinden ARAMA METNIDIR — yanlis
+      #            turetilen bir deger hicbir kirmizi yakmadan arama sonucunu dusurur.
+      #   IKI KAYNAK Ayni cagrida hem `uyum` hem `marka` verilmesi REDDEDILIR; hangisinin
+      #            kazandigi kod SIRASINA kalamaz.
+      #   ATOMIK   Yazimdan HEMEN ONCE, YAZIM SONRASI durumda, yalniz DOKUNULAN kayitlar
+      #            arama.uyum_sebebi()'nden gecer; 1500'luk partideki TEK kirli kayit tum
+      #            partiyi dusurur ve urunler.json byte-esit kalir. Kapsam bilerek dardir:
+      #            katalog geneli eksen tools/uyum-kapisi.py'de KALICI.
+      #   KOD AYRIMI gorsel-koken 4 / altkategori 5 / ticari hal 6 / uyum 7 — cagiran
+      #            (parti betigi) hangi kapinin reddettigini yalnizca cikis kodundan
+      #            ayirt edebilir.
+      # GERCEK duzelt.py sentetik repolarda SUREC olarak kosturulur (gercek cikis kodlari,
+      # gercek disk sha256'si). OFFLINE: ag/D1/wrangler YOK, gercek urunler.json'a
+      # DOKUNULMAZ. Curutme (12 kirmizi-beklentili + 4 kontrol, 8/8 tek-kirmizi eksen) elle:
+      #   python3 tools/duzelt-uyum-mutasyon.py
+      - name: "Uyum yazma yolu (duzelt.py: turetim + iki kaynak + atomiklik + kod ayrimi)"
+        run: python3 tools/duzelt-uyum-test.py
+
       # ALT KATEGORI MUSTERI YUZEYI. Yukaridaki kapi alanin VERI/D1 yolunu korur; bu adim
       # o verinin MUSTERIYE GORUNEN yuzunu korur — ikisi AYRI eksendir, veri yolu yesilken
       # yuzey sessizce yok olabilir (1 Agu'a kadar OYLEYDI: 935 dolu kayit, gorunur yuzey 0).

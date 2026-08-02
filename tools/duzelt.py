@@ -56,6 +56,19 @@ Ornek — muafiyet beyanini ve sinifi birlikte geri al:
   python3 tools/duzelt.py <id> --alan-sil gorselsiz --alan-sil tur \
       --gerekce "yanlis siniflandirilmisti; ozel uretim"
 
+UYUM KAPISI (`uyum` = urunun NEYE UYDUGU; hem tek-urun hem --toplu kipte, cikis kodu 7):
+`uyum` alani bu araca acildi (MaCiT'in backfill partileri mesru yoldan yazilabilsin diye).
+Alan `marka` ile AYNI gercegi anlatir ve ikisi SESSIZCE ayrisabilir; bu yuzden:
+  * `marka` ELLE YAZILMAZ, `uyum`dan TURETILIR — turetimi arama.marka_uyumdan_turet()
+    yapar ve duzelt.py onu AYNI islemde (ayni kilit, ayni yazim) kendisi yazar.
+  * Ayni cagrida hem `uyum` hem `marka` verilmesi REDDEDILIR (iki kaynak yarisamaz).
+  * Yazimdan HEMEN ONCE, YAZIM SONRASI durumda, yalnizca bu cagrinin DOKUNDUGU kayitlar
+    icin arama.uyum_sebebi() kosulur; tek bir ihlal cagrinin TAMAMINI reddeder ve
+    urunler.json byte-esit kalir (gorsel-koken/altkategori kapilariyla AYNI sozlesme).
+  * `--alan-sil uyum` GECERLIDIR ve `marka`ya DOKUNMAZ (eski kayit sekline donus mesrudur).
+Kural + sema arama.py'de TEK kaynak olarak yasar; katalog geneli eksen tools/uyum-kapisi.py.
+Kabul testi: tools/duzelt-uyum-test.py · curutme: tools/duzelt-uyum-mutasyon.py.
+
 BIR ALANI TAMAMEN KALDIRMAK icin (or. public JSON'da durmamasi gereken alan):
   python3 tools/duzelt.py <id> --alan-sil uyelik
 Manifeste {"__alan_sil__": true} sentineli yazilir; guard alanin working-tree'de
@@ -141,9 +154,19 @@ LOG = os.path.join(ROOT, ".urunler-guard.log")
 # ⚠️ TOPLU BACKFILL YOLU ACILMADI: tools/parti-kontrol.py bu iki alanin BACKFILL'de
 # degismesini KIRMIZI saymaya devam ediyor ve o kural GEVSETILMEDI. Acilan sey urun-basi,
 # beyanli, manifeste bagli ve loglu TEKIL duzeltmedir — sessiz toplu kayma degil.
+# `uyum`: urunun NEYE UYDUGU (marka/model/motor/yil/oem dizisi; sema arama.py'de TEK
+# kaynak). NEDEN IZINLI LISTEYE GIRDI (olculdu 2 Agu): alan sozlukleri + katalog ekseni
+# (tools/uyum-kapisi.py) main'e indi ve 13.040 temiz kayit yazilmayi bekliyordu, ama
+# `uyum` bu listede OLMADIGI icin ilk parti rc=2 aldi ve atomik dogrulama yuzunden
+# HICBIR SEY yazilmadi (dogru davranis — ama yol kapali demekti).
+# 🔴 SERBEST DEGIL: `uyum` yazan her cagri `marka`yi da BERABERINDE yazar ve o deger
+# ELLE VERILEMEZ (bkz. _uyum_marka_turet / _uyum_marka_catismasi / _uyum_ihlalleri).
 DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "eski_fiyat",
                     "gorseller", "lisans", "konfigur", "altkategori",
-                    "tur", "gorselsiz"}
+                    "tur", "gorselsiz", "uyum"}
+
+UYUM_ALANI = "uyum"
+MARKA_ALANI = "marka"
 
 # --alan altkategori (ya da --alan kategori) ihlalinde donen cikis kodu. gorsel-koken
 # kapisinin 4'unden AYRI: cagiran (insan ya da betik) hangi kapinin reddettigini cikis
@@ -151,6 +174,11 @@ DEGISTIRILEBILIR = {"kategori", "marka", "baslik", "aciklama", "fiyat", "eski_fi
 RC_ALTKATEGORI = 5
 # TICARI HAL kapisi (tur/gorselsiz) ihlalinde donen cikis kodu — altkategorininkinden AYRI.
 RC_TICARI_HAL = 6
+# UYUM kapisi (uyum + ondan TURETILEN marka) ihlalinde donen cikis kodu. Dordu de AYRI
+# olmak ZORUNDA: cagiran (MaCiT'in parti betigi) hangi kapinin reddettigini yalnizca
+# cikis kodundan ayirt edebilir — "rc != 0" hepsini tek kovaya yigardi ve parti
+# betikleri yanlis kapiyi onarmaya calisirdi.
+RC_UYUM = 7
 
 GORSELSIZ_BAYRAK = "gorselsiz"
 TUR_ALANI = "tur"
@@ -339,6 +367,107 @@ def _altkategori_rapor(ihlaller, kaynak):
     satirlar.append("  Alan OPSIYONEL: bos deger ('') ya da --alan-sil altkategori GECERLIDIR.")
     satirlar.append("  Kumeyi genisletmek MIMAR karari: arama.py ALTKATEGORI_IZINLI elle "
                     "guncellenir (yeni deger imza nobetinden de gecmelidir).")
+    return "\n".join(satirlar)
+
+
+def _uyum_marka_catismasi(setler, alan_silmeler):
+    """Ayni cagrida hem `uyum` YAZIP hem `marka`ya DOKUNAN id'leri dondurur (bos = temiz).
+
+    NEDEN RED (ikiz tanim yasaginin yazma yolundaki hali): `marka` ile `uyum` AYNI gercegi
+    tutar. Ikisi de elle verilebilseydi cagri iki kaynak tasirdi ve hangisinin kazandigi
+    kod SIRASINA baglı olurdu — bugun turetim kazanir, yarin biri satiri kaydirir ve elle
+    yazilan deger sessizce kataloga yerlesir. Kural tek yonlu: `uyum` yazilir, `marka`
+    ONDAN TURETILIR. Cagiran `marka`yi da yazmak istiyorsa niyeti belirsizdir -> RC_UYUM.
+
+    `--alan-sil marka` de catisma sayilir: turetim `marka`yi yazar, silme onu ayni cagrida
+    geri alirdi. (O hal zaten _uyum_ihlalleri'nde K5 ile fail-closed yakalanir; burada
+    ANLASILIR bir hatayla, dogru kapi kodu ile reddedilir.)
+    """
+    catisan = []
+    for uid, alanlar in setler.items():
+        if UYUM_ALANI not in alanlar:
+            continue
+        if MARKA_ALANI in alanlar or MARKA_ALANI in (alan_silmeler.get(uid) or []):
+            catisan.append(uid)
+    return sorted(catisan)
+
+
+def _uyum_catisma_rapor(uidler, kaynak):
+    satirlar = ["HATA: UYUM KAPISI — %s REDDEDILDI (hicbir sey yazilmadi)." % kaynak]
+    for uid in uidler:
+        satirlar.append("  - id=%s: ayni cagrida hem `uyum` hem `marka` verildi "
+                        "(ya da `marka` silindi) — IKI KAYNAK YARISAMAZ" % uid)
+    satirlar.append("  Kural: `uyum` yazilir, `marka` ondan TURETILIR "
+                    "(arama.marka_uyumdan_turet). `marka` islemini cagridan CIKAR.")
+    satirlar.append("  `marka`yi bagimsiz duzeltmek istiyorsan o kayda `uyum` YAZMA "
+                    "(uyumu bos kayitta `marka` serbesttir).")
+    return "\n".join(satirlar)
+
+
+def _uyum_marka_turet(setler):
+    """`uyum` YAZAN her isleme, ondan TURETILEN `marka`yi AYNI islemde ENJEKTE eder.
+
+    Doner: {id: turetilen_marka} — yalnizca turetimin FIILEN kostugu kayitlar.
+
+    🔴 NEDEN `setler`E ENJEKSIYON (ve neden dogrudan kayda yazim DEGIL): turetilen deger
+    hem urunler.json'a hem GUARD IZIN MANIFESTINE gitmek zorundadir. Manifest `setler`den
+    uretildigi icin, kayda dogrudan yazsaydik guard beyan disi bir `marka` degisimi gorup
+    onu HEAD'e geri alirdi — yani turetim sessizce ETKISIZ kalirdi (aciklama korumasinin
+    yazimdan ONCE kosmasiyla AYNI gerekce).
+
+    TURETIM TEK KAYNAKTAN: arama.marka_uyumdan_turet. Burada yeniden yazilsaydi iki tanim
+    sessizce ayrisir ve `marka` — ki haystack araciligiyla ARAMA METNIDIR — kapi yesilken
+    bozulurdu ([[ikiz-tanim-sessiz-ayrisma]]).
+
+    BOS/BICIMSIZ `uyum` TURETIM KOSMAZ: `[]` yazmak "bu kaydin uyumu yok" demektir ve
+    eski kayit sekline donustur (--alan-sil uyum ile ayni anlam) -> `marka`ya DOKUNULMAZ.
+    Turetseydik `marka` = [] olur ve mevcut arama metni SESSIZCE silinirdi. Liste OLMAYAN
+    (bozuk tip) degerde de turetim kosmaz; o degeri _uyum_ihlalleri zaten reddeder.
+    """
+    turetilenler = {}
+    for uid, alanlar in setler.items():
+        deger = alanlar.get(UYUM_ALANI)
+        if not isinstance(deger, list) or not deger:
+            continue
+        turetilen = arama.marka_uyumdan_turet({UYUM_ALANI: deger})
+        alanlar[MARKA_ALANI] = turetilen
+        turetilenler[uid] = turetilen
+    return turetilenler
+
+
+def _uyum_ihlalleri(urunler, idler):
+    """YAZIM SONRASI durumda, BU CAGRININ dokundugu kayitlarin `uyum` alanini (ve ondan
+    turetilen `marka` ikizini) olcer. Ihlal listesi dondurur (bos = temiz).
+
+    _altkategori_ihlalleri ile AYNI iki gerekce:
+      * "yazim sonrasi durum": ayni cagri hem `uyum`u hem `marka`yi (turetim yoluyla)
+        degistirir; alanlari tek tek dogrulamak K5 ikiz ekseni ACIK birakirdi.
+      * "yalniz dokunulan kayitlar": katalogun TAMAMINI dogrulamak, bu cagriyla ILGISIZ
+        eski bir ihlal yuzunden mesru bir duzeltmeyi bloklardi (kapi kapsam ekseni).
+        Tum katalog ekseni AYRI ve kalicidir: tools/uyum-kapisi.py.
+    """
+    ihlaller = []
+    for u in urunler:
+        if not isinstance(u, dict) or u.get("id") not in idler:
+            continue
+        sebep = arama.uyum_sebebi(u)
+        if sebep:
+            ihlaller.append((u.get("id"), sebep))
+    return ihlaller
+
+
+def _uyum_rapor(ihlaller, kaynak):
+    satirlar = ["HATA: UYUM KAPISI — %s REDDEDILDI (hicbir sey yazilmadi)." % kaynak]
+    for uid, sebep in ihlaller:
+        satirlar.append("  - id=%s: %s" % (uid, sebep))
+    satirlar.append("  Sema (tools/arama.py): uyum = [{\"marka\": KAPALI kumeden ZORUNLU, "
+                    "\"model\"/\"motor\"/\"oem\": opsiyonel metin, \"yil\": [bas, son]}]")
+    satirlar.append("  `marka` ELLE YAZILMAZ: `uyum` doluyken duzelt.py onu "
+                    "arama.marka_uyumdan_turet ile AYNI islemde kendisi yazar.")
+    satirlar.append("  Alan OPSIYONEL: bos deger ([]) ya da --alan-sil uyum GECERLIDIR "
+                    "(eski kayit sekline donus; `marka`ya DOKUNULMAZ).")
+    satirlar.append("  Kapali marka kumesini genisletmek MIMAR karari: arama.py "
+                    "UYUM_MARKA_IZINLI + MIMAR EKI elle guncellenir.")
     return "\n".join(satirlar)
 
 
@@ -629,6 +758,13 @@ def _toplu(yol):
             print("  - %s" % h, file=sys.stderr)
         return 2
 
+    # UYUM/MARKA CATISMASI — kilitten ONCE: hicbir dosya acilmadan reddedilir, cikis kodu
+    # RC_UYUM (2 DEGIL) ki cagiran "sema hatasi" ile "iki kaynak yarisi"ni ayirt edebilsin.
+    catisma = _uyum_marka_catismasi(setler, alan_silmeler)
+    if catisma:
+        print(_uyum_catisma_rapor(catisma, "toplu islem"), file=sys.stderr)
+        return RC_UYUM
+
     lockf = open(LOCK, "w")
     fcntl.flock(lockf, fcntl.LOCK_EX)
     try:
@@ -654,6 +790,9 @@ def _toplu(yol):
         aciklama_raporlari = {}
         # T5 icin YAZIM ONCESI ticari sinif anlik goruntusu (tek-urun kipiyle AYNI kural).
         eski_hal = _hal_haritasi(urunler, set(setler) | set(alan_silmeler))
+        # UYUM -> MARKA TURETIMI: yazimdan ONCE, `setler` uzerinde. Boylece turetilen
+        # `marka` hem urunler.json'a hem guard izin manifestine AYNI deger olarak gider.
+        turetilen_marka = _uyum_marka_turet(setler)
         for uid, alanlar in setler.items():
             r = _aciklama_koru_uygula(urunler[idx_by_id[uid]], alanlar)
             if r:
@@ -690,6 +829,13 @@ def _toplu(yol):
             print("HATA: toplu islem REDDEDILDI — hicbir sey yazilmadi.", file=sys.stderr)
             print(_ticari_hal_rapor(hal_ihlal, "toplu islem"), file=sys.stderr)
             return RC_TICARI_HAL
+        # UYUM KAPISI — ayni yer (TEK yazimdan HEMEN ONCE), ayni kilit, ayni "ya hep ya
+        # hic" sozlesmesi. Partinin TEK bir kirli kaydi TUM partiyi dusurur.
+        uyum_ihlal = _uyum_ihlalleri(urunler, set(setler) | set(alan_silmeler))
+        if uyum_ihlal:
+            print("HATA: toplu islem REDDEDILDI — hicbir sey yazilmadi.", file=sys.stderr)
+            print(_uyum_rapor(uyum_ihlal, "toplu islem"), file=sys.stderr)
+            return RC_UYUM
         yeni_hal = _hal_haritasi(urunler, set(setler) | set(alan_silmeler))
         _atomic_write(URUNLER, urunler)  # TEK yazim
 
@@ -719,6 +865,13 @@ def _toplu(yol):
     n_urun = len(set(list(setler) + list(alan_silmeler)) | set(urun_silmeler))
     for uid in sorted(aciklama_raporlari):
         _rapor_bas(uid, aciklama_raporlari[uid])
+    for uid in sorted(turetilen_marka):
+        # Turetim SESSIZ olmasin: cagiran `marka`yi vermedi ama kataloga bir `marka`
+        # yazildi — hangi degerin nereden geldigi ciktida ve logda gorunur.
+        _log("uyum-turetim: %s -> marka=%s (uyum'dan TURETILDI, elle verilmedi)"
+             % (uid, json.dumps(turetilen_marka[uid], ensure_ascii=False)))
+        print("MARKA TURETILDI (uyum'dan): %s  -> %s"
+              % (uid, json.dumps(turetilen_marka[uid], ensure_ascii=False)))
     for uid in sorted(set(list(setler) + list(alan_silmeler))):
         ozet = ", ".join("%s=%s" % (a, json.dumps(v, ensure_ascii=False))
                          for a, v in sorted(setler.get(uid, {}).items()))
@@ -819,6 +972,13 @@ def main():
             return 2
         silinecek_alanlar.append(alan)
 
+    # UYUM/MARKA CATISMASI — toplu kiple AYNI kural, AYNI cikis kodu, kilitten ONCE.
+    catisma = _uyum_marka_catismasi({args.id: degisiklikler},
+                                    {args.id: silinecek_alanlar})
+    if catisma:
+        print(_uyum_catisma_rapor(catisma, "duzeltme"), file=sys.stderr)
+        return RC_UYUM
+
     lockf = open(LOCK, "w")
     fcntl.flock(lockf, fcntl.LOCK_EX)
     try:
@@ -836,6 +996,9 @@ def main():
         # manifestine AYNI (korunmus) deger gider -> guard degisikligi geri almaz.
         aciklama_raporu = _aciklama_koru_uygula(urunler[idx], degisiklikler)
         eski_hal = _hal_haritasi(urunler, {args.id})   # T5 icin YAZIM ONCESI sinif
+        # UYUM -> MARKA TURETIMI: toplu kiple AYNI fonksiyon, AYNI yer (yazimdan ve
+        # manifestten ONCE) -> iki kip arasinda ikinci bir turetim mantigi DOGMAZ.
+        turetilen_marka = _uyum_marka_turet({args.id: degisiklikler})
 
         # SADECE beyan edilen alanlari degistir; beyan disina dokunma.
         for alan, deger in degisiklikler.items():
@@ -861,6 +1024,11 @@ def main():
         if hal_ihlal:
             print(_ticari_hal_rapor(hal_ihlal, "duzeltme"), file=sys.stderr)
             return RC_TICARI_HAL
+        # UYUM KAPISI — ayni yer, ayni kilit, ayni "hicbir sey yazilmaz" sozlesmesi.
+        uyum_ihlal = _uyum_ihlalleri(urunler, {args.id})
+        if uyum_ihlal:
+            print(_uyum_rapor(uyum_ihlal, "duzeltme"), file=sys.stderr)
+            return RC_UYUM
         yeni_hal = _hal_haritasi(urunler, {args.id})   # kilit ALTINDA, yazilan haliyle
         _atomic_write(URUNLER, urunler)
 
@@ -885,6 +1053,11 @@ def main():
         lockf.close()
 
     _rapor_bas(args.id, aciklama_raporu)
+    for uid in sorted(turetilen_marka):
+        _log("uyum-turetim: %s -> marka=%s (uyum'dan TURETILDI, elle verilmedi)"
+             % (uid, json.dumps(turetilen_marka[uid], ensure_ascii=False)))
+        print("MARKA TURETILDI (uyum'dan): %s  -> %s"
+              % (uid, json.dumps(turetilen_marka[uid], ensure_ascii=False)))
     ozet = ", ".join("%s=%s" % (a, json.dumps(v, ensure_ascii=False))
                      for a, v in degisiklikler.items())
     if silinecek_alanlar:
