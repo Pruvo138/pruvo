@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-yay-dalga-flexure",
+  "motor": "pruvo",
   "scad": "yay.scad",
   "fonksiyon": "yay",
   "esleme": {

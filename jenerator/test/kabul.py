@@ -510,7 +510,11 @@ def main():
             with io.open(ornek_dosyalar[1], "w", encoding="utf-8") as f:
                 f.write("function ornekplaka(p) {\n  return p.en * p.boy * p.kalinlik;\n}\n")
             with io.open(ornek_dosyalar[2], "w", encoding="utf-8") as f:
-                json.dump({"urunId": "ornek-plaka", "scad": "ornek-plaka.scad",
+                # "motor" ZORUNLU (2026-08-02): esleme hangi geometriye kalibre
+                # oldugunu BEYAN eder; beyansiz esleme dogrula.py'de OLCULEMEDI.
+                # Fikstur KURULUM.md'deki ornekle BIREBIR ayni kalmali.
+                json.dump({"urunId": "ornek-plaka", "motor": "pruvo",
+                           "scad": "ornek-plaka.scad",
                            "fonksiyon": "ornekplaka",
                            "esleme": {"en": "En", "boy": "Boy", "kalinlik": "Kalinlik"},
                            "sabit": {}}, f)

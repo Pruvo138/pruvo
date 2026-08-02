@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-cerceve",
+  "motor": "pruvo",
   "scad": "cerceve.scad",
   "fonksiyon": "cerceve",
   "esleme": {
@@ -14,7 +15,11 @@
     "Output": "frame"
   },
   "parcalar": {
-    "govde": { "Output": "frame_no_caption" },
-    "yazi": { "Output": "caption" }
+    "govde": {
+      "Output": "frame_no_caption"
+    },
+    "yazi": {
+      "Output": "caption"
+    }
   }
 }

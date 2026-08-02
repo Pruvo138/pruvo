@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-baglanti-konektor",
+  "motor": "pruvo",
   "scad": "konektor.scad",
   "fonksiyon": "konektor",
   "esleme": {
