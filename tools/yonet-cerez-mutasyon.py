@@ -41,22 +41,36 @@ MUTANTLAR (hepsi GERCEK, canliya sizabilecek bozulmalar; hepsi KIRMIZI yanmali)
                                  C22b (yonet() ust kapisi IZOLE) olarak IKIYE AYRILDI ve
                                  bu mutant artik KIRMIZI yaniyor -> SURVIVOR degil.
   M11 ozellik-kapali KOL      — secret yokken POST / giris EKRANI servis eder (GET hala
-      birlestirildi              404): ozellik KAPALIYKEN ucun varligi sizar.
-  M12 yon404 govdesine        — kod 404 KORUNUR, govde HTML+<form> olur ("form BILE yok"
-      <form> enjekte edildi      ekseni tek basina duser).
-  M13 ozellik-kapali GET      — ust kapi GET'te formsuz 200 doner (POST kolu 404 kalir):
-      formsuz 200 doner          C22b'nin KOD ekseni tek basina duser.
+      birlestirildi              404): ozellik KAPALIYKEN ucun varligi sizar. C15a'nin
+                                 AYIRT EDICI mutanti (tek kirmizi).
+  M12 yon404 TEK KAYNAGININ   — kod 404 KORUNUR, govde HTML+<form> olur: tek kaynak oldugu
+      govdesine <form> girdi     icin C22a ile C22c BIRLIKTE duser (ayirt edici DEGIL).
+  M13 ozellik-kapali TUM      — ust kapi GET'te formsuz 200 doner (POST 404 kalir): ust kapi
+      GET'ler formsuz 200        tum yollarda ortak oldugu icin C6a/C6b de duser (ayirt
+                                 edici DEGIL).
+  M14 ust kapinin KENDI 404   — kod 404 KALIR, yon404 TEK KAYNAGI saglam: yalniz ust kapinin
+      govdesine <form> girdi     govdesi kirlenir. C22c'nin AYIRT EDICI mutanti (tek kirmizi).
+  M15 ust kapi YALNIZ         — /liste kolu, POST kolu ve govde saglam kalir; yalniz panel
+      `GET /`te formsuz 200      kokunun VARLIGI 200'le dogrulanir. C22b'nin AYIRT EDICI
+                                 mutanti (tek kirmizi).
 
-C15 BOLUNMESI (2 Agu, olculdu — "iddia sisirmesi" YAPILMADI): eski tek-parca C15 uc ekseni
-VE'liyordu (POST 404 + GET 404 + GET govdesinde form yok). Her eksen icin "YALNIZ onu
-kirmizi yakan" mutant ARANDI:
-  - POST 404  -> BULUNDU (M11) -> KENDI iddiasi olarak kaldi, adi C15a.
-  - GET 404   -> BULUNAMADI. Ikisi de C22b'nin ayni cagri uzerindeki yukleminin ic
-  - form yok     konjonktleridir (C22b == GET404 VE formyok), yani onlari C22b'siz kirmizi
-                 yakan mutant OLAMAZ (yuklem ozdesligi). AYRI IDDIA EKLENMEDI; M12/M13 bu
-                 iki eksenin C22a/C22b tarafindan gercekten tutuldugunu kosumda kanitlar.
-Sonuc: iddia sayisi 65 -> 65. Hedef sayi degildi; bolme ancak eksen TEK BASINA kirmizi
-yanabiliyorsa kazanctir, aksi halde tek olcume uc ad koymak olurdu.
+EKSENE INDIRME (2 Agu, olculdu — "iddia sisirmesi" YAPILMADI). Kural: bir eksen ancak
+YALNIZ onu kirmizi yakan bir mutant VARSA kendi iddiasi olur; yoksa iddia EKLENMEZ.
+  Eski C15 (POST 404 VE GET 404 VE GET govdesinde form yok):
+    - POST 404  -> ayirt edici mutant M11 -> KENDI iddiasi, adi C15a.
+    - GET 404   -> AYRI IDDIA EKLENMEDI: yuklemi C22b ile OZDES (ayni cagri, ayni yuklem).
+    - form yok  -> AYRI IDDIA EKLENMEDI: yuklemi C22c ile OZDES.
+  Eski C22b (GET 404 VE form yok) — ayni kural KENDI isimize de uygulandi:
+    - KOD ekseni   -> ayirt edici mutant M15 -> C22b (yalniz kod).
+    - GOVDE ekseni -> ayirt edici mutant M14 -> C22c (yeni iddia).
+Iddia sayisi 65 -> 66 (C15 tek parca kaldi ama daraldi; C22b ikiye bolundu). Sayi hedef
+DEGILDI: bolme yalnizca eksen TEK BASINA kirmizi yanabildigi icin yapildi.
+
+ACIK KAYIT (bu turda BOLUNMEDI, mimarin sinirı "C22b disinda bolme yapma"): C22a UC eksenli
+bir VE'dir (404 VE Set-Cookie yok VE form yok) ve govde ekseni TEK BASINA dusebiliyor —
+olculdu, M12'de C22a'nin detay satiri `kod=404 cerez="" form var mi=true` cikiyor. Yani
+C22a kirmizi yandiginda hangi eksenin dustugunu detay satiri soyler, IDDIA ADI soylemez.
+Karar mimarindir; burada YORUMA GOMULMEDI, acikca kayda gecirildi.
 
 KONTROL MUTANTLARI (YESIL kalmali — surucu "her sey kirmizi" diye ucuza gecemesin;
 ayrica kapinin ILGISIZ refaktorde yanlis alarm uretmedigi olculur)
@@ -268,11 +282,12 @@ M11 = ("M11", "ozellik-kapali kol BIRLESTIRILDI: secret yok + POST / -> giris EK
   }""")],
        ["C15a"])
 
-# M12 — GOVDE ekseni ("form BILE yok"): kod 404 KORUNUR, yalniz yon404 govdesi HTML+<form>
-# olur. AYIRT EDICI DEGIL (olculdu): yon404 TEK kaynak oldugu icin hem girisYap'in kendi
-# 404'unu (C22a) hem ust kapinin 404'unu (C22b) ayni anda bozar. C15c bu yuzden AYRI iddia
-# olarak eklenmedi; eksenin nobetcisi bu iki iddiadir ve M12 bunu kosumda kanitlar.
-M12 = ("M12", "yon404 govdesine <form> enjekte edildi (kod HALA 404 — 'form BILE yok' ekseni)",
+# M12 — GOVDE ekseni, TEK KAYNAKTAN: kod 404 KORUNUR, yon404'un KENDISI HTML+<form> olur.
+# AYIRT EDICI DEGIL (olculdu): yon404 tek kaynak oldugu icin hem girisYap'in kendi 404'unu
+# (C22a) hem ust kapinin 404'unu (C22c) ayni anda bozar. Govde ekseninin AYIRT EDICI mutanti
+# M14'tur (yalniz ust kapinin 404'u). M12 yine de durur: tek kaynagin bozulmasi GERCEK bir
+# bozulmadir ve iki iddianin BIRLIKTE dustugunu kosumda sabitler.
+M12 = ("M12", "yon404 TEK KAYNAGININ govdesine <form> enjekte edildi (kod HALA 404)",
        [("""function yon404() { return yjson({ hata: "bulunamadi" }, 404); }""",
          """function yon404() {
   return new Response("<html><body><form action=\\"/ara\\"></form></body></html>", {
@@ -280,13 +295,13 @@ M12 = ("M12", "yon404 govdesine <form> enjekte edildi (kod HALA 404 — 'form BI
     headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
   });
 }""")],
-       ["C22a", "C22b"])
+       ["C22a", "C22c"])
 
-# M13 — KOD ekseni: ozellik-kapali GET formsuz 200 doner (POST kolu 404 kalir). AYIRT EDICI
-# DEGIL (olculdu): C22b'nin 404 konjonktiyle birlikte /liste ucunun ozellik-kapali iddialarini
-# (C6a/C6b) da dusurur. C15b bu yuzden AYRI iddia olarak eklenmedi. M12 ile birlikte KAYDA
-# gecirdigi olcum: C22b'nin iki ekseni AYRI AYRI dusebiliyor (M12 govde, M13 kod).
-M13 = ("M13", "ust kapi ozellik-kapali GET'te formsuz 200 dondurur (POST kolu 404 kalir)",
+# M13 — KOD ekseni, TUM ozellik-kapali GET'lerde: formsuz 200 doner (POST kolu 404 kalir).
+# AYIRT EDICI DEGIL (olculdu): ust kapi TUM yollarda ortak oldugu icin /liste ucunun
+# ozellik-kapali iddialarini (C6a/C6b) da dusurur. Kod ekseninin AYIRT EDICI mutanti
+# M15'tir (yalniz `GET /`). M13 durur: genis bozulmanin genis kirmizi yaktigini sabitler.
+M13 = ("M13", "ust kapi ozellik-kapali TUM GET'lerde formsuz 200 dondurur (POST kolu 404)",
        [("""export async function yonet(request, env, url, ctx, altYol, telegram) {
   if (!env.YONET_ANAHTAR) { return yon404(); }
   const m = request.method;""",
@@ -297,7 +312,38 @@ M13 = ("M13", "ust kapi ozellik-kapali GET'te formsuz 200 dondurur (POST kolu 40
   }""")],
        ["C22b", "C6a", "C6b"])
 
-MUTANTLAR = [M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, K1, K2, K3]
+# M14 — C22c'nin (ust kapi GOVDE ekseni) AYIRT EDICI mutanti: ust kapi KENDI 404'unu uretir
+# ve govdesine <form> girer; KOD 404 KALIR, yon404 TEK KAYNAGINA DOKUNULMAZ. Gercek zarar:
+# ozellik KAPALIYKEN panel kokunde giris formu servis edilir (durum kodu "yok" derken govde
+# "var" der) -> ucun varligi sizar. yon404'e dokunmadigi icin C22a duser DEGIL -> TEK kirmizi.
+M14 = ("M14", "ust kapinin KENDI 404 govdesine <form> girdi (kod 404, yon404 TEK KAYNAGI saglam)",
+       [("""export async function yonet(request, env, url, ctx, altYol, telegram) {
+  if (!env.YONET_ANAHTAR) { return yon404(); }""",
+         """export async function yonet(request, env, url, ctx, altYol, telegram) {
+  if (!env.YONET_ANAHTAR) {
+    return new Response("<html><body><form action=\\"/ara\\"></form></body></html>", {
+      status: 404,
+      headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+    });
+  }""")],
+       ["C22c"])
+
+# M15 — C22b'nin (ust kapi KOD ekseni) AYIRT EDICI mutanti: ust kapi YALNIZ `GET /`te formsuz
+# 200 doner; /liste kolu 404 kalir (C6a/C6b yesil), POST kolu 404 kalir (C15a yesil), govde
+# form icermez (C22c yesil) -> TEK kirmizi. Gercek zarar: ozellik kapaliyken panel kokunun
+# VARLIGI 200 ile dogrulanir (404 "yok" demeliydi).
+M15 = ("M15", "ust kapi YALNIZ `GET /`te formsuz 200 doner (diger yollar + POST 404 kalir)",
+       [("""export async function yonet(request, env, url, ctx, altYol, telegram) {
+  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const m = request.method;""",
+         """export async function yonet(request, env, url, ctx, altYol, telegram) {
+  const m = request.method;
+  if (!env.YONET_ANAHTAR) {
+    return (altYol === "/" && m === "GET") ? new Response("", { status: 200 }) : yon404();
+  }""")],
+       ["C22b"])
+
+MUTANTLAR = [M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, M14, M15, K1, K2, K3]
 
 
 # ------------------------------------------------------------------ ayna
