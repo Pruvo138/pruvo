@@ -362,15 +362,27 @@ def kabul(kok, katalog_yolu=None):
             _ayrisan.append((u["uyum"], k))
         if any(a is b for a in k for b in u["uyum"]):
             _paylasan.append(u["uyum"])
+    # 🔴 DERIN KOPYA OLCUMU FAIL-CLOSED, COKMEYLE DEGIL. Onceki hali `_mut[0]` yaziyordu:
+    # `uyum_kanonik` BOS liste dondurdugunde (fail-closed reddettiginde) IndexError firlatip
+    # kabul kosumunu ORTASINDA olduruyordu — geriye kalan 16 iddia HIC OLCULMUYOR, cikis
+    # kodu yine 1 oldugu icin "kapi yakaladi" gibi gorunuyordu. Bagimsiz curutucude
+    # OLCULDU: M9/M10 mutantlarinda iddia sayisi 36 -> 20'ye dustu ve bu "kirmizi" bir
+    # OLCUM DEGILDI ([[hukum-yanlis-birimde]] · [[mutasyon-kaniti-yeniden-uretilebilir]]).
+    # Simdi bos cikti COKME degil KIRMIZI uretir: iddia adiyla yanar, kalan iddialar olculur.
     _mut = A.uyum_kanonik(_ozdes_fikstur[0])
-    _mut[0]["marka"] = "BOZULDU"
+    _derin_kopya = bool(_mut)
+    if _mut:
+        _mut[0]["marka"] = "BOZULDU"
+        _derin_kopya = _ozdes_fikstur[0]["uyum"][0]["marka"] == "Ford"
     dogrula("V8 KANONIK OZDESLIK: kabul edilen %d kayitta `uyum_kanonik` ciktisi katalog "
             "degeriyle BIREBIR AYNI ve DERIN KOPYA (cagiran ciktiyi bozarsa katalog "
             "bozulmaz) — altkategori'de olculen sessiz ayrismanin tekrari yok"
             % len(_ozdes_fikstur),
-            not _ayrisan and not _paylasan
-            and _ozdes_fikstur[0]["uyum"][0]["marka"] == "Ford",
-            "ayrisan=%s paylasilan-referans=%s" % (_ayrisan[:2], _paylasan[:2]))
+            not _ayrisan and not _paylasan and _derin_kopya,
+            "ayrisan=%s paylasilan-referans=%s derin_kopya=%s%s"
+            % (_ayrisan[:2], _paylasan[:2], _derin_kopya,
+               " (kanonik cikti BOS — kayit REDDEDILDI, derin kopya OLCULEMEDI)"
+               if not _mut else ""))
 
     # V9 fail-closed yonu — urun KAYBOLMAZ
     _gecersiz = _urun(uyum=[{"marka": "Uydurma Marka", "model": "X"}], marka=["Ford"])
@@ -657,13 +669,23 @@ def kabul(kok, katalog_yolu=None):
     _b6_ciplak["baslik"] = "Mercedes Sprinter kalorifer kanal adaptoru"
     _b6_ciplak["aciklama"] = "Sprinter kalorifer kanali icin adaptor"
     _b6_ilgisiz = _urun(marka=["Ford", "Focus"])
+    # 🔴 KONUM-1 VAKASI (olculen kor nokta, 2 Agu): yukaridaki fikstürlerin HEPSI bilesik
+    # adi `marka[0]`da tasiyordu. Gercek katalogda bilesik adi IKINCI sirada tasiyan 1
+    # kayit var (`['BMW', 'Mercedes-Benz']`, duz eslemede jetonunu KAYBEDENLERDEN biri).
+    # Fikstür kor oldugu icin "kanoniklestirme yalniz marka[0]'a uygulanir" mutanti (M23)
+    # HICBIR iddiayi yakmadan SAG KALIYORDU ([[fikstur-degeri-mutasyon-koru]]).
+    _b6_ikinci = _urun(marka=["BMW", "Mercedes-Benz"])
+    _b6_ikinci["baslik"] = "BMW Mercedes uyumlu ic trim klipsi"
+    _b6_ikinci["aciklama"] = "Ic trim klipsi"
     _b6_a = A.bilesik_marka_kanoniklestir(_b6_baslikli)
     _b6_b = A.bilesik_marka_kanoniklestir(_b6_ciplak)
     _b6_c = A.bilesik_marka_kanoniklestir(_b6_ilgisiz)
+    _b6_d = A.bilesik_marka_kanoniklestir(_b6_ikinci)
     # Kanoniklestirilmis kayitlarda sorgu HALA buluyor mu? (site uclusuyle olculur)
     _b6_bulunuyor = [
         A.arama_jetonu_korunuyor(dict(_b6_baslikli, marka=_b6_a), "Mercedes-Benz"),
         A.arama_jetonu_korunuyor(dict(_b6_ciplak, marka=_b6_b), "Mercedes-Benz"),
+        A.arama_jetonu_korunuyor(dict(_b6_ikinci, marka=_b6_d), "Mercedes-Benz"),
     ]
     # NEGATIF KONTROL: mekanizma OLMASAYDI (duz esleme) ikinci kayit KAYBOLURDU. Bu
     # olculmezse "kayip yok" iddiasi bos olabilir (fikstur zaten kaybetmiyordur).
@@ -672,15 +694,24 @@ def kabul(kok, katalog_yolu=None):
     dogrula("B6 ARAMA PARITESI: kanoniklestirilmis kayitta `Mercedes-Benz` sorgusu urunu "
             "HALA BULUYOR (jeton kaybi 0); ham yazim baslikta duruyorsa takma EKLENMEZ "
             "(arama yuzeyi genislemez), yalniz `marka`daysa takma EKLENIR; bilesik ad "
-            "tasimayan kayit BIREBIR degismez; duz esleme ayni kaydi KAYBEDIYOR "
-            "(negatif kontrol)",
+            "`marka[0]` DEGIL IKINCI sirada olsa da katlanir; bilesik ad tasimayan kayit "
+            "BIREBIR degismez; duz esleme ayni kaydi KAYBEDIYOR (negatif kontrol)",
             _b6_a == ["Mercedes", "Sprinter"]
             and _b6_b == ["Mercedes", "Sprinter", "Mercedes-Benz"]
             and _b6_c == ["Ford", "Focus"]
+            and _b6_d == ["BMW", "Mercedes", "Mercedes-Benz"]
             and all(_b6_bulunuyor) and not _b6_duz,
-            "baslikli=%s ciplak=%s ilgisiz=%s bulunuyor=%s duz_esleme_buluyor=%s"
-            % (_b6_a, _b6_b, _b6_c, _b6_bulunuyor, _b6_duz))
+            "baslikli=%s ciplak=%s ilgisiz=%s konum1=%s bulunuyor=%s duz_esleme_buluyor=%s"
+            % (_b6_a, _b6_b, _b6_c, _b6_d, _b6_bulunuyor, _b6_duz))
 
+    # 🔴 B7 = B6'nin GERCEK-VERI BIRIMI (mutasyon duzleminde AYRI EKSEN DEGIL; olculdu 2 Agu).
+    # B7'yi TEK BASINA kirmizi yakan ayirt edici mutant URETILEMEDI: B7'nin B6'dan fazlasi
+    # bir VERI iddiasidir (katalogda bilesik ad tasiyan kayit VAR, hicbirinin jetonu
+    # kaybolmuyor) ve mutasyon KODU degistirir. Dokundugu kod yolu B6'nin capaladigi yolun
+    # ALT KUMESIDIR — B6 mekanizmanin CIKTI LISTESINI birebir capalar, B7 yalnizca jetonun
+    # korunmasini. Bu yuzden mutasyon surucusunde M20 ikisini BIRLIKTE beyan eder
+    # ([[beyan-edilmis-survivor]]); iddia olarak burada KALIR cunku gercek veri uzerinde
+    # (sentetik fikstürun goremeyecegi katalog buyumesine karsi) bagimsiz nobet tutar.
     # B7 — GERCEK KATALOG TARAMASI. Sayi iddia DEGIL (katalog her gun buyuyor, dondurulmus
     # bir sayi yayin durdururdu) — IDDIA sudur: bilesik ad tasiyan HER GERCEK kayit,
     # kanoniklestirmeden SONRA da `Mercedes-Benz` sorgusuyla bulunur. Tarayicinin fiilen
@@ -733,40 +764,61 @@ def kabul(kok, katalog_yolu=None):
 
 
 # ── CIFT YONLU MUTASYON ─────────────────────────────────────────────────────────────
-# KIRMIZI beklenen = oldurucu mutant (kapi yakalamali) · YESIL beklenen = ILGISIZ
-# degisiklik (kapinin gereginden genis olmadiginin kaniti). Capa kayarsa tur KIRMIZI
-# yanar ve mutant SAYILMAZ — "capa bulunamadi" ASLA yesil degildir.
+# KAYIT: (kod, dosya, eski, yeni, beyan, olcut, aciklama)
+#
+# 🔴 BEYAN = MUTANTIN KIRMIZI YAKACAGI IDDIA KODLARI. "kirmizi yandi" YETMEZ: HANGI
+#    iddianin yandigi olculur ve BEYANLA karsilastirilir. Beyansiz surucu yalnizca
+#    "en az bir sey kirmizi" der; yarin fazladan bir iddiayi dusuren bir mutant
+#    SESSIZCE gecerdi ([[beyan-edilmis-survivor]] · [[mutasyon-kaniti-yeniden-uretilebilir]]).
+#    beyan == []  -> KONTROL MUTANTI (YESIL beklenir; kapinin gereginden genis olmadigi).
+#
+# 🔴 OLCUT, HER KAYDIN KENDI ALANINDA (tools/duzelt-uyum-mutasyon.py ile AYNI mekanizma):
+#    ESIT   -> kirmizi kume BEYANA TAM ESIT. Fazladan kirmizi da KUSURDUR. VARSAYILAN.
+#    KAPSAR -> beyan ⊆ kirmizi. YALNIZ aciklamasinda "KAPSAR GEREKCE:" yazan capraz/
+#              bilesik bozulmalarda; gerekce yoksa surucu kaydi REDDEDER (fail-closed).
+#
+# Capa kayarsa tur KIRMIZI yanar ve mutant SAYILMAZ — "capa bulunamadi" ASLA yesil degildir.
+# Iddia SAYISI da her kosumda taban ile karsilastirilir: sayi duserse mutant kapiyi
+# COKERTMISTIR ve o "kirmizi" bir OLCUM DEGILDIR ([[hukum-yanlis-birimde]]).
 MUTANTLAR = [
     ("M1", "arama.py",
-     '    if deger not in UYUM_MARKA_IZINLI:\n        return ""\n', "", "KIRMIZI",
+     '    if deger not in UYUM_MARKA_IZINLI:\n        return ""\n', "",
+     ["S5", "S6", "V1", "V2", "V15", "V10", "B4"], "ESIT",
      "V1: kapali kume kontrolu kalkar -> her marka kabul, sahte marka sayfasi acilir"),
     ("M2", "arama.py",
      "    if deger not in UYUM_MARKA_IZINLI:",
-     "    if deger.strip() not in UYUM_MARKA_IZINLI:", "KIRMIZI",
+     "    if deger.strip() not in UYUM_MARKA_IZINLI:", ["V2"], "ESIT",
      "V2: strip() uyelik testinin ICINE girer -> ' Ford' kabul (bu depoda `altkategori`de "
      "GERCEKTEN yasanmis hata: katalog ham, D1 kirpilmis)"),
     ("M3", "arama.py",
      re.compile(r"    turetilen = marka_uyumdan_turet\(u\)\n.*?"
-                r"TURETILIR\" % \(mevcut, turetilen\)\)\n", re.S), "", "KIRMIZI",
+                r"TURETILIR\" % \(mevcut, turetilen\)\)\n", re.S), "", ["V6"], "ESIT",
      "V6: K5 ikiz kontrolu kalkar -> `marka` ile `uyum` sessizce ayrisir"),
     ("M4", "arama.py",
      '    m = norm(m)\n    m = "".join(c for c in unicodedata.normalize("NFKD", m)\n'
      "                if not unicodedata.combining(c))\n"
-     '    return _MODEL_AYIRAC_RE.sub("", m)\n', "    return m\n", "KIRMIZI",
-     "V7: model normalizasyonu KIMLIK fonksiyonu olur -> `F-150`/`F150` iki ayri sayfa"),
+     '    return _MODEL_AYIRAC_RE.sub("", m)\n', "    return m\n",
+     ["V7", "V16", "B4"], "ESIT",
+     "V7: model normalizasyonu KIMLIK fonksiyonu olur -> `F-150`/`F150` iki ayri sayfa; "
+     "ayni normalizasyon marka/model sinirini (V16) ve yazim-varyanti capasini (B4) da "
+     "besledigi icin o iki iddia AYNI kod yolundan birlikte duser"),
     ("M5", "arama.py",
-     "    if uyum_sebebi(u) is not None:\n        return []\n", "", "KIRMIZI",
-     "V9/V10: kanonik FAIL-OPEN olur -> gecersiz/enjekte deger D1'e HAM gider"),
+     "    if uyum_sebebi(u) is not None:\n        return []\n", "",
+     ["V4", "V9", "V10"], "ESIT",
+     "V9/V10: kanonik FAIL-OPEN olur -> gecersiz/enjekte deger D1'e HAM gider (V4 bozuk "
+     "tip fikstürü de ayni fail-open'dan gecer)"),
     ("M6", "arama.py",
      '    if son < bas:\n        return "yil araligi TERS: [%d, %d]" % (bas, son)\n', "",
-     "KIRMIZI", "V5: `yil` aralik kontrolu kalkar -> [2020, 2003] gecer"),
+     ["V5", "V9"], "ESIT",
+     "V5: `yil` aralik kontrolu kalkar -> [2020, 2003] gecer (V9 fail-closed iddiasi ayni "
+     "ters araligi fikstür olarak kullanir)"),
     ("M7", "arama.py",
      "        for deger in jetonlar:\n"
      "            if deger and deger not in turetilen:\n"
      "                turetilen.append(deger)\n",
      "        for aday in jetonlar:\n"
      "            if aday and aday not in turetilen:\n"
-     "                turetilen.append(aday)\n", "YESIL",
+     "                turetilen.append(aday)\n", [], "ESIT",
      "KONTROL MUTANTI: davranisi DEGISTIRMEYEN yeniden adlandirma — kapi bicimi degil "
      "DAVRANISI olcuyor mu?"),
     # EK MUTANT (spec disi, olculen kusurdan dogdu): V10 bu turda GERCEKTEN kirmizi yandi
@@ -774,7 +826,7 @@ MUTANTLAR = [
     # mutasyonla olculmeli, yoksa yarin sessizce geri alinabilir.
     ("M8", "arama.py",
      re.compile(r"    if d\[0\] in UYUM_SERBEST_AYIRAC or d\[-1\] in UYUM_SERBEST_AYIRAC:"
-                r"\n.*?% \(ad, onceki \+ simdiki\)\)\n", re.S), "", "KIRMIZI",
+                r"\n.*?% \(ad, onceki \+ simdiki\)\)\n", re.S), "", ["V10"], "ESIT",
      "V10: ayirac KONUM kurali kalkar -> '../../etc/passwd' model/oem alanindan GECER"),
     # M9 — mimar maddesi (b): turetme ESKI kurala (yalniz marka) donerse KIRMIZI.
     # Bu mutant tam olarak "sessiz arama kaybi" senaryosudur: kod calisir, kapi eski
@@ -782,9 +834,12 @@ MUTANTLAR = [
     ("M9", "arama.py",
      '        jetonlar = (uyum_marka_kanonik(oge.get("marka")),\n'
      '                    model_metin(oge.get("model")))\n',
-     '        jetonlar = (uyum_marka_kanonik(oge.get("marka")),)\n', "KIRMIZI",
+     '        jetonlar = (uyum_marka_kanonik(oge.get("marka")),)\n',
+     ["V6", "V8", "V11", "V12", "V13", "V14", "V17", "A1", "A2", "A5"], "ESIT",
      "V6/V12/A5: turetme YALNIZ markaya doner -> model jetonlari `marka`dan ve dolayisiyla "
-     "haystack'ten SESSIZCE duser"),
+     "haystack'ten SESSIZCE duser. GENIS BEYAN: K5 ikiz kapisi turetilen `marka`yi "
+     "REDDETTIGI icin `uyum_kanonik` bos doner ve model jetonu tasiyan HER fikstür "
+     "(V8/V11/V13/V14/V17) ile gercek katalog taramalari (A1/A2/A5) ayni kablodan duser"),
     # M10 — turetme sirasi ters cevrilir (model once). Davranis DEGISIR: bugunku
     # ["marka","model"] dizilimi bozulur, ama arama metni ayni kalir -> yalniz sira
     # ekseni kirmizi yanmali (ayrismanin SIRA bileseni de olculuyor mu?).
@@ -792,14 +847,16 @@ MUTANTLAR = [
      '        jetonlar = (uyum_marka_kanonik(oge.get("marka")),\n'
      '                    model_metin(oge.get("model")))\n',
      '        jetonlar = (model_metin(oge.get("model")),\n'
-     '                    uyum_marka_kanonik(oge.get("marka")))\n', "KIRMIZI",
-     "V12/A5: turetme SIRASI ters (model once) -> `marka` dizilimi bugunkunden kayar"),
+     '                    uyum_marka_kanonik(oge.get("marka")))\n',
+     ["V6", "V8", "V11", "V12", "V13", "V14", "V17", "A1", "A2", "A5"], "ESIT",
+     "V12/A5: turetme SIRASI ters (model once) -> `marka` dizilimi bugunkunden kayar; "
+     "kume M9 ile AYNIDIR cunku red yine K5 ikiz kapisindan gelir"),
     # M11 — marka/model sinirindaki ikiz kapisi kalkar. `Kia` kumedeyken `KIA` model
     # olarak gecer ve ayni gercek IKI ayri sayfa uretir.
     ("M11", "arama.py",
      re.compile(r"    for ad in \(\"model\", \"motor\"\):\n"
                 r"        sebep = marka_varyanti_sebebi\(ad, oge\.get\(ad\)\)\n"
-                r"        if sebep:\n            return sebep\n"), "", "KIRMIZI",
+                r"        if sebep:\n            return sebep\n"), "", ["V16"], "ESIT",
      "V16: marka/model sinirindaki ikiz kapisi kalkar -> `KIA` model olarak GECER"),
     # ── BAGIMSIZ CURUTUCUDEN GELEN IKI MUTANT (2 Agu). Ikisi de ONCE SAG KALMISTI;
     # kapinin o turdeki iddialari onlari gormuyordu. Kural degisti, mutantlar KALICI.
@@ -807,12 +864,13 @@ MUTANTLAR = [
     # de eslesir); mutant jetonu ELENEN'den CIKARIP IZINLI'ye TASIR — birlesim SABIT kalir.
     ("M12", "arama.py",
      re.compile(r'("Toplife", )"Turbo", ("Victoria",\n\}\))'),
-     '\\1\\2\nUYUM_MARKA_IZINLI = frozenset(UYUM_MARKA_IZINLI | {"Turbo"})', "KIRMIZI",
+     '\\1\\2\nUYUM_MARKA_IZINLI = frozenset(UYUM_MARKA_IZINLI | {"Turbo"})',
+     ["S2"], "ESIT",
      "S2: ELENEN'den cikarilan jeton IZINLI'ye TASINIR (birlesim SABIT kalir) -> sayi "
      "korumasi bunu GORMUYORDU, kimlik korumasi goruyor"),
     ("M13", "arama.py",
      re.compile(r"    imzalar = \[json\.dumps.*?len\(set\(imzalar\)\)\)\n", re.S), "",
-     "KIRMIZI",
+     ["V17"], "ESIT",
      "V17: MUKERRER oge kontrolu tamamen silinir -> ayni uyum ogesi iki kez yazilabilir"),
     # ── BILESIK MARKA ADI (tools/paket-bilesik-marka.md). B1/B3/B4/B5/B6 icin TEK-KIRMIZI
     # mutant: her eksen TEK BASINA olculebiliyor mu, yoksa iddialar birbirinin bayragini mi
@@ -820,58 +878,85 @@ MUTANTLAR = [
     ("M14", "arama.py",
      'BILESIK_MARKA_KANONIK = {\n    "Mercedes-Benz": "Mercedes",\n}\n',
      'BILESIK_MARKA_KANONIK = {\n    "Mercedes-Benz": "Mercedes",\n'
-     '    "Mercedes-AMG": "Mercedes",\n}\n', "KIRMIZI",
+     '    "Mercedes-AMG": "Mercedes",\n}\n', ["B1"], "ESIT",
      "B1: kapali tabloya DENETIMSIZ ikinci giris — Okan yalniz TEK eslemeyi verdi; tablo "
      "sessizce buyurse her bilesik ad tartisilmadan katlanirdi"),
     ("M15", "arama.py",
      "    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
      '    for _m in UYUM_MARKA_IZINLI:\n        if deger.startswith(_m + " "):\n'
      "            return _m\n    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
-     "KIRMIZI",
+     ["B2"], "ESIT",
      "B2: TABLO HIC OKUNMADAN 'icerdigi markayi dondur' kurali — uydurma bilesik ad "
      "(`Mercedes Voranta`) sessizce `Mercedes`e katlanir"),
     ("M16", "arama.py",
      "    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
-     '    return BILESIK_MARKA_KANONIK.get(deger, deger.rstrip("+"))\n', "KIRMIZI",
+     '    return BILESIK_MARKA_KANONIK.get(deger, deger.rstrip("+"))\n', ["B3"], "ESIT",
      "B3: GENEL NORMALIZASYON (sonek soyma) — olculen mesru jeton `206+` yenir ve o "
      "Peugeot modeli aramadan hicbir kirmizi yanmadan duser"),
     ("M17", "arama.py",
      "_UYUM_MARKA_ANAHTARLARI = frozenset(model_normalize(m) for m in UYUM_MARKA_IZINLI)\n",
      "_UYUM_MARKA_ANAHTARLARI = frozenset(model_normalize(m)\n"
      "                                    for m in UYUM_MARKA_IZINLI | URETICI_MARKA)\n",
-     "KIRMIZI",
+     ["A1", "B4"], "ESIT",
      "B4: yazim-varyanti anahtar kumesi URETICI markalarina genisler -> capa 7'den 21'e "
-     "kayar ve MaCiT'in kova ayrimi sessizce yanlislanir"),
+     "kayar ve MaCiT'in kova ayrimi sessizce yanlislanir (A1 gercek katalog taramasi ayni "
+     "genislemeyi ihlal olarak gorur)"),
     ("M18", "arama.py",
      "    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
      "    if deger not in BILESIK_MARKA_KANONIK:\n        for _m in UYUM_MARKA_IZINLI:\n"
      "            if model_normalize(_m) == model_normalize(deger):\n"
      "                return _m\n    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
-     "KIRMIZI",
+     ["B5"], "ESIT",
      "B5: bilesik-ad yolu YAZIM VARYANTI yoluna delege eder (iki kural sinifi tek capada "
      "erir) -> `KIA` bilesik tablodan `Kia`ya katlanir, iki iddia TEK kod yoluna duser"),
     ("M19", "arama.py",
      "        if not arama_jetonu_korunuyor(aday, ham) and ham not in yeni:\n",
-     "        if ham not in yeni:\n", "KIRMIZI",
+     "        if ham not in yeni:\n", ["B6"], "ESIT",
      "B6: arama takmasi KOSULSUZ eklenir -> jeton zaten korunuyorken arama yuzeyi "
      "GENISLER (gereksiz genisleme de olculmemis bir davranis degisikligidir)"),
+    # 🔴 M20 — B6 ve B7 BIRLIKTE beyan edilir (mimar maddesi 2, sik (b); OLCULDU 2 Agu):
+    # B7'yi TEK BASINA yakan AYIRT EDICI mutant URETILEMEDI, cunku B7'nin B6'dan FAZLASI
+    # bir VERI iddiasidir (gercek katalogda bilesik ad tasiyan kayit VAR ve hicbirinin
+    # arama jetonu kaybolmuyor) — mutasyon KODU degistirir, veriyi degil. B7'nin dokundugu
+    # kod yolu B6'nin capaladigi yolun ALT KUMESIDIR: B6 mekanizmanin CIKTI LISTESINI
+    # birebir capalar, B7 yalnizca jetonun korunmasini olcer. Olculen kanit (uc aday
+    # kopyada kosuldu, hicbiri repoda kalmadi):
+    #   * takma BASA eklenir -> yalniz B6 kirmizi (B7 yesil): B6 kesinlikle daha duyarli;
+    #   * tarayici uyelik testi yerine esleme sonucuna bakar -> ikisi de YESIL;
+    #   * B7'yi tek basina yakan TEK sey `len(marka) >= 2` gibi KEYFI bir esikti — uydurma
+    #     mutantla ayri iddia ureltilmez ([[beyan-edilmis-survivor]]: ayirt edici mutant
+    #     yoksa eksen AYRI iddia sayilmaz).
+    # Sonuc: B7 kapida AYRI iddia olarak KALIR (gercek veri uzerinde bagimsiz nobet tutar)
+    # ama mutasyon duzleminde B6'nin GERCEK-VERI BIRIMIDIR ve birlikte beyan edilir.
     ("M20", "arama.py",
      "        if not arama_jetonu_korunuyor(aday, ham) and ham not in yeni:\n"
-     "            yeni.append(ham)\n", "        continue\n", "KIRMIZI",
-     "B6/B7: takma HIC eklenmez -> duz esleme geri gelir ve `Mercedes-Benz` sorgusu 5 "
-     "gercek kaydi SESSIZCE kaybeder (paketin varlik sebebi olan hata)"),
+     "            yeni.append(ham)\n", "        continue\n", ["B6", "B7"], "ESIT",
+     "B6+B7 (BIRLIKTE beyan): takma HIC eklenmez -> duz esleme geri gelir ve "
+     "`Mercedes-Benz` sorgusu 5 gercek kaydi SESSIZCE kaybeder (paketin varlik sebebi olan "
+     "hata). B7 ayirt edici mutanti YOK; B6'nin gercek-veri birimidir"),
+    # M23 — bagimsiz curutucude OLCULEN SAG KALAN: kanoniklestirme yalniz `marka[0]`'a
+    # uygulanirsa (MaCiT'in "marka-basi" kovasi akil yurutmesi) hicbir iddia yanmiyordu.
+    # Gercek katalogda bilesik adi 0'DAN BASKA konumda tasiyan 1 kayit var
+    # (`['BMW', 'Mercedes-Benz']`) ve B6 fikstürlerinin HEPSI bilesik adi 0'da tasiyordu —
+    # yani fikstür kor noktaydi. B6 fikstürune konum-1 vakasi eklendi, mutant KALICI.
+    ("M23", "arama.py",
+     "    for m in marka:\n        k = bilesik_marka_kanonik(m)\n",
+     "    for _i, m in enumerate(marka):\n"
+     "        k = bilesik_marka_kanonik(m) if _i == 0 else m\n", ["B6"], "ESIT",
+     "B6: kanoniklestirme yalniz `marka[0]`'a uygulanir -> bilesik adi ikinci sirada "
+     "tasiyan gercek kayit (`['BMW', 'Mercedes-Benz']`) HIC katlanmaz"),
     ("M21", "arama.py",
      "    for m in marka:\n        k = bilesik_marka_kanonik(m)\n"
      "        if k != m:\n            dusen.append(m)\n"
      "        if k not in yeni:\n            yeni.append(k)\n",
      "    for ad in marka:\n        kan = bilesik_marka_kanonik(ad)\n"
      "        if kan != ad:\n            dusen.append(ad)\n"
-     "        if kan not in yeni:\n            yeni.append(kan)\n", "YESIL",
+     "        if kan not in yeni:\n            yeni.append(kan)\n", [], "ESIT",
      "KONTROL MUTANTI: davranisi DEGISTIRMEYEN yeniden adlandirma — B ekseni bicimi degil "
      "DAVRANISI mi olcuyor?"),
     ("M22", "arama.py",
      'BILESIK_MARKA_KANONIK = {\n    "Mercedes-Benz": "Mercedes",\n}\n',
-     'BILESIK_MARKA_KANONIK = dict([("Mercedes-Benz", "Mercedes")])\n', "YESIL",
+     'BILESIK_MARKA_KANONIK = dict([("Mercedes-Benz", "Mercedes")])\n', [], "ESIT",
      "KONTROL MUTANTI: tablo AYNI icerikle baska sozdiziminde kurulur — kapi tablonun "
      "METNINI degil ICERIGINI mi olcuyor?"),
 ]
@@ -915,20 +1000,81 @@ def _capa_metni(eski):
     return eski.pattern if isinstance(eski, re.Pattern) else eski
 
 
+OLCUTLER = ("ESIT", "KAPSAR")
+KAPSAR_GEREKCE_ISARETI = "KAPSAR GEREKCE:"
+
+
+def _iddia_kodlari(cikti):
+    """Kosum ciktisindan (kirmizi_kod_kumesi, toplam_iddia_sayisi).
+
+    Iddia adinin ILK jetonu kodudur ("KALDI B7 KATALOG..." -> "B7"). Kod okunamiyorsa
+    satir SAYILIR ama isimsiz kalir — beyan karsilastirmasi o zaman eksik yakar.
+    """
+    kirmizi, toplam = set(), 0
+    for satir in cikti.splitlines():
+        s = satir.strip()
+        for bas, kirmizi_mi in (("GECTI ", False), ("KALDI ", True)):
+            if s.startswith(bas):
+                toplam += 1
+                parcalar = s[len(bas):].split()
+                if kirmizi_mi and parcalar:
+                    kirmizi.add(parcalar[0])
+    return kirmizi, toplam
+
+
+def _beyan_kapisi():
+    """Kayitlarin KENDI sekli fail-closed dogrulanir: bilinmeyen olcut ya da gerekcesiz
+    KAPSAR, mutasyon KOSULMADAN reddedilir — yoksa 'olcut yazdim' demek olcut OLMASINI
+    saglamazdi."""
+    hatalar = []
+    kodlar = set()
+    for kayit in MUTANTLAR:
+        if len(kayit) != 7:
+            hatalar.append("%r: kayit 7 alanli olmali (kod, dosya, eski, yeni, beyan, "
+                           "olcut, aciklama)" % (kayit[0],))
+            continue
+        kod, _dosya, _eski, _yeni, beyan, olcut, aciklama = kayit
+        if kod in kodlar:
+            hatalar.append("%s: MUKERRER mutant kodu" % kod)
+        kodlar.add(kod)
+        if olcut not in OLCUTLER:
+            hatalar.append("%s: bilinmeyen olcut %r (izinli: %s)"
+                           % (kod, olcut, ", ".join(OLCUTLER)))
+        if olcut == "KAPSAR" and KAPSAR_GEREKCE_ISARETI not in aciklama:
+            hatalar.append("%s: KAPSAR olcutu GEREKCESIZ — aciklamada %r gecmeli "
+                           "(fazladan kirmizi ancak YAZILI gerekceyle mubah)"
+                           % (kod, KAPSAR_GEREKCE_ISARETI))
+        if not isinstance(beyan, list) or any(not isinstance(b, str) for b in beyan):
+            hatalar.append("%s: beyan iddia KODLARINDAN olusan bir liste olmali" % kod)
+    return hatalar
+
+
 def mutasyon():
     print("=== CIFT YONLU MUTASYON — mutant KOPYAYA uygulanir, CANLI dosyaya ASLA")
+    print("    KABUL = CIKIS KODU DEGIL: (1) iddia SAYISI taban ile ayni, (2) KIRMIZI "
+          "IDDIA KODLARI mutantin BEYANIYLA olcute gore uyusuyor.")
     once = {d: _sha(os.path.join(GERCEK_KOK, "tools", d)) for d in KOPYALANAN}
     basarisiz = []
+
+    sekil_hatalari = _beyan_kapisi()
+    if sekil_hatalari:
+        print("\nMUTASYON SONUCU: OLCULEMEDI — mutant kayitlari BOZUK:")
+        for h in sekil_hatalari:
+            print("  - " + h)
+        return 1
 
     # M00 MUTASYONSUZ KONTROL (ZORUNLU ON-KOSUL): kopya agaci mutasyonsuz halde YESIL
     # vermezse harness BOZUKTUR ve butun "KIRMIZI" sonuclari YALANCIDIR (mutant degil,
     # cokme olculur). Olculmus vaka: eksik bir kopya dosyasi 14 mutantin 14'unu ayni
-    # ImportError ile "olduruldu" gosterebilir.
+    # ImportError ile "olduruldu" gosterebilir. TABAN IDDIA SAYISI da burada OLCULUR
+    # (capa DEGIL): her mutant kosumu bu sayiyla karsilastirilir.
     tmp0 = _kopya_kur()
     p0 = _kok_kostur(tmp0)
-    kontrol_ok = p0.returncode == 0
-    print("  %s M00 [YESIL] MUTASYONSUZ KONTROL -> %s (harness saglam mi)"
-          % ("OK  " if kontrol_ok else "HATA", "YESIL" if kontrol_ok else "KIRMIZI"))
+    t_kirmizi, taban_iddia = _iddia_kodlari((p0.stdout or "") + (p0.stderr or ""))
+    kontrol_ok = p0.returncode == 0 and not t_kirmizi and taban_iddia > 0
+    print("  %s M00 [YESIL] MUTASYONSUZ KONTROL -> %s (harness saglam mi) | TABAN IDDIA "
+          "SAYISI = %d" % ("OK  " if kontrol_ok else "HATA",
+                           "YESIL" if kontrol_ok else "KIRMIZI", taban_iddia))
     if not kontrol_ok:
         print("     " + (p0.stderr or p0.stdout).strip().splitlines()[-1][:300])
         shutil.rmtree(tmp0, ignore_errors=True)
@@ -937,7 +1083,11 @@ def mutasyon():
     shutil.rmtree(tmp0, ignore_errors=True)
 
     uygulanan = 0
-    for ad, dosya, eski, yeni, beklenen, aciklama in MUTANTLAR:
+    matris = []
+    tek_kirmizi = {}
+    for kod, dosya, eski, yeni, beyan, olcut, aciklama in MUTANTLAR:
+        beklenen = "KIRMIZI" if beyan else "YESIL"
+        etiket = beklenen + ("/" + olcut if beyan else "")
         tmp = _kopya_kur()
         hedef = os.path.join(tmp, "tools", dosya)
         with open(hedef, encoding="utf-8") as f:
@@ -945,37 +1095,79 @@ def mutasyon():
         mutant, sayi = _mutasyon_uygula(metin, eski, yeni)
         if mutant is None:
             basarisiz.append("%s CAPA BAYAT (%d kez eslesti, 1 olmali) %s: %s"
-                             % (ad, sayi, dosya, _capa_metni(eski)[:70]))
+                             % (kod, sayi, dosya, _capa_metni(eski)[:70]))
             print("  HATA %s [%s] %s -> CAPA BAYAT (%d eslesme) | EKSEN OLCULMEDI | %s"
-                  % (ad, beklenen, dosya, sayi, aciklama))
+                  % (kod, etiket, dosya, sayi, aciklama))
+            matris.append((kod, etiket, "-", "-", "-", ",".join(beyan) or "-"))
             shutil.rmtree(tmp, ignore_errors=True)
             continue
         if mutant == metin:
-            basarisiz.append("%s MUTANT UYGULANMADI (metin DEGISMEDI) %s" % (ad, dosya))
+            basarisiz.append("%s MUTANT UYGULANMADI (metin DEGISMEDI) %s" % (kod, dosya))
             print("  HATA %s [%s] %s -> MUTANT UYGULANMADI | EKSEN OLCULMEDI | %s"
-                  % (ad, beklenen, dosya, aciklama))
+                  % (kod, etiket, dosya, aciklama))
+            matris.append((kod, etiket, "-", "-", "-", ",".join(beyan) or "-"))
             shutil.rmtree(tmp, ignore_errors=True)
             continue
         with open(hedef, "w", encoding="utf-8") as f:
             f.write(mutant)
         uygulanan += 1
         p = _kok_kostur(tmp)
+        cikti = (p.stdout or "") + (p.stderr or "")
+        kirmizi, iddia = _iddia_kodlari(cikti)
         goruldu = "KIRMIZI" if p.returncode != 0 else "YESIL"
-        isaret = "OK  " if goruldu == beklenen else "HATA"
-        if goruldu != beklenen:
-            basarisiz.append("%s %s: beklenen %s, goruldu %s" % (ad, dosya, beklenen,
-                                                                 goruldu))
-        oldu = [s.strip() for s in p.stdout.splitlines() if s.strip().startswith("KALDI")]
-        # 🔴 KIRMIZI YETMEZ, ADLI IDDIA SART: mutant COKEREK de rc!=0 verebilir (import/
-        # sozdizimi hatasi). O "olduruldu" DEGIL "olculemedi"dir.
-        if goruldu == "KIRMIZI" and beklenen == "KIRMIZI" and not oldu:
-            basarisiz.append("%s %s: KIRMIZI ama HICBIR iddia KALDI demedi — mutant "
-                             "oldurulmedi, kapi COKTU (yalanci kanit)" % (ad, dosya))
-        print("  %s %s [%s] %s -> %s (%d iddia kirmizi) | %s"
-              % (isaret, ad, beklenen, dosya, goruldu, len(oldu), aciklama))
-        for s in oldu[:3]:
-            print("        " + s[:150])
+        # 🔴 IDDIA SAYISI SARTI: mutant kabul testini COKERTEREK de rc!=0 verebilir
+        # (IndexError/ImportError). Sayi duserse geri kalan iddialar HIC OLCULMEMISTIR ve
+        # o "kirmizi" bir OLCUM DEGILDIR ([[hukum-yanlis-birimde]]).
+        sayi_ok = (iddia == taban_iddia)
+        notlar = []
+        if not sayi_ok:
+            notlar.append("IDDIA SAYISI TUTMUYOR (%s/%d) -> mutant kapiyi COKERTMIS; bu "
+                          "'kirmizi' OLCUM DEGIL" % (iddia, taban_iddia))
+        if beyan:
+            eksik = [b for b in beyan if b not in kirmizi]
+            fazla = sorted(kirmizi - set(beyan)) if olcut == "ESIT" else []
+            if eksik:
+                notlar.append("EKSIK: %s (mutant SAG KALDI)" % ",".join(eksik))
+            if fazla:
+                notlar.append("BEYAN DISI FAZLA KIRMIZI: %s (ya beyan ya iddia yanlis)"
+                              % ",".join(fazla))
+            gecti = (sayi_ok and goruldu == "KIRMIZI" and bool(kirmizi)
+                     and not eksik and not fazla)
+            if len(kirmizi) == 1:
+                tek_kirmizi.setdefault(sorted(kirmizi)[0], []).append(kod)
+        else:
+            if kirmizi:
+                notlar.append("KONTROL MUTANTI KIRMIZI YAKTI: %s (kapi bicimi olcuyor "
+                              "olabilir)" % ",".join(sorted(kirmizi)))
+            gecti = sayi_ok and goruldu == "YESIL" and not kirmizi
+        if not gecti:
+            basarisiz.append("%s %s: beklenen %s [%s] beyan=%s, olculen kirmizi=%s%s"
+                             % (kod, dosya, beklenen, olcut, ",".join(beyan) or "-",
+                                ",".join(sorted(kirmizi)) or "-",
+                                (" | " + " | ".join(notlar)) if notlar else ""))
+        print("  %s %s [%s] %s -> %s (iddia %s/%d · kirmizi %s)%s | %s"
+              % ("OK  " if gecti else "HATA", kod, etiket, dosya, goruldu, iddia,
+                 taban_iddia, ",".join(sorted(kirmizi)) or "-",
+                 ("  ⚠️ " + " ⚠️ ".join(notlar)) if notlar else "", aciklama))
+        if not gecti:
+            for s in cikti.splitlines()[-6:]:
+                print("        " + s.strip()[:150])
+        matris.append((kod, etiket, str(p.returncode), "%s/%d" % (iddia, taban_iddia),
+                       ",".join(sorted(kirmizi)) or "-", ",".join(beyan) or "-"))
         shutil.rmtree(tmp, ignore_errors=True)
+
+    print("\n  --- MUTASYON MATRISI (beyan ↔ olculen) ---")
+    print("  %-5s %-15s %-6s %-9s %-28s %s"
+          % ("kod", "beklenti", "cikis", "iddia", "olculen kirmizi", "beyan"))
+    for satir in matris:
+        print("  %-5s %-15s %-6s %-9s %-28s %s" % satir)
+
+    # OLCUM (iddia DEGIL): hangi eksenin TEK BASINA yakilabilir mutanti var? Eksigi kapiyi
+    # kirmizi yakmaz — ama "su eksen ayri iddia mi" tartismasi bu tablo ile yurutulur
+    # ([[beyan-edilmis-survivor]]).
+    print("\n  OLCUM — TEK-KIRMIZI HARITASI (ayirt edici mutanti OLAN eksenler): %s"
+          % (", ".join("%s<-%s" % (e, ",".join(k))
+                       for e, k in sorted(tek_kirmizi.items())) or "YOK"))
 
     sonra = {d: _sha(os.path.join(GERCEK_KOK, "tools", d)) for d in KOPYALANAN}
     bozuk = [d for d in once if once[d] != sonra[d]]
@@ -991,7 +1183,8 @@ def mutasyon():
         for s in basarisiz:
             print("  - " + s)
         return 1
-    print("\nMUTASYON SONUCU: %d/%d beklenti TUTTU ✔" % (len(MUTANTLAR), len(MUTANTLAR)))
+    print("\nMUTASYON SONUCU: %d/%d mutant BEYANINA UYDU (iddia sayisi %d, hepsinde "
+          "SABIT) ✔" % (len(MUTANTLAR), len(MUTANTLAR), taban_iddia))
     return 0
 
 
