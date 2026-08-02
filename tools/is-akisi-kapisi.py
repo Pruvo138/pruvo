@@ -2098,6 +2098,21 @@ SERIT_B = {
         "Yayini durdurmanin tamir degeri SIFIR: deploy.yml push'tan SONRA kosar ve "
         "geri getirilen commit'ler o an zaten public'tir; ayrica commit mesaji ile "
         "gecmisteki blob sitede GORUNMEZ (canliya cikan icerik sinifi degil).",
+    # --- YAYIN GECIKME NOBETCISI (1 Agu 2026) — GERCEK OLCUM KOLU CI'DA HIC YOK ------
+    # 🔴 ISTISNAI GIRIS: yukaridaki kardeslerinde "gercek olcum kolu SERIT A'da
+    # bloklayici kosuyor" denir; burada gercek olcum kolu CI'DA HICBIR SERITTE KOSMAZ
+    # ve bu BILEREK boyledir. GEREKCE (1 Agu'ta olculdu): nobetci "canli, main'den ne
+    # kadar geride" sorusunu olcer; YALNIZ CI'da kossaydi hat tikandigi anda O DA
+    # KOSAMAZDI -> tam ihtiyac aninda susardi (o gun 20 commit birikene, 6 kosum ust
+    # uste dusene ve canli ~1,5 saat bayatlayana kadar kimse fark etmedi). Olcum kolu
+    # bu yuzden ELLE ve `tools/durum.py` bolum 9'dan kosar; CI'da yalnizca AGSIZ
+    # fikstur/kablolama kabulu vardir. tools/yayin-gecikme-test.py :: 4a iddiasi
+    # bayraksiz (olcum yapan) bir cagrinin deploy.yml'e sizmasini KIRMIZI yakar.
+    ("deploy.yml", "serit-b", "tools/yayin-gecikme-test.py"):
+        "Aracin KENDINI sinamasi: 15 AGSIZ fikstur + pano/bagimsizlik kablolamasi. "
+        "Gercek olcum kolu CI'da BILEREK kosmaz (olctugu hatta bagimli olmasin diye), "
+        "elle + tools/durum.py bolum 9'dan kosar; 'canliya sizintili icerik cikmasin' "
+        "sinifi DEGILDIR, yayini durdurmasi olculmus zarardir.",
     # --- oz-nobetci / kendini-test kollari (gercek olcum kolu SERIT A'da BLOKLAYICI) ---
     ("deploy.yml", "serit-b", "tools/diriltme-kapisi.py"):
         "YALNIZ `--kendini-test` kolu; silinmis urun diriltme OLCUMU (bayraksiz kol) "

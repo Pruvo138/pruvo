@@ -9,9 +9,19 @@ musteriye IBAN/unvan/TAM tutar ekrani + Telegram "HAVALE BEKLENIYOR".
 
 ## Yonetim sayfasi (siparis yonetimi paketi — tools/paket-siparis-yonetimi.md)
 
-`https://pruvo3d.com/api/shop/yonet?anahtar=<YONET_ANAHTAR>` — tek dosyalik, mobil uyumlu
-sayfa (worker icinde gomulu; harici kutuphane yok). `YONET_ANAHTAR` wrangler secret
-(`openssl rand -hex 24`); TANIMSIZSA tum /yonet* uclari 404 doner (varlik sizmasin).
+`https://pruvo3d.com/api/shop/yonet` — tek dosyalik, mobil uyumlu sayfa (worker icinde
+gomulu; harici kutuphane yok). **Giris: sifre kutusu.** Adres acildiginda tek bir sifre
+alani cikar; `YONET_ANAHTAR` girilip gonderilince (POST — anahtar govdede gider, URL'de
+DEGIL) 12 saatlik `HttpOnly; Secure; SameSite=Strict; Path=/` cerezi kurulur ve panel
+acilir. **`?anahtar=` sorgu parametresi YOK** (tam URL erisim loglarina, tarayici gecmisine
+ve Referer basligina yaziliyordu); makine istemcileri (`tools/yazdir.py`) anahtari
+`X-Yonet-Anahtar` basliginda yollar. `YONET_ANAHTAR` wrangler secret
+(`openssl rand -hex 24`); TANIMSIZSA tum /yonet* uclari 404 doner (sifre kutusu bile
+gosterilmez). Yanlis sifre, hic denememis ziyaretciyle BIREBIR ayni ekrani doner
+(govde + durum kodu + TUM basliklar ayni; Set-Cookie yok).
+**Hiz siniri:** dakikada 5 basarisiz denemeden sonra dogru sifre de bir sure kabul edilmez
+(her basarisiz denemede ~250 ms bekleme). Sayac worker isolate'i basinadir — mutlak tavan
+degil, ucuz bir yavaslaticidir. Giris govdesi 1 KB ile sinirlidir.
 - **Liste**: son 50 siparis (durum suzgeci), PII yalniz anahtarli yanitta. Her satirda
   **FILAMENT + RENK vurgulu** + baski onerisi (D1 `urunler.baski` — gizli kayittan
   d1-sync ile; yoksa malzeme fallback'i) + "Yerel komut kopyala" (`python3 tools/yazdir.py

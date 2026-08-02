@@ -23,12 +23,27 @@
  *     YAYIN  = _yayin/ altindaki AYNI uc dosya (soyulmus)
  *   Iddia: her kombinasyonda parametrikFiyatKurus ciktisi BIREBIR ayni (null'lar dahil).
  *
- * BOLUM B — `?v=` SURUM HATTI
- *   Uretilen sayfalardaki her site-ici <script src="/x.js?v=hash"> icin:
+ * BOLUM B — SURUM HATTI (iki KOL, ikisi de olculur)
+ *   B-KOLU-1 `?v=` HATTI — site-ici <script src="/x.js?v=hash"> icin:
  *     (1) deploy'un _site'a koyacagi dosya (_yayin/x.js) VAR,
  *     (2) sayfaya basilan hash o YAYIN kopyasinin sha1'inin ilk 10 hex'i.
  *   Yani tarayiciya giden bayt ile URL'deki surum damgasi AYNI dosyadan turer; soyma
  *   hash'i kaydirdiysa bu bolum kirmizi yanar.
+ *
+ *   B-KOLU-2 ICERIK-ADRESLI VARLIK (`/varlik/<onek>-<hash>.<uz>`) — bu dosyalar
+ *   `_yayin/` altina DEGIL, kaynak agacindaki `varlik/` altina uretilir ve deploy
+ *   _site'a ORADAN kopyalar (bkz. build.varlik_adres + deploy.yml `cp -r varlik`).
+ *   Ustlerine `?v=` BASILMAZ (build.py surumleyicisi /varlik/ altina dokunmaz), cunku
+ *   onbellek kirici ADIN KENDISIDIR. 🔴 BU BIR MUAFIYET DEGIL, BASKA EKSENDE OLCUMDUR
+ *   ve "dosya var mi"dan DAHA GUCLU bir iddiadir: ad, dosyanin KENDI BAYTLARININ
+ *   sha256'sinin ilk 10 hex'inden YENIDEN TURETILIR ve basilan adla karsilastirilir.
+ *   Tutmuyorsa (bayt degisti/ad sabit kaldi, ya da ad elle yazildi) BAYAT varlik servis
+ *   edilirdi -> KIRMIZI. Kural acikca soyle yazilir: bir site-ici referans YA `?v=`
+ *   tasir, YA da adi baytlarindan turemis gecerli bir icerik-adresidir; ucuncu hal yok.
+ *   Kapsam yoklamasi (B6/B7) iki kolun da FIILEN kostugunu olcer; sifir gorulme,
+ *   ad-dogrulamasinin hic kosmadigi yalanci-yesil demektir.
+ *   CSS de bu kola dahildir: sayfanin <link rel=stylesheet href="/varlik/*.css">
+ *   referansi 404 donerse sayfa CIPLAK kalir — JS'ten daha az kritik degil.
  *   OLCULEMEDI (bilerek): "canlida 200 doner" — bu kosum AGSIZDIR; buradaki karsiligi
  *   "deploy'un kopyalayacagi dosya diskte var" (yol butunlugu).
  *
@@ -200,14 +215,45 @@ iddia("A4 yayin kopyasi KAYNAKTAN farkli (soyma fiilen calisti)",
         fs.readFileSync(path.join(KOK, rel), "utf8")
           !== fs.readFileSync(path.join(YAYIN, rel), "utf8")));
 
-console.log("BOLUM B — `?v=` surum hatti (sayfaya basilan hash == YAYINLANAN bayt)");
+console.log("BOLUM B — surum hatti (basilan surum == YAYINLANAN bayt; iki kol)");
 // Site-ici <script src="/x.js"> — surumlu VE surumsuz hali AYNI desende yakalanir ki
 // "hic ?v= basilmamis" hali de olculebilsin (orneklem YOK: uretilen TUM sayfalar).
 const SCRIPT_RE = /<script\b[^>]*\ssrc="(\/[^"?]+\.js)(\?v=([0-9a-f]{10}))?"/g;
+// Icerik-adresli CSS de ayni kolun parcasi: 404 donerse sayfa CIPLAK kalir.
+const VARLIK_CSS_RE = /<link\b[^>]*\shref="(\/varlik\/[^"?]+\.css)(\?v=([0-9a-f]{10}))?"/g;
 const HARIC = new Set([".git", "_yayin", "node_modules", ".claude", "raporlar"]);
+
+// --- icerik-adresli varlik kolu (build.varlik_adres ile TEK KAYNAKTAN ayni kural) ---
+const VARLIK_URL_ONEK = "/varlik/";
+const VARLIK_DIR = path.join(KOK, "varlik");
+const VARLIK_HASH_UZUNLUK = 10;          // build.py VARLIK_HASH_UZUNLUK
 
 function hashOf(dosya) {
   return crypto.createHash("sha1").update(fs.readFileSync(dosya)).digest("hex").slice(0, 10);
+}
+/** build.varlik_hash'in node karsiligi: YAYINA INEN BAYTLARIN sha256'sinin ilk 10 hex'i.
+ *  (build.py icerigi utf-8 yazar; dosya baytlari = hash'lenen baytlar.) */
+function varlikHash(dosya) {
+  return crypto.createHash("sha256").update(fs.readFileSync(dosya))
+    .digest("hex").slice(0, VARLIK_HASH_UZUNLUK);
+}
+/** `/varlik/<onek>-<hash>.<uz>` referansini DISKTE cozer ve adin dosyanin KENDI
+ *  baytlarindan turedigini DOGRULAR. Doner: null (temiz) | hata sebebi (dize).
+ *  FAIL-CLOSED: cozulemeyen/dizin disina cikan/adi tutmayan her hal KIRMIZI. */
+function varlikDogrula(url) {
+  const dosya = path.normalize(path.join(KOK, url.replace(/^\//, "")));
+  if (!dosya.startsWith(VARLIK_DIR + path.sep)) {
+    return "varlik/ disina cikan yol -> " + dosya;
+  }
+  if (!fs.existsSync(dosya)) { return "dosya YOK -> sayfa CIPLAK kalir"; }
+  const ad = path.basename(dosya);
+  const uz = path.extname(ad);
+  const onek = path.basename(ad, uz).replace(/-[^-]*$/, "");   // "urun-51aeb3ecfb" -> "urun"
+  const bek = onek + "-" + varlikHash(dosya) + uz;
+  if (bek !== ad) {
+    return "ad kendi BAYTLARINDAN turemiyor (" + ad + " != " + bek + ") -> BAYAT varlik";
+  }
+  return null;
 }
 /** IZLENEN (git ls-files) .html = KAYNAK dosya; build.py'nin yayin donusumunden
  *  GECMEZ (elle yazilmis 4 yasal sayfa + kaynak index.html). Kapsam = URETILEN sayfalar. */
@@ -237,42 +283,88 @@ if (sayfaListesi.length === 0) {
   olculemedi("uretilmis sayfa yok (index.built.html / urun/) -> once build.py");
 }
 let refToplam = 0, refEksik = 0, refHashSapan = 0, refSurumsuz = 0;
+let refVarlikJs = 0, refVarlikCss = 0, refVarlikSapan = 0;
 const refOrnek = [];
+const varlikOrnek = [];
+const varlikGorulen = new Set();       // essiz varlik dosyasi (kapsam kaniti)
+
+/** Bir site-ici referansi (js ya da css) OLCER. `surum` varsa `?v=` hex'i. */
+function referansiOlc(sayfa, url, surum, cssMi) {
+  if (url.startsWith(VARLIK_URL_ONEK)) {
+    // KOL-2: surum bilgisi ADIN ICINDE -> adi baytlardan yeniden turet ve DOGRULA.
+    // (Sessiz atlama DEGIL: her referans bir iddia uretir, sapan sayilir.)
+    if (cssMi) { refVarlikCss++; } else { refVarlikJs++; }
+    const sorun = varlikDogrula(url);
+    if (sorun) {
+      refVarlikSapan++;
+      if (varlikOrnek.length < 5) { varlikOrnek.push(sayfa + " -> " + url + " " + sorun); }
+      return;
+    }
+    varlikGorulen.add(url);
+    // `?v=` ayrica basilmissa o da YAYINLANAN bayttan turemek ZORUNDA (ikinci surum
+    // ekseni sessizce ayrisamaz). build.py bugun basmiyor; basarsa burada olculur.
+    if (surum) {
+      const dosya = path.join(KOK, url.replace(/^\//, ""));
+      if (hashOf(dosya) !== surum) {
+        refVarlikSapan++;
+        if (varlikOrnek.length < 5) {
+          varlikOrnek.push(sayfa + " -> " + url + " ?v=" + surum + " != " + hashOf(dosya));
+        }
+      }
+    }
+    return;
+  }
+  if (cssMi) { return; }               // KOL-1 kapsami: site-ici JS (degismedi)
+  // KOL-1: deploy'un _yayin/'dan kopyalayacagi bayt + ?v= damgasi.
+  refToplam++;
+  const rel = url.replace(/^\//, "");
+  const yayinDosyasi = path.join(YAYIN, rel);
+  if (!fs.existsSync(yayinDosyasi)) {
+    refEksik++;
+    if (refOrnek.length < 5) { refOrnek.push(sayfa + " -> _yayin/" + rel + " YOK"); }
+    return;
+  }
+  if (!surum) {
+    refSurumsuz++;
+    if (refOrnek.length < 5) { refOrnek.push(sayfa + " -> " + rel + " ?v= YOK"); }
+    return;
+  }
+  if (hashOf(yayinDosyasi) !== surum) {
+    refHashSapan++;
+    if (refOrnek.length < 5) {
+      refOrnek.push(sayfa + " -> " + rel + " hash " + surum + " != " + hashOf(yayinDosyasi));
+    }
+  }
+}
+
 for (const s of sayfaListesi) {
   const metin = fs.readFileSync(s, "utf8");
   let m;
   SCRIPT_RE.lastIndex = 0;
-  while ((m = SCRIPT_RE.exec(metin)) !== null) {
-    refToplam++;
-    const rel = m[1].replace(/^\//, "");
-    const yayinDosyasi = path.join(YAYIN, rel);
-    if (!fs.existsSync(yayinDosyasi)) {
-      refEksik++;
-      if (refOrnek.length < 5) { refOrnek.push(s + " -> _yayin/" + rel + " YOK"); }
-      continue;
-    }
-    if (!m[3]) {
-      refSurumsuz++;
-      if (refOrnek.length < 5) { refOrnek.push(s + " -> " + rel + " ?v= YOK"); }
-      continue;
-    }
-    if (hashOf(yayinDosyasi) !== m[3]) {
-      refHashSapan++;
-      if (refOrnek.length < 5) {
-        refOrnek.push(s + " -> " + rel + " hash " + m[3] + " != " + hashOf(yayinDosyasi));
-      }
-    }
-  }
+  while ((m = SCRIPT_RE.exec(metin)) !== null) { referansiOlc(s, m[1], m[3], false); }
+  VARLIK_CSS_RE.lastIndex = 0;
+  while ((m = VARLIK_CSS_RE.exec(metin)) !== null) { referansiOlc(s, m[1], m[3], true); }
 }
-console.log("  uretilen sayfa=%d (izlenen kaynak html haric=%d)  script referansi=%d",
-            sayfaListesi.length, izlenen.size, refToplam);
+console.log("  uretilen sayfa=%d (izlenen kaynak html haric=%d)  ?v= script referansi=%d  "
+            + "icerik-adresli varlik referansi=%d (js=%d css=%d, essiz dosya=%d)",
+            sayfaListesi.length, izlenen.size, refToplam,
+            refVarlikJs + refVarlikCss, refVarlikJs, refVarlikCss, varlikGorulen.size);
 iddia("B1 referans sayisi > 0 (tarama OLU degil)", refToplam > 0);
-iddia("B2 her referansin YAYIN kopyasi diskte VAR (deploy'un kopyalayacagi bayt)",
+iddia("B2 her `?v=` referansinin YAYIN kopyasi diskte VAR (deploy'un kopyalayacagi bayt)",
       refEksik === 0, refOrnek.join(" | "));
 iddia("B3 sayfadaki ?v= hash'i YAYIN kopyasinin hash'i (kaynak degil)",
       refHashSapan === 0, refOrnek.join(" | "));
-iddia("B4 uretilen sayfada SURUMSUZ site-ici script referansi yok",
+iddia("B4 `?v=` kolunda SURUMSUZ site-ici script referansi yok",
       refSurumsuz === 0, refOrnek.join(" | "));
+iddia("B5 her /varlik/ referansi diskte VAR ve ADI kendi baytlarindan turer "
+      + "(bayat/eksik icerik-adresli varlik yok)",
+      refVarlikSapan === 0, varlikOrnek.join(" | "));
+iddia("B6 KAPSAM: varlik kolu FIILEN kostu (js VE css referansi gorulmus)",
+      refVarlikJs > 0 && refVarlikCss > 0,
+      "js=" + refVarlikJs + " css=" + refVarlikCss);
+iddia("B7 KAPSAM: sayfalarin refere ettigi TUM varlik dosyalari cozuldu "
+      + "(essiz dosya sayisi > 0)", varlikGorulen.size > 0,
+      "essiz=" + varlikGorulen.size);
 
 console.log("BOLUM D — DIGER YAYIN JS VARLIKLARI (veri + API yuzeyi esitligi)");
 // A bolumu fiyat ucgenini (secenekler + hacim + konfigurator) DAVRANIS ekseninde olcer.
@@ -339,7 +431,10 @@ iddia("C1 fiyat mutanti SAPMA uretir (bu test yalanci yesil vermiyor)",
 
 console.log("");
 console.log("yayin-fiyat-parite: %d/%d iddia | kombinasyon=%d anlamli=%d sapan=%d hacim-sapan=%d | "
-            + "sayfa=%d script-ref=%d eksik=%d surumsuz=%d hash-sapan=%d | mutant-sapma=%d",
+            + "sayfa=%d script-ref=%d eksik=%d surumsuz=%d hash-sapan=%d | "
+            + "varlik-ref=%d (js=%d css=%d essiz=%d) varlik-sapan=%d | mutant-sapma=%d",
             iddiaSayisi - hata, iddiaSayisi, A.toplam, A.anlamli, A.sapan, A.hacimSapan,
-            sayfaListesi.length, refToplam, refEksik, refSurumsuz, refHashSapan, C.sapan);
+            sayfaListesi.length, refToplam, refEksik, refSurumsuz, refHashSapan,
+            refVarlikJs + refVarlikCss, refVarlikJs, refVarlikCss, varlikGorulen.size,
+            refVarlikSapan, C.sapan);
 process.exit(hata ? 1 : 0);

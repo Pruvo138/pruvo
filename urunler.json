@@ -1,5 +1,29 @@
 [
   {
+    "id": "ford-fusion-jant-gobek-kapagi-logolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Ford",
+      "Fusion"
+    ],
+    "baslik": "Ford Fusion Jant Göbek Kapağı (Logolu)",
+    "aciklama": "Ford Fusion jantlarının göbek kapağının yedek karşılığıdır.\nGövde ve taban sert malzemeyle, kancalar esnek malzemeyle üretilir (iki parçalı montaj, 4 esnek kanca ile takılır).\nKaybolan veya kırılan orijinal kapağın yerine takılabilir; montaj öncesi ölçü kontrolü önerilir.\nYaklaşık dış ölçüler: 55 × 22 × 55 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/ford-fusion-jant-gobek-kapagi-logolu-1.jpg",
+      "https://media.pruvo3d.com/urunler/ford-fusion-jant-gobek-kapagi-logolu-2.jpg",
+      "https://media.pruvo3d.com/urunler/ford-fusion-jant-gobek-kapagi-logolu-3.jpg",
+      "https://media.pruvo3d.com/urunler/ford-fusion-jant-gobek-kapagi-logolu-4.jpg"
+    ],
+    "altkategori": "Tekerlek ve Jant",
+    "uyum": [
+      {
+        "marka": "Ford",
+        "model": "Fusion"
+      }
+    ]
+  },
+  {
     "id": "sierra-hava-filtresi-18-7908",
     "kategori": "Marin",
     "marka": [

@@ -1,0 +1,93 @@
+{
+ "_aciklama": "UYARI seviyesi: 6 commit bekliyor, en eskisi 55 dk (uyari 45 / alarm 75). Hat CALISIYOR, sadece geride.",
+ "_beklenen": "GECIKME",
+ "_karsilastirma_tabani": "9000000900000000000000000000000000000000",
+ "_simdi": "2026-08-01T13:00:00Z",
+ "karsilastirma": {
+  "ahead_by": 6,
+  "commits": [
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:05:00Z"
+     }
+    },
+    "sha": "91000000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:13:00Z"
+     }
+    },
+    "sha": "91010000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:21:00Z"
+     }
+    },
+    "sha": "91020000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:29:00Z"
+     }
+    },
+    "sha": "91030000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:37:00Z"
+     }
+    },
+    "sha": "91040000000000000000000000000000"
+   },
+   {
+    "commit": {
+     "committer": {
+      "date": "2026-08-01T12:45:00Z"
+     }
+    },
+    "sha": "91050000000000000000000000000000"
+   }
+  ],
+  "status": "ahead",
+  "total_commits": 6
+ },
+ "kosumlar": [
+  {
+   "conclusion": null,
+   "created_at": "2026-08-01T12:55:00Z",
+   "event": "push",
+   "head_sha": "9000000100000000000000000000000000000000",
+   "id": 30702000001,
+   "run_started_at": "2026-08-01T12:55:00Z",
+   "status": "in_progress",
+   "updated_at": "2026-08-01T12:55:02Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-01T12:50:00Z",
+   "event": "push",
+   "head_sha": "9000000200000000000000000000000000000000",
+   "id": 30702000002,
+   "run_started_at": "2026-08-01T12:50:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T12:55:01Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-08-01T11:50:00Z",
+   "event": "push",
+   "head_sha": "9000000900000000000000000000000000000000",
+   "id": 30702000009,
+   "run_started_at": "2026-08-01T11:50:00Z",
+   "status": "completed",
+   "updated_at": "2026-08-01T12:18:00Z"
+  }
+ ]
+}

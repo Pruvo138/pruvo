@@ -451,13 +451,17 @@ def rutin_fiksturler():
          None, YESIL, ""),
         # R06/R07: eski MIRAS yanlis-pozitifleri KAPANDI — c2 ekseni JS-bayrak metninden
         # #opsiyonlar YAPISINA tasindi (konfigur-test.py). Artik ilgisiz refaktor: YESIL.
+        # ⚠️ DAYANAK TASINDI (2 Agu 2026): paylasilan urun JS'i sayfadan cikip
+        # /varlik/urun-<hash>.js'e gecti; kart-secim BAYRAGININ DEGERI artik sayfadaki
+        # veri blogunda basiliyor (`var URUN_KART_SECIM = {kart_secim};`), ortak govde
+        # onu okuyor. Mutasyon dayanagi bayragin BASILDIGI yerdir.
         ("R06", "gomulu JS bayragi config objesine tasindi (script-harici refaktoru)",
-         {BUILD: [("  var KART_SECIM = {kart_secim};",
-                   "  var PRUVO_CFG = {{ kartSecim: {kart_secim} }};\n"
-                   "  var KART_SECIM = PRUVO_CFG.kartSecim;")]},
+         {BUILD: [("var URUN_KART_SECIM = {kart_secim};",
+                   "var PRUVO_CFG = {{ kartSecim: {kart_secim} }};\n"
+                   "var URUN_KART_SECIM = PRUVO_CFG.kartSecim;")]},
          None, YESIL, ""),
         ("R07", "JS MINIFY: bayraktaki bosluk kaldirildi (KART_SECIM={x})",
-         {BUILD: [("var KART_SECIM = {kart_secim};", "var KART_SECIM={kart_secim};")]},
+         {BUILD: [("var URUN_KART_SECIM = {kart_secim};", "var URUN_KART_SECIM={kart_secim};")]},
          None, YESIL, ""),
         ("R08", "HTML MINIFY: <main> ile <nav> arasi bosluk kaldirildi",
          {BUILD: [(main_ac, '<main><nav class="crumbs" aria-label="breadcrumb">')]},
@@ -594,9 +598,9 @@ SINIF_IKON = {YESIL: "✅", BORC: "🟠", MIRAS: "🔴"}
 _FLIP = ("fonksiyonel and not parametrik and not konfigur",
          "fonksiyonel and not parametrik")
 # R06 emisyonu: bayragi config objesine tasir (kartSecim: <deger>) -> C1'in kacan bicimi.
-_R06_EMIT = ("  var KART_SECIM = {kart_secim};",
-             "  var PRUVO_CFG = {{ kartSecim: {kart_secim} }};\n"
-             "  var KART_SECIM = PRUVO_CFG.kartSecim;")
+_R06_EMIT = ("var URUN_KART_SECIM = {kart_secim};",
+             "var PRUVO_CFG = {{ kartSecim: {kart_secim} }};\n"
+             "var URUN_KART_SECIM = PRUVO_CFG.kartSecim;")
 _KILIT_ISARET = "kilidi AÇILMAZ"     # (d)/(e) KILIT_ACIK_RE iddiasinin kirmizi satiri
 
 

@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+// CI-ALT-KUME: --sema-paritesi  agsiz/wranglersiz PARA nobeti (sema kapsami 23/23 + sari
+// seri fail-closed); deploy.yml'de continue-on-error'SUZ bloklayici kosar.
+// CI-ALT-KUME: --yonet-cerez  agsiz/wranglersiz ADMIN GIRIS GUVENLIGI alt kumesi
+// (cerez oturumu, sabit-zamanli karsilastirma, hiz siniri, enjeksiyon). deploy.yml'de
+// continue-on-error'SUZ BLOKLAYICI kosar; kapsam kapisinin izin listesinde giris YOKTUR
+// (kural 1 ile kapsanir). Cagri bozulursa kapi KIRMIZI yanar — mutasyonla olculdu.
+// 🔴 IDDIA SAYISI BURAYA YAZILMAZ: sayiyi betik son satirda kendisi basar. Bu satirda
+// "63 iddia" YAZIYORDU ve iddia ikiye bolununce SESSIZCE bayatladi (olculdu: gercek 65).
 /**
  * PRUVO shop KABUL TESTLERI (tools/paket-shop-odeme.md 7 madde + tools/paket-shop-kargo.md:
  * 10 kargo, 11 retrieve-incele, 12 siparis numarasi, 13 havale/eft, 14 kdv, 15 sozlesme onayi).
@@ -7,6 +15,7 @@
  *   node shop/test/kabul.js --sandbox   # 4  — GERCEK iyzico sandbox'i (shop/.dev.vars anahtarlari)
  *   node shop/test/kabul.js --paritesiz # 7'yi (parite regresyonlari) atla — hizli gelistirme turu
  *   node shop/test/kabul.js --sema-paritesi   # DETERMINISTIK ALT KUME (CI'da BLOKLAYICI)
+ *   node shop/test/kabul.js --yonet-cerez     # DETERMINISTIK: yonetim anahtari/cerez oturumu
  *
  * 🔴 TESTIN IKIYE AYRILMASI (2026-07-31, OLCULDU — bu suite CI'ya bu yuzden BU SEKILDE
  * baglandi). Suite'in tamami CI'ya BLOKLAYICI baglanamaz, cunku iki bagimsiz
@@ -82,6 +91,9 @@ const PARITESIZ = process.argv.includes("--paritesiz");
 // DETERMINISTIK ALT KUME (CI'da bloklayici) — gerekce dosya basindaki "TESTIN IKIYE
 // AYRILMASI" blogunda. Bu kolda worker/mock/D1/ag HIC baslatilmaz.
 const SEMA_PARITESI = process.argv.includes("--sema-paritesi");
+// YONETIM ANAHTARI / CEREZ OTURUMU alt kumesi — ayni sekilde DETERMINISTIK (ag/wrangler/D1
+// YOK): shop/src/yonet.js dogrudan import edilip sahte Request/env ile cagrilir.
+const YONET_CEREZ = process.argv.includes("--yonet-cerez");
 
 const AYAR = JSON.parse(fs.readFileSync(path.join(SHOP, "config.json"), "utf8"));
 // Test 1'in beklentisi TEK KAYNAKTAN (/secenekler.js) turetilir: worker'in fiyat kurali
@@ -1520,17 +1532,25 @@ async function yonetIstek(yontem, altYol, govdeObj, anahtar) {
 }
 
 /** 18 — YONETIM YETKISI (kabul 1): anahtarsiz/yanlis anahtar -> 404 (varlik sizmasin);
- *  dogru anahtar -> sayfa HTML + liste JSON (onceki testlerin fixture siparisleriyle). */
+ *  dogru anahtar -> sayfa HTML + liste JSON (onceki testlerin fixture siparisleriyle).
+ *  ⚠️ ANAHTAR ARTIK SORGU DIZESINDE TASINMAZ (cerez oturumu; --yonet-cerez alt kumesi
+ *  bunun 47 iddiasini ayrica olcer). Burada anahtar YALNIZ X-Yonet-Anahtar basligiyla
+ *  gider; anahtarsiz `GET /yonet` artik 404 DEGIL, sifre kutusudur (panel govdesi YOK). */
 async function test18YonetimYetkisi() {
   const hatalar = [];
   // anahtarsiz (baslik hic yok) + yanlis anahtar -> 404, gövde jenerik
   const c1 = await yonetIstek("GET", "/liste", null, null);
   const c2 = await yonetIstek("GET", "/liste", null, "yanlis-anahtar");
-  const c3 = await yonetIstek("GET", "/", null, null);
-  for (const [ad, c] of [["anahtarsiz liste", c1], ["yanlis anahtar", c2], ["anahtarsiz sayfa", c3]]) {
+  for (const [ad, c] of [["anahtarsiz liste", c1], ["yanlis anahtar", c2]]) {
     if (c.kod !== 404) { hatalar.push(ad + ": " + c.kod + " (404 olmali)"); }
     if ((c.metin || "").includes(TEST_YONET)) { hatalar.push(ad + ": anahtar yanita sizdi"); }
   }
+  // anahtarsiz sayfa -> giris ekrani (200) ama PANEL DEGIL, anahtar da sizmiyor
+  const c3 = await yonetIstek("GET", "/", null, null);
+  if (c3.kod !== 200 || !/type="password"/.test(c3.metin) || /Sipariş Yönetimi/.test(c3.metin)) {
+    hatalar.push("anahtarsiz sayfa: " + c3.kod + " (200 sifre kutusu olmali, panel DEGIL)");
+  }
+  if ((c3.metin || "").includes(TEST_YONET)) { hatalar.push("giris ekrani: anahtar yanita sizdi"); }
   // dogru anahtar (query parametresiyle de) -> liste JSON
   const c4 = await yonetIstek("GET", "/liste", null, undefined);
   if (c4.kod !== 200 || !Array.isArray(c4.govde.siparisler) || c4.govde.siparisler.length < 1) {
@@ -1544,8 +1564,8 @@ async function test18YonetimYetkisi() {
   if (ilkKalem && !ilkKalem.baski_oneri) {
     hatalar.push("baski fisi onerisi yok: " + JSON.stringify(ilkKalem).slice(0, 160));
   }
-  // sayfa HTML (query anahtariyla — telefon kullanimi)
-  const c5 = await istekHam("GET", WORKER_UC + "/yonet?anahtar=" + TEST_YONET);
+  // sayfa HTML (anahtar BASLIKTA — sorgu dizesi yolu kapatildi)
+  const c5 = await istekHam("GET", WORKER_UC + "/yonet", { "X-Yonet-Anahtar": TEST_YONET });
   if (c5.kod !== 200 || !/Sipariş Yönetimi/.test(c5.metin)) {
     hatalar.push("yonetim sayfasi: " + c5.kod);
   }
@@ -1554,7 +1574,8 @@ async function test18YonetimYetkisi() {
   const hepsiHavale = (c6.govde.siparisler || []).every((s) => s.durum === "havale-bekliyor");
   if (c6.kod !== 200 || !hepsiHavale) { hatalar.push("durum suzgeci calismadi"); }
   rapor("18 yonetim yetkisi", hatalar.length === 0,
-    "anahtarsiz/yanlis/sayfa=404; dogru anahtar liste=" + (c4.govde.siparisler || []).length +
+    "anahtarsiz/yanlis liste=404, anahtarsiz sayfa=sifre kutusu; dogru anahtar (baslik) liste=" +
+    (c4.govde.siparisler || []).length +
     " siparis; sayfa HTML ok; suzgec ok" +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
@@ -1843,7 +1864,7 @@ async function test24UrunKoduLinki() {
 
   // (b) sayfadaki GERCEK esc()/satirHtml() kaynagini cek (kopya yazmiyoruz — deploy
   //     edilen kod sinanir), vm'de calistir.
-  const sayfa = await istekHam("GET", WORKER_UC + "/yonet?anahtar=" + TEST_YONET);
+  const sayfa = await istekHam("GET", WORKER_UC + "/yonet", { "X-Yonet-Anahtar": TEST_YONET });
   const dilimAl = (baslangic, bitis) => {
     const b = sayfa.metin.indexOf(baslangic);
     const s = b >= 0 ? sayfa.metin.indexOf(bitis, b) : -1;
@@ -1889,6 +1910,79 @@ async function test24UrunKoduLinki() {
   rapor("24 urun kodu linki", hatalar.length === 0,
     "/liste urun_url=" + beklenenUrl + "; gercek satirHtml -> normal kalemde " +
     "href+target=_blank+rel=noopener+'Ürün kodu:' var; sahte id/baslik kacislaniyor" +
+    (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
+}
+
+/** 27 — GIRIS CEREZI UCTAN UCA (GERCEK worker + GERCEK HTTP; --yonet-cerez alt kumesi
+ *  ayni ekseni modul duzeyinde 47 iddiayla olcer, bu ise workerd'in kendisinden gecirir):
+ *  sifre kutusu -> POST -> Set-Cookie -> panel -> /liste -> panelin kurdugu indirme ucu.
+ *  Ayrica: sorgu dizesi ARTIK YETKILENDIRMEZ, yanlis sifre ayirt EDILEMEZ. */
+async function test27GirisCerezi() {
+  const hatalar = [];
+  const cerezAl = (bas) => {
+    const h = bas && bas["set-cookie"];
+    const dize = Array.isArray(h) ? h.join("\n") : (h || "");
+    return dize;
+  };
+
+  // (a) cerezsiz GET /yonet -> sifre kutusu (panel govdesi/PII YOK)
+  const g = await istekHam("GET", WORKER_UC + "/yonet");
+  if (g.kod !== 200 || !/type="password"/.test(g.metin) || /Sipariş Yönetimi/.test(g.metin)) {
+    hatalar.push("(a) cerezsiz sayfa: " + g.kod + " sifre-alani=" + /type="password"/.test(g.metin));
+  }
+  if (/siparis_no|musteri_tel|kalemler/.test(g.metin)) { hatalar.push("(a) giris ekraninda siparis verisi"); }
+
+  // (b) DOGRU sifre POST -> 302 + Set-Cookie (bayraklar AYRI AYRI)
+  const p = await istekHam("POST", WORKER_UC + "/yonet",
+    { "Content-Type": "application/x-www-form-urlencoded" }, "sifre=" + encodeURIComponent(TEST_YONET));
+  const cerezBaslik = cerezAl(p.bas);
+  if (p.kod !== 302) { hatalar.push("(b) POST kodu: " + p.kod + " (302 olmali)"); }
+  if (p.yer !== "/api/shop/yonet") { hatalar.push("(b) Location: " + JSON.stringify(p.yer)); }
+  for (const bayrak of ["HttpOnly", "Secure", "SameSite=Strict", "Path=/", "Max-Age=43200"]) {
+    if (!cerezBaslik.includes(bayrak)) { hatalar.push("(b) Set-Cookie'de " + bayrak + " YOK"); }
+  }
+  const cerez = cerezBaslik.split(";")[0];
+
+  // (c) cerezle panel + liste + panelin kurdugu indirme ucu (URL'de anahtar YOK)
+  const panel = await istekHam("GET", WORKER_UC + "/yonet", { Cookie: cerez });
+  if (panel.kod !== 200 || !/Sipariş Yönetimi/.test(panel.metin)) {
+    hatalar.push("(c) cerezli panel: " + panel.kod);
+  }
+  if (/anahtar=/i.test(panel.metin) || /location\.search/i.test(panel.metin)) {
+    hatalar.push("(c) panel HTML'i hala anahtari URL'den okuyor/gomuyor");
+  }
+  const lst = await istekHam("GET", WORKER_UC + "/yonet/liste", { Cookie: cerez });
+  if (lst.kod !== 200 || !/"siparisler"/.test(lst.metin)) { hatalar.push("(c) cerezli liste: " + lst.kod); }
+  // Panelin <a href> ile gittigi uc: ANAHTARSIZ URL + cerez -> 200 (gezinme de cerezi tasir)
+  const ind = await istekHam("GET", WORKER_UC + "/yonet/stl-liste?id=test-urun-b", { Cookie: cerez });
+  if (ind.kod !== 200 || !/"parcalar"/.test(ind.metin)) { hatalar.push("(c) cerezli indirme ucu: " + ind.kod); }
+
+  // (d) SORGU DIZESI ARTIK YETKILENDIRMEZ (isin BAS SEBEBI)
+  const q = await istekHam("GET", WORKER_UC + "/yonet/liste?anahtar=" + TEST_YONET);
+  if (q.kod !== 404) { hatalar.push("(d) ?anahtar= ile liste: " + q.kod + " (404 olmali)"); }
+  const qs = await istekHam("GET", WORKER_UC + "/yonet?anahtar=" + TEST_YONET);
+  if (qs.kod !== 200 || /Sipariş Yönetimi/.test(qs.metin)) {
+    hatalar.push("(d) ?anahtar= ile sayfa PANELI verdi: " + qs.kod);
+  }
+
+  // (e) YANLIS/BOS sifre -> ayirt EDILEMEZ, Set-Cookie YOK
+  const y = await istekHam("POST", WORKER_UC + "/yonet",
+    { "Content-Type": "application/x-www-form-urlencoded" }, "sifre=tamamen-yanlis");
+  const b = await istekHam("POST", WORKER_UC + "/yonet",
+    { "Content-Type": "application/x-www-form-urlencoded" }, "");
+  for (const [ad, c] of [["yanlis", y], ["bos", b]]) {
+    if (cerezAl(c.bas)) { hatalar.push("(e) " + ad + " sifrede Set-Cookie verildi"); }
+    if (c.kod !== g.kod || c.metin !== g.metin) {
+      hatalar.push("(e) " + ad + " sifre yaniti cerezsiz-GET'ten AYIRT EDILEBILIR (" +
+        c.kod + "/" + g.kod + ")");
+    }
+    if ((c.metin || "").includes(TEST_YONET)) { hatalar.push("(e) " + ad + ": anahtar govdeye sizdi"); }
+  }
+
+  rapor("27 giris cerezi uctan uca", hatalar.length === 0,
+    "sifre kutusu -> POST 302 + Set-Cookie(HttpOnly/Secure/SameSite=Strict/Path=//12sa) -> " +
+    "panel 200 + /liste 200 + anahtarsiz indirme ucu 200; ?anahtar= liste=404 & sayfa=form; " +
+    "yanlis/bos sifre ayirt edilemez, Set-Cookie yok" +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
@@ -2146,10 +2240,491 @@ async function testSandbox() {
   process.exit(1);
 }
 
+// ------------------------------------------------- YONETIM ANAHTARI / CEREZ OTURUMU
+
+/**
+ * DETERMINISTIK ALT KUME — `node shop/test/kabul.js --yonet-cerez`
+ * (AG YOK · WRANGLER YOK · D1 YOK · CANLI UC YOK; ayni girdide daima ayni sonuc.)
+ *
+ * OLCTUGU SEY: yonetim anahtarinin URL sorgu dizesinden CIKARILDIGI, yerine HttpOnly
+ * cerez oturumu + sifre kutusu giris kapisi geldigi. Her iddia ayri rapor satiridir —
+ * "SONUC: N gecti" dogrudan IDDIA SAYISIDIR.
+ *
+ * NASIL: shop/src/yonet.js DOGRUDAN (deploy edilen dosya, kopya DEGIL) import edilir ve
+ * export'lanan `yonet()` sahte Request/env ile cagrilir. semalar.js JSON'u import
+ * attribute'suz aldigi icin (wrangler/esbuild bunu bundle'da cozer, duz node cozmez)
+ * node:module register (v20.6+) ile .json yukleyicisi takilir — KAYNAK DEGISTIRILMEZ.
+ *
+ * FIKSTUR HIJYENI: anahtar UYDURMA; `.yonet-anahtar` dosyasi OKUNMAZ. Musteri PII'si
+ * gerekmez (bu eksende siparis verisi yok).
+ */
+const YONET_CEREZ_ANAHTARI = "test-yonet-cerez-anahtari-4f7a2b";  // UYDURMA — gercek sir DEGIL
+const YONET_TABAN = "https://pruvo3d.com/api/shop/yonet";
+
+/** D1 sahtesi: /liste'nin sorgusu bos sonuc doner (yetki eksenini olcuyoruz, veriyi degil). */
+function d1Bos() {
+  const stmt = { bind() { return stmt; }, all: async () => ({ results: [] }) };
+  return { prepare() { return stmt; } };
+}
+
+/** Anahtarin TAMAMI + ayri ayri ucte bir dilimleri (kismi sizinti da kirmizi yansin). */
+function anahtarParcalari(anahtar) {
+  const boy = Math.max(8, Math.floor(anahtar.length / 3));
+  const parcalar = [anahtar];
+  for (let i = 0; i + boy <= anahtar.length; i += boy) {
+    parcalar.push(anahtar.slice(i, i + boy));
+  }
+  return parcalar;
+}
+function sizintiVar(metin, anahtar) {
+  return anahtarParcalari(anahtar).filter((p) => String(metin || "").includes(p));
+}
+
+async function yonetCerezAkisi() {
+  console.log("PRUVO shop — YONET ANAHTAR/CEREZ (deterministik alt kume; ag/wrangler/D1 YOK)\n");
+  const A = YONET_CEREZ_ANAHTARI;
+
+  // .json import'u duz node'da cozulsun (kaynak dosyalara DOKUNMADAN).
+  //
+  // ⚠️ SURUM DERSI — TEK KOD YOLU, SURUM DALI YOK (bkz. shop/test/olcum.mjs ~481: AYNI
+  // yonet.js'i AYNI desenle yukler, karar 30 Tem'de olculerek verildi). Burada once
+  // `module.registerHooks` (senkron, in-thread) vardi; o API v22.15+ ve **CI runner'i
+  // Node 20** (deploy.yml setup-node node-version: "20") -> alt kume CI'da yapisal olarak
+  // KOSAMIYORDU (olculdu: node v20.20.2'de 0/1 exit 1, node v22.23.2'de 63/0). Dogru cozum
+  // runner'i yukseltmek DEGIL, kayitli mimari karara uymak: `module.register` (async/
+  // off-thread loader hook) Node **v20.6+**'ta VAR ve ayni attribute enjeksiyonunu yapar.
+  // olcum.mjs ayri bir yukleyici DOSYASI kullanmiyor (hook'u data: URL olarak gomuyor) ->
+  // burada da AYNI desen gomulu; paylasilacak bir yardimci dosya YOK.
+  //
+  // FAIL-CLOSED: hook API'si yoksa SUSMAYIZ — C0 KIRMIZI yanar ve process rc=1 doner.
+  // "Yuklenemedi" hicbir kosulda "atlandi/yesil" SAYILMAZ.
+  const nodeModule = require("node:module");
+  if (typeof nodeModule.register !== "function") {
+    rapor("C0 modul yukleyici", false,
+      "node:module.register YOK (Node >= 20.6 gerekir) — node " + process.version +
+      " — bu alt kume kosamaz");
+    console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi");
+    process.exit(1);
+  }
+  const JSON_IMPORT_HOOK =
+    "export async function resolve(s, c, n) {" +
+    "  const r = await n(s, c);" +
+    "  return r.url.endsWith('.json')" +
+    "    ? { ...r, format: 'json', importAttributes: { type: 'json' } }" +
+    "    : r;" +
+    "}";
+  let YM = null;
+  try {
+    nodeModule.register("data:text/javascript," + encodeURIComponent(JSON_IMPORT_HOOK));
+    YM = await import("file://" + path.join(SHOP, "src", "yonet.js"));
+  } catch (e) {
+    rapor("C0 modul yukleyici", false,
+      "yonet.js import: " + ((e && e.message) || e) + " — node " + process.version);
+    console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi");
+    process.exit(1);
+  }
+  rapor("C0 modul yukleyici", typeof YM.yonet === "function",
+    "shop/src/yonet.js import edildi; export: " + Object.keys(YM).join(","));
+
+  /**
+   * yonet()'i cagirir. basliklar: {baslik, cerez}; `sorgu` URL'e eklenir; `anahtarsizEnv`
+   * YONET_ANAHTAR'siz env kurar (ozellik kapali kolu).
+   */
+  async function cagir(secenek) {
+    const s = secenek || {};
+    const tamUrl = s.urlUstuneYaz ||
+      (YONET_TABAN + (s.altYol && s.altYol !== "/" ? s.altYol : "") + (s.sorgu || ""));
+    // `urlNesnesi`: yonlendiriciye HAM bir url nesnesi verilir (gercek URL ayristiricisinin
+    // percent-encode ettigi karakterleri de sinamak icin — girisEkrani her pathname'e karsi
+    // saglam olmali, bugun rota tam-esitlik dayatiyor olsa bile).
+    const u = s.urlNesnesi || new URL(tamUrl);
+    const basliklar = {};
+    if (s.baslik !== undefined) { basliklar["X-Yonet-Anahtar"] = s.baslik; }
+    if (s.cerez !== undefined) { basliklar["Cookie"] = s.cerez; }
+    if (s.icerikTur !== undefined) { basliklar["Content-Type"] = s.icerikTur; }
+    const istek = new Request(s.urlUstuneYaz || tamUrl, {
+      method: s.yontem || "GET", headers: basliklar,
+      body: s.govde === undefined ? undefined : s.govde,
+    });
+    const env = { KATALOG: d1Bos(), SITE_URL: "https://pruvo3d.com" };
+    if (!s.anahtarsizEnv) { env.YONET_ANAHTAR = A; }
+    const cevap = await YM.yonet(istek, env, u, { waitUntil() {} }, s.altYol || "/", null);
+    const basliklarDizi = [];
+    cevap.headers.forEach((v, k) => { basliklarDizi.push(k + ": " + v); });
+    return { kod: cevap.status, metin: await cevap.text(),
+             cerezKur: cevap.headers.get("Set-Cookie") || "",
+             yer: cevap.headers.get("Location") || "",
+             basMetin: basliklarDizi.join("\n") };
+  }
+  // KAPI SONDASI = /liste (tam olarak tools/yazdir.py'nin cagirdigi uc). Yetkili -> 200
+  // {siparisler:[]}, yetkisiz -> 404. Panel yolu ("/") artik giris formu dondurdugu icin
+  // 404 eksenleri BU ucta olculur.
+  const liste = (secenek) => cagir(Object.assign({ altYol: "/liste" }, secenek));
+  const yetkili = (c) => c.kod === 200 && /"siparisler"/.test(c.metin);
+
+  // ---- 1. SORGU PARAMETRESI KAPANDI (isin BAS SEBEBI; ONCE 200 idi) ----
+  const c1 = await liste({ sorgu: "?anahtar=" + encodeURIComponent(A) });
+  rapor("C1 yalniz ?anahtar=<dogru> -> 404 (sorgu parametresi yolu KAPALI)",
+    c1.kod === 404, "kod=" + c1.kod + " govde=" + c1.metin.slice(0, 60));
+
+  // ---- 2. BASLIK YOLU (tools/yazdir.py regresyonu) ----
+  const c2 = await liste({ baslik: A });
+  rapor("C2 X-Yonet-Anahtar: <dogru> -> 200 (yazdir.py regresyonu)",
+    yetkili(c2), "kod=" + c2.kod + " govde=" + c2.metin.slice(0, 60));
+
+  // ---- 3. CEREZ YOLU ----
+  const c3 = await liste({ cerez: "pruvo_yonet=" + A });
+  rapor("C3 Cookie: pruvo_yonet=<dogru> -> 200",
+    yetkili(c3), "kod=" + c3.kod + " govde=" + c3.metin.slice(0, 60));
+
+  // ---- 4. YANLIS / BOS / TANIMSIZ CEREZ ----
+  const c4a = await liste({ cerez: "pruvo_yonet=yanlis-deger-tamamen" });
+  rapor("C4a yanlis cerez degeri -> 404", c4a.kod === 404, "kod=" + c4a.kod);
+  const c4b = await liste({ cerez: "pruvo_yonet=" });
+  rapor("C4b bos cerez degeri -> 404", c4b.kod === 404, "kod=" + c4b.kod);
+  const c4c = await liste({});
+  rapor("C4c Cookie basligi HIC yok -> 404", c4c.kod === 404, "kod=" + c4c.kod);
+
+  // ---- 5. CEREZ ADI YAKIN-ISKA ----
+  const c5a = await liste({ cerez: "pruvo_yonet_x=" + A });
+  rapor("C5a pruvo_yonet_x=<dogru> -> 404 (ad tam esitlenir)", c5a.kod === 404, "kod=" + c5a.kod);
+  const c5b = await liste({ cerez: "pruvo-yonet=" + A });
+  rapor("C5b pruvo-yonet=<dogru> -> 404 (ad tam esitlenir)", c5b.kod === 404, "kod=" + c5b.kod);
+
+  // ---- 6. OZELLIK KAPALI (secret yok) ----
+  // 🔴 IKI CAGRI = IKI EKSEN, IKISI DE OLCULUYOR (2 Agu, olculdu). Bu iki iddia hem TASIYICI
+  // (cerez / baslik) hem de CAGRI ORDINALI bakimindan ayrilir; "tasiyici farki, gerisi kopya"
+  // deyip birini SILME — silinen sey yuklem degil CAGRI SAYISIDIR ve ozellik-kapali /liste
+  // kolunun "ilk cagri temiz, ikinci cagri sizdiriyor" sinifi nobetsiz kalir (modul duzeyi
+  // durum istekler ARASI yasar; bkz. `girisSayac`).
+  // Onceden bu iki iddianin ordinal ekseni icin nobetcide HICBIR kayit yoktu: C6a/C6b yalniz
+  // GENIS bir mutantin (M13 — ust kapi TUM ozellik-kapali GET'lerde 200) yan kirmizisi olarak
+  // goruluyordu, yani TEK BASLARINA ne tuttuklari OLCULMEMISTI. Arandi ve BULUNDU
+  // (tools/yonet-cerez-mutasyon.py):
+  //   C6a -> M24: ozellik-kapali /liste YALNIZ ILK cagride siparis listesini servis eder,
+  //   C6b -> M25: ayni sizinti YALNIZ IKINCI+ cagride olur.
+  // Her ikisi de alt kumede TEK kirmizi yakiyor (iddia sayisi 70/70 — cokme degil, olcum).
+  const c6a = await liste({ anahtarsizEnv: true, cerez: "pruvo_yonet=" + A });
+  rapor("C6a env.YONET_ANAHTAR yok + dogru cerez -> 404", c6a.kod === 404, "kod=" + c6a.kod);
+  const c6b = await liste({ anahtarsizEnv: true, baslik: A });
+  rapor("C6b env.YONET_ANAHTAR yok + dogru baslik -> 404", c6b.kod === 404, "kod=" + c6b.kod);
+
+  // ---- 7. AYRISTIRMA: baska cerezler arasinda / baska cerezin DEGERI icinde ----
+  const c7a = await liste({ cerez: "a=1; pruvo_yonet=" + A + "; b=2" });
+  rapor("C7a diger cerezlerin arasinda pruvo_yonet -> 200", yetkili(c7a), "kod=" + c7a.kod);
+  const c7b = await liste({ cerez: "baska=pruvo_yonet=" + A });
+  rapor("C7b anahtar BASKA cerezin degerinin icinde -> 404 (naive includes kirmizi yanar)",
+    c7b.kod === 404, "kod=" + c7b.kod);
+
+  // ---- 8. PANEL HTML SIZINTISI ----
+  const panel = await cagir({ altYol: "/", baslik: A });
+  const panelHtml = panel.metin;
+  rapor("C8-0 yetkili GET /yonet -> 200 panel",
+    panel.kod === 200 && /Sipariş Yönetimi/.test(panelHtml), "kod=" + panel.kod);
+  rapor("C8a panel HTML'inde `location.search` YOK",
+    !/location\.search/i.test(panelHtml), "gecti mi: " + /location\.search/i.test(panelHtml));
+  rapor("C8b panel HTML'inde `anahtar=` dizesi YOK",
+    !/anahtar=/i.test(panelHtml),
+    "eslesme: " + JSON.stringify((panelHtml.match(/.{0,40}anahtar=.{0,20}/i) || [""])[0]));
+  rapor("C8c panel HTML'inde anahtarin kendisi/parcasi YOK",
+    sizintiVar(panelHtml, A).length === 0, "sizan: " + JSON.stringify(sizintiVar(panelHtml, A)));
+
+  // ---- 9. 404 YANITI ANAHTAR SIZDIRMIYOR ----
+  rapor("C9a 404 govdesinde anahtarin hicbir parcasi YOK",
+    sizintiVar(c1.metin, A).length === 0, "sizan: " + JSON.stringify(sizintiVar(c1.metin, A)));
+  rapor("C9b 404 basliklarinda anahtarin hicbir parcasi YOK",
+    sizintiVar(c1.basMetin, A).length === 0, "basliklar=" + JSON.stringify(c1.basMetin));
+
+  // ---- 10. Set-Cookie BAYRAKLARI (ucu AYRI AYRI; birlesik dize aramasi YOK) ----
+  const kur = typeof YM.yonetCereziKur === "function" ? YM.yonetCereziKur(A) : "";
+  rapor("C10-0 yonetCereziKur() disa aktarilmis + dize uretiyor",
+    typeof YM.yonetCereziKur === "function" && kur.startsWith("pruvo_yonet="), "kur=" + kur);
+  rapor("C10a Set-Cookie `HttpOnly` iceriyor", /(^|;\s*)HttpOnly(\s*;|$)/.test(kur), "kur=" + kur);
+  rapor("C10b Set-Cookie `Secure` iceriyor", /(^|;\s*)Secure(\s*;|$)/.test(kur), "kur=" + kur);
+  rapor("C10c Set-Cookie `SameSite=Strict` iceriyor",
+    /(^|;\s*)SameSite=Strict(\s*;|$)/.test(kur), "kur=" + kur);
+  rapor("C10d Set-Cookie `Path=/` + `Max-Age=43200` (12 saat)",
+    /(^|;\s*)Path=\/(\s*;|$)/.test(kur) && /(^|;\s*)Max-Age=43200(\s*;|$)/.test(kur), "kur=" + kur);
+  const okuIstek = new Request(YONET_TABAN, { headers: { Cookie: kur.split(";")[0] } });
+  rapor("C10e yonetCereziOku(yonetCereziKur(x)) yuvarlak gidis = x",
+    typeof YM.yonetCereziOku === "function" && YM.yonetCereziOku(okuIstek) === A,
+    "okunan=" + (typeof YM.yonetCereziOku === "function" ?
+      JSON.stringify(YM.yonetCereziOku(okuIstek)) : "fonksiyon YOK"));
+  const sil = typeof YM.yonetCereziSil === "function" ? YM.yonetCereziSil() : "";
+  rapor("C10f yonetCereziSil() ayni bayraklar + Max-Age=0",
+    /(^|;\s*)HttpOnly(\s*;|$)/.test(sil) && /(^|;\s*)Secure(\s*;|$)/.test(sil) &&
+    /(^|;\s*)SameSite=Strict(\s*;|$)/.test(sil) && /(^|;\s*)Max-Age=0(\s*;|$)/.test(sil),
+    "sil=" + sil);
+
+  // ---- 11. GIRIS EKRANI (cerezsiz GET /yonet) ----
+  const form = await cagir({ altYol: "/" });
+  rapor("C11a cerezsiz GET /yonet -> 200 + sifre alani olan form",
+    form.kod === 200 && /<input[^>]*type="password"/i.test(form.metin) &&
+    /<form/i.test(form.metin), "kod=" + form.kod + " govde=" + form.metin.slice(0, 80));
+  rapor("C11b form govdesinde `anahtar=` ve `location.search` YOK",
+    !/anahtar=/i.test(form.metin) && !/location\.search/i.test(form.metin),
+    "govde uzunluk=" + form.metin.length);
+  rapor("C11c form govdesinde siparis verisi/PII/panel govdesi YOK",
+    !/siparis_no|musteri|kalemler|durum_gecmisi|Sipariş Yönetimi|yazdir_komut/i.test(form.metin),
+    "eslesme=" + JSON.stringify((form.metin.match(
+      /siparis_no|musteri|kalemler|durum_gecmisi|Sipariş Yönetimi|yazdir_komut/i) || [""])[0]));
+  rapor("C11d form `method=\"post\"` (GET DEGIL — GET sorgu dizesine yazardi)",
+    /<form[^>]*method="post"/i.test(form.metin) && !/<form[^>]*method="get"/i.test(form.metin),
+    "form etiketi=" + JSON.stringify((form.metin.match(/<form[^>]*>/i) || [""])[0]));
+
+  // ---- 12. DOGRU ANAHTARLA POST -> cerez + 302 ----
+  const govdeYap = (deger) => "sifre=" + encodeURIComponent(deger);
+  const p12 = await cagir({ altYol: "/", yontem: "POST",
+    icerikTur: "application/x-www-form-urlencoded", govde: govdeYap(A) });
+  rapor("C12a dogru anahtarla POST -> 302", p12.kod === 302, "kod=" + p12.kod);
+  rapor("C12b Location sorgu dizesi/anahtar TASIMIYOR",
+    p12.yer === "/api/shop/yonet" && !p12.yer.includes("?") &&
+    sizintiVar(p12.yer, A).length === 0, "Location=" + JSON.stringify(p12.yer));
+  rapor("C12c POST yaniti Set-Cookie veriyor + `HttpOnly`",
+    /(^|;\s*)HttpOnly(\s*;|$)/.test(p12.cerezKur), "Set-Cookie=" + p12.cerezKur);
+  rapor("C12d POST Set-Cookie `Secure`",
+    /(^|;\s*)Secure(\s*;|$)/.test(p12.cerezKur), "Set-Cookie=" + p12.cerezKur);
+  rapor("C12e POST Set-Cookie `SameSite=Strict`",
+    /(^|;\s*)SameSite=Strict(\s*;|$)/.test(p12.cerezKur), "Set-Cookie=" + p12.cerezKur);
+  // UCTAN UCA: POST'un verdigi cerez -> panel -> panelin kurdugu indirme baglantisi.
+  const cerezCifti = String(p12.cerezKur).split(";")[0];
+  const u12 = await cagir({ altYol: "/", cerez: cerezCifti });
+  const l12 = await liste({ cerez: cerezCifti });
+  rapor("C12f UCTAN UCA: POST cerezi -> GET /yonet panel 200 + /liste 200",
+    u12.kod === 200 && /Sipariş Yönetimi/.test(u12.metin) && yetkili(l12),
+    "panel=" + u12.kod + " liste=" + l12.kod + " cerez=" + cerezCifti.slice(0, 14) + "…");
+
+  // ---- 13. YANLIS ANAHTARLA POST — AYIRT EDILEMEZ ----
+  const p13 = await cagir({ altYol: "/", yontem: "POST",
+    icerikTur: "application/x-www-form-urlencoded", govde: govdeYap("tamamen-yanlis-deger") });
+  rapor("C13a yanlis anahtarla POST -> Set-Cookie YOK",
+    p13.cerezKur === "", "Set-Cookie=" + JSON.stringify(p13.cerezKur));
+  rapor("C13b yanlis-POST govdesi cerezsiz-GET govdesiyle BIREBIR ayni (ayirt edici metin YOK)",
+    p13.metin === form.metin, "esit mi=" + (p13.metin === form.metin) +
+    " uzunluklar=" + p13.metin.length + "/" + form.metin.length);
+  rapor("C13c yanlis-POST durum kodu cerezsiz-GET ile ayni",
+    p13.kod === form.kod, "kodlar=" + p13.kod + "/" + form.kod);
+  rapor("C13d yanlis-POST govdesinde anahtarin hicbir parcasi YOK",
+    sizintiVar(p13.metin, A).length === 0, "sizan=" + JSON.stringify(sizintiVar(p13.metin, A)));
+  // ⚠️ ORAKUL BOSLUGU KAPATILDI: govde+kod+Set-Cookie kiyaslamak YETMIYOR. Basarisiz girise
+  // AYIRT EDICI BIR BASLIK eklemek eski testten YESIL geciyordu. TUM yanit basliklari
+  // (Set-Cookie dahil, sirali) birebir kiyaslanir.
+  rapor("C13e yanlis-POST'un TUM yanit BASLIKLARI cerezsiz-GET ile birebir ayni",
+    p13.basMetin === form.basMetin,
+    "POST=" + JSON.stringify(p13.basMetin) + " GET=" + JSON.stringify(form.basMetin));
+
+  // ---- 14. BOS GOVDE (fail-closed) ----
+  const p14 = await cagir({ altYol: "/", yontem: "POST" });
+  rapor("C14a bos govdeyle POST -> Set-Cookie YOK (fail-closed)",
+    p14.cerezKur === "", "Set-Cookie=" + JSON.stringify(p14.cerezKur));
+  rapor("C14b bos govde yaniti = cerezsiz-GET yaniti (kod + govde)",
+    p14.kod === form.kod && p14.metin === form.metin, "kod=" + p14.kod);
+  rapor("C14c bos govde yanitinin TUM BASLIKLARI cerezsiz-GET ile birebir ayni",
+    p14.basMetin === form.basMetin, "POST=" + JSON.stringify(p14.basMetin));
+
+  // ---- 15. OZELLIK KAPALI (secret yok): GIRIS POST'u da 404 ----
+  // ESKI C15 UC EKSENI TEK IDDIADA VE'liyordu (POST 404 + GET 404 + GET govdesinde form
+  // yok) — kirmizi yandiginda HANGI eksenin dustugunu SOYLEMEZDI. Eksenlere ayrildi ve her
+  // eksen icin "YALNIZ onu kirmizi yakan" mutant ARANDI (tools/yonet-cerez-mutasyon.py):
+  //   C15a  POST 404 -> AYIRT EDICI MUTANT BULUNDU (M11: ozellik-kapali kolu "birlestirilip"
+  //                     secret yok + POST'ta giris EKRANI dondurulur, GET hala 404). O
+  //                     mutantta alt kumede YALNIZ bu iddia kirmizi yanar -> KENDI iddiasi.
+  //                     ⚠️ Ust/alt kapiyi TEK BASINA bozan mutantlar bu ekseni dusurmez
+  //                     (olculdu: ust kapi silinince POST girisYap'in kendi kapisina duser,
+  //                     ic kapi silinince ust kapi yakalar) — M11 kapilari SILMEZ, ozellik-
+  //                     kapali KOLU yeniden yazar; kacis yolu buydu.
+  //   C15b  GET 404  -> KENDI iddiasi. 🔴 C22b ile "ayni yuklem" DEGILDIR: C15b ozellik-kapali
+  //   C15c  form yok    panel kokunun ILK GET'ini, C22b/C22c DAHA SONRAKI bir GET'ini olcer.
+  //                     Bu tur bir bolme sirasinda bu sonda "C22b ile ozdes" sanilip SILINDI
+  //                     ve OLCULDU ki kapsam kaybiydi: modul duzeyi durum istekler ARASI yasar
+  //                     (bu dosyada `girisSayac` zaten oyle), dolayisiyla "ilk cagri temiz,
+  //                     IKINCI cagri sizdiriyor" sinifi bir mutant tek sondayla YAKALANMAZ.
+  //                     Nobetcide M16 tam olarak bu sinifi tasiyor: sonda silinmisken alt kume
+  //                     YESIL kaliyordu, geri konunca C22b+C22c kirmizi yaniyor.
+  //                     ⚠️ Bu iki iddiayi (veya asagidaki cagriyi) "C22 zaten olcuyor" diye
+  //                     SILME — silinince olculen sey CAGRI SAYISI'dir, yuklem degil.
+  // C15a'ya "form yok" ekseni EKLENMEDI: POST kolunun 404'u da yon404'ten gelir; onu bozan
+  // mutant ya TEK KAYNAGI bozar (C22e + C22c birlikte duser, olculdu M12) ya da ust kapinin
+  // kendi 404'unu bozar (C22c duser, olculdu M14). Iki halde de ayirt edici olmazdi.
+  const p15 = await cagir({ altYol: "/", yontem: "POST", anahtarsizEnv: true,
+    icerikTur: "application/x-www-form-urlencoded", govde: govdeYap(A) });
+  rapor("C15a env.YONET_ANAHTAR yok + POST / (DOGRU sifreyle) -> 404 (giris kolu BILE yok)",
+    p15.kod === 404, "POST=" + p15.kod + " govde=" + p15.metin.slice(0, 60));
+  const g15 = await cagir({ altYol: "/", anahtarsizEnv: true });
+  rapor("C15b ozellik-kapali panel kokunun ILK GET'i -> 404",
+    g15.kod === 404, "kod=" + g15.kod);
+  rapor("C15c ozellik-kapali ILK GET'in govdesinde <form> YOK",
+    !/<form/i.test(g15.metin),
+    "form var mi=" + /<form/i.test(g15.metin) + " govde=" + g15.metin.slice(0, 60));
+
+  // ---- 16. GET SORGU DIZESI HALA YETKILENDIRMIYOR (BAS SEBEP) ----
+  const g16 = await cagir({ altYol: "/", sorgu: "?anahtar=" + encodeURIComponent(A) });
+  rapor("C16a GET /yonet?anahtar=<dogru> -> panel DEGIL, giris formu (sorgu yetkilendirmez)",
+    g16.kod === 200 && /<input[^>]*type="password"/i.test(g16.metin) &&
+    !/Sipariş Yönetimi/.test(g16.metin), "kod=" + g16.kod + " panel mi=" +
+    /Sipariş Yönetimi/.test(g16.metin));
+  rapor("C16b GET /yonet/liste?anahtar=<dogru> -> 404 (POST yolu bu kapiyi geri ACMADI)",
+    c1.kod === 404, "kod=" + c1.kod);
+
+  // ---- 17. tools/yazdir.py REGRESYONU (kaynak nobetcisi — dosyaya DOKUNULMADI) ----
+  const yazdirKaynak = fs.readFileSync(path.join(KOK, "tools", "yazdir.py"), "utf8");
+  rapor("C17a tools/yazdir.py anahtari X-Yonet-Anahtar BASLIGINDA yolluyor",
+    /"X-Yonet-Anahtar":\s*anahtar/.test(yazdirKaynak),
+    "eslesme=" + JSON.stringify(
+      (yazdirKaynak.match(/"X-Yonet-Anahtar":\s*anahtar.{0,26}/) || [""])[0]));
+  rapor("C17b tools/yazdir.py anahtari URL sorgu dizesine GOMMUYOR",
+    !/["'?&]anahtar=/.test(yazdirKaynak),
+    "eslesme=" + JSON.stringify((yazdirKaynak.match(/.{0,30}["'?&]anahtar=.{0,20}/) || [""])[0]));
+
+  // ---- 20. GIRIS EKRANI ENJEKSIYONU ($ ikame desenleri) ----
+  // `String.replace`'in IKAME DIZESI `$&` `$\`` `$'` `$$` desenlerini YORUMLAR. `$\``
+  // eslesmeden onceki tum HTML'i action niteligine kopyalar; backtick [&<>"'] suzgecinden
+  // GECER. Beklenen: govde, yolun HARFI HARFINE basilmis halinden BAsKA hicbir sey
+  // icermesin — yani uzunluk = temel govde - "__EYLEM__" + suzulmus yol.
+  const TEMEL_YOL = "/api/shop/yonet";          // form (cerezsiz GET) bu yolla uretildi
+  const TEMEL = form.metin.length;
+  const suz = (y) => y.replace(/[&<>"']/g, "");
+  for (const kotu of ["$`", "$&", "$'", "$$"]) {
+    const hamYol = TEMEL_YOL + kotu + "x";
+    // FIKSTUR GERCEK CIKTININ SEKLINI TAKLIT ETSIN: sahte url nesnesi de `searchParams`
+    // tasir — yoksa sorgu parametresini geri ekleyen bir mutant testi COKERTIR, ve cokme
+    // "kirmizi" ile karisir (olculdu: M1 ilk turda SONUC satirini hic basmadi).
+    const c20 = await cagir({ altYol: "/",
+      urlNesnesi: { pathname: hamYol, searchParams: new URLSearchParams("") } });
+    const beklenenBoy = TEMEL - TEMEL_YOL.length + suz(hamYol).length;
+    const formEtiketi = (c20.metin.match(/<form[^>]*>/i) || [""])[0];
+    rapor("C20 yol '" + kotu + "' -> enjeksiyon YOK (govde boyu sabit, action harfi harfine)",
+      c20.metin.length === beklenenBoy &&
+      formEtiketi === '<form method="post" action="' + suz(hamYol) + '">',
+      "boy=" + c20.metin.length + " (beklenen " + beklenenBoy + ") form=" +
+      JSON.stringify(formEtiketi.slice(0, 90)));
+  }
+
+  // ---- 21. sabitEsit FAIL-CLOSED PRIMITIFI ----
+  // Eski hali `String(a||"")` ile bos/tanimsiz girdide TRUE donerdi: `env.YONET_ANAHTAR`
+  // tanimsizken bos sifre = yetki. Korumayi cagri sirasina birakmayiz.
+  const SE = YM.sabitEsit;
+  rapor("C21-0 sabitEsit disa aktarilmis", typeof SE === "function", "tip=" + typeof SE);
+  rapor("C21a sabitEsit('', '') === false", SE("", "") === false, "sonuc=" + SE("", ""));
+  rapor("C21b sabitEsit('', undefined) === false",
+    SE("", undefined) === false, "sonuc=" + SE("", undefined));
+  rapor("C21c sabitEsit(undefined, undefined) === false",
+    SE(undefined, undefined) === false, "sonuc=" + SE(undefined, undefined));
+  rapor("C21d KONTROL: sabitEsit('abc','abc') === true (sertlestirme dogruyu bozmadi)",
+    SE("abc", "abc") === true && SE("abc", "abd") === false, "esit=" + SE("abc", "abc"));
+
+  // ---- 22. IKI SECRET KAPISI — HER BIRI AYRI AYRI (VEYA DEGIL, VE) ----
+  // ESKI C22 ("secret yok + BOS sifre POST -> 404") istegi yonet() uzerinden gecirirdi,
+  // yani IKI kapi da yoldaydi ve iddia ikisinin VEYA'sini olcuyordu: HER BIRI tek basina
+  // silindiginde alt kume YESIL kaliyordu (olculdu), yalniz IKISI BIRDEN silininca kirmizi.
+  // Zarar: iki ayri "yesil" commit birlikte anahtarsiz cerez kurulumuna kapi acabilirdi.
+  // Simdi iki kapi AYRI eksende, birbirini maskeleyemeyecek sekilde olculur.
+  const GY = YM.girisYap;
+  rapor("C22-0 girisYap disa aktarilmis (kendi kapisi IZOLE olculebilsin diye)",
+    typeof GY === "function", "tip=" + typeof GY);
+
+  // C22a/C22d/C22e — girisYap'IN KENDI KAPISI, IZOLE: yonet() BYPASS edilir, girisYap
+  // DOGRUDAN cagrilir; ust kapi yolda olmadigi icin onu maskeleyemez.
+  // Bu kapinin UC EKSENI var ve UCU DE TEK BASINA dusebiliyor (olculdu) -> uc ayri iddia:
+  //   C22a = KOD ekseni   -> ayirt edici mutant M17 (kapi 404 yerine formsuz/cerezsiz 200).
+  //   C22d = CEREZ ekseni -> ayirt edici mutant M18 (kapi 404 + formsuz govde doner AMA
+  //                          Set-Cookie basar). Bir tur once bu eksen icin "ayirt edici
+  //                          mutant ARANMADI, bilinmiyor" diye kayit dusulmustu — arandi,
+  //                          BULUNDU: anahtarsiz oturum cerezi kurulumu tam da bu kapinin
+  //                          engelledigi zarardir, ve TEK BASINA olculmeden duruyordu.
+  //   C22e = GOVDE ekseni -> ayirt edici mutant M19 (kapi kendi 404'unu HTML+<form> olarak
+  //                          uretir; yon404 TEK KAYNAGINA dokunulmaz, ust kapi saglam).
+  // ⚠️ Uclu VE'ye geri DONDURME: M17/M18/M19'un her biri tek basina yalniz KENDI iddiasini
+  // kirmizi yakiyor; birlestirilirse hangi eksenin dustugu iddia ADINDAN okunmaz olur.
+  const env22 = { KATALOG: d1Bos(), SITE_URL: "https://pruvo3d.com" };  // YONET_ANAHTAR YOK
+  const istek22 = new Request(YONET_TABAN, { method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "sifre=" });
+  // Cagriyi KORU: fonksiyon export edilmemisse cagri COKER ve cokme "kirmizi" ile
+  // karisirdi (C22-0 zaten kirmizi yanar).
+  const y22a = typeof GY === "function" ?
+    await GY(istek22, new URL(YONET_TABAN), env22) : null;
+  const y22aKod = y22a === null ? -1 : y22a.status;
+  const y22aCerez = y22a === null ? "?" : (y22a.headers.get("Set-Cookie") || "");
+  const y22aMetin = y22a === null ? "" : await y22a.text();
+  const y22aDetay = y22a === null ? "girisYap cagrilamadi (export YOK)" : "";
+  rapor("C22a girisYap KENDI kapisi KOD ekseni (IZOLE, yonet() bypass): secret yok + " +
+    "bos sifre -> 404",
+    y22aKod === 404, y22aDetay || ("kod=" + y22aKod));
+  rapor("C22d girisYap KENDI kapisi CEREZ ekseni (IZOLE): ayni cagride Set-Cookie YOK",
+    y22aCerez === "", y22aDetay || ("cerez=" + JSON.stringify(y22aCerez)));
+  rapor("C22e girisYap KENDI kapisi GOVDE ekseni (IZOLE): ayni cagride <form> YOK",
+    !/<form/i.test(y22aMetin),
+    y22aDetay || ("form var mi=" + /<form/i.test(y22aMetin) +
+      " govde=" + y22aMetin.slice(0, 60)));
+
+  // C22b — yonet()'in UST KAPISI, IZOLE. POST "/" AYIRT EDICI DEGIL: ust kapi silinse
+  // bile istek girisYap'a duser ve orada 404 olur (alt kapi ustunu maskeler). Ayirt edici
+  // eksen secret YOK + GET "/" (panel koku): bugun ust kapi 404 doner; ust kapi silinirse
+  // anahtarGecerli false doner ve girisEkrani(url) 200 form doner.
+  // Bu kolun IKI EKSENI var ve HER BIRI TEK BASINA dusebiliyor (olculdu) — bu yuzden AYRI
+  // AYRI olculurler: kirmizi yanan IDDIA ADI hangi eksenin dustugunu SOYLESIN diye.
+  //   C22b = KOD ekseni   -> ayirt edici mutant M15: ust kapi YALNIZ `GET /`te formsuz 200
+  //                          doner. Govde ekseni saglam (form yok), /liste kolu saglam
+  //                          (C6a/C6b yesil), POST kolu saglam (C15a yesil) -> TEK kirmizi.
+  //   C22c = GOVDE ekseni -> ayirt edici mutant M14: ust kapinin KENDI 404'u HTML+<form>
+  //                          olur, KOD 404 KALIR ve yon404 TEK KAYNAGINA dokunulmaz (ona
+  //                          dokunmak C22e'yi de dusururdu — bkz. M12) -> TEK kirmizi.
+  // 🔴 15. BLOKLA BAG — CAGRI SIRASI OLCUMUN PARCASIDIR: asagidaki cagri, ozellik-kapali
+  // panel kokune yapilan IKINCI GET'tir (ilki C15b/C15c'nin sondasi). C15b/C15c ile bu ikisi
+  // "ayni yuklem, gereksiz kopya" DEGILDIR: modul duzeyi durum istekler ARASI yasadigi icin
+  // (bkz. `girisSayac`) ILK cagri temiz gorunup IKINCI cagri sizdirabilir. Olculdu — 15.
+  // bloktaki sonda silinince M16 (ikinci+ cagrida sizdiran mutant) alt kumeyi YESIL geciyordu.
+  // Bu iki iddiayi da, 15. bloktaki sondayi da SILME; silinen sey yuklem degil CAGRI SAYISIDIR.
+  const g22b = await cagir({ altYol: "/", anahtarsizEnv: true });
+  rapor("C22b yonet() UST kapisi KOD ekseni (IZOLE): secret yok + GET / -> 404",
+    g22b.kod === 404, "kod=" + g22b.kod);
+  rapor("C22c yonet() UST kapisi GOVDE ekseni (IZOLE): ayni yanitin govdesinde <form> YOK",
+    !/<form/i.test(g22b.metin),
+    "form var mi=" + /<form/i.test(g22b.metin) + " govde=" + g22b.metin.slice(0, 60));
+
+  // ---- 19. GOVDE UST SINIRI (request.formData() sinirsiz ayristirirdi) ----
+  const kocaman = "sifre=" + "A".repeat(4096);
+  const p19a = await cagir({ altYol: "/", yontem: "POST",
+    icerikTur: "application/x-www-form-urlencoded", govde: kocaman });
+  rapor("C19a sinir ustu govde -> 302 YOK + Set-Cookie YOK (fail-closed)",
+    p19a.kod !== 302 && p19a.cerezKur === "", "kod=" + p19a.kod);
+  const p19b = await cagir({ altYol: "/", yontem: "POST",
+    icerikTur: "application/x-www-form-urlencoded",
+    govde: "dolgu=" + "B".repeat(2048) + "&sifre=" + encodeURIComponent(A) });
+  rapor("C19b sinir ustu govdedeki DOGRU sifre bile kabul edilmez",
+    p19b.kod !== 302 && p19b.cerezKur === "", "kod=" + p19b.kod);
+
+  // ---- 18. GIRIS HIZ SINIRI — EN SONDA (sayaci doldurur; sonraki iddialari etkilemesin) ----
+  let deneme = 0;
+  let bloke = null;
+  while (deneme < 12) {
+    deneme++;
+    await cagir({ altYol: "/", yontem: "POST",
+      icerikTur: "application/x-www-form-urlencoded", govde: "sifre=yanlis-" + deneme });
+    const dogru = await cagir({ altYol: "/", yontem: "POST",
+      icerikTur: "application/x-www-form-urlencoded", govde: "sifre=" + encodeURIComponent(A) });
+    if (dogru.kod !== 302) { bloke = dogru; break; }
+  }
+  rapor("C18a art arda basarisiz denemeden sonra DOGRU sifre bile reddediliyor (hiz siniri)",
+    bloke !== null && bloke.kod !== 302 && bloke.cerezKur === "",
+    bloke ? (deneme + " turda bloke; kod=" + bloke.kod) : "12 turda hic bloke olmadi");
+  rapor("C18b bloke yaniti hic-denememis GET ile BIREBIR ayni (kod + govde + basliklar)",
+    bloke !== null && bloke.kod === form.kod && bloke.metin === form.metin &&
+    bloke.basMetin === form.basMetin,
+    bloke ? ("kod=" + bloke.kod + " govde-esit=" + (bloke.metin === form.metin) +
+             " bas-esit=" + (bloke.basMetin === form.basMetin)) : "bloke olmadi");
+
+  console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi" +
+    (kalan ? "" : " — HEPSI YESIL ✅"));
+  console.log("IDDIA SAYISI: " + (gecen + kalan));
+  process.exit(kalan ? 1 : 0);
+}
+
 // ---------------------------------------------------------------- akis
 
 async function main() {
   if (SEMA_PARITESI) { return semaParitesiAkisi(); }
+  if (YONET_CEREZ) { return yonetCerezAkisi(); }
   if (SANDBOX) { return testSandbox(); }
 
   console.log("PRUVO shop kabul testleri (mock iyzico + yerel D1)\n");
@@ -2206,6 +2781,7 @@ async function main() {
     await test22Stl();
     await test24UrunKoduLinki();
     await test24EpostaLinkResim();
+    await test27GirisCerezi();
     await test23AnahtarsizKurulum();
     test6SirTaramasi();
     test7Parite();

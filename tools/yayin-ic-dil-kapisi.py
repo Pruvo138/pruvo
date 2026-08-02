@@ -292,6 +292,17 @@ def kapsam(kok):
             p = os.path.join(s, "index.html")
             if os.path.exists(os.path.join(kok, p)):
                 dosyalar.append(p)
+    # SAYFA VARLIKLARI (/varlik/*.css, *.js) — build.py'nin ayirdigi ortak CSS/JS.
+    # 2 Agu'da yeni bir YAYIN YUZEYI oldular: eskiden bu baytlar urun sayfasinin
+    # <style>/<script> govdesindeydi ve BU kapinin kapsamindaydi. Blok sayfadan cikip
+    # kendi dosyasina tasinirken kapsam da tasinmazsa ic-dil olcumu SESSIZCE korelir
+    # (olculen yuzey kucuulur, kapi yine yesil yanar) -> burada acikca eklenir.
+    varlik_kok = os.path.join(kok, "varlik")
+    if os.path.isdir(varlik_kok):
+        for a in sorted(os.listdir(varlik_kok)):
+            if a.endswith(".css") or a.endswith(".js"):
+                dosyalar.append(os.path.join("varlik", a))
+
     urun_kok = os.path.join(kok, "urun")
     urun_sayisi = 0
     if os.path.isdir(urun_kok):

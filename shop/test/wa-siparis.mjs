@@ -228,8 +228,12 @@ async function setA() {
     ol("yonetim anahtari da calisir -> 201", c.status === 201, "kod=" + c.status);
   }
   // EN AZ YETKI: Ege anahtari BASKA hicbir ucu acmaz.
+  // NOT: panel KOKU ("/", GET) bu listede DEGIL — cunku main'de yetkisiz `GET /yonet`
+  // artik 404 degil 200 SIFRE KUTUSU (cerez oturumu gecisi). Kok icin duz bir kod
+  // beklentisi yerine ASIL NIYETI olcen ayri bir blok var (asagida): Ege anahtari
+  // anonimden FAZLA hicbir sey almiyor. Iddia zayiflatilmadi, GUCLENDIRILDI.
   for (const [yol, yontem] of [["/liste", "GET"], ["/durum", "POST"], ["/kargo", "POST"],
-                               ["/stl", "GET"], ["/", "GET"], ["/stl-liste", "GET"]]) {
+                               ["/stl", "GET"], ["/stl-liste", "GET"]]) {
     const env = mockEnv();
     const c = await yonet(istek({}, egeBaslik(), yontem), env,
                           new URL("https://ornek-site.test/api/shop/yonet" + yol),
@@ -243,6 +247,52 @@ async function setA() {
     const c = await yonet(istek({}, egeBaslik(), "GET"), env, URL_BOS, ctxSahte,
                           "/wa-siparis", undefined);
     ol("GET /wa-siparis -> 404 (yalniz POST)", c.status === 404, "kod=" + c.status);
+  }
+  // ---- PANEL KOKU: Ege anahtari anonimden FAZLA hicbir sey ALMIYOR ----------------
+  // main (`9716c204`+`59914f0a`) yetkisiz `GET /yonet`i 404'ten 200 sifre kutusuna
+  // cevirdi; bu bilincli ve kendi mutasyon bataryasiyla korunuyor. Dalin ESKI "-> 404"
+  // beklentisi bayatti. Ama dalin NIYETI (Ege anahtari paneli ACMASIN) hala gecerli, o
+  // yuzden beklenti "200'e cevrildi" diye tek satirda gecistirilmiyor; niyet UC AYRI
+  // eksende olculuyor. Ayirt edici mutant: "Ege anahtari `anahtarGecerli`yi true yapar".
+  {
+    const kokUrl = new URL("https://ornek-site.test/api/shop/yonet/");
+    const envAnonim = mockEnv();
+    const cAnonim = await yonet(istek({}, {}, "GET"), envAnonim, kokUrl, ctxSahte, "/", undefined);
+    const envEge = mockEnv();
+    const cEge = await yonet(istek({}, egeBaslik(), "GET"), envEge, kokUrl, ctxSahte, "/", undefined);
+    const govdeEge = await cEge.text();
+
+    // (1) AYNI SINIF: Ege anahtarli yanit anonim yanitla ayni -> anahtar FAZLADAN yetki vermiyor.
+    ol("KOK: Ege anahtarli GET / yaniti ANONIM yanitla AYNI kodda (fazladan yetki YOK)",
+       cEge.status === cAnonim.status && cEge.status === 200,
+       "ege=" + cEge.status + " anonim=" + cAnonim.status);
+
+    // (2) YETKILI VERI YOK: giris ekraninda panel govdesi / siparis verisi / PII bulunmaz.
+    ol("KOK: Ege anahtarli yanitta YETKILI VERI YOK (siparis/PII/panel govdesi)",
+       !/siparis_no|musteri_tel|kalemler|durum_gecmisi/.test(govdeEge));
+    ol("KOK: Ege anahtarli yanitta D1'e okuma/yazma YOK",
+       envEge.yazmalar.length === 0 && envEge.sorgular.length === 0);
+
+    // (3) anahtarGecerli FALSE: yanit SIFRE KUTUSU, PANEL DEGIL. `anahtarGecerli` true
+    // olsaydi kod `sayfa()`yi (SAYFA_HTML) dondururdu; ayirt edici isaret basliktir —
+    // giris ekrani bilerek ipucusuz ("PRUVO"), panel "Sipariş Yönetimi" diyor.
+    ol("KOK: yanit SIFRE KUTUSU (anahtarGecerli Ege basliginda FALSE)",
+       /type="password"/.test(govdeEge));
+    ol("KOK: yanit PANEL DEGIL (baslikta 'Sipariş Yönetimi' ipucu YOK)",
+       !/Sipariş Yönetimi/.test(govdeEge));
+  }
+  // ---- OZELLIK-KAPALI: YONET_ANAHTAR yoksa YAZMA YOLU da KAPALI ------------------
+  // Kapi sirasi iddiasi: `if (!env.YONET_ANAHTAR) return yon404()` /wa-siparis blogunun
+  // ONUNDE durur. Ayarlanmamis bir secret'in arkasinda acik kalan bir yazma ucu bu
+  // depodaki sessiz-hata sinifidir -> supheda KAPALI taraf. Ayirt edici mutant: kapiyi
+  // /wa-siparis blogunun ARKASINA tasi; bu blok tek basina KIRMIZI yanar.
+  {
+    const env = mockEnv({ yonetAnahtar: null });
+    const c = await cagir(GECERLI, egeBaslik(), env);
+    ol("OZELLIK KAPALI: YONET_ANAHTAR yokken gecerli Ege anahtariyla bile -> 404",
+       c.status === 404, "kod=" + c.status);
+    ol("OZELLIK KAPALI: YONET_ANAHTAR yokken INSERT YOK (yazma yolu da kapali)",
+       env.yazmalar.length === 0 && env.denemeler.length === 0);
   }
   // ANAHTAR SIZINTISI: query param yolu KAPALI. URL'ler Cloudflare erisim loglarina,
   // referrer'a ve proxy kayitlarina duz metin girer; basliklar girmez. DOGRU anahtari

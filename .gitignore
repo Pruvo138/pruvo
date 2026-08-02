@@ -52,8 +52,23 @@ gorseller/
 # BURADAN kopyalar). Kaynak dosyalar (secenekler.js, konfigur.js, jenerator/*.js) tam
 # muhendislik dokumantasyonuyla depoda KALIR; tarayiciya soyulmus kopya iner.
 /_yayin/
+# Icerik-adresli same-origin sayfa varliklari (build.py varlik_adres uretir; deploy
+# _site/varlik/ olarak kopyalar). Adi icerigin sha256'sindan turer -> git'te tutmanin
+# anlami yok, her kosumda sifirdan uretilir.
+/varlik/
 
 # >>> uretilen-icerik-dizinleri (otomatik — elle duzenleme; tools/gitignore-kapisi.py dogrular)
+/olcuye-ozel-plastik-mil-ve-saft-uretimi/
+/olcuye-ozel-plastik-toka-ve-kayis-kilidi-uretimi/
+/televizyon-ayagi-kapagi-ve-stand-plastik-parcasi-yaptirma/
+/oto-silecek-kolu-kapagi-ve-fiskiye-agzi-yaptirma/
+/oto-yakit-kapagi-kapakcigi-ve-mentesesi-yaptirma/
+/arac-tavan-tasiyicisi-ve-portbagaj-plastik-parcasi-yaptirma/
+/anten-uydu-ve-telekom-ekipmani-plastik-parca-uretimi/
+/su-sebili-ve-damacana-ekipmani-plastik-parca-uretimi/
+/endustriyel-robot-ve-otomasyon-ekipmani-plastik-parca-uretimi/
+/su-urunleri-balik-ciftligi-ekipmani-plastik-parca-uretimi/
+/alev-geciktirici-plastik-parca-uretilir-mi/
 /tekerlekli-sandalye-ve-hasta-yatagi-plastik-parca-uretimi/
 /cati-olugu-ve-yagmur-inis-borusu-plastik-parca-uretimi/
 /perde-kornisi-ve-ray-plastik-parcasi-yaptirma/
@@ -382,6 +397,12 @@ rapor_*.md
 curutme.md
 curutme-*.md
 curutme_*.md
+# Mimar->muhendis IC SPEC'leri: kapi-bypass / fail-open / guvenlik-bulgusu detayi
+# tasirlar; PUBLIC repo kokune GIRMEZ (olculdu: izlenene alinca kisisel-veri-test.py,
+# devam-sinif-kapisi.py ve nobetci-mutasyon-test.py UCU DE KIRMIZI yandi).
+SPEC.md
+SPEC-*.md
+SPEC_*.md
 onarim.md
 onarim-*.md
 onarim_*.md

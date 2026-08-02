@@ -8,8 +8,11 @@ RESEND_API_KEY canlıya Okan `wrangler secret put` ile girer — koda/dosyaya an
 
 ### Faz 1 — Yönetim sayfası + uçlar (shop worker'a eklenir)
 - `GET /api/shop/yonet` → tek dosyalık yönetim SAYFASI (inline HTML/CSS/JS, harici kütüphane
-  YOK). Erişim: `?anahtar=<YONET_ANAHTAR>` query'si YA DA `X-Yonet-Anahtar` başlığı;
-  `YONET_ANAHTAR` wrangler secret (yoksa uç 404 davransın — varlığı sızmasın). Sayfa mobil
+  YOK). Erişim: `pruvo_yonet` HttpOnly çerezi (POST /yonet şifre kutusundan kurulur) YA DA
+  `X-Yonet-Anahtar` başlığı. **`?anahtar=` query yolu KALDIRILDI** (2026-08-02): tam URL
+  erişim loglarına, tarayıcı geçmişine ve Referer başlığına yazıyordu — sessiz sızıntı.
+  `YONET_ANAHTAR` wrangler secret (yoksa uç 404 davransın — varlığı sızmasın; şifre kutusu
+  da gösterilmez). Yanlış şifre → hiç denememiş ziyaretçiyle birebir aynı ekran. Sayfa mobil
   uyumlu (Okan telefondan kullanacak), lacivert/gri site diline uygun, süs yok.
 - `GET /api/shop/yonet/liste?durum=...` → JSON sipariş listesi (D1'den; varsayılan son 50).
 - `POST /api/shop/yonet/durum` → { siparis_no, durum } — izinli geçişler:

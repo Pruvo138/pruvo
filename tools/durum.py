@@ -949,6 +949,13 @@ KOR_NOKTALAR = (
      "olcum %.0f sn zaman asimina duserse pano 'Drive yanit vermiyor' der; o an yedegin "
      "bayat/kismi/bozuk olup olmadigi OLCULMEMISTIR (asili mount okunamaz)."
      % YEDEK_ZAMAN_ASIMI),
+    ("bolum 9: BASARILI deploy'dan sonra canlida GERCEKTEN gorunen icerik",
+     "yayin gecikme nobetcisi GitHub Actions kosumlarini olcer, CDN'i DEGIL. Kosum "
+     "'success' oldugu halde Cloudflare onbellegi eski sayfayi servis ediyorsa bolum 9 "
+     "AKIYOR der; canli icerik teyidi ayri bir istir (tools/canli-saglik-kapisi.py)."),
+    ("bolum 9: `gh` yokken / yetki yokken yayin gecikmesi",
+     "olcum ⚪ OLCULEMEDI olur ve bu YESIL DEGILDIR; o kosumda canlinin main'den kac "
+     "commit geride oldugu BILINMIYOR demektir."),
 )
 
 
@@ -1135,6 +1142,47 @@ def _kanca_nobeti_satirlari():
     return m.satirlar()
 
 
+# ------------------------------------------------------- 9) YAYIN GECIKMESI
+# 🔴 NEDEN PANODA (1 Agu 2026, OLCULDU): yayin hatti bir kapi yuzunden tikandi ve
+# 20 commit birikene / 6 kosum ust uste dusene / canli ~1,5 saat bayatlayana kadar
+# KIMSE FARK ETMEDI. Fark edilis TESADUFTU. O nobetci YALNIZ CI'da kossaydi, hat
+# tikandigi anda o da kosamazdi -> tam ihtiyac aninda susardi. Bu yuzden olcumun
+# ELLE ve PANODAN kosan, deploy.yml'e BAGLI OLMAYAN bir kolu vardir; burasi odur.
+# KOPYA YOK: hukum tek kaynaktan (tools/yayin-gecikme-nobeti.py) gelir.
+#
+# ⚠️ AG: bu bolum panonun TEK ag cagrisidir (`gh api`). Pano bir KAPI degildir ve
+# ASLA ASILMAZ -> olcum daemon parcacikta, zaman siniriyla kosar (N3 deseni, bolum 7
+# ile ayni). `gh` yok / yetki yok / sinir asildi -> ⚪ OLCULEMEDI ("sorun yok" DEGIL).
+#
+# 🔴 SINIR NEDEN 12 DEGIL (1 Agu 2026, OLCULDU): nobetci "yayin indi mi"yi artik IS
+# duzeyinde sorar (kosumun genel conclusion'i bu hatta yayin kaniti degil — bloklamayan
+# serit-b dusunce kosum `failure` gorunuyor, deploy+yayin basarili oluyordu). Olculen
+# butce: kosum listesi 1,7 sn + her `jobs` cagrisi ort. 1,0 sn; tarama ilk yayinlayan
+# kosumda DURUR -> saglikli halde 2 cagri (~2,7 sn). UST SINIR is sorgu tavaniyla
+# baglidir (8) => ~9,7 sn. 12 sn'lik eski sinir tam da TIKANMA halinde (tarama
+# uzadiginda) asilirdi: nobetci en cok ihtiyac duyulan anda ⚪ OLCULEMEDI'ye duserdi.
+# 20 sn = olculen ust sinirin ~2 kati.
+YAYIN_ZAMAN_ASIMI = 20.0
+
+
+def _yayin_gecikme_satirlari():
+    yol = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                       "yayin-gecikme-nobeti.py")
+    if not os.path.exists(yol):
+        return ["  ⚪ ÖLÇÜLEMEDİ: tools/yayin-gecikme-nobeti.py YOK -> canlinin main'den "
+                "ne kadar geride oldugu olculMEDI ('sorun yok' demek DEGILDIR)."]
+    spec = importlib.util.spec_from_file_location("yayin_gecikme_pano", yol)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    satirlar, asildi = zaman_asimiyla(m.satirlar, YAYIN_ZAMAN_ASIMI)
+    if asildi:
+        return ["  ⚪ ÖLÇÜLEMEDİ: GitHub API %.0f sn icinde yanit vermedi — yayin "
+                "gecikmesi bu kosumda OLCULMEDI ('sorun yok' demek DEGILDIR)."
+                % YAYIN_ZAMAN_ASIMI,
+                "  (Elle: python3 tools/yayin-gecikme-nobeti.py)"]
+    return satirlar
+
+
 def main():
     repo = repo_koku()
     kok = ana_repo(repo)
@@ -1254,6 +1302,16 @@ def main():
         kanca_satirlari = ["  ⚪ ÖLÇÜLEMEDİ: kanca nobeti kosturulamadi (%s)"
                            % type(e).__name__]
     for satir in kanca_satirlari:
+        print(satir)
+
+    # 9) YAYIN GECIKMESI — canli, main'den kac commit / kac dakika geride?
+    print("\n9) YAYIN GECIKMESI (canli vs main)")
+    try:
+        yayin_satirlari = _yayin_gecikme_satirlari()
+    except Exception as e:                    # pano bir KAPI degil: hicbir hal exit'i bozmaz
+        yayin_satirlari = ["  ⚪ ÖLÇÜLEMEDİ: yayin gecikme nobetcisi kosturulamadi (%s)"
+                           % type(e).__name__]
+    for satir in yayin_satirlari:
         print(satir)
 
     print("")
