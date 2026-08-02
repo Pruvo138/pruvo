@@ -386,6 +386,12 @@ rapor_*.md
 curutme.md
 curutme-*.md
 curutme_*.md
+# Mimar->muhendis IC SPEC'leri: kapi-bypass / fail-open / guvenlik-bulgusu detayi
+# tasirlar; PUBLIC repo kokune GIRMEZ (olculdu: izlenene alinca kisisel-veri-test.py,
+# devam-sinif-kapisi.py ve nobetci-mutasyon-test.py UCU DE KIRMIZI yandi).
+SPEC.md
+SPEC-*.md
+SPEC_*.md
 onarim.md
 onarim-*.md
 onarim_*.md
