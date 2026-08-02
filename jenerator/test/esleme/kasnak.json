@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-triger-kasnagi",
+  "motor": "uretim",
   "scad": "kasnak.scad",
   "fonksiyon": "kasnak",
   "esleme": {

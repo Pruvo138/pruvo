@@ -1,5 +1,6 @@
 {
   "urunId": "ozel-disli-kramayer-uretimi",
+  "motor": "pruvo",
   "scad": "disli.scad",
   "fonksiyon": "disli",
   "esleme": {

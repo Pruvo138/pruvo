@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-kutu-organizer",
+  "motor": "pruvo",
   "scad": "kutu.scad",
   "fonksiyon": "kutu",
   "esleme": {

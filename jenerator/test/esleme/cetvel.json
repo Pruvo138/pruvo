@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-cetvel",
+  "motor": "pruvo",
   "scad": "cetvel.scad",
   "fonksiyon": "cetvel",
   "esleme": {

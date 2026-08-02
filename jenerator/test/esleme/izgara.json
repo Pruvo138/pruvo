@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-izgara-menfez-kapak",
+  "motor": "uretim",
   "scad": "izgara.scad",
   "fonksiyon": "izgara",
   "esleme": {
