@@ -1173,6 +1173,122 @@ def _py_bayrak_analizi(metin):
     return tum, ayri
 
 
+# ---- BOLUM C2: js/mjs/cjs BAYRAK CIKARIMI (OLCULEMEDI KOVASI KAPATILIYOR) ----
+# 🔴 OLCULEN KOR NOKTA (2 Agu): uyari katmani bayraklari YALNIZ `.py` dosyalarindan
+# (argparse AST'i) cikariyordu; kesfedilen 32 js/mjs/cjs dosyasi icin rapor acikca
+# "olculemedi ... bayrak cikarimi YAPILMADI" diyordu. Yani bir JS kabul testinin
+# alt kumesi (or. `--sema-paritesi`) CI'ya bagli mi degil mi UYARI katmaninda HIC
+# yuzeye cikmiyordu. Bu tam olarak bu deponun en pahali kusurunun (jenerator/test/
+# kabul.py'nin CI'da yalniz dar bayrakla kosmasi) SINIFIDIR.
+#
+# YAKLASIM — `.py`'dekinin AYNISI DEGIL, AYNI SORUYA CEVAP: argparse'ta bayrak
+# BILDIRIMSEL olarak `add_argument("<bayrak>")` ile TANIMLANIR; JS'te boyle bir
+# bildirim YOKTUR, bayrak `argv.includes("<bayrak>")` gibi cagrilarda TAM BIR STRING
+# LITERALI olarak gecer. O yuzden capa: BIR STRING LITERALININ TAMAMI bayrak
+# BICIMINDEYSE bayrak sayilir. Prose icindeki mensiyon ("bkz. <bayrak> secenegi")
+# bayrak SAYILMAZ — bu, `.py` kolundaki "add_argument disindaki string bayrak degildir"
+# kuralinin birebir karsiligidir.
+#
+# 🟡 BEYAN EDILMIS SINIR (gerekce, kacamak DEGIL): `.py` kolundaki (a) "AYRI MAIN KOLU"
+# heuristigi JS'te URETILMEZ. O heuristik `action="store_true"` + `dest` + `if <dest>:`
+# + erken `return`/`exit` zincirine dayanir; JS'te ne boyle bir bildirim ne de stdlib
+# bir ayristirici vardir, ayrica bu kapi bir JS AST'i (node) CAGIRAMAZ — CI'da node
+# VAR ama bloklayici bir Python kapisinin hukmunu bir alt surece bagi kilmak yeni ve
+# daha buyuk bir sessiz-hata yuzeyidir. Bu SINIR raporda DOSYA SAYISIYLA basilir;
+# "olculdu" diye yuvarlanmaz ([[hukum-yanlis-birimde]]).
+_JS_SATIR_YORUM_RE = re.compile(r"^[\s﻿]*(?://|/\*|\*)")
+_JS_LITERAL_RE = re.compile(r"""(['"`])((?:\\.|(?!\1)[^\\])*)\1""")
+# Tam literal bayrak bicimi. `=` kokunu de verir (O6 ile ayni semantik: `--x=1` -> `--x`).
+_JS_BAYRAK_RE = re.compile(r"^(--[A-Za-z0-9][\w-]*)(?:=.*)?$")
+
+
+def _js_bayrak_analizi(metin):
+    """(tum_bayraklar, ayri_main_kolu) — js/mjs/cjs dosyasinin bayrak jetonlari.
+
+    `ayri_main_kolu` DAIMA None'dir ve bu "ayri kol YOK" DEMEK DEGILDIR: o eksen JS'te
+    OLCULMEDI demektir (yukaridaki beyan edilmis sinir). Cagiran taraf None'i "bos kume"
+    ile KARISTIRMAMALI — karistirsa rapor "hicbir js dosyasinda ayri kol yok" diye
+    OLCULMEMIS bir olumsuzluk iddia ederdi ([[beyan-edilmis-survivor]]).
+
+    TAM LITERAL kurali: `argv.includes("<bayrak>")` bayrak URETIR; `"bkz. <bayrak>"`
+    URETMEZ. TAM SATIR yorumlari (`//`, `/*`, jsdoc ` * `) once atilir — bir dosyanin
+    KENDI dokumantasyonu kendi bayragi sayilmasin ([[nobetci-kendi-dosyasinda-sizinti]]).
+    Satir ICINDEKI `//` KESILMEZ: `"https://..."` gibi literalleri ortadan bolup
+    ayristirmayi bozardi (ve orada bayrak yasamaz)."""
+    tum = set()
+    for satir in metin.splitlines():
+        if _JS_SATIR_YORUM_RE.match(satir):
+            continue
+        for _tirnak, govde in _JS_LITERAL_RE.findall(satir):
+            m = _JS_BAYRAK_RE.match(govde.strip())
+            if m:
+                tum.add(m.group(1))
+    return tum, None
+
+
+# ---- BOLUM C3: DAR BAYRAK EKSENI (IC NOBET = KOSUYOR SAYILMAZ) --------------
+# 🔴 BU DEPONUN EN PAHALI KUSURUNUN SINIFI. `jenerator/test/kabul.py` deploy.yml'de
+# YALNIZ `--kendini-test` ile cagriliyordu: o kol testin KENDI nobetcilerini kosar,
+# TAM TAKIM'i KOSMAZ. Kapi "dosya cagriliyor mu" diye sordugu icin YESIL veriyordu;
+# oysa `hacim.js` <-> OpenSCAD arasindaki 7 ailelik %7,6–%51,2 hacim sapmasi AYLARCA
+# olculmedi ve sari seride fiyat hacimden turedigi icin musteriye yanlis fiyat cikma
+# riski dogdu.
+#
+# EKSENIN SORDUGU SORU: bir kabul testi OTOMATIK bir is akisinda kosuyor ama o is
+# akisindaki HER anlamli cagrisi bir IC NOBET bayragi tasiyorsa, o dosyanin TAM TAKIMI
+# CI'da HIC kosmuyordur. Bu "kosuyor" DEGILDIR.
+#
+# 🟡 BUGUN BLOKLAMAZ — MIMAR KARARI BEKLIYOR. Bu kapi deploy.yml'de continue-on-error'SUZ
+# kosar; eksen bugun 6 GERCEK dosyayi kirmizi yakardi ve TUM ekibin yayinini durdururdu.
+# O yuzden bulgular UYARI KATMANINDA (exit koduna DOKUNMAZ) basilir. Bu bir muafiyet
+# DEGIL: liste her kosumda ADLARIYLA gorunur, kimse "gerekce" yazip susturamaz.
+# EKSENIN KENDI MANTIGI ise SENTETIK fiksturlerle BLOKLAYICI olarak olculur
+# (dar_bayrak_fikstur_kontrol) — yani mantigi no-op'a cevirmek KIRMIZI yakar.
+#
+# KUME NEDEN SABIT LISTE: bu depoda ic nobet kolu TEK BIR ADLANDIRMA GELENEGIYLE yazilir
+# (`--kendini-test` baskin). Genel bir "dar mi" cikarimi (or. "bayrak main'i erken
+# bitiriyor mu") HEURISTIKTIR ve bu eksen ADLARI RAPORLADIGI icin heuristik gurultu
+# dogrudan yanlis suclama olurdu. Liste BUYUYEBILIR; buyudugunde fikstur de buyur.
+DAR_BAYRAKLAR = frozenset((
+    "--kendini-test", "--ic-nobetci", "--self-test", "--oz-test", "--kendi-test",
+))
+
+
+def dar_bayrak_envanteri(akislar, kesif):
+    """[(yol, [(akis_yolu, komut, dar_bayraklar), ...]), ...] — TAM TAKIMI CI'da HIC
+    kosmayan kabul testleri.
+
+    KOSUL (ucu birden):
+      1. OTOMATIK tetikli bir is akisinda o dosyanin EN AZ BIR ANLAMLI cagrisi var
+         (hic cagrisi yoksa bu ekseni ILGILENDIRMEZ — o KAPSAM ekseninin isi),
+      2. o cagrilarin HEPSI en az bir DAR_BAYRAKLAR jetonu tasiyor,
+      3. hukum SUZGEC.anlamli_cagri() uzerinden verilir (ham metin `in` aramasi DEGIL) —
+         `echo`/yorum/`--help` mensiyonlari cagri SAYILMAZ.
+    ELLE tetikli is akisindaki BAYRAKSIZ cagri bu hukmu DEGISTIRMEZ: kimse elle
+    tetiklemezse tam takim yine HIC kosmaz."""
+    komutlar = []
+    for akis_yol, metin, akis_sinifi in akislar:
+        if otomatik_mi(akis_sinifi):
+            komutlar.append((akis_yol, _icra_komutlari(metin)))
+    bulgular = []
+    for yol in sorted(kesif):
+        onek = _onek_re(yol)
+        cagrilar = []
+        for akis_yol, kmt in komutlar:
+            for k in kmt:
+                if not onek.match(k):
+                    continue
+                hukum, _sebep, argumanlar = SUZGEC.anlamli_cagri(k, yol)
+                if hukum != SUZGEC.EVET:
+                    continue
+                cagrilar.append((akis_yol, k, _bayrak_jetonlari(argumanlar) & DAR_BAYRAKLAR))
+        if not cagrilar:
+            continue
+        if all(dar for _a, _k, dar in cagrilar):
+            bulgular.append((yol, cagrilar))
+    return bulgular
+
+
 UYARI_TAVANI = 20
 
 
@@ -1188,7 +1304,7 @@ def _uyari_listesi(etiket, kalemler):
     return satirlar
 
 
-def uyari_katmani(kesif, dosya_metinleri, bayrak_env, alt_kume_izin):
+def uyari_katmani(kesif, dosya_metinleri, bayrak_env, alt_kume_izin, akislar=None):
     """[rapor_satiri, ...] — A-SINIFI ADAYLARI HER KOSUMDA YUZEYE CIKARIR.
 
     🔴 EXIT KODUNA ASLA DOKUNMAZ. Cagiran taraf bu fonksiyonu `try/except Exception`
@@ -1199,34 +1315,42 @@ def uyari_katmani(kesif, dosya_metinleri, bayrak_env, alt_kume_izin):
     Uc sinif basilir: (a) ayri bir main kolu tetikleyen, (b) hicbir is akisinda
     kosmayan, (c) beyan edilmemis ve muaf olmayan. Ayrica (d) YALNIZ ELLE tetiklenen
     is akisinda kosan bayraklar AYRI satirda ("CI kapsami SAYILMAZ") listelenir.
-    "basarili / olculemedi" AYRI sayilir, tek toplamda gizlenmez."""
+    🔴 (e) DAR BAYRAK: tam takimi CI'da HIC kosmayan kabul testleri (BOLUM C3) —
+    <akislar> verilmezse bu kova OLCULMEZ ve satir bunu ACIKCA soyler.
+    "basarili / olculemedi" AYRI sayilir, tek toplamda gizlenmez.
+
+    🔴 js/mjs/cjs ARTIK OLCULUR (BOLUM C2): (b)/(c)/(d) eksenleri js dosyalarinda da
+    kosar. YALNIZ (a) heuristigi js'te URETILMEZ ve bu ayri bir sayiyla raporlanir —
+    "olculdu" diye yuvarlanmaz."""
     ayri_kol = []
     kosmayan = []
     beyansiz = []
     yalniz_elle = []
-    js_olculemedi = 0
+    js_ayri_olculemedi = 0
     py_olculemedi = 0
-    olculen_dosya = 0
+    olculen_py = 0
+    olculen_js = 0
     for yol in sorted(kesif):
         metin = dosya_metinleri.get(yol)
         if metin is None:
             continue
         oto, elle, _olculemedi = bayrak_env.get(yol, (set(), set(), []))
-        if not yol.endswith(".py"):
-            js_olculemedi += 1
-            for b in sorted(elle - oto):
-                yalniz_elle.append((yol, b))
-            continue
-        tum, ayri = _py_bayrak_analizi(metin)
-        if tum is None:
-            py_olculemedi += 1
-            continue
-        olculen_dosya += 1
+        if yol.endswith(".py"):
+            tum, ayri = _py_bayrak_analizi(metin)
+            if tum is None:
+                py_olculemedi += 1
+                continue
+            olculen_py += 1
+        else:
+            tum, ayri = _js_bayrak_analizi(metin)
+            olculen_js += 1
+            # ayri is None -> (a) ekseni bu dosyada OLCULMEDI (bos kume DEGIL).
+            js_ayri_olculemedi += 1
         beyan = set(beyanlari_ayikla(metin))
         for b in sorted(tum):
             if b in oto:
                 continue
-            if b in ayri:
+            if ayri is not None and b in ayri:
                 ayri_kol.append((yol, b))
             if b not in oto and b not in elle:
                 kosmayan.append((yol, b))
@@ -1246,9 +1370,26 @@ def uyari_katmani(kesif, dosya_metinleri, bayrak_env, alt_kume_izin):
     satirlar.extend(_uyari_listesi(
         "(d) YALNIZ ELLE tetiklenen is akisinda kosuyor — CI kapsami SAYILMAZ",
         yalniz_elle))
-    satirlar.append("  olculen: %d .py dosyasi · olculemedi: %d dosya (js/mjs/cjs — "
-                    "bayrak cikarimi YAPILMADI) + %d dosya (py ayristirilamadi)"
-                    % (olculen_dosya, js_olculemedi, py_olculemedi))
+    # ---- (e) DAR BAYRAK — BLOKLAMAZ, ama ADLARIYLA gorunur --------------------
+    if akislar is None:
+        satirlar.append("  (e) DAR BAYRAK ekseni OLCULMEDI: is akisi envanteri "
+                        "verilmedi (bu 'dar bayrakli test YOK' DEMEK DEGILDIR)")
+    else:
+        dar = dar_bayrak_envanteri(akislar, kesif)
+        satirlar.append(
+            "  (e) 🔴 DAR BAYRAK — OTOMATIK is akisinda kosuyor ama HER cagrisi bir IC "
+            "NOBET bayragi tasiyor (TAM TAKIM CI'da HIC kosmuyor): %d" % len(dar))
+        for yol, cagrilar in dar[:UYARI_TAVANI]:
+            bayraklar = sorted({b for _a, _k, dr in cagrilar for b in dr})
+            satirlar.append("      %s  (%d cagri · %s)"
+                            % (yol, len(cagrilar), ",".join(bayraklar)))
+        if len(dar) > UYARI_TAVANI:
+            satirlar.append("      ... %d kalem BASILMADI (tavan %d)"
+                            % (len(dar) - UYARI_TAVANI, UYARI_TAVANI))
+    satirlar.append("  olculen: %d .py + %d js/mjs/cjs dosyasi · (a) ekseni js'te "
+                    "URETILMEDI: %d dosya (argparse benzeri BILDIRIMSEL tanim yok) · "
+                    "olculemedi: %d dosya (py ayristirilamadi)"
+                    % (olculen_py, olculen_js, js_ayri_olculemedi, py_olculemedi))
     return satirlar
 
 
@@ -2583,7 +2724,11 @@ def _fikstur_sayisi_kontrol():
                               ("IKI_KOL_RUN_GIRDILERI", IKI_KOL_RUN_GIRDILERI,
                                IKI_KOL_RUN_ASGARI),
                               ("IKI_KOL_EK_GIRDILER", IKI_KOL_EK_GIRDILER,
-                               IKI_KOL_EK_ASGARI)):
+                               IKI_KOL_EK_ASGARI),
+                              ("JS_BAYRAK_FIKSTURLERI", JS_BAYRAK_FIKSTURLERI,
+                               JS_BAYRAK_FIKSTUR_ASGARI),
+                              ("DAR_BAYRAK_FIKSTURLERI", DAR_BAYRAK_FIKSTURLERI,
+                               DAR_BAYRAK_FIKSTUR_ASGARI)):
         if len(tablo) < asgari:
             hata.append("FIKSTUR TABLOSU KUCULMUS: %s'de %d girdi var, EN AZ %d "
                         "olmali -> fikstur nobetcisi sessizce etkisizlestirilebilir "
@@ -2947,8 +3092,100 @@ AYRISTIRICI_YOK_FIKSTURLERI = (
      "semantigi degistirmedigini kanitlar (tek yonlu olcum korelir)"),
 )
 
+# ---- js/mjs/cjs BAYRAK CIKARIMI FIKSTURLERI (BOLUM C2) ---------------------
+# 🔴 IKI YONLU: bir bayragin BULUNMASI kadar, bayrak OLMAYAN bir seyin BULUNMAMASI da
+# olculur. Tek yonlu olsa `_js_bayrak_analizi` "her `-`+`-` gecen dizeyi bayrak say"
+# haline getirilip her js dosyasi gurultuyle dolar (ve kimse listeye bakmaz olur) ya da
+# "daima bos kume" yapilip kova SESSIZCE eski OLCULEMEDI haline doner.
+# YER TUTUCU DISIPLINI: bu tablo `-test.py` biten (yani KESFEDILEN) bir dosyada yasiyor;
+# fikstur metinleri js ARAYUZUNU taklit eder, bu dosyanin KENDI bayraklarini KULLANMAZ.
+JS_BAYRAK_FIKSTURLERI = (
+    # (metin, beklenen_bayraklar, etiket)
+    ('const v = process.argv.includes("--alfa");\n', {"--alfa"},
+     "POZITIF: cift tirnakli TAM literal -> bayrak"),
+    ("const v = process.argv.includes('--alfa');\n", {"--alfa"},
+     "POZITIF: tek tirnakli TAM literal -> bayrak"),
+    ("const v = process.argv.includes(`--alfa`);\n", {"--alfa"},
+     "POZITIF: backtick (template) TAM literal -> bayrak"),
+    ('if (a === "--alfa" || a === "--beta") {}\n', {"--alfa", "--beta"},
+     "POZITIF: bir satirda IKI bayrak"),
+    ('const v = argv.includes("--alfa=1");\n', {"--alfa"},
+     "POZITIF: GNU `<bayrak>=deger` yaziminin KOKU alinir (O6 ile ayni semantik)"),
+    ('// bu dosya "--alfa" secenegini destekler\n', set(),
+     "🔴 NEGATIF: TAM SATIR `//` yorumu -> bayrak SAYILMAZ (dokumantasyon kural degildir)"),
+    (' * jsdoc satiri: "--alfa"\n', set(),
+     "NEGATIF: jsdoc ` * ` satiri -> bayrak SAYILMAZ"),
+    ('/* blok yorumu "--alfa" */\n', set(),
+     "NEGATIF: `/*` ile BASLAYAN satir -> bayrak SAYILMAZ"),
+    ('const m = "bkz. --alfa secenegi";\n', set(),
+     "🔴 NEGATIF: PROSE icindeki mensiyon -> literalin TAMAMI bayrak DEGIL "
+     "(argparse kolundaki 'add_argument disi string bayrak degildir' kuralinin esi)"),
+    ('const yardim = "--alfa    bu secenek sunu yapar";\n', set(),
+     "🔴 NEGATIF (AYIRT EDICI): literal BAYRAKLA BASLIYOR ama devami PROSE — YARDIM "
+     "METNIDIR, bayrak BILDIRIMI degil. Bu fikstur MUTANT M2 icin kondu: capanin "
+     "ANKRAJLARI (`^...$`) dusurulunce SADECE BU yazim ayirt eder (`.match` zaten "
+     "bastan baglar, sondaki ankraj olmayinca yalniz 'bayrakla BASLAYAN' literal "
+     "kacar). Ilk fikstur kumesi M2'yi SAG BIRAKIYORDU — olculdu, uydurulmadi "
+     "([[fikstur-degeri-mutasyon-koru]])"),
+    ('const v = argv.includes("--");\n', set(),
+     "NEGATIF: yalniz `-`+`-` -> bayrak DEGIL"),
+    ('const v = argv.includes("-a");\n', set(),
+     "NEGATIF: TEK tireli kisa bayrak -> bu eksenin konusu DEGIL"),
+    ('const u = "https://media.example/urunler/a-1.jpg";\n', set(),
+     "🔴 NEGATIF (KONTROL): satir ICINDEKI `//` KESILMEZ -> URL'li satir "
+     "ayristirmayi bozmaz ve bayrak URETMEZ"),
+)
+
+# ---- DAR BAYRAK FIKSTURLERI (BOLUM C3) -------------------------------------
+# (akislar, kesif, beklenen_dar_yollar, etiket)
+_DB_YOL = "tools/zzz-sentetik-dar-test.py"
+_DB_YOL2 = "tools/zzz-sentetik-genis-test.py"
+_DB_SADE = "python3 " + _DB_YOL
+DAR_BAYRAK_FIKSTURLERI = (
+    ([_ak_akis(_DB_SADE + " --kendini-test")], [_DB_YOL], [_DB_YOL],
+     "🔴 POZITIF (YAKALAMA): TEK cagri ve o da IC NOBET bayrakli -> tam takim CI'da "
+     "HIC kosmuyor. Bu, jenerator/test/kabul.py'nin aylarca gizlenen halinin TA "
+     "KENDISIDIR (hacim.js <-> OpenSCAD %51'e varan sapma)"),
+    ([_ak_akis(_DB_SADE)], [_DB_YOL], [],
+     "🔴 NEGATIF (SAHTE-SUCLAMA YOK): BAYRAKSIZ cagri -> tam takim kosuyor, "
+     "eksen SUSAR. Tek yonlu olsa eksen 'daima yakala' yapilip her dosyayi suclardi"),
+    ([_ak_akis(_DB_SADE), _ak_akis(_DB_SADE + " --kendini-test",
+                                   yol=".github/workflows/zzz-ikinci.yml")],
+     [_DB_YOL], [],
+     "🔴 NEGATIF (GERCEK VAKA): hem BAYRAKSIZ hem ic-nobetli cagri -> SUSAR. "
+     "Depoda tools/malzeme-dayanak-test.py ve onizleme/test/iki-govde-kabul.mjs "
+     "tam boyle kosuyor; bunlari suclamak SAHTE-KIRMIZI olurdu"),
+    ([_ak_akis(_DB_SADE + " --kendini-test"),
+      _ak_akis(_DB_SADE, SINIF_ELLE, ".github/workflows/zzz-elle.yml")],
+     [_DB_YOL], [_DB_YOL],
+     "🔴 POZITIF: bayraksiz cagri YALNIZ ELLE tetikli akista -> kimse tetiklemezse "
+     "tam takim yine HIC kosmaz -> YAKALANIR"),
+    ([_ak_akis(_DB_SADE + " --mutasyon")], [_DB_YOL], [],
+     "NEGATIF (KUME SINIRI): `--mutasyon` bir IC NOBET bayragi DEGIL -> SUSAR. "
+     "DAR_BAYRAKLAR genel bir heuristik degil, ADLANDIRILMIS bir kumedir"),
+    ([_ak_akis(_DB_SADE + " --ic-nobetci")], [_DB_YOL], [_DB_YOL],
+     "POZITIF: kumedeki IKINCI jeton (`--ic-nobetci`) de yakalar (tek jetona "
+     "daralmis bir kume sessizce yarim olcerdi)"),
+    ([_ak_akis("echo " + _DB_SADE + " --kendini-test")], [_DB_YOL], [],
+     "🔴 NEGATIF: `echo` MENSIYONU cagri SAYILMAZ -> ANLAMLI cagri YOK -> bu eksen "
+     "ILGILENMEZ (dosyanin hic kosmamasi KAPSAM ekseninin isidir, burasi degil)"),
+    ([_ak_akis("python3 tools/zzz-alakasiz.py")], [_DB_YOL], [],
+     "NEGATIF: dosya HIC cagrilmiyor -> bu eksen SUSAR (kapsam ekseniyle "
+     "CAKISMAZ; iki eksen ayni kirmiziyi iki kez yakmaz)"),
+    ([_ak_akis(_DB_SADE + " --kendini-test", SINIF_BELIRSIZ)], [_DB_YOL], [],
+     "NEGATIF: BELIRSIZ tetikli akis OTOMATIK sayilmaz -> anlamli OTOMATIK cagri "
+     "yok -> SUSAR (o dosya KAPSAMSIZ olarak ZATEN bloklayici kirmizi yanar)"),
+    ([_ak_akis(_DB_SADE + " --kendini-test"),
+      _ak_akis("python3 " + _DB_YOL2, yol=".github/workflows/zzz-ikinci.yml")],
+     [_DB_YOL, _DB_YOL2], [_DB_YOL],
+     "🔴 AYIRT ETME: ayni kosumda dar olan YAKALANIR, genis olan YAKALANMAZ "
+     "(kova 'hepsini yakala'/'hicbirini yakalama'ya cokerse bu fikstur kirilir)"),
+)
+
 TETIK_FIKSTUR_ASGARI = 20
 BEYAN_FIKSTUR_ASGARI = 11
+JS_BAYRAK_FIKSTUR_ASGARI = 13
+DAR_BAYRAK_FIKSTUR_ASGARI = 10
 ALT_KUME_FIKSTUR_ASGARI = 20
 AYRISTIRICI_YOK_FIKSTUR_ASGARI = 2
 # Iki-kol girdi kumeleri de BOSALTILABILIR (sapma 0 sahte-yesili) -> tavan nobeti.
@@ -3364,6 +3601,131 @@ def uctan_uca_alt_kume_kontrol_govdesi():
     return hata
 
 
+_JS_E2E_YOL = "shop/test/zzz-sentetik-kabul.mjs"
+_JS_E2E_AKIS = [_ak_akis("node " + _JS_E2E_YOL)]
+
+
+def js_bayrak_fikstur_kontrol():
+    """js/mjs/cjs BAYRAK CIKARIMI NOBETCISI (BOLUM C2) — (ok, hata_satirlari).
+
+    IKI KATMAN:
+      1. GOVDE: JS_BAYRAK_FIKSTURLERI — pozitif VE negatif yazimlar.
+      2. UCTAN UCA: bir js dosyasinin bayragi denetle() RAPORUNDA GERCEKTEN gorunuyor
+         mu (kova kapandi mi) ve PROSE mensiyonu GORUNMUYOR mu (kova gurultuyle
+         dolmadi mi). Tek yonlu olsa "her seyi bayrak say" mutanti gecerdi."""
+    hata = []
+    for metin, beklenen, etiket in JS_BAYRAK_FIKSTURLERI:
+        tum, ayri = _js_bayrak_analizi(metin)
+        if tum != beklenen:
+            hata.append("JS BAYRAK FIKSTURU BOZUK (%s): %r icin %r bekleniyordu, %r "
+                        "geldi -> _js_bayrak_analizi() cok DAR (kova sessizce eski "
+                        "OLCULEMEDI haline doner) ya da cok GENIS (liste gurultuyle "
+                        "dolar, kimse bakmaz) olmus."
+                        % (etiket, metin, sorted(beklenen), sorted(tum)))
+        if ayri is not None:
+            hata.append("JS 'AYRI KOL' EKSENI SESSIZCE IDDIA EDILMIS (%s): "
+                        "_js_bayrak_analizi() ikinci degeri %r dondurdu, None olmali. "
+                        "None = 'OLCULMEDI'; bos kume = 'olctum, YOK' demektir ve bu "
+                        "OLCULMEMIS bir olumsuzluk iddiasidir ([[beyan-edilmis-survivor]])."
+                        % (etiket, ayri))
+
+    # --- UCTAN UCA: kova GERCEKTEN kapandi mi (POZITIF) ---
+    kod, satirlar = denetle(
+        "", [_JS_E2E_YOL], {}, kontroller=False, akislar=list(_JS_E2E_AKIS),
+        dosya_metinleri={_JS_E2E_YOL: 'const v = argv.includes("--gama");\n'},
+        alt_kume_izin={})
+    rapor = "\n".join(satirlar)
+    if kod != 0:
+        hata.append("(e2e-poz) SENTETIK JS DOSYASI KAPSAMSIZ SAYILDI: exit %d -> "
+                    "fikstur bayat (node capasi/kesif degismis olabilir).\n"
+                    "     RAPOR: %r" % (kod, rapor[:600]))
+    if "--gama" not in rapor:
+        hata.append("(e2e-poz) JS BAYRAGI RAPORDA GORUNMUYOR: kesfedilen bir js kabul "
+                    "testinin bayragi uyari katmanina HIC girmiyor -> 'olculemedi' "
+                    "kovasi geri acilmis demektir (bu deponun en pahali kusurunun "
+                    "sinifi tam burada saklaniyordu).\n     RAPOR: %r" % rapor[:900])
+    if "bayrak cikarimi YAPILMADI" in rapor:
+        hata.append("(e2e-poz) ESKI 'bayrak cikarimi YAPILMADI' BEYANI GERI GELMIS: "
+                    "rapor js dosyalarini olculemedi diye sayiyor.\n     RAPOR: %r"
+                    % rapor[:900])
+
+    # --- UCTAN UCA: KONTROL — prose mensiyonu bayrak SAYILMAMALI (NEGATIF) ---
+    kod2, satirlar2 = denetle(
+        "", [_JS_E2E_YOL], {}, kontroller=False, akislar=list(_JS_E2E_AKIS),
+        dosya_metinleri={_JS_E2E_YOL: 'const m = "bkz. --gama secenegi";\n'},
+        alt_kume_izin={})
+    rapor2 = "\n".join(satirlar2)
+    if kod2 != 0 or "--gama" in rapor2:
+        hata.append("(e2e-neg) PROSE MENSIYONU BAYRAK SAYILDI: exit %d, raporda "
+                    "'--gama' %s -> cikarim cok GENIS; her js dosyasi uydurma "
+                    "bayraklarla dolar ve uyari katmani kullanilmaz hale gelir "
+                    "([[fikstur-degeri-mutasyon-koru]]: kontrol vakasi olmadan "
+                    "'daima bayrak say' mutanti YESIL gecerdi).\n     RAPOR: %r"
+                    % (kod2, "VAR" if "--gama" in rapor2 else "yok", rapor2[:600]))
+    return (not hata), hata
+
+
+def dar_bayrak_fikstur_kontrol():
+    """DAR BAYRAK EKSENI NOBETCISI (BOLUM C3) — (ok, hata_satirlari).
+
+    UC KATMAN:
+      1. GOVDE: DAR_BAYRAK_FIKSTURLERI — yakalanmasi gereken VE yakalanmamasi
+         gereken vakalar ayri ayri.
+      2. UCTAN UCA: bulgu denetle() RAPORUNDA ADIYLA gorunuyor mu.
+      3. 🔴 BLOKLAMAMA IDDIASI: eksen bugun 6 GERCEK dosyayi yakiyor; BLOKLAYICI
+         olsaydi TUM ekibin yayini dururdu. Bu nobetci exit kodunun 0 KALDIGINI
+         OLCER — yani birisi ekseni sessizce bloklayiciya cevirirse KIRMIZI yanar."""
+    hata = []
+    for akislar, kesif, beklenen, etiket in DAR_BAYRAK_FIKSTURLERI:
+        gelen = [yol for yol, _cagrilar in dar_bayrak_envanteri(list(akislar), list(kesif))]
+        if gelen != list(beklenen):
+            hata.append("DAR BAYRAK FIKSTURU BOZUK (%s): %r bekleniyordu, %r geldi -> "
+                        "dar_bayrak_envanteri() 'daima yakala' (her mesru testi suclar) "
+                        "ya da 'daima sus' (eksen tumuyle oler ve ic-nobetle kosan bir "
+                        "kabul testi yine 'kosuyor' sayilir) haline gelmis olabilir."
+                        % (etiket, list(beklenen), gelen))
+
+    # --- UCTAN UCA POZITIF: bulgu raporda ADIYLA gorunur, exit kodu DEGISMEZ ---
+    dar_akis = [_ak_akis(_AK_CAGRI_SADE + " --kendini-test")]
+    kod, satirlar = denetle("", [_AK_YOL], {}, kontroller=False, akislar=list(dar_akis),
+                            dosya_metinleri={_AK_YOL: "kod\n"}, alt_kume_izin={})
+    rapor = "\n".join(satirlar)
+    # 🔴 YOLU KOVANIN ICINDE ARA, RAPORUN TAMAMINDA DEGIL. Olculdu (mutant M9): yol
+    # "OTOMATIK'te kosulan : 1 (<yol>)" satirinda ZATEN geciyor -> rapor genelinde
+    # aramak, kova BOSALTILDIGINDA bile YESIL veriyordu. Bu, bu turun avladigi kusurun
+    # (genis kabul araligi / dar iddia) TA KENDISIYDI
+    # ([[kabul-araligi-karsilastirma-araligi]]).
+    kova = rapor.split("(e) 🔴 DAR BAYRAK", 1)
+    if len(kova) != 2 or _AK_YOL not in kova[1]:
+        hata.append("(e2e-poz) DAR BAYRAK BULGUSU RAPORDA YOK: yalniz `--kendini-test` "
+                    "ile kosulan bir kabul testi uyari katmaninda GORUNMUYOR -> eksen "
+                    "olur, kimse gormez (uyari_katmani cagrisi dusmus ya da kova "
+                    "olculmuyor olabilir).\n     RAPOR: %r" % rapor[:900])
+    if kod != 0:
+        hata.append("🔴 (e2e-poz) DAR BAYRAK EKSENI BLOKLAYICI OLMUS: exit %d geldi, 0 "
+                    "olmaliydi. Bu eksen BUGUN 6 gercek dosyayi yakiyor; bloklayici "
+                    "olursa bu kapi continue-on-error'SUZ kostugu icin TUM ekibin "
+                    "yayini durur. Bloklayici yapmak MIMAR KARARIDIR, yan etki DEGIL."
+                    % kod)
+
+    # --- UCTAN UCA KONTROL: bayraksiz cagri -> kova BOS, exit 0 ---------------
+    genis_akis = [_ak_akis(_AK_CAGRI_SADE)]
+    kod2, satirlar2 = denetle("", [_AK_YOL], {}, kontroller=False,
+                              akislar=list(genis_akis),
+                              dosya_metinleri={_AK_YOL: "kod\n"}, alt_kume_izin={})
+    rapor2 = "\n".join(satirlar2)
+    if kod2 != 0 or "(e) 🔴 DAR BAYRAK" not in rapor2:
+        hata.append("(e2e-kontrol) KOVA SATIRI KAYIP: bayraksiz cagrida da '(e)' satiri "
+                    "BASILMALI (sayi 0 olarak) — satirin yoklugu ile 'bulgu yok'u "
+                    "ayirt edemezsek eksen sessizce olur. exit=%d\n     RAPOR: %r"
+                    % (kod2, rapor2[:600]))
+    elif _AK_YOL in rapor2.split("(e) 🔴 DAR BAYRAK", 1)[1]:
+        hata.append("🔴 (e2e-kontrol) SAHTE SUCLAMA: BAYRAKSIZ kosulan dosya dar bayrak "
+                    "kovasinda listelenmis -> eksen 'daima yakala'ya cokmus; bloklayici "
+                    "yapilirsa mesru testleri suclardi.\n     RAPOR: %r" % rapor2[:600])
+    return (not hata), hata
+
+
 # 🔴 F1 — `hata.extend(<nobetci>())` -> `<nobetci>()` SINIFI (SONUC YUTULUR).
 # OLCULEN OLU NOBETCI: bu tek karakterlik mutasyon her nobetciyi SESSIZCE olduruyordu;
 # AST kablosu yalniz CAGRININ VARLIGINA baktigi icin YESIL kaliyordu (olculdu: 5 mutant,
@@ -3601,6 +3963,12 @@ ALT_KUME_KABLOLARI = (
     ("is_akislari", ("tetik_sinifi", "is_akisi_yollari")),
     ("alt_kume_denetimi", ("beyanlari_ayikla",)),
     ("uyari_katmani", ("_py_bayrak_analizi", "beyanlari_ayikla")),
+    # 🔴 BOLUM C2/C3 KABLOSU: fikstur tablolari GOVDENIN dogru calistigini olcer, ONA
+    # KIMSE SORMADIGINI gormez. Bu iki cagri silinirse js dosyalari yine olculmez
+    # (kova sessizce geri acilir) ve dar bayrak kovasi rapordan tumuyle duser.
+    ("uyari_katmani", ("_js_bayrak_analizi", "dar_bayrak_envanteri")),
+    ("js_bayrak_fikstur_kontrol", ("_js_bayrak_analizi", "denetle")),
+    ("dar_bayrak_fikstur_kontrol", ("dar_bayrak_envanteri", "denetle")),
     ("main", ("is_akislari",)),
     # 🔴 P1 — IKI-KOL PARITESI OLCUM AYGITININ KABLOSU (curutucu 2. tur):
     # O3'un TUM aygiti TEK SATIRLA etkisizlestirilebiliyordu — `iki_kol_tetik_kontrol_
@@ -3637,11 +4005,13 @@ NOBETCI_KABLOLARI = (
     ("denetle", ("bulgu1_mutasyon_kontrol", "muaf_sayaci_kontrol",
                  "kendini_test_adimi_kontrol", "bayraksiz_adim_kontrol",
                  "suzgec_fikstur_kontrol", "suzgec_kablosu_kontrol",
-                 "alt_kume_fikstur_kontrol")),
+                 "alt_kume_fikstur_kontrol", "js_bayrak_fikstur_kontrol",
+                 "dar_bayrak_fikstur_kontrol")),
     ("main", ("bulgu1_mutasyon_kontrol", "muaf_sayaci_kontrol",
               "kendini_test_adimi_kontrol", "bayraksiz_adim_kontrol",
               "suzgec_fikstur_kontrol", "suzgec_kablosu_kontrol",
-              "alt_kume_fikstur_kontrol")),
+              "alt_kume_fikstur_kontrol", "js_bayrak_fikstur_kontrol",
+              "dar_bayrak_fikstur_kontrol")),
 )
 
 
@@ -3936,6 +4306,14 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         _, alt_kume_hata = alt_kume_fikstur_kontrol()
         for h in alt_kume_hata:
             hatalar.append("ALT-KUME-FIKSTUR: " + h)
+        # BOLUM C2 — js/mjs/cjs bayrak cikarimi (OLCULEMEDI kovasi kapali mi).
+        _, js_hata = js_bayrak_fikstur_kontrol()
+        for h in js_hata:
+            hatalar.append("JS-BAYRAK-FIKSTUR: " + h)
+        # BOLUM C3 — DAR BAYRAK ekseni: mantigi BLOKLAYICI olculur, BULGUSU bloklamaz.
+        _, dar_hata = dar_bayrak_fikstur_kontrol()
+        for h in dar_hata:
+            hatalar.append("DAR-BAYRAK-FIKSTUR: " + h)
 
     # ---- rapor ----
     # FIX (27 Tem, olculdu): eski hal `[y for y in kesif if y not in kos]` idi -> etiket
@@ -4001,7 +4379,7 @@ def denetle(deploy_metin, kesif, izin_listesi, kontroller=True, akislar=None,
         # tek satir tani basilir ve hukum DEGISMEZ.
         try:
             satirlar.extend(uyari_katmani(kesif, dosya_metinleri, bayrak_env,
-                                          alt_kume_izin))
+                                          alt_kume_izin, akislar))
         except Exception as e:  # noqa: BLE001 — bilincli: uyari katmani BLOKLAMAZ
             satirlar.append("UYARI KATMANI OLCULEMEDI: %s: %s"
                             % (type(e).__name__, e))
@@ -4113,7 +4491,38 @@ def main():
         else:
             for h in hata7:
                 print("  ❌ " + h)
-        if ok1 and ok2 and ok3 and ok4 and ok5 and ok6 and ok7:
+        ok8, hata8 = js_bayrak_fikstur_kontrol()
+        print("js/mjs/cjs BAYRAK CIKARIMI — GOVDE + UCTAN UCA (%d sentetik fikstur)"
+              % (len(JS_BAYRAK_FIKSTURLERI) + 2))
+        if ok8:
+            print("  ✅ TAM literal bayrak SAYILIR, prose mensiyonu/yorum SAYILMAZ; "
+                  "kesfedilen js kabul testlerinin bayraklari uyari katmaninda "
+                  "GORUNUYOR ('bayrak cikarimi YAPILMADI' kovasi KAPALI); js'te "
+                  "'ayri kol' ekseni OLCULMEDI diye BEYAN EDILIYOR, YOK diye DEGIL")
+        else:
+            for h in hata8:
+                print("  ❌ " + h)
+        ok9, hata9 = dar_bayrak_fikstur_kontrol()
+        print("DAR BAYRAK EKSENI (ic nobet = kosuyor SAYILMAZ) — GOVDE + UCTAN UCA "
+              "(%d sentetik fikstur)" % (len(DAR_BAYRAK_FIKSTURLERI) + 2))
+        if ok9:
+            print("  ✅ HER cagrisi ic-nobet bayrakli dosya YAKALANIYOR; bayraksiz "
+                  "cagrisi olan dosya SUCLANMIYOR; ELLE tetikli bayraksiz cagri "
+                  "kurtarmiyor; bulgu raporda ADIYLA gorunuyor ve exit koduna "
+                  "DOKUNMUYOR (bloklayici yapmak MIMAR KARARI)")
+        else:
+            for h in hata9:
+                print("  ❌ " + h)
+        # 🔴 MUTASYON PROTOKOLU ([[mutasyon-kaniti-yeniden-uretilebilir]]): kabul
+        # CIKIS KODU DEGIL, OLCULEN IDDIA SAYISI + ISARET SARTIDIR. Bu iki satiri
+        # tools/ci-kapsam-dar-mutasyon.py okur; sayi duserse "mutant testi cokertti"
+        # demektir ve o kirmizi bir OLCUM DEGILDIR (cokme kirmiziyla karisir).
+        eksenler = (("K1", ok1), ("K2", ok2), ("K3", ok3), ("K4", ok4), ("K5", ok5),
+                    ("K6", ok6), ("K7", ok7), ("K8", ok8), ("K9", ok9))
+        kirmizi = [kod for kod, ok in eksenler if not ok]
+        print("IDDIA SAYISI: %d" % len(eksenler))
+        print("KIRMIZI IDDIA: %s" % (",".join(kirmizi) or "-"))
+        if not kirmizi:
             print("SONUC: YESIL ✅")
             return 0
         print("SONUC: KIRMIZI ❌")
