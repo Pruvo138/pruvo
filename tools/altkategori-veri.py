@@ -34,7 +34,7 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 KOK = os.path.dirname(DIR)
 INDEX = os.path.join(KOK, "index.html")
 
-BAS = "  // >>> ALTKATEGORI VERISI (URETILEN BLOK — python3 tools/altkategori-veri.py)"
+BAS = "  // >>> ALTKATEGORI VERISI (URETILEN BLOK)"
 SON = "  // <<< ALTKATEGORI VERISI"
 
 
@@ -50,10 +50,9 @@ def blok_uret(izinli):
     """ALTKATEGORI_IZINLI -> index.html'e girecek JS blogu (deterministik metin)."""
     satirlar = [
         BAS,
-        "  // Alt kategori cip evreni. TEK KAYNAK: tools/arama.py :: ALTKATEGORI_IZINLI",
-        "  // (duzelt.py / d1-sync / build.py ayni kumeden turer). ELLE DUZENLEME —",
-        "  // kume degisince `python3 tools/altkategori-veri.py` kosulur; ayrisirsa",
-        "  // tools/altkategori-cip-test.py (CI'da bloklayici) KIRMIZI yanar.",
+        "  // Alt kategori cip evreni kanonik arama kurallarindan uretilir.",
+        "  // ELLE DUZENLEME — kaynak kume degisince uretim aracini calistirin;",
+        "  // ayrisma yayin oncesi denetimde bloklanir.",
         "  var ALTKATEGORILER = {",
     ]
     anahtarlar = list(izinli.keys())

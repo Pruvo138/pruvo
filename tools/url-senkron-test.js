@@ -35,16 +35,26 @@ const m = INDEX.match(/function syncUrl\(\)\{[\s\S]*?\n  \}/);
 kontrol("index.html'de syncUrl() tanımlı", !!m);
 
 if (m) {
-  // activeCat/activeBrand/query + history/location kapalı değişkenlerini sararak çalıştır
-  function urlUret(kat, marka, ara) {
+  // activeCat/activeAlt/activeBrand/query + history/location kapalı değişkenlerini sararak
+  // çalıştır. 🔴 Sandbox'ın sağladığı değişken kümesi index.html'deki syncUrl gövdesiyle
+  // AYRIŞABİLİR (ölçüldü: alt kategori çipi eklendiğinde syncUrl `activeAlt`e uzandı, bu
+  // harness onu tanımıyordu → ham ReferenceError ile ÇÖKTÜ). Çökme, kırmızı iddiadan ayırt
+  // edilemez; bu yüzden çağrı sarılır ve eksik değişken ADIYLA kırmızı bir iddia olur.
+  let harnessHatasi = null;
+  function urlUret(kat, marka, ara, alt) {
     let sonUrl = null;
     const sandbox = new Function(
-      "activeCat", "activeBrand", "query", "history", "location", "URLSearchParams",
+      "activeCat", "activeAlt", "activeBrand", "query", "history", "location", "URLSearchParams",
       m[0] + "; syncUrl();"
     );
-    sandbox(kat, marka, ara,
-      { replaceState: (a, b, url) => { sonUrl = url; } },
-      { pathname: "/" }, URLSearchParams);
+    try {
+      sandbox(kat, alt === undefined ? "Tümü" : alt, marka, ara,
+        { replaceState: (a, b, url) => { sonUrl = url; } },
+        { pathname: "/" }, URLSearchParams);
+    } catch (e) {
+      if (harnessHatasi === null) harnessHatasi = String(e && e.message ? e.message : e);
+      return "<HARNESS HATASI: " + harnessHatasi + ">";
+    }
     return sonUrl;
   }
   kontrol('hepsi "Tümü"+boş arama → URL param TAŞIMAZ (salt pathname)',
@@ -60,6 +70,26 @@ if (m) {
   kontrol("arama → ?ara= yazılır (kırpılmış)",
     urlUret("Tümü", "Tümü", "  jant  ") === "/?ara=jant",
     "çıktı: " + urlUret("Tümü", "Tümü", "  jant  "));
+
+  // alt kategori çipi (grup filtresi) — syncUrl'un dördüncü ekseni
+  kontrol("alt kategori seçili → ?altkategori= yazılır (kategoriyle birlikte)",
+    urlUret("Marin", "Tümü", "", "Bujiler") === "/?kategori=Marin&altkategori=Bujiler",
+    "çıktı: " + urlUret("Marin", "Tümü", "", "Bujiler"));
+  kontrol('alt kategori "Tümü" → altkategori paramı DÜŞER, kategori KALIR',
+    urlUret("Marin", "Tümü", "", "Tümü") === "/?kategori=Marin",
+    "çıktı: " + urlUret("Marin", "Tümü", "", "Tümü"));
+  kontrol("alt kategori + marka + arama birlikte yazılır",
+    urlUret("Marin", "Beneteau", "jant", "Bujiler") ===
+      "/?kategori=Marin&altkategori=Bujiler&marka=Beneteau&ara=jant",
+    "çıktı: " + urlUret("Marin", "Beneteau", "jant", "Bujiler"));
+
+  // ÇÖKME ≠ KIRMIZI: harness eksik değişkenle patladıysa bunu ADIYLA söyle
+  kontrol("harness sağlam (syncUrl'un kapalı değişkenleri sandbox'ta tanımlı)",
+    harnessHatasi === null,
+    harnessHatasi === null ? "" :
+      "syncUrl sahte ortamda çalışmadı → " + harnessHatasi +
+      "  (index.html'de syncUrl yeni bir dış değişkene uzandı; bu testteki " +
+      "new Function(...) parametre listesine ve urlUret'e ekle)");
 }
 
 /* ── 2) KABLOLAMA: tetik noktaları syncUrl çağırıyor mu? ───────────────── */

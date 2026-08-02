@@ -1232,11 +1232,10 @@
   // CATEGORIES'i çizer). Sayfa üretecindeki NAV_GIZLI ile BİRLİKTE güncelle.
   var GIZLI_KATEGORILER = ["Jeneratör","Skan Art"];
 
-  // >>> ALTKATEGORI VERISI (URETILEN BLOK — python3 tools/altkategori-veri.py)
-  // Alt kategori cip evreni. TEK KAYNAK: tools/arama.py :: ALTKATEGORI_IZINLI
-  // (duzelt.py / d1-sync / build.py ayni kumeden turer). ELLE DUZENLEME —
-  // kume degisince `python3 tools/altkategori-veri.py` kosulur; ayrisirsa
-  // tools/altkategori-cip-test.py (CI'da bloklayici) KIRMIZI yanar.
+  // >>> ALTKATEGORI VERISI (URETILEN BLOK)
+  // Alt kategori cip evreni kanonik arama kurallarindan uretilir.
+  // ELLE DUZENLEME — kaynak kume degisince uretim aracini calistirin;
+  // ayrisma yayin oncesi denetimde bloklanir.
   var ALTKATEGORILER = {
     "Marin": ["Boya - Bakım","Bujiler","Dümen ve Kumanda","Elektrik","Filtreler","Motor Parçaları","Motor Yağları","Pervaneler","Sintine ve Ekipmanları","Soğutma","Tutyalar ve Anotlar","Yakıt Sistemi","Bağlama Ekipmanları","Güverte ve Donanım","Kano ve Kayak","Montaj Ekipmanları","Olta Ekipmanları"],
     "Otomobil": ["Aydınlatma","Ayna ve Silecek","Bagaj ve Taşıma","Bardaklık","Dış Aksam","Kapı ve Cam","Klima ve Havalandırma","Koltuk ve Kemer","Konsol ve Torpido","Montaj Parçaları ve Klipsler","Motor Bölümü","Ses ve Multimedya","Sürüş Kumandaları","Tavan ve Güneşlik","Tekerlek ve Jant","Telefon ve Şarj","Yakıt ve Egzoz","İç Aksam"],
@@ -2594,7 +2593,7 @@
   // ---------- ALT KATEGORİ (GRUP) ÇİPLERİ ----------
   // Marka çipleriyle AYNI desen ve AYNI sınıflar (brand-btn/active) — yeni görsel dil YOK.
   // FARKLAR (bilinçli): (a) evren KÜRATÖRLÜ DEĞİL, üretilen ALTKATEGORILER bloğundan gelir
-  // (tek kaynak: tools/arama.py); (b) çip LİNK değil FİLTRE'dir (alt kategori sayfası yok);
+  // (tek kanonik kaynak); (b) çip LİNK değil FİLTRE'dir (alt kategori sayfası yok);
   // (c) seçili çipe TEKRAR tıklamak seçimi TEMİZLER ("Tümü" çipi ikinci temizleme yolu).
   function renderAlts(){
     var el = document.getElementById("altChips");
@@ -3221,7 +3220,7 @@
       liste = liste.filter(function(p){ return p.kategori === activeCat; });
     }
     // Grup filtresi YEDEK modda da UYGULANIR. ozet.json kartları `altkategori` TAŞIMAZ
-    // (build.py kart sözleşmesi) → seçili grupta sonuç 0 çıkar. Bu FAIL-CLOSED yön
+    // (özet kart sözleşmesi) → seçili grupta sonuç 0 çıkar. Bu FAIL-CLOSED yön
     // bilinçli: filtreyi yok saymak müşteriye "grup içi" diye TÜM kategoriyi gösterirdi.
     if(activeAlt !== "Tümü"){
       liste = liste.filter(function(p){ return (p.altkategori || "") === activeAlt; });
