@@ -1583,24 +1583,13 @@ ALT_KUME_IZIN_LISTESI = {
         "HICBIR iddia olcmez. OLCULDU (2 Agu): rc=0, 0,1 s, cikti "
         "'{\"olculdu\": true, \"sebep\": \"\", ...}' — konusu tamamen bozulsa da rc=0 "
         "kalirdi (IDDIA-YOK sinifi, R_URETEC emsali)."),
-    # --- 🔴 ACIK DELIK — SUSTURMA DEGIL, MAKINEYE KAYITLI BEKLEME ------------
-    # Bu giris bir "hallettik" kaydi DEGIL: alt kume SAGLIKLI ve CI'ya baglanabilir
-    # oldugu HALDE bagli DEGIL. Muafiyet, delik BEYAN EDILMIS halde kapinin KIRMIZI
-    # yanip TUM ekibin yayinini durdurmasini engellemek icin duruyor; curume kurali
-    # onu KENDILIGINDEN oldurur (biri deploy.yml'e adimi eklediginde "ARTIK KOSUYOR"
-    # kirmizisi bu girisi zorunlu olarak sildirir). Mimar/Okan karari bekliyor.
-    ("shop/test/kabul.js", "--yonet-cerez"): (
-        "🔴 ACIK DELIK (2 Agu, OLCULDU) — teknik engel DEGIL, YETKI/KAPSAM engeli. "
-        "OLCUM: (1) DORT is akisinin HICBIRINDE bu alt kumeyi kosan cagri YOK (0 cagri; "
-        "shop/test/kabul.js CI'da YALNIZ `--sema-paritesi` ile kosuyor). (2) Alt kume "
-        "SAGLIKLI: agsiz/wranglersiz, node v25.8.1'de rc=0, 1,6 s, 63 iddia (admin giris "
-        "guvenligi: cerez oturumu, sabit-zamanli karsilastirma, hiz siniri, enjeksiyon). "
-        "(3) BAGLANAMAMA SEBEBI: deploy.yml `node-version: \"20\"` pinlidir ve alt kumeyi "
-        "baglamak deploy.yml'e YENI BIR BLOKLAYICI ADIM eklemeyi gerektirir — bu dalin "
-        "spec'i (BOLUM G) deploy.yml'e yeni bloklayici adim eklemeyi ACIKCA YASAKLIYOR. "
-        "KAPATMA KOSULU: deploy.yml'e `run: node shop/test/kabul.js <bayrak>` adimi "
-        "(gerekiyorsa node surumu yukseltilerek) eklenir -> bu giris curume kuraliyla "
-        "OTOMATIK olarak KIRMIZI yanar ve SILINMEK ZORUNDA KALIR."),
+    # NOT (2 Agu): `("shop/test/kabul.js", "--yonet-cerez")` girisi buradaydi ve
+    # "ACIK DELIK" olarak kaydedilmisti. O tespit YANLISTI — dalin tabani (68c92a44)
+    # main'in GERISINDEYDI; delik main'de b9facc26 ile ZATEN kapatilmisti (deploy.yml
+    # "Yonet anahtar/cerez kabul testi" adimi). Taban tazelenince curume kurali (j)
+    # girisi KENDILIGINDEN kirmizi yakti ("BAYAT alt kume izni ... ARTIK OTOMATIK is
+    # akisinda KOSUYOR") ve giris SILINDI; alt kume artik KURAL 1 ile kapsaniyor.
+    # Ders: [[bayat-worktree-mukerrer-is]] / [[worktree-diff-taban-tuzagi]].
 }
 
 
