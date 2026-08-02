@@ -39,6 +39,28 @@ main'de, ana agacta yetim degisiklik yok).
 onundeki kapi tutuyor" gerekcesi, o katmanin HIC olculmedigini gizler. Bir katmanin savunma
 derinligi oldugu iddiasi ancak o katman **TEK BASINA** olculuyorsa kanittir.
 
+## TEYIT — 2 Agu 2026 (yonet mutasyon surucusu ANA CHECKOUT'ta bagimsiz kosuldu)
+
+Merge sonrasi surucu dalin worktree'sinde degil **ana checkout'ta** (`main`, `1e4d0b20`) bir kez
+daha kosuldu — kapinin dalin agacina degil main'in agacina bagli oldugu ayrica olculsun diye.
+
+- `python3 tools/yonet-cerez-mutasyon.py` → **RC=0**. Taban `IDDIA SAYISI: 65`. **13 kosum:
+  `M1`..`M10` KIRMIZI (hepsi `iddia=65/65`, isaret TAM) · `K1`..`K3` YESIL (0 kirmizi)**.
+  `shop/src/yonet.js` sha256 basta ve sonda AYNI (`5fe2d520…`) — mutant diske sizmadi.
+- Isaret eslesmeleri: `M3`→`C15,C22a` · `M10`→`C22a` (beyan edilmis SURVIVOR'in kapattigi delik
+  ana agacta da kapali) · `M6`→`C18a,C18b,C19b` · `M8`/`M9` ayrica `C10f` yakiyor (ikisi de ortak
+  `CEREZ_BAYRAK` kaynagindan turuyor).
+
+**KAYIP — ayri kalem:** ayni pencerede `tools/altkategori-sinifla-test.py` uzerindeki
+COMMIT'LENMEMIS degisiklik kayboldu; yeni commit YOK, stash BOS. `git fsck --dangling` ile 45
+dangling blob tarandi (`--lost-found` KULLANILMADI, diske yazardi) — dosyanin hicbir surumu YOK.
+**KURTARILAMAZ:** degisiklik hic stage'lenmemis, git object DB'ye hic girmemis. Surucu yalnizca
+gecici aynaya yazar ve kendi sha256 nobeti temiz gecti; yine de neyin sildigi KANITLANAMADI.
+
+**DERS:** uzun yasayan bir calisma-agaci duzenlemesi `add`'lenmeden birakilirsa, geri alinmasi
+HICBIR IZ BIRAKMAZ — reflog da stash de bos kalir. Eszamanli oturumlarin ustuste bindigi bu
+depoda tek koruma ara commit, en azindan `git add`.
+
 ## OTURUM — 2 Agu 2026 gunduz (KraL · uyum ekseni + panel anahtari + sayfa agirligi + taksonomi)
 
 **CANLIYA GITTI (olculdu, itildi, canli teyit alindi):**
