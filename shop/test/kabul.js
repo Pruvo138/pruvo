@@ -2251,7 +2251,7 @@ async function testSandbox() {
  * NASIL: shop/src/yonet.js DOGRUDAN (deploy edilen dosya, kopya DEGIL) import edilir ve
  * export'lanan `yonet()` sahte Request/env ile cagrilir. semalar.js JSON'u import
  * attribute'suz aldigi icin (wrangler/esbuild bunu bundle'da cozer, duz node cozmez)
- * node:module registerHooks ile .json yukleyicisi takilir — KAYNAK DEGISTIRILMEZ.
+ * node:module register (v20.6+) ile .json yukleyicisi takilir — KAYNAK DEGISTIRILMEZ.
  *
  * FIKSTUR HIJYENI: anahtar UYDURMA; `.yonet-anahtar` dosyasi OKUNMAZ. Musteri PII'si
  * gerekmez (bu eksende siparis verisi yok).
@@ -2283,24 +2283,44 @@ async function yonetCerezAkisi() {
   const A = YONET_CEREZ_ANAHTARI;
 
   // .json import'u duz node'da cozulsun (kaynak dosyalara DOKUNMADAN).
-  const { registerHooks } = require("node:module");
-  if (typeof registerHooks !== "function") {
+  //
+  // ⚠️ SURUM DERSI — TEK KOD YOLU, SURUM DALI YOK (bkz. shop/test/olcum.mjs ~481: AYNI
+  // yonet.js'i AYNI desenle yukler, karar 30 Tem'de olculerek verildi). Burada once
+  // `module.registerHooks` (senkron, in-thread) vardi; o API v22.15+ ve **CI runner'i
+  // Node 20** (deploy.yml setup-node node-version: "20") -> alt kume CI'da yapisal olarak
+  // KOSAMIYORDU (olculdu: node v20.20.2'de 0/1 exit 1, node v22.23.2'de 63/0). Dogru cozum
+  // runner'i yukseltmek DEGIL, kayitli mimari karara uymak: `module.register` (async/
+  // off-thread loader hook) Node **v20.6+**'ta VAR ve ayni attribute enjeksiyonunu yapar.
+  // olcum.mjs ayri bir yukleyici DOSYASI kullanmiyor (hook'u data: URL olarak gomuyor) ->
+  // burada da AYNI desen gomulu; paylasilacak bir yardimci dosya YOK.
+  //
+  // FAIL-CLOSED: hook API'si yoksa SUSMAYIZ — C0 KIRMIZI yanar ve process rc=1 doner.
+  // "Yuklenemedi" hicbir kosulda "atlandi/yesil" SAYILMAZ.
+  const nodeModule = require("node:module");
+  if (typeof nodeModule.register !== "function") {
     rapor("C0 modul yukleyici", false,
-      "node:module registerHooks yok (node " + process.version + ") — bu alt kume kosamaz");
+      "node:module.register YOK (Node >= 20.6 gerekir) — node " + process.version +
+      " — bu alt kume kosamaz");
     console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi");
     process.exit(1);
   }
-  const { fileURLToPath } = require("node:url");
-  registerHooks({
-    load(url, baglam, sonraki) {
-      if (url.startsWith("file://") && url.endsWith(".json")) {
-        return { format: "json", shortCircuit: true,
-                 source: fs.readFileSync(fileURLToPath(url), "utf8") };
-      }
-      return sonraki(url, baglam);
-    },
-  });
-  const YM = await import("file://" + path.join(SHOP, "src", "yonet.js"));
+  const JSON_IMPORT_HOOK =
+    "export async function resolve(s, c, n) {" +
+    "  const r = await n(s, c);" +
+    "  return r.url.endsWith('.json')" +
+    "    ? { ...r, format: 'json', importAttributes: { type: 'json' } }" +
+    "    : r;" +
+    "}";
+  let YM = null;
+  try {
+    nodeModule.register("data:text/javascript," + encodeURIComponent(JSON_IMPORT_HOOK));
+    YM = await import("file://" + path.join(SHOP, "src", "yonet.js"));
+  } catch (e) {
+    rapor("C0 modul yukleyici", false,
+      "yonet.js import: " + ((e && e.message) || e) + " — node " + process.version);
+    console.log("\nSONUC: " + gecen + " gecti, " + kalan + " kaldi");
+    process.exit(1);
+  }
   rapor("C0 modul yukleyici", typeof YM.yonet === "function",
     "shop/src/yonet.js import edildi; export: " + Object.keys(YM).join(","));
 
