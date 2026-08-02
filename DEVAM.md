@@ -2,6 +2,51 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## MERGE — 2 Agu 2026 · Yayin gecikme nobetcisi: yas tabani + kosum omru ekseni (`1d19ce96`)
+
+- **Merge SHA `1d19ce96`** (merge-base `17cdc675`). Kapsam **10 dosya / +1391 −475**:
+  `tools/yayin-gecikme-nobeti.py`, `-test.py`, `-mutasyon.py` + 7 fikstur. `deploy.yml` 0 satir;
+  `urunler.json`, `worker/`, is akislari dokunulmadi. Cakisma yok (`merge-tree` yalniz agac
+  OID'i `7d40150b`), sizinti taramasi 0 vurus, agac temizligi 0 sapma / 0 yabanci.
+- **Kapilar dalin worktree'sinde kosuldu — hepsi exit 0:** kabul testi **38/38 iddia** ·
+  mutasyon surucusu **20 mutant (16 kirmizi-beklentili + 4 kontrol), 8/8 eksende TEK-KIRMIZI
+  mutant, kosum sonu 6/6 kaynak dosya sha256 bastakiyle ayni** · `ci-kapsam-test.py` YESIL
+  (132 .py olculdu; 32 js/mjs **OLCULEMEDI**, bayrak cikarimi yapilmiyor) ·
+  `kapi-envanteri.py` **7/7 VAR+BAGLI+NOBETTE** · `kisisel-veri-test.py` yesil ·
+  `is-akisi-kapisi.py` yesil (166 kapi cagrisi, **0** etkisizlestirilmis).
+- **Bagimsiz curutucu (9 eksen, hukum SARTLI — merge edilebilir):** 3029 noktada eski ve yeni
+  mantik yan yana kosturuldu. Yeni yanlis-kirmizi **0 dakika**; dongu biriminde kirmizi
+  **7/90 → 4/90**, sari **37/90 → 6/90**; gercek tikanma **7/7** senaryoda yakalandi; kapsam
+  kaybi yok; 6/6 dosya sha256 esit.
+- **Merge sonrasi bagimsiz teyit (ana checkout):** kabul **38/38** rc 0, mutasyon **20 mutant /
+  8 eksen** rc 0.
+- **D1 teyidi:** SAYI **16874 = 16874** · SEMA ekseni temiz (`urunler_yayin`,
+  `urunler_yayin_kat` KURULU) · ICERIK 16874 satirda hash uyusmazlik/eksik/fazla **0**.
+- **CI (SHA-KANITLI):** kosum **`30756610271`**, headSha **`1d19ce96…`** (birebir),
+  conclusion **success**; `merge-base --is-ancestor` **rc 0**. Job'lar: cron-nabzi, envanter,
+  build, mesaj-nobeti, serit-b — hepsi success.
+- **Yayin gecikmesi (`durum.py`):** merge'den hemen sonra 🟢 AKIYOR — 2 commit bekliyor,
+  en eskisi **43 dk** (esiklerin altinda); deploy bittikten sonra 🟢 AKIYOR — **0 commit
+  geride**, bekleyen yok, son yayinlanan sha `1d19ce96`.
+- **Temizlik:** worktree porcelain temiz · icerik main'de (`durum.py`: "0 ileri | ucu main'de")
+  · ana agac temiz → worktree + dal silindi.
+
+### 🔴 ACIK KALEM 1 — sabah/gece KALINTI SINIFI (curutucunun kayit sarti)
+- Pencere icindeki **2 sabahin 2'sinde** tekrarladi.
+- 2 Agu 07:28:22 AKIYOR (`geride=0`) → 07:29:22 **TIKALI, "en oldest bekleyen commit 392 dk"**,
+  oysa icerik main'de **1 dakikadir**. 1 Agu'da 07:11 AKIYOR → 07:12 TIKALI "82 dk".
+- Kirmizi kalma suresi **23 dk** ve **73 dk**; tepe yas **464,1 dk**.
+- **ESKI kodda birebir ayni** → regresyon DEGIL, kalinti sinif.
+- Mekanizma: sabahki push, committer tarihi son yayindan eski dal commit'leri tasiyor;
+  `max(en_eski, yayin_ani)` gece yarisindaki yayina tabanlaniyor.
+- **Bu dal yanlis-kirmiziyi AZALTIYOR (7/90→4/90 dongu), KAPATMIYOR.**
+- Onarimi **ayri tur**: tabana ucuncu alt sinir (push'un GELDIGI an).
+
+### 🔴 ACIK KALEM 2 — sozlesme nobeti TEK YONLU
+`OLCULEN_KOSUM_OMRU_MAX_DK` / `OLCULEN_SAGLIKLI_YAS_TAVANI_DK` sabitini **YUKARI** kaydirmak
+yakalaniyor, **ASAGI** kaydirmak sessizce geciyor (49.1→5.0 ve 51.8→10.0 sag kaldi).
+Bugun zararsiz, ama cit uydurmanin yapilacagi yonde acik.
+
 ## OTURUM KAPANISI — 2 Agu 2026 · Uyum ekseni: yazma yolu + kapi sertlestirmesi + D1 kolonu
 
 - **CANLIYA GITTI (uc commit):** `e6254d30` `uyum` **yazma yolu** — `duzelt.py`'de `uyum` alani +
