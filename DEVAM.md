@@ -9,10 +9,9 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 `tools/yonet-cerez-mutasyon.py`. Urun verisi / `worker/` / arama diffte YOK → parite testleri
 GEREKMEDI (olculdu, atlanmadi).
 
-**Kapatilan delik (olculdu):** eski tek iddia (`C22`) istegi `yonet()` uzerinden gecirdigi icin
-**iki secret kapisinin VEYA'sini** olcuyordu; `girisYap`'in kendi kapisi TEK BASINA silininde alt
-kume YESIL kaliyordu. Iddia `C22-0` / `C22a` (girisYap IZOLE, `yonet()` bypass) / `C22b` (ust kapi
-IZOLE) olarak bolundu; `girisYap` export edildi (davranis DEGISMEDI, yalnizca olculebilirlik).
+**Kapatilan delik (olculdu):** giris ekseninin iki katmani artik AYRI AYRI olculuyor — tek iddia uc
+iddiaya bolundu, alt katman TEK BASINA olculebilir hale geldi (davranis DEGISMEDI, yalnizca
+olculebilirlik). Sinif + ayrinti + olcumler DEVAM-ARSIV.md'de.
 
 **Olculen sayilar:**
 - `node shop/test/kabul.js --yonet-cerez` → **65 gecti / 0 kaldi**, `IDDIA SAYISI: 65`, RC=0
@@ -43,15 +42,12 @@ derinligi oldugu iddiasi ancak o katman **TEK BASINA** olculuyorsa kanittir.
 ## OTURUM — 2 Agu 2026 gunduz (KraL · uyum ekseni + panel anahtari + sayfa agirligi + taksonomi)
 
 **CANLIYA GITTI (olculdu, itildi, canli teyit alindi):**
-- `4f122b84`+`9e61416e` **yonetim anahtari URL'den cikti** → HttpOnly cerez + sifre kutusu girisi.
-  Kabul 63 iddia, 17 mutant. Bagimsiz curutucu 26 atlatma denemesiyle cekirdegi kiramadi; buldugu
-  4 kusur (ikame enjeksiyonu, fail-open primitif, olcme boslugu, hiz siniri yoklugu) kapatildi.
-  🔴 **Shop worker'i hicbir workflow deploy ETMIYOR** — elle yayinlandi (surum `50686981`, 07:20 UTC).
-  Canli teyit: yetkisiz uc yol da BIREBIR ayni 1326 baytlik yanit (ayni sha, cerez yok), `/baslat` 400.
-- **Yonetim anahtari DONDURULDU** (Okan onayi). Eski anahtar canlida **404**, yeni calisiyor,
-  odeme regresyonsuz. Parmak izi: uzunluk 43, sha256[0:8]=`ee4a4858`. Deger hicbir loga/rapora
-  girmedi; yedek silindi; 108.189 dosya tarandi, `.yonet-anahtar` disinda kopya YOK.
-  ⚠️ Olculdu: `secret put` sonrasi **10. saniyede eski anahtar hala 200** — tek atisla olcme.
+- `4f122b84`+`9e61416e` **yonetim anahtari URL'den cikti** → cerez tabanli giris. Kabul 63 iddia,
+  17 mutant; bagimsiz denetimin actigi 4 kalem kapatildi ve canli dogrulandi. Yayin yolu bu is icin
+  ELLE yurutuldu (otomatiklestirme ACIK kalem). Sinif + ayrinti + olcumler DEVAM-ARSIV.md'de.
+- **Yonetim anahtari DONDURULDU** (Okan onayi). Eski anahtar canlida gecersiz, yeni calisiyor,
+  odeme regresyonsuz; kopya taramasi temiz cikti. Parmak izi ve yayilma zamanlamasi olcumu
+  DEVAM-ARSIV.md'de.
 - `986b052e` **uyum ekseni sozlugu + semasi + kapisi** (tuketici YOK). Kapali marka kumesi 169
   jeton, `URETICI_MARKA` 14, `ELENEN` 17; 29 iddia, 13/13 mutant; parite site 1199 ✅ Ege 845 ✅.
   Curutucu iki bloklayici buldu, ikisi de kapandi: S2 **sayiyi degil kimligi** koruyor artik
@@ -75,9 +71,9 @@ Yazilmis ama CI'da KOSMAYAN nobetciler var; `ci-kapsam-test.py` *dosya* kesfediy
 - `jenerator/test/kabul.py` **TEST 1 gercek kosumda KIRMIZI ve PARA ekseni**: `hacim.js` ↔ OpenSCAD
   7 ailede ayrisiyor (pervane **%51,2**, izgara %39,9, rulman %35,9, kayis %28,7, kasnak %20,6,
   huni %9,8, petek %7,6). Sari seride fiyat hacimden turedigi icin **fiyat yanlis olabilir**.
-  `deploy.yml:1728/1735` bu takimi yalniz `--kendini-test` ile cagiriyor. **KaaN'a devredildi.**
+  Is akisindaki cagri bicimi ACIK kalem (ayrinti arsivde). **KaaN'a devredildi.**
 - `filament-test.py` ve `konfigur-nobet-mutasyon.py` hicbir workflow'da gecmiyor.
-- `yayin-ic-dil-kapisi` varlik kolunda asgari-sayi nobeti YOK → `varlik/` bos gelirse fail-open.
+- `yayin-ic-dil-kapisi` varlik kolunda ACIK bir olcum eksigi var; sinifi + recetesi arsivde.
 - Spec yazildi: `spec-kapi-karanligi.md` (scratchpad). Okan'in actigi iki arka plan isi
   (`c14cd59b`,`bf788be6`,`b9facc26`) 63 iddialik kumeyi CI'ya bagladi — ilk parca kapandi.
 
@@ -92,7 +88,7 @@ siniflandirici, uc gecisli atama). Bitince main'e alinacak (Okan: "bittiginde ma
   basina karar noktasi.
 - **KaaN:** parametrik hacim/fiyat ayrismasi (yukarida).
 - **BENDE:** D1 `uyum` kolonu (`--sema` ONCE, sonra kod) · `urun-ekle.py`'de `marka` tekillestirmesi
-  yok · imzali/donuk oturum jetonu + panel cikis rotasi · `sabitEsit` uzunluk sizintisi ·
+  yok · panel oturum ekseninde iki ACIK kalem (sinifi + recetesi arsivde) ·
   iki eski dal (`koru/faz3-edge-arama`, `kurtarma/nobetci-tur3`) **olculdu: icerikleri main'de**
   (`22b42cb8` / `9c90741b`), silinmedi cunku `kurtarma/nobetci-tur3` uzakta YOK, tek kopya.
 
@@ -121,7 +117,7 @@ ve katalog<->D1 sessiz metin ayrismasi fail-closed kapatildi (kapi 35->42 iddia,
 - **HocA (ikinci, ONCELIKLI — Okan'in bekledigi gorunur is):** kategori sayfasindaki altkategori
   filtresi icin uc kart sozlesmesi genisleyecek. Sema isi YOK, D1 kolonu var ve dolu. Site tarafi
   HAZIR bekliyor; alan gelince cip/filtre + kirilim dugumu ayni gun aciliyor.
-- **BENDE (siradaki tur):** panel anahtarinin query param yolu (erisim loglarinda gorunuyor) ·
+- **BENDE (siradaki tur):** panel giris yuzeyinde bir ACIK kalem (sinifi + recetesi arsivde) ·
   fikstur hijyeni (firmanin kendi numarasi fikstürde kullanilmis) · iki eski dal
   (`koru/faz3-edge-arama`, `kurtarma/nobetci-tur3`) main'de olmayan is tasiyor, siniflandirilmadi.
 - **Baska oturumlarin agaclari** (`angry-lederberg-d7aa53`, `ci-duzeltme-54cca90a`) duruyor —
