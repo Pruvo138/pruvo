@@ -2572,12 +2572,49 @@ async function yonetCerezAkisi() {
   rapor("C21d KONTROL: sabitEsit('abc','abc') === true (sertlestirme dogruyu bozmadi)",
     SE("abc", "abc") === true && SE("abc", "abd") === false, "esit=" + SE("abc", "abc"));
 
-  // ---- 22. girisYap KENDI SECRET KAPISI (savunma derinligi) ----
-  const p22 = await cagir({ altYol: "/", yontem: "POST", anahtarsizEnv: true,
-    icerikTur: "application/x-www-form-urlencoded", govde: "sifre=" });
-  rapor("C22 secret yok + BOS sifre POST -> 404 + Set-Cookie YOK (girisYap kendi kapisi)",
-    p22.kod === 404 && p22.cerezKur === "", "kod=" + p22.kod + " cerez=" +
-    JSON.stringify(p22.cerezKur));
+  // ---- 22. IKI SECRET KAPISI — HER BIRI AYRI AYRI (VEYA DEGIL, VE) ----
+  // ESKI C22 ("secret yok + BOS sifre POST -> 404") istegi yonet() uzerinden gecirirdi,
+  // yani IKI kapi da yoldaydi ve iddia ikisinin VEYA'sini olcuyordu: HER BIRI tek basina
+  // silindiginde alt kume YESIL kaliyordu (olculdu), yalniz IKISI BIRDEN silininca kirmizi.
+  // Zarar: iki ayri "yesil" commit birlikte anahtarsiz cerez kurulumuna kapi acabilirdi.
+  // Simdi iki kapi AYRI eksende, birbirini maskeleyemeyecek sekilde olculur.
+  const GY = YM.girisYap;
+  rapor("C22-0 girisYap disa aktarilmis (kendi kapisi IZOLE olculebilsin diye)",
+    typeof GY === "function", "tip=" + typeof GY);
+
+  // C22a — girisYap'IN KENDI KAPISI, IZOLE: yonet() BYPASS edilir, girisYap DOGRUDAN
+  // cagrilir; ust kapi yolda olmadigi icin onu maskeleyemez.
+  // AYIRT EDICI EKSEN = 404 KODU. "Set-Cookie yok" TEK BASINA yetmez: sabitEsit
+  // sertlestirilmis oldugu icin (C21b) kapi silinse bile bos sifre cerez KURDURMAZ —
+  // kapi silinince donen sey girisEkrani(url), yani 200 + form.
+  const env22 = { KATALOG: d1Bos(), SITE_URL: "https://pruvo3d.com" };  // YONET_ANAHTAR YOK
+  const istek22 = new Request(YONET_TABAN, { method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "sifre=" });
+  // Cagriyi KORU: fonksiyon export edilmemisse cagri COKER ve cokme "kirmizi" ile
+  // karisirdi (C22-0 zaten kirmizi yanar).
+  const y22a = typeof GY === "function" ?
+    await GY(istek22, new URL(YONET_TABAN), env22) : null;
+  const y22aKod = y22a === null ? -1 : y22a.status;
+  const y22aCerez = y22a === null ? "?" : (y22a.headers.get("Set-Cookie") || "");
+  const y22aMetin = y22a === null ? "" : await y22a.text();
+  rapor("C22a girisYap KENDI kapisi (IZOLE, yonet() bypass): secret yok + bos sifre -> " +
+    "404 + Set-Cookie YOK",
+    y22aKod === 404 && y22aCerez === "" && !/<form/i.test(y22aMetin),
+    y22a === null ? "girisYap cagrilamadi (export YOK)" :
+      "kod=" + y22aKod + " cerez=" + JSON.stringify(y22aCerez) +
+      " form var mi=" + /<form/i.test(y22aMetin));
+
+  // C22b — yonet()'in UST KAPISI, IZOLE. POST "/" AYIRT EDICI DEGIL: ust kapi silinse
+  // bile istek girisYap'a duser ve orada 404 olur (alt kapi ustunu maskeler). Ayirt edici
+  // eksen secret YOK + GET "/" (panel koku): bugun ust kapi 404 doner; ust kapi silinirse
+  // anahtarGecerli false doner ve girisEkrani(url) 200 form doner.
+  // C15 ile FARK: C15 uc ekseni (POST 404 + GET 404 + form yok) TEK iddiada birlestirir,
+  // kirmizi yandiginda HANGI kapinin dustugunu SOYLEMEZ; C22b ust kapiyi adiyla, tek
+  // eksende olcer. C15 kaldirilmaz — orasi ozellik-kapali kolunun genel beyani.
+  const g22b = await cagir({ altYol: "/", anahtarsizEnv: true });
+  rapor("C22b yonet() UST kapisi (IZOLE): secret yok + GET / -> 404 (giris formu BILE yok)",
+    g22b.kod === 404 && !/<form/i.test(g22b.metin),
+    "kod=" + g22b.kod + " form var mi=" + /<form/i.test(g22b.metin));
 
   // ---- 19. GOVDE UST SINIRI (request.formData() sinirsiz ayristirirdi) ----
   const kocaman = "sifre=" + "A".repeat(4096);

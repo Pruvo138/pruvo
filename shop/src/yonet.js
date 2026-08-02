@@ -665,10 +665,16 @@ async function girisGovdesi(request) {
  *   secret yok -> 404 · tavan asildi -> form · govde buyuk/bozuk/bos -> form · yanlis -> form.
  * Anahtar loga/yanita/hata metnine YAZILMAZ.
  */
-async function girisYap(request, url, env) {
-  // 🔴 KENDI KAPISI: yonet() zaten secret'i basta kontrol ediyor — ama koruma CAGRI
-  // SIRASINA birakilmaz. Sira degisirse (olculdu: curutucu mutanti) bu uc anahtarsiz
-  // kuruluma yetki verirdi. Kapi burada TEKRARLANIR; ikisi bagimsiz.
+// `export` DAVRANISI DEGISTIRMEZ: yalnizca OLCULEBILIRLIK — kendi kapisi yonet()
+// uzerinden gecmeden, IZOLE cagrilabilsin diye disa acildi (kabul.js C22a).
+export async function girisYap(request, url, env) {
+  // 🔴 KENDI KAPISI (savunma derinligi): yonet() de secret'i basta kontrol eder — ama
+  // koruma CAGRI SIRASINA birakilmaz. Sira degisirse bu uc anahtarsiz cerez kuruluma
+  // yetki verirdi. Kapi burada TEKRARLANIR.
+  // OLCULDU (mutasyon, --yonet-cerez): iki kapi ARTIK AYRI AYRI olculuyor. Bu satir TEK
+  // BASINA silinince C22a kirmizi yanar; yonet()'in ust kapisi TEK BASINA silinince C22b
+  // + C15 kirmizi yanar. Once bu satirin tek basina silinmesi alt kumeyi YESIL biraki-
+  // yordu (eski C22 iki kapinin VEYA'sini olcuyordu) — o bosluk kapandi.
   if (!env.YONET_ANAHTAR) { return yon404(); }
   const simdi = Date.now();
   if (girisBlokeMi(simdi)) {

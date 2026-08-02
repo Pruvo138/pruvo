@@ -217,6 +217,33 @@ def stokta_kanonik(u):
 # dogru calisiyor). Deger olculdu: imza nobeti temiz (sebep None), katalogun 1.678
 # tekil marka adiyla carpisma 0. Katalogta HENUZ kullanilmiyor — deger once burada
 # olmadan kataloga yazilamadigi icin bu KASITLI (yukaridaki desen).
+#
+# GENISLETME (2026-08-02, MIMAR KARARI, ucuncu tur): kume 12 -> 60; 1 kategori -> 6.
+# SEBEP olculdu: alt kategori tanimli TEK kategori `Marin`di ve katalogun %94'unde alan
+# BOSTU — kategori sayfalari yiginla urunle aciliyor, daraltma yuzeyi YOKTU.
+#
+# EKSEN (K1, mimar karari): grup adi YER / SISTEM / KULLANIM ALANI adlandirir, SEKIL
+# DEGIL. OLCULDU (12.481 Otomobil urunu): sekil ekseni (`Kapaklar`, `Klipsler`,
+# `Tutucular`) 60 grup uretiyor, urunlerin %88,99'u BIRDEN FAZLA gruba dusuyor, en buyuk
+# grup katalogun %37,37'si — yigilmayi cozmuyor, adini degistiriyor. Yer/sistem ekseni:
+# 16 grup, cakisma %24,89, en buyuk grup %13,80. Bu yuzden `Kapaklar ve Tapalar` (Marin,
+# 240 ham eslesme), `Kablo ve Klipsler` (188), `Standlar` (Ev, 50), `Telefon Tutucuları`
+# (Motosiklet, 85) gibi BICIM adlari — kac urun tasirsa tasisin — kumeye ALINMADI.
+# Reddedilen adlarin tamami gerekcesiyle tools/altkategori-sinifla.py ADAYLAR tablosunda
+# `SEKIL_RED`/`ELENEN` sinifiyla KAYITLIDIR (bir sonraki tur yeniden tartismasin).
+#
+# ESIKLER (K4): kategori >=100 urun tasimazsa alt kategori ALMAZ — bugun hak eden 6
+# kategori asagidadir; `Ofis` 71 · `Bisiklet` 31 · `Bahçe` 25 · `Tamirat` 25 ·
+# `Jeneratör` 23 · `Kamera` 21 · `Skan Art` 17 · `Oyun/Hobi` 15 alt kategori ALMAZ ve bu
+# bir EKSIKLIK DEGIL KARARDIR. Grup >=15 urun tasimazsa kumeye GIRMEZ (olculdu ve elendi:
+# Elektronik `Mutfak Cihazları` 14 -> `Ev ve Mutfak Cihazları` icinde eritildi;
+# Dekorasyon `Bardak Altlıkları` 10, `Kitap Destekleri` 5; Ev `Huniler` 11).
+#
+# 🔴 MARIN'IN MEVCUT 12 DEGERI BAYT OLARAK KORUNDU (K3): 935 kayit onlari kullaniyor,
+# ad degistirmek/silmek veriyi bozar ve kapiyi kirar. Uzerine 5 yeni deger EKLENDI.
+# Kume ile tools/altkategori-sinifla.py'nin grup tablosu IKIZDIR ve ayrisirsa
+# tools/altkategori-sinifla-test.py KIRMIZI yanar (S ekseni) — kume BURADA tek kaynaktir,
+# siniflandirici onun ONUNE GECEMEZ (fail-closed: kume disi ad "" olur).
 ALTKATEGORI_IZINLI = {
     "Marin": (
         "Boya - Bakım",
@@ -231,6 +258,65 @@ ALTKATEGORI_IZINLI = {
         "Soğutma",
         "Tutyalar ve Anotlar",
         "Yakıt Sistemi",
+        # ── 2 Agu eki (yukaridaki 12 MIRAS deger AYNEN durur) ──
+        "Bağlama Ekipmanları",
+        "Güverte ve Donanım",
+        "Kano ve Kayak",
+        "Montaj Ekipmanları",
+        "Olta Ekipmanları",
+    ),
+    "Otomobil": (
+        "Aydınlatma",
+        "Ayna ve Silecek",
+        "Bagaj ve Taşıma",
+        "Dış Aksam",
+        "Kapı ve Cam",
+        "Klima ve Havalandırma",
+        "Koltuk ve Kemer",
+        "Konsol ve Torpido",
+        "Montaj ve Bağlantı",
+        "Motor Bölümü",
+        "Multimedya ve Elektronik",
+        "Sürüş Kumandaları",
+        "Tavan ve Güneşlik",
+        "Tekerlek ve Jant",
+        "Yakıt ve Egzoz",
+        "İç Aksam",
+    ),
+    "Motosiklet": (
+        "Aydınlatma",
+        "Depo ve Yakıt",
+        "Elektrik",
+        "Fren ve Süspansiyon",
+        "Gidon ve Kumandalar",
+        "Grenaj ve Kaporta",
+        "Gösterge ve Kokpit",
+        "Montaj ve Bağlantı",
+        "Motor Bölümü",
+        "Multimedya ve Elektronik",
+        "Sele ve Sehpa",
+        "Tekerlek ve Aktarma",
+        "Çanta ve Bagaj",
+    ),
+    "Dekorasyon": (
+        "Bitki ve Saksı",
+        "Dekoratif Objeler",
+        "Duvar ve Raf",
+        "Heykel ve Figür",
+        "Mum ve Aydınlatma",
+        "Servis ve Sunum",
+        "Vazo ve Çiçeklik",
+    ),
+    "Ev": (
+        "Banyo",
+        "Duvar ve Askı",
+        "Mutfak",
+        "Saklama ve Düzen",
+    ),
+    "Elektronik": (
+        "Cihaz Parçaları",
+        "Ev ve Mutfak Cihazları",
+        "Ses ve Müzik",
     ),
 }
 
