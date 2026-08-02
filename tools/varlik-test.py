@@ -137,12 +137,23 @@ def eski_ref():
 
 
 def eski_kok_kur(tmp, ref):
-    """`ref`teki tools/ agacini tmp'ye acar; kalan kok girdileri gercek ROOT'a symlink."""
-    p = subprocess.run(["git", "-C", ROOT, "archive", ref, "tools"], capture_output=True)
+    """`ref`teki build.py'yi tmp'ye acar; diger girdileri guncel ROOT'a symlink.
+
+    Kiyas yalniz varlik tasimasindan onceki URETICIYI sabitler. Tum `tools/` agacini
+    eski ref'ten almak, sonradan genisleyen taksonomi gibi build.py disi kurallari da
+    geri sarar ve varlik tasimasiyla ilgisiz sahte bayt farklari uretir.
+    """
+    p = subprocess.run(["git", "-C", ROOT, "archive", ref, "tools/build.py"],
+                       capture_output=True)
     if p.returncode != 0:
         return False
     with tarfile.open(fileobj=io.BytesIO(p.stdout)) as t:
         t.extractall(tmp)
+    tmp_tools = os.path.join(tmp, "tools")
+    for ad in os.listdir(TOOLS):
+        if ad == "build.py":
+            continue
+        os.symlink(os.path.join(TOOLS, ad), os.path.join(tmp_tools, ad))
     for ad in os.listdir(ROOT):
         if ad in ("tools", ".git"):
             continue
