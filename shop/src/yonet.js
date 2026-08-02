@@ -673,8 +673,9 @@ export async function girisYap(request, url, env) {
   // yetki verirdi. Kapi burada TEKRARLANIR.
   // OLCULDU (mutasyon, --yonet-cerez): iki kapi ARTIK AYRI AYRI olculuyor. Bu satir TEK
   // BASINA silinince C22a kirmizi yanar; yonet()'in ust kapisi TEK BASINA silinince C22b
-  // + C15 kirmizi yanar. Once bu satirin tek basina silinmesi alt kumeyi YESIL biraki-
-  // yordu (eski C22 iki kapinin VEYA'sini olcuyordu) — o bosluk kapandi.
+  // kirmizi yanar (C15a YESIL kalir — ozellik-kapali POST o zaman BU satira duser, yani
+  // savunma derinligi calisir). Once bu satirin tek basina silinmesi alt kumeyi YESIL
+  // birakiyordu (eski C22 iki kapinin VEYA'sini olcuyordu) — o bosluk kapandi.
   if (!env.YONET_ANAHTAR) { return yon404(); }
   const simdi = Date.now();
   if (girisBlokeMi(simdi)) {

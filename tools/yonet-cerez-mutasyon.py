@@ -40,6 +40,23 @@ MUTANTLAR (hepsi GERCEK, canliya sizabilecek bozulmalar; hepsi KIRMIZI yanmali)
                                  olcuyordu. Iddia C22a (girisYap IZOLE, yonet() bypass) +
                                  C22b (yonet() ust kapisi IZOLE) olarak IKIYE AYRILDI ve
                                  bu mutant artik KIRMIZI yaniyor -> SURVIVOR degil.
+  M11 ozellik-kapali KOL      — secret yokken POST / giris EKRANI servis eder (GET hala
+      birlestirildi              404): ozellik KAPALIYKEN ucun varligi sizar.
+  M12 yon404 govdesine        — kod 404 KORUNUR, govde HTML+<form> olur ("form BILE yok"
+      <form> enjekte edildi      ekseni tek basina duser).
+  M13 ozellik-kapali GET      — ust kapi GET'te formsuz 200 doner (POST kolu 404 kalir):
+      formsuz 200 doner          C22b'nin KOD ekseni tek basina duser.
+
+C15 BOLUNMESI (2 Agu, olculdu — "iddia sisirmesi" YAPILMADI): eski tek-parca C15 uc ekseni
+VE'liyordu (POST 404 + GET 404 + GET govdesinde form yok). Her eksen icin "YALNIZ onu
+kirmizi yakan" mutant ARANDI:
+  - POST 404  -> BULUNDU (M11) -> KENDI iddiasi olarak kaldi, adi C15a.
+  - GET 404   -> BULUNAMADI. Ikisi de C22b'nin ayni cagri uzerindeki yukleminin ic
+  - form yok     konjonktleridir (C22b == GET404 VE formyok), yani onlari C22b'siz kirmizi
+                 yakan mutant OLAMAZ (yuklem ozdesligi). AYRI IDDIA EKLENMEDI; M12/M13 bu
+                 iki eksenin C22a/C22b tarafindan gercekten tutuldugunu kosumda kanitlar.
+Sonuc: iddia sayisi 65 -> 65. Hedef sayi degildi; bolme ancak eksen TEK BASINA kirmizi
+yanabiliyorsa kazanctir, aksi halde tek olcume uc ad koymak olurdu.
 
 KONTROL MUTANTLARI (YESIL kalmali — surucu "her sey kirmizi" diye ucuza gecemesin;
 ayrica kapinin ILGISIZ refaktorde yanlis alarm uretmedigi olculur)
@@ -160,7 +177,7 @@ _ICKAPI_SIL = (
     """  const simdi = Date.now();""")
 
 M3 = ("M3", "secret kapisi giris POST'unun ARKASINA alindi + girisYap'in kendi kapisi silindi",
-      [_SIRA_TAKAS, _ICKAPI_SIL], ["C15", "C22a"])
+      [_SIRA_TAKAS, _ICKAPI_SIL], ["C15a", "C22a"])
 
 M4 = ("M4", "girisEkrani'nda ikame FONKSIYONU yerine ikame DIZESI ($` enjeksiyonu)", [(
     """GIRIS_HTML.replace("__EYLEM__", () => yol)""",
@@ -230,7 +247,57 @@ K3 = ("K3", "KONTROL: anahtarGecerli'de baslik/cerez kontrol SIRASI takas edildi
 M10 = ("M10", "YALNIZ girisYap'in kendi secret kapisi silindi (savunma derinliginin IC katmani)",
        [_ICKAPI_SIL], ["C22a"])
 
-MUTANTLAR = [M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, K1, K2, K3]
+# --- OZELLIK-KAPALI (secret yok) KOLUNUN UC EKSENI -----------------------------------
+# M11/M12/M13, eski tek-parca C15 iddiasi eksenlerine ayrilirken ARANAN "ayirt edici
+# mutant"lardir. Ikisi ayirt edici CIKMADI (M12/M13) ama yine de GERCEK bozulmalardir ve
+# surucude DURURLAR: hangi iddianin o ekseni tuttugunu KOSUMDA sabitlerler.
+
+# M11 — C15a'nin AYIRT EDICI mutanti: kapilar SILINMEZ, ozellik-kapali KOL yeniden yazilir
+# ("secret yoksa POST'ta da GET'teki gibi giris ekranini gosterelim"). Gercek zarar: ozellik
+# KAPALIYKEN /yonet POST'u giris formu servis eder -> ucun varligi sizar. Kapi silen
+# mutantlar bu ekseni dusuremiyordu (ust kapi silinse POST girisYap'a duser, ic kapi silinse
+# ust kapi yakalar); kacis yolu buydu — bu yuzden C15a KENDI iddiasi olarak durur.
+M11 = ("M11", "ozellik-kapali kol BIRLESTIRILDI: secret yok + POST / -> giris EKRANI (GET 404)",
+       [("""export async function yonet(request, env, url, ctx, altYol, telegram) {
+  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const m = request.method;""",
+         """export async function yonet(request, env, url, ctx, altYol, telegram) {
+  const m = request.method;
+  if (!env.YONET_ANAHTAR) {
+    return (altYol === "/" && m === "POST") ? girisEkrani(url) : yon404();
+  }""")],
+       ["C15a"])
+
+# M12 — GOVDE ekseni ("form BILE yok"): kod 404 KORUNUR, yalniz yon404 govdesi HTML+<form>
+# olur. AYIRT EDICI DEGIL (olculdu): yon404 TEK kaynak oldugu icin hem girisYap'in kendi
+# 404'unu (C22a) hem ust kapinin 404'unu (C22b) ayni anda bozar. C15c bu yuzden AYRI iddia
+# olarak eklenmedi; eksenin nobetcisi bu iki iddiadir ve M12 bunu kosumda kanitlar.
+M12 = ("M12", "yon404 govdesine <form> enjekte edildi (kod HALA 404 — 'form BILE yok' ekseni)",
+       [("""function yon404() { return yjson({ hata: "bulunamadi" }, 404); }""",
+         """function yon404() {
+  return new Response("<html><body><form action=\\"/ara\\"></form></body></html>", {
+    status: 404,
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}""")],
+       ["C22a", "C22b"])
+
+# M13 — KOD ekseni: ozellik-kapali GET formsuz 200 doner (POST kolu 404 kalir). AYIRT EDICI
+# DEGIL (olculdu): C22b'nin 404 konjonktiyle birlikte /liste ucunun ozellik-kapali iddialarini
+# (C6a/C6b) da dusurur. C15b bu yuzden AYRI iddia olarak eklenmedi. M12 ile birlikte KAYDA
+# gecirdigi olcum: C22b'nin iki ekseni AYRI AYRI dusebiliyor (M12 govde, M13 kod).
+M13 = ("M13", "ust kapi ozellik-kapali GET'te formsuz 200 dondurur (POST kolu 404 kalir)",
+       [("""export async function yonet(request, env, url, ctx, altYol, telegram) {
+  if (!env.YONET_ANAHTAR) { return yon404(); }
+  const m = request.method;""",
+         """export async function yonet(request, env, url, ctx, altYol, telegram) {
+  const m = request.method;
+  if (!env.YONET_ANAHTAR) {
+    return m === "GET" ? new Response("", { status: 200 }) : yon404();
+  }""")],
+       ["C22b", "C6a", "C6b"])
+
+MUTANTLAR = [M1, M2, M3, M4, M5, M6, M7, M8, M9, M10, M11, M12, M13, K1, K2, K3]
 
 
 # ------------------------------------------------------------------ ayna

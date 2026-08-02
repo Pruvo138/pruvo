@@ -2502,13 +2502,30 @@ async function yonetCerezAkisi() {
   rapor("C14c bos govde yanitinin TUM BASLIKLARI cerezsiz-GET ile birebir ayni",
     p14.basMetin === form.basMetin, "POST=" + JSON.stringify(p14.basMetin));
 
-  // ---- 15. OZELLIK KAPALI: form BILE yok ----
+  // ---- 15. OZELLIK KAPALI (secret yok): GIRIS POST'u da 404 ----
+  // ESKI C15 UC EKSENI TEK IDDIADA VE'liyordu (POST 404 + GET 404 + GET govdesinde form
+  // yok) — kirmizi yandiginda HANGI eksenin dustugunu SOYLEMEZDI. Eksenlere ayrildi ve her
+  // eksen icin "YALNIZ onu kirmizi yakan" mutant ARANDI (tools/yonet-cerez-mutasyon.py):
+  //   C15a  POST 404 -> AYIRT EDICI MUTANT BULUNDU (M11: ozellik-kapali kolu "birlestirilip"
+  //                     secret yok + POST'ta giris EKRANI dondurulur, GET hala 404). O
+  //                     mutantta alt kumede YALNIZ bu iddia kirmizi yanar -> KENDI iddiasi.
+  //                     ⚠️ Ust/alt kapiyi TEK BASINA bozan mutantlar bu ekseni dusurmez
+  //                     (olculdu: ust kapi silinince POST girisYap'in kendi kapisina duser,
+  //                     ic kapi silinince ust kapi yakalar) — M11 kapilari SILMEZ, ozellik-
+  //                     kapali KOLU yeniden yazar; kacis yolu buydu.
+  //   C15b  GET 404  -> AYIRT EDICI MUTANT YOK; AYRI IDDIA OLARAK EKLENMEDI. Ikisini de
+  //   C15c  form yok    C22b kapsiyor: C22b AYNI cagriyi (altYol "/", anahtarsizEnv) olcer ve
+  //                     yuklemi TAM OLARAK (C15b VE C15c)'dir. Yani C15b/C15c yanlissa C22b
+  //                     zorunlu olarak yanlistir — bu mutasyonla degil YUKLEM OZDESLIGIYLE
+  //                     strikt kapsamdir; hicbir mutant onlari C22b'siz kirmizi yakamaz.
+  //                     Eklemek tek olcume uc ad koymak, yani bu isin kapattigi hatanin ta
+  //                     kendisi olurdu. Eksen KAYIP DEGIL, adresi C22b (bkz. M12/M13).
+  // C15a'ya "form yok" ekseni de EKLENMEDI: yon404 TEK kaynak oldugu icin govdesini bozan
+  // her mutant C22a'yi da dusurur (olculdu, M12) — ayirt edici olmaz, iddiayi yine VE'lerdi.
   const p15 = await cagir({ altYol: "/", yontem: "POST", anahtarsizEnv: true,
     icerikTur: "application/x-www-form-urlencoded", govde: govdeYap(A) });
-  const g15 = await cagir({ altYol: "/", anahtarsizEnv: true });
-  rapor("C15 env.YONET_ANAHTAR yok -> POST 404 + GET 404 (form BILE yok)",
-    p15.kod === 404 && g15.kod === 404 && !/<form/i.test(g15.metin),
-    "POST=" + p15.kod + " GET=" + g15.kod);
+  rapor("C15a env.YONET_ANAHTAR yok + POST / (DOGRU sifreyle) -> 404 (giris kolu BILE yok)",
+    p15.kod === 404, "POST=" + p15.kod + " govde=" + p15.metin.slice(0, 60));
 
   // ---- 16. GET SORGU DIZESI HALA YETKILENDIRMIYOR (BAS SEBEP) ----
   const g16 = await cagir({ altYol: "/", sorgu: "?anahtar=" + encodeURIComponent(A) });
@@ -2602,9 +2619,14 @@ async function yonetCerezAkisi() {
   // bile istek girisYap'a duser ve orada 404 olur (alt kapi ustunu maskeler). Ayirt edici
   // eksen secret YOK + GET "/" (panel koku): bugun ust kapi 404 doner; ust kapi silinirse
   // anahtarGecerli false doner ve girisEkrani(url) 200 form doner.
-  // C15 ile FARK: C15 uc ekseni (POST 404 + GET 404 + form yok) TEK iddiada birlestirir,
-  // kirmizi yandiginda HANGI kapinin dustugunu SOYLEMEZ; C22b ust kapiyi adiyla, tek
-  // eksende olcer. C15 kaldirilmaz — orasi ozellik-kapali kolunun genel beyani.
+  // 🔴 C15b/C15c BURADA OLCULUR: asagidaki yuklem (404 VE form yok) ozellik-kapali GET
+  // kolunun TAMAMIDIR — C15 bolunurken o iki eksen AYRI iddia olarak EKLENMEDI, cunku ayni
+  // cagri uzerinde bu yuklemin ic konjonktleridirler (gerekce: 15. blok). C15'ten geriye
+  // yalniz POST ekseni (C15a) kaldi; "ikisi birden" durmuyor.
+  // ⚠️ KAYIT (olculdu, bu turda BOLUNMEDI): bu iddia iki eksenli bir VE'dir ve iki eksen
+  // AYRI AYRI dusebiliyor — M13 yalniz 404 eksenini (govdede form yok, kod 200), M12 yalniz
+  // govde eksenini (form var, kod hala 404) dusurur. Yani kirmizi yandiginda hangisinin
+  // dustugunu detay satiri soyler ama IDDIA ADI soylemez. Bolme karari mimarindir.
   const g22b = await cagir({ altYol: "/", anahtarsizEnv: true });
   rapor("C22b yonet() UST kapisi (IZOLE): secret yok + GET / -> 404 (giris formu BILE yok)",
     g22b.kod === 404 && !/<form/i.test(g22b.metin),
