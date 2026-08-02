@@ -418,6 +418,25 @@
            rampa   +78,28 TL · kayis +77,29 TL · huni +58,28 TL
          (+ = müşteriden FAZLA tahsil = ticari/hukuki risk; − = EKSİK tahsil = zarar.)
 
+     ---- DÜZELTME — 2026-08-02: yukarıdaki 9 kırmızının 8'i REFERANS ARIZASIYDI ----
+     TEST 1 (aile doğrulama çekirdeği) 8 ailede YANLIŞ KATIYI ölçüyordu: eşleme
+     kayıtlarındaki `scad` alanı ÇIPLAK bir dosya adı olduğu için PRUVO'nun KENDİ
+     üretecine çözülüyordu; o üreteç, üretim motorunun DROP-IN yerine geçmesi için
+     AYNI değişken adlarını kullandığından -D bayrakları hatasız uygulandı, render
+     BAŞARILI oldu — ama ölçülen geometri bambaşkaydı. Aynı dosya adı + aynı değişken
+     adları = SESSİZ nesne değişimi; hiçbir şey bağırmadı.
+
+     KARŞI ÖLÇÜM (bağımsız, ÜRETİM motoruna karşı; seed 20260802, 3 rastgele set +
+     varsayılan) — 8 ailenin hepsi %3'ün ÇOK altında; sahte sapma → gerçek sapma:
+       huni  11,53→0,13 · izgara 39,00→0,00 · kasnak 13,28→0,02 · kayis 28,67→0,15
+       oring  6,70→0,39 · pervane 49,21→0,38 · petek 25,76→0,00 · rulman 29,21→0,08
+     Yani hacim.js bu ailelerde DOĞRUYDU, referans yanlıştı. Arıza FAZLA TAHSİL değil,
+     HAKLI fiyatın hiç üretilmemesiydi (8 ürün satılamıyordu) → 8 aile listeye alındı.
+     Referans çıpası: eşleme kayıtlarına zorunlu `motor` beyanı (pruvo | uretim).
+
+     KAPALI KALANLAR: `rampa` (sapması bağımsız ölçümle DOĞRULANMADI) ve `vida`
+     (hiç ölçülmedi). İkisi de tutar üretmez — fail-closed aynen sürer.
+
      KURAL — ALLOWLIST, DENYLIST DEĞİL (fail-closed): fiyat YALNIZCA gerçek geometriye
      karşı ölçülmüş ve %3 sınırını GEÇMİŞ ailelerde üretilir. Listede olmayan aile
      (yeni eklenen, hiç ölçülmemiş, ölçümü kırmızı) tutar ÜRETMEZ → kart kapanır,
@@ -438,7 +457,11 @@
     // aile: ölçülen en kötü hacim sapması (%) — 2026-07-31, seed 4242, 3 rastgele set + varsayılan
     adaptor: 0.00, braket: 0.27, cerceve: 0.00, cetvel: 0.11, disli: 0.24,
     jeton: 0.01, kase: 0.09, kavanoz: 0.03, konektor: 0.55, kutu: 0.00,
-    profil: 0.01, toka: 0.01, yay: 0.07
+    profil: 0.01, toka: 0.01, yay: 0.07,
+    // 2026-08-02 eklenen 8 aile — ÜRETİM motoruna karşı bağımsız ölçüm, seed 20260802
+    // (yukarıdaki DÜZELTME bloğu: eski kırmızıları referans arızası üretmişti)
+    huni: 0.13, izgara: 0.00, kasnak: 0.02, kayis: 0.15,
+    oring: 0.39, pervane: 0.38, petek: 0.00, rulman: 0.08
   };
 
   /* Aile hacim doğrulamasından geçti mi? Anahtar `sema.hacimFormulu`.
