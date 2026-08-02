@@ -2,6 +2,30 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## MERGE — 2 Agu 2026 · WA siparis ucu yetki ekseni (`a3bd3a79`) + bilesik marka (`d05c3662`)
+
+- **`d05c3662`** bilesik marka adi kanoniklestirmesi: kapali tablo, bagimsiz kod yolu. Parite
+  **1199 + 845** sorgu exit 0 · `uyum-kapisi` **36/0** · mutasyon **22/22** (3 kontrol mutanti
+  yesil, canli sha256 degismedi) · D1 **16874=16874** · canli kosum SHA-kanitli.
+- **`a3bd3a79`** WA siparis ucu. Bayat `404` iddiasi SILINMEDI, **5 ayri iddiaya bolunerek**
+  guclendirildi; `YONET_ANAHTAR` kapisi `/wa-siparis` blogunun **ONUNE** alindi (fail-closed) ve
+  olu `yonetAnahtar: null` dugmesi canlandirildi. Surucu `tools/wa-yetki-mutasyon.py` repoda,
+  mutant **kopyaya**: **5/5**, ikisi TEK-EKSEN ayirt edici (M1b 3/0, M2 2/0). Takim
+  **158 -> 164 iddia / 0 kalan**.
+- 🔴 **Merge aninda sessiz katalog geri-sarmasi yakalandi ve merge'e GIRMEDI:** guard, merge
+  ortasinda HEAD'i yetkili sanip main'den gelen katalogu geri sariyordu — **urun SAYISI 16874
+  dogru kaldigi icin sayi ekseni gormuyordu**, ama **16149 urunde `uyum` ALANI dusuyordu**
+  (13.040 kayitlik backfill). Katalog main'in yetkili surumune esitlendi, merge `urunler.json`'a
+  **sifir satir** dokundu; atlanan kancanin kontrolleri elle kosuldu (uc kapi da exit 0).
+- Yan onarim: `tools/yonet-cerez-mutasyon.py` **6 capasi bayat dusup 25 mutanti olcusuz**
+  birakiyordu → capa onarildi (25 kirmizi + 3 kontrol yesil). D1'de **3674 bayat hash** vardi
+  (`69fd4a08` backfill'i inmemis) → `d1-sync` kosuldu, uc eksen temiz.
+- **Hijyen (EMIR):** DEVAM.md 410 -> 87 sat / 29908 -> 6431 B, ARSIV 7417 -> 7740 (silinen =
+  eklenen **birebir 323**, sinif kapisi exit 0, `d5d76782`) · CLAUDE.md 12262 -> **11768 B**
+  (marj 26 -> 520 B, link/yol/skill kumeleri birebir) · kutu 353 -> **217** · `uyum-backfill.py`
+  referans 0 → silindi · **KraL worktree 7 -> 0**; tavan Okan hukmuyle artik SAHIPLIK bazli
+  sayiliyor.
+
 ## MERGE — 2 Agu 2026 · Yonet giris kapisi nobetcisi KAPANIS turu (vakum yesili + aklama + gecikme ekseni)
 
 - **Merge SHA `e192941c`** (dal ucu `f8100a61`, merge-base `d05c3662`; merge aninda main
