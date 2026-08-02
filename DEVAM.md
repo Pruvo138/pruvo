@@ -2,6 +2,64 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## MERGE — 2 Agu 2026 · Yonet giris kapisi nobetcisi KAPANIS turu (vakum yesili + aklama + gecikme ekseni)
+
+- **Merge SHA `e192941c`** (dal ucu `f8100a61`, merge-base `d05c3662`; merge aninda main
+  `92496003`). Kapsam **3 dosya / +285 −29**: `tools/yonet-cerez-mutasyon.py`,
+  `shop/test/kabul.js`, `.github/workflows/deploy.yml` (4 satirin **hepsi yorum**).
+  `shop/src/yonet.js` DEGISMEDI — sha256 dalda ve o anki main'de birebir ayni. `urunler.json`
+  ve urun kaynak kaydi dokunulmadi. Cakisma yok; sizinti taramasi 0 vurus (desen + elle okuma).
+- **Uc kapi kapandi:** (1) surucunun **vakum yesili** (bos kayit listesiyle rc=0) kapatildi;
+  (2) survivor'i `beklenen=[]` ile "kontrol" diye **aklama** kapatildi — sinif artik `kontrol()`
+  ile BEYAN ediliyor; (3) olculmemis `GIRIS_GECIKME_MS` eksenine **`C23`** iddiasi eklendi.
+  **IDDIA 70 -> 71**, surucu **28 -> 29 kayit**.
+- **`C23` (olculdu):** yalniz **ALT SINIR** (>= 100 ms), **ust sinir YOK** — bloklayici alt
+  kumede yanlis-kirmizi riski alinmadi. Kaynaktaki deger 250 ms, esik 100 ms; esik siniri
+  birebir olculdu (250 -> 100 **yesil**, 250 -> 99 **kirmizi**). Ayirt edici mutant **M26**
+  (250 -> 0), TEK kirmizi. **103 kosumda** cikis kodu kumesi `{0}`, IDDIA kumesi `{71}` —
+  sifir sallanma. node 20'de sonda yamasi takilamazsa **fail-closed**.
+- **Kapilar DALIN worktree'sinde kosuldu, hepsi cikis 0** (yerel node **v25.8.1**):
+  `kabul.js --yonet-cerez` **SONUC 71 gecti / 0 kaldi, IDDIA SAYISI 71** (70'ten DUSMEDI) ·
+  `yonet-cerez-mutasyon.py` **29 kayit, TUM MUTANTLAR YAKALANDI, KONTROLLER YESIL**, taban
+  iddia 71, `yonet.js` sha256 basta = sonda · `--sema-paritesi` **2/2** · kisisel veri testi
+  (272 sayfa / 441 izlenen dosya) · `ci-kapsam-test.py` **YESIL** (162 kesfedilen / 126 kosan /
+  36 muaf) · `kapi-envanteri.py` **7/7**.
+- **Parite KOSULMADI — olcerek:** diff'te `worker/`, arama yolu ve `urunler.json` **YOK**.
+- **CI:** kosum `30750275722`, headSha **`e192941c` ile BIREBIR** (ardil arama gerekmedi;
+  `merge-base --is-ancestor` cikis 0). Kosum **completed/success**, **7 isin 7'si success**
+  (serit-b · envanter · mesaj-nobeti · cron-nabzi · build · deploy · yayin). Bloklayici
+  **"Yonet anahtar/cerez kabul testi (admin giris kapisi — deterministik alt kume)"** adimi
+  **success** — `C23` node 20'de ILK KEZ kostu ve gecti. Kosum logunda
+  **`sonda yamasi=TAKILDI`** (`olculen=250 ms · istenen=[250] · gecen=2 ms`), `IDDIA SAYISI: 71`.
+- **D1 teyidi (merge sonrasi, IKI kez olculdu):** ilkinde SAYI **16874 = 16874** ✅ + sema temiz ✅
+  ama ICERIK ekseni **3674 bayat hash** (eksik/fazla 0). **Bu dalin isi DEGIL** — `urunler.json`
+  bu dalda dokunulmadi; baska bir duzlemin akan yazma turundan. Kapanista TEKRAR olculdu:
+  **16874 = 16874, sema temiz, uyusmaz/eksik/fazla 0/0/0** ✅ — drift kapandi.
+- **Merge SONRASI capraz dogrulama:** ayri bir dal (`a3bd3a79`) main'e girip `shop/src/yonet.js`'i
+  **+468 satir** degistirdi (sha256 `ef0849d1…` -> `be8189c1…`). Yeni nobetci o degismis kaynak
+  uzerinde ANA agacta yeniden olculdu (`0b26431e`): `--yonet-cerez` **71/71 rc 0** · surucu
+  **29 kayit, TUM MUTANTLAR YAKALANDI** · `M26` hala TEK kirmizi (`C23`). Kapanis turu kaynak
+  degisimine **dayandi**.
+- **Temizlik:** worktree kaldirildi; dal **yerel + uzak** silindi. Uc on-kontrol yesildi:
+  porcelain temiz · `is-ancestor f8100a61 origin/main` cikis **0** · ana agacta yetim
+  degisiklik yok.
+
+**ACIK MADDELER — bu turda ONARILMADI, merge'i BLOKLAMADI:**
+1. Surucude benzersizlik yalniz **ETIKET** uzerinde denetleniyor, **mutasyon METNI** uzerinde
+   DEGIL: bir kayit silinip yerine baska bir kaydin metninin kopyasi YENI etiketle konursa sayi
+   korunur ve surucu rc=0 verir. Kaynaktaki "ayni kodu iki kez kaydedip sayi sisirmek artik
+   kusur" ifadesi bu yuzden FAZLA IDDIALI.
+2. Gercek bir survivor `kontrol()` ile BEYAN edilirse yine aklanabilir — aklama mekanik degil,
+   **insan beyanina** bagli.
+3. `kabul.js`'te `C23` icin "IKI BAGIMSIZ TANIK" ifadesi **yanlis**: taniklar birbirini DISLEYEN
+   iki KIP. Anlatim kusuru; olcum dogru.
+4. `yamaTakildi` hicbir iddiayla **capalanmiyor** — yalniz `C23`'un detay metninde raporlaniyor.
+   (Bu tur CI logundan **okundu**: node 20'de TAKILDI.)
+5. 🔴 **IKI ON-VAROLAN OLCULMEMIS EKSEN** — dalin regresyonu DEGIL, merge-base `d05c3662`'de de
+   yakalanmiyordu; **ayri tura kayit**. Dokumu **DEVAM-ARSIV.md**'de (sinif kapisi).
+6. Zamanlama yan-kanali (sabit-zamanli karsilastirmanin gercek sabit-zamanliligi) hala
+   **OLCULMEDI** — beyan korundu, yeni eksen acilmadi.
+
 ## MERGE — 2 Agu 2026 · Nobetci gecme olcutu fail-closed (yonet cerez mutasyon surucusu)
 
 - **Merge SHA `1b643886`** (dal ucu `7fa6392c`, merge-base `9d8d0cf8`). Kapsam **2 dosya /
@@ -38,21 +96,22 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   YAKALANDI**, taban iddia 70, `yonet.js` sha256 basta = sonda (rc 0) · `kapi-envanteri.py`
   **7/7** (rc 0) · `ci-kapsam-test.py` **YESIL** (rc 0; bu kosumda **162 kesfedilen / 36 muaf** —
   ustteki 161 dalin worktree'sinde olculmustu, aradaki fark main'in ilerlemesi) · D1 **16874 =
-  16874**, sema temiz, icerik ekseni 0/0/0. Zombi **YOK**: `worktree-agent-ad6c23c2a535991b1`
+  16874**, sema temiz, icerik ekseni 0/0/0.
+  ⚠️ **Bu bloktaki 70 iddia / 28 kayit O TARIHIN olcumudur.** Guncel deger `e192941c`'ten
+  itibaren **71 iddia / 29 kayit** — ustteki bloga bak.
+  Zombi **YOK**: `worktree-agent-ad6c23c2a535991b1`
   ne worktree listesinde ne yerel ne uzak dalda var; `merge-base --is-ancestor 7fa6392c
   origin/main` cikis **0** ve M24/M25 kayitlari ana agactaki surucude MEVCUT.
 
-**ACIK MADDELER — bu turda ONARILMADI, merge'i bloklamadi.** Ucu de tabandaki `431f60ec`'te de
-vardi (regresyon degil) ve bu surucu `deploy.yml`'de kosmuyor (CI'da kosan sey
-`kabul.js --yonet-cerez` alt kumesidir):
-1. `MUTANTLAR` listesi **bos** birakilirsa surucu cikis 0 + "TUM MUTANTLAR YAKALANDI" basar —
-   vakum yesili.
-2. Bir mutant `beklenen=[]` ile "kontrol" diye kaydedilirse yesil gecer; tuketim yerindeki ikinci
-   kapi kontrol kayitlarini kapsamiyor.
-3. 🔴 **OLCULMEMIS EKSEN:** giris gecikmesi sabiti 250 → 0 (kaba kuvvet yavaslaticisi kalkar)
-   alt kumede **SURVIVOR** — o eksenin bugun **hicbir iddiasi yok**.
-4. Zamanlama yan-kanali (sabit-zamanli karsilastirmanin gercek sabit-zamanliligi) hala
-   **OLCULMEDI** — beyan korundu, yeni eksen acilmadi.
+**ACIK MADDELER — o turda ONARILMADI. 1-3 `e192941c` ile KAPANDI (ustteki bloga bak); 4 ACIK.**
+1. ✅ KAPANDI (`e192941c`): `MUTANTLAR` listesi **bos** birakilirsa surucu cikis 0 + "TUM
+   MUTANTLAR YAKALANDI" basiyordu — vakum yesili.
+2. ✅ KAPANDI (`e192941c`): bir mutant `beklenen=[]` ile "kontrol" diye kaydedilirse yesil
+   geciyordu; sinif artik `kontrol()` ile BEYAN ediliyor.
+3. ✅ KAPANDI (`e192941c`): giris gecikmesi sabiti 250 → 0 alt kumede **SURVIVOR**'di; artik
+   `C23` iddiasi + `M26` mutanti var.
+4. 🔴 **ACIK** — Zamanlama yan-kanali (sabit-zamanli karsilastirmanin gercek sabit-zamanliligi)
+   hala **OLCULMEDI**; beyan korundu, yeni eksen acilmadi.
 
 ## MERGE — 2 Agu 2026 · CI kapsam kapisi (opt-in alt kume + coklu is akisi tetigi)
 
