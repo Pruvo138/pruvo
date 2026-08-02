@@ -3,8 +3,24 @@
 """KABUL — alt kategori KUMESI + UC GECISLI siniflandirici SESSIZ hata uretemez.
 
   python3 tools/altkategori-sinifla-test.py              # kabul (CI'da bloklayici)
+  python3 tools/altkategori-sinifla-test.py --rapor      # + DAGILIM sayilari (bloklamaz)
   python3 tools/altkategori-sinifla-test.py --mutasyon   # cift yonlu mutasyon (elle)
   python3 tools/altkategori-sinifla-test.py --kok /yol   # modulleri BASKA agactan oku
+
+🔴 BLOKLAYAN SEY IHLAL OLMALI, VERI DAGILIMI DEGIL (mimar karari, 2 Agu — OLCULDU).
+Bu kapi ilk turunda DAGILIM iddialarini da bloklayici tutuyordu ve marjlari sifira
+yakindi: `Dekorasyon/Dekoratif Objeler` 1. gecis 15 (marj +0), `Duvar ve Raf` 16 (+1),
+`Marin/Egzoz Parçaları` serbest katki 13 (+2), `Elektronik` 112 urun (+12). Yani MaCiT'in
+2 marin egzoz urunu EKLEMESI, Dekorasyon'dan 1 urun CIKMASI ya da 13 urunun baska
+kategoriye TASINMASI — hepsi MESRU is — TUM evlerin yayinini durduruyordu (rc=1 olculdu).
+Bos katalog ve tek urunlu katalog da rc=1 veriyordu.
+  * BLOKLAYICI kalan: kume disi deger uretimi · MIRAS (Marin'in 12 eski degeri) bozulmasi
+    · siniflandirici tablosu ile ALTKATEGORI_IZINLI ayrismasi · imza nobetinden gecmeyen
+    ad · determinizm kaybi · fail-closed kanonik davranisin bozulmasi.
+  * RAPOR koluna alinan: T4b/T4c/T4d-esik/T4e ve katalog BOYUTUNA bagli T8a/T12c/T14a
+    adet-dagilim iddialari. `bildir()` ile SAYIYLA basilir, --rapor'da kaybolmaz, `build`
+    isini DUSURMEZ.
+Kural: bir kapiyi baska evin MESRU isi kirmiziya dusuruyorsa o kapi yanlis seyi olcuyor.
 
 NEDEN VAR (olculdu, 2 Agu): `altkategori` yalnizca Marin'de tanimliydi (12 deger, 935
 kayit) ve katalogun %94'unde alan BOSTU. Kume 6 kategoriye genisletildi (60 deger) ve
@@ -45,15 +61,32 @@ GERCEK_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 gecen = [0]
 kalan = [0]
+RAPOR = []          # DAGILIM satirlari — SAYIYLA basilir, cikis kodunu DEGISTIRMEZ
 
 
 def dogrula(ad, kosul, detay=""):
+    """🔴 BLOKLAYICI kol — YALNIZ GECERLILIK IHLALI buraya girer.
+
+    Buraya bir ADET/DAGILIM iddiasi koymak, baska evlerin mesru urun isini CI kirmizisina
+    cevirir (olculdu: marjlar +0/+1/+2). Yeni bir iddia yazarken sorulacak tek soru:
+    "MaCiT bir urun eklerse/silerse bu iddia kirmizi yanar mi?" Yanarsa `bildir` kullan.
+    """
     if kosul:
         gecen[0] += 1
         print("  GECTI " + ad)
     else:
         kalan[0] += 1
         print("  KALDI " + ad + (" — " + str(detay)[:400] if detay else ""))
+
+
+def bildir(ad, olcu):
+    """RAPOR kolu — SAYIYI basar, BLOKLAMAZ (cikis koduna DOKUNMAZ).
+
+    Dagilim bilgisi KAYBOLMAZ: her satir hem normal kosumda hem --rapor ciktisinda
+    basilir ve RAPOR listesine girer (kabul testi "kayboldu mu"yu ayri olcer).
+    """
+    RAPOR.append((ad, olcu))
+    print("  RAPOR %s = %s" % (ad, olcu))
 
 
 def yukle(kok, ad, dosya):
@@ -75,6 +108,25 @@ MIRAS_12 = (
 # Kategori esigini gecemeyen kategoriler (K4 karari) — kume TANIMLI OLMAMALI.
 ESIK_ALTI_KATEGORI = ("Ofis", "Bisiklet", "Bahçe", "Tamirat", "Jeneratör", "Kamera",
                       "Skan Art", "Oyun/Hobi")
+
+# 🔴 T1 POZITIF KONTROL — IMZA NOBETININ FIILEN REDDETTIGININ KANITI.
+# T1'in 60 iddiasi yalniz "kume degerleri nobetten GECIYOR" der; nobetci `return None`a
+# cevrilirse 60 iddia da SESSIZCE bosa gecer (olculdu: mutant YESIL yaniyordu). Asagidaki
+# adlar UYDURMADIR — hicbiri gercek bir tedarikci/vitrin adi DEGIL; beyaz listenin her
+# ekseni AYRI bir fikstur ile olculur ki tek eksen kalkarsa kirmizi yansin.
+IMZA_RED_FIKSTUR = (
+    ("Ünikorn Marin 3X", "rakam"),
+    ("zumzumdepo.com", "izinsiz karakter"),
+    ("ZMD Yedek", "TAMAMI BUYUK"),
+    ("Wax Bakım", "izinsiz karakter"),          # w Turkce alfabede yok
+    ("Yedek & Sarf", "izinsiz karakter"),
+    ("bir iki uc dort bes", "cok fazla kelime"),
+    ("uzunuzunuzunuzunuzunuzunuzunuzunuzunuzunuzun", "cok uzun"),
+    (12, "metin degil"),
+    ("", "bos"),
+)
+# Nobetci HER SEYI reddetmemeli (kara delik de sessiz hatadir): bu UYDURMA ad GECMELI.
+IMZA_KABUL_FIKSTUR = "Sarf Malzemeleri"
 
 
 def _urun(uid, kategori, baslik, aciklama=""):
@@ -105,6 +157,32 @@ _FIKSTUR_URUNLER = [
 ]
 
 
+def birinci_gecis_olc(S, katalog):
+    """{kategori: (grup->1.gecis sayimi, serbest metinler)} — DAGILIM OLCUSU.
+
+    Grup esigi 1. GECIS sayimi uzerinden olculur (2./3. gecis grubu SISIRIR; esik grubun
+    ACILMASINI belirler, sonradan tasinan urunu degil). `serbest` = daha belirgin bir
+    grubun ZATEN almadigi urunlerin metni (elenen adayin "acilsa neyi kurtarirdi" olcusu).
+    Cikti RAPOR icin de kabul icin de TEK KAYNAK — iki kol ayri hesaplayip ayrisamaz.
+    """
+    birinci = {}
+    for kategori in S.ADAYLAR:
+        urunler = [u for u in katalog if isinstance(u, dict)
+                   and u.get("kategori") == kategori]
+        kova = set(S.artik_kovalar(kategori))
+        sayim = {}
+        serbest = []
+        for u in urunler:
+            m = S.urun_metni(u)
+            ad = S.grup_bul(m, kategori)
+            if ad:
+                sayim[ad] = sayim.get(ad, 0) + 1
+            if (not ad) or ad in kova:
+                serbest.append(m)
+        birinci[kategori] = (sayim, serbest)
+    return birinci
+
+
 def kabul(kok):
     arama = yukle(kok, "aramamod", "arama.py")
     S = yukle(kok, "siniflamod", "altkategori-sinifla.py")
@@ -118,6 +196,19 @@ def kabul(kok):
             sebep = arama.altkategori_imza_sebebi(deger)
             dogrula("T1 %s / %r imza nobetinden geciyor" % (kategori, deger),
                     sebep is None, sebep)
+    # 🔴 POZITIF KONTROL — yukaridaki 60 iddia TEK BASINA nobetcinin CALISTIGINI
+    # KANITLAMAZ: nobetci `return None`a cevrilse hepsi yine GECERDI (olculdu). Her
+    # eksen AYRI iddia; biri kalkarsa yalniz o satir kirmizi yanar.
+    for deger, eksen in IMZA_RED_FIKSTUR:
+        sebep = arama.altkategori_imza_sebebi(deger)
+        dogrula("T1p POZITIF KONTROL: uydurma %r FIILEN REDDEDILIYOR (%s ekseni) — "
+                "nobetci notrlestirilirse bu satir kirmizi yanar" % (deger, eksen),
+                sebep is not None, "nobetci None dondu (RED ETMEDI)")
+    dogrula("T1q POZITIF KONTROL ters yon: uydurma ama TEMIZ %r nobetten GECIYOR "
+            "(nobetci 'her seyi reddet'e cevrilirse bu satir kirmizi yanar)"
+            % IMZA_KABUL_FIKSTUR,
+            arama.altkategori_imza_sebebi(IMZA_KABUL_FIKSTUR) is None,
+            arama.altkategori_imza_sebebi(IMZA_KABUL_FIKSTUR))
 
     # ══ T2 — MARIN MIRASI BAYT-ESIT + 935 KAYIT GECERLI ════════════════════════════
     print("\n[T2] MIRAS — Marin'in 12 degeri BAYT olarak korunmus")
@@ -166,49 +257,52 @@ def kabul(kok):
             "anahtara duser)",
             arama.model_normalize("Pervaneler") == arama.model_normalize("pervane ler"))
 
-    # ══ T4 — ESIKLER (gercek katalogda OLCULUYOR) ══════════════════════════════════
-    print("\n[T4] ESIK — kategori >=%d urun · grup >=%d urun"
+    # ══ T4 — ESIK: GECERLILIK bloklar · DAGILIM RAPORLAR ═══════════════════════════
+    # 🔴 ESIKLER MIMAR KARARIDIR, KAPI KURALI DEGIL. Bir grubun BUGUN kac urun tasidigi
+    # baska evlerin (MaCiT) mesru isiyle her gun degisir; bunu bloklayici tutmak "urun
+    # ekleyince yayin durur" demektir (olculdu). Esik SAYILARI bu blokta RAPORLANIR;
+    # BLOKLAYICI kalan tek sey kume TANIMININ tutarliligidir.
+    print("\n[T4] ESIK — kategori >=%d urun · grup >=%d urun (SAYILAR RAPOR, TANIM BLOKLAR)"
           % (S.ESIK_KATEGORI_URUN, S.ESIK_GRUP_URUN))
     kat_sayi = S.kategori_dagilimi(katalog)
     tanimsiz = [k for k in ESIK_ALTI_KATEGORI if k in arama.ALTKATEGORI_IZINLI]
-    dogrula("T4a <%d urunlu %d kategoriye kume TANIMLI DEGIL (%s)"
-            % (S.ESIK_KATEGORI_URUN, len(ESIK_ALTI_KATEGORI),
-               ", ".join("%s %d" % (k, kat_sayi.get(k, 0)) for k in ESIK_ALTI_KATEGORI)),
+    dogrula("T4a <%d urunlu %d kategoriye kume TANIMLI DEGIL (K4 karari — TANIM ekseni, "
+            "adet degil)" % (S.ESIK_KATEGORI_URUN, len(ESIK_ALTI_KATEGORI)),
             not tanimsiz, tanimsiz)
+    bildir("T4a-r esik alti kategorilerin urun sayisi",
+           ", ".join("%s %d" % (k, kat_sayi.get(k, 0)) for k in ESIK_ALTI_KATEGORI))
     kucuk = [(k, kat_sayi.get(k, 0)) for k in arama.ALTKATEGORI_IZINLI
              if kat_sayi.get(k, 0) < S.ESIK_KATEGORI_URUN]
-    dogrula("T4b kume TANIMLI her kategori >=%d urun tasiyor" % S.ESIK_KATEGORI_URUN,
-            not kucuk, kucuk)
-    # Grup esigi 1. GECIS sayimi uzerinden olculur (2./3. gecis grubu SISIRIR; esik
-    # grubun ACILMASINI belirler, sonradan tasinan urunu degil).
-    birinci = {}
-    for kategori in S.ADAYLAR:
-        urunler = [u for u in katalog if isinstance(u, dict)
-                   and u.get("kategori") == kategori]
-        metinler = [S.urun_metni(u) for u in urunler]
-        kova = set(S.artik_kovalar(kategori))
-        sayim = {}
-        serbest = []          # daha belirgin bir grubun ZATEN almadigi urunler
-        for m in metinler:
-            ad = S.grup_bul(m, kategori)
-            if ad:
-                sayim[ad] = sayim.get(ad, 0) + 1
-            if (not ad) or ad in kova:
-                serbest.append(m)
-        birinci[kategori] = (sayim, serbest)
+    bildir("T4b kume TANIMLI kategorilerin urun sayisi (esik %d · alti kalan %d)"
+           % (S.ESIK_KATEGORI_URUN, len(kucuk)),
+           ", ".join("%s %d" % (k, kat_sayi.get(k, 0))
+                     for k in sorted(arama.ALTKATEGORI_IZINLI)))
+    birinci = birinci_gecis_olc(S, katalog)
     zayif = []
-    for kategori, (sayim, _m) in birinci.items():
+    grup_sayilari = []
+    for kategori in sorted(birinci):
+        sayim = birinci[kategori][0]
         for ad, sinif, _t, _g in S.ADAYLAR[kategori]:
-            if sinif in (S.BELIRGIN, S.ARTIK) and sayim.get(ad, 0) < S.ESIK_GRUP_URUN:
-                zayif.append((kategori, ad, sayim.get(ad, 0)))
-    dogrula("T4c kumedeki her YENI grup >=%d urun tasiyor (MIRAS haric — K3 ile "
-            "korunuyor)" % S.ESIK_GRUP_URUN, not zayif, zayif)
+            if sinif not in (S.BELIRGIN, S.ARTIK):
+                continue
+            n = sayim.get(ad, 0)
+            grup_sayilari.append("%s/%s %d" % (kategori, ad, n))
+            if n < S.ESIK_GRUP_URUN:
+                zayif.append((kategori, ad, n))
+    bildir("T4c YENI gruplarin 1. GECIS sayimi (esik %d · alti kalan %d)"
+           % (S.ESIK_GRUP_URUN, len(zayif)), " · ".join(grup_sayilari))
+    if zayif:
+        bildir("T4c-uyari esik ALTINDA kalan grup", zayif)
     # ELENEN adayin OLCUSU: kac urunu daha belirgin bir grup ZATEN almiyor. Ham eslesme
     # yaniltir (ayni urun ust gruba dusmus olabilir); esigin sordugu soru "bu grup
     # ACILSA neyi kurtarirdi"dir. SEKIL_RED sayiyla DEGIL EKSENLE (K1) reddedilir —
     # 'Kapaklar ve Tapalar' 54 urun kurtarirdi ve yine de kumeye GIRMEZ.
+    # 🔴 BLOKLAYICI kol YALNIZ TANIM: "ELENEN ama KUMEDE" ve "GEREKCESIZ eleme". Serbest
+    # katki SAYISI rapordur — 2 marin egzoz urunu eklenince eskiden CI kirmizi yaniyordu.
     elenen_hata = []
-    for kategori, (_s, serbest) in birinci.items():
+    elenen_katki = []
+    for kategori in sorted(birinci):
+        serbest = birinci[kategori][1]
         for ad, sinif, terimler, gerekce in S.ADAYLAR[kategori]:
             if sinif not in (S.ELENEN, S.SEKIL_RED):
                 continue
@@ -216,19 +310,20 @@ def kabul(kok):
                 elenen_hata.append((kategori, ad, "ELENEN ama KUMEDE"))
             if not gerekce:
                 elenen_hata.append((kategori, ad, "GEREKCESIZ eleme"))
-            if sinif == S.ELENEN and terimler:
+            if terimler:
                 n = sum(1 for m in serbest if S._terim_re(terimler).search(m))
-                if n >= S.ESIK_GRUP_URUN:
-                    elenen_hata.append((kategori, ad, "esik ALTI degil: %d" % n))
-    dogrula("T4d ELENEN/SEKIL_RED adaylarin HICBIRI kumede degil, hepsi GEREKCELI ve "
-            "ELENEN olanlarin katkisi fiilen <%d urun" % S.ESIK_GRUP_URUN,
+                elenen_katki.append("%s/%s(%s) %d" % (kategori, ad, sinif, n))
+    dogrula("T4d ELENEN/SEKIL_RED adaylarin HICBIRI kumede DEGIL ve hepsi GEREKCELI "
+            "(TANIM ekseni — katki SAYISI T4d-r'de raporlanir)",
             not elenen_hata, elenen_hata)
-    dogrula("T4e SEKIL_RED adaylar SAYIYLA DEGIL EKSENLE reddedildi (K1): en az biri "
-            "esigi ASIYOR ve yine de kumede DEGIL — 'az kalsin' istisnasi yok",
-            any(sinif == S.SEKIL_RED and terimler
-                and sum(1 for m in birinci[k][1] if S._terim_re(terimler).search(m))
-                >= S.ESIK_GRUP_URUN
-                for k in S.ADAYLAR for _a, sinif, terimler, _g in S.ADAYLAR[k]))
+    bildir("T4d-r ELENEN/SEKIL_RED adaylarin SERBEST KATKISI (esik %d)"
+           % S.ESIK_GRUP_URUN, " · ".join(elenen_katki))
+    asan = [k + "/" + a for k in S.ADAYLAR for a, sinif, terimler, _g in S.ADAYLAR[k]
+            if sinif == S.SEKIL_RED and terimler
+            and sum(1 for m in birinci[k][1] if S._terim_re(terimler).search(m))
+            >= S.ESIK_GRUP_URUN]
+    bildir("T4e SEKIL_RED olup esigi ASAN aday sayisi (K1: sayi degil EKSEN reddediyor)",
+           "%d — %s" % (len(asan), ", ".join(asan) or "(yok)"))
 
     # ══ T5/T15 — DETERMINIZM (girdi sirasi + tekrar) ════════════════════════════════
     print("\n[T5] DETERMINIZM — ayni girdi ayni cikti, girdi SIRASI sonucu degistirmiyor")
@@ -330,8 +425,11 @@ def kabul(kok):
         toplam_atanan += n
         print("      %-12s grup %2d · atanan %5d · bos %d"
               % (kategori, len(dagitim[kategori]), n, bos_kalan[kategori]))
-    dogrula("T8a her kume TANIMLI kategori icin dagilim URETILIYOR (grup basina sayi)",
-            all(dagitim[k] for k in S.ADAYLAR), {k: len(v) for k, v in dagitim.items()})
+    # T8a DAGILIM: bos/kucuk katalogda dogal olarak bos doner — bloklayici DEGIL.
+    bildir("T8a kategori basina URETILEN grup sayisi + atanan urun",
+           " · ".join("%s %d grup/%d urun"
+                      % (k, len(dagitim[k]), sum(sum(v[1:]) for v in dagitim[k].values()))
+                      for k in sorted(dagitim)))
     dogrula("T8b uretilen grup adlari kumenin TAMAMINI kapsiyor ya da altkumesi "
             "(uydurma grup yok)",
             all(set(dagitim[k]) <= set(arama.ALTKATEGORI_IZINLI[k]) for k in dagitim))
@@ -351,8 +449,10 @@ def kabul(kok):
     g3 = sum(c[3] for d in dagitim.values() for c in d.values())
     dogrula("T12b gecis kirilimi TOPLAMI atanan urun sayisina esit (1:%d + 2:%d + 3:%d "
             "= %d)" % (g1, g2, g3, toplam_atanan), g1 + g2 + g3 == toplam_atanan)
-    dogrula("T12c UC GECIS de FIILEN calisiyor (biri hic ates etmiyorsa kural olu "
-            "koddur)", g1 > 0 and g2 > 0 and g3 > 0, (g1, g2, g3))
+    # T12c DAGILIM: bir gecisin ates edip etmedigi katalogun ICERIGINE baglidir (bos
+    # katalogda ucu de 0'dir). "Olu kural" suphesi RAPORDAN okunur, kapiyi dusurmez.
+    bildir("T12c gecis kirilimi (1./2./3. gecis — biri 0 ise o kural bu katalogda "
+           "ates etmiyor)", "1:%d · 2:%d · 3:%d" % (g1, g2, g3))
 
     # ══ T9 — MEVCUT KAPI GENISLEYEN KUMEYLE HALA YESIL ═════════════════════════════
     print("\n[T9] KAPI — tools/altkategori-kapisi.py genisleyen kumeyle rc=0")
@@ -427,9 +527,12 @@ def kabul(kok):
     y2 = sum(1 for _d, g in yuksek if g == 2)
     d3 = sum(1 for _d, g in dusuk if g == 3)
     y3 = sum(1 for _d, g in yuksek if g == 3)
-    dogrula("T14a esik 0.0 -> 2.gecis %d · 3.gecis %d | esik sonsuz -> 2.gecis %d · "
-            "3.gecis %d (esik FIILEN dagilimi kaydiriyor)" % (d2, d3, y2, y3),
-            d2 > y2 and y3 > d3 and y2 == 0, (d2, y2, d3, y3))
+    # T14a DAGILIM: kaymanin BUYUKLUGU katalog boyutuna baglidir (bos `Ev` kategorisinde
+    # ucu de 0). Esigin FIILEN TEK KAYNAK oldugu T14c'de, bos kalmadigi T14b'de BLOKLANIR.
+    bildir("T14a esik duyarliligi (Ev): esik 0.0 -> 2.gecis/3.gecis · esik sonsuz -> "
+           "2.gecis/3.gecis", "%d/%d -> %d/%d" % (d2, d3, y2, y3))
+    dogrula("T14a-k esik SONSUZ iken 2. gecis HICBIR urun atamiyor (esik fiilen "
+            "uygulaniyor — kural yonu, adet degil)", y2 == 0, (d2, y2, d3, y3))
     dogrula("T14b esik ne olursa olsun BOS KALAN 0 (3. gecis her zaman yakaliyor)",
             not [1 for d, _g in dusuk if not d] and not [1 for d, _g in yuksek if not d])
     dogrula("T14c secilen esik %.1f bit ve ESIK_YAKINLIK TEK KAYNAK (varsayilan kosum "
@@ -451,42 +554,88 @@ def kabul(kok):
             not [(k, ad) for k in S.ADAYLAR for ad, s, t, _g in S.ADAYLAR[k]
                  if s in (S.BELIRGIN, S.MIRAS, S.ARTIK) and not t])
 
-    print("\nSONUC: %s — gecen %d · kalan %d"
-          % ("YESIL" if kalan[0] == 0 else "KIRMIZI", gecen[0], kalan[0]))
+    # ══ TR — RAPOR KOLU: DAGILIM BLOKLAMIYOR AMA KAYBOLMUYOR ═══════════════════════
+    # Dagilim iddialarini bloklayici olmaktan cikarmanin bedeli "sessizce yok olmalari"
+    # olabilirdi. Bu blok bunu ENGELLER: rapor kolu FIILEN sayi tasimali ve olcusu veriyle
+    # DEGISMELI. (Bu iddialarin KENDISI bloklayicidir — olculen sey RAPORUN VARLIGI,
+    # veri dagiliminin degeri degil; katalog buyuyup kuculse de gecerli kalir.)
+    print("\n[TR] RAPOR KOLU — dagilim bloklamiyor ama SAYIYLA basiliyor")
+    dogrula("TR1 rapor kolu bu kosumda satir uretti (dagilim bilgisi kaybolmadi): %d satir"
+            % len(RAPOR), len(RAPOR) >= 8, len(RAPOR))
+    sayisiz = [a for a, o in RAPOR if not re.search(r"\d", str(o))]
+    dogrula("TR2 her rapor satiri SAYI tasiyor (etiket degil OLCUM)", not sayisiz, sayisiz)
+    beklenen_r = ("T4b", "T4c", "T4d-r", "T4e", "T8a", "T12c", "T14a")
+    eksik_r = [k for k in beklenen_r
+               if not any(a.startswith(k) for a, _o in RAPOR)]
+    dogrula("TR3 bloklayicidan RAPORA alinan her iddia (%s) raporda GORUNUYOR — sessizce "
+            "silinmedi" % ", ".join(beklenen_r), not eksik_r, eksik_r)
+    r3 = [_urun("r%d" % i, "Ev", "Mutfak Kaşığı") for i in range(3)]
+    o1 = birinci_gecis_olc(S, r3)["Ev"][0].get("Mutfak", 0)
+    o2 = birinci_gecis_olc(S, r3 + [_urun("r9", "Ev", "Mutfak Kaşığı")])["Ev"][0].get(
+        "Mutfak", 0)
+    dogrula("TR4 dagilim OLCUSU TEK KAYNAKTAN turer ve urun eklenince SAYI artar "
+            "(3 -> 4) — rapor sabit metin DEGIL", (o1, o2) == (3, 4), (o1, o2))
+
+    print("\nSONUC: %s — gecen %d · kalan %d · rapor %d (rapor cikis kodunu DEGISTIRMEZ)"
+          % ("YESIL" if kalan[0] == 0 else "KIRMIZI", gecen[0], kalan[0], len(RAPOR)))
     return 0 if kalan[0] == 0 else 1
 
 
 # ── CIFT YONLU MUTASYON ─────────────────────────────────────────────────────────────
 # KIRMIZI beklenen = oldurucu mutant · YESIL beklenen = ILGISIZ degisiklik (kapinin
 # gereginden genis olmadiginin kaniti).
+#
+# 🔴 7. ALAN = ISARET (hangi KOL oldurmeli). "rc != 0" YETMEZ: bu depoda OLCULDU ki X1
+# mutantini (imza nobetcisi notrlestirilir) ESKI testte rc=1 yapan tek adlandirilmis
+# iddia `T9a` idi — yani KARDES KAPININ alt sureci. T1'in kendi 60 iddiasi mutanti
+# GORMUYORDU ve yine de kosum kirmizi yaniyordu; "kirmizi yandi" cevabi delikleri
+# GIZLIYORDU. Isaret, mutantin OLDURULMESI GEREKEN kolda oldurulmesini SART kosar:
+# T1p fiksturleri silinirse X1 hala kirmizi yanar ama ISARET DUSER -> mutasyon RC=1.
+# Isaret ONEK esler (tam ad degil) — iddia metni yeniden yazilinca capa bayatlamaz.
 MUTANTLAR = [
     ("M1", "altkategori-sinifla.py",
      '("Bardak Altlıkları", ELENEN, ("bardak altligi",),',
      '("Bardak Altlıkları", BELIRGIN, ("bardak altligi",),', "KIRMIZI",
-     "T4c: esik kontrolu kalkar, <15 urunlu aday kumeye girer"),
+     "TS1: ELENEN aday kumeye girer -> tablo ile ALTKATEGORI_IZINLI AYRISIR "
+     "(eskiden T4c/adet olduruyordu; TANIM ekseni artik tek bloklayici)", "TS1"),
     ("M2", "altkategori-sinifla.py", "    return onde + sonda", "    return sonda + onde",
-     "KIRMIZI", "T7: artik kova oncelikte BASA gecer -> her sey kovaya duser"),
+     "KIRMIZI", "T7: artik kova oncelikte BASA gecer -> her sey kovaya duser", "T7"),
     ("M3", "altkategori-sinifla.py",
      "    if arama.altkategori_sebebi(kategori, ad) is not None:\n"
      "        return \"\"\n    return arama.altkategori_metin(ad)",
      "    return ad + \" (mutant)\"", "KIRMIZI",
-     "T6: fail-closed kalkar -> siniflandirici kume DISI deger uretir"),
+     "T6: fail-closed kalkar -> siniflandirici kume DISI deger uretir", "T6"),
     ("M4", "arama.py", '        "Pervaneler",\n', '        "Pervanelar",\n', "KIRMIZI",
-     "T2: MIRAS bir Marin degerinin harfi degisir -> 935 kayit gecersizlesir"),
+     "T2: MIRAS bir Marin degerinin harfi degisir -> 935 kayit gecersizlesir", "T2a"),
     ("M5", "altkategori-sinifla.py",
      "    t = (adaylar or ADAYLAR).get(kategori, ())\n",
      "    t = (adaylar or ADAYLAR).get(kategori, ())\n"
      "    _sira._n = getattr(_sira, '_n', 0) + 1\n"
      "    if _sira._n % 2 == 0:\n        t = tuple(reversed(t))\n", "KIRMIZI",
-     "T5: siniflandirma girdi SIRASINA duyarli olur"),
+     "T5: siniflandirma girdi SIRASINA duyarli olur", "T5"),
     ("M6", "altkategori-sinifla.py", "    adlar = [e[0] for e in sira]",
      "    adlar = [_oge[0] for _oge in sira]", "YESIL",
-     "ILGISIZ (KONTROL): davranissiz yeniden adlandirma — YESIL kalmali"),
+     "ILGISIZ (KONTROL): davranissiz yeniden adlandirma — YESIL kalmali", ""),
     ("M7", "altkategori-sinifla.py",
      "        for t in jet:\n            grup_df[ad][t] += 1\n            genel_df[t] += 1",
      "        for t in ('far', 'lamba', 'motor', 'kapi'):\n"
      "            grup_df[ad][t] += 1\n            genel_df[t] += 1", "KIRMIZI",
-     "T13: 2. gecis sozlugu ELLE YAZILMIS sabit listeye doner (veriden turemez)"),
+     "T13: 2. gecis sozlugu ELLE YAZILMIS sabit listeye doner (veriden turemez)", "T13"),
+    # 🔴 X1 — T1'IN POZITIF KONTROLU. Bagimsiz curutucu olctu: bu mutant ONCEDEN
+    # "kirmizi" yaniyordu ama T1'in 60 iddiasinin HICBIRI dusmuyordu — dusen tek
+    # ADLANDIRILMIS iddia `T9a` idi, yani KARDES KAPININ alt sureci. T1 kolu KORDU ve
+    # kimse fark etmiyordu. ISARET `T1p`: mutant KENDI kolunda oldurulmezse mutasyon RC=1.
+    ("X1", "arama.py",
+     "    if not isinstance(deger, str):\n"
+     "        return \"metin degil (%s)\" % type(deger).__name__\n",
+     "    return None\n    if not isinstance(deger, str):\n"
+     "        return \"metin degil (%s)\" % type(deger).__name__\n", "KIRMIZI",
+     "T1p: IMZA NOBETI notrlestirilir (her seye None) -> uydurma imzali ad GECER", "T1p"),
+    # X2 — ters yon: nobetci HER SEYI reddederse (kara delik) T1'in 60 iddiasi + T1q yanar.
+    ("X2", "arama.py",
+     "    d = deger.strip()\n    if not d:\n        return \"bos\"\n",
+     "    d = deger.strip()\n    return \"hepsi supheli (mutant)\"\n", "KIRMIZI",
+     "T1/T1q: nobetci kara deliğe doner -> temiz jenerik adlar da reddedilir", "T1q"),
 ]
 
 KOPYALANAN = ["arama.py", "altkategori-sinifla.py", "altkategori-sinifla-test.py",
@@ -529,7 +678,7 @@ def mutasyon():
         print("     " + (p0.stderr or p0.stdout).strip().splitlines()[-1][:300])
         print("\nMUTASYON SONUCU: OLCULEMEDI — harness bozuk.")
         return 1
-    for kod, dosya, eski, yeni, beklenen, aciklama in MUTANTLAR:
+    for kod, dosya, eski, yeni, beklenen, aciklama, capa in MUTANTLAR:
         tmp = _kopya_kur()
         hedef = os.path.join(tmp, "tools", dosya)
         with open(hedef, encoding="utf-8") as f:
@@ -551,7 +700,9 @@ def mutasyon():
         p = _kok_kostur(tmp)
         goruldu = "KIRMIZI" if p.returncode != 0 else "YESIL"
         oldu = [s.strip() for s in p.stdout.splitlines() if s.strip().startswith("KALDI")]
-        isaret = "OK  " if goruldu == beklenen else "HATA"
+        # KALDI satiri "KALDI <iddia adi> — ..." bicimindedir; capa iddia ADINA ONEK esler.
+        capali = [s for s in oldu if capa and s[6:].lstrip().startswith(capa)]
+        bayrak = "OK  " if goruldu == beklenen else "HATA"
         if goruldu != beklenen:
             basarisiz.append("%s %s: beklenen %s, goruldu %s"
                              % (kod, dosya, beklenen, goruldu))
@@ -560,9 +711,16 @@ def mutasyon():
         if goruldu == "KIRMIZI" and beklenen == "KIRMIZI" and not oldu:
             basarisiz.append("%s %s: KIRMIZI ama HICBIR iddia KALDI demedi — kapi COKTU"
                              % (kod, dosya))
-        print("  %s %s [%s] %s -> %s (%d iddia kirmizi) | %s"
-              % (isaret, kod, beklenen, dosya, goruldu, len(oldu), aciklama))
-        for s in oldu[:3]:
+        # 🔴 DOGRU KOL SARTI: kirmizi yanmasi YETMEZ, MUTANTIN HEDEFLEDIGI kol dusmeli.
+        # X1 bu satir olmadan "kirmizi" gorunuyordu ama olduren tek sey kardes kapiydi.
+        if beklenen == "KIRMIZI" and capa and not capali:
+            basarisiz.append("%s %s: KIRMIZI ama ISARET '%s' DUSMEDI — mutant YANLIS "
+                             "KOLDA olduruldu, hedef kol KOR" % (kod, dosya, capa))
+            bayrak = "HATA"
+        print("  %s %s [%s] %s -> %s (%d iddia kirmizi · isaret %s: %d) | %s"
+              % (bayrak, kod, beklenen, dosya, goruldu, len(oldu), capa or "(yok)",
+                 len(capali), aciklama))
+        for s in (capali or oldu)[:3]:
             print("        " + s[:150])
         shutil.rmtree(tmp, ignore_errors=True)
     sonra = {d: _sha(os.path.join(GERCEK_KOK, "tools", d)) for d in KOPYALANAN}
@@ -584,11 +742,20 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--kok", default=GERCEK_KOK)
     ap.add_argument("--mutasyon", action="store_true")
+    ap.add_argument("--rapor", action="store_true",
+                    help="kabulden sonra DAGILIM satirlarini toplu bas (cikis kodu AYNI)")
     a = ap.parse_args()
     if a.mutasyon:
         return mutasyon()
     print("=== ALT KATEGORI KUME + SINIFLANDIRICI KABUL (kok: %s)" % a.kok)
-    return kabul(a.kok)
+    rc = kabul(a.kok)
+    if a.rapor:
+        # 🔴 DAGILIM RAPORU — bu blok CIKIS KODUNU DEGISTIRMEZ. Buradaki her sayi baska
+        # evlerin mesru isiyle degisir; degistiginde yayin DURMAZ, yalnizca gorunur.
+        print("\n=== DAGILIM RAPORU (%d satir) — BLOKLAMAZ, yalnizca OLCER" % len(RAPOR))
+        for ad, olcu in RAPOR:
+            print("  %s = %s" % (ad, olcu))
+    return rc
 
 
 if __name__ == "__main__":

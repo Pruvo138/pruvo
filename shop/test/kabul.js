@@ -2510,13 +2510,40 @@ async function yonetCerezAkisi() {
   rapor("C14c bos govde yanitinin TUM BASLIKLARI cerezsiz-GET ile birebir ayni",
     p14.basMetin === form.basMetin, "POST=" + JSON.stringify(p14.basMetin));
 
-  // ---- 15. OZELLIK KAPALI: form BILE yok ----
+  // ---- 15. OZELLIK KAPALI (secret yok): GIRIS POST'u da 404 ----
+  // ESKI C15 UC EKSENI TEK IDDIADA VE'liyordu (POST 404 + GET 404 + GET govdesinde form
+  // yok) — kirmizi yandiginda HANGI eksenin dustugunu SOYLEMEZDI. Eksenlere ayrildi ve her
+  // eksen icin "YALNIZ onu kirmizi yakan" mutant ARANDI (tools/yonet-cerez-mutasyon.py):
+  //   C15a  POST 404 -> AYIRT EDICI MUTANT BULUNDU (M11: ozellik-kapali kolu "birlestirilip"
+  //                     secret yok + POST'ta giris EKRANI dondurulur, GET hala 404). O
+  //                     mutantta alt kumede YALNIZ bu iddia kirmizi yanar -> KENDI iddiasi.
+  //                     ⚠️ Ust/alt kapiyi TEK BASINA bozan mutantlar bu ekseni dusurmez
+  //                     (olculdu: ust kapi silinince POST girisYap'in kendi kapisina duser,
+  //                     ic kapi silinince ust kapi yakalar) — M11 kapilari SILMEZ, ozellik-
+  //                     kapali KOLU yeniden yazar; kacis yolu buydu.
+  //   C15b  GET 404  -> KENDI iddiasi. 🔴 C22b ile "ayni yuklem" DEGILDIR: C15b ozellik-kapali
+  //   C15c  form yok    panel kokunun ILK GET'ini, C22b/C22c DAHA SONRAKI bir GET'ini olcer.
+  //                     Bu tur bir bolme sirasinda bu sonda "C22b ile ozdes" sanilip SILINDI
+  //                     ve OLCULDU ki kapsam kaybiydi: modul duzeyi durum istekler ARASI yasar
+  //                     (bu dosyada `girisSayac` zaten oyle), dolayisiyla "ilk cagri temiz,
+  //                     IKINCI cagri sizdiriyor" sinifi bir mutant tek sondayla YAKALANMAZ.
+  //                     Nobetcide M16 tam olarak bu sinifi tasiyor: sonda silinmisken alt kume
+  //                     YESIL kaliyordu, geri konunca C22b+C22c kirmizi yaniyor.
+  //                     ⚠️ Bu iki iddiayi (veya asagidaki cagriyi) "C22 zaten olcuyor" diye
+  //                     SILME — silinince olculen sey CAGRI SAYISI'dir, yuklem degil.
+  // C15a'ya "form yok" ekseni EKLENMEDI: POST kolunun 404'u da yon404'ten gelir; onu bozan
+  // mutant ya TEK KAYNAGI bozar (C22e + C22c birlikte duser, olculdu M12) ya da ust kapinin
+  // kendi 404'unu bozar (C22c duser, olculdu M14). Iki halde de ayirt edici olmazdi.
   const p15 = await cagir({ altYol: "/", yontem: "POST", anahtarsizEnv: true,
     icerikTur: "application/x-www-form-urlencoded", govde: govdeYap(A) });
+  rapor("C15a env.YONET_ANAHTAR yok + POST / (DOGRU sifreyle) -> 404 (giris kolu BILE yok)",
+    p15.kod === 404, "POST=" + p15.kod + " govde=" + p15.metin.slice(0, 60));
   const g15 = await cagir({ altYol: "/", anahtarsizEnv: true });
-  rapor("C15 env.YONET_ANAHTAR yok -> POST 404 + GET 404 (form BILE yok)",
-    p15.kod === 404 && g15.kod === 404 && !/<form/i.test(g15.metin),
-    "POST=" + p15.kod + " GET=" + g15.kod);
+  rapor("C15b ozellik-kapali panel kokunun ILK GET'i -> 404",
+    g15.kod === 404, "kod=" + g15.kod);
+  rapor("C15c ozellik-kapali ILK GET'in govdesinde <form> YOK",
+    !/<form/i.test(g15.metin),
+    "form var mi=" + /<form/i.test(g15.metin) + " govde=" + g15.metin.slice(0, 60));
 
   // ---- 16. GET SORGU DIZESI HALA YETKILENDIRMIYOR (BAS SEBEP) ----
   const g16 = await cagir({ altYol: "/", sorgu: "?anahtar=" + encodeURIComponent(A) });
@@ -2584,11 +2611,19 @@ async function yonetCerezAkisi() {
   rapor("C22-0 girisYap disa aktarilmis (kendi kapisi IZOLE olculebilsin diye)",
     typeof GY === "function", "tip=" + typeof GY);
 
-  // C22a — girisYap'IN KENDI KAPISI, IZOLE: yonet() BYPASS edilir, girisYap DOGRUDAN
-  // cagrilir; ust kapi yolda olmadigi icin onu maskeleyemez.
-  // AYIRT EDICI EKSEN = 404 KODU. "Set-Cookie yok" TEK BASINA yetmez: sabitEsit
-  // sertlestirilmis oldugu icin (C21b) kapi silinse bile bos sifre cerez KURDURMAZ —
-  // kapi silinince donen sey girisEkrani(url), yani 200 + form.
+  // C22a/C22d/C22e — girisYap'IN KENDI KAPISI, IZOLE: yonet() BYPASS edilir, girisYap
+  // DOGRUDAN cagrilir; ust kapi yolda olmadigi icin onu maskeleyemez.
+  // Bu kapinin UC EKSENI var ve UCU DE TEK BASINA dusebiliyor (olculdu) -> uc ayri iddia:
+  //   C22a = KOD ekseni   -> ayirt edici mutant M17 (kapi 404 yerine formsuz/cerezsiz 200).
+  //   C22d = CEREZ ekseni -> ayirt edici mutant M18 (kapi 404 + formsuz govde doner AMA
+  //                          Set-Cookie basar). Bir tur once bu eksen icin "ayirt edici
+  //                          mutant ARANMADI, bilinmiyor" diye kayit dusulmustu — arandi,
+  //                          BULUNDU: anahtarsiz oturum cerezi kurulumu tam da bu kapinin
+  //                          engelledigi zarardir, ve TEK BASINA olculmeden duruyordu.
+  //   C22e = GOVDE ekseni -> ayirt edici mutant M19 (kapi kendi 404'unu HTML+<form> olarak
+  //                          uretir; yon404 TEK KAYNAGINA dokunulmaz, ust kapi saglam).
+  // ⚠️ Uclu VE'ye geri DONDURME: M17/M18/M19'un her biri tek basina yalniz KENDI iddiasini
+  // kirmizi yakiyor; birlestirilirse hangi eksenin dustugu iddia ADINDAN okunmaz olur.
   const env22 = { KATALOG: d1Bos(), SITE_URL: "https://pruvo3d.com" };  // YONET_ANAHTAR YOK
   const istek22 = new Request(YONET_TABAN, { method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: "sifre=" });
@@ -2599,24 +2634,41 @@ async function yonetCerezAkisi() {
   const y22aKod = y22a === null ? -1 : y22a.status;
   const y22aCerez = y22a === null ? "?" : (y22a.headers.get("Set-Cookie") || "");
   const y22aMetin = y22a === null ? "" : await y22a.text();
-  rapor("C22a girisYap KENDI kapisi (IZOLE, yonet() bypass): secret yok + bos sifre -> " +
-    "404 + Set-Cookie YOK",
-    y22aKod === 404 && y22aCerez === "" && !/<form/i.test(y22aMetin),
-    y22a === null ? "girisYap cagrilamadi (export YOK)" :
-      "kod=" + y22aKod + " cerez=" + JSON.stringify(y22aCerez) +
-      " form var mi=" + /<form/i.test(y22aMetin));
+  const y22aDetay = y22a === null ? "girisYap cagrilamadi (export YOK)" : "";
+  rapor("C22a girisYap KENDI kapisi KOD ekseni (IZOLE, yonet() bypass): secret yok + " +
+    "bos sifre -> 404",
+    y22aKod === 404, y22aDetay || ("kod=" + y22aKod));
+  rapor("C22d girisYap KENDI kapisi CEREZ ekseni (IZOLE): ayni cagride Set-Cookie YOK",
+    y22aCerez === "", y22aDetay || ("cerez=" + JSON.stringify(y22aCerez)));
+  rapor("C22e girisYap KENDI kapisi GOVDE ekseni (IZOLE): ayni cagride <form> YOK",
+    !/<form/i.test(y22aMetin),
+    y22aDetay || ("form var mi=" + /<form/i.test(y22aMetin) +
+      " govde=" + y22aMetin.slice(0, 60)));
 
   // C22b — yonet()'in UST KAPISI, IZOLE. POST "/" AYIRT EDICI DEGIL: ust kapi silinse
   // bile istek girisYap'a duser ve orada 404 olur (alt kapi ustunu maskeler). Ayirt edici
   // eksen secret YOK + GET "/" (panel koku): bugun ust kapi 404 doner; ust kapi silinirse
   // anahtarGecerli false doner ve girisEkrani(url) 200 form doner.
-  // C15 ile FARK: C15 uc ekseni (POST 404 + GET 404 + form yok) TEK iddiada birlestirir,
-  // kirmizi yandiginda HANGI kapinin dustugunu SOYLEMEZ; C22b ust kapiyi adiyla, tek
-  // eksende olcer. C15 kaldirilmaz — orasi ozellik-kapali kolunun genel beyani.
+  // Bu kolun IKI EKSENI var ve HER BIRI TEK BASINA dusebiliyor (olculdu) — bu yuzden AYRI
+  // AYRI olculurler: kirmizi yanan IDDIA ADI hangi eksenin dustugunu SOYLESIN diye.
+  //   C22b = KOD ekseni   -> ayirt edici mutant M15: ust kapi YALNIZ `GET /`te formsuz 200
+  //                          doner. Govde ekseni saglam (form yok), /liste kolu saglam
+  //                          (C6a/C6b yesil), POST kolu saglam (C15a yesil) -> TEK kirmizi.
+  //   C22c = GOVDE ekseni -> ayirt edici mutant M14: ust kapinin KENDI 404'u HTML+<form>
+  //                          olur, KOD 404 KALIR ve yon404 TEK KAYNAGINA dokunulmaz (ona
+  //                          dokunmak C22e'yi de dusururdu — bkz. M12) -> TEK kirmizi.
+  // 🔴 15. BLOKLA BAG — CAGRI SIRASI OLCUMUN PARCASIDIR: asagidaki cagri, ozellik-kapali
+  // panel kokune yapilan IKINCI GET'tir (ilki C15b/C15c'nin sondasi). C15b/C15c ile bu ikisi
+  // "ayni yuklem, gereksiz kopya" DEGILDIR: modul duzeyi durum istekler ARASI yasadigi icin
+  // (bkz. `girisSayac`) ILK cagri temiz gorunup IKINCI cagri sizdirabilir. Olculdu — 15.
+  // bloktaki sonda silinince M16 (ikinci+ cagrida sizdiran mutant) alt kumeyi YESIL geciyordu.
+  // Bu iki iddiayi da, 15. bloktaki sondayi da SILME; silinen sey yuklem degil CAGRI SAYISIDIR.
   const g22b = await cagir({ altYol: "/", anahtarsizEnv: true });
-  rapor("C22b yonet() UST kapisi (IZOLE): secret yok + GET / -> 404 (giris formu BILE yok)",
-    g22b.kod === 404 && !/<form/i.test(g22b.metin),
-    "kod=" + g22b.kod + " form var mi=" + /<form/i.test(g22b.metin));
+  rapor("C22b yonet() UST kapisi KOD ekseni (IZOLE): secret yok + GET / -> 404",
+    g22b.kod === 404, "kod=" + g22b.kod);
+  rapor("C22c yonet() UST kapisi GOVDE ekseni (IZOLE): ayni yanitin govdesinde <form> YOK",
+    !/<form/i.test(g22b.metin),
+    "form var mi=" + /<form/i.test(g22b.metin) + " govde=" + g22b.metin.slice(0, 60));
 
   // ---- 19. GOVDE UST SINIRI (request.formData() sinirsiz ayristirirdi) ----
   const kocaman = "sifre=" + "A".repeat(4096);

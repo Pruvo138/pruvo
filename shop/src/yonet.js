@@ -672,9 +672,10 @@ export async function girisYap(request, url, env) {
   // koruma CAGRI SIRASINA birakilmaz. Sira degisirse bu uc anahtarsiz cerez kuruluma
   // yetki verirdi. Kapi burada TEKRARLANIR.
   // OLCULDU (mutasyon, --yonet-cerez): iki kapi ARTIK AYRI AYRI olculuyor. Bu satir TEK
-  // BASINA silinince C22a kirmizi yanar; yonet()'in ust kapisi TEK BASINA silinince C22b
-  // + C15 kirmizi yanar. Once bu satirin tek basina silinmesi alt kumeyi YESIL biraki-
-  // yordu (eski C22 iki kapinin VEYA'sini olcuyordu) — o bosluk kapandi.
+  // BASINA silinince C22a (kod) + C22e (govde) kirmizi yanar; yonet()'in ust kapisi TEK
+  // BASINA silinince C15b/C15c + C22b/C22c kirmizi yanar ve C15a YESIL kalir — ozellik-kapali
+  // POST o zaman BU satira duser, yani savunma derinligi calisir. Once bu satirin tek basina
+  // silinmesi alt kumeyi YESIL birakiyordu (eski C22 iki kapinin VEYA'sini olcuyordu).
   if (!env.YONET_ANAHTAR) { return yon404(); }
   const simdi = Date.now();
   if (girisBlokeMi(simdi)) {
