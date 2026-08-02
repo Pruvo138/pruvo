@@ -22,6 +22,11 @@ JEN_DIR = os.path.dirname(TEST_DIR)
 ROOT = os.path.dirname(JEN_DIR)
 SONUC = []
 
+# Sayfanin TARAYICIDA GECERLI govdesi (icerik-adresli /varlik/ referanslari yerine konmus)
+# TEK KAYNAKTAN gelir; her kapinin kendi "varligi da oku" kopyasi ikiz tanim olurdu.
+sys.path.insert(0, os.path.join(ROOT, "tools"))
+import yayin_yuzey  # noqa: E402  (ROOT/tools yolu yukarida kuruluyor)
+
 # Yasaklı ifadeler parçalı kurulur ki bu dosya kendi taramasına takılmasın.
 YASAK_GIZLI = "ko" + "olm"
 YASAK_BASKI = re.compile(r"3\s*[dD]\s*[-\s]?bask|3\s*boyutlu\s+bask", re.I)
@@ -371,18 +376,35 @@ def main():
           p.returncode == 0)
 
     # ---------- TEST 3b: sayfa kablolaması (geçersiz giriş kilitler + alan kızarır) ----------
+    # 🔴 OLCUM YUZEYI: aranan kablolamanin bir kismi artik sayfaya GOMULU DEGIL —
+    # `PRUVO_KONF.gecerliMi` /varlik/urun-<hash>.js'e, `.hatali` /varlik/sayfa-<hash>.css'e
+    # tasindi. Kod hala tarayiciya iniyor ama HAM HTML'de yok; ham metinde arayan olcum
+    # SESSIZCE korelir. Sayfayi TEK KAYNAK yayin yuzeyinden gecirip tasima ONCESIYLE ayni
+    # yuzeyi olceriz (varlik diskte yoksa FAIL-CLOSED: kirmizi, sessiz atlama yok).
     eksik = []
+    varlik_ref = 0
     for u in urunler:
         sayfa = os.path.join(urun_dir, u["id"], "index.html")
         if not os.path.exists(sayfa):
             eksik.append(u["id"] + ": sayfa yok"); continue
         with io.open(sayfa, encoding="utf-8") as f:
-            h = f.read()
+            ham = f.read()
+        varlik_ref += len(yayin_yuzey.varlik_referanslari(ham))
+        try:
+            h = yayin_yuzey.govde(ham, ROOT)
+        except yayin_yuzey.VarlikYok as e:
+            eksik.append(u["id"] + ": " + str(e)); continue
         if os.path.exists(os.path.join(JEN_DIR, "urunler", u["id"] + ".json")):
             for gerek in ("konfAlanlar", "PRUVO_KONF.gecerliMi", ".hatali",
                           "/jenerator/hacim.js", "/jenerator/konfigurator.js"):
                 if gerek not in h:
                     eksik.append(u["id"] + ": " + gerek + " eksik")
+    # KAPSAM: yuzey genisletmesi FIILEN kostu mu? Sifir referans = ya tasima geri alinmis
+    # ya desen bosa dusmustur; ikisinde de yukaridaki arama tasima ONCESI yuzeyi olcer
+    # ve bu testin ne olctugu sessizce degismis olur.
+    if urunler and varlik_ref == 0:
+        eksik.append("KAPSAM: hicbir urun sayfasinda /varlik/ referansi gorulmedi "
+                     "(yayin yuzeyi bosa mi dustu?)")
     kayit(3, "sinir dogrulama (saf cekirdek #2'de; sayfa kilit/kizarma kablolamasi)",
           p.returncode == 0 and not eksik, "\n".join(eksik))
 
