@@ -2,6 +2,43 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## MERGE — 2 Agu 2026 (yonet giris kapisi: iki secret kapisi AYRI AYRI olculuyor)
+
+`db9d6de6` main'e **fast-forward** alindi ve itildi (`b0b98509..db9d6de6`). Kapsam merge-base'den
+**4 dosya / +89 -28**: `shop/src/yonet.js`, `shop/test/kabul.js`, `.github/workflows/deploy.yml`,
+`tools/yonet-cerez-mutasyon.py`. Urun verisi / `worker/` / arama diffte YOK → parite testleri
+GEREKMEDI (olculdu, atlanmadi).
+
+**Kapatilan delik (olculdu):** eski tek iddia (`C22`) istegi `yonet()` uzerinden gecirdigi icin
+**iki secret kapisinin VEYA'sini** olcuyordu; `girisYap`'in kendi kapisi TEK BASINA silininde alt
+kume YESIL kaliyordu. Iddia `C22-0` / `C22a` (girisYap IZOLE, `yonet()` bypass) / `C22b` (ust kapi
+IZOLE) olarak bolundu; `girisYap` export edildi (davranis DEGISMEDI, yalnizca olculebilirlik).
+
+**Olculen sayilar:**
+- `node shop/test/kabul.js --yonet-cerez` → **65 gecti / 0 kaldi**, `IDDIA SAYISI: 65`, RC=0
+  (onceki taban 63 — DUSMEDI). `--sema-paritesi` 2/0 RC=0.
+- `python3 tools/yonet-cerez-mutasyon.py` → **13 kosum: 10 kirmizi-beklentili + 3 kontrol**, hepsi
+  PASS, her kosumda `iddia=65/65` (hicbir mutant testi cokertmedi), kaynak sha256 degismedi, RC=0.
+  Surucudeki **beyan edilmis SURVIVOR `K4`** kirmizi-beklentili `M10`'a cevrildi.
+- 🔴 **CURUTME (asil sinav):** dalin `kabul.js`'i merge-base haline dondurulup surucu tekrar
+  kosuldu → **`M10` YAKALANAMADI** (`cikis=0 kirmizi=0 isaret=EKSIK:C22a`), surucu RC=1.
+  Yani `M10` sahte kirmizi DEGIL, gercekten `C22a`'ya bagli. Geri alma sonrasi porcelain BOS.
+- Surucu diffinde **gevsetme YOK** (elle okundu): silinen mutant / daraltilan beklenti /
+  `continue`-`skip` kolu / kaldirilan kontrol / zayiflatilan sha256-iddia sayisi teyidi — hicbiri.
+- Kapilar (dalin worktree'sinde, cikis kodlari goruldu): `kisisel-veri-test.py` RC=0 (5 nobetci
+  YESIL) · `ci-kapsam-test.py` RC=0 · `kapi-envanteri.py` RC=0 (**7/7 VAR+BAGLI+NOBETTE**) ·
+  `is-akisi-kapisi.py` RC=0.
+- `d1-sync.py --durum`: **16874 == 16874**, hash uyusmaz 0 / eksik 0 / fazla 0, sema ekseni temiz.
+- **CI (yerelde olculemeyen tek eksen):** kosum `30740041326`, `headSha` = `db9d6de6` **birebir**.
+  `Yonet anahtar/cerez kabul testi` adimi **success** (node 20, bloklayici, `continue-on-error` YOK).
+
+**Temizlik:** `worktree-agent-ae5d5bf43b9f176b0` dali + worktree'si silindi (porcelain bos, ucu
+main'de, ana agacta yetim degisiklik yok).
+
+**DERS:** "beyan edilmis SURVIVOR" bir nobetcide tehlikeli kaliptir — "bugun yesil kalmasi normal,
+onundeki kapi tutuyor" gerekcesi, o katmanin HIC olculmedigini gizler. Bir katmanin savunma
+derinligi oldugu iddiasi ancak o katman **TEK BASINA** olculuyorsa kanittir.
+
 ## OTURUM — 2 Agu 2026 gunduz (KraL · uyum ekseni + panel anahtari + sayfa agirligi + taksonomi)
 
 **CANLIYA GITTI (olculdu, itildi, canli teyit alindi):**
