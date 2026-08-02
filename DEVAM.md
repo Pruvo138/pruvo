@@ -23,7 +23,8 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
   `ead0bcb6` kosumunda (merge'den ONCE) da kirmiziydi ve dal o kapinin dosyasina hic dokunmadi.
   Dalin kendi iki adimi ("CI kapsam kapisi" + "oz-nobetcileri") ayni kosumda **success**.
   Onarim baska bir oturumda `95d19364` ile main'e alindi; `8559518f` o SHA'nin **atasi**
-  (`merge-base --is-ancestor` exit 0), ardil kosum `30745500956` izleniyor.
+  (`merge-base --is-ancestor` exit 0) ve ardil kosum `30745500956` **success** — 71 adimin
+  hepsi yesil, varlik adimi dahil. SHA-kanitli yesil bu kosumdur.
 
 ## OTURUM KAPANISI — 2 Agu 2026 (KraL · uyum ekseni + alt kategori taksonomisi + sayfa agirligi)
 
