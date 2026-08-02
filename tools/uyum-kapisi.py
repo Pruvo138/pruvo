@@ -571,6 +571,162 @@ def kabul(kok, katalog_yolu=None):
              sum(1 for j in jetonlar if not A.uyum_marka_kanonik(j)
                  and A._serbest_sebebi("model", j) is not None)))
 
+    # ══ B EKSENI — BILESIK MARKA ADI (tools/paket-bilesik-marka.md) ═══════════════
+    # `Mercedes-Benz` -> `Mercedes` (Okan hukmu). AYRI kural sinifi: yazim varyanti DEGIL,
+    # kanonik markayi ICEREN bilesik ad. Asil risk KANONIKLESTIRMENIN KENDISI DEGIL, onun
+    # arama metninde acacagi SESSIZ DELIKTIR (`marka` haystack()'e girer).
+    print("\n[B] BILESIK MARKA ADI — kapali tablo + arama jetonu kaybi YOK")
+
+    dogrula("B1 OKAN'IN TAM ESLEMESI: `Mercedes-Benz` -> `Mercedes`, deger tabloya TABI "
+            "(sebebi None DEGIL) ve tablo TEK TOHUM — icerigi donmus, sessiz genisleme "
+            "kapiyi KIRMIZI yakar",
+            A.bilesik_marka_kanonik("Mercedes-Benz") == "Mercedes"
+            and A.bilesik_marka_sebebi("Mercedes-Benz") is not None
+            and dict(A.BILESIK_MARKA_KANONIK) == {"Mercedes-Benz": "Mercedes"},
+            "kanonik=%r sebep=%r tablo=%r"
+            % (A.bilesik_marka_kanonik("Mercedes-Benz"),
+               A.bilesik_marka_sebebi("Mercedes-Benz"),
+               dict(A.BILESIK_MARKA_KANONIK)))
+
+    # B2 — UYDURMA ESLEME YOK. Fikstürler BILEREK tabloya BENZER (kanonik markayi ICEREN
+    # bilesik adlar) ama tabloda YOKLAR: "tablo hic okunmadi, hep icerdigi markayi
+    # dondurdu" mutanti bu fikstürden GECEMEZ ([[fikstur-degeri-mutasyon-koru]]).
+    _b2 = ["Mercedes Voranta", "Volvo Pentax", "Ford Torenta", "Mercedes", "Sprinter", ""]
+    _b2_bozan = [v for v in _b2 if A.bilesik_marka_kanonik(v) != v
+                 or A.bilesik_marka_sebebi(v) is not None]
+    _b2_tip = [v for v in (5, None, ["Mercedes-Benz"], {"a": 1})
+               if A.bilesik_marka_kanonik(v) != v or A.bilesik_marka_sebebi(v) is not None]
+    dogrula("B2 TABLODA OLMAYAN bilesik ad DEGISMEDEN doner (%d fikstur, biri BILEREK "
+            "tabloya benzeyen uydurma bilesik ad) ve metin OLMAYAN deger de aynen doner "
+            "— uydurma esleme YOK, cokme YOK" % len(_b2),
+            not _b2_bozan and not _b2_tip, "bozan=%s tip=%s" % (_b2_bozan, _b2_tip))
+
+    # B3 — GENEL NORMALIZASYON YASAGI. Bu jetonlarin HEPSI olculen katalog verisidir
+    # (`206+` Peugeot modeli, `D2-55` Volvo Penta motoru, `K5` Kärcher modeli). "Tire kirp"
+    # / "sonek soy" turu bir kural onlari yer ve arama sonucu hicbir kirmizi yanmadan kaybolur.
+    _b3 = ["F-150", "Rolls-Royce", "D2-55", "206+", "K5", "C-Max", "ID.Buzz", "XSR 700"]
+    _b3_bozan = [v for v in _b3 if A.bilesik_marka_kanonik(v) != v
+                 or A.bilesik_marka_sebebi(v) is not None]
+    dogrula("B3 GENEL NORMALIZASYON YOK: %d mesru jeton (tireli/noktali/sonekli — hepsi "
+            "OLCULEN katalog verisi) DOKUNULMADAN geciyor" % len(_b3),
+            not _b3_bozan, _b3_bozan)
+
+    # B4 — 7'LI CAPA NOBETI (fail-closed). MaCiT'in kova ayrimi bu sayiya dayanir: kume
+    # kayarsa "Kova2 = 4 kayit" olcumu sessizce yanlislanir. Sayi DEGIL KIMLIK dondurulur
+    # (S2 dersi: sayiyi sabit tutup uyeyi degistirmek gorunmez kalirdi).
+    _b4_capa = {"BaoFeng", "Citroën", "Ikea", "KIA", "MINI", "SMART", "Ssangyong"}
+    _b4_jeton = set()
+    for u in katalog:
+        if isinstance(u, dict) and isinstance(u.get("marka"), list):
+            for x in u["marka"]:
+                if isinstance(x, str) and x.strip():
+                    _b4_jeton.add(x)
+    _b4_olculen = {j for j in _b4_jeton
+                   if not A.uyum_marka_kanonik(j) and A.marka_varyanti_sebebi("model", j)}
+    dogrula("B4 YAZIM VARYANTI CAPASI: `marka_varyanti_sebebi()` gercek katalogda TAM 7 "
+            "jeton yakaliyor ve KIMLIKLERI donmus deger ile birebir — sayi ya da uye "
+            "kayarsa fail-closed KIRMIZI",
+            _b4_olculen == _b4_capa and len(_b4_olculen) == 7,
+            "olculen(%d)=%s fazla=%s eksik=%s"
+            % (len(_b4_olculen), sorted(_b4_olculen), sorted(_b4_olculen - _b4_capa),
+               sorted(_b4_capa - _b4_olculen)))
+
+    # B5 — IKI KURAL SINIFI, IKI BAGIMSIZ KOD YOLU. Biri digerinin bayragini okusaydi tek
+    # kod yolunu iki kez olcerdik ve bu IKI IDDIA olmazdi ([[beyan-edilmis-survivor]]).
+    # Olcut DAVRANISSAL: varyant yolu bilesik adi GORMEZ, bilesik yolu yazim varyantini GORMEZ.
+    _b5_varyant_bilesigi = [v for v in ("Mercedes-Benz", "Rolls-Royce", "Mercedes Voranta")
+                            if A.marka_varyanti_sebebi("model", v) is not None]
+    _b5_bilesik_varyanti = [v for v in ("KIA", "SMART", "MINI", "Citroën", "Ikea",
+                                        "BaoFeng", "Ssangyong")
+                            if A.bilesik_marka_kanonik(v) != v]
+    dogrula("B5 BAGIMSIZ KOD YOLU: yazim-varyanti kurali bilesik adi YAKALAMIYOR (3 "
+            "fikstur) ve bilesik-ad tablosu 7 yazim varyantinin HICBIRINI katlamiyor — "
+            "iki sinif tek capada erimiyor",
+            not _b5_varyant_bilesigi and not _b5_bilesik_varyanti,
+            "varyant_bilesigi_yakaladi=%s bilesik_varyanti_katladi=%s"
+            % (_b5_varyant_bilesigi, _b5_bilesik_varyanti))
+
+    # B6 — 🔴 ARAMA JETONU KAYBI (paketin varlik sebebi). Iki yonlu olculur:
+    #  (a) ham yazim baslikta duruyorsa kanoniklestirme kayipsizdir -> TAKMA EKLENMEZ
+    #      (gereksiz genisleme de bir davranis degisikligidir),
+    #  (b) ham yazim YALNIZ `marka`daysa duz kanoniklestirme jetonu DUSURUR -> takma
+    #      EKLENIR ve kanoniklestirilmis kayit `Mercedes-Benz` sorgusuyla HALA BULUNUR.
+    _b6_baslikli = _urun(marka=["Mercedes-Benz", "Sprinter"])
+    _b6_baslikli["baslik"] = "Mercedes-Benz Sprinter kalorifer kanal adaptoru"
+    _b6_ciplak = _urun(marka=["Mercedes-Benz", "Sprinter"])
+    _b6_ciplak["baslik"] = "Mercedes Sprinter kalorifer kanal adaptoru"
+    _b6_ciplak["aciklama"] = "Sprinter kalorifer kanali icin adaptor"
+    _b6_ilgisiz = _urun(marka=["Ford", "Focus"])
+    _b6_a = A.bilesik_marka_kanoniklestir(_b6_baslikli)
+    _b6_b = A.bilesik_marka_kanoniklestir(_b6_ciplak)
+    _b6_c = A.bilesik_marka_kanoniklestir(_b6_ilgisiz)
+    # Kanoniklestirilmis kayitlarda sorgu HALA buluyor mu? (site uclusuyle olculur)
+    _b6_bulunuyor = [
+        A.arama_jetonu_korunuyor(dict(_b6_baslikli, marka=_b6_a), "Mercedes-Benz"),
+        A.arama_jetonu_korunuyor(dict(_b6_ciplak, marka=_b6_b), "Mercedes-Benz"),
+    ]
+    # NEGATIF KONTROL: mekanizma OLMASAYDI (duz esleme) ikinci kayit KAYBOLURDU. Bu
+    # olculmezse "kayip yok" iddiasi bos olabilir (fikstur zaten kaybetmiyordur).
+    _b6_duz = A.arama_jetonu_korunuyor(dict(_b6_ciplak, marka=["Mercedes", "Sprinter"]),
+                                       "Mercedes-Benz")
+    dogrula("B6 ARAMA PARITESI: kanoniklestirilmis kayitta `Mercedes-Benz` sorgusu urunu "
+            "HALA BULUYOR (jeton kaybi 0); ham yazim baslikta duruyorsa takma EKLENMEZ "
+            "(arama yuzeyi genislemez), yalniz `marka`daysa takma EKLENIR; bilesik ad "
+            "tasimayan kayit BIREBIR degismez; duz esleme ayni kaydi KAYBEDIYOR "
+            "(negatif kontrol)",
+            _b6_a == ["Mercedes", "Sprinter"]
+            and _b6_b == ["Mercedes", "Sprinter", "Mercedes-Benz"]
+            and _b6_c == ["Ford", "Focus"]
+            and all(_b6_bulunuyor) and not _b6_duz,
+            "baslikli=%s ciplak=%s ilgisiz=%s bulunuyor=%s duz_esleme_buluyor=%s"
+            % (_b6_a, _b6_b, _b6_c, _b6_bulunuyor, _b6_duz))
+
+    # B7 — GERCEK KATALOG TARAMASI. Sayi iddia DEGIL (katalog her gun buyuyor, dondurulmus
+    # bir sayi yayin durdururdu) — IDDIA sudur: bilesik ad tasiyan HER GERCEK kayit,
+    # kanoniklestirmeden SONRA da `Mercedes-Benz` sorgusuyla bulunur. Tarayicinin fiilen
+    # calistigi POZITIF KONTROL ile kanitlanir (A2 deseni): sentetik, jetonu KESIN kaybeden
+    # bir kayit listeye katilir ve tarama TAM ONU "duz eslemede kaybeder" diye isaretlemeli.
+    _b7_poz = _urun(marka=["Mercedes-Benz"])
+    _b7_poz["id"] = "B7-POZITIF-KONTROL"
+    _b7_poz["baslik"] = "Kanal adaptoru"
+    _b7_poz["aciklama"] = "Kanal adaptoru"
+    _b7_tasiyan, _b7_duz_kayip, _b7_kalan_kayip = [], [], []
+    for u in list(katalog) + [_b7_poz]:
+        if not isinstance(u, dict) or not isinstance(u.get("marka"), list):
+            continue
+        ham_liste = [x for x in u["marka"] if A.bilesik_marka_sebebi(x) is not None]
+        if not ham_liste:
+            continue
+        _b7_tasiyan.append(u.get("id"))
+        duz = []
+        for x in u["marka"]:
+            k = A.bilesik_marka_kanonik(x)
+            if k not in duz:
+                duz.append(k)
+        yeni = A.bilesik_marka_kanoniklestir(u)
+        for ham in ham_liste:
+            if not A.arama_jetonu_korunuyor(dict(u, marka=duz), ham):
+                _b7_duz_kayip.append(u.get("id"))
+            if not A.arama_jetonu_korunuyor(dict(u, marka=yeni), ham):
+                _b7_kalan_kayip.append(u.get("id"))
+    _b7_bas = sum(1 for u in katalog if isinstance(u, dict)
+                  and isinstance(u.get("marka"), list) and u["marka"]
+                  and A.bilesik_marka_sebebi(u["marka"][0]) is not None)
+    dogrula("B7 KATALOG TARAMASI: bilesik ad tasiyan %d gercek kayitta kanoniklestirme "
+            "sonrasi arama jetonu kaybi 0 VE tarayici fiilen calisiyor — duz eslemede "
+            "kaybeden sentetik kayit TAM OLARAK yakalaniyor (pozitif kontrol)"
+            % (len(_b7_tasiyan) - 1),
+            "B7-POZITIF-KONTROL" in _b7_duz_kayip and not _b7_kalan_kayip
+            and len(_b7_tasiyan) > 1,
+            "tasiyan=%d duz_kayip=%s kalan_kayip=%s"
+            % (len(_b7_tasiyan), _b7_duz_kayip[:6], _b7_kalan_kayip[:6]))
+    print("  OLCUM (bilesik ad): `marka` ICINDE tasiyan %d kayit · `marka[0]` olan %d "
+          "(MaCiT 'marka-basi' kovasi) · duz eslemenin arama jetonunu DUSURDUGU %d · "
+          "mekanizmadan sonra kalan kayip %d"
+          % (len(_b7_tasiyan) - 1, _b7_bas,
+             len([i for i in _b7_duz_kayip if i != "B7-POZITIF-KONTROL"]),
+             len(_b7_kalan_kayip)))
+
     print("\nSONUC: %s — gecen %d · kalan %d"
           % ("YESIL" if kalan[0] == 0 else "KIRMIZI", gecen[0], kalan[0]))
     return 0 if kalan[0] == 0 else 1
@@ -658,6 +814,66 @@ MUTANTLAR = [
      re.compile(r"    imzalar = \[json\.dumps.*?len\(set\(imzalar\)\)\)\n", re.S), "",
      "KIRMIZI",
      "V17: MUKERRER oge kontrolu tamamen silinir -> ayni uyum ogesi iki kez yazilabilir"),
+    # ── BILESIK MARKA ADI (tools/paket-bilesik-marka.md). B1/B3/B4/B5/B6 icin TEK-KIRMIZI
+    # mutant: her eksen TEK BASINA olculebiliyor mu, yoksa iddialar birbirinin bayragini mi
+    # okuyor? ([[beyan-edilmis-survivor]] — zincirden gecen iddia katmanlarin VEYA'sini olcer.)
+    ("M14", "arama.py",
+     'BILESIK_MARKA_KANONIK = {\n    "Mercedes-Benz": "Mercedes",\n}\n',
+     'BILESIK_MARKA_KANONIK = {\n    "Mercedes-Benz": "Mercedes",\n'
+     '    "Mercedes-AMG": "Mercedes",\n}\n', "KIRMIZI",
+     "B1: kapali tabloya DENETIMSIZ ikinci giris — Okan yalniz TEK eslemeyi verdi; tablo "
+     "sessizce buyurse her bilesik ad tartisilmadan katlanirdi"),
+    ("M15", "arama.py",
+     "    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
+     '    for _m in UYUM_MARKA_IZINLI:\n        if deger.startswith(_m + " "):\n'
+     "            return _m\n    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
+     "KIRMIZI",
+     "B2: TABLO HIC OKUNMADAN 'icerdigi markayi dondur' kurali — uydurma bilesik ad "
+     "(`Mercedes Voranta`) sessizce `Mercedes`e katlanir"),
+    ("M16", "arama.py",
+     "    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
+     '    return BILESIK_MARKA_KANONIK.get(deger, deger.rstrip("+"))\n', "KIRMIZI",
+     "B3: GENEL NORMALIZASYON (sonek soyma) — olculen mesru jeton `206+` yenir ve o "
+     "Peugeot modeli aramadan hicbir kirmizi yanmadan duser"),
+    ("M17", "arama.py",
+     "_UYUM_MARKA_ANAHTARLARI = frozenset(model_normalize(m) for m in UYUM_MARKA_IZINLI)\n",
+     "_UYUM_MARKA_ANAHTARLARI = frozenset(model_normalize(m)\n"
+     "                                    for m in UYUM_MARKA_IZINLI | URETICI_MARKA)\n",
+     "KIRMIZI",
+     "B4: yazim-varyanti anahtar kumesi URETICI markalarina genisler -> capa 7'den 21'e "
+     "kayar ve MaCiT'in kova ayrimi sessizce yanlislanir"),
+    ("M18", "arama.py",
+     "    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
+     "    if deger not in BILESIK_MARKA_KANONIK:\n        for _m in UYUM_MARKA_IZINLI:\n"
+     "            if model_normalize(_m) == model_normalize(deger):\n"
+     "                return _m\n    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
+     "KIRMIZI",
+     "B5: bilesik-ad yolu YAZIM VARYANTI yoluna delege eder (iki kural sinifi tek capada "
+     "erir) -> `KIA` bilesik tablodan `Kia`ya katlanir, iki iddia TEK kod yoluna duser"),
+    ("M19", "arama.py",
+     "        if not arama_jetonu_korunuyor(aday, ham) and ham not in yeni:\n",
+     "        if ham not in yeni:\n", "KIRMIZI",
+     "B6: arama takmasi KOSULSUZ eklenir -> jeton zaten korunuyorken arama yuzeyi "
+     "GENISLER (gereksiz genisleme de olculmemis bir davranis degisikligidir)"),
+    ("M20", "arama.py",
+     "        if not arama_jetonu_korunuyor(aday, ham) and ham not in yeni:\n"
+     "            yeni.append(ham)\n", "        continue\n", "KIRMIZI",
+     "B6/B7: takma HIC eklenmez -> duz esleme geri gelir ve `Mercedes-Benz` sorgusu 5 "
+     "gercek kaydi SESSIZCE kaybeder (paketin varlik sebebi olan hata)"),
+    ("M21", "arama.py",
+     "    for m in marka:\n        k = bilesik_marka_kanonik(m)\n"
+     "        if k != m:\n            dusen.append(m)\n"
+     "        if k not in yeni:\n            yeni.append(k)\n",
+     "    for ad in marka:\n        kan = bilesik_marka_kanonik(ad)\n"
+     "        if kan != ad:\n            dusen.append(ad)\n"
+     "        if kan not in yeni:\n            yeni.append(kan)\n", "YESIL",
+     "KONTROL MUTANTI: davranisi DEGISTIRMEYEN yeniden adlandirma — B ekseni bicimi degil "
+     "DAVRANISI mi olcuyor?"),
+    ("M22", "arama.py",
+     'BILESIK_MARKA_KANONIK = {\n    "Mercedes-Benz": "Mercedes",\n}\n',
+     'BILESIK_MARKA_KANONIK = dict([("Mercedes-Benz", "Mercedes")])\n', "YESIL",
+     "KONTROL MUTANTI: tablo AYNI icerikle baska sozdiziminde kurulur — kapi tablonun "
+     "METNINI degil ICERIGINI mi olcuyor?"),
 ]
 
 KOPYALANAN = ["arama.py"]
