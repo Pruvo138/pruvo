@@ -59,11 +59,29 @@ def capa_topla(node, capalar)
   # pyyaml'da {'push'} -> KOL SAPMASI). Yalniz TANIM dugumleri toplanir.
   if !node.is_a?(Psych::Nodes::Alias) &&
      node.respond_to?(:anchor) && node.anchor && !node.anchor.to_s.empty?
-    capalar[node.anchor] = node
+    capalar[node.anchor] ||= node
   end
   if node.respond_to?(:children) && node.children
     node.children.each { |c| capa_topla(c, capalar) }
   end
+end
+
+# ALIAS COZUMU — PyYAML `compose` SEMANTIGI:
+#   * TANIMSIZ alias  -> ComposerError (pyyaml) => burada da HATA
+#   * ILERI alias (tanimdan ONCE kullanim) -> pyyaml'da TANIMSIZDIR => HATA
+# Ikisi de sessizce `nil`/`[]` donerse kol sapmasi olur (olculdu: `run: *yok`
+# pyyaml HATA / psych [] ; `run: *c` ileri alias pyyaml HATA / psych blok).
+def coz(node, capalar)
+  gorulen = 0
+  while node.is_a?(Psych::Nodes::Alias) && gorulen < 32
+    hedef = capalar[node.anchor]
+    if hedef.nil? || hedef.start_line > node.start_line
+      raise "TANIMSIZ/ILERI ALIAS: *#{node.anchor}"
+    end
+    node = hedef
+    gorulen += 1
+  end
+  node
 end
 
 def gez(node, capalar, out)
@@ -72,13 +90,13 @@ def gez(node, capalar, out)
     node.children.each_slice(2) do |k, v|
       next if v.nil?
       if k.is_a?(Psych::Nodes::Scalar) && k.value == 'run'
-        hedef = v.is_a?(Psych::Nodes::Alias) ? capalar[v.anchor] : v
+        hedef = coz(v, capalar)
         if hedef.is_a?(Psych::Nodes::Scalar)
           son = hedef.end_column == 0 ? hedef.end_line - 1 : hedef.end_line
           out << [k.start_line, hedef.start_line, son, hedef.value]
         end
       end
-      gez(v, capalar, out)
+      gez(coz(v, capalar), capalar, out)
     end
   elsif node.respond_to?(:children) && node.children
     node.children.each { |c| gez(c, capalar, out) }
@@ -88,12 +106,22 @@ end
 girdi = JSON.parse($stdin.read)
 sonuc = girdi['metinler'].map do |metin|
   begin
-    kok = Psych.parse(metin)
-    capalar = {}
-    capa_topla(kok, capalar)
-    out = []
-    gez(kok, capalar, out)
-    { 'ok' => true, 'bloklar' => out }
+    # 🔴 TEK BELGE SARTI (P3): ONCE `Psych.parse` yalniz ILK belgeyi okuyordu, PyYAML
+    # `compose_all` ise TUM belgeleri goruyordu -> ayni girdide farkli blok kumesi.
+    # TETIK kolu bu yamayi almisti, RUN kolu ALMAMISTI: AYNI DOSYADA ASIMETRIK ONARIM.
+    # Iki kol da artik "belge != 1 -> fail-closed".
+    akis = Psych.parse_stream(metin)
+    belgeler = akis.nil? ? [] : akis.children
+    if belgeler.size != 1
+      { 'ok' => false,
+        'hata' => "TEK BELGE DEGIL (#{belgeler.size} belge) -> fail-closed" }
+    else
+      capalar = {}
+      capa_topla(belgeler[0], capalar)
+      out = []
+      gez(belgeler[0], capalar, out)
+      { 'ok' => true, 'bloklar' => out }
+    end
   rescue => e
     { 'ok' => false, 'hata' => "#{e.class}: #{e.message}" }
   end
@@ -137,7 +165,7 @@ def capa_topla(node, capalar)
   # pyyaml'da {'push'} -> KOL SAPMASI). Yalniz TANIM dugumleri toplanir.
   if !node.is_a?(Psych::Nodes::Alias) &&
      node.respond_to?(:anchor) && node.anchor && !node.anchor.to_s.empty?
-    capalar[node.anchor] = node
+    capalar[node.anchor] ||= node
   end
   if node.respond_to?(:children) && node.children
     node.children.each { |c| capa_topla(c, capalar) }
@@ -148,9 +176,14 @@ def coz(node, capalar)
   # ALIAS COZUMU: PyYAML compose() alias dugumunu anchor'lanan DUGUMUN KENDISIYLE
   # degistirir; psych'te Alias ayri bir dugumdur. Cozmezsek ayni girdide iki kol
   # FARKLI hukum verir (olculdu: `on: *t` -> psych ELLE, pyyaml OTOMATIK).
+  # TANIMSIZ ve ILERI alias PyYAML'da ComposerError'dur -> burada da HATA (P4).
   gorulen = 0
   while node.is_a?(Psych::Nodes::Alias) && gorulen < 32
-    node = capalar[node.anchor]
+    hedef = capalar[node.anchor]
+    if hedef.nil? || hedef.start_line > node.start_line
+      raise "TANIMSIZ/ILERI ALIAS: *#{node.anchor}"
+    end
+    node = hedef
     gorulen += 1
   end
   node
@@ -307,6 +340,19 @@ def _normalize(bloklar, metin):
     return sonuc
 
 
+def _bom_sil(metin):
+    """🔴 BOM TEK KAYNAKTAN SILINIR (P4 — olculen KOL SAPMASI).
+
+    PyYAML akis basindaki BOM'u (U+FEFF) YUTAR, ruby/psych YUTMAZ: `\\ufeffon: push`
+    girdisinde pyyaml {'push'}/OTOMATIK, psych None/BELIRSIZ veriyordu. Tuketici
+    duzeyinde olculen sonuc: BOM'lu TEK bir is akisi, psych ortaminda (YEREL) 125
+    dosyayi KAPSAMSIZ yapip rc=1 uretirken CI'da (pyyaml) YESIL kaliyordu — yani
+    YEREL-KIRMIZI / CI-YESIL. YAML sozlesmesi akis basinda BOM'a IZIN VERIR, dolayisiyla
+    DOGRU hukum PyYAML'inkidir; normalizasyon iki kolun ONUNDE, TEK yerde yapilir.
+    Satir numaralari DEGISMEZ (BOM ilk satirin basindadir, satir SAYISINI etkilemez)."""
+    return metin[1:] if metin[:1] == "﻿" else metin
+
+
 def _pyyaml_bloklar(metin):
     dugumler = []
 
@@ -325,8 +371,11 @@ def _pyyaml_bloklar(metin):
                 gez(x)
 
     try:
-        for kok in _yaml.compose_all(metin):
-            gez(kok)
+        # 🔴 `compose_all` DEGIL `compose` (P3): compose_all TUM belgeleri gorurdu,
+        # psych kolu ise yalniz ILK belgeyi -> ayni girdide farkli blok kumesi.
+        # `compose` cok-belgeli girdide ComposerError atar = psych'in "belge != 1"
+        # fail-closed dali. Gercek is akislari TEK belgedir; davranis degismez.
+        gez(_yaml.compose(metin))
     except Exception as e:
         return None, "AYRISTIRMA HATASI (pyyaml): %s" % e
     return _normalize(dugumler, metin), None
@@ -369,6 +418,7 @@ def run_dugumleri(metin):
     hata None degilse bloklar None'dir. Hicbir ayristirici yoksa
     hata = "AYRISTIRICI YOK" (cagiran fail-closed davranmali; bu dosya TAHMIN URETMEZ).
     Sonuc metne gore onbelleklenir (psych kolu her cagride bir ruby SURECI acar)."""
+    metin = _bom_sil(metin)
     if metin in _ONBELLEK:
         return _ONBELLEK[metin]
     if _pyyaml_var():
@@ -511,6 +561,7 @@ def tetikleyiciler(metin):
     hata None degilse kume None'dir. Hicbir GERCEK ayristirici yoksa
     hata = "AYRISTIRICI YOK" -> CAGIRAN FAIL-CLOSED davranmak ZORUNDADIR (bu depoda:
     sinif "BELIRSIZ", ve BELIRSIZ kapsam acisindan ELLE gibi ele alinir)."""
+    metin = _bom_sil(metin)
     if metin in _TETIK_ONBELLEK:
         return _TETIK_ONBELLEK[metin]
     if _pyyaml_var():
@@ -543,7 +594,7 @@ def iki_kol_tetik_sapmasi(metinler):
     pyyaml_var, psych_var = kollar_mevcut()
     if not (pyyaml_var and psych_var):
         return [], (1 if (pyyaml_var or psych_var) else 0)
-    metinler = list(metinler)
+    metinler = [_bom_sil(m) for m in metinler]
     psych = _psych_tetikler_toplu(metinler)
     sapmalar = []
     for i, metin in enumerate(metinler):
@@ -551,6 +602,31 @@ def iki_kol_tetik_sapmasi(metinler):
         r_kume, _r_hata = psych[i]
         if p_kume != r_kume:
             sapmalar.append((i, p_kume, r_kume))
+    return sapmalar, 2
+
+
+def iki_kol_run_sapmasi(metinler):
+    """(sapmalar, olculen_kol) — `run:` KOLUNUN iki-kol paritesi (P3).
+
+    🔴 NEDEN AYRI BIR NOBETCI: `KATLAMA_FIKSTURLERI` TAKLIT ile GERCEK ayristiriciyi
+    karsilastirir, pyyaml ile psych'i DEGIL. O bosluk yuzunden `RUBY_KAYNAK`'taki Alias
+    korumasini geri saran mutant IKI ORTAMDA DA rc=0 YESIL kaliyordu — yani `run:`
+    kolunun ikiz tanimi TAMAMEN NOBETSIZDI. Olculdu (curutucu, 12 girdi): 4 yapisal
+    ayrisma (ileri alias · tanimsiz alias · cok-belgeli · `---\\n---\\njobs:`).
+
+    Hukum = blok listesi (anahtar_satir, ilk_ham, son_ham, deger) ya da None (= HATA).
+    Hata METINLERI kiyaslanmaz; tuketici zaten yalniz bloklara/None'a bakar."""
+    pyyaml_var, psych_var = kollar_mevcut()
+    if not (pyyaml_var and psych_var):
+        return [], (1 if (pyyaml_var or psych_var) else 0)
+    metinler = [_bom_sil(m) for m in metinler]
+    psych = _psych_bloklar_toplu(metinler)
+    sapmalar = []
+    for i, metin in enumerate(metinler):
+        p_blok, _p_hata = _pyyaml_bloklar(metin)
+        r_blok, _r_hata = psych[i]
+        if p_blok != r_blok:
+            sapmalar.append((i, p_blok, r_blok))
     return sapmalar, 2
 
 
