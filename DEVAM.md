@@ -2,6 +2,64 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## OTURUM KAPANISI — 2 Agu 2026 (KraL · uyum ekseni + alt kategori taksonomisi + sayfa agirligi)
+
+**CANLIYA GITTI (SHA + olculen sonuc):**
+- `4f122b84`+`9e61416e` yonetim paneli girisi cerez oturumuna gecti; anahtar ayrica yenilendi.
+  Odeme ucu regresyonsuz. Ayrinti + olcumler DEVAM-ARSIV.md'de.
+  ⚠️ Shop worker'i hicbir is akisi yayinlamiyor — **elle yayinlandi**. Bu bir surec bosluğu, kayitli.
+- `68c92a44`+`66da9cd8` sayfa agirligi: ortalama urun sayfasi **60.426 → 36.753 bayt**,
+  yayin **1,029 → 0,609 GB** (Pages ~1 GB siniri; tavan ~16.8k urunden ~28k urune kaydi).
+  Tekrar eden CSS/JS icerik-adresli same-origin varliklara tasindi; atif/fiyat/sepet yerinde.
+- `e3edbd15`+`8d36eb9c` uyum ekseni paketi (spec) · `986b052e` uyum sozlugu + semasi + fail-closed
+  kapi (**tuketici YOK**): kapali marka kumesi 169 jeton, 29 iddia, 13/13 mutant.
+- `31fc16b1` alt kategori taksonomisi **12 deger/1 kategori → 60 deger/6 kategori** + deterministik
+  uc gecisli siniflandirici (102 iddia, 7/7 mutant) · `7930a93e` kapi **dagilim degil gecerlilik**
+  olcuyor (asagida) · `ead0bcb6` **backfill 16.646 kayit**, bos kalan 0.
+- `fc53e7ce` devam kaydi sinif temizligi · `cb337803`, `9d8d0cf8` devam kayitlari.
+
+**OLCULEN KARARLAR:**
+- `marka = tekillestir(uyum[].marka + uyum[].model)` — yalniz markadan turetmek `Focus`/`F-150`
+  gibi jetonlari arama metninden dusururdu (sessiz kayip). 13.616 kayitta ayrisan 0.
+- Alt kategori ekseni **YER/SISTEM**, sekil DEGIL: sekil ekseni 60 grup / %89 cakisma / en buyuk
+  grup %37; yer ekseni 16 grup / %24,9 / %16,3.
+- Kategori <100 urunse alt kategori ALMAZ (8 kategori) · grup <15 urunse acilmaz. **KARAR.**
+- Okan karari: siniflanamayan urun **bos kalmaz** — uc gecisli atama (kesin → turetilmis sozlukle
+  yakinlik → artik kova). Gecisler 15.491 / 373 / 782. Koruma: bir grubun >%50'si 2./3. gecisten
+  geliyorsa kirmizi isaretlenir; bugun **0** grup isaretli.
+- Uyum A4: **576 kirli kayit HARIC**, temiz ~13.040 yazilir; kanoniklestirme AYRI tur ve
+  arama paritesi ONCE/SONRA olculmeden kapanmaz.
+- Marka-model sayfalari **EDGE**'de uretilecek (bayt tavani), statik DEGIL.
+
+**🔴 DERS — bugun iki kez yayin hatti tikandi, ikisi de mimar hatasi:**
+1. Curutme merge'e **paralel** kosturuldu; bulgu merge'den sonra geldi. Bloklayici CI adimi getiren
+   dalda curutme **merge'in ONUNDE** bitecek.
+2. Bir kapi **gecerlilik degil dagilim** olcuyordu ve bloklayiciydi: baska evlerin mesru isi
+   (2 urun eklemek) yayini durduruyordu. Ilke: **bloklayici olan sey IHLAL olmali, veri DAGILIMI
+   degil.** `7930a93e` ile onarildi; dagilim `--rapor` kolunda sayiyla duruyor.
+
+**KOSUYOR:**
+- MaCiT: uyum backfill (A4 karari verildi, temiz kayitlar yaziliyor).
+- `claude/cool-rhodes-92cdf1` (Okan'in actigi is): CI kapsam kapisi, 11 ileri — **benim delegem degil.**
+- KraL delegesi kosan is YOK; tum isciler kapandi, dallar temizlendi.
+
+**BEKLIYOR — kim neyle bloke:**
+- 🔴 **HocA — alt kategori zincirinin SON halkasi.** Uc `altkategori`'yi **donduruyor ama
+  FILTRELEMIYOR** (olculdu: parametre sessizce yok sayiliyor; kontrol ekseniyle kanitlandi).
+  Site yuzeyi buna bagli, mühendis kod yazmadan DURDURULDU — yazsaydik cip gorunur, tiklayinca
+  liste degismezdi ve alarm calmazdi. 6 maddelik uc sozlesmesi HocA'ya verildi (ucuncu eksen +
+  sayim onbellek anahtari surumu + kontrol eksenli kabul testi). Gelince yuzey ayni gun baglanir.
+- HocA (ikinci): telefon kanoniklestirmesi — `wa-siparis-onarim` merge BENDE bekliyor.
+- KaaN: parametrik hacim/fiyat ayrismasi (7 aile, en buyugu %51). Devredildi, sayi bekleniyor.
+- ArTisT: marka-model sayfasi acma esigi N onerisi.
+- **BENDE:** D1 `uyum` kolonu (`--sema` ONCE, dogrula, SONRA kod) · `urun-ekle.py`'de `marka`
+  tekillestirmesi yok · alt kategori filtre yuzeyi (HocA'ya bagli, spec hazir) ·
+  `koru/faz3-edge-arama` + `kurtarma/nobetci-tur3`: icerikleri main'de **olculdu**, silinmedi
+  cunku ikincisi uzakta YOK (tek kopya).
+
+**OKAN'DA BEKLEYEN:** cayma-hakki kalemi **KAPANDI** (Okan hukmu: celiski yok, sayfalarda ikisi de
+yazili). Yeni Okan-kapili karar YOK; sayfa acma esigi N ArTisT'ten oneri gelince gelecek.
+
 ## MERGE — 2 Agu 2026 (yetki kabul kumesi: cok-eksenli VE iddialari eksenine bolundu)
 
 `431f60ec` main'e alindi ve itildi (`7930a93e..431f60ec`). Kapsam merge-base'den (`1e4d0b20`)
