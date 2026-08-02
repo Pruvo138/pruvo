@@ -1,0 +1,65 @@
+{
+ "_aciklama": "EKSEN 2 KONTROL KANARISI (yanlis alarm kapisi): kosan kosum tam 49,1 dk'dir surmektedir — 2 Agu 2026'da 99 tamamlanmis kosum arasindaki EN UZUN omur. Bu bir ARIZA DEGIL, olculen NORMALDIR ve omur tavanini (75 dk) yakmamalidir -> AKIYOR. `ahead_by` BILEREK 0'dir: bu fikstur YALNIZ omur eksenini olcer, icerik ekseni (yas/zincir/birikme) tamamen disaridadir; boylece bir yas/taban mutanti bu kontrolu KIRLETEMEZ. Govde 2 Agu kosum 30750470532/30752012022'nin gercek alanlaridir.",
+ "_beklenen": "AKIYOR",
+ "_isler": {
+  "30751559031": {},
+  "30750470532": {
+   "build": {
+    "completed_at": "2026-08-02T14:28:40Z",
+    "conclusion": "success"
+   },
+   "deploy": {
+    "completed_at": "2026-08-02T14:29:21Z",
+    "conclusion": "success"
+   },
+   "serit-b": {
+    "completed_at": "2026-08-02T14:04:57Z",
+    "conclusion": "success"
+   },
+   "yayin": {
+    "completed_at": "2026-08-02T14:30:00Z",
+    "conclusion": "success"
+   }
+  }
+ },
+ "_karsilastirma_tabani": "0b26431e0345113a1eb96228fa1af9c3bf81818b",
+ "_simdi": "2026-08-02T15:13:03Z",
+ "karsilastirma": {
+  "ahead_by": 0,
+  "commits": [],
+  "status": "identical",
+  "total_commits": 0
+ },
+ "kosumlar": [
+  {
+   "conclusion": null,
+   "created_at": "2026-08-02T14:23:57Z",
+   "event": "push",
+   "head_sha": "aa0f839c46e1f3ab7ea8d1344fe93dec2e877b56",
+   "id": 30752012022,
+   "run_started_at": "2026-08-02T14:23:57Z",
+   "status": "in_progress",
+   "updated_at": "2026-08-02T14:53:30Z"
+  },
+  {
+   "conclusion": "cancelled",
+   "created_at": "2026-08-02T14:11:42Z",
+   "event": "push",
+   "head_sha": "725552fcca5fab9363185d5cc47e92dc89b65ad9",
+   "id": 30751559031,
+   "run_started_at": "2026-08-02T14:11:42Z",
+   "status": "completed",
+   "updated_at": "2026-08-02T14:23:58Z"
+  },
+  {
+   "conclusion": "success",
+   "created_at": "2026-08-02T13:41:34Z",
+   "event": "push",
+   "head_sha": "0b26431e0345113a1eb96228fa1af9c3bf81818b",
+   "id": 30750470532,
+   "run_started_at": "2026-08-02T13:41:34Z",
+   "status": "completed",
+   "updated_at": "2026-08-02T14:30:01Z"
+  }
+ ]
+}

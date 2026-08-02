@@ -82,30 +82,73 @@ tam ihtiyac duyuldugu dakikada susar. Bu yuzden:
   * asla "AKIYOR" uretmez (rc 0 vermez),
   * ama bir KAPI degildir: hicbir is akisini bloklamaz, panoda ⚪ olarak gorunur.
 
-ESIKLER — HEPSI 1 Agu 2026 OLCUMUNDEN (son 100 deploy kosumu, ~23 saat)
+🔴 YAS TABANI KOSUMUN BASLANGICI DEGIL, YAYIN ANIDIR (2 Agu 2026, OLCULDU)
+==========================================================================
+Ilk hal tabani `son_basarili.run_started_at` (kosumun BASLADIGI an) aliyordu. Oysa
+kosum baslar, ~24 dk build kosar ve ancak ondan SONRA yayinlar: olculen ornek — kosum
+30750470532 13:41:34'te BASLADI, `deploy` isi 14:29:21'de BITTI (47,8 dk fark). Taban
+baslangic olunca bir sonraki dongunun yasi, olcum baslamadan ONCE, onceki kosumun TUM
+suresini tasiyor: yapisal alt sinir ~ (onceki kosum suresi + mevcut kosum suresi).
+
+Olculen fatura (2 Agu, 40 yayin dongusu, ~27 saat — asagidaki taban olcumunun ta kendisi):
+    ESKI taban (run_started_at) : ortanca 46,0 · p90 75,0 · max 491,7 dk
+    YENI taban (yayin ani)      : ortanca 25,0 · p90 43,7 · max 464,5 dk
+Ayni gunun en keskin ornegi: kosum 30747898143 dongusu ESKI tabanla 75,0 dk (= o gunun
+TIKALI esigi, KIRMIZI), YENI tabanla 26,6 dk (YESIL). Hat bozuk DEGILDI. Fikstur
+`bugunku-kuyruk-saglikli.json` bu dongunun GERCEK govdesidir ve bu ekseni kilitler.
+
+Taban artik `deploy` isinin `completed_at`'idir: siteyi canliya koyan is bittiginde
+icerik INMISTIR; o andan onceki bekleme o dongunun degil, ONCEKI dongunun hesabidir.
+
+🔴 TABAN DUZELMESI BIR EKSENI KORELTIR — O YUZDEN IKINCI EKSEN VAR
+==================================================================
+Yas her yayinda sifirlanmaya basladigi icin "kosum BASLADI ama HIC BITMIYOR" sinifi
+zayiflar; ustelik yas ekseninin TAMAMI `ahead_by > 0` kapisinin ARKASINDADIR (bekleyen
+commit yoksa yas hic olculmez). Yani takilan bir kosum, bekleyen icerik olmadigi surece
+yas ekseninde SONSUZA KADAR gorunmez.
+
+Bu yuzden AYRI bir eksen olculur: KOSUM OMUR TAVANI — tamamlanmamis (kosan/bekleyen) bir
+kosumun `run_started_at`'tan bu yana gecen omru. Bu eksen `ahead_by` kapisinin ONUNDEDIR
+ve yas ekseninden BAGIMSIZ hukum verir; ikisi ayni siniftan (TIKALI) olsa bile gerekce
+satirlari AYRIDIR ve `olcum["eksenler"]` her ekseni TEK BASINA raporlar
+([[hukum-yanlis-birimde]]: toplu sonuc tekil ekseni gizlemesin).
+
+ESIKLER — HEPSI 2 Agu 2026 OLCUMUNDEN (son 100 deploy kosumu, ~27 saat)
 =======================================================================
-Olculen taban (dagilim: 28 success · 26 failure · 44 cancelled · 2 kosan):
-  * BASARILI kosum suresi: ortanca 27,9 dk · p90 36,8 dk · max 44,0 dk
-  * TEPE BEKLEME YASI (bir yayin dongusunde en eski bekleyen commit'in yayin anindaki
-    yasi; push GELMEYEN dongular haric, n=26): ortanca 19,3 · p75 25,6 · p90 59,5 dk.
-    En yuksek IKI deger 117 dk ve 496 dk idi ve IKISI DE GERCEK OLAYDIR (117 dk = tam
-    da bugunku tikanma). Yani saglikli tepe ~59 dk'da biter, olaylar 117 dk'dan baslar.
-  * ZINCIR dagilimi (tamamlanmis kosumlar): IPTAL zincirleri [5,4,3,3,3,2,...] — 6 ve
+Olculen taban (99 tamamlanmis kosum · 41 yayin (`deploy`=success) · 40 dongu):
+  * YAYIN ANI TABANLI dongu yasi (n=40): min 18,9 · ortanca 25,0 · p90 43,7 dk.
+    Kuyrugun tamami: 51,8 (17 commit'lik patlama) · 70,0 ve 76,9 (1 Agu'nun IKI GERCEK
+    tikanmasi) · 464,5 (gece boyu push gelmeyen pencere — bkz. asagidaki kalinti sinif).
+    Yani SAGLIKLI tepe 51,8'de biter, GERCEK olaylar 70 dk'dan baslar.
+  * KOSUM OMRU (tamamlanmis 99 kosumun `updated_at - run_started_at`'i):
+    ortanca 13,0 · p90 36,8 · max 49,1 dk. `build` isi (41 yayinlayan kosum):
+    ortanca 22,6 · p90 23,5 · max 25,2 dk.
+  * ZINCIR dagilimi (1 Agu olcumu, DEGISMEDI): IPTAL zincirleri [5,4,3,3,3,2,...] — 6 ve
     ustu HIC gorulmedi. HATA zincirleri [10,5,3,2,1,...] — 4 ve ustu yalniz IKI kez,
     ikisi de gercek tikanma.
 
 Secilen degerler ve TEK CUMLE gerekceleri:
-  GECIKME_YAS_DK   = 45  — saglikli p90 (59,5) ile ortanca (19,3) arasinda: UYARI
-                           seviyesi, alarm degil (3/26 dongu asar).
-  TIKALI_YAS_DK    = 75  — saglikli tepe yasinin (p90 59,5) USTUNDE, olculen olaylarin
-                           (117 dk) ALTINDA: 26 dongunun yalnizca 2'si asar ve o ikisi
-                           gercek olaydir.
+  GECIKME_YAS_DK   = 50  — olculen SAGLIKLI tepenin (51,8) hemen ALTI, p90'in (43,7)
+                           USTU: UYARI seviyesi, alarm degil (40 dongunun 4'u asar).
+  TIKALI_YAS_DK    = 65  — saglikli tepenin (51,8) USTUNDE, olculen GERCEK olaylarin
+                           (70,0 · 76,9) ALTINDA: 40 dongunun 3'u asar, ucu de gercek
+                           olay ya da beyan edilmis kalinti siniftir.
+  KOSUM_OMUR_TAVANI_DK = 75 — olculen EN UZUN kosum omrunun (49,1 dk) ~1,5 kati ve
+                           olculen en uzun `build` isinin (25,2 dk) ~3 kati: bu deponun
+                           OLCULEN geometrisiyle (tek bekleyen kuyruk + ~25 dk build)
+                           aciklanamaz. 99 kosumun HICBIRI bu esige yaklasmadi.
   TIKALI_HATA_ZINCIR = 4 — olculen gurultu tavani 3 ardisik hata; gercek tikanmalar 5 ve
                            10 zincirdi.
   ACLIK_IPTAL_ZINCIR = 6 — 23 saatte olculen EN UZUN saglikli iptal zinciri 5; eszamanlilik
                            iptali NORMAL bir olaydir, alarm ancak zincir tavani asinca dogar.
-  GECIKME_BIRIKME    = 12 — ~28 dk'lik build + 3-8 dk'lik push araligi saglikli halde
-                           4-9 commit biriktirir; 12 onun USTUDUR.
+  GECIKME_BIRIKME    = 12 — olculen dongu basi birikme: ortanca 3 · p90 7 · max 17;
+                           12 saglikli p90'in cok ustu, olculen tepenin altidir.
+
+🔴 BEYAN EDILMIS KALINTI SINIF (olculdu, ONARILMADI): gece boyu push gelmeyen pencerede
+(00:57 -> 08:41) sabah gelen commit'ler `--ff-only` ile ESKI committer tarihi tasidi ve
+taban da 7,7 saat oncesinin yayin aniydi -> yas 464,5 dk. ESKI tabanda da 491,7 idi, yani
+bu bir GERILEME DEGIL; kalan bir siniftir ve TIKALI yakar. Onarimi ayri bir tur isidir
+(taban ucuncu bir alt sinir daha ister: "kosum tetikleyen push'un GELDIGI an").
 
 🔴 TEK IPTAL ALARM DEGILDIR. Eszamanlilik iptali bu depoda BILINCLI bir tasarimin
 (`cancel-in-progress: false` + tek bekleyen kuyrugu) normal sonucudur. ACLIK ancak
@@ -120,13 +163,23 @@ ise canli main'in TA KENDISIDIR; kosum zincirleri ne olursa olsun sonuc AKIYOR
 
 YAS NASIL OLCULUR (ve neden TABANLANIR)
 =======================================
-    bekleme_baslangici = max(en_eski_bekleyen_commit_tarihi, son_basarili.run_started_at)
+    yayin_ani          = son_basarili kosumun `deploy` isinin `completed_at`'i
+    bekleme_baslangici = max(en_eski_bekleyen_commit_tarihi, yayin_ani)
     yas_dk             = simdi - bekleme_baslangici
 Taban SART: bu depoda dallar `--ff-only` ile alinir ve commit'ler ORIJINAL committer
 tarihini tasir. Tabansiz olcum, saatler once bir worktree'de yazilip bugun alinan bir
-commit'i "saatlerdir bekliyor" sayar -> yanlis alarm. Bir commit son BASARILI kosum
-BASLAMADAN once bekliyor OLAMAZ (baslamis olsaydi o kosumun icinde yayinlanirdi), o
-yuzden taban odur.
+commit'i "saatlerdir bekliyor" sayar -> yanlis alarm. Bir commit son yayindan ONCE
+bekliyor OLAMAZ (bekliyor olsaydi o yayinda inerdi), o yuzden taban YAYIN ANIDIR.
+(Kosumun BASLANGICI degil: aradaki fark bu hatta 47,8 dk olcuLDU — bkz. yukarida.)
+
+KOSUM OMRU NASIL OLCULUR (EKSEN 2)
+==================================
+    omur_dk = simdi - kosum.run_started_at        # YALNIZ status != "completed" kosumlar
+    takilan = bu omurlerin EN BUYUGU
+Tamamlanmis kosum bu ekseni ilgilendirmez (bitti = takilmadi). Kuyrukta BEKLEYEN kosum da
+sayilir ve bu BILEREK boyledir: `cancel-in-progress: false` kuyrugunda sonsuza kadar
+bekleyen bir kosum da "yayin inmiyor" demektir; olculen en uzun kosum omru (49,1 dk)
+KUYRUK BEKLEMESINI ZATEN ICERIR, esik onun uzerinden secilmistir.
 
 SINIFLAR ve CIKIS KODLARI (rc)
 ==============================
@@ -167,19 +220,30 @@ DAL = "main"
 # dayanan zincir raporda ILAN EDILIR).
 PENCERE_KOSUM = 40
 
-GECIKME_YAS_DK = 45
-TIKALI_YAS_DK = 75
+GECIKME_YAS_DK = 50
+TIKALI_YAS_DK = 65
 TIKALI_HATA_ZINCIR = 4
 ACLIK_IPTAL_ZINCIR = 6
 GECIKME_BIRIKME = 12
 
-# 🔴 OLCULEN SAGLIKLI TAVANLAR (1 Agu 2026, 23 saat / 100 kosum — bkz. baslik "ESIKLER").
-# Zincir esikleri bu tavanlarin USTUNDE olmak ZORUNDADIR: altina cekilen bir esik,
-# NORMAL eszamanlilik iptallerine ve gurultu hatalarina alarm verir (yanlis alarm =
-# kapatilan nobetci). Sozlesme nobeti bunu `kendini_test` icinde olcer; fikstur
-# kanarisi `iptal-zinciri-bayat-saglikli.json`.
+# 🔴 EKSEN 2 — KOSUM OMUR TAVANI (dk). "Kosum basladi ama HIC bitmiyor" sinifinin TEK
+# olcusu budur ve `ahead_by` kapisinin ONUNDEDIR (bkz. baslik). Sayinin GELDIGI YER:
+# 2 Agu 2026 olcumunde 99 tamamlanmis kosumun EN UZUNU 49,1 dk surdu (kuyruk beklemesi
+# DAHIL), `build` isinin en uzunu 25,2 dk idi. 75 = 49,1 x ~1,5 = 25,2 x ~3 -> olculen
+# geometriyle aciklanamayan omur. Sihirli sabit DEGIL: asagidaki OLCULEN_* tavanlar
+# sozlesme nobetiyle bu esigin ALTINDA kalmak zorundadir.
+KOSUM_OMUR_TAVANI_DK = 75
+
+# 🔴 OLCULEN SAGLIKLI TAVANLAR (zincirler: 1 Agu 2026 / 100 kosum · omur+yas: 2 Agu 2026 /
+# 100 kosum — bkz. baslik "ESIKLER"). Esikler bu tavanlarin USTUNDE olmak ZORUNDADIR:
+# altina cekilen bir esik NORMAL eszamanlilik iptallerine, gurultu hatalarina ya da
+# NORMAL SUREN bir kosuma alarm verir (yanlis alarm = kapatilan nobetci). Sozlesme
+# nobeti bunu `kendini_test` icinde olcer; fikstur kanarilari
+# `iptal-zinciri-bayat-saglikli.json` (zincir) ve `takilan-kosum-normal.json` (omur).
 OLCULEN_SAGLIKLI_IPTAL_TAVANI = 5
 OLCULEN_SAGLIKLI_HATA_TAVANI = 3
+OLCULEN_KOSUM_OMRU_MAX_DK = 49.1
+OLCULEN_SAGLIKLI_YAS_TAVANI_DK = 51.8
 
 # GitHub `conclusion` degerleri: hangisi "dustu" sayilir.
 HATA_SONUCLARI = ("failure", "startup_failure", "timed_out", "action_required")
@@ -194,7 +258,9 @@ TAMAMLANDI = "completed"
 YAYIN_ISI = "deploy"
 TASLAK_ISI = "yayin"
 # Is objesinde OKUNAN alanlar — biri yoksa OLCULEMEDI (fail-closed sekil dogrulamasi).
-IS_ZORUNLU = ("name", "status", "conclusion")
+# `completed_at` YAS TABANIDIR (yayin ani): alani listeden dusurmek tabani sessizce
+# kaybettirir, o yuzden sekil sozlesmesinde durur.
+IS_ZORUNLU = ("name", "status", "conclusion", "completed_at")
 # Tarama ilk yayinlayan kosumda DURUR; tavan yalnizca butce sinuridir (bkz. baslik).
 IS_SORGU_TAVANI = 8
 
@@ -372,7 +438,11 @@ def karsilastirmayi_ayikla(govde):
 
 # ---------------------------------------------------------------- is (job) duzeyi
 def isleri_ayikla(govde, kosum_id):
-    """jobs govdesi -> {is adi: conclusion}. Sekil FAIL-CLOSED dogrulanir.
+    """jobs govdesi -> ({is adi: conclusion}, {is adi: completed_at}). FAIL-CLOSED.
+
+    IKI sozluk doner cunku iki AYRI soru sorulur ve karistirilmalari sessiz hatadir:
+      conclusion  -> "yayin INDI mi"      (etkin_sonuc)
+      completed_at-> "yayin NE ZAMAN indi" (yas tabani)
 
     BOS liste MESRUDUR ve olculmustur: bekleme kuyrugunda iptal edilen kosumlarda hic
     is yaratilmaz (`total_count: 0`) -> o kosum hicbir sey yayinlamamistir.
@@ -385,7 +455,7 @@ def isleri_ayikla(govde, kosum_id):
     if not isinstance(isler, list):
         raise OlcumHatasi("`jobs` liste degil (%s, kosum %s)"
                           % (type(isler).__name__, kosum_id))
-    cikti = {}
+    cikti, bitisler = {}, {}
     for i, j in enumerate(isler):
         _sozluk(j, "kosum %s is[%d]" % (kosum_id, i))
         eksik = [a for a in IS_ZORUNLU if a not in j]
@@ -394,7 +464,8 @@ def isleri_ayikla(govde, kosum_id):
                               "olabilir)" % (kosum_id, i, ", ".join(eksik)))
         if j.get("status") == TAMAMLANDI:
             cikti[str(j["name"])] = j["conclusion"]
-    return cikti
+            bitisler[str(j["name"])] = j["completed_at"]
+    return cikti, bitisler
 
 
 def etkin_sonuc(kosum, isler):
@@ -416,18 +487,19 @@ def etkin_sonuc(kosum, isler):
 def yayin_taramasi(kosumlar, is_getir, tavan=IS_SORGU_TAVANI):
     """Tamamlanmis kosumlari YENIDEN geriye tarar, ILK YAYINLAYAN kosumda DURUR.
 
-    Doner: (etkin_sonuclar, son_yayinlayan, son_isleri, taranan, tavana_dayandi).
-    `etkin_sonuclar` taranan onekle AYNI sirada; zincirler bu onekten sayilir (bir
-    zincir yayinlayan kosumu ASAMAZ, o yuzden onek yeterlidir).
+    Doner: (etkin_sonuclar, son_yayinlayan, son_isleri, son_bitisleri, taranan,
+    tavana_dayandi). `etkin_sonuclar` taranan onekle AYNI sirada; zincirler bu onekten
+    sayilir (bir zincir yayinlayan kosumu ASAMAZ, o yuzden onek yeterlidir).
     """
-    etkin, son, son_isler, taranan, tavana_dayandi = [], None, None, 0, False
+    etkin, son, son_isler, son_bitisler = [], None, None, None
+    taranan, tavana_dayandi = 0, False
     for k in kosumlar:
         if k.get("status") != TAMAMLANDI:
             continue
         if taranan >= tavan:
             tavana_dayandi = True
             break
-        isler = isleri_ayikla(is_getir(k), k.get("id"))
+        isler, bitisler = isleri_ayikla(is_getir(k), k.get("id"))
         taranan += 1
         if k.get("conclusion") == "success" and YAYIN_ISI not in isler:
             # Kosum yesil ama bekledigimiz is ADI govdede HIC yok -> is akisinin
@@ -440,9 +512,26 @@ def yayin_taramasi(kosumlar, is_getir, tavan=IS_SORGU_TAVANI):
         e = etkin_sonuc(k, isler)
         etkin.append(e)
         if e == "success":
-            son, son_isler = k, isler
+            son, son_isler, son_bitisler = k, isler, bitisler
             break
-    return etkin, son, son_isler, taranan, tavana_dayandi
+    return etkin, son, son_isler, son_bitisler, taranan, tavana_dayandi
+
+
+def takilan_kosum(kosumlar, simdi):
+    """EKSEN 2: en uzun suredir TAMAMLANMAMIS kosumun (omur_dk, id)'si — yoksa (None, None).
+
+    Yalniz `status != "completed"` kosumlar sayilir. Bu eksen `ahead_by` kapisinin
+    ONUNDEDIR (bkz. modul basligi): bekleyen commit olmasa da takilan kosum bir arizadir.
+    """
+    en_omur, en_id = None, None
+    for k in kosumlar:
+        if k.get("status") == TAMAMLANDI:
+            continue
+        basladi = _iso(k.get("run_started_at"), "run_started_at (kosum %s)" % k.get("id"))
+        omur = max(0.0, (simdi - basladi).total_seconds() / 60.0)
+        if en_omur is None or omur > en_omur:
+            en_omur, en_id = omur, k.get("id")
+    return en_omur, en_id
 
 
 # ---------------------------------------------------------------- zincirler
@@ -476,9 +565,10 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
     def is_getir(k):
         return getir(is_yolu(k.get("id"), depo=depo), etiket="jobs")
 
-    etkin, son_basarili, son_isler, taranan, tavana_dayandi = yayin_taramasi(
-        kosumlar, is_getir)
+    (etkin, son_basarili, son_isler, son_bitisler,
+     taranan, tavana_dayandi) = yayin_taramasi(kosumlar, is_getir)
     ardisik_iptal, ardisik_hata, tamamlanan, calisan = zincirler(kosumlar, etkin)
+    takilan_dk, takilan_id = takilan_kosum(kosumlar, simdi)
 
     olcum = {
         "simdi": simdi,
@@ -492,10 +582,14 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
         "son_basarili_sha": None,
         "son_basarili_baslangic": None,
         "son_basarili_bitis": None,
+        "yayin_ani": None,
         "taslak_isi": None,
         "geride": None,
         "yas_dk": None,
         "kirpildi": False,
+        # EKSEN 2 — yas ekseninden BAGIMSIZ olculur, `ahead_by` kapisinin ONUNDE.
+        "takilan_kosum_dk": takilan_dk,
+        "takilan_kosum_id": takilan_id,
         "zincir_pencere_kenarinda": (tavana_dayandi
                                      or ardisik_iptal >= tamamlanan
                                      or ardisik_hata >= tamamlanan),
@@ -506,6 +600,14 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
     olcum["son_basarili_sha"] = str(son_basarili["head_sha"])[:8]
     olcum["son_basarili_baslangic"] = _iso(son_basarili["run_started_at"], "run_started_at")
     olcum["son_basarili_bitis"] = _iso(son_basarili["updated_at"], "updated_at")
+    # YAS TABANI: `deploy` isinin BITISI = icerigin CANLIYA INDIGI an (bkz. modul basligi).
+    # Alan bos/None ise bu bir yargi degil, OLCUM YOKLUGUDUR -> OLCULEMEDI.
+    yayin_ani_ham = (son_bitisler or {}).get(YAYIN_ISI)
+    if not yayin_ani_ham:
+        raise OlcumHatasi("kosum %s `%s` isi BASARILI ama `completed_at` YOK/bos — yayin "
+                          "ani okunamadi, yas tabansiz kalirdi"
+                          % (son_basarili.get("id"), YAYIN_ISI))
+    olcum["yayin_ani"] = _iso(yayin_ani_ham, "`%s` isi completed_at" % YAYIN_ISI)
     # `yayin` isi OLCULUR ama site tazeligi hakkinda hukum VERMEZ (bkz. modul basligi).
     olcum["taslak_isi"] = (son_isler or {}).get(TASLAK_ISI)
 
@@ -515,8 +617,9 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
     olcum["geride"] = geride
     olcum["kirpildi"] = kirpildi
     if geride > 0:
-        # TABAN: bir commit son basarili kosum BASLAMADAN once bekliyor olamaz.
-        baslangic = max(en_eski, olcum["son_basarili_baslangic"])
+        # TABAN: bir commit son YAYINDAN once bekliyor olamaz (bekliyorsa o yayinda inerdi).
+        # Kosumun BASLANGICI DEGIL — aradaki fark bu hatta 47,8 dk olculdu.
+        baslangic = max(en_eski, olcum["yayin_ani"])
         olcum["yas_dk"] = max(0.0, (simdi - baslangic).total_seconds() / 60.0)
     else:
         olcum["yas_dk"] = 0.0
@@ -524,8 +627,60 @@ def olc(getir=api_getir, simdi=None, depo=None, dal=DAL):
 
 
 # ---------------------------------------------------------------- yargi
+# Sinif AGIRLIGI (yalniz yargi birlestirme icin). SINIF_RC'den TURETILMEZ: orada
+# OLCULEMEDI (2) TIKALI (3) ile GECIKME (1) ARASINDA durur ve bir agirlik SIRASI degildir.
+SINIF_AGIRLIK = {"AKIYOR": 0, "GECIKME": 1, "TIKALI": 2, "ACLIK": 3}
+
+
+def eksen_hukumleri(olcum):
+    """HER EKSEN AYRI AYRI, TEK KANONIK YERDE olculur -> {eksen adi: bool}.
+
+    🔴 IKIZ TANIM YASAGI ([[ikiz-tanim-sessiz-ayrisma]]): esik karsilastirmasi SADECE
+    burada yazilir; `degerlendir` yalnizca bu sozlugu OKUR. Boylece "hangi eksen yandi"
+    sorusunun cevabi, gerekce metniyle AYNI kaynaktan gelir ve sessizce ayrisamaz.
+
+    Bu fonksiyon OLCER, KAPI UYGULAMAZ: "bekleyen icerik var mi" gibi kapilar hukmun
+    (degerlendir) isidir. Boylece bir eksenin kapatilmasi eksenin OLCUMUNU yok etmez.
+    """
+    yas = olcum.get("yas_dk")
+    geride = olcum.get("geride")
+    takilan = olcum.get("takilan_kosum_dk")
+    return {
+        # EKSEN 1 — bekleyen icerigin YASI (tabani: yayin ani)
+        "yas_gecikme": yas is not None and yas >= GECIKME_YAS_DK,
+        "yas_tikali": yas is not None and yas >= TIKALI_YAS_DK,
+        "hata_zinciri": olcum["ardisik_hata"] >= TIKALI_HATA_ZINCIR,
+        "iptal_zinciri": olcum["ardisik_iptal"] >= ACLIK_IPTAL_ZINCIR,
+        "birikme": geride is not None and geride >= GECIKME_BIRIKME,
+        # EKSEN 2 — KOSUM OMRU (yas ekseninden BAGIMSIZ; `ahead_by` kapisinin ONUNDE)
+        "sure_tavani": takilan is not None and takilan >= KOSUM_OMUR_TAVANI_DK,
+    }
+
+
 def degerlendir(olcum):
-    """olcum -> (sinif, gerekce satirlari). Sira: ACLIK > TIKALI > GECIKME > AKIYOR."""
+    """olcum -> (sinif, gerekce satirlari). Sira: ACLIK > TIKALI > GECIKME > AKIYOR.
+
+    IKI EKSEN AYRI AYRI HUKUM VERIR: icerik ekseni (_icerik_hukmu) ve kosum omru ekseni.
+    Ikisi ayni sinifi (TIKALI) uretebilir ama BIRI DIGERINI MASKELEMEZ: omur ekseni
+    yandiysa gerekce satiri HER HALUKARDA eklenir, icerik ekseni ne derse desin
+    ([[hukum-yanlis-birimde]]).
+    """
+    eksen = eksen_hukumleri(olcum)
+    sinif, neden = _icerik_hukmu(olcum, eksen)
+
+    if eksen["sure_tavani"]:
+        neden = list(neden) + [
+            "kosum %s %.0f dk'dir TAMAMLANMADI (omur tavani %d dk; olculen en uzun kosum "
+            "omru %.1f dk) -> kosum basladi ama bitmiyor"
+            % (olcum.get("takilan_kosum_id"), olcum["takilan_kosum_dk"],
+               KOSUM_OMUR_TAVANI_DK, OLCULEN_KOSUM_OMRU_MAX_DK)]
+        if SINIF_AGIRLIK[sinif] < SINIF_AGIRLIK["TIKALI"]:
+            sinif = "TIKALI"
+    return sinif, neden
+
+
+def _icerik_hukmu(olcum, eksen):
+    """EKSEN 1: bekleyen ICERIK ne kadar bayat / hat icerigi gecirebiliyor mu."""
     geride = olcum["geride"]
     yas = olcum["yas_dk"]
     ai = olcum["ardisik_iptal"]
@@ -536,7 +691,7 @@ def degerlendir(olcum):
         # (OLCULEMEDI DEGIL). "Yayinlayan" = `deploy` isi basarili olan kosum.
         kapsam = "taranan %d kosum (pencere %d)" % (olcum.get("taranan", 0),
                                                     olcum["pencere"])
-        if ai >= ACLIK_IPTAL_ZINCIR:
+        if eksen["iptal_zinciri"]:
             return "ACLIK", ["son %d tamamlanmis kosumun %d'si IPTAL, %s icinde `%s` isini "
                              "BASARIYLA kosan kosum YOK"
                              % (olcum["tamamlanan"], ai, kapsam, YAYIN_ISI)]
@@ -549,23 +704,24 @@ def degerlendir(olcum):
                           "(iptal %d · hata %d) icerik bekletMIYOR" % (ai, ah)]
 
     neden = []
-    if ai >= ACLIK_IPTAL_ZINCIR and yas >= GECIKME_YAS_DK:
+    if eksen["iptal_zinciri"] and eksen["yas_gecikme"]:
         neden.append("%d ARDISIK iptal (esik %d) + en eski bekleyen commit %.0f dk "
                      "(esik %d) -> kosumlar ust uste iptal ediliyor, hicbiri tamamlanmiyor"
                      % (ai, ACLIK_IPTAL_ZINCIR, yas, GECIKME_YAS_DK))
         return "ACLIK", neden
 
-    if ah >= TIKALI_HATA_ZINCIR:
+    if eksen["hata_zinciri"]:
         neden.append("%d ARDISIK dusen kosum (esik %d)" % (ah, TIKALI_HATA_ZINCIR))
-    if yas >= TIKALI_YAS_DK:
-        neden.append("en eski bekleyen commit %.0f dk (esik %d dk)" % (yas, TIKALI_YAS_DK))
+    if eksen["yas_tikali"]:
+        neden.append("en eski bekleyen commit %.0f dk (esik %d dk, taban: yayin ani)"
+                     % (yas, TIKALI_YAS_DK))
     if neden:
         return "TIKALI", neden
 
-    if yas >= GECIKME_YAS_DK:
-        neden.append("en eski bekleyen commit %.0f dk (uyari esigi %d dk)"
+    if eksen["yas_gecikme"]:
+        neden.append("en eski bekleyen commit %.0f dk (uyari esigi %d dk, taban: yayin ani)"
                      % (yas, GECIKME_YAS_DK))
-    if geride >= GECIKME_BIRIKME:
+    if eksen["birikme"]:
         neden.append("%d commit birikti (uyari esigi %d)" % (geride, GECIKME_BIRIKME))
     if neden:
         return "GECIKME", neden
@@ -583,6 +739,9 @@ def olc_ve_degerlendir(getir=api_getir, simdi=None, depo=None, dal=DAL):
     except Exception as e:                 # beklenmeyen her sey de OLCULEMEDI'dir
         return ("OLCULEMEDI", SINIF_RC["OLCULEMEDI"],
                 ["beklenmeyen olcum hatasi: %s: %s" % (type(e).__name__, e)], None)
+    # Eksen hukumleri RAPORA ve KABUL TESTINE tasinir: "hangi eksen yandi" sorusu
+    # cikti metninden AYIKLANMAZ, olcumden OKUNUR ([[hukum-yanlis-birimde]]).
+    olcum["eksenler"] = eksen_hukumleri(olcum)
     sinif, satirlar = degerlendir(olcum)
     if sinif not in SINIF_RC or sinif == "OLCULEMEDI":
         # degerlendir() OLCULEMEDI URETEMEZ (o yalniz olcum ARIZASINDAN dogar); ureti-
@@ -604,9 +763,14 @@ def _ozet_satirlari(olcum):
         s.append("canli main'den %d commit geride · en eski bekleyen %s"
                  % (olcum["geride"],
                     "yok" if not olcum["geride"] else "%.0f dk" % olcum["yas_dk"]))
-        s.append("son yayinlanan sha: %s (`%s` isi basarili, %s)"
+        # YAS TABANI = `deploy` isinin bitisi. Kosumun bitisi AYRI basilir: ikisi bu
+        # hatta 47,8 dk'ya kadar ayrisir ve tabani karistirmak yanlis alarm uretmisti.
+        s.append("son yayinlanan sha: %s (`%s` isi %s'de BITTI = yas tabani · kosum %s'de "
+                 "bitti · kosum %s'de basladi)"
                  % (olcum["son_basarili_sha"], YAYIN_ISI,
-                    olcum["son_basarili_bitis"].strftime("%H:%M UTC")))
+                    olcum["yayin_ani"].strftime("%H:%M UTC"),
+                    olcum["son_basarili_bitis"].strftime("%H:%M"),
+                    olcum["son_basarili_baslangic"].strftime("%H:%M")))
         taslak = olcum.get("taslak_isi")
         if taslak is not None and taslak != "success":
             # OLCULUR ama site tazeligi hakkinda hukum VERMEZ (bkz. modul basligi).
@@ -615,6 +779,15 @@ def _ozet_satirlari(olcum):
     s.append("ardisik iptal: %d (aclik esigi %d) · ardisik hata: %d (tikanma esigi %d)"
              % (olcum["ardisik_iptal"], ACLIK_IPTAL_ZINCIR,
                 olcum["ardisik_hata"], TIKALI_HATA_ZINCIR))
+    # EKSEN 2 HER ZAMAN BASILIR (yandi ya da yanmadi): "olculdu ve temiz" ile "hic
+    # olculmedi" ayni satirda karismasin.
+    takilan = olcum.get("takilan_kosum_dk")
+    s.append("en uzun KOSAN kosum omru: %s (omur tavani %d dk) · eksen 2 %s"
+             % ("yok (kosan/bekleyen kosum YOK)" if takilan is None
+                else "%.0f dk (kosum %s)" % (takilan, olcum.get("takilan_kosum_id")),
+                KOSUM_OMUR_TAVANI_DK,
+                # Esik karsilastirmasi TEK KANONIK YERDE: burada TEKRARLANMAZ.
+                "KIRMIZI" if eksen_hukumleri(olcum)["sure_tavani"] else "temiz"))
     s.append("pencere: %d kosum (%d tamamlandi · %d kosuyor/bekliyor) · is duzeyi "
              "sorulan: %d kosum" % (olcum["pencere"], olcum["tamamlanan"],
                                     olcum["calisan"], olcum.get("taranan", 0)))
@@ -733,34 +906,59 @@ def fikstur_yukle(ad, capa=None):
                 for i, k in enumerate(f_.get("kosumlar", []))]
 
     # ---- IS (job) duzeyi govdeleri -------------------------------------------------
-    # `_isler` = {"<kosum id>": {"<is adi>": "<conclusion>"}}. Govde SABLONU sekil
-    # capasindan gelir -> alan adlari uydurulAMAZ.
+    # `_isler` = {"<kosum id>": {"<is adi>": <deger>}} ve <deger> IKI bicimden biridir:
+    #     "success"                                   -> yalniz conclusion
+    #     {"conclusion": "...", "completed_at": "..."} -> conclusion + YAYIN ANI
+    # Govde SABLONU sekil capasindan gelir -> alan adlari uydurulAMAZ.
+    #
+    # 🔴 `completed_at` BILDIRILMEMISSE kosumun `updated_at`'i kullanilir, yani "yayin
+    # ani = kosum sonu" varsayimi. Bu varsayim GERCEK hatta YANLISTIR (olculen fark
+    # 47,8 dk'ya cikti) ve yalnizca bu eksenden ONCE yazilmis fiksturlerin anlamini
+    # KORUMAK icin vardir. Yas tabani ekseninin fiksturleri `completed_at`'i ACIKCA
+    # bildirmek ZORUNDADIR — kabul testi Y7 bunu nobetler.
     #
     # `_isler` HIC verilmemisse ESKI anlam korunur: kosumun genel conclusion'i `deploy`
-    # isine yansitilir (kosum duzeyi == is duzeyi). Boylece bu ozellikten ONCE yazilmis
-    # fiksturlerin anlami DEGISMEZ. `_isler` VERILMISSE artik sozlesme odur: sorulan bir
-    # kosum orada YOKSA fikstur OLCULEMEDI verir (sessiz varsayim YOK).
+    # isine yansitilir (kosum duzeyi == is duzeyi). `_isler` VERILMISSE artik sozlesme
+    # odur: sorulan bir kosum orada YOKSA fikstur OLCULEMEDI verir (sessiz varsayim YOK).
     is_ustyazim = f_.get("_isler")
     is_sablonu = capa["isler"]["jobs"][0]
 
-    def _is_govdesi(adlar_sonuclar, iz):
-        isler = [_bindir(is_sablonu,
-                         {"name": ad, "status": "completed", "conclusion": son},
-                         "%s.%s" % (iz, ad))
-                 for ad, son in adlar_sonuclar.items()]
+    def _is_govdesi(adlar_degerler, varsayilan_bitis, iz):
+        isler = []
+        for is_adi, deger in adlar_degerler.items():
+            if isinstance(deger, dict):
+                bilinmeyen = sorted(set(deger) - {"conclusion", "completed_at"})
+                if bilinmeyen:
+                    raise OlcumHatasi("fikstur %s: %s.%s icinde bilinmeyen anahtar: %s "
+                                      "(izinli: conclusion, completed_at)"
+                                      % (ad, iz, is_adi, ", ".join(bilinmeyen)))
+                son = deger.get("conclusion")
+                bitis = deger.get("completed_at", varsayilan_bitis)
+            else:
+                son, bitis = deger, varsayilan_bitis
+            isler.append(_bindir(is_sablonu,
+                                 {"name": is_adi, "status": "completed",
+                                  "conclusion": son, "completed_at": bitis},
+                                 "%s.%s" % (iz, is_adi)))
         return {"total_count": len(isler), "jobs": isler}
 
+    def _kosum(kosum_id):
+        k = next((k for k in kosumlar if str(k.get("id")) == str(kosum_id)), None)
+        if k is None:
+            raise OlcumHatasi("fikstur %s: is sorulan kosum %s listede YOK"
+                              % (ad, kosum_id))
+        return k
+
     def _kosum_isleri(kosum_id):
+        k = _kosum(kosum_id)
+        varsayilan_bitis = k.get("updated_at")
         if is_ustyazim is None:
-            k = next((k for k in kosumlar if str(k.get("id")) == str(kosum_id)), None)
-            if k is None:
-                raise OlcumHatasi("fikstur %s: is sorulan kosum %s listede YOK"
-                                  % (ad, kosum_id))
-            return _is_govdesi({YAYIN_ISI: k.get("conclusion")}, "_miras")
+            return _is_govdesi({YAYIN_ISI: k.get("conclusion")}, varsayilan_bitis, "_miras")
         if str(kosum_id) not in is_ustyazim:
             raise OlcumHatasi("fikstur %s: kosum %s icin `_isler` TANIMSIZ ama nobetci "
                               "is duzeyini sordu" % (ad, kosum_id))
-        return _is_govdesi(is_ustyazim[str(kosum_id)], "_isler[%s]" % kosum_id)
+        return _is_govdesi(is_ustyazim[str(kosum_id)], varsayilan_bitis,
+                           "_isler[%s]" % kosum_id)
     kars_ust = f_.get("karsilastirma")
     kars = None
     if kars_ust is not None:
@@ -819,6 +1017,126 @@ def yg_etkin_kusuru():
     return any(etkin_sonuc(k, i) != b for k, i, b in vakalar)
 
 
+def _fikstur_bitis_bildiriyor(ham):
+    """Fikstur `_isler` icinde ACIK bir `completed_at` bildiriyor mu (yas tabani)."""
+    for _, isler in (ham.get("_isler") or {}).items():
+        for _, deger in (isler or {}).items():
+            if isinstance(deger, dict) and deger.get("completed_at"):
+                return True
+    return False
+
+
+# ================================================================= EKSEN NOBETLERI
+# 🔴 TEK KAYNAK: her nobet SADECE burada yazilir; hem `--kendini-test` hem
+# tools/yayin-gecikme-test.py bu listeleri OKUR. Ikinci bir kopya yazmak, kabul testiyle
+# CI'nin sessizce ayrismasi demektir ([[ikiz-tanim-sessiz-ayrisma]]). Fonksiyonlar
+# EKSEN BASINA ayridir: bir eksen kirmizi yandiginda HANGI eksen oldugu belirsiz kalmaz
+# ([[hukum-yanlis-birimde]]).
+def sozlesme_kusurlari():
+    """Y2 — sinif/cikis kodu sozlesmesi + esiklerin OLCULEN tabana gore konumu."""
+    kusur = []
+    if SINIF_RC["OLCULEMEDI"] == 0:
+        kusur.append("SOZLESME: OLCULEMEDI cikis kodu 0 (YESIL ile karisiyor)")
+    if len(set(SINIF_RC.values())) != len(SINIF_RC):
+        kusur.append("SOZLESME: iki sinif AYNI cikis kodunu paylasiyor")
+    if not (0 < GECIKME_YAS_DK < TIKALI_YAS_DK):
+        kusur.append("SOZLESME: yas esikleri sirali degil (%s/%s)"
+                     % (GECIKME_YAS_DK, TIKALI_YAS_DK))
+    if ACLIK_IPTAL_ZINCIR <= OLCULEN_SAGLIKLI_IPTAL_TAVANI:
+        kusur.append("SOZLESME: aclik esigi (%d) OLCULEN saglikli iptal tavaninin (%d) "
+                     "ustunde DEGIL — normal eszamanlilik iptali alarm uretir"
+                     % (ACLIK_IPTAL_ZINCIR, OLCULEN_SAGLIKLI_IPTAL_TAVANI))
+    if TIKALI_HATA_ZINCIR <= OLCULEN_SAGLIKLI_HATA_TAVANI:
+        kusur.append("SOZLESME: tikanma esigi (%d) OLCULEN saglikli hata tavaninin (%d) "
+                     "ustunde DEGIL — gurultu hatalari alarm uretir"
+                     % (TIKALI_HATA_ZINCIR, OLCULEN_SAGLIKLI_HATA_TAVANI))
+    if TIKALI_YAS_DK <= OLCULEN_SAGLIKLI_YAS_TAVANI_DK:
+        kusur.append("SOZLESME: tikanma yas esigi (%d dk) OLCULEN saglikli tepe yasinin "
+                     "(%.1f dk) ustunde DEGIL — normal kuyruk alarm uretir"
+                     % (TIKALI_YAS_DK, OLCULEN_SAGLIKLI_YAS_TAVANI_DK))
+    # OLCULEMEDI'nin HER kaynagi rc 2 vermeli (ag yok / yetki yok / govde bozuk).
+    # 🔴 `OlcumHatasi` LISTEDE OLMAK ZORUNDA (2 Agu, mutasyonla OLCULDU): once yalnizca
+    # FileNotFoundError/ValueError sinaniyordu ve ikisi de GENEL `except Exception`
+    # kolundan doner. `except OlcumHatasi` kolunu "AKIYOR" dondurecek sekilde bozan bir
+    # mutant bu nobetten SESSIZCE geciyordu — yani nobet, olcmedigi bir kolu kutsuyordu.
+    # 🔴 SAHTE GETIRICININ IMZASI `api_getir` ILE BIREBIR AYNI OLMAK ZORUNDA (2 Agu,
+    # mutasyonla OLCULDU): `etiket` parametresi `etiket_` diye yeniden adlandirilinca
+    # gercek cagri (`getir(yol, etiket="runs")`) TypeError firlatti, TypeError de GENEL
+    # `except Exception` kolundan dondu — yani nobet UC vakada da AYNI kolu olcuyordu ve
+    # hedefledigi `except OlcumHatasi` kolu HIC SINANMIYORDU ([[nobetci-fikstur-sekli]]).
+    for ne, patlat in (("gh yok", FileNotFoundError("gh")),
+                       ("beklenmeyen tip", ValueError("bozuk")),
+                       ("olcum hatasi", OlcumHatasi("sinama: govde anlasilmadi"))):
+        def _patlayan(yol_, zaman_asimi=25, etiket="api", _e=patlat):   # noqa: ARG001
+            raise _e
+        sinif, rc, _, _ = olc_ve_degerlendir(getir=_patlayan)
+        if not (sinif == "OLCULEMEDI" and rc == 2):
+            kusur.append("FAIL-CLOSED: %s -> %s/rc %d (OLCULEMEDI olmaliydi)"
+                         % (ne, sinif, rc))
+    return kusur
+
+
+def is_duzeyi_kusurlari(adlar=None):
+    """Y5 — "yayin indi mi" YALNIZ `deploy` isinden okunur (kosum duzeyinden DEGIL)."""
+    kusur = []
+    if yg_etkin_kusuru():
+        kusur.append("SOZLESME: etkin sonuc `%s` isinden DOGMUYOR (kosum duzeyine "
+                     "geri donulmus olabilir)" % YAYIN_ISI)
+    adlar = fikstur_adlari() if adlar is None else adlar
+    if not any("_isler" in _fikstur_ham(a) for a in adlar):
+        kusur.append("SOZLESME: HICBIR fikstur `_isler` bildirmiyor — is duzeyi ekseni "
+                     "FIKSTURSUZ kalmis (sessizce kosum duzeyine donebilir)")
+    return kusur
+
+
+def yas_tabani_kusurlari(adlar=None):
+    """Y7 — yas tabani YAYIN ANIDIR; ekseni fiiliyatta olcen fikstur var mi."""
+    kusur = []
+    adlar = fikstur_adlari() if adlar is None else adlar
+    if not any(_fikstur_bitis_bildiriyor(_fikstur_ham(a)) for a in adlar):
+        kusur.append("SOZLESME: HICBIR fikstur `%s.completed_at` bildirmiyor — YAS TABANI "
+                     "ekseni fiiliyatta olculmuyor (taban sessizce kosum baslangicina "
+                     "donebilir)" % YAYIN_ISI)
+    return kusur
+
+
+def omur_ekseni_kusurlari():
+    """Y8 — kosum omur ekseni: `ahead_by` kapisinin ONUNDE ve yanlis alarm uretmiyor.
+
+    Olcumu TAKLIT ETMEDEN dogrudan `degerlendir` uzerinde sinanir: eksenin kapiya gore
+    KONUMU bir kod olgusudur, fiksturle degil birim iddiayla tutulur.
+    """
+    kusur = []
+    bekleyensiz = {"geride": 0, "yas_dk": 0.0, "ardisik_iptal": 0, "ardisik_hata": 0,
+                   "son_basarili_sha": "abc12345", "pencere": 1, "tamamlanan": 1,
+                   "taranan": 1, "takilan_kosum_dk": KOSUM_OMUR_TAVANI_DK + 1.0,
+                   "takilan_kosum_id": 1}
+    if degerlendir(bekleyensiz)[0] != "TIKALI":
+        kusur.append("SOZLESME: kosum omur ekseni `ahead_by == 0` kapisinin ARKASINA "
+                     "dusmus — takilan kosum bekleyen icerik yokken GORUNMEZ oluyor")
+    normal = dict(bekleyensiz, takilan_kosum_dk=OLCULEN_KOSUM_OMRU_MAX_DK)
+    if degerlendir(normal)[0] != "AKIYOR":
+        kusur.append("SOZLESME: OLCULEN en uzun kosum omru (%.1f dk) bile alarm uretiyor "
+                     "— eksen 2 yanlis alarm makinesi" % OLCULEN_KOSUM_OMRU_MAX_DK)
+    if KOSUM_OMUR_TAVANI_DK <= OLCULEN_KOSUM_OMRU_MAX_DK:
+        kusur.append("SOZLESME: kosum omur tavani (%d dk) OLCULEN en uzun kosum omrunun "
+                     "(%.1f dk) ustunde DEGIL — normal suren kosum alarm uretir"
+                     % (KOSUM_OMUR_TAVANI_DK, OLCULEN_KOSUM_OMRU_MAX_DK))
+    return kusur
+
+
+def sizinti_kusurlari():
+    """Y6 — `gh` stderr'i disari SIZMAZ ama teshis SINIFI da yok edilmez."""
+    kusur = []
+    ornek = "gh: Not Found (HTTP 404) https://api.github.com/repos/X/actions/runs/1/jobs"
+    ozet = gh_hata_sinifi(ornek)
+    if "https://" in ozet or ornek in ozet:
+        kusur.append("SIZINTI: `gh` stderr'i ozetten OLDUGU GIBI cikiyor")
+    if "404" not in ozet:
+        kusur.append("TESHIS: hata sinifi ozetten SILINMIS (teshis tamamen yok edilmis)")
+    return kusur
+
+
 def kendini_test(yazdir=True):
     """AGSIZ fikstur kabulu. 0 = hepsi gecti, 1 = en az bir kusur."""
     kusur = []
@@ -846,46 +1164,12 @@ def kendini_test(yazdir=True):
                   % ("✔" if tamam else "✘", ad, sinif, rc, aciklama[:60]))
 
     # SOZLESME NOBETLERI — fiksturlerden BAGIMSIZ, kod icindeki iddialar.
-    if SINIF_RC["OLCULEMEDI"] == 0:
-        kusur.append("SOZLESME: OLCULEMEDI cikis kodu 0 (YESIL ile karisiyor)")
-    if len(set(SINIF_RC.values())) != len(SINIF_RC):
-        kusur.append("SOZLESME: iki sinif AYNI cikis kodunu paylasiyor")
-    if not (0 < GECIKME_YAS_DK < TIKALI_YAS_DK):
-        kusur.append("SOZLESME: yas esikleri sirali degil (%s/%s)"
-                     % (GECIKME_YAS_DK, TIKALI_YAS_DK))
-    if ACLIK_IPTAL_ZINCIR <= OLCULEN_SAGLIKLI_IPTAL_TAVANI:
-        kusur.append("SOZLESME: aclik esigi (%d) OLCULEN saglikli iptal tavaninin (%d) "
-                     "ustunde DEGIL — normal eszamanlilik iptali alarm uretir"
-                     % (ACLIK_IPTAL_ZINCIR, OLCULEN_SAGLIKLI_IPTAL_TAVANI))
-    if TIKALI_HATA_ZINCIR <= OLCULEN_SAGLIKLI_HATA_TAVANI:
-        kusur.append("SOZLESME: tikanma esigi (%d) OLCULEN saglikli hata tavaninin (%d) "
-                     "ustunde DEGIL — gurultu hatalari alarm uretir"
-                     % (TIKALI_HATA_ZINCIR, OLCULEN_SAGLIKLI_HATA_TAVANI))
-    # IS DUZEYI EKSENI YASIYOR MU: "yayin indi mi" kosum duzeyinden okunursa bu ev
-    # yanlis alarm veriyordu (modul basligindaki olcum). Iki iddia bu ekseni tutar.
-    if yg_etkin_kusuru():
-        kusur.append("SOZLESME: etkin sonuc `%s` isinden DOGMUYOR (kosum duzeyine "
-                     "geri donulmus olabilir)" % YAYIN_ISI)
-    if not any("_isler" in _fikstur_ham(a) for a in adlar):
-        kusur.append("SOZLESME: HICBIR fikstur `_isler` bildirmiyor — is duzeyi ekseni "
-                     "FIKSTURSUZ kalmis (sessizce kosum duzeyine donebilir)")
-    # SIZINTI: `gh` stderr'i oldugu gibi disari cikmamali (teshis sinifi cikmali).
-    _ornek = "gh: Not Found (HTTP 404) https://api.github.com/repos/X/actions/runs/1/jobs"
-    _ozet = gh_hata_sinifi(_ornek)
-    if "https://" in _ozet or _ornek in _ozet:
-        kusur.append("SIZINTI: `gh` stderr'i ozetten OLDUGU GIBI cikiyor")
-    if "404" not in _ozet:
-        kusur.append("TESHIS: hata sinifi ozetten SILINMIS (teshis tamamen yok edilmis)")
-
-    # OLCULEMEDI'nin HER kaynagi rc 2 vermeli (ag yok / yetki yok / govde bozuk).
-    for ad, patlat in (("gh yok", FileNotFoundError("gh")),
-                       ("beklenmeyen tip", ValueError("bozuk"))):
-        def _patlayan(yol_, zaman_asimi=25, etiket="api", _e=patlat):   # noqa: ARG001
-            raise _e
-        sinif, rc, _, _ = olc_ve_degerlendir(getir=_patlayan)
-        if not (sinif == "OLCULEMEDI" and rc == 2):
-            kusur.append("FAIL-CLOSED: %s -> %s/rc %d (OLCULEMEDI olmaliydi)"
-                         % (ad, sinif, rc))
+    # KOPYA YOK: hepsi eksen basina ayrilmis TEK KAYNAK fonksiyonlardan gelir; kabul
+    # testi (tools/yayin-gecikme-test.py) AYNI fonksiyonlari eksen koduyla okur.
+    for _liste in (sozlesme_kusurlari(), is_duzeyi_kusurlari(adlar),
+                   yas_tabani_kusurlari(adlar), omur_ekseni_kusurlari(),
+                   sizinti_kusurlari()):
+        kusur.extend(_liste)
 
     if yazdir:
         print("")
