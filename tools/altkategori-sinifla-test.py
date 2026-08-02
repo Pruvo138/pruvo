@@ -584,49 +584,58 @@ def kabul(kok):
 # ── CIFT YONLU MUTASYON ─────────────────────────────────────────────────────────────
 # KIRMIZI beklenen = oldurucu mutant · YESIL beklenen = ILGISIZ degisiklik (kapinin
 # gereginden genis olmadiginin kaniti).
+#
+# 🔴 7. ALAN = ISARET (hangi KOL oldurmeli). "rc != 0" YETMEZ: bu depoda OLCULDU ki X1
+# mutantini (imza nobetcisi notrlestirilir) ESKI testte rc=1 yapan tek adlandirilmis
+# iddia `T9a` idi — yani KARDES KAPININ alt sureci. T1'in kendi 60 iddiasi mutanti
+# GORMUYORDU ve yine de kosum kirmizi yaniyordu; "kirmizi yandi" cevabi delikleri
+# GIZLIYORDU. Isaret, mutantin OLDURULMESI GEREKEN kolda oldurulmesini SART kosar:
+# T1p fiksturleri silinirse X1 hala kirmizi yanar ama ISARET DUSER -> mutasyon RC=1.
+# Isaret ONEK esler (tam ad degil) — iddia metni yeniden yazilinca capa bayatlamaz.
 MUTANTLAR = [
     ("M1", "altkategori-sinifla.py",
      '("Bardak Altlıkları", ELENEN, ("bardak altligi",),',
      '("Bardak Altlıkları", BELIRGIN, ("bardak altligi",),', "KIRMIZI",
      "TS1: ELENEN aday kumeye girer -> tablo ile ALTKATEGORI_IZINLI AYRISIR "
-     "(eskiden T4c/adet olduruyordu; TANIM ekseni artik tek bloklayici)"),
+     "(eskiden T4c/adet olduruyordu; TANIM ekseni artik tek bloklayici)", "TS1"),
     ("M2", "altkategori-sinifla.py", "    return onde + sonda", "    return sonda + onde",
-     "KIRMIZI", "T7: artik kova oncelikte BASA gecer -> her sey kovaya duser"),
+     "KIRMIZI", "T7: artik kova oncelikte BASA gecer -> her sey kovaya duser", "T7"),
     ("M3", "altkategori-sinifla.py",
      "    if arama.altkategori_sebebi(kategori, ad) is not None:\n"
      "        return \"\"\n    return arama.altkategori_metin(ad)",
      "    return ad + \" (mutant)\"", "KIRMIZI",
-     "T6: fail-closed kalkar -> siniflandirici kume DISI deger uretir"),
+     "T6: fail-closed kalkar -> siniflandirici kume DISI deger uretir", "T6"),
     ("M4", "arama.py", '        "Pervaneler",\n', '        "Pervanelar",\n', "KIRMIZI",
-     "T2: MIRAS bir Marin degerinin harfi degisir -> 935 kayit gecersizlesir"),
+     "T2: MIRAS bir Marin degerinin harfi degisir -> 935 kayit gecersizlesir", "T2a"),
     ("M5", "altkategori-sinifla.py",
      "    t = (adaylar or ADAYLAR).get(kategori, ())\n",
      "    t = (adaylar or ADAYLAR).get(kategori, ())\n"
      "    _sira._n = getattr(_sira, '_n', 0) + 1\n"
      "    if _sira._n % 2 == 0:\n        t = tuple(reversed(t))\n", "KIRMIZI",
-     "T5: siniflandirma girdi SIRASINA duyarli olur"),
+     "T5: siniflandirma girdi SIRASINA duyarli olur", "T5"),
     ("M6", "altkategori-sinifla.py", "    adlar = [e[0] for e in sira]",
      "    adlar = [_oge[0] for _oge in sira]", "YESIL",
-     "ILGISIZ (KONTROL): davranissiz yeniden adlandirma — YESIL kalmali"),
+     "ILGISIZ (KONTROL): davranissiz yeniden adlandirma — YESIL kalmali", ""),
     ("M7", "altkategori-sinifla.py",
      "        for t in jet:\n            grup_df[ad][t] += 1\n            genel_df[t] += 1",
      "        for t in ('far', 'lamba', 'motor', 'kapi'):\n"
      "            grup_df[ad][t] += 1\n            genel_df[t] += 1", "KIRMIZI",
-     "T13: 2. gecis sozlugu ELLE YAZILMIS sabit listeye doner (veriden turemez)"),
-    # 🔴 X1 — T1'IN POZITIF KONTROLU. Bagimsiz curutucu olctu: bu mutant ONCEDEN YESIL
-    # yaniyordu, cunku T1'in 60 iddiasi yalniz "kume degerleri GECIYOR" diyordu ve
-    # nobetci herkese None dondurunce 60'i da GECIYORDU. T1p fiksturleri bu deligi kapatir.
+     "T13: 2. gecis sozlugu ELLE YAZILMIS sabit listeye doner (veriden turemez)", "T13"),
+    # 🔴 X1 — T1'IN POZITIF KONTROLU. Bagimsiz curutucu olctu: bu mutant ONCEDEN
+    # "kirmizi" yaniyordu ama T1'in 60 iddiasinin HICBIRI dusmuyordu — dusen tek
+    # ADLANDIRILMIS iddia `T9a` idi, yani KARDES KAPININ alt sureci. T1 kolu KORDU ve
+    # kimse fark etmiyordu. ISARET `T1p`: mutant KENDI kolunda oldurulmezse mutasyon RC=1.
     ("X1", "arama.py",
      "    if not isinstance(deger, str):\n"
      "        return \"metin degil (%s)\" % type(deger).__name__\n",
      "    return None\n    if not isinstance(deger, str):\n"
      "        return \"metin degil (%s)\" % type(deger).__name__\n", "KIRMIZI",
-     "T1p: IMZA NOBETI notrlestirilir (her seye None) -> uydurma imzali ad GECER"),
-    # X2 — ters yon: nobetci HER SEYI reddederse (kara delik) T1'in 60 iddiasi yanar.
+     "T1p: IMZA NOBETI notrlestirilir (her seye None) -> uydurma imzali ad GECER", "T1p"),
+    # X2 — ters yon: nobetci HER SEYI reddederse (kara delik) T1'in 60 iddiasi + T1q yanar.
     ("X2", "arama.py",
      "    d = deger.strip()\n    if not d:\n        return \"bos\"\n",
      "    d = deger.strip()\n    return \"hepsi supheli (mutant)\"\n", "KIRMIZI",
-     "T1/T1q: nobetci kara deliğe doner -> temiz jenerik adlar da reddedilir"),
+     "T1/T1q: nobetci kara deliğe doner -> temiz jenerik adlar da reddedilir", "T1q"),
 ]
 
 KOPYALANAN = ["arama.py", "altkategori-sinifla.py", "altkategori-sinifla-test.py",
@@ -669,7 +678,7 @@ def mutasyon():
         print("     " + (p0.stderr or p0.stdout).strip().splitlines()[-1][:300])
         print("\nMUTASYON SONUCU: OLCULEMEDI — harness bozuk.")
         return 1
-    for kod, dosya, eski, yeni, beklenen, aciklama in MUTANTLAR:
+    for kod, dosya, eski, yeni, beklenen, aciklama, capa in MUTANTLAR:
         tmp = _kopya_kur()
         hedef = os.path.join(tmp, "tools", dosya)
         with open(hedef, encoding="utf-8") as f:
@@ -691,7 +700,9 @@ def mutasyon():
         p = _kok_kostur(tmp)
         goruldu = "KIRMIZI" if p.returncode != 0 else "YESIL"
         oldu = [s.strip() for s in p.stdout.splitlines() if s.strip().startswith("KALDI")]
-        isaret = "OK  " if goruldu == beklenen else "HATA"
+        # KALDI satiri "KALDI <iddia adi> — ..." bicimindedir; capa iddia ADINA ONEK esler.
+        capali = [s for s in oldu if capa and s[6:].lstrip().startswith(capa)]
+        bayrak = "OK  " if goruldu == beklenen else "HATA"
         if goruldu != beklenen:
             basarisiz.append("%s %s: beklenen %s, goruldu %s"
                              % (kod, dosya, beklenen, goruldu))
@@ -700,9 +711,16 @@ def mutasyon():
         if goruldu == "KIRMIZI" and beklenen == "KIRMIZI" and not oldu:
             basarisiz.append("%s %s: KIRMIZI ama HICBIR iddia KALDI demedi — kapi COKTU"
                              % (kod, dosya))
-        print("  %s %s [%s] %s -> %s (%d iddia kirmizi) | %s"
-              % (isaret, kod, beklenen, dosya, goruldu, len(oldu), aciklama))
-        for s in oldu[:3]:
+        # 🔴 DOGRU KOL SARTI: kirmizi yanmasi YETMEZ, MUTANTIN HEDEFLEDIGI kol dusmeli.
+        # X1 bu satir olmadan "kirmizi" gorunuyordu ama olduren tek sey kardes kapiydi.
+        if beklenen == "KIRMIZI" and capa and not capali:
+            basarisiz.append("%s %s: KIRMIZI ama ISARET '%s' DUSMEDI — mutant YANLIS "
+                             "KOLDA olduruldu, hedef kol KOR" % (kod, dosya, capa))
+            bayrak = "HATA"
+        print("  %s %s [%s] %s -> %s (%d iddia kirmizi · isaret %s: %d) | %s"
+              % (bayrak, kod, beklenen, dosya, goruldu, len(oldu), capa or "(yok)",
+                 len(capali), aciklama))
+        for s in (capali or oldu)[:3]:
             print("        " + s[:150])
         shutil.rmtree(tmp, ignore_errors=True)
     sonra = {d: _sha(os.path.join(GERCEK_KOK, "tools", d)) for d in KOPYALANAN}
