@@ -33,8 +33,23 @@ adaylari yeniden "kesfedip" kapanmis karari yeniden tartismasin.
 
 ⚠️ ARTIK KOVA COPLUGE DONMESIN: isin sebebi yigilmaydi; 12 bin urunu tek gruba dokmek
 yigilmayi TASIR, cozmez. Bu yuzden --rapor her grup icin gecis kirilimini basar ve bir
-grubun %50'den fazlasi 2./3. gecisten geliyorsa KIRMIZI isaretler. Isaret RAPORDUR,
-kapiyi kirmizi yakmaz (kapi GECERLILIK olcer, dagilim degil).
+grubun ESIK_COPLUK_ORANI kadari (bugun %20) 2./3. gecisten geliyorsa ISARETLER. Isaret
+RAPORDUR, kapiyi kirmizi yakmaz (kapi GECERLILIK olcer, dagilim degil).
+
+── TIP / YER ONCELIGI (mimar karari K5, 2 Agu 2. tur) ──────────────────────────────────
+Bir grup parcanin TIPINI adlandiriyorsa (bardaklik, kulluk, saklama, sele), YERINI
+adlandiran gruptan (konsol, torpido, canta, klima menfezi) ONCE gelir. OLCULDU ki tersi
+SESSIZ bir hataydi: ayni tipteki 623 bardaklik urunu 12 gruba dagiliyordu ve hicbir kapi
+kirmizi yanmiyordu — her atama TEK BASINA gecerliydi, YANLIS olan gruplamaydi.
+
+── OLCULDU AMA YAPILMADI: `pervane` (2 Agu 2. tur) ─────────────────────────────────────
+`pervane` terimi 140 urunde geciyor ve 27'si `Tutyalar ve Anotlar`da. Ilk bakista bu bir
+dagilma gibi duruyor; OLCUM aksini soyledi: o 27 urunun 27'sinde AYRICA tutya/anot terimi
+var ve hepsinin basligi "... Şaft Tutyası"dir — yani onlar GERCEKTEN anot, pervane degil;
+`pervane` yalnizca ACIKLAMADA (pervane safti) geciyor. Ters yon de olculdu: `Pervaneler`
+grubunun 113 urununun 0'inda tutya/anot terimi var. `Pervaneler`i `Tutyalar ve Anotlar`in
+ONUNE almak 27 ANOTU pervane rafina tasirdi — toplama degil REGRESYON. Bu yuzden Marin
+sirasi DEGISTIRILMEDI. Kayit ki bir sonraki tur ayni "duzeltmeyi" yeniden onermesin.
 
 ── ESIKLER (mimar karari K4) ──────────────────────────────────────────────────────────
   * Bir KATEGORI ancak >=100 urunu varsa alt kategori ALIR. Bugun hak eden 6 kategori
@@ -86,6 +101,13 @@ ESIK_YAKINLIK = 6.0
 # 2. gecis sozluguna giren jetonun EN AZ bu kadar urunde gecmesi gerekir (nadir jeton
 # gurultusu, tek urunluk kelimeler puani savurur).
 YAKINLIK_ASGARI_DF = 3
+# 🔴 KORUMA ESIGI (RAPOR ISARETI — KAPIYI KIRMIZI YAKMAZ). Bir grubun urunlerinin bu
+# orandan FAZLASI (>=) 2./3. gecisten geliyorsa o grup "coplук riski" diye ISARETLENIR.
+# %50 idi ve 0 grup isaretliyordu — yani olcut FIILEN oluydu (olculdu 2 Agu 2. tur).
+# %20'de 4 grup isaretlenir; sayi rapordan okunur. BLOKLAYICI OLMAMASI KASITLIDIR: bu
+# depoda olculdu ki bloklayici olan sey IHLAL olmali, veri DAGILIMI degil — dagilimi
+# bloklayici tutmak "MaCiT urun ekleyince yayin durur" demektir.
+ESIK_COPLUK_ORANI = 0.20
 # Laplace yumusatma — sifir frekansli jeton sonsuz negatif puan uretmesin.
 YAKINLIK_YUMUSATMA = 0.5
 
@@ -105,6 +127,35 @@ ADAYLAR = collections.OrderedDict([
     # ══ OTOMOBIL — 12.481 urun. 16 grup mimar karari K2; terimler ve siralama olcum
     # raporundan (otomobil-eksen-kiyas) AYNEN alindi, sayilar oradan dogrulanabilir.
     ("Otomobil", (
+        # ── K5: TIP YERI YENER ─────────────────────────────────────────────────────────
+        # OLCULDU (2 Agu, 2. tur): `bardaklik` 623 urun 12 GRUBA dagilmisti, en buyuk grup
+        # yalnizca %38,2 (Ic Aksam 238 · Konsol ve Torpido 228 · Multimedya 105). Sebep
+        # SIRAYDI: `konsol` bir YER adi ve tabloda ONDEYDI, `bardaklik` bir TIP adi ve
+        # ARTIK kovasindaydi (kova daima en sonda) — "konsol bardakligi" basligi once
+        # `konsol`a carpiyordu. Musteriye gorunen gruplama BOYLE sessizce dagiliyordu:
+        # hicbir kapi kirmizi yanmiyordu cunku her atama TEK BASINA gecerliydi.
+        # Kural: parcanin TIPINI adlandiran grup, BULUNDUGU YERI adlandiran gruptan
+        # ONCE gelir. Ic Aksam da ayni sebeple ARTIK'tan BELIRGIN'e alindi (icindeki
+        # kulluk/saklama/bozuk para/paspas terimleri TIP adlaridir, artik degil).
+        ("Bardaklık", BELIRGIN, ("bardaklik",),
+         "TIP — `konsol`/`torpido`/`multimedya` YER ve SISTEM adlarindan ONCE"),
+        ("İç Aksam", BELIRGIN,
+         ("kulluk", "paspas", "bozuk para", "saklama", "organizer",
+          "cop poseti", "anahtarlik", "ic trim", "ic doseme"),
+         "ic mekan aksesuari — TIP ekseni (2 Agu 2. tur: ARTIK -> BELIRGIN)"),
+        # ── K7: `Multimedya ve Elektronik` IKIYE BOLUNDU ───────────────────────────────
+        # OLCULDU: tek grup 1.725 urundu ve IKI AYRI MERKEZI vardi — telefon/sarj/usb/
+        # magsafe ekseni 994 urun, ses/multimedya ekseni 731 urun. Terimler UYDURULMADI:
+        # eski grubun 15 terimi ikiye BOLUNDU, hicbir yeni terim eklenmedi.
+        # Telefon ekseni Klima'dan ONCE: olculdu ki `telefon`un 147 urunu "menfeze takilan"
+        # yuzunden `Klima ve Havalandırma`ya dusuyordu.
+        ("Telefon ve Şarj", BELIRGIN, ("telefon", "magsafe", "usb", "sarj"),
+         "olculdu: 994 urun (telefon 699 · sarj 307 · usb 147 · magsafe 52)"),
+        ("Ses ve Multimedya", BELIRGIN,
+         ("hoparlor", "radyo", "teyp", "stereo", "multimedya", "kamera", "mikrofon",
+          "tablet", "gps", "navigasyon", "elektronik"),
+         "olculdu: 731 urun (hoparlor 245 · radyo 182 · multimedya 120 · kamera 72 · "
+         "teyp 72) — ses kumesi en buyuk yigin, ad OLCUMDEN turedi"),
         ("Tekerlek ve Jant", BELIRGIN,
          ("jant", "bijon", "tekerlek", "lastik", "jant gobegi", "gobek kapagi"), ""),
         ("Yakıt ve Egzoz", BELIRGIN,
@@ -117,10 +168,6 @@ ADAYLAR = collections.OrderedDict([
         ("Klima ve Havalandırma", BELIRGIN,
          ("klima", "kalorifer", "havalandirma", "menfez", "hava kanali", "isitici",
           "polen filtresi"), ""),
-        ("Multimedya ve Elektronik", BELIRGIN,
-         ("telefon", "magsafe", "usb", "sarj", "hoparlor", "radyo", "teyp", "stereo",
-          "multimedya", "kamera", "mikrofon", "tablet", "gps", "navigasyon",
-          "elektronik"), ""),
         ("Koltuk ve Kemer", BELIRGIN,
          ("koltuk", "emniyet kemeri", "kemer tokasi", "kemer kilidi", "bas dayama"), ""),
         ("Ayna ve Silecek", BELIRGIN, ("ayna", "dikiz", "silecek", "yagmur sensoru"), ""),
@@ -139,17 +186,19 @@ ADAYLAR = collections.OrderedDict([
         ("Dış Aksam", BELIRGIN,
          ("tampon", "camurluk", "marspiyel", "izgara", "panjur", "kaput", "plaka",
           "anten"), ""),
-        # 🔴 ARTIK KOVA — oncelikte EN SONDA. K2: "ancak daha belirgin bir gruba dusmeyen
-        # urun oraya gider". Ic Aksam once, Montaj ve Baglanti en son.
-        ("İç Aksam", ARTIK,
-         ("bardaklik", "kulluk", "paspas", "bozuk para", "saklama", "organizer",
-          "cop poseti", "anahtarlik", "ic trim", "ic doseme"),
-         "artik kova 1 — ic mekan artigi"),
-        ("Montaj ve Bağlantı", ARTIK,
+        # ── K6: ARTIK KOVA DURUST ADLANDIRILDI ─────────────────────────────────────────
+        # 🔴 ARTIK KOVA — oncelikte EN SONDA (kural _sira()'da, TEK yerde).
+        # Eski ad `Montaj ve Bağlantı` idi. OLCULDU: 1.840 urunun 737'si (%40,1) tablodaki
+        # HICBIR terime uymuyor (2./3. gecisle geliyor) ve "baglanti" tarafina tabloda TEK
+        # BIR terim dusmuyor — ad, tasidigi icerigi tarif ETMIYORDU. Olculen icerik:
+        # montaj 484 · kapak 219 · tutucu 167 · adaptoru 111 · klips 95 · tapa 51 ·
+        # braket 37. Yeni ad bu icerigi adlandiriyor. GRUP BOLUNMEDI: olculdu, icinde
+        # ayri bir yer/sistem merkezi YOK (bolunecek tip cikmadi).
+        ("Montaj Parçaları ve Klipsler", ARTIK,
          ("klips", "mandal", "tutucu", "braket", "montaj", "aparat", "adaptoru",
           "cerceve", "pim", "burc", "mentese", "kanca", "tapa", "kapak", "dugme",
           "kolu"),
-         "artik kova 2 (SON) — hicbir yer/sistem sinyali olmayan baglanti parcasi"),
+         "artik kova (SON) — hicbir yer/sistem sinyali olmayan montaj/baglanti parcasi"),
     )),
     # ══ MARIN — 2.499 urun. 12 MIRAS deger (K3, bayt korunur) + K1'e uyan yeni adaylar.
     ("Marin", (
@@ -223,13 +272,25 @@ ADAYLAR = collections.OrderedDict([
     # ══ MOTOSIKLET — 989 urun. Otomobil ile AYNI eksen; adlar bilerek ORTAK yazilir
     # (kullanici ayni etiketi iki kategoride ayni anlamda gorur).
     ("Motosiklet", (
+        # 🔴 K5 (TIP YERI YENER) MOTOSIKLETTE DE: olculdu ki `sele` 25 urun 6 GRUBA
+        # dagilmisti, en buyuk grup %56 — `Çanta ve Bagaj` ("sele cantasi"),
+        # `Grenaj ve Kaporta`, `Depo ve Yakıt` basligi once carpiyordu. `Sele ve Sehpa`
+        # tabloda BASA alindi: sele bir TIP, otekiler yer/sistem.
+        ("Sele ve Sehpa", BELIRGIN,
+         ("sele", "selesi", "sehpa", "sehpasi", "ayaklik", "ayakligi", "basamak",
+          "yan sehpa", "orta sehpa", "koltuk"),
+         "TIP — `canta`/`grenaj`/`depo` yer-sistem adlarindan ONCE"),
         ("Aydınlatma", BELIRGIN,
          ("far", "fari", "farlar", "sinyal", "sinyali", "lamba", "lambasi", "stop",
           "stopu", "led", "aydinlatma", "reflektor", "grenaji far"), ""),
-        ("Multimedya ve Elektronik", BELIRGIN,
-         ("telefon", "navigasyon", "gps", "kamera", "usb", "sarj", "zumo", "tomtom",
-          "aksiyon kamera", "ekran", "ekrani", "tablet", "hoparlor", "mikrofon",
-          "telsiz", "interkom"), ""),
+        # K7 — Otomobil ile AYNI bolme ve AYNI adlar (ortak etiket ilkesi: kullanici ayni
+        # etiketi iki kategoride ayni anlamda gorur). Eski grubun 16 terimi BOLUNDU,
+        # yeni terim EKLENMEDI. Olculdu: telefon ekseni 55 urun · ses ekseni 82 urun
+        # (ikisi de >=15 grup esigini geciyor, K4).
+        ("Telefon ve Şarj", BELIRGIN, ("telefon", "usb", "sarj"), ""),
+        ("Ses ve Multimedya", BELIRGIN,
+         ("navigasyon", "gps", "kamera", "zumo", "tomtom", "aksiyon kamera", "ekran",
+          "ekrani", "tablet", "hoparlor", "mikrofon", "telsiz", "interkom"), ""),
         ("Gösterge ve Kokpit", BELIRGIN,
          ("gosterge", "gostergesi", "gosterge paneli", "kadran", "saat", "saati",
           "voltmetre", "kilometre", "vizor", "siperlik", "on cam"), ""),
@@ -254,9 +315,6 @@ ADAYLAR = collections.OrderedDict([
         ("Fren ve Süspansiyon", BELIRGIN,
          ("fren", "freni", "disk", "diski", "balata", "amortisor", "amortisoru",
           "salincak", "salincagi", "catal", "catali", "suspansiyon", "rulman"), ""),
-        ("Sele ve Sehpa", BELIRGIN,
-         ("sele", "selesi", "sehpa", "sehpasi", "ayaklik", "ayakligi", "basamak",
-          "yan sehpa", "orta sehpa", "koltuk"), ""),
         ("Tekerlek ve Aktarma", BELIRGIN,
          ("tekerlek", "tekerlegi", "jant", "janti", "lastik", "lastigi", "zincir",
           "zinciri", "disli", "dislisi", "aks", "aksi", "kasnak", "kasnagi",
@@ -265,8 +323,8 @@ ADAYLAR = collections.OrderedDict([
          ("elektrik", "kablo", "kablosu", "aku", "akusu", "sigorta", "sigortasi",
           "role", "rolesi", "soket", "soketi", "sensor", "sensoru", "mars", "regulator",
           "bobin", "buji", "bujisi"), ""),
-        # 🔴 ARTIK KOVA — Motosiklet. Otomobil ile ayni ad ve ayni gerekce.
-        ("Montaj ve Bağlantı", ARTIK,
+        # 🔴 ARTIK KOVA — Motosiklet. Otomobil ile ayni ad ve ayni gerekce (K6).
+        ("Montaj Parçaları ve Klipsler", ARTIK,
          ("montaj", "montaji", "braket", "braketi", "aparat", "aparati", "adaptor",
           "adaptoru", "tutucu", "tutucusu", "klips", "klipsi", "kelepce", "kelepcesi",
           "tapa", "tapasi", "kapak", "kapagi", "yuva", "yuvasi", "baglanti",
@@ -278,7 +336,8 @@ ADAYLAR = collections.OrderedDict([
         ("Montaj Braketleri", SEKIL_RED, ("braket", "braketi"),
          "K1 ihlali: BAGLANTI adi; artik kova zaten ayni urunleri aliyor"),
         ("Telefon Tutucuları", SEKIL_RED, ("telefon tutucusu", "tutucu"),
-         "K1 ihlali: BICIM adi ('tutucu'); kullanim alani Multimedya ve Elektronik'tir"),
+         "K1 ihlali: BICIM adi ('tutucu'); kullanim alani `Telefon ve Şarj`dir. 🔴 K7 "
+         "bolmesi bu karari DEGISTIRMEZ: bare 'tutucu' terimi yeni gruba da GIRMEDI"),
     )),
     # ══ DEKORASYON — 379 urun. Eksen = KULLANIM ALANI (obje ne ise yarar).
     ("Dekorasyon", (
@@ -605,6 +664,8 @@ def rapor(esik=None, kok=None):
     print("=== ALT KATEGORI SINIFLANDIRICI — GERCEK KATALOG (%d kayit)" % len(katalog))
     print("    esikler: kategori>=%d urun · grup>=%d urun · yakinlik>=%.1f bit"
           % (ESIK_KATEGORI_URUN, ESIK_GRUP_URUN, ESIK_YAKINLIK if esik is None else esik))
+    print("    koruma isareti: grubun >=%%%.0f'i 2./3. gecisten geliyorsa ISARETLENIR "
+          "(RAPOR — kapiyi kirmizi YAKMAZ)" % (100.0 * ESIK_COPLUK_ORANI))
     for kategori in ADAYLAR:
         urunler = [u for u in katalog
                    if isinstance(u, dict) and u.get("kategori") == kategori]
@@ -625,8 +686,8 @@ def rapor(esik=None, kok=None):
             n = sum(c.values())
             sonradan = c[2] + c[3]
             bayrak = ""
-            if n and sonradan * 2 > n:
-                bayrak = "  🔴 COPLUK RISKI (%%%.0f 2./3. gecis)" % (100.0 * sonradan / n)
+            if n and sonradan >= n * ESIK_COPLUK_ORANI:
+                bayrak = "  🔴 COPLUK RISKI (%%%.1f 2./3. gecis)" % (100.0 * sonradan / n)
                 kirmizi.append((kategori, ad, n, sonradan))
             print("   %-28s %5d  (1.gecis %4d · 2.gecis %4d · 3.gecis %4d)%s"
                   % (ad, n, c[1], c[2], c[3], bayrak))
@@ -640,8 +701,11 @@ def rapor(esik=None, kok=None):
     print("    kategori esigini gecemeyen (alt kategori ALMAYAN) kategoriler: %s"
           % ", ".join("%s %d" % (k, n) for k, n in sorted(kat_sayi.items())
                       if k not in ADAYLAR))
-    if kirmizi:
-        print("    🔴 COPLUK RISKI olan grup: %d" % len(kirmizi))
+    print("    🔴 COPLUK RISKI isaretli grup: %d (esik %%%.0f) — ISARET RAPORDUR, cikis "
+          "kodu DEGISMEZ" % (len(kirmizi), 100.0 * ESIK_COPLUK_ORANI))
+    for kategori, ad, n, sonradan in kirmizi:
+        print("       %-14s %-30s %5d urun · %4d sonradan (%%%.1f)"
+              % (kategori, ad, n, sonradan, 100.0 * sonradan / n))
     return 0
 
 

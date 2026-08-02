@@ -388,7 +388,7 @@ def kabul(kok):
         ("Otomobil", "Far Montaj Braketi ve Klipsi", "Aydınlatma"),
         ("Otomobil", "Jant Göbeği Kapağı Klipsi", "Tekerlek ve Jant"),
         ("Otomobil", "Koltuk Montaj Aparatı", "Koltuk ve Kemer"),
-        ("Otomobil", "Plastik Klips", "Montaj ve Bağlantı"),
+        ("Otomobil", "Plastik Klips", "Montaj Parçaları ve Klipsler"),
         ("Marin", "Olta Kamışı Tutucusu Montaj Aparatı", "Olta Ekipmanları"),
         ("Marin", "Braket Kelepçesi", "Montaj Ekipmanları"),
         ("Motosiklet", "Far Braketi Montaj Aparatı", "Aydınlatma"),

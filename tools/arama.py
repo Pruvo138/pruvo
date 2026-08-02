@@ -269,17 +269,23 @@ ALTKATEGORI_IZINLI = {
         "Aydınlatma",
         "Ayna ve Silecek",
         "Bagaj ve Taşıma",
+        # ── 2 Agu (2. tur) eki: TIP ekseni — bkz. altkategori-sinifla.py K5 ──
+        "Bardaklık",
         "Dış Aksam",
         "Kapı ve Cam",
         "Klima ve Havalandırma",
         "Koltuk ve Kemer",
         "Konsol ve Torpido",
-        "Montaj ve Bağlantı",
+        # `Montaj ve Bağlantı` -> ADI DEGISTI (K6): "baglanti" tarafina tabloda tek terim
+        # dusmuyordu; olculen icerik montaj/kapak/tutucu/klips/tapa/braket.
+        "Montaj Parçaları ve Klipsler",
         "Motor Bölümü",
-        "Multimedya ve Elektronik",
+        # `Multimedya ve Elektronik` -> IKIYE BOLUNDU (K7): iki ayri merkez olculdu.
+        "Ses ve Multimedya",
         "Sürüş Kumandaları",
         "Tavan ve Güneşlik",
         "Tekerlek ve Jant",
+        "Telefon ve Şarj",
         "Yakıt ve Egzoz",
         "İç Aksam",
     ),
@@ -291,11 +297,13 @@ ALTKATEGORI_IZINLI = {
         "Gidon ve Kumandalar",
         "Grenaj ve Kaporta",
         "Gösterge ve Kokpit",
-        "Montaj ve Bağlantı",
+        # Otomobil ile AYNI ad (ortak etiket ilkesi): rename + bolme burada da uygulandi.
+        "Montaj Parçaları ve Klipsler",
         "Motor Bölümü",
-        "Multimedya ve Elektronik",
         "Sele ve Sehpa",
+        "Ses ve Multimedya",
         "Tekerlek ve Aktarma",
+        "Telefon ve Şarj",
         "Çanta ve Bagaj",
     ),
     "Dekorasyon": (

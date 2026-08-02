@@ -479,15 +479,25 @@ def kabul(kok):
 MUTANTLAR = [
     ("arama.py", "        altkategori_kanonik(u),\n", "", "KIRMIZI",
      "D9: altkategori hash'ten cikar -> alt-filtre degisimi D1'e HIC yazilmaz"),
-    ("d1-sync.py", '    "altkategori",\n]', "]", "KIRMIZI",
+    # 🔴 CAPA ONARIMI (2 Agu 2. tur) — asagidaki 4 capa `uyum` ekseni d1-sync.py'ye
+    # eklenince BAYATLAMISTI (0 kez eslesti) ve olctukleri eksenler bir tur boyunca
+    # OLCULMEMISTI: KOLONLAR literalinin sonuna "uyum" geldi, INSERT kolon listesi
+    # "altkategori,uyum,yayinda" oldu, offline fikstur semasinda altkategori satiri
+    # virgul aldi. Ders [[ikiz-tanim-sessiz-ayrisma]] + bu dosyanin ustundeki CAPA BICIMI
+    # notu: kirilgan duz-metin capalar re.Pattern'e cevrildi — capa artik KOMSU jetona
+    # degil, mutasyona ugrayacak YAPIYA bakiyor, komsulugu bir daha degisirse de eslesir.
+    ("d1-sync.py", re.compile(r'\n    "altkategori",\n'), "\n", "KIRMIZI",
      "D5/D7: KOLONLAR disi kalir -> mevcut satirda altkategori ESKI degerde donar"),
-    ("d1-sync.py", '"altkategori,yayinda) VALUES ("', '"yayinda) VALUES ("', "KIRMIZI",
+    ("d1-sync.py", re.compile(r'"altkategori,((?:\w+,)*)yayinda\) VALUES \("'),
+     r'"\1yayinda) VALUES ("', "KIRMIZI",
      "D4: INSERT listesinden duser -> canlida kolon HIC yazilmaz"),
-    ("d1-sync.py", '"altkategori,yayinda) VALUES ("', '"yayinda,altkategori) VALUES ("',
+    ("d1-sync.py", re.compile(r'"altkategori,((?:\w+,)*)yayinda\) VALUES \("'),
+     r'"\1yayinda,altkategori) VALUES ("',
      "KIRMIZI", "D14: kolon/deger siralama kaymasi (deger yanlis hucreye duser)"),
     ("d1-sync.py", '    ("altkategori", "TEXT NOT NULL DEFAULT \'\'"),\n', "", "KIRMIZI",
      "D2: canli tablo ALTER'i kaybolur -> mevcut D1'de kolon HIC olusmaz"),
-    ("d1-sync.py", "  altkategori TEXT NOT NULL DEFAULT ''\n", "", "KIRMIZI",
+    ("d1-sync.py", re.compile(r"\n  altkategori TEXT NOT NULL DEFAULT ''(,?)\n"), "\n",
+     "KIRMIZI",
      "D3: offline fikstur semasi canli semadan AYRISIR (ikiz tanim drift'i)"),
     ("d1-sema.sql", "  altkategori TEXT NOT NULL DEFAULT '',\n", "", "KIRMIZI",
      "D1: temiz DB kolonsuz kurulur (testler yesil, canli baska sema)"),
