@@ -2,6 +2,29 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## MERGE — 2 Agu 2026 · CI kapsam kapisi (opt-in alt kume + coklu is akisi tetigi)
+
+- **Merge SHA `8559518f`** (dal `claude/cool-rhodes-92cdf1`, merge-base `ead0bcb6`).
+  Kapsam **4 dosya / +2081 −30**: `tools/ci-kapsam-test.py`, `tools/yaml-oku.py`,
+  `shop/test/kabul.js`, `.gitignore`. `deploy.yml` 0 satir; `urunler.json` ve
+  urun kaynak kaydi dokunulmadi. Cakisma yok, sizinti taramasi 0 vurus.
+- **Kapilar dalin worktree'sinde kosuldu (hepsi exit 0):** CI kapsam kapisi
+  **161 kabul testi kesfedildi · 4 is akisi (3 otomatik / 1 elle) · 125 otomatikte kosuyor ·
+  36 muaf · 2 beyan edilen alt kume (2/2 kapsandi) · 18 muaf alt kume**;
+  `--kendini-test` 6 nobetci yesil (48 + 53 sentetik fikstur);
+  kapi envanteri **7/7 VAR+BAGLI+NOBETTE**; gitignore kapisi temiz (267 uretilen dizin);
+  shop kabul testi **28/28**, ic parite 300 (site) + 845 (Ege) birebir.
+- **Bilinen sinir:** iki-kol YAML paritesi bu ortamda **OLCULEMEDI** (tek gercek kol vardi);
+  sabit kumede sapma 0 olarak raporlandi, kume disi girdi ayri madde olarak duruyor.
+- **D1 teyidi (merge sonrasi):** urun **16874 = 16874** (D1 == urunler.json benzersiz);
+  sema ekseni temiz; icerik ekseni 16874 satirda hash uyusmazlik/eksik/fazla **0**.
+- **CI:** koşum `30745372063` headSha `8559518f` **failure** — tek kirmizi adim
+  "Varlik (ortak CSS/JS harici dosya) kabul testi". **Dalin degil:** ayni adim merge-base
+  `ead0bcb6` kosumunda (merge'den ONCE) da kirmiziydi ve dal o kapinin dosyasina hic dokunmadi.
+  Dalin kendi iki adimi ("CI kapsam kapisi" + "oz-nobetcileri") ayni kosumda **success**.
+  Onarim baska bir oturumda `95d19364` ile main'e alindi; `8559518f` o SHA'nin **atasi**
+  (`merge-base --is-ancestor` exit 0), ardil kosum `30745500956` izleniyor.
+
 ## OTURUM KAPANISI — 2 Agu 2026 (KraL · uyum ekseni + alt kategori taksonomisi + sayfa agirligi)
 
 **CANLIYA GITTI (SHA + olculen sonuc):**
