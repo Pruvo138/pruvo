@@ -1,4 +1,12 @@
 #!/usr/bin/env node
+// CI-ALT-KUME: --sema-paritesi  agsiz/wranglersiz PARA nobeti (sema kapsami 23/23 + sari
+// seri fail-closed); deploy.yml'de continue-on-error'SUZ bloklayici kosar.
+// CI-ALT-KUME: --yonet-cerez  agsiz/wranglersiz ADMIN GIRIS GUVENLIGI alt kumesi
+// (cerez oturumu, sabit-zamanli karsilastirma, hiz siniri, enjeksiyon). deploy.yml'de
+// continue-on-error'SUZ BLOKLAYICI kosar; kapsam kapisinin izin listesinde giris YOKTUR
+// (kural 1 ile kapsanir). Cagri bozulursa kapi KIRMIZI yanar — mutasyonla olculdu.
+// 🔴 IDDIA SAYISI BURAYA YAZILMAZ: sayiyi betik son satirda kendisi basar. Bu satirda
+// "63 iddia" YAZIYORDU ve iddia ikiye bolununce SESSIZCE bayatladi (olculdu: gercek 65).
 /**
  * PRUVO shop KABUL TESTLERI (tools/paket-shop-odeme.md 7 madde + tools/paket-shop-kargo.md:
  * 10 kargo, 11 retrieve-incele, 12 siparis numarasi, 13 havale/eft, 14 kdv, 15 sozlesme onayi).
