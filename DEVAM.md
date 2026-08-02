@@ -31,6 +31,7 @@ IZOLE) olarak bolundu; `girisYap` export edildi (davranis DEGISMEDI, yalnizca ol
 - `d1-sync.py --durum`: **16874 == 16874**, hash uyusmaz 0 / eksik 0 / fazla 0, sema ekseni temiz.
 - **CI (yerelde olculemeyen tek eksen):** kosum `30740041326`, `headSha` = `db9d6de6` **birebir**.
   `Yonet anahtar/cerez kabul testi` adimi **success** (node 20, bloklayici, `continue-on-error` YOK).
+  Kosumun TAMAMI **success** (cron-nabzi · envanter · mesaj-nobeti · build · serit-b · deploy · yayin).
 
 **Temizlik:** `worktree-agent-ae5d5bf43b9f176b0` dali + worktree'si silindi (porcelain bos, ucu
 main'de, ana agacta yetim degisiklik yok).
