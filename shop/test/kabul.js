@@ -821,14 +821,15 @@ async function test26SariFailClosed() {
   /* HACIM DOGRULAMA KAPISI (para, 2026-07-31 + 2026-08-02). hacim.js kapali-form hacmi
      GERCEK geometriden %3'ten fazla sapan ya da HIC olculmemis ailede tutar URETILMEZ.
      Kapi ALLOWLIST'tir: listede olmayan her aile (yeni/olculmemis/kirmizi) KAPALI.
-     2026-08-02: izgara/pervane/rulman/petek/huni/kasnak/kayis/oring bagimsiz olcumle
-     ACILDI (eski kirmizilari REFERANS ARIZASI uretmisti — bkz. secenekler.js DUZELTME
-     blogu), bu yuzden fikstur hala KAPALI olan iki aileye daraldi: rampa + vida.
+     2026-08-02: izgara/pervane/petek/huni/kasnak/kayis/oring bagimsiz olcumle ACILDI
+     (eski kirmizilari REFERANS ARIZASI uretmisti — bkz. secenekler.js DUZELTME blogu).
+     `rulman` ACILMADI: hacmi yesil ama SEMA ARALIGI uretilemez kombinasyon veriyor.
+     Fikstur bu yuzden KAPALI kalan uc aile: rampa + rulman + vida.
      Semanin geri kalani GECERLI oldugu icin bu vakalar yalniz kapiyi olcer.
      ⚠️ hacimFormulu degistirilince hacim fonksiyonu da degisir; sema.parametreler kutu'nun
      kaldigi icin hacim hesabi yine calisir ya da null doner — iki halde de tutar CIKMAMALI,
      iddia zaten "hata dolu + birimKurus YOK". */
-  for (const kirmiziAile of ["rampa", "vida"]) {
+  for (const kirmiziAile of ["rampa", "rulman", "vida"]) {
     vakalar.push(["N13-" + kirmiziAile + " hacim formulu dogrulanmamis aile",
                   Object.assign({}, sema, { hacimFormulu: kirmiziAile }),
                   null, "hacim-dogrulanmamis"]);

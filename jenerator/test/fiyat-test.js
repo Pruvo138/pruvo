@@ -271,13 +271,15 @@ esit("varsayılanda fiyat = taban (PLA/Siyah, doğrulanmış aile)",
    Ölçüm: hacim.js ↔ gerçek geometri, 22 aile. Tutar YALNIZ ölçülmüş-ve-geçmiş ailede
    üretilir (fail-closed); kapalı ailede null döner.
    2026-08-02: eski 9 kırmızının 8'i (huni, izgara, kasnak, kayis, oring, pervane,
-   petek, rulman) REFERANS ARIZASI çıktı — ÜRETİM motoruna karşı bağımsız ölçümde
-   hepsi ≤ %0,39. Listeye alındılar; açık aile 13 → 21.
-   KAPALI KALAN: rampa (bağımsız ölçümle doğrulanmadı) + vida (hiç ölçülmedi). */
-var KAPALI_AILELER = ["rampa", "vida"];
+   petek, rulman) REFERANS ARIZASI çıktı — bağımsız ölçümde hepsi ≤ %0,39.
+   Bunlardan 7'si listeye alındı; açık aile 13 → 20.
+   KAPALI KALAN: rampa (bağımsız ölçümle doğrulanmadı), vida (hiç ölçülmedi) ve
+   rulman (hacmi yeşil ama ŞEMA ARALIĞI üretilemez kombinasyon veriyor — üretemediğimiz
+   konfigürasyon satılabilir görünmez; şema onarılana kadar fail-closed). */
+var KAPALI_AILELER = ["rampa", "rulman", "vida"];
 var ACIK_AILELER = ["adaptor", "braket", "cerceve", "cetvel", "disli", "huni", "izgara",
                     "jeton", "kase", "kasnak", "kavanoz", "kayis", "konektor", "kutu",
-                    "oring", "pervane", "petek", "profil", "rulman", "toka", "yay"];
+                    "oring", "pervane", "petek", "profil", "toka", "yay"];
 
 // POZİTİF: kapı tutuyor — sapan/ölçülmemiş ailede tutar HİÇ üretilmez (0 TL DEĞİL, null).
 KAPALI_AILELER.forEach(function (aile) {
