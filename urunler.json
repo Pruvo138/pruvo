@@ -1,5 +1,40 @@
 [
   {
+    "id": "raymarine-st4000-mk1-kavrama-kolu",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine ST4000 Mk1 Otopilot Icin Kavrama (Clutch) Kolu",
+    "aciklama": "Raymarine ST4000 Mk1 otopilotunda kavramayi devreye alip cikaran, kirilmaya acik kolun yerine gecen yedek parca.\n- Raymarine ST4000 Mk1 otopilot modeliyle uyumludur.\n- Kirilan veya asinan orijinal kavrama kolunun yerine dogrudan takilir.\n- Tek parcadan olusur; orijinal pimiyle sabitlenir.\nYaklasik dis olculer: 98 x 28 x 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6746899-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nipo80",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "raymarine-ruzgar-olcer-baglanti-mansonu",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine Ruzgar Olcer Icin Konik Baglanti Mansonu",
+    "aciklama": "Raymarine ruzgar olcerini direk basindaki kola baglayan, kirildiginda enstrumani bosta birakan konik mansonun yedegi.\n- Raymarine ruzgar olcer kolunun uc kismina gecer.\n- Kirilan orijinal plastik baglanti parcasinin yerine gecer.\n- Konik govdesi konnektor bolgesini disaridan sarar.\nYaklasik dis olculer: 56 x 37 x 37 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6926415-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6926415-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "po138",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
     "id": "raymarine-element-7-vesa-adaptoru",
     "kategori": "Marin",
     "marka": [
