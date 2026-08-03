@@ -757,10 +757,14 @@ ONIZLEME_JS = """
        yargisi secenekler.js onizlemeKisitIhlali() icindedir — Worker sema kapisi
        (onizleme/src/index.js) AYNI fonksiyonu cagirir, ikinci kopya YOK. Fonksiyon
        yoksa (bayat onbellekli secenekler.js) beyan VARKEN bloklanir: fail-closed,
-       cunku "kisiti okuyamadim" hali musteriye yanlis vaat basmamali. */
+       cunku "kisiti okuyamadim" hali musteriye yanlis vaat basmamali.
+       3. ARGUMAN URUN_SEMA: `eger` kosul degerleri SEMAYA gore dogrulanir; hicbir
+       musteri girdisiyle eslesemeyen bir kosul degeri (yazim hatasi) girdiyi
+       sessizce etkisizlestiremez -> ihlal. Sema verilmeseydi yalniz tip ailesi
+       olculebilirdi; bu sayfa semayi TASIR (URUN_SEMA satir-ici). */
     var kis=(window.PRUVO_SECENEK&&PRUVO_SECENEK.ONIZLEME_KISITLAR||{})[URUN.id];
     var kisitFn=window.PRUVO_SECENEK&&PRUVO_SECENEK.onizlemeKisitIhlali;
-    if(kis&&(!kisitFn||kisitFn(kis,s.parametreler))){
+    if(kis&&(!kisitFn||kisitFn(kis,s.parametreler,URUN_SEMA))){
       kutu.hidden=false;
       de("Bu seçenek üretim hattımızda henüz karşılanmıyor: önizleme sunulamıyor ve bu seçenekle sipariş alınmıyor. Ölçüleri değiştirin ya da WhatsApp'tan teklif isteyin.");
       return;

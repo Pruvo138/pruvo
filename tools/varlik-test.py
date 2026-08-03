@@ -124,7 +124,13 @@ BILEREK_DEGISEN_TAM = (
     ("var kisitFn=window.PRUVO_SECENEK&&PRUVO_SECENEK.onizlemeKisitIhlali;",
      "kisit dongusu tek kaynaga tasindi — YENI fonksiyon referansi (yoksa fail-closed)"),
     ("if(kis&&(!kisitFn||kisitFn(kis,s.parametreler))){",
-     "kisit dongusu tek kaynaga tasindi — YENI ihlal kosulu"),
+     "kisit dongusu tek kaynaga tasindi — YENI ihlal kosulu (2 argumanli ilk hali)"),
+    # 2026-08-03: `eger` KOSUL DEGERI fail-closed sertlestirmesi — cagriya 3. arguman
+    # (URUN_SEMA) eklendi ki hicbir musteri girdisiyle eslesemeyen bir kosul degeri
+    # (yazim hatasi) girdiyi sessizce etkisizlestiremesin. Yine varliga-tasima kaybi
+    # DEGIL; iddiasi tools/onizleme-kisit-kosul-test.py'de olculur.
+    ("if(kis&&(!kisitFn||kisitFn(kis,s.parametreler,URUN_SEMA))){",
+     "kisit cagrisina sema argumani eklendi — YENI ihlal kosulu"),
 )
 
 _BILEREK_TAM = frozenset(d for d, _g in BILEREK_DEGISEN_TAM)
