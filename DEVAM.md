@@ -16,13 +16,38 @@ devir listesinin 3. adimi (dallari push et) **her agac icin ayri ayri** kosulaca
 
 **✅ 1. IS — KAPANDI 3 Agu: merge `73149015` (dokum DEVAM-ARSIV.md'de).**
 
-**🟡 2. IS — KURTARILAN DAL, merge kararı bekliyor:** `kurtarma/rulman-sema-araligi`
-(**`89ab5da6`**, origin'e itildi). Rulman sema araligi kapatilmasi — *"izgaranin %33,9'u uretim
-motorunda uretilemezdi"*. **Devir taramasinda son anda yakalandi:** commit **detached HEAD**'de
-duruyordu, main'de YOKTU, origin'e HIC itilmemisti ve uretici oturum KAPANMISTI — worktree
-silinseydi ulasilamaz olacakti. Dal acilip itildi, artik guvende.
-Successor: icerigini olc, merge kapisindan gecir. **Rulman satisa acma karari buna bagli** —
-sema onarilinca `HACIM_DOGRULANMIS_AILELER`'e eklenebilir (bugun bilerek kapali, oran %32,88).
+**✅ 2. IS — KAPANDI 3 Agu: merge `bd8b8abb` + onarim `78b6651f` (itildi).**
+Kurtarilan dal `kurtarma/rulman-sema-araligi` (`89ab5da6`) merge kapisindan gecirildi.
+Kapsam 6 dosya / +596 −3, merge-base `33ebff71`, cakisma YOK. `secenekler.js` ve `.github/`
+DOKUNULMADI — satis allowlist'i acilmadi.
+- **Kapi deltasi:** dalin getirdigi 3 yeni test `ci-kapsam-test.py`'yi KIRMIZI yakiyordu
+  (ANA MAIN'de ayni kapi YESIL → dalin kusuru). Ucu de olculmus gerekceyle izin listesine
+  yazildi; `deploy.yml`'de degisen satir **0**, hicbir kapi gevsetilmedi. Diger kapilar
+  (kapi-envanteri · kisisel-veri · is-akisi · yayin-ic-dil · onizleme-vaat +kendini-test ·
+  shop kabul 28/0 · fiyat-test 176 iddia) merge sonrasi agacta exit 0.
+- **Mutasyon ayirt ediciligi (dalin kendi surucusu):** taban 22 iddia / 0 kirmizi;
+  **12 olduruculuk mutanti KIRMIZI (isaret sartiyla) + 2 KONTROL mutanti YESIL**;
+  kaynak butunlugu sha256 basta=sonda saglam.
+- **Yan onarim:** olcum aracinin sifir-olcum kolu sertlestirildi; mutasyon kaniti
+  eski kol rc=0 · yeni kol rc=3 (ayrinti DEVAM-ARSIV.md'de).
+- **Parite (guncel main, ana checkout):** site 1199 sorgu BIREBIR · Ege 845 sorgu BIREBIR.
+- **D1 uc eksen:** SAYI 16874==16874 · SEMA temiz · ICERIK 16874 hash birebir.
+
+**🟡 RULMAN SATISA ACMA — hala BENDE, ayri tur. Karar dayanagi OLCULDU (3 Agu):**
+Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × eleman{3}` = **126.945 nokta**.
+- Sema kapisi ONCESI uretilemez: **43.085 / 126.945 = %33,94** (dalin iddiasi dogrulandi;
+  DEVAM'daki eski "%32,88" farkli bir izgaradan geliyor, ikisi de kayitta kalsin).
+- Sema kapisi SONRASI kabul edilen 83.860 sette **uretilemez = 0**; ters eksende
+  **asiri red = 0** (motorda uretilebilir olup reddedilen tek kombinasyon yok).
+- Kapali form **471 GERCEK render**'a karsi **0 ayrisma** ile dogrulandi.
+- `parametrikFiyatKurus("rulman",…)` **hala `null`** (allowlist 17 aile, rulman yok);
+  kontrol `kutu` 24168 kurus → kapi kor degil.
+- Kardes depodaki et kalinligi kapisi (`0,8 mm`) ile **ORTUSME SIFIR**: iki AYRI bolge
+  (o kapi 336/634.725 noktayi reddediyor, hepsi bu deponun motorunda URETILEBILIR).
+  Yani o kapi bu urunu KORUMUYOR — iki farkli uretim motoru.
+- 🔴 **ACMADAN ONCE:** `onizleme-vaat-kapisi.py` A3 kuralinin kapsam ekseni genisletilmeli —
+  "kisitli aile" kumesi semadaki `kisitlar` alanini da kapsamali. Olculmus mutasyon dokumu
+  DEVAM-ARSIV.md'de; is ayri turda (cip acildi).
 
 **MERGE EDILMEDIGI ICIN ACIK KALAN IKI KARAR (isci sordu, ben cevaplamadim):**
 1. `build.py`'deki `gecersiz-parca` kolu ayni "siparis verebilirsiniz, uretim etkilenmez"
