@@ -679,6 +679,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
 </footer>
 {pv_js}
 {ga_banner}
+{top_btn}
 {kapsam_js}
 </body>
 </html>
@@ -699,6 +700,7 @@ def _shell(ctx, title, canonical_url, description, breadcrumb_ld, collection_ld,
         ga_banner=ctx["GA_BANNER_SNIPPET"],
         collection_ld=collection_ld,
         breadcrumb_ld=breadcrumb_ld,
+        top_btn=ctx["TOP_BTN_BLOCK_HTML"],
         kapsam_js=kapsam_js,
     ))
 

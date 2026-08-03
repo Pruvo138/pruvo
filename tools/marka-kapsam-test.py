@@ -96,8 +96,9 @@ def bitir():
 try:
     import build
     import marka_model_build as mm
+    import landing_hub_build as lh
 except Exception as e:                                    # noqa: BLE001
-    olculemedi("marka_model_build/build import edilemedi: %r" % (e,))
+    olculemedi("marka_model_build/build/landing_hub_build import edilemedi: %r" % (e,))
 
 try:
     with open(build.JSON_PATH, encoding="utf-8") as f:
@@ -316,6 +317,30 @@ try:
         model_ornek = mf
         break
     kontrol("model sayfası fikstürü çıkarıldı", model_ornek is not None)
+
+    # ---- YUKARI-ÇIK OKU (Okan, 3 Ağu — gözlem): ana sayfada çalışıyordu, marka/model/hub
+    # sayfasında YOKTU. build.py'nin TEK KAYNAKTAN (TOP_BTN_BLOCK_HTML) ürettiği buton, ctx
+    # üzerinden marka_model_build/_shell VE landing_hub_build/_shell'e AYNI şekilde ulaşıyor mu.
+    BTN_ID = 'id="topBtn"'
+    BTN_ARIA = 'aria-label="Yukarı çık"'
+    bmw_html = sayfa_oku("marka/bmw")
+    kontrol("/marka/bmw/: yukarı-çık butonu TEKİL", bool(bmw_html) and bmw_html.count(BTN_ID) == 1)
+    kontrol("/marka/bmw/: aria-label var", bool(bmw_html) and BTN_ARIA in bmw_html)
+    marka_index_html = sayfa_oku("marka")
+    kontrol("/marka/ (dizin): yukarı-çık butonu TEKİL",
+            bool(marka_index_html) and marka_index_html.count(BTN_ID) == 1)
+    if model_ornek is not None:
+        model_html_tekrar = sayfa_oku(model_ornek["ad"])
+        kontrol("model sayfası %s: yukarı-çık butonu TEKİL" % model_ornek["ad"],
+                bool(model_html_tekrar) and model_html_tekrar.count(BTN_ID) == 1)
+
+    hub_sonuc = lh.uret(ctx)
+    hub_yol = os.path.join(TMP, hub_sonuc["hub_slug"], "index.html")
+    with open(hub_yol, encoding="utf-8") as fh:
+        hub_html = fh.read()
+    kontrol("hub sayfası (/%s/): yukarı-çık butonu TEKİL" % hub_sonuc["hub_slug"],
+            hub_html.count(BTN_ID) == 1)
+    kontrol("hub sayfası: aria-label var", BTN_ARIA in hub_html)
 
     kapsam_js = mm._KAPSAM_JS_GOVDE.replace(
         "__KATEGORILER__", json.dumps(KATEGORILER, ensure_ascii=False,

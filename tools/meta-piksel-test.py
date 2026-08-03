@@ -140,6 +140,36 @@ kontrol("S6 Statik: GA KORUNDU (Meta enjekte GA'yı ezmedi)",
 kontrol("S7 Statik: idempotent (2. koşu çift enjekte etmez, tek META bloğu)",
         B.meta_ekle(statik_html) == statik_html and statik_html.count(B.META_START) == 1)
 
+# ----- YUKARI-ÇIK OKU (Okan, 3 Ağu — gözlem): ana sayfada/katalogda çalışıyordu ama marka/model,
+# yasal ve landing/SEO sayfalarında YOKTU. build.py'nin TEK KAYNAKTAN (TOP_BTN_BLOCK_HTML +
+# top_btn_ekle) ürettiği/enjekte ettiği buton, ürün sayfasıyla BİREBİR AYNI id/aria-label/JS
+# davranışını taşıyor mu + statik yasal sayfaya idempotent enjekte ediliyor mu — burada ölçülür
+# (ayrı dosya AÇILMAZ: CI kapsam kapısı yalnız deploy.yml'de FİİLEN koşulan dosyaları tanır;
+# bu dosya zaten koşuyor ve render_product/render_content_page/statik enjeksiyon örneklerini
+# ÇOKTAN üretiyor — ikinci bir jeneratör çağrısı AÇILMAZ, aynı örnekler yeniden kullanılır).
+BTN_ID = 'id="topBtn"'
+BTN_ARIA = 'aria-label="Yukarı çık"'
+BTN_JS_ANKOR = 'topBtn.classList.toggle("show", window.scrollY > 600)'
+
+kontrol("B1 Ürün: yukarı-çık butonu TEKİL (regresyon yok)", urun_html.count(BTN_ID) == 1)
+kontrol("B2 Ürün: aria-label var", BTN_ARIA in urun_html)
+
+kontrol("B3 İçerik/landing: yukarı-çık butonu TEKİL", icerik_html.count(BTN_ID) == 1)
+kontrol("B4 İçerik/landing: aria-label var", BTN_ARIA in icerik_html)
+kontrol("B5 İçerik/landing: scroll/tıklama kablolaması var",
+        BTN_JS_ANKOR in icerik_html and "topBtn.onclick=function(){ window.scrollTo({top:0" in icerik_html)
+
+statik_btn_html = B.top_btn_ekle(statik_html)
+kontrol("B6 Statik yasal sayfa: yukarı-çık butonu enjekte edildi (tekil)",
+        statik_btn_html.count(BTN_ID) == 1)
+kontrol("B7 Statik yasal sayfa: aria-label var", BTN_ARIA in statik_btn_html)
+kontrol("B8 Statik yasal sayfa: idempotent (2. koşu çift buton üretmez)",
+        B.top_btn_ekle(statik_btn_html) == statik_btn_html
+        and statik_btn_html.count(B.TOP_BTN_START) == 1)
+kontrol("B9 Statik yasal sayfa: Meta/GA/attribution blokları BOZULMADI (enjeksiyonlar birbirini ezmez)",
+        FB_SRC in statik_btn_html and "G-5V53CQMSCE" in statik_btn_html
+        and B.ATTRIBUTION_START in statik_btn_html)
+
 # ----- rapor -----
 gecen = sum(1 for _, ok in sonuclar if ok)
 kalan = len(sonuclar) - gecen

@@ -727,5 +727,20 @@
   }
 })();
 </script>
+<!-- PRUVO yukari-cik oku: start -->
+<button id="topBtn" class="top-btn" aria-label="Yukarı çık">
+  <svg viewBox="0 0 24 24"><path d="M12 4.6 4.6 12l1.8 1.8 4.3-4.3V20h2.6V9.5l4.3 4.3 1.8-1.8z"/></svg>
+</button>
+<script>
+(function(){
+  var topBtn=document.getElementById("topBtn");
+  if(!topBtn){ return; }
+  window.addEventListener("scroll",function(){
+    topBtn.classList.toggle("show", window.scrollY > 600);
+  },{passive:true});
+  topBtn.onclick=function(){ window.scrollTo({top:0, behavior:"smooth"}); };
+})();
+</script>
+<!-- PRUVO yukari-cik oku: end -->
 </body>
 </html>

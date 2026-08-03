@@ -229,6 +229,51 @@ def meta_ekle(html_metni):
         return html_metni.replace("<title>", snippet + "\n<title>", 1)
     raise RuntimeError("meta pixel ekleme noktasi bulunamadi")
 
+
+# ------------------------------------------------------------------ yukarı-çık oku (TEK KAYNAK)
+# NEDEN VAR (Okan, 3 Ağu — gözlem): ↑ oku ana sayfada/katalogda çalışıyor ama marka/model,
+# yasal (gizlilik/hakkimizda/iletisim/sss) ve landing/SEO sayfalarında YOKTU — bu üç ailenin
+# kendi şablonu var (render_content_page burada; marka_model_build._shell; landing_hub_build._shell)
+# ve hiçbiri butonu KOPYALAMADI. Davranış index.html + render_product'takiyle BİREBİR AYNI
+# (eşik scrollY>600, tıklayınca yumuşak kaydırma, aria-label); CSS zaten stil_bloklari()
+# üzerinden TÜM şablonlarda ortak (.top-btn tanımı yukarıda) — burada yalnız DOM + kablolama
+# TEK KAYNAKTAN üretilir, kopyala-yapıştırla ÜÇ şablona ayrı ayrı GÖMÜLMEZ.
+TOP_BTN_HTML = u"""<button id="topBtn" class="top-btn" aria-label="Yukarı çık">
+  <svg viewBox="0 0 24 24"><path d="M12 4.6 4.6 12l1.8 1.8 4.3-4.3V20h2.6V9.5l4.3 4.3 1.8-1.8z"/></svg>
+</button>"""
+
+TOP_BTN_SCRIPT_HTML = u"""<script>
+(function(){
+  var topBtn=document.getElementById("topBtn");
+  if(!topBtn){ return; }
+  window.addEventListener("scroll",function(){
+    topBtn.classList.toggle("show", window.scrollY > 600);
+  },{passive:true});
+  topBtn.onclick=function(){ window.scrollTo({top:0, behavior:"smooth"}); };
+})();
+</script>"""
+
+TOP_BTN_BLOCK_HTML = TOP_BTN_HTML + "\n" + TOP_BTN_SCRIPT_HTML
+
+# Elle yazılmış statik yasal sayfalara (hakkimizda/iletisim/sss/gizlilik) butonu idempotent
+# enjekte etmek için işaretçiler (attribution/meta pixel bloğuyla AYNI desen).
+TOP_BTN_START = "<!-- PRUVO yukari-cik oku: start -->"
+TOP_BTN_END = "<!-- PRUVO yukari-cik oku: end -->"
+
+
+def top_btn_ekle(html_metni):
+    """Yukarı-çık okunu elle yazılmış statik sayfaya ekler veya mevcut bloğu TEK KAYNAKTAN
+    (TOP_BTN_BLOCK_HTML) yeniler. attribution_ekle/meta_ekle ile AYNI idempotent işaretçi
+    deseni: tekrar koşunca çift enjekte ETMEZ (çift buton regresyonu yok)."""
+    snippet = TOP_BTN_START + "\n" + TOP_BTN_BLOCK_HTML + "\n" + TOP_BTN_END
+    pattern = re.compile(re.escape(TOP_BTN_START) + r".*?" + re.escape(TOP_BTN_END), re.S)
+    if pattern.search(html_metni):
+        return pattern.sub(lambda m: snippet, html_metni, count=1)
+    if "</body>" not in html_metni:
+        raise RuntimeError("yukari-cik oku ekleme noktasi bulunamadi")
+    return html_metni.replace("</body>", snippet + "\n</body>", 1)
+
+
 GA_BANNER_SNIPPET = """<!-- KVKK çerez onay banner'ı (vanilla JS/CSS — harici kütüphane YOK). analytics_storage için açık rıza. -->
 <style>
   #pruvo-cerez-onay{position:fixed;left:0;right:0;bottom:0;z-index:2147483000;
@@ -2955,6 +3000,7 @@ def render_content_page(slug, title, meta, body_html):
 </footer>
 {pv_js}
 {ga_banner}
+{top_btn}
 </body>
 </html>
 """.format(
@@ -2972,6 +3018,7 @@ def render_content_page(slug, title, meta, body_html):
         meta_head=META_HEAD_SNIPPET,
         attribution_head=attribution_head_snippet(),
         ga_banner=GA_BANNER_SNIPPET,
+        top_btn=TOP_BTN_BLOCK_HTML,
     ))
 
 
@@ -3288,6 +3335,8 @@ def marka_model_ctx():
         # Standart katalog kartı (kartCiz) için: görsel + parametrik taban fiyatı
         "images_of": images_of, "konf_sema": konf_sema,
         "taban_fiyat_metni": taban_fiyat_metni,
+        # Yukarı-çık oku TEK KAYNAK (build.py) — marka/model + hub şablonu kopyalamaz, buradan alır.
+        "TOP_BTN_BLOCK_HTML": TOP_BTN_BLOCK_HTML,
     }
 
 
@@ -3337,15 +3386,15 @@ def main():
         print("UYARI: gecersiz kategori(ler) var -> %s | detay: python3 tools/kategori-kapisi.py"
               % ", ".join(repr(k) for k in _kotu_kat))
 
-    # Elle korunan dört içerik sayfasında işaretli attribution + Meta piksel bloklarını yenile.
-    # (GA bu sayfalara elle gömülü; Meta piksel burada TEK KAYNAKtan enjekte edilir — rıza kapısı
-    # GA ile aynı, ViewContent yok.) CI aynı dosyaları yayın klasörüne kopyaladığı için ayrı
-    # varlık/deploy değişikliği gerekmez.
+    # Elle korunan dört içerik sayfasında işaretli attribution + Meta piksel + yukarı-çık oku
+    # bloklarını yenile. (GA bu sayfalara elle gömülü; diğer üçü burada TEK KAYNAKtan enjekte
+    # edilir — rıza kapısı GA ile aynı, ViewContent yok.) CI aynı dosyaları yayın klasörüne
+    # kopyaladığı için ayrı varlık/deploy değişikliği gerekmez.
     for slug in STATIK_SAYFALAR:
         statik_yol = os.path.join(ROOT, slug, "index.html")
         with open(statik_yol, encoding="utf-8") as f:
             statik_html = f.read()
-        yenilenmis = meta_ekle(attribution_ekle(statik_html))
+        yenilenmis = top_btn_ekle(meta_ekle(attribution_ekle(statik_html)))
         if yenilenmis != statik_html:
             with open(statik_yol, "w", encoding="utf-8") as f:
                 f.write(yenilenmis)
