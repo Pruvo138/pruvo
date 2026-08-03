@@ -70,15 +70,14 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
    hangi commit'i tasiyor, kac commit geride), ya da elle deploy ritueli kapiya baglanir.
    ✅ **Bugun ELLE deploy edildi (Okan onayiyla): `ac6864e3` canlida** — surum
    `cecc9d4f`, oncesi `9d5ab6ed` (rollback hedefi kayitli, kosulmadi). Bundle **13 sa 15 dk**
-   eskiymis. **34 olcum onaylanan tabloya BIREBIR uydu** (ayni 21 · kapali→fiyat 12 ·
-   kurus degisen 1 · beklenmeyen **0**); canli SONRA = yerel `ac6864e3` **34/34 fark 0**.
-   L1 `hacim-dogrulanmamis` → `parametre-araligi` (asil iddia), `kutu` 15.000 kurus (kapi kor
-   degil), `rulman` satisa ACILMADI. 🔴 **KALEM ACIK: CI hala Worker yayinlamiyor.**
-1c. 🟡 **YENI (kutudan, karar bende):** (a) **HocA** — `sss/` sayfasi uretim malzemesi olarak
-   **POM** vaat ediyor, `ege-bilgi.md` malzeme kapsaminda POM YOK; ya uretiliyor (bilgiye eklenir)
-   ya metin bayat (SSS'den cikar) — uretim kapasitesi karari. (b) **KaaN** — `rampa.json`
-   `"motor":"pruvo"` beyani `aileler/rampa.js` formuluyle celisiyor (%15,37 / %17,65 / %20,30);
-   KaaN olcuyor, yargi bende.
+   eskiymis. **34 olcum onaylanan tabloya BIREBIR uydu** (ayni 21 · kapali→fiyat 12 · kurus
+   degisen 1 · beklenmeyen **0**); canli SONRA = yerel `ac6864e3` **34/34 fark 0**. L1
+   `hacim-dogrulanmamis` → `parametre-araligi`, `kutu` 15.000 kurus (kapi kor degil), `rulman`
+   ACILMADI. 🔴 **KALEM ACIK: CI hala Worker yayinlamiyor.**
+1c. 🟡 **YENI (kutudan, karar bende):** (a) **HocA** — `sss/` **POM** vaat ediyor, `ege-bilgi.md`
+   kapsaminda POM YOK; ya uretiliyor (bilgiye eklenir) ya metin bayat (SSS'den cikar) — uretim
+   kapasitesi karari. (b) **KaaN** — `rampa.json` `"motor":"pruvo"` beyani `aileler/rampa.js`
+   formuluyle celisiyor (%15,37 / %17,65 / %20,30); KaaN olcuyor, yargi bende.
 2b. **PARK — mukerrer dal:** `claude/upbeat-kapitsa-d7c9ac` (`36bf4a06`, worktree
    `.claude/worktrees/upbeat-kapitsa-d7c9ac`) A3 kor noktasini PARALEL onarmis (13 mutant).
    Benim surumum (`193cd6f0`) main'de ve daha genis (19 mutant + A6 kapsam iddiasi) → dal
