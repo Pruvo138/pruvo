@@ -1439,6 +1439,44 @@ IZIN_LISTESI = {
     "jenerator/test/hacim-eval.js": (
         R_URETEC + " Somut: stdin'den JSON alip hacim hesaplayan CLI yardimcisi "
         "(argumansiz 'gecersiz JSON' der); kabul testi degil, olcum borusu."),
+    # --- sema.kisitlar ucusu (3 Agu, rulman sema araligi) --------------------
+    # Ucu de AYNI iddiayi cevreler: uretim motorunun kabul kumesi ile ilan edilen
+    # sema araligi arasindaki bosluk (olculdu: izgaranin 43.085/126.945 = %33,94'u
+    # motorda URETILEMEZDI). Kapsam muhasebesi bu yuzden TEK BLOKTA durur.
+    "jenerator/test/kisit-vakalar.js": (
+        "KOSULABILIR SUITE DEGIL — vaka TABLOSU modulu (`module.exports`, `require.main` "
+        "kolu YOK). OLCULDU (3 Agu, bu agac): `node jenerator/test/kisit-vakalar.js` "
+        "rc=0, 0,04 s, SIFIR cikti satiri, SIFIR iddia. deploy.yml'e boyle baglanmasi "
+        "shop/test/olcum-kapisi.cjs vakasinin AYNISI olurdu: iddiasiz rc=0, yani "
+        "'kosuyor ama olcmuyor' ([[kapi-kapsam-eksen-secimi]]). Tablonun 22 IDDIASI "
+        "CI'da FIILEN kosuyor: jenerator/test/fiyat-test.js tabloyu require edip her "
+        "vakayi `esit(...)` ile iddia eder ve o dosya deploy.yml'de `build` isinde "
+        "(deploy: needs: build) continue-on-error'SUZ kosar — olculdu: fiyat-test.js "
+        "rc=0, 176 iddia, bunlarin 22'si 'kisit ...' satiri. Tablo bozulursa CI KIRMIZI."),
+    "jenerator/test/kisit-mutasyon.js": (
+        "META OZ-DOGRULAMA SURUCUSU — kabul testi DEGIL: olctugu sey yukaridaki vaka "
+        "tablosunun AYIRT EDICILIGI, tablonun kendisi zaten `build` isinde bloklayici "
+        "kosuyor (CI'ya baglamak CIFT SAYIM olur; tools/eski-fiyat-test.py --mutasyon ve "
+        "A_MUTASYON kumesiyle AYNI depo konvansiyonu). OLCULDU (3 Agu, bu agac): rc=0, "
+        "0,14 s, taban 22 iddia / 0 kirmizi, 14/14 mutant — 12 olduruculuk mutanti "
+        "KIRMIZI (isaret sarti ile: her mutant beklenen vaka KODLARINI kirmizi yakti), "
+        "2 KONTROL mutanti YESIL, kaynak butunlugu sha256 basta=sonda SAGLAM. "
+        "ASIL BAGLANMAMA SEBEBI SURE DEGIL, CAPA BAGI ([[kapi-anchor-coupling-ikilemi]]): "
+        "mutantlar konfigurator.js/sema METNINE birebir capalidir ve capa bulunamazsa "
+        "'BAYAT HARNESS' ile PATLAR — kisit kolunun her mesru refaktoru TUM EKIBIN "
+        "yayinini durdururdu. Kapi degil, degisiklik-zamani kanit araci; "
+        "[[mutasyon-kaniti-yeniden-uretilebilir]] geregi REPODA durur."),
+    "jenerator/test/rulman-uretilebilirlik-olcum.py": (
+        R_GIZLI + " Somut (3 Agu, bu worktree — gitignore'lu girdiler YOK): bayrakli "
+        "kosum rc=3 \"OLCULEMEDI: gizli uretim paketi yok (eslem-ozel.json)\", 0,04 s. "
+        "Iki gitignore'lu girdi ister — `onizleme/derleyici/eslem-ozel.json` (uretim "
+        "eslemesi, R2 paketinden gelir) ve motorun .scad kaynagi — ARTI yerel OpenSCAD; "
+        "CI fresh checkout'unda ucu de YOKTUR, yani baglanirsa YAPISAL rc=3 (fail-closed "
+        "'yesil sayma' kolu bilerek boyle yazilmis). Kolun HUKUM mantigi yine de "
+        "olculuyor: kapali form + sema kapisinin AYNI kabul kumesini verdigi 471 GERCEK "
+        "render'da 0 ayrisma ile dogrulandi; sifir-olcum artik SESSIZ YESIL degil rc=3 "
+        "(mutasyon: sifir-set kolu kaldirilinca rc=0 -> onarimla rc=3). Katalog/fiyat "
+        "ekseninin CI'da kosan nobetcisi jenerator/test/fiyat-test.js'tir."),
     # "jenerator/test/kabul.py" MUAFIYETI KALDIRILDI (31 Tem, madde 34b) — ayni gerekce:
     # `--kendini-test` kolu TARAMA KUMESI nobetcisini sinar (5 iddia: gitignore'lu artefakt
     # sahte KIRMIZI yakmiyor · izlenen kaynak taraniyor · izlenmeyen-ama-yoksayilmayan yeni

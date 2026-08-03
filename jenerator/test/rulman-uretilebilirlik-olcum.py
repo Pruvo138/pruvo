@@ -157,13 +157,24 @@ def main():
         if tahmin != gercek:
             ayrisma.append((s, "kapali-form=%s" % tahmin, "motor=%s" % gercek))
 
-    print("\nOLCUM: %d set | uretilir %d | uretilemez(422) %d" % (len(setler), ok, uretilemez))
+    olculen = ok + uretilemez
+    print("\nOLCUM: %d set | RENDER EDILEN %d | uretilir %d | uretilemez(422) %d"
+          % (len(setler), olculen, ok, uretilemez))
     print("KAPALI FORM ile AYRISMA: %d" % len(ayrisma))
     for x in ayrisma[:10]:
         print("  ", x)
+    # 🔴 SIFIR-OLCUM FAIL-CLOSED ([[hukum-yanlis-birimde]] · onizleme/test/eslem-olcum.py
+    # emsali): hukum satiri "uretilemez = 0" yaziyorsa bu ya "hicbiri uretilemez degil"
+    # ya da "HIC OLCULMEDI" demektir; ikisi ayni cikis koduna dusmemeli. --sema-kapisi
+    # kolunda sema HER SEYI reddederse setler bosalir ve eski kod SESSIZ YESIL verirdi —
+    # yani satisa acma karari OLCULMEMIS bir sifira dayanabilirdi.
+    if olculen == 0:
+        print("OLCULEMEDI: render edilen set 0 — hukum verilemez "
+              "(sema kapisi tum izgarayi reddetmis ya da --set 0 verilmis olabilir)")
+        sys.exit(OLCULEMEDI)
     if a.sema_kapisi:
-        print("SEMA KAPISI HUKMU: kabul edilen setlerde uretilemez = %d (beklenen 0)"
-              % uretilemez)
+        print("SEMA KAPISI HUKMU: %d olculen sette uretilemez = %d (beklenen 0)"
+              % (olculen, uretilemez))
         sys.exit(1 if uretilemez else 0)
     sys.exit(1 if ayrisma else 0)
 
