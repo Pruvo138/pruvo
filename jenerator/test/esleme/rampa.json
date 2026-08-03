@@ -1,6 +1,6 @@
 {
   "urunId": "olcuye-ozel-ramp-sim-takoz",
-  "motor": "pruvo",
+  "motor": "uretim",
   "scad": "rampa.scad",
   "fonksiyon": "rampa",
   "esleme": {

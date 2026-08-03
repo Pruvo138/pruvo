@@ -505,7 +505,14 @@
     // aile: ölçülen en kötü hacim sapması (%) — 2026-07-31, seed 4242, 3 rastgele set + varsayılan
     adaptor: 0.00, braket: 0.27, cerceve: 0.00, disli: 0.24,
     jeton: 0.01, kavanoz: 0.03, konektor: 0.55, kutu: 0.00,
-    profil: 0.01, toka: 0.01,
+    toka: 0.01,
+    // profil: 2026-08-03, DETERMİNİSTİK ızgara (198 nokta: 9 kesit × 2 iç yapı ×
+    // {varsayılan, her sayısal eksenin min/max, tüm-min ve tüm-max köşe}), ÜRETİM
+    // motoru render'ına karşı en kötü %1.0618 — yalnız `sigma` (40 serisi alüminyum)
+    // kolunda, diğer 8 kesit %0.0000 (elips %0.0813). Sınır %3'ün ALTINDA, sınır üstü
+    // nokta 0. Eski beyan 0.01 rastgele setin gördüğü noktaydı, ailenin en kötüsü
+    // DEĞİLDİ (yay ile aynı körlük) → yukarı yuvarlanmış:
+    profil: 1.07,
     // yay: 2026-08-03, DETERMİNİSTİK ızgara (810 nokta: 2 tip × 5 dalga formu ×
     // her sayısal parametrenin min/orta/max'ı), gerçek geometri render'ına karşı
     // en kötü %0.824 (dalga/sinüs, dalga_boyu=40) → yukarı yuvarlanmış:
