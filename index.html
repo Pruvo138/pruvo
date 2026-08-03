@@ -2585,9 +2585,19 @@
   // "Tümü"/filtresiz durumda sorgu BOŞ → eski davranış BAYT-AYNI (regresyon yok) ve
   // kanonik /marka/<slug>/ URL'i değişmez (SEO: kapsam bir GÖRÜNÜM parametresidir,
   // yeni sayfa/URL ailesi DEĞİL — sitemap girdi sayısı artmaz).
-  function markaKapsamSorgusu(kat){
-    if(!kat || kat === "Tümü"){ return ""; }
-    return "?kategori=" + encodeURIComponent(kat);
+  //
+  // 🔴 BAĞLAM TAŞIMA (Okan, 3 Ağu — ölçülen müşteri hatası): "Kapı Kolu" aranıp sonuçta
+  // Volvo çipine basılınca sorgu (q) DÜŞÜYORDU — marka sayfası aramayı bilmiyor, müşteri
+  // daraltmayı en baştan yapmak zorunda kalıyordu. `ara` artık AYNI sorgu dizesinde taşınır;
+  // hedef /marka/<slug>/ sayfası bunu kendi arama kutusunun gönderdiği GET formuyla ana
+  // katalog aramasına (`/?ara=…&marka=…`) geri yönlendirir (tools/marka_model_build.py
+  // _ARA_TASI_JS_GOVDE) — TEK sözleşme, iki uçta da bu fonksiyondan türer.
+  function markaKapsamSorgusu(kat, q){
+    var p = new URLSearchParams();
+    if(kat && kat !== "Tümü"){ p.set("kategori", kat); }
+    if(q && q.trim()){ p.set("ara", q.trim()); }
+    var s = p.toString();
+    return s ? "?" + s : "";
   }
   // --- MARKA KAPSAMI SON ---
 
@@ -2741,7 +2751,7 @@
         var a = document.createElement("a");
         a.className = "brand-btn brand-link" + (m === activeBrand ? " active" : "");
         a.textContent = m;
-        a.href = "/marka/" + slug + "/" + markaKapsamSorgusu(activeCat);
+        a.href = "/marka/" + slug + "/" + markaKapsamSorgusu(activeCat, query);
         return a;
       }
       var b = document.createElement("button");

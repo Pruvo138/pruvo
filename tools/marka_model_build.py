@@ -390,6 +390,24 @@ _MM_CSS = """
     border-radius:9px;background:var(--gray-card);font-size:14px;color:var(--navy)}
   .mm-kapsam a{color:var(--navy-2);font-weight:600;margin-left:8px}
   .mm-bos{margin:18px 0;color:var(--gray-text);font-size:15px}
+  /* Marka/model sayfası arama kutusu — ana sayfadakiyle AYNI görsel dil, YENİ arama motoru
+     kurmaz: salt HTML GET formu ana katalog aramasına (/?ara=…) yönlendirir. Bağlam (marka=)
+     gizli alanla korunur; "Tüm katalogda ara" görünür çıkışı daraltmayı temizler. */
+  .mm-arama{position:relative;display:flex;align-items:center;gap:0;margin:16px 0 6px;
+    max-width:480px}
+  .mm-arama-ikon{position:absolute;left:13px;width:18px;height:18px;fill:#8996ad;
+    pointer-events:none}
+  .mm-arama-kutu{flex:1;padding:11px 14px 11px 40px;border:1px solid var(--gray-line);
+    border-radius:9px 0 0 9px;font-size:14.5px;font-family:inherit;background:#fff;
+    color:var(--navy);min-width:0}
+  .mm-arama-kutu:focus{outline:none;border-color:var(--navy-2)}
+  .mm-arama-btn{padding:11px 18px;border:1px solid var(--navy);border-left:none;
+    border-radius:0 9px 9px 0;background:var(--navy);color:#fff;font-weight:700;
+    font-size:14.5px;cursor:pointer}
+  .mm-arama-btn:hover{background:var(--navy-2);border-color:var(--navy-2)}
+  .mm-arama-tumu{display:inline-block;margin:0 0 18px;font-size:13px;color:var(--gray-text);
+    text-decoration:underline}
+  .mm-arama-tumu:hover{color:var(--navy-2)}
 """
 
 
@@ -522,6 +540,64 @@ def kapsam_scripti(kategoriler):
         "__KATEGORILER__", json.dumps(kategoriler, ensure_ascii=False, separators=(",", ":")))
     return ("<script>" + _KAPSAM_JS_BAS + govde + _KAPSAM_JS_SON
             + _KAPSAM_JS_CAGRI + "</script>")
+
+
+# ---- ARAMA BAĞLAMI TAŞIMA (index.html marka çipi -> /marka/<slug>/?ara=… -> ana katalog) ----
+# NEDEN VAR (Okan, 3 Ağu — ölçülen müşteri hatası): ana sayfada "Kapı Kolu" aranıp sonuçta
+# Volvo çipine basılınca arama sorgusu (q) DÜŞÜYORDU; marka sayfası statik, kendi arama motoru
+# YOK. index.html'in markaKapsamSorgusu() TEK üreticisi artık `ara=` parametresini de bu
+# sayfaya taşır — burada AYNI sorguyu, bu sayfanın markasını (+varsa kategori) koruyarak ana
+# katalog aramasına (`/?ara=…&marka=…`) geri yönlendiririz. Yeni bir arama mantığı KURULMAZ,
+# YALNIZ mevcut çalışan uca (index.html /?ara=) yönlendirilir. Test buradan MARKER'larla
+# ayıklayıp node ile GERÇEKTEN koşar (kapsam scripti ile AYNI desen) → tools/arama-tasi-test.py.
+_ARA_TASI_JS_BAS = "/* PRUVO ARAMA TASI BAS */"
+_ARA_TASI_JS_SON = "/* PRUVO ARAMA TASI SON */"
+
+_ARA_TASI_JS_GOVDE = r"""
+(function(){
+  var MARKA = __MARKA__;
+  var p;
+  try { p = new URLSearchParams(window.location.search); } catch(e){ return; }
+  var ara = p.get("ara");
+  if(!ara){ return; }   // kanonik/parametresiz adres -> sayfaya HİÇ dokunulmaz (SEO regresyonu yok)
+  var hedef = new URLSearchParams();
+  hedef.set("ara", ara);
+  if(MARKA){ hedef.set("marka", MARKA); }
+  var kat = p.get("kategori");
+  if(kat){ hedef.set("kategori", kat); }
+  window.location.replace("/?" + hedef.toString());
+})();
+"""
+
+
+def ara_tasi_scripti(marka):
+    """Sayfaya gömülecek ARAMA-TAŞI scripti (marker'lı; test buradan ayıklayıp node'da koşar)."""
+    govde = _ARA_TASI_JS_GOVDE.replace(
+        "__MARKA__", json.dumps(marka or "", ensure_ascii=False, separators=(",", ":")))
+    return "<script>" + _ARA_TASI_JS_BAS + govde + _ARA_TASI_JS_SON + "</script>"
+
+
+def _arama_kutusu_html(esc, marka=None):
+    """Marka/model sayfası arama kutusu — YENİ arama motoru KURULMAZ: salt HTML GET formu
+    ana katalog aramasına (/?ara=…) yönlendirir (index.html'deki TEK çalışan arama yolu).
+    `marka` verilmişse gizli alanla bağlam (marka=) korunur; altındaki "Tüm katalogda ara"
+    linki daraltmayı temizleyen GÖRÜNÜR çıkıştır (Okan, 3 Ağu: müşteri kilitlenmesin — bazı
+    marka+sorgu bileşimleri 0 sonuç dönebilir, ölçüldü)."""
+    hidden = ('<input type="hidden" name="marka" value="%s">' % esc(marka)) if marka else ""
+    yer_tutucu = (marka + " içinde ara…") if marka else "Ürün, marka veya parça numarası ara…"
+    etiket = (marka + " içinde ürün ara") if marka else "Ürün ara"
+    cikis = ('<a class="mm-arama-tumu" href="/">Tüm katalogda ara</a>' if marka else "")
+    return (
+        '<form class="mm-arama" action="/" method="get" role="search">'
+        '<svg class="mm-arama-ikon" viewBox="0 0 24 24" aria-hidden="true">'
+        '<path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm'
+        '-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>'
+        '<input type="search" name="ara" class="mm-arama-kutu" autocomplete="off" placeholder="%s" '
+        'aria-label="%s">'
+        '%s'
+        '<button type="submit" class="mm-arama-btn" aria-label="Ara">Ara</button>'
+        '</form>%s'
+    ) % (esc(yer_tutucu), esc(etiket), hidden, cikis)
 
 
 def _kapsam_not_html(esc):
@@ -906,6 +982,7 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
     body = (bc
             + '<h1>' + esc(h1) + '</h1>'
             + '<p class="lead">' + esc(giris) + '</p>'
+            + _arama_kutusu_html(esc, marka)
             + _kapsam_not_html(esc)
             + '<h2 class="mm-sec-h">' + esc(display) + ' parçaları ('
             + '<span class="mm-sayim-kart">' + str(n) + '</span>)</h2>'
@@ -927,7 +1004,7 @@ def _model_sayfasi(ctx, marka, g, kategoriler):
                        "itemListElement": _itemlist(ctx, g["urunler"])},
     })
     html = _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body,
-                  kapsam_scripti(kategoriler))
+                  kapsam_scripti(kategoriler) + ara_tasi_scripti(marka))
     return url, html
 
 
@@ -987,6 +1064,7 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
     body = (bc
             + '<h1>' + esc(h1) + '</h1>'
             + '<p class="lead">' + esc(giris) + '</p>'
+            + _arama_kutusu_html(esc, marka)
             + _kapsam_not_html(esc)
             + ('<h2 class="mm-sec-h">Modele göre seçin (<span class="mm-sayim-model">'
                + str(len(btns)) + '</span>)</h2>' if btns else "")
@@ -1014,7 +1092,7 @@ def _marka_sayfasi(ctx, marka, d, buyuk_gruplar, kucuk_urunler, kategoriler):
                        "itemListElement": model_items},
     })
     html = _shell(ctx, h1, url, description, breadcrumb_ld, collection_ld, body,
-                  kapsam_scripti(kategoriler))
+                  kapsam_scripti(kategoriler) + ara_tasi_scripti(marka))
     return url, html
 
 
