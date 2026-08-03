@@ -2,34 +2,7 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
-## 🔚 OTURUM KAPANISI — 3 Agu gece · YENI OTURUM ONCE BUNU OKU
-
-**CANLIYA GITTI (SHA-kanitli, kosum `30850714434` / `a6bbe894` SUCCESS, uc commit'in de atasi):**
-`73149015` uretilemez ailelerde satis kapisi · `78676775` hacim tahsilat kapisi CI'da ·
-`bd8b8abb`+`78b6651f` rulman sema araligi · `ac6864e3` kisit bicimi fail-closed + Worker elle
-deploy · `d8024a27` bilesik marka · `656afd73`+`2a2a2a39` POM siteden cikti · `1d1cf2b2`+
-`0408425f`+`20d1a44b` marka cipi (olu uc 1→0 · Marin 3→15 · cipte-var/sayfasi-404 13→0) ·
-`8e790fea` yukari-cik butonu (6 sayfa tipi) · `72f24405` arama baglami · `5bbf9017` tirtikli
-BIRIM onarimi (%9,21→%0,0000028) · `88f3e63d`+`7fc61f98` worker bayatlik nobeti (korluk
-795 dk→≤15 dk) · `7e2277c0` yayin erisim nobetcisi (295 URL / 292 acik / 3 kapali) ·
-`51588d55` marka uyelik kapisi ikiz tanimi · **`4b7a8aaf` rampa SATISA ACILDI (17→18)**,
-Worker surumu `cecc9d4f`→`7b2c9325`, canli 16.000/48.000 kurus, diger 17 ailede fark **0 kurus**.
-
-**KOSUYOR:** arayuz turu (arama kutusu + yukari-cik canli dogrulamasi) — isci `ae4644…`,
-raporu `scratchpad/rapor-yukari-cik-butonu.md`; merge'leri (`72f24405`, `8e790fea`) main'de,
-eksik olan yalnÄ±z canli teyit satirlari.
-
-**BEKLIYOR — baskalarinda:** HocA → `ara*` rota oneki 3 landing'i 403 yapiyor (12 gundur;
-onarim `~/dev/pruvo-bot/worker/wrangler.toml`, Okan kapisi onda) · MaCiT → eksik marka verisi
-(Garmin 54 · Sea-Doo 14+4 · Simrad 7 · B&G 3 · Bavaria 3) + POM tasiyan **11 urun kaydi**.
-
-**OKAN'DA KARAR YOK** — bugun sorulan uc karar (Worker deploy · rampa satisa acma · POM) verildi
-ve uygulandi.
-
-🔴 **HIJYEN BORCU:** DEVAM.md bu satirla **~165 satir** (tavan 130). Gun icinde 130'a cekilmisti;
-paralel oturumlarin ekledigi iki tur (3. IS + bu blok) **arsivlenmeden** yazildi. Sabah ilk is:
-kapali bloklari `DEVAM-ARSIV.md`'ye tasi (silme YOK). Codex `.git`'e yazamiyor — budama Codex'e,
-git islemleri mimara bolunerek verilecek.
+KAPANDI 3 Agu: oturum kapanisi SHA dokumu (DEVAM-ARSIV.md'de).
 
 ## 🔄 DEVIR — 3 Agu 2026 (hesap rotasyonu) · YENI OTURUM ONCE BURAYI OKU
 
@@ -47,30 +20,7 @@ devir listesinin 3. adimi (dallari push et) **her agac icin ayri ayri** kosulaca
 
 **✅ 2. IS — KAPANDI 3 Agu: merge `bd8b8abb` + onarim `78b6651f` (dokum DEVAM-ARSIV.md'de).**
 
-**✅ 3. IS — KAPANDI 3 Agu: yayin hatti acligi + build duvar saati. Merge `2c016309`.**
-- Ilk teshis CURUDU: `cancel-in-progress` ZATEN `false` idi. Iptal edilen kosumlarin `jobs`
-  dizisi BOS (30829845771 · 30831100269) — hic is baslatmadan KUYRUKTA iptal. main dogrusal,
-  ayakta kalan bekleyenin agaci onceki icerigi tasiyor -> ICERIK KAYBI YOK, sadece gecikme.
-- Gecikmenin sebebi `build` suresiydi: 1487 sn / 99 adim; ilk dort adim 1060 sn (%71).
-- Ayar DEGISTIRILMEDI. `tools/deploy-aclik-kapisi.py` (bloklayici, offline) eszamanlilik
-  sozlesmesini + yayin zincirini + art arda push simulasyonunu + uretim zincirini olcer;
-  kendini-test 30 iddia (13 mutant, 2'si KONTROL). `yayin-gecikme-nobeti.py --alarm` 2 Agu'dan
-  beri bagli olmayan canli kolu `paket-tazelik-alarmi.yml`e ayri is olarak tasidi.
-- `build` uc bloklayici serite bolundu; `deploy: needs: [build, serit-a2, serit-a3]` -> her
-  serit kirmizisi yayini yine durdurur (fail-closed AYNEN korundu).
-- **OLCULEN KABUL (kosum 30850714434, headSha a6bbe894, ata kaniti exit 0):** build 10,0 dk ·
-  serit-a2 8,3 · serit-a3 6,5 · serit-b 8,1 · deploy 0,7 · yayin 0,6. **Tepe serit 10,0 dk
-  (kabul ≤12) GECTI**; kosum duvar saati **26,3 -> 12,7 dk (-%52)**. Tahmin 9,4 idi, sapma 0,6.
-- **SESSIZ SINIF (bagimsiz curutucu birebir dogruladi):** `yasal-sayfa-drift-kapisi.py` depo
-  kokunde tam `build.py` kosuyor (beyansiz yan etki). Iki adim bundan sessizce faydalaniyor —
-  `surum-test.py` (pristine 0 -> 7 referans `_yayin/`) ve `yayin-ic-dil-kapisi.py --kaynak`
-  (7 -> 8 dosya); ikisi de HER IKI HALDE rc=0, yani ayrilsalardi YESIL yanarken olculen yuzey
-  kuculurdu. Zincir bolunmeden tek seritte tutuldu. Uretim yollarina dokunan 28 aday tarandi,
-  kayitsiz ucuncu tuketici YOK. Ders hafizada: [[kapi-yan-etkisi-gizli-onkosul]].
-- **ACIK KALAN (ayri tur):** `yayin-fiyat-parite.mjs` 139 sn ve `build` seridinin 563 sn'lik
-  sikistirilamaz tabani (build.py 316 + uretim-sonrasi 225) — daha asagisi serit paketleme
-  degil, o aracin kendi ici. Ayrica `yasal-sayfa-drift-kapisi.py` depo kokunde `varlik/`
-  artigi birakiyor (zararsiz, kendi hatasi).
+**KAPANDI 3 Agu: 3. IS yayin hatti acligi + build duvar saati — `2c016309` (dokum DEVAM-ARSIV.md'de).**
 
 **🟡 RULMAN SATISA ACMA — hala BENDE, ayri tur. Karar dayanagi OLCULDU (3 Agu):**
 Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × eleman{3}` = **126.945 nokta**.
@@ -95,8 +45,7 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
    eksen gercek cikarim kaybina daraltilmali** — bu tur dokunulmadi.
 
 **BENDE — acik kalemler, oncelik sirasiyla:**
-0. ✅ **KAPANDI (`78676775`)** — hacim tahsilat mutanti CI'da bloklayici kapida olculuyor.
-   **Kalan:** satisa acik ailelerin altisi uretim motoru referansi istiyor → **Okan kapisi**.
+0. KAPANDI `78676775`; kalan: satisa acik ailelerin altisi uretim motoru referansi istiyor -> Okan kapisi (dokum DEVAM-ARSIV.md'de).
 1. 🔴 **YAPISAL — ISCIDE OLCULUYOR (3 Agu):** siparis/odeme yolu uretilebilirligi SORMUYOR.
    Allowlist yara bandi; her yeni aile ayni riski yeniden aciyor. Dogru cozum: odeme yolunun
    derleyiciye/uretilebilirlik kapisina sormasi. **Ders:** aile satisa acarken sorulan soru
@@ -104,7 +53,7 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
    **Kosan olcumun ayirt ettigi ikilem:** sema `kisitlar` blogu TEHLIKE isareti mi, KORUMA mi?
    Siparis yolu kisitlari UYGULUYORSA koruma → A3'un KOL2 kolu fazla kati, daraltilmali;
    UYGULAMIYORSA A3 dogru ve asil kusur odeme yolunda. **Rulman satisa acma karari buna bagli.**
-   ✅ **736 KAPANDI (`d8024a27`, dokum DEVAM-ARSIV.md'de) — MaCiT'te yazim: `urunler.json`, 21 kayit, alan `marka`.**
+   KAPANDI 736: `d8024a27` (dokum DEVAM-ARSIV.md'de).
 2. `worktree-agent-aadc8e1d5df8ff4b0` (`3ef8b81a`) — ci-kapsam dar-bayrak dali, **curutme SARTLI
    dondu, sart uygulanmadi**: kovaya eklenen js bayraklarinin **%81'i uydurma** (baska programa
    gecirilen `--cached`/`--dry-run` gibi argümanlar dosyanin kendi bayragi sayiliyor). Dalin asil
@@ -119,12 +68,7 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
    Sinif: bugunku tekrar eden sinif — beyan edilmis nobetci, olculmemis kapsam.
    Cozum yonu (karar bende): ya CI'ya Worker yayin adimi + bayatlik nobetcisi (canli bundle
    hangi commit'i tasiyor, kac commit geride), ya da elle deploy ritueli kapiya baglanir.
-   ✅ **Bugun ELLE deploy edildi (Okan onayiyla): `ac6864e3` canlida** — surum
-   `cecc9d4f`, oncesi `9d5ab6ed` (rollback hedefi kayitli, kosulmadi). Bundle **13 sa 15 dk**
-   eskiymis. **34 olcum onaylanan tabloya BIREBIR uydu** (ayni 21 · kapali→fiyat 12 · kurus
-   degisen 1 · beklenmeyen **0**); canli SONRA = yerel `ac6864e3` **34/34 fark 0**. L1
-   `hacim-dogrulanmamis` → `parametre-araligi`, `kutu` 15.000 kurus (kapi kor degil), `rulman`
-   ACILMADI. 🔴 **KALEM ACIK: CI hala Worker yayinlamiyor.**
+   KAPANDI 3 Agu: elle deploy `ac6864e3`; KALEM ACIK: CI hala Worker yayinlamiyor (dokum DEVAM-ARSIV.md'de).
 1c. 🟡 **YENI (kutudan, karar bende):** (a) **HocA** — `sss/` **POM** vaat ediyor, `ege-bilgi.md`
    kapsaminda POM YOK; ya uretiliyor (bilgiye eklenir) ya metin bayat (SSS'den cikar) — uretim
    kapasitesi karari. (b) **KaaN** — `rampa.json` `"motor":"pruvo"` beyani `aileler/rampa.js`
@@ -148,21 +92,17 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
 6. HocA'dan devralinan iki site metni kalemi: SSS'de havale/EFT yok · "Yurtici Kargo" ifadesi
    siteden cikacak (Notion'da 8 tasiyici var, tek tasiyici degiliz).
 
-**BEKLIYOR — baskalarinda:** KaaN: `rulman` semasi onarilinca satisa acma karari bende ·
-ArTisT: marka-model sayfasi acma esigi onerisi (veri verildi: 1.062 marka-model ciftinin 812'si
-5'ten az urun) · HocA: bende bekleyen yok.
+**BEKLIYOR — baskalarinda (ACIK, arsive tasinmaz):**
+- **HocA** → `ara*` rota oneki 3 landing'i 403 yapiyor (12 gundur; onarim
+  `~/dev/pruvo-bot/worker/wrangler.toml`, Okan kapisi onda).
+- **MaCiT** → eksik marka verisi (Garmin 54 · Sea-Doo 14+4 · Simrad 7 · B&G 3 · Bavaria 3) +
+  POM tasiyan **11 urun kaydi** + bilesik marka yazimi (21 kayit, alan `marka`).
+- **KaaN** → `rulman` semasi onarilinca satisa acma karari bende.
+- **ArTisT** → marka-model sayfasi acma esigi onerisi (1.062 ciftin 812'si 5'ten az urun).
 
-**✅ KAPANDI 3 Agu: merge `242e4496` — uyum kapisi yorumundaki bayat mutant sayisi (dokum DEVAM-ARSIV.md'de).**
-
-**✅ KAPANDI 3 Agu: shop worker BAYATLIK NOBETI — merge `88f3e63d` + `7fc61f98` (dokum DEVAM-ARSIV.md'de).**
-**✅ KAPANDI 3 Agu: onizleme kisit beyani kosullu — merge `45f30fd7` (dokum DEVAM-ARSIV.md'de).**
-**✅ KAPANDI 3 Agu: yayin erisim nobetcisi — merge `7e2277c0`, 295 URL / 292 acik / 3 kapali (dokum DEVAM-ARSIV.md'de).**
-**✅ KAPANDI 3 Agu: onizleme kisit kosul degeri fail-closed — merge `f6f6492d` (dokum DEVAM-ARSIV.md'de).**
+**KAPANDI 3 Agu: uyum yorumu, Worker bayatlik, onizleme kisitlari ve yayin erisimi — `242e4496` `88f3e63d` `7fc61f98` `45f30fd7` `7e2277c0` `f6f6492d` (dokum DEVAM-ARSIV.md'de).**
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
-- ✅ **KAPANDI (`51588d55`)** — o tur "YAYIN DURUYOR" diye yazılmıştı, artık BAYAT:
-  `marka-uyelik-test.py` sapan marka **13 → 0**, sapan çip **727 → 0**; kırmızı backfill'den
-  değil **ikiz tanımdan** çıktı (kapının portu yalnız `TANINMIS_MARKALAR`'ı biliyordu, sayfa
-  evreni çip evrenine bağlanmıştı). Kapı gevşetilmedi, yüklem üretime daraltıldı.
+- KAPANDI 3 Agu: marka uyelik ikiz tanimi — `51588d55` (dokum DEVAM-ARSIV.md'de).
 - 3 landing hâlâ canlıda 403: onarım kardeş depodaki worker rota deseninde (önek jokeri),
   bu depoda değil; nöbetçi o kapalılığı artık saatlik ölçüyor ve kırmızı yakıyor.
 - Sabah/gece kalinti sinifi: pencere icinde 2 sabahin 2'sinde AKIYOR→TIKALI salindi (2 Agu
