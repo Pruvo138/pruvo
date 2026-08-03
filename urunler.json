@@ -1,5 +1,269 @@
 [
   {
+    "id": "raymarine-st60-plus-enstruman-ortusu",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine ST60+ Enstrumani Icin Gunes Ortusu",
+    "aciklama": "Raymarine ST60+ serisi tekne enstrumanlarini gunes ve tozdan koruyan gecmeli ortu.\n- Raymarine ST60+ serisi enstrumanlara ozeldir.\n- Eski ST60 govdesinden farkli olcuye gore tasarlanmistir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 118 x 113 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr510229-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "gopro-yuzen-katamaran-platformu",
+    "kategori": "Marin",
+    "marka": [
+      "GoPro"
+    ],
+    "baslik": "Aksiyon Kamerasi Icin Yuzen Katamaran Platformu",
+    "aciklama": "Aksiyon kamerasini su yuzeyinde tasiyan, kano veya kurek tahtasina halatla baglanabilen cift govdeli yuzen platform.\n- Kano, kurek tahtasi veya yuzerek cekimde halatla suruklenerek kullanilir.\n- Kamera M4x20 vida ile ust govdeye sabitlenir.\n- Uc parcadan olusur, govde formu akinti yonune hizalanmayi saglar.\nYaklasik dis olculer: 216 x 53 x 41 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7103836-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ckrieger",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "raymarine-tacktick-mikro-pusula-braketi",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine TackTick Mikro Pusula Icin Montaj Braketi",
+    "aciklama": "Raymarine TackTick mikro pusulayi tekne uzerinde sabitlemeye yarayan montaj braketi.\n- Raymarine TackTick mikro pusula ile uyumludur.\n- Duz yuzeye vida ile sabitlenir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 106 x 76 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr450565-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "slawas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "ap-wrc3-kumanda-harita-masasi-tutucusu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "AP-WRC3 Kablosuz Kumanda Icin Harita Masasi Tutucusu",
+    "aciklama": "Teknedeki kablosuz kumandayi harita masasina sabitleyerek elde kalmasini onleyen tutucu.\n- AP-WRC3 ve AP-WRC3iF kablosuz kumandalarla uyumludur.\n- Harita masasi veya duz panel yuzeyine sabitlenir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 38 x 34 x 18 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2754052-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2754052-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tosamdy",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "raymarine-st60-enstruman-ortusu",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine ST60 Enstrumani Icin Gunes Ortusu",
+    "aciklama": "Raymarine ST60 serisi tekne enstrumanlarinin ekranini gunes ve tozdan koruyan gecmeli ortu.\n- Raymarine ST60 serisi enstrumanlara ozeldir.\n- Enstruman cercevesine gecerek oturur.\n- Tek parcadan olusur.\nYaklasik dis olculer: 118 x 113 x 25 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2947844-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2947844-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DaniM",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "velocitek-speedpuck-katamaran-direk-montaji",
+    "kategori": "Marin",
+    "marka": [
+      "Velocitek"
+    ],
+    "baslik": "Velocitek Speedpuck Icin Katamaran Gennaker Diregi Montaji",
+    "aciklama": "Velocitek Speedpuck GPS cihazini katamaranin gennaker diregine sabitleyen, halatlarin dolanmasini onleyecek formda iki parcali montaj seti.\n- 38mm capinda gennaker/spinnaker diregi ile uyumludur.\n- Ust govde ve alt kelepce olmak uzere iki parcadan olusur.\n- Montaj icin 6 adet ahsap vida ile 4 adet M5x30 civata ve somun gerekir.\nYaklasik dis olculer: 131 x 130 x 110 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1644998-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "flyinggorilla",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "raymarine-i70-enstruman-muhafazasi",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine i70 Enstrumani Icin Bagimsiz Muhafaza",
+    "aciklama": "Raymarine i70 serisi enstrumanlari panele gommeden bagimsiz olarak monte etmeye yarayan muhafaza govdesi.\n- Raymarine i70 serisi enstrumanlarla uyumludur.\n- Panele gomme yapilamayan konumlarda bagimsiz montaj saglar.\n- Delme sablonu ile birlikte tasarlanmistir.\nYaklasik dis olculer: 253 x 127 x 126 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr225767-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Makers Workshop",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "raymarine-e80-c80-chartplotter-braketi",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine E80/C80 Chartplotter Icin Montaj Braketi",
+    "aciklama": "Raymarine E80 ve C80 chartplotter cihazlarinin kirilan mafsalli montaj braketinin yerine gecen yedek braket.\n- Raymarine E80 ve C80 modelleriyle uyumludur.\n- Gosterge paneli veya duz yuzeye montaj icindir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 114 x 60 x 22 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4665094-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "corson1986",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "autohelm-3000-tahrik-unitesi-ara-pulu",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Autohelm 3000 Otopilot Tahrik Unitesi Icin Ara Pulu",
+    "aciklama": "Autohelm 3000 dumen otopilotunun tahrik unitesini catal baglantinin ortasinda konumlandiran ve asinma yuzeyi olarak calisan ara pulu.\n- Autohelm 3000 otopilot tahrik unitesiyle uyumludur.\n- Uniteyi catal baglantinin merkezinde tutar.\n- Ic kama yapisi sayesinde donmeyi engeller.\nYaklasik dis olculer: 39 x 39 x 6 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr591159-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr591159-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Adam",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "bayliner-cierra-285-tatli-su-kapagi",
+    "kategori": "Marin",
+    "marka": [
+      "Bayliner"
+    ],
+    "baslik": "Bayliner Cierra 285 Icin Tatli Su Dolum Kapagi",
+    "aciklama": "Bayliner Cierra 285 teknenin guverte tatli su dolum agzini kapatan, kaybolan orijinal kapagin yerine gecen yedek kapak.\n- Bayliner Cierra 285 guverte dolum rekoruyla uyumludur.\n- Standart madeni para/anahtar yuvasi ile acilip kapanir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 49 x 49 x 21 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr499752-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lucien Picard",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "tekne-tanki-8-koseli-yildiz-anahtar",
+    "kategori": "Marin",
+    "marka": [
+      "Jeanneau"
+    ],
+    "baslik": "Tekne Tanklari Icin 8 Koseli Yildiz Anahtar",
+    "aciklama": "Avrupa yapimi teknelerde atik, yakit ve su tanki guverte kapaklarini acmaya yarayan 8 koseli yildiz profilli T saplı anahtar.\n- Jeanneau ve Antares gibi teknelerde yaygin 8 koseli yildiz kapaklarla uyumludur.\n- T formundaki sap tork uygulamayi kolaylastirir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 113 x 90 x 24 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr529516-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr529516-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr529516-3.jpg"
+    ]
+  },
+  {
+    "id": "autohelm-3000-st3000-kavrama-kolu",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Autohelm 3000 / ST3000 Otopilot Icin Kavrama Kolu",
+    "aciklama": "Autohelm 3000 (ST3000) dumen otopilotunun kavrama (clutch) kolunun yerine gecen yedek parca.\n- Autohelm 3000 / ST3000 otopilot modeliyle uyumludur.\n- Eksantrik disli profili orijinal mekanizmaya gore olcullendirilmistir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 90 x 40 x 20 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1098530-1.jpg"
+    ]
+  },
+  {
+    "id": "leopard-45-katamaran-kamera-braketi",
+    "kategori": "Marin",
+    "marka": [
+      "Wyze"
+    ],
+    "baslik": "Leopard 45 Katamaran Salonu Icin Kamera Braketi",
+    "aciklama": "Leopard 45 katamaranin salon kosesine kamera sabitlemeye yarayan, tavan-duvar birlesimine oturan braket seti.\n- Leopard 45 katamaran salon ic donanimiyla uyumludur.\n- Wyze Pan Cam govdesine gore olcullendirilmistir.\n- Braket ve sabitleme vidasi olmak uzere iki parcadan olusur.\nYaklasik dis olculer: 112 x 50 x 28 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5199969-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "otterblue",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "raymarine-st60-direk-basi-koruma-kapagi",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine ST60 Ruzgar Enstrumani Icin Direk Basi Koruma Kapagi",
+    "aciklama": "Ruzgar okuyucu sokuldugunde direk basindaki soket kontaklarini koruyan gecmeli kapak.\n- Eski tip Raymarine ruzgar enstrumani direk basi tabanina uyar.\n- Ruzgar okuyucu sokuldugunde kontaklari kapatir.\n- Tek parcadan olusur.\nYaklasik dis olculer: 34 x 34 x 30 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5357520-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Paulywog32",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "jeanneau-nc1095-masa-mangal-tabani",
+    "kategori": "Marin",
+    "marka": [
+      "Jeanneau"
+    ],
+    "baslik": "Jeanneau NC1095 Kestosu Icin Masa ve Mangal Taban Aparati",
+    "aciklama": "Jeanneau NC1095 teknenin baglama kestosuna oturarak kucuk masa veya mangal tasimaya yarayan taban aparati.\n- Jeanneau NC1095 baglama kestosuyla uyumludur.\n- Kucuk masa veya tasinabilir mangal tabani olarak kullanilir.\n- Cok parcadan olusur; M2x8 ve M4x20 civata-somun seti gerektirir.\nYaklasik dis olculer: 356 x 330 x 64 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1167155-1.jpg"
+    ]
+  },
+  {
+    "id": "bayliner-cam-kovan-rondela-seti",
+    "kategori": "Marin",
+    "marka": [
+      "Bayliner"
+    ],
+    "baslik": "Bayliner Tekne Cami Icin Kovan ve Rondela Seti",
+    "aciklama": "Bayliner teknelerde cam sabitleme noktalarinda kullanilan kovan (grommet) ve rondela ikilisi.\n- Bayliner 3587 ve 4087 modellerinde kullanilir, diger modellerde de uyar.\n- Kovan ve rondela olmak uzere iki parcadan olusur.\n- Tam dolgulu yapida uretilir, ek destek gerektirmez.\nYaklasik dis olculer: 16 x 16 x 8 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5429061-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5429061-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JD_2021",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
     "id": "peugeot-partner-vites-braketi-9812827280",
     "kategori": "Otomobil",
     "marka": [
