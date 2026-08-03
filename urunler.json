@@ -3,7 +3,8 @@
     "id": "opel-zafira-b-kalorifer-izgara-cercevesi-sol",
     "kategori": "Otomobil",
     "marka": [
-      "Opel"
+      "Opel",
+      "Zafira B"
     ],
     "baslik": "Opel Zafira B Kalorifer Izgara Çerçevesi - Sol",
     "aciklama": "Opel Zafira B kalorifer/havalandırma ızgarası çerçeve parçası (sol taraf). Kırılan veya kaybolan orijinalin yerine geçer, ızgarayı yuvasında sağlam ve boşluksuz tutar. Orijinal parça ölçüleri esas alınarak hazırlanmıştır.\n- Opel Zafira B ile uyumludur.\n- Sol taraf versiyondur; sağ taraf için ayrı ürünümüz mevcuttur.\n- Yaklaşık dış ölçüler: 134 x 88 x 19 mm.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -15,13 +16,20 @@
       "https://media.pruvo3d.com/urunler/opel-zafira-b-kalorifer-izgara-cercevesi-sol-4.jpg",
       "https://media.pruvo3d.com/urunler/opel-zafira-b-kalorifer-izgara-cercevesi-sol-5.jpg",
       "https://media.pruvo3d.com/urunler/opel-zafira-b-kalorifer-izgara-cercevesi-sol-6.jpg"
+    ],
+    "uyum": [
+      {
+        "marka": "Opel",
+        "model": "Zafira B"
+      }
     ]
   },
   {
     "id": "opel-zafira-b-kalorifer-izgara-cercevesi-sag",
     "kategori": "Otomobil",
     "marka": [
-      "Opel"
+      "Opel",
+      "Zafira B"
     ],
     "baslik": "Opel Zafira B Kalorifer Izgara Çerçevesi - Sağ",
     "aciklama": "Opel Zafira B kalorifer/havalandırma ızgarası çerçeve parçası (sağ taraf). Kırılan veya kaybolan orijinalin yerine geçer, ızgarayı yuvasında sağlam ve boşluksuz tutar. Orijinal parça ölçüleri esas alınarak hazırlanmıştır.\n- Opel Zafira B ile uyumludur.\n- Sağ taraf versiyondur; sol taraf için ayrı ürünümüz mevcuttur.\n- Yaklaşık dış ölçüler: 134 x 88 x 19 mm.\n- Dayanıklı malzemeyle özel üretilir.",
@@ -33,6 +41,12 @@
       "https://media.pruvo3d.com/urunler/opel-zafira-b-kalorifer-izgara-cercevesi-sag-4.jpg",
       "https://media.pruvo3d.com/urunler/opel-zafira-b-kalorifer-izgara-cercevesi-sag-5.jpg",
       "https://media.pruvo3d.com/urunler/opel-zafira-b-kalorifer-izgara-cercevesi-sag-6.jpg"
+    ],
+    "uyum": [
+      {
+        "marka": "Opel",
+        "model": "Zafira B"
+      }
     ]
   },
   {
