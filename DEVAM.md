@@ -33,9 +33,10 @@ sema onarilinca `HACIM_DOGRULANMIS_AILELER`'e eklenebilir (bugun bilerek kapali,
    eksen gercek cikarim kaybina daraltilmali** — bu tur dokunulmadi.
 
 **BENDE — acik kalemler, oncelik sirasiyla:**
-0. 🔴 **PARA — YENI (3 Agu, `73149015` turunda olculdu):** `hacim.js`'e konan **+%5 tahsilat
-   mutanti 9 CI kapisinin HICBIRINDE olmuyor**; olduren tek kapi CI-MUAF. `yay` acik oldugundan
-   delik **canli para yolunda**. Once bu.
+0. ✅ **KAPANDI (`78676775`)** — hacim tahsilat mutanti artik CI'da bloklayici kapida olculuyor
+   (asagidaki bloga bak). **Kalan:** satisa acik 7 aile (huni, izgara, kasnak, kayis, oring,
+   pervane, profil) hala CI'da hacim kapisi GORMUYOR; altisi uretim motoru referansi istiyor →
+   **Okan kapisi** (butce/erisim).
 1. 🔴 **YAPISAL:** siparis/odeme yolu uretilebilirligi SORMUYOR. Allowlist yara bandi; her yeni
    aile ayni riski yeniden aciyor. Dogru cozum: odeme yolunun derleyiciye/uretilebilirlik
    kapisina sormasi. **Ders:** aile satisa acarken sorulan soru "fiyat dogru mu" idi; ikinci soru
@@ -114,10 +115,39 @@ mobil + capraz daralma · `ae6679b9`+`c0e3a360` 7 aile satisa acildi (rulman bil
 - **Temizlik:** worktree + yerel dal + uzak dal silindi, worktree listesi yalniz main, kalinti 0,
   agac temiz. Baskasinin dalina dokunulmadi.
 
-### 🔴 ACIK KALEM (kapsam disi, bu turda KAPATILMADI)
-`hacim.js`'e konan **+%5 tahsilat mutantini 9 CI kapisindan HICBIRI oldurmuyor**; olduren tek kapi
-CI-MUAF. `yay` bu merge'le **acik kaldigindan** delik canli para yolunda duruyor. Sinif:
-[[beyan-edilmis-survivor]] — kapi zinciri VEYA'lanip yesil goruyor.
+## MERGE — 3 Agu 2026 · Hacim tahsilat mutanti CI'da olculur oldu (`78676775`)
+
+- **Devralinan beyan CURUTULDU.** "Olduren tek kapi `kalibrasyon-senkron.js`, o da CI-muaf"
+  iddiasi yanlisti: `deploy.yml`'in `build` (91 adim) + `serit-b` (47 adim) = **134 kosulabilir
+  adimin HER BIRI** ayri ayri kosuldu. TEMIZ main **134 yesil / 0**; `yay ×1,05` mutantinda
+  **1 kirmizi** (`yay-tarama.py --kendini-test`, serit-b) — ama **KONTROL mutantinda (yalniz
+  yorum satiri) AYNI adim kirmizi** ⇒ **ayirt edici DEGIL**. Bloklayici `build`'in 91 adiminin
+  **hicbiri** mutanti gormedi. Sinif: [[beyan-edilmis-survivor]].
+- **Muafiyetin iki dayanagi da olculdu:** kaynak `ci-kapsam-test.py::IZIN_LISTESI`. (a) "kalan kol
+  25,2 s" → gercek **1,3 s** (25,2 s kardes-ev katmanini iceren TAM kosumdu); (b) "cekirdek iddia
+  kardes ev olmadan olculemez" **DOGRU** — `yay ×1,05` kardes ev VARKEN 26 kontrol kirmizi,
+  YOKKEN **tam yesil**. Yani kapiyi oldugu gibi baglamak **fail-open** olurdu.
+- **Cozum susturma degil KAPSAM DARALTMA:** yeni 3. katman `jenerator/test/kaynak-referans.json`
+  — degerler kalibrasyon kaynagindan turetiliyor, `hacim.js`'ten DEGIL (totoloji onlemi), uretec
+  CI'da kosmuyor. Kapsam **12 aile / 300 set** (`yay` dahil, bugun sapma **%0,0000**). Kapsam disi
+  10 aile gerekce + **olculen sapmayla** fikstürde. Beyansiz aile / eksik-bozuk fikstür →
+  **rc 2 (OLCULEMEDI)**, yesil sayilmiyor.
+- **Kapi `build` isinde BLOKLAYICI** (mutasyon bataryasi `serit-b`'de). Serit beyani diff
+  **2 hunk / +27 −5**, sayac **39 → 40**, sayac ve beyan disinda degisen satir **0**;
+  joker / `|| true` / `continue-on-error` YOK.
+- **Mutasyon kaniti (surucu repoda, `--mutasyon`):** **5 oldurucu KIRMIZI + 3 kontrol YESIL +
+  3 fail-closed** (fikstür silinince / aile beyansiz dusunce rc 2). Kabul olcutu cikis kodu
+  DEGIL: her kosumun `IDDIA: n SAP: m` satiri okunuyor, kontrolde tam esitlik araniyor.
+- **Yanlis-pozitif riski sayiyla elendi:** temiz main rc 0 / **39 iddia** / 3,5 s; ag-secret-
+  OpenSCAD-kardes depo GEREKMEZ; motor farki ust siniri farkli bir JS motorunda (JavaScriptCore)
+  olculdu → **%1,85e-14**, toleransin **5,4e11 kati** altinda.
+- **Merge SHA `78676775`** (ff, 6 dosya / +4061 −143), cakisma 0, sizinti 0. **D1 uc eksen** ✅
+  (16874=16874 · sema · icerik 0/0/0). **CI `30796225647`**, headSha merge SHA ile **birebir**,
+  completed/success; gercek logta `IDDIA: 39 SAP: 0`, `3. katman: 12 aile / 300 set` ve
+  5 oldurucunun `[OK] rc=1` satirlari. Temizlik: 3 worktree + 2 dal silindi, kalinti 0.
+- **ACIK:** `rampa` **%24,7** ve `profil` **%0,1469** sapmasi kapsam disi kaldi (fikstürde
+  beyanli). Satisa acik 7 aile hala hacim kapisi gormuyor → altisi uretim motoru referansi
+  istiyor, **Okan kapisi**.
 
 ## MERGE — 3 Agu 2026 · Jeneratör hacim referans onarimi + 7 aile satisa acildi (`ae6679b9`, `c0e3a360`)
 
