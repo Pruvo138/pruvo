@@ -51,8 +51,8 @@ name: Paket tazeligi alarmi (canli fiyat yolu)
 # Bu depoda olculdu (31 Tem): `*/15` cron'lu bir is akisi 4 sa 36 dk boyunca beklenen
 # ~18 tetiklemenin SIFIRINI kostu — `*/15` tam olarak dakika 0/15/30/45'e duser ve
 # GitHub o yogun dakikalarda kuyruk kisitlayip tetiklemeyi DUSURUR (yeniden denemez).
-# Bu yuzden dakika alani ACIK LISTE + SABIT OFSET'tir: 11,26,41,56 (15 dk cadans AYNEN
-# korunur, faz kayar; d1-uzlastirici.yml'nin 7,22,37,52 fazina da CARPMAZ).
+# Bu yuzden dakika alani ACIK LISTE + SABIT OFSET'tir: 13,28,43,58 (15 dk cadans AYNEN
+# korunur, faz kayar; d1-uzlastirici.yml'nin 9,24,39,54 fazina da CARPMAZ).
 #
 # Alarm IKI KATLI nabizla korunur, ikisi de `tools/cron-nabiz-kapisi.py`de kosar ve
 # deploy.yml `cron-nabzi` isinde HER ITMEDE olculur (yayini bloklamayan serit):
@@ -65,7 +65,7 @@ name: Paket tazeligi alarmi (canli fiyat yolu)
 #              URETMEZ ve A4 o sessizligi sayar.
 on:
   schedule:
-    - cron: "11,26,41,56 * * * *"
+    - cron: "13,28,43,58 * * * *"
   # Elle kosum yolu HER ZAMAN acik (cron kacarsa insan tetikleyebilir).
   workflow_dispatch:
 

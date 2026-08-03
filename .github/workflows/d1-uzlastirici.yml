@@ -47,7 +47,7 @@ name: D1 uzlastirici (katalog sapmasi)
 # dosya main'de, depo hareketli. `*/15` tam olarak dakika 0/15/30/45'e duser — GitHub'in
 # en yogun tetikleme dakikalari; dokumantasyonun kendi tavsiyesi bu dakikalardan
 # KACINMAKTIR, cunku kuyruk kisitlaninca zamanlanmis kosum DUSER (yeniden denenmez).
-# COZUM: `*/15` yerine ACIK DAKIKA LISTESI ve sabit ofset -> 7,22,37,52.
+# COZUM: `*/15` yerine ACIK DAKIKA LISTESI ve sabit ofset -> 9,24,39,54.
 #   * 15 dakikalik CADANS AYNEN KORUNUR (4 tetikleme/saat), yalniz faz kayar.
 #   * Ceyrek-saat sinirlarinin hicbirine denk gelmez.
 # Bu secim tools/cron-nabiz-kapisi.py A1 ekseniyle KILITLIDIR: `*/15`e geri cevrilirse
@@ -55,7 +55,7 @@ name: D1 uzlastirici (katalog sapmasi)
 # alarm sayar -> bu isin bir daha SESSIZCE olmesi mumkun degil.
 on:
   schedule:
-    - cron: "7,22,37,52 * * * *"
+    - cron: "9,24,39,54 * * * *"
   # Elle kosturma yolu HER ZAMAN acik (cron kacarsa/kuyruk duserse insan tetikleyebilir).
   workflow_dispatch:
 
