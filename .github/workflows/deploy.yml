@@ -116,6 +116,22 @@ jobs:
       - name: JSON-LD sku kabul testi (uretilen sayfalar + feed capraz-kontrol)
         run: python3 tools/test-jsonld-sku.py
 
+      # KAPALI AILE FIYAT BEYANI KAPISI (para/sessiz hata, 4 Agu): hacmi DOGRULANMAMIS
+      # ailede secenekler.js parametrikFiyatKurus null dondurur ve Worker sepeti 400
+      # `hacim-dogrulanmamis` ile reddeder — urun SATILAMAZ. Buna ragmen sayfa JS
+      # oncesi HTML'de "200,00 TL'den baslayan" ve JSON-LD'de price + InStock beyan
+      # ediyordu (5 aile: cetvel/kase/petek/rulman/vida). Kapi URETILEN sayfalari
+      # olcer: KAPALI ailede sayisal TL + JSON-LD price + InStock YOK, aciklayici
+      # metin VAR; ACIK ailede fiyat ve JSON-LD price AYNEN VAR (pozitif nobetci —
+      # kapi asiri hevesli olamaz). Kume secenekler.js'ten TURETILIR (sayi gomulu
+      # degil) ve build.py'nin metin okuyucusu node kosumuyla KARSILASTIRILIR
+      # (ikiz-tanim ayrismasi kirmizi yakar; node yoksa OLCULEMEDI = kirmizi).
+      # build.py'den SONRA kosmak ZORUNDA (urun/ ciktisina muhtac). Offline, ~5 s.
+      # Mutasyon surucusu repoda (CI'da kosmaz — her mutant tam build ister):
+      #   python3 tools/kapali-aile-fiyat-kapisi.py --mutasyon
+      - name: Kapali aile fiyat beyani kapisi (uretilen sayfalar)
+        run: python3 tools/kapali-aile-fiyat-kapisi.py
+
       # YAYIN IC-DIL KAPISI: tarayiciya INEN kod metninde (HTML yorumu + <style> icindeki
       # CSS yorumu + JS yorumlari) ic gelistirici dili aramaz. Olculdu 31 Tem: katalog
       # metninde yasakladigimiz uretim-sureci dili ('filament', '.scad'/'OpenSCAD', 'STL',
