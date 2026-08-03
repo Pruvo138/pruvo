@@ -458,14 +458,19 @@
      kapsıyordu; `kabartma` kolu HİÇ ölçülmedi, oysa fiyat o formülden çıkıyordu
      (kabartma 116.551 mm³ · delikli 57.746 mm³ — aynı formül, iki ayrı katı).
 
-     KURAL — YAPISAL, TEK SATIRLIK LİSTE DÜZELTMESİ DEĞİL: bir ailenin şemasında
-     üretim motorunda karşılığı OLMAYAN bir seçim bölgesi varsa (o bölge zaten
-     ONIZLEME_KISITLAR'da beyan edilir), o aile SATIŞA AÇILAMAZ. Yani
-     ONIZLEME_KISITLAR ailelerinin kümesi ile bu listenin KESİŞİMİ BOŞ olmalıdır.
-     Bu kural yayın öncesi bloklayıcı bir kabul kapısıyla ölçülür: yarın yeni bir
-     kısıt beyan edilirse o aile kendiliğinden satışta KALAMAZ, kapı kırmızı yakar.
-     Şemanın onarımı üretim/şema tarafının işidir; onarılıp kısıt kalkınca aile
-     kendiliğinden geri açılır (burada ikinci bir liste tutulmaz).
+     KURAL — YAPISAL, TEK SATIRLIK LİSTE DÜZELTMESİ DEĞİL: bir ailenin parametre
+     kutusu ŞARTLI ise (her noktası üretilemiyor) o aile SATIŞA AÇILAMAZ. Bu şart
+     bu depoda İKİ yerde beyan edilir ve kural İKİSİNİN BİRLEŞİMİNE bakar:
+       KOL 1  ONIZLEME_KISITLAR (ürün id bazlı, yukarıda)
+       KOL 2  ürün şemasının `kisitlar` bloğu (`jenerator/urunler/<id>.json`)
+     KISITLI AİLELER (KOL1 ∪ KOL2) ∩ bu liste = BOŞ olmalıdır.
+     🔴 2026-08-03 ÖLÇÜLDÜ: kural bir süre YALNIZ KOL1'e bakıyordu; şemasında
+     `kisitlar` tanımlı `rulman`/`vida` satış listesine eklendiğinde hiçbir kapı
+     kırmızı yanmıyordu (kopyada ölçüm: rc=0, A3 "[OK]").
+     Bu kural yayın öncesi bloklayıcı bir kabul kapısıyla ölçülür: yarın hangi koldan
+     olursa olsun yeni bir kısıt beyan edilirse o aile kendiliğinden satışta KALAMAZ,
+     kapı kırmızı yakar. Şemanın onarımı üretim/şema tarafının işidir; onarılıp kısıt
+     kalkınca aile kendiliğinden geri açılır (burada ikinci bir liste tutulmaz).
 
      KAPALI KALANLAR (6): `rampa` (sapması bağımsız ölçümle DOĞRULANMADI), `vida`
      (hiç ölçülmedi), `rulman` + `petek` + `cetvel` + `kase` (şema aralığı kusuru —
