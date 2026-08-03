@@ -292,12 +292,205 @@ def _needs_kumesi(job):
     return set()
 
 
+# ---------------------------------------------------------------------------
+# E2b — URETIM ZINCIRI (build.py ciktisina muhtac araclarin YERI)
+# ---------------------------------------------------------------------------
+# NE OLCER: "build.py uretimine muhtac HER arac, uretimi yapan adimla AYNI job'da ve
+# ONDAN SONRA kosuyor mu" + "o joblarin kirmizisi yayini gercekten durduruyor mu".
+#
+# 🔴 CAPA ADIM YORUMU DEGILDIR. Adim yorumundaki "build.py'den SONRA kosmak ZORUNDA"
+# bir BEYANDIR; beyan tasinirken adimla birlikte tasinir ve yanlis serite konan adimi
+# ele VERMEZ. Capa asagidaki KAYIT TABLOSUDUR: uretilen agaca (urun/ · _yayin/ ·
+# varlik/ · ozet.json · merchant-feed.xml · _yayin-icerik-dizinleri.txt) DOKUNDUGU
+# OLCULEN araclarin listesi. Her giris, olcumun NASIL yapildigini yaziyla tasir.
+#
+# NEDEN GEREKLI (3 Ago 2026, `build` isi N bloklayici serite bolunurken olculdu):
+# tek serit bolununce "uretimden sonra kosan" adimlar uretimin OLMADIGI bir serite
+# dusebilir. Iki DAVRANIS SINIFI olculdu ve ikisi AYNI DEGIL:
+#
+#   FAIL-LOUD (yanlis serite dusunce GORUNUR kirmizi verir) — olculdu, pristine agac:
+#     uretim-butunluk-kapisi.py  rc=1 "OLCULEMEDI: urun/ dizini YOK"
+#     yayin-fiyat-parite.mjs     rc=3 "OLCULEMEDI: _yayin/ yok"
+#     test-jsonld-{brand,offers,sku}.py rc=1 "hic urun sayfasi yok"
+#     yayin-ic-dil-kapisi.py (yayin kolu)  rc=3
+#
+#   🔴 SESSIZ (yanlis serite dusunce YESIL yanar ama OLCTUGU YUZEY KUCULUR) — ASIL RISK:
+#     tools/surum-test.py            uretilmis agac: "7 referans _yayin/ kopyasindan
+#                                    olculdu, 0 kaynaktan" · pristine: "0 ... 7 kaynaktan"
+#                                    -> ikisi de rc=0. YAYINLANAN bayt yerine KAYNAK bayt
+#                                    olculur; surum damgasi regresyonu gorunmez kalir.
+#     yayin-ic-dil-kapisi.py --kaynak  uretilmis: "8 kaynak dosyasi" · pristine: "7"
+#                                    -> index.built.html olcum disi kalir, rc=0.
+#   Bu iki arac bugun CI'da uretimi `yasal-sayfa-drift-kapisi.py`nin YAN ETKISINDEN alir
+#   (o kapi `subprocess.run([...BUILD], cwd=ROOT)` ile TAM build kosar) ve ONDAN SONRA
+#   kosar. Ucu (drift kapisi -> surum-test -> ic-dil --kaynak) AYNI SERITTE ve AYNI
+#   SIRADA tutulmalidir; bu eksen tam olarak bunu olcer.
+#
+# URETICI = uretilen agaci DEPO KOKUNDE olusturan cagri. Ikisi de OLCULDU:
+URETICILER = {
+    # bayraksiz cagri TAM uretimdir. (`--sadece-ozet` yalniz ozet.json yazar -> URETICI
+    # SAYILMAZ; o yuzden eslesme bayraksiz cagriya kilitli.)
+    "tools/build.py":
+        "TEK gercek uretim: urun/ · _yayin/ · varlik/ · sitemap.xml · merchant-feed.xml "
+        "· ozet.json · _yayin-icerik-dizinleri.txt · index.built.html",
+    # OLCULDU (tools/yasal-sayfa-drift-kapisi.py:153): `subprocess.run([sys.executable,
+    # BUILD], cwd=ROOT)` -> kapinin KENDISI depo kokunde TAM build kosar. Yasal sayfalari
+    # geri koyar ama urun/ · _yayin/ · varlik/ agacini BIRAKIR. Bu bir YAN ETKIDIR ve
+    # adiminin adinda/yorumunda YAZMAZ -> tam da bu yuzden burada KAYITLIDIR.
+    "tools/yasal-sayfa-drift-kapisi.py":
+        "yan etki: cwd=ROOT ile tam build.py kosar (kaynak: yasal-sayfa-drift-kapisi.py:153)",
+}
+
+# TUKETICI = uretilen agaca DISKTEN dokunan arac. Anahtar (arac_yolu, bayrak):
+# bayrak None => BAYRAKSIZ cagri (o aracin `--kendini-test` gibi gecici-dizinde kosan
+# kollari BU EKSENIN KAPSAMINDA DEGILDIR ve eslesmez).
+URETIM_TUKETICILERI = {
+    ("tools/surum-test.py", None):
+        "🔴 SESSIZ SINIF: _yayin/<rel> varsa YAYINLANAN kopyayi, yoksa KAYNAGI olcer "
+        "(surum-test.py:27,74) — uretim yoksa rc=0 kalir ama olculen yuzey degisir "
+        "(olculdu: 7 referans _yayin/'dan -> 0).",
+    ("tools/yayin-ic-dil-kapisi.py", "--kaynak"):
+        "🔴 SESSIZ SINIF: KAYNAK kolu index.built.html'i de kapsar; uretim yoksa kapsam "
+        "8 -> 7 dosyaya duser ve rc=0 kalir (olculdu).",
+    ("tools/yayin-ic-dil-kapisi.py", None):
+        "YAYIN kolu: _yayin-icerik-dizinleri.txt + urun/ + varlik/ okur (fail-loud rc=3).",
+    ("tools/uretim-butunluk-kapisi.py", None):
+        "yayinlanan her id'nin urun/<id>/index.html sayfasini arar (fail-loud rc=1).",
+    ("jenerator/test/yayin-fiyat-parite.mjs", None):
+        "_yayin/ altindaki yayin kopyalarindan fiyat paritesi olcer (fail-loud rc=3).",
+    ("tools/test-jsonld-brand.py", None):
+        "urun/*/index.html uretilen sayfalarini okur (fail-loud rc=1).",
+    ("tools/test-jsonld-offers.py", None):
+        "urun/*/index.html uretilen sayfalarini okur (fail-loud rc=1).",
+    ("tools/test-jsonld-sku.py", None):
+        "urun/*/index.html + merchant-feed.xml capraz-kontrolu (fail-loud rc=1).",
+}
+
+
+def _cagri_kuyruklari(run, arac):
+    """[kuyruk, ...] — `run` blogunda `arac`i cagiran satirlarin ARGUMAN kuyrugu."""
+    kuyruklar = []
+    for satir in (run or "").splitlines():
+        s = satir.strip()
+        if s.startswith("#"):
+            continue
+        k = s.find(arac)
+        if k == -1:
+            continue
+        kuyruklar.append(s[k + len(arac):].strip())
+    return kuyruklar
+
+
+def _bayrak_uyuyor(kuyruk, bayrak):
+    """bayrak None => cagri BAYRAKSIZ olmali. Aksi halde bayrak kuyrukta bir JETON olmali."""
+    if bayrak is None:
+        return kuyruk == ""
+    return bayrak in kuyruk.split()
+
+
+def _adim_eslesmeleri(joblar, arac, bayrak):
+    """[(job_adi, adim_sirasi), ...] — (arac, bayrak) cagrisini tasiyan adimlar."""
+    bulunan = []
+    for job_adi, job in (joblar or {}).items():
+        if not isinstance(job, dict):
+            continue
+        for sira, adim in enumerate(job.get("steps") or []):
+            if not isinstance(adim, dict):
+                continue
+            for kuyruk in _cagri_kuyruklari(adim.get("run"), arac):
+                if _bayrak_uyuyor(kuyruk, bayrak):
+                    bulunan.append((str(job_adi), sira))
+                    break
+    return bulunan
+
+
+def _gecisli_bagimliliklar(joblar, kok):
+    """`kok` job'unun `needs:` uzerinden GECISLI olarak bagli oldugu job adlari."""
+    goruldu = set()
+    yigin = [kok]
+    while yigin:
+        for n in _needs_kumesi(joblar.get(yigin.pop())):
+            if n in joblar and n not in goruldu:
+                goruldu.add(n)
+                yigin.append(n)
+    return goruldu
+
+
+def e2b_uretim_zinciri(dosya, govde):
+    """URETIM ZINCIRI: her tuketici, bir URETICI ile AYNI job'da ve ONDAN SONRA."""
+    joblar = govde.get("jobs") or {}
+    sorunlar = []
+
+    # (1) URETICI CAPASI — uretici hic bulunamazsa eksen OLCEMEZ, sessizce yesil YANMAZ.
+    uretim_yerleri = {}          # job -> en erken uretim adim sirasi
+    uretici_bulundu = {}
+    for arac in URETICILER:
+        yerler = _adim_eslesmeleri(joblar, arac, None)
+        uretici_bulundu[arac] = yerler
+        for job_adi, sira in yerler:
+            if job_adi not in uretim_yerleri or sira < uretim_yerleri[job_adi]:
+                uretim_yerleri[job_adi] = sira
+    for arac, yerler in uretici_bulundu.items():
+        if not yerler:
+            sorunlar.append(
+                "🔴 E2b %s: KAYITLI URETICI `%s` bu akista HIC bulunamadi -> capa kaymis. "
+                "Uretim yeri bilinmeden 'tuketici uretimden sonra kosuyor' IDDIA EDILEMEZ "
+                "(fail-closed; kaydi guncelle ya da cagriyi geri koy)." % (dosya, arac))
+
+    # (2) TUKETICILER — ayni job + uretimden SONRA
+    yayin_isi = yayin_isi_adi(govde)
+    bloklayan = _gecisli_bagimliliklar(joblar, yayin_isi) if yayin_isi else set()
+    ilgili_joblar = set()
+    for (arac, bayrak), gerekce in sorted(URETIM_TUKETICILERI.items(),
+                                          key=lambda kv: (kv[0][0], kv[0][1] or "")):
+        etiket = arac + ((" " + bayrak) if bayrak else " (bayraksiz)")
+        yerler = _adim_eslesmeleri(joblar, arac, bayrak)
+        if not yerler:
+            sorunlar.append(
+                "🔴 E2b %s: KAYITLI TUKETICI `%s` bu akista HIC cagrilmiyor -> KAYIT BAYAT. "
+                "Kayit tablosu capadir; bayat giris, tasinmis bir adimi ele vermez "
+                "(URETIM_TUKETICILERI'ni guncelle)." % (dosya, etiket))
+            continue
+        for job_adi, sira in yerler:
+            ilgili_joblar.add(job_adi)
+            uretim = uretim_yerleri.get(job_adi)
+            if uretim is None:
+                sorunlar.append(
+                    "🔴 E2b %s: `%s` job `%s`'da kosuyor ama O JOBDA HICBIR URETICI YOK. "
+                    "Uretilen agac (urun/ · _yayin/ · varlik/) o seritte OLUSMAZ. "
+                    "OLCULEN SONUC: %s COZUM: adimi uretimi yapan seride tasi."
+                    % (dosya, etiket, job_adi, gerekce))
+            elif sira <= uretim:
+                sorunlar.append(
+                    "🔴 E2b %s: `%s` job `%s`'da URETIMDEN ONCE kosuyor (adim %d, uretim "
+                    "adim %d). Uretilen agac o an DISKTE YOKTUR. OLCULEN SONUC: %s"
+                    % (dosya, etiket, job_adi, sira, uretim, gerekce))
+
+    # (3) BU JOBLARIN KIRMIZISI YAYINI DURDURUYOR MU
+    # Uretici/tuketici tasiyan bir serit `deploy.needs`'ten dusurulurse oradaki kapilar
+    # CI'da GORUNUR ama yayini DURDURMAZ (sessiz fail-open). Kapsam bu kapinin KENDI
+    # kayit tablosuyla sinirlidir: "tum kapilar" tanimi tools/is-akisi-kapisi.py'nindir,
+    # burada IKIZ TANIM uretilmez ([[ikiz-tanim-sessiz-ayrisma]]).
+    for job_adi in sorted(ilgili_joblar | set(uretim_yerleri)):
+        if yayin_isi and job_adi != yayin_isi and job_adi not in bloklayan:
+            sorunlar.append(
+                "🔴 E2b %s: job `%s` uretim zincirinin PARCASI ama `%s` isine GECISLI "
+                "olarak BAGLI DEGIL -> o serit kirmizi yansa da yayin INER (fail-open). "
+                "COZUM: seridi `%s.needs` listesine EKLE (is-akisi-kapisi::SERIT_B "
+                "tablosuna giris ekleyerek SUSTURMA)."
+                % (dosya, job_adi, yayin_isi, yayin_isi))
+    return sorunlar
+
+
 def e2_degerlendir(dosya, govde):
     """`deploy` -> needs build · `yayin` -> needs deploy, ve zincirde KACIS yok.
 
     KACIS = `if:` kosulu (kosum sirasinda atlanabilir) ya da `continue-on-error: true`
     (kirmizi yayini durdurmaz). Ikisi de bu zincirde FAIL-OPEN'dir: `deploy`in build'e
-    bagli olmasinin TEK anlami "kapilar kirmiziysa canliya cikma"dir."""
+    bagli olmasinin TEK anlami "kapilar kirmiziysa canliya cikma"dir.
+
+    E2b (URETIM ZINCIRI) ayni evde ama AYRI EKSENDIR: zincir saglamken bile uretime
+    muhtac bir adim yanlis serite dusebilir."""
     joblar = govde.get("jobs") or {}
     sorunlar = []
     for is_adi, beklenen in ZINCIR:
@@ -323,7 +516,7 @@ def e2_degerlendir(dosya, govde):
             sorunlar.append(
                 "🔴 E2 %s: `%s` isinde `continue-on-error: true` VAR -> kirmizi zinciri "
                 "DURDURMAZ (beyansiz fail-open)." % (dosya, is_adi))
-    return sorunlar
+    return sorunlar + e2b_uretim_zinciri(dosya, govde)
 
 
 # ---------------------------------------------------------------------------
@@ -601,6 +794,77 @@ def _mutant_e2_fail_open(govde):
     govde["jobs"]["deploy"]["continue-on-error"] = True
 
 
+# ---- E2b (URETIM ZINCIRI) mutantlari -------------------------------------
+# Bu mutantlar TASIMA hatasini simule eder: adimin kendisi DEGISMEZ, yalnizca hangi
+# job'da / hangi sirada kostugu degisir — yani gercek regresyonun tam sekli.
+def _tuketici_yeri(govde, arac, bayrak=None):
+    yerler = _adim_eslesmeleri(govde.get("jobs") or {}, arac, bayrak)
+    if not yerler:
+        raise KeyError("mutant capasi yok (cagri bulunamadi): %s" % arac)
+    return yerler[0]
+
+
+def _uretimsiz_job(govde, haric):
+    """Uretici TASIMAYAN, yayin isi OLMAYAN ilk job — 'yanlis serit' hedefi."""
+    joblar = govde.get("jobs") or {}
+    ureticili = set()
+    for arac in URETICILER:
+        for j, _ in _adim_eslesmeleri(joblar, arac, None):
+            ureticili.add(j)
+    yayin = yayin_isi_adi(govde)
+    for ad, job in joblar.items():
+        if ad in ureticili or ad == yayin or ad == haric:
+            continue
+        if isinstance(job, dict) and job.get("steps"):
+            return ad
+    raise KeyError("mutant hedefi yok: uretimsiz serit bulunamadi")
+
+
+def _mutant_e2b_uretimsiz_serit(govde):
+    """P-sinifi adim, URETIMIN OLMADIGI bir serite tasinir (fail-loud sinifi)."""
+    job, sira = _tuketici_yeri(govde, "tools/uretim-butunluk-kapisi.py")
+    hedef = _uretimsiz_job(govde, haric=job)
+    govde["jobs"][hedef]["steps"].append(govde["jobs"][job]["steps"].pop(sira))
+
+
+def _mutant_e2b_sessiz_tuketici_tasindi(govde):
+    """🔴 SESSIZ sinif: surum-test.py uretimsiz serite tasinir. Adim orada rc=0 verir
+    (yalanci yesil); eksen bunu SIRF YERINDEN taniyabilmelidir."""
+    job, sira = _tuketici_yeri(govde, "tools/surum-test.py")
+    hedef = _uretimsiz_job(govde, haric=job)
+    govde["jobs"][hedef]["steps"].append(govde["jobs"][job]["steps"].pop(sira))
+
+
+def _mutant_e2b_uretimden_once(govde):
+    """AYNI job, ama uretimden ONCE — 'sira' yarisi tek basina olculuyor mu."""
+    job, sira = _tuketici_yeri(govde, "jenerator/test/yayin-fiyat-parite.mjs")
+    govde["jobs"][job]["steps"].insert(0, govde["jobs"][job]["steps"].pop(sira))
+
+
+def _mutant_e2b_serit_needs_dusuruldu(govde):
+    """Uretim zinciri tasiyan bir serit `deploy.needs`'ten dusurulur (sessiz fail-open)."""
+    job, _ = _tuketici_yeri(govde, "tools/surum-test.py")
+    yayin = yayin_isi_adi(govde)
+    ham = govde["jobs"][yayin].get("needs")
+    needs = [ham] if isinstance(ham, str) else list(ham or [])
+    if job not in needs:
+        raise KeyError("mutant anlamsiz: `%s` zaten %s.needs'te degil" % (job, yayin))
+    govde["jobs"][yayin]["needs"] = [n for n in needs if n != job]
+
+
+def _mutant_kontrol_kayitsiz_tasima(govde):
+    """KONTROL: KAYITLI OLMAYAN bir kapi baska serite tasinir -> eksen YESIL KALMALI.
+    Bu mutant olmasa E2b 'her adim tasimasina kirmizi yanan' bir gurultu kaynagi
+    olabilir ve M8/M9'un yesili bunu ELE VERMEZDI ([[fikstur-degeri-mutasyon-koru]])."""
+    arac = "tools/gramer-artigi-kapisi.py"
+    job, sira = _tuketici_yeri(govde, arac)
+    hedefler = [j for j, _ in _adim_eslesmeleri(govde.get("jobs") or {},
+                                                "tools/build.py", None)]
+    if not hedefler or hedefler[0] == job:
+        raise KeyError("KONTROL hedefi yok (uretici serit bulunamadi/ayni)")
+    govde["jobs"][hedefler[0]]["steps"].append(govde["jobs"][job]["steps"].pop(sira))
+
+
 MUTANTLAR = (
     ("M0 KONTROL: alakasiz alan (deploy.runs-on)", _mutant_m0, None),
     ("M1 E1: cancel-in-progress -> true", _mutant_e1_true, ("E1", "E3")),
@@ -610,14 +874,26 @@ MUTANTLAR = (
     ("M5 E2: yayin.needs -> build (deploy DEGIL)", _mutant_e2_yayin_yanlis_bag, ("E2",)),
     ("M6 E2: deploy'a `if:` eklendi", _mutant_e2_kosullu, ("E2",)),
     ("M7 E2: deploy continue-on-error: true", _mutant_e2_fail_open, ("E2",)),
+    ("M8 E2b: P-sinifi adim URETIMSIZ serite tasindi",
+     _mutant_e2b_uretimsiz_serit, ("E2b",)),
+    ("M9 E2b: SESSIZ tuketici (surum-test) URETIMSIZ serite tasindi",
+     _mutant_e2b_sessiz_tuketici_tasindi, ("E2b",)),
+    ("M10 E2b: tuketici AYNI job'da uretimden ONCEYE alindi",
+     _mutant_e2b_uretimden_once, ("E2b",)),
+    ("M11 E2b: uretim seridi deploy.needs'ten dusuruldu",
+     _mutant_e2b_serit_needs_dusuruldu, ("E2b",)),
+    ("M12 KONTROL: KAYITSIZ kapi baska serite tasindi",
+     _mutant_kontrol_kayitsiz_tasima, None),
 )
 
 
 def _eksenler(sorunlar):
     """Bulgu satirlarindan EKSEN kumesi. Her eksen TEK BASINA raporlanir."""
     bulunan = set()
+    # "E2b" ONCE denenmeli/ayri tutulmali: " E2 " jetonu "E2b"yi ESLEMEZ (bosluk sarti),
+    # boylece iki eksen birbirinin mutantini SAHIPLENEMEZ ([[beyan-edilmis-survivor]]).
     for s in sorunlar:
-        for eksen in ("E1", "E2", "E3"):
+        for eksen in ("E1", "E2", "E2b", "E3"):
             if (" %s " % eksen) in s:
                 bulunan.add(eksen)
     return bulunan
@@ -722,9 +998,12 @@ def main(argv=None):
             for h in hatalar:
                 print("  " + h)
             return 1
+        kontrol = sum(1 for _, _, bek in MUTANTLAR if bek is None)
         print("🟢 KENDINI TEST TEMIZ — %d iddia kosuldu "
-              "(%d simulasyon fiksturu + %d mutant, biri KONTROL)"
-              % (iddia, len(SIM_FIKSTURLERI), len(MUTANTLAR)))
+              "(%d simulasyon fiksturu + %d mutant, %d'i KONTROL · "
+              "kayit tablosu: %d uretici + %d tuketici)"
+              % (iddia, len(SIM_FIKSTURLERI), len(MUTANTLAR), kontrol,
+                 len(URETICILER), len(URETIM_TUKETICILERI)))
         return 0
 
     if a.canli:
