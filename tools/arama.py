@@ -599,6 +599,48 @@ MODEL_OLMAYAN_JETON = {
 MODEL_OLMAYAN_SAYISI = 7
 MODEL_OLMAYAN_IMZA = "5b8777ee23cefcb1"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# ROZET DISI (marka, model) CIFTLERI — /marka/X/M/ sayfasi ACILMAZ (4 Agu, KraL hukmu)
+#
+# HUKUM: "bir /marka/X/M/ sayfasi ancak M modeli GERCEKTEN X rozetiyle satilmissa acilir."
+# Golf hicbir zaman Audi, Octavia hicbir zaman Volkswagen rozetiyle satilmadi; bu kayitlar
+# platform/parca uyumudur, ROZET degil.
+#
+# 🔴 NEDEN YAPISAL KURAL DEGIL DE KURATORLU CIFT TABLOSU (olculdu, 4 Agu — uydurma degil):
+# Mimarin onerdigi yazilabilir kural "(a) uyum[].marka==X && uyum[].model==M  YA DA
+# (b) marka[0]==X" gercek katalogda TAM 0 cift eliyor: `/marka/audi/golf/` kayitlarinda
+# marka[0] ZATEN 'Audi' ve bir kayitta `uyum` fiilen {marka:Audi, model:Golf} DIYOR.
+# Yalniz (a)'ya inmek ise 46 cift eliyor ve mimarin ACIKCA korunmasini istedigi sayfalari
+# olduruyor (`/marka/toyota/brz/`, `/marka/subaru/gt86/`, `/marka/peugeot/jumper/`,
+# `/marka/toyota/107/`, hatta `/marka/ford/f-150/`) — cunku katalogun buyuk kismi `uyum`
+# TASIMIYOR. Veri, "Audi+Golf" ile "Subaru+BRZ"yi AYIRT EDEN yapisal bir sinyal ICERMIYOR:
+# ikisi de "cok markali uyumluluk listesi"dir; fark otomotiv ROZET bilgisidir.
+# Bu yuzden yargi, deponun mevcut deseniyle (MODEL_OLMAYAN_JETON / BILESIK_MARKA_REDDEDILEN)
+# KAPALI, GEREKCELI ve KIMLIGI DONMUS bir tabloya yazilir. Genel bir normalizasyon/heuristik
+# YAZILMAZ: yazilsaydi mesru rozet ikizlerini (Berlingo/Partner, GT86/BRZ, 107/C1/Aygo,
+# Ducato/Jumper/Boxer) sessizce oldururdu.
+#
+# ⚠️ BUYUME GORUNUR KARARDIR: kimlik donmus (ROZET_DISI_IMZA), sessiz genisleme
+# tools/model-uyelik-kapisi.py'de KIRMIZI yakar. Yeni giris = mimar hukmu.
+# Eleme URUN KAYBETTIRMEZ: sayfasi acilmayan kovanin urunleri marka sayfasinda ve kendi
+# GERCEK model sayfasinda (Golf -> /marka/volkswagen/golf/) durmaya devam eder (kapi olcer).
+ROZET_DISI_CIFT = {
+    ("Audi", "Golf"): "Golf VW rozetidir; Audi Golf diye bir arac satilmadi (VAG platform "
+                      "ortakligi) — gercek sayfa /marka/volkswagen/golf/",
+    ("Volkswagen", "Octavia"): "Octavia Skoda rozetidir; VW Octavia diye bir arac satilmadi "
+                               "— gercek sayfa /marka/skoda/octavia/",
+}
+
+ROZET_DISI_SAYISI = 2
+ROZET_DISI_IMZA = "79878bc5f7d242bc"
+
+
+def rozet_disi_imzasi():
+    """Cift kumesinin ANAHTAR kimligi (S2 dersi: SAYI degil KIMLIK)."""
+    return hashlib.sha256(
+        json.dumps(sorted("%s|%s" % (a, b) for a, b in ROZET_DISI_CIFT), ensure_ascii=False)
+        .encode("utf-8")).hexdigest()[:16]
+
 
 def model_olmayan_imzasi():
     """Tablonun ANAHTAR kimligi — sessiz buyume/daralma kapida KIRMIZI yakar (S2 dersi:

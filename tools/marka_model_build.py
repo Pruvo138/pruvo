@@ -340,6 +340,24 @@ def _kapali_marka_kumesi():
 KAPALI_MARKA_NORMLU = _kapali_marka_kumesi()
 
 
+def _rozet_disi_ciftler():
+    """tools/arama.py ROZET_DISI_CIFT — /marka/X/M/ sayfası AÇILMAYAN (marka, model) çiftleri.
+
+    Anahtar KANONİK model anahtarına indirilir: tabloya "Golf" yazmak yeter, katalogdaki
+    "GOLF"/"Golf IV" gibi yazımlar aynı kovaya düştüğü sürece kural tutar.
+    FAIL-CLOSED: tablo okunamazsa SystemExit (sessizce boş kümeye düşmek, mimarın kapattığı
+    sayfaları geri açardı)."""
+    try:
+        import arama                                                # noqa: PLC0415
+        return set((mk, model_kanon.kanon(md)) for mk, md in arama.ROZET_DISI_CIFT)
+    except Exception as e:                                          # noqa: BLE001
+        raise SystemExit("HATA: tools/arama.py ROZET_DISI_CIFT okunamadı (%r) — rozet dışı "
+                         "sayfalar kapatılamaz (fail-closed)." % (e,))
+
+
+ROZET_DISI = _rozet_disi_ciftler()
+
+
 def marka_jetonu_mu(deger, evren):
     """Değer BAŞLI BAŞINA bir MARKA mı (dolayısıyla MODEL olamaz)?
 
@@ -478,7 +496,7 @@ def gruplandir(products, evren, ek_markalar=()):
             for canon, yazimlar in jetonlar.items():
                 g = d["gruplar"].get(canon)
                 if g is None:
-                    g = {"canon": canon, "urunler": [], "birincil": False}
+                    g = {"canon": canon, "urunler": [], "birincil": False, "marka": kan}
                     d["gruplar"][canon] = g
                     d["_spelling"][canon] = Counter()
                 g["urunler"].append(p)           # jeton başına DEĞİL, anahtar başına tek kez
@@ -501,7 +519,14 @@ def gruplandir(products, evren, ek_markalar=()):
 
 def yayimlanir_mi(g):
     """Model kovası SAYFA olur mu — TEK KAYNAK (üretici, kabul testi ve kapı aynı yüklemi
-    kullanır; ikinci bir eşik ifadesi yazılırsa sayfa sayısı ile kapının saydığı ayrışır)."""
+    kullanır; ikinci bir eşik ifadesi yazılırsa sayfa sayısı ile kapının saydığı ayrışır).
+
+    ROZET KAPISI (4 Ağu, KraL hükmü): model o markanın ROZETİYLE satılmamışsa sayfa
+    AÇILMAZ — `/marka/audi/golf/` (Golf VW rozetidir) gibi. Küme küratörlü ve kimliği
+    donmuş: `arama.ROZET_DISI_CIFT`. Ürün KAYBOLMAZ: sayfası açılmayan kovanın ürünleri
+    marka sayfasında ve kendi gerçek model sayfasında listelenmeye devam eder."""
+    if (g.get("marka"), g.get("canon")) in ROZET_DISI:
+        return False
     return bool(g.get("birincil")) and len(g["urunler"]) >= ESIK
 
 

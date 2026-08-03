@@ -296,6 +296,7 @@ def olc(kok, modul_yolu=None):
         if araclar_yolu not in sys.path:
             sys.path.insert(0, araclar_yolu)
         import arama as _arama                                      # noqa: PLC0415
+        _mk_kanon = __import__("model_kanon").kanon
         kapali = set(_arama.UYUM_MARKA_IZINLI) | set(_arama.URETICI_MARKA)
         model_olmayan = dict(_arama.MODEL_OLMAYAN_JETON)
         kapali_n = set(_arama.model_normalize(m) for m in kapali)
@@ -313,6 +314,43 @@ def olc(kok, modul_yolu=None):
         if n in kapali_n or n in olmayan_n:
             marka_kovasi.append((marka, display,
                                  model_olmayan.get(display, "KAPALI MARKA KÜMESİ üyesi")))
+
+    # (a2) ROZET KAPISI (4 Ağu, KraL hükmü): rozet dışı (marka, model) çifti SAYFA OLMAZ.
+    #      Yargı yine BAĞIMSIZ okunur (arama.ROZET_DISI_CIFT), üretecin yüklemi çağrılmaz.
+    #      Ayrıca ELENEN kovanın ürünleri KAYBOLMAMALI: marka ağacında (başka bir yayımlanan
+    #      kovada ya da marka sayfasının listesinde) durmalı — "sayfa kapattık, ürün gitti"
+    #      sessiz hatası bu eksende ölçülür.
+    rozet_disi = dict(((mk, _mk_kanon(md)), (mk, md, sebep))
+                      for (mk, md), sebep in _arama.ROZET_DISI_CIFT.items())
+    rozet_imza = (_arama.rozet_disi_imzasi(), _arama.ROZET_DISI_IMZA,
+                  len(_arama.ROZET_DISI_CIFT), _arama.ROZET_DISI_SAYISI)
+    rozet_ihlal = [(mk, dsp) for (mk, dsp), (_i, canon) in sayfa.items()
+                   if (mk, canon) in rozet_disi]
+    # elenen kovalar + ürünlerin nereye düştüğü
+    yayin_id = set()
+    for (_mk, _dsp), (_ids, _c) in sayfa.items():
+        yayin_id |= _ids
+    rozet_elenen, rozet_kaybolan = [], []
+    for (mk, canon), (_ham_mk, ham_md, sebep) in rozet_disi.items():
+        g = (veri.get(mk) or {}).get("gruplar", {}).get(canon)
+        if not g:
+            continue
+        ids = set(p.get("id") for p in g["urunler"] if p.get("id"))
+        # marka AĞACINDA duruyor mu: ya başka bir yayımlanan kovada ya da marka sayfasının
+        # listesinde (yayımlanmayan kova ürünleri uret() tarafından oraya basılır).
+        marka_agaci = set()
+        for g2 in (veri.get(mk) or {}).get("gruplar", {}).values():
+            marka_agaci |= set(p.get("id") for p in g2["urunler"] if p.get("id"))
+        marka_agaci |= set(p.get("id") for p in
+                           (veri.get(mk) or {}).get("marka_only", [])
+                           + (veri.get(mk) or {}).get("ikincil", []) if p.get("id"))
+        kaybolan = sorted(pid for pid in ids if pid not in marka_agaci)
+        rozet_kaybolan.extend(kaybolan)
+        rozet_elenen.append({
+            "url": "/marka/%s/%s/" % (mm._slug(mk), mm._slug(g.get("display") or ham_md)),
+            "n": len(ids), "sebep": sebep,
+            "gercek_sayfada": sum(1 for pid in ids if pid in yayin_id),
+            "kaybolan": len(kaybolan)})
 
     # (b) AYNA DRIFT — index.html BILESIK_MARKA == arama.py'nin ÇOK KELİMELİ üyeleri.
     #     Otorite arama.py; index.html yalnızca JS'in çalışma anı kopyasıdır.
@@ -351,6 +389,8 @@ def olc(kok, modul_yolu=None):
                    "anahtar_ornek": ornek, "marka_kovasi": marka_kovasi,
                    "ayna_fark": ayna_fark, "ayna": ayna, "red_imza": red_imza,
                    "sonda_sapan": sonda_sapan, "sonda_sayisi": len(sondalar),
+                   "rozet_ihlal": rozet_ihlal, "rozet_elenen": rozet_elenen,
+                   "rozet_kaybolan": rozet_kaybolan, "rozet_imza": rozet_imza,
                    "envanter": _envanter(urunler, veri, evren, mm, sayfa),
                    "cok_kelimeli": cok_kelimeli}
 
@@ -443,6 +483,20 @@ def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
     dogrula("K9 MODEL_OLMAYAN_JETON KİMLİĞİ DONMUŞ (sessiz genişleme yok)",
             _ri[0] == _ri[1] and _ri[2] == _ri[3],
             "imza=%s beklenen=%s sayı=%d beklenen=%d" % _ri)
+    # K11 — ROZET KAPISI: rozet dışı çift SAYFA OLMAZ **ve** ürünleri KAYBOLMAZ.
+    dogrula("K11 ROZET DIŞI ÇİFTİN SAYFASI YOK ve ürünü KAYBOLMADI (kaybolan=%d)"
+            % len(a["rozet_kaybolan"]),
+            not a["rozet_ihlal"] and not a["rozet_kaybolan"] and len(a["rozet_elenen"]) > 0,
+            "ihlal=%s · elenen kova=%d · kaybolan ürün=%d"
+            % (a["rozet_ihlal"] or "-", len(a["rozet_elenen"]), len(a["rozet_kaybolan"])))
+    for _e in a["rozet_elenen"]:
+        print("        ELENEN %-34s %2d ürün · gerçek model sayfasında %d · kaybolan %d"
+              % (_e["url"], _e["n"], _e["gercek_sayfada"], _e["kaybolan"]))
+    # K12 — ROZET_DISI_CIFT kimliği DONMUŞ.
+    _zi = a["rozet_imza"]
+    dogrula("K12 ROZET_DISI_CIFT KİMLİĞİ DONMUŞ (sessiz sayfa kapatma/açma yok)",
+            _zi[0] == _zi[1] and _zi[2] == _zi[3],
+            "imza=%s beklenen=%s sayı=%d beklenen=%d" % _zi)
     # KONTROL: kapı gerçekten AYRIŞMA ölçüyor mu — ölçülen küme boş/dejenere olmasın.
     dogrula("K6 KONTROL: ölçülen çiftlerin çoğu DOLU (dejenere ölçüm değil)",
             a["temiz"] + a["sayfa_dar"] + a["filtre_dar"] + a["capraz"] == a["cift"]
@@ -527,6 +581,16 @@ MUTANTLAR = [
     ("index.html", "    if(bilesikMarkaMi(t)){ return t; }        // bileşik marka BÖLÜNMEZ (tek parça kalır)",
      "    if(false){ return t; }", "KIRMIZI",
      "M11 BİLEŞİK MARKA KORUMASINI KALDIR (JS) -> anahtar sondası iki tarafta ayrışır"),
+    # --- ROZET EKSENİ (4 Ağu, KraL hükmü) ---
+    ("tools/marka_model_build.py",
+     "    if (g.get(\"marka\"), g.get(\"canon\")) in ROZET_DISI:\n        return False",
+     "    if False:\n        return False", "KIRMIZI",
+     "M12 ROZET KURALINI `marka` DİZİSİ YAN YANALIĞINA GEVŞET -> /marka/audi/golf/ + "
+     "/marka/volkswagen/octavia/ geri doğar"),
+    ("tools/marka_model_build.py",
+     "        return set((mk, model_kanon.kanon(md)) for mk, md in arama.ROZET_DISI_CIFT)",
+     "        return set()", "KIRMIZI",
+     "M13 ROZET TABLOSUNU OKUMAYI BIRAK -> aynı iki sayfa geri doğar (kuplaj ekseni)"),
     # --- KONTROL (YEŞİL bekleniyor) ---
     ("tools/marka_model_build.py", "ESIK = 3", "ESIK = 4", "YESIL",
      "K1 İLGİSİZ: eşiği yükseltmek çift SAYISINI düşürür, PARİTEYİ bozmaz"),
