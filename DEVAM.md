@@ -7,13 +7,33 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 Ritüel: `tools/DEVIR-KONTROL-LISTESI.md` (`2382c7f1`). Claude hesabi disinda **hicbir sey
 degismedi** — git/GitHub/Cloudflare/D1/R2/hafiza diskte ve aynen duruyor.
 
-**KOSUYOR (rotasyonda olmus olabilir — ONCE OLC, sonra devam et):**
-- `worktree-agent-af1b153e9ee43727a` (kilitli): **petek · cetvel · damga-kase** ailelerinin satis
-  kapisinin KAPATILMASI + `tools/build.py:730`'daki yanlis musteri vaadinin duzeltilmesi.
-  🔴 **Bu is BITMEDIYSE oncelik burasi.** Gerekce olculdu: `mod="kabartma"` sema kapisindan
-  GECIYOR ama uretim ucu 400 ile reddediyor; siparis/odeme yolu (`shop/src/parametrik.js`)
-  derleyiciyi HIC cagirmiyor → **60000 kurus (600 TL) tahsil edilebiliyor.** Uretilemez oran:
-  petek **%50,0** · cetvel **%66,7** · damga-kase **%83,3**. Tahsilat 0 (6 siparisin hepsi iptal).
+**🔴 1. IS — HAZIR, MERGE BEKLIYOR (devir kurali geregi merge EDILMEDI):**
+Dal **`worktree-agent-af1b153e9ee43727a`**, commit **`51b8ba01`**, **origin'e ITILDI** (guvende).
+Icerik: **petek · cetvel · kase** ailelerinin satis kapisi KAPATILDI + `build.py`'deki yanlis
+musteri vaadi **IKI cagri noktasinda** duzeltildi.
+Gerekce olculdu: `mod="kabartma"` sema kapisindan GECIYOR ama uretim ucu 400 ile reddediyor;
+siparis/odeme yolu (`shop/src/parametrik.js`) derleyiciyi HIC cagirmiyor →
+**60000 kurus (600 TL) tahsil edilebiliyordu.** Uretilemez oran: petek **%50,0** · cetvel
+**%66,7** · kase **%83,3**. Tahsilat 0 (6 siparisin hepsi iptal) — zarar dogmadi.
+**Olcumler:** `parametrikFiyatKurus` uc aile icin de **null** (ayri ayri olculdu) · acik aile
+20→17, kapali 3→6 · drift tam kume **736 kombinasyon** (23 sema × {varsayilan,azami} × 4 filament
+× 4 renk), 96 sapmanin **96'si da bilerek kapatilan uc aile**, kalan 17 ailede **0 kurus** ·
+mutant 7 oldurucu + 3 kontrol · 152 `deploy.yml` adimi kosuldu (133 yesil / 5 kirmizi /
+14 olculemez), 2 kirmizi dala aitti ve onarildi, 3'u OpenSCAD+sir gerektiren `hacim-tam-takim` ·
+onarim sonrasi 22/22 yesil, **tam parite** `parite-test.js` rc=0 + `parite-ege.js` rc=0.
+**YAPISAL KAZANIM:** yeni bloklayici kapi `tools/onizleme-vaat-kapisi.py` —
+*"`ONIZLEME_KISITLAR`'da kisiti olan aile satis allowlist'inde OLAMAZ"* (kesisim bos olmali).
+Yarin yeni kisit tanimlanirsa o aile **otomatik kapanir ya da CI kirmizi yanar**. Liste
+duzenlemesi degil, kural.
+**Successor: once merge kapisini kostur, sonra canli fiyat dogrulamasi (uc ailede `null` mi).**
+
+**MERGE EDILMEDIGI ICIN ACIK KALAN IKI KARAR (isci sordu, ben cevaplamadim):**
+1. `build.py`'deki `gecersiz-parca` kolu ayni "siparis verebilirsiniz, uretim etkilenmez"
+   cumlesini tasiyor. Isci farkli eksen oldugu icin (2-renk siparisi gercekten var ve ≥10 mm
+   kenar kontroluyle korunuyor) dokunmadi — **olculmesi gerekip gerekmedigi karar.**
+2. `varlik-test.py` 2. ekseni "sayfa JS'i dondurulmus referans commit'ten sonra hic degismesin"
+   diyor; muafiyet listesi her sayfa-JS duzenlemesinde buyuyecek. **Referans ilerletilmeli ya da
+   eksen gercek cikarim kaybina daraltilmali** — bu tur dokunulmadi.
 
 **BENDE — acik kalemler, oncelik sirasiyla:**
 1. 🔴 **YAPISAL:** siparis/odeme yolu uretilebilirligi SORMUYOR. Allowlist yara bandi; her yeni
