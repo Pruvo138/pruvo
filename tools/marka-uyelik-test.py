@@ -265,19 +265,30 @@ kontrol("/marka/volvo/ data-kat = ürünün gerçek kategorisi (sapma: %d)" % le
         not yanlis_kat)
 
 # Volvo × Marin: sayfadaki küme = KATALOGDAN ölçülen küme (sayı ezberden YAZILMAZ)
-volvo_sayfa_marin = {pid for pid, kat in volvo_kart if kat == "Marin"}
+#
+# 🔴 BİRİM: marka SAYFASI değil marka AĞACI (/marka/volvo/ + /marka/volvo/<model>/) — ölçüldü
+# 3 Ağu: model üyeliği pozisyondan kurtarılınca "Volvo Penta" etiketli 106 Marin ürünü
+# /marka/volvo/penta/ sayfasına taşındı ve marka sayfasında listelenmez oldu (ürün KAYBOLMADI,
+# bir alt kırılıma indi). Eski iddia yalnız kök sayfaya baktığı için bu DOĞRU davranışı ihlal
+# sayıyordu. Müşteri iddiası "Volvo Marin ürünü Volvo ağacında görünür"dür; kök sayfayı şart
+# koşmak, model kırılımının kendisini yasaklardı.
+volvo_agac_kart = []
+for _u in URLLER:
+    if _u == volvo_url or _u.startswith(volvo_url):
+        volvo_agac_kart.extend(SAYFA.get(_u, ()))
+volvo_sayfa_marin = {pid for pid, kat in volvo_agac_kart if kat == "Marin"}
 volvo_katalog_marin = {p["id"] for p in PRODUCTS
                        if p.get("id") and (p.get("kategori") or "").strip() == "Marin"
                        and "Volvo" in uyeler_js(p)}
 BILGI.append("Volvo × Marin: sayfada %d · katalogda %d"
              % (len(volvo_sayfa_marin), len(volvo_katalog_marin)))
-kontrol("POZ: /marka/volvo/?kategori=Marin kümesi katalogla BİREBİR (%d ürün)"
+kontrol("POZ: /marka/volvo/ AĞACI ?kategori=Marin kümesi katalogla BİREBİR (%d ürün)"
         % len(volvo_katalog_marin),
         len(volvo_katalog_marin) > 0 and volvo_sayfa_marin == volvo_katalog_marin)
 sizan = [pid for pid in volvo_sayfa_marin if URUN_KAT.get(pid) != "Marin"]
 kontrol("NEG: Marin kapsamına Marin-DIŞI Volvo ürünü sızmıyor (sızan: %d)" % len(sizan),
         not sizan)
-volvo_oto = {pid for pid, kat in volvo_kart if kat == "Otomobil"}
+volvo_oto = {pid for pid, kat in volvo_agac_kart if kat == "Otomobil"}
 kontrol("NEG: /marka/volvo/ Otomobil ürünü de taşıyor ama Marin kümesinde DEĞİL (%d oto)"
         % len(volvo_oto), bool(volvo_oto) and not (volvo_oto & volvo_sayfa_marin))
 
@@ -334,12 +345,53 @@ for p in PRODUCTS:
         continue
     if not mm._strip_marka_oneki(birincil, m1, EVREN):
         continue                        # marka[1] tümüyle marka öneki -> marka-only (doğru)
+    # marka[1] BÜTÜNÜYLE markanın bir yazımı ise (["Mercedes","Mercedes-Benz"]) MODEL DEĞİLDİR:
+    # katlama onu markanın kendisine indirir. Şart burada VERİ düzeyinde kurulur (jeneratörün
+    # kuralı çağrılmaz — çağrılsaydı iddia totoloji olur, mutant kendi lehine bükerdi).
+    # Ölçüldü 3 Ağu: bu sınıfta 1 kayıt var ve eski kod ona /marka/mercedes/mercedes-benz/
+    # kovası açıyordu (ürün <ESIK olduğu için sayfa doğmamıştı — sessiz bekleyen hata).
+    if katla(m1) == birincil:
+        continue
     gercek_model += 1
     if p["id"] not in model_kovasindaki:
         kovasiz.append(p["id"])
 BILGI.append("marka[1] GERÇEK MODEL olan kayıt: %d ürün" % gercek_model)
 kontrol("POZ: marka[1] gerçek MODEL olan HER kayıt model kovasında (kovasız: %d/%d)"
         % (len(kovasiz), gercek_model), gercek_model > 0 and not kovasiz)
+# D2) ÜYELİK POZİSYONDAN BAĞIMSIZ (ölçülen sessiz hata, 3 Ağu): model jetonu marka[1]'de
+# DEĞİL de daha ilerideki bir konumdaysa (['Opel','Vauxhall','Corsa']) eski kural onu HİÇBİR
+# model sayfasına sokmuyordu. Sınıf VERİDEN ve BAĞIMSIZ tanıkla kurulur: jetonun gerçekten
+# model olduğunu ürünün KENDİ `uyum[].model` kaydı söyler (jeneratörün kuralı çağrılmaz).
+def _sade(x):
+    return re.sub(r"[^a-z0-9]", "", (x or "").lower().replace("ı", "i").replace("İ", "i"))
+
+
+gec_konum, gec_kovasiz = 0, []
+for p in PRODUCTS:
+    m = [(x or "").strip() for x in (p.get("marka") or []) if (x or "").strip()]
+    if not p.get("id") or len(m) < 3:
+        continue
+    uyum_modelleri = set(_sade(o.get("model")) for o in (p.get("uyum") or [])
+                         if (o.get("model") or "").strip())
+    if not uyum_modelleri:
+        continue
+    # NOT (ölçüldü): 3 kayıtta `uyum[].model` alanına yanlışlıkla İKİNCİ BİR MARKA yazılmış
+    # ({"marka":"Tesla","model":"Rivian"}). Tanınmış marka adı MODEL sayılamaz — sınıf bunu
+    # küratörlü marka listesiyle (veri düzeyi) eler, jeneratörün üyelik kuralıyla DEĞİL.
+    def _model_jetonu_mu(t):
+        return bool(_sade(t)) and _sade(t) in uyum_modelleri and not EVREN.taninmis_mi(t)
+
+    ilk = _model_jetonu_mu(m[1])                   # marka[1] zaten model mi (eski kural yeterdi)
+    ileri = any(_model_jetonu_mu(t) for t in m[2:])
+    if ilk or not ileri:
+        continue
+    gec_konum += 1
+    if p["id"] not in model_kovasindaki:
+        gec_kovasiz.append(p["id"])
+BILGI.append("model jetonu YALNIZ marka[2+] konumunda olan kayıt: %d ürün" % gec_konum)
+kontrol("POZ: marka[2+] konumundaki model jetonu da kovaya girer (kovasız: %d/%d)"
+        % (len(gec_kovasiz), gec_konum), gec_konum > 0 and not gec_kovasiz)
+
 pilot = ["/marka/ford/focus/", "/marka/ford/f-150/", "/marka/bmw/e46/", "/marka/peugeot/206/"]
 eksik_pilot = [u for u in pilot if u not in MODEL_URL]
 kontrol("POZ: pilot model sayfaları duruyor (eksik: %s)" % (eksik_pilot or "-"),

@@ -23,20 +23,27 @@ tools/marka-model-test.py.
 """
 import os
 import re
+import sys
 import json
 from urllib.parse import quote
 from collections import Counter
+
+if os.path.dirname(os.path.abspath(__file__)) not in sys.path:
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import model_kanon                                                  # noqa: E402
 
 WHATSAPP = "905451386526"
 WA_TEL_GORUNUR = "+90 545 138 6526"
 ESIK = 3                       # model sayfası + marka sayfası yalnız >= ESIK ürünlü için (spec §3.4)
 
-# Marka-düzeyi alias (TANINMIS içinde ayrı yazılan ama AYNI markanın adları). Vauxhall = Opel'in
-# İngiltere adı → tek marka sayfası. (MINI/Mini, KIA/Kia gibi büyük/küçük ikizleri markaNorm
-# case-fold ile zaten birleşir; bu tablo yalnız markaNorm'un yakalayamadığı ad-eşitlikleri içindir.)
-MARKA_ALIAS = {"Vauxhall": "Opel"}
+# 🔴 KANONİK EŞLEME TABLOLARI BURADA TANIMLANMAZ — index.html'deki TEK KAYNAK bloğundan
+# (tools/model_kanon.py) gelir. Kopya tutulsaydı ana sayfa filtresi ile /marka/ sayfası
+# yeniden sessizce ayrışırdı ([[ikiz-tanim-sessiz-ayrisma]]; ölçüm için model_kanon docstring'i).
+# MARKA_ALIAS: aynı markanın iki adı (Vauxhall = Opel) — modül düzeyinde geriye dönük okuyucular
+# (tools/cip-sayfa-bagi.py) için; evren nesnesi kendi index.html'inden AYRICA okur.
+MARKA_ALIAS = model_kanon.MARKA_ALIAS
 
-# Türkçe harf -> ascii (slug/canon için)
+# Türkçe harf -> ascii (slug için; model kanonu model_kanon.kanon'dan gelir)
 _TR = {"ı": "i", "İ": "i", "ş": "s", "Ş": "s", "ğ": "g", "Ğ": "g",
        "ü": "u", "Ü": "u", "ö": "o", "Ö": "o", "ç": "c", "Ç": "c",
        "â": "a", "î": "i", "û": "u"}
@@ -48,9 +55,9 @@ def _ascii_lower(s):
 
 
 def _canon(s):
-    """Gruplama anahtarı: küçük harf + boşluk/tire/nokta/alt-çizgi at (spec §3.1).
+    """Gruplama anahtarı — index.html modelKanon() ile TEK KAYNAK (model_kanon.kanon).
     'F-150'/'F150'/'F 150' -> 'f150'; 'S-Max'/'S-MAX' -> 'smax'."""
-    return re.sub(r"[\s\-\._/]", "", _ascii_lower(s))
+    return model_kanon.kanon(s)
 
 
 def _slug(s):
@@ -63,18 +70,15 @@ def _slug(s):
 
 
 def _strip_marka_oneki(marka, model_ham, evren):
-    """marka[1] modelinin BAŞINDAKI gereksiz marka token'ını sıyır (kanonik marka'ya katlanan):
+    """Model değerinin BAŞINDAKI gereksiz marka token'ını sıyır (kanonik marka'ya katlanan):
     'Peugeot 206'->'206', 'Renault 5 E-Tech'->'5 E-Tech', 'Alfa Romeo Giulia'->'Giulia',
     'Vauxhall Astra' (Opel)->'Astra'. TAM-TOKEN eşleşme (en uzun marka öneki önce) + folded marka
     ile aynı olma şartı — substring/yanlış-marka sıyrılmaz. Model TÜMÜYLE markaysa '' döner
     (çağıran marka-only sayar). Böylece 'peugeot206'->'206' mükerreri BİRLEŞİR (spec §9.1),
-    'Peugeot Peugeot 206' gibi çift-marka H1 doğmaz. urunler.json DEĞİŞMEZ (yalnız build-anı)."""
-    toks = model_ham.split()
-    for k in range(len(toks), 0, -1):
-        onek = " ".join(toks[:k])
-        if evren.taninmis_mi(onek) and evren.katla(onek) == marka:
-            return " ".join(toks[k:]).strip()
-    return model_ham
+    'Peugeot Peugeot 206' gibi çift-marka H1 doğmaz. urunler.json DEĞİŞMEZ (yalnız build-anı).
+
+    🔴 GÖVDE BURADA DEĞİL: index.html modelOnekSiyir() ile TEK KAYNAK (model_kanon.onek_siyir)."""
+    return model_kanon.onek_siyir(marka, model_ham, evren)
 
 
 # ---- Marka evreni: anasayfa çip küratörlüğü (index.html TANINMIS_MARKALAR) TEK KAYNAK ----
@@ -131,12 +135,15 @@ class MarkaEvreni:
         for x in self.taninmis:
             self._kanonik[_marka_norm(x)] = x
         self._normlu = [_marka_norm(x) for x in self.taninmis]
+        # Alias tabloları AYNI index.html'den (evrenin okuduğu belgeden) gelir — modül
+        # düzeyi sabit KULLANILMAZ: geçici ROOT ile koşan testte iki farklı belge okunurdu.
+        self.marka_alias, self.model_alias = model_kanon.tablolar(index_html)
 
     def taninmis_mi(self, m):
         return _marka_norm(m) in self._kanonik
 
     def katla(self, m):
-        """index.html markaKatla() portu + marka-düzeyi alias (Vauxhall->Opel)."""
+        """index.html markaKatla() portu (marka-düzeyi alias DAHİL: Vauxhall->Opel)."""
         n = _marka_norm(m)
         base = self._kanonik.get(n)
         if base is None:
@@ -145,13 +152,17 @@ class MarkaEvreni:
                 if n.startswith(mn + " ") or n.startswith(mn + "-"):
                     base = self.taninmis[i]
                     break
-        return MARKA_ALIAS.get(base, base)
+        return self.marka_alias.get(base, base)
+
+    def model_anahtari(self, marka, deger):
+        """index.html modelAnahtar() portu — model ÜYELİK anahtarı (tek kaynak)."""
+        return model_kanon.anahtar(marka, deger, self, self.model_alias)
 
 
-# Semantik alias (canon_key yakalayamayan TR/EN birleşmeleri, spec §3.1). Pilot: F-Series -> F-Serisi.
-_ALIAS = {
-    ("Ford", "fseries"): "fserisi",
-}
+# Semantik model alias'ı (kanon'un yakalayamadığı TR/EN birleşmesi) index.html'de yaşar;
+# burada YALNIZ geriye dönük okuyucular için modül düzeyi kopyası dururdu -> TUTULMAZ.
+# Kullanım: evren.model_alias / evren.model_anahtari().
+_ALIAS = model_kanon.MODEL_ALIAS
 
 # Kanonik gösterim zorlaması (collision gruplarında doğru yazım — sıklıktan bağımsız, deterministik).
 _KANONIK_GOSTERIM = {
@@ -290,6 +301,17 @@ def marka_uyelikleri(marka_dizisi, evren, ek_markalar=()):
     return uyeler
 
 
+def birincil_marka(marka_dizisi, evren, ek_markalar=()):
+    """Ürünün BİRİNCİL kanonik markası — TEK KAYNAK (gruplandir + ürün çip haritası aynı
+    yüklemi kullanır; iki yerde yazılsaydı çipin gittiği sayfa ile ürünün sayıldığı sayfa
+    ayrışırdı). marka[0]'ın katlanmışı görünür evrendeyse O; değilse SIRA korunarak ilk üye."""
+    uyeler = marka_uyelikleri(marka_dizisi, evren, ek_markalar)
+    if not uyeler:
+        return None
+    ham0 = evren.katla((marka_dizisi[0] or "").strip())
+    return ham0 if (evren.taninmis_mi(ham0) or ham0 in ek_markalar) else uyeler[0]
+
+
 def marka_mi(deger, evren):
     """marka[1] MODEL mi yoksa (çok markalı uyumluluktan gelen) BAŞKA BİR MARKA mı?
     KATI ölçüt: değerin KENDİSİ tanınmış marka listesinde olmalı ("Citroen", "Vauxhall",
@@ -299,31 +321,89 @@ def marka_mi(deger, evren):
 
 
 def marka_urun_sayisi(d):
-    """Bir marka kovasının SAYFASINDA görünecek ürün sayısı — TEK KAYNAK.
+    """Bir marka kovasının SAYFASINDA görünecek TEKİL ürün sayısı — TEK KAYNAK.
     Eşik (ESIK), çip sıralaması, sayfa metni ve kabul testleri AYNI bu fonksiyonu çağırır;
     ikinci bir toplama formülü YAZILMAZ (formül kopyası kaçınılmaz olarak ayrışır: 31 Tem'de
-    ölçüldü — ikincil ürünler eklenince jeneratör ile testin sayısı ayrıştı)."""
-    return (sum(len(g["urunler"]) for g in d["gruplar"].values())
-            + len(d["marka_only"]) + len(d.get("ikincil", [])))
+    ölçüldü — ikincil ürünler eklenince jeneratör ile testin sayısı ayrıştı).
+
+    🔴 TEKİL sayılır (3 Ağu): model üyeliği artık pozisyona bağlı değil, bir ürün AYNI
+    markanın birden çok modelinde olabilir (['Opel','Astra','Zafira'] hem Astra'ya hem
+    Zafira'ya girer). Grupları toplayan eski formül o ürünü iki kez sayar, marka toplamını
+    ve çip sıralamasını sessizce şişirirdi."""
+    gorulen = set()
+    n = 0
+    for kaynak in ([g["urunler"] for g in d["gruplar"].values()]
+                   + [d["marka_only"], d.get("ikincil", [])]):
+        for p in kaynak:
+            pid = p.get("id") or id(p)
+            if pid in gorulen:
+                continue
+            gorulen.add(pid)
+            n += 1
+    return n
+
+
+def model_jetonlari(marka, marka_dizisi, evren):
+    """`marka` SAYFASI altında ürünün üye olduğu model anahtarları -> {anahtar: Counter(yazım)}.
+
+    🔴 ÜYELİK POZİSYONDAN BAĞIMSIZ (ölçülen sessiz hata, 3 Ağu): eski kural modeli YALNIZ
+    `marka[1]`'den okuyordu. ['Opel','Vauxhall','Corsa'] gibi kayıtlarda marka[1] başka bir
+    marka adı olduğu için ürün HİÇBİR model sayfasına giremiyordu (429 çiftin 123'ünde sayfa
+    filtreden dar, 366 ürün etkileniyordu). Artık dizinin HER elemanı model adayıdır; ürün
+    birden çok model sayfasında görünebilir — bu mükerrer DEĞİL, doğru üyeliktir.
+
+    Model SAYILMAYAN değerler (üçü de ana sayfa filtresiyle tutarlı):
+      * değerin KENDİSİ tanınmış marka ("Citroen") — çok markalı uyumluluk kaydı,
+      * marka öneki sıyrıldıktan sonra geriye bir şey kalmayan değer ("Peugeot"),
+      * bütünüyle markanın bir yazımı olan değer ("Mercedes-Benz" -> Mercedes,
+        "Champion" -> Champion): anahtar markanın kendisine eşit olurdu.
+
+    `uyum[]` AYRI bir üyelik kaynağı olarak OKUNMAZ — okunmasına gerek olmadığı ÖLÇÜLDÜ
+    (3 Ağu, 17032 ürün): `uyum[].model` jetonlarının 6762'sinin TAMAMI zaten `marka`
+    dizisinde kanonik olarak geçiyor, yalnız-uyumda kalan jeton sayısı 0. Okunsaydı sayfa,
+    ana sayfa filtresinin (yalnız `marka` dizisine bakar) göremediği ürünü listeler ve
+    ayrışma TERS yönde doğardı. `uyum` marka<->model BAĞI için kullanılmaya devam eder
+    (tools/cip-indeks.py)."""
+    out = {}
+    marka_kanon = _canon(marka)
+    for x in marka_dizisi:
+        t = (x or "").strip()
+        if not t or marka_mi(t, evren):
+            continue
+        kalan = _strip_marka_oneki(marka, t, evren)
+        if not kalan:
+            continue
+        if kalan == t and evren.katla(t) == marka:
+            continue
+        k = evren.model_anahtari(marka, t)
+        if not k or k == marka_kanon:
+            continue
+        out.setdefault(k, Counter())[kalan] += 1
+    return out
 
 
 def gruplandir(products, evren, ek_markalar=()):
-    """Katalogdaki TANINMIS markaları topla:
+    """Katalogdaki markaları topla:
     kanonik_marka -> {"marka_only":[p...], "ikincil":[p...], "gruplar":{canon:{...}}}.
-    Grup: {"display":str, "slug":str, "canon":str, "urunler":[p...]}. urunler.json DEĞİŞMEZ.
+    Grup: {"display":str, "slug":str, "canon":str, "urunler":[p...], "birincil":bool}.
+    urunler.json DEĞİŞMEZ (normalize yalnız build anında).
 
-    ÜYELİK  : marka_uyelikleri() — index.html filtresiyle birebir (KATLANMIŞ ad; her eleman).
-    BİRİNCİL: marka[0]'ın katlanmışı (tanınmıyorsa ilk tanınmış üye). Model kırılımı YALNIZ
-              birincil markada açılır; diğer üyeler ürünü "ikincil" olarak listeler.
-    MODEL   : yalnız marka[1], ve marka[1] KENDİSİ bir marka DEĞİLSE (marka_mi). Çok markalı
-              uyumluluk kaydı ("Peugeot"+"Citroen") anlamsız /marka/peugeot/citroen/ sayfası
-              DOĞURMAZ; ürün her iki marka sayfasında da görünür."""
+    ÜYELİK (marka) : marka_uyelikleri() — index.html filtresiyle birebir (KATLANMIŞ ad; her eleman).
+    ÜYELİK (model) : model_jetonlari() — dizinin HER elemanı, kanonik anahtarla. Bir ürün aynı
+                     markanın birden çok modelinde olabilir. Kural, ana sayfa filtresiyle
+                     (index.html modelEsler/modelAnahtar) TEK KAYNAKTAN türer.
+    BİRİNCİL       : marka[0]'ın katlanmışı (tanınmıyorsa ilk üye). SAYFA EVRENİNİ o belirler:
+                     bir model kovası ancak en az bir ürünün BİRİNCİL markasıysa yayımlanır
+                     (`g["birincil"]`). Üyelik ise evrenden BAĞIMSIZ ve tamdır: yayımlanan
+                     kovada filtrenin gösterdiği HER ürün bulunur (kapı: SAYFA_DAR=0).
+    """
     veri = {}
 
     def kova(marka):
         d = veri.get(marka)
         if d is None:
-            d = {"marka_only": [], "ikincil": [], "gruplar": {}, "_spelling": {}}
+            d = {"marka_only": [], "ikincil": [], "gruplar": {}, "_spelling": {},
+                 "birincil_ids": set()}
             veri[marka] = d
         return d
 
@@ -334,41 +414,46 @@ def gruplandir(products, evren, ek_markalar=()):
         uyeler = marka_uyelikleri(m, evren, ek_markalar)
         if not uyeler:
             continue
-        ham0_kan = evren.katla((m[0] or "").strip())
-        birincil = (ham0_kan if (evren.taninmis_mi(ham0_kan) or ham0_kan in ek_markalar)
-                    else uyeler[0])
-        d = kova(birincil)
-        for kan in uyeler:                       # diğer üye markaların sayfasına da GİR
-            if kan != birincil:
-                kova(kan)["ikincil"].append(p)
-        m1 = (m[1] or "").strip() if len(m) > 1 else ""
-        if birincil != ham0_kan or not m1 or marka_mi(m1, evren):
-            d["marka_only"].append(p)            # model kırılımı YOK (marka-only / çok markalı)
-            continue
-        model_ham = _strip_marka_oneki(birincil, m1, evren)
-        if not model_ham:                        # marka[1] tümüyle marka -> marka-only say
-            d["marka_only"].append(p)
-            continue
-        marka = birincil
-        canon = _canon(model_ham)
-        canon = _ALIAS.get((marka, canon), canon)
-        g = d["gruplar"].get(canon)
-        if g is None:
-            g = {"canon": canon, "urunler": []}
-            d["gruplar"][canon] = g
-            d["_spelling"][canon] = Counter()
-        g["urunler"].append(p)
-        d["_spelling"][canon][model_ham] += 1
+        birincil = birincil_marka(m, evren, ek_markalar)
+        for kan in uyeler:
+            d = kova(kan)
+            if kan == birincil and p.get("id"):
+                # BİRİNCİLLİK BURADA KAYDEDİLİR (ürün çip haritasının tek kaynağı): uret()
+                # yeniden hesaplasaydı, gruplandir'ı bozan bir mutasyon çip haritasına
+                # YANSIMAZ ve mutasyon bataryası körelirdi ([[beyan-edilmis-survivor]]).
+                d["birincil_ids"].add(p["id"])
+            jetonlar = model_jetonlari(kan, m, evren)
+            if not jetonlar:                     # model kırılımı YOK (marka-only / çok markalı)
+                (d["marka_only"] if kan == birincil else d["ikincil"]).append(p)
+                continue
+            for canon, yazimlar in jetonlar.items():
+                g = d["gruplar"].get(canon)
+                if g is None:
+                    g = {"canon": canon, "urunler": [], "birincil": False}
+                    d["gruplar"][canon] = g
+                    d["_spelling"][canon] = Counter()
+                g["urunler"].append(p)           # jeton başına DEĞİL, anahtar başına tek kez
+                d["_spelling"][canon].update(yazimlar)
+                if kan == birincil:
+                    g["birincil"] = True
 
     # kanonik gösterim + slug
     for marka, d in veri.items():
         for canon, g in d["gruplar"].items():
             display = _KANONIK_GOSTERIM.get((marka, canon))
             if not display:
-                display = d["_spelling"][canon].most_common(1)[0][0]
+                # deterministik: en sık yazım, eşitlikte alfabetik (Counter sırası girdiye bağlı)
+                display = sorted(d["_spelling"][canon].items(),
+                                 key=lambda t: (-t[1], t[0]))[0][0]
             g["display"] = display
             g["slug"] = _slug(display)
     return veri
+
+
+def yayimlanir_mi(g):
+    """Model kovası SAYFA olur mu — TEK KAYNAK (üretici, kabul testi ve kapı aynı yüklemi
+    kullanır; ikinci bir eşik ifadesi yazılırsa sayfa sayısı ile kapının saydığı ayrışır)."""
+    return bool(g.get("birincil")) and len(g["urunler"]) >= ESIK
 
 
 # --------------------------------------------------------------------- HTML yardımcıları
@@ -1240,12 +1325,24 @@ def uret(products, ctx):
                                                 slug_gorulen[anahtar], g["canon"]))
             slug_gorulen[anahtar] = g["canon"]
 
-        buyuk = sorted([g for g in gruplar if len(g["urunler"]) >= ESIK],
+        buyuk = sorted([g for g in gruplar if yayimlanir_mi(g)],
                        key=lambda g: (-len(g["urunler"]), g["slug"]))
-        kucuk_urunler = []
+        # SAYFASI OLMAYAN kovaların ürünleri marka sayfasında listelenir. TEKİLLEŞTİRİLİR:
+        # bir ürün birden çok kovada olabilir (['Opel','Astra','Zafira']); yayımlanan bir
+        # kovada zaten görünüyorsa marka sayfasında İKİNCİ kez basılmaz.
+        yayimda = set()
+        for g in buyuk:
+            yayimda.update(p.get("id") for p in g["urunler"] if p.get("id"))
+        kucuk_urunler, _gorulen = [], set()
         for g in gruplar:
-            if len(g["urunler"]) < ESIK:
-                kucuk_urunler.extend(g["urunler"])
+            if yayimlanir_mi(g):
+                continue
+            for p in g["urunler"]:
+                pid = p.get("id")
+                if pid in yayimda or pid in _gorulen:
+                    continue
+                _gorulen.add(pid)
+                kucuk_urunler.append(p)
 
         murl, mhtml = _marka_sayfasi(ctx, marka, d, buyuk, kucuk_urunler, kategoriler)
         yaz(murl, mhtml)
@@ -1259,11 +1356,14 @@ def uret(products, ctx):
             model_yolu = marka_yolu + g["slug"] + "/"
             for p in g["urunler"]:                          # >=ESIK model -> ürünleri model sayfasına
                 pid = p.get("id")
-                if pid:
+                # 🔴 YALNIZ BİRİNCİL markanın sayfası yazar: ürün artık birden çok markanın
+                # model kovasında olabilir; hepsi yazsaydı çipin hedefi döngü sırasına göre
+                # değişir (kararsız çıktı) ve ürünün birincil markasından uzaklaşırdı.
+                if pid and pid in d["birincil_ids"]:
                     product_chip_map[pid] = model_yolu
-        for p in kucuk_urunler:                             # <ESIK model ürünleri -> marka sayfası
+        for p in kucuk_urunler:                             # sayfasız model ürünleri -> marka sayfası
             pid = p.get("id")
-            if pid:
+            if pid and pid in d["birincil_ids"]:
                 product_chip_map[pid] = marka_yolu
         for p in d["marka_only"]:                           # yalnız-marka ürünler -> marka sayfası
             pid = p.get("id")

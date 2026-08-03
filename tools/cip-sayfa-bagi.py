@@ -98,7 +98,7 @@ def olc(kok):
     for m, s in slug_map.items():
         if m in toplam:
             slug_toplam[s] = max(slug_toplam.get(s, 0), toplam[m])
-    return cipler, hedef, slug_toplam, sayfali, mm
+    return cipler, hedef, slug_toplam, sayfali, mm, slug_map
 
 
 def kabul(kok):
@@ -108,7 +108,7 @@ def kabul(kok):
         (gecen if kosul else kaldi).append(ad)
         print("  %s %s%s" % ("GECTI" if kosul else "KALDI", ad, (" — " + detay) if detay else ""))
 
-    cipler, hedef, slug_toplam, sayfali, mm = olc(kok)
+    cipler, hedef, slug_toplam, sayfali, mm, slug_map = olc(kok)
     print("  OLCUM: cip evreni=%d · URETILEN marka sayfasi=%d" % (len(cipler), len(sayfali)))
 
     dogrula("C0 FAIL-CLOSED: CIP EVRENI BOS DEGIL", len(cipler) > 0,
@@ -129,17 +129,26 @@ def kabul(kok):
             len(fazla) > 0,
             "yalniz-sayfa slug=%d ornek=%s" % (len(fazla), fazla[:4]))
 
-    # ALIAS: cip kendi adiyla DEGIL hedefin SLUG'una cozulur (yinelenen sayfa uretilmez).
-    # Hedef URETECIN slug_map'inden okunur — bu dosyada ikinci bir cozumleme YAZILMAZ.
+    # ALIAS (3 Ago'da DEGISTI): alias tablosu artik index.html'de TEK KAYNAK ve cip evreni
+    # onu OKUYOR (tools/cip-indeks.py :: MarkaEvreni.katla). Yani "Vauxhall" artik AYRI cip
+    # olarak DOGMAZ — kaynagi katlanir. Eski iddia ("alias'li CIP hedefe cozulur") bu yuzden
+    # BOS KUMEDE calisirdi ve sessizce anlamsizlasirdi; iddia yeni gercege tasindi:
+    #   C4  alias ANAHTARI cip evreninde GORUNMEZ (tek kaynak gercekten katliyor)
+    #   C4b buna ragmen slug_map'te hedefin slug'ina COZULUR (eski link/dis referans 404 olmasin)
     alias = getattr(mm, "MARKA_ALIAS", {})
-    alias_cip = [b for b in cipler if b in alias]
-    beklenen = dict((b, hedef.get(alias[b])) for b in alias_cip)
-    dogrula("C4 ALIAS'LI CIP HEDEFIN SAYFASINA COZULUR (yinelenen sayfa URETILMEZ)",
-            bool(alias_cip) and all(hedef.get(b) is not None and hedef.get(b) == beklenen[b]
-                                    for b in alias_cip),
-            "alias cip=%s -> slug=%s (beklenen=%s)"
-            % (alias_cip, [hedef.get(b) for b in alias_cip],
-               [beklenen[b] for b in alias_cip]))
+    dogrula("C4-0 FAIL-CLOSED: ALIAS TABLOSU BOS DEGIL (iddia gercekten olculuyor)",
+            bool(alias), "alias=%s" % alias)
+    sizan_alias = [b for b in cipler if b in alias]
+    dogrula("C4 ALIAS ANAHTARI CIP EVRENINDE GORUNMEZ (kaynagi katlanir)",
+            not sizan_alias,
+            "cipte gorunen alias anahtari=%s (hedefi ayri sayfa DEGIL -> 404 olurdu)"
+            % (sizan_alias or "-"))
+    cozulmeyen_alias = [b for b, h in alias.items()
+                        if slug_map.get(b) is None or slug_map.get(b) != slug_map.get(h)]
+    dogrula("C4b ALIAS ANAHTARI YINE DE HEDEFIN SLUG'INA COZULUR (fail-safe geri-link)",
+            not cozulmeyen_alias,
+            "cozulmeyen=%s · %s" % (cozulmeyen_alias or "-",
+                                    dict((b, slug_map.get(b)) for b in alias)))
 
     toplam_iddia = len(gecen) + len(kaldi)
     if kaldi:
@@ -157,7 +166,9 @@ MUTANTLAR = [
     ("marka_model_build.py",
      "        if _ad not in slug_map and _hedef in slug_map:\n            slug_map[_ad] = slug_map[_hedef]",
      "        if False:\n            slug_map[_ad] = slug_map[_hedef]", "KIRMIZI",
-     "ALIAS COZUMLEMESINI KALDIR: Vauxhall cipi hedefsiz kalir (404)"),
+     "ALIAS GERI-LINKINI KALDIR: alias anahtari (Vauxhall) hicbir sayfaya cozulmez"),
+    ("cip-indeks.py", "        sonuc = self._alias.get(sonuc, sonuc)", "        pass", "KIRMIZI",
+     "CIP EVRENI ALIAS'I OKUMAYI BIRAKIR: Vauxhall AYRI cip dogar, sayfasi YOK (404)"),
     ("marka_model_build.py", "ESIK = 3", "ESIK = 100000", "KIRMIZI",
      "SAYFA ESIGINI TAVANA CEK: hicbir marka sayfasi uretilmez -> her cip 404"),
     # KONTROL (YESIL bekleniyor)

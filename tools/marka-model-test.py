@@ -544,6 +544,33 @@ def main():
         else:
             BILGI.append("cip<->sayfa bagi: gorunen her cipin sayfa hedefi VAR ve >0 urun")
 
+    # ---- MODEL UYELIGI: SAYFA <-> ANA SAYFA FILTRESI (tools/model-uyelik-kapisi.py) ----
+    # Model uyeligi pozisyondan (marka[1]) kurtarildi ve kanonik esleme index.html ile TEK
+    # KAYNAK'a baglandi (3 Agu). Iki yuzey yeniden ayrisirsa musteri sayfada gordugu parcayi
+    # filtrede bulamaz (ya da tersi) — kimse hata GORMEZ. Kapi BLOKLAYICI, CI'da BURADAN kosar
+    # (emsal: cip-sayfa-bagi). Mutasyon bataryasi ayri: `--kendini-test`.
+    _mspec = importlib.util.spec_from_file_location(
+        "model_uyelik_kapisi", os.path.join(TOOLS, "model-uyelik-kapisi.py"))
+    if _mspec is None:
+        HATALAR.append("model-uyelik-kapisi.py BULUNAMADI — sayfa/filtre paritesi OLCULEMEDI "
+                       "(fail-closed: sessizce yesil gecmez)")
+    else:
+        _muk = importlib.util.module_from_spec(_mspec)
+        _mspec.loader.exec_module(_muk)
+        print("  — model uyeligi (sayfa <-> ana sayfa filtresi):")
+        try:
+            _rc = _muk.kabul(build.ROOT)
+        except _muk.Olculemedi as _e:
+            _rc = 2
+            print("    OLCULEMEDI: %s" % _e)
+        if _rc != 0:
+            HATALAR.append("model uyeligi %s: /marka/<marka>/<model>/ sayfasi ile ana sayfa "
+                           "filtresi AYNI urunleri gostermiyor"
+                           % ("OLCULEMEDI" if _rc == 2 else "KIRMIZI"))
+        else:
+            BILGI.append("model uyeligi: sayfa <-> filtre paritesi TEMIZ (SAYFA_DAR=0 "
+                         "FILTRE_DAR=0)")
+
     print("\n".join("  · " + b for b in BILGI))
     if HATALAR:
         print("\nKIRMIZI — %d ihlal:" % len(HATALAR))

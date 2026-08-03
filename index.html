@@ -2486,6 +2486,13 @@
   var MARKA_KANONIK = {};                 // markaNorm(ad) → listedeki kanonik yazım
   TANINMIS_MARKALAR.forEach(function(m){ MARKA_KANONIK[markaNorm(m)] = m; });
   var MARKA_NORMLU = TANINMIS_MARKALAR.map(markaNorm);
+  // 🔴 MARKA-DÜZEYİ ALIAS — TEK KAYNAK (Python tarafı tools/model_kanon.py BU SATIRDAN okur;
+  // ikinci tablo YAZILMAZ). Aynı markanın iki ayrı adı ("Vauxhall" = Opel'in İngiltere adı)
+  // TEK kaleme iner. Tablo eskiden YALNIZ sayfa üretecinde vardı: /marka/ Vauxhall'ı Opel'e
+  // katlıyor, ana sayfa katlamıyordu → "Vauxhall" ayrı çip doğuyor, hedefi 404 oluyor ve
+  // ?marka=Opel filtresi Opel etiketi olmayan Vauxhall ürünlerini KAÇIRIYORDU
+  // (ölçüldü 3 Ağu: 71 ürünlü çip; 3 üründe "Opel" etiketi hiç yok) — [[ikiz-tanim-sessiz-ayrisma]].
+  var MARKA_ALIAS = {"Vauxhall":"Opel"};
   var _markaKatlaBellek = {};             // değer→kanonik önbelleği (~1500 tekil değer; render başına yeniden hesaplanmasın)
   // Değer tanınmış markanın kendisiyse ("KIA"→"Kia") ya da boşluk/tire ile önekliyse
   // ("Toyota 86", "Mercedes-Benz") o markanın kanonik adına katlanır; değilse OLDUĞU GİBİ döner.
@@ -2501,11 +2508,73 @@
         }
       }
     }
+    if(MARKA_ALIAS[sonuc]){ sonuc = MARKA_ALIAS[sonuc]; }
     _markaKatlaBellek[m] = sonuc;
     return sonuc;
   }
   function taninmisMarkaMi(m){ return MARKA_KANONIK[markaNorm(m)] !== undefined; }
   // --- MARKA KÜRATÖRLÜĞÜ SON ---
+
+  // --- KANONİK MODEL EŞLEMESİ BAŞ (model üyelik anahtarı; marker satırlarını değiştirme) ---
+  // 🔴 TEK KAYNAK: bu blok ile aşağıdaki iki tablo, /marka/<marka>/<model>/ sayfalarını üreten
+  // tools/marka_model_build.py'nin de kullandığı KANONİK TANIMDIR — Python tarafı bloğu
+  // tools/model_kanon.py ile AYIKLAR, ikinci bir tablo tutmaz; ayrışmayı
+  // tools/model-uyelik-kapisi.py (node ile GERÇEK bu kodu koşturarak) fail-closed ölçer.
+  //
+  // ÖLÇÜLEN SESSİZ HATA (3 Ağu, 429 marka-model çifti): sayfa tarafı "F150"/"F-150"/"F 150"
+  // ve "Peugeot 206"/"206" değerlerini AYNI modele katlıyordu, ana sayfa filtresi ise HAM
+  // eşitliğe bakıyordu. Sonuç: 32 çiftte filtre sayfadan DAR (?model=F-150 → F150 etiketli
+  // ürünler kayıp), 123 çiftte sayfa filtreden dar. Kimse hata GÖRMÜYOR: iki yüzey de
+  // kendi içinde tutarlı görünüyor.
+  //
+  // YÖN: yüklem yalnız GENİŞLETİR. modelEsler() önce bugünkü HAM eşitliğe bakar; ham eşitlik
+  // geçen her ürün burada da geçer, yani filtrenin DARALMASI yapısal olarak imkansızdır.
+  var MODEL_TR = {"ı":"i","ş":"s","ğ":"g","ü":"u","ö":"o","ç":"c","â":"a","î":"i","û":"u"};
+  // Gruplama anahtarı: küçük harf + boşluk/tire/nokta/alt-çizgi/eğik çizgi at.
+  // "F-150"/"F150"/"F 150" → "f150" · "S-Max"/"S-MAX" → "smax".
+  function modelKanon(s){
+    var t = (s === null || s === undefined ? "" : String(s)).trim().toLowerCase();
+    t = t.replace(/[ışğüöçâîû]/g, function(c){ return MODEL_TR[c]; });
+    return t.replace(/[\s\-\._\/]/g, "");
+  }
+  // Model değerinin BAŞINDAKİ gereksiz marka jetonunu sıyırır ("Peugeot 206"→"206",
+  // "Vauxhall Astra" (Opel)→"Astra"). TAM-TOKEN eşleşme + katlanınca AYNI markaya düşme
+  // şartı: substring ya da yanlış marka sıyrılmaz. Değer tümüyle markaysa "" döner.
+  function modelOnekSiyir(marka, s){
+    var t = (s === null || s === undefined ? "" : String(s)).trim();
+    if(!marka || !t){ return t; }
+    var toks = t.split(/\s+/);
+    for(var k = toks.length; k > 0; k--){
+      var onek = toks.slice(0, k).join(" ");
+      if(taninmisMarkaMi(onek) && markaKatla(onek) === marka){
+        return toks.slice(k).join(" ").replace(/^\s+|\s+$/g, "");
+      }
+    }
+    return t;
+  }
+  // Semantik alias (kanon'un yakalayamadığı TR/EN birleşmesi): "<marka>|<kanon>" → kanon.
+  var MODEL_ALIAS = {"Ford|fseries":"fserisi"};
+  // Bir değerin, `marka` altındaki MODEL ÜYELİK ANAHTARI. Boş dönerse eşleşme kurulmaz
+  // (fail-closed: "" === "" ile marka geneli dönmesin).
+  function modelAnahtar(marka, s){
+    var k = modelKanon(modelOnekSiyir(marka, s));
+    if(!k){ return ""; }
+    var a = marka ? MODEL_ALIAS[marka + "|" + k] : null;
+    return a || k;
+  }
+  // Model yüklemi — filtered(), yedek liste ve uç sapma nöbeti AYNI bu fonksiyonu çağırır
+  // (üç kopya ayrışırsa müşteri üç farklı sonuç görür).
+  function modelEsler(markalar, model, hedefMarka){
+    var mk = markalar || [];
+    if(mk.indexOf(model) !== -1){ return true; }       // BUGÜNKÜ ham eşitlik — asla daralma
+    var hedef = modelAnahtar(hedefMarka, model);
+    if(!hedef){ return false; }
+    for(var i = 0; i < mk.length; i++){
+      if(modelAnahtar(hedefMarka, mk[i]) === hedef){ return true; }
+    }
+    return false;
+  }
+  // --- KANONİK MODEL EŞLEMESİ SON ---
 
   // Kategori/marka/arama HER değişimde URL'yi görünümle senkron tutar (işletme kararı, 17 Tem):
   // yenile hangi görünümü gösteriyorsa onu getirsin, sürpriz geri-gelme olmasın.
@@ -2979,15 +3048,16 @@
       var altOk = activeAlt === "Tümü" || (p.altkategori || "") === activeAlt;
       var brandOk = !hedefMarka ||
         (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
-      // MODEL: HAM etiket `marka` dizisinde mi (KATLAMA YOK). `marka` alanı `uyum`dan
-      // türetilir ve model jetonunu da taşır (ör. ["BMW","E46"]) — bu yüzden model ekseni
-      // AYNI dizide yaşar. Katlasaydık "E46" → "BMW"ye düşer, model daraltması KAYBOLURDU.
-      // Küme dışı bir değer (deep-link ?model=xyzyok) hiçbir kayda eşit olmaz → 0 sonuç
+      // MODEL: etiket `marka` dizisinde mi. `marka` alanı `uyum`dan türetilir ve model
+      // jetonunu da taşır (ör. ["BMW","E46"]) — bu yüzden model ekseni AYNI dizide yaşar.
+      // MARKA katlaması BURAYA uygulanmaz (uygulasaydık "E46" → "BMW"ye düşer, model
+      // daraltması KAYBOLURDU); uygulanan şey MODEL kanonudur (modelEsler → modelAnahtar):
+      // "F150" ile "F-150", "Peugeot 206" ile "206" AYNI modeldir ve /marka/ sayfasıyla
+      // BİREBİR aynı kanonik tanımdan gelir ([[ikiz-tanim-sessiz-ayrisma]]).
+      // Küme dışı bir değer (deep-link ?model=xyzyok) hiçbir kayda eşleşmez → 0 sonuç
       // (FAIL-CLOSED; değeri düşürseydik sessizce marka geneli dönerdi).
-      // 🔴 Bu yüklem, çip indeksinin SAYIM yüklemiyle AYNIDIR: çip "3 ürün" deyip tık 0
-      // getiremez ([[ikiz-tanim-sessiz-ayrisma]]).
       var modelOk = activeModel === "Tümü" ||
-        (p.marka || []).indexOf(activeModel) !== -1;
+        modelEsler(p.marka, activeModel, hedefMarka);
       if(!catOk || !altOk || !brandOk || !modelOk){ return false; }
       if(tokens.length === 0){ return true; }
       var hs = haystack(p);
@@ -3395,7 +3465,9 @@
         if(hedefMarka && !mk.some(function(b){ return markaKatla(b) === hedefMarka; })){
           return "marka";
         }
-        if(activeModel !== "Tümü" && mk.indexOf(activeModel) === -1){ return "model"; }
+        // filtered() ile AYNI yüklem (modelEsler): iki uçta iki kural olsaydı uç doğru
+        // süzse bile nöbetçi "model" sapması diye REDDEDERDİ.
+        if(activeModel !== "Tümü" && !modelEsler(mk, activeModel, hedefMarka)){ return "model"; }
       }
     }
     return null;
@@ -3611,8 +3683,9 @@
     // Model filtresi YEDEK modda da UYGULANIR (grup filtresiyle aynı gerekçe): yok saymak
     // müşteriye "model içi" diye marka genelini gösterirdi. filtered() ile AYNI yüklem.
     if(activeModel !== "Tümü"){
+      var hedefMarkaY = (activeBrand === "Tümü") ? null : markaKatla(activeBrand);
       liste = liste.filter(function(p){
-        return (p.marka || []).indexOf(activeModel) !== -1;
+        return modelEsler(p.marka, activeModel, hedefMarkaY);
       });
     }
     var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
