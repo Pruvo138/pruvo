@@ -112,8 +112,13 @@ if (!fs.existsSync(dogrulamaDir)) {
   }
   // jeton/kase/cetvel: metin-bagimli hacim senkronu (kaynak repo 0e766f9,
   // 2026-07-23) — aile dosyalari bayt-ozdes tutulur; kayma = sessiz fiyat hatasi.
+  // yay (3 Agu 2026): kalibrasyon kaynagi 16-gen bant + kose bindirme modelini
+  // tasirken bu depodaki kopya eski (240 ornek + faz kaymali) surumde KALMISTI;
+  // yay bu listede olmadigi icin ayrisma HICBIR kapiyi yakmadi ve uretimde
+  // ucgen kolunda %3.80'e varan EKSIK hacim (eksik tahsilat) uretti. Listeye
+  // eklendi: aile dosyasi kaynaktan tekrar ayrisirsa burasi kirmizi yanar.
   ["konektor", "braket", "adaptor", "kutu", "kavanoz",
-   "jeton", "kase", "cetvel", "toka", "cerceve"].forEach(function (aile) {
+   "jeton", "kase", "cetvel", "toka", "cerceve", "yay"].forEach(function (aile) {
     const kaynakYol = path.join(dogrulamaDir, "test", "aileler",
       aile + ".js");
     if (!fs.existsSync(kaynakYol)) {

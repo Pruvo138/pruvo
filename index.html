@@ -412,6 +412,36 @@
     color:#fff;
     border-color:var(--navy);
   }
+  /* MOBİL ÇİP SATIRI — ölçüldü (2 Ağu, 375px): Marin'in 18 GRUP çipi SEKİZ satıra sarıyor,
+     284 px yer kaplıyor ve ilk ürün kartı y=1007'ye iniyordu; müşteri bir ekrandan fazla
+     filtre geçiyordu. BMW'de 103 model olduğu için MODEL satırı bu davranış olmadan
+     kullanılamazdı.
+     SEÇİM: KAYDIRILABİLİR TEK SATIR ("ilk N çip + daha fazla" katlaması DEĞİL). Gerekçe:
+       (a) yükseklik çip SAYISINDAN BAĞIMSIZ sabit kalır — 18 çip de 103 çip de tek satır,
+           ilk kartın y'si değişmez; katlamada "daha fazla"ya basılınca AYNI 8 satır geri
+           gelir, yani sorun ertelenir, çözülmez;
+       (b) durum taşımaz (açık/kapalı bayrağı + URL/geri-ileri etkileşimi doğmaz);
+       (c) seçili çip programla görünür kılınabilir (scrollIntoView) — katlanmış listede
+           gizli kalma sınıfı hiç doğmaz.
+     SAYFA TAŞMASI SIFIR kalır: kaydırma çip SARMALAYICISININ içindedir (overflow-x:auto +
+     min-width:0); belge gövdesi yatay kaymaz (kabul testi documentElement üzerinde ölçer).
+     Üç satır da (MARKA · GRUP · MODEL) AYNI sınıfları kullandığı için kural üçüne birden
+     uygulanır — ikinci bir görsel dil açılmaz. */
+  @media(max-width:640px){
+    .brand-row{ flex-wrap:nowrap; }
+    .brand-label{ flex:0 0 auto; }
+    .brand-chips{
+      flex-wrap:nowrap;
+      flex:1 1 auto;
+      min-width:0;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+      padding-bottom:2px;
+    }
+    .brand-chips::-webkit-scrollbar{ display:none; }
+    .brand-chips > *{ flex:0 0 auto; }
+  }
 
   /* ---------- DAHA FAZLA GÖSTER ---------- */
   .load-more-wrap{
@@ -1018,6 +1048,13 @@
   <div class="brand-row" id="altRow" style="display:none">
     <span class="brand-label">Grup:</span>
     <div class="brand-chips" id="altChips"></div>
+  </div>
+  <!-- MODEL çip satırı — marka satırının AYNI görsel dili (yeni CSS YOK). Yalnız bir MARKA
+       seçiliyken ve o markanın çip indeksinde >=2 modeli varken görünür; renderGrid display'i
+       yönetir (varsayılan gizli, fail-closed: indeks yoksa/JS düşerse boş kutu kalmaz). -->
+  <div class="brand-row" id="modelRow" style="display:none">
+    <span class="brand-label">Model:</span>
+    <div class="brand-chips" id="modelChips"></div>
   </div>
   <div class="section-title" id="sectionTitle">Tüm Ürünler</div>
   <div class="result-count" id="resultCount"></div>
@@ -2385,6 +2422,9 @@
   var activeBrand = "Tümü";
   // Alt kategori (grup) filtresi — kategori İÇİNDEKİ daraltma. "Tümü" = filtre YOK.
   var activeAlt = "Tümü";
+  // Model filtresi — MARKA İÇİNDEKİ daraltma (gezinme: kategori → grup → marka → model).
+  // "Tümü" = filtre YOK. Model bir markaya AİTTİR: marka değişince düşer.
+  var activeModel = "Tümü";
   var query = "";
 
   var PAGE_SIZE = 24;        // ana sayfada ilk gösterilen ürün sayısı
@@ -2471,6 +2511,7 @@
     if(activeCat !== "Tümü"){ params.set("kategori", activeCat); }
     if(activeAlt !== "Tümü"){ params.set("altkategori", activeAlt); }
     if(activeBrand !== "Tümü"){ params.set("marka", activeBrand); }
+    if(activeModel !== "Tümü"){ params.set("model", activeModel); }
     if(query.trim()){ params.set("ara", query.trim()); }
     var s = params.toString();
     // Safari kısa aralıkta çok replaceState çağrısına SecurityError atabiliyor — görünümü
@@ -2545,6 +2586,141 @@
   }
   // --- MARKA KAPSAMI SON ---
 
+  // ---------- ÇİP İNDEKSİ (ÇAPRAZ DARALMA) ----------
+  // ÖLÇÜLEN MÜŞTERİ HATASI (2 Ağu): "Marin + Bujiler" seçiliyken (136 ürün, hepsi buji)
+  // MARKA satırı hâlâ Mercury/Volvo/Yamaha/Jeanneau/Beneteau/GoPro/Zodiac gösteriyordu;
+  // hiçbirinin Bujiler grubunda ürünü YOK → her çip bir ÖLÜ UÇ. Kök neden: çip evrenleri
+  // KATEGORİDEN türetiliyordu, o anki FİLTRELENMİŞ kümeden değil. Sabit/kartezyen menüde
+  // boş kombinasyon oranı ölçüldü: Marin %86,2 · Motosiklet %72 · Otomobil %58.
+  //
+  // KURAL: her çip satırı, KENDİSİ HARİÇ diğer filtreler uygulandıktan sonraki kümeden
+  // türer ve yalnız DOLU seçenekleri gösterir. "Kendisi hariç" şart: Bujiler seçiliyken
+  // GRUP satırı tek çipe düşseydi kullanıcı başka gruba GEÇEMEZDİ.
+  //
+  // VERİ: window.PRUVO_CIP_INDEKS — yayın hazırlığında üretilip YALNIZ yayın kopyasına
+  // gömülür (bu dosyaya DEĞİL: indeks katalog verisinden türer, her ürün partisi gömülü
+  // bloğu bayatlatırdı). YOKSA fail-closed geri dönüş: çapraz daralma YAPILMAZ, MODEL
+  // satırı HİÇ çizilmez, filtreler aynen çalışır.
+  function cipIndeks(){
+    var ix = window.PRUVO_CIP_INDEKS;
+    return (ix && ix.kat && Object.prototype.toString.call(ix.alt) === "[object Array]")
+      ? ix : null;
+  }
+  function _ixKat(kat){
+    var ix = cipIndeks();
+    return (ix && ix.kat[kat]) ? ix.kat[kat] : null;
+  }
+  // Seçili grubun indeks anahtarı. "Tümü" → null (grup ekseni yok sayılır).
+  // Küme DIŞI bir değer → -1: hiçbir kombinasyon dolu değildir (fail-closed).
+  function _altAnahtar(altk){
+    var ix = cipIndeks();
+    if(!ix || altk === "Tümü"){ return null; }
+    var i = ix.alt.indexOf(altk);
+    return i === -1 ? -1 : String(i);
+  }
+  // MARKA evreni: (kategori + seçili GRUP + seçili MODEL) süzgecinden geçmiş DOLU markalar,
+  // ürün sayısına göre azalan. Marka ekseni HESABA KATILMAZ (kendi satırı).
+  // İndeks yoksa null → çağıran bugünkü davranışta kalır.
+  function indeksMarkalar(kat, altk, model){
+    var kd = _ixKat(kat);
+    if(!kd){ return null; }
+    var ai = _altAnahtar(altk);
+    if(ai === -1){ return []; }
+    var out = [];
+    Object.keys(kd).forEach(function(mk){
+      var d = kd[mk], n;
+      if(model !== "Tümü"){
+        var md = d.m[model];
+        if(!md){ return; }
+        n = (ai === null) ? md.n : (md.a[ai] || 0);
+      }else{
+        n = (ai === null) ? d.n : (d.a[ai] || 0);
+      }
+      if(n > 0){ out.push({ad: mk, n: n}); }
+    });
+    out.sort(function(a, b){ return (b.n - a.n) || a.ad.localeCompare(b.ad, "tr"); });
+    return out;
+  }
+  // GRUP evreni: geçerli bağlamda DOLU grupların {ad: sayı} haritası.
+  // Grup ekseni HESABA KATILMAZ (kendi satırı) — seçili grup diğerlerini gizlemez.
+  // Marka SEÇİLİYSE marka (ve varsa model) kırılımından; marka "Tümü" ise KATEGORİ
+  // düzeyi tablodan (ix.katalt) gelir. Marka sayımları toplanarak yapılamaz: çok markalı
+  // ürün MÜKERRER sayılır, markasız ürün HİÇ sayılmazdı → yanlış "boş" hükmü.
+  function indeksGruplar(kat, marka, model){
+    var ix = cipIndeks();
+    if(!ix){ return null; }
+    var kaynak;
+    if(marka === "Tümü"){
+      kaynak = (ix.katalt || {})[kat];
+      if(!kaynak){ return null; }
+    }else{
+      var kd = _ixKat(kat);
+      if(!kd || !kd[marka]){ return null; }
+      kaynak = kd[marka].a;
+      if(model !== "Tümü"){
+        var md = kd[marka].m[model];
+        if(!md){ return {}; }
+        kaynak = md.a;
+      }
+    }
+    var out = {};
+    Object.keys(kaynak).forEach(function(k){
+      if(kaynak[k] > 0){ out[ix.alt[Number(k)]] = kaynak[k]; }
+    });
+    return out;
+  }
+  // MODEL evreni: seçili MARKA'nın, seçili GRUP içinde DOLU modelleri.
+  // Model ekseni HESABA KATILMAZ (kendi satırı). Eşikler (model >= 3 ürün, marka >= 2
+  // model) indekste UYGULANMIŞTIR — burada ikinci bir eşik formülü YAZILMAZ.
+  function indeksModeller(kat, altk, marka){
+    var kd = _ixKat(kat);
+    if(!kd || marka === "Tümü" || !kd[marka]){ return null; }
+    var ai = _altAnahtar(altk);
+    if(ai === -1){ return []; }
+    var m = kd[marka].m, out = [];
+    Object.keys(m).forEach(function(md){
+      var n = (ai === null) ? m[md].n : (m[md].a[ai] || 0);
+      if(n > 0){ out.push({ad: md, n: n}); }
+    });
+    out.sort(function(a, b){ return (b.n - a.n) || a.ad.localeCompare(b.ad, "tr"); });
+    return out;
+  }
+  // Model, (kategori, marka) çiftinde TANIMLI mı (grup ekseninden bağımsız)?
+  function modelTanimliMi(kat, marka, model){
+    var kd = _ixKat(kat);
+    return !!(kd && kd[marka] && kd[marka].m[model]);
+  }
+  // Seçili çip daralma sonucu listeden düşse bile GÖRÜNÜR kalmalı — yoksa kullanıcı
+  // seçimini geri alamaz. Üç satır da bu yardımcıyı kullanır (tek kural, üç yüzey).
+  function seciliyiKoru(liste, secili){
+    if(secili !== "Tümü" && liste.indexOf(secili) === -1){ return liste.concat([secili]); }
+    return liste;
+  }
+  // Mobilde satır KAYDIRILABİLİR TEK SATIR: seçili çip görünür pencerenin dışında
+  // kalabilir. Çizimden sonra YALNIZ SATIRIN KENDİSİ yatay kaydırılır.
+  // 🔴 scrollIntoView KULLANILMAZ — ölçüldü (2 Ağu, 1280px): `?kategori=Otomobil&marka=Skoda`
+  // deep-link'inde element.scrollIntoView SAYFAYI da kaydırıyor (scrollY=1321), müşteri
+  // sayfanın ortasında açılıyordu. Burada yalnız kapsayıcının scrollLeft'i değiştirilir;
+  // window/scrollY'ye HİÇ dokunulmaz.
+  function seciliCipiGorunurKil(el){
+    if(!el || !el.children || !el.getBoundingClientRect){ return; }
+    for(var i = 0; i < el.children.length; i++){
+      var c = el.children[i];
+      if(!c.className || c.className.indexOf("active") === -1 || !c.getBoundingClientRect){
+        continue;
+      }
+      try{
+        var kutu = el.getBoundingClientRect(), cip = c.getBoundingClientRect();
+        if(cip.left < kutu.left){
+          el.scrollLeft -= (kutu.left - cip.left) + 8;
+        }else if(cip.right > kutu.right){
+          el.scrollLeft += (cip.right - kutu.right) + 8;
+        }
+      }catch(e){}
+      return;
+    }
+  }
+
   function renderBrands(){
     var el = document.getElementById("brandChips");
     el.innerHTML = "";
@@ -2567,7 +2743,11 @@
       b.className = "brand-btn" + (m === activeBrand ? " active" : "");
       b.textContent = m;
       b.onclick = function(){
-        activeBrand = m; resetPaging(); syncUrl(); renderBrands();
+        // Model MARKAYA aittir: marka değişince seçili model DÜŞER (aksi halde yeni
+        // markada tanımsız bir model takılı kalır → 0 ürün, ölü uç).
+        if(m !== activeBrand){ activeModel = "Tümü"; }
+        activeBrand = m; resetPaging(); syncUrl();
+        renderBrands(); renderAlts(); renderModels();
         if(EDGE_KATALOG){ edgeTazele(); return; }   // çizimi cevap gelince yapar
         renderGrid();
       };
@@ -2580,14 +2760,31 @@
     // aynı; sortedBrands zaten aktif kategori + aramaya göre sayar. 33+ uzun kuyruk marka
     // çip DEĞİL, yalnız arama kutusuyla bulunur (arama/filtre davranışı değişmez).
     var brands = sortedBrands();
+    // ÇAPRAZ DARALMA: çip indeksi varsa evren + sıra ORADAN gelir — yalnız seçili GRUP ve
+    // MODEL içinde ürünü OLAN markalar kalır (ölü uç 0) ve <15 ürünlü marka hiç girmez
+    // (eşik indekste uygulanır; ikinci bir eşik formülü burada YAZILMAZ).
+    // Arama yazılıyken bugünkü daralma da KORUNUR: indeks sorguyu bilmez, o yüzden
+    // KESİŞİM alınır (yerel modda sortedBrands zaten aramaya göre sayar).
+    // 🔴 MODEL EKSENİ BİLEREK GEÇİLMEZ ("Tümü"): model markanın ÇOCUĞUDUR — marka satırı
+    // modele göre daraltılsaydı E46 seçiliyken satır TEK çipe (BMW) düşer, kullanıcı
+    // markayı DEĞİŞTİREMEZ hâle gelirdi. Marka değişince model zaten düşüyor.
+    var ixMarka = indeksMarkalar(activeCat, activeAlt, "Tümü");
+    if(ixMarka){
+      var bugun = {};
+      brands.forEach(function(b){ bugun[b] = true; });
+      brands = ixMarka.map(function(x){ return x.ad; }).filter(function(b){
+        return (EDGE_KATALOG || query.trim() === "") ? true : !!bugun[b];
+      });
+    }
     var visible = brands.slice(0, MARKA_LIMIT);
     // kullanıcı cap dışı ya da liste-dışı (tanınmayan, ör. URL ?marka=Tacoma) bir markayı
     // seçtiyse çipi kaybolmasın — varlık kontrolü küratörlü listeden değil sayımdan yapılır
-    if(activeBrand !== "Tümü" &&
-       visible.indexOf(activeBrand) === -1 && brandCounts()[activeBrand] !== undefined){
+    if(activeBrand !== "Tümü" && visible.indexOf(activeBrand) === -1 &&
+       (ixMarka !== null || brandCounts()[activeBrand] !== undefined)){
       visible = visible.concat([activeBrand]);
     }
     visible.forEach(function(m){ el.appendChild(chip(m)); });
+    seciliCipiGorunurKil(el);
   }
 
   // ---------- ALT KATEGORİ (GRUP) ÇİPLERİ ----------
@@ -2600,11 +2797,17 @@
     if(!el){ return; }
     el.innerHTML = "";
     var liste = altListesi(activeCat);
+    // ÇAPRAZ DARALMA: bir MARKA (ve varsa MODEL) seçiliyken yalnız o markada ÜRÜNÜ OLAN
+    // gruplar kalır — "BMW seçili ama Kano ve Kayak grubu duruyor" ölü ucu kapanır.
+    // Kendi ekseni (grup) hesaba KATILMAZ: seçili grup diğer grupları gizlemez, kullanıcı
+    // başka gruba geçebilir. Marka "Tümü" iken daraltma YAPILMAZ (bkz. indeksGruplar).
+    var ixGrup = indeksGruplar(activeCat, activeBrand, activeModel);
+    if(ixGrup){
+      liste = liste.filter(function(a){ return (ixGrup[a] || 0) > 0; });
+    }
     // Deep-link ya da küme-dışı bir değer seçiliyse çipi KAYBOLMASIN (marka çipindeki
     // "cap dışı seçili marka" emsali) — kullanıcının seçimi temizleyecek yolu kalsın.
-    if(activeAlt !== "Tümü" && liste.indexOf(activeAlt) === -1){
-      liste = liste.concat([activeAlt]);
-    }
+    liste = seciliyiKoru(liste, activeAlt);
     if(liste.length === 0){ return; }   // alt kategorisi olmayan kategoride ÇİP YOK
 
     function cip(deger){
@@ -2615,7 +2818,8 @@
         activeAlt = (deger === activeAlt) ? "Tümü" : deger;   // tekrar tık = temizle
         resetPaging();
         syncUrl();
-        renderAlts();
+        // ÇAPRAZ DARALMA: grup değişince MARKA ve MODEL satırlarının evreni de değişir.
+        renderAlts(); renderBrands(); renderModels();
         if(EDGE_KATALOG){ edgeTazele(); return; }   // çizimi cevap gelince yapar
         renderGrid();
       };
@@ -2623,6 +2827,55 @@
     }
     el.appendChild(cip("Tümü"));
     liste.forEach(function(a){ el.appendChild(cip(a)); });
+    seciliCipiGorunurKil(el);
+  }
+
+  // ---------- MODEL ÇİPLERİ ----------
+  // Gezinme modelinin son basamağı: kategori → grup → marka → MODEL. Grup çipleriyle AYNI
+  // desen ve AYNI sınıflar (yeni görsel dil YOK); tekrar tık = temizle.
+  // ŞARTLAR (hepsi VERİDEN gelir, koda gömülü liste YOK):
+  //   * çip indeksi VAR (yoksa satır HİÇ çizilmez — fail-closed geri dönüş),
+  //   * bir MARKA seçili (model markaya aittir),
+  //   * seçili grup içinde o markanın >= 2 modeli DOLU (tek modelli markada satır anlamsız;
+  //     eşikler — model >= 3 ürün — indekste uygulanmıştır).
+  // "Model seçme" adımı ZORUNLU DEĞİLDİR: `uyum` dolu ürünlerin %50,5'i modelsizdir
+  // (BMW'nin 1.669 ürününün 983'ü), marka seçimiyle görünmeye devam ederler.
+  function modelListesi(){
+    var ix = indeksModeller(activeCat, activeAlt, activeBrand);
+    if(!ix){ return []; }
+    var adlar = ix.map(function(x){ return x.ad; });
+    return (adlar.length >= 2) ? adlar : (activeModel !== "Tümü" ? adlar : []);
+  }
+  function modelSatiriVar(){
+    if(!cipIndeks()){ return false; }
+    return modelListesi().length > 0 || activeModel !== "Tümü";
+  }
+  function renderModels(){
+    var el = document.getElementById("modelChips");
+    if(!el){ return; }
+    el.innerHTML = "";
+    if(!cipIndeks()){ return; }
+    var liste = seciliyiKoru(modelListesi(), activeModel);
+    if(liste.length === 0){ return; }
+
+    function cip(deger){
+      var b = document.createElement("button");
+      b.className = "brand-btn" + (deger === activeModel ? " active" : "");
+      b.textContent = deger;
+      b.onclick = function(){
+        activeModel = (deger === activeModel) ? "Tümü" : deger;   // tekrar tık = temizle
+        resetPaging();
+        syncUrl();
+        // Model değişince GRUP ve MARKA satırlarının evreni de değişir (çapraz daralma).
+        renderModels(); renderAlts(); renderBrands();
+        if(EDGE_KATALOG){ edgeTazele(); return; }   // çizimi cevap gelince yapar
+        renderGrid();
+      };
+      return b;
+    }
+    el.appendChild(cip("Tümü"));
+    liste.forEach(function(a){ el.appendChild(cip(a)); });
+    seciliCipiGorunurKil(el);
   }
 
   function renderCats(){
@@ -2650,6 +2903,7 @@
           // tıkla döner — marka + arama + URL paramları temizlenir, sayfa başına çıkılır.
           activeBrand = "Tümü";
           activeAlt = "Tümü";
+          activeModel = "Tümü";
           query = ""; searchEl.value = ""; clearEl.className = "search-clear";
           window.scrollTo({top:0, behavior:"smooth"});
         }else if(activeBrand !== "Tümü" && brandCounts()[activeBrand] === undefined){
@@ -2662,9 +2916,15 @@
         if(activeAlt !== "Tümü" && altListesi(activeCat).indexOf(activeAlt) === -1){
           activeAlt = "Tümü";
         }
+        // Seçili model YENİ kategoride (seçili marka altında) tanımlı değilse DÜŞER —
+        // aksi halde tanımsız model takılı kalır ve müşteri 0 ürün görür.
+        if(activeModel !== "Tümü" && cipIndeks() &&
+           !modelTanimliMi(activeCat, activeBrand, activeModel)){
+          activeModel = "Tümü";
+        }
         resetPaging();
         syncUrl();
-        renderCats(); renderBrands(); renderAlts();
+        renderCats(); renderBrands(); renderAlts(); renderModels();
         closeDrawers();
         if(EDGE_KATALOG){ edgeTazele(); return; }   // çizimi cevap gelince yapar
         renderGrid();
@@ -2688,7 +2948,16 @@
       var altOk = activeAlt === "Tümü" || (p.altkategori || "") === activeAlt;
       var brandOk = !hedefMarka ||
         (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
-      if(!catOk || !altOk || !brandOk){ return false; }
+      // MODEL: HAM etiket `marka` dizisinde mi (KATLAMA YOK). `marka` alanı `uyum`dan
+      // türetilir ve model jetonunu da taşır (ör. ["BMW","E46"]) — bu yüzden model ekseni
+      // AYNI dizide yaşar. Katlasaydık "E46" → "BMW"ye düşer, model daraltması KAYBOLURDU.
+      // Küme dışı bir değer (deep-link ?model=xyzyok) hiçbir kayda eşit olmaz → 0 sonuç
+      // (FAIL-CLOSED; değeri düşürseydik sessizce marka geneli dönerdi).
+      // 🔴 Bu yüklem, çip indeksinin SAYIM yüklemiyle AYNIDIR: çip "3 ürün" deyip tık 0
+      // getiremez ([[ikiz-tanim-sessiz-ayrisma]]).
+      var modelOk = activeModel === "Tümü" ||
+        (p.marka || []).indexOf(activeModel) !== -1;
+      if(!catOk || !altOk || !brandOk || !modelOk){ return false; }
       if(tokens.length === 0){ return true; }
       var hs = haystack(p);
       for(var i=0;i<tokens.length;i++){ if(hs.indexOf(tokens[i]) === -1){ return false; } }
@@ -2792,6 +3061,9 @@
     el.className = "edge-durum" + (edgeDurum === "yukleniyor" ? "" : " uyari");
     if(edgeDurum === "yukleniyor"){
       el.innerHTML = '<span class="edge-spin"></span><span>Aranıyor…</span>';
+    }else if(edgeDurum === "suzgec"){
+      // Uç istenen daraltmayı uygulamadı: SESSİZ kabul yerine GÖRÜNÜR uyarı.
+      el.innerHTML = '<span>' + EDGE_SUZGEC_MESAJ + '</span>';
     }else{
       el.innerHTML = '<span>' + EDGE_YEDEK_MESAJ + '</span>';
     }
@@ -2940,8 +3212,12 @@
     // 🔴 activeAlt DE ANA GÖRÜNÜM ŞARTIDIR: aksi halde ?altkategori=X (kategorisiz
     // deep-link) "ana görünüm" sayılır, filtrelenmiş liste HOME_ORDER ile EZİLİR ve
     // müşteri daraltma istediği halde TÜM kataloğu görür — sessiz fail-open.
+    // 🔴 activeModel de ANA GÖRÜNÜM ŞARTIDIR (activeAlt ile AYNI gerekçe): aksi halde
+    // ?model=E46 (kategorisiz deep-link) "ana görünüm" sayılır ve filtrelenmiş liste
+    // HOME_ORDER ile EZİLİR — müşteri daralttığını sanırken TÜM kataloğu görür.
     var anaGorunum = activeCat === "Tümü" && query.trim() === "" &&
-                     activeBrand === "Tümü" && activeAlt === "Tümü";
+                     activeBrand === "Tümü" && activeAlt === "Tümü" &&
+                     activeModel === "Tümü";
     var cizilecek, toplam, dahaVar;
 
     if(EDGE_KATALOG){
@@ -2994,6 +3270,15 @@
       var altVar = activeCat !== "Tümü" &&
                    (altListesi(activeCat).length > 0 || activeAlt !== "Tümü");
       altRowEl.style.display = altVar ? "" : "none";
+    }
+
+    // MODEL çip satırı: yalnız çip indeksi VARKEN, bir kategori + MARKA seçiliyken ve o
+    // bağlamda >= 2 dolu model varken (ya da bir model seçiliyken — temizleme yolu kalsın).
+    // İndeks yoksa satır HİÇ görünmez: fail-closed, boş kutu bırakmaz.
+    var modelRowEl = document.getElementById("modelRow");
+    if(modelRowEl){
+      modelRowEl.style.display =
+        (activeCat !== "Tümü" && activeBrand !== "Tümü" && modelSatiriVar()) ? "" : "none";
     }
 
     if(query.trim() !== ""){
@@ -3049,6 +3334,41 @@
   var EDGE_YEDEK_MESAJ =
     "Katalog bağlantısı kurulamadı — şu an yalnızca son eklenen ürünlerde arama yapılıyor. " +
     "Sayfayı yenilemeyi deneyebilirsiniz.";
+  var EDGE_SUZGEC_MESAJ =
+    "Seçtiğiniz daraltma şu an uygulanamadı — yanlış liste göstermemek için sonuçlar " +
+    "gizlendi. Filtreyi kaldırıp yeniden deneyebilirsiniz.";
+
+  // 🔴 FAIL-OPEN YASAĞI (ölçülen sınıf): uç istenen süzgeci UYGULAMAMIŞ olabilir —
+  // `model` parametresi bugün sessizce yok sayılıyor (ölçüldü: marka+model isteği marka
+  // toplamını döndürüyor). "Sayı değişti mi" bakmak YETMEZ (sayfa boyu sabit); bu yüzden
+  // DÖNEN KARTIN DEĞERİ ölçülür. Kart bir ekseni TAŞIMIYORSA doğrulanamaz → yine
+  // REDDEDİLİR ("ölçemedim" yeşil değildir).
+  // Dönüş: sapan eksenin adı (string) ya da null.
+  function edgeSuzgecSapmasi(kartlar){
+    if(!kartlar || !kartlar.length){ return null; }   // boş cevap = daralma iddiası yok
+    var hedefMarka = (activeBrand === "Tümü") ? null : markaKatla(activeBrand);
+    for(var i = 0; i < kartlar.length; i++){
+      var k = kartlar[i] || {};
+      if(activeCat !== "Tümü" && k.kategori !== undefined && k.kategori !== activeCat){
+        return "kategori";
+      }
+      if(activeAlt !== "Tümü" && k.altkategori !== undefined &&
+         (k.altkategori || "") !== activeAlt){
+        return "grup";
+      }
+      if(hedefMarka || activeModel !== "Tümü"){
+        var mk = k.marka;
+        if(Object.prototype.toString.call(mk) !== "[object Array]"){
+          return "olculemedi";           // kart marka taşımıyor → doğrulanamaz
+        }
+        if(hedefMarka && !mk.some(function(b){ return markaKatla(b) === hedefMarka; })){
+          return "marka";
+        }
+        if(activeModel !== "Tümü" && mk.indexOf(activeModel) === -1){ return "model"; }
+      }
+    }
+    return null;
+  }
 
   var OZET = null;          // ozet.json içeriği
   var edgeListe = [];       // ekranda çizili kartlar
@@ -3103,6 +3423,17 @@
     // Alt kategori İKİ uçta da geçerli (Worker: /katalog ve /ara aynı katMarkaAltKosulu'nu
     // kullanır) — bu yüzden `if(q)` dallanmasından ÖNCE bağlanır.
     if(activeAlt !== "Tümü"){ p.set("altkategori", activeAlt); }
+    // MODEL EKSENİ — uç sözleşmesi ÖLÇÜLDÜ (2 Ağu, canlı):
+    //   /katalog?kategori=Otomobil&marka=BMW           → 1669
+    //   /katalog?kategori=Otomobil&marka=BMW&model=E46 → 104   (indeksin dediği sayı)
+    //   /katalog?model=E46 (markasız)                  → 104   (tek başına da geçerli)
+    //   /katalog?...&model=xyzyok                      → 0     (fail-closed)
+    //   /ara?...&marka=BMW&model=E46                   → süzüyor (iki kol da tanıyor)
+    // 🔴 AMA "bugün tanıyor" YARIN İÇİN GARANTİ DEĞİL: aynı gün ÖNCE ölçüldüğünde
+    // `model` SESSİZCE YOK SAYILIYORDU (marka+model → 1673 = marka toplamının aynısı).
+    // Bu yüzden parametreyi göndermek YETMEZ — cevap edgeSuzgecSapmasi() ile DEĞER
+    // ekseninde doğrulanır; uç süzmeyi bırakırsa liste SESSİZCE KABUL EDİLMEZ.
+    if(activeModel !== "Tümü"){ p.set("model", activeModel); }
     if(q){
       // /ara sayfa DEĞİL limit alıyor (parite testinin referans aldığı uç — imzasına
       // DOKUNMUYORUZ). "Daha fazla" = limiti bir sayfa büyütüp listeyi tazele.
@@ -3170,6 +3501,17 @@
       .then(function(d){
         if(no !== edgeIstekNo){ return; }          // eskimiş cevap — çizme
         if(d.hata){ throw new Error(d.hata); }
+        // 🔴 SÜZGEÇ DOĞRULAMASI cevabı KABUL ETMEDEN önce koşar: uç filtreyi uygulamadıysa
+        // liste GÖSTERİLMEZ (sessizce geçmek = müşteriye yanlış liste). Görünür uyarı +
+        // boş sonuç = fail-closed. `kartBellegeAl` bile sapan kartları belleğe ALMAZ.
+        var sapan = edgeSuzgecSapmasi(d.urunler || []);
+        if(sapan){
+          console.error("edge suzgec UYGULANMADI (eksen: " + sapan + ") — liste reddedildi");
+          edgeListe = []; edgeToplam = 0; edgeGoster = PAGE_SIZE;
+          edgeSayfa = sayfa; edgeDurum = "suzgec";
+          renderGrid();
+          return;
+        }
         var gelen = kartBellegeAl(d.urunler || []);
         // GELİŞ GRUBU: sonradan gelen kart, ekranda duran kartların ÖNÜNE geçmesin
         // (vitrinGrupKaristir bunu okur). Ozet havuzu grup 0, Worker sayfa N grup N.
@@ -3230,6 +3572,13 @@
       var hedefMarka = markaKatla(activeBrand);
       liste = liste.filter(function(p){
         return (p.marka || []).some(function(b){ return markaKatla(b) === hedefMarka; });
+      });
+    }
+    // Model filtresi YEDEK modda da UYGULANIR (grup filtresiyle aynı gerekçe): yok saymak
+    // müşteriye "model içi" diye marka genelini gösterirdi. filtered() ile AYNI yüklem.
+    if(activeModel !== "Tümü"){
+      liste = liste.filter(function(p){
+        return (p.marka || []).indexOf(activeModel) !== -1;
       });
     }
     var tokens = norm(query).split(/\s+/).filter(Boolean).map(aramaKok);
@@ -3408,6 +3757,13 @@
     // Eski link / ürün sayfası çipi "Mercedes-Benz" gibi VARYANT taşıyabilir → kanonik
     // kaleme katlanır (çip aktif görünür, eşleşme filtered() ile aynı kurala oturur).
     if(mar){ activeBrand = markaKatla(mar); }
+    // MODEL — alt kategori gibi izinli-küme SÜZGECİNDEN GEÇİRİLMEZ, AYNEN alınır.
+    // 🔴 GEREKÇE (sessiz-hata sınıfı): bilinmeyen değeri düşürmek fail-OPEN olurdu —
+    // ?model=xyzyok marka genelini getirir, kullanıcı daralttığını sanır. Değer korunur →
+    // filtered()/edgeIstek() 0 sonuç verir (fail-closed). Model KATLANMAZ: model jetonu
+    // `marka` dizisinde HAM yaşar, katlanırsa markaya düşer ve eksen kaybolur.
+    var mdl = params.get("model");
+    if(mdl){ activeModel = mdl; }
     var ara = params.get("ara");
     if(ara){ query = ara; searchEl.value = ara; clearEl.className = "search-clear show"; }
     return false;
@@ -3421,11 +3777,11 @@
   // geçmiş şişmesin) — bu dinleyici ürün sayfasından/ dış geçmişten dönüşte
   // görünümün URL'ye oturmasını garantiler.
   window.addEventListener("popstate", function(){
-    activeCat = "Tümü"; activeBrand = "Tümü"; activeAlt = "Tümü";
+    activeCat = "Tümü"; activeBrand = "Tümü"; activeAlt = "Tümü"; activeModel = "Tümü";
     query = ""; searchEl.value = ""; clearEl.className = "search-clear";
     if(applyUrlParams()){ return; }
     resetPaging();
-    renderCats(); renderBrands(); renderAlts();
+    renderCats(); renderBrands(); renderAlts(); renderModels();
     if(EDGE_KATALOG){ edgeTazele(); return; }
     renderGrid();
   });
@@ -3463,6 +3819,7 @@
         renderCats();
         renderBrands();
         renderAlts();
+        renderModels();
         edgeYukle(1, false);              // ana sayfada ağa ÇIKMAZ (ozet.json yeter)
         try{ updateCartFab(); }catch(e){ console.error("Sepet rozeti güncellenemedi:", e); }
         try{ edgeSepetiTamamla(); }catch(e){ console.error("Sepet ürünleri alınamadı:", e); }
@@ -3480,6 +3837,7 @@
           renderCats();
           renderBrands();
           renderAlts();
+          renderModels();
           edgeYukle(1, false);
         }catch(e){ console.error("Katalog çizilemedi:", e); }
       });
@@ -3504,6 +3862,7 @@
       renderCats();
       renderBrands();
       renderAlts();
+      renderModels();
       renderGrid();
       try{ updateCartFab(); }catch(e){ console.error("Sepet rozeti güncellenemedi:", e); }
       // Sepet=1 ile gelindiyse (ya da panel açılışta zaten açıldıysa) katalog gelince paneli
