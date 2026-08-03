@@ -3334,7 +3334,7 @@
   "rampa": {
    "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
    "olculen_en_kotu_sapma_yuzde": 24.6753,
-   "tolerans_asan_set": "7/25"
+   "tolerans_asan_set": "15/25"
   },
   "rulman": {
    "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",

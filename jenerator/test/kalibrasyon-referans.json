@@ -1482,6 +1482,244 @@
      "referansMm3": 2186.1044127523364
     }
    ]
+  },
+  "rampa": {
+   "fonksiyon": "rampa",
+   "urunId": "olcuye-ozel-ramp-sim-takoz",
+   "motor": "uretim",
+   "setler": [
+    {
+     "parametreler": {
+      "genislik": 40,
+      "uzunluk": 80,
+      "yukseklik": 20,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "duz"
+     },
+     "referansMm3": 32000.0
+    },
+    {
+     "parametreler": {
+      "genislik": 150,
+      "uzunluk": 245,
+      "yukseklik": 2,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "tirtikli"
+     },
+     "referansMm3": 51450.48995316859
+    },
+    {
+     "parametreler": {
+      "genislik": 60,
+      "uzunluk": 250,
+      "yukseklik": 2,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "tirtikli"
+     },
+     "referansMm3": 21000.192069909626
+    },
+    {
+     "parametreler": {
+      "genislik": 60,
+      "uzunluk": 160,
+      "yukseklik": 6,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "tirtikli"
+     },
+     "referansMm3": 32642.699017119096
+    },
+    {
+     "parametreler": {
+      "genislik": 150,
+      "uzunluk": 20,
+      "yukseklik": 100,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "tirtikli"
+     },
+     "referansMm3": 156118.82280145868
+    },
+    {
+     "parametreler": {
+      "genislik": 150,
+      "uzunluk": 245,
+      "yukseklik": 2,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "duz"
+     },
+     "referansMm3": 36750.0
+    },
+    {
+     "parametreler": {
+      "genislik": 150,
+      "uzunluk": 245,
+      "yukseklik": 2,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "basamakli"
+     },
+     "referansMm3": 49000.00073015688
+    },
+    {
+     "parametreler": {
+      "genislik": 60,
+      "uzunluk": 160,
+      "yukseklik": 6,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "duz"
+     },
+     "referansMm3": 28800.0
+    },
+    {
+     "parametreler": {
+      "genislik": 60,
+      "uzunluk": 160,
+      "yukseklik": 6,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "basamakli"
+     },
+     "referansMm3": 32400.0
+    },
+    {
+     "parametreler": {
+      "genislik": 150,
+      "uzunluk": 20,
+      "yukseklik": 100,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15,
+      "ust_yuzey": "duz"
+     },
+     "referansMm3": 150000.0
+    },
+    {
+     "parametreler": {
+      "genislik": 38.0,
+      "uzunluk": 26.0,
+      "yukseklik": 96.0,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 11.0,
+      "ust_yuzey": "duz"
+     },
+     "referansMm3": 47424.0
+    },
+    {
+     "parametreler": {
+      "genislik": 45.0,
+      "uzunluk": 208.0,
+      "yukseklik": 15.0,
+      "egim_yontemi": "aci",
+      "egim_acisi": 22.0,
+      "ust_yuzey": "basamakli"
+     },
+     "referansMm3": 397005.62241122336
+    },
+    {
+     "parametreler": {
+      "genislik": 18.0,
+      "uzunluk": 27.0,
+      "yukseklik": 13.0,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 11.0,
+      "ust_yuzey": "duz"
+     },
+     "referansMm3": 3159.0
+    },
+    {
+     "parametreler": {
+      "genislik": 16.0,
+      "uzunluk": 163.0,
+      "yukseklik": 27.0,
+      "egim_yontemi": "aci",
+      "egim_acisi": 11.0,
+      "ust_yuzey": "basamakli"
+     },
+     "referansMm3": 42348.82168524279
+    },
+    {
+     "parametreler": {
+      "genislik": 81.0,
+      "uzunluk": 227.0,
+      "yukseklik": 2.0,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 26.0,
+      "ust_yuzey": "tirtikli"
+     },
+     "referansMm3": 25742.08526497056
+    },
+    {
+     "parametreler": {
+      "genislik": 97.0,
+      "uzunluk": 91.0,
+      "yukseklik": 21.0,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 28.0,
+      "ust_yuzey": "basamakli"
+     },
+     "referansMm3": 96116.22194941399
+    },
+    {
+     "parametreler": {
+      "genislik": 36.0,
+      "uzunluk": 43.0,
+      "yukseklik": 50.0,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 15.0,
+      "ust_yuzey": "basamakli"
+     },
+     "referansMm3": 39314.2856513093
+    },
+    {
+     "parametreler": {
+      "genislik": 77.0,
+      "uzunluk": 226.0,
+      "yukseklik": 7.0,
+      "egim_yontemi": "aci",
+      "egim_acisi": 21.0,
+      "ust_yuzey": "duz"
+     },
+     "referansMm3": 754840.2284622192
+    },
+    {
+     "parametreler": {
+      "genislik": 106.0,
+      "uzunluk": 40.0,
+      "yukseklik": 72.0,
+      "egim_yontemi": "aci",
+      "egim_acisi": 30.0,
+      "ust_yuzey": "tirtikli"
+     },
+     "referansMm3": 50917.6748812657
+    },
+    {
+     "parametreler": {
+      "genislik": 102.0,
+      "uzunluk": 167.0,
+      "yukseklik": 26.0,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 5.0,
+      "ust_yuzey": "tirtikli"
+     },
+     "referansMm3": 228337.68276783076
+    },
+    {
+     "parametreler": {
+      "genislik": 68.0,
+      "uzunluk": 217.0,
+      "yukseklik": 39.0,
+      "egim_yontemi": "yukseklik",
+      "egim_acisi": 11.0,
+      "ust_yuzey": "duz"
+     },
+     "referansMm3": 287742.0
+    }
+   ]
   }
  }
 }
