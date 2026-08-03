@@ -89,12 +89,6 @@
       "uzunAd": "Cam elyaf takviyeli naylon (PA12-GF)",
       "satista": false,
       "tedarik": "Stokta tutulmaz; ihtiyac halinde siparis uzerine hizli tedarik edilir."
-    },
-    {
-      "ad": "POM",
-      "uzunAd": "Poliasetal (POM)",
-      "satista": false,
-      "tedarik": "Stokta tutulmaz; ihtiyac halinde siparis uzerine hizli tedarik edilir."
     }
   ],
   "kategoriTavsiye": {
