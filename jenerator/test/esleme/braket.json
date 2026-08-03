@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-montaj-braketi",
+  "motor": "pruvo",
   "scad": "braket.scad",
   "fonksiyon": "braket",
   "esleme": {

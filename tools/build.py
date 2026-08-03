@@ -35,6 +35,21 @@ from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
                       STATIK_SAYFALAR, PV_SCRIPT_HTML)
 import filament_ortak
 import marka_model_build
+# CIP INDEKSI — ana sayfa MARKA/GRUP/MODEL cip satirlarinin CAPRAZ DARALMA tablosu.
+# YALNIZ yayin kopyasina gomulur (bkz. yayin_index): indeks urunler.json'dan turer, kaynak
+# index.html'e yazilsaydi her urun partisi blogu bayatlatir ve baska bir mimarin akisini
+# kilitlerdi. Modul adinda tire oldugu icin importlib ile yuklenir.
+def _cip_indeks_yukle():
+    import importlib.util
+    _yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cip-indeks.py")
+    _spec = importlib.util.spec_from_file_location("cip_indeks", _yol)
+    if _spec is None:
+        raise SystemExit("HATA: tools/cip-indeks.py bulunamadi — cip indeksi uretilemez "
+                         "(fail-closed: capraz daralma canlida sessizce kaybolurdu).")
+    _mod = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_mod)
+    return _mod
+cip_indeks = _cip_indeks_yukle()
 import landing_hub_build
 import yorum_soy
 # `altkategori` (kategori ICINDEKI daraltma etiketi) TEK KAYNAKTAN okunur: arama.py
@@ -512,16 +527,22 @@ def _marka_cip_enjekte(html_metni, chip_links, slug_map):
     return html_metni
 
 
-def yayin_index(marka_sonuc=None):
+def yayin_index(marka_sonuc=None, products=None):
     """Yayinlanan ana sayfa: KAYNAK index.html'in script src'leri surumlenmis kopyasi.
     Kaynak dosya DEGISTIRILMEZ (curumesin diye); cikti index.built.html'e yazilir, deploy
     onu _site/index.html olarak kopyalar. taban-fiyatlar.js bu asamada uretilmis olmali.
-    marka_sonuc verilirse anasayfa marka çipleri SSR link'e çevrilir (discovery kök-fix)."""
+    marka_sonuc verilirse anasayfa marka çipleri SSR link'e çevrilir (discovery kök-fix).
+    products verilirse CIP INDEKSI (marka/grup/model capraz daralma tablosu) <head>'e
+    gomulur — tools/cip-indeks.py; KAYNAK index.html'e YAZILMAZ cunku indeks urunler.json'dan
+    turer ve her urun partisi kaynak dosyayi bayatlatirdi. FAIL-CLOSED: uretim/gomme
+    patlarsa build DURUR (sessizce indekssiz yayinlanip capraz daralma kaybolmaz)."""
     with open(os.path.join(ROOT, "index.html"), encoding="utf-8") as f:
         metin = f.read()
     if marka_sonuc:
         metin = _marka_cip_enjekte(metin, marka_sonuc.get("chip_links", ""),
                                    marka_sonuc.get("slug_map", {}))
+    if products is not None:
+        metin = cip_indeks.enjekte(metin, cip_indeks.indeks_uret(products, metin))
     return surumle_scriptler(attribution_ekle(metin))
 
 
@@ -3417,7 +3438,7 @@ def main():
     # surumlenir (KAYNAK index.html degismez). deploy.yml bunu _site/index.html yapar.
     # taban-fiyatlar.js YUKARIDA uretildi -> hash'i artik hesaplanabilir.
     with open(os.path.join(ROOT, "index.built.html"), "w", encoding="utf-8") as f:
-        f.write(yayin_index(marka_sonuc))
+        f.write(yayin_index(marka_sonuc, products))
 
     # robots.txt
     with open(os.path.join(ROOT, "robots.txt"), "w", encoding="utf-8") as f:

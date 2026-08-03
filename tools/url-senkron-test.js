@@ -41,14 +41,16 @@ if (m) {
   // harness onu tanımıyordu → ham ReferenceError ile ÇÖKTÜ). Çökme, kırmızı iddiadan ayırt
   // edilemez; bu yüzden çağrı sarılır ve eksik değişken ADIYLA kırmızı bir iddia olur.
   let harnessHatasi = null;
-  function urlUret(kat, marka, ara, alt) {
+  function urlUret(kat, marka, ara, alt, model) {
     let sonUrl = null;
     const sandbox = new Function(
-      "activeCat", "activeAlt", "activeBrand", "query", "history", "location", "URLSearchParams",
+      "activeCat", "activeAlt", "activeBrand", "activeModel", "query", "history", "location",
+      "URLSearchParams",
       m[0] + "; syncUrl();"
     );
     try {
-      sandbox(kat, alt === undefined ? "Tümü" : alt, marka, ara,
+      sandbox(kat, alt === undefined ? "Tümü" : alt, marka,
+        model === undefined ? "Tümü" : model, ara,
         { replaceState: (a, b, url) => { sonUrl = url; } },
         { pathname: "/" }, URLSearchParams);
     } catch (e) {
@@ -83,6 +85,18 @@ if (m) {
       "/?kategori=Marin&altkategori=Bujiler&marka=Beneteau&ara=jant",
     "çıktı: " + urlUret("Marin", "Beneteau", "jant", "Bujiler"));
 
+  // model çipi (marka İÇİNDEKİ daraltma) — syncUrl'un beşinci ekseni
+  kontrol("model seçili → ?model= yazılır (markayla birlikte)",
+    urlUret("Otomobil", "BMW", "", "Tümü", "E46") === "/?kategori=Otomobil&marka=BMW&model=E46",
+    "çıktı: " + urlUret("Otomobil", "BMW", "", "Tümü", "E46"));
+  kontrol('model "Tümü" → model paramı DÜŞER, marka KALIR',
+    urlUret("Otomobil", "BMW", "", "Tümü", "Tümü") === "/?kategori=Otomobil&marka=BMW",
+    "çıktı: " + urlUret("Otomobil", "BMW", "", "Tümü", "Tümü"));
+  kontrol("beş eksen birlikte yazılır (kategori+grup+marka+model+arama)",
+    urlUret("Otomobil", "BMW", "jant", "Aydınlatma", "E46") ===
+      "/?kategori=Otomobil&altkategori=Ayd%C4%B1nlatma&marka=BMW&model=E46&ara=jant",
+    "çıktı: " + urlUret("Otomobil", "BMW", "jant", "Aydınlatma", "E46"));
+
   // ÇÖKME ≠ KIRMIZI: harness eksik değişkenle patladıysa bunu ADIYLA söyle
   kontrol("harness sağlam (syncUrl'un kapalı değişkenleri sandbox'ta tanımlı)",
     harnessHatasi === null,
@@ -95,11 +109,14 @@ if (m) {
 /* ── 2) KABLOLAMA: tetik noktaları syncUrl çağırıyor mu? ───────────────── */
 console.log("2) kablolama (statik — handler'lar syncUrl'a bağlı mı?)");
 
-// marka çipi onclick bloğu: "activeBrand = m;" atamasıyla başlayan b.onclick
-// fonksiyonu (tek satır ya da çok satır fark etmez) syncUrl() içermeli.
-const cipSatir = INDEX.match(/b\.onclick = function\(\)\{\s*activeBrand = m;[\s\S]*?\n\s*\};/);
+// marka çipi onclick bloğu: gövdesinde "activeBrand = m;" ataması geçen b.onclick
+// fonksiyonu syncUrl() içermeli. (Blok artık atamadan ÖNCE model sıfırlaması da taşıyor —
+// çapraz daralma paketi, 2 Ağu; çapa bu yüzden "başlayan" değil "içeren" olarak ölçülür.)
+const cipSatir = INDEX.match(/b\.onclick = function\(\)\{[\s\S]*?activeBrand = m;[\s\S]*?\n\s*\};/);
 kontrol("marka çipi tıkı syncUrl çağırıyor",
   cipSatir && cipSatir[0].indexOf("syncUrl()") !== -1);
+kontrol("marka çipi tıkı seçili MODELİ düşürüyor (marka değişince model geçersiz)",
+  cipSatir && /activeModel = "Tümü"/.test(cipSatir[0]));
 
 // kategori onclick bloğu: activeCat = c; ile renderCats arasında
 const katBlok = INDEX.match(/activeCat = c;[\s\S]*?renderCats\(\);/);
@@ -107,6 +124,8 @@ kontrol("kategori tıkı syncUrl çağırıyor",
   katBlok && katBlok[0].indexOf("syncUrl()") !== -1);
 kontrol('kategori "Tümü" TAM SIFIRLAMA: markayı sıfırlıyor',
   katBlok && /c === "Tümü"[\s\S]*?activeBrand = "Tümü"/.test(katBlok[0]));
+kontrol('kategori "Tümü" TAM SIFIRLAMA: modeli sıfırlıyor',
+  katBlok && /c === "Tümü"[\s\S]*?activeModel = "Tümü"/.test(katBlok[0]));
 kontrol('kategori "Tümü" TAM SIFIRLAMA: arama kutusunu/query temizliyor',
   katBlok && /c === "Tümü"[\s\S]*?query = ""/.test(katBlok[0]) &&
   /c === "Tümü"[\s\S]*?searchEl\.value = ""/.test(katBlok[0]));

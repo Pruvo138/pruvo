@@ -1667,7 +1667,9 @@ TABLO_TABANLARI = (
     # tabani burada tutmak "35 beyan tek commit'te sessizce silindi + ayni commit'te
     # adimlar A'ya geri tasindi" halini GORUNUR kilar. Bilerek kucultuluyorsa NEDENIYLE
     # birlikte guncelle (serit degisimi = KraL karari).
-    ("SERIT_B", 36),
+    # 2 Agu: 36 -> 38 (job `hacim-tam-takim`in iki kolu: jenerator/test/dogrula.py +
+    # jenerator/test/kabul.py; dis bagimlilikli elle-tetik takim, gerekce tabloda).
+    ("SERIT_B", 38),
 )
 
 TABLO_TANI = (
@@ -2293,6 +2295,30 @@ SERIT_B = {
         "yayinlanan shop Worker'inin bayatligi (1 Agu: 14,5 saat, %84'e varan fazla "
         "tahsilat) ancak burada GORUNUR olur; olcumun KENDISI yayin yolundan ayri bir "
         "zamanlanmis is akisindadir (paket-tazelik-alarmi.yml, `push` tetikleyicisi YOK).",
+    # --- JENERATOR HACIM TAM TAKIMI (2 Agu 2026) — DIS BAGIMLILIKLI, ELLE TETIK ----
+    # Job `hacim-tam-takim` yalniz `workflow_dispatch` ile kosar ve `deploy` ona
+    # `needs:` ile BAGLI DEGILDIR -> serit B. BILEREK boyle: bu iki kolun TAM kosumu
+    # OpenSCAD (nightly AppImage + xvfb) ve iki DIS kaynak ister (private kardes depo
+    # jetonu + gizli uretim paketi secret'i). Bloklayici `build` yoluna baglansaydi
+    # jeton/secret baglanana kadar TUM EKIBIN yayini dururdu; ayrica OpenSCAD kurulumu
+    # + 22 aile render'i yayin yolunu dakikalarca uzatirdi. Kusuru yayini durdurmaz
+    # ama SESSIZ de kalmaz: on-kosul adimi eksik secret'ta OLCULEMEDI deyip KIRMIZI
+    # yanar (fail-closed) ve kosum CI'da GORUNUR.
+    # 🔴 Bu iki kolun `--kendini-test` KARDESLERI serit A'da BLOKLAYICI kosuyor
+    # (job `serit-b` degil, `build`): kapinin kendi kablolamasi orada olculur.
+    ("deploy.yml", "hacim-tam-takim", "jenerator/test/dogrula.py"):
+        "Jeneratör TAM TAKIMI serit B'de: bayraksiz `--hepsi` kolu OpenSCAD + private "
+        "kardes depo jetonu + gizli uretim paketi ister; bloklayici yola baglansaydi "
+        "jeton/secret baglanana kadar tum ekibin yayini dururdu ve yayin yolu render "
+        "suresince uzardi. Kusuru yayini DURDURMAZ ama sessiz kalmaz: eksik secret'ta "
+        "on-kosul adimi OLCULEMEDI deyip KIRMIZI yanar. `--kendini-test` kolu serit "
+        "A'da bloklayici kosuyor.",
+    ("deploy.yml", "hacim-tam-takim", "jenerator/test/kabul.py"):
+        "Jeneratör TAM TAKIMI serit B'de: bayraksiz kabul kolu TEST 1'i (hacim vs "
+        "render) icerdigi icin ayni OpenSCAD + dis kaynak zincirine bagimlidir; "
+        "bloklayici yola baglanmasi ayni yayin durdurma bedelini dogururdu. Kusuru "
+        "yayini DURDURMAZ ama sessiz kalmaz (fail-closed on-kosul + CI'da gorunur "
+        "adim). `--kendini-test` kolu serit A'da bloklayici kosuyor.",
     # --- yayin SONRASI job (yapisal olarak yayini bloklayamaz) --------------
     ("deploy.yml", "yayin", "tools/yayin-kapisi.py"):
         "ATOMIK YAYIN adimi YAPISAL OLARAK yayindan SONRA kosar (`needs: deploy`): "

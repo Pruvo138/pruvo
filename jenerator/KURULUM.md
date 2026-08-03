@@ -81,12 +81,17 @@ değişkenleri `sabit`e girer. Örnek (`ornekplaka.json`):
 ```json
 {
   "urunId": "ornek-plaka",
+  "motor": "pruvo",
   "scad": "ornek-plaka.scad",
   "fonksiyon": "ornekplaka",
   "esleme": {"en": "En", "boy": "Boy", "kalinlik": "Kalinlik"},
   "sabit": {}
 }
 ```
+
+> 🔴 `motor` ZORUNLUDUR (`pruvo` | `uretim`) — hacim fonksiyonunun HANGİ geometriye
+> kalibre olduğunu beyan eder. Beyan yoksa `dogrula.py` **ÖLÇÜLEMEDİ** deyip kırmızı
+> yanar. Gerekçe ve iki değerin anlamı: `jenerator/test/SOZLESME.md`.
 
 ## Adım 5 — OpenSCAD doğrulama testi (yeşil olmadan devam etme)
 

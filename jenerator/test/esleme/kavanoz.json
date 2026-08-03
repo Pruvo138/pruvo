@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-vidali-kavanoz-tapa",
+  "motor": "pruvo",
   "scad": "kavanoz.scad",
   "fonksiyon": "kavanoz",
   "esleme": {

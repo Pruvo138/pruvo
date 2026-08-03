@@ -1,5 +1,6 @@
 {
   "urunId": "olcuye-ozel-damga-kase",
+  "motor": "pruvo",
   "scad": "kase.scad",
   "fonksiyon": "kase",
   "esleme": {

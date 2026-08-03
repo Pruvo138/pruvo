@@ -263,6 +263,75 @@ def d_bayraklari(esleme, sset):
     return bayraklar
 
 
+# ---- MOTOR KIMLIGI YARDIMCILARI (2026-08-02) -------------------------------
+# "pruvo"  : referans PRUVO'nun KENDI ureteci (pruvo-jenerator/jeneratorler/<scad>).
+#            Bagimsizlik ekseni: kendi motorumuz hacim.js ile ayni kati mi uretiyor?
+# "uretim" : hacim.js bu ailede URETIM motoruna kalibre (fiyat/onizleme o motordan
+#            turer). Yetkili olcum onizleme/test/eslem-olcum.py — motorun dosya ve
+#            degisken adlari GIZLI oldugu icin bu public depoda TUTULMAZ.
+MOTORLAR = ("pruvo", "uretim")
+
+
+def _scad_parmakizi(yol):
+    import hashlib
+    with io.open(yol, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()[:16]
+
+
+def uretim_motoru_olc(aile, urun_id, set_sayisi):
+    """URETIM motoruna kalibre aileyi eslem-olcum.py ile olc.
+
+    FAIL-CLOSED: gizli uretim paketi yoksa (paketsiz CI/klon) 'olculemedi' doner —
+    YESIL SAYILMAZ. Kopya olcum mantigi YAZILMAZ; tek kaynak eslem-olcum.py."""
+    arac = os.path.join(os.path.dirname(JEN_DIR), "onizleme", "test", "eslem-olcum.py")
+    if not os.path.exists(arac):
+        print("  [OLCULEMEDI] %-8s uretim motoru olcum araci yok: %s" % (aile, arac))
+        return "olculemedi"
+    ozet_yol = os.path.join(tempfile.gettempdir(),
+                            "pruvo-uretim-olcum-%s.json" % aile)
+    proc = subprocess.run(
+        [sys.executable, arac, urun_id, "--set", str(set_sayisi),
+         "--tohumlar", "20260802", "--json", ozet_yol],
+        capture_output=True, text=True, timeout=1800)
+    cikti = (proc.stdout or "") + (proc.stderr or "")
+    for satir in cikti.splitlines():
+        if satir.strip():
+            print("  " + satir.rstrip())
+    if "eslem paketinde yok" in cikti or "paket toplanamadi" in cikti:
+        print("  [OLCULEMEDI] %-8s gizli uretim paketi yok (R2 paketi/oturum gerekli)"
+              % aile)
+        return "olculemedi"
+    # HUKUM eslem-olcum.py'nin KENDI aile_durumu'undan gelir (tek kaynak; burada
+    # kopya esik mantigi YAZILMAZ). Cikis KODUNA bakmak yanlis olurdu: arac
+    # "kismi"yi de sifir-disi dondurur, ama "kismi" = OLCULEN setler yesil,
+    # yalniz sema bolgesinin bir kismi uretilemez — bu bir HACIM SAPMASI degildir.
+    if not os.path.exists(ozet_yol):
+        print("  [OLCULEMEDI] %-8s uretim olcum ozeti yazilmadi" % aile)
+        return "olculemedi"
+    try:
+        ozet = yukle(ozet_yol)
+    finally:
+        os.remove(ozet_yol)
+    if not ozet:
+        print("  [OLCULEMEDI] %-8s uretim olcum ozeti bos" % aile)
+        return "olculemedi"
+    s = ozet[0]
+    durum = s.get("durum")
+    if durum == "yesil":
+        return True
+    if durum == "kismi":
+        # Hacim dogrulugu YESIL; sema izgarasinin bir bolgesi motorda uretilemiyor.
+        # AYRI bir kusur sinifi (sema araligi) — mimar tablosuna, TEST 1'i yakmaz.
+        print("  [KISMI] %-8s hacim dogrulugu YESIL (en kotu %%%.2f) ama %d set "
+              "uretilemez/kapsam disi — SEMA ARALIGI kusuru, ayri is"
+              % (aile, s.get("enKotu", 0.0),
+                 (s.get("uretilemez") or 0) + (s.get("ret") or 0)))
+        return True
+    if durum == "olculemedi":
+        return "olculemedi"
+    return False
+
+
 def scad_hacim(openscad, scad_yol, esleme, sset, tmpdir, etiket):
     """Render + hacim. Cokme (SIGABRT vb.) 2 kez yeniden denenir; israrla cokerse
     None doner (aile 'yerel dogrulanamadi' sayilir, CI'da kosulur — mimar karari
@@ -293,9 +362,41 @@ def aile_dogrula(aile, set_sayisi, rnd, openscad, scad_dir):
     sema = yukle(os.path.join(URUN_DIR, esleme["urunId"] + ".json"))
     if sema.get("hacimFormulu") != esleme["fonksiyon"]:
         sys.exit("%s: sema.hacimFormulu != esleme.fonksiyon" % aile)
+
+    # ---- MOTOR KIMLIGI (2026-08-02, sessiz-hata onarimi) -------------------
+    # OLCULEN ARIZA: `scad` alani CIPLAK bir dosya adidir ("rulman.scad") ve
+    # scad_dizini() onu PRUVO'nun KENDI ureteclerine (pruvo-jenerator/jeneratorler)
+    # cozer. Ama PRUVO'nun kendi ureteci, uretim motorunun DROP-IN yerine gecmesi
+    # icin AYNI degisken adlarini kullaniyor (Mouth_Diameter, Inside_Diameter...).
+    # Sonuc: -D bayraklari HATASIZ uyguland, render BASARILI oldu, ama olculen KATI
+    # bambaska bir geometriydi. hacim.js ise 8 ailede uretim motoruna kalibre
+    # (aile js dosyalarindaki "Uretim motoruna kalibre (Faz E)" notlari).
+    # Yani TEST 1 YANLIS NESNEYI olcuyordu ve kirmizisi FIYAT kapisina
+    # (secenekler.js HACIM_DOGRULANMIS_AILELER) girdi -> dogru fiyat hesaplayabilen
+    # 8 aile satistan kapandi.
+    # BUGUNKU KURAL: her esleme HANGI MOTORA kalibre oldugunu BEYAN eder.
+    # Beyan yoksa/taninmiyorsa OLCULEMEDI -> YESIL SAYILMAZ (fail-closed).
+    motor = esleme.get("motor")
+    if motor not in MOTORLAR:
+        print("  [OLCULEMEDI] %-8s esleme 'motor' beyani yok/taninmiyor (%r). "
+              "Beklenen: %s. Beyansiz olcum SESSIZCE baska bir kati olcebilir "
+              "(ayni degisken adlari, farkli geometri) — YESIL SAYILMAZ."
+              % (aile, motor, " | ".join(sorted(MOTORLAR))))
+        return "olculemedi"
+
+    if motor == "uretim":
+        # Bu ailede hacim.js URETIM motoruna kalibre. Yetkili olcum
+        # onizleme/test/eslem-olcum.py'dedir (gitignore'lu uretim paketini okur;
+        # motor dosya/degisken adlari GIZLI, bu public depoda TUTULMAZ).
+        return uretim_motoru_olc(aile, esleme["urunId"], set_sayisi)
+
     scad_yol = os.path.join(scad_dir, esleme["scad"])
     if not os.path.exists(scad_yol):
         sys.exit("scad dosyasi yok: %s" % scad_yol)
+    # OLCULEN NESNEYI GORUNUR KIL: yol + parmakizi her kosumda basilir ki
+    # "hangi kati olctuk" bir daha ORTULU kalmasin.
+    print("  [MOTOR] %-8s motor=pruvo  scad=%s  sha256=%s"
+          % (aile, os.path.realpath(scad_yol), _scad_parmakizi(scad_yol)))
 
     setler = [varsayilan_set(sema)]
     for _ in range(set_sayisi):
@@ -504,17 +605,25 @@ def main():
     openscad = openscad_yolu()
     scad_dir = scad_dizini()
 
-    kirmizi, atlanan = [], []
+    kirmizi, atlanan, olculemedi = [], [], []
     for aile in aileler:
         sonuc = aile_dogrula(aile, args.set, rnd, openscad, scad_dir)
         if sonuc == "atla":
             atlanan.append(aile)
+        elif sonuc == "olculemedi":
+            olculemedi.append(aile)
         elif not sonuc:
             kirmizi.append(aile)
     if atlanan:
         print("YEREL DOGRULANAMAYAN aileler (CI'da kosulacak): %s" % ", ".join(atlanan))
+    # OLCULEMEDI, "kirmizi yok" ile AYNI SEY DEGILDIR: motor beyani eksikse ya da
+    # gizli uretim paketi yoksa hicbir sey olculmemistir. Sessiz-yesil burada dogar.
+    if olculemedi:
+        print("OLCULEMEDI aileler (YESIL SAYILMAZ — fail-closed): %s"
+              % ", ".join(olculemedi))
     if kirmizi:
         print("KIRMIZI aileler: %s" % ", ".join(kirmizi))
+    if kirmizi or olculemedi:
         sys.exit(1)
     print("YEREL YESIL: %d, CI'YA KALAN: %d" % (len(aileler) - len(atlanan), len(atlanan)))
 

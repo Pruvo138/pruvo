@@ -418,6 +418,31 @@
            rampa   +78,28 TL · kayis +77,29 TL · huni +58,28 TL
          (+ = müşteriden FAZLA tahsil = ticari/hukuki risk; − = EKSİK tahsil = zarar.)
 
+     ---- DÜZELTME — 2026-08-02: yukarıdaki 9 kırmızının 8'i REFERANS ARIZASIYDI ----
+     Aile doğrulama çekirdeği 8 ailede YANLIŞ KATIYI ölçüyordu: eşleme kayıtlarındaki
+     model referansı ÇIPLAK bir dosya adı olduğu için karşılaştırma nesnesi yanlış
+     kaynağa çözülüyordu. O kaynak, asıl üretim zincirinin DROP-IN yerine geçmesi için
+     AYNI değişken adlarını kullandığından parametreler hatasız uygulandı ve ölçüm
+     BAŞARILI göründü — ama ölçülen geometri bambaşkaydı. Aynı dosya adı + aynı
+     değişken adları = SESSİZ nesne değişimi; hiçbir şey bağırmadı.
+
+     KARŞI ÖLÇÜM (bağımsız, asıl üretim zincirine karşı; seed 20260802, 3 rastgele set
+     + varsayılan) — 8 ailenin hepsi %3'ün ÇOK altında; sahte sapma → gerçek sapma:
+       huni  11,53→0,13 · izgara 39,00→0,00 · kasnak 13,28→0,02 · kayis 28,67→0,15
+       oring  6,70→0,39 · pervane 49,21→0,38 · petek 25,76→0,00 · rulman 29,21→0,08
+     Yani hacim.js bu ailelerde DOĞRUYDU, referans yanlıştı. Arıza FAZLA TAHSİL değil,
+     HAKLI fiyatın hiç üretilmemesiydi (ürünler satılamıyordu).
+     Referans çıpası: eşleme kayıtlarına zorunlu kaynak-zinciri beyanı.
+
+     🔴 8 ailenin 7'si listeye alındı; `rulman` BİLEREK DIŞARIDA BIRAKILDI. Hacim
+     doğruluğu yeşil (%0,08) ama ŞEMA ARALIĞI kusurlu: doğrulamadan geçen parametre
+     kombinasyonlarının bir kısmı ÜRETİLEMİYOR. Üretemeyeceğimiz bir konfigürasyonu
+     satılabilir göstermeyiz → şema onarılana kadar tutar üretmez (fail-closed).
+
+     KAPALI KALANLAR: `rampa` (sapması bağımsız ölçümle DOĞRULANMADI), `vida`
+     (hiç ölçülmedi) ve `rulman` (şema aralığı kusuru — yukarıya bak).
+     Üçü de tutar üretmez — fail-closed aynen sürer.
+
      KURAL — ALLOWLIST, DENYLIST DEĞİL (fail-closed): fiyat YALNIZCA gerçek geometriye
      karşı ölçülmüş ve %3 sınırını GEÇMİŞ ailelerde üretilir. Listede olmayan aile
      (yeni eklenen, hiç ölçülmemiş, ölçümü kırmızı) tutar ÜRETMEZ → kart kapanır,
@@ -451,7 +476,13 @@
     // yay: 2026-08-03, DETERMİNİSTİK ızgara (810 nokta: 2 tip × 5 dalga formu ×
     // her sayısal parametrenin min/orta/max'ı), gerçek geometri render'ına karşı
     // en kötü %0.824 (dalga/sinüs, dalga_boyu=40) → yukarı yuvarlanmış:
-    yay: 0.83
+    yay: 0.83,
+    // 2026-08-02 eklenen 7 aile — bağımsız ölçüm, seed 20260802
+    // (yukarıdaki DÜZELTME bloğu: eski kırmızıları referans arızası üretmişti)
+    // 🔴 `rulman` EKLENMEDİ: hacmi yeşil (%0,08) ama şema aralığı üretilemez
+    // kombinasyon veriyor; şema doğrulanana kadar KAPALI (tutar üretmez).
+    huni: 0.13, izgara: 0.00, kasnak: 0.02, kayis: 0.15,
+    oring: 0.39, pervane: 0.38, petek: 0.00
   };
 
   /* Aile hacim doğrulamasından geçti mi? Anahtar `sema.hacimFormulu`.
