@@ -401,8 +401,11 @@ def kabul(kok):
 # ---------------------------------------------------------------- MUTASYON
 # (dosya, eski, yeni, beklenen, aciklama)
 MUTANTLAR = [
+    # NOT (3 Agu): iki capa TASINDI — model yuklemi `modelEsler()`e bagli tek kaynak oldu
+    # (bkz. tools/model-uyelik-kapisi.py). Mutantin ANLATTIGI ihlal AYNI; "capa bayat"
+    # gozlemi kanit degildir, o yuzden capalar guncellendi.
     ("index.html",
-     'var modelOk = activeModel === "Tümü" ||\n        (p.marka || []).indexOf(activeModel) !== -1;',
+     'var modelOk = activeModel === "Tümü" ||\n        modelEsler(p.marka, activeModel, hedefMarka);',
      'var modelOk = true;', "KIRMIZI",
      "MODEL FILTRESINI KALDIR (yerel): cip tiklanir, liste DEGISMEZ"),
     ("index.html",
@@ -439,7 +442,7 @@ MUTANTLAR = [
      '        var sapan = null;', "KIRMIZI",
      "FAIL-OPEN: uc suzmediyse liste SESSIZCE kabul edilir (musteri yanlis liste gorur)"),
     ("index.html",
-     '        if(activeModel !== "Tümü" && mk.indexOf(activeModel) === -1){ return "model"; }',
+     '        if(activeModel !== "Tümü" && !modelEsler(mk, activeModel, hedefMarka)){ return "model"; }',
      '        if(false){ return "model"; }', "KIRMIZI",
      "GUARD'IN MODEL EKSENINI KALDIR: yalniz marka dogrulanir, model fail-open kalir"),
     ("index.html",
