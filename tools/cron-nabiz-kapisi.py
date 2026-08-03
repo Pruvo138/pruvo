@@ -76,7 +76,9 @@ NE OLCER (5 EKSEN, hepsi FAIL-CLOSED)
   A3 NABIZ  (AG · IKINCIL, KAYBOLMADI) — o is akisinin SON `event=schedule` kosumu son N
      saat icinde mi. "Cron HIC ateslemiyor" hali AYRI bir arizadir (damga tazeyken bile
      elle dispatch'le beslenmis olabilir) ve AYRI raporlanir. Yeni kaydedilen is akisina
-     ilk teslim icin ayni N penceresi taninir; kosum hala yoksa N'den sonra alarm yanar.
+     veya cron tanimi degisen is akisina ilk teslim icin ayni N penceresi taninir; kosum
+     hala yoksa N'den sonra alarm yanar. Yeniden-kayit zamani workflow API'sinin bayat
+     `updated_at` alanindan degil, dosyaya dokunan son commit zamanindan okunur.
      Esik NOMINAL cron araligindan DEGIL, OLCULEN TESLIM ORANINDAN turetilir
      (bkz. esik_saat).
 
@@ -406,7 +408,8 @@ def _iso(metin):
 
 
 def gozlem_topla(dosyalar, getir=api_getir):
-    """[{dosya, cron, aralik, esik, kayitli, durum, kosum_sayisi, son_kosum}] — AG kolu.
+    """[{dosya, cron, aralik, esik, kayitli, durum, kosum_sayisi, son_kosum,
+          yenileme_an}] — AG kolu.
 
     `getir` ENJEKTE EDILEBILIR: fikstur kolu GERCEK API govdesinin ayni seklini besler."""
     liste = getir("repos/%s/actions/workflows?per_page=100" % DEPO)
@@ -425,7 +428,8 @@ def gozlem_topla(dosyalar, getir=api_getir):
         wf = yol_ile.get(yol)
         g = {"dosya": dosya, "cron": cron, "kayitli": wf is not None,
              "durum": (wf or {}).get("state"), "kosum_sayisi": None, "son_kosum": None,
-             "kayit_an": _iso(wf["created_at"]) if wf is not None else None}
+             "kayit_an": _iso(wf["created_at"]) if wf is not None else None,
+             "yenileme_an": None}
         try:
             g["aralik"] = aralik_dakika(dakika_kumesi(cron) or {0})
         except OlcumHatasi:
@@ -452,6 +456,22 @@ def gozlem_topla(dosyalar, getir=api_getir):
                 g["son_kosum"] = _iso(k["created_at"])
                 g["son_kosum_id"] = k.get("id")
                 g["son_sonuc"] = k.get("conclusion")
+            # GitHub cron tanimi degistiginde zamanlayici yeniden kaydedilir. Workflow API'sinin
+            # `updated_at` alani bunu yansitmiyor (olculdu: dosya degisti, alan created_at ile
+            # ayni kaldi); bu yuzden dosyaya dokunan son commit GitHub commits API'sinden okunur.
+            # Yeni kaydedilen cron'a A3 esigi kadar ilk-teslim penceresi taninmazsa eski cron'un
+            # son kosumu yeni tanimin sessizligi sanilir ve alarm bos yere kirmizi yanar.
+            commitler = getir("repos/%s/commits?path=%s&per_page=1"
+                              % (DEPO, urllib.parse.quote(yol, safe="")))
+            if not isinstance(commitler, list) or not commitler:
+                raise OlcumHatasi("%s son degisim yaniti beklenen sekilde degil "
+                                  "(bos ya da dizi degil)" % dosya)
+            son_commit = commitler[0]
+            try:
+                g["yenileme_an"] = _iso(son_commit["commit"]["committer"]["date"])
+            except (KeyError, TypeError) as e:
+                raise OlcumHatasi("%s son degisim kaydinda `commit.committer.date` yok: %s"
+                                  % (dosya, e))
         gozlemler.append(g)
     return gozlemler
 
@@ -647,6 +667,16 @@ def degerlendir(dosyalar, gozlemler, simdi=None, damga=None, damga_esigi=None,
         satirlar.append("✅ A2 DURUM %s -> state=active" % etiket)
 
         n = g["esik"]
+        son_tanim_an = max(g["kayit_an"], g["yenileme_an"])
+        son_tanim_yasi = (simdi - son_tanim_an).total_seconds() / 3600.0
+        yeni_tanim = (g["son_kosum"] is None or son_tanim_an > g["son_kosum"])
+        if yeni_tanim and son_tanim_yasi <= n:
+            satirlar.append("🟡 A3 NABIZ %s -> cron tanimi %.1f saat once kaydedildi; "
+                            "bu tanimdan event=schedule kosumu henuz YOK (esik N=%d sa). "
+                            "Ilk tetikleme icin olculen teslim penceresi dolmadi; eski "
+                            "cron kosumu yeni tanimin nabzi SAYILMADI."
+                            % (etiket, son_tanim_yasi, n))
+            continue
         if g["kosum_sayisi"] == 0:
             kayit_yasi = (simdi - g["kayit_an"]).total_seconds() / 3600.0
             if kayit_yasi <= n:
@@ -821,7 +851,7 @@ def _damga_kaydi(yas_saat, expired=False, ad=None, kimlik=8806704610):
 
 
 def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
-               kayit_yas_saat=24.0,
+               kayit_yas_saat=24.0, yenileme_yas_saat=24.0,
                dosya="d1-uzlastirici.yml", bozuk=None, event="schedule",
                damgalar=None):
     """GERCEK govdenin ayni seklini ureten enjekte edilebilir `getir`.
@@ -873,6 +903,12 @@ def _sahte_api(durum="active", kosum_sayisi=0, yas_saat=0.0, kayitli=True,
             k["created_at"] = an.strftime("%Y-%m-%dT%H:%M:%SZ")
             k["run_started_at"] = k["created_at"]
             return {"total_count": kosum_sayisi, "workflow_runs": [k]}
+        if "/commits?path=" in yol:
+            if bozuk == "commit-sekli":
+                return [{"commit": {"committer": {}}}]
+            an = datetime.now(timezone.utc) - timedelta(hours=yenileme_yas_saat)
+            return [{"sha": "f0b8b0b44b61e447a81c46bde4b4998e4c1eb89b",
+                     "commit": {"committer": {"date": an.strftime("%Y-%m-%dT%H:%M:%SZ")}}}]
         raise OlcumHatasi("fikstur bilinmeyen yol: %s" % yol)
     return getir
 
@@ -1399,6 +1435,13 @@ def kendini_test():
           "-> GORUNUR ve YESIL", rc == 0, "rc=%d" % rc)
     iddia("A3 (a0) rapor ilk tetikleme penceresini ve yasi SAYIYLA yazar",
           any("🟡 A3 NABIZ" in x and "0.8 saat" in x and "esik N=9" in x for x in s), s)
+    rc, s = kos(D, _sahte_api(kosum_sayisi=137, yas_saat=12.0,
+                              yenileme_yas_saat=0.8))
+    iddia("A3 (a0b) cron YENIDEN KAYDEDILDI, eski kosum N disinda ama yeni tanim "
+          "N icinde -> GORUNUR ve YESIL", rc == 0, "rc=%d" % rc)
+    iddia("A3 (a0b) eski kosumu yeni tanimin nabzi saymaz; ilk teslim penceresini yazar",
+          any("🟡 A3 NABIZ" in x and "cron tanimi 0.8 saat" in x
+              and "eski cron kosumu" in x for x in s), s)
     rc, s = kos(D, _sahte_api(kosum_sayisi=0))
     iddia("A3 (a) N'yi asmis is akisinda HIC schedule kosumu YOK -> KIRMIZI",
           rc == 1, "rc=%d" % rc)
@@ -1447,6 +1490,9 @@ def kendini_test():
     iddia("FAIL-CLOSED: kosum yanitinda `total_count` yok -> rc 2", rc == 2, "rc=%d" % rc)
     rc, _ = kos(D, _sahte_api(bozuk="tutarsiz"))
     iddia("FAIL-CLOSED: total_count>0 ama workflow_runs bos -> rc 2", rc == 2, "rc=%d" % rc)
+    rc, _ = kos(D, _sahte_api(bozuk="commit-sekli"))
+    iddia("FAIL-CLOSED: workflow son degisim zamani okunamazsa rc 2", rc == 2,
+          "rc=%d" % rc)
     rc, _ = kos(D, _sahte_api(kosum_sayisi=5, yas_saat=0.2, event="push"))
     iddia("FAIL-CLOSED: event suzgeci calismamis (event=push donmus) -> rc 2", rc == 2,
           "rc=%d" % rc)
