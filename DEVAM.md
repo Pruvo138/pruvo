@@ -41,11 +41,8 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
    eksen gercek cikarim kaybina daraltilmali** — bu tur dokunulmadi.
 
 **BENDE — acik kalemler, oncelik sirasiyla:**
-0. ✅ **KAPANDI (`78676775`)** — hacim tahsilat mutanti artik CI'da bloklayici kapida olculuyor
-   (dokum DEVAM-ARSIV.md'de). **Kalan:** satisa acik 7 aile (huni, izgara, kasnak, kayis, oring,
-   pervane, profil) icin altisi uretim motoru referansi istiyor → **Okan kapisi** (butce/erisim).
-   Kapsam disi olcum (fikstürde beyanli): `rampa` sapma **%24,7**, `profil` sapma **%0,1469**.
-   (Hangi kapinin hangi aileyi kapsamadigina dair detay: DEVAM-ARSIV.md.)
+0. ✅ **KAPANDI (`78676775`)** — hacim tahsilat mutanti CI'da bloklayici kapida olculuyor.
+   **Kalan:** satisa acik ailelerin altisi uretim motoru referansi istiyor → **Okan kapisi**.
 1. 🔴 **YAPISAL — ISCIDE OLCULUYOR (3 Agu):** siparis/odeme yolu uretilebilirligi SORMUYOR.
    Allowlist yara bandi; her yeni aile ayni riski yeniden aciyor. Dogru cozum: odeme yolunun
    derleyiciye/uretilebilirlik kapisina sormasi. **Ders:** aile satisa acarken sorulan soru
@@ -83,18 +80,11 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
    Benim surumum (`193cd6f0`) main'de ve daha genis (19 mutant + A6 kapsam iddiasi) → dal
    **cakisir, merge EDILMEYECEK**. Alinacak tek sey ondaki **`A1c` iddiasi** — once ayirt edici
    mutanti var mi olculecek, varsa ayri turda tasinacak, sonra dal+worktree silinecek.
-3. 🔴 **Tek kanonik marka fonksiyonu — ve bu kusur ARTIK URETIMDE OLCULDU.**
-   Uc ayri mantik var (`index.html` `markaKatla` · uc `uyumEkseniKosulu` · `parite-test.js` tam
-   jeton) ve **1.677 cip degerinin 1.518'inde** ucu ayrisiyor.
-   **Canli tam supurme (1.081 kombinasyon, `3569bb97` sonrasi): 12 OLU UC** — `Marin/Volvo` 11 +
-   `Otomobil/Kia` 1 — ve **159 sayi sapmasi** (uc >0 ama indeksin dedigi sayidan farkli).
-   Kok neden: `cip-indeks.py` cipi **katlanmis** etiketle uretiyor, uc **ham** etiketi esliyor →
-   `marka=Volvo` **0**, `marka=Volvo Penta` **51** (katalogda "Volvo" etiketi hic yok).
-   **Gerileme DEGIL** — `9f491fcf` tabaninda da vardi, olculdu. Ama paketin mansset iddiasi
-   ("gorunen her cip >0") uretimde bu 12 kombinasyonda **TUTMUYOR**, ve kabul testi bunu
-   yakalamiyor cunku **fikstürün uc simulatoru de katliyor** — yani test, uretimi degil kendi
-   varsayimini aynaliyor. Bu oturumun tekrar eden sinifi.
-   Surucu hazir ama repoda DEGIL: scratchpad `kr-tam-supurme.py` — kalici hale getirilmeli.
+3. 🔴 **Tek kanonik marka fonksiyonu — URETIMDE OLCULDU.** Uc ayri mantik (`index.html`
+   `markaKatla` · uc `uyumEkseniKosulu` · `parite-test.js` tam jeton), **1.677 cip degerinin
+   1.518'inde** ayrisiyor. Kok neden: cip **katlanmis**, uc **ham** etiket esliyor.
+   Kabul testi yakalamiyor cunku **fikstürün uc simulatoru de katliyor**.
+   Surucu scratchpad'de `kr-tam-supurme.py` — repoya alinacak. (Dokum DEVAM-ARSIV.md'de.)
 4. **Merge kapisi eksigi (bugun iki kez isirdi):** kapi kumesi dalin *dokundugu alandan*
    turetiliyor; `index.html` gibi cok kapili dosyada asil kume **`deploy.yml`'in kendisi**.
    Ilk kirmizi ikinciyi maskeliyor. `~/.claude/skills/merge-kapisi/SKILL.md`'ye madde eklenecek
@@ -110,81 +100,10 @@ ArTisT: marka-model sayfasi acma esigi onerisi (veri verildi: 1.062 marka-model 
 
 **✅ KAPANDI 3 Agu: merge `242e4496` — uyum kapisi yorumundaki bayat mutant sayisi (dokum DEVAM-ARSIV.md'de).**
 
-**✅ KAPANDI 3 Agu: merge `88f3e63d` + kablolama onarimi `7fc61f98` — shop worker BAYATLIK NOBETI.**
-Olculen delik: yayin akisinda worker yayin adimi vurusu **0** (30 "wrangler" satirinin hepsi
-YORUM) -> canli bundle **13 sa 15 dk** bayat kaldi, hicbir alarm calmadi. Yeni
-`tools/shop-bayatlik-kapisi.py`: bundle dosya kumesini ITHALAT GRAFINDAN turetir (**42 dosya** —
-elle liste `secenekler.js`/`jenerator/*`'i kacirirdi), canli KOD surumunu okur ve main'den kac
-commit geride oldugunu basar. **Esik 120 dk**, gerekcesi olculen dagilimdan (73 commit; ayni
-oturumda deploy edilen kumenin maksimumu 89,2 dk; olay 795 dk). Dort hal: taze/bekliyor rc 0 ·
-bayat rc 1 · **olculemedi rc 2** (ag/yetki yoksa "guncel" varsayilmaz).
-Kabul testi **32 iddia / 0 kirmizi** (bloklayici, `build`); curutme `tools/shop-bayatlik-mutasyon.py`
-**12 mutant / 0 sapma** (kontrol mutanti dahil, kaynak sha256 bas=son). Canli kol
-`paket-tazelik-alarmi.yml`de (cron 15 dk) — yayini DURDURMAZ; **korluk penceresi 795 dk -> <=15 dk.**
-CI'da olculdu (kosum `30822060140`): mevcut CI kimligi salt-okuma dagitim/surum listesi icin
-YETIYOR, adim 12,6 sn, durum TAZE (aktif surum `cecc9d4f`, 0 commit geride).
-🔴 Bu turun iki dersi (ikisini de KAPI yakaladi, goz degil): (1) adimi komsu adimin yanina
-koymak IS sinirini gormez — adim `serit-b`ye dustu, "bloklayici" iddiasi yalandi, is akisi bicim
-kapisi kirmizi yakti (bir kosum yayin durdu, kosum `30822306545`); (2) GitHub `if:` kosullarina
-ortuk `success()` ekler — yeni adim damga adimlarindan once durunca kirmizi bir olcum damgayi
-atlatip nabiz A4'u yanlis yakiyordu, adim isin sonuna alindi.
-ACIK (mimar karari): kanal ZAMAN temelli — bayat AGACTAN yapilan deploy taze gorunur; kimlik
-temelli hukum icin bundle'a commit damgasi + okuma ucu gerekir (bir deploy penceresi ister).
-
-## ✅ ONIZLEME KISIT BEYANI KOSULLU HALE GETIRILDI — merge `45f30fd7` (3 Agu)
-Vida/civata kolu disindaki M3-M4 bolgesi artik yanlis bloklanmiyor; kisit yargisi tek kaynakta
-toplandi, uc katmanli kabul testi CI'ya bagli. Olculen sayilar (dal + bagimsiz curutucu):
-- kapsam: 5 dosya, +660/−14 · cakisma 0 · sizinti 0 · kapilar 10/10 rc=0
-- parite: `parite-test.js` 1199 + `parite-ege.js` 845 sorgu birebir
-- kabul: 12 iddia · mutasyon 19/19 mutant PASS (her biri once KIRMIZI) · yeni test dosyasi 43 iddia
-- vida izgarasi: yeni biçimde blok 2/44 · eski biçimde 8/44 (yanlis bloklanan 6 nokta acildi)
-Merge ff-only yapildi (merge commit yok, baska oturumun staged dosyasi supurulmedi).
-D1 teyidi merge sonrasi: 17010 == 17010, hash uyusmazlik 0.
-
-## ✅ YAYIN ERİŞİM NÖBETÇİSİ — merge `7e2277c0` (3 Ağu)
-Kapatılan sınıf: yayınlanan içeriğin ÜRETİLDİĞİ ölçülüyordu, ERİŞİLEBİLDİĞİ ölçülmüyordu
-(üç landing 12 gün 403 döndü, her kapı yeşildi). Yeni: `tools/yayin-erisim-nobeti.py`
-(+ `-test.py`, `-mutasyon.py`) ve saatlik `.github/workflows/yayin-erisim-alarmi.yml`.
-- küme: `sayfalar.py::SITEMAP_SLUGS` ∪ hub ∪ kök ∪ build manifesti ∪ yerel sitemap (elle
-  liste yok); yerelde 295, CI'da 306 URL; taban altı küme = ÖLÇÜLEMEDİ
-- yöntem GET (HEAD 200 / GET 403 ölçüldü) · 200 dışı KAPALI · 3xx zinciri izlenir
-- bugünkü canlı ölçüm: 295 URL · 292 açık · 3 kapalı (403, `/araba-…` `/arac-…`) · 166 s
-- kabul: 48 iddia · 16 öldürücü + 4 kontrol mutantı, 7 eksenin hepsinde tek-kırmızı mutant
-- kol seçimi: canlı ölçüm deploy.yml'e BAĞLANMADI (ağ bağımlı yanlış-pozitif tüm yayını
-  durdurur); cron alarm kolu, `push` tetikleyicisi yok, ayrı concurrency, `|| true` yok
-- kapılar dal↔main delta 0 (ci-kapsam · is-akisi · kisisel-veri · cron-nabiz · yayin-gecikme)
-- CI: koşum 30844877057 (headSha 7e2277c0) `serit-b` success, adım logunda 48/48
-- D1 merge sonrası: 17030 == 17030, hash uyuşmazlık 0
-
-## ✅ ÖNİZLEME KISIT KOŞUL DEĞERİ FAIL-CLOSED — merge `f6f6492d` (3 Ağu)
-`45f30fd7`in üstüne: `eger` koşulunun DEĞER eşleşmesi sertleştirildi, kural artık şemadan
-türüyor — `secim` → tanımlı seçenek üyeliği, `sayi` → sayı/sayısal-metin + `gecerliDegerler`,
-bilinmeyen tip → ihlal. Docstring garanti metniyle davranış eşitlendi (ikiz tanım tek kaynaktan).
-- kabul: `onizleme-kisit-kosul-test.py` **43 → 115 iddia**; 5 öldürücü mutant kırmızı, 2 kontrol
-  mutantı yeşil
-- vaat kapısı: 12 iddia + 19/19 mutant · parite `parite-test.js` **1199 sorgu birebir**
-- vida ızgarası: 44 konfigürasyonda bloklu küme **tam olarak 2** (`civata-M3`, `civata-M4`)
-- CANLI DOĞRULANDI: koşum `30846897166` (`51588d55`, `f6f6492d` atası) success, `deploy`+`yayin`
-  skipped DEĞİL. Canonical `secenekler.js`: 3-argümanlı `onizlemeKisitIhlali` imzası 1,
-  `kosulDegeriEslesebilirMi` 2, vida girdisi 1; `age: 0`, `cf-cache-status: MISS` (bayat önbellek
-  değil). D1: 17032 == 17032, üç eksen temiz.
-
-**Yayın hattı bu turda İKİ KEZ yabancı kırmızıyla kesildi — ikisi de GERÇEK sapma değil BAYAT
-BEKLENTİ olarak sınıflandırıldı:**
-1. `yayin-ic-dil-kapisi --kaynak` 13 ihlal → başka oturum `e86bbf8a` ile kapattı.
-2. `marka-uyelik-test.py` bayat yüklem: marka sayfası evreni artık ÇİP EVRENİNDEN türüyor, test
-   ise küratörlü listeyi tutuyordu. Sapan 13 markanın hepsi küratörlük dışı çip markası, sayfada
-   eksik ürün **0**; 727 sapanın **704**'ünde testin "birincil"i hesaplanamıyor, **23**'ünde
-   uyumluluk markasına gidiyordu. Başka oturum `51588d55` ile kapattı.
-   → Aşağıdaki AÇIK KALEMLER'in "🔴 YAYIN DURUYOR … `marka-uyelik-test.py`" maddesi bu tur KAPANDI.
-
-**AÇIK KALEM:** `claude/marka-uyelik-tazeleme` (`a9c7a22d`) **merge EDİLMEYECEK**; yalnız hasat
-edilecek bir FAZLA nöbetçi taşıyor — genişletilmiş marka ekseni bir gün boşalırsa "sapan: 0"
-iddia değil boş kümenin sessizliğidir (ölçüm: çip evreni 49, küratörlük dışı 13).
-
-**AÇIK KALEM:** CI yayın açlığı — `build` ~35 dk, ürün push'ları eşzamanlılıkla koşan koşumu
-iptal ediyor (3 Ağu'da 5 iptal). Ayrı oturumda ele alınıyor.
-
+**✅ KAPANDI 3 Agu: shop worker BAYATLIK NOBETI — merge `88f3e63d` + `7fc61f98` (dokum DEVAM-ARSIV.md'de).**
+**✅ KAPANDI 3 Agu: onizleme kisit beyani kosullu — merge `45f30fd7` (dokum DEVAM-ARSIV.md'de).**
+**✅ KAPANDI 3 Agu: yayin erisim nobetcisi — merge `7e2277c0`, 295 URL / 292 acik / 3 kapali (dokum DEVAM-ARSIV.md'de).**
+**✅ KAPANDI 3 Agu: onizleme kisit kosul degeri fail-closed — merge `f6f6492d` (dokum DEVAM-ARSIV.md'de).**
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
 - 🔴 YAYIN DURUYOR (başka düzlem, 3 Ağu 19:26): `build` adım 32 `marka-uyelik-test.py`
   KIRMIZI → `deploy` skipped. Sapan marka 13 (marka sayfası ↔ index filtresi), ürün çip
