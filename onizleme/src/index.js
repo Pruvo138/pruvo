@@ -38,6 +38,12 @@ const SECENEK = globalThis.PRUVO_SECENEK;
 if (!SECENEK || !Array.isArray(SECENEK.ONIZLEME_AILELER)) {
   throw new Error("secenekler.js yuklenemedi — onizleme aile listesi tek kaynagi yok");
 }
+// FAIL-CLOSED: kisit yargisinin TEK KAYNAGI yoksa worker HIC ayaga kalkmaz.
+// Sessizce "kisit yok" saymak, uretilemez bir konfigurasyonu musteriye ONIZLEME
+// + siparis olarak vaat etmek demektir (bkz. tools/onizleme-vaat-kapisi.py).
+if (typeof SECENEK.onizlemeKisitIhlali !== "function") {
+  throw new Error("secenekler.js bayat — onizlemeKisitIhlali() tek kaynagi yok");
+}
 const AILELER = new Set(SECENEK.ONIZLEME_AILELER);
 // COK GOVDELI (2-renk) aileler — TEK KAYNAK /secenekler.js ONIZLEME_PARCALAR.
 // {aile: ["govde","yazi"]}. Ikinci kopya tutulmaz: liste burada da, sayfa
@@ -191,12 +197,16 @@ function semaKapisi(aile, p, env) {
                                alanlar: Object.keys(sonuc.hatalar || {}) }, 400, env) };
   }
   // 4) ONIZLEME KISITLARI (uretim motorunda 3D karsiligi olmayan secim degerleri).
+  //    TEK KAYNAK: secenekler.js onizlemeKisitIhlali() — urun sayfasi on-kontrolu
+  //    (tools/build.py ONIZLEME_JS) AYNI fonksiyonu cagirir. Burada elle yazilmis
+  //    bir dongu OLAMAZ: kosullu (`eger`) beyanda `eger` bir beyaz liste DEGILDIR
+  //    ve duz Object.entries donsuyle `cap` beyaz listesi KOSULSUZ uygulanirdi ->
+  //    uretilebilir mil/somun/pul konfigurasyonlari yanlislikla 400 alirdi.
   const kisitlar = (SECENEK.ONIZLEME_KISITLAR || {})[aile];
   if (kisitlar) {
-    for (const [ad, izinli] of Object.entries(kisitlar)) {
-      if (p[ad] !== undefined && !izinli.includes(p[ad])) {
-        return { hataYanit: json({ hata: "onizleme-secenek-kisiti", alan: ad }, 400, env) };
-      }
+    const ihlal = SECENEK.onizlemeKisitIhlali(kisitlar, p);
+    if (ihlal) {
+      return { hataYanit: json({ hata: "onizleme-secenek-kisiti", alan: ihlal }, 400, env) };
     }
   }
   return { sema, normal: normalizeEt(sema, p) };

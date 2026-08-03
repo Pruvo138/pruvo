@@ -368,11 +368,87 @@
      degerleri (mimar tablosunda; siparis/fiyat AKISINA DOKUNMAZ, yalniz 3D
      onizleme bu degerlerle sunulamaz). Worker sema kapisinda reddeder
      (onizleme-secenek-kisiti), urun sayfasi ayni listeyle onceden uyarir. */
+  /* KOSULLU BEYAN (`eger`, 2026-08-03): bir ailenin uretilemez bolgesi KOSULLU
+     olabilir. vida semasi (jenerator/urunler/olcuye-ozel-vida-civata-somun-pul.json
+     `kisitlar`) "urun_tipi=civata iken cap >= 5" der. Kosulsuz yazilsaydi
+     mil/somun/pul x M3-M4 bolgesi (izgaranin ~%13,6'si) YANLIS bloklanir, yani
+     URETILEBILIR bir konfigurasyona "bu secenekle siparis alinmiyor" basilirdi.
+     `eger` bir beyaz liste DEGILDIR: parametre->deger KOSUL cifti tasir ve
+     onizlemeKisitIhlali() disinda hicbir yerde beyaz liste gibi ele alinmaz.
+     vida `cap` listesi SEMADAN turer (cap.gecerliDegerler ∩ kisit min 5) — elle
+     tutulan ikinci bir liste YOK; ayrisma tools/onizleme-kisit-kosul-test.py'de
+     KIRMIZI yanar. Bu blok icine YORUM YAZILMAZ: tools/onizleme-kapisi.py sabiti
+     JSON'a cevirerek okur. */
+  var ONIZLEME_KISIT_KOSUL = "eger";
   var ONIZLEME_KISITLAR = {
     "olcuye-ozel-cetvel": { tip: ["duz"] },
     "olcuye-ozel-damga-kase": { sap: ["sapsiz"], bicim: ["dikdortgen"] },
-    "olcuye-ozel-petek-delikli-panel": { mod: ["delikli"] }
+    "olcuye-ozel-petek-delikli-panel": { mod: ["delikli"] },
+    "olcuye-ozel-vida-civata-somun-pul": {
+      eger: { urun_tipi: "civata" },
+      cap: [5, 6, 8, 10, 12, 14, 16, 18, 20]
+    }
   };
+
+  /* Beyan degeri ile MUSTERI degeri ayni mi (kisit karsilastirmasinin TEK yeri).
+     🔴 OLCULEN TIP TUZAGI: `cap` SAYISAL bir parametredir ve iki cagri yerine iki
+     FARKLI tipte gelir — urun sayfasinda konfigurator (jenerator/konfigurator.js
+     degerler()) sayi parametrelerini parseFloat ile NUMBER yapar; Worker'a ise JSON
+     gelir ve sema kapisi SAF SAYI METNINI de ("5") kabul eder. Kati `indexOf` ile
+     karsilastirilsaydi Worker'a "5" gelen istek beyan listesinde BULUNAMAZ ve
+     uretilebilir bir konfigurasyon SESSIZCE yanlis bloklanirdi. Sayi-disi metin
+     ("civata") asla sayiya cevrilmez -> gevsek `==` tuzagi yok. */
+  function kisitDegeriEsit(beyan, deger) {
+    if (beyan === deger) { return true; }
+    if (typeof beyan === "number" && typeof deger === "string") {
+      var t = deger.trim();
+      return /^-?[0-9]+([.,][0-9]+)?$/.test(t) && parseFloat(t.replace(",", ".")) === beyan;
+    }
+    if (typeof beyan === "string" && typeof deger === "number") {
+      return kisitDegeriEsit(deger, beyan);
+    }
+    return false;
+  }
+
+  /* ONIZLEME kisit beyani IHLAL EDILDI MI — TEK KAYNAK. Urun sayfasi on-kontrolu
+     (tools/build.py ONIZLEME_JS) ve onizleme Worker'inin sema kapisi
+     (onizleme/src/index.js) BU fonksiyonu cagirir; ikinci bir yorumlayici kod yolu
+     YOK ([[ikiz-tanim-sessiz-ayrisma]]).
+     Doner: ihlal edilen parametre adi (metin) ya da null (ihlal yok).
+       `eger` YOKSA -> bugunku davranis BIREBIR: her anahtar bir beyaz listedir ve
+                       parametre VERILMEMISSE (undefined) o anahtar atlanir.
+       `eger` VARSA -> kosul ciftlerinin HEPSI tutuyorsa beyaz listeler uygulanir;
+                       biri tutmuyorsa girdi HIC uygulanmaz (null).
+     FAIL-CLOSED: kosul parametresi hic verilmemisse kosul COZULEMEDI sayilir ve
+     beyaz listeler UYGULANIR ("okuyamadim, demek ki kisit yok" bu depoyu isiran
+     fail-open desenidir); kosul blogu ya da beyaz liste BICIMI taninmiyorsa ihlal
+     dondurulur (yazim hatasi sessizce her seyi serbest birakmaz). */
+  function onizlemeKisitIhlali(kisit, parametreler) {
+    if (!kisit || typeof kisit !== "object") { return null; }
+    var p = parametreler || {};
+    var kosul = kisit[ONIZLEME_KISIT_KOSUL];
+    if (kosul !== undefined) {
+      if (!kosul || typeof kosul !== "object") { return ONIZLEME_KISIT_KOSUL; }
+      for (var k in kosul) {
+        if (!Object.prototype.hasOwnProperty.call(kosul, k)) { continue; }
+        if (p[k] === undefined) { continue; }
+        if (!kisitDegeriEsit(kosul[k], p[k])) { return null; }
+      }
+    }
+    for (var ad in kisit) {
+      if (!Object.prototype.hasOwnProperty.call(kisit, ad)) { continue; }
+      if (ad === ONIZLEME_KISIT_KOSUL) { continue; }
+      var v = p[ad];
+      if (v === undefined) { continue; }
+      if (!Array.isArray(kisit[ad])) { return ad; }
+      var bulundu = false;
+      for (var i = 0; i < kisit[ad].length; i++) {
+        if (kisitDegeriEsit(kisit[ad][i], v)) { bulundu = true; break; }
+      }
+      if (!bulundu) { return ad; }
+    }
+    return null;
+  }
 
   /* Birim fiyat, tamsayı KURUŞ. Sıra (işletme kararı, 16 Tem): malzeme katsayısı -> SONRA "Diğer"
      renk +%15 -> sonra boy farkı (TL, sabit ek). Yuvarlama YOK; tek yuvarlama kuruşun ALTINA
@@ -775,6 +851,8 @@
     ONIZLEME_3D_ACIK: ONIZLEME_3D_ACIK,
     ONIZLEME_AILELER: ONIZLEME_AILELER,
     ONIZLEME_KISITLAR: ONIZLEME_KISITLAR,
+    ONIZLEME_KISIT_KOSUL: ONIZLEME_KISIT_KOSUL,
+    onizlemeKisitIhlali: onizlemeKisitIhlali,
     ONIZLEME_RENKLER: ONIZLEME_RENKLER,
     ONIZLEME_RENK_RGB: ONIZLEME_RENK_RGB,
     ONIZLEME_RENK_SECIMI: ONIZLEME_RENK_SECIMI,

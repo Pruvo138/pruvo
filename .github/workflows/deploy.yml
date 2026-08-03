@@ -1317,6 +1317,20 @@ jobs:
         run: python3 tools/onizleme-vaat-kapisi.py
       # ================= MUAFIYET DENETIMI BLOGU SONU =================================
 
+      # ONIZLEME KISIT KOSUL TESTI (2026-08-03, MUSTERI BEYANI — SESSIZ-HATA).
+      # Yukaridaki kapi "beyan VAR mi + metin dogru mu" der; BU test beyanin
+      # HUKMUNU kosturur. Vida'nin uretilemez bolgesi KOSULLUDUR (sema: urun_tipi=civata
+      # iken cap>=5), kisit beyani da kosullu (`eger`) yazildi. Kosul ele alinmazsa
+      # mil/somun/pul x M3-M4 (izgaranin ~%13,6'si) URETILEBILIR oldugu halde bloklanir
+      # ve musteriye "bu secenekle siparis alinmiyor" YANLIS vaadi basilir.
+      # Ayni 9 vaka UC KATMANDA ayri olculur (sema dogrulamasi · urun sayfasi on-kontrolu ·
+      # GERCEK worker) ve 3 oldurucu + 1 kontrol mutanti kosar; mutasyon DAIMA kopyaya,
+      # canli agac sha256 basta==sonda. node ZORUNLU (setup-node yukarida BLOKLAYICI
+      # on-kosul; yoksa fail-closed KIRMIZI). Offline, urunler.json OKUNMAZ, depoya
+      # YAZMAZ, ~3 s.
+      - name: Onizleme kisit kosul testi (kosullu `eger` beyani her tuketicide AYNI hukum)
+        run: python3 tools/onizleme-kisit-kosul-test.py
+
       # YAYIN IC-DIL KAPISI — KAYNAK KOLU (build'den ONCE; asagidaki yayin kolunun ERKEN
       # ikizi). NEDEN: yayin kolu ancak build.py'den SONRA olcebiliyor; tarayiciya AYNEN
       # inen bir KAYNAK dosyaya (index.html satir-ici <script> yorumu) ic dosya yolu yazan

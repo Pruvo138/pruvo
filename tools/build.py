@@ -706,16 +706,19 @@ ONIZLEME_JS = """
        URETILEMEZ bolgenin beyanidir (olculdu: petek %50,0 / cetvel %66,7 /
        kase %83,3 — sema kapisi 'gecerli' derken uretim ucu ayni seti reddediyor).
        O ailelerin satis kapisi da ayni gun kapatildi (secenekler.js
-       HACIM_DOGRULANMIS_AILELER) -> metin ile kod artik AYNI seyi soyluyor. */
+       HACIM_DOGRULANMIS_AILELER) -> metin ile kod artik AYNI seyi soyluyor.
+       🔴 KARAR MANTIGI BURADA DEGIL: kosullu (`eger`) beyanlar dahil tum kisit
+       yargisi secenekler.js onizlemeKisitIhlali() icindedir — Worker sema kapisi
+       (onizleme/src/index.js) AYNI fonksiyonu cagirir, ikinci kopya YOK. Fonksiyon
+       yoksa (bayat onbellekli secenekler.js) beyan VARKEN bloklanir: fail-closed,
+       cunku "kisiti okuyamadim" hali musteriye yanlis vaat basmamali. */
     var kis=(window.PRUVO_SECENEK&&PRUVO_SECENEK.ONIZLEME_KISITLAR||{})[URUN.id];
-    if(kis){ for(var ad in kis){ if(Object.prototype.hasOwnProperty.call(kis,ad)){
-      var v=s.parametreler[ad];
-      if(v!==undefined && kis[ad].indexOf(v)<0){
-        kutu.hidden=false;
-        de("Bu seçenek üretim hattımızda henüz karşılanmıyor: önizleme sunulamıyor ve bu seçenekle sipariş alınmıyor. Ölçüleri değiştirin ya da WhatsApp'tan teklif isteyin.");
-        return;
-      }
-    }}}
+    var kisitFn=window.PRUVO_SECENEK&&PRUVO_SECENEK.onizlemeKisitIhlali;
+    if(kis&&(!kisitFn||kisitFn(kis,s.parametreler))){
+      kutu.hidden=false;
+      de("Bu seçenek üretim hattımızda henüz karşılanmıyor: önizleme sunulamıyor ve bu seçenekle sipariş alınmıyor. Ölçüleri değiştirin ya da WhatsApp'tan teklif isteyin.");
+      return;
+    }
     var ik=ikiRenkDurumu(s.yazi_renk);
     mesgul=true; btn.disabled=true; kutu.hidden=false; de("Model hazırlanıyor…");
     /* YAYIN SIRASI YEDEGI: parca aileleri derleyici imajina girmeden site kodu
