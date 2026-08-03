@@ -597,6 +597,33 @@ jobs:
       - name: Sari seri sema paritesi + fail-closed nobeti (deterministik alt kume)
         run: node shop/test/kabul.js --sema-paritesi
 
+      # SEMA `kisitlar` x SIPARIS/ODEME YOLU — PARA EKSENI (3 Agu). Sema `kisitlar` bloklari
+      # kosullu URETILEBILIRLIK kurallaridir (or. altigen basli civata M5'ten baslar; rulmanda
+      # genislik alt siniri cap farkindan turer). OLCULDU: iyi bicimli kural para yolunda
+      # UYGULANIYOR (canli /api/shop/fiyat: vida civata M3 -> 400 `parametre-araligi`), AMA
+      # taninmayan/okunamayan bir kisit kaydi SESSIZCE ATLANIYORDU ve ayni yol FIYAT
+      # URETIYORDU (olculdu: 10.000 ve 29.116 kurus). "Olculemedi" ile "gecerli" ayni sey
+      # degildir -> iki fail-closed kol eklendi ve bu adim ikisini de olcer.
+      # BU ADIM BLOKLAYICI ve `build` isinde (`deploy: needs: build`) — sessiz yanlis tahsilat
+      # ekseni yayini durdurmali. node ZORUNLU (yoksa adim FAIL eder = fail-closed).
+      # OFFLINE: ag YOK, wrangler YOK, D1 YOK, siparis YOK; depo dosyasi YAZILMAZ (mutantlar
+      # isletim sistemi gecici dizinine kopyalanir, kaynak sha256 bas==son dogrulanir).
+      # KAPSAM DAR: `kisitlar` alani OLMAYAN semada (bugun 21/23; satistaki 17 ailenin HEPSI)
+      # tek satir davranis degismez — satis kurus imzasi tum mutantlarda BIREBIR SABIT
+      # olcuduluyor, yani bu kapi bir aileyi yanlislikla fiyatsiz birakamaz.
+      # 🔴 IDDIA/MUTANT SAYISI BURAYA YAZILMAZ (bayat sayi yanlis guven verir; ayni dosyada
+      # `yonet-cerez` ve `Uyum kapisi` adimlarinda ayni kural): betik sayilari kendisi basar
+      # ("IDDIA SAYISI: N", "MUTANT SAYISI: ... BEYANINA UYMAYAN: N").
+      - name: Sema kisit fail-closed kapisi (siparis/odeme yolu uretilebilirligi soruyor mu)
+        run: node shop/test/kisit-fail-closed.mjs
+
+      # Ayni nobetcinin OLU olup olmadigi: her fail-closed kol TEK BASINA kaldirilir ve
+      # BEYAN EDILEN iddianin kirmizi yanmasi SART kosulur (ortak kolla korunan eksenler
+      # iddia EDILMEZ — ayirt edici mutanti olmayan eksen "savunma derinligi" sayilmaz).
+      # KONTROL mutantlari (kolu bozmayan degisiklikler) hicbir iddiayi kirmizi yakmamali.
+      - name: Sema kisit kapisi ic nobetci (mutasyon — kol gercekten canli mi)
+        run: node shop/test/kisit-fail-closed.mjs --kendini-test
+
       # YONET (ADMIN GIRIS) KAPISI — deterministik alt kume. AG YOK, WRANGLER YOK,
       # D1 YOK: shop/src/yonet.js (deploy edilen dosya, kopya DEGIL) dogrudan yuklenir, ~0,3 s.
       # 🔴 IDDIA SAYISI BURAYA YAZILMAZ (ayni depoda olculdu; bkz. bu dosyada `mesaj-nobeti`

@@ -143,6 +143,57 @@
     return m.replace("{min}", String(yuvarlak).replace(".", ","));
   }
 
+  // ---- kisit BICIM tanimasi (fail-closed) --------------------------------
+  // 🔴 2026-08-03, OLCULDU: taninmayan/okunamayan bir kisit kaydi eskiden SESSIZCE
+  // ATLANIYORDU — kural yokmus gibi davranilip SIPARIS/ODEME yolunda fiyat
+  // uretiliyordu (olcum: bozuk `kisitlar` bicimlerinde `parametrikHesapla`
+  // 10.000 ve 29.116 kurus DONDURDU; kural saglamken ayni setler reddediliyor).
+  // Kisit bir URETILEBILIRLIK kapisidir: "olculemedi" ile "gecerli" AYNI SEY DEGIL.
+  // Artik taninmayan kayit seti GECERSIZ kilar -> fiyat uretilmez, kalem WhatsApp'a
+  // duser (Okan kurali: siparis kaybetmek yanlis tahsilattan iyidir).
+  //
+  // KAPSAM DAR: `kisitlar` HIC YOKSA (bugun 21/23 sema, satistaki 17 ailenin HEPSI)
+  // tek satir bile degismez -> o ailelerde regresyon 0 (olculdu: kurus imzasi birebir).
+  //
+  // IKIZ TANIM YOK: tanima, UYGULAYAN kodun okudugu alanlarin AYNISINA bakar
+  // (eger/parametre/min.terimler/min.sabit) — ikinci bir kisit dili uydurulmaz.
+  //
+  // IKI AYRI KOL, HER BIRI TEK BASINA KIRMIZI YAKILABILIR (savunma derinligi ancak
+  // boyle KANITTIR — bkz. shop/test/kisit-fail-closed.mjs mutantlari):
+  //   1) YAPISAL tanima (asagidaki kisitTanindiMi) — deger-BAGIMSIZ. Tek basina
+  //      yakaladigi ornek: `eger` bozuk (or. metin) -> kayit HICBIR sette uygulanmaz,
+  //      koruma sessizce yok olurdu.
+  //   2) OLCULEMEDI kolu (dogrula icinde) — deger-BAGIMLI. Tek basina yakaladigi
+  //      ornek: `terimler` semada olmayan/sayisal olmayan bir parametreye bakiyor ->
+  //      alt sinir hesaplanamaz; ya da kisit sayisal olmayan bir parametreye baglanmis
+  //      -> kiyas degeri NaN. Ikisi de eskiden "kisit yok" sayiliyordu.
+  var KISIT_ALANI = "__kisit";
+  var KISIT_BICIM_MESAJI = "Ürün kısıt tanımı okunamadı";
+
+  function kisitTanindiMi(ks) {
+    if (!ks || typeof ks !== "object" || Array.isArray(ks)) { return false; }
+    if (!ks.eger || typeof ks.eger !== "object" || Array.isArray(ks.eger)) { return false; }
+    if (typeof ks.parametre !== "string" || ks.parametre === "") { return false; }
+    var min = ks.min;
+    if (typeof min === "number") { return isFinite(min); }
+    if (!min || typeof min !== "object" || Array.isArray(min)) { return false; }
+    if (min.sabit !== undefined && !(typeof min.sabit === "number" && isFinite(min.sabit))) {
+      return false;
+    }
+    if (min.terimler === undefined) { return min.sabit !== undefined; }
+    if (!min.terimler || typeof min.terimler !== "object" || Array.isArray(min.terimler)) {
+      return false;
+    }
+    var terimSayisi = 0;
+    for (var ad in min.terimler) {
+      if (!min.terimler.hasOwnProperty(ad)) { continue; }
+      terimSayisi++;
+      var katsayi = min.terimler[ad];
+      if (typeof katsayi !== "number" || !isFinite(katsayi)) { return false; }
+    }
+    return terimSayisi > 0 || min.sabit !== undefined;
+  }
+
   // Tüm set doğrulaması -> {gecerli: bool, hatalar: {ad: mesaj}}
   // sema.kisitlar: koşullu üretilebilirlik kuralları — [{eger: {ad: deger},
   // parametre, min, mesaj}]. "eger"deki tüm eşitlikler tutuyorsa parametrenin
@@ -155,17 +206,39 @@
       var h = parametreHatasi(p, degerler[p.ad]);
       if (h) { hatalar[p.ad] = h; gecerli = false; }
     }
-    for (var k = 0; k < (sema.kisitlar || []).length; k++) {
-      var ks = sema.kisitlar[k], uygulanir = true;
-      for (var ad in ks.eger) {
-        if (!ks.eger.hasOwnProperty(ad)) { continue; }
-        if (degerler[ad] !== ks.eger[ad]) { uygulanir = false; break; }
+    var kisitlar = sema.kisitlar;
+    if (kisitlar !== undefined && kisitlar !== null && !Array.isArray(kisitlar)) {
+      // `kisitlar` VAR ama dizi degil: eski kod `.length` undefined okuyup donguyu HIC
+      // kosmuyordu -> koruma sessizce yok olurdu. Artik gorunur red.
+      hatalar[KISIT_ALANI] = KISIT_BICIM_MESAJI;
+      gecerli = false;
+      kisitlar = [];
+    }
+    for (var k = 0; k < (kisitlar || []).length; k++) {
+      var ks = kisitlar[k];
+      if (!kisitTanindiMi(ks)) {
+        hatalar[KISIT_ALANI] = KISIT_BICIM_MESAJI;
+        gecerli = false;
+        continue;
+      }
+      var uygulanir = true;
+      for (var ad2 in ks.eger) {
+        if (!ks.eger.hasOwnProperty(ad2)) { continue; }
+        if (degerler[ad2] !== ks.eger[ad2]) { uygulanir = false; break; }
       }
       if (!uygulanir || hatalar[ks.parametre]) { continue; }
       var kv = degerler[ks.parametre];
       kv = typeof kv === "number" ? kv : parseFloat(String(kv).replace(",", "."));
       var altSinir = kisitAltSinir(ks.min, degerler);
-      if (altSinir != null && !isNaN(kv) && kv < altSinir - KISIT_TOLERANS) {
+      // Kayit TANINDI ama alt sinir bu degerlerle HESAPLANAMADI (referans parametrenin
+      // degeri sayiya cevrilemiyor) ya da kiyas edilecek deger NaN: kural OLCULEMEDI ->
+      // fail-closed. Eskiden ikisi de sessizce "kisit yok" sayiliyordu.
+      if (altSinir == null || isNaN(kv)) {
+        hatalar[KISIT_ALANI] = KISIT_BICIM_MESAJI;
+        gecerli = false;
+        continue;
+      }
+      if (kv < altSinir - KISIT_TOLERANS) {
         hatalar[ks.parametre] = kisitMesaji(ks, altSinir);
         gecerli = false;
       }
@@ -442,6 +515,11 @@
   var KONF = {
     // saf çekirdek (testler bunları çağırır)
     dogrula: dogrula,
+    // Kisit BICIM hatasinin `hatalar` anahtari — TEK KAYNAK. Worker (parametrik.js)
+    // teshisi bu anahtardan turer; ikinci bir sabit tutulursa iki taraf ayrisir ve
+    // musteri "aralik disi" gibi ALAKASIZ bir tani gorur.
+    KISIT_ALANI: KISIT_ALANI,
+    kisitTanindiMi: kisitTanindiMi,
     parametreHatasi: parametreHatasi,
     varsayilanDegerler: varsayilanDegerler,
     hacimGirdisi: hacimGirdisi,
