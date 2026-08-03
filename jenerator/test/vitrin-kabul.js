@@ -14,6 +14,10 @@
  *  4 KART FIYATI: sari kartta "X TL'den başlayan" — X, jenerator/urunler/<id>.json
  *    tabanFiyatTL'sinden (TEK KAYNAK, elle kopya yok; bicim secenekler.js kurusMetni).
  *    Harita yuklenmemisse (build calismamis) eski "Ölçüye özel fiyat" fallback'i.
+ *    SATISA KAPALI ailede (hacim dogrulamasindan gecmemis — secenekler.js
+ *    hacimDogrulanmisMi) kart SAYISAL TUTAR BASMAZ: urun sayfasiyla AYNI cumleyi
+ *    gosterir (2026-08-04'te olculen canli kusur; tutar hic hesaplanmiyor, sepet
+ *    sunucuda 400 ile reddediliyordu).
  *  5 BANNER: ana sayfa gorunumunde VAR (?kategori=Jeneratör'e link verir), arama
  *    gorunumunde YOK.
  *  6 VITRIN: ana sayfanin ilk 4 karti sari (parametrik) — mevcut davranis KALIR.
@@ -120,17 +124,26 @@ const PARAMETRIK = URUNLER.filter((u) => u.parametrik);
 const SEMA_DIR = path.join(KOK, "jenerator", "urunler");
 const TABAN = {};       // id -> tabanFiyatTL (null olanlar haritaya GIRMEZ — fallback yolu)
 const TABANSIZ = [];    // yargi listesi: semasi olmayan ya da tabanFiyatTL null sari urunler
+const KAPALI = {};      // id -> 1: SATISA KAPALI (hacmi dogrulanmamis) aile
+/* SATIS KAPISI (2026-08-04): hacmi dogrulanmamis ailede parametrikFiyatKurus null doner ve
+   Worker sepeti 400 `hacim-dogrulanmamis` ile reddeder -> kart SAYISAL TUTAR BASAMAZ; taban
+   fiyati DOLU olsa bile haritaya girmez. Karar secenekler.js'in KENDI fonksiyonundan
+   (hacimDogrulanmisMi) gelir — bu dosyaya aile listesi KOPYALANMAZ. */
 for (const u of PARAMETRIK) {
   const yol = path.join(SEMA_DIR, u.id + ".json");
   if (!fs.existsSync(yol)) { TABANSIZ.push(u.id + " (SEMA YOK)"); continue; }
   const sema = JSON.parse(fs.readFileSync(yol, "utf8"));
+  if (!SECENEK.hacimDogrulanmisMi(sema.hacimFormulu)) { KAPALI[u.id] = 1; continue; }
   if (sema.tabanFiyatTL == null) { TABANSIZ.push(u.id + " (tabanFiyatTL null)"); continue; }
   TABAN[u.id] = sema.tabanFiyatTL;
 }
+/* Fiyat URETILEMEYEN urunde gosterilen cumle — secenekler.js'in `kurus == null` dalindan
+   GERCEKTEN cagrilarak alinir (elle ikinci kopya yazilmaz; urun sayfasi da ayni cumleyi basar). */
+const FIYATSIZ_METIN = SECENEK.satirOzeti(
+  null, { parametreler: {}, parametrik_fiyat_kurus: null, adet: 1 }).fiyatMetni;
 function beklenenKartMetni(id) {
-  return (id in TABAN)
-    ? SECENEK.kurusMetni(Math.round(TABAN[id] * 100)) + "'den başlayan"
-    : "Ölçüye özel fiyat";
+  if (id in TABAN) { return SECENEK.kurusMetni(Math.round(TABAN[id] * 100)) + "'den başlayan"; }
+  return (id in KAPALI) ? FIYATSIZ_METIN : "Ölçüye özel fiyat";
 }
 
 // ------------------------------------------------------------- minimal DOM takliti
@@ -319,6 +332,13 @@ async function sayfaKur(ayar) {
   };
   ctx.window = ctx;
   if (ayar.tabanHarita) { ctx.PRUVO_TABAN_FIYATLAR = ayar.tabanHarita; }
+  /* Satisa kapali aile isareti + fiyatsiz cumle: taban-fiyatlar.js'in AYNI dosyada
+     yayina koydugu iki global. Verilmezse sayfa "artefakt inmemis" halini yasar
+     (kart eski fallback metnine duser) — o yol da test ediliyor. */
+  if (ayar.kapaliHarita) {
+    ctx.PRUVO_SATIS_KAPALI = ayar.kapaliHarita;
+    ctx.PRUVO_FIYATSIZ_METIN = FIYATSIZ_METIN;
+  }
   vm.createContext(ctx);
   vm.runInContext(SECENEK_SRC, ctx, { filename: "secenekler.js" });
   vm.runInContext(SCRIPT, ctx, { filename: "index-inline.js" });
@@ -426,7 +446,8 @@ async function test3JeneratorGorunumu() {
 /** 4 — KART FIYATI: sema tabaniyla birebir; harita yokken fallback */
 async function test4KartFiyati() {
   const hatalar = [];
-  const s = await sayfaKur({ search: "?kategori=Jenerat%C3%B6r", tabanHarita: TABAN });
+  const s = await sayfaKur({
+    search: "?kategori=Jenerat%C3%B6r", tabanHarita: TABAN, kapaliHarita: KAPALI });
   const idyeBaslik = {};
   for (const u of PARAMETRIK) { idyeBaslik[u.baslik] = u.id; }
   let dogru = 0;
@@ -443,6 +464,25 @@ async function test4KartFiyati() {
   if (TABAN["olcuye-ozel-oring-conta"] === 100 &&
       beklenenKartMetni("olcuye-ozel-oring-conta") !== "100,00 TL'den başlayan") {
     hatalar.push("o-ring beklenen metin bicimi bozuk");
+  }
+  /* SATIS KAPISI — POZITIF + NEGATIF eksen ayni gorunumde olculur: kapali ailenin
+     kartinda SAYISAL TL olmamali ve aciklayici cumle olmali; kapi bosa kosmasin diye
+     en az 1 kapali kart gorulmus olmali. */
+  let kapaliGorulen = 0;
+  for (const c of s.kartlar()) {
+    const k = kartBilgi(c);
+    const id = idyeBaslik[k.baslik];
+    if (!id || !(id in KAPALI)) { continue; }
+    kapaliGorulen++;
+    if (/\d[\d.]*,\d\d\s*TL/.test(k.fiyat)) {
+      hatalar.push("SATISA KAPALI " + id + " kartinda sayisal tutar var: '" + k.fiyat + "'");
+    }
+    if (k.fiyat !== FIYATSIZ_METIN) {
+      hatalar.push("SATISA KAPALI " + id + " kartinda aciklayici cumle yok: '" + k.fiyat + "'");
+    }
+  }
+  if (Object.keys(KAPALI).length > 0 && kapaliGorulen === 0) {
+    hatalar.push("kapali aile ekseni BOS kostu (hic kapali kart olculmedi)");
   }
   // Fallback: harita yuklenmemis sayfada (build calismamis / 404) eski metin
   const f = await sayfaKur({ search: "?kategori=Jenerat%C3%B6r" });
@@ -543,6 +583,27 @@ function test7Uretim() {
       if (uretilen[id] !== TABAN[id]) {
         hatalar.push(id + ": uretilen " + uretilen[id] + " != sema " + TABAN[id]);
       }
+    }
+    /* SATIS KAPISI artefakti: kapali ailenin id'si haritada HIC olmamali (sayi tasiyicisi
+       burasi), kapali kume + fiyatsiz cumle ise yayina koyulmus olmali. */
+    for (const id of Object.keys(KAPALI)) {
+      if (id in uretilen) {
+        hatalar.push("SATISA KAPALI " + id + " taban haritasinda: " + uretilen[id]);
+      }
+    }
+    const mk = js.match(/window\.PRUVO_SATIS_KAPALI\s*=\s*(\{[\s\S]*?\});/);
+    const mf = js.match(/window\.PRUVO_FIYATSIZ_METIN\s*=\s*("(?:[^"\\]|\\.)*");/);
+    if (!mk) { hatalar.push("taban-fiyatlar.js PRUVO_SATIS_KAPALI basmiyor"); }
+    else {
+      const uretilenKapali = Object.keys(JSON.parse(mk[1])).sort();
+      if (JSON.stringify(uretilenKapali) !== JSON.stringify(Object.keys(KAPALI).sort())) {
+        hatalar.push("kapali kume ayristi: uretilen " + JSON.stringify(uretilenKapali) +
+          " != beklenen " + JSON.stringify(Object.keys(KAPALI).sort()));
+      }
+    }
+    if (!mf) { hatalar.push("taban-fiyatlar.js PRUVO_FIYATSIZ_METIN basmiyor"); }
+    else if (JSON.parse(mf[1]) !== FIYATSIZ_METIN) {
+      hatalar.push("fiyatsiz cumle ayristi: " + mf[1] + " != " + JSON.stringify(FIYATSIZ_METIN));
     }
   } catch (e) {
     hatalar.push("uretim kosusu: " + (e && e.message || e));
