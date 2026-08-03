@@ -14,25 +14,7 @@ uzerinde is olan her dal **origin'e itildi**, tek kopya kalan dal YOK. Devam etm
 uretici oturumu kapanmisti — worktree silinseydi commit'e ulasan ref kalmayacakti. Bundan sonra
 devir listesinin 3. adimi (dallari push et) **her agac icin ayri ayri** kosulacak.
 
-**🔴 1. IS — HAZIR, MERGE BEKLIYOR (devir kurali geregi merge EDILMEDI):**
-Dal **`worktree-agent-af1b153e9ee43727a`**, commit **`51b8ba01`**, **origin'e ITILDI** (guvende).
-Icerik: **petek · cetvel · kase** ailelerinin satis kapisi KAPATILDI + `build.py`'deki yanlis
-musteri vaadi **IKI cagri noktasinda** duzeltildi.
-Gerekce olculdu: `mod="kabartma"` sema kapisindan GECIYOR ama uretim ucu 400 ile reddediyor;
-siparis/odeme yolu (`shop/src/parametrik.js`) derleyiciyi HIC cagirmiyor →
-**60000 kurus (600 TL) tahsil edilebiliyordu.** Uretilemez oran: petek **%50,0** · cetvel
-**%66,7** · kase **%83,3**. Tahsilat 0 (6 siparisin hepsi iptal) — zarar dogmadi.
-**Olcumler:** `parametrikFiyatKurus` uc aile icin de **null** (ayri ayri olculdu) · acik aile
-20→17, kapali 3→6 · drift tam kume **736 kombinasyon** (23 sema × {varsayilan,azami} × 4 filament
-× 4 renk), 96 sapmanin **96'si da bilerek kapatilan uc aile**, kalan 17 ailede **0 kurus** ·
-mutant 7 oldurucu + 3 kontrol · 152 `deploy.yml` adimi kosuldu (133 yesil / 5 kirmizi /
-14 olculemez), 2 kirmizi dala aitti ve onarildi, 3'u OpenSCAD+sir gerektiren `hacim-tam-takim` ·
-onarim sonrasi 22/22 yesil, **tam parite** `parite-test.js` rc=0 + `parite-ege.js` rc=0.
-**YAPISAL KAZANIM:** yeni bloklayici kapi `tools/onizleme-vaat-kapisi.py` —
-*"`ONIZLEME_KISITLAR`'da kisiti olan aile satis allowlist'inde OLAMAZ"* (kesisim bos olmali).
-Yarin yeni kisit tanimlanirsa o aile **otomatik kapanir ya da CI kirmizi yanar**. Liste
-duzenlemesi degil, kural.
-**Successor: once merge kapisini kostur, sonra canli fiyat dogrulamasi (uc ailede `null` mi).**
+**✅ 1. IS — KAPANDI 3 Agu: merge `73149015` (asagidaki MERGE blogu).**
 
 **🟡 2. IS — KURTARILAN DAL, merge kararı bekliyor:** `kurtarma/rulman-sema-araligi`
 (**`89ab5da6`**, origin'e itildi). Rulman sema araligi kapatilmasi — *"izgaranin %33,9'u uretim
@@ -51,6 +33,9 @@ sema onarilinca `HACIM_DOGRULANMIS_AILELER`'e eklenebilir (bugun bilerek kapali,
    eksen gercek cikarim kaybina daraltilmali** — bu tur dokunulmadi.
 
 **BENDE — acik kalemler, oncelik sirasiyla:**
+0. 🔴 **PARA — YENI (3 Agu, `73149015` turunda olculdu):** `hacim.js`'e konan **+%5 tahsilat
+   mutanti 9 CI kapisinin HICBIRINDE olmuyor**; olduren tek kapi CI-MUAF. `yay` acik oldugundan
+   delik **canli para yolunda**. Once bu.
 1. 🔴 **YAPISAL:** siparis/odeme yolu uretilebilirligi SORMUYOR. Allowlist yara bandi; her yeni
    aile ayni riski yeniden aciyor. Dogru cozum: odeme yolunun derleyiciye/uretilebilirlik
    kapisina sormasi. **Ders:** aile satisa acarken sorulan soru "fiyat dogru mu" idi; ikinci soru
@@ -93,6 +78,46 @@ tam senkron 50.623 satir · `1d19ce96` yayin nobetcisi yas tabani (yanlis-kirmiz
 Klipsler 1.894 · Telefon ve Sarj 1.047 · Ses ve Multimedya 841) · `3569bb97` marka/model cip +
 mobil + capraz daralma · `ae6679b9`+`c0e3a360` 7 aile satisa acildi (rulman bilerek kapali) ·
 `5443d62e` yay eksik tahsilati onarildi.
+
+## MERGE — 3 Agu 2026 · Uretilemez ailelerde satis kapisi kapatildi (`73149015`)
+
+- **Merge SHA `73149015`** (fast-forward, taban `be95fc1c`, 3 commit; merge-base `9f491fcf`).
+  Kapsam: dal **7 dosya / +685 −28**, main'e inen toplam **8 dosya / +697 −29**.
+  `urunler.json` ve `worker/` dokunulmadi.
+- **ON KABULUM DUZELTILDI (olculdu):** main'e 7 aile EKLENMEMIS — petek dahil o 7 aile zaten
+  merge-base'deydi; main'in tek `secenekler.js` degisikligi `yay: 0.07 → 0.83` olcum onarimiydi.
+  Kapatma-kazanir kurali aynen uygulandi, iki tarafin isi de korundu (cakisma gecici worktree'de).
+- **Allowlist kod KOSTURULARAK dogrulandi (regex degil): 20 → 17 acik aile.** Acik: adaptor,
+  braket, cerceve, disli, huni, izgara, jeton, kasnak, kavanoz, kayis, konektor, kutu, oring,
+  pervane, profil, toka, yay. `petek`/`cetvel`/`kase`/`rulman`/`rampa`/`vida` **yok**; `yay: 0.83`
+  korundu.
+- **Ongorulen serit B kirmizisi CIKTI, kapi GEVSETILMEDEN onarildi:** `is-akisi-kapisi.py` dalda
+  exit 1 / ANA-MAIN exit 0 (delta ⇒ dalin kusuru). Yeni `--kendini-test` adimi beyansiz
+  `serit-b`'deydi → `SERIT_B` tablosuna gerekceli tek giris, sayac **38 → 39**; diff **tam 2 hunk
+  (+12 −1)**, sayac/beyan disinda degisen satir **0**; joker / `|| true` / adim tasima yok.
+  Yapisal kanit: `deploy` yalniz `build`'e bagli ⇒ bayraksiz gercek olcum kolu (11 iddia) yayini
+  gercekten durduruyor.
+- **Kapilar DALIN worktree'sinde kosuldu: 11/11 exit 0.** Yeni kapi `onizleme-vaat-kapisi.py`
+  **11 iddia / 0 kirmizi**, `--kendini-test` **10 mutant** (7 kirmizi-beklentili + 3 kontrol)
+  hepsi PASS · `shop/test/kabul.js` **28/28** · yasal sayfa drift kapisi **4/4** temiz.
+- **Parite — olcerek karar:** parite girdileri (`urunler.json`, `index.html` arama yolu, bot
+  kaynagi) dalin kapsaminda YOK ⇒ zorunlu degildi; yine de ana checkout'tan TAM kosuldu:
+  `parite-test.js` **1199** ✅ · `parite-ege.js` **845** ✅.
+- **D1 uc eksen:** SAYI **16874 = 16874** ✅ · SEMA ✅ · ICERIK 16874 hash birebir,
+  uyusmaz/eksik/fazla **0** ✅.
+- **CI SHA-KANITLI:** kosum **`30776531391`**, `headSha` = merge SHA **birebir**,
+  conclusion **success**; iki yeni adim da gercek CI'da yesil.
+- **CANLI dogrulama (canonical URL, `?cb=` YOK):** canli acik aile **17**; uc ailede
+  `parametrikFiyatKurus` **null** — deploy oncesi taban olcum **48000 / 31200 / 84000 kurus** idi,
+  yani iddia **ayirt edici**; iki kontrol urunu hala fiyat uretiyor (kapi kor degil). Musteri metni
+  paylasilan varlik dosyasinda dogrulandi: yeni durust metin **×2**, eski yanlis vaat **×0**.
+- **Temizlik:** worktree + yerel dal + uzak dal silindi, worktree listesi yalniz main, kalinti 0,
+  agac temiz. Baskasinin dalina dokunulmadi.
+
+### 🔴 ACIK KALEM (kapsam disi, bu turda KAPATILMADI)
+`hacim.js`'e konan **+%5 tahsilat mutantini 9 CI kapisindan HICBIRI oldurmuyor**; olduren tek kapi
+CI-MUAF. `yay` bu merge'le **acik kaldigindan** delik canli para yolunda duruyor. Sinif:
+[[beyan-edilmis-survivor]] — kapi zinciri VEYA'lanip yesil goruyor.
 
 ## MERGE — 3 Agu 2026 · Jeneratör hacim referans onarimi + 7 aile satisa acildi (`ae6679b9`, `c0e3a360`)
 
