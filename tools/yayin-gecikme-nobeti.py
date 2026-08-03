@@ -1187,6 +1187,23 @@ def main(argv=None):
                     help="AGSIZ fikstur kabulu (0 = hepsi gecti)")
     ap.add_argument("--fikstur", metavar="AD", help="tek fiksturu kostur ve raporla")
     ap.add_argument("--liste", action="store_true", help="fiksturleri listele")
+    # 🔴 --alarm — ZAMANLANMIS EV ICIN CIKIS KODU ESLEMESI (3 Agu 2026).
+    # Bu nobetci 2 Agu'da yazildi ama CANLI kolu HICBIR YERE BAGLANMAMISTI: yalniz
+    # `tools/durum.py` (elle pano) cagiriyordu, deploy.yml'de ise SADECE agsiz fikstur
+    # kabulu kosuyordu. Yani "yayin ne kadar suredir inmiyor" sorusunu SOREN kimse yoktu
+    # ve 3 Agu'daki 142,1 dk'lik bosluk ancak parite testi kirmizi yaninca fark edildi.
+    # Kablolamanin onundeki TEK engel cikis kodlariydi: GECIKME (rc 1) bir UYARIDIR ve
+    # olculen tabanda 40 dongunun 4'u esigi asiyor -> zamanlanmis bir ev her ~3-4 saatte
+    # bir kirmizi yanardi. Yanlis alarm = kapatilan nobetci ([[kapi-disiplin-ilkesi]]).
+    # ESLEME BEYAN EDILMISTIR, kabukta cikis kodu YUTULMAZ (o yazim beyansiz fail-open
+    # sayilir — is-akisi-kapisi Bolum D):
+    #     AKIYOR (0) · GECIKME (1)          -> rc 0, satir GORUNUR kalir
+    #     OLCULEMEDI (2) · TIKALI (3) · ACLIK (4) -> rc DEGISMEZ (kosum KIRMIZI yanar)
+    # SINIF ADI ve rc'nin kendisi HER HALUKARDA basilir; --alarm hukmu SUSTURMAZ,
+    # yalnizca UYARI seviyesini kosum kirmizisina cevirmez.
+    ap.add_argument("--alarm", action="store_true",
+                    help="zamanlanmis ev: GECIKME (rc 1) uyari sayilir, rc 0 doner; "
+                         "OLCULEMEDI/TIKALI/ACLIK kendi rc'siyle KIRMIZI yakar")
     a = ap.parse_args(argv)
 
     if a.liste:
@@ -1208,6 +1225,10 @@ def main(argv=None):
 
     sinif, rc, gerekce, olcum = olc_ve_degerlendir()
     rapor(sinif, rc, gerekce, olcum)
+    if a.alarm and sinif == "GECIKME":
+        print("  (--alarm: GECIKME UYARI seviyesidir, kosum kirmizi YAKILMADI; "
+              "TIKALI/ACLIK/OLCULEMEDI kendi cikis koduyla kirmizi yakar)")
+        return 0
     return rc
 
 
