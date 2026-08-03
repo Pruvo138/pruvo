@@ -2,6 +2,35 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## 🔚 OTURUM KAPANISI — 3 Agu gece · YENI OTURUM ONCE BUNU OKU
+
+**CANLIYA GITTI (SHA-kanitli, kosum `30850714434` / `a6bbe894` SUCCESS, uc commit'in de atasi):**
+`73149015` uretilemez ailelerde satis kapisi · `78676775` hacim tahsilat kapisi CI'da ·
+`bd8b8abb`+`78b6651f` rulman sema araligi · `ac6864e3` kisit bicimi fail-closed + Worker elle
+deploy · `d8024a27` bilesik marka · `656afd73`+`2a2a2a39` POM siteden cikti · `1d1cf2b2`+
+`0408425f`+`20d1a44b` marka cipi (olu uc 1→0 · Marin 3→15 · cipte-var/sayfasi-404 13→0) ·
+`8e790fea` yukari-cik butonu (6 sayfa tipi) · `72f24405` arama baglami · `5bbf9017` tirtikli
+BIRIM onarimi (%9,21→%0,0000028) · `88f3e63d`+`7fc61f98` worker bayatlik nobeti (korluk
+795 dk→≤15 dk) · `7e2277c0` yayin erisim nobetcisi (295 URL / 292 acik / 3 kapali) ·
+`51588d55` marka uyelik kapisi ikiz tanimi · **`4b7a8aaf` rampa SATISA ACILDI (17→18)**,
+Worker surumu `cecc9d4f`→`7b2c9325`, canli 16.000/48.000 kurus, diger 17 ailede fark **0 kurus**.
+
+**KOSUYOR:** arayuz turu (arama kutusu + yukari-cik canli dogrulamasi) — isci `ae4644…`,
+raporu `scratchpad/rapor-yukari-cik-butonu.md`; merge'leri (`72f24405`, `8e790fea`) main'de,
+eksik olan yalnÄ±z canli teyit satirlari.
+
+**BEKLIYOR — baskalarinda:** HocA → `ara*` rota oneki 3 landing'i 403 yapiyor (12 gundur;
+onarim `~/dev/pruvo-bot/worker/wrangler.toml`, Okan kapisi onda) · MaCiT → eksik marka verisi
+(Garmin 54 · Sea-Doo 14+4 · Simrad 7 · B&G 3 · Bavaria 3) + POM tasiyan **11 urun kaydi**.
+
+**OKAN'DA KARAR YOK** — bugun sorulan uc karar (Worker deploy · rampa satisa acma · POM) verildi
+ve uygulandi.
+
+🔴 **HIJYEN BORCU:** DEVAM.md bu satirla **~165 satir** (tavan 130). Gun icinde 130'a cekilmisti;
+paralel oturumlarin ekledigi iki tur (3. IS + bu blok) **arsivlenmeden** yazildi. Sabah ilk is:
+kapali bloklari `DEVAM-ARSIV.md`'ye tasi (silme YOK). Codex `.git`'e yazamiyor — budama Codex'e,
+git islemleri mimara bolunerek verilecek.
+
 ## 🔄 DEVIR — 3 Agu 2026 (hesap rotasyonu) · YENI OTURUM ONCE BURAYI OKU
 
 Ritüel: `tools/DEVIR-KONTROL-LISTESI.md` (`2382c7f1`). Claude hesabi disinda **hicbir sey
@@ -130,10 +159,10 @@ ArTisT: marka-model sayfasi acma esigi onerisi (veri verildi: 1.062 marka-model 
 **✅ KAPANDI 3 Agu: yayin erisim nobetcisi — merge `7e2277c0`, 295 URL / 292 acik / 3 kapali (dokum DEVAM-ARSIV.md'de).**
 **✅ KAPANDI 3 Agu: onizleme kisit kosul degeri fail-closed — merge `f6f6492d` (dokum DEVAM-ARSIV.md'de).**
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
-- 🔴 YAYIN DURUYOR (başka düzlem, 3 Ağu 19:26): `build` adım 32 `marka-uyelik-test.py`
-  KIRMIZI → `deploy` skipped. Sapan marka 13 (marka sayfası ↔ index filtresi), ürün çip
-  haritası 727 kayıtta birincil markaya gitmiyor. Merge'ümden ÖNCE de kırmızıydı
-  (01c58587 18:58, 9f7ee22f 19:05) — marka/çip düzleminin sahibine ait.
+- ✅ **KAPANDI (`51588d55`)** — o tur "YAYIN DURUYOR" diye yazılmıştı, artık BAYAT:
+  `marka-uyelik-test.py` sapan marka **13 → 0**, sapan çip **727 → 0**; kırmızı backfill'den
+  değil **ikiz tanımdan** çıktı (kapının portu yalnız `TANINMIS_MARKALAR`'ı biliyordu, sayfa
+  evreni çip evrenine bağlanmıştı). Kapı gevşetilmedi, yüklem üretime daraltıldı.
 - 3 landing hâlâ canlıda 403: onarım kardeş depodaki worker rota deseninde (önek jokeri),
   bu depoda değil; nöbetçi o kapalılığı artık saatlik ölçüyor ve kırmızı yakıyor.
 - Sabah/gece kalinti sinifi: pencere icinde 2 sabahin 2'sinde AKIYOR→TIKALI salindi (2 Agu
