@@ -22,7 +22,7 @@ SELLER = {
     "vkn": "3910052435",
     "tel": "+90 532 595 4005",
     "eposta": "info@pruvo3d.com",
-    "kargo": "Yurtiçi Kargo",
+    "kargo": "anlaşmalı kargo",
     "teslim": "ölçü onayından sonra 3-5 iş günü",
     "site": "https://pruvo3d.com",
 }
