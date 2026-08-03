@@ -72,6 +72,7 @@ __MODEL_KANON__
 const girdi = JSON.parse(require("fs").readFileSync(process.argv[2], "utf8"));
 const urunler = girdi.urunler;          // [{i, m:[ham marka...]}]
 const ciftler = girdi.ciftler;          // [[marka, display], ...]
+const sondalar = girdi.sondalar || [];  // [[marka, deger], ...] — anahtar SONDASI
 
 /* marka -> o markanin UYESI urun indeksleri (filtered() brandOk yuklemi) */
 const markaIx = new Map();
@@ -96,7 +97,12 @@ for (const [marka, display] of ciftler) {
   }
   cikti[marka + "\t" + display] = ids;
 }
-process.stdout.write(JSON.stringify({ok: true, sonuc: cikti,
+/* ANAHTAR SONDASI: Python portu ile JS'in AYNI anahtari uretip uretmedigi dogrudan olculur.
+   Bu eksen olmadan, iki taraftaki bilesik-marka korumasi hicbir mutantla TEK BASINA
+   kirmizi yakilamiyordu (olculdu 3 Agu) -> beyan edilmis survivor. */
+const sonda = {};
+for (const [marka, deger] of sondalar) { sonda[marka + "\t" + deger] = modelAnahtar(marka, deger); }
+process.stdout.write(JSON.stringify({ok: true, sonuc: cikti, sonda: sonda,
   anahtarOrnek: {f150: modelAnahtar("Ford", "F150"), fSerisi: modelAnahtar("Ford", "F-Series")}}));
 """
 
@@ -131,7 +137,7 @@ def _blok_ayikla(index_html):
     return norm_src, kurator, kanon
 
 
-def filtre_kumeleri(index_html, urunler, ciftler):
+def filtre_kumeleri(index_html, urunler, ciftler, sondalar=()):
     """{(marka, display): set(urun_id)} — index.html'in GERÇEK yüklemiyle (node)."""
     try:
         subprocess.run(["node", "--version"], capture_output=True, check=True)
@@ -153,7 +159,8 @@ def filtre_kumeleri(index_html, urunler, ciftler):
                                     "m": [(x or "").strip()
                                           for x in (p.get("marka") or []) if (x or "").strip()]}
                                    for p in urunler if p.get("id")],
-                       "ciftler": [[a, b] for a, b in ciftler]}, f, ensure_ascii=False)
+                       "ciftler": [[a, b] for a, b in ciftler],
+                       "sondalar": [[a, b] for a, b in sondalar]}, f, ensure_ascii=False)
         p = subprocess.run(["node", jsyol, veriyol], capture_output=True, text=True, timeout=900)
         if p.returncode != 0 or not (p.stdout or "").strip():
             raise Olculemedi("node koşumu çöktü (rc=%d): %s"
@@ -163,8 +170,10 @@ def filtre_kumeleri(index_html, urunler, ciftler):
         shutil.rmtree(tmp, ignore_errors=True)
     if not veri.get("ok"):
         raise Olculemedi("node koşumu ok=false döndü")
-    return dict(((k.split("\t")[0], k.split("\t")[1]), set(v))
-                for k, v in veri["sonuc"].items()), veri.get("anahtarOrnek", {})
+    return (dict(((k.split("\t")[0], k.split("\t")[1]), set(v))
+                 for k, v in veri["sonuc"].items()),
+            veri.get("anahtarOrnek", {}),
+            dict((tuple(k.split("\t")), v) for k, v in (veri.get("sonda") or {}).items()))
 
 
 # ---------------------------------------------------------------- ölçüm
@@ -208,7 +217,19 @@ def olc(kok, modul_yolu=None):
     if not ciftler:
         raise Olculemedi("yayımlanan model sayfası YOK — parite ölçülemez (fail-closed)")
 
-    filtre, ornek = filtre_kumeleri(index_html, urunler, ciftler)
+    # ANAHTAR SONDALARI — bileşik marka adının anahtarı İKİ TARAFTA da BÖLÜNMEMİŞ olmalı.
+    # Sonda listesi UYDURULMAZ: aynadan (index.html BILESIK_MARKA) türer ve yalnız TANINMIŞ
+    # marka önekiyle başlayan üyeler alınır (bölünme riski GERÇEKTEN olanlar).
+    sondalar = []
+    for _ad in getattr(evren, "bilesik", []):
+        _toks = _ad.split()
+        for _k in range(len(_toks) - 1, 0, -1):
+            _onek = " ".join(_toks[:_k])
+            if evren.taninmis_mi(_onek):
+                sondalar.append((evren.katla(_onek), _ad))
+                break
+
+    filtre, ornek, sonda = filtre_kumeleri(index_html, urunler, ciftler, sondalar)
 
     urun_ix = dict((p["id"], p) for p in urunler if p.get("id"))
     temiz = sayfa_dar = filtre_dar = capraz = 0
@@ -266,6 +287,52 @@ def olc(kok, modul_yolu=None):
                 continue
             sahte.append((marka, display, pid, sorted(jetonlar)[:4]))
 
+    # --- BİLEŞİK MARKA / MARKA-JETONU EKSENİ (3 Ağu, KraL denetimi) --------------------
+    # Ölçüt BAĞIMSIZ: yargı doğrudan tools/arama.py'nin KAPALI MARKA KÜMESİ'nden okunur,
+    # üretecin `marka_jetonu_mu()` fonksiyonu ÇAĞRILMAZ — çağırsaydık kuralı bozan mutant
+    # iddiayı da kendi lehine büker ve kapı totolojiye düşerdi.
+    try:
+        araclar_yolu = os.path.join(kok, "tools")
+        if araclar_yolu not in sys.path:
+            sys.path.insert(0, araclar_yolu)
+        import arama as _arama                                      # noqa: PLC0415
+        kapali = set(_arama.UYUM_MARKA_IZINLI) | set(_arama.URETICI_MARKA)
+        model_olmayan = dict(_arama.MODEL_OLMAYAN_JETON)
+        kapali_n = set(_arama.model_normalize(m) for m in kapali)
+        olmayan_n = set(_arama.model_normalize(m) for m in model_olmayan)
+        cok_kelimeli = sorted(m for m in kapali if len(m.split()) > 1)
+        red_imza = (_arama.model_olmayan_imzasi(), _arama.MODEL_OLMAYAN_IMZA,
+                    len(model_olmayan), _arama.MODEL_OLMAYAN_SAYISI)
+    except Exception as e:                                          # noqa: BLE001
+        raise Olculemedi("tools/arama.py marka kümeleri okunamadı: %r" % (e,))
+
+    # (a) MARKA JETONU SAYFA OLMAMALI — bir MARKA'yı MODEL diye sunan kova YOK.
+    marka_kovasi = []
+    for (marka, display), (_ids, canon) in sayfa.items():
+        n = _arama.model_normalize(display)
+        if n in kapali_n or n in olmayan_n:
+            marka_kovasi.append((marka, display,
+                                 model_olmayan.get(display, "KAPALI MARKA KÜMESİ üyesi")))
+
+    # (b) AYNA DRIFT — index.html BILESIK_MARKA == arama.py'nin ÇOK KELİMELİ üyeleri.
+    #     Otorite arama.py; index.html yalnızca JS'in çalışma anı kopyasıdır.
+    ayna = list(getattr(evren, "bilesik", []))
+    ayna_fark = (sorted(set(cok_kelimeli) - set(ayna)), sorted(set(ayna) - set(cok_kelimeli)))
+
+    # (c) ANAHTAR SONDASI — bileşik marka adı İKİ TARAFTA da BÖLÜNMEMİŞ anahtar üretmeli.
+    #     Bu eksen olmadan iki taraftaki koruma katmanı TEK BAŞINA kırmızı yakılamıyordu
+    #     (ölçüldü: kapalı-küme kuralı sayfa evrenini zaten kalkanlıyor) — [[beyan-edilmis-survivor]].
+    #     "Bölünmemiş" ölçütü BAĞIMSIZ normalleştirmeyle kurulur (kanon fonksiyonunun
+    #     kendisiyle değil): üretilen anahtar, DEĞERİN TAMAMINA denk gelmeli — bir parçası
+    #     kırpılmışsa (Volvo Penta -> penta) eşitlik bozulur.
+    sonda_sapan = []
+    for (marka, deger) in sondalar:
+        js = sonda.get((marka, deger))
+        py = evren.model_anahtari(marka, deger)
+        if js != py or _bagimsiz_kanon(py) != _bagimsiz_kanon(deger):
+            sonda_sapan.append((marka, deger, "js=%s" % js, "py=%s" % py,
+                                "beklenen=%s" % _bagimsiz_kanon(deger)))
+
     # --- DISPLAY SORGULANABİLİR Mİ: sayfanın adı kendi kovasının anahtarına dönmeli
     #     (dönmezse o sayfa için ?model=<display> HİÇBİR ZAMAN doğru küme getirmez).
     sorgulanamaz = []
@@ -281,11 +348,50 @@ def olc(kok, modul_yolu=None):
                    "etkilenen": len(etkilenen), "dokum": dokum, "sahte": sahte,
                    "alias_aciklamali": alias_aciklamali,
                    "sorgulanamaz": sorgulanamaz, "marka_sayisi": len(veri),
-                   "anahtar_ornek": ornek}
+                   "anahtar_ornek": ornek, "marka_kovasi": marka_kovasi,
+                   "ayna_fark": ayna_fark, "ayna": ayna, "red_imza": red_imza,
+                   "sonda_sapan": sonda_sapan, "sonda_sayisi": len(sondalar),
+                   "envanter": _envanter(urunler, veri, evren, mm, sayfa),
+                   "cok_kelimeli": cok_kelimeli}
+
+
+def _envanter(urunler, veri, evren, mm, sayfa):
+    """SPEC §2 (KraL): model türetmesi KAÇ jetonu böldü / KAÇ jetonu bileşik diye korudu?
+
+    Dönüş: {"bolunen": [...], "korunan": [...]} — her satır
+    (ham jeton, marka, -> model, anahtar, ürün sayısı, sayfa var mı)."""
+    bolunen, korunan = {}, {}
+    yayin_anahtar = set((mk, c) for (mk, _d), (_i, c) in sayfa.items())
+    # Üyelik evreni jeneratörün KENDİ kovalarından okunur — ikinci bir marka evreni kurulmaz.
+    marka_evreni = set(veri)
+    bilesik = set(getattr(evren, "bilesik", []))
+    for p in urunler:
+        m = [(x or "").strip() for x in (p.get("marka") or []) if (x or "").strip()]
+        if not m:
+            continue
+        uyeler = set(evren.katla(x) for x in m) & marka_evreni
+        for B in uyeler:
+            for t in m:
+                kalan = mm._strip_marka_oneki(B, t, evren)
+                if kalan and kalan != t:
+                    # GERÇEK bölünme: "<marka öneki> <kalan>" -> "<kalan>"
+                    bolunen.setdefault((t, B, kalan, evren.model_anahtari(B, t)),
+                                       set()).add(p.get("id"))
+                elif t in bilesik and evren.katla(t) == B:
+                    # BİLEŞİK MARKA: bölünebilirdi ama koruma tek parça bıraktı
+                    korunan.setdefault((t, B), set()).add(p.get("id"))
+    return {
+        "bolunen": sorted(((t, B, k, a, len(ids),
+                            "YAYIN" if (B, a) in yayin_anahtar else "-")
+                           for (t, B, k, a), ids in bolunen.items()),
+                          key=lambda r: (-r[4], r[0])),
+        "korunan": sorted(((t, B, len(ids)) for (t, B), ids in korunan.items()),
+                          key=lambda r: (-r[2], r[0])),
+    }
 
 
 # ---------------------------------------------------------------- kabul
-def kabul(kok, dokum=False, modul_yolu=None):
+def kabul(kok, dokum=False, modul_yolu=None, envanter=False):
     kaldi, gecen = [], []
 
     def dogrula(ad, kosul, detay=""):
@@ -314,11 +420,46 @@ def kabul(kok, dokum=False, modul_yolu=None):
     dogrula("K5 HER SAYFA KENDİ ADIYLA SORGULANABİLİR (display -> kova anahtarı)",
             not a["sorgulanamaz"],
             "sorgulanamaz=%d %s" % (len(a["sorgulanamaz"]), a["sorgulanamaz"][:3]))
+    # K7 — BİLEŞİK MARKA / MARKA JETONU: bir MARKA'yı MODEL diye sunan sayfa YOK.
+    # Yargı tools/arama.py KAPALI MARKA KÜMESİ + MODEL_OLMAYAN_JETON'dan BAĞIMSIZ okunur.
+    dogrula("K7 MARKA JETONU SAYFA OLMAZ (bileşik marka bölünmemiş, üretici/grup kısaltması "
+            "model sayılmamış)", not a["marka_kovasi"],
+            "marka-kovası=%d %s" % (len(a["marka_kovasi"]), a["marka_kovasi"][:4]))
+    # K8 — AYNA: index.html BILESIK_MARKA, arama.py'nin ÇOK KELİMELİ üyeleriyle BİREBİR.
+    dogrula("K8 BİLEŞİK MARKA AYNASI OTORİTEYLE BİREBİR (arama.py KAPALI MARKA KÜMESİ)",
+            not a["ayna_fark"][0] and not a["ayna_fark"][1] and len(a["ayna"]) > 0,
+            "aynada eksik=%s · fazla=%s · ayna=%d otorite=%d"
+            % (a["ayna_fark"][0] or "-", a["ayna_fark"][1] or "-",
+               len(a["ayna"]), len(a["cok_kelimeli"])))
+    # K10 — ANAHTAR SONDASI: bileşik marka adı İKİ TARAFTA da tek parça anahtar üretir.
+    #       (İki koruma katmanı da bu eksende TEK BAŞINA kırmızı yakılabilir.)
+    dogrula("K10 BİLEŞİK MARKA ANAHTARI BÖLÜNMÜYOR ve JS ile Python AYNI (%d sonda)"
+            % a["sonda_sayisi"],
+            a["sonda_sayisi"] > 0 and not a["sonda_sapan"],
+            "sapan=%d %s" % (len(a["sonda_sapan"]), a["sonda_sapan"][:3])
+            if a["sonda_sayisi"] else "SONDA YOK — eksen ÖLÇÜLEMEDİ (fail-closed)")
+    # K9 — MODEL_OLMAYAN_JETON kimliği DONMUŞ: sessiz büyüme/daralma KIRMIZI yakar.
+    _ri = a["red_imza"]
+    dogrula("K9 MODEL_OLMAYAN_JETON KİMLİĞİ DONMUŞ (sessiz genişleme yok)",
+            _ri[0] == _ri[1] and _ri[2] == _ri[3],
+            "imza=%s beklenen=%s sayı=%d beklenen=%d" % _ri)
     # KONTROL: kapı gerçekten AYRIŞMA ölçüyor mu — ölçülen küme boş/dejenere olmasın.
     dogrula("K6 KONTROL: ölçülen çiftlerin çoğu DOLU (dejenere ölçüm değil)",
             a["temiz"] + a["sayfa_dar"] + a["filtre_dar"] + a["capraz"] == a["cift"]
             and a["cift"] >= 50,
             "temiz=%d cift=%d" % (a["temiz"], a["cift"]))
+
+    if envanter:
+        e = a["envanter"]
+        print("\n  ENVANTER — MODEL TÜRETMESİNİN BÖLDÜĞÜ JETONLAR (%d):" % len(e["bolunen"]))
+        print("    %-26s %-12s %-20s %-12s %5s %s"
+              % ("HAM JETON", "MARKA", "-> MODEL", "ANAHTAR", "N", "SAYFA"))
+        for t, B, kalan, anahtar, n, yayin in e["bolunen"]:
+            print("    %-26s %-12s %-20s %-12s %5d %s" % (t, B, kalan, anahtar, n, yayin))
+        print("\n  ENVANTER — BİLEŞİK MARKA DİYE KORUNAN (bölünmeyen) JETONLAR (%d):"
+              % len(e["korunan"]))
+        for t, B, n in e["korunan"]:
+            print("    %-26s %-12s %5d ürün (tek parça kalır)" % (t, B, n))
 
     if dokum and a["dokum"]:
         print("\n  SAPAN ÇİFTLER (%d):" % len(a["dokum"]))
@@ -367,6 +508,25 @@ MUTANTLAR = [
      "M7 PYTHON KANONU AYIRAÇ ATMAYI BIRAKIR -> 'F-150'/'F150' sayfada ayrışır, filtrede birleşik"),
     ("index.html", 'return t.replace(/[\\s\\-\\._\\/]/g, "");', "return t;", "KIRMIZI",
      "M6 KANON AYIRAÇ ATMAYI KALDIR -> JS anahtarı Python anahtarından ayrışır"),
+    # --- BİLEŞİK MARKA EKSENİ (3 Ağu, KraL denetimi) ---
+    # 🔴 KANIT: bu üç mutant EKLENMEDEN ÖNCE batarya bu sınıfı YAKALAMIYORDU — "Volvo Penta"
+    # marka+model diye bölünmüşken kapı 7/7 YEŞİL geçti (CIFT=504 TEMIZ=504) ve
+    # /marka/volvo/penta/ + 11 benzeri sayfa sessizce doğdu. Ölçülen delik, kapatıldı.
+    ("tools/model_kanon.py",
+     "    if _marka_norm(t) in evren.bilesik_normlu:\n        return t",
+     "    if False:\n        return t", "KIRMIZI",
+     "M8 BİLEŞİK MARKA KORUMASINI KALDIR (Python) -> 'Volvo Penta' Volvo+Penta diye bölünür"),
+    ("tools/marka_model_build.py",
+     "    return marka_mi(t, evren) or model_kanon._marka_norm(t) in KAPALI_MARKA_NORMLU",
+     "    return marka_mi(t, evren)", "KIRMIZI",
+     "M9 KAPALI MARKA KÜMESİNİ OKUMAYI BIRAK -> marka jetonları (Yanmar/Scion/Mariner) "
+     "MODEL sayfası olur"),
+    ("index.html", '"Teak Wonder","Twin Disc","Volvo Penta"];',
+     '"Teak Wonder","Twin Disc"];', "KIRMIZI",
+     "M10 AYNADAN BİR BİLEŞİK MARKAYI DÜŞÜR -> ayna otoriteyle (arama.py) ayrışır"),
+    ("index.html", "    if(bilesikMarkaMi(t)){ return t; }        // bileşik marka BÖLÜNMEZ (tek parça kalır)",
+     "    if(false){ return t; }", "KIRMIZI",
+     "M11 BİLEŞİK MARKA KORUMASINI KALDIR (JS) -> anahtar sondası iki tarafta ayrışır"),
     # --- KONTROL (YEŞİL bekleniyor) ---
     ("tools/marka_model_build.py", "ESIK = 3", "ESIK = 4", "YESIL",
      "K1 İLGİSİZ: eşiği yükseltmek çift SAYISINI düşürür, PARİTEYİ bozmaz"),
@@ -443,12 +603,14 @@ def main():
     ap.add_argument("--kok", default=GERCEK_KOK)
     ap.add_argument("--modul", default=None, help="marka_model_build.py yerine BAŞKA modül")
     ap.add_argument("--dokum", action="store_true")
+    ap.add_argument("--envanter", action="store_true",
+                    help="model türetmesinin BÖLDÜĞÜ ve bileşik diye KORUDUĞU jetonlar")
     ap.add_argument("--kendini-test", action="store_true")
     a = ap.parse_args()
     if a.kendini_test:
         return kendini_test()
     try:
-        return kabul(a.kok, a.dokum, a.modul)
+        return kabul(a.kok, a.dokum, a.modul, a.envanter)
     except Olculemedi as e:
         print("\nSONUC: OLCULEMEDI ❓  %s" % e)
         return 2

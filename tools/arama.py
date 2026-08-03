@@ -565,6 +565,48 @@ UYUM_MARKA_MIMAR_EKI = frozenset({
 # yedek parca markasidir. Karar BACKFILL ANINDA verilecek (MaCiT duzlemi), sozlukte degil.
 URETICI_MARKA_MIMAR_EKI = frozenset({"Bosch"})
 
+# ─────────────────────────────────────────────────────────────────────────────
+# MODEL OLMAYAN JETONLAR — /marka/<marka>/<model>/ SAYFA EVRENI icin (3 Agu, KraL denetimi)
+#
+# 🔴 NE ICIN: `marka` dizisindeki her jeton model adayidir; bu tablo "bu jeton bir MODEL
+# DEGILDIR" yargisini tasir ve tools/marka_model_build.py o kovaya SAYFA ACMAZ. Uyum
+# eslemesine, aramaya, D1'e ve `marka` alanina DOKUNMAZ (kayit AYNEN durur; yalnizca o
+# jetondan model SAYFASI dogmaz) -> yukaridaki donmus kumelerin aritmetigini KIRMAZ.
+#
+# 🔴 NEDEN AYRI TABLO, URETICI_MARKA'ya EKLENMEDI: `URETICI_MARKA` uyeligi jetonu
+# `uyum[].marka` alaninda GECERSIZ kilar (fail-closed) ve `UYUM_MARKA_ONERI_SAYISI`
+# aritmetigine girer; oradaki her ekleme MaCiT'in uyum duzlemini degistirir. Buradaki yargi
+# yalnizca SEO sayfa evrenine dairdir. Iliski belgelidir: URETICI_MARKA'nin "ileride
+# uretici/parca markasi filtresi gerekirse kaynak burasidir" notunun MODEL ekseni karsiligi.
+#
+# OLCUM (3 Agu, 17032 urun): ESIK=3'u gecen 70 YENI kovanin 10'u bu jetonlardan doguyordu.
+# Her satir DENETIMDE tek tek bakilarak yazildi (urun basliklari okundu), sinifiyla birlikte:
+MODEL_OLMAYAN_JETON = {
+    # GRUP KISALTMASI — marque DEGIL (yukaridaki "REDDEDILEN ADAYLAR" notunda zaten
+    # yargilanmisti; orada YORUM, burada MAKINE OKUR hale geldi).
+    "PSA": "grup kisaltmasi (Peugeot-Citroen); musteri 'PSA parcasi' aramaz",
+    "VAG": "grup kisaltmasi (VW Audi Group); musteri 'VAG parcasi' aramaz",
+    # PARCA/DONANIM URETICISI — parca ONA takilir ama arac MODELI degildir. Kayitlarda
+    # gercek model AYRI jeton olarak zaten duruyor (Tundra/Defender/Supra/Tacoma).
+    "Carling": "anahtar (switch) ureticisi — Land Rover/Toyota konsol panellerinde gecer",
+    "AEM": "gosterge/performans parcasi ureticisi — kayitlarda model 'Supra'",
+    "Sprint Booster": "gaz tepki modulu urun markasi — kayitlarda model 'Tacoma'",
+    "Roland": "elektronik davul markasi — Yamaha/Alesis ile birlikte gecer, model degil",
+    # MARQUE — baska bir markanin ADI, dolayisiyla o markanin MODELI olamaz.
+    "Geo": "GM marque'i (Geo Tracker/Metro); Suzuki'nin modeli degil, kardes marka",
+}
+
+MODEL_OLMAYAN_SAYISI = 7
+MODEL_OLMAYAN_IMZA = "5b8777ee23cefcb1"
+
+
+def model_olmayan_imzasi():
+    """Tablonun ANAHTAR kimligi — sessiz buyume/daralma kapida KIRMIZI yakar (S2 dersi:
+    SAYI degil KIMLIK; sayiyi sabit tutup uyeyi degistirmek gorunmez kalirdi)."""
+    return hashlib.sha256(
+        json.dumps(sorted(MODEL_OLMAYAN_JETON), ensure_ascii=False)
+        .encode("utf-8")).hexdigest()[:16]
+
 # URETICI EKSENI — GERCEK markalardir ama UYUM ekseni DEGILDIR: bunlar takilan sarf/parcanin
 # ureticisidir (buji, tutya, dolgu/yapistirici, tekne boyasi, temizleyici, zimpara, direksiyon
 # kablosu). "Bu urun NGK'ya takilir" cumlesi anlamsizdir; "bu urun bir NGK bujisidir" anlamlidir.

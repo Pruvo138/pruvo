@@ -2537,12 +2537,27 @@
     t = t.replace(/[ışğüöçâîû]/g, function(c){ return MODEL_TR[c]; });
     return t.replace(/[\s\-\._\/]/g, "");
   }
+  // 🔴 BİLEŞİK MARKA KORUMASI — ÇOK KELİMELİ kanonik marka adları TEK PARÇA kalır.
+  // OTORİTE tools/arama.py'deki KAPALI MARKA KÜMESİ'dir (UYUM_MARKA_IZINLI ∪ URETICI_MARKA);
+  // aşağıdaki dizi o kümenin çok-kelimeli üyelerinin AYNASIDIR ve ayrışması
+  // tools/model-uyelik-kapisi.py tarafından fail-closed KIRMIZI yakılır (K7). Elle üye EKLEME:
+  // önce arama.py'deki kümeye gir, sonra ayna güncellenir.
+  // NEDEN (ölçülen hata, 3 Ağu): "Volvo Penta" bir MODEL değil, bağımsız bir üretici
+  // markasıdır (deniz motoru); `arama.py` onu Volvo'dan AYRI ev sahibi ilan etti. Önek
+  // sıyırma onu "Volvo" + "Penta" diye bölünce 106 Marin ürünü otomobil markası Volvo'nun
+  // ağacına asılıyor ve /marka/volvo/penta/ diye anlamı yanlış bir sayfa doğuyordu.
+  var BILESIK_MARKA = ["Alfa Romeo","Black and Decker","Briggs & Stratton","Dürkopp Adler",
+    "John Deere","Johnson Pump","Land Rover","Line 6","Magic Bullet","Massey Ferguson",
+    "Minn Kota","Old Town","Raspberry Pi","Star Brite","Teak Wonder","Twin Disc","Volvo Penta"];
+  var _BILESIK_NORMLU = BILESIK_MARKA.map(markaNorm);
+  function bilesikMarkaMi(s){ return _BILESIK_NORMLU.indexOf(markaNorm(s)) !== -1; }
   // Model değerinin BAŞINDAKİ gereksiz marka jetonunu sıyırır ("Peugeot 206"→"206",
   // "Vauxhall Astra" (Opel)→"Astra"). TAM-TOKEN eşleşme + katlanınca AYNI markaya düşme
   // şartı: substring ya da yanlış marka sıyrılmaz. Değer tümüyle markaysa "" döner.
   function modelOnekSiyir(marka, s){
     var t = (s === null || s === undefined ? "" : String(s)).trim();
     if(!marka || !t){ return t; }
+    if(bilesikMarkaMi(t)){ return t; }        // bileşik marka BÖLÜNMEZ (tek parça kalır)
     var toks = t.split(/\s+/);
     for(var k = toks.length; k > 0; k--){
       var onek = toks.slice(0, k).join(" ");

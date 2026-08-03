@@ -39,6 +39,17 @@ _TR = {"ı": "i", "ş": "s", "ğ": "g", "ü": "u", "ö": "o", "ç": "c",
 _AYIRAC = re.compile(r"[\s\-\._/]")
 
 
+def _dizi_ayikla(kaynak, ad):
+    """`var <ad> = [ "a", "b", ... ];` literalini listeye çevirir (fail-closed)."""
+    m = re.search(r"var\s+" + ad + r"\s*=\s*\[(.*?)\]\s*;", kaynak, re.S)
+    if not m:
+        raise SystemExit("HATA: index.html'de %s dizisi YOK — bileşik marka koruması "
+                         "türetilemez (fail-closed: korumasız devam etmek 'Volvo Penta' "
+                         "gibi bağımsız markaları marka+model diye bölerdi)." % ad)
+    govde = re.sub(r"//[^\n]*", "", m.group(1))
+    return re.findall(r'"([^"]+)"', govde)
+
+
 def _obje_ayikla(kaynak, ad):
     """`var <ad> = { "a":"b", ... };` literalini sözlüğe çevirir (fail-closed)."""
     m = re.search(r"var\s+" + ad + r"\s*=\s*\{(.*?)\}\s*;", kaynak, re.S)
@@ -58,6 +69,32 @@ def blok(index_html):
         raise SystemExit("HATA: index.html'de KANONİK MODEL EŞLEMESİ bloğu bulunamadı "
                          "(marker'lar silinmiş/taşınmış) — ayrışma ölçülemez.")
     return index_html[index_html.index("\n", bas) + 1:son]
+
+
+def bilesik_markalar(index_html):
+    """ÇOK KELİMELİ kanonik marka adları — bölünmemesi gereken jetonlar.
+
+    OTORİTE `tools/arama.py` KAPALI MARKA KÜMESİ'dir (UYUM_MARKA_IZINLI ∪ URETICI_MARKA);
+    index.html'deki dizi onun AYNASIDIR (JS'in çalışma anında ihtiyacı var, arama.py'yi
+    okuyamaz). Ayna ile otoritenin ayrışması tools/model-uyelik-kapisi.py'de fail-closed
+    ölçülür — ikinci bir küratörlük kararı BURADA VERİLMEZ."""
+    return _dizi_ayikla(index_html, "BILESIK_MARKA")
+
+
+def bilesik_marka_mi(deger, bilesik_normlu):
+    """index.html bilesikMarkaMi() portu (karşılaştırma markaNorm düzeyinde)."""
+    return _marka_norm(deger) in bilesik_normlu
+
+
+def _marka_norm(s):
+    """index.html markaNorm() portu — bileşik marka karşılaştırması için."""
+    n = (s or "").replace("I", "ı").replace("İ", "i").lower()
+    for a, b in (("ı", "i"), ("ç", "c"), ("ğ", "g"), ("ö", "o"),
+                 ("ş", "s"), ("ü", "u"), ("â", "a"), ("î", "i"),
+                 ("é", "e"), ("è", "e"), ("ë", "e"), ("ä", "a")):
+        n = n.replace(a, b)
+    n = n.replace(" and ", " ").replace("&", " ").replace("+", " ")
+    return re.sub(r"\s+", " ", n).strip()
 
 
 def tablolar(index_html):
@@ -85,9 +122,14 @@ def kanon(s):
 
 def onek_siyir(marka, s, evren):
     """index.html modelOnekSiyir() portu. `evren`: taninmis_mi + katla taşıyan marka evreni.
-    'Peugeot 206'->'206' · 'Vauxhall Astra' (Opel)->'Astra' · değer tümüyle marka ise ''."""
+    'Peugeot 206'->'206' · 'Vauxhall Astra' (Opel)->'Astra' · değer tümüyle marka ise ''.
+    ÇOK KELİMELİ kanonik marka adı ('Volvo Penta') BÖLÜNMEZ — evren.bilesik_normlu."""
     t = (s or "").strip()
     if not marka or not t:
+        return t
+    # FAIL-CLOSED: öznitelik YOKSA AttributeError — `getattr(..., bos_kume)` yazsaydık
+    # koruma sessizce kapanır ve bileşik marka yeniden bölünürdü.
+    if _marka_norm(t) in evren.bilesik_normlu:
         return t
     toks = t.split()
     for k in range(len(toks), 0, -1):

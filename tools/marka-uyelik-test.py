@@ -141,6 +141,31 @@ def katla(x):
     return EVREN.katla((x or "").strip())
 
 
+# MARKA JETONU EVRENİ — "bu değer bir MARKA'dır, dolayısıyla MODEL olamaz" yargısı.
+# 🔴 KAYNAK jeneratör DEĞİL, tools/arama.py'nin KAPALI MARKA KÜMESİ + MODEL_OLMAYAN_JETON
+# tablosudur (bağımsız modül, mimar eliyle yargılanmış). Jeneratörün `marka_jetonu_mu()`
+# fonksiyonunu çağırsaydık sınıf tanımı ölçülen kodun kendisinden türer, `--modul` ile takılan
+# mutant iddiayı kendi lehine büker ve kapı totolojiye düşerdi ([[beyan-edilmis-survivor]]).
+# ÖLÇÜLDÜ (3 Ağu): bu eleme olmadan sınıfa 20 kayıt sızıyordu — Volvo Penta(6) · Pioneer(4) ·
+# Scion(2) · PSA(2) · Mercruiser · Mariner · AEM · Geo · BaoFeng · VAG. Hepsi MARKA ya da
+# grup kısaltmasıdır; model sayfası açılması SEO hatasıdır, eksiklik değil.
+try:
+    import arama as _arama
+    _MARKA_JETONU = set(_arama.model_normalize(m) for m in
+                        (set(_arama.UYUM_MARKA_IZINLI) | set(_arama.URETICI_MARKA)
+                         | set(_arama.MODEL_OLMAYAN_JETON)))
+except Exception as _e:                                       # noqa: BLE001
+    olculemedi("tools/arama.py marka kümeleri okunamadı: %r" % (_e,))
+if len(_MARKA_JETONU) < 50:
+    olculemedi("KAPALI MARKA KÜMESİ şüpheli küçük (%d)" % len(_MARKA_JETONU))
+
+
+def marka_jetonu(t):
+    """Değer BAŞLI BAŞINA marka mı (index.html küratörlüğü VEYA arama.py kapalı kümesi)?"""
+    t = (t or "").strip()
+    return bool(t) and (EVREN.taninmis_mi(t) or _arama.model_normalize(t) in _MARKA_JETONU)
+
+
 # GÖRÜNÜR MARKA EVRENİ = TANINMIS_MARKALAR ∪ ÇİP EVRENİ (ölçüldü 3 Ağu — [[ikiz-tanim-sessiz-ayrisma]]).
 # index.html'in marka filtresinde (satır ~2981: `some(b => markaKatla(b) === hedefMarka)`)
 # "tanınmış" süzgeci YOKTUR — hedef, kullanıcının tıklayabildiği ÇİP kümesinden gelir; çip
@@ -338,7 +363,7 @@ for p in PRODUCTS:
     if not p.get("id") or len(m) < 2:
         continue
     m1 = (m[1] or "").strip()
-    if not m1 or mm.marka_mi(m1, EVREN):
+    if not m1 or marka_jetonu(m1):
         continue
     birincil = katla(m[0])
     if not EVREN.taninmis_mi(birincil):
@@ -379,7 +404,7 @@ for p in PRODUCTS:
     # ({"marka":"Tesla","model":"Rivian"}). Tanınmış marka adı MODEL sayılamaz — sınıf bunu
     # küratörlü marka listesiyle (veri düzeyi) eler, jeneratörün üyelik kuralıyla DEĞİL.
     def _model_jetonu_mu(t):
-        return bool(_sade(t)) and _sade(t) in uyum_modelleri and not EVREN.taninmis_mi(t)
+        return bool(_sade(t)) and _sade(t) in uyum_modelleri and not marka_jetonu(t)
 
     ilk = _model_jetonu_mu(m[1])                   # marka[1] zaten model mi (eski kural yeterdi)
     ileri = any(_model_jetonu_mu(t) for t in m[2:])

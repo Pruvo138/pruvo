@@ -138,6 +138,10 @@ class MarkaEvreni:
         # Alias tabloları AYNI index.html'den (evrenin okuduğu belgeden) gelir — modül
         # düzeyi sabit KULLANILMAZ: geçici ROOT ile koşan testte iki farklı belge okunurdu.
         self.marka_alias, self.model_alias = model_kanon.tablolar(index_html)
+        # ÇOK KELİMELİ kanonik marka adları (bölünmez). Otorite tools/arama.py KAPALI MARKA
+        # KÜMESİ; buradaki ayna ile ayrışması model-uyelik-kapisi.py'de KIRMIZI yanar.
+        self.bilesik = model_kanon.bilesik_markalar(index_html)
+        self.bilesik_normlu = frozenset(model_kanon._marka_norm(x) for x in self.bilesik)
 
     def taninmis_mi(self, m):
         return _marka_norm(m) in self._kanonik
@@ -312,6 +316,48 @@ def birincil_marka(marka_dizisi, evren, ek_markalar=()):
     return ham0 if (evren.taninmis_mi(ham0) or ham0 in ek_markalar) else uyeler[0]
 
 
+def _kapali_marka_kumesi():
+    """tools/arama.py KAPALI MARKA KÜMESİ (UYUM_MARKA_IZINLI ∪ URETICI_MARKA), normalleşmiş.
+
+    🔴 TEK KAYNAK, İKİNCİ LİSTE YOK: "hangi jeton MARKA'dır" yargısı bu depoda zaten
+    verilmiş ve mimar eliyle yargılanmış bir kümedir (`UYUM_MARKA_MIMAR_EKI` dahil).
+    Model üreteci onu OKUR — kendi marka/model yargısını UYDURMAZ.
+    FAIL-CLOSED: küme okunamazsa SystemExit (boş kümeye düşmek 'Volvo Penta'/'Yanmar' gibi
+    üretici markalarını yeniden MODEL sayfası yapardı)."""
+    try:
+        import arama                                                # noqa: PLC0415
+        kume = (set(arama.UYUM_MARKA_IZINLI) | set(arama.URETICI_MARKA)
+                | set(arama.MODEL_OLMAYAN_JETON))
+    except Exception as e:                                          # noqa: BLE001
+        raise SystemExit("HATA: tools/arama.py KAPALI MARKA KÜMESİ okunamadı (%r) — model "
+                         "üreteci marka/model ayrımını yapamaz (fail-closed)." % (e,))
+    if len(kume) < 50:
+        raise SystemExit("HATA: KAPALI MARKA KÜMESİ şüpheli küçük (%d) — model üreteci "
+                         "marka jetonlarını eleyemez (fail-closed)." % len(kume))
+    return frozenset(model_kanon._marka_norm(m) for m in kume)
+
+
+KAPALI_MARKA_NORMLU = _kapali_marka_kumesi()
+
+
+def marka_jetonu_mu(deger, evren):
+    """Değer BAŞLI BAŞINA bir MARKA mı (dolayısıyla MODEL olamaz)?
+
+    Üç kaynak, üçü de MEVCUT küratörlükler (yeni yargı burada UYDURULMAZ):
+      (1) index.html TANINMIS_MARKALAR (`marka_mi`),
+      (2) tools/arama.py KAPALI MARKA KÜMESİ (UYUM_MARKA_IZINLI ∪ URETICI_MARKA),
+      (3) tools/arama.py MODEL_OLMAYAN_JETON (grup kısaltması / parça üreticisi / kardeş marque).
+    (2) olmadan ölçülen 12 anlamsız sayfa doğuyordu: /marka/jabsco/volvo-penta/,
+    /marka/toyota/scion/, /marka/yamaha/mariner/, /marka/volvo/penta/ ...; (3) olmadan
+    10 tane daha: /marka/peugeot/psa/, /marka/audi/vag/, /marka/land-rover/carling/,
+    /marka/toyota/aem/, /marka/yamaha/roland/, /marka/suzuki/geo/ ... — hepsi bir MARKA'yı
+    ya da grup kısaltmasını MODEL diye sunuyordu."""
+    t = (deger or "").strip()
+    if not t:
+        return False
+    return marka_mi(t, evren) or model_kanon._marka_norm(t) in KAPALI_MARKA_NORMLU
+
+
 def marka_mi(deger, evren):
     """marka[1] MODEL mi yoksa (çok markalı uyumluluktan gelen) BAŞKA BİR MARKA mı?
     KATI ölçüt: değerin KENDİSİ tanınmış marka listesinde olmalı ("Citroen", "Vauxhall",
@@ -352,11 +398,14 @@ def model_jetonlari(marka, marka_dizisi, evren):
     filtreden dar, 366 ürün etkileniyordu). Artık dizinin HER elemanı model adayıdır; ürün
     birden çok model sayfasında görünebilir — bu mükerrer DEĞİL, doğru üyeliktir.
 
-    Model SAYILMAYAN değerler (üçü de ana sayfa filtresiyle tutarlı):
-      * değerin KENDİSİ tanınmış marka ("Citroen") — çok markalı uyumluluk kaydı,
+    Model SAYILMAYAN değerler:
+      * değerin KENDİSİ bir MARKA ("Citroen", "Volvo Penta", "Yanmar", "Scion") —
+        `marka_jetonu_mu`: index.html küratörlüğü + arama.py KAPALI MARKA KÜMESİ,
       * marka öneki sıyrıldıktan sonra geriye bir şey kalmayan değer ("Peugeot"),
       * bütünüyle markanın bir yazımı olan değer ("Mercedes-Benz" -> Mercedes,
         "Champion" -> Champion): anahtar markanın kendisine eşit olurdu.
+    İlk madde ana sayfa filtresini DARALTMAZ: filtre yalnız ANAHTAR karşılaştırır, bu kural
+    hangi kovanın DOĞACAĞINI belirler (sayfa evreni) — kovası olmayan çift ölçülmez.
 
     `uyum[]` AYRI bir üyelik kaynağı olarak OKUNMAZ — okunmasına gerek olmadığı ÖLÇÜLDÜ
     (3 Ağu, 17032 ürün): `uyum[].model` jetonlarının 6762'sinin TAMAMI zaten `marka`
@@ -368,7 +417,7 @@ def model_jetonlari(marka, marka_dizisi, evren):
     marka_kanon = _canon(marka)
     for x in marka_dizisi:
         t = (x or "").strip()
-        if not t or marka_mi(t, evren):
+        if not t or marka_jetonu_mu(t, evren):
             continue
         kalan = _strip_marka_oneki(marka, t, evren)
         if not kalan:
