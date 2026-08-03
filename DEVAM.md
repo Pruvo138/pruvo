@@ -156,6 +156,35 @@ Kapatılan sınıf: yayınlanan içeriğin ÜRETİLDİĞİ ölçülüyordu, ERİ
 - CI: koşum 30844877057 (headSha 7e2277c0) `serit-b` success, adım logunda 48/48
 - D1 merge sonrası: 17030 == 17030, hash uyuşmazlık 0
 
+## ✅ ÖNİZLEME KISIT KOŞUL DEĞERİ FAIL-CLOSED — merge `f6f6492d` (3 Ağu)
+`45f30fd7`in üstüne: `eger` koşulunun DEĞER eşleşmesi sertleştirildi, kural artık şemadan
+türüyor — `secim` → tanımlı seçenek üyeliği, `sayi` → sayı/sayısal-metin + `gecerliDegerler`,
+bilinmeyen tip → ihlal. Docstring garanti metniyle davranış eşitlendi (ikiz tanım tek kaynaktan).
+- kabul: `onizleme-kisit-kosul-test.py` **43 → 115 iddia**; 5 öldürücü mutant kırmızı, 2 kontrol
+  mutantı yeşil
+- vaat kapısı: 12 iddia + 19/19 mutant · parite `parite-test.js` **1199 sorgu birebir**
+- vida ızgarası: 44 konfigürasyonda bloklu küme **tam olarak 2** (`civata-M3`, `civata-M4`)
+- CANLI DOĞRULANDI: koşum `30846897166` (`51588d55`, `f6f6492d` atası) success, `deploy`+`yayin`
+  skipped DEĞİL. Canonical `secenekler.js`: 3-argümanlı `onizlemeKisitIhlali` imzası 1,
+  `kosulDegeriEslesebilirMi` 2, vida girdisi 1; `age: 0`, `cf-cache-status: MISS` (bayat önbellek
+  değil). D1: 17032 == 17032, üç eksen temiz.
+
+**Yayın hattı bu turda İKİ KEZ yabancı kırmızıyla kesildi — ikisi de GERÇEK sapma değil BAYAT
+BEKLENTİ olarak sınıflandırıldı:**
+1. `yayin-ic-dil-kapisi --kaynak` 13 ihlal → başka oturum `e86bbf8a` ile kapattı.
+2. `marka-uyelik-test.py` bayat yüklem: marka sayfası evreni artık ÇİP EVRENİNDEN türüyor, test
+   ise küratörlü listeyi tutuyordu. Sapan 13 markanın hepsi küratörlük dışı çip markası, sayfada
+   eksik ürün **0**; 727 sapanın **704**'ünde testin "birincil"i hesaplanamıyor, **23**'ünde
+   uyumluluk markasına gidiyordu. Başka oturum `51588d55` ile kapattı.
+   → Aşağıdaki AÇIK KALEMLER'in "🔴 YAYIN DURUYOR … `marka-uyelik-test.py`" maddesi bu tur KAPANDI.
+
+**AÇIK KALEM:** `claude/marka-uyelik-tazeleme` (`a9c7a22d`) **merge EDİLMEYECEK**; yalnız hasat
+edilecek bir FAZLA nöbetçi taşıyor — genişletilmiş marka ekseni bir gün boşalırsa "sapan: 0"
+iddia değil boş kümenin sessizliğidir (ölçüm: çip evreni 49, küratörlük dışı 13).
+
+**AÇIK KALEM:** CI yayın açlığı — `build` ~35 dk, ürün push'ları eşzamanlılıkla koşan koşumu
+iptal ediyor (3 Ağu'da 5 iptal). Ayrı oturumda ele alınıyor.
+
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
 - 🔴 YAYIN DURUYOR (başka düzlem, 3 Ağu 19:26): `build` adım 32 `marka-uyelik-test.py`
   KIRMIZI → `deploy` skipped. Sapan marka 13 (marka sayfası ↔ index filtresi), ürün çip
