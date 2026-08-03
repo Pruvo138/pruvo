@@ -21,15 +21,21 @@
 "use strict";
 
 // {kod, sema, set, gecerli(beklenen), not}
+  // 🔴 REDDEDEN KURAL DA PINLENIR (3 Agu): bu vakalar once yalniz `gecerli: false`
+  // bekliyordu. Siparis yolunda kisit BICIMI okunamadiginda artik fail-closed bir
+  // "kisit okunamadi" hatasi uretiliyor — o da seti gecersiz kilar. Yani "gecersiz"
+  // tek basina, kisidin GERCEKTEN kostugunu OLCMUYOR: alt sinir hesabini oldursen
+  // set yine gecersiz kalir ve mutasyon surucusu bunu GORMEZDI (olculdu: iki mutant
+  // kacti). Hata ANAHTARI pinlenince kural ile fail-closed kolu ayrisir.
 var VAKALAR = [
   // ---- RULMAN: brief'in bildirdigi kombinasyon (OLCULDU: motorda uretilemez) ----
-  { kod: "RK01", sema: "rulman", gecerli: false,
+  { kod: "RK01", sema: "rulman", gecerli: false, hataAnahtarlari: ["genislik"],
     set: { ic_cap: 9.5, dis_cap: 59.0, genislik: 9.0, eleman: "makara", bosluk: 0.1, flans: "yok" },
     not: "brief seti (makara) — motor assert'i, flans'tan bagimsiz" },
-  { kod: "RK02", sema: "rulman", gecerli: false,
+  { kod: "RK02", sema: "rulman", gecerli: false, hataAnahtarlari: ["genislik"],
     set: { ic_cap: 9.5, dis_cap: 59.0, genislik: 9.0, eleman: "makara", bosluk: 0.1, flans: "var" },
     not: "brief seti, flansli — ayni ret" },
-  { kod: "RK03", sema: "rulman", gecerli: false,
+  { kod: "RK03", sema: "rulman", gecerli: false, hataAnahtarlari: ["genislik"],
     set: { ic_cap: 9.5, dis_cap: 59.0, genislik: 9.0, eleman: "bilya", bosluk: 0.1, flans: "yok" },
     not: "brief seti, bilya — o da uretilemez" },
   { kod: "RK04", sema: "rulman", gecerli: true,
@@ -40,13 +46,13 @@ var VAKALAR = [
   { kod: "RK05", sema: "rulman", gecerli: true,
     set: { ic_cap: 10, dis_cap: 40, genislik: 9.5, eleman: "makara", bosluk: 0.15, flans: "yok" },
     not: "makara: eleman_capi TAM 9,5 = sinir -> KAPSAYICI, uretilir (tolerans nobetcisi)" },
-  { kod: "RK06", sema: "rulman", gecerli: false,
+  { kod: "RK06", sema: "rulman", gecerli: false, hataAnahtarlari: ["genislik"],
     set: { ic_cap: 10, dis_cap: 40, genislik: 9.0, eleman: "makara", bosluk: 0.15, flans: "yok" },
     not: "makara: bir izgara adim asagisi -> uretilemez" },
   { kod: "RK07", sema: "rulman", gecerli: true,
     set: { ic_cap: 5, dis_cap: 44, genislik: 12.5, eleman: "makara", bosluk: 0.2, flans: "yok" },
     not: "makara: sinirin (12,35) hemen ustu -> uretilir" },
-  { kod: "RK08", sema: "rulman", gecerli: false,
+  { kod: "RK08", sema: "rulman", gecerli: false, hataAnahtarlari: ["genislik"],
     set: { ic_cap: 5, dis_cap: 44, genislik: 12.0, eleman: "makara", bosluk: 0.2, flans: "yok" },
     not: "makara: sinirin hemen alti -> uretilemez" },
 
@@ -54,14 +60,14 @@ var VAKALAR = [
   { kod: "RK09", sema: "rulman", gecerli: true,
     set: { ic_cap: 10, dis_cap: 40, genislik: 10.0, eleman: "bilya", bosluk: 0.15, flans: "yok" },
     not: "bilya: eleman_capi 10,0 = genislik -> uretilir" },
-  { kod: "RK10", sema: "rulman", gecerli: false,
+  { kod: "RK10", sema: "rulman", gecerli: false, hataAnahtarlari: ["genislik"],
     set: { ic_cap: 10, dis_cap: 40, genislik: 9.5, eleman: "bilya", bosluk: 0.15, flans: "yok" },
     not: "bilya: bir adim asagisi -> uretilemez" },
   { kod: "RK11", sema: "rulman", gecerli: true,
     set: { ic_cap: 5, dis_cap: 32.5, genislik: 9.0, eleman: "bilya", bosluk: 0.15, flans: "yok" },
     not: "bilya: eleman_capi genisligi 0,167 ASIYOR ama 0,24 payi icinde -> URETILIR. "
        + "Naif 'eleman_capi <= genislik' kurali burada SATILABILIR rulmani bloke ederdi" },
-  { kod: "RK12", sema: "rulman", gecerli: false,
+  { kod: "RK12", sema: "rulman", gecerli: false, hataAnahtarlari: ["genislik"],
     set: { ic_cap: 5, dis_cap: 31.5, genislik: 8.5, eleman: "bilya", bosluk: 0.15, flans: "yok" },
     not: "bilya: asim 0,333 > 0,24 payi -> uretilemez (payin BUYUKLUGUNU pinler)" },
 
@@ -72,7 +78,7 @@ var VAKALAR = [
   { kod: "RK14", sema: "rulman", gecerli: true,
     set: { ic_cap: 20, dis_cap: 28, genislik: 5.0, eleman: "bilya", bosluk: 0.15, flans: "yok" },
     not: "en dar cap farki + en dar genislik -> uretilir (kisit fazla genis degil)" },
-  { kod: "RK15", sema: "rulman", gecerli: false,
+  { kod: "RK15", sema: "rulman", gecerli: false, hataAnahtarlari: ["genislik"],
     set: { ic_cap: 5, dis_cap: 60, genislik: 5.0, eleman: "bilya", bosluk: 0.15, flans: "yok" },
     not: "en genis cap farki + en dar genislik -> uretilemez" },
   { kod: "RK16", sema: "rulman", gecerli: true,
@@ -83,7 +89,7 @@ var VAKALAR = [
     not: "dar cap farkinda makara uretilir (kisit dis_cap'e bagli, sabit degil)" },
 
   // ---- VIDA: mevcut SABIT-min kisiti (regresyon capasi) ----
-  { kod: "VK01", sema: "vida", gecerli: false,
+  { kod: "VK01", sema: "vida", gecerli: false, hataAnahtarlari: ["cap"],
     set: { urun_tipi: "civata", cap: 3, boy: 20, tolerans: 0.2 },
     not: "civata M3 reddedilir (sabit min=5 kolu bozulmadi)" },
   { kod: "VK02", sema: "vida", gecerli: true,

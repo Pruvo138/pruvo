@@ -43,10 +43,19 @@ export function parametrikHesapla(kalem, secenek, sema) {
     if (!tanimli.has(ad)) { return { hata: "bilinmeyen-parametre", alan: ad }; }
   }
 
-  // min/max/adim + tip dogrulamasi — sitedeki ile AYNI fonksiyon (KONF.dogrula).
+  // min/max/adim + tip dogrulamasi + sema `kisitlar` (kosullu URETILEBILIRLIK kurallari)
+  // — sitedeki ile AYNI fonksiyon (KONF.dogrula), ikinci kopya YOK.
   const sonuc = KONF.dogrula(sema, p);
   if (!sonuc.gecerli) {
-    return { hata: "parametre-araligi", alanlar: Object.keys(sonuc.hatalar || {}) };
+    const alanlar = Object.keys(sonuc.hatalar || {});
+    // TANISAL AYRIM (2026-08-03): "musteri araligi asti" ile "kisit tanimi OKUNAMADI"
+    // ayni sey degildir. Ikincisi bizim sema kusurumuzdur; musteriye parametre
+    // duzelttirmenin anlami yoktur, kalem WhatsApp kanalina duser. Anahtar
+    // konfigurator.js'ten gelir (tek kaynak) — burada metin UYDURULMAZ.
+    if (alanlar.indexOf(KONF.KISIT_ALANI) >= 0) {
+      return { hata: "kisit-okunamadi", alanlar: alanlar };
+    }
+    return { hata: "parametre-araligi", alanlar: alanlar };
   }
 
   /* HACIM DOGRULAMA KAPISI (para, 2026-07-31 — bkz. secenekler.js
