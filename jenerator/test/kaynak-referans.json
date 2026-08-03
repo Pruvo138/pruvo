@@ -3332,7 +3332,7 @@
    "tolerans_asan_set": "3/25"
   },
   "rampa": {
-   "sebep": "motor=pruvo AMA hacim.js bugun kalibrasyon kaynagindan SAPIYOR — ACIK KALEM (kapsama alinmasi ONCE sapmanin onarilmasini gerektirir).",
+   "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
    "olculen_en_kotu_sapma_yuzde": 24.6753,
    "tolerans_asan_set": "7/25"
   },
