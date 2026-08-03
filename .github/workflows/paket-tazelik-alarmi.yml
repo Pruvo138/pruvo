@@ -116,28 +116,6 @@ jobs:
         run: python3 tools/fiziksel-canli-kapisi.py --gh-ozet
 
       # ═══════════════════════════════════════════════════════════════════════
-      # NESIL — "canli bundle main'in KAC COMMIT gerisinde" (yayini DURDURMAZ)
-      # ═══════════════════════════════════════════════════════════════════════
-      # Yukaridaki olcum TEK BIR ekseni (fiziksel carpan) canlida sorar. Bu adim NESIL
-      # sorusunu genel olarak sorar: `wrangler deployments/versions list` ile canli
-      # bundle'in KOD surumu okunur (secret degisimleri ATLANARAK — olculen maskeleme
-      # tuzagi) ve bundle'i etkileyen commit'lerle karsilastirilir. Esik 120 dk; gerekcesi
-      # ve olculen dagilim aracin dosya basinda.
-      # 🔴 `if: always()` — ustteki olcum kirmizi olsa da BU eksen olculur; ikisi AYRI
-      # ariza sinifidir (fiyat kurali kirik ≠ bundle bayat) ve birinin kirmizisi otekini
-      # sessize almamalidir. `continue-on-error` YOK: cikis kodu DOGRUDAN konusur
-      # (rc 1 = bayat, rc 2 = OLCULEMEDI; ikisi de kosumu KIRMIZI yakar, yayini DURDURMAZ).
-      # 🔴 CLOUDFLARE_API_TOKEN yalniz OKUNUR (deployments/versions list). Bu adim
-      # `wrangler deploy` KOSMAZ — yayin karari mimarda/Okan'da.
-      - name: "Olcum — canli shop worker nesli (bayatlik; yayini DURDURMAZ)"
-        id: nesil
-        if: always()
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
-        run: python3 tools/shop-bayatlik-kapisi.py --gh-ozet
-
-      # ═══════════════════════════════════════════════════════════════════════
       # DAMGA — "olcum FIILEN yapildi ve PARITE cikti" kaydi (nabiz A4 ekseni)
       # ═══════════════════════════════════════════════════════════════════════
       # KOSMA KOSULU FAIL-CLOSED ve OLCUMUN SONUCUNA baglidir: `durum == 'parite'`.
@@ -160,3 +138,34 @@ jobs:
           name: paket-tazelik-damgasi
           path: paket-tazelik-damgasi.json
           if-no-files-found: error
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # NESIL — "canli bundle main'in KAC COMMIT gerisinde" (yayini DURDURMAZ)
+      # ═══════════════════════════════════════════════════════════════════════
+      # Ustteki olcum TEK BIR ekseni (fiziksel carpan) canlida sorar. Bu adim NESIL
+      # sorusunu genel olarak sorar: `wrangler deployments/versions list` ile canli
+      # bundle'in KOD surumu okunur (secret degisimleri ATLANARAK — olculen maskeleme
+      # tuzagi) ve bundle'i etkileyen commit'lerle karsilastirilir. Esik 120 dk; gerekcesi
+      # ve olculen dagilim aracin dosya basinda.
+      #
+      # 🔴 NEDEN EN SONDA (olculen kablolama tuzagi, 3 Agu): bu adim damga adimlarindan
+      # ONCE dururken, kirmizi bir NESIL olcumu damga adimlarini ATLATIYORDU — GitHub
+      # `if:` kosullarina ortuk `success()` ekler, yani onceki adimin kirmizisi
+      # `if: steps.olcum.outputs.durum == 'parite'` kosulunu de susturur. Sonuc: fiyat
+      # olcumu PARITE olsa bile damga DOGMAZ ve nabiz A4 ekseni ("olcum FIILEN yapildi mi")
+      # YANLIS alarm verirdi — yani yeni nobetci eski nobetciyi korletirdi. Adim sona
+      # alindi: damga semantigi AYNEN korunuyor, iki eksen birbirini sessize ALMIYOR.
+      #
+      # 🔴 `if: always()` — ustteki olcum kirmizi olsa da BU eksen olculur; ikisi AYRI
+      # ariza sinifidir (fiyat kurali kirik ≠ bundle bayat).
+      # `continue-on-error` YOK: cikis kodu DOGRUDAN konusur (rc 1 = bayat,
+      # rc 2 = OLCULEMEDI; ikisi de kosumu KIRMIZI yakar, yayini DURDURMAZ).
+      # 🔴 CLOUDFLARE_API_TOKEN yalniz OKUNUR (deployments/versions list). Bu adim
+      # `wrangler deploy` KOSMAZ — yayin karari mimarda/Okan'da.
+      - name: "Olcum — canli shop worker nesli (bayatlik; yayini DURDURMAZ)"
+        id: nesil
+        if: always()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
+        run: python3 tools/shop-bayatlik-kapisi.py --gh-ozet

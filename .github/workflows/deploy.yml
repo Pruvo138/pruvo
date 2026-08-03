@@ -1034,6 +1034,34 @@ jobs:
       - name: D1 yazma geri-okuma kabul testi (write-verify + icerik ekseni)
         run: python3 tools/d1-sync.py --kendini-test
 
+      # SHOP BAYATLIK KAPISI (tools/shop-bayatlik-kapisi.py) — bu adim OFFLINE kabul testidir.
+      # NEDEN VAR: bu is akisinda `wrangler deploy|publish` VURUSU 0'dir (olculdu 3 Agu) —
+      # shop Worker'i CI'da HIC yayinlanmiyor, elle deploy bekliyor ve beklerken alarm YOKTU.
+      # Olculen bedel: canli bundle 13 sa 15 dk bayat kaldi; main yesil, CI yesil, site taze,
+      # ODEME YOLU eski kodu kosuyordu (ayni sinif 30 Tem ve 1 Agu'da da PARA maliyeti uretti).
+      # Bu test 32 iddia kosar: bundle dosya kumesinin ITHALAT GRAFINDEN turetilmesi (elle
+      # liste `secenekler.js` / `jenerator/*`'i kacirirdi), canli surum yorumu (secret
+      # degisimi nesli TAZELEMEZ; geri alma; bilinmeyen tetik -> OLCULEMEDI), 120 dk esiginin
+      # IKI YONU (119 -> bekliyor / 121 -> bayat), sig checkout'ta gecmisin acilmasi ve
+      # uctan uca OLDURUCU+KONTROL cifti. Curutme kaniti: tools/shop-bayatlik-mutasyon.py
+      # (12 mutant, kontrol mutanti dahil; CI adimi DEGIL).
+      #
+      # 🔴 NEDEN SERIT A (job `build`, BLOKLAYICI): bu kol OFFLINE ve DETERMINISTIK — ag,
+      # wrangler, Cloudflare yetkisi ISTEMEZ, dolayisiyla yanlis-pozitif kaynagi degildir.
+      # Olculdu: adim once serit B'ye (`serit-b` job'una) dusmustu ve `is-akisi-kapisi.py`
+      # BEYANSIZ SERIT B kapisi diye KIRMIZI yakti — hakliydi: orada kirmizi yansa da
+      # `deploy` kosardi, yani "bloklayici" iddiasi YALAN olurdu.
+      #
+      # 🔴 CANLI KOL BURADA KOSMAZ — BILEREK (fiziksel-canli-kapisi ile AYNI gerekce):
+      # canli olcum aga + Cloudflare yetkisine bagimlidir, yanlis-pozitifi TUM EKIBIN
+      # yayinini durdurur ([[kapi-kapsam-eksen-secimi]]). Canli kolun evi
+      # `paket-tazelik-alarmi.yml` (cron 15 dk, `push` tetigi YOK, deploy'a `needs` ile
+      # BAGLI DEGIL) — orada kirmizi GORUNUR ama yayin yoluna maliyeti 0 sn'dir.
+      # Elle kosum:  python3 tools/shop-bayatlik-kapisi.py
+      # Offline, agsiz, wrangler'siz, depo agaci DEGISMEZ, ~2 s.
+      - name: Shop bayatlik kapisi — kendini test (offline karar mantigi + esik nobeti)
+        run: python3 tools/shop-bayatlik-kapisi.py --kendini-test
+
       # WA PREFILL KAPISI: urun sayfasindaki BAGLAM-KOR olmamasi gereken iki WhatsApp
       # linki (organik "Bizimle Iletisime Gecin" help-cta-btn + mühendislik malzeme notu)
       # prefill'inde urun ADI + canonical URL tasir; Turkce karakterler TEK KEZ dogru
@@ -1805,27 +1833,6 @@ jobs:
       - name: Fiziksel canli kapisi — kendini test (offline karar mantigi + yerel kahin)
         run: python3 tools/fiziksel-canli-kapisi.py --kendini-test
 
-      # SHOP BAYATLIK KAPISI (tools/shop-bayatlik-kapisi.py) — bu adim OFFLINE kabul testidir.
-      # NEDEN VAR: bu is akisinda `wrangler deploy|publish` VURUSU 0'dir (olculdu 3 Agu) —
-      # shop Worker'i CI'da HIC yayinlanmiyor, elle deploy bekliyor ve beklerken alarm YOKTU.
-      # Olculen bedel: canli bundle 13 sa 15 dk bayat kaldi; main yesil, CI yesil, site taze,
-      # ODEME YOLU eski kodu kosuyordu (ayni sinif 30 Tem ve 1 Agu'da da PARA maliyeti uretti).
-      # Bu test 32 iddia kosar: bundle dosya kumesinin ITHALAT GRAFINDEN turetilmesi (elle
-      # liste `secenekler.js` / `jenerator/*`'i kacirirdi), canli surum yorumu (secret
-      # degisimi nesli TAZELEMEZ; geri alma; bilinmeyen tetik -> OLCULEMEDI), 120 dk esiginin
-      # IKI YONU (119 -> bekliyor / 121 -> bayat), sig checkout'ta gecmisin acilmasi ve
-      # uctan uca OLDURUCU+KONTROL cifti. Curutme kaniti: tools/shop-bayatlik-mutasyon.py
-      # (12 mutant, kontrol mutanti dahil; CI adimi DEGIL).
-      #
-      # 🔴 CANLI KOL BURADA KOSMAZ — BILEREK (fiziksel-canli-kapisi ile AYNI gerekce):
-      # canli olcum aga + Cloudflare yetkisine bagimlidir, yanlis-pozitifi TUM EKIBIN
-      # yayinini durdurur ([[kapi-kapsam-eksen-secimi]]). Canli kolun evi
-      # `paket-tazelik-alarmi.yml` (cron 15 dk, `push` tetigi YOK, deploy'a `needs` ile
-      # BAGLI DEGIL) — orada kirmizi GORUNUR ama yayin yoluna maliyeti 0 sn'dir.
-      # Elle kosum:  python3 tools/shop-bayatlik-kapisi.py
-      # Offline, agsiz, wrangler'siz, depo agaci DEGISMEZ, ~2 s.
-      - name: Shop bayatlik kapisi — kendini test (offline karar mantigi + esik nobeti)
-        run: python3 tools/shop-bayatlik-kapisi.py --kendini-test
 
       # EDGE_KATALOG FLIP HAZIRLIK KAPISI (tools/edge-flip-hazirlik.py) — bu adim onun OFFLINE
       # kabul testidir. Aracin SAF karar mantigini (bant/flip-mesafesi, adim degerlendirme,
