@@ -761,8 +761,28 @@ jobs:
       #             yazilir, SAYILIR, RAPORLANIR ama rc'yi BOZMAZ. Bu adimin tuketicisi
       #             YOK; hazirlik olcumu bes evin yayinini durdurma yetkisine sahip degil.
       # FAIL-CLOSED: gecersiz `uyum` -> [] (urun KAYBOLMAZ, kendi kategorisinde bulunur).
-      # OFFLINE: ag/D1/wrangler YOK. Cift yonlu mutasyon (12 oldurucu KIRMIZI + 1 ilgisiz
-      # YESIL + mutasyonsuz harness kontrolu) elle:
+      # OFFLINE: ag/D1/wrangler YOK. Cift yonlu mutasyon bataryasi UC SINIF kosar; sayilari
+      # BURADA TUTMUYORUZ (bayat sayi yanlis guven verir) — arac kendi basar:
+      #   OLDURUCU    gercek bozulmalar (kapali kume uyelik testinin kalkmasi · ' Ford'un
+      #               SESSIZCE kirpilmasi · ikiz tanim kontrolunun silinmesi · turetimin
+      #               YALNIZ markaya dusmesi ya da sirasinin kaymasi · marka/model
+      #               sinirindaki ikiz yasaginin kalkmasi · jetonun ELENEN'den IZINLI'ye
+      #               TASINMASI · ayirac KONUM kuralinin kalkmasi (path/enjeksiyon) ·
+      #               arama takmasinin hic eklenmemesi ya da kosulsuz eklenmesi · kapali
+      #               bilesik tabloya denetimsiz giris) -> beklenen iddia KIRMIZI, FAZLASI
+      #               DA KUSUR: olcut ESIT, "beyan kirmizinin alt kumesi" DEGIL.
+      #   KONTROL     bozulma OLMAYAN degisiklikler (davranissiz ad degistirme · tablonun
+      #               ayni ICERIKLE farkli sozdiziminde kurulmasi · kapali sinif kumesine
+      #               KULLANILMAYAN deger eklenmesi) -> YESIL kalmali; kapi metni degil
+      #               icerigi okumali, yanlis-pozitif bes evin yayinini durdurur.
+      #   FAIL-CLOSED kanonik dogrulama dusurulmusse ya da red kaydinin BICIMI taninmiyorsa
+      #               varsayilana DUSULMEZ, KIRMIZI yanar (bu depoda olculen delik: eskiden
+      #               rc=0 ile sessizce geciyordu). Beyan kapisi bozuk/mukerrer kayitta
+      #               mutasyonu HIC kosturmaz, rc=1.
+      # M00 MUTASYONSUZ HARNESS KONTROLU one kosar ve TABAN IDDIA SAYISINI OLCER (sabit capa
+      # DEGIL): bir mutant altinda sayi duserse o KIRMIZI olcum SAYILMAZ, harness bozuk denir.
+      # Mutasyon DAIMA KOPYAYA: canli arama.py + marka_katla.py sha256'si bas/son basilir ve
+      # esit degilse kirmizi yanar. Elle:
       #   python3 tools/uyum-kapisi.py --mutasyon
       - name: "Uyum kapisi (kapali marka sozlugu + sema + ikiz tanim + enjeksiyon)"
         run: python3 tools/uyum-kapisi.py
