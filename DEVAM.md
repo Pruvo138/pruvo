@@ -68,16 +68,31 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
    pervane, profil) icin altisi uretim motoru referansi istiyor → **Okan kapisi** (butce/erisim).
    Kapsam disi olcum (fikstürde beyanli): `rampa` sapma **%24,7**, `profil` sapma **%0,1469**.
    (Hangi kapinin hangi aileyi kapsamadigina dair detay: DEVAM-ARSIV.md.)
-1. 🔴 **YAPISAL:** siparis/odeme yolu uretilebilirligi SORMUYOR. Allowlist yara bandi; her yeni
-   aile ayni riski yeniden aciyor. Dogru cozum: odeme yolunun derleyiciye/uretilebilirlik
-   kapisina sormasi. **Ders:** aile satisa acarken sorulan soru "fiyat dogru mu" idi; ikinci soru
-   **"bu parametrelerin hepsi uretilebilir mi"** olmaliydi — hacim dogrulamasi onu kapsamiyor.
+1. 🔴 **YAPISAL — ISCIDE OLCULUYOR (3 Agu):** siparis/odeme yolu uretilebilirligi SORMUYOR.
+   Allowlist yara bandi; her yeni aile ayni riski yeniden aciyor. Dogru cozum: odeme yolunun
+   derleyiciye/uretilebilirlik kapisina sormasi. **Ders:** aile satisa acarken sorulan soru
+   "fiyat dogru mu" idi; ikinci soru **"bu parametrelerin hepsi uretilebilir mi"** olmaliydi.
+   **Kosan olcumun ayirt ettigi ikilem:** sema `kisitlar` blogu TEHLIKE isareti mi, KORUMA mi?
+   Siparis yolu kisitlari UYGULUYORSA koruma → A3'un KOL2 kolu fazla kati, daraltilmali;
+   UYGULAMIYORSA A3 dogru ve asil kusur odeme yolunda. **Rulman satisa acma karari buna bagli.**
+   ✅ **736 kalemi KAPANDI (`d8024a27`)** — bilesik marka kapali tablosu: `Mercedes-Benz` zaten
+   tabloda cikti, kovalar bugunku kodla 736→**749** (500 / 24 / 225). Kova3'un 24 adayinin
+   **hicbiri eklenmedi**: 4'u AYRISMA (site `markaKatla` katlamiyor → katalog+D1 siteden ayrilirdi),
+   20'si FAYDASIZ (olculen D1 kazanci 0). Yanlis-pozitif kapisi tam dagarcikta (**34.423 sorgu**,
+   ornekleme yok) **0 sorgu degistirdi**. Kazanc Ege'de: `marka=Mercedes` **1011 → 1032**.
+   Kapi 36 → **39 iddia**, mutasyon 29/29, 4 kontrol yesil; `rc=0` ile sessiz gecen bir hata
+   bicimi fail-closed yapildi. **MaCiT'te yazim:** `urunler.json`, **21 kayit**, tek alan `marka`.
 2. `worktree-agent-aadc8e1d5df8ff4b0` (`3ef8b81a`) — ci-kapsam dar-bayrak dali, **curutme SARTLI
    dondu, sart uygulanmadi**: kovaya eklenen js bayraklarinin **%81'i uydurma** (baska programa
    gecirilen `--cached`/`--dry-run` gibi argümanlar dosyanin kendi bayragi sayiliyor). Dalin asil
    degeri duruyor: **6 dosya yalniz `--kendini-test` ile kosuyor** (`jenerator/test/kabul.py`
    dahil) — bugunku fiyat alarminin aylarca gorunmemesinin sebebi buydu. Ya sartla tamamla ya
    acikca park et.
+2b. **PARK — mukerrer dal:** `claude/upbeat-kapitsa-d7c9ac` (`36bf4a06`, worktree
+   `.claude/worktrees/upbeat-kapitsa-d7c9ac`) A3 kor noktasini PARALEL onarmis (13 mutant).
+   Benim surumum (`193cd6f0`) main'de ve daha genis (19 mutant + A6 kapsam iddiasi) → dal
+   **cakisir, merge EDILMEYECEK**. Alinacak tek sey ondaki **`A1c` iddiasi** — once ayirt edici
+   mutanti var mi olculecek, varsa ayri turda tasinacak, sonra dal+worktree silinecek.
 3. 🔴 **Tek kanonik marka fonksiyonu — ve bu kusur ARTIK URETIMDE OLCULDU.**
    Uc ayri mantik var (`index.html` `markaKatla` · uc `uyumEkseniKosulu` · `parite-test.js` tam
    jeton) ve **1.677 cip degerinin 1.518'inde** ucu ayrisiyor.
