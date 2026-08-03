@@ -629,9 +629,30 @@
      kapı kırmızı yakar. Şemanın onarımı üretim/şema tarafının işidir; onarılıp kısıt
      kalkınca aile kendiliğinden geri açılır (burada ikinci bir liste tutulmaz).
 
-     KAPALI KALANLAR (6): `rampa` (sapması bağımsız ölçümle DOĞRULANMADI), `vida`
-     (hiç ölçülmedi), `rulman` + `petek` + `cetvel` + `kase` (şema aralığı kusuru —
-     yukarıya bak). Altısı da tutar üretmez — fail-closed aynen sürer.
+     ---- `rampa` AÇILDI — 2026-08-03, ÜRETİLEBİLİRLİK ÖLÇÜMÜ (işletme onayı) ----
+     `rampa` bu listeye "hacmi doğru" diye DEĞİL, satışa açmanın İKİ sorusu da
+     ölçüldüğü için girdi (sürücü repoda:
+     `jenerator/test/rampa-uretilebilirlik-olcum.py`, 25 iddia / 0 kırmızı):
+       SORU 1 — fiyat doğru mu: 1.686 GERÇEK render'a karşı hacim kapalı formunun
+                en kötü sapması %0,0000079; %0,01 eşiğini aşan nokta 0.
+       SORU 2 — bu kutunun HER noktası üretilebilir mi: 944.559 noktalık ilan
+                edilmiş ızgarada şema kapısı 0 nokta reddediyor; geçenlerden
+                render edilen 1.686 noktanın ÜRETİLEMEZ olanı 0 (%0,0000),
+                altı kolun (2 eğim yöntemi × 3 üst yüzey) altısında da 0.
+                Kıyas: petek %50,0 · cetvel %66,7 · kase %83,3 · rulman %32,88.
+       TERS EKSEN (aşırı red): kutu içinde 0. Kutu DIŞI 99 noktalık sondada 87
+                nokta motorda üretilebiliyor ama şema reddediyor — bu bir arıza
+                değil KASITLI ürün zarfı (açı üst sınırı 30° iken motor 89°'a
+                kadar üretiyor, `adim`=1 mm/1° ara değerleri kapatıyor).
+       `kisitlar`: şemada YOK, ONIZLEME_KISITLAR'da da YOK → A3 tetiklenmiyor
+                (aynada ölçüldü: rampa eklenince kapı yeşil, KONTROL olarak
+                `rulman` eklenince kırmızı — kapı kör değil).
+     Müşterinin göreceği aralık: varsayılan 16.000 kuruş, azami 48.000 kuruş
+     (3× tavana dayanıyor, aşmıyor).
+
+     KAPALI KALANLAR (5): `vida` (hiç ölçülmedi), `rulman` + `petek` + `cetvel` +
+     `kase` (şema aralığı kusuru — yukarıya bak). Beşi de tutar üretmez —
+     fail-closed aynen sürer.
 
      KURAL — ALLOWLIST, DENYLIST DEĞİL (fail-closed): fiyat YALNIZCA gerçek geometriye
      karşı ölçülmüş ve %3 sınırını GEÇMİŞ ailelerde üretilir. Listede olmayan aile
@@ -677,7 +698,17 @@
     // 2026-08-02 eklenen aileler — bağımsız ölçüm, seed 20260802
     // (yukarıdaki DÜZELTME bloğu: eski kırmızıları referans arızası üretmişti)
     huni: 0.13, izgara: 0.00, kasnak: 0.02, kayis: 0.15,
-    oring: 0.39, pervane: 0.38
+    oring: 0.39, pervane: 0.38,
+    // rampa: 2026-08-03, DETERMİNİSTİK ızgara BEYANI 944.559 nokta (2 eğim yöntemi
+    // kolu × 3 üst yüzey; ölü eksenler dahil), üretim motoru render'ına karşı
+    // 1.686 GERÇEK render (kova başına 200 deterministik örnek + köşe alt-uzayının
+    // %100'ü). En kötü sapma %0.0000079, %0.01 üstü nokta 0 → yukarı yuvarlanmış.
+    // ÜRETİLEBİLİRLİK (satışa açmanın İKİNCİ sorusu, bu listeye girmenin şartı):
+    // şema kapısı kutu içinde 0 nokta reddediyor, render edilen 1.686 noktanın
+    // üretilemezi 0 (%0.0000), altı kolun altısında da 0; kutu içi aşırı red 0.
+    // Sürücü: jenerator/test/rampa-uretilebilirlik-olcum.py (25 iddia / 0 kırmızı,
+    // 11 mutant: 9 öldürücü işaret şartıyla öldü, 2 kontrol yeşil).
+    rampa: 0.01
     // 🔴 ÇIKARILANLAR — hacim ekseni yeşil ama ŞEMA ARALIĞI üretilemez konfigürasyon
     // veriyor (yukarıdaki "ŞEMA ARALIĞI TARAMASI" bloğu). Şema onarılana kadar KAPALI:
     //   petek  — bölge `mod="kabartma"` tümü, %50,0 üretilemez, ölçüm 2026-08-03

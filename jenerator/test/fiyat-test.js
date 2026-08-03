@@ -257,17 +257,38 @@ esit("örnek şema varsayılanları geçerli", KONF.dogrula(oringSema, vd).gecer
 esit("hacim = tabanHacim (varsayılanlar)",
      Math.abs(KONF.hacimMm3(oringSema, vd, HACIM) - oringSema.tabanHacimMm3) < 1e-6, true);
 // FAIL-CLOSED fikstürü: hacim kapısıyla KAPALI bir aile ondan tutar ÜRETMEMELİ.
-// (2026-08-02'ye kadar burada oring vardı; oring bağımsız ölçümle AÇILDI — fikstür
-// hâlâ kapalı olan `rampa`ya taşındı. rampa da varsayılanda hacim == tabanHacim,
-// yani "null" sonucu ölçek değil YALNIZCA kapıdan gelir.)
+// (2026-08-02'ye kadar burada oring vardı; oring bağımsız ölçümle AÇILDI → fikstür
+// `rampa`ya taşındı. 2026-08-03: rampa da üretilebilirlik ölçümüyle AÇILDI → fikstür
+// hâlâ kapalı olan `cetvel`e taşındı.)
+// 🔴 ADAY SEÇİM ŞARTI (ölçüldü, aynı koşumda): seçilen ailenin varsayılanında
+// hacim == tabanHacimMm3 OLMALI — yani ölçek çarpanı tam 1. Böylece "null" sonucu
+// ÖLÇEKTEN değil YALNIZCA KAPIDAN gelir. Kontrol: aynı hacim AÇIK bir aile adıyla
+// çağrıldığında tam 10000 kuruş (taban) veriyor; cetvel 14265.224351646924 mm³ =
+// tabanHacim, ölçek 1.
+var kapaliSema = JSON.parse(fs.readFileSync(
+  path.join(KOK, "jenerator", "urunler", "olcuye-ozel-cetvel.json"), "utf8"));
+var kapaliVd = KONF.varsayilanDegerler(kapaliSema);
+esit("cetvel şema varsayılanları geçerli", KONF.dogrula(kapaliSema, kapaliVd).gecerli, true);
+esit("fikstür ailesi HÂLÂ kapalı (fikstür bayatlarsa kırmızı)",
+     SECENEK.hacimDogrulanmisMi(kapaliSema.hacimFormulu), false);
+esit("fikstür ailesinde ölçek tam 1 (null ölçekten değil kapıdan gelsin)",
+     Math.abs(KONF.hacimMm3(kapaliSema, kapaliVd, HACIM) - kapaliSema.tabanHacimMm3) < 1e-9,
+     true);
+var denemeSema = Object.assign({}, kapaliSema, { tabanFiyatTL: 100 });
+esit("kapalı ailede fiyat ucu tutar üretmez (cetvel)",
+     KONF.fiyatKurus(denemeSema, kapaliVd, "PLA", "Siyah",
+                     { secenek: SECENEK, hacim: HACIM }), null);
+// AÇILAN aile (rampa) artık AYNI uçtan tutar üretir — bu turun açılışı uçtan uca ölçülür.
 var rampaSema = JSON.parse(fs.readFileSync(
   path.join(KOK, "jenerator", "urunler", "olcuye-ozel-ramp-sim-takoz.json"), "utf8"));
 var rampaVd = KONF.varsayilanDegerler(rampaSema);
 esit("rampa şema varsayılanları geçerli", KONF.dogrula(rampaSema, rampaVd).gecerli, true);
-var denemeSema = Object.assign({}, rampaSema, { tabanFiyatTL: 100 });
-esit("kapalı ailede fiyat ucu tutar üretmez (rampa)",
-     KONF.fiyatKurus(denemeSema, rampaVd, "PLA", "Siyah",
-                     { secenek: SECENEK, hacim: HACIM }), null);
+esit("AÇILAN ailede fiyat ucu taban üretir (rampa, varsayılan)",
+     KONF.fiyatKurus(Object.assign({}, rampaSema, { tabanFiyatTL: 100 }), rampaVd,
+                     "PLA", "Siyah", { secenek: SECENEK, hacim: HACIM }), 10000);
+esit("rampa GERÇEK taban fiyatıyla varsayılan = 16000 kuruş",
+     KONF.fiyatKurus(rampaSema, rampaVd, "PLA", "Siyah",
+                     { secenek: SECENEK, hacim: HACIM }), 16000);
 // AÇILAN aile (oring) artık AYNI uçtan tutar üretir — kapı seçici, kör değil.
 esit("açılan ailede fiyat ucu taban üretir (oring)",
      KONF.fiyatKurus(Object.assign({}, oringSema, { tabanFiyatTL: 100 }), vd, "PLA", "Siyah",
@@ -292,16 +313,23 @@ esit("varsayılanda fiyat = taban (PLA/Siyah, doğrulanmış aile)",
    petek %50,0 (mod="kabartma" tümü) · cetvel %66,7 (secim-tanimsiz:tip) ·
    kase %83,3 (sap + bicim). Üçü de KAPATILDI; açık aile 20 → 17, kapalı 3 → 6.
    (huni/izgara/kasnak/kayis/oring/pervane %0,00 — temiz, açık kalır.)
-   KAPALI KALAN (6): rampa (bağımsız ölçümle doğrulanmadı), vida (hiç ölçülmedi),
-   rulman + petek + cetvel + kase (hacmi yeşil ama ŞEMA ARALIĞI üretilemez kombinasyon
-   veriyor — üretemediğimiz konfigürasyon satılabilir görünmez; şema onarılana kadar
-   fail-closed). Yapısal kural + kapı: tools/onizleme-vaat-kapisi.py. */
-var KAPALI_AILELER = ["cetvel", "kase", "petek", "rampa", "rulman", "vida"];
+   2026-08-03 ÜRETİLEBİLİRLİK ÖLÇÜMÜ — `rampa` AÇILDI (işletme onayı): kapalı kalma
+   gerekçesi "sapması bağımsız doğrulanmadı" idi ve ölçümle geçersiz kaldı. 944.559
+   noktalık ilan edilmiş ızgarada şema kapısı 0 nokta reddediyor; geçenlerden render
+   edilen 1.686 GERÇEK render'da üretilemez 0 (%0,0000, altı kolun altısında) ve hacim
+   kapalı formunun en kötü sapması %0,0000079. Şemasında `kisitlar` YOK →
+   onizleme-vaat-kapisi A3 tetiklenmiyor. Açık aile 17 → 18, kapalı 6 → 5.
+   Sürücü: jenerator/test/rampa-uretilebilirlik-olcum.py (25 iddia / 0 kırmızı).
+   KAPALI KALAN (5): vida (hiç ölçülmedi), rulman + petek + cetvel + kase (hacmi yeşil
+   ama ŞEMA ARALIĞI üretilemez kombinasyon veriyor — üretemediğimiz konfigürasyon
+   satılabilir görünmez; şema onarılana kadar fail-closed).
+   Yapısal kural + kapı: tools/onizleme-vaat-kapisi.py. */
+var KAPALI_AILELER = ["cetvel", "kase", "petek", "rulman", "vida"];
 var ACIK_AILELER = ["adaptor", "braket", "cerceve", "disli", "huni", "izgara",
                     "jeton", "kasnak", "kavanoz", "kayis", "konektor", "kutu",
-                    "oring", "pervane", "profil", "toka", "yay"];
-esit("kapı sayacı: kapalı 6 / açık 17 (2026-08-03 taraması sonrası)",
-     [KAPALI_AILELER.length, ACIK_AILELER.length], [6, 17]);
+                    "oring", "pervane", "profil", "rampa", "toka", "yay"];
+esit("kapı sayacı: kapalı 5 / açık 18 (2026-08-03 rampa açılışı sonrası)",
+     [KAPALI_AILELER.length, ACIK_AILELER.length], [5, 18]);
 
 // POZİTİF: kapı tutuyor — sapan/ölçülmemiş ailede tutar HİÇ üretilmez (0 TL DEĞİL, null).
 KAPALI_AILELER.forEach(function (aile) {
