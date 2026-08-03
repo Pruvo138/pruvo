@@ -40,12 +40,37 @@ NE OLCER (hepsi node ile FIILEN kosturularak; regex ile "okumus gibi" yapilmaz):
      ("5") kabul eder (index.js "SIKI TIP KAPISI"). Kati `===`/`indexOf` ile yazilsaydi
      IZINLI ama metin gelen bir deger ("5") listede BULUNAMAZ ve URETILEBILIR bir
      konfigurasyona yanlis vaat basilirdi -> M3 mutanti tam bunu oldurur.
+  4b IZGARA — vida ailesinin TAM secim uzayi (4 tip x 11 cap = 44) sayfa on-kontrolunde
+     olculur; BLOKLU kume TAM OLARAK {civata-M3, civata-M4} olmali. Tek sayilik olcu:
+     beyan hem gereginden fazla (mil/somun/pul yanlis blok) hem eksik (uretilemez
+     bolge serbest) blokladiginda KIRMIZI yanar.
+  6. KOSUL DEGERI YAZIM HATASI (3 Agu 2026, olculdu ve onarildi) — `eger` blogunun
+     SEKLI dogru ama DEGERI semaya gore hicbir girdiyle eslesemiyorsa (dizi, sayi,
+     nesne, null, liste disi metin, tanimsiz parametre adi) eski kod girdiyi
+     SESSIZCE tumden dusuruyordu: civata-M3 BLOK -> SERBEST, yani uretilemez bir
+     konfigurasyona "siparis alinabilir" vaadi. Artik ihlal donuyor. Ayni eksende
+     MESRU kullanimin bozulmadigi da olculur: `urun_tipi:"civata"` (bugunku beyan),
+     sayisal kosul `cap:5`/`cap:"5"` ve AYIRT EDICI `cap:3`/`cap:"3"` — tip-agnostik
+     esleme (5 <-> "5") AYNEN korunur.
+  7. BOZUK-BEYAN KOLUNUN MUTANTLARI — 6. eksenin kolu, mesru beyanda hic konusmadigi
+     icin ayri bir mutant takimiyla olculur (M4-M8; K2 kontrol mutanti).
+  8. SEMASIZ KOL SINIRI — fonksiyon 3. argumansiz cagrilirsa yalniz TIP AILESI
+     olculebilir (dizi/nesne/bool/null yakalanir; `secim` parametresine yazilmis 7
+     YAKALANMAZ). Docstring'in fazla iddia etmemesi icin bu SINIR da olculur
+     ([[nobetci-kendi-dosyasinda-sizinti]]). Iki canli cagri yeri de semayi TASIR:
+     Worker sema kapisindan, urun sayfasi satir-ici URUN_SEMA'dan.
   5. MUTANTLAR (daima KOPYAYA; canli agac sha256 basta==sonda):
        M1 `eger` ele alisi kaldirildi (kosul okunmaz)   -> pul/M3 YANLIS bloklanir (alan=cap)
        M2 kosul TUTMAYINCA ihlal sayildi (`eger` beyaz liste gibi) -> pul/M3 YANLIS
           bloklanir (alan=urun_tipi; M1'den ALANIYLA ayrilir)
        M3 deger karsilastirmasi kati `===`e cekildi     -> civata/"5" (metin) YANLIS bloklanir
        K1 KONTROL: yalniz yorum eklendi                 -> tum hukumler DEGISMEZ
+       M4 kosul degeri eslesebilirlik kolu oldurulda    -> bozuk beyan yine SESSIZ
+       M5 `secim` kolu her degeri kabul eder            -> liste disi kosul degeri sizar
+       M6 kosul parametre ADI semaya karsi denetlenmez  -> tanimsiz ad SESSIZCE atlanir
+       M7 `sayi` kolunda gecerliDegerler okunmaz        -> asla eslesemeyen cap sizar
+       M8 sema 3. arguman yok sayilir                   -> tip ailesine duser, 7 sizar
+       K2 KONTROL (bozuk beyan kolu): yalniz yorum      -> tum hukumler DEGISMEZ
      `eger` ANAHTARININ beyaz liste gibi taranmasi AYRI bir mutant DEGILDIR: oldurucu
      vakasi yok (kisit["eger"] icin p["eger"] daima undefined -> atlanir). O eksen
      1c iddiasiyla korunur (hicbir semada "eger" adli parametre yok).
@@ -299,6 +324,83 @@ VAKALAR = [
      {"S": "GECERLI", "A": "SERBEST", "B": "SERBEST"}, "KOSULSUZ girdi regresyonu"),
 ]
 
+# IZGARA: vida ailesinin TAM secim uzayi (4 tip x 11 cap = 44). Beyanin dogru
+# okundugunun tek sayilik OLCUSU: bloklu kume TAM OLARAK {civata-M3, civata-M4}.
+VIDA_TIPLERI = ["civata", "mil", "somun", "pul"]
+VIDA_CAPLARI = [3, 4, 5, 6, 8, 10, 12, 14, 16, 18, 20]
+IZGARA = [("%s-M%s" % (t, c), AILE_VIDA, vida(t, c))
+          for t in VIDA_TIPLERI for c in VIDA_CAPLARI]
+IZGARA_BEKLENEN_BLOK = ["civata-M3", "civata-M4"]
+
+# ---------------------------------------------------------------- bozuk `eger` KOSUL DEGERI
+# Beyanin KODU degil METNI degistirilir: kaynaktaki tek `eger` satiri baska bir kosul
+# degeriyle yeniden yazilir. Iddia: eslesmesi SEMAYA gore imkansiz olan bir deger
+# girdiyi SESSIZCE dusurmez (fail-closed), mesru bir deger ise bugunku gibi calisir.
+KOSUL_CAPA = '      eger: { urun_tipi: "civata" },'
+
+# (ad, `eger` satiri, {vaka: (A beklenen, B beklenen)}, aciklama)
+KOSUL_VARYANTLARI = [
+    ("dizi   urun_tipi:[\"civata\"]", '      eger: { urun_tipi: ["civata"] },',
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("BLOK", "BLOK-KISIT:eger")},
+     "dizi hicbir secim degeriyle eslesemez -> YAZIM HATASI"),
+    ("sayi   urun_tipi:7", "      eger: { urun_tipi: 7 },",
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("BLOK", "BLOK-KISIT:eger")},
+     "secim parametresinde 7 diye bir secenek YOK -> YAZIM HATASI"),
+    ("nesne  urun_tipi:{}", "      eger: { urun_tipi: {} },",
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("BLOK", "BLOK-KISIT:eger")},
+     "nesne -> YAZIM HATASI"),
+    ("null   urun_tipi:null", "      eger: { urun_tipi: null },",
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("BLOK", "BLOK-KISIT:eger")},
+     "null -> YAZIM HATASI"),
+    ("liste-disi urun_tipi:\"civata2\"", '      eger: { urun_tipi: "civata2" },',
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("BLOK", "BLOK-KISIT:eger")},
+     "dogru tip AILESI ama sema seceneklerinde YOK -> YAZIM HATASI"),
+    ("tanimsiz parametre adi", '      eger: { urun_tipii: "civata" },',
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("BLOK", "BLOK-KISIT:eger")},
+     "semada boyle bir parametre YOK -> YAZIM HATASI (kosul asla cozulemez)"),
+    ("MESRU  urun_tipi:\"civata\"", KOSUL_CAPA,
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("SERBEST", "SERBEST")},
+     "BUGUNKU beyan — davranis AYNEN"),
+    ("MESRU  cap:5 (sayisal kosul)", "      eger: { cap: 5 },",
+     {"civata-M3-sayi": ("SERBEST", "BLOK-SEMA"), "pul-M3": ("SERBEST", "SERBEST"),
+      "civata-M5": ("SERBEST", "SERBEST")},
+     "sayisal parametre uzerinden kosul CALISIR (M5'te tutar, beyaz liste 5'i gecirir)"),
+    ("MESRU  cap:\"5\" (sayisal metin)", '      eger: { cap: "5" },',
+     {"civata-M3-sayi": ("SERBEST", "BLOK-SEMA"), "pul-M3": ("SERBEST", "SERBEST"),
+      "civata-M5": ("SERBEST", "SERBEST")},
+     "TIP-AGNOSTIK esleme korunur: \"5\" ile 5 AYNI hukum"),
+    ("MESRU  cap:3 (AYIRT EDICI)", "      eger: { cap: 3 },",
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("BLOK", "BLOK-KISIT:cap"),
+      "civata-M5": ("SERBEST", "SERBEST")},
+     "sayisal kosul TUTUNCA beyaz liste uygulanir (M3 listede yok -> BLOK)"),
+    ("MESRU  cap:\"3\" (AYIRT EDICI, metin)", '      eger: { cap: "3" },',
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("BLOK", "BLOK-KISIT:cap"),
+      "civata-M5": ("SERBEST", "SERBEST")},
+     "ayni hukum, sayi METNI olarak — tip-agnostik esleme"),
+    ("liste-disi cap:7", "      eger: { cap: 7 },",
+     {"civata-M3-sayi": ("BLOK", "BLOK-SEMA"), "pul-M3": ("BLOK", "BLOK-KISIT:eger")},
+     "7 semanin gecerliDegerler listesinde YOK -> asla eslesemez -> YAZIM HATASI"),
+]
+
+# SEMASIZ KOL (3. arguman verilmezse) — docstring'in BILDIRDIGI sinir. Fikstur
+# kisitlari sentetiktir; iddia "yakalanir/yakalanmaz" ayrimidir, hukum degil.
+def semasiz_vakalar():
+    beyaz = {"cap": [5, 6, 8]}
+    p = vida("civata", 3)
+
+    def k(deger):
+        d = {"eger": {"urun_tipi": deger}}
+        d.update(beyaz)
+        return d
+    return [
+        ("semasiz-dizi", k(["civata"]), p, "eger", "dizi TIP AILESI ile yakalanir"),
+        ("semasiz-nesne", k({}), p, "eger", "nesne TIP AILESI ile yakalanir"),
+        ("semasiz-null", k(None), p, "eger", "null TIP AILESI ile yakalanir"),
+        ("semasiz-bool", k(True), p, "eger", "bool TIP AILESI ile yakalanir"),
+        ("semasiz-sayi7", k(7), p, None, "SINIR: dogru aileden yanlis deger YAKALANMAZ"),
+        ("semasiz-mesru", k("civata"), p, "cap", "mesru kosul: beyaz liste uygulanir"),
+    ]
+
 HARNESS = r"""
 import fs from "node:fs";
 import { pathToFileURL } from "node:url";
@@ -314,12 +416,15 @@ for (const a of kfg.fiksturAileler) {
 }
 const worker = await import(pathToFileURL(kfg.worker).href);
 
+/** Sayfa on-kontrolu. URUN_SEMA sayfada SATIR-ICI durur (build.py `var URUN_SEMA =`)
+ *  ve on-kontrol onu kisit fonksiyonuna 3. arguman olarak verir; burada AYNI kaynaktan
+ *  (SEMALAR) beslenir — fikstur uydurulmaz. */
 function sayfaHukmu(urunId, parametreler) {
   let mesaj = null;
-  const fn = new Function("window", "URUN", "s", "kutu", "de",
+  const fn = new Function("window", "URUN", "s", "kutu", "de", "URUN_SEMA",
                           kfg.sayfaParcasi + "\nreturn 'SERBEST';");
   const r = fn(globalThis, { id: urunId }, { parametreler }, { hidden: true },
-               (m) => { mesaj = m; });
+               (m) => { mesaj = m; }, SEMALAR.get(urunId) || null);
   if (mesaj !== null) { return { hukum: "BLOK", mesaj: mesaj }; }
   if (r === "SERBEST") { return { hukum: "SERBEST" }; }
   return { hukum: "BELIRSIZ" };
@@ -361,11 +466,19 @@ function semaHukmu(aile, parametreler) {
                    : { hukum: "GECERSIZ", alanlar: Object.keys(s.hatalar || {}).join(",") };
 }
 
-const cikti = { S: {}, A: {}, B: {} };
+const cikti = { S: {}, A: {}, B: {}, IZ: {}, SEMASIZ: {} };
 for (const v of kfg.vakalar) {
   cikti.S[v.id] = semaHukmu(v.aile, v.parametreler);
   cikti.A[v.id] = sayfaHukmu(v.aile, v.parametreler);
   cikti.B[v.id] = await workerHukmu(v.aile, v.parametreler);
+}
+// IZGARA: vida ailesinin TAM konfigurasyon uzayi, yalniz sayfa on-kontrolunde
+// (worker'a 44 istek atmak bu iddiaya bir sey katmaz — kisit hukmu AYNI fonksiyon).
+for (const v of kfg.izgara) { cikti.IZ[v.id] = sayfaHukmu(v.aile, v.parametreler); }
+// SEMASIZ KOL: fonksiyon 3. arguman OLMADAN cagrilinca ne garanti ediyor
+// (docstring'in "yalniz tip ailesi" siniri — fazla iddia birakilmasin).
+for (const v of kfg.semasizVakalar) {
+  cikti.SEMASIZ[v.id] = { ihlal: S.onizlemeKisitIhlali(v.kisit, v.parametreler) };
 }
 process.stdout.write(JSON.stringify(cikti));
 """
@@ -406,7 +519,10 @@ def varyant_kos(tmp, ad, secenekler_metni, sayfa, vakalar):
            "konfigurator": os.path.join(REPO, "jenerator", "konfigurator.js"),
            "semalar": os.path.join(tmp, "semalar.js"),
            "fiksturAileler": [AILE_VIDA],
-           "vakalar": [{"id": v[0], "aile": v[1], "parametreler": v[2]} for v in vakalar]}
+           "vakalar": [{"id": v[0], "aile": v[1], "parametreler": v[2]} for v in vakalar],
+           "izgara": [{"id": v[0], "aile": v[1], "parametreler": v[2]} for v in IZGARA],
+           "semasizVakalar": [{"id": v[0], "kisit": v[1], "parametreler": v[2]}
+                              for v in semasiz_vakalar()]}
     kfg_yol = os.path.join(tmp, "kfg-%s.json" % ad)
     with io.open(kfg_yol, "w", encoding="utf-8") as f:
         f.write(json.dumps(kfg))
@@ -436,9 +552,46 @@ MUTANTLAR = [
      [("civata-M5-metin", "A", "BLOK"), ("civata-M5-metin", "B", "BLOK-KISIT:cap")]),
 ]
 KONTROL_MUTANT = ("K1 KONTROL: yalniz yorum eklendi",
-                  "  function onizlemeKisitIhlali(kisit, parametreler) {",
+                  "  function onizlemeKisitIhlali(kisit, parametreler, sema) {",
                   "  /* kontrol mutanti: anlamsiz yorum */\n"
-                  "  function onizlemeKisitIhlali(kisit, parametreler) {")
+                  "  function onizlemeKisitIhlali(kisit, parametreler, sema) {")
+
+# ---- BOZUK-KOSUL kolunun mutantlari: kod mutasyonu BOZUK BEYAN uzerinde kosulur.
+# Taban beyanla olculemezler (mesru beyanda yeni kol hic konusmaz) — bu yuzden AYRI.
+# (ad, eski, yeni, `eger` satiri, [(vaka, kol, mutantta_beklenen)])
+KOSUL_MUTANTLARI = [
+    ("M4 deger-eslesebilirlik kolu OLDURULDU (yazim hatasi yine sessiz)",
+     "        if (!kosulDegeriEslesebilirMi(tanim, kosul[k])) "
+     "{ return ONIZLEME_KISIT_KOSUL; }",
+     "        if (false) { return ONIZLEME_KISIT_KOSUL; }",
+     '      eger: { urun_tipi: ["civata"] },',
+     [("civata-M3-sayi", "A", "SERBEST"), ("pul-M3", "A", "SERBEST")]),
+    ("M5 `secim` kolu her degeri kabul eder (liste disi deger sizar)",
+     "      if (!Array.isArray(tanim.secenekler)) { return false; }",
+     "      if (!Array.isArray(tanim.secenekler)) { return false; }\n      return true;",
+     '      eger: { urun_tipi: "civata2" },',
+     [("civata-M3-sayi", "A", "SERBEST"), ("pul-M3", "A", "SERBEST")]),
+    ("M6 kosul parametre ADI semaya karsi denetlenmez",
+     "        if (tanimlar && !tanim) { return ONIZLEME_KISIT_KOSUL; }",
+     "        if (false) { return ONIZLEME_KISIT_KOSUL; }",
+     '      eger: { urun_tipii: "civata" },',
+     [("pul-M3", "B", "BLOK-KISIT:cap")]),
+    ("M7 `sayi` kolunda gecerliDegerler listesi okunmaz",
+     "      if (Array.isArray(tanim.gecerliDegerler)) {",
+     "      if (false && Array.isArray(tanim.gecerliDegerler)) {",
+     "      eger: { cap: 7 },",
+     [("pul-M3", "B", "SERBEST")]),
+    ("M8 sema 3. arguman YOK SAYILIR (tip ailesine duser)",
+     "      var tanimlar = semaParametreHaritasi(sema);",
+     "      var tanimlar = null;",
+     "      eger: { urun_tipi: 7 },",
+     [("civata-M3-sayi", "A", "SERBEST"), ("pul-M3", "A", "SERBEST")]),
+]
+KOSUL_KONTROL_MUTANT = (
+    "K2 KONTROL (bozuk beyan kolu): yalniz yorum eklendi",
+    "  function kosulDegeriEslesebilirMi(tanim, deger) {",
+    "  /* kontrol mutanti: anlamsiz yorum */\n"
+    "  function kosulDegeriEslesebilirMi(tanim, deger) {")
 
 
 def main():
@@ -486,6 +639,11 @@ def main():
                       (kol, etiket[kol], vid, beklenenler[kol], aciklama),
                       sonuc.get("hukum") == beklenenler[kol],
                       "olculen=%s" % json.dumps(sonuc, ensure_ascii=False))
+        bloklu = sorted(k for k, v in taban["IZ"].items() if v.get("hukum") == "BLOK")
+        iddia("3z IZGARA %d konfigurasyonda BLOKLU kume TAM OLARAK %s" %
+              (len(IZGARA), IZGARA_BEKLENEN_BLOK),
+              bloklu == IZGARA_BEKLENEN_BLOK and len(taban["IZ"]) == len(IZGARA),
+              "bloklu=%s (olculen=%d)" % (bloklu, len(taban["IZ"])))
 
         print("\n[4] MUTANTLAR (daima KOPYAYA)")
         for sira, (ad, eski, yeni, beklenen_farklar) in enumerate(MUTANTLAR, 1):
@@ -510,8 +668,59 @@ def main():
                        for k in ("S", "A", "B") for v in VAKALAR)
             iddia("4 %s: TUM hukumler DEGISMEDI (batarya asiri duyarli degil)" % ad, ayni,
                   "vaka=%d x 3 kol" % len(VAKALAR))
+
+        # ---------------------------------------------------------- 6) bozuk kosul degeri
+        print("\n[6] `eger` KOSUL DEGERI — yazim hatasi girdiyi SESSIZCE dusuruyor mu")
+        if sec_metni.count(KOSUL_CAPA) != 1:
+            olculemedi("6 KOSUL DEGERI EKSENI",
+                       "`eger` satiri %d kez bulundu (kaynak degismis)" %
+                       sec_metni.count(KOSUL_CAPA))
+        else:
+            for sira, (ad, satir, beklenenler, aciklama) in enumerate(KOSUL_VARYANTLARI, 1):
+                v = varyant_kos(tmp, "kv%d" % sira, sec_metni.replace(KOSUL_CAPA, satir),
+                                sayfa, VAKALAR)
+                for vid, (a_bek, b_bek) in sorted(beklenenler.items()):
+                    for kol, bek in (("A", a_bek), ("B", b_bek)):
+                        s = v[kol][vid]
+                        iddia("6 %s [%s] %s -> %s (%s)" % (kol, ad, vid, bek, aciklama),
+                              s.get("hukum") == bek,
+                              "olculen=%s" % json.dumps(s, ensure_ascii=False))
+
+            print("\n[7] BOZUK-BEYAN KOLUNUN MUTANTLARI (daima KOPYAYA)")
+            for sira, (ad, eski, yeni, satir, farklar) in enumerate(KOSUL_MUTANTLARI, 1):
+                if sec_metni.count(eski) != 1:
+                    olculemedi(ad, "mutasyon capasi %d kez bulundu (kaynak degismis)" %
+                               sec_metni.count(eski))
+                    continue
+                temel = sec_metni.replace(KOSUL_CAPA, satir)
+                tab = varyant_kos(tmp, "km%dt" % sira, temel, sayfa, VAKALAR)
+                mut = varyant_kos(tmp, "km%dm" % sira, temel.replace(eski, yeni),
+                                  sayfa, VAKALAR)
+                for vid, kol, mut_bek in farklar:
+                    t = tab[kol][vid].get("hukum")
+                    m = mut[kol][vid].get("hukum")
+                    iddia("7 %s [%s] mutant OLDU: %s -> %s" % (kol, ad, vid, mut_bek),
+                          m == mut_bek and m != t, "taban=%s mutant=%s" % (t, m))
+            ad, eski, yeni = KOSUL_KONTROL_MUTANT
+            if sec_metni.count(eski) != 1:
+                olculemedi(ad, "kontrol capasi %d kez bulundu" % sec_metni.count(eski))
+            else:
+                bozuk = sec_metni.replace(KOSUL_CAPA, '      eger: { urun_tipi: 7 },')
+                kt = varyant_kos(tmp, "k2t", bozuk, sayfa, VAKALAR)
+                km = varyant_kos(tmp, "k2m", bozuk.replace(eski, yeni), sayfa, VAKALAR)
+                ayni2 = all(km[k][v[0]].get("hukum") == kt[k][v[0]].get("hukum")
+                            for k in ("S", "A", "B") for v in VAKALAR)
+                iddia("7 %s: TUM hukumler DEGISMEDI" % ad, ayni2,
+                      "vaka=%d x 3 kol" % len(VAKALAR))
+
+        # ---------------------------------------------------------- 8) semasiz kol siniri
+        print("\n[8] SEMASIZ KOL SINIRI (docstring fazla iddia etmiyor mu)")
+        for vid, kisit, param, bek, aciklama in semasiz_vakalar():
+            olculen = taban["SEMASIZ"][vid]["ihlal"]
+            iddia("8 sema VERILMEDEN %s -> ihlal=%s (%s)" % (vid, bek, aciklama),
+                  olculen == bek, "olculen=%s" % json.dumps(olculen, ensure_ascii=False))
     except (RuntimeError, ValueError, OSError) as e:
-        olculemedi("3/4 VAKA MATRISI + MUTANTLAR", str(e)[:500])
+        olculemedi("3/4/6/7/8 VAKA MATRISI + MUTANTLAR", str(e)[:500])
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

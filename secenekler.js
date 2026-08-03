@@ -409,26 +409,109 @@
     return false;
   }
 
+  /* `eger` KOSUL DEGERI o parametrenin SEMADAKI tanimiyla ESLESEBILIR MI —
+     yazim hatasi kapisi. Bir kosul degeri semaya gore HICBIR musteri girdisiyle
+     eslesemiyorsa (or. `secim` parametresinde tanimli olmayan bir deger, `sayi`
+     parametresinde sayiya cevrilemeyen bir deger) kosul EBEDIYEN tutmaz ->
+     girdinin beyaz listeleri HIC uygulanmaz -> uretilemez bolge SESSIZCE serbest
+     kalir. Olculdu (3 Agu 2026): `urun_tipi` degeri ["civata"] ya da 7 yazilinca
+     civata-M3 vakasi BLOK'tan SERBEST'e dusuyordu.
+     Sema VERILMEZSE (ucuncu argumansiz eski cagri) tanim yoktur: yalnizca TIP
+     AILESI olculebilir — dizi/nesne/bool/null gibi hicbir parametre degeri
+     olamayan turler yakalanir, YANLIS ama dogru aileden bir deger (secim
+     parametresine yazilmis 7 gibi) YAKALANAMAZ.
+     Doner: true = deger bu tanimla eslesebilir, false = yazim hatasi. */
+  function kosulDegeriEslesebilirMi(tanim, deger) {
+    if (!tanim) {
+      return typeof deger === "string" ||
+             (typeof deger === "number" && isFinite(deger));
+    }
+    var tip = tanim.tip || "sayi";
+    if (tip === "secim") {
+      if (!Array.isArray(tanim.secenekler)) { return false; }
+      for (var i = 0; i < tanim.secenekler.length; i++) {
+        var s = tanim.secenekler[i];
+        if (kisitDegeriEsit((s && typeof s === "object") ? s.deger : s, deger)) {
+          return true;
+        }
+      }
+      return false;
+    }
+    if (tip === "sayi") {
+      var sayi = null;
+      if (typeof deger === "number" && isFinite(deger)) {
+        sayi = deger;
+      } else if (typeof deger === "string" &&
+                 /^-?[0-9]+([.,][0-9]+)?$/.test(deger.trim())) {
+        sayi = parseFloat(deger.trim().replace(",", "."));
+      }
+      if (sayi === null) { return false; }
+      /* Uretim motoru araligin tamamini degil yalniz belirli olculeri destekliyorsa
+         (vida M olculeri) o liste DISI bir kosul degeri de asla eslesemez. */
+      if (Array.isArray(tanim.gecerliDegerler)) {
+        for (var j = 0; j < tanim.gecerliDegerler.length; j++) {
+          if (Math.abs(sayi - tanim.gecerliDegerler[j]) < 1e-9) { return true; }
+        }
+        return false;
+      }
+      return true;
+    }
+    if (tip === "metin") { return typeof deger === "string"; }
+    return false;                      // bilinmeyen tip -> fail-closed
+  }
+
+  /* Semanin parametre tanimlari ad->tanim haritasi; sema yoksa/bozuksa null
+     (o zaman kosul degeri yalniz TIP AILESI olarak olculur). */
+  function semaParametreHaritasi(sema) {
+    if (!sema || typeof sema !== "object" || !Array.isArray(sema.parametreler)) {
+      return null;
+    }
+    var harita = {};
+    for (var i = 0; i < sema.parametreler.length; i++) {
+      var t = sema.parametreler[i];
+      if (t && typeof t === "object" && typeof t.ad === "string") { harita[t.ad] = t; }
+    }
+    return harita;
+  }
+
   /* ONIZLEME kisit beyani IHLAL EDILDI MI — TEK KAYNAK. Urun sayfasi on-kontrolu
      ve onizleme Worker'inin sema kapisi BU fonksiyonu cagirir; ikinci bir
      yorumlayici kod yolu YOK ([[ikiz-tanim-sessiz-ayrisma]]).
+     `sema` (3. argüman, OPSIYONEL) = ailenin parametre semasi; verilirse `eger`
+     kosul degerleri ONA GORE dogrulanir (asagi bak).
      Doner: ihlal edilen parametre adi (metin) ya da null (ihlal yok).
        `eger` YOKSA -> bugunku davranis BIREBIR: her anahtar bir beyaz listedir ve
                        parametre VERILMEMISSE (undefined) o anahtar atlanir.
        `eger` VARSA -> kosul ciftlerinin HEPSI tutuyorsa beyaz listeler uygulanir;
                        biri tutmuyorsa girdi HIC uygulanmaz (null).
-     FAIL-CLOSED: kosul parametresi hic verilmemisse kosul COZULEMEDI sayilir ve
-     beyaz listeler UYGULANIR ("okuyamadim, demek ki kisit yok" bu depoyu isiran
-     fail-open desenidir); kosul blogu ya da beyaz liste BICIMI taninmiyorsa ihlal
-     dondurulur (yazim hatasi sessizce her seyi serbest birakmaz). */
-  function onizlemeKisitIhlali(kisit, parametreler) {
+     FAIL-CLOSED, TAM OLARAK SU KADARI (fazlasi iddia EDILMEZ):
+       1. Kosul parametresi musteri setinde hic verilmemisse kosul COZULEMEDI
+          sayilir ve beyaz listeler UYGULANIR ("okuyamadim, demek ki kisit yok" bu
+          depoyu isiran fail-open desenidir).
+       2. `eger` blogunun ya da bir beyaz listenin BICIMI taninmiyorsa (nesne
+          olmayan kosul blogu / dizi olmayan beyaz liste) ihlal dondurulur.
+       3. Bir `eger` KOSUL DEGERI, `sema` VERILDIGINDE, o parametrenin semadaki
+          tanimiyla hicbir zaman eslesemiyorsa — ya da kosul semada TANIMLI OLMAYAN
+          bir parametre adina yazilmissa — ihlal dondurulur.
+       4. `sema` VERILMEZSE 3. madde TIP AILESI kadar olculur: dizi/nesne/bool/null
+          yakalanir, dogru aileden yanlis deger (secim parametresine yazilmis 7,
+          liste disi bir "civata2") YAKALANMAZ. Bu, sema tasimayan cagri yerinin
+          BILINEN sinirdir; iki canli cagri yeri de semayi TASIR.
+     Beyaz liste (kosul disi anahtar) DEGERLERI bu kapiya girmez: onlarin semaya
+     gore dogru olup olmadigi ayri bir kabul kapisinin ("semadan turetme" ekseni)
+     isidir. */
+  function onizlemeKisitIhlali(kisit, parametreler, sema) {
     if (!kisit || typeof kisit !== "object") { return null; }
     var p = parametreler || {};
     var kosul = kisit[ONIZLEME_KISIT_KOSUL];
     if (kosul !== undefined) {
       if (!kosul || typeof kosul !== "object") { return ONIZLEME_KISIT_KOSUL; }
+      var tanimlar = semaParametreHaritasi(sema);
       for (var k in kosul) {
         if (!Object.prototype.hasOwnProperty.call(kosul, k)) { continue; }
+        var tanim = tanimlar ? tanimlar[k] : null;
+        if (tanimlar && !tanim) { return ONIZLEME_KISIT_KOSUL; }
+        if (!kosulDegeriEslesebilirMi(tanim, kosul[k])) { return ONIZLEME_KISIT_KOSUL; }
         if (p[k] === undefined) { continue; }
         if (!kisitDegeriEsit(kosul[k], p[k])) { return null; }
       }

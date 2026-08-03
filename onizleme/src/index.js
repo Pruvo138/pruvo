@@ -202,9 +202,12 @@ function semaKapisi(aile, p, env) {
   //    bir dongu OLAMAZ: kosullu (`eger`) beyanda `eger` bir beyaz liste DEGILDIR
   //    ve duz Object.entries donsuyle `cap` beyaz listesi KOSULSUZ uygulanirdi ->
   //    uretilebilir mil/somun/pul konfigurasyonlari yanlislikla 400 alirdi.
+  //    3. argüman `sema`: `eger` kosul degerleri SEMAYA gore dogrulanir — hicbir
+  //    girdiyle eslesemeyen bir kosul degeri (yazim hatasi) girdiyi sessizce
+  //    etkisizlestirmez, ihlal olur (fail-closed).
   const kisitlar = (SECENEK.ONIZLEME_KISITLAR || {})[aile];
   if (kisitlar) {
-    const ihlal = SECENEK.onizlemeKisitIhlali(kisitlar, p);
+    const ihlal = SECENEK.onizlemeKisitIhlali(kisitlar, p, sema);
     if (ihlal) {
       return { hataYanit: json({ hata: "onizleme-secenek-kisiti", alan: ihlal }, 400, env) };
     }
