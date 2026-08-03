@@ -79,6 +79,26 @@ jobs:
       - name: "Is akisi bicim kapisi (YAML ayristirma: startup_failure nobetcisi)"
         run: python3 tools/is-akisi-kapisi.py
 
+      # YAYIN ACLIGI KAPISI (3 Agu) — "baslamis bir kosum oldurulup icerigi yayinsiz
+      # kalabilir mi". Ustteki bicim kapisi YAML'in AYRISTIRILABILIRLIGINI olcer; bu kapi
+      # ayni dosyanin ESZAMANLILIK SOZLESMESINI olcer: `concurrency.group` VAR mi,
+      # `cancel-in-progress` FALSE mi, `deploy`->build / `yayin`->deploy zinciri kosulsuz
+      # mu, ve E1'den OKUNAN ayarla art arda push senaryosu kosturuldugunda BASLAMIS her
+      # kosum `deploy`ina ULASIYOR mu.
+      # NEDEN `build` (serit-b DEGIL): dosyanin basindaki 20 satirlik gerekce YORUMDUR;
+      # `cancel-in-progress: true`ya donen tek bir satir OLCULEN icerik kaybini geri
+      # getirir (30 Tem: 7 ardisik iptal, 37,7 dk yayinsiz pencere, o pencerede eklenen
+      # her urun canlida 404). Bloklayici serit, o satirin main'e GIREMEMESIDIR.
+      # Offline, ag ISTEMEZ, dosya YAZMAZ, ~0,3 s.
+      - name: "Yayin acligi kapisi (eszamanlilik sozlesmesi + yayin zinciri + simulasyon)"
+        run: python3 tools/deploy-aclik-kapisi.py
+      # Kapinin KENDI hukmu: 7 simulasyon fiksturu (ikisi KONTROL: seyrek push'ta `true` de
+      # yesildir -> kirmizi bayragin DEGERINDEN degil senaryo DINAMIGINDEN dogar) + 8
+      # mutant (biri KONTROL mutanti). Ustteki adim yesilken bu adim kirmizi ise nobetci
+      # OLMUS demektir ([[mutasyon-kaniti-yeniden-uretilebilir]]).
+      - name: "Yayin acligi kapisi ic nobetci (fikstur + mutasyon bataryasi)"
+        run: python3 tools/deploy-aclik-kapisi.py --kendini-test
+
       - name: Kisisel veri korumasi testi
         run: python3 tools/kisisel-veri-test.py
 

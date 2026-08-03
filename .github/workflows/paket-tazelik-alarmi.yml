@@ -169,3 +169,60 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: dbbe2a8620c3c3a57c586b8a98142fb9
         run: python3 tools/shop-bayatlik-kapisi.py --gh-ozet
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # YAYIN HATTININ NABZI — "yayin ne kadar suredir inmiyor" (3 Agu 2026)
+  # ═══════════════════════════════════════════════════════════════════════════
+  # OLCULEN SESSIZLIK: `tools/yayin-gecikme-nobeti.py` 2 Agu'da yazildi, esikleri 100
+  # kosumluk gercek olcumden turetildi ve TIKALI/ACLIK siniflarini ayirt ediyor — ama
+  # CANLI kolu HICBIR ZAMANLANMIS EVE BAGLANMAMISTI. Tek cagirani `tools/durum.py`
+  # (elle acilan pano) idi; deploy.yml'de yalnizca AGSIZ fikstur kabulu kosuyordu
+  # (tools/yayin-gecikme-test.py, serit B). Sonuc: 3 Agu'da yayin 142,1 dk inmedi ve
+  # bunu soyleyen ilk sey `tools/parite-test.js`'in rc=3'u oldu — yani hattin kendi
+  # nobetcisi degil, BASKA bir kapinin yan hasari. Bu is o kolun EVIDIR.
+  #
+  # 🔴 NEDEN BURADA, deploy.yml'de DEGIL: nobetci deploy.yml'in KENDISINI olcer. Olctugu
+  # hattin icinde kosarsa, hat tikandiginda nobetci de tikanir — tam ihtiyac duyulan
+  # dakikada susar. Ayrica `tools/yayin-gecikme-test.py :: Y4` bu bagimsizligi KOSULAN
+  # bir kapi olarak olcer: canli kol deploy.yml'e baglanirsa O TEST KIRMIZI YANAR.
+  # Bu dosyanin "yayini durduramaz" uc sarti (push/pull_request/workflow_call yok,
+  # `needs:` bagi yok, ayri concurrency grubu) bu is icin de AYNEN gecerlidir.
+  #
+  # 🔴 `tazelik` ISINE EKLENMEDI, AYRI IS: ayni ise eklenseydi yayin gecikmesi olcumu,
+  # ondan onceki fiyat/nesil adimlarinin kirmizisinda ATLANIRDI (GitHub `if:`e ortuk
+  # `success()` ekler — bu dosyada 3 Agu'da bir kez OLCULEN tuzak). Ayri is = iki ariza
+  # sinifi birbirini SESSIZE ALAMAZ ([[hukum-yanlis-birimde]]).
+  yayin-nabzi:
+    runs-on: ubuntu-latest
+    # `actions: read` — kosum/is gecmisi API'si. Is duzeyinde verilir, is akisi duzeyindeki
+    # `contents: read` genisletilmez (en dar yetki).
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Bu is DEPO ICERIGINI degil GITHUB API'sini olcer; yerel agac yalniz betikleri
+      # tasir, o yuzden `tazelik` isindeki "uca tazele" adimina IHTIYAC YOKTUR.
+      #
+      # HUKUM ESLEMESI BEYAN EDILMISTIR (cikis kodu kabukta YUTULMAZ — o yazim beyansiz
+      # fail-open sayilir, is-akisi-kapisi Bolum D): `--alarm` bayragi YALNIZ GECIKME
+      # (rc 1 = UYARI, olculen tabanda 40 dongunun 4'u asar) icin rc 0 dondurur; sinif
+      # adi ve gerekce HER HALUKARDA basilir. OLCULEMEDI (2) · TIKALI (3) · ACLIK (4)
+      # kendi cikis koduyla kosumu KIRMIZI yakar ve GitHub bildirimi duser.
+      - name: "Olcum — yayin gecikmesi / tikanma / aclik (deploy.yml hattinin nabzi)"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/yayin-gecikme-nobeti.py --alarm
+      # AYRI EKSEN, `always()`: ustteki "icerik ne kadar bayat" der; bu "iptallerin SINIFI
+      # ne" der. 3 Agu'daki yanlis teshis tam bu ayrimda dogdu: kuyrukta iptal (jobs bos,
+      # ZARARSIZ — main dogrusaldir) ile CALISIRKEN iptal (aclik) raporda ikisi de
+      # `cancelled` gorunur. `cancel-in-progress: false` altinda CALISIRKEN iptal
+      # OLMAMALIDIR; olursa ayar geri alinmis ya da kosumlar elle iptal ediliyordur.
+      - name: "Olcum — iptal siniflari (kuyrukta mi CALISIRKEN mi; E4 canli eksen)"
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tools/deploy-aclik-kapisi.py --canli
