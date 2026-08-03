@@ -1,5 +1,1105 @@
 [
   {
+    "id": "suzuki-motosiklet-yag-dolum-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki"
+    ],
+    "baslik": "Suzuki Motosiklet Yağ Dolum Kapağı",
+    "aciklama": "Suzuki motosikletlerin karter yağ dolum ağzına takılan dişli kapaktır.\nOrijinal kapak kaybolduğunda ya da contası dağıldığında aynı dişe oturur, yağın sıçramasını ve toz girişini keser.\nDiş yüzeyinin sağlam çıkması için ısıya dayanıklı sert malzemeden yavaş üretilir.\nYaklaşık dış ölçüler: 26 × 26 × 23 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3150460-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3150460-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3150460-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3150460-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chinholdkid",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-alto-anahtar-govdesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Alto"
+    ],
+    "baslik": "Suzuki Alto Anahtar Gövdesi",
+    "aciklama": "Suzuki Alto uzaktan kumandalı aracın kırılan anahtar gövdesinin yerine geçen iki parçalı kabuktur.\nOrijinal elektronik kart, pil ve metal anahtar dilinin tamamı içine aktarılır; kapak baskı sonrası klipsle kapanır.\nOtomobil ve motosiklet anahtarlarının aynı tip gövdesinde de kullanılabilir.\nYaklaşık dış ölçüler: 49 × 38 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1149172-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1149172-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1149172-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Phillipnielsen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-teyp-cerceve-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny"
+    ],
+    "baslik": "Suzuki Jimny Teyp Çerçeve Adaptörü",
+    "aciklama": "Suzuki Jimny konsoluna satış sonrası teyp/multimedya ünitesi takarken boşluğu kapatan geçiş çerçevesidir.\nOrijinal konsol kesitine oturur, ünitenin yuvasını ortalar ve kenarlarda açık kalan aralığı gizler.\nKabin sıcaklığına dayanması için ısıya dirençli sert malzemeden üretilmesi önerilir.\nYaklaşık dış ölçüler: 193 × 107 × 13 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1718579-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1718579-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1718579-3.jpg",
+      "https://media.pruvo3d.com/urunler/th1718579-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "shaip",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-drz400-sm-arka-disk-korumasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "baslik": "Suzuki DR-Z400 SM Arka Fren Diski Koruması",
+    "aciklama": "Suzuki DR-Z400 SM modelinin arka fren diskini taş ve çarpma darbelerinden koruyan takviyeli kapaktır.\nOrijinaline göre daha kalın kesitlidir; standart cıvata deliklerinden salıncağa doğrudan bağlanır.\nDaha küçük disk kullanan S modelinde delik aralığı kontrol edilmelidir.\nYaklaşık dış ölçüler: 153 × 106 × 30 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th76462-1.jpg",
+      "https://media.pruvo3d.com/urunler/th76462-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "engrkris",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-sibop-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki"
+    ],
+    "baslik": "Suzuki Sibop Kapağı",
+    "aciklama": "Lastik sibobunun ucuna vidalanan altıgen başlı kapaktır.\nSibop dişini çamur ve nemden korur, hava kaçağına karşı ikinci bir sızdırmazlık yüzeyi oluşturur.\nYüzeyinde marka yazısı ya da amblem bulunmaz; düz altıgen gövdedir.\nYaklaşık dış ölçüler: 16 × 14 × 12 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2102327-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2102327-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ropa26",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-sv650-vites-pedali-lastigi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "SV650"
+    ],
+    "baslik": "Suzuki SV650 Vites Pedalı Koruma Lastiği",
+    "aciklama": "Suzuki SV650 vites pedalının ucuna geçirilen yumuşak koruma kılıfıdır.\nBot burnunun pedalla doğrudan sürtünmesini keser, ayakkabının çizilmesini ve pedalın aşınmasını önler.\nEsnek malzemeden üretilir ve pedala tam sıkı geçer.\nYaklaşık dış ölçüler: 42 × 25 × 25 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2263866-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2263866-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2263866-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Lunicorn-x64",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-boulevard-kurukafa-sinyal-cami",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "Boulevard",
+      "Volusia"
+    ],
+    "baslik": "Suzuki Boulevard Kurukafa Sinyal Camı",
+    "aciklama": "Suzuki Boulevard M50 / C50 ve VL800 Volusia modellerinin sinyal lambası camının yerine geçen kurukafa formlu lenstir.\nOrijinal lens yuvasına aynı geçme ile oturur, ampul ışığını öne ve yana dağıtır.\nSaydam malzemeden üretilir; ışığın geçmesi için duvar kalınlığı ince tutulmuştur.\nYaklaşık dış ölçüler: 81 × 72 × 46 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5447072-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5447072-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5447072-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5447072-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "chrisoo",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-koltuk-yatirma-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny"
+    ],
+    "baslik": "Suzuki Jimny Koltuk Yatırma Kolu",
+    "aciklama": "Suzuki Jimny ön koltuk sırtlığını öne yatırmaya yarayan kolun yedeğidir.\nOrijinali kırıldığında aynı mil yuvasına geçer, kol boyu ve tırnak açısı orijinalle birebirdir.\nSık kullanılan bir parça olduğu için yüksek doluluk oranıyla üretilmesi önerilir.\nYaklaşık dış ölçüler: 50 × 35 × 35 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2102294-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2102294-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2102294-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ropa26",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-sv650-far-tutucu-braket-takimi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "SV650"
+    ],
+    "baslik": "Suzuki SV650 Far Tutucu Braket Takımı",
+    "aciklama": "Suzuki SV650 naked modelinde satış sonrası yuvarlak far takarken kullanılan taşıyıcı braket takımıdır.\nOrijinal çatal braketine cıvatalanır, farı gidonun altında ortalar ve yükseklik ayarına imkân verir.\nTakım iki yan destek ve bir ara burçtan oluşur.\nYaklaşık dış ölçüler: 115 × 73 × 23 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th161627-1.jpg",
+      "https://media.pruvo3d.com/urunler/th161627-2.jpg",
+      "https://media.pruvo3d.com/urunler/th161627-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DanMoto",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-rm80-rm85-numara-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "RM80",
+      "RM85"
+    ],
+    "baslik": "Suzuki RM80 / RM85 Ön Numara Plakası",
+    "aciklama": "70'li yıllardan 90'lara kadarki Suzuki RM80 ve RM85 kros motosikletlerinin ön numara plakasıdır.\nOrijinal bağlantı noktalarına oturur; ön yüzü, yarış numarasının altına gelen dekoratif bir yüzey rölyefi taşır.\nDüşmelerde esneyip kırılmaması için tok bir malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 248 × 241 × 44 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3485157-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3485157-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "JeenyusPete",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-drz400-catal-korugu-tutucusu-sol",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "baslik": "Suzuki DR-Z400 Çatal Körüğü Tutucusu (Sol)",
+    "aciklama": "Suzuki DR-Z400 ön çatalının kauçuk körüğünü yerinde tutan sol taraf kelepçesidir.\nÇatal borusuna kavrar, körüğün aşağı kaymasını ve içeri toz girmesini engeller.\nDayanım için tam dolulukla üretilmesi önerilir.\nYaklaşık dış ölçüler: 96 × 40 × 33 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3779647-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3779647-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3779647-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3779647-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ZTolerance",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-grand-vitara-cam-suyu-deposu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Grand Vitara"
+    ],
+    "baslik": "Suzuki Grand Vitara Cam Suyu Deposu Kapağı",
+    "aciklama": "Suzuki Grand Vitara 1998-2005 cam yıkama suyu deposunun doldurma ağzına takılan kapaktır.\nKapağa bağlı bilezik depo boynuna geçer, böylece kapak açıldığında motor bölmesine düşmez.\nÜst yüzeyinde yalnız cam yıkama sembolü kabartması bulunur.\nYaklaşık dış ölçüler: 198 × 67 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2827821-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2827821-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2827821-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Pedro51",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-drz-rm-debriyaj-kolu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z",
+      "RM"
+    ],
+    "baslik": "Suzuki DR-Z / RM Debriyaj Kolu",
+    "aciklama": "Suzuki DR-Z ve RM serisi gidon debriyaj kolunun yedeğidir.\nOrijinal mil ve tel yuvasına oturur; kol boyu ve kavis, standart Suzuki gidon bağlantısına göre biçimlendirilmiştir.\nEsneme olmaması için sert malzemeden ve yüksek dolulukla üretilmesi önerilir.\nYaklaşık dış ölçüler: 158 × 46 × 14 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1474491-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1474491-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MagicSquirrel",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-jb74-hoparlor-ara-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny",
+      "JB74"
+    ],
+    "baslik": "Suzuki Jimny JB74 Ön Kapı Hoparlör Ara Halkası",
+    "aciklama": "2019 ve sonrası Suzuki Jimny ön kapılarına daha büyük hoparlör takmaya yarayan ara halkadır.\nOrijinal hoparlör yuvasına vidalanır, 13 cm sınıfı hoparlörü kapı sacından uzaklaştırıp derinlik kazandırır.\nSol ve sağ kapıda aynı parça kullanılır.\nYaklaşık dış ölçüler: 150 × 150 × 17 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4165335-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4165335-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4165335-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4165335-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "meaargee",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-sumitomo-tipi-kablo-soketi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "SV650"
+    ],
+    "baslik": "Suzuki Sumitomo Tipi Kablo Soket Gövdesi",
+    "aciklama": "Suzuki SV650 elektrik tesisatında kullanılan Sumitomo HM tipi soketin gövde yedeğidir.\nOrijinal metal terminaller içine geçer, kilit tırnağı karşı sokete oturarak bağlantıyı titreşime karşı tutar.\nErkek ve dişi gövde birlikte üretilebilir.\nYaklaşık dış ölçüler: 30 × 16 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th469542-1.jpg",
+      "https://media.pruvo3d.com/urunler/th469542-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "bula87",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-intruder-c800-telefon-tutucu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "Intruder"
+    ],
+    "baslik": "Suzuki Intruder C800 Telefon / Navigasyon Tutucusu",
+    "aciklama": "Suzuki Intruder C800 gidonuna bağlanan telefon ve navigasyon tutucusudur.\nGidon borusunu kelepçeyle kavrar, cihazı sürücünün görüş hattında sabit tutar ve titreşimi azaltır.\nKelepçe cıvataları ürüne dahil değildir.\nYaklaşık dış ölçüler: 80 × 76 × 67 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th437091-1.jpg",
+      "https://media.pruvo3d.com/urunler/th437091-2.jpg",
+      "https://media.pruvo3d.com/urunler/th437091-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "RenatoT",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-vitara-sidekick-anahtar-kor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Vitara",
+      "Sidekick"
+    ],
+    "baslik": "Suzuki Vitara / Sidekick Düğme Kör Kapağı",
+    "aciklama": "Suzuki Vitara, Sidekick ve aynı gövdeli modellerin gösterge paneli düğme yuvasını kapatan kör plakadır.\nBoş kalan yuvaya klipsle oturur, paneldeki açıklığı kapatarak toz girişini önler.\nDüğme eklenmek istendiğinde kapak sökülüp yerine anahtar takılabilir.\nYaklaşık dış ölçüler: 45 × 28 × 15 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4499200-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4499200-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4499200-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4499200-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "jhsevs",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-vitara-1999-dugme-kor-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Vitara"
+    ],
+    "baslik": "Suzuki Vitara 1999 Düğme Kör Kapağı",
+    "aciklama": "1999 model Suzuki Vitara konsolunda kullanılmayan anahtar yuvasını kapatan kör kapaktır.\nYan tırnaklarıyla yuvaya kilitlenir; ek far ya da sis anahtarı takıldığında sökülüp yerine düğme geçirilebilir.\nKonsol yüzeyiyle aynı hizada durur.\nYaklaşık dış ölçüler: 36 × 24 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2818969-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2818969-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2818969-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2818969-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "XVavron",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-v-strom-gaz-kilidi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "V-Strom"
+    ],
+    "baslik": "Suzuki V-Strom Gaz Kilidi (Hız Sabitleyici)",
+    "aciklama": "Suzuki V-Strom 1000 gidonuna takılan mekanik gaz kilididir.\nGaz kolunu istenen açıklıkta tutar, uzun yolda bileğin sürekli gaz tutma yükünü ortadan kaldırır.\nDişli tekerlek ve kelepçeli kol olmak üzere iki parça hâlinde üretilir.\nYaklaşık dış ölçüler: 126 × 63 × 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5390737-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5390737-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5390737-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "OliWally",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-dr200-kilometre-tahrik-dislisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR200",
+      "Djebel"
+    ],
+    "baslik": "Suzuki DR200 / Djebel Kilometre Tahrik Dişlisi",
+    "aciklama": "Suzuki DR200 (Djebel 200) ön tekerlek göbeğindeki kilometre saati tahrik dişlisinin yedeğidir.\nDişli profili orijinalle aynıdır; DR250 ve DR650SE gibi aynı göbeği kullanan modellerde de çalışır.\nAşınmaya dayanması için tam dolulukla ve sert malzemeyle üretilmesi önerilir.\nYaklaşık dış ölçüler: 46 × 28 × 17 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2932117-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2932117-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Erop",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-2019-file-cubugu-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny"
+    ],
+    "baslik": "Suzuki Jimny 2019 Tavan Filesi Çubuk Tutucusu",
+    "aciklama": "2019 ve sonrası Suzuki Jimny kabin tavanına bagaj filesi germek için alüminyum çubuk taşıyan tutucudur.\nOrijinal tavan tutamaklarının vida noktalarına takılır; tutamak yerine ince alüminyum çubuk geçirilir.\nBir araç için dört adet gerekir.\nYaklaşık dış ölçüler: 57 × 31 × 31 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4676627-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4676627-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4676627-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4676627-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Vince94520",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-wagon-r-cam-suyu-deposu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Wagon R"
+    ],
+    "baslik": "Suzuki Wagon R+ Cam Suyu Deposu Kapağı",
+    "aciklama": "Suzuki Wagon R+ cam yıkama suyu deposunun kapağıdır.\nDeponun boyun bileziğine bağlı kalır, kapak açıldığında motor bölmesine düşmez; ağzı tam kapatarak sıçramayı keser.\nEsnek malzemeden üretildiğinde ağza daha sıkı oturur.\nYaklaşık dış ölçüler: 130 × 47 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2729716-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2729716-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2729716-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2729716-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TaylorH72",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-swift-kaput-cubugu-tutucusu-mz-ez",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Swift"
+    ],
+    "baslik": "Suzuki Swift MZ / EZ Kaput Çubuğu Tutucusu",
+    "aciklama": "Suzuki Swift MZ/EZ kasa kaput istinat çubuğunu yerinde tutan plastik tutucudur.\nOrijinali kırıldığında aynı yuvaya geçer, çubuğu kaput altında sabitler ve seyir hâlinde takırtıyı keser.\nMotor bölmesi sıcaklığına dayanan malzeme önerilir.\nYaklaşık dış ölçüler: 19 × 16 × 16 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3344749-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3344749-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3344749-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3344749-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "basalt1987",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-dl650-v-strom-sinyal-klipsi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DL650",
+      "V-Strom"
+    ],
+    "baslik": "Suzuki DL650 V-Strom Sinyal Gövdesi Klipsi",
+    "aciklama": "Suzuki DL650 V-Strom sinyal lambası gövdesini sapına kilitleyen küçük klipstir.\nSinyal gövdesi değiştirilirken çoğu kez kaybolan bu parça, gövdenin sapa oturup dönmeden durmasını sağlar.\nBir motosiklette dört adet kullanılır.\nYaklaşık dış ölçüler: 37 × 13 × 6 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4552316-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4552316-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4552316-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mhprogrammer",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-samurai-sj413-gosterge-paneli-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Samurai",
+      "SJ413"
+    ],
+    "baslik": "Suzuki Samurai SJ413 Gösterge Paneli Kapağı",
+    "aciklama": "Suzuki Samurai SJ413 gösterge panelinin üst boşluğunu kapatan ve ek anahtar takmaya elverişli kapaktır.\nOrijinal panel kesitine oturur; üzerine kumanda anahtarları için delik açılabilir.\nGüneşte deforme olmaması için ısıya dayanıklı malzeme önerilir.\nYaklaşık dış ölçüler: 30 × 23 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4809008-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4809008-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4809008-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4809008-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "et_Chrissieleinchen",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-swift-tavan-cubugu-baglanti-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Swift"
+    ],
+    "baslik": "Suzuki Swift Tavan Çubuğu Bağlantı Kapağı",
+    "aciklama": "Suzuki Swift 3 ve benzeri gövdelerde tavan bagaj çubuğu bağlantısını örten kapaktır.\nKaybolan orijinal kapağın yerine geçer; çubuk ayağının vida yuvasını ve boşluğunu kapatarak rüzgâr uğultusunu azaltır.\nDış yüzeyi orijinaldeki gibi hafif kavislidir.\nYaklaşık dış ölçüler: 115 × 18 × 5 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3776069-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3776069-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3776069-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3776069-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "DonJuanito",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-kul-tablasi-cekmecesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny"
+    ],
+    "baslik": "Suzuki Jimny Kül Tablası Çekmecesi",
+    "aciklama": "1998 model Suzuki Jimny konsolundaki kül tablası çekmecesinin yedeğidir.\nOrijinal ray yuvasına kayarak girer; bozuk para, kart ve küçük eşya saklamak için kullanılabilir.\nÖn yüzü orijinal konsol hattıyla aynı hizada kapanır.\nYaklaşık dış ölçüler: 120 × 115 × 60 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1908909-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1908909-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GeorgeVWP",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-rm125-gaz-kelepcesi-makarasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "RM125"
+    ],
+    "baslik": "Suzuki RM125 Gaz Makarası (Throttle Tube)",
+    "aciklama": "1978 model Suzuki RM125 gidonundaki gaz makarasının yedeğidir.\nGidon borusu üzerinde döner, gaz telinin ucunu yuvasında tutar ve gaz açıklığını kelepçe gövdesine aktarır.\nBu parçanın orijinali artık kolay bulunamadığı için kros restorasyonlarında kullanılır.\nYaklaşık dış ölçüler: 124 × 48 × 46 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2787623-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2787623-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2787623-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "tnum",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-ic-dikiz-aynasi-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny"
+    ],
+    "baslik": "Suzuki Jimny İç Dikiz Aynası Kilit Burcu",
+    "aciklama": "Suzuki Jimny iç dikiz aynasını tavan ayağına kilitleyen plastik burçtur.\nEskiyen burç yüzünden sarkan ve titreşimde oynayan aynayı yeniden sıkı tutar.\nAyna sökülüp burç değiştirildikten sonra aynı vidayla kapatılır.\nYaklaşık dış ölçüler: 20 × 20 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3131182-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3131182-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3131182-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "shaip",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-yag-filtresi-anahtari-68-14",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "Burgman"
+    ],
+    "baslik": "Suzuki Yağ Filtresi Anahtarı (68 mm / 14 Köşe)",
+    "aciklama": "Suzuki Burgman AN-650 ve aynı ölçüdeki filtreleri sökmeye yarayan kap tipi filtre anahtarıdır.\nOn dört köşeli iç profil filtre başlığını kavrar; üst yüzeydeki kare yuvaya standart lokma kolu takılır.\nÇekme sırasında dağılmaması için tam dolulukla üretilmesi önerilir.\nYaklaşık dış ölçüler: 82 × 82 × 55 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2776354-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2776354-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2776354-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2776354-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "brenato",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-dl650-v-strom-navigasyon-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DL650",
+      "V-Strom"
+    ],
+    "baslik": "Suzuki DL650 V-Strom Navigasyon Tutucusu",
+    "aciklama": "2012-2014 Suzuki DL650 V-Strom için gösterge üstüne bağlanan navigasyon ve telefon taşıyıcısıdır.\nOrijinal cam bağlantı noktalarına cıvatalanır; ikinci sürümde arka yüze takviye kaburgaları eklenmiştir.\nCihaz kelepçesi ürüne dahil değildir.\nYaklaşık dış ölçüler: 200 × 168 × 16 mm.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4129974-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4129974-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4129974-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4129974-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gery2018",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-samurai-ic-kapi-kolu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Samurai"
+    ],
+    "baslik": "Suzuki Samurai İç Kapı Açma Kolu",
+    "aciklama": "Suzuki Samurai iç kapı açma kolunun yedeğidir.\nOrijinal mil ve mandal bağlantısına oturur; sürücü ve yolcu tarafı için aynı parçadan ikişer adet üretilebilir.\nKabin sıcaklığına dayanması için ısıya dirençli sert malzeme önerilir.\nYaklaşık dış ölçüler: 98 × 60 × 22 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4922175-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4922175-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4922175-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "aapocasangre",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-2007-orta-konsol-bardakligi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny"
+    ],
+    "baslik": "Suzuki Jimny 2007 Orta Konsol Bardaklık Ünitesi",
+    "aciklama": "2007 model Suzuki Jimny koltuk arası ve el freni altındaki boşluğu değerlendiren konsol ünitesidir.\nBardak yuvası, telefon gözü ve küçük eşya bölmesi tek parçada birleşir; boşluğa oturarak kaymadan durur.\nGüneş altında formunu koruması için ısıya dayanıklı malzeme önerilir.\nYaklaşık dış ölçüler: 234 × 150 × 63 mm.",
+    "fiyat": "750 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6244081-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6244081-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6244081-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "elraf3ie",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-jb64-koltuk-basligi-tutucusu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny",
+      "JB64"
+    ],
+    "baslik": "Suzuki Jimny JB64 Koltuk Başlığı Askı Tutucusu",
+    "aciklama": "Suzuki Jimny JB64 ön koltuk başlığı millerine takılan çok amaçlı taşıyıcı çubuktur.\nBaşlık millerinin arasına oturur, arka yolcu için askı ve bagaj filesi bağlama noktası oluşturur.\nHer tutucu için iki adet altıgen başlı cıvata gerekir.\nYaklaşık dış ölçüler: 220 × 40 × 30 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5179676-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5179676-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5179676-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Kykyryzko",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-swift-radyator-yedek-su-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Swift"
+    ],
+    "baslik": "Suzuki Swift Radyatör Yedek Su Deposu Kapağı",
+    "aciklama": "Suzuki Swift radyatör genleşme (yedek su) deposunun kapağıdır.\nDepo ağzına dişle oturur; orijinaldeki gibi taşma borusu çıkıntısı ve sızdırmazlık kanalı bulunur.\nSıcak antifrize dayanan malzemeden üretilmesi önerilir.\nYaklaşık dış ölçüler: 32 × 27 × 9 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2562073-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2562073-2.jpg"
+    ]
+  },
+  {
+    "id": "suzuki-drz400e-led-far-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "baslik": "Suzuki DR-Z400E LED Far Adaptörü",
+    "aciklama": "Suzuki DR-Z400E orijinal farının yerine 4x6 ölçüsünde LED modül takmayı sağlayan geçiş adaptörüdür.\nOrijinal ayar cıvatalarından biri yerinde kalır, böylece far yüksekliği eskisi gibi ayarlanabilir.\nFar maskesinin iç kesitine oturacak şekilde biçimlendirilmiştir.\nYaklaşık dış ölçüler: 110 × 90 × 34 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4714598-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4714598-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4714598-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4714598-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "MrStas",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-jb74-bardaklik",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny",
+      "JB74"
+    ],
+    "baslik": "Suzuki Jimny JB74 Bardaklık",
+    "aciklama": "Düz vitesli Suzuki Jimny JB74 orta konsoluna oturan bardaklıktır.\nVites kolunun yanındaki boşluğu kullanır, bardağı sürüş sırasında devrilmeyecek şekilde kavrar.\nKüçük tablalı yazıcılar için ikiye bölünmüş sürümü de vardır.\nYaklaşık dış ölçüler: 225 × 165 × 52 mm.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6868135-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6868135-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6868135-3.jpg",
+      "https://media.pruvo3d.com/urunler/th6868135-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gamboots",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-kilometre-tahrik-yuvasi-tapasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "baslik": "Suzuki Kilometre Tahrik Yuvası Tapası",
+    "aciklama": "Suzuki DR-Z400S ön tekerlek göbeğinde mekanik kilometre tahriki söküldüğünde açık kalan yuvayı kapatan tapadır.\nDijital gösterge takıldıktan sonra göbeğin içine su ve toz girmesini engeller.\nOrijinal tahrik kutusunun yerine aynı geçme ile oturur.\nYaklaşık dış ölçüler: 18 × 18 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1854979-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1854979-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1854979-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "pbzJ",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-v-strom-650-garmin-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "V-Strom"
+    ],
+    "baslik": "Suzuki V-Strom 650 Garmin Navigasyon Tutucusu",
+    "aciklama": "Suzuki V-Strom 650 gösterge üstüne Garmin Nüvi sınıfı navigasyon takmaya yarayan tutucudur.\nOrijinal cam bağlantı noktalarına doğrudan cıvatalanır, cihazı sürücünün görüş hattında sabitler.\nCihaz yuvası kayar kızak biçimindedir; navigasyon tek hareketle çıkarılabilir.\nYaklaşık dış ölçüler: 118 × 92 × 58 mm.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3078573-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3078573-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3078573-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "ZRoblek",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-hoparlor-adaptor-halkasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny"
+    ],
+    "baslik": "Suzuki Jimny Hoparlör Adaptör Halkası",
+    "aciklama": "Suzuki Jimny ön kapılarına dört vidalı 13 cm hoparlör takmayı sağlayan adaptör halkasıdır.\nOrijinal kapı yuvasına oturur, hoparlörü sacdan uzaklaştırarak mıknatısın kapı mekanizmasına değmesini önler.\nİki farklı kalınlıkta üretilebilir.\nYaklaşık dış ölçüler: 150 × 150 × 20 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6310617-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6310617-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "TeamArmyTrucks",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-drz400-hava-kutusu-tel-kafesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "baslik": "Suzuki DR-Z400 Hava Kutusu Kafesli Kapağı",
+    "aciklama": "Suzuki DR-Z400 hava kutusuna açılan büyük giriş deliğini kapatan kafesli çerçevedir.\nHava akışını kısmadan çamur, taş ve kaba kirin filtreye ulaşmasını engeller.\nKesim kenarları düzeltildikten sonra kutuya yapıştırılarak takılır.\nYaklaşık dış ölçüler: 95 × 94 × 7 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4806553-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4806553-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4806553-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "LDG92",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-sj413-kapi-kilit-dugmesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "SJ413"
+    ],
+    "baslik": "Suzuki SJ413 Kapı Kilit Düğmesi",
+    "aciklama": "Suzuki SJ413 kapı iç panelinden çıkan kilit düğmesinin (mandal pimi) yedeğidir.\nKilit çubuğunun dişli ucuna vidalanır; başlığın çapı parmakla rahat çekilecek biçimde tutulmuştur.\nHer kapı için bir adet gerekir.\nYaklaşık dış ölçüler: 38 × 13 × 13 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th987980-1.jpg",
+      "https://media.pruvo3d.com/urunler/th987980-2.jpg",
+      "https://media.pruvo3d.com/urunler/th987980-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "madthindle",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-dl650-sv650-karter-tapasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DL650",
+      "SV650"
+    ],
+    "baslik": "Suzuki DL650 / SV650 Karter Muayene Tapası",
+    "aciklama": "Suzuki DL650 ve SV650 motor karterindeki muayene ağzını kapatan dişli tapadır; orijinal karşılığı 09259-26011'dir.\nİç altıgen yuvası sayesinde alyan anahtarla sıkılır, O-ring kanalıyla sızdırmazlık sağlanır.\nYağa ve sıcağa dayanıklı malzemeden üretilmesi önerilir.\nYaklaşık dış ölçüler: 36 × 36 × 14 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5319463-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5319463-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5319463-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "beanzapper",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-samurai-yan-sinyal-reflektor-yuvasi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Samurai",
+      "SJ413"
+    ],
+    "baslik": "Suzuki Samurai / SJ413 Yan Sinyal Reflektör Yuvası",
+    "aciklama": "Suzuki Samurai ve SJ413 ön çamurluğundaki yan işaret lambasının içine giren reflektör yuvasıdır.\nLED ampule geçildiğinde zayıflayan ışığı toplayıp lense yansıtır; 194 tip duy yuvasına oturur.\nSol ve sağ tarafta aynı parça kullanılır.\nYaklaşık dış ölçüler: 100 × 44 × 18 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3318905-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3318905-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3318905-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "T_Tank",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-drz400-hava-kutusu-kesim-cercevesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z400"
+    ],
+    "baslik": "Suzuki DR-Z400 Hava Kutusu Kesim Çerçevesi",
+    "aciklama": "Suzuki DR-Z400 hava kutusuna açılan giriş deliğinin kenarını kapatan bitirme çerçevesidir.\nKesilen sacın keskin kenarını örter, kapağın düzgün oturmasını ve sızdırmamasını sağlar.\nKutuya yapıştırılarak ya da mevcut vida noktalarından sabitlenerek takılır.\nYaklaşık dış ölçüler: 89 × 88 × 62 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2829052-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2829052-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Keddy",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-dl650-yan-sehpa-genisletici",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DL650",
+      "V-Strom"
+    ],
+    "baslik": "Suzuki DL650 V-Strom Yan Sehpa Genişletici",
+    "aciklama": "2012-2014 Suzuki DL650 V-Strom yan sehpasının tabanına eklenen genişletme pabucudur.\nTemas alanını büyüterek motosikletin yumuşak zeminde batmasını önler; üç adet M6 cıvatayla sehpaya bağlanır.\nBoşluğu almak için araya ince bir kauçuk conta konulabilir.\nYaklaşık dış ölçüler: 119 × 68 × 8 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4347773-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4347773-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4347773-3.jpg",
+      "https://media.pruvo3d.com/urunler/th4347773-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "gery2018",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-grand-vitara-tavan-cubugu-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Grand Vitara"
+    ],
+    "baslik": "Suzuki Grand Vitara Tavan Çubuğu Kapağı",
+    "aciklama": "Suzuki Grand Vitara tavan bagaj çubuğu ayağının üstünü örten kapaktır.\nKaybolan orijinalin yerine tırnaklarıyla geçer, vida başını ve boşluğu kapatarak suyun içeri sızmasını engeller.\nGüneşe dayanıklı malzemeden ve tam dolulukla üretilmesi önerilir.\nYaklaşık dış ölçüler: 36 × 36 × 10 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th2931519-1.jpg",
+      "https://media.pruvo3d.com/urunler/th2931519-2.jpg",
+      "https://media.pruvo3d.com/urunler/th2931519-3.jpg",
+      "https://media.pruvo3d.com/urunler/th2931519-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "mars3dx",
+      "tur": "GPL"
+    }
+  },
+  {
+    "id": "suzuki-vitara-cam-suyu-fiskiyesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Vitara",
+      "Sidekick"
+    ],
+    "baslik": "Suzuki Vitara Cam Suyu Fıskiyesi",
+    "aciklama": "1988-1995 Suzuki Vitara ve Sidekick kaputundaki cam yıkama fıskiyesinin yedeğidir.\nOrijinal deliğe geçer, hortum ucu arkadan takılır ve su püskürtme deliği ön cama yönlendirilir.\nSistemde çek valf bulunmadığından ilk çalıştırmada hava basması normaldir.\nYaklaşık dış ölçüler: 32 × 20 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3676519-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3676519-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3676519-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "truten23",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-gsx-r-ayna-adaptor-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "GSX-R"
+    ],
+    "baslik": "Suzuki GSX-R Ayna Adaptör Plakası",
+    "aciklama": "Suzuki GSX-R 600 ve 750 (2000 sonrası) grenajına sinyalli satış sonrası ayna takmaya yarayan geçiş plakasıdır.\nOrijinal ayna deliklerine oturur, farklı vida aralığındaki aynayı boşluksuz taşır.\nBir motosiklet için sağ ve sol olmak üzere iki adet gerekir.\nYaklaşık dış ölçüler: 90 × 86 × 4 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th1694882-1.jpg",
+      "https://media.pruvo3d.com/urunler/th1694882-2.jpg",
+      "https://media.pruvo3d.com/urunler/th1694882-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "viper2097",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-drz250-kontak-govdesi-yuvasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR-Z250",
+      "Djebel"
+    ],
+    "baslik": "Suzuki DR-Z250 Kontak Gövdesi Yuvası",
+    "aciklama": "Suzuki DR-Z250, Djebel ve DR serisinde kontak kilidini gidon bölgesine taşıyan taşıyıcı yuvadır.\nKontak gövdesini yuvarlak yatağına oturtur, kelepçe kısmıyla gidon boğazına bağlanır.\nSağlam durması için yüksek doluluk ve ince katman yüksekliği önerilir.\nYaklaşık dış ölçüler: 70 × 62 × 42 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th3106865-1.jpg",
+      "https://media.pruvo3d.com/urunler/th3106865-2.jpg",
+      "https://media.pruvo3d.com/urunler/th3106865-3.jpg",
+      "https://media.pruvo3d.com/urunler/th3106865-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "GNOBLIN",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-jimny-filtre-kapagi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny"
+    ],
+    "baslik": "Suzuki Jimny Polen Filtresi Kapağı",
+    "aciklama": "2010 model Suzuki Jimny kabin filtresi yuvasını kapatan uzun kapaktır.\nFiltre yuvasının ağzına kayarak girer, tırnaklarıyla kilitlenir ve torpido altından hava kaçağını keser.\nKapak sökülmeden filtre değişimi yapılamaz; bu nedenle tırnak kesiti tok bir malzemeyle üretilmelidir.\nYaklaşık dış ölçüler: 198 × 31 × 21 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5815944-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5815944-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5815944-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5815944-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "zer",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-mars-roles-kapagi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki"
+    ],
+    "baslik": "Suzuki Marş Rölesi Kapağı",
+    "aciklama": "Eski Suzuki motosikletlerde marş rölesini örten plastik kapağın yedeğidir.\nOrijinali yıllar içinde kırılganlaşıp dağılan bu kapak, röleyi ve sigortayı yerinde tutar, su ile çamurdan korur.\nAynı kasa ölçüsündeki KTM rölelerinde de kullanılabilir.\nYaklaşık dış ölçüler: 64 × 44 × 29 mm.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th5350386-1.jpg",
+      "https://media.pruvo3d.com/urunler/th5350386-2.jpg",
+      "https://media.pruvo3d.com/urunler/th5350386-3.jpg",
+      "https://media.pruvo3d.com/urunler/th5350386-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Nickerau115",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-vitara-arka-kapi-kolu-brageti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Vitara"
+    ],
+    "baslik": "Suzuki Vitara Arka Kapı Kolu Brageti",
+    "aciklama": "Suzuki Vitara arka bagaj kapısı dış açma kolunun arkasındaki taşıyıcı brakettir.\nKırılan orijinalin yerine geçer, kolun mandal teline düzgün açıyla basmasını sağlar.\nÇekme kuvvetine dayanması için tam dolulukla üretilmesi önerilir.\nYaklaşık dış ölçüler: 49 × 23 × 7 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th316314-1.jpg",
+      "https://media.pruvo3d.com/urunler/th316314-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "emskoulikaris",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-grand-vitara-kapi-kilit-mandali",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Grand Vitara",
+      "Vitara"
+    ],
+    "baslik": "Suzuki Grand Vitara Kapı Kilit Mandalı",
+    "aciklama": "Birinci nesil Suzuki Grand Vitara kapı iç panelinden çıkan kilit mandalının (pimin) yedeğidir.\nKilit çubuğunun ucuna vidalanır; tırtıklı gövdesi parmakla çekildiğinde kaymaz.\nHer kapı için bir adet gerekir, dört kapıda aynı parça kullanılır.\nYaklaşık dış ölçüler: 43 × 8 × 8 mm.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th6507795-1.jpg",
+      "https://media.pruvo3d.com/urunler/th6507795-2.jpg",
+      "https://media.pruvo3d.com/urunler/th6507795-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "dnbest",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
     "id": "suzuki-v-strom-siluet-duvar-panosu",
     "kategori": "Dekorasyon",
     "marka": [
