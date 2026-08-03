@@ -1,5 +1,110 @@
 [
   {
+    "id": "raymarine-element-7-vesa-adaptoru",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine Element 7 Icin VESA 100x100 Montaj Adaptoru",
+    "aciklama": "Raymarine Element 7 serisi plotterin kendi mafsalli ayagini standart VESA 100x100 monitor koluna baglayan ara plaka.\n- Raymarine Element 7 serisi plotterin orijinal mafsalli ayagiyla uyumludur.\n- Standart VESA 100x100 mm delik duzenine sahip kollara ve braketlere takilir.\n- Ekrani kamara icinde hareketli bir kol uzerinde tasimayi saglar.\nYaklasik dis olculer: 196 x 120 x 10 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7201801-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7201801-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "PetrolPyro",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "raymarine-tacktick-t060-direk-montaji",
+    "kategori": "Marin",
+    "marka": [
+      "Raymarine"
+    ],
+    "baslik": "Raymarine TackTick T060 Pusulasi Icin Direk Montaj Govdesi",
+    "aciklama": "TackTick T060 mikro pusulanin braketini yelkenli diregine oturtan, direk profilini saran ara govde.\n- Snipe sinifi yelkenli diregi profiline gore olcullendirilmistir.\n- TackTick T060 mikro pusula braketini tasiyacak yuvaya sahiptir.\n- Direk profilini iki yandan saran kanatlari vidayla sabitlenir.\nYaklasik dis olculer: 100 x 62 x 55 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7242970-1.jpg",
+      "https://media.pruvo3d.com/urunler/th7242970-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "nuno191194",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "jeanneau-select-kilit-tamir-parcasi",
+    "kategori": "Marin",
+    "marka": [
+      "Jeanneau"
+    ],
+    "baslik": "Jeanneau Yelkenlilerdeki Select Kilit Icin Tamir Parcasi",
+    "aciklama": "Select marka kapi kilitlerinde dilin acik konumda tutunamamasina yol acan asinmis ic parcanin yerine gecen tamir seti.\n- 1980-1990 yillari arasinda Jeanneau yelkenlilere takilan Select kilitlerle uyumludur.\n- Kilit govdesi sokulup asinan ic parca bu yenisiyle degistirilir.\n- Ana parca ve ara rondela olmak uzere iki parcadan olusur.\nYaklasik dis olculer: 20 x 19 x 11 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th685008-1.jpg",
+      "https://media.pruvo3d.com/urunler/th685008-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Tosamdy",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
+    "id": "katamaran-trampolin-baglama-postu",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "Katamaran Trampolini Icin Baglama Postu",
+    "aciklama": "Katamaran trampolinini govdeye baglayan halatin gectigi, mantar formundaki agir hizmet postu.\n- Yanal yuke dayanacak sekilde olcullendirilmis mantar profili halatin siyrilmasini engeller.\n- M5 havsa basli civata ile sabitlenir.\n- Uc sezon boyunca yogun gunes altinda kullanilmis ornekleri islevini korumustur.\nYaklasik dis olculer: 30 x 30 x 15 mm.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/pr1341355-1.jpg",
+      "https://media.pruvo3d.com/urunler/pr1341355-2.jpg",
+      "https://media.pruvo3d.com/urunler/pr1341355-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "miiiikeb",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "a-class-katamaran-direk-basi-mandar-seti",
+    "kategori": "Marin",
+    "marka": [],
+    "baslik": "A-Class Katamaran Diregi Icin Mandar Cekme Seti",
+    "aciklama": "Ana yelkeni direk boyunca yukari cekmeye yarayan, direk basina gecen makara govdesi ve cekme parcasindan olusan set.\n- A-Class katamaranlarin karbon direk profiline gore olcullendirilmistir.\n- Direk basi govdesi ve mandar cekme parcasi olmak uzere iki parcadan olusur.\n- Yelkeni elle itmek yerine mandarla cekerek kaldirmayi saglar.\nYaklasik dis olculer: 164 x 158 x 59 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th4840941-1.jpg",
+      "https://media.pruvo3d.com/urunler/th4840941-2.jpg",
+      "https://media.pruvo3d.com/urunler/th4840941-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "melrace",
+      "tur": "Creative Commons - Attribution"
+    }
+  },
+  {
+    "id": "hobie-18-traveler-arabasi-yedek-parcalari",
+    "kategori": "Marin",
+    "marka": [
+      "Hobie"
+    ],
+    "baslik": "Hobie 18 Katamaran Traveler Arabasi Icin Yedek Parcalar",
+    "aciklama": "Hobie 18 katamaranin tekli veya ciftli traveler arabasini bastan yenilemeye yarayan dort parcalik yedek seti.\n- Hobie 18 katamaran traveler rayi ve paslanmaz araba govdesiyle uyumludur.\n- Makara, top, kizak makaralari ve kama olmak uzere dort parcadan olusur.\n- Delikler serbest hareket icin temizlendikten sonra takilir.\nYaklasik dis olculer: 25 x 18 x 18 mm.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/th7188948-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "donatchley",
+      "tur": "Creative Commons - Attribution - Share Alike"
+    }
+  },
+  {
     "id": "beneteau-31-34-37-tuvalet-kapisi-tutucusu",
     "kategori": "Marin",
     "marka": [
