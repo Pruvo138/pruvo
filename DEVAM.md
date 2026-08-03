@@ -2,6 +2,55 @@
 
 Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 
+## 🔄 DEVIR — 3 Agu 2026 (hesap rotasyonu) · YENI OTURUM ONCE BURAYI OKU
+
+Ritüel: `tools/DEVIR-KONTROL-LISTESI.md` (`2382c7f1`). Claude hesabi disinda **hicbir sey
+degismedi** — git/GitHub/Cloudflare/D1/R2/hafiza diskte ve aynen duruyor.
+
+**KOSUYOR (rotasyonda olmus olabilir — ONCE OLC, sonra devam et):**
+- `worktree-agent-af1b153e9ee43727a` (kilitli): **petek · cetvel · damga-kase** ailelerinin satis
+  kapisinin KAPATILMASI + `tools/build.py:730`'daki yanlis musteri vaadinin duzeltilmesi.
+  🔴 **Bu is BITMEDIYSE oncelik burasi.** Gerekce olculdu: `mod="kabartma"` sema kapisindan
+  GECIYOR ama uretim ucu 400 ile reddediyor; siparis/odeme yolu (`shop/src/parametrik.js`)
+  derleyiciyi HIC cagirmiyor → **60000 kurus (600 TL) tahsil edilebiliyor.** Uretilemez oran:
+  petek **%50,0** · cetvel **%66,7** · damga-kase **%83,3**. Tahsilat 0 (6 siparisin hepsi iptal).
+
+**BENDE — acik kalemler, oncelik sirasiyla:**
+1. 🔴 **YAPISAL:** siparis/odeme yolu uretilebilirligi SORMUYOR. Allowlist yara bandi; her yeni
+   aile ayni riski yeniden aciyor. Dogru cozum: odeme yolunun derleyiciye/uretilebilirlik
+   kapisina sormasi. **Ders:** aile satisa acarken sorulan soru "fiyat dogru mu" idi; ikinci soru
+   **"bu parametrelerin hepsi uretilebilir mi"** olmaliydi — hacim dogrulamasi onu kapsamiyor.
+2. `worktree-agent-aadc8e1d5df8ff4b0` (`3ef8b81a`) — ci-kapsam dar-bayrak dali, **curutme SARTLI
+   dondu, sart uygulanmadi**: kovaya eklenen js bayraklarinin **%81'i uydurma** (baska programa
+   gecirilen `--cached`/`--dry-run` gibi argümanlar dosyanin kendi bayragi sayiliyor). Dalin asil
+   degeri duruyor: **6 dosya yalniz `--kendini-test` ile kosuyor** (`jenerator/test/kabul.py`
+   dahil) — bugunku fiyat alarminin aylarca gorunmemesinin sebebi buydu. Ya sartla tamamla ya
+   acikca park et.
+3. **Tek kanonik marka fonksiyonu.** Bugun uc ayri mantik var (`index.html` `markaKatla` · uc
+   `uyumEkseniKosulu` · `parite-test.js` tam jeton) ve **1.677 cip degerinin 1.518'inde** ucu
+   ayrisiyor. `parite-test.js` UI'i yansitmadigi icin **yesil yanarken UI sapabiliyor**
+   (olculdu: Mercedes, Volvo Penta).
+4. **Merge kapisi eksigi (bugun iki kez isirdi):** kapi kumesi dalin *dokundugu alandan*
+   turetiliyor; `index.html` gibi cok kapili dosyada asil kume **`deploy.yml`'in kendisi**.
+   Ilk kirmizi ikinciyi maskeliyor. `~/.claude/skills/merge-kapisi/SKILL.md`'ye madde eklenecek
+   (dosya git disi, elle duzenlenir, degistirince `tools/yedekle.py` kostur).
+5. Marin'in **bolunemeyen 486 urunu**: `Olta Ekipmanlari` 277 + `Montaj Ekipmanlari` 209 — ne
+   marka, ne model, ne `tur` verisi var; Okan'in **200 kurali** orada saglanamiyor.
+6. HocA'dan devralinan iki site metni kalemi: SSS'de havale/EFT yok · "Yurtici Kargo" ifadesi
+   siteden cikacak (Notion'da 8 tasiyici var, tek tasiyici degiliz).
+
+**BEKLIYOR — baskalarinda:** KaaN: `rulman` semasi onarilinca satisa acma karari bende ·
+ArTisT: marka-model sayfasi acma esigi onerisi (veri verildi: 1.062 marka-model ciftinin 812'si
+5'ten az urun) · HocA: bende bekleyen yok.
+
+**BUGUN CANLIYA GITTI (olculdu, canli dogrulandi):** `e6254d30` uyum yazma yolu · `0b26431e`
+uyum kapisi sertlestirmesi (`KAPSAR` kacis kapisi kaldirildi) · `aa0f839c` D1 `uyum` kolonu +
+tam senkron 50.623 satir · `1d19ce96` yayin nobetcisi yas tabani (yanlis-kirmizi 7/90→4/90) ·
+`33ebff71` taksonomi 2. tur + 4.839 kayit backfill (canli: Bardaklik 629 · Montaj Parcalari ve
+Klipsler 1.894 · Telefon ve Sarj 1.047 · Ses ve Multimedya 841) · `3569bb97` marka/model cip +
+mobil + capraz daralma · `ae6679b9`+`c0e3a360` 7 aile satisa acildi (rulman bilerek kapali) ·
+`5443d62e` yay eksik tahsilati onarildi.
+
 ## MERGE — 3 Agu 2026 · Jeneratör hacim referans onarimi + 7 aile satisa acildi (`ae6679b9`, `c0e3a360`)
 
 - **Sira bagimli iki dal, bu sirayla alindi.** Dal 1 merge SHA **`ae6679b9`** (merge-base
