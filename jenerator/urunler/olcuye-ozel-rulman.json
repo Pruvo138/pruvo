@@ -85,6 +85,20 @@
       "aciklama": "Rulmanı yuva ağzında konumlandıran flanş seçeneği"
     }
   ],
+  "kisitlar": [
+    {
+      "eger": {"eleman": "makara"},
+      "parametre": "genislik",
+      "min": {"terimler": {"dis_cap": 0.31666666666666665, "ic_cap": -0.31666666666666665}},
+      "mesaj": "Bu çap farkında makara boyu genişliğe sığmıyor — genişlik en az {min} mm olmalı (ya da dış çapı küçültün)"
+    },
+    {
+      "eger": {"eleman": "bilya"},
+      "parametre": "genislik",
+      "min": {"terimler": {"dis_cap": 0.3333333333333333, "ic_cap": -0.3333333333333333}, "sabit": -0.24},
+      "mesaj": "Bu çap farkında bilya çapı genişliğe sığmıyor — genişlik en az {min} mm olmalı (ya da dış çapı küçültün)"
+    }
+  ],
   "tabanHacimMm3": 4137.7,
   "tabanFiyatTL": 200
 }

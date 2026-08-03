@@ -98,10 +98,56 @@
     return "Bilinmeyen parametre tipi";
   }
 
+  // ---- kisit alt siniri -------------------------------------------------
+  // `min` IKI bicimde yazilabilir:
+  //   1) SAYI            -> sabit alt sinir (or. vida: civatada cap >= 5)
+  //   2) DOGRUSAL BICIM  -> {terimler: {param: katsayi, ...}, sabit: c}
+  //                         alt sinir = c + Σ katsayi * degerler[param]
+  // (2) BASKA parametrelere bagli sinirlar icindir (or. rulman: yuvarlanma
+  // elemani cap farkindan turer, genislik ondan kucuk olamaz). Sozluk
+  // (terimler/sabit) uretim eslemindeki `sayisal` bloklariyla AYNIDIR — ikinci
+  // bir kisit dili UYDURULMAZ.
+  //
+  // TOLERANS NEDEN VAR (olculmus muhendislik karari): dogrusal bicim katsayilari
+  // ucte-birlerin ondalik yaklasimidir (0.95/3, 1/3). Sinir bir izgara noktasina
+  // TAM oturabildigi icin (or. dis-ic=30, makara -> sinir tam 9,5 mm ve o genislik
+  // URETILEBILIR olculdu) yuvarlama artigi toleranssiz kiyasta SATILABILIR bir
+  // rulmani reddederdi. Izgarada sinira en yakin ESIT-OLMAYAN nokta >= 0,0073 mm
+  // uzakta oldugundan 1e-6 tolerans yanlislikla KABUL edemez.
+  var KISIT_TOLERANS = 1e-6;
+
+  function kisitAltSinir(min, degerler) {
+    if (typeof min === "number") { return isFinite(min) ? min : null; }
+    if (!min || typeof min !== "object") { return null; }
+    var toplam = (typeof min.sabit === "number") ? min.sabit : 0;
+    var terimler = min.terimler || {};
+    for (var ad in terimler) {
+      if (!terimler.hasOwnProperty(ad)) { continue; }
+      var v = degerler[ad];
+      v = (typeof v === "number") ? v : parseFloat(String(v).replace(",", "."));
+      // Referans parametre sayi degilse kisit OLCULEMEZ -> uygulanmaz. O
+      // parametrenin KENDI min/max/adim hatasi zaten seti gecersiz kilar; burada
+      // uydurma bir sinirla ikinci bir hata uretilmez.
+      if (typeof v !== "number" || !isFinite(v)) { return null; }
+      toplam += terimler[ad] * v;
+    }
+    return isFinite(toplam) ? toplam : null;
+  }
+
+  // Mesajda {min} varsa hesaplanan sinirla degistirilir. Yuvarlama YUKARI: gosterilen
+  // deger daima gercek sinirin >='i olsun ki musteri onu yazinca set GECERLI olsun.
+  function kisitMesaji(ks, altSinir) {
+    var m = ks.mesaj || "En az {min} olmalı";
+    if (m.indexOf("{min}") < 0) { return m; }
+    var yuvarlak = Math.ceil(altSinir * 100) / 100;
+    return m.replace("{min}", String(yuvarlak).replace(".", ","));
+  }
+
   // Tüm set doğrulaması -> {gecerli: bool, hatalar: {ad: mesaj}}
   // sema.kisitlar: koşullu üretilebilirlik kuralları — [{eger: {ad: deger},
   // parametre, min, mesaj}]. "eger"deki tüm eşitlikler tutuyorsa parametrenin
-  // alt sınırı yükselir (örn. altıgen başlı cıvata üretim motorunda M5'ten başlar).
+  // alt sınırı yükselir (örn. altıgen başlı cıvata üretim motorunda M5'ten başlar;
+  // rulmanda genişlik alt sınırı iç/dış çaptan türer — bkz. kisitAltSinir).
   function dogrula(sema, degerler) {
     var hatalar = {}, gecerli = true;
     for (var i = 0; i < sema.parametreler.length; i++) {
@@ -118,8 +164,9 @@
       if (!uygulanir || hatalar[ks.parametre]) { continue; }
       var kv = degerler[ks.parametre];
       kv = typeof kv === "number" ? kv : parseFloat(String(kv).replace(",", "."));
-      if (ks.min != null && !isNaN(kv) && kv < ks.min) {
-        hatalar[ks.parametre] = ks.mesaj || ("En az " + ks.min + " olmalı");
+      var altSinir = kisitAltSinir(ks.min, degerler);
+      if (altSinir != null && !isNaN(kv) && kv < altSinir - KISIT_TOLERANS) {
+        hatalar[ks.parametre] = kisitMesaji(ks, altSinir);
         gecerli = false;
       }
     }
