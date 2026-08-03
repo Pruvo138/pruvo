@@ -110,6 +110,27 @@ ArTisT: marka-model sayfasi acma esigi onerisi (veri verildi: 1.062 marka-model 
 
 **✅ KAPANDI 3 Agu: merge `242e4496` — uyum kapisi yorumundaki bayat mutant sayisi (dokum DEVAM-ARSIV.md'de).**
 
+**✅ KAPANDI 3 Agu: merge `88f3e63d` + kablolama onarimi `7fc61f98` — shop worker BAYATLIK NOBETI.**
+Olculen delik: yayin akisinda worker yayin adimi vurusu **0** (30 "wrangler" satirinin hepsi
+YORUM) -> canli bundle **13 sa 15 dk** bayat kaldi, hicbir alarm calmadi. Yeni
+`tools/shop-bayatlik-kapisi.py`: bundle dosya kumesini ITHALAT GRAFINDAN turetir (**42 dosya** —
+elle liste `secenekler.js`/`jenerator/*`'i kacirirdi), canli KOD surumunu okur ve main'den kac
+commit geride oldugunu basar. **Esik 120 dk**, gerekcesi olculen dagilimdan (73 commit; ayni
+oturumda deploy edilen kumenin maksimumu 89,2 dk; olay 795 dk). Dort hal: taze/bekliyor rc 0 ·
+bayat rc 1 · **olculemedi rc 2** (ag/yetki yoksa "guncel" varsayilmaz).
+Kabul testi **32 iddia / 0 kirmizi** (bloklayici, `build`); curutme `tools/shop-bayatlik-mutasyon.py`
+**12 mutant / 0 sapma** (kontrol mutanti dahil, kaynak sha256 bas=son). Canli kol
+`paket-tazelik-alarmi.yml`de (cron 15 dk) — yayini DURDURMAZ; **korluk penceresi 795 dk -> <=15 dk.**
+CI'da olculdu (kosum `30822060140`): mevcut CI kimligi salt-okuma dagitim/surum listesi icin
+YETIYOR, adim 12,6 sn, durum TAZE (aktif surum `cecc9d4f`, 0 commit geride).
+🔴 Bu turun iki dersi (ikisini de KAPI yakaladi, goz degil): (1) adimi komsu adimin yanina
+koymak IS sinirini gormez — adim `serit-b`ye dustu, "bloklayici" iddiasi yalandi, is akisi bicim
+kapisi kirmizi yakti (bir kosum yayin durdu, kosum `30822306545`); (2) GitHub `if:` kosullarina
+ortuk `success()` ekler — yeni adim damga adimlarindan once durunca kirmizi bir olcum damgayi
+atlatip nabiz A4'u yanlis yakiyordu, adim isin sonuna alindi.
+ACIK (mimar karari): kanal ZAMAN temelli — bayat AGACTAN yapilan deploy taze gorunur; kimlik
+temelli hukum icin bundle'a commit damgasi + okuma ucu gerekir (bir deploy penceresi ister).
+
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
 - Sabah/gece kalinti sinifi: pencere icinde 2 sabahin 2'sinde AKIYOR→TIKALI salindi (2 Agu
   07:28→07:29 "392 dk", icerik main'de 1 dk iken; 1 Agu 07:11→07:12 "82 dk"). Kirmizi kalma
