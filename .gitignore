@@ -58,6 +58,17 @@ gorseller/
 /varlik/
 
 # >>> uretilen-icerik-dizinleri (otomatik — elle duzenleme; tools/gitignore-kapisi.py dogrular)
+/olcuye-ozel-plastik-rulman-kafesi-uretimi/
+/olcuye-ozel-plastik-siyirici-ve-kazima-agzi-uretimi/
+/olcuye-ozel-plastik-circir-mandal-disli-uretimi/
+/sahne-isik-ve-ses-ekipmani-plastik-parca-uretimi/
+/boya-ve-badana-ekipmani-plastik-parca-yaptirma/
+/interkom-diafon-ve-kapi-zili-plastik-parca-uretimi/
+/iki-parca-tek-parcada-birlestirilir-mi/
+/montaj-sirasinda-parca-kirilirsa-ne-olur/
+/parcaya-gomme-somun-insert-eklenir-mi/
+/katlanabilen-esnek-menteseli-plastik-parca-uretimi/
+/oto-bardaklik-ve-konsol-kapagi-yaptirma/
 /olcuye-ozel-plastik-vidali-seviye-ayar-ayagi-uretimi/
 /olcuye-ozel-plastik-buton-kapagi-ve-tus-uretimi/
 /davlumbaz-ve-aspirator-plastik-parca-yaptirma/
