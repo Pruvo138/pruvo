@@ -16,6 +16,13 @@ uzerinde is olan her dal **origin'e itildi**, tek kopya kalan dal YOK. Devam etm
 uretici oturumu kapanmisti — worktree silinseydi commit'e ulasan ref kalmayacakti. Bundan sonra
 devir listesinin 3. adimi (dallari push et) **her agac icin ayri ayri** kosulacak.
 
+**🔴 ACIK — 4 Agu saatlik CI nobeti: `cddaf5e0` YAYINA GITMEDI.** Kosum `30858798404`
+`serit-a3=failure` → `deploy`/`yayin` **skipped**; 27 Suzuki urunu main'de var, sitede YOK.
+Kok neden `denetim-kapisi.py --commit-farki` = 1 ihlal `[ifsa/dolgu-orani]`, id
+`suzuki-drz400sm-kancali-lastik-tutma-aparati` `aciklama` alani ("yuksek doluluk orani").
+Duzeltme `urunler.json` icerigi = **MaCiT duzlemi**, bende YASAK → posta kutusuna yazildi,
+push YOK. Sonraki nobette `serit-a3`+`deploy`+`yayin` yeniden olculecek.
+
 **✅ 1. IS — KAPANDI 3 Agu: merge `73149015` (dokum DEVAM-ARSIV.md'de).**
 
 **✅ 2. IS — KAPANDI 3 Agu: merge `bd8b8abb` + onarim `78b6651f` (dokum DEVAM-ARSIV.md'de).**
