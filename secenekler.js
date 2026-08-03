@@ -376,9 +376,8 @@
      `eger` bir beyaz liste DEGILDIR: parametre->deger KOSUL cifti tasir ve
      onizlemeKisitIhlali() disinda hicbir yerde beyaz liste gibi ele alinmaz.
      vida `cap` listesi SEMADAN turer (cap.gecerliDegerler ∩ kisit min 5) — elle
-     tutulan ikinci bir liste YOK; ayrisma tools/onizleme-kisit-kosul-test.py'de
-     KIRMIZI yanar. Bu blok icine YORUM YAZILMAZ: tools/onizleme-kapisi.py sabiti
-     JSON'a cevirerek okur. */
+     tutulan ikinci bir liste YOK; ayrisma kabul kapisinda KIRMIZI yanar.
+     Bu blok icine YORUM YAZILMAZ: kapi sabiti JSON'a cevirerek okur. */
   var ONIZLEME_KISIT_KOSUL = "eger";
   var ONIZLEME_KISITLAR = {
     "olcuye-ozel-cetvel": { tip: ["duz"] },
@@ -411,9 +410,8 @@
   }
 
   /* ONIZLEME kisit beyani IHLAL EDILDI MI — TEK KAYNAK. Urun sayfasi on-kontrolu
-     (tools/build.py ONIZLEME_JS) ve onizleme Worker'inin sema kapisi
-     (onizleme/src/index.js) BU fonksiyonu cagirir; ikinci bir yorumlayici kod yolu
-     YOK ([[ikiz-tanim-sessiz-ayrisma]]).
+     ve onizleme Worker'inin sema kapisi BU fonksiyonu cagirir; ikinci bir
+     yorumlayici kod yolu YOK ([[ikiz-tanim-sessiz-ayrisma]]).
      Doner: ihlal edilen parametre adi (metin) ya da null (ihlal yok).
        `eger` YOKSA -> bugunku davranis BIREBIR: her anahtar bir beyaz listedir ve
                        parametre VERILMEMISSE (undefined) o anahtar atlanir.
