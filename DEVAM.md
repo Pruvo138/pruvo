@@ -141,7 +141,28 @@ toplandi, uc katmanli kabul testi CI'ya bagli. Olculen sayilar (dal + bagimsiz c
 Merge ff-only yapildi (merge commit yok, baska oturumun staged dosyasi supurulmedi).
 D1 teyidi merge sonrasi: 17010 == 17010, hash uyusmazlik 0.
 
+## ✅ YAYIN ERİŞİM NÖBETÇİSİ — merge `7e2277c0` (3 Ağu)
+Kapatılan sınıf: yayınlanan içeriğin ÜRETİLDİĞİ ölçülüyordu, ERİŞİLEBİLDİĞİ ölçülmüyordu
+(üç landing 12 gün 403 döndü, her kapı yeşildi). Yeni: `tools/yayin-erisim-nobeti.py`
+(+ `-test.py`, `-mutasyon.py`) ve saatlik `.github/workflows/yayin-erisim-alarmi.yml`.
+- küme: `sayfalar.py::SITEMAP_SLUGS` ∪ hub ∪ kök ∪ build manifesti ∪ yerel sitemap (elle
+  liste yok); yerelde 295, CI'da 306 URL; taban altı küme = ÖLÇÜLEMEDİ
+- yöntem GET (HEAD 200 / GET 403 ölçüldü) · 200 dışı KAPALI · 3xx zinciri izlenir
+- bugünkü canlı ölçüm: 295 URL · 292 açık · 3 kapalı (403, `/araba-…` `/arac-…`) · 166 s
+- kabul: 48 iddia · 16 öldürücü + 4 kontrol mutantı, 7 eksenin hepsinde tek-kırmızı mutant
+- kol seçimi: canlı ölçüm deploy.yml'e BAĞLANMADI (ağ bağımlı yanlış-pozitif tüm yayını
+  durdurur); cron alarm kolu, `push` tetikleyicisi yok, ayrı concurrency, `|| true` yok
+- kapılar dal↔main delta 0 (ci-kapsam · is-akisi · kisisel-veri · cron-nabiz · yayin-gecikme)
+- CI: koşum 30844877057 (headSha 7e2277c0) `serit-b` success, adım logunda 48/48
+- D1 merge sonrası: 17030 == 17030, hash uyuşmazlık 0
+
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
+- 🔴 YAYIN DURUYOR (başka düzlem, 3 Ağu 19:26): `build` adım 32 `marka-uyelik-test.py`
+  KIRMIZI → `deploy` skipped. Sapan marka 13 (marka sayfası ↔ index filtresi), ürün çip
+  haritası 727 kayıtta birincil markaya gitmiyor. Merge'ümden ÖNCE de kırmızıydı
+  (01c58587 18:58, 9f7ee22f 19:05) — marka/çip düzleminin sahibine ait.
+- 3 landing hâlâ canlıda 403: onarım kardeş depodaki worker rota deseninde (önek jokeri),
+  bu depoda değil; nöbetçi o kapalılığı artık saatlik ölçüyor ve kırmızı yakıyor.
 - Sabah/gece kalinti sinifi: pencere icinde 2 sabahin 2'sinde AKIYOR→TIKALI salindi (2 Agu
   07:28→07:29 "392 dk", icerik main'de 1 dk iken; 1 Agu 07:11→07:12 "82 dk"). Kirmizi kalma
   23 dk / 73 dk, tepe yas 464,1 dk. Eski kodda birebir ayni — regresyon degil. Bu dal
