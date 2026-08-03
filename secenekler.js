@@ -631,8 +631,8 @@
 
      ---- `rampa` AÇILDI — 2026-08-03, ÜRETİLEBİLİRLİK ÖLÇÜMÜ (işletme onayı) ----
      `rampa` bu listeye "hacmi doğru" diye DEĞİL, satışa açmanın İKİ sorusu da
-     ölçüldüğü için girdi (sürücü repoda:
-     `jenerator/test/rampa-uretilebilirlik-olcum.py`, 25 iddia / 0 kırmızı):
+     ölçüldüğü için girdi. Ölçüm sürücüsü depoda duruyor (parametrik ürün test
+     paketindeki üretilebilirlik ölçümü; 25 iddia / 0 kırmızı):
        SORU 1 — fiyat doğru mu: 1.686 GERÇEK render'a karşı hacim kapalı formunun
                 en kötü sapması %0,0000079; %0,01 eşiğini aşan nokta 0.
        SORU 2 — bu kutunun HER noktası üretilebilir mi: 944.559 noktalık ilan
@@ -706,8 +706,8 @@
     // ÜRETİLEBİLİRLİK (satışa açmanın İKİNCİ sorusu, bu listeye girmenin şartı):
     // şema kapısı kutu içinde 0 nokta reddediyor, render edilen 1.686 noktanın
     // üretilemezi 0 (%0.0000), altı kolun altısında da 0; kutu içi aşırı red 0.
-    // Sürücü: jenerator/test/rampa-uretilebilirlik-olcum.py (25 iddia / 0 kırmızı,
-    // 11 mutant: 9 öldürücü işaret şartıyla öldü, 2 kontrol yeşil).
+    // Ölçüm sürücüsü depoda (25 iddia / 0 kırmızı, 11 mutant: 9 öldürücü işaret
+    // şartıyla öldü, 2 kontrol yeşil).
     rampa: 0.01
     // 🔴 ÇIKARILANLAR — hacim ekseni yeşil ama ŞEMA ARALIĞI üretilemez konfigürasyon
     // veriyor (yukarıdaki "ŞEMA ARALIĞI TARAMASI" bloğu). Şema onarılana kadar KAPALI:
