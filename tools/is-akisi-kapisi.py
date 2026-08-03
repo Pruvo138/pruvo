@@ -1671,7 +1671,9 @@ TABLO_TABANLARI = (
     # jenerator/test/kabul.py; dis bagimlilikli elle-tetik takim, gerekce tabloda).
     # 3 Agu: 38 -> 39 (onizleme vaat kapisinin `--kendini-test` kolu beyan edildi;
     # bayraksiz GERCEK olcum kolu serit A'da `build` job'unda bloklayici kalir).
-    ("SERIT_B", 39),
+    # 3 Agu: 39 -> 40 (kalibrasyon senkron kapisinin `--mutasyon` kolu beyan edildi;
+    # bayraksiz GERCEK olcum kolu serit A'da `build` job'unda BLOKLAYICI kosar).
+    ("SERIT_B", 40),
 )
 
 TABLO_TANI = (
@@ -2181,11 +2183,24 @@ SERIT_B = {
         "MERGE KAPISINA DA BAGLI DEGILDIR — YALNIZ YERELDE, ELLE kosulur. Onceki "
         "beyan 'yerelde ve merge kapisinda kosulur' diyordu; olculdu, YALANDI (bu "
         "dize repoda kendi dosyasi + bu beyan + deploy.yml'in --kendini-test satiri "
-        "disinda HIC gecmiyor). EKSIK KALAN KONTROL: `yay` hacim modelinin GERCEK "
-        "geometriye karsi dogrulugunu CI'da olcen hicbir kapi yok; hacim.js'e konan "
-        "+%5 tahsilat mutantini 9 CI kapisindan HICBIRI oldurmedi (olduren tek kapi "
-        "jenerator/test/kalibrasyon-senkron.js ve o da CI-muaf). Bu delik MIMARDA "
-        "acik kalem olarak duruyor.",
+        "disinda HIC gecmiyor). 🔴 KAPANAN KISIM (3 Agu 2026): hacim.js'e konan +%5 "
+        "TAHSILAT mutanti artik `build` job'undaki (BLOKLAYICI) kalibrasyon senkron "
+        "kapisinda kirmizi yaniyor — 3. katman dondurulmus kalibrasyon kaynagi, dis "
+        "kaynak istemez, 12 aile / 300 set, `yay` DAHIL. 🟡 ACIK KALAN KISIM: o kapi "
+        "hacim.js'i KALIBRASYON KAYNAGINA karsi olcer, GERCEK GEOMETRIYE karsi DEGIL; "
+        "motor=uretim aileleri (huni · izgara · kasnak · kayis · oring · pervane · "
+        "petek · rulman) ile bugun kaynaktan sapan rampa/profil kapsam DISIDIR ve "
+        "gerekceleri olculen sapmalariyla kaynak-referans.json::disi_birakilan'da "
+        "yazilidir.",
+    ("deploy.yml", "serit-b", "jenerator/test/kalibrasyon-senkron.js"):
+        "YALNIZ `--mutasyon` kolu (5 oldurucu + 3 kontrol mutant + 3 FAIL-CLOSED "
+        "vakasi; hacim.js'in KOPYASINA uygulanir, canli agacin sha256'sini kendi "
+        "olcer). GERCEK olcum "
+        "kolu BAYRAKSIZ cagridir ve serit A'da (`build` job'u) BLOKLAYICI kosar: "
+        "kardes ev yokken 39 iddia / ~3,5 s, `deploy: needs: build` oldugu icin "
+        "kirmizisi yayini GERCEKTEN durdurur. Buraya yalniz kapinin KENDI kirmizi "
+        "yolunu deneyen batarya girer (agac temizken bloklayici kol DAIMA yesildir, "
+        "kirmizi yolu hic denemez) — onizleme-vaat-kapisi ile AYNI desen.",
     ("deploy.yml", "serit-b", "onizleme/test/eslem-olcum.py"):
         "YALNIZ `--kendini-test` kolu; onizleme ayri dagitim hedefi (imaj).",
     ("deploy.yml", "serit-b", "onizleme/test/iki-govde-olcum.py"):

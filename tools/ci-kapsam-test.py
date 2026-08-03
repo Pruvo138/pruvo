@@ -1448,16 +1448,30 @@ IZIN_LISTESI = {
     "jenerator/test/kalibrasyon-referans-uret.py": (
         R_URETEC + " Somut: kalibrasyon-referans.json fiksturunu YAZAR — CI'da kosarsa "
         "kabul testlerinin karsilastirdigi referansi EZER (test kendi kendini onaylardi)."),
-    "jenerator/test/kalibrasyon-senkron.js": (
-        "🔴 GEREKCE DUZELTILDI (31 Tem): eski blanket R_AYRI cumlesi ('o projenin CI "
-        "hattinda kosulur') YANLISTI — oyle bir hat YOK. GERCEK engel iki parcali ve "
-        "SOMUT: (1) testin CEKIRDEK iddiasi olan 2. katman (kardes ev "
-        "~/dev/pruvo-jenerator/dogrulama/test/aileler ile birebir senkron) CI fresh "
-        "checkout'unda YAPISAL olarak olculemez — dizin yoktur, kol sessizce atlanir ve "
-        "geriye yalnizca dondurulmus referans karsilastirmasi kalir (R_YOL sinifi, "
-        "mimar-kapi-6ev-test.py emsali); (2) o kalan kol bile TEMIZ checkout'ta 25,2 s "
-        "surdu (olculdu) — tek build job'una eklenen en pahali aday. Hacim/fiyat "
-        "cekirdegi CI'da jenerator/test/fiyat-test.js + konfigur-test.py ile olculuyor."),
+    # 🔴 "jenerator/test/kalibrasyon-senkron.js" MUAFIYETI KALDIRILDI (3 Agu 2026).
+    # Eski gerekcenin IKI dayanagi da OLCULEREK CURUDU:
+    #   (1) "o kalan kol bile TEMIZ checkout'ta 25,2 s surdu" -> olculen 1,3 s.
+    #       25,2 s FIGURU kardes-ev katmanini DA iceren TAM kosumun suresiydi;
+    #       kardes ev yokken (yani CI'daki halinde) kol 1,3 s'de bitiyordu. Yeni
+    #       3. katmanla birlikte bile 3,5 s (39 iddia) — build job'unda 100 s'lik
+    #       adimlarin yaninda pahali aday DEGIL.
+    #   (2) "cekirdek iddia kardes ev olmadan olculemez" DOGRUYDU ve TAM DA BU
+    #       YUZDEN muafiyet bir PARA deligiydi: `yay` ailesine konan +%5 TAHSILAT
+    #       mutanti kardes ev VARKEN 26 kontrolu kirmizi yakiyor, kardes ev YOKKEN
+    #       TAM YESIL geciyordu; ayni mutant `build` + `serit-b` islerinin 134
+    #       kosulabilir adiminin HICBIRINDE ayirt edici kirmizi yakmadi (olculdu
+    #       3 Agu; tek rc degisimi jenerator/test/yay-tarama.py --kendini-test'te
+    #       ve o adim KONTROL mutantinda -yalniz yorum satiri- da kirmizi yandigi
+    #       icin AYIRT EDICI DEGIL, ustelik serit B'de yayini durdurmuyor).
+    # COZUM susturma degil KAPSAM DARALTMA oldu: 3. katman (dondurulmus kalibrasyon
+    # kaynagi, jenerator/test/kaynak-referans.json) dis kaynak ISTEMEDEN kosar ve
+    # ayni hukmu verir. Kapi artik `build` job'unda BLOKLAYICI (`deploy: needs:
+    # build`), mutasyon turu serit-b'de.
+    "jenerator/test/kaynak-referans-uret.js": (
+        R_URETEC + " Somut: jenerator/test/kaynak-referans.json fiksturunu YAZAR "
+        "(--yaz) — CI'da kosarsa kalibrasyon senkron kapisinin karsilastirdigi "
+        "referansi EZER (test kendi kendini onaylardi). Ayrica girdisi kardes ev "
+        "kalibrasyon kaynagidir; CI checkout'unda o dizin YOKTUR (rc 2)."),
     "jenerator/test/stl_hacim.py": (
         R_URETEC + " Somut: 'kullanim: stl_hacim.py <dosya.stl>' — tek dosya olcen CLI."),
     "jenerator/test/vida-referans-uret.py": (

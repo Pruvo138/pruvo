@@ -1,0 +1,3345 @@
+{
+ "_not": "URETEC: jenerator/test/kaynak-referans-uret.js — ELLE kosulur, CI'da KOSMAZ. Hacimler KALIBRASYON KAYNAGINDAN (kardes ev) gelir, hacim.js'ten DEGIL. Kapsam disi aileler gerekce + OLCULEN sapma ile asagida beyan edilir.",
+ "uretildi": "2026-08-03",
+ "node": "v25.8.1",
+ "tohum": 424242,
+ "set_sayisi": 25,
+ "tolerans_yuzde": 0.01,
+ "aileler": {
+  "adaptor": {
+   "fonksiyon": "adaptor",
+   "urunId": "olcuye-ozel-hortum-adaptoru",
+   "motor": "pruvo",
+   "kaynak_sha256": "e44645a4f0eb5d6f71a1f1434b6b36bca29f7898a61ee659fb31e22581de5b76",
+   "taban_hacim_mm3": 19659.863678426464,
+   "setler": [
+    {
+     "p": {
+      "uc1_cap": 101.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 32,
+      "uc2_gecme": "ic",
+      "boy": 188,
+      "cidar": 4
+     },
+     "hacimMm3": 158017.6619736103
+    },
+    {
+     "p": {
+      "uc1_cap": 28.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 113.5,
+      "uc2_gecme": "dis",
+      "boy": 109,
+      "cidar": 2.8
+     },
+     "hacimMm3": 71033.69571894035
+    },
+    {
+     "p": {
+      "uc1_cap": 19.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 50,
+      "uc2_gecme": "ic",
+      "boy": 144,
+      "cidar": 3
+     },
+     "hacimMm3": 47355.54586958399
+    },
+    {
+     "p": {
+      "uc1_cap": 49.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 51.5,
+      "uc2_gecme": "dis",
+      "boy": 132,
+      "cidar": 2
+     },
+     "hacimMm3": 41999.58990964459
+    },
+    {
+     "p": {
+      "uc1_cap": 117.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 95.5,
+      "uc2_gecme": "ic",
+      "boy": 105,
+      "cidar": 2.2
+     },
+     "hacimMm3": 75675.9639512131
+    },
+    {
+     "p": {
+      "uc1_cap": 26.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 37.5,
+      "uc2_gecme": "ic",
+      "boy": 148,
+      "cidar": 3.6
+     },
+     "hacimMm3": 47527.41891094448
+    },
+    {
+     "p": {
+      "uc1_cap": 88,
+      "uc1_gecme": "ic",
+      "uc2_cap": 19.5,
+      "uc2_gecme": "dis",
+      "boy": 170,
+      "cidar": 3.4
+     },
+     "hacimMm3": 97853.93101521496
+    },
+    {
+     "p": {
+      "uc1_cap": 72,
+      "uc1_gecme": "ic",
+      "uc2_cap": 112,
+      "uc2_gecme": "dis",
+      "boy": 175,
+      "cidar": 1.6
+     },
+     "hacimMm3": 81042.91325261378
+    },
+    {
+     "p": {
+      "uc1_cap": 81.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 68,
+      "uc2_gecme": "dis",
+      "boy": 133,
+      "cidar": 3.4
+     },
+     "hacimMm3": 111425.65078283323
+    },
+    {
+     "p": {
+      "uc1_cap": 98.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 16.5,
+      "uc2_gecme": "dis",
+      "boy": 84,
+      "cidar": 3.8
+     },
+     "hacimMm3": 61759.71286219797
+    },
+    {
+     "p": {
+      "uc1_cap": 70.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 112.5,
+      "uc2_gecme": "ic",
+      "boy": 142,
+      "cidar": 2.8
+     },
+     "hacimMm3": 114456.5150237103
+    },
+    {
+     "p": {
+      "uc1_cap": 94,
+      "uc1_gecme": "ic",
+      "uc2_cap": 14.5,
+      "uc2_gecme": "ic",
+      "boy": 165,
+      "cidar": 4
+     },
+     "hacimMm3": 104169.76273246002
+    },
+    {
+     "p": {
+      "uc1_cap": 91.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 21.5,
+      "uc2_gecme": "ic",
+      "boy": 157,
+      "cidar": 2.2
+     },
+     "hacimMm3": 61458.77799208205
+    },
+    {
+     "p": {
+      "uc1_cap": 44.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 10,
+      "uc2_gecme": "ic",
+      "boy": 97,
+      "cidar": 2.2
+     },
+     "hacimMm3": 16790.507328389245
+    },
+    {
+     "p": {
+      "uc1_cap": 98,
+      "uc1_gecme": "ic",
+      "uc2_cap": 68.5,
+      "uc2_gecme": "dis",
+      "boy": 67,
+      "cidar": 3
+     },
+     "hacimMm3": 52653.08007204348
+    },
+    {
+     "p": {
+      "uc1_cap": 105,
+      "uc1_gecme": "dis",
+      "uc2_cap": 62.5,
+      "uc2_gecme": "ic",
+      "boy": 176,
+      "cidar": 3.8
+     },
+     "hacimMm3": 176246.25541287105
+    },
+    {
+     "p": {
+      "uc1_cap": 78,
+      "uc1_gecme": "dis",
+      "uc2_cap": 115.5,
+      "uc2_gecme": "dis",
+      "boy": 65,
+      "cidar": 3.6
+     },
+     "hacimMm3": 73976.0792658276
+    },
+    {
+     "p": {
+      "uc1_cap": 101.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 23,
+      "uc2_gecme": "dis",
+      "boy": 193,
+      "cidar": 1.8
+     },
+     "hacimMm3": 68088.86222738458
+    },
+    {
+     "p": {
+      "uc1_cap": 112,
+      "uc1_gecme": "dis",
+      "uc2_cap": 75.5,
+      "uc2_gecme": "dis",
+      "boy": 162,
+      "cidar": 3.2
+     },
+     "hacimMm3": 158349.346790271
+    },
+    {
+     "p": {
+      "uc1_cap": 90.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 109.5,
+      "uc2_gecme": "ic",
+      "boy": 196,
+      "cidar": 1.8
+     },
+     "hacimMm3": 108818.2500550449
+    },
+    {
+     "p": {
+      "uc1_cap": 109.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 66.5,
+      "uc2_gecme": "ic",
+      "boy": 87,
+      "cidar": 2.2
+     },
+     "hacimMm3": 52993.90506689048
+    },
+    {
+     "p": {
+      "uc1_cap": 16.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 33.5,
+      "uc2_gecme": "dis",
+      "boy": 157,
+      "cidar": 2.6
+     },
+     "hacimMm3": 35771.642104995815
+    },
+    {
+     "p": {
+      "uc1_cap": 76,
+      "uc1_gecme": "ic",
+      "uc2_cap": 109,
+      "uc2_gecme": "dis",
+      "boy": 121,
+      "cidar": 2.2
+     },
+     "hacimMm3": 77466.71645616274
+    },
+    {
+     "p": {
+      "uc1_cap": 19.5,
+      "uc1_gecme": "ic",
+      "uc2_cap": 88.5,
+      "uc2_gecme": "ic",
+      "boy": 95,
+      "cidar": 2.6
+     },
+     "hacimMm3": 39876.93272120507
+    },
+    {
+     "p": {
+      "uc1_cap": 85.5,
+      "uc1_gecme": "dis",
+      "uc2_cap": 52.5,
+      "uc2_gecme": "dis",
+      "boy": 180,
+      "cidar": 1.8
+     },
+     "hacimMm3": 72356.28892537436
+    }
+   ]
+  },
+  "braket": {
+   "fonksiyon": "braket",
+   "urunId": "olcuye-ozel-montaj-braketi",
+   "motor": "pruvo",
+   "kaynak_sha256": "096554de2c959db963248d648807c9364e5f3716a7231888dc9a63ca204c1646",
+   "taban_hacim_mm3": 5827.162942667098,
+   "setler": [
+    {
+     "p": {
+      "tip": "l",
+      "ic_aci": 100,
+      "kalinlik": 3.5,
+      "genislik": 29,
+      "uzunluk": 114,
+      "delik_adet": 3
+     },
+     "hacimMm3": 22596.797258246657
+    },
+    {
+     "p": {
+      "tip": "kose",
+      "ic_aci": 100,
+      "kalinlik": 6,
+      "genislik": 38,
+      "uzunluk": 74,
+      "delik_adet": 2
+     },
+     "hacimMm3": 44863.11662100097
+    },
+    {
+     "p": {
+      "tip": "acili",
+      "ic_aci": 95,
+      "kalinlik": 4,
+      "genislik": 29,
+      "uzunluk": 92,
+      "delik_adet": 2
+     },
+     "hacimMm3": 20665.985277923013
+    },
+    {
+     "p": {
+      "tip": "duz",
+      "ic_aci": 70,
+      "kalinlik": 4,
+      "genislik": 33,
+      "uzunluk": 86,
+      "delik_adet": 1
+     },
+     "hacimMm3": 11288.790735666775
+    },
+    {
+     "p": {
+      "tip": "y",
+      "ic_aci": 60,
+      "kalinlik": 5.5,
+      "genislik": 28,
+      "uzunluk": 73,
+      "delik_adet": 1
+     },
+     "hacimMm3": 31523.222419391062
+    },
+    {
+     "p": {
+      "tip": "acili",
+      "ic_aci": 80,
+      "kalinlik": 3.5,
+      "genislik": 21,
+      "uzunluk": 94,
+      "delik_adet": 3
+     },
+     "hacimMm3": 13179.572750555708
+    },
+    {
+     "p": {
+      "tip": "l",
+      "ic_aci": 65,
+      "kalinlik": 3,
+      "genislik": 39,
+      "uzunluk": 105,
+      "delik_adet": 3
+     },
+     "hacimMm3": 23999.031027785637
+    },
+    {
+     "p": {
+      "tip": "t",
+      "ic_aci": 90,
+      "kalinlik": 6,
+      "genislik": 39,
+      "uzunluk": 108,
+      "delik_adet": 1
+     },
+     "hacimMm3": 71032.23506831299
+    },
+    {
+     "p": {
+      "tip": "t",
+      "ic_aci": 100,
+      "kalinlik": 4.5,
+      "genislik": 32,
+      "uzunluk": 87,
+      "delik_adet": 3
+     },
+     "hacimMm3": 34792.4085423761
+    },
+    {
+     "p": {
+      "tip": "l",
+      "ic_aci": 105,
+      "kalinlik": 3,
+      "genislik": 38,
+      "uzunluk": 62,
+      "delik_adet": 3
+     },
+     "hacimMm3": 13613.217158156735
+    },
+    {
+     "p": {
+      "tip": "t",
+      "ic_aci": 110,
+      "kalinlik": 6,
+      "genislik": 29,
+      "uzunluk": 91,
+      "delik_adet": 2
+     },
+     "hacimMm3": 44425.15224600098
+    },
+    {
+     "p": {
+      "tip": "l",
+      "ic_aci": 80,
+      "kalinlik": 3,
+      "genislik": 20,
+      "uzunluk": 103,
+      "delik_adet": 3
+     },
+     "hacimMm3": 11891.498115187986
+    },
+    {
+     "p": {
+      "tip": "l",
+      "ic_aci": 100,
+      "kalinlik": 3,
+      "genislik": 28,
+      "uzunluk": 99,
+      "delik_adet": 1
+     },
+     "hacimMm3": 16527.581005843913
+    },
+    {
+     "p": {
+      "tip": "kose",
+      "ic_aci": 80,
+      "kalinlik": 3,
+      "genislik": 22,
+      "uzunluk": 68,
+      "delik_adet": 1
+     },
+     "hacimMm3": 12340.779155250242
+    },
+    {
+     "p": {
+      "tip": "l",
+      "ic_aci": 70,
+      "kalinlik": 4.5,
+      "genislik": 40,
+      "uzunluk": 53,
+      "delik_adet": 2
+     },
+     "hacimMm3": 18439.551445266105
+    },
+    {
+     "p": {
+      "tip": "y",
+      "ic_aci": 105,
+      "kalinlik": 4.5,
+      "genislik": 27,
+      "uzunluk": 108,
+      "delik_adet": 3
+     },
+     "hacimMm3": 37436.66397938781
+    },
+    {
+     "p": {
+      "tip": "t",
+      "ic_aci": 115,
+      "kalinlik": 6,
+      "genislik": 39,
+      "uzunluk": 53,
+      "delik_adet": 3
+     },
+     "hacimMm3": 31778.131962751453
+    },
+    {
+     "p": {
+      "tip": "l",
+      "ic_aci": 65,
+      "kalinlik": 3,
+      "genislik": 34,
+      "uzunluk": 117,
+      "delik_adet": 1
+     },
+     "hacimMm3": 23773.339384750165
+    },
+    {
+     "p": {
+      "tip": "y",
+      "ic_aci": 90,
+      "kalinlik": 5,
+      "genislik": 34,
+      "uzunluk": 101,
+      "delik_adet": 2
+     },
+     "hacimMm3": 48504.68833000081
+    },
+    {
+     "p": {
+      "tip": "l",
+      "ic_aci": 60,
+      "kalinlik": 6,
+      "genislik": 21,
+      "uzunluk": 118,
+      "delik_adet": 1
+     },
+     "hacimMm3": 29255.713017547194
+    },
+    {
+     "p": {
+      "tip": "y",
+      "ic_aci": 110,
+      "kalinlik": 4.5,
+      "genislik": 21,
+      "uzunluk": 64,
+      "delik_adet": 1
+     },
+     "hacimMm3": 17061.171437953493
+    },
+    {
+     "p": {
+      "tip": "acili",
+      "ic_aci": 115,
+      "kalinlik": 3.5,
+      "genislik": 36,
+      "uzunluk": 99,
+      "delik_adet": 2
+     },
+     "hacimMm3": 24445.81958981761
+    },
+    {
+     "p": {
+      "tip": "t",
+      "ic_aci": 85,
+      "kalinlik": 6,
+      "genislik": 37,
+      "uzunluk": 80,
+      "delik_adet": 1
+     },
+     "hacimMm3": 48833.198935500484
+    },
+    {
+     "p": {
+      "tip": "acili",
+      "ic_aci": 80,
+      "kalinlik": 5.5,
+      "genislik": 28,
+      "uzunluk": 67,
+      "delik_adet": 2
+     },
+     "hacimMm3": 19278.933753239962
+    },
+    {
+     "p": {
+      "tip": "l",
+      "ic_aci": 105,
+      "kalinlik": 4,
+      "genislik": 33,
+      "uzunluk": 110,
+      "delik_adet": 1
+     },
+     "hacimMm3": 28817.65115883355
+    }
+   ]
+  },
+  "cerceve": {
+   "fonksiyon": "cerceve",
+   "urunId": "olcuye-ozel-cerceve",
+   "motor": "pruvo",
+   "kaynak_sha256": "0742d2e1d8b58d6cbbdd5203d8bf67adc4f7a8166d636b58a3934fc0e237bb60",
+   "taban_hacim_mm3": 33422.6547531911,
+   "setler": [
+    {
+     "p": {
+      "acilik_eni": 215,
+      "acilik_boyu": 205,
+      "kenar_genisligi": 10,
+      "derinlik": 8.6,
+      "kenar_stili": "stepped",
+      "yazi": ""
+     },
+     "hacimMm3": 73332.96829327299
+    },
+    {
+     "p": {
+      "acilik_eni": 238,
+      "acilik_boyu": 83,
+      "kenar_genisligi": 21.5,
+      "derinlik": 14.4,
+      "kenar_stili": "stepped",
+      "yazi": ""
+     },
+     "hacimMm3": 223408.95609152617
+    },
+    {
+     "p": {
+      "acilik_eni": 131,
+      "acilik_boyu": 177,
+      "kenar_genisligi": 7,
+      "derinlik": 9.8,
+      "kenar_stili": "rounded",
+      "yazi": ""
+     },
+     "hacimMm3": 43727.28840092339
+    },
+    {
+     "p": {
+      "acilik_eni": 138,
+      "acilik_boyu": 210,
+      "kenar_genisligi": 19,
+      "derinlik": 7.2,
+      "kenar_stili": "chamfer",
+      "yazi": ""
+     },
+     "hacimMm3": 104545.52642850595
+    },
+    {
+     "p": {
+      "acilik_eni": 119,
+      "acilik_boyu": 202,
+      "kenar_genisligi": 19.5,
+      "derinlik": 5,
+      "kenar_stili": "stepped",
+      "yazi": ""
+     },
+     "hacimMm3": 68220.02855642622
+    },
+    {
+     "p": {
+      "acilik_eni": 47,
+      "acilik_boyu": 242,
+      "kenar_genisligi": 15.5,
+      "derinlik": 7.8,
+      "kenar_stili": "chamfer",
+      "yazi": ""
+     },
+     "hacimMm3": 76478.43625878045
+    },
+    {
+     "p": {
+      "acilik_eni": 72,
+      "acilik_boyu": 127,
+      "kenar_genisligi": 11,
+      "derinlik": 3.8,
+      "kenar_stili": "ogee",
+      "yazi": ""
+     },
+     "hacimMm3": 17846.500913816355
+    },
+    {
+     "p": {
+      "acilik_eni": 210,
+      "acilik_boyu": 225,
+      "kenar_genisligi": 8,
+      "derinlik": 4,
+      "kenar_stili": "stepped",
+      "yazi": ""
+     },
+     "hacimMm3": 26501.5550739688
+    },
+    {
+     "p": {
+      "acilik_eni": 211,
+      "acilik_boyu": 224,
+      "kenar_genisligi": 19,
+      "derinlik": 9,
+      "kenar_stili": "stepped",
+      "yazi": ""
+     },
+     "hacimMm3": 159223.61848625593
+    },
+    {
+     "p": {
+      "acilik_eni": 238,
+      "acilik_boyu": 259,
+      "kenar_genisligi": 6,
+      "derinlik": 10.8,
+      "kenar_stili": "ogee",
+      "yazi": ""
+     },
+     "hacimMm3": 64544.98987021843
+    },
+    {
+     "p": {
+      "acilik_eni": 151,
+      "acilik_boyu": 196,
+      "kenar_genisligi": 19.5,
+      "derinlik": 12,
+      "kenar_stili": "ogee",
+      "yazi": ""
+     },
+     "hacimMm3": 179592.2262347673
+    },
+    {
+     "p": {
+      "acilik_eni": 194,
+      "acilik_boyu": 55,
+      "kenar_genisligi": 27,
+      "derinlik": 6.2,
+      "kenar_stili": "stepped",
+      "yazi": ""
+     },
+     "hacimMm3": 99716.21913537514
+    },
+    {
+     "p": {
+      "acilik_eni": 156,
+      "acilik_boyu": 244,
+      "kenar_genisligi": 28.5,
+      "derinlik": 8.8,
+      "kenar_stili": "concave",
+      "yazi": ""
+     },
+     "hacimMm3": 227274.19612062591
+    },
+    {
+     "p": {
+      "acilik_eni": 139,
+      "acilik_boyu": 239,
+      "kenar_genisligi": 14,
+      "derinlik": 3.4,
+      "kenar_stili": "flat",
+      "yazi": ""
+     },
+     "hacimMm3": 38642.58264035529
+    },
+    {
+     "p": {
+      "acilik_eni": 204,
+      "acilik_boyu": 300,
+      "kenar_genisligi": 23.5,
+      "derinlik": 10.6,
+      "kenar_stili": "flat",
+      "yazi": ""
+     },
+     "hacimMm3": 274561.8941140489
+    },
+    {
+     "p": {
+      "acilik_eni": 124,
+      "acilik_boyu": 230,
+      "kenar_genisligi": 11,
+      "derinlik": 6.8,
+      "kenar_stili": "rounded",
+      "yazi": ""
+     },
+     "hacimMm3": 55774.970699150974
+    },
+    {
+     "p": {
+      "acilik_eni": 40,
+      "acilik_boyu": 65,
+      "kenar_genisligi": 14,
+      "derinlik": 6.6,
+      "kenar_stili": "ogee",
+      "yazi": ""
+     },
+     "hacimMm3": 24162.09653989718
+    },
+    {
+     "p": {
+      "acilik_eni": 76,
+      "acilik_boyu": 178,
+      "kenar_genisligi": 30,
+      "derinlik": 5,
+      "kenar_stili": "concave",
+      "yazi": ""
+     },
+     "hacimMm3": 92775.36443928763
+    },
+    {
+     "p": {
+      "acilik_eni": 222,
+      "acilik_boyu": 228,
+      "kenar_genisligi": 17,
+      "derinlik": 7,
+      "kenar_stili": "stepped",
+      "yazi": ""
+     },
+     "hacimMm3": 112600.09552134117
+    },
+    {
+     "p": {
+      "acilik_eni": 220,
+      "acilik_boyu": 201,
+      "kenar_genisligi": 28,
+      "derinlik": 14.6,
+      "kenar_stili": "stepped",
+      "yazi": ""
+     },
+     "hacimMm3": 387454.9131880177
+    },
+    {
+     "p": {
+      "acilik_eni": 73,
+      "acilik_boyu": 251,
+      "kenar_genisligi": 26,
+      "derinlik": 4,
+      "kenar_stili": "flat",
+      "yazi": ""
+     },
+     "hacimMm3": 78236.26192982974
+    },
+    {
+     "p": {
+      "acilik_eni": 182,
+      "acilik_boyu": 289,
+      "kenar_genisligi": 7.5,
+      "derinlik": 14.2,
+      "kenar_stili": "concave",
+      "yazi": ""
+     },
+     "hacimMm3": 101423.46560429593
+    },
+    {
+     "p": {
+      "acilik_eni": 165,
+      "acilik_boyu": 214,
+      "kenar_genisligi": 24,
+      "derinlik": 10.8,
+      "kenar_stili": "ogee",
+      "yazi": ""
+     },
+     "hacimMm3": 220209.14797581837
+    },
+    {
+     "p": {
+      "acilik_eni": 41,
+      "acilik_boyu": 275,
+      "kenar_genisligi": 6,
+      "derinlik": 14.8,
+      "kenar_stili": "flat",
+      "yazi": ""
+     },
+     "hacimMm3": 58120.56914037008
+    },
+    {
+     "p": {
+      "acilik_eni": 230,
+      "acilik_boyu": 242,
+      "kenar_genisligi": 18,
+      "derinlik": 3.8,
+      "kenar_stili": "chamfer",
+      "yazi": ""
+     },
+     "hacimMm3": 68114.1330361507
+    }
+   ]
+  },
+  "cetvel": {
+   "fonksiyon": "cetvel",
+   "urunId": "olcuye-ozel-cetvel",
+   "motor": "pruvo",
+   "kaynak_sha256": "85023c4c7bab6b7fb0cce40e4f9a7af51bb851ab7d6c1e883f8b5c63ecb10875",
+   "taban_hacim_mm3": 14265.224351646924,
+   "setler": [
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "inc",
+      "uzunluk": 14,
+      "genislik": 29,
+      "kalinlik": 6,
+      "isaret_stili": "gomme"
+     },
+     "hacimMm3": 93580.51540411732
+    },
+    {
+     "p": {
+      "tip": "duz",
+      "sistem": "inc",
+      "uzunluk": 29,
+      "genislik": 38,
+      "kalinlik": 3.5,
+      "isaret_stili": "oyma"
+     },
+     "hacimMm3": 98567.95597858807
+    },
+    {
+     "p": {
+      "tip": "duz",
+      "sistem": "inc",
+      "uzunluk": 17,
+      "genislik": 29,
+      "kalinlik": 4.5,
+      "isaret_stili": "oyma"
+     },
+     "hacimMm3": 57438.11589247038
+    },
+    {
+     "p": {
+      "tip": "ucgen",
+      "sistem": "metrik",
+      "uzunluk": 17,
+      "genislik": 33,
+      "kalinlik": 4.5,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 49080.81575
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "metrik",
+      "uzunluk": 26,
+      "genislik": 28,
+      "kalinlik": 3.5,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 38409.8790107351
+    },
+    {
+     "p": {
+      "tip": "duz",
+      "sistem": "metrik",
+      "uzunluk": 15,
+      "genislik": 21,
+      "kalinlik": 5,
+      "isaret_stili": "gomme"
+     },
+     "hacimMm3": 16753.847519411538
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "metrik",
+      "uzunluk": 11,
+      "genislik": 39,
+      "kalinlik": 5.5,
+      "isaret_stili": "gomme"
+     },
+     "hacimMm3": 29102.56329544087
+    },
+    {
+     "p": {
+      "tip": "ucgen",
+      "sistem": "metrik",
+      "uzunluk": 29,
+      "genislik": 39,
+      "kalinlik": 5.5,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 174078.26045
+    },
+    {
+     "p": {
+      "tip": "ucgen",
+      "sistem": "inc",
+      "uzunluk": 21,
+      "genislik": 32,
+      "kalinlik": 4.5,
+      "isaret_stili": "gomme"
+     },
+     "hacimMm3": 479599.7690999999
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "inc",
+      "uzunluk": 11,
+      "genislik": 38,
+      "kalinlik": 3,
+      "isaret_stili": "gomme"
+     },
+     "hacimMm3": 46287.32525205865
+    },
+    {
+     "p": {
+      "tip": "ucgen",
+      "sistem": "inc",
+      "uzunluk": 29,
+      "genislik": 29,
+      "kalinlik": 4.5,
+      "isaret_stili": "oyma"
+     },
+     "hacimMm3": 914941.2841499998
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "metrik",
+      "uzunluk": 10,
+      "genislik": 20,
+      "kalinlik": 5.5,
+      "isaret_stili": "gomme"
+     },
+     "hacimMm3": 15230.27844544087
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "inc",
+      "uzunluk": 12,
+      "genislik": 28,
+      "kalinlik": 5,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 64566.84498676441
+    },
+    {
+     "p": {
+      "tip": "duz",
+      "sistem": "metrik",
+      "uzunluk": 10,
+      "genislik": 22,
+      "kalinlik": 3.5,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 8743.409968588077
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "metrik",
+      "uzunluk": 21,
+      "genislik": 40,
+      "kalinlik": 2.5,
+      "isaret_stili": "oyma"
+     },
+     "hacimMm3": 29117.616093382214
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "inc",
+      "uzunluk": 19,
+      "genislik": 27,
+      "kalinlik": 5.5,
+      "isaret_stili": "gomme"
+     },
+     "hacimMm3": 110199.20549544087
+    },
+    {
+     "p": {
+      "tip": "ucgen",
+      "sistem": "inc",
+      "uzunluk": 30,
+      "genislik": 39,
+      "kalinlik": 2.5,
+      "isaret_stili": "gomme"
+     },
+     "hacimMm3": 543461.4989
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "metrik",
+      "uzunluk": 12,
+      "genislik": 34,
+      "kalinlik": 6,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 32397.52590411731
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "inc",
+      "uzunluk": 22,
+      "genislik": 34,
+      "kalinlik": 5,
+      "isaret_stili": "oyma"
+     },
+     "hacimMm3": 145589.3919867644
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "metrik",
+      "uzunluk": 28,
+      "genislik": 21,
+      "kalinlik": 6,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 54102.83650411732
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "inc",
+      "uzunluk": 20,
+      "genislik": 21,
+      "kalinlik": 3,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 50196.947352058654
+    },
+    {
+     "p": {
+      "tip": "duz",
+      "sistem": "inc",
+      "uzunluk": 14,
+      "genislik": 36,
+      "kalinlik": 5,
+      "isaret_stili": "oyma"
+     },
+     "hacimMm3": 65688.65228941153
+    },
+    {
+     "p": {
+      "tip": "ucgen",
+      "sistem": "metrik",
+      "uzunluk": 28,
+      "genislik": 37,
+      "kalinlik": 4,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 118173.4446
+    },
+    {
+     "p": {
+      "tip": "duz",
+      "sistem": "metrik",
+      "uzunluk": 25,
+      "genislik": 28,
+      "kalinlik": 3.5,
+      "isaret_stili": "oyma"
+     },
+     "hacimMm3": 25183.03421858808
+    },
+    {
+     "p": {
+      "tip": "l_gonye",
+      "sistem": "inc",
+      "uzunluk": 18,
+      "genislik": 33,
+      "kalinlik": 5.5,
+      "isaret_stili": "kabartma"
+     },
+     "hacimMm3": 127185.38034544088
+    }
+   ]
+  },
+  "disli": {
+   "fonksiyon": "disli",
+   "urunId": "ozel-disli-kramayer-uretimi",
+   "motor": "pruvo",
+   "kaynak_sha256": "04dd8ada86c81983a10f1b91352a6c2a6889c76a392dca6b1c60ec5077f0a460",
+   "taban_hacim_mm3": 13321.097556049845,
+   "setler": [
+    {
+     "p": {
+      "disli_tipi": "tac",
+      "dis_sayisi": 52,
+      "modul": 1.1,
+      "kalinlik": 7,
+      "delik_capi": 7.5
+     },
+     "hacimMm3": 14903.817109654572
+    },
+    {
+     "p": {
+      "disli_tipi": "kramayer",
+      "dis_sayisi": 37,
+      "modul": 1.35,
+      "kalinlik": 8,
+      "delik_capi": 7.5
+     },
+     "hacimMm3": 5651.071660611
+    },
+    {
+     "p": {
+      "disli_tipi": "konik",
+      "dis_sayisi": 49,
+      "modul": 1,
+      "kalinlik": 7,
+      "delik_capi": 4
+     },
+     "hacimMm3": 6853.764965292743
+    },
+    {
+     "p": {
+      "disli_tipi": "konik",
+      "dis_sayisi": 53,
+      "modul": 1.3,
+      "kalinlik": 6.5,
+      "delik_capi": 3
+     },
+     "hacimMm3": 19164.81255802293
+    },
+    {
+     "p": {
+      "disli_tipi": "konik",
+      "dis_sayisi": 52,
+      "modul": 1.3,
+      "kalinlik": 6,
+      "delik_capi": 8
+     },
+     "hacimMm3": 17830.60375041963
+    },
+    {
+     "p": {
+      "disli_tipi": "duz",
+      "dis_sayisi": 57,
+      "modul": 1.2,
+      "kalinlik": 7,
+      "delik_capi": 3.5
+     },
+     "hacimMm3": 25366.728958151154
+    },
+    {
+     "p": {
+      "disli_tipi": "helis",
+      "dis_sayisi": 43,
+      "modul": 1.1,
+      "kalinlik": 6,
+      "delik_capi": 6
+     },
+     "hacimMm3": 11603.828584228433
+    },
+    {
+     "p": {
+      "disli_tipi": "tac",
+      "dis_sayisi": 55,
+      "modul": 1.05,
+      "kalinlik": 6,
+      "delik_capi": 7.5
+     },
+     "hacimMm3": 12135.327035542323
+    },
+    {
+     "p": {
+      "disli_tipi": "tac",
+      "dis_sayisi": 55,
+      "modul": 1.3,
+      "kalinlik": 7,
+      "delik_capi": 8
+     },
+     "hacimMm3": 21085.699132797043
+    },
+    {
+     "p": {
+      "disli_tipi": "kramayer",
+      "dis_sayisi": 59,
+      "modul": 1,
+      "kalinlik": 7.5,
+      "delik_capi": 6
+     },
+     "hacimMm3": 5677.8873713250005
+    },
+    {
+     "p": {
+      "disli_tipi": "sonsuz",
+      "dis_sayisi": 51,
+      "modul": 1.3,
+      "kalinlik": 7.5,
+      "delik_capi": 7
+     },
+     "hacimMm3": 567.7258262418842
+    },
+    {
+     "p": {
+      "disli_tipi": "ic_disli",
+      "dis_sayisi": 33,
+      "modul": 1.45,
+      "kalinlik": 6.5,
+      "delik_capi": 7.5
+     },
+     "hacimMm3": 6623.119631748022
+    },
+    {
+     "p": {
+      "disli_tipi": "sonsuz",
+      "dis_sayisi": 57,
+      "modul": 1.5,
+      "kalinlik": 7,
+      "delik_capi": 6
+     },
+     "hacimMm3": 582.5156029527909
+    },
+    {
+     "p": {
+      "disli_tipi": "konik",
+      "dis_sayisi": 57,
+      "modul": 1.15,
+      "kalinlik": 6,
+      "delik_capi": 2
+     },
+     "hacimMm3": 16185.595227429354
+    },
+    {
+     "p": {
+      "disli_tipi": "tac",
+      "dis_sayisi": 64,
+      "modul": 1.4,
+      "kalinlik": 7.5,
+      "delik_capi": 2.5
+     },
+     "hacimMm3": 34679.41409522342
+    },
+    {
+     "p": {
+      "disli_tipi": "konik",
+      "dis_sayisi": 56,
+      "modul": 1.1,
+      "kalinlik": 6.5,
+      "delik_capi": 4
+     },
+     "hacimMm3": 13518.642533207994
+    },
+    {
+     "p": {
+      "disli_tipi": "duz",
+      "dis_sayisi": 35,
+      "modul": 1.15,
+      "kalinlik": 6.5,
+      "delik_capi": 7
+     },
+     "hacimMm3": 7854.498608289358
+    },
+    {
+     "p": {
+      "disli_tipi": "helis",
+      "dis_sayisi": 49,
+      "modul": 1.5,
+      "kalinlik": 6,
+      "delik_capi": 5.5
+     },
+     "hacimMm3": 28395.45017562718
+    },
+    {
+     "p": {
+      "disli_tipi": "tac",
+      "dis_sayisi": 55,
+      "modul": 1.25,
+      "kalinlik": 6.5,
+      "delik_capi": 7.5
+     },
+     "hacimMm3": 17712.48529884493
+    },
+    {
+     "p": {
+      "disli_tipi": "tac",
+      "dis_sayisi": 52,
+      "modul": 1.5,
+      "kalinlik": 8,
+      "delik_capi": 8
+     },
+     "hacimMm3": 29018.409911013667
+    },
+    {
+     "p": {
+      "disli_tipi": "helis",
+      "dis_sayisi": 58,
+      "modul": 1.45,
+      "kalinlik": 6,
+      "delik_capi": 2.5
+     },
+     "hacimMm3": 37394.073025165955
+    },
+    {
+     "p": {
+      "disli_tipi": "ic_disli",
+      "dis_sayisi": 63,
+      "modul": 1.05,
+      "kalinlik": 8,
+      "delik_capi": 5
+     },
+     "hacimMm3": 7613.515818672655
+    },
+    {
+     "p": {
+      "disli_tipi": "sonsuz",
+      "dis_sayisi": 54,
+      "modul": 1.4,
+      "kalinlik": 7.5,
+      "delik_capi": 6.5
+     },
+     "hacimMm3": 597.1297333438763
+    },
+    {
+     "p": {
+      "disli_tipi": "duz",
+      "dis_sayisi": 61,
+      "modul": 1,
+      "kalinlik": 8,
+      "delik_capi": 2.5
+     },
+     "hacimMm3": 23070.685589278735
+    },
+    {
+     "p": {
+      "disli_tipi": "kramayer",
+      "dis_sayisi": 57,
+      "modul": 1.25,
+      "kalinlik": 6,
+      "delik_capi": 3.5
+     },
+     "hacimMm3": 5885.567936381249
+    }
+   ]
+  },
+  "jeton": {
+   "fonksiyon": "jeton",
+   "urunId": "kisiye-ozel-jeton-cip-madalyon",
+   "motor": "pruvo",
+   "kaynak_sha256": "43c484db7bc6eb636805b00cb2e40ec1975313562ff5415a778cb059f60f4c72",
+   "taban_hacim_mm3": 3822.5345436210114,
+   "setler": [
+    {
+     "p": {
+      "cap": 70,
+      "kalinlik": 6,
+      "yazi_stili": "gomme",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 22423.602882995485
+    },
+    {
+     "p": {
+      "cap": 77,
+      "kalinlik": 3.4,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "cift",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 14419.802238009623
+    },
+    {
+     "p": {
+      "cap": 46,
+      "kalinlik": 5.4,
+      "yazi_stili": "gomme",
+      "yuz_sayisi": "cift",
+      "kenar_deseni": "segmentli",
+      "yazi": "100"
+     },
+     "hacimMm3": 8435.201079050408
+    },
+    {
+     "p": {
+      "cap": 48,
+      "kalinlik": 6.1,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "segmentli",
+      "yazi": "100"
+     },
+     "hacimMm3": 10747.552207127092
+    },
+    {
+     "p": {
+      "cap": 43,
+      "kalinlik": 5.9,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 8255.446315895528
+    },
+    {
+     "p": {
+      "cap": 22,
+      "kalinlik": 6.8,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "segmentli",
+      "yazi": "100"
+     },
+     "hacimMm3": 2505.583717495644
+    },
+    {
+     "p": {
+      "cap": 29,
+      "kalinlik": 4.3,
+      "yazi_stili": "gomme",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 2664.0784992108756
+    },
+    {
+     "p": {
+      "cap": 69,
+      "kalinlik": 6.4,
+      "yazi_stili": "gomme",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 23279.57491755915
+    },
+    {
+     "p": {
+      "cap": 69,
+      "kalinlik": 6.4,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 23279.57491755915
+    },
+    {
+     "p": {
+      "cap": 77,
+      "kalinlik": 7.2,
+      "yazi_stili": "gomme",
+      "yuz_sayisi": "cift",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 32114.97993898681
+    },
+    {
+     "p": {
+      "cap": 52,
+      "kalinlik": 5.8,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "cift",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 11581.822381985661
+    },
+    {
+     "p": {
+      "cap": 64,
+      "kalinlik": 2.8,
+      "yazi_stili": "kabartma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 9330.252581298495
+    },
+    {
+     "p": {
+      "cap": 53,
+      "kalinlik": 6.8,
+      "yazi_stili": "kabartma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 15220.869531470818
+    },
+    {
+     "p": {
+      "cap": 48,
+      "kalinlik": 6.7,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "segmentli",
+      "yazi": "100"
+     },
+     "hacimMm3": 11842.170214474034
+    },
+    {
+     "p": {
+      "cap": 67,
+      "kalinlik": 8,
+      "yazi_stili": "kabartma",
+      "yuz_sayisi": "cift",
+      "kenar_deseni": "segmentli",
+      "yazi": "100"
+     },
+     "hacimMm3": 29196.3191161769
+    },
+    {
+     "p": {
+      "cap": 44,
+      "kalinlik": 6.5,
+      "yazi_stili": "gomme",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "segmentli",
+      "yazi": "100"
+     },
+     "hacimMm3": 9637.20339629416
+    },
+    {
+     "p": {
+      "cap": 20,
+      "kalinlik": 3,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 836.8797580423686
+    },
+    {
+     "p": {
+      "cap": 30,
+      "kalinlik": 5.4,
+      "yazi_stili": "kabartma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 3883.366212580156
+    },
+    {
+     "p": {
+      "cap": 72,
+      "kalinlik": 6.5,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 25766.61358074248
+    },
+    {
+     "p": {
+      "cap": 72,
+      "kalinlik": 5.9,
+      "yazi_stili": "kabartma",
+      "yuz_sayisi": "cift",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 24987.12315504989
+    },
+    {
+     "p": {
+      "cap": 29,
+      "kalinlik": 7,
+      "yazi_stili": "kabartma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "segmentli",
+      "yazi": "100"
+     },
+     "hacimMm3": 4740.821424289772
+    },
+    {
+     "p": {
+      "cap": 61,
+      "kalinlik": 7.8,
+      "yazi_stili": "gomme",
+      "yuz_sayisi": "cift",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 21839.775199161304
+    },
+    {
+     "p": {
+      "cap": 56,
+      "kalinlik": 6.2,
+      "yazi_stili": "kabartma",
+      "yuz_sayisi": "cift",
+      "kenar_deseni": "duz",
+      "yazi": "100"
+     },
+     "hacimMm3": 15872.499859276322
+    },
+    {
+     "p": {
+      "cap": 20,
+      "kalinlik": 7.5,
+      "yazi_stili": "gomme",
+      "yuz_sayisi": "cift",
+      "kenar_deseni": "segmentli",
+      "yazi": "100"
+     },
+     "hacimMm3": 2224.6340943945183
+    },
+    {
+     "p": {
+      "cap": 75,
+      "kalinlik": 6.8,
+      "yazi_stili": "oyma",
+      "yuz_sayisi": "tek",
+      "kenar_deseni": "segmentli",
+      "yazi": "100"
+     },
+     "hacimMm3": 29433.970780864493
+    }
+   ]
+  },
+  "kase": {
+   "fonksiyon": "kase",
+   "urunId": "olcuye-ozel-damga-kase",
+   "motor": "pruvo",
+   "kaynak_sha256": "d6f680c19087a09472d1404b75609731fa33255222548e51ec1a32ba63a6892b",
+   "taban_hacim_mm3": 12059.10437972196,
+   "setler": [
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 13,
+      "dolgu": 7.5,
+      "bicim": "dikdortgen",
+      "kabartma_derinligi": 1.4,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 20368.420799066673
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 13.5,
+      "dolgu": 4,
+      "bicim": "kare",
+      "kabartma_derinligi": 2.2,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 19078.74884496667
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 9.5,
+      "dolgu": 6.5,
+      "bicim": "dikdortgen",
+      "kabartma_derinligi": 1.6,
+      "sap": "sapli"
+     },
+     "hacimMm3": 18495.622005948295
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 9.5,
+      "dolgu": 7.5,
+      "bicim": "kare",
+      "kabartma_derinligi": 1.3,
+      "sap": "sapli"
+     },
+     "hacimMm3": 21986.255361929987
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 9,
+      "dolgu": 7.5,
+      "bicim": "kare",
+      "kabartma_derinligi": 1,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 13465.086500666672
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 6,
+      "dolgu": 8.5,
+      "bicim": "kare",
+      "kabartma_derinligi": 1.4,
+      "sap": "sapli"
+     },
+     "hacimMm3": 13671.65098257532
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 7,
+      "dolgu": 5.5,
+      "bicim": "dikdortgen",
+      "kabartma_derinligi": 0.9,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 6684.5983540666675
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 12.5,
+      "dolgu": 8,
+      "bicim": "dikdortgen",
+      "kabartma_derinligi": 0.9,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 19832.173322916668
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 12.5,
+      "dolgu": 8,
+      "bicim": "kare",
+      "kabartma_derinligi": 1.5,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 22668.677760416667
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 14,
+      "dolgu": 9,
+      "bicim": "dikdortgen",
+      "kabartma_derinligi": 1.7,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 25518.434971466664
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 10,
+      "dolgu": 7,
+      "bicim": "kare",
+      "kabartma_derinligi": 1.9,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 15105.982326666666
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 12,
+      "dolgu": 3,
+      "bicim": "yuvarlak",
+      "kabartma_derinligi": 1.2,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 10679.18196842445
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 10.5,
+      "dolgu": 8.5,
+      "bicim": "yuvarlak",
+      "kabartma_derinligi": 1.5,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 14143.908803210163
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 9.5,
+      "dolgu": 8.5,
+      "bicim": "kare",
+      "kabartma_derinligi": 0.8,
+      "sap": "sapli"
+     },
+     "hacimMm3": 23997.111773639528
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 12.5,
+      "dolgu": 10,
+      "bicim": "yuvarlak",
+      "kabartma_derinligi": 1.7,
+      "sap": "sapli"
+     },
+     "hacimMm3": 33519.46222139252
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 9,
+      "dolgu": 8,
+      "bicim": "dikdortgen",
+      "kabartma_derinligi": 1.2,
+      "sap": "sapli"
+     },
+     "hacimMm3": 19872.57085159761
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 6,
+      "dolgu": 3.5,
+      "bicim": "kare",
+      "kabartma_derinligi": 1.2,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 4458.047911466667
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 7,
+      "dolgu": 6.5,
+      "bicim": "yuvarlak",
+      "kabartma_derinligi": 1,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 6550.564114165934
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 13,
+      "dolgu": 8,
+      "bicim": "kare",
+      "kabartma_derinligi": 1.3,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 23964.94693246667
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 13,
+      "dolgu": 7.5,
+      "bicim": "yuvarlak",
+      "kabartma_derinligi": 2.2,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 18170.865638069445
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 7,
+      "dolgu": 9,
+      "bicim": "yuvarlak",
+      "kabartma_derinligi": 0.9,
+      "sap": "sapli"
+     },
+     "hacimMm3": 14540.654421141047
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 11.5,
+      "dolgu": 10,
+      "bicim": "dikdortgen",
+      "kabartma_derinligi": 2.1,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 21058.87741231667
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 11,
+      "dolgu": 8,
+      "bicim": "yuvarlak",
+      "kabartma_derinligi": 1.7,
+      "sap": "sapsiz"
+     },
+     "hacimMm3": 14554.811522859907
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 6,
+      "dolgu": 9.5,
+      "bicim": "dikdortgen",
+      "kabartma_derinligi": 2.2,
+      "sap": "sapli"
+     },
+     "hacimMm3": 14561.036893478331
+    },
+    {
+     "p": {
+      "metin": "PRUVO",
+      "yazi_boyutu": 13.5,
+      "dolgu": 8.5,
+      "bicim": "kare",
+      "kabartma_derinligi": 0.9,
+      "sap": "sapli"
+     },
+     "hacimMm3": 39381.75146607013
+    }
+   ]
+  },
+  "kavanoz": {
+   "fonksiyon": "kavanoz",
+   "urunId": "olcuye-ozel-vidali-kavanoz-tapa",
+   "motor": "pruvo",
+   "kaynak_sha256": "78eab152ba56a16fe8b03a773c1479d070cb4127fde42fb9e2d23df302c70673",
+   "taban_hacim_mm3": 53877.50037651093,
+   "setler": [
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 83,
+      "yukseklik": 46,
+      "dis_adimi": 3,
+      "cidar": 3.2
+     },
+     "hacimMm3": 61927.38456683987
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 36,
+      "yukseklik": 106,
+      "dis_adimi": 4,
+      "cidar": 3
+     },
+     "hacimMm3": 33316.16298678897
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 73,
+      "yukseklik": 31,
+      "dis_adimi": 3,
+      "cidar": 2.2
+     },
+     "hacimMm3": 40963.234904272125
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 85,
+      "yukseklik": 92,
+      "dis_adimi": 2.5,
+      "cidar": 1.8
+     },
+     "hacimMm3": 70081.37290756701
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 82,
+      "yukseklik": 95,
+      "dis_adimi": 2,
+      "cidar": 3.2
+     },
+     "hacimMm3": 118286.07391976478
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 98,
+      "yukseklik": 75,
+      "dis_adimi": 3,
+      "cidar": 2
+     },
+     "hacimMm3": 84628.21856817295
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 53,
+      "yukseklik": 52,
+      "dis_adimi": 2,
+      "cidar": 2.8
+     },
+     "hacimMm3": 40792.10754821403
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 91,
+      "yukseklik": 35,
+      "dis_adimi": 2,
+      "cidar": 3.2
+     },
+     "hacimMm3": 65194.591728729196
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 91,
+      "yukseklik": 93,
+      "dis_adimi": 3,
+      "cidar": 3.2
+     },
+     "hacimMm3": 104834.68722306594
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 104,
+      "yukseklik": 27,
+      "dis_adimi": 3.5,
+      "cidar": 2.8
+     },
+     "hacimMm3": 67451.63836665405
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 80,
+      "yukseklik": 96,
+      "dis_adimi": 3.5,
+      "cidar": 3
+     },
+     "hacimMm3": 83407.14778606337
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 26,
+      "yukseklik": 133,
+      "dis_adimi": 2.5,
+      "cidar": 3.2
+     },
+     "hacimMm3": 29903.677472205745
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 99,
+      "yukseklik": 141,
+      "dis_adimi": 3,
+      "cidar": 2.6
+     },
+     "hacimMm3": 134670.6289228293
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 97,
+      "yukseklik": 67,
+      "dis_adimi": 2,
+      "cidar": 1.6
+     },
+     "hacimMm3": 62242.17774413917
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 120,
+      "yukseklik": 116,
+      "dis_adimi": 3.5,
+      "cidar": 1.6
+     },
+     "hacimMm3": 160096.44343409617
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 93,
+      "yukseklik": 51,
+      "dis_adimi": 2.5,
+      "cidar": 2.2
+     },
+     "hacimMm3": 69923.24481780772
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 29,
+      "yukseklik": 66,
+      "dis_adimi": 2.5,
+      "cidar": 3
+     },
+     "hacimMm3": 23520.13473402226
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 73,
+      "yukseklik": 150,
+      "dis_adimi": 2,
+      "cidar": 2.4
+     },
+     "hacimMm3": 106410.8840770865
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 93,
+      "yukseklik": 82,
+      "dis_adimi": 2.5,
+      "cidar": 3
+     },
+     "hacimMm3": 97772.05742529186
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 82,
+      "yukseklik": 139,
+      "dis_adimi": 4,
+      "cidar": 3.2
+     },
+     "hacimMm3": 114086.92156660871
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 101,
+      "yukseklik": 128,
+      "dis_adimi": 2,
+      "cidar": 1.8
+     },
+     "hacimMm3": 107871.99621233331
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 116,
+      "yukseklik": 34,
+      "dis_adimi": 4,
+      "cidar": 2.4
+     },
+     "hacimMm3": 87775.47627579753
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 87,
+      "yukseklik": 119,
+      "dis_adimi": 3.5,
+      "cidar": 2.8
+     },
+     "hacimMm3": 105899.83506656555
+    },
+    {
+     "p": {
+      "urun_tipi": "kavanoz",
+      "govde_capi": 111,
+      "yukseklik": 26,
+      "dis_adimi": 4,
+      "cidar": 1.6
+     },
+     "hacimMm3": 56650.478328985075
+    },
+    {
+     "p": {
+      "urun_tipi": "tapa",
+      "govde_capi": 98,
+      "yukseklik": 87,
+      "dis_adimi": 2,
+      "cidar": 2
+     },
+     "hacimMm3": 91236.05525911192
+    }
+   ]
+  },
+  "konektor": {
+   "fonksiyon": "konektor",
+   "urunId": "olcuye-ozel-baglanti-konektor",
+   "motor": "pruvo",
+   "kaynak_sha256": "4b48d94319b1f8bb53c78ee34ef896dbef1df5fb7f67e2e3091828ac39d29992",
+   "taban_hacim_mm3": 7285.205078125,
+   "setler": [
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 8.5,
+      "kol_boyu": 38,
+      "cidar": 4,
+      "gecme": "gevsek"
+     },
+     "hacimMm3": 28111.580733982064
+    },
+    {
+     "p": {
+      "kol_sayisi": 2,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 19.5,
+      "kol_boyu": 56,
+      "cidar": 3,
+      "gecme": "normal"
+     },
+     "hacimMm3": 40196.43313091238
+    },
+    {
+     "p": {
+      "kol_sayisi": 2,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 11,
+      "kol_boyu": 39,
+      "cidar": 3.5,
+      "gecme": "normal"
+     },
+     "hacimMm3": 18153.034017527098
+    },
+    {
+     "p": {
+      "kol_sayisi": 3,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 11,
+      "kol_boyu": 45,
+      "cidar": 3,
+      "gecme": "siki"
+     },
+     "hacimMm3": 17858.453502527125
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 17,
+      "kol_boyu": 37,
+      "cidar": 3,
+      "gecme": "siki"
+     },
+     "hacimMm3": 24419.150326676525
+    },
+    {
+     "p": {
+      "kol_sayisi": 2,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 9.5,
+      "kol_boyu": 23,
+      "cidar": 3.5,
+      "gecme": "gevsek"
+     },
+     "hacimMm3": 9461.06916435554
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 7,
+      "kol_boyu": 57,
+      "cidar": 4,
+      "gecme": "gevsek"
+     },
+     "hacimMm3": 29017.820677699703
+    },
+    {
+     "p": {
+      "kol_sayisi": 3,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 19,
+      "kol_boyu": 58,
+      "cidar": 4,
+      "gecme": "siki"
+     },
+     "hacimMm3": 74207.35265625
+    },
+    {
+     "p": {
+      "kol_sayisi": 3,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 13.5,
+      "kol_boyu": 44,
+      "cidar": 3,
+      "gecme": "gevsek"
+     },
+     "hacimMm3": 21676.302584134617
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 6.5,
+      "kol_boyu": 55,
+      "cidar": 2.5,
+      "gecme": "gevsek"
+     },
+     "hacimMm3": 15247.903366655886
+    },
+    {
+     "p": {
+      "kol_sayisi": 3,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 19,
+      "kol_boyu": 39,
+      "cidar": 3.5,
+      "gecme": "normal"
+     },
+     "hacimMm3": 32053.75333333333
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 6.5,
+      "kol_boyu": 20,
+      "cidar": 3.5,
+      "gecme": "gevsek"
+     },
+     "hacimMm3": 9658.188406065086
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 7.5,
+      "kol_boyu": 36,
+      "cidar": 3.5,
+      "gecme": "siki"
+     },
+     "hacimMm3": 21472.63244129066
+    },
+    {
+     "p": {
+      "kol_sayisi": 2,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 6,
+      "kol_boyu": 24,
+      "cidar": 2.5,
+      "gecme": "siki"
+     },
+     "hacimMm3": 4530.913337925644
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 13.5,
+      "kol_boyu": 60,
+      "cidar": 2,
+      "gecme": "normal"
+     },
+     "hacimMm3": 21026.822964820625
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 12.5,
+      "kol_boyu": 33,
+      "cidar": 4,
+      "gecme": "gevsek"
+     },
+     "hacimMm3": 25261.344717316933
+    },
+    {
+     "p": {
+      "kol_sayisi": 3,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 19.5,
+      "kol_boyu": 58,
+      "cidar": 2,
+      "gecme": "gevsek"
+     },
+     "hacimMm3": 25822.040401893024
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 7.5,
+      "kol_boyu": 47,
+      "cidar": 4,
+      "gecme": "siki"
+     },
+     "hacimMm3": 25569.799360207115
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 14.5,
+      "kol_boyu": 47,
+      "cidar": 3.5,
+      "gecme": "normal"
+     },
+     "hacimMm3": 47382.87580112797
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 19,
+      "kol_boyu": 22,
+      "cidar": 4,
+      "gecme": "siki"
+     },
+     "hacimMm3": 18181.11500647189
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 13,
+      "kol_boyu": 22,
+      "cidar": 2.5,
+      "gecme": "siki"
+     },
+     "hacimMm3": 9788.573986686391
+    },
+    {
+     "p": {
+      "kol_sayisi": 2,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 9,
+      "kol_boyu": 52,
+      "cidar": 3.5,
+      "gecme": "normal"
+     },
+     "hacimMm3": 15468.260341405574
+    },
+    {
+     "p": {
+      "kol_sayisi": 3,
+      "kol_kesiti": "kare",
+      "cubuk_capi": 19,
+      "kol_boyu": 53,
+      "cidar": 3,
+      "gecme": "siki"
+     },
+     "hacimMm3": 51829.48052653477
+    },
+    {
+     "p": {
+      "kol_sayisi": 2,
+      "kol_kesiti": "yuvarlak",
+      "cubuk_capi": 16,
+      "kol_boyu": 36,
+      "cidar": 2.5,
+      "gecme": "normal"
+     },
+     "hacimMm3": 10954.684161277859
+    },
+    {
+     "p": {
+      "kol_sayisi": 4,
+      "kol_kesiti": "sekizgen",
+      "cubuk_capi": 11.5,
+      "kol_boyu": 46,
+      "cidar": 4,
+      "gecme": "siki"
+     },
+     "hacimMm3": 35266.94610576922
+    }
+   ]
+  },
+  "kutu": {
+   "fonksiyon": "kutu",
+   "urunId": "olcuye-ozel-kutu-organizer",
+   "motor": "pruvo",
+   "kaynak_sha256": "2ff05e6f1996a86d88a019c5342aa438d2e18dbbd37f1267367ed96aea903383",
+   "taban_hacim_mm3": 58307.2,
+   "setler": [
+    {
+     "p": {
+      "ic_en": 128,
+      "ic_boy": 134,
+      "ic_yukseklik": 28,
+      "duvar": 2,
+      "kapak": "gecme",
+      "bolme_sayisi": 6
+     },
+     "hacimMm3": 127884.79999999996
+    },
+    {
+     "p": {
+      "ic_en": 41,
+      "ic_boy": 139,
+      "ic_yukseklik": 95,
+      "duvar": 2.8,
+      "kapak": "yok",
+      "bolme_sayisi": 3
+     },
+     "hacimMm3": 131628.6079999999
+    },
+    {
+     "p": {
+      "ic_en": 31,
+      "ic_boy": 121,
+      "ic_yukseklik": 43,
+      "duvar": 2,
+      "kapak": "gecme",
+      "bolme_sayisi": 3
+     },
+     "hacimMm3": 51302.8
+    },
+    {
+     "p": {
+      "ic_en": 66,
+      "ic_boy": 56,
+      "ic_yukseklik": 44,
+      "duvar": 2.4,
+      "kapak": "gecme",
+      "bolme_sayisi": 1
+     },
+     "hacimMm3": 52717.63199999997
+    },
+    {
+     "p": {
+      "ic_en": 147,
+      "ic_boy": 26,
+      "ic_yukseklik": 80,
+      "duvar": 2,
+      "kapak": "yok",
+      "bolme_sayisi": 1
+     },
+     "hacimMm3": 65700
+    },
+    {
+     "p": {
+      "ic_en": 39,
+      "ic_boy": 80,
+      "ic_yukseklik": 32,
+      "duvar": 1.2,
+      "kapak": "gecme",
+      "bolme_sayisi": 5
+     },
+     "hacimMm3": 24585.98400000002
+    },
+    {
+     "p": {
+      "ic_en": 112,
+      "ic_boy": 41,
+      "ic_yukseklik": 18,
+      "duvar": 3,
+      "kapak": "gecme",
+      "bolme_sayisi": 4
+     },
+     "hacimMm3": 54921.600000000006
+    },
+    {
+     "p": {
+      "ic_en": 93,
+      "ic_boy": 109,
+      "ic_yukseklik": 94,
+      "duvar": 3,
+      "kapak": "gecme",
+      "bolme_sayisi": 0
+     },
+     "hacimMm3": 189423.59999999998
+    },
+    {
+     "p": {
+      "ic_en": 104,
+      "ic_boy": 144,
+      "ic_yukseklik": 58,
+      "duvar": 2.2,
+      "kapak": "gecme",
+      "bolme_sayisi": 5
+     },
+     "hacimMm3": 172326.14400000012
+    },
+    {
+     "p": {
+      "ic_en": 125,
+      "ic_boy": 152,
+      "ic_yukseklik": 15,
+      "duvar": 2.8,
+      "kapak": "yok",
+      "bolme_sayisi": 6
+     },
+     "hacimMm3": 94869.56799999997
+    },
+    {
+     "p": {
+      "ic_en": 92,
+      "ic_boy": 161,
+      "ic_yukseklik": 94,
+      "duvar": 2,
+      "kapak": "gecme",
+      "bolme_sayisi": 3
+     },
+     "hacimMm3": 193918.4
+    },
+    {
+     "p": {
+      "ic_en": 119,
+      "ic_boy": 85,
+      "ic_yukseklik": 14,
+      "duvar": 1.2,
+      "kapak": "gecme",
+      "bolme_sayisi": 6
+     },
+     "hacimMm3": 40809.504
+    },
+    {
+     "p": {
+      "ic_en": 116,
+      "ic_boy": 132,
+      "ic_yukseklik": 19,
+      "duvar": 1.8,
+      "kapak": "gecme",
+      "bolme_sayisi": 1
+     },
+     "hacimMm3": 82087.77599999998
+    },
+    {
+     "p": {
+      "ic_en": 61,
+      "ic_boy": 88,
+      "ic_yukseklik": 10,
+      "duvar": 1.2,
+      "kapak": "yok",
+      "bolme_sayisi": 2
+     },
+     "hacimMm3": 11975.232000000004
+    },
+    {
+     "p": {
+      "ic_en": 124,
+      "ic_boy": 51,
+      "ic_yukseklik": 58,
+      "duvar": 3,
+      "kapak": "yok",
+      "bolme_sayisi": 3
+     },
+     "hacimMm3": 102478.8
+    },
+    {
+     "p": {
+      "ic_en": 133,
+      "ic_boy": 150,
+      "ic_yukseklik": 53,
+      "duvar": 1.8,
+      "kapak": "gecme",
+      "bolme_sayisi": 5
+     },
+     "hacimMm3": 173080.41599999985
+    },
+    {
+     "p": {
+      "ic_en": 101,
+      "ic_boy": 184,
+      "ic_yukseklik": 96,
+      "duvar": 3,
+      "kapak": "yok",
+      "bolme_sayisi": 5
+     },
+     "hacimMm3": 286782
+    },
+    {
+     "p": {
+      "ic_en": 128,
+      "ic_boy": 36,
+      "ic_yukseklik": 20,
+      "duvar": 2.4,
+      "kapak": "gecme",
+      "bolme_sayisi": 0
+     },
+     "hacimMm3": 45284.351999999984
+    },
+    {
+     "p": {
+      "ic_en": 141,
+      "ic_boy": 117,
+      "ic_yukseklik": 64,
+      "duvar": 2.4,
+      "kapak": "gecme",
+      "bolme_sayisi": 4
+     },
+     "hacimMm3": 210103.87200000018
+    },
+    {
+     "p": {
+      "ic_en": 115,
+      "ic_boy": 21,
+      "ic_yukseklik": 92,
+      "duvar": 1.2,
+      "kapak": "gecme",
+      "bolme_sayisi": 0
+     },
+     "hacimMm3": 39686.304000000004
+    },
+    {
+     "p": {
+      "ic_en": 138,
+      "ic_boy": 160,
+      "ic_yukseklik": 56,
+      "duvar": 1.2,
+      "kapak": "yok",
+      "bolme_sayisi": 1
+     },
+     "hacimMm3": 77008.51200000025
+    },
+    {
+     "p": {
+      "ic_en": 28,
+      "ic_boy": 179,
+      "ic_yukseklik": 29,
+      "duvar": 2.6,
+      "kapak": "gecme",
+      "bolme_sayisi": 2
+     },
+     "hacimMm3": 69243.24800000004
+    },
+    {
+     "p": {
+      "ic_en": 98,
+      "ic_boy": 102,
+      "ic_yukseklik": 91,
+      "duvar": 2.8,
+      "kapak": "gecme",
+      "bolme_sayisi": 1
+     },
+     "hacimMm3": 180958.17599999986
+    },
+    {
+     "p": {
+      "ic_en": 31,
+      "ic_boy": 76,
+      "ic_yukseklik": 75,
+      "duvar": 1.8,
+      "kapak": "yok",
+      "bolme_sayisi": 2
+     },
+     "hacimMm3": 40399.48799999998
+    },
+    {
+     "p": {
+      "ic_en": 109,
+      "ic_boy": 151,
+      "ic_yukseklik": 45,
+      "duvar": 2.4,
+      "kapak": "gecme",
+      "bolme_sayisi": 1
+     },
+     "hacimMm3": 152317.39200000005
+    }
+   ]
+  },
+  "toka": {
+   "fonksiyon": "toka",
+   "urunId": "olcuye-ozel-toka",
+   "motor": "pruvo",
+   "kaynak_sha256": "8fb8a32f2e4468f6ea8372080fd2559664627b6de7c59069409bff60d728acf1",
+   "taban_hacim_mm3": 14877.48271244191,
+   "setler": [
+    {
+     "p": {
+      "kemer_genisligi": 40,
+      "kalinlik": 11.8,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 22370.39246744191
+    },
+    {
+     "p": {
+      "kemer_genisligi": 27,
+      "kalinlik": 13.6,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 18356.562196641906
+    },
+    {
+     "p": {
+      "kemer_genisligi": 17,
+      "kalinlik": 12,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 12489.28669984191
+    },
+    {
+     "p": {
+      "kemer_genisligi": 42,
+      "kalinlik": 10.6,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 19817.779144641903
+    },
+    {
+     "p": {
+      "kemer_genisligi": 14,
+      "kalinlik": 11.4,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 11213.66012104191
+    },
+    {
+     "p": {
+      "kemer_genisligi": 27,
+      "kalinlik": 12,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 16340.028519841908
+    },
+    {
+     "p": {
+      "kemer_genisligi": 24,
+      "kalinlik": 9.2,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 12489.290809441907
+    },
+    {
+     "p": {
+      "kemer_genisligi": 33,
+      "kalinlik": 11.4,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 18868.38288744191
+    },
+    {
+     "p": {
+      "kemer_genisligi": 45,
+      "kalinlik": 8.2,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 16743.12357824191
+    },
+    {
+     "p": {
+      "kemer_genisligi": 26,
+      "kalinlik": 10.4,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 14740.133092241907
+    },
+    {
+     "p": {
+      "kemer_genisligi": 17,
+      "kalinlik": 10,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 10947.855634841908
+    },
+    {
+     "p": {
+      "kemer_genisligi": 14,
+      "kalinlik": 12,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 11334.064153841911
+    },
+    {
+     "p": {
+      "kemer_genisligi": 36,
+      "kalinlik": 8.6,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 15621.309499441908
+    },
+    {
+     "p": {
+      "kemer_genisligi": 43,
+      "kalinlik": 13,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 24168.326227841906
+    },
+    {
+     "p": {
+      "kemer_genisligi": 31,
+      "kalinlik": 11,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 16518.297387841903
+    },
+    {
+     "p": {
+      "kemer_genisligi": 44,
+      "kalinlik": 13.2,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 26572.314077441908
+    },
+    {
+     "p": {
+      "kemer_genisligi": 34,
+      "kalinlik": 12.2,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 19323.207512641908
+    },
+    {
+     "p": {
+      "kemer_genisligi": 32,
+      "kalinlik": 11.6,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 17710.418854641903
+    },
+    {
+     "p": {
+      "kemer_genisligi": 39,
+      "kalinlik": 12.4,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 22961.96140404191
+    },
+    {
+     "p": {
+      "kemer_genisligi": 41,
+      "kalinlik": 9.6,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 17852.034331841907
+    },
+    {
+     "p": {
+      "kemer_genisligi": 30,
+      "kalinlik": 12.8,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 18564.534491441907
+    },
+    {
+     "p": {
+      "kemer_genisligi": 28,
+      "kalinlik": 11.8,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 17399.87667704191
+    },
+    {
+     "p": {
+      "kemer_genisligi": 37,
+      "kalinlik": 10.2,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 18536.323319841908
+    },
+    {
+     "p": {
+      "kemer_genisligi": 12,
+      "kalinlik": 12.8,
+      "kayis_baglanti": "triglide"
+     },
+     "hacimMm3": 11022.007389641909
+    },
+    {
+     "p": {
+      "kemer_genisligi": 37,
+      "kalinlik": 11.8,
+      "kayis_baglanti": "dikis"
+     },
+     "hacimMm3": 21127.76351984191
+    }
+   ]
+  },
+  "yay": {
+   "fonksiyon": "yay",
+   "urunId": "olcuye-ozel-yay-dalga-flexure",
+   "motor": "pruvo",
+   "kaynak_sha256": "7885845c755086a56812a1abceeec01e9e48290a6ae62334fa16ba9babaff457",
+   "taban_hacim_mm3": 3046.8563336821844,
+   "setler": [
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "testere",
+      "serbest_boy": 56,
+      "dis_cap": 36,
+      "tel_capi": 4,
+      "dalga_boyu": 116
+     },
+     "hacimMm3": 3392.6063581763274
+    },
+    {
+     "p": {
+      "tip": "spiral",
+      "dalga_formu": "testere",
+      "serbest_boy": 116,
+      "dis_cap": 55,
+      "tel_capi": 2.5,
+      "dalga_boyu": 82
+     },
+     "hacimMm3": 6500.846243308301
+    },
+    {
+     "p": {
+      "tip": "spiral",
+      "dalga_formu": "ucgen",
+      "serbest_boy": 69,
+      "dis_cap": 36,
+      "tel_capi": 3,
+      "dalga_boyu": 84
+     },
+     "hacimMm3": 5881.078219827314
+    },
+    {
+     "p": {
+      "tip": "spiral",
+      "dalga_formu": "sinus",
+      "serbest_boy": 70,
+      "dis_cap": 43,
+      "tel_capi": 3,
+      "dalga_boyu": 54
+     },
+     "hacimMm3": 7121.8793238648805
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "sinus",
+      "serbest_boy": 102,
+      "dis_cap": 34,
+      "tel_capi": 2.5,
+      "dalga_boyu": 61
+     },
+     "hacimMm3": 2807.458650152696
+    },
+    {
+     "p": {
+      "tip": "spiral",
+      "dalga_formu": "kare",
+      "serbest_boy": 60,
+      "dis_cap": 18,
+      "tel_capi": 3.5,
+      "dalga_boyu": 105
+     },
+     "hacimMm3": 3548.0658131076084
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "sinus",
+      "serbest_boy": 47,
+      "dis_cap": 57,
+      "tel_capi": 3.5,
+      "dalga_boyu": 97
+     },
+     "hacimMm3": 3104.7688494716454
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "ucgen",
+      "serbest_boy": 114,
+      "dis_cap": 58,
+      "tel_capi": 4,
+      "dalga_boyu": 44
+     },
+     "hacimMm3": 2529.6037516503598
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "testere",
+      "serbest_boy": 82,
+      "dis_cap": 42,
+      "tel_capi": 3,
+      "dalga_boyu": 99
+     },
+     "hacimMm3": 3195.6186793800757
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "testere",
+      "serbest_boy": 44,
+      "dis_cap": 54,
+      "tel_capi": 2,
+      "dalga_boyu": 112
+     },
+     "hacimMm3": 3346.5214056340014
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "testere",
+      "serbest_boy": 115,
+      "dis_cap": 36,
+      "tel_capi": 3,
+      "dalga_boyu": 78
+     },
+     "hacimMm3": 2946.503147058926
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "kare",
+      "serbest_boy": 43,
+      "dis_cap": 15,
+      "tel_capi": 3.5,
+      "dalga_boyu": 120
+     },
+     "hacimMm3": 4382.641000819316
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "testere",
+      "serbest_boy": 48,
+      "dis_cap": 33,
+      "tel_capi": 3.5,
+      "dalga_boyu": 59
+     },
+     "hacimMm3": 2710.5160656411044
+    },
+    {
+     "p": {
+      "tip": "spiral",
+      "dalga_formu": "kare",
+      "serbest_boy": 40,
+      "dis_cap": 19,
+      "tel_capi": 2.5,
+      "dalga_boyu": 64
+     },
+     "hacimMm3": 2043.9119377294835
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "sinus",
+      "serbest_boy": 83,
+      "dis_cap": 60,
+      "tel_capi": 2,
+      "dalga_boyu": 84
+     },
+     "hacimMm3": 2992.156508644251
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "testere",
+      "serbest_boy": 78,
+      "dis_cap": 30,
+      "tel_capi": 4,
+      "dalga_boyu": 109
+     },
+     "hacimMm3": 3311.8602272890403
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "darbe",
+      "serbest_boy": 117,
+      "dis_cap": 58,
+      "tel_capi": 1.5,
+      "dalga_boyu": 105
+     },
+     "hacimMm3": 4154.353287430982
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "sinus",
+      "serbest_boy": 49,
+      "dis_cap": 46,
+      "tel_capi": 4,
+      "dalga_boyu": 48
+     },
+     "hacimMm3": 2710.1945354487234
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "ucgen",
+      "serbest_boy": 88,
+      "dis_cap": 45,
+      "tel_capi": 3.5,
+      "dalga_boyu": 92
+     },
+     "hacimMm3": 2914.40081510033
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "sinus",
+      "serbest_boy": 113,
+      "dis_cap": 17,
+      "tel_capi": 4,
+      "dalga_boyu": 48
+     },
+     "hacimMm3": 2710.1945354487234
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "testere",
+      "serbest_boy": 81,
+      "dis_cap": 18,
+      "tel_capi": 2,
+      "dalga_boyu": 59
+     },
+     "hacimMm3": 2710.5160656411044
+    },
+    {
+     "p": {
+      "tip": "spiral",
+      "dalga_formu": "darbe",
+      "serbest_boy": 57,
+      "dis_cap": 51,
+      "tel_capi": 3.5,
+      "dalga_boyu": 72
+     },
+     "hacimMm3": 11497.280074278238
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "ucgen",
+      "serbest_boy": 112,
+      "dis_cap": 53,
+      "tel_capi": 3,
+      "dalga_boyu": 62
+     },
+     "hacimMm3": 2690.3524865966283
+    },
+    {
+     "p": {
+      "tip": "spiral",
+      "dalga_formu": "kare",
+      "serbest_boy": 97,
+      "dis_cap": 33,
+      "tel_capi": 2.5,
+      "dalga_boyu": 74
+     },
+     "hacimMm3": 3791.27212585475
+    },
+    {
+     "p": {
+      "tip": "dalga",
+      "dalga_formu": "testere",
+      "serbest_boy": 71,
+      "dis_cap": 44,
+      "tel_capi": 4,
+      "dalga_boyu": 51
+     },
+     "hacimMm3": 2616.2616716654484
+    }
+   ]
+  }
+ },
+ "disi_birakilan": {
+  "huni": {
+   "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
+   "olculen_en_kotu_sapma_yuzde": 19.4774,
+   "tolerans_asan_set": "25/25"
+  },
+  "izgara": {
+   "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
+   "olculen_en_kotu_sapma_yuzde": 85.3408,
+   "tolerans_asan_set": "25/25"
+  },
+  "kasnak": {
+   "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
+   "olculen_en_kotu_sapma_yuzde": 27.398,
+   "tolerans_asan_set": "23/25"
+  },
+  "kayis": {
+   "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
+   "olculen_en_kotu_sapma_yuzde": 23.8936,
+   "tolerans_asan_set": "25/25"
+  },
+  "oring": {
+   "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
+   "olculen_en_kotu_sapma_yuzde": 6.6846,
+   "tolerans_asan_set": "10/25"
+  },
+  "pervane": {
+   "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
+   "olculen_en_kotu_sapma_yuzde": 71.6671,
+   "tolerans_asan_set": "25/25"
+  },
+  "petek": {
+   "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
+   "olculen_en_kotu_sapma_yuzde": 32.4029,
+   "tolerans_asan_set": "25/25"
+  },
+  "profil": {
+   "sebep": "motor=pruvo AMA hacim.js bugun kalibrasyon kaynagindan SAPIYOR — ACIK KALEM (kapsama alinmasi ONCE sapmanin onarilmasini gerektirir).",
+   "olculen_en_kotu_sapma_yuzde": 0.1469,
+   "tolerans_asan_set": "3/25"
+  },
+  "rampa": {
+   "sebep": "motor=pruvo AMA hacim.js bugun kalibrasyon kaynagindan SAPIYOR — ACIK KALEM (kapsama alinmasi ONCE sapmanin onarilmasini gerektirir).",
+   "olculen_en_kotu_sapma_yuzde": 24.6753,
+   "tolerans_asan_set": "7/25"
+  },
+  "rulman": {
+   "sebep": "motor=uretim — hacim.js GIZLI uretim motoruna kalibre; kardes evdeki dosya BASKA bir model, referans alinamaz (sahte-kirmizi).",
+   "olculen_en_kotu_sapma_yuzde": 27.5274,
+   "tolerans_asan_set": "25/25"
+  }
+ }
+}
