@@ -1,5 +1,394 @@
 [
   {
+    "id": "suzuki-jimny-22mm-boru-kelepcesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Jimny"
+    ],
+    "baslik": "Suzuki Jimny 22 mm Boru Kelepçesi (Kargo Filesi Aparatı)",
+    "aciklama": "Suzuki Jimny arka koltuk üstündeki tutamak yuvalarına takılan 22 mm çaplı boru kelepçesidir.\nOrijinal tutamaklar söküldükten sonra aynı vida deliklerine oturur; araç içine kargo filesi veya bagaj çubuğu çekmek için sabit bir bağlantı noktası verir.\nİki parçalı gövde boruyu üstten sıkıştırır, filenin gerilmesiyle oynamaz.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2113499-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2113499-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Chicken_Special",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-palette-sw-yakit-kapagi-tutucu-klipsi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Palette SW"
+    ],
+    "baslik": "Suzuki Palette SW Yakıt Kapağı Tutucu Klipsi",
+    "aciklama": "Suzuki Palette SW yakıt dolum kapağını yerinde tutan sabitleme klipsidir.\nOrijinal klips kaybolduğunda veya kırıldığında yerine takılır; kapağın yakıt kapağı kapağına asılı kalmasını sağlar.\nGerçek araç üzerinden ölçülerek hazırlanmıştır, geçme sıkılığı ile takma kolaylığı dengelenmiştir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2526646-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2526646-2.jpg"
+    ]
+  },
+  {
+    "id": "suzuki-swift-3-anahtar-kafasi-onarim-kabugu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Swift"
+    ],
+    "baslik": "Suzuki Swift III Anahtar Kafası Onarım Kabuğu",
+    "aciklama": "Suzuki Swift III kontak anahtarının kırılan plastik kafasının yerine geçen onarım kabuğudur.\nBaskı anahtar yuvasına geldiğinde durdurulur, metal anahtar boşluğa yerleştirilir ve baskı üzerine devam ederek anahtar gövdenin içine gömülür.\nAnahtarlık halkası için delik bırakılmıştır; sökülüp takılabilir ek parça gerektirmez.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1380073-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1380073-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1380073-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Technoforge3D",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-dr650-yag-tahliye-yonlendiricisi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR650"
+    ],
+    "baslik": "Suzuki DR650 Yağ Tahliye Yönlendiricisi (Acerbis Karter Koruma Uyumlu)",
+    "aciklama": "Suzuki DR650 üzerinde plastik Acerbis karter koruması takılıyken yağ değişimini temiz hale getiren tahliye yönlendiricisidir.\nBoşalan yağı motor ile koruma sacı arasına sızdırmadan doğrudan toplama kabına akıtır.\nKarter koruması sökülmeden yağ değişimi yapılmasını sağlar; tahliye tapası çevresine oturur.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1924745-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1924745-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1924745-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1924745-4.jpg",
+      "https://media.pruvo3d.com/urunler/mw1924745-5.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "backpckk",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-samurai-vitara-debriyaj-merkezleme-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Samurai",
+      "Vitara"
+    ],
+    "baslik": "Suzuki Samurai / Vitara Debriyaj Merkezleme Aparatı",
+    "aciklama": "Suzuki Samurai ve Vitara debriyaj değişiminde baskı balatasını volan merkezine hizalayan merkezleme aparatıdır.\nBalata ve baskı sıkılırken pilot yatak ekseninde tutar, şanzımanın sorunsuz oturmasını sağlar.\nİş bitince çekilerek çıkarılır; araç üzerinde kalıcı parça değildir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1000067-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1000067-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1000067-3.jpg"
+    ]
+  },
+  {
+    "id": "suzuki-dr650-gosterge-paneli-plakasi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR650"
+    ],
+    "baslik": "Suzuki DR650 Gösterge Paneli Plakası",
+    "aciklama": "Suzuki DR650 için gösterge, kontak ve anahtar yuvalarını taşıyan ön panel plakasıdır.\nKırılan veya çürüyen orijinal panelin yerine geçer; kilometre saati, ikaz lambaları ve düğmeler için hazır kesimler içerir.\nGidon üstü braketlere doğrudan cıvatalanır.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2562753-1.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "user_2343610403",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-dr650-fren-teli-tutucusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR650"
+    ],
+    "baslik": "Suzuki DR650 Fren Teli Tutucusu (1992-1995)",
+    "aciklama": "Suzuki DR650 1992-1995 modellerinde fren telini şasi üzerinde sabitleyen tutucu klipstir.\nKırılan orijinal tutucunun yerine geçer; teli aynı güzergâhta tutarak sürtünme ve takılmayı önler.\nPETG, ASA veya ABS ile basılması önerilir; dış ortam sıcaklığına dayanıklıdır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw806996-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw806996-2.jpg"
+    ]
+  },
+  {
+    "id": "suzuki-swift-sport-zc32s-vites-topuzu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Swift Sport"
+    ],
+    "baslik": "Suzuki Swift Sport ZC32S Vites Topuzu (M12x1.25)",
+    "aciklama": "Suzuki Swift Sport ZC32S için 50 mm küre çaplı vites topuzudur.\nM12x1.25 diş açıklığıyla orijinal vites koluna doğrudan sıkılır; diş boşluğu baskı toleransına göre ayarlanmıştır.\nÇekme kuvvetinde dişleri sıyırmayacak et kalınlığındadır; ZC31S ve ZC33S kollarında da kullanılabilir.",
+    "fiyat": "500 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2858870-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2858870-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "8rea",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-sx4-cam-suyu-dolum-hunisi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "SX4"
+    ],
+    "baslik": "Suzuki SX4 Cam Suyu Dolum Hunisi",
+    "aciklama": "Suzuki SX4 cam suyu deposunun dar dolum ağzına oturan huni aparatıdır.\nMotor bölmesindeki sıkışık boşlukta bidonun rahat boşaltılmasını sağlar, dökülmeyi önler.\nDolum bittiğinde çekilerek çıkarılır; diğer Suzuki modellerinin benzer dolum ağızlarında da kullanılabilir.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2329150-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2329150-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2329150-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw2329150-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "user_1428109067",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-gsx600f-yag-kapagi-ortusu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "GSX600F"
+    ],
+    "baslik": "Suzuki GSX600F Yağ Kapağı Örtüsü",
+    "aciklama": "Suzuki GSX600F motor yağ dolum kapağının üzerine geçen koruyucu örtüdür.\nKaybolan orijinal kapak örtüsünün yerine geçer; kapağı çamur ve darbeye karşı kapatır.\nDüz disk biçimli gövde kapak çevresine oturur, ek bağlantı gerektirmez.",
+    "fiyat": "350 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1214998-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1214998-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Itsmve",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-dr-debriyaj-ve-fren-kolu-seti",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "DR"
+    ],
+    "baslik": "Suzuki DR 250/350 Debriyaj ve Fren Kolu Seti",
+    "aciklama": "Suzuki DR 250 ve DR 350 için debriyaj ve fren kolu takımıdır.\nDevrilmede kolayca kırılan metal kolların yerine geçer; düşme anında kolun kendisi kırılarak gidon mekanizmasını korur.\nOrijinal kol yuvalarına aynı pim ve yaylarla takılır, yedeklerin yanda taşınmasını kolaylaştırır.",
+    "fiyat": "550 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw3050752-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw3050752-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw3050752-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw3050752-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Hugo agri",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-gsx600f-kilometre-sifirlama-mili",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "GSX600F"
+    ],
+    "baslik": "Suzuki GSX600F Katana Kilometre Sıfırlama Mili",
+    "aciklama": "Suzuki GSX600F Katana (1991-1998) gösterge panelindeki günlük kilometre sıfırlama milidir.\nKopan veya kaybolan orijinal milin yerine geçer; gösterge gövdesindeki delikten geçirilerek sayaç mekanizmasına oturur.\nUcundan bastırılarak günlük kilometre sıfırlanır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1214997-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1214997-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1214997-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Itsmve",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-gsx-8s-puig-plaka-tutucu-adaptoru",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "GSX-8S"
+    ],
+    "baslik": "Suzuki GSX-8S Puig Plaka Tutucu Adaptörü",
+    "aciklama": "Suzuki GSX-8S üzerine Puig plaka tutucu takmak için gereken ara braket adaptörüdür.\nMotosikletin arka çamurluk bağlantı deliklerini plaka tutucunun delik düzenine çevirir; ek delme gerektirmez.\nDiğer Suzuki GSX modellerinin aynı bağlantı düzenine sahip arka gruplarında da kullanılabilir.",
+    "fiyat": "450 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw482457-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw482457-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw482457-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "user_2446824869",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-swift-mk3-m13a-debriyaj-merkezleme-aleti",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Swift"
+    ],
+    "baslik": "Suzuki Swift MK3 M13A Debriyaj Merkezleme Aleti",
+    "aciklama": "Suzuki Swift MK3 (2007) M13A motorlu modeller için debriyaj merkezleme aletidir.\nBalatayı volan pilot yatağına göre hizalar; baskı sıkılırken merkezden kaçmasını engeller.\nŞanzıman takıldıktan sonra çekilerek çıkarılır, araçta kalıcı parça değildir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2697444-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2697444-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Traxes9k",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-hayabusa-arka-sinyal-ara-pulu-5mm",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "Hayabusa"
+    ],
+    "baslik": "Suzuki Hayabusa Arka Sinyal Ara Pulu (5 mm)",
+    "aciklama": "Suzuki Hayabusa arka sinyal lambası ile grenaj arasına giren 5 mm kalınlığında ara puldur.\nSinyalin gövdeden uzaklaşmasını sağlar; farklı sinyal gövdelerinin orijinal delik düzenine oturmasına yardımcı olur.\nSinyal cıvatası pulun içinden geçer, ek bağlantı gerektirmez.",
+    "fiyat": "250 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2200562-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2200562-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "user_4162387475",
+      "tur": "CC BY-ND 4.0"
+    }
+  },
+  {
+    "id": "suzuki-alto-works-silecek-burcu",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Alto Works"
+    ],
+    "baslik": "Suzuki Alto Works Silecek Kolu Burcu (1997)",
+    "aciklama": "1997 Suzuki Alto Works silecek mekanizmasındaki bağlantı burcudur.\nAşınan veya dağılan orijinal burcun yerine geçer; silecek kolunun boşluk yapmasını ve tıkırdamasını önler.\nPETG gibi aşınmaya dayanıklı bir malzeme ile basılması önerilir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw684471-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw684471-2.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Carlwenslow",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-carry-nrg-kisa-gobek-sinyal-adaptoru",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Carry"
+    ],
+    "baslik": "Suzuki Carry NRG Kısa Göbek Sinyal İptal Adaptörü",
+    "aciklama": "Suzuki Carry DD51T direksiyonu NRG kısa göbek (SRK-122H) ile değiştirildiğinde sinyal otomatik iptal işlevini koruyan adaptördür.\nKısa göbek takılınca boşta kalan iptal pimini direksiyon miline yeniden bağlar.\nDönüş sonrası sinyal kolunun kendiliğinden geri gelmesini sağlar.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2533087-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2533087-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2533087-3.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "Cecilsan",
+      "tur": "CC BY-SA 4.0"
+    }
+  },
+  {
+    "id": "suzuki-pv-hava-filtresi-kapagi-ve-korna-dugmesi",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "PV"
+    ],
+    "baslik": "Suzuki PV Hava Filtresi Kapağı ve Korna Düğmesi",
+    "aciklama": "Suzuki PV için hava filtresi kutusunun iç ızgarası, dış kapağı ve gidon korna düğmesinden oluşan yedek parça takımıdır.\nKırılan orijinal filtre kapağı ve ızgarasının yerine geçer; filtre süngerini yerinde tutar.\nKorna düğmesi orijinal anahtar gövdesine oturacak ölçüdedir.",
+    "fiyat": "400 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2792409-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2792409-2.jpg"
+    ]
+  },
+  {
+    "id": "suzuki-mightyboy-kontak-silindiri-kecesi",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "Mightyboy"
+    ],
+    "baslik": "Suzuki Mightyboy Kontak Silindiri Keçesi (1985)",
+    "aciklama": "1985 Suzuki Mightyboy kontak silindirinin çevresindeki aşınmış lastik keçenin yedeğidir.\nSilindir ile direksiyon kolonu kapağı arasındaki boşluğu kapatır; toz ve nemi uzak tutar.\nEsnek filament ile basıldığında orijinal keçenin sıkı oturuşunu verir.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw1930629-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw1930629-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw1930629-3.jpg",
+      "https://media.pruvo3d.com/urunler/mw1930629-4.jpg"
+    ],
+    "lisans": {
+      "tasarimci": "12amClimax",
+      "tur": "CC BY 4.0"
+    }
+  },
+  {
+    "id": "suzuki-sj413-kilometre-sifirlama-aparati",
+    "kategori": "Otomobil",
+    "marka": [
+      "Suzuki",
+      "SJ413"
+    ],
+    "baslik": "Suzuki SJ413 Kilometre Sıfırlama Aparatı",
+    "aciklama": "Suzuki SJ413 gösterge panelindeki günlük kilometre sayacını sıfırlamaya yarayan aparattır.\nKopan orijinal düğme milinin yerine geçer; gösterge gövdesindeki yuvaya oturur.\nBastırıldığında sayaç mekanizmasını doğrudan sıfırlar.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw547787-1.jpg"
+    ]
+  },
+  {
+    "id": "suzuki-gs750-karburator-jikle-burcu",
+    "kategori": "Motosiklet",
+    "marka": [
+      "Suzuki",
+      "GS750"
+    ],
+    "baslik": "Suzuki GS750 Karbüratör Jikle Burcu (1978, Mikuni)",
+    "aciklama": "1978 Suzuki GS750 üzerindeki Mikuni karbüratörün jikle mili burcudur.\nDağılan orijinal burcun yerine geçer; jikle milinin boşluk yapmasını ve hava kaçırmasını engeller.\nASA ile 270 °C nozul ve 75 °C tabla sıcaklığında basılması önerilir; motor bölmesi sıcaklığına dayanır.",
+    "fiyat": "300 TL",
+    "gorseller": [
+      "https://media.pruvo3d.com/urunler/mw2591111-1.jpg",
+      "https://media.pruvo3d.com/urunler/mw2591111-2.jpg",
+      "https://media.pruvo3d.com/urunler/mw2591111-3.jpg"
+    ]
+  },
+  {
     "id": "opel-zafira-b-kalorifer-izgara-cercevesi-sol",
     "kategori": "Otomobil",
     "marka": [
