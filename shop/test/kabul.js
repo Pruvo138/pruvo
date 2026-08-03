@@ -827,13 +827,20 @@ async function test26SariFailClosed() {
      2026-08-03: ayni kusur petek/cetvel/kase'de de OLCULDU (sema kapisi 'gecerli'
      derken uretim ucu ayni seti 400/422 ile reddediyor: petek %50,0 mod="kabartma" ·
      cetvel %66,7 secim-tanimsiz:tip · kase %83,3 sap+bicim) -> ucu de KAPATILDI.
-     Fikstur bu yuzden KAPALI kalan ALTI aile: cetvel + kase + petek + rampa +
-     rulman + vida (acik 17 / kapali 6).
+     2026-08-03 (ayni gun, ikinci tur): `rampa` ACILDI ve fikstur listesinden CIKARILDI.
+     Uretilebilirlik olculdu (jenerator/test/rampa-uretilebilirlik-olcum.py): 944.559
+     noktalik ilan edilmis izgarada sema kapisi 0 nokta reddediyor, render edilen
+     1.686 GERCEK render'da uretilemez 0 (%0,0000), hacim kapali formunun en kotu
+     sapmasi %0,0000079. Acilan aile artik POZITIF yonde olculur (fiyat-test.js:
+     "ACILAN ailede fiyat ucu taban uretir (rampa)"), burada NEGATIF fiksturde
+     kalamaz — kalsaydi bu vaka 'hacim-hesaplanamadi' ile kirmizi yanardi.
+     Fikstur bu yuzden KAPALI kalan BES aile: cetvel + kase + petek + rulman + vida
+     (acik 18 / kapali 5).
      Semanin geri kalani GECERLI oldugu icin bu vakalar yalniz kapiyi olcer.
      ⚠️ hacimFormulu degistirilince hacim fonksiyonu da degisir; sema.parametreler kutu'nun
      kaldigi icin hacim hesabi yine calisir ya da null doner — iki halde de tutar CIKMAMALI,
      iddia zaten "hata dolu + birimKurus YOK". */
-  for (const kirmiziAile of ["cetvel", "kase", "petek", "rampa", "rulman", "vida"]) {
+  for (const kirmiziAile of ["cetvel", "kase", "petek", "rulman", "vida"]) {
     vakalar.push(["N13-" + kirmiziAile + " hacim formulu dogrulanmamis aile",
                   Object.assign({}, sema, { hacimFormulu: kirmiziAile }),
                   null, "hacim-dogrulanmamis"]);
@@ -870,10 +877,31 @@ async function test26SariFailClosed() {
     hatalar.push("POZITIF KANARYA fiyat uretmedi: " + JSON.stringify(pozitif));
   }
 
+  /* 🔴 ACILAN AILE POZITIF KANARYASI (2026-08-03) — kapsam KAYBOLMASIN: `rampa` bu
+     testin NEGATIF listesinden cikarildi; yerine WORKER fiyat yolundan GERCEK taban
+     fiyatiyla ne tahsil edilecegi olculur. Negatif bir vakayi silip yerine hicbir sey
+     koymamak, kapsami sessizce daraltirdi. Beklenen 16000 kurus SABIT yazilir:
+     kapi acikken bile yanlis bir tutar (ornegin olcek/tavan regresyonu) kirmizi yansin. */
+  const rampaSema = JSON.parse(fs.readFileSync(
+    path.join(KOK, "jenerator", "urunler", "olcuye-ozel-ramp-sim-takoz.json"), "utf8"));
+  const rampaVd = KONF.varsayilanDegerler(rampaSema);
+  const rampaSonuc = PAR.parametrikHesapla(
+    { id: rampaSema.id, malzeme: "PLA", renk: "Siyah",
+      parametreler: JSON.parse(JSON.stringify(rampaVd)), adet: 1 },
+    SECENEK, rampaSema);
+  if (rampaSonuc.hata) {
+    hatalar.push("ACILAN AILE (rampa) reddedildi: " + rampaSonuc.hata);
+  } else if (rampaSonuc.birimKurus !== 16000) {
+    hatalar.push("ACILAN AILE (rampa) varsayilan tutar=" + rampaSonuc.birimKurus +
+                 " beklenen 16000");
+  }
+
   rapor("26 sari seri fail-closed (eksik/bozuk sema -> 0 TL YOK, sessiz varsayilan YOK)",
     hatalar.length === 0,
     vakalar.length + " negatif vaka + 1 pozitif kanarya (" +
     (pozitif.hata ? "REDDEDILDI" : kurusMetin(pozitif.birimKurus)) + ")" +
+    " + acilan aile kanaryasi rampa (" +
+    (rampaSonuc.hata ? "REDDEDILDI" : kurusMetin(rampaSonuc.birimKurus)) + ")" +
     (hatalar.length ? " | HATA: " + hatalar.join(" ; ") : ""));
 }
 
