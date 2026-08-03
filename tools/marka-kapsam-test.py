@@ -20,6 +20,13 @@ NE KİLİTLER (her madde POZİTİF + NEGATİF vakayla):
   4. data-kat'ı OKUNAMAYAN kart kapsam altında GİZLENİR (kaçak yok).
   5. Kapsam GÖRÜNÜR ve KALDIRILABİLİR (kapsam şeridi + parametresiz adrese dönüş linki).
   6. SEO: kanonik URL parametresiz kalır, sitemap'e parametreli/yeni girdi girmez.
+  7. ARAMA BAĞLAMI TAŞIMA (Okan, 3 Ağu — ölçülen müşteri hatası: "Kapı Kolu" aranıp Volvo
+     çipine basılınca sorgu DÜŞÜYORDU): marka/model sayfasında arama kutusu TEKİL, aria-
+     label'lı, bu sayfanın markasını gizli alanla taşıyor + "Tüm katalogda ara" görünür
+     çıkışı var; sayfaya `?ara=…` ile gelindiğinde ana katalog aramasına (marka= korunarak)
+     GERÇEKTEN yönlendirdiği node'da koşturulur (ayrı dosya AÇILMAZ — CI kapsam kapısı
+     yalnız deploy.yml'de FİİLEN koşulan dosyaları tanır; bu iş deploy.yml'e DOKUNAMAZ,
+     bu yüzden aynı kapıya kaynaşır — ikiz tanım riski yok, kaynak marka_model_build.py).
 
 NASIL ÖLÇER (kopya mantık YOK — canlı kod koşar):
   A) /marka/... sayfalarını GERÇEK jeneratörle (marka_model_build.uret) geçici bir ROOT'a
@@ -162,8 +169,8 @@ def kapsam_bloklari(html):
 kontrol("index.html'de MARKA KAPSAMI blok marker'ları var",
         "// --- MARKA KAPSAMI BAŞ ---" in INDEX_HTML
         and "// --- MARKA KAPSAMI SON ---" in INDEX_HTML)
-kontrol("marka çipi hedefi kapsamı taşıyor (markaKapsamSorgusu(activeCat) kablolu)",
-        '"/marka/" + slug + "/" + markaKapsamSorgusu(activeCat)' in INDEX_HTML)
+kontrol("marka çipi hedefi kapsamı taşıyor (markaKapsamSorgusu(activeCat, query) kablolu)",
+        '"/marka/" + slug + "/" + markaKapsamSorgusu(activeCat, query)' in INDEX_HTML)
 
 # ---- GERÇEK jeneratörle /marka/... üret (geçici ROOT; depoya YAZMAZ) ----
 TMP = tempfile.mkdtemp(prefix="marka-kapsam-")
@@ -194,6 +201,34 @@ try:
                         r'.*?<span class="adet">([^<]*)</span>')
     KART_HERHANGI_RE = re.compile(r'<div class="card(?: [^"]*)?"[^>]*>')
     ID_RE = re.compile(r"/urun/([^/]+)/")
+
+    # ---- ARAMA BAĞLAMI TAŞIMA: statik yapı regex'leri (madde 7) ----
+    ARAMA_FORM_RE = re.compile(
+        r'<form class="mm-arama"[^>]*action="/"[^>]*method="get"[^>]*role="search">.*?</form>', re.S)
+    ARAMA_INPUT_RE = re.compile(r'<input type="search" name="ara"[^>]*aria-label="[^"]+"')
+    ARAMA_HIDDEN_MARKA_RE = re.compile(r'<input type="hidden" name="marka" value="([^"]*)">')
+    ARAMA_CIKIS_RE = re.compile(r'<a class="mm-arama-tumu" href="/">T[uü]m katalogda ara</a>')
+    # ARA-TAŞI scripti İŞLEVSEL çapa (YORUM DEĞİL — yayın hattı <script> içi /* … */ yorumları
+    # SOYAR; kapsam scriptiyle AYNI ilke, bkz. dosya başı "ÇAPA = İŞLEV").
+    ARA_TASI_ISLEV_RE = re.compile(
+        r'hedef\.set\("ara",\s*ara\).*?hedef\.set\("marka",\s*MARKA\).*?window\.location\.replace\(',
+        re.S)
+
+    def arama_kutusu_kontrol(etiket, html, beklenen_marka):
+        formlar = ARAMA_FORM_RE.findall(html)
+        kontrol("%s arama kutusu formu TEKİL (bulunan: %d)" % (etiket, len(formlar)),
+                len(formlar) == 1)
+        kontrol("%s arama kutusu name=ara + aria-label taşıyor" % etiket,
+                bool(ARAMA_INPUT_RE.search(html)))
+        hm = ARAMA_HIDDEN_MARKA_RE.search(html)
+        import html as _html_mod
+        kontrol("%s gizli marka= alanı sayfanın markasıyla eşleşiyor (%r)" % (etiket, beklenen_marka),
+                bool(hm) and _html_mod.unescape(hm.group(1)) == beklenen_marka)
+        kontrol("%s \"Tüm katalogda ara\" çıkışı TEKİL" % etiket,
+                len(ARAMA_CIKIS_RE.findall(html)) == 1)
+        kontrol("%s arama-taşı scripti İŞLEVSEL çapayla + bu markanın JS değişmezi ile gömülü" % etiket,
+                bool(ARA_TASI_ISLEV_RE.search(html))
+                and json.dumps(beklenen_marka, ensure_ascii=False) in html)
 
     def sayfa_oku(rel):
         yol = os.path.join(TMP, *rel.strip("/").split("/"), "index.html")
@@ -255,6 +290,7 @@ try:
                 % (slug, KAPSAM_AD, len(kb)), len(kb) == 1)
         if kb:
             sayfa_scriptleri["marka/" + slug] = INLINE_SCRIPT_RE.findall(html)
+        arama_kutusu_kontrol("/marka/%s/" % slug, html, marka)
         fiksturler[marka] = f
 
     # model sayfası da kapsam uygular mı (örnek: en çok ürünlü marka modeli)
@@ -276,6 +312,7 @@ try:
         kontrol("model sayfası %s kartları data-kat taşıyor" % rel,
                 len(mf["kartlar"]) == len(KART_HERHANGI_RE.findall(html))
                 and len(mf["kartlar"]) > 0)
+        arama_kutusu_kontrol("model sayfası %s" % rel, html, marka)
         model_ornek = mf
         break
     kontrol("model sayfası fikstürü çıkarıldı", model_ornek is not None)
@@ -283,11 +320,12 @@ try:
     kapsam_js = mm._KAPSAM_JS_GOVDE.replace(
         "__KATEGORILER__", json.dumps(KATEGORILER, ensure_ascii=False,
                                       separators=(",", ":")))
+    ara_tasi_js = mm._ARA_TASI_JS_GOVDE.replace("__MARKA__", json.dumps("Volvo", ensure_ascii=False))
 finally:
     shutil.rmtree(TMP, ignore_errors=True)
 
 # ---- index.html markaKapsamSorgusu()'nu KAYNAKTAN ayıkla ----
-m = re.search(r"function markaKapsamSorgusu\(kat\)\{[\s\S]*?\n  \}", INDEX_HTML)
+m = re.search(r"function markaKapsamSorgusu\(kat, q\)\{[\s\S]*?\n  \}", INDEX_HTML)
 kontrol("index.html markaKapsamSorgusu() ayıklanabildi", bool(m))
 cip_js = m.group(0) if m else ""
 
@@ -313,6 +351,7 @@ if not node_var:
 
 VERI = {
     "kapsamJs": kapsam_js,
+    "araTasiJs": ara_tasi_js,
     "cipJs": cip_js,
     "kategoriler": KATEGORILER,
     "vakalar": [{"marka": mk, "kapsam": kp, "disari": ds} for mk, kp, ds in VAKALAR],
@@ -334,6 +373,14 @@ const VERI = require(VERI_JSON);
 const K = globalThis.PRUVO_KAPSAM;
 // --- index.html'deki CANLI çip hedefi fonksiyonu ---
 (0, eval)("globalThis.markaKapsamSorgusu = " + VERI.cipJs.replace(/^function markaKapsamSorgusu/, "function"));
+
+// --- marka_model_build'in CANLI arama-taşı yönlendirme scripti (IIFE, tekrar-koşulabilir) ---
+function araTasiCalistir(search){
+  let HEDEF = null;
+  global.window = { location: { search: search, replace: (u) => { HEDEF = u; } } };
+  (0, eval)(VERI.araTasiJs);
+  return HEDEF;
+}
 
 let pass = 0, fail = 0;
 function ok(cond, msg){
@@ -475,6 +522,19 @@ for(const kat of VERI.kategoriler){
   }
 }
 ok(true, "tüm kategoriler için çip sorgusu <-> kapsam gidiş-dönüşü tutarlı (" + VERI.kategoriler.length + ")");
+
+// ============================ 1b) ARAMA BAĞLAMI TAŞIMA (Okan, 3 Ağu) ============================
+// "Kapı Kolu" aranıp Volvo çipine basılınca sorgu DÜŞÜYORDU (ölçülen müşteri hatası). Çip hedefi
+// artık `ara=` parametresini de taşır -> ÖLDÜRÜCÜ mutant: ikinci argüman (q) yok sayılırsa/silinirse
+// bu blok KIRMIZI yanar.
+ok(markaKapsamSorgusu("Tümü", "kapı kolu") === "?ara=kap%C4%B1+kolu",
+   "arama sorgusu VARKEN kategori seçili değilse çip hedefi yalnız ara= taşır");
+ok(markaKapsamSorgusu("Marin", "kapı kolu") === "?kategori=Marin&ara=kap%C4%B1+kolu",
+   "kategori + arama sorgusu BİRLİKTE taşınır (bağlam kaybı yok)");
+ok(markaKapsamSorgusu("Marin", "") === "?kategori=Marin" && markaKapsamSorgusu("Marin", "   ") === "?kategori=Marin",
+   "boş/yalnız-boşluk sorgu ara= EKLEMEZ (regresyon yok, eski davranış korunur)");
+ok(markaKapsamSorgusu("Marin", "  cam  ") === "?kategori=Marin&ara=cam",
+   "sorgudaki baştaki/sondaki boşluk trim edilir");
 
 // ============================ 2) MARKA SAYFASI KAPSAMI ============================
 let pozitifVaka = 0;
@@ -633,6 +693,29 @@ ok(K.sayimla('{"Marin":3,"Motosiklet":5}', {aktif: false, gecerli: true, kategor
   const s3 = shim(mf);
   K.uygula(s3.dok, {search: "", pathname: mf.pathname});
   ok(gorunenKartlar(s3).length === mf.kartlar.length, "model sayfası kanonikte DEĞİŞMEZ");
+})();
+
+// ============================ 7) ARAMA BAĞLAMI TAŞIMA — yönlendirme davranışı ============================
+ok(araTasiCalistir("") === null,
+   "parametresiz adreste yönlendirme YOK (kanonik sayfa dokunulmaz)");
+ok(araTasiCalistir("?kategori=Otomobil") === null,
+   "ara= yokken kategori tek başına yönlendirmez");
+(function(){
+  const h = araTasiCalistir("?ara=" + encodeURIComponent("kapı kolu"));
+  ok(h !== null, "ara= varken yönlendirme TETİKLENDİ");
+  if(h !== null){
+    const p = new URLSearchParams(h.replace(/^\/\?/, ""));
+    ok(p.get("ara") === "kapı kolu", "yönlendirilen ara= değeri korunuyor");
+    ok(p.get("marka") === "Volvo", "yönlendirilen marka= bu sayfanın markası (Volvo)");
+  }
+})();
+(function(){
+  const h = araTasiCalistir("?ara=cam&kategori=Marin");
+  if(h !== null){
+    const p = new URLSearchParams(h.replace(/^\/\?/, ""));
+    ok(p.get("ara") === "cam" && p.get("marka") === "Volvo" && p.get("kategori") === "Marin",
+       "ara+marka+kategori üçü BİRDEN taşınır (bağlam kaybı yok)");
+  }
 })();
 
 console.log("SONUC " + pass + " gecti " + fail + " kaldi");
