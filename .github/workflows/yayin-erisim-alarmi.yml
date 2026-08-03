@@ -1,0 +1,95 @@
+name: Yayin erisim alarmi (canli sayfa acik mi)
+
+# ══════════════════════════════════════════════════════════════════════════════
+# NEDEN VAR — OLCULEN SESSIZLIK (3 Agu 2026)
+# ══════════════════════════════════════════════════════════════════════════════
+# UC landing sayfasi canlida 12 GUN boyunca 403 Forbidden dondu ve hicbir nobetci
+# gormedi. Sebep bizim uretimimiz degildi: kardes depodaki Worker rotasi
+# `pruvo3d.com/ara*` bir ONEK JOKERIDIR ve `araba-…`/`arac-…` slug'larini yutup
+# webhook catch-all'ina dusuruyordu (403; istek origin'e HIC ulasmiyordu).
+#
+# 🔴 ASIL KUSUR KORLUKTU: dosyalar origin'de URETILDI, sitemap'te VARDI, 10 canli
+# sayfadan 22 IC LINK onlara gidiyordu, deploy fail-closed kopyaladi ve kosum YESILDI.
+# Yani yayinlanan icerigin URETILDIGI olculuyordu, ERISILEBILDIGI olculmuyordu.
+# Yan bulgu: ayni URL'ye HEAD 200 / GET 403 -> HEAD'e bakan bir olcum kusuru HIC
+# gormezdi. Bu yuzden nobetci GET kullanir (tools/yayin-erisim-nobeti.py :: YONTEM).
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# 🔴 NEDEN YAYINI DURDURAMAZ (yapisal, beyan degil)
+# ══════════════════════════════════════════════════════════════════════════════
+#   * `push`/`pull_request`/`workflow_call` tetikleyicisi YOK -> Pages yayin akisi
+#     (deploy.yml) bu isi HIC baslatmaz.
+#   * deploy.yml'e `needs:` ile BAGLI DEGIL -> buradaki kirmizinin yayin yoluna
+#     maliyeti 0 sn'dir.
+#   * `concurrency` grubu AYRI -> hicbir yayin adimini bekletmez.
+# Gerekce olculdu: aga bagimli bir kapiyi bloklayici `build`e koymak, tek gecici DNS
+# hatasinda TUM EKIBIN yayinini durdurur ([[kapi-kapsam-eksen-secimi]]) ve bu depoda
+# kapi birikmesi yayin suresini 21 gunde 15,6x uzatti
+# ([[kapi-birikimi-yayin-gecikmesi]]). Ayni desen 1 Agu'da paket tazeligi alarmi icin
+# secildi ve kosuyor (paket-tazelik-alarmi.yml).
+# Bu iddialar YORUM DEGIL, KOSULAN kapidir: tools/yayin-erisim-test.py :: E7.
+#
+# ══════════════════════════════════════════════════════════════════════════════
+# CADANS + NABIZ
+# ══════════════════════════════════════════════════════════════════════════════
+# Saatlik. Gerekce: olculen kusur 12 GUN sessiz kaldi; saatlik cadans o pencereyi
+# ~288x daraltir. Tam kume (bugun 295 URL) her kosumda olculur — ORNEKLEME YOK;
+# olculen kosum suresi ~166 s (6 istek/sn tavani, gerceklesen 1,8/sn; gecikme-sinirli).
+# Daha sik kosmak GET sayisini lineer buyutur, kazanci ise sinirlidir.
+#
+# 🔴 DAKIKA ALANI ACIK LISTE + OFSET (olculmus tuzak): `*/15`/`0 * * * *` tam olarak
+# yogun dakikalara (0/15/30/45) duser ve GitHub o dakikalarda tetiklemeyi DUSURUR
+# (31 Tem'de olculdu: 4 sa 36 dk'da beklenen ~18 tetiklemenin SIFIRI kostu). Dakika 26
+# secildi: yogun degil, d1-uzlastirici (7,22,37,52) ve paket-tazelik (13,28,43,58)
+# fazlarina da carpmaz.
+# NABIZ: tools/cron-nabiz-kapisi.py cron tasiyan is akislarini DOSYADAN KESFEDER
+# (`cron_ifadeleri()`), yani bu dosya A1 (yogun dakika) · A2 (kayitli+aktif) ·
+# A3 ("hic ateslenmemis"/sessiz cron) eksenlerine KENDILIGINDEN girer; o kapi
+# deploy.yml `cron-nabzi` isinde HER itmede kosar.
+on:
+  schedule:
+    - cron: "26 * * * *"
+  # Elle kosum yolu HER ZAMAN acik (cron kacarsa insan tetikleyebilir).
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Yayin is akisiyla (deploy.yml `group: pages`) AYRI grup.
+concurrency:
+  group: yayin-erisim-alarmi
+  cancel-in-progress: true
+
+jobs:
+  erisim:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # UCA TAZELE — kume "YAYINLANMIS OLMASI GEREKEN" sayfalardan turesin
+      # ═══════════════════════════════════════════════════════════════════════
+      # Zamanlanmis kosum tetikleme anindaki `github.sha`'yi checkout eder. Kuyruk +
+      # kurulum gecikmesinde main ilerlerse kume DOGUSTAN bayat olur: yeni eklenen
+      # landing'ler HIC olculmez (tam da 12 gun sessiz kalan sinif).
+      - name: Uca tazele — agaci uzak main ucuna getir (donmus github.sha DEGIL)
+        run: |
+          git fetch --depth=1 origin main
+          git reset --hard FETCH_HEAD
+          git rev-parse HEAD
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # OLCUM — MUSTERININ GORDUGU canli hal (yan etkisiz, salt-okunur GET)
+      # ═══════════════════════════════════════════════════════════════════════
+      # `continue-on-error` YOK ve cikis kodu kabukta YAKALANMAZ (`|| true` bu depoda
+      # beyansiz fail-open sayilir — is-akisi-kapisi Bolum D): cikis kodu DOGRUDAN
+      # konusur, kosum KIRMIZI yanar, GitHub bildirimi duser.
+      #   rc 0 acik       — kumedeki her URL 200 (ya da yonlendirme zinciri 200'de biter)
+      #   rc 1 kapali     — en az bir yayinlanmis sayfa musteriye KAPALI (403/404/dongu)
+      #   rc 2 olculemedi — ag/DNS/zaman asimi ya da kume turetilemedi. SESSIZ YESIL DEGIL.
+      - name: "Olcum — yayinlanmis sayfalar canlida ACIK mi (yayin yolundan AYRI)"
+        id: olcum
+        run: python3 tools/yayin-erisim-nobeti.py --gh-ozet

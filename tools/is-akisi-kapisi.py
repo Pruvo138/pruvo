@@ -1673,7 +1673,9 @@ TABLO_TABANLARI = (
     # bayraksiz GERCEK olcum kolu serit A'da `build` job'unda bloklayici kalir).
     # 3 Agu: 39 -> 40 (kalibrasyon senkron kapisinin `--mutasyon` kolu beyan edildi;
     # bayraksiz GERCEK olcum kolu serit A'da `build` job'unda BLOKLAYICI kosar).
-    ("SERIT_B", 40),
+    # 3 Agu: 40 -> 41 (yayin erisim nobetcisinin kabul testi beyan edildi; GERCEK
+    # olcum kolu CI'da HIC kosmaz, ayri cron alarm is akisindadir).
+    ("SERIT_B", 41),
 )
 
 TABLO_TANI = (
@@ -2119,6 +2121,25 @@ SERIT_B = {
         "Gercek olcum kolu CI'da BILEREK kosmaz (olctugu hatta bagimli olmasin diye), "
         "elle + tools/durum.py bolum 9'dan kosar; 'canliya sizintili icerik cikmasin' "
         "sinifi DEGILDIR, yayini durdurmasi olculmus zarardir.",
+    # --- YAYIN ERISIM NOBETCISI (3 Agu 2026) — GERCEK OLCUM KOLU CI'DA HIC YOK ------
+    # 🔴 ISTISNAI GIRIS, yayin-gecikme kardesiyle AYNI sinif: gercek olcum kolu CI'da
+    # HICBIR SERITTE kosmaz ve bu BILEREK boyledir. Nobetci "yayinladigimiz sayfa
+    # canlida GERCEKTEN ACIK MI" sorusunu CANLI GET ile olcer; aga bagimli bir kapiyi
+    # `deploy`in onune koymak tek gecici DNS/oran-siniri hatasinda TUM EKIBIN yayinini
+    # durdururdu ([[kapi-kapsam-eksen-secimi]]) — bu depoda kapi birikmesi yayin
+    # suresini 21 gunde 15,6x uzatti ve musteriye 404 olarak yansidi
+    # ([[kapi-birikimi-yayin-gecikmesi]]). Olcum kolu bu yuzden AYRI, seyrek kosan bir
+    # alarm is akisindadir (.github/workflows/yayin-erisim-alarmi.yml — saatlik cron,
+    # `push` tetikleyicisi YOK, ayri concurrency grubu). CI'da yalnizca YEREL fikstur
+    # sunucusuyla (127.0.0.1, dis ag YOK) kosan kabul testi vardir;
+    # tools/yayin-erisim-test.py :: E7 ekseni, bayraksiz (olcum yapan) bir cagrinin
+    # deploy.yml'e sizmasini KIRMIZI yakar.
+    ("deploy.yml", "serit-b", "tools/yayin-erisim-test.py"):
+        "Aracin KENDINI sinamasi: yerel HTTP fikstur sunucusu (dis ag YOK) + kume "
+        "turetimi + kablolama nobetleri. Gercek olcum kolu CI'da BILEREK kosmaz "
+        "(aga bagimli yanlis-pozitif tum ekibin yayinini durdurur); canli kol "
+        "yayin-erisim-alarmi.yml cron'unda kosar. 'Canliya sizintili icerik cikmasin' "
+        "sinifi DEGILDIR.",
     # --- oz-nobetci / kendini-test kollari (gercek olcum kolu SERIT A'da BLOKLAYICI) ---
     ("deploy.yml", "serit-b", "tools/diriltme-kapisi.py"):
         "YALNIZ `--kendini-test` kolu; silinmis urun diriltme OLCUMU (bayraksiz kol) "
