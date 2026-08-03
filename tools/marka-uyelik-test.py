@@ -13,12 +13,24 @@ markalı uyumluluk kayıtlarında ("Peugeot"+"Citroen", "Volkswagen"+"Audi") mar
 MARKA'dır; sonuç /marka/peugeot/citroen/ gibi ANLAMSIZ 33 sayfaydı (biri mojibake:
 /marka/peugeot/citro-n/). Bu ürünler ikinci markanın sayfasında da GÖRÜNMÜYORDU.
 
+⚠️ ÜYELİK EVRENİ ARTIK İKİ KAYNAKTAN TÜRER (3 Ağu, b3090492): marka sayfası evreni
+TANINMIS_MARKALAR'la SINIRLI DEĞİL — anasayfa ÇİP EVRENİNDEN (tools/cip-indeks.py) de
+beslenir. Küratörlük dışı ama çip olan markalar (Marin: Teleflex/Sierra/NGK/Tecnoseal/
+Jabsco/International/3M/TMC/Champion/Johnson Pump/Raymarine/Sea-Doo/Sika) hem çipte hem
+/marka/<slug>/ sayfasında yaşar. Bu dosyadaki üyelik yüklemi de ONLARI KAPSAMAK ZORUNDA;
+kapsamazsa test kendi BAYAT evrenini "gerçek sapma" sanır ve meşru genişlemeyi kırmızı
+yakar (ölçüldü 3 Ağu: E'de 13 marka / 605 ürün, F'de 727 ürün sahte kırmızı).
+🔴 EVREN İKİNCİ KEZ YAZILMAZ: burada da cip-indeks.indeks_uret'ten OKUNUR — jeneratörün
+kendi yardımcısından (marka_model_build.cip_evreni_markalari) DEĞİL; o okunsaydı jeneratörü
+bozan mutant testi de bozar, iddia körelirdi ([[ikiz-tanim-sessiz-ayrisma]]).
+
 KARAR (KraL):
   1. Gruplama KANONİK KATLANMIŞ adla yapılır; katlama tek kaynaktan (index.html
      TANINMIS_MARKALAR + markaKatla portu) gelir, ikinci tablo YAZILMAZ.
   2. marka[1] KENDİSİ tanınan bir marka ise MODEL sayılmaz: model kovası açılmaz, ürün her
      iki marka sayfasına da girer.
   3. Anlamsız /marka/<marka>/<başka-marka>/ sayfası ÜRETİLMEZ.
+  4. Üyelik kabul kümesi = TANINMIS_MARKALAR ∪ ÇİP EVRENİ (ikisi de tek kaynaktan okunur).
 
 NE KİLİTLER (her madde POZİTİF + NEGATİF):
   A. Katlanmış üyelik: "Volvo Penta" ürünü /marka/volvo/'da GÖRÜNÜR (poz) ·
@@ -33,13 +45,15 @@ NE KİLİTLER (her madde POZİTİF + NEGATİF):
      model kırılımı SEO'nun ana ekseni) · pilot model sayfaları diskte duruyor.
   E. index.html PARİTESİ: her kanonik marka için /marka/<slug>/ (+ model sayfaları) ürün
      kümesi = index.html marka filtresinin (`some(b => markaKatla(b) === hedef)`) kümesi.
-     Sapma 0 olmalı — sayfa ile ana sayfa AYNI ürünü göstermeli.
+     Sapma 0 olmalı — sayfa ile ana sayfa AYNI ürünü göstermeli. Küratörlük dışı çip
+     markaları (Sierra/Teleflex/...) da bu iddiaya DAHİL.
   F. Ürün sayfasındaki marka çipi hedefi BİRİNCİL markaya gider (ikincil marka çip
-     haritasını EZMEZ — kararsız çıktı olmaz).
+     haritasını EZMEZ — kararsız çıktı olmaz). BİRİNCİL = katlanmış marka[0], o da kabul
+     kümesindeyse (tanınmış VEYA çip evreni); değilse ilk üye marka.
 
 NASIL ÖLÇER: kopya mantık YOK — GERÇEK jeneratör (marka_model_build.uret) geçici bir ROOT'a
 sayfaları üretir, iddialar ÜRETİLEN HTML'den okunur. Katlama tablosu (index.html
-TANINMIS_MARKALAR) okunamazsa "yeşil" DENMEZ: OLCULEMEDI + exit 2.
+TANINMIS_MARKALAR) ya da çip evreni okunamazsa "yeşil" DENMEZ: OLCULEMEDI + exit 2.
 
 Çalıştır:  python3 tools/marka-uyelik-test.py            (0 geçti · 1 kaldı · 2 ölçülemedi)
            python3 tools/marka-uyelik-test.py --modul /gecici/mutant.py   (mutasyon kanıtı)
@@ -134,9 +148,37 @@ except Exception:                                             # noqa: BLE001
 kontrol("katlama tablosu YOKKEN jeneratör fail-closed (sessiz boş evrene düşmüyor)",
         _failclosed)
 
+# ÇİP EVRENİ — üyelik kabul kümesinin İKİNCİ yarısı. Jeneratörün kendi yardımcısından DEĞİL,
+# çipin GERÇEK kaynağından (tools/cip-indeks.py) okunur: jeneratörü bozan mutant testin
+# beklentisini de bozarsa iddia körelir ([[ikiz-tanim-sessiz-ayrisma]]).
+try:
+    _cs = importlib.util.spec_from_file_location("ci_uyelik",
+                                                 os.path.join(TOOLS, "cip-indeks.py"))
+    _ci = importlib.util.module_from_spec(_cs)
+    _cs.loader.exec_module(_ci)
+    _IX = _ci.indeks_uret(PRODUCTS, INDEX_HTML)
+    CIP_EVRENI = set(b for kd in _IX["kat"].values() for b in kd)
+except Exception as e:                                        # noqa: BLE001
+    olculemedi("çip evreni (tools/cip-indeks.py) okunamadı: %r" % (e,))
+if not CIP_EVRENI:
+    olculemedi("çip evreni BOŞ — üyelik kabul kümesi ölçülemez (fail-closed)")
+
+# Kabul kümesi GERÇEKTEN genişlemiş mi? Küratörlük dışı çip markası yoksa E/F'nin genişletilmiş
+# ekseni ölçülmüyor demektir — "sapma 0" o hâlde iddia değil, boş kümenin sessizliğidir.
+KURATORLUK_DISI = sorted(b for b in CIP_EVRENI if not EVREN.taninmis_mi(b))
+BILGI.append("çip evreni: %d marka · küratörlük DIŞI: %d %s"
+             % (len(CIP_EVRENI), len(KURATORLUK_DISI), KURATORLUK_DISI[:6]))
+kontrol("küratörlük DIŞI çip markası sınıfı BOŞ DEĞİL (genişletilmiş eksen ölçülüyor)",
+        bool(KURATORLUK_DISI))
+
 
 def katla(x):
     return EVREN.katla((x or "").strip())
+
+
+def kabul_mu(k):
+    """Üyelik kabul kümesi = TANINMIS_MARKALAR ∪ ÇİP EVRENİ (tek kaynaktan, iki yarı)."""
+    return EVREN.taninmis_mi(k) or k in CIP_EVRENI
 
 
 def uyeler_js(p):
@@ -144,7 +186,7 @@ def uyeler_js(p):
     out = []
     for b in (p.get("marka") or []):
         k = katla(b)
-        if k and EVREN.taninmis_mi(k) and k not in out:
+        if k and kabul_mu(k) and k not in out:
             out.append(k)
     return out
 
@@ -343,7 +385,7 @@ for pid, yol in cip.items():
     slug = yol.strip("/").split("/")[1]
     hedef = SLUG_MARKA.get(slug)
     ham0 = katla((p.get("marka") or [""])[0])
-    birincil = ham0 if EVREN.taninmis_mi(ham0) else (uyeler_js(p) or [None])[0]
+    birincil = ham0 if kabul_mu(ham0) else (uyeler_js(p) or [None])[0]
     if hedef != birincil:
         yanlis_cip.append((pid, hedef, birincil))
 kontrol("POZ: ürün çip haritası BİRİNCİL markaya gidiyor (sapan: %d %s)"
