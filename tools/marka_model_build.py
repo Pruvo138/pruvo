@@ -238,7 +238,38 @@ _MARKA_GIRIS = {
 
 
 # --------------------------------------------------------------------- veri gruplama
-def marka_uyelikleri(marka_dizisi, evren):
+def _cip_indeks_yukle():
+    """tools/cip-indeks.py — modul adinda tire var, importlib ile yuklenir (emsal: build.py).
+    FAIL-CLOSED: yuklenemezse marka sayfasi evreni cip evreninden AYRISIRDI."""
+    import importlib.util
+    yol = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cip-indeks.py")
+    spec = importlib.util.spec_from_file_location("cip_indeks_mm", yol)
+    if spec is None:
+        raise SystemExit("HATA: tools/cip-indeks.py bulunamadi — marka sayfasi evreni cip "
+                         "evreninden turetilemez (fail-closed: cipte gorunup sayfasi 404 "
+                         "donen marka dogardi).")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def cip_evreni_markalari(products, index_html):
+    """🔴 TEK KAYNAK: /marka/<slug>/ evreni ANASAYFA CIP EVRENINDEN turer.
+
+    OLCULEN SESSIZ HATA (3 Agu): cip evreni artik kategorinin `uyum` kapsamina gore
+    kuratorluk gevsetiyor (cip-indeks.ESIK_UYUM_KAPSAM) ama marka sayfasi ureteci hala
+    YALNIZ index.html TANINMIS_MARKALAR'i okuyordu -> IKIZ TANIM. Sonuc: Marin'de
+    Teleflex(149) · Sierra(141) · NGK(117) · Tecnoseal(106) · Jabsco(44) ·
+    International(43) · 3M(22) cip olarak DOGDU ama /marka/<slug>/ sayfalari 404 doner
+    hale geldi ([[ikiz-tanim-sessiz-ayrisma]]).
+    ONARIM: ikinci bir kural YAZILMAZ — evren dogrudan URETILEN INDEKSTEN okunur. Cip
+    evreni nasil degisirse degissin sayfa evreni onu takip eder; ayrisma imkansiz olur."""
+    ci = _cip_indeks_yukle()
+    ix = ci.indeks_uret(products, index_html)
+    return set(b for kd in ix["kat"].values() for b in kd)
+
+
+def marka_uyelikleri(marka_dizisi, evren, ek_markalar=()):
     """Ürünün marka[] dizisinden ÜYE OLDUĞU kanonik marka sayfalarını çıkarır — index.html
     marka FİLTRESİYLE birebir aynı yüklem: `(p.marka||[]).some(b => markaKatla(b) === hedef)`.
     Yani HER eleman (yalnız marka[0] değil) katlanır, tanınmışsa üyelik doğar; sıra korunur,
@@ -247,11 +278,14 @@ def marka_uyelikleri(marka_dizisi, evren):
     ÖLÇÜLEN SESSİZ HATA (31 Tem): eski kod üyeliği HAM marka[0] ile ölçüyordu
     (taninmis_mi(ham0)); "Volvo Penta" (21 Marin) ve "Mercedes-Benz" (20) ham hâlde tanınmış
     listede olmadığı için 41 ürün HİÇBİR marka sayfasına girmiyordu — katalogda var, marka
-    sayfasında yok, kimse görmüyordu."""
+    sayfasında yok, kimse görmüyordu.
+
+    `ek_markalar`: çip evreninden gelen ve TANINMIS listede OLMAYAN kanonik markalar
+    (cip_evreni_markalari). Üyelik yüklemi AYNI kalır, yalnız kabul kümesi genişler."""
     uyeler = []
     for x in marka_dizisi:
         kan = evren.katla((x or "").strip())
-        if kan and evren.taninmis_mi(kan) and kan not in uyeler:
+        if kan and (evren.taninmis_mi(kan) or kan in ek_markalar) and kan not in uyeler:
             uyeler.append(kan)
     return uyeler
 
@@ -273,7 +307,7 @@ def marka_urun_sayisi(d):
             + len(d["marka_only"]) + len(d.get("ikincil", [])))
 
 
-def gruplandir(products, evren):
+def gruplandir(products, evren, ek_markalar=()):
     """Katalogdaki TANINMIS markaları topla:
     kanonik_marka -> {"marka_only":[p...], "ikincil":[p...], "gruplar":{canon:{...}}}.
     Grup: {"display":str, "slug":str, "canon":str, "urunler":[p...]}. urunler.json DEĞİŞMEZ.
@@ -297,11 +331,12 @@ def gruplandir(products, evren):
         m = p.get("marka") or []
         if not m:
             continue
-        uyeler = marka_uyelikleri(m, evren)
+        uyeler = marka_uyelikleri(m, evren, ek_markalar)
         if not uyeler:
             continue
         ham0_kan = evren.katla((m[0] or "").strip())
-        birincil = ham0_kan if evren.taninmis_mi(ham0_kan) else uyeler[0]
+        birincil = (ham0_kan if (evren.taninmis_mi(ham0_kan) or ham0_kan in ek_markalar)
+                    else uyeler[0])
         d = kova(birincil)
         for kan in uyeler:                       # diğer üye markaların sayfasına da GİR
             if kan != birincil:
@@ -1154,7 +1189,11 @@ def uret(products, ctx):
         _index_html = f.read()
     evren = MarkaEvreni(_index_html)
     kategoriler = kategori_evreni(_index_html)     # KAPSAM doğrulama evreni (fail-closed)
-    veri = gruplandir(products, evren)
+    # 🔴 SAYFA EVRENİ = ÇİP EVRENİ (tek kaynak). Küratörlük dışı çip markaları (Marin:
+    # Teleflex/Sierra/NGK/Tecnoseal/Jabsco/International/3M...) buradan gelir; olmasaydı
+    # çipte görünür, sayfası 404 dönerdi.
+    ek_markalar = cip_evreni_markalari(products, _index_html)
+    veri = gruplandir(products, evren, ek_markalar)
 
     def yaz(url, html):
         yol = url[len(SITE):].strip("/")          # "marka/ford/focus"
@@ -1242,6 +1281,17 @@ def uret(products, ctx):
     iurl, ihtml = _marka_index(ctx, index_ozet)
     yaz(iurl, ihtml)
     sitemap.append((iurl, "0.6", "weekly"))
+
+    # 🔴 ALIAS'LI ÇİP HEDEFİ: `MARKA_ALIAS` (Vauxhall -> Opel) bu üreteçte marka sayfalarını
+    # BİRLEŞTİRİR ama anasayfa çip evreni (index.html markaKatla) alias TANIMAZ — "Vauxhall"
+    # AYRI bir çip olarak doğar. İkisi birleştirilmezse çip görünür, hedefi 404'tür
+    # ([[ikiz-tanim-sessiz-ayrisma]]; ölçüldü 3 Ağu: Vauxhall 71 ürünlü çip, sayfa YOK).
+    # ÇÖZÜM ikinci sayfa ÜRETMEK DEĞİL (yinelenen içerik) — çipin hedefini alias'ın işaret
+    # ettiği SAYFAYA bağlamak. Alias hedefinin sayfası yoksa hiçbir şey yazılmaz (fail-closed:
+    # 404 link üretmektense çip buton olarak kalır).
+    for _ad, _hedef in MARKA_ALIAS.items():
+        if _ad not in slug_map and _hedef in slug_map:
+            slug_map[_ad] = slug_map[_hedef]
 
     # Anasayfa çipleri: JS sortedBrands ile AYNI = TANINMIS + ürün sayısına göre azalan, top MARKA_LIMIT.
     # Yalnız SAYFASI OLAN markalar link olur; sayfası olmayan (çok nadir, <3 ürün) NOT'a düşer.
