@@ -27,6 +27,14 @@ Yarin yeni kisit tanimlanirsa o aile **otomatik kapanir ya da CI kirmizi yanar**
 duzenlemesi degil, kural.
 **Successor: once merge kapisini kostur, sonra canli fiyat dogrulamasi (uc ailede `null` mi).**
 
+**🟡 2. IS — KURTARILAN DAL, merge kararı bekliyor:** `kurtarma/rulman-sema-araligi`
+(**`89ab5da6`**, origin'e itildi). Rulman sema araligi kapatilmasi — *"izgaranin %33,9'u uretim
+motorunda uretilemezdi"*. **Devir taramasinda son anda yakalandi:** commit **detached HEAD**'de
+duruyordu, main'de YOKTU, origin'e HIC itilmemisti ve uretici oturum KAPANMISTI — worktree
+silinseydi ulasilamaz olacakti. Dal acilip itildi, artik guvende.
+Successor: icerigini olc, merge kapisindan gecir. **Rulman satisa acma karari buna bagli** —
+sema onarilinca `HACIM_DOGRULANMIS_AILELER`'e eklenebilir (bugun bilerek kapali, oran %32,88).
+
 **MERGE EDILMEDIGI ICIN ACIK KALAN IKI KARAR (isci sordu, ben cevaplamadim):**
 1. `build.py`'deki `gecersiz-parca` kolu ayni "siparis verebilirsiniz, uretim etkilenmez"
    cumlesini tasiyor. Isci farkli eksen oldugu icin (2-renk siparisi gercekten var ve ≥10 mm
