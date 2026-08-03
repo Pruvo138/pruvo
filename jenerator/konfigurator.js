@@ -149,17 +149,17 @@
   // uretiliyordu (olcum: bozuk `kisitlar` bicimlerinde `parametrikHesapla`
   // 10.000 ve 29.116 kurus DONDURDU; kural saglamken ayni setler reddediliyor).
   // Kisit bir URETILEBILIRLIK kapisidir: "olculemedi" ile "gecerli" AYNI SEY DEGIL.
-  // Artik taninmayan kayit seti GECERSIZ kilar -> fiyat uretilmez, kalem WhatsApp'a
-  // duser (Okan kurali: siparis kaybetmek yanlis tahsilattan iyidir).
+  // Artik taninmayan kayit seti GECERSIZ kilar -> tutar uretilmez, kalem teklif
+  // kanalina duser (siparis kaybetmek yanlis tahsilattan iyidir).
   //
-  // KAPSAM DAR: `kisitlar` HIC YOKSA (bugun 21/23 sema, satistaki 17 ailenin HEPSI)
+  // KAPSAM DAR: `kisitlar` HIC YOKSA (bugun 21/23 sema, satistaki ailelerin HEPSI)
   // tek satir bile degismez -> o ailelerde regresyon 0 (olculdu: kurus imzasi birebir).
   //
   // IKIZ TANIM YOK: tanima, UYGULAYAN kodun okudugu alanlarin AYNISINA bakar
   // (eger/parametre/min.terimler/min.sabit) — ikinci bir kisit dili uydurulmaz.
   //
   // IKI AYRI KOL, HER BIRI TEK BASINA KIRMIZI YAKILABILIR (savunma derinligi ancak
-  // boyle KANITTIR — bkz. shop/test/kisit-fail-closed.mjs mutantlari):
+  // boyle KANITTIR — kabul takimindaki mutantlar ikisini ayri ayri olcer):
   //   1) YAPISAL tanima (asagidaki kisitTanindiMi) — deger-BAGIMSIZ. Tek basina
   //      yakaladigi ornek: `eger` bozuk (or. metin) -> kayit HICBIR sette uygulanmaz,
   //      koruma sessizce yok olurdu.
@@ -200,11 +200,11 @@
   // alt sınırı yükselir (örn. altıgen başlı cıvata üretim motorunda M5'ten başlar;
   // rulmanda genişlik alt sınırı iç/dış çaptan türer — bkz. kisitAltSinir).
   function dogrula(sema, degerler) {
-    var hatalar = {}, gecerli = true;
+    var hatalar = {}, gecerli = true, parametreHatasiVar = false;
     for (var i = 0; i < sema.parametreler.length; i++) {
       var p = sema.parametreler[i];
       var h = parametreHatasi(p, degerler[p.ad]);
-      if (h) { hatalar[p.ad] = h; gecerli = false; }
+      if (h) { hatalar[p.ad] = h; gecerli = false; parametreHatasiVar = true; }
     }
     var kisitlar = sema.kisitlar;
     if (kisitlar !== undefined && kisitlar !== null && !Array.isArray(kisitlar)) {
@@ -233,9 +233,18 @@
       // Kayit TANINDI ama alt sinir bu degerlerle HESAPLANAMADI (referans parametrenin
       // degeri sayiya cevrilemiyor) ya da kiyas edilecek deger NaN: kural OLCULEMEDI ->
       // fail-closed. Eskiden ikisi de sessizce "kisit yok" sayiliyordu.
+      //
+      // 🔴 YALNIZ SET BASKA TURLU GECERLIYKEN: kullanicinin girdigi bir olcu ZATEN
+      // hataliysa (or. ic_cap "abc") alt sinir dogal olarak hesaplanamaz — o durumda
+      // teshis O PARAMETRENIN hatasidir; ustune "kisit okunamadi" yazmak musteriye
+      // ALAKASIZ bir tani gosterirdi. Set zaten gecersiz oldugu icin tutar yine
+      // uretilmez, yani fail-closed KAYBEDILMIYOR; degisen sadece hangi hatanin
+      // konustugu.
       if (altSinir == null || isNaN(kv)) {
-        hatalar[KISIT_ALANI] = KISIT_BICIM_MESAJI;
-        gecerli = false;
+        if (!parametreHatasiVar) {
+          hatalar[KISIT_ALANI] = KISIT_BICIM_MESAJI;
+          gecerli = false;
+        }
         continue;
       }
       if (kv < altSinir - KISIT_TOLERANS) {
