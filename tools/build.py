@@ -628,6 +628,151 @@ def _js_bayragi(kaynak, ad):
     return m.group(1) == "true"
 
 
+# ---------------------------------------------------------------------------
+# SATIS KAPISI OKUYUCUSU — "bu aile satisa ACIK mi?" sorusunun TEK KAYNAGI
+# secenekler.js'teki HACIM_DOGRULANMIS_AILELER'dir (ayni sozlugu istemci fiyat
+# hesabi ve Worker kolu da okur). BURAYA IKINCI LISTE YAZILMAZ: ikiz tanim
+# sessizce ayrisir -> [[ikiz-tanim-sessiz-ayrisma]].
+#
+# NEDEN _js_sabiti YETMEZ: o fonksiyon json.loads kullanir; HACIM_DOGRULANMIS_AILELER
+# blogu YORUMLU ve TIRNAKSIZ anahtarli JS'tir (JSON DEGIL) -> json.loads patlar.
+# Bu yuzden ayri, KATI bir anahtar okuyucu var.
+#
+# 🔴 FAIL-CLOSED — IKI YONLU: blok bulunamaz/ayristirilamazsa SystemExit ile build
+# DUSER. "Sessizce hepsini ACIK say" (yanlis fiyat/InStock beyani) DA, "sessizce
+# hepsini KAPALI say" (18 acik ailenin fiyati kaybolur) DA ayri ayri yanlistir;
+# ikisi de olmaz, build durur ve insan bakar.
+def _js_yorum_sil(metin):
+    """JS kaynagindan // ve /* */ yorumlarini siler; dize icindekilere DOKUNMAZ.
+    Kapanmamis blok yorumunda taramayi orada KESER (o noktadan sonrasi zaten
+    ilgilenilen bloktan sonradir; blok icindeyse kume ayrastirmasi patlar)."""
+    cikti = []
+    i, n = 0, len(metin)
+    tirnak = None
+    while i < n:
+        c = metin[i]
+        if tirnak is not None:
+            cikti.append(c)
+            if c == "\\" and i + 1 < n:
+                cikti.append(metin[i + 1])
+                i += 2
+                continue
+            if c == tirnak:
+                tirnak = None
+            i += 1
+            continue
+        if c == '"' or c == "'":
+            tirnak = c
+            cikti.append(c)
+            i += 1
+            continue
+        if c == "/" and i + 1 < n and metin[i + 1] == "/":
+            while i < n and metin[i] != "\n":
+                i += 1
+            continue
+        if c == "/" and i + 1 < n and metin[i + 1] == "*":
+            son = metin.find("*/", i + 2)
+            if son < 0:
+                break
+            cikti.append(" ")
+            i = son + 2
+            continue
+        cikti.append(c)
+        i += 1
+    return "".join(cikti)
+
+
+# Kabul edilen tek girdi bicimi: `ident: sayi` (olculen hacim sapmasi yuzdesi).
+_AILE_GIRDI_RE = re.compile(r"^([A-Za-z_$][A-Za-z0-9_$]*)\s*:\s*-?\d+(?:\.\d+)?$")
+
+
+def _js_anahtar_kumesi(kaynak_temiz, ad):
+    """Yorumu SILINMIS JS kaynagindan `var <ad> = { k: sayi, ... };` blogunun
+    ANAHTAR kumesini dondurur. Tanimadigi her sey SystemExit."""
+    m = re.search(r"var\s+" + re.escape(ad) + r"\s*=\s*\{", kaynak_temiz)
+    if not m:
+        raise SystemExit("secenekler.js'te %s blogu bulunamadi — satis kapisi "
+                         "okunamadi (fail-closed, build durdu)." % ad)
+    bas = m.end() - 1
+    derinlik = 0
+    son = -1
+    for j in range(bas, len(kaynak_temiz)):
+        ch = kaynak_temiz[j]
+        if ch == "{":
+            derinlik += 1
+        elif ch == "}":
+            derinlik -= 1
+            if derinlik == 0:
+                son = j
+                break
+    if son < 0:
+        raise SystemExit("secenekler.js'te %s blogu kapanmiyor — satis kapisi "
+                         "okunamadi (fail-closed, build durdu)." % ad)
+    govde = kaynak_temiz[bas + 1:son]
+    anahtarlar = []
+    for parca in govde.split(","):
+        p = parca.strip()
+        if not p:
+            continue
+        g = _AILE_GIRDI_RE.match(p)
+        if not g:
+            raise SystemExit("secenekler.js %s icinde cozumlenemeyen girdi: %r "
+                             "(fail-closed, build durdu)." % (ad, p))
+        anahtarlar.append(g.group(1))
+    if not anahtarlar:
+        raise SystemExit("secenekler.js %s BOS okundu — 'hepsi kapali' sessizce "
+                         "varsayilmaz (fail-closed, build durdu)." % ad)
+    if len(set(anahtarlar)) != len(anahtarlar):
+        raise SystemExit("secenekler.js %s icinde yinelenen anahtar var "
+                         "(fail-closed, build durdu)." % ad)
+    return set(anahtarlar)
+
+
+# Fiyat URETILEMEDIGINDE gosterilen cumle — TEK KAYNAK secenekler.js'teki
+# `kurus == null` dalidir (istemci JS'i de AYNI cumleyi basar). Buraya elle
+# ikinci kopya yazilmaz; ayrisirsa JS oncesi ve JS sonrasi metin celisir.
+_FIYATSIZ_METIN_RE = re.compile(r"\(\s*kurus\s*==\s*null\s*\)\s*\?\s*\"([^\"]+)\"")
+
+
+def _js_fiyatsiz_metni(kaynak_temiz):
+    m = _FIYATSIZ_METIN_RE.search(kaynak_temiz)
+    if not m or not m.group(1).strip():
+        raise SystemExit("secenekler.js'te fiyatsiz (kurus == null) metni bulunamadi "
+                         "— JS oncesi metin tek kaynaktan turetilemiyor "
+                         "(fail-closed, build durdu).")
+    return m.group(1).strip()
+
+
+_SEC_JS_TEMIZ = _js_yorum_sil(_SEC_JS)
+# Satisa ACIK (hacmi dogrulanmis) aile anahtarlari; sema.hacimFormulu ile eslesir.
+HACIM_DOGRULANMIS_AILELER = _js_anahtar_kumesi(_SEC_JS_TEMIZ, "HACIM_DOGRULANMIS_AILELER")
+FIYATSIZ_METIN = _js_fiyatsiz_metni(_SEC_JS_TEMIZ)
+
+
+def aile_satis_kapali_mi(sema):
+    """"Bu urun BUGUN satilabilir mi?" sorusunun TEK karar noktasi.
+
+    True  = aile hacim dogrulamasindan GECMEMIS -> secenekler.js parametrikFiyatKurus
+            null dondurur, Worker sepeti 400 `hacim-dogrulanmamis` ile reddeder;
+            yani hicbir YUZEYDE (urun sayfasi, JSON-LD, ana sayfa karti, SSR kart)
+            sayisal tutar BEYAN EDILMEZ.
+    False = bugunku davranis AYNEN surer.
+
+    Semasiz/parametrik olmayan urun (sema None) bu daldan GECMEZ -> kapali DEGIL,
+    15.9xx baskı urununde regresyon 0.
+    FAIL-CLOSED: sema VAR ama hacimFormulu yok/dizge degilse aile KAPALI sayilir
+    (taninmayan aile icin fiyat beyan etmek, beyan etmemekten kotudur).
+
+    🔴 IKINCI KOPYA YAZILMAZ: sayfa yuzeyi (render_product), kart haritasi
+    (uret_taban_fiyatlar) ve SSR kart (marka_model_build) AYNI bu fonksiyonu
+    cagirir -> ikiz tanim sessizce ayrisamaz ([[ikiz-tanim-sessiz-ayrisma]]).
+    """
+    if not sema:
+        return False
+    aile = sema.get("hacimFormulu")
+    return not (isinstance(aile, str) and aile in HACIM_DOGRULANMIS_AILELER)
+
+
 # Sari seri 3D onizleme (tools/paket-onizleme-3d.md) — bayrak + aile listesi TEK KAYNAK
 # secenekler.js (onizleme Worker'i da AYNI listeyi okur). Bayrak kapaliyken sayfalara
 # hicbir onizleme ogesi basilmaz = canlida sifir gorunur fark.
@@ -2281,6 +2426,10 @@ def render_product(p, all_products, chip_map=None):
     # Parametrik (sarı seri) şeması TEK KEZ burada yüklenir: hem JSON-LD taban
     # fiyatı hem aşağıdaki konfigüratör bloğu aynı sema objesini kullanır.
     sema = konf_sema(pid) if parametrik else None
+    # SATIŞ KAPISI: bu ailenin hacmi doğrulandı mı? Soru TEK KAYNAKTAN (yukarıdaki
+    # aile_satis_kapali_mi) sorulur — ana sayfa kartı ve SSR kart da AYNI fonksiyonu
+    # çağırır; ikinci liste/ikinci ifade YOK.
+    aile_satis_kapali = aile_satis_kapali_mi(sema)
     # Konfigur (dekor konfigüratörü): OPSİYONEL alan; yoksa sayfa bugünkü gibi davranır
     # (kabul: tools/konfigur-test.py bayt-eşitlik). Geçersiz konfigur build'i DÜŞÜRÜR
     # (fail-closed — yanlış fiyat/görsel eşlemesi sessizce yayınlanamaz).
@@ -2310,8 +2459,19 @@ def render_product(p, all_products, chip_map=None):
     # kaynak). Taban fiyat ZEMİNdir ("X TL'den başlayan") → Offer.price başlangıç
     # fiyatı olarak doğru beyan. FAIL-CLOSED: sayısal fiyat hiçbir kaynaktan
     # bulunamazsa offers HİÇ basılmaz. Test: tools/test-jsonld-offers.py
+    #
+    # 🔴 SATIS KAPISI KAPALI AILE (2026-08-04, canli kusur): hacmi DOGRULANMAMIS
+    # ailede secenekler.js parametrikFiyatKurus **null** dondurur ve Worker sepeti
+    # 400 `hacim-dogrulanmamis` ile reddeder — yani o urun BUGUN SATILAMAZ. Buna
+    # ragmen sayfa JSON-LD'de `price` + `availability: InStock` beyan ediyordu:
+    # arama motoruna (ve fiyat karsilastirma yuzeylerine) OLMAYAN bir tutar ve
+    # ALINABILIR bir stok bildiriliyordu. Ayni fail-closed dala sokulur: sayisal
+    # fiyat YOK -> offers HIC basilmaz (InStock da offers'in icinde oldugu icin
+    # birlikte duser). Yeni paralel dal ACILMAZ.
     ld_fiyat = pnum
-    if ld_fiyat is None and sema is not None:
+    if aile_satis_kapali:
+        ld_fiyat = None
+    elif ld_fiyat is None and sema is not None:
         taban = sema.get("tabanFiyatTL")
         if isinstance(taban, (int, float)) and not isinstance(taban, bool) and taban > 0:
             ld_fiyat = ("%.2f" % taban).rstrip("0").rstrip(".")
@@ -2455,7 +2615,9 @@ def render_product(p, all_products, chip_map=None):
     if fiyat:
         price_text = fiyat
     elif parametrik:
-        price_text = "Ölçüye özel fiyat — teklif için sipariş verin"
+        # Cumle secenekler.js'ten okunur (FIYATSIZ_METIN) — elle ikinci kopya
+        # tutulmaz; ayrisirsa JS oncesi ve JS sonrasi metin celisirdi.
+        price_text = FIYATSIZ_METIN
     else:
         price_text = "Fiyat için sipariş verin"
 
@@ -2516,9 +2678,18 @@ def render_product(p, all_products, chip_map=None):
         # Sari fiyat paketi: taban fiyati DOLU ailede JS oncesi metin de kart-secim
         # kalibi ("X TL'den baslayan" — varsayilan olculerde fiyat = taban, JS kurusla
         # ayni degeri tazeler); taban null (vida) ise "Olcuye ozel fiyat" surer.
+        # 🔴 SATIS KAPISI KAPALI AILE: taban fiyat DOLU olsa bile "X TL'den başlayan"
+        # BASILMAZ — o tutar bu ailede hicbir zaman hesaplanmiyor (parametrikFiyatKurus
+        # null), sepet sunucuda reddediliyor. JS'siz/JS oncesi/crawler goruntusunde
+        # musteriye OLMAYAN bir fiyat gosterilmesi bu sayfanin canli kusuruydu.
+        # Metin secenekler.js'in `kurus == null` dalindan gelir (tek kaynak) -> JS
+        # kostugunda ayni cumle yerinde kalir, metin "ziplamaz".
         taban_tl = sema.get("tabanFiyatTL")
-        konf_fiyat_metni = ((taban_fiyat_metni(taban_tl) + "&#39;den başlayan")
-                            if taban_tl is not None else "Ölçüye özel fiyat")
+        if aile_satis_kapali:
+            konf_fiyat_metni = esc(FIYATSIZ_METIN)
+        else:
+            konf_fiyat_metni = ((taban_fiyat_metni(taban_tl) + "&#39;den başlayan")
+                                if taban_tl is not None else "Ölçüye özel fiyat")
         opsiyonlar_html = ("""
     <div class="opsiyonlar konf" id="opsiyonlar">
       <div class="konf-baslik">Ölçülerinizi girin</div>
@@ -3311,22 +3482,46 @@ def uret_taban_fiyatlar():
     """taban-fiyatlar.js — ana sayfa sarı kartlarının "X TL'den başlayan" fiyatı buradan
     okur; kaynak jenerator/urunler/<id>.json tabanFiyatTL (TEK KAYNAK, elle kopya YOK —
     filament-veri.js deseni). tabanFiyatTL null/eksik olan şema haritaya GİRMEZ (kartta
-    "Ölçüye özel fiyat" fallback'i). CI üretir, git'e girmez."""
+    "Ölçüye özel fiyat" fallback'i). CI üretir, git'e girmez.
+
+    🔴 SATIŞ KAPISI KAPALI AİLE (2026-08-04, ölçülen canlı kusur — ürün SAYFASI yüzeyi
+    476fac2a ile kapanmıştı, KART yüzeyi açık kalmıştı): hacmi doğrulanmamış ailede
+    parametrikFiyatKurus **null** döner ve Worker sepeti 400 `hacim-dogrulanmamis` ile
+    reddeder; yani o ürün BUGÜN SATILAMAZ. Buna rağmen ana sayfa sarı kartı taban
+    fiyattan türetilmiş "X TL'den başlayan" gösteriyordu = müşteriye satılmayacak bir
+    tutar beyanı. Kapalı ailenin id'si haritaya HİÇ GİRMEZ (kart sayısal tutar
+    üretemez — sayı taşıyıcısı burasıdır) ve ayrıca `PRUVO_SATIS_KAPALI` ile
+    işaretlenir; kart o id'de ürün sayfasıyla AYNI cümleyi (`PRUVO_FIYATSIZ_METIN`,
+    tek kaynak secenekler.js `kurus == null` dalı) basar.
+    Karar aile_satis_kapali_mi()'den gelir — ikinci kural kopyası YOK."""
     harita = {}
+    kapali = {}
     if os.path.isdir(JEN_URUN_DIR):
         for ad in sorted(os.listdir(JEN_URUN_DIR)):
             if not ad.endswith(".json"):
                 continue
             with open(os.path.join(JEN_URUN_DIR, ad), encoding="utf-8") as f:
                 sema = json.load(f)
+            pid = sema.get("id") or ad[:-5]
+            if aile_satis_kapali_mi(sema):
+                kapali[pid] = 1
+                continue
             taban = sema.get("tabanFiyatTL")
             if taban is not None:
-                harita[sema.get("id") or ad[:-5]] = taban
+                harita[pid] = taban
     with open(os.path.join(ROOT, "taban-fiyatlar.js"), "w", encoding="utf-8") as f:
         f.write("/* Sayfa ureteci uretir — ELLE DUZENLEME. "
                 "Tek kaynak: jenerator/urunler/<id>.json tabanFiyatTL */\n"
                 "window.PRUVO_TABAN_FIYATLAR = "
                 + json.dumps(harita, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+                + ";\n"
+                "/* Satisa KAPALI (hacmi dogrulanmamis) aileler — kart sayisal tutar "
+                "BASMAZ, asagidaki cumleyi basar. */\n"
+                "window.PRUVO_SATIS_KAPALI = "
+                + json.dumps(kapali, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+                + ";\n"
+                "window.PRUVO_FIYATSIZ_METIN = "
+                + json.dumps(FIYATSIZ_METIN, ensure_ascii=False)
                 + ";\n")
     return harita
 
@@ -3350,6 +3545,10 @@ def marka_model_ctx():
         # Standart katalog kartı (kartCiz) için: görsel + parametrik taban fiyatı
         "images_of": images_of, "konf_sema": konf_sema,
         "taban_fiyat_metni": taban_fiyat_metni,
+        # SATIŞ KAPISI — SSR kart da ana sayfa kartıyla AYNI kararı kullanır
+        # (ikiz tanım sessizce ayrışmasın): kapalı ailede sayısal tutar basılmaz,
+        # yerine ürün sayfasıyla aynı cümle (FIYATSIZ_METIN) gösterilir.
+        "aile_satis_kapali_mi": aile_satis_kapali_mi, "FIYATSIZ_METIN": FIYATSIZ_METIN,
         # Yukarı-çık oku TEK KAYNAK (build.py) — marka/model + hub şablonu kopyalamaz, buradan alır.
         "TOP_BTN_BLOCK_HTML": TOP_BTN_BLOCK_HTML,
     }

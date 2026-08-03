@@ -1025,6 +1025,13 @@ def _kart_fiyat(ctx, p):
     taban = None
     if parametrik:
         sema = ctx["konf_sema"](p.get("id"))
+        # SATIŞ KAPISI (2026-08-04): hacmi doğrulanmamış ailede tutar BASILMAZ —
+        # o ürün bugün satılamıyor (Worker sepeti 400 `hacim-dogrulanmamis`).
+        # Karar TEK KAYNAK build.aile_satis_kapali_mi; ana sayfa kartı + ürün
+        # sayfası da aynı kararı kullanır. Bugün bu daldan geçen kart 0 (parametrik
+        # ürünler marka/model sayfalarında listelenmiyor) -> çıktı bayt-eşit.
+        if sema and ctx["aile_satis_kapali_mi"](sema):
+            return ctx["FIYATSIZ_METIN"], True
         if sema:
             taban = sema.get("tabanFiyatTL")
     if taban is not None:
