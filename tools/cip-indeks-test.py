@@ -53,6 +53,16 @@ KOSUM = os.path.join(DIR, "cip-indeks-kosum.js")
 BEKLENEN_IDDIA = 91
 
 
+_EVREN_BELLEK = {}
+
+
+def evren_taninmis(index_metni, ci, ad):
+    """`ad` index.html'in TANINMIS_MARKALAR listesinde mi (kuratorluk ekseni icin)."""
+    if "e" not in _EVREN_BELLEK:
+        _EVREN_BELLEK["e"] = ci.MarkaEvreni(index_metni)
+    return _EVREN_BELLEK["e"].taninmis_mi(ad)
+
+
 def _modul(yol, ad):
     spec = importlib.util.spec_from_file_location(ad, yol)
     mod = importlib.util.module_from_spec(spec)
@@ -127,6 +137,16 @@ def fikstur():
     # Mercury/Yamaha'da kanonik = ham -> `e` DOGMAMALI (davranis bayt-ayni kalmali).
     for i in range(1, 16):
         ekle("volvopenta-an-%d" % i, "Marin", "Anotlar", ["Volvo Penta"], [])
+    # KURATORLUK KAPSAM ESIGI EKSENI (ESIK_UYUM_KAPSAM) — POZITIF ve KONTROL ayni fiksturde.
+    #   Marin    : `uyum` kapsami %0  -> GEVSEK  -> TANINMAYAN "Teleflex" (15) CIP OLMALI
+    #   Otomobil : `uyum` kapsami %100 -> KURATORLU -> TANINMAYAN "Denso" (16) CIP OLMAMALI
+    # Tek yon yazilsaydi "kuratorlugu her yerde kaldir" mutanti YESIL gecerdi; iki yon
+    # birlikte esigin KENDISINI olcer (esigi 0'a ya da 1'e kaydiran mutant birini kirar).
+    for i in range(1, 16):
+        ekle("teleflex-fl-%d" % i, "Marin", "Filtreler", ["Teleflex"], [])
+    for i in range(1, 17):
+        ekle("denso-mb-%d" % i, "Otomobil", "Motor Bölümü", ["Denso"],
+             [{"marka": "Denso"}])
     return urunler
 
 
@@ -155,9 +175,14 @@ def mobil_cip_kurali(index_metni):
 # ---------------------------------------------------------------- KABUL
 def kabul(kok):
     kaldi = []
+    # 🔴 SAYAC KODA GOMULMEZ: burada eskiden `toplam = len(iddialar) + 14` yaziyordu ve
+    # python tarafina iddia eklendikce BAYATLADI (olculdu: gercek 18 iken 14 yaziyordu ->
+    # rapor eksik sayi basiyordu). Sayi artik SAYILARAK uretilir.
+    gecen = []
 
     def dogrula(ad, kosul, detay=""):
         if kosul:
+            gecen.append(ad)
             print("  GECTI %s%s" % (ad, (" — " + detay) if detay else ""))
         else:
             kaldi.append(ad)
@@ -225,6 +250,26 @@ def kabul(kok):
                 sapan.append("%s/%s: `e` kanonige esit (gereksiz bayt)" % (kat, mk))
     dogrula("A6 GORUNEN HER MARKA CIPININ UC ETIKETI KATALOGDA >0 (olu uc YOK)",
             not olu, "cip=%d olu=%d %s" % (toplam_marka, len(olu), olu[:3]))
+    # --- A8/A9) KURATORLUK KAPSAM ESIGI: kural VERIDEN, kategori ADINDAN degil ----
+    # A6 NOTU: bu eksen YEREL katalogu olcer. `yayinda` D1'e ait bir kolondur ve
+    # urunler.json'da YOKTUR -> yeni parti urunler yayin penceresinde iken uc onlari
+    # HENUZ gostermez. A6'nin yesili "etiket dogru", "uc bugun >0 donuyor" DEGILDIR.
+    kaps = ci.uyum_kapsami(gercek)
+    gevsek_ihlal, kuratorlu_ihlal = [], []
+    for kat, kd in ix["kat"].items():
+        kuratorlu_mu = kaps.get(kat, 0.0) >= ci.ESIK_UYUM_KAPSAM
+        for mk in kd:
+            if kuratorlu_mu and not evren_taninmis(index_metni, ci, mk):
+                kuratorlu_ihlal.append("%s/%s (kapsam %.1f%%)" % (kat, mk, 100 * kaps.get(kat, 0)))
+            if (not kuratorlu_mu) and not evren_taninmis(index_metni, ci, mk):
+                gevsek_ihlal.append("%s/%s" % (kat, mk))
+    dogrula("A8 KURATORLU KATEGORIDE (uyum kapsami >= %.0f%%) HER CIP TANINMIS MARKA"
+            % (100 * ci.ESIK_UYUM_KAPSAM), not kuratorlu_ihlal,
+            "ihlal=%d %s" % (len(kuratorlu_ihlal), kuratorlu_ihlal[:3]))
+    dogrula("A9 KONTROL: GEVSEK KATEGORIDE TANINMAYAN URETICI CIPI VAR (kural etkili)",
+            len(gevsek_ihlal) > 0,
+            "gevsek kategorilerde tanınmayan cip=%d %s" % (len(gevsek_ihlal), gevsek_ihlal[:4]))
+
     dogrula("A7 `e` YALNIZ KANONIK HAM OLARAK YOKKEN YAZILIR (gereksiz alan yok)",
             not sapan, "e-tasiyan=%d sapan=%d %s"
             % (sum(1 for kd in ix["kat"].values() for d in kd.values() if "e" in d),
@@ -297,6 +342,22 @@ def kabul(kok):
             "Volvo.e=%s Mercury.e=%s Yamaha.e=%s"
             % (mar.get("Volvo", {}).get("e"), mar.get("Mercury", {}).get("e"),
                mar.get("Yamaha", {}).get("e")))
+    # KURATORLUK KAPSAM ESIGI — POZITIF + KONTROL ayni fiksturde, tek yon YETMEZ.
+    fkaps = ci.uyum_kapsami(kat)
+    dogrula("E0c FIKSTUR KAPSAMI BEKLENEN (Marin gevsek, Otomobil kuratorlu)",
+            fkaps.get("Marin", 1.0) < ci.ESIK_UYUM_KAPSAM
+            and fkaps.get("Otomobil", 0.0) >= ci.ESIK_UYUM_KAPSAM,
+            "Marin=%.0f%% Otomobil=%.0f%% esik=%.0f%%"
+            % (100 * fkaps.get("Marin", 0), 100 * fkaps.get("Otomobil", 0),
+               100 * ci.ESIK_UYUM_KAPSAM))
+    dogrula("E0d GEVSEK KATEGORIDE TANINMAYAN URETICI CIP OLUR (Marin/Teleflex 15)",
+            "Teleflex" in mar and mar.get("Teleflex", {}).get("n") == 15,
+            "Marin cipleri=%s" % sorted(mar))
+    dogrula("E0e KONTROL: KURATORLU KATEGORIDE TANINMAYAN URETICI CIP OLMAZ (Otomobil/Denso 16)",
+            "Denso" not in oto,
+            "Otomobil cipleri=%s (Denso yerel sayim=%d)"
+            % (sorted(oto), len([u for u in kat if u["kategori"] == "Otomobil"
+                                 and "Denso" in u["marka"]])))
 
     fd1, kat_yol = tempfile.mkstemp(prefix="pruvo-cip-katalog-", suffix=".json")
     with os.fdopen(fd1, "w", encoding="utf-8") as f:
@@ -329,7 +390,7 @@ def kabul(kok):
     dogrula("Z IDDIA SAYISI SOZLESMESI (== %d)" % BEKLENEN_IDDIA,
             len(iddialar) == BEKLENEN_IDDIA, "kosan=%d" % len(iddialar))
 
-    toplam = len(iddialar) + 14
+    toplam = len(gecen) + len(kaldi)
     if kaldi:
         print("\nSONUC: %d/%d iddia KALDI" % (len(kaldi), toplam))
         return 1
@@ -418,6 +479,19 @@ MUTANTLAR = [
      "    if not hamlar:\n        return None\n    return sorted(hamlar.items(), key=lambda t: (-t[1], t[0]))[0][0]",
      "KIRMIZI",
      "HER MARKAYA `e` YAZ: kanonik=ham olanda da alan dogar (gereksiz bayt + kontrol ekseni duser)"),
+    # --- KURATORLUK KAPSAM ESIGI EKSENI (ESIK_UYUM_KAPSAM) -------------------
+    ("cip-indeks.py", "ESIK_UYUM_KAPSAM = 0.50", "ESIK_UYUM_KAPSAM = 1.01", "KIRMIZI",
+     "ESIGI TAVANA CEK: HER kategori gevser -> arac kategorilerinde model kodlari cip olur"),
+    ("cip-indeks.py", "ESIK_UYUM_KAPSAM = 0.50", "ESIK_UYUM_KAPSAM = 0.0", "KIRMIZI",
+     "ESIGI TABANA CEK: hicbir kategori gevsemez -> Marin uretici cipleri geri kaybolur"),
+    ("cip-indeks.py",
+     "        if (evren.taninmis_mi(kan) or not kuratorluk) and kan not in out:",
+     "        if evren.taninmis_mi(kan) and kan not in out:", "KIRMIZI",
+     "KURATORLUGU HER ZAMAN UYGULA: kapsam kolu OLU kalir (bugunku hataya geri donus)"),
+    ("cip-indeks.py",
+     "    return dict((k, v >= ESIK_UYUM_KAPSAM) for k, v in uyum_kapsami(urunler).items())",
+     "    return dict((k, False) for k, v in uyum_kapsami(urunler).items())", "KIRMIZI",
+     "KURATORLUGU HER YERDE KALDIR: Otomobil'de tanınmayan deger cip olur (sisme)"),
     # --- KONTROL MUTANTLARI (YESIL bekleniyor) — iddialar ILGISIZ degisikliklere
     # PINLENMIS mi? Yesil kalmazlarsa kapi asiri-baglanmistir ([[kapi-kapsam-eksen-secimi]]).
     ("index.html", '.brand-btn:hover{border-color:var(--navy-2)}',

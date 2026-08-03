@@ -15,7 +15,10 @@ Ucuncu sinif: kirik referans (sayfadaki ad ile dosyanin adi ayrisirsa sayfa CIPL
 ve sessiz kayip (harici dosyaya blogun bir kismi yazilmaz).
 
 KABUL EKSENLERI (spec 4. bolum):
-  1  ESKI uretici ile YENI uretici ciktisi, CSS/JS bloklari DISINDA bayt-esit.
+  1  ESKI uretici ile YENI uretici ciktisi arasinda CIKARIM KAYBI YOK: JSON-LD yapraklari,
+     title/meta/canonical, gorunur metin, gorsel URL'leri ve baglanti hedefleri (yol +
+     sorgu parametre DEGERLERI) kaybolmamis ve DEGISMEMIS. Bir baglantiya YENI parametre
+     EKLENMESI serbesttir (tek serbestlik). Gerekce ve mutasyon kaniti -> cikarim_kaybi().
   1b Urune ozel VERI (URUN / URUN_SEMA / URUN_KONFIGUR) eski ile bayt-esit.
   2  Harici dosyaya cikan CSS + JS icerigi eski gomulu icerikle esit (kayip/eklenti yok).
   3  Sayfa sayisi degismedi; her sayfa hala uretiliyor (ornek uzerinde sayiyla).
@@ -155,6 +158,123 @@ def iskelet(html):
     return re.sub(r"\n[ \t]*(?:\n[ \t]*)+", "\n", s)
 
 
+_LDJSON_RE = re.compile(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', re.S)
+_TITLE_RE = re.compile(r"<title>(.*?)</title>", re.S)
+_META_RE = re.compile(r'<meta\s+name="([^"]+)"\s+content="([^"]*)"')
+_CANON_RE = re.compile(r'<link rel="canonical" href="([^"]+)">')
+_A_RE = re.compile(r'<a\b[^>]*\bhref="([^"]*)"[^>]*>')
+_IMGSRC_RE = re.compile(r'<img\b[^>]*\bsrc="([^"]*)"')
+_ETIKET_RE = re.compile(r"<[^>]+>")
+
+
+def _duz_metin(s):
+    """Gorunur metin: etiketler silinir, bosluk tek boslukta toplanir."""
+    return re.sub(r"\s+", " ", _ETIKET_RE.sub(" ", s)).strip()
+
+
+def _ldjson(s):
+    """Sayfadaki JSON-LD bloklari — AYRISTIRILMIS. Ayristirilamayan blok HAM tutulur
+    (sessizce dusurulmez: bozuk JSON-LD de bir kayiptir)."""
+    out = []
+    for g in _LDJSON_RE.findall(s):
+        try:
+            out.append(json.loads(g))
+        except Exception:
+            out.append({"__ham__": re.sub(r"\s+", " ", g).strip()})
+    return out
+
+
+def _yapraklar(nesne, yol=""):
+    """JSON agacinin (yol -> deger) yapraklari. Sira BAGIMSIZ: liste ogeleri kendi
+    icerigine gore siralanir ki JSON-LD dizisi yeniden siralanirsa YANLIS kirmizi olmasin."""
+    if isinstance(nesne, dict):
+        out = []
+        for k in sorted(nesne):
+            out += _yapraklar(nesne[k], yol + "/" + str(k))
+        return out
+    if isinstance(nesne, list):
+        out = []
+        for x in sorted(nesne, key=lambda v: json.dumps(v, sort_keys=True, ensure_ascii=False)):
+            out += _yapraklar(x, yol + "[]")
+        return out
+    return [(yol, nesne)]
+
+
+def _baglantilar(s):
+    """href -> (yol, {param: deger}) listesi. Sorgu AYRISTIRILIR ki `?a=1` -> `?a=1&b=2`
+    zenginlestirmesi kayip sayilmasin, AMA var olan bir parametrenin DEGERI degisirse
+    (ornegin marka=Volvo Penta -> marka=Volvo) KAYIP sayilsin."""
+    out = []
+    for h in _A_RE.findall(s):
+        yol, _, sorgu = h.partition("?")
+        parametre = {}
+        for parca in sorgu.split("&"):
+            if not parca:
+                continue
+            ad, _, deger = parca.partition("=")
+            parametre[ad] = deger
+        out.append((yol, parametre))
+    return out
+
+
+def cikarim_kaybi(eski_html, yeni_html):
+    """🔴 EKSEN 1'IN IDDIASI (3 Agu'da DARALTILDI, gevsetilmedi):
+    "eski sayfadan CIKARILABILEN hicbir sey kaybolmayacak ya da DEGISMEYECEK".
+
+    NEDEN DEGISTI: eski hali `iskelet(eski) == iskelet(yeni)` idi — HAM BAYT esitligi.
+    Kiyas nesnesi git gecmisindeki (yapisal olarak ESKI) uretici oldugu icin, o
+    commit'ten bu yana yapilan HER MESRU icerik degisikligi de bu eksende "kayip" gibi
+    gorunuyordu; eksen 2'nin BILEREK_DEGISEN muafiyet listesi tam da bu yuzden buyumustu.
+    Bayt-esitligi bir CIKARIM iddiasi degildir; olculmesi gereken sey kayiptir.
+
+    NE OLCULUR (hepsi KAYIP/DEGISIM yonunde, EKLEME serbest DEGIL — asagiya bak):
+      * JSON-LD: eski agactaki HER (yol, deger) yapragi yenide de AYNEN bulunmali
+        (fiyat, sku, brand, offers, breadcrumb, image). EKLEME serbest.
+      * <title> · <meta name=...> · canonical: TAM esitlik (ekleme de degisim sayilir).
+      * gorunur METIN: TAM esitlik — "vaat" metni ne kaybolur ne degisir.
+      * <img src>: eski her gorsel yenide de olmali.
+      * <a href>: eski her baglanti yenide de olmali; YOLU ayni olmali ve eski
+        sorgu parametrelerinin HEPSI ayni DEGERLE durmali. YENI parametre EKLENEBILIR
+        (kapsam zenginlestirmesi) — bu tek serbestlik ve BILEREK dar: parametre
+        DEGERINI degistiren mutant (marka=Volvo Penta -> marka=Volvo) KIRMIZI yanar.
+    Doner: bulgu listesi (bos = temiz)."""
+    bulgu = []
+
+    e_yap = dict(_yapraklar(_ldjson(eski_html)))
+    y_yap = dict(_yapraklar(_ldjson(yeni_html)))
+    for yol, deger in e_yap.items():
+        if yol not in y_yap:
+            bulgu.append("JSON-LD yapragi KAYIP: %s=%r" % (yol, deger))
+        elif y_yap[yol] != deger:
+            bulgu.append("JSON-LD yapragi DEGISTI: %s: %r -> %r" % (yol, deger, y_yap[yol]))
+
+    if _TITLE_RE.findall(eski_html) != _TITLE_RE.findall(yeni_html):
+        bulgu.append("<title> degisti")
+    if sorted(_META_RE.findall(eski_html)) != sorted(_META_RE.findall(yeni_html)):
+        bulgu.append("<meta name=...> kumesi degisti")
+    if _CANON_RE.findall(eski_html) != _CANON_RE.findall(yeni_html):
+        bulgu.append("canonical degisti")
+
+    if _duz_metin(eski_html) != _duz_metin(yeni_html):
+        bulgu.append("GORUNUR METIN degisti")
+
+    e_img, y_img = _IMGSRC_RE.findall(eski_html), set(_IMGSRC_RE.findall(yeni_html))
+    for u in e_img:
+        if u not in y_img:
+            bulgu.append("<img src> KAYIP: %s" % u[:80])
+
+    y_bag = _baglantilar(yeni_html)
+    for yol, par in _baglantilar(eski_html):
+        eslesen = [p for (y, p) in y_bag if y == yol]
+        if not eslesen:
+            bulgu.append("<a href> YOLU KAYIP: %s" % yol[:80])
+            continue
+        if not any(all(p.get(ad) == deger for ad, deger in par.items()) for p in eslesen):
+            bulgu.append("<a href=%s> sorgu parametresi KAYIP/DEGISTI: eski=%r yeni=%r"
+                         % (yol[:50], par, eslesen[:2]))
+    return bulgu
+
+
 def js_govdeleri(html):
     return [m.group(2) for m in _SCRIPT_RE.finditer(html) if _js_mi(m.group(1))]
 
@@ -290,7 +410,124 @@ def ornek_sec(urunler, hedef):
 
 
 # --------------------------------------------------------------------- kosum
+def kendini_test():
+    """🔴 EKSEN 1 MUTASYON KANITI — `cikarim_kaybi` GERCEK bir kaybi TEK BASINA yakiyor mu?
+
+    Kapiyi DARALTMAK gevsetmekten ayirt edilemezse bu is bir susturmadir. Bu yuzden kanit
+    ANLATILMAZ, KOSULUR: gercek bir urun sayfasi uretilir, kopyasina TEK bir kayip
+    enjekte edilir ve `cikarim_kaybi` o kaybi yakalamak ZORUNDADIR. Yaninda KONTROL
+    mutantlari durur (davranisi degistirmeyen degisiklikler YESIL kalmali) — yoksa
+    "her seye kirmizi yak" da bu bataryayi gecerdi.
+    Kabul olcutu cikis kodu DEGIL, olculen iddia sayisi + isaret sarti."""
+    with io.open(os.path.join(ROOT, "urunler.json"), encoding="utf-8") as f:
+        urunler = json.load(f)
+    # Cok markali + fiyatli + gorselli bir MARIN urunu: hem `?marka=` cipi hem JSON-LD
+    # offers hem gorsel tasir (butun eksenler tek fikstürde olculsun).
+    aday = [p for p in urunler
+            if (p.get("kategori") or "") == "Marin" and len(p.get("marka") or []) >= 2
+            and (p.get("fiyat") or "").strip() and (p.get("gorseller") or [])]
+    if not aday:
+        print("OLCULEMEDI: kendini-test icin cok markali Marin urunu bulunamadi")
+        return 2
+    sayfa = iskelet(build.render_product(aday[0], urunler, None))
+    if "brand-chip" not in sayfa or '"@type":"Product"' not in sayfa:
+        print("OLCULEMEDI: fikstur sayfasi beklenen yuzeyi tasimiyor "
+              "(marka cipi / Product JSON-LD)")
+        return 2
+
+    def ilk_deger(desen):
+        m = re.search(desen, sayfa)
+        return m.group(0) if m else None
+
+    fiyat = ilk_deger(r'"price":"[^"]+"')
+    gorsel = _IMGSRC_RE.findall(sayfa)
+    marka_link = ilk_deger(r'<a class="brand-chip" href="/\?[^"]*marka=[^"]*">')
+    # 🔴 Metin ornegi HAM HTML'den alinir. Ilk yazimda `_duz_metin()` ciktisindan
+    # aliniyordu; o metin ham HTML'de GECMEDIGI icin `replace` hicbir sey degistirmiyor,
+    # mutant FIILEN UYGULANMIYOR ve vaka sahte-yesil geciyordu ([[mutasyon-diske-yazma-tuzagi]]
+    # ile ayni sinif). Asagidaki "mutant fiilen uygulandi mi" suzgeci de bu yuzden var.
+    # <title>/<meta> icerigi HARIC tutulur: aksi halde "metin kaybi" vakasi aslinda
+    # title eksenini olcer ve iki vaka AYNI seyi kanitlar (ayirt edicilik kaybi).
+    # Aday metin GOVDEDEN secilir: <script> (JSON-LD dahil) ve <title> DISLANIR, yoksa
+    # vaka aslinda JSON-LD ya da title eksenini olcer ve ayirt ediciligini kaybeder.
+    baslik_metni = (_TITLE_RE.findall(sayfa) or [""])[0]
+    govde = _TITLE_RE.sub("", _SCRIPT_RE.sub("", sayfa))
+    metin_ornegi = None
+    for g in re.findall(r">([^<>]{60,})<", govde):
+        if g.strip() and g not in baslik_metni:
+            metin_ornegi = g
+            break
+
+    vakalar = []
+
+    def vaka(ad, yeni_sayfa, beklenen):
+        vakalar.append((ad, yeni_sayfa, beklenen))
+
+    if fiyat:
+        vaka("JSON-LD fiyat KAYBI", sayfa.replace(fiyat, '"__x__":"0"', 1), "KIRMIZI")
+        vaka("JSON-LD fiyat DEGISIMI",
+             sayfa.replace(fiyat, '"price":"999999"', 1), "KIRMIZI")
+    vaka("marka cipi BLOGU DUSTU", re.sub(r'<a class="brand-chip"[^>]*>[^<]*</a>', "", sayfa),
+         "KIRMIZI")
+    if marka_link:
+        # 🔴 ASIL VAKA: kapsam parametresi EKLEMEK serbest, DEGERI degistirmek DEGIL.
+        vaka("marka= parametresinin DEGERI degisti (katlanmis etikete kaydi)",
+             sayfa.replace(marka_link, re.sub(r"marka=[^\"]*", "marka=Volvo", marka_link), 1),
+             "KIRMIZI")
+        vaka("KONTROL: linke kapsam parametresi EKLENDI (mesru zenginlestirme)",
+             sayfa.replace(marka_link, marka_link.replace("/?", "/?kategori=Marin&"), 1),
+             "YESIL")
+    if metin_ornegi:
+        vaka("GORUNUR METIN (vaat/kisit cumlesi) DUSTU",
+             sayfa.replace(metin_ornegi, "", 1), "KIRMIZI")
+    vaka("<title> DEGISTI", _TITLE_RE.sub("<title>x</title>", sayfa, 1), "KIRMIZI")
+    vaka("canonical DUSTU", _CANON_RE.sub("", sayfa, 1), "KIRMIZI")
+    if gorsel:
+        vaka("<img src> DUSTU", sayfa.replace('src="%s"' % gorsel[0], 'src=""', 1), "KIRMIZI")
+    vaka("meta description DEGISTI",
+         re.sub(r'(<meta\s+name="description"\s+content=")[^"]*(")', r"\1x\2", sayfa, count=1),
+         "KIRMIZI")
+    vaka("KONTROL: fazladan bosluk/satir sonu", sayfa.replace("\n", "\n\n"), "YESIL")
+    vaka("KONTROL: hicbir sey degismedi", sayfa, "YESIL")
+
+    print("EKSEN 1 KENDINI-TEST — `cikarim_kaybi` mutasyon bataryasi")
+    basarisiz = []
+    kirmizi_vaka = 0
+    for ad, mutant, beklenen in vakalar:
+        # MUTANT FIILEN UYGULANDI MI: degismeyen bir "mutant" her zaman yesil gecer ve
+        # bataryayi sessizce bosaltir. Kontrol vakasi "hicbir sey degismedi" HARIC.
+        if beklenen == "KIRMIZI" and mutant == sayfa:
+            print("  HATA %-58s MUTANT UYGULANMADI (sayfa DEGISMEDI)" % ad)
+            basarisiz.append(ad + " [uygulanmadi]")
+            kirmizi_vaka += 1
+            continue
+        bulgu = cikarim_kaybi(sayfa, mutant)
+        gercek = "KIRMIZI" if bulgu else "YESIL"
+        if beklenen == "KIRMIZI":
+            kirmizi_vaka += 1
+        ok = gercek == beklenen
+        print("  %-4s %-58s beklenen=%-7s olculen=%-7s %s"
+              % ("OK" if ok else "HATA", ad, beklenen, gercek,
+                 (bulgu[0][:70] if bulgu else "")))
+        if not ok:
+            basarisiz.append(ad)
+    print()
+    print("  vaka=%d (oldurucu=%d · kontrol=%d) · fikstur urun=%s"
+          % (len(vakalar), kirmizi_vaka, len(vakalar) - kirmizi_vaka, aday[0]["id"]))
+    if kirmizi_vaka < 6 or (len(vakalar) - kirmizi_vaka) < 3:
+        print("KIRMIZI: batarya YETERSIZ (oldurucu>=6 ve kontrol>=3 sarti)")
+        return 1
+    if basarisiz:
+        print("KIRMIZI: %d vaka beklentiyi tutmadi -> %s" % (len(basarisiz), basarisiz))
+        return 1
+    print("OK: eksen 1 daraltmasi mutasyonla KANITLANDI "
+          "(her oldurucu vaka TEK BASINA kirmizi, kontrol vakalari yesil).")
+    return 0
+
+
 def main():
+    if "--kendini-test" in sys.argv:
+        sys.exit(kendini_test())
     hedef = 12
     if "--ornek" in sys.argv:
         hedef = int(sys.argv[sys.argv.index("--ornek") + 1])
@@ -435,8 +672,9 @@ def main():
 def olc(eski, yeni, secim, urunler, ref):
     # ------------------------------------------------------------------ 1
     for pid in yeni:
-        bekle(iskelet(eski[pid]) == iskelet(yeni[pid]),
-              "1 %s: CSS/JS DISINDA bayt farki var (metin/meta/JSON-LD/kirilim degismis)" % pid)
+        kayip = cikarim_kaybi(iskelet(eski[pid]), iskelet(yeni[pid]))
+        bekle(not kayip,
+              "1 %s: CIKARIM KAYBI (%d): %s" % (pid, len(kayip), kayip[:2]))
         bekle(urun_verisi(eski[pid]).get("URUN") == urun_verisi(yeni[pid]).get("URUN"),
               "1b %s: URUN verisi ayristi" % pid)
         for ad in ("URUN_SEMA", "URUN_KONFIGUR"):

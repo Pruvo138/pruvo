@@ -86,6 +86,26 @@ ESIK_MARKA = 15      # marka cipi: kategori icinde en az bu kadar urun
 ESIK_MODEL = 3       # model cipi: marka icinde en az bu kadar urun
 EN_AZ_MODEL = 2      # model satiri yalniz bu kadar modeli olan markada anlamli
 
+# 🔴 KURATORLUK KAPSAM ESIGI (isletme karari onaylandi 3 Agu; ayirt edici OLCUME dayanir,
+# keyfi sayi DEGIL). Kural: bir kategoride `uyum[]` KAPSAMI bu oranin ALTINDAysa marka
+# cip evreni TANINMIS_MARKALAR kuratorlugunden GECMEZ (ham `marka` degeri de cip olabilir);
+# USTUNDEyse bugunku kuratorluk AYNEN uygulanir. Iki kolda da ESIK_MARKA (>=15) gecerli.
+#
+# NEDEN BU EKSEN (olculdu, tum katalog):
+#   uyum kapsami — Motosiklet %94,6 · Otomobil %91,9 · Kamera %76,2 · Elektronik %75,0 ·
+#   Oyun/Hobi %66,7 · Bahce %64,0  ||  Bisiklet %35,5 · Ev %15,6 · MARIN %14,2 · Ofis %4,2 ·
+#   Tamirat/Dekorasyon/Jenerator/Skan Art %0   -> iki kume arasinda %35,5-%64 BOSLUGU var.
+# NEDEN KURATORLUK ARAC KATEGORISINDE KALMALI: oralarda `marka` alani MODEL kodu tasiyor
+#   (Otomobil: Focus 272 · F-150 198 · Fiesta 188 · Golf 182 · E46 104...). Kuratorluk
+#   kaldirilirsa Otomobil cipi >=15 esiginde bile 31 -> 129'a sisiyor (4,2x), %46'si
+#   tek-urunlu gurultu. Marin'de ise `marka` alani GERCEK URETICI tasiyor (Teleflex 149 ·
+#   Sierra 141 · NGK 117 · Tecnoseal 106...) ve kuratorluk 823 urunu cipsiz birakiyordu.
+# OLCULEN ETKI: Marin 3 -> 14 · Otomobil 31 -> 31 · Motosiklet 5 -> 5 · toplam 41 -> 52;
+#   onerilen 14 Marin cipinin HEPSI canli uctan >0 dondu (olu uc 0).
+# 🔴 Bu iki sayiyi kaydiran mutasyon kabul testinde KIRMIZI yanar (tools/cip-indeks-test.py
+#   :: F-ekseni) — esik sessizce kaymasin.
+ESIK_UYUM_KAPSAM = 0.50
+
 
 # ---------------------------------------------------------------- marka evreni
 def _norm(s):
@@ -141,18 +161,44 @@ class MarkaEvreni(object):
         return _marka_norm(m) in self._kanonik
 
 
-def markalari(urun, evren):
+def markalari(urun, evren, kuratorluk=True):
     """Urunun UYE oldugu kanonik marka kalemleri — index.html filtered() ile BIREBIR
-    (`(p.marka||[]).some(b => markaKatla(b) === hedef)`) + cip kuratorlugu."""
+    (`(p.marka||[]).some(b => markaKatla(b) === hedef)`).
+
+    `kuratorluk=False` (uyum kapsami dusuk kategori — bkz. ESIK_UYUM_KAPSAM) TANINMIS
+    listesi susgecini KALDIRIR; katlama ve ESIK_MARKA AYNEN kalir. Deger yine `marka`
+    alanindan gelir, UYDURULMAZ."""
     out = []
     for ham in (urun.get("marka") or []):
         ad = (ham or "").strip()
         if not ad:
             continue
         kan = evren.katla(ad)
-        if evren.taninmis_mi(kan) and kan not in out:
+        if (evren.taninmis_mi(kan) or not kuratorluk) and kan not in out:
             out.append(kan)
     return out
+
+
+def uyum_kapsami(urunler):
+    """kategori -> `uyum[].marka` tasiyan urun ORANI (0..1). Kuratorluk kolunu SECER.
+
+    Oran URUN bazlidir (deger bazli degil): "bu kategoride marka<->model bagini `uyum`
+    mu kuruyor" sorusunun olcusu odur. Bos kategoride 0.0 doner (fail-closed degil,
+    dogal: uyum yoksa kapsam yoktur -> kuratorluk gevser, ama ESIK_MARKA yine eler)."""
+    top, uy = {}, {}
+    for u in urunler:
+        kat = (u.get("kategori") or "").strip()
+        top[kat] = top.get(kat, 0) + 1
+        for oge in (u.get("uyum") or []):
+            if (oge.get("marka") or "").strip():
+                uy[kat] = uy.get(kat, 0) + 1
+                break
+    return dict((k, (uy.get(k, 0) / float(n)) if n else 0.0) for k, n in top.items())
+
+
+def kuratorluk_kolu(urunler):
+    """kategori -> kuratorluk UYGULANSIN MI (True/False). Tek kaynak: ESIK_UYUM_KAPSAM."""
+    return dict((k, v >= ESIK_UYUM_KAPSAM) for k, v in uyum_kapsami(urunler).items())
 
 
 def _ham_kume(urun):
@@ -178,6 +224,12 @@ def indeks_uret(urunler, index_metni):
     Yalnizca DOLU kombinasyon tasinir; SIFIR sayi HIC yazilmaz (menu veriden turer,
     kartezyen DEGIL)."""
     evren = MarkaEvreni(index_metni)
+    # KURATORLUK KOLU kategori bazinda VERIDEN secilir (ESIK_UYUM_KAPSAM); koda kategori
+    # ADI yazilmaz — yeni kategori ya da veri kaymasi kuralı KENDILIGINDEN takip etsin.
+    kuratorlu = kuratorluk_kolu(urunler)
+
+    def _markalari(u, kat):
+        return markalari(u, evren, kuratorluk=kuratorlu.get(kat, True))
 
     kat_alt = {}            # (kat, altk)         -> n   (URUN bazli; marka'dan BAGIMSIZ)
     kat_marka = {}          # (kat, marka)        -> n
@@ -190,7 +242,7 @@ def indeks_uret(urunler, index_metni):
         kat = (u.get("kategori") or "").strip()
         altk = (u.get("altkategori") or "").strip()
         kat_alt[(kat, altk)] = kat_alt.get((kat, altk), 0) + 1
-        markalar = markalari(u, evren)
+        markalar = _markalari(u, kat)
         for b in markalar:
             kat_marka[(kat, b)] = kat_marka.get((kat, b), 0) + 1
             kat_alt_marka[(kat, altk, b)] = kat_alt_marka.get((kat, altk, b), 0) + 1
@@ -215,7 +267,7 @@ def indeks_uret(urunler, index_metni):
         kat = (u.get("kategori") or "").strip()
         altk = (u.get("altkategori") or "").strip()
         ham = _ham_kume(u)
-        for b in markalari(u, evren):
+        for b in _markalari(u, kat):
             for md in ham:
                 if (kat, b, md) not in cift:
                     continue

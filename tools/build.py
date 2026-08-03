@@ -29,6 +29,7 @@ import html
 import hashlib
 import datetime
 import sys
+from urllib.parse import quote as _urlq
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from sayfalar import (SELLER, PAY_BAND_HTML, FOOT_NAV_HTML,
                       CONTENT_CSS, CONTENT_PAGES, SITEMAP_SLUGS,
@@ -2408,12 +2409,22 @@ def render_product(p, all_products, chip_map=None):
     # verilmediğinde (kabul testleri) bugünkü /?marka= JS-filtre görünümü AYNEN korunur.
     # DEĞİŞEN TEK ŞEY çip HREF'i; çip metni/JSON-LD/fiyat/görsel/feed dokunulmaz. Sonraki
     # çipler (model kodları) da değişmez.
+    # 🔴 KAPSAMSIZ `/?marka=<ham>` LINKI YANLIS LISTE VERIYORDU (olculdu 3 Agu, CANLI).
+    # Ana sayfa applyUrlParams degeri KATLAR (markaKatla): "Volvo Penta" -> "Volvo";
+    # uc ise KATLAMAZ, ham etiketle TAM eslesir. Kategorisiz istek sonucu:
+    #   /?marka=Volvo Penta  ->  uc marka=Volvo  ->  620 OTOMOBIL parcasi;
+    #   musterinin tikladigi 51 MARIN parcasinin HICBIRI listede YOK (bos liste DEGIL,
+    #   YANLIS liste — daha kotusu).
+    # ONARIM: link URUNUN KATEGORISINI tasir; istemci o kategorinin cip indeksinden uc
+    # etiketini cozer (index.html :: ucMarkaEtiketi) ve uca `marka=Volvo Penta` gider.
+    # Kategori bossa parametre BASILMAZ -> o sayfalarda cikti BAYT-AYNI kalir.
+    kapsam = ("kategori=" + _urlq(kategori, safe="") + "&") if kategori else ""
     brand_html = ""
     if markalar:
         mm_hedef = (chip_map or {}).get(pid)
         parcalar = []
         for i, b in enumerate(markalar):
-            href = esc(mm_hedef) if (i == 0 and mm_hedef) else ("/?marka=" + esc(b))
+            href = esc(mm_hedef) if (i == 0 and mm_hedef) else ("/?" + kapsam + "marka=" + esc(b))
             parcalar.append('<a class="brand-chip" href="%s">%s</a>' % (href, esc(b)))
         brand_html = '<div class="brands">' + "".join(parcalar) + "</div>"
 

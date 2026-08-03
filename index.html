@@ -2706,8 +2706,8 @@
   // KABUL ETMİYOR (marka=Mercedes,Mercedes-Benz → 0 · marka=merc → 0 · marka=volvo penta
   // → 0), yani gönderilebilecek TEK şey bir HAM etikettir. İki taraf ayrı etiket
   // kullandığı sürece GÖRÜNEN çip ÖLÜ UÇ verir ([[ikiz-tanim-sessiz-ayrisma]]).
-  // Etiket burada UYDURULMAZ: çip indeksinin `e` alanından gelir (tools/cip-indeks.py ::
-  // uc_etiketi), o da urunler.json'daki HAM değerden türer — tek kaynak, iki taraf.
+  // Etiket burada UYDURULMAZ: çip indeksinin `e` alanından gelir; o da katalogdaki HAM
+  // değerden türer — tek kaynak, iki taraf (üreteç tarafı ayrı bir yorumda anlatılır).
   // FAIL-CLOSED: indeks yoksa ya da `e` yoksa bugünkü davranış (kanonik ad) AYNEN kalır;
   // uydurma etiket üretilmez. Dönen kartlar yine edgeSuzgecSapmasi ile DEĞER ekseninde
   // doğrulanır (markaKatla("Volvo Penta") === "Volvo" → seçim ile tutarlı).
