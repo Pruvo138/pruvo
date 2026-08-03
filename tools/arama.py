@@ -805,6 +805,143 @@ def bilesik_marka_sebebi(deger):
             "genel normalizasyon YOK" % (deger, BILESIK_MARKA_KANONIK[deger]))
 
 
+# ── TABLONUN BUYUME KURALI (2 Agu, ikinci tur — OLCULDU, uydurulmadi) ────────────────
+# Birinci tur tabloyu TEK TOHUMLA acti ve "buyume GORUNUR bir karardir" dedi ama buyumenin
+# OLCUTUNU yazmadi. Olcut yoksa bir sonraki tur "bu da bilesik ad" diye herhangi bir jetonu
+# koyar; kapi yalnizca "tablo degisti" der, DOGRU MU diye SORMAZ.
+#
+# 🔴 IKI EKSENLI OLCUT (ikisi de gercek katalogda olculur, ikisi de kapida CALISIR):
+#   (1) SITE UYUMU — index.html'in KENDI kuratorlu katlamasi (markaKatla / TANINMIS_MARKALAR;
+#       Python portu tools/marka_katla.py) jetonu ZATEN ayni kanonik markaya katliyor mu?
+#       Katliyorsa tablo yalnizca D1/Ege tarafini siteyle AYNI hale getirir (ayrisma 0).
+#       KATLAMIYORSA tablo, katalogu ve D1'i sitenin hukmuyle CELISKIYE sokar — musteri
+#       sitede bir sey, Ege'de baskasini gorur ve hicbir alarm calmaz.
+#   (2) FAYDA — esleme, kaydin `marka` dizisine kanonik markayi GERCEKTEN kazandiriyor mu?
+#       Kazandirmiyorsa (marka zaten ayni kayitta duruyorsa) esleme hicbir sey kazandirmadan
+#       yalnizca MODEL belirtecini yok eder.
+#
+# OLCUM (16.874 kayit, 2 Agu): "kanonik markayi BILESEN olarak iceren" 25 tekil jeton var.
+# Biri tabloda (`Mercedes-Benz`: site katliyor ✓, fayda 21 kayit ✓). Kalan 24'un HICBIRI
+# olcutu gecmiyor ve asagida SINIFIYLA kayda geciyor — bir sonraki tur ayni jetonlari
+# yeniden "kesfetmesin" ve karar yeniden tartisilmasin (UYUM_MARKA_ELENEN deseni).
+#
+#   AYRISMA (4 jeton / 5 kayit): site KATLAMIYOR -> yazilirsa katalog+D1 site ile ayrisir.
+#     `Pajero Mini` (2)  Mitsubishi MODELI; `Mini` marka sayfasina yazilsaydi bir Mitsubishi
+#                        parcasi SAHTE bir MINI marka sayfasi acardi (K2'nin onlemek icin
+#                        var oldugu sey). Olculdu: markaKatla -> 'Pajero Mini'.
+#     `iPad Mini 4` (1)  Apple urunu; ayni sahte-MINI hatasi, daha da acik.
+#     `Range Rover` (1)  Land Rover MODELI; `Rover` AYRI bir marque'dir — esleme yanlis
+#                        ureticiye baglardi. Kayit zaten `Land Rover` tasiyor.
+#     `Formula Renault` (1) Tek koltuklu YARIS SERISI; marque `Renault` ile ayni sey DEGIL.
+#                        Site de katlamiyor -> yazim katalogu siteden ayirirdi.
+#
+#   FAYDASIZ (20 jeton / 40 kayit): site KATLIYOR (olcut 1 ✓) ama kanonik marka ZATEN ayni
+#     kaydin `marka` dizisinde -> D1 kazanci OLCULDU ve 0. Bunlar bilesik MARKA ADI degil,
+#     "<marka> <model>" bicimindeki MODEL jetonlaridir (`Peugeot 205`, `Volvo 240`,
+#     `Renault 5 E-Tech`, `Citroën C1`, `Toyota 86`, `Porsche 944` ...). Eslenselerdi tek
+#     etkileri model belirtecini `marka` dizisinden dusurmek olurdu: kazanc 0, kayip gercek.
+BILESIK_RED_SINIFLARI = ("AYRISMA", "FAYDASIZ")
+
+BILESIK_MARKA_REDDEDILEN = {
+    "Formula Renault": ("Renault", "AYRISMA"),
+    "Pajero Mini": ("Mini", "AYRISMA"),
+    "Range Rover": ("Rover", "AYRISMA"),
+    "iPad Mini 4": ("Mini", "AYRISMA"),
+    "Citroen C1": ("Citroen", "FAYDASIZ"),
+    "Citroën BX": ("Citroen", "FAYDASIZ"),
+    "Citroën C1": ("Citroen", "FAYDASIZ"),
+    "Citroën C5": ("Citroen", "FAYDASIZ"),
+    "Peugeot 203": ("Peugeot", "FAYDASIZ"),
+    "Peugeot 205": ("Peugeot", "FAYDASIZ"),
+    "Peugeot 206": ("Peugeot", "FAYDASIZ"),
+    "Peugeot 207": ("Peugeot", "FAYDASIZ"),
+    "Peugeot 208": ("Peugeot", "FAYDASIZ"),
+    "Peugeot 306": ("Peugeot", "FAYDASIZ"),
+    "Peugeot 307": ("Peugeot", "FAYDASIZ"),
+    "Peugeot 308": ("Peugeot", "FAYDASIZ"),
+    "Peugeot 5008": ("Peugeot", "FAYDASIZ"),
+    "Porsche 911": ("Porsche", "FAYDASIZ"),
+    "Porsche 944": ("Porsche", "FAYDASIZ"),
+    "Renault 17": ("Renault", "FAYDASIZ"),
+    "Renault 5": ("Renault", "FAYDASIZ"),
+    "Renault 5 E-Tech": ("Renault", "FAYDASIZ"),
+    "Toyota 86": ("Toyota", "FAYDASIZ"),
+    "Volvo 240": ("Volvo", "FAYDASIZ"),
+}
+
+# Reddedilen KUMENIN kimligi (S2 dersi: sayiyi sabit tutup uyeyi degistirmek gorunmez
+# kalirdi). Yalniz ANAHTARLAR imzalanir — hedef/sinif alanlari AYRI eksenlerde olculur,
+# tek imzaya baglansalardi o eksenleri kiran mutant bu imzaya sirtini dayar ve ayirt
+# edici olmaktan cikardi ([[beyan-edilmis-survivor]]).
+BILESIK_RED_IMZA = "916a9f4285eae12e"
+BILESIK_RED_SAYISI = 24
+
+_BILESIK_BILESEN_RE = re.compile(r"[ \-/_.]+")
+
+
+def bilesik_red_imzasi():
+    """Reddedilen aday kumesinin ANAHTAR kimligi — tek satir teshis verir."""
+    return hashlib.sha256(
+        json.dumps(sorted(BILESIK_MARKA_REDDEDILEN), ensure_ascii=False)
+        .encode("utf-8")).hexdigest()[:16]
+
+
+def bilesik_ad_bileseni(deger):
+    """DENETIM EKSENI — jeton, KAPALI marka kumesindeki bir markayi BILESEN olarak mi tasiyor?
+
+    Dondurur: bulunan ham bilesenlerin sirali demeti (bos demet = bilesik aday DEGIL).
+
+    🔴 BU BIR ESLEME KURALI DEGILDIR, BIR TARAMA EKSENIDIR. `bilesik_marka_kanonik()` bu
+    fonksiyonu CAGIRMAZ ve cagirmayacak: cagirsaydi paketin acikca YASAKLADIGI genel
+    normalizasyonun ta kendisi olurdu ve olculen sahte esleseler dogardi (`Pajero Mini` ->
+    `Mini`, `Range Rover` -> `Rover`, `iPad Mini 4` -> `Mini`). Islevi yalnizca kapinin
+    gercek katalogda ADAY jetonlari GORUNUR kilmasi ve tablo/red kayitlarinin gercekten bu
+    sinifa ait oldugunu dogrulamasidir.
+
+    Anahtarlar `_UYUM_MARKA_ANAHTARLARI`DAN turer (ikinci liste tutulmaz) — kume buyurse
+    tarama da buyur, ikiz tanim dogmaz. Jetonun KENDISI kanonik bir markaysa bilesen
+    aranmaz (o zaten bilesik ad degil, markanin kendisidir).
+    """
+    if not isinstance(deger, str) or not deger.strip():
+        return ()
+    # Jetonun KENDISI kanonik markaysa aday DEGILDIR (`Volvo Penta`, `Land Rover`,
+    # `Alfa Romeo`) — bunlar kumenin KENDI uyeleridir. Bu dal olmasaydi `Volvo Penta`
+    # "Volvo iceren bilesik ad" diye taranirdi ve tam da `[[uyum-marka-mimar-eki]]`
+    # notunun AYRI ev sahibi ilan ettigi jetonu geri katlamaya davet ederdi.
+    if model_normalize(deger) in _UYUM_MARKA_ANAHTARLARI:
+        return ()
+    parcalar = [p for p in _BILESIK_BILESEN_RE.split(deger) if p]
+    if len(parcalar) < 2:
+        return ()
+    bulunan = []
+    for i in range(len(parcalar)):
+        for j in range(i + 1, len(parcalar) + 1):
+            # TUM jetonu kapsayan dilim ATLANIR: o zaman deger bilesik ad degil, markanin
+            # KENDISIDIR (`Alfa Romeo`, `Volvo Penta`) — bileseni olmaz.
+            if i == 0 and j == len(parcalar):
+                continue
+            ham = " ".join(parcalar[i:j])
+            if model_normalize(ham) in _UYUM_MARKA_ANAHTARLARI and ham not in bulunan:
+                bulunan.append(ham)
+    return tuple(sorted(bulunan))
+
+
+def bilesik_marka_fayda_kazanci(katalog, jeton, hedef):
+    """Esleme yazilsaydi KAC kaydin `marka` dizisi `hedef` markayi YENI kazanirdi?
+
+    FAYDA ekseninin olculebilir birimi. 0 ise esleme hicbir sey kazandirmaz — yalnizca
+    jetonun kendisini (cogunlukla bir MODEL belirtecini) dizi disina iter.
+    """
+    n = 0
+    for u in katalog:
+        if not isinstance(u, dict):
+            continue
+        marka = u.get("marka")
+        if isinstance(marka, list) and jeton in marka and hedef not in marka:
+            n += 1
+    return n
+
+
 def arama_jetonu_korunuyor(u, jeton):
     """`jeton` sorgusu bu kaydi HALA buluyor mu? (sitenin KENDI ucluşu ile olculur)
 
