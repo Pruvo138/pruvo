@@ -18,6 +18,31 @@ devir listesinin 3. adimi (dallari push et) **her agac icin ayri ayri** kosulaca
 
 **✅ 2. IS — KAPANDI 3 Agu: merge `bd8b8abb` + onarim `78b6651f` (dokum DEVAM-ARSIV.md'de).**
 
+**✅ 3. IS — KAPANDI 3 Agu: yayin hatti acligi + build duvar saati. Merge `2c016309`.**
+- Ilk teshis CURUDU: `cancel-in-progress` ZATEN `false` idi. Iptal edilen kosumlarin `jobs`
+  dizisi BOS (30829845771 · 30831100269) — hic is baslatmadan KUYRUKTA iptal. main dogrusal,
+  ayakta kalan bekleyenin agaci onceki icerigi tasiyor -> ICERIK KAYBI YOK, sadece gecikme.
+- Gecikmenin sebebi `build` suresiydi: 1487 sn / 99 adim; ilk dort adim 1060 sn (%71).
+- Ayar DEGISTIRILMEDI. `tools/deploy-aclik-kapisi.py` (bloklayici, offline) eszamanlilik
+  sozlesmesini + yayin zincirini + art arda push simulasyonunu + uretim zincirini olcer;
+  kendini-test 30 iddia (13 mutant, 2'si KONTROL). `yayin-gecikme-nobeti.py --alarm` 2 Agu'dan
+  beri bagli olmayan canli kolu `paket-tazelik-alarmi.yml`e ayri is olarak tasidi.
+- `build` uc bloklayici serite bolundu; `deploy: needs: [build, serit-a2, serit-a3]` -> her
+  serit kirmizisi yayini yine durdurur (fail-closed AYNEN korundu).
+- **OLCULEN KABUL (kosum 30850714434, headSha a6bbe894, ata kaniti exit 0):** build 10,0 dk ·
+  serit-a2 8,3 · serit-a3 6,5 · serit-b 8,1 · deploy 0,7 · yayin 0,6. **Tepe serit 10,0 dk
+  (kabul ≤12) GECTI**; kosum duvar saati **26,3 -> 12,7 dk (-%52)**. Tahmin 9,4 idi, sapma 0,6.
+- **SESSIZ SINIF (bagimsiz curutucu birebir dogruladi):** `yasal-sayfa-drift-kapisi.py` depo
+  kokunde tam `build.py` kosuyor (beyansiz yan etki). Iki adim bundan sessizce faydalaniyor —
+  `surum-test.py` (pristine 0 -> 7 referans `_yayin/`) ve `yayin-ic-dil-kapisi.py --kaynak`
+  (7 -> 8 dosya); ikisi de HER IKI HALDE rc=0, yani ayrilsalardi YESIL yanarken olculen yuzey
+  kuculurdu. Zincir bolunmeden tek seritte tutuldu. Uretim yollarina dokunan 28 aday tarandi,
+  kayitsiz ucuncu tuketici YOK. Ders hafizada: [[kapi-yan-etkisi-gizli-onkosul]].
+- **ACIK KALAN (ayri tur):** `yayin-fiyat-parite.mjs` 139 sn ve `build` seridinin 563 sn'lik
+  sikistirilamaz tabani (build.py 316 + uretim-sonrasi 225) — daha asagisi serit paketleme
+  degil, o aracin kendi ici. Ayrica `yasal-sayfa-drift-kapisi.py` depo kokunde `varlik/`
+  artigi birakiyor (zararsiz, kendi hatasi).
+
 **🟡 RULMAN SATISA ACMA — hala BENDE, ayri tur. Karar dayanagi OLCULDU (3 Agu):**
 Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × eleman{3}` = **126.945 nokta**.
 - Sema kapisi ONCESI uretilemez: **43.085 / 126.945 = %33,94** (dalin iddiasi dogrulandi;
