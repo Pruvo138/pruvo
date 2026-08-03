@@ -41,7 +41,7 @@ GERCEK_KOK = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 🔴 IDDIA TABANI = bu kapinin KOSMASI GEREKEN en az iddia sayisi (kosum ici sayi sarti
 # commit'ler arasi kapsam kaybini GORMEZ; bkz. kabul() sonundaki capa). DUSURMEK ancak
 # iddianin neden kaldirildigini yazan AYNI commit'te mesrudur; ARTIS serbesttir.
-IDDIA_TABANI = 36
+IDDIA_TABANI = 39
 
 gecen = [0]
 kalan = [0]
@@ -764,6 +764,189 @@ def kabul(kok, katalog_yolu=None):
              len([i for i in _b7_duz_kayip if i != "B7-POZITIF-KONTROL"]),
              len(_b7_kalan_kayip)))
 
+    # ══ B8/B9/B10 — TABLONUN BUYUME OLCUTU (2. tur) ═══════════════════════════════
+    # B1 tablonun ICERIGINI donduruyor ama "yeni bir giris DOGRU MU" sorusunu SORMUYORDU:
+    # capa guncellenerek herhangi bir jeton eklenebilirdi ve kapi yalnizca "tablo degisti"
+    # derdi. Asagidaki uc eksen o bosluğu kapatir ve UCU DE gercek katalogda olculur.
+    K = yukle(kok, "marka_katla", "marka_katla.py")
+
+    # 🔴 BICIM SUZGECI EN BASTA — anlam eksenleri (B8/B10) yalniz BICIMI TANINAN kayitlari
+    # okur, BICIM ihlali ayri bir eksende (B9) KIRMIZI yanar. Ters sira olculen bir delikti:
+    # `("Pajero Mini": (None, "AYRISMA"))` bicimsiz kaydi B8'de `markaKatla(t) == None`
+    # karsilastirmasina duser, False uretir ve "sorun yok" denirdi (rc=0, SESSIZ).
+    def _red_sinif(sinif):
+        return [(t, v[0]) for t, v in A.BILESIK_MARKA_REDDEDILEN.items()
+                if isinstance(v, tuple) and len(v) == 2 and isinstance(v[0], str)
+                and v[0].strip() and v[1] == sinif]
+
+    # B8 — SITE UYUMU (AYRISMA NOBETI). Tablo, katalogu ve D1'i sitenin KENDI kuratorlu
+    # katlamasiyla (index.html markaKatla) CELISKIYE sokamaz. Celisirse musteri sitede bir
+    # sey, Ege'de baskasini gorur ve hicbir alarm calmaz — bu evin en pahali sessiz hatasi.
+    # Eksen BOS DEGIL: AYRISMA sinifindaki olculen 4 aday tam da bu olcutten DUSUYOR
+    # (tek yonlu olsaydi "her sey gecer" diyen olu bir nobetci olurdu).
+    _b8_tablo_bozan = [(k, v, K.markaKatla(k)) for k, v in A.BILESIK_MARKA_KANONIK.items()
+                       if K.markaKatla(k) != v]
+    _b8_ayrisma = _red_sinif("AYRISMA")
+    _b8_ayrisma_bozan = [(t, h) for t, h in _b8_ayrisma if K.markaKatla(t) == h]
+    dogrula("B8 SITE UYUMU: tablonun HER girisini site (index.html markaKatla) ZATEN ayni "
+            "kanonik markaya katliyor — tablo katalog/D1'i sitenin hukmuyle AYRISTIRAMAZ; "
+            "AYRISMA sinifindaki %d olculen aday ise bu olcutten DUSUYOR (eksen bos degil)"
+            % len(_b8_ayrisma),
+            not _b8_tablo_bozan and not _b8_ayrisma_bozan and len(_b8_ayrisma) > 0,
+            "tablo_bozan=%s ayrisma_bozan=%s" % (_b8_tablo_bozan, _b8_ayrisma_bozan))
+
+    # B9 — REDDEDILEN ADAY CAPASI. Yargilanip ELENEN bir jeton sessizce tabloya sizamaz ve
+    # kumeden sessizce dusemez (UYUM_MARKA_ELENEN deseni; S2 dersi: SAYI degil KIMLIK).
+    # Ayrica kayit KIRLETILEMEZ: her uye gercekten "kanonik marka iceren bilesik ad"
+    # sinifinda olmali, yoksa red kumesi ilgisiz jetonlarla sisirilip capayi anlamsizlastirir.
+    _b9_kesisim = sorted(set(A.BILESIK_MARKA_KANONIK) & set(A.BILESIK_MARKA_REDDEDILEN))
+    _b9_imza = A.bilesik_red_imzasi()
+    # 🔴 BICIM FAIL-CLOSED (olculen delik, 2 Agu): once yalnizca SINIF alani olculuyordu,
+    # bu yuzden `("Pajero Mini": (None, "AYRISMA"))` gibi TIPI BOZUK bir kayit kapidan
+    # SESSIZCE geciyordu (rc=0) — B8 `markaKatla(t) == None` karsilastirmasinda False
+    # uretip "sorun yok" diyordu. Kayit BICIMI taninmiyorsa varsayilana DUSULMEZ, KIRMIZI
+    # yanar. (Hedefin KAPALI MARKA KUMESINDE olmasi BILEREK SART DEGIL: hedef alani B8/B10'un
+    # anlam ekseni; buraya baglansaydi o eksenlerin ayirt edici mutantlari B9'a da carpar
+    # ve uc iddia tek kod yoluna duserdi.)
+    _b9_sinif = sorted(
+        t for t, v in A.BILESIK_MARKA_REDDEDILEN.items()
+        if not (isinstance(v, tuple) and len(v) == 2 and isinstance(v[0], str)
+                and v[0].strip() and v[1] in A.BILESIK_RED_SINIFLARI))
+    _b9_bilesensiz = sorted(t for t in A.BILESIK_MARKA_REDDEDILEN
+                            if not A.bilesik_ad_bileseni(t))
+    # Tarayici TERS yonde de dogru olmali: kanonik markanin KENDISI aday DEGILDIR
+    # (`Volvo Penta`/`Land Rover` cok kelimeli KANONIK markalardir — [[uyum-marka-mimar-eki]]
+    # onlari AYRI ev sahibi ilan etti). Bu yon olculmezse "her uye bilesik-ad sinifinda"
+    # iddiasi bosalir: her seyi aday sayan bir tarayici da onu YESIL gecirirdi.
+    _b9_yanlis_aday = sorted(
+        m for m in ("Volvo Penta", "Land Rover", "Alfa Romeo", "Black and Decker",
+                    "Mercedes", "Rolls-Royce", "F-150", "206+")
+        if A.bilesik_ad_bileseni(m))
+    # FAIL-CLOSED: reddi KAYDA GECIRMEK bir ESLEME YARATMAMALI.
+    _b9_sizan = sorted(t for t in A.BILESIK_MARKA_REDDEDILEN
+                       if A.bilesik_marka_kanonik(t) != t
+                       or A.bilesik_marka_sebebi(t) is not None)
+    dogrula("B9 REDDEDILEN CAPASI: %d yargilanmis aday jetonun KIMLIGI donmus imza ile "
+            "birebir, tablo ile kesisim YOK, her uye kapali sinif kumesinden ve gercekten "
+            "bilesik-ad sinifinda (ters yon: 8 kanonik/mesru jeton aday SAYILMIYOR); "
+            "reddi kayda gecirmek ESLEME YARATMIYOR (fail-closed)"
+            % A.BILESIK_RED_SAYISI,
+            _b9_imza == A.BILESIK_RED_IMZA
+            and len(A.BILESIK_MARKA_REDDEDILEN) == A.BILESIK_RED_SAYISI
+            and not _b9_kesisim and not _b9_sinif and not _b9_bilesensiz
+            and not _b9_yanlis_aday and not _b9_sizan,
+            "imza=%s beklenen=%s sayi=%d kesisim=%s sinif=%s bilesensiz=%s "
+            "yanlis_aday=%s sizan=%s"
+            % (_b9_imza, A.BILESIK_RED_IMZA, len(A.BILESIK_MARKA_REDDEDILEN),
+               _b9_kesisim, _b9_sinif, _b9_bilesensiz, _b9_yanlis_aday, _b9_sizan))
+
+    # B10 — 🔴 YANLIS-POZITIF KAPISI (bu turun asil kapisi). Iki yonlu:
+    #  (a) FAYDASIZ sinifinin YAPISAL olcutu: jeton "<kanonik marka> <model>" bicimindedir
+    #      (site onu zaten ayni markaya katliyor ve jeton markanin onekiyle basliyor) ->
+    #      bilesik MARKA ADI degil MODEL jetonudur, tabloya girmez. Olcut YAPISALDIR,
+    #      katalog sayisina bagli DEGIL: bagli olsaydi kardes mimarin her yeni partisi bu
+    #      kapiyi kirmizi yakip TUM ekibin yayinini durdurabilirdi.
+    #  (b) NEGATIF OLCUM: tablo gercek kataloga uygulandiginda, katalogun TAM kelime
+    #      dagarciginda sonucu DEGISEN sorgu sayisi 0 olmali. Bu, "benzin -> benz" turu
+    #      olculmus sisme vakasinin tekrarini kapatan eksendir; ORNEKLEME YOK, dagarcigin
+    #      tamami taranir. Tarayici OLU DEGIL: sisme URETEN sentetik bir esleme ayni
+    #      tarayiciyla olculur ve YAKALANMALI (pozitif kontrol).
+    _b10_faydasiz = _red_sinif("FAYDASIZ")
+    _b10_yapisal_bozan = [
+        (t, h, K.markaKatla(t)) for t, h in _b10_faydasiz
+        if K.markaKatla(t) != h or t == h
+        or not A.model_normalize(t).startswith(A.model_normalize(h))]
+
+    # Dagarcik = katalogun TUM arama metni jetonlari (>=3 harf). Sorgu tarafi `tokenlar()`
+    # ile kok alir; bir sorgunun sonucu YALNIZ `marka` dizisi degisen kayitlar uzerinden
+    # kayabilir (digerlerinin katkisi ONCE/SONRA ozdes) -> sapma orada olculur.
+    _b10_hs0 = [A.haystack(u) for u in katalog if isinstance(u, dict)]
+    _b10_dagarcik = set()
+    for _hs in _b10_hs0:
+        for _w in _hs.split():
+            _w = _w.strip(".,;:()[]/\"'!?")
+            if len(_w) >= 3:
+                _b10_dagarcik.add(_w)
+    # Turkce carpisma adaylari ELLE eklenir: `benzin` sorgusu `benz` kokune iner ve
+    # `Mercedes-Benz` yazimina ALT-DIZE olarak carpar — olculmus tuzagin ta kendisi.
+    _b10_dagarcik |= {"benzin", "benzer", "benzeri", "benzinli", "mini", "minik",
+                      "mercedes", "mercedes-benz", "rover", "renault"}
+    _b10_kok = {}
+    for _q in _b10_dagarcik:
+        _tk = A.tokenlar(_q)
+        if len(_tk) == 1:
+            _b10_kok.setdefault(_tk[0], []).append(_q)
+    _b10_enuzun = max(len(_k) for _k in _b10_kok)
+
+    def _b10_sapma(kayitlar, yeni_markalar):
+        """Sorgu sonucu ONCE/SONRA degisen sorgular — {sorgu: sapma}."""
+        idx = [i for i in range(len(kayitlar))
+               if list(kayitlar[i].get("marka") or []) != yeni_markalar[i]]
+        eski = {i: A.haystack(kayitlar[i]) for i in idx}
+        yeni = {i: A.haystack(dict(kayitlar[i], marka=yeni_markalar[i])) for i in idx}
+        adaylar = set()
+        for i in idx:
+            for metin in (eski[i], yeni[i]):
+                n = len(metin)
+                for a in range(n):
+                    for L in range(3, min(_b10_enuzun, n - a) + 1):
+                        p = metin[a:a + L]
+                        if p in _b10_kok:
+                            adaylar.add(p)
+        sapma = {}
+        for _k in adaylar:
+            for _q in _b10_kok[_k]:
+                tk = A.tokenlar(_q)
+                d = sum(int(all(t in yeni[i] for t in tk))
+                        - int(all(t in eski[i] for t in tk)) for i in idx)
+                if d:
+                    sapma[_q] = d
+        return len(idx), sapma
+
+    _b10_gercek = [u for u in katalog if isinstance(u, dict)]
+    _b10_deg, _b10_sap = _b10_sapma(
+        _b10_gercek, [A.bilesik_marka_kanoniklestir(u) for u in _b10_gercek])
+    # POZITIF KONTROL — tarayici FIILEN calisiyor mu? Sentetik kayit `Mercedes` jetonunu
+    # HICBIR yerinde tasimiyor; kanoniklestirme onu arama metnine SOKAR -> `mercedes`
+    # sorgusu SISER ve tarayici bunu YAKALAMALI. Yakalamiyorsa yukaridaki "sapma 0"
+    # hukmu BOS bir yesildir ([[nobetci-fikstur-sekli]]).
+    _b10_poz = _urun(marka=["Sahte-Bilesik Ad"])
+    _b10_poz["baslik"] = "Kanal adaptoru"
+    _b10_poz["aciklama"] = "Kanal adaptoru"
+    _b10_poz["id"] = "b10-pozitif-kontrol"
+    _b10_pdeg, _b10_psap = _b10_sapma([_b10_poz], [["Mercedes"]])
+    dogrula("B10 YANLIS-POZITIF KAPISI: FAYDASIZ sinifindaki %d aday YAPISAL olcutle "
+            "'<marka> <model>' jetonu (tabloya giremez) VE tablo gercek kataloga "
+            "uygulandiginda %d kaydin `marka`si degisirken katalogun TAM dagarciginda "
+            "(%d sorgu) sonucu degisen sorgu 0 — sisme YOK; tarayici olu degil, sisme "
+            "ureten sentetik esleme YAKALANIYOR"
+            % (len(_b10_faydasiz), _b10_deg, len(_b10_dagarcik)),
+            not _b10_yapisal_bozan and not _b10_sap and len(_b10_faydasiz) > 0
+            and _b10_pdeg == 1 and _b10_psap.get("mercedes", 0) > 0,
+            "yapisal_bozan=%s sapma=%s pozitif_kontrol=%s"
+            % (_b10_yapisal_bozan, sorted(_b10_sap.items())[:8],
+               sorted(_b10_psap.items())[:4]))
+    # OLCUM (BLOKLAMAZ): katalog buyudukce yeni bir bilesik aday dogabilir. Sayi kapiya
+    # baglanmaz — baglansaydi kardes mimarin her yeni partisi yayini durdurabilirdi; ama
+    # GORUNUR kalir ki bir sonraki tur onu yargilasin.
+    _b10_aday = set()
+    for u in katalog:
+        if isinstance(u, dict) and isinstance(u.get("marka"), list):
+            for j in u["marka"]:
+                if isinstance(j, str) and A.bilesik_ad_bileseni(j):
+                    _b10_aday.add(j)
+    print("  OLCUM (buyume olcutu): bilesen tasiyan tekil jeton %d · tabloda %d · "
+          "reddedilen %d (AYRISMA %d / FAYDASIZ %d) · siniflandirilmamis %s"
+          % (len(_b10_aday), len(A.BILESIK_MARKA_KANONIK),
+             len(A.BILESIK_MARKA_REDDEDILEN), len(_b8_ayrisma), len(_b10_faydasiz),
+             sorted(_b10_aday - set(A.BILESIK_MARKA_KANONIK)
+                    - set(A.BILESIK_MARKA_REDDEDILEN))))
+    print("  OLCUM (fayda): tablo %s · FAYDASIZ sinifinin kazanci %s"
+          % (["%s->%s +%d" % (k, v, A.bilesik_marka_fayda_kazanci(katalog, k, v))
+              for k, v in A.BILESIK_MARKA_KANONIK.items()],
+             sorted({A.bilesik_marka_fayda_kazanci(katalog, t, h)
+                     for t, h in _b10_faydasiz})))
+
     # 🔴 IDDIA TABANI — KOSUMLAR ARASI CAPA (commit'ler arasi sessiz kapsam kaybi kapisi).
     # Mutasyon surucusunun sayi sarti yalnizca TEK KOSUM icindedir: taban her seferinde
     # M00'da yeniden olculdugu icin, bir iddia SILINIP commit'lenirse hem kabul hem
@@ -822,10 +1005,11 @@ MUTANTLAR = [
      '    m = norm(m)\n    m = "".join(c for c in unicodedata.normalize("NFKD", m)\n'
      "                if not unicodedata.combining(c))\n"
      '    return _MODEL_AYIRAC_RE.sub("", m)\n', "    return m\n",
-     ["V7", "V16", "B4"], "ESIT",
+     ["V7", "V16", "B4", "B9", "B10"], "ESIT",
      "V7: model normalizasyonu KIMLIK fonksiyonu olur -> `F-150`/`F150` iki ayri sayfa; "
-     "ayni normalizasyon marka/model sinirini (V16) ve yazim-varyanti capasini (B4) da "
-     "besledigi icin o iki iddia AYNI kod yolundan birlikte duser"),
+     "ayni normalizasyon marka/model sinirini (V16), yazim-varyanti capasini (B4), bilesen "
+     "tarayicisini (B9) ve FAYDASIZ onek olcutunu (B10) da besledigi icin o iddialar AYNI "
+     "kod yolundan birlikte duser"),
     ("M5", "arama.py",
      "    if uyum_sebebi(u) is not None:\n        return []\n", "",
      ["V4", "V9", "V10"], "ESIT",
@@ -909,9 +1093,11 @@ MUTANTLAR = [
      "    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
      '    for _m in UYUM_MARKA_IZINLI:\n        if deger.startswith(_m + " "):\n'
      "            return _m\n    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
-     ["B2"], "ESIT",
+     ["B2", "B9"], "ESIT",
      "B2: TABLO HIC OKUNMADAN 'icerdigi markayi dondur' kurali — uydurma bilesik ad "
-     "(`Mercedes Voranta`) sessizce `Mercedes`e katlanir"),
+     "(`Mercedes Voranta`) sessizce `Mercedes`e katlanir. B9 de KIRMIZI ve bu DOGRUDUR: "
+     "reddi KAYDA GECIRMEK esleme yaratmamali; mutant altinda REDDEDILEN jetonlar "
+     "(`Peugeot 205`, `Volvo 240` ...) fiilen eslenir — B9'un fail-closed yonu tam bunu olcer"),
     ("M16", "arama.py",
      "    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
      '    return BILESIK_MARKA_KANONIK.get(deger, deger.rstrip("+"))\n', ["B3"], "ESIT",
@@ -930,9 +1116,11 @@ MUTANTLAR = [
      "    if deger not in BILESIK_MARKA_KANONIK:\n        for _m in UYUM_MARKA_IZINLI:\n"
      "            if model_normalize(_m) == model_normalize(deger):\n"
      "                return _m\n    return BILESIK_MARKA_KANONIK.get(deger, deger)\n",
-     ["B5"], "ESIT",
+     ["B5", "B10"], "ESIT",
      "B5: bilesik-ad yolu YAZIM VARYANTI yoluna delege eder (iki kural sinifi tek capada "
-     "erir) -> `KIA` bilesik tablodan `Kia`ya katlanir, iki iddia TEK kod yoluna duser"),
+     "erir) -> `KIA` bilesik tablodan `Kia`ya katlanir, iki iddia TEK kod yoluna duser. "
+     "B10 de KIRMIZI ve bu DOGRUDUR: delege edilen yol gercek katalogda 7 yazim varyantini "
+     "katlar, arama metni degisir ve NEGATIF OLCUM sapmayi YAKALAR (sisme/erime 0 degil)"),
     ("M19", "arama.py",
      "        if not arama_jetonu_korunuyor(aday, ham) and ham not in yeni:\n",
      "        if ham not in yeni:\n", ["B6"], "ESIT",
@@ -954,10 +1142,12 @@ MUTANTLAR = [
     # ama mutasyon duzleminde B6'nin GERCEK-VERI BIRIMIDIR ve birlikte beyan edilir.
     ("M20", "arama.py",
      "        if not arama_jetonu_korunuyor(aday, ham) and ham not in yeni:\n"
-     "            yeni.append(ham)\n", "        continue\n", ["B6", "B7"], "ESIT",
+     "            yeni.append(ham)\n", "        continue\n", ["B6", "B7", "B10"], "ESIT",
      "B6+B7 (BIRLIKTE beyan): takma HIC eklenmez -> duz esleme geri gelir ve "
      "`Mercedes-Benz` sorgusu 5 gercek kaydi SESSIZCE kaybeder (paketin varlik sebebi olan "
-     "hata). B7 ayirt edici mutanti YOK; B6'nin gercek-veri birimidir"),
+     "hata). B7 ayirt edici mutanti YOK; B6'nin gercek-veri birimidir. B10 de KIRMIZI ve bu "
+     "DOGRUDUR: kaybolan `mercedes-benz` yazimi `benz` kokune inen sorgulari da dusurur — "
+     "NEGATIF OLCUM sapmayi BAGIMSIZ olarak (dagarcik taramasiyla) yakalar"),
     # M23 — bagimsiz curutucude OLCULEN SAG KALAN: kanoniklestirme yalniz `marka[0]`'a
     # uygulanirsa (MaCiT'in "marka-basi" kovasi akil yurutmesi) hicbir iddia yanmiyordu.
     # Gercek katalogda bilesik adi 0'DAN BASKA konumda tasiyan 1 kayit var
@@ -983,9 +1173,56 @@ MUTANTLAR = [
      'BILESIK_MARKA_KANONIK = dict([("Mercedes-Benz", "Mercedes")])\n', [], "ESIT",
      "KONTROL MUTANTI: tablo AYNI icerikle baska sozdiziminde kurulur — kapi tablonun "
      "METNINI degil ICERIGINI mi olcuyor?"),
+    # ── TABLONUN BUYUME OLCUTU (B8/B9/B10) ─────────────────────────────────────────
+    # Uc eksen BILEREK AYRI alanlara baglandi ki her biri TEK BASINA yakilabilsin:
+    # B8 red kaydinin HEDEF alanini (AYRISMA sinifi), B9 ANAHTAR kumesini, B10 hedef
+    # alanini (FAYDASIZ sinifi) okur. Tek imzaya baglanmis olsalardi bir mutant hepsini
+    # birden yakar ve ucu AYRI iddia olmaktan cikardi ([[beyan-edilmis-survivor]]).
+    ("M24", "arama.py",
+     '    "Formula Renault": ("Renault", "AYRISMA"),\n',
+     '    "Formula Renault": ("Formula Renault", "AYRISMA"),\n', ["B8"], "ESIT",
+     "B8: AYRISMA sinifindaki bir adayin hedefi, sitenin ONU KATLADIGI degere esitlenir -> "
+     "'site bu adayi katlamiyor' negatif yonu COKER ve eksen 'her sey gecer' diyen OLU bir "
+     "nobetciye doner (tek yonlu olcum tuzagi)"),
+    ("M25", "arama.py",
+     '    "Range Rover": ("Rover", "AYRISMA"),\n', "", ["B9"], "ESIT",
+     "B9: yargilanip ELENEN bir aday kumeden SESSIZCE dusurulur -> yarin ayni jeton "
+     "'yeni kesif' diye tabloya girebilir ve `Range Rover` bir Land Rover parcasini AYRI "
+     "bir marque olan `Rover` sayfasina baglar"),
+    ("M26", "arama.py",
+     '    "Volvo 240": ("Volvo", "FAYDASIZ"),\n',
+     '    "Volvo 240": ("Mercedes", "FAYDASIZ"),\n', ["B10"], "ESIT",
+     "B10: FAYDASIZ sinifinin YAPISAL olcutu (jeton hedef markanin onekiyle baslar ve site "
+     "onu ayni markaya katlar) bozulur -> '<marka> <model>' jetonu ile GERCEK bir bilesik "
+     "ad arasindaki ayrim kaybolur"),
+    ("M27", "arama.py",
+     '    if model_normalize(deger) in _UYUM_MARKA_ANAHTARLARI:\n        return ()\n',
+     "", ["B9"], "ESIT",
+     "B9: kanonik markanin KENDISI (`Volvo Penta`, `Land Rover`) 'bilesik aday' sayilir -> "
+     "tarama ayri ev sahibi ilan edilmis jetonlari geri katlamaya davet eder ve red "
+     "kumesinin 'gercekten bilesik-ad sinifinda' iddiasi anlamsizlasir"),
+    # M29 — OLCULEN DELIGIN KALICI NOBETCISI: bicim suzgeci EN BASA alinmadan once bu kayit
+    # kapidan SESSIZCE geciyordu (rc=0). B8 `markaKatla(t) == None` karsilastirmasinda False
+    # uretip "sorun yok" diyordu; bicimi taninmayan kayit varsayilana DUSUYORDU.
+    ("M29", "arama.py",
+     '    "Pajero Mini": ("Mini", "AYRISMA"),\n',
+     '    "Pajero Mini": (None, "AYRISMA"),\n', ["B9"], "ESIT",
+     "B9: red kaydinin BICIMI bozulur (hedef metin degil) -> kayit taninmiyorsa varsayilana "
+     "DUSULMEZ, KIRMIZI yanar; anlam eksenleri (B8/B10) bicimsiz kaydi hic okumaz"),
+    ("M28", "arama.py",
+     "BILESIK_RED_SINIFLARI = (\"AYRISMA\", \"FAYDASIZ\")\n",
+     "BILESIK_RED_SINIFLARI = (\"AYRISMA\", \"FAYDASIZ\", \"BELIRSIZ\")\n", [], "ESIT",
+     "KONTROL MUTANTI: kapali sinif kumesine KULLANILMAYAN bir sinif eklenir — kapi "
+     "kumenin BOYUNU mu yoksa uyelerin FIILEN kullandigi siniflari mi olcuyor? (bugun "
+     "hicbir uye BELIRSIZ tasimadigi icin davranis DEGISMEZ)"),
 ]
 
-KOPYALANAN = ["arama.py"]
+# 🔴 marka_katla.py B8/B10'un SITE UYUMU eksenini besler (index.html'in kuratorlu marka
+# katlamasinin TEK KAYNAK Python portu). Mutant KOPYAYA uygulanacagi icin bu dosya da
+# kopyaya girmeli; ayrica modul yuklenirken index.html'i AYRISTIRDIGI icin _kopya_kur
+# o dosyayi da baglar. Eksik kalsaydi M00 kontrolu ImportError ile KIRMIZI yanar ve tum
+# mutant sonuclari YALANCI olurdu (harness bozuklugu, mutant degil).
+KOPYALANAN = ["arama.py", "marka_katla.py"]
 
 
 def _sha(yol):
@@ -999,6 +1236,9 @@ def _kopya_kur():
     for ad in KOPYALANAN:
         shutil.copy2(os.path.join(GERCEK_KOK, "tools", ad), os.path.join(tmp, "tools", ad))
     os.symlink(os.path.join(GERCEK_KOK, "urunler.json"), os.path.join(tmp, "urunler.json"))
+    # marka_katla.py TANINMIS_MARKALAR'i index.html'den PARSE eder (kopya tutmaz) —
+    # kopya agacinda da ayni dosyayi gormeli.
+    os.symlink(os.path.join(GERCEK_KOK, "index.html"), os.path.join(tmp, "index.html"))
     return tmp
 
 
