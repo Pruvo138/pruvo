@@ -178,15 +178,18 @@ for(const g of gorunumler){
   const toyotalar = chips(PRODUCTS, g).filter((c) => markaNorm(c).indexOf("toyota") === 0);
   ok(toyotalar.length <= 1, g + " görünümünde Toyota tek kalem (bulunan: " + toyotalar.join(", ") + ")");
 }
-const exactMercedes = PRODUCTS.filter((p) => (p.marka || []).indexOf("Mercedes") !== -1).length;
-const katliMercedes = filteredMarka(PRODUCTS, "Mercedes").length;
+// Katalogdaki son "Mercedes-Benz" değeri kanonik "Mercedes" olunca veri-bağımlı mutasyon
+// tanığı kayboldu. Varyant katlamayı üretim koduyla, deterministik tek ürün fikstürüyle ölç.
+const mercedesVaryantUrunleri = PRODUCTS.concat([{marka: ["Mercedes-Benz"]}]);
+const exactMercedes = mercedesVaryantUrunleri.filter((p) => (p.marka || []).indexOf("Mercedes") !== -1).length;
+const katliMercedes = filteredMarka(mercedesVaryantUrunleri, "Mercedes").length;
 ok(katliMercedes > exactMercedes,
    "Mercedes filtresi varyantları da buluyor (exact " + exactMercedes + " < katlamalı " + katliMercedes + ")");
 const t86 = PRODUCTS.filter((p) => (p.marka || []).indexOf("Toyota 86") !== -1);
 const katliToyota = filteredMarka(PRODUCTS, "Toyota");
 ok(t86.every((p) => katliToyota.indexOf(p) !== -1),
    "Toyota filtresi 'Toyota 86' ürünlerini de buluyor (" + t86.length + " ürün)");
-ok(filteredMarka(PRODUCTS, "Mercedes-Benz").length === katliMercedes,
+ok(filteredMarka(mercedesVaryantUrunleri, "Mercedes-Benz").length === katliMercedes,
    "deep-link ?marka=Mercedes-Benz katlanınca aynı sonucu verir");
 
 // 3) Bilinen ev/elektronik markaları: evrende VE en az bir görünümde görünür çip
