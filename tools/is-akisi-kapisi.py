@@ -1669,7 +1669,9 @@ TABLO_TABANLARI = (
     # birlikte guncelle (serit degisimi = KraL karari).
     # 2 Agu: 36 -> 38 (job `hacim-tam-takim`in iki kolu: jenerator/test/dogrula.py +
     # jenerator/test/kabul.py; dis bagimlilikli elle-tetik takim, gerekce tabloda).
-    ("SERIT_B", 38),
+    # 3 Agu: 38 -> 39 (onizleme vaat kapisinin `--kendini-test` kolu beyan edildi;
+    # bayraksiz GERCEK olcum kolu serit A'da `build` job'unda bloklayici kalir).
+    ("SERIT_B", 39),
 )
 
 TABLO_TANI = (
@@ -2141,6 +2143,15 @@ SERIT_B = {
     ("deploy.yml", "serit-b", "tools/yasal-sayfa-drift-kapisi.py"):
         "YALNIZ `--kendini-test` (bayatlatma + kirmizi-mutasyon) kolu; GERCEK yasal sayfa "
         "drift olcumu serit A'da bloklayici kosuyor.",
+    ("deploy.yml", "serit-b", "tools/onizleme-vaat-kapisi.py"):
+        "YALNIZ `--kendini-test` kolu (gecici AYNADA 7 kirmizi-mutant + 3 kontrol "
+        "mutanti; canli agaca YAZMAZ, sha256 bas/son esitligi kendi olcer). GERCEK "
+        "olcum kolu BAYRAKSIZ cagridir ve serit A'da (`build` job'u) BLOKLAYICI kosar: "
+        "11 iddia — uretilemez bolgesi beyan edilmis ailenin satis allowlist'i ile "
+        "KESISIMI BOS mu (∅) ve musteri uyari metninin IKI cagri yeri birebir ayni mi. "
+        "Yani 'yanlis/uretilemez icerik canliya cikmasin' hukmunu veren kol A'dadir; "
+        "buraya YALNIZ kapinin KENDI kirmizi yolunu deneyen mutasyon turu girer "
+        "(agac temizken bloklayici kol DAIMA yesildir, kirmizi yolu hic denemez).",
     ("deploy.yml", "serit-b", "tools/denetim-kapisi.py"):
         "YALNIZ `--kendini-test` kolu; urun denetimi `--commit-farki` serit A'da bloklayici.",
     ("deploy.yml", "serit-b", "tools/gramer-artigi-kapisi.py"):
