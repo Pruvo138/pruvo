@@ -22,6 +22,7 @@ doğrular. build.py'nin urun/ çıktısına MUHTAÇ DEĞİL (modülü doğrudan 
 
 Kullanım: python3 tools/marka-model-test.py
 """
+import importlib.util
 import os
 import re
 import sys
@@ -218,7 +219,11 @@ def main():
         bekle(sonuc["dizinler"] == ["marka"], "üst dizin ['marka'] değil")
 
         evren = mm.MarkaEvreni(index_html)
-        veri = mm.gruplandir(products, evren)
+        # `uret` ile AYNI evrenle gruplandır: sayfa evreni artık ÇİP EVRENİNİ de kapsıyor
+        # (mm.cip_evreni_markalari). İkinci bir çağrı biçimi yazılsaydı test, üreticinin
+        # ürettiğinden BAŞKA bir tabloyu ölçerdi ve `slug_map`'teki marka burada KeyError
+        # verirdi (ölçüldü: 'Sierra').
+        veri = mm.gruplandir(products, evren, mm.cip_evreni_markalari(products, index_html))
 
         # ===== 1: folding =====
         bekle("Ford" in veri and "BMW" in veri, "Ford/BMW evrende yok")
@@ -277,7 +282,14 @@ def main():
               % (len(marka_dizinleri), sonuc["marka_sayfasi_sayisi"]))
         # Sayım formülü KOPYALANMAZ: jeneratörün TEK KAYNAK sayacı çağrılır (mm.marka_urun_sayisi).
         for m, slug in sonuc["slug_map"].items():
-            tot = mm.marka_urun_sayisi(veri[m])
+            # ALIAS girdisi (Vauxhall -> Opel) AYRI sayfa DEĞİL, var olan sayfanın hedefi:
+            # kovası `veri`de kendi adıyla YOKTUR, alias hedefinde yaşar. Eşik ölçümü de
+            # o hedefin üzerinden yapılır (yoksa KeyError — ölçüldü).
+            kova_adi = mm.MARKA_ALIAS.get(m, m) if m not in veri else m
+            bekle(kova_adi in veri, "%s slug_map'te ama kovası YOK (alias hedefi de yok)" % m)
+            if kova_adi not in veri:
+                continue
+            tot = mm.marka_urun_sayisi(veri[kova_adi])
             bekle(tot >= mm.ESIK, "%s marka sayfası aldı ama <%d ürün" % (m, mm.ESIK))
         ince = None
         for m, d in veri.items():
@@ -511,6 +523,26 @@ def main():
 
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+    # ---- CIP <-> SAYFA BAGI (tools/cip-sayfa-bagi.py) -----------------------
+    # Cip evreni ile /marka/<slug>/ evreni AYRI kaynaklardan beslenirse cipte gorunup
+    # 404 donen marka dogar (olculdu 3 Agu: 13 cip / 45). Iddialar ayri dosyada yasar
+    # (mutasyon bataryasiyla birlikte) ama CI'da BURADAN kosar: ci-kapsam kesfi ikinci
+    # bir giris beklemesin. Kapi BLOKLAYICI — kirmizi ise bu test de kirmizi yanar.
+    _spec = importlib.util.spec_from_file_location(
+        "cip_sayfa_bagi", os.path.join(TOOLS, "cip-sayfa-bagi.py"))
+    if _spec is None:
+        HATALAR.append("cip-sayfa-bagi.py BULUNAMADI — cip<->sayfa bagi OLCULEMEDI "
+                       "(fail-closed: sessizce yesil gecmez)")
+    else:
+        _csb = importlib.util.module_from_spec(_spec)
+        _spec.loader.exec_module(_csb)
+        print("  — cip <-> marka sayfasi bagi:")
+        if _csb.kabul(build.ROOT) != 0:
+            HATALAR.append("cip<->sayfa bagi KIRMIZI (yukaridaki KALDI satirlarina bak): "
+                           "cipte gorunen bir markanin sayfa hedefi yok ya da bos")
+        else:
+            BILGI.append("cip<->sayfa bagi: gorunen her cipin sayfa hedefi VAR ve >0 urun")
 
     print("\n".join("  · " + b for b in BILGI))
     if HATALAR:
