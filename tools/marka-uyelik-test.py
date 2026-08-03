@@ -33,7 +33,9 @@ NE KİLİTLER (her madde POZİTİF + NEGATİF):
      model kırılımı SEO'nun ana ekseni) · pilot model sayfaları diskte duruyor.
   E. index.html PARİTESİ: her kanonik marka için /marka/<slug>/ (+ model sayfaları) ürün
      kümesi = index.html marka filtresinin (`some(b => markaKatla(b) === hedef)`) kümesi.
-     Sapma 0 olmalı — sayfa ile ana sayfa AYNI ürünü göstermeli.
+     Sapma 0 olmalı — sayfa ile ana sayfa AYNI ürünü göstermeli. Hedef marka evreni =
+     TANINMIS_MARKALAR ∪ ÇİP EVRENİ (index.html'in filtresinde "tanınmış" süzgeci YOKTUR;
+     hedef, tıklanabilen ÇİP kümesinden gelir) — evren `tools/cip-indeks.py`'den okunur.
   F. Ürün sayfasındaki marka çipi hedefi BİRİNCİL markaya gider (ikincil marka çip
      haritasını EZMEZ — kararsız çıktı olmaz).
 
@@ -139,12 +141,41 @@ def katla(x):
     return EVREN.katla((x or "").strip())
 
 
+# GÖRÜNÜR MARKA EVRENİ = TANINMIS_MARKALAR ∪ ÇİP EVRENİ (ölçüldü 3 Ağu — [[ikiz-tanim-sessiz-ayrisma]]).
+# index.html'in marka filtresinde (satır ~2981: `some(b => markaKatla(b) === hedefMarka)`)
+# "tanınmış" süzgeci YOKTUR — hedef, kullanıcının tıklayabildiği ÇİP kümesinden gelir; çip
+# evreni ise kategorinin `uyum` kapsamına göre küratörlük gevşetir (cip-indeks.ESIK_UYUM_KAPSAM),
+# yani TANINMIS listesinde OLMAYAN markalar da çip olur. Sayfa üreteci de evrenini bu çip
+# evreninden türetir. Bu portun eski hâli yalnız TANINMIS'i kabul ediyordu: çip evreni
+# genişleyince kapı, DOĞRU üretilmiş sayfaları ihlal saydı (13 marka + 727 çip yanlış-pozitif)
+# ve TÜM ekibin yayınını durdurdu.
+# 🔴 Çip evreni ÜRETEÇTEN (marka_model_build) DEĞİL, çipin KENDİ üreticisinden okunur —
+#    `--modul` ile takılan mutant bu beklentiyi kendi lehine büküp iddiayı körelemesin.
+try:
+    _cs = importlib.util.spec_from_file_location("cip_indeks_uyelik",
+                                                 os.path.join(TOOLS, "cip-indeks.py"))
+    _ci = importlib.util.module_from_spec(_cs)
+    _cs.loader.exec_module(_ci)
+    CIP_EVREN = set(b for _kd in _ci.indeks_uret(PRODUCTS, INDEX_HTML)["kat"].values()
+                    for b in _kd)
+except Exception as e:                                        # noqa: BLE001
+    olculemedi("çip evreni (tools/cip-indeks.py) okunamadı: %r" % (e,))
+if not CIP_EVREN:
+    olculemedi("çip evreni BOŞ — görünür marka evreni ölçülemez (fail-closed)")
+
+
+def gorunur(k):
+    """Kullanıcının marka olarak SEÇEBİLDİĞİ kanonik ad mı (çip + tanınmış liste)."""
+    return bool(k) and (EVREN.taninmis_mi(k) or k in CIP_EVREN)
+
+
 def uyeler_js(p):
-    """index.html marka FİLTRESİNİN yüklemi: some(b => markaKatla(b) === hedef)."""
+    """index.html marka FİLTRESİNİN yüklemi: some(b => markaKatla(b) === hedef),
+    hedef GÖRÜNÜR marka evreninden seçilir (yukarıdaki nota bak)."""
     out = []
     for b in (p.get("marka") or []):
         k = katla(b)
-        if k and EVREN.taninmis_mi(k) and k not in out:
+        if gorunur(k) and k not in out:
             out.append(k)
     return out
 
@@ -343,7 +374,9 @@ for pid, yol in cip.items():
     slug = yol.strip("/").split("/")[1]
     hedef = SLUG_MARKA.get(slug)
     ham0 = katla((p.get("marka") or [""])[0])
-    birincil = ham0 if EVREN.taninmis_mi(ham0) else (uyeler_js(p) or [None])[0]
+    # BİRİNCİL = marka[0] görünür evrende ise O; değilse SIRA korunarak ilk görünür üye
+    # (çipin hedefi SAYFASI OLAN bir markaya gitmek zorunda — görünmeyen ada gidemez).
+    birincil = ham0 if gorunur(ham0) else (uyeler_js(p) or [None])[0]
     if hedef != birincil:
         yanlis_cip.append((pid, hedef, birincil))
 kontrol("POZ: ürün çip haritası BİRİNCİL markaya gidiyor (sapan: %d %s)"
