@@ -1477,6 +1477,24 @@ IZIN_LISTESI = {
         "render'da 0 ayrisma ile dogrulandi; sifir-olcum artik SESSIZ YESIL degil rc=3 "
         "(mutasyon: sifir-set kolu kaldirilinca rc=0 -> onarimla rc=3). Katalog/fiyat "
         "ekseninin CI'da kosan nobetcisi jenerator/test/fiyat-test.js'tir."),
+    "jenerator/test/rampa-uretilebilirlik-olcum.py": (
+        "AYNI SINIF, AYNI GEREKCE (emsal: rulman-uretilebilirlik-olcum.py). Iki "
+        "gitignore'lu girdi ister — `onizleme/derleyici/eslem-ozel.json` (uretim "
+        "eslemesi, R2 paketinden gelir) ve motorun .scad kaynagi — ARTI yerel "
+        "OpenSCAD; CI fresh checkout'unda ucu de YOKTUR, yani baglanirsa YAPISAL "
+        "rc=3 (fail-closed 'yesil sayma' kolu bilerek boyle yazildi). OLCULDU "
+        "(3 Agu, bu agac): paketsiz kosum rc=3 \"OLCULEMEDI: gizli uretim paketi "
+        "yok (server.py)\", 0,04 s; paketli TAM kosum rc=0, 25 iddia / 0 kirmizi, "
+        "944.559 noktalik ilan edilmis izgara + 1.686 GERCEK render, sema "
+        "kapisindan gecen noktalarda uretilemez 0 (%0,0000), hacim kapali "
+        "formunun render'a karsi en kotu sapmasi %0,0000079. Mutasyon bataryasi "
+        "(--mutasyon; mutasyon DAIMA KOPYAYA uygulanir, canli dosya sha256 "
+        "basta=sonda SAGLAM): 11 mutant, 9 OLDURUCUnun hepsi ISARET SARTIYLA oldu "
+        "(beklenen iddia kirmizi yandi), 2 KONTROL mutanti YESIL kaldi. "
+        "Sifir-olcumu tutan 3 katman AYRI AYRI olculur (M3/M3b/M3c): ucu birden "
+        "kalkinca kosum TAM YESIL donuyor — yani hicbiri tek basina 'savunma "
+        "derinligi' diye sayilmiyor. Satisa acma karari MIMARIN; bu arac yalnizca "
+        "dayanagi olcer."),
     # "jenerator/test/kabul.py" MUAFIYETI KALDIRILDI (31 Tem, madde 34b) — ayni gerekce:
     # `--kendini-test` kolu TARAMA KUMESI nobetcisini sinar (5 iddia: gitignore'lu artefakt
     # sahte KIRMIZI yakmiyor · izlenen kaynak taraniyor · izlenmeyen-ama-yoksayilmayan yeni
