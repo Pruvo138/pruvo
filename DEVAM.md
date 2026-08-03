@@ -7,7 +7,7 @@ Onceki ayrintili kayitlar DEVAM-ARSIV.md'de (git disi, lossless).
 Ritüel: `tools/DEVIR-KONTROL-LISTESI.md` (`2382c7f1`). Claude hesabi disinda **hicbir sey
 degismedi** — git/GitHub/Cloudflare/D1/R2/hafiza diskte ve aynen duruyor.
 
-**AGAC DURUMU: worktree 1 (yalniz main), `git status --short` BOS.** Tum worktree'ler kaldirildi;
+**AGAC DURUMU (3 Agu, olculdu): worktree 1 (yalniz main).** Uzerinde is olan her dal origin'e itildi;
 uzerinde is olan her dal **origin'e itildi**, tek kopya kalan dal YOK. Devam etmek icin:
 `git -C /Users/okan/dev/pruvo worktree add .claude/worktrees/<ad> <dal>`.
 🔴 **Devir taramasinin dersi:** iki dal yalniz yerelde duruyordu, biri **detached HEAD**'de ve
@@ -16,22 +16,7 @@ devir listesinin 3. adimi (dallari push et) **her agac icin ayri ayri** kosulaca
 
 **✅ 1. IS — KAPANDI 3 Agu: merge `73149015` (dokum DEVAM-ARSIV.md'de).**
 
-**✅ 2. IS — KAPANDI 3 Agu: merge `bd8b8abb` + onarim `78b6651f` (itildi).**
-Kurtarilan dal `kurtarma/rulman-sema-araligi` (`89ab5da6`) merge kapisindan gecirildi.
-Kapsam 6 dosya / +596 −3, merge-base `33ebff71`, cakisma YOK. `secenekler.js` ve `.github/`
-DOKUNULMADI — satis allowlist'i acilmadi.
-- **Kapi deltasi:** dalin getirdigi 3 yeni test `ci-kapsam-test.py`'yi KIRMIZI yakiyordu
-  (ANA MAIN'de ayni kapi YESIL → dalin kusuru). Ucu de olculmus gerekceyle izin listesine
-  yazildi; `deploy.yml`'de degisen satir **0**, hicbir kapi gevsetilmedi. Diger kapilar
-  (kapi-envanteri · kisisel-veri · is-akisi · yayin-ic-dil · onizleme-vaat +kendini-test ·
-  shop kabul 28/0 · fiyat-test 176 iddia) merge sonrasi agacta exit 0.
-- **Mutasyon ayirt ediciligi (dalin kendi surucusu):** taban 22 iddia / 0 kirmizi;
-  **12 olduruculuk mutanti KIRMIZI (isaret sartiyla) + 2 KONTROL mutanti YESIL**;
-  kaynak butunlugu sha256 basta=sonda saglam.
-- **Yan onarim:** olcum aracinin sifir-olcum kolu sertlestirildi; mutasyon kaniti
-  eski kol rc=0 · yeni kol rc=3 (ayrinti DEVAM-ARSIV.md'de).
-- **Parite (guncel main, ana checkout):** site 1199 sorgu BIREBIR · Ege 845 sorgu BIREBIR.
-- **D1 uc eksen:** SAYI 16874==16874 · SEMA temiz · ICERIK 16874 hash birebir.
+**✅ 2. IS — KAPANDI 3 Agu: merge `bd8b8abb` + onarim `78b6651f` (dokum DEVAM-ARSIV.md'de).**
 
 **🟡 RULMAN SATISA ACMA — hala BENDE, ayri tur. Karar dayanagi OLCULDU (3 Agu):**
 Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × eleman{3}` = **126.945 nokta**.
@@ -45,14 +30,7 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
 - Kardes depodaki et kalinligi kapisi (`0,8 mm`) ile **ORTUSME SIFIR**: iki AYRI bolge
   (o kapi 336/634.725 noktayi reddediyor, hepsi bu deponun motorunda URETILEBILIR).
   Yani o kapi bu urunu KORUMUYOR — iki farkli uretim motoru.
-- ✅ **KAPANDI (3 Agu, main'de):** `onizleme-vaat-kapisi.py` A3 kuralinin kisit kaynagi
-  birlestirildi — "kisitli aile" kumesi = ONIZLEME_KISITLAR ∪ semadaki `kisitlar` bloklari,
-  tek sema okuyucudan turer. Kor nokta once olculdu (kopyada rulman/vida allowlist'e
-  eklendiginde eski kapi rc=0 + A3 [OK]); simdi ikisi de A3'u tek basina kirmizi yakiyor.
-  Sema okunamaz/bicim taninmaz ise A3 hic basilmaz, kosum OLCULEMEDI (fail-closed).
-  Temiz agacta IDDIA 11 -> 12 (yeni A6 kapsam iddiasi), KIRMIZI=0, acik 17 ailede
-  yanlis-pozitif yok; kendini-test 10 -> 19 mutant (10 oldurucu, 5 kontrol, 4 fail-closed).
-  🟡 Rulman satisa ACILMADI — allowlist'e dokunulmadi, karar hala BENDE.
+- ✅ **A3 kor noktasi KAPANDI (`193cd6f0`, dokum DEVAM-ARSIV.md'de). 🟡 Rulman satisa ACILMADI — karar hala BENDE.**
 
 **MERGE EDILMEDIGI ICIN ACIK KALAN IKI KARAR (isci sordu, ben cevaplamadim):**
 1. `build.py`'deki `gecersiz-parca` kolu ayni "siparis verebilirsiniz, uretim etkilenmez"
@@ -75,19 +53,32 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
    **Kosan olcumun ayirt ettigi ikilem:** sema `kisitlar` blogu TEHLIKE isareti mi, KORUMA mi?
    Siparis yolu kisitlari UYGULUYORSA koruma → A3'un KOL2 kolu fazla kati, daraltilmali;
    UYGULAMIYORSA A3 dogru ve asil kusur odeme yolunda. **Rulman satisa acma karari buna bagli.**
-   ✅ **736 kalemi KAPANDI (`d8024a27`)** — bilesik marka kapali tablosu: `Mercedes-Benz` zaten
-   tabloda cikti, kovalar bugunku kodla 736→**749** (500 / 24 / 225). Kova3'un 24 adayinin
-   **hicbiri eklenmedi**: 4'u AYRISMA (site `markaKatla` katlamiyor → katalog+D1 siteden ayrilirdi),
-   20'si FAYDASIZ (olculen D1 kazanci 0). Yanlis-pozitif kapisi tam dagarcikta (**34.423 sorgu**,
-   ornekleme yok) **0 sorgu degistirdi**. Kazanc Ege'de: `marka=Mercedes` **1011 → 1032**.
-   Kapi 36 → **39 iddia**, mutasyon 29/29, 4 kontrol yesil; `rc=0` ile sessiz gecen bir hata
-   bicimi fail-closed yapildi. **MaCiT'te yazim:** `urunler.json`, **21 kayit**, tek alan `marka`.
+   ✅ **736 KAPANDI (`d8024a27`, dokum DEVAM-ARSIV.md'de) — MaCiT'te yazim: `urunler.json`, 21 kayit, alan `marka`.**
 2. `worktree-agent-aadc8e1d5df8ff4b0` (`3ef8b81a`) — ci-kapsam dar-bayrak dali, **curutme SARTLI
    dondu, sart uygulanmadi**: kovaya eklenen js bayraklarinin **%81'i uydurma** (baska programa
    gecirilen `--cached`/`--dry-run` gibi argümanlar dosyanin kendi bayragi sayiliyor). Dalin asil
    degeri duruyor: **6 dosya yalniz `--kendini-test` ile kosuyor** (`jenerator/test/kabul.py`
    dahil) — bugunku fiyat alarminin aylarca gorunmemesinin sebebi buydu. Ya sartla tamamla ya
    acikca park et.
+1b. 🔴 **YAPISAL — YENI (3 Agu, olculdu): Worker CI'da YAYINLANMIYOR.** `deploy.yml`'de
+   `wrangler deploy/publish` **0 vurus** → her `worker/`+`shop/src` degisikligi ELLE deploy
+   bekliyor ve **hicbir alarm calmiyor**. Olculen sonuc: canli bundle **2 Agu 23:35'ten
+   (`f1594d68`) bayat** kaldi; `f1594d68..HEAD` arasinda bundle girdilerine dokunan **10 commit**
+   birikti. Yani main yesil, CI yesil, site taze — ama **odeme yolu eski kodu kosuyor.**
+   Sinif: bugunku tekrar eden sinif — beyan edilmis nobetci, olculmemis kapsam.
+   Cozum yonu (karar bende): ya CI'ya Worker yayin adimi + bayatlik nobetcisi (canli bundle
+   hangi commit'i tasiyor, kac commit geride), ya da elle deploy ritueli kapiya baglanir.
+   ✅ **Bugun ELLE deploy edildi (Okan onayiyla): `ac6864e3` canlida** — surum
+   `cecc9d4f`, oncesi `9d5ab6ed` (rollback hedefi kayitli, kosulmadi). Bundle **13 sa 15 dk**
+   eskiymis. **34 olcum onaylanan tabloya BIREBIR uydu** (ayni 21 · kapali→fiyat 12 ·
+   kurus degisen 1 · beklenmeyen **0**); canli SONRA = yerel `ac6864e3` **34/34 fark 0**.
+   L1 `hacim-dogrulanmamis` → `parametre-araligi` (asil iddia), `kutu` 15.000 kurus (kapi kor
+   degil), `rulman` satisa ACILMADI. 🔴 **KALEM ACIK: CI hala Worker yayinlamiyor.**
+1c. 🟡 **YENI (kutudan, karar bende):** (a) **HocA** — `sss/` sayfasi uretim malzemesi olarak
+   **POM** vaat ediyor, `ege-bilgi.md` malzeme kapsaminda POM YOK; ya uretiliyor (bilgiye eklenir)
+   ya metin bayat (SSS'den cikar) — uretim kapasitesi karari. (b) **KaaN** — `rampa.json`
+   `"motor":"pruvo"` beyani `aileler/rampa.js` formuluyle celisiyor (%15,37 / %17,65 / %20,30);
+   KaaN olcuyor, yargi bende.
 2b. **PARK — mukerrer dal:** `claude/upbeat-kapitsa-d7c9ac` (`36bf4a06`, worktree
    `.claude/worktrees/upbeat-kapitsa-d7c9ac`) A3 kor noktasini PARALEL onarmis (13 mutant).
    Benim surumum (`193cd6f0`) main'de ve daha genis (19 mutant + A6 kapsam iddiasi) → dal
@@ -118,20 +109,7 @@ Izgara `ic_cap 5–20/0,5 × dis_cap 28–60/0,5 × genislik 5–15/0,5 × elema
 ArTisT: marka-model sayfasi acma esigi onerisi (veri verildi: 1.062 marka-model ciftinin 812'si
 5'ten az urun) · HocA: bende bekleyen yok.
 
-**✅ KAPANDI 3 Agu: merge `242e4496` (ff, itildi) — uyum kapisi yorumundaki bayat mutant sayisi.**
-`deploy.yml`'de "Uyum kapisi" adiminin ustundeki yorum "12 oldurucu KIRMIZI + 1 ilgisiz YESIL"
-diyordu; batarya 29 mutanta cikmisti. `24c208e5`'in yordami uygulandi: sayi yorumdan CIKARILDI,
-yerine mutant SINIFLARI (OLDURUCU olcut-ESIT · KONTROL yanlis-pozitif kapisi · FAIL-CLOSED
-taninmayan kayit varsayilana dusmez) + M00'in TABAN IDDIA SAYISINI olcmesi + kopya-uzerinde
-sha256 bas/son butunlugu yazildi. Sayi artik yalniz aracin ciktisinda.
-- **Olculen batarya:** `29/29 mutant BEYANINA UYDU (iddia sayisi 39, hepsinde SABIT)`, rc=0;
-  25 oldurucu + 4 kontrol (M7/M21/M22/M28). Mutasyonu olmayan iddia 7/39 (bloklamaz, gorunur).
-- **Kapsam:** 1 dosya, +22 −2, merge-base `d8024a27`, cakisma YOK. **Sayac ve beyan disinda
-  degisen satir 0** — yorum disi govde HEAD ile bit-bazinda ozdes; `run:`/`name:`/`uses:`
-  satirlari degismedi, `|| true`/`continue-on-error`/`if: always()` sayaclari sabit (0/18/1).
-- **Kapilar:** `is-akisi-kapisi.py` YESIL (175 kapi cagrisi · 0 etkisizlestirilmis · 50 serit-B
-  beyani) · `ci-kapsam-test.py` YESIL (172 kabul testi / 133 otomatik / 2 elle / 39 muaf) ·
-  YAML gecerli (8 job, psych) · D1 uc eksen: SAYI 16874==16874 · SEMA temiz · ICERIK birebir.
+**✅ KAPANDI 3 Agu: merge `242e4496` — uyum kapisi yorumundaki bayat mutant sayisi (dokum DEVAM-ARSIV.md'de).**
 
 ## AÇIK KALEMLER — önceki turlardan (kısaltıldı, taşınmadı)
 - Sabah/gece kalinti sinifi: pencere icinde 2 sabahin 2'sinde AKIYOR→TIKALI salindi (2 Agu
