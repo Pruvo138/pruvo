@@ -50,7 +50,7 @@ KOSUM = os.path.join(DIR, "cip-indeks-kosum.js")
 
 # 🔴 IDDIA SAYISI SOZLESMESI (olcut ESIT, ">=" DEGIL): kosum dosyasindan bir iddia
 # SESSIZCE dusurulurse ya da bir mod hic kosmazsa kapi KIRMIZI yanar.
-BEKLENEN_IDDIA = 87
+BEKLENEN_IDDIA = 91
 
 
 def _modul(yol, ad):
@@ -118,6 +118,15 @@ def fikstur():
         ekle("mercury-mp-%d" % i, "Marin", "Motor Parçaları", ["Mercury"], [])
     for i in range(1, 17):
         ekle("yamaha-pv-%d" % i, "Marin", "Pervaneler", ["Yamaha"], [])
+    # UC ETIKETI EKSENI (olculen CANLI hata, 3 Agu): Marin'de HAM etiket "Volvo Penta";
+    # kanonik "Volvo" bu kategoride HAM olarak HIC gecmez. Cip "Volvo" yazar, UC ise ham
+    # etiketle TAM eslesir (katlamaz) -> kanonik gonderilirse 0 doner = OLU UC.
+    # KENDI GRUBUNDA durur ("Anotlar") ki mevcut Motor Parçaları/Pervaneler daralma
+    # iddialarinin beklenen degerleri DEGISMESIN.
+    # 15 urun = ESIK_MARKA siniri (cip olur). KONTROL EKSENI ayni fikstordedir:
+    # Mercury/Yamaha'da kanonik = ham -> `e` DOGMAMALI (davranis bayt-ayni kalmali).
+    for i in range(1, 16):
+        ekle("volvopenta-an-%d" % i, "Marin", "Anotlar", ["Volvo Penta"], [])
     return urunler
 
 
@@ -194,6 +203,33 @@ def kabul(kok):
             toplam_marka > 0 and toplam_model > 0 and len(ix["alt"]) > 0,
             "marka=%d model=%d alt=%d" % (toplam_marka, toplam_model, len(ix["alt"])))
 
+    # --- A6/A7) UC MARKA ETIKETI: gorunen cip UCTA da >0 olmali -------------
+    # 🔴 UC SIMULATORU YAZILMAZ (bu depoda olculdu: fikstur ucu taklit ederse test
+    # uretimi degil KENDI varsayimini aynalar). Iddia dogrudan KATALOG uzerinde
+    # kurulur: ucun sozlesmesi CANLI olculdu — HAM etiketle TAM eslesir, katlamaz
+    # (tools/cip-indeks.py :: modul docstring'i). O halde istemcinin gonderecegi etiketin
+    # o kategoride HAM olarak >0 urunde gecmesi GEREK VE YETER.
+    ham_sayim = {}   # (kat, HAM etiket) -> n   (URUN bazli, cip sayimiyla ayni birim)
+    for u in gercek:
+        k = (u.get("kategori") or "").strip()
+        for ham in set((x or "").strip() for x in (u.get("marka") or []) if (x or "").strip()):
+            ham_sayim[(k, ham)] = ham_sayim.get((k, ham), 0) + 1
+    olu, sapan = [], []
+    for kat, kd in ix["kat"].items():
+        for mk, d in kd.items():
+            etiket = d.get("e", mk)          # istemcinin gonderecegi etiket
+            n = ham_sayim.get((kat, etiket), 0)
+            if n <= 0:
+                olu.append("%s/%s->'%s'=0" % (kat, mk, etiket))
+            if "e" in d and d["e"] == mk:
+                sapan.append("%s/%s: `e` kanonige esit (gereksiz bayt)" % (kat, mk))
+    dogrula("A6 GORUNEN HER MARKA CIPININ UC ETIKETI KATALOGDA >0 (olu uc YOK)",
+            not olu, "cip=%d olu=%d %s" % (toplam_marka, len(olu), olu[:3]))
+    dogrula("A7 `e` YALNIZ KANONIK HAM OLARAK YOKKEN YAZILIR (gereksiz alan yok)",
+            not sapan, "e-tasiyan=%d sapan=%d %s"
+            % (sum(1 for kd in ix["kat"].values() for d in kd.values() if "e" in d),
+               len(sapan), sapan[:3]))
+
     # --- B) YAYIN KOPYASINA ENJEKSIYON GERCEKTEN OLUYOR ---------------------
     # Kaynak index.html'de indeks YOKTUR (bilerek); build.py yayin kopyasina gomer.
     # Enjeksiyon kopmusssa capraz daralma canlida SESSIZCE kaybolurdu.
@@ -253,6 +289,14 @@ def kabul(kok):
             set(oto.get("BMW", {}).get("m", {})) == {"E46", "E36"} and
             oto.get("Ford", {}).get("m") == {},
             "markalar=%s BMW modelleri=%s" % (sorted(oto), sorted(oto.get("BMW", {}).get("m", {}))))
+    # UC ETIKETI — POZITIF ve KONTROL ekseni AYNI fiksturde (tek yon = olu nobetci).
+    mar = fix["kat"].get("Marin", {})
+    dogrula("E0b FIKSTUR UC ETIKETI: katlanmis cipte `e` DOGAR, kanonik=ham olanda DOGMAZ",
+            mar.get("Volvo", {}).get("e") == "Volvo Penta" and
+            "e" not in mar.get("Mercury", {}) and "e" not in mar.get("Yamaha", {}),
+            "Volvo.e=%s Mercury.e=%s Yamaha.e=%s"
+            % (mar.get("Volvo", {}).get("e"), mar.get("Mercury", {}).get("e"),
+               mar.get("Yamaha", {}).get("e")))
 
     fd1, kat_yol = tempfile.mkstemp(prefix="pruvo-cip-katalog-", suffix=".json")
     with os.fdopen(fd1, "w", encoding="utf-8") as f:
@@ -355,6 +399,25 @@ MUTANTLAR = [
      '        if(Object.prototype.toString.call(mk) !== "[object Array]"){\n          return "olculemedi";           // kart marka taşımıyor → doğrulanamaz\n        }',
      '        mk = mk || [];   // olculemedi dali kaldirildi', "KIRMIZI",
      "'OLCEMEDIM'I YESIL SAY: kart marka tasimazsa dogrulama atlanir, fail-open acilir"),
+    # --- UC MARKA ETIKETI EKSENI (cip KATLANMIS <-> uc HAM) -----------------
+    ("index.html",
+     '    if(activeBrand !== "Tümü"){ p.set("marka", ucMarkaEtiketi(activeCat, activeBrand)); }',
+     '    if(activeBrand !== "Tümü"){ p.set("marka", activeBrand); }', "KIRMIZI",
+     "ISTEMCI KANONIGI GONDERSIN: uc katlamaz -> gorunen cip 0 urun (olculen canli hata)"),
+    ("cip-indeks.py",
+     "    if not hamlar or kanonik in hamlar:\n        return None",
+     "    return None", "KIRMIZI",
+     "UC ETIKETINI URETME: `e` hic dogmaz, katlanmis cip yine olu uc olur"),
+    ("cip-indeks.py",
+     '            e = uc_etiketi(kat_marka_ham.get((kat, mk), {}), mk)\n            if e is not None:',
+     '            e = uc_etiketi(kat_marka_ham.get((kat, mk), {}), mk)\n            if False:',
+     "KIRMIZI",
+     "ETIKETI INDEKSE YAZMA: uretec dogru hesaplar, istemciye HIC ulasmaz (kablolama kopar)"),
+    ("cip-indeks.py",
+     "    if not hamlar or kanonik in hamlar:\n        return None\n    return sorted(hamlar.items(), key=lambda t: (-t[1], t[0]))[0][0]",
+     "    if not hamlar:\n        return None\n    return sorted(hamlar.items(), key=lambda t: (-t[1], t[0]))[0][0]",
+     "KIRMIZI",
+     "HER MARKAYA `e` YAZ: kanonik=ham olanda da alan dogar (gereksiz bayt + kontrol ekseni duser)"),
     # --- KONTROL MUTANTLARI (YESIL bekleniyor) — iddialar ILGISIZ degisikliklere
     # PINLENMIS mi? Yesil kalmazlarsa kapi asiri-baglanmistir ([[kapi-kapsam-eksen-secimi]]).
     ("index.html", '.brand-btn:hover{border-color:var(--navy-2)}',

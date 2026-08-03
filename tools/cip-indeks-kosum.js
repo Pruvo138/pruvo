@@ -532,6 +532,31 @@ async function modKos(mod) {
 
 // ---------------------------------------------------------------- moda ozgu
 async function edgeOzel() {
+  // --- E0) UC MARKA ETIKETI: cip KATLANMIS, uc HAM ister -----------------
+  // Olculen CANLI hata (3 Agu): /katalog?kategori=Marin&marka=Volvo -> 0 (51 urun kayip);
+  // marka=Volvo Penta -> 51. Uc TAM eslesir, KATLAMAZ. Bu iddia istemcinin uca HANGI
+  // etiketi gonderdigini fetch izinden okur — DOM'da cip aramak bu sinifi gormez.
+  // KONTROL EKSENI hemen altinda: kanonik = ham olan markada etiket DEGISMEMELI
+  // (yoksa "her marka icin `e` uret" mutanti da yesil gecerdi).
+  {
+    const s = await sayfaKur("edge", "?kategori=Marin&marka=Volvo");
+    const son = s.fetchIzi[s.fetchIzi.length - 1] || "";
+    iddia("EDGE UCA HAM MARKA ETIKETI GIDER (cip 'Volvo' -> uc 'Volvo Penta')",
+      son.indexOf("marka=Volvo+Penta") !== -1 || son.indexOf("marka=Volvo%20Penta") !== -1,
+      "istek=" + son);
+    iddia("EDGE KATLANMIS CIP >0 URUN DONDURUR (olu uc yok)",
+      s.sayi() === sayKM("Marin", null, "Volvo Penta", null) && s.sayi() > 0,
+      "sayi=" + s.sayi() + " beklenen=" + sayKM("Marin", null, "Volvo Penta", null));
+    iddia("EDGE SECILI CIP ETIKETI KATLANMIS KALIR (musteri 'Volvo' gorur)",
+      s.aktif("brandChips") === "Volvo", "aktif=" + s.aktif("brandChips"));
+
+    const t = await sayfaKur("edge", "?kategori=Marin&marka=Mercury");
+    const sonT = t.fetchIzi[t.fetchIzi.length - 1] || "";
+    iddia("EDGE KONTROL: KANONIK=HAM MARKADA ETIKET DEGISMEZ (Mercury)",
+      sonT.indexOf("marka=Mercury") !== -1 && t.sayi() === sayKM("Marin", null, "Mercury", null),
+      "istek=" + sonT + " sayi=" + t.sayi());
+  }
+
   // --- E1) MODEL `model=` PARAMETRESIYLE GIDER, MARKA KORUNUR -------------
   {
     const s = await sayfaKur("edge", "?kategori=Otomobil&marka=BMW");

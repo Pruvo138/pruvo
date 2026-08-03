@@ -48,6 +48,20 @@ YUKLEM BIRLIGI (kritik): sayimlar index.html `filtered()` ile AYNI yuklemle yapi
 Ayri bir sayim formulu yazilsaydi cip "3 urun" der, tik 0 getirirdi
 ([[ikiz-tanim-sessiz-ayrisma]]).
 
+UC MARKA ETIKETI (`e` alani — olculdu 3 Agu, CANLI): cip etiketi KATLANMIS kanoniktir
+("Volvo Penta" -> "Volvo"), UC ise ham etiketle TAM/BUYUK-KUCUK DUYARLI eslesir ve
+KATLAMAZ. Olculen canli cikti:
+    /katalog?kategori=Marin&marka=Volvo        -> toplam 0     (OLU UC — 51 urun kayip)
+    /katalog?kategori=Marin&marka=Volvo Penta  -> toplam 51
+    /katalog?kategori=Otomobil&marka=Mercedes  -> 1016  (kanonik 1036; "Mercedes-Benz" 20 DUSER)
+    marka=Mercedes,Mercedes-Benz -> 0 · marka=merc -> 0 · marka=volvo penta -> 0
+Yani uc virgul/coklu/onek/kucuk-harf KABUL ETMIYOR: gonderilebilecek TEK sey bir HAM etiket.
+Iki taraf ayri etiket kullandigi surece gorunen cip OLU UC verir ([[ikiz-tanim-sessiz-ayrisma]]).
+INDEKS bu yuzden her cipe `e` (uc etiketi) yazar: kanonik ad o kategoride HAM olarak
+GECMIYORSA, en cok urunlu ham etiket (esitlikte alfabetik) `e` olur; geciyorsa `e` HIC
+yazilmaz (bayt tasarrufu + davranis aynen kalir). Etiket UYDURULMAZ, urunler.json'daki
+ham degerden turer. Istemci `e`yi index.html :: ucMarkaEtiketi ile okur.
+
 UC SOZLESMESI (olculdu 2 Agu, canli): /katalog ve /ara `model` parametresini TANIYOR —
 `?kategori=Otomobil&marka=BMW&model=E46` -> 104 (indeksin dedigi sayiyla BIREBIR),
 `?model=E46` (markasiz) -> 104, `model=xyzyok` -> 0. AMA AYNI GUN daha ONCE olculdugunde
@@ -145,6 +159,18 @@ def _ham_kume(urun):
     return set((x or "").strip() for x in (urun.get("marka") or []) if (x or "").strip())
 
 
+def uc_etiketi(hamlar, kanonik):
+    """UC'e gonderilecek HAM etiket — ya da None (kanonik zaten ham olarak var).
+
+    UC katlamaz, TAM eslesir (canli olcum -> modul docstring'i). Kanonik ad o kategoride
+    ham olarak GECIYORSA bugunku istek AYNEN calisir -> None (bayt + davranis degismez).
+    GECMIYORSA cip OLU UC olurdu -> en cok urunlu ham etiket secilir (esitlikte alfabetik,
+    deterministik). Ham kume BOS ise (olamaz ama) None: uydurma etiket URETILMEZ."""
+    if not hamlar or kanonik in hamlar:
+        return None
+    return sorted(hamlar.items(), key=lambda t: (-t[1], t[0]))[0][0]
+
+
 # ---------------------------------------------------------------- indeks uretimi
 def indeks_uret(urunler, index_metni):
     """kategori -> marka -> {n, a{altIx:n}, m{model:{n, a{altIx:n}}}} (+ katalt, alt)
@@ -156,6 +182,7 @@ def indeks_uret(urunler, index_metni):
     kat_alt = {}            # (kat, altk)         -> n   (URUN bazli; marka'dan BAGIMSIZ)
     kat_marka = {}          # (kat, marka)        -> n
     kat_alt_marka = {}      # (kat, altk, marka)  -> n
+    kat_marka_ham = {}      # (kat, marka)        -> {HAM etiket: n}  (uc etiketi icin)
     cift = set()            # (kat, marka, model) — `uyum`un kurdugu marka<->model bagi
 
     # --- 1. gecis: marka sayimlari + marka<->model bagi + etiket sahipligi ---
@@ -167,6 +194,14 @@ def indeks_uret(urunler, index_metni):
         for b in markalar:
             kat_marka[(kat, b)] = kat_marka.get((kat, b), 0) + 1
             kat_alt_marka[(kat, altk, b)] = kat_alt_marka.get((kat, altk, b), 0) + 1
+        # UC ETIKETI icin ham etiket sahipligi: URUN basina TEKIL sayilir (kat_marka ile
+        # ayni birim), yoksa cok etiketli urun sayiyi sisirir ve `e` yanlis etikete kayar.
+        for ham in set(_ham_kume(u)):
+            kan = evren.katla(ham)
+            if kan not in markalar:
+                continue
+            d = kat_marka_ham.setdefault((kat, kan), {})
+            d[ham] = d.get(ham, 0) + 1
         for oge in (u.get("uyum") or []):
             mk = evren.katla((oge.get("marka") or "").strip())
             md = (oge.get("model") or "").strip()
@@ -210,7 +245,11 @@ def indeks_uret(urunler, index_metni):
     agac = {}
     for (kat, mk), n in kat_marka.items():
         if (kat, mk) in gecerli_marka:
-            agac.setdefault(kat, {})[mk] = {"n": n, "a": {}, "m": {}}
+            dugum = {"n": n, "a": {}, "m": {}}
+            e = uc_etiketi(kat_marka_ham.get((kat, mk), {}), mk)
+            if e is not None:
+                dugum["e"] = e
+            agac.setdefault(kat, {})[mk] = dugum
     for (kat, altk, mk), n in kat_alt_marka.items():
         if (kat, mk) in gecerli_marka:
             agac[kat][mk]["a"][str(alt_ix[altk])] = n

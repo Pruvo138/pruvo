@@ -2690,6 +2690,22 @@
     out.sort(function(a, b){ return (b.n - a.n) || a.ad.localeCompare(b.ad, "tr"); });
     return out;
   }
+  // UÇ MARKA ETİKETİ — çip etiketi KATLANMIŞ kanoniktir, uç HAM etiketle TAM eşleşir.
+  // 🔴 ÖLÇÜLDÜ (3 Ağu, CANLI): /katalog?kategori=Marin&marka=Volvo → toplam 0 (51 ürün
+  // sessizce kayıp) · marka=Volvo Penta → 51. Uç virgül/çoklu param/önek/küçük-harf
+  // KABUL ETMİYOR (marka=Mercedes,Mercedes-Benz → 0 · marka=merc → 0 · marka=volvo penta
+  // → 0), yani gönderilebilecek TEK şey bir HAM etikettir. İki taraf ayrı etiket
+  // kullandığı sürece GÖRÜNEN çip ÖLÜ UÇ verir ([[ikiz-tanim-sessiz-ayrisma]]).
+  // Etiket burada UYDURULMAZ: çip indeksinin `e` alanından gelir (tools/cip-indeks.py ::
+  // uc_etiketi), o da urunler.json'daki HAM değerden türer — tek kaynak, iki taraf.
+  // FAIL-CLOSED: indeks yoksa ya da `e` yoksa bugünkü davranış (kanonik ad) AYNEN kalır;
+  // uydurma etiket üretilmez. Dönen kartlar yine edgeSuzgecSapmasi ile DEĞER ekseninde
+  // doğrulanır (markaKatla("Volvo Penta") === "Volvo" → seçim ile tutarlı).
+  function ucMarkaEtiketi(kat, marka){
+    if(marka === "Tümü"){ return marka; }
+    var kd = _ixKat(kat), d = kd && kd[marka];
+    return (d && typeof d.e === "string" && d.e) ? d.e : marka;
+  }
   // Model, (kategori, marka) çiftinde TANIMLI mı (grup ekseninden bağımsız)?
   function modelTanimliMi(kat, marka, model){
     var kd = _ixKat(kat);
@@ -3424,7 +3440,10 @@
     var q = query.trim();
     var p = new URLSearchParams();
     if(activeCat !== "Tümü"){ p.set("kategori", activeCat); }
-    if(activeBrand !== "Tümü"){ p.set("marka", activeBrand); }
+    // MARKA: uca KANONİK ad DEĞİL, ucun tanıdığı HAM etiket gider (ucMarkaEtiketi).
+    // Kanonik gönderilirse "Volvo" gibi yalnız KATLAMA sonucu var olan etiketler uçta
+    // 0 döner ve görünen çip ölü uç olur (ölçüm → ucMarkaEtiketi başlığı).
+    if(activeBrand !== "Tümü"){ p.set("marka", ucMarkaEtiketi(activeCat, activeBrand)); }
     // Alt kategori İKİ uçta da geçerli (Worker: /katalog ve /ara aynı katMarkaAltKosulu'nu
     // kullanır) — bu yüzden `if(q)` dallanmasından ÖNCE bağlanır.
     if(activeAlt !== "Tümü"){ p.set("altkategori", activeAlt); }
