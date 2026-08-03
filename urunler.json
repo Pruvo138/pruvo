@@ -7778,7 +7778,8 @@
     "id": "mercury-18-3551-142f-termostat",
     "kategori": "Marin",
     "marka": [
-      "Mercury"
+      "Mercury",
+      "Volvo Penta"
     ],
     "baslik": "Mercury 18-3551 142°F Termostat",
     "aciklama": "MerCruiser ve Volvo Penta sterndrive motorları için orijinal kalite soğutma termostatı (OEM referans: 59137).\nMotorun soğutma sisteminde çalışma sıcaklığını 142°F (61°C) eşiğinde düzenler.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
@@ -7792,6 +7793,9 @@
     "uyum": [
       {
         "marka": "Mercury"
+      },
+      {
+        "marka": "Volvo Penta"
       }
     ]
   },
@@ -7799,7 +7803,8 @@
     "id": "omc-18-3677-deniz-motoru-termostati",
     "kategori": "Marin",
     "marka": [
-      "OMC"
+      "OMC",
+      "Volvo Penta"
     ],
     "baslik": "OMC 18-3677 Deniz Motoru Termostatı",
     "aciklama": "MerCruiser, Volvo Penta ve OMC/Cobra sterndrive motorlarında (4.3L-5.0L-5.8L EFI) kullanılan soğutma termostatı (OEM referans: 3856961).\nMotorun soğutma sisteminde çalışma sıcaklığını düzenler.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
@@ -7813,6 +7818,9 @@
     "uyum": [
       {
         "marka": "OMC"
+      },
+      {
+        "marka": "Volvo Penta"
       }
     ]
   },
@@ -7925,7 +7933,8 @@
     "id": "mercury-18-2949-v8-egzoz-manifold-contasi",
     "kategori": "Marin",
     "marka": [
-      "Mercury"
+      "Mercury",
+      "Volvo Penta"
     ],
     "baslik": "Mercury 18-2949 V8 Egzoz Manifold Contası",
     "aciklama": "GM V8 bloklu MerCruiser ve Volvo Penta sterndrive motorlarının egzoz manifoldu bağlantısında kullanılan conta (OEM referans: 33395).\nManifold ile motor bloğu arasındaki egzoz gazı sızdırmazlığını sağlar.\nMontaj öncesi motorunuzun model ve seri numarasından uyumluluğu teyit etmenizi öneririz.",
@@ -7939,6 +7948,9 @@
     "uyum": [
       {
         "marka": "Mercury"
+      },
+      {
+        "marka": "Volvo Penta"
       }
     ]
   },
@@ -8634,7 +8646,8 @@
     "id": "mercury-distributor-sensoru-18-5108",
     "kategori": "Marin",
     "marka": [
-      "Mercury"
+      "Mercury",
+      "Volvo Penta"
     ],
     "baslik": "Quicksilver 18-5108 MerCruiser/Volvo Penta Distributor Sensörü",
     "aciklama": "Mercury Quicksilver orijinal pick-up bobin sensörü / distributor sensörü (parça kodu: 892150Q02, Sierra karşılığı 18-5108).\nDelco HEI ateşleme sistemli MerCruiser V6/V8 (Thunderbolt IV-V) ve Volvo Penta deniz motorlarıyla uyumludur.\nVolvo Penta 3854001, OMC 986642 ve Mercury 811639 referanslarının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski sensör kodundan uyumluluğu teyit etmenizi öneririz.",
@@ -8648,6 +8661,9 @@
     "uyum": [
       {
         "marka": "Mercury"
+      },
+      {
+        "marka": "Volvo Penta"
       }
     ]
   },
@@ -8714,7 +8730,8 @@
     "id": "mercury-hava-sicaklik-sensoru-18-7702",
     "kategori": "Marin",
     "marka": [
-      "Mercury"
+      "Mercury",
+      "Volvo Penta"
     ],
     "baslik": "Quicksilver 18-7702 MerCruiser/Volvo Hava Sıcaklık Sensörü",
     "aciklama": "Mercury Quicksilver orijinal emme havası sıcaklık sensörü / IAT sensörü (parça kodu: 805223T, Sierra karşılığı 18-7702).\nMerCruiser V6/V8 (350, 454, 496, 502 MPI dahil) ve Volvo Penta deniz motorlarıyla uyumludur.\nVolvo Penta 3854527 referansının doğrudan muadilidir.\nMontaj öncesi motorunuzun eski sensör kodundan uyumluluğu teyit etmenizi öneririz.",
@@ -8728,6 +8745,9 @@
     "uyum": [
       {
         "marka": "Mercury"
+      },
+      {
+        "marka": "Volvo Penta"
       }
     ]
   },
@@ -217966,7 +217986,7 @@
     "kategori": "Otomobil",
     "marka": [
       "BMW",
-      "Mercedes-Benz"
+      "Mercedes"
     ],
     "baslik": "İç Döşeme Trim Klipsi (BMW ve Mercedes Uyumlu)",
     "aciklama": "BMW ve Mercedes araçlarda yaygın kullanılan iç döşeme trim klipsinin (grommet/soket) muadilidir.\n- Kırılganlaşıp dağılan orijinal klipslerin yerine takılır.\n- Döşeme panellerini gövdeye sabitler.\n- Siparişe göre özel tasarım üretimle hazırlanır.",
@@ -217982,8 +218002,10 @@
     "altkategori": "İç Aksam",
     "uyum": [
       {
-        "marka": "BMW",
-        "model": "Mercedes-Benz"
+        "marka": "BMW"
+      },
+      {
+        "marka": "Mercedes"
       }
     ]
   },
